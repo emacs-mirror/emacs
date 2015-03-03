@@ -1611,8 +1611,8 @@ will be deleted."
                    (mapconcat #'symbol-name removable ", ")))
             (mapc (lambda (p)
                     (package-delete (cadr (assq p package-alist)) t))
-              removable)
-            (message "Nothing to autoremove"))))))
+                  removable))
+        (message "Nothing to autoremove")))))
 
 (defun package-archive-base (desc)
   "Return the archive containing the package NAME."

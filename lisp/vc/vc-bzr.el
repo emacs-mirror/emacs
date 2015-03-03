@@ -73,6 +73,16 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
                  (repeat :tag "Argument List" :value ("") string))
   :group 'vc-bzr)
 
+(defcustom vc-bzr-annotate-switches nil
+  "String or list of strings specifying switches for bzr annotate under VC.
+If nil, use the value of `vc-annotate-switches'.  If t, use no switches."
+  :type '(choice (const :tag "Unspecified" nil)
+		 (const :tag "None" t)
+		 (string :tag "Argument String")
+		 (repeat :tag "Argument List" :value ("") string))
+  :version "25.1"
+  :group 'vc-bzr)
+
 (defcustom vc-bzr-log-switches nil
   "String or list of strings specifying switches for bzr log under VC."
   :type '(choice (const :tag "None" nil)
@@ -826,7 +836,8 @@ If LIMIT is non-nil, show no more than this many entries."
 Each line is tagged with the revision number, which has a `help-echo'
 property containing author and date information."
   (apply #'vc-bzr-command "annotate" buffer 'async file "--long" "--all"
-         (if revision (list "-r" revision)))
+         (append (vc-switches 'bzr 'annotate)
+		 (if revision (list "-r" revision))))
   (let ((table (make-hash-table :test 'equal)))
     (set-process-filter
      (get-buffer-process buffer)

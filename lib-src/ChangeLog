@@ -1,3 +1,14 @@
+2015-02-27  Mark Laws  <mdl@60hz.org>
+
+	Support daemon mode on MS-Windows (bug#19688)
+	* emacsclient.c (decode_options) [WINDOWSNT]: Don't reject empty
+	arguments for --alternate-editor.
+	(print_help_and_exit) [WINDOWSNT]: Don't refrain from advertising
+	empty arguments for --alternate-editor.
+	(start_daemon_and_retry_set_socket) [WINDOWSNT]: MS-Windows
+	specific code to start Emacs in daemon mode and wait for it to be
+	ready for client connections.
+
 2015-02-23  Pete Williamson  <petewil0@googlemail.com>  (tiny change)
 
 	Use ${EXEEXT} more uniformly in makefiles

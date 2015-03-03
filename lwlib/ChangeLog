@@ -1,3 +1,8 @@
+2015-02-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xlwmenu.c (remap_menubar): Re-realize menu to force move under
+	Gnome 3.
+
 2015-01-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Less 'make' chatter for lwlib

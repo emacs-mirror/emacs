@@ -780,6 +780,26 @@ not specific to any particular backend."
   :group 'vc
   :version "21.1")
 
+(defcustom vc-annotate-switches nil
+  "A string or list of strings specifying switches for annotate under VC.
+When running annotate under a given BACKEND, VC uses the first
+non-nil value of `vc-BACKEND-annotate-switches', `vc-annotate-switches',
+and `annotate-switches', in that order.  Since nil means to check the
+next variable in the sequence, either of the first two may use
+the value t to mean no switches at all.  `vc-annotate-switches'
+should contain switches that are specific to version control, but
+not specific to any particular backend.
+
+As very few switches (if any) are used across different VC tools,
+please consider using the specific `vc-BACKEND-annotate-switches'
+for the backend you use."
+  :type '(choice (const :tag "Unspecified" nil)
+		 (const :tag "None" t)
+		 (string :tag "Argument String")
+		 (repeat :tag "Argument List" :value ("") string))
+  :group 'vc
+  :version "25.1")
+
 (defcustom vc-log-show-limit 2000
   "Limit the number of items shown by the VC log commands.
 Zero means unlimited.
@@ -930,6 +950,7 @@ use."
 	(vc-call-backend bk 'create-repo))
       (throw 'found bk))))
 
+;;;###autoload
 (defun vc-responsible-backend (file)
   "Return the name of a backend system that is responsible for FILE.
 

@@ -1160,7 +1160,7 @@ dumping to it."
       (insert
        (format "frame pixel: %s x %s   cols/lines: %s x %s   units: %s x %s\n"
 	       (frame-pixel-width frame) (frame-pixel-height frame)
-	       (frame-total-cols frame) (frame-text-lines frame) ; (frame-total-lines frame)
+	       (frame-total-cols frame) (frame-total-lines frame)
 	       (frame-char-width frame) (frame-char-height frame))
        (format "frame text pixel: %s x %s   cols/lines: %s x %s\n"
 	       (frame-text-width frame) (frame-text-height frame)

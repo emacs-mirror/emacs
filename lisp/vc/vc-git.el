@@ -120,6 +120,16 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :version "23.1"
   :group 'vc-git)
 
+(defcustom vc-git-annotate-switches nil
+  "String or list of strings specifying switches for Git blame under VC.
+If nil, use the value of `vc-annotate-switches'.  If t, use no switches."
+  :type '(choice (const :tag "Unspecified" nil)
+		 (const :tag "None" t)
+		 (string :tag "Argument String")
+		 (repeat :tag "Argument List" :value ("") string))
+  :version "25.1"
+  :group 'vc-git)
+
 (defcustom vc-git-program "git"
   "Name of the Git executable (excluding any arguments)."
   :version "24.1"
@@ -1013,7 +1023,9 @@ or BRANCH^ (where \"^\" can be repeated)."
 
 (defun vc-git-annotate-command (file buf &optional rev)
   (let ((name (file-relative-name file)))
-    (vc-git-command buf 'async nil "blame" "--date=iso" "-C" "-C" rev "--" name)))
+    (apply #'vc-git-command buf 'async nil "blame" "--date=iso"
+	   (append (vc-switches 'git 'annotate)
+		   (list rev "--" name)))))
 
 (declare-function vc-annotate-convert-time "vc-annotate" (time))
 

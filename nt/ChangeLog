@@ -1,3 +1,18 @@
+2015-03-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* cmdproxy.c (get_next_token): Don't make backslashes disappear
+	without a trace when they are not followed by a quote.
+	(search_dir): Support searching programs whose file name already
+	has an arbitrary extension.  (Bug#19817)
+	(main): When passing a command line to the shell, use cmd.exe
+	rules for quoting command-line tail.
+
+2015-03-03  Oscar Fuentes  <ofv@wanadoo.es>
+2015-02-27  Mark Laws  <mdl@60hz.org>
+
+	Support daemon mode on MS-Windows (bug#19688)
+	* inc/ms-w32.h (W32_DAEMON_EVENT): New macro.
+
 2015-01-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (AM_V_CC, am__v_CC_, am__v_CC_0, am__v_CC_1)

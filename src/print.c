@@ -2059,7 +2059,14 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 			    printcharfun);
 	    }
 	  PRINTCHAR ('>');
-	  break;
+          break;
+
+        case Lisp_Misc_Finalizer:
+          strout ("#<finalizer", -1, -1, printcharfun);
+          if (NILP (XFINALIZER (obj)->function))
+            strout (" used", -1, -1, printcharfun);
+          strout (">", -1, -1, printcharfun);
+          break;
 
 	  /* Remaining cases shouldn't happen in normal usage, but let's
 	     print them anyway for the benefit of the debugger.  */

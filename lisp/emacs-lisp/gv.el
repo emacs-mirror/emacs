@@ -493,9 +493,20 @@ This is like the `&' operator of the C language.
 Note: this only works reliably with lexical binding mode, except for very
 simple PLACEs such as (function-symbol 'foo) which will also work in dynamic
 binding mode."
-  (gv-letplace (getter setter) place
-    `(cons (lambda () ,getter)
-           (lambda (gv--val) ,(funcall setter 'gv--val)))))
+  (let ((code
+         (gv-letplace (getter setter) place
+           `(cons (lambda () ,getter)
+                  (lambda (gv--val) ,(funcall setter 'gv--val))))))
+    (if (or lexical-binding
+            ;; If `code' still starts with `cons' then presumably gv-letplace
+            ;; did not add any new let-bindings, so the `lambda's don't capture
+            ;; any new variables.  As a consequence, the code probably works in
+            ;; dynamic binding mode as well.
+            (eq (car-safe code) 'cons))
+        code
+      (macroexp--warn-and-return
+       "Use of gv-ref probably requires lexical-binding"
+       code))))
 
 (defsubst gv-deref (ref)
   "Dereference REF, returning the referenced value.

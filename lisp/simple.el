@@ -5168,10 +5168,11 @@ positive, and disable it otherwise.  If called from Lisp, enable
 Transient Mark mode if ARG is omitted or nil.
 
 Transient Mark mode is a global minor mode.  When enabled, the
-region is highlighted whenever the mark is active.  The mark is
-\"deactivated\" by changing the buffer, and after certain other
-operations that set the mark but whose main purpose is something
-else--for example, incremental search, \\[beginning-of-buffer], and \\[end-of-buffer].
+region is highlighted with the `region' face whenever the mark
+is active.  The mark is \"deactivated\" by changing the buffer,
+and after certain other operations that set the mark but whose
+main purpose is something else--for example, incremental search,
+\\[beginning-of-buffer], and \\[end-of-buffer].
 
 You can also deactivate the mark by typing \\[keyboard-quit] or
 \\[keyboard-escape-quit].

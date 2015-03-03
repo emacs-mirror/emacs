@@ -95,6 +95,17 @@ If you want to force an empty list of arguments, use t."
   :version "22.1"
   :group 'vc-svn)
 
+(defcustom vc-svn-annotate-switches nil
+  "String or list of strings specifying switches for svn annotate under VC.
+If nil, use the value of `vc-annotate-switches'.  If t, use no
+switches."
+  :type '(choice (const :tag "Unspecified" nil)
+		 (const :tag "None" t)
+		 (string :tag "Argument String")
+		 (repeat :tag "Argument List" :value ("") string))
+  :version "25.1"
+  :group 'vc-svn)
+
 (defcustom vc-svn-header '("\$Id\$")
   "Header keywords to be inserted by `vc-insert-headers'."
   :version "24.1"     ; no longer consult the obsolete vc-header-alist
@@ -736,7 +747,9 @@ Set file properties accordingly.  If FILENAME is non-nil, return its status."
 ;; Support for `svn annotate'
 
 (defun vc-svn-annotate-command (file buf &optional rev)
-  (vc-svn-command buf 'async file "annotate" (if rev (concat "-r" rev))))
+  (apply #'vc-svn-command buf 'async file "annotate"
+	 (append (vc-switches 'svn 'annotate)
+		 (if rev (list (concat "-r" rev))))))
 
 (defun vc-svn-annotate-time-of-rev (rev)
   ;; Arbitrarily assume 10 commits per day.

@@ -571,6 +571,12 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 	      for (i = 0; i < matrix->nrows; ++i)
 		matrix->rows[i].enabled_p = false;
 	    }
+	  /* We've disabled the mode-line row, so force redrawing of
+	     the mode line, if any, since otherwise it will remain
+	     disabled in the current matrix, and expose events won't
+	     redraw it.  */
+	  if (WINDOW_WANTS_MODELINE_P (w))
+	    w->update_mode_line = 1;
 	}
       else if (matrix == w->desired_matrix)
 	{
@@ -5961,9 +5967,12 @@ init_display (void)
     }
 #endif /* SIGWINCH */
 
-  /* If running as a daemon, no need to initialize any frames/terminal. */
+  /* If running as a daemon, no need to initialize any frames/terminal,
+     except on Windows, where we at least want to initialize it.  */
+#ifndef WINDOWSNT
   if (IS_DAEMON)
       return;
+#endif
 
   /* If the user wants to use a window system, we shouldn't bother
      initializing the terminal.  This is especially important when the

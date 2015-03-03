@@ -595,13 +595,6 @@ decode_options (int argc, char **argv)
       display = NULL;
       tty = 1;
     }
-
-  if (alternate_editor && alternate_editor[0] == '\0')
-    {
-      message (true, "--alternate-editor argument or ALTERNATE_EDITOR variable cannot be\n\
-an empty string");
-      exit (EXIT_FAILURE);
-    }
 #endif /* WINDOWSNT */
 }
 
@@ -642,10 +635,8 @@ The following OPTIONS are accepted:\n\
 			Set filename of the TCP authentication file\n\
 -a EDITOR, --alternate-editor=EDITOR\n\
 			Editor to fallback to if the server is not running\n"
-#ifndef WINDOWSNT
 "			If EDITOR is the empty string, start Emacs in daemon\n\
 			mode and try connecting again\n"
-#endif /* not WINDOWSNT */
 "\n\
 Report bugs with M-x report-emacs-bug.\n");
   exit (EXIT_SUCCESS);
@@ -1511,7 +1502,77 @@ start_daemon_and_retry_set_socket (void)
       execvp ("emacs", d_argv);
       message (true, "%s: error starting emacs daemon\n", progname);
     }
-#endif /* WINDOWSNT */
+#else  /* WINDOWSNT */
+  DWORD wait_result;
+  HANDLE w32_daemon_event;
+  STARTUPINFO si;
+  PROCESS_INFORMATION pi;
+
+  ZeroMemory (&si, sizeof si);
+  si.cb = sizeof si;
+  ZeroMemory (&pi, sizeof pi);
+
+  /* We start Emacs in daemon mode, and then wait for it to signal us
+     it is ready to accept client connections, by asserting an event
+     whose name is known to the daemon (defined by nt/inc/ms-w32.h).  */
+
+  if (!CreateProcess (NULL, "emacs --daemon", NULL, NULL, FALSE,
+                      CREATE_NO_WINDOW, NULL, NULL, &si, &pi))
+    {
+      char* msg = NULL;
+
+      FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM
+		     | FORMAT_MESSAGE_ALLOCATE_BUFFER
+		     | FORMAT_MESSAGE_ARGUMENT_ARRAY,
+		     NULL, GetLastError (), 0, (LPTSTR)&msg, 0, NULL);
+      message (true, "%s: error starting emacs daemon (%s)\n", progname, msg);
+      exit (EXIT_FAILURE);
+    }
+
+  w32_daemon_event = CreateEvent (NULL, TRUE, FALSE, W32_DAEMON_EVENT);
+  if (w32_daemon_event == NULL)
+    {
+      message (true, "Couldn't create Windows daemon event");
+      exit (EXIT_FAILURE);
+    }
+  if ((wait_result = WaitForSingleObject (w32_daemon_event, INFINITE))
+      != WAIT_OBJECT_0)
+    {
+      char *msg = NULL;
+
+      switch (wait_result)
+	{
+	case WAIT_ABANDONED:
+	  msg = "The daemon exited unexpectedly";
+	  break;
+	case WAIT_TIMEOUT:
+	  /* Can't happen due to INFINITE.  */
+	default:
+	case WAIT_FAILED:
+	  FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM
+			 | FORMAT_MESSAGE_ALLOCATE_BUFFER
+			 | FORMAT_MESSAGE_ARGUMENT_ARRAY,
+			 NULL, GetLastError (), 0, (LPTSTR)&msg, 0, NULL);
+	  break;
+	}
+      message (true, "Error: Could not start the Emacs daemon: %s\n", msg);
+      exit (EXIT_FAILURE);
+    }
+  CloseHandle (w32_daemon_event);
+
+  /* Try connecting, the daemon should have started by now.  */
+  /* It's just a progress message, so don't pop a dialog if this is
+     emacsclientw.  */
+  if (!w32_window_app ())
+    message (true,
+	     "Emacs daemon should have started, trying to connect again\n");
+  if ((emacs_socket = set_socket (1)) == INVALID_SOCKET)
+    {
+      message (true,
+	       "Error: Cannot connect even after starting the Emacs daemon\n");
+      exit (EXIT_FAILURE);
+    }
+#endif	/* WINDOWSNT */
 }
 
 int

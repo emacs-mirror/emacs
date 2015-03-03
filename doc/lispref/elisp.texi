@@ -316,6 +316,7 @@ Programming Types
 * Byte-Code Type::      A function written in Lisp, then compiled.
 * Autoload Type::       A type used for automatically loading seldom-used
                           functions.
+* Finalizer Type::      Runs code when no longer reachable.
 
 Character Type
 
@@ -464,6 +465,7 @@ Control Structures
 * Conditionals::            @code{if}, @code{cond}, @code{when}, @code{unless}.
 * Combining Conditions::    @code{and}, @code{or}, @code{not}.
 * Iteration::               @code{while} loops.
+* Generators::              Generic sequences and coroutines.
 * Nonlocal Exits::          Jumping out of a sequence.
 
 Nonlocal Exits

@@ -223,7 +223,9 @@ for example, (type-of 1) returns `integer'.  */)
 	case Lisp_Misc_Overlay:
 	  return Qoverlay;
 	case Lisp_Misc_Float:
-	  return Qfloat;
+          return Qfloat;
+        case Lisp_Misc_Finalizer:
+          return Qfinalizer;
 	}
       emacs_abort ();
 
@@ -3547,6 +3549,7 @@ syms_of_data (void)
   DEFSYM (Qcons, "cons");
   DEFSYM (Qmarker, "marker");
   DEFSYM (Qoverlay, "overlay");
+  DEFSYM (Qfinalizer, "finalizer");
   DEFSYM (Qfloat, "float");
   DEFSYM (Qwindow_configuration, "window-configuration");
   DEFSYM (Qprocess, "process");

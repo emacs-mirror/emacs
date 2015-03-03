@@ -149,13 +149,14 @@ For a description of possible values, see `vc-check-master-templates'."
 
 (defun vc-sccs-working-revision (file)
   "SCCS-specific version of `vc-working-revision'."
-  (with-temp-buffer
-    ;; The working revision is always the latest revision number.
-    ;; To find this number, search the entire delta table,
-    ;; rather than just the first entry, because the
-    ;; first entry might be a deleted ("R") revision.
-    (vc-insert-file (vc-master-name file) "^\001e\n\001[^s]")
-    (vc-parse-buffer "^\001d D \\([^ ]+\\)" 1)))
+  (when (and (file-regular-p file) (vc-master-name file))
+    (with-temp-buffer
+      ;; The working revision is always the latest revision number.
+      ;; To find this number, search the entire delta table,
+      ;; rather than just the first entry, because the
+      ;; first entry might be a deleted ("R") revision.
+      (vc-insert-file (vc-master-name file) "^\001e\n\001[^s]")
+      (vc-parse-buffer "^\001d D \\([^ ]+\\)" 1))))
 
 ;; Cf vc-sccs-find-revision.
 (defun vc-sccs-write-revision (file outfile &optional rev)

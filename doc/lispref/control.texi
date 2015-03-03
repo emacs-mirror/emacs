@@ -39,6 +39,7 @@ structure constructs (@pxref{Macros}).
 * Conditionals::           @code{if}, @code{cond}, @code{when}, @code{unless}.
 * Combining Conditions::   @code{and}, @code{or}, @code{not}.
 * Iteration::              @code{while} loops.
+* Generators::             Generic sequences and coroutines.
 * Nonlocal Exits::         Jumping out of a sequence.
 @end menu
 
@@ -619,6 +620,123 @@ Here is an example of using @code{dotimes} to do something 100 times:
   (insert "I will not obey absurd orders\n"))
 @end example
 @end defmac
+
+@node Generators
+@section Generators
+@cindex generators
+
+  A @dfn{generator} is a function that produces a potentially-infinite
+stream of values.  Each time the function produces a value, it
+suspends itself and waits for a caller to request the next value.
+
+@defmac iter-defun name args [doc] [declare] [interactive] body@dots{}
+@code{iter-defun} defines a generator function.  A generator function
+has the same signature as a normal function, but works differently.
+Instead of executing @var{body} when called, a generator function
+returns an iterator object.  That iterator runs @var{body} to generate
+values, emitting a value and pausing where @code{iter-yield} or
+@code{iter-yield-from} appears.  When @var{body} returns normally,
+@code{iter-next} signals @code{iter-end-of-sequence} with @var{body}'s
+result as its condition data.
+
+Any kind of Lisp code is valid inside @var{body}, but
+@code{iter-yield} and @code{iter-yield-from} cannot appear inside
+@code{unwind-protect} forms.
+
+@end defmac
+
+@defmac iter-lambda args [doc] [interactive] body@dots{}
+@code{iter-lambda} produces an unnamed generator function that works
+just like a generator function produced with @code{iter-defun}.
+@end defmac
+
+@defmac iter-yield value
+When it appears inside a generator function, @code{iter-yield}
+indicates that the current iterator should pause and return
+@var{value} from @code{iter-next}.  @code{iter-yield} evaluates to the
+@code{value} parameter of next call to @code{iter-next}.
+@end defmac
+
+@defmac iter-yield-from iterator
+@code{iter-yield-from} yields all the values that @var{iterator}
+produces and evaluates to the value that @var{iterator}'s generator
+function returns normally.  While it has control, @var{iterator}
+receives values sent to the iterator using @code{iter-next}.
+@end defmac
+
+  To use a generator function, first call it normally, producing a
+@dfn{iterator} object.  An iterator is a specific instance of a
+generator.  Then use @code{iter-next} to retrieve values from this
+iterator.  When there are no more values to pull from an iterator,
+@code{iter-next} raises an @code{iter-end-of-sequence} condition with
+the iterator's final value.
+
+It's important to note that generator function bodies only execute
+inside calls to @code{iter-next}.  A call to a function defined with
+@code{iter-defun} produces an iterator; you must ``drive'' this
+iterator with @code{iter-next} for anything interesting to happen.
+Each call to a generator function produces a @emph{different}
+iterator, each with its own state.
+
+@defun iter-next iterator value
+Retrieve the next value from @var{iterator}.  If there are no more
+values to be generated (because @var{iterator}'s generator function
+returned), @code{iter-next} signals the @code{iter-end-of-sequence}
+condition; the data value associated with this condition is the value
+with which @var{iterator}'s generator function returned.
+
+@var{value} is sent into the iterator and becomes the value to which
+@code{iter-yield} evaluates.  @var{value} is ignored for the first
+@code{iter-next} call to a given iterator, since at the start of
+@var{iterator}'s generator function, the generator function is not
+evaluating any @code{iter-yield} form.
+@end defun
+
+@defun iter-close iterator
+If @var{iterator} is suspended inside an @code{unwind-protect}'s
+@code{bodyform} and becomes unreachable, Emacs will eventually run
+unwind handlers after a garbage collection pass.  (Note that
+@code{iter-yield} is illegal inside an @code{unwind-protect}'s
+@code{unwindforms}.)  To ensure that these handlers are run before
+then, use @code{iter-close}.
+@end defun
+
+Some convenience functions are provided to make working with
+iterators easier:
+
+@defmac iter-do (var iterator) body @dots{}
+Run @var{body} with @var{var} bound to each value that
+@var{iterator} produces.
+@end defmac
+
+The Common Lisp loop facility also contains features for working with
+iterators.  See @xref{Loop Facility,,,cl,Common Lisp Extensions}.
+
+The following piece of code demonstrates some important principles of
+working with iterators.
+
+@example
+(iter-defun my-iter (x)
+  (iter-yield (1+ (iter-yield (1+ x))))
+   ;; Return normally
+  -1)
+
+(let* ((iter (my-iter 5))
+       (iter2 (my-iter 0)))
+  ;; Prints 6
+  (print (iter-next iter))
+  ;; Prints 9
+  (print (iter-next iter 8))
+  ;; Prints 1; iter and iter2 have distinct states
+  (print (iter-next iter2 nil))
+
+  ;; We expect the iter sequence to end now
+  (condition-case x
+      (iter-next iter)
+    (iter-end-of-sequence
+      ;; Prints -1, which my-iter returned normally
+      (print (cdr x)))))
+@end example
 
 @node Nonlocal Exits
 @section Nonlocal Exits

@@ -960,7 +960,8 @@ extern void x_real_pos_and_offsets (struct frame *f,
                                     int *x_pixels_diff,
                                     int *y_pixels_diff,
                                     int *xptr,
-                                    int *yptr);
+                                    int *yptr,
+                                    int *outer_border);
 
 /* From xrdb.c.  */
 

@@ -357,6 +357,7 @@ Changes to files matching one of the regexps in this list are not listed.")
     "All" "Version" "Everywhere" "Many" "Various" "files"
     ;; Directories.
     "vms" "mac" "url" "tree-widget"
+    "info/dir"
     )
   "List of files and directories to ignore.
 Changes to files in this list are not listed.")
@@ -796,6 +797,7 @@ in the repository.")
     ("play/bruce.el" . "bruce.el")
     ("play/yow.el" . "yow.el")
     ("patcomp.el" . "patcomp.el")
+    ("emulation/ws-mode.el" . "ws-mode.el")
     ;; From lisp to etc/forms.
     ("forms-d2.el" . "forms-d2.el")
     ("forms-pass.el" . "forms-pass.el")

@@ -3853,7 +3853,7 @@ kbd_buffer_get_event (KBOARD **kbp,
   if (noninteractive
       /* In case we are running as a daemon, only do this before
 	 detaching from the terminal.  */
-      || (IS_DAEMON && daemon_pipe[1] >= 0))
+      || (IS_DAEMON && DAEMON_RUNNING))
     {
       int c = getchar ();
       XSETINT (obj, c);

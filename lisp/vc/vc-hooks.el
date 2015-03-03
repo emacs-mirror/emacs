@@ -476,7 +476,7 @@ status of this file.  Otherwise, the value returned is one of:
   ;; - `copied' and `moved' (might be handled by `removed' and `added')
   (or (vc-file-getprop file 'vc-state)
       (when (> (length file) 0)         ;Why??  --Stef
-	(setq backend (or backend (vc-backend file)))
+	(setq backend (or backend (vc-responsible-backend file)))
 	(when backend
           (vc-state-refresh file backend)))))
 
@@ -495,7 +495,7 @@ status of this file.  Otherwise, the value returned is one of:
 If FILE is not registered, this function always returns nil."
   (or (vc-file-getprop file 'vc-working-revision)
       (progn
-	(setq backend (or backend (vc-backend file)))
+	(setq backend (or backend (vc-responsible-backend file)))
 	(when backend
 	  (vc-file-setprop file 'vc-working-revision
 			   (vc-call-backend backend 'working-revision file))))))

@@ -459,7 +459,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   if ((noninteractive
        /* In case we are running as a daemon, only do this before
 	  detaching from the terminal.  */
-       || (IS_DAEMON && (daemon_pipe[1] >= 0)))
+       || (IS_DAEMON && DAEMON_RUNNING))
       && NILP (Vexecuting_kbd_macro))
     {
       val = read_minibuf_noninteractive (map, initial, prompt,

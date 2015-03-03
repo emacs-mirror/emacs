@@ -198,9 +198,13 @@ bool no_site_lisp;
 /* Name for the server started by the daemon.*/
 static char *daemon_name;
 
+#ifndef WINDOWSNT
 /* Pipe used to send exit notification to the daemon parent at
    startup.  */
 int daemon_pipe[2];
+#else
+HANDLE w32_daemon_event;
+#endif
 
 /* Save argv and argc.  */
 char **initial_argv;
@@ -985,8 +989,12 @@ main (int argc, char **argv)
       exit (0);
     }
 
+#ifndef WINDOWSNT
   /* Make sure IS_DAEMON starts up as false.  */
   daemon_pipe[1] = 0;
+#else
+  w32_daemon_event = NULL;
+#endif
 
   if (argmatch (argv, argc, "-daemon", "--daemon", 5, NULL, &skip_args)
       || argmatch (argv, argc, "-daemon", "--daemon", 5, &dname_arg, &skip_args))
@@ -1110,16 +1118,25 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       }
 #endif /* DAEMON_MUST_EXEC */
 
-      if (dname_arg)
-       	daemon_name = xstrdup (dname_arg);
       /* Close unused reading end of the pipe.  */
       emacs_close (daemon_pipe[0]);
 
       setsid ();
-#else /* DOS_NT */
+#elif defined(WINDOWSNT)
+      /* Indicate that we want daemon mode.  */
+      w32_daemon_event = CreateEvent (NULL, TRUE, FALSE, W32_DAEMON_EVENT);
+      if (w32_daemon_event == NULL)
+        {
+          fprintf (stderr, "Couldn't create MS-Windows event for daemon: %s\n",
+		   w32_strerror (0));
+          exit (1);
+        }
+#else /* MSDOS */
       fprintf (stderr, "This platform does not support the -daemon flag.\n");
       exit (1);
-#endif /* DOS_NT */
+#endif /* MSDOS */
+      if (dname_arg)
+	daemon_name = xstrdup (dname_arg);
     }
 
 #if defined HAVE_PTHREAD && !defined SYSTEM_MALLOC \
@@ -2319,17 +2336,18 @@ This finishes the daemonization process by doing the other half of detaching
 from the parent process and its tty file descriptors.  */)
   (void)
 {
-  int nfd;
   bool err = 0;
 
   if (!IS_DAEMON)
     error ("This function can only be called if emacs is run as a daemon");
 
-  if (daemon_pipe[1] < 0)
+  if (!DAEMON_RUNNING)
     error ("The daemon has already been initialized");
 
   if (NILP (Vafter_init_time))
     error ("This function can only be called after loading the init files");
+#ifndef WINDOWSNT
+  int nfd;
 
   /* Get rid of stdin, stdout and stderr.  */
   nfd = emacs_open ("/dev/null", O_RDWR, 0);
@@ -2350,6 +2368,13 @@ from the parent process and its tty file descriptors.  */)
   err |= emacs_close (daemon_pipe[1]) != 0;
   /* Set it to an invalid value so we know we've already run this function.  */
   daemon_pipe[1] = -1;
+#else  /* WINDOWSNT */
+  /* Signal the waiting emacsclient process.  */
+  err |= SetEvent (w32_daemon_event) == 0;
+  err |= CloseHandle (w32_daemon_event) == 0;
+  /* Set it to an invalid value so we know we've already run this function.  */
+  w32_daemon_event = INVALID_HANDLE_VALUE;
+#endif
 
   if (err)
     error ("I/O error during daemon initialization");

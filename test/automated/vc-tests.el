@@ -27,29 +27,29 @@
 
 ;; BACKEND PROPERTIES
 ;;
-;; * revision-granularity
+;; * revision-granularity                                       DONE
 
 ;; STATE-QUERYING FUNCTIONS
 ;;
-;; * registered (file)
-;; * state (file)
+;; * registered (file)                                          DONE
+;; * state (file)                                               DONE
 ;; - dir-status (dir update-function)
 ;; - dir-status-files (dir files default-state update-function)
 ;; - dir-extra-headers (dir)
 ;; - dir-printer (fileinfo)
 ;; - status-fileinfo-extra (file)
-;; * working-revision (file)
+;; * working-revision (file)                                    DONE
 ;; - latest-on-branch-p (file)
-;; * checkout-model (files)
+;; * checkout-model (files)                                     DONE
 ;; - mode-line-string (file)
 
 ;; STATE-CHANGING FUNCTIONS
 ;;
-;; * create-repo (backend)
-;; * register (files &optional comment)
+;; * create-repo (backend)                                      DONE
+;; * register (files &optional comment)                         DONE
 ;; - responsible-p (file)
 ;; - receive-file (file rev)
-;; - unregister (file)
+;; - unregister (file)                                          DONE
 ;; * checkin (files comment)
 ;; * find-revision (file rev buffer)
 ;; * checkout (file &optional rev)
@@ -178,12 +178,13 @@ For backends which dont support it, it is emulated."
 
 	  ;; Check the revision granularity.
 	  (should (memq (vc-test--revision-granularity-function backend)
-		 '(file repository)))
+			'(file repository)))
 
 	  ;; Create empty repository.
 	  (make-directory default-directory)
 	  (should (file-directory-p default-directory))
-	  (vc-test--create-repo-function backend))
+	  (vc-test--create-repo-function backend)
+	  (should (eq (vc-responsible-backend default-directory) backend)))
 
       ;; Save exit.
       (ignore-errors (run-hooks 'vc-test--cleanup-hook)))))
@@ -229,8 +230,7 @@ For backends which dont support it, `vc-not-supported' is signalled."
 	    (write-region "bla" nil tmp-name2 nil 'nomessage)
 	    (should (file-exists-p tmp-name2))
 	    (should-not (vc-registered tmp-name2))
-	    (vc-register
-	     (list backend (list tmp-name1 tmp-name2)))
+	    (vc-register (list backend (list tmp-name1 tmp-name2)))
 	    (should (file-exists-p tmp-name1))
 	    (should (vc-registered tmp-name1))
 	    (should (file-exists-p tmp-name2))
@@ -244,15 +244,14 @@ For backends which dont support it, `vc-not-supported' is signalled."
 		  (vc-test--unregister-function backend tmp-name2)
 		  (should-not (vc-registered tmp-name2)))
 	      ;; CVS, SVN, SCCS, SRC and Mtn are not supported.
-	      (vc-not-supported (message "%s" (error-message-string err))))
+	      (vc-not-supported t))
+	    ;; The files shall still exist.
 	    (should (file-exists-p tmp-name1))
 	    (should (file-exists-p tmp-name2))))
 
       ;; Save exit.
       (ignore-errors (run-hooks 'vc-test--cleanup-hook)))))
 
-;; `vc-state' returns different results for different backends.  So we
-;; don't check with `should', but print the results for analysis.
 (defun vc-test--state (backend)
   "Check the different states of a file."
 
@@ -261,7 +260,7 @@ For backends which dont support it, `vc-not-supported' is signalled."
 	  (file-name-as-directory
 	   (expand-file-name
 	    (make-temp-name "vc-test") temporary-file-directory)))
-	vc-test--cleanup-hook errors)
+	vc-test--cleanup-hook)
 
     (unwind-protect
 	(progn
@@ -270,36 +269,64 @@ For backends which dont support it, `vc-not-supported' is signalled."
 	   'vc-test--cleanup-hook
 	   `(lambda () (delete-directory ,default-directory 'recursive)))
 
-	  ;; Create empty repository.
+	  ;; Create empty repository.  Check repository state.
 	  (make-directory default-directory)
 	  (vc-test--create-repo-function backend)
 
-	  (message "%s" (vc-state default-directory backend))
-	  ;(should (eq (vc-state default-directory backend) 'up-to-date))
+	  ;; nil: Hg Mtn RCS
+          ;; added: Git
+          ;; unregistered: CVS SCCS SRC
+	  ;; up-to-date: Bzr SVN
+	  (should (eq (vc-state default-directory)
+		      (vc-state default-directory backend)))
+	  (should (memq (vc-state default-directory)
+			'(nil added unregistered up-to-date)))
 
 	  (let ((tmp-name (expand-file-name "foo" default-directory)))
-	    ;; Check for initial state.
-	    (message "%s" (vc-state tmp-name backend))
-	    ;(should (eq (vc-state tmp-name backend) 'unregistered))
+	    ;; Check state of an empty file.
 
-	    ;; Write a new file.  Check for state.
+	    ;; nil: Hg Mtn SRC SVN
+            ;; added: Git
+	    ;; unregistered: RCS SCCS
+	    ;; up-to-date: Bzr CVS
+	    (should (eq (vc-state tmp-name) (vc-state tmp-name backend)))
+	    (should (memq (vc-state tmp-name)
+			  '(nil added unregistered up-to-date)))
+
+	    ;; Write a new file.  Check state.
 	    (write-region "foo" nil tmp-name nil 'nomessage)
-	    (message "%s" (vc-state tmp-name backend))
-	    ;(should (eq (vc-state tmp-name backend) 'unregistered))
 
-	    ;; Register a file.  Check for state.
+            ;; nil: Mtn
+            ;; added: Git
+            ;; unregistered: Hg RCS SCCS SRC SVN
+            ;; up-to-date: Bzr CVS
+	    (should (eq (vc-state tmp-name) (vc-state tmp-name backend)))
+	    (should (memq (vc-state tmp-name)
+			  '(nil added unregistered up-to-date)))
+
+	    ;; Register a file.  Check state.
 	    (vc-register
 	     (list backend (list (file-name-nondirectory tmp-name))))
-	    (message "%s" (vc-state tmp-name backend))
-	    ;(should (eq (vc-state tmp-name backend) 'added))
 
-	    ;; Unregister the file.  Check for state.
+            ;; added: Git Mtn
+            ;; unregistered: Hg RCS SCCS SRC SVN
+            ;; up-to-date: Bzr CVS
+	    (should (eq (vc-state tmp-name) (vc-state tmp-name backend)))
+	    (should (memq (vc-state tmp-name) '(added unregistered up-to-date)))
+
+	    ;; Unregister the file.  Check state.
 	    (condition-case nil
 		(progn
 		  (vc-test--unregister-function backend tmp-name)
-		  (message "%s" (vc-state tmp-name backend))
-		  );(should (eq (vc-state tmp-name backend) 'unregistered)))
-	      (vc-not-supported (message "%s" 'unsupported)))))
+
+		  ;; added: Git
+		  ;; unregistered: Hg
+		  ;; unsupported: CVS Mtn SCCS SRC SVN
+		  ;; up-to-date: Bzr
+		  (should (eq (vc-state tmp-name) (vc-state tmp-name backend)))
+		  (should (memq (vc-state tmp-name)
+				'(added unregistered up-to-date))))
+	      (vc-not-supported t))))
 
       ;; Save exit.
       (ignore-errors (run-hooks 'vc-test--cleanup-hook)))))
@@ -312,7 +339,7 @@ For backends which dont support it, `vc-not-supported' is signalled."
 	  (file-name-as-directory
 	   (expand-file-name
 	    (make-temp-name "vc-test") temporary-file-directory)))
-	vc-test--cleanup-hook errors)
+	vc-test--cleanup-hook)
 
     (unwind-protect
 	(progn
@@ -321,40 +348,141 @@ For backends which dont support it, `vc-not-supported' is signalled."
 	   'vc-test--cleanup-hook
 	   `(lambda () (delete-directory ,default-directory 'recursive)))
 
-	  ;; Create empty repository.
+	  ;; Create empty repository.  Check working revision of
+	  ;; repository, should be nil.
 	  (make-directory default-directory)
 	  (vc-test--create-repo-function backend)
 
+	  ;; nil: CVS Mtn RCS SCCS
+	  ;; "0": Bzr Hg SRC SVN
+	  ;; "master": Git
+	  (should (eq (vc-working-revision default-directory)
+		      (vc-working-revision default-directory backend)))
 	  (should
 	   (member
-	    (vc-working-revision default-directory backend) '("0" "master")))
+	    (vc-working-revision default-directory) '(nil "0" "master")))
 
 	  (let ((tmp-name (expand-file-name "foo" default-directory)))
-	    ;; Check for initial state, should be nil until it's registered.
-            ;; Don't pass the backend explicitly, otherwise some
-            ;; implementations return non-nil.
-	    (should (null (vc-working-revision tmp-name)))
+	    ;; Check initial working revision, should be nil until
+            ;; it's registered.
 
-	    ;; Write a new file.  Check state.
+	    ;; nil: CVS Mtn RCS SCCS SVN
+	    ;; "0": Bzr Hg SRC
+	    ;; "master": Git
+	    (should (eq (vc-working-revision tmp-name)
+			(vc-working-revision tmp-name backend)))
+	    (should
+	     (member (vc-working-revision tmp-name) '(nil "0" "master")))
+
+	    ;; Write a new file.  Check working revision.
 	    (write-region "foo" nil tmp-name nil 'nomessage)
-	    (should (null (vc-working-revision tmp-name)))
 
-	    ;; Register a file.  Check for state.
+	    ;; nil: CVS Mtn RCS SCCS SVN
+	    ;; "0": Bzr Hg SRC
+	    ;; "master": Git
+	    (should (eq (vc-working-revision tmp-name)
+			(vc-working-revision tmp-name backend)))
+	    (should
+	     (member (vc-working-revision tmp-name) '(nil "0" "master")))
+
+	    ;; Register a file.  Check working revision.
 	    (vc-register
 	     (list backend (list (file-name-nondirectory tmp-name))))
-            ;; FIXME: Don't pass the backend.  Emacs should be able to
-            ;; figure it out.
-	    (should
-	     (member (vc-working-revision tmp-name backend) '("0" "master")))
 
-	    ;; Unregister the file.  Check for working-revision.
+	    ;; nil: Mtn RCS SCCS
+	    ;; "0": Bzr CVS Hg SRC SVN
+	    ;; "master": Git
+	    (should (eq (vc-working-revision tmp-name)
+			(vc-working-revision tmp-name backend)))
+	    (should
+	     (member (vc-working-revision tmp-name) '(nil "0" "master")))
+
+	    ;; Unregister the file.  Check working revision.
 	    (condition-case nil
 		(progn
 		  (vc-test--unregister-function backend tmp-name)
+
+		  ;; nil: RCS
+		  ;; "0": Bzr Hg
+		  ;; "master": Git
+		  ;; unsupported: CVS Mtn SCCS SRC SVN
+		  (should (eq (vc-working-revision tmp-name)
+			      (vc-working-revision tmp-name backend)))
 		  (should
 		   (member
-		    (vc-working-revision tmp-name backend) '("0" "master"))))
-	      (vc-not-supported (message "%s" 'unsupported)))))
+		    (vc-working-revision tmp-name) '(nil "0" "master"))))
+	      (vc-not-supported t))))
+
+      ;; Save exit.
+      (ignore-errors (run-hooks 'vc-test--cleanup-hook)))))
+
+(defun vc-test--checkout-model (backend)
+  "Check the checkout model of a repository."
+
+  (let ((vc-handled-backends `(,backend))
+	(default-directory
+	  (file-name-as-directory
+	   (expand-file-name
+	    (make-temp-name "vc-test") temporary-file-directory)))
+	vc-test--cleanup-hook)
+
+    (unwind-protect
+	(progn
+	  ;; Cleanup.
+	  (add-hook
+	   'vc-test--cleanup-hook
+	   `(lambda () (delete-directory ,default-directory 'recursive)))
+
+	  ;; Create empty repository.  Check repository checkout model.
+	  (make-directory default-directory)
+	  (vc-test--create-repo-function backend)
+
+	  ;; Surprisingly, none of the backends returns 'announce.
+	  ;; nil: RCS
+          ;; implicit: Bzr CVS Git Hg Mtn SRC SVN
+          ;; locking: SCCS
+          (should (memq (vc-checkout-model backend default-directory)
+			'(announce implicit locking)))
+
+	  (let ((tmp-name (expand-file-name "foo" default-directory)))
+	    ;; Check checkout model of an empty file.
+
+	    ;; nil: RCS
+	    ;; implicit: Bzr CVS Git Hg Mtn SRC SVN
+	    ;; locking: SCCS
+	    (should (memq (vc-checkout-model backend tmp-name)
+			  '(announce implicit locking)))
+
+	    ;; Write a new file.  Check checkout model.
+	    (write-region "foo" nil tmp-name nil 'nomessage)
+
+	    ;; nil: RCS
+	    ;; implicit: Bzr CVS Git Hg Mtn SRC SVN
+	    ;; locking: SCCS
+	    (should (memq (vc-checkout-model backend tmp-name)
+			  '(announce implicit locking)))
+
+	    ;; Register a file.  Check checkout model.
+	    (vc-register
+	     (list backend (list (file-name-nondirectory tmp-name))))
+
+	    ;; nil: RCS
+	    ;; implicit: Bzr CVS Git Hg Mtn SRC SVN
+	    ;; locking: SCCS
+	    (should (memq (vc-checkout-model backend tmp-name)
+			  '(announce implicit locking)))
+
+	    ;; Unregister the file.  Check checkout model.
+	    (condition-case nil
+		(progn
+		  (vc-test--unregister-function backend tmp-name)
+
+		  ;; nil: RCS
+		  ;; implicit: Bzr Git Hg
+		  ;; unsupported: CVS Mtn SCCS SRC SVN
+		  (should (memq (vc-checkout-model backend tmp-name)
+				'(announce implicit locking))))
+	      (vc-not-supported t))))
 
       ;; Save exit.
       (ignore-errors (run-hooks 'vc-test--cleanup-hook)))))
@@ -394,10 +522,10 @@ For backends which dont support it, `vc-not-supported' is signalled."
 (defun vc-test--mtn-enabled ()
   (executable-find vc-mtn-program))
 
+;; Obsoleted.
 (defvar vc-arch-program)
 (defun vc-test--arch-enabled ()
   (executable-find vc-arch-program))
-
 
 ;; There are too many failed test cases yet.  We suppress them on hydra.
 (if (getenv "NIX_STORE")
@@ -415,7 +543,8 @@ For backends which dont support it, `vc-not-supported' is signalled."
 
 	  (ert-deftest
 	      ,(intern (format "vc-test-%s00-create-repo" backend-string)) ()
-	    ,(format "Check `vc-create-repo' for the %s backend." backend-string)
+	    ,(format "Check `vc-create-repo' for the %s backend."
+		     backend-string)
 	    (vc-test--create-repo ',backend))
 
 	  (ert-deftest
@@ -444,14 +573,27 @@ For backends which dont support it, `vc-not-supported' is signalled."
 
 	  (ert-deftest
 	      ,(intern (format "vc-test-%s03-working-revision" backend-string)) ()
-	    ,(format "Check `vc-working-revision' for the %s backend." backend-string)
+	    ,(format "Check `vc-working-revision' for the %s backend."
+		     backend-string)
 	    (skip-unless
 	     (ert-test-passed-p
 	      (ert-test-most-recent-result
 	       (ert-get-test
 		',(intern
 		   (format "vc-test-%s01-register" backend-string))))))
-	    (vc-test--working-revision ',backend)))))))
+	    (vc-test--working-revision ',backend))
+
+	  (ert-deftest
+	      ,(intern (format "vc-test-%s04-checkout-model" backend-string)) ()
+	    ,(format "Check `vc-checkout-model' for the %s backend."
+		     backend-string)
+	    (skip-unless
+	     (ert-test-passed-p
+	      (ert-test-most-recent-result
+	       (ert-get-test
+		',(intern
+		   (format "vc-test-%s01-register" backend-string))))))
+	    (vc-test--checkout-model ',backend)))))))
 
 (provide 'vc-tests)
 ;;; vc-tests.el ends here

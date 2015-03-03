@@ -660,6 +660,9 @@ extern ptrdiff_t lisp_string_width (Lisp_Object, ptrdiff_t,
 extern Lisp_Object Vchar_unify_table;
 extern Lisp_Object string_escape_byte8 (Lisp_Object);
 
+extern bool alphabeticp (int);
+extern bool decimalnump (int);
+
 /* Return a translation table of id number ID.  */
 #define GET_TRANSLATION_TABLE(id) \
   (XCDR (XVECTOR (Vtranslation_table_vector)->contents[(id)]))

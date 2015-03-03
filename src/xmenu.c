@@ -1313,6 +1313,7 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
   XButtonPressedEvent *event = &(dummy.xbutton);
   LWLIB_ID menu_id;
   Widget menu;
+  Window dummy_window;
 
   eassert (FRAME_X_P (f));
 
@@ -1338,8 +1339,20 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
   event->y = y;
 
   /* Adjust coordinates to be root-window-relative.  */
-  x += f->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f);
-  y += f->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f);
+  block_input ();
+  x += FRAME_LEFT_SCROLL_BAR_AREA_WIDTH (f);
+  XTranslateCoordinates (FRAME_X_DISPLAY (f),
+
+                         /* From-window, to-window.  */
+                         FRAME_X_WINDOW (f),
+                         FRAME_DISPLAY_INFO (f)->root_window,
+
+                         /* From-position, to-position.  */
+                         x, y, &x, &y,
+
+                         /* Child of win.  */
+                         &dummy_window);
+  unblock_input ();
 
   event->x_root = x;
   event->y_root = y;
@@ -2059,12 +2072,18 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
   inhibit_garbage_collection ();
 
 #ifdef HAVE_X_WINDOWS
-  /* Adjust coordinates to relative to the outer (window manager) window.  */
-  x += FRAME_OUTER_TO_INNER_DIFF_X (f);
-  y += FRAME_OUTER_TO_INNER_DIFF_Y (f);
+  {
+    /* Adjust coordinates to relative to the outer (window manager) window. */
+    int left_off, top_off;
+
+    x_real_pos_and_offsets (f, &left_off, NULL, &top_off, NULL,
+                            NULL, NULL, NULL, NULL, NULL);
+
+    x += left_off;
+    y += top_off;
+  }
 #endif /* HAVE_X_WINDOWS */
 
-  /* Adjust coordinates to be root-window-relative.  */
   x += f->left_pos;
   y += f->top_pos;
 

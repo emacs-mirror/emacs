@@ -6204,6 +6204,7 @@ If the buffer has never been shown in a window, the value is nil.  */);
 See the command `transient-mark-mode' for a description of this minor mode.
 
 Non-nil also enables highlighting of the region whenever the mark is active.
+The region is highlighted with the `region' face.
 The variable `highlight-nonselected-windows' controls whether to highlight
 all windows or just the selected window.
 

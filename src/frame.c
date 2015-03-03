@@ -537,6 +537,8 @@ adjust_frame_size (struct frame *f, int new_width, int new_height, int inhibit,
 	}
 #endif
     }
+  else if (new_cols != old_cols)
+    call2 (Qwindow_pixel_to_total, frame, Qt);
 
   if (new_windows_height != old_windows_height
       /* When the top margin has changed we have to recalculate the top
@@ -551,6 +553,8 @@ adjust_frame_size (struct frame *f, int new_width, int new_height, int inhibit,
       if ((FRAME_TERMCAP_P (f) && !pretend) || FRAME_MSDOS_P (f))
 	FrameRows (FRAME_TTY (f)) = new_lines + FRAME_TOP_MARGIN (f);
     }
+  else if (new_lines != old_lines)
+    call2 (Qwindow_pixel_to_total, frame, Qnil);
 
   frame_size_history_add
     (f, Qadjust_frame_size_3, new_text_width, new_text_height,
@@ -871,6 +875,9 @@ make_initial_frame (void)
 
   last_nonminibuf_frame = f;
 
+  f->can_x_set_window_size = true;
+  f->after_make_frame = true;
+
   return f;
 }
 
@@ -1064,6 +1071,10 @@ affects all frames on the same terminal device.  */)
      be copied as well.  */
   for (tem = f->face_alist; CONSP (tem); tem = XCDR (tem))
     XSETCDR (XCAR (tem), Fcopy_sequence (XCDR (XCAR (tem))));
+
+  f->can_x_set_window_size = true;
+  f->after_make_frame = true;
+
   return frame;
 }
 
@@ -4824,6 +4835,7 @@ syms_of_frame (void)
   DEFSYM (Qframep, "framep");
   DEFSYM (Qframe_live_p, "frame-live-p");
   DEFSYM (Qframe_windows_min_size, "frame-windows-min-size");
+  DEFSYM (Qwindow_pixel_to_total, "window--pixel-to-total");
   DEFSYM (Qexplicit_name, "explicit-name");
   DEFSYM (Qheight, "height");
   DEFSYM (Qicon, "icon");

@@ -503,17 +503,21 @@ inputinput@point{}
 @c It actually uses shell-command-switch, but no need to mention that here.
 @end defun
 
-@defun call-process-shell-command command &optional infile destination display &rest args
+@defun call-process-shell-command command &optional infile destination display
 This function executes the shell command @var{command} synchronously.
-The final arguments @var{args} are additional arguments to add at the
-end of @var{command}.  The other arguments are handled as in
-@code{call-process}.
+The arguments are handled as in @code{call-process}.  An old calling
+convention allowed to pass any number of additional arguments after
+@var{display}, which were concatenated to @var{command}; this is still
+supported, but strongly discouraged.
 @end defun
 
-@defun process-file-shell-command command &optional infile destination display &rest args
+@defun process-file-shell-command command &optional infile destination display
 This function is like @code{call-process-shell-command}, but uses
 @code{process-file} internally.  Depending on @code{default-directory},
-@var{command} can be executed also on remote hosts.
+@var{command} can be executed also on remote hosts.  An old calling
+convention allowed to pass any number of additional arguments after
+@var{display}, which were concatenated to @var{command}; this is still
+supported, but strongly discouraged.
 @end defun
 
 @defun shell-command-to-string command

@@ -1139,9 +1139,12 @@ The following commands are accepted by the client:
                  ;; frame.  If running a GUI server, force the frame
                  ;; type to GUI.  (Cygwin is perfectly happy with
                  ;; multi-tty support, so don't override the user's
-                 ;; choice there.)
+                 ;; choice there.)  In daemon mode on Windows, we can't
+                 ;; make tty frames, so force the frame type to GUI
+                 ;; there too.
                  (when (and (eq system-type 'windows-nt)
-                            (eq window-system 'w32))
+                            (or (daemonp)
+                                (eq window-system 'w32)))
                    (push "-window-system" args-left)))
 
                 ;; -position LINE[:COLUMN]:  Set point to the given
@@ -1215,7 +1218,10 @@ The following commands are accepted by the client:
 					   terminal-frame)))))
 		    (setq tty-name nil tty-type nil)
 		    (if display (server-select-display display)))
-		   ((eq tty-name 'window-system)
+		   ((or (and (eq system-type 'windows-nt)
+			     (daemonp)
+			     (setq display "w32"))
+		        (eq tty-name 'window-system))
 		    (server-create-window-system-frame display nowait proc
 						       parent-id
 						       frame-parameters))

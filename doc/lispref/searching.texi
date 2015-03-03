@@ -541,11 +541,15 @@ and what they mean:
 @item [:ascii:]
 This matches any @acronym{ASCII} character (codes 0--127).
 @item [:alnum:]
-This matches any letter or digit.  (At present, for multibyte
-characters, it matches anything that has word syntax.)
+This matches any letter or digit.  For multibyte characters, it
+matches characters whose Unicode @samp{general-category} property
+(@pxref{Character Properties}) indicates they are alphabetic or
+decimal number characters.
 @item [:alpha:]
-This matches any letter.  (At present, for multibyte characters, it
-matches anything that has word syntax.)
+This matches any letter.  For multibyte characters, it matches
+characters whose Unicode @samp{general-category} property
+(@pxref{Character Properties}) indicates they are alphabetic
+characters.
 @item [:blank:]
 This matches space and tab only.
 @item [:cntrl:]

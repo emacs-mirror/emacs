@@ -1,3 +1,34 @@
+2015-03-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* processes.texi (Synchronous Processes): Update documentation of
+	call-process-shell-command and process-file-shell-command.
+
+2015-03-03  Daniel Colascione  <dancol@dancol.org>
+
+	* control.texi (Generators): Correct missing word.  Clarify which
+	forms are legal in which parts of `unwind-protect'.  Fix orphaned
+	close parenthesis.
+
+	* objects.texi (Finalizer Type): New section for finalizer objects.
+	(Type Predicates): Mention finalizers in `type-of' documentation.
+	* elisp.texi (Top): Link to finalizer type.
+
+2015-03-02  Daniel Colascione  <dancol@dancol.org>
+
+	* control.texi (Generators): New section
+	* elisp.text: Reference new section.
+
+2015-02-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* searching.texi (Char Classes): Update the documentation of
+	[:alpha:] and [:alnum:].  (Bug#19878)
+
+2015-02-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* os.texi (Startup Summary):
+	* display.texi (Window Systems): Mention peculiarities of daemon
+	mode on MS-Windows.
+
 2015-02-11  Martin Rudalics  <rudalics@gmx.at>
 
 	* frames.texi (Size Parameters): Update description of

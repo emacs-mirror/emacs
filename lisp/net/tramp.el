@@ -311,17 +311,26 @@ useful only in combination with `tramp-default-proxies-alist'.")
   (let ((result "")
 	(case-fold-search t))
     (ignore-errors
-      (with-temp-buffer
-	(call-process "ssh" nil t nil "-o" "ControlMaster")
-	(goto-char (point-min))
-	(when (search-forward-regexp "missing.+argument" nil t)
-	  (setq result "-o ControlPath=%t.%%r@%%h:%%p -o ControlMaster=auto")))
-      (unless (zerop (length result))
+      (when (executable-find "ssh")
 	(with-temp-buffer
-	  (call-process "ssh" nil t nil "-o" "ControlPersist")
+	  (call-process "ssh" nil t nil "-o" "ControlMaster")
 	  (goto-char (point-min))
 	  (when (search-forward-regexp "missing.+argument" nil t)
-	    (setq result (concat result " -o ControlPersist=no"))))))
+	    (setq result "-o ControlMaster=auto")))
+	(unless (zerop (length result))
+	  (with-temp-buffer
+	    (call-process
+	     "ssh" nil t nil "-o" "ControlPath=%C" "host.does.not.exist")
+	    (goto-char (point-min))
+	    (if (search-forward-regexp "unknown.+key" nil t)
+		(setq result
+		      (concat result " -o ControlPath='tramp.%%r@%%h:%%p'"))
+	      (setq result (concat result " -o ControlPath='tramp.%%C'"))))
+	  (with-temp-buffer
+	    (call-process "ssh" nil t nil "-o" "ControlPersist")
+	    (goto-char (point-min))
+	    (when (search-forward-regexp "missing.+argument" nil t)
+	      (setq result (concat result " -o ControlPersist=no")))))))
     result)
     "Call ssh to detect whether it supports the Control* arguments.
 Return a string to be used in `tramp-methods'.")

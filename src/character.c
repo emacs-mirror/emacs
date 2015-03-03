@@ -984,6 +984,44 @@ character is not ASCII nor 8-bit character, an error is signaled.  */)
 
 #ifdef emacs
 
+/* Return 'true' if C is an alphabetic character as defined by its
+   Unicode properties.  */
+bool
+alphabeticp (int c)
+{
+  Lisp_Object category = CHAR_TABLE_REF (Vunicode_category_table, c);
+  if (! INTEGERP (category))
+    return false;
+  EMACS_INT gen_cat = XINT (category);
+
+  /* See UTS #18.  There are additional characters that should be
+     here, those designated as Other_uppercase, Other_lowercase,
+     and Other_alphabetic; FIXME.  */
+  return (gen_cat == UNICODE_CATEGORY_Lu
+	  || gen_cat == UNICODE_CATEGORY_Ll
+	  || gen_cat == UNICODE_CATEGORY_Lt
+	  || gen_cat == UNICODE_CATEGORY_Lm
+	  || gen_cat == UNICODE_CATEGORY_Lo
+	  || gen_cat == UNICODE_CATEGORY_Mn
+	  || gen_cat == UNICODE_CATEGORY_Mc
+	  || gen_cat == UNICODE_CATEGORY_Me
+	  || gen_cat == UNICODE_CATEGORY_Nl);
+}
+
+/* Return 'true' if C is an decimal-number character as defined by its
+   Unicode properties.  */
+bool
+decimalnump (int c)
+{
+  Lisp_Object category = CHAR_TABLE_REF (Vunicode_category_table, c);
+  if (! INTEGERP (category))
+    return false;
+  EMACS_INT gen_cat = XINT (category);
+
+  /* See UTS #18.  */
+  return gen_cat == UNICODE_CATEGORY_Nd;
+}
+
 void
 syms_of_character (void)
 {

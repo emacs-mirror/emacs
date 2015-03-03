@@ -324,12 +324,12 @@ enum syntaxcode { Swhitespace = 0, Sword = 1, Ssymbol = 2 };
 		    ? (((c) >= 'a' && (c) <= 'z')	\
 		       || ((c) >= 'A' && (c) <= 'Z')	\
 		       || ((c) >= '0' && (c) <= '9'))	\
-		    : SYNTAX (c) == Sword)
+		    : (alphabeticp (c) || decimalnump (c)))
 
 # define ISALPHA(c) (IS_REAL_ASCII (c)			\
 		    ? (((c) >= 'a' && (c) <= 'z')	\
 		       || ((c) >= 'A' && (c) <= 'Z'))	\
-		    : SYNTAX (c) == Sword)
+		    : alphabeticp (c))
 
 # define ISLOWER(c) lowercasep (c)
 
@@ -1872,6 +1872,8 @@ struct range_table_work_area
 #define BIT_SPACE	0x8
 #define BIT_UPPER	0x10
 #define BIT_MULTIBYTE	0x20
+#define BIT_ALPHA	0x40
+#define BIT_ALNUM	0x80
 
 
 /* Set the bit for character C in a list.  */
@@ -2072,7 +2074,9 @@ re_wctype_to_bit (re_wctype_t cc)
     {
     case RECC_NONASCII: case RECC_PRINT: case RECC_GRAPH:
     case RECC_MULTIBYTE: return BIT_MULTIBYTE;
-    case RECC_ALPHA: case RECC_ALNUM: case RECC_WORD: return BIT_WORD;
+    case RECC_ALPHA: return BIT_ALPHA;
+    case RECC_ALNUM: return BIT_ALNUM;
+    case RECC_WORD: return BIT_WORD;
     case RECC_LOWER: return BIT_LOWER;
     case RECC_UPPER: return BIT_UPPER;
     case RECC_PUNCT: return BIT_PUNCT;
@@ -2930,7 +2934,7 @@ regex_compile (const_re_char *pattern, size_t size, reg_syntax_t syntax,
 #endif	/* emacs */
 			/* In most cases the matching rule for char classes
 			   only uses the syntax table for multibyte chars,
-			   so that the content of the syntax-table it is not
+			   so that the content of the syntax-table is not
 			   hardcoded in the range_table.  SPACE and WORD are
 			   the two exceptions.  */
 			if ((1 << cc) & ((1 << RECC_SPACE) | (1 << RECC_WORD)))
@@ -2945,7 +2949,7 @@ regex_compile (const_re_char *pattern, size_t size, reg_syntax_t syntax,
 			p = class_beg;
 			SET_LIST_BIT ('[');
 
-			/* Because the `:' may starts the range, we
+			/* Because the `:' may start the range, we
 			   can't simply set bit and repeat the loop.
 			   Instead, just set it to C and handle below.  */
 			c = ':';
@@ -5513,7 +5517,9 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const_re_char *string1,
 		    | (class_bits & BIT_PUNCT && ISPUNCT (c))
 		    | (class_bits & BIT_SPACE && ISSPACE (c))
 		    | (class_bits & BIT_UPPER && ISUPPER (c))
-		    | (class_bits & BIT_WORD  && ISWORD (c)))
+		    | (class_bits & BIT_WORD  && ISWORD  (c))
+		    | (class_bits & BIT_ALPHA && ISALPHA (c))
+		    | (class_bits & BIT_ALNUM && ISALNUM (c)))
 		  not = !not;
 		else
 		  CHARSET_LOOKUP_RANGE_TABLE_RAW (not, c, range_table, count);

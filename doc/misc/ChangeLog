@@ -1,3 +1,13 @@
+2015-03-03  Kelvin White  <kwhite@gnu.org>
+
+	* erc.texi (Advanced Usage, Options): Add descriptions and examples
+	for erc-format-nick-function and erc-rename-buffers options.
+	(Connecting): fix typo
+
+2015-03-02  Daniel Colascione  <dancol@dancol.org>
+
+	* cl.texi (Iteration Clauses): Mention iterator support.
+
 2015-02-25  Tassilo Horn  <tsdh@gnu.org>
 
 	* reftex.texi (Multifile Documents): Document

@@ -49,6 +49,17 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :version "23.1"
   :group 'vc-mtn)
 
+(defcustom vc-mtn-annotate-switches nil
+  "String or list of strings specifying switches for mtn annotate under VC.
+If nil, use the value of `vc-annotate-switches'.  If t, use no
+switches."
+  :type '(choice (const :tag "Unspecified" nil)
+		 (const :tag "None" t)
+		 (string :tag "Argument String")
+		 (repeat :tag "Argument List" :value ("") string))
+  :version "25.1"
+  :group 'vc-mtn)
+
 (define-obsolete-variable-alias 'vc-mtn-command 'vc-mtn-program "23.1")
 (defcustom vc-mtn-program "mtn"
   "Name of the monotone executable."
@@ -246,8 +257,9 @@ If LIMIT is non-nil, show no more than this many entries."
            (if rev1 (list "-r" rev1)) (if rev2 (list "-r" rev2)))))
 
 (defun vc-mtn-annotate-command (file buf &optional rev)
-  (apply 'vc-mtn-command buf 'async file "annotate"
-         (if rev (list "-r" rev))))
+  (apply #'vc-mtn-command buf 'async file "annotate"
+	 (append (vc-switches 'mtn 'annotate)
+		 (if rev (list "-r" rev)))))
 
 (declare-function vc-annotate-convert-time "vc-annotate" (time))
 

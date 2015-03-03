@@ -1,3 +1,16 @@
+2015-03-03  Kelvin White  <kwhite@gnu.org>
+
+	* erc.el: Add old version string back to file header for
+	package.el compatibility
+
+2015-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* erc.el (erc-rename-buffers): Doc fix.  Add :version.
+
+2015-03-03  Dima Kogan  <dima@secretsauce.net>
+
+	* erc-backend.el (define-erc-response-handler): Give hook-name
+	default value of nil and add-to-list (bug#19363).
 2015-02-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* erc-spelling.el (erc-spelling-init):

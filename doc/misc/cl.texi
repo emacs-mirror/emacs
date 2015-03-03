@@ -296,6 +296,13 @@ list.  Also, the function body is enclosed in an implicit block
 called @var{name}; @pxref{Blocks and Exits}.
 @end defmac
 
+@defmac cl-iter-defun name arglist body@dots{}
+This form is identical to the regular @code{iter-defun} form, except
+that @var{arglist} is allowed to be a full Common Lisp argument
+list.  Also, the function body is enclosed in an implicit block
+called @var{name}; @pxref{Blocks and Exits}.
+@end defmac
+
 @defmac cl-defsubst name arglist body@dots{}
 This is just like @code{cl-defun}, except that the function that
 is defined is automatically proclaimed @code{inline}, i.e.,
@@ -2237,6 +2244,11 @@ This clause is like @code{always}, except that the loop returns
 This clause stops the loop when the specified form is non-@code{nil};
 in this case, it returns that non-@code{nil} value.  If all the
 values were @code{nil}, the loop returns @code{nil}.
+
+@item iter-by @var{iterator}
+This clause iterates over the values from the specified form, an
+iterator object.  See (@pxref{Generators,,,elisp,GNU Emacs Lisp
+Reference Manual}).
 @end table
 
 @node Accumulation Clauses

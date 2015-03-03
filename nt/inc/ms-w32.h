@@ -597,5 +597,7 @@ extern void _DebPrint (const char *fmt, ...);
 #endif
 #endif
 
+/* Event name for when emacsclient starts the Emacs daemon on Windows.  */
+#define W32_DAEMON_EVENT "EmacsServerEvent"
 
 /* ============================================================ */

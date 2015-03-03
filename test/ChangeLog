@@ -1,3 +1,46 @@
+2015-03-03  Daniel Colascione  <dancol@dancol.org>
+
+	* automated/generator-tests.el (cps-testcase): Use
+	`cps-inhibit-atomic-optimization' instead of
+	`cps-disable-atomic-optimization'.
+	(cps-test-declarations-preserved): New test.
+
+	* automated/finalizer-tests.el (finalizer-basic)
+	(finalizer-circular-reference, finalizer-cross-reference)
+	(finalizer-error): Rename `gc-precise-p' to `gc-precise'.
+
+	* automated/generator-tests.el (cps-test-iter-close-finalizer):
+	Rename `gc-precise-p' to `gc-precise'.
+
+2015-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* automated/generator-tests.el (cps-while-incf)
+	(cps-test-iter-cleanup-once-only): Replace undefined incf with cl-incf.
+	(cps-test-iter-do): Use should not undefined assert.
+
+2015-03-03  Daniel Colascione  <dancol@dancol.org>
+
+	* automated/finalizer-tests.el (finalizer-object-type): Test that
+	`type-of' works correctly for finalizers.
+
+2015-03-02  Daniel Colascione  <dancol@dancol.org>
+
+	* automated/generator-tests.el: New tests
+
+	* automated/finalizer-tests.el (finalizer-basic)
+	(finalizer-circular-reference, finalizer-cross-reference)
+	(finalizer-error): New tests.
+
+2015-03-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/vc-tests.el (vc-test--create-repo): Add check for
+	`vc-responsible-backend'.
+	(vc-test--register): Do not print a message when unsupported.
+	(vc-test--state, vc-test--working-revision): Rework.  Raise no
+	error in case of inconsistent result, but document everything.
+	(vc-test--checkout-model): New defun.
+	(vc-test-*-checkout-model): New tests.
+
 2015-02-26  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	* automated/python-tests.el

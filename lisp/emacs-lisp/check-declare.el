@@ -130,7 +130,7 @@ With optional argument FULL, sums the number of elements in each element."
   :group 'tools)
 
 (defcustom check-declare-ext-errors nil
-  "When non-nil, warn abount functions not found in :ext."
+  "When non-nil, warn about functions not found in :ext."
   :type 'boolean)
 
 (defun check-declare-verify (fnfile fnlist)

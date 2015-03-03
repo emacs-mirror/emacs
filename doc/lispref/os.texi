@@ -244,8 +244,9 @@ options were specified.
 
 @item
 If the option @code{--daemon} was specified, it calls
-@code{server-start} and detaches from the controlling terminal.
-@xref{Emacs Server,,, emacs, The GNU Emacs Manual}.
+@code{server-start}, and on Posix systems also detaches from the
+controlling terminal.  @xref{Emacs Server,,, emacs, The GNU Emacs
+Manual}.
 
 @item
 If started by the X session manager, it calls

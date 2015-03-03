@@ -248,7 +248,7 @@ Optional argument TYPE is type of output (nil means all)."
 
 (defconst manual-meta-string
   "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">
-<link rev=\"made\" href=\"mailto:webmasters@gnu.org\">
+<link rev=\"made\" href=\"mailto:bug-gnu-emacs@gnu.org\">
 <link rel=\"icon\" type=\"image/png\" href=\"/graphics/gnu-head-mini.png\">
 <meta name=\"ICBM\" content=\"42.256233,-71.006581\">
 <meta name=\"DC.title\" content=\"gnu.org\">\n\n")

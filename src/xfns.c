@@ -186,7 +186,8 @@ x_real_pos_and_offsets (struct frame *f,
                         int *x_pixels_diff,
                         int *y_pixels_diff,
                         int *xptr,
-                        int *yptr)
+                        int *yptr,
+                        int *outer_border)
 {
   int win_x, win_y, outer_x IF_LINT (= 0), outer_y IF_LINT (= 0);
   int real_x = 0, real_y = 0;
@@ -205,6 +206,16 @@ x_real_pos_and_offsets (struct frame *f,
   block_input ();
 
   x_catch_errors (dpy);
+
+  if (x_pixels_diff) *x_pixels_diff = 0;
+  if (y_pixels_diff) *y_pixels_diff = 0;
+  if (left_offset_x) *left_offset_x = 0;
+  if (top_offset_y) *top_offset_y = 0;
+  if (right_offset_x) *right_offset_x = 0;
+  if (bottom_offset_y) *bottom_offset_y = 0;
+  if (xptr) *xptr = 0;
+  if (yptr) *yptr = 0;
+  if (outer_border) *outer_border = 0;
 
   if (win == dpyinfo->root_window)
     win = FRAME_OUTER_WINDOW (f);
@@ -245,6 +256,13 @@ x_real_pos_and_offsets (struct frame *f,
       /* Get the real coordinates for the WM window upper left corner */
       XGetGeometry (FRAME_X_DISPLAY (f), win,
                     &rootw, &real_x, &real_y, &ow, &oh, &ign, &ign);
+
+      if (outer_border)
+        {
+          XWindowAttributes atts;
+          XGetWindowAttributes (FRAME_X_DISPLAY (f), win, &atts);
+          *outer_border = atts.border_width;
+        }
 
       /* Translate real coordinates to coordinates relative to our
          window.  For our window, the upper left corner is 0, 0.
@@ -328,7 +346,7 @@ x_real_pos_and_offsets (struct frame *f,
   if (y_pixels_diff) *y_pixels_diff = -win_y;
 
   if (left_offset_x) *left_offset_x = -outer_x;
-  if (top_offset_y) *top_offset_y = -outer_x;
+  if (top_offset_y) *top_offset_y = -outer_y;
 
   if (xptr) *xptr = real_x;
   if (yptr) *yptr = real_y;
@@ -353,7 +371,8 @@ x_real_pos_and_offsets (struct frame *f,
 void
 x_real_positions (struct frame *f, int *xptr, int *yptr)
 {
-  x_real_pos_and_offsets (f, NULL, NULL, NULL, NULL, NULL, NULL, xptr, yptr);
+  x_real_pos_and_offsets (f, NULL, NULL, NULL, NULL, NULL, NULL, xptr, yptr,
+                          NULL);
 }
 
 
@@ -4324,7 +4343,7 @@ elements (all size values are in pixels).
   Lisp_Object fullscreen = Fframe_parameter (frame, Qfullscreen);
   int menu_bar_height, menu_bar_width, tool_bar_height, tool_bar_width;
 
-  int left_off, right_off, top_off, bottom_off;
+  int left_off, right_off, top_off, bottom_off, outer_border;
   XWindowAttributes atts;
 
   block_input ();
@@ -4332,15 +4351,18 @@ elements (all size values are in pixels).
   XGetWindowAttributes (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &atts);
 
   x_real_pos_and_offsets (f, &left_off, &right_off, &top_off, &bottom_off,
-                          NULL, NULL, NULL, NULL);
+                          NULL, NULL, NULL, NULL, &outer_border);
+
 
   unblock_input ();
 
   border = atts.border_width;
   title = top_off;
 
-  outer_width = FRAME_PIXEL_WIDTH (f) + 2 * border + right_off + left_off;
-  outer_height = FRAME_PIXEL_HEIGHT (f) + 2 * border + top_off + bottom_off;
+  outer_width = atts.width + 2 * border + right_off + left_off
+    + 2 * outer_border;
+  outer_height = atts.height + 2 * border + top_off + bottom_off
+    + 2 * outer_border;
 
 #if defined (USE_GTK)
   {

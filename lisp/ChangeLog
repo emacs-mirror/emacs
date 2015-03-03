@@ -1,3 +1,260 @@
+2015-03-03  Agustín Martín Domingo <agustin6martin@gmail.com>
+
+	* textmodes/ispell.el (ispell-aspell-find-dictionary): Make sure
+	.dat files for aspell dicts are also searched for in location
+	described by `ispell-aspell-dict-dir', matching aspell's dict-dir
+	variable.
+
+2015-03-03  Agustín Martín Domingo <agustin6martin@gmail.com>
+
+	* textmodes/ispell.el (ispell-dicts-name2locale-equivs-alist)
+	(ispell-hunspell-fill-dictionary-entry)
+	(ispell-find-hunspell-dictionaries)
+	(ispell-set-spellchecker-params): New generic name for
+	`ispell-hunspell-dictionary-equivs-alist'.
+	(ispell-aspell-add-aliases): Also use
+	`ispell-dicts-name2locale-equivs-alist' to get aspell aliases for
+	standard dict names.
+
+2015-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* net/browse-url.el (browse-url-firefox-startup-arguments):
+	Make obsolete.
+	(browse-url-firefox): Doc fix.  Remove -remote, which no longer
+	exists in Firefox 36.  (Bug#19921)
+	(browse-url-firefox-sentinel): Remove function.
+
+2015-03-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.el (blink-cursor-timer-function): Don't increment
+	blink-cursor-blinks-done counter when a menu is active on a w32
+	frame.  (Bug#19925)
+
+2015-03-03  Juri Linkov  <juri@linkov.net>
+
+	* comint.el (comint-line-beginning-position): Revert searching for
+	the prompt when comint-use-prompt-regexp is non-nil because it
+	doesn't distinguish input from output.  Check the field property
+	`output' for the case when comint-use-prompt-regexp is nil.
+	(Bug#19710)
+
+2015-03-03  Jérémy Compostella  <jeremy.compostella@gmail.com>
+
+	* net/tramp-sh.el (tramp-remote-process-environment): Disable paging
+	with PAGER=cat.  (Bug#19870)
+
+2015-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-duplicate-distance):
+	Bump :version.
+
+2015-03-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* textmodes/text-mode.el (text-mode-syntax-table): Make some
+	punctuation character behave as word-constituent, for more
+	compatibility with Unicode.
+
+	* simple.el (transient-mark-mode): Doc fix.  (Bug#19841)
+
+2015-03-03  Agustín Martín Domingo <agustin6martin@gmail.com>
+
+	Improve string search in `flyspell-word-search-*`. (Bug#16800)
+	* flyspell.el (flyspell-duplicate-distance): Limit default search
+	distance for duplicated words to 40000.
+	(flyspell-word-search-backward, flyspell-word-search-forward):
+	Search as full word with defined casechars, not as substring.
+
+2015-03-03  Juri Linkov  <juri@linkov.net>
+
+	Better support for the case of typing RET on the prompt in comint.
+	* comint.el (comint-get-old-input-default): Go to the field end
+	when comint-use-prompt-regexp is nil.
+	(comint-line-beginning-position): Check if point is already
+	on the prompt before searching for the prompt when
+	comint-use-prompt-regexp is non-nil.  (Bug#19710)
+
+2015-03-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.el (frame-notice-user-settings): Refresh the value of
+	frame parameters after calling tty-handle-reverse-video.  Call
+	face-set-after-frame-default with the actual parameters, to avoid
+	resetting colors back to unspecified.
+	(set-background-color, set-foreground-color): Pass the foreground
+	and background colors to face-set-after-frame-default.  (Bug#19802)
+
+2015-03-03  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	* net/network-stream.el (network-stream-open-tls): Respect the
+	:end-of-capability setting.
+
+2015-03-03  Juri Linkov  <juri@linkov.net>
+
+	Revert the previous change of comint-line-beginning-position callers,
+	and modify comint-line-beginning-position instead.
+
+	* comint.el (comint-history-isearch-search)
+	(comint-history-isearch-message, comint-history-isearch-wrap):
+	Use comint-line-beginning-position instead of field-beginning.
+	(comint-send-input): Use either end-of-line or field-end
+	depending on comint-use-prompt-regexp.
+	(comint-line-beginning-position): Search backward
+	for comint-prompt-regexp if comint-use-prompt-regexp is non-nil.
+	Use field-beginning instead of line-beginning-position
+	if comint-use-prompt-regexp is nil.  (Bug#19710)
+
+2015-03-03  Robert Pluim  <rpluim@gmail.com>  (tiny change)
+
+	* calendar/todo-mode.el (todo-item-done): When done items are
+	hidden, restore point to its location prior to invoking this
+	command.  (Bug#19727)
+
+2015-03-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* textmodes/artist.el (artist-ellipse-compute-fill-info): Use
+	mapcar, not mapc, to create the other half of fill-info.
+	(Bug#19763)
+
+2015-03-03  Nicolas Petton  <nicolas@petton.fr>
+
+	* emacs-lisp/authors.el (authors-ignored-files)
+	(authors-renamed-files-alist): Additions.
+
+2015-03-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-ssh-controlmaster-options): Don't use a
+	tempfile for ControlPath.  (Bug#19702)
+
+2015-03-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-ssh-controlmaster-options): Use "%C" for
+	ControlPath if possible.  (Bug#19702)
+
+2015-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-obsolete-files-regexps)
+	(authors-valid-file-names, authors-renamed-files-alist): Additions.
+
+2015-03-03  Alan Mackenzie  <acm@muc.de>
+
+	CC Mode: Stop Font Lock forcing fontification from BOL.  Fixes
+	debbugs#19669.
+
+	* progmodes/cc-mode.el (c-font-lock-init): Setq
+	font-lock-extend-region-functions to nil.
+
+2015-03-03  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs-lisp/generator.el: Make globals conform to elisp
+	style throughout.  Use more efficient font-lock patterns.
+	(cps-inhibit-atomic-optimization): Rename from
+	`cps-disable-atomic-optimization'.
+	(cps--gensym): New macro; replaces `cl-gensym' throughout.
+	(cps-generate-evaluator): Move the `iter-yield' local macro
+	definition here
+	(iter-defun, iter-lambda): from here.
+
+	(iter-defun): Use `macroexp-parse-body'.
+
+2015-03-03  Daniel Colascione  <dancol@dancol.org>
+
+2015-03-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/gud.el: Use lexical-binding (bug#19966).
+
+	* emacs-lisp/gv.el (gv-ref): Warn about likely problematic cases.
+
+2015-03-03  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs-lisp/generator.el: Make globals conform to elisp
+	style throughout.  Use more efficient font-lock patterns.
+	(cps-inhibit-atomic-optimization): Rename from
+	`cps-disable-atomic-optimization'.
+	(cps--gensym): New macro; replaces `cl-gensym' throughout.
+	(cps-generate-evaluator): Move the `iter-yield' local macro
+	definition here...
+	(iter-defun, iter-lambda): ...from here.
+
+2015-03-03  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* emacs-lisp/package.el (package-autoremove): Fix if logic.
+
+2015-03-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window--dump-frame): For pixel height return total
+	number of frame's lines.
+
+2015-03-03  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs-lisp/cl-macs.el (cl-iter-defun): Add cl-iter-defun.
+
+	* emacs-lisp/generator.el (iter-defun): Correctly propagate
+	docstrings and declarations to underlying function.
+
+2015-03-02  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs-lisp/generator.el: New file.
+
+	* vc/vc.el (vc-responsible-backend): Add autoload cookie for
+	`vc-responsible-backend'.
+
+2015-03-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* vc/vc-hooks.el (vc-state, vc-working-revision):
+	Use `vc-responsible-backend' in order to support unregistered files.
+
+	* vc/vc-rcs.el (vc-rcs-unregister): Support unregistered files.
+
+	* vc/vc-rcs.el (vc-rcs-fetch-master-state):
+	* vc/vc-sccs.el (vc-sccs-working-revision): Handle undefined
+	master name.
+
+	* vc/vc-src.el (vc-src-working-revision): Do not return an empty string.
+
+2015-03-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/shr.el (shr-insert): Remove soft hyphens.
+	(shr-insert): Also remove soft hypens from non-folded text.
+
+2015-02-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime-insert-html): Decode HTML payload
+	when the charset is only given by the HTML <head>, and allow to
+	specify the encoding with "C-x RET c".
+
+2015-02-27  Mark Laws  <mdl@60hz.org>
+
+	Support daemon mode on MS-Windows (bug#19688)
+	* server.el (server-process-filter): Force GUI frames on
+	MS-Windows in daemon mode, even if a TTY frame was requested.
+
+	* frameset.el (frameset-keep-original-display-p): Don't assume
+	windows-nt cannot be in daemon mode.
+
+	* frame.el (window-system-for-display): Don't assume windows-nt
+	cannot be in daemon mode.
+
+2015-02-26  Ivan Shmakov  <ivan@siamics.net>
+
+	* faces.el (face-list-p): Split from face-at-point.
+	(face-at-point): Use it.
+	* facemenu.el (facemenu-add-face): Likewise.  (Bug#19912)
+
+2015-02-26  Oscar Fuentes  <ofv@wanadoo.es>
+
+	* vc/vc.el (vc-annotate-switches): New defcustom.
+	* vc/vc-bzr.el (vc-bzr-annotate-switches): New defcustom.
+	(vc-bzr-annotate-command): Use vc-switches.
+	* vc/vc-cvs.el (vc-cvs-annotate-switches): New defcustom.
+	(vc-cvs-annotate-command): Use vc-switches.
+	* vc/vc-git.el (vc-git-annotate-switches): New defcustom.
+	(vc-git-annotate-command): Use vc-switches.
+	* vc/vc-hg.el (vc-hg-annotate-switches): New defcustom.
+	(vc-hg-annotate-command): Use vc-switches.
+	* vc/vc-mtn.el (vc-mtn-annotate-switches): New defcustom.
+	(vc-mtn-annotate-command): Use vc-switches.
+	* vc/vc-svn.el (vc-svn-annotate-switches): New defcustom.
+	(vc-svn-annotate-command): Use vc-switches.
+
 2015-02-26  Alan Mackenzie  <acm@muc.de>
 
 	Handle "#" operator properly inside macro.  Fix coding bug.

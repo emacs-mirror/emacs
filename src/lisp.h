@@ -488,6 +488,7 @@ enum Lisp_Misc_Type
     Lisp_Misc_Marker,
     Lisp_Misc_Overlay,
     Lisp_Misc_Save_Value,
+    Lisp_Misc_Finalizer,
     /* Currently floats are not a misc type,
        but let's define this in case we want to change that.  */
     Lisp_Misc_Float,
@@ -600,6 +601,7 @@ INLINE bool OVERLAYP (Lisp_Object);
 INLINE bool PROCESSP (Lisp_Object);
 INLINE bool PSEUDOVECTORP (Lisp_Object, int);
 INLINE bool SAVE_VALUEP (Lisp_Object);
+INLINE bool FINALIZERP (Lisp_Object);
 INLINE void set_sub_char_table_contents (Lisp_Object, ptrdiff_t,
 					      Lisp_Object);
 INLINE bool STRINGP (Lisp_Object);
@@ -610,6 +612,7 @@ INLINE bool (VECTORLIKEP) (Lisp_Object);
 INLINE bool WINDOWP (Lisp_Object);
 INLINE bool TERMINALP (Lisp_Object);
 INLINE struct Lisp_Save_Value *XSAVE_VALUE (Lisp_Object);
+INLINE struct Lisp_Finalizer *XFINALIZER (Lisp_Object);
 INLINE struct Lisp_Symbol *(XSYMBOL) (Lisp_Object);
 INLINE void *(XUNTAG) (Lisp_Object, int);
 
@@ -2189,6 +2192,21 @@ XSAVE_OBJECT (Lisp_Object obj, int n)
   return XSAVE_VALUE (obj)->data[n].object;
 }
 
+/* A finalizer sentinel.  */
+struct Lisp_Finalizer
+  {
+    struct Lisp_Misc_Any base;
+
+    /* Circular list of all active weak references.  */
+    struct Lisp_Finalizer *prev;
+    struct Lisp_Finalizer *next;
+
+    /* Call FUNCTION when the finalizer becomes unreachable, even if
+       FUNCTION contains a reference to the finalizer; i.e., call
+       FUNCTION when it is reachable _only_ through finalizers.  */
+    Lisp_Object function;
+  };
+
 /* A miscellaneous object, when it's on the free list.  */
 struct Lisp_Free
   {
@@ -2208,6 +2226,7 @@ union Lisp_Misc
     struct Lisp_Marker u_marker;
     struct Lisp_Overlay u_overlay;
     struct Lisp_Save_Value u_save_value;
+    struct Lisp_Finalizer u_finalizer;
   };
 
 INLINE union Lisp_Misc *
@@ -2249,6 +2268,14 @@ XSAVE_VALUE (Lisp_Object a)
   eassert (SAVE_VALUEP (a));
   return & XMISC (a)->u_save_value;
 }
+
+INLINE struct Lisp_Finalizer *
+XFINALIZER (Lisp_Object a)
+{
+  eassert (FINALIZERP (a));
+  return & XMISC (a)->u_finalizer;
+}
+
 
 /* Forwarding pointer to an int variable.
    This is allowed only in the value cell of a symbol,
@@ -2493,6 +2520,12 @@ INLINE bool
 SAVE_VALUEP (Lisp_Object x)
 {
   return MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Save_Value;
+}
+
+INLINE bool
+FINALIZERP (Lisp_Object x)
+{
+  return MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Finalizer;
 }
 
 INLINE bool
@@ -4228,9 +4261,16 @@ extern bool noninteractive;
 extern bool no_site_lisp;
 
 /* Pipe used to send exit notification to the daemon parent at
-   startup.  */
+   startup.  On Windows, we use a kernel event instead.  */
+#ifndef WINDOWSNT
 extern int daemon_pipe[2];
 #define IS_DAEMON (daemon_pipe[1] != 0)
+#define DAEMON_RUNNING (daemon_pipe[1] >= 0)
+#else  /* WINDOWSNT */
+extern void *w32_daemon_event;
+#define IS_DAEMON (w32_daemon_event != NULL)
+#define DAEMON_RUNNING (w32_daemon_event != INVALID_HANDLE_VALUE)
+#endif
 
 /* True if handling a fatal error already.  */
 extern bool fatal_error_in_progress;

@@ -2816,7 +2816,8 @@ visible."
 			  (goto-char (point-min))
 			  (re-search-forward todo-done-string-start nil t)))
 	     (buffer-read-only nil)
-	     item done-item opoint)
+	     item done-item
+	     (opoint (point)))
 	;; Don't add empty comment to done item.
 	(setq comment (unless (zerop (length comment))
 			(concat " [" todo-comment-string ": " comment "]")))
@@ -2854,7 +2855,9 @@ visible."
 	(todo-update-categories-sexp)
 	(let ((todo-show-with-done show-done))
 	  (todo-category-select)
-	  ;; When done items are shown, put cursor on first just done item.
+	  ;; When done items are visible, put point at the top of the
+	  ;; done items section.  When done items are hidden, restore
+	  ;; point to its location prior to invoking this command.
 	  (when opoint (goto-char opoint)))))))
 
 (defun todo-item-undone ()

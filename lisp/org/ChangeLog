@@ -13109,7 +13109,7 @@
 2012-01-03  Nicolas Goaziou  <n.goaziou@gmail.com>
 
 	* org.el (org-fontify-meta-lines-and-blocks-1):
-	Recognize "name" as a valid keyword that can preceed a block.
+	Recognize "name" as a valid keyword that can precede a block.
 
 2012-01-03  Eric Schulte  <schulte.eric@gmail.com>
 

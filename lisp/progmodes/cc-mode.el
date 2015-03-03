@@ -1259,6 +1259,14 @@ This function is called from `c-common-init', once per mode initialization."
 	  (font-lock-mark-block-function
 	   . c-mark-function)))
 
+  ;; Prevent `font-lock-default-fontify-region' extending the region it will
+  ;; fontify to whole lines by removing `font-lock-extend-region-whole-lines'
+  ;; (and, coincidentally, `font-lock-extend-region-multiline' (which we do
+  ;; not need)) from `font-lock-extend-region-functions'.  (Emacs only).  This
+  ;; fixes Emacs bug #19669.
+  (when (boundp 'font-lock-extend-region-functions)
+    (setq font-lock-extend-region-functions nil))
+
   (make-local-variable 'font-lock-fontify-region-function)
   (setq font-lock-fontify-region-function 'c-font-lock-fontify-region)
 

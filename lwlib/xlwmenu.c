@@ -1510,17 +1510,21 @@ remap_menubar (XlwMenuWidget mw)
       if (mw->menu.horizontal && i == 1)
 	ws->y += mw->menu.margin;
 
+      /* WMs like Gnome 3 ignores requests to move windows.  So we
+         must destroy the current one and create a new to get it to move.  */
+      XtUnrealizeWidget (ws->w);
+      XtRealizeWidget (ws->w);
+      ws->window = XtWindow (ws->w);
+
       size_menu (mw, i);
 
       fit_to_screen (mw, ws, previous_ws, mw->menu.horizontal && i == 1);
 
       create_pixmap_for_menu (ws, mw);
-      XtMoveWidget (ws->w, ws->x, ws->y);
-      XtPopup (ws->w, XtGrabNone);
-      XtResizeWidget (ws->w, ws->width, ws->height,
-                      mw->core.border_width);
-      XtResizeWindow (ws->w);
+      XtConfigureWidget (ws->w, ws->x, ws->y, ws->width, ws->height,
+			 ws->w->core.border_width);
       display_menu (mw, i, False, &selection_position, NULL, NULL);
+      XtPopup (ws->w, XtGrabNone);
     }
 
   /* unmap the menus that popped down */
@@ -2615,6 +2619,7 @@ pop_up_menu (XlwMenuWidget mw, XButtonPressedEvent *event)
   mw->menu.popped_up = True;
   if (XtIsShell (XtParent ((Widget)mw)))
     {
+      fprintf(stderr, "Config %d %d\n", x, y);
       XtConfigureWidget (XtParent ((Widget)mw), x, y, w, h,
 			 XtParent ((Widget)mw)->core.border_width);
       XtPopup (XtParent ((Widget)mw), XtGrabExclusive);

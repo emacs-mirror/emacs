@@ -14,41 +14,45 @@ and NEWS.1-17 for changes in older Emacs versions.
 You can narrow news to a specific version by calling `view-emacs-news'
 with a prefix argument or by typing C-u C-h C-n.
 
-Temporary note:
-+++ indicates that all necessary documentation updates are complete.
-    (This means all relevant manuals in doc/ AND lisp doc-strings.)
---- means no change in the manuals is needed.
-When you add a new item, use the appropriate mark if you are sure it applies,
-otherwise leave it unmarked.
-
 
 * Changes in Emacs 24.5
 
----
+** This is mainly a bug-fix release, but there are some other changes.
+
 ** The default value of `history-length' has increased to 100.
 
-+++
-** `redisplay-dont-pause' is declared as obsolete.
+** The variable `redisplay-dont-pause' is obsolete.
 
 
 * Changes in Specialized Modes and Packages in Emacs 24.5
 
-** `call-process-shell-command' and `process-file-shell-command'
-don't take "&rest args" any more.
+** `call-process-shell-command' and `process-file-shell-command' no longer
+take "&rest args".
+
+** The option `browse-url-firefox-startup-arguments' no longer has an effect.
+
+** ERC
+
+*** New option `erc-rename-buffers'.
+
+*** New faces `erc-my-nick-prefix-face' and `erc-nick-prefix-face'.
+
+*** `erc-format-@nick' displays all user modes instead of only op and voice.
+
+*** The display of irc commands in the current buffer has been disabled.
+
+*** `erc-version' now follows the Emacs version.
 
 ** Obsolete packages
 
 *** cc-compat.el
 
----
-*** crisp.el - moved to elpa.gnu.org.
+*** crisp.el (moved to elpa.gnu.org)
 
----
 *** tpu-edt.el, ws-mode.el
 These emulations of old editors are believed to be no longer relevant
  - contact emacs-devel@gnu.org if you disagree.
 
----
 *** vi.el, vip.el (try M-x viper instead)
 
 

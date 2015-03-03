@@ -1022,8 +1022,8 @@ Internal use only."
 (defun frameset-keep-original-display-p (force-display)
   "True if saved frames' displays should be honored.
 For the meaning of FORCE-DISPLAY, see `frameset-restore'."
-  (cond ((daemonp) t)
-	((eq system-type 'windows-nt) nil) ;; Does ns support more than one display?
+  (cond ((eq system-type 'windows-nt) nil) ;; Does ns support more than one display?
+	((daemonp) t)
 	(t (not force-display))))
 
 (defun frameset-minibufferless-first-p (frame1 _frame2)

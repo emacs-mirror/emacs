@@ -156,6 +156,8 @@ latter are unique to Emacs Lisp.
 * Byte-Code Type::      A function written in Lisp, then compiled.
 * Autoload Type::       A type used for automatically loading seldom-used
                         functions.
+* Finalizer Type::      Runs code when no longer reachable.
+
 @end menu
 
 @node Integer Type
@@ -1361,6 +1363,31 @@ in the loaded file.
 @code{autoload}, which stores the object in the function cell of a
 symbol.  @xref{Autoload}, for more details.
 
+@node Finalizer Type
+@subsection Finalizer Type
+
+  A @dfn{finalizer object} helps Lisp code clean up after objects that
+are no longer needed.  A finalizer holds a Lisp function object.
+When a finalizer object becomes unreachable after a garbage collection
+pass, Emacs calls the finalizer's associated function object.
+When deciding whether a finalizer is reachable, Emacs does not count
+references from finalizer objects themselves, allowing you to use
+finalizers without having to worry about accidentally capturing
+references to finalized objects themselves.
+
+Errors in finalizers are printed to @code{*Messages*}.  Emacs runs
+a given finalizer object's associated function exactly once, even
+if that function fails.
+
+@defun make-finalizer function
+Make a finalizer that will run @var{function}.  @var{function} will be
+called after garbage collection when the returned finalizer object
+becomes unreachable.  If the finalizer object is reachable only
+through references from finalizer objects, it does not count as
+reachable for the purpose of deciding whether to run @var{function}.
+@var{function} will be run once per finalizer object.
+@end defun
+
 @node Editing Types
 @section Editing Types
 @cindex editing types
@@ -1907,11 +1934,11 @@ types.  In most cases, it is more convenient to use type predicates than
 This function returns a symbol naming the primitive type of
 @var{object}.  The value is one of the symbols @code{bool-vector},
 @code{buffer}, @code{char-table}, @code{compiled-function},
-@code{cons}, @code{float}, @code{font-entity}, @code{font-object},
-@code{font-spec}, @code{frame}, @code{hash-table}, @code{integer},
-@code{marker}, @code{overlay}, @code{process}, @code{string},
-@code{subr}, @code{symbol}, @code{vector}, @code{window}, or
-@code{window-configuration}.
+@code{cons}, @code{finalizer}, @code{float}, @code{font-entity},
+@code{font-object}, @code{font-spec}, @code{frame}, @code{hash-table},
+@code{integer}, @code{marker}, @code{overlay}, @code{process},
+@code{string}, @code{subr}, @code{symbol}, @code{vector},
+@code{window}, or @code{window-configuration}.
 
 @example
 (type-of 1)

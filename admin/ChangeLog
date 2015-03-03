@@ -1,3 +1,12 @@
+2015-03-03  Kelvin White  <kwhite@gnu.org>
+
+	* MAINTAINERS: Add myself to section 2
+
+2015-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (manual-meta-string): Use bug-gnu-emacs@gnu email address
+	rather than webmasters@gnu.
+
 2015-01-28  Glenn Morris  <rgm@gnu.org>
 
 	* update_autogen (commit): Prepend "# " to commit message.

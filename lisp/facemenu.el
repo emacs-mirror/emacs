@@ -732,7 +732,7 @@ effect.  See `facemenu-remove-face-function'."
                                  face
                                (facemenu-active-faces
                                 (cons face
-                                      (if (listp prev)
+                                      (if (face-list-p prev)
                                           prev
                                         (list prev)))
                                 ;; Specify the selected frame

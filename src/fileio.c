@@ -724,20 +724,16 @@ make_temp_name (Lisp_Object prefix, bool base64_p)
 
 DEFUN ("make-temp-name", Fmake_temp_name, Smake_temp_name, 1, 1, 0,
        doc: /* Generate temporary file name (string) starting with PREFIX (a string).
-The Emacs process number forms part of the result,
-so there is no danger of generating a name being used by another process.
+The Emacs process number forms part of the result, so there is no
+danger of generating a name being used by another Emacs process
+\(so long as only a single host can access the containing directory...).
 
-In addition, this function makes an attempt to choose a name
-which has no existing file.  To make this work,
-PREFIX should be an absolute file name.
+This function tries to choose a name that has no existing file.
+For this to work, PREFIX should be an absolute file name.
 
 There is a race condition between calling `make-temp-name' and creating the
-file which opens all kinds of security holes.  For that reason, you should
-probably use `make-temp-file' instead, except in three circumstances:
-
-* If you are creating the file in the user's home directory.
-* If you are creating a directory rather than an ordinary file.
-* If you are taking special precautions as `make-temp-file' does.  */)
+file, which opens all kinds of security holes.  For that reason, you should
+normally use `make-temp-file' instead.  */)
   (Lisp_Object prefix)
 {
   return make_temp_name (prefix, 0);

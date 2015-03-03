@@ -273,6 +273,17 @@ If FRAME is omitted or nil, use the selected frame."
   (not (internal-lisp-face-empty-p face frame)))
 
 
+(defun face-list-p (face-or-list)
+  "True if FACE-OR-LIST is a list of faces.
+Return nil if FACE-OR-LIST is a non-nil atom, or a cons cell whose car
+is either 'foreground-color, 'background-color, or a keyword."
+  ;; The logic of merge_face_ref (xfaces.c) is recreated here.
+  (and (listp face-or-list)
+       (not (memq (car face-or-list)
+		  '(foreground-color background-color)))
+       (not (keywordp (car face-or-list)))))
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Setting face attributes from X resources.
@@ -1922,11 +1933,7 @@ Return nil if there is no face."
                         (get-char-property (point) 'face))))
       (cond ((facep faceprop)
              (push faceprop faces))
-            ((and (listp faceprop)
-                  ;; Don't treat an attribute spec as a list of faces.
-                  (not (keywordp (car faceprop)))
-                  (not (memq (car faceprop)
-                             '(foreground-color background-color))))
+            ((face-list-p faceprop)
              (dolist (face faceprop)
                (if (facep face)
                    (push face faces))))))

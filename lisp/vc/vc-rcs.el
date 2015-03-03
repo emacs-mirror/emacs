@@ -288,20 +288,21 @@ to the RCS command."
   "Unregister FILE from RCS.
 If this leaves the RCS subdirectory empty, ask the user
 whether to remove it."
-  (let* ((master (vc-master-name file))
-	 (dir (file-name-directory master))
-	 (backup-info (find-backup-file-name master)))
-    (if (not backup-info)
-	(delete-file master)
-      (rename-file master (car backup-info) 'ok-if-already-exists)
-      (dolist (f (cdr backup-info)) (ignore-errors (delete-file f))))
-    (and (string= (file-name-nondirectory (directory-file-name dir)) "RCS")
-	 ;; check whether RCS dir is empty, i.e. it does not
-	 ;; contain any files except "." and ".."
-	 (not (directory-files dir nil
-			       "^\\([^.]\\|\\.[^.]\\|\\.\\.[^.]\\).*"))
-	 (yes-or-no-p (format "Directory %s is empty; remove it? " dir))
-	 (delete-directory dir))))
+  (unless (memq (vc-state file) '(nil unregistered))
+    (let* ((master (vc-master-name file))
+	   (dir (file-name-directory master))
+	   (backup-info (find-backup-file-name master)))
+      (if (not backup-info)
+	  (delete-file master)
+	(rename-file master (car backup-info) 'ok-if-already-exists)
+	(dolist (f (cdr backup-info)) (ignore-errors (delete-file f))))
+      (and (string= (file-name-nondirectory (directory-file-name dir)) "RCS")
+	   ;; check whether RCS dir is empty, i.e. it does not
+	   ;; contain any files except "." and ".."
+	   (not (directory-files dir nil
+				 "^\\([^.]\\|\\.[^.]\\|\\.\\.[^.]\\).*"))
+	   (yes-or-no-p (format "Directory %s is empty; remove it? " dir))
+	   (delete-directory dir)))))
 
 ;; It used to be possible to pass in a value for the variable rev, but
 ;; nothing in the rest of VC used this capability.  Removing it makes the
@@ -971,74 +972,75 @@ otherwise determine the workfile version based on the master file.
 This function sets the properties `vc-working-revision' and
 `vc-checkout-model' to their correct values, based on the master
 file."
-  (with-temp-buffer
-    (if (or (not (vc-insert-file (vc-master-name file) "^[0-9]"))
-            (progn (goto-char (point-min))
-                   (not (looking-at "^head[ \t\n]+[^;]+;$"))))
-        (error "File %s is not an RCS master file" (vc-master-name file)))
-    (let ((workfile-is-latest nil)
-	  (default-branch (vc-parse-buffer "^branch[ \t\n]+\\([^;]*\\);" 1)))
-      (vc-file-setprop file 'vc-rcs-default-branch default-branch)
-      (unless working-revision
-	;; Workfile version not known yet.  Determine that first.  It
-	;; is either the head of the trunk, the head of the default
-	;; branch, or the "default branch" itself, if that is a full
-	;; revision number.
-	(cond
-	 ;; no default branch
-	 ((or (not default-branch) (string= "" default-branch))
-	  (setq working-revision
-		(vc-parse-buffer "^head[ \t\n]+\\([^;]+\\);" 1))
-	  (setq workfile-is-latest t))
-	 ;; default branch is actually a revision
-	 ((string-match "^[0-9]+\\.[0-9]+\\(\\.[0-9]+\\.[0-9]+\\)*$"
-			default-branch)
-	  (setq working-revision default-branch))
-	 ;; else, search for the head of the default branch
-	 (t (vc-insert-file (vc-master-name file) "^desc")
+  (when (and (file-regular-p file) (vc-master-name file))
+    (with-temp-buffer
+      (if (or (not (vc-insert-file (vc-master-name file) "^[0-9]"))
+	      (progn (goto-char (point-min))
+		     (not (looking-at "^head[ \t\n]+[^;]+;$"))))
+	  (error "File %s is not an RCS master file" (vc-master-name file)))
+      (let ((workfile-is-latest nil)
+	    (default-branch (vc-parse-buffer "^branch[ \t\n]+\\([^;]*\\);" 1)))
+	(vc-file-setprop file 'vc-rcs-default-branch default-branch)
+	(unless working-revision
+	  ;; Workfile version not known yet.  Determine that first.  It
+	  ;; is either the head of the trunk, the head of the default
+	  ;; branch, or the "default branch" itself, if that is a full
+	  ;; revision number.
+	  (cond
+	   ;; no default branch
+	   ((or (not default-branch) (string= "" default-branch))
 	    (setq working-revision
-		  (vc-rcs-find-most-recent-rev default-branch))
-	    (setq workfile-is-latest t)))
-	(vc-file-setprop file 'vc-working-revision working-revision))
-      ;; Check strict locking
-      (goto-char (point-min))
-      (vc-file-setprop file 'vc-checkout-model
-		       (if (re-search-forward ";[ \t\n]*strict;" nil t)
-			   'locking 'implicit))
-      ;; Compute state of workfile version
-      (goto-char (point-min))
-      (let ((locking-user
-	     (vc-parse-buffer (concat "^locks[ \t\n]+[^;]*[ \t\n]+\\([^:]+\\):"
-				      (regexp-quote working-revision)
-				      "[^0-9.]")
-			      1)))
-	(cond
-	 ;; not locked
-	 ((not locking-user)
-          (if (or workfile-is-latest
-                  (vc-rcs-latest-on-branch-p file working-revision))
-              ;; workfile version is latest on branch
-              'up-to-date
-            ;; workfile version is not latest on branch
-            'needs-update))
-	 ;; locked by the calling user
-	 ((and (stringp locking-user)
-	       (string= locking-user (vc-user-login-name file)))
-          ;; Don't call `vc-rcs-checkout-model' to avoid inf-looping.
-	  (if (or (eq (vc-file-getprop file 'vc-checkout-model) 'locking)
-		  workfile-is-latest
-		  (vc-rcs-latest-on-branch-p file working-revision))
-	      'edited
-	    ;; Locking is not used for the file, but the owner does
-	    ;; have a lock, and there is a higher version on the current
-	    ;; branch.  Not sure if this can occur, and if it is right
-	    ;; to use `needs-merge' in this case.
-	    'needs-merge))
-	 ;; locked by somebody else
-	 ((stringp locking-user)
-	  locking-user)
-	 (t
-	  (error "Error getting state of RCS file")))))))
+		  (vc-parse-buffer "^head[ \t\n]+\\([^;]+\\);" 1))
+	    (setq workfile-is-latest t))
+	   ;; default branch is actually a revision
+	   ((string-match "^[0-9]+\\.[0-9]+\\(\\.[0-9]+\\.[0-9]+\\)*$"
+			  default-branch)
+	    (setq working-revision default-branch))
+	   ;; else, search for the head of the default branch
+	   (t (vc-insert-file (vc-master-name file) "^desc")
+	      (setq working-revision
+		    (vc-rcs-find-most-recent-rev default-branch))
+	      (setq workfile-is-latest t)))
+	  (vc-file-setprop file 'vc-working-revision working-revision))
+	;; Check strict locking
+	(goto-char (point-min))
+	(vc-file-setprop file 'vc-checkout-model
+			 (if (re-search-forward ";[ \t\n]*strict;" nil t)
+			     'locking 'implicit))
+	;; Compute state of workfile version
+	(goto-char (point-min))
+	(let ((locking-user
+	       (vc-parse-buffer (concat "^locks[ \t\n]+[^;]*[ \t\n]+\\([^:]+\\):"
+					(regexp-quote working-revision)
+					"[^0-9.]")
+				1)))
+	  (cond
+	   ;; not locked
+	   ((not locking-user)
+	    (if (or workfile-is-latest
+		    (vc-rcs-latest-on-branch-p file working-revision))
+		;; workfile version is latest on branch
+		'up-to-date
+	      ;; workfile version is not latest on branch
+	      'needs-update))
+	   ;; locked by the calling user
+	   ((and (stringp locking-user)
+		 (string= locking-user (vc-user-login-name file)))
+	    ;; Don't call `vc-rcs-checkout-model' to avoid inf-looping.
+	    (if (or (eq (vc-file-getprop file 'vc-checkout-model) 'locking)
+		    workfile-is-latest
+		    (vc-rcs-latest-on-branch-p file working-revision))
+		'edited
+	      ;; Locking is not used for the file, but the owner does
+	      ;; have a lock, and there is a higher version on the current
+	      ;; branch.  Not sure if this can occur, and if it is right
+	      ;; to use `needs-merge' in this case.
+	      'needs-merge))
+	   ;; locked by somebody else
+	   ((stringp locking-user)
+	    locking-user)
+	   (t
+	    (error "Error getting state of RCS file"))))))))
 
 (defun vc-rcs-consult-headers (file)
   "Search for RCS headers in FILE, and set properties accordingly.

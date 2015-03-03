@@ -1,3 +1,174 @@
+2015-03-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* search.c (find_newline): Avoid assertion violations in
+	CHAR_TO_BYTE when a portion of the buffer was deleted and we look
+	for newlines near the end of the buffer.  This happens in Rmail
+	hen JIT font-lock fontifies a newly displayed portion of the
+	buffer.
+
+2015-03-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (Fw32__menu_bar_in_use): New internal function.
+	(Bug#19925)
+
+2015-03-03  Glenn Morris  <rgm@gnu.org>
+
+	* fileio.c (Fmake_temp_name): Doc tweaks.  (Bug#19858)
+
+2015-03-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu.c (Fx_popup_menu) [HAVE_X_WINDOWS]: Call
+	mouse_position_for_popup only for X frames.  (Bug#19862)
+
+2015-03-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffer.c (syms_of_buffer): Doc fix.  (Bug#19841)
+
+2015-03-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* xfaces.c (map_tty_color): Use assoc_no_quit instead of
+	assq_no_quit to fetch color definition by its string name.
+	(Bug#19802)
+
+2015-03-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_in_display_line_to): Handle the case where the
+	last character of a screen line is whitespace, and we are under
+	word-wrap with overflow-newline-into-fringe turned on.
+	(Bug#19769)
+
+2015-03-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (handle_stop, handle_single_display_spec)
+	(next-element_from_image): Don't reset the
+	ignore_overlay_strings_at_pos_p flag here.
+	(next_element_from_buffer): Reset ignore_overlay_strings_at_pos_p
+	here.
+	(next_overlay_string): Set ignore_overlay_strings_at_pos_p here,
+	after we've exhausted all the overlay strings at the current
+	position.  (Bug#19307)
+
+2015-03-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_iterator_to_next): Set value of stop_charpos
+	according to the object we are about to resume iterating.
+	(Bug#19307)
+
+	* dispnew.c (adjust_glyph_matrix): Set the update_mode_line flag
+	of the window whose current glyph matrix was resized, which
+	disables the mode-line row as side effect.
+
+	* xdisp.c (redisplay_window): Don't avoid redisplay of a window
+	whose update_mode_line flag is set.  (Bug#19721)
+
+2015-03-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispextern.h (FACE_FOR_CHAR): Fix the commentary.
+2015-03-03  Daniel Colascione  <dancol@dancol.org>
+
+	* alloc.c (syms_of_alloc): Rename `gc-precise-p' to `gc-precise'.
+
+2015-03-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (run_finalizers): Omit unused local.
+	Also, redo newly-added code as per usual Emacs style.
+
+2015-03-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (adjust_frame_size): If the pixel sizes remain
+	unchanged but the number of lines or columns of the frame
+	changes, run `window--pixel-to-total' (Bug#19972).
+	(Qwindow_pixel_to_total): DEFSYM it.
+
+2015-03-03  Daniel Colascione  <dancol@dancol.org>
+
+	* print.c (print_object): Print whether a finalizer has
+	been called.
+
+	* data.c (Ftype_of): Make `type-of' work with finalizers.
+	(syms_of_data): Register Qfinalizer.
+
+2015-03-02  Daniel Colascione  <dancol@dancol.org>
+
+	* print.c (print_object): Print finalizers.
+
+	* alloc.c:
+	(finalizers, doomed_finalizers): New variables.
+	(init_finalizer_list, finalizer_insert, unchain_finalizer)
+	(mark_finalizer_list, queue_doomed_finalizers)
+	(run_finalizer_handler, run_finalizer_function, run_finalizers):
+	New functions.
+	(garbage_collect_1, mark_object, sweep_misc)
+	(init_alloc_once, syms_of_alloc): Support finalizers.
+	(gc-precise-p): New Lisp variable.
+
+	* lisp.h (Lisp_Misc_Type): New value Lisp_Misc_Finalizer.
+	(FINALIZERP, XFINALIZER): New functions.
+	(Lisp_Finalizer): New structure.
+
+2015-02-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* character.c (alphabeticp, decimalnump): Avoid undefined behavior
+	if CATEGORY is not an integer, or is an integer out of
+	unicode_category_t range.
+
+2015-02-28  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (make_initial_frame, Fmake_terminal_frame): Set
+	can_x_set_window_size and after_make_frame (Bug#19962).
+
+2015-02-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* character.c (alphabeticp, decimalnump): New functions.
+	* character.h (alphabeticp, decimalnump): Add prototypes.
+
+	* regex.c (ISALNUM, ISALPHA): Check Unicode character properties
+	for multibyte characters by calling alphabeticp and decimalnump.
+	(BIT_ALPHA, BIT_ALNUM): New bit masks.
+	(re_wctype_to_bit): Return them when the class is RECC_ALPHA or
+	RECC_ALNUM.
+	(re_match_2_internal): Call ISALPHA and ISALNUM when appropriate.
+	(Bug#19878)
+
+2015-02-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.h (x_real_pos_and_offsets): Take outer_border as arg also.
+
+	* xmenu.c (x_menu_show): Adjust for new arg to x_real_pos_and_offsets.
+
+	* xfns.c (x_real_pos_and_offsets): Take outer_border as arg also.
+	Initialize all args.  Get outer_border from window attributes.
+	Fix typo for top_offset_y.
+	(x_real_positions): Adjust for new arg to x_real_pos_and_offsets.
+	(Fx_frame_geometry): Get outer_border also.  Use attrs.width/height.
+
+2015-02-27  Mark Laws  <mdl@60hz.org>
+
+	Support daemon mode on MS-Windows (bug#19688)
+	* emacs.c <w32_daemon_event> [WINDOWSNT]: New global var.
+	(main) [WINDOWSNT]: Initialize it to NULL.  Create the event to
+	signal clients we are ready for connections.
+	(Fdaemon_initialized): Use DAEMON_RUNNING.
+	[WINDOWSNT]: MS-Windows specific code to signal clients we are
+	ready for connections.
+
+	* lisp.h (DAEMON_RUNNING): New macro, encapsulates Posix and
+	MS-Windows conditions for running in daemon mode.
+
+	* minibuf.c (read_minibuf): Use DAEMON_RUNNING.
+
+	* keyboard.c (kbd_buffer_get_event): Use DAEMON_RUNNING.
+
+	* dispnew.c (init_display) [WINDOWSNT]: Initialize frames/terminal
+	even in daemon mode.
+
+2015-02-26  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (create_and_show_popup_menu): Call XTranslateCoordinates,
+	dont use OUTER_TO_INNER macros.
+	(x_menu_show): Call x_real_pos_and_offsets, don't use
+	OUTER_TO_INNER macros.
+
 2015-02-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispextern.h (FACE_FOR_CHAR): Fix the commentary.

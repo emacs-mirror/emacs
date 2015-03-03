@@ -667,14 +667,6 @@ your Emacs configuration file.  Everything after the @code{(require
 @lisp
 ;;; Sample ERC configuration
 
-;; Add the ERC directory to load path -- you don't need this if you are
-;; using the version of ERC that comes with Emacs
-(add-to-list 'load-path "~/elisp/erc")
-
-;; Load ERC -- again, you don't need this if you are using the version
-;; of ERC that comes with Emacs
-(require 'erc)
-
 ;; Load authentication info from an external source.  Put sensitive
 ;; passwords and the like in here.
 (load "~/.emacs.d/.erc-auth")
@@ -724,7 +716,7 @@ stuff, to the current ERC buffer."
 (setq erc-autojoin-channels-alist '(("freenode.net" "#emacs" "#erc")))
 
 ;; Rename server buffers to reflect the current network name instead
-;; of IP:PORT. (e.g. "freenode" instead of "84.240.3.129:6667"). This
+;; of SERVER:PORT. (e.g. "freenode" instead of "irc.freenode.net:6667"). This
 ;; is useful when using a bouncer like ZNC where you have multiple
 ;; connections to the same server.
 (setq erc-rename-buffers t)

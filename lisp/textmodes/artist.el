@@ -3372,7 +3372,7 @@ The POINT-LIST is expected to cover the first quadrant."
     ;; Create the other half by mirroring the first half.
     (setq both-halves
 	  (append first-half
-		  (mapc
+		  (mapcar
 		   (lambda (i)
 		     (artist-new-fill-item (artist-fill-item-get-x i)
 					   (- (artist-fill-item-get-y i))

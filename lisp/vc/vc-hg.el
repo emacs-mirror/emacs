@@ -131,6 +131,17 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :version "23.1"
   :group 'vc-hg)
 
+(defcustom vc-hg-annotate-switches nil
+  "String or list of strings specifying switches for hg annotate under VC.
+If nil, use the value of `vc-annotate-switches'.  If t, use no
+switches."
+  :type '(choice (const :tag "Unspecified" nil)
+		 (const :tag "None" t)
+		 (string :tag "Argument String")
+		 (repeat :tag "Argument List" :value ("") string))
+  :version "25.1"
+  :group 'vc-hg)
+
 (defcustom vc-hg-program "hg"
   "Name of the Mercurial executable (excluding any arguments)."
   :type 'string
@@ -358,8 +369,9 @@ If LIMIT is non-nil, show no more than this many entries."
 (defun vc-hg-annotate-command (file buffer &optional revision)
   "Execute \"hg annotate\" on FILE, inserting the contents in BUFFER.
 Optional arg REVISION is a revision to annotate from."
-  (vc-hg-command buffer 0 file "annotate" "-d" "-n" "--follow"
-                 (when revision (concat "-r" revision))))
+  (apply #'vc-hg-command buffer 0 file "annotate" "-d" "-n" "--follow"
+	 (append (vc-switches 'hg 'annotate)
+                 (if revision (list (concat "-r" revision))))))
 
 (declare-function vc-annotate-convert-time "vc-annotate" (time))
 

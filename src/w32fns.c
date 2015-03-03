@@ -8238,6 +8238,15 @@ w32_sys_ring_bell (struct frame *f)
     MessageBeep (sound_type);
 }
 
+DEFUN ("w32--menu-bar-in-use", Fw32__menu_bar_in_use, Sw32__menu_bar_in_use,
+       0, 0, 0,
+       doc: /* Return non-nil when a menu-bar menu is being used.
+Internal use only.  */)
+  (void)
+{
+  return menubar_in_use ? Qt : Qnil;
+}
+
 
 /***********************************************************************
 			    Initialization
@@ -8615,6 +8624,7 @@ only be necessary if the default setting causes problems.  */);
   defsubr (&Sw32_frame_rect);
   defsubr (&Sw32_frame_menu_bar_size);
   defsubr (&Sw32_battery_status);
+  defsubr (&Sw32__menu_bar_in_use);
 
 #ifdef WINDOWSNT
   defsubr (&Sfile_system_info);

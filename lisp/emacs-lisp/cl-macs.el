@@ -301,6 +301,27 @@ and BODY is implicitly surrounded by (cl-block NAME ...).
 	 (form `(defun ,name ,@(cdr res))))
     (if (car res) `(progn ,(car res) ,form) form)))
 
+;;;###autoload
+(defmacro cl-iter-defun (name args &rest body)
+  "Define NAME as a generator function.
+Like normal `iter-defun', except ARGLIST allows full Common Lisp conventions,
+and BODY is implicitly surrounded by (cl-block NAME ...).
+
+\(fn NAME ARGLIST [DOCSTRING] BODY...)"
+  (declare (debug
+            ;; Same as iter-defun but use cl-lambda-list.
+            (&define [&or name ("setf" :name setf name)]
+                     cl-lambda-list
+                     cl-declarations-or-string
+                     [&optional ("interactive" interactive)]
+                     def-body))
+           (doc-string 3)
+           (indent 2))
+  (require 'generator)
+  (let* ((res (cl--transform-lambda (cons args body) name))
+         (form `(iter-defun ,name ,@(cdr res))))
+    (if (car res) `(progn ,(car res) ,form) form)))
+
 ;; The lambda list for macros is different from that of normal lambdas.
 ;; Note that &environment is only allowed as first or last items in the
 ;; top level list.

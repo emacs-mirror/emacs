@@ -1,3 +1,15 @@
+2015-03-02  Robert Pluim  <rpluim@gmail.com>  (tiny change)
+
+	* configure.ac: Error out if with-file-notification=w32 is
+	specified on Cygwin.  (Bug#19909)
+
+2015-02-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't require GNU putenv
+	* configure.ac: Use system putenv even if it lacks GNU features, as
+	we don't need them.  This works around a bug in FreeBSD 10.1 getenv.
+	Fixes: bug#19874
+
 2015-02-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib

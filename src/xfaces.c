@@ -5700,7 +5700,7 @@ map_tty_color (struct frame *f, struct face *face,
   if (STRINGP (color)
       && SCHARS (color)
       && CONSP (Vtty_defined_color_alist)
-      && (def = assq_no_quit (color, call1 (Qtty_color_alist, frame)),
+      && (def = assoc_no_quit (color, call1 (Qtty_color_alist, frame)),
 	  CONSP (def)))
     {
       /* Associations in tty-defined-color-alist are of the form

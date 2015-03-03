@@ -259,6 +259,10 @@ there (in decreasing order of priority)."
 	    (let ((newparms (frame-parameters))
 		  (frame (selected-frame)))
 	      (tty-handle-reverse-video frame newparms)
+	      ;; tty-handle-reverse-video might change the frame's
+	      ;; color parameters, and we need to use the updated
+	      ;; value below.
+	      (setq newparms (frame-parameters))
 	      ;; If we changed the background color, we need to update
 	      ;; the background-mode parameter, and maybe some faces,
 	      ;; too.
@@ -266,7 +270,7 @@ there (in decreasing order of priority)."
 		(unless (or (assq 'background-mode initial-frame-alist)
 			    (assq 'background-mode default-frame-alist))
 		  (frame-set-background-mode frame))
-		(face-set-after-frame-default frame))))))
+		(face-set-after-frame-default frame newparms))))))
 
     ;; If the initial frame is still around, apply initial-frame-alist
     ;; and default-frame-alist to it.
@@ -546,7 +550,8 @@ is not considered (see `next-frame')."
 Return nil if we don't know how to interpret DISPLAY."
   ;; MS-Windows doesn't know how to create a GUI frame in a -nw session.
   (if (and (eq system-type 'windows-nt)
-	   (null (window-system)))
+	   (null (window-system))
+	   (not (daemonp)))
       nil
     (cl-loop for descriptor in display-format-alist
 	     for pattern = (car descriptor)
@@ -1200,7 +1205,15 @@ To get the frame's current background color, use `frame-parameters'."
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'background-color color-name)))
   (or window-system
-      (face-set-after-frame-default (selected-frame))))
+      (face-set-after-frame-default (selected-frame)
+				    (list
+				     (cons 'background-color color-name)
+				     ;; Pass the foreground-color as
+				     ;; well, if defined, to avoid
+				     ;; losing it when faces are reset
+				     ;; to their defaults.
+				     (assq 'foreground-color
+					   (frame-parameters))))))
 
 (defun set-foreground-color (color-name)
   "Set the foreground color of the selected frame to COLOR-NAME.
@@ -1210,7 +1223,15 @@ To get the frame's current foreground color, use `frame-parameters'."
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'foreground-color color-name)))
   (or window-system
-      (face-set-after-frame-default (selected-frame))))
+      (face-set-after-frame-default (selected-frame)
+				    (list
+				     (cons 'foreground-color color-name)
+				     ;; Pass the background-color as
+				     ;; well, if defined, to avoid
+				     ;; losing it when faces are reset
+				     ;; to their defaults.
+				     (assq 'background-color
+					   (frame-parameters))))))
 
 (defun set-cursor-color (color-name)
   "Set the text cursor color of the selected frame to COLOR-NAME.
@@ -1795,8 +1816,12 @@ command starts, by installing a pre-command hook."
 (defun blink-cursor-timer-function ()
   "Timer function of timer `blink-cursor-timer'."
   (internal-show-cursor nil (not (internal-show-cursor-p)))
+  ;; Suspend counting blinks when the w32 menu-bar menu is displayed,
+  ;; since otherwise menu tooltips will behave erratically.
+  (or (and (fboundp 'w32--menu-bar-in-use)
+	   (w32--menu-bar-in-use))
+      (setq blink-cursor-blinks-done (1+ blink-cursor-blinks-done)))
   ;; Each blink is two calls to this function.
-  (setq blink-cursor-blinks-done (1+ blink-cursor-blinks-done))
   (when (and (> blink-cursor-blinks 0)
              (<= (* 2 blink-cursor-blinks) blink-cursor-blinks-done))
     (blink-cursor-suspend)

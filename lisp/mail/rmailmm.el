@@ -661,6 +661,7 @@ HEADER is a header component of a MIME-entity object (see
 	(transfer-encoding (rmail-mime-entity-transfer-encoding entity))
 	(charset (cdr (assq 'charset (cdr (rmail-mime-entity-type entity)))))
 	(buffer (current-buffer))
+	(case-fold-search t)
 	coding-system)
     (if charset (setq coding-system (coding-system-from-name charset)))
     (or (and coding-system (coding-system-p coding-system))
@@ -674,6 +675,22 @@ HEADER is a header component of a MIME-entity object (see
 	     (ignore-errors (base64-decode-region (point-min) (point-max))))
 	    ((string= transfer-encoding "quoted-printable")
 	     (quoted-printable-decode-region (point-min) (point-max))))
+      ;; Some broken MUAs state the charset only in the HTML <head>,
+      ;; so if we don't have a non-trivial coding-system at this
+      ;; point, make one last attempt to find it there.
+      (if (eq coding-system 'undecided)
+	  (save-excursion
+	    (goto-char (point-min))
+	    (when (re-search-forward
+		   "^<html><head><meta[^;]*; charset=\\([-a-zA-Z0-9]+\\)"
+		   nil t)
+	      (setq coding-system (coding-system-from-name (match-string 1)))
+	      (or (and coding-system (coding-system-p coding-system))
+		  (setq coding-system 'undecided)))
+	    ;; Finally, let them manually force decoding if they know it.
+	    (if (and (eq coding-system 'undecided)
+		     (not (null coding-system-for-read)))
+		(setq coding-system coding-system-for-read))))
       (decode-coding-region (point-min) (point) coding-system)
       (if (and
 	   (or (not rmail-mime-coding-system) (consp rmail-mime-coding-system))
