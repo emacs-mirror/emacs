@@ -32,6 +32,7 @@
 (require 'cedet-files-utests)
 (require 'cedet-compat)
 (require 'cedet/ede/detect-utest)
+(require 'cedet/ede/compdb-utest)
 (require 'cedet/ede/secure-utest)
 (require 'cedet/semantic/lex-utest)
 (require 'cedet/semantic/lex-spp-utest)
@@ -90,6 +91,7 @@
     ("ede: project detection tests" . ede-detect-utest) ;; NOTE: must be before other EDE tests.
     ("ede: project detect linux extra" . ede-detect-linux-utest)
     ("ede: security tests" . ede-security-utest)
+    ("ede: compdb project tests" . compdb-utest)
 
     ;;
     ;; SEMANTIC
