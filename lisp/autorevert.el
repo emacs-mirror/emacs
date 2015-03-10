@@ -503,36 +503,37 @@ will use an up-to-date value of `auto-revert-interval'"
   "Enable file notification for current buffer's associated file."
   ;; We can assume that `buffer-file-name' and
   ;; `auto-revert-use-notify' are non-nil.
-  (when (or (string-match auto-revert-notify-exclude-dir-regexp
-			  (expand-file-name default-directory))
-	    (file-symlink-p (or buffer-file-name default-directory)))
-    ;; Fallback to file checks.
-    (set (make-local-variable 'auto-revert-use-notify) nil))
+  (if (or (string-match auto-revert-notify-exclude-dir-regexp
+			(expand-file-name default-directory))
+	  (file-symlink-p (or buffer-file-name default-directory)))
 
-  (when (not auto-revert-notify-watch-descriptor)
-    (setq auto-revert-notify-watch-descriptor
-	  (ignore-errors
-	    (if buffer-file-name
-		(file-notify-add-watch
-		 (expand-file-name buffer-file-name default-directory)
-		 '(change attribute-change)
-		 'auto-revert-notify-handler)
-	      (file-notify-add-watch
-	       (expand-file-name default-directory)
-	       '(change)
-	       'auto-revert-notify-handler))))
-    (if auto-revert-notify-watch-descriptor
-	(progn
-	  (puthash
-	   auto-revert-notify-watch-descriptor
-	   (cons (current-buffer)
-		 (gethash auto-revert-notify-watch-descriptor
-			  auto-revert-notify-watch-descriptor-hash-list))
-	   auto-revert-notify-watch-descriptor-hash-list)
-	  (add-hook (make-local-variable 'kill-buffer-hook)
-		    'auto-revert-notify-rm-watch))
       ;; Fallback to file checks.
-      (set (make-local-variable 'auto-revert-use-notify) nil))))
+      (set (make-local-variable 'auto-revert-use-notify) nil)
+
+    (when (not auto-revert-notify-watch-descriptor)
+      (setq auto-revert-notify-watch-descriptor
+	    (ignore-errors
+	      (if buffer-file-name
+		  (file-notify-add-watch
+		   (expand-file-name buffer-file-name default-directory)
+		   '(change attribute-change)
+		   'auto-revert-notify-handler)
+		(file-notify-add-watch
+		 (expand-file-name default-directory)
+		 '(change)
+		 'auto-revert-notify-handler))))
+      (if auto-revert-notify-watch-descriptor
+	  (progn
+	    (puthash
+	     auto-revert-notify-watch-descriptor
+	     (cons (current-buffer)
+		   (gethash auto-revert-notify-watch-descriptor
+			    auto-revert-notify-watch-descriptor-hash-list))
+	     auto-revert-notify-watch-descriptor-hash-list)
+	    (add-hook (make-local-variable 'kill-buffer-hook)
+		      'auto-revert-notify-rm-watch))
+	;; Fallback to file checks.
+	(set (make-local-variable 'auto-revert-use-notify) nil)))))
 
 ;; If we have file notifications, we want to update the auto-revert buffers
 ;; immediately when a notification occurs. Since file updates can happen very

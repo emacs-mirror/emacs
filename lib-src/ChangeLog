@@ -1,3 +1,27 @@
+2015-03-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Random minor fixes for movemail
+	* movemail.c: Include <stdbool.h> and <signal.h>.
+	(waitpid) [WINDOWSNT]: New macro.
+	(wait) [WINDOWSNT]: Remove.
+	(main, popmail, pop_retr, mbx_write, mbx_delimit_begin)
+	(mbx_delimit_end): Use bool for boolean.
+	(main): Simplify #if usage a bit.
+	(main): Don't assume EOF == -1.  Prefer 'return' to 'exit'.  Don't
+	possibly unlink lockname twice, as that's a race condition.  Set
+	SIGCHLD to SIG_DFL to work around SysV misfeature.  Check for fork
+	failure.  Use waitpid, not wait, to avoid a race condition in the
+	unlikely case where we start up with a child.
+	(NOTOK, OK): Remove, in favor of plain boolean.
+	(popmail, pop_retr): Don't get confused about errno, e.g., ferror
+	need not set errno.
+	(popmail): Use fclose (mbf), not close (fileno (mbf)), to also
+	detect any stream-related errors (e.g., memory exhaustion).
+	(pop_retr): Report pop errors separately, since caller now does
+	errno reporting.
+	(mbx_write, mbx_delimit_begin, mbx_delimit_end): Check < 0, not ==
+	EOF, as it's a bit faster and (in theory) pickier.
+
 2015-02-27  Mark Laws  <mdl@60hz.org>
 
 	Support daemon mode on MS-Windows (bug#19688)

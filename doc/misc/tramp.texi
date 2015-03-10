@@ -1005,12 +1005,13 @@ can be installed as part of the Android SDK.  If the @command{adb}
 program is not found via the @env{PATH} environment variable, the
 variable @var{tramp-adb-program} must point to its absolute path.
 
-Tramp does not connect Android devices to @command{adb}.  This must be
-performed outside @value{emacsname}.  If there is exactly one Android
-device connected to @command{adb}, a host name is not needed in the
-remote file name.  The default @value{tramp} name to be used is
-@file{@trampfn{adb, , ,}} therefore.  Otherwise, one could find
-potential host names with the command @command{adb devices}.
+@value{tramp} does not connect Android devices to @command{adb},
+unless the customer option @option{tramp-adb-connect-if-not-connected}
+is non-@code{nil}.  If there is exactly one Android device connected
+to @command{adb}, a host name is not needed in the remote file name.
+The default @value{tramp} name to be used is @file{@trampfn{adb, , ,}},
+therefore.  Otherwise, one could find potential host names with the
+command @command{adb devices}.
 
 Usually, the @command{adb} method does not need any user name.  It
 runs under the permissions of the @command{adbd} process on the
@@ -1018,6 +1019,11 @@ Android device.  If a user name is specified, @value{tramp} applies an
 @command{su} on the device.  This does not work with all Android
 devices, especially with unrooted ones.  In that case, an error
 message is displayed.
+
+If a device shall be connected via TCP/IP, it is possible to declare
+the port number to be used like @file{device#42}.  Without a port
+number, the default value as declared in @command{adb} will be used.
+Port numbers are not applicable to Android devices connected via USB.
 
 @end table
 
@@ -1081,6 +1087,7 @@ FUSE, it also needs the SYNCE-GVFS plugin.
 
 @end table
 
+@vindex tramp-gvfs-methods
 @defopt tramp-gvfs-methods
 This customer option, a list, defines the external methods which shall
 be used with GVFS@.  Per default, these are @option{dav},
@@ -1355,8 +1362,8 @@ bastion host.
 @vindex tramp-default-proxies-alist
 @defopt tramp-default-proxies-alist
 In order to specify multiple hops, it is possible to define a proxy
-host to pass through, via the variable
-@code{tramp-default-proxies-alist}.  This variable keeps a list of
+host to pass through, via the customer option
+@option{tramp-default-proxies-alist}.  This variable keeps a list of
 triples (@var{host} @var{user} @var{proxy}).
 
 The first matching item specifies the proxy host to be passed for a
@@ -1470,9 +1477,9 @@ Sometimes they offer limited features only, like running @command{rbash}
 
 @vindex tramp-restricted-shell-hosts-alist
 @defopt tramp-restricted-shell-hosts-alist
-This variable keeps a list of regular expressions, which denote hosts
-running a registered shell like "rbash".  Those hosts can be used as
-proxies only.
+This customer option keeps a list of regular expressions, which denote
+hosts running a registered shell like @command{rbash}.  Those hosts
+can be used as proxies only.
 
 If the bastion host from the example above runs a restricted shell,
 you shall apply
@@ -1788,8 +1795,9 @@ remote file access.
 @vindex tramp-own-remote-path
 @defopt tramp-remote-path
 When @value{tramp} connects to the remote host, it searches for the
-programs that it can use.  The variable @code{tramp-remote-path}
-controls the directories searched on the remote host.
+programs that it can use.  The customer option
+@option{tramp-remote-path} controls the directories searched on the
+remote host.
 
 By default, this is set to a reasonable set of defaults for most
 hosts.  The symbol @code{tramp-default-remote-path} is a place
@@ -1798,7 +1806,7 @@ command @command{getconf PATH} on your remote host.  For example,
 on Debian GNU/Linux this is @file{/bin:/usr/bin}, whereas on Solaris
 this is @file{/usr/xpg4/bin:/usr/ccs/bin:/usr/bin:/opt/SUNWspro/bin}.
 It is recommended to apply this symbol on top of
-@code{tramp-remote-path}.
+@option{tramp-remote-path}.
 
 It is possible, however, that your local (or remote ;) system
 administrator has put the tools you want in some obscure local
@@ -2088,6 +2096,7 @@ parameter, you could overwrite the syntax with the following form:
 @noindent
 with @samp{192.168.0.1} being the IP address of your remote host
 (@pxref{Predefined connection information}).
+
 @end table
 
 
@@ -2591,11 +2600,12 @@ files by other processes.  Therefore, during file name completion, the
 remote directory contents are reread regularly in order to detect such
 changes, which would be invisible otherwise (@pxref{Connection caching}).
 
+@vindex tramp-completion-reread-directory-timeout
 @defopt tramp-completion-reread-directory-timeout
-This variable defines the number of seconds since last remote command
-before rereading a directory contents.  A value of 0 would require an
-immediate reread during file name completion, @code{nil} means to use
-always cached values for the directory contents.
+This customer option defines the number of seconds since last remote
+command before rereading a directory contents.  A value of 0 would
+require an immediate reread during file name completion, @code{nil}
+means to use always cached values for the directory contents.
 @end defopt
 
 
@@ -2634,8 +2644,9 @@ remotehost, /path}} would be sufficient from now on.
 @vindex tramp-save-ad-hoc-proxies
 @defopt tramp-save-ad-hoc-proxies
 This customer option controls whether ad-hoc definitions are kept
-persistently in @code{tramp-default-proxies-alist}.  That means, those
-definitions are available also for future @value{emacsname} sessions.
+persistently in @option{tramp-default-proxies-alist}.  That means,
+those definitions are available also for future @value{emacsname}
+sessions.
 @end defopt
 
 

@@ -2174,6 +2174,14 @@ emacs_backtrace (int backtrace_limit)
   else
     {
       buffer = main_backtrace_buffer;
+
+      /* Work around 'backtrace' bug; see Bug#19959 and glibc bug#18084.  */
+      if (bounded_limit < 0)
+	{
+	  backtrace (buffer, 1);
+	  return;
+	}
+
       npointers = backtrace (buffer, bounded_limit + 1);
     }
 

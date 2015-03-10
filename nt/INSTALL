@@ -108,12 +108,33 @@ build will run on Windows 9X and newer systems).
    . msys-base
    . mingw-developer-toolkit
 
+  When the installation ends, perform the post-installation steps
+  described on this page of the MinGW site:
+
+    http://www.mingw.org/wiki/Getting_Started
+
+  in the "After Installing You Should ..." section.  These steps are
+  important for making your installation complete, and in particular
+  will produce a desktop shortcut for running the MSYS Bash shell,
+  from which you will configure and build Emacs.  Once you've made the
+  shortcut, double-click on it to open the MSYS Bash shell window,
+  where you will proceed with the rest of these instructions.
+
+  In addition, we suggest to modify your system-wide Path variable to
+  include the 'bin' subdirectory of your top-level MinGW installation
+  directory, the one you specified to mingw-get ("C:\MinGW" by
+  default).  This will allow you to invoke the MinGW development
+  tools, like GCC, from the Windows cmd.exe shell windows or from
+  other Windows programs (including Emacs, after you build and install
+  it).
+
   (We recommend that you refrain from installing the MSYS Texinfo
   package, which is part of msys-base, because it might produce mixed
   EOL format when installing Info files.  Instead, install the MinGW
   port of Texinfo, see the ezwinports URL below.  To uninstall the
   MSYS Texinfo, after installing it as part of msys-base, invoke the
-  command "mingw-get remove msys-texinfo".)
+  command "mingw-get remove msys-texinfo", or mark "msys-texinfo" for
+  removal in the mingw-get GUI, then select Installation->Apply Changes.)
 
   At this point, you should be ready to configure and build Emacs in
   its basic configuration.  Skip to the "Generating the configure

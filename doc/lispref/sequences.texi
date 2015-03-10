@@ -740,6 +740,28 @@ of @var{sequence}.  Keys are compared using @code{equal}.
 @end example
 @end defun
 
+@defun seq-into sequence type
+  This function converts the sequence @var{sequence} into a sequence
+of type @var{type}.  @var{type} can be one of the following symbols:
+@code{vector}, @code{string} or @code{list}.
+
+@example
+@group
+(seq-into [1 2 3] 'list)
+@result{} (1 2 3)
+@end group
+@group
+(seq-into nil 'vector)
+@result{} []
+@end group
+@group
+(seq-into "hello" 'vector)
+@result{} [104 101 108 108 111]
+@end group
+@end example
+@end defun
+
+
 @defmac seq-doseq (var sequence [result]) body@dots{}
 @cindex sequence iteration
   This macro is like @code{dolist}, except that @var{sequence} can be a list,

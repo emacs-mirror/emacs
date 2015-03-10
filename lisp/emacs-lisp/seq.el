@@ -4,7 +4,8 @@
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: sequences
-;; Version: 1.2
+;; Version: 1.3
+;; Package: seq
 
 ;; Maintainer: emacs-devel@gnu.org
 
@@ -171,7 +172,7 @@ The result is a sequence of the same type as SEQ."
   (if (listp seq)
       (sort (seq-copy seq) pred)
     (let ((result (seq-sort pred (append seq nil))))
-      (seq--into result (type-of seq)))))
+      (seq-into result (type-of seq)))))
 
 (defun seq-contains-p (seq elt &optional testfn)
   "Return the first element in SEQ that equals to ELT.
@@ -265,10 +266,11 @@ See also the function `nreverse', which is used more often."
                  seq)
         (if (listp seq)
             result
-          (seq--into result (type-of seq)))))))
+          (seq-into result (type-of seq)))))))
 
-(defun seq--into (seq type)
-  "Convert the sequence SEQ into a sequence of type TYPE."
+(defun seq-into (seq type)
+  "Convert the sequence SEQ into a sequence of type TYPE.
+TYPE can be one of the following symbols: vector, string or list."
   (pcase type
     (`vector (vconcat seq))
     (`string (concat seq))

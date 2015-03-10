@@ -1,3 +1,8 @@
+2015-03-09  Nicolas Petton <nicolas@petton.fr>
+
+	* sequences.texi (seq-into): Add documentation for the new
+	seq-into function.
+
 2015-03-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* processes.texi (Synchronous Processes): Update documentation of

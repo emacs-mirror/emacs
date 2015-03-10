@@ -276,20 +276,20 @@ This can slow pruning down.  Set to nil to perform no sorting."
 
 (defun gnus-registry-fixup-registry (db)
   (when db
-    (let ((old (oref db :tracked)))
-      (oset db :precious
+    (let ((old (oref db tracked)))
+      (oset db precious
             (append gnus-registry-extra-entries-precious
                     '()))
-      (oset db :max-size
+      (oset db max-size
             (or gnus-registry-max-entries
                 most-positive-fixnum))
-      (oset db :prune-factor
+      (oset db prune-factor
             (or gnus-registry-prune-factor
 		0.1))
-      (oset db :tracked
+      (oset db tracked
             (append gnus-registry-track-extra
                     '(mark group keyword)))
-      (when (not (equal old (oref db :tracked)))
+      (when (not (equal old (oref db tracked)))
         (gnus-message 9 "Reindexing the Gnus registry (tracked change)")
         (registry-reindex db))))
   db)
@@ -1242,7 +1242,7 @@ from your existing entries."
   (when extra
     (let ((db gnus-registry-db))
       (registry-reindex db)
-      (loop for k being the hash-keys of (oref db :data)
+      (loop for k being the hash-keys of (oref db data)
 	    using (hash-value v)
 	    do (let ((newv (delq nil (mapcar #'(lambda (entry)
 						 (unless (member (car entry) extra)

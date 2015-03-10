@@ -1,9 +1,38 @@
+2015-03-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c <ImmReleaseContext_Proc, ImmSetCompositionWindow_Proc>:
+	Fix typedefs to be consistent with the corresponding w32 API
+	signatures.
+	(w32_wnd_proc) <WM_IME_STARTCOMPOSITION>: Don't invoke
+	DefWindowProc if we successfully handled the message, as doing so
+	causes problems in displaying selection dialogs.  (Bug#11732)
+
+2015-03-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Work around x86 glibc backtrace bug
+	* sysdep.c (emacs_backtrace): Don't dump core on x86.
+	Fixes: bug#19959
+
+2015-03-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* keyboard.c (make_lispy_position): When the click is on the
+	right-side vertical scroll bar, pass the rightmost X coordinate to
+	buffer_posn_from_coords, so that the returned text position
+	reflects the closest point to the click.  Fixes region extension
+	when mouse moves outside the Emacs frame that has scroll bars on
+	the right.
+
+2015-03-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (x_set_font): Try to keep frame height and width
+	unchanged if tool bar size changes with new font.
+
 2015-03-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* search.c (find_newline): Avoid assertion violations in
 	CHAR_TO_BYTE when a portion of the buffer was deleted and we look
 	for newlines near the end of the buffer.  This happens in Rmail
-	hen JIT font-lock fontifies a newly displayed portion of the
+	when JIT font-lock fontifies a newly displayed portion of the
 	buffer.
 
 2015-03-03  Eli Zaretskii  <eliz@gnu.org>
@@ -64,6 +93,7 @@
 2015-03-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispextern.h (FACE_FOR_CHAR): Fix the commentary.
+
 2015-03-03  Daniel Colascione  <dancol@dancol.org>
 
 	* alloc.c (syms_of_alloc): Rename `gc-precise-p' to `gc-precise'.

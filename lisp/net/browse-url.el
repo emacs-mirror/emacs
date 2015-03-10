@@ -1117,11 +1117,7 @@ whenever a document would otherwise be loaded in a new window, it
 is loaded in a new tab in an existing window instead.
 
 Non-interactively, this uses the optional second argument NEW-WINDOW
-instead of `browse-url-new-window-flag'.
-
-On MS Windows, this ignores `browse-url-new-window-flag' and
-`browse-url-firefox-new-window-is-tab', as well as the NEW-WINDOW argument.
-It always uses a new window."
+instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "URL: "))
   (setq url (browse-url-encode-url url))
   (let* ((process-environment (browse-url-process-environment)))
@@ -1130,13 +1126,10 @@ It always uses a new window."
            browse-url-firefox-program
            (append
             browse-url-firefox-arguments
-            ;; FIXME someone should check if this limitation
-            ;; still applies.
-            (unless (memq system-type '(windows-nt ms-dos))
-              (if (browse-url-maybe-new-window new-window)
-                  (if browse-url-firefox-new-window-is-tab
-                      '("-new-tab")
-                    '("-new-window"))))
+            (if (browse-url-maybe-new-window new-window)
+		(if browse-url-firefox-new-window-is-tab
+		    '("-new-tab")
+		  '("-new-window")))
             (list url)))))
 
 ;;;###autoload

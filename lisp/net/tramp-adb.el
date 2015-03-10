@@ -44,6 +44,13 @@
   :version "24.4"
   :type 'string)
 
+(defcustom tramp-adb-connect-if-not-connected nil
+  "Try to run `adb connect' if provided device is not connected currently.
+It is used for TCP/IP devices."
+  :group 'tramp
+  :version "25.1"
+  :type 'boolean)
+
 ;;;###tramp-autoload
 (defconst tramp-adb-method "adb"
   "*When this method name is used, forward all calls to Android Debug Bridge.")
@@ -65,12 +72,13 @@
    "[[:space:]]+\\([^[:space:]]+\\)"	; \3 group
    "[[:space:]]+\\([[:digit:]]+\\)"	; \4 size
    "[[:space:]]+\\([-[:digit:]]+[[:space:]][:[:digit:]]+\\)" ; \5 date
-   "[[:space:]]+\\(.*\\)$"))		; \6 filename
+   "[[:space:]]\\(.*\\)$"))		; \6 filename
 
 ;;;###tramp-autoload
 (add-to-list 'tramp-methods
 	     `(,tramp-adb-method
-	       (tramp-tmpdir "/data/local/tmp")))
+	       (tramp-tmpdir "/data/local/tmp")
+               (tramp-default-port 5555)))
 
 ;;;###tramp-autoload
 (add-to-list 'tramp-default-host-alist `(,tramp-adb-method nil ""))
@@ -182,14 +190,27 @@ pass to the OPERATION."
       ;; That's why we use `start-process'.
       (let ((p (start-process
 		tramp-adb-program (current-buffer) tramp-adb-program "devices"))
+	    (v (vector tramp-adb-method tramp-current-user
+		       tramp-current-host nil nil))
 	    result)
+	(tramp-message v 6 "%s" (mapconcat 'identity (process-command p) " "))
 	(tramp-compat-set-process-query-on-exit-flag p nil)
 	(while (eq 'run (process-status p))
 	  (accept-process-output p 0.1))
 	(accept-process-output p 0.1)
+	(tramp-message v 6 "\n%s" (buffer-string))
 	(goto-char (point-min))
 	(while (search-forward-regexp "^\\(\\S-+\\)[[:space:]]+device$" nil t)
 	  (add-to-list 'result (list nil (match-string 1))))
+
+	;; Replace ":" by "#".
+	(mapc
+	 (lambda (elt)
+	   (setcar
+	    (cdr elt)
+	    (replace-regexp-in-string
+	     ":" tramp-prefix-port-format (car (cdr elt)))))
+	 result)
 	result))))
 
 (defun tramp-adb-handle-expand-file-name (name &optional dir)
@@ -383,8 +404,10 @@ pass to the OPERATION."
 	    (tramp-adb-send-command
 	     v (format "%s -d -a -l %s %s"
 		       (tramp-adb-get-ls-command v)
-		       (concat (file-name-as-directory localname) ".")
-		       (concat (file-name-as-directory localname) "..")))
+		       (tramp-shell-quote-argument
+			(concat (file-name-as-directory localname) "."))
+		       (tramp-shell-quote-argument
+			(concat (file-name-as-directory localname) ".."))))
 	    (widen))
 	  (tramp-adb-sh-fix-ls-output)
 	  (let ((result (tramp-do-parse-file-attributes-with-ls
@@ -989,12 +1012,51 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (tramp-set-connection-property v "process-name" nil)
 	  (tramp-set-connection-property v "process-buffer" nil))))))
 
-;; Helper functions.
+(defun tramp-adb-get-device (vec)
+  "Return full host name from VEC to be used in shell execution.
+E.g. a host name \"192.168.1.1#5555\" returns \"192.168.1.1:5555\"
+     a host name \"R38273882DE\" returns \"R38273882DE\"."
+  ;; Sometimes this is called before there is a connection process
+  ;; yet.  In order to work with the connection cache, we flush all
+  ;; unwanted entries first.
+  (tramp-flush-connection-property nil)
+  (with-tramp-connection-property (tramp-get-connection-process vec) "device"
+    (let* ((method (tramp-file-name-method vec))
+	   (host (tramp-file-name-host vec))
+	   (port (tramp-file-name-port vec))
+	   (devices (mapcar 'cadr (tramp-adb-parse-device-names nil))))
+      (replace-regexp-in-string
+       tramp-prefix-port-format ":"
+       (cond ((member host devices) host)
+	     ;; This is the case when the host is connected to the default port.
+	     ((member (format "%s%s%d" host tramp-prefix-port-format port)
+		      devices)
+	      (format "%s:%d" host port))
+	     ;; An empty host name shall be mapped as well, when there
+	     ;; is exactly one entry in `devices'.
+	     ((and (zerop (length host)) (= (length devices) 1))
+	      (car devices))
+	     ;; Try to connect device.
+	     ((and tramp-adb-connect-if-not-connected
+		   (not (zerop (length host)))
+		   (not (tramp-adb-execute-adb-command
+                         vec "connect"
+                         (replace-regexp-in-string
+                          tramp-prefix-port-format ":" host))))
+	      ;; When new device connected, running other adb command (e.g.
+	      ;; adb shell) immediately will fail.  To get around this
+	      ;; problem, add sleep 0.1 second here.
+	      (sleep-for 0.1)
+	      host)
+	     (t (tramp-error
+		 vec 'file-error "Could not find device %s" host)))))))
 
 (defun tramp-adb-execute-adb-command (vec &rest args)
   "Returns nil on success error-output on failure."
-  (when (> (length (tramp-file-name-host vec)) 0)
-    (setq args (append (list "-s" (tramp-file-name-host vec)) args)))
+  (when (and (> (length (tramp-file-name-host vec)) 0)
+	     ;; The -s switch is only available for ADB device commands.
+	     (not (member (car args) (list "connect" "disconnect"))))
+    (setq args (append (list "-s" (tramp-adb-get-device vec)) args)))
   (with-temp-buffer
     (prog1
 	(unless
@@ -1097,7 +1159,12 @@ connection if a previous connection has died for some reason."
 	 (p (get-buffer-process buf))
 	 (host (tramp-file-name-host vec))
 	 (user (tramp-file-name-user vec))
-	 devices)
+         (device (tramp-adb-get-device vec)))
+
+    ;; Set variables for proper tracing in `tramp-adb-parse-device-names'.
+    (setq tramp-current-method (tramp-file-name-method vec)
+	  tramp-current-user   (tramp-file-name-user vec)
+	  tramp-current-host   (tramp-file-name-host vec))
 
     ;; Maybe we know already that "su" is not supported.  We cannot
     ;; use a connection property, because we have not checked yet
@@ -1109,20 +1176,13 @@ connection if a previous connection has died for some reason."
 	(and p (processp p) (memq (process-status p) '(run open)))
       (save-match-data
 	(when (and p (processp p)) (delete-process p))
-	(setq devices (mapcar 'cadr (tramp-adb-parse-device-names nil)))
-	(if (not devices)
-	    (tramp-error vec 'file-error "No device connected"))
-	(if (and (> (length host) 0) (not (member host devices)))
+	(if (zerop (length device))
 	    (tramp-error vec 'file-error "Device %s not connected" host))
-	(if (and (> (length devices) 1) (zerop (length host)))
-	    (tramp-error
-	     vec 'file-error
-	     "Multiple Devices connected: No Host/Device specified"))
 	(with-tramp-progress-reporter vec 3 "Opening adb shell connection"
 	  (let* ((coding-system-for-read 'utf-8-dos) ;is this correct?
 		 (process-connection-type tramp-process-connection-type)
 		 (args (if (> (length host) 0)
-			   (list "-s" host "shell")
+			   (list "-s" device "shell")
 			 (list "shell")))
 		 (p (let ((default-directory
 			    (tramp-compat-temporary-file-directory)))
@@ -1187,4 +1247,5 @@ connection if a previous connection has died for some reason."
 	    (unload-feature 'tramp-adb 'force)))
 
 (provide 'tramp-adb)
+
 ;;; tramp-adb.el ends here

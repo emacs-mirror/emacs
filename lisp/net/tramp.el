@@ -73,6 +73,7 @@
   "Edit remote files with a combination of ssh, scp, etc."
   :group 'files
   :group 'comm
+  :link '(custom-manual "(tramp)Top")
   :version "22.1")
 
 ;; Maybe we need once a real Tramp mode, with key bindings etc.
@@ -557,7 +558,7 @@ if you need to change this."
   :type 'string)
 
 (defcustom tramp-login-prompt-regexp
-  ".*ogin\\( .*\\)?: *"
+  ".*\\(user\\|login\\)\\( .*\\)?: *"
   "Regexp matching login-like prompts.
 The regexp should match at end of buffer.
 
@@ -2263,7 +2264,7 @@ Falls back to normal file name handler if no Tramp file name handler exists."
   "Load Tramp file name handler, and perform OPERATION."
   ;; Avoid recursive loading of tramp.el.  `temporary-file-directory'
   ;; does not exist in XEmacs, so we must use something else.
-  (let ((default-directory (or (symbol-value 'temporary-file-directory) "/")))
+  (let ((default-directory "/"))
     (load "tramp" nil t))
   (apply operation args)))
 
@@ -3352,10 +3353,11 @@ User is always nil."
 
 (defun tramp-handle-unhandled-file-name-directory (_filename)
   "Like `unhandled-file-name-directory' for Tramp files."
-  ;; With Emacs 23, we could simply return `nil'.  But we must keep it
-  ;; for backward compatibility.  "~/" cannot be returned, because
-  ;; there might be machines without a HOME directory (like hydra).
-  "/")
+  ;; Starting with Emacs 23, we must simply return `nil'.  But we must
+  ;; keep backward compatibility, also with XEmacs.  "~/" cannot be
+  ;; returned, because there might be machines without a HOME
+  ;; directory (like hydra).
+  (and (< emacs-major-version 23) "/"))
 
 (defun tramp-handle-set-visited-file-modtime (&optional time-list)
   "Like `set-visited-file-modtime' for Tramp files."

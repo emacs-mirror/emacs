@@ -1,3 +1,56 @@
+2015-03-10  Przemyslaw Wojnowski  <esperanto@cumego.com>
+
+	* automated/cl-lib-tests.el: Add tests for plusp, second, ...
+	(cl-lib-test-plusp, cl-lib-test-minusp)
+	(cl-lib-test-oddp, cl-lib-test-evenp, cl-lib-test-first)
+	(cl-lib-test-second, cl-lib-test-third, cl-lib-test-fourth)
+	(cl-lib-test-fifth, cl-lib-test-sixth, cl-lib-test-seventh)
+	(cl-lib-test-eighth, cl-lib-test-ninth, cl-lib-test-tenth)
+	(cl-lib-test-endp, cl-lib-test-nth-value)
+	(cl-lib-nth-value-test-multiple-values, cl-test-caaar, cl-test-caadr)
+	(cl-test-ldiff): New tests.
+	(cl-digit-char-p): Tighten the test.
+
+2015-03-09  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/Makefile: Call 'rm' with '-f'.  Default EMACS to
+	'../../src/emacs'.  Remove *.new in 'clean'.  Set 'all' target to
+	run all examples.
+
+2015-03-09  Nicolas Petton <nicolas@petton.fr>
+
+	* automated/seq-tests.el (test-seq-into): Add a test for seq-into.
+
+2015-03-08  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* indent/ruby.rb: Add an example for bug#20026.
+
+	* indent/js.js: Set `js-indent-level' to 2. Fix indentation in an
+	example.
+
+2015-03-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (top): Declare `tramp-get-remote-stat'
+	and `tramp-get-remote-perl'.
+	(tramp-test06-directory-file-name): Fix docstring and last test.
+	(tramp-test08-file-local-copy): Extend test.
+	(tramp-test13-make-directory): Test also PARENTS arg.
+	(tramp-test17-insert-directory): Do not expect any order in
+	directory listing.
+	(tramp--test-adb-p): New defun.
+	(tramp--test-check-files): Fix doxstring.  Extend tests.
+	(tramp--test-special-characters): New defun.  Use body from
+	`tramp-test30-special-characters'.  Adapt check for tramp-adb.el.
+	(tramp-test30-special-characters): Use it.
+	(tramp--test-utf8): New defun.  Use body from
+	`tramp-test31-utf8'.  Add test string.
+	(tramp-test31-utf8): Use it.
+	(tramp-test30-special-characters-with-stat)
+	(tramp-test30-special-characters-with-perl)
+	(tramp-test30-special-characters-with-ls):
+	(tramp-test31-utf8-with-stat, tramp-test31-utf8-with-perl)
+	(tramp-test31-utf8-with-ls): New tests.
+
 2015-03-03  Daniel Colascione  <dancol@dancol.org>
 
 	* automated/generator-tests.el (cps-testcase): Use

@@ -1203,25 +1203,26 @@ method invocation orders of the involved classes."
 
 ;;;; General support to dispatch based on the type of the argument.
 
-(add-function :before-until cl-generic-tagcode-function
-              #'eieio--generic-tagcode)
-(defun eieio--generic-tagcode (type name)
+(defconst eieio--generic-generalizer
+  (cl-generic-make-generalizer
+   ;; Use the exact same tagcode as for cl-struct, so that methods
+   ;; that dispatch on both kinds of objects get to share this
+   ;; part of the dispatch code.
+   50 #'cl--generic-struct-tag
+   (lambda (tag)
+        (and (symbolp tag) (boundp tag) (eieio--class-p (symbol-value tag))
+             (mapcar #'eieio--class-symbol
+                     (eieio--class-precedence-list (symbol-value tag)))))))
+
+(cl-defmethod cl-generic-generalizers :extra "class" (specializer)
   ;; CLHS says:
   ;;    A class must be defined before it can be used as a parameter
   ;;    specializer in a defmethod form.
   ;; So we can ignore types that are not known to denote classes.
-  (and (eieio--class-p (eieio--class-object type))
-       ;; Use the exact same code as for cl-struct, so that methods
-       ;; that dispatch on both kinds of objects get to share this
-       ;; part of the dispatch code.
-       `(50 . ,(cl--generic-struct-tag name))))
-
-(add-function :before-until cl-generic-tag-types-function
-              #'eieio--generic-tag-types)
-(defun eieio--generic-tag-types (tag)
-  (and (symbolp tag) (boundp tag) (eieio--class-p (symbol-value tag))
-       (mapcar #'eieio--class-symbol
-               (eieio--class-precedence-list (symbol-value tag)))))
+  (or
+   (and (eieio--class-p (eieio--class-object specializer))
+        (list eieio--generic-generalizer))
+   (cl-call-next-method)))
 
 ;;;; Dispatch for arguments which are classes.
 
@@ -1231,23 +1232,22 @@ method invocation orders of the involved classes."
 ;; would not make much sense (e.g. to which argument should it apply?).
 ;; Instead, we add a new "subclass" specializer.
 
-(add-function :before-until cl-generic-tagcode-function
-              #'eieio--generic-subclass-tagcode)
-(defun eieio--generic-subclass-tagcode (type name)
-  (when (eq 'subclass (car-safe type))
-    `(60 . (and (symbolp ,name) (eieio--class-v ,name)))))
-
-(add-function :before-until cl-generic-tag-types-function
-              #'eieio--generic-subclass-tag-types)
-(defun eieio--generic-subclass-tag-types (tag)
+(defun eieio--generic-subclass-specializers (tag)
   (when (eieio--class-p tag)
     (mapcar (lambda (class)
-              `(subclass
-                ,(if (symbolp class) class (eieio--class-symbol class))))
+              `(subclass ,(eieio--class-symbol class)))
             (eieio--class-precedence-list tag))))
 
+(defconst eieio--generic-subclass-generalizer
+  (cl-generic-make-generalizer
+   60 (lambda (name) `(and (symbolp ,name) (eieio--class-v ,name)))
+   #'eieio--generic-subclass-specializers))
+
+(cl-defmethod cl-generic-generalizers ((_specializer (head subclass)))
+  (list eieio--generic-subclass-generalizer))
+
 
-;;;### (autoloads nil "eieio-compat" "eieio-compat.el" "5b04c9a8fff2bd3f3d3ac54aba0f65b7")
+;;;### (autoloads nil "eieio-compat" "eieio-compat.el" "25a66814a400e7dea16bf0f3bfe245ed")
 ;;; Generated autoloads from eieio-compat.el
 
 (autoload 'eieio--defalias "eieio-compat" "\

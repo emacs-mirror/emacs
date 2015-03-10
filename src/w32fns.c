@@ -157,8 +157,8 @@ typedef BOOL (WINAPI * TrackMouseEvent_Proc)
 typedef LONG (WINAPI * ImmGetCompositionString_Proc)
   (IN HIMC context, IN DWORD index, OUT LPVOID buffer, IN DWORD bufLen);
 typedef HIMC (WINAPI * ImmGetContext_Proc) (IN HWND window);
-typedef HWND (WINAPI * ImmReleaseContext_Proc) (IN HWND wnd, IN HIMC context);
-typedef HWND (WINAPI * ImmSetCompositionWindow_Proc) (IN HIMC context,
+typedef BOOL (WINAPI * ImmReleaseContext_Proc) (IN HWND wnd, IN HIMC context);
+typedef BOOL (WINAPI * ImmSetCompositionWindow_Proc) (IN HIMC context,
 						      IN COMPOSITIONFORM *form);
 typedef HMONITOR (WINAPI * MonitorFromPoint_Proc) (IN POINT pt, IN DWORD flags);
 typedef BOOL (WINAPI * GetMonitorInfo_Proc)
@@ -3324,9 +3324,13 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	  set_ime_composition_window_fn (context, &form);
 	  release_ime_context_fn (hwnd, context);
 	}
-      /* Pass WM_IME_STARTCOMPOSITION to DefWindowProc, so that the
-	 composition window will actually be displayed.  */
-      goto dflt;
+      /* We should "goto dflt" here to pass WM_IME_STARTCOMPOSITION to
+	 DefWindowProc, so that the composition window will actually
+	 be displayed.  But doing so causes trouble with displaying
+	 dialog boxes, such as the file selection dialog or font
+	 selection dialog.  So something else is needed to fix the
+	 former without breaking the latter.  See bug#11732.  */
+      break;
 
     case WM_IME_ENDCOMPOSITION:
       ignore_ime_char = 0;

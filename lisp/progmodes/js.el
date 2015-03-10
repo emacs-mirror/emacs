@@ -534,6 +534,7 @@ getting timeout messages."
   (let ((table (make-syntax-table)))
     (c-populate-syntax-table table)
     (modify-syntax-entry ?$ "_" table)
+    (modify-syntax-entry ?` "\"" table)
     table)
   "Syntax table for `js-mode'.")
 

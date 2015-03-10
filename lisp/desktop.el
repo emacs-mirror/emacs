@@ -756,6 +756,24 @@ is nil, ask the user where to save the desktop."
 
 ;; ----------------------------------------------------------------------------
 (defun desktop-buffer-info (buffer)
+  "Return information describing BUFFER.
+This function is not pure, as BUFFER is made current with
+`set-buffer'.
+
+Returns a list of all the necessary information to recreate the
+buffer, which is (in order):
+
+    `uniquify-buffer-base-name';
+    `buffer-file-name';
+    `buffer-name';
+    `major-mode';
+    list of minor-modes,;
+    `point';
+    `mark';
+    `buffer-read-only';
+    auxiliary information given by `desktop-save-buffer';
+    local variables;
+    auxiliary information given by `desktop-var-serdes-funs'."
   (set-buffer buffer)
   (list
    ;; base name of the buffer; replaces the buffer name if managed by uniquify
@@ -766,16 +784,13 @@ is nil, ask the user where to save the desktop."
    major-mode
    ;; minor modes
    (let (ret)
-     (mapc
-      #'(lambda (minor-mode)
-	  (and (boundp minor-mode)
-	       (symbol-value minor-mode)
-	       (let* ((special (assq minor-mode desktop-minor-mode-table))
-		      (value (cond (special (cadr special))
-				   ((functionp minor-mode) minor-mode))))
-		 (when value (add-to-list 'ret value)))))
-      (mapcar #'car minor-mode-alist))
-     ret)
+     (dolist (minor-mode (mapcar #'car minor-mode-alist) ret)
+       (and (boundp minor-mode)
+            (symbol-value minor-mode)
+            (let* ((special (assq minor-mode desktop-minor-mode-table))
+                   (value (cond (special (cadr special))
+                                ((functionp minor-mode) minor-mode))))
+              (when value (cl-pushnew value ret))))))
    ;; point and mark, and read-only status
    (point)
    (list (mark t) mark-active)

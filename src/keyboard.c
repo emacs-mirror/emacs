@@ -5367,9 +5367,9 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 	  dy = yret = wy;
 	}
 
-      /* For clicks in the text area, fringes, or margins, call
-	 buffer_posn_from_coords to extract TEXTPOS, the buffer
-	 position nearest to the click.  */
+      /* For clicks in the text area, fringes, margins, or vertical
+	 scroll bar, call buffer_posn_from_coords to extract TEXTPOS,
+	 the buffer position nearest to the click.  */
       if (!textpos)
 	{
 	  Lisp_Object string2, object2 = Qnil;
@@ -5377,11 +5377,14 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 	  int dx2, dy2;
 	  int width2, height2;
 	  /* The pixel X coordinate passed to buffer_posn_from_coords
-	     is the X coordinate relative to the text area for
-	     text-area and right-margin clicks, zero otherwise.  */
+	     is the X coordinate relative to the text area for clicks
+	     in text-area, right-margin/fringe and right-side vertical
+	     scroll bar, zero otherwise.  */
 	  int x2
 	    = (part == ON_TEXT) ? xret
-	    : (part == ON_RIGHT_FRINGE || part == ON_RIGHT_MARGIN)
+	    : (part == ON_RIGHT_FRINGE || part == ON_RIGHT_MARGIN
+	       || (part == ON_VERTICAL_SCROLL_BAR
+		   && WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_RIGHT (w)))
 	    ? (XINT (x) - window_box_left (w, TEXT_AREA))
 	    : 0;
 	  int y2 = wy;

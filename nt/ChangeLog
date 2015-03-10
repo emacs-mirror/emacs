@@ -1,3 +1,8 @@
+2015-03-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Add some more installation instructions for mingw-get
+	users.  (Bug#19989)
+
 2015-03-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* cmdproxy.c (get_next_token): Don't make backslashes disappear
@@ -7,7 +12,6 @@
 	(main): When passing a command line to the shell, use cmd.exe
 	rules for quoting command-line tail.
 
-2015-03-03  Oscar Fuentes  <ofv@wanadoo.es>
 2015-02-27  Mark Laws  <mdl@60hz.org>
 
 	Support daemon mode on MS-Windows (bug#19688)

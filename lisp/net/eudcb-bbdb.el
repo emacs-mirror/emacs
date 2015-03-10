@@ -42,6 +42,24 @@
 (defvar eudc-bbdb-current-query nil)
 (defvar eudc-bbdb-current-return-attributes nil)
 
+(defvar bbdb-version)
+
+(defun eudc-bbdb-field (field-symbol)
+  "Convert FIELD-SYMBOL so that it is recognized by the current BBDB version.
+BBDB < 3 used `net'; BBDB >= 3 uses `mail'."
+  ;; This just-in-time translation permits upgrading from BBDB 2 to
+  ;; BBDB 3 without restarting Emacs.
+  (if (and (eq field-symbol 'net)
+	   (or
+	    ;; MELPA versions of BBDB may have a bad package version,
+	    ;; but they're all version 3 or later.
+	    (equal bbdb-version "@PACKAGE_VERSION@")
+	    ;; Development versions of BBDB can have the format "X.YZ
+	    ;; devo".  Split the string just in case.
+	    (version<= "3" (car (split-string bbdb-version)))))
+      'mail
+    field-symbol))
+
 (defvar eudc-bbdb-attributes-translation-alist
   '((name . lastname)
     (email . net)
@@ -85,7 +103,9 @@
                    (progn
                      (setq bbdb-val
                            (eval (list (intern (concat "bbdb-record-"
-                                                       (symbol-name attr)))
+                                                       (symbol-name
+                                                        (eudc-bbdb-field
+                                                         attr))))
                                        'record)))
                      (if (listp bbdb-val)
                          (if eudc-bbdb-enable-substring-matches
@@ -168,7 +188,7 @@ The record is filtered according to `eudc-bbdb-current-return-attributes'"
 	(setq val (eval
 		   (list (intern
 			  (concat "bbdb-record-"
-				  (symbol-name attr)))
+				  (symbol-name (eudc-bbdb-field attr))))
 			 'record))))
        (t
 	(error "Unknown BBDB attribute")))

@@ -302,65 +302,65 @@
   ;; doesn't matter here, because function's behavior is underspecified so it
   ;; can safely be turned into a `let', even though the reverse is not true.
   (or name (setq name "anonymous lambda"))
-  (let ((lambda (car form))
-	(values (cdr form)))
-    (let ((arglist (nth 1 lambda))
-	  (body (cdr (cdr lambda)))
-	  optionalp restp
-	  bindings)
-      (if (and (stringp (car body)) (cdr body))
-	  (setq body (cdr body)))
-      (if (and (consp (car body)) (eq 'interactive (car (car body))))
-	  (setq body (cdr body)))
-      ;; FIXME: The checks below do not belong in an optimization phase.
-      (while arglist
-	(cond ((eq (car arglist) '&optional)
-	       ;; ok, I'll let this slide because funcall_lambda() does...
-	       ;; (if optionalp (error "multiple &optional keywords in %s" name))
-	       (if restp (error "&optional found after &rest in %s" name))
-	       (if (null (cdr arglist))
-		   (error "nothing after &optional in %s" name))
-	       (setq optionalp t))
-	      ((eq (car arglist) '&rest)
-	       ;; ...but it is by no stretch of the imagination a reasonable
-	       ;; thing that funcall_lambda() allows (&rest x y) and
-	       ;; (&rest x &optional y) in arglists.
-	       (if (null (cdr arglist))
-		   (error "nothing after &rest in %s" name))
-	       (if (cdr (cdr arglist))
-		   (error "multiple vars after &rest in %s" name))
-	       (setq restp t))
-	      (restp
-	       (setq bindings (cons (list (car arglist)
-					  (and values (cons 'list values)))
-				    bindings)
-		     values nil))
-	      ((and (not optionalp) (null values))
-	       (byte-compile-warn "attempt to open-code `%s' with too few arguments" name)
-	       (setq arglist nil values 'too-few))
-	      (t
-	       (setq bindings (cons (list (car arglist) (car values))
-				    bindings)
-		     values (cdr values))))
-	(setq arglist (cdr arglist)))
-      (if values
-	  (progn
-	    (or (eq values 'too-few)
-		(byte-compile-warn
-		 "attempt to open-code `%s' with too many arguments" name))
-	    form)
+  (let* ((lambda (car form))
+         (values (cdr form))
+         (arglist (nth 1 lambda))
+         (body (cdr (cdr lambda)))
+         optionalp restp
+         bindings)
+    (if (and (stringp (car body)) (cdr body))
+        (setq body (cdr body)))
+    (if (and (consp (car body)) (eq 'interactive (car (car body))))
+        (setq body (cdr body)))
+    ;; FIXME: The checks below do not belong in an optimization phase.
+    (while arglist
+      (cond ((eq (car arglist) '&optional)
+             ;; ok, I'll let this slide because funcall_lambda() does...
+             ;; (if optionalp (error "multiple &optional keywords in %s" name))
+             (if restp (error "&optional found after &rest in %s" name))
+             (if (null (cdr arglist))
+                 (error "nothing after &optional in %s" name))
+             (setq optionalp t))
+            ((eq (car arglist) '&rest)
+             ;; ...but it is by no stretch of the imagination a reasonable
+             ;; thing that funcall_lambda() allows (&rest x y) and
+             ;; (&rest x &optional y) in arglists.
+             (if (null (cdr arglist))
+                 (error "nothing after &rest in %s" name))
+             (if (cdr (cdr arglist))
+                 (error "multiple vars after &rest in %s" name))
+             (setq restp t))
+            (restp
+             (setq bindings (cons (list (car arglist)
+                                        (and values (cons 'list values)))
+                                  bindings)
+                   values nil))
+            ((and (not optionalp) (null values))
+             (byte-compile-warn "attempt to open-code `%s' with too few arguments" name)
+             (setq arglist nil values 'too-few))
+            (t
+             (setq bindings (cons (list (car arglist) (car values))
+                                  bindings)
+                   values (cdr values))))
+      (setq arglist (cdr arglist)))
+    (if values
+        (progn
+          (or (eq values 'too-few)
+              (byte-compile-warn
+               "attempt to open-code `%s' with too many arguments" name))
+          form)
 
-	;; The following leads to infinite recursion when loading a
-	;; file containing `(defsubst f () (f))', and then trying to
-	;; byte-compile that file.
-	;(setq body (mapcar 'byte-optimize-form body)))
+	                                ;; The following leads to infinite recursion when loading a
+	                                ;; file containing `(defsubst f () (f))', and then trying to
+	                                ;; byte-compile that file.
+                       ;(setq body (mapcar 'byte-optimize-form body)))
 
-	(let ((newform
-	       (if bindings
-		   (cons 'let (cons (nreverse bindings) body))
-		 (cons 'progn body))))
-	  (byte-compile-log "  %s\t==>\t%s" form newform)
-	  newform)))))
+      (let ((newform
+             (if bindings
+                 (cons 'let (cons (nreverse bindings) body))
+               (cons 'progn body))))
+        (byte-compile-log "  %s\t==>\t%s" form newform)
+        newform))))
 
 
 ;;; implementing source-level optimizers
@@ -390,12 +390,13 @@
 	   (and (nth 1 form)
 		(not for-effect)
 		form))
-	  ((eq 'lambda (car-safe fn))
+	  ((eq (car-safe fn) 'lambda)
 	   (let ((newform (byte-compile-unfold-lambda form)))
 	     (if (eq newform form)
 		 ;; Some error occurred, avoid infinite recursion
 		 form
 	       (byte-optimize-form-code-walker newform for-effect))))
+	  ((eq (car-safe fn) 'closure) form)
 	  ((memq fn '(let let*))
 	   ;; recursively enter the optimizer for the bindings and body
 	   ;; of a let or let*.  This for depth-firstness: forms that

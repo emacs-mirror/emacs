@@ -40,6 +40,10 @@ x = toto / foo if /do bar/ =~ "dobar"
 
 /foo/xi != %r{bar}mo.tee
 
+foo { /"tee/
+  bar { |qux| /'fee"/ }         # bug#20026
+}
+
 bar(class: XXX) do              # ruby-indent-keyword-label
   foo
 end

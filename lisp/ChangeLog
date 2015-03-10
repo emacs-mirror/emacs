@@ -1,11 +1,211 @@
-2015-03-03  Agustín Martín Domingo <agustin6martin@gmail.com>
+2015-03-10  Thomas Fitzsimmons  <fitzsim@fitzsim.org>
+
+	* net/ldap.el (ldap-attribute-syntaxes-alist): Add LDAP attributes
+	from RFC2798 Section 9.1.1.  (Bug#8983)
+
+2015-03-09  Nicolas Petton <nicolas@petton.fr>
+
+	* emacs-lisp/seq.el (seq-into): New function.
+	Bump seq.el version to 1.3.
+
+2015-03-09  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Don't consider
+	`=' a part of symbol when followed by `>'.  (Bug#18644)
+	(ruby-syntax-before-regexp-re): Detect regexps after `!'.
+	(Bug#19285)
+
+2015-03-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired.el (dired-delete-file): Doc fix.  (Bug#20021)
+
+2015-03-06  Sergio Durigan Junior  <sergiodj@sergiodj.net>
+	    Thomas Fitzsimmons  <fitzsim@fitzsim.org>
+
+	* net/eudcb-bbdb.el (eudc-bbdb-field): New function.
+	(eudc-bbdb-filter-non-matching-record): Call eudc-bbdb-field.
+	(eudc-bbdb-format-record-as-result): Likewise.
+
+2015-03-08  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Use
+	`font-lock-constant-face' for nil, true and false.  Highlight
+	`self' as a keyword.  (Bug#17733)
+
+2015-03-08  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* progmodes/ruby-mode.el (ruby-syntax-before-regexp-re): Expect
+	beginning of regexp also after open brace or vertical bar.
+	(Bug#20026)
+
+2015-03-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* battery.el (battery-echo-area-format): Simplify default.
+	(battery-linux-sysfs): Standardize on energy&power.  Accept ADP1
+	for AC adapter.
+
+	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker): Don't try to
+	unfold `closure's since byte-compile-unfold-lambda doesn't know how to
+	do it.
+
+2015-03-06  Oscar Fuentes  <ofv@wanadoo.es>
+
+	* net/browse-url.el (browse-url-firefox): Remove outdated
+	MS-Windows limitations.
+
+2015-03-06  Thomas Fitzsimmons  <fitzsim@fitzsim.org>
+
+	* net/eudcb-ldap.el (eudc-ldap-cleanup-record-simple): Mark as
+	obsolete.
+	(eudc-ldap-cleanup-record-filtering-addresses): Add docstring.
+	Don't clean up postal addresses if ldap-ignore-attribute-codings
+	is set.  Combine mail addresses into one field. (Bug#17720)
+	(eudc-ldap-simple-query-internal):
+	Call eudc-ldap-cleanup-record-filtering-addresses instead of
+	eudc-ldap-cleanup-record-simple.
+	(eudc-ldap-get-field-list): Likewise.
+
+2015-03-05  Ivan Shmakov  <ivan@siamics.net>
+
+	* net/eww.el (eww-html-p): New function (bug#20009).
+	(eww-render): Use it.
+
+2015-03-05  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* desktop.el (desktop-buffer-info): Write docstring.
+	(desktop-buffer-info): Use `pushnew' instead of `add-to-list' and
+	unquote lamda.
+
+	* emacs-lisp/package.el (package-refresh-contents): Update doc.
+
+2015-03-05  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/js.el (js-mode-syntax-table): Add an entry for `.
+
+2015-03-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Replace *-function vars with generic functions in cl-generic.
+	* emacs-lisp/cl-generic.el (cl--generic-generalizer): New struct.
+	(cl-generic-tagcode-function, cl-generic-tag-types-function): Remove.
+	(cl--generic-t-generalizer): New const.
+	(cl--generic-make-method): Rename from `cl--generic-method-make'.
+	(cl--generic-make): Change calling convention.
+	(cl--generic): Add `options' field.
+	(cl-generic-function-options): New function.
+	(cl-defgeneric): Rewrite handling of options.  Add support for :method
+	options and allow the use of a default body.
+	(cl-generic-define): Save options in the corresponding new field.
+	(cl-defmethod): Fix ordering of qualifiers.
+	(cl-generic-define-method): Use cl-generic-generalizers.
+	(cl--generic-get-dispatcher): Change calling convention, and change
+	calling convention of the returned function as well so as to take the
+	list of methods separately from the generic function object, so that it
+	can receive the original generic function object.
+	(cl--generic-make-next-function): New function, extracted from
+	cl--generic-make-function.
+	(cl--generic-make-function): Use it.
+	(cl-generic-method-combination-function): Remove.
+	(cl--generic-cyclic-definition): New error.
+	(cl-generic-call-method): Take a generic function object rather than
+	its name.
+	(cl-method-qualifiers): New alias.
+	(cl--generic-build-combined-method): Use cl-generic-combine-methods,
+	don't segregate by qualifiers here any more.
+	(cl--generic-standard-method-combination): Segregate by qualifiers
+	here instead.  Add support for the `:extra' qualifier.
+	(cl--generic-cache-miss): Move earlier, adjust to new calling convention.
+	(cl-generic-generalizers, cl-generic-combine-methods):
+	New generic functions.
+	(cl-no-next-method, cl-no-applicable-method, cl-no-primary-method):
+	Use the new "default method in defgeneric" functionality, change
+	calling convention to receive a generic function object.
+	(cl--generic-head-used): New var.
+	(cl--generic-head-generalizer, cl--generic-eql-generalizer)
+	(cl--generic-struct-generalizer, cl--generic-typeof-generalizer):
+	New consts.
+	* emacs-lisp/eieio-core.el (eieio--generic-generalizer)
+	(eieio--generic-subclass-generalizer): New consts.
+	(cl-generic-generalizers): New methods.
+	* emacs-lisp/eieio-compat.el (eieio--generic-static-symbol-generalizer)
+	(eieio--generic-static-object-generalizer): New consts.
+	(cl-generic-generalizers) <(head eieio--static)>: New method.
+	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker):
+	Unfold closures like lambdas.
+
+2015-03-04  Filipp Gunbin  <fgunbin@fastmail.fm>
+
+	* autorevert.el (auto-revert-notify-add-watch):
+	Fix handler installation.  (Bug#20000)
+
+2015-03-04  Rüdiger Sonderfeld  <ruediger@c-plusplus.net>
+
+	* net/eww.el (eww-search-prefix, eww-open-file, eww-search-words)
+	(eww-same-page-p,eww-set-character-encoding): Fix docstring.
+	(eww): Do not end error messages with a period.
+
+2015-03-04  Zhongwei Yao  <ashi08104@gmail.com>
+
+	* net/tramp-adb.el (tramp-adb-connect-if-not-connected):
+	New user option.
+	(tramp-adb-ls-toolbox-regexp): Fix regexp in order to support file
+	names starting with a space.
+	(tramp-methods): Add `tramp-default-port' for "adb".
+	(tramp-adb-parse-device-names): Add traces.  Return device names
+	with port, if present.
+	(tramp-adb-handle-directory-files-and-attributes): Quote all
+	remote file names.
+	(tramp-adb-get-device): New defun.
+	(tramp-adb-execute-adb-command, tramp-adb-maybe-open-connection):
+	Use it.
+	(tramp-adb-maybe-open-connection): Set `tramp-current-*'
+	variables.  Remove checks for listed devices.
+
+2015-03-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp): Add :link property.
+	(tramp-login-prompt-regexp): Allow also "user", as required by
+	Fritz!Box telnet.
+	(tramp-autoload-file-name-handler): Use "/".
+	(tramp-handle-unhandled-file-name-directory): Return nil when
+	required by the spec.
+
+	* net/tramp-cache.el (tramp-dump-connection-properties):
+	Use `with-temp-file'.
+
+	* net/tramp-sh.el (tramp-perl-file-attributes)
+	(tramp-perl-directory-files-and-attributes): Escape apostrophes in
+	file names.
+	(tramp-do-file-attributes-with-stat): Quote file name.
+	(tramp-sh-handle-directory-files-and-attributes): Fall back to
+	`tramp-handle-directory-files-and-attributes' in case of problems.
+	(tramp-do-directory-files-and-attributes-with-stat)
+	(tramp-sh-handle-file-name-all-completions)
+	(tramp-sh-handle-delete-directory)
+	(tramp-sh-handle-expand-file-name, tramp-sh-handle-process-file):
+	Normalize use of "cd".
+	(tramp-do-directory-files-and-attributes-with-stat): Use the
+	`quoting-style' arg of `ls' if possible.  Make it also working for
+	file names with apostrophes.
+	(tramp-sh-handle-file-name-all-completions): Use arguments of `ls'
+	in proper order.
+	(tramp-do-copy-or-rename-file-via-buffer)
+	(tramp-sh-handle-file-local-copy): Use `with-temp-file'.
+	(tramp-get-remote-locale): Accept also \r in output.
+	(tramp-get-ls-command-with-quoting-style): New defun.
+	(tramp-get-inline-coding): Set `default-directory' to a local
+	directory.  Sporadically, `call-process-region' does not handle a
+	remote default directory properly.
+
+	* net/trampver.el: Update release number.
+
+2015-03-03  Agustín Martín Domingo  <agustin6martin@gmail.com>
 
 	* textmodes/ispell.el (ispell-aspell-find-dictionary): Make sure
 	.dat files for aspell dicts are also searched for in location
 	described by `ispell-aspell-dict-dir', matching aspell's dict-dir
 	variable.
 
-2015-03-03  Agustín Martín Domingo <agustin6martin@gmail.com>
+2015-03-03  Agustín Martín Domingo  <agustin6martin@gmail.com>
 
 	* textmodes/ispell.el (ispell-dicts-name2locale-equivs-alist)
 	(ispell-hunspell-fill-dictionary-entry)
@@ -56,11 +256,11 @@
 
 	* simple.el (transient-mark-mode): Doc fix.  (Bug#19841)
 
-2015-03-03  Agustín Martín Domingo <agustin6martin@gmail.com>
+2015-03-03  Agustín Martín Domingo  <agustin6martin@gmail.com>
 
 	Improve string search in `flyspell-word-search-*`. (Bug#16800)
-	* flyspell.el (flyspell-duplicate-distance): Limit default search
-	distance for duplicated words to 40000.
+	* textmodes/flyspell.el (flyspell-duplicate-distance): Limit
+	default search distance for duplicated words to 40000.
 	(flyspell-word-search-backward, flyspell-word-search-forward):
 	Search as full word with defined casechars, not as substring.
 
@@ -76,8 +276,8 @@
 2015-03-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* frame.el (frame-notice-user-settings): Refresh the value of
-	frame parameters after calling tty-handle-reverse-video.  Call
-	face-set-after-frame-default with the actual parameters, to avoid
+	frame parameters after calling tty-handle-reverse-video.
+	Call face-set-after-frame-default with the actual parameters, to avoid
 	resetting colors back to unspecified.
 	(set-background-color, set-foreground-color): Pass the foreground
 	and background colors to face-set-after-frame-default.  (Bug#19802)
@@ -110,8 +310,8 @@
 
 2015-03-03  Eli Zaretskii  <eliz@gnu.org>
 
-	* textmodes/artist.el (artist-ellipse-compute-fill-info): Use
-	mapcar, not mapc, to create the other half of fill-info.
+	* textmodes/artist.el (artist-ellipse-compute-fill-info):
+	Use mapcar, not mapc, to create the other half of fill-info.
 	(Bug#19763)
 
 2015-03-03  Nicolas Petton  <nicolas@petton.fr>
@@ -136,11 +336,9 @@
 
 2015-03-03  Alan Mackenzie  <acm@muc.de>
 
-	CC Mode: Stop Font Lock forcing fontification from BOL.  Fixes
-	debbugs#19669.
-
-	* progmodes/cc-mode.el (c-font-lock-init): Setq
-	font-lock-extend-region-functions to nil.
+	CC Mode: Stop Font Lock forcing fontification from BOL.  (Bug#19669)
+	* progmodes/cc-mode.el (c-font-lock-init):
+	Set font-lock-extend-region-functions to nil.
 
 2015-03-03  Daniel Colascione  <dancol@dancol.org>
 
@@ -259,8 +457,8 @@
 
 	Handle "#" operator properly inside macro.  Fix coding bug.
 
-	* progmodes/cc-mode.el (c-neutralize-syntax-in-and-mark-CPP): On
-	finding a "#" which looks like the start of a macro, check it
+	* progmodes/cc-mode.el (c-neutralize-syntax-in-and-mark-CPP):
+	On finding a "#" which looks like the start of a macro, check it
 	isn't already inside a macro.
 
 	* progmodes/cc-engine.el (c-state-safe-place): Don't record a new
@@ -275,7 +473,6 @@
 2015-02-26  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	python.el: Handle tabs in python-indent-dedent-line.
-
 	* progmodes/python.el (python-indent-dedent-line): Fixes for
 	indentation with tabs.  Thanks to <dale@codefu.org> (Bug#19730).
 
@@ -301,15 +498,15 @@
 
 2015-02-25  Oleh Krehel  <ohwoeowho@gmail.com>
 
-	* emacs-lisp/check-declare.el (check-declare-warn): Use
-	compilation-style warnings.
+	* emacs-lisp/check-declare.el (check-declare-warn):
+	Use compilation-style warnings.
 	(check-declare-files): Make sure that
 	`check-declare-warning-buffer' is in `compilation-mode'.
 
 2015-02-25  Oleh Krehel  <ohwoeowho@gmail.com>
 
-	* emacs-lisp/check-declare.el (check-declare-ext-errors): New
-	defcustom.
+	* emacs-lisp/check-declare.el (check-declare-ext-errors):
+	New defcustom.
 	(check-declare): New defgroup.
 	(check-declare-verify): When `check-declare-ext-errors' is
 	non-nil, warn about an unfound function, instead of saying
@@ -317,8 +514,8 @@
 
 2015-02-25  Tassilo Horn  <tsdh@gnu.org>
 
-	* textmodes/reftex-vars.el (reftex-include-file-commands): Call
-	reftex-set-dirty on changes.
+	* textmodes/reftex-vars.el (reftex-include-file-commands):
+	Call reftex-set-dirty on changes.
 
 2015-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -390,9 +587,8 @@
 
 2015-02-23  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Fix the desired binding for comment-line
 	* bindings.el (ctl-x-map): Use [?\C-\;] to get the desired binding.
-	Fixes: bug#19826
+	(Bug#19826)
 
 2015-02-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -416,8 +612,7 @@
 
 	* bindings.el (ctl-x-map): There is no 'C-;'.
 	For now, make do with 'M-;'; this allows 'make bootstrap' to work.
-	Perhaps some other binding should be chosen.
-	Fixes: bug#19826
+	Perhaps some other binding should be chosen.  (Bug#19826)
 
 2015-02-21  Artur Malabarba  <bruce.connor.am@gmail.com>
 
@@ -695,7 +890,7 @@
 	(package-install-button-action, package-reinstall)
 	(package-menu-execute): Account for the change.
 
-2015-02-11  Nicolas Petton <nicolas@petton.fr>
+2015-02-11  Nicolas Petton  <nicolas@petton.fr>
 
 	* emacs-lisp/seq.el (seq-reverse): Add a backward-compatible
 	version of seq-reverse that works on sequences in Emacs 24.
@@ -780,7 +975,7 @@
 	(python-shell-font-lock-turn-off): Fix typo.
 	(python-util-text-properties-replace-name): Delete function.
 
-2015-02-09  Nicolas Petton <nicolas@petton.fr>
+2015-02-09  Nicolas Petton  <nicolas@petton.fr>
 
 	* emacs-lisp/seq.el (seq-group-by): Improves seq-group-by to
 	return sequence elements in correct order.
@@ -844,7 +1039,7 @@
 2015-02-08  Oleh Krehel  <ohwoeowho@gmail.com>
 
 	* outline.el (outline-show-entry): Fix one invisible char for the
-	file's last outline.  Fixes Bug#19493.
+	file's last outline.  (Bug#19493)
 
 2015-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -880,7 +1075,6 @@
 2015-02-07  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	python.el: Keep eldoc visible while typing args.  (Bug#19637)
-
 	* progmodes/python.el (python-eldoc--get-symbol-at-point):
 	New function based on Carlos Pita <carlosjosepita@gmail.com> patch.
 	(python-eldoc--get-doc-at-point, python-eldoc-at-point): Use it.
@@ -888,7 +1082,6 @@
 2015-02-07  Fabián Ezequiel Gallina  <fgallina@gnu.org>
 
 	Fix hideshow integration.  (Bug#19761)
-
 	* progmodes/python.el
 	(python-hideshow-forward-sexp-function): New function based on
 	Carlos Pita <carlosjosepita@gmail.com> patch.
@@ -914,11 +1107,13 @@
 	* vc/vc-cvs.el (vc-cvs-dir-status-files): Don't pass DIR to
 	`vc-cvs-command' (bug#19732).
 
-2015-02-06  Nicolas Petton <nicolas@petton.fr>
+2015-02-06  Nicolas Petton  <nicolas@petton.fr>
 
-	* emacs-lisp/seq.el (seq-mapcat, seq-partition, seq-group-by): New functions.
+	* emacs-lisp/seq.el (seq-mapcat, seq-partition, seq-group-by):
+	New functions.
 	* emacs-lisp/seq.el (seq-drop-while, seq-take-while, seq-count)
-	(seq--drop-list, seq--take-list, seq--take-while-list): Better docstring.
+	(seq--drop-list, seq--take-list, seq--take-while-list):
+	Better docstring.
 
 2015-02-06  Artur Malabarba  <bruce.connor.am@gmail.com>
 
@@ -965,7 +1160,7 @@
 	* json.el (json-end-of-file): New error (bug#19768).
 	(json-pop, json-read): Use it.
 
-2015-02-05  Kelly Dean <kelly@prtime.org>
+2015-02-05  Kelly Dean  <kelly@prtime.org>
 
 	* help-mode.el (help-xref-interned): Pass BUFFER and FRAME to
 	`describe-variable'.
@@ -1335,8 +1530,8 @@
 
 2015-01-28  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Fix dired quoting bug with "Hit`N`Hide".  Fixes Bug#19498.
-	* files.el (shell-quote-wildcard-pattern): Also quote "`".
+	Fix dired quoting bug with "Hit`N`Hide".
+	* files.el (shell-quote-wildcard-pattern): Also quote "`".  (Bug#19498)
 
 2015-01-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -3073,7 +3268,7 @@
 	* emacs-lisp/package.el (package--list-loaded-files): Don't call
 	file-truename on load-history elements (bug#19390).
 
-2014-12-16  Nicolas Petton <petton.nicolas@gmail.com>
+2014-12-16  Nicolas Petton  <petton.nicolas@gmail.com>
 
 	* emacs-lisp/seq.el: New file.
 
@@ -3719,7 +3914,7 @@
 	Pass correct status to `newsticker--sentinel-work'.
 	(newsticker--sentinel-work): Use "newsticker--download-error" as
 	guid in order to prevent multiple "Could not download..."
-	messages.  Fixes bug#19166.
+	messages.  (Bug#19166)
 
 2014-12-01  Ivan Shmakov  <ivan@siamics.net>
 
@@ -4130,15 +4325,13 @@
 2014-11-22  Alan Mackenzie  <acm@muc.de>
 
 	Fix error with `mark-defun' and "protected:" in C++ Mode.
-	Fixes: debbugs:19134.
-
 	* progmodes/cc-cmds.el (c-where-wrt-brace-construct): Handle a
-	return code of (label) from c-beginning-of-decl-1.
+	return code of (label) from c-beginning-of-decl-1.  (Bug#19134)
 
 2014-11-22  Ulf Jasper  <ulf.jasper@web.de>
 
 	* net/newst-backend.el (newsticker--sentinel-work):
-	Tell `libxml-parse-xml-region' to discard comments.  Fixes bug#18787.
+	Tell `libxml-parse-xml-region' to discard comments.  (Bug#18787)
 
 2014-11-22  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -4476,7 +4669,7 @@
 	(python-shell-calculate-process-environment): Use it.
 	(python-shell-calculate-exec-path): Add comment.
 
-2014-11-16  Thierry Banel <tbanelwebmin@free.fr>  (tiny change)
+2014-11-16  Thierry Banel  <tbanelwebmin@free.fr>  (tiny change)
 
 	* calc/calc-arith.el (math-max-list, math-min-list): Fix bug
 	for date handling.
@@ -4501,7 +4694,7 @@
 	* mail/emacsbug.el (report-emacs-bug): Make a better guess at
 	  envelope-from when reporting through sendmail (bug#19054).
 
-2014-11-16  Oscar Fuentes <ofv@wanadoo.es>
+2014-11-16  Oscar Fuentes  <ofv@wanadoo.es>
 
 	Add faces for the VC modeline state indicator.
 	* vc/vc-hooks.el:
@@ -4728,11 +4921,11 @@
 
 2014-11-08  Alan Mackenzie  <acm@muc.de>
 
-	Fix wrong bound to c-font-lock-declarators.  Fixes bug #18948.
+	Fix wrong bound to c-font-lock-declarators.
 	* progmodes/cc-fonts.el (c-font-lock-declarations):
 	Pass "(point-max)" as bound to c-font-lock-declarators, not "limit", as
 	the buffer is sometimes narrowed to less than "limit" (e.g., in
-	the presence of macros).
+	the presence of macros).  (Bug#18948)
 
 2014-11-08  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -4957,20 +5150,20 @@
 	correct buffer.
 	(eww-view-source): Use it.
 
-2014-11-02  Ivan Shmakov <ivan@siamics.net>
+2014-11-02  Ivan Shmakov  <ivan@siamics.net>
 
 	* net/eww.el (eww): Recognize colon-delimited IPv6 addresses.
 	(Bug#18603).
 
-2014-11-02  Brian McKenna <brian@brianmckenna.org>  (tiny change)
+2014-11-02  Brian McKenna  <brian@brianmckenna.org>  (tiny change)
 
 	* net/eww.el (eww-submit): Encode empty form values as "".  (Bug#17785).
 
-2014-11-02  Ivan Shmakov <ivan@siamics.net>
+2014-11-02  Ivan Shmakov  <ivan@siamics.net>
 
 	* net/eww.el (eww): Allow "file:/file/name" URLs.  (Bug#18825).
 
-2014-11-02  Ivan Shmakov <ivan@siamics.net>
+2014-11-02  Ivan Shmakov  <ivan@siamics.net>
 
 	* net/eww.el (eww-mode-map): Remove mentions of `eww-quit'.
 	(Bug#18834).
@@ -5546,9 +5739,8 @@
 2014-10-18  Alan Mackenzie  <acm@muc.de>
 
 	Check that a "macro" found near point-min isn't a ## operator.
-	Fixes bug #18749.
 	* progmodes/cc-engine.el (c-macro-is-genuine-p): New function.
-	(c-beginning-of-macro): Use the above new function.
+	(c-beginning-of-macro): Use the above new function.  (Bug#18749)
 
 2014-10-18  Teodor Zlatanov  <tzz@lifelogs.com>
 

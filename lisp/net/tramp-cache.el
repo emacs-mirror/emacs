@@ -362,7 +362,7 @@ KEY identifies the connection, it is either a process or a vector."
 	     (remhash key cache)))
 	 cache)
 	;; Dump it.
-	(with-temp-buffer
+	(with-temp-file tramp-persistency-file-name
 	  (insert
 	   ";; -*- emacs-lisp -*-"
 	   ;; `time-stamp-string' might not exist in all (X)Emacs flavors.
@@ -376,9 +376,7 @@ KEY identifies the connection, it is either a process or a vector."
 	   ";; Tramp connection history.  Don't change this file.\n"
 	   ";; You can delete it, forcing Tramp to reapply the checks.\n\n"
 	   (with-output-to-string
-	     (pp (read (format "(%s)" (tramp-cache-print cache))))))
-	  (write-region
-	   (point-min) (point-max) tramp-persistency-file-name))))))
+	     (pp (read (format "(%s)" (tramp-cache-print cache)))))))))))
 
 (unless noninteractive
   (add-hook 'kill-emacs-hook 'tramp-dump-connection-properties))

@@ -1,3 +1,5 @@
+// -*- js-indent-level: 2 -*-
+
 var a = 1;
 b = 2;
 
@@ -9,7 +11,7 @@ var e = 100500,
 
 function test ()
 {
-     return /[/]/.test ('/')     // (bug#19397)
+  return /[/]/.test ('/')     // (bug#19397)
 }
 
 var f = bar('/protocols/')
@@ -60,3 +62,6 @@ var evens = [e for each (e in range(0, 21))
 a++
 b +=
   c
+
+baz(`http://foo.bar/${tee}`)
+  .qux();
