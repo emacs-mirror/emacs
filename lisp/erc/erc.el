@@ -4210,10 +4210,10 @@ and as second argument the event parsed as a vector."
   (and (erc-is-message-ctcp-p message)
        (not (string-match "^\C-a\\ACTION.*\C-a$" message))))
 
-(defun erc-format-privmessage (nick msg privp msgp)
+(defun erc-format-privmessage (nick msg privp msgp &optional twitterp)
   "Format a PRIVMSG in an insertable fashion."
-  (let* ((mark-s (if msgp (if privp "*" "<") "-"))
-         (mark-e (if msgp (if privp "*" ">") "-"))
+  (let* ((mark-s (if msgp (if privp "*" (if twitterp "" "<")) "-"))
+	 (mark-e (if msgp (if privp "*" (if twitterp ":" ">")) "-"))
          (str    (format "%s%s%s %s" mark-s nick mark-e msg))
          (nick-face (if privp 'erc-nick-msg-face 'erc-nick-default-face))
          (msg-face (if privp 'erc-direct-msg-face 'erc-default-face)))

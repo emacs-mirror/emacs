@@ -1435,7 +1435,8 @@ add things to `%s' instead."
                                   (erc-query-buffer-p buffer)
                                   erc-format-query-as-channel-p))
                         privp)
-                   msgp))))
+                   msgp
+                   (string-match-p "twitter" (buffer-name buffer))))))
         (when s
           (if (and noticep privp)
               (progn
