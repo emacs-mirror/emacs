@@ -41,7 +41,7 @@
 ;;
 ;;   (bind-key* "<C-return>" 'other-window)
 ;;
-;; If you want to rebind a key only in a particular key, use:
+;; If you want to rebind a key only in a particular keymap, use:
 ;;
 ;;   (bind-key "C-c x" 'my-ctrl-c-x-command some-other-mode-map)
 ;;
@@ -178,6 +178,7 @@ Accepts keyword arguments:
               these bindings
 :prefix - prefix key for these bindings
 :prefix-docstring - docstring for the prefix-map variable
+:menu-name - optional menu string for prefix map
 
 The rest of the arguments are conses of keybinding string and a
 function symbol (unquoted)."
@@ -185,6 +186,7 @@ function symbol (unquoted)."
         (doc (plist-get args :prefix-docstring))
         (prefix-map (plist-get args :prefix-map))
         (prefix (plist-get args :prefix))
+        (menu-name (plist-get args :menu-name))
         (key-bindings (progn
                         (while (keywordp (car args))
                           (pop args)
@@ -195,11 +197,15 @@ function symbol (unquoted)."
               (and prefix
                    (not prefix-map)))
       (error "Both :prefix-map and :prefix must be supplied"))
+    (when (and menu-name (not prefix))
+      (error "If :menu-name is supplied, :prefix must be too"))
     `(progn
        ,@(when prefix-map
            `((defvar ,prefix-map)
              ,@(when doc `((put ',prefix-map 'variable-documentation ,doc)))
-             (define-prefix-command ',prefix-map)
+             ,@(if menu-name
+                   `((define-prefix-command ',prefix-map nil ,menu-name))
+                   `((define-prefix-command ',prefix-map)))
              (bind-key ,prefix ',prefix-map ,map)))
        ,@(mapcar (lambda (form)
                    `(bind-key ,(car form) ',(cdr form)
@@ -279,9 +285,9 @@ function symbol (unquoted)."
       (dolist (binding
                (setq personal-keybindings
                      (sort personal-keybindings
-                           #'(lambda (l r)
-                               (car (compare-keybindings l r))))))
-
+                           (lambda (l r)
+                             (car (compare-keybindings l r))))))
+        
         (if (not (eq (cdar last-binding) (cdar binding)))
             (princ (format "\n\n%s\n%s\n\n"
                            (cdar binding)
@@ -289,7 +295,7 @@ function symbol (unquoted)."
           (if (and last-binding
                    (cdr (compare-keybindings last-binding binding)))
               (princ "\n")))
-
+        
         (let* ((key-name (caar binding))
                (at-present (lookup-key (or (symbol-value (cdar binding))
                                            (current-global-map))
@@ -314,7 +320,7 @@ function symbol (unquoted)."
             (princ (if (string-match "[ \t]+\n" line)
                        (replace-match "\n" t t line)
                      line))))
-
+        
         (setq last-binding binding)))))
 
 (provide 'bind-key)
