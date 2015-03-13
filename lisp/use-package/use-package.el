@@ -23,7 +23,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
-
+
 ;;; Commentary:
 
 ;; The `use-package' declaration macro allows you to isolate package
@@ -34,7 +34,7 @@
 ;; functionality!
 ;;
 ;; Please see README.md from the same repository for documentation.
-
+
 ;;; Code:
 
 (require 'bind-key)
@@ -156,6 +156,10 @@ Return nil when the queue is empty."
       (cancel-timer use-package-idle-timer)
       (setq use-package-idle-timer nil))))
 
+(eval-when-compile
+  (defvar package-pinned-packages)
+  (defvar package-archives))
+
 (defun use-package-pin-package (package archive)
   "Pin PACKAGE to ARCHIVE."
   (unless (boundp 'package-pinned-packages)
@@ -164,13 +168,15 @@ Return nil when the queue is empty."
         (archive-name   (if (stringp archive) archive (symbol-name archive))))
     (if (use-package--archive-exists-p archive-symbol)
         (add-to-list 'package-pinned-packages (cons package archive-name))
-      (error (message  "Archive '%s' requested for package '%s' is not available." archive-name package)))
+      (error "Archive '%s' requested for package '%s' is not available."
+             archive-name package))
     (package-initialize t)))
 
 (defun use-package--archive-exists-p (archive)
   "Check if a given ARCHIVE is enabled.
 
-ARCHIVE can be a string or a symbol or 'manual to indicate a manually updated package."
+ARCHIVE can be a string or a symbol or 'manual to indicate a
+manually updated package."
   (if (member archive '(manual "manual"))
       't
     (let ((valid nil))
@@ -332,7 +338,8 @@ For full documentation. please see commentary.
          (keybindings-alist (use-package-plist-get args :bind t t))
          (overriding-keybindings-alist (use-package-plist-get args :bind* t t))
          (keymap-alist (use-package-plist-get args :bind-keymap t t))
-         (overriding-keymap-alist (use-package-plist-get args :bind-keymap* t t))
+         (overriding-keymap-alist
+          (use-package-plist-get args :bind-keymap* t t))
          (mode (use-package-plist-get args :mode t t))
          (mode-alist
           (if (stringp mode) (cons mode name) mode))
@@ -375,24 +382,26 @@ For full documentation. please see commentary.
 
 
       (if diminish-var
-          (setq config-body
-                `(progn
-                   ,config-body
-                   (ignore-errors
-                     ,@(cond
-                        ((stringp diminish-var)
-                         `((diminish (quote ,(intern (concat name-string "-mode")))
-                                     ,diminish-var)))
-                        ((symbolp diminish-var)
-                         `((diminish (quote ,diminish-var))))
-                        ((and (consp diminish-var) (stringp (cdr diminish-var)))
-                         `((diminish (quote ,(car diminish-var)) ,(cdr diminish-var))))
-                        (t      ; list of symbols or (symbol . "string") pairs
-                         (mapcar (lambda (var)
-                                   (if (listp var)
-                                       `(diminish (quote ,(car var)) ,(cdr var))
-                                     `(diminish (quote ,var))))
-                                 diminish-var)))))))
+          (setq
+           config-body
+           `(progn
+              ,config-body
+              (ignore-errors
+                ,@(cond
+                   ((stringp diminish-var)
+                    `((diminish (quote ,(intern (concat name-string "-mode")))
+                                ,diminish-var)))
+                   ((symbolp diminish-var)
+                    `((diminish (quote ,diminish-var))))
+                   ((and (consp diminish-var) (stringp (cdr diminish-var)))
+                    `((diminish (quote ,(car diminish-var))
+                                ,(cdr diminish-var))))
+                   (t           ; list of symbols or (symbol . "string") pairs
+                    (mapcar (lambda (var)
+                              (if (listp var)
+                                  `(diminish (quote ,(car var)) ,(cdr var))
+                                `(diminish (quote ,var))))
+                            diminish-var)))))))
 
       (if (and commands (symbolp commands))
           (setq commands (list commands)))
@@ -404,7 +413,8 @@ For full documentation. please see commentary.
         (setq init-body
               `(progn
                  (require 'use-package)
-                 (use-package-init-on-idle (lambda () ,idle-body) ,idle-priority)
+                 (use-package-init-on-idle (lambda () ,idle-body)
+                                           ,idle-priority)
                  ,init-body)))
 
       (let ((init-for-commands-or-keymaps
@@ -512,7 +522,8 @@ For full documentation. please see commentary.
                          `(,(lambda ()
                               (if ,requires-test
                                   (use-package-with-elapsed-timer
-                                      ,(format "Configuring package %s" name-string)
+                                      ,(format "Configuring package %s"
+                                               name-string)
                                     ,config-body))))))
                    t))
             `(if (and ,(or predicate t)
@@ -544,7 +555,8 @@ pressed."
                 (keymap (symbol-value keymap-symbol)))
             (progn
               (if override
-                  `(eval `(bind-key* ,key ,keymap)) ; eval form is necessary to avoid compiler error
+                  ;; eval form is necessary to avoid compiler error
+                  `(eval `(bind-key* ,key ,keymap))
                 (bind-key key keymap))
               (setq unread-command-events
                     (listify-key-sequence (this-command-keys-vector)))))
@@ -563,7 +575,9 @@ pressed."
 (font-lock-add-keywords 'emacs-lisp-mode use-package-font-lock-keywords)
 
 (provide 'use-package)
+
 ;; Local Variables:
 ;; indent-tabs-mode: nil
 ;; End:
+
 ;;; use-package.el ends here
