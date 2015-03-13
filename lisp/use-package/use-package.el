@@ -135,7 +135,7 @@ Return nil when the queue is empty."
       (remhash priority use-package-idle-forms))
     first-form))
 
-(defun use-package-idle-eval()
+(defun use-package-idle-eval ()
   "Start to eval idle-commands from the idle queue."
   (let ((next (use-package-idle-pop)))
     (if next
@@ -366,7 +366,6 @@ For full documentation. please see commentary.
 
     ;; force this immediately -- one off cost
     (unless (use-package-plist-get args :disabled)
-
       (when archive-name
         (use-package-pin-package name archive-name))
 
@@ -379,7 +378,6 @@ For full documentation. please see commentary.
         (when package-name
           (require 'package)
           (use-package-ensure-elpa package-name)))
-
 
       (if diminish-var
           (setq
@@ -405,7 +403,6 @@ For full documentation. please see commentary.
 
       (if (and commands (symbolp commands))
           (setq commands (list commands)))
-
 
       (when idle-body
         (when (null idle-priority)
@@ -457,26 +454,22 @@ For full documentation. please see commentary.
 
         (funcall init-for-commands-or-keymaps
                  (lambda (binding)
-                   `(bind-key ,(car binding)
-                              (quote ,(cdr binding))))
+                   `(bind-key ,(car binding) (quote ,(cdr binding))))
                  keybindings-alist)
 
         (funcall init-for-commands-or-keymaps
                  (lambda (binding)
-                   `(bind-key* ,(car binding)
-                               (quote ,(cdr binding))))
+                   `(bind-key* ,(car binding) (quote ,(cdr binding))))
                  overriding-keybindings-alist)
 
         (funcall init-for-commands-or-keymaps
                  (lambda (mode)
-                   `(add-to-list 'auto-mode-alist
-                                 (quote ,mode)))
+                   `(add-to-list 'auto-mode-alist (quote ,mode)))
                  mode-alist)
 
         (funcall init-for-commands-or-keymaps
                  (lambda (interpreter)
-                   `(add-to-list 'interpreter-mode-alist
-                                 (quote ,interpreter)))
+                   `(add-to-list 'interpreter-mode-alist (quote ,interpreter)))
                  interpreter-alist))
 
       `(progn
