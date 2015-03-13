@@ -403,9 +403,10 @@ For full documentation. please see commentary.
            (when (bound-and-true-p byte-compile-current-file)
              ,@defines-eval
              (with-demoted-errors
-                ,(if (stringp name)
-                     `(load ,name t)
-                   `(require ',name nil t)))))
+                 ,(format "Error in %s: %%S" name)
+               ,(if (stringp name)
+                    `(load ,name t)
+                  `(require ',name nil t)))))
 
          ,(if (and (or commands (use-package-plist-get args :defer))
                    (not (use-package-plist-get args :demand)))
