@@ -1,3 +1,21 @@
+2015-03-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* frame.c (x_get_resource_string) [!USE_GTK]: Don't define.
+
+	* editfns.c, systime.h (mktime_z) [!HAVE_TZALLOC]: Now static.
+
+2015-03-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32font.c (font_supported_scripts): Add subranges for Latin
+	Supplement, Latin Extended-A/B, Vai, Supplemental Punctuation, Tai
+	Le, Buginese, Yijing Hexagrams, Ancient Greek Numbers, Tai Xuan
+	Jing, Counting Rods, Sundanese, Lepcha, Ol Chiki, Saurashtra,
+	Kayah Li, Rejang, Ancient Symbols, Phistos Disc, Carian, Lycian,
+	Lydian, Dominoe Tiles, and Mahjong Tiles.  Break the Mathematical
+	Alphanumeric Symbols into several "scripts" like fontset.el does.
+	(Bug#19993)
+	(syms_of_w32font): DEFSYM all the new script symbols.
+
 2015-03-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c <ImmReleaseContext_Proc, ImmSetCompositionWindow_Proc>:
@@ -1431,7 +1449,8 @@
 2015-01-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (x_set_window_size): Call updateFrameSize to get real
-	size instead of using widht/height.  The frame may be constrained.
+	size instead of using widht/height.  The frame may be
+	constrained (Bug#19482).
 
 2015-01-05  Paul Eggert  <eggert@cs.ucla.edu>
 

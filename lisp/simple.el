@@ -1940,7 +1940,9 @@ The argument NABS specifies the absolute history position."
 	(user-error (if minibuffer-default
                         "End of defaults; no next item"
                       "End of history; no default available")))
-    (if (> nabs (length (symbol-value minibuffer-history-variable)))
+    (if (> nabs (if (listp (symbol-value minibuffer-history-variable))
+                    (length (symbol-value minibuffer-history-variable))
+                  0))
 	(user-error "Beginning of history; no preceding item"))
     (unless (memq last-command '(next-history-element
 				 previous-history-element))
@@ -1990,7 +1992,14 @@ When point moves over the bottom line of multi-line minibuffer, puts ARGth
 next element of the minibuffer history in the minibuffer."
   (interactive "^p")
   (or arg (setq arg 1))
-  (let ((old-point (point)))
+  (let* ((old-point (point))
+	 ;; Remember the original goal column of possibly multi-line input
+	 ;; excluding the length of the prompt on the first line.
+	 (prompt-end (minibuffer-prompt-end))
+	 (old-column (unless (and (eolp) (> (point) prompt-end))
+		       (if (= (line-number-at-pos) 1)
+			   (max (- (current-column) (1- prompt-end)) 0)
+			 (current-column)))))
     (condition-case nil
 	(with-no-warnings
 	  (next-line arg))
@@ -1998,7 +2007,14 @@ next element of the minibuffer history in the minibuffer."
        ;; Restore old position since `line-move-visual' moves point to
        ;; the end of the line when it fails to go to the next line.
        (goto-char old-point)
-       (next-history-element arg)))))
+       (next-history-element arg)
+       ;; Restore the original goal column on the last line
+       ;; of possibly multi-line input.
+       (goto-char (point-max))
+       (when old-column
+	 (if (= (line-number-at-pos) 1)
+	     (move-to-column (+ old-column (1- (minibuffer-prompt-end))))
+	   (move-to-column old-column)))))))
 
 (defun previous-line-or-history-element (&optional arg)
   "Move cursor vertically up ARG lines, or to the previous history element.
@@ -2006,7 +2022,14 @@ When point moves over the top line of multi-line minibuffer, puts ARGth
 previous element of the minibuffer history in the minibuffer."
   (interactive "^p")
   (or arg (setq arg 1))
-  (let ((old-point (point)))
+  (let* ((old-point (point))
+	 ;; Remember the original goal column of possibly multi-line input
+	 ;; excluding the length of the prompt on the first line.
+	 (prompt-end (minibuffer-prompt-end))
+	 (old-column (unless (and (eolp) (> (point) prompt-end))
+		       (if (= (line-number-at-pos) 1)
+			   (max (- (current-column) (1- prompt-end)) 0)
+			 (current-column)))))
     (condition-case nil
 	(with-no-warnings
 	  (previous-line arg))
@@ -2014,7 +2037,15 @@ previous element of the minibuffer history in the minibuffer."
        ;; Restore old position since `line-move-visual' moves point to
        ;; the beginning of the line when it fails to go to the previous line.
        (goto-char old-point)
-       (previous-history-element arg)))))
+       (previous-history-element arg)
+       ;; Restore the original goal column on the first line
+       ;; of possibly multi-line input.
+       (goto-char (minibuffer-prompt-end))
+       (if old-column
+	   (if (= (line-number-at-pos) 1)
+	       (move-to-column (+ old-column (1- (minibuffer-prompt-end))))
+	     (move-to-column old-column))
+	 (goto-char (line-end-position)))))))
 
 (defun next-complete-history-element (n)
   "Get next history element which completes the minibuffer before the point.

@@ -1969,7 +1969,7 @@ You must have the \"hashcash\" binary installed, see `hashcash-path'."
   ;; "dead" nato bitnet uucp
   "Regular expression that matches a valid FQDN."
   ;; see also: gnus-button-valid-fqdn-regexp
-  :version "22.1"
+  :version "25.1"
   :group 'message-headers
   :type 'regexp)
 

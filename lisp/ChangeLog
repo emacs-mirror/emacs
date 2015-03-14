@@ -1,3 +1,54 @@
+2015-03-13  Kevin Ryde  <user42_kevin@yahoo.com.au>
+
+	info-look fixes for Texinfo 5
+	* info-look.el (c-mode, bison-mode, makefile-mode)
+	(makefile-automake-mode, texinfo-mode, autoconf-mode, awk-mode)
+	(latex-mode, emacs-lisp-mode, sh-mode, cfengine-mode): Match
+	`foo' and 'foo' and ‘foo’ for @item and similar.
+	(latex-mode): Match multi-arg \frac{num}{den} or \sqrt[root]{n} in
+	suffix regexp.
+
+2015-03-12  Juri Linkov  <juri@linkov.net>
+
+	* simple.el (next-line-or-history-element)
+	(previous-line-or-history-element): Remember the goal column of
+	possibly multi-line input, and restore it afterwards.  (Bug#19824)
+
+2015-03-12  Rasmus Pank Roulund  <emacs@pank.eu>
+
+	* ido.el (ido-add-virtual-buffers-to-list): Include bookmark-alist
+	files (bug#19335).
+
+2015-03-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/fontset.el (script-representative-chars): Add a
+	representative character for 'vai'.
+
+2015-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/quail.el (quail-input-method):
+	Use with-silent-modifications.
+
+	* simple.el (goto-history-element): Don't burp on t history.
+
+2015-03-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Prefer "initialize" to "initialise"
+	* progmodes/js.el (js-indent-first-init):
+	Rename from js-indent-first-initialiser, to avoid worrying about
+	American vs British spelling.  All uses changed.
+
+2015-03-10  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/js.el (js-indent-first-initialiser):
+	Fix doc, type, version.
+
+2015-03-10  Jackson Ray Hamilton  <jackson@jacksonrayhamilton.com>
+
+	* progmodes/js.el (js-indent-first-initialiser): New option.
+	(js--maybe-goto-declaration-keyword-end): New function.
+	(js--proper-indentation): Use js--maybe-goto-declaration-keyword-end.
+
 2015-03-10  Thomas Fitzsimmons  <fitzsim@fitzsim.org>
 
 	* net/ldap.el (ldap-attribute-syntaxes-alist): Add LDAP attributes
@@ -28,14 +79,14 @@
 
 2015-03-08  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Use
-	`font-lock-constant-face' for nil, true and false.  Highlight
-	`self' as a keyword.  (Bug#17733)
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords):
+	Use `font-lock-constant-face' for nil, true and false.
+	Highlight `self' as a keyword.  (Bug#17733)
 
 2015-03-08  Nobuyoshi Nakada  <nobu@ruby-lang.org>
 
-	* progmodes/ruby-mode.el (ruby-syntax-before-regexp-re): Expect
-	beginning of regexp also after open brace or vertical bar.
+	* progmodes/ruby-mode.el (ruby-syntax-before-regexp-re):
+	Expect beginning of regexp also after open brace or vertical bar.
 	(Bug#20026)
 
 2015-03-07  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -259,8 +310,8 @@
 2015-03-03  Agustín Martín Domingo  <agustin6martin@gmail.com>
 
 	Improve string search in `flyspell-word-search-*`. (Bug#16800)
-	* textmodes/flyspell.el (flyspell-duplicate-distance): Limit
-	default search distance for duplicated words to 40000.
+	* textmodes/flyspell.el (flyspell-duplicate-distance):
+	Limit default search distance for duplicated words to 40000.
 	(flyspell-word-search-backward, flyspell-word-search-forward):
 	Search as full word with defined casechars, not as substring.
 
@@ -4540,7 +4591,7 @@
 	(tildify-foreach-region-function): New variable specifying
 	a function determining portions of buffer that should be
 	tildified.  It allows major modes to create a filtering function
-	more elaborate than a set of regular expressions.  Initialised to
+	more elaborate than a set of regular expressions.  Initialized to
 	`tildify--deprecated-ignore-evironments' by default to handle now
 	deprecated `tildify-ignored-environments-alist' variable.
 	(tildify--foreach-region): A new function that takes
@@ -9004,7 +9055,7 @@
 	file-format 2 --- ie. no local printers --- and 3 --- i.e. may have
 	local printers.
 	(ses-localvars): Add local variables needed for local printer handling.
-	(ses-set-localvars): Handle hashmap initialisation.
+	(ses-set-localvars): Handle hashmap initialization.
 	(ses-paramlines-plist): Add param-line for number of local printers.
 	(ses-paramfmt-plist): New defconst, needed for code factorization
 	between functions `ses-set-parameter' and
@@ -12264,7 +12315,7 @@
 	* progmodes/cc-mode.el (c-initialize-cc-mode): Add CC Mode hooks
 	to electric-indent-{,local-}-mode.
 	(c-basic-common-init): Set electric-indent-inhibit.
-	Initialise c-electric-flag from electric-indent-mode.
+	Initialize c-electric-flag from electric-indent-mode.
 	(c-electric-indent-mode-hook, c-electric-indent-local-mode-hook):
 	New hook functions which propagate electric-indent-mode to CC mode.
 
@@ -24201,7 +24252,7 @@
 
 2013-04-30  Alan Mackenzie  <acm@muc.de>
 
-	Handle arbitrarily long C++ member initialisation lists.
+	Handle arbitrarily long C++ member initialization lists.
 	* progmodes/cc-engine.el (c-back-over-member-initializers):
 	new function.
 	(c-guess-basic-syntax): New CASE 5R (extracted from 5B) to handle

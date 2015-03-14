@@ -98,7 +98,12 @@
             :type (or null float)
             :documentation "The registry version.")
    (max-size :initarg :max-size
-             ;; :initform most-positive-fixnum ;; see below
+	     ;; EIEIO's :initform is not 100% compatible with CLOS in
+	     ;; that if the form is an atom, it assumes it's constant
+	     ;; value rather than an expression, so in order to get the value
+	     ;; of `most-positive-fixnum', we need to use an
+	     ;; expression that's not just a symbol.
+             :initform (symbol-value 'most-positive-fixnum)
              :type integer
              :custom integer
              :documentation "The maximum number of registry entries.")
@@ -123,8 +128,6 @@
    (data :initarg :data
          :type hash-table
          :documentation "The data hashtable.")))
-;; Do this separately, since defclass doesn't allow expressions in :initform.
-(oset-default 'registry-db max-size most-positive-fixnum)
 
 (defmethod initialize-instance :BEFORE ((this registry-db) slots)
   "Check whether a registry object needs to be upgraded."

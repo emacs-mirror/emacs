@@ -35,6 +35,11 @@
 ;;  (or CTAN mirrors)
 ;; Perl: <URL:ftp://ftp.cpan.org/pub/CPAN/doc/manual/texinfo/> (or CPAN mirrors)
 
+;; Traditionally, makeinfo quoted `like this', but version 5 and later
+;; quotes 'like this' or ‘like this’.  Doc specs with patterns
+;; therefore match open and close quotes with ['`‘] and ['’],
+;; respectively.
+
 ;;; Code:
 
 (require 'info)
@@ -716,12 +721,12 @@ Return nil if there is nothing appropriate in the buffer near point."
              ;; suffix "\\>" is not used because that sends DBL_MAX to
              ;; DBL_MAX_EXP ("_" is a non-word char)
 	     ("(libc)Variable Index" nil
-              "^\\([ \t]+-+ \\(Variable\\|Macro\\): .*\\<\\|`\\)"
-              "\\( \\|'?$\\)")
+              "^\\([ \t]+-+ \\(Variable\\|Macro\\): .*\\<\\|['`‘]\\)"
+              "\\( \\|['’]?$\\)")
 	     ("(libc)Type Index" nil
 	      "^[ \t]+-+ Data Type: \\<" "\\>")
 	     ("(termcap)Var Index" nil
-	      "^[ \t]*`" "'"))
+	      "^[ \t]*['`‘]" "['’]"))
  :parse-rule 'info-lookup-guess-c-symbol)
 
 (info-lookup-maybe-add-help
@@ -733,7 +738,7 @@ Return nil if there is nothing appropriate in the buffer near point."
  :mode 'bison-mode
  :regexp "[:;|]\\|%\\([%{}]\\|[_a-z]+\\)\\|YY[_A-Z]+\\|yy[_a-z]+"
  :doc-spec '(("(bison)Index" nil
-	      "`" "'"))
+	      "['`‘]" "['’]"))
  :parse-rule "[:;|]\\|%\\([%{}]\\|[_a-zA-Z][_a-zA-Z0-9]*\\)"
  :other-modes '(c-mode))
 
@@ -741,7 +746,7 @@ Return nil if there is nothing appropriate in the buffer near point."
  :mode 'makefile-mode
  :regexp "\\$[^({]\\|\\.[_A-Z]*\\|[_a-zA-Z][_a-zA-Z0-9-]*"
  :doc-spec '(("(make)Name Index" nil
-	      "^[ \t]*`" "'"))
+	      "^[ \t]*['`‘]" "['’]"))
  :parse-rule "\\$[^({]\\|\\.[_A-Z]*\\|[_a-zA-Z0-9-]+")
 
 (info-lookup-maybe-add-help
@@ -756,15 +761,16 @@ Return nil if there is nothing appropriate in the buffer near point."
  :doc-spec   '(
                ;; "(automake)Macro Index" is autoconf macros used in
                ;; configure.ac, not Makefile.am, so don't have that here.
-               ("(automake)Variable Index" nil "^[ \t]*`" "'")
+               ("(automake)Variable Index" nil "^[ \t]*['`‘]" "['’]")
                ;; In automake 1.4 macros and variables were a combined node.
-               ("(automake)Macro and Variable Index" nil "^[ \t]*`" "'")
+               ("(automake)Macro and Variable Index" nil "^[ \t]*['`‘]"
+		"['’]")
                ;; Directives like "if" are in the "General Index".
                ;; Prefix "`" since the text for say `+=' isn't always an
                ;; @item etc and so not always at the start of a line.
-               ("(automake)General Index" nil "`" "'")
+               ("(automake)General Index" nil "['`‘]" "['’]")
                ;; In automake 1.3 there was just a single "Index" node.
-               ("(automake)Index" nil "`" "'"))
+               ("(automake)Index" nil "['`‘]" "['’]"))
  :other-modes '(makefile-mode))
 
 (info-lookup-maybe-add-help
@@ -775,7 +781,7 @@ Return nil if there is nothing appropriate in the buffer near point."
 	      (lambda (item)
 		(if (string-match "^\\([a-zA-Z]+\\|[^a-zA-Z]\\)\\( .*\\)?$" item)
 		    (concat "@" (match-string 1 item))))
-	      "`" "[' ]")))
+	      "['`‘]" "['’ ]")))
 
 (info-lookup-maybe-add-help
  :mode 'm4-mode
@@ -821,7 +827,7 @@ Return nil if there is nothing appropriate in the buffer near point."
 	     ;; macros (eg. AC_PROG_CC).  Ensure this is after the autoconf
 	     ;; index, so as to prefer the autoconf docs.
 	     ("(automake)Macro and Variable Index" nil
-	      "^[ \t]*`" "'"))
+	      "^[ \t]*['`‘]" "['’]"))
  ;; Autoconf symbols are M4 macros.  Thus use M4's parser.
  :parse-rule 'ignore
  :other-modes '(m4-mode))
@@ -846,7 +852,7 @@ Return nil if there is nothing appropriate in the buffer near point."
 		   ;; Built-in functions (matches to many entries).
 		   ((string-match "^[a-z]+$" item)
 		    item))))
-	      "`" "\\([ \t]*([^)]*)\\)?'")))
+	      "['`‘]" "\\([ \t]*([^)]*)\\)?['’]")))
 
 (info-lookup-maybe-add-help
  :mode 'perl-mode
@@ -885,16 +891,19 @@ Return nil if there is nothing appropriate in the buffer near point."
 		   ;; From http://home.gna.org/latexrefman
 		   "(latex2e)Command Index"
 		 "(latex)Command Index")
-	      nil "`" "\\({[^}]*}\\)?'")))
+	      ;; \frac{NUM}{DEN} etc can have more than one {xx} argument.
+	      ;; \sqrt[ROOT]{num} and others can have square brackets.
+	      nil "[`'‘]" "\\({[^}]*}|\\[[^]]*\\]\\)*['’]")))
+
 
 (info-lookup-maybe-add-help
  :mode 'emacs-lisp-mode
  :regexp "[^][()`',\" \t\n]+"
  :doc-spec '(;; Commands with key sequences appear in nodes as `foo' and
              ;; those without as `M-x foo'.
-             ("(emacs)Command Index"  nil "`\\(M-x[ \t\n]+\\)?" "'")
+             ("(emacs)Command Index"  nil "['`‘]\\(M-x[ \t\n]+\\)?" "['’]")
              ;; Variables normally appear in nodes as just `foo'.
-             ("(emacs)Variable Index" nil "`" "'")
+             ("(emacs)Variable Index" nil "['`‘]" "['’]")
              ;; Almost all functions, variables, etc appear in nodes as
              ;; " -- Function: foo" etc.  A small number of aliases and
              ;; symbols appear only as `foo', and will miss out on exact
@@ -976,9 +985,9 @@ Return nil if there is nothing appropriate in the buffer near point."
  ;; bash has "." and ":" in its index, but those chars will probably never
  ;; work in info, so don't bother matching them in the regexp.
  :regexp "\\([a-zA-Z0-9_-]+\\|[!{}@*#?$]\\|\\[\\[?\\|]]?\\)"
- :doc-spec '(("(bash)Builtin Index"       nil "^`" "[ .']")
-             ("(bash)Reserved Word Index" nil "^`" "[ .']")
-             ("(bash)Variable Index"      nil "^`" "[ .']")
+ :doc-spec '(("(bash)Builtin Index"       nil "^['`‘]" "[ .'’]")
+             ("(bash)Reserved Word Index" nil "^['`‘]" "[ .'’]")
+             ("(bash)Variable Index"      nil "^['`‘]" "[ .'’]")
 
              ;; coreutils (version 4.5.10) doesn't have a separate program
              ;; index, so exclude extraneous stuff (most of it) by demanding
@@ -1026,7 +1035,7 @@ Return nil if there is nothing appropriate in the buffer near point."
 		  item))
 	      ;; This gets functions in evaluated classes.  Other
 	      ;; possible patterns don't seem to work too well.
-	      "`" "(")))
+	      "['`‘]" "(")))
 
 (info-lookup-maybe-add-help
  :mode 'Custom-mode

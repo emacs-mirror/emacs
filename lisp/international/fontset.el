@@ -153,6 +153,7 @@
 	(cyrillic #x42F)
 	(armenian #x531)
 	(hebrew #x5D0)
+	(vai #xA500)
 	(arabic #x628)
 	(syriac #x710)
 	(thaana #x78C)

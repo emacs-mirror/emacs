@@ -1,5 +1,3 @@
-// -*- js-indent-level: 2 -*-
-
 var a = 1;
 b = 2;
 
@@ -65,3 +63,8 @@ b +=
 
 baz(`http://foo.bar/${tee}`)
   .qux();
+
+// Local Variables:
+// indent-tabs-mode: nil
+// js-indent-level: 2
+// End:

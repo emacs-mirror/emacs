@@ -1,3 +1,23 @@
+2015-03-10  Jackson Ray Hamilton  <jackson@jacksonrayhamilton.com>
+
+	* indent/js-indent-init-dynamic.js: Fix spelling error.
+
+2015-03-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Prefer "initialize" to "initialise"
+	* indent/js-indent-init-t.js: Rename from
+	indent/js-indent-first-initialiser-t.js.
+	* indent/js-indent-init-dynamic.js: Rename from
+	test/indent/js-indent-first-initialiser-dynamic.js.
+
+2015-03-10  Jackson Ray Hamilton  <jackson@jacksonrayhamilton.com>
+
+	* indent/js.js: Add local variables.
+
+	* indent/js-indent-first-initialiser-t.js:
+	* indent/js-indent-first-initialiser-dynamic.js:
+	New tests for `js-indent-first-initialiser'.
+
 2015-03-10  Przemyslaw Wojnowski  <esperanto@cumego.com>
 
 	* automated/cl-lib-tests.el: Add tests for plusp, second, ...

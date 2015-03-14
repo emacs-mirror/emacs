@@ -4188,7 +4188,7 @@ display_x_get_resource (Display_Info *dpyinfo, Lisp_Object attribute,
 			    attribute, class, component, subclass);
 }
 
-#if defined HAVE_X_WINDOWS && !defined USE_X_TOOLKIT
+#if defined HAVE_X_WINDOWS && !defined USE_X_TOOLKIT && !defined USE_GTK
 /* Used when C code wants a resource value.  */
 /* Called from oldXMenu/Create.c.  */
 char *

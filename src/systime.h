@@ -118,8 +118,6 @@ extern struct timespec lisp_time_argument (Lisp_Object);
 typedef char const *timezone_t;
 INLINE timezone_t tzalloc (char const *name) { return name; }
 INLINE void tzfree (timezone_t tz) { }
-/* Defined in editfns.c.  */
-extern time_t mktime_z (timezone_t, struct tm *);
 #endif
 
 INLINE_HEADER_END

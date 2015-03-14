@@ -389,6 +389,8 @@ The remainder were:
 
 ** New ERT function `ert-summarize-tests-batch-and-exit'.
 
+** New js.el option `js-indent-first-init'.
+
 ---
 ** `Info-fontify-maximum-menu-size' can be t for no limit.
 

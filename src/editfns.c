@@ -1411,7 +1411,7 @@ check_time_validity (int validity)
 /* A substitute for mktime_z on platforms that lack it.  It's not
    thread-safe, but should be good enough for Emacs in typical use.  */
 #ifndef HAVE_TZALLOC
-time_t
+static time_t
 mktime_z (timezone_t tz, struct tm *tm)
 {
   char *oldtz = getenv ("TZ");

@@ -394,7 +394,7 @@
 
 2014-11-25  Glenn Morris  <rgm@gnu.org>
 
-	* configure.ac: Fix yesterday's use of uninitialised $version.
+	* configure.ac: Fix yesterday's use of uninitialized $version.
 
 2014-11-25  Oscar Fuentes  <ofv@wanadoo.es>
 

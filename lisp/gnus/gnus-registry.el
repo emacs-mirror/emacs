@@ -277,16 +277,16 @@ This can slow pruning down.  Set to nil to perform no sorting."
 (defun gnus-registry-fixup-registry (db)
   (when db
     (let ((old (oref db tracked)))
-      (oset db precious
+      (setf (oref db precious)
             (append gnus-registry-extra-entries-precious
                     '()))
-      (oset db max-size
+      (setf (oref db max-size)
             (or gnus-registry-max-entries
                 most-positive-fixnum))
-      (oset db prune-factor
+      (setf (oref db prune-factor)
             (or gnus-registry-prune-factor
 		0.1))
-      (oset db tracked
+      (setf (oref db tracked)
             (append gnus-registry-track-extra
                     '(mark group keyword)))
       (when (not (equal old (oref db tracked)))
@@ -297,14 +297,13 @@ This can slow pruning down.  Set to nil to perform no sorting."
 (defun gnus-registry-make-db (&optional file)
   (interactive "fGnus registry persistence file: \n")
   (gnus-registry-fixup-registry
-   (registry-db
-    "Gnus Registry"
-    :file (or file gnus-registry-cache-file)
-    ;; these parameters are set in `gnus-registry-fixup-registry'
-    :max-size most-positive-fixnum
-    :version registry-db-version
-    :precious nil
-    :tracked nil)))
+   (make-instance 'registry-db
+                  :file (or file gnus-registry-cache-file)
+                  ;; these parameters are set in `gnus-registry-fixup-registry'
+                  :max-size most-positive-fixnum
+                  :version registry-db-version
+                  :precious nil
+                  :tracked nil)))
 
 (defvar gnus-registry-db (gnus-registry-make-db)
   "The article registry by Message ID.  See `registry-db'.")
@@ -336,7 +335,7 @@ This is not required after changing `gnus-registry-cache-file'."
 			   old-file-name file)))
 	     (progn
 	       (gnus-registry-read old-file-name)
-	       (oset gnus-registry-db :file file)
+	       (setf (oref gnus-registry-db :file) file)
 	       (gnus-message 1 "Registry filename changed to %s" file))
 	   (gnus-registry-remake-db t))))
       (error
@@ -398,8 +397,7 @@ This is not required after changing `gnus-registry-cache-file'."
          (sender (nth 0 (gnus-registry-extract-addresses
                          (mail-header-from data-header))))
          (from (gnus-group-guess-full-name-from-command-method from))
-         (to (if to (gnus-group-guess-full-name-from-command-method to) nil))
-         (to-name (if to to "the Bit Bucket")))
+         (to (if to (gnus-group-guess-full-name-from-command-method to) nil)))
     (gnus-message 7 "Gnus registry: article %s %s from %s to %s"
                   id (if method "respooling" "going") from to)
 
@@ -455,7 +453,8 @@ This is not required after changing `gnus-registry-cache-file'."
         (let ((new (or (assq (first kv) entry)
                        (list (first kv)))))
           (dolist (toadd (cdr kv))
-            (add-to-list 'new toadd t))
+            (unless (member toadd new)
+              (setq new (append new (list toadd)))))
           (setq entry (cons new
                             (assq-delete-all (first kv) entry))))))
     (gnus-message 10 "Gnus registry: new entry for %s is %S"
@@ -699,7 +698,7 @@ possible.  Uses `gnus-registry-split-strategy'."
                  10
                  "%s: stripped group %s to %s"
                  log-agent group short-name))
-              (add-to-list 'out short-name))
+              (pushnew short-name out :test #'equal))
           ;; else...
           (gnus-message
            7
@@ -785,8 +784,9 @@ Overrides existing keywords with FORCE set non-nil."
           (gnus-registry-set-id-key id 'keyword words)))))
 
 (defun gnus-registry-keywords ()
-  (let ((table (registry-lookup-secondary gnus-registry-db 'keyword)))
-    (when table (maphash (lambda (k v) k) table))))
+  (let ((table (registry-lookup-secondary gnus-registry-db 'keyword))
+        (ks ()))
+    (when table (maphash (lambda (k _v) (push k ks)) table) ks)))
 
 (defun gnus-registry-find-keywords (keyword)
   (interactive (list
@@ -1104,7 +1104,6 @@ only the last one's marks are returned."
         (setq entry (car-safe old)
               old (cdr-safe old))
         (let* ((id (car-safe entry))
-               (new-entry (gnus-registry-get-or-make-entry id))
                (rest (cdr-safe entry))
                (groups (loop for p in rest
                              when (stringp p)
