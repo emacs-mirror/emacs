@@ -427,7 +427,7 @@ the user specified.")
                         ,(format "Configuring package %s"
                                  name-string)
                         ,@config-body)))
-                (list `(eval-after-load ,name-string
+                (list `(eval-after-load ,(if (stringp name) name `',name)
                          ',body)))))
        `((use-package-with-elapsed-timer
            ,(format "Loading package %s" name-string)
