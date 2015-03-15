@@ -72,6 +72,41 @@ then the expanded macros do their job silently."
   :type 'number
   :group 'use-package)
 
+(defcustom use-package-inject-hooks nil
+  "If non-nil, add hooks to the `:init' and `:config' sections for a package.
+In particular, for a given package `foo', the following hooks
+will become available:
+
+  `use-package--foo--pre-init'
+  `use-package--foo--post-init'
+  `use-package--foo--pre-config'
+  `use-package--foo--post-config'
+
+This way, you can add to these hooks before evalaution of a
+`use-package` declaration, and exercise some control over what
+happens.
+
+Note that if either `pre-init' hooks returns a nil value, that
+block's user-supplied configuration is not evaluated, so be
+certain to return `t' if you only wish to add behavior to what
+the user specified.")
+
+(defun use-package-hook-injector (name-string keyword args)
+  "Wrap pre/post hook injections around a given keyword form."
+  (let ((keyword-name (substring (format "%s" keyword) 1))
+        (block (plist-get args keyword)))
+    (when block
+      `(when ,(use-package-expand name-string (format "pre-%s hook" keyword)
+                `(run-hook-with-args-until-failure
+                  ',(intern (concat "use-package--" name-string
+                                    "--pre-" keyword-name))))
+         ,(use-package-expand name-string (format "%s" keyword)
+            (plist-get args keyword))
+         ,(use-package-expand name-string (format "post-%s hook" keyword)
+            `(run-hooks
+              ',(intern (concat "use-package--" name-string
+                                "--post-" keyword-name))))))))
+
 (defmacro use-package-with-elapsed-timer (text &rest body)
   (declare (indent 1))
   (let ((nowvar (make-symbol "now")))
@@ -352,8 +387,10 @@ then the expanded macros do their job silently."
        ;; loaded.
        (config-body
         (use-package-cat-maybes
-         (list (use-package-expand name-string ":config"
-                 (plist-get args :config)))
+         (list (if use-package-inject-hooks
+                   (use-package-hook-injector name-string :config args)
+                 (use-package-expand name-string ":config"
+                   (plist-get args :config))))
 
          (mapcar #'(lambda (var)
                      (if (listp var)
@@ -377,11 +414,13 @@ then the expanded macros do their job silently."
      (when (bound-and-true-p byte-compile-current-file)
        (mapcar #'(lambda (fn)
                    `(declare-function ,fn ,name-string))
-               (append (plist-get args* :functions) commands)))
+               (append (plist-get args :functions) commands)))
 
      ;; The user's initializations
-     (list (use-package-expand name-string ":init"
-             (plist-get args :init)))
+     (list (if use-package-inject-hooks
+               (use-package-hook-injector name-string :init args)
+             (use-package-expand name-string ":init"
+               (plist-get args :init))))
 
      (if defer-loading
          (use-package-cat-maybes
