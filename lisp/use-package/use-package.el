@@ -241,14 +241,15 @@ then the expanded macros do their job silently."
                #'use-package-normalize-value)))
 
           (:ensure
-           (use-package-only-one (symbol-name head) args
-             (if (null args)
-                 t
+           (if (null args)
+               t
+             (use-package-only-one (symbol-name head) args
                (lambda (label arg)
                  (if (symbolp arg)
                      arg
                    (use-package-error
-                    ":ensure wants an optional package name (a unquoted symbol name)"))))))
+                    (concat ":ensure wants an optional package name "
+                            "(an unquoted symbol name)")))))))
 
           ((or :if :when :unless)
            (use-package-only-one (symbol-name head) args
