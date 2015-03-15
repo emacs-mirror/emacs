@@ -259,7 +259,7 @@ then the expanded macros do their job silently."
            (use-package-as-one (symbol-name head) args
              (apply-partially #'use-package-normalize-diminish name-symbol)))
 
-          ((or :init :config :idle)
+          ((or :preface :init :config :idle)
            (use-package-normalize-form (symbol-name head) args))
 
           (:idle-priority
@@ -363,6 +363,8 @@ then the expanded macros do their job silently."
 
     ;; Return the main body of the macro
     (use-package-cat-maybes
+     (list (plist-get args :preface))
+
      ;; Setup the load-path
      (mapcar #'(lambda (path) `(add-to-list 'load-path ,path))
              (plist-get args :load-path))
