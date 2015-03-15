@@ -292,13 +292,14 @@ then the expanded macros do their job silently."
 
 (defsubst use-package-expand (name label form)
   (declare (indent 1))
-  (and form
-       (let ((err (make-symbol "err"))
-             (fmt (format "Failure in %s of %s: %%S" label name)))
-         `(condition-case-unless-debug ,err
-              ,form
-            (error (display-warning 'use-package (format ,fmt ,err) :error)
-                   nil)))))
+  (when form
+    (let ((err (make-symbol "err"))
+          (fmt (format "Failure in %s of %s: %%S" label name)))
+      `(condition-case-unless-debug ,err
+           ,form
+         (error
+          (ignore
+           (display-warning 'use-package (format ,fmt ,err) :error)))))))
 
 (defun use--package (name-symbol name-string args)
   "See docstring for `use-package'."
