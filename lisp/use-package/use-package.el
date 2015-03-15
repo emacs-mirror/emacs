@@ -294,18 +294,8 @@ the user specified.")
            (use-package-as-one (symbol-name head) args
              (apply-partially #'use-package-normalize-diminish name-symbol)))
 
-          ((or :preface :init :config :idle)
+          ((or :preface :init :config)
            (use-package-normalize-form (symbol-name head) args))
-
-          (:idle-priority
-           (if (null args)
-               5
-             (use-package-only-one (symbol-name head) args
-               (lambda (label arg)
-                 (if (numberp arg)
-                     arg
-                   (use-package-error
-                    ":idle-priority wants an optional number"))))))
 
           (:load-path
            (use-package-as-one (symbol-name head) args
@@ -408,8 +398,14 @@ the user specified.")
 
      ;; Setup any required autoloads
      (if defer-loading
-         (mapcar #'(lambda (command) `(autoload #',command ,name-string nil t))
-                 commands))
+         (delete nil
+                 (mapcar #'(lambda (command)
+                             ;; (unless (and (fboundp command)
+                             ;;              (not (autoloadp command)))
+                             ;;   `(autoload #',command ,name-string nil t))
+                             `(autoload #',command ,name-string nil t)
+                             )
+                         commands)))
 
      (when (bound-and-true-p byte-compile-current-file)
        (mapcar #'(lambda (fn)
@@ -441,14 +437,6 @@ the user specified.")
                 bindings
                 config-body)
              t))))
-
-     ;; Any :idle form that should be executed later
-     (let ((idle-body (plist-get args :idle)))
-       (when idle-body
-         `((require 'use-package)
-           (use-package-init-on-idle
-            #'(lambda () ,(use-package-expand name-string ":idle" idle-body))
-            ,(plist-get args :idle-priority)))))
 
      (list t))))
 
@@ -491,10 +479,6 @@ this file.  Usage:
 :functions     Declare certain functions to silence the byte-compiler.
 :load-path     Add to the `load-path' before attempting to load the package.
 :diminish      Support for diminish.el (if installed).
-:idle          Adds a form to be run on an idle timer after initialization.
-:idle-priority Schedules the :idle form to run with the given priority (lower
-               priorities run first).  Default priority is 5; forms with the
-               same priority are run in the order in which they are evaluated.
 :ensure        Loads the package using package.el if necessary.
 :pin           Pin the package to an archive."
   (declare (indent 1))
@@ -593,74 +577,6 @@ deferred until the prefix key sequence is pressed."
      (2 font-lock-constant-face nil t))))
 
 (font-lock-add-keywords 'emacs-lisp-mode use-package-font-lock-keywords)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; :idle support
-;;
-
-(defcustom use-package-idle-interval 3
-  "Time to wait when using :idle in a `use-package' specification."
-  :type 'number
-  :group 'use-package)
-
-(defvar use-package-idle-timer nil)
-(defvar use-package-idle-forms (make-hash-table))
-
-(defun use-package-start-idle-timer ()
-  "Ensure that the idle timer is running."
-  (unless use-package-idle-timer
-    (setq use-package-idle-timer
-          (run-with-idle-timer use-package-idle-interval t
-                               'use-package-idle-eval))))
-
-(defun use-package-init-on-idle (form priority)
-  "Add a new form to the idle queue."
-  (use-package-start-idle-timer)
-  (puthash priority
-           (append (gethash priority use-package-idle-forms)
-                   (list form))
-           use-package-idle-forms))
-
-(defun use-package-idle-priorities ()
-  "Get a list of all priorities in the idle queue.
-The list is sorted in the order forms should be run."
-  (let ((priorities nil))
-    (maphash #'(lambda (priority forms)
-                 (setq priorities (cons priority priorities)))
-             use-package-idle-forms)
-    (sort priorities '<)))
-
-(defun use-package-idle-pop ()
-  "Pop the top-priority task from the idle queue.
-Return nil when the queue is empty."
-  (let* ((priority        (car (use-package-idle-priorities)))
-         (forms           (gethash priority use-package-idle-forms))
-         (first-form      (car forms))
-         (forms-remaining (cdr forms)))
-    (if forms-remaining
-        (puthash priority forms-remaining use-package-idle-forms)
-      (remhash priority use-package-idle-forms))
-    first-form))
-
-(defun use-package-idle-eval ()
-  "Start to eval idle-commands from the idle queue."
-  (let ((next (use-package-idle-pop)))
-    (if next
-        (progn
-          (when use-package-verbose
-            (message "use-package idle: %s" next))
-          (condition-case e
-              (funcall next)
-            (error
-             (error "Failure on use-package idle.  Form: %s, Error: %s"
-                    next e)))
-          ;; recurse after a bit
-          (when (sit-for use-package-idle-interval)
-            (use-package-idle-eval)))
-      ;; finished (so far!)
-      (cancel-timer use-package-idle-timer)
-      (setq use-package-idle-timer nil))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
