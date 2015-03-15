@@ -77,10 +77,10 @@ then the expanded macros do their job silently."
 In particular, for a given package `foo', the following hooks
 will become available:
 
-  `use-package--foo--pre-init'
-  `use-package--foo--post-init'
-  `use-package--foo--pre-config'
-  `use-package--foo--post-config'
+  `use-package--foo--pre-init-hook'
+  `use-package--foo--post-init-hook'
+  `use-package--foo--pre-config-hook'
+  `use-package--foo--post-config-hook'
 
 This way, you can add to these hooks before evalaution of a
 `use-package` declaration, and exercise some control over what
@@ -93,19 +93,22 @@ the user specified.")
 
 (defun use-package-hook-injector (name-string keyword args)
   "Wrap pre/post hook injections around a given keyword form."
-  (let ((keyword-name (substring (format "%s" keyword) 1))
-        (block (plist-get args keyword)))
-    (when block
-      `(when ,(use-package-expand name-string (format "pre-%s hook" keyword)
-                `(run-hook-with-args-until-failure
-                  ',(intern (concat "use-package--" name-string
-                                    "--pre-" keyword-name))))
-         ,(use-package-expand name-string (format "%s" keyword)
-            (plist-get args keyword))
-         ,(use-package-expand name-string (format "post-%s hook" keyword)
-            `(run-hooks
-              ',(intern (concat "use-package--" name-string
-                                "--post-" keyword-name))))))))
+  (if (not use-package-inject-hooks)
+      (use-package-expand name-string (format "%s" keyword)
+        (plist-get args keyword))
+    (let ((keyword-name (substring (format "%s" keyword) 1))
+          (block (plist-get args keyword)))
+      (when block
+        `(when ,(use-package-expand name-string (format "pre-%s hook" keyword)
+                  `(run-hook-with-args-until-failure
+                    ',(intern (concat "use-package--" name-string
+                                      "--pre-" keyword-name "-hook"))))
+           ,(use-package-expand name-string (format "%s" keyword)
+              (plist-get args keyword))
+           ,(use-package-expand name-string (format "post-%s hook" keyword)
+              `(run-hooks
+                ',(intern (concat "use-package--" name-string
+                                  "--post-" keyword-name "-hook")))))))))
 
 (defmacro use-package-with-elapsed-timer (text &rest body)
   (declare (indent 1))
@@ -377,10 +380,7 @@ the user specified.")
        ;; loaded.
        (config-body
         (use-package-cat-maybes
-         (list (if use-package-inject-hooks
-                   (use-package-hook-injector name-string :config args)
-                 (use-package-expand name-string ":config"
-                   (plist-get args :config))))
+         (list (use-package-hook-injector name-string :config args))
 
          (mapcar #'(lambda (var)
                      (if (listp var)
@@ -413,10 +413,7 @@ the user specified.")
                (append (plist-get args :functions) commands)))
 
      ;; The user's initializations
-     (list (if use-package-inject-hooks
-               (use-package-hook-injector name-string :init args)
-             (use-package-expand name-string ":init"
-               (plist-get args :init))))
+     (list (use-package-hook-injector name-string :init args))
 
      (if defer-loading
          (use-package-cat-maybes
