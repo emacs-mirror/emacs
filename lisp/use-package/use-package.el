@@ -386,7 +386,11 @@ the user specified.")
                      (if (listp var)
                          `(diminish (quote ,(car var)) ,(cdr var))
                        `(diminish (quote ,var))))
-                 (plist-get args :diminish)))))
+                 (plist-get args :diminish))))
+
+       (config-defun (make-symbol (concat name-string "-config"))))
+
+    (setq commands (delete-dups commands))
 
     ;; Return the main body of the macro
     (use-package-cat-maybes
@@ -412,6 +416,12 @@ the user specified.")
                    `(declare-function ,fn ,name-string))
                (append (plist-get args :functions) commands)))
 
+     ;; (if (and defer-loading config-body)
+     ;;     `((defun ,config-defun ()
+     ;;         (use-package-with-elapsed-timer
+     ;;           ,(format "Configuring package %s" name-string)
+     ;;           ,@config-body))))
+
      ;; The user's initializations
      (list (use-package-hook-injector name-string :init args))
 
@@ -419,17 +429,16 @@ the user specified.")
          (use-package-cat-maybes
           bindings
           (if config-body
-              (let ((body
-                     `(use-package-with-elapsed-timer
-                        ,(format "Configuring package %s"
-                                 name-string)
-                        ,@config-body)))
-                (list `(eval-after-load ',name
-                         ',body)))))
+              `((eval-after-load ',name
+                  '(use-package-with-elapsed-timer
+                     ,(format "Configuring package %s" name-string)
+                     ,@config-body)))))
        `((use-package-with-elapsed-timer
            ,(format "Loading package %s" name-string)
            (if (not (require ',name-symbol nil t))
-               (message "Could not load package %s" ,name-string)
+               (display-warning
+                'use-package
+                (format "Could not load package %s" ,name-string) :error)
              ,@(use-package-cat-maybes
                 bindings
                 config-body)
@@ -485,7 +494,9 @@ this file.  Usage:
            (args*
             (condition-case-unless-debug err
                 (use-package-normalize-plist name-symbol args)
-              (error (message (error-message-string err))))))
+              (error
+               (display-warning 'use-package
+                                (error-message-string err) :error)))))
 
       ;; Pin any packages that have been marked with `:pin'.
       (let ((archive-name (plist-get args* :pin)))
