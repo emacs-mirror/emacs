@@ -607,12 +607,8 @@ deferred until the prefix key sequence is pressed."
   "Pin PACKAGE to ARCHIVE."
   (unless (boundp 'package-pinned-packages)
     (setq package-pinned-packages ()))
-  (let ((archive-symbol (if (symbolp archive)
-                            archive
-                          (intern archive)))
-        (archive-name   (if (stringp archive)
-                            archive
-                          (symbol-name archive))))
+  (let ((archive-symbol (if (symbolp archive) archive (intern archive)))
+        (archive-name   (if (stringp archive) archive (symbol-name archive))))
     (if (use-package--archive-exists-p archive-symbol)
         (add-to-list 'package-pinned-packages
                      (cons package archive-name))
