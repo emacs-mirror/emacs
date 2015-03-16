@@ -187,22 +187,24 @@ the user specified.")
     (use-package-error
      (concat label " wants a list"))))
 
-(defsubst use-package-is-sympair (x)
+(defsubst use-package-is-sympair (x &optional allow-vector)
   "Return t if X has the type (STRING . SYMBOL)."
   (and (consp x)
-       (stringp (car x))
+       (or (stringp (car x))
+           (and allow-vector (vectorp (car x))))
        (symbolp (cdr x))))
 
-(defun use-package-normalize-pairs (name-symbol label arg &optional recursed)
+(defun use-package-normalize-pairs
+    (name-symbol label arg &optional recursed allow-vector)
   "Normalize a list of string/symbol pairs."
   (cond
-   ((stringp arg)
+   ((or (stringp arg) (and allow-vector (vectorp arg)))
     (list (cons arg name-symbol)))
-   ((use-package-is-sympair arg)
+   ((use-package-is-sympair arg allow-vector)
     (list arg))
    ((and (not recursed) (listp arg) (listp (cdr arg)))
     (mapcar #'(lambda (x) (car (use-package-normalize-pairs
-                           name-symbol label x t))) arg))
+                           name-symbol label x t allow-vector))) arg))
    (t
     (use-package-error
      (concat label " wants a string, (string . symbol) or list of these")))))
@@ -261,7 +263,12 @@ the user specified.")
         (cond ((memq head '(:when :unless)) :if)
               (t head))
         (pcase head
-          ((or :bind :bind* :bind-keymap :bind-keymap* :interpreter :mode)
+          ((or :bind :bind* :bind-keymap :bind-keymap*)
+           (use-package-as-one (symbol-name head) args
+             (lambda (label arg)
+               (use-package-normalize-pairs name-symbol label arg nil t))))
+
+          ((or :interpreter :mode)
            (use-package-as-one (symbol-name head) args
              (apply-partially #'use-package-normalize-pairs name-symbol)))
 
