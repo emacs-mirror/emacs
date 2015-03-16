@@ -158,9 +158,7 @@ possible."
                  ,(use-package-progn body)
                (let ((elapsed
                       (float-time (time-subtract (current-time) ,nowvar))))
-                 (if (> elapsed
-                        (or (bound-and-true-p use-package-minimum-reported-time)
-                            "0.01"))
+                 (if (> elapsed ,use-package-minimum-reported-time)
                      (message "%s...done (%.3fs)" ,text elapsed)
                    (message "%s...done" ,text)))))
         (use-package-progn body)))))
@@ -429,7 +427,8 @@ possible."
                        `(diminish (quote ,var))))
                  (plist-get args :diminish))))
 
-       (config-defun (make-symbol (concat name-string "-config"))))
+       (config-defun
+        (make-symbol (concat "use-package--" name-string "--config"))))
 
     (setq commands (delete-dups commands))
 
@@ -438,7 +437,8 @@ possible."
      (list (plist-get args :preface))
 
      ;; Setup the load-path
-     (mapcar #'(lambda (path) `(add-to-list 'load-path ,path))
+     (mapcar #'(lambda (path)
+                 `(eval-and-compile (add-to-list 'load-path ,path)))
              (plist-get args :load-path))
 
      ;; Setup any required autoloads
