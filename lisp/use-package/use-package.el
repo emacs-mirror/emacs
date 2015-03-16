@@ -304,9 +304,12 @@ the user specified.")
           (:pin
            (use-package-only-one (symbol-name head) args
              (lambda (label arg)
-               (if (stringp arg)
-                   arg
-                 (use-package-error ":pin wants an archive name (a string)")))))
+               (cond
+                ((stringp arg) arg)
+                ((symbolp arg) (symbol-name arg))
+                (t
+                 (use-package-error
+                  ":pin wants an archive name (a string)"))))))
 
           (_ (use-package-error (format "Unrecognized keyword: %s" head)))))
        (use-package-normalize-plist name-symbol tail)))))
