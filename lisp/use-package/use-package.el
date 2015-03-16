@@ -503,7 +503,7 @@ this file.  Usage:
       ;; At this point, we can expand the macro using the helper function.
       ;; `use--package'.
       (let*
-          ((body (use--package name name-symbol name-symbol args*))
+          ((body (use--package name name-symbol name-string args*))
            (pred (plist-get args* :if))
            (expansion (if pred
                           `(when ,pred ,@body)
