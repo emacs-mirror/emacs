@@ -89,43 +89,83 @@ happens.
 Note that if either `pre-init' hooks returns a nil value, that
 block's user-supplied configuration is not evaluated, so be
 certain to return `t' if you only wish to add behavior to what
-the user specified.")
+the user specified."
+  :type 'boolean
+  :group 'use-package)
+
+(defcustom use-package-expand-minimally nil
+  "If non-nil, make the expanded code as minimal as possible.
+This disables:
+  - Printing to the *Messages* buffer of slowly-evaluating forms
+  - Capture of load errors (normally redisplayed as warnings)
+  - Conditional loading of packages (load failures become errors)
+The only real advantage is that, if you know your configuration
+works, then your byte-compiled init file is as minimal as
+possible."
+  :type 'boolean
+  :group 'use-package)
+
+(defmacro use-package-expand (name label form)
+  (declare (indent 1))
+  (when form
+    (if use-package-expand-minimally
+        form
+      (let ((err (make-symbol "err")))
+        `(condition-case-unless-debug ,err
+             ,form
+           (error
+            (ignore
+             (display-warning 'use-package (error-message-string ,err)
+                              :error))))))))
+
+(put 'use-package-expand 'lisp-indent-function 'defun)
 
 (defun use-package-hook-injector (name-string keyword args)
   "Wrap pre/post hook injections around a given keyword form."
   (if (not use-package-inject-hooks)
-      (use-package-expand name-string (format "%s" keyword)
-        (plist-get args keyword))
+      (macroexpand-all
+       `(use-package-expand name-string ,(format "%s" keyword)
+          ,(plist-get args keyword)))
     (let ((keyword-name (substring (format "%s" keyword) 1))
           (block (plist-get args keyword)))
       (when block
-        `(when ,(use-package-expand name-string (format "pre-%s hook" keyword)
-                  `(run-hook-with-args-until-failure
-                    ',(intern (concat "use-package--" name-string
-                                      "--pre-" keyword-name "-hook"))))
-           ,(use-package-expand name-string (format "%s" keyword)
-              (plist-get args keyword))
-           ,(use-package-expand name-string (format "post-%s hook" keyword)
-              `(run-hooks
-                ',(intern (concat "use-package--" name-string
-                                  "--post-" keyword-name "-hook")))))))))
+        (macroexpand-all
+         `(when (use-package-expand name-string ,(format "pre-%s hook" keyword)
+                  (run-hook-with-args-until-failure
+                   ',(intern (concat "use-package--" name-string
+                                     "--pre-" keyword-name "-hook"))))
+            (use-package-expand name-string ,(format "%s" keyword)
+              ,(plist-get args keyword))
+            (use-package-expand name-string ,(format "post-%s hook" keyword)
+              (run-hooks
+               ',(intern (concat "use-package--" name-string
+                                 "--post-" keyword-name "-hook"))))))))))
+
+(defun use-package-progn (body)
+  (if (= (length body) 1)
+      (car body)
+    `(progn ,@body)))
 
 (defmacro use-package-with-elapsed-timer (text &rest body)
   (declare (indent 1))
-  (let ((nowvar (make-symbol "now")))
-    (if (bound-and-true-p use-package-verbose)
-        `(let ((,nowvar (current-time)))
-           (message "%s..." ,text)
-           (prog1
-               (progn ,@body)
-             (let ((elapsed
-                    (float-time (time-subtract (current-time) ,nowvar))))
-               (if (> elapsed
-                      (or (bound-and-true-p use-package-minimum-reported-time)
-                          "0.01"))
-                   (message "%s...done (%.3fs)" ,text elapsed)
-                 (message "%s...done" ,text)))))
-      `(progn ,@body))))
+  (if use-package-expand-minimally
+      (use-package-progn body)
+    (let ((nowvar (make-symbol "now")))
+      (if (bound-and-true-p use-package-verbose)
+          `(let ((,nowvar (current-time)))
+             (message "%s..." ,text)
+             (prog1
+                 ,(use-package-progn body)
+               (let ((elapsed
+                      (float-time (time-subtract (current-time) ,nowvar))))
+                 (if (> elapsed
+                        (or (bound-and-true-p use-package-minimum-reported-time)
+                            "0.01"))
+                     (message "%s...done (%.3fs)" ,text elapsed)
+                   (message "%s...done" ,text)))))
+        (use-package-progn body)))))
+
+(put 'use-package-with-elapsed-timer 'lisp-indent-function 'defun)
 
 (defsubst use-package-error (msg)
   "Report MSG as an error, so the user knows it came from this package."
@@ -177,6 +217,8 @@ the user specified.")
     (use-package-error
      (concat label " wants exactly one argument")))))
 
+(put 'use-package-only-one 'lisp-indent-function 'defun)
+
 (defun use-package-as-one (label args f)
   "Call F on the first element of ARGS if it has one element, or all of ARGS."
   (declare (indent 1))
@@ -186,6 +228,8 @@ the user specified.")
         (funcall f label args))
     (use-package-error
      (concat label " wants a list"))))
+
+(put 'use-package-as-one 'lisp-indent-function 'defun)
 
 (defsubst use-package-is-sympair (x &optional allow-vector)
   "Return t if X has the type (STRING . SYMBOL)."
@@ -325,17 +369,6 @@ the user specified.")
   "Delete all empty lists from ELEMS (nil or (list nil)), and append them."
   (apply #'nconc (delete nil (delete (list nil) elems))))
 
-(defsubst use-package-expand (name label form)
-  (declare (indent 1))
-  (when form
-    (let ((err (make-symbol "err"))
-          (fmt (format "Failure in %s of %s: %%S" label name)))
-      `(condition-case-unless-debug ,err
-           ,form
-         (error
-          (ignore
-           (display-warning 'use-package (format ,fmt ,err) :error)))))))
-
 (defun use--package (name name-symbol name-string args)
   "See docstring for `use-package'."
   (let*
@@ -414,8 +447,7 @@ the user specified.")
                              ;; (unless (and (fboundp command)
                              ;;              (not (autoloadp command)))
                              ;;   `(autoload #',command ,name-string nil t))
-                             `(autoload #',command ,name-string nil t)
-                             )
+                             `(autoload #',command ,name-string nil t))
                          commands)))
 
      (when (bound-and-true-p byte-compile-current-file)
@@ -437,21 +469,24 @@ the user specified.")
           bindings
           (if config-body
               `((eval-after-load ',name
-                  '(use-package-with-elapsed-timer
-                     ,(format "Configuring package %s" name-string)
-                     ,@config-body)))))
-       `((use-package-with-elapsed-timer
-           ,(format "Loading package %s" name-string)
-           (if (not (require ',name-symbol nil t))
-               (display-warning
-                'use-package
-                (format "Could not load package %s" ,name-string) :error)
-             ,@(use-package-cat-maybes
-                bindings
-                config-body)
-             t))))
-
-     (list t))))
+                  ',(macroexpand
+                     `(use-package-with-elapsed-timer
+                        ,(format "Configuring package %s" name-string)
+                        ,@config-body))))))
+       `(,(macroexpand
+           `(use-package-with-elapsed-timer
+              ,(format "Loading package %s" name-string)
+              ,(if use-package-expand-minimally
+                   (use-package-progn
+                    (use-package-cat-maybes
+                     (list `(require ',name-symbol nil t))
+                     bindings
+                     config-body))
+                 `(if (not (require ',name-symbol nil t))
+                      (error "Could not load package %s" ,name-string)
+                    ,@(use-package-cat-maybes
+                       bindings
+                       config-body))))))))))
 
 (defmacro use-package (name &rest args)
   "Declare an Emacs package by specifying a group of configuration options.
@@ -496,70 +531,67 @@ this file.  Usage:
 :pin           Pin the package to an archive."
   (declare (indent 1))
   (unless (member :disabled args)
-    (let* ((name-string (if (stringp name) name (symbol-name name)))
-           (name-symbol (if (stringp name) (intern name) name))
-           (args*
-            (condition-case-unless-debug err
-                (use-package-normalize-plist name-symbol args)
-              (error
-               (display-warning 'use-package
-                                (error-message-string err) :error)))))
-
-      ;; Pin any packages that have been marked with `:pin'.
-      (let ((archive-name (plist-get args* :pin)))
-        (when archive-name
-          (use-package-pin-package name archive-name)))
-
-      ;; Ensure that the package has been installed, if marked with
-      ;; `:ensure'.
-      (let* ((ensure (plist-get args* :ensure))
+    (use-package-expand "use-package" "expansion"
+      (let* ((name-string (if (stringp name) name (symbol-name name)))
+             (name-symbol (if (stringp name) (intern name) name))
+             (args* (use-package-normalize-plist name-symbol args))
+             (archive-name (plist-get args* :pin))
+             (ensure (plist-get args* :ensure))
              (package-name (or (and (eq ensure t) name) ensure)))
+        ;; Pin any packages that have been marked with `:pin'.
+        (when archive-name
+          (use-package-pin-package name-symbol archive-name))
+
+        ;; Ensure that the package has been installed, if marked with
+        ;; `:ensure'.
         (when package-name
           (require 'package)
-          (use-package-ensure-elpa package-name)))
+          (use-package-ensure-elpa package-name))
 
-      ;; At this point, we can expand the macro using the helper function.
-      ;; `use--package'.
-      (let*
-          ((body (use--package name name-symbol name-string args*))
-           (pred (plist-get args* :if))
-           (expansion (if pred
-                          `(when ,pred ,@body)
-                        (if (= (length body) 1)
-                            (car body)
-                          `(progn ,@body))))
-           (requires (plist-get args* :requires))
+        ;; At this point, we can expand the macro using the helper function.
+        ;; `use--package'.
+        (let*
+            ((body (use-package-cat-maybes
+                    (use--package name name-symbol name-string args*)
+                    (when archive-name
+                      `((add-to-list 'package-pinned-packages
+                                     '(,name-symbol . ,archive-name))))))
+             (pred (plist-get args* :if))
+             (expansion (if pred
+                            `(when ,pred ,@body)
+                          (use-package-progn body)))
+             (requires (plist-get args* :requires))
 
-           (pre-compile-load
-            ;; When byte-compiling, load the package here so that all of its
-            ;; symbols are in scope.
-            (when (bound-and-true-p byte-compile-current-file)
-              `((eval-when-compile
-                  ,@(mapcar #'(lambda (var) `(defvar ,var))
-                            (plist-get args* :defines))
-                  (with-demoted-errors
-                      ,(format "Error in %s: %%S" name-string)
-                    (if use-package-verbose
-                        (message "Compiling package %s" ,name-string))
-                    (require ',name-symbol nil t))))))
+             (pre-compile-load
+              ;; When byte-compiling, load the package here so that all of its
+              ;; symbols are in scope.
+              (when (bound-and-true-p byte-compile-current-file)
+                `((eval-when-compile
+                    ,@(mapcar #'(lambda (var) `(defvar ,var))
+                              (plist-get args* :defines))
+                    (with-demoted-errors
+                        ,(format "Error in %s: %%S" name-string)
+                      (if use-package-verbose
+                          (message "Compiling package %s" ,name-string))
+                      (require ',name-symbol nil t))))))
 
-           (body*
-            (use-package-cat-maybes
-             pre-compile-load
-             (list
-              (if (null requires)
-                  expansion
-                `(if ,(if (listp requires)
-                          `(not (member nil (mapcar #'featurep ',requires)))
-                        `(featurep ',requires))
-                     ,expansion))))))
+             (body*
+              (use-package-cat-maybes
+               pre-compile-load
+               (list
+                (if (null requires)
+                    expansion
+                  `(if ,(if (listp requires)
+                            `(not (member nil (mapcar #'featurep ',requires)))
+                          `(featurep ',requires))
+                       ,expansion))))))
 
-        ;; If a dynamic test has been requested -- that certain other
-        ;; packages must be loaded first, before attempting to load and
-        ;; configure this package -- wrap that logic around the expansion.
-        (if (= (length body*) 1)
-            (car body*)
-          `(progn ,@body*))))))
+          ;; If a dynamic test has been requested -- that certain other
+          ;; packages must be loaded first, before attempting to load and
+          ;; configure this package -- wrap that logic around the expansion.
+          (use-package-progn body*))))))
+
+(put 'use-package 'lisp-indent-function 'defun)
 
 (defun use-package-autoload-keymap (keymap-symbol package override)
   "Loads PACKAGE and then binds the key sequence used to invoke
@@ -632,12 +664,6 @@ manually updated package."
 (defun use-package-ensure-elpa (package)
   (when (not (package-installed-p package))
     (package-install package)))
-
-(put 'use-package 'lisp-indent-function 'defun)
-(put 'use-package-expand 'lisp-indent-function 'defun)
-(put 'use-package-only-one 'lisp-indent-function 'defun)
-(put 'use-package-as-one 'lisp-indent-function 'defun)
-(put 'use-package-with-elapsed-timer 'lisp-indent-function 'defun)
 
 (provide 'use-package)
 
