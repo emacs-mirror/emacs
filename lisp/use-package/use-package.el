@@ -228,10 +228,7 @@ the user specified.")
     (let ((path (if (file-name-absolute-p arg)
                     arg
                   (expand-file-name arg user-emacs-directory))))
-      (if (file-directory-p path)
-          (list path)
-        (use-package-error
-         (concat label " wants a directory path, or list of paths")))))
+      (list path)))
    ((and (not recursed) (listp arg) (listp (cdr arg)))
     (mapcar #'(lambda (x)
                 (car (use-package-normalize-paths label x t))) arg))
