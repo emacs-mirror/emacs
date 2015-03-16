@@ -441,11 +441,12 @@ possible."
 
     ;; Return the main body of the macro
     (use-package-cat-maybes
-     (list (plist-get args :preface))
-
      ;; Setup the load-path
-     (mapcar #'(lambda (path) `(add-to-list 'load-path ,path))
+     (mapcar #'(lambda (path)
+                 `(eval-and-compile (add-to-list 'load-path ,path)))
              (plist-get args :load-path))
+
+     (list (plist-get args :preface))
 
      ;; Setup any required autoloads
      (if defer-loading
