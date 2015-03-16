@@ -427,6 +427,13 @@ possible."
                        `(diminish (quote ,var))))
                  (plist-get args :diminish))))
 
+       (config-body*
+        (and config-body
+             (macroexpand
+              `(use-package-with-elapsed-timer
+                 ,(format "Configuring package %s" name-string)
+                 ,@config-body))))
+
        (config-defun
         (make-symbol (concat "use-package--" name-string "--config"))))
 
@@ -437,8 +444,7 @@ possible."
      (list (plist-get args :preface))
 
      ;; Setup the load-path
-     (mapcar #'(lambda (path)
-                 `(eval-and-compile (add-to-list 'load-path ,path)))
+     (mapcar #'(lambda (path) `(add-to-list 'load-path ,path))
              (plist-get args :load-path))
 
      ;; Setup any required autoloads
@@ -461,10 +467,7 @@ possible."
                (append (plist-get args :functions) commands)))
 
      ;; (if (and defer-loading config-body)
-     ;;     `((defun ,config-defun ()
-     ;;         (use-package-with-elapsed-timer
-     ;;           ,(format "Configuring package %s" name-string)
-     ;;           ,@config-body))))
+     ;;     `((defalias ',config-defun #'(lambda () ,config-body*))))
 
      ;; The user's initializations
      (list (use-package-hook-injector name-string :init args))
@@ -474,10 +477,8 @@ possible."
           bindings
           (if config-body
               `((eval-after-load ',name
-                  ',(macroexpand
-                     `(use-package-with-elapsed-timer
-                        ,(format "Configuring package %s" name-string)
-                        ,@config-body))))))
+                  ;; '(,config-defun)
+                  ',config-body*))))
        `(,(macroexpand
            `(use-package-with-elapsed-timer
               ,(format "Loading package %s" name-string)
@@ -486,12 +487,15 @@ possible."
                     (use-package-cat-maybes
                      (list `(require ',name-symbol))
                      bindings
-                     config-body))
+                     (list config-body*)))
                  `(if (not (require ',name-symbol nil t))
-                      (error "Could not load package %s" ,name-string)
+                      (display-warning
+                       'use-package
+                       (format "Could not load package %s" ,name-string)
+                       :error)
                     ,@(use-package-cat-maybes
                        bindings
-                       config-body))))))))))
+                       (list config-body*)))))))))))
 
 (defmacro use-package (name &rest args)
   "Declare an Emacs package by specifying a group of configuration options.
