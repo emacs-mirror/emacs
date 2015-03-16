@@ -329,7 +329,7 @@ the user specified.")
           (ignore
            (display-warning 'use-package (format ,fmt ,err) :error)))))))
 
-(defun use--package (name-symbol name-string args)
+(defun use--package (name name-symbol name-string args)
   "See docstring for `use-package'."
   (let*
       ((commands (plist-get args :commands))
@@ -424,7 +424,7 @@ the user specified.")
                         ,(format "Configuring package %s"
                                  name-string)
                         ,@config-body)))
-                (list `(eval-after-load ,name-string
+                (list `(eval-after-load ',name
                          ',body)))))
        `((use-package-with-elapsed-timer
            ,(format "Loading package %s" name-string)
@@ -503,7 +503,7 @@ this file.  Usage:
       ;; At this point, we can expand the macro using the helper function.
       ;; `use--package'.
       (let*
-          ((body (use--package name-symbol name-string args*))
+          ((body (use--package name name-symbol name-symbol args*))
            (pred (plist-get args* :if))
            (expansion (if pred
                           `(when ,pred ,@body)
