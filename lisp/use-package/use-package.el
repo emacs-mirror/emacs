@@ -521,7 +521,8 @@ this file.  Usage:
                             (plist-get args* :defines))
                   (with-demoted-errors
                       ,(format "Error in %s: %%S" name-string)
-                    (message "Compiling package %s" ,name-string)
+                    (if use-package-verbose
+                        (message "Compiling package %s" ,name-string))
                     (require ',name-symbol nil t))))))
 
            (body*
