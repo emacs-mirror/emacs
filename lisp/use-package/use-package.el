@@ -471,7 +471,7 @@ this file.  Usage:
 :demand        Prevent deferred loading in all cases.
 
 :if EXPR       Initialize and load only if EXPR evaluates to a non-nil value.
-:disabled      The package is ignored completely, the same as `:if nil'.
+:disabled      The package is ignored completely if this keyword is present.
 :defines       Declare certain variables to silence the byte-compiler.
 :functions     Declare certain functions to silence the byte-compiler.
 :load-path     Add to the `load-path' before attempting to load the package.
