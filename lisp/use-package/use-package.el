@@ -373,6 +373,7 @@ possible."
   "See docstring for `use-package'."
   (let*
       ((commands (plist-get args :commands))
+       (deferral (plist-get args :defer))
 
        ;; Note: evaluation of this forms possibly extends the value of
        ;; `commands'.
@@ -414,7 +415,7 @@ possible."
 
        ;; Should we defer loading of the package lazily?
        (defer-loading (and (not (plist-get args :demand))
-                           (or commands (plist-get args :defer))))
+                           (or commands deferral)))
 
        ;; These are all the configurations to be made after the package has
        ;; loaded.
@@ -450,6 +451,10 @@ possible."
                              `(autoload #',command ,name-string nil t))
                          commands)))
 
+     (if (numberp deferral)
+         `((run-with-idle-timer ,deferral nil
+                                #'require ',name-symbol nil t)))
+
      (when (bound-and-true-p byte-compile-current-file)
        (mapcar #'(lambda (fn)
                    `(declare-function ,fn ,name-string))
@@ -479,7 +484,7 @@ possible."
               ,(if use-package-expand-minimally
                    (use-package-progn
                     (use-package-cat-maybes
-                     (list `(require ',name-symbol nil t))
+                     (list `(require ',name-symbol))
                      bindings
                      config-body))
                  `(if (not (require ',name-symbol nil t))
@@ -501,6 +506,9 @@ this file.  Usage:
 :config        Code to run after PACKAGE-NAME has been loaded.  Note that if
                loading is deferred for any reason, this code does not execute
                until the lazy load has occurred.
+:preface       Code to be run before everything except `:disabled'; this can
+               be used to define functions for use in `:if', or that should be
+               seen by the byte-compiler.
 
 :mode          Form to be added to `auto-mode-alist'.
 :interpreter   Form to be added to `interpreter-mode-alist'.
@@ -519,6 +527,8 @@ this file.  Usage:
 
 :defer         Defer loading of a package -- this is implied when using
                `:commands', `:bind', `:bind*', `:mode' or `:interpreter'.
+               This can be an integer, to force loading after N seconds of
+               idle time, if the package has not already been loaded.
 :demand        Prevent deferred loading in all cases.
 
 :if EXPR       Initialize and load only if EXPR evaluates to a non-nil value.
