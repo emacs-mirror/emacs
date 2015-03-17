@@ -384,14 +384,14 @@ possible."
                      `(bind-key ,(car binding)
                                 #'(lambda () (interactive)
                                     (use-package-autoload-keymap
-                                     ',(cdr binding) (quote ,name-symbol) nil))))
+                                     ',(cdr binding) ',name-symbol nil))))
                  (plist-get args :bind-keymap))
 
          (mapcar #'(lambda (binding)
                      `(bind-key ,(car binding)
                                 #'(lambda () (interactive)
                                     (use-package-autoload-keymap
-                                     ',(cdr binding) (quote ,name-symbol) t))))
+                                     ',(cdr binding) ',name-symbol t))))
                  (plist-get args :bind-keymap*))
 
          (mapcar #'(lambda (mode)
@@ -428,16 +428,16 @@ possible."
 
          (mapcar #'(lambda (var)
                      (if (listp var)
-                         `(diminish (quote ,(car var)) ,(cdr var))
-                       `(diminish (quote ,var))))
+                         `(diminish ',(car var) ,(cdr var))
+                       `(diminish ',var)))
                  (plist-get args :diminish))))
 
        (config-body*
         (and config-body
              (macroexpand
               `(use-package-with-elapsed-timer
-                 ,(format "Configuring package %s" name-string)
-                 ,@config-body))))
+                ,(format "Configuring package %s" name-string)
+                ,@config-body))))
 
        (config-defun
         (make-symbol (concat "use-package--" name-string "--config"))))
@@ -488,24 +488,24 @@ possible."
           (list t))
        `(,(macroexpand
            `(use-package-with-elapsed-timer
-              ,(format "Loading package %s" name-string)
-              ,(if use-package-expand-minimally
-                   (use-package-progn
-                    (use-package-cat-maybes
-                     (list `(require ',name-symbol))
-                     bindings
-                     config-body
-                     (list t)))
-                 `(if (not (require ',name-symbol nil t))
-                      (ignore
-                       (display-warning
-                        'use-package
-                        (format "Could not load package %s" ,name-string)
-                        :error))
-                    ,@(use-package-cat-maybes
-                       bindings
-                       config-body
-                       (list t)))))))))))
+             ,(format "Loading package %s" name-string)
+             ,(if use-package-expand-minimally
+                  (use-package-progn
+                   (use-package-cat-maybes
+                    (list `(require ',name-symbol))
+                    bindings
+                    config-body
+                    (list t)))
+                `(if (not (require ',name-symbol nil t))
+                     (ignore
+                      (display-warning
+                       'use-package
+                       (format "Could not load package %s" ,name-string)
+                       :error))
+                   ,@(use-package-cat-maybes
+                      bindings
+                      config-body
+                      (list t)))))))))))
 
 (defmacro use-package (name &rest args)
   "Declare an Emacs package by specifying a group of configuration options.
