@@ -384,14 +384,14 @@ possible."
                      `(bind-key ,(car binding)
                                 #'(lambda () (interactive)
                                     (use-package-autoload-keymap
-                                     ',(cdr binding) ,name-symbol nil))))
+                                     ',(cdr binding) (quote ,name-symbol) nil))))
                  (plist-get args :bind-keymap))
 
          (mapcar #'(lambda (binding)
                      `(bind-key ,(car binding)
                                 #'(lambda () (interactive)
                                     (use-package-autoload-keymap
-                                     ',(cdr binding) ,name-symbol t))))
+                                     ',(cdr binding) (quote ,name-symbol) t))))
                  (plist-get args :bind-keymap*))
 
          (mapcar #'(lambda (mode)
@@ -416,7 +416,9 @@ possible."
 
        ;; Should we defer loading of the package lazily?
        (defer-loading (and (not (plist-get args :demand))
-                           (or commands deferral)))
+                           (or commands deferral
+                               (plist-get args :bind-keymap)
+                               (plist-get args :bind-keymap*))))
 
        ;; These are all the configurations to be made after the package has
        ;; loaded.
