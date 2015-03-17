@@ -105,6 +105,9 @@ possible."
   :type 'boolean
   :group 'use-package)
 
+(eval-when-compile
+  (defvar use-package-expand-minimally))
+
 (defmacro use-package-expand (name label form)
   (declare (indent 1))
   (when form
@@ -479,7 +482,8 @@ possible."
           (if config-body
               `((eval-after-load ',name
                   ;; '(,config-defun)
-                  ',config-body*))))
+                  ',config-body*)))
+          (list t))
        `(,(macroexpand
            `(use-package-with-elapsed-timer
               ,(format "Loading package %s" name-string)
@@ -488,15 +492,18 @@ possible."
                     (use-package-cat-maybes
                      (list `(require ',name-symbol))
                      bindings
-                     (list config-body*)))
+                     config-body
+                     (list t)))
                  `(if (not (require ',name-symbol nil t))
-                      (display-warning
-                       'use-package
-                       (format "Could not load package %s" ,name-string)
-                       :error)
+                      (ignore
+                       (display-warning
+                        'use-package
+                        (format "Could not load package %s" ,name-string)
+                        :error))
                     ,@(use-package-cat-maybes
                        bindings
-                       (list config-body*)))))))))))
+                       config-body
+                       (list t)))))))))))
 
 (defmacro use-package (name &rest args)
   "Declare an Emacs package by specifying a group of configuration options.
