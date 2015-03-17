@@ -480,7 +480,7 @@ ARGS is a list of forms, so `((foo))' if only `foo' is being called."
 
      (when (bound-and-true-p byte-compile-current-file)
        (mapcar #'(lambda (fn) `(declare-function ,fn ,name-string))
-               (append (plist-get args :functions) commands)))
+               (plist-get args :functions)))
 
      ;; (if (and defer-loading config-body)
      ;;     `((defalias ',config-defun #'(lambda () ,config-body*))))
@@ -594,13 +594,12 @@ this file.  Usage:
            (requires (plist-get args* :requires))
            (body*
             (use-package-progn
-             (use-package-expand "use-package" "expansion"
-               (if (null requires)
-                   expansion
-                 `((if ,(if (listp requires)
-                            `(not (member nil (mapcar #'featurep ',requires)))
-                          `(featurep ',requires))
-                       ,@expansion)))))))
+             (if (null requires)
+                 expansion
+               `((if ,(if (listp requires)
+                          `(not (member nil (mapcar #'featurep ',requires)))
+                        `(featurep ',requires))
+                     ,@expansion))))))
         ;; (message "Expanded: %s" (pp-to-string body*))
         body*))))
 
