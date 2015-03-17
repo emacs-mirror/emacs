@@ -1,3 +1,15 @@
+2015-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc.el (erc-switch-to-buffer): Rename from erc-iswitchb and rewrite
+	using read-buffer (bug#20116).
+	(erc--buffer-p): New function, extracted from erc-buffer-filter.
+	(erc-buffer-filter): Use it.
+	(erc-with-all-buffers-of-server): Silence compile warning if the return
+	value is unused.
+	(erc-is-valid-nick-p, erc-common-server-suffixes, erc-get-arglist)
+	(erc-command-name, erc-popup-input-buffer): Use \` and \' to match
+	beg/end of string.
+
 2015-03-03  Kelvin White  <kwhite@gnu.org>
 
 	* erc.el: Add old version string back to file header for

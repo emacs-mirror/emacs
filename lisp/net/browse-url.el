@@ -42,6 +42,7 @@
 ;; browse-url-netscape                Netscape    1.1b1
 ;; browse-url-mosaic                  XMosaic/mMosaic <= 2.4
 ;; browse-url-cci                     XMosaic     2.5
+;; browse-url-conkeror                Conkeror    Dont know
 ;; browse-url-w3                      w3          0
 ;; browse-url-w3-gnudoit              w3 remotely
 ;; browse-url-text-*	              Any text browser     0
@@ -236,6 +237,7 @@ regexp should probably be \".\" to specify a default browser."
 	  (function-item :tag "Netscape" :value  browse-url-netscape)
 	  (function-item :tag "Mosaic" :value  browse-url-mosaic)
 	  (function-item :tag "Mosaic using CCI" :value  browse-url-cci)
+	  (function-item :tag "Conkeror" :value  browse-url-conkeror)
 	  (function-item :tag "Text browser in an xterm window"
 			 :value browse-url-text-xterm)
 	  (function-item :tag "Text browser in an Emacs window"
@@ -416,6 +418,13 @@ functionality is not available there."
   :type 'boolean
   :group 'browse-url)
 
+(defcustom browse-url-conkeror-new-window-is-buffer nil
+  "Whether to open up new windows in a buffer or a new window.
+If non-nill, then open the URL in a new buffer rather than a new window if
+`browse-url-conkeror' is asked to open it in a new window"
+  :type 'boolean
+  :group 'browse-url)
+
 (defcustom browse-url-galeon-new-window-is-tab nil
   "Whether to open up new windows in a tab or a new window.
 If non-nil, then open the URL in a new tab rather than a new window if
@@ -460,6 +469,17 @@ commands reverses the effect of this variable.  Requires Netscape version
 (defcustom browse-url-mosaic-pidfile "~/.mosaicpid"
   "The name of the pidfile created by Mosaic."
   :type 'string
+  :group 'browse-url)
+
+(defcustom browse-url-conkeror-program "conkeror"
+  "The name by which to invoke Conkeror."
+  :type 'string
+  :version "25.1"
+  :group 'browse-url)
+
+(defcustom browse-url-conkeror-arguments nil
+  "A list of strings to pass to Conkeror as arguments."
+  :type '(repeat (string :tag "Argument"))
   :group 'browse-url)
 
 (defcustom browse-url-filename-alist
@@ -936,6 +956,7 @@ used instead of `browse-url-new-window-flag'."
     ((executable-find browse-url-kde-program) 'browse-url-kde)
     ((executable-find browse-url-netscape-program) 'browse-url-netscape)
     ((executable-find browse-url-mosaic-program) 'browse-url-mosaic)
+    ((executable-find browse-url-conkeror-program) 'browse-url-conkeror)
     ((executable-find browse-url-xterm-program) 'browse-url-text-xterm)
     ((locate-library "w3") 'browse-url-w3)
     (t
@@ -1359,6 +1380,41 @@ used instead of `browse-url-new-window-flag'."
   (process-send-string "browse-url" "disconnect\r\n")
   (delete-process "browse-url"))
 
+;; --- Conkeror ---
+;;;###autoload
+(defun browse-url-conkeror (url &optional new-window)
+  "Ask the Conkeror WWW browser to load URL.
+Default to the URL around or before point. The strings in the variable
+`browse-url-conkeror-arguments' are also passed to Conkeror.
+
+When called interactively, if variable `browse-url-new-window-flag'
+is non-nil, load the document in a new Conkeror window, otherwise use a random
+existing one. A non-nil interactive prefix argument reverses the effect of
+`browse-url-new-window-flag'
+
+If `browse-url-conkeror-new-window-is-buffer' then whenever a document would
+otherwise be loaded in a new window, it is loaded in a new buffer in an existing
+window instead.
+
+When called non-interatively, optional second argument NEW-WINDOW is used instead of
+`browse-url-new-window-flag'"
+  (interactive (browse-url-interactive-arg "URL: "))
+  (setq url (browse-url-encode-url url))
+  (let* ((process-environment (browse-url-process-environment)))
+    (apply 'start-process (format "conkeror %s" url)
+	   nil
+	   browse-url-conkeror-program
+	   (append
+	    browse-url-conkeror-arguments
+	    (list
+	     "-e"
+	     (format "load_url_in_new_%s('%s')"
+		     (if (browse-url-maybe-new-window new-window)
+			 (if browse-url-conkeror-new-window-is-buffer
+			     "buffer"
+			   "window")
+		       "buffer")
+		     url))))))
 ;; --- W3 ---
 
 ;; External.

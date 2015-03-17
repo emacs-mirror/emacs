@@ -1,3 +1,16 @@
+2015-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/cl-lib-tests.el: Use lexical-binding.
+	(cl-lib-arglist-performance): Refine test to the case where one of the
+	fields has a non-nil default value.  Use existing `mystruct' defstruct.
+	(cl-lib-struct-accessors): Use `pcase' to be a bit more flexible in the
+	accepted outputs.
+
+2015-03-16  Ken Brown  <kbrown@cornell.edu>
+
+	* automated/tramp-tests.el (tramp--test-special-characters):
+	Don't test "\t" in file names on Cygwin.  (Bug#20119)
+
 2015-03-10  Jackson Ray Hamilton  <jackson@jacksonrayhamilton.com>
 
 	* indent/js-indent-init-dynamic.js: Fix spelling error.
@@ -73,8 +86,8 @@
 
 2015-03-03  Daniel Colascione  <dancol@dancol.org>
 
-	* automated/generator-tests.el (cps-testcase): Use
-	`cps-inhibit-atomic-optimization' instead of
+	* automated/generator-tests.el (cps-testcase):
+	Use `cps-inhibit-atomic-optimization' instead of
 	`cps-disable-atomic-optimization'.
 	(cps-test-declarations-preserved): New test.
 
@@ -179,8 +192,8 @@
 
 2015-02-07  Dmitry Gutov  <dgutov@yandex.ru>
 
-	* automated/vc-tests.el (vc-test--working-revision): Fix
-	`vc-working-revision' checks to be compared against nil, which is
+	* automated/vc-tests.el (vc-test--working-revision):
+	Fix `vc-working-revision' checks to be compared against nil, which is
 	what is should return for unregistered files.
 
 2015-02-06 Nicolas Petton <nicolas@petton.fr>

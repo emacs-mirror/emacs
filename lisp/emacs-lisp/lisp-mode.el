@@ -181,6 +181,33 @@
             nil)))
     res))
 
+(defconst lisp--el-macro-regexp nil
+  "A regular expression matching all loaded elisp macros.
+Can be updated using `lisp--el-update-macro-regexp' after new
+macros were defined.")
+
+(defun lisp--el-update-macro-regexp ()
+  "Update `lisp--el-update-macro-regexp' from `obarray'.
+Return non-nil only if the old and new value are different."
+  (let ((old-regex lisp--el-macro-regexp)
+	(elisp-macros nil))
+    (mapatoms (lambda (a)
+		(when (or (macrop a) (special-form-p a))
+		  (push (symbol-name a) elisp-macros))))
+    (setq lisp--el-macro-regexp
+	  (concat "(" (regexp-opt elisp-macros t) "\\_>"))
+    (not (string= old-regex lisp--el-macro-regexp))))
+
+(defun lisp--el-update-after-load (_file)
+  "Update `lisp--el-macro-regexp' and adjust font-lock in existing buffers."
+  (when (lisp--el-update-macro-regexp)
+    (dolist (buf (buffer-list))
+      (when (derived-mode-p 'emacs-lisp-mode)
+	(font-lock-flush)))))
+
+(defun lisp--el-match-macro (limit)
+  (re-search-forward lisp--el-macro-regexp limit t))
+
 (pcase-let
     ((`(,vdefs ,tdefs
         ,el-defs-re ,cl-defs-re
@@ -194,7 +221,9 @@
                          "when" "unless" "with-output-to-string"
                          "ignore-errors" "dotimes" "dolist" "declare"))
               (lisp-errs '("warn" "error" "signal"))
-              ;; Elisp constructs.  FIXME: update dynamically from obarray.
+              ;; Elisp constructs.  Now they are update dynamically
+              ;; from obarray but they are also used for setting up
+              ;; the keywords for Common Lisp.
               (el-fdefs '("define-advice" "defadvice" "defalias"
                           "define-derived-mode" "define-minor-mode"
                           "define-generic-mode" "define-global-minor-mode"
@@ -333,7 +362,7 @@
      `( ;; Regexp negated char group.
        ("\\[\\(\\^\\)" 1 font-lock-negation-char-face prepend)
        ;; Control structures.  Common Lisp forms.
-       (,(concat "(" el-kws-re "\\_>") . 1)
+       (lisp--el-match-macro . 1)
        ;; Exit/Feature symbols as constants.
        (,(concat "(\\(catch\\|throw\\|featurep\\|provide\\|require\\)\\_>"
                  "[ \t']*\\(\\(?:\\sw\\|\\s_\\)+\\)?")
@@ -514,6 +543,9 @@ font-lock keywords will not be case sensitive."
 	   . lisp-font-lock-syntactic-face-function)))
   (setq-local prettify-symbols-alist lisp--prettify-symbols-alist)
   (when elisp
+    (unless lisp--el-macro-regexp
+      (lisp--el-update-macro-regexp))
+    (add-hook 'after-load-functions #'lisp--el-update-after-load)
     (setq-local electric-pair-text-pairs
                 (cons '(?\` . ?\') electric-pair-text-pairs)))
   (setq-local electric-pair-skip-whitespace 'chomp)

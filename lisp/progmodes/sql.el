@@ -4,7 +4,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Michael Mauger <michael@mauger.com>
-;; Version: 3.4
+;; Version: 3.5
 ;; Keywords: comm languages processes
 ;; URL: http://savannah.gnu.org/projects/emacs/
 
@@ -3296,13 +3296,13 @@ Allows the suppression of continuation prompts.")
 (defun sql-starts-with-prompt-re ()
   "Anchor the prompt expression at the beginning of the output line.
 Remove the start of line regexp."
-  (replace-regexp-in-string "\\^" "\\\\`" comint-prompt-regexp))
+  (concat "\\`" comint-prompt-regexp))
 
 (defun sql-ends-with-prompt-re ()
   "Anchor the prompt expression at the end of the output line.
-Remove the start of line regexp from the prompt expression since
-it may not follow newline characters in the output line."
-  (concat (replace-regexp-in-string "\\^" "" sql-prompt-regexp) "\\'"))
+Match a SQL prompt or a password prompt."
+  (concat "\\(?:\\(?:" sql-prompt-regexp "\\)\\|"
+          "\\(?:" comint-password-prompt-regexp "\\)\\)\\'"))
 
 (defun sql-interactive-remove-continuation-prompt (oline)
   "Strip out continuation prompts out of the OLINE.
@@ -3321,7 +3321,17 @@ to the next chunk to properly match the broken-up prompt.
 If the filter gets confused, it should reset and stop filtering
 to avoid deleting non-prompt output."
 
-  (when comint-prompt-regexp
+  ;; continue gathering lines of text iff
+  ;;  + we know what a prompt looks like, and
+  ;;  + there is held text, or
+  ;;  + there are continuation prompt yet to come, or
+  ;;  + not just a prompt string
+  (when (and comint-prompt-regexp
+             (or (> (length (or sql-preoutput-hold "")) 0)
+                 (> (or sql-output-newline-count 0) 0)
+                 (not (or (string-match sql-prompt-regexp oline)
+                          (string-match sql-prompt-cont-regexp oline)))))
+
     (save-match-data
       (let (prompt-found last-nl)
 
@@ -3357,16 +3367,19 @@ to avoid deleting non-prompt output."
                 sql-preoutput-hold ""))
 
         ;; Break up output by physical lines if we haven't hit the final prompt
-        (unless (and (not (string= oline ""))
-                     (string-match (sql-ends-with-prompt-re) oline)
-                     (>= (match-end 0) (length oline)))
-          (setq last-nl 0)
-          (while (string-match "\n" oline last-nl)
-            (setq last-nl (match-end 0)))
-          (setq sql-preoutput-hold (concat (substring oline last-nl)
-                                           sql-preoutput-hold)
-                oline (substring oline 0 last-nl))))))
-   oline)
+        (let ((end-re (sql-ends-with-prompt-re)))
+          (unless (and (not (string= oline ""))
+                       (string-match end-re oline)
+                       (>= (match-end 0) (length oline)))
+            ;; Find everything upto the last nl
+            (setq last-nl 0)
+            (while (string-match "\n" oline last-nl)
+              (setq last-nl (match-end 0)))
+            ;; Hold after the last nl, return upto last nl
+            (setq sql-preoutput-hold (concat (substring oline last-nl)
+                                             sql-preoutput-hold)
+                  oline (substring oline 0 last-nl)))))))
+  oline)
 
 ;;; Sending the region to the SQLi buffer.
 

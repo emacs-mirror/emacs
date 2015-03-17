@@ -871,6 +871,13 @@ When run interactively, widen the buffer first."
   (goto-char (point-max))
   (recenter -1))
 
+(defun eshell/clear ()
+  "Scroll contents of eshell window out of sight, leaving a blank window."
+  (interactive)
+  (let ((number-newlines (count-lines (window-start) (point))))
+    (insert (make-string number-newlines ?\n)))
+    (eshell-send-input))
+
 (defun eshell-get-old-input (&optional use-current-region)
   "Return the command input on the current line."
   (if use-current-region

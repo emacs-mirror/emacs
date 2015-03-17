@@ -307,43 +307,6 @@ started on the local host.  You should specify a remote host
 `localhost' or the name of the local host.  Another host name is
 useful only in combination with `tramp-default-proxies-alist'.")
 
-;;;###tramp-autoload
-(defconst tramp-ssh-controlmaster-options
-  (let ((result "")
-	(case-fold-search t))
-    (ignore-errors
-      (when (executable-find "ssh")
-	(with-temp-buffer
-	  (call-process "ssh" nil t nil "-o" "ControlMaster")
-	  (goto-char (point-min))
-	  (when (search-forward-regexp "missing.+argument" nil t)
-	    (setq result "-o ControlMaster=auto")))
-	(unless (zerop (length result))
-	  (with-temp-buffer
-	    (call-process
-	     "ssh" nil t nil "-o" "ControlPath=%C" "host.does.not.exist")
-	    (goto-char (point-min))
-	    (if (search-forward-regexp "unknown.+key" nil t)
-		(setq result
-		      (concat result " -o ControlPath='tramp.%%r@%%h:%%p'"))
-	      (setq result (concat result " -o ControlPath='tramp.%%C'"))))
-	  (with-temp-buffer
-	    (call-process "ssh" nil t nil "-o" "ControlPersist")
-	    (goto-char (point-min))
-	    (when (search-forward-regexp "missing.+argument" nil t)
-	      (setq result (concat result " -o ControlPersist=no")))))))
-    result)
-    "Call ssh to detect whether it supports the Control* arguments.
-Return a string to be used in `tramp-methods'.")
-
-;;;###tramp-autoload
-(defcustom tramp-use-ssh-controlmaster-options
-  (not (zerop (length tramp-ssh-controlmaster-options)))
-  "Whether to use `tramp-ssh-controlmaster-options'."
-  :group 'tramp
-  :version "24.4"
-  :type 'boolean)
-
 (defcustom tramp-default-method
   ;; An external copy method seems to be preferred, because it performs
   ;; much better for large files, and it hasn't too serious delays
@@ -374,9 +337,7 @@ Return a string to be used in `tramp-methods'.")
 	    (fboundp 'auth-source-search)
 	    ;; ssh-agent is running.
 	    (getenv "SSH_AUTH_SOCK")
-	    (getenv "SSH_AGENT_PID")
-	    ;; We could reuse the connection.
-	    (> (length tramp-ssh-controlmaster-options) 0))
+	    (getenv "SSH_AGENT_PID"))
 	"scp"
       "ssh"))
    ;; Fallback.

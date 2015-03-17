@@ -127,6 +127,7 @@
 ;;;###tramp-autoload
 (add-to-list 'tramp-default-user-alist '("\\`synce\\'" nil nil))
 
+;;;###tramp-autoload
 (defcustom tramp-gvfs-zeroconf-domain "local"
   "Zeroconf domain to be used for discovering services, like host names."
   :group 'tramp
@@ -374,6 +375,7 @@ It has been changed in GVFS 1.14.")
 ;;   </signal>
 ;; </interface>
 
+;;;###tramp-autoload
 (defcustom tramp-bluez-discover-devices-timeout 60
   "Defines seconds since last bluetooth device discovery before rescanning.
 A value of 0 would require an immediate discovery during hostname

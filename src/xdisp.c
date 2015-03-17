@@ -4418,6 +4418,27 @@ handle_invisible_prop (struct it *it)
 	      IT_BYTEPOS (*it) = CHAR_TO_BYTE (newpos);
 	    }
 
+	  if (display_ellipsis_p)
+            {
+              /* Make sure that the glyphs of the ellipsis will get
+                 correct `charpos' values.  If we would not update
+                 it->position here, the glyphs would belong to the
+                 last visible character _before_ the invisible
+                 text, which confuses `set_cursor_from_row'.
+
+                 We use the last invisible position instead of the
+                 first because this way the cursor is always drawn on
+                 the first "." of the ellipsis, whenever PT is inside
+                 the invisible text.  Otherwise the cursor would be
+                 placed _after_ the ellipsis when the point is after the
+                 first invisible character.  */
+	      if (!STRINGP (it->object))
+		{
+		  it->position.charpos = newpos - 1;
+		  it->position.bytepos = CHAR_TO_BYTE (it->position.charpos);
+		}
+	    }
+
 	  /* If there are before-strings at the start of invisible
 	     text, and the text is invisible because of a text
 	     property, arrange to show before-strings because 20.x did
@@ -4449,23 +4470,6 @@ handle_invisible_prop (struct it *it)
 	    }
 	  else if (display_ellipsis_p)
             {
-              /* Make sure that the glyphs of the ellipsis will get
-                 correct `charpos' values.  If we would not update
-                 it->position here, the glyphs would belong to the
-                 last visible character _before_ the invisible
-                 text, which confuses `set_cursor_from_row'.
-
-                 We use the last invisible position instead of the
-                 first because this way the cursor is always drawn on
-                 the first "." of the ellipsis, whenever PT is inside
-                 the invisible text.  Otherwise the cursor would be
-                 placed _after_ the ellipsis when the point is after the
-                 first invisible character.  */
-	      if (!STRINGP (it->object))
-		{
-		  it->position.charpos = newpos - 1;
-		  it->position.bytepos = CHAR_TO_BYTE (it->position.charpos);
-		}
 	      it->ellipsis_p = true;
 	      /* Let the ellipsis display before
 		 considering any properties of the following char.
@@ -4509,6 +4513,11 @@ setup_for_ellipsis (struct it *it, int len)
      saved_face_id was set to preceding char's face in handle_stop.  */
   if (it->saved_face_id < 0 || it->saved_face_id != it->face_id)
     it->saved_face_id = it->face_id = DEFAULT_FACE_ID;
+
+  /* If the ellipsis represents buffer text, it means we advanced in
+     the buffer, so we should no longer ignore overlay strings.  */
+  if (it->method == GET_FROM_BUFFER)
+    it->ignore_overlay_strings_at_pos_p = false;
 
   it->method = GET_FROM_DISPLAY_VECTOR;
   it->ellipsis_p = true;
@@ -5452,7 +5461,6 @@ next_overlay_string (struct it *it)
 		   && it->stop_charpos <= it->end_charpos));
       it->current.overlay_string_index = -1;
       it->n_overlay_strings = 0;
-      it->overlay_strings_charpos = -1;
       /* If there's an empty display string on the stack, pop the
 	 stack, to resync the bidi iterator with IT's position.  Such
 	 empty strings are pushed onto the stack in
@@ -5469,8 +5477,18 @@ next_overlay_string (struct it *it)
       /* If we're at the end of the buffer, record that we have
 	 processed the overlay strings there already, so that
 	 next_element_from_buffer doesn't try it again.  */
-      if (NILP (it->string) && IT_CHARPOS (*it) >= it->end_charpos)
+      if (NILP (it->string)
+	  && IT_CHARPOS (*it) >= it->end_charpos
+	  && it->overlay_strings_charpos >= it->end_charpos)
 	it->overlay_strings_at_end_processed_p = true;
+      /* Note: we reset overlay_strings_charpos only here, to make
+	 sure the just-processed overlays were indeed at EOB.
+	 Otherwise, overlays on text with invisible text property,
+	 which are processed with IT's position past the invisible
+	 text, might fool us into thinking the overlays at EOB were
+	 already processed (linum-mode can cause this, for
+	 example).  */
+      it->overlay_strings_charpos = -1;
     }
   else
     {

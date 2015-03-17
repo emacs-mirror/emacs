@@ -34,10 +34,17 @@
 
 ;; Redefine the font selection to use the standard W32 dialog
 (defcustom w32-use-w32-font-dialog t
-  "Use the standard font dialog.
+  "If non-nil, use the standard Windows font dialog for font selection.
 If nil, pop up a menu of a fixed set of fonts including fontsets, like
-X does.  See `w32-fixed-font-alist' for the font menu definition."
+X does.  See `w32-fixed-font-alist' for the fonts to appear in the menu.
+
+Setting this variable directly does not have any effect;
+use either \\[customize] or set `mouse-appearance-menu-map' to nil
+after changing the value of this variable."
   :type 'boolean
+  :set (lambda (symbol value)
+	 (set symbol value)
+	 (setq mouse-appearance-menu-map nil))
   :group 'w32)
 
 (defvar w32-list-proportional-fonts nil
@@ -104,11 +111,11 @@ X does.  See `w32-fixed-font-alist' for the font menu definition."
       "-*-Lucida Sans Typewriter-semibold-r-*-*-16-*-*-*-c-*-iso8859-1"))
     ("Courier"
      ("Courier 10x8"
-      "-*-Courier-*normal-r-*-*-*-97-*-*-c-80-iso8859-1")
+      "-*-Courier New-normal-r-*-*-*-97-*-*-c-80-iso8859-1")
      ("Courier 12x9"
-      "-*-Courier-*normal-r-*-*-*-120-*-*-c-90-iso8859-1")
+      "-*-Courier New-normal-r-*-*-*-120-*-*-c-90-iso8859-1")
      ("Courier 15x12"
-      "-*-Courier-*normal-r-*-*-*-150-*-*-c-120-iso8859-1")
+      "-*-Courier New-normal-r-*-*-*-150-*-*-c-120-iso8859-1")
      ;; For these, we specify the point height.
      ("")
      ("8" "-*-Courier New-normal-r-*-*-11-*-*-*-c-*-iso8859-1")

@@ -556,6 +556,14 @@ to avoid interfering with the kill ring.
 allow overriding the regular expression that recognizes the ldapsearch
 command line's password prompt.
 
+** Eshell
+
+*** The new built-in command `clear' can scroll window contents out of sight.
+
+** Browse-url
+
+*** browse-url now supports the Conkeror Web Browser.
+
 +++
 ** tar-mode: new `tar-new-entry' command, allowing for new members to
 be added to the archive.
@@ -585,6 +593,8 @@ other languages), so `auto-tildify-mode' makes it easier to create
 a typographically-correct documents.
 
 * Incompatible Lisp Changes in Emacs 25.1
+
+** read-buffer-function can now be called with a 4th argument (`predicate').
 
 ** completion-table-dynamic stays in the minibuffer.
 If you want the old behavior of calling the function in the buffer
@@ -622,6 +632,8 @@ word syntax, use `\sw' instead.
 
 
 * Lisp Changes in Emacs 25.1
+
+** `read-buffer' takes a new `predicate' argument.
 
 ** Emacs Lisp now supports generators.
 

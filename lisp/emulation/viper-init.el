@@ -463,7 +463,7 @@ color displays.  By default, the delimiters are used only on TTYs."
   :type 'boolean
   :group 'viper)
 
-(defcustom viper-read-buffer-function 'read-buffer
+(defcustom viper-read-buffer-function #'read-buffer
   "Function to use for prompting the user for a buffer name."
   :type 'symbol
   :group 'viper)

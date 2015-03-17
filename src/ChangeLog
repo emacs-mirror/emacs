@@ -1,3 +1,24 @@
+2015-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.c (Fread_buffer): Add `predicate' argument.
+	* callint.c (Fcall_interactively): Adjust calls accordingly.
+
+2015-03-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (handle_invisible_prop): Fix up it->position even when
+	we are going to load overlays at the beginning of the invisible
+	text.
+	(setup_for_ellipsis): Reset the ignore_overlay_strings_at_pos_p
+	flag also here.
+	(next_overlay_string): Set the overlay_strings_at_end_processed_p
+	flag only if the overlays just processed were actually loaded at
+	EOB.
+
+2015-03-14  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs.c (standard_args): Add --no-x-resources.
+	(usage_message): Document that -Q implies --no-x-resources.
+
 2015-03-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* frame.c (x_get_resource_string) [!USE_GTK]: Don't define.

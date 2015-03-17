@@ -2446,18 +2446,6 @@ MSG is printed after `::::} '."
                               edebug-function)
                 ))
 
-	  (setcdr edebug-window-data
-		  (edebug-adjust-window (cdr edebug-window-data)))
-
-	  ;; Test if there is input, not including keyboard macros.
-	  (if (input-pending-p)
-	      (progn
-		(setq edebug-execution-mode 'step
-		      edebug-stop t)
-		(edebug-stop)
-		;;	    (discard-input)		; is this unfriendly??
-		))
-
           ;; Make sure we bind those in the right buffer (bug#16410).
           (let ((overlay-arrow-position overlay-arrow-position)
                 (overlay-arrow-string overlay-arrow-string))
@@ -2510,14 +2498,18 @@ MSG is printed after `::::} '."
              ((eq edebug-execution-mode 'Trace-fast)
               (sit-for 0)))		; Force update and continue.
 
+            (when (input-pending-p)
+	      (setq edebug-stop t)
+	      (setq edebug-execution-mode 'step) ; for `edebug-overlay-arrow'
+	      (edebug-stop))
+
+	    (edebug-overlay-arrow)
+
             (unwind-protect
                 (if (or edebug-stop
                         (memq edebug-execution-mode '(step next))
                         (eq arg-mode 'error))
-                    (progn
-                      ;; (setq edebug-execution-mode 'step)
-                      ;; (edebug-overlay-arrow)	; This doesn't always show up.
-                      (edebug--recursive-edit arg-mode))) ; <--- Recursive edit
+		    (edebug--recursive-edit arg-mode)) ; <--- Recursive edit
 
               ;; Reset the edebug-window-data to whatever it is now.
               (let ((window (if (eq (window-buffer) edebug-buffer)
@@ -2677,12 +2669,6 @@ MSG is printed after `::::} '."
 	      (defining-kbd-macro
 		(if edebug-continue-kbd-macro defining-kbd-macro))
 
-	      ;; Disable command hooks.  This is essential when
-	      ;; a hook function is instrumented - to avoid infinite loop.
-	      ;; This may be more than we need, however.
-	      (pre-command-hook nil)
-	      (post-command-hook nil)
-
 	      ;; others??
 	      )
 
@@ -2711,8 +2697,9 @@ MSG is printed after `::::} '."
 	    (if (buffer-name edebug-buffer) ; if it still exists
 		(progn
 		  (set-buffer edebug-buffer)
-		  (if (memq edebug-execution-mode '(go Go-nonstop))
-		      (edebug-overlay-arrow))
+		  (when (memq edebug-execution-mode '(go Go-nonstop))
+		    (edebug-overlay-arrow)
+		    (sit-for 0))
                   (edebug-mode -1))
 	      ;; gotta have a buffer to let its buffer local variables be set
 	      (get-buffer-create " bogus edebug buffer"))
@@ -2722,31 +2709,6 @@ MSG is printed after `::::} '."
 
 ;;; Display related functions
 
-(defun edebug-adjust-window (old-start)
-  ;; If pos is not visible, adjust current window to fit following context.
-  ;; (message "window: %s old-start: %s window-start: %s pos: %s"
-  ;;          (selected-window) old-start (window-start) (point)) (sit-for 5)
-  (if (not (pos-visible-in-window-p))
-      (progn
-	;; First try old-start
-	(if old-start
-	    (set-window-start (selected-window) old-start))
-	(if (not (pos-visible-in-window-p))
-	    (progn
-	;; (message "resetting window start") (sit-for 2)
-	(set-window-start
-	 (selected-window)
-	 (save-excursion
-	   (forward-line
-	    (if (< (point) (window-start)) -1	; one line before if in back
-	      (- (/ (window-height) 2)) ; center the line moving forward
-	      ))
-	   (beginning-of-line)
-	   (point)))))))
-  (window-start))
-
-
-
 (defconst edebug-arrow-alist
   '((Continue-fast . "=")
     (Trace-fast . "-")
@@ -2755,7 +2717,7 @@ MSG is printed after `::::} '."
     (step . "=>")
     (next . "=>")
     (go . "<>")
-    (Go-nonstop . "..")  ; not used
+    (Go-nonstop . "..")
     )
   "Association list of arrows for each edebug mode.")
 

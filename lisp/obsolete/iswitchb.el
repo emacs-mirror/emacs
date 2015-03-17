@@ -175,10 +175,10 @@
 ;; iswitchb-read-buffer has been written to be a drop in replacement
 ;; for the normal buffer selection routine `read-buffer'.  To use
 ;; iswitch for all buffer selections in Emacs, add:
-;; (setq read-buffer-function 'iswitchb-read-buffer)
+;; (setq read-buffer-function #'iswitchb-read-buffer)
 ;; (This variable was introduced in Emacs 20.3.)
 ;; XEmacs users can get the same behavior by doing:
-;; (defalias 'read-buffer 'iswitchb-read-buffer)
+;; (defalias 'read-buffer #'iswitchb-read-buffer)
 ;; since `read-buffer' is defined in lisp.
 
 ;; Using iswitchb for other completion tasks.
@@ -586,7 +586,7 @@ in a separate window.
 	   ))))
 
 (defun iswitchb-read-buffer (prompt &optional default require-match
-				    start matches-set)
+				    _predicate start matches-set)
   "Replacement for the built-in `read-buffer'.
 Return the name of a buffer selected.
 PROMPT is the prompt to give to the user.

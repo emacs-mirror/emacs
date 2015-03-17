@@ -1801,6 +1801,8 @@ choose a font."
 (declare-function buffer-face-mode-invoke "face-remap"
                   (face arg &optional interactive))
 (declare-function font-face-attributes "font.c" (font &optional frame))
+(defvar w32-use-w32-font-dialog)
+(defvar w32-fixed-font-alist)
 
 (defun mouse-appearance-menu (event)
   "Show a menu for changing the default face in the current buffer."
@@ -1820,13 +1822,18 @@ choose a font."
 	(define-key mouse-appearance-menu-map [text-scale-increase]
 	  '(menu-item "Increase Buffer Text Size" text-scale-increase))
 	;; Font selector
-	(if (functionp 'x-select-font)
+	(if (and (functionp 'x-select-font)
+		 (or (not (boundp 'w32-use-w32-font-dialog))
+		     w32-use-w32-font-dialog))
 	    (define-key mouse-appearance-menu-map [x-select-font]
 	      '(menu-item "Change Buffer Font..." x-select-font))
 	  ;; If the select-font is unavailable, construct a menu.
 	  (let ((font-submenu (make-sparse-keymap "Change Text Font"))
-		(font-alist (cdr (append x-fixed-font-alist
-					 (list (generate-fontset-menu))))))
+		(font-alist (cdr (append
+				  (if (eq system-type 'windows-nt)
+				      w32-fixed-font-alist
+				    x-fixed-font-alist)
+				  (list (generate-fontset-menu))))))
 	    (dolist (family font-alist)
 	      (let* ((submenu-name (car family))
 		     (submenu-map (make-sparse-keymap submenu-name)))

@@ -1081,7 +1081,7 @@ A user option, or customizable variable, is one for which
   return Fintern (name, Qnil);
 }
 
-DEFUN ("read-buffer", Fread_buffer, Sread_buffer, 1, 3, 0,
+DEFUN ("read-buffer", Fread_buffer, Sread_buffer, 1, 4, 0,
        doc: /* Read the name of a buffer and return as a string.
 Prompt with PROMPT.
 Optional second arg DEF is value to return if user enters an empty line.
@@ -1093,8 +1093,11 @@ The argument PROMPT should be a string ending with a colon and a space.
 If `read-buffer-completion-ignore-case' is non-nil, completion ignores
 case while reading the buffer name.
 If `read-buffer-function' is non-nil, this works by calling it as a
-function, instead of the usual behavior.  */)
-  (Lisp_Object prompt, Lisp_Object def, Lisp_Object require_match)
+function, instead of the usual behavior.
+Optional arg PREDICATE if non-nil is a function limiting the buffers that can
+be considered.  */)
+  (Lisp_Object prompt, Lisp_Object def, Lisp_Object require_match,
+   Lisp_Object predicate)
 {
   Lisp_Object result;
   char *s;
@@ -1136,11 +1139,16 @@ function, instead of the usual behavior.  */)
 	}
 
       result = Fcompleting_read (prompt, intern ("internal-complete-buffer"),
-				 Qnil, require_match, Qnil,
+				 predicate, require_match, Qnil,
 				 Qbuffer_name_history, def, Qnil);
     }
   else
-    result = call3 (Vread_buffer_function, prompt, def, require_match);
+    result = (NILP (predicate)
+	      /* Partial backward compatibility for older read_buffer_functions
+		 which don't expect a `predicate' argument.  */
+	      ? call3 (Vread_buffer_function, prompt, def, require_match)
+	      : call4 (Vread_buffer_function, prompt, def, require_match,
+		       predicate));
   return unbind_to (count, result);
 }
 

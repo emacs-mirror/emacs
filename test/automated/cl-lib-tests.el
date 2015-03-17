@@ -1,4 +1,4 @@
-;;; cl-lib.el --- tests for emacs-lisp/cl-lib.el
+;;; cl-lib.el --- tests for emacs-lisp/cl-lib.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2013-2015 Free Software Foundation, Inc.
 
@@ -204,7 +204,10 @@
                     :b :a :a 42)
            '(42 :a))))
 
-(cl-defstruct mystruct (abc :readonly t) def)
+(cl-defstruct (mystruct
+               (:constructor cl-lib--con-1 (&aux (abc 1)))
+               (:constructor cl-lib--con-2 (&optional def)))
+  (abc 5 :readonly t) (def nil))
 (ert-deftest cl-lib-struct-accessors ()
   (let ((x (make-mystruct :abc 1 :def 2)))
     (should (eql (cl-struct-slot-value 'mystruct 'abc x) 1))
@@ -213,8 +216,17 @@
     (should (eql (cl-struct-slot-value 'mystruct 'def x) -1))
     (should (eql (cl-struct-slot-offset 'mystruct 'abc) 1))
     (should-error (cl-struct-slot-offset 'mystruct 'marypoppins))
-    (should (equal (cl-struct-slot-info 'mystruct)
-                   '((cl-tag-slot) (abc :readonly t) (def))))))
+    (should (pcase (cl-struct-slot-info 'mystruct)
+              (`((cl-tag-slot) (abc 5 :readonly t)
+                 (def . ,(or `nil `(nil))))
+               t)))))
+
+(ert-deftest cl-lib-arglist-performance ()
+  ;; An `&aux' should not cause lambda's arglist to be turned into an &rest
+  ;; that's parsed by hand.
+  (should (equal () (help-function-arglist 'cl-lib--con-1)))
+  (should (pcase (help-function-arglist 'cl-lib--con-2)
+            (`(&optional ,_) t))))
 
 (ert-deftest cl-the ()
   (should (eql (cl-the integer 42) 42))
@@ -426,5 +438,12 @@
 
 (ert-deftest cl-flet-test ()
   (should (equal (cl-flet ((f1 (x) x)) (let ((x #'f1)) (funcall x 5))) 5)))
+
+(ert-deftest cl-lib-test-typep ()
+  (cl-deftype cl-lib-test-type (&optional x) `(member ,x))
+  ;; Make sure we correctly implement the rule that deftype's optional args
+  ;; default to `*' rather than to nil.
+  (should (cl-typep '* 'cl-lib-test-type))
+  (should-not (cl-typep 1 'cl-lib-test-type)))
 
 ;;; cl-lib.el ends here

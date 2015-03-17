@@ -1,3 +1,128 @@
+2015-03-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp-sh.el (tramp-maybe-send-script): Avoid leading tabs in
+	shell scripts.  (Bug#20118)
+
+2015-03-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* mouse.el (mouse-appearance-menu): If w32-use-w32-font-dialog is
+	nil, construct a menu of fixed fonts.  This resurrects a feature
+	lost in Emacs 23.
+
+	* w32-vars.el (w32-use-w32-font-dialog): Add a ':set' function to
+	reset mouse-appearance-menu-map, so the font dialog is recomputed
+	the next time the menu is requested.
+	(w32-fixed-font-alist): Fix to use correct names of Courier fonts.
+
+2015-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl--transform-lambda): Refine last change
+	(bug#20125).
+
+2015-03-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-ssh-controlmaster-options): Change test
+	for ControlPath in order to avoid DNS timeouts.  (Bug#20015)
+
+2015-03-16  Alan Mackenzie  <acm@muc.de>
+
+	Edebug: Allow "S" to work during trace mode.  Fixes debbugs #20074.
+	Also display the overlay arrow in go and go-nonstop modes.
+
+	* emacs-lisp/edebug.el (edebug--display-1): Move the
+	`input-pending' test to after trace mode's `sit-for'.
+	(edebug--recursive-edit): Insert "(sit-for 0)" after
+	"(edebug-overlay-arrow)".
+
+2015-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl--transform-lambda): Rework to avoid
+	cl--do-arglist in more cases; add comments to explain what's going on.
+	(cl--do-&aux): New function extracted from cl--do-arglist.
+	(cl--do-arglist): Use it.
+
+	* emacs-lisp/cl-generic.el: Add Version: header, for ELPA purposes.
+
+	* obsolete/iswitchb.el (iswitchb-read-buffer): Add `predicate' arg.
+	* isearchb.el (isearchb-iswitchb): Adjust accordingly.
+	* ido.el (ido-read-buffer): Add `predicate' argument.
+	* misearch.el (unload-function-defs-list): Declare before use.
+
+2015-03-16  Vibhav Pant  <vibhavp@gmail.com>
+
+	* net/browse-url.el (browse-url-browser-function): Add "Conkeror".
+	(browse-url-conkeror-program, browse-url-conkeror-arguments)
+	(browse-url-conkeror-new-window-is-buffer): New defcustoms.
+	(browse-url-default-browser): Check for `browse-url-conkeror'
+	and call `browse-url-conkeror-program'.
+	(browse-url-conkeror): New command.
+	(bug#19863)
+
+2015-03-16  Vibhav Pant  <vibhavp@gmail.com>
+
+	* eshell/esh-mode.el (eshell/clear): New function.
+
+2015-03-16  Alan Mackenzie  <acm@muc.de>
+
+	Make Edebug work with Follow Mode.
+
+	* emacs-lisp/edebug.el (edebug--display-1): Remove call to
+	edebug-adjust-window.
+	(edebug--recursive-edit): Don't bind pre/post-command-hooks to nil
+	over the recursive edit.
+	(edebug-adjust-window): Remove.
+
+2015-03-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-adb.el:
+	* net/tramp-gvfs.el:
+	* net/tramp-sh.el:
+	* net/tramp-smb.el: Set tramp-autoload cookie for all defcustoms.
+
+	* net/tramp.el (tramp-ssh-controlmaster-options)
+	(tramp-use-ssh-controlmaster-options): Move them to tramp-sh.el.
+	(tramp-default-method): Do not check for
+	`tramp-ssh-controlmaster-options'.
+
+	* net/tramp-sh.el (tramp-use-ssh-controlmaster-options):
+	New defcustom, moved from tramp.el.
+	(tramp-ssh-controlmaster-options): New defvar, moved from tramp.el
+	but with a nil initial value.
+	(tramp-ssh-controlmaster-options): New defun.
+	(tramp-do-copy-or-rename-file-out-of-band)
+	(tramp-maybe-open-connection): Use it.  (Bug#20015)
+
+2015-03-15  Tassilo Horn  <tsdh@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (lisp--el-macro-regexp): New defconst.
+	(lisp--el-update-macro-regexp, lisp--el-update-after-load)
+	(lisp--el-match-macro): New functions.
+	(lisp-mode-variables): Update lisp--el-macro-regexp and add
+	lisp--el-update-after-load to after-load-functions.
+
+2015-03-15  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs-lisp/cl-indent.el
+	(lisp-indent-backquote-substitution-mode): New user option.
+	(common-lisp-indent-function-1, common-lisp-loop-part-indentation)
+	(common-lisp-indent-function): Support normally indenting
+	backquote substitutions.
+	(extended-loop-p): Rename to `lisp-extended-loop-p'.
+
+2015-03-14  Michael R. Mauger  <michael@mauger.com>
+
+	* progmodes/sql.el: Version 3.5
+	(sql-starts-with-prompt-re, sql-ends-with-prompt-re): Match password prompts.
+	(sql-interactive-remove-continuation-prompt): Fixed regression. (Bug#6686)
+
+2015-03-14  Daniel Colascione  <dancol@dancol.org>
+
+	* widget.el (define-widget): Check that documentation is a string
+	or nil; prevent wailing and gnashing of teeth when users forget to
+	pass a docstring and wonder why their properties don't work.
+
+	* startup.el (command-line): Process "--no-x-resources".
+
 2015-03-13  Kevin Ryde  <user42_kevin@yahoo.com.au>
 
 	info-look fixes for Texinfo 5

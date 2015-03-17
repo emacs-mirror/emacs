@@ -1621,12 +1621,15 @@ This requires restrictions of file name syntax."
 
 (defun tramp--test-special-characters ()
   "Perform the test in `tramp-test30-special-characters*'."
-  ;; Newlines, slashes and backslashes in file names are not supported.
-  ;; So we don't test.
+  ;; Newlines, slashes and backslashes in file names are not
+  ;; supported.  So we don't test.  And we don't test the tab
+  ;; character on Windows or Cygwin, because the backslash is
+  ;; interpreted as a path separator, preventing "\t" from being
+  ;; expanded to <TAB>.
   (tramp--test-check-files
    (if (tramp--test-smb-or-windows-nt-p)
        "foo bar baz"
-     (if (tramp--test-adb-p)
+     (if (or (tramp--test-adb-p) (eq system-type 'cygwin))
 	 " foo bar baz "
        " foo\tbar baz\t"))
    "$foo$bar$$baz$"

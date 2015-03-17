@@ -1,3 +1,9 @@
+2015-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-handlers.el (url-insert-file-contents): Call
+	after-insert-file-set-coding like insert-file-contents, to set
+	buffer-file-coding-system (bug#20010).
+
 2015-01-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Don't downcase system diagnostics' first letters
