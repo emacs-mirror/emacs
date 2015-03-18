@@ -126,7 +126,9 @@ possible."
               ,(use-package-progn form)
             (error
              (ignore
-              (display-warning 'use-package (error-message-string ,err)
+              (display-warning 'use-package
+                               (format "use-package: Error in %s: %s" ,name
+                                       (error-message-string ,err))
                                :error)))))))))
 
 (put 'use-package-expand 'lisp-indent-function 'defun)
@@ -431,12 +433,12 @@ ARGS is a list of forms, so `((foo))' if only `foo' is being called."
         (when (bound-and-true-p byte-compile-current-file)
           `((eval-when-compile
               ,@(mapcar #'(lambda (var) `(defvar ,var))
-                        (plist-get args* :defines))
+                        (plist-get args :defines))
               (with-demoted-errors
                   ,(format "Error in %s: %%S" name-string)
                 ,(if use-package-verbose
                      `(message "Compiling package %s" ,name-string))
-                ,(unless (plist-get args* :no-require)
+                ,(unless (plist-get args :no-require)
                    `(require ',name-symbol nil t)))))))
 
        ;; These are all the configurations to be made after the package has
