@@ -184,7 +184,7 @@ ARGS is a list of forms, so `((foo))' if only `foo' is being called."
   "Given a list of forms, return it wrapped in `progn'."
   (unless (listp (car args))
     (use-package-error (concat label " wants a sexp or list of sexps")))
-  (mapcar #'macroexpand args))
+  args)
 
 (defsubst use-package-normalize-value (label arg)
   "Normalize a value."
