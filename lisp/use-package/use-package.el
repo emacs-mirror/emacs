@@ -40,6 +40,7 @@
 (require 'bind-key)
 (require 'bytecomp)
 (require 'diminish nil t)
+(require 'bytecomp)
 
 (declare-function package-installed-p 'package)
 
@@ -470,10 +471,13 @@ ARGS is a list of forms, so `((foo))' if only `foo' is being called."
 
      ;; Setup any required autoloads
      (if defer-loading
-         (mapcar #'(lambda (command)
-                     `(unless (fboundp ',command)
-                        (autoload #',command ,name-string nil t)))
-                 commands))
+         (apply
+          #'nconc
+          (mapcar #'(lambda (command)
+                      `((unless (fboundp ',command)
+                          (autoload #',command ,name-string nil t))
+                        (declare-function ,command ,name-string)))
+                  commands)))
 
      (if (numberp deferral)
          `((run-with-idle-timer ,deferral nil #'require ',name-symbol nil t)))
@@ -601,7 +605,9 @@ this file.  Usage:
                         `(featurep ',requires))
                      ,@expansion))))))
         ;; (message "Expanded: %s" (pp-to-string body*))
-        body*))))
+        `(let ((byte-compile-warnings byte-compile-warnings))
+           (byte-compile-disable-warning 'redefined)
+           ,body*)))))
 
 (put 'use-package 'lisp-indent-function 'defun)
 
