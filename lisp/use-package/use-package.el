@@ -52,8 +52,7 @@
   "Whether to report about loading and configuration details.
 
 If you customize this, then you should require the `use-package'
-feature in files that use one of the macros `use-package' or
-`use-package-with-elapsed-timer', even if these files only
+feature in files that use `use-package', even if these files only
 contain compiled expansions of the macros.  If you don't do so,
 then the expanded macros do their job silently."
   :type 'boolean
@@ -66,8 +65,7 @@ Note that `use-package-verbose' has to be set to t, for anything
 to be reported at all.
 
 If you customize this, then you should require the `use-package'
-feature in files that use one of the macros `use-package' or
-`use-package-with-elapsed-timer', even if these files only
+feature in files that use `use-package', even if these files only
 contain compiled expansions of the macros.  If you don't do so,
 then the expanded macros do their job silently."
   :type 'number
