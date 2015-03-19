@@ -204,7 +204,7 @@ for Korean Hanja.
 
 @item
 Andrew Choi and Yamamoto Mitsuharu wrote the Carbon support, used
-prior to Emacs 23 for Mac OS.  Yamamoto Mitsuharu continued to
+prior to Emacs 23 for Mac OS@.  Yamamoto Mitsuharu continued to
 contribute to Mac OS support in the newer Nextstep port; and also
 improved support for multi-monitor displays.
 

@@ -132,7 +132,7 @@ byte compiler to warn if the command is called from Lisp.  The output
 of @code{describe-function} will include similar information.
 The value of the property can be: a string, which the byte-compiler
 will use directly in its warning (it should end with a period, and not
-start with a capital, e.g. ``use @dots{} instead.''); @code{t}; any
+start with a capital, e.g., ``use @dots{} instead.''); @code{t}; any
 other symbol, which should be an alternative function to use in Lisp
 code.
 
@@ -1043,8 +1043,8 @@ the current Emacs session.  If a symbol has not yet been so used,
 @end defun
 
 @menu
-* Keyboard Events::             Ordinary characters--keys with symbols on them.
-* Function Keys::               Function keys--keys with names, not symbols.
+* Keyboard Events::             Ordinary characters -- keys with symbols on them.
+* Function Keys::               Function keys -- keys with names, not symbols.
 * Mouse Events::                Overview of mouse events.
 * Click Events::                Pushing and releasing a mouse button.
 * Drag Events::                 Moving the mouse before releasing the button.

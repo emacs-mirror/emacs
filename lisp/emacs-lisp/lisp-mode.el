@@ -181,32 +181,25 @@
             nil)))
     res))
 
-(defconst lisp--el-macro-regexp nil
-  "A regular expression matching all loaded elisp macros.
-Can be updated using `lisp--el-update-macro-regexp' after new
-macros were defined.")
+(defun lisp--el-match-keyword (limit)
+  (catch 'found
+    (while (re-search-forward "(\\(\\(?:\\sw\\|\\s_\\)+\\)\\_>" limit t)
+      (let ((sym (intern-soft (match-string 1))))
+	(when (or (special-form-p sym)
+		  (and (macrop sym)
+		       (not (get sym 'no-font-lock-keyword))))
+	  (throw 'found t))))))
 
-(defun lisp--el-update-macro-regexp ()
-  "Update `lisp--el-update-macro-regexp' from `obarray'.
-Return non-nil only if the old and new value are different."
-  (let ((old-regex lisp--el-macro-regexp)
-	(elisp-macros nil))
-    (mapatoms (lambda (a)
-		(when (or (macrop a) (special-form-p a))
-		  (push (symbol-name a) elisp-macros))))
-    (setq lisp--el-macro-regexp
-	  (concat "(" (regexp-opt elisp-macros t) "\\_>"))
-    (not (string= old-regex lisp--el-macro-regexp))))
-
-(defun lisp--el-update-after-load (_file)
-  "Update `lisp--el-macro-regexp' and adjust font-lock in existing buffers."
-  (when (lisp--el-update-macro-regexp)
+(defun lisp--el-font-lock-flush-elisp-buffers (&optional file)
+  ;; Don't flush during load unless called from after-load-functions.
+  ;; In that case, FILE is non-nil.  It's somehow strange that
+  ;; load-in-progress is t when an after-load-function is called since
+  ;; that should run *after* the load...
+  (when (or (not load-in-progress) file)
     (dolist (buf (buffer-list))
-      (when (derived-mode-p 'emacs-lisp-mode)
-	(font-lock-flush)))))
-
-(defun lisp--el-match-macro (limit)
-  (re-search-forward lisp--el-macro-regexp limit t))
+      (with-current-buffer buf
+	(when (derived-mode-p 'emacs-lisp-mode)
+	  (font-lock-flush))))))
 
 (pcase-let
     ((`(,vdefs ,tdefs
@@ -362,7 +355,7 @@ Return non-nil only if the old and new value are different."
      `( ;; Regexp negated char group.
        ("\\[\\(\\^\\)" 1 font-lock-negation-char-face prepend)
        ;; Control structures.  Common Lisp forms.
-       (lisp--el-match-macro . 1)
+       (lisp--el-match-keyword . 1)
        ;; Exit/Feature symbols as constants.
        (,(concat "(\\(catch\\|throw\\|featurep\\|provide\\|require\\)\\_>"
                  "[ \t']*\\(\\(?:\\sw\\|\\s_\\)+\\)?")
@@ -543,9 +536,7 @@ font-lock keywords will not be case sensitive."
 	   . lisp-font-lock-syntactic-face-function)))
   (setq-local prettify-symbols-alist lisp--prettify-symbols-alist)
   (when elisp
-    (unless lisp--el-macro-regexp
-      (lisp--el-update-macro-regexp))
-    (add-hook 'after-load-functions #'lisp--el-update-after-load)
+    (add-hook 'after-load-functions #'lisp--el-font-lock-flush-elisp-buffers)
     (setq-local electric-pair-text-pairs
                 (cons '(?\` . ?\') electric-pair-text-pairs)))
   (setq-local electric-pair-skip-whitespace 'chomp)

@@ -344,7 +344,7 @@ When reading or writing from the standard input/output streams of the
 Emacs process in batch mode, it is sometimes required to make sure any
 arbitrary binary data will be read/written verbatim, and/or that no
 translation of newlines to or from CR-LF pairs are performed.  This
-issue does not exist on Posix hosts, only on MS-Windows and MS-DOS.
+issue does not exist on Posix hosts, only on MS-Windows and MS-DOS@.
 The following function allows to control the I/O mode of any standard
 stream of the Emacs process.
 

@@ -237,6 +237,17 @@ EXTRA_DIST += dirent.in.h
 
 ## end   gnulib module dirent
 
+## begin gnulib module dirfd
+
+if gl_GNULIB_ENABLED_dirfd
+
+endif
+EXTRA_DIST += dirfd.c
+
+EXTRA_libgnu_a_SOURCES += dirfd.c
+
+## end   gnulib module dirfd
+
 ## begin gnulib module dosname
 
 if gl_GNULIB_ENABLED_dosname

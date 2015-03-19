@@ -159,7 +159,7 @@ the construct on that line.  A @dfn{syntactic component} consists of a
 pair of information (in lisp parlance, a @emph{cons cell}), where the
 first part is a @dfn{syntactic symbol}, and the second part is a
 @dfn{relative buffer position}.  Syntactic symbols describe elements of
-VHDL code, e.g. @code{statement}, @code{comment}, @code{block-open},
+VHDL code, e.g., @code{statement}, @code{comment}, @code{block-open},
 @code{block-close}, etc.  @xref{Syntactic Symbols}, for a complete list
 of currently recognized syntactic symbols and their semantics.  Also,
 the variable @code{vhdl-offsets-alist} contains the list of currently
@@ -633,8 +633,8 @@ similar to what is allowed in @code{vhdl-offsets-alist}.  When the file is
 visited, VHDL Mode will automatically institute these offsets using
 @code{vhdl-set-offset}.  @xref{Customizing Indentation}.
 
-Note that file style settings (i.e. @code{vhdl-file-style}) are applied
-before file offset settings (i.e. @code{vhdl-file-offsets}).
+Note that file style settings (i.e., @code{vhdl-file-style}) are applied
+before file offset settings (i.e., @code{vhdl-file-offsets}).
 
 
 @node     Advanced Customizations

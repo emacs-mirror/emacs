@@ -2434,7 +2434,78 @@ Like `cl-callf', but PLACE is the second argument of FUNC, not the first.
                    (if (symbolp func) (cons func rargs)
                      `(funcall #',func ,@rargs))))))))
 
+;;;###autoload
+(defmacro cl-defsubst (name args &rest body)
+  "Define NAME as a function.
+Like `defun', except the function is automatically declared `inline' and
+the arguments are immutable.
+ARGLIST allows full Common Lisp conventions, and BODY is implicitly
+surrounded by (cl-block NAME ...).
+The function's arguments should be treated as immutable.
+
+\(fn NAME ARGLIST [DOCSTRING] BODY...)"
+  (declare (debug cl-defun) (indent 2))
+  (let* ((argns (cl--arglist-args args))
+         (p argns)
+         ;; (pbody (cons 'progn body))
+         )
+    (while (and p (eq (cl--expr-contains args (car p)) 1)) (pop p))
+    `(progn
+       ,(if p nil   ; give up if defaults refer to earlier args
+          `(cl-define-compiler-macro ,name
+             ,(if (memq '&key args)
+                  `(&whole cl-whole &cl-quote ,@args)
+                (cons '&cl-quote args))
+             (cl--defsubst-expand
+              ',argns '(cl-block ,name ,@body)
+              ;; We used to pass `simple' as
+              ;; (not (or unsafe (cl-expr-access-order pbody argns)))
+              ;; But this is much too simplistic since it
+              ;; does not pay attention to the argvs (and
+              ;; cl-expr-access-order itself is also too naive).
+              nil
+              ,(and (memq '&key args) 'cl-whole) nil ,@argns)))
+       (cl-defun ,name ,args ,@body))))
+
+(defun cl--defsubst-expand (argns body simple whole _unsafe &rest argvs)
+  (if (and whole (not (cl--safe-expr-p (cons 'progn argvs)))) whole
+    (if (cl--simple-exprs-p argvs) (setq simple t))
+    (let* ((substs ())
+           (lets (delq nil
+                       (cl-mapcar (lambda (argn argv)
+                                    (if (or simple (macroexp-const-p argv))
+                                        (progn (push (cons argn argv) substs)
+                                               nil)
+                                      (list argn argv)))
+                                  argns argvs))))
+      ;; FIXME: `sublis/subst' will happily substitute the symbol
+      ;; `argn' in places where it's not used as a reference
+      ;; to a variable.
+      ;; FIXME: `sublis/subst' will happily copy `argv' to a different
+      ;; scope, leading to name capture.
+      (setq body (cond ((null substs) body)
+                       ((null (cdr substs))
+                        (cl-subst (cdar substs) (caar substs) body))
+                       (t (cl--sublis substs body))))
+      (if lets `(let ,lets ,body) body))))
+
+(defun cl--sublis (alist tree)
+  "Perform substitutions indicated by ALIST in TREE (non-destructively)."
+  (let ((x (assq tree alist)))
+    (cond
+     (x (cdr x))
+     ((consp tree)
+      (cons (cl--sublis alist (car tree)) (cl--sublis alist (cdr tree))))
+     (t tree))))
+
 ;;; Structures.
+
+(defmacro cl--find-class (type)
+  `(get ,type 'cl--class))
+
+;; Rather than hard code cl-structure-object, we indirect through this variable
+;; for bootstrapping reasons.
+(defvar cl--struct-default-parent nil)
 
 ;;;###autoload
 (defmacro cl-defstruct (struct &rest descs)
@@ -2491,6 +2562,7 @@ non-nil value, that slot cannot be set via `setf'.
 	 (tag (intern (format "cl-struct-%s" name)))
 	 (tag-symbol (intern (format "cl-struct-%s-tags" name)))
 	 (include-descs nil)
+	 (include-name nil)
 	 (type nil)
 	 (named nil)
 	 (forms nil)
@@ -2520,12 +2592,14 @@ non-nil value, that slot cannot be set via `setf'.
 	      ((eq opt :predicate)
 	       (if args (setq predicate (car args))))
 	      ((eq opt :include)
-               (when include (error "Can't :include more than once"))
-	       (setq include (car args)
-		     include-descs (mapcar (function
-					    (lambda (x)
-					      (if (consp x) x (list x))))
-					   (cdr args))))
+               ;; FIXME: Actually, we can include more than once as long as
+               ;; we include EIEIO classes rather than cl-structs!
+               (when include-name (error "Can't :include more than once"))
+               (setq include-name (car args))
+               (setq include-descs (mapcar (function
+                                            (lambda (x)
+                                              (if (consp x) x (list x))))
+                                           (cdr args))))
 	      ((eq opt :print-function)
 	       (setq print-func (car args)))
 	      ((eq opt :type)
@@ -2537,19 +2611,21 @@ non-nil value, that slot cannot be set via `setf'.
 				  descs)))
 	      (t
 	       (error "Slot option %s unrecognized" opt)))))
+    (unless (or include-name type)
+      (setq include-name cl--struct-default-parent))
+    (when include-name (setq include (cl--struct-get-class include-name)))
     (if print-func
 	(setq print-func
               `(progn (funcall #',print-func cl-x cl-s cl-n) t))
-      (or type (and include (not (get include 'cl-struct-print)))
+      (or type (and include (not (cl--struct-class-print include)))
 	  (setq print-auto t
 		print-func (and (or (not (or include type)) (null print-func))
 				`(progn
                                    (princ ,(format "#S(%s" name) cl-s))))))
     (if include
-	(let ((inc-type (get include 'cl-struct-type))
-	      (old-descs (get include 'cl-struct-slots)))
-	  (or inc-type (error "%s is not a struct name" include))
-	  (and type (not (eq (car inc-type) type))
+	(let* ((inc-type (cl--struct-class-type include))
+               (old-descs (cl-struct-slot-info include)))
+	  (and type (not (eq inc-type type))
 	       (error ":type disagrees with :include for %s" name))
 	  (while include-descs
 	    (setcar (memq (or (assq (caar include-descs) old-descs)
@@ -2558,9 +2634,9 @@ non-nil value, that slot cannot be set via `setf'.
 			  old-descs)
 		    (pop include-descs)))
 	  (setq descs (append old-descs (delq (assq 'cl-tag-slot descs) descs))
-		type (car inc-type)
-		named (assq 'cl-tag-slot descs))
-	  (if (cadr inc-type) (setq tag name named t)))
+		type inc-type
+		named (if type (assq 'cl-tag-slot descs) 'true))
+	  (if (cl--struct-class-named include) (setq tag name named t)))
       (if type
 	  (progn
 	    (or (memq type '(vector list))
@@ -2605,8 +2681,8 @@ non-nil value, that slot cannot be set via `setf'.
                        (declare (side-effect-free t))
                        ,@(and pred-check
 			      (list `(or ,pred-check
-                                         (error "%s accessing a non-%s"
-                                                ',accessor ',name))))
+                                         (signal 'wrong-type-argument
+                                                 (list ',name cl-x)))))
                        ,(if (memq type '(nil vector)) `(aref cl-x ,pos)
                           (if (= pos 0) '(car cl-x)
                             `(nth ,pos cl-x))))
@@ -2682,8 +2758,11 @@ non-nil value, that slot cannot be set via `setf'.
     `(progn
        (defvar ,tag-symbol)
        ,@(nreverse forms)
+       ;; Call cl-struct-define during compilation as well, so that
+       ;; a subsequent cl-defstruct in the same file can correctly include this
+       ;; struct as a parent.
        (eval-and-compile
-         (cl-struct-define ',name ,docstring ',include
+         (cl-struct-define ',name ,docstring ',include-name
                            ',type ,(eq named t) ',descs ',tag-symbol ',tag
                            ',print-auto))
        ',name)))
@@ -2693,7 +2772,7 @@ non-nil value, that slot cannot be set via `setf'.
 STRUCT-TYPE is a symbol naming a struct type.  Return 'vector or
 'list, or nil if STRUCT-TYPE is not a struct type. "
   (declare (side-effect-free t) (pure t))
-  (car (get struct-type 'cl-struct-type)))
+  (cl--struct-class-type (cl--struct-get-class struct-type)))
 
 (defun cl-struct-slot-info (struct-type)
   "Return a list of slot names of struct STRUCT-TYPE.
@@ -2702,7 +2781,19 @@ slot name symbol and OPTS is a list of slot options given to
 `cl-defstruct'.  Dummy slots that represent the struct name and
 slots skipped by :initial-offset may appear in the list."
   (declare (side-effect-free t) (pure t))
-  (get struct-type 'cl-struct-slots))
+  (let* ((class (cl--struct-get-class struct-type))
+         (slots (cl--struct-class-slots class))
+         (type (cl--struct-class-type class))
+         (descs (if type () (list '(cl-tag-slot)))))
+    (dotimes (i (length slots))
+      (let ((slot (aref slots i)))
+        (push `(,(cl--slot-descriptor-name slot)
+                ,(cl--slot-descriptor-initform slot)
+                ,@(if (not (eq (cl--slot-descriptor-type slot) t))
+                      `(:type ,(cl--slot-descriptor-type slot)))
+                ,@(cl--slot-descriptor-props slot))
+              descs)))
+    (nreverse descs)))
 
 (defun cl-struct-slot-offset (struct-type slot-name)
   "Return the offset of slot SLOT-NAME in STRUCT-TYPE.
@@ -2711,9 +2802,8 @@ the structure data type and is adjusted for any structure name
 and :initial-offset slots.  Signal error if struct STRUCT-TYPE
 does not contain SLOT-NAME."
   (declare (side-effect-free t) (pure t))
-  (or (cl-position slot-name
-                   (cl-struct-slot-info struct-type)
-                   :key #'car :test #'eq)
+  (or (gethash slot-name
+               (cl--class-index-table (cl--struct-get-class struct-type)))
       (error "struct %s has no slot %s" struct-type slot-name)))
 
 (defvar byte-compile-function-environment)
@@ -2897,70 +2987,6 @@ macro that returns its `&whole' argument."
   (let ((cl-found (assq (nth 1 cl-tag) cl--active-block-names)))
     (if cl-found (setcdr cl-found t)))
   `(throw ,cl-tag ,cl-value))
-
-;;;###autoload
-(defmacro cl-defsubst (name args &rest body)
-  "Define NAME as a function.
-Like `defun', except the function is automatically declared `inline' and
-the arguments are immutable.
-ARGLIST allows full Common Lisp conventions, and BODY is implicitly
-surrounded by (cl-block NAME ...).
-The function's arguments should be treated as immutable.
-
-\(fn NAME ARGLIST [DOCSTRING] BODY...)"
-  (declare (debug cl-defun) (indent 2))
-  (let* ((argns (cl--arglist-args args))
-         (p argns)
-         ;; (pbody (cons 'progn body))
-         )
-    (while (and p (eq (cl--expr-contains args (car p)) 1)) (pop p))
-    `(progn
-       ,(if p nil   ; give up if defaults refer to earlier args
-          `(cl-define-compiler-macro ,name
-             ,(if (memq '&key args)
-                  `(&whole cl-whole &cl-quote ,@args)
-                (cons '&cl-quote args))
-             (cl--defsubst-expand
-              ',argns '(cl-block ,name ,@body)
-              ;; We used to pass `simple' as
-              ;; (not (or unsafe (cl-expr-access-order pbody argns)))
-              ;; But this is much too simplistic since it
-              ;; does not pay attention to the argvs (and
-              ;; cl-expr-access-order itself is also too naive).
-              nil
-              ,(and (memq '&key args) 'cl-whole) nil ,@argns)))
-       (cl-defun ,name ,args ,@body))))
-
-(defun cl--defsubst-expand (argns body simple whole _unsafe &rest argvs)
-  (if (and whole (not (cl--safe-expr-p (cons 'progn argvs)))) whole
-    (if (cl--simple-exprs-p argvs) (setq simple t))
-    (let* ((substs ())
-           (lets (delq nil
-                       (cl-mapcar (lambda (argn argv)
-                                    (if (or simple (macroexp-const-p argv))
-                                        (progn (push (cons argn argv) substs)
-                                               nil)
-                                      (list argn argv)))
-                                  argns argvs))))
-      ;; FIXME: `sublis/subst' will happily substitute the symbol
-      ;; `argn' in places where it's not used as a reference
-      ;; to a variable.
-      ;; FIXME: `sublis/subst' will happily copy `argv' to a different
-      ;; scope, leading to name capture.
-      (setq body (cond ((null substs) body)
-                       ((null (cdr substs))
-                        (cl-subst (cdar substs) (caar substs) body))
-                       (t (cl--sublis substs body))))
-      (if lets `(let ,lets ,body) body))))
-
-(defun cl--sublis (alist tree)
-  "Perform substitutions indicated by ALIST in TREE (non-destructively)."
-  (let ((x (assq tree alist)))
-    (cond
-     (x (cdr x))
-     ((consp tree)
-      (cons (cl--sublis alist (car tree)) (cl--sublis alist (cdr tree))))
-     (t tree))))
 
 ;; Compile-time optimizations for some functions defined in this package.
 

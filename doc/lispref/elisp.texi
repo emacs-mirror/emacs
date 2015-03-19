@@ -753,8 +753,8 @@ Defining Commands
 
 Input Events
 
-* Keyboard Events::         Ordinary characters--keys with symbols on them.
-* Function Keys::           Function keys--keys with names, not symbols.
+* Keyboard Events::         Ordinary characters -- keys with symbols on them.
+* Function Keys::           Function keys -- keys with names, not symbols.
 * Mouse Events::            Overview of mouse events.
 * Click Events::            Pushing and releasing a mouse button.
 * Drag Events::             Moving the mouse before releasing the button.

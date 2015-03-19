@@ -305,7 +305,7 @@ the files in that directory, simply move the directory to the head
 of the list and hit @key{RET}.
 
 To go up to the parent directory, delete any partial file name already
-specified (e.g. using @key{DEL}) and hit @key{DEL}.
+specified (e.g., using @key{DEL}) and hit @key{DEL}.
 
 @c @deffn Command ido-delete-backward-updir
 

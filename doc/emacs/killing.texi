@@ -848,7 +848,7 @@ shifting the original text to the right.
   The command @kbd{C-x @key{SPC}} (@code{rectangle-mark-mode}) toggles
 whether the region-rectangle or the standard region is highlighted
 (first activating the region if necessary).  When this mode is enabled,
-commands that resize the region (@kbd{C-f}, @kbd{C-n} etc.) do
+commands that resize the region (@kbd{C-f}, @kbd{C-n} etc.)@: do
 so in a rectangular fashion, and killing and yanking operate on the
 rectangle.  @xref{Killing}.  The mode persists only as long as the
 region is active.

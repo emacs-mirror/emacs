@@ -42,7 +42,7 @@
 ;; browse-url-netscape                Netscape    1.1b1
 ;; browse-url-mosaic                  XMosaic/mMosaic <= 2.4
 ;; browse-url-cci                     XMosaic     2.5
-;; browse-url-conkeror                Conkeror    Dont know
+;; browse-url-conkeror                Conkeror    Don't know
 ;; browse-url-w3                      w3          0
 ;; browse-url-w3-gnudoit              w3 remotely
 ;; browse-url-text-*	              Any text browser     0
@@ -62,7 +62,7 @@
 ;; control.  <URL:http://www.netscape.com/newsref/std/x-remote.html>.
 
 ;; Browsers can cache Web pages so it may be necessary to tell them to
-;; reload the current page if it has changed (e.g. if you have edited
+;; reload the current page if it has changed (e.g., if you have edited
 ;; it).  There is currently no perfect automatic solution to this.
 
 ;; Netscape allows you to specify the id of the window you want to
@@ -420,8 +420,8 @@ functionality is not available there."
 
 (defcustom browse-url-conkeror-new-window-is-buffer nil
   "Whether to open up new windows in a buffer or a new window.
-If non-nill, then open the URL in a new buffer rather than a new window if
-`browse-url-conkeror' is asked to open it in a new window"
+If non-nil, then open the URL in a new buffer rather than a new window if
+`browse-url-conkeror' is asked to open it in a new window."
   :type 'boolean
   :group 'browse-url)
 
@@ -823,7 +823,7 @@ narrowed."
 ;;;###autoload
 (defun browse-url (url &rest args)
   "Ask a WWW browser to load URL.
-Prompts for a URL, defaulting to the URL at or before point.  Variable
+Prompt for a URL, defaulting to the URL at or before point.  Variable
 `browse-url-browser-function' says which browser to use.
 If the URL is a mailto: URL, consult `browse-url-mailto-function'
 first, if that exists."
@@ -862,8 +862,7 @@ first, if that exists."
 ;;;###autoload
 (defun browse-url-at-point (&optional arg)
   "Ask a WWW browser to load the URL at or before point.
-Doesn't let you edit the URL like `browse-url'.  Variable
-`browse-url-browser-function' says which browser to use."
+Variable `browse-url-browser-function' says which browser to use."
   (interactive "P")
   (let ((url (browse-url-url-at-point)))
     (if url
@@ -876,9 +875,8 @@ Doesn't let you edit the URL like `browse-url'.  Variable
 (defun browse-url-at-mouse (event)
   "Ask a WWW browser to load a URL clicked with the mouse.
 The URL is the one around or before the position of the mouse click
-but point is not changed.  Doesn't let you edit the URL like
-`browse-url'.  Variable `browse-url-browser-function' says which browser
-to use."
+but point is not changed.  Variable `browse-url-browser-function'
+says which browser to use."
   (interactive "e")
   (save-excursion
     (mouse-set-point event)
@@ -1384,20 +1382,21 @@ used instead of `browse-url-new-window-flag'."
 ;;;###autoload
 (defun browse-url-conkeror (url &optional new-window)
   "Ask the Conkeror WWW browser to load URL.
-Default to the URL around or before point. The strings in the variable
-`browse-url-conkeror-arguments' are also passed to Conkeror.
+Default to the URL around or before point.  Also pass the strings
+in the variable `browse-url-conkeror-arguments' to Conkeror.
 
-When called interactively, if variable `browse-url-new-window-flag'
-is non-nil, load the document in a new Conkeror window, otherwise use a random
-existing one. A non-nil interactive prefix argument reverses the effect of
-`browse-url-new-window-flag'
+When called interactively, if variable
+`browse-url-new-window-flag' is non-nil, load the document in a
+new Conkeror window, otherwise use a random existing one.  A
+non-nil interactive prefix argument reverses the effect of
+`browse-url-new-window-flag'.
 
-If `browse-url-conkeror-new-window-is-buffer' then whenever a document would
-otherwise be loaded in a new window, it is loaded in a new buffer in an existing
-window instead.
+If variable `browse-url-conkeror-new-window-is-buffer' is
+non-nil, then whenever a document would otherwise be loaded in a
+new window, load it in a new buffer in an existing window instead.
 
-When called non-interatively, optional second argument NEW-WINDOW is used instead of
-`browse-url-new-window-flag'"
+When called non-interactively, use optional second argument
+NEW-WINDOW instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "URL: "))
   (setq url (browse-url-encode-url url))
   (let* ((process-environment (browse-url-process-environment)))
@@ -1495,7 +1494,7 @@ used instead of `browse-url-new-window-flag'."
 	 (n browse-url-text-input-attempts))
     (require 'term)
     (if (and (browse-url-maybe-new-window new-buffer) buf)
-	;; Rename away the OLD buffer. This isn't very polite, but
+	;; Rename away the OLD buffer.  This isn't very polite, but
 	;; term insists on working in a buffer named *lynx* and would
 	;; choke on *lynx*<1>
 	(progn (set-buffer buf)

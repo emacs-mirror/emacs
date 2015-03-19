@@ -11482,7 +11482,7 @@ who wrote the article, the date it was written and the subject of the
 article.  That's well and nice, but there's also lots of information
 most people do not want to see---what systems the article has passed
 through before reaching you, the @code{Message-ID}, the
-@code{References}, etc. ad nauseam---and you'll probably want to get rid
+@code{References}, etc.@: ad nauseam---and you'll probably want to get rid
 of some of those lines.  If you want to keep all those lines in the
 article buffer, you can set @code{gnus-show-all-headers} to @code{t}.
 
@@ -25905,7 +25905,7 @@ Store custom flags and keywords
 The registry can store custom flags and keywords for a message.  For
 instance, you can mark a message ``To-Do'' this way and the flag will
 persist whether the message is in the nnimap, nnml, nnmaildir,
-etc. backends.
+etc.@: backends.
 
 @item
 Store arbitrary data
@@ -25988,7 +25988,7 @@ registry will be pruned back to less than
 @code{gnus-registry-max-entries}.  This option controls exactly how
 much less: the target is calculated as the maximum number of entries
 minus the maximum number times this factor.  The default is 0.1:
-i.e. if your registry is limited to 50000 entries, pruning will try to
+i.e., if your registry is limited to 50000 entries, pruning will try to
 cut back to 45000 entries.  Entries with keys marked as precious will
 not be pruned.
 @end defvar

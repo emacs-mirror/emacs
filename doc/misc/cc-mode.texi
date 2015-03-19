@@ -1038,7 +1038,7 @@ Movement}.  They might be removed from a future release of @ccmode{}.
 Since there's a lot of normal text in comments and string literals,
 @ccmode{} provides features to edit these like in text mode.  The goal
 is to do it seamlessly, i.e., you can use auto fill mode, sentence and
-paragraph movement, paragraph filling, adaptive filling etc. wherever
+paragraph movement, paragraph filling, adaptive filling etc.@: wherever
 there's a piece of normal text without having to think much about it.
 @ccmode{} keeps the indentation, fixes suitable comment line prefixes,
 and so on.
@@ -7140,7 +7140,7 @@ of XEmacs since 19.16.
 Due to release schedule skew, it is likely that all of these Emacsen
 have old versions of @ccmode{} and so should be upgraded.  Access to the
 @ccmode{} source code, as well as more detailed information on Emacsen
-compatibility, etc. are all available on the web site:
+compatibility, etc.@: are all available on the web site:
 
 @quotation
 @uref{http://cc-mode.sourceforge.net/}

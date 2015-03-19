@@ -1426,7 +1426,7 @@ char mode.
 
 @table @kbd
 @item C-c C-c
-Send a literal @key{C-c} to the sub-shell.
+Send a literal @kbd{C-c} to the sub-shell.
 
 @item C-c @var{char}
 This is equivalent to @kbd{C-x @var{char}} in normal Emacs.  For

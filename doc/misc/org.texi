@@ -891,7 +891,7 @@ Recent Emacs distributions include a packaging system which lets you install
 Elisp libraries.  You can install Org with @kbd{M-x package-install RET org}.
 
 @noindent @b{Important}: you need to do this in a session where no @code{.org} file has
-been visited, i.e. where no Org built-in function have been loaded.
+been visited, i.e., where no Org built-in function have been loaded.
 Otherwise autoload Org functions will mess up the installation.
 
 Then, to make sure your Org configuration is taken into account, initialize
@@ -10444,7 +10444,7 @@ You can change the default state of this option by setting
 
 @item C-v
 Toggle visible-only export.  Only export the text that is currently
-visible, i.e. not hidden by outline visibility in the buffer.
+visible, i.e., not hidden by outline visibility in the buffer.
 
 @end table
 
@@ -12103,7 +12103,7 @@ Internet-style links for all other links.
 A link with no description and destined to a regular (un-itemized) outline
 heading is replaced with a cross-reference and section number of the heading.
 
-A @samp{\ref@{label@}}-style reference to an image, table etc. is replaced
+A @samp{\ref@{label@}}-style reference to an image, table etc.@: is replaced
 with a cross-reference and sequence number of the labeled entity.
 @xref{Labels and captions in ODT export}.
 
@@ -13410,7 +13410,7 @@ from it (e.g., @code{beamer}).
 
 This is obviously the most powerful customization, since the changes happen
 at the parser level.  Indeed, some export back-ends are built as extensions
-of other ones (e.g. Markdown back-end an extension of HTML back-end).
+of other ones (e.g., Markdown back-end an extension of HTML back-end).
 
 Extending a back-end means that if an element type is not transcoded by the
 new back-end, it will be handled by the original one.  Hence you can extend

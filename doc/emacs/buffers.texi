@@ -642,7 +642,7 @@ the directory names in reverse order, so that @file{/top/middle/file}
 becomes @samp{file\middle\top}, while @code{post-forward} puts them in
 forward order after the file name, as in @samp{file|top/middle}.  If
 @code{uniquify-buffer-name-style} is set to @code{nil}, the buffer
-names simply get @samp{<2>}, @samp{<3>}, etc. appended.
+names simply get @samp{<2>}, @samp{<3>}, etc.@: appended.
 
   Which rule to follow for putting the directory names in the buffer
 name is not very important if you are going to @emph{look} at the

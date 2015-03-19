@@ -425,7 +425,7 @@ names, which might cause misalignment of columns in Dired display.
 
 @node Windows HOME
 @section HOME and Startup Directories on MS-Windows
-@cindex @code{HOME} directory on MS-Windows
+@cindex HOME directory on MS-Windows
 
   The Windows equivalent of @code{HOME} is the @dfn{user-specific
 application data directory}.  The actual location depends on the

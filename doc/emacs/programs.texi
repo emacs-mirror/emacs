@@ -383,7 +383,7 @@ the preceding lines; if the region is active, @key{TAB} indents each
 line within the region, not just the current line.
 
   The command @key{RET} (@code{newline}), which was documented in
-@ref{Inserting Text}, does the same as @key{C-j} followed by
+@ref{Inserting Text}, does the same as @kbd{C-j} followed by
 @key{TAB}: it inserts a new line, then adjusts the line's indentation.
 
   When indenting a line that starts within a parenthetical grouping,
@@ -559,7 +559,7 @@ predefined styles, including @code{gnu}, @code{k&r}, @code{bsd},
 styles are primarily intended for one language, but any of them can be
 used with any of the languages supported by these modes.  To find out
 what a style looks like, select it and reindent some code, e.g., by
-typing @key{C-M-q} at the start of a function definition.
+typing @kbd{C-M-q} at the start of a function definition.
 
 @kindex C-c . @r{(C mode)}
 @findex c-set-style

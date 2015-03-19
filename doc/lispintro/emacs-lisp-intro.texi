@@ -387,7 +387,7 @@ Truth and Falsehood in Emacs Lisp
 * Point and mark::              A review of various locations.
 * Template for save-excursion::
 
-A Few Buffer--Related Functions
+A Few Buffer-Related Functions
 
 * Finding More::                How to find more information.
 * simplified-beginning-of-buffer::  Shows @code{goto-char},
@@ -4547,7 +4547,7 @@ and if so, prints an appropriate message.
 @end itemize
 
 @node Buffer Walk Through
-@chapter A Few Buffer--Related Functions
+@chapter A Few Buffer-Related Functions
 
 In this chapter we study in detail several of the functions used in GNU
 Emacs.  This is called a ``walk-through''.  These functions are used as
@@ -12114,7 +12114,7 @@ Internet, see
 @uref{http://www.gnu.org/software/texinfo/manual/texinfo/}
 @end ifhtml
 @iftex
-``Indicating Definitions, Commands, etc.'' in @cite{Texinfo, The GNU
+``Indicating Definitions, Commands, etc.''@: in @cite{Texinfo, The GNU
 Documentation Format}.
 @end iftex
 @end itemize

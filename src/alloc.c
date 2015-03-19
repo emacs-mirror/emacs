@@ -3423,7 +3423,7 @@ union aligned_Lisp_Misc
 };
 
 /* Allocation of markers and other objects that share that structure.
-   Works like allocation of conses. */
+   Works like allocation of conses.  */
 
 #define MARKER_BLOCK_SIZE \
   ((1020 - sizeof (struct marker_block *)) / sizeof (union aligned_Lisp_Misc))
@@ -4744,7 +4744,7 @@ mark_maybe_pointer (void *p)
 #endif
 
 /* Mark Lisp objects referenced from the address range START+OFFSET..END
-   or END+OFFSET..START. */
+   or END+OFFSET..START.  */
 
 static void ATTRIBUTE_NO_SANITIZE_ADDRESS
 mark_memory (void *start, void *end)
@@ -5356,7 +5356,6 @@ make_pure_vector (ptrdiff_t len)
   return new;
 }
 
-
 DEFUN ("purecopy", Fpurecopy, Spurecopy, 1, 1, 0,
        doc: /* Make a copy of object OBJ in pure storage.
 Recursively copies contents of vectors and cons cells.
@@ -5391,28 +5390,26 @@ purecopy (Lisp_Object obj)
   else if (FLOATP (obj))
     obj = make_pure_float (XFLOAT_DATA (obj));
   else if (STRINGP (obj))
-    obj = make_pure_string (SSDATA (obj), SCHARS (obj),
-			    SBYTES (obj),
-			    STRING_MULTIBYTE (obj));
-  else if (COMPILEDP (obj) || VECTORP (obj))
     {
-      register struct Lisp_Vector *vec;
+      if (XSTRING (obj)->intervals)
+	message ("Dropping text-properties when making string pure");
+      obj = make_pure_string (SSDATA (obj), SCHARS (obj),
+			      SBYTES (obj),
+			      STRING_MULTIBYTE (obj));
+    }
+  else if (COMPILEDP (obj) || VECTORP (obj) || HASH_TABLE_P (obj))
+    {
+      struct Lisp_Vector *objp = XVECTOR (obj);
+      ptrdiff_t nbytes = vector_nbytes (objp);
+      struct Lisp_Vector *vec = pure_alloc (nbytes, Lisp_Vectorlike);
       register ptrdiff_t i;
-      ptrdiff_t size;
-
-      size = ASIZE (obj);
+      ptrdiff_t size = ASIZE (obj);
       if (size & PSEUDOVECTOR_FLAG)
 	size &= PSEUDOVECTOR_SIZE_MASK;
-      vec = XVECTOR (make_pure_vector (size));
+      memcpy (vec, objp, nbytes);
       for (i = 0; i < size; i++)
-	vec->contents[i] = purecopy (AREF (obj, i));
-      if (COMPILEDP (obj))
-	{
-	  XSETPVECTYPE (vec, PVEC_COMPILED);
-	  XSETCOMPILED (obj, vec);
-	}
-      else
-	XSETVECTOR (obj, vec);
+	vec->contents[i] = purecopy (vec->contents[i]);
+      XSETVECTOR (obj, vec);
     }
   else if (SYMBOLP (obj))
     {
@@ -5422,6 +5419,7 @@ purecopy (Lisp_Object obj)
 	  XSYMBOL (obj)->pinned = true;
 	  symbol_block_pinned = symbol_block;
 	}
+      /* Don't hash-cons it.  */
       return obj;
     }
   else
@@ -6229,13 +6227,14 @@ mark_discard_killed_buffers (Lisp_Object list)
 void
 mark_object (Lisp_Object arg)
 {
-  register Lisp_Object obj = arg;
+  register Lisp_Object obj;
   void *po;
 #ifdef GC_CHECK_MARKED_OBJECTS
   struct mem_node *m;
 #endif
   ptrdiff_t cdr_count = 0;
 
+  obj = arg;
  loop:
 
   po = XPNTR (obj);
@@ -6870,7 +6869,7 @@ sweep_symbols (void)
   total_free_symbols = num_free;
 }
 
-NO_INLINE /* For better stack traces */
+NO_INLINE /* For better stack traces.  */
 static void
 sweep_misc (void)
 {

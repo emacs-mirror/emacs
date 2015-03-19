@@ -608,7 +608,7 @@ Show calling point in another window.  This is the point from where
 
 @item <
 Promote the current section.  This will convert @code{\section} to
-@code{\chapter}, @code{\subsection} to @code{\section} etc. If there is
+@code{\chapter}, @code{\subsection} to @code{\section} etc.  If there is
 an active region, all sections in the region will be promoted, including
 the one at point.  To avoid mistakes, @RefTeX{} requires a fresh
 document scan before executing this command; if necessary, it will
@@ -1567,7 +1567,7 @@ Here is the setup:
 @cindex @code{linguex}, LaTeX package
 @cindex LaTeX packages, @code{linguex}
 A more complex example is the @file{linguex.sty} package which defines
-list macros @samp{\ex.}, @samp{\a.}, @samp{\b.} etc. for lists which are
+list macros @samp{\ex.}, @samp{\a.}, @samp{\b.} etc.@: for lists which are
 terminated by @samp{\z.} or by an empty line.
 
 @example
@@ -5906,7 +5906,7 @@ When no BibTeX database files are specified, citations can also use
 @noindent @b{Version 3.11}
 @itemize @bullet
 @item
-Fixed bug which led to naked label in (e.g.@:) footnotes.
+Fixed bug which led to naked label in (e.g.)@: footnotes.
 @item
 Added scroll-other-window functions to RefTeX-Select.
 @end itemize

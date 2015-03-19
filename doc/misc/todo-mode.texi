@@ -1421,7 +1421,7 @@ Advance point to the next button.
 Put point on the previous button.
 @end table
 
-These commands are cyclic, e.g. when point is on the last button,
+These commands are cyclic, e.g., when point is on the last button,
 pressing @kbd{n} moves it to the first button.
 
 Typing @kbd{q} exits Todo Categories mode, killing the buffer and returning
@@ -1787,7 +1787,7 @@ current file:
 @item F h
 @itemx h
 Hide the item headers if visible, or show them if they are hidden.
-With done items, only the done header (i.e. the done tag and date-time
+With done items, only the done header (i.e., the done tag and date-time
 string inserted when the item was marked done) is hidden, the original
 date-time string is not. With filtered items, the category (or
 category-file) tag is not hidden.

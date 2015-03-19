@@ -99,7 +99,7 @@ If CLASS is actually an object, then also display current values of that object.
     (when pl
       (insert " Inherits from ")
       (while (setq cur (pop pl))
-	(setq cur (eieio--class-symbol cur))
+	(setq cur (eieio--class-name cur))
 	(insert "`")
 	(help-insert-xref-button (symbol-name cur)
 				 'help-function cur)
@@ -136,74 +136,40 @@ If CLASS is actually an object, then also display current values of that object.
                   (or doc "")))
 	(insert "\n\n")))))
 
+(defun eieio--help-print-slot (slot)
+  (insert
+   (concat
+    (propertize "Slot: " 'face 'bold)
+    (prin1-to-string (cl--slot-descriptor-name slot))
+    (unless (eq (cl--slot-descriptor-type slot) t)
+      (concat "    type = "
+              (prin1-to-string (cl--slot-descriptor-type slot))))
+    (unless (eq (cl--slot-descriptor-initform slot) eieio-unbound)
+      (concat "    default = "
+              (prin1-to-string (cl--slot-descriptor-initform slot))))
+    (when (alist-get :printer (cl--slot-descriptor-props slot))
+      (concat "    printer = "
+              (prin1-to-string
+               (alist-get :printer (cl--slot-descriptor-props slot)))))
+    (when (alist-get :documentation (cl--slot-descriptor-props slot))
+      (concat "\n  " (alist-get :documentation (cl--slot-descriptor-props slot))
+              "\n")))
+   "\n"))
+
 (defun eieio-help-class-slots (class)
   "Print help description for the slots in CLASS.
 Outputs to the current buffer."
   (let* ((cv (eieio--class-v class))
-	 (docs   (eieio--class-public-doc cv))
-	 (names  (eieio--class-public-a cv))
-	 (deflt  (eieio--class-public-d cv))
-	 (types  (eieio--class-public-type cv))
-	 (publp (eieio--class-public-printer cv))
-	 (i      0)
-	 (prot   (eieio--class-protection cv))
-	 )
+         (slots (eieio--class-slots cv))
+         (cslots (eieio--class-class-slots cv)))
     (insert (propertize "Instance Allocated Slots:\n\n"
 			'face 'bold))
-    (while names
-      (insert
-       (concat
-	(when (car prot)
-	  (propertize "Private " 'face 'bold))
-	(propertize "Slot: " 'face 'bold)
-	(prin1-to-string (car names))
-	(unless (eq (aref types i) t)
-	  (concat "    type = "
-		  (prin1-to-string (aref types i))))
-	(unless (eq (car deflt) eieio-unbound)
-	  (concat "    default = "
-		  (prin1-to-string (car deflt))))
-	(when (car publp)
-	  (concat "    printer = "
-		  (prin1-to-string (car publp))))
-	(when (car docs)
-	  (concat "\n  " (car docs) "\n"))
-	"\n"))
-      (setq names (cdr names)
-	    docs (cdr docs)
-	    deflt (cdr deflt)
-	    publp (cdr publp)
-	    prot (cdr prot)
-	    i (1+ i)))
-    (setq docs  (eieio--class-class-allocation-doc cv)
-	  names (eieio--class-class-allocation-a cv)
-	  types (eieio--class-class-allocation-type cv)
-	  i     0
-	  prot  (eieio--class-class-allocation-protection cv))
-    (when names
+    (dotimes (i (length slots))
+      (eieio--help-print-slot (aref slots i)))
+    (when (> (length cslots) 0)
       (insert (propertize "\nClass Allocated Slots:\n\n" 'face 'bold)))
-    (while names
-      (insert
-       (concat
-	(when (car prot)
-	  "Private ")
-	"Slot: "
-	(prin1-to-string (car names))
-	(unless (eq (aref types i) t)
-	  (concat "    type = "
-		  (prin1-to-string (aref types i))))
-	(condition-case nil
-	    (let ((value (eieio-oref class (car names))))
-	      (concat "   value = "
-		      (prin1-to-string value)))
-	  (error nil))
-	(when (car docs)
-	  (concat "\n\n " (car docs) "\n"))
-	"\n"))
-      (setq names (cdr names)
-	    docs (cdr docs)
-	    prot (cdr prot)
-	    i (1+ i)))))
+    (dotimes (i (length cslots))
+      (eieio--help-print-slot (aref cslots i)))))
 
 (defun eieio-build-class-alist (&optional class instantiable-only buildlist)
   "Return an alist of all currently active classes for completion purposes.

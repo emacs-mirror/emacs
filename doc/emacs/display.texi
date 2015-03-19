@@ -138,7 +138,7 @@ instructs the scrolling commands not to fontify (@pxref{Font Lock})
 any unfontified text they scroll over, instead to assume it has the
 default face.  This can cause Emacs to scroll to somewhat wrong buffer
 positions when the faces in use are not all the same size, even with
-single (i.e. without auto-repeat) scrolling operations.
+single (i.e., without auto-repeat) scrolling operations.
 
 @vindex scroll-up
 @vindex scroll-down
@@ -441,7 +441,7 @@ it.  @xref{Disabling}.
 screenfuls.  It provides commands for scrolling through the buffer
 conveniently but not for changing it.  Apart from the usual Emacs
 cursor motion commands, you can type @key{SPC} to scroll forward one
-windowful, @key{S-@key{SPC}} or @key{DEL} to scroll backward, and @kbd{s} to
+windowful, @kbd{S-@key{SPC}} or @key{DEL} to scroll backward, and @kbd{s} to
 start an incremental search.
 
 @kindex q @r{(View mode)}

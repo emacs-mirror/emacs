@@ -716,8 +716,8 @@ stuff, to the current ERC buffer."
 (setq erc-autojoin-channels-alist '(("freenode.net" "#emacs" "#erc")))
 
 ;; Rename server buffers to reflect the current network name instead
-;; of SERVER:PORT. (e.g. "freenode" instead of "irc.freenode.net:6667"). This
-;; is useful when using a bouncer like ZNC where you have multiple
+;; of SERVER:PORT (e.g., "freenode" instead of "irc.freenode.net:6667").
+;; This is useful when using a bouncer like ZNC where you have multiple
 ;; connections to the same server.
 (setq erc-rename-buffers t)
 
@@ -780,7 +780,7 @@ or if you have bugs to report, there are several places you can go.
 
 @item
 @uref{http://www.emacswiki.org/cgi-bin/wiki/ERC} is the
-emacswiki.org page for ERC@.  Anyone may add tips, hints, etc. to it.
+emacswiki.org page for ERC@.  Anyone may add tips, hints, etc.@: to it.
 
 @item
 You can ask questions about using ERC on the Emacs mailing list,

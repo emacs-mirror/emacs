@@ -1719,12 +1719,12 @@ be non-negative integers."
      ;; "-"; this would confuse xargs.  "ls -aQ" might be a solution,
      ;; but it does not work on all remote systems.  Therefore, we
      ;; use \000 as file separator.
-     ;; Apostrophes in the stat output are masked as \037 characters, in
+     ;; Apostrophes in the stat output are masked as ?/ characters, in
      ;; order to make a proper shell escape of them in file names.
      "cd %s && echo \"(\"; (%s %s -a | "
      "xargs %s -c "
-     "'(\037%%n\037 (\037%%N\037) %%h %s %s %%Xe0 %%Ye0 %%Ze0 %%se0 \037%%A\037 t %%ie0 -1)'"
-     " -- 2>/dev/null | sed -e 's/\"/\\\\\"/g' -e 's/\037/\"/g'); echo \")\"")
+     "'(/%%n/ (/%%N/) %%h %s %s %%Xe0 %%Ye0 %%Ze0 %%se0 /%%A/ t %%ie0 -1)' "
+     "-- 2>/dev/null | sed -e 's/\"/\\\\\"/g' -e 's/\\//\"/g'); echo \")\"")
     (tramp-shell-quote-argument localname)
     (tramp-get-ls-command vec)
     ;; On systems which have no quoting style, file names with
@@ -1732,8 +1732,8 @@ be non-negative integers."
     (if (tramp-get-ls-command-with-quoting-style vec)
 	"--quoting-style=shell" "")
     (tramp-get-remote-stat vec)
-    (if (eq id-format 'integer) "%ue0" "\037%U\037")
-    (if (eq id-format 'integer) "%ge0" "\037%G\037"))))
+    (if (eq id-format 'integer) "%ue0" "/%U/")
+    (if (eq id-format 'integer) "%ge0" "/%G/"))))
 
 ;; This function should return "foo/" for directories and "bar" for
 ;; files.

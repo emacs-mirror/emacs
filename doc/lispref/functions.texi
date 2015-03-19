@@ -1222,7 +1222,7 @@ This macro is the handy way to add the advice @var{function} to the function
 stored in @var{place} (@pxref{Generalized Variables}).
 
 @var{where} determines how @var{function} is composed with the
-existing function, e.g. whether @var{function} should be called before, or
+existing function, e.g., whether @var{function} should be called before, or
 after the original function.  @xref{Advice combinators}, for the list of
 available ways to compose the two functions.
 
@@ -1310,7 +1310,7 @@ and its properties.
 @defun advice-eval-interactive-spec spec
 Evaluate the interactive @var{spec} just like an interactive call to a function
 with such a spec would, and then return the corresponding list of arguments
-that was built.  E.g. @code{(advice-eval-interactive-spec "r\nP")} will
+that was built.  E.g., @code{(advice-eval-interactive-spec "r\nP")} will
 return a list of three elements, containing the boundaries of the region and
 the current prefix argument.
 @end defun

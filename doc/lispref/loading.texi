@@ -95,7 +95,7 @@ suffix), unless it contains an explicit directory name.
 
 If the option @code{load-prefer-newer} is non-@code{nil}, then when
 searching suffixes, @code{load} selects whichever version of a file
-(@samp{.elc}, @samp{.el}, etc.) has been modified most recently.
+(@samp{.elc}, @samp{.el}, etc.)@: has been modified most recently.
 
 If @var{filename} is a relative file name, such as @file{foo} or
 @file{baz/foo.bar}, @code{load} searches for the file using the variable

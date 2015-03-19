@@ -1,3 +1,16 @@
+2015-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* automated/eieio-tests.el (eieio-test-17-virtual-slot): Don't use
+	initarg in `oset'.
+	(eieio-test-32-slot-attribute-override-2): Adjust to new
+	slot representation.
+
+	* automated/eieio-test-persist.el (persist-test-save-and-compare):
+	Adjust to new slot representation.
+
+	* automated/eieio-test-methodinvoke.el (make-instance): Use new-style
+	`subclass' specializer for a change.
+
 2015-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* automated/cl-lib-tests.el: Use lexical-binding.

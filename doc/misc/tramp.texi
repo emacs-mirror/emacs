@@ -1001,7 +1001,7 @@ name.
 This special method uses the Android Debug Bridge for accessing
 Android devices.  The Android Debug Bridge must be installed locally.
 Some GNU/Linux distributions offer it for installation, otherwise it
-can be installed as part of the Android SDK.  If the @command{adb}
+can be installed as part of the Android SDK@.  If the @command{adb}
 program is not found via the @env{PATH} environment variable, the
 variable @var{tramp-adb-program} must point to its absolute path.
 

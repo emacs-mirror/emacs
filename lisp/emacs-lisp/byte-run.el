@@ -147,11 +147,16 @@ This is used by `declare'.")
 (defvar macro-declarations-alist
   (cons
    (list 'debug
-         #'(lambda (name _args spec)
-             (list 'progn :autoload-end
-                   (list 'put (list 'quote name)
-                         ''edebug-form-spec (list 'quote spec)))))
-   defun-declarations-alist)
+	 #'(lambda (name _args spec)
+	     (list 'progn :autoload-end
+		   (list 'put (list 'quote name)
+			 ''edebug-form-spec (list 'quote spec)))))
+   (cons
+    (list 'no-font-lock-keyword
+	  #'(lambda (name _args val)
+	      (list 'function-put (list 'quote name)
+		    ''no-font-lock-keyword (list 'quote val))))
+    defun-declarations-alist))
   "List associating properties of macros to their macro expansion.
 Each element of the list takes the form (PROP FUN) where FUN is a function.
 For each (PROP . VALUES) in a macro's declaration, the FUN corresponding
@@ -201,6 +206,19 @@ The return value is undefined.
 			  (message "Warning: Unknown macro property %S in %S"
 				   (car x) name))))
 		  decls)))
+	   ;; Refresh font-lock if this is a new macro, or it is an
+	   ;; existing macro whose 'no-font-lock-keyword declaration
+	   ;; has changed.
+	   (if (and
+		;; If lisp-mode hasn't been loaded, there's no reason
+		;; to flush.
+		(fboundp 'lisp--el-font-lock-flush-elisp-buffers)
+		(or (not (fboundp name)) ;; new macro
+		    (and (fboundp name)  ;; existing macro
+			 (member `(function-put ',name 'no-font-lock-keyword
+						',(get name 'no-font-lock-keyword))
+				 declarations))))
+	       (lisp--el-font-lock-flush-elisp-buffers))
 	   (if declarations
 	       (cons 'prog1 (cons def declarations))
 	     def))))))

@@ -1,3 +1,11 @@
+2015-03-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* efaq-w32.texi: Remove outdated information and update.
+
+2015-03-18  Martin Rudalics  <rudalics@gmx.at>
+
+	* efaq.texi (Fullscreen mode on MS-Windows): Fix description (Bug#20110).
+
 2015-03-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (External methods) <adb>: Explain, when Tramp
@@ -12,7 +20,7 @@
 
 	* erc.texi (Advanced Usage, Options): Add descriptions and examples
 	for erc-format-nick-function and erc-rename-buffers options.
-	(Connecting): fix typo
+	(Connecting): Fix typo
 
 2015-03-02  Daniel Colascione  <dancol@dancol.org>
 

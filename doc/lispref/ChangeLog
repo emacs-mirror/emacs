@@ -1,3 +1,7 @@
+2015-03-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* minibuf.texi (Basic Completion): Fix a typo.  (Bug#20108)
+
 2015-03-09  Nicolas Petton <nicolas@petton.fr>
 
 	* sequences.texi (seq-into): Add documentation for the new

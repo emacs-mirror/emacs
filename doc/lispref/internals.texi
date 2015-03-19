@@ -1624,7 +1624,7 @@ similar advice may apply to the unsigned counterparts (e.g.,
 of @code{intptr_t}).
 
 @item
-Prefer @code{int} for Emacs character codes, in the range 0 ..@: 0x3FFFFF.
+Prefer @code{int} for Emacs character codes, in the range 0 ..@: 0x3FFFFF@.
 More generally, prefer @code{int} for integers known to be in
 @code{int} range, e.g., screen column counts.
 

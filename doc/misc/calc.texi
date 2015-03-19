@@ -36800,7 +36800,7 @@ desired function, or with @kbd{x} or @kbd{z} followed by a function name,
 or with @kbd{$} to take a formula from the top of the stack, or with
 @kbd{'} and a typed formula.  In the last two cases, the formula may
 be a nameless function like @samp{<#1+#2>} or @samp{<x, y : x+y>}, or it
-may include @kbd{$}, @kbd{$$}, etc. (where @kbd{$} will correspond to the
+may include @kbd{$}, @kbd{$$}, etc.@: (where @kbd{$} will correspond to the
 last argument of the created function), or otherwise you will be
 prompted for an argument list.  The number of vectors popped from the
 stack by @kbd{V M} depends on the number of arguments of the function.

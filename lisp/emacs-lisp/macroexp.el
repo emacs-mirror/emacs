@@ -465,6 +465,8 @@ itself or not."
 (defvar macroexp--pending-eager-loads nil
   "Stack of files currently undergoing eager macro-expansion.")
 
+(defvar macroexp--debug-eager nil)
+
 (defun internal-macroexpand-for-load (form full-p)
   ;; Called from the eager-macroexpansion in readevalloop.
   (cond
@@ -480,8 +482,10 @@ itself or not."
            (tail (member elem (cdr (member elem bt)))))
       (if tail (setcdr tail (list '…)))
       (if (eq (car-safe (car bt)) 'macroexpand-all) (setq bt (cdr bt)))
-      (message "Warning: Eager macro-expansion skipped due to cycle:\n  %s"
-               (mapconcat #'prin1-to-string (nreverse bt) " => "))
+      (if macroexp--debug-eager
+          (debug 'eager-macroexp-cycle)
+        (message "Warning: Eager macro-expansion skipped due to cycle:\n  %s"
+                 (mapconcat #'prin1-to-string (nreverse bt) " => ")))
       (push 'skip macroexp--pending-eager-loads)
       form))
    (t

@@ -436,7 +436,7 @@ Jump to mark (and pop mark off the mark ring).
 
 @cindex region
 
-Vi operators like @kbd{d}, @kbd{c} etc. are usually used in combination
+Vi operators like @kbd{d}, @kbd{c} etc.@: are usually used in combination
 with motion commands.  It is now possible to use current region as the
 argument to these operators.  (A @dfn{region} is a part of buffer
 delimited by point and mark.)  The key @kbd{r} is used for this purpose.

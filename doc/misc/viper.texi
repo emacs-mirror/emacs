@@ -1224,7 +1224,7 @@ Facilities like this make Vi's @kbd{:ab} command obsolete.
 @cindex Ex style motion
 @cindex line editor motion
 
-Viper can be set free from the line--limited movements in Vi, such as @kbd{l}
+Viper can be set free from the line-limited movements in Vi, such as @kbd{l}
 refusing to move beyond the line, @key{ESC} moving one character back,
 etc.  These derive from Ex, which is a line editor.  If your
 Viper customization file contains

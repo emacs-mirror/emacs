@@ -783,6 +783,12 @@ AC_DEFUN([gl_CRYPTO_CHECK])
 # Avoid gnulib's tests for HAVE_WORKING_O_NOATIME and HAVE_WORKING_O_NOFOLLOW,
 # as we don't use them.
 AC_DEFUN([gl_FCNTL_O_FLAGS])
+# Avoid gnulib's test for pthread_sigmask.
+funcs=
+for func in $ac_func_list; do
+  test $func = pthread_sigmask || AS_VAR_APPEND([funcs], [" $func"])
+done
+ac_func_list=$funcs
 # Use the system putenv even if it lacks GNU features, as we don't need them,
 # and the gnulib replacement runs afoul of a FreeBSD 10.1 bug; see Bug#19874.
 AC_CHECK_FUNCS_ONCE([putenv])
@@ -2182,39 +2188,62 @@ AC_CHECK_LIB(Xbsd, main, LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE -lXbsd")
 
 dnl Check for the POSIX thread library.
 LIB_PTHREAD=
-if test "$opsys" != "mingw32"; then
 AC_CHECK_HEADERS_ONCE(pthread.h)
-if test "$ac_cv_header_pthread_h"; then
-  dnl gmalloc.c uses pthread_atfork, which is not available on older-style
-  dnl hosts such as MirBSD 10, so test for pthread_atfork instead of merely
-  dnl testing for pthread_kill if Emacs uses gmalloc.c.
-  if test "$GMALLOC_OBJ" = gmalloc.o; then
-    emacs_pthread_function=pthread_atfork
-  else
-    emacs_pthread_function=pthread_kill
+if test "$ac_cv_header_pthread_h" && test "$opsys" != "mingw32"; then
+  AC_CACHE_CHECK([for pthread library],
+    [emacs_cv_pthread_lib],
+    [emacs_cv_pthread_lib=no
+     OLD_CPPFLAGS=$CPPFLAGS
+     OLD_LIBS=$LIBS
+     for emacs_pthread_lib in 'none needed' -lpthread; do
+       case $emacs_pthread_lib in
+	 -*) LIBS="$OLD_LIBS $emacs_pthread_lib";;
+       esac
+       AC_LINK_IFELSE(
+	 [AC_LANG_PROGRAM(
+	    [[#include <pthread.h>
+	      #include <signal.h>
+	      sigset_t old_mask, new_mask;
+	      void noop (void) {}]],
+	    [[pthread_t th = pthread_self ();
+	      int status = 0;
+	      status += pthread_create (&th, 0, 0, 0);
+	      status += pthread_sigmask (SIG_BLOCK, &new_mask, &old_mask);
+	      status += pthread_kill (th, 0);
+	      #if ! (defined SYSTEM_MALLOC || defined HYBRID_MALLOC \
+		     || defined DOUG_LEA_MALLOC)
+	      /* Test for pthread_atfork only if gmalloc uses it,
+		 as older-style hosts like MirBSD 10 lack it.  */
+	      status += pthread_atfork (noop, noop, noop);
+	      #endif
+	      return status;]])],
+	 [emacs_cv_pthread_lib=$emacs_pthread_lib])
+       LIBS=$OLD_LIBS
+       if test "$emacs_cv_pthread_lib" != no; then
+	 break
+       fi
+     done
+     CPPFLAGS=$OLD_CPPFLAGS])
+  if test "$emacs_cv_pthread_lib" != no; then
+    AC_DEFINE([HAVE_PTHREAD], 1, [Define to 1 if you have POSIX threads.])
+    case $emacs_cv_pthread_lib in
+      -*) LIB_PTHREAD=$emacs_cv_pthread_lib;;
+    esac
+    ac_cv_func_pthread_sigmask=yes
+    # Some systems optimize for single-threaded programs by default, and
+    # need special flags to disable these optimizations. For example, the
+    # definition of 'errno' in <errno.h>.
+    case $opsys in
+      hpux* | sol*)
+	AC_DEFINE([_REENTRANT], 1,
+	  [Define to 1 if your system requires this in multithreaded code.]);;
+      aix4-2 | darwin | freebsd)
+	AC_DEFINE([_THREAD_SAFE], 1,
+	  [Define to 1 if your system requires this in multithreaded code.]);;
+    esac
   fi
-  OLD_LIBS=$LIBS
-  AC_SEARCH_LIBS([$emacs_pthread_function], [pthread],
-    [AC_DEFINE([HAVE_PTHREAD], [1],
-       [Define to 1 if you have pthread (-lpthread).])
-     # Some systems optimize for single-threaded programs by default, and
-     # need special flags to disable these optimizations. For example, the
-     # definition of 'errno' in <errno.h>.
-     case $opsys in
-       sol*)
-         AC_DEFINE([_REENTRANT], 1,
-   	[Define to 1 if your system requires this in multithreaded code.]);;
-       aix4-2)
-         AC_DEFINE([_THREAD_SAFE], 1,
-   	[Define to 1 if your system requires this in multithreaded code.]);;
-     esac])
- if test "X$LIBS" != "X$OLD_LIBS"; then
-    eval LIB_PTHREAD=\$ac_cv_search_$emacs_pthread_function
-  fi
-  LIBS=$OLD_LIBS
 fi
 AC_SUBST([LIB_PTHREAD])
-fi
 
 dnl Check for need for bigtoc support on IBM AIX
 

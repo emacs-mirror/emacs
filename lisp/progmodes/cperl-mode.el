@@ -2281,8 +2281,8 @@ to nil."
 	     (search-backward ")")
 	     (if (eq last-command-event ?\()
 		 (progn			; Avoid "if (())"
-		   (delete-backward-char 1)
-		   (delete-backward-char -1))))
+		   (delete-char -1)
+		   (delete-char 1))))
 	   (if delete
 	       (cperl-putback-char cperl-del-back-ch))
 	   (if cperl-message-electric-keyword
@@ -2588,7 +2588,7 @@ Will untabify if `cperl-electric-backspace-untabify' is non-nil."
 	  (delete-region (point) p))
       (if cperl-electric-backspace-untabify
 	  (backward-delete-char-untabify arg)
-	(delete-backward-char arg)))))
+	(call-interactively 'delete-backward-char)))))
 
 (put 'cperl-electric-backspace 'delete-selection 'supersede)
 

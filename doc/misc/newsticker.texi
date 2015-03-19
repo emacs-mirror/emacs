@@ -123,7 +123,7 @@ You may select any number of feeds from this list of (sample) news feeds.
 @vindex newsticker-url-list
 @item newsticker-url-list
 All your personal news feeds are defined here.  Each feed is
-identified by its name and an URL.  You may set the start-time and the
+identified by its name and an URL@.  You may set the start-time and the
 retrieval interval for each feed as well as the retrieval command
 arguments in case that the default values do not fit a certain feed.
 

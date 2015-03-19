@@ -266,7 +266,7 @@ for more information about the language environment @var{lang-env}.
 Supported language environments include:
 
 @c @cindex entries below are split between portions of the list to
-@c make them more accurate, i.e. land on the line that mentions the
+@c make them more accurate, i.e., land on the line that mentions the
 @c language.  However, makeinfo 4.x doesn't fill inside @quotation
 @c lines that follow a @cindex entry and whose text has no whitespace.
 @c To work around, we group the language environments together, so

@@ -45,20 +45,20 @@ This is usually a symbol that starts with `:'."
 
   (eieio-persistent-save original)
 
-  (let* ((file (oref original :file))
+  (let* ((file (oref original file))
 	 (class (eieio-object-class original))
 	 (fromdisk (eieio-persistent-read file class))
 	 (cv (eieio--class-v class))
-	 (slot-names  (eieio--class-public-a cv))
-	 (slot-deflt  (eieio--class-public-d cv))
+	 (slots  (eieio--class-slots cv))
 	 )
     (unless (object-of-class-p fromdisk class)
       (error "Persistent class %S != original class %S"
 	     (eieio-object-class fromdisk)
 	     class))
 
-    (while slot-names
-      (let* ((oneslot (car slot-names))
+    (dotimes (i (length slots))
+      (let* ((slot (aref slots i))
+             (oneslot (cl--slot-descriptor-name slot))
 	     (origvalue (eieio-oref original oneslot))
 	     (fromdiskvalue (eieio-oref fromdisk oneslot))
 	     (initarg-p (eieio--attribute-to-initarg
@@ -70,12 +70,9 @@ This is usually a symbol that starts with `:'."
 	      (error "Slot %S Original Val %S != Persistent Val %S"
 		     oneslot origvalue fromdiskvalue))
 	  ;; Else !initarg-p
-	  (unless (equal (car slot-deflt) fromdiskvalue)
+	  (unless (equal (cl--slot-descriptor-initform slot) fromdiskvalue)
 	    (error "Slot %S Persistent Val %S != Default Value %S"
-		   oneslot fromdiskvalue (car slot-deflt))))
-	
-	(setq slot-names (cdr slot-names)
-	      slot-deflt (cdr slot-deflt))
+		   oneslot fromdiskvalue (cl--slot-descriptor-initform slot))))
 	))))
 
 ;;; Simple Case

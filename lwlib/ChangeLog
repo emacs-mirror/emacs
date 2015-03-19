@@ -1,3 +1,7 @@
+2015-03-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xlwmenu.c (pop_up_menu): Remove debugging code.
+
 2015-02-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xlwmenu.c (remap_menubar): Re-realize menu to force move under

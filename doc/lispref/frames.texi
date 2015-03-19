@@ -360,7 +360,7 @@ coordinates might be negative.
 Position of the top-left corner and size of the work area (``usable''
 space) in pixels as @samp{(@var{x} @var{y} @var{width} @var{height})}.
 This may be different from @samp{geometry} in that space occupied by
-various window manager features (docks, taskbars, etc.) may be
+various window manager features (docks, taskbars, etc.)@: may be
 excluded from the work area.  Whether or not such features actually
 subtract from the work area depends on the platform and environment.
 Again, if the monitor is not the primary monitor, some of the
@@ -1218,7 +1218,7 @@ These functions return the canonical height and width of a character in
 @var{frame}, measured in pixels.  Together, these values establish the
 size of the default font on @var{frame}.  The values depend on the
 choice of font for @var{frame}, see @ref{Font and Color Parameters}.
-@end defun                                                                      
+@end defun
 
 The default font can be also set directly with the following function:
 

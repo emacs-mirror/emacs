@@ -1141,7 +1141,7 @@ headings.  Default is @code{t}.  [Heading emboldening is @emph{not} standard
 @code{man} behavior.]
 
 @item woman-ignore
-A boolean value.  If non-@code{nil} then unrecognized requests etc. are
+A boolean value.  If non-@code{nil} then unrecognized requests etc.@: are
 ignored.  Default is @code{t}.  This gives the standard @code{roff} behavior.
 If @code{nil} then they are left in the buffer, which may aid debugging.
 

@@ -1425,7 +1425,7 @@ x_set_bitmap_icon (struct frame *f)
 {
   Lisp_Object obj = assq_no_quit (Qicon_type, f->param_alist);
 
-  if (CONSP (obj))
+  if (CONSP (obj) && !NILP (XCDR (obj)))
     x_bitmap_icon (f, XCDR (obj));
 }
 

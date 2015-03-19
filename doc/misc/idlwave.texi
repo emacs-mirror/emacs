@@ -1010,7 +1010,7 @@ Non-@code{nil} means use last match on line for
 @cindex Highlighting of syntax
 @cindex Font lock
 
-Highlighting of keywords, comments, strings etc. can be accomplished
+Highlighting of keywords, comments, strings etc.@: can be accomplished
 with @code{font-lock}.  If you are using @code{global-font-lock-mode}
 (in Emacs), or have @code{font-lock} turned on in any other buffer in
 XEmacs, it should also automatically work in IDLWAVE buffers.  If you'd
@@ -3111,7 +3111,7 @@ window, but is useful for immediate stepping, etc.
 @kindex C-c C-d C-p
 Do you find yourself repeatedly typing, e.g., @code{print,n_elements(x)},
 and similar statements to remind yourself of the
-type/size/structure/value/etc. of variables and expressions in your code
+type/size/structure/value/etc.@: of variables and expressions in your code
 or at the command line?  IDLWAVE has a suite of special commands to
 automate these types of variable or expression examinations.  They work
 by sending statements to the shell formatted to include the indicated

@@ -102,7 +102,7 @@ the minibuffer is in a separate frame.  @xref{Minibuffers and Frames}.
   When Emacs is running in batch mode, any request to read from the
 minibuffer actually reads a line from the standard input descriptor that
 was supplied when Emacs was started.  This supports only basic input:
-none of the special minibuffer features (history, completion, etc.)
+none of the special minibuffer features (history, completion, etc.)@:
 are available in batch mode.
 
 @node Text from Minibuffer
@@ -723,7 +723,7 @@ just one matching completion, and the match is exact, it returns
 @code{t}.  Otherwise, it returns the longest initial sequence common
 to all possible matching completions.
 
-If @var{collection} is an list, the permissible completions are
+If @var{collection} is a list, the permissible completions are
 specified by the elements of the list, each of which should be either
 a string, or a cons cell whose @sc{car} is either a string or a symbol
 (a symbol is converted to a string using @code{symbol-name}).  If the

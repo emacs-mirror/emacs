@@ -1,6 +1,158 @@
+2015-03-19  Vibhav Pant  <vibhavp@gmail.com>
+
+	* lisp/progmodes/cperl-mode.el (cperl-electric-backspace):
+	Call delete-backward-space interactively instead of delete-char.
+
+2015-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pcase.el (pcase-lambda): Rewrite.
+
+	* emacs-lisp/eieio.el (object-slots): Return slot names as before
+	(bug#20141).
+
+2015-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	EIEIO: Change class's representation to unify instance and class slots
+	* emacs-lisp/eieio-core.el (eieio--class): Change field names and order
+	to match those of cl--class; use cl--slot for both instance slots and
+	class slots.
+	(eieio--object-num-slots): Use cl-struct-slot-info.
+	(eieio--object-class): Rename from eieio--object-class-object.
+	(eieio--object-class-name): Remove.
+	(eieio-defclass-internal): Adjust to new slot representation.
+	Store doc in class rather than in `variable-documentation'.
+	(eieio--perform-slot-validation-for-default): Change API to take
+	a slot object.
+	(eieio--slot-override): New function.
+	(eieio--add-new-slot): Rewrite.
+	(eieio-copy-parents-into-subclass): Rewrite.
+	(eieio--validate-slot-value, eieio--validate-class-slot-value)
+	(eieio-oref-default, eieio-oset-default)
+	(eieio--class-slot-name-index, eieio-set-defaults): Adjust to new
+	slot representation.
+	(eieio--c3-merge-lists): Simplify.
+	(eieio--class/struct-parents): New function.
+	(eieio--class-precedence-bfs): Use it.
+
+	* emacs-lisp/eieio.el (with-slots): Use macroexp-let2.
+	(object-class-fast): Change recommend replacement.
+	(eieio-object-class): Rewrite.
+	(slot-exists-p): Adjust to new slot representation.
+	(initialize-instance): Adjust to new slot representation.
+	(object-write): Adjust to new slot representation.
+
+	* emacs-lisp/eieio-opt.el (eieio--help-print-slot): New function
+	extracted from eieio-help-class-slots.
+	(eieio-help-class-slots): Use it.  Adjust to new slot representation.
+
+	* emacs-lisp/eieio-datadebug.el (data-debug/eieio-insert-slots):
+	Declare to silence warnings.
+	(data-debug-insert-object-button): Avoid `object-slots'.
+	(data-debug/eieio-insert-slots): Adjust to new slot representation.
+
+	* emacs-lisp/eieio-custom.el (eieio-object-value-create)
+	(eieio-object-value-get): Adjust to new slot representation.
+
+	* emacs-lisp/eieio-compat.el
+	(eieio--generic-static-symbol-specializers):
+	Extract from eieio--generic-static-symbol-generalizer.
+	(eieio--generic-static-symbol-generalizer): Use it.
+
+	* emacs-lisp/eieio-base.el (eieio-persistent-convert-list-to-object):
+	Manually map initargs to slot names.
+	(eieio-persistent-validate/fix-slot-value): Adjust to new
+	slot representation.
+
+	* emacs-lisp/cl-preloaded.el (cl--class): Fix type of `parents'.
+
+2015-03-19  Vibhav Pant  <vibhavp@gmail.com>
+
+	* lisp/leim/quail/hangul.el (hangul-delete-backward-char)
+	(hangul-to-hanja-conversion):
+	* lisp/progmodes/cperl-mode.el (cperl-electric-keyword)
+	(cperl-electric-backspace): Use delete-char instead of
+	delete-backward-char, fixes compilation warnings.
+
+2015-03-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-do-directory-files-and-attributes-with-stat):
+	Mark apostrophs with ?/ instead of \037.  (Bug#20117)
+
+2015-03-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Add classes as run-time descriptors of cl-structs.
+	* emacs-lisp/cl-preloaded.el (cl--struct-get-class): New function.
+	(cl--make-slot-desc): New constructor.
+	(cl--plist-remove, cl--struct-register-child): New functions.
+	(cl-struct-define): Rewrite.
+	(cl-structure-class, cl-structure-object, cl-slot-descriptor)
+	(cl--class): New structs.
+	(cl--struct-default-parent): Initialize it here.
+	* emacs-lisp/cl-macs.el (cl--find-class): New macro.
+	(cl-defsubst, cl--defsubst-expand, cl--sublis): Move before first use.
+	(cl--struct-default-parent): New var.
+	(cl-defstruct): Adjust to new representation of classes; add
+	default parent.  In accessors, signal `wrong-type-argument' rather than
+	a generic error.
+	(cl-struct-sequence-type, cl-struct-slot-info)
+	(cl-struct-slot-offset): Rewrite.
+	* emacs-lisp/cl-generic.el (cl--generic-struct-specializers)
+	(cl-generic-generalizers): Rewrite.
+
+	* emacs-lisp/macroexp.el (macroexp--debug-eager): New var.
+	(internal-macroexpand-for-load): Use it.
+
+	* emacs-lisp/debug.el (debug--implement-debug-on-entry):
+	Bind inhibit-debug-on-entry here...
+	(debug): Instead of here.
+
+2015-03-18  Dima Kogan  <dima@secretsauce.net>
+
+	Have gud-display-line not display source buffer in gud window.
+	* lisp/progmodes/gud.el (gud-display-line): Make display-buffer
+	not reuse selected window.  (Bug#17675, Bug#19901, Bug#20034)
+
+2015-03-17  Tassilo Horn  <tsdh@gnu.org>
+
+	* emacs-lisp/byte-run.el (macro-declarations-alist):
+	New declaration no-font-lock-keyword.
+	(defmacro): Flush font-lock in existing elisp buffers.
+
+	* emacs-lisp/lisp-mode.el (lisp--el-update-after-load)
+	(lisp--el-update-macro-regexp, lisp--el-macro-regexp):
+	Delete functions and defconst.
+	(lisp--el-match-keyword): Rename from lisp--el-match-macro.
+	(lisp--el-font-lock-flush-elisp-buffers): New function.
+	(lisp-mode-variables): Remove code for updating
+	lisp--el-macro-regexp, and add
+	lisp--el-font-lock-flush-elisp-buffers to after-load-functions.
+
+2015-03-17  Simen Heggestøyl  <simenheg@gmail.com>
+
+	* textmodes/css-mode.el (css--font-lock-keywords):
+	Discriminate between pseudo-classes and pseudo-elements.
+	(css-pseudo-ids): Remove.
+	(css-pseudo-class-ids, css-pseudo-element-ids): New variables.
+	(css--complete-property): New function for completing CSS properties.
+	(css--complete-pseudo-element-or-class): New function
+	completing CSS pseudo-elements and pseudo-classes.
+	(css--complete-at-rule): New function for completing CSS at-rules.
+	(css-completion-at-point): New function.
+	(css-mode): Add support for completion.
+	(css-extract-keyword-list, css-extract-parse-val-grammar)
+	(css-extract-props-and-vals): Remove function in favor of manual
+	extraction.
+	(css-at-ids): Update list of CSS at-rule ids.
+	(css-property-ids): Update list of CSS properties.
+
+2015-03-17  Bozhidar Batsov  <bozhidar@batsov.com>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Font-lock
+	more Kernel methods.
+
 2015-03-17  Michael Albinus  <michael.albinus@gmx.de>
 
-	* tramp-sh.el (tramp-maybe-send-script): Avoid leading tabs in
+	* net/tramp-sh.el (tramp-maybe-send-script): Avoid leading tabs in
 	shell scripts.  (Bug#20118)
 
 2015-03-17  Eli Zaretskii  <eliz@gnu.org>
@@ -113,7 +265,7 @@
 
 	* progmodes/sql.el: Version 3.5
 	(sql-starts-with-prompt-re, sql-ends-with-prompt-re): Match password prompts.
-	(sql-interactive-remove-continuation-prompt): Fixed regression. (Bug#6686)
+	(sql-interactive-remove-continuation-prompt): Fix regression. (Bug#6686)
 
 2015-03-14  Daniel Colascione  <dancol@dancol.org>
 
@@ -128,8 +280,8 @@
 	info-look fixes for Texinfo 5
 	* info-look.el (c-mode, bison-mode, makefile-mode)
 	(makefile-automake-mode, texinfo-mode, autoconf-mode, awk-mode)
-	(latex-mode, emacs-lisp-mode, sh-mode, cfengine-mode): Match
-	`foo' and 'foo' and ‘foo’ for @item and similar.
+	(latex-mode, emacs-lisp-mode, sh-mode, cfengine-mode):
+	Match `foo' and 'foo' and ‘foo’ for @item and similar.
 	(latex-mode): Match multi-arg \frac{num}{den} or \sqrt[root]{n} in
 	suffix regexp.
 

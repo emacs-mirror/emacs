@@ -1293,7 +1293,7 @@ executed.
 
 @kindex S-TAB @r{(Org Mode)}
 @findex org-shifttab
-  Typing @key{S-TAB} (@code{org-shifttab}) anywhere in an Org mode
+  Typing @kbd{S-@key{TAB}} (@code{org-shifttab}) anywhere in an Org mode
 buffer cycles the visibility of the entire outline structure, between
 (i) showing only top-level heading lines, (ii) showing all heading
 lines but no body lines, and (iii) showing everything.

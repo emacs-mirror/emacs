@@ -82,7 +82,7 @@ communication.  Even though Mailcrypt has similar feature, it does not
 deal with detached PGP messages, normally used in PGP/MIME
 infrastructure.  This was the main reason why I wrote the new library.
 
-Note that the PGG library is now obsolete, replaced by EasyPG.
+Note that the PGG library is now obsolete, replaced by EasyPG@.
 @xref{Top,, EasyPG, epa, EasyPG Assistant User's Manual}.
 
 PGP/MIME is an application of MIME Object Security Services (RFC1848).

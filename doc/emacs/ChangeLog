@@ -1,3 +1,23 @@
+2015-03-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* misc.texi (Term Mode):
+	* programs.texi (Basic Indent, Custom C Indent):
+	* mini.texi (Minibuffer History):
+	* text.texi (Org Mode):
+	* display.texi (View Mode): Use @kbd where @key was mistakenly
+	used.  (Bug#20135)
+
+2015-03-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* basic.texi (Moving Point): Improve indexing for HOME and END.
+
+	* cmdargs.texi (General Variables): Improve indexing for
+	environment variables.
+
+	* msdog.texi (Windows HOME):
+	* msdog-xtra.texi (MS-DOS File Names): Remove markup from HOME in
+	the index entries.  (Bug#20105)
+
 2015-02-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdog.texi (Windows Files): Document characters invalid in

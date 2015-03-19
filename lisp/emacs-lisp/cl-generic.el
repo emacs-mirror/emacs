@@ -857,6 +857,18 @@ Can only be used from within the lexical body of a primary or around method."
 ;;; Support for cl-defstructs specializers.
 
 (defun cl--generic-struct-tag (name)
+  ;; It's tempting to use (and (vectorp ,name) (aref ,name 0))
+  ;; but that would suffer from some problems:
+  ;; - the vector may have size 0.
+  ;; - when called on an actual vector (rather than an object), we'd
+  ;;   end up returning an arbitrary value, possibly colliding with
+  ;;   other tagcode's values.
+  ;; - it can also result in returning all kinds of irrelevant
+  ;;   values which would end up filling up the method-cache with
+  ;;   lots of irrelevant/redundant entries.
+  ;; FIXME: We could speed this up by introducing a dedicated
+  ;; vector type at the C level, so we could do something like
+  ;; (and (vector-objectp ,name) (aref ,name 0))
   `(and (vectorp ,name)
         (> (length ,name) 0)
         (let ((tag (aref ,name 0)))
@@ -864,14 +876,18 @@ Can only be used from within the lexical body of a primary or around method."
               tag))))
 
 (defun cl--generic-struct-specializers (tag)
-  (and (symbolp tag)
-       ;; A method call shouldn't itself mess with the match-data.
-       (string-match-p "\\`cl-struct-\\(.*\\)" (symbol-name tag))
-       (let ((types (list (intern (substring (symbol-name tag) 10)))))
-	 (while (get (car types) 'cl-struct-include)
-	   (push (get (car types) 'cl-struct-include) types))
-	 (push 'cl-structure-object types) ;The "parent type" of all cl-structs.
-	 (nreverse types))))
+  (and (symbolp tag) (boundp tag)
+       (let ((class (symbol-value tag)))
+         (when (cl-typep class 'cl-structure-class)
+           (let ((types ())
+                 (classes (list class)))
+             ;; BFS precedence.
+             (while (let ((class (pop classes)))
+                      (push (cl--class-name class) types)
+                      (setq classes
+                            (append classes
+                                    (cl--class-parents class)))))
+             (nreverse types))))))
 
 (defconst cl--generic-struct-generalizer
   (cl-generic-make-generalizer
@@ -881,27 +897,17 @@ Can only be used from within the lexical body of a primary or around method."
 (cl-defmethod cl-generic-generalizers :extra "cl-struct" (type)
   "Support for dispatch on cl-struct types."
   (or
-   (and (symbolp type)
-        (get type 'cl-struct-type)
-        (or (null (car (get type 'cl-struct-type)))
-            (error "Can't dispatch on cl-struct %S: type is %S"
-                   type (car (get type 'cl-struct-type))))
-        (or (equal '(cl-tag-slot) (car (get type 'cl-struct-slots)))
-            (error "Can't dispatch on cl-struct %S: no tag in slot 0"
-                   type))
-        ;; It's tempting to use (and (vectorp ,name) (aref ,name 0))
-        ;; but that would suffer from some problems:
-        ;; - the vector may have size 0.
-        ;; - when called on an actual vector (rather than an object), we'd
-        ;;   end up returning an arbitrary value, possibly colliding with
-        ;;   other tagcode's values.
-        ;; - it can also result in returning all kinds of irrelevant
-        ;;   values which would end up filling up the method-cache with
-        ;;   lots of irrelevant/redundant entries.
-        ;; FIXME: We could speed this up by introducing a dedicated
-        ;; vector type at the C level, so we could do something like
-        ;; (and (vector-objectp ,name) (aref ,name 0))
-        (list cl--generic-struct-generalizer))
+   (when (symbolp type)
+     ;; Use the "cl--struct-class*" (inlinable) functions/macros rather than
+     ;; the "cl-struct-*" variants which aren't inlined, so that dispatch can
+     ;; take place without requiring cl-lib.
+     (let ((class (cl--find-class type)))
+       (and (cl-typep class 'cl-structure-class)
+            (or (null (cl--struct-class-type class))
+		(error "Can't dispatch on cl-struct %S: type is %S"
+                     type (cl--struct-class-type class)))
+            (progn (cl-assert (null (cl--struct-class-named class))) t)
+            (list cl--generic-struct-generalizer))))
    (cl-call-next-method)))
 
 ;;; Dispatch on "system types".

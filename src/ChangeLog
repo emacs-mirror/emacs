@@ -1,3 +1,12 @@
+2015-03-18  Glenn Morris  <rgm@gnu.org>
+
+	* frame.h (x_set_bitmap_icon): Don't set the icon if icon-type is
+	nil/not present in the parameter alist.  (Bug#19680)
+
+2015-03-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (purecopy): Handle hash-tables.
+
 2015-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuf.c (Fread_buffer): Add `predicate' argument.
@@ -6,13 +15,11 @@
 2015-03-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (handle_invisible_prop): Fix up it->position even when
-	we are going to load overlays at the beginning of the invisible
-	text.
+	we are going to load overlays at the beginning of the invisible text.
 	(setup_for_ellipsis): Reset the ignore_overlay_strings_at_pos_p
 	flag also here.
 	(next_overlay_string): Set the overlay_strings_at_end_processed_p
-	flag only if the overlays just processed were actually loaded at
-	EOB.
+	flag only if the overlays just processed were actually loaded at EOB.
 
 2015-03-14  Daniel Colascione  <dancol@dancol.org>
 
@@ -183,8 +190,8 @@
 
 2015-02-28  Martin Rudalics  <rudalics@gmx.at>
 
-	* frame.c (make_initial_frame, Fmake_terminal_frame): Set
-	can_x_set_window_size and after_make_frame (Bug#19962).
+	* frame.c (make_initial_frame, Fmake_terminal_frame):
+	Set can_x_set_window_size and after_make_frame (Bug#19962).
 
 2015-02-28  Eli Zaretskii  <eliz@gnu.org>
 
@@ -454,8 +461,8 @@
 
 	* indent.c (Fvertical_motion): Accept an additional argument
 	CUR-COL and use it as the starting screen coordinate.
-	* window.c (window_scroll_line_based, Fmove_to_window_line): All
-	callers of vertical-motion changed.
+	* window.c (window_scroll_line_based, Fmove_to_window_line):
+	All callers of vertical-motion changed.
 
 2015-02-09  Dima Kogan  <dima@secretsauce.net>
 

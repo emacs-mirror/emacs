@@ -178,7 +178,7 @@ error.  @ref{Signals}.
 
 First off, please note that this manual cannot serve as a complete
 introduction to object oriented programming and generic functions in
-LISP.  Although EIEIO is not a complete implementation of the Common
+LISP@.  Although EIEIO is not a complete implementation of the Common
 Lisp Object System (CLOS) and also differs from it in several aspects,
 it follows the same basic concepts.  Therefore, it is highly
 recommended to learn those from a textbook or tutorial first,

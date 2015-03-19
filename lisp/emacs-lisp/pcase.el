@@ -166,23 +166,26 @@ like `(,a . ,(pred (< a))) or, with more checks:
 
 ;;;###autoload
 (defmacro pcase-lambda (lambda-list &rest body)
-  "Like `lambda' but allow each argument to be a pattern.
-`&rest' argument is supported."
+  "Like `lambda' but allow each argument to be a UPattern.
+I.e. accepts the usual &optional and &rest keywords, but every
+formal argument can be any pattern accepted by `pcase' (a mere
+variable name being but a special case of it)."
   (declare (doc-string 2) (indent defun)
-           (debug ((&rest pcase-UPAT &optional ["&rest" pcase-UPAT]) body)))
-  (let ((args (make-symbol "args"))
-        (pats (mapcar (lambda (u)
-                        (unless (eq u '&rest)
-                          (if (eq (car-safe u) '\`) (cadr u) (list '\, u))))
-                      lambda-list))
-        (body (macroexp-parse-body body)))
-    ;; Handle &rest
-    (when (eq nil (car (last pats 2)))
-      (setq pats (append (butlast pats 2) (car (last pats)))))
-    `(lambda (&rest ,args)
-       ,@(car body)
-       (pcase ,args
-         (,(list '\` pats) . ,(cdr body))))))
+           (debug ((&rest pcase-UPAT) body)))
+  (let* ((bindings ())
+         (parsed-body (macroexp-parse-body body))
+         (args (mapcar (lambda (pat)
+                         (if (symbolp pat)
+                             ;; Simple vars and &rest/&optional are just passed
+                             ;; through unchanged.
+                             pat
+                           (let ((arg (make-symbol
+                                       (format "arg%s" (length bindings)))))
+                             (push `(,pat ,arg) bindings)
+                             arg)))
+                       lambda-list)))
+    `(lambda ,args ,@(car parsed-body)
+       (pcase-let* ,(nreverse bindings) ,@(cdr parsed-body)))))
 
 (defun pcase--let* (bindings body)
   (cond

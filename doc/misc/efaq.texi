@@ -2674,8 +2674,16 @@ variable in the environment.
 @cindex Maximize frame
 @cindex Fullscreen mode
 
-Use the function @code{w32-send-sys-command}.  For example, you can
-put the following in your @file{.emacs} file:
+Beginning with Emacs 24.4 either run Emacs with the @samp{--maximized}
+command-line option or put the following form in your @file{.emacs}
+file:
+
+@lisp
+(add-hook 'emacs-startup-hook 'toggle-frame-maximized)
+@end lisp
+
+With older versions use the function @code{w32-send-sys-command}.  For
+example, you can put the following in your @file{.emacs} file:
 
 @lisp
 (add-hook 'emacs-startup-hook

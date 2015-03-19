@@ -839,7 +839,7 @@ See @ref{hfy-display-class} for details of valid values for @var{class}.
 (hfy-face-at P)
 @end lisp
 
-Find face in effect at point P.  If overlays are to be considered
+Find face in effect at point P@.  If overlays are to be considered
 (see @ref{hfy-optimisations}) then this may return a @code{defface} style
 list of face properties instead of a face symbol.
 
@@ -1418,7 +1418,7 @@ Add @samp{<div class="default"> </div>} tags around the fontified body.
 a page with different colors than the fontified code.)
 
 @item keep-overlays
-Preserve overlay highlighting (c.f. @code{ediff} or @code{goo-font-lock})
+Preserve overlay highlighting (cf.@: @code{ediff} or @code{goo-font-lock})
 as well as basic faces.  Can result in extremely verbose highlighting
 if there are many overlays (as is the case with @code{goo-font-lock}).
 
