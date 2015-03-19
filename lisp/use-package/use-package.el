@@ -245,7 +245,7 @@ ARGS is a list of forms, so `((foo))' if only `foo' is being called."
     (list arg))
    ((and (not recursed) (listp arg) (listp (cdr arg)))
     (mapcar #'(lambda (x) (car (use-package-normalize-diminish
-                           name-symbol label x t))) arg))
+                                name-symbol label x t))) arg))
    (t
     (use-package-error
      (concat label " wants a string, symbol, "
@@ -293,7 +293,7 @@ ARGS is a list of forms, so `((foo))' if only `foo' is being called."
     (list arg))
    ((and (not recursed) (listp arg) (listp (cdr arg)))
     (mapcar #'(lambda (x) (car (use-package-normalize-pairs
-                           name-symbol label x t allow-vector))) arg))
+                                name-symbol label x t allow-vector))) arg))
    (t
     (use-package-error
      (concat label " wants a string, (string . symbol) or list of these")))))
@@ -440,12 +440,12 @@ ARGS is a list of forms, so `((foo))' if only `foo' is being called."
 
          (mapcar #'(lambda (mode)
                      (push (cdr mode) commands)
-                     `(add-to-list 'auto-mode-alist ',mode))
+                     `(push ',mode auto-mode-alist))
                  (plist-get args :mode))
 
          (mapcar #'(lambda (interpreter)
                      (push (cdr interpreter) commands)
-                     `(add-to-list 'interpreter-mode-alist ',interpreter))
+                     `(push ',interpreter interpreter-mode-alist))
                  (plist-get args :interpreter))
 
          (mapcar #'(lambda (binding)
@@ -502,7 +502,7 @@ ARGS is a list of forms, so `((foo))' if only `foo' is being called."
     (use-package-cat-maybes
      ;; Setup the load-path
      (mapcar #'(lambda (path)
-                 `(eval-and-compile (add-to-list 'load-path ,path)))
+                 `(eval-and-compile (push ,path load-path)))
              (plist-get args :load-path))
 
      pre-compile-load
@@ -631,8 +631,8 @@ this file.  Usage:
           ((body (use-package-cat-maybes
                   (use--package name name-symbol name-string args*)
                   (when archive-name
-                    `((add-to-list 'package-pinned-packages
-                                   '(,name-symbol . ,archive-name))))))
+                    `((push '(,name-symbol . ,archive-name)
+                            package-pinned-packages)))))
            (pred (plist-get args* :if))
            (expansion (if pred
                           `((when ,pred ,@body))
@@ -700,8 +700,7 @@ deferred until the prefix key sequence is pressed."
   (let ((archive-symbol (if (symbolp archive) archive (intern archive)))
         (archive-name   (if (stringp archive) archive (symbol-name archive))))
     (if (use-package--archive-exists-p archive-symbol)
-        (add-to-list 'package-pinned-packages
-                     (cons package archive-name))
+        (push (cons package archive-name) package-pinned-packages)
       (error "Archive '%s' requested for package '%s' is not available."
              archive-name package))
     (package-initialize t)))
