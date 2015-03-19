@@ -74,9 +74,9 @@ then the expanded macros do their job silently."
   :group 'use-package)
 
 (defcustom use-package-inject-hooks nil
-  "If non-nil, add hooks to the `:init' and `:config' sections for a package.
+  "If non-nil, add hooks to the `:init' and `:config' sections.
 In particular, for a given package `foo', the following hooks
-will become available:
+become available:
 
   `use-package--foo--pre-init-hook'
   `use-package--foo--post-init-hook'
@@ -100,9 +100,8 @@ This disables:
   - Printing to the *Messages* buffer of slowly-evaluating forms
   - Capture of load errors (normally redisplayed as warnings)
   - Conditional loading of packages (load failures become errors)
-The only real advantage is that, if you know your configuration
-works, then your byte-compiled init file is as minimal as
-possible."
+The only advantage is that, if you know your configuration works,
+then your byte-compiled init file is as minimal as possible."
   :type 'boolean
   :group 'use-package)
 
@@ -469,7 +468,9 @@ ARGS is a list of forms, so `((foo))' if only `foo' is being called."
 
      pre-compile-load
 
-     (plist-get args :preface)
+     (mapcar #'(lambda (form)
+                 `(eval-and-compile ,form))
+             (plist-get args :preface))
 
      ;; Setup any required autoloads
      (if defer-loading
@@ -606,7 +607,7 @@ this file.  Usage:
                           `(not (member nil (mapcar #'featurep ',requires)))
                         `(featurep ',requires))
                      ,@expansion))))))
-        ;; (message "Expanded: %s" (pp-to-string body*))
+        ;; (message "Expanded:\n%s" (pp-to-string body*))
         `(let ((byte-compile-warnings byte-compile-warnings))
            (byte-compile-disable-warning 'redefined)
            ,body*)))))
