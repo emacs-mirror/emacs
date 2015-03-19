@@ -103,44 +103,6 @@ then your byte-compiled init file is as minimal as possible."
   :type 'boolean
   :group 'use-package)
 
-(defvar use-package-extra-keywords nil
-  "A list of extra keywords to be accepted in the use-package form.")
-
-(defconst use-package-phases
-  '(setup-load-path
-    pre-compile-load
-    preface
-    setup-autoloads
-    register-load-on-idle
-    declare-functions
-    init
-    register-eval-after-load
-    deferred-config
-    package-load
-    config
-    wrapup)
-  "A list of phases that capture the sequence of `use-package'.
-This is used by `use-package-add-keywords' in order to register
-new keywords, and to specify when their handler should be
-called.
-Each phase registers a `before-' and `after-' counterpart, so
-that you can register new keywords as follows:
-
-  (use-package-add-keywords :ensure 'after-preface)
-
-Which is identical to saying:
-
-  (use-package-add-keywords :ensure 'before-setup-autoloads)
-
-The reason for duplicating the sequence points with redundant
-before and after monikers is to make keyword-adding resilient to
-the creation of new phases in future.")
-
-(defun use-package-add-keywords (&rest args)
-  (let ((keywords (cl-remove-if #'(lambda (x) (not (keywordp args)))))
-        (phases (cl-remove-if #'(lambda (x) (keywordp args))))))
-  )
-
 (defun use-package-expand (name label form)
   "FORM is a list of forms, so `((foo))' if only `foo' is being called."
   (declare (indent 1))
