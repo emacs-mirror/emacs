@@ -143,11 +143,6 @@ the creation of new phases in future.")
         (phases (cl-remove-if #'(lambda (x) (keywordp args))))))
   )
 
-(defun use-package-progn (body)
-  (if (= (length body) 1)
-      (car body)
-    `(progn ,@body)))
-
 (defun use-package-expand (name label form)
   "FORM is a list of forms, so `((foo))' if only `foo' is being called."
   (declare (indent 1))
@@ -157,7 +152,7 @@ the creation of new phases in future.")
       (let ((err (make-symbol "err")))
         (list
          `(condition-case-unless-debug ,err
-              ,(use-package-progn form)
+              ,(macroexp-progn form)
             (error
              (ignore
               (display-warning 'use-package
@@ -176,15 +171,15 @@ ARGS is a list of forms, so `((foo))' if only `foo' is being called."
     (let ((keyword-name (substring (format "%s" keyword) 1))
           (block (plist-get args keyword)))
       (when block
-        `((when ,(use-package-progn
+        `((when ,(macroexp-progn
                   (use-package-expand name-string (format "pre-%s hook" keyword)
                     `(run-hook-with-args-until-failure
                       ',(intern (concat "use-package--" name-string
                                         "--pre-" keyword-name "-hook")))))
-            ,(use-package-progn
+            ,(macroexp-progn
               (use-package-expand name-string (format "%s" keyword)
                 (plist-get args keyword)))
-            ,(use-package-progn
+            ,(macroexp-progn
               (use-package-expand name-string (format "post-%s hook" keyword)
                 `(run-hooks
                   ',(intern (concat "use-package--" name-string
@@ -200,7 +195,7 @@ ARGS is a list of forms, so `((foo))' if only `foo' is being called."
           `((let ((,nowvar (current-time)))
               (message "%s..." ,text)
               (prog1
-                  ,(use-package-progn body)
+                  ,(macroexp-progn body)
                 (let ((elapsed
                        (float-time (time-subtract (current-time) ,nowvar))))
                   (if (> elapsed ,use-package-minimum-reported-time)
@@ -540,7 +535,7 @@ ARGS is a list of forms, so `((foo))' if only `foo' is being called."
           (if config-body
               `((eval-after-load ',name
                   ;; '(,config-defun)
-                  ',(use-package-progn config-body))))
+                  ',(macroexp-progn config-body))))
           (list t))
        (use-package-with-elapsed-timer
            (format "Loading package %s" name-string)
@@ -639,7 +634,7 @@ this file.  Usage:
                         body))
            (requires (plist-get args* :requires))
            (body*
-            (use-package-progn
+            (macroexp-progn
              (if (null requires)
                  expansion
                `((if ,(if (listp requires)
