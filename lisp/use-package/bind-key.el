@@ -234,12 +234,9 @@ function symbol (unquoted)."
       "#<keymap>")
      (t
       elem)))
-   ((keymapp elem)
-    (if (and bind-key-describe-special-forms
-             (symbolp elem)
-             (get elem 'variable-documentation))
-        (format "%s" (get elem 'variable-documentation))
-      "#<keymap>"))
+   ;; must be a symbol, non-symbol keymap case covered above
+   ((and bind-key-describe-special-forms (keymapp elem))
+    (get elem 'variable-documentation))
    ((symbolp elem)
     elem)
    (t
