@@ -145,7 +145,7 @@ ARGS is a list of forms, so `((foo))' if only `foo' is being called."
                   ',(intern (concat "use-package--" name-string
                                     "--post-" keyword-name "-hook")))))))))))
 
-(defun use-package-with-elapsed-timer (text body)
+(defun use-package--with-elapsed-timer (text body)
   "BODY is a list of forms, so `((foo))' if only `foo' is being called."
   (declare (indent 1))
   (if use-package-expand-minimally
@@ -163,7 +163,7 @@ ARGS is a list of forms, so `((foo))' if only `foo' is being called."
                     (message "%s...done" ,text))))))
         body))))
 
-(put 'use-package-with-elapsed-timer 'lisp-indent-function 1)
+(put 'use-package--with-elapsed-timer 'lisp-indent-function 1)
 
 (defsubst use-package-error (msg)
   "Report MSG as an error, so the user knows it came from this package."
@@ -437,7 +437,7 @@ ARGS is a list of forms, so `((foo))' if only `foo' is being called."
        ;; These are all the configurations to be made after the package has
        ;; loaded.
        (config-body
-        (use-package-with-elapsed-timer
+        (use-package--with-elapsed-timer
             (format "Configuring package %s" name-string)
           (use-package-cat-maybes
            (use-package-hook-injector name-string :config args)
@@ -497,7 +497,7 @@ ARGS is a list of forms, so `((foo))' if only `foo' is being called."
                   ;; '(,config-defun)
                   ',(macroexp-progn config-body))))
           (list t))
-       (use-package-with-elapsed-timer
+       (use-package--with-elapsed-timer
            (format "Loading package %s" name-string)
          (if use-package-expand-minimally
              (use-package-cat-maybes
@@ -633,7 +633,7 @@ deferred until the prefix key sequence is pressed."
              package keymap-symbol))))
 
 (defconst use-package-font-lock-keywords
-  '(("(\\(use-package\\(?:-with-elapsed-timer\\)?\\)\\_>[ \t']*\\(\\(?:\\sw\\|\\s_\\)+\\)?"
+  '(("(\\(use-package\\)\\_>[ \t']*\\(\\(?:\\sw\\|\\s_\\)+\\)?"
      (1 font-lock-keyword-face)
      (2 font-lock-constant-face nil t))))
 
