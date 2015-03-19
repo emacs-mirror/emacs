@@ -11,7 +11,7 @@
  *
  * .note.stack: It's important that the MPS have a bounded stack size,
  * and this is a problem for tree algorithms. Basically, we have to
- * avoid recursion. See design.mps.sp.req.sol.depth.no-recursion.
+ * avoid recursion. See design.mps.sp.sol.depth.no-recursion.
  */
 
 
