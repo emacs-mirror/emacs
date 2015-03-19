@@ -647,9 +647,7 @@ this file.  Usage:
                         `(featurep ',requires))
                      ,@expansion))))))
         ;; (message "Expanded:\n%s" (pp-to-string body*))
-        `(let ((byte-compile-warnings byte-compile-warnings))
-           (byte-compile-disable-warning 'redefined)
-           ,body*)))))
+        body*))))
 
 (put 'use-package 'lisp-indent-function 'defun)
 
