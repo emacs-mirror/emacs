@@ -41,6 +41,7 @@
 (require 'bytecomp)
 (require 'diminish nil t)
 (require 'bytecomp)
+(eval-when-compile (require 'cl))
 
 (declare-function package-installed-p 'package)
 
@@ -92,6 +93,35 @@ the user specified."
   :type 'boolean
   :group 'use-package)
 
+(defcustom use-package-keywords
+  '(:disabled
+    :pin
+    :ensure
+    :if
+    :when
+    :unless
+    :requires
+    :load-path
+    :no-require
+    :preface
+    :bind
+    :bind*
+    :bind-keymap
+    :bind-keymap*
+    :interpreter
+    :mode
+    :commands
+    :defines
+    :functions
+    :defer
+    :demand
+    :init
+    :config
+    :diminish)
+  "Establish which keywords are valid, and the order they are processed in."
+  :type '(repeat symbol)
+  :group 'use-package)
+
 (defcustom use-package-expand-minimally nil
   "If non-nil, make the expanded code as minimal as possible.
 This disables:
@@ -102,6 +132,11 @@ The only advantage is that, if you know your configuration works,
 then your byte-compiled init file is as minimal as possible."
   :type 'boolean
   :group 'use-package)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Utility functions
+;;
 
 (defun use-package-expand (name label form)
   "FORM is a list of forms, so `((foo))' if only `foo' is being called."
@@ -169,15 +204,62 @@ ARGS is a list of forms, so `((foo))' if only `foo' is being called."
   "Report MSG as an error, so the user knows it came from this package."
   (error "use-package: %s" msg))
 
-(defun use-package-normalize-form (label args)
-  "Given a list of forms, return it wrapped in `progn'."
-  (unless (listp (car args))
-    (use-package-error (concat label " wants a sexp or list of sexps")))
-  (mapcar #'(lambda (form)
-              (if (and (consp form)
-                       (eq (car form) 'use-package))
-                  (macroexpand form)
-                form)) args))
+(defun use-package-plist-delete (plist property)
+  "Delete PROPERTY from PLIST.
+This is in contrast to merely setting it to 0."
+  (let (p)
+    (while plist
+      (if (not (eq property (car plist)))
+	  (setq p (plist-put p (car plist) (nth 1 plist))))
+      (setq plist (cddr plist)))
+    p))
+
+(defun use-package-split-list (pred xs)
+  (let ((ys (list nil)) (zs (list nil)) flip)
+    (dolist (x xs)
+      (if flip
+          (nconc zs (list x))
+        (if (funcall pred x)
+            (progn
+              (setq flip t)
+              (nconc zs (list x)))
+          (nconc ys (list x)))))
+    (cons (cdr ys) (cdr zs))))
+
+(defun use-package-keyword-index (keyword)
+  (loop named outer
+        with index = 0
+        for k in use-package-keywords do
+        (if (eq k keyword)
+            (return-from outer index))
+        (incf index)))
+
+(defun use-package-sort-keywords (plist)
+  (let (plist-grouped)
+    (while plist
+      (push (cons (car plist) (cadr plist))
+            plist-grouped)
+      (setq plist (cddr plist)))
+    (append
+     (sort plist-grouped
+           #'(lambda (l r) (< (use-package-keyword-index (car l))
+                         (use-package-keyword-index (car r))))))))
+
+(defsubst use-package-cat-maybes (&rest elems)
+  "Delete all empty lists from ELEMS (nil or (list nil)), and append them."
+  (apply #'nconc (delete nil (delete (list nil) elems))))
+
+(defconst use-package-font-lock-keywords
+  '(("(\\(use-package\\)\\_>[ \t']*\\(\\(?:\\sw\\|\\s_\\)+\\)?"
+     (1 font-lock-keyword-face)
+     (2 font-lock-constant-face nil t))))
+
+(font-lock-add-keywords 'emacs-lisp-mode use-package-font-lock-keywords)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Normalization functions
+;;
 
 (defsubst use-package-normalize-value (label arg)
   "Normalize a value."
@@ -187,37 +269,23 @@ ARGS is a list of forms, so `((foo))' if only `foo' is being called."
          `(funcall #',arg))
         (t arg)))
 
-(defun use-package-normalize-diminish (name-symbol label arg &optional recursed)
-  "Normalize the arguments to diminish down to a list of one of two forms:
-     SYMBOL
-     (SYMBOL . STRING)"
+(defun use-package-normalize-paths (label arg &optional recursed)
+  "Normalize a list of filesystem paths."
   (cond
-   ((symbolp arg)
-    (list arg))
+   ((or (symbolp arg) (functionp arg))
+    (let ((value (use-package-normalize-value label arg)))
+      (use-package-normalize-paths label (eval value))))
    ((stringp arg)
-    (list (cons (intern (concat (symbol-name name-symbol) "-mode")) arg)))
-   ((and (consp arg) (stringp (cdr arg)))
-    (list arg))
+    (let ((path (if (file-name-absolute-p arg)
+                    arg
+                  (expand-file-name arg user-emacs-directory))))
+      (list path)))
    ((and (not recursed) (listp arg) (listp (cdr arg)))
-    (mapcar #'(lambda (x) (car (use-package-normalize-diminish
-                                name-symbol label x t))) arg))
+    (mapcar #'(lambda (x)
+                (car (use-package-normalize-paths label x t))) arg))
    (t
     (use-package-error
-     (concat label " wants a string, symbol, "
-             "(symbol . string) or list of these")))))
-
-(defun use-package-only-one (label args f)
-  "Call F on the first member of ARGS if it has exactly one element."
-  (declare (indent 1))
-  (cond
-   ((and (listp args) (listp (cdr args))
-         (= (length args) 1))
-    (funcall f label (car args)))
-   (t
-    (use-package-error
-     (concat label " wants exactly one argument")))))
-
-(put 'use-package-only-one 'lisp-indent-function 'defun)
+     (concat label " wants a directory path, or list of paths")))))
 
 (defun use-package-as-one (label args f)
   "Call F on the first element of ARGS if it has one element, or all of ARGS."
@@ -253,6 +321,23 @@ ARGS is a list of forms, so `((foo))' if only `foo' is being called."
     (use-package-error
      (concat label " wants a string, (string . symbol) or list of these")))))
 
+(defun use-package-normalize-binder (name-symbol keyword args)
+  (use-package-as-one (symbol-name keyword) args
+    (lambda (label arg)
+      (use-package-normalize-pairs name-symbol label arg nil t))))
+
+(defalias 'use-package-normalize/:bind 'use-package-normalize-binder)
+(defalias 'use-package-normalize/:bind* 'use-package-normalize-binder)
+(defalias 'use-package-normalize/:bind-keymap 'use-package-normalize-binder)
+(defalias 'use-package-normalize/:bind-keymap* 'use-package-normalize-binder)
+
+(defun use-package-normalize-mode (name-symbol keyword args)
+  (use-package-as-one (symbol-name keyword) args
+    (apply-partially #'use-package-normalize-pairs name-symbol)))
+
+(defalias 'use-package-normalize/:mode 'use-package-normalize-mode)
+(defalias 'use-package-normalize/:interpreter 'use-package-normalize-mode)
+
 (defun use-package-normalize-symbols (label arg &optional recursed)
   "Normalize a list of symbols."
   (cond
@@ -264,110 +349,179 @@ ARGS is a list of forms, so `((foo))' if only `foo' is being called."
     (use-package-error
      (concat label " wants a symbol, or list of symbols")))))
 
-(defun use-package-normalize-paths (label arg &optional recursed)
-  "Normalize a list of filesystem paths."
+(defun use-package-normalize-symlist (name-symbol keyword args)
+  (use-package-as-one (symbol-name keyword) args
+    #'use-package-normalize-symbols))
+
+(defalias 'use-package-normalize/:commands 'use-package-normalize-symlist)
+(defalias 'use-package-normalize/:defines 'use-package-normalize-symlist)
+(defalias 'use-package-normalize/:functions 'use-package-normalize-symlist)
+(defalias 'use-package-normalize/:requires 'use-package-normalize-symlist)
+
+(defun use-package-only-one (label args f)
+  "Call F on the first member of ARGS if it has exactly one element."
+  (declare (indent 1))
   (cond
-   ((or (symbolp arg) (functionp arg))
-    (let ((value (use-package-normalize-value label arg)))
-      (use-package-normalize-paths label (eval value))))
-   ((stringp arg)
-    (let ((path (if (file-name-absolute-p arg)
-                    arg
-                  (expand-file-name arg user-emacs-directory))))
-      (list path)))
-   ((and (not recursed) (listp arg) (listp (cdr arg)))
-    (mapcar #'(lambda (x)
-                (car (use-package-normalize-paths label x t))) arg))
+   ((and (listp args) (listp (cdr args))
+         (= (length args) 1))
+    (funcall f label (car args)))
    (t
     (use-package-error
-     (concat label " wants a directory path, or list of paths")))))
+     (concat label " wants exactly one argument")))))
 
-(defun use-package-split-list (pred xs)
-  (let ((ys (list nil)) (zs (list nil)) flip)
-    (dolist (x xs)
-      (if flip
-          (nconc zs (list x))
-        (if (funcall pred x)
-            (progn
-              (setq flip t)
-              (nconc zs (list x)))
-          (nconc ys (list x)))))
-    (cons (cdr ys) (cdr zs))))
+(put 'use-package-only-one 'lisp-indent-function 'defun)
+
+(defun use-package-normalize-predicate (name-symbol keyword args)
+  (if (null args)
+      t
+    (use-package-only-one (symbol-name keyword) args
+      #'use-package-normalize-value)))
+
+(defalias 'use-package-normalize/:defer 'use-package-normalize-predicate)
+(defalias 'use-package-normalize/:demand 'use-package-normalize-predicate)
+(defalias 'use-package-normalize/:disabled 'use-package-normalize-predicate)
+(defalias 'use-package-normalize/:no-require 'use-package-normalize-predicate)
+
+(defun use-package-normalize/:ensure (name-symbol keyword args)
+  (if (null args)
+      t
+    (use-package-only-one (symbol-name keyword) args
+      (lambda (label arg)
+        (if (symbolp arg)
+            arg
+          (use-package-error
+           (concat ":ensure wants an optional package name "
+                   "(an unquoted symbol name)")))))))
+
+(defun use-package-normalize-test (name-symbol keyword args)
+  (use-package-only-one (symbol-name keyword) args
+    #'use-package-normalize-value))
+
+(defalias 'use-package-normalize/:if 'use-package-normalize-test)
+(defalias 'use-package-normalize/:when 'use-package-normalize-test)
+
+(defun use-package-normalize/:unless (name-symbol keyword args)
+  (not (use-package-only-one (symbol-name keyword) args
+         #'use-package-normalize-value)))
+
+(defun use-package-normalize-diminish (name-symbol label arg &optional recursed)
+  "Normalize the arguments to diminish down to a list of one of two forms:
+     SYMBOL
+     (SYMBOL . STRING)"
+  (cond
+   ((symbolp arg)
+    (list arg))
+   ((stringp arg)
+    (list (cons (intern (concat (symbol-name name-symbol) "-mode")) arg)))
+   ((and (consp arg) (stringp (cdr arg)))
+    (list arg))
+   ((and (not recursed) (listp arg) (listp (cdr arg)))
+    (mapcar #'(lambda (x) (car (use-package-normalize-diminish
+                                name-symbol label x t))) arg))
+   (t
+    (use-package-error
+     (concat label " wants a string, symbol, "
+             "(symbol . string) or list of these")))))
+
+(defun use-package-normalize/:diminish (name-symbol keyword args)
+  (use-package-as-one (symbol-name keyword) args
+    (apply-partially #'use-package-normalize-diminish name-symbol)))
+
+(defun use-package-normalize-form (label args)
+  "Given a list of forms, return it wrapped in `progn'."
+  (unless (listp (car args))
+    (use-package-error (concat label " wants a sexp or list of sexps")))
+  (mapcar #'(lambda (form)
+              (if (and (consp form)
+                       (eq (car form) 'use-package))
+                  (macroexpand form)
+                form)) args))
+
+(defun use-package-normalize-forms (name-symbol keyword args)
+  (use-package-normalize-form (symbol-name keyword) args))
+
+(defalias 'use-package-normalize/:preface 'use-package-normalize-forms)
+(defalias 'use-package-normalize/:init 'use-package-normalize-forms)
+(defalias 'use-package-normalize/:config 'use-package-normalize-forms)
+
+(defun use-package-normalize/:load-path (name-symbol keyword args)
+  (use-package-as-one (symbol-name keyword) args
+    #'use-package-normalize-paths))
+
+(defun use-package-normalize/:pin (name-symbol keyword args)
+  (use-package-only-one (symbol-name keyword) args
+    (lambda (label arg)
+      (cond
+       ((stringp arg) arg)
+       ((symbolp arg) (symbol-name arg))
+       (t
+        (use-package-error
+         ":pin wants an archive name (a string)"))))))
 
 (defun use-package-normalize-plist (name-symbol input)
   "Given a pseudo-plist, normalize it to a regular plist."
-  (if (null input)
-      nil
-    (let* ((head (car input))
+  (unless (null input)
+    (let* ((keyword (car input))
            (xs (use-package-split-list #'keywordp (cdr input)))
            (args (car xs))
-           (tail (cdr xs)))
-      (append
-       (list
-        (cond ((memq head '(:when :unless)) :if)
-              (t head))
-        (pcase head
-          ((or :bind :bind* :bind-keymap :bind-keymap*)
-           (use-package-as-one (symbol-name head) args
-             (lambda (label arg)
-               (use-package-normalize-pairs name-symbol label arg nil t))))
+           (tail (cdr xs))
+           (normalizer (intern (concat "use-package-normalize/"
+                                       (symbol-name keyword))))
+           (arg
+            (cond
+             ((functionp normalizer)
+              (funcall normalizer name-symbol keyword args))
+             ((= (length args) 1)
+              (car args))
+             (t
+              args))))
+      (if (memq keyword use-package-keywords)
+          (cons keyword
+                (cons arg (use-package-normalize-plist name-symbol tail)))
+        (use-package-error (format "Unrecognized keyword: %s" keyword))))))
 
-          ((or :interpreter :mode)
-           (use-package-as-one (symbol-name head) args
-             (apply-partially #'use-package-normalize-pairs name-symbol)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Keyword processing
+;;
 
-          ((or :commands :defines :functions :requires)
-           (use-package-as-one (symbol-name head) args
-             #'use-package-normalize-symbols))
+(defun use-package-process-keywords (name-symbol plist state)
+  "Process the next keyword in the free-form property list PLIST.
+The values in the PLIST have each been normalized by the function
+use-package-normalize/KEYWORD (minus the colon).
 
-          ((or :defer :demand :disabled :no-require)
-           (if (null args)
-               t
-             (use-package-only-one (symbol-name head) args
-               #'use-package-normalize-value)))
+STATE is a property list that the function may modify and/or
+query.  This is useful if a package defines multiple keywords and
+wishes them to have some kind of stateful interaction.
 
-          (:ensure
-           (if (null args)
-               t
-             (use-package-only-one (symbol-name head) args
-               (lambda (label arg)
-                 (if (symbolp arg)
-                     arg
-                   (use-package-error
-                    (concat ":ensure wants an optional package name "
-                            "(an unquoted symbol name)")))))))
+Unless the KEYWORD being processed intends to ignore remaining
+keywords, it must call this function recursively, passing in the
+plist with its keyword and argument removed, and passing in the
+next value for the STATE."
+  (let ((plist* (use-package-sort-keywords
+                 (use-package-normalize-plist name-symbol plist))))
+    (unless (null plist*)
+      (let* ((keyword (car plist*))
+             (arg (cadr plist*))
+             (rest (cddr plist*)))
+        (unless (keywordp keyword)
+          (use-package-error (format "%s is not a keyword" keyword)))
+        (let* ((handler (concat "use-package-handler/"
+                                (symbol-name keyword)))
+               (handler-sym (intern handler)))
+          (if (functionp handler-sym)
+              (funcall handler-sym name-symbol keyword arg rest state)
+            (use-package-error
+             (format "Keyword handler not defined: %s" handler))))))))
 
-          ((or :if :when :unless)
-           (use-package-only-one (symbol-name head) args
-             #'use-package-normalize-value))
+(defun use-package-handler/:if (name-symbol keyword pred rest state)
+  `((when ,pred
+      ,@(use-package-process-keywords name-symbol rest state))))
 
-          (:diminish
-           (use-package-as-one (symbol-name head) args
-             (apply-partially #'use-package-normalize-diminish name-symbol)))
-
-          ((or :preface :init :config)
-           (use-package-normalize-form (symbol-name head) args))
-
-          (:load-path
-           (use-package-as-one (symbol-name head) args
-             #'use-package-normalize-paths))
-
-          (:pin
-           (use-package-only-one (symbol-name head) args
-             (lambda (label arg)
-               (cond
-                ((stringp arg) arg)
-                ((symbolp arg) (symbol-name arg))
-                (t
-                 (use-package-error
-                  ":pin wants an archive name (a string)"))))))
-
-          (_ (use-package-error (format "Unrecognized keyword: %s" head)))))
-       (use-package-normalize-plist name-symbol tail)))))
-
-(defsubst use-package-cat-maybes (&rest elems)
-  "Delete all empty lists from ELEMS (nil or (list nil)), and append them."
-  (apply #'nconc (delete nil (delete (list nil) elems))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; The main macro
+;;
 
 (defun use--package (name name-symbol name-string args)
   "See docstring for `use-package'."
@@ -471,17 +625,21 @@ ARGS is a list of forms, so `((foo))' if only `foo' is being called."
          (apply
           #'nconc
           (mapcar #'(lambda (command)
-                      `((unless (fboundp ',command)
-                          (autoload #',command ,name-string nil t))
-                        (declare-function ,command ,name-string)))
+                      (append
+                       `((unless (fboundp ',command)
+                           (autoload #',command ,name-string nil t)))
+                       (when (bound-and-true-p byte-compile-current-file)
+                         `((eval-when-compile
+                             (declare-function ,command ,name-string))))))
                   commands)))
+
+     (when (bound-and-true-p byte-compile-current-file)
+       (mapcar #'(lambda (fn) `(eval-when-compile
+                            (declare-function ,fn ,name-string)))
+               (plist-get args :functions)))
 
      (if (numberp deferral)
          `((run-with-idle-timer ,deferral nil #'require ',name-symbol nil t)))
-
-     (when (bound-and-true-p byte-compile-current-file)
-       (mapcar #'(lambda (fn) `(declare-function ,fn ,name-string))
-               (plist-get args :functions)))
 
      ;; (if (and defer-loading config-body)
      ;;     `((defalias ',config-defun #'(lambda () ,config-body*))))
@@ -606,6 +764,11 @@ this file.  Usage:
 
 (put 'use-package 'lisp-indent-function 'defun)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; Special support for autoloading keymaps
+;;
+
 (defun use-package-autoload-keymap (keymap-symbol package override)
   "Loads PACKAGE and then binds the key sequence used to invoke
 this function to KEYMAP-SYMBOL.  It then simulates pressing the
@@ -631,13 +794,6 @@ deferred until the prefix key sequence is pressed."
                 (listify-key-sequence (this-command-keys-vector))))
       (error "use-package: package %s failed to define keymap %s"
              package keymap-symbol))))
-
-(defconst use-package-font-lock-keywords
-  '(("(\\(use-package\\)\\_>[ \t']*\\(\\(?:\\sw\\|\\s_\\)+\\)?"
-     (1 font-lock-keyword-face)
-     (2 font-lock-constant-face nil t))))
-
-(font-lock-add-keywords 'emacs-lisp-mode use-package-font-lock-keywords)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
