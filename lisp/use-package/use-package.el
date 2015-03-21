@@ -864,7 +864,7 @@ deferred until the prefix key sequence is pressed."
                body
                (list t))))))
     (if (plist-get state :deferred)
-        (unless (equal config-body '(t))
+        (unless (or (null config-body) (equal config-body '(t)))
           `((eval-after-load ',name-symbol
               ',(macroexp-progn config-body))))
       (use-package--with-elapsed-timer
