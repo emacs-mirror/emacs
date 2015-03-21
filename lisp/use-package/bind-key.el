@@ -221,8 +221,7 @@ function symbol (unquoted)."
                   key-bindings)))))
 
 (defmacro bind-keys* (&rest args)
-  `(bind-keys :map override-global-map
-              ,@args))
+  `(bind-keys :map override-global-map ,@args))
 
 (defun get-binding-description (elem)
   (cond
@@ -292,7 +291,7 @@ function symbol (unquoted)."
                      (sort personal-keybindings
                            (lambda (l r)
                              (car (compare-keybindings l r))))))
-        
+
         (if (not (eq (cdar last-binding) (cdar binding)))
             (princ (format "\n\n%s\n%s\n\n"
                            (cdar binding)
@@ -300,7 +299,7 @@ function symbol (unquoted)."
           (if (and last-binding
                    (cdr (compare-keybindings last-binding binding)))
               (princ "\n")))
-        
+
         (let* ((key-name (caar binding))
                (at-present (lookup-key (or (symbol-value (cdar binding))
                                            (current-global-map))
@@ -325,7 +324,7 @@ function symbol (unquoted)."
             (princ (if (string-match "[ \t]+\n" line)
                        (replace-match "\n" t t line)
                      line))))
-        
+
         (setq last-binding binding)))))
 
 (provide 'bind-key)
