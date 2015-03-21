@@ -91,6 +91,7 @@
 ;; what the default was.  Also, it will tell you if the key was rebound after
 ;; your binding it with `bind-key', and what it was rebound it to.
 
+(require 'cl-lib)
 (require 'easy-mmode)
 
 (defgroup bind-key nil
@@ -144,8 +145,7 @@ spelled-out keystrokes, e.g., \"C-c C-z\". See documentation of
   (let ((namevar (make-symbol "name"))
         (keyvar (make-symbol "key"))
         (kdescvar (make-symbol "kdesc"))
-        (bindingvar (make-symbol "binding"))
-        (entryvar (make-symbol "entry")))
+        (bindingvar (make-symbol "binding")))
     `(let* ((,namevar ,key-name)
             (,keyvar (if (vectorp ,namevar) ,namevar
                        (read-kbd-macro ,namevar)))
@@ -153,19 +153,25 @@ spelled-out keystrokes, e.g., \"C-c C-z\". See documentation of
                                (key-description ,namevar))
                              (quote ,keymap)))
             (,bindingvar (lookup-key (or ,keymap global-map)
-                                     ,keyvar))
-            (,entryvar (assoc ,kdescvar personal-keybindings)))
-       (when ,entryvar
-         (setq personal-keybindings
-               (delq ,entryvar personal-keybindings)))
-       (push (list ,kdescvar ,command
-                   (unless (numberp ,bindingvar) ,bindingvar))
-             personal-keybindings)
+                                     ,keyvar)))
+       (add-to-list 'personal-keybindings
+                    (list ,kdescvar ,command
+                          (unless (numberp ,bindingvar) ,bindingvar)))
        (define-key (or ,keymap global-map) ,keyvar ,command))))
 
 ;;;###autoload
 (defmacro unbind-key (key-name &optional keymap)
-  `(bind-key ,key-name nil ,keymap))
+  `(progn
+     (bind-key ,key-name nil ,keymap)
+     (setq personal-keybindings
+           (cl-delete-if #'(lambda (k)
+                             ,(if keymap
+                                  `(and (consp (car k))
+                                        (string= (caar k) ,key-name)
+                                        (eq (cdar k) ',keymap))
+                                `(and (stringp (car k))
+                                      (string= (car k) ,key-name))))
+                         personal-keybindings))))
 
 ;;;###autoload
 (defmacro bind-key* (key-name command)
@@ -288,7 +294,8 @@ function symbol (unquoted)."
   "Display all the personal keybindings defined by `bind-key'."
   (interactive)
   (with-output-to-temp-buffer "*Personal Keybindings*"
-    (princ (format "Key name%s Command%s Comments\n%s %s ---------------------\n"
+    (princ (format (concat "Key name%s Command%s Comments\n%s %s "
+                           "---------------------\n")
                    (make-string (- (car bind-key-column-widths) 9) ? )
                    (make-string (- (cdr bind-key-column-widths) 8) ? )
                    (make-string (1- (car bind-key-column-widths)) ?-)
@@ -303,7 +310,8 @@ function symbol (unquoted)."
         (if (not (eq (cdar last-binding) (cdar binding)))
             (princ (format "\n\n%s\n%s\n\n"
                            (cdar binding)
-                           (make-string (+ 21 (car bind-key-column-widths) (cdr bind-key-column-widths)) ?-)))
+                           (make-string (+ 21 (car bind-key-column-widths)
+                                           (cdr bind-key-column-widths)) ?-)))
           (if (and last-binding
                    (cdr (compare-keybindings last-binding binding)))
               (princ "\n")))
@@ -321,7 +329,8 @@ function symbol (unquoted)."
                )
           (let ((line
                  (format
-                  (format "%%-%ds%%-%ds%%s\n" (car bind-key-column-widths) (cdr bind-key-column-widths))
+                  (format "%%-%ds%%-%ds%%s\n" (car bind-key-column-widths)
+                          (cdr bind-key-column-widths))
                   key-name (format "`%s\'" command-desc)
                   (if (string= command-desc at-present-desc)
                       (if (or (null was-command)
