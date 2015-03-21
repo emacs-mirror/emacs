@@ -633,19 +633,13 @@ manually updated package."
 
 (defun use-package-handler/:bind
     (name-symbol keyword arg rest state &optional override)
-  (let* (commands
-         (form (mapcar
-                #'(lambda (binding)
-                    (push (cdr binding) commands)
-                    `(,(if override
-                           'bind-key*
-                         'bind-key) ,(car binding) #',(cdr binding))) arg)))
+  (let ((commands (mapcar #'cdr arg)))
     (use-package-concat
      (use-package-process-keywords name-symbol
        (use-package-sort-keywords
         (use-package-plist-maybe-put rest :defer t))
        (use-package-plist-append state :commands commands))
-     `((ignore ,@form)))))
+     `((ignore (,(if override 'bind-keys* 'bind-keys) ,@arg))))))
 
 (defun use-package-handler/:bind* (name-symbol keyword arg rest state)
   (use-package-handler/:bind name-symbol keyword arg rest state t))

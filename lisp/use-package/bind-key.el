@@ -191,32 +191,35 @@ function symbol (unquoted)."
                            (pop args)
                            (pop args))
                          args)))
-    (when (or (and prefix-map
-                   (not prefix))
-              (and prefix
-                   (not prefix-map)))
+    (when (or (and prefix-map (not prefix))
+              (and prefix (not prefix-map)))
       (error "Both :prefix-map and :prefix must be supplied"))
     (when (and menu-name (not prefix))
       (error "If :menu-name is supplied, :prefix must be too"))
-    `(progn
-       ,@(when prefix-map
-           `((defvar ,prefix-map)
-             ,@(when doc `((put ',prefix-map 'variable-documentation ,doc)))
-             ,@(if menu-name
-                   `((define-prefix-command ',prefix-map nil ,menu-name))
-                 `((define-prefix-command ',prefix-map)))
-             ,@(mapcar
-                #'(lambda (m)
-                    `(bind-key ,prefix ',prefix-map ,m)) maps)))
-       ,@(apply
-          #'nconc
-          (mapcar (lambda (form)
-                    (if prefix-map
-                        `((bind-key ,(car form) ',(cdr form) ,prefix-map))
-                      (mapcar
-                       #'(lambda (m)
-                           `(bind-key ,(car form) ',(cdr form) ,m)) maps)))
-                  key-bindings)))))
+    (macroexp-progn
+     (append
+      (when prefix-map
+        `((defvar ,prefix-map)
+          ,@(when doc `((put ',prefix-map 'variable-documentation ,doc)))
+          ,@(if menu-name
+                `((define-prefix-command ',prefix-map nil ,menu-name))
+              `((define-prefix-command ',prefix-map)))
+          ,@(if maps
+                (mapcar
+                 #'(lambda (m)
+                     `(bind-key ,prefix ',prefix-map ,m)) maps)
+              `((bind-key ,prefix ',prefix-map)))))
+      (apply
+       #'nconc
+       (mapcar (lambda (form)
+                 (if prefix-map
+                     `((bind-key ,(car form) ',(cdr form) ,prefix-map))
+                   (if maps
+                       (mapcar
+                        #'(lambda (m)
+                            `(bind-key ,(car form) ',(cdr form) ,m)) maps)
+                     `((bind-key ,(car form) ',(cdr form))))))
+               key-bindings))))))
 
 (defmacro bind-keys* (&rest args)
   `(bind-keys :map override-global-map ,@args))
