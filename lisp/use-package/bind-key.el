@@ -132,6 +132,7 @@
 
 Elements have the form ((KEY . [MAP]) CMD ORIGINAL-CMD)")
 
+;;;###autoload
 (defmacro bind-key (key-name command &optional keymap)
   "Bind KEY-NAME to COMMAND in KEYMAP (`global-map' if not passed).
 
@@ -161,12 +162,15 @@ spelled-out keystrokes, e.g., \"C-c C-z\". See documentation of
              personal-keybindings)
        (define-key (or ,keymap global-map) ,keyvar ,command))))
 
+;;;###autoload
 (defmacro unbind-key (key-name &optional keymap)
   `(bind-key ,key-name nil ,keymap))
 
+;;;###autoload
 (defmacro bind-key* (key-name command)
   `(bind-key ,key-name ,command override-global-map))
 
+;;;###autoload
 (defmacro bind-keys (&rest args)
   "Bind multiple keys at once.
 
@@ -221,6 +225,7 @@ function symbol (unquoted)."
                      `((bind-key ,(car form) ',(cdr form))))))
                key-bindings))))))
 
+;;;###autoload
 (defmacro bind-keys* (&rest args)
   `(bind-keys :map override-global-map ,@args))
 
@@ -277,6 +282,7 @@ function symbol (unquoted)."
      (t
       (cons (string< (caar l) (caar r)) nil)))))
 
+;;;###autoload
 (defun describe-personal-keybindings ()
   "Display all the personal keybindings defined by `bind-key'."
   (interactive)
@@ -329,7 +335,9 @@ function symbol (unquoted)."
         (setq last-binding binding)))))
 
 (provide 'bind-key)
+
 ;; Local Variables:
 ;; indent-tabs-mode: nil
 ;; End:
+
 ;;; bind-key.el ends here
