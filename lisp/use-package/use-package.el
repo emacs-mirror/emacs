@@ -408,7 +408,8 @@ manually updated package."
       (use-package-concat
        body
        `((push '(,name-symbol . ,archive-name)
-               package-pinned-packages))))))
+               package-pinned-packages)
+         t)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
