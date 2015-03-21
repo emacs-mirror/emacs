@@ -59,6 +59,11 @@ then the expanded macros do their job silently."
   :type 'boolean
   :group 'use-package)
 
+(defcustom use-package-debug nil
+  "Whether to display use-package expansions in a *use-package* buffer."
+  :type 'boolean
+  :group 'use-package)
+
 (defcustom use-package-minimum-reported-time 0.1
   "Minimal load time that will be reported.
 
@@ -102,8 +107,8 @@ the user specified."
     :unless
     :requires
     :load-path
-    :no-require
     :preface
+    :no-require
     :bind
     :bind*
     :bind-keymap
@@ -118,7 +123,10 @@ the user specified."
     :init
     :config
     :diminish)
-  "Establish which keywords are valid, and the order they are processed in."
+  "Establish which keywords are valid, and the order they are processed in.
+
+Note that `:disabled' is special, in that it causes nothing at all to happen,
+even if the rest of the use-package declaration is incorrect."
   :type '(repeat symbol)
   :group 'use-package)
 
@@ -151,29 +159,26 @@ then your byte-compiled init file is as minimal as possible."
             (error
              (ignore
               (display-warning 'use-package
-                               (format "use-package: Error in %s: %s" ,name
-                                       (error-message-string ,err))
+                               (format "%s %s: %s"
+                                       ,name ,label (error-message-string ,err))
                                :error)))))))))
 
 (put 'use-package-expand 'lisp-indent-function 'defun)
 
-(defun use-package-hook-injector (name-string keyword args)
+(defun use-package-hook-injector (name-string keyword body)
   "Wrap pre/post hook injections around a given keyword form.
 ARGS is a list of forms, so `((foo))' if only `foo' is being called."
   (if (not use-package-inject-hooks)
-      (use-package-expand name-string (format "%s" keyword)
-        (plist-get args keyword))
-    (let ((keyword-name (substring (format "%s" keyword) 1))
-          (block (plist-get args keyword)))
-      (when block
+      (use-package-expand name-string (format "%s" keyword) body)
+    (let ((keyword-name (substring (format "%s" keyword) 1)))
+      (when body
         `((when ,(macroexp-progn
                   (use-package-expand name-string (format "pre-%s hook" keyword)
                     `(run-hook-with-args-until-failure
                       ',(intern (concat "use-package--" name-string
                                         "--pre-" keyword-name "-hook")))))
             ,(macroexp-progn
-              (use-package-expand name-string (format "%s" keyword)
-                (plist-get args keyword)))
+              (use-package-expand name-string (format "%s" keyword) body))
             ,(macroexp-progn
               (use-package-expand name-string (format "post-%s hook" keyword)
                 `(run-hooks
@@ -203,6 +208,20 @@ ARGS is a list of forms, so `((foo))' if only `foo' is being called."
 (defsubst use-package-error (msg)
   "Report MSG as an error, so the user knows it came from this package."
   (error "use-package: %s" msg))
+
+(defsubst use-package-plist-maybe-put (plist property value)
+  "Add a VALUE for PROPERTY to PLIST, if it does not already exist."
+  (if (plist-member plist property)
+      plist
+    (plist-put plist property value)))
+
+(defsubst use-package-plist-cons (plist property value)
+  "Cons VALUE onto the head of the list at PROPERTY in PLIST."
+  (plist-put plist property (cons value (plist-get plist property))))
+
+(defsubst use-package-plist-append (plist property value)
+  "Append VALUE onto the front of the list at PROPERTY in PLIST."
+  (plist-put plist property (append value (plist-get plist property))))
 
 (defun use-package-plist-delete (plist property)
   "Delete PROPERTY from PLIST.
@@ -240,12 +259,16 @@ This is in contrast to merely setting it to 0."
       (push (cons (car plist) (cadr plist))
             plist-grouped)
       (setq plist (cddr plist)))
-    (append
-     (sort plist-grouped
-           #'(lambda (l r) (< (use-package-keyword-index (car l))
-                         (use-package-keyword-index (car r))))))))
+    (let (result)
+      (dolist (x
+               (nreverse
+                (sort plist-grouped
+                      #'(lambda (l r) (< (use-package-keyword-index (car l))
+                                    (use-package-keyword-index (car r)))))))
+        (setq result (cons (car x) (cons (cdr x) result))))
+      result)))
 
-(defsubst use-package-cat-maybes (&rest elems)
+(defsubst use-package-concat (&rest elems)
   "Delete all empty lists from ELEMS (nil or (list nil)), and append them."
   (apply #'nconc (delete nil (delete (list nil) elems))))
 
@@ -258,7 +281,168 @@ This is in contrast to merely setting it to 0."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
+;; Keyword processing
+;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
 ;; Normalization functions
+;;
+
+(defun use-package-normalize-plist (name-symbol input)
+  "Given a pseudo-plist, normalize it to a regular plist."
+  (unless (null input)
+    (let* ((keyword (car input))
+           (xs (use-package-split-list #'keywordp (cdr input)))
+           (args (car xs))
+           (tail (cdr xs))
+           (normalizer (intern (concat "use-package-normalize/"
+                                       (symbol-name keyword))))
+           (arg
+            (cond
+             ((eq keyword :disabled)
+              (use-package-normalize-plist name-symbol tail))
+             ((functionp normalizer)
+              (funcall normalizer name-symbol keyword args))
+             ((= (length args) 1)
+              (car args))
+             (t
+              args))))
+      (if (memq keyword use-package-keywords)
+          (cons keyword
+                (cons arg (use-package-normalize-plist name-symbol tail)))
+        (use-package-error (format "Unrecognized keyword: %s" keyword))))))
+
+(defun use-package-process-keywords (name-symbol plist &optional state)
+  "Process the next keyword in the free-form property list PLIST.
+The values in the PLIST have each been normalized by the function
+use-package-normalize/KEYWORD (minus the colon).
+
+STATE is a property list that the function may modify and/or
+query.  This is useful if a package defines multiple keywords and
+wishes them to have some kind of stateful interaction.
+
+Unless the KEYWORD being processed intends to ignore remaining
+keywords, it must call this function recursively, passing in the
+plist with its keyword and argument removed, and passing in the
+next value for the STATE."
+  (unless (null plist)
+    (let* ((keyword (car plist))
+           (arg (cadr plist))
+           (rest (cddr plist)))
+      (unless (keywordp keyword)
+        (use-package-error (format "%s is not a keyword" keyword)))
+      (let* ((handler (concat "use-package-handler/" (symbol-name keyword)))
+             (handler-sym (intern handler)))
+        (if (functionp handler-sym)
+            (funcall handler-sym name-symbol keyword arg rest state)
+          (use-package-error
+           (format "Keyword handler not defined: %s" handler)))))))
+
+(put 'use-package-process-keywords 'lisp-indent-function 'defun)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; :pin
+;;
+
+(defun use-package-only-one (label args f)
+  "Call F on the first member of ARGS if it has exactly one element."
+  (declare (indent 1))
+  (cond
+   ((and (listp args) (listp (cdr args))
+         (= (length args) 1))
+    (funcall f label (car args)))
+   (t
+    (use-package-error
+     (concat label " wants exactly one argument")))))
+
+(put 'use-package-only-one 'lisp-indent-function 'defun)
+
+(defun use-package-normalize/:pin (name-symbol keyword args)
+  (use-package-only-one (symbol-name keyword) args
+    (lambda (label arg)
+      (cond
+       ((stringp arg) arg)
+       ((symbolp arg) (symbol-name arg))
+       (t
+        (use-package-error
+         ":pin wants an archive name (a string)"))))))
+
+(eval-when-compile
+  (defvar package-pinned-packages)
+  (defvar package-archives))
+
+(defun use-package--archive-exists-p (archive)
+  "Check if a given ARCHIVE is enabled.
+
+ARCHIVE can be a string or a symbol or 'manual to indicate a
+manually updated package."
+  (if (member archive '(manual "manual"))
+      't
+    (let ((valid nil))
+      (dolist (pa package-archives)
+        (when (member archive (list (car pa) (intern (car pa))))
+          (setq valid 't)))
+      valid)))
+
+(defun use-package-pin-package (package archive)
+  "Pin PACKAGE to ARCHIVE."
+  (unless (boundp 'package-pinned-packages)
+    (setq package-pinned-packages ()))
+  (let ((archive-symbol (if (symbolp archive) archive (intern archive)))
+        (archive-name   (if (stringp archive) archive (symbol-name archive))))
+    (if (use-package--archive-exists-p archive-symbol)
+        (push (cons package archive-name) package-pinned-packages)
+      (error "Archive '%s' requested for package '%s' is not available."
+             archive-name package))
+    (package-initialize t)))
+
+(defun use-package-handler/:pin (name-symbol keyword archive-name rest state)
+  (let ((body (use-package-process-keywords name-symbol rest state)))
+    ;; This happens at macro expansion time, not when the expanded code is
+    ;; compiled or evaluated.
+    (if (null archive-name)
+        body
+      (use-package-pin-package name-symbol archive-name)
+      (use-package-concat
+       body
+       `((push '(,name-symbol . ,archive-name)
+               package-pinned-packages))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; :ensure
+;;
+
+(defun use-package-normalize/:ensure (name-symbol keyword args)
+  (if (null args)
+      t
+    (use-package-only-one (symbol-name keyword) args
+      (lambda (label arg)
+        (if (symbolp arg)
+            arg
+          (use-package-error
+           (concat ":ensure wants an optional package name "
+                   "(an unquoted symbol name)")))))))
+
+(defun use-package-ensure-elpa (package)
+  (when (not (package-installed-p package))
+    (package-install package)))
+
+(defun use-package-handler/:ensure (name-symbol keyword ensure rest state)
+  (let ((body (use-package-process-keywords name-symbol rest state)))
+    ;; This happens at macro expansion time, not when the expanded code is
+    ;; compiled or evaluated.
+    (let ((package-name (or (and (eq ensure t) name-symbol) ensure)))
+      (when package-name
+        (require 'package)
+        (use-package-ensure-elpa package-name)))
+    body))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; :if, :when and :unless
 ;;
 
 (defsubst use-package-normalize-value (label arg)
@@ -268,6 +452,75 @@ This is in contrast to merely setting it to 0."
         ((functionp arg)
          `(funcall #',arg))
         (t arg)))
+
+(defun use-package-normalize-test (name-symbol keyword args)
+  (use-package-only-one (symbol-name keyword) args
+    #'use-package-normalize-value))
+
+(defalias 'use-package-normalize/:if 'use-package-normalize-test)
+(defalias 'use-package-normalize/:when 'use-package-normalize-test)
+
+(defun use-package-normalize/:unless (name-symbol keyword args)
+  (not (use-package-only-one (symbol-name keyword) args
+         #'use-package-normalize-value)))
+
+(defun use-package-handler/:if (name-symbol keyword pred rest state)
+  (let ((body (use-package-process-keywords name-symbol rest state)))
+    `((when ,pred ,@body))))
+
+(defalias 'use-package-handler/:when 'use-package-handler/:if)
+
+(defun use-package-handler/:unless (name-symbol keyword pred rest state)
+  (let ((body (use-package-process-keywords name-symbol rest state)))
+    `((unless ,pred ,@body))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; :requires
+;;
+
+(defun use-package-as-one (label args f)
+  "Call F on the first element of ARGS if it has one element, or all of ARGS."
+  (declare (indent 1))
+  (if (and (listp args) (listp (cdr args)))
+      (if (= (length args) 1)
+          (funcall f label (car args))
+        (funcall f label args))
+    (use-package-error
+     (concat label " wants a list"))))
+
+(put 'use-package-as-one 'lisp-indent-function 'defun)
+
+(defun use-package-normalize-symbols (label arg &optional recursed)
+  "Normalize a list of symbols."
+  (cond
+   ((symbolp arg)
+    (list arg))
+   ((and (not recursed) (listp arg) (listp (cdr arg)))
+    (mapcar #'(lambda (x) (car (use-package-normalize-symbols label x t))) arg))
+   (t
+    (use-package-error
+     (concat label " wants a symbol, or list of symbols")))))
+
+(defun use-package-normalize-symlist (name-symbol keyword args)
+  (use-package-as-one (symbol-name keyword) args
+    #'use-package-normalize-symbols))
+
+(defalias 'use-package-normalize/:requires 'use-package-normalize-symlist)
+
+(defun use-package-handler/:requires (name-symbol keyword requires rest state)
+  (let ((body (use-package-process-keywords name-symbol rest state)))
+    (if (null requires)
+        body
+      `((when ,(if (listp requires)
+                   `(not (member nil (mapcar #'featurep ',requires)))
+                 `(featurep ',requires))
+          ,@body)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; :load-path
+;;
 
 (defun use-package-normalize-paths (label arg &optional recursed)
   "Normalize a list of filesystem paths."
@@ -287,17 +540,65 @@ This is in contrast to merely setting it to 0."
     (use-package-error
      (concat label " wants a directory path, or list of paths")))))
 
-(defun use-package-as-one (label args f)
-  "Call F on the first element of ARGS if it has one element, or all of ARGS."
-  (declare (indent 1))
-  (if (and (listp args) (listp (cdr args)))
-      (if (= (length args) 1)
-          (funcall f label (car args))
-        (funcall f label args))
-    (use-package-error
-     (concat label " wants a list"))))
+(defun use-package-normalize/:load-path (name-symbol keyword args)
+  (use-package-as-one (symbol-name keyword) args
+    #'use-package-normalize-paths))
 
-(put 'use-package-as-one 'lisp-indent-function 'defun)
+(defun use-package-handler/:load-path (name-symbol keyword arg rest state)
+  (let ((body (use-package-process-keywords name-symbol rest state)))
+    (use-package-concat
+     (mapcar #'(lambda (path)
+                 `(eval-and-compile (push ,path load-path))) arg)
+     body)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; :no-require
+;;
+
+(defun use-package-normalize-predicate (name-symbol keyword args)
+  (if (null args)
+      t
+    (use-package-only-one (symbol-name keyword) args
+      #'use-package-normalize-value)))
+
+(defalias 'use-package-normalize/:no-require 'use-package-normalize-predicate)
+
+(defun use-package-handler/:no-require (name-symbol keyword arg rest state)
+  ;; This keyword has no functional meaning.
+  (use-package-process-keywords name-symbol rest state))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; :preface
+;;
+
+(defun use-package-normalize-form (label args)
+  "Given a list of forms, return it wrapped in `progn'."
+  (unless (listp (car args))
+    (use-package-error (concat label " wants a sexp or list of sexps")))
+  (mapcar #'(lambda (form)
+              (if (and (consp form)
+                       (eq (car form) 'use-package))
+                  (macroexpand form)
+                form)) args))
+
+(defun use-package-normalize-forms (name-symbol keyword args)
+  (use-package-normalize-form (symbol-name keyword) args))
+
+(defalias 'use-package-normalize/:preface 'use-package-normalize-forms)
+
+(defun use-package-handler/:preface (name-symbol keyword arg rest state)
+  (let ((body (use-package-process-keywords name-symbol rest state)))
+    (use-package-concat
+     (unless (null arg)
+       `((eval-and-compile ,@arg)))
+     body)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; :bind, :bind*
+;;
 
 (defsubst use-package-is-sympair (x &optional allow-vector)
   "Return t if X has the type (STRING . SYMBOL)."
@@ -328,81 +629,266 @@ This is in contrast to merely setting it to 0."
 
 (defalias 'use-package-normalize/:bind 'use-package-normalize-binder)
 (defalias 'use-package-normalize/:bind* 'use-package-normalize-binder)
+
+(defun use-package-handler/:bind
+    (name-symbol keyword arg rest state &optional override)
+  (let* (commands
+         (form (mapcar
+                #'(lambda (binding)
+                    (push (cdr binding) commands)
+                    `(,(if override
+                           'bind-key*
+                         'bind-key) ,(car binding) #',(cdr binding))) arg)))
+    (use-package-concat
+     (use-package-process-keywords name-symbol
+       (use-package-sort-keywords
+        (use-package-plist-maybe-put rest :defer t))
+       (use-package-plist-append state :commands commands))
+     `((ignore ,@form)))))
+
+(defun use-package-handler/:bind* (name-symbol keyword arg rest state)
+  (use-package-handler/:bind name-symbol keyword arg rest state t))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; :bind-keymap, :bind-keymap*
+;;
+
 (defalias 'use-package-normalize/:bind-keymap 'use-package-normalize-binder)
 (defalias 'use-package-normalize/:bind-keymap* 'use-package-normalize-binder)
+
+(defun use-package-autoload-keymap (keymap-symbol package override)
+  "Loads PACKAGE and then binds the key sequence used to invoke
+this function to KEYMAP-SYMBOL.  It then simulates pressing the
+same key sequence a again, so that the next key pressed is routed
+to the newly loaded keymap.
+
+This function supports use-package's :bind-keymap keyword.  It
+works by binding the given key sequence to an invocation of this
+function for a particular keymap.  The keymap is expected to be
+defined by the package.  In this way, loading the package is
+deferred until the prefix key sequence is pressed."
+  (if (not (require package nil t))
+      (error "Could not load package %s" package)
+    (if (and (boundp keymap-symbol)
+             (keymapp (symbol-value keymap-symbol)))
+        (let ((key (key-description (this-command-keys-vector)))
+              (keymap (symbol-value keymap-symbol)))
+          (if override
+              ;; eval form is necessary to avoid compiler error
+              `(eval `(bind-key* ,key ,keymap))
+            (bind-key key keymap))
+          (setq unread-command-events
+                (listify-key-sequence (this-command-keys-vector))))
+      (error "use-package: package %s failed to define keymap %s"
+             package keymap-symbol))))
+
+(defun use-package-handler/:bind-keymap
+    (name-symbol keyword arg rest state &optional override)
+  (let* (commands
+         (form (mapcar
+                #'(lambda (binding)
+                    (push (cdr binding) commands)
+                    `(,(if override
+                           'bind-key*
+                         'bind-key)
+                      ,(car binding)
+                      #'(lambda ()
+                          (use-package-autoload-keymap
+                           ',(cdr binding) ',name-symbol nil)))) arg)))
+    (use-package-concat
+     (use-package-process-keywords name-symbol
+       (use-package-sort-keywords
+        (use-package-plist-maybe-put rest :defer t))
+       (use-package-plist-append state :commands commands))
+     `((ignore ,@form)))))
+
+(defun use-package-handler/:bind-keymap* (name-symbol keyword arg rest state)
+  (use-package-handler/:bind-keymap name-symbol keyword arg rest state t))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; :interpreter
+;;
 
 (defun use-package-normalize-mode (name-symbol keyword args)
   (use-package-as-one (symbol-name keyword) args
     (apply-partially #'use-package-normalize-pairs name-symbol)))
 
-(defalias 'use-package-normalize/:mode 'use-package-normalize-mode)
 (defalias 'use-package-normalize/:interpreter 'use-package-normalize-mode)
 
-(defun use-package-normalize-symbols (label arg &optional recursed)
-  "Normalize a list of symbols."
-  (cond
-   ((symbolp arg)
-    (list arg))
-   ((and (not recursed) (listp arg) (listp (cdr arg)))
-    (mapcar #'(lambda (x) (car (use-package-normalize-symbols label x t))) arg))
-   (t
-    (use-package-error
-     (concat label " wants a symbol, or list of symbols")))))
+(defun use-package-handler/:interpreter (name-symbol keyword arg rest state)
+  (let* (commands
+         (form (mapcar #'(lambda (interpreter)
+                           (push (cdr interpreter) commands)
+                           `(push ',interpreter interpreter-mode-alist)) arg)))
+    (use-package-concat
+     (use-package-process-keywords name-symbol
+       (use-package-sort-keywords
+        (use-package-plist-maybe-put rest :defer t))
+       (use-package-plist-append state :commands commands))
+     `((ignore ,@form)))))
 
-(defun use-package-normalize-symlist (name-symbol keyword args)
-  (use-package-as-one (symbol-name keyword) args
-    #'use-package-normalize-symbols))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; :mode
+;;
+
+(defalias 'use-package-normalize/:mode 'use-package-normalize-mode)
+
+(defun use-package-handler/:mode (name-symbol keyword arg rest state)
+  (let* (commands
+         (form (mapcar #'(lambda (mode)
+                           (push (cdr mode) commands)
+                           `(push ',mode auto-mode-alist)) arg)))
+    (use-package-concat
+     (use-package-process-keywords name-symbol
+       (use-package-sort-keywords
+        (use-package-plist-maybe-put rest :defer t))
+       (use-package-plist-append state :commands commands))
+     `((ignore ,@form)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; :commands
+;;
 
 (defalias 'use-package-normalize/:commands 'use-package-normalize-symlist)
+
+(defun use-package-handler/:commands (name-symbol keyword arg rest state)
+  ;; The actual processing for commands is done in :defer
+  (use-package-process-keywords name-symbol
+    (use-package-sort-keywords
+     (use-package-plist-maybe-put rest :defer t))
+    (use-package-plist-append state :commands arg)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; :defines
+;;
+
 (defalias 'use-package-normalize/:defines 'use-package-normalize-symlist)
+
+(defun use-package-handler/:defines (name-symbol keyword arg rest state)
+  (let ((body (use-package-process-keywords name-symbol rest state)))
+    body))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; :functions
+;;
+
 (defalias 'use-package-normalize/:functions 'use-package-normalize-symlist)
-(defalias 'use-package-normalize/:requires 'use-package-normalize-symlist)
 
-(defun use-package-only-one (label args f)
-  "Call F on the first member of ARGS if it has exactly one element."
-  (declare (indent 1))
-  (cond
-   ((and (listp args) (listp (cdr args))
-         (= (length args) 1))
-    (funcall f label (car args)))
-   (t
-    (use-package-error
-     (concat label " wants exactly one argument")))))
+(defun use-package-handler/:functions (name-symbol keyword arg rest state)
+  (let ((body (use-package-process-keywords name-symbol rest state)))
+    (if (not (bound-and-true-p byte-compile-current-file))
+        body
+      (use-package-concat
+       (unless (null arg)
+         `((eval-when-compile
+             ,@(mapcar
+                #'(lambda (fn)
+                    `(declare-function ,fn ,(symbol-name name-symbol))) arg))))
+       body))))
 
-(put 'use-package-only-one 'lisp-indent-function 'defun)
-
-(defun use-package-normalize-predicate (name-symbol keyword args)
-  (if (null args)
-      t
-    (use-package-only-one (symbol-name keyword) args
-      #'use-package-normalize-value)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; :defer
+;;
 
 (defalias 'use-package-normalize/:defer 'use-package-normalize-predicate)
+
+(defun use-package-handler/:defer (name-symbol keyword arg rest state)
+  (let ((body (use-package-process-keywords name-symbol rest
+                (plist-put state :deferred t)))
+        (name-string (symbol-name name-symbol)))
+    (use-package-concat
+     ;; Load the package after a set amount of idle time, if the argument to
+     ;; `:defer' was a number.
+     (when (numberp arg)
+       `((run-with-idle-timer ,arg nil #'require ',name-symbol nil t)))
+
+     ;; Since we deferring load, establish any necessary autoloads, and also
+     ;; keep the byte-compiler happy.
+     (apply
+      #'nconc
+      (mapcar #'(lambda (command)
+                  (append
+                   `((unless (fboundp ',command)
+                       (autoload #',command ,name-string nil t)))
+                   (when (bound-and-true-p byte-compile-current-file)
+                     `((eval-when-compile
+                         (declare-function ,command ,name-string))))))
+              (delete-dups (plist-get state :commands))))
+
+     body)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; :demand
+;;
+
 (defalias 'use-package-normalize/:demand 'use-package-normalize-predicate)
-(defalias 'use-package-normalize/:disabled 'use-package-normalize-predicate)
-(defalias 'use-package-normalize/:no-require 'use-package-normalize-predicate)
 
-(defun use-package-normalize/:ensure (name-symbol keyword args)
-  (if (null args)
-      t
-    (use-package-only-one (symbol-name keyword) args
-      (lambda (label arg)
-        (if (symbolp arg)
-            arg
-          (use-package-error
-           (concat ":ensure wants an optional package name "
-                   "(an unquoted symbol name)")))))))
+(defun use-package-handler/:demand (name-symbol keyword arg rest state)
+  (use-package-process-keywords name-symbol rest
+    (use-package-plist-delete state :deferred)))
 
-(defun use-package-normalize-test (name-symbol keyword args)
-  (use-package-only-one (symbol-name keyword) args
-    #'use-package-normalize-value))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; :init
+;;
 
-(defalias 'use-package-normalize/:if 'use-package-normalize-test)
-(defalias 'use-package-normalize/:when 'use-package-normalize-test)
+(defalias 'use-package-normalize/:init 'use-package-normalize-forms)
 
-(defun use-package-normalize/:unless (name-symbol keyword args)
-  (not (use-package-only-one (symbol-name keyword) args
-         #'use-package-normalize-value)))
+(defun use-package-handler/:init (name-symbol keyword arg rest state)
+  (let ((body (use-package-process-keywords name-symbol rest state)))
+    (use-package-concat
+     ;; The user's initializations
+     (use-package-hook-injector (symbol-name name-symbol) :init arg)
+     body)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; :config
+;;
+
+(defalias 'use-package-normalize/:config 'use-package-normalize-forms)
+
+(defun use-package-handler/:config (name-symbol keyword arg rest state)
+  (let* ((body (use-package-process-keywords name-symbol rest state))
+         (config-body
+          (if (equal arg '(t))
+              body
+            (use-package--with-elapsed-timer
+                (format "Configuring package %s" name-symbol)
+              (use-package-concat
+               (use-package-hook-injector (symbol-name name-symbol)
+                                          :config arg)
+               body
+               (list t))))))
+    (if (plist-get state :deferred)
+        (unless (equal config-body '(t))
+          `((eval-after-load ',name-symbol
+              ',(macroexp-progn config-body))))
+      (use-package--with-elapsed-timer
+          (format "Loading package %s" name-symbol)
+        (if use-package-expand-minimally
+            (use-package-concat
+             (list `(require ',name-symbol))
+             config-body)
+          `((if (not (require ',name-symbol nil t))
+                (ignore
+                 (display-warning
+                  'use-package
+                  (format "Could not load %s" ',name-symbol)
+                  :error))
+              ,@config-body)))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; :diminish
 
 (defun use-package-normalize-diminish (name-symbol label arg &optional recursed)
   "Normalize the arguments to diminish down to a list of one of two forms:
@@ -427,252 +913,20 @@ This is in contrast to merely setting it to 0."
   (use-package-as-one (symbol-name keyword) args
     (apply-partially #'use-package-normalize-diminish name-symbol)))
 
-(defun use-package-normalize-form (label args)
-  "Given a list of forms, return it wrapped in `progn'."
-  (unless (listp (car args))
-    (use-package-error (concat label " wants a sexp or list of sexps")))
-  (mapcar #'(lambda (form)
-              (if (and (consp form)
-                       (eq (car form) 'use-package))
-                  (macroexpand form)
-                form)) args))
-
-(defun use-package-normalize-forms (name-symbol keyword args)
-  (use-package-normalize-form (symbol-name keyword) args))
-
-(defalias 'use-package-normalize/:preface 'use-package-normalize-forms)
-(defalias 'use-package-normalize/:init 'use-package-normalize-forms)
-(defalias 'use-package-normalize/:config 'use-package-normalize-forms)
-
-(defun use-package-normalize/:load-path (name-symbol keyword args)
-  (use-package-as-one (symbol-name keyword) args
-    #'use-package-normalize-paths))
-
-(defun use-package-normalize/:pin (name-symbol keyword args)
-  (use-package-only-one (symbol-name keyword) args
-    (lambda (label arg)
-      (cond
-       ((stringp arg) arg)
-       ((symbolp arg) (symbol-name arg))
-       (t
-        (use-package-error
-         ":pin wants an archive name (a string)"))))))
-
-(defun use-package-normalize-plist (name-symbol input)
-  "Given a pseudo-plist, normalize it to a regular plist."
-  (unless (null input)
-    (let* ((keyword (car input))
-           (xs (use-package-split-list #'keywordp (cdr input)))
-           (args (car xs))
-           (tail (cdr xs))
-           (normalizer (intern (concat "use-package-normalize/"
-                                       (symbol-name keyword))))
-           (arg
-            (cond
-             ((functionp normalizer)
-              (funcall normalizer name-symbol keyword args))
-             ((= (length args) 1)
-              (car args))
-             (t
-              args))))
-      (if (memq keyword use-package-keywords)
-          (cons keyword
-                (cons arg (use-package-normalize-plist name-symbol tail)))
-        (use-package-error (format "Unrecognized keyword: %s" keyword))))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; Keyword processing
-;;
-
-(defun use-package-process-keywords (name-symbol plist state)
-  "Process the next keyword in the free-form property list PLIST.
-The values in the PLIST have each been normalized by the function
-use-package-normalize/KEYWORD (minus the colon).
-
-STATE is a property list that the function may modify and/or
-query.  This is useful if a package defines multiple keywords and
-wishes them to have some kind of stateful interaction.
-
-Unless the KEYWORD being processed intends to ignore remaining
-keywords, it must call this function recursively, passing in the
-plist with its keyword and argument removed, and passing in the
-next value for the STATE."
-  (let ((plist* (use-package-sort-keywords
-                 (use-package-normalize-plist name-symbol plist))))
-    (unless (null plist*)
-      (let* ((keyword (car plist*))
-             (arg (cadr plist*))
-             (rest (cddr plist*)))
-        (unless (keywordp keyword)
-          (use-package-error (format "%s is not a keyword" keyword)))
-        (let* ((handler (concat "use-package-handler/"
-                                (symbol-name keyword)))
-               (handler-sym (intern handler)))
-          (if (functionp handler-sym)
-              (funcall handler-sym name-symbol keyword arg rest state)
-            (use-package-error
-             (format "Keyword handler not defined: %s" handler))))))))
-
-(defun use-package-handler/:if (name-symbol keyword pred rest state)
-  `((when ,pred
-      ,@(use-package-process-keywords name-symbol rest state))))
+(defun use-package-handler/:diminish (name-symbol keyword arg rest state)
+  (let ((body (use-package-process-keywords name-symbol rest state)))
+    (use-package-concat
+     (mapcar #'(lambda (var)
+                 (if (consp var)
+                     `(diminish ',(car var) ,(cdr var))
+                   `(diminish ',var)))
+             arg)
+     body)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; The main macro
 ;;
-
-(defun use--package (name name-symbol name-string args)
-  "See docstring for `use-package'."
-  (let*
-      ((commands (plist-get args :commands))
-       (deferral (plist-get args :defer))
-
-       ;; Note: evaluation of this forms possibly extends the value of
-       ;; `commands'.
-       (bindings
-        (append
-         (mapcar #'(lambda (binding)
-                     `(bind-key ,(car binding)
-                                #'(lambda () (interactive)
-                                    (use-package-autoload-keymap
-                                     ',(cdr binding) ',name-symbol nil))))
-                 (plist-get args :bind-keymap))
-
-         (mapcar #'(lambda (binding)
-                     `(bind-key ,(car binding)
-                                #'(lambda () (interactive)
-                                    (use-package-autoload-keymap
-                                     ',(cdr binding) ',name-symbol t))))
-                 (plist-get args :bind-keymap*))
-
-         (mapcar #'(lambda (mode)
-                     (push (cdr mode) commands)
-                     `(push ',mode auto-mode-alist))
-                 (plist-get args :mode))
-
-         (mapcar #'(lambda (interpreter)
-                     (push (cdr interpreter) commands)
-                     `(push ',interpreter interpreter-mode-alist))
-                 (plist-get args :interpreter))
-
-         (mapcar #'(lambda (binding)
-                     (push (cdr binding) commands)
-                     `(bind-key ,(car binding) #',(cdr binding)))
-                 (plist-get args :bind))
-
-         (mapcar #'(lambda (binding)
-                     (push (cdr binding) commands)
-                     `(bind-key* ,(car binding) #',(cdr binding)))
-                 (plist-get args :bind*))))
-
-       ;; Should we defer loading of the package lazily?
-       (defer-loading (and (not (plist-get args :demand))
-                           (or commands deferral
-                               (plist-get args :no-require)
-                               (plist-get args :bind-keymap)
-                               (plist-get args :bind-keymap*))))
-
-       (pre-compile-load
-        ;; When byte-compiling, load the package here so that all of its
-        ;; symbols are in scope.
-        (when (bound-and-true-p byte-compile-current-file)
-          `((eval-when-compile
-              ,@(mapcar #'(lambda (var) `(defvar ,var))
-                        (plist-get args :defines))
-              (with-demoted-errors
-                  ,(format "Error in %s: %%S" name-string)
-                ,(if use-package-verbose
-                     `(message "Compiling package %s" ,name-string))
-                ,(unless (plist-get args :no-require)
-                   `(require ',name-symbol nil t)))))))
-
-       ;; These are all the configurations to be made after the package has
-       ;; loaded.
-       (config-body
-        (use-package--with-elapsed-timer
-            (format "Configuring package %s" name-string)
-          (use-package-cat-maybes
-           (use-package-hook-injector name-string :config args)
-
-           (mapcar #'(lambda (var)
-                       (if (listp var)
-                           `(diminish ',(car var) ,(cdr var))
-                         `(diminish ',var)))
-                   (plist-get args :diminish)))))
-
-       (config-defun
-        (make-symbol (concat "use-package--" name-string "--config"))))
-
-    (setq commands (delete-dups commands))
-
-    ;; Return the main body of the macro
-    (use-package-cat-maybes
-     ;; Setup the load-path
-     (mapcar #'(lambda (path)
-                 `(eval-and-compile (push ,path load-path)))
-             (plist-get args :load-path))
-
-     pre-compile-load
-
-     (mapcar #'(lambda (form)
-                 `(eval-and-compile ,form))
-             (plist-get args :preface))
-
-     ;; Setup any required autoloads
-     (if defer-loading
-         (apply
-          #'nconc
-          (mapcar #'(lambda (command)
-                      (append
-                       `((unless (fboundp ',command)
-                           (autoload #',command ,name-string nil t)))
-                       (when (bound-and-true-p byte-compile-current-file)
-                         `((eval-when-compile
-                             (declare-function ,command ,name-string))))))
-                  commands)))
-
-     (when (bound-and-true-p byte-compile-current-file)
-       (mapcar #'(lambda (fn) `(eval-when-compile
-                            (declare-function ,fn ,name-string)))
-               (plist-get args :functions)))
-
-     (if (numberp deferral)
-         `((run-with-idle-timer ,deferral nil #'require ',name-symbol nil t)))
-
-     ;; (if (and defer-loading config-body)
-     ;;     `((defalias ',config-defun #'(lambda () ,config-body*))))
-
-     ;; The user's initializations
-     (use-package-hook-injector name-string :init args)
-
-     (if defer-loading
-         (use-package-cat-maybes
-          bindings
-          (if config-body
-              `((eval-after-load ',name
-                  ;; '(,config-defun)
-                  ',(macroexp-progn config-body))))
-          (list t))
-       (use-package--with-elapsed-timer
-           (format "Loading package %s" name-string)
-         (if use-package-expand-minimally
-             (use-package-cat-maybes
-              (list `(require ',name-symbol))
-              bindings
-              config-body
-              (list t))
-           `((if (not (require ',name-symbol nil t))
-                 (ignore
-                  (display-warning
-                   'use-package
-                   (format "Could not load package %s" ,name-string)
-                   :error))
-               ,@(use-package-cat-maybes
-                  bindings
-                  config-body
-                  (list t))))))))))
 
 (defmacro use-package (name &rest args)
   "Declare an Emacs package by specifying a group of configuration options.
@@ -722,116 +976,44 @@ this file.  Usage:
 :pin           Pin the package to an archive."
   (declare (indent 1))
   (unless (member :disabled args)
-    (let* ((name-string (if (stringp name) name (symbol-name name)))
-           (name-symbol (if (stringp name) (intern name) name))
-           (args* (use-package-normalize-plist name-symbol args))
-           (archive-name (plist-get args* :pin))
-           (ensure (plist-get args* :ensure))
-           (package-name (or (and (eq ensure t) name) ensure)))
-      ;; Pin any packages that have been marked with `:pin'.
-      (when archive-name
-        (use-package-pin-package name-symbol archive-name))
+    (let* ((name-symbol (if (stringp name) (intern name) name))
+           (args* (use-package-sort-keywords
+                   (use-package-plist-maybe-put
+                    (use-package-normalize-plist name-symbol args)
+                    :config '(t)))))
 
-      ;; Ensure that the package has been installed, if marked with
-      ;; `:ensure'.
-      (when package-name
-        (require 'package)
-        (use-package-ensure-elpa package-name))
+      ;; When byte-compiling, pre-load the package so all its symbols are in
+      ;; scope.
+      (if (bound-and-true-p byte-compile-current-file)
+          (setq args*
+                (use-package-plist-cons
+                 args* :preface
+                 `(eval-when-compile
+                    ,@(mapcar #'(lambda (var) `(defvar ,var))
+                              (plist-get args* :defines))
+                    (with-demoted-errors
+                        ,(format "Error loading %s: %%S" name-symbol)
+                      ,(if use-package-verbose
+                           `(message "Compiling package %s" ',name-symbol))
+                      ,(unless (plist-get args* :no-require)
+                         `(require ',name-symbol nil t)))))))
 
-      ;; At this point, we can expand the macro using the helper function.
-      ;; `use--package'.
-      (let*
-          ((body (use-package-cat-maybes
-                  (use--package name name-symbol name-string args*)
-                  (when archive-name
-                    `((push '(,name-symbol . ,archive-name)
-                            package-pinned-packages)))))
-           (pred (plist-get args* :if))
-           (expansion (if pred
-                          `((when ,pred ,@body))
-                        body))
-           (requires (plist-get args* :requires))
-           (body*
-            (macroexp-progn
-             (if (null requires)
-                 expansion
-               `((if ,(if (listp requires)
-                          `(not (member nil (mapcar #'featurep ',requires)))
-                        `(featurep ',requires))
-                     ,@expansion))))))
-        ;; (message "Expanded:\n%s" (pp-to-string body*))
-        body*))))
+      (let ((body
+             (macroexp-progn
+              (use-package-process-keywords name-symbol args*))))
+        (if use-package-debug
+            (display-buffer
+             (save-current-buffer
+               (let ((buf (get-buffer-create "*use-package*")))
+                 (with-current-buffer buf
+                   (delete-region (point-min) (point-max))
+                   (emacs-lisp-mode)
+                   (insert (pp-to-string body)))
+                 buf))))
+        body))))
+
 
 (put 'use-package 'lisp-indent-function 'defun)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; Special support for autoloading keymaps
-;;
-
-(defun use-package-autoload-keymap (keymap-symbol package override)
-  "Loads PACKAGE and then binds the key sequence used to invoke
-this function to KEYMAP-SYMBOL.  It then simulates pressing the
-same key sequence a again, so that the next key pressed is routed
-to the newly loaded keymap.
-
-This function supports use-package's :bind-keymap keyword.  It
-works by binding the given key sequence to an invocation of this
-function for a particular keymap.  The keymap is expected to be
-defined by the package.  In this way, loading the package is
-deferred until the prefix key sequence is pressed."
-  (if (not (require package nil t))
-      (error "Could not load package %s" package)
-    (if (and (boundp keymap-symbol)
-             (keymapp (symbol-value keymap-symbol)))
-        (let ((key (key-description (this-command-keys-vector)))
-              (keymap (symbol-value keymap-symbol)))
-          (if override
-              ;; eval form is necessary to avoid compiler error
-              `(eval `(bind-key* ,key ,keymap))
-            (bind-key key keymap))
-          (setq unread-command-events
-                (listify-key-sequence (this-command-keys-vector))))
-      (error "use-package: package %s failed to define keymap %s"
-             package keymap-symbol))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; :pin and :ensure support
-;;
-
-(eval-when-compile
-  (defvar package-pinned-packages)
-  (defvar package-archives))
-
-(defun use-package-pin-package (package archive)
-  "Pin PACKAGE to ARCHIVE."
-  (unless (boundp 'package-pinned-packages)
-    (setq package-pinned-packages ()))
-  (let ((archive-symbol (if (symbolp archive) archive (intern archive)))
-        (archive-name   (if (stringp archive) archive (symbol-name archive))))
-    (if (use-package--archive-exists-p archive-symbol)
-        (push (cons package archive-name) package-pinned-packages)
-      (error "Archive '%s' requested for package '%s' is not available."
-             archive-name package))
-    (package-initialize t)))
-
-(defun use-package--archive-exists-p (archive)
-  "Check if a given ARCHIVE is enabled.
-
-ARCHIVE can be a string or a symbol or 'manual to indicate a
-manually updated package."
-  (if (member archive '(manual "manual"))
-      't
-    (let ((valid nil))
-      (dolist (pa package-archives)
-        (when (member archive (list (car pa) (intern (car pa))))
-          (setq valid 't)))
-      valid)))
-
-(defun use-package-ensure-elpa (package)
-  (when (not (package-installed-p package))
-    (package-install package)))
 
 (provide 'use-package)
 
