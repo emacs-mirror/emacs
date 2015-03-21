@@ -3,11 +3,12 @@
 ;; Copyright (C) 2012 John Wiegley
 
 ;; Author: John Wiegley <jwiegley@gmail.com>
+;; Maintainer: John Wiegley <jwiegley@gmail.com>
 ;; Created: 17 Jun 2012
 ;; Version: 2.0
 ;; Package-Requires: ((bind-key "1.0") (diminish "0.44"))
 ;; Keywords: dotemacs startup speed config package
-;; X-URL: https://github.com/jwiegley/use-package
+;; URL: https://github.com/jwiegley/use-package
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as

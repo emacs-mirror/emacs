@@ -1,67 +1,68 @@
-;;; bind-key.el --- a simple way to manage personal keybindings
+;;; bind-key.el --- A simple way to manage personal keybindings
 
-;; copyright (c) 2012 john wiegley
+;; Copyright (c) 2012-2015 john wiegley
 
-;; author: john wiegley <jwiegley@gmail.com>
-;; created: 16 jun 2012
-;; version: 1.0
-;; keywords: keys keybinding config dotemacs
-;; url: https://github.com/jwiegley/use-package
+;; Author: John Wiegley <jwiegley@gmail.com>
+;; Maintainer: John Wiegley <jwiegley@gmail.com>
+;; Created: 16 Jun 2012
+;; Version: 1.0
+;; Keywords: keys keybinding config dotemacs
+;; URL: https://github.com/jwiegley/use-package
 
-;; this program is free software; you can redistribute it and/or
+;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the gnu general public license as
 ;; published by the free software foundation; either version 2, or (at
 ;; your option) any later version.
 
-;; this program is distributed in the hope that it will be useful, but
+;; This program is distributed in the hope that it will be useful, but
 ;; without any warranty; without even the implied warranty of
 ;; merchantability or fitness for a particular purpose.  see the gnu
 ;; general public license for more details.
 
-;; you should have received a copy of the gnu general public license
+;; You should have received a copy of the gnu general public license
 ;; along with gnu emacs; see the file copying.  if not, write to the
 ;; free software foundation, inc., 59 temple place - suite 330,
 ;; boston, ma 02111-1307, usa.
 
-;;; commentary:
+;;; Commentary:
 
-;; if you have lots of keybindings set in your .emacs file, it can be hard to
+;; If you have lots of keybindings set in your .emacs file, it can be hard to
 ;; know which ones you haven't set yet, and which may now be overriding some
-;; new default in a new emacs version.  this module aims to solve that
+;; new default in a new emacs version.  This module aims to solve that
 ;; problem.
 ;;
-;; bind keys as follows in your .emacs:
+;; Bind keys as follows in your .emacs:
 ;;
 ;;   (require 'bind-key)
 ;;
 ;;   (bind-key "c-c x" 'my-ctrl-c-x-command)
 ;;
-;; if you want the keybinding to override all minor modes that may also bind
+;; If you want the keybinding to override all minor modes that may also bind
 ;; the same key, use the `bind-key*' form:
 ;;
 ;;   (bind-key* "<c-return>" 'other-window)
 ;;
-;; if you want to rebind a key only in a particular keymap, use:
+;; If you want to rebind a key only in a particular keymap, use:
 ;;
 ;;   (bind-key "c-c x" 'my-ctrl-c-x-command some-other-mode-map)
 ;;
-;; to unbind a key within a keymap (for example, to stop your favorite major
+;; To unbind a key within a keymap (for example, to stop your favorite major
 ;; mode from changing a binding that you don't want to override everywhere),
 ;; use `unbind-key':
 ;;
 ;;   (unbind-key "c-c x" some-other-mode-map)
 ;;
-;; to bind multiple keys at once, or set up a prefix map, a `bind-keys' macro
-;; is provided.  it accepts keyword arguments, see its documentation for
-;; detailed description.
+;; To bind multiple keys at once, or set up a prefix map, a `bind-keys' macro
+;; is provided.  It accepts keyword arguments, please see its documentation
+;; for a detailed description.
 ;;
-;; to add keys into a specific map, use :map argument
+;; To add keys into a specific map, use :map argument
 ;;
 ;;    (bind-keys :map dired-mode-map
 ;;               ("o" . dired-omit-mode)
 ;;               ("a" . some-custom-dired-function))
 ;;
-;; to set up a prefix map, use `:prefix-map' and `:prefix' arguments (both are
+;; To set up a prefix map, use `:prefix-map' and `:prefix' arguments (both are
 ;; required)
 ;;
 ;;    (bind-keys :prefix-map my-customize-prefix-map
