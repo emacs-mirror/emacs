@@ -1,77 +1,77 @@
-;;; bind-key.el --- A simple way to manage personal keybindings
+;;; bind-key.el --- a simple way to manage personal keybindings
 
-;; Copyright (C) 2012 John Wiegley
+;; copyright (c) 2012 john wiegley
 
-;; Author: John Wiegley <jwiegley@gmail.com>
-;; Created: 16 Jun 2012
-;; Version: 1.0
-;; Keywords: keys keybinding config dotemacs
-;; URL: https://github.com/jwiegley/use-package
+;; author: john wiegley <jwiegley@gmail.com>
+;; created: 16 jun 2012
+;; version: 1.0
+;; keywords: keys keybinding config dotemacs
+;; url: https://github.com/jwiegley/use-package
 
-;; This program is free software; you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 2, or (at
+;; this program is free software; you can redistribute it and/or
+;; modify it under the terms of the gnu general public license as
+;; published by the free software foundation; either version 2, or (at
 ;; your option) any later version.
 
-;; This program is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
+;; this program is distributed in the hope that it will be useful, but
+;; without any warranty; without even the implied warranty of
+;; merchantability or fitness for a particular purpose.  see the gnu
+;; general public license for more details.
 
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; you should have received a copy of the gnu general public license
+;; along with gnu emacs; see the file copying.  if not, write to the
+;; free software foundation, inc., 59 temple place - suite 330,
+;; boston, ma 02111-1307, usa.
 
-;;; Commentary:
+;;; commentary:
 
-;; If you have lots of keybindings set in your .emacs file, it can be hard to
+;; if you have lots of keybindings set in your .emacs file, it can be hard to
 ;; know which ones you haven't set yet, and which may now be overriding some
-;; new default in a new Emacs version.  This module aims to solve that
+;; new default in a new emacs version.  this module aims to solve that
 ;; problem.
 ;;
-;; Bind keys as follows in your .emacs:
+;; bind keys as follows in your .emacs:
 ;;
 ;;   (require 'bind-key)
 ;;
-;;   (bind-key "C-c x" 'my-ctrl-c-x-command)
+;;   (bind-key "c-c x" 'my-ctrl-c-x-command)
 ;;
-;; If you want the keybinding to override all minor modes that may also bind
+;; if you want the keybinding to override all minor modes that may also bind
 ;; the same key, use the `bind-key*' form:
 ;;
-;;   (bind-key* "<C-return>" 'other-window)
+;;   (bind-key* "<c-return>" 'other-window)
 ;;
-;; If you want to rebind a key only in a particular keymap, use:
+;; if you want to rebind a key only in a particular keymap, use:
 ;;
-;;   (bind-key "C-c x" 'my-ctrl-c-x-command some-other-mode-map)
+;;   (bind-key "c-c x" 'my-ctrl-c-x-command some-other-mode-map)
 ;;
-;; To unbind a key within a keymap (for example, to stop your favorite major
+;; to unbind a key within a keymap (for example, to stop your favorite major
 ;; mode from changing a binding that you don't want to override everywhere),
 ;; use `unbind-key':
 ;;
-;;   (unbind-key "C-c x" some-other-mode-map)
+;;   (unbind-key "c-c x" some-other-mode-map)
 ;;
-;; To bind multiple keys at once, or set up a prefix map, a
-;; `bind-keys' macro is provided.  It accepts keyword arguments, see
-;; its documentation for detailed description.
+;; to bind multiple keys at once, or set up a prefix map, a `bind-keys' macro
+;; is provided.  it accepts keyword arguments, see its documentation for
+;; detailed description.
 ;;
-;; To add keys into a specific map, use :map argument
+;; to add keys into a specific map, use :map argument
 ;;
 ;;    (bind-keys :map dired-mode-map
 ;;               ("o" . dired-omit-mode)
 ;;               ("a" . some-custom-dired-function))
 ;;
-;; To set up a prefix map, use :prefix-map and :prefix
-;; arguments (both are required)
+;; to set up a prefix map, use `:prefix-map' and `:prefix' arguments (both are
+;; required)
 ;;
 ;;    (bind-keys :prefix-map my-customize-prefix-map
 ;;               :prefix "C-c c"
 ;;               ("f" . customize-face)
 ;;               ("v" . customize-variable))
 ;;
-;; You can combine all the keywords together.
-;; Additionally, :prefix-docstring can be specified to set
-;; documentation of created :prefix-map variable.
+;; You can combine all the keywords together.  Additionally,
+;; `:prefix-docstring' can be specified to set documentation of created
+;; `:prefix-map' variable.
 ;;
 ;; To bind multiple keys in a `bind-key*' way (to be sure that your bindings
 ;; will not be overridden by other modes), you may use `bind-keys*' macro:
@@ -182,16 +182,17 @@ Accepts keyword arguments:
 
 The rest of the arguments are conses of keybinding string and a
 function symbol (unquoted)."
-  (let ((map (plist-get args :map))
-        (doc (plist-get args :prefix-docstring))
-        (prefix-map (plist-get args :prefix-map))
-        (prefix (plist-get args :prefix))
-        (menu-name (plist-get args :menu-name))
-        (key-bindings (progn
-                        (while (keywordp (car args))
-                          (pop args)
-                          (pop args))
-                        args)))
+  (let* ((map (plist-get args :map))
+         (maps (if (listp map) map (list map)))
+         (doc (plist-get args :prefix-docstring))
+         (prefix-map (plist-get args :prefix-map))
+         (prefix (plist-get args :prefix))
+         (menu-name (plist-get args :menu-name))
+         (key-bindings (progn
+                         (while (keywordp (car args))
+                           (pop args)
+                           (pop args))
+                         args)))
     (when (or (and prefix-map
                    (not prefix))
               (and prefix
@@ -205,12 +206,19 @@ function symbol (unquoted)."
              ,@(when doc `((put ',prefix-map 'variable-documentation ,doc)))
              ,@(if menu-name
                    `((define-prefix-command ',prefix-map nil ,menu-name))
-                   `((define-prefix-command ',prefix-map)))
-             (bind-key ,prefix ',prefix-map ,map)))
-       ,@(mapcar (lambda (form)
-                   `(bind-key ,(car form) ',(cdr form)
-                              ,(or prefix-map map)))
-                 key-bindings))))
+                 `((define-prefix-command ',prefix-map)))
+             ,@(mapcar
+                #'(lambda (m)
+                    `(bind-key ,prefix ',prefix-map ,m)) maps)))
+       ,@(apply
+          #'nconc
+          (mapcar (lambda (form)
+                    (if prefix-map
+                        `((bind-key ,(car form) ',(cdr form) ,prefix-map))
+                      (mapcar
+                       #'(lambda (m)
+                           `(bind-key ,(car form) ',(cdr form) ,m)) maps)))
+                  key-bindings)))))
 
 (defmacro bind-keys* (&rest args)
   `(bind-keys :map override-global-map
