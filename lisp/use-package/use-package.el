@@ -65,6 +65,11 @@ then the expanded macros do their job silently."
   :type 'boolean
   :group 'use-package)
 
+(defcustom use-package-always-ensure nil
+  "Treat every package as though it had specified `:ensure SEXP`."
+  :type 'sexp
+  :group 'use-package)
+
 (defcustom use-package-minimum-reported-time 0.1
   "Minimal load time that will be reported.
 
@@ -973,10 +978,14 @@ this file.  Usage:
   (declare (indent 1))
   (unless (member :disabled args)
     (let* ((name-symbol (if (stringp name) (intern name) name))
+           (args0 (use-package-plist-maybe-put
+                   (use-package-normalize-plist name-symbol args)
+                   :config '(t)))
            (args* (use-package-sort-keywords
-                   (use-package-plist-maybe-put
-                    (use-package-normalize-plist name-symbol args)
-                    :config '(t)))))
+                   (if use-package-always-ensure
+                       (use-package-plist-maybe-put
+                        args0 :ensure use-package-always-ensure)
+                     args0))))
 
       ;; When byte-compiling, pre-load the package so all its symbols are in
       ;; scope.
