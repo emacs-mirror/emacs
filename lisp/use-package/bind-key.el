@@ -165,9 +165,7 @@ spelled-out keystrokes, e.g., \"C-c C-z\". See documentation of
   `(bind-key ,key-name nil ,keymap))
 
 (defmacro bind-key* (key-name command)
-  `(progn
-     (bind-key ,key-name ,command)
-     (define-key override-global-map ,(read-kbd-macro key-name) ,command)))
+  `(bind-key ,key-name ,command override-global-map))
 
 (defmacro bind-keys (&rest args)
   "Bind multiple keys at once.
