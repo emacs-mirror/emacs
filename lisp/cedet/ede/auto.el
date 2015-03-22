@@ -63,74 +63,61 @@ location is varied dependent on other complex criteria, this class
 can be used to define that match without loading the specific project
 into memory.")
 
+(cl-defmethod ede-calc-fromconfig ((dirmatch ede-project-autoload-dirmatch))
+  "Calculate the value of :fromconfig from DIRMATCH."
+  (let ((fc (oref dirmatch fromconfig)))
+    (cond ((stringp fc) fc)
+	  ((functionp fc) (funcall fc))
+	  (t (error "Unknown dirmatch object match style.")))
+    ))
+
+
 (cl-defmethod ede-dirmatch-installed ((dirmatch ede-project-autoload-dirmatch))
   "Return non-nil if the tool DIRMATCH might match is installed on the system."
-  (let ((fc (oref dirmatch fromconfig)))
-
-    (cond
-     ;; If the thing to match is stored in a config file.
-     ((stringp fc)
-      (file-exists-p fc))
-
-     ;; Add new types of dirmatches here.
-
-     ;; Error for weird stuff
-     (t (error "Unknown dirmatch type.")))))
-
+  (file-exists-p (ede-calc-fromconfig dirmatch)))
 
 (cl-defmethod ede-do-dirmatch ((dirmatch ede-project-autoload-dirmatch) file)
   "Does DIRMATCH match the filename FILE."
-  (let ((fc (oref dirmatch fromconfig)))
+  (let ((fc (ede-calc-fromconfig dirmatch)))
 
-    (cond
-     ;; If the thing to match is stored in a config file.
-     ((stringp fc)
-      (when (file-exists-p fc)
-	(let ((matchstring
-	       (if (slot-boundp dirmatch 'configdatastash)
-		   (oref dirmatch configdatastash)
-		 nil)))
-	  (when (and (not matchstring) (not (slot-boundp dirmatch 'configdatastash)))
-	    (save-current-buffer
-	      (let* ((buff (get-file-buffer fc))
-		     (readbuff
-		      (let ((find-file-hook nil)) ;; Disable ede from recursing
-			(find-file-noselect fc))))
-		(set-buffer readbuff)
-		(save-excursion
-		  (goto-char (point-min))
-		  (when (re-search-forward (oref dirmatch configregex) nil t)
-		    (setq matchstring
-			  (match-string (or (oref dirmatch configregexidx) 0)))))
-		(if (not buff) (kill-buffer readbuff))))
-	    (when matchstring
-	      ;; If this dirmatch only finds subdirs of matchstring, then
-	      ;; force matchstring to be a directory.
-	      (when (oref dirmatch subdir-only)
-		(setq matchstring (file-name-as-directory matchstring)))
-	      ;; Convert matchstring to a regexp
-	      (setq matchstring (concat "^" (regexp-quote matchstring)))
-	      ;; Stash it for later.
-	      (oset dirmatch configdatastash matchstring))
-	    ;; Debug
-	    ;;(message "Stashing config data for dirmatch %S as %S" (eieio-object-name dirmatch) matchstring)
-	    )
-	  ;;(message "dirmatch %s against %s" matchstring (expand-file-name file))
-	  ;; Match against our discovered string
-	  (setq file (file-name-as-directory (expand-file-name file)))
-	  (and matchstring (string-match matchstring (expand-file-name file))
-	       (or (not (oref dirmatch subdir-only))
-		   (not (= (match-end 0) (length file))))
-	       )
-	  )))
-
-     ;; Add new matches here
-     ;; ((stringp somenewslot ...)
-     ;;   )
-
-     ;; Error if none others known
-     (t
-      (error "Unknown dirmatch object match style.")))
+    (when (file-exists-p fc)
+      (let ((matchstring
+	     (if (slot-boundp dirmatch 'configdatastash)
+		 (oref dirmatch configdatastash)
+	       nil)))
+	(when (and (not matchstring) (not (slot-boundp dirmatch 'configdatastash)))
+	  (save-current-buffer
+	    (let* ((buff (get-file-buffer fc))
+		   (readbuff
+		    (let ((find-file-hook nil)) ;; Disable ede from recursing
+		      (find-file-noselect fc))))
+	      (set-buffer readbuff)
+	      (save-excursion
+		(goto-char (point-min))
+		(when (re-search-forward (oref dirmatch configregex) nil t)
+		  (setq matchstring
+			(match-string (or (oref dirmatch configregexidx) 0)))))
+	      (if (not buff) (kill-buffer readbuff))))
+	  (when matchstring
+	    ;; If this dirmatch only finds subdirs of matchstring, then
+	    ;; force matchstring to be a directory.
+	    (when (oref dirmatch subdir-only)
+	      (setq matchstring (file-name-as-directory matchstring)))
+	    ;; Convert matchstring to a regexp
+	    (setq matchstring (concat "^" (regexp-quote matchstring)))
+	    ;; Stash it for later.
+	    (oset dirmatch configdatastash matchstring))
+	  ;; Debug
+	  ;;(message "Stashing config data for dirmatch %S as %S" (eieio-object-name dirmatch) matchstring)
+	  )
+	;;(message "dirmatch %s against %s" matchstring (expand-file-name file))
+	;; Match against our discovered string
+	(setq file (file-name-as-directory (expand-file-name file)))
+	(and matchstring (string-match matchstring (expand-file-name file))
+	     (or (not (oref dirmatch subdir-only))
+		 (not (= (match-end 0) (length file))))
+	     )
+	))
     ))
 
 (declare-function ede-directory-safe-p "ede")
