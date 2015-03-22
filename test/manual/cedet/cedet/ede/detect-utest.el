@@ -1,6 +1,6 @@
 ;;; ede/detect.el --- Tests for detecting different kinds of projects.
 ;;
-;; Copyright (C) 2014 Eric M. Ludlam
+;; Copyright (C) 2014, 2015 Eric M. Ludlam
 ;;
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 ;;
@@ -194,6 +194,17 @@ It is passed the root project found.")
    )
   "List of testing entries that do not use `diretest' feature.")
 
+(defvar ede-detect-utest-linux-extra-project-entries
+  (list
+   (ede-detect-entry "linux driver" :file "src/linux/drivers/block/ub.c"
+		     :classp 'ede-linux-project-p)
+   (ede-detect-entry "linux" :file "src/linux/Makefile"
+		     :classp 'ede-linux-project-p)
+   (ede-detect-entry "linux sub" :file "src/linux/scripts/ver_linux"
+		     :classp 'ede-linux-project-p)
+   )
+  "List of testing entries that do not use `diretest' feature.")
+
 (defvar ede-detect-utest-project-dirmatch-entries
   (list
    (ede-detect-entry "dirmatch sub"
@@ -240,9 +251,11 @@ It is passed the root project found.")
 					       (ede-detect-utest-basedir)))
 
 ;;;###autoload
-(defun ede-detect-utest ()
-  "Test out the detection scheme for EDE."
+(defun ede-detect-utest (&optional FLAG)
+  "Test out the detection scheme for EDE.
+Optional FLAG is for re-running a subset of tests with an alternate config."
   (interactive)
+  (unless FLAG (setq FLAG 'none))
   (save-excursion
     ;; Make sure the dirtest project is set-up, but without
     ;; loading in the project type.
@@ -261,23 +274,35 @@ It is passed the root project found.")
     ;;  (message (eieio-object-name pc) ))
 
     ;; Start Logging
-    (cedet-utest-log-setup "EDE DETECT")
+    (cond
+     ((eq FLAG 'none)
+      (cedet-utest-log-setup "EDE DETECT"))
+     ((eq FLAG 'linux)
+      (cedet-utest-log-setup "EDE LINUX EXTRA DETECT"))
+     )
 
     (let ((errlog nil))
 
       ;; Test all the primary project types.
-      (ede-detect-utest-loop ede-detect-utest-project-entries)
+      (cond
+       ((eq FLAG 'none)
+	(ede-detect-utest-loop ede-detect-utest-project-entries FLAG))
+       ((eq FLAG 'linux)
+	(ede-detect-utest-loop ede-detect-utest-linux-extra-project-entries FLAG))
+       )
 
-      ;; Make sure we didn't accidentally pull in the project using
-      ;; the dirtest project type.
-      (ede-detect-utest-validate-loadstate nil)
+      (when (member FLAG '(none))
+	;; Make sure we didn't accidentally pull in the project using
+	;; the dirtest project type.
+	(ede-detect-utest-validate-loadstate nil)
 
-      ;; Now make sure that DIRTEST is testing properly.
-      (ede-detect-utest-loop ede-detect-utest-project-dirmatch-entries)
+	;; Now make sure that DIRTEST is testing properly.
+	(ede-detect-utest-loop ede-detect-utest-project-dirmatch-entries FLAG)
 
-      ;; Make sure we did load dirtest - though that should be obvious if prev
-      ;; line worked.
-      (ede-detect-utest-validate-loadstate t)
+	;; Make sure we did load dirtest - though that should be obvious if pre
+	;; line worked.
+	(ede-detect-utest-validate-loadstate t)
+	)
 
       ;; Now lets retry the basics with INODE support turned off -- assuming
       ;; that our test platform supports it in the first place.
@@ -289,27 +314,41 @@ It is passed the root project found.")
 
 	      (cedet-utest-log "\n-- Retry All Tests w/ INODE optimizations disabled.")
 	      ;; ReTry all the primary project types.
-	      (ede-detect-utest-loop ede-detect-utest-project-entries)
+              (cond
+              ((eq FLAG 'none)
+               (ede-detect-utest-loop ede-detect-utest-project-entries FLAG))
+              ((eq FLAG 'linux)
+               (ede-detect-utest-loop ede-detect-utest-linux-extra-project-entries FLAG))
+	      )
 
 	      ;; Now retry that DIRTEST is testing properly.
-	      (ede-detect-utest-loop ede-detect-utest-project-dirmatch-entries)
+	      (when (member FLAG '(none))
+                (ede-detect-utest-loop ede-detect-utest-project-dirmatch-entries FLAG))
 
 	      )
 	  (setq ede--disable-inode nil)))
 
       ;; Close out the test suite.
+      (let ((msg (cond ((eq FLAG 'none)
+                        "")
+                       ((eq FLAG 'linux)
+                        "LINUX "))))
       (cedet-utest-log-shutdown
-       "EDE DETECT"
+       (concat "EDE " msg "DETECT")
        (when errlog
-	 (format "%s Failures found." (length errlog))))
-      )))
+         (format "%s Failures found." (length errlog))))
+      ))))
 
-
-(defun ede-detect-utest-loop (test-entries)
+(defun ede-detect-utest-loop (test-entries FLAG)
   "Test the primary EDE project types."
   (save-excursion
     (let ((project-linux-build-directory-default 'same)
-	  (project-linux-architecture-default "glnx")
+	  (project-linux-architecture-default
+           (cond
+            ((eq FLAG 'none)
+             'same)
+            ((eq FLAG 'linux)
+             "/tmp/")))
 	  (ede-project-directories t) ; safe to load Project.ede
 	  (basedir nil)
 	  (baselen nil)
