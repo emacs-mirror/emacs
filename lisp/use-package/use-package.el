@@ -128,7 +128,8 @@ the user specified."
     :demand
     :init
     :config
-    :diminish)
+    :diminish
+    :delight)
   "Establish which keywords are valid, and the order they are processed in.
 
 Note that `:disabled' is special, in that it causes nothing at all to happen,
@@ -923,6 +924,36 @@ deferred until the prefix key sequence is pressed."
                    `(diminish ',var)))
              arg)
      body)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; :delight
+;;
+
+(defun use-package-normalize/:delight (name-symbol keyword args)
+  "Normalize arguments to delight."
+  (cond
+   ((and (= (length args) 1)
+         (symbolp (cdr args)))
+    (list (car args) nil name-symbol))
+   ((and (= (length args) 2)
+         (symbolp (cdr args)))
+    (list (car args) (cadr args) name-symbol))
+   ((and (= (length args) 3)
+         (symbolp (cdr args)))
+    args)
+   (t
+    (use-package-error ":delight expects same args as delight function"))))
+
+(defun use-package-handler/:delight (name-symbol keyword args rest state)
+  (let ((body (use-package-process-keywords name-symbol rest state)))
+    (use-package-concat
+     body
+     `((delight
+        (quote ,(nth 0 args))
+        ,(nth 1 args)
+        (quote ,(nth 2 args)))
+       t))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
