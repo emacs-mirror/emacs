@@ -767,6 +767,16 @@ The class returned from the scope calculation is variable
 	;; can reset the scope cache without affecting others.
 	(clone scopecache)))))
 
+(defun semantic-calculate-scope-for-tag (tag)
+  "Calculate the current scope that is around TAG.
+Return nil if TAG has no position, or we cannot otherwise find a scope.
+Use this when pulling a datatype off TAG so when it is looked up
+it has the right context around it."
+   (save-current-buffer
+     (when (semantic-tag-with-position-p tag)
+       (semantic-go-to-tag tag)
+       (semantic-calculate-scope (point)))) )
+
 (defun semantic-scope-find (name &optional class scope-in)
   "Find the tag with NAME, and optional CLASS in the current SCOPE-IN.
 Searches various elements of the scope for NAME.  Return ALL the
