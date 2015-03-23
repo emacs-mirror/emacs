@@ -934,13 +934,13 @@ deferred until the prefix key sequence is pressed."
   "Normalize arguments to delight."
   (cond
    ((and (= (length args) 1)
-         (symbolp (cdr args)))
+         (symbolp (car args)))
     (list (car args) nil name-symbol))
    ((and (= (length args) 2)
-         (symbolp (cdr args)))
+         (symbolp (car args)))
     (list (car args) (cadr args) name-symbol))
    ((and (= (length args) 3)
-         (symbolp (cdr args)))
+         (symbolp (car args)))
     args)
    (t
     (use-package-error ":delight expects same args as delight function"))))
@@ -949,11 +949,7 @@ deferred until the prefix key sequence is pressed."
   (let ((body (use-package-process-keywords name-symbol rest state)))
     (use-package-concat
      body
-     `((delight
-        (quote ,(nth 0 args))
-        ,(nth 1 args)
-        (quote ,(nth 2 args)))
-       t))))
+     `((delight (quote ,(nth 0 args)) ,(nth 1 args) (quote ,(nth 2 args))) t))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
