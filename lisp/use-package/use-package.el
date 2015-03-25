@@ -697,6 +697,7 @@ deferred until the prefix key sequence is pressed."
                          'bind-key)
                       ,(car binding)
                       #'(lambda ()
+                          (interactive)
                           (use-package-autoload-keymap
                            ',(cdr binding) ',name-symbol nil)))) arg)))
     (use-package-concat
