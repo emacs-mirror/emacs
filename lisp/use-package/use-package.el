@@ -919,9 +919,10 @@ deferred until the prefix key sequence is pressed."
   (let ((body (use-package-process-keywords name-symbol rest state)))
     (use-package-concat
      (mapcar #'(lambda (var)
-                 (if (consp var)
-                     `(diminish ',(car var) ,(cdr var))
-                   `(diminish ',var)))
+                 `(if (fboundp 'diminish)
+                      ,(if (consp var)
+                           `(diminish ',(car var) ,(cdr var))
+                         `(diminish ',var))))
              arg)
      body)))
 
@@ -1024,11 +1025,11 @@ this file.  Usage:
                     ,@(mapcar #'(lambda (var) `(defvar ,var))
                               (plist-get args* :defines))
                     (with-demoted-errors
-                        ,(format "Error loading %s: %%S" name-symbol)
+                        ,(format "Cannot load %s: %%S" name-symbol)
                       ,(if use-package-verbose
                            `(message "Compiling package %s" ',name-symbol))
                       ,(unless (plist-get args* :no-require)
-                         `(require ',name-symbol nil t)))))))
+                         `(require ',name-symbol)))))))
 
       (let ((body
              (macroexp-progn
