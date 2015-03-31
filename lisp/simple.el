@@ -4955,7 +4955,13 @@ also checks the value of `use-empty-active-region'."
         (redisplay--update-region-highlight (selected-window))
       (unless (listp windows) (setq windows (window-list-1 nil nil t)))
       (if highlight-nonselected-windows
-          (mapc #'redisplay--update-region-highlight windows)
+          (mapc #'redisplay--update-region-highlight
+                (delq nil
+                      (mapcar (lambda (w)
+                                (unless (eq (window-buffer w)
+                                            (current-buffer))
+                                  w))
+                              windows)))
         (let ((msw (and (window-minibuffer-p) (minibuffer-selected-window))))
           (dolist (w windows)
             (if (or (eq w (selected-window)) (eq w msw))
