@@ -4835,7 +4835,7 @@ If NO-TMM is non-nil, leave `transient-mark-mode' alone."
   (when (mark t)
     (unless (region-active-p)
       (force-mode-line-update) ;Refresh toolbar (bug#16382).
-      (setq mark-active t)
+      (setq mark-active (selected-window))
       (unless (or transient-mark-mode no-tmm)
         (setq-local transient-mark-mode 'lambda))
       (run-hooks 'activate-mark-hook))))
@@ -4958,9 +4958,8 @@ also checks the value of `use-empty-active-region'."
           (mapc #'redisplay--update-region-highlight
                 (delq nil
                       (mapcar (lambda (w)
-                                (unless (eq (window-buffer w)
-                                            (current-buffer))
-                                  w))
+                                (and (eq w mark-active)
+                                     w))
                               windows)))
         (let ((msw (and (window-minibuffer-p) (minibuffer-selected-window))))
           (dolist (w windows)
