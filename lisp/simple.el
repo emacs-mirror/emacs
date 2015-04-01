@@ -4958,8 +4958,9 @@ also checks the value of `use-empty-active-region'."
           (mapc #'redisplay--update-region-highlight
                 (delq nil
                       (mapcar (lambda (w)
-                                (and (eq w mark-active)
-                                     w))
+                                (when (or (eq mark-active t)
+                                          (eq mark-active w))
+                                  w))
                               windows)))
         (let ((msw (and (window-minibuffer-p) (minibuffer-selected-window))))
           (dolist (w windows)
