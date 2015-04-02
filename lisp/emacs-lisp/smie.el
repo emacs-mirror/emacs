@@ -837,12 +837,12 @@ Possible return values:
 
 ;;; Miscellaneous commands using the precedence parser.
 
-(defun smie-backward-sexp-command (&optional n)
+(defun smie-backward-sexp-command (n)
   "Move backward through N logical elements."
   (interactive "^p")
   (smie-forward-sexp-command (- n)))
 
-(defun smie-forward-sexp-command (&optional n)
+(defun smie-forward-sexp-command (n)
   "Move forward through N logical elements."
   (interactive "^p")
   (let ((forw (> n 0))

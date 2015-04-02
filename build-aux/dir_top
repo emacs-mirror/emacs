@@ -15,6 +15,7 @@ The Info Directory
   In Emacs Info, you can click mouse button 2 on a menu item
   or cross reference to follow it to its target.
   Each menu line that starts with a * is a topic you can select with "m".
+  You can also select a topic by typing its ordinal number.
   Every third topic has a red * to help pick the right number to type.
 
 * Menu:

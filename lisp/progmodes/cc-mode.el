@@ -1148,11 +1148,11 @@ Note that the style variables are always made local to the buffer."
 		  (funcall fn beg end old-len))
 		c-before-font-lock-functions))))))
 
-(defun c-set-fl-decl-start (pos)
+(defun c-fl-decl-start (pos)
   ;; If the beginning of the line containing POS is in the middle of a "local"
   ;; declaration (i.e. one which does not start outside of braces enclosing
   ;; POS, such as a struct), return the beginning of that declaration.
-  ;; Otherwise return POS.  Note that declarations, in this sense, can be
+  ;; Otherwise return nil.  Note that declarations, in this sense, can be
   ;; nested.
   ;;
   ;; This function is called indirectly from font locking stuff - either from
@@ -1189,29 +1189,50 @@ Note that the style variables are always made local to the buffer."
 			      (1- (point)) 'syntax-table)
 			     c-<-as-paren-syntax)))))
 	 (not (bobp)))
-      (backward-char))
-    new-pos))				; back over (, [, <.
+      (backward-char))			; back over (, [, <.
+    (and (/= new-pos pos) new-pos)))
 
-(defun c-change-set-fl-decl-start (_beg _end _old-len)
-  ;; Set c-new-BEG to the beginning of a "local" declaration if it('s BOL) is
-  ;; inside one.  This is called from an after-change-function, but the
-  ;; parameters BEG END and OLD-LEN are ignored.  See `c-set-fl-decl-start'
-  ;; for the detailed functionality.
-  (if font-lock-mode
-      (setq c-new-BEG (c-set-fl-decl-start c-new-BEG))))
+(defun c-change-expand-fl-region (beg end old-len)
+  ;; Expand the region (c-new-BEG c-new-END) to an after-change font-lock
+  ;; region.  This will usually be the smallest sequence of whole lines
+  ;; containing `c-new-BEG' and `c-new-END', but if `c-new-BEG' is in a
+  ;; "local" declaration (see `c-fl-decl-start') the beginning of this is used
+  ;; as the lower bound.
+  ;;
+  ;; This is called from an after-change-function, but the parameters BEG END
+  ;; and OLD-LEN are not used.
+   (if font-lock-mode
+       (setq c-new-BEG
+	     (or (c-fl-decl-start c-new-BEG) (c-point 'bol c-new-BEG))
+	     c-new-END (c-point 'bonl c-new-END))))
 
-(defun c-context-set-fl-decl-start (beg end)
-  ;; Return a cons (NEW-BEG . END), where NEW-BEG is the beginning of a
-  ;; "local" declaration (BOL at) NEW is inside or BEG.  See
-  ;; `c-set-fl-decl-start' for the detailed functionality.
-  (cons (c-set-fl-decl-start beg) end))
+(defun c-context-expand-fl-region (beg end)
+  ;; Return a cons (NEW-BEG . NEW-END), where NEW-BEG is the beginning of a
+  ;; "local" declaration containing BEG (see `c-fl-decl-start') or BOL BEG is
+  ;; in.  NEW-END is beginning of the line after the one END is in.
+  (cons (or (c-fl-decl-start beg) (c-point 'bol beg))
+	(c-point 'bonl end)))
+
+(defun c-before-context-fl-expand-region (beg end)
+  ;; Expand the region (BEG END) as specified by
+  ;; `c-before-context-fontification-functions'.  Return a cons of the bounds
+  ;; of the new region.
+  (save-restriction
+    (widen)
+    (save-excursion
+      (let ((new-beg beg) (new-end end) new-region)
+	(mapc (lambda (fn)
+		(setq new-region (funcall fn new-beg new-end))
+		(setq new-beg (car new-region) new-end (cdr new-region)))
+	      c-before-context-fontification-functions)
+	new-region))))
 
 (defun c-font-lock-fontify-region (beg end &optional verbose)
   ;; Effectively advice around `font-lock-fontify-region' which extends the
   ;; region (BEG END), for example, to avoid context fontification chopping
-  ;; off the start of the context.  Do not do anything if it's already been
-  ;; done (i.e. from an after-change fontification.  An example (C++) where
-  ;; this used to happen is this:
+  ;; off the start of the context.  Do not extend the region if it's already
+  ;; been done (i.e. from an after-change fontification.  An example (C++)
+  ;; where the chopping off used to happen is this:
   ;;
   ;;     template <typename T>
   ;;
@@ -1220,17 +1241,39 @@ Note that the style variables are always made local to the buffer."
   ;; 
   ;; Type a space in the first blank line, and the fontification of the next
   ;; line was fouled up by context fontification.
-  (let ((new-beg beg) (new-end end) new-region case-fold-search
-	open-paren-in-column-0-is-defun-start)
-    (if c-in-after-change-fontification
-	(setq c-in-after-change-fontification nil)
-      (save-restriction
-	(widen)
-	(save-excursion
-	  (mapc (lambda (fn)
-		  (setq new-region (funcall fn new-beg new-end))
-		  (setq new-beg (car new-region)  new-end (cdr new-region)))
-		c-before-context-fontification-functions))))
+  (let (new-beg new-end new-region case-fold-search
+		open-paren-in-column-0-is-defun-start)
+    (if (and c-in-after-change-fontification
+	     (< beg c-new-END) (> end c-new-BEG))
+	;; Region and the latest after-change fontification region overlap.
+	;; Determine the upper and lower bounds of our adjusted region
+	;; separately.
+	(progn
+	  (if (<= beg c-new-BEG)
+	      (setq c-in-after-change-fontification nil))
+	  (setq new-beg
+		(if (and (>= beg (c-point 'bol c-new-BEG))
+			 (<= beg c-new-BEG))
+		    ;; Either jit-lock has accepted `c-new-BEG', or has
+		    ;; (probably) extended the change region spuriously to
+		    ;; BOL, which position likely has a syntactically
+		    ;; different position.  To ensure correct fontification,
+		    ;; we start at `c-new-BEG', assuming any characters to the
+		    ;; left of `c-new-BEG' on the line do not require
+		    ;; fontification.
+		    c-new-BEG
+		  (setq new-region (c-before-context-fl-expand-region beg end)
+			new-end (cdr new-region))
+		  (car new-region)))
+	  (setq new-end
+		(if (and (>= end (c-point 'bol c-new-END))
+			 (<= end c-new-END))
+		    c-new-END
+		  (or new-end
+		      (cdr (c-before-context-fl-expand-region beg end))))))
+      ;; Context (etc.) fontification.
+      (setq new-region (c-before-context-fl-expand-region beg end)
+	    new-beg (car new-region)  new-end (cdr new-region)))
     (funcall (default-value 'font-lock-fontify-region-function)
 	     new-beg new-end verbose)))
 
@@ -1277,7 +1320,7 @@ This function is called from `c-common-init', once per mode initialization."
 ;; Emacs 22 and later.
 (defun c-extend-after-change-region (_beg _end _old-len)
   "Extend the region to be fontified, if necessary."
-  ;; Note: the parameters are ignored here.  This somewhat indirect
+  ;; Note: the parameter OLD-LEN is ignored here.  This somewhat indirect
   ;; implementation exists because it is minimally different from the
   ;; stand-alone CC Mode which, lacking
   ;; font-lock-extend-after-change-region-function, is forced to use advice
@@ -1286,6 +1329,13 @@ This function is called from `c-common-init', once per mode initialization."
   ;; Of the seven CC Mode languages, currently (2009-05) only C, C++, Objc
   ;; (the languages with #define) and AWK Mode make non-null use of this
   ;; function.
+  (when (eq font-lock-support-mode 'jit-lock-mode)
+    (save-restriction
+      (widen)
+      (if (< c-new-BEG beg)
+	  (put-text-property c-new-BEG beg 'fontified nil))
+      (if (> c-new-END end)
+	  (put-text-property end c-new-END 'fontified nil))))
   (cons c-new-BEG c-new-END))
 
 ;; Emacs < 22 and XEmacs

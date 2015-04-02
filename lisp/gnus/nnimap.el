@@ -2086,12 +2086,15 @@ Return the server's response to the SELECT or EXAMINE command."
 		    (ranges (cdr spec)))
 		(if (eq group 'junk)
 		    (setq junk-articles ranges)
-		  (push (list (nnimap-send-command
-			       "UID COPY %s %S"
-			       (nnimap-article-ranges ranges)
-			       (utf7-encode group t))
-			      ranges)
-			sequences))))
+		  ;; Don't copy if the message is already in its
+		  ;; target group.
+		  (unless (string= group nnimap-inbox)
+		   (push (list (nnimap-send-command
+				"UID COPY %s %S"
+				(nnimap-article-ranges ranges)
+				(utf7-encode group t))
+			       ranges)
+			 sequences)))))
 	    ;; Wait for the last COPY response...
 	    (when sequences
 	      (nnimap-wait-for-response (caar sequences))

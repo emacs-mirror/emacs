@@ -4807,7 +4807,8 @@ run `deactivate-mark-hook'."
       ;; the region prior to the last command modifying the buffer.
       ;; Set the selection to that, or to the current region.
       (cond (saved-region-selection
-	     (gui-set-selection 'PRIMARY saved-region-selection)
+	     (if (gui-call gui-selection-owner-p 'PRIMARY)
+		 (gui-set-selection 'PRIMARY saved-region-selection))
 	     (setq saved-region-selection nil))
 	    ;; If another program has acquired the selection, region
 	    ;; deactivation should not clobber it (Bug#11772).
@@ -5409,7 +5410,10 @@ lines."
 (declare-function font-info "font.c" (name &optional frame))
 
 (defun default-font-height ()
-  "Return the height in pixels of the current buffer's default face font."
+  "Return the height in pixels of the current buffer's default face font.
+
+If the default font is remapped (see `face-remapping-alist'), the
+function returns the height of the remapped face."
   (let ((default-font (face-font 'default)))
     (cond
      ((and (display-multi-font-p)
@@ -5419,6 +5423,25 @@ lines."
 	   (not (string= (frame-parameter nil 'font) default-font)))
       (aref (font-info default-font) 3))
      (t (frame-char-height)))))
+
+(defun default-font-width ()
+  "Return the width in pixels of the current buffer's default face font.
+
+If the default font is remapped (see `face-remapping-alist'), the
+function returns the width of the remapped face."
+  (let ((default-font (face-font 'default)))
+    (cond
+     ((and (display-multi-font-p)
+	   ;; Avoid calling font-info if the frame's default font was
+	   ;; not changed since the frame was created.  That's because
+	   ;; font-info is expensive for some fonts, see bug #14838.
+	   (not (string= (frame-parameter nil 'font) default-font)))
+      (let* ((info (font-info (face-font 'default)))
+	     (width (aref info 11)))
+	(if (> width 0)
+	    width
+	  (aref info 10))))
+     (t (frame-char-width)))))
 
 (defun default-line-height ()
   "Return the pixel height of current buffer's default-face text line.

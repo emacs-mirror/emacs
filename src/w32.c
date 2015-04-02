@@ -7038,6 +7038,9 @@ int (PASCAL *pfn_WSAStartup) (WORD wVersionRequired, LPWSADATA lpWSAData);
 void (PASCAL *pfn_WSASetLastError) (int iError);
 int (PASCAL *pfn_WSAGetLastError) (void);
 int (PASCAL *pfn_WSAEventSelect) (SOCKET s, HANDLE hEventObject, long lNetworkEvents);
+int (PASCAL *pfn_WSAEnumNetworkEvents) (SOCKET s, HANDLE hEventObject,
+					WSANETWORKEVENTS *NetworkEvents);
+
 HANDLE (PASCAL *pfn_WSACreateEvent) (void);
 int (PASCAL *pfn_WSACloseEvent) (HANDLE hEvent);
 int (PASCAL *pfn_socket) (int af, int type, int protocol);
@@ -7123,6 +7126,7 @@ init_winsock (int load_now)
       LOAD_PROC (WSASetLastError);
       LOAD_PROC (WSAGetLastError);
       LOAD_PROC (WSAEventSelect);
+      LOAD_PROC (WSAEnumNetworkEvents);
       LOAD_PROC (WSACreateEvent);
       LOAD_PROC (WSACloseEvent);
       LOAD_PROC (socket);
@@ -7206,6 +7210,8 @@ set_errno (void)
     case WSAEMFILE:		errno = EMFILE; break;
     case WSAENAMETOOLONG: 	errno = ENAMETOOLONG; break;
     case WSAENOTEMPTY:		errno = ENOTEMPTY; break;
+    case WSAEWOULDBLOCK:	errno = EWOULDBLOCK; break;
+    case WSAENOTCONN:		errno = ENOTCONN; break;
     default:			errno = wsa_err; break;
     }
 }
@@ -7473,7 +7479,17 @@ sys_connect (int s, const struct sockaddr * name, int namelen)
     {
       int rc = pfn_connect (SOCK_HANDLE (s), name, namelen);
       if (rc == SOCKET_ERROR)
-	set_errno ();
+	{
+	  set_errno ();
+	  /* If this is a non-blocking 'connect', set the bit in flags
+	     that will tell reader_thread to wait for connection
+	     before trying to read.  */
+	  if (errno == EWOULDBLOCK && (fd_info[s].flags & FILE_NDELAY) != 0)
+	    {
+	      errno = EINPROGRESS; /* that's what process.c expects */
+	      fd_info[s].flags |= FILE_CONNECT;
+	    }
+	}
       return rc;
     }
   errno = ENOTSOCK;
@@ -7984,6 +8000,8 @@ _sys_read_ahead (int fd)
       emacs_abort ();
     }
 
+  if ((fd_info[fd].flags & FILE_CONNECT) != 0)
+    DebPrint (("_sys_read_ahead: read requested from fd %d, which waits for async connect!\n", fd));
   cp->status = STATUS_READ_IN_PROGRESS;
 
   if (fd_info[fd].flags & FILE_PIPE)
@@ -8106,6 +8124,60 @@ _sys_wait_accept (int fd)
 }
 
 int
+_sys_wait_connect (int fd)
+{
+  HANDLE hEv;
+  child_process * cp;
+  int rc;
+
+  if (fd < 0 || fd >= MAXDESC)
+    return STATUS_READ_ERROR;
+
+  cp = fd_info[fd].cp;
+  if (cp == NULL || cp->fd != fd || cp->status != STATUS_READ_READY)
+    return STATUS_READ_ERROR;
+
+  cp->status = STATUS_READ_FAILED;
+
+  hEv = pfn_WSACreateEvent ();
+  rc = pfn_WSAEventSelect (SOCK_HANDLE (fd), hEv, FD_CONNECT);
+  if (rc != SOCKET_ERROR)
+    {
+      do {
+	rc = WaitForSingleObject (hEv, 500);
+	Sleep (5);
+      } while (rc == WAIT_TIMEOUT
+	       && cp->status != STATUS_READ_ERROR
+	       && cp->char_avail);
+      if (rc == WAIT_OBJECT_0)
+	{
+	  /* We've got an event, but it could be a successful
+	     connection, or it could be a failure.  Find out
+	     which one is it.  */
+	  WSANETWORKEVENTS events;
+
+	  pfn_WSAEnumNetworkEvents (SOCK_HANDLE (fd), hEv, &events);
+	  if ((events.lNetworkEvents & FD_CONNECT) != 0
+	      && events.iErrorCode[FD_CONNECT_BIT])
+	    {
+	      cp->status = STATUS_CONNECT_FAILED;
+	      cp->errcode = events.iErrorCode[FD_CONNECT_BIT];
+	    }
+	  else
+	    {
+	      cp->status = STATUS_READ_SUCCEEDED;
+	      cp->errcode = 0;
+	    }
+	}
+      pfn_WSAEventSelect (SOCK_HANDLE (fd), NULL, 0);
+    }
+  else
+    pfn_WSACloseEvent (hEv);
+
+  return cp->status;
+}
+
+int
 sys_read (int fd, char * buffer, unsigned int count)
 {
   int nchars;
@@ -8174,6 +8246,7 @@ sys_read (int fd, char * buffer, unsigned int count)
 	      ResetEvent (cp->char_avail);
 
 	    case STATUS_READ_ACKNOWLEDGED:
+	    case STATUS_CONNECT_FAILED:
 	      break;
 
 	    default:
@@ -8239,7 +8312,29 @@ sys_read (int fd, char * buffer, unsigned int count)
 	    {
 	      if (winsock_lib == NULL) emacs_abort ();
 
-	      /* do the equivalent of a non-blocking read */
+	      /* When a non-blocking 'connect' call fails,
+		 wait_reading_process_output detects this by calling
+		 'getpeername', and then attempts to obtain the connection
+		 error code by trying to read 1 byte from the socket.  If
+		 we try to serve that read by calling 'recv' below, the
+		 error we get is a generic WSAENOTCONN, not the actual
+		 connection error.  So instead, we use the actual error
+		 code stashed by '_sys_wait_connect' in cp->errcode.
+		 Alternatively, we could have used 'getsockopt', like on
+		 GNU/Linux, but: (a) I have no idea whether the winsock
+		 version could hang, as it does "on some systems" (see the
+		 comment in process.c); and (b) 'getsockopt' on Windows is
+		 documented to clear the socket error for the entire
+		 process, which I'm not sure is TRT; FIXME.  */
+	      if (current_status == STATUS_CONNECT_FAILED
+		  && (fd_info[fd].flags & FILE_CONNECT) != 0
+		  && cp->errcode != 0)
+		{
+		  pfn_WSASetLastError (cp->errcode);
+		  set_errno ();
+		  return -1;
+		}
+	      /* Do the equivalent of a non-blocking read.  */
 	      pfn_ioctlsocket (SOCK_HANDLE (fd), FIONREAD, &waiting);
 	      if (waiting == 0 && nchars == 0)
 	        {
@@ -8253,9 +8348,9 @@ sys_read (int fd, char * buffer, unsigned int count)
 		  int res = pfn_recv (SOCK_HANDLE (fd), buffer, count, 0);
 		  if (res == SOCKET_ERROR)
 		    {
-		      DebPrint (("sys_read.recv failed with error %d on socket %ld\n",
-				 pfn_WSAGetLastError (), SOCK_HANDLE (fd)));
 		      set_errno ();
+		      DebPrint (("sys_read.recv failed with error %d on socket %ld\n",
+				 errno, SOCK_HANDLE (fd)));
 		      return -1;
 		    }
 		  nchars += res;

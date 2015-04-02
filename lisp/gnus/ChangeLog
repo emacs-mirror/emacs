@@ -1,3 +1,46 @@
+2015-04-01  Eric Abrahamsen  <eric@ericabrahamsen.net>
+
+	* registry.el (registry-prune): Re-use `registry-full' in
+	`registry-prune'.  It's a bit of redundant work, but safer.
+	Also ensure that target-size is an integer.
+
+2015-03-31  Daiki Ueno  <ueno@gnu.org>
+
+	* plstore.el (plstore--decrypt): Clear entry in
+	`plstore-passphrase-alist' if decryption failed (bug#20030).
+
+2015-03-28  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* gnus-sum.el (gnus-summary-make-menu-bar): Add "Display HTML images"
+	to "Display" menu.
+
+2015-03-24  Eric Abrahamsen  <eric@ericabrahamsen.net>
+
+	* nnimap.el (nnimap-split-incoming-mail): If a message is already
+	in the group it should be split to, don't re-copy it into the group.
+
+2015-03-23  Ben Bacarisse  <ben.lists@bsb.me.uk>  (tiny change)
+
+	* nnmh.el (nnmh-request-expire-articles):
+	Work for the case nnmail-expiry-target is an nnmh group (bug#20170).
+
+2015-03-21  Eric Abrahamsen  <eric@ericabrahamsen.net>
+
+	* registry.el (registry-lookup-secondary, registry-full)
+	(registry-prune, registry-collect-prune-candidates):
+	* gnus-registry.el (gnus-registry-load): Use slot names rather than
+	initarg names in `oref' and `oset'.
+
+2015-03-19  Eric Abrahamsen  <eric@ericabrahamsen.net>
+
+	* registry.el (registry-prune): Allow registry to reach full size
+	before pruning.
+
+2015-03-19  Eric Abrahamsen  <eric@ericabrahamsen.net>
+
+	* registry.el (registry-collect-prune-candidates): Fix call to
+	cl-subseq.
+
 2015-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus-registry.el (gnus-registry-handle-action)

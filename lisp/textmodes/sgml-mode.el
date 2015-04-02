@@ -46,6 +46,25 @@
   :type 'integer
   :group 'sgml)
 
+(defcustom sgml-attribute-offset 0
+  "Specifies a delta for attribute indentation in `sgml-indent-line'.
+
+When 0, attribute indentation looks like this:
+
+  <element
+    attribute=\"value\">
+  </element>
+
+When 2, attribute indentation looks like this:
+
+  <element
+      attribute=\"value\">
+  </element>"
+  :version "25.1"
+  :type 'integer
+  :safe 'integerp
+  :group 'sgml)
+
 (defcustom sgml-xml-mode nil
   "When non-nil, tag insertion functions will be XML-compliant.
 It is set to be buffer-local when the file has
@@ -1510,13 +1529,13 @@ LCON is the lexical context, if any."
     (`pi nil)
 
     (`tag
-     (goto-char (1+ (cdr lcon)))
+     (goto-char (+ (cdr lcon) sgml-attribute-offset))
      (skip-chars-forward "^ \t\n")	;Skip tag name.
      (skip-chars-forward " \t")
      (if (not (eolp))
 	 (current-column)
        ;; This is the first attribute: indent.
-       (goto-char (1+ (cdr lcon)))
+       (goto-char (+ (cdr lcon) sgml-attribute-offset))
        (+ (current-column) sgml-basic-offset)))
 
     (`text

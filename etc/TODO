@@ -416,9 +416,6 @@ http://lists.gnu.org/archive/html/emacs-devel/2009-04/msg00034.html
 ** Allow frames(terminals) created by emacsclient to inherit their environment
 from the emacsclient process.
 
-** Remove the default toggling behavior of minor modes when called from elisp
-rather than interactively.  This a trivial one-liner in easy-mode.el.
-
 ** Give Tar mode all the features of Archive mode.
 
 ** Create a category of errors called `process-error'
@@ -426,9 +423,6 @@ rather than interactively.  This a trivial one-liner in easy-mode.el.
 
 ** Maybe reinterpret `parse-error' as a category of errors
   and put some other errors under it.
-
-** A function to tell you the argument pattern of functions.
-  See `function-arity' in http://www.loveshack.ukfsn.org/emacs/fx-misc.el.
 
 ** Make byte-compile warn when a doc string is too wide.
 
@@ -495,9 +489,6 @@ rather than interactively.  This a trivial one-liner in easy-mode.el.
 ** Give start-process the ability to direct standard-error
   output to a different filter.
 
-** Make desktop.el save the "frame configuration" of Emacs (in some
-  useful sense).
-
 ** Give desktop.el a feature to switch between different named desktops.
 
 ** Add a cpio mode, more or less like tar mode.
@@ -523,22 +514,9 @@ rather than interactively.  This a trivial one-liner in easy-mode.el.
   Check the assignments file for other packages which might go in and
   have been missed.
 
-** Make keymaps a first-class Lisp object (this means a rewrite of
-  keymap.c).  What should it do apart from being opaque ?
-  multiple inheritance ?  faster where-is ?  no more fix_submap_inheritance ?
-  what else ?
-
-** Implement popular parts of the rest of the CL functions as compiler
-  macros in cl-macs.  [Is this still relevant now that cl-lib exists?]
-
 ** Make compiler warnings about functions that might be undefined at run time
  smarter, so that they know which files are required by the file being
  compiled and don't warn about functions defined in them.
-
-** Highlight rectangles (`mouse-track-rectangle-p' in XEmacs).  Already in CUA,
-  but it's a valuable feature worth making more general.
-  [Basic support added 2013/10:
-  http://lists.gnu.org/archive/html/emacs-devel/2013-10/msg00904.html ]
 
 ** Split out parts of lisp.h.
 
@@ -546,11 +524,6 @@ rather than interactively.  This a trivial one-liner in easy-mode.el.
 
 ** Allow auto-compression-mode to use zlib calls if zlib is available.
   [It's required for PNG, so may be linked anyhow.]
-
-** Add a --pristine startup flag which does -q --no-site-file plus
-  ignoring X resources (Doze equivalents?) and most of the
-  environment.  What should not be ignored needs consideration.
-  [Do the existing -Q and -D cover this, or is more needed?]
 
 ** Improve the GC (generational, incremental).  (We may be able to use
   the Boehm collector.)  [See the Boehm-GC branch in CVS for work on this.]
@@ -578,19 +551,8 @@ rather than interactively.  This a trivial one-liner in easy-mode.el.
   (Requires recursing through display properties).  Provide some way
   to simulate mouse-clicks on marginal text without a mouse.
 
-** Implement Lisp functions to determine properly whether a character
-  is displayable (particularly needed in XFree 4, sigh).  Use it to
-  define useful glyphs that may be displayed as images or unicodes
-  (with ASCIIfied fallback via latin1-disp).  Examples include
-  box-drawing graphics in Custom buffers, W3 rules and tables, and
-  tree displays generally, mode-line mail indicator.  [See work done
-  already for Emacs 23 and consult fx.]
-
 ** Extend ps-print to deal with multiple font sizes, images, and extra
   encodings.
-
-** Make byte-compile avoid binding an expanded defsubst's args
-  when the body only calls primitives.
 
 ** Use the XIE X extension, if available, for image display.
 

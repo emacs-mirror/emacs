@@ -870,7 +870,9 @@ mode to skip whitespace forward before deciding whether to skip over
 the closing delimiter.
 @end itemize
 
-To toggle Electric Pair mode, type @kbd{M-x electric-pair-mode}.
+To toggle Electric Pair mode, type @kbd{M-x electric-pair-mode}.  To
+toggle the mode in a single buffer, use @kbd{M-x
+electric-pair-local-mode}.
 
 @node Comments
 @section Manipulating Comments

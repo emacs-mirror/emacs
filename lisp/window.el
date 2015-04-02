@@ -1835,6 +1835,61 @@ optional argument PIXELWISE is passed to the functions."
       (window-body-width window pixelwise)
     (window-body-height window pixelwise)))
 
+(defun window-font-width (&optional window face)
+   "Return average character width for the font of FACE used in WINDOW.
+WINDOW must be a live window and defaults to the selected one.
+
+If FACE is nil or omitted, the default face is used.  If FACE is
+remapped (see `face-remapping-alist'), the function returns the
+information for the remapped face."
+   (with-selected-window (window-normalize-window window t)
+     (if (display-multi-font-p)
+	 (let* ((face (if face face 'default))
+		(info (font-info (face-font face)))
+		(width (aref info 11)))
+	   (if (> width 0)
+	      width
+	     (aref info 10)))
+       (frame-char-width))))
+
+(defun window-font-height (&optional window face)
+   "Return character height for the font of FACE used in WINDOW.
+WINDOW must be a live window and defaults to the selected one.
+
+If FACE is nil or omitted, the default face is used.  If FACE is
+remapped (see `face-remapping-alist'), the function returns the
+information for the remapped face."
+   (with-selected-window (window-normalize-window window t)
+     (if (display-multi-font-p)
+	 (let* ((face (if face face 'default))
+		(info (font-info (face-font face))))
+	   (aref info 3))
+       (frame-char-height))))
+
+(defun window-max-chars-per-line (&optional window face)
+  "Return the number of characters that can be displayed on one line in WINDOW.
+WINDOW must be a live window and defaults to the selected one.
+
+The character width of FACE is used for the calculation.  If FACE
+is nil or omitted, the default face is used.  If FACE is
+remapped (see `face-remapping-alist'), the function uses the
+remapped face.
+
+This function is different from `window-body-width' in two
+ways.  First, it accounts for the portions of the line reserved
+for the continuation glyph.  Second, it accounts for the size of
+the font."
+  (with-selected-window (window-normalize-window window t)
+    (let* ((window-width (window-body-width window t))
+	   (font-width (window-font-width window face))
+	   (ncols (/ window-width font-width)))
+      (if (and (display-graphic-p)
+	       overflow-newline-into-fringe
+	       (/= (frame-parameter nil 'left-fringe) 0)
+	       (/= (frame-parameter nil 'right-fringe) 0))
+	  ncols
+	(1- ncols)))))
+
 (defun window-current-scroll-bars (&optional window)
   "Return the current scroll bar types for WINDOW.
 WINDOW must be a live window and defaults to the selected one.
@@ -7974,7 +8029,107 @@ Otherwise, consult the value of `truncate-partial-width-windows'
 				       (window-buffer window))))
       (if (integerp t-p-w-w)
 	  (< (window-width window) t-p-w-w)
-	t-p-w-w))))
+        t-p-w-w))))
+
+
+;; Automatically inform subprocesses of changes to window size.
+
+(defcustom window-adjust-process-window-size-function
+  'window-adjust-process-window-size-smallest
+  "Control how Emacs chooses inferior process window sizes.
+Emacs uses this function to tell processes the space they have
+available for displaying their output.  After each window
+configuration change, Emacs calls the value of
+`window-adjust-process-window-size-function' for each process
+with a buffer being displayed in at least one window.
+This function is responsible for combining the sizes of the
+displayed windows and returning a cons (WIDTH . HEIGHT)
+describing the width and height with which Emacs will call
+`set-process-window-size' for that process.  If the function
+returns `nil', Emacs does not call `set-process-window-size'.
+
+This function is called with the process buffer as the current
+buffer and with two arguments: the process and a list of windows
+displaying process.  Modes can make this variable buffer-local;
+additionally, the `adjust-window-size-function' process property
+overrides the global or buffer-local value of
+`window-adjust-process-window-size-function'."
+  :type '(choice
+          (const :tag "Minimum area of any window"
+           window-adjust-process-window-size-smallest)
+          (const :tag "Maximum area of any window"
+           window-adjust-process-window-size-largest)
+          (const :tag "Do not adjust process window sizes" ignore)
+          function)
+  :group 'windows
+  :version "25.1")
+
+(defun window-adjust-process-window-size (reducer process windows)
+  "Adjust the process window size of PROCESS.
+WINDOWS is a list of windows associated with PROCESS.  REDUCER is
+a two-argument function used to combine the widths and heights of
+the given windows."
+  (when windows
+    (let ((width (window-body-width (car windows)))
+          (height (window-body-height (car windows))))
+      (dolist (window (cdr windows))
+        (setf width (funcall reducer width (window-body-width window)))
+        (setf height (funcall reducer height (window-body-height window))))
+      (cons width height))))
+
+(defun window-adjust-process-window-size-smallest (process windows)
+  "Adjust the process window size of PROCESS.
+WINDOWS is a list of windows associated with PROCESS.  Choose the
+smallest area available for displaying PROCESS's output."
+  (window-adjust-process-window-size #'min process windows))
+
+(defun window-adjust-process-window-size-largest (process windows)
+  "Adjust the process window size of PROCESS.
+WINDOWS is a list of windows associated with PROCESS.  Choose the
+largest area available for displaying PROCESS's output."
+  (window-adjust-process-window-size #'max process windows))
+
+(defun window--process-window-list ()
+  "Return an alist mapping processes to associated windows.
+A window is associated with a process if that window is
+displaying that processes's buffer."
+  (let ((processes (process-list))
+        (process-windows nil))
+    (walk-windows
+     (lambda (window)
+       (let ((buffer (window-buffer window))
+             (iter processes))
+         (while (let ((process (car iter)))
+                  (if (and (process-live-p process)
+                           (eq buffer (process-buffer process)))
+                      (let ((procwin (assq process process-windows)))
+                        ;; Add this window to the list of windows
+                        ;; displaying process.
+                        (if procwin
+                            (push window (cdr procwin))
+                          (push (list process window) process-windows))
+                        ;; We found our process for this window, so
+                        ;; stop iterating over the process list.
+                        nil)
+                    (setf iter (cdr iter)))))))
+     1 t)
+    process-windows))
+
+(defun window--adjust-process-windows ()
+  "Update process window sizes to match the current window configuration."
+  (dolist (procwin (window--process-window-list))
+    (let ((process (car procwin)))
+      (with-demoted-errors "Error adjusting window size: %S"
+        (with-current-buffer (process-buffer process)
+          (let ((size (funcall
+                       (or (process-get process 'adjust-window-size-function)
+                           window-adjust-process-window-size-function)
+                       process (cdr procwin))))
+            (when size
+              (set-process-window-size process (cdr size) (car size)))))))))
+
+(add-hook 'window-configuration-change-hook 'window--adjust-process-windows)
+
 
 ;; Some of these are in tutorial--default-keys, so update that if you
 ;; change these.

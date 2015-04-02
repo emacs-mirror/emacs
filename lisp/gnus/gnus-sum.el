@@ -2424,6 +2424,7 @@ increase the score of each group you read."
 	      ["Lapsed" gnus-article-date-lapsed t]
 	      ["User-defined" gnus-article-date-user t])
 	     ("Display"
+	      ["Display HTML images" gnus-article-show-images t]
 	      ["Remove images" gnus-article-remove-images t]
 	      ["Toggle smiley" gnus-treat-smiley t]
 	      ["Show X-Face" gnus-article-display-x-face t]

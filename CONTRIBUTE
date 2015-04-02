@@ -37,16 +37,17 @@ specify the actual author; the committer defaults to you.
 When using git, commit messages should use ChangeLog format, with the
 following modifications:
 
-- Add a single short line explaining the change, then an empty line,
-  then unindented ChangeLog entries.
+- Start with a single unindented summary line explaining the change,
+  then an empty line, then unindented ChangeLog entries.
 
   You can use various Emacs functions to ease this process; see (info
   "(emacs)Change Log Commands") or
   http://www.gnu.org/software/emacs/manual/html_node/emacs/Change-Log-Commands.html.
 
-- The summary line is limited to 72 characters (enforced by a commit
-  hook). If you have trouble making that a good summary, add a
-  paragraph below it, before the individual file descriptions.
+- Limit lines in commit messages to 78 characters, unless they consist
+  of a single word of at most 140 characters.  If you have trouble
+  fitting the summary into 78 characters, add a summarizing paragraph
+  below the empty line and before the individual file descriptions.
 
 - If only a single file is changed, the summary line can be the normal
   file first line (starting with the asterisk).  Then there is no
@@ -56,6 +57,11 @@ following modifications:
   in the source code. However, sometimes it is useful to describe just
   the rationale for a change; that can be done in the commit message
   between the summary line and the file entries.
+
+- Commit messages should contain only printable UTF-8 characters.
+
+- Commit messages should not contain the "Signed-off-by:" lines that
+  are used in some other projects.
 
 ** ChangeLog notes
 
@@ -186,6 +192,26 @@ Think about whether your change requires updating the manuals.  If you
 know it does not, mark the NEWS entry with "---".  If you know
 that *all* the necessary documentation updates have been made, mark
 the entry with "+++". Otherwise do not mark it.
+
+Please see (info "(elisp)Documentation Tips") or
+https://www.gnu.org/software/emacs/manual/html_node/elisp/Documentation-Tips.html
+for more specific tips on Emacs's doc style.  Use `checkdoc' to check
+for documentation errors before submitting a patch.
+
+** Test your changes.
+
+Please test your changes before committing them or sending them to the
+list.
+
+Emacs uses ERT, Emacs Lisp Regression Testing, for testing.  See (info
+"(ert)") or https://www.gnu.org/software/emacs/manual/html_node/ert/
+for more information on writing and running tests.
+
+To run tests on the entire Emacs tree, run "make check" from the
+top-level directory.  Most tests are in the directory
+"test/automated".  From the "test/automated" directory, run "make
+<filename>" to run the tests for <filename>.el(c).  See
+"test/automated/Makefile" for more information.
 
 ** Understanding Emacs Internals.
 

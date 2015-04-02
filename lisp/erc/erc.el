@@ -1717,7 +1717,8 @@ If `erc-track-mode' is in enabled, put the last element of
 		;; Only allow ERC buffers in the same session.
 		(let ((proc (unless arg erc-server-process)))
 		  (lambda (bufname)
-		    (let ((buf (get-buffer bufname)))
+		    (let ((buf (if (consp bufname)
+				   (cdr bufname) (get-buffer bufname))))
 		      (when buf
 			(erc--buffer-p buf (lambda () t) proc)
 			(with-current-buffer buf

@@ -60,6 +60,7 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 	   (ev-data    (nth 1 event))
 	   (ev-where   (nth 1 ev-data))
 	   (vec (vector event))
+	   (is-move (eq 'mouse-movement ev-command))
 	   (is-down (string-match "down-" (symbol-name ev-command))))
 
       ;; Mouse events symbols must have an 'event-kind property with
@@ -71,6 +72,7 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
        (is-down
 	(setf (terminal-parameter nil 'xterm-mouse-last-down) event)
 	vec)
+       (is-move vec)
        (t
 	(let* ((down (terminal-parameter nil 'xterm-mouse-last-down))
 	       (down-data (nth 1 down))
@@ -132,65 +134,89 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
             (fdiff (- f (* 1.0 maxwrap dbig))))
        (+ (truncate fdiff) (* maxwrap dbig))))))
 
-;; Normal terminal mouse click reporting: expect three bytes, of the
-;; form <BUTTON+32> <X+32> <Y+32>.  Return a list (EVENT-TYPE X Y).
-(defun xterm-mouse--read-event-sequence-1000 ()
-  (let* ((code (- (read-event) 32))
-         (type
-	  ;; For buttons > 3, the release-event looks differently
-	  ;; (see xc/programs/xterm/button.c, function EditorButton),
-	  ;; and come in a release-event only, no down-event.
-	  (cond ((>= code 64)
-		 (format "mouse-%d" (- code 60)))
-		((memq code '(8 9 10))
-		 (format "M-down-mouse-%d" (- code 7)))
-		((memq code '(3 11))
-                 (let ((down (car (terminal-parameter
-                                   nil 'xterm-mouse-last-down))))
-                   (when (and down (string-match "[0-9]" (symbol-name down)))
-                     (format (if (eq code 3) "mouse-%s" "M-mouse-%s")
-                             (match-string 0 (symbol-name down))))))
-		((memq code '(0 1 2))
-		 (format "down-mouse-%d" (+ 1 code)))))
-         (x (- (read-event) 33))
-         (y (- (read-event) 33)))
-    (and type (wholenump x) (wholenump y)
-         (list (intern type) x y))))
+(defun xterm-mouse--read-utf8-char (&optional prompt seconds)
+  "Read an utf-8 encoded character from the current terminal.
+This function reads and returns an utf-8 encoded character of
+command input. If the user generates an event which is not a
+character (i.e., a mouse click or function key event), read-char
+signals an error.
 
-;; XTerm's 1006-mode terminal mouse click reporting has the form
-;; <BUTTON> ; <X> ; <Y> <M or m>, where the button and ordinates are
-;; in encoded (decimal) form.  Return a list (EVENT-TYPE X Y).
-(defun xterm-mouse--read-event-sequence-1006 ()
-  (let (button-bytes x-bytes y-bytes c)
-    (while (not (eq (setq c (read-event)) ?\;))
-      (push c button-bytes))
-    (while (not (eq (setq c (read-event)) ?\;))
-      (push c x-bytes))
-    (while (not (memq (setq c (read-event)) '(?m ?M)))
-      (push c y-bytes))
-    (list (let* ((code (string-to-number
-			(apply 'string (nreverse button-bytes))))
-		 (wheel (>= code 64))
-		 (down (and (not wheel)
-			    (eq c ?M))))
-	    (intern (format "%s%smouse-%d"
-			    (cond (wheel "")
-				  ((< code 4)  "")
-				  ((< code 8)  "S-")
-				  ((< code 12) "M-")
-				  ((< code 16) "M-S-")
-				  ((< code 20) "C-")
-				  ((< code 24) "C-S-")
-				  ((< code 28) "C-M-")
-				  ((< code 32) "C-M-S-")
-				  (t
-				   (error "Unexpected escape sequence from XTerm")))
-			    (if down "down-" "")
-			    (if wheel
-				(- code 60)
-			      (1+ (mod code 4))))))
-	  (1- (string-to-number (apply 'string (nreverse x-bytes))))
-	  (1- (string-to-number (apply 'string (nreverse y-bytes)))))))
+The returned event may come directly from the user, or from a
+keyboard macro. It is not decoded by the keyboard's input coding
+system and always treated with an utf-8 input encoding.
+
+The optional arguments PROMPT and SECONDS work like in
+`read-event'."
+  (let ((tmp (keyboard-coding-system)))
+    (set-keyboard-coding-system 'utf-8)
+    (prog1 (read-event prompt t seconds)
+      (set-keyboard-coding-system tmp))))
+
+;; In default mode, each numeric parameter of XTerm's mouse report is
+;; a single char, possibly encoded as utf-8.  The actual numeric
+;; parameter then is obtained by subtracting 32 from the character
+;; code.  In extended mode the parameters are returned as decimal
+;; string delimited either by semicolons or for the last parameter by
+;; one of the characters "m" or "M".  If the last character is a "m",
+;; then the mouse event was a button release, else it was a button
+;; press or a mouse motion.  Return value is a cons cell with
+;; (NEXT-NUMERIC-PARAMETER . LAST-CHAR)
+(defun xterm-mouse--read-number-from-terminal (extension)
+  (let (c)
+    (if extension
+        (let ((n 0))
+          (while (progn
+                   (setq c (read-char))
+                   (<= ?0 c ?9))
+            (setq n (+ (* 10 n) c (- ?0))))
+          (cons n c))
+      (cons (- (setq c (xterm-mouse--read-utf8-char)) 32) c))))
+
+;; XTerm reports mouse events as
+;; <EVENT-CODE> <X> <Y> in default mode, and
+;; <EVENT-CODE> ";" <X> ";" <Y> <"M" or "m"> in extended mode.
+;; The macro read-number-from-terminal takes care of reading
+;; the response parameters appropriately.  The EVENT-CODE differs
+;; slightly between default and extended mode.
+;; Return a list (EVENT-TYPE-SYMBOL X Y).
+(defun xterm-mouse--read-event-sequence (&optional extension)
+  (pcase-let*
+      ((`(,code . ,_) (xterm-mouse--read-number-from-terminal extension))
+       (`(,x . ,_) (xterm-mouse--read-number-from-terminal extension))
+       (`(,y . ,c) (xterm-mouse--read-number-from-terminal extension))
+       (wheel (/= (logand code 64) 0))
+       (move (/= (logand code 32) 0))
+       (ctrl (/= (logand code 16) 0))
+       (meta (/= (logand code 8) 0))
+       (shift (/= (logand code 4) 0))
+       (down (and (not wheel)
+                  (not move)
+                  (if extension
+                      (eq c ?M)
+                    (/= (logand code 3) 3))))
+       (btn (cond
+             ((or extension down wheel)
+              (+ (logand code 3) (if wheel 4 1)))
+              ;; The default mouse protocol does not report the button
+              ;; number in release events: extract the button number
+              ;; from last button-down event.
+             ((terminal-parameter nil 'xterm-mouse-last-down)
+              (string-to-number
+               (substring
+                (symbol-name
+                 (car (terminal-parameter nil 'xterm-mouse-last-down)))
+                -1)))
+             ;; Spurious release event without previous button-down
+             ;; event: assume, that the last button was button 1.
+             (t 1)))
+       (sym (if move 'mouse-movement
+              (intern (concat (if ctrl "C-" "")
+                              (if meta "M-" "")
+                              (if shift "S-" "")
+                              (if down "down-" "")
+                              "mouse-"
+                              (number-to-string btn))))))
+    (list sym (1- x) (1- y))))
 
 (defun xterm-mouse--set-click-count (event click-count)
   (setcdr (cdr event) (list click-count))
@@ -207,12 +233,10 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 EXTENSION, if non-nil, means to use an extension to the usual
 terminal mouse protocol; we currently support the value 1006,
 which is the \"1006\" extension implemented in Xterm >= 277."
-  (let* ((click (cond ((null extension)
-		       (xterm-mouse--read-event-sequence-1000))
-		      ((eq extension 1006)
-		       (xterm-mouse--read-event-sequence-1006))
-		      (t
-		       (error "Unsupported XTerm mouse protocol")))))
+  (let ((click (cond ((memq extension '(1006 nil))
+		      (xterm-mouse--read-event-sequence extension))
+		     (t
+		      (error "Unsupported XTerm mouse protocol")))))
     (when click
       (let* ((type (nth 0 click))
              (x    (nth 1 click))
@@ -291,13 +315,36 @@ down the SHIFT key while pressing the mouse button."
     (setq mouse-position-function nil)))
 
 (defconst xterm-mouse-tracking-enable-sequence
-  "\e[?1000h\e[?1006h"
+  "\e[?1000h\e[?1002h\e[?1005h\e[?1006h"
   "Control sequence to enable xterm mouse tracking.
-Enables basic tracking, then extended tracking on
-terminals that support it.")
+Enables basic mouse tracking, mouse motion events and finally
+extended tracking on terminals that support it. The following
+escape sequences are understood by modern xterms:
+
+\"\\e[?1000h\" `Basic mouse mode´: Enables reports for mouse
+            clicks. There is a limit to the maximum row/column
+            position (<= 223), which can be reported in this
+            basic mode.
+
+\"\\e[?1002h\" `Mouse motion mode´: Enables reports for mouse
+            motion events during dragging operations.
+
+\"\\e[?1005h\" `UTF-8 coordinate extension`: Enables an extension
+            to the basic mouse mode, which uses UTF-8
+            characters to overcome the 223 row/column limit. This
+            extension may conflict with non UTF-8 applications or
+            non UTF-8 locales.
+
+\"\\e[?1006h\" `SGR coordinate extension´: Enables a newer
+            alternative extension to the basic mouse mode, which
+            overcomes the 223 row/column limit without the
+            drawbacks of the UTF-8 coordinate extension.
+
+The two extension modes are mutually exclusive, where the last
+given escape sequence takes precedence over the former.")
 
 (defconst xterm-mouse-tracking-disable-sequence
-  "\e[?1006l\e[?1000l"
+  "\e[?1006l\e[?1005l\e[?1002l\e[?1000l"
   "Reset the modes set by `xterm-mouse-tracking-enable-sequence'.")
 
 (defun turn-on-xterm-mouse-tracking-on-terminal (&optional terminal)

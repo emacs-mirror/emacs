@@ -1,9 +1,37 @@
+2015-03-27  Pete Williamson  <petewil@chromium.org>  (tiny change)
+
+	Add NaCl target
+	* configure.ac: Add a target for Chromium Native Client (NaCl).
+
+2015-03-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* build-aux/dir_top (File): Fix the description of selecting a
+	menu item by its number.  (Bug#20213)
+
+2015-03-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix 'commit-msg' to cite 'CONTRIBUTE'
+	As suggested in:
+	http://lists.gnu.org/archive/html/emacs-devel/2015-03/msg00947.html
+	Also, have the two files match better.
+	* CONTRIBUTE: Match what's in build-aux/git-hooks/commit-msg.
+	* build-aux/git-hooks/commit-msg: Mention 'CONTRIBUTE'.
+
+2015-03-23  Andreas Schwab  <schwab@suse.de>
+
+	* configure.ac: Fix jpeg version check to work with gcc >= 5.
+
+2015-03-21  Samer Masterson  <samer@samertm.com>
+
+	* CONTRIBUTE (Test your changes.): New section.
+	(Document your changes.): Add doc tips.
+
 2015-03-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Better port of pthread usage to FreeBSD
 	* configure.ac (ac_func_list): Omit pthread_sigmask, since
 	we check for that ourselves rather than relying on gnulib.
-	(HAVE_PTHREAD, LIB_PTHREAD, _THREAD_SAFE): Port better to FreeBSD,
+	(HAVE_PTHREAD, LIB_PTHREAD): Port better to FreeBSD,
 	by also checking for pthread_create, pthread_self, pthread_sigmask.
 	Tighten the test for pthread_atfork while we're at it.
 	Fixes: bug#20136

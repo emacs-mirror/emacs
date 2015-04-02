@@ -1,7 +1,6 @@
 Known Problems with GNU Emacs
 
-Copyright (C) 1987-1989, 1993-1999, 2001-2015 Free Software Foundation,
-Inc.
+Copyright (C) 1987-1989, 1993-1999, 2001-2015 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -457,6 +456,29 @@ problem by adding this to your .cshrc file:
             stty  -icrnl -onlcr -echo susp ^Z
         endif
     endif
+
+*** Emacs startup on GNU/Linux systems (and possibly other systems) is slow.
+
+This can happen if the system is misconfigured and Emacs can't get the
+full qualified domain name, FQDN.  You should have your FQDN in the
+/etc/hosts file, something like this:
+
+127.0.0.1	localhost
+129.187.137.82	nuc04.t30.physik.tu-muenchen.de	nuc04
+
+The way to set this up may vary on non-GNU systems.
+
+*** Visiting files in some auto-mounted directories causes Emacs to print
+`Error reading dir-locals: (file-error "Read error" "is a directory" ...'
+
+This can happen if the auto-mounter mistakenly reports that
+.dir-locals.el exists and is a directory.  There is nothing Emacs can
+do about this, but you can avoid the issue by adding a suitable entry
+to the variable `locate-dominating-stop-dir-regexp'.  For example, if
+the problem relates to "/smb/.dir-locals.el", set that variable
+to a new value where you replace "net\\|afs" with "net\\|afs\\|smb".
+(The default value already matches common auto-mount prefixes.)
+See http://lists.gnu.org/archive/html/help-gnu-emacs/2015-02/msg00461.html .
 
 *** Attempting to visit remote files via ange-ftp fails.
 

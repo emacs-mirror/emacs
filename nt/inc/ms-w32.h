@@ -58,10 +58,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Look in <sys/time.h> for a timeval structure.  */
 #define HAVE_TIMEVAL 1
 
-/* But our select implementation doesn't allow us to make non-blocking
-   connects.  So until that is fixed, this is necessary:  */
-#define BROKEN_NON_BLOCKING_CONNECT 1
-
 /* And the select implementation does 1-byte read-ahead waiting
    for received packets, so datagrams are broken too.  */
 #define BROKEN_DATAGRAM_SOCKETS 1

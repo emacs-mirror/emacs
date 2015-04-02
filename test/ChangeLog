@@ -1,3 +1,29 @@
+2015-04-01  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* automated/package-test.el: Avoid async while testing.
+	(package-test-update-archives): Fix test.
+
+2015-03-27  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	* automated/textprop-tests.el: New file.
+	(textprop-tests-font-lock--remove-face-from-text-property): New test.
+
+2015-03-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* automated/tramp-tests.el (tramp-test18-file-attributes)
+	(tramp--test-check-files): Extend tests.
+	(tramp-test31-utf8): Do not skip for tramp-adb.el.
+
+2015-03-24  Daiki Ueno  <ueno@gnu.org>
+
+	* automated/epg-tests.el: New file.
+	* automated/data/epg/pubkey.asc: New file.
+	* automated/data/epg/seckey.asc: New file.
+
+2015-03-22  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* automated/json-tests.el: New file.
+
 2015-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* automated/eieio-tests.el (eieio-test-17-virtual-slot): Don't use

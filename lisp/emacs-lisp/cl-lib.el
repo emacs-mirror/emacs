@@ -629,7 +629,6 @@ the process stops as soon as KEYS or VALUES run out.
 If ALIST is non-nil, the new pairs are prepended to it."
   (nconc (cl-mapcar 'cons keys values) alist))
 
-
 ;;; Generalized variables.
 
 ;; These used to be in cl-macs.el since all macros that use them (like setf)

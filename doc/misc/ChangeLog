@@ -1,10 +1,19 @@
+2015-03-25  Glenn Morris  <rgm@gnu.org>
+
+	* newsticker.texi (Supported Formats): Remove dead url.
+
+	* remember.texi (Function Reference): Copyedit.
+
+	* idlwave.texi (HTML Help Browser Tips): Remove obsolete info.
+
 2015-03-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* efaq-w32.texi: Remove outdated information and update.
 
 2015-03-18  Martin Rudalics  <rudalics@gmx.at>
 
-	* efaq.texi (Fullscreen mode on MS-Windows): Fix description (Bug#20110).
+	* efaq.texi (Fullscreen mode on MS-Windows):
+	Fix description (Bug#20110).
 
 2015-03-04  Michael Albinus  <michael.albinus@gmx.de>
 

@@ -1,3 +1,14 @@
+2015-03-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port etags to -DDEBUG
+	* etags.c (xnew, xrnew) [DEBUG]: Don't include chkmalloc.h, which
+	is not part of Emacs and is typically not installed.
+	Instead, just invoke xmalloc and xrealloc as usual.
+	Problem reported by Nicolas Richard in:
+	http://bugs.gnu.org/20191#20
+	(xrnew): Avoid no-longer-needed cast to 'char *'.
+	(xrealloc): First arg is now void *, not char *.
+
 2015-03-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Random minor fixes for movemail

@@ -9606,6 +9606,18 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 
       /* Record what part of this_command_keys is the current key sequence.  */
       this_single_command_key_start = this_command_key_count - t;
+      /* When 'input-method-function' called above causes events to be
+	 put on 'unread-post-input-method-events', and as result
+	 'reread' is set to 'true', the value of 't' can become larger
+	 than 'this_command_key_count', because 'add_command_key' is
+	 not called to update 'this_command_key_count'.  If this
+	 happens, 'this_single_command_key_start' will become negative
+	 above, and any call to 'this-single-command-keys' will return
+	 a garbled vector.  See bug #20223 for one such situation.
+	 Here we force 'this_single_command_key_start' to never become
+	 negative, to avoid that.  */
+      if (this_single_command_key_start < 0)
+	this_single_command_key_start = 0;
 
       /* Look for this sequence in input-decode-map.
 	 Scan from indec.end until we find a bound suffix.  */

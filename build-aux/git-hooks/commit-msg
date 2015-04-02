@@ -63,7 +63,7 @@ exec $awk '
   /^#/ { next }
 
   !/^.*$/ {
-    print "Invalid character (not UTF-8) in commit message"
+    print "Invalid character (not UTF-8) in commit message; see 'CONTRIBUTE'"
     status = 1
   }
 
@@ -77,13 +77,13 @@ exec $awk '
       sub(/^squash! /, "")
 
     if ($0 ~ "^" space) {
-      print "White space at start of commit message'\''s first line"
+      print "White space at start of commit message'\''s first line; see 'CONTRIBUTE'"
       status = 1
     }
   }
 
   nlines == 2 && $0 ~ non_space {
-    print "Nonempty second line in commit message"
+    print "Nonempty second line in commit message; see 'CONTRIBUTE'"
     status = 1
   }
 
@@ -97,28 +97,28 @@ exec $awk '
   }
 
   78 < length && $0 ~ space {
-    print "Line longer than 78 characters in commit message"
+    print "Line longer than 78 characters in commit message; see 'CONTRIBUTE'"
     status = 1
   }
 
   140 < length {
-    print "Word longer than 140 characters in commit message"
+    print "Word longer than 140 characters in commit message; see 'CONTRIBUTE'"
     status = 1
   }
 
   /^Signed-off-by: / {
-    print "'\''Signed-off-by:'\'' in commit message"
+    print "'\''Signed-off-by:'\'' in commit message; see 'CONTRIBUTE'"
     status = 1
   }
 
   $0 ~ non_print {
-    print "Unprintable character in commit message"
+    print "Unprintable character in commit message; see 'CONTRIBUTE'"
     status = 1
   }
 
   END {
     if (nlines == 0) {
-      print "Empty commit message"
+      print "Empty commit message; see 'CONTRIBUTE'"
       status = 1
     }
     exit status

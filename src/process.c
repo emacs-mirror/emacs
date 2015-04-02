@@ -195,24 +195,15 @@ static EMACS_INT process_tick;
 /* Number of events for which the user or sentinel has been notified.  */
 static EMACS_INT update_tick;
 
-/* Define NON_BLOCKING_CONNECT if we can support non-blocking connects.  */
+/* Define NON_BLOCKING_CONNECT if we can support non-blocking connects.
+   The code can be simplified by assuming NON_BLOCKING_CONNECT once
+   Emacs starts assuming POSIX 1003.1-2001 or later.  */
 
-/* Only W32 has this, it really means that select can't take write mask.  */
-#ifdef BROKEN_NON_BLOCKING_CONNECT
-#undef NON_BLOCKING_CONNECT
-enum { SELECT_CAN_DO_WRITE_MASK = false };
-#else
-enum { SELECT_CAN_DO_WRITE_MASK = true };
-#ifndef NON_BLOCKING_CONNECT
-#ifdef HAVE_SELECT
-#if defined (HAVE_GETPEERNAME) || defined (GNU_LINUX)
-#if defined (EWOULDBLOCK) || defined (EINPROGRESS)
-#define NON_BLOCKING_CONNECT
-#endif /* EWOULDBLOCK || EINPROGRESS */
-#endif /* HAVE_GETPEERNAME || GNU_LINUX */
-#endif /* HAVE_SELECT */
-#endif /* NON_BLOCKING_CONNECT */
-#endif /* BROKEN_NON_BLOCKING_CONNECT */
+#if (defined HAVE_SELECT				\
+     && (defined GNU_LINUX || defined HAVE_GETPEERNAME)	\
+     && (defined EWOULDBLOCK || defined EINPROGRESS))
+# define NON_BLOCKING_CONNECT
+#endif
 
 /* Define DATAGRAM_SOCKETS if datagrams can be used safely on
    this system.  We need to read full packets, so we need a
@@ -1355,34 +1346,62 @@ DEFUN ("process-list", Fprocess_list, Sprocess_list, 0, 0, 0,
 
 static void start_process_unwind (Lisp_Object proc);
 
-DEFUN ("start-process", Fstart_process, Sstart_process, 3, MANY, 0,
+DEFUN ("make-process", Fmake_process, Smake_process, 0, MANY, 0,
        doc: /* Start a program in a subprocess.  Return the process object for it.
-NAME is name for process.  It is modified if necessary to make it unique.
-BUFFER is the buffer (or buffer name) to associate with the process.
 
-Process output (both standard output and standard error streams) goes
-at end of BUFFER, unless you specify an output stream or filter
-function to handle the output.  BUFFER may also be nil, meaning that
-this process is not associated with any buffer.
+This is similar to `start-process', but arguments are specified as
+keyword/argument pairs.  The following arguments are defined:
 
-PROGRAM is the program file name.  It is searched for in `exec-path'
-(which see).  If nil, just associate a pty with the buffer.  Remaining
-arguments are strings to give program as arguments.
+:name NAME -- NAME is name for process.  It is modified if necessary
+to make it unique.
 
-If you want to separate standard output from standard error, invoke
-the command through a shell and redirect one of them using the shell
-syntax.
+:buffer BUFFER -- BUFFER is the buffer (or buffer-name) to associate
+with the process.  Process output goes at end of that buffer, unless
+you specify an output stream or filter function to handle the output.
+BUFFER may be also nil, meaning that this process is not associated
+with any buffer.
 
-usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
+:command COMMAND -- COMMAND is a list starting with the program file
+name, followed by strings to give to the program as arguments.
+
+:coding CODING -- If CODING is a symbol, it specifies the coding
+system used for both reading and writing for this process.  If CODING
+is a cons (DECODING . ENCODING), DECODING is used for reading, and
+ENCODING is used for writing.
+
+:noquery BOOL -- When exiting Emacs, query the user if BOOL is nil and
+the process is running.  If BOOL is not given, query before exiting.
+
+:stop BOOL -- Start process in the `stopped' state if BOOL non-nil.
+In the stopped state, a process does not accept incoming data, but you
+can send outgoing data.  The stopped state is cleared by
+`continue-process' and set by `stop-process'.
+
+:connection-type TYPE -- TYPE is control type of device used to
+communicate with subprocesses.  Values are `pipe' to use a pipe, `pty'
+to use a pty, or nil to use the default specified through
+`process-connection-type'.
+
+:filter FILTER -- Install FILTER as the process filter.
+
+:sentinel SENTINEL -- Install SENTINEL as the process sentinel.
+
+usage: (make-process &rest ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  Lisp_Object buffer, name, program, proc, current_dir, tem;
-  unsigned char **new_argv;
-  ptrdiff_t i;
+  Lisp_Object buffer, name, command, program, proc, contact, current_dir, tem;
   ptrdiff_t count = SPECPDL_INDEX ();
+  struct gcpro gcpro1;
   USE_SAFE_ALLOCA;
 
-  buffer = args[1];
+  if (nargs == 0)
+    return Qnil;
+
+  /* Save arguments for process-contact and clone-process.  */
+  contact = Flist (nargs, args);
+  GCPRO1 (contact);
+
+  buffer = Fplist_get (contact, QCbuffer);
   if (!NILP (buffer))
     buffer = Fget_buffer_create (buffer);
 
@@ -1402,10 +1421,14 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
     UNGCPRO;
   }
 
-  name = args[0];
+  name = Fplist_get (contact, QCname);
   CHECK_STRING (name);
 
-  program = args[2];
+  command = Fplist_get (contact, QCcommand);
+  if (CONSP (command))
+    program = XCAR (command);
+  else
+    program = Qnil;
 
   if (!NILP (program))
     CHECK_STRING (program);
@@ -1423,7 +1446,22 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
   pset_buffer (XPROCESS (proc), buffer);
   pset_sentinel (XPROCESS (proc), Qinternal_default_process_sentinel);
   pset_filter (XPROCESS (proc), Qinternal_default_process_filter);
-  pset_command (XPROCESS (proc), Flist (nargs - 2, args + 2));
+  pset_command (XPROCESS (proc), Fcopy_sequence (command));
+
+  if (tem = Fplist_get (contact, QCnoquery), !NILP (tem))
+    XPROCESS (proc)->kill_without_query = 1;
+  if (tem = Fplist_get (contact, QCstop), !NILP (tem))
+    pset_command (XPROCESS (proc), Qt);
+
+  tem = Fplist_get (contact, QCconnection_type);
+  if (EQ (tem, Qpty))
+    XPROCESS (proc)->pty_flag = true;
+  else if (EQ (tem, Qpipe))
+    XPROCESS (proc)->pty_flag = false;
+  else if (NILP (tem))
+    XPROCESS (proc)->pty_flag = !NILP (Vprocess_connection_type);
+  else
+    report_file_error ("Unknown connection type", tem);
 
 #ifdef HAVE_GNUTLS
   /* AKA GNUTLS_INITSTAGE(proc).  */
@@ -1453,15 +1491,29 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
     Lisp_Object val, *args2;
     struct gcpro gcpro1, gcpro2;
 
-    val = Vcoding_system_for_read;
+    tem = Fplist_get (contact, QCcoding);
+    if (!NILP (tem))
+      {
+	val = tem;
+	if (CONSP (val))
+	  val = XCAR (val);
+      }
+    else
+      val = Vcoding_system_for_read;
     if (NILP (val))
       {
-	SAFE_ALLOCA_LISP (args2, nargs + 1);
-	args2[0] = Qstart_process;
-	for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
+	ptrdiff_t nargs2 = 3 + XINT (Flength (command));
+	Lisp_Object tem2;
+	SAFE_ALLOCA_LISP (args2, nargs2);
+	ptrdiff_t i = 0;
+	args2[i++] = Qstart_process;
+	args2[i++] = name;
+	args2[i++] = buffer;
+	for (tem2 = command; CONSP (tem2); tem2 = XCDR (tem2))
+	  args2[i++] = XCAR (tem2);
 	GCPRO2 (proc, current_dir);
 	if (!NILP (program))
-	  coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
+	  coding_systems = Ffind_operation_coding_system (nargs2, args2);
 	UNGCPRO;
 	if (CONSP (coding_systems))
 	  val = XCAR (coding_systems);
@@ -1470,17 +1522,30 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
       }
     pset_decode_coding_system (XPROCESS (proc), val);
 
-    val = Vcoding_system_for_write;
+    if (!NILP (tem))
+      {
+	val = tem;
+	if (CONSP (val))
+	  val = XCDR (val);
+      }
+    else
+      val = Vcoding_system_for_write;
     if (NILP (val))
       {
 	if (EQ (coding_systems, Qt))
 	  {
-	    SAFE_ALLOCA_LISP (args2, nargs + 1);
-	    args2[0] = Qstart_process;
-	    for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
+	    ptrdiff_t nargs2 = 3 + XINT (Flength (command));
+	    Lisp_Object tem2;
+	    SAFE_ALLOCA_LISP (args2, nargs2);
+	    ptrdiff_t i = 0;
+	    args2[i++] = Qstart_process;
+	    args2[i++] = name;
+	    args2[i++] = buffer;
+	    for (tem2 = command; CONSP (tem2); tem2 = XCDR (tem2))
+	      args2[i++] = XCAR (tem2);
 	    GCPRO2 (proc, current_dir);
 	    if (!NILP (program))
-	      coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
+	      coding_systems = Ffind_operation_coding_system (nargs2, args2);
 	    UNGCPRO;
 	  }
 	if (CONSP (coding_systems))
@@ -1506,16 +1571,18 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 
   if (!NILP (program))
     {
+      Lisp_Object program_args = XCDR (command);
+
       /* If program file name is not absolute, search our path for it.
 	 Put the name we will really use in TEM.  */
       if (!IS_DIRECTORY_SEP (SREF (program, 0))
 	  && !(SCHARS (program) > 1
 	       && IS_DEVICE_SEP (SREF (program, 1))))
 	{
-	  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+	  struct gcpro gcpro1, gcpro2;
 
 	  tem = Qnil;
-	  GCPRO4 (name, program, buffer, current_dir);
+	  GCPRO2 (buffer, current_dir);
 	  openp (Vexec_path, program, Vexec_suffixes, &tem,
 		 make_number (X_OK), false);
 	  UNGCPRO;
@@ -1533,54 +1600,55 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
       /* Remove "/:" from TEM.  */
       tem = remove_slash_colon (tem);
 
-      {
-	Lisp_Object arg_encoding = Qnil;
-	struct gcpro gcpro1;
-	GCPRO1 (tem);
+      Lisp_Object arg_encoding = Qnil;
+      struct gcpro gcpro1;
+      GCPRO1 (tem);
 
-	/* Encode the file name and put it in NEW_ARGV.
-	   That's where the child will use it to execute the program.  */
-	tem = list1 (ENCODE_FILE (tem));
+      /* Encode the file name and put it in NEW_ARGV.
+	 That's where the child will use it to execute the program.  */
+      tem = list1 (ENCODE_FILE (tem));
+      ptrdiff_t new_argc = 1;
 
-	/* Here we encode arguments by the coding system used for sending
-	   data to the process.  We don't support using different coding
-	   systems for encoding arguments and for encoding data sent to the
-	   process.  */
+      /* Here we encode arguments by the coding system used for sending
+	 data to the process.  We don't support using different coding
+	 systems for encoding arguments and for encoding data sent to the
+	 process.  */
 
-	for (i = 3; i < nargs; i++)
-	  {
-	    tem = Fcons (args[i], tem);
-	    CHECK_STRING (XCAR (tem));
-	    if (STRING_MULTIBYTE (XCAR (tem)))
-	      {
-		if (NILP (arg_encoding))
-		  arg_encoding = (complement_process_encoding_system
-				  (XPROCESS (proc)->encode_coding_system));
-		XSETCAR (tem,
-			 code_convert_string_norecord
-			 (XCAR (tem), arg_encoding, 1));
-	      }
-	  }
+      for (Lisp_Object tem2 = program_args; CONSP (tem2); tem2 = XCDR (tem2))
+	{
+	  Lisp_Object arg = XCAR (tem2);
+	  CHECK_STRING (arg);
+	  if (STRING_MULTIBYTE (arg))
+	    {
+	      if (NILP (arg_encoding))
+		arg_encoding = (complement_process_encoding_system
+				(XPROCESS (proc)->encode_coding_system));
+	      arg = code_convert_string_norecord (arg, arg_encoding, 1);
+	    }
+	  tem = Fcons (arg, tem);
+	  new_argc++;
+	}
 
-	UNGCPRO;
-      }
+      UNGCPRO;
 
       /* Now that everything is encoded we can collect the strings into
 	 NEW_ARGV.  */
-      SAFE_NALLOCA (new_argv, 1, nargs - 1);
-      new_argv[nargs - 2] = 0;
+      char **new_argv;
+      SAFE_NALLOCA (new_argv, 1, new_argc + 1);
+      new_argv[new_argc] = 0;
 
-      for (i = nargs - 2; i-- != 0; )
+      for (ptrdiff_t i = new_argc - 1; i >= 0; i--)
 	{
-	  new_argv[i] = SDATA (XCAR (tem));
+	  new_argv[i] = SSDATA (XCAR (tem));
 	  tem = XCDR (tem);
 	}
 
-      create_process (proc, (char **) new_argv, current_dir);
+      create_process (proc, new_argv, current_dir);
     }
   else
     create_pty (proc);
 
+  UNGCPRO;
   SAFE_FREE ();
   return unbind_to (count, proc);
 }
@@ -1648,7 +1716,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 
   inchannel = outchannel = -1;
 
-  if (!NILP (Vprocess_connection_type))
+  if (p->pty_flag)
     outchannel = inchannel = allocate_pty (pty_name);
 
   if (inchannel >= 0)
@@ -1701,8 +1769,12 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   p->pty_flag = pty_flag;
   pset_status (p, Qrun);
 
-  FD_SET (inchannel, &input_wait_mask);
-  FD_SET (inchannel, &non_keyboard_wait_mask);
+  if (!EQ (p->command, Qt))
+    {
+      FD_SET (inchannel, &input_wait_mask);
+      FD_SET (inchannel, &non_keyboard_wait_mask);
+    }
+
   if (inchannel > max_process_desc)
     max_process_desc = inchannel;
 
@@ -1894,7 +1966,7 @@ create_pty (Lisp_Object process)
 {
   struct Lisp_Process *p = XPROCESS (process);
   char pty_name[PTY_NAME_SIZE];
-  int pty_fd = NILP (Vprocess_connection_type) ? -1 : allocate_pty (pty_name);
+  int pty_fd = !p->pty_flag ? -1 : allocate_pty (pty_name);
 
   if (pty_fd >= 0)
     {
@@ -4525,7 +4597,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	    Available = input_wait_mask;
           Writeok = write_mask;
  	  check_delay = wait_proc ? 0 : process_output_delay_count;
-	  check_write = SELECT_CAN_DO_WRITE_MASK;
+	  check_write = true;
 	}
 
       /* If frame size has changed or the window is newly mapped,
@@ -5658,9 +5730,10 @@ emacs_get_tty_pgrp (struct Lisp_Process *p)
 
 DEFUN ("process-running-child-p", Fprocess_running_child_p,
        Sprocess_running_child_p, 0, 1, 0,
-       doc: /* Return t if PROCESS has given the terminal to a child.
-If the operating system does not make it possible to find out,
-return t unconditionally.  */)
+       doc: /* Return non-nil if PROCESS has given the terminal to a
+child.  If the operating system does not make it possible to find out,
+return t.  If we can find out, return the numeric ID of the foreground
+process group.  */)
   (Lisp_Object process)
 {
   /* Initialize in case ioctl doesn't exist or gives an error,
@@ -5683,6 +5756,8 @@ return t unconditionally.  */)
 
   if (gid == p->pid)
     return Qnil;
+  if (gid != -1)
+    return make_number (gid);
   return Qt;
 }
 
@@ -7269,6 +7344,10 @@ syms_of_process (void)
   DEFSYM (QCstop, ":stop");
   DEFSYM (QCoptions, ":options");
   DEFSYM (QCplist, ":plist");
+  DEFSYM (QCcommand, ":command");
+  DEFSYM (QCconnection_type, ":connection-type");
+  DEFSYM (Qpty, "pty");
+  DEFSYM (Qpipe, "pipe");
 
   DEFSYM (Qlast_nonmenu_event, "last-nonmenu-event");
 
@@ -7371,7 +7450,7 @@ The variable takes effect when `start-process' is called.  */);
   defsubr (&Sprocess_plist);
   defsubr (&Sset_process_plist);
   defsubr (&Sprocess_list);
-  defsubr (&Sstart_process);
+  defsubr (&Smake_process);
   defsubr (&Sserial_process_configure);
   defsubr (&Smake_serial_process);
   defsubr (&Sset_network_process_option);

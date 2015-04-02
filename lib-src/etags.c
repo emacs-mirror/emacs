@@ -176,17 +176,8 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
  * SYNOPSIS:	Type *xnew (int n, Type);
  *		void xrnew (OldPointer, int n, Type);
  */
-#if DEBUG
-# include "chkmalloc.h"
-# define xnew(n,Type)	  ((Type *) trace_malloc (__FILE__, __LINE__, \
-						  (n) * sizeof (Type)))
-# define xrnew(op,n,Type) ((op) = (Type *) trace_realloc (__FILE__, __LINE__, \
-					(char *) (op), (n) * sizeof (Type)))
-#else
-# define xnew(n,Type)	  ((Type *) xmalloc ((n) * sizeof (Type)))
-# define xrnew(op,n,Type) ((op) = (Type *) xrealloc ( \
-					(char *) (op), (n) * sizeof (Type)))
-#endif
+#define xnew(n, Type)      ((Type *) xmalloc ((n) * sizeof (Type)))
+#define xrnew(op, n, Type) ((op) = (Type *) xrealloc (op, (n) * sizeof (Type)))
 
 typedef void Lang_function (FILE *);
 
@@ -348,7 +339,7 @@ static void canonicalize_filename (char *);
 static void linebuffer_init (linebuffer *);
 static void linebuffer_setlen (linebuffer *, int);
 static void *xmalloc (size_t);
-static void *xrealloc (char *, size_t);
+static void *xrealloc (void *, size_t);
 
 
 static char searchar = '/';	/* use /.../ searches */
@@ -6533,7 +6524,7 @@ xmalloc (size_t size)
 }
 
 static void *
-xrealloc (char *ptr, size_t size)
+xrealloc (void *ptr, size_t size)
 {
   void *result = realloc (ptr, size);
   if (result == NULL)

@@ -1074,7 +1074,7 @@ fontset_pattern_regexp (Lisp_Object pattern)
 	 expression matching.  */
       ptrdiff_t regexsize = (SBYTES (pattern)
 			     + (ndashes < 14 ? 2 : 5) * nstars
-			     + 2 * nescs + 1);
+			     + 2 * nescs + 3);
       USE_SAFE_ALLOCA;
       p1 = regex = SAFE_ALLOCA (regexsize);
 

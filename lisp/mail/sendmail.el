@@ -1299,10 +1299,10 @@ external program defined by `sendmail-program'."
                   (error "Sending...failed to %s"
                          (buffer-substring (point-min) (point-max)))))))
       (kill-buffer tembuf)
-      (if (and (bufferp errbuf)
-               (not error))
-          (kill-buffer errbuf)
-        (switch-to-buffer-other-window errbuf)))))
+      (when (buffer-live-p errbuf)
+        (if error
+            (switch-to-buffer-other-window errbuf)
+          (kill-buffer errbuf))))))
 
 (autoload 'rmail-output-to-rmail-buffer "rmailout")
 

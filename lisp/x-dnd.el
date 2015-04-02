@@ -217,10 +217,10 @@ WINDOW is the window where the drop happened.  ACTION is ignored.
 DATA is the moz-url, which is formatted as two strings separated by \\r\\n.
 The first string is the URL, the second string is the title of that URL.
 DATA is encoded in utf-16.  Decode the URL and call `x-dnd-handle-uri-list'."
-  ;; Mozilla and applications based on it (Galeon for example) uses
-  ;; text/unicode, but it is impossible to tell if it is le or be.  Use what
-  ;; the machine Emacs runs on use.  This loses if dropping between machines
-  ;; with different endian, but it is the best we can do.
+  ;; Mozilla and applications based on it use text/unicode, but it is
+  ;; impossible to tell if it is le or be.  Use what the machine Emacs
+  ;; runs on uses.  This loses if dropping between machines
+  ;; with different endian-ness, but it is the best we can do.
   (let* ((coding (if (eq (byteorder) ?B) 'utf-16be 'utf-16le))
 	 (string (decode-coding-string data coding))
 	 (strings (split-string string "[\r\n]" t))

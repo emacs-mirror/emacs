@@ -1368,7 +1368,7 @@ remains ``correct''.  To disable automatic line number correction,
 change the variable @code{diff-update-on-the-fly} to @code{nil}.
 
   Diff mode treats each hunk as an ``error message'', similar to
-Compilation mode.  Thus, you can use commands such as @kbd{C-x '} to
+Compilation mode.  Thus, you can use commands such as @kbd{C-x `} to
 visit the corresponding source locations.  @xref{Compilation Mode}.
 
   In addition, Diff mode provides the following commands to navigate,

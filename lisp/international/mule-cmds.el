@@ -2941,6 +2941,14 @@ on encoding."
 	;; char with that name.
 	(setq ucs-names `(("BELL (BEL)" . 7) ,@names)))))
 
+(defun mule--ucs-names-annotation (name)
+  ;; FIXME: It would be much better to add this annotation before rather than
+  ;; after the char name, so the annotations are aligned.
+  ;; FIXME: The default behavior of displaying annotations in italics
+  ;; doesn't work well here.
+  (let ((char (assoc name ucs-names)))
+    (when char (format " (%c)" (cdr char)))))
+
 (defun read-char-by-name (prompt)
   "Read a character by its Unicode name or hex number string.
 Display PROMPT and read a string that represents a character by its
@@ -2964,7 +2972,9 @@ point or a number in hash notation, e.g. #o21430 for octal,
 	   prompt
 	   (lambda (string pred action)
 	     (if (eq action 'metadata)
-		 '(metadata (category . unicode-name))
+		 '(metadata
+		   (annotation-function . mule--ucs-names-annotation)
+		   (category . unicode-name))
 	       (complete-with-action action (ucs-names) string pred)))))
 	 (char
 	  (cond

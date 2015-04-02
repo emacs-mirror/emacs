@@ -10698,7 +10698,10 @@ get_bits_and_offset (unsigned long mask, int *bits, int *offset)
 bool
 x_display_ok (const char *display)
 {
+  /* XOpenDisplay fails if it gets a signal.  Block SIGIO which may arrive.  */
+  unrequest_sigio ();
   Display *dpy = XOpenDisplay (display);
+  request_sigio ();
   if (!dpy)
     return false;
   XCloseDisplay (dpy);
@@ -10878,7 +10881,9 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
         /* gtk_init does set_locale.  Fix locale before and after.  */
         fixup_locale ();
+        unrequest_sigio (); /* See comment in x_display_ok.  */
         gtk_init (&argc, &argv2);
+        request_sigio ();
         fixup_locale ();
 
         g_log_remove_handler ("GLib", id);
@@ -10928,10 +10933,12 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	argv[argc++] = xrm_option;
       }
     turn_on_atimers (false);
+    unrequest_sigio ();  /* See comment in x_display_ok.  */
     dpy = XtOpenDisplay (Xt_app_con, SSDATA (display_name),
 			 resource_name, EMACS_CLASS,
 			 emacs_options, XtNumber (emacs_options),
 			 &argc, argv);
+    request_sigio ();
     turn_on_atimers (true);
 
 #ifdef HAVE_X11XTR6
@@ -10942,7 +10949,9 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
 #else /* not USE_X_TOOLKIT */
   XSetLocaleModifiers ("");
+  unrequest_sigio ();  // See comment in x_display_ok.
   dpy = XOpenDisplay (SSDATA (display_name));
+  request_sigio ();
 #endif /* not USE_X_TOOLKIT */
 #endif /* not USE_GTK*/
 

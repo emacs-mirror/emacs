@@ -185,8 +185,8 @@ When CREATE is not nil, create the secondary index hashtable if needed."
       (when create
 	(puthash tracksym
 		 (make-hash-table :size 800 :rehash-size 2.0 :test 'equal)
-		 (oref db :tracker))
-	(gethash tracksym (oref db :tracker))))))
+		 (oref db tracker))
+	(gethash tracksym (oref db tracker))))))
 
 (defmethod registry-lookup-secondary-value ((db registry-db) tracksym val
 					    &optional set)
@@ -282,7 +282,7 @@ This is the key count of the `data' slot."
 (defmethod registry-full ((db registry-db))
   "Checks if registry-db THIS is full."
   (>= (registry-size db)
-      (oref db :max-size)))
+      (oref db max-size)))
 
 (defmethod registry-insert ((db registry-db) key entry)
   "Insert ENTRY under KEY into the registry-db THIS.
@@ -341,11 +341,12 @@ from the front of the list are deleted first.
 
 Returns the number of deleted entries."
   (let ((size (registry-size db))
-	(target-size (- (oref db :max-size)
-			(* (oref db :max-size)
-			   (oref db :prune-factor))))
+	(target-size
+	 (floor (- (oref db max-size)
+		   (* (oref db max-size)
+		      (oref db prune-factor)))))
 	candidates)
-    (if (> size target-size)
+    (if (registry-full db)
 	(progn
 	  (setq candidates
 		(registry-collect-prune-candidates
@@ -359,7 +360,7 @@ Returns the number of deleted entries."
 Proposes only entries without the :precious keys, and attempts to
 return LIMIT such candidates.  If SORTFUNC is provided, sort
 entries first and return candidates from beginning of list."
-  (let* ((precious (oref db :precious))
+  (let* ((precious (oref db precious))
 	 (precious-p (lambda (entry-key)
 		       (cdr (memq (car entry-key) precious))))
 	 (data (oref db data))
@@ -371,7 +372,7 @@ entries first and return candidates from beginning of list."
     ;; list of entry keys.
     (when sortfunc
       (setq candidates (sort candidates sortfunc)))
-    (delq nil (cl-subseq (mapcar #'car candidates) 0 limit))))
+    (cl-subseq (mapcar #'car candidates) 0 (min limit (length candidates)))))
 
 (provide 'registry)
 ;;; registry.el ends here

@@ -185,14 +185,14 @@ If X is zero, both parts (SGNFCAND and EXP) are zero.  */)
   return Fcons (make_float (sgnfcand), make_number (exponent));
 }
 
-DEFUN ("ldexp", Fldexp, Sldexp, 1, 2, 0,
-       doc: /* Construct number X from significand SGNFCAND and exponent EXP.
-Returns the floating point value resulting from multiplying SGNFCAND
-(the significand) by 2 raised to the power of EXP (the exponent).   */)
+DEFUN ("ldexp", Fldexp, Sldexp, 2, 2, 0,
+       doc: /* Return X * 2**EXP, as a floating point number.
+EXP must be an integer.   */)
   (Lisp_Object sgnfcand, Lisp_Object exponent)
 {
   CHECK_NUMBER (exponent);
-  return make_float (ldexp (XFLOATINT (sgnfcand), XINT (exponent)));
+  int e = min (max (INT_MIN, XINT (exponent)), INT_MAX);
+  return make_float (ldexp (XFLOATINT (sgnfcand), e));
 }
 
 DEFUN ("exp", Fexp, Sexp, 1, 1, 0,

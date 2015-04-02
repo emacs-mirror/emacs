@@ -1091,9 +1091,7 @@ Normally Emacs should initialize @code{locale-coding-system} appropriately
 based on your locale, which will let Emacs use font names in your local
 language successfully.
 
-@c This feature disappeared in Emacs 23, but I'm keeping its
-@c description here, since I think it was a mistake to remove it, and
-@c resurrecting it doesn't sound too problematic.
+@c This feature disappeared in Emacs 23, and was resurrected in 25.1.
 @node Font menu
 @section How can I have Emacs use a font menu like on X?
 @cindex fonts, displaying a menu
@@ -1111,8 +1109,8 @@ Place the following in your init file:
 * Add fonts to menu::
 @end menu
 
-@c This variable still exists, but will have no effect until
-@c w32-use-w32-font-dialog support is resurrected, see above.
+@c This variable had no effect between v23 and v25.1, where
+@c w32-use-w32-font-dialog support was resurrected, see above.
 @node Add fonts to menu
 @subsection How can I add my font to the font menu?
 @cindex font menu, adding fonts

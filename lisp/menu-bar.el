@@ -1949,20 +1949,20 @@ It must accept a buffer as its only required argument.")
        (let ((buffers (buffer-list))
 	     (frames (frame-list))
 	     buffers-menu)
-	 ;; If requested, list only the N most recently selected buffers.
-	 (if (and (integerp buffers-menu-max-size)
-		  (> buffers-menu-max-size 1))
-	     (if (> (length buffers) buffers-menu-max-size)
-		 (setcdr (nthcdr buffers-menu-max-size buffers) nil)))
 
 	 ;; Make the menu of buffers proper.
 	 (setq buffers-menu
-	       (let (alist)
+               (let ((i 0)
+                     (limit (if (and (integerp buffers-menu-max-size)
+                                     (> buffers-menu-max-size 1))
+                                buffers-menu-max-size most-positive-fixnum))
+                     alist)
 		 ;; Put into each element of buffer-list
 		 ;; the name for actual display,
 		 ;; perhaps truncated in the middle.
-		 (dolist (buf buffers)
-		   (let ((name (buffer-name buf)))
+                 (while buffers
+                   (let* ((buf (pop buffers))
+                          (name (buffer-name buf)))
                      (unless (eq ?\s (aref name 0))
                        (push (menu-bar-update-buffers-1
                               (cons buf
@@ -1976,7 +1976,11 @@ It must accept a buffer as its only required argument.")
 					  name (- (/ buffers-menu-buffer-name-length 2))))
 				      name)
                                     ))
-                             alist))))
+                             alist)
+                       ;; If requested, list only the N most recently
+                       ;; selected buffers.
+                       (when (= limit (setq i (1+ i)))
+                         (setq buffers nil)))))
 		 (list (menu-bar-buffer-vector alist))))
 
 	 ;; Make a Frames menu if we have more than one frame.

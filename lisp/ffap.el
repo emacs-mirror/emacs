@@ -265,20 +265,10 @@ ffap most of the time."
   :group 'ffap
   :risky t)
 
-(defcustom ffap-url-fetcher
-  (if (fboundp 'browse-url)
-      'browse-url			; rely on browse-url-browser-function
-    'w3-fetch)
-  ;; Remote control references:
-  ;; http://www.ncsa.uiuc.edu/SDG/Software/XMosaic/remote-control.html
-  ;; http://home.netscape.com/newsref/std/x-remote.html
+(defcustom ffap-url-fetcher 'browse-url
   "A function of one argument, called by ffap to fetch an URL.
-Reasonable choices are `w3-fetch' or a `browse-url-*' function.
 For a fancy alternative, get `ffap-url.el'."
-  :type '(choice (const w3-fetch)
-		 (const browse-url)	; in recent versions of browse-url
-		 (const browse-url-netscape)
-		 (const browse-url-mosaic)
+  :type '(choice (const browse-url)
 		 function)
   :group 'ffap
   :risky t)

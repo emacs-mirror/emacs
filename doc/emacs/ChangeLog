@@ -1,3 +1,7 @@
+2015-03-29  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* files.texi (Diff Mode): Doc fix.
+
 2015-03-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* misc.texi (Term Mode):

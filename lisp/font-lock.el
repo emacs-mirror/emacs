@@ -585,11 +585,14 @@ This is normally set via `font-lock-defaults'.")
 This is used when turning off Font Lock mode.
 This is normally set via `font-lock-defaults'.")
 
-(defvar font-lock-fontify-region-function 'font-lock-default-fontify-region
+(defvar font-lock-fontify-region-function #'font-lock-default-fontify-region
   "Function to use for fontifying a region.
 It should take two args, the beginning and end of the region, and an optional
 third arg VERBOSE.  If VERBOSE is non-nil, the function should print status
-messages.  This is normally set via `font-lock-defaults'.")
+messages.  This is normally set via `font-lock-defaults'.
+If it fontifies a larger region, it should ideally return a list of the form
+\(jit-lock-bounds BEG . END) indicating the bounds of the region actually
+fontified.")
 
 (defvar font-lock-unfontify-region-function 'font-lock-default-unfontify-region
   "Function to use for unfontifying a region.
@@ -600,6 +603,7 @@ This is normally set via `font-lock-defaults'.")
   "List of Font Lock mode related modes that should not be turned on.
 Currently, valid mode names are `fast-lock-mode', `jit-lock-mode' and
 `lazy-lock-mode'.  This is normally set via `font-lock-defaults'.")
+(make-obsolete-variable 'font-lock-inhibit-thing-lock nil "25.1")
 
 (defvar-local font-lock-multiline nil
   "Whether font-lock should cater to multiline keywords.
@@ -935,7 +939,7 @@ The value of this variable is used when Font Lock mode is turned on."
      ;; Don't fontify eagerly (and don't abort if the buffer is large).
      (set (make-local-variable 'font-lock-fontified) t)
      ;; Use jit-lock.
-     (jit-lock-register 'font-lock-fontify-region
+     (jit-lock-register #'font-lock-fontify-region
                         (not font-lock-keywords-only))
      ;; Tell jit-lock how we extend the region to refontify.
      (add-hook 'jit-lock-after-change-extend-region-functions
@@ -1220,7 +1224,8 @@ This function is the default `font-lock-fontify-region-function'."
             (font-lock-fontify-syntactic-keywords-region start end)))
         (unless font-lock-keywords-only
           (font-lock-fontify-syntactically-region beg end loudly))
-        (font-lock-fontify-keywords-region beg end loudly)))))
+        (font-lock-fontify-keywords-region beg end loudly)
+        `(jit-lock-bounds ,beg . ,end)))))
 
 ;; The following must be rethought, since keywords can override fontification.
 ;;    ;; Now scan for keywords, but not if we are inside a comment now.
@@ -1325,11 +1330,13 @@ This function does 2 things:
       (when (memq 'font-lock-extend-region-wholelines
                   font-lock-extend-region-functions)
         (goto-char beg)
-        (setq jit-lock-start (min jit-lock-start (line-beginning-position)))
+        (setq beg (min jit-lock-start (line-beginning-position)))
         (goto-char end)
-        (setq jit-lock-end
+        (setq end
               (max jit-lock-end
-                   (if (bolp) (point) (line-beginning-position 2))))))))
+                   (if (bolp) (point) (line-beginning-position 2)))))
+      (setq jit-lock-start beg
+	    jit-lock-end end))))
 
 (defun font-lock-fontify-block (&optional arg)
   "Fontify some lines the way `font-lock-fontify-buffer' would.
@@ -1416,37 +1423,33 @@ Optional argument OBJECT is the string or buffer containing the text."
       (put-text-property start next prop value object)
       (setq start (text-property-any next end prop nil object)))))
 
-;; For completeness: this is to `remove-text-properties' as `put-text-property'
-;; is to `add-text-properties', etc.
-;;(defun remove-text-property (start end property &optional object)
-;;  "Remove a property from text from START to END.
-;;Argument PROPERTY is the property to remove.
-;;Optional argument OBJECT is the string or buffer containing the text.
-;;Return t if the property was actually removed, nil otherwise."
-;;  (remove-text-properties start end (list property) object))
-
-;; For consistency: maybe this should be called `remove-single-property' like
-;; `next-single-property-change' (not `next-single-text-property-change'), etc.
-;;(defun remove-single-text-property (start end prop value &optional object)
-;;  "Remove a specific property value from text from START to END.
-;;Arguments PROP and VALUE specify the property and value to remove.  The
-;;resulting property values are not equal to VALUE nor lists containing VALUE.
-;;Optional argument OBJECT is the string or buffer containing the text."
-;;  (let ((start (text-property-not-all start end prop nil object)) next prev)
-;;    (while start
-;;      (setq next (next-single-property-change start prop object end)
-;;	    prev (get-text-property start prop object))
-;;      (cond ((and (symbolp prev) (eq value prev))
-;;	     (remove-text-property start next prop object))
-;;	    ((and (listp prev) (memq value prev))
-;;	     (let ((new (delq value prev)))
-;;	       (cond ((null new)
-;;		      (remove-text-property start next prop object))
-;;		     ((= (length new) 1)
-;;		      (put-text-property start next prop (car new) object))
-;;		     (t
-;;		      (put-text-property start next prop new object))))))
-;;      (setq start (text-property-not-all next end prop nil object)))))
+(defun font-lock--remove-face-from-text-property (start
+						  end
+						  prop value &optional object)
+  "Remove a specific property value from text from START to END.
+Arguments PROP and VALUE specify the property and value to remove.  The
+resulting property values are not `eq' to VALUE nor lists containing VALUE.
+Optional argument OBJECT is the string or buffer containing the text."
+  (let ((start (text-property-not-all start end prop nil object)) next prev)
+    (while start
+      (setq next (next-single-property-change start prop object end)
+	    prev (get-text-property start prop object))
+      (cond ((or (atom prev)
+		 (keywordp (car prev))
+		 (eq (car prev) 'foreground-color)
+		 (eq (car prev) 'background-color))
+	     (when (eq value prev)
+	       (remove-list-of-text-properties start next (list prop) object)))
+	    ((memq value prev)		;Assume prev is not dotted.
+	     (let ((new (remq value prev)))
+	       (cond ((null new)
+		      (remove-list-of-text-properties start next (list prop)
+						      object))
+		     ((= (length new) 1)
+		      (put-text-property start next prop (car new) object))
+		     (t
+		      (put-text-property start next prop new object))))))
+      (setq start (text-property-not-all next end prop nil object)))))
 
 ;;; End of Additional text property functions.
 

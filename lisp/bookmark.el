@@ -1756,7 +1756,7 @@ if an annotation exists."
   (save-selected-window
     (pop-to-buffer (get-buffer-create "*Bookmark Annotation*") t)
     (delete-region (point-min) (point-max))
-    (dolist (full-record bookmark-alist)
+    (dolist (full-record (bookmark-maybe-sort-alist))
       (let* ((name (bookmark-name-from-full-record full-record))
              (ann  (bookmark-get-annotation full-record)))
         (insert (concat name ":\n"))

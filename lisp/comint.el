@@ -1930,10 +1930,10 @@ the start, the cdr to the end of the last prompt recognized.")
 Freezes the `font-lock-face' text property in place."
   (when comint-last-prompt
     (with-silent-modifications
-      (add-text-properties
+      (font-lock-prepend-text-property
        (car comint-last-prompt)
        (cdr comint-last-prompt)
-       '(font-lock-face comint-highlight-prompt)))
+       'font-lock-face 'comint-highlight-prompt))
     ;; Reset comint-last-prompt so later on comint-output-filter does
     ;; not remove the font-lock-face text property of the previous
     ;; (this) prompt.
@@ -2084,14 +2084,19 @@ Make backspaces delete the previous character."
 		  (add-text-properties prompt-start (point)
 				       '(read-only t front-sticky (read-only)))))
 	      (when comint-last-prompt
-		(remove-text-properties (car comint-last-prompt)
-					(cdr comint-last-prompt)
-					'(font-lock-face)))
+		(with-silent-modifications
+		  (font-lock--remove-face-from-text-property
+		   (car comint-last-prompt)
+		   (cdr comint-last-prompt)
+		   'font-lock-face
+		   'comint-highlight-prompt)))
 	      (setq comint-last-prompt
 		    (cons (copy-marker prompt-start) (point-marker)))
-	      (add-text-properties prompt-start (point)
-				   '(rear-nonsticky t
-				     font-lock-face comint-highlight-prompt)))
+	      (with-silent-modifications
+		(font-lock-prepend-text-property prompt-start (point)
+						 'font-lock-face
+						 'comint-highlight-prompt)
+		(add-text-properties prompt-start (point) '(rear-nonsticky t))))
 	    (goto-char saved-point)))))))
 
 (defun comint-preinput-scroll-to-bottom ()

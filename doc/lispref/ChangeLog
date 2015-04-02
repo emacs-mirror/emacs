@@ -1,3 +1,28 @@
+2015-03-29  Glenn Morris  <rgm@gnu.org>
+
+	* objects.texi (Equality Predicates): Fix typo in example.
+
+2015-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* positions.texi (Excursions, Narrowing): `save-excursion' does not
+	save&restore the mark any more.
+
+2015-03-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* numbers.texi (Float Basics): Improve ldexp documentation.
+
+2015-03-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* commands.texi (Event Input Misc): Fix incorrect usage of @code.
+	(Bug#20174)
+	(Accessing Mouse): Expand documentation of 'posn-actual-col-row'.
+	(Bug#20169)
+	More accurate description of 'posn-object-x-y'.  (Bug#20168)
+
+2015-03-23  Daiki Ueno  <ueno@gnu.org>
+
+	* processes.texi (Asynchronous Processes): Mention `make-process'.
+
 2015-03-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* minibuf.texi (Basic Completion): Fix a typo.  (Bug#20108)

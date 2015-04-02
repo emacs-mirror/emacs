@@ -2051,7 +2051,9 @@ If you are unsure, use synchronous version of this function
 
 (defun epg-start-generate-key (context parameters)
   "Initiate a key generation.
-PARAMETERS specifies parameters for the key.
+PARAMETERS is a string which specifies parameters of the generated key.
+See Info node `(gnupg) Unattended GPG key generation' in the
+GnuPG manual for the format.
 
 If you use this function, you will need to wait for the completion of
 `epg-gpg-program' by using `epg-wait-for-completion' and call
@@ -2061,9 +2063,9 @@ If you are unsure, use synchronous version of this function
   (setf (epg-context-operation context) 'generate-key)
   (setf (epg-context-result context) nil)
   (if (epg-data-file parameters)
-      (epg--start context (list "--batch" "--genkey" "--"
+      (epg--start context (list "--batch" "--gen-key" "--"
 			       (epg-data-file parameters)))
-    (epg--start context '("--batch" "--genkey"))
+    (epg--start context '("--batch" "--gen-key"))
     (if (eq (process-status (epg-context-process context)) 'run)
 	(process-send-string (epg-context-process context)
 			     (epg-data-string parameters)))

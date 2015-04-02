@@ -696,6 +696,12 @@ It makes underscores and dots word constituent chars.")
   :group 'python
   :safe 'booleanp)
 
+(defcustom python-indent-guess-indent-offset-verbose t
+  "Non-nil means to emit a warning when indentation guessing fails."
+  :type 'boolean
+  :group 'python
+  :safe' booleanp)
+
 (defcustom python-indent-trigger-commands
   '(indent-for-tab-command yas-expand yas/expand)
   "Commands that might trigger a `python-indent-line' call."
@@ -766,8 +772,9 @@ work on `python-indent-calculate-indentation' instead."
                  (current-indentation))))
           (if (and indentation (not (zerop indentation)))
               (set (make-local-variable 'python-indent-offset) indentation)
-            (message "Can't guess python-indent-offset, using defaults: %s"
-                     python-indent-offset)))))))
+            (when python-indent-guess-indent-offset-verbose
+              (message "Can't guess python-indent-offset, using defaults: %s"
+                       python-indent-offset))))))))
 
 (defun python-indent-context ()
   "Get information about the current indentation context.

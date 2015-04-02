@@ -187,7 +187,9 @@ xg_display_open (char *display_name, Display **dpy)
 {
   GdkDisplay *gdpy;
 
+  unrequest_sigio ();  // See comment in x_display_ok, xterm.c.
   gdpy = gdk_display_open (display_name);
+  request_sigio ();
   if (!gdpy_def && gdpy)
     {
       gdpy_def = gdpy;
@@ -3516,7 +3518,9 @@ update_theme_scrollbar_width (void)
   gtk_widget_destroy (wscroll);
   g_object_unref (G_OBJECT (wscroll));
   w += 2*b;
+#ifndef HAVE_GTK3
   if (w < 16) w = 16;
+#endif
   scroll_bar_width_for_theme = w;
 }
 

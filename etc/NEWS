@@ -173,6 +173,24 @@ possible inaccuracies in the end position.
 In particular, it now returns the average width of the font's
 characters, which can be used for geometry-related calculations.
 
+** A new function `default-font-width' returns the average width of a
+character in the current buffer's default font.  If the default face
+is remapped (see `face-remapping-alist'), the value for the remapped
+face is returned.  This function complements the existing function
+`default-font-height'.
+
+** New functions `window-font-height' and `window-font-width' return
+the height and average width of characters in a specified face and
+window.  If FACE is remapped (see `face-remapping-alist'), the
+function returns the information for the remapped face.
+
+** A new function `window-max-chars-per-line' returns the maximal
+number of characters that can be displayed on one line.  If a face
+and/or window are provided, these values are used for the
+calculation.  This function is different from `window-body-width' in
+that it accounts for (i) continuation glyphs, (ii) the size of the
+font, and (iii) the specified window.
+
 
 * Editing Changes in Emacs 25.1
 
@@ -197,8 +215,13 @@ Unicode standards.
 
 ** You can access `mouse-buffer-menu' (C-down-mouse-1) using C-f10.
 
++++
+** New buffer-local `electric-pair-local-mode'.
+
 
 * Changes in Specialized Modes and Packages in Emacs 25.1
+** xterm-mouse-mode now supports mouse-tracking (if your xterm supports it).
+
 ** package.el
 *** `package-install-from-buffer' and `package-install-file' work on directories.
 This follows the same rules as installing from a .tar file, except the
@@ -328,7 +351,7 @@ invalid certificates are marked in red.
 transformed into multipart/related messages before sending.
 
 ** pcase
-*** New UPatterns `quote' and `app'.
+*** New UPatterns `quote', `app', `cl-struct', and `eieio'.
 *** New UPatterns can be defined with `pcase-defmacro'.
 +++
 *** New vector QPattern.
@@ -562,7 +585,10 @@ command line's password prompt.
 
 ** Browse-url
 
-*** browse-url now supports the Conkeror Web Browser.
+*** Support for the Conkeror web browser.
+
+---
+*** Support for several ancient browsers is now officially obsolete.
 
 +++
 ** tar-mode: new `tar-new-entry' command, allowing for new members to
@@ -594,6 +620,8 @@ a typographically-correct documents.
 
 * Incompatible Lisp Changes in Emacs 25.1
 
+** `save-excursion' does not save&restore the mark any more.
+
 ** read-buffer-function can now be called with a 4th argument (`predicate').
 
 ** completion-table-dynamic stays in the minibuffer.
@@ -609,6 +637,9 @@ active region handling.
 ** deactivate-mark is now buffer-local.
 
 ** `cl-the' now asserts that its argument is of the given type.
+
+** `process-running-child-p` may now return a numeric process
+group ID instead of `t'.
 
 +++
 ** Mouse click events on mode line or header line no longer include
@@ -632,6 +663,11 @@ word syntax, use `\sw' instead.
 
 
 * Lisp Changes in Emacs 25.1
+
+** New function `make-process' provides an alternative interface to
+`start-process'.  It allows programs to set process parameters such as
+process filter, sentinel, etc., through keyword arguments (similar to
+`make-network-process').
 
 ** `read-buffer' takes a new `predicate' argument.
 

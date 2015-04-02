@@ -270,7 +270,7 @@ that region, will be remembered.
 
 @defun remember-clipboard
 Remember the contents of the current clipboard.  This is most useful
-for remembering things from Netscape or other X Windows applications.
+for remembering things from a web browser or other X Windows applications.
 @end defun
 
 @defun remember-finalize

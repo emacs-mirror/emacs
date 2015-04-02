@@ -615,6 +615,11 @@ case "${canonical}" in
 ##    fi
   ;;
 
+  ## Chromium Native Client
+  *-nacl )
+    opsys=nacl
+  ;;
+
   ## Cygwin ports
   *-*-cygwin )
     opsys=cygwin
@@ -1266,7 +1271,7 @@ dnl The function dump-emacs will not be defined and temacs will do
 dnl (load "loadup") automatically unless told otherwise.
 test "x$CANNOT_DUMP" = "x" && CANNOT_DUMP=no
 case "$opsys" in
-  your-opsys-here) CANNOT_DUMP=yes ;;
+  nacl) CANNOT_DUMP=yes ;;
 esac
 
 if test "$CANNOT_DUMP" = "yes"; then
@@ -2107,7 +2112,7 @@ hybrid_malloc=
 
 case "$opsys" in
   ## darwin ld insists on the use of malloc routines in the System framework.
-  darwin|mingw32|sol2-10) system_malloc=yes ;;
+  darwin | mingw32 | nacl | sol2-10) system_malloc=yes ;;
   cygwin) hybrid_malloc=yes;;
 esac
 
@@ -2237,7 +2242,7 @@ if test "$ac_cv_header_pthread_h" && test "$opsys" != "mingw32"; then
       hpux* | sol*)
 	AC_DEFINE([_REENTRANT], 1,
 	  [Define to 1 if your system requires this in multithreaded code.]);;
-      aix4-2 | darwin | freebsd)
+      aix4-2)
 	AC_DEFINE([_THREAD_SAFE], 1,
 	  [Define to 1 if your system requires this in multithreaded code.]);;
     esac
@@ -3236,10 +3241,12 @@ if test "${opsys}" = "mingw32"; then
   AH_TEMPLATE(HAVE_JPEG, [Define to 1 if you have the jpeg library (-ljpeg).])dnl
   if test "${HAVE_JPEG}" = "yes"; then
     AC_DEFINE(HAVE_JPEG)
-    AC_EGREP_CPP([version= *(6[2-9]|[7-9][0-9])],
-        [#include <jpeglib.h>
-	 version=JPEG_LIB_VERSION
-],
+    AC_EGREP_CPP([version 6b or later],
+	[#include <jpeglib.h>
+	 #if JPEG_LIB_VERSION >= 62
+	 version 6b or later
+	 #endif
+	],
         [AC_DEFINE(HAVE_JPEG)],
         [AC_MSG_WARN([libjpeg found, but not version 6b or later])
         HAVE_JPEG=no])
@@ -3255,10 +3262,12 @@ elif test "${HAVE_X11}" = "yes" || test "${HAVE_W32}" = "yes"; then
   AH_TEMPLATE(HAVE_JPEG, [Define to 1 if you have the jpeg library (-ljpeg).])dnl
   if test "${HAVE_JPEG}" = "yes"; then
     AC_DEFINE(HAVE_JPEG)
-    AC_EGREP_CPP([version= *(6[2-9]|[7-9][0-9])],
+    AC_EGREP_CPP([version 6b or later],
 	[#include <jpeglib.h>
-	 version=JPEG_LIB_VERSION
-],
+	 #if JPEG_LIB_VERSION >= 62
+	 version 6b or later
+	 #endif
+	],
 	[AC_DEFINE(HAVE_JPEG)],
 	[AC_MSG_WARN([libjpeg found, but not version 6b or later])
 	HAVE_JPEG=no])
@@ -4221,7 +4230,7 @@ emacs_broken_SIGIO=no
 case $opsys in
   dnl SIGIO exists, but the feature doesn't work in the way Emacs needs.
   dnl See eg <http://article.gmane.org/gmane.os.openbsd.ports/46831>.
-  hpux* | irix6-5 | openbsd | sol2* | unixware )
+  hpux* | irix6-5 | nacl | openbsd | sol2* | unixware )
     emacs_broken_SIGIO=yes
     ;;
 
@@ -4383,7 +4392,7 @@ case $opsys in
     AC_DEFINE(FIRST_PTY_LETTER, ['p'])
     ;;
 
-  gnu-linux | gnu-kfreebsd | dragonfly | freebsd | netbsd )
+  gnu-linux | gnu-kfreebsd | dragonfly | freebsd | netbsd | nacl )
     dnl if HAVE_GRANTPT
     if test "x$ac_cv_func_grantpt" = xyes; then
       AC_DEFINE(UNIX98_PTYS, 1, [Define if the system has Unix98 PTYs.])
@@ -4682,7 +4691,7 @@ esac
 
 AC_CACHE_CHECK([for usable FIONREAD], [emacs_cv_usable_FIONREAD],
   [case $opsys in
-     aix4-2)
+     aix4-2 | nacl)
        dnl BUILD 9008 - FIONREAD problem still exists in X-Windows.
        emacs_cv_usable_FIONREAD=no
        ;;

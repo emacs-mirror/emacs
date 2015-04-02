@@ -370,14 +370,13 @@ pseudo-classes, and at-rules."
       (css--complete-at-rule)))
 
 ;;;###autoload
-(define-derived-mode css-mode fundamental-mode "CSS"
+(define-derived-mode css-mode prog-mode "CSS"
   "Major mode to edit Cascading Style Sheets."
   (setq-local font-lock-defaults css-font-lock-defaults)
   (setq-local comment-start "/*")
   (setq-local comment-start-skip "/\\*+[ \t]*")
   (setq-local comment-end "*/")
   (setq-local comment-end-skip "[ \t]*\\*+/")
-  (setq-local parse-sexp-ignore-comments t)
   (setq-local fill-paragraph-function 'css-fill-paragraph)
   (setq-local add-log-current-defun-function #'css-current-defun-name)
   (smie-setup css-smie-grammar #'css-smie-rules

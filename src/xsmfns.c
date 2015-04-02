@@ -168,8 +168,12 @@ smc_save_yourself_CB (SmcConn smcConn,
   int val_idx = 0, vp_idx = 0;
   int props_idx = 0;
   int i;
-  char *cwd = get_current_dir_name ();
   char *smid_opt, *chdir_opt = NULL;
+  Lisp_Object user_login_name = Fuser_login_name (Qnil);
+
+  // Must have these.
+  if (! STRINGP (Vinvocation_name) || ! STRINGP (user_login_name))
+    return;
 
   /* How to start a new instance of Emacs.  */
   props[props_idx] = &prop_ptr[props_idx];
@@ -197,11 +201,11 @@ smc_save_yourself_CB (SmcConn smcConn,
   props[props_idx]->type = xstrdup (SmARRAY8);
   props[props_idx]->num_vals = 1;
   props[props_idx]->vals = &values[val_idx++];
-  props[props_idx]->vals[0].length = SBYTES (Vuser_login_name);
-  props[props_idx]->vals[0].value = SDATA (Vuser_login_name);
+  props[props_idx]->vals[0].length = SBYTES (user_login_name);
+  props[props_idx]->vals[0].value = SDATA (user_login_name);
   ++props_idx;
 
-
+  char *cwd = get_current_dir_name ();
   if (cwd)
     {
       props[props_idx] = &prop_ptr[props_idx];
@@ -372,6 +376,7 @@ create_client_leader_window (struct x_display_info *dpyinfo, char *client_ID)
                            -1, -1, 1, 1,
                            CopyFromParent, CopyFromParent, CopyFromParent);
 
+  validate_x_resource_name ();
   class_hints.res_name = SSDATA (Vx_resource_name);
   class_hints.res_class = SSDATA (Vx_resource_class);
   XSetClassHint (dpyinfo->display, w, &class_hints);
@@ -402,22 +407,24 @@ x_session_initialize (struct x_display_info *dpyinfo)
 
   /* Check if we where started by the session manager.  If so, we will
      have a previous id.  */
-  if (! NILP (Vx_session_previous_id) && STRINGP (Vx_session_previous_id))
+  if (STRINGP (Vx_session_previous_id))
     previous_id = SSDATA (Vx_session_previous_id);
 
   /* Construct the path to the Emacs program.  */
-  if (! NILP (Vinvocation_directory))
+  if (STRINGP (Vinvocation_directory))
     name_len += SBYTES (Vinvocation_directory);
-  name_len += SBYTES (Vinvocation_name);
+  if (STRINGP (Vinvocation_name))
+    name_len += SBYTES (Vinvocation_name);
 
   /* This malloc will not be freed, but it is only done once, and hopefully
      not very large   */
   emacs_program = xmalloc (name_len + 1);
   char *z = emacs_program;
 
-  if (! NILP (Vinvocation_directory))
+  if (STRINGP (Vinvocation_directory))
     z = lispstpcpy (z, Vinvocation_directory);
-  lispstpcpy (z, Vinvocation_name);
+  if (STRINGP (Vinvocation_name))
+    lispstpcpy (z, Vinvocation_name);
 
   /* The SM protocol says all callbacks are mandatory, so set up all
      here and in the mask passed to SmcOpenConnection.  */

@@ -3800,31 +3800,25 @@ available, it is the preferred choice, and the default.  The variable
 whether this help browser is used.  If you use the IDL Assistant, the
 tips here are not relevant.
 
-Since IDLWAVE runs on a many different system types, a single browser
-configuration is not possible, but choices abound.  On many systems,
-the default browser configured in @code{browse-url-browser-function},
-and hence inherited by default by
-@code{idlwave-help-browser-function}, is Netscape.  Unfortunately, the
-HTML manuals decompiled from the original source contain formatting
-structures which Netscape 4.x does not handle well, though they are
-still readable.  A much better choice is Mozilla, or one of the
-Mozilla-derived browsers such as
-@uref{http://galeon.sourceforge.net/,Galeon} (GNU/Linux),
-@uref{http://www.mozilla.org/projects/camino/,Camino} (MacOSX), or
-@uref{http://www.mozilla.org/projects/firebird/,Firebird} (all
-platforms).  Newer versions of Emacs provide a browser-function choice
-@code{browse-url-gnome-moz} which uses the Gnome-configured browser.
+Since IDLWAVE runs on many different system types, a single browser
+configuration is not possible, but choices abound.  The default
+@code{idlwave-help-browser-function} inherits the browser configured
+in @code{browse-url-browser-function}.
 
 Note that the HTML files decompiled from the help sources contain
 specific references to the @samp{Symbol} font, which by default is not
 permitted in normal encodings (it's invalid, technically).  Though it
 only impacts a few symbols, you can trick Mozilla-based browsers into
 recognizing @samp{Symbol} by following the directions
+@c This page is 11 years old.  Is it still relevant?
 @uref{http://hutchinson.belmont.ma.us/tth/Xfonts.html, here}.  With
 this fix in place, HTML help pages look almost identical to their PDF
 equivalents (yet can be bookmarked, browsed as history, searched,
 etc.).
 
+@c Not updated in over a decade.
+@c Maybe you want to recommend eww these days.
+@ignore
 @noindent Individual platform recommendations:
 
 @itemize @bullet
@@ -3861,6 +3855,7 @@ following, to get consistent behavior with the @kbd{q} key:
 Note that you can open the file in an external browser from within
 @code{w3m} using @kbd{M}.
 @end itemize
+@end ignore
 
 @node Configuration Examples
 @appendix Configuration Examples

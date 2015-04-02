@@ -486,9 +486,10 @@ must be one of the symbols `header', `mode', or `vertical'."
 		   `(menu-item "" ,(lambda () (interactive) (funcall exitfun))
 			       :filter ,(lambda (cmd) (if dragged cmd)))))
 	       ;; Some of the events will of course end up looked up
-	       ;; with a mode-line or header-line prefix ...
+	       ;; with a mode-line, header-line or vertical-line prefix ...
 	       (define-key map [mode-line] map)
 	       (define-key map [header-line] map)
+	       (define-key map [vertical-line] map)
 	       ;; ... and some maybe even with a right- or bottom-divider
 	       ;; prefix.
 	       (define-key map [right-divider] map)

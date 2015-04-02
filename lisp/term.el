@@ -1145,7 +1145,7 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (make-local-variable 'term-scroll-show-maximum-output)
   (make-local-variable 'term-ptyp)
   (make-local-variable 'term-exec-hook)
-  (make-local-variable 'term-vertical-motion)
+  (set (make-local-variable 'term-vertical-motion) 'vertical-motion)
   (set (make-local-variable 'term-pending-delete-marker) (make-marker))
   (make-local-variable 'term-current-face)
   (term-ansi-reset)
@@ -1154,6 +1154,13 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (set (make-local-variable 'cua-mode) nil)
 
   (set (make-local-variable 'font-lock-defaults) '(nil t))
+
+  (add-function :filter-return
+                (local 'window-adjust-process-window-size-function)
+                (lambda (size)
+                  (when size
+                    (term-reset-size (cdr size) (car size)))
+                  size))
 
   (easy-menu-add term-terminal-menu)
   (easy-menu-add term-signals-menu)
@@ -1196,12 +1203,6 @@ Entry to this mode runs the hooks on `term-mode-hook'."
       (when (not found)
 	(goto-char save-point)))
     found))
-
-(defun term-check-size (process)
-  (when (or (/= term-height (window-text-height))
-	    (/= term-width (term-window-width)))
-    (term-reset-size (window-text-height) (term-window-width))
-    (set-process-window-size process term-height term-width)))
 
 (defun term-send-raw-string (chars)
   (deactivate-mark)
@@ -2772,15 +2773,11 @@ See `term-prompt-regexp'."
 	(when (/= (point) (process-mark proc))
 	  (setq save-point (point-marker)))
 
-	;; Note if the window size has changed.  We used to reset
-	;; point too, but that gives incorrect results (Bug#4635).
-	(if (eq (window-buffer) (current-buffer))
-	    (progn
-	      (setq term-vertical-motion (symbol-function 'vertical-motion))
-	      (term-check-size proc))
-	  (setq term-vertical-motion
-		(symbol-function 'term-buffer-vertical-motion)))
-	(setq save-marker (copy-marker (process-mark proc)))
+        (setf term-vertical-motion
+              (if (eq (window-buffer) (current-buffer))
+                  'vertical-motion
+                'term-buffer-vertical-motion))
+        (setq save-marker (copy-marker (process-mark proc)))
 	(goto-char (process-mark proc))
 
 	(save-restriction
@@ -3082,9 +3079,7 @@ See `term-prompt-regexp'."
 		   (eq (window-buffer selected) (current-buffer)))
 	  (term-display-line (car term-pending-frame)
 			     (cdr term-pending-frame))
-	  (setq term-pending-frame nil)
-	  ;; We have created a new window, so check the window size.
-	  (term-check-size proc))
+          (setq term-pending-frame nil))
 
 	;; Scroll each window displaying the buffer but (by default)
 	;; only if the point matches the process-mark we started with.

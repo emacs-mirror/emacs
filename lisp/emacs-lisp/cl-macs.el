@@ -1752,7 +1752,7 @@ An implicit nil block is established around the loop.
   (declare (debug ((symbolp form &optional form) cl-declarations body))
            (indent 1))
   (let ((loop `(dolist ,spec ,@body)))
-    (if (advice-member-p #'cl--wrap-in-nil-block 'dolist)
+    (if (advice-member-p 'cl--wrap-in-nil-block 'dolist)
         loop `(cl-block nil ,loop))))
 
 ;;;###autoload
@@ -1765,7 +1765,7 @@ nil.
 \(fn (VAR COUNT [RESULT]) BODY...)"
   (declare (debug cl-dolist) (indent 1))
   (let ((loop `(dotimes ,spec ,@body)))
-    (if (advice-member-p #'cl--wrap-in-nil-block 'dotimes)
+    (if (advice-member-p 'cl--wrap-in-nil-block 'dotimes)
         loop `(cl-block nil ,loop))))
 
 (defvar cl--tagbody-alist nil)
@@ -2446,10 +2446,11 @@ The function's arguments should be treated as immutable.
 \(fn NAME ARGLIST [DOCSTRING] BODY...)"
   (declare (debug cl-defun) (indent 2))
   (let* ((argns (cl--arglist-args args))
+	 (real-args (if (eq '&cl-defs (car args)) (cddr args) args))
          (p argns)
          ;; (pbody (cons 'progn body))
          )
-    (while (and p (eq (cl--expr-contains args (car p)) 1)) (pop p))
+    (while (and p (eq (cl--expr-contains real-args (car p)) 1)) (pop p))
     `(progn
        ,(if p nil   ; give up if defaults refer to earlier args
           `(cl-define-compiler-macro ,name
@@ -2766,6 +2767,72 @@ non-nil value, that slot cannot be set via `setf'.
                            ',type ,(eq named t) ',descs ',tag-symbol ',tag
                            ',print-auto))
        ',name)))
+
+;;; Add cl-struct support to pcase
+
+(defun cl--struct-all-parents (class)
+  (when (cl--struct-class-p class)
+    (let ((res ())
+          (classes (list class)))
+      ;; BFS precedence.
+      (while (let ((class (pop classes)))
+               (push class res)
+               (setq classes
+                     (append classes
+                             (cl--class-parents class)))))
+      (nreverse res))))
+
+;;;###autoload
+(pcase-defmacro cl-struct (type &rest fields)
+  "Pcase patterns to match cl-structs.
+Elements of FIELDS can be of the form (NAME UPAT) in which case the contents of
+field NAME is matched against UPAT, or they can be of the form NAME which
+is a shorthand for (NAME NAME)."
+  `(and (pred (pcase--flip cl-typep ',type))
+        ,@(mapcar
+           (lambda (field)
+             (let* ((name (if (consp field) (car field) field))
+                    (pat (if (consp field) (cadr field) field)))
+               `(app ,(if (eq (cl-struct-sequence-type type) 'list)
+                          `(nth ,(cl-struct-slot-offset type name))
+                        `(pcase--flip aref ,(cl-struct-slot-offset type name)))
+                     ,pat)))
+           fields)))
+
+(defun cl--pcase-mutually-exclusive-p (orig pred1 pred2)
+  "Extra special cases for `cl-typep' predicates."
+  (let* ((x1 pred1) (x2 pred2)
+         (t1
+          (and (eq 'pcase--flip (car-safe x1)) (setq x1 (cdr x1))
+               (eq 'cl-typep (car-safe x1))    (setq x1 (cdr x1))
+               (null (cdr-safe x1))            (setq x1 (car x1))
+               (eq 'quote (car-safe x1))       (cadr x1)))
+         (t2
+          (and (eq 'pcase--flip (car-safe x2)) (setq x2 (cdr x2))
+               (eq 'cl-typep (car-safe x2))    (setq x2 (cdr x2))
+               (null (cdr-safe x2))            (setq x2 (car x2))
+               (eq 'quote (car-safe x2))       (cadr x2))))
+    (or
+     (and (symbolp t1) (symbolp t2)
+          (let ((c1 (cl--find-class t1))
+                (c2 (cl--find-class t2)))
+            (and c1 c2
+                 (not (or (memq c1 (cl--struct-all-parents c2))
+                          (memq c2 (cl--struct-all-parents c1)))))))
+     (let ((c1 (and (symbolp t1) (cl--find-class t1))))
+       (and c1 (cl--struct-class-p c1)
+            (funcall orig (if (eq 'list (cl-struct-sequence-type t1))
+                              'consp 'vectorp)
+                     pred2)))
+     (let ((c2 (and (symbolp t2) (cl--find-class t2))))
+       (and c2 (cl--struct-class-p c2)
+            (funcall orig pred1
+                     (if (eq 'list (cl-struct-sequence-type t2))
+                         'consp 'vectorp))))
+     (funcall orig pred1 pred2))))
+(advice-add 'pcase--mutually-exclusive-p
+            :around #'cl--pcase-mutually-exclusive-p)
+
 
 (defun cl-struct-sequence-type (struct-type)
   "Return the sequence used to build STRUCT-TYPE.

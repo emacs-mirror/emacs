@@ -1201,7 +1201,7 @@ Highlight space and non-breaking space characters.
 
 @item lines
 @vindex whitespace-line-column
-Highlight lines longer than 80 lines.  To change the column limit,
+Highlight lines longer than 80 columns.  To change the column limit,
 customize the variable @code{whitespace-line-column}.
 
 @item newline

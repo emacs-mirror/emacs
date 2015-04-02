@@ -590,8 +590,7 @@ Newsticker works with the standard RSS and Atom formats listed below
 @subheading RSS formats
 
 @itemize
-@item RSS 0.91 (see @uref{http://backend.userland.com/rss091} or
-@uref{http://my.netscape.com/publish/formats/rss-spec-0.91.html})
+@item RSS 0.91 (see @uref{http://backend.userland.com/rss091})
 @item RSS 0.92 (see @uref{http://backend.userland.com/rss092})
 @item RSS 1.0 (see @uref{http://purl.org/rss/1.0/spec})
 @item RSS 2.0 (see @uref{http://blogs.law.harvard.edu/tech/rss})

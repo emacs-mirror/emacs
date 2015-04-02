@@ -33,8 +33,8 @@
 ;;
 ;; All provided functions work on lists, strings and vectors.
 ;;
-;; Functions taking a predicate or a function iterating over the
-;; sequence as argument take the function as their first argument and
+;; Functions taking a predicate or iterating over a sequence using a
+;; function as argument take the function as their first argument and
 ;; the sequence as their second argument.  All other functions take
 ;; the sequence as their first argument.
 ;;

@@ -335,7 +335,7 @@ This is not required after changing `gnus-registry-cache-file'."
 			   old-file-name file)))
 	     (progn
 	       (gnus-registry-read old-file-name)
-	       (setf (oref gnus-registry-db :file) file)
+	       (setf (oref gnus-registry-db file) file)
 	       (gnus-message 1 "Registry filename changed to %s" file))
 	   (gnus-registry-remake-db t))))
       (error

@@ -825,8 +825,8 @@ is zero or less.
   It is often useful to move point ``temporarily'' within a localized
 portion of the program.  This is called an @dfn{excursion}, and it is
 done with the @code{save-excursion} special form.  This construct
-remembers the initial identity of the current buffer, and its values
-of point and the mark, and restores them after the excursion
+remembers the initial identity of the current buffer, and its value
+of point, and restores them after the excursion
 completes.  It is the standard way to move point within one part of a
 program and avoid affecting the rest of the program, and is used
 thousands of times in the Lisp sources of Emacs.
@@ -841,18 +841,18 @@ Configurations} and in @ref{Frame Configurations}. @c frameset?
 @cindex mark excursion
 @cindex point excursion
 This special form saves the identity of the current buffer and the
-values of point and the mark in it, evaluates @var{body}, and finally
-restores the buffer and its saved values of point and the mark.  All
-three saved values are restored even in case of an abnormal exit via
+value of point in it, evaluates @var{body}, and finally
+restores the buffer and its saved value of point.  both saved values are
+restored even in case of an abnormal exit via
 @code{throw} or error (@pxref{Nonlocal Exits}).
 
 The value returned by @code{save-excursion} is the result of the last
 form in @var{body}, or @code{nil} if no body forms were given.
 @end defspec
 
-  Because @code{save-excursion} only saves point and mark for the
+  Because @code{save-excursion} only saves point for the
 buffer that was current at the start of the excursion, any changes
-made to point and/or mark in other buffers, during the excursion, will
+made to point in other buffers, during the excursion, will
 remain in effect afterward.  This frequently leads to unintended
 consequences, so the byte compiler warns if you call @code{set-buffer}
 during an excursion:
@@ -887,11 +887,6 @@ markers.  More precisely, the saved value is a marker with insertion
 type @code{nil}.  @xref{Marker Insertion Types}.  Therefore, when the
 saved point value is restored, it normally comes before the inserted
 text.
-
-  Although @code{save-excursion} saves the location of the mark, it does
-not prevent functions which modify the buffer from setting
-@code{deactivate-mark}, and thus causing the deactivation of the mark
-after the command finishes.  @xref{The Mark}.
 
 @node Narrowing
 @section Narrowing
@@ -980,7 +975,7 @@ restores the restrictions on the original buffer (the buffer whose
 restrictions it saved from), but it does not restore the identity of the
 current buffer.
 
-@code{save-restriction} does @emph{not} restore point and the mark; use
+@code{save-restriction} does @emph{not} restore point; use
 @code{save-excursion} for that.  If you use both @code{save-restriction}
 and @code{save-excursion} together, @code{save-excursion} should come
 first (on the outside).  Otherwise, the old point value would be

@@ -1,6 +1,362 @@
+2015-04-01  Alan Mackenzie  <acm@muc.de>
+
+	Fix the CC Mode fixes from 2015-03-30.  Fixes debbugs#20240.
+
+	* progmodes/cc-mode.el (c-extend-after-change-region): Widen
+	before applying text properties.
+	* progmodes/cc-langs.el (c-before-font-lock-functions): Update an
+	entry to a new function name.
+
+2015-04-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* emacs-lisp/package.el: Spelling fixes and use active voice.
+
+2015-04-01  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* emacs-lisp/package.el: Implement asynchronous refreshing.
+	(package--with-work-buffer-async)
+	(package--check-signature-content)
+	(package--update-downloads-in-progress): New functions.
+	(package--check-signature, package--download-one-archive)
+	(package--download-and-read-archives, package-refresh-contents):
+	Optional arguments for async usage.
+	(package--post-download-archives-hook): New variable.  Hook run
+	after every refresh.
+
+	* emacs-lisp/package.el: Make package-menu asynchronous.
+	(package-menu-async): New variable.  Controls whether
+	`list-packages' is asynchronous.
+	(list-packages): Now asynchronous by default.
+	(package-menu--new-package-list): Always buffer-local.
+	(package-menu--post-refresh)
+	(package-menu--find-and-notify-upgrades)
+	(package-menu--populate-new-package-list): New functions.
+
+2015-03-31  Simen Heggestøyl  <simenheg@gmail.com>
+
+	* textmodes/css-mode.el (css-mode): Derive from `prog-mode'.
+
+2015-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* jit-lock.el (jit-lock--run-functions): Fix min/max copy&paste error.
+
+	Let jit-lock know the result of font-lock-extend-region-functions.
+	* jit-lock.el (jit-lock--run-functions): New function.
+	(jit-lock-fontify-now): Use it.  Handle fontification bounds more
+	precisely in case the backend functions fontify more than requested.
+	Don't round up to whole lines since that shouldn't be needed
+	any more.
+	* font-lock.el (font-lock-fontify-region-function): Adjust docstring.
+	(font-lock-inhibit-thing-lock): Make obsolete.
+	(font-lock-default-fontify-region): Return the bounds actually used.
+
+	* emacs-lisp/eieio-base.el (eieio-persistent-validate/fix-slot-value):
+	Fix compilation error.
+
+2015-03-30  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* emacs-lisp/package.el: Reorganize package.el and divide it with
+	page-breaks and comments.
+
+2015-03-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/eieio-base.el (make-instance) <eieio-named>: New instance
+	which stores the old-style object name argument into the
+	object-name field.
+
+2015-03-30  Alan Mackenzie  <acm@muc.de>
+
+	Correct calculation of CC Mode's font-lock region.
+
+	* progmodes/cc-mode.el (c-fl-decl-start): Rename from
+	c-set-fl-decl-start.  Change signature such that nil is returned
+	when no declaration is found.
+	(c-change-expand-fl-region): Rename from
+	c-change-set-fl-decl-start.  This now also handles expanding the
+	font lock region to whole lines.
+	(c-context-expand-fl-region): Rename from
+	c-context-set-fl-decl-start.  This now also handles expanding the
+	font lock region to whole lines.
+	(c-font-lock-fontify-region): When a change font lock region is
+	spuriously enlarged to the beginning-of-line by jit-lock, fontify
+	the extra bit separately from the region calculated by CC Mode.
+	(c-extend-after-change-region): Explicitly apply 'fontified
+	properties to the extended bits of the font lock region.
+
+	* progmodes/cc-langs.el (c-before-font-lock-functions)
+	(c-before-context-fontification-functions): Use new names for
+	existing functions (see above).
+
+2015-03-30  Richard Ryniker  <ryniker@alum.mit.edu>  (tiny change)
+
+	* mail/sendmail.el (sendmail-send-it): Do not attempt to switch
+	to non-existent buffer (errbuf is not created when customization
+	variable mail-interactive is nil).  (Bug#20211)
+
+2015-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-backward-sexp-command)
+	(smie-forward-sexp-command): Don't pretend the arg is optional
+	(bug#20205).
+
+2015-03-29  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-syntax-before-regexp-re):
+	Detect regexps after `!'.  (Bug#19285)
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords):
+	Use `font-lock-constant-face' for nil, true and false.
+	Highlight `self' as a keyword.  (Bug#17733)
+
+2015-03-29  Nobuyoshi Nakada  <nobu@ruby-lang.org>
+
+	* progmodes/ruby-mode.el (ruby-syntax-before-regexp-re):
+	Expect beginning of regexp also after open brace or vertical bar.
+	(Bug#20026)
+
+2015-03-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* emacs-lisp/package.el (package-refresh-contents): Fix spelling
+	error in previous change.
+
+2015-03-28  Tom Willemse  <tom@ryuslash.org>  (tiny change)
+
+	* elec-pair.el (electric-pair-local-mode): New command.
+	(electric-pair-mode): Mention `electric-pair-local-mode' in the
+	docstring.
+
+2015-03-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* emacs-lisp/package.el (package-refresh-contents): Add a message at
+	the end so it does not appear to have hanged (Bug#17879).
+
+2015-03-27  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	* font-lock.el (font-lock--remove-face-from-text-property):
+	New function.  Adapted from the previously commented out
+	remove-single-text-property.
+	Remove previously unused and commented out auxiliary function
+	remove-text-property and obsolete comment.
+	* comint.el (comint-output-filter): Use it to remove
+	comint-highlight-prompt.
+	(comint-snapshot-last-prompt, comint-output-filter):
+	Use font-lock-prepend-text-property for comint-highlight-prompt.
+	(Bug#20084)
+
+2015-03-26  Daniel Colascione  <dancol@dancol.org>
+	* progmodes/python.el
+	(python-indent-guess-indent-offset-verbose): New defcustom.
+	(python-indent-guess-indent-offset): Use it.
+
+2015-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/eieio.el (defclass): Change internal name so as to make
+	sure only EIEIO files should have "eieio--" prefixes in their .elc.
+
+	* emacs-lisp/cl-macs.el (cl-dolist, cl-dotimes): Silence byte-compiler.
+
+2015-03-26  Boruch Baum  <boruch_baum@gmx.com>  (tiny change)
+
+	* bookmark.el (bookmark-show-all-annotations): Sort them (bug#20177).
+
+2015-03-25  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* json.el (json-special-chars): Don't treat `/' specially, there's
+	no need to.
+	(json-encode-string): Only escape quotation mark, backslash and
+	the control characters U+0000 to U+001F.
+
+2015-03-25  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine):
+	Don't complain about args starting with _.
+
+2015-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-cmds.el (mule--ucs-names-annotation): New func.
+	(read-char-by-name): Use it.
+
+	* xt-mouse.el (xterm-mouse--read-number-from-terminal): Fix last commit.
+
+2015-03-25  Nicolas Petton <nicolas@petton.fr>
+
+	* emacs-lisp/seq.el: Documentation improvements.
+
+2015-03-25  Glenn Morris  <rgm@gnu.org>
+
+	* net/browse-url.el (browse-url-browser-function)
+	(browse-url-default-browser):
+	Remove obsolete items from the explicit listing.
+	(browse-url-new-window-flag, browse-url-of-file-hook): Doc fixes.
+	(browse-url-netscape-program, browse-url-netscape-arguments)
+	(browse-url-netscape-startup-arguments)
+	(browse-url-galeon-program, browse-url-galeon-arguments)
+	(browse-url-galeon-startup-arguments)
+	(browse-url-gnome-moz-program, browse-url-gnome-moz-arguments)
+	(browse-url-galeon-new-window-is-tab)
+	(browse-url-netscape-new-window-is-tab)
+	(browse-url-mosaic-program, browse-url-mosaic-arguments)
+	(browse-url-mosaic-pidfile, browse-url-CCI-port)
+	(browse-url-CCI-host, browse-url-netscape-version)
+	(browse-url-netscape, browse-url-netscape-sentinel)
+	(browse-url-netscape-reload, browse-url-netscape-send)
+	(browse-url-galeon, browse-url-galeon-sentinel)
+	(browse-url-gnome-moz, browse-url-mosaic, browse-url-cci)
+	(browse-url-w3-gnudoit): Make obsolete.
+	* ffap.el (ffap-url-fetcher): Simplify default and doc.
+
+2015-03-25  Olaf Rogalsky  <olaf.rogalsky@gmail.com>
+
+	* xt-mouse.el: Add mouse-tracking support (bug#19416).
+	(xterm-mouse-translate-1): Handle mouse-movement events.
+	(xterm-mouse--read-event-sequence-1000)
+	(xterm-mouse--read-event-sequence-1006): Delete functions.
+	(xterm-mouse--read-event-sequence): New function that handles both at
+	the same time.  Handle mouse-movements.
+	(xterm-mouse--read-utf8-char, xterm-mouse--read-number-from-terminal):
+	New functions.
+	(xterm-mouse-event): Simplify.
+	(xterm-mouse-tracking-enable-sequence)
+	(xterm-mouse-tracking-disable-sequence): Enable mouse tracking.
+
+	* mouse.el (mouse-drag-line): Also ignore `vertical-line' prefix events.
+
+2015-03-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-do-file-attributes-with-ls)
+	(tramp-do-file-attributes-with-stat): Quote file names in output.
+	(tramp-do-directory-files-and-attributes-with-stat): Use "//" as marker.
+
+2015-03-24  Daiki Ueno  <ueno@gnu.org>
+
+	* epg.el (epg-start-generate-key): Fix typo in "gpg --gen-key"
+	invocation; make the PARAMETERS documentation clearer.
+
+2015-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Add cl-struct specific optimizations to pcase.
+	* emacs-lisp/cl-macs.el (cl--struct-all-parents)
+	(cl--pcase-mutually-exclusive-p): New functions.
+	(pcase--mutually-exclusive-p): Advise to optimize cl-struct patterns.
+
+	* emacs-lisp/pcase.el (pcase--split-pred): Handle quoted string.
+
+2015-03-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Add new `cl-struct' and `eieio' pcase patterns.
+	* emacs-lisp/cl-macs.el (cl-struct): New pcase pattern.
+	* emacs-lisp/eieio.el (eieio-pcase-slot-index-table)
+	(eieio-pcase-slot-index-from-index-table): New functions.
+	(eieio): New pcase pattern.
+	* emacs-lisp/pcase.el (pcase--make-docstring): New function.
+	(pcase): Use it to build the docstring.
+	(pcase-defmacro): Make sure the macro is lazy-loaded.
+	(\`): Move its docstring from `pcase'.
+
+2015-03-23  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-aliases)
+	(authors-obsolete-files-regexps): Additions.
+
+2015-03-23  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* simple.el (deactivate-mark): Only modify PRIMARY if we own
+	PRIMARY (Bug#18939).
+
+2015-03-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* emacs-lisp/debug.el (debug): Don't try using "previous" window
+	when its not live or on an invisible frame (Bug#17170).
+
+2015-03-23  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* json.el (json-decode-char0): Delete this alias as well.
+	(json-read-escaped-char): Don't call it (bug#20154).
+
+2015-03-23  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs-lisp/lisp-mode.el (lisp--el-non-funcall-position-p): New function.
+	(lisp--el-match-keyword): Use it.
+
+2015-03-23  Daiki Ueno  <ueno@gnu.org>
+
+	* subr.el (start-process): New function, ported from the C
+	implementation.
+
+2015-03-23  Daniel Colascione  <dancol@dancol.org>
+
+	Automatically adjust process window sizes.
+
+	* window.el (window-adjust-process-window-size-function):
+	New customizable variable.
+	(window-adjust-process-window-size)
+	(window-adjust-process-window-size-smallest)
+	(window-adjust-process-window-size-largest)
+	(window--process-window-list, window--adjust-process-windows):
+	New functions.
+	(window-configuration-change-hook):
+	Add `window--adjust-process-windows'.
+	* term.el (term-mode): Observe result of
+	`window-adjust-process-window-size-function'.
+	(term-check-size): Delete.
+
+2015-03-22  Jackson Ray Hamilton  <jackson@jacksonrayhamilton.com>
+
+	* textmodes/sgml-mode.el (sgml-attribute-offset): New defcustom.
+	(sgml-calculate-indent): Use `sgml-attribute-offset' for attribute
+	indentation (bug#20161).
+
+2015-03-22  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* json.el (json-encode-char0): Delete this alias.
+	(json-encode-string): Rewrite to improve performance (bug#20154).
+	(json-encode-char): Fold into `json-encode-string'.
+
+2015-03-22  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* menu-bar.el (menu-bar-update-buffers): Count displayed buffers
+	for `buffers-menu-max-size', not total buffers.
+
+2015-03-21  Titus von der Malsburg  <malsburg@posteo.de>
+
+	* window.el (window-font-width, window-font-height)
+	(window-max-chars-per-line): New functions.
+
+	* simple.el (default-font-height): Doc fix.
+	(default-font-width): New function.
+
+2015-03-21  Tassilo Horn  <tsdh@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (lisp-el-font-lock-keywords-1):
+	Also recognize (cl-)defmethod with (setf method) name.
+
+2015-03-20  Tassilo Horn  <tsdh@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (lisp-el-font-lock-keywords-1):
+	Fix false positive in function name font-locking.
+	(lisp-cl-font-lock-keywords-1): Ditto.
+
+2015-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl-defsubst): Ignore false-positive
+	occurrences of args via &cl-defs (bug#20149).
+
+2015-03-20  Alan Mackenzie  <acm@muc.de>
+
+	Fix debbugs#20146
+
+	* font-lock.el (font-lock-extend-jit-lock-region-after-change):
+	Return the calculated values, as per spec.
+
+2015-03-20  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* progmodes/ruby-mode.el (ruby-font-lock-keywords): Move `at_exit'
+	and `callcc' to the "methods with required arguments" section,
+	they need a block argument.  Remove a `throw' duplicate.
+
 2015-03-19  Vibhav Pant  <vibhavp@gmail.com>
 
-	* lisp/progmodes/cperl-mode.el (cperl-electric-backspace):
+	* progmodes/cperl-mode.el (cperl-electric-backspace):
 	Call delete-backward-space interactively instead of delete-char.
 
 2015-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -67,9 +423,9 @@
 
 2015-03-19  Vibhav Pant  <vibhavp@gmail.com>
 
-	* lisp/leim/quail/hangul.el (hangul-delete-backward-char)
+	* leim/quail/hangul.el (hangul-delete-backward-char)
 	(hangul-to-hanja-conversion):
-	* lisp/progmodes/cperl-mode.el (cperl-electric-keyword)
+	* progmodes/cperl-mode.el (cperl-electric-keyword)
 	(cperl-electric-backspace): Use delete-char instead of
 	delete-backward-char, fixes compilation warnings.
 
@@ -109,7 +465,7 @@
 2015-03-18  Dima Kogan  <dima@secretsauce.net>
 
 	Have gud-display-line not display source buffer in gud window.
-	* lisp/progmodes/gud.el (gud-display-line): Make display-buffer
+	* progmodes/gud.el (gud-display-line): Make display-buffer
 	not reuse selected window.  (Bug#17675, Bug#19901, Bug#20034)
 
 2015-03-17  Tassilo Horn  <tsdh@gnu.org>
@@ -1761,7 +2117,7 @@
 
 2015-01-30  Oleh Krehel  <ohwoeowho@gmail.com>
 
-	* lisp/custom.el (defface): Set `indent' to 1.
+	* custom.el (defface): Set `indent' to 1.
 
 2015-01-30  Oleh Krehel  <ohwoeowho@gmail.com>
 
@@ -1769,21 +2125,21 @@
 
 2015-01-30  Michal Nazarewicz  <mina86@mina86.com>
 
-	* lisp/files.el (save-buffers-kill-emacs): If `confirm-kill-emacs'
+	* files.el (save-buffers-kill-emacs): If `confirm-kill-emacs'
 	is set, but user has just been asked whether they really want to
 	kill Emacs (for example with a ‘Modified buffers exist; exit
 	anyway?’ prompt), do not ask them for another confirmation.
 
 2015-01-29  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* lisp/calc/calc-units.el (calc-convert-exact-units): New function.
+	* calc/calc-units.el (calc-convert-exact-units): New function.
 	(calc-convert-units): Check for missing units.
 	(math-consistent-units-p): Strengthen the test for consistent units.
 
-	* lisp/calc/calc-ext.el (calc-init-extensions):  Autoload
+	* calc/calc-ext.el (calc-init-extensions):  Autoload
 	`calc-convert-exact-units' and assign it a keybinding.
 
-	* lisp/calc/calc-help (calc-u-prefix-help): Add help for the
+	* calc/calc-help (calc-u-prefix-help): Add help for the
 	"un" keybinding.
 
 2015-01-28  Stefan Monnier  <monnier@iro.umontreal.ca>

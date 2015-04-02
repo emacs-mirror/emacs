@@ -294,7 +294,8 @@ Second, any text properties will be stripped from strings."
   (cond ((consp proposed-value)
 	 ;; Lists with something in them need special treatment.
 	 (let* ((slot-idx (- (eieio--slot-name-index class slot)
-                             (eval-when-compile eieio--object-num-slots)))
+                             (eval-when-compile
+                               (length (cl-struct-slot-info 'eieio--object)))))
                 (type (cl--slot-descriptor-type (aref (eieio--class-slots class)
                                                       slot-idx)))
                 (classtype (eieio-persistent-slot-type-is-class-p type)))
@@ -497,6 +498,15 @@ All slots are unbound, except those initialized with PARAMS."
                                     "-" (int-to-string num)))
                         (concat nm "-1")))))
     nobj))
+
+(cl-defmethod make-instance ((class (subclass eieio-named)) &rest args)
+  (if (not (stringp (car args)))
+      (cl-call-next-method)
+    (funcall (if eieio-backward-compatibility #'ignore #'message)
+             "Obsolete: name passed without :object-name to %S constructor"
+             class)
+    (apply #'cl-call-next-method class :object-name args)))
+
 
 (provide 'eieio-base)
 

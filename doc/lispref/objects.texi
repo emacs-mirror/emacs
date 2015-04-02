@@ -2135,12 +2135,12 @@ that for two strings to be equal, they have the same text properties.
 
 @example
 @group
-(equal "asdf" (propertize "asdf" '(asdf t)))
+(equal "asdf" (propertize "asdf" 'asdf t))
      @result{} t
 @end group
 @group
 (equal-including-properties "asdf"
-                            (propertize "asdf" '(asdf t)))
+                            (propertize "asdf" 'asdf t))
      @result{} nil
 @end group
 @end example

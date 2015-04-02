@@ -86,6 +86,7 @@ files.")
     ("Jens-Ulrik Holger Petersen" "Jens-Ulrik Petersen")
     ("Jeremy Bertram Maitin-Shepard" "Jeremy Maitin-Shepard")
     ("Johan Bockgård" "Johan Bockgard")
+    ("John F. Carr" "John F Carr")
     ("John J Foerch" "John Foerch")
     ("John W. Eaton" "John Eaton")
     ("Jonathan I. Kamens" "Jonathan Kamens")
@@ -243,6 +244,7 @@ If REALNAME is nil, ignore that author.")
   '(".*loaddefs.el$"			; not obsolete, but auto-generated
     "\\.\\(bzr\\|cvs\\|git\\)ignore$"		; obsolete or uninteresting
     "\\.arch-inventory$"
+    "ChangeLog\\(\\.[0-9]+\\)?\\'"
     "automated/data/"		   ; not interesting
     ;; TODO lib/? Matches other things?
     "build-aux/" "m4/" "Emacs.xcodeproj" "mapfiles" "\\.map\\'"

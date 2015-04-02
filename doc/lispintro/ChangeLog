@@ -1,3 +1,7 @@
+2015-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp-intro.texi: `save-excursion' doesn't save&restore the mark.
+
 2014-12-31  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Less 'make' chatter for Emacs doc

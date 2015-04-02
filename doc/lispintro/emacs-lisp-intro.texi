@@ -352,7 +352,7 @@ How To Write Function Definitions
 * if::                           What if?
 * else::                         If--then--else expressions.
 * Truth & Falsehood::            What Lisp considers false and true.
-* save-excursion::               Keeping track of point, mark, and buffer.
+* save-excursion::               Keeping track of point and buffer.
 * Review::
 * defun Exercises::
 
@@ -2966,7 +2966,7 @@ symbol refers to it.)
 * if::                           What if?
 * else::                         If--then--else expressions.
 * Truth & Falsehood::            What Lisp considers false and true.
-* save-excursion::               Keeping track of point, mark, and buffer.
+* save-excursion::               Keeping track of point and buffer.
 * Review::
 * defun Exercises::
 @end menu
@@ -4159,11 +4159,11 @@ The @code{save-excursion} function is the third and final special form
 that we will discuss in this chapter.
 
 In Emacs Lisp programs used for editing, the @code{save-excursion}
-function is very common.  It saves the location of point and mark,
-executes the body of the function, and then restores point and mark to
-their previous positions if their locations were changed.  Its primary
+function is very common.  It saves the location of point,
+executes the body of the function, and then restores point to
+its previous position if its location was changed.  Its primary
 purpose is to keep the user from being surprised and disturbed by
-unexpected movement of point or mark.
+unexpected movement of point.
 
 @menu
 * Point and mark::              A review of various locations.
@@ -4201,7 +4201,7 @@ region}.  Numerous commands work on the region, including
 @code{print-region}.
 
 The @code{save-excursion} special form saves the locations of point and
-mark and restores those positions after the code within the body of the
+restores this position after the code within the body of the
 special form is evaluated by the Lisp interpreter.  Thus, if point were
 in the beginning of a piece of text and some code moved point to the end
 of the buffer, the @code{save-excursion} would put point back to where
@@ -4212,16 +4212,16 @@ In Emacs, a function frequently moves point as part of its internal
 workings even though a user would not expect this.  For example,
 @code{count-lines-region} moves point.  To prevent the user from being
 bothered by jumps that are both unexpected and (from the user's point of
-view) unnecessary, @code{save-excursion} is often used to keep point and
-mark in the location expected by the user.  The use of
+view) unnecessary, @code{save-excursion} is often used to keep point in
+the location expected by the user.  The use of
 @code{save-excursion} is good housekeeping.
 
 To make sure the house stays clean, @code{save-excursion} restores the
-values of point and mark even if something goes wrong in the code inside
+value of point even if something goes wrong in the code inside
 of it (or, to be more precise and to use the proper jargon, ``in case of
 abnormal exit'').  This feature is very helpful.
 
-In addition to recording the values of point and mark,
+In addition to recording the value of point,
 @code{save-excursion} keeps track of the current buffer, and restores
 it, too.  This means you can write code that will change the buffer and
 have @code{save-excursion} switch you back to the original buffer.
@@ -4386,9 +4386,9 @@ For example,
 @end smallexample
 
 @item save-excursion
-Record the values of point and mark and the current buffer before
-evaluating the body of this special form.  Restore the values of point
-and mark and buffer afterward.
+Record the values of point and the current buffer before
+evaluating the body of this special form.  Restore the value of point and
+buffer afterward.
 
 @need 1250
 For example,
@@ -5201,8 +5201,8 @@ of the two-element list, @code{(oldbuf (current-buffer))}.
 The body of the @code{let} expression in @code{append-to-buffer}
 consists of a @code{save-excursion} expression.
 
-The @code{save-excursion} function saves the locations of point and
-mark, and restores them to those positions after the expressions in the
+The @code{save-excursion} function saves the location of point, and restores it
+to that position after the expressions in the
 body of the @code{save-excursion} complete execution.  In addition,
 @code{save-excursion} keeps track of the original buffer, and
 restores it.  This is how @code{save-excursion} is used in
@@ -5390,7 +5390,7 @@ Conventionally bound to @kbd{M-.} (that's a period following the
 @key{META} key).
 
 @item save-excursion
-Save the location of point and mark and restore their values after the
+Save the location of point and restore its value after the
 arguments to @code{save-excursion} have been evaluated.  Also, remember
 the current buffer and return to it.
 
@@ -5896,7 +5896,7 @@ the value of point, which will be at the end of the inserted text, is
 recorded in the variable @code{newmark}.
 
 After the body of the outer @code{save-excursion} is evaluated, point
-and mark are relocated to their original places.
+is relocated to its original place.
 
 However, it is convenient to locate a mark at the end of the newly
 inserted text and locate point at its beginning.  The @code{newmark}
@@ -6685,8 +6685,8 @@ restored just before the completion of the function by the
 @code{save-restriction} special form.
 
 The call to @code{widen} is followed by @code{save-excursion}, which
-saves the location of the cursor (i.e., of point) and of the mark, and
-restores them after the code in the body of the @code{save-excursion}
+saves the location of the cursor (i.e., of point), and
+restores it after the code in the body of the @code{save-excursion}
 uses the @code{beginning-of-line} function to move point.
 
 (Note that the @code{(widen)} expression comes between the
@@ -6757,8 +6757,8 @@ it, and @code{count-lines} counts only the lines @emph{before} the
 current line.
 
 After @code{count-lines} has done its job, and the message has been
-printed in the echo area, the @code{save-excursion} restores point and
-mark to their original positions; and @code{save-restriction} restores
+printed in the echo area, the @code{save-excursion} restores point to
+its original position; and @code{save-restriction} restores
 the original narrowing, if any.
 
 @node narrow Exercise

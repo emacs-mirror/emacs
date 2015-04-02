@@ -1,6 +1,10 @@
+2015-03-31  Glenn Morris  <rgm@gnu.org>
+
+	* update_autogen (commit): Switch prefix from "# " to "; ".
+
 2015-03-03  Kelvin White  <kwhite@gnu.org>
 
-	* MAINTAINERS: Add myself to section 2
+	* MAINTAINERS: Add myself to section 2.
 
 2015-03-03  Glenn Morris  <rgm@gnu.org>
 

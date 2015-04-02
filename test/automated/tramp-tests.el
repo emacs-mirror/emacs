@@ -124,8 +124,7 @@ shall not contain a timeout."
 	 (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
 	   (with-current-buffer (tramp-get-connection-buffer v)
 	     (message "%s" (buffer-string)))
-	   (with-current-buffer
-	       (tramp-get-debug-buffer v)
+	   (with-current-buffer (tramp-get-debug-buffer v)
 	     (message "%s" (buffer-string))))))))
 
 (ert-deftest tramp-test00-availability ()
@@ -982,17 +981,18 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 This tests also `file-readable-p' and `file-regular-p'."
   (skip-unless (tramp--test-enabled))
 
-  (let ((tmp-name (tramp--test-make-temp-name))
+  (let ((tmp-name1 (tramp--test-make-temp-name))
+	(tmp-name2 (tramp--test-make-temp-name))
 	attr)
     (unwind-protect
 	(progn
-	  (write-region "foo" nil tmp-name)
-	  (should (file-exists-p tmp-name))
-	  (setq attr (file-attributes tmp-name))
+	  (write-region "foo" nil tmp-name1)
+	  (should (file-exists-p tmp-name1))
+	  (setq attr (file-attributes tmp-name1))
 	  (should (consp attr))
-	  (should (file-exists-p tmp-name))
-	  (should (file-readable-p tmp-name))
-	  (should (file-regular-p tmp-name))
+	  (should (file-exists-p tmp-name1))
+	  (should (file-readable-p tmp-name1))
+	  (should (file-regular-p tmp-name1))
 	  ;; We do not test inodes and device numbers.
 	  (should (null (car attr)))
           (should (numberp (nth 1 attr))) ;; Link.
@@ -1007,18 +1007,33 @@ This tests also `file-readable-p' and `file-regular-p'."
           (should (numberp (nth 7 attr))) ;; Size.
           (should (stringp (nth 8 attr))) ;; Modes.
 
-	  (setq attr (file-attributes tmp-name 'string))
+	  (setq attr (file-attributes tmp-name1 'string))
           (should (stringp (nth 2 attr))) ;; Uid.
           (should (stringp (nth 3 attr))) ;; Gid.
-	  (delete-file tmp-name)
 
-	  (make-directory tmp-name)
-	  (should (file-exists-p tmp-name))
-	  (should (file-readable-p tmp-name))
-	  (should-not (file-regular-p tmp-name))
-	  (setq attr (file-attributes tmp-name))
+	  (condition-case err
+	      (progn
+		(make-symbolic-link tmp-name1 tmp-name2)
+		(should (file-exists-p tmp-name2))
+		(should (file-symlink-p tmp-name2))
+		(setq attr (file-attributes tmp-name2))
+		(should (string-equal
+			 (car attr)
+			 (file-remote-p (file-truename tmp-name1) 'localname)))
+		(delete-file tmp-name2))
+	    (file-error
+	     (should (string-equal (error-message-string err)
+				   "make-symbolic-link not supported"))))
+	  (delete-file tmp-name1)
+
+	  (make-directory tmp-name1)
+	  (should (file-exists-p tmp-name1))
+	  (should (file-readable-p tmp-name1))
+	  (should-not (file-regular-p tmp-name1))
+	  (setq attr (file-attributes tmp-name1))
 	  (should (eq (car attr) t)))
-      (ignore-errors (delete-directory tmp-name)))))
+
+      (ignore-errors (delete-directory tmp-name1)))))
 
 (ert-deftest tramp-test19-directory-files-and-attributes ()
   "Check `directory-files-and-attributes'."
@@ -1530,7 +1545,7 @@ This requires restrictions of file name syntax."
 	  (dolist (elt files)
 	    (let* ((file1 (expand-file-name elt tmp-name1))
 		   (file2 (expand-file-name elt tmp-name2))
-		   (file3 (concat file1 "foo")))
+		   (file3 (expand-file-name (concat elt "foo") tmp-name1)))
 	      (write-region elt nil file1)
 	      (should (file-exists-p file1))
 
@@ -1557,6 +1572,10 @@ This requires restrictions of file name syntax."
 		    (should
 		     (string-equal
 		      (expand-file-name file1) (file-truename file3)))
+		    (should
+		     (string-equal
+		      (car (file-attributes file3))
+		      (file-remote-p (file-truename file1) 'localname)))
 		    ;; Check file contents.
 		    (with-temp-buffer
 		      (insert-file-contents file3)
@@ -1596,8 +1615,10 @@ This requires restrictions of file name syntax."
 	  ;; Check directory creation.  We use a subdirectory "foo"
 	  ;; in order to avoid conflicts with previous file name tests.
 	  (dolist (elt files)
-	    (let* ((file1 (expand-file-name (concat "foo/" elt) tmp-name1))
-		   (file2 (expand-file-name elt file1)))
+	    (let* ((elt1 (concat elt "foo"))
+		   (file1 (expand-file-name (concat "foo/" elt) tmp-name1))
+		   (file2 (expand-file-name elt file1))
+		   (file3 (expand-file-name elt1 file1)))
 	      (make-directory file1 'parents)
 	      (should (file-directory-p file1))
 	      (write-region elt nil file2)
@@ -1611,6 +1632,28 @@ This requires restrictions of file name syntax."
 		(caar (directory-files-and-attributes
 		       file1 nil directory-files-no-dot-files-regexp))
 		elt))
+
+	      ;; Check symlink in `directory-files-and-attributes'.
+	      (condition-case err
+		  (progn
+		    (make-symbolic-link file2 file3)
+		    (should (file-symlink-p file3))
+		    (should
+		     (string-equal
+		      (caar (directory-files-and-attributes
+			     file1 nil (regexp-quote elt1)))
+		      elt1))
+		    (should
+		     (string-equal
+		      (cadr (car (directory-files-and-attributes
+				  file1 nil (regexp-quote elt1))))
+		      (file-remote-p (file-truename file2) 'localname)))
+		    (delete-file file3)
+		    (should-not (file-exists-p file3)))
+		(file-error
+		 (should (string-equal (error-message-string err)
+				       "make-symbolic-link not supported"))))
+
 	      (delete-file file2)
 	      (should-not (file-exists-p file2))
 	      (delete-directory file1)
@@ -1725,7 +1768,6 @@ Use the `ls' command."
 (ert-deftest tramp-test31-utf8 ()
   "Check UTF8 encoding in file names and file contents."
   (skip-unless (tramp--test-enabled))
-  (skip-unless (not (tramp--test-adb-p)))
 
   (tramp--test-utf8))
 
@@ -1920,7 +1962,6 @@ Since it unloads Tramp, it shall be the last test to run."
 	    (not (string-match "^tramp--?test" (symbol-name x)))
 	    (not (string-match "unload-hook$" (symbol-name x)))
 	    (ert-fail (format "`%s' still bound" x)))))
-;	    (progn (message "`%s' still bound" x)))))
     ;; There shouldn't be left a hook function containing a Tramp
     ;; function.  We do not regard the Tramp unload hooks.
     (mapatoms

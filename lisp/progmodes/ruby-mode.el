@@ -2069,8 +2069,10 @@ See `font-lock-syntax-table'.")
        ruby-font-lock-keyword-beg-re
        (regexp-opt
         '( ;; built-in methods on Kernel
+          "at_exit"
           "autoload"
           "autoload?"
+          "callcc"
           "catch"
           "eval"
           "exec"
@@ -2124,10 +2126,8 @@ See `font-lock-syntax-table'.")
           "__dir__"
           "__method__"
           "abort"
-          "at_exit"
           "binding"
           "block_given?"
-          "callcc"
           "caller"
           "exit"
           "exit!"
@@ -2143,8 +2143,7 @@ See `font-lock-syntax-table'.")
           "readline"
           "readlines"
           "sleep"
-          "srand"
-          "throw")
+          "srand")
         'symbols))
      (1 font-lock-builtin-face))
     ;; Here-doc beginnings.

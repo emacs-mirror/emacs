@@ -849,14 +849,11 @@ save_excursion_save (void)
 {
   return make_save_obj_obj_obj_obj
     (Fpoint_marker (),
-     /* Do not copy the mark if it points to nowhere.  */
-     (XMARKER (BVAR (current_buffer, mark))->buffer
-      ? Fcopy_marker (BVAR (current_buffer, mark), Qnil)
-      : Qnil),
+     Qnil,
      /* Selected window if current buffer is shown in it, nil otherwise.  */
      (EQ (XWINDOW (selected_window)->contents, Fcurrent_buffer ())
       ? selected_window : Qnil),
-     BVAR (current_buffer, mark_active));
+     Qnil);
 }
 
 /* Restore saved buffer before leaving `save-excursion' special form.  */
@@ -864,8 +861,8 @@ save_excursion_save (void)
 void
 save_excursion_restore (Lisp_Object info)
 {
-  Lisp_Object tem, tem1, omark, nmark;
-  struct gcpro gcpro1, gcpro2, gcpro3;
+  Lisp_Object tem, tem1;
+  struct gcpro gcpro1;
 
   tem = Fmarker_buffer (XSAVE_OBJECT (info, 0));
   /* If we're unwinding to top level, saved buffer may be deleted.  This
@@ -873,8 +870,7 @@ save_excursion_restore (Lisp_Object info)
   if (NILP (tem))
     goto out;
 
-  omark = nmark = Qnil;
-  GCPRO3 (info, omark, nmark);
+  GCPRO1 (info);
 
   Fset_buffer (tem);
 
@@ -882,34 +878,6 @@ save_excursion_restore (Lisp_Object info)
   tem = XSAVE_OBJECT (info, 0);
   Fgoto_char (tem);
   unchain_marker (XMARKER (tem));
-
-  /* Mark marker.  */
-  tem = XSAVE_OBJECT (info, 1);
-  omark = Fmarker_position (BVAR (current_buffer, mark));
-  if (NILP (tem))
-    unchain_marker (XMARKER (BVAR (current_buffer, mark)));
-  else
-    {
-      Fset_marker (BVAR (current_buffer, mark), tem, Fcurrent_buffer ());
-      nmark = Fmarker_position (tem);
-      unchain_marker (XMARKER (tem));
-    }
-
-  /* Mark active.  */
-  tem = XSAVE_OBJECT (info, 3);
-  tem1 = BVAR (current_buffer, mark_active);
-  bset_mark_active (current_buffer, tem);
-
-  /* If mark is active now, and either was not active
-     or was at a different place, run the activate hook.  */
-  if (! NILP (tem))
-    {
-      if (! EQ (omark, nmark))
-	run_hook (intern ("activate-mark-hook"));
-    }
-  /* If mark has ceased to be active, run deactivate hook.  */
-  else if (! NILP (tem1))
-    run_hook (intern ("deactivate-mark-hook"));
 
   /* If buffer was visible in a window, and a different window was
      selected, and the old selected window is still showing this
@@ -932,18 +900,12 @@ save_excursion_restore (Lisp_Object info)
 }
 
 DEFUN ("save-excursion", Fsave_excursion, Ssave_excursion, 0, UNEVALLED, 0,
-       doc: /* Save point, mark, and current buffer; execute BODY; restore those things.
+       doc: /* Save point, and current buffer; execute BODY; restore those things.
 Executes BODY just like `progn'.
-The values of point, mark and the current buffer are restored
+The values of point and the current buffer are restored
 even in case of abnormal exit (throw or error).
-The state of activation of the mark is also restored.
 
-This construct does not save `deactivate-mark', and therefore
-functions that change the buffer will still cause deactivation
-of the mark at the end of the command.  To prevent that, bind
-`deactivate-mark' with `let'.
-
-If you only want to save the current buffer but not point nor mark,
+If you only want to save the current buffer but not point,
 then just use `save-current-buffer', or even `with-current-buffer'.
 
 usage: (save-excursion &rest BODY)  */)
@@ -1229,7 +1191,7 @@ of the user with that uid, or nil if there is no such user.  */)
   /* Set up the user name info if we didn't do it before.
      (That can happen if Emacs is dumpable
      but you decide to run `temacs -l loadup' and not dump.  */
-  if (INTEGERP (Vuser_login_name))
+  if (NILP (Vuser_login_name))
     init_editfns ();
 
   if (NILP (uid))
@@ -1252,7 +1214,7 @@ This ignores the environment variables LOGNAME and USER, so it differs from
   /* Set up the user name info if we didn't do it before.
      (That can happen if Emacs is dumpable
      but you decide to run `temacs -l loadup' and not dump.  */
-  if (INTEGERP (Vuser_login_name))
+  if (NILP (Vuser_login_name))
     init_editfns ();
   return Vuser_real_login_name;
 }
@@ -4993,6 +4955,7 @@ functions if all the text being accessed has this property.  */);
 
   DEFVAR_LISP ("user-login-name", Vuser_login_name,
 	       doc: /* The user's name, taken from environment variables if possible.  */);
+  Vuser_login_name = Qnil;
 
   DEFVAR_LISP ("user-real-login-name", Vuser_real_login_name,
 	       doc: /* The user's name, based upon the real uid only.  */);

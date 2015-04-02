@@ -228,7 +228,7 @@ commit ()
 
     echo "Committing..."
 
-    $vcs commit -m "# Auto-commit of $type files." "$@" || return $?
+    $vcs commit -m "; Auto-commit of $type files." "$@" || return $?
 
     [ "$vcs" = "git" ] && {
         $vcs push || return $?

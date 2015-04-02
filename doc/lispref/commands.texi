@@ -2085,7 +2085,13 @@ Return the actual row and column in @var{position}, as a cons cell
 @code{(@var{col} . @var{row})}.  The values are the actual row and
 column numbers in the window given by @var{position}.  @xref{Click
 Events}, for details.  The function returns @code{nil} if
-@var{position} does not include actual position values.
+@var{position} does not include actual position values; in that case
+@code{posn-col-row} can be used to get approximate values.
+
+Note that this function doesn't account for the visual width of
+characters on display, like the number of visual columns taken by a
+tab character or an image.  If you need the coordinates in canonical
+character units, use @code{posn-col-row} instead.
 @end defun
 
 @defun posn-string position
@@ -2107,8 +2113,9 @@ Return the image or string object in @var{position}, either
 @defun posn-object-x-y position
 Return the pixel-based x and y coordinates relative to the upper left
 corner of the object in @var{position} as a cons cell @code{(@var{dx}
-. @var{dy})}.  If the @var{position} is a buffer position, return the
-relative position in the character at that position.
+. @var{dy})}.  If the @var{position} is on buffer text, return the
+relative position of the buffer-text character closest to that
+position.
 @end defun
 
 @defun posn-object-width-height position
@@ -2811,7 +2818,7 @@ most recently unread will be reread first.
 Events read from this list are not normally added to the current
 command's key sequence (as returned by, e.g., @code{this-command-keys}),
 as the events will already have been added once as they were read for
-the first time.  An element of the form @code{(@code{t} . @var{event})}
+the first time.  An element of the form @w{@code{(t . @var{event})}}
 forces @var{event} to be added to the current command's key sequence.
 @end defvar
 

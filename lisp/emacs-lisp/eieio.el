@@ -130,7 +130,7 @@ and reference them using the function `class-option'."
       (error "Method invocation order %s is not allowed" io)))
 
   (let ((testsym1 (intern (concat (symbol-name name) "-p")))
-        (testsym2 (intern (format "eieio--childp--%s" name)))
+        (testsym2 (intern (format "%s--eieio-childp" name)))
         (accessors ()))
 
     ;; Collect the accessors we need to define.
@@ -328,6 +328,44 @@ variable name of the same name as the slot."
                       (list var `(slot-value ,object ',slot))))
                   spec-list)
        ,@body)))
+
+;; Keep it as a non-inlined function, so the internals of object don't get
+;; hard-coded in random .elc files.
+(defun eieio-pcase-slot-index-table (obj)
+  "Return some data structure from which can be extracted the slot offset."
+  (eieio--class-index-table
+   (symbol-value (eieio--object-class-tag obj))))
+
+(defun eieio-pcase-slot-index-from-index-table (index-table slot)
+  "Find the index to pass to `aref' to access SLOT."
+  (let ((index (gethash slot index-table)))
+    (if index (+ (eval-when-compile
+                   (length (cl-struct-slot-info 'eieio--object)))
+                 index))))
+
+(pcase-defmacro eieio (&rest fields)
+  "Pcase patterns to match EIEIO objects.
+Elements of FIELDS can be of the form (NAME UPAT) in which case the contents of
+field NAME is matched against UPAT, or they can be of the form NAME which
+is a shorthand for (NAME NAME)."
+  (let ((is (make-symbol "table")))
+    ;; FIXME: This generates a horrendous mess of redundant let bindings.
+    ;; `pcase' needs to be improved somehow to introduce let-bindings more
+    ;; sparingly, or the byte-compiler needs to be taught to optimize
+    ;; them away.
+    ;; FIXME: `pcase' does not do a good job here of sharing tests&code among
+    ;; various branches.
+    `(and (pred eieio-object-p)
+          (app eieio-pcase-slot-index-table ,is)
+          ,@(mapcar (lambda (field)
+                      (let* ((name (if (consp field) (car field) field))
+                             (pat (if (consp field) (cadr field) field))
+                             (i (make-symbol "index")))
+                        `(and (let (and ,i (pred natnump))
+                                (eieio-pcase-slot-index-from-index-table
+                                 ,is ',name))
+                              (app (pcase--flip aref ,i) ,pat))))
+                    fields))))
 
 ;;; Simple generators, and query functions.  None of these would do
 ;;  well embedded into an object.

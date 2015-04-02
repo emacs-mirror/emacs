@@ -7210,6 +7210,8 @@ If given a prefix, show the hidden text instead."
 	  (set-buffer buf))))))
 
 (defun gnus-block-private-groups (group)
+  "Allows images in newsgroups to be shown, blocks images in all
+other groups."
   (if (or (gnus-news-group-p group)
 	  (gnus-member-of-valid 'global group))
       ;; Block nothing in news groups.

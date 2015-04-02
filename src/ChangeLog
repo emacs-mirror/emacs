@@ -1,3 +1,141 @@
+2015-03-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* keyboard.c (read_key_sequence): Don't let
+	this_single_command_key_start become negative.  (Bug#20223)
+
+2015-03-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_display_open):
+	* xterm.c (x_display_ok, x_term_init): Block SIGIO when opening
+	a display (Bug#19175).
+
+2015-03-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* gtkutil.c (update_theme_scrollbar_width): Don't round up
+	scroll bar width with GTK3 (Bug#20182).
+
+2015-03-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsmfns.c (smc_save_yourself_CB): Return if Vinvocation_name or
+	user_login_name are not strings.
+
+2015-03-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (sys_connect): Fix a mistake in previous commit that broke
+	blocking connections.  (Bug#20159)
+
+2015-03-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Avoid some core dumps in X session management
+	Derived from a bug report by Nicolas Richard in:
+	http://bugs.gnu.org/20191#20
+	* xsmfns.c (smc_save_yourself_CB): Don't dump core if
+	invocation-name is not a string.  Initialize user-login-name if it
+	is not already initialized, and don't dump core if it is not a
+	string.
+	(create_client_leader_window): Don't dump core if x-resource-name
+	and x-resource-class are not both strings.
+	(x_session_initialize): Don't dump core if x-session-previous-id,
+	invocation-directory, and invocation-name are not strings.
+
+	Port user-login-name initialization to Qnil == 0
+	Derived from a bug report by Nicolas Richard in:
+	http://bugs.gnu.org/20191#20
+	* editfns.c (Fuser_login_name, Fuser_real_login_name)
+	(syms_of_editfns): Don't rely on all-bits-zero being an Elisp integer,
+	as this is no longer true now that Qnil == 0.
+
+	Assume !BROKEN_NON_BLOCKING_CONNECT
+	From a suggestion by Eli Zaretskii in:
+	http://lists.gnu.org/archive/html/emacs-devel/2015-03/msg00824.html
+	* process.c (NON_BLOCKING_CONNECT): Simplify by assuming that
+	BROKEN_NON_BLOCKING_CONNECT is not defined.
+	(SELECT_CAN_DO_WRITE_MASK): Remove, and assume it's now true.
+
+2015-03-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* lread.c (substitute_object_recurse): For sub-char-tables, start
+	the recursive SUBSTITUTE loop from index of 2, to skip the
+	non-Lisp members of the sub-char-table.  See the discussion at
+	http://lists.gnu.org/archive/html/emacs-devel/2015-03/msg00520.html
+	for the details.
+
+	Support non-blocking connect on MS-Windows.
+	Based on ideas from Kim F. Storm <storm@cua.dk>, see
+	http://lists.gnu.org/archive/html/emacs-devel/2006-12/msg00873.html.
+
+	* w32proc.c (reader_thread): If the FILE_CONNECT flag is set, call
+	'_sys_wait_connect'.  If it returns STATUS_CONNECT_FAILED, exit
+	the thread with code 2.
+	(sys_select): Support 'wfds' in addition to 'rfds'.  If a
+	descriptor in 'wfds' has its bit set, but the corresponding
+	fd_info member doesn't have its FILE_CONNECT flag set, ignore the
+	descriptor.  Otherwise, acknowledge a successful non-blocking
+	connect by resetting the FILE_CONNECT flag and setting cp->status
+	to STATUS_READ_ACKNOWLEDGED.  (Bug#20159)
+
+	* w32.h (STATUS_CONNECT_FAILED): New enumeration value.
+	(struct _child_process): New member 'errcode'.
+	(FILE_CONNECT): New flag.
+	(_sys_wait_connect): Add prototype.
+
+	* w32.c (pfn_WSAEnumNetworkEvents): New function pointer.
+	(init_winsock): Load WSAEnumNetworkEvents from winsock DLL.
+	(set_errno): Map WSAEWOULDBLOCK and WSAENOTCONN.
+	(sys_connect): Support non-blocking 'connect' calls by setting the
+	FILE_CONNECT flag in the fd_info member and returning EINPROGRESS.
+	(_sys_read_ahead): Add debug message if this function is called
+	for a descriptor that waits for a non-blocking connect to complete.
+	(_sys_wait_connect): New function.
+	(sys_read): Support STATUS_CONNECT_FAILED.  Return the error code
+	recorded by _sys_wait_connect when the non-blocking connect
+	failed.  Don't call WSAGetLastError before a call to set_errno had
+	a chance to use its value, since WSAGetLastError clears the last
+	error.
+
+2015-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* editfns.c (save_excursion_save): Don't save the mark.
+	(save_excursion_restore): Don't restore the mark.
+	(Fsave_excursion): Fix docstring accordingly.
+
+2015-03-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor ldexp issues
+	* floatfns.c (Fldexp): Require 2 args.  Avoid undefined behavior
+	if the exponent is out of 'int' range.  Improve documentation.
+	Fixes: bug#20185
+
+2015-03-24  Daniel Colascione  <dancol@dancol.org>
+
+	* process.c (Fprocess_running_child_p): Return number identifier of
+	the foreground process group if we know it.
+
+2015-03-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor refactoring of new Fmake_process code
+	* process.c (Fmake_process): Refactor to avoid call to Flength, to
+	avoid cast to 'char **', and to reduce indenting and reuse of locals.
+
+2015-03-23  Daiki Ueno  <ueno@gnu.org>
+
+	* process.c (Fmake_process): New function.
+	(create_process, create_pty): Check p->pty_flag instead of
+	Vprocess_connection_type.
+	(syms_of_process): Register QCcommand, QCconnection_type, Qpty,
+	Qpipe, and Smake_process.  Unregister Sstart_process.
+
+2015-03-22  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* fontset.c (fontset_pattern_regexp): Replace + 1 with + 3 for
+	regexsize (Bug#20156).
+
+2015-03-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.c (synchronize_locale) [WINDOWSNT]: Ignore 'category' and
+	always use LC_ALL instead.  Fixes problems with setting
+	system-time-locale to something non-default.
+
 2015-03-18  Glenn Morris  <rgm@gnu.org>
 
 	* frame.h (x_set_bitmap_icon): Don't set the icon if icon-type is

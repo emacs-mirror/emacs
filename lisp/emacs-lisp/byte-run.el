@@ -393,7 +393,7 @@ ACCESS-TYPE if non-nil should specify the kind of access that will trigger
 This uses `defvaralias' and `make-obsolete-variable' (which see).
 See the Info node `(elisp)Variable Aliases' for more details.
 
-If CURRENT-NAME is a defcustom (more generally, any variable
+If CURRENT-NAME is a defcustom or a defvar (more generally, any variable
 where OBSOLETE-NAME may be set, e.g. in an init file, before the
 alias is defined), then the define-obsolete-variable-alias
 statement should be evaluated before the defcustom, if user
@@ -407,7 +407,7 @@ variable (this is due to the way `defvaralias' works).
 For the benefit of `custom-set-variables', if OBSOLETE-NAME has
 any of the following properties, they are copied to
 CURRENT-NAME, if it does not already have them:
-'saved-value, 'saved-variable-comment."
+`saved-value', `saved-variable-comment'."
   (declare (doc-string 4)
            (advertised-calling-convention
             ;; New code should always provide the `when' argument.

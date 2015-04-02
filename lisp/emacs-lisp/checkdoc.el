@@ -1663,14 +1663,15 @@ function,command,variable,option or symbol." ms1))))))
 
 	     ;;   Addendum:  Make sure they appear in the doc in the same
 	     ;;              order that they are found in the arg list.
-	     (let ((args (cdr (cdr (cdr (cdr fp)))))
+	     (let ((args (nthcdr 4 fp))
 		   (last-pos 0)
 		   (found 1)
 		   (order (and (nth 3 fp) (car (nth 3 fp))))
 		   (nocheck (append '("&optional" "&rest") (nth 3 fp)))
 		   (inopts nil))
 	       (while (and args found (> found last-pos))
-		 (if (member (car args) nocheck)
+                 (if (or (member (car args) nocheck)
+                         (string-match "\\`_" (car args)))
 		     (setq args (cdr args)
 			   inopts t)
 		   (setq last-pos found

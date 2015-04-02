@@ -1,3 +1,7 @@
+2015-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc.el (erc-switch-to-buffer): Fix last change (bug#20187).
+
 2015-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* erc.el (erc-switch-to-buffer): Rename from erc-iswitchb and rewrite

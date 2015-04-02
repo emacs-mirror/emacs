@@ -1901,6 +1901,30 @@ and the file name is displayed in the echo area."
 
 ;;;; Process stuff.
 
+(defun start-process (name buffer program &rest program-args)
+  "Start a program in a subprocess.  Return the process object for it.
+NAME is name for process.  It is modified if necessary to make it unique.
+BUFFER is the buffer (or buffer name) to associate with the process.
+
+Process output (both standard output and standard error streams) goes
+at end of BUFFER, unless you specify an output stream or filter
+function to handle the output.  BUFFER may also be nil, meaning that
+this process is not associated with any buffer.
+
+PROGRAM is the program file name.  It is searched for in `exec-path'
+\(which see).  If nil, just associate a pty with the buffer.  Remaining
+arguments are strings to give program as arguments.
+
+If you want to separate standard output from standard error, invoke
+the command through a shell and redirect one of them using the shell
+syntax."
+  (unless (fboundp 'make-process)
+    (error "Emacs was compiled without subprocess support"))
+  (apply #'make-process
+	 (append (list :name name :buffer buffer)
+		 (if program
+		     (list :command (cons program program-args))))))
+
 (defun process-lines (program &rest args)
   "Execute PROGRAM with ARGS, returning its output as a list of lines.
 Signal an error if the program returns with a non-zero exit status."
