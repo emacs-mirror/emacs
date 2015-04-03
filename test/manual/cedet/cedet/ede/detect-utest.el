@@ -156,6 +156,14 @@ It is passed the root project found.")
 		     :classp 'ede-linux-project-p)
    (ede-detect-entry "linux sub" :file "src/linux/scripts/ver_linux"
 		     :classp 'ede-linux-project-p)
+   (ede-detect-entry "compdb" :file "src/compdb/detect/main.cpp"
+		     :classp 'ede-compdb-project-p)
+   (ede-detect-entry "compdb sub" :file "src/compdb/detect/includes/foo.h"
+		     :classp 'ede-compdb-project-p)
+   (ede-detect-entry "ninja" :file "src/compdb/detect-ninja/main.cpp"
+		     :classp 'ede-ninja-project-p)
+   (ede-detect-entry "ninja sub" :file "src/compdb/detect-ninja/includes/foo.h"
+		     :classp 'ede-ninja-project-p)
    ;; jvm-base based projects.
    (ede-detect-entry "ant" :file "src/jvm/ant/build.xml"
 		     :classp 'ede-ant-project-p)
