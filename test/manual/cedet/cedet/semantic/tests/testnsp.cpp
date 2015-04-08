@@ -81,6 +81,7 @@ void foo(void) {
 // but you are one level into the completion so the originating scope
 // excludes the type of the variable you are completing through?
 // Thanks Martin Stein for this nice example.
+
 namespace ms_structs
 {
    struct aaa
