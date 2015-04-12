@@ -674,37 +674,35 @@ deferred until the prefix key sequence is pressed."
       (use-package-error (format "Could not load package.el: %s" package))
     (if (and (boundp keymap-symbol)
              (keymapp (symbol-value keymap-symbol)))
-        (let ((key (key-description (this-command-keys-vector)))
-              (keymap (symbol-value keymap-symbol)))
+        (let* ((kv (this-command-keys-vector))
+               (key (key-description kv))
+               (keymap (symbol-value keymap-symbol)))
           (if override
-              ;; eval form is necessary to avoid compiler error
-              `(eval `(bind-key* ,key ,keymap))
+              (bind-key* key keymap)
             (bind-key key keymap))
           (setq unread-command-events
-                (listify-key-sequence (this-command-keys-vector))))
+                (listify-key-sequence kv)))
       (use-package-error
        (format "use-package: package.el %s failed to define keymap %s"
                package keymap-symbol)))))
 
 (defun use-package-handler/:bind-keymap
     (name-symbol keyword arg rest state &optional override)
-  (let* (commands
-         (form (mapcar
-                #'(lambda (binding)
-                    (push (cdr binding) commands)
-                    `(,(if override
-                           'bind-key*
-                         'bind-key)
-                      ,(car binding)
-                      #'(lambda ()
-                          (interactive)
-                          (use-package-autoload-keymap
-                           ',(cdr binding) ',name-symbol nil)))) arg)))
+  (let ((form (mapcar
+               #'(lambda (binding)
+                   `(,(if override
+                          'bind-key*
+                        'bind-key)
+                     ,(car binding)
+                     #'(lambda ()
+                         (interactive)
+                         (use-package-autoload-keymap
+                          ',(cdr binding) ',name-symbol ,override)))) arg)))
     (use-package-concat
      (use-package-process-keywords name-symbol
        (use-package-sort-keywords
         (use-package-plist-maybe-put rest :defer t))
-       (use-package-plist-append state :commands commands))
+       state)
      `((ignore ,@form)))))
 
 (defun use-package-handler/:bind-keymap* (name-symbol keyword arg rest state)
