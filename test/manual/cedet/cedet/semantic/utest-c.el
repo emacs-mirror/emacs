@@ -1,6 +1,6 @@
 ;;; semantic/utest-c.el --- C based parsing tests.
 
-;; Copyright (C) 2008, 2009, 2010, 2011 Eric M. Ludlam
+;; Copyright (C) 2008, 2009, 2010, 2011, 2015 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -32,6 +32,10 @@
   '( "testsppcond.cpp" )
   "List of files for testing conditionals.")
 
+(defvar semantic-utest-c-ede
+  '( ( "testede.c" . "testedereplaced.c") )
+  "List of files for testing conditionals.")
+
 ;;; Code:
 ;;;###autoload
 (defun semantic-utest-c ()
@@ -39,6 +43,7 @@
   (interactive)
   (semantic-utest-c-compare)
   (semantic-utest-c-conditionals)
+  (semantic-utest-c-with-ede)
   ;; Passed?
   (message "PASSED!")
   )
@@ -78,8 +83,8 @@ expand to."
 	      (setq tags-expected (cdr tags-expected))
 	    (with-mode-local c-mode
 	      (error "Found: >> %s << Expected: >>  %s <<"
-		     (semantic-format-tag-prototype tag nil t)
-		     (semantic-format-tag-prototype (car tags-expected) nil t)
+		     (semantic-format-tag-prototype tag nil (not noninteractive))
+		     (semantic-format-tag-prototype (car tags-expected) nil (not noninteractive))
 		     )))
 	  ))
       )))
@@ -119,6 +124,59 @@ those with PASS in the name will pass."
 		   (error "Found: >> %s << which is not expected" name)))
 	    )))))
   )
+
+
+;;; WITH EDE
+;;
+;; Some spp tests that include an EDE project, and pulling macros
+;; that were setup via that project.
+
+(defun semantic-utest-c-setup-ede (root)
+  "Set up an ede-cpp-root project at ROOT."
+  (ede-cpp-root-project "TMP" :file (expand-file-name "edeconfig.h" root)
+			:spp-table '( ("EDEPART" . "C")
+				      )
+			:spp-files '( "edeconfig.h" ))
+  )
+
+(defun semantic-utest-c-with-ede ()
+  "Unit tests for spp macros pulled into a file from EDE for parsing."
+  (dolist (fp semantic-utest-c-ede)
+    (let* ((sem (or (locate-library "cedet/semantic/utest-c")
+		    (error "Cannot locate library 'cedet/semantic/utest-c'.")))
+	   (sdir (file-name-directory sem))
+	   (filename1 (expand-file-name (concat "testwithede/" (car fp)) sdir))
+	   (filename2 (expand-file-name (concat "testwithede/" (cdr fp)) sdir))
+	   (tmpede (semantic-utest-c-setup-ede (expand-file-name "testwithede/" sdir)))
+	   (semantic-lex-c-nested-namespace-ignore-second nil)
+	   (tags-actual
+	    (save-excursion
+	      (unless (file-exists-p filename1)
+		(error "Cannot load %s." filename1))
+	      (set-buffer (find-file-noselect filename1))
+	      (semantic-clear-toplevel-cache)
+	      (semantic-fetch-tags)))
+	   (tags-expected
+	    (save-excursion
+	      (unless (file-exists-p filename2)
+		(error "Cannot load %s." filename2))
+	      (set-buffer (find-file-noselect filename2))
+	      (semantic-clear-toplevel-cache)
+	      (semantic-fetch-tags))))
+      ;; Now that we have the tags, compare them for SPP accuracy.
+      (dolist (tag tags-actual)
+	(if (and (semantic-tag-of-class-p tag 'variable)
+		 (semantic-tag-variable-constant-p tag))
+	    nil				; skip the macros.
+	  (if (semantic-tag-similar-with-subtags-p tag (car tags-expected))
+	      (setq tags-expected (cdr tags-expected))
+	    (with-mode-local c-mode
+	      (error "Found: >> %s << Expected: >>  %s <<"
+		     (semantic-format-tag-prototype tag nil (not noninteractive))
+		     (semantic-format-tag-prototype (car tags-expected) nil (not noninteractive))
+		     )))
+	  ))
+      )))
 
 (provide 'cedet/semantic/utest-c)
 ;;; semantic/utest-c.el ends here
