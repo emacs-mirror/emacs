@@ -25,8 +25,18 @@
 
 ;;; To-do list:
 
+;; * M-w should deactivate the mark.
+;; * offer some way to use absolute cell addressing.
+;; * Maybe some way to copy a reference to a cell's formula rather than the
+;;   formula itself.
 ;; * split (catch 'cycle ...) call back into one or more functions
 ;; * Use $ or … for truncated fields
+;; * M-t to transpose 2 columns.
+;; * M-d should kill the cell under point.
+;; * C-t to transpose 2 rows.
+;; * C-k and M-k should be ses-kill-row and ses-kill-column.
+;; * C-o should insert the row below point rather than above?
+;; * rows inserted with C-o should inherit formulas from surrounding rows.
 ;; * Add command to make a range of columns be temporarily invisible.
 ;; * Allow paste of one cell to a range of cells -- copy formula to each.
 ;; * Do something about control characters & octal codes in cell print
@@ -296,7 +306,7 @@ default printer and then modify its output.")
       ;; an area containing renamed cell is deleted.
       ses--renamed-cell-symb-list
       ;; Global variables that we override
-      mode-line-process next-line-add-newlines transient-mark-mode)
+      next-line-add-newlines transient-mark-mode)
     "Buffer-local variables used by SES."))
 
 (defmacro ses--metaprogramming (exp) (declare (debug t)) (eval exp t))
@@ -418,6 +428,15 @@ functions refer to its value."
   (declare (debug t))
   `(ses-cell--references ,(if col `(ses-get-cell ,row ,col) row)))
 
+(defmacro ses-sym-rowcol (sym)
+  "From a cell-symbol SYM, gets the cons (row . col).  A1 => (0 . 0).  Result
+is nil if SYM is not a symbol that names a cell."
+  (declare (debug t))
+  `(let ((rc (and (symbolp ,sym) (get ,sym 'ses-cell))))
+     (if (eq rc :ses-named)
+	 (gethash ,sym ses--named-cell-hashmap)
+       rc)))
+
 (defun ses-cell-p (cell)
   "Return non-nil if CELL is a cell of current buffer."
   (and (vectorp cell)
@@ -457,23 +476,18 @@ the corresponding cell with name PROPERTY-NAME."
 
 (defmacro ses-cell-value (row &optional col)
   "From a CELL or a pair (ROW,COL), get the current value for that cell."
+  (declare (debug t))
   `(symbol-value (ses-cell-symbol ,row ,col)))
 
 (defmacro ses-col-width (col)
   "Return the width for column COL."
+  (declare (debug t))
   `(aref ses--col-widths ,col))
 
 (defmacro ses-col-printer (col)
   "Return the default printer for column COL."
+  (declare (debug t))
   `(aref ses--col-printers ,col))
-
-(defmacro ses-sym-rowcol (sym)
-  "From a cell-symbol SYM, gets the cons (row . col).  A1 => (0 . 0).  Result
-is nil if SYM is not a symbol that names a cell."
-  `(let ((rc (and (symbolp ,sym) (get ,sym 'ses-cell))))
-     (if (eq rc :ses-named)
-	 (gethash ,sym ses--named-cell-hashmap)
-       rc)))
 
 (defun ses-is-cell-sym-p (sym)
   "Check whether SYM point at a cell of this spread sheet."
@@ -1054,8 +1068,7 @@ if the cell's value is unchanged and FORCE is nil."
 ;; is called during a recursive ses-print-cell).
 (defun ses-goto-print (row col)
   "Move point to print area for cell (ROW,COL)."
-  (let ((inhibit-point-motion-hooks t)
-	(n 0))
+  (let ((n 0))
     (goto-char (point-min))
     (forward-line row)
     ;; Calculate column position.
@@ -1067,23 +1080,36 @@ if the cell's value is unchanged and FORCE is nil."
 	 ;; Move point to the bol of next line (for TAB at the last cell).
 	 (forward-char))))
 
+(defun ses--cell-at-pos (pos &optional object)
+  (or (get-text-property pos 'cursor-intangible object)
+      ;; (when (> pos (if object 0 (point-min)))
+      ;;   (get-text-property (1- pos) 'cursor-intangible object))
+      ))
+
+(defun ses--curcell (&optional pos)
+  "Return the current cell symbol, or a cons (BEG,END) for a
+region, or nil if cursor is not at a cell."
+  (unless pos (setq pos (point)))
+  (if (or (not mark-active)
+	  deactivate-mark
+	  (= pos (mark t)))
+      ;; Single cell.
+      (ses--cell-at-pos pos)
+    ;; Range.
+    (let* ((re (max pos (mark t)))
+           (bcell (ses--cell-at-pos (min pos (mark t))))
+           (ecell (ses--cell-at-pos (1- re))))
+      (when (= re ses--data-marker)
+	;; Correct for overflow.
+	(setq ecell (ses--cell-at-pos (- (region-end) 2))))
+      (if (and bcell ecell)
+          (cons bcell ecell)
+        nil))))
+
 (defun ses-set-curcell ()
   "Set `ses--curcell' to the current cell symbol, or a cons (BEG,END) for a
 region, or nil if cursor is not at a cell."
-  (if (or (not mark-active)
-	  deactivate-mark
-	  (= (region-beginning) (region-end)))
-      ;; Single cell.
-      (setq ses--curcell (get-text-property (point) 'intangible))
-    ;; Range.
-    (let ((bcell (get-text-property (region-beginning) 'intangible))
-	  (ecell (get-text-property (1- (region-end))  'intangible)))
-      (when (= (region-end) ses--data-marker)
-	;; Correct for overflow.
-	(setq ecell (get-text-property (- (region-end) 2)  'intangible)))
-      (setq ses--curcell (if (and bcell ecell)
-			     (cons bcell ecell)
-			   nil))))
+  (setq ses--curcell (ses--curcell))
   nil)
 
 (defun ses-check-curcell (&rest args)
@@ -1197,11 +1223,10 @@ preceding cell has spilled over."
       ;; Install the printed result.  This is not interruptible.
       (let ((inhibit-read-only t)
 	    (inhibit-quit      t))
-	(let ((inhibit-point-motion-hooks t))
-	  (delete-region (point) (progn
-				   (move-to-column (+ (current-column)
-						      (string-width text)))
-				   (1+ (point)))))
+        (delete-region (point) (progn
+                                 (move-to-column (+ (current-column)
+                                                    (string-width text)))
+                                 (1+ (point))))
 	;; We use concat instead of inserting separate strings in order to
 	;; reduce the number of cells in the undo list.
 	(setq x (concat text (if (< maxcol ses--numcols) " " "\n")))
@@ -1211,13 +1236,15 @@ preceding cell has spilled over."
 	;; inherit from surrounding text?)
 	(set-text-properties 0 (length x) nil x)
 	(insert-and-inherit x)
-	(put-text-property startpos (point) 'intangible
+	(put-text-property startpos (point) 'cursor-intangible
 			   (ses-cell-symbol cell))
 	(when (and (zerop row) (zerop col))
 	  ;; Reconstruct special beginning-of-buffer attributes.
 	  (put-text-property (point-min) (point) 'keymap 'ses-mode-print-map)
 	  (put-text-property (point-min) (point) 'read-only 'ses)
-	  (put-text-property (point-min) (1+ (point-min)) 'front-sticky t)))
+	  (put-text-property (point-min) (1+ (point-min))
+                             ;; `cursor-intangible' shouldn't be sticky at BOB.
+                             'front-sticky '(read-only keymap))))
       (if (= row (1- ses--header-row))
 	  ;; This line is part of the header --- force recalc.
 	  (ses-reset-header-string))
@@ -1284,8 +1311,7 @@ COL=NUMCOLS.  Deletes characters if CHANGE < 0.  Caller should bind
       (ses-goto-print row col)
       (when at-end
 	;; Insert new columns before newline.
-	(let ((inhibit-point-motion-hooks t))
-	  (backward-char 1)))
+        (backward-char 1))
       (if blank
 	  (insert blank)
 	(delete-char (- change))))))
@@ -1299,7 +1325,7 @@ when the width of cell (ROW,COL) has changed."
     ;;Cell was skipped over - reprint previous
     (ses-goto-print row col)
     (backward-char 1)
-    (let ((rowcol (ses-sym-rowcol (get-text-property (point) 'intangible))))
+    (let ((rowcol (ses-sym-rowcol (ses--cell-at-pos (point)))))
       (ses-print-cell (car rowcol) (cdr rowcol)))))
 
 
@@ -1319,17 +1345,16 @@ number, COL is the column number for a data cell -- otherwise DEF
 is one of the symbols ses--col-widths, ses--col-printers,
 ses--default-printer, ses--numrows, or ses--numcols."
   (ses-widen)
-  (let ((inhibit-point-motion-hooks t)) ; In case intangible attrs are wrong.
-    (if col
-	;; It's a cell.
-	(progn
-	  (goto-char ses--data-marker)
-	  (forward-line (+ 1 (* def (1+ ses--numcols)) col)))
-      ;; Convert def-symbol to offset.
-      (setq def (plist-get ses-paramlines-plist def))
-      (or def (signal 'args-out-of-range nil))
-      (goto-char ses--params-marker)
-      (forward-line def))))
+  (if col
+      ;; It's a cell.
+      (progn
+        (goto-char ses--data-marker)
+        (forward-line (+ 1 (* def (1+ ses--numcols)) col)))
+    ;; Convert def-symbol to offset.
+    (setq def (plist-get ses-paramlines-plist def))
+    (or def (signal 'args-out-of-range nil))
+    (goto-char ses--params-marker)
+    (forward-line def)))
 
 (defun ses-file-format-extend-parameter-list (new-file-format)
   "Extend the global parameters list when file format is updated
@@ -1843,7 +1868,6 @@ Narrows the buffer to show only the print area.  Gives it `read-only' and
 `intangible' properties.  Sets up highlighting for current cell."
   (interactive)
   (let ((end (point-min))
-	(inhibit-point-motion-hooks t)
 	pos sym)
     (with-silent-modifications
       (ses-goto-data 0 0)    ; Include marker between print-area and data-area.
@@ -1855,7 +1879,9 @@ Narrows the buffer to show only the print area.  Gives it `read-only' and
       (put-text-property (point-min) (1- (point)) 'keymap 'ses-mode-print-map)
       ;; For the beginning of the buffer, we want the read-only and keymap
       ;; attributes to be  inherited from the first character.
-      (put-text-property (point-min) (1+ (point-min)) 'front-sticky t)
+      (put-text-property (point-min) (1+ (point-min))
+                         ;; `cursor-intangible' shouldn't be sticky at BOB.
+                         'front-sticky '(read-only keymap))
       ;; Create intangible properties, which also indicate which cell the text
       ;; came from.
       (dotimes-with-progress-reporter (row ses--numrows) "Finding cells..."
@@ -1878,7 +1904,7 @@ Narrows the buffer to show only the print area.  Gives it `read-only' and
                             (+ end (ses-col-width col) 1)
                           (forward-char)
                           (point))))
-            (put-text-property pos end 'intangible sym))))))
+            (put-text-property pos end 'cursor-intangible sym))))))
   ;; Create the underlining overlay.  It's impossible for (point) to be 2,
   ;; because column A must be at least 1 column wide.
   (setq ses--curcell-overlay (make-overlay (1+ (point-min)) (1+ (point-min))))
@@ -1968,6 +1994,11 @@ formula:
 						 (window-hscroll))
 					   (ses-create-header-string))
 					 ses--header-string)))
+    (setq-local mode-line-process '(:eval (ses--mode-line-process)))
+    (add-hook 'pre-redisplay-functions #'ses--cursor-sensor-highlight
+              ;; Highlight the cell after moving cursor out of intangible.
+              'append t)
+    (cursor-intangible-mode 1)
     (let ((was-empty    (zerop (buffer-size)))
 	  (was-modified (buffer-modified-p)))
       (save-excursion
@@ -2032,38 +2063,45 @@ narrows the buffer now."
 	  ;; read the local variables at the end of the file.  Now it's safe to
 	  ;; do the narrowing.
 	  (narrow-to-region (point-min) ses--data-marker)
-	  (setq ses--deferred-narrow nil))
-	;; Update the mode line.
-	(let ((oldcell ses--curcell))
-	  (ses-set-curcell)
-	  (unless (eq ses--curcell oldcell)
-	    (cond
-	     ((not ses--curcell)
-	      (setq mode-line-process nil))
-	     ((atom ses--curcell)
-	      (setq mode-line-process (list " cell "
-					    (symbol-name ses--curcell))))
-	     (t
-	      (setq mode-line-process (list " range "
-					    (symbol-name (car ses--curcell))
-					    "-"
-					    (symbol-name (cdr ses--curcell))))))
-	    (force-mode-line-update)))
-	;; Use underline overlay for single-cells only, turn off otherwise.
-	(if (listp ses--curcell)
-	    (move-overlay ses--curcell-overlay 2 2)
-	  (let ((next (next-single-property-change (point) 'intangible)))
-	    (move-overlay ses--curcell-overlay (point) (1- next))))
-	(when (not (pos-visible-in-window-p))
-	  ;; Scrolling will happen later.
-	  (run-with-idle-timer 0.01 nil 'ses-command-hook)
-	  (setq ses--curcell t)))
+	  (setq ses--deferred-narrow nil)))
     ;; Prevent errors in this post-command-hook from silently erasing the hook!
     (error
      (unless executing-kbd-macro
        (ding))
      (message "%s" (error-message-string err))))
   nil) ; Make coverage-tester happy.
+
+(defun ses--mode-line-process ()
+  (let ((cmlp (window-parameter nil 'ses--mode-line-process))
+        (curcell (ses--curcell (window-point))))
+    (if (equal curcell (car cmlp))
+        (cdr cmlp)
+      (let ((mlp
+             (cond
+              ((not curcell)  nil)
+              ((atom curcell) (list " cell " (symbol-name curcell)))
+              (t
+               (list " range "
+                     (symbol-name (car curcell))
+                     "-"
+                     (symbol-name (cdr curcell)))))))
+        (set-window-parameter nil 'ses--mode-line-process (cons curcell mlp))
+        mlp))))
+
+(defun ses--cursor-sensor-highlight (window)
+  (let ((curcell (ses--curcell))
+        (ol (window-parameter window 'ses--curcell-overlay)))
+    (unless ol
+      (setq ol (make-overlay (point) (point)))
+      (overlay-put ol 'window window)
+      (overlay-put ol 'face 'underline)
+      (set-window-parameter window 'ses--curcell-overlay ol))
+    ;; Use underline overlay for single-cells only, turn off otherwise.
+    (if (listp curcell)
+        (delete-overlay ol)
+      (let* ((pos (window-point window))
+             (next (next-single-property-change pos 'cursor-intangible)))
+        (move-overlay ol pos (1- next))))))
 
 (defun ses-create-header-string ()
   "Set up `ses--header-string' as the buffer's header line.
@@ -2132,7 +2170,7 @@ print area if NONARROW is nil."
   (widen)
   (unless nonarrow
     (setq ses--deferred-narrow t))
-  (let ((startcell (get-text-property (point) 'intangible))
+  (let ((startcell (ses--cell-at-pos (point)))
 	(inhibit-read-only t))
     (ses-begin-change)
     (goto-char (point-min))
@@ -2222,7 +2260,7 @@ to are recalculated first."
 (defun ses-recalculate-all ()
   "Recalculate and reprint all cells."
   (interactive "*")
-  (let ((startcell    (get-text-property (point) 'intangible))
+  (let ((startcell    (ses--cell-at-pos (point)))
 	(ses--curcell (cons 'A1 (ses-cell-symbol (1- ses--numrows)
 						 (1- ses--numcols)))))
     (ses-recalculate-cell)
@@ -2730,7 +2768,7 @@ inserts a new row if at bottom of print area.  Repeat COUNT times."
       (let ((col (cdr (ses-sym-rowcol ses--curcell))))
 	(when (/= 32
 		  (char-before (next-single-property-change (point)
-							    'intangible)))
+							    'cursor-intangible)))
 	  ;; We're already in last nonskipped cell on line.  Need to create a
 	  ;; new column.
 	  (barf-if-buffer-read-only)
@@ -2811,12 +2849,11 @@ SES attributes recording the contents of the cell as of the time of copying."
   (when (= end ses--data-marker)
     ;;Avoid overflow situation
     (setq end (1- ses--data-marker)))
-  (let* ((inhibit-point-motion-hooks t)
-	 (x (mapconcat #'ses-copy-region-helper
+  (let* ((x (mapconcat #'ses-copy-region-helper
 		       (extract-rectangle beg (1- end)) "\n")))
     (remove-text-properties 0 (length x)
 			    '(read-only t
-			      intangible t
+			      cursor-intangible t
 			      keymap t
 			      front-sticky t)
 			    x)
@@ -2832,8 +2869,8 @@ the corresponding data cell."
 	(pos 0)
 	mycell next sym rowcol)
     (while pos
-      (setq sym    (get-text-property pos 'intangible line)
-	    next   (next-single-property-change pos 'intangible line)
+      (setq sym    (ses--cell-at-pos pos line)
+	    next   (next-single-property-change pos 'cursor-intangible line)
 	    rowcol (ses-sym-rowcol sym)
 	    mycell (ses-get-cell (car rowcol) (cdr rowcol)))
       (put-text-property pos (or next (length line))
@@ -3229,7 +3266,7 @@ With prefix, sorts in REVERSE order."
       ;;Get key columns and sort them
       (dotimes (x (- maxrow minrow -1))
 	(ses-goto-print (+ minrow x) sorter)
-	(setq end (next-single-property-change (point) 'intangible))
+	(setq end (next-single-property-change (point) 'cursor-intangible))
 	(push (cons (buffer-substring-no-properties (point) end)
 		    (+ minrow x))
 	      keys))
@@ -3379,10 +3416,8 @@ highlighted range in the spreadsheet."
 		  (if (eolp)
 		      (+ pos (ses-col-width col) 1)
 		    (point)))))
-      (put-text-property pos end 'intangible new-name))
-    ;; update mode line
-    (setq mode-line-process (list " cell "
-				  (symbol-name new-name)))
+      (put-text-property pos end 'cursor-intangible new-name))
+    ;; Update the cell name in the mode-line.
     (force-mode-line-update)))
 
 (defun ses-refresh-local-printer (name _compiled-value) ;FIXME: unused arg?
@@ -3622,7 +3657,7 @@ Use `math-format-value' as a printer for Calc objects."
   "Return ARGS reversed, with the blank elements (nil and *skip*) removed."
   (let (result)
     (dolist (cur args)
-      (unless (memq cur '(nil *skip*))
+      (unless (memq cur '(nil *skip* *error*))
 	(push cur result)))
     result))
 

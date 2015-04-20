@@ -154,7 +154,7 @@ This is equivalent to @code{make-hash-table}, but with a different style
 argument list.  The argument @var{test} specifies the method
 of key lookup.
 
-This function is obsolete. Use @code{make-hash-table} instead.
+This function is obsolete.  Use @code{make-hash-table} instead.
 @end defun
 
 You can also create a new hash table using the printed representation

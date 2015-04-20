@@ -1822,7 +1822,7 @@ resolve_face_name (Lisp_Object face_name, bool signal_p)
   Lisp_Object tortoise, hare;
 
   if (STRINGP (face_name))
-    face_name = intern (SSDATA (face_name));
+    face_name = Fintern (face_name, Qnil);
 
   if (NILP (face_name) || !SYMBOLP (face_name))
     return face_name;

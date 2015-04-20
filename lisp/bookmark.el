@@ -2064,7 +2064,8 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
 (defun bookmark-bmenu-goto-bookmark (name)
   "Move point to bookmark with name NAME."
   (goto-char (point-min))
-  (while (not (equal name (bookmark-bmenu-bookmark)))
+  (while (not (or (equal name (bookmark-bmenu-bookmark))
+                  (eobp)))
     (forward-line 1))
   (forward-line 0))
 

@@ -1846,7 +1846,7 @@ prepare_to_modify_buffer_1 (ptrdiff_t start, ptrdiff_t end,
       = call1 (Fsymbol_value (Qregion_extract_function), Qnil);
 
   signal_before_change (start, end, preserve_ptr);
-  Vdeactivate_mark = Qt;
+  Fset (Qdeactivate_mark, Qt);
 }
 
 /* Like above, but called when we know that the buffer text

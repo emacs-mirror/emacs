@@ -2162,7 +2162,7 @@ If optional arg SILENT is non-nil, do not display progress messages."
 		      (eq ibuffer-always-show-last-buffer
 			  :nomini)
 		      (minibufferp (cadr bufs)))
-		     (cl-caddr bufs)
+		     (nth 2 bufs)
 		   (cadr bufs))
 		 (ibuffer-current-buffers-with-marks bufs)
 		 ibuffer-display-maybe-show-predicates)))
@@ -2194,7 +2194,7 @@ If optional arg SILENT is non-nil, do not display progress messages."
     (require 'ibuf-ext))
   (let* ((sortdat (assq ibuffer-sorting-mode
 			ibuffer-sorting-functions-alist))
-	 (func (cl-caddr sortdat)))
+	 (func (nth 2 sortdat)))
     (let ((result
 	   ;; actually sort the buffers
 	   (if (and sortdat func)

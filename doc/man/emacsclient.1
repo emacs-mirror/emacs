@@ -31,28 +31,31 @@ default editor.
 For
 .B emacsclient
 to work, you need an already running Emacs with a server.  Within Emacs,
-call the functions `server-start' or `server-mode'.  (Your `.emacs' file
-can do this automatically if you add either `(server-start)' or
-`(server-mode 1)' to it.)
+call the functions "server-start" or "server-mode".  (Your ".emacs" file
+can do this automatically if you add either "(server-start)" or
+"(server-mode 1)" to it.)
 
-When you've finished editing the buffer, type `C-x #'
-(`server-edit').  This saves the file and sends a message back to the
-`emacsclient' program telling it to exit.  The programs that use
-`EDITOR' wait for the "editor" (actually, `emacsclient') to exit.  `C-x
-#' also checks for other pending external requests to edit various
+When you've finished editing the buffer, type "C-x #"
+("server-edit").  This saves the file and sends a message back to the
+.B emacsclient
+program telling it to exit.  The programs that use
+EDITOR wait for the "editor" (actually,
+.BR emacsclient )
+to exit.  "C-x #" also checks for other pending external requests to
+edit various
 files, and selects the next such file.
 
-If you set the variable `server-window' to a window or a frame, `C-x
-#' displays the server buffer in that window or in that frame.
+If you set the variable "server-window" to a window or a frame, "C-x
+#" displays the server buffer in that window or in that frame.
 
 .SH OPTIONS
 The programs follow the usual GNU command line syntax, with long
-options starting with two dashes (`-').
+options starting with two dashes ("\-").
 .TP
 .B \-a, \-\-alternate-editor=EDITOR
 if the Emacs server is not running, run the specified editor instead.
-This can also be specified via the `ALTERNATE_EDITOR' environment variable.
-If the value of EDITOR is the empty string, run `emacs \-\-daemon' to
+This can also be specified via the ALTERNATE_EDITOR environment variable.
+If the value of EDITOR is the empty string, run "emacs \-\-daemon" to
 start Emacs in daemon mode, and try to connect to it.
 .TP
 .B -c, \-\-create-frame
@@ -70,7 +73,7 @@ Lisp expressions.
 .TP
 .B \-f, \-\-server-file=FILENAME
 use TCP configuration file FILENAME for communication.
-This can also be specified via the `EMACS_SERVER_FILE' environment variable.
+This can also be specified via the EMACS_SERVER_FILE environment variable.
 .TP
 .B \-n, \-\-no-wait
 returns
@@ -99,4 +102,3 @@ This manual page was written by Stephane Bortzmeyer <bortzmeyer@debian.org>,
 for the Debian GNU/Linux system (but may be used by others).
 .SH COPYING
 This manual page is in the public domain.
-

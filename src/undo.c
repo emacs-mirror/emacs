@@ -212,7 +212,7 @@ record_delete (ptrdiff_t beg, Lisp_Object string, bool record_markers)
 void
 record_change (ptrdiff_t beg, ptrdiff_t length)
 {
-  record_delete (beg, make_buffer_string (beg, beg + length, 1), false);
+  record_delete (beg, make_buffer_string (beg, beg + length, true), false);
   record_insert (beg, length);
 }
 
@@ -250,7 +250,7 @@ record_property_change (ptrdiff_t beg, ptrdiff_t length,
 {
   Lisp_Object lbeg, lend, entry;
   struct buffer *obuf = current_buffer, *buf = XBUFFER (buffer);
-  bool boundary = 0;
+  bool boundary = false;
 
   if (EQ (BVAR (buf, undo_list), Qt))
     return;
@@ -260,7 +260,7 @@ record_property_change (ptrdiff_t beg, ptrdiff_t length,
     pending_boundary = Fcons (Qnil, Qnil);
 
   if (buf != last_undo_buffer)
-    boundary = 1;
+    boundary = true;
   last_undo_buffer = buf;
 
   /* Switch temporarily to the buffer that was changed.  */
@@ -519,5 +519,5 @@ so it must make sure not to do a lot of consing.  */);
 
   DEFVAR_BOOL ("undo-inhibit-record-point", undo_inhibit_record_point,
 	       doc: /* Non-nil means do not record `point' in `buffer-undo-list'.  */);
-  undo_inhibit_record_point = 0;
+  undo_inhibit_record_point = false;
 }

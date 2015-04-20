@@ -37,15 +37,31 @@ If a list, assume that the listed features are supported, without checking.
 
 The relevant features are:
   modifyOtherKeys  -- if supported, more key bindings work (e.g., \"\\C-,\")
-  reportBackground -- if supported, Xterm reports its background color"
+  reportBackground -- if supported, Xterm reports its background color
+  setSelection     -- if supported, Xterm saves yanked text to the X selection"
   :version "24.1"
-  :group 'xterm
   :type '(choice (const :tag "No" nil)
                  (const :tag "Check" check)
                  ;; NOTE: If you add entries here, make sure to update
                  ;; `terminal-init-xterm' as well.
                  (set (const :tag "modifyOtherKeys support" modifyOtherKeys)
-                      (const :tag "report background" reportBackground))))
+                      (const :tag "report background" reportBackground)
+                      (const :tag "set X selection" setSelection))))
+
+(defcustom xterm-max-cut-length 100000
+  "Maximum number of bytes to cut into xterm using the OSC 52 sequence.
+
+The OSC 52 sequence requires a terminator byte.  Some terminals will ignore or
+mistreat a terminated sequence that is longer than a certain size, usually to
+protect users from runaway sequences.
+
+This variable allows you to tweak the maximum number of bytes that will be sent
+using the OSC 52 sequence.
+
+If you select a region larger than this size, it won't be copied to your system
+clipboard.  Since clipboard data is base 64 encoded, the actual number of
+string bytes that can be copied is 3/4 of this value."
+  :type 'integer)
 
 (defconst xterm-paste-ending-sequence "\e[201~"
   "Characters send by the terminal to end a bracketed paste.")
@@ -620,7 +636,13 @@ The relevant features are:
         ;; introduced) or higher, initialize the
         ;; modifyOtherKeys support.
         (when (>= version 216)
-          (terminal-init-xterm-modify-other-keys))))))
+          (terminal-init-xterm-modify-other-keys))
+        ;; In version 203 support for accessing the X selection was
+        ;; added.  Hterm reports itself as version 256 and supports it
+        ;; as well.  gnome-terminal doesn't and is excluded by this
+        ;; test.
+        (when (>= version 203)
+          (terminal-init-xterm-activate-set-selection))))))
 
 (defun xterm--query (query handlers)
   "Send QUERY string to the terminal and watch for a response.
@@ -699,7 +721,10 @@ We run the first FUNCTION whose STRING matches the input events."
                     '(("\e]11;" .  xterm--report-background-handler))))
 
     (when (memq 'modifyOtherKeys xterm-extra-capabilities)
-      (terminal-init-xterm-modify-other-keys)))
+      (terminal-init-xterm-modify-other-keys))
+
+    (when (memq 'setSelection xterm-extra-capabilities)
+      (terminal-init-xterm-activate-set-selection)))
 
   ;; Unconditionally enable bracketed paste mode: terminals that don't
   ;; support it just ignore the sequence.
@@ -718,6 +743,64 @@ We run the first FUNCTION whose STRING matches the input events."
   (send-string-to-terminal "\e[?2004h")
   (push "\e[?2004l" (terminal-parameter nil 'tty-mode-reset-strings))
   (push "\e[?2004h" (terminal-parameter nil 'tty-mode-set-strings)))
+
+(defun terminal-init-xterm-activate-set-selection ()
+  "Terminal initialization for `gui-set-selection'."
+  (set-terminal-parameter nil 'xterm--set-selection t))
+
+;; FIXME: This defines the gui method for all terminals, even tho it only
+;; supports a subset of them.
+(gui-method-define gui-set-selection nil #'xterm--set-selection)
+
+(defun xterm--set-selection (type data)
+  "Copy DATA to the X selection using the OSC 52 escape sequence.
+
+TYPE specifies which selection to set; it must be either
+`PRIMARY' or `CLIPBOARD'.  DATA must be a string.
+
+This can be used as a `gui-set-selection' method for
+xterm-compatible terminal emulators.  Then your system clipboard
+will be updated whenever you copy a region of text in Emacs.
+
+If the resulting OSC 52 sequence would be longer than
+`xterm-max-cut-length', then the TEXT is not sent to the system
+clipboard.
+
+This function either sends a raw OSC 52 sequence or wraps the OSC
+52 in a Device Control String sequence.  This way, it will work
+on a bare terminal emulators as well as inside the screen
+program.  When inside the screen program, this function also
+chops long DCS sequences into multiple smaller ones to avoid
+hitting screen's max DCS length."
+  (let* ((screen (eq (terminal-parameter nil 'terminal-initted)
+                     'terminal-init-screen)))
+    ;; Only do something if the current terminal is actually an XTerm
+    ;; or screen.
+    (when (terminal-parameter nil 'xterm--set-selection)
+      (let* ((bytes (encode-coding-string data 'utf-8-unix))
+             (base-64 (if screen
+                          (replace-regexp-in-string
+                           "\n" "\e\\\eP"
+                           (base64-encode-string bytes)
+                           :fixedcase :literal)
+                        (base64-encode-string bytes :no-line-break)))
+             (length (length base-64)))
+        (if (> length xterm-max-cut-length)
+            (progn
+              (warn "Selection too long to send to terminal: %d bytes" length)
+              (sit-for 2))
+          (send-string-to-terminal
+           (concat
+            (when screen "\eP")
+            "\e]52;"
+            (pcase type
+              ('PRIMARY "p")
+              ('CLIPBOARD "c")
+              (_ (error "Invalid selection type: %S" type)))
+            ";"
+            base-64
+            "\a"
+            (when screen "\e\\"))))))))
 
 ;; Set up colors, for those versions of xterm that support it.
 (defvar xterm-standard-colors

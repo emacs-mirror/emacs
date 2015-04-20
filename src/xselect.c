@@ -531,6 +531,16 @@ static struct prop_location *property_change_reply_object;
 
 static struct prop_location *property_change_wait_list;
 
+static void
+set_property_change_object (struct prop_location *location)
+{
+  /* Input must be blocked so we don't get the event before we set these.  */
+  if (! input_blocked_p ())
+    emacs_abort ();
+  XSETCAR (property_change_reply, Qnil);
+  property_change_reply_object = location;
+}
+
 
 /* Send the reply to a selection request event EVENT.  */
 
@@ -633,6 +643,11 @@ x_reply_selection_request (struct input_event *event,
       {
 	int format_bytes = cs->format / 8;
 	bool had_errors_p = x_had_errors_p (display);
+
+        /* Must set this inside block_input ().  unblock_input may read
+           events and setting property_change_reply in
+           wait_for_property_change is then too late.  */
+        set_property_change_object (cs->wait_object);
 	unblock_input ();
 
 	bytes_remaining = cs->size;
@@ -673,6 +688,8 @@ x_reply_selection_request (struct input_event *event,
 			     : format_bytes);
 	    XFlush (display);
 	    had_errors_p = x_had_errors_p (display);
+            // See comment above about property_change_reply.
+            set_property_change_object (cs->wait_object);
 	    unblock_input ();
 
 	    if (had_errors_p) break;
@@ -1059,14 +1076,11 @@ wait_for_property_change (struct prop_location *location)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
 
-  if (property_change_reply_object)
-    emacs_abort ();
-
   /* Make sure to do unexpect_property_change if we quit or err.  */
   record_unwind_protect_ptr (wait_for_property_change_unwind, location);
 
-  XSETCAR (property_change_reply, Qnil);
-  property_change_reply_object = location;
+  /* See comment in x_reply_selection_request about setting
+     property_change_reply.  Do not do it here.  */
 
   /* If the event we are waiting for arrives beyond here, it will set
      property_change_reply, because property_change_reply_object says so.  */
@@ -1381,6 +1395,8 @@ receive_incremental_selection (struct x_display_info *dpyinfo,
   wait_object = expect_property_change (display, window, property,
 					PropertyNewValue);
   XFlush (display);
+  // See comment in x_reply_selection_request about property_change_reply.
+  set_property_change_object (wait_object);
   unblock_input ();
 
   while (true)
@@ -1419,6 +1435,8 @@ receive_incremental_selection (struct x_display_info *dpyinfo,
       XDeleteProperty (display, window, property);
       wait_object = expect_property_change (display, window, property,
 					    PropertyNewValue);
+      // See comment in x_reply_selection_request about property_change_reply.
+      set_property_change_object (wait_object);
       XFlush (display);
       unblock_input ();
 

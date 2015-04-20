@@ -973,7 +973,7 @@ displayed in the member buffer.
 @cindex @code{public} members
 @item F a u
 This command toggles the display of @code{public} members.  The
-@samp{a} stands for `access'.
+@samp{a} stands for ``access''.
 
 @cindex @code{protected} members
 @item F a o

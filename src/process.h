@@ -105,6 +105,9 @@ struct Lisp_Process
     Lisp_Object gnutls_cred_type;
 #endif
 
+    /* Pipe process attached to the standard error of this process.  */
+    Lisp_Object stderrproc;
+
     /* After this point, there are no Lisp_Objects any more.  */
     /* alloc.c assumes that `pid' is the first such non-Lisp slot.  */
 

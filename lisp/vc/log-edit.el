@@ -917,21 +917,8 @@ where LOGBUFFER is the name of the ChangeLog buffer, and each
             (log-edit-narrow-changelog)
             (goto-char (point-min))
 
-            ;; Search for the name of FILE relative to the ChangeLog.  If that
-            ;; doesn't occur anywhere, they're not using full relative
-            ;; filenames in the ChangeLog, so just look for FILE; we'll accept
-            ;; some false positives.
-            (let ((pattern (file-relative-name
-                            file (file-name-directory changelog-file-name))))
-              (if (or (string= pattern "")
-                      (not (save-excursion
-                             (search-forward pattern nil t))))
-                  (setq pattern (file-name-nondirectory file)))
-
-              (setq pattern (concat "\\(^\\|[^[:alnum:]]\\)"
-                                    (regexp-quote pattern)
-                                    "\\($\\|[^[:alnum:]]\\)"))
-
+            (let ((pattern (log-edit-changelog--pattern file
+                                                        changelog-file-name)))
               (let (texts
                     (pos (point)))
                 (while (and (not (eobp)) (re-search-forward pattern nil t))
@@ -946,6 +933,25 @@ where LOGBUFFER is the name of the ChangeLog buffer, and each
 
                 (cons (current-buffer) texts)))))))))
 
+(defun log-edit-changelog--pattern (file changelog-file-name)
+  (if (eq (aref file (1- (length file))) ?/)
+      ;; Match any files inside this directory.
+      (concat "^\t\\* " (unless (string= file "./") file))
+    ;; Search for the name of FILE relative to the ChangeLog.  If that
+    ;; doesn't occur anywhere, they're not using full relative
+    ;; filenames in the ChangeLog, so just look for FILE; we'll accept
+    ;; some false positives.
+    (let ((pattern (file-relative-name
+                    file (file-name-directory changelog-file-name))))
+      ;; FIXME: When can the above return an empty string?
+      (if (or (string= pattern "")
+              (not (save-excursion
+                     (search-forward pattern nil t))))
+          (setq pattern (file-name-nondirectory file)))
+      (setq pattern (concat "\\(^\\|[^[:alnum:]]\\)"
+                            (regexp-quote pattern)
+                            "\\($\\|[^[:alnum:]]\\)")))))
+
 (defun log-edit-changelog-insert-entries (buffer beg end &rest files)
   "Insert the text from BUFFER between BEG and END.
 Rename relative filenames in the ChangeLog entry as FILES."
@@ -957,6 +963,8 @@ Rename relative filenames in the ChangeLog entry as FILES."
     (setq bound (point-marker))
     (when log-name
       (dolist (f files)
+        ;; FIXME: f can be a directory, a (possibly indirect) parent
+        ;; of the ChangeLog file.
 	(save-excursion
 	  (goto-char opoint)
 	  (when (re-search-forward
@@ -992,6 +1000,9 @@ Rename relative filenames in the ChangeLog entry as FILES."
       (apply 'log-edit-changelog-insert-entries
 	     (append (car log-entry) (cdr log-entry)))
       (insert "\n"))
+    ;; No newline after the last entry.
+    (when log-entries
+      (delete-char -1))
     log-edit-author))
 
 (defun log-edit-toggle-header (header value)

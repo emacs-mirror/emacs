@@ -1025,7 +1025,7 @@ the circumstances of the error.
 
 The argument @var{error-symbol} must be an @dfn{error symbol}---a symbol
 defined with @code{define-error}.  This is how Emacs Lisp classifies different
-sorts of errors. @xref{Error Symbols}, for a description of error symbols,
+sorts of errors.  @xref{Error Symbols}, for a description of error symbols,
 error conditions and condition names.
 
 If the error is not handled, the two arguments are used in printing

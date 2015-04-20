@@ -11913,8 +11913,8 @@ controlling variable is a predicate list, as described above.
 
 @ifinfo
 @c Avoid sort of redundant entries in the same section for the printed
-@c manual, but add them in info to allow `i gnus-treat-foo-bar RET' or
-@c `i foo-bar'.
+@c manual, but add them in info to allow 'i gnus-treat-foo-bar RET' or
+@c 'i foo-bar'.
 @vindex gnus-treat-buttonize
 @vindex gnus-treat-buttonize-head
 @vindex gnus-treat-capitalize-sentences
@@ -14987,7 +14987,7 @@ this means @samp{gssapi}, @samp{kerberos4}, @samp{digest-md5},
 @samp{cram-md5}, @samp{anonymous} or the default @samp{login}.
 
 @item :program
-When using the `shell' :stream, the contents of this variable is
+When using the @samp{shell} :stream, the contents of this variable is
 mapped into the @code{imap-shell-program} variable.  This should be a
 @code{format}-like string (or list of strings).  Here's an example:
 
@@ -17768,7 +17768,7 @@ So you send a ``reminder'' message (actually, a diary one) to yourself.
 @item
 You forget all about it and keep on getting and reading new mail, as usual.
 @item
-From time to time, as you type `g' in the group buffer and as the date
+From time to time, as you type @kbd{g} in the group buffer and as the date
 is getting closer, the message will pop up again to remind you of your
 appointment, just as if it were new and unread.
 @item
@@ -19648,7 +19648,7 @@ Immediately scoring.
 @end table
 
 @item
-If you are scoring on `e' (extra) headers, you will then be prompted for
+If you are scoring on @samp{e} (extra) headers, you will then be prompted for
 the header name on which you wish to score.  This must be a header named
 in gnus-extra-headers, and @samp{TAB} completion is available.
 
@@ -21354,8 +21354,8 @@ variable.
 
 To work correctly the @code{nnir-namazu-remove-prefix} variable must
 also be correct.  This is the prefix to remove from each file name
-returned by Namazu in order to get a proper group name (albeit with `/'
-instead of `.').
+returned by Namazu in order to get a proper group name (albeit with @samp{/}
+instead of @samp{.}).
 
 For example, suppose that Namazu returns file names such as
 @samp{/home/john/Mail/mail/misc/42}.  For this example, use the
@@ -21368,18 +21368,20 @@ correct group name @samp{mail.misc}.
 Extra switches may be passed to the namazu search command by setting the
 variable @code{nnir-namazu-additional-switches}.  It is particularly
 important not to pass any any switches to namazu that will change the
-output format.  Good switches to use include `--sort', `--ascending',
-`--early' and `--late'.  Refer to the Namazu documentation for further
+output format.  Good switches to use include @option{--sort},
+@option{--ascending}, @option{--early} and @option{--late}.
+Refer to the Namazu documentation for further
 information on valid switches.
 
-Mail must first be indexed  with the `mknmz' program.  Read the documentation
-for namazu to create a configuration file.  Here is an example:
+Mail must first be indexed with the @command{mknmz} program.  Read the
+documentation for namazu to create a configuration file.  Here is an
+example:
 
 @cartouche
 @example
  package conf;  # Don't remove this line!
 
- # Paths which will not be indexed. Don't use `^' or `$' anchors.
+ # Paths which will not be indexed. Don't use '^' or '$' anchors.
  $EXCLUDE_PATH = "spam|sent";
 
  # Header fields which should be searchable. case-insensitive
@@ -21451,7 +21453,7 @@ when searching all groups on a server.
 
 @item nnir-summary-line-format
 The format specification to be used for lines in an nnir summary buffer.
-All the items from `gnus-summary-line-format' are available, along with
+All the items from @code{gnus-summary-line-format} are available, along with
 three items unique to nnir summary buffers:
 
 @example
@@ -21465,7 +21467,7 @@ If @code{nil} (the default) this will use @code{gnus-summary-line-format}.
 @item nnir-retrieve-headers-override-function
 If non-@code{nil}, a function that retrieves article headers rather than using
 the gnus built-in function.  This function takes an article list and
-group as arguments and populates the `nntp-server-buffer' with the
+group as arguments and populates the @code{nntp-server-buffer} with the
 retrieved headers.  It should then return either 'nov or 'headers
 indicating the retrieved header format.  Failure to retrieve headers
 should return @code{nil}.
@@ -26124,10 +26126,10 @@ their @code{:char} property, or showing the marks as full strings.
 
 @lisp
 ;; show the marks as single characters (see the :char property in
-;; `gnus-registry-marks'):
+;; 'gnus-registry-marks'):
 ;; (defalias 'gnus-user-format-function-M 'gnus-registry-article-marks-to-chars)
 
-;; show the marks by name (see `gnus-registry-marks'):
+;; show the marks by name (see 'gnus-registry-marks'):
 ;; (defalias 'gnus-user-format-function-M 'gnus-registry-article-marks-to-names)
 @end lisp
 
@@ -27817,7 +27819,7 @@ As a result of the following change, the @file{~/News/overview/}
 directory is not used any more.  You can safely delete the entire
 hierarchy.
 
-@c FIXME: `gnus-load' is mentioned in README, which is not included in
+@c FIXME: 'gnus-load' is mentioned in README, which is not included in
 @c the repository.  We should find a better place for this item.
 @item
 @code{(require 'gnus-load)}

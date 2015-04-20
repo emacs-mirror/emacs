@@ -115,13 +115,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define MAIL_USE_SYSTEM_LOCK
 #endif
 
-#ifdef MAIL_USE_MMDF
-extern int lk_open (), lk_close ();
-#endif
-
-#if !defined (MAIL_USE_SYSTEM_LOCK) && !defined (MAIL_USE_MMDF) && \
-	(defined (HAVE_LIBMAIL) || defined (HAVE_LIBLOCKFILE)) && \
-        defined (HAVE_MAILLOCK_H)
+#if (!defined MAIL_USE_SYSTEM_LOCK				\
+     && (defined HAVE_LIBMAIL || defined HAVE_LIBLOCKFILE)	\
+     && defined HAVE_MAILLOCK_H)
 #include <maillock.h>
 /* We can't use maillock unless we know what directory system mail
    files appear in. */
@@ -144,8 +140,7 @@ static bool mbx_delimit_end (FILE *);
 #endif
 
 #if (defined MAIL_USE_MAILLOCK						\
-     || (!defined DISABLE_DIRECT_ACCESS && !defined MAIL_USE_MMDF	\
-	 && !defined MAIL_USE_SYSTEM_LOCK))
+     || (!defined DISABLE_DIRECT_ACCESS && !defined MAIL_USE_SYSTEM_LOCK))
 /* Like malloc but get fatal error if memory is exhausted.  */
 
 static void *
@@ -229,10 +224,6 @@ main (int argc, char **argv)
   inname = argv[optind];
   outname = argv[optind+1];
 
-#ifdef MAIL_USE_MMDF
-  mmdf_init (argv[0]);
-#endif
-
   if (*outname == 0)
     fatal ("Destination file name is empty", 0, 0);
 
@@ -256,7 +247,6 @@ main (int argc, char **argv)
 
   char *lockname = 0;
 
-#ifndef MAIL_USE_MMDF
 #ifndef MAIL_USE_SYSTEM_LOCK
 #ifdef MAIL_USE_MAILLOCK
   spool_name = mail_spool_name (inname);
@@ -335,7 +325,6 @@ main (int argc, char **argv)
       delete_lockname = lockname;
     }
 #endif /* not MAIL_USE_SYSTEM_LOCK */
-#endif /* not MAIL_USE_MMDF */
 
 #ifdef SIGCHLD
   signal (SIGCHLD, SIG_DFL);
@@ -356,15 +345,11 @@ main (int argc, char **argv)
       if (setuid (getuid ()) < 0 || setregid (-1, real_gid) < 0)
 	fatal ("Failed to drop privileges", 0, 0);
 
-#ifndef MAIL_USE_MMDF
 #ifdef MAIL_USE_SYSTEM_LOCK
       indesc = open (inname, O_RDWR | O_BINARY);
 #else  /* if not MAIL_USE_SYSTEM_LOCK */
       indesc = open (inname, O_RDONLY | O_BINARY);
 #endif /* not MAIL_USE_SYSTEM_LOCK */
-#else  /* MAIL_USE_MMDF */
-      indesc = lk_open (inname, O_RDONLY | O_BINARY, 0, 0, 10);
-#endif /* MAIL_USE_MMDF */
 
       if (indesc < 0)
 	pfatal_with_name (inname);
@@ -474,11 +459,7 @@ main (int argc, char **argv)
 	}
 #endif /* MAIL_USE_SYSTEM_LOCK */
 
-#ifdef MAIL_USE_MMDF
-      lk_close (indesc, 0, 0, 0);
-#else
       close (indesc);
-#endif
 
 #ifndef MAIL_USE_SYSTEM_LOCK
       if (! preserve_mail)

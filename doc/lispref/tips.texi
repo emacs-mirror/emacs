@@ -657,23 +657,18 @@ starting double-quote is not part of the string!
 
 @anchor{Docstring hyperlinks}
 @item
-@iftex
 When a documentation string refers to a Lisp symbol, write it as it
-would be printed (which usually means in lower case), with single-quotes
-around it.  For example: @samp{`lambda'}.  There are two exceptions:
-write @code{t} and @code{nil} without single-quotes.
-@end iftex
-@ifnottex
-When a documentation string refers to a Lisp symbol, write it as it
-would be printed (which usually means in lower case), with single-quotes
-around it.  For example: @samp{lambda}.  There are two exceptions: write
-t and nil without single-quotes.  (In this manual, we use a different
-convention, with single-quotes for all symbols.)
-@end ifnottex
+would be printed (which usually means in lower case), with a grave
+accent @samp{`} before and apostrophe @samp{'} after it.  There are
+two exceptions: write @code{t} and @code{nil} without surrounding
+punctuation.  For example: @samp{CODE can be `lambda', nil, or t.}
+(In this manual, we use a different convention, with single-quotes
+around symbols.)
 
 @cindex hyperlinks in documentation strings
 Help mode automatically creates a hyperlink when a documentation string
-uses a symbol name inside single quotes, if the symbol has either a
+uses a symbol name between grave accent and apostrophe, if the symbol
+has either a
 function or a variable definition.  You do not need to do anything
 special to make use of this feature.  However, when a symbol has both a
 function definition and a variable definition, and you want to refer to
@@ -716,16 +711,16 @@ documentation will be shown, even if the symbol is also defined as a
 variable or as a function.
 
 To make a hyperlink to Info documentation, write the name of the Info
-node (or anchor) in single quotes, preceded by @samp{info node},
-@samp{Info node}, @samp{info anchor} or @samp{Info anchor}.  The Info
-file name defaults to @samp{emacs}.  For example,
+node (or anchor) between grave accent and apostrophe, preceded by
+@samp{info node}, @samp{Info node}, @samp{info anchor} or @samp{Info
+anchor}.  The Info file name defaults to @samp{emacs}.  For example,
 
 @smallexample
 See Info node `Font Lock' and Info node `(elisp)Font Lock Basics'.
 @end smallexample
 
-Finally, to create a hyperlink to URLs, write the URL in single
-quotes, preceded by @samp{URL}. For example,
+Finally, to create a hyperlink to URLs, write the URL between grave
+accent and apostrophe, preceded by @samp{URL}. For example,
 
 @smallexample
 The home page for the GNU project has more information (see URL

@@ -105,8 +105,8 @@ copy and modify this GNU manual.''
 This file documents @value{tramp} version @value{trampver}, a remote file
 editing package for @value{emacsname}.
 
-@value{tramp} stands for `Transparent Remote (file) Access, Multiple
-Protocol'.  This package provides remote file editing, similar to
+@value{tramp} stands for ``Transparent Remote (file) Access, Multiple
+Protocol''.  This package provides remote file editing, similar to
 @value{ftppackagename}.
 
 The difference is that @value{ftppackagename} uses FTP to transfer
@@ -704,7 +704,7 @@ the remote host, this option uses @samp{ssh -t -t @var{host} -l
 @var{user} /bin/sh} to open a connection.  This is useful for users
 where the normal login shell is set up to ask them a number of
 questions when logging in.  This procedure avoids these questions, and
-just gives @value{tramp} a more-or-less `standard' login shell to work
+just gives @value{tramp} a more-or-less ``standard'' login shell to work
 with.
 
 Note that this procedure does not eliminate questions asked by
@@ -856,7 +856,7 @@ the remote host, this option uses @samp{ssh -t -t @var{host} -l
 @var{user} /bin/sh} to open a connection.  This is useful for users
 where the normal login shell is set up to ask them a number of
 questions when logging in.  This procedure avoids these questions, and
-just gives @value{tramp} a more-or-less `standard' login shell to work
+just gives @value{tramp} a more-or-less ``standard'' login shell to work
 with.
 
 This is also useful for Windows users where @command{ssh}, when
@@ -2210,7 +2210,7 @@ When
 is @code{nil} (the default), such problems do not occur.
 
 Therefore, it is useful to set special values for @value{tramp}
-files.  For example, the following statement effectively `turns off'
+files.  For example, the following statement effectively ``turns off''
 the effect of
 @ifset emacs
 @code{backup-directory-alist}
@@ -3256,7 +3256,7 @@ file name completion, report a bug to the @value{tramp} developers.
 File name completion does not work in large directories
 
 @value{tramp} uses globbing for some operations.  (Globbing means to use the
-shell to expand wildcards such as `*.c'.)  This might create long
+shell to expand wildcards such as @samp{*.c}.)  This might create long
 command lines, especially in directories with many files.  Some shells
 choke on long command lines, or don't cope well with the globbing
 itself.

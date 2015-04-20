@@ -40,8 +40,15 @@ or by sticking with Emacs 24.4.
 If gnustep-config is not available, the old heuristics are used.
 
 ---
-** The configure option `--with-pkg-config-prog' has been removed.
+** The configure option '--with-pkg-config-prog' has been removed.
 Use './configure PKG_CONFIG=/full/name/of/pkg-config' if you need to.
+
+---
+** The configure option '--with-mmdf' has been removed.
+It was no longer useful, as it relied on libraries that are no longer
+supported, and its presence led to confusion during configuration.
+This affects only the 'movemail' utility; Emacs itself can still
+process MMDF-format files as before.
 
 ** The configure option '--enable-silent-rules' is now the default,
 and silent rules are now quieter.  To get the old behavior where
@@ -191,8 +198,13 @@ calculation.  This function is different from `window-body-width' in
 that it accounts for (i) continuation glyphs, (ii) the size of the
 font, and (iii) the specified window.
 
+** New possible value for `system-type': nacl.
+
 
 * Editing Changes in Emacs 25.1
+
+** Successive single-char deletions are collapsed in the undo-log just like
+successive char insertions.
 
 ** Unicode names entered via C-x 8 RET now use substring completion by default.
 
@@ -220,9 +232,24 @@ Unicode standards.
 
 
 * Changes in Specialized Modes and Packages in Emacs 25.1
+** In xterms, killing text now also sets the CLIPBOARD/PRIMARY selection
+in the surrounding GUI (using the OSC-52 escape sequence).
+
 ** xterm-mouse-mode now supports mouse-tracking (if your xterm supports it).
 
 ** package.el
+
+*** When filtering the package menu, keywords starting with "arc:" or
+"status:" represent package archive or status, respectively, instead
+of actual keywords.
+
+*** Most functions which involve downloading information now take an
+ASYNC argument.  If it is non-nil, package.el performs the download(s)
+asynchronously.
+
+*** New variable `package-menu-async' controls whether the
+package-menu uses asynchronous downloads.
+
 *** `package-install-from-buffer' and `package-install-file' work on directories.
 This follows the same rules as installing from a .tar file, except the
 -pkg file is optional.
@@ -251,13 +278,19 @@ the old behavior -- *shell* buffer displays in current window -- use
 
 
 ** EIEIO
++++
 *** The `:protection' slot option is not obeyed any more.
++++
 *** The `newname' argument to constructors is optional&deprecated.
 If you need your objects to be named, do it by inheriting from `eieio-named'.
++++
 *** The <class>-list-p and <class>-child-p functions are declared obsolete.
++++
 *** The <class> variables are declared obsolete.
++++
 *** The <initarg> variables are declared obsolete.
 *** defgeneric and defmethod are declared obsolete.
++++
 *** `constructor' is now an obsolete alias for `make-instance'.
 
 ** ido
@@ -581,7 +614,9 @@ command line's password prompt.
 
 ** Eshell
 
++++
 *** The new built-in command `clear' can scroll window contents out of sight.
+If provided with an optional non-nil argument, the scrollback contents will be cleared.
 
 ** Browse-url
 
@@ -602,6 +637,14 @@ notifications, if Emacs is compiled with file notification support.
 ---
 *** gulp.el
 
++++
+** The character classes [:graph:] and [:print:] in regular expressions
+no longer match every multibyte character.  Instead, Emacs now
+consults the Unicode character properties to determine which
+characters are graphic or printable.  In particular, surrogates and
+unassigned codepoints are now rejected.  If you want the old behavior,
+use [:multibyte:] instead.
+
 
 * New Modes and Packages in Emacs 25.1
 
@@ -619,6 +662,9 @@ other languages), so `auto-tildify-mode' makes it easier to create
 a typographically-correct documents.
 
 * Incompatible Lisp Changes in Emacs 25.1
+
+** Comint, term, and compile do not set the EMACS env var any more.
+Use the INSIDE_EMACS environment variable instead.
 
 ** `save-excursion' does not save&restore the mark any more.
 
@@ -661,8 +707,25 @@ now match multibyte characters using Unicode character properties.
 If you want the old behavior where they matched any character with
 word syntax, use `\sw' instead.
 
++++
+** The `diff' command uses the unified format now.  To restore the old
+behavior, set `diff-switches' to `-c'.
+
 
 * Lisp Changes in Emacs 25.1
+
+** New hook `pre-redisplay-functions', a bit easier to use than pre-redisplay-function.
+
+** The second arg of `looking-back' should always be provided explicitly.
+
+** Obsolete text properties `intangible', `point-entered', and `point-left'.
+Replaced by properties `cursor-intangible' and `cursor-sensor-functions',
+implemented by the new `cursor-intangible-mode' and
+`cursor-sensor-mode' minor modes.
+
+** New process type `pipe', which can be used in combination with the
+`:stderr' keyword of make-process to handle standard error output
+of subprocess.
 
 ** New function `make-process' provides an alternative interface to
 `start-process'.  It allows programs to set process parameters such as
@@ -755,6 +818,12 @@ integers.
 +++
 ** New function `set-binary-mode' allows to switch a standard stream
 of the Emacs process to binary I/O mode.
+
+** Miscellaneous name change
+
+For consistency with the usual Emacs spelling, the Lisp variable
+`hfy-optimisations' has been renamed to `hfy-optimizations'.
+The old name should still work, as an obsolescent alias.
 
 
 * Changes in Frames and Windows Code in Emacs 25.1

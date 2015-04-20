@@ -41,7 +41,7 @@
 (defconst css-pseudo-class-ids
   '("active" "checked" "disabled" "empty" "enabled" "first"
     "first-child" "first-of-type" "focus" "hover" "indeterminate" "lang"
-    "last-child" "last-of-type" "left" "link" "nth-child"
+    "last-child" "last-of-type" "left" "link" "not" "nth-child"
     "nth-last-child" "nth-last-of-type" "nth-of-type" "only-child"
     "only-of-type" "right" "root" "target" "visited")
   "Identifiers for pseudo-classes.")
@@ -327,6 +327,10 @@
     (`(:elem . basic) css-indent-offset)
     (`(:elem . arg) 0)
     (`(:list-intro . ,(or `";" `"")) t) ;"" stands for BOB (bug#15467).
+    (`(:before . "{")
+     (when (smie-rule-hanging-p)
+       (smie-backward-sexp ";")
+       (smie-indent-virtual)))
     (`(:before . ,(or "{" "("))
      (if (smie-rule-hanging-p) (smie-rule-parent 0)))))
 
@@ -377,7 +381,8 @@ pseudo-classes, and at-rules."
   (setq-local comment-start-skip "/\\*+[ \t]*")
   (setq-local comment-end "*/")
   (setq-local comment-end-skip "[ \t]*\\*+/")
-  (setq-local fill-paragraph-function 'css-fill-paragraph)
+  (setq-local fill-paragraph-function #'css-fill-paragraph)
+  (setq-local adaptive-fill-function #'css-adaptive-fill)
   (setq-local add-log-current-defun-function #'css-current-defun-name)
   (smie-setup css-smie-grammar #'css-smie-rules
               :forward-token #'css-smie--forward-token
@@ -391,6 +396,12 @@ pseudo-classes, and at-rules."
 
 (defun css-fill-paragraph (&optional justify)
   (save-excursion
+    ;; Fill succeeding comment when invoked right before a multi-line
+    ;; comment.
+    (when (save-excursion
+            (beginning-of-line)
+            (comment-search-forward (point-at-eol) t))
+      (goto-char (match-end 0)))
     (let ((ppss (syntax-ppss))
           (eol (line-end-position)))
       (cond
@@ -410,8 +421,11 @@ pseudo-classes, and at-rules."
                 (paragraph-separate
                  (if (and comment-continue
                           (string-match "[^ \t]" comment-continue))
-                     (concat "\\(?:[ \t]*" (regexp-quote comment-continue)
-                             "\\)?\\(?:" paragraph-separate "\\)")
+                     (concat "\\(?:[ \t]*\\(?:"
+                             (regexp-quote comment-continue) "\\|"
+                             comment-start-skip "\\|"
+                             comment-end-skip "\\)\\)?"
+                             "\\(?:" paragraph-separate "\\)")
                    paragraph-separate))
                 (paragraph-start
                  (if (and comment-continue
@@ -464,6 +478,12 @@ pseudo-classes, and at-rules."
             ;; Don't use the default filling code.
             t)))))))
 
+(defun css-adaptive-fill ()
+  (when (looking-at "[ \t]*/\\*[ \t]*")
+    (let ((str (match-string 0)))
+      (and (string-match "/\\*" str)
+           (replace-match " *" t t str)))))
+
 (defun css-current-defun-name ()
   "Return the name of the CSS section at point, or nil."
   (save-excursion
@@ -500,6 +520,7 @@ pseudo-classes, and at-rules."
   "Major mode to edit \"Sassy CSS\" files."
   (setq-local comment-start "// ")
   (setq-local comment-end "")
+  (setq-local comment-continue " *")
   (setq-local comment-start-skip "/[*/]+[ \t]*")
   (setq-local comment-end-skip "[ \t]*\\(?:\n\\|\\*+/\\)")
   (setq-local font-lock-defaults '(scss-font-lock-keywords nil t)))

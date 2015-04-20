@@ -2344,62 +2344,62 @@ This is what happens in interactive use with M-x.  */)
 
 DEFUN ("make-symbolic-link", Fmake_symbolic_link, Smake_symbolic_link, 2, 3,
        "FMake symbolic link to file: \nGMake symbolic link to file %s: \np",
-       doc: /* Make a symbolic link to FILENAME, named LINKNAME.
+       doc: /* Make a symbolic link to TARGET, named LINKNAME.
 Both args must be strings.
 Signals a `file-already-exists' error if a file LINKNAME already exists
 unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.
 A number as third arg means request confirmation if LINKNAME already exists.
 This happens for interactive use with M-x.  */)
-  (Lisp_Object filename, Lisp_Object linkname, Lisp_Object ok_if_already_exists)
+  (Lisp_Object target, Lisp_Object linkname, Lisp_Object ok_if_already_exists)
 {
   Lisp_Object handler;
-  Lisp_Object encoded_filename, encoded_linkname;
+  Lisp_Object encoded_target, encoded_linkname;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
-  GCPRO4 (filename, linkname, encoded_filename, encoded_linkname);
-  encoded_filename = encoded_linkname = Qnil;
-  CHECK_STRING (filename);
+  GCPRO4 (target, linkname, encoded_target, encoded_linkname);
+  encoded_target = encoded_linkname = Qnil;
+  CHECK_STRING (target);
   CHECK_STRING (linkname);
   /* If the link target has a ~, we must expand it to get
      a truly valid file name.  Otherwise, do not expand;
      we want to permit links to relative file names.  */
-  if (SREF (filename, 0) == '~')
-    filename = Fexpand_file_name (filename, Qnil);
+  if (SREF (target, 0) == '~')
+    target = Fexpand_file_name (target, Qnil);
 
   if (!NILP (Ffile_directory_p (linkname)))
-    linkname = Fexpand_file_name (Ffile_name_nondirectory (filename), linkname);
+    linkname = Fexpand_file_name (Ffile_name_nondirectory (target), linkname);
   else
     linkname = Fexpand_file_name (linkname, Qnil);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (filename, Qmake_symbolic_link);
+  handler = Ffind_file_name_handler (target, Qmake_symbolic_link);
   if (!NILP (handler))
-    RETURN_UNGCPRO (call4 (handler, Qmake_symbolic_link, filename,
+    RETURN_UNGCPRO (call4 (handler, Qmake_symbolic_link, target,
 			   linkname, ok_if_already_exists));
 
   /* If the new link name has special constructs in it,
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (linkname, Qmake_symbolic_link);
   if (!NILP (handler))
-    RETURN_UNGCPRO (call4 (handler, Qmake_symbolic_link, filename,
+    RETURN_UNGCPRO (call4 (handler, Qmake_symbolic_link, target,
 			   linkname, ok_if_already_exists));
 
-  encoded_filename = ENCODE_FILE (filename);
+  encoded_target = ENCODE_FILE (target);
   encoded_linkname = ENCODE_FILE (linkname);
 
   if (NILP (ok_if_already_exists)
       || INTEGERP (ok_if_already_exists))
     barf_or_query_if_file_exists (linkname, false, "make it a link",
 				  INTEGERP (ok_if_already_exists), false);
-  if (symlink (SSDATA (encoded_filename), SSDATA (encoded_linkname)) < 0)
+  if (symlink (SSDATA (encoded_target), SSDATA (encoded_linkname)) < 0)
     {
       /* If we didn't complain already, silently delete existing file.  */
       int symlink_errno;
       if (errno == EEXIST)
 	{
 	  unlink (SSDATA (encoded_linkname));
-	  if (symlink (SSDATA (encoded_filename), SSDATA (encoded_linkname))
+	  if (symlink (SSDATA (encoded_target), SSDATA (encoded_linkname))
 	      >= 0)
 	    {
 	      UNGCPRO;
@@ -2414,7 +2414,7 @@ This happens for interactive use with M-x.  */)
 	}
 
       symlink_errno = errno;
-      report_file_errno ("Making symbolic link", list2 (filename, linkname),
+      report_file_errno ("Making symbolic link", list2 (target, linkname),
 			 symlink_errno);
     }
   UNGCPRO;
@@ -4165,7 +4165,7 @@ by calling `format-decode', which see.  */)
       Vdeactivate_mark = old_Vdeactivate_mark;
     }
   else
-    Vdeactivate_mark = Qt;
+    Fset (Qdeactivate_mark, Qt);
 
   emacs_close (fd);
   clear_unwind_protect (fd_index);

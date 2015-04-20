@@ -23,7 +23,7 @@ SHELL = @SHELL@
 # update the sed rules in the dist target below.
 
 # Where to find the source code.  $(srcdir) will be the doc/emacs subdirectory
-# of the source tree.  This is set by configure's `--srcdir' option.
+# of the source tree.  This is set by configure's '--srcdir' option.
 srcdir=@srcdir@
 
 top_srcdir = @top_srcdir@

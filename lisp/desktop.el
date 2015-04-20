@@ -1468,7 +1468,7 @@ after that many seconds of idle time."
 	    (dolist (record compacted-vars)
 	      (let*
 		  ((var (car record))
-		   (deser-fun (cl-caddr (assq var desktop-var-serdes-funs))))
+		   (deser-fun (nth 2 (assq var desktop-var-serdes-funs))))
 		(if deser-fun (set var (funcall deser-fun (cadr record))))))))
 	result))))
 

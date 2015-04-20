@@ -296,7 +296,7 @@ send it to a channel.
 @cindex quotes
 @cindex double-quotes
 Many commands take parameters.  IRC commands usually ignore string
-delimiters.  Neither quote nor double-quote have special meanings in
+delimiters.  Neither apostrophe nor double-quote have special meanings in
 IRC.
 
 @example

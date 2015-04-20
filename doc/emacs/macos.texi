@@ -190,7 +190,7 @@ font are stored in the variables @code{ns-input-font} and
 
 @item ns-power-off
 This event occurs when the user logs out and Emacs is still running, or when
-`Quit Emacs' is chosen from the application menu.
+``Quit Emacs'' is chosen from the application menu.
 The default behavior is to save all file-visiting buffers.
 @end table
 

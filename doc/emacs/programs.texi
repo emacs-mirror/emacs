@@ -843,9 +843,9 @@ show-paren-mode}.
   Electric Pair mode, a global minor mode, provides a way to easily
 insert matching delimiters.  Whenever you insert an opening delimiter,
 the matching closing delimiter is automatically inserted as well,
-leaving point between the two. Conversely, when you insert a closing
+leaving point between the two.  Conversely, when you insert a closing
 delimiter over an existing one, no inserting takes places and that
-position is simply skipped over. These variables control additional
+position is simply skipped over.  These variables control additional
 features of Electric Pair mode:
 
 @itemize @bullet

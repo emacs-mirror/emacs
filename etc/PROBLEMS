@@ -26,6 +26,9 @@ A typical error message might be something like
 This happens because some X resource specifies a bad font family for
 Emacs to use.  The possible places where this specification might be are:
 
+  - in the X server resources database, often initialized from
+    ~/.Xresources (use $ xrdb -query to find out the current state)
+
   - in your ~/.Xdefaults file
 
   - client-side X resource file, such as  ~/Emacs or
@@ -34,6 +37,12 @@ Emacs to use.  The possible places where this specification might be are:
 One of these files might have bad or malformed specification of a
 fontset that Emacs should use.  To fix the problem, you need to find
 the problematic line(s) and correct them.
+
+After correcting ~/.Xresources, the new data has to be merged into the
+X server resources database.  Depending on the circumstances, the
+following command may do the trick.  See xrdb(1) for more information.
+
+  $ xrdb -merge ~/.Xresources
 
 ** Emacs aborts while starting up, only when run without X.
 
@@ -270,8 +279,7 @@ The error message might be something like this:
 
 This happens because epop3 redefines the function gethash, which is a
 built-in primitive beginning with Emacs 21.1.  We don't have a patch
-for epop3 that fixes this, but perhaps a newer version of epop3
-corrects that.
+for epop3 to fix it, but perhaps a newer version of epop3 corrects that.
 
 *** Buffers from `with-output-to-temp-buffer' get set up in Help mode.
 
@@ -507,7 +515,7 @@ time.  Possible reasons for this include:
 
 To work around the problem, you could either (a) set the variable
 `directory-free-space-program' to nil, and thus prevent Emacs from
-invoking `df'; (b) use `df' from the GNU Fileutils package; or
+invoking `df'; (b) use `df' from the GNU Coreutils package; or
 (c) use CVS, which is Free Software, instead of ClearCase.
 
 *** ps-print commands fail to find prologue files ps-prin*.ps.
@@ -600,7 +608,7 @@ For example, XFree86 4.3.0 has one version and Gnome usually comes
 with a newer version.  Emacs compiled with Gtk+ will then use the
 newer version.  In most cases the problem can be temporarily fixed by
 stopping the application that has the error (it can be Emacs or any
-other application), removing ~/.fonts.cache-1, and then start the
+other application), removing ~/.fonts.cache-1, and then starting the
 application again.  If removing ~/.fonts.cache-1 and restarting
 doesn't help, the application with problem must be recompiled with the
 same version of FontConfig as the rest of the system uses.  For KDE,
@@ -700,7 +708,7 @@ frame's parameter list, like this:
 ** Underlines appear at the wrong position.
 
 This is caused by fonts having a wrong UNDERLINE_POSITION property.
-Examples are the font 7x13 on XFree prior to version 4.1, or the jmk
+Examples are the 7x13 font on XFree86 prior to version 4.1, or the jmk
 neep font from the Debian xfonts-jmk package prior to version 3.0.17.
 To circumvent this problem, set x-use-underline-position-properties
 to nil in your `.emacs'.
@@ -823,7 +831,7 @@ If all users at your site of a particular keyboard prefer Meta to
 Compose, you can make the remapping happen automatically by adding the
 xmodmap command to the xdm setup script for that display.
 
-*** Using X Windows, control-shift-leftbutton makes Emacs hang.
+*** Using X Window System, control-shift-leftbutton makes Emacs hang.
 
 Use the shell command `xset bc' to make the old X Menu package work.
 
@@ -987,8 +995,8 @@ while, Emacs may print a message:
 
   Timed out waiting for property-notify event
 
-A workaround is to not use `klipper'.  An upgrade to the `klipper' that
-comes with KDE 3.3 or later also solves the problem.
+A workaround is to not use `klipper'.  Upgrading `klipper' to the one
+coming with KDE 3.3 or later also solves the problem.
 
 *** CDE: Frames may cover dialogs they created when using CDE.
 
@@ -1113,8 +1121,8 @@ be carried out at the same time:
     (menu-bar-mode -1)
     (tool-bar-mode -1)
 
-   For still quicker startup, put these X resources in your .Xdefaults
-   file:
+   For still quicker startup, put these X resources in your
+   .Xresources or .Xdefaults file:
 
     Emacs.verticalScrollBars: off
     Emacs.menuBar: off
@@ -1133,7 +1141,7 @@ be carried out at the same time:
     -noatomsfile  -nowinattr  -cheaterrors -cheatevents
    Note that the -nograbcmap option is known to cause problems.
    For more about lbxproxy, see:
-   http://www.xfree86.org/4.3.0/lbxproxy.1.html
+   http://www.x.org/archive/X11R6.8.0/doc/lbxproxy.1.html
 
 5) If copying and killing is slow, try to disable the interaction with the
    native system's clipboard by adding these lines to your .emacs file:
@@ -1201,17 +1209,17 @@ To check thoroughly for such resource specifications, use `xrdb
 -query' to see what resources the X server records, and also look at
 the user's ~/.Xdefaults and ~/.Xdefaults-* files.
 
-*** Emacs running under X Windows does not handle mouse clicks.
+*** Emacs running under X Window System does not handle mouse clicks.
 *** `emacs -geometry 80x20' finds a file named `80x20'.
 
 One cause of such problems is having (setq term-file-prefix nil) in
 your .emacs file.  Another cause is a bad value of EMACSLOADPATH in
 the environment.
 
-*** X Windows doesn't work if DISPLAY uses a hostname.
+*** X doesn't work if DISPLAY uses a hostname.
 
 People have reported kernel bugs in certain systems that cause Emacs
-not to work with X Windows if DISPLAY is set using a host name.  But
+not to work with X if DISPLAY is set using a host name.  But
 the problem does not occur if DISPLAY is set to `unix:0.0'.  I think
 the bug has to do with SIGIO or FIONREAD.
 
@@ -1393,7 +1401,7 @@ shows how to do this with C-^ and C-\.
 ** Screen is updated wrong, but only on one kind of terminal.
 
 This could mean that the termcap entry you are using for that
-terminal is wrong, or it could mean that Emacs has a bug handing
+terminal is wrong, or it could mean that Emacs has a bug handling
 the combination of features specified for that terminal.
 
 The first step in tracking this down is to record what characters
@@ -1612,7 +1620,7 @@ http://debbugs.gnu.org/7791
 The symptoms are: you are accessing a svn repository over SSH.
 You use vc-annotate on a large (several thousand line) file, and the
 result is truncated around the 1000 line mark.  It works fine with
-other access methods (eg http), or from outside Emacs.
+other access methods (e.g. http), or from outside Emacs.
 
 This may be a similar libc/SSH issue to the one mentioned above for CVS.
 A similar workaround seems to be effective: create a script with the
@@ -1714,7 +1722,11 @@ the sequence "\E[?25h\E[?17;0;64c", and then run "tic linux-term" to
 produce a modified terminfo entry.
 
 Alternatively, if you want a blinking underscore as your Emacs cursor,
-change the "cvvis" capability to send the "\E[?25h\E[?0c" command.
+set the `visible-cursor' variable to nil in your ~/.emacs:
+  (setq visible-cursor nil)
+
+Still other way is to change the "cvvis" capability to send the
+"\E[?25h\E[?0c" command.
 
 ** FreeBSD
 
@@ -1906,7 +1918,7 @@ Near the bottom there is a line that reads:
 
         Ctrl<t> <quotedbl> <Y>                  : "\276"        threequarters
 
-that should read:
+while it should read:
 
         Ctrl<T> <quotedbl> <Y>                  : "\276"        threequarters
 
@@ -2049,7 +2061,7 @@ rails-mode.
 ** M-x term does not work on MS-Windows.
 
 TTY emulation on Windows is undocumented, and programs such as stty
-which are used on posix platforms to control tty emulation do not
+which are used on POSIX platforms to control tty emulation do not
 exist for native windows terminals.
 
 ** Using create-fontset-from-ascii-font or the --font startup parameter
@@ -2062,7 +2074,7 @@ use create-fontset-from-fontset-spec to define a fontset.
 
 This means no redisplay while the File or Font dialog or a pop-up menu
 is displayed.  This also means tooltips with help text for pop-up
-menus is not displayed at all (except in a TTY session, where the help
+menus are not displayed at all (except in a TTY session, where the help
 text is shown in the echo area).  This is because message handling
 under Windows is synchronous, so we cannot handle repaint (or any
 other) messages while waiting for a system function, which popped up
@@ -2086,6 +2098,21 @@ Emacs 21 disabled the use of ClearType, whereas Emacs 22 allows it and
 has some code to enlarge the width of the bounding box.  Apparently,
 this display feature needs more changes to get it 100% right.  A
 workaround is to disable ClearType.
+
+** Cursor is displayed as a thin vertical bar and cannot be changed
+
+This is known to happen if the Windows Magnifier is turned on before
+the Emacs session starts.  The Magnifier affects the cursor shape and
+prevents any changes to it by setting the 'cursor-type' variable or
+frame parameter.
+
+The solution is to log off and on again, and then start the Emacs
+session only after turning the Magnifier off.
+
+To turn the Windows Magnifier off, click "Start->All Programs", or
+"All Apps", depending on your Windows version, then select
+"Accessibility" and click "Magnifier".  In the Magnifier Settings
+dialog that opens, click "Exit".
 
 ** Problems with mouse-tracking and focus management
 
@@ -2144,7 +2171,7 @@ daylight savings switchovers by the Windows libraries.
 
 Files larger than 4GB cause overflow in the size (represented as a
 32-bit integer) reported by `file-attributes'.  This affects Dired as
-well, since the Windows port uses a Lisp emulation of `ls' that relies
+well, since the Windows port uses a Lisp emulation of `ls', which relies
 on `file-attributes'.
 
 ** Playing sound doesn't support the :data method
@@ -2332,7 +2359,7 @@ you are working on the host called `marvin'.  Then an entry in the
 
     marvin:/usr/local/src /usr/local/src ...options.omitted...
 
-The solution is to remove this line from `etc/fstab'.
+The solution is to remove this line from `/etc/fstab'.
 
 *** Building a 32-bit executable on a 64-bit GNU/Linux architecture.
 
@@ -2363,7 +2390,7 @@ The linker error messages look like this:
  oo-spd/i386/ctags.o:ctags.c:(.text+0x156e): undefined reference to `_imp__re_set_syntax'
  collect2: ld returned 1 exit status
 
-This happens because GCC finds an incompatible header regex.h
+This happens because GCC finds an incompatible regex.h header
 somewhere on the include path, before the version of regex.h supplied
 with Emacs.  One such incompatible version of regex.h is part of the
 GnuWin32 Regex package.
@@ -2510,7 +2537,7 @@ Compiling the lisp files fails at random places, complaining:
 "No rule to make target `/path/to/some/lisp.elc'".
 The causes of this problem are not understood.  Using GNU make 3.81 compiled
 from source, rather than the Ubuntu version, worked.
-See <URL:http://debbugs.gnu.org/327, <URL:http://debbugs.gnu.org/821>.
+See <URL:http://debbugs.gnu.org/327>, <URL:http://debbugs.gnu.org/821>.
 
 ** Dumping
 
@@ -2618,7 +2645,7 @@ build Emacs in a directory on a local disk.
 On a system where getpagesize is not a system call, it is defined
 as a macro.  If the definition (in both unex*.c and malloc.c) is wrong,
 it can cause problems like this.  You might be able to find the correct
-value in the man page for a.out (5).
+value in the man page for a.out(5).
 
 * Problems on legacy systems
 

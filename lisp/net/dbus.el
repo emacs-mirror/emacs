@@ -869,7 +869,7 @@ association to the service from D-Bus."
 				;; Service.
 				(string-equal service (cadr e))
 				;; Non-empty object path.
-				(cl-caddr e)
+				(nth 2 e)
 				(throw :found t)))))
 			 dbus-registered-objects-table)
 			nil))))

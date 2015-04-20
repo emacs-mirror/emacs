@@ -1014,7 +1014,7 @@ lines
 def fn(a, b, c=True):
     '''docstring
     bunch
-    of
+        of
     lines
     '''
 "
@@ -1022,16 +1022,17 @@ def fn(a, b, c=True):
    (should (eq (car (python-indent-context)) :after-block-start))
    (should (= (python-indent-calculate-indentation) 4))
    (python-tests-look-at "bunch")
-   (should (eq (car (python-indent-context)) :inside-string))
+   (should (eq (car (python-indent-context)) :inside-docstring))
    (should (= (python-indent-calculate-indentation) 4))
    (python-tests-look-at "of")
-   (should (eq (car (python-indent-context)) :inside-string))
-   (should (= (python-indent-calculate-indentation) 4))
+   (should (eq (car (python-indent-context)) :inside-docstring))
+   ;; Any indentation deeper than the base-indent must remain unmodified.
+   (should (= (python-indent-calculate-indentation) 8))
    (python-tests-look-at "lines")
-   (should (eq (car (python-indent-context)) :inside-string))
+   (should (eq (car (python-indent-context)) :inside-docstring))
    (should (= (python-indent-calculate-indentation) 4))
    (python-tests-look-at "'''")
-   (should (eq (car (python-indent-context)) :inside-string))
+   (should (eq (car (python-indent-context)) :inside-docstring))
    (should (= (python-indent-calculate-indentation) 4))))
 
 (ert-deftest python-indent-inside-string-3 ()
@@ -1189,21 +1190,33 @@ def f():
                       expected)))))
 
 (ert-deftest python-indent-region-5 ()
-  "Test region indentation leaves strings untouched (start delimiter)."
+  "Test region indentation for docstrings."
   (let ((contents "
 def f():
 '''
 this is
-a multiline
+        a multiline
 string
+'''
+    x = \\
+        '''
+this is an arbitrarily
+    indented multiline
+ string
 '''
 ")
         (expected "
 def f():
     '''
-this is
-a multiline
-string
+    this is
+        a multiline
+    string
+    '''
+    x = \\
+        '''
+this is an arbitrarily
+    indented multiline
+ string
 '''
 "))
     (python-tests-with-temp-buffer
@@ -1985,19 +1998,36 @@ c()
    (should (save-excursion
              (beginning-of-line)
              (looking-at "c()")))
-   ;; Movement next to a paren should do what lisp does and
-   ;; unfortunately It can't change, because otherwise
-   ;; `blink-matching-open' breaks.
+   ;; The default behavior when next to a paren should do what lisp
+   ;; does and, otherwise `blink-matching-open' breaks.
    (python-nav-forward-sexp -1)
    (should (looking-at "()"))
    (should (save-excursion
              (beginning-of-line)
              (looking-at "c()")))
-   (python-nav-forward-sexp -1)
+   (end-of-line)
+   ;; Skipping parens should jump to `bolp'
+   (python-nav-forward-sexp -1 nil t)
    (should (looking-at "c()"))
+   (forward-line -1)
+   (end-of-line)
+   ;; b()
+   (python-nav-forward-sexp -1)
+   (should (looking-at "()"))
    (python-nav-forward-sexp -1)
    (should (looking-at "b()"))
+   (end-of-line)
+   (python-nav-forward-sexp -1 nil t)
+   (should (looking-at "b()"))
+   (forward-line -1)
+   (end-of-line)
+   ;; a()
    (python-nav-forward-sexp -1)
+   (should (looking-at "()"))
+   (python-nav-forward-sexp -1)
+   (should (looking-at "a()"))
+   (end-of-line)
+   (python-nav-forward-sexp -1 nil t)
    (should (looking-at "a()"))))
 
 (ert-deftest python-nav-forward-sexp-2 ()
@@ -4273,6 +4303,49 @@ def foo(a,
    (python-tests-look-at "c):")
    (should (not (python-info-block-continuation-line-p)))))
 
+(ert-deftest python-info-assignment-statement-p-1 ()
+  (python-tests-with-temp-buffer
+   "
+data = foo(), bar() \\\\
+       baz(), 4 \\\\
+       5, 6
+"
+   (python-tests-look-at "data = foo(), bar()")
+   (should (python-info-assignment-statement-p))
+   (should (python-info-assignment-statement-p t))
+   (python-tests-look-at "baz(), 4")
+   (should (python-info-assignment-statement-p))
+   (should (not (python-info-assignment-statement-p t)))
+   (python-tests-look-at "5, 6")
+   (should (python-info-assignment-statement-p))
+   (should (not (python-info-assignment-statement-p t)))))
+
+(ert-deftest python-info-assignment-statement-p-2 ()
+  (python-tests-with-temp-buffer
+   "
+data = (foo(), bar()
+        baz(), 4
+        5, 6)
+"
+   (python-tests-look-at "data = (foo(), bar()")
+   (should (python-info-assignment-statement-p))
+   (should (python-info-assignment-statement-p t))
+   (python-tests-look-at "baz(), 4")
+   (should (python-info-assignment-statement-p))
+   (should (not (python-info-assignment-statement-p t)))
+   (python-tests-look-at "5, 6)")
+   (should (python-info-assignment-statement-p))
+   (should (not (python-info-assignment-statement-p t)))))
+
+(ert-deftest python-info-assignment-statement-p-3 ()
+  (python-tests-with-temp-buffer
+   "
+data '=' 42
+"
+   (python-tests-look-at "data '=' 42")
+   (should (not (python-info-assignment-statement-p)))
+   (should (not (python-info-assignment-statement-p t)))))
+
 (ert-deftest python-info-assignment-continuation-line-p-1 ()
   (python-tests-with-temp-buffer
    "
@@ -4359,6 +4432,136 @@ foo = True  # another comment
    (should (not (python-info-current-line-empty-p)))
    (forward-line 1)
    (should (python-info-current-line-empty-p))))
+
+(ert-deftest python-info-docstring-p-1 ()
+  "Test module docstring detection."
+  (python-tests-with-temp-buffer
+   "# -*- coding: utf-8 -*-
+#!/usr/bin/python
+
+'''
+Module Docstring Django style.
+'''
+u'''Additional module docstring.'''
+'''Not a module docstring.'''
+"
+   (python-tests-look-at "Module Docstring Django style.")
+   (should (python-info-docstring-p))
+   (python-tests-look-at "u'''Additional module docstring.'''")
+   (should (python-info-docstring-p))
+   (python-tests-look-at "'''Not a module docstring.'''")
+   (should (not (python-info-docstring-p)))))
+
+(ert-deftest python-info-docstring-p-2 ()
+  "Test variable docstring detection."
+  (python-tests-with-temp-buffer
+   "
+variable = 42
+U'''Variable docstring.'''
+'''Additional variable docstring.'''
+'''Not a variable docstring.'''
+"
+   (python-tests-look-at "Variable docstring.")
+   (should (python-info-docstring-p))
+   (python-tests-look-at "u'''Additional variable docstring.'''")
+   (should (python-info-docstring-p))
+   (python-tests-look-at "'''Not a variable docstring.'''")
+   (should (not (python-info-docstring-p)))))
+
+(ert-deftest python-info-docstring-p-3 ()
+  "Test function docstring detection."
+  (python-tests-with-temp-buffer
+   "
+def func(a, b):
+    r'''
+    Function docstring.
+
+    onetwo style.
+    '''
+    R'''Additional function docstring.'''
+    '''Not a function docstring.'''
+    return a + b
+"
+   (python-tests-look-at "Function docstring.")
+   (should (python-info-docstring-p))
+   (python-tests-look-at "R'''Additional function docstring.'''")
+   (should (python-info-docstring-p))
+   (python-tests-look-at "'''Not a function docstring.'''")
+   (should (not (python-info-docstring-p)))))
+
+(ert-deftest python-info-docstring-p-4 ()
+  "Test class docstring detection."
+  (python-tests-with-temp-buffer
+   "
+class Class:
+    ur'''
+    Class docstring.
+
+    symmetric style.
+    '''
+    uR'''
+    Additional class docstring.
+    '''
+    '''Not a class docstring.'''
+    pass
+"
+   (python-tests-look-at "Class docstring.")
+   (should (python-info-docstring-p))
+   (python-tests-look-at "uR'''")  ;; Additional class docstring
+   (should (python-info-docstring-p))
+   (python-tests-look-at "'''Not a class docstring.'''")
+   (should (not (python-info-docstring-p)))))
+
+(ert-deftest python-info-docstring-p-5 ()
+  "Test class attribute docstring detection."
+  (python-tests-with-temp-buffer
+   "
+class Class:
+    attribute = 42
+    Ur'''
+    Class attribute docstring.
+
+    pep-257 style.
+
+    '''
+    UR'''
+    Additional class attribute docstring.
+    '''
+    '''Not a class attribute docstring.'''
+    pass
+"
+   (python-tests-look-at "Class attribute docstring.")
+   (should (python-info-docstring-p))
+   (python-tests-look-at "UR'''")  ;; Additional class attr docstring
+   (should (python-info-docstring-p))
+   (python-tests-look-at "'''Not a class attribute docstring.'''")
+   (should (not (python-info-docstring-p)))))
+
+(ert-deftest python-info-docstring-p-6 ()
+  "Test class method docstring detection."
+  (python-tests-with-temp-buffer
+   "
+class Class:
+
+    def __init__(self, a, b):
+        self.a = a
+        self.b = b
+
+    def __call__(self):
+        '''Method docstring.
+
+        pep-257-nn style.
+        '''
+        '''Additional method docstring.'''
+        '''Not a method docstring.'''
+        return self.a + self.b
+"
+   (python-tests-look-at "Method docstring.")
+   (should (python-info-docstring-p))
+   (python-tests-look-at "'''Additional method docstring.'''")
+   (should (python-info-docstring-p))
+   (python-tests-look-at "'''Not a method docstring.'''")
+   (should (not (python-info-docstring-p)))))
 
 (ert-deftest python-info-encoding-from-cookie-1 ()
   "Should detect it on first line."

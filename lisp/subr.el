@@ -339,20 +339,41 @@ configuration."
 
 ;;;; List functions.
 
-(defsubst caar (x)
+;; Note: `internal--compiler-macro-cXXr' was copied from
+;; `cl--compiler-macro-cXXr' in cl-macs.el.  If you amend either one,
+;; you may want to amend the other, too.
+(defun internal--compiler-macro-cXXr (form x)
+  (let* ((head (car form))
+         (n (symbol-name (car form)))
+         (i (- (length n) 2)))
+    (if (not (string-match "c[ad]+r\\'" n))
+        (if (and (fboundp head) (symbolp (symbol-function head)))
+            (internal--compiler-macro-cXXr (cons (symbol-function head) (cdr form))
+                                     x)
+          (error "Compiler macro for cXXr applied to non-cXXr form"))
+      (while (> i (match-beginning 0))
+        (setq x (list (if (eq (aref n i) ?a) 'car 'cdr) x))
+        (setq i (1- i)))
+      x)))
+
+(defun caar (x)
   "Return the car of the car of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
   (car (car x)))
 
-(defsubst cadr (x)
+(defun cadr (x)
   "Return the car of the cdr of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
   (car (cdr x)))
 
-(defsubst cdar (x)
+(defun cdar (x)
   "Return the cdr of the car of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
   (cdr (car x)))
 
-(defsubst cddr (x)
+(defun cddr (x)
   "Return the cdr of the cdr of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
   (cdr (cdr x)))
 
 (defun last (list &optional n)
@@ -910,7 +931,7 @@ in a cleaner way with command remapping, like this:
 	    (nconc (nreverse skipped) newdef)))
       ;; Look past a symbol that names a keymap.
       (setq inner-def
-	    (or (indirect-function defn t) defn))
+	    (or (indirect-function defn) defn))
       ;; For nested keymaps, we use `inner-def' rather than `defn' so as to
       ;; avoid autoloading a keymap.  This is mostly done to preserve the
       ;; original non-autoloading behavior of pre-map-keymap times.
@@ -1915,9 +1936,9 @@ PROGRAM is the program file name.  It is searched for in `exec-path'
 \(which see).  If nil, just associate a pty with the buffer.  Remaining
 arguments are strings to give program as arguments.
 
-If you want to separate standard output from standard error, invoke
-the command through a shell and redirect one of them using the shell
-syntax."
+If you want to separate standard output from standard error, use
+`make-process' or invoke the command through a shell and redirect
+one of them using the shell syntax."
   (unless (fboundp 'make-process)
     (error "Emacs was compiled without subprocess support"))
   (apply #'make-process
@@ -1953,14 +1974,13 @@ process."
 
 ;; compatibility
 
-(make-obsolete
- 'process-kill-without-query
- "use `process-query-on-exit-flag' or `set-process-query-on-exit-flag'."
- "22.1")
 (defun process-kill-without-query (process &optional _flag)
   "Say no query needed if PROCESS is running when Emacs is exited.
 Optional second argument if non-nil says to require a query.
 Value is t if a query was formerly required."
+  (declare (obsolete
+            "use `process-query-on-exit-flag' or `set-process-query-on-exit-flag'."
+            "22.1"))
   (let ((old (process-query-on-exit-flag process)))
     (set-process-query-on-exit-flag process nil)
     old))
@@ -2737,12 +2757,12 @@ Otherwise, return nil."
 (defun special-form-p (object)
   "Non-nil if and only if OBJECT is a special form."
   (if (and (symbolp object) (fboundp object))
-      (setq object (indirect-function object t)))
+      (setq object (indirect-function object)))
   (and (subrp object) (eq (cdr (subr-arity object)) 'unevalled)))
 
 (defun macrop (object)
   "Non-nil if and only if OBJECT is a macro."
-  (let ((def (indirect-function object t)))
+  (let ((def (indirect-function object)))
     (when (consp def)
       (or (eq 'macro (car def))
           (and (autoloadp def) (memq (nth 4 def) '(macro t)))))))
@@ -3485,6 +3505,8 @@ LIMIT.
 
 As a general recommendation, try to avoid using `looking-back'
 wherever possible, since it is slow."
+  (declare
+   (advertised-calling-convention (regexp limit &optional greedy) "25.1"))
   (let ((start (point))
 	(pos
 	 (save-excursion
@@ -3922,9 +3944,7 @@ This function is called directly from the C code."
       ;; discard the file name regexp
       (mapc #'funcall (cdr a-l-element))))
   ;; Complain when the user uses obsolete files.
-  (when (save-match-data
-          (and (string-match "/obsolete/\\([^/]*\\)\\'" abs-file)
-               (not (equal "loaddefs.el" (match-string 1 abs-file)))))
+  (when (string-match-p "/obsolete/\\([^/]*\\)\\'" abs-file)
     ;; Maybe we should just use display-warning?  This seems yucky...
     (let* ((file (file-name-nondirectory abs-file))
 	   (msg (format "Package %s is obsolete!"

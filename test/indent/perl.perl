@@ -5,6 +5,15 @@ sub add_funds($) {
     return 0;
 }
 
+my $hash = {
+    foo => 'bar',
+    format => 'some',
+};
+
+sub some_code {
+    print "will not indent :(";
+};
+
 use v5.14;
 
 my $str= <<END;

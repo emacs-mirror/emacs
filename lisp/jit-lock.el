@@ -650,12 +650,14 @@ will take place when text is fontified stealthily."
     (let ((jit-lock-start start)
           (jit-lock-end end))
       (with-buffer-prepared-for-jit-lock
-          (run-hook-with-args 'jit-lock-after-change-extend-region-functions
-                              start end old-len)
-          ;; Make sure we change at least one char (in case of deletions).
-          (setq jit-lock-end (min (max jit-lock-end (1+ start)) (point-max)))
-          ;; Request refontification.
-          (put-text-property jit-lock-start jit-lock-end 'fontified nil))
+       (run-hook-with-args 'jit-lock-after-change-extend-region-functions
+			   start end old-len)
+       ;; Make sure we change at least one char (in case of deletions).
+       (setq jit-lock-end (min (max jit-lock-end (1+ start)) (point-max)))
+       ;; Request refontification.
+       (save-restriction
+	 (widen)
+	 (put-text-property jit-lock-start jit-lock-end 'fontified nil)))
       ;; Mark the change for deferred contextual refontification.
       (when jit-lock-context-unfontify-pos
         (setq jit-lock-context-unfontify-pos

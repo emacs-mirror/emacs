@@ -981,9 +981,14 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 This tests also `file-readable-p' and `file-regular-p'."
   (skip-unless (tramp--test-enabled))
 
-  (let ((tmp-name1 (tramp--test-make-temp-name))
-	(tmp-name2 (tramp--test-make-temp-name))
-	attr)
+  ;; We must use `file-truename' for the temporary directory, because
+  ;; it could be located on a symlinked directory.  This would let the
+  ;; test fail.
+  (let* ((tramp-test-temporary-file-directory
+	  (file-truename tramp-test-temporary-file-directory))
+	 (tmp-name1 (tramp--test-make-temp-name))
+	 (tmp-name2 (tramp--test-make-temp-name))
+	 attr)
     (unwind-protect
 	(progn
 	  (write-region "foo" nil tmp-name1)
@@ -1535,9 +1540,14 @@ This requires restrictions of file name syntax."
 
 (defun tramp--test-check-files (&rest files)
   "Run a simple but comprehensive test over every file in FILES."
-  (let ((tmp-name1 (tramp--test-make-temp-name))
-	(tmp-name2 (tramp--test-make-temp-name 'local))
-	(files (delq nil files)))
+  ;; We must use `file-truename' for the temporary directory, because
+  ;; it could be located on a symlinked directory.  This would let the
+  ;; test fail.
+  (let* ((tramp-test-temporary-file-directory
+	  (file-truename tramp-test-temporary-file-directory))
+	 (tmp-name1 (tramp--test-make-temp-name))
+	 (tmp-name2 (tramp--test-make-temp-name 'local))
+	 (files (delq nil files)))
     (unwind-protect
 	(progn
 	  (make-directory tmp-name1)

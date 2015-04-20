@@ -816,8 +816,6 @@ series of processes in the same Comint buffer.  The hook
 		    (format "COLUMNS=%d" (window-width)))
 	    (list "TERM=emacs"
 		  (format "TERMCAP=emacs:co#%d:tc=unknown:" (window-width))))
-	  (unless (getenv "EMACS")
-	    (list "EMACS=t"))
 	  (list (format "INSIDE_EMACS=%s,comint" emacs-version))
 	  process-environment))
 	(default-directory
@@ -2084,19 +2082,19 @@ Make backspaces delete the previous character."
 		  (add-text-properties prompt-start (point)
 				       '(read-only t front-sticky (read-only)))))
 	      (when comint-last-prompt
-		(with-silent-modifications
-		  (font-lock--remove-face-from-text-property
-		   (car comint-last-prompt)
-		   (cdr comint-last-prompt)
-		   'font-lock-face
-		   'comint-highlight-prompt)))
+		;; There might be some keywords here waiting for
+		;; fontification, so no `with-silent-modifications'.
+		(font-lock--remove-face-from-text-property
+		 (car comint-last-prompt)
+		 (cdr comint-last-prompt)
+		 'font-lock-face
+		 'comint-highlight-prompt))
 	      (setq comint-last-prompt
 		    (cons (copy-marker prompt-start) (point-marker)))
-	      (with-silent-modifications
-		(font-lock-prepend-text-property prompt-start (point)
-						 'font-lock-face
-						 'comint-highlight-prompt)
-		(add-text-properties prompt-start (point) '(rear-nonsticky t))))
+	      (font-lock-prepend-text-property prompt-start (point)
+					       'font-lock-face
+					       'comint-highlight-prompt)
+	      (add-text-properties prompt-start (point) '(rear-nonsticky t)))
 	    (goto-char saved-point)))))))
 
 (defun comint-preinput-scroll-to-bottom ()

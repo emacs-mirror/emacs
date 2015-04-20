@@ -21,15 +21,15 @@ Buying a manual from the Free Software Foundation helps support our GNU
 development work.  See <http://shop.fsf.org/>.
 (At time of writing, this manual is out of print.)
 
-* The master file for formatting this manual for Tex is called `elisp.texi'.
+* The master file for formatting this manual for Tex is called 'elisp.texi'.
 It contains @include commands to include all the chapters that make up
 the manual.
 
 * This distribution contains a Makefile that you can use with GNU Make.
 
-** To make an Info file, you need to install Texinfo, then run `make info'.
+** To make an Info file, you need to install Texinfo, then run 'make info'.
 
-** Use `make elisp.pdf' or `make elisp.html' to create PDF or HTML versions.
+** Use 'make elisp.pdf' or 'make elisp.html' to create PDF or HTML versions.
 
 
 This file is part of GNU Emacs.

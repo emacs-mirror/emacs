@@ -34,13 +34,15 @@ if test "$nbadchars" -ne 0; then
   exit 1
 fi
 
-new_names=`$git_diff HEAD` || exit
-case "
-$new_names" in
-  */-* | *'
-'-*)
-    echo "File name component begins with '-'."
-    exit 1;;
-esac
+for new_name in `$git_diff HEAD`; do
+  case $new_name in
+    -* | */-*)
+      echo "$new_name: File name component begins with '-'."
+      exit 1;;
+    ChangeLog | */ChangeLog)
+      echo "$new_name: Please use git commit messages, not ChangeLog files."
+      exit 1;;
+  esac
+done
 
 exec git diff-index --check --cached HEAD --

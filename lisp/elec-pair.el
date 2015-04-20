@@ -475,7 +475,8 @@ happened."
                      (when (and (not (and unconditional
                                           (eq syntax ?\")))
                                 (setq skip-whitespace-info
-                                      (if (functionp electric-pair-skip-whitespace)
+                                      (if (and (not (eq electric-pair-skip-whitespace 'chomp))
+                                               (functionp electric-pair-skip-whitespace))
                                           (funcall electric-pair-skip-whitespace)
                                         electric-pair-skip-whitespace)))
                        (electric-pair--skip-whitespace))

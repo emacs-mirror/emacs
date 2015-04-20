@@ -52,8 +52,8 @@ enum property_set_type
   TEXT_PROPERTY_APPEND
 };
 
-/* If o1 is a cons whose cdr is a cons, return non-zero and set o2 to
-   the o1's cdr.  Otherwise, return zero.  This is handy for
+/* If o1 is a cons whose cdr is a cons, return true and set o2 to
+   the o1's cdr.  Otherwise, return false.  This is handy for
    traversing plists.  */
 #define PLIST_ELT_P(o1, o2) (CONSP (o1) && ((o2)=XCDR (o1), CONSP (o2)))
 
@@ -123,13 +123,12 @@ CHECK_STRING_OR_BUFFER (Lisp_Object x)
    Fprevious_property_change which call this function with BEGIN == END.
    Handle this case specially.
 
-   If FORCE is soft (0), it's OK to return NULL.  Otherwise,
+   If FORCE is soft (false), it's OK to return NULL.  Otherwise,
    create an interval tree for OBJECT if one doesn't exist, provided
    the object actually contains text.  In the current design, if there
    is no text, there can be no text properties.  */
 
-#define soft 0
-#define hard 1
+enum { soft = false, hard = true };
 
 INTERVAL
 validate_interval_range (Lisp_Object object, Lisp_Object *begin,
@@ -206,15 +205,17 @@ validate_plist (Lisp_Object list)
 
   if (CONSP (list))
     {
-      bool odd_length = 0;
-      Lisp_Object tail;
-      for (tail = list; CONSP (tail); tail = XCDR (tail))
+      Lisp_Object tail = list;
+      do
 	{
-	  odd_length ^= 1;
+	  tail = XCDR (tail);
+	  if (! CONSP (tail))
+	    error ("Odd length text property list");
+	  tail = XCDR (tail);
 	  QUIT;
 	}
-      if (odd_length)
-	error ("Odd length text property list");
+      while (CONSP (tail));
+
       return list;
     }
 
@@ -233,27 +234,27 @@ interval_has_all_properties (Lisp_Object plist, INTERVAL i)
   for (tail1 = plist; CONSP (tail1); tail1 = Fcdr (XCDR (tail1)))
     {
       Lisp_Object sym1 = XCAR (tail1);
-      bool found = 0;
+      bool found = false;
 
       /* Go through I's plist, looking for sym1 */
       for (tail2 = i->plist; CONSP (tail2); tail2 = Fcdr (XCDR (tail2)))
 	if (EQ (sym1, XCAR (tail2)))
 	  {
 	    /* Found the same property on both lists.  If the
-	       values are unequal, return zero.  */
+	       values are unequal, return false.  */
 	    if (! EQ (Fcar (XCDR (tail1)), Fcar (XCDR (tail2))))
-	      return 0;
+	      return false;
 
 	    /* Property has same value on both lists; go to next one.  */
-	    found = 1;
+	    found = true;
 	    break;
 	  }
 
       if (! found)
-	return 0;
+	return false;
     }
 
-  return 1;
+  return true;
 }
 
 /* Return true if the plist of interval I has any of the
@@ -272,13 +273,13 @@ interval_has_some_properties (Lisp_Object plist, INTERVAL i)
       /* Go through i's plist, looking for tail1 */
       for (tail2 = i->plist; CONSP (tail2); tail2 = Fcdr (XCDR (tail2)))
 	if (EQ (sym, XCAR (tail2)))
-	  return 1;
+	  return true;
     }
 
-  return 0;
+  return false;
 }
 
-/* Return nonzero if the plist of interval I has any of the
+/* Return true if the plist of interval I has any of the
    property names in LIST, regardless of their values.  */
 
 static bool
@@ -294,10 +295,10 @@ interval_has_some_properties_list (Lisp_Object list, INTERVAL i)
       /* Go through i's plist, looking for tail1 */
       for (tail2 = i->plist; CONSP (tail2); tail2 = XCDR (XCDR (tail2)))
 	if (EQ (sym, XCAR (tail2)))
-	  return 1;
+	  return true;
     }
 
-  return 0;
+  return false;
 }
 
 /* Changing the plists of individual intervals.  */
@@ -373,7 +374,7 @@ add_properties (Lisp_Object plist, INTERVAL i, Lisp_Object object,
 		enum property_set_type set_type)
 {
   Lisp_Object tail1, tail2, sym1, val1;
-  bool changed = 0;
+  bool changed = false;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
   tail1 = plist;
@@ -387,7 +388,7 @@ add_properties (Lisp_Object plist, INTERVAL i, Lisp_Object object,
   /* Go through each element of PLIST.  */
   for (tail1 = plist; CONSP (tail1); tail1 = Fcdr (XCDR (tail1)))
     {
-      bool found = 0;
+      bool found = false;
       sym1 = XCAR (tail1);
       val1 = Fcar (XCDR (tail1));
 
@@ -401,7 +402,7 @@ add_properties (Lisp_Object plist, INTERVAL i, Lisp_Object object,
 
 	    this_cdr = XCDR (tail2);
 	    /* Found the property.  Now check its value.  */
-	    found = 1;
+	    found = true;
 
 	    /* The properties have the same value on both lists.
 	       Continue to the next property.  */
@@ -438,7 +439,7 @@ add_properties (Lisp_Object plist, INTERVAL i, Lisp_Object object,
 		  Fsetcar (this_cdr, list2 (Fcar (this_cdr), val1));
 	      }
 	    }
-	    changed = 1;
+	    changed = true;
 	    break;
 	  }
 
@@ -451,7 +452,7 @@ add_properties (Lisp_Object plist, INTERVAL i, Lisp_Object object,
 				      sym1, Qnil, object);
 	    }
 	  set_interval_plist (i, Fcons (sym1, Fcons (val1, i->plist)));
-	  changed = 1;
+	  changed = true;
 	}
     }
 
@@ -468,23 +469,18 @@ add_properties (Lisp_Object plist, INTERVAL i, Lisp_Object object,
 static bool
 remove_properties (Lisp_Object plist, Lisp_Object list, INTERVAL i, Lisp_Object object)
 {
-  Lisp_Object tail1, tail2, sym, current_plist;
-  bool changed = 0;
+  bool changed = false;
 
   /* True means tail1 is a plist, otherwise it is a list.  */
-  bool use_plist;
+  bool use_plist = ! NILP (plist);
+  Lisp_Object tail1 = use_plist ? plist : list;
 
-  current_plist = i->plist;
-
-  if (! NILP (plist))
-    tail1 = plist, use_plist = 1;
-  else
-    tail1 = list, use_plist = 0;
+  Lisp_Object current_plist = i->plist;
 
   /* Go through each element of LIST or PLIST.  */
   while (CONSP (tail1))
     {
-      sym = XCAR (tail1);
+      Lisp_Object sym = XCAR (tail1);
 
       /* First, remove the symbol if it's at the head of the list */
       while (CONSP (current_plist) && EQ (sym, XCAR (current_plist)))
@@ -495,15 +491,14 @@ remove_properties (Lisp_Object plist, Lisp_Object list, INTERVAL i, Lisp_Object 
 				    object);
 
 	  current_plist = XCDR (XCDR (current_plist));
-	  changed = 1;
+	  changed = true;
 	}
 
       /* Go through I's plist, looking for SYM.  */
-      tail2 = current_plist;
+      Lisp_Object tail2 = current_plist;
       while (! NILP (tail2))
 	{
-	  register Lisp_Object this;
-	  this = XCDR (XCDR (tail2));
+	  Lisp_Object this = XCDR (XCDR (tail2));
 	  if (CONSP (this) && EQ (sym, XCAR (this)))
 	    {
 	      if (BUFFERP (object))
@@ -511,7 +506,7 @@ remove_properties (Lisp_Object plist, Lisp_Object list, INTERVAL i, Lisp_Object 
 					sym, XCAR (XCDR (this)), object);
 
 	      Fsetcdr (XCDR (tail2), XCDR (XCDR (this)));
-	      changed = 1;
+	      changed = true;
 	    }
 	  tail2 = this;
 	}
@@ -643,7 +638,7 @@ get_char_property_and_overlay (Lisp_Object position, register Lisp_Object prop, 
       set_buffer_temp (XBUFFER (object));
 
       USE_SAFE_ALLOCA;
-      GET_OVERLAYS_AT (XINT (position), overlay_vec, noverlays, NULL, 0);
+      GET_OVERLAYS_AT (XINT (position), overlay_vec, noverlays, NULL, false);
       noverlays = sort_overlays (overlay_vec, noverlays, w);
 
       set_buffer_temp (obuf);
@@ -824,7 +819,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
 	    XSETFASTINT (position, ZV);
 	}
       else
-	while (1)
+	while (true)
 	  {
 	    position = Fnext_char_property_change (position, limit);
 	    if (XFASTINT (position) >= XFASTINT (limit))
@@ -910,7 +905,7 @@ position LIMIT; return LIMIT if nothing is found before reaching LIMIT.  */)
 	    = Fget_char_property (make_number (XFASTINT (position) - 1),
 				  prop, object);
 
-	  while (1)
+	  while (true)
 	    {
 	      position = Fprevious_char_property_change (position, limit);
 
@@ -1156,9 +1151,9 @@ add_text_properties_1 (Lisp_Object start, Lisp_Object end,
 		       enum property_set_type set_type) {
   INTERVAL i, unchanged;
   ptrdiff_t s, len;
-  bool modified = 0;
+  bool modified = false;
   struct gcpro gcpro1;
-  bool first_time = 1;
+  bool first_time = true;
 
   properties = validate_plist (properties);
   if (NILP (properties))
@@ -1218,7 +1213,7 @@ add_text_properties_1 (Lisp_Object start, Lisp_Object end,
       if (TOTAL_LENGTH (i) != prev_total_length
 	  || i->position != prev_pos)
 	{
-	  first_time = 0;
+	  first_time = false;
 	  goto retry;
 	}
     }
@@ -1521,8 +1516,8 @@ Use `set-text-properties' if you want to remove all text properties.  */)
 {
   INTERVAL i, unchanged;
   ptrdiff_t s, len;
-  bool modified = 0;
-  bool first_time = 1;
+  bool modified = false;
+  bool first_time = true;
 
   if (NILP (object))
     XSETBUFFER (object, current_buffer);
@@ -1574,7 +1569,7 @@ Use `set-text-properties' if you want to remove all text properties.  */)
       if (TOTAL_LENGTH (i) != prev_total_length
 	  || i->position != prev_pos)
 	{
-	  first_time = 0;
+	  first_time = false;
 	  goto retry;
 	}
     }
@@ -1633,7 +1628,7 @@ Return t if any property was actually removed, nil otherwise.  */)
 {
   INTERVAL i, unchanged;
   ptrdiff_t s, len;
-  bool modified = 0;
+  bool modified = false;
   Lisp_Object properties;
   properties = list_of_properties;
 
@@ -1672,11 +1667,11 @@ Return t if any property was actually removed, nil otherwise.  */)
     }
 
   /* We are at the beginning of an interval, with len to scan.
-     The flag `modified' records if changes have been made.
+     The flag MODIFIED records if changes have been made.
      When object is a buffer, we must call modify_text_properties
      before changes are made and signal_after_change when we are done.
-     We call modify_text_properties before calling remove_properties if modified == 0,
-     and we call signal_after_change before returning if modified != 0. */
+     Call modify_text_properties before calling remove_properties if !MODIFIED,
+     and call signal_after_change before returning if MODIFIED. */
   for (;;)
     {
       eassert (i != 0);
@@ -1725,7 +1720,7 @@ Return t if any property was actually removed, nil otherwise.  */)
 	  if (!modified && BUFFERP (object))
 	    modify_text_properties (object, start, end);
 	  remove_properties (Qnil, properties, i, object);
-	  modified = 1;
+	  modified = true;
 	}
       len -= LENGTH (i);
       i = next_interval (i);
@@ -1902,7 +1897,7 @@ copy_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object src,
   Lisp_Object stuff;
   Lisp_Object plist;
   ptrdiff_t s, e, e2, p, len;
-  bool modified = 0;
+  bool modified = false;
   struct gcpro gcpro1, gcpro2;
 
   i = validate_interval_range (src, &start, &end, soft);
@@ -1969,7 +1964,7 @@ copy_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object src,
       res = Fadd_text_properties (Fcar (res), Fcar (Fcdr (res)),
 				  Fcar (Fcdr (Fcdr (res))), dest);
       if (! NILP (res))
-	modified = 1;
+	modified = true;
       stuff = Fcdr (stuff);
     }
 

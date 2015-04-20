@@ -376,7 +376,7 @@ for @file{..} and typing @kbd{f} there.
 @end table
 
 @node Marks vs Flags
-@section Dired Marks vs. Flags
+@section Dired Marks vs.@: Flags
 
 @cindex marking many files (in Dired)
   Instead of flagging a file with @samp{D}, you can @dfn{mark} the

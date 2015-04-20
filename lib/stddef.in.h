@@ -83,12 +83,23 @@
 
 /* Some platforms lack max_align_t.  */
 #if !@HAVE_MAX_ALIGN_T@
+/* On the x86, the maximum storage alignment of double, long, etc. is 4,
+   but GCC's C11 ABI for x86 says that max_align_t has an alignment of 8,
+   and the C11 standard allows this.  Work around this problem by
+   using __alignof__ (which returns 8 for double) rather than _Alignof
+   (which returns 4), and align each union member accordingly.  */
+# ifdef __GNUC__
+#  define _GL_STDDEF_ALIGNAS(type) \
+     __attribute__ ((__aligned__ (__alignof__ (type))))
+# else
+#  define _GL_STDDEF_ALIGNAS(type) /* */
+# endif
 typedef union
 {
-  char *__p;
-  double __d;
-  long double __ld;
-  long int __i;
+  char *__p _GL_STDDEF_ALIGNAS (char *);
+  double __d _GL_STDDEF_ALIGNAS (double);
+  long double __ld _GL_STDDEF_ALIGNAS (long double);
+  long int __i _GL_STDDEF_ALIGNAS (long int);
 } max_align_t;
 #endif
 

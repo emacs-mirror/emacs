@@ -2002,8 +2002,9 @@ indentation is aligned to that column."
   (let* ((parse-status
           (save-excursion (syntax-ppss (point-at-bol))))
          (offset (- (point) (save-excursion (back-to-indentation) (point)))))
-    (indent-line-to (js--proper-indentation parse-status))
-    (when (> offset 0) (forward-char offset))))
+    (unless (nth 3 parse-status)
+      (indent-line-to (js--proper-indentation parse-status))
+      (when (> offset 0) (forward-char offset)))))
 
 ;;; Filling
 

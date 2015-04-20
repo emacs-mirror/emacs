@@ -871,12 +871,20 @@ When run interactively, widen the buffer first."
   (goto-char (point-max))
   (recenter -1))
 
-(defun eshell/clear ()
-  "Scroll contents of eshell window out of sight, leaving a blank window."
+(defun eshell/clear (&optional scrollback)
+  "Scroll contents of eshell window out of sight, leaving a blank window.
+If SCROLLBACK is non-nil, clear the scrollback contents."
   (interactive)
-  (let ((number-newlines (count-lines (window-start) (point))))
-    (insert (make-string number-newlines ?\n)))
-    (eshell-send-input))
+  (if scrollback
+      (eshell/clear-scrollback)
+    (let ((number-newlines (count-lines (window-start) (point))))
+      (insert (make-string number-newlines ?\n))
+      (eshell-send-input))))
+
+(defun eshell/clear-scrollback ()
+  "Clear the scrollback content of the eshell window."
+  (let ((inhibit-read-only t))
+    (erase-buffer)))
 
 (defun eshell-get-old-input (&optional use-current-region)
   "Return the command input on the current line."

@@ -188,7 +188,7 @@ basic editing operations under Bazaar.
 @cindex src
 @item
 SRC (src) is RCS, reloaded - a specialized version-control system
-designed for single-file projects worked on by only one person. It
+designed for single-file projects worked on by only one person.  It
 allows multiple files with independent version-control histories to
 exist in one directory, and is thus particularly well suited for
 maintaining small documents, scripts, and dotfiles.  While it uses RCS
@@ -1570,7 +1570,7 @@ dated in May 1993, with two items and one item respectively.
 @smallexample
 1993-05-25  Richard Stallman  <rms@@gnu.org>
 
-        * man.el: Rename symbols `man-*' to `Man-*'.
+        * man.el: Rename symbols 'man-*' to 'Man-*'.
         (manual-entry): Make prompt string clearer.
 
         * simple.el (blink-matching-paren-distance):

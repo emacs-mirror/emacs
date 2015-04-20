@@ -770,7 +770,6 @@ the cell contents dynamically."
   :type 'integer
   :group 'table)
 
-;;;###autoload
 (defcustom table-cell-map-hook nil
   "Normal hooks run when finishing construction of `table-cell-map'.
 User can modify `table-cell-map' by adding custom functions here."
@@ -794,19 +793,16 @@ simply by any key input."
   :type 'boolean
   :group 'table)
 
-;;;###autoload
 (defcustom table-load-hook nil
   "List of functions to be called after the table is first loaded."
   :type 'hook
   :group 'table-hooks)
 
-;;;###autoload
 (defcustom table-point-entered-cell-hook nil
   "List of functions to be called after point entered a table cell."
   :type 'hook
   :group 'table-hooks)
 
-;;;###autoload
 (defcustom table-point-left-cell-hook nil
   "List of functions to be called after point left a table cell."
   :type 'hook
@@ -865,8 +861,6 @@ time.")
   "Cache point coordinate based from the cell origin.")
 (defvar table-cell-cache-mark-coordinate nil
   "Cache mark coordinate based from the cell origin.")
-(defvar table-cell-entered-state nil
-  "Records the state whether currently in a cell or nor.")
 (defvar table-update-timer nil
   "Timer id for deferred cell update.")
 (defvar table-widen-timer nil
@@ -1216,14 +1210,14 @@ This is always set to nil at the entry to `table-with-cache-buffer' before execu
 ;; does not cause a problem in the old implementation.  Sigh...
 (when (featurep 'xemacs)
   (defun table--tweak-menu-for-xemacs (menu)
-     (cond
-      ((listp menu)
-       (mapcar #'table--tweak-menu-for-xemacs menu))
-      ((vectorp menu)
-       (let ((len (length menu)))
-	 (dotimes (i len)
-	   ;; replace :help with something harmless.
-	   (if (eq (aref menu i) :help) (aset menu i :included)))))))
+    (cond
+     ((listp menu)
+      (mapcar #'table--tweak-menu-for-xemacs menu))
+     ((vectorp menu)
+      (let ((len (length menu)))
+        (dotimes (i len)
+          ;; replace :help with something harmless.
+          (if (eq (aref menu i) :help) (aset menu i :included)))))))
   (mapcar #'table--tweak-menu-for-xemacs
           (list table-global-menu table-cell-menu))
   (defvar mark-active t))
@@ -5187,8 +5181,8 @@ and the right cell border character."
 
 (defun table--put-cell-point-entered/left-property (beg end &optional object)
   "Put point-entered/left property."
-  (put-text-property beg end 'point-entered 'table--point-entered-cell-function object)
-  (put-text-property beg end 'point-left 'table--point-left-cell-function object))
+  (put-text-property beg end 'cursor-sensor-functions
+                     '(table--point-entered/left-cell-function) object))
 
 (defun table--remove-cell-properties (beg end &optional object)
   "Remove all cell properties.
@@ -5204,8 +5198,7 @@ instead of the current buffer and returns the OBJECT."
 				   'table-valign nil
 				   'face nil
 				   'rear-nonsticky nil
-				   'point-entered nil
-				   'point-left nil
+				   'cursor-sensor-functions nil
 				   'keymap nil)
 				  object))
       (setq beg next)))
@@ -5247,28 +5240,20 @@ instead of the current buffer and returns the OBJECT."
   "Put cell's vertical alignment property."
   (table--put-property cell 'table-valign valign))
 
-(defun table--point-entered-cell-function (&optional _old-point _new-point)
+(defun table--point-entered/left-cell-function (_window _oldpos dir)
   "Point has entered a cell.
 Refresh the menu bar."
   ;; Avoid calling point-motion-hooks recursively.
   (let ((inhibit-point-motion-hooks t))
-    (unless table-cell-entered-state
-      (setq table-cell-entered-state t)
-      (setq table-mode-indicator t)
-      (force-mode-line-update)
-      (table--warn-incompatibility)
-      (run-hooks 'table-point-entered-cell-hook))))
-
-(defun table--point-left-cell-function (&optional _old-point _new-point)
-  "Point has left a cell.
-Refresh the menu bar."
-  ;; Avoid calling point-motion-hooks recursively.
-  (let ((inhibit-point-motion-hooks t))
-    (when table-cell-entered-state
-      (setq table-cell-entered-state nil)
+    (force-mode-line-update)
+    (pcase dir
+     ('left
       (setq table-mode-indicator nil)
-      (force-mode-line-update)
-      (run-hooks 'table-point-left-cell-hook))))
+      (run-hooks 'table-point-left-cell-hook))
+     ('entered
+      (setq table-mode-indicator t)
+      (table--warn-incompatibility)
+      (run-hooks 'table-point-entered-cell-hook)))))
 
 (defun table--warn-incompatibility ()
   "If called from interactive operation warn the know incompatibilities.

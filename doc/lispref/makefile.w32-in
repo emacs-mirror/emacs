@@ -31,7 +31,7 @@ texinfodir = $(srcdir)/../misc
 INFO_EXT=.info
 INFO_OPTS=--no-split
 
-# Redefine `TEX' if `tex' does not invoke plain TeX.  For example:
+# Redefine 'TEX' if 'tex' does not invoke plain TeX.  For example:
 # TEX=platex
 TEX=tex
 INSTALL_INFO = install-info
@@ -102,7 +102,7 @@ srcs = \
 
 .PHONY: clean
 
-# The info file is named `elisp'.
+# The info file is named 'elisp'.
 
 info: $(infodir)/elisp$(INFO_EXT)
 

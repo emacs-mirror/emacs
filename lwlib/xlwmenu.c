@@ -105,7 +105,7 @@ xlwMenuTranslations [] =
 
 /* FIXME: F10 should enter the menu, the first one in the menu-bar.  */
 
-#define offset(field) XtOffset(XlwMenuWidget, field)
+#define offset(field) offsetof (XlwMenuRec, field)
 static XtResource
 xlwMenuResources[] =
 {

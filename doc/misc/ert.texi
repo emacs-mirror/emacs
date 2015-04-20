@@ -822,7 +822,7 @@ functions.
 
 While fixtures are a useful syntactic simplification in other
 languages, this does not apply to Lisp, where higher-order functions
-and `unwind-protect' are available.  One way to implement and use a
+and @code{unwind-protect} are available.  One way to implement and use a
 fixture in ERT is
 
 @lisp
@@ -851,7 +851,7 @@ be added but would provide only a minor simplification.
 
 (If you are interested in such syntax, note that splitting set-up and
 tear-down into separate functions, like *Unit tools usually do, makes
-it impossible to establish dynamic `let' bindings as part of the
+it impossible to establish dynamic @code{let} bindings as part of the
 fixture.  So, blindly imitating the way fixtures are implemented in
 other languages would be counter-productive in Lisp.)
 

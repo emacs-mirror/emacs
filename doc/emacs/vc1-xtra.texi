@@ -59,7 +59,7 @@ As above, but only find entries for the current buffer's file.
   For example, suppose the first line of @file{ChangeLog} is dated
 1999-04-10, and that the only check-in since then was by Nathaniel
 Bowditch to @file{rcs2log} on 1999-05-22 with log entry @samp{Ignore
-log messages that start with `#'.}.  Then @kbd{C-x v a} inserts this
+log messages that start with '#'.}.  Then @kbd{C-x v a} inserts this
 @file{ChangeLog} entry:
 
 @iftex
@@ -69,7 +69,7 @@ log messages that start with `#'.}.  Then @kbd{C-x v a} inserts this
 @group
 1999-05-22  Nathaniel Bowditch  <nat@@apn.org>
 
-        * rcs2log: Ignore log messages that start with `#'.
+        * rcs2log: Ignore log messages that start with '#'.
 @end group
 @end smallexample
 @iftex

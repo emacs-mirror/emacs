@@ -31,7 +31,7 @@ GNULIB_MODULES='
   crypto/md5 crypto/sha1 crypto/sha256 crypto/sha512
   dtoastr dtotimespec dup2 environ execinfo faccessat
   fcntl fcntl-h fdatasync fdopendir filemode fstatat fsync
-  getloadavg getopt-gnu gettime gettimeofday
+  getloadavg getopt-gnu gettime gettimeofday gitlog-to-changelog
   intprops largefile lstat
   manywarnings memrchr mkostemp mktime
   pipe2 pselect pthread_sigmask putenv qacl readlink readlinkat

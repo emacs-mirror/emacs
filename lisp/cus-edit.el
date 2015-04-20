@@ -4406,7 +4406,9 @@ if only the first line of the docstring is shown."))
 	 old-buffer-name)
 
     (with-current-buffer (let ((find-file-visit-truename t))
-			   (or old-buffer (find-file-noselect filename)))
+			   (or old-buffer
+                               (let ((delay-mode-hooks t))
+                                 (find-file-noselect filename))))
       ;; We'll save using file-precious-flag, so avoid destroying
       ;; symlinks.  (If we're not already visiting the buffer, this is
       ;; handled by find-file-visit-truename, above.)
@@ -4415,7 +4417,7 @@ if only the first line of the docstring is shown."))
 	(set-visited-file-name (file-chase-links filename)))
 
       (unless (eq major-mode 'emacs-lisp-mode)
-	(emacs-lisp-mode))
+        (delay-mode-hooks (emacs-lisp-mode)))
       (let ((inhibit-read-only t)
 	    (print-length nil)
 	    (print-level nil))

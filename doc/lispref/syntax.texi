@@ -203,7 +203,7 @@ suppressed.
 The Lisp modes have two string quote characters: double-quote (@samp{"})
 and vertical bar (@samp{|}).  @samp{|} is not used in Emacs Lisp, but it
 is used in Common Lisp.  C also has two string quote characters:
-double-quote for strings, and single-quote (@samp{'}) for character
+double-quote for strings, and apostrophe (@samp{'}) for character
 constants.
 
 Human text has no string quote characters.  We do not want quotation

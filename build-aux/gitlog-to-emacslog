@@ -1,0 +1,72 @@
+#!/bin/sh
+
+# Convert git log output to ChangeLog format for GNU Emacs.
+
+# Copyright (C) 2014-2015 Free Software Foundation, Inc.
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# Written by Paul Eggert
+
+LC_ALL=C
+export LC_ALL
+
+gen_origin=${1?}
+
+# If this is not a Git repository, just generate an empty ChangeLog.
+test -d ${srcprefix}.git || {
+  # Remove any old ChangeLog, in case it is a vc-dwim symlink.
+  rm -f "${distprefix}ChangeLog" || exit
+  >"${distprefix}ChangeLog"
+  exit
+}
+
+# Use Gnulib's packaged ChangeLog generator.
+${srcprefix}build-aux/gitlog-to-changelog --ignore-matching='^; ' \
+  "$gen_origin.." >"${distprefix}ChangeLog.tmp" || exit
+
+if test -s "${distprefix}ChangeLog.tmp"; then
+
+  # Find the years covered by the generated ChangeLog, so that
+  # a proper copyright notice can be output.
+  years=`
+    sed -n 's/^\([0-9][0-9]*\).*/\1/p' "${distprefix}ChangeLog.tmp" |
+    sort -nu
+  `
+  start_year=
+  end_year=
+  for year in $years; do
+    : ${start_year:=$year}
+    end_year=$year
+  done
+
+  if test "$start_year" = "$end_year"; then
+    year_range=$start_year
+  else
+    year_range=$start_year-$end_year
+  fi
+
+  # Append a proper copyright notice.
+  sed -n '
+    1i\
+
+    /^;; Local Variables:/,${
+       s/\(Copyright[ (C)]*\)[0-9]*-[0-9]*/\1'"$year_range"'/
+       p
+    }
+  ' <ChangeLog.1 >>"${distprefix}ChangeLog.tmp" || exit
+fi
+
+# Install the generated ChangeLog.
+mv -i "${distprefix}ChangeLog.tmp" "${distprefix}ChangeLog"

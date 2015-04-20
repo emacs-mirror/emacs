@@ -47,6 +47,8 @@
 
 (require 'wid-edit)
 
+(eval-when-compile (require 'cl-lib))
+
 (eval-and-compile
   (if (not (fboundp 'make-overlay))
       (require 'overlay)))
@@ -104,18 +106,6 @@
 ;; Protocol local. Whether the protocol supports queries with no specified
 ;; attribute name
 (defvar eudc-protocol-has-default-query-attributes nil)
-
-(defun eudc-cadr (obj)
-  (car (cdr obj)))
-
-(defun eudc-cdar (obj)
-  (cdr (car obj)))
-
-(defun eudc-caar (obj)
-  (car (car obj)))
-
-(defun eudc-cdaar (obj)
-  (cdr (car (car obj))))
 
 (defun eudc-plist-member (plist prop)
   "Return t if PROP has a value specified in PLIST."
@@ -555,10 +545,10 @@ otherwise they are formatted according to `eudc-user-attribute-names-alist'."
 
     ;; Search for multiple records
     (while (and rec
-		(not (listp (eudc-cdar rec))))
+		(not (listp (cdar rec))))
       (setq rec (cdr rec)))
 
-    (if (null (eudc-cdar rec))
+    (if (null (cdar rec))
 	(list record)			; No duplicate attrs in this record
       (mapc (function
 	     (lambda (field)
@@ -590,7 +580,7 @@ otherwise they are formatted according to `eudc-user-attribute-names-alist'."
 	     ((eq 'first method)
 	      (setq result
 		    (eudc-add-field-to-records (cons (car field)
-						     (eudc-cadr field))
+						     (cadr field))
 					       result)))
 	     ((eq 'concat method)
 	      (setq result
@@ -710,7 +700,7 @@ If ERROR is non-nil, report an error if there is none."
   (let ((result (eudc-query (list (cons 'name name)) '(email)))
 	email)
     (if (null (cdr result))
-	(setq email (eudc-cdaar result))
+	(setq email (cl-cdaar result))
       (error "Multiple match--use the query form"))
     (if error
 	(if email
@@ -728,7 +718,7 @@ If ERROR is non-nil, report an error if there is none."
   (let ((result (eudc-query (list (cons 'name name)) '(phone)))
 	phone)
     (if (null (cdr result))
-	(setq phone (eudc-cdaar result))
+	(setq phone (cl-cdaar result))
       (error "Multiple match--use the query form"))
     (if error
 	(if phone
@@ -765,8 +755,8 @@ otherwise a list of symbols is returned."
 	  ;; If the same attribute appears more than once, merge
 	  ;; the corresponding values
 	  (while query-alist
-	    (setq key (eudc-caar query-alist)
-		  val (eudc-cdar query-alist)
+	    (setq key (caar query-alist)
+		  val (cdar query-alist)
 		  cell (assq key query))
 	    (if cell
 		(setcdr cell (concat (cdr cell) " " val))
@@ -863,7 +853,7 @@ see `eudc-inline-expansion-servers'"
 		(catch 'found
 		  ;; Loop on the servers
 		  (while servers
-		    (eudc-set-server (eudc-caar servers) (eudc-cdar servers) t)
+		    (eudc-set-server (caar servers) (cdar servers) t)
 
 		    ;; Determine which formats apply in the query-format list
 		    (setq query-formats
@@ -1047,14 +1037,14 @@ queries the server for the existing fields and displays a corresponding form."
 				 (point))
 		  (setq set-server-p t))
 		 ((and (eq (car sexp)  'setq)
-		       (eq (eudc-cadr sexp) 'eudc-server-hotlist))
+		       (eq (cadr sexp) 'eudc-server-hotlist))
 		  (delete-region (save-excursion
 				   (backward-sexp)
 				   (point))
 				 (point))
 		  (setq set-hotlist-p t))
 		 ((and (eq (car sexp)  'provide)
-		       (equal (eudc-cadr sexp) '(quote eudc-options-file)))
+		       (equal (cadr sexp) '(quote eudc-options-file)))
 		  (setq provide-p t)))
 	      (if (and provide-p
 		       set-hotlist-p

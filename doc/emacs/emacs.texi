@@ -115,7 +115,7 @@ display editor.  This manual describes how to edit with Emacs and
 some of the ways to customize it; it corresponds to GNU Emacs version
 @value{EMACSVER}.
 
-@c See `manual-html-mono' and `manual-html-node' in admin/admin.el.
+@c See 'manual-html-mono' and 'manual-html-node' in admin/admin.el.
 @ifset WWW_GNU_ORG
 @html
 The homepage for GNU Emacs is at
@@ -239,9 +239,9 @@ Indexes (each index contains a large menu)
 * Concept Index::       An item for each concept.
 
 @c Do NOT modify the following 3 lines!  They must have this form to
-@c be correctly identified by `texinfo-multiple-files-update'.  In
+@c be correctly identified by 'texinfo-multiple-files-update'.  In
 @c particular, the detailed menu header line MUST be identical to the
-@c value of `texinfo-master-menu-header'.  See texnfo-upd.el.
+@c value of 'texinfo-master-menu-header'.  See texnfo-upd.el.
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -391,7 +391,7 @@ Searching and Replacement
 * Symbol Search::          Search for a source code symbol.
 * Regexp Search::          Search for match for a regexp.
 * Regexps::                Syntax of regular expressions.
-* Regexp Backslash::       Regular expression constructs starting with `\'.
+* Regexp Backslash::       Regular expression constructs starting with '\'.
 * Regexp Example::         A complex regular expression explained.
 * Search Case::            To ignore case while searching, or not.
 * Replace::                Search, and replace some or all matches.
@@ -1149,7 +1149,7 @@ The Emacs Initialization File
 Dealing with Emacs Trouble
 
 * DEL Does Not Delete:: What to do if @key{DEL} doesn't delete.
-* Stuck Recursive::     `[...]' in mode line around the parentheses.
+* Stuck Recursive::     '[...]' in mode line around the parentheses.
 * Screen Garbled::      Garbage on the screen.
 * Text Garbled::        Garbage in the text.
 * Memory Full::         How to cope when you run out of memory.

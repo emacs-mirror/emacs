@@ -482,19 +482,10 @@ The type returned can be `comment', `string' or `paren'."
   'python-info-ppss-comment-or-string-p
   #'python-syntax-comment-or-string-p "24.3")
 
-(defun python-docstring-at-p (pos)
-  "Check to see if there is a docstring at POS."
-  (save-excursion
-    (goto-char pos)
-    (if (looking-at-p "'''\\|\"\"\"")
-        (progn
-          (python-nav-backward-statement)
-          (looking-at "\\`\\|class \\|def "))
-      nil)))
-
 (defun python-font-lock-syntactic-face-function (state)
+  "Return syntactic face given STATE."
   (if (nth 3 state)
-      (if (python-docstring-at-p (nth 8 state))
+      (if (python-info-docstring-p state)
           font-lock-doc-face
         font-lock-string-face)
     font-lock-comment-face))
@@ -853,7 +844,9 @@ keyword
        ;; Inside a string.
        ((let ((start (python-syntax-context 'string ppss)))
           (when start
-            (cons :inside-string start))))
+            (cons (if (python-info-docstring-p)
+                      :inside-docstring
+                    :inside-string) start))))
        ;; Inside a paren.
        ((let* ((start (python-syntax-context 'paren ppss))
                (starts-in-newline
@@ -998,6 +991,12 @@ possibilities can be narrowed to specific indentation points."
          ;; Copy previous indentation.
          (goto-char start)
          (current-indentation))
+        (`(:inside-docstring . ,start)
+         (let* ((line-indentation (current-indentation))
+                (base-indent (progn
+                               (goto-char start)
+                               (current-indentation))))
+           (max line-indentation base-indent)))
         (`(,(or :after-block-start
                 :after-backslash-first-line
                 :inside-paren-newline-start) . ,start)
@@ -1147,14 +1146,15 @@ Called from a program, START and END specify the region to indent."
                                  (not line-is-comment-p))
                             (python-info-current-line-empty-p)))))
                    ;; Don't mess with strings, unless it's the
-                   ;; enclosing set of quotes.
+                   ;; enclosing set of quotes or a docstring.
                    (or (not (python-syntax-context 'string))
                        (eq
                         (syntax-after
                          (+ (1- (point))
                             (current-indentation)
                             (python-syntax-count-quotes (char-after) (point))))
-                        (string-to-syntax "|")))
+                        (string-to-syntax "|"))
+                       (python-info-docstring-p))
                    ;; Skip if current line is a block start, a
                    ;; dedenter or block ender.
                    (save-excursion
@@ -1580,11 +1580,13 @@ forward only one sexp, else move backwards."
        (while (and (funcall search-fn paren-regexp nil t)
                    (python-syntax-context 'paren)))))))
 
-(defun python-nav--forward-sexp (&optional dir safe)
+(defun python-nav--forward-sexp (&optional dir safe skip-parens-p)
   "Move to forward sexp.
 With positive optional argument DIR direction move forward, else
 backwards.  When optional argument SAFE is non-nil do not throw
-errors when at end of sexp, skip it instead."
+errors when at end of sexp, skip it instead.  With optional
+argument SKIP-PARENS-P force sexp motion to ignore parenthesized
+expressions when looking at them in either direction."
   (setq dir (or dir 1))
   (unless (= dir 0)
     (let* ((forward-p (if (> dir 0)
@@ -1596,11 +1598,13 @@ errors when at end of sexp, skip it instead."
         ;; Inside of a string, get out of it.
         (let ((forward-sexp-function))
           (forward-sexp dir)))
-       ((or (eq context-type 'paren)
-            (and forward-p (looking-at (python-rx open-paren)))
-            (and (not forward-p)
-                 (eq (syntax-class (syntax-after (1- (point))))
-                     (car (string-to-syntax ")")))))
+       ((and (not skip-parens-p)
+             (or (eq context-type 'paren)
+                 (if forward-p
+                     (eq (syntax-class (syntax-after (point)))
+                         (car (string-to-syntax "(")))
+                   (eq (syntax-class (syntax-after (1- (point))))
+                       (car (string-to-syntax ")"))))))
         ;; Inside a paren or looking at it, lisp knows what to do.
         (if safe
             (python-nav--lisp-forward-sexp-safe dir)
@@ -1636,7 +1640,7 @@ errors when at end of sexp, skip it instead."
               (cond ((and (not (eobp))
                           (python-info-current-line-empty-p))
                      (python-util-forward-comment dir)
-                     (python-nav--forward-sexp dir))
+                     (python-nav--forward-sexp dir safe skip-parens-p))
                     ((eq context 'block-start)
                      (python-nav-end-of-block))
                     ((eq context 'statement-start)
@@ -1656,7 +1660,7 @@ errors when at end of sexp, skip it instead."
             (cond ((and (not (bobp))
                         (python-info-current-line-empty-p))
                    (python-util-forward-comment dir)
-                   (python-nav--forward-sexp dir))
+                   (python-nav--forward-sexp dir safe skip-parens-p))
                   ((eq context 'block-end)
                    (python-nav-beginning-of-block))
                   ((eq context 'statement-end)
@@ -1674,47 +1678,69 @@ errors when at end of sexp, skip it instead."
                    (python-nav-beginning-of-statement))
                   (t (goto-char next-sexp-pos))))))))))
 
-(defun python-nav-forward-sexp (&optional arg)
+(defun python-nav-forward-sexp (&optional arg safe skip-parens-p)
   "Move forward across expressions.
 With ARG, do it that many times.  Negative arg -N means move
-backward N times."
+backward N times.  When optional argument SAFE is non-nil do not
+throw errors when at end of sexp, skip it instead.  With optional
+argument SKIP-PARENS-P force sexp motion to ignore parenthesized
+expressions when looking at them in either direction (forced to t
+in interactive calls)."
   (interactive "^p")
   (or arg (setq arg 1))
+  ;; Do not follow parens on interactive calls.  This hack to detect
+  ;; if the function was called interactively copes with the way
+  ;; `forward-sexp' works by calling `forward-sexp-function', losing
+  ;; interactive detection by checking `current-prefix-arg'.  The
+  ;; reason to make this distinction is that lisp functions like
+  ;; `blink-matching-open' get confused causing issues like the one in
+  ;; Bug#16191.  With this approach the user gets a symmetric behavior
+  ;; when working interactively while called functions expecting
+  ;; paren-based sexp motion work just fine.
+  (or
+   skip-parens-p
+   (setq skip-parens-p
+         (memq real-this-command
+               (list
+                #'forward-sexp #'backward-sexp
+                #'python-nav-forward-sexp #'python-nav-backward-sexp
+                #'python-nav-forward-sexp-safe #'python-nav-backward-sexp))))
   (while (> arg 0)
-    (python-nav--forward-sexp 1)
+    (python-nav--forward-sexp 1 safe skip-parens-p)
     (setq arg (1- arg)))
   (while (< arg 0)
-    (python-nav--forward-sexp -1)
+    (python-nav--forward-sexp -1 safe skip-parens-p)
     (setq arg (1+ arg))))
 
-(defun python-nav-backward-sexp (&optional arg)
+(defun python-nav-backward-sexp (&optional arg safe skip-parens-p)
   "Move backward across expressions.
 With ARG, do it that many times.  Negative arg -N means move
-forward N times."
+forward N times.  When optional argument SAFE is non-nil do not
+throw errors when at end of sexp, skip it instead.  With optional
+argument SKIP-PARENS-P force sexp motion to ignore parenthesized
+expressions when looking at them in either direction (forced to t
+in interactive calls)."
   (interactive "^p")
   (or arg (setq arg 1))
-  (python-nav-forward-sexp (- arg)))
+  (python-nav-forward-sexp (- arg) safe skip-parens-p))
 
-(defun python-nav-forward-sexp-safe (&optional arg)
+(defun python-nav-forward-sexp-safe (&optional arg skip-parens-p)
   "Move forward safely across expressions.
 With ARG, do it that many times.  Negative arg -N means move
-backward N times."
+backward N times.  With optional argument SKIP-PARENS-P force
+sexp motion to ignore parenthesized expressions when looking at
+them in either direction (forced to t in interactive calls)."
   (interactive "^p")
-  (or arg (setq arg 1))
-  (while (> arg 0)
-    (python-nav--forward-sexp 1 t)
-    (setq arg (1- arg)))
-  (while (< arg 0)
-    (python-nav--forward-sexp -1 t)
-    (setq arg (1+ arg))))
+  (python-nav-forward-sexp arg t skip-parens-p))
 
-(defun python-nav-backward-sexp-safe (&optional arg)
+(defun python-nav-backward-sexp-safe (&optional arg skip-parens-p)
   "Move backward safely across expressions.
 With ARG, do it that many times.  Negative arg -N means move
-forward N times."
+forward N times.  With optional argument SKIP-PARENS-P force sexp
+motion to ignore parenthesized expressions when looking at them in
+either direction (forced to t in interactive calls)."
   (interactive "^p")
-  (or arg (setq arg 1))
-  (python-nav-forward-sexp-safe (- arg)))
+  (python-nav-backward-sexp arg t skip-parens-p))
 
 (defun python-nav--up-list (&optional dir)
   "Internal implementation of `python-nav-up-list'.
@@ -2971,25 +2997,25 @@ This function takes the list of setup code to send from the
 
 (defcustom python-shell-completion-setup-code
   "try:
-    import __builtin__
-except ImportError:
-    # Python 3
-    import builtins as __builtin__
-try:
-    import readline, rlcompleter
+    import readline
 except:
     def __PYTHON_EL_get_completions(text):
         return []
 else:
     def __PYTHON_EL_get_completions(text):
+        try:
+            import __builtin__
+        except ImportError:
+            # Python 3
+            import builtins as __builtin__
         builtins = dir(__builtin__)
         completions = []
+        is_ipython = ('__IPYTHON__' in builtins or
+                      '__IPYTHON__active' in builtins)
+        splits = text.split()
+        is_module = splits and splits[0] in ('from', 'import')
         try:
-            splits = text.split()
-            is_module = splits and splits[0] in ('from', 'import')
-            is_ipython = ('__IPYTHON__' in builtins or
-                          '__IPYTHON__active' in builtins)
-            if is_module:
+            if is_ipython and is_module:
                 from IPython.core.completerlib import module_completion
                 completions = module_completion(text.strip())
             elif is_ipython and '__IP' in builtins:
@@ -2997,13 +3023,20 @@ else:
             elif is_ipython and 'get_ipython' in builtins:
                 completions = get_ipython().Completer.all_completions(text)
             else:
+                # Try to reuse current completer.
+                completer = readline.get_completer()
+                if not completer:
+                    # importing rlcompleter sets the completer, use it as a
+                    # last resort to avoid breaking customizations.
+                    import rlcompleter
+                    completer = readline.get_completer()
                 i = 0
                 while True:
-                    res = readline.get_completer()(text, i)
-                    if not res:
+                    completion = completer(text, i)
+                    if not completion:
                         break
                     i += 1
-                    completions.append(res)
+                    completions.append(completion)
         except:
             pass
         return completions"
@@ -3042,8 +3075,12 @@ When a match is found, native completion is disabled."
   "Enable readline based native completion."
   :type 'boolean)
 
-(defcustom python-shell-completion-native-output-timeout 0.01
+(defcustom python-shell-completion-native-output-timeout 5.0
   "Time in seconds to wait for completion output before giving up."
+  :type 'float)
+
+(defcustom python-shell-completion-native-try-output-timeout 1.0
+  "Time in seconds to wait for *trying* native completion output."
   :type 'float)
 
 (defvar python-shell-completion-native-redirect-buffer
@@ -3059,7 +3096,9 @@ When a match is found, native completion is disabled."
 
 (defun python-shell-completion-native-try ()
   "Return non-nil if can trigger native completion."
-  (let ((python-shell-completion-native-enable t))
+  (let ((python-shell-completion-native-enable t)
+        (python-shell-completion-native-output-timeout
+         python-shell-completion-native-try-output-timeout))
     (python-shell-completion-native-get-completions
      (get-buffer-process (current-buffer))
      nil "int")))
@@ -3067,27 +3106,73 @@ When a match is found, native completion is disabled."
 (defun python-shell-completion-native-setup ()
   "Try to setup native completion, return non-nil on success."
   (let ((process (python-shell-get-process)))
-    (python-shell-send-string
-     (funcall
-      'mapconcat
-      #'identity
-      (list
-       "try:"
-       "    import readline, rlcompleter"
-       ;; Remove parens on callables as it breaks completion on
-       ;; arguments (e.g. str(Ari<tab>)).
-       "    class Completer(rlcompleter.Completer):"
-       "        def _callable_postfix(self, val, word):"
-       "            return word"
-       "    readline.set_completer(Completer().complete)"
-       "    if readline.__doc__ and 'libedit' in readline.__doc__:"
-       "        readline.parse_and_bind('bind ^I rl_complete')"
-       "    else:"
-       "        readline.parse_and_bind('tab: complete')"
-       "    print ('python.el: readline is available')"
-       "except:"
-       "    print ('python.el: readline not available')")
-      "\n")
+    (python-shell-send-string "
+def __PYTHON_EL_native_completion_setup():
+    try:
+        import readline
+        try:
+            import __builtin__
+        except ImportError:
+            # Python 3
+            import builtins as __builtin__
+        builtins = dir(__builtin__)
+        is_ipython = ('__IPYTHON__' in builtins or
+                      '__IPYTHON__active' in builtins)
+        class __PYTHON_EL_Completer:
+            PYTHON_EL_WRAPPED = True
+            def __init__(self, completer):
+                self.completer = completer
+                self.last_completion = None
+            def __call__(self, text, state):
+                if state == 0:
+                    # The first completion is always a dummy completion.  This
+                    # ensures proper output for sole completions and a current
+                    # input safeguard when no completions are available.
+                    self.last_completion = None
+                    completion = '0__dummy_completion__'
+                else:
+                    completion = self.completer(text, state - 1)
+                if not completion:
+                    if state == 1:
+                        # When no completions are available, two non-sharing
+                        # prefix strings are returned just to ensure output
+                        # while preventing changes to current input.
+                        completion = '1__dummy_completion__'
+                    elif self.last_completion != '~~~~__dummy_completion__':
+                        # This marks the end of output.
+                        completion = '~~~~__dummy_completion__'
+                elif completion.endswith('('):
+                    # Remove parens on callables as it breaks completion on
+                    # arguments (e.g. str(Ari<tab>)).
+                    completion = completion[:-1]
+                self.last_completion = completion
+                return completion
+        completer = readline.get_completer()
+        if not completer:
+            # Used as last resort to avoid breaking customizations.
+            import rlcompleter
+            completer = readline.get_completer()
+        if completer and not getattr(completer, 'PYTHON_EL_WRAPPED', False):
+            # Wrap the existing completer function only once.
+            new_completer = __PYTHON_EL_Completer(completer)
+            if not is_ipython:
+                readline.set_completer(new_completer)
+            else:
+                # IPython hacks readline such that `readline.set_completer`
+                # won't work.  This workaround injects the new completer
+                # function into the existing instance directly.
+                instance = getattr(completer, 'im_self', completer.__self__)
+                instance.rlcomplete = new_completer
+        if readline.__doc__ and 'libedit' in readline.__doc__:
+            readline.parse_and_bind('bind ^I rl_complete')
+        else:
+            readline.parse_and_bind('tab: complete')
+            # Require just one tab to send output.
+            readline.parse_and_bind('set show-all-if-ambiguous on')
+        print ('python.el: readline is available')
+    except IOError:
+        print ('python.el: readline not available')
+__PYTHON_EL_native_completion_setup()"
      process)
     (python-shell-accept-process-output process)
     (when (save-excursion
@@ -3165,9 +3250,8 @@ completion."
              (original-filter-fn (process-filter process))
              (redirect-buffer (get-buffer-create
                                python-shell-completion-native-redirect-buffer))
-             (separators (python-rx
-                          (or whitespace open-paren close-paren)))
-             (trigger "\t\t\t")
+             (separators (python-rx (or whitespace open-paren close-paren)))
+             (trigger "\t")
              (new-input (concat input trigger))
              (input-length
               (save-excursion
@@ -3189,7 +3273,8 @@ completion."
                     (comint-redirect-insert-matching-regexp nil)
                     ;; Feed it some regex that will never match.
                     (comint-redirect-finished-regexp "^\\'$")
-                    (comint-redirect-output-buffer redirect-buffer))
+                    (comint-redirect-output-buffer redirect-buffer)
+                    (current-time (float-time)))
                 ;; Compatibility with Emacs 24.x.  Comint changed and
                 ;; now `comint-redirect-filter' gets 3 args.  This
                 ;; checks which version of `comint-redirect-filter' is
@@ -3202,22 +3287,22 @@ completion."
                               #'comint-redirect-filter original-filter-fn))
                   (set-process-filter process #'comint-redirect-filter))
                 (process-send-string process input-to-send)
-                (accept-process-output
-                 process
-                 python-shell-completion-native-output-timeout)
-                ;; XXX: can't use `python-shell-accept-process-output'
-                ;; here because there are no guarantees on how output
-                ;; ends.  The workaround here is to call
-                ;; `accept-process-output' until we don't find anything
-                ;; else to accept.
-                (while (accept-process-output
-                        process
-                        python-shell-completion-native-output-timeout))
+                ;; Grab output until our dummy completion used as
+                ;; output end marker is found.  Output is accepted
+                ;; *very* quickly to keep the shell super-responsive.
+                (while (and (not (re-search-backward "~~~~__dummy_completion__" nil t))
+                            (< (- current-time (float-time))
+                               python-shell-completion-native-output-timeout))
+                  (accept-process-output process 0.01))
                 (cl-remove-duplicates
-                 (split-string
-                  (buffer-substring-no-properties
-                   (point-min) (point-max))
-                  separators t))))
+                 (cl-remove-if
+                  (lambda (c)
+                    (string-match "__dummy_completion__" c))
+                  (split-string
+                   (buffer-substring-no-properties
+                    (point-min) (point-max))
+                   separators t))
+                 :test #'string=)))
           (set-process-filter process original-filter-fn))))))
 
 (defun python-shell-completion-get-completions (process import input)
@@ -3587,17 +3672,12 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
             (`pep-257 (and multi-line-p (cons nil 2)))
             (`pep-257-nn (and multi-line-p (cons nil 1)))
             (`symmetric (and multi-line-p (cons 1 1)))))
-         (docstring-p (save-excursion
-                        ;; Consider docstrings those strings which
-                        ;; start on a line by themselves.
-                        (python-nav-beginning-of-statement)
-                        (and (= (point) str-start-pos))))
          (fill-paragraph-function))
     (save-restriction
       (narrow-to-region str-start-pos str-end-pos)
       (fill-paragraph justify))
     (save-excursion
-      (when (and docstring-p python-fill-docstring-style)
+      (when (and (python-info-docstring-p) python-fill-docstring-style)
         ;; Add the number of newlines indicated by the selected style
         ;; at the start of the docstring.
         (goto-char (+ str-start-pos num-quotes))
@@ -4423,23 +4503,40 @@ where the continued line ends."
       (when (looking-at (python-rx block-start))
         (point-marker)))))
 
+(defun python-info-assignment-statement-p (&optional current-line-only)
+  "Check if current line is an assignment.
+With argument CURRENT-LINE-ONLY is non-nil, don't follow any
+continuations, just check the if current line is an assignment."
+  (save-excursion
+    (let ((found nil))
+      (if current-line-only
+          (back-to-indentation)
+        (python-nav-beginning-of-statement))
+      (while (and
+              (re-search-forward (python-rx not-simple-operator
+                                            assignment-operator
+                                            (group not-simple-operator))
+                                 (line-end-position) t)
+              (not found))
+        (save-excursion
+          ;; The assignment operator should not be inside a string.
+          (backward-char (length (match-string-no-properties 1)))
+          (setq found (not (python-syntax-context-type)))))
+      (when found
+        (skip-syntax-forward " ")
+        (point-marker)))))
+
+;; TODO: rename to clarify this is only for the first continuation
+;; line or remove it and move its body to `python-indent-context'.
 (defun python-info-assignment-continuation-line-p ()
-  "Check if current line is a continuation of an assignment.
+  "Check if current line is the first continuation of an assignment.
 When current line is continuation of another with an assignment
 return the point of the first non-blank character after the
 operator."
   (save-excursion
     (when (python-info-continuation-line-p)
       (forward-line -1)
-      (back-to-indentation)
-      (when (and (not (looking-at (python-rx block-start)))
-                 (and (re-search-forward (python-rx not-simple-operator
-                                                    assignment-operator
-                                                    not-simple-operator)
-                                         (line-end-position) t)
-                      (not (python-syntax-context-type))))
-        (skip-syntax-forward "\s")
-        (point-marker)))))
+      (python-info-assignment-statement-p t))))
 
 (defun python-info-looking-at-beginning-of-defun (&optional syntax-ppss)
   "Check if point is at `beginning-of-defun' using SYNTAX-PPSS."
@@ -4463,6 +4560,46 @@ operator."
                 (group (* not-newline))
                 (* whitespace) line-end))
     (string-equal "" (match-string-no-properties 1))))
+
+(defun python-info-docstring-p (&optional syntax-ppss)
+  "Return non-nil if point is in a docstring.
+When optional argument SYNTAX-PPSS is given, use that instead of
+point's current `syntax-ppss'."
+  ;;; https://www.python.org/dev/peps/pep-0257/#what-is-a-docstring
+  (save-excursion
+    (when (and syntax-ppss (python-syntax-context 'string syntax-ppss))
+      (goto-char (nth 8 syntax-ppss)))
+    (python-nav-beginning-of-statement)
+    (let ((counter 1)
+          (indentation (current-indentation))
+          (backward-sexp-point)
+          (re (concat "[uU]?[rR]?"
+                      (python-rx string-delimiter))))
+      (when (and
+             (not (python-info-assignment-statement-p))
+             (looking-at-p re)
+             ;; Allow up to two consecutive docstrings only.
+             (>=
+              2
+              (progn
+                (while (save-excursion
+                         (python-nav-backward-sexp)
+                         (setq backward-sexp-point (point))
+                         (and (= indentation (current-indentation))
+                              (not (bobp)) ; Prevent infloop.
+                              (looking-at-p
+                               (concat "[uU]?[rR]?"
+                                       (python-rx string-delimiter)))))
+                  ;; Previous sexp was a string, restore point.
+                  (goto-char backward-sexp-point)
+                  (cl-incf counter))
+                counter)))
+        (python-util-forward-comment -1)
+        (python-nav-beginning-of-statement)
+        (cond ((bobp))
+              ((python-info-assignment-statement-p) t)
+              ((python-info-looking-at-beginning-of-defun))
+              (t nil))))))
 
 (defun python-info-encoding-from-cookie ()
   "Detect current buffer's encoding from its coding cookie.

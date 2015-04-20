@@ -214,6 +214,8 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (defvar libgif-version)
 (defvar libjpeg-version)
 
+(defvar libgnutls-version)              ; gnutls.c
+
 ;;; Set default known names for external libraries
 (setq dynamic-library-alist
       (list
@@ -266,7 +268,9 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
        '(gdk-pixbuf "libgdk_pixbuf-2.0-0.dll")
        '(glib "libglib-2.0-0.dll")
        '(gobject "libgobject-2.0-0.dll")
-       '(gnutls "libgnutls-28.dll" "libgnutls-26.dll")
+       (if (>= libgnutls-version 30400)
+	   '(gnutls "libgnutls-30.dll")
+	 '(gnutls "libgnutls-28.dll" "libgnutls-26.dll"))
        '(libxml2 "libxml2-2.dll" "libxml2.dll")
        '(zlib "zlib1.dll" "libz-1.dll")))
 

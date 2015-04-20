@@ -1645,6 +1645,16 @@ DEFUN ("gnutls-available-p", Fgnutls_available_p, Sgnutls_available_p, 0, 0, 0,
 void
 syms_of_gnutls (void)
 {
+  DEFSYM (Qlibgnutls_version, "libgnutls-version");
+  Fset (Qlibgnutls_version,
+#ifdef HAVE_GNUTLS
+	make_number (GNUTLS_VERSION_MAJOR * 10000
+		     + GNUTLS_VERSION_MINOR * 100
+		     + GNUTLS_VERSION_PATCH)
+#else
+	make_number (-1)
+#endif
+        );
 #ifdef HAVE_GNUTLS
   gnutls_global_initialized = 0;
 

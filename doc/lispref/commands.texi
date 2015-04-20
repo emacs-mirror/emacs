@@ -1462,7 +1462,7 @@ the symbols @code{handle} (the scroll bar handle), @code{above-handle}
 (the area above the handle), @code{below-handle} (the area below the
 handle), @code{up} (the up arrow at one end of the scroll bar), or
 @code{down} (the down arrow at one end of the scroll bar).
-@c The `top', `bottom', and `end-scroll' codes don't seem to be used.
+@c The 'top', 'bottom', and 'end-scroll' codes don't seem to be used.
 @end table
 
 
@@ -1720,7 +1720,7 @@ occurred.
 
 @vindex mouse-wheel-up-event
 @vindex mouse-wheel-down-event
-This kind of event is generated only on some kinds of systems. On some
+This kind of event is generated only on some kinds of systems.  On some
 systems, @code{mouse-4} and @code{mouse-5} are used instead.  For
 portable code, use the variables @code{mouse-wheel-up-event} and
 @code{mouse-wheel-down-event} defined in @file{mwheel.el} to determine
@@ -1856,7 +1856,7 @@ into another window.  That produces a pair of events like these:
 @end smallexample
 
 The frame with input focus might not take up the entire screen, and
-the user might move the mouse outside the scope of the frame. Inside
+the user might move the mouse outside the scope of the frame.  Inside
 the @code{track-mouse} special form, that produces an event like this:
 
 @smallexample

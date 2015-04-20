@@ -1004,10 +1004,10 @@ Here is a list of these commands:
 
 @table @kbd
 @item n
-Move to next line, skipping lines saying `deleted', and select its
+Move to next line, skipping lines saying ``deleted'', and select its
 message (@code{rmail-summary-next-msg}).
 @item p
-Move to previous line, skipping lines saying `deleted', and select
+Move to previous line, skipping lines saying ``deleted'', and select
 its message (@code{rmail-summary-previous-msg}).
 @item M-n
 Move to next line and select its message (@code{rmail-summary-next-all}).

@@ -83,7 +83,7 @@ memory, because they are the easiest machines to make it run on.  The extra
 effort to make it run on smaller machines will be left to someone who wants
 to use it on them.
 
-To avoid horrible confusion, please pronounce the `G' in the word `GNU'
+To avoid horrible confusion, please pronounce the ``G'' in the word ``GNU''
 when it is the name of this project.
 
 @unnumberedsec Why I Must Write GNU

@@ -61,10 +61,7 @@ static void EmacsFrameResize (Widget widget);
 static XtGeometryResult EmacsFrameQueryGeometry (Widget widget, XtWidgetGeometry *request, XtWidgetGeometry *result);
 
 
-#undef XtOffset
-#define XtOffset(p_type,field) \
-	((Cardinal) (((char *) (&(((p_type)0)->field))) - ((char *)0)))
-#define offset(field) XtOffset (EmacsFrame, emacs_frame.field)
+#define offset(field) offsetof (EmacsFrameRec, emacs_frame.field)
 
 static XtResource resources[] = {
   {XtNgeometry, XtCGeometry, XtRString, sizeof (String),
@@ -271,8 +268,8 @@ set_frame_size (EmacsFrame ew)
    */
 
   /* Hairily merged geometry */
-  unsigned int w = FRAME_COLS (ew->emacs_frame.frame);
-  unsigned int h = FRAME_LINES (ew->emacs_frame.frame);
+  int w = FRAME_COLS (ew->emacs_frame.frame);
+  int h = FRAME_LINES (ew->emacs_frame.frame);
 
   Widget wmshell = get_wm_shell ((Widget) ew);
   /* Each Emacs shell is now independent and top-level.  */
@@ -437,7 +434,7 @@ set_frame_size (EmacsFrame ew)
 static void
 update_wm_hints (EmacsFrame ew)
 {
-  Widget wmshell = get_wm_shell ((Widget)ew);
+  Widget wmshell = get_wm_shell ((Widget) ew);
   int cw;
   int ch;
   Dimension rounded_width;
@@ -480,7 +477,7 @@ update_wm_hints (EmacsFrame ew)
 void
 widget_update_wm_size_hints (Widget widget)
 {
-  EmacsFrame ew = (EmacsFrame)widget;
+  EmacsFrame ew = (EmacsFrame) widget;
   update_wm_hints (ew);
 }
 
@@ -519,7 +516,7 @@ update_from_various_frame_slots (EmacsFrame ew)
 static void
 EmacsFrameInitialize (Widget request, Widget new, ArgList dum1, Cardinal *dum2)
 {
-  EmacsFrame ew = (EmacsFrame)new;
+  EmacsFrame ew = (EmacsFrame) new;
 
   if (!ew->emacs_frame.frame)
     {
@@ -545,7 +542,7 @@ resize_cb (Widget widget,
 static void
 EmacsFrameRealize (Widget widget, XtValueMask *mask, XSetWindowAttributes *attrs)
 {
-  EmacsFrame ew = (EmacsFrame)widget;
+  EmacsFrame ew = (EmacsFrame) widget;
 
   /* This used to contain SubstructureRedirectMask, but this turns out
      to be a problem with XIM on Solaris, and events from that mask
@@ -554,7 +551,7 @@ EmacsFrameRealize (Widget widget, XtValueMask *mask, XSetWindowAttributes *attrs
 		       | PropertyChangeMask
 		       | SubstructureNotifyMask);
   *mask |= CWEventMask;
-  XtCreateWindow (widget, InputOutput, (Visual *)CopyFromParent, *mask,
+  XtCreateWindow (widget, InputOutput, (Visual *) CopyFromParent, *mask,
 		  attrs);
   /* Some ConfigureNotify events does not end up in EmacsFrameResize so
      make sure we get them all.  Seen with xfcwm4 for example.  */
@@ -571,7 +568,7 @@ EmacsFrameDestroy (Widget widget)
 static void
 EmacsFrameResize (Widget widget)
 {
-  EmacsFrame ew = (EmacsFrame)widget;
+  EmacsFrame ew = (EmacsFrame) widget;
   struct frame *f = ew->emacs_frame.frame;
   int width, height;
 
@@ -592,7 +589,7 @@ EmacsFrameResize (Widget widget)
 static XtGeometryResult
 EmacsFrameQueryGeometry (Widget widget, XtWidgetGeometry *request, XtWidgetGeometry *result)
 {
-  EmacsFrame ew = (EmacsFrame)widget;
+  EmacsFrame ew = (EmacsFrame) widget;
 
   int mask = request->request_mode;
   Dimension ok_width, ok_height;

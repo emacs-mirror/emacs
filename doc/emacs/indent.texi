@@ -198,7 +198,7 @@ are always displayed as empty spaces extending to the next
 @dfn{display tab stop}.  @xref{Text Display}.
 
 @node Just Spaces
-@section Tabs vs. Spaces
+@section Tabs vs.@: Spaces
 
 @vindex tab-width
   Normally, indentation commands insert (or remove) an optimal mix of

@@ -1,3 +1,23 @@
+2015-04-06  Koichi Arakawa  <arakawa@pp.iij4u.or.jp>  (tiny change)
+
+	* w32proc.c (w32_executable_type): Look for the DLL name in the
+	correct section.  This avoids segfaults with some executables.
+	(Bug#20264)
+
+2015-04-04  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xselect.c (x_reply_selection_request)
+	(receive_incremental_selection): Call set_property_change_object
+	inside block_input.
+	(wait_for_property_change): Move set property_change_reply(_object)
+	outside of this function (Bug#16737).
+	(set_property_change_object): New function.
+
+2015-04-03  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (handle_one_xevent): Always redraw tool tips on
+	MapNotify.  Update tool tip frame sizes on ConfigureNotify.
+
 2015-03-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* keyboard.c (read_key_sequence): Don't let
@@ -104,7 +124,7 @@
 	Fix minor ldexp issues
 	* floatfns.c (Fldexp): Require 2 args.  Avoid undefined behavior
 	if the exponent is out of 'int' range.  Improve documentation.
-	Fixes: bug#20185
+	(Bug#20185)
 
 2015-03-24  Daniel Colascione  <dancol@dancol.org>
 
@@ -195,7 +215,7 @@
 
 	Work around x86 glibc backtrace bug
 	* sysdep.c (emacs_backtrace): Don't dump core on x86.
-	Fixes: bug#19959
+	(Bug#19959)
 
 2015-03-05  Eli Zaretskii  <eliz@gnu.org>
 
@@ -1059,7 +1079,7 @@
 	to unused args.
 	* lisp.h (CALLMANY, CALLN): New macros.
 	* sound.c (Fplay_sound_internal): Coalesce duplicate code.
-	Fixes: bug#19634
+	(Bug#19634)
 
 	Use gnustep-config if available
 	* emacs.c [NS_IMPL_GNUSTEP]: Don't include <GNUstepBase/GSConfig.h>.
@@ -1083,7 +1103,7 @@
 
 	Don't downcase system diagnostics' first letters
 	* fileio.c (report_file_errno): Don't downcase, and simplify.
-	Fixes: bug#19642
+	(Bug#19642)
 
 	Isolate NIL_IS_ZERO-assuming code better
 	Suggested by Stefan Monnier in:
@@ -1128,7 +1148,7 @@
 
 	Correct an old fix for GTK font selection
 	* gtkutil.c (xg_get_font): Fix off-by-2 typo.
-	Fixes: bug#3228
+	(Bug#3228)
 
 	Fix minor bugs with printing null bytes
 	* minibuf.c (read_minibuf_noninteractive):
@@ -2117,7 +2137,7 @@
 	* fileio.c (Finsert_file_contents): Compute same_at_end character
 	position using the old buffer size, not the new one, since
 	restore_window_points wants the old size.
-	Fixes: debbugs:19161
+	(Bug#19161)
 
 2014-12-14  Alan Mackenzie  <acm@muc.de>
 

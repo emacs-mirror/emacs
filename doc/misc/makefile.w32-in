@@ -21,7 +21,7 @@
 # Where to find the source code.  The source code for Emacs's C kernel is
 # expected to be in $(srcdir)/src, and the source code for Emacs's
 # utility programs is expected to be in $(srcdir)/lib-src.  This is
-# set by the configure script's `--srcdir' option.
+# set by the configure script's '--srcdir' option.
 srcdir=.
 
 infodir = $(srcdir)/../../info
@@ -71,7 +71,7 @@ DVI_TARGETS = calc.dvi cc-mode.dvi cl.dvi dbus.dvi dired-x.dvi \
 		wisent.dvi htmlfontify.dvi
 INFOSOURCES = info.texi
 
-# The following rule does not work with all versions of `make'.
+# The following rule does not work with all versions of 'make'.
 .SUFFIXES: .texi .dvi
 .texi.dvi:
 	texi2dvi $<

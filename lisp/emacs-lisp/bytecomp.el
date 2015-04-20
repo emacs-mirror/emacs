@@ -979,6 +979,17 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 	   (lambda (x) (if (symbolp x) (list 'prin1-to-string x) x))
 	   args))))))
 
+(defvar byte-compile--interactive nil
+  "Determine if `byte-compile--message' uses the minibuffer.")
+
+(defun byte-compile--message (format &rest args)
+  "Like `message', except sometimes don't print to minibuffer.
+If the variable `byte-compile--interactive' is nil, the message
+is not displayed on the minibuffer."
+  (apply #'message format args)
+  (unless byte-compile--interactive
+    (message nil)))
+
 ;; Log something that isn't a warning.
 (defun byte-compile-log-1 (string)
   (with-current-buffer byte-compile-log-buffer
@@ -986,7 +997,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
       (goto-char (point-max))
       (byte-compile-warning-prefix nil nil)
       (cond (noninteractive
-	     (message " %s" string))
+	     (byte-compile--message " %s" string))
 	    (t
 	     (insert (format "%s\n" string)))))))
 
@@ -1590,7 +1601,10 @@ extra args."
   "Recompile every `.el' file in DIRECTORY that already has a `.elc' file.
 Files in subdirectories of DIRECTORY are processed also."
   (interactive "DByte force recompile (directory): ")
-  (byte-recompile-directory directory nil t))
+  (let ((byte-compile--interactive
+         (or byte-compile--interactive
+             (called-interactively-p 'any))))
+    (byte-recompile-directory directory nil t)))
 
 ;;;###autoload
 (defun byte-recompile-directory (directory &optional arg force)
@@ -1620,6 +1634,9 @@ that already has a `.elc' file."
       (compilation-mode))
     (let ((directories (list default-directory))
 	  (default-directory default-directory)
+          (byte-compile--interactive
+           (or byte-compile--interactive
+               (called-interactively-p 'any)))
 	  (skip-count 0)
 	  (fail-count 0)
 	  (file-count 0)
@@ -1628,7 +1645,7 @@ that already has a `.elc' file."
       (displaying-byte-compile-warnings
        (while directories
 	 (setq directory (car directories))
-	 (message "Checking %s..." directory)
+	 (byte-compile--message "Checking %s..." directory)
          (dolist (file (directory-files directory))
            (let ((source (expand-file-name file directory)))
 	     (if (file-directory-p source)
@@ -1653,13 +1670,13 @@ that already has a `.elc' file."
                              (`t file-count)
                              (_ fail-count)))
                           (or noninteractive
-                              (message "Checking %s..." directory))
+                              (byte-compile--message "Checking %s..." directory))
                           (if (not (eq last-dir directory))
                               (setq last-dir directory
                                     dir-count (1+ dir-count)))
                           )))))
 	 (setq directories (cdr directories))))
-      (message "Done (Total of %d file%s compiled%s%s%s)"
+      (byte-compile--message "Done (Total of %d file%s compiled%s%s%s)"
 	       file-count (if (= file-count 1) "" "s")
 	       (if (> fail-count 0) (format ", %d failed" fail-count) "")
 	       (if (> skip-count 0) (format ", %d skipped" skip-count) "")
@@ -1706,7 +1723,10 @@ If compilation is needed, this functions returns the result of
 	   current-prefix-arg)))
   (let ((dest (byte-compile-dest-file filename))
         ;; Expand now so we get the current buffer's defaults
-        (filename (expand-file-name filename)))
+        (filename (expand-file-name filename))
+        (byte-compile--interactive
+         (or byte-compile--interactive
+             (called-interactively-p 'any))))
     (if (if (file-exists-p dest)
             ;; File was already compiled
             ;; Compile if forced to, or filename newer
@@ -1718,7 +1738,7 @@ If compilation is needed, this functions returns the result of
                                      filename "? ")))))
         (progn
           (if (and noninteractive (not byte-compile-verbose))
-              (message "Compiling %s..." filename))
+              (byte-compile--message "Compiling %s..." filename))
           (byte-compile-file filename load))
       (when load
 	(load (if (file-exists-p dest) dest filename)))
@@ -1762,6 +1782,9 @@ The value is non-nil if there were no errors, nil if errors."
   (let ((byte-compile-current-file filename)
         (byte-compile-current-group nil)
 	(set-auto-coding-for-load t)
+        (byte-compile--interactive
+         (or byte-compile--interactive
+             (called-interactively-p 'any)))
 	target-file input-buffer output-buffer
 	byte-compile-dest-file)
     (setq target-file (byte-compile-dest-file filename))
@@ -1799,7 +1822,7 @@ The value is non-nil if there were no errors, nil if errors."
             (progn
               (setq-default major-mode 'emacs-lisp-mode)
               ;; Arg of t means don't alter enable-local-variables.
-              (normal-mode t))
+              (delay-mode-hooks (normal-mode t)))
           (setq-default major-mode dmm))
         ;; There may be a file local variable setting (bug#10419).
         (setq buffer-read-only nil
@@ -1817,14 +1840,14 @@ The value is non-nil if there were no errors, nil if errors."
 	  ;; 	   (byte-compile-abbreviate-file filename)
 	  ;; 	   (with-current-buffer input-buffer no-byte-compile))
 	  (when (file-exists-p target-file)
-	    (message "%s deleted because of `no-byte-compile: %s'"
+	    (byte-compile--message "%s deleted because of `no-byte-compile: %s'"
 		     (byte-compile-abbreviate-file target-file)
 		     (buffer-local-value 'no-byte-compile input-buffer))
 	    (condition-case nil (delete-file target-file) (error nil)))
 	  ;; We successfully didn't compile this file.
 	  'no-byte-compile)
       (when byte-compile-verbose
-	(message "Compiling %s..." filename))
+	(byte-compile--message "Compiling %s..." filename))
       (setq byte-compiler-error-flag nil)
       ;; It is important that input-buffer not be current at this call,
       ;; so that the value of point set in input-buffer
@@ -1836,7 +1859,7 @@ The value is non-nil if there were no errors, nil if errors."
       (if byte-compiler-error-flag
 	  nil
 	(when byte-compile-verbose
-	  (message "Compiling %s...done" filename))
+	  (byte-compile--message "Compiling %s...done" filename))
 	(kill-buffer input-buffer)
 	(with-current-buffer output-buffer
 	  (goto-char (point-max))
@@ -1862,7 +1885,7 @@ The value is non-nil if there were no errors, nil if errors."
 		;; recompiled).  Previously this was accomplished by
 		;; deleting target-file before writing it.
 		(rename-file tempfile target-file t)
-		(or noninteractive (message "Wrote %s" target-file)))
+		(or noninteractive (byte-compile--message "Wrote %s" target-file)))
 	    ;; This is just to give a better error message than write-region
 	    (signal 'file-error
 		    (list "Opening output file"
@@ -1896,6 +1919,9 @@ With argument ARG, insert value in current buffer after the form."
 	   (byte-compile-read-position (point))
 	   (byte-compile-last-position byte-compile-read-position)
 	   (byte-compile-last-warned-form 'nothing)
+           (byte-compile--interactive
+            (or byte-compile--interactive
+                (called-interactively-p 'any)))
 	   (value (eval
 		   (let ((read-with-symbol-positions (current-buffer))
 			 (read-symbol-positions-list nil))
@@ -1903,10 +1929,10 @@ With argument ARG, insert value in current buffer after the form."
 		      (byte-compile-sexp (read (current-buffer)))))
                    lexical-binding)))
       (cond (arg
-	     (message "Compiling from buffer... done.")
+	     (byte-compile--message "Compiling from buffer... done.")
 	     (prin1 value (current-buffer))
 	     (insert "\n"))
-	    ((message "%s" (prin1-to-string value)))))))
+	    ((byte-compile--message "%s" (prin1-to-string value)))))))
 
 (defun byte-compile-from-buffer (inbuffer)
   (let ((byte-compile-current-buffer inbuffer)
@@ -2410,7 +2436,7 @@ not to take responsibility for the actual compilation of the code."
         (byte-compile-arglist-warn name arglist macro))
 
     (if byte-compile-verbose
-        (message "Compiling %s... (%s)"
+        (byte-compile--message "Compiling %s... (%s)"
                  (or byte-compile-current-file "") name))
     (cond ((not (or macro (listp body)))
            ;; We do not know positively if the definition is a macro
@@ -2580,7 +2606,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
        ;; error to a simple message for the known case where signaling an error
        ;; causes problems.
        ((byte-code-function-p fun)
-        (message "Function %s is already compiled"
+        (byte-compile--message "Function %s is already compiled"
                  (if (symbolp form) form "provided"))
         fun)
        (t
@@ -4398,8 +4424,8 @@ binding slots have been popped."
                   name macro arglist body rest)
            (when macro
              (if (null fun)
-                 (message "Macro %s unrecognized, won't work in file" name)
-               (message "Macro %s partly recognized, trying our luck" name)
+                 (byte-compile--message "Macro %s unrecognized, won't work in file" name)
+               (byte-compile--message "Macro %s partly recognized, trying our luck" name)
                (push (cons name (eval fun))
                      byte-compile-macro-environment)))
            (byte-compile-keep-pending form))))
@@ -4525,11 +4551,11 @@ The call tree also lists those functions which are not known to be called
 \(that is, to which no calls have been compiled\), and which cannot be
 invoked interactively."
   (interactive)
-  (message "Generating call tree...")
+  (byte-compile--message "Generating call tree...")
   (with-output-to-temp-buffer "*Call-Tree*"
     (set-buffer "*Call-Tree*")
     (erase-buffer)
-    (message "Generating call tree... (sorting on %s)"
+    (byte-compile--message "Generating call tree... (sorting on %s)"
 	     byte-compile-call-tree-sort)
     (insert "Call tree for "
 	    (cond ((null byte-compile-current-file) (or filename "???"))

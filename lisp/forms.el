@@ -297,9 +297,6 @@
 
 ;;; Global variables and constants:
 
-(provide 'forms)			;;; official
-(provide 'forms-mode)			;;; for compatibility
-
 (defcustom forms-mode-hook nil
   "Hook run upon entering Forms mode."
   :group 'forms
@@ -443,6 +440,7 @@ Also, initial position is at last record."
 
 ;;;###autoload
 (defun forms-mode (&optional primary)
+  ;; FIXME: use define-derived-mode
   "Major mode to visit files in a field-structured manner using a form.
 
 Commands:                        Equivalent keys in read-only mode:
@@ -637,6 +635,8 @@ Commands:                        Equivalent keys in read-only mode:
   (setq major-mode 'forms-mode)
   (setq mode-name "Forms")
 
+  (cursor-intangible-mode 1)
+
   ;; find the data file
   (setq forms--file-buffer (find-file-noselect forms-file))
 
@@ -647,7 +647,7 @@ Commands:                        Equivalent keys in read-only mode:
 	(with-current-buffer forms--file-buffer
 	  (let ((inhibit-read-only t)
 		(file-modified (buffer-modified-p)))
-	    (run-hooks 'read-file-filter)
+	    (mapc #'funcall read-file-filter)
 	    (if (not file-modified) (set-buffer-modified-p nil)))
 	  (if write-file-filter
 	      (add-hook 'write-file-functions write-file-filter nil t)))
@@ -921,7 +921,7 @@ Commands:                        Equivalent keys in read-only mode:
 	      ,@(if (numberp (car forms-format-list))
 		    nil
 		  '((add-text-properties (point-min) (1+ (point-min))
-					 '(front-sticky (read-only intangible)))))
+					 '(front-sticky (read-only cursor-intangible)))))
 	      ;; Prevent insertion after the last text.
 	      (remove-text-properties (1- (point)) (point)
 				      '(rear-nonsticky)))
@@ -1005,10 +1005,10 @@ Commands:                        Equivalent keys in read-only mode:
 	 (point))
        (list 'face forms--ro-face	; read-only appearance
 	     'read-only ,@(list (1+ forms--marker))
-	     'intangible ,@(list (1+ forms--marker))
+	     'cursor-intangible ,@(list (1+ forms--marker))
 	     'insert-in-front-hooks '(forms--iif-hook)
 	     'rear-nonsticky '(face read-only insert-in-front-hooks
-				    intangible)))))
+				    cursor-intangible)))))
 
    ((numberp el)
     `((let ((here (point)))
@@ -1034,10 +1034,10 @@ Commands:                        Equivalent keys in read-only mode:
 	 (point))
        (list 'face forms--ro-face
 	     'read-only ,@(list (1+ forms--marker))
-	     'intangible ,@(list (1+ forms--marker))
+	     'cursor-intangible ,@(list (1+ forms--marker))
 	     'insert-in-front-hooks '(forms--iif-hook)
 	     'rear-nonsticky '(read-only face insert-in-front-hooks
-					 intangible)))))
+					 cursor-intangible)))))
 
    ;; end of cond
    ))
@@ -2055,4 +2055,6 @@ Usage: (setq forms-number-of-fields
 	  (goto-char (point-max))
 	  (insert ret)))))
 
+(provide 'forms-mode)			; for compatibility
+(provide 'forms)
 ;;; forms.el ends here

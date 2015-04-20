@@ -9473,6 +9473,26 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
   pset_childp (p, childp2);
 }
 
+/* For make-pipe-process */
+void
+register_aux_fd (int infd)
+{
+  child_process *cp;
+
+  cp = new_child ();
+  if (!cp)
+    error ("Could not create child process");
+  cp->fd = infd;
+  cp->status = STATUS_READ_ACKNOWLEDGED;
+
+  if (fd_info[ infd ].cp != NULL)
+    {
+      error ("fd_info[fd = %d] is already in use", infd);
+    }
+  fd_info[ infd ].cp = cp;
+  fd_info[ infd ].hnd = (HANDLE) _get_osfhandle (infd);
+}
+
 #ifdef HAVE_GNUTLS
 
 ssize_t

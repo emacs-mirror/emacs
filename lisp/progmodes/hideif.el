@@ -663,7 +663,7 @@ that form should be displayed.")
              (setq tok (cadr tokens))
              (if (eq (car tokens) 'hif-lparen)
                  (if (and (hif-if-valid-identifier-p tok)
-                          (eq (cl-caddr tokens) 'hif-rparen))
+                          (eq (nth 2 tokens) 'hif-rparen))
                      (setq tokens (cl-cdddr tokens))
                    (error "#define followed by non-identifier: %S" tok))
                (setq tok (car tokens)
@@ -730,7 +730,7 @@ detecting self-reference."
                        result))
                  ;; Argument list is nil, direct expansion
                  (setq rep (hif-expand-token-list
-                            (cl-caddr rep) ; Macro's token list
+                            (nth 2 rep) ; Macro's token list
                             tok expand_list))
                  ;; Replace all remaining references immediately
                  (setq remains (cl-substitute tok rep remains))

@@ -844,7 +844,7 @@ names start with a space are not considered at all.
 
 If @var{buffer} is not supplied (or if it is not a live buffer), then
 @code{other-buffer} returns the first buffer in the selected frame's
-local buffer list. (If @var{frame} is non-@code{nil}, it returns the
+local buffer list.  (If @var{frame} is non-@code{nil}, it returns the
 first buffer in @var{frame}'s local buffer list instead.)
 
 If @var{frame} has a non-@code{nil} @code{buffer-predicate} parameter,

@@ -1332,7 +1332,7 @@ The letters Ч, Ш, Щ and Ю are not affected by Caps Lock."
 ;;  Ч
 ;;      Я  В  Е  Р  Т  Ъ  У  И  О  П  Ш  Щ
 ;;       А  С  Д  Ф  Г  Х  Й  К  Л        Ю
-;;        З  Ь  Ц  Ж  Б  Н  М
+;;        З  ьѝ Ц  Ж  Б  Н  М
 
 (quail-define-rules
  ("/&" ?§)
@@ -1364,7 +1364,7 @@ The letters Ч, Ш, Щ and Ю are not affected by Caps Lock."
  ("{" ?Ш)
  ("}" ?Щ)
  ("Y" ?Ъ)
- ("X" ?Ь)
+ ("X" ?ѝ)
  ("|" ?Ю)
  ("Q" ?Я)
  ("a" ?а)
@@ -1417,7 +1417,7 @@ keys as being transformed into ( and ) respectively.  For ( and ), use
 
 ;;  () 1! 2? 3+ 4" 5% 6= 7: 8/ 9_ 0№ -I .V
 ;;      ,ы У  Е  И  Ш  Щ  К  С  Д  З  Ц  ;§
-;;       Ь  Я  А  О  Ж  Г  Т  Н  В  М  Ч  'Ы
+;;       ьѝ Я  А  О  Ж  Г  Т  Н  В  М  Ч  'Ы
 ;;        Ю  Й  Ъ  Э  Ф  Х  П  Р  Л  Б
 
 (quail-define-rules
@@ -1448,7 +1448,7 @@ keys as being transformed into ( and ) respectively.  For ( and ), use
  ("[" ?ц) ("{" ?Ц)
  ("]" ?\;) ("}" ?§)
 
- ("a" ?ь) ("A" ?Ь)
+ ("a" ?ь) ("A" ?ѝ)
  ("s" ?я) ("S" ?Я)
  ("d" ?а) ("D" ?А)
  ("f" ?о) ("F" ?О)

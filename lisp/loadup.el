@@ -101,9 +101,6 @@
 (load "env")
 (load "format")
 (load "bindings")
-;; This sets temporary-file-directory, used by eg
-;; auto-save-file-name-transforms in files.el.
-(load "cus-start")
 (load "window")  ; Needed here for `replace-buffer-in-windows'.
 (setq load-source-file-function 'load-with-code-conversion)
 (load "files")
@@ -284,6 +281,7 @@
 (load "uniquify")
 (load "electric")
 (load "emacs-lisp/eldoc")
+(load "cus-start") ;Late to reduce customize-rogue (needs loaddefs.el anyway)
 (if (not (eq system-type 'ms-dos)) (load "tooltip"))
 
 ;; This file doesn't exist when building a development version of Emacs

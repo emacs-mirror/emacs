@@ -2412,7 +2412,7 @@ the window split and the values of
 and @code{split-width-threshold} (@pxref{Choosing Window Options}).
 
    Now suppose we combine this call with a preexisting setup for
-`display-buffer-alist' as follows.
+@code{display-buffer-alist} as follows.
 
 @example
 @group

@@ -236,21 +236,21 @@ Defaults to the value of `browse-url-mozilla-arguments' at the time
   :group 'browse-url)
 
 (defcustom browse-url-firefox-program
-  (let ((candidates '("firefox" "iceweasel" "icecat")))
+  (let ((candidates '("icecat" "iceweasel" "firefox")))
     (while (and candidates (not (executable-find (car candidates))))
       (setq candidates (cdr candidates)))
     (or (car candidates) "firefox"))
-  "The name by which to invoke Firefox."
+  "The name by which to invoke Firefox or a variant of it."
   :type 'string
   :group 'browse-url)
 
 (defcustom browse-url-firefox-arguments nil
-  "A list of strings to pass to Firefox as arguments."
+  "A list of strings to pass to Firefox (or variant) as arguments."
   :type '(repeat (string :tag "Argument"))
   :group 'browse-url)
 
 (defcustom browse-url-firefox-startup-arguments browse-url-firefox-arguments
-  "A list of strings to pass to Firefox when it starts up.
+  "A list of strings to pass to Firefox (or variant) when it starts up.
 Defaults to the value of `browse-url-firefox-arguments' at the time
 `browse-url' is loaded."
   :type '(repeat (string :tag "Argument"))
@@ -761,10 +761,13 @@ narrowed."
 ;;;###autoload
 (defun browse-url (url &rest args)
   "Ask a WWW browser to load URL.
-Prompt for a URL, defaulting to the URL at or before point.  Variable
-`browse-url-browser-function' says which browser to use.
+Prompt for a URL, defaulting to the URL at or before point.
+The variable `browse-url-browser-function' says which browser to use.
 If the URL is a mailto: URL, consult `browse-url-mailto-function'
-first, if that exists."
+first, if that exists.
+
+Passes any ARGS to the browser function.
+The default is to pass `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "URL: "))
   (unless (called-interactively-p 'interactive)
     (setq args (or args (list browse-url-new-window-flag))))
@@ -800,7 +803,9 @@ first, if that exists."
 ;;;###autoload
 (defun browse-url-at-point (&optional arg)
   "Ask a WWW browser to load the URL at or before point.
-Variable `browse-url-browser-function' says which browser to use."
+Variable `browse-url-browser-function' says which browser to use.
+Optional prefix argument ARG non-nil inverts the value of the option
+`browse-url-new-window-flag'."
   (interactive "P")
   (let ((url (browse-url-url-at-point)))
     (if url

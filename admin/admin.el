@@ -28,10 +28,6 @@
 
 (defvar add-log-time-format)		; in add-log
 
-;; Does this information need to be in every ChangeLog, as opposed to
-;; just the top-level one?  Only if you allow changes the same
-;; day as the release.
-;; http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00161.html
 (defun add-release-logs (root version &optional date)
   "Add \"Version VERSION released.\" change log entries in ROOT.
 Root must be the root of an Emacs source tree.
@@ -203,6 +199,7 @@ Optional argument TYPE is type of output (nil means all)."
 	 (ps-dir (expand-file-name "ps" dest))
 	 (pdf-dir (expand-file-name "pdf" dest))
 	 (emacs (expand-file-name "doc/emacs/emacs.texi" root))
+	 (emacs-xtra (expand-file-name "doc/emacs/emacs-xtra.texi" root))
 	 (elisp (expand-file-name "doc/lispref/elisp.texi" root))
 	 (eintr (expand-file-name "doc/lispintro/emacs-lisp-intro.texi" root))
 	 (misc (manual-misc-manuals root)))
@@ -216,10 +213,14 @@ Optional argument TYPE is type of output (nil means all)."
 	(manual-html-node emacs (expand-file-name "emacs" html-node-dir)))
     (if (member type '(nil "emacs" "emacs-mono"))
 	(manual-html-mono emacs (expand-file-name "emacs.html" html-mono-dir)))
-    (if (member type '(nil "emacs" "emacs-pdf" "pdf"))
-	(manual-pdf emacs (expand-file-name "emacs.pdf" pdf-dir)))
-    (if (member type '(nil "emacs" "emacs-ps" "ps"))
-	(manual-ps emacs (expand-file-name "emacs.ps" ps-dir)))
+    (when (member type '(nil "emacs" "emacs-pdf" "pdf"))
+      (manual-pdf emacs (expand-file-name "emacs.pdf" pdf-dir))
+      ;; emacs-xtra exists only in pdf/ps format.
+      ;; In other formats it is included in the Emacs manual.
+      (manual-pdf emacs-xtra (expand-file-name "emacs-xtra.pdf" pdf-dir)))
+    (when (member type '(nil "emacs" "emacs-ps" "ps"))
+      (manual-ps emacs (expand-file-name "emacs.ps" ps-dir))
+      (manual-ps emacs-xtra (expand-file-name "emacs-xtra.ps" ps-dir)))
     (if (member type '(nil "elisp" "elisp-node"))
 	(manual-html-node elisp (expand-file-name "elisp" html-node-dir)))
     (if (member type '(nil "elisp" "elisp-mono"))
@@ -601,7 +602,7 @@ style=\"text-align:left\">")
     (copy-file "../doc/misc/texinfo.tex" stem)
     (or (equal type "emacs") (copy-file "../doc/emacs/emacsver.texi" stem))
     (dolist (file (directory-files (format "../doc/%s" type) t))
-      (if (or (string-match-p "\\(\\.texi\\'\\|/ChangeLog\\|/README\\'\\)" file)
+      (if (or (string-match-p "\\(\\.texi\\'\\|/README\\'\\)" file)
 	      (and (equal type "lispintro")
 		   (string-match-p "\\.\\(eps\\|pdf\\)\\'" file)))
 	  (copy-file file stem)))

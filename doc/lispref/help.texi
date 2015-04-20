@@ -171,7 +171,7 @@ several symbols in a @file{*Help*} buffer.
 (defun describe-symbols (pattern)
   "Describe the Emacs Lisp symbols matching PATTERN.
 All symbols that have PATTERN in their name are described
-in the `*Help*' buffer."
+in the *Help* buffer."
   (interactive "sDescribe symbols matching: ")
   (let ((describe-func
          (function

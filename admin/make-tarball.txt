@@ -31,30 +31,45 @@ General steps (for each step, check for possible errors):
       M-x authors RET
 
     If there is an "*Authors Errors*" buffer, address the issues.
-    If there was a ChangeLog typo, fix it.  If a file was deleted or
-    renamed, consider adding an appropriate entry to authors-ignored-files,
-    authors-valid-file-names, or authors-renamed-files-alist.
+    If there was a ChangeLog typo, run "make change-history" and then
+    fix the newest ChangeLog history file.  If a file was deleted or
+    renamed, consider adding an appropriate entry to
+    authors-ignored-files, authors-valid-file-names, or
+    authors-renamed-files-alist.
 
     If necessary, repeat M-x authors after making those changes.
     Save the "*Authors*" buffer as etc/AUTHORS.
     Check the diff looks reasonable.  Maybe add entries to
     authors-ambiguous-files or authors-aliases, and repeat.
-    Commit any fixes to ChangeLogs or authors.el.
+    Commit any fixes to authors.el.
 
 3.  Set the version number (M-x load-file RET admin/admin.el RET, then
     M-x set-version RET).  For a release, add released ChangeLog
-    entries (M-x add-release-logs RET).
+    entries (create a ChangeLog symlink a la vc-dwim, then run M-x
+    add-release-logs RET, then run the shell command 'vc-dwim --commit').
 
     For a pretest, start at version .90.  After .99, use .990 (so that
     it sorts).
 
     The final pretest should be a release candidate.  Set the version
     number to that of the actual release.  Pick a date about a week
-    from now when you intend to make the release.  Use M-x add-release-logs
-    to add the ChangeLog entries for that date to the tar file (but
-    not yet to the repository).  Name the tar file as
-    emacs-XX.Y-rc1.tar.  If all goes well in the following week, you
-    can simply rename the file and use it for the actual release.
+    from now when you intend to make the release.  Use vc-dwim and
+    M-x add-release-logs as described above to add commit messages
+    that will appear in the tarball's automatically-generated ChangeLog
+    file as entries for that date.
+
+    Name the tar file as emacs-XX.Y-rc1.tar.  If all goes well in the
+    following week, you can simply rename the file and use it for the
+    actual release.  If you need another release candidate, remember
+    to adjust the ChangeLog entries.
+
+    If you need to change only a file(s) that cannot possibly affect
+    the build (README, ChangeLog, NEWS, etc.) then rather than doing
+    an entirely new build, it is better to unpack the existing
+    tarfile, modify the file(s), and tar it back up again.
+
+    Never replace an existing tarfile!  If you need to fix something,
+    always upload it with a different name.
 
 4.   autoreconf -i -I m4 --force
      make bootstrap
@@ -65,8 +80,7 @@ General steps (for each step, check for possible errors):
 5.  Copy lisp/loaddefs.el to lisp/ldefs-boot.el.
 
     Commit etc/AUTHORS, lisp/ldefs-boot.el, and the files changed
-    by M-x set-version. For a release, also commit the ChangeLog
-    files in all directories.
+    by M-x set-version.
 
     If someone else made a commit between step 1 and now,
     you need to repeat from step 4 onwards.  (You can commit the files
@@ -154,8 +168,38 @@ General steps (for each step, check for possible errors):
     of past announcements.  The first pretest announcement, and the
     release announcement, should have more detail.
 
-12. For a release, update the Emacs homepage emacs.html in the web repository.
-    Also update history.html, and add the new NEWS file as news/NEWS.xx.y.
-    Regenerate the html manuals (use make-manuals from admin.el).
-    If there are new manuals, add appropriate index pages.
-    Delete any old manual pages that are no longer present.
+12. After a release, update the Emacs pages as below.
+
+
+UPDATING THE EMACS WEB PAGES AFTER A RELEASE
+
+As soon as possible after a release, the Emacs web pages should be updated.
+Anyone with write access to the Emacs code repository can do this.
+For instructions, see <http://savannah.gnu.org/cvs/?group=emacs>.
+Changes go live more or less as soon as they are committed.
+
+The pages to update are:
+
+emacs.html (for a new major release, a more thorough update is needed)
+history.html
+add the new NEWS file as news/NEWS.xx.y
+
+Use M-x make-manuals from admin/admin.el to regenerate the html
+manuals in manual/.  If there are new manuals, add appropriate index
+pages in manual/ and add them to manual/index.html.  In the
+manual/html_node directory, delete any old manual pages that are no
+longer present.
+
+Tar up the generated html_node/emacs/ and elisp/ directories and update
+the files manual/elisp.html_node.tar.gz and emacs.html_node.tar.gz.
+
+Use M-x make-manuals-dist from from admin/admin.el to update the
+manual/texi/ tarfiles.
+
+Add compressed copies of the main info pages from the tarfile to manual/info/.
+
+Update the refcards/pdf/ and ps/ directories, and also
+refcards/emacs-refcards.tar.gz (use make -C etc/refcards pdf ps dist).
+
+Browsing <http://web.cvs.savannah.gnu.org/viewvc/?root=emacs> is one
+way to check for any files that still need updating.

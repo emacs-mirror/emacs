@@ -247,9 +247,9 @@ Appendices
 @end ignore
 
 @c Do NOT modify the following 3 lines!  They must have this form to
-@c be correctly identified by `texinfo-multiple-files-update'.  In
+@c be correctly identified by 'texinfo-multiple-files-update'.  In
 @c particular, the detailed menu header line MUST be identical to the
-@c value of `texinfo-master-menu-header'.  See texnfo-upd.el.
+@c value of 'texinfo-master-menu-header'.  See texnfo-upd.el.
 
 @detailmenu
  --- The Detailed Node Listing ---

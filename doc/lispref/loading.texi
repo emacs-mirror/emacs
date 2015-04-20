@@ -76,7 +76,7 @@ If Auto Compression mode is enabled, as it is by default, then if
 of the file before trying other file names.  It decompresses and loads
 it if it exists.  It looks for compressed versions by appending each
 of the suffixes in @code{jka-compr-load-suffixes} to the file name.
-The value of this variable must be a list of strings. Its standard
+The value of this variable must be a list of strings.  Its standard
 value is @code{(".gz")}.
 
 If the optional argument @var{nosuffix} is non-@code{nil}, then

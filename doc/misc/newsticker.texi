@@ -178,7 +178,7 @@ are kept until @code{newsticker-obsolete-item-max-age} is reached.
 
 @vindex newsticker-automatically-mark-items-as-old
 @item newsticker-automatically-mark-items-as-old
-If this is set to `t' then a ``new'' item becomes ``old'' as soon as
+If this is set to @code{t} then a ``new'' item becomes ``old'' as soon as
 it is retrieved a second time.
 
 @end table

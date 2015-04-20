@@ -146,7 +146,7 @@ Emacs.
 
 @menu
 * DEL Does Not Delete::   What to do if @key{DEL} doesn't delete.
-* Stuck Recursive::       `[...]' in mode line around the parentheses.
+* Stuck Recursive::       '[...]' in mode line around the parentheses.
 * Screen Garbled::        Garbage on the screen.
 * Text Garbled::          Garbage in the text.
 * Memory Full::           How to cope when you run out of memory.
@@ -743,7 +743,7 @@ unmodified Emacs.  But if you've made modifications and you don't tell
 us, you are sending us on a wild goose chase.)
 
 Be precise about these changes.  A description in English is not
-enough---send a context diff for them.
+enough---send a unified context diff for them.
 
 Adding files of your own, or porting to another machine, is a
 modification of the source.
@@ -1131,13 +1131,12 @@ is important.
 @item
 The patch itself.
 
-Use @samp{diff -c} to make your diffs.  Diffs without context are hard
+Use @samp{diff -u} to make your diffs.  Diffs without context are hard
 to install reliably.  More than that, they are hard to study; we must
-always study a patch to decide whether we want to install it.  Unidiff
-format is better than contextless diffs, but not as easy to read as
-@samp{-c} format.
+always study a patch to decide whether we want to install it.  Context
+format is better than contextless diffs, but we prefer we unified format.
 
-If you have GNU diff, use @samp{diff -c -F'^[_a-zA-Z0-9$]+ *('} when
+If you have GNU diff, use @samp{diff -u -F'^[_a-zA-Z0-9$]\+ *('} when
 making diffs of C code.  This shows the name of the function that each
 change occurs in.
 
@@ -1171,7 +1170,7 @@ feel that the purpose needs explaining, it probably does---but put the
 explanation in comments in the code.  It will be more useful there.
 
 Please look at the change log entries of recent commits to see what
-sorts of information to put in, and to learn the style that we use. Note that,
+sorts of information to put in, and to learn the style that we use.  Note that,
 unlike some other projects, we do require change logs for
 documentation, i.e., Texinfo files.
 @xref{Change Log},
@@ -1280,7 +1279,7 @@ See the Emacs project page
 It is important to write your patch based on the current working
 version.  If you start from an older version, your patch may be
 outdated (so that maintainers will have a hard time applying it), or
-changes in Emacs may have made your patch unnecessary. After you have
+changes in Emacs may have made your patch unnecessary.  After you have
 downloaded the repository source, you should read the file
 @file{INSTALL.REPO} for build instructions (they differ to some extent
 from a normal build).

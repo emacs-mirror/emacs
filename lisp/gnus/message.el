@@ -1763,7 +1763,10 @@ no, only reply back to the author."
 	       (let (mucs-ignore-version-incompatibilities)
 		 (require 'un-define))
 	     (error)))
-       (condition-case nil (require 'idna) (file-error))
+       (condition-case nil
+	   (require 'idna)
+	 (file-error)
+	 (invalid-operation))
        idna-program
        (executable-find idna-program)
        (string= (idna-to-ascii "räksmörgås") "xn--rksmrgs-5wao1o")
@@ -2961,6 +2964,30 @@ See also `message-forbidden-properties'."
 
 (autoload 'ecomplete-setup "ecomplete") ;; for Emacs <23.
 
+(defvar message-smileys '(":-)" ":)"
+                          ":-(" ":("
+                          ";-)" ";)")
+  "A list of recognized smiley faces in `message-mode'.")
+
+(defun message--syntax-propertize (beg end)
+  "Syntax-propertize certain message text specially."
+  (let ((citation-regexp (concat "^" message-cite-prefix-regexp ".*$"))
+        (smiley-regexp (regexp-opt message-smileys)))
+    (goto-char beg)
+    (while (search-forward-regexp citation-regexp
+                                  end 'noerror)
+      (let ((start (match-beginning 0))
+            (end (match-end 0)))
+        (add-text-properties start (1+ start)
+                             `(syntax-table ,(string-to-syntax "<")))
+        (add-text-properties end (min (1+ end) (point-max))
+                             `(syntax-table ,(string-to-syntax ">")))))
+    (goto-char beg)
+    (while (search-forward-regexp smiley-regexp
+            end 'noerror)
+      (add-text-properties (match-beginning 0) (match-end 0)
+                           `(syntax-table ,(string-to-syntax "."))))))
+
 ;;;###autoload
 (define-derived-mode message-mode text-mode "Message"
   "Major mode for editing mail and news to be sent.
@@ -3063,7 +3090,13 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
     ;; multibyte is not necessary at all. -- zsh
     (mm-enable-multibyte))
   (set (make-local-variable 'indent-tabs-mode) nil) ;No tabs for indentation.
-  (mml-mode))
+  (mml-mode)
+  ;; Syntactic fontification. Helps `show-paren-mode',
+  ;; `electric-pair-mode', and C-M-* navigation by syntactically
+  ;; excluding citations and other artifacts.
+  ;;
+  (set (make-local-variable 'syntax-propertize-function) 'message--syntax-propertize)
+  (set (make-local-variable 'parse-sexp-ignore-comments) t))
 
 (defun message-setup-fill-variables ()
   "Setup message fill variables."

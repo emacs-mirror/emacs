@@ -1,3 +1,16 @@
+2015-04-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use American spelling for 'normalize'
+	* rtree.el (rtree-normalize-range): Rename from rtree-normalise-range.
+	All uses changed.  Add an alias for obsolete usages.
+
+2015-04-03  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-browse-html-save-cid-content):
+	Always return relative file name.
+	(gnus-article-browse-html-parts):
+	Make external links absolute and cid file names relative.
+
 2015-04-01  Eric Abrahamsen  <eric@ericabrahamsen.net>
 
 	* registry.el (registry-prune): Re-use `registry-full' in
@@ -1679,7 +1692,7 @@
 2013-06-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-tag-table): Insert the images after the table, so that
-	they're not covered by the table colourisation, which often looked
+	they're not covered by the table colorization, which often looked
 	awkward.
 	(shr-tag-dl, shr-tag-dt, shr-tag-dd): Add support for <dl>, <dt> and
 	<dd>.

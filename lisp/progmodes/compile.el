@@ -1666,11 +1666,7 @@ Returns the compilation buffer created."
 		(list "TERM=emacs"
 		      (format "TERMCAP=emacs:co#%d:tc=unknown:"
 			      (window-width))))
-	      ;; Set the EMACS variable, but
-	      ;; don't override users' setting of $EMACS.
-	      (unless (getenv "EMACS")
-		(list "EMACS=t"))
-	      (list "INSIDE_EMACS=t")
+	      (list (format "INSIDE_EMACS=%s,compile" emacs-version))
 	      (copy-sequence process-environment))))
 	(set (make-local-variable 'compilation-arguments)
 	     (list command mode name-function highlight-regexp))

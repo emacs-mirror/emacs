@@ -898,7 +898,7 @@ The official Emacs VHDL Mode Home Page can be found at
 @chapter  Sample @file{.emacs} file
 @cindex   Sample @file{.emacs} file
 
-Most customizations can be done using the `Customize' entry in the
+Most customizations can be done using the ``Customize'' entry in the
 VHDL Mode menu, which requires no editing of the .emacs file.
 If you want to customize indentation, here you go:
 

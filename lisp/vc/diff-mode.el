@@ -821,7 +821,7 @@ If the OLD prefix arg is passed, tell the file NAME of the old file."
 	  (header-files
            ;; handle filenames with spaces;
            ;; cf. diff-font-lock-keywords / diff-file-header-face
-	   (if (looking-at "[-*][-*][-*] \\([^\t]+\\)\t.*\n[-+][-+][-+] \\([^\t]+\\)")
+	   (if (looking-at "[-*][-*][-*] \\([^\t\n]+\\).*\n[-+][-+][-+] \\([^\t\n]+\\)")
 	       (list (if old (match-string 1) (match-string 2))
 		     (if old (match-string 2) (match-string 1)))
 	     (forward-line 1) nil)))

@@ -702,7 +702,7 @@ If there is no such item, return nil."
   (let ((item-path (secrets-item-path collection item)))
     (unless (secrets-empty-path item-path)
       (dbus-byte-array-to-string
-       (cl-caddr
+       (nth 2
 	(dbus-call-method
 	 :session secrets-service item-path secrets-interface-item
 	 "GetSecret" :object-path secrets-session-path))))))

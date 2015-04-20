@@ -30,13 +30,13 @@
 #      by building, but normally aren't because the distribution comes
 #      with them.
 #
-#      Delete `.dvi' files here if they are not part of the distribution.
+#      Delete '.dvi' files here if they are not part of the distribution.
 #
 # make distclean
 #      Delete all files from the current directory that are created by
 #      configuring or building the program.  If you have unpacked the
 #      source and built the program without creating any other files,
-#      `make distclean' should leave only the files that were in the
+#      'make distclean' should leave only the files that were in the
 #      distribution.
 #
 # make maintainer-clean
@@ -67,7 +67,7 @@ CDPATH=
 # If Make doesn't predefine MAKE, set it here.
 @SET_MAKE@
 
-# ==================== Things `configure' Might Edit ====================
+# ==================== Things 'configure' Might Edit ====================
 
 cache_file = @cache_file@
 CONFIGURE_FLAGS = --cache-file=$(cache_file)
@@ -84,11 +84,11 @@ EXEEXT=@EXEEXT@
 ### to install files in.
 
 ### This should be the number of the Emacs version we're building,
-### like `18.59' or `19.0'.
+### like '24.5' or '25.0.50'.
 version=@version@
 
 ### This should be the name of the configuration we're building Emacs
-### for, like `mips-dec-ultrix' or `sparc-sun-sunos'.
+### for, like 'x86_64-unknown-linux-gnu' or 'powerpc-ibm-aix7.1.2.0'.
 configuration=@configuration@
 
 ### The nt/ subdirectory gets built only for MinGW
@@ -122,7 +122,7 @@ ns_self_contained=@ns_self_contained@
 # not need to change them.  This defaults to /usr/local.
 prefix=@prefix@
 
-# Like `prefix', but used for architecture-specific files.
+# Like 'prefix', but used for architecture-specific files.
 exec_prefix=@exec_prefix@
 
 # Where to install Emacs and other binaries that people will want to
@@ -171,7 +171,7 @@ bitmapdir=@bitmapdir@
 # Where to find the source code.  The source code for Emacs's C kernel is
 # expected to be in ${srcdir}/src, and the source code for Emacs's
 # utility programs is expected to be in ${srcdir}/lib-src.  This is
-# set by the configure script's `--srcdir' option.
+# set by the configure script's '--srcdir' option.
 
 # We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
 srcdir=@srcdir@
@@ -316,7 +316,7 @@ etc-emacsver:
 
 removenullpaths=sed -e 's/^:*//' -e 's/:*$$//g' -e 's/::*/:/g'
 
-# Generate epaths.h from epaths.in.  This target is invoked by `configure'.
+# Generate epaths.h from epaths.in.  This target is invoked by 'configure'.
 # See comments in configure.ac for why it is done this way, as opposed
 # to just letting configure generate epaths.h from epaths.in in a
 # similar way to how Makefile is made from Makefile.in.
@@ -350,7 +350,7 @@ epaths-force:
 # The w32 build needs a slightly different editing, and it uses
 # nt/epaths.nt as the template.
 #
-# Use the value of ${locallisppath} supplied by `configure',
+# Use the value of ${locallisppath} supplied by 'configure',
 # to support the --enable-locallisppath argument.
 #
 # In this case, the paths written to 'src/epaths.h' must be in native
@@ -377,10 +377,10 @@ lib-src src: $(NTDIR) lib
 
 src: lib-src
 
-# We need to build `emacs' in `src' to compile the *.elc files in `lisp'.
+# We need to build 'emacs' in 'src' to compile the *.elc files in 'lisp'.
 lisp: src
 
-# These targets should be "${SUBDIR} without `src'".
+# These targets should be "${SUBDIR} without 'src'".
 lib lib-src lisp nt: Makefile
 	$(MAKE) -C $@ all
 
@@ -684,6 +684,7 @@ install-man:
 	thisdir=`/bin/pwd`; \
 	cd ${mansrcdir}; \
 	for page in *.1; do \
+	  test "$$page" = ChangeLog.1 && continue; \
 	  dest=`echo "$${page}" | sed -e 's/\.1$$//' -e '$(TRANSFORM)'`.1; \
 	  (cd "$${thisdir}"; \
 	   ${INSTALL_DATA} ${mansrcdir}/$${page} "$(DESTDIR)${man1dir}/$${dest}"); \
@@ -732,8 +733,8 @@ install-etc:
 install-strip:
 	$(MAKE) INSTALL_STRIP=-s install
 
-### Delete all the installed files that the `install' target would
-### create (but not the noninstalled files such as `make all' would create).
+### Delete all the installed files that the 'install' target would
+### create (but not the noninstalled files such as 'make all' would create).
 ###
 ### Don't delete the lisp and etc directories if they're in the source tree.
 uninstall: uninstall-$(NTDIR) uninstall-doc
@@ -802,10 +803,10 @@ $(1)_$(2):
 	$$(MAKE) -C $(1) $(2)
 endef
 
-### `mostlyclean'
-###      Like `clean', but may refrain from deleting a few files that people
-###      normally don't want to recompile.  For example, the `mostlyclean'
-###      target for GCC does not delete `libgcc.a', because recompiling it
+### 'mostlyclean'
+###      Like 'clean', but may refrain from deleting a few files that people
+###      normally don't want to recompile.  For example, the 'mostlyclean'
+###      target for GCC does not delete 'libgcc.a', because recompiling it
 ###      is rarely necessary and takes a lot of time.
 mostlyclean_dirs = src oldXMenu lwlib lib lib-src nt doc/emacs doc/misc \
   doc/lispref doc/lispintro
@@ -817,14 +818,14 @@ mostlyclean: $(mostlyclean_dirs:=_mostlyclean)
 	  [ ! -d $$dir ] || $(MAKE) -C $$dir mostlyclean; \
 	done
 
-### `clean'
+### 'clean'
 ###      Delete all files from the current directory that are normally
 ###      created by building the program.  Don't delete the files that
 ###      record the configuration.  Also preserve files that could be made
 ###      by building, but normally aren't because the distribution comes
 ###      with them.
 ###
-###      Delete `.dvi' files here if they are not part of the distribution.
+###      Delete '.dvi' files here if they are not part of the distribution.
 clean_dirs = $(mostlyclean_dirs) nextstep
 
 $(foreach dir,$(clean_dirs),$(eval $(call submake_template,$(dir),clean)))
@@ -833,19 +834,19 @@ clean: $(clean_dirs:=_clean)
 	for dir in test/automated; do \
 	  [ ! -d $$dir ] || $(MAKE) -C $$dir clean; \
 	done
-	-rm -f etc/emacs.tmpdesktop etc/emacs.tmpappdata
+	-rm -f *.tmp etc/*.tmp*
 	-rm -rf info-dir.*
 
-### `bootclean'
+### 'bootclean'
 ###      Delete all files that need to be remade for a clean bootstrap.
 top_bootclean=\
 	rm -f config.cache config.log ${srcdir}/doc/man/emacs.1
 
-### `distclean'
+### 'distclean'
 ###      Delete all files from the current directory that are created by
 ###      configuring or building the program.  If you have unpacked the
 ###      source and built the program without creating any other files,
-###      `make distclean' should leave only the files that were in the
+###      'make distclean' should leave only the files that were in the
 ###      distribution.
 top_distclean=\
 	${top_bootclean}; \
@@ -861,8 +862,8 @@ distclean: $(distclean_dirs:=_distclean)
 	done
 	${top_distclean}
 
-### `bootstrap-clean'
-###      Delete everything that can be reconstructed by `make' and that
+### 'bootstrap-clean'
+###      Delete everything that can be reconstructed by 'make' and that
 ###      needs to be deleted in order to force a bootstrap from a clean state.
 $(foreach dir,$(distclean_dirs),$(eval $(call submake_template,$(dir),bootstrap-clean)))
 
@@ -875,16 +876,16 @@ bootstrap-clean: $(distclean_dirs:=_bootstrap-clean)
 	rm -f ${srcdir}/etc/refcards/emacsver.tex
 	${top_bootclean}
 
-### `maintainer-clean'
+### 'maintainer-clean'
 ###      Delete everything from the current directory that can be
 ###      reconstructed with this Makefile.  This typically includes
 ###      everything deleted by distclean, plus more: C source files
 ###      produced by Bison, tags tables, info files, and so on.
 ###
-###      One exception, however: `make maintainer-clean' should not delete
-###      `configure' even if `configure' can be remade using a rule in the
-###      Makefile.  More generally, `make maintainer-clean' should not delete
-###      anything that needs to exist in order to run `configure' and then
+###      One exception, however: 'make maintainer-clean' should not delete
+###      'configure' even if 'configure' can be remade using a rule in the
+###      Makefile.  More generally, 'make maintainer-clean' should not delete
+###      anything that needs to exist in order to run 'configure' and then
 ###      begin to build the program.
 top_maintainer_clean=\
 	${top_distclean}; \
@@ -1086,6 +1087,51 @@ bootstrap: bootstrap-clean
 	cd $(srcdir) && ./autogen.sh
 	$(MAKE) MAKEFILE_NAME=force-Makefile force-Makefile
 	$(MAKE) all
+
+.PHONY: ChangeLog change-history change-history-commit
+.PHONY: master-branch-is-current no-ChangeLog unchanged-history-files
+
+# The newest revision that should not appear in the generated ChangeLog.
+gen_origin = 870287327b1fba7105599eeabac5a2aa5ebadf19
+
+# Convert git commit log to ChangeLog file.  make-dist uses this.
+ChangeLog:
+	$(AM_V_GEN)distprefix=$(distprefix) srcprefix=$(srcdir)/ \
+	$(srcdir)/build-aux/gitlog-to-emacslog $(gen_origin)
+
+# The ChangeLog history files are called ChangeLog.1, ChangeLog.2, ...,
+# ChangeLog.$(CHANGELOG_HISTORY_INDEX_MAX).  $(CHANGELOG_N) stands for
+# the newest (highest-numbered) ChangeLog history file.
+CHANGELOG_HISTORY_INDEX_MAX = 2
+CHANGELOG_N = ChangeLog.$(CHANGELOG_HISTORY_INDEX_MAX)
+
+# Check that we are in a good state for changing history.
+no-ChangeLog:
+	test ! -f ChangeLog
+master-branch-is-current:
+	git branch | grep -q '^\* master$$'
+unchanged-history-files:
+	x=$$(git diff-files --name-only $(CHANGELOG_N) Makefile.in) && \
+	  test -z "$$x"
+
+# Copy newer commit messages to the start of the ChangeLog history file,
+# and consider them to be older.
+change-history: no-ChangeLog master-branch-is-current unchanged-history-files \
+  ChangeLog
+	(sed '/^;; [L]ocal Variables:/,$$d' <ChangeLog && cat $(CHANGELOG_N)) \
+	  >$(CHANGELOG_N).tmp
+	new_origin=$$(git log --pretty=format:%H HEAD^!) && \
+	sed 's/^\(gen_origin *= *\).*/\1'"$$new_origin/" \
+	  <Makefile.in >Makefile.in.tmp
+	mv $(CHANGELOG_N).tmp $(CHANGELOG_N)
+	mv Makefile.in.tmp Makefile.in
+	$(MAKE) $@-commit
+
+# If 'make change-history' fails because the newest ChangeLog history
+# file contains invalid text, fix the file by hand and then run
+# 'make change-history-commit'.
+change-history-commit:
+	git commit -m'; make $@' $(CHANGELOG_N) Makefile.in
 
 .PHONY: check-declare
 

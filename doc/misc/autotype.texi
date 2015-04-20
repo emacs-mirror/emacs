@@ -331,8 +331,9 @@ character is part of a word.  If you want pairing to occur even then, set
 @vindex skeleton-pair-alist
   Pairing is possible for all visible characters.  By default the
 parenthesis @samp{(}, the square bracket @samp{[}, the brace
-@samp{@{}, the pointed bracket @samp{<} and the backquote @samp{`} all
-pair with the symmetrical character.  All other characters pair
+@samp{@{} and the pointed bracket @samp{<} all
+pair with the symmetrical character, and the grave accent @samp{`}
+pairs with the apostrophe @samp{'}.  All other characters pair
 themselves.  This behavior can be modified by the variable
 @code{skeleton-pair-alist}.  This is in fact an alist of skeletons
 (@pxref{Skeleton Language}), with the first part of each sublist
@@ -341,8 +342,8 @@ but since pairs don't need the @code{str} element, this is ignored.
 
   Some modes have bound the command @code{skeleton-pair-insert-maybe}
 to relevant keys.  These modes also configure the pairs as
-appropriate.  For example, when typing english prose, you'd expect the
-backquote (@samp{`}) to pair with the quote (@samp{'}), while in Shell
+appropriate.  For example, when typing @TeX{} input, you'd expect the
+grave accent (@samp{`}) to pair with the apostrophe (@samp{'}), while in Shell
 script mode it must pair to itself.  They can also inhibit pairing in
 certain contexts.  For example an escaped character stands for itself.
 
@@ -626,7 +627,7 @@ See the commentary in @file{tempo.el} for more information on using the
 Tempo package.
 
 @node Hippie Expand
-@chapter `Hippie' Expansion
+@chapter ``Hippie'' Expansion
 
 @findex hippie-expand
 @kindex M-/

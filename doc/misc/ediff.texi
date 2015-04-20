@@ -556,9 +556,9 @@ Makes the next difference region current.
 @kindex j
 Makes the very first difference region current.
 
-@kbd{-j} makes the last region current.  Typing a number, N, and then `j'
+@kbd{-j} makes the last region current.  Typing a number, N, and then @kbd{j}
 makes the difference region N current.  Typing @minus{}N (a negative number) then
-`j' makes current the region Last @minus{} N.
+@kbd{j} makes current the region Last @minus{} N.
 
 @item ga
 @kindex ga
@@ -615,8 +615,8 @@ no longer current, due to user editing.
 @item m
 @kindex m
 Displays the current Ediff session in a frame as wide as the physical
-display.  This is useful when comparing files side-by-side.  Typing `m' again
-restores the original size of the frame.
+display.  This is useful when comparing files side-by-side.
+Typing @kbd{m} again restores the original size of the frame.
 
 @item |
 @kindex |
@@ -675,7 +675,7 @@ Tell Ediff to skip over regions that disagree among themselves only in the
 amount of white space and line breaks.
 
 Even though such regions will be skipped over, you can still jump to any
-one of them by typing the region number and then `j'.  Typing @kbd{##}
+one of them by typing the region number and then @kbd{j}.  Typing @kbd{##}
 again puts Ediff back in the original state.
 
 @item #c
@@ -695,7 +695,8 @@ and @code{ediff-ignore-case}, which are explained elsewhere.
 Ediff works hard to ameliorate the effects of boredom in the workplace...
 
 Quite often differences are due to identical replacements (e.g., the word
-`foo' is replaced with the word `bar' everywhere).  If the number of regions
+``foo'' is replaced with the word ``bar'' everywhere).  If the number
+of regions
 with such boring differences exceeds your tolerance threshold, you may be
 tempted to tell Ediff to skip these regions altogether (you will still be able
 to jump to them via the command @kbd{j}).  The above commands, @kbd{#h}
@@ -750,7 +751,7 @@ You can then restart any of these sessions by either clicking on a session
 record or by putting the cursor over it and then typing the return key.
 
 (Some poor souls leave so many active Ediff sessions around that they lose
-track of them completely...  The `R' command is designed to save these
+track of them completely...  The @kbd{R} command is designed to save these
 people from the recently discovered Ediff Proficiency Syndrome.)
 
 Typing @kbd{R} brings up Ediff Registry only if it is typed into an Ediff
@@ -800,8 +801,8 @@ is that this difference region in buffer A is as old as that in the
 ancestor buffer, so the contents of that region in buffer B represents real
 change.
 
-You may want to ignore such `obvious' merges and concentrate on difference
-regions where both files `clash' with the ancestor, since this means that
+You may want to ignore such ``obvious'' merges and concentrate on difference
+regions where both files ``clash'' with the ancestor, since this means that
 two different people have been changing this region independently and they
 had different ideas on how to do this.
 
@@ -818,10 +819,10 @@ precisely this.
 
 To be more precise, this toggles the check for whether the current merge is
 identical to its default setting, as originally decided by Ediff.  For
-instance, if Ediff is merging according to the `combined' policy, then the
+instance, if Ediff is merging according to the ``combined'' policy, then the
 merge region is skipped over if it is different from the combination of the
 regions in buffers A and B@.  (Warning: swapping buffers A and B will confuse
-things in this respect.)  If the merge region is marked as `prefer-A' then
+things in this respect.)  If the merge region is marked as ``prefer-A'' then
 this region will be skipped if it differs from the current difference
 region in buffer A, etc.
 
@@ -851,7 +852,7 @@ corresponding region from buffer B.
 @item s
 @kindex s
 Causes the merge window shrink to its minimum size, thereby exposing as much
-of the variant buffers as possible.  Typing `s' again restores
+of the variant buffers as possible.  Typing @kbd{s} again restores
 the original size of that window.
 
 With a positive prefix argument, this command enlarges the merge window.
@@ -1164,7 +1165,7 @@ customization and faces) can be done by putting appropriate lines in
 @file{.Xdefaults}, @file{.xrdb}, or whatever X resource file is in use.
 
 With respect to the latter, please note that the X resource
-for Ediff customization is `Ediff', @emph{not} `emacs'.
+for Ediff customization is ``Ediff'', @emph{not} ``emacs''.
 @xref{Window and Frame Configuration},
 @xref{Highlighting Difference Regions}, for further details.  Please also
 refer to Emacs manual for the information on how to set Emacs X resources.
@@ -1510,7 +1511,7 @@ We shall call these regular expressions @var{regexp-A}, @var{regexp-B} and
 @var{regexp-C}.
 Ediff will then start stepping through only those difference regions
 where the region in buffer A matches @var{regexp-A} and/or the region in
-buffer B matches @var{regexp-B}, etc.  Whether `and' or `or' will be used
+buffer B matches @var{regexp-B}, etc.  Whether ``and'' or ``or'' will be used
 depends on how you respond to a question.
 
 When scanning difference regions for the aforesaid regular expressions,
@@ -1888,10 +1889,11 @@ Otherwise, you may have to tune the values of the variables
 @item ediff-patch-options
 Options to pass to @code{ediff-patch-program}.
 
-Note: the `-b' and `-z' options should be specified in
-`ediff-backup-specs', not in @code{ediff-patch-options}.
+Note: the @option{-b} and @option{-z} options should be specified in
+@code{ediff-backup-specs}, not in @code{ediff-patch-options}.
 
-It is recommended to pass the `-f' option to the patch program, so it won't
+It is recommended to pass the @option{-f} option to the patch program,
+so it won't
 ask questions.  However, some implementations don't accept this option, in
 which case the default value of this variable should be changed.
 
@@ -1901,19 +1903,23 @@ Backup extension used by the patch program.  Must be specified, even if
 @item ediff-backup-specs
 Backup directives to pass to the patch program.
 Ediff requires that the old version of the file (before applying the patch)
-is saved in a file named @file{the-patch-file.extension}.  Usually
-`extension' is `.orig', but this can be changed by the user, and may also be
+is saved in a file named @file{the-patch-file.@var{extension}}.
+Usually @var{extension} is @file{.orig}, but this can be changed by
+the user, and may also be
 system-dependent.  Therefore, Ediff needs to know the backup extension used
 by the patch program.
 
-Some versions of the patch program let the user specify `-b backup-extension'.
-Other versions only permit `-b', which (usually) assumes the extension `.orig'.
-Yet others force you to use `-z<backup-extension>'.
+Some versions of the patch program let the user specify @option{-b
+@var{extension}} to specify a backup file name extension.  Other
+versions only permit @option{-b}, which (usually) assumes the
+extension @file{.orig}.  Yet others force you to use
+@option{-z@var{extension}}.
 
-Note that both `ediff-backup-extension' and `ediff-backup-specs' must be
-properly set.  If your patch program takes the option `-b', but not
-`-b extension', the variable `ediff-backup-extension' must still
-be set so Ediff will know which extension to use.
+Both @code{ediff-backup-extension} and @var{ediff-backup-specs} must
+be properly set.  If your patch program takes the option @option{-b},
+but not @option{-b @var{extension}}, the variable
+@code{ediff-backup-extension} must still be set so Ediff will know
+which extension to use.
 
 @item ediff-custom-diff-program
 @itemx ediff-custom-diff-options
@@ -2105,7 +2111,7 @@ typing @kbd{s}.  This change is temporary, until Ediff finds a reason to
 redraw the screen.  Typing @kbd{s} again restores the original window size.
 
 With a positive prefix argument, the @kbd{s} command will make the merge
-window slightly taller.  This change is persistent.  With `@kbd{-}' or
+window slightly taller.  This change is persistent.  With ``@kbd{-}'' or
 with a negative prefix argument, the command @kbd{s} makes the merge
 window slightly shorter.  This change also persistent.
 

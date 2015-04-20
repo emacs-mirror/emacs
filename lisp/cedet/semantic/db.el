@@ -723,6 +723,7 @@ form."
   "Save all semantic tag databases from idle time.
 Exit the save between databases if there is user input."
   (semantic-safe "Auto-DB Save: %S"
+    ;; FIXME: Use `while-no-input'?
     (semantic-exit-on-input 'semanticdb-idle-save
       (mapc (lambda (db)
 	      (semantic-throw-on-input 'semanticdb-idle-save)

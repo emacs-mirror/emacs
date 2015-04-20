@@ -202,6 +202,7 @@ extern int random (void);
 extern int fchmod (int, mode_t);
 extern int sys_rename_replace (char const *, char const *, BOOL);
 extern int pipe2 (int *, int);
+extern void register_aux_fd (int);
 
 extern void set_process_dir (char *);
 extern int sys_spawnve (int, char *, char **, char **);

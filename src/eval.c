@@ -210,7 +210,7 @@ init_eval_once (void)
   specpdl = specpdl_ptr = pdlvec + 1;
   /* Don't forget to update docs (lispref node "Local Variables").  */
   max_specpdl_size = 1300; /* 1000 is not enough for CEDET's c-by.el.  */
-  max_lisp_eval_depth = 600;
+  max_lisp_eval_depth = 800;
 
   Vrun_hooks = Qnil;
 }
@@ -3305,27 +3305,27 @@ Output stream used is value of `standard-output'.  */)
 
   while (backtrace_p (pdl))
     {
-      write_string (backtrace_debug_on_exit (pdl) ? "* " : "  ", 2);
+      write_string (backtrace_debug_on_exit (pdl) ? "* " : "  ");
       if (backtrace_nargs (pdl) == UNEVALLED)
 	{
 	  Fprin1 (Fcons (backtrace_function (pdl), *backtrace_args (pdl)),
 		  Qnil);
-	  write_string ("\n", -1);
+	  write_string ("\n");
 	}
       else
 	{
 	  tem = backtrace_function (pdl);
 	  Fprin1 (tem, Qnil);	/* This can QUIT.  */
-	  write_string ("(", -1);
+	  write_string ("(");
 	  {
 	    ptrdiff_t i;
 	    for (i = 0; i < backtrace_nargs (pdl); i++)
 	      {
-		if (i) write_string (" ", -1);
+		if (i) write_string (" ");
 		Fprin1 (backtrace_args (pdl)[i], Qnil);
 	      }
 	  }
-	  write_string (")\n", -1);
+	  write_string (")\n");
 	}
       pdl = backtrace_next (pdl);
     }

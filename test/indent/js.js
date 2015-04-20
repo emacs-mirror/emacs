@@ -64,6 +64,11 @@ b +=
 baz(`http://foo.bar/${tee}`)
   .qux();
 
+`multiline string
+       contents
+  are kept
+        unchanged!`
+
 // Local Variables:
 // indent-tabs-mode: nil
 // js-indent-level: 2

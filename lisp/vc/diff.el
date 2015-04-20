@@ -38,7 +38,7 @@
   :group 'tools)
 
 ;;;###autoload
-(defcustom diff-switches (purecopy "-c")
+(defcustom diff-switches (purecopy "-u")
   "A string or list of strings specifying switches to be passed to diff."
   :type '(choice string (repeat string))
   :group 'diff)

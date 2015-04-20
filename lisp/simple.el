@@ -1776,6 +1776,7 @@ in this use of the minibuffer.")
 
 (defun minibuffer-avoid-prompt (_new _old)
   "A point-motion hook for the minibuffer, that moves point out of the prompt."
+  (declare (obsolete cursor-intangible-mode "25.1"))
   (constrain-to-field nil (point-max)))
 
 (defcustom minibuffer-history-case-insensitive-variables nil
@@ -4908,7 +4909,7 @@ also checks the value of `use-empty-active-region'."
        ;; without the mark being set (e.g. bug#17324).  We really should fix
        ;; that problem, but in the mean time, let's make sure we don't say the
        ;; region is active when there's no mark.
-       (mark)))
+       (progn (cl-assert (mark)) t)))
 
 
 (defvar redisplay-unhighlight-region-function
@@ -4934,37 +4935,41 @@ also checks the value of `use-empty-active-region'."
       rol)))
 
 (defun redisplay--update-region-highlight (window)
-  (with-current-buffer (window-buffer window)
-    (let ((rol (window-parameter window 'internal-region-overlay)))
-      (if (not (region-active-p))
-          (funcall redisplay-unhighlight-region-function rol)
-        (let* ((pt (window-point window))
-               (mark (mark))
-               (start (min pt mark))
-               (end   (max pt mark))
-               (new
-                (funcall redisplay-highlight-region-function
-                         start end window rol)))
-          (unless (equal new rol)
-            (set-window-parameter window 'internal-region-overlay
-                                  new)))))))
+  (let ((rol (window-parameter window 'internal-region-overlay)))
+    (if (not (and (region-active-p)
+                  (or highlight-nonselected-windows
+                      (eq window (selected-window))
+                      (and (window-minibuffer-p)
+                           (eq window (minibuffer-selected-window))))))
+        (funcall redisplay-unhighlight-region-function rol)
+      (let* ((pt (window-point window))
+             (mark (mark))
+             (start (min pt mark))
+             (end   (max pt mark))
+             (new
+              (funcall redisplay-highlight-region-function
+                       start end window rol)))
+        (unless (equal new rol)
+          (set-window-parameter window 'internal-region-overlay
+                                new))))))
 
-(defun redisplay--update-region-highlights (windows)
-  (with-demoted-errors "redisplay--update-region-highlights: %S"
+(defvar pre-redisplay-functions (list #'redisplay--update-region-highlight)
+  "Hook run just before redisplay.
+It is called in each window that is to be redisplayed.  It takes one argument,
+which is the window that will be redisplayed.  When run, the `current-buffer'
+is set to the buffer displayed in that window.")
+
+(defun redisplay--pre-redisplay-functions (windows)
+  (with-demoted-errors "redisplay--pre-redisplay-functions: %S"
     (if (null windows)
-        (redisplay--update-region-highlight (selected-window))
-      (unless (listp windows) (setq windows (window-list-1 nil nil t)))
-      (if highlight-nonselected-windows
-          (mapc #'redisplay--update-region-highlight windows)
-        (let ((msw (and (window-minibuffer-p) (minibuffer-selected-window))))
-          (dolist (w windows)
-            (if (or (eq w (selected-window)) (eq w msw))
-                (redisplay--update-region-highlight w)
-              (funcall redisplay-unhighlight-region-function
-                       (window-parameter w 'internal-region-overlay)))))))))
+        (with-current-buffer (window-buffer (selected-window))
+          (run-hook-with-args 'pre-redisplay-functions (selected-window)))
+      (dolist (win (if (listp windows) windows (window-list-1 nil nil t)))
+        (with-current-buffer (window-buffer win)
+          (run-hook-with-args 'pre-redisplay-functions win))))))
 
 (add-function :before pre-redisplay-function
-              #'redisplay--update-region-highlights)
+              #'redisplay--pre-redisplay-functions)
 
 
 (defvar-local mark-ring nil
@@ -7001,6 +7006,8 @@ More precisely, a char with closeparen syntax is self-inserted.")
              (not executing-kbd-macro)
              (not noninteractive)
 	     ;; Verify an even number of quoting characters precede the close.
+             ;; FIXME: Also check if this parenthesis closes a comment as
+             ;; can happen in Pascal and SML.
 	     (= 1 (logand 1 (- (point)
 			       (save-excursion
 				 (forward-char -1)

@@ -216,6 +216,7 @@ current buffer.")
 And also manages services that depend on tag values."
   (when semantic-idle-scheduler-verbose-flag
     (message "IDLE: Core handler..."))
+  ;; FIXME: Use `while-no-input'?
   (semantic-exit-on-input 'idle-timer
     (let* ((inhibit-quit nil)
            (buffers (delq (current-buffer)

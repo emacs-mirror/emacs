@@ -103,6 +103,7 @@
 (cl-defmacro with-package-test ((&optional &key file
                                            basedir
                                            install
+                                           location
                                            update-news
                                            upload-base)
                                 &rest body)
@@ -112,8 +113,7 @@
           (process-environment (cons (format "HOME=%s" package-test-user-dir)
                                      process-environment))
           (package-user-dir package-test-user-dir)
-          (package-archives `(("gnu" . ,package-test-data-dir)))
-          (old-yes-no-defn (symbol-function 'yes-or-no-p))
+          (package-archives `(("gnu" . ,(or ,location package-test-data-dir))))
           (default-directory package-test-file-dir)
           abbreviated-home-dir
           package--initialized
@@ -125,28 +125,31 @@
                 '((package-test-archive-upload-base (make-temp-file "pkg-archive-base-" t))
                   (package-archive-upload-base package-test-archive-upload-base))
               (list (cl-gensym)))) ;; Dummy value so `let' doesn't try to bind `nil'
+     (let ((buf (get-buffer "*Packages*")))
+       (when (buffer-live-p buf)
+         (kill-buffer buf)))
      (unwind-protect
          (progn
            ,(if basedir `(cd ,basedir))
-           (setf (symbol-function 'yes-or-no-p) #'(lambda (&rest r) t))
            (unless (file-directory-p package-user-dir)
              (mkdir package-user-dir))
-           ,@(when install
-               `((package-initialize)
-                 (package-refresh-contents)
-                 (mapc 'package-install ,install)))
-           (with-temp-buffer
-             ,(if file
-                  `(insert-file-contents ,file))
-             ,@body))
+           (cl-letf (((symbol-function 'yes-or-no-p) (lambda (&rest r) t))
+                     ((symbol-function 'y-or-n-p)    (lambda (&rest r) t)))
+             ,@(when install
+                 `((package-initialize)
+                   (package-refresh-contents)
+                   (mapc 'package-install ,install)))
+             (with-temp-buffer
+               ,(if file
+                    `(insert-file-contents ,file))
+               ,@body)))
 
        (when (file-directory-p package-test-user-dir)
          (delete-directory package-test-user-dir t))
 
        (when (and (boundp 'package-test-archive-upload-base)
                   (file-directory-p package-test-archive-upload-base))
-         (delete-directory package-test-archive-upload-base t))
-       (setf (symbol-function 'yes-or-no-p) old-yes-no-defn))))
+         (delete-directory package-test-archive-upload-base t)))))
 
 (defmacro with-fake-help-buffer (&rest body)
   "Execute BODY in a temp buffer which is treated as the \"*Help*\" buffer."
@@ -336,6 +339,32 @@ Must called from within a `tar-mode' buffer."
         (package-menu-execute)
         (package-menu-refresh)
         (should (package-installed-p 'simple-single '(1 4)))))))
+
+(ert-deftest package-test-update-archives-async ()
+  "Test updating package archives asynchronously."
+  (skip-unless (executable-find "python2"))
+  (with-package-test (:basedir
+                      package-test-data-dir
+                      :location "http://0.0.0.0:8000/")
+    (let* ((package-menu-async t)
+           (process (start-process
+                     "package-server" "package-server-buffer"
+                     (executable-find "python2")
+                     (expand-file-name "package-test-server.py"))))
+      (unwind-protect
+          (progn
+            (list-packages)
+            (should package--downloads-in-progress)
+            (should mode-line-process)
+            (should-not
+             (with-timeout (10 'timeout)
+               (while package--downloads-in-progress
+                 (accept-process-output nil 1))
+               nil))
+            (goto-char (point-min))
+            (should
+             (search-forward-regexp "^ +simple-single" nil t)))
+        (kill-process process)))))
 
 (ert-deftest package-test-describe-package ()
   "Test displaying help for a package."

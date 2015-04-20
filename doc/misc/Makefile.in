@@ -20,7 +20,7 @@
 SHELL = @SHELL@
 
 # Where to find the source code.  $(srcdir) will be the doc/misc subdirectory
-# of the source tree.  This is set by configure's `--srcdir' option.
+# of the source tree.  This is set by configure's '--srcdir' option.
 srcdir=@srcdir@
 
 ## Where the output files go.

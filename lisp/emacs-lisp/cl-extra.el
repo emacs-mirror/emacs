@@ -528,13 +528,9 @@ If START or END is negative, it counts from the end."
   (seq-subseq seq start end))
 
 ;;;###autoload
-(defun cl-concatenate (type &rest seqs)
+(defalias 'cl-concatenate #'seq-concatenate
   "Concatenate, into a sequence of type TYPE, the argument SEQUENCEs.
-\n(fn TYPE SEQUENCE...)"
-  (cond ((eq type 'vector) (apply 'vconcat seqs))
-	((eq type 'string) (apply 'concat seqs))
-	((eq type 'list) (apply 'append (append seqs '(nil))))
-	(t (error "Not a sequence type name: %s" type))))
+\n(fn TYPE SEQUENCE...)")
 
 
 ;;; List functions.

@@ -604,7 +604,7 @@ Emacs Lisp.  It is an LALR parser suitable for complex languages.
 @c Following comments are for the benefit of ispell.
 
 @c LocalWords: alist API APIs arg argc args argv asis assoc autoload Wisent
-@c LocalWords: backquote bnf bovinate bovinates LALR
+@c LocalWords: bnf bovinate bovinates LALR
 @c LocalWords: bovinating bovination bovinator bucketize
 @c LocalWords: cb cdr charquote checkcache cindex CLOS
 @c LocalWords: concat concocting const ctxt Decl defcustom

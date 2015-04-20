@@ -85,7 +85,7 @@ paragraph-separate: \"[ 	]*$\"\nend:\n")
 	 (infile (concat dir infile))
 	 (buffer (find-file-noselect (concat dir outfile))))
     (with-temp-buffer
-      ;; Could be done using `texinfmt' stuff as in `infohack.el'.
+      ;; Could be done using 'texinfmt' stuff as in 'infohack.el'.
       (insert
        (shell-command-to-string
 	(concat gnus-news-makeinfo-command " "
@@ -102,7 +102,7 @@ paragraph-separate: \"[ 	]*$\"\nend:\n")
       (save-excursion
 	(while (re-search-forward "^     " nil t)
 	  (replace-match "")))
-      ;; Avoid `*' from @ref at beginning of line:
+      ;; Avoid '*' from @ref at beginning of line:
       (save-excursion
 	(while (re-search-forward "^\\*Note" nil t)
 	  (replace-match " \\&")))

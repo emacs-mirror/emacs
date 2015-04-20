@@ -248,7 +248,7 @@ unibyte string, it is returned unchanged.  Use this function for
 characters.
 @end defun
 
-@c FIXME: Should `@var{character}' be `@var{byte}'?
+@c FIXME: Should '@var{character}' be '@var{byte}'?
 @defun byte-to-string byte
 @cindex byte to string
 This function returns a unibyte string containing a single byte of
@@ -1375,7 +1375,7 @@ alternatives described above.
 
 The optional argument @var{accept-default-p}, if non-@code{nil},
 should be a function to determine whether a coding system selected
-without user interaction is acceptable. @code{select-safe-coding-system}
+without user interaction is acceptable.  @code{select-safe-coding-system}
 calls this function with one argument, the base coding system of the
 selected coding system.  If @var{accept-default-p} returns @code{nil},
 @code{select-safe-coding-system} rejects the silently selected coding
@@ -1437,7 +1437,7 @@ don't change these variables; instead, override them using
 @cindex file contents, and default coding system
 @defopt auto-coding-regexp-alist
 This variable is an alist of text patterns and corresponding coding
-systems. Each element has the form @code{(@var{regexp}
+systems.  Each element has the form @code{(@var{regexp}
 . @var{coding-system})}; a file whose first few kilobytes match
 @var{regexp} is decoded with @var{coding-system} when its contents are
 read into a buffer.  The settings in this alist take priority over

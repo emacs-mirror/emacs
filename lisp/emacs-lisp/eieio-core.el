@@ -89,21 +89,8 @@ Currently under control of this var:
 (cl-defstruct (eieio--class
                (:constructor nil)
                (:constructor eieio--class-make (name &aux (tag 'defclass)))
-               (:type vector)
+               (:include cl--class)
                (:copier nil))
-  ;; We use an untagged cl-struct, with our own hand-made tag as first field
-  ;; (containing the symbol `defclass').  It would be better to use a normal
-  ;; cl-struct with its normal tag (e.g. so that cl-defstruct can define the
-  ;; predicate for us), but that breaks compatibility with .elc files compiled
-  ;; against older versions of EIEIO.
-  tag
-  ;; Fields we could inherit from cl--class (if we used a tagged cl-struct):
-  (name nil :type symbol)               ;The type name.
-  (docstring nil :type string)
-  (parents nil :type (or eieio--class (list-of eieio--class)))
-  (slots nil :type (vector cl-slot-descriptor))
-  (index-table nil :type hash-table)
-  ;; Fields specific to EIEIO classes:
   children
   initarg-tuples                  ;; initarg tuples list
   (class-slots nil :type eieio--slot)
@@ -152,12 +139,6 @@ Currently under control of this var:
       (or (eieio--class-v class) class)
     class))
 
-(defsubst eieio--class-p (class)
-  "Return non-nil if CLASS is a valid class object."
-  (condition-case nil
-      (eq (aref class 0) 'defclass)
-    (error nil)))
-
 (defun class-p (class)
   "Return non-nil if CLASS is a valid class vector.
 CLASS is a symbol."                     ;FIXME: Is it a vector or a symbol?
@@ -198,7 +179,7 @@ Return nil if that option doesn't exist."
 
 (define-obsolete-function-alias 'object-p 'eieio-object-p "25.1")
 
-(defsubst class-abstract-p (class)
+(defun class-abstract-p (class)
   "Return non-nil if CLASS is abstract.
 Abstract classes cannot be instantiated."
   (eieio--class-option (eieio--class-v class) :abstract))
@@ -673,10 +654,9 @@ the new child class."
       (let ((pslots (eieio--class-slots pcv))
             (pinit (eieio--class-initarg-tuples pcv)))
         (dotimes (i (length pslots))
-          (eieio--add-new-slot newc (cl--copy-slot-descriptor (aref pslots i))
-                               (car-safe (car pinit)) nil nil sn)
-          ;; Increment each value.
-          (setq pinit (cdr pinit))
+	  (let* ((sd (cl--copy-slot-descriptor (aref pslots i)))
+                 (init (car (rassq (cl--slot-descriptor-name sd) pinit))))
+	    (eieio--add-new-slot newc sd init nil nil sn))
           )) ;; while/let
       ;; Now duplicate all the class alloc slots.
       (let ((pcslots (eieio--class-class-slots pcv)))

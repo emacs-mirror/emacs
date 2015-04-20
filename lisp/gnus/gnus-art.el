@@ -50,6 +50,7 @@
 (autoload 'ansi-color-apply-on-region "ansi-color")
 (autoload 'mm-url-insert-file-contents-external "mm-url")
 (autoload 'mm-extern-cache-contents "mm-extern")
+(autoload 'url-expand-file-name "url-expand")
 
 (defgroup gnus-article nil
   "Article display."
@@ -254,12 +255,10 @@ This can also be a list of the above values."
   :group 'gnus-article-signature)
 
 (defcustom gnus-hidden-properties
-  (if (featurep 'xemacs)
-      ;; `intangible' is evil, but I keep it here in case it's useful.
-      '(invisible t intangible t)
-    ;; Emacs's command loop moves point out of invisible text anyway, so
-    ;; `intangible' is clearly not needed there.
-    '(invisible t))
+  ;; We use to have `intangible' here as well, but Emacs's command loop moves
+  ;; point out of invisible text anyway, so `intangible' is clearly not
+  ;; needed there.  And XEmacs doesn't handle `intangible' anyway.
+  '(invisible t)
   "Property list to use for hiding text."
   :type 'sexp
   :group 'gnus-article-hiding)
@@ -1628,8 +1627,11 @@ It is a string, such as \"PGP\". If nil, ask user."
 
 (defvar idna-program)
 
-(defcustom gnus-use-idna (and (condition-case nil (require 'idna) (file-error))
-			      (mm-coding-system-p 'utf-8)
+(defcustom gnus-use-idna (and (mm-coding-system-p 'utf-8)
+			      (condition-case nil
+				  (require 'idna)
+				(file-error)
+				(invalid-operation))
 			      idna-program
 			      (executable-find idna-program))
   "Whether IDNA decoding of headers is used when viewing messages.
@@ -1771,19 +1773,12 @@ Initialized from `text-mode-syntax-table.")
   (re-search-forward (concat "^\\(" header "\\):") nil t))
 
 (defsubst gnus-article-hide-text (b e props)
-  "Set text PROPS on the B to E region, extending `intangible' 1 past B."
-  (gnus-add-text-properties-when 'article-type nil b e props)
-  (when (memq 'intangible props)
-    (put-text-property
-     (max (1- b) (point-min))
-     b 'intangible (cddr (memq 'intangible props)))))
+  "Set text PROPS on the B to E region."
+  (gnus-add-text-properties-when 'article-type nil b e props))
 
 (defsubst gnus-article-unhide-text (b e)
   "Remove hidden text properties from region between B and E."
-  (remove-text-properties b e gnus-hidden-properties)
-  (when (memq 'intangible gnus-hidden-properties)
-    (put-text-property (max (1- b) (point-min))
-		       b 'intangible nil)))
+  (remove-text-properties b e gnus-hidden-properties))
 
 (defun gnus-article-hide-text-type (b e type)
   "Hide text of TYPE between B and E."
@@ -1795,10 +1790,7 @@ Initialized from `text-mode-syntax-table.")
   "Unhide text of TYPE between B and E."
   (gnus-delete-wash-type type)
   (remove-text-properties
-   b e (cons 'article-type (cons type gnus-hidden-properties)))
-  (when (memq 'intangible gnus-hidden-properties)
-    (put-text-property (max (1- b) (point-min))
-		       b 'intangible nil)))
+   b e (cons 'article-type (cons type gnus-hidden-properties))))
 
 (defun gnus-article-delete-text-of-type (type)
   "Delete text of TYPE in the current buffer."
@@ -2328,7 +2320,7 @@ long lines if and only if arg is positive."
       (goto-char (point-max))
       (let ((start (point)))
 	(insert "X-Boundary: ")
-	(gnus-add-text-properties start (point) '(invisible t intangible t))
+	(gnus-add-text-properties start (point) gnus-hidden-properties)
        (insert (let (str (max (window-width)))
                  (if (featurep 'xemacs)
                      (setq max (1- max)))
@@ -2792,10 +2784,9 @@ summary buffer."
     (setq gnus-article-browse-html-temp-list nil))
   gnus-article-browse-html-temp-list)
 
-(defun gnus-article-browse-html-save-cid-content (cid handles directory abs)
+(defun gnus-article-browse-html-save-cid-content (cid handles directory)
   "Find CID content in HANDLES and save it in a file in DIRECTORY.
-Return absolute file name if ABS is non-nil, otherwise relative to
-the parent of DIRECTORY."
+Return file name relative to the parent of DIRECTORY."
   (save-match-data
     (let (file afile)
       (catch 'found
@@ -2807,7 +2798,7 @@ the parent of DIRECTORY."
 	   ((not (or (bufferp (car handle)) (stringp (car handle)))))
 	   ((equal (mm-handle-media-supertype handle) "multipart")
 	    (when (setq file (gnus-article-browse-html-save-cid-content
-			      cid handle directory abs))
+			      cid handle directory))
 	      (throw 'found file)))
 	   ((equal (concat "<" cid ">") (mm-handle-id handle))
 	    (setq file (or (mm-handle-filename handle)
@@ -2817,11 +2808,9 @@ the parent of DIRECTORY."
 					 mailcap-mime-extensions))))
 		  afile (expand-file-name file directory))
 	    (mm-save-part-to-file handle afile)
-	    (throw 'found (if abs
-			      afile
-			    (concat (file-name-nondirectory
-				     (directory-file-name directory))
-				    "/" file))))))))))
+	    (throw 'found (concat (file-name-nondirectory
+				   (directory-file-name directory))
+				  "/" file)))))))))
 
 (defun gnus-article-browse-html-parts (list &optional header)
   "View all \"text/html\" parts from LIST.
@@ -2857,13 +2846,32 @@ message header will be added to the bodies of the \"text/html\" parts."
 	       (insert content)
 	       ;; resolve cid contents
 	       (let ((case-fold-search t)
-		     abs st cid-file)
+		     st base regexp cid-file)
 		 (goto-char (point-min))
-		 (when (re-search-forward "<head[\t\n >]" nil t)
-		   (setq st (match-end 0)
-			 abs (or
-			      (not (re-search-forward "</head[\t\n >]" nil t))
-			      (re-search-backward "<base[\t\n >]" st t))))
+		 (when (and (re-search-forward "<head[\t\n >]" nil t)
+			    (progn
+			      (setq st (match-end 0))
+			      (re-search-forward "</head[\t\n >]" nil t))
+			    (re-search-backward "<base\
+\\(?:[\t\n ]+[^\t\n >]+\\)*[\t\n ]+href=\"\\([^\"]+\\)\"[^>]*>" st t))
+		   (setq base (match-string 1))
+		   (replace-match "<!--\\&-->")
+		   (setq st (point))
+		   (dolist (tag '(("a" . "href") ("form" . "action")
+				  ("img" . "src")))
+		     (setq regexp (concat "<" (car tag)
+					  "\\(?:[\t\n ]+[^\t\n >]+\\)*[\t\n ]+"
+					  (cdr tag) "=\"\\([^\"]+\\)"))
+		     (while (re-search-forward regexp nil t)
+		       (insert (prog1
+				   (condition-case nil
+				       (save-match-data
+					 (url-expand-file-name (match-string 1)
+							       base))
+				     (error (match-string 1)))
+				 (delete-region (match-beginning 1)
+						(match-end 1)))))
+		     (goto-char st)))
 		 (while (re-search-forward "\
 <img[\t\n ]+\\(?:[^\t\n >]+[\t\n ]+\\)*src=\"\\(cid:\\([^\"]+\\)\\)\""
 					   nil t)
@@ -2877,18 +2885,7 @@ message header will be added to the bodies of the \"text/html\" parts."
 				(match-string 2)
 				(with-current-buffer gnus-article-buffer
 				  gnus-article-mime-handles)
-				cid-dir abs))
-		     (when abs
-		       (setq cid-file
-			     (if (eq system-type 'cygwin)
-				 (concat "file:///"
-					 (substring
-					  (with-output-to-string
-					    (call-process "cygpath" nil
-							  standard-output
-							  nil "-m" cid-file))
-					  0 -1))
-			       (concat "file://" cid-file))))
+				cid-dir))
 		     (replace-match cid-file nil nil nil 1))))
 	       (unless content (setq content (buffer-string))))
 	     (when (or charset header (not file))

@@ -2693,7 +2693,7 @@ This function returns @code{t} if the screen can display shades of gray.
 This function returns non-@code{nil} if all the face attributes in
 @var{attributes} are supported (@pxref{Face Attributes}).
 
-The definition of `supported' is somewhat heuristic, but basically
+The definition of ``supported'' is somewhat heuristic, but basically
 means that a face containing all the attributes in @var{attributes},
 when merged with the default face for display, can be represented in a
 way that's
@@ -2703,14 +2703,14 @@ way that's
 different in appearance than the default face, and
 
 @item
-`close in spirit' to what the attributes specify, if not exact.
+``close in spirit'' to what the attributes specify, if not exact.
 @end enumerate
 
 Point (2) implies that a @code{:weight black} attribute will be
 satisfied by any display that can display bold, as will
 @code{:foreground "yellow"} as long as some yellowish color can be
 displayed, but @code{:slant italic} will @emph{not} be satisfied by
-the tty display code's automatic substitution of a `dim' face for
+the tty display code's automatic substitution of a ``dim'' face for
 italic.
 @end defun
 

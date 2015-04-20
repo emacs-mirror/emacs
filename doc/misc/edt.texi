@@ -710,7 +710,7 @@ functions are bound to @key{F7}, @key{F8}, @kbd{GOLD-F8}, @key{F9},
 
 @item
 The original EDT emulation package set up many default regular and GOLD
-bindings.  We tried to preserve most (but not all!) of these, so users
+bindings.  We tried to preserve most (but not all!)@: of these, so users
 of the original emulation package will feel more at home.
 
 Nevertheless, there are still many GOLD key sequences which are not

@@ -188,7 +188,7 @@
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;; See ChangeLog for other changes.
+;; See commit log for other changes.
 ;;
 ;; Revision 1.5  2002/01/27 14:39:17  rscholz
 ;; * New variable `gnus-outlook-deuglify-no-wrap-chars' to inhibit

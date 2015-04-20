@@ -308,6 +308,7 @@ unencrypted."
 		       (?s . session)
 		       (?a . always)))
 	  (prefix "")
+	  (cursor-in-echo-area t)
 	  response)
       (while (not response)
 	(setq response
@@ -315,7 +316,7 @@ unencrypted."
 	       (assq (downcase
 		      (read-char
 		       (concat prefix
-			       "Continue connecting? (No, Session only, Always)")))
+			       "Continue connecting? (No, Session only, Always) ")))
 		     responses)))
 	(unless response
 	  (ding)

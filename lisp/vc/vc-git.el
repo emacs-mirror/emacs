@@ -792,19 +792,26 @@ This prompts for a branch to merge from."
 
 (defun vc-git-find-file-hook ()
   "Activate `smerge-mode' if there is a conflict."
-  (when (and buffer-file-name
-             ;; FIXME
-             ;; 1) the net result is to call git twice per file.
-             ;; 2) v-g-c-f is documented to take a directory.
-             ;; http://lists.gnu.org/archive/html/emacs-devel/2014-01/msg01126.html
-             (vc-git-conflicted-files buffer-file-name)
-             (save-excursion
-               (goto-char (point-min))
-               (re-search-forward "^<<<<<<< " nil 'noerror)))
-    (vc-file-setprop buffer-file-name 'vc-state 'conflict)
-    (smerge-start-session)
-    (add-hook 'after-save-hook 'vc-git-resolve-when-done nil 'local)
-    (message "There are unresolved conflicts in this file")))
+  (let (stashed)
+    (when (and buffer-file-name
+               ;; FIXME
+               ;; 1) the net result is to call git twice per file.
+               ;; 2) v-g-c-f is documented to take a directory.
+               ;; http://lists.gnu.org/archive/html/emacs-devel/2014-01/msg01126.html
+               ;; XXX: Should we first look for the markers, and only
+               ;; call this function when see some?
+               (vc-git-conflicted-files buffer-file-name)
+               (save-excursion
+                 (goto-char (point-min))
+                 (when (re-search-forward "^>>>>>>> " nil 'noerror)
+                   (setq stashed (looking-at "Stashed changes"))
+                   t)))
+      (vc-file-setprop buffer-file-name 'vc-state 'conflict)
+      (smerge-start-session)
+      (unless stashed
+        ;; Stashes are tricky (bug#20292).
+        (add-hook 'after-save-hook 'vc-git-resolve-when-done nil 'local))
+      (message "There are unresolved conflicts in this file"))))
 
 ;;; HISTORY FUNCTIONS
 

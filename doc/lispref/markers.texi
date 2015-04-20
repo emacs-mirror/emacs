@@ -287,8 +287,8 @@ This function returns the position that @var{marker} points to, or
 This function returns the buffer that @var{marker} points into, or
 @code{nil} if it points nowhere.
 
-@c FIXME: The `buffer' argument of `set-marker' already defaults to
-@c the current buffer, why use `(current-buffer)' explicitly here?
+@c FIXME: The 'buffer' argument of 'set-marker' already defaults to
+@c the current buffer, why use '(current-buffer)' explicitly here?
 @example
 @group
 (setq m (make-marker))
@@ -712,4 +712,3 @@ A region is valid if it has a non-zero size, or if the user option
 cases, you should not use @code{region-active-p}, since if the region
 is empty it is often more appropriate to operate on point.
 @end defun
-

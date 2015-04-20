@@ -578,7 +578,7 @@ variable by the command `isearch-toggle-lax-whitespace'.")
   "Stack of search status elements.
 Each element is an `isearch--state' struct where the slots are
  [STRING MESSAGE POINT SUCCESS FORWARD OTHER-END WORD
-  INVALID-REGEXP WRAPPED BARRIER WITHIN-BRACKETS CASE-FOLD-SEARCH]")
+  ERROR WRAPPED BARRIER CASE-FOLD-SEARCH]")
 
 (defvar isearch-string "")  ; The current search string.
 (defvar isearch-message "") ; text-char-description version of isearch-string
@@ -657,8 +657,7 @@ Each element is an `isearch--state' struct where the slots are
     (nconc minor-mode-alist
 	   (list '(isearch-mode isearch-mode))))
 
-(defvar isearch-mode nil) ;; Name of the minor mode, if non-nil.
-(make-variable-buffer-local 'isearch-mode)
+(defvar-local isearch-mode nil) ;; Name of the minor mode, if non-nil.
 
 (define-key global-map "\C-s" 'isearch-forward)
 (define-key esc-map "\C-s" 'isearch-forward-regexp)
@@ -826,6 +825,7 @@ See the command `isearch-forward-symbol' for more information."
       (isearch-update)))))
 
 
+(defvar cursor-sensor-inhibit)
 ;; isearch-mode only sets up incremental search for the minor mode.
 ;; All the work is done by the isearch-mode commands.
 
@@ -932,6 +932,12 @@ convert the search string to a regexp used by regexp search functions."
   (add-hook 'post-command-hook 'isearch-post-command-hook)
   (add-hook 'mouse-leave-buffer-hook 'isearch-done)
   (add-hook 'kbd-macro-termination-hook 'isearch-done)
+  (make-local-variable 'cursor-sensor-inhibit)
+  (unless (boundp 'cursor-sensor-inhibit)
+    (setq cursor-sensor-inhibit nil))
+  ;; Suspend things like cursor-intangible during Isearch so we can search even
+  ;; within intangible text.
+  (push 'isearch cursor-sensor-inhibit)
 
   ;; isearch-mode can be made modal (in the sense of not returning to
   ;; the calling function until searching is completed) by entering
@@ -1020,6 +1026,7 @@ NOPUSH is t and EDIT is t."
   (remove-hook 'mouse-leave-buffer-hook 'isearch-done)
   (remove-hook 'kbd-macro-termination-hook 'isearch-done)
   (setq isearch-lazy-highlight-start nil)
+  (setq cursor-sensor-inhibit (delq 'isearch cursor-sensor-inhibit))
 
   ;; Called by all commands that terminate isearch-mode.
   ;; If NOPUSH is non-nil, we don't push the string on the search ring.
@@ -2717,17 +2724,12 @@ update the match data, and return point."
       ;; isearch in their own way, they should set the
       ;; `isearch-open-invisible-temporary' to a function doing this.
       (funcall  (overlay-get ov 'isearch-open-invisible-temporary)  ov nil)
-    ;; Store the values for the `invisible' and `intangible'
-    ;; properties, and then set them to nil. This way the text hidden
-    ;; by this overlay becomes visible.
+    ;; Store the values for the `invisible' property, and then set it to nil.
+    ;; This way the text hidden by this overlay becomes visible.
 
-    ;; Do we really need to set the `intangible' property to t? Can we
-    ;; have the point inside an overlay with an `intangible' property?
     ;; In 19.34 this does not exist so I cannot test it.
     (overlay-put ov 'isearch-invisible (overlay-get ov 'invisible))
-    (overlay-put ov 'isearch-intangible (overlay-get ov 'intangible))
-    (overlay-put ov 'invisible nil)
-    (overlay-put ov 'intangible nil)))
+    (overlay-put ov 'invisible nil)))
 
 
 ;; This is called at the end of isearch.  It will open the overlays
@@ -2741,12 +2743,9 @@ update the match data, and return point."
 	;; this function, not by us tweaking the overlay properties.
 	(fct-temp (overlay-get ov 'isearch-open-invisible-temporary)))
     (when (or inside-overlay (not fct-temp))
-      ;; restore the values for the `invisible' and `intangible'
-      ;; properties
+      ;; restore the values for the `invisible' properties.
       (overlay-put ov 'invisible (overlay-get ov 'isearch-invisible))
-      (overlay-put ov 'intangible (overlay-get ov 'isearch-intangible))
-      (overlay-put ov 'isearch-invisible nil)
-      (overlay-put ov 'isearch-intangible nil))
+      (overlay-put ov 'isearch-invisible nil))
     (if inside-overlay
 	(funcall (overlay-get ov 'isearch-open-invisible)  ov)
       (if fct-temp
@@ -2784,9 +2783,7 @@ update the match data, and return point."
 	      ;; properties.
 	      (funcall fct-temp ov t)
 	    (overlay-put ov 'invisible (overlay-get ov 'isearch-invisible))
-	    (overlay-put ov 'intangible (overlay-get ov 'isearch-intangible))
-	    (overlay-put ov 'isearch-invisible nil)
-	    (overlay-put ov 'isearch-intangible nil)))))))
+	    (overlay-put ov 'isearch-invisible nil)))))))
 
 
 (defun isearch-range-invisible (beg end)

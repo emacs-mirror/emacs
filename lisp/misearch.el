@@ -92,9 +92,12 @@ Isearch starts.")
 The value is nil when the search still is in the initial buffer.")
 
 ;;;###autoload
-(defvar multi-isearch-buffer-list nil)
+(defvar multi-isearch-buffer-list nil
+  "Sequence of buffers visited by multiple buffers Isearch.
+This is nil if Isearch is not currently searching more than one buffer.")
 ;;;###autoload
-(defvar multi-isearch-file-list nil)
+(defvar multi-isearch-file-list nil
+  "Sequence of files visited by multiple file buffers Isearch.")
 
 (defvar multi-isearch-orig-search-fun nil)
 (defvar multi-isearch-orig-wrap nil)

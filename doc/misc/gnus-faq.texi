@@ -1112,7 +1112,7 @@ resulting in:
 :O  \->  ...                                      | 115 |Raymond Scholz       | 1:24
 :O    \->  ...                                    |  19 |Lars Magne Ingebrigt |15:33
 :O     Slow mailing list                          |  13 |Lars Magne Ingebrigt |Sat 23:49
-:O     Re: `@@' mark not documented                |  13 |Lars Magne Ingebrigt |Sat 23:50
+:O     Re: '@@' mark not documented                |  13 |Lars Magne Ingebrigt |Sat 23:50
 :R  >  Re: Gnus still doesn't count messages prope|  23 |Lars Magne Ingebrigt |Sat 23:57
 :O  \->  ...                                      |  18 |Kai Grossjohann      | 0:35
 :O    \->  ...                                    |  13 |Lars Magne Ingebrigt | 0:56
@@ -1501,7 +1501,7 @@ entries. Say @samp{c} to create a new
 entry, @samp{b} to search your BBDB and
 @samp{C-o} to add a new field to an
 entry. If you want to add a sender to the BBDB you can
-also just hit `:' on the posting in the summary buffer and
+also just hit @kbd{:} on the posting in the summary buffer and
 you are done. When you now compose a new mail,
 hit @samp{TAB} to cycle through know
 recipients.

@@ -24,7 +24,7 @@ thing, but search for patterns instead of fixed strings.
 * Symbol Search::             Search for a source code symbol.
 * Regexp Search::             Search for match for a regexp.
 * Regexps::                   Syntax of regular expressions.
-* Regexp Backslash::          Regular expression constructs starting with `\'.
+* Regexp Backslash::          Regular expression constructs starting with '\'.
 * Regexp Example::            A complex regular expression explained.
 * Search Case::               To ignore case while searching, or not.
 * Replace::                   Search, and replace some or all matches.

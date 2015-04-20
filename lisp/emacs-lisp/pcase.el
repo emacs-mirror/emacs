@@ -75,21 +75,31 @@
   (&or symbolp
        ("or" &rest pcase-UPAT)
        ("and" &rest pcase-UPAT)
-       ("`" pcase-QPAT)
        ("guard" form)
        ("let" pcase-UPAT form)
-       ("pred"
-        &or lambda-expr
-        ;; Punt on macros/special forms.
-        (functionp &rest form)
-        sexp)
+       ("pred" pcase-FUN)
+       ("app" pcase-FUN pcase-UPAT)
+       pcase-MACRO
        sexp))
 
 (def-edebug-spec
-  pcase-QPAT
-  (&or ("," pcase-UPAT)
-       (pcase-QPAT . pcase-QPAT)
+  pcase-FUN
+  (&or lambda-expr
+       ;; Punt on macros/special forms.
+       (functionp &rest form)
        sexp))
+
+(def-edebug-spec pcase-MACRO pcase--edebug-match-macro)
+
+(defun pcase--edebug-match-macro (cursor)
+  (let (specs)
+    (mapatoms
+     (lambda (s)
+       (let ((m (get s 'pcase-macroexpander)))
+	 (when (and m (get-edebug-spec m))
+	   (push (cons (symbol-name s) (get-edebug-spec m))
+		 specs)))))
+    (edebug-match cursor (cons '&or specs))))
 
 ;;;###autoload
 (defmacro pcase (exp &rest cases)
@@ -253,6 +263,7 @@ of the form (UPAT EXP)."
             (push (list (car binding) tmpvar) matches)))))
       `(let ,(nreverse bindings) (pcase-let* ,matches ,@body)))))
 
+;;;###autoload
 (defmacro pcase-dolist (spec &rest body)
   (declare (indent 1) (debug ((pcase-UPAT form) body)))
   (if (pcase--trivial-upat-p (car spec))
@@ -362,11 +373,14 @@ of the form (UPAT EXP)."
 (defmacro pcase-defmacro (name args &rest body)
   "Define a pcase UPattern macro."
   (declare (indent 2) (debug defun) (doc-string 3))
-  (let ((fsym (intern (format "%s--pcase-macroexpander" name))))
-    ;; Add the function via `fsym', so that an autoload cookie placed
-    ;;  on a pcase-defmacro will cause the macro to be loaded on demand.
+  ;; Add the function via `fsym', so that an autoload cookie placed
+  ;; on a pcase-defmacro will cause the macro to be loaded on demand.
+  (let ((fsym (intern (format "%s--pcase-macroexpander" name)))
+	(decl (assq 'declare body)))
+    (when decl (setq body (remove decl body)))
     `(progn
        (defun ,fsym ,args ,@body)
+       (put ',fsym 'edebug-form-spec ',(cadr (assq 'debug decl)))
        (put ',name 'pcase-macroexpander #',fsym))))
 
 (defun pcase--match (val upat)
@@ -828,6 +842,13 @@ Otherwise, it defers to REST which is a list of branches of the form
        (t (error "Unknown internal pattern `%S'" upat)))))
    (t (error "Incorrect MATCH %S" (car matches)))))
 
+(def-edebug-spec
+  pcase-QPAT
+  (&or ("," pcase-UPAT)
+       (pcase-QPAT . pcase-QPAT)
+       (vector &rest pcase-QPAT)
+       sexp))
+
 (pcase-defmacro \` (qpat)
   "Backquote-style pcase patterns.
 QPAT can take the following forms:
@@ -837,6 +858,7 @@ QPAT can take the following forms:
   ,UPAT                 matches if the UPattern UPAT matches.
   STRING                matches if the object is `equal' to STRING.
   ATOM                  matches if the object is `eq' to ATOM."
+  (declare (debug (pcase-QPAT)))
   (cond
    ((eq (car-safe qpat) '\,) (cadr qpat))
    ((vectorp qpat)

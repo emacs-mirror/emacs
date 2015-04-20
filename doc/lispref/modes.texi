@@ -749,7 +749,7 @@ The new mode has its own abbrev table, kept in the variable
 @item
 The new mode has its own mode hook, @code{@var{variant}-hook}.  It
 runs this hook, after running the hooks of its ancestor modes, with
-@code{run-mode-hooks}, as the last thing it does. @xref{Mode Hooks}.
+@code{run-mode-hooks}, as the last thing it does.  @xref{Mode Hooks}.
 @end itemize
 
 In addition, you can specify how to override other aspects of
@@ -1122,7 +1122,7 @@ the conventions listed above:
   (let ((st (make-syntax-table)))
     (modify-syntax-entry ?\" ".   " st)
     (modify-syntax-entry ?\\ ".   " st)
-    ;; Add `p' so M-c on `hello' leads to `Hello', not `hello'.
+    ;; Add 'p' so M-c on 'hello' leads to 'Hello', not 'hello'.
     (modify-syntax-entry ?' "w p" st)
     st)
   "Syntax table used while in `text-mode'.")
@@ -3425,7 +3425,7 @@ provided grammar is precise enough, @code{transpose-sexps} can correctly
 transpose the two arguments of a @code{+} operator, taking into account
 the precedence rules of the language.
 
-Calling `smie-setup' is also sufficient to make TAB indentation work in
+Calling @code{smie-setup} is also sufficient to make TAB indentation work in
 the expected way, extends @code{blink-matching-paren} to apply to
 elements like @code{begin...end}, and provides some commands that you
 can bind in the major mode keymap.
@@ -3874,7 +3874,7 @@ of instructions (enclosed in a @code{@{...@}} or @code{begin...end}
 block).
 
 @var{method} should be the method name that was passed to
-`smie-rules-function'.
+@code{smie-rules-function}.
 @end defun
 
 @node SMIE Indentation Example

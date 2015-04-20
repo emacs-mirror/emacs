@@ -423,7 +423,7 @@ To do so, execute the following code:
 You might wish to save the file modes value returned by
 @code{backup-buffer} and use that (if non-@code{nil}) to set the mode
 bits of the file that you write.  This is what @code{save-buffer}
-normally does. @xref{Making Backups,, Making Backup Files}.
+normally does.  @xref{Making Backups,, Making Backup Files}.
 
 The hook functions in @code{write-file-functions} are also responsible
 for encoding the data (if desired): they must choose a suitable coding
@@ -3352,8 +3352,8 @@ from the buffer is actually written to the file, it intermixes the
 specified annotations at the corresponding positions.  All this takes
 place without modifying the buffer.
 
-@c ??? What about ``overriding'' conversions like those allowed
-@c ??? for `write-region-annotate-functions', below?  --ttn
+@c ??? What about "overriding" conversions like those allowed
+@c ??? for 'write-region-annotate-functions', below?  --ttn
 
   In contrast, when reading, the annotations intermixed with the text
 are handled immediately.  @code{insert-file-contents} sets point to
@@ -3406,8 +3406,8 @@ with one argument, the number of characters inserted, and with point
 at the beginning of the inserted text.  Each function should leave
 point unchanged, and return the new character count describing the
 inserted text as modified by the function.
-@c ??? The docstring mentions a handler from `file-name-handler-alist'
-@c     "intercepting" `insert-file-contents'.  Hmmm.  --ttn
+@c ??? The docstring mentions a handler from 'file-name-handler-alist'
+@c     "intercepting" 'insert-file-contents'.  Hmmm.  --ttn
 @end defvar
 
   We invite users to write Lisp programs to store and retrieve text

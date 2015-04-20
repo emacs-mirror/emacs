@@ -1310,6 +1310,7 @@ beginning and end.  It also has properties that you can examine and set;
 these affect the display of the text within the overlay.
 
 @cindex scalability of overlays
+@cindex overlays, scalability
 The visual effect of an overlay is the same as of the corresponding
 text property (@pxref{Text Properties}).  However, due to a different
 implementation, overlays generally don't scale well (many operations
@@ -1350,6 +1351,15 @@ This function creates and returns an overlay that belongs to
 and @var{end} must specify buffer positions; they may be integers or
 markers.  If @var{buffer} is omitted, the overlay is created in the
 current buffer.
+
+@cindex empty overlay
+@cindex overlay, empty
+An overlay whose @var{start} and @var{end} specify the same buffer
+position is known as @dfn{empty}.  A non-empty overlay can become
+empty if the text between its @var{start} and @var{end} is deleted.
+When that happens, the overlay is by default not deleted, but you can
+cause it to be deleted by giving it the @samp{evaporate} property
+(@pxref{Overlay Properties, evaporate property}).
 
 The arguments @var{front-advance} and @var{rear-advance} specify the
 marker insertion type for the start of the overlay and for the end of
@@ -1720,8 +1730,11 @@ line at display-time.  @xref{Truncation}.
 @kindex evaporate @r{(overlay property)}
 If this property is non-@code{nil}, the overlay is deleted automatically
 if it becomes empty (i.e., if its length becomes zero).  If you give
-an empty overlay a non-@code{nil} @code{evaporate} property, that deletes
-it immediately.
+an empty overlay (@pxref{Managing Overlays, empty overlay}) a
+non-@code{nil} @code{evaporate} property, that deletes it immediately.
+Note that, unless an overlay has this property, it will not be deleted
+when the text between its starting and ending positions is deleted
+from the buffer.
 
 @item keymap
 @cindex keymap of character (and overlays)
@@ -1777,10 +1790,10 @@ overlays that specify property @var{prop} for the character at point:
 This function returns a list of the overlays that overlap the region
 @var{beg} through @var{end}.  ``Overlap'' means that at least one
 character is contained within the overlay and also contained within the
-specified region; however, empty overlays are included in the result if
-they are located at @var{beg}, strictly between @var{beg} and @var{end},
-or at @var{end} when @var{end} denotes the position at the end of the
-buffer.
+specified region; however, empty overlays (@pxref{Managing Overlays,
+empty overlay}) are included in the result if they are located at
+@var{beg}, strictly between @var{beg} and @var{end}, or at @var{end}
+when @var{end} denotes the position at the end of the buffer.
 @end defun
 
 @defun next-overlay-change pos
@@ -2790,7 +2803,7 @@ then the new definition of the @code{mode-line} face inherits from the
 functions instead of setting @code{face-remapping-alist} directly, to
 avoid trampling on remappings applied elsewhere.  These functions are
 intended for buffer-local remappings, so they all make
-@code{face-remapping-alist} buffer-local as a side-effect. They manage
+@code{face-remapping-alist} buffer-local as a side-effect.  They manage
 @code{face-remapping-alist} entries of the form
 
 @example
@@ -2820,11 +2833,11 @@ pass this object as an argument to @code{face-remap-remove-relative}
 if you need to remove the remapping later.
 
 @example
-;; Remap the `escape-glyph' face into a combination
-;; of the `highlight' and `italic' faces:
+;; Remap the 'escape-glyph' face into a combination
+;; of the 'highlight' and 'italic' faces:
 (face-remap-add-relative 'escape-glyph 'highlight 'italic)
 
-;; Increase the size of the `default' face by 50%:
+;; Increase the size of the 'default' face by 50%:
 (face-remap-add-relative 'default :height 1.5)
 @end example
 @end defun
@@ -4557,7 +4570,7 @@ not affect the amount of raising or lowering, which is based on the
 faces used for the text.
 @end table
 
-@c We put all the `@code{(when ...)}' on one line to encourage
+@c We put all the '@code{(when ...)}' on one line to encourage
 @c makeinfo's end-of-sentence heuristics to DTRT.  Previously, the dot
 @c was at eol; the info file ended up w/ two spaces rendered after it.
   You can make any display specification conditional.  To do that,
@@ -5628,7 +5641,7 @@ so that it's easy to define special-purpose types of buttons for
 specific tasks.
 
 @defun define-button-type name &rest properties
-Define a `button type' called @var{name} (a symbol).
+Define a ``button type'' called @var{name} (a symbol).
 The remaining arguments
 form a sequence of @var{property value} pairs, specifying default
 property values for buttons with this type (a button's type may be set
@@ -5781,7 +5794,7 @@ Return @code{t} if button-type @var{type} is a subtype of @var{supertype}.
 These are commands and functions for locating and operating on
 buttons in an Emacs buffer.
 
-@code{push-button} is the command that a user uses to actually `push'
+@code{push-button} is the command that a user uses to actually ``push''
 a button, and is bound by default in the button itself to @key{RET}
 and to @key{mouse-2} using a local keymap in the button's overlay or
 text properties.  Commands that are useful outside the buttons itself,
@@ -6643,7 +6656,7 @@ Non-@acronym{ASCII}, non-printing characters @code{U+0080} to
 @samp{\230}).
 
 @item format-control
-Characters of Unicode General Category `Cf', such as @samp{U+200E}
+Characters of Unicode General Category ``Cf'', such as @samp{U+200E}
 (Left-to-Right Mark), but excluding characters that have graphic
 images, such as @samp{U+00AD} (Soft Hyphen).
 
@@ -6652,9 +6665,9 @@ Characters for there is no suitable font, or which cannot be encoded
 by the terminal's coding system.
 @end table
 
-@c FIXME: this can also be `acronym', but that's not currently
+@c FIXME: this can also be 'acronym', but that's not currently
 @c completely implemented; it applies only to the format-control
-@c group, and only works if the acronym is in `char-acronym-table'.
+@c group, and only works if the acronym is in 'char-acronym-table'.
 The @var{method} symbol should be one of @code{zero-width},
 @code{thin-space}, @code{empty-box}, or @code{hex-code}.  These have
 the same meanings as in @code{glyphless-char-display}, above.

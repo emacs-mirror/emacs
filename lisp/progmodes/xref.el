@@ -279,9 +279,9 @@ backward."
 (defvar xref--marker-ring (make-ring xref-marker-ring-length)
   "Ring of markers to implement the marker stack.")
 
-(defun xref-push-marker-stack ()
-  "Add point to the marker stack."
-  (ring-insert xref--marker-ring (point-marker)))
+(defun xref-push-marker-stack (&optional m)
+  "Add point M (defaults to `point-marker') to the marker stack."
+  (ring-insert xref--marker-ring (or m (point-marker))))
 
 ;;;###autoload
 (defun xref-pop-marker-stack ()

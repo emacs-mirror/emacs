@@ -39,7 +39,7 @@
 
 ;;; History:
 
-;;  0.07 onwards: see lisp/ChangeLog
+;;  0.07 onwards: see commit logs and ../ChangeLog*.
 
 ;;  0.06:  (2004-10-06)
 ;;  - Bugfixes regarding icalendar-import-format-*.

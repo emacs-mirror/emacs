@@ -595,8 +595,8 @@ FOO                 ; @r{A symbol named @samp{FOO}, different from @samp{foo}.}
 
 @cindex @samp{##} read syntax
 @ifinfo
-@c This uses ``colon'' instead of a literal `:' because Info cannot
-@c cope with a `:' in a menu
+@c This uses "colon" instead of a literal ':' because Info cannot
+@c cope with a ':' in a menu.
 @cindex @samp{#@var{colon}} read syntax
 @end ifinfo
 @ifnotinfo
@@ -999,7 +999,7 @@ of a string returns the same string.
   The read syntax for a string is a double-quote, an arbitrary number
 of characters, and another double-quote, @code{"like this"}.  To
 include a double-quote in a string, precede it with a backslash; thus,
-@code{"\""} is a string containing just a single double-quote
+@code{"\""} is a string containing just one double-quote
 character.  Likewise, you can include a backslash by preceding it with
 another backslash, like this: @code{"this \\ is a single embedded
 backslash"}.

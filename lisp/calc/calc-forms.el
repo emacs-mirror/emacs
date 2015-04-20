@@ -1438,11 +1438,11 @@ as measured in the integer number of days before December 31, 1 BC (Gregorian)."
 (defun calcFunc-unixtime (date &optional zone)
   (if (math-realp date)
       (progn
-	(setq date (math-add 719164 (math-div date '(float 864 2))))
+	(setq date (math-add 719163 (math-div date '(float 864 2))))
 	(list 'date (math-sub date (math-div (calcFunc-tzone zone date)
 					     '(float 864 2)))))
     (if (eq (car date) 'date)
-	(math-add (nth 1 (math-date-parts (nth 1 date) 719164))
+	(math-add (nth 1 (math-date-parts (nth 1 date) 719163))
 		  (calcFunc-tzone zone date))
       (math-reject-arg date 'datep))))
 

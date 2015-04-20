@@ -947,7 +947,7 @@ of the window.  Disabled breakpoints are indicated with @samp{b}.
 (The margin is only displayed if a breakpoint is present.)
 
   A solid arrow in the left fringe of a source buffer indicates the
-line of the innermost frame where the debugged program has stopped. A
+line of the innermost frame where the debugged program has stopped.  A
 hollow arrow indicates the current execution line of a higher-level
 frame.  If you drag the arrow in the fringe with @kbd{Mouse-1}, that
 causes execution to advance to the line where you release the button.
@@ -1138,7 +1138,7 @@ size for these data items.
 
 When @code{gdb-many-windows} is non-@code{nil}, the locals buffer
 shares its window with the registers buffer, just like breakpoints and
-threads buffers. To switch from one to the other, click with
+threads buffers.  To switch from one to the other, click with
 @kbd{Mouse-1} on the relevant button in the header line.
 
 @node Watch Expressions
@@ -1457,8 +1457,8 @@ Evaluate all the Emacs Lisp expressions in the buffer.
 @end table
 
 @ifinfo
-@c This uses ``colon'' instead of a literal `:' because Info cannot
-@c cope with a `:' in a menu
+@c This uses 'colon' instead of a literal ':' because Info cannot
+@c cope with a ':' in a menu.
 @kindex M-@key{colon}
 @end ifinfo
 @ifnotinfo

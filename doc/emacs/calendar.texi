@@ -379,7 +379,7 @@ between years will not work.
 
   If the variable @code{cal-html-print-day-number-flag} is
 non-@code{nil}, then the monthly calendars show the day-of-the-year
-number. The variable @code{cal-html-year-index-cols} specifies the
+number.  The variable @code{cal-html-year-index-cols} specifies the
 number of columns in the yearly index page.
 
 @cindex calendar and @LaTeX{}
@@ -827,7 +827,7 @@ Display Mayan date for selected day (@code{calendar-mayan-print-date}).
   Otherwise, move point to the date you want to convert, then type the
 appropriate command starting with @kbd{p} from the table above.  The
 prefix @kbd{p} is a mnemonic for ``print'', since Emacs ``prints'' the
-equivalent date in the echo area. @kbd{p o} displays the
+equivalent date in the echo area.  @kbd{p o} displays the
 date in all forms known to Emacs.  You can also use @kbd{Mouse-3} and
 then choose @kbd{Other calendars} from the menu that appears.  This
 displays the equivalent forms of the date in all the calendars Emacs

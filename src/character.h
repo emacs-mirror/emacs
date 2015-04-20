@@ -662,6 +662,8 @@ extern Lisp_Object string_escape_byte8 (Lisp_Object);
 
 extern bool alphabeticp (int);
 extern bool decimalnump (int);
+extern bool graphicp (int);
+extern bool printablep (int);
 
 /* Return a translation table of id number ID.  */
 #define GET_TRANSLATION_TABLE(id) \

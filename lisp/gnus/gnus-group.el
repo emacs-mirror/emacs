@@ -478,6 +478,26 @@ simple manner.")
 
 (defvar gnus-group-edit-buffer nil)
 
+(defvar gnus-tmp-news-method)
+(defvar gnus-tmp-colon)
+(defvar gnus-tmp-news-server)
+(defvar gnus-tmp-decoded-group)
+(defvar gnus-tmp-header)
+(defvar gnus-tmp-process-marked)
+(defvar gnus-tmp-summary-live)
+(defvar gnus-tmp-news-method-string)
+(defvar gnus-tmp-group-icon)
+(defvar gnus-tmp-moderated-string)
+(defvar gnus-tmp-newsgroup-description)
+(defvar gnus-tmp-comment)
+(defvar gnus-tmp-qualified-group)
+(defvar gnus-tmp-subscribed)
+(defvar gnus-tmp-number-of-read)
+(defvar gnus-inhibit-demon)
+(defvar gnus-pick-mode)
+(defvar gnus-tmp-marked-mark)
+(defvar gnus-tmp-number-of-unread)
+
 (defvar gnus-group-line-format-alist
   `((?M gnus-tmp-marked-mark ?c)
     (?S gnus-tmp-subscribed ?c)
@@ -1140,8 +1160,7 @@ The following commands are available:
     (let ((gnus-process-mark ?\200)
 	  (gnus-group-update-hook nil)
 	  (gnus-group-marked '("dummy.group"))
-	  (gnus-active-hashtb (make-vector 10 0))
-	  (topic ""))
+	  (gnus-active-hashtb (make-vector 10 0)))
       (gnus-set-active "dummy.group" '(0 . 0))
       (gnus-set-work-buffer)
       (gnus-group-insert-group-line "dummy.group" 0 nil 0 nil)
@@ -1574,7 +1593,7 @@ if it is a string, only list groups matching REGEXP."
 	      gnus-process-mark ? ))
 	 (buffer-read-only nil)
 	 beg end
-	 header gnus-tmp-header)	; passed as parameter to user-funcs.
+         gnus-tmp-header)	; passed as parameter to user-funcs.
     (beginning-of-line)
     (setq beg (point))
     (gnus-add-text-properties
@@ -1592,20 +1611,31 @@ if it is a string, only list groups matching REGEXP."
 		  gnus-indentation ,gnus-group-indentation
 		  gnus-level ,gnus-tmp-level))
     (setq end (point))
-    (when gnus-group-update-tool-bar
-      (gnus-put-text-property beg end 'point-entered
-			      'gnus-tool-bar-update)
-      (gnus-put-text-property beg end 'point-left
-			      'gnus-tool-bar-update))
+    (gnus-group--setup-tool-bar-update beg end)
     (forward-line -1)
     (when (inline (gnus-visual-p 'group-highlight 'highlight))
       (gnus-group-highlight-line gnus-tmp-group beg end))
     (gnus-run-hooks 'gnus-group-update-hook)
     (forward-line)))
 
+(defun gnus-group--setup-tool-bar-update (beg end)
+  (when gnus-group-update-tool-bar
+    (if (fboundp 'cursor-sensor-mode)
+        (progn
+          (unless (bound-and-true-p cursor-sensor-mode)
+            (cursor-sensor-mode 1))
+          (gnus-put-text-property beg end 'cursor-sensor-functions
+                                  '(gnus-tool-bar-update)))
+      (gnus-put-text-property beg end 'point-entered
+                              #'gnus-tool-bar-update)
+      (gnus-put-text-property beg end 'point-left
+                              #'gnus-tool-bar-update))))
+
 (defun gnus-group-update-eval-form (group list)
   "Eval `car' of each element of LIST, and return the first that return t.
 Some value are bound so the form can use them."
+  (defvar group-age) (defvar ticked) (defvar score) (defvar level)
+  (defvar mailp) (defvar total) (defvar unread)
   (when list
     (let* ((entry (gnus-group-entry group))
            (unread (if (numberp (car entry)) (car entry) 0))
@@ -3107,8 +3137,8 @@ If SOLID (the prefix), create a solid group."
 
 (defvar nnrss-group-alist)
 (eval-when-compile
-  (defun nnrss-discover-feed (arg))
-  (defun nnrss-save-server-data (arg)))
+  (defun nnrss-discover-feed (_arg))
+  (defun nnrss-save-server-data (_arg)))
 (defun gnus-group-make-rss-group (&optional url)
   "Given a URL, discover if there is an RSS feed.
 If there is, use Gnus to create an nnrss group"
@@ -3757,7 +3787,7 @@ group line."
 		      nil nil (gnus-read-active-file-p))))
   (let ((newsrc (gnus-group-entry group)))
     (cond
-     ((string-match "^[ \t]*$" group)
+     ((string-match "\\`[ \t]*\\'" group)
       (error "Empty group name"))
      (newsrc
       ;; Toggle subscription flag.

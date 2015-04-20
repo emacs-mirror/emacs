@@ -2006,13 +2006,13 @@ that look like:
 Hallvard B Furuseth <h.b.furuseth@@usit.uio.no> writes:
 @end example
 
-@c FIXME: Add `message-insert-formatted-citation-line' and
-@c `message-citation-line-format'
+@c FIXME: Add 'message-insert-formatted-citation-line' and
+@c 'message-citation-line-format'.
 
 Point will be at the beginning of the body of the message when this
 function is called.
 
-Note that Gnus provides a feature where clicking on `writes:' hides the
+Note that Gnus provides a feature where clicking on @samp{writes:} hides the
 cited text.  If you change the citation line too much, readers of your
 messages will have to adjust their Gnus, too.  See the variable
 @code{gnus-cite-attribution-suffix}.  @xref{Article Highlighting, ,

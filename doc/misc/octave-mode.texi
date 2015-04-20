@@ -232,7 +232,7 @@ to directly start an inferior Octave process.
 This will start Octave in a special buffer the name of which is
 specified by the variable @code{inferior-octave-buffer} and defaults
 to @file{*Inferior Octave*}.  From within this buffer, you can
-interact with the inferior Octave process `as usual', i.e., by
+interact with the inferior Octave process ``as usual'', i.e., by
 entering Octave commands at the prompt.  The buffer is in Inferior
 Octave mode, which is derived from the standard Comint mode, a major
 mode for interacting with an inferior interpreter.  See the
@@ -282,7 +282,7 @@ then sourcing the buffer by using @kbd{C-c C-l}
 @item C-c C-i s
 @kindex C-c C-i s
 @findex octave-show-process-buffer
-Make sure that `inferior-octave-buffer' is displayed
+Make sure that @code{inferior-octave-buffer} is displayed
 (@code{octave-show-process-buffer}).
 
 @item C-c C-i q
@@ -350,7 +350,7 @@ The startup of the inferior Octave process is highly customizable.
 The variable @code{inferior-octave-startup-args} can be used for
 specifying command lines arguments to be passed to Octave on startup
 as a list of strings.  For example, to suppress the startup message
-and use `traditional' mode, set this to @code{("-q" "--traditional")}.
+and use ``traditional'' mode, set this to @code{("-q" "--traditional")}.
 You can also specify a startup file of Octave commands to be loaded on
 startup; note that these commands will not produce any visible output
 in the process buffer.  Which file to use is controlled by the
@@ -433,7 +433,7 @@ when Octave is waiting for input, or done sending output.
 @c @noindent
 @c to your @file{.emacs} file.
 
-@c You can use either `plain' Emacs Info or the function @code{octave-help}
+@c You can use either 'plain' Emacs Info or the function @code{octave-help}
 @c as your Octave info reader (for @samp{help -i}).  In the former case,
 @c use @code{info_program ("info-emacs-info")}.
 @c The latter is perhaps more attractive because it allows to look up keys

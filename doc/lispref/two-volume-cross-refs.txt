@@ -108,8 +108,8 @@ on elisp2-fn-vol-number-added
 (volume-index-markup "II")
 to create             elisp2-fn-vol-number-added
 
-insert elisp2-fn-vol-number-added into vol1.fn: do following `cat'
-insert elisp1-fn-vol-number-added into vol2.fn: do following `cat'
+insert elisp2-fn-vol-number-added into vol1.fn: do following 'cat'
+insert elisp1-fn-vol-number-added into vol2.fn: do following 'cat'
 
 % cat elisp2-fn-vol-number-added >> vol1.fn
 % cat elisp1-fn-vol-number-added >> vol2.fn
@@ -126,7 +126,7 @@ Be sure that .fn file has no blank lines.
 
 ### Create merged .toc file with volume number headings.
 
-append vol2.toc to vol1.toc  with following `cat'
+append vol2.toc to vol1.toc  with following 'cat'
 
 % cat vol1.toc vol2.toc > elisp-toc-2vol.toc
 

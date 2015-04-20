@@ -539,28 +539,29 @@ stuff.  Used on level 1 and higher."
 		  (let* ((re (c-make-keywords-re nil
 			       (c-lang-const c-cpp-include-directives)))
 			 (re-depth (regexp-opt-depth re)))
-		    `((,(concat noncontinued-line-end
-				(c-lang-const c-opt-cpp-prefix)
-				re
-				(c-lang-const c-syntactic-ws)
-				"\\(<[^>\n\r]*>?\\)")
-		       (,(+ ncle-depth re-depth sws-depth 1)
-			font-lock-string-face)
-
-		       ;; Use an anchored matcher to put paren syntax
-		       ;; on the brackets.
-		       (,(byte-compile
-			  `(lambda (limit)
-			     (let ((beg (match-beginning
-					 ,(+ ncle-depth re-depth sws-depth 1)))
-				   (end (1- (match-end ,(+ ncle-depth re-depth
-							   sws-depth 1)))))
-			       (if (eq (char-after end) ?>)
-				   (progn
-				     (c-mark-<-as-paren beg)
-				     (c-mark->-as-paren end))
-				 (c-unmark-<->-as-paren beg)))
-			     nil)))))))
+		    ;; We used to use a font-lock "anchored matcher" here for
+		    ;; the paren syntax.  This failed when the ">" was at EOL,
+		    ;; since `font-lock-fontify-anchored-keywords' terminated
+		    ;; its loop at EOL without executing our lambda form at
+		    ;; all.
+		    `((,(c-make-font-lock-search-function
+			 (concat noncontinued-line-end
+				 (c-lang-const c-opt-cpp-prefix)
+				 re
+				 (c-lang-const c-syntactic-ws)
+				 "\\(<[^>\n\r]*>?\\)")
+			 `(,(+ ncle-depth re-depth sws-depth 1)
+			   font-lock-string-face t)
+			 `((let ((beg (match-beginning
+				       ,(+ ncle-depth re-depth sws-depth 1)))
+				 (end (1- (match-end ,(+ ncle-depth re-depth
+							 sws-depth 1)))))
+			     (if (eq (char-after end) ?>)
+				 (progn
+				   (c-mark-<-as-paren beg)
+				   (c-mark->-as-paren end))
+			       (c-unmark-<->-as-paren beg)))
+			   nil))))))
 
 	      ;; #define.
 	      ,@(when (c-lang-const c-opt-cpp-macro-define)

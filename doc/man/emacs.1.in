@@ -251,8 +251,8 @@ Set additional X resources.
 .BI "\-\-color\fR,\fP \-\-color=" mode
 Override color mode for character terminals;
 .I mode
-defaults to `auto', and can also be `never', `auto', `always',
-or a mode name like `ansi8'.
+defaults to "auto", and can also be "never", "auto", "always",
+or a mode name like "ansi8".
 .TP
 .BI \-bw " pixels\fR,\fP " \-\-border\-width " pixels"
 Set the
@@ -420,8 +420,8 @@ The value can be one of
 .IR fullwidth ,
 or
 .IR fullheight ,
-which correspond to the command-line options `\-fs', `\-mm', `\-fw',
-and `\-fh', respectively.
+which correspond to the command-line options "\-fs", "\-mm", "\-fw",
+and "\-fh", respectively.
 Note that this applies to the initial frame only.
 .TP
 .BR geometry " (class " Geometry )
@@ -482,11 +482,11 @@ the window will be displayed in reverse video.
 .TP
 .BR screenGamma " (class "ScreenGamma )
 Gamma correction for colors, equivalent to the frame parameter
-`screen\-gamma'.
+"screen\-gamma".
 .TP
 .BR scrollBarWidth " (class "ScrollBarWidth )
 The scroll bar width in pixels, equivalent to the frame parameter
-`scroll\-bar\-width'.
+"scroll\-bar\-width".
 .TP
 .BR selectionFont " (class " SelectionFont )
 Font name for pop-up menu items, in non-toolkit versions of
@@ -583,7 +583,7 @@ There is a mailing list, @PACKAGE_BUGREPORT@, for reporting Emacs
 bugs and fixes.
 But before reporting something as a bug, please try to be sure that
 it really is a bug, not a misunderstanding or a deliberate feature.
-We ask you to read the section ``Reporting Bugs'' in the Emacs manual
+We ask you to read the section "Reporting Bugs" in the Emacs manual
 for hints on how and when to report bugs.
 Also, include the version number of the Emacs you are running in
 \fIevery\fR bug report that you send in.

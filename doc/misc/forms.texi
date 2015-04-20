@@ -854,7 +854,7 @@ number of records actually present in the data file.
 @item Problem saving buffers?
 An error occurred while saving the data file buffer. Most likely, Emacs
 did ask to confirm deleting the buffer because it had been modified, and
-you said `no'.
+you said ``no''.
 @end table
 
 @node Long Example

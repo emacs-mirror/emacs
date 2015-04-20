@@ -573,6 +573,12 @@ using \\[read-only-mode]."
 
 Maximum length of the history list is determined by the value
 of `history-length', which see.")
+
+(defvar save-silently nil
+  "If non-nil, avoid messages when saving files.
+Error-related messages will still be printed, but all other
+messages will not.")
+
 
 (put 'ange-ftp-completion-hook-function 'safe-magic t)
 (defun ange-ftp-completion-hook-function (op &rest args)
@@ -1192,7 +1198,7 @@ containing it, until no links are left at any level.
 	    (setq dirfile (directory-file-name dir))
 	    ;; If these are equal, we have the (or a) root directory.
 	    (or (string= dir dirfile)
-		(and (memq system-type '(windows-nt ms-dos cygwin))
+		(and (memq system-type '(windows-nt ms-dos cygwin nacl))
 		     (eq (compare-strings dir 0 nil dirfile 0 nil t) t))
 		;; If this is the same dir we last got the truename for,
 		;; save time--don't recalculate.
@@ -1865,6 +1871,13 @@ If that fails, try to open it with `find-file-literally'
 	     out-of-memory-warning-percentage
 	     (file-size-human-readable (* total-free-memory 1024)))))))))
 
+(defun files--message (format &rest args)
+  "Like `message', except sometimes don't print to minibuffer.
+If the variable `save-silently' is non-nil, the message is not
+displayed on the minibuffer."
+  (apply #'message format args)
+  (when save-silently (message nil)))
+
 (defun find-file-noselect (filename &optional nowarn rawfile wildcards)
   "Read file FILENAME into a buffer and return the buffer.
 If a buffer exists visiting FILENAME, return that one, but
@@ -1910,8 +1923,8 @@ the various files."
 	      (or nowarn
 		  find-file-suppress-same-file-warnings
 		  (string-equal filename (buffer-file-name other))
-		  (message "%s and %s are the same file"
-			   filename (buffer-file-name other)))
+		  (files--message "%s and %s are the same file"
+                                  filename (buffer-file-name other)))
 	      ;; Optionally also find that buffer.
 	      (if (or find-file-existing-other-name find-file-visit-truename)
 		  (setq buf other))))
@@ -2506,7 +2519,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
      ;; this has lower priority to avoid matching changelog.sgml etc.
      ("[cC]hange[lL]og[-.][-0-9a-z]+\\'" . change-log-mode)
      ;; either user's dot-files or under /etc or some such
-     ("/\\.?\\(?:gnokiirc\\|kde.*rc\\|mime\\.types\\|wgetrc\\)\\'" . conf-mode)
+     ("/\\.?\\(?:gitconfig\\|gnokiirc\\|hgrc\\|kde.*rc\\|mime\\.types\\|wgetrc\\)\\'" . conf-mode)
      ;; alas not all ~/.*rc files are like this
      ("/\\.\\(?:enigma\\|gltron\\|gtk\\|hxplayer\\|net\\|neverball\\|qt/.+\\|realplayer\\|scummvm\\|sversion\\|sylpheed/.+\\|xmp\\)rc\\'" . conf-mode)
      ("/\\.\\(?:gdbtkinit\\|grip\\|orbital/.+txt\\|rhosts\\|tuxracer/options\\)\\'" . conf-mode)
@@ -3931,17 +3944,19 @@ the old visited file has been renamed to the new name FILENAME."
 	   (make-local-variable 'backup-inhibited)
 	   (setq backup-inhibited t)))
     (let ((oauto buffer-auto-save-file-name))
-      ;; If auto-save was not already on, turn it on if appropriate.
-      (if (not buffer-auto-save-file-name)
-	  (and buffer-file-name auto-save-default
-	       (auto-save-mode t))
-	;; If auto save is on, start using a new name.
-	;; We deliberately don't rename or delete the old auto save
-	;; for the old visited file name.  This is because perhaps
-	;; the user wants to save the new state and then compare with the
-	;; previous state from the auto save file.
-	(setq buffer-auto-save-file-name
-	      (make-auto-save-file-name)))
+      (cond ((null filename)
+	     (setq buffer-auto-save-file-name nil))
+	    ((not buffer-auto-save-file-name)
+	     ;; If auto-save was not already on, turn it on if appropriate.
+	     (and buffer-file-name auto-save-default (auto-save-mode t)))
+	    (t
+	     ;; If auto save is on, start using a new name. We
+	     ;; deliberately don't rename or delete the old auto save
+	     ;; for the old visited file name.  This is because
+	     ;; perhaps the user wants to save the new state and then
+	     ;; compare with the previous state from the auto save
+	     ;; file.
+	     (setq buffer-auto-save-file-name (make-auto-save-file-name))))
       ;; Rename the old auto save file if any.
       (and oauto buffer-auto-save-file-name
 	   (file-exists-p oauto)
@@ -4639,7 +4654,10 @@ See the subroutine `basic-save-buffer' for more information."
     ;; then Rmail-mbox never displays it due to buffer swapping.  If
     ;; the test is ever re-introduced, be sure to handle saving of
     ;; Rmail files.
-    (if (and modp (buffer-file-name) (not noninteractive))
+    (if (and modp
+             (buffer-file-name)
+             (not noninteractive)
+             (not save-silently))
 	(message "Saving file %s..." (buffer-file-name)))
     (basic-save-buffer)
     (and modp (memq arg '(4 64)) (setq buffer-backed-up nil))))
@@ -4781,7 +4799,9 @@ Before and after saving the buffer, this function runs
 	  ;; Support VC `implicit' locking.
 	  (vc-after-save)
 	  (run-hooks 'after-save-hook))
-      (or noninteractive (message "(No changes need to be saved)")))))
+      (or noninteractive
+          (not (called-interactively-p 'any))
+          (files--message "(No changes need to be saved)")))))
 
 ;; This does the "real job" of writing a buffer into its visited file
 ;; and making a backup file.  This is what is normally done
@@ -4854,9 +4874,10 @@ Before and after saving the buffer, this function runs
                                ;; Pass in nil&nil rather than point-min&max
                                ;; cause we're saving the whole buffer.
                                ;; write-region-annotate-functions may use it.
-			       (write-region nil nil
-					     tempname nil  realname
-					     buffer-file-truename 'excl)
+                               (write-region nil nil
+                                             tempname nil  realname
+                                             buffer-file-truename 'excl)
+                               (when save-silently (message nil))
 			       nil)
 			   (file-already-exists t))
 		    ;; The file was somehow created by someone else between
@@ -4901,8 +4922,9 @@ Before and after saving the buffer, this function runs
                 ;; Pass in nil&nil rather than point-min&max to indicate
                 ;; we're saving the buffer rather than just a region.
                 ;; write-region-annotate-functions may make us of it.
-		(write-region nil nil
-			      buffer-file-name nil t buffer-file-truename)
+                (write-region nil nil
+                              buffer-file-name nil t buffer-file-truename)
+                (when save-silently (message nil))
 		(setq success t))
 	    ;; If we get an error writing the new file, and we made
 	    ;; the backup by renaming, undo the backing-up.
@@ -5022,13 +5044,14 @@ change the additional actions you can take on files."
       (or queried (> files-done 0) abbrevs-done
 	  (cond
 	   ((null autosaved-buffers)
-	    (message "(No files need saving)"))
+            (when (called-interactively-p 'any)
+              (files--message "(No files need saving)")))
 	   ((= (length autosaved-buffers) 1)
-	    (message "(Saved %s)" (car autosaved-buffers)))
+	    (files--message "(Saved %s)" (car autosaved-buffers)))
 	   (t
-	    (message "(Saved %d files: %s)"
-		     (length autosaved-buffers)
-		     (mapconcat 'identity autosaved-buffers ", "))))))))
+	    (files--message "(Saved %d files: %s)"
+                            (length autosaved-buffers)
+                            (mapconcat 'identity autosaved-buffers ", "))))))))
 
 (defun clear-visited-file-modtime ()
   "Clear out records of last mod time of visited file.
@@ -5043,8 +5066,8 @@ It is not a good idea to use this function in Lisp programs, because it
 prints a message in the minibuffer.  Instead, use `set-buffer-modified-p'."
   (declare (interactive-only set-buffer-modified-p))
   (interactive "P")
-  (message (if arg "Modification-flag set"
-	       "Modification-flag cleared"))
+  (files--message (if arg "Modification-flag set"
+                    "Modification-flag cleared"))
   (set-buffer-modified-p arg))
 
 (defun toggle-read-only (&optional arg interactive)
@@ -5078,7 +5101,8 @@ instead of any buffer contents; END is ignored.
 This does character code conversion and applies annotations
 like `write-region' does."
   (interactive "r\nFAppend to file: ")
-  (write-region start end filename t))
+  (prog1 (write-region start end filename t)
+    (when save-silently (message nil))))
 
 (defun file-newest-backup (filename)
   "Return most recent backup file for FILENAME or nil if no backups exist."

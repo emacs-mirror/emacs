@@ -15547,7 +15547,7 @@
 	c-set-fl-decl-start.
 
 	* progmodes/cc-mode.el (c-common-init, c-after-change):
-	Changes due to pluralisation of c-before-font-lock-functions.
+	Changes due to pluralization of c-before-font-lock-functions.
 	(c-set-fl-decl-start): New function, extracted from
 	c-font-lock-enclosing-decls and enhanced.
 

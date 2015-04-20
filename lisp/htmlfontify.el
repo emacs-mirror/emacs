@@ -440,7 +440,7 @@ and so on."
              (background (choice (const :tag "Dark"          dark     )
                                  (const :tag "Bright"        light    ))) ))
 
-(defcustom hfy-optimisations (list 'keep-overlays)
+(defcustom hfy-optimizations (list 'keep-overlays)
   "Optimizations to turn on: So far, the following have been implemented:\n
   merge-adjacent-tags: If two (or more) span tags are adjacent, identical and
                        separated by nothing more than whitespace, they will
@@ -475,6 +475,7 @@ which can never slow you down, but may result in incomplete fontification."
                (const :tag "body-text-only"       body-text-only      ))
   :group 'htmlfontify
   :tag   "optimizations")
+(define-obsolete-variable-alias 'hfy-optimisations 'hfy-optimizations "25.1")
 
 (defvar hfy-tags-cache nil
   "Alist of the form:\n
@@ -606,7 +607,7 @@ in a windowing system - try to trick it..."
 
 (defun hfy-opt (symbol)
   "Is option SYMBOL set."
-  (memq symbol hfy-optimisations))
+  (memq symbol hfy-optimizations))
 
 (defun hfy-default-header (file style)
   "Default value for `hfy-page-header'.
@@ -1197,7 +1198,7 @@ MAP is the invisibility map as returned by `hfy-find-invisible-ranges'."
 ;; -- v
 (defun hfy-face-at (p)
   "Find face in effect at point P.
-If overlays are to be considered (see `hfy-optimisations') then this may
+If overlays are to be considered (see `hfy-optimizations') then this may
 return a `defface' style list of face properties instead of a face symbol."
   ;;(message "hfy-face-at");;DBUG
   ;; Fix-me: clean up, remove face-name etc
@@ -1795,8 +1796,8 @@ FILE, if set, is the file name."
 It is assumed that STRING has text properties that allow it to be
 fontified.  This is a simple convenience wrapper around
 `htmlfontify-buffer'."
-  (let* ((hfy-optimisations-1 (copy-sequence hfy-optimisations))
-         (hfy-optimisations (add-to-list 'hfy-optimisations-1
+  (let* ((hfy-optimizations-1 (copy-sequence hfy-optimizations))
+         (hfy-optimizations (add-to-list 'hfy-optimizations-1
                                          'skip-refontification)))
     (with-temp-buffer
       (insert string)

@@ -2486,37 +2486,18 @@ consistent searching."
 
 (defmacro vhdl-prepare-search-2 (&rest body)
   "Enable case insensitive search, switch to syntax table that includes '_',
-and remove `intangible' overlays, then execute BODY, and finally restore the
-old environment.  Used for consistent searching."
-  ;; FIXME: Why not just let-bind `inhibit-point-motion-hooks'?  --Stef
+arrange to ignore `intangible' overlays, then execute BODY, and finally restore
+the old environment.  Used for consistent searching."
   `(let ((case-fold-search t)		; case insensitive search
 	 (current-syntax-table (syntax-table))
-	 overlay-all-list overlay-intangible-list overlay)
+         (inhibit-point-motion-hooks t))
      ;; use extended syntax table
      (set-syntax-table vhdl-mode-ext-syntax-table)
-     ;; remove `intangible' overlays
-     (when (fboundp 'overlay-lists)
-       (setq overlay-all-list (overlay-lists))
-       (setq overlay-all-list
-	     (append (car overlay-all-list) (cdr overlay-all-list)))
-       (while overlay-all-list
-	 (setq overlay (car overlay-all-list))
-	 (when (memq 'intangible (overlay-properties overlay))
-	   (setq overlay-intangible-list
-		 (cons overlay overlay-intangible-list))
-	   (overlay-put overlay 'intangible nil))
-	 (setq overlay-all-list (cdr overlay-all-list))))
      ;; execute BODY safely
      (unwind-protect
          (progn ,@body)
        ;; restore syntax table
-       (set-syntax-table current-syntax-table)
-       ;; restore `intangible' overlays
-       (when (fboundp 'overlay-lists)
-         (while overlay-intangible-list
-           (overlay-put (car overlay-intangible-list) 'intangible t)
-           (setq overlay-intangible-list
-                 (cdr overlay-intangible-list)))))))
+       (set-syntax-table current-syntax-table))))
 
 (defmacro vhdl-visit-file (file-name issue-error &rest body)
   "Visit file FILE-NAME and execute BODY."

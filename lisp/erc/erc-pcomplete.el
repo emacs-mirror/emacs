@@ -80,11 +80,11 @@ for use on `completion-at-point-function'."
 
 (defun erc-pcomplete ()
   "Complete the nick before point."
+  (declare (obsolete completion-at-point "25.1"))
   (interactive)
   (when (> (point) (erc-beg-of-input-line))
-    (setq this-command 'pcomplete)
-    (call-interactively 'pcomplete)
-    t))
+    (let ((completion-at-point-functions '(erc-pcompletions-at-point)))
+      (completion-at-point))))
 
 ;;; Setup function
 
@@ -237,7 +237,7 @@ If optional argument IGNORE-SELF is non-nil, don't return the current nick."
   "Returns a list of all nicks on the current server."
   (let (nicks)
     (erc-with-server-buffer
-      (maphash (lambda (nick user)
+      (maphash (lambda (nick _user)
                  (setq nicks (cons (concat nick postfix) nicks)))
                erc-server-users))
       nicks))

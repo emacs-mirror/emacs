@@ -10,7 +10,7 @@
 @cindex switches (command line)
 @cindex startup (command line arguments)
 @cindex invocation (command line arguments)
-@c FIXME: Document `--smid'?  --xfq
+@c FIXME: Document '--smid'?  --xfq
 
   Emacs supports command line arguments to request various actions
 when invoking Emacs.  These are for compatibility with other editors
@@ -582,7 +582,7 @@ The name of the news server.  Used by the mh and Gnus packages.
 @item ORGANIZATION
 @vindex ORGANIZATION, environment variable
 The name of the organization to which you belong.  Used for setting the
-`Organization:' header in your posts from the Gnus package.
+``Organization:'' header in your posts from the Gnus package.
 @item PATH
 @vindex PATH, environment variable
 A colon-separated list of directories containing executable files.
