@@ -1729,12 +1729,12 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
       else if (XWIDGETP (obj))
 	{
 	  strout ("#<xwidget ", -1, -1, printcharfun);
-	  PRINTCHAR ('>');
+	  printchar ('>', printcharfun);
 	}
       else if (XWIDGET_VIEW_P (obj))
 	{
 	  strout ("#<xwidget-view ", -1, -1, printcharfun);
-	  PRINTCHAR ('>');
+	  printchar ('>', printcharfun);
 	}
 #endif
       else if (WINDOWP (obj))

@@ -174,7 +174,7 @@ main (int argc, char **argv)
   int desc;
 #endif /* not MAIL_USE_SYSTEM_LOCK */
 
-  char *spool_name = 0;
+  //  char *spool_name = 0;
 
 #ifdef MAIL_USE_POP
   bool pop_reverse_order = false;
