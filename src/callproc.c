@@ -1595,12 +1595,12 @@ init_callproc (void)
 #ifdef HAVE_NS
 	  const char *path_exec = ns_exec_path ();
 #endif
+	  /* Running uninstalled, so default to tem rather than PATH_EXEC.  */
 	  Vexec_path = decode_env_path ("EMACSPATH",
 #ifdef HAVE_NS
 					path_exec ? path_exec :
 #endif
-					PATH_EXEC, 0);
-	  Vexec_path = Fcons (tem, Vexec_path);
+					SSDATA (tem), 0);
 	  Vexec_path = nconc2 (decode_env_path ("PATH", "", 0), Vexec_path);
 	}
 

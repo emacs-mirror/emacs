@@ -3115,7 +3115,7 @@ face attributes (as specified by a `default' defface entry)."
 		    widget
 		    (widget-get widget :default-face-attributes)))
 	 entry)
-    (unless (looking-back "^ *")
+    (unless (looking-back "^ *" (line-beginning-position))
       (insert ?\n))
     (insert-char ?\s (widget-get widget :extra-offset))
     (if (or alist defaults show-all)

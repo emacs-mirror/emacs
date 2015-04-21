@@ -4533,7 +4533,7 @@ One can use `` and '' to temporarily jump 1 step back."
   (interactive)
   (if viper-cted
       (let ((p (point)) (c (current-column)) bol (indent t))
-	(if (looking-back "[0^]")
+	(if (looking-back "[0^]" (1- (point)))
 	    (progn
 	      (if (eq ?^ (preceding-char))
 		  (setq viper-preserve-indent t))
@@ -4545,7 +4545,7 @@ One can use `` and '' to temporarily jump 1 step back."
 	(delete-region (point) p)
 	(if indent
 	    (indent-to (- c viper-shift-width)))
-	(if (or (bolp) (looking-back "[^ \t]"))
+	(if (or (bolp) (looking-back "[^ \t]" (1- (point))))
 	    (setq viper-cted nil)))))
 
 ;; do smart indent

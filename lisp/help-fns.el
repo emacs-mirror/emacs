@@ -329,7 +329,7 @@ suitable file is found, return nil."
 
       (with-current-buffer standard-output
         (fill-region-as-paragraph pt2 (point))
-        (unless (looking-back "\n\n")
+        (unless (looking-back "\n\n" (- (point) 2))
           (terpri))))))
 
 (defun help-fns--compiler-macro (function)

@@ -7498,40 +7498,6 @@ init_process_emacs (void)
   memset (datagram_address, 0, sizeof datagram_address);
 #endif
 
- {
-   Lisp_Object subfeatures = Qnil;
-   const struct socket_options *sopt;
-
-#define ADD_SUBFEATURE(key, val) \
-  subfeatures = pure_cons (pure_cons (key, pure_cons (val, Qnil)), subfeatures)
-
-#ifdef NON_BLOCKING_CONNECT
-   ADD_SUBFEATURE (QCnowait, Qt);
-#endif
-#ifdef DATAGRAM_SOCKETS
-   ADD_SUBFEATURE (QCtype, Qdatagram);
-#endif
-#ifdef HAVE_SEQPACKET
-   ADD_SUBFEATURE (QCtype, Qseqpacket);
-#endif
-#ifdef HAVE_LOCAL_SOCKETS
-   ADD_SUBFEATURE (QCfamily, Qlocal);
-#endif
-   ADD_SUBFEATURE (QCfamily, Qipv4);
-#ifdef AF_INET6
-   ADD_SUBFEATURE (QCfamily, Qipv6);
-#endif
-#ifdef HAVE_GETSOCKNAME
-   ADD_SUBFEATURE (QCservice, Qt);
-#endif
-   ADD_SUBFEATURE (QCserver, Qt);
-
-   for (sopt = socket_options; sopt->name; sopt++)
-     subfeatures = pure_cons (intern_c_string (sopt->name), subfeatures);
-
-   Fprovide (intern_c_string ("make-network-process"), subfeatures);
- }
-
 #if defined (DARWIN_OS)
   /* PTYs are broken on Darwin < 6, but are sometimes useful for interactive
      processes.  As such, we only change the default value.  */
@@ -7753,4 +7719,39 @@ The variable takes effect when `start-process' is called.  */);
   defsubr (&Sprocess_inherit_coding_system_flag);
   defsubr (&Slist_system_processes);
   defsubr (&Sprocess_attributes);
+
+ {
+   Lisp_Object subfeatures = Qnil;
+   const struct socket_options *sopt;
+
+#define ADD_SUBFEATURE(key, val) \
+  subfeatures = pure_cons (pure_cons (key, pure_cons (val, Qnil)), subfeatures)
+
+#ifdef NON_BLOCKING_CONNECT
+   ADD_SUBFEATURE (QCnowait, Qt);
+#endif
+#ifdef DATAGRAM_SOCKETS
+   ADD_SUBFEATURE (QCtype, Qdatagram);
+#endif
+#ifdef HAVE_SEQPACKET
+   ADD_SUBFEATURE (QCtype, Qseqpacket);
+#endif
+#ifdef HAVE_LOCAL_SOCKETS
+   ADD_SUBFEATURE (QCfamily, Qlocal);
+#endif
+   ADD_SUBFEATURE (QCfamily, Qipv4);
+#ifdef AF_INET6
+   ADD_SUBFEATURE (QCfamily, Qipv6);
+#endif
+#ifdef HAVE_GETSOCKNAME
+   ADD_SUBFEATURE (QCservice, Qt);
+#endif
+   ADD_SUBFEATURE (QCserver, Qt);
+
+   for (sopt = socket_options; sopt->name; sopt++)
+     subfeatures = pure_cons (intern_c_string (sopt->name), subfeatures);
+
+   Fprovide (intern_c_string ("make-network-process"), subfeatures);
+ }
+
 }

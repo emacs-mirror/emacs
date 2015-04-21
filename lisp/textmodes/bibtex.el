@@ -2229,7 +2229,7 @@ Optional arg COMMA is as in `bibtex-enclosing-field'."
                        bibtex-entry-kill-ring))
       ;; If we copied an entry from a buffer containing only this one entry,
       ;; it can be missing the second "\n".
-      (unless (looking-back "\n\n") (insert "\n"))
+      (unless (looking-back "\n\n" (- (point 2))) (insert "\n"))
       (unless (functionp bibtex-reference-keys)
         ;; update `bibtex-reference-keys'
         (save-excursion

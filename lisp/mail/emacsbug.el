@@ -295,7 +295,7 @@ usually do not have translators for other languages.\n\n")))
 	    (insert-buffer-substring message-buf beg-pos end-pos))))
     ;; After Recent messages, to avoid the messages produced by
     ;; list-load-path-shadows.
-    (unless (looking-back "\n")
+    (unless (looking-back "\n" (1- (point)))
       (insert "\n"))
     (insert "\n")
     (insert "Load-path shadows:\n")

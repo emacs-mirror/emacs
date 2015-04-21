@@ -3375,7 +3375,7 @@ local variables, but directory-local variables may still be applied."
 		      (error "Local variables entry is missing the prefix"))
 		    (end-of-line)
 		    ;; Discard the suffix.
-		    (if (looking-back suffix)
+		    (if (looking-back suffix (line-beginning-position))
 			(delete-region (match-beginning 0) (point))
 		      (error "Local variables entry is missing the suffix"))
 		    (forward-line 1))

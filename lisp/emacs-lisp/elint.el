@@ -374,7 +374,7 @@ Returns the forms."
 	(let ((elint-current-pos (point)))
 	  ;; non-list check could be here too. errors may be out of seq.
 	  ;; quoted check cannot be elsewhere, since quotes skipped.
-	  (if (looking-back "'")
+	  (if (looking-back "'" (1- (point)))
 	      ;; Eg cust-print.el uses ' as a comment syntax.
 	      (elint-warning "Skipping quoted form `'%.20s...'"
 			   (read (current-buffer)))

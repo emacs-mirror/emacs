@@ -1787,7 +1787,7 @@ not be a new one).  It returns non-nil if it got any new messages."
 	      ;; Make sure we end with a blank line unless there are
 	      ;; no messages, as required by mbox format (Bug#9974).
 	      (unless (bobp)
-		(while (not (looking-back "\n\n"))
+		(while (not (looking-back "\n\n" (- (point) 2)))
 		  (insert "\n")))
 	      (setq found (or
 			   (rmail-get-new-mail-1 file-name files delete-files)
@@ -2092,7 +2092,7 @@ Value is the size of the newly read mail after conversion."
 	    ;; Make sure the read-in mbox data properly ends with a
 	    ;; blank line unless it is of size 0.
 	    (unless (zerop size)
-	      (while (not (looking-back "\n\n"))
+	      (while (not (looking-back "\n\n" (- (point) 2)))
 		(insert "\n")))
 	    (if (not (and rmail-preserve-inbox (string= file tofile)))
 		(setq delete-files (cons tofile delete-files)))))
@@ -2127,7 +2127,7 @@ Value is the size of the newly read mail after conversion."
 Call with point at the end of the message."
   (unless (bolp)
     (insert "\n"))
-  (unless (looking-back "\n\n")
+  (unless (looking-back "\n\n" (- (point 2)))
     (insert "\n")))
 
 (defun rmail-add-mbox-headers ()

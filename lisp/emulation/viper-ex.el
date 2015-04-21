@@ -455,7 +455,8 @@ reversed."
 	       (while (and (not (eolp)) cont)
 		 ;;(re-search-forward "[^/]*/")
 		 (re-search-forward "[^/]*\\(/\\|\n\\)")
-		 (if (not (looking-back "[^\\\\]\\(\\\\\\\\\\)*\\\\/"))
+		 (if (not (looking-back "[^\\\\]\\(\\\\\\\\\\)*\\\\/"
+                                        (line-beginning-position 0)))
 		     (setq cont nil))))
 	     (backward-char 1)
 	     (setq ex-token (buffer-substring (point) (mark t)))
@@ -468,7 +469,8 @@ reversed."
 	       (while (and (not (eolp)) cont)
 		 ;;(re-search-forward "[^\\?]*\\?")
 		 (re-search-forward "[^\\?]*\\(\\?\\|\n\\)")
-		 (if (not (looking-back "[^\\\\]\\(\\\\\\\\\\)*\\\\\\?"))
+		 (if (not (looking-back "[^\\\\]\\(\\\\\\\\\\)*\\\\\\?"
+                                        (line-beginning-position 0)))
 		     (setq cont nil))
 		 (backward-char 1)
 		 (if (not (looking-at "\n")) (forward-char 1))))
@@ -563,14 +565,18 @@ reversed."
 	    save-pos (point)))
 
     (if (or (= dist 0)
-	    (looking-back "\\([ \t]*['`][ \t]*[a-z]*\\)")
+	    (looking-back "\\([ \t]*['`][ \t]*[a-z]*\\)"
+                          (line-beginning-position))
 	    (looking-back
-	     "^[ \t]*[a-zA-Z!=>&~][ \t]*[/?]*[ \t]+[a-zA-Z!=>&~]+"))
+	     "^[ \t]*[a-zA-Z!=>&~][ \t]*[/?]*[ \t]+[a-zA-Z!=>&~]+"
+             (line-beginning-position)))
 	;; Preceding characters are not the ones allowed in an Ex command
 	;; or we have typed past command name.
 	;; Note: we didn't do parsing, so there can be surprises.
-	(if (or (looking-back "[a-zA-Z!=>&~][ \t]*[/?]*[ \t]*")
-		(looking-back "\\([ \t]*['`][ \t]*[a-z]*\\)")
+	(if (or (looking-back "[a-zA-Z!=>&~][ \t]*[/?]*[ \t]*"
+                              (line-beginning-position))
+		(looking-back "\\([ \t]*['`][ \t]*[a-z]*\\)"
+                              (line-beginning-position))
 		(looking-at "[^ \t\n\C-m]"))
 	    nil
 	  (with-output-to-temp-buffer "*Completions*"
@@ -747,7 +753,8 @@ reversed."
 			(error "Missing closing delimiter for global regexp")
 		      (goto-char (point-max))))
 		(if (not (looking-back
-			  (format "[^\\\\]\\(\\\\\\\\\\)*\\\\%c" c)))
+			  (format "[^\\\\]\\(\\\\\\\\\\)*\\\\%c" c)
+                          (line-beginning-position 0)))
 		    (setq cont nil)
 		  ;; we are at an escaped delimiter: unescape it and continue
 		  (delete-char -2)
@@ -963,7 +970,7 @@ reversed."
       (while (re-search-forward "%\\|#" nil t)
 	(let ((data (match-data))
 	      (char (buffer-substring (match-beginning 0) (match-end 0))))
-	  (if (looking-back (concat "\\\\" char))
+	  (if (looking-back "\\\\." (- (point) 2))
 	      (replace-match char)
 	    (store-match-data data)
 	    (if (string= char "%")
@@ -989,7 +996,7 @@ reversed."
                                  (get-buffer-create viper-ex-work-buf-name))
 	(skip-chars-forward " \t")
 	(if (looking-at "!")
-	    (if (and (not (looking-back "[ \t]"))
+	    (if (and (not (looking-back "[ \t]" (1- (point))))
 		     ;; read doesn't have a corresponding :r! form, so ! is
 		     ;; immediately interpreted as a shell command.
 		     (not (string= ex-token "read")))
@@ -1066,7 +1073,7 @@ reversed."
   (cond ((ex-cmd-accepts-multiple-files-p ex-token) (exit-minibuffer))
 	;; apparently the argument to an Ex command is
 	;; supposed to be a shell command
-	((looking-back "^[ \t]*!.*")
+	((looking-back "^[ \t]*!.*" (line-beginning-position))
 	 (setq ex-cmdfile t)
 	 (insert " "))
 	(t

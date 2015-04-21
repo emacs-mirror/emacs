@@ -437,9 +437,9 @@ This can be found in an RCS or SCCS header."
 	   ((re-search-forward
 	     (concat
 	      "@(#)"
-	      (if buffer-file-name
+              (if buffer-file-name
                   (regexp-quote (file-name-nondirectory buffer-file-name))
-                "[^\t\n]*")
+                "[^\t\n]+")
 	      "\t\\([012345679.]*\\)")
 	     header-max t)
 	    (match-string-no-properties 1)))))))

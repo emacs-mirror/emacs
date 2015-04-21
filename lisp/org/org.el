@@ -7679,7 +7679,7 @@ command."
 	      (re-search-forward org-outline-regexp-bol)
 	      (beginning-of-line 0))
 	    (skip-chars-backward " \r\n")
-	    (and (not (looking-back "^\*+"))
+	    (and (not (looking-back "^\*+" (line-beginning-position)))
 		 (looking-at "[ \t]+") (replace-match ""))
 	    (unless (eobp) (forward-char 1))
 	    (when (looking-at "^\\*")
@@ -8658,7 +8658,8 @@ links."
 	 (when (equal (marker-buffer org-clock-marker) (current-buffer))
 	   (save-excursion
 	     (goto-char org-clock-marker)
-	     (looking-back "^.*") (match-string-no-properties 0))))
+             (buffer-substring-no-properties (line-beginning-position)
+                                             (point)))))
         start beg end stars re re2
         txt what tmp)
     ;; Find beginning and end of region to sort

@@ -1013,7 +1013,7 @@ If PARSE-RESULT is non-nil, use it instead of calling `parse-partial-sexp'."
 
 (defsubst ada-in-numeric-literal-p ()
   "Return t if point is after a prefix of a numeric literal."
-  (looking-back "\\([0-9]+#[0-9a-fA-F_]+\\)"))
+  (looking-back "\\([0-9]+#[0-9a-fA-F_]+\\)" (line-beginning-position)))
 
 ;;------------------------------------------------------------------
 ;; Contextual menus

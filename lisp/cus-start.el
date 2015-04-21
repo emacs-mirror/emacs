@@ -169,7 +169,12 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (shell-file-name execute file)
 	     (exec-path execute
 			(repeat (choice (const :tag "default directory" nil)
-					(directory :format "%v"))))
+					(directory :format "%v")))
+                        nil
+                        :standard
+                        (mapcar 'directory-file-name
+                                (append (parse-colon-path (getenv "PATH"))
+                                        (list exec-directory))))
 	     (exec-suffixes execute (repeat string))
 	     ;; charset.c
 	     (charset-map-path installation

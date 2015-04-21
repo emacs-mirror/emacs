@@ -2577,7 +2577,9 @@ new buffer."
     (save-excursion
       ;; Move point to the beginning of reference if point is on reference
       (or (looking-at "\\*note[ \n\t]+")
-          (and (looking-back "\\*note[ \n\t]+")
+          (and (looking-back "\\*note[ \n\t]+"
+                             (save-excursion (skip-chars-backward " \n\t")
+                                             (line-beginning-position)))
                (goto-char (match-beginning 0)))
           (if (and (save-excursion
                      (goto-char (+ (point) 5)) ; skip a possible *note
@@ -4738,9 +4740,11 @@ first line or header line, and for breadcrumb links.")
 		    ;; an end of sentence
 		    (skip-syntax-backward " ("))
                   (setq other-tag
-			(cond ((save-match-data (looking-back "\\<see"))
+			(cond ((save-match-data (looking-back "\\<see"
+                                                              (- (point) 3)))
 			       "")
-			      ((save-match-data (looking-back "\\<in"))
+			      ((save-match-data (looking-back "\\<in"
+                                                              (- (point) 2)))
 			       "")
 			      ((memq (char-before) '(nil ?\. ?! ??))
                                "See ")

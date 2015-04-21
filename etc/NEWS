@@ -233,7 +233,9 @@ Unicode standards.
 
 * Changes in Specialized Modes and Packages in Emacs 25.1
 ** In xterms, killing text now also sets the CLIPBOARD/PRIMARY selection
-in the surrounding GUI (using the OSC-52 escape sequence).
+in the surrounding GUI (using the OSC-52 escape sequence).  This only works
+if your xterm supports it and enables the `allowWindowOps' options (disabled
+by default at least in Debian, for security reasons).
 
 ** xterm-mouse-mode now supports mouse-tracking (if your xterm supports it).
 

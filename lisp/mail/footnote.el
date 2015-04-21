@@ -718,7 +718,7 @@ delete the footnote with that number."
 					 end
 				       (point-max))))
 	    (Footnote-goto-char-point-max)
-	    (when (looking-back "\n\n")
+	    (when (looking-back "\n\n" (- (point) 2))
 	      (kill-line -1))))))))
 
 (defun Footnote-renumber-footnotes (&optional arg)

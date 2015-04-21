@@ -466,7 +466,8 @@ It assumes that a log entry starts with a line matching
 	  (goto-char (match-beginning 0))))
        ;; Don't advance past the end buttons inserted by
        ;; `vc-print-log-setup-buttons'.
-       ((looking-back "Show 2X entries    Show unlimited entries")
+       ((looking-back "Show 2X entries    Show unlimited entries"
+                      (line-beginning-position))
 	(setq looping nil)
 	(forward-line -1))))))
 

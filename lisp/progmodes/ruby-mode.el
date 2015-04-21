@@ -1392,7 +1392,8 @@ by `end-of-defun'."
   (interactive "p")
   (ruby-forward-sexp)
   (let (case-fold-search)
-    (when (looking-back (concat "^\\s *" ruby-block-end-re))
+    (when (looking-back (concat "^\\s *" ruby-block-end-re)
+                        (line-beginning-position))
       (forward-line 1))))
 
 (defun ruby-beginning-of-indent ()

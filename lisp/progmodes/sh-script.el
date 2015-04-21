@@ -4344,7 +4344,7 @@ The document is bounded by `sh-here-document-word'."
   (or arg (sh--maybe-here-document)))
 
 (defun sh--maybe-here-document ()
-  (or (not (looking-back "[^<]<<"))
+  (or (not (looking-back "[^<]<<" (line-beginning-position)))
       (save-excursion
 	(backward-char 2)
         (or (sh-quoted-p)

@@ -63,6 +63,10 @@
 			    (expand-file-name "textmodes" dir)
 			    (expand-file-name "vc" dir)))))
 
+;; Prevent build-time PATH getting stored in the binary.
+;; Mainly cosmetic, but helpful for Guix.  (Bug#20330)
+(setq exec-path nil)
+
 (if (eq t purify-flag)
     ;; Hash consing saved around 11% of pure space in my tests.
     (setq purify-flag (make-hash-table :test 'equal :size 70000)))
@@ -352,6 +356,8 @@ lost after dumping")))
 lost after dumping")))
 
 (setq current-load-list nil)
+;; Avoid storing references to build directory in the binary.
+(setq custom-current-group-alist nil)
 
 ;; We keep the load-history data in PURE space.
 ;; Make sure that the spine of the list is not in pure space because it can

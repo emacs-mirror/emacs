@@ -191,7 +191,7 @@ Changing this variable requires a restart of Emacs to get activated."
   (interactive)
   (end-of-line)
   (skip-chars-backward "\t ")
-  (when (org-looking-back ":[A-Za-z]+:")
+  (when (org-looking-back ":[A-Za-z]+:" (line-beginning-position))
     (skip-chars-backward ":A-Za-z")
     (skip-chars-backward "\t ")))
 
@@ -645,7 +645,7 @@ This means, between the beginning of line and the point."
 					'org-mode-restart))))
      ((or (eolp)
 	  (and (looking-at "\\(  \\|\t\\)\\(+:[0-9a-zA-Z_:]+\\)?\\(  \\|\t\\)+$")
-	       (org-looking-back "  \\|\t")))
+	       (org-looking-back "  \\|\t" (- (point) 2))))
       (org-mouse-popup-global-menu))
      ((funcall get-context :checkbox)
       (popup-menu

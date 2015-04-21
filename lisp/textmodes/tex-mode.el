@@ -1761,13 +1761,13 @@ Mark is left at original location."
        ;; A better way to handle this, \( .. \) etc, is probably to
        ;; temporarily change the syntax of the \ in \( to punctuation.
        ((and latex-handle-escaped-parens
-	     (looking-back "\\\\[])}]"))
+	     (looking-back "\\\\[])}]" (- (point) 2)))
 	(signal 'scan-error
 		(list "Containing expression ends prematurely"
 		      (- (point) 2) (prog1 (point)
 				      (goto-char pos)))))
        ((and latex-handle-escaped-parens
-	     (looking-back "\\\\\\([({[]\\)"))
+	     (looking-back "\\\\\\([({[]\\)" (- (point) 2)))
 	(tex-next-unmatched-eparen (match-string 1)))
        (t (goto-char newpos))))))
 

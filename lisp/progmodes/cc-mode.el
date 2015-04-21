@@ -511,6 +511,14 @@ that requires a literal mode spec at compile time."
   (set (make-local-variable 'comment-line-break-function)
        'c-indent-new-comment-line)
 
+  ;; Prevent time-wasting activity on C-y.
+  (when (boundp 'yank-handled-properties)
+    (make-local-variable 'yank-handled-properties)
+    (let ((yank-cat-handler (assq 'category yank-handled-properties)))
+      (when yank-cat-handler
+	(setq yank-handled-properties (remq yank-cat-handler
+					    yank-handled-properties)))))
+
   ;; For the benefit of adaptive file, which otherwise mis-fills.
   (setq fill-paragraph-handle-comment nil)
 
@@ -839,6 +847,18 @@ Note that the style variables are always made local to the buffer."
 (defvar c-old-EOM 0)
 (make-variable-buffer-local 'c-old-EOM)
 
+(defun c-called-from-text-property-change-p ()
+  ;; Is the primitive which invoked `before-change-functions' or
+  ;; `after-change-functions' one which merely changes text properties?  This
+  ;; function must be called directly from a member of one of the above hooks.
+  ;;
+  ;; In the following call, frame 0 is `backtrace-frame', frame 1 is
+  ;; `c-called-from-text-property-change-p', frame 2 is
+  ;; `c-before/after-change', frame 3 is the primitive invoking the change
+  ;; hook.
+  (memq (cadr (backtrace-frame 3))
+	'(put-text-property remove-list-of-text-properties)))
+
 (defun c-extend-region-for-CPP (beg end)
   ;; Set c-old-BOM or c-old-EOM respectively to BEG, END, each extended to the
   ;; beginning/end of any preprocessor construct they may be in.
@@ -1009,8 +1029,9 @@ Note that the style variables are always made local to the buffer."
   ;; it/them from the cache.  Don't worry about being inside a string
   ;; or a comment - "wrongly" removing a symbol from `c-found-types'
   ;; isn't critical.
-  (unless c-just-done-before-change  ; Guard against a spurious second
-			      ; invocation of before-change-functions.
+  (unless (or (c-called-from-text-property-change-p)
+	      c-just-done-before-change) ; guard against a spurious second
+					; invocation of before-change-functions.
     (setq c-just-done-before-change t)
     (setq c-maybe-stale-found-type nil)
     (save-restriction
@@ -1105,51 +1126,53 @@ Note that the style variables are always made local to the buffer."
   ;; This calls the language variable c-before-font-lock-functions, if non nil.
   ;; This typically sets `syntax-table' properties.
 
-  (setq c-just-done-before-change nil)
-  (c-save-buffer-state (case-fold-search open-paren-in-column-0-is-defun-start)
-    ;; When `combine-after-change-calls' is used we might get calls
-    ;; with regions outside the current narrowing.  This has been
-    ;; observed in Emacs 20.7.
-    (save-restriction
-      (save-match-data		  ; c-recognize-<>-arglists changes match-data
-	(widen)
+  ;; (c-new-BEG c-new-END) will be the region to fontify.  It may become
+  ;; larger than (beg end).
+  (setq c-new-BEG beg  c-new-END end)
 
-	(when (> end (point-max))
-	  ;; Some emacsen might return positions past the end. This has been
-	  ;; observed in Emacs 20.7 when rereading a buffer changed on disk
-	  ;; (haven't been able to minimize it, but Emacs 21.3 appears to
-	  ;; work).
-	  (setq end (point-max))
-	  (when (> beg end)
-	    (setq beg end)))
+  (unless (c-called-from-text-property-change-p)
+    (setq c-just-done-before-change nil)
+    (c-save-buffer-state (case-fold-search open-paren-in-column-0-is-defun-start)
+      ;; When `combine-after-change-calls' is used we might get calls
+      ;; with regions outside the current narrowing.  This has been
+      ;; observed in Emacs 20.7.
+      (save-restriction
+	(save-match-data  ; c-recognize-<>-arglists changes match-data
+	  (widen)
 
-	;; C-y is capable of spuriously converting category properties
-	;; c-</>-as-paren-syntax and c-cpp-delimiter into hard syntax-table
-	;; properties.  Remove these when it happens.
-	(when (eval-when-compile (memq 'category-properties c-emacs-features))
-	  (c-clear-char-property-with-value beg end 'syntax-table
-					    c-<-as-paren-syntax)
-	  (c-clear-char-property-with-value beg end 'syntax-table
-					    c->-as-paren-syntax)
-	  (c-clear-char-property-with-value beg end 'syntax-table nil))
+	  (when (> end (point-max))
+	    ;; Some emacsen might return positions past the end. This has been
+	    ;; observed in Emacs 20.7 when rereading a buffer changed on disk
+	    ;; (haven't been able to minimize it, but Emacs 21.3 appears to
+	    ;; work).
+	    (setq end (point-max))
+	    (when (> beg end)
+	      (setq beg end)))
 
-	(c-trim-found-types beg end old-len) ; maybe we don't need all of these.
-	(c-invalidate-sws-region-after beg end)
-	;; (c-invalidate-state-cache beg) ; moved to `c-before-change'.
-	(c-invalidate-find-decl-cache beg)
+	  ;; C-y is capable of spuriously converting category properties
+	  ;; c-</>-as-paren-syntax and c-cpp-delimiter into hard syntax-table
+	  ;; properties.  Remove these when it happens.
+	  (when (eval-when-compile (memq 'category-properties c-emacs-features))
+	    (c-save-buffer-state ()
+	      (c-clear-char-property-with-value beg end 'syntax-table
+						c-<-as-paren-syntax)
+	      (c-clear-char-property-with-value beg end 'syntax-table
+						c->-as-paren-syntax)
+	      (c-clear-char-property-with-value beg end 'syntax-table nil)))
 
-	(when c-recognize-<>-arglists
-	  (c-after-change-check-<>-operators beg end))
+	  (c-trim-found-types beg end old-len) ; maybe we don't need all of these.
+	  (c-invalidate-sws-region-after beg end)
+	  ;; (c-invalidate-state-cache beg) ; moved to `c-before-change'.
+	  (c-invalidate-find-decl-cache beg)
 
-	;; (c-new-BEG c-new-END) will be the region to fontify.  It may become
-	;; larger than (beg end).
-	(setq c-new-BEG beg
-	      c-new-END end)
-	(setq c-in-after-change-fontification t)
-	(save-excursion
-	  (mapc (lambda (fn)
-		  (funcall fn beg end old-len))
-		c-before-font-lock-functions))))))
+	  (when c-recognize-<>-arglists
+	    (c-after-change-check-<>-operators beg end))
+
+	  (setq c-in-after-change-fontification t)
+	  (save-excursion
+	    (mapc (lambda (fn)
+		    (funcall fn beg end old-len))
+		  c-before-font-lock-functions)))))))
 
 (defun c-fl-decl-start (pos)
   ;; If the beginning of the line containing POS is in the middle of a "local"
@@ -1322,7 +1345,7 @@ This function is called from `c-common-init', once per mode initialization."
   (add-hook 'font-lock-mode-hook 'c-after-font-lock-init nil t))
 
 ;; Emacs 22 and later.
-(defun c-extend-after-change-region (_beg _end _old-len)
+(defun c-extend-after-change-region (beg end _old-len)
   "Extend the region to be fontified, if necessary."
   ;; Note: the parameter OLD-LEN is ignored here.  This somewhat indirect
   ;; implementation exists because it is minimally different from the
@@ -1336,10 +1359,11 @@ This function is called from `c-common-init', once per mode initialization."
   (when (eq font-lock-support-mode 'jit-lock-mode)
     (save-restriction
       (widen)
-      (if (< c-new-BEG beg)
-	  (put-text-property c-new-BEG beg 'fontified nil))
-      (if (> c-new-END end)
-	  (put-text-property end c-new-END 'fontified nil))))
+      (c-save-buffer-state () ; Protect the undo-list from put-text-property.
+	(if (< c-new-BEG beg)
+	    (put-text-property c-new-BEG beg 'fontified nil))
+	(if (> c-new-END end)
+	    (put-text-property end c-new-END 'fontified nil)))))
   (cons c-new-BEG c-new-END))
 
 ;; Emacs < 22 and XEmacs

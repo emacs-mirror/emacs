@@ -2606,7 +2606,8 @@ meaning to raise or lower the item's priority by one."
 	    ;; separator.
 	    (when (looking-back (concat "^"
 					(regexp-quote todo-category-done)
-					"\n"))
+					"\n")
+                                (line-beginning-position 0))
 	      (todo-backward-item))))
 	(todo-insert-with-overlays item)
 	;; If item was marked, restore the mark.
@@ -4231,7 +4232,8 @@ the values of FILTER and FILE-LIST."
 			   (if (and (eobp)
 				    (looking-back
 				     (concat (regexp-quote todo-done-string)
-					     "\n")))
+					     "\n")
+                                     (line-beginning-position 0)))
 			       (delete-region (point) (progn
 							(forward-line -2)
 							(point))))))
@@ -4648,7 +4650,7 @@ name in `todo-directory'.  See also the documentation string of
 		;; If the item ends with a non-comment parenthesis not
 		;; followed by a period, we lose (but we inherit that
 		;; problem from the legacy code).
-		(when (looking-back "(\\(.*\\)) ")
+		(when (looking-back "(\\(.*\\)) " (line-beginning-position))
 		  (setq comment (match-string 1))
 		  (replace-match "")
 		  (insert "[" todo-comment-string ": " comment "]"))
@@ -5342,7 +5344,8 @@ of each other."
 		     (looking-at todo-done-string-start)
 		     (looking-back (concat "^"
 					   (regexp-quote todo-category-done)
-					   "\n")))
+					   "\n")
+                                   (line-beginning-position 0)))
 	    (setq num 1
 		  done t))
 	  (setq prefix (concat (propertize
