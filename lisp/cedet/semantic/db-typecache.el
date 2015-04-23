@@ -499,7 +499,9 @@ found tag to be loaded."
       ;; the next set of members.
       (if (not ans)
 	  (setq notdone nil)
-	(setq stream (semantic-tag-type-members ans)))
+	;; When pulling the next stream, only get the members we
+	;; are supposed to complete on.
+	(setq stream (semantic-analyze-tag-type-members ans)))
 
       (setq lastans ans
 	    ans nil

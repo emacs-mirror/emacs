@@ -235,7 +235,7 @@ FLAGS can be any number of:
 	   ((semantic-tag-type (car loopc))
 	    (let ((att (semantic-analyze-tag-type (car loopc) scope))
 		)
-	      (if (and att (semantic-tag-type-members att))
+	      (if (and att (semantic-analyze-tag-type-members att))
 		  (setq c (cons (car loopc) c))))
 	    )
 

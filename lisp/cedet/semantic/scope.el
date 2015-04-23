@@ -508,7 +508,9 @@ the access would be 'protected.  Otherwise, access is 'public")
   "Return a list of slots that are valid completions from the list of SLOTS.
 If a tag in SLOTS has a named parent, then that implies that the
 tag is not something you can complete from within TYPE."
-  (let ((allslots (semantic-tag-components type))
+  ;; Pull in analyzed type members.
+  ;; For C, this strips out anon unions, and merges in anon union members.
+  (let ((allslots (semantic-analyze-tag-type-members type))
 	(leftover nil)
 	)
     (dolist (S allslots)
@@ -819,7 +821,7 @@ hits in order, with the first tag being in the closest scope."
 		  (if (not ans)
 		      (setq typescoperaw nil)
 		    (when (cdr namesplit)
-		      (setq typescoperaw (semantic-tag-type-members
+		      (setq typescoperaw (semantic-analyze-tag-type-members
 					  (car ans)))))
 
 		  (setq namesplit (cdr namesplit)))
