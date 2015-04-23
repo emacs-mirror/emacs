@@ -42,6 +42,7 @@
     "tests/testsubclass.cpp"
     "tests/testtypedefs.cpp"
     "tests/teststruct.cpp"
+    "tests/testunion.cpp"
     "tests/testtemplates.cpp"
     "tests/testfriends.cpp"
     "tests/testusing.cpp"
