@@ -1872,6 +1872,23 @@ These are constants which are of type TYPE."
   "Assemble the list of names NAMELIST into a namespace name."
   (mapconcat 'identity namelist "::"))
 
+(define-mode-local-override semantic-analyze-tag-type-members c-mode (tag)
+  "Return a list of :members of TAG.
+Merges in all members of anonymous unions that are :members of TAG."
+  (let ((raw (semantic-tag-type-members tag))
+	(ans nil))
+    (dolist (T raw)
+      (cond ((and (semantic-tag-of-class-p T 'type)
+                  (semantic-tag-of-type-p T "union")
+                  (string= (semantic-tag-name T) ""))
+	     ;; Merge in all the union members.
+	     (dolist (Ts (semantic-analyze-tag-type-members T))
+	       (setq ans (cons Ts ans))))
+	    ;; Be default, just push the tag.
+	    (t
+	     (setq ans (cons T ans)))))
+    (nreverse ans)))
+
 (define-mode-local-override semantic-ctxt-scoped-types c++-mode (&optional point)
   "Return a list of tags of CLASS type based on POINT.
 DO NOT return the list of tags encompassing point."
