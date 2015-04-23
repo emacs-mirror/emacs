@@ -35,7 +35,7 @@
 (declare-function ede-get-locator-object "ede/files")
 
 ;;; Code:
-
+;;;###autoload
 (defun semantic-analyze-debug-assist ()
   "Debug semantic analysis at the current point."
   (interactive)
