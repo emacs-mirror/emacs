@@ -1725,7 +1725,8 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	  print_c_string (XSUBR (obj)->symbol_name, printcharfun);
 	  printchar ('>', printcharfun);
 	}
-#ifdef HAVE_XWIDGETS
+#ifdef HAVE_XWIDGETS_DISABLED_ATM
+      //there was a segfault here after recent upstream changes
       else if (XWIDGETP (obj))
 	{
 	  strout ("#<xwidget ", -1, -1, printcharfun);
