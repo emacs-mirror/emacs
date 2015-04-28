@@ -579,9 +579,9 @@ xg_check_special_colors (struct frame *f,
       gtk_style_context_get_background_color (gsty, state, &col);
 
     sprintf (buf, "rgb:%04x/%04x/%04x",
-             (int)(col.red * 65535),
-             (int)(col.green * 65535),
-             (int)(col.blue * 65535));
+             (unsigned) (col.red * 65535),
+             (unsigned) (col.green * 65535),
+             (unsigned) (col.blue * 65535));
     success_p = (XParseColor (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f),
 			      buf, color)
 		 != 0);

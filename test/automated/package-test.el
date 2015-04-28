@@ -361,10 +361,13 @@ Must called from within a `tar-mode' buffer."
                (while package--downloads-in-progress
                  (accept-process-output nil 1))
                nil))
+            ;; If the server process died, there's some non-Emacs problem.
+            ;; Eg maybe the port was already in use.
+            (skip-unless (process-live-p process))
             (goto-char (point-min))
             (should
              (search-forward-regexp "^ +simple-single" nil t)))
-        (kill-process process)))))
+        (if (process-live-p process) (kill-process process))))))
 
 (ert-deftest package-test-describe-package ()
   "Test displaying help for a package."

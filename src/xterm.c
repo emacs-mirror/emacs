@@ -1288,7 +1288,7 @@ x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 	{
 	  sprintf (buf, "%0*X",
 		   glyph->u.glyphless.ch < 0x10000 ? 4 : 6,
-		   glyph->u.glyphless.ch);
+		   glyph->u.glyphless.ch + 0u);
 	  str = buf;
 	}
 

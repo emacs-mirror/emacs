@@ -41,6 +41,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # include "xwidget.h"
 #endif
 
+#include <c-ctype.h>
 #include <float.h>
 #include <ftoastr.h>
 
@@ -797,9 +798,12 @@ safe_debug_print (Lisp_Object arg)
   if (valid > 0)
     debug_print (arg);
   else
-    fprintf (stderr, "#<%s_LISP_OBJECT 0x%08"pI"x>\r\n",
-	     !valid ? "INVALID" : "SOME",
-	     XLI (arg));
+    {
+      EMACS_UINT n = XLI (arg);
+      fprintf (stderr, "#<%s_LISP_OBJECT 0x%08"pI"x>\r\n",
+	       !valid ? "INVALID" : "SOME",
+	       n);
+    }
 }
 
 
@@ -1389,9 +1393,9 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	  register ptrdiff_t i, i_byte;
 	  struct gcpro gcpro1;
 	  ptrdiff_t size_byte;
-	  /* 1 means we must ensure that the next character we output
+	  /* True means we must ensure that the next character we output
 	     cannot be taken as part of a hex character escape.  */
-	  bool need_nonhex = 0;
+	  bool need_nonhex = false;
 	  bool multibyte = STRING_MULTIBYTE (obj);
 
 	  GCPRO1 (obj);
@@ -1415,60 +1419,46 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 
 	      QUIT;
 
-	      if (c == '\n' && print_escape_newlines)
-		print_c_string ("\\n", printcharfun);
-	      else if (c == '\f' && print_escape_newlines)
-		print_c_string ("\\f", printcharfun);
-	      else if (multibyte
-		       && (CHAR_BYTE8_P (c)
-			   || (! ASCII_CHAR_P (c) && print_escape_multibyte)))
+	      if (multibyte
+		  ? (CHAR_BYTE8_P (c) && (c = CHAR_TO_BYTE8 (c), true))
+		  : (SINGLE_BYTE_CHAR_P (c) && ! ASCII_CHAR_P (c)
+		     && print_escape_nonascii))
 		{
-		  /* When multibyte is disabled,
-		     print multibyte string chars using hex escapes.
-		     For a char code that could be in a unibyte string,
-		     when found in a multibyte string, always use a hex escape
-		     so it reads back as multibyte.  */
-		  char outbuf[50];
-		  int len;
-
-		  if (CHAR_BYTE8_P (c))
-		    len = sprintf (outbuf, "\\%03o", CHAR_TO_BYTE8 (c));
-		  else
-		    {
-		      len = sprintf (outbuf, "\\x%04x", c);
-		      need_nonhex = 1;
-		    }
-		  strout (outbuf, len, len, printcharfun);
-		}
-	      else if (! multibyte
-		       && SINGLE_BYTE_CHAR_P (c) && ! ASCII_CHAR_P (c)
-		       && print_escape_nonascii)
-		{
-		  /* When printing in a multibyte buffer
-		     or when explicitly requested,
+		  /* When printing a raw 8-bit byte in a multibyte buffer, or
+		     (when requested) a non-ASCII character in a unibyte buffer,
 		     print single-byte non-ASCII string chars
 		     using octal escapes.  */
 		  char outbuf[5];
-		  int len = sprintf (outbuf, "\\%03o", c);
+		  int len = sprintf (outbuf, "\\%03o", c + 0u);
 		  strout (outbuf, len, len, printcharfun);
+		  need_nonhex = false;
+		}
+	      else if (multibyte
+		       && ! ASCII_CHAR_P (c) && print_escape_multibyte)
+		{
+		  /* When requested, print multibyte chars using hex escapes.  */
+		  char outbuf[sizeof "\\x" + INT_STRLEN_BOUND (c)];
+		  int len = sprintf (outbuf, "\\x%04x", c + 0u);
+		  strout (outbuf, len, len, printcharfun);
+		  need_nonhex = true;
 		}
 	      else
 		{
 		  /* If we just had a hex escape, and this character
 		     could be taken as part of it,
 		     output `\ ' to prevent that.  */
-		  if (need_nonhex)
-		    {
-		      need_nonhex = 0;
-		      if ((c >= 'a' && c <= 'f')
-			  || (c >= 'A' && c <= 'F')
-			  || (c >= '0' && c <= '9'))
-			print_c_string ("\\ ", printcharfun);
-		    }
+		  if (need_nonhex && c_isxdigit (c))
+		    print_c_string ("\\ ", printcharfun);
 
-		  if (c == '\"' || c == '\\')
+		  if (c == '\n' && print_escape_newlines
+		      ? (c = 'n', true)
+		      : c == '\f' && print_escape_newlines
+		      ? (c = 'f', true)
+		      : c == '\"' || c == '\\')
 		    printchar ('\\', printcharfun);
+
 		  printchar (c, printcharfun);
+		  need_nonhex = false;
 		}
 	    }
 	  printchar ('\"', printcharfun);
@@ -2124,11 +2114,11 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	   Probably should just emacs_abort ().  */
 	print_c_string ("#<EMACS BUG: INVALID DATATYPE ", printcharfun);
 	if (MISCP (obj))
-	  len = sprintf (buf, "(MISC 0x%04x)", (int) XMISCTYPE (obj));
+	  len = sprintf (buf, "(MISC 0x%04x)", (unsigned) XMISCTYPE (obj));
 	else if (VECTORLIKEP (obj))
-	  len = sprintf (buf, "(PVEC 0x%08"pD"x)", ASIZE (obj));
+	  len = sprintf (buf, "(PVEC 0x%08zx)", (size_t) ASIZE (obj));
 	else
-	  len = sprintf (buf, "(0x%02x)", (int) XTYPE (obj));
+	  len = sprintf (buf, "(0x%02x)", (unsigned) XTYPE (obj));
 	strout (buf, len, len, printcharfun);
 	print_c_string ((" Save your buffers immediately"
 			 " and please report this bug>"),

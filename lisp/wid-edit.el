@@ -2846,9 +2846,17 @@ The following properties have special meanings for this widget:
     (if (and (fboundp symbol) (boundp symbol))
 	;; If there are two doc strings, give the user a way to pick one.
 	(apropos (concat "\\`" (regexp-quote string) "\\'"))
-      (if (fboundp symbol)
-	  (describe-function symbol)
-	(describe-variable symbol)))))
+      (cond
+       ((fboundp symbol)
+	(describe-function symbol))
+       ((facep symbol)
+	(describe-face symbol))
+       ((featurep symbol)
+	(describe-package symbol))
+       ((or (boundp symbol) (get symbol 'variable-documentation))
+	(describe-variable symbol))
+       (t
+	(message "No documentation available for %s" symbol))))))
 
 (defcustom widget-documentation-links t
   "Add hyperlinks to documentation strings when non-nil."

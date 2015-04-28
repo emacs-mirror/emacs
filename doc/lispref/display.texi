@@ -257,6 +257,9 @@ text properties (@pxref{Logging Messages}).
 In batch mode, the message is printed to the standard error stream,
 followed by a newline.
 
+When @code{inhibit-message} is non-@code{nil}, no message will be displayed
+in the echo area, it will only be logged to @samp{*Messages*}.
+
 If @var{format-string} is @code{nil} or the empty string,
 @code{message} clears the echo area; if the echo area has been
 expanded automatically, this brings it back to its normal size.  If
@@ -281,6 +284,11 @@ Minibuffer depth is 0.
 To automatically display a message in the echo area or in a pop-buffer,
 depending on its size, use @code{display-message-or-buffer} (see below).
 @end defun
+
+@defvar inhibit-message
+When this variable is non-@code{nil}, @code{message} and related functions
+will not use the Echo Area to display messages.
+@end defvar
 
 @defmac with-temp-message message &rest body
 This construct displays a message in the echo area temporarily, during

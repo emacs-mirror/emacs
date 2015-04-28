@@ -29,6 +29,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <c-ctype.h>
+
 #include "lisp.h"
 #include "w32term.h"
 #include "frame.h"
@@ -7038,7 +7040,28 @@ a ShowWindow flag:
 
 #else  /* !CYGWIN */
 
-  current_dir = ENCODE_FILE (current_dir);
+  const char file_url_str[] = "file:///";
+  const int file_url_len = sizeof (file_url_str) - 1;
+  if (strncmp (SSDATA (document), file_url_str, file_url_len) == 0)
+    {
+      /* Passing "file:///" URLs to ShellExecute causes shlwapi.dll to
+	 start a thread in some rare system configurations, for
+	 unknown reasons.  That thread is started in the context of
+	 the Emacs process, but out of control of our code, and seems
+	 to never exit afterwards.  Each such thread reserves 8MB of
+	 stack space (because that's the value recorded in the Emacs
+	 executable at link time: Emacs needs a large stack).  So a
+	 large enough number of invocations of w32-shell-execute can
+	 potentially cause the Emacs process to run out of available
+	 address space, which is nasty.  To work around this, we
+	 convert such URLs to local file names, which seems to prevent
+	 those threads from starting.  See bug #20220.  */
+      char *p = SSDATA (document) + file_url_len;
+
+      if (c_isalpha (*p) && p[1] == ':' && IS_DIRECTORY_SEP (p[2]))
+	document = Fsubstring_no_properties (document,
+					     make_number (file_url_len), Qnil);
+    }
   /* We have a situation here.  If DOCUMENT is a relative file name,
      but its name includes leading directories, i.e. it lives not in
      CURRENT_DIR, but in its subdirectory, then ShellExecute below
@@ -7071,6 +7094,8 @@ a ShowWindow flag:
   else
     document = ENCODE_FILE (document);
   UNGCPRO;
+
+  current_dir = ENCODE_FILE (current_dir);
   if (use_unicode)
     {
       wchar_t document_w[MAX_PATH], current_dir_w[MAX_PATH];

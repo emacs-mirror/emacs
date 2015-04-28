@@ -874,7 +874,7 @@ xd_retrieve_arg (int dtype, DBusMessageIter *iter)
 	uprintmax_t pval;
 	dbus_message_iter_get_basic (iter, &val);
 	pval = val;
-	XD_DEBUG_MESSAGE ("%c %"pMd, dtype, pval);
+	XD_DEBUG_MESSAGE ("%c %"pMu, dtype, pval);
 	return make_fixnum_or_float (val);
       }
 
@@ -990,7 +990,7 @@ xd_add_watch (DBusWatch *watch, void *data)
   unsigned int flags = dbus_watch_get_flags (watch);
   int fd = xd_find_watch_fd (watch);
 
-  XD_DEBUG_MESSAGE ("fd %d, write %d, enabled %d",
+  XD_DEBUG_MESSAGE ("fd %d, write %u, enabled %u",
 		    fd, flags & DBUS_WATCH_WRITABLE,
 		    dbus_watch_get_enabled (watch));
 

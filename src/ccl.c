@@ -1713,7 +1713,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	case CCL_STAT_INVALID_CMD:
 	  msglen = sprintf (msg,
 			    "\nCCL: Invalid command %x (ccl_code = %x) at %d.",
-			    code & 0x1F, code, this_ic);
+			    code & 0x1Fu, code + 0u, this_ic);
 #ifdef CCL_DEBUG
 	  {
 	    int i = ccl_backtrace_idx - 1;

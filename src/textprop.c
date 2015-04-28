@@ -711,11 +711,12 @@ DEFUN ("next-char-property-change", Fnext_char_property_change,
 This scans characters forward in the current buffer from POSITION till
 it finds a change in some text property, or the beginning or end of an
 overlay, and returns the position of that.
-If none is found up to (point-max), the function returns (point-max).
+If none is found, and LIMIT is nil or omitted, the function
+returns (point-max).
 
-If the optional second argument LIMIT is non-nil, don't search
-past position LIMIT; return LIMIT if nothing is found before LIMIT.
-LIMIT is a no-op if it is greater than (point-max).  */)
+If the optional second argument LIMIT is non-nil, the function doesn't
+search past position LIMIT, and returns LIMIT if nothing is found
+before LIMIT.  LIMIT is a no-op if it is greater than (point-max).  */)
   (Lisp_Object position, Lisp_Object limit)
 {
   Lisp_Object temp;
@@ -736,11 +737,12 @@ DEFUN ("previous-char-property-change", Fprevious_char_property_change,
 Scans characters backward in the current buffer from POSITION till it
 finds a change in some text property, or the beginning or end of an
 overlay, and returns the position of that.
-If none is found since (point-min), the function returns (point-min).
+If none is found, and LIMIT is nil or omitted, the function
+returns (point-min).
 
-If the optional second argument LIMIT is non-nil, don't search
-past position LIMIT; return LIMIT if nothing is found before LIMIT.
-LIMIT is a no-op if it is less than (point-min).  */)
+If the optional second argument LIMIT is non-nil, the function doesn't
+search before position LIMIT, and returns LIMIT if nothing is found
+before LIMIT.  LIMIT is a no-op if it is less than (point-min).  */)
   (Lisp_Object position, Lisp_Object limit)
 {
   Lisp_Object temp;
@@ -765,14 +767,15 @@ If the optional third argument OBJECT is a buffer (or nil, which means
 the current buffer), POSITION is a buffer position (integer or marker).
 If OBJECT is a string, POSITION is a 0-based index into it.
 
-In a string, scan runs to the end of the string.
-In a buffer, it runs to (point-max), and the value cannot exceed that.
+In a string, scan runs to the end of the string, unless LIMIT is non-nil.
+In a buffer, if LIMIT is nil or omitted, it runs to (point-max), and the
+value cannot exceed that.
+If the optional fourth argument LIMIT is non-nil, don't search
+past position LIMIT; return LIMIT if nothing is found before LIMIT.
 
 The property values are compared with `eq'.
 If the property is constant all the way to the end of OBJECT, return the
-last valid position in OBJECT.
-If the optional fourth argument LIMIT is non-nil, don't search
-past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
+last valid position in OBJECT.  */)
   (Lisp_Object position, Lisp_Object prop, Lisp_Object object, Lisp_Object limit)
 {
   if (STRINGP (object))
@@ -849,14 +852,15 @@ If the optional third argument OBJECT is a buffer (or nil, which means
 the current buffer), POSITION is a buffer position (integer or marker).
 If OBJECT is a string, POSITION is a 0-based index into it.
 
-In a string, scan runs to the start of the string.
-In a buffer, it runs to (point-min), and the value cannot be less than that.
+In a string, scan runs to the start of the string, unless LIMIT is non-nil.
+In a buffer, if LIMIT is nil or omitted, it runs to (point-min), and the
+value cannot be less than that.
+If the optional fourth argument LIMIT is non-nil, don't search back past
+position LIMIT; return LIMIT if nothing is found before reaching LIMIT.
 
 The property values are compared with `eq'.
 If the property is constant all the way to the start of OBJECT, return the
-first valid position in OBJECT.
-If the optional fourth argument LIMIT is non-nil, don't search back past
-position LIMIT; return LIMIT if nothing is found before reaching LIMIT.  */)
+first valid position in OBJECT.  */)
   (Lisp_Object position, Lisp_Object prop, Lisp_Object object, Lisp_Object limit)
 {
   if (STRINGP (object))
@@ -940,8 +944,9 @@ a change in some text property, then returns the position of the change.
 If the optional second argument OBJECT is a buffer (or nil, which means
 the current buffer), POSITION is a buffer position (integer or marker).
 If OBJECT is a string, POSITION is a 0-based index into it.
-Return nil if the property is constant all the way to the end of OBJECT.
-If the value is non-nil, it is a position greater than POSITION, never equal.
+Return nil if LIMIT is nil or omitted, and the property is constant all
+the way to the end of OBJECT; if the value is non-nil, it is a position
+greater than POSITION, never equal.
 
 If the optional third argument LIMIT is non-nil, don't search
 past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
@@ -1005,8 +1010,9 @@ If the optional third argument OBJECT is a buffer (or nil, which means
 the current buffer), POSITION is a buffer position (integer or marker).
 If OBJECT is a string, POSITION is a 0-based index into it.
 The property values are compared with `eq'.
-Return nil if the property is constant all the way to the end of OBJECT.
-If the value is non-nil, it is a position greater than POSITION, never equal.
+Return nil if LIMIT is nil or omitted, and the property is constant all
+the way to the end of OBJECT; if the value is non-nil, it is a position
+greater than POSITION, never equal.
 
 If the optional fourth argument LIMIT is non-nil, don't search
 past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
@@ -1052,8 +1058,9 @@ a change in some text property, then returns the position of the change.
 If the optional second argument OBJECT is a buffer (or nil, which means
 the current buffer), POSITION is a buffer position (integer or marker).
 If OBJECT is a string, POSITION is a 0-based index into it.
-Return nil if the property is constant all the way to the start of OBJECT.
-If the value is non-nil, it is a position less than POSITION, never equal.
+Return nil if LIMIT is nil or omitted, and the property is constant all
+the way to the start of OBJECT; if the value is non-nil, it is a position
+less than POSITION, never equal.
 
 If the optional third argument LIMIT is non-nil, don't search
 back past position LIMIT; return LIMIT if nothing is found until LIMIT.  */)
@@ -1100,8 +1107,9 @@ If the optional third argument OBJECT is a buffer (or nil, which means
 the current buffer), POSITION is a buffer position (integer or marker).
 If OBJECT is a string, POSITION is a 0-based index into it.
 The property values are compared with `eq'.
-Return nil if the property is constant all the way to the start of OBJECT.
-If the value is non-nil, it is a position less than POSITION, never equal.
+Return nil if LIMIT is nil or omitted, and the property is constant all
+the way to the start of OBJECT; if the value is non-nil, it is a position
+less than POSITION, never equal.
 
 If the optional fourth argument LIMIT is non-nil, don't search
 back past position LIMIT; return LIMIT if nothing is found until LIMIT.  */)

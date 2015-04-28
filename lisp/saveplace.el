@@ -50,28 +50,10 @@ visiting file FILENAME goes automatically to position POSITION
 rather than the beginning of the buffer.
 This alist is saved between Emacs sessions.")
 
-(defcustom save-place nil
-  "Non-nil means automatically save place in each file.
-This means when you visit a file, point goes to the last place
-where it was when you previously visited the same file.
-
-If you wish your place in any file to always be automatically
-saved, set this to t using the Customize facility, or put the
-following code in your init file:
-
-\(setq-default save-place t)
-\(require 'saveplace)"
-  :type 'boolean
-  :require 'saveplace
-  :group 'save-place)
-
-(make-variable-buffer-local 'save-place)
-
 (defcustom save-place-file (locate-user-emacs-file "places" ".emacs-places")
   "Name of the file that records `save-place-alist' value."
   :version "24.4"                       ; added locate-user-emacs-file
-  :type 'file
-  :group 'save-place)
+  :type 'file)
 
 (defcustom save-place-version-control nil
   "Controls whether to make numbered backups of master save-place file.
@@ -82,8 +64,7 @@ value of `version-control'."
   :type '(radio (const :tag "Unconditionally" t)
 		(const :tag "For VC Files" nil)
 		(const never)
-		(const :tag "Use value of `version-control'" nospecial))
-  :group 'save-place)
+		(const :tag "Use value of `version-control'" nospecial)))
 
 (defvar save-place-loaded nil
   "Non-nil means that the `save-place-file' has been loaded.")
@@ -92,8 +73,7 @@ value of `version-control'."
   "Maximum number of entries to retain in the list; nil means no limit."
   :version "24.1"                       ; nil -> 400
   :type '(choice (integer :tag "Entries" :value 1)
-		 (const :tag "No Limit" nil))
-  :group 'save-place)
+		 (const :tag "No Limit" nil)))
 
 (defcustom save-place-forget-unreadable-files t
   "Non-nil means forget place in unreadable files.
@@ -106,7 +86,7 @@ You may do this anytime by calling the complementary function,
 `save-place-forget-unreadable-files'.  When this option is turned on,
 this happens automatically before saving `save-place-alist' to
 `save-place-file'."
-  :type 'boolean :group 'save-place)
+  :type 'boolean)
 
 (defcustom save-place-save-skipped t
   "If non-nil, remember files matching `save-place-skip-check-regexp'.
@@ -114,7 +94,7 @@ this happens automatically before saving `save-place-alist' to
 When filtering `save-place-alist' for unreadable files, some will not
 be checked, based on said regexp, and instead saved or forgotten based
 on this flag."
-  :type 'boolean :group 'save-place)
+  :type 'boolean)
 
 (defcustom save-place-skip-check-regexp
   ;; thanks to ange-ftp-name-format
@@ -127,7 +107,7 @@ subject to `save-place-save-skipped'.
 
 Files for which such a check may be inconvenient include those on
 removable and network volumes."
-  :type 'regexp :group 'save-place)
+  :type 'regexp)
 
 (defcustom save-place-ignore-files-regexp
   "\\(?:COMMIT_EDITMSG\\|hg-editor-[[:alnum:]]+\\.txt\\|svn-commit\\.tmp\\|bzr_log\\.[[:alnum:]]+\\)$"
@@ -136,11 +116,34 @@ Useful for temporary file such as commit message files that are
 automatically created by the VCS.  If set to nil, this feature is
 disabled, i.e., the position is recorded for all files."
   :version "24.1"
-  :type 'regexp :group 'save-place)
+  :type 'regexp)
 
 (declare-function dired-current-directory "dired" (&optional localp))
 
-(defun toggle-save-place (&optional parg)
+(define-obsolete-variable-alias 'save-place 'save-place-mode "25.1")
+;;;###autoload
+(define-minor-mode save-place-mode
+  "Non-nil means automatically save place in each file.
+This means when you visit a file, point goes to the last place
+where it was when you previously visited the same file."
+  :global t
+  :group 'save-place
+  (cond
+   (save-place-mode
+    (add-hook 'find-file-hook 'save-place-find-file-hook t)
+    (add-hook 'dired-initial-position-hook 'save-place-dired-hook)
+    (unless noninteractive
+      (add-hook 'kill-emacs-hook 'save-place-kill-emacs-hook))
+    (add-hook 'kill-buffer-hook 'save-place-to-alist))
+   (t
+    (remove-hook 'find-file-hook 'save-place-find-file-hook t)
+    (remove-hook 'dired-initial-position-hook 'save-place-dired-hook)
+    (remove-hook 'kill-emacs-hook 'save-place-kill-emacs-hook)
+    (remove-hook 'kill-buffer-hook 'save-place-to-alist))))
+
+(make-variable-buffer-local 'save-place-mode) ; Hysterical raisins.
+
+(defun toggle-save-place (&optional parg) ;FIXME: save-place-local-mode!
   "Toggle whether to save your place in this file between sessions.
 If this mode is enabled, point is recorded when you kill the buffer
 or exit Emacs.  Visiting this file again will go to that position,
@@ -353,15 +356,5 @@ may have changed) back to `save-place-alist'."
   (if save-place-loaded
       (save-place-alist-to-file)))
 
-(add-hook 'find-file-hook 'save-place-find-file-hook t)
-
-(add-hook 'dired-initial-position-hook 'save-place-dired-hook)
-
-(unless noninteractive
-  (add-hook 'kill-emacs-hook 'save-place-kill-emacs-hook))
-
-(add-hook 'kill-buffer-hook 'save-place-to-alist)
-
-(provide 'saveplace) ; why not...
-
+(provide 'saveplace)
 ;;; saveplace.el ends here

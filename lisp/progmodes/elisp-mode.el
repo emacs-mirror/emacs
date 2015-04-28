@@ -30,7 +30,6 @@
 
 (require 'lisp-mode)
 
-(defvar emacs-lisp-mode-abbrev-table nil)
 (define-abbrev-table 'emacs-lisp-mode-abbrev-table ()
   "Abbrev table for Emacs Lisp mode.
 It has `lisp-mode-abbrev-table' as its parent."
@@ -1164,7 +1163,10 @@ or elsewhere, return a 1-line docstring."
 		  (args
 		   (cond
 		    ((listp advertised) advertised)
-		    ((setq doc (help-split-fundoc (documentation sym t) sym))
+		    ((setq doc (help-split-fundoc
+				(condition-case nil (documentation sym t)
+				  (invalid-function nil))
+				sym))
 		     (car doc))
 		    (t (help-function-arglist sym)))))
              ;; Stringify, and store before highlighting, downcasing, etc.

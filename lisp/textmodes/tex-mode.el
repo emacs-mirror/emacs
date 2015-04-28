@@ -1331,7 +1331,9 @@ inserts \" characters."
           (goto-char saved)
           (insert (if (> saved (mark)) tex-close-quote tex-open-quote)))
       (if (or (memq (char-syntax (preceding-char)) '(?\( ?> ?\s))
-              (memq (preceding-char) '(?~)))
+              (memq (preceding-char) '(?~ ?')))
+          ;; We're in an "opening" context
+          ;;
           (if electric-pair-mode
               (if (looking-at (regexp-quote tex-close-quote))
                   (forward-char (length tex-close-quote))
@@ -1339,6 +1341,8 @@ inserts \" characters."
                 (insert tex-close-quote)
                 (backward-char (length tex-close-quote)))
             (insert tex-open-quote))
+        ;; We're in a "closing" context.
+        ;;
         (if (looking-at (regexp-quote tex-close-quote))
             (forward-char (length tex-close-quote))
           (insert tex-close-quote))))))

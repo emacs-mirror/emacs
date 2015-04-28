@@ -245,6 +245,7 @@ in this way."
   :type 'boolean
   :version "21.1")
 
+;; FIXME? This is not a minor mode; what's the point of this?  (See bug#20201)
 (or (assq 'server-buffer-clients minor-mode-alist)
     (push '(server-buffer-clients " Server") minor-mode-alist))
 

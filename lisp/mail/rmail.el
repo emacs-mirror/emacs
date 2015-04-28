@@ -2127,7 +2127,7 @@ Value is the size of the newly read mail after conversion."
 Call with point at the end of the message."
   (unless (bolp)
     (insert "\n"))
-  (unless (looking-back "\n\n" (- (point 2)))
+  (unless (looking-back "\n\n" (- (point) 2))
     (insert "\n")))
 
 (defun rmail-add-mbox-headers ()
@@ -2942,7 +2942,8 @@ buffer to the end of the headers."
 			      (1+ (match-beginning 0))
 			    (point-max))))
 	      (if (and (looking-at ignored-headers)
-		       (not (looking-at rmail-nonignored-headers)))
+		       (not (and rmail-nonignored-headers
+				 (looking-at rmail-nonignored-headers))))
 		  (goto-char lim)
 		(append-to-buffer rmail-view-buffer (point) lim)
 		(goto-char lim))))
@@ -3830,7 +3831,8 @@ use \\[mail-yank-original] to yank the original message into it."
 ;;;	  (setq cc resent-cc)))
     ;; Add `Re: ' to subject if not there already.
     (and (stringp subject)
-	 (setq subject
+	 (setq subject (rfc2047-decode-string subject)
+	       subject
 	       (concat rmail-reply-prefix
 		       (if (let ((case-fold-search t))
 			     (string-match rmail-reply-regexp subject))
@@ -4691,7 +4693,7 @@ encoded string (and the same mask) will decode the string."
 
 ;;; Start of automatically extracted autoloads.
 
-;;;### (autoloads nil "rmailedit" "rmailedit.el" "f6da7267316d02c90b9d314ce95b3c22")
+;;;### (autoloads nil "rmailedit" "rmailedit.el" "1ed1c211e6e9c254ba3e0dd8d546e745")
 ;;; Generated autoloads from rmailedit.el
 
 (autoload 'rmail-edit-current-message "rmailedit" "\

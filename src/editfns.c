@@ -2728,7 +2728,15 @@ DEFUN ("insert-buffer-substring", Finsert_buffer_substring, Sinsert_buffer_subst
        doc: /* Insert before point a substring of the contents of BUFFER.
 BUFFER may be a buffer or a buffer name.
 Arguments START and END are character positions specifying the substring.
-They default to the values of (point-min) and (point-max) in BUFFER.  */)
+They default to the values of (point-min) and (point-max) in BUFFER.
+
+Point and before-insertion markers move forward to end up after the
+inserted text.
+Any other markers at the point of insertion remain before the text.
+
+If the current buffer is multibyte and BUFFER is unibyte, or vice
+versa, strings are converted from unibyte to multibyte or vice versa
+using `string-make-multibyte' or `string-make-unibyte', which see.  */)
   (Lisp_Object buffer, Lisp_Object start, Lisp_Object end)
 {
   register EMACS_INT b, e, temp;

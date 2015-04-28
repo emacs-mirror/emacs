@@ -21,6 +21,12 @@
 
 (require 'ert)
 
+(ert-deftest print-hex-backslash ()
+  (should (string= (let ((print-escape-multibyte t)
+                         (print-escape-newlines t))
+                     (prin1-to-string "\u00A2\ff"))
+                   "\"\\x00a2\\ff\"")))
+
 (ert-deftest terpri ()
   (should (string= (with-output-to-string
                      (princ 'abc)

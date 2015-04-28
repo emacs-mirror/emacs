@@ -4659,7 +4659,7 @@ See the subroutine `basic-save-buffer' for more information."
              (not noninteractive)
              (not save-silently))
 	(message "Saving file %s..." (buffer-file-name)))
-    (basic-save-buffer)
+    (basic-save-buffer (called-interactively-p 'any))
     (and modp (memq arg '(4 64)) (setq buffer-backed-up nil))))
 
 (defun delete-auto-save-file-if-necessary (&optional force)
@@ -4701,14 +4701,14 @@ in such cases.")
 (make-variable-buffer-local 'save-buffer-coding-system)
 (put 'save-buffer-coding-system 'permanent-local t)
 
-(defun basic-save-buffer ()
+(defun basic-save-buffer (&optional called-interactively)
   "Save the current buffer in its visited file, if it has been modified.
 The hooks `write-contents-functions' and `write-file-functions' get a chance
 to do the job of saving; if they do not, then the buffer is saved in
 the visited file in the usual way.
 Before and after saving the buffer, this function runs
 `before-save-hook' and `after-save-hook', respectively."
-  (interactive)
+  (interactive '(called-interactively))
   (save-current-buffer
     ;; In an indirect buffer, save its base buffer instead.
     (if (buffer-base-buffer)
@@ -4800,7 +4800,7 @@ Before and after saving the buffer, this function runs
 	  (vc-after-save)
 	  (run-hooks 'after-save-hook))
       (or noninteractive
-          (not (called-interactively-p 'any))
+          (not called-interactively)
           (files--message "(No changes need to be saved)")))))
 
 ;; This does the "real job" of writing a buffer into its visited file

@@ -152,13 +152,16 @@ items `Turn Off' and `Help'."
       (setq menu
             (if menu
                 (mouse-menu-non-singleton menu)
-	      `(keymap
-                ,indicator
-                (turn-off menu-item "Turn Off minor mode" ,mm-fun)
-                (help menu-item "Help for minor mode"
-                      (lambda () (interactive)
-                        (describe-function ',mm-fun))))))
-      (popup-menu menu))))
+              (if (fboundp mm-fun)      ; bug#20201
+                  `(keymap
+                    ,indicator
+                    (turn-off menu-item "Turn Off minor mode" ,mm-fun)
+                    (help menu-item "Help for minor mode"
+                          (lambda () (interactive)
+                            (describe-function ',mm-fun)))))))
+      (if menu
+          (popup-menu menu)
+        (message "No menu available")))))
 
 (defun mouse-minor-mode-menu (event)
   "Show minor-mode menu for EVENT on minor modes area of the mode line."

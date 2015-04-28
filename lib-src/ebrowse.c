@@ -1241,7 +1241,7 @@ dump_sym (FILE *fp, struct sym *root)
     putstr (NULL, fp);
 
   /* Print flags.  */
-  fprintf (fp, "%u", root->flags);
+  fprintf (fp, "%d", root->flags);
   putstr (root->filename, fp);
   putstr (root->regexp, fp);
   fprintf (fp, "%u", (unsigned) root->pos);

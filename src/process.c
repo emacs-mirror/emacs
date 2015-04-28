@@ -4785,37 +4785,41 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
       if (wait_proc && wait_proc->raw_status_new)
 	update_status (wait_proc);
       if (wait_proc
-	  && wait_proc->infd >= 0
 	  && ! EQ (wait_proc->status, Qrun)
 	  && ! EQ (wait_proc->status, Qconnect))
 	{
 	  bool read_some_bytes = false;
 
 	  clear_waiting_for_input ();
-	  XSETPROCESS (proc, wait_proc);
 
-	  /* Read data from the process, until we exhaust it.  */
-	  while (true)
+	  /* If data can be read from the process, do so until exhausted.  */
+	  if (wait_proc->infd >= 0)
 	    {
-	      int nread = read_process_output (proc, wait_proc->infd);
-	      if (nread < 0)
+	      XSETPROCESS (proc, wait_proc);
+
+	      while (true)
 		{
-		  if (errno == EIO || errno == EAGAIN)
-		    break;
+		  int nread = read_process_output (proc, wait_proc->infd);
+		  if (nread < 0)
+		    {
+		    if (errno == EIO || errno == EAGAIN)
+		      break;
 #ifdef EWOULDBLOCK
-		  if (errno == EWOULDBLOCK)
-		    break;
+		    if (errno == EWOULDBLOCK)
+		      break;
 #endif
-		}
-	      else
-		{
-		  if (got_some_input < nread)
-		    got_some_input = nread;
-		  if (nread == 0)
-		    break;
-		  read_some_bytes = true;
+		    }
+		  else
+		    {
+		      if (got_some_input < nread)
+			got_some_input = nread;
+		      if (nread == 0)
+			break;
+		      read_some_bytes = true;
+		    }
 		}
 	    }
+
 	  if (read_some_bytes && do_display)
 	    redisplay_preserve_echo_area (10);
 

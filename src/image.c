@@ -4964,7 +4964,8 @@ x_build_heuristic_mask (struct frame *f, struct image *img, Lisp_Object how)
       if (i == 3 && NILP (how))
 	{
 	  char color_name[30];
-	  sprintf (color_name, "#%04x%04x%04x", rgb[0], rgb[1], rgb[2]);
+	  sprintf (color_name, "#%04x%04x%04x",
+		   rgb[0] + 0u, rgb[1] + 0u, rgb[2] + 0u);
 	  bg = (
 #ifdef HAVE_NTGUI
 		0x00ffffff & /* Filter out palette info.  */
@@ -5729,6 +5730,7 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
   /* Find out what file to load.  */
   specified_file = image_spec_value (img->spec, QCfile, NULL);
   specified_data = image_spec_value (img->spec, QCdata, NULL);
+  IF_LINT (Lisp_Object volatile specified_data_volatile = specified_data);
 
   if (NILP (specified_data))
     {
@@ -5825,6 +5827,7 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
 
   /* Silence a bogus diagnostic; see GCC bug 54561.  */
   IF_LINT (fp = c->fp);
+  IF_LINT (specified_data = specified_data_volatile);
 
   /* Read image info.  */
   if (!NILP (specified_data))
@@ -6467,6 +6470,7 @@ jpeg_load_body (struct frame *f, struct image *img,
   /* Open the JPEG file.  */
   specified_file = image_spec_value (img->spec, QCfile, NULL);
   specified_data = image_spec_value (img->spec, QCdata, NULL);
+  IF_LINT (Lisp_Object volatile specified_data_volatile = specified_data);
 
   if (NILP (specified_data))
     {
@@ -6527,6 +6531,9 @@ jpeg_load_body (struct frame *f, struct image *img,
       x_clear_image (f, img);
       return 0;
     }
+
+  /* Silence a bogus diagnostic; see GCC bug 54561.  */
+  IF_LINT (specified_data = specified_data_volatile);
 
   /* Create the JPEG decompression object.  Let it read from fp.
 	 Read the JPEG image header.  */

@@ -44,6 +44,8 @@
 
 (declare-function rmail-summary-disable "rmailsum" ())
 
+;; We can't straightforwardly make this derive from text-mode, because
+;; we need to bind (rmail-buffer-swapped) around the text-mode call.  :(
 (defun rmail-edit-mode ()
   "Major mode for editing the contents of an Rmail message.
 The editing commands are the same as in Text mode, together with

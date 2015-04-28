@@ -276,6 +276,15 @@ backward."
   :type 'integer
   :version "25.1")
 
+(defcustom xref-prompt-for-identifier nil
+  "When non-nil, always prompt for the identifier name.
+
+Otherwise, only prompt when there's no value at point we can use,
+or when the command has been called with the prefix argument."
+  :type '(choice (const :tag "always" t)
+                 (const :tag "auto" nil))
+  :version "25.1")
+
 (defvar xref--marker-ring (make-ring xref-marker-ring-length)
   "Ring of markers to implement the marker stack.")
 
@@ -559,11 +568,11 @@ Return an alist of the form ((FILENAME . (XREF ...)) ...)."
 (defun xref--read-identifier (prompt)
   "Return the identifier at point or read it from the minibuffer."
   (let ((id (funcall xref-identifier-at-point-function)))
-    (cond ((or current-prefix-arg (not id))
+    (cond ((or current-prefix-arg xref-prompt-for-identifier (not id))
            (completing-read prompt
                             (funcall xref-identifier-completion-table-function)
-                            nil t id
-                            'xref--read-identifier-history))
+                            nil t nil
+                            'xref--read-identifier-history id))
           (t id))))
 
 

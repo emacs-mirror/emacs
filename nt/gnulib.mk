@@ -523,7 +523,7 @@ EXTRA_libgnu_a_SOURCES += putenv.c
 
 ## begin gnulib module qacl
 
-libgnu_a_SOURCES += acl-errno-valid.c file-has-acl.c qcopy-acl.c
+libgnu_a_SOURCES += acl-errno-valid.c acl-internal.c qcopy-acl.c
 
 EXTRA_DIST += acl-internal.h acl.h acl_entries.c
 

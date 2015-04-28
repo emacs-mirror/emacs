@@ -4,6 +4,8 @@
 
 # Copyright (C) 2014-2015 Free Software Foundation, Inc.
 
+# Author: Paul Eggert
+
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -16,8 +18,6 @@
 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-# Written by Paul Eggert
 
 LC_ALL=C
 export LC_ALL
@@ -34,9 +34,18 @@ test -d ${srcprefix}.git || {
 
 # Use Gnulib's packaged ChangeLog generator.
 ${srcprefix}build-aux/gitlog-to-changelog --ignore-matching='^; ' \
+  --format='%B' \
   "$gen_origin.." >"${distprefix}ChangeLog.tmp" || exit
 
 if test -s "${distprefix}ChangeLog.tmp"; then
+
+  # Fix up bug references.
+  # This would be better as eg a --transform option to gitlog-to-changelog,
+  # but... effort.  FIXME does not handle rare cases like:
+  # Fixes: debbugs:19434 debbugs:19519
+  sed 's/	Fixes: \(debbugs:\|bug#\)\([0-9][0-9]*\)/	(Bug#\2)/' \
+      "${distprefix}ChangeLog.tmp" > "${distprefix}ChangeLog.tmp2"
+  mv "${distprefix}ChangeLog.tmp2" "${distprefix}ChangeLog.tmp"
 
   # Find the years covered by the generated ChangeLog, so that
   # a proper copyright notice can be output.
@@ -65,7 +74,7 @@ if test -s "${distprefix}ChangeLog.tmp"; then
        s/\(Copyright[ (C)]*\)[0-9]*-[0-9]*/\1'"$year_range"'/
        p
     }
-  ' <ChangeLog.1 >>"${distprefix}ChangeLog.tmp" || exit
+  ' <ChangeLog.2 >>"${distprefix}ChangeLog.tmp" || exit
 fi
 
 # Install the generated ChangeLog.

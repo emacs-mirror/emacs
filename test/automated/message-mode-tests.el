@@ -24,13 +24,15 @@
 ;; This file contains tests for message-mode.
 
 ;;; Code:
+
+(require 'message)
 (require 'ert)
 (require 'ert-x)
 
 (ert-deftest message-mode-propertize ()
   (with-temp-buffer
     (unwind-protect
-        (progn
+        (let (message-auto-save-directory)
           (message-mode)
           (insert "here's an opener (\n"
                   "here's a sad face :-(\n"
@@ -54,4 +56,5 @@
       (set-buffer-modified-p nil))))
 
 (provide 'message-mode-tests)
+
 ;;; message-mode-tests.el ends here

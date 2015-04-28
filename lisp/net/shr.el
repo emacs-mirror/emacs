@@ -709,6 +709,9 @@ size, and full-buffer size."
 	  shr-base))
   (when (zerop (length url))
     (setq url nil))
+  ;; Strip leading whitespace
+  (and url (string-match "\\`\\s-+" url)
+       (setq url (substring url (match-end 0))))
   (cond ((or (not url)
 	     (not base)
 	     (string-match "\\`[a-z]*:" url))

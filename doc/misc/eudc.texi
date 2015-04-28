@@ -248,7 +248,7 @@ Pass any required extra options to @command{ldapsearch} using
 @end itemize
 
 The following examples use a base of
-@code{ou=people,dc=example,dc=com} and the host name
+@code{ou=people,dc=gnu,dc=org} and the host name
 @code{ldap.gnu.org}, a server that supports LDAP-over-SSL (the
 @code{ldaps} protocol, with default port @code{636}) and which
 requires authentication by the user @code{emacsuser} with password
@@ -274,6 +274,7 @@ the wildcard character to the end of the last word.
 @menu
 * Emacs-only Configuration::    Configure with @file{.emacs}
 * External Configuration::      Configure with @file{/etc/openldap/ldap.conf}
+* Troubleshooting::             Debug @command{ldapsearch} failures
 @end menu
 
 @node Emacs-only Configuration
@@ -305,8 +306,8 @@ LDAP:
                           ("ldaps://ldap.gnu.org" . ldap)))
 (customize-set-variable 'ldap-host-parameters-alist
                         '(("ldaps://ldap.gnu.org"
-                           base "ou=people,dc=example,dc=com"
-                           binddn "example\\emacsuser"
+                           base "ou=people,dc=gnu,dc=org"
+                           binddn "gnu\\emacsuser"
                            passwd ldap-password-read)))
 @end lisp
 
@@ -330,7 +331,7 @@ Your system may already be configured for a default LDAP server.  For
 example, @file{/etc/openldap/ldap.conf} might contain:
 
 @example
-BASE ou=people,dc=example,dc=com
+BASE ou=people,dc=gnu,dc=org
 URI ldaps://ldap.gnu.org
 TLS_CACERTDIR /etc/openldap/certs
 @end example
@@ -339,11 +340,11 @@ TLS_CACERTDIR /etc/openldap/certs
 @cindex binddn
 Authentication requires a password, and a @dfn{bind distinguished name
 (binddn)} representing the user, in this case,
-@code{example\emacsuser}.  These can be specified in
+@code{gnu\emacsuser}.  These can be specified in
 @file{~/.authinfo.gpg} with the following line:
 
 @example
-machine ldaps://ldap.gnu.org binddn example\emacsuser password s3cr3t
+machine ldaps://ldap.gnu.org binddn gnu\emacsuser password s3cr3t
 @end example
 
 Then in the @file{.emacs} init file, these expressions suffice to
@@ -372,7 +373,7 @@ case @command{ldapsearch} defaults to the host name in
 The @file{~/.authinfo.gpg} line becomes:
 
 @example
-binddn example\emacsuser password s3cr3t
+binddn gnu\emacsuser password s3cr3t
 @end example
 
 @noindent
@@ -390,6 +391,23 @@ and the @file{.emacs} expressions become:
 (customize-set-variable 'ldap-host-parameters-alist
                         '(("" auth-source t)))
 @end lisp
+
+@node Troubleshooting
+@subsection Troubleshooting
+
+If @command{ldapsearch} exits with an error, you'll see a message like
+this in the @code{*Messages*} buffer (all on one line):
+
+@example
+ldap-search-internal: Failed ldapsearch invocation:
+   ldapsearch "-Hldaps://ldap.gnu.org" "-bou=people,dc=gnu,dc=org"
+   "-Dgnu\emacsuser" "-W" "-LL" "-tt" "(&(mail=name*))"
+   "givenname" "sn" "mail"
+@end example
+
+The @command{ldapsearch} command is formatted such that it can be
+copied and pasted into a terminal.  Set the @command{ldapsearch} debug
+level to 5 by appending @code{-d 5} to the command line.
 
 @node Usage
 @chapter Usage

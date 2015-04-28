@@ -4377,7 +4377,8 @@ if only the first line of the docstring is shown."))
 
 (defun custom-file (&optional no-error)
   "Return the file name for saving customizations."
-  (if (null user-init-file)
+  (if (or (null user-init-file)
+          (and (null custom-file) init-file-had-error))
       ;; Started with -q, i.e. the file containing Custom settings
       ;; hasn't been read.  Saving settings there won't make much
       ;; sense.

@@ -818,6 +818,7 @@ AC_DEFUN([gl_FILE_LIST], [
   build-aux/snippet/warn-on-use.h
   build-aux/update-copyright
   lib/acl-errno-valid.c
+  lib/acl-internal.c
   lib/acl-internal.h
   lib/acl.h
   lib/acl_entries.c
@@ -856,7 +857,6 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/fcntl.in.h
   lib/fdatasync.c
   lib/fdopendir.c
-  lib/file-has-acl.c
   lib/filemode.c
   lib/filemode.h
   lib/fpending.c

@@ -437,20 +437,9 @@ qcopy_acl (const char *src_name, int source_desc, const char *dst_name,
       if (ret < 0 && saved_errno == 0)
         {
           saved_errno = errno;
-          if (errno == ENOSYS || errno == EOPNOTSUPP || errno == ENOTSUP)
-            {
-              struct stat source_statbuf;
-
-              if ((source_desc != -1
-                   ? fstat (source_desc, &source_statbuf)
-                   : stat (src_name, &source_statbuf)) == 0)
-                {
-                  if (!acl_nontrivial (count, entries, &source_statbuf))
-                    saved_errno = 0;
-                }
-              else
-                saved_errno = errno;
-            }
+          if (errno == ENOSYS || errno == EOPNOTSUPP || errno == ENOTSUP
+	      && !acl_nontrivial (count, entries))
+		saved_errno = 0;
         }
       else
         did_chmod = 1;

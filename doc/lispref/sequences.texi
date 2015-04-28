@@ -790,7 +790,7 @@ of type @var{type}.  @var{type} can be one of the following symbols:
 @end example
 @end defun
 
-@defmac seq-doseq (var sequence [result]) body@dots{}
+@defmac seq-doseq (var sequence) body@dots{}
 @cindex sequence iteration
   This macro is like @code{dolist}, except that @var{sequence} can be a list,
 vector or string (@pxref{Iteration} for more information about the

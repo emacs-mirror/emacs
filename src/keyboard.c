@@ -2192,7 +2192,7 @@ read_event_from_main_queue (struct timespec *end_time,
   save_getcjmp (save_jump);
   restore_getcjmp (local_getcjmp);
   if (!end_time)
-	timer_start_idle ();
+    timer_start_idle ();
   c = kbd_buffer_get_event (&kb, used_mouse_menu, end_time);
   restore_getcjmp (save_jump);
 

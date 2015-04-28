@@ -5474,10 +5474,16 @@ element is BUFFER."
   (cond
    ((eq type 'reuse)
     (if (eq (window-buffer window) buffer)
-	;; WINDOW shows BUFFER already.
-	(when (consp (window-parameter window 'quit-restore))
-	  ;; If WINDOW has a quit-restore parameter, reset its car.
-	  (setcar (window-parameter window 'quit-restore) 'same))
+	;; WINDOW shows BUFFER already.  Update WINDOW's quit-restore
+	;; parameter, if any.
+	(let ((quit-restore (window-parameter window 'quit-restore)))
+	  (when (consp quit-restore)
+	    (setcar quit-restore 'same)
+	    ;; The selected-window might have changed in
+	    ;; between (Bug#20353).
+	    (unless (or (eq window (selected-window))
+                        (eq window (nth 2 quit-restore)))
+	      (setcar (cddr quit-restore) (selected-window)))))
       ;; WINDOW shows another buffer.
       (with-current-buffer (window-buffer window)
 	(set-window-parameter
@@ -7619,7 +7625,8 @@ Return non-nil if the window was shrunk, nil otherwise."
 
 (defvar recenter-last-op nil
   "Indicates the last recenter operation performed.
-Possible values: `top', `middle', `bottom', integer or float numbers.")
+Possible values: `top', `middle', `bottom', integer or float numbers.
+It can also be nil, which means the first value in `recenter-positions'.")
 
 (defcustom recenter-positions '(middle top bottom)
   "Cycling order for `recenter-top-bottom'.

@@ -2986,10 +2986,14 @@ Keeps argument list for future Ispell invocations for no async support."
 	       (or ispell-local-dictionary ispell-dictionary "default"))
       (sit-for 0)
       (setq ispell-library-directory (ispell-check-version)
+            ;; Assign a non-nil value to ispell-process-directory
+            ;; before calling ispell-start-process, since that
+            ;; function needs it to set default-directory when
+            ;; ispell-async-processp is nil.
+	    ispell-process-directory default-directory
 	    ispell-process (ispell-start-process)
 	    ispell-filter nil
-	    ispell-filter-continue nil
-	    ispell-process-directory default-directory)
+	    ispell-filter-continue nil)
 
       (unless (equal ispell-process-directory (expand-file-name "~/"))
 	;; At this point, `ispell-process-directory' will be "~/" unless using
@@ -3015,7 +3019,12 @@ Keeps argument list for future Ispell invocations for no async support."
       (if (and (or (featurep 'xemacs)
 		   (and (boundp 'enable-multibyte-characters)
 			enable-multibyte-characters))
-	       (fboundp 'set-process-coding-system))
+	       (fboundp 'set-process-coding-system)
+               ;; Evidently, some people use the synchronous mode even
+               ;; when async subprocesses are supported, in which case
+               ;; set-process-coding-system is bound, but
+               ;; ispell-process is not a process object.
+               ispell-async-processp)
 	  (set-process-coding-system ispell-process (ispell-get-coding-system)
 				     (ispell-get-coding-system)))
       ;; Get version ID line

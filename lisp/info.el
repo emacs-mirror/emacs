@@ -632,7 +632,7 @@ Do the right thing if the file has been compressed or zipped."
 				       default-directory)))
 	    (or (consp decoder)
 		(setq decoder (list decoder)))
-	    (apply 'call-process-region (point-min) (point-max)
+	    (apply #'call-process-region (point-min) (point-max)
 		   (car decoder) t t nil (cdr decoder))))
       (let ((inhibit-null-byte-detection t)) ; Index nodes include null bytes
 	(insert-file-contents fullname visit)))
@@ -1422,10 +1422,10 @@ is non-nil)."
 	    (insert "\^_\nFile: dir\tNode: " nodename "\n\n* Menu:\n\n"))
 	  ;; Merge the text from the other buffer's menu
 	  ;; into the menu in the like-named node in the main buffer.
-	  (apply 'insert-buffer-substring (cdr node))))
+	  (apply #'insert-buffer-substring (cdr node))))
       (Info-dir-remove-duplicates)
       ;; Kill all the buffers we just made, including the special one excised.
-      (mapc 'kill-buffer (cons buffer buffers))
+      (mapc #'kill-buffer (cons buffer buffers))
       (goto-char (point-min))
       (if problems
 	  (message "Composing main Info directory...problems encountered, see `*Messages*'")
@@ -1810,10 +1810,10 @@ See `completing-read' for a description of arguments and usage."
    ((string-match "\\`([^)]*\\'" string)
     (completion-table-with-context
      "("
-     (apply-partially 'completion-table-with-terminator ")"
-                      (apply-partially 'Info-read-node-name-2
+     (apply-partially #'completion-table-with-terminator ")"
+                      (apply-partially #'Info-read-node-name-2
                                        Info-directory-list
-                                       (mapcar 'car Info-suffix-list)))
+                                       (mapcar #'car Info-suffix-list)))
      (substring string 1)
      predicate
      code))
@@ -1827,12 +1827,11 @@ See `completing-read' for a description of arguments and usage."
 	  t
 	(completion-table-with-context
 	 file0
-	 (apply-partially
-	  (lambda (string pred action)
-	    (complete-with-action
-	     action
-	     (Info-build-node-completions (Info-find-file file1))
-	     string pred)))
+         (lambda (string pred action)
+           (complete-with-action
+            action
+            (Info-build-node-completions (Info-find-file file1))
+            string pred))
 	 nodename predicate code))))
    ;; Otherwise use Info-read-node-completion-table.
    (t (complete-with-action
@@ -2750,7 +2749,8 @@ new buffer."
 	      (end-of-line)
 	      (if (re-search-backward (concat "\n\\* +\\("
 					      Info-menu-entry-name-re
-					      "\\):") beg t)
+					      "\\):")
+                                      beg t)
 		  (setq default (match-string-no-properties 1))))))
      (let ((item nil))
        (while (null item)
@@ -2760,7 +2760,8 @@ new buffer."
 					   (format "Menu item (default %s): "
 						   default)
 					 "Menu item: ")
-				       'Info-complete-menu-item nil t)))
+				       #'Info-complete-menu-item nil t nil nil
+                                       default)))
 	 ;; we rely on the fact that completing-read accepts an input
 	 ;; of "" even when the require-match argument is true and ""
 	 ;; is not a valid possibility
@@ -3496,7 +3497,7 @@ MATCHES is a list of index matches found by `Info-apropos-matches'.")
 
 (defun Info-apropos-toc-nodes (filename)
   "Apropos-specific implementation of `Info-toc-nodes'."
-  (let ((nodes (mapcar 'car (reverse Info-apropos-nodes))))
+  (let ((nodes (mapcar #'car (reverse Info-apropos-nodes))))
     `(,filename
       ("Top" nil nil ,nodes)
       ,@(mapcar (lambda (node) `(,node "Top" nil nil)) nodes))))
@@ -3709,13 +3710,13 @@ Build a menu of the possible matches."
      "The following packages match the keyword `" nodename "':\n\n")
     (insert "* Menu:\n\n")
     (let ((keywords
-	   (mapcar 'intern (if (string-match-p "," nodename)
+	   (mapcar #'intern (if (string-match-p "," nodename)
 			       (split-string nodename ",[ \t\n]*" t)
 			     (list nodename))))
 	  hits desc)
       (dolist (keyword keywords)
 	(push (copy-tree (gethash keyword finder-keywords-hash)) hits))
-      (setq hits (delete-dups (apply 'append hits))
+      (setq hits (delete-dups (apply #'append hits))
 	    ;; Not a meaningful package.
 	    hits (delete 'emacs hits)
 	    hits (sort hits (lambda (a b) (string< (symbol-name a)
@@ -3766,8 +3767,8 @@ with a list of packages that contain all specified keywords."
      (list
       (completing-read-multiple
        "Keywords (separated by comma): "
-       (mapcar 'symbol-name (mapcar 'car (append finder-known-keywords
-						 (finder-unknown-keywords))))
+       (mapcar #'symbol-name (mapcar #'car (append finder-known-keywords
+                                                   (finder-unknown-keywords))))
        nil t))))
   (require 'finder)
   (if keywords
@@ -5322,9 +5323,9 @@ completion alternatives to currently visited manuals."
 			 (when (not visited-only)
 			   (all-completions
 			    ""
-			    (apply-partially 'Info-read-node-name-2
+			    (apply-partially #'Info-read-node-name-2
 					     Info-directory-list
-					     (mapcar 'car Info-suffix-list))))))))
+					     (mapcar #'car Info-suffix-list))))))))
 
 (provide 'info)
 

@@ -29,7 +29,9 @@
 
 ;;; Code:
 
-(defcustom text-mode-hook nil
+;; Normally non-nil defaults for hooks are bad, but since this file is
+;; preloaded it's ok/better, and avoids this showing up in customize-rogue.
+(defcustom text-mode-hook '(text-mode-hook-identify)
   "Normal hook run when entering Text mode and many related modes."
   :type 'hook
   :options '(turn-on-auto-fill turn-on-flyspell)
@@ -147,13 +149,12 @@ Turning on Paragraph-Indent minor mode runs the normal hook
 (defalias 'indented-text-mode 'text-mode)
 
 ;; This can be made a no-op once all modes that use text-mode-hook
-;; are "derived" from text-mode.
+;; are "derived" from text-mode.  (As of 2015/04, and probably well before,
+;; the only one I can find that doesn't so derive is rmail-edit-mode.)
 (defun text-mode-hook-identify ()
   "Mark that this mode has run `text-mode-hook'.
 This is how `toggle-text-mode-auto-fill' knows which buffers to operate on."
   (set (make-local-variable 'text-mode-variant) t))
-
-(add-hook 'text-mode-hook 'text-mode-hook-identify)
 
 (defun toggle-text-mode-auto-fill ()
   "Toggle whether to use Auto Fill in Text mode and related modes.

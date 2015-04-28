@@ -3024,7 +3024,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 
 		ch = read_escape (readcharfun, 1);
 
-		/* CH is -1 if \ newline has just been seen.  */
+		/* CH is -1 if \ newline or \ space has just been seen.  */
 		if (ch == -1)
 		  {
 		    if (p == read_buffer)

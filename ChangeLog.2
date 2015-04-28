@@ -1,3 +1,443 @@
+2015-04-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't freeze with unreadable processes
+	Don't freeze if an exiting process can't be read from. (Bug#19860).
+	This fixes a bug I introduced in
+	2014-07-08T07:24:07Z@eggert@cs.ucla.edu
+	"* process.c: Add sanity checks for file descriptors."
+	Dmitry Gutov did most of the legwork in finding the problem.
+	* src/process.c (wait_reading_process_output):
+	Treat non-running processes that can't be read from
+	the same as other non-running processes.
+
+2015-04-25  Alan Mackenzie  <acm@muc.de>
+
+	Fix change from 2015-04-22 "On C-y, stop some text property entries ..."
+	* lisp/subr.el (remove-yank-excluded-properties): put
+	`with-silent-modifications' around only the last three lines of code.
+
+2015-04-25  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/emacs-lisp/package.el (package-all-keywords): Don't cache
+	(package--all-keywords): Deleted variable.
+
+	* etc/NEWS: Document package-hiding functionality
+
+2015-04-25  Eli Zaretskii  <eliz@gnu.org>
+
+	lisp/window.el (recenter-last-op): Doc fix.  (Bug#20419)
+
+	Clarify the doc string of 'replace-regexp-in-string'
+	* lisp/subr.el (replace-regexp-in-string): Doc fix.  (Bug#20395)
+
+	Improve doc string of 'insert-buffer-substring'
+	* src/editfns.c (Finsert_buffer_substring): Doc fix.  (Bug#20421)
+
+	MS-Windows followup for the recent gnulib update
+	* nt/gnulib.mk (libgnu_a_SOURCES): Replace file-has-acl.c with
+	acl-internal.c.
+
+2015-04-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Spelling fixes
+
+	Merge from gnulib
+	This incorporates:
+	2015-04-24 file-has-acl: new module, split from acl
+	2015-04-24 manywarnings: add GCC 5.1 warnings
+	2015-04-21 lstat: fix cross-compilation 'ln -s' problem
+	2015-04-15 qacl: Simplify HP-UX acl_nontrivial check
+	2015-04-15 acl: On Linux, check for acls without libacl
+	2015-04-14 tempname: avoid unused parameter warnings (trivial)
+	* lib/acl-internal.c: New file, from gnulib.
+	* lib/file-has-acl.c: Remove; no longer imported from gnulib.
+	* lib/acl-internal.h, lib/gnulib.mk, lib/qcopy-acl.c, lib/tempname.c:
+	* m4/acl.m4, m4/gnulib-comp.m4, m4/lstat.m4, m4/manywarnings.m4:
+	Update from gnulib.
+
+	Port --enable-gcc-warnings to GCC 5.1 x86-64
+	* lib-src/ebrowse.c (dump_sym):
+	* lib-src/hexl.c (main):
+	* src/ccl.c (ccl_driver):
+	* src/character.c (string_escape_byte8):
+	* src/dbusbind.c (xd_retrieve_arg, xd_add_watch):
+	* src/gnutls.c (Fgnutls_boot):
+	* src/gtkutil.c (xg_check_special_colors):
+	* src/image.c (x_build_heuristic_mask):
+	* src/print.c (safe_debug_print, print_object):
+	* src/term.c (produce_glyphless_glyph):
+	* src/xdisp.c (get_next_display_element)
+	(produce_glyphless_glyph):
+	* src/xterm.c (x_draw_glyphless_glyph_string_foreground):
+	Don't use a signed format to print an unsigned integer, or vice
+	versa.  GCC 5.1's new -Wformat-signedness option warns about this.
+	* src/image.c (png_load_body, jpeg_load_body):
+	Silence a bogus setjump diagnostic from GCC 5.1 (GCC bug 54561).
+
+2015-04-24  Tassilo Horn  <tsdh@gnu.org>
+
+	Add new faces to tsdh-light-theme
+	* etc/themes/tsdh-light-theme.el (tsdh-light): New face
+	definitions for Info-quoted, ace-jump-face-foreground,
+	hl-paren-face, show-paren-match, and show-paren-mismatch.
+
+2015-04-24  Nicolas Petton  <nicolas@petton.fr>
+
+	* lisp/emacs-lisp/seq.el (seq-doseq): Fix the macro.
+
+2015-04-24  Glenn Morris  <rgm@gnu.org>
+
+	* build-aux/gitlog-to-emacslog:
+	Use raw log format rather than wrapped one.
+
+2015-04-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/emacs-lisp/seq.el (seq-doseq): Tighten the code
+	(seq-doseq): Fix out-of-scope binding.
+	Don't call `seq-length at every iteration.
+	Reduce `if's from 3 to 2 per iteration.
+	(emacs-lisp-mode-hook): Don't tweak in Emacs≥25.
+
+2015-04-24  Glenn Morris  <rgm@gnu.org>
+
+	* lisp/textmodes/text-mode.el (text-mode-hook):
+	Move text-mode-hook-identify to default.
+
+	* lisp/mouse.el (minor-mode-menu-from-indicator):
+	Handle non-function members of minor-mode-map-alist.  (Bug#20201)
+
+	* lisp/help-fns.el (describe-function): More type checking.
+	(describe-function-1): Handle changed symbol-function.  (Bug#20201)
+
+	* build-aux/gitlog-to-emacslog: Convert "Fixes:" to "(Bug#)".
+	(Bug#20325)
+
+2015-04-24  Andreas Schwab  <schwab@linux-m68k.org>
+
+	shr: strip leading whitespace when expanding URLs
+	* lisp/net/shr.el (shr-expand-url): Strip leading whitespace from URL.
+
+2015-04-24  Eli Zaretskii  <eliz@gnu.org>
+
+	Clarify "co-authored" some more
+
+	* CONTRIBUTE: Clarify "co-authored-by".  (Bug#20400)
+
+	Clarify doc strings of functions that search for properties
+	* src/textprop.c (Fnext_char_property_change)
+	(Fprevious_char_property_change)
+	(Fnext_single_char_property_change)
+	(Fprevious_single_char_property_change, Fnext_property_change)
+	(Fnext_single_property_change, Fprevious_property_change)
+	(Fprevious_single_property_change): Clarify doc strings wrt return
+	value and the optional LIMIT argument.  (Bug#20411)
+
+2015-04-24  Glenn Morris  <rgm@gnu.org>
+
+	* test/automated/message-mode-tests.el (message-mode-propertize):
+	Handle non-writable HOME; eg on hydra.nixos.org.
+
+2015-04-23  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid starting threads by w32-shell-execute
+	* src/w32fns.c (Fw32_shell_execute): Convert "file:///" URLs into
+	local file names, before invoking ShellExecute.  (Bug#20220)
+
+2015-04-23  Martin Rudalics  <rudalics@gmx.at>
+
+	Fix following doc-links in `widget-documentation-link-action'
+	* lisp/wid-edit.el (widget-documentation-link-action): Make
+	following doc-links less simplistic (Bug#20398).
+
+2015-04-22  Thomas Fitzsimmons  <fitzsim@fitzsim.org>
+
+	Improve EUDC manual
+	* eudc.texi (Troubleshooting): New LDAP troubleshooting subsection.
+
+2015-04-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Omit needless "\ " after multibyte then newline
+	* src/print.c: Include <c-ctype.h>, for c_isxdigit.
+	(print_object): When print-escape-multibyte is non-nil and a
+	multibyte character is followed by a newline or formfeed, followed
+	by a hex digit, don't output a needless "\ " before the hex digit.
+	* test/automated/print-tests.el (print-hex-backslash): New test.
+
+2015-04-22  Oleh Krehel  <ohwoeowho@gmail.com>
+
+	Add a new `inhibit-message' variable
+	* src/xdisp.c (syms_of_xdisp): Define a boolean `inhibit_message'.
+	(message3): Don't call `message3_nolog' (i.e. use the Echo Area) when
+	`inhibit_message' is non-zero.
+	* etc/NEWS: Add an entry.
+	* doc/lispref/display.texi: Add an entry for `inhibit-message',
+	  mention it in `message'.
+
+2015-04-22  Martin Rudalics  <rudalics@gmx.at>
+
+	Fix last fix in `display-buffer-record-window'.
+	* lisp/window.el (display-buffer-record-window): Fix last fix.
+
+2015-04-22  Eli Zaretskii  <eliz@gnu.org>
+
+	Minor edits in CONTRIBUTE
+	* CONTRIBUTE: Rearrange instructions about log messages.
+	Use "Git" capitalized all over.
+	Use 2 spaces between sentences.
+
+2015-04-22  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/files.el (basic-save-buffer): Fix argument
+
+	* lisp/cus-edit.el (custom-file): Consider init-file-had-error
+	In case `(and (null custom-file) init-file-had-error)' do the same
+	thing we'd do if `(null user-init-file)', which is to either error out
+	or return nil.  This is in line with `custom-save-all' which would
+	throw an error in that situation. (bug#20355)
+
+	* lisp/emacs-lisp/package.el: Hide lower-priority packages in menu
+	(package-menu-hide-low-priority): New variable, see its doc.
+	(package-archive-priorities): Update doc.
+	(package-desc-priority): New function.
+	(package-desc-priority-version): Use it.
+	(package--remove-hidden): New function.
+	(package-menu--refresh): Use it.
+
+	* lisp/emacs-lisp/package.el: Implement displaying obsolete packages
+	(package-menu--hide-obsolete): New variable.
+	(package--remove-hidden): Use it.
+	(package-menu-hide-obsolete): New interactive function to toggle
+	the variable.
+	(package--quick-help-keys): Document it.
+	(package-menu-async): Add :version tag.
+	(package-menu-mode-map): Bind package-menu-hide-obsolete.
+	(package-desc-status): Indicate non-installed obsolete packages as
+	avail-obso.
+	(package-menu-mark-install): Allow installation of avail-obso.
+	(package-menu--status-predicate): Sort avail-obso with available.
+
+2015-04-22  Alan Mackenzie  <acm@muc.de>
+
+	On C-y, stop some text property entries being written into buffer-undo-list
+	lisp/subr.el (remove-yank-excluded-properties): enclose the code in
+	`with-silent-modifications'.
+
+2015-04-22  Martin Rudalics  <rudalics@gmx.at>
+
+	In display-buffer-record-window record selected window if necessary.
+	* lisp/window.el (display-buffer-record-window): Store selected window
+	if it differs from 3rd element of 'quit-restore' parameter (Bug#20353).
+
+2015-04-22  Tassilo Horn  <tsdh@gnu.org>
+
+	Fix reftex-citation bug
+	* reftex-cite.el (reftex-extract-bib-entries): Fix
+	`wrong-type-argument stringp nil' error that occurs when AUCTeX
+	integration is enabled and there are no citations in the document
+	so far.
+
+2015-04-21  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Add or reset based on the presence of MERGE_HEAD
+	* lisp/vc/vc-git.el (vc-git-find-file-hook): Add
+	`vc-git-resolve-when-done' to `after-save-hook' in either case.
+	(vc-git-conflicted-files): Add a TODO.
+	(vc-git-resolve-when-done): Depending on the presence of
+	MERGE_HEAD, either update the resolved file in the index, or
+	remove it from there.  (Bug#20292)
+
+2015-04-21  Glenn Morris  <rgm@gnu.org>
+
+	* lisp/custom.el (custom-declare-group): No need to purecopy
+	custom-current-group-alist members following recent change to set
+	it to nil before dumping.
+
+	* build-aux/gitlog-to-emacslog: Get footer from ChangeLog.2.
+	(Bug#20399)
+
+2015-04-21  Daniel Colascione  <dancol@dancol.org>
+
+	Unbreak no-op buffer save message
+	* lisp/files.el (save-buffer): Pass interactive flag to `basic-save-buffer`
+	(basic-save-buffer): Accept called-interactively as an argument instead of
+	directly invoking called-interactively-p, which will always yield nil
+	in that context.
+
+2015-04-21  Alan Mackenzie  <acm@muc.de>
+
+	CC Mode: Do nothing in before/after-change-functions for text property changes
+	Fixes bug#20266.
+	lisp/progmodes/cc-mode.el (c-basic-common-init): Make
+	yank-handled-properties buffer local, and remove 'category from it.
+	(c-called-from-text-property-change-p): New function.
+	(c-before-change): Don't do anything if a call of the new function
+	returns non-nil.
+	(c-after-change): Don't do much if a call of the new function returns
+	non-nil.
+	(c-extend-after-change-region): Put changes to text property 'fontified
+	inside c-save-buffer-state.
+
+2015-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Fix byte-compiler warnings about looking-back.
+	* lisp/vc/log-view.el (log-view-end-of-defun-1):
+	* lisp/textmodes/tex-mode.el (latex-forward-sexp-1):
+	* lisp/textmodes/reftex-ref.el (reftex-goto-label):
+	* lisp/textmodes/bibtex.el (bibtex-insert-kill):
+	* lisp/progmodes/sh-script.el (sh--maybe-here-document):
+	* lisp/progmodes/ruby-mode.el (ruby-end-of-defun):
+	* lisp/progmodes/ada-mode.el (ada-in-numeric-literal-p):
+	* lisp/org/org.el (org-insert-heading, org-sort-entries):
+	* lisp/org/org-mouse.el (org-mouse-end-headline)
+	(org-mouse-context-menu):
+	* lisp/org/org-clock.el (org-clock-cancel):
+	* lisp/man.el (Man-default-man-entry):
+	* lisp/mail/rmail.el (rmail-get-new-mail, rmail-insert-inbox-text)
+	(rmail-ensure-blank-line):
+	* lisp/mail/footnote.el (Footnote-delete-footnote):
+	* lisp/mail/emacsbug.el (report-emacs-bug):
+	* lisp/info.el (Info-follow-reference, Info-fontify-node):
+	* lisp/info-look.el (info-lookup-guess-custom-symbol):
+	* lisp/help-fns.el (help-fns--key-bindings):
+	* lisp/files.el (hack-local-variables):
+	* lisp/emulation/viper-ex.el (viper-get-ex-token, ex-cmd-complete)
+	(viper-get-ex-pat, ex-expand-filsyms, viper-get-ex-file)
+	(viper-complete-filename-or-exit):
+	* lisp/emulation/viper-cmd.el (viper-backward-indent):
+	* lisp/emacs-lisp/lisp-mode.el (calculate-lisp-indent):
+	* lisp/emacs-lisp/elint.el (elint-get-top-forms):
+	* lisp/cus-edit.el (custom-face-edit-value-create):
+	* lisp/calendar/todo-mode.el (todo-set-item-priority)
+	(todo-filter-items-1, todo-convert-legacy-files)
+	(todo-prefix-overlays): Add explicit second arg to looking-back.
+
+2015-04-20  Glenn Morris  <rgm@gnu.org>
+
+	Avoid non-nil current-load-list at startup
+	* src/process.c (init_process_emacs): Move Fprovide statement...
+	(syms_of_process): ... to here.
+
+	* lisp/loadup.el (custom-current-group-alist): Reset before dumping.
+
+	* lisp/startup.el (command-line) <site-run-file>: Avoid rogue value in emacs -Q.
+
+2015-04-20  Ludovic Courtès  <ludo@gnu.org>
+
+	* lisp/loadup.el (exec-path): Avoid storing build-time PATH in binary.
+	(Bug#20330)
+
+2015-04-20  Glenn Morris  <rgm@gnu.org>
+
+	* lisp/cus-start.el (exec-path): Set standard value, to avoid rogue.
+
+	Tweak exec-path in uninstalled case
+	* src/callproc.c (init_callproc): If running uninstalled, do not
+	include eventual installation libexec directory in exec-path.
+
+2015-04-20  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/emacs-lisp/package.el: Filter by multiple keywords and cache keywords
+	(package-menu-filter): Accept a list of keywords.
+	(package--all-keywords): New variable to cache known keywords.
+	(package-all-keywords): Populate it if necessary.
+	(package-refresh-contents): Reset it.
+
+	* lisp/emacs-lisp/package.el: Make archive and status pseudo-keywords
+	(package--has-keyword-p): Understand "arc:xxxx" and "status:xxxx"
+	as special keywords which match agains package archive and status
+	respectively.
+	* etc/NEWS: Document it.
+
+2015-04-20  Eli Zaretskii  <eliz@gnu.org>
+
+	Describe and index "empty overlays".
+	* doc/lispref/display.texi (Overlays): Improve indexing.
+	(Managing Overlays): Describe "empty" overlays.
+	(Overlay Properties, Finding Overlays): Add cross-reference to
+	where empty overlays are described.
+
+2015-04-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Spelling fixes
+
+	Quote 'like this' in top-level files
+	* CONTRIBUTE, INSTALL, Makefile.in, README, configure.ac, make-dist:
+	Prefer to single-quote 'like this' (instead of the older style
+	`like this').
+	* configure.ac: Fix some space-before-tab problems that 'git commit'
+	complained about.
+
+	Use bool for boolean in textprop.c, undo.c
+	* src/textprop.c (soft, hard): Now constants instead of macros.
+	(validate_plist): Rewrite to avoid need for boolean local.
+	(interval_has_all_properties, interval_has_some_properties)
+	(interval_has_some_properties_list, add_properties)
+	(remove_properties, get_char_property_and_overlay)
+	(Fnext_single_char_property_change)
+	(Fprevious_single_char_property_change, add_text_properties_1)
+	(Fremove_text_properties, Fremove_list_of_text_properties)
+	(copy_text_properties):
+	* src/tparam.c (tparam1):
+	* src/undo.c (record_change, record_property_change)
+	(syms_of_undo):
+	Use 'true' and 'false' for booleans.
+
+2015-04-19  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Call `smerge-start-session' even when dealing with a stash conflict
+	* lisp/vc/vc-git.el (vc-git-find-file-hook):
+	Call `smerge-start-session' even when dealing with a stash
+	conflict (bug#20292).
+
+2015-04-19  Vibhav Pant  <vibhavp@gmail.com>
+
+	Add option to eshell/clear to clear scrollback.
+	* lisp/eshell/esh-mode.el (eshell/clear-scrollback): New function.
+	(eshell/clear): Add an optional SCROLLBACK argument. If non-nil,
+	scrollback contents are cleared.
+	* etc/NEWS: Describe change.
+	* doc/misc/eshell.texi: Add entry for `clear'.
+
+2015-04-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* src/widget.c (set_frame_size): Prefer 'int' to 'unsigned'
+	where either will do.
+
+2015-04-19  Steve Purcell  <steve@sanityinc.com>
+
+	Assume package archive-contents are UTF8-encoded
+	* lisp/emacs-lisp/package.el (package--read-archive-file):
+	Set `coding-system-for-read' explicitly to 'utf-8 when reading the
+	downloaded and cached archive-contents files, so that non-ASCII
+	characters in package descriptions are displayed correctly in the
+	`list-packages' menu. (Bug#20231)
+
+2015-04-19  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Abort when looking at stashed changes
+	* lisp/vc/vc-git.el (vc-git-find-file-hook): Abort when looking at
+	stashed changes (bug#20292).
+
+2015-04-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Refactor low-level printing for simplicity
+	* src/print.c (PRINTDECLARE): Remove.  Move its contents into
+	PRINTPREPARE; doable now that we assume C99.  All callers changed.
+	(PRINTCHAR): Remove, as it adds more mystery than clarity.
+	All callers changed.
+	(strout): Assume that caller computes length.  All callers changed.
+	(print_c_string): New function.
+	(write_string, write_string_1): Compute length instead of asking
+	the caller to compute it.  All callers changed.
+	(write_string): Simplify by using write_string_1.
+	(write_string_1): Simplify by using print_c_string.
+	(Fterpri): Compute default val more clearly.
+	(Fprin1_to_string, print_object):
+	Assume C99 to avoid unnecessary nesting.
+	(print_object): Prefer print_c_string to multiple printchar, or
+	to calling strout with -1 length.  Coalesce into sprintf when
+	this is easy.
+
 2015-04-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Prefer "Bug#1234" in commit messages (Bug#20325)
@@ -1222,6 +1662,10 @@
 
 See ChangeLog.1 for earlier changes.
 
+;; Local Variables:
+;; coding: utf-8
+;; End:
+
   Copyright (C) 2015 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
@@ -1238,7 +1682,3 @@ See ChangeLog.1 for earlier changes.
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-;; Local Variables:
-;; coding: utf-8
-;; End:

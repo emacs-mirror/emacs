@@ -1733,7 +1733,7 @@ this instead of `run-hooks' when running their FOO-mode-hook."
 (defmacro delay-mode-hooks (&rest body)
   "Execute BODY, but delay any `run-mode-hooks'.
 These hooks will be executed by the first following call to
-`run-mode-hooks' that occurs outside any `delayed-mode-hooks' form.
+`run-mode-hooks' that occurs outside any `delay-mode-hooks' form.
 Only affects hooks run in the current buffer."
   (declare (debug t) (indent 0))
   `(progn
@@ -2814,17 +2814,18 @@ remove properties specified by `yank-excluded-properties'."
   (let ((inhibit-read-only t))
     (dolist (handler yank-handled-properties)
       (let ((prop (car handler))
-	    (fun  (cdr handler))
-	    (run-start start))
-	(while (< run-start end)
-	  (let ((value (get-text-property run-start prop))
-		(run-end (next-single-property-change
-			  run-start prop nil end)))
-	    (funcall fun value run-start run-end)
-	    (setq run-start run-end)))))
-    (if (eq yank-excluded-properties t)
-	(set-text-properties start end nil)
-      (remove-list-of-text-properties start end yank-excluded-properties))))
+            (fun  (cdr handler))
+            (run-start start))
+        (while (< run-start end)
+          (let ((value (get-text-property run-start prop))
+                (run-end (next-single-property-change
+                          run-start prop nil end)))
+            (funcall fun value run-start run-end)
+            (setq run-start run-end)))))
+    (with-silent-modifications
+      (if (eq yank-excluded-properties t)
+          (set-text-properties start end nil)
+        (remove-list-of-text-properties start end yank-excluded-properties)))))
 
 (defvar yank-undo-function)
 
@@ -3730,7 +3731,8 @@ REP is either a string used as the NEWTEXT arg of `replace-match' or a
 function.  If it is a function, it is called with the actual text of each
 match, and its value is used as the replacement text.  When REP is called,
 the match data are the result of matching REGEXP against a substring
-of STRING.
+of STRING, the same substring that is the actual text of the match which
+is passed to REP as its argument.
 
 To replace only the first match (if any), make REGEXP match up to \\'
 and replace a sub-expression, e.g.

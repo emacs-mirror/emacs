@@ -4,7 +4,7 @@
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: sequences
-;; Version: 1.4
+;; Version: 1.5
 ;; Package: seq
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -44,31 +44,26 @@
 
 (defmacro seq-doseq (spec &rest body)
   "Loop over a sequence.
-Similar to `dolist' but can be applied lists, strings and vectors.
+Similar to `dolist' but can be applied to lists, strings, and vectors.
 
 Evaluate BODY with VAR bound to each element of SEQ, in turn.
-Then evaluate RESULT to get return value, default nil.
 
-\(fn (VAR SEQ [RESULT]) BODY...)"
+\(fn (VAR SEQ) BODY...)"
   (declare (indent 1) (debug ((symbolp form &optional form) body)))
-  (let ((is-list (make-symbol "is-list"))
+  (let ((length (make-symbol "length"))
         (seq (make-symbol "seq"))
         (index (make-symbol "index")))
     `(let* ((,seq ,(cadr spec))
-            (,is-list (listp ,seq))
-            (,index (if ,is-list ,seq 0)))
-       (while (if ,is-list
-                  (consp ,index)
-                (< ,index (seq-length ,seq)))
-         (let ((,(car spec) (if ,is-list
-                                (car ,index)
-                              (seq-elt ,seq ,index))))
-           ,@body
-           (setq ,index (if ,is-list
-                            (cdr ,index)
-                          (+ ,index 1)))))
-       ,@(if (cddr spec)
-             `((setq ,(car spec) nil) ,@(cddr spec))))))
+            (,length (if (listp ,seq) nil (seq-length ,seq)))
+            (,index (if ,length 0 ,seq)))
+       (while (if ,length
+                  (< ,index ,length)
+                (consp ,index))
+         (let ((,(car spec) (if ,length
+                                (prog1 (seq-elt ,seq ,index)
+                                  (setq ,index (+ ,index 1)))
+                              (pop ,index))))
+           ,@body)))))
 
 (defun seq-drop (seq n)
   "Return a subsequence of SEQ without its first N elements.
@@ -350,7 +345,10 @@ This is an optimization for lists in `seq-take-while'."
 (defalias 'seq-each #'seq-do)
 (defalias 'seq-map #'mapcar)
 
-(add-to-list 'emacs-lisp-mode-hook #'seq--activate-font-lock-keywords)
+(unless (fboundp 'elisp--font-lock-flush-elisp-buffers)
+  ;; In Emacs≥25, (via elisp--font-lock-flush-elisp-buffers and a few others)
+  ;; we automatically highlight macros.
+  (add-to-list 'emacs-lisp-mode-hook #'seq--activate-font-lock-keywords))
 
 (provide 'seq)
 ;;; seq.el ends here

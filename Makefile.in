@@ -1092,7 +1092,7 @@ bootstrap: bootstrap-clean
 .PHONY: master-branch-is-current no-ChangeLog unchanged-history-files
 
 # The newest revision that should not appear in the generated ChangeLog.
-gen_origin = 870287327b1fba7105599eeabac5a2aa5ebadf19
+gen_origin = 2c1b8604946efbcd8ec5dd6c6dda7541ce4fc3c0
 
 # Convert git commit log to ChangeLog file.  make-dist uses this.
 ChangeLog:

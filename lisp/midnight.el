@@ -1,4 +1,4 @@
-;;; midnight.el --- run something every midnight, e.g., kill old buffers
+;;; midnight.el --- run something every midnight, e.g., kill old buffers  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1998, 2001-2015 Free Software Foundation, Inc.
 
@@ -36,7 +36,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 
 (defgroup midnight nil
   "Run something every day at midnight."
@@ -48,24 +48,19 @@
 Use `cancel-timer' to stop it and `midnight-delay-set' to change
 the time when it is run.")
 
-(defcustom midnight-mode nil
-  "Non-nil means run `midnight-hook' at midnight.
-Setting this variable outside customize has no effect;
-call `cancel-timer' or `timer-activate' on `midnight-timer' instead."
-  :type 'boolean
-  :group 'midnight
-  :require 'midnight
-  :initialize 'custom-initialize-default
-  :set (lambda (symb val)
-         (set symb val) (require 'midnight)
-         (if val (timer-activate midnight-timer)
-             (cancel-timer midnight-timer))))
+;;;###autoload
+(define-minor-mode midnight-mode
+  "Non-nil means run `midnight-hook' at midnight."
+  :global t
+  :initialize #'custom-initialize-default
+  (if midnight-mode (timer-activate midnight-timer)
+    (cancel-timer midnight-timer)))
 
 ;;; time conversion
 
-(defun midnight-buffer-display-time (&optional buffer)
+(defun midnight-buffer-display-time (buffer)
   "Return the time-stamp of BUFFER, or current buffer, as float."
-  (with-current-buffer (or buffer (current-buffer))
+  (with-current-buffer buffer
     (when buffer-display-time (float-time buffer-display-time))))
 
 ;;; clean-buffer-list stuff
@@ -76,18 +71,16 @@ The autokilling is done by `clean-buffer-list' when is it in `midnight-hook'.
 Currently displayed and/or modified (unsaved) buffers, as well as buffers
 matching `clean-buffer-list-kill-never-buffer-names' and
 `clean-buffer-list-kill-never-regexps' are excluded."
-  :type 'integer
-  :group 'midnight)
+  :type 'integer)
 
 (defcustom clean-buffer-list-delay-special 3600
   "The number of seconds before some buffers become eligible for autokilling.
 Buffers matched by `clean-buffer-list-kill-regexps' and
 `clean-buffer-list-kill-buffer-names' are killed if they were last
 displayed more than this many seconds ago."
-  :type 'integer
-  :group 'midnight)
+  :type 'integer)
 
-(defcustom clean-buffer-list-kill-regexps '("^\\*Man ")
+(defcustom clean-buffer-list-kill-regexps '("\\`\\*Man ")
   "List of regexps saying which buffers will be killed at midnight.
 If buffer name matches a regexp in the list and the buffer was not displayed
 in the last `clean-buffer-list-delay-special' seconds, it is killed by
@@ -96,9 +89,14 @@ If a member of the list is a cons, its `car' is the regexp and its `cdr' is
 the number of seconds to use instead of `clean-buffer-list-delay-special'.
 See also `clean-buffer-list-kill-buffer-names',
 `clean-buffer-list-kill-never-regexps' and
-`clean-buffer-list-kill-never-buffer-names'."
-  :type '(repeat (regexp :tag "Regexp matching Buffer Name"))
-  :group 'midnight)
+`clean-buffer-list-kill-never-buffer-names'.
+
+Each element can also be a function instead of a regexp, in which case
+it takes a single argument (a buffer name) and should return non-nil
+if the buffer should be killed by `clean-buffer-list'."
+  :type '(repeat
+          (choice (regexp :tag "Regexp matching Buffer Name")
+                  (function :tag "Predicate function"))))
 
 (defcustom clean-buffer-list-kill-buffer-names
     '("*Help*" "*Apropos*" "*Buffer List*" "*Compile-Log*" "*info*"
@@ -112,8 +110,7 @@ the number of seconds to use instead of `clean-buffer-list-delay-special'.
 See also `clean-buffer-list-kill-regexps',
 `clean-buffer-list-kill-never-regexps' and
 `clean-buffer-list-kill-never-buffer-names'."
-  :type '(repeat (string :tag "Buffer Name"))
-  :group 'midnight)
+  :type '(repeat (string :tag "Buffer Name")))
 
 (defcustom clean-buffer-list-kill-never-buffer-names
     '("*scratch*" "*Messages*")
@@ -122,33 +119,34 @@ See also `clean-buffer-list-kill-never-regexps'.
 Note that this does override `clean-buffer-list-kill-regexps' and
 `clean-buffer-list-kill-buffer-names' so a buffer matching any of these
 two lists will NOT be killed if it is also present in this list."
-  :type '(repeat (string :tag "Buffer Name"))
-  :group 'midnight)
+  :type '(repeat (string :tag "Buffer Name")))
 
-(defcustom clean-buffer-list-kill-never-regexps '("^ \\*Minibuf-.*\\*$")
+(defcustom clean-buffer-list-kill-never-regexps '("\\` \\*Minibuf-.*\\*\\'")
   "List of regexp saying which buffers will never be killed at midnight.
 See also `clean-buffer-list-kill-never-buffer-names'.
 Killing is done by `clean-buffer-list'.
 Note that this does override `clean-buffer-list-kill-regexps' and
 `clean-buffer-list-kill-buffer-names' so a buffer matching any of these
-two lists will NOT be killed if it also matches anything in this list."
-  :type '(repeat (regexp :tag "Regexp matching Buffer Name"))
-  :group 'midnight)
+two lists will NOT be killed if it also matches anything in this list.
 
-(defun midnight-find (el ls test &optional key)
-  "A stopgap solution to the absence of `find' in ELisp."
-  (cl-dolist (rr ls)
-    (when (funcall test (if key (funcall key rr) rr) el)
-      (cl-return rr))))
+Each element can also be a function instead of a regexp, in which case
+it takes a single argument (a buffer name) and should return non-nil
+if the buffer should never be killed by `clean-buffer-list'."
+  :type '(repeat
+          (choice (regexp :tag "Regexp matching Buffer Name")
+                  (function :tag "Predicate function"))))
 
 (defun clean-buffer-list-delay (name)
   "Return the delay, in seconds, before killing a buffer named NAME.
 Uses `clean-buffer-list-kill-buffer-names', `clean-buffer-list-kill-regexps'
 `clean-buffer-list-delay-general' and `clean-buffer-list-delay-special'.
 Autokilling is done by `clean-buffer-list'."
-  (or (assoc-default name clean-buffer-list-kill-buffer-names 'string=
+  (or (assoc-default name clean-buffer-list-kill-buffer-names #'string=
                      clean-buffer-list-delay-special)
-      (assoc-default name clean-buffer-list-kill-regexps 'string-match
+      (assoc-default name clean-buffer-list-kill-regexps
+                     (lambda (re str)
+                       (if (functionp re)
+                           (funcall re str) (string-match re str)))
                      clean-buffer-list-delay-special)
       (* clean-buffer-list-delay-general 24 60 60)))
 
@@ -172,10 +170,13 @@ lifetime, i.e., its \"age\" when it will be purged."
 	(setq bts (midnight-buffer-display-time buf) bn (buffer-name buf)
 	      delay (if bts (- tm bts) 0) cbld (clean-buffer-list-delay bn))
 	(message "[%s] `%s' [%s %d]" ts bn (if bts (round delay)) cbld)
-	(unless (or (midnight-find bn clean-buffer-list-kill-never-regexps
-				   'string-match)
-		    (midnight-find bn clean-buffer-list-kill-never-buffer-names
-				   'string-equal)
+	(unless (or (cl-find bn clean-buffer-list-kill-never-regexps
+                             :test (lambda (bn re)
+                                     (if (functionp re)
+                                         (funcall re bn)
+                                       (string-match re bn))))
+		    (cl-find bn clean-buffer-list-kill-never-buffer-names
+                             :test #'string-equal)
 		    (get-buffer-process buf)
 		    (and (buffer-file-name buf) (buffer-modified-p buf))
 		    (get-buffer-window buf 'visible) (< delay cbld))
@@ -190,8 +191,7 @@ lifetime, i.e., its \"age\" when it will be purged."
 (defcustom midnight-hook '(clean-buffer-list)
   "The hook run `midnight-delay' seconds after midnight every day.
 The default value is `clean-buffer-list'."
-  :type 'hook
-  :group 'midnight)
+  :type 'hook)
 
 (defun midnight-next ()
   "Return the number of seconds till the next midnight."
@@ -209,7 +209,7 @@ to its second argument TM."
   (when (timerp midnight-timer) (cancel-timer midnight-timer))
   (setq midnight-timer
         (run-at-time (if (numberp tm) (+ (midnight-next) tm) tm)
-                     midnight-period 'run-hooks 'midnight-hook)))
+                     midnight-period #'run-hooks 'midnight-hook)))
 
 (defcustom midnight-delay 3600
   "The number of seconds after the midnight when the `midnight-timer' is run.
@@ -218,8 +218,7 @@ set it by calling `midnight-delay-set', or use `custom'.
 If you wish, you can use a string instead, it will be passed as the
 first argument to `run-at-time'."
   :type 'sexp
-  :set 'midnight-delay-set
-  :group 'midnight)
+  :set #'midnight-delay-set)
 
 (provide 'midnight)
 

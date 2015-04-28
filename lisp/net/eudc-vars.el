@@ -312,9 +312,11 @@ arguments that should be passed to the program."
 			:inline t
 			(string :tag "Argument")))))
 
-(defcustom eudc-options-file "~/.eudc-options"
+(defcustom eudc-options-file
+  (locate-user-emacs-file "eudc-options" ".eudc-options")
   "A file where the `servers' hotlist is stored."
-  :type '(file :Tag "File Name:"))
+  :type '(file :Tag "File Name:")
+  :version "25.1")
 
 (defcustom eudc-mode-hook nil
   "Normal hook run on entry to EUDC mode."
