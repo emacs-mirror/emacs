@@ -134,7 +134,10 @@ static void emacs_fixed_gtk_widget_size_allocate (GtkWidget *widget,
 static void
 emacs_fixed_class_init (EmacsFixedClass *klass)
 {
-  GtkWidgetClass *widget_class = (GtkWidgetClass *) klass;
+  GtkWidgetClass *widget_class;
+
+  widget_class = (GtkWidgetClass*) klass;
+
 
   widget_class->get_preferred_width = emacs_fixed_get_preferred_width;
   widget_class->get_preferred_height = emacs_fixed_get_preferred_height;
@@ -160,7 +163,7 @@ emacs_fixed_init (EmacsFixed *fixed)
  *
  * Returns: a new #EmacsFixed.
  */
-GtkWidget *
+GtkWidget*
 emacs_fixed_new (struct frame *f)
 {
   EmacsFixed *fixed = g_object_new (EMACS_TYPE_FIXED, NULL);
@@ -199,7 +202,10 @@ emacs_fixed_get_preferred_height (GtkWidget *widget,
    (Bug#8919), and so users can resize our frames as they wish.  */
 
 void
-XSetWMSizeHints (Display *d, Window w, XSizeHints* hints, Atom prop)
+XSetWMSizeHints (Display* d,
+                 Window w,
+                 XSizeHints* hints,
+                 Atom prop)
 {
   struct x_display_info *dpyinfo = x_display_info_for_display (d);
   struct frame *f = x_top_window_to_frame (dpyinfo, w);
@@ -232,7 +238,7 @@ XSetWMSizeHints (Display *d, Window w, XSizeHints* hints, Atom prop)
     }
 
   XChangeProperty (d, w, prop, XA_WM_SIZE_HINTS, 32, PropModeReplace,
-                   (unsigned char *) data, 18);
+		   (unsigned char *) data, 18);
 }
 
 /* Override this X11 function.
