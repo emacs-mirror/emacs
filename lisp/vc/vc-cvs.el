@@ -651,7 +651,7 @@ Optional arg REVISION is a revision to annotate from."
         (re-search-forward vc-cvs-annotate-first-line-re)
         (delete-region (point-min) (1- (point)))))))
 
-(declare-function vc-annotate-convert-time "vc-annotate" (time))
+(declare-function vc-annotate-convert-time "vc-annotate" (&optional time))
 
 (defun vc-cvs-annotate-current-time ()
   "Return the current time, based at midnight of the current day, and

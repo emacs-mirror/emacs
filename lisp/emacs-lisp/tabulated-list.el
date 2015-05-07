@@ -341,8 +341,10 @@ of column descriptors."
     (dotimes (n ncols)
       (setq x (tabulated-list-print-col n (aref cols n) x)))
     (insert ?\n)
-    (put-text-property beg (point) 'tabulated-list-id id)
-    (put-text-property beg (point) 'tabulated-list-entry cols)))
+    ;; Ever so slightly faster than calling `put-text-property' twice.
+    (add-text-properties
+     beg (point)
+     `(tabulated-list-id ,id tabulated-list-entry ,cols))))
 
 (defun tabulated-list-print-col (n col-desc x)
   "Insert a specified Tabulated List entry at point.

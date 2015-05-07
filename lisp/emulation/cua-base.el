@@ -790,6 +790,8 @@ Repeating prefix key when region is active works as a single prefix key."
 
 ;;; Region specific commands
 
+(declare-function delete-active-region "delsel" (&optional killp))
+
 (defun cua-delete-region ()
   "Delete the active region.
 Save a copy in register 0 if `cua-delete-copy-to-register-0' is non-nil."

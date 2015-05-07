@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2015-02-05.16}
+\def\texinfoversion{2015-04-29.11}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -9836,6 +9836,17 @@ directory should work if nowhere else does.}
 \def\nonasciistringdefs{%
   \setnonasciicharscatcode\active
   \def\defstringchar##1{\def##1{\string##1}}%
+  %
+  \defstringchar^^80\defstringchar^^81\defstringchar^^82\defstringchar^^83%
+  \defstringchar^^84\defstringchar^^85\defstringchar^^86\defstringchar^^87%
+  \defstringchar^^88\defstringchar^^89\defstringchar^^8a\defstringchar^^8b%
+  \defstringchar^^8c\defstringchar^^8d\defstringchar^^8e\defstringchar^^8f%
+  %
+  \defstringchar^^90\defstringchar^^91\defstringchar^^92\defstringchar^^93%
+  \defstringchar^^94\defstringchar^^95\defstringchar^^96\defstringchar^^97%
+  \defstringchar^^98\defstringchar^^99\defstringchar^^9a\defstringchar^^9b%
+  \defstringchar^^9c\defstringchar^^9d\defstringchar^^9e\defstringchar^^9f%
+  %
   \defstringchar^^a0\defstringchar^^a1\defstringchar^^a2\defstringchar^^a3%
   \defstringchar^^a4\defstringchar^^a5\defstringchar^^a6\defstringchar^^a7%
   \defstringchar^^a8\defstringchar^^a9\defstringchar^^aa\defstringchar^^ab%

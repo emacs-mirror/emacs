@@ -1,8 +1,7 @@
 \input texinfo
 @setfilename ../../info/vip.info
 @settitle VIP
-
-@documentencoding UTF-8
+@include docstyle.texi
 
 @copying
 Copyright @copyright{} 1987, 2001--2015 Free Software Foundation, Inc.

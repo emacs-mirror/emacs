@@ -26,7 +26,8 @@ Used and created by Tassilo Horn.")
 (custom-theme-set-faces
  'tsdh-light
  '(Info-quoted ((t (:weight bold))))
- '(ace-jump-face-foreground ((t (:foreground "DeepPink" :box (:line-width -1 :color "grey75") :weight bold))))
+ '(ace-jump-face-foreground ((t (:foreground "DeepPink" :box nil :weight bold))))
+ '(aw-leading-char-face ((t (:inherit ace-jump-face-foreground))))
  '(default ((t (:background "white" :foreground "black"))))
  '(diff-added ((t (:inherit diff-changed :background "light green"))))
  '(diff-changed ((t (:background "light steel blue"))))

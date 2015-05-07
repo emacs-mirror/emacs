@@ -339,7 +339,7 @@ Argument MENU-DEF is the menu definition to use."
 	  (progn
 	    (while (and class (slot-exists-p class 'menu))
 	      ;;(message "Looking at class %S" class)
-	      (setq menu (append menu (oref class menu))
+	      (setq menu (append menu (oref-default class menu))
 		    class (eieio-class-parent class))
 	      (if (listp class) (setq class (car class))))
 	    (append

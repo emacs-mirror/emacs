@@ -1965,7 +1965,7 @@ Return output file name."
 
 ;; Local variables:
 ;; generated-autoload-file: "org-loaddefs.el"
-;; coding: utf-8-emacs
+;; coding: utf-8
 ;; End:
 
 ;;; ox-ascii.el ends here

@@ -2,6 +2,7 @@
 
 @setfilename ../../info/emacs.info
 @settitle GNU Emacs Manual
+@include docstyle.texi
 
 @c The edition number appears in more than one place in this file
 @c I don't really know what it means...
@@ -43,8 +44,6 @@ modify this GNU manual.  Buying copies from the FSF supports it in
 developing GNU and promoting software freedom.''
 @end quotation
 @end copying
-
-@documentencoding UTF-8
 
 @dircategory Emacs
 @direntry

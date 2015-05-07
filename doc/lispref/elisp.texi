@@ -18,6 +18,7 @@
 @ifclear volflag
 @settitle GNU Emacs Lisp Reference Manual
 @end ifclear
+@include docstyle.texi
 
 @c %**end of header
 
@@ -114,8 +115,6 @@ modify this GNU manual.  Buying copies from the FSF supports it in
 developing GNU and promoting software freedom.''
 @end quotation
 @end copying
-
-@documentencoding UTF-8
 
 @dircategory Emacs lisp
 @direntry

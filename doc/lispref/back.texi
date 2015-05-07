@@ -6,7 +6,7 @@
 @c %**start of header
 @setfilename back-cover
 @settitle GNU Emacs Lisp Reference Manual
-@documentencoding UTF-8
+@include docstyle.texi
 @c %**end of header
 .
 @sp 7

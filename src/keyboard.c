@@ -391,47 +391,47 @@ static void store_user_signal_events (void);
 static void
 kset_echo_string (struct kboard *kb, Lisp_Object val)
 {
-  kb->INTERNAL_FIELD (echo_string) = val;
+  kb->echo_string_ = val;
 }
 static void
 kset_kbd_queue (struct kboard *kb, Lisp_Object val)
 {
-  kb->INTERNAL_FIELD (kbd_queue) = val;
+  kb->kbd_queue_ = val;
 }
 static void
 kset_keyboard_translate_table (struct kboard *kb, Lisp_Object val)
 {
-  kb->INTERNAL_FIELD (Vkeyboard_translate_table) = val;
+  kb->Vkeyboard_translate_table_ = val;
 }
 static void
 kset_last_prefix_arg (struct kboard *kb, Lisp_Object val)
 {
-  kb->INTERNAL_FIELD (Vlast_prefix_arg) = val;
+  kb->Vlast_prefix_arg_ = val;
 }
 static void
 kset_last_repeatable_command (struct kboard *kb, Lisp_Object val)
 {
-  kb->INTERNAL_FIELD (Vlast_repeatable_command) = val;
+  kb->Vlast_repeatable_command_ = val;
 }
 static void
 kset_local_function_key_map (struct kboard *kb, Lisp_Object val)
 {
-  kb->INTERNAL_FIELD (Vlocal_function_key_map) = val;
+  kb->Vlocal_function_key_map_ = val;
 }
 static void
 kset_overriding_terminal_local_map (struct kboard *kb, Lisp_Object val)
 {
-  kb->INTERNAL_FIELD (Voverriding_terminal_local_map) = val;
+  kb->Voverriding_terminal_local_map_ = val;
 }
 static void
 kset_real_last_command (struct kboard *kb, Lisp_Object val)
 {
-  kb->INTERNAL_FIELD (Vreal_last_command) = val;
+  kb->Vreal_last_command_ = val;
 }
 static void
 kset_system_key_syms (struct kboard *kb, Lisp_Object val)
 {
-  kb->INTERNAL_FIELD (system_key_syms) = val;
+  kb->system_key_syms_ = val;
 }
 
 

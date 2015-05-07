@@ -473,7 +473,7 @@ internal_self_insert (int c, EMACS_INT n)
 	}
 
       replace_range (PT, PT + chars_to_delete, string, 1, 1, 1);
-      Fforward_char (make_number (n + spaces_to_insert));
+      Fforward_char (make_number (n));
     }
   else if (n > 1)
     {

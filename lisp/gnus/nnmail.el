@@ -36,8 +36,7 @@
 
 (autoload 'gnus-add-buffer "gnus")
 (autoload 'gnus-kill-buffer "gnus")
-(eval-when-compile
-  (autoload 'mail-send-and-exit "sendmail" nil t))
+(autoload 'mail-send-and-exit "sendmail" nil t)
 
 (defgroup nnmail nil
   "Reading mail with Gnus."

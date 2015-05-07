@@ -730,7 +730,7 @@ Argument FN is the function calling this verifier."
   (cl-check-type slot symbol)
   (cl-check-type obj (or eieio-object class))
   (let* ((class (cond ((symbolp obj)
-                       (error "eieio-oref called on a class!")
+                       (error "eieio-oref called on a class: %s" obj)
                        (let ((c (eieio--class-v obj)))
                          (if (eieio--class-p c) (eieio-class-un-autoload obj))
                          c))

@@ -4,7 +4,7 @@
 @set TITLE SRecoder Manual
 @set AUTHOR Eric M. Ludlam
 @settitle @value{TITLE}
-@documentencoding UTF-8
+@include docstyle.texi
 
 @c Merge all indexes into a single index for now.
 @c We can always separate them later into two or more as needed.

@@ -261,7 +261,7 @@ If LIMIT is non-nil, show no more than this many entries."
 	 (append (vc-switches 'mtn 'annotate)
 		 (if rev (list "-r" rev)))))
 
-(declare-function vc-annotate-convert-time "vc-annotate" (time))
+(declare-function vc-annotate-convert-time "vc-annotate" (&optional time))
 
 (defconst vc-mtn-annotate-full-re
   "^ *\\([0-9a-f]+\\)\\.* by [^ ]+ \\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\): ")

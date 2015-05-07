@@ -186,7 +186,7 @@ static bool in_classes (int, Lisp_Object);
 static void
 bset_syntax_table (struct buffer *b, Lisp_Object val)
 {
-  b->INTERNAL_FIELD (syntax_table) = val;
+  b->syntax_table_ = val;
 }
 
 /* Whether the syntax of the character C has the prefix flag set.  */

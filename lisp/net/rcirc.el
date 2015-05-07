@@ -1924,17 +1924,13 @@ Uninteresting lines are those whose responses are listed in
       (goto-char overlay-arrow-position)
     (message "No unread messages")))
 
-(defun rcirc-non-irc-buffer ()
-  (let ((buflist (buffer-list))
-	buffer)
-    (while (and buflist (not buffer))
-      (with-current-buffer (car buflist)
-	(unless (or (eq major-mode 'rcirc-mode)
-		    (= ?\s (aref (buffer-name) 0)) ; internal buffers
-		    (get-buffer-window (current-buffer)))
-	  (setq buffer (current-buffer))))
-      (setq buflist (cdr buflist)))
-    buffer))
+(defun rcirc-bury-buffers ()
+  "Bury all RCIRC buffers."
+  (interactive)
+  (dolist (buf (buffer-list))
+    (when (eq 'rcirc-mode (with-current-buffer buf major-mode))
+      (bury-buffer buf)         ; buffers not shown
+      (quit-windows-on buf))))  ; buffers shown in a window
 
 (defun rcirc-next-active-buffer (arg)
   "Switch to the next rcirc buffer with activity.
@@ -1949,15 +1945,13 @@ With prefix ARG, go to the next low priority buffer with activity."
 	  (switch-to-buffer (car (if arg lopri hipri)))
 	  (when (> (point) rcirc-prompt-start-marker)
 	    (recenter -1)))
-      (if (eq major-mode 'rcirc-mode)
-	  (switch-to-buffer (rcirc-non-irc-buffer))
-	(message "%s" (concat
-		       "No IRC activity."
-		       (when lopri
-			 (concat
-			  "  Type C-u "
-			  (key-description (this-command-keys))
-			  " for low priority activity."))))))))
+      (rcirc-bury-buffers)
+      (message "No IRC activity.%s"
+               (if lopri
+                   (concat
+                    "  Type C-u " (key-description (this-command-keys))
+                    " for low priority activity.")
+                 "")))))
 
 (define-obsolete-variable-alias 'rcirc-activity-hooks
   'rcirc-activity-functions "24.3")

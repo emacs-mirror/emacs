@@ -2,13 +2,13 @@
 @c %**start of header
 @setfilename ../../info/woman.info
 @settitle WoMan: Browse Unix Manual Pages ``W.O. (without) Man''
+@include docstyle.texi
 @include emacsver.texi
 @afourpaper
 @c With different size paper the printed page breaks will need attention!
 @c Look for @page and @need commands.
 @setchapternewpage off
 @paragraphindent 0
-@documentencoding UTF-8
 @c %**end of header
 
 @copying

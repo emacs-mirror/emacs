@@ -5,7 +5,7 @@
 @c
 @c @setfilename gnus-faq.info
 @c @settitle Frequently Asked Questions
-@c @documentencoding UTF-8
+@c @include docstyle.texi
 @c %**end of header
 @c
 

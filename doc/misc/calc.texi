@@ -1,10 +1,10 @@
-\input texinfo                  @c -*-texinfo-*-
+\input texinfo @c -*- mode: texinfo; coding: utf-8 -*-
 @comment %**start of header (This is for running Texinfo on a region.)
 @c smallbook
 @setfilename ../../info/calc.info
 @c [title]
 @settitle GNU Emacs Calc Manual
-@documentencoding UTF-8
+@include docstyle.texi
 @setchapternewpage odd
 @comment %**end of header (This is for running Texinfo on a region.)
 
@@ -1203,9 +1203,7 @@ algebra system for microcomputers.
 Many people have contributed to Calc by reporting bugs and suggesting
 features, large and small.  A few deserve special mention:  Tim Peters,
 who helped develop the ideas that led to the selection commands, rewrite
-rules, and many other algebra features;
-@texline Fran\c{c}ois
-@infoline Francois
+rules, and many other algebra features; François
 Pinard, who contributed an early prototype of the Calc Summary appendix
 as well as providing valuable suggestions in many other areas of Calc;
 Carl Witty, whose eagle eyes discovered many typographical and factual
@@ -7218,9 +7216,7 @@ so that the mapping operation works; no prime factor will ever be
 zero, so adding zeros on the left and right is safe.  From then on
 the job is pretty straightforward.
 
-Incidentally, Calc provides the
-@texline @dfn{M@"obius} @math{\mu}
-@infoline @dfn{Moebius mu}
+Incidentally, Calc provides the @dfn{Möbius μ}
 function which is zero if and only if its argument is square-free.  It
 would be a much more convenient way to do the above test in practice.
 
@@ -8098,7 +8094,7 @@ argument is exactly what we want to map over:
 @end smallexample
 
 @noindent
-Et voil@`a, September 13, 1991 is a Friday.
+Et voilà, September 13, 1991 is a Friday.
 
 @smallexample
 @group
@@ -19304,9 +19300,7 @@ are relatively prime to @expr{n}.
 @pindex calc-moebius
 @tindex moebius
 The @kbd{k m} (@code{calc-moebius}) [@code{moebius}] command computes the
-@texline M@"obius @math{\mu}
-@infoline Moebius ``mu''
-function.  If the input number is a product of @expr{k}
+Möbius μ function.  If the input number is a product of @expr{k}
 distinct factors, this is @expr{(-1)^k}.  If the input number has any
 duplicate factors (i.e., can be divided by the same prime more than once),
 the result is zero.
@@ -27698,9 +27692,7 @@ the keyboard macro @kbd{' tri($) @key{RET}} to make a command that applies
 @code{tri} to the value on the top of the stack.  @xref{Programming}.
 
 @cindex Quaternions
-The following rule set, contributed by
-@texline Fran\c cois
-@infoline Francois
+The following rule set, contributed by François
 Pinard, implements @dfn{quaternions}, a generalization of the concept of
 complex numbers.  Quaternions have four components, and are here
 represented by function calls @samp{quat(@var{w}, [@var{x}, @var{y},
@@ -28048,7 +28040,7 @@ based on a fundamental physical process (although there are efforts to
 change this) is the kilogram, which was originally defined as the mass
 of one liter of water, but is now defined as the mass of the
 international prototype of the kilogram (IPK), a cylinder of platinum-iridium
-kept at the Bureau international des poids et mesures in S@`evres,
+kept at the Bureau international des poids et mesures in Sèvres,
 France.  (There are several copies of the IPK throughout the world.)
 The British imperial units, once defined in terms of physical objects,
 were redefined in 1963 in terms of SI units.  The US customary units,

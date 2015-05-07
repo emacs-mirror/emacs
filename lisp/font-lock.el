@@ -1350,7 +1350,7 @@ delimit the region to fontify."
 	deactivate-mark)
     ;; Make sure we have the right `font-lock-keywords' etc.
     (if (not font-lock-mode) (font-lock-set-defaults))
-    (save-excursion
+    (save-mark-and-excursion
       (save-match-data
 	(condition-case error-data
 	    (if (or arg (not font-lock-mark-block-function))

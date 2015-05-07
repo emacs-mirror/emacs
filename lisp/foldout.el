@@ -280,16 +280,16 @@ optional arg EXPOSURE \(interactively with prefix arg\) changes this:-
       (goto-char start)
       (cond
        ((null exposure)
-	(show-entry)
-	(show-children))
+	(outline-show-entry)
+	(outline-show-children))
        ((< exposure-value 0)
-	(show-entry))
+	(outline-show-entry))
        ((consp exposure)
-	(show-children))
+	(outline-show-children))
        ((> exposure-value 0)
-	(show-children exposure-value))
+	(outline-show-children exposure-value))
        (t
-	(show-subtree))
+	(outline-show-subtree))
        )
 
       ;; save the location of the fold we are entering
@@ -366,7 +366,7 @@ exited and text is left visible."
 	;; hide the subtree
 	(when hide-fold
 	  (goto-char start-marker)
-	  (hide-subtree))
+	  (outline-hide-subtree))
 
 	;; make sure the next heading is exposed
 	(if end-marker
@@ -454,10 +454,10 @@ What gets exposed depends on the number of mouse clicks:-
   (foldout-mouse-goto-heading event)
   (let ((nclicks (event-click-count event)))
     (cond
-     ((= nclicks 1) (show-entry))
-     ((= nclicks 2) (show-children))
-     ((= nclicks 3) (show-entry) (show-children))
-     (t (show-subtree)))))
+     ((= nclicks 1) (outline-show-entry))
+     ((= nclicks 2) (outline-show-children))
+     ((= nclicks 3) (outline-show-entry) (outline-show-children))
+     (t (outline-show-subtree)))))
 
 (defun foldout-mouse-hide-or-exit (event)
   "Hide the subtree under the heading clicked on, or exit a fold.
@@ -478,7 +478,7 @@ What happens depends on the number of mouse clicks:-
     (if (= nclicks 1)
 	(progn
 	  (foldout-mouse-goto-heading event)
-	  (hide-subtree))
+	  (outline-hide-subtree))
       (foldout-exit-fold
        (cond
 	((= nclicks 2) 1)		; exit and hide

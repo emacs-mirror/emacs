@@ -717,10 +717,6 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 ;;;; Pasteboard support.
 
-(declare-function ns-get-selection-internal "nsselect.m" (buffer))
-
-(define-obsolete-function-alias 'ns-get-cut-buffer-internal
-  'ns-get-selection-internal "24.1")
 (define-obsolete-function-alias 'ns-store-cut-buffer-internal
   'gui-set-selection "24.1")
 
@@ -929,6 +925,15 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (gui-method-define frame-creation-function ns #'x-create-frame-with-faces)
 (gui-method-define window-system-initialization ns
                    #'ns-initialize-window-system)
+
+(declare-function ns-own-selection-internal "nsselect.m" (selection value))
+(declare-function ns-disown-selection-internal "nsselect.m" (selection))
+(declare-function ns-selection-owner-p "nsselect.m"
+                  (&optional selection terminal))
+(declare-function ns-selection-exists-p "nsselect.m"
+                  (&optional selection terminal))
+(declare-function ns-get-selection "nsselect.m"
+                  (selection-symbol target-type &optional time-stamp terminal))
 
 (gui-method-define gui-set-selection ns
                    (lambda (selection value)

@@ -354,7 +354,32 @@ return any documentation.")
                nil))
 	 (eldoc-message (funcall eldoc-documentation-function)))))
 
-
+;; If the entire line cannot fit in the echo area, the symbol name may be
+;; truncated or eliminated entirely from the output to make room for the
+;; description.
+(defun eldoc-docstring-format-sym-doc (prefix doc &optional face)
+  (when (symbolp prefix)
+    (setq prefix (concat (propertize (symbol-name prefix) 'face face) ": ")))
+  (let* ((ea-multi eldoc-echo-area-use-multiline-p)
+         ;; Subtract 1 from window width since emacs will not write
+         ;; any chars to the last column, or in later versions, will
+         ;; cause a wraparound and resize of the echo area.
+         (ea-width (1- (window-width (minibuffer-window))))
+         (strip (- (+ (length prefix) (length doc)) ea-width)))
+    (cond ((or (<= strip 0)
+               (eq ea-multi t)
+               (and ea-multi (> (length doc) ea-width)))
+           (concat prefix doc))
+          ((> (length doc) ea-width)
+           (substring (format "%s" doc) 0 ea-width))
+          ((>= strip (string-match-p ":? *\\'" prefix))
+           doc)
+          (t
+           ;; Show the end of the partial symbol name, rather
+           ;; than the beginning, since the former is more likely
+           ;; to be unique given package namespace conventions.
+           (concat (substring prefix strip) doc)))))
+
 ;; When point is in a sexp, the function args are not reprinted in the echo
 ;; area after every possible interactive command because some of them print
 ;; their own messages in the echo area; the eldoc functions would instantly

@@ -41,7 +41,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 static void
 bset_category_table (struct buffer *b, Lisp_Object val)
 {
-  b->INTERNAL_FIELD (category_table) = val;
+  b->category_table_ = val;
 }
 
 /* The version number of the latest category table.  Each category

@@ -598,10 +598,9 @@ If successful, return the object path of the collection."
 ATTRIBUTES are key-value pairs.  The keys are keyword symbols,
 starting with a colon.  Example:
 
-  \(secrets-create-item \"Tramp collection\" \"item\" \"geheim\"
-   :method \"sudo\" :user \"joe\" :host \"remote-host\"\)
+  \(secrets-search-items \"Tramp collection\" :user \"joe\")
 
-The object paths of the found items are returned as list."
+The object labels of the found items are returned as list."
   (let ((collection-path (secrets-unlock-collection collection))
 	result props)
     (unless (secrets-empty-path collection-path)
@@ -618,8 +617,7 @@ The object paths of the found items are returned as list."
 			   (cadr attributes))
 		     'append)
 	      attributes (cddr attributes)))
-      ;; Search.  The result is a list of two lists, the object paths
-      ;; of the unlocked and the locked items.
+      ;; Search.  The result is a list of object paths.
       (setq result
 	    (dbus-call-method
 	     :session secrets-service collection-path
@@ -630,7 +628,7 @@ The object paths of the found items are returned as list."
       ;; Return the found items.
       (mapcar
        (lambda (item-path) (secrets-get-item-property item-path "Label"))
-       (append (car result) (cadr result))))))
+       result))))
 
 (defun secrets-create-item (collection item password &rest attributes)
   "Create a new item in COLLECTION with label ITEM and password PASSWORD.

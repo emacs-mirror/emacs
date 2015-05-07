@@ -276,5 +276,26 @@ Evaluate BODY for each created sequence.
         (v2 [2 4 6]))
     (should (seq-empty-p (seq-difference v1 v2)))))
 
+(ert-deftest test-seq-let ()
+  (with-test-sequences (seq '(1 2 3 4))
+    (seq-let (a b c d e) seq
+      (should (= a 1))
+      (should (= b 2))
+      (should (= c 3))
+      (should (= d 4))
+      (should (null e)))
+    (seq-let (a b &rest others) seq
+      (should (= a 1))
+      (should (= b 2))
+      (should (same-contents-p others (seq-drop seq 2)))))
+  (let ((seq '(1 (2 (3 (4))))))
+    (seq-let (_ (_ (_ (a)))) seq
+      (should (= a 4))))
+  (let (seq)
+    (seq-let (a b c) seq
+      (should (null a))
+      (should (null b))
+      (should (null c)))))
+
 (provide 'seq-tests)
 ;;; seq-tests.el ends here

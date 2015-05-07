@@ -538,31 +538,34 @@ cleaning up a buffer.  See `whitespace-cleanup' and
 `whitespace-cleanup-region' for documentation.
 
 See also `whitespace-display-mappings' for documentation."
-  :type '(repeat :tag "Kind of Blank"
-		 (choice :tag "Kind of Blank Face"
-			 (const :tag "(Face) Face visualization"
-				face)
-			 (const :tag "(Face) Trailing TABs, SPACEs and HARD SPACEs"
-				trailing)
-			 (const :tag "(Face) SPACEs and HARD SPACEs"
-				spaces)
-			 (const :tag "(Face) TABs" tabs)
-			 (const :tag "(Face) Lines" lines)
-			 (const :tag "(Face) SPACEs before TAB"
-				space-before-tab)
-			 (const :tag "(Face) NEWLINEs" newline)
-			 (const :tag "(Face) Indentation SPACEs"
-				indentation)
-			 (const :tag "(Face) Too much line indentation"
-				big-indent)
-			 (const :tag "(Face) Empty Lines At BOB And/Or EOB"
-				empty)
-			 (const :tag "(Face) SPACEs after TAB"
-				space-after-tab)
-			 (const :tag "(Mark) SPACEs and HARD SPACEs"
-				space-mark)
-			 (const :tag "(Mark) TABs" tab-mark)
-			 (const :tag "(Mark) NEWLINEs" newline-mark)))
+  :type '(set :tag "Kind of Blank"
+              (const :tag "(Face) Face visualization" face)
+              (const :tag "(Face) Trailing TABs, SPACEs and HARD SPACEs"
+                     trailing)
+              (const :tag "(Face) TABs" tabs)
+              (const :tag "(Face) SPACEs and HARD SPACEs" spaces)
+              (const :tag "(Face) Lines" lines)
+              (const :tag "(Face) Lines, only overlong part" lines-tail)
+              (const :tag "(Face) NEWLINEs" newline)
+              (const :tag "(Face) Empty Lines At BOB And/Or EOB" empty)
+              (const :tag "(Face) Indentation SPACEs" indentation::tab)
+              (const :tag "(Face) Indentation TABs"
+                     indentation::space)
+              (const :tag "(Face) Indentation TABs or SPACEs" indentation)
+              (const :tag "(Face) Too much line indentation" big-indent)
+              (const :tag "(Face) SPACEs after TAB: SPACEs"
+                     space-after-tab::tab)
+              (const :tag "(Face) SPACEs after TAB: TABs"
+                     space-after-tab::space)
+              (const :tag "(Face) SPACEs after TAB" space-after-tab)
+              (const :tag "(Face) SPACEs before TAB: SPACEs"
+                     space-before-tab::tab)
+              (const :tag "(Face) SPACEs before TAB: TABs"
+                     space-before-tab::space)
+              (const :tag "(Face) SPACEs before TAB" space-before-tab)
+              (const :tag "(Mark) SPACEs and HARD SPACEs" space-mark)
+              (const :tag "(Mark) TABs" tab-mark)
+              (const :tag "(Mark) NEWLINEs" newline-mark))
   :group 'whitespace)
 
 (defvar whitespace-space 'whitespace-space

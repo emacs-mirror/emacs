@@ -317,24 +317,25 @@ Whether the passphrase is cached at all is controlled by
 (defvar inhibit-redisplay)
 (defvar password-cache-expiry)
 
-(eval-when-compile
-  (autoload 'epg-make-context "epg")
-  (autoload 'epg-context-set-armor "epg")
-  (autoload 'epg-context-set-signers "epg")
-  (autoload 'epg-context-result-for "epg")
-  (autoload 'epg-new-signature-digest-algorithm "epg")
-  (autoload 'epg-verify-result-to-string "epg")
-  (autoload 'epg-list-keys "epg")
-  (autoload 'epg-decrypt-string "epg")
-  (autoload 'epg-verify-string "epg")
-  (autoload 'epg-sign-string "epg")
-  (autoload 'epg-encrypt-string "epg")
-  (autoload 'epg-passphrase-callback-function "epg")
-  (autoload 'epg-context-set-passphrase-callback "epg")
-  (autoload 'epg-sub-key-fingerprint "epg")
-  (autoload 'epg-configuration "epg-config")
-  (autoload 'epg-expand-group "epg-config")
-  (autoload 'epa-select-keys "epa"))
+(autoload 'epg-make-context "epg")
+(autoload 'epg-passphrase-callback-function "epg")
+(declare-function epg-context-set-signers "epg" (context signers))
+(declare-function epg-context-result-for "epg" (context name))
+(declare-function epg-new-signature-digest-algorithm "epg" (cl-x) t)
+(declare-function epg-verify-result-to-string "epg" (verify-result))
+(declare-function epg-list-keys "epg" (context &optional name mode))
+(declare-function epg-verify-string "epg"
+		  (context signature &optional signed-text))
+(declare-function epg-sign-string "epg" (context plain &optional mode))
+(declare-function epg-encrypt-string "epg"
+		  (context plain recipients &optional sign always-trust))
+(declare-function epg-context-set-passphrase-callback "epg"
+		  (context passphrase-callback))
+(declare-function epg-sub-key-fingerprint "epg" (cl-x) t)
+(declare-function epg-configuration "epg-config" ())
+(declare-function epg-expand-group "epg-config" (config group))
+(declare-function epa-select-keys "epa"
+		  (context prompt &optional names secret))
 
 (defvar mml-smime-epg-secret-key-id-list nil)
 
@@ -359,9 +360,9 @@ Whether the passphrase is cached at all is controlled by
 	      (cons key-id mml-smime-epg-secret-key-id-list))
 	(copy-sequence passphrase)))))
 
-(declare-function epg-key-sub-key-list   "ext:epg" (key))
-(declare-function epg-sub-key-capability "ext:epg" (sub-key))
-(declare-function epg-sub-key-validity   "ext:epg" (sub-key))
+(declare-function epg-key-sub-key-list   "epg" (key) t)
+(declare-function epg-sub-key-capability "epg" (sub-key) t)
+(declare-function epg-sub-key-validity   "epg" (sub-key) t)
 
 (defun mml-smime-epg-find-usable-key (keys usage)
   (catch 'found

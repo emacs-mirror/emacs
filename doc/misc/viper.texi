@@ -5,8 +5,7 @@
 @comment @setfilename viper
 @comment @setfilename viper.info
 @setfilename ../../info/viper.info
-
-@documentencoding UTF-8
+@include docstyle.texi
 
 @copying
 Copyright @copyright{} 1995--1997, 2001--2015 Free Software Foundation, Inc.

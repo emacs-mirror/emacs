@@ -498,12 +498,12 @@ code to parse."
 	 (parsedtokelist
 	  (condition-case nil
 	      ;; This is imperfect, so always assume on error.
-	      (hif-canonicalize)
+	      (hif-canonicalize hif-ifx-regexp)
 	    (error nil))))
 
     (let ((eval-form (condition-case err
 			 (eval parsedtokelist)
-		       (error 
+		       (error
 			(semantic-push-parser-warning
 			 (format "Hideif forms produced an error.  Assuming false.\n%S" err)
 			 (point) (1+ (point)))

@@ -2,7 +2,7 @@
 @setfilename ../../info/tramp.info
 @c %**start of header
 @settitle TRAMP User Manual
-@documentencoding UTF-8
+@include docstyle.texi
 @c %**end of header
 
 @c This is *so* much nicer :)
@@ -91,7 +91,7 @@ copy and modify this GNU manual.''
 @titlepage
 @title @value{tramp} version @value{trampver} User Manual
 @author by Daniel Pittman
-@author based on documentation by Kai Gro@ss{}johann
+@author based on documentation by Kai Großjohann
 @page
 @insertcopying
 @end titlepage
@@ -1935,7 +1935,7 @@ of your (local or remote) host, you might need to adapt this.  Example:
           "password" "Password"
           ;; Deutsch
           "passwort" "Passwort"
-          ;; Fran@,{c}ais
+          ;; Français
           "mot de passe" "Mot de passe") t)
       ".*:\0? *"))
 @end lisp

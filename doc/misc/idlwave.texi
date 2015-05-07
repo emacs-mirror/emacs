@@ -2,6 +2,7 @@
 @c %**start of header
 @setfilename ../../info/idlwave.info
 @settitle IDLWAVE User Manual
+@include docstyle.texi
 @synindex ky cp
 @syncodeindex vr cp
 @syncodeindex fn cp
@@ -12,7 +13,6 @@
 @set DATE April, 2007
 @set AUTHOR J.D. Smith & Carsten Dominik
 @set MAINTAINER J.D. Smith
-@documentencoding UTF-8
 @c %**end of header
 @finalout
 

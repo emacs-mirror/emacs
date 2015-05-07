@@ -1445,12 +1445,8 @@ Otherwise just move the line.  Move down unless UP is non-nil."
   (interactive "p")
   (idlwave-shell-move-or-history nil arg))
 
-;; Newer versions of comint.el changed the name of comint-filter to
-;; comint-output-filter.
-(defalias 'idlwave-shell-comint-filter
-  (if (fboundp 'comint-output-filter)
-      #'comint-output-filter
-    #'comint-filter))
+(define-obsolete-function-alias 'idlwave-shell-comint-filter
+  'comint-output-filter "25.1")
 
 (defun idlwave-shell-is-running ()
   "Return t if the shell process is running."
@@ -1496,7 +1492,7 @@ and then calls `idlwave-shell-send-command' for any pending commands."
 		     (get-buffer-create idlwave-shell-hidden-output-buffer))
 		    (goto-char (point-max))
 		    (insert string))
-		(idlwave-shell-comint-filter proc string))
+		(comint-output-filter proc string))
 	      ;; Watch for magic - need to accumulate the current line
 	      ;; since it may not be sent all at once.
 	      (if (string-match "\n" string)
@@ -1552,7 +1548,7 @@ and then calls `idlwave-shell-send-command' for any pending commands."
 		  (if idlwave-shell-hide-output
 		      (if (and idlwave-shell-show-if-error
 			       (eq idlwave-shell-current-state 'error))
-			  (idlwave-shell-comint-filter proc full-output)
+			  (comint-output-filter proc full-output)
 			;; If it's only *mostly* hidden, filter % lines,
 			;; and show anything that remains
 			(if (eq idlwave-shell-hide-output 'mostly)
@@ -1560,7 +1556,7 @@ and then calls `idlwave-shell-send-command' for any pending commands."
 				   (idlwave-shell-filter-hidden-output
 				    full-output)))
 			      (if filtered
-				  (idlwave-shell-comint-filter
+				  (comint-output-filter
 				   proc filtered))))))
 
 		  ;; Call the post-command hook

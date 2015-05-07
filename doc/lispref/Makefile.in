@@ -28,7 +28,7 @@ srcdir = @srcdir@
 buildinfodir = $(srcdir)/../../info
 # Directory with the (customized) texinfo.tex file.
 texinfodir = $(srcdir)/../misc
-# Directory with emacsver.texi.
+# Directory with docstyle.tex and emacsver.texi.
 emacsdir =  $(srcdir)/../emacs
 
 prefix = @prefix@
@@ -80,6 +80,7 @@ PS_TARGETS = elisp.ps
 
 srcs = \
   $(srcdir)/elisp.texi \
+  $(emacsdir)/docstyle.texi \
   $(emacsdir)/emacsver.texi \
   $(srcdir)/abbrevs.texi \
   $(srcdir)/anti.texi \

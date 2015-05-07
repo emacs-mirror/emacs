@@ -576,7 +576,7 @@ used."
 (provide 'robin)
 
 ;; Local Variables:
-;; coding: utf-8-emacs
+;; coding: utf-8
 ;; End:
 
 ;;; robin.el ends here

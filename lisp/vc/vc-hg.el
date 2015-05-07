@@ -373,7 +373,7 @@ Optional arg REVISION is a revision to annotate from."
 	 (append (vc-switches 'hg 'annotate)
                  (if revision (list (concat "-r" revision))))))
 
-(declare-function vc-annotate-convert-time "vc-annotate" (time))
+(declare-function vc-annotate-convert-time "vc-annotate" (&optional time))
 
 ;; The format for one line output by "hg annotate -d -n" looks like this:
 ;;215 Wed Jun 20 21:22:58 2007 -0700: CONTENTS

@@ -2232,15 +2232,6 @@ Uses `gnus-newsgroup-name' if category is nil (for ham registration)."
 
 ;;{{{ spam-stat
 
-(eval-when-compile
-  (autoload 'spam-stat-buffer-change-to-non-spam "spam-stat")
-  (autoload 'spam-stat-buffer-change-to-spam "spam-stat")
-  (autoload 'spam-stat-buffer-is-non-spam "spam-stat")
-  (autoload 'spam-stat-buffer-is-spam "spam-stat")
-  (autoload 'spam-stat-load "spam-stat")
-  (autoload 'spam-stat-save "spam-stat")
-  (autoload 'spam-stat-split-fancy "spam-stat"))
-
 (require 'spam-stat)
 
 (defun spam-check-stat ()

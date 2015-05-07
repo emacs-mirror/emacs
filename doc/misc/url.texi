@@ -1,8 +1,7 @@
 \input texinfo
 @setfilename ../../info/url.info
 @settitle URL Programmer's Manual
-
-@documentencoding UTF-8
+@include docstyle.texi
 
 @iftex
 @c @finalout

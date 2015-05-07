@@ -395,7 +395,7 @@ otherwise return nil."
     (mm-coding-system-p 'utf-8)))
 
 (declare-function libxml-parse-html-region "xml.c"
-		  (start end &optional base-url))
+		  (start end &optional base-url discard-comments))
 (defun nnrss-fetch (url &optional local)
   "Fetch URL and put it in a the expected Lisp structure."
   (mm-with-unibyte-buffer

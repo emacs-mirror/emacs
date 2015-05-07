@@ -379,7 +379,7 @@ Currently this means either text/html or application/xhtml+xml."
 	     (match-string 1)))))
 
 (declare-function libxml-parse-html-region "xml.c"
-		  (start end &optional base-url))
+		  (start end &optional base-url discard-comments))
 
 (defun eww-display-html (charset url &optional document point buffer encode)
   (unless (fboundp 'libxml-parse-html-region)

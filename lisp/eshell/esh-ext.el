@@ -60,14 +60,15 @@ loaded into memory, thus beginning a new process."
   :type '(repeat string)
   :group 'eshell-ext)
 
-(defcustom eshell-force-execution nil
-  "If non-nil, try to execute binary files regardless of permissions.
+(defcustom eshell-force-execution
+  (not (null (memq system-type '(windows-nt ms-dos))))
+  "If non-nil, try to execute files regardless of execute permissions.
 This can be useful on systems like Windows, where the operating system
-doesn't happen to honor the permission bits in certain cases; or in
-cases where you want to associate an interpreter with a particular
-kind of script file, but the language won't let you but a '#!'
-interpreter line in the file, and you don't want to make it executable
-since nothing else but Eshell will be able to understand
+doesn't support the execution bit for shell scripts; or in cases where
+you want to associate an interpreter with a particular kind of script
+file, but the language won't let you but a '#!' interpreter line in
+the file, and you don't want to make it executable since nothing else
+but Eshell will be able to understand
 `eshell-interpreter-alist'."
   :type 'boolean
   :group 'eshell-ext)
@@ -78,6 +79,8 @@ since nothing else but Eshell will be able to understand
       name
     (let ((list (eshell-parse-colon-path eshell-path-env))
 	  suffixes n1 n2 file)
+      (if (eshell-under-windows-p)
+          (push "." list))
       (while list
 	(setq n1 (concat (car list) name))
 	(setq suffixes eshell-binary-suffixes)

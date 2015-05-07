@@ -136,8 +136,8 @@ extern int sys_select (int, fd_set *, fd_set *, fd_set *,
 
 /* Work around GCC 4.7.0 bug with strict overflow checking; see
    <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52904>.
-   These lines can be removed once the GCC bug is fixed.  */
-#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)
+   This bug appears to be fixed in GCC 5.1, so don't work around it there.  */
+#if __GNUC__ == 4 && __GNUC_MINOR__ >= 3
 # pragma GCC diagnostic ignored "-Wstrict-overflow"
 #endif
 

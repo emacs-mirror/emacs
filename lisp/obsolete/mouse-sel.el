@@ -315,7 +315,7 @@ is `interprogram-cut-paste'.")
 	(or (gui-selection-value)
 	    (bound-and-true-p x-last-selected-text-primary)
             gui--last-selected-text-primary)
-      (x-get-selection selection)))
+      (gui-get-selection selection)))
   "Function to call to get the selection.
 Called with one argument:
 

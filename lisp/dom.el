@@ -25,6 +25,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(eval-when-compile (require 'subr-x))
 
 (defsubst dom-tag (node)
   "Return the NODE tag."

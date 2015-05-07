@@ -1,3 +1,4 @@
+@c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
 @c Copyright (C) 1997, 1999-2015 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
@@ -214,7 +215,7 @@ faces used to display the character, and any overlays containing it
 
 @smallexample
              position: 1 of 1 (0%), column: 0
-            character: @^e (displayed as @^e) (codepoint 234, #o352, #xea)
+            character: ê (displayed as ê) (codepoint 234, #o352, #xea)
     preferred charset: unicode (Unicode (ISO10646))
 code point in charset: 0xEA
                script: latin

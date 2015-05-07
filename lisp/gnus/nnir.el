@@ -281,16 +281,6 @@ is `(valuefunc member)'."
 
 (require 'gnus-sum)
 
-(eval-when-compile
-  (autoload 'nnimap-buffer "nnimap")
-  (autoload 'nnimap-command "nnimap")
-  (autoload 'nnimap-change-group "nnimap")
-  (autoload 'nnimap-make-thread-query "nnimap")
-  (autoload 'gnus-registry-action "gnus-registry")
-  (autoload 'gnus-registry-get-id-key "gnus-registry")
-  (autoload 'gnus-group-topic-name "gnus-topic"))
-
-
 (nnoo-declare nnir)
 (nnoo-define-basics nnir)
 
@@ -585,6 +575,8 @@ Add an entry here when adding a new search engine.")
 				  nnir-engines)))))
 
 ;; Gnus glue.
+
+(declare-function gnus-group-topic-name "gnus-topic" ())
 
 (defun gnus-group-make-nnir-group (nnir-extra-parms &optional specs)
   "Create an nnir group.  Prompt for a search query and determine
@@ -947,6 +939,10 @@ ready to be added to the list of search results."
 	    (string-to-number score)))))
 
 ;;; Search Engine Interfaces:
+
+(autoload 'nnimap-change-group "nnimap")
+(declare-function nnimap-buffer "nnimap" ())
+(declare-function nnimap-command "nnimap" (&rest args))
 
 ;; imap interface
 (defun nnir-run-imap (query srv &optional groups)
@@ -1774,6 +1770,9 @@ environment unless `not-global' is non-nil."
   (let ((backend (car (gnus-server-to-method server))))
     (nnoo-current-server-p (or backend 'nnir) server)))
 
+(autoload 'nnimap-make-thread-query "nnimap")
+(declare-function gnus-registry-get-id-key "gnus-registry" (id key))
+
 (defun nnir-search-thread (header)
   "Make an nnir group based on the thread containing the article
 header. The current server will be searched. If the registry is
@@ -1840,6 +1839,10 @@ article came from is also searched."
 		    groups))
 	    (forward-line)))))
     groups))
+
+;; Behind gnus-registry-enabled test.
+(declare-function gnus-registry-action "gnus-registry"
+                  (action data-header from &optional to method))
 
 (defun nnir-registry-action (action data-header from &optional to method)
   "Call `gnus-registry-action' with the original article group."

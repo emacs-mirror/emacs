@@ -23,9 +23,8 @@
 ;;; Code:
 
 (require 'mm-decode)
-(eval-when-compile
-  (autoload 'gnus-recursive-directory-files "gnus-util")
-  (autoload 'mailcap-extension-to-mime "mailcap"))
+(autoload 'gnus-recursive-directory-files "gnus-util")
+(autoload 'mailcap-extension-to-mime "mailcap")
 
 (defvar mm-archive-decoders
   '(("application/ms-tnef" t "tnef" "-f" "-" "-C")

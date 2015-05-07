@@ -60,7 +60,7 @@ Moves cursor to end of the match."
 	 (when (re-search-forward "^\\([^ ]+\\) " nil t)
 	   (match-string 1)))
 	(t
-	 (when (re-search-forward "^\\([^ :]+\\):+\\([0-9]+\\):" nil t)
+	 (when (re-search-forward "^\\(\\(?:[a-zA-Z]:\\)?[^:\n]+\\):\\([0-9]+\\):" nil t)
 	   (cons (string-to-number (match-string 2))
 		 (expand-file-name (match-string 1) default-directory))
 	   ))))

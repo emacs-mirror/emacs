@@ -654,10 +654,14 @@ the value of `default-directory'."
 		  'file-directory-p))
 
 
-(defun pwd ()
-  "Show the current default directory."
-  (interactive nil)
-  (message "Directory %s" default-directory))
+(defun pwd (&optional insert)
+  "Show the current default directory.
+With prefix argument INSERT, insert the current default directory
+at point instead."
+  (interactive "P")
+  (if insert
+      (insert default-directory)
+    (message "Directory %s" default-directory)))
 
 (defvar cd-path nil
   "Value of the CDPATH environment variable, as a list.

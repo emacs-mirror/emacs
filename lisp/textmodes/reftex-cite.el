@@ -543,7 +543,14 @@ If FORMAT is non-nil `format' entry accordingly."
        (extra
         (cond
          ((equal type "article")
-          (concat (reftex-get-bib-field "journal" entry) " "
+          (concat (let ((jt (reftex-get-bib-field "journal" entry)))
+                    ;; biblatex prefers the alternative journaltitle
+                    ;; field, so check if that exists in case journal
+                    ;; is empty.
+                    (if (zerop (length jt))
+                        (reftex-get-bib-field "journaltitle" entry)
+                      jt))
+                  " "
                   (reftex-get-bib-field "volume" entry) ", "
                   (reftex-get-bib-field "pages" entry)))
          ((equal type "book")

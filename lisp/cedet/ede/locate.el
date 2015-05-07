@@ -353,7 +353,7 @@ that created this EDE locate object."
 
 (cl-defmethod ede-locate-create/update-root-database
   ((loc (subclass ede-locate-cscope)) root)
-  "Create or update the GNU Global database for the current project."
+  "Create or update the Cscope database for the current project."
   (require 'cedet-cscope)
   (cedet-cscope-create/update-database root))
 

@@ -94,6 +94,7 @@ EMACS_XTRA= \
 	$(srcdir)/arevert-xtra.texi \
 	$(srcdir)/cal-xtra.texi \
 	$(srcdir)/dired-xtra.texi \
+	${srcdir}/docstyle.texi \
 	$(srcdir)/picture-xtra.texi \
 	$(srcdir)/emerge-xtra.texi \
 	$(srcdir)/vc-xtra.texi \

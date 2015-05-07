@@ -452,7 +452,7 @@ This is like `describe-bindings', but displays only Isearch keys."
     (define-key map "\M-\C-s" 'isearch-repeat-forward)
     (define-key map "\M-\C-r" 'isearch-repeat-backward)
     (define-key map "\177" 'isearch-delete-char)
-    (define-key map [backspace] 'isearch-delete-char)
+    (define-key map [backspace] 'undefined) ;bug#20466.
     (define-key map "\C-g" 'isearch-abort)
 
     ;; This assumes \e is the meta-prefix-char.
@@ -1924,8 +1924,8 @@ If search string is empty, just beep."
 (defun isearch-yank-x-selection ()
   "Pull current X selection into search string."
   (interactive)
-  (isearch-yank-string (x-get-selection))
-  ;; If `x-get-selection' returned the text from the active region,
+  (isearch-yank-string (gui-get-selection))
+  ;; If `gui-get-selection' returned the text from the active region,
   ;; then it "used" the mark which we should hence deactivate.
   (when select-active-regions (deactivate-mark)))
 

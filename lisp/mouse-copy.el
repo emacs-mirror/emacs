@@ -177,7 +177,7 @@ put the point at one place, then click and drag over some other region."
 	    (mouse-copy-work-around-drag-bug start-event last-input-event))
 	;; Remember what we do so we can undo it, if necessary.
 	(setq mouse-copy-last-paste-start (point))
-	(insert (x-get-selection 'SECONDARY))
+	(insert (gui-get-selection 'SECONDARY))
 	(setq mouse-copy-last-paste-end (point)))
     (setq mouse-copy-last-paste-start nil)))
 
@@ -216,7 +216,7 @@ by johnh@ficus.cs.ucla.edu."
   (if (mouse-drag-secondary start-event)
       (progn
 	(mouse-kill-preserving-secondary)
-	(insert (x-get-selection 'SECONDARY))))
+	(insert (gui-get-selection 'SECONDARY))))
 )
 
 (provide 'mouse-copy)

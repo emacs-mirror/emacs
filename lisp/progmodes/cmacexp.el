@@ -364,8 +364,8 @@ Optional arg DISPLAY non-nil means show messages in the echo area."
 	    ;; Find and delete the mark of the start of the expansion.
 	    ;; Look for `# nn "file.c"' lines and delete them.
 	    (goto-char (point-min))
-	    (search-forward startmarker)
-	    (delete-region 1 (point)))
+            (if (search-forward startmarker nil t)
+                (delete-region 1 (point))))
 	  (while (re-search-forward (concat "^# [0-9]+ \""
 					    (regexp-quote filename)
 					    "\"") nil t)

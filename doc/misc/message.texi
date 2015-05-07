@@ -4,7 +4,7 @@
 
 @setfilename ../../info/message.info
 @settitle Message Manual
-@documentencoding UTF-8
+@include docstyle.texi
 @synindex fn cp
 @synindex vr cp
 @synindex pg cp

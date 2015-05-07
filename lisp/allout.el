@@ -6051,8 +6051,8 @@ See `allout-toggle-current-subtree-encryption' for more details."
 (declare-function epg-decrypt-string "epg" (context cipher))
 (declare-function epg-encrypt-string "epg"
                   (context plain recipients &optional sign always-trust))
-(declare-function epg-user-id-string "epg" (user-id))
-(declare-function epg-key-user-id-list "epg" (key))
+(declare-function epg-user-id-string "epg" (user-id) t)
+(declare-function epg-key-user-id-list "epg" (key) t)
 
 ;;;_  > allout-encrypt-string (text decrypt allout-buffer keymode-cue
 ;;;                                 &optional rejected)

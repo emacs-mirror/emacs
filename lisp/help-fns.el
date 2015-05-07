@@ -495,6 +495,9 @@ FILE is the file where FUNCTION was probably defined."
 			       f))
 		    ((subrp def) (intern (subr-name def)))
 		    (t def)))
+	 (sig-key (if (subrp def)
+                      (indirect-function real-def)
+                    real-def))
 	 (file-name (find-lisp-object-file-name function def))
          (pt1 (with-current-buffer (help-buffer) (point)))
 	 (beg (if (and (or (byte-code-function-p def)
@@ -586,7 +589,7 @@ FILE is the file where FUNCTION was probably defined."
 
         (help-fns--key-bindings function)
         (with-current-buffer standard-output
-          (setq doc (help-fns--signature function doc real-def real-function))
+          (setq doc (help-fns--signature function doc sig-key real-function))
 	  (run-hook-with-args 'help-fns-describe-function-functions function)
           (insert "\n"
                   (or doc "Not documented.")))))))

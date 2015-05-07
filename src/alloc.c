@@ -4496,7 +4496,7 @@ live_buffer_p (struct mem_node *m, void *p)
      must not have been killed.  */
   return (m->type == MEM_TYPE_BUFFER
 	  && p == m->start
-	  && !NILP (((struct buffer *) p)->INTERNAL_FIELD (name)));
+	  && !NILP (((struct buffer *) p)->name_));
 }
 
 #endif /* GC_MARK_STACK || defined GC_MALLOC_CHECK */
@@ -5762,7 +5762,7 @@ garbage_collect_1 (void *end)
      after GC.  It's important to scan finalizers at this stage so
      that we can be sure that unmarked finalizers are really
      unreachable except for references from their associated functions
-     and from other finalizers. */
+     and from other finalizers.  */
 
   queue_doomed_finalizers (&doomed_finalizers, &finalizers);
   mark_finalizer_list (&doomed_finalizers);

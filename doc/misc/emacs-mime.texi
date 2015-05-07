@@ -4,6 +4,7 @@
 
 @setfilename ../../info/emacs-mime.info
 @settitle Emacs MIME Manual
+@include docstyle.texi
 @synindex fn cp
 @synindex vr cp
 @synindex pg cp
@@ -27,7 +28,6 @@ modify this GNU manual.''
 @end copying
 
 @c Node ``Interface Functions'' uses non-ASCII characters
-@documentencoding UTF-8
 
 @dircategory Emacs lisp libraries
 @direntry

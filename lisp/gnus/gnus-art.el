@@ -7027,8 +7027,7 @@ If given a prefix, show the hidden text instead."
     (gnus-check-server (gnus-find-method-for-group gnus-newsgroup-name))
     (gnus-request-group gnus-newsgroup-name t)))
 
-(eval-when-compile
-  (autoload 'nneething-get-file-name "nneething"))
+(declare-function nneething-get-file-name "nneething" (id))
 
 (defun gnus-request-article-this-buffer (article group)
   "Get an article and insert it into this buffer."

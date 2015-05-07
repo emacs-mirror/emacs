@@ -1,4 +1,4 @@
-@c -*-texinfo-*-
+@c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2015 Free Software
 @c Foundation, Inc.
@@ -375,13 +375,7 @@ that, Emacs signals an error.
 codes.  A hexadecimal escape sequence consists of a backslash,
 @samp{x}, and the hexadecimal character code.  Thus, @samp{?\x41} is
 the character @kbd{A}, @samp{?\x1} is the character @kbd{C-a}, and
-@code{?\xe0} is the character
-@iftex
-@samp{@`a}.
-@end iftex
-@ifnottex
-@samp{a} with grave accent.
-@end ifnottex
+@code{?\xe0} is the character @kbd{à} (@kbd{a} with grave accent).
 You can use any number of hex digits, so you can represent any
 character code in this way.
 

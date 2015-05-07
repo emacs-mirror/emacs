@@ -413,7 +413,7 @@ but their relative order is also preserved:
          (9 . "aaa") (9 . "zzz") (9 . "ppp") (9 . "fff")]
 @end group
 @end example
-                
+
 @xref{Sorting}, for more functions that perform sorting.
 See @code{documentation} in @ref{Accessing Documentation}, for a
 useful example of @code{sort}.
@@ -796,6 +796,42 @@ of type @var{type}.  @var{type} can be one of the following symbols:
 vector or string (@pxref{Iteration} for more information about the
 @code{dolist} macro).  This is primarily useful for side-effects.
 @end defmac
+
+@defmac seq-let arguments sequense body@dots{}
+@cindex sequence destructuring
+  This macro binds the variables in defined in the sequence
+@var{arguments} to the elements of the sequence @var{sequence}.
+@var{arguments} can itself include sequences allowing for nested
+destructuring.
+
+The @var{arguments} sequence can also include the @code{&rest} marker
+followed by a variable name to be bound to the rest of
+@code{sequence}.
+
+@example
+@group
+(seq-let [first second] [1 2 3 4]
+  (list first second))
+@result{} (1 2)
+@end group
+@group
+(seq-let (_ a _ b) '(1 2 3 4)
+  (list a b))
+@result{} (2 4)
+@end group
+@group
+(seq-let [a [b [c]]] [1 [2 [3]]]
+  (list a b c))
+@result{} (1 2 3)
+@end group
+@group
+(seq-let [a b &rest others] [1 2 3 4]
+  others)
+@end group
+@result{} [3 4]
+@end example
+@end defmac
+
 
 @node Arrays
 @section Arrays

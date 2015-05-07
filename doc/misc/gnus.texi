@@ -4,11 +4,10 @@
 
 @setfilename ../../info/gnus.info
 @settitle Gnus Manual
+@include docstyle.texi
 @syncodeindex fn cp
 @syncodeindex vr cp
 @syncodeindex pg cp
-
-@documentencoding UTF-8
 
 @copying
 Copyright @copyright{} 1995--2015 Free Software Foundation, Inc.
@@ -9083,7 +9082,7 @@ CRs into LF (this takes care of Mac line endings)
 Treat quoted-printable (@code{gnus-article-de-quoted-unreadable}).
 Quoted-Printable is one common @acronym{MIME} encoding employed when
 sending non-@acronym{ASCII} (i.e., 8-bit) articles.  It typically
-makes strings like @samp{d@'ej@`a vu} look like @samp{d=E9j=E0 vu},
+makes strings like @samp{déjà vu} look like @samp{d=E9j=E0 vu},
 which doesn't look very readable to me.  Note that this is usually
 done automatically by Gnus if the message in question has a
 @code{Content-Transfer-Encoding} header that says that this encoding
@@ -16968,7 +16967,7 @@ group as read.
 
 If the search engine changes its output substantially, @code{nnweb}
 won't be able to parse it and will fail.  One could hardly fault the Web
-providers if they were to do this---their @emph{raison d'@^etre} is to
+providers if they were to do this---their @emph{raison d'être} is to
 make money off of advertisements, not to provide services to the
 community.  Since @code{nnweb} washes the ads off all the articles, one
 might think that the providers might be somewhat miffed.  We'll see.
@@ -26815,7 +26814,7 @@ David Moore---rewrite of @file{nnvirtual.el} and many other things.
 Kevin Davidson---came up with the name @dfn{ding}, so blame him.
 
 @item
-Fran@,{c}ois Pinard---many, many interesting and thorough bug reports, as
+François Pinard---many, many interesting and thorough bug reports, as
 well as autoconf support.
 
 @end itemize
@@ -26923,7 +26922,7 @@ Gunnar Horrigmo,
 Richard Hoskins,
 Brad Howes,
 Miguel de Icaza,
-Fran@,{c}ois Felix Ingrand,
+François Felix Ingrand,
 Tatsuya Ichikawa, @c Ichikawa
 Ishikawa Ichiro, @c Ishikawa
 Lee Iverson,

@@ -2071,5 +2071,3 @@ mark."
 (provide 'ethio-util)
 
 ;;; ethio-util.el ends here
-
-;;; ethio-util.el ends here

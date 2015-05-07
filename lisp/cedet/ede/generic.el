@@ -230,7 +230,7 @@ If one doesn't exist, create a new one for this directory."
     (when ext
       (dolist (C classes)
 	(let* ((classsym (intern (car C)))
-	       (extreg (oref classsym extension)))
+	       (extreg (oref-default classsym extension)))
 	  (when (and (not (string= extreg ""))
 		     (string-match (concat "\\`\\(?:" extreg "\\)\\'") ext))
 	    (setq cls classsym)))))

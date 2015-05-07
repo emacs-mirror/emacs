@@ -731,7 +731,8 @@ Complete list of commands:
 	     (buffer-substring (line-beginning-position 0)
 			       (line-end-position 0)))))
 
-(declare-function help-xref-interned "help-mode" (symbol))
+(declare-function help-xref-interned "help-mode"
+                  (symbol &optional buffer frame))
 
 (defun debug-help-follow (&optional pos)
   "Follow cross-reference at POS, defaulting to point.

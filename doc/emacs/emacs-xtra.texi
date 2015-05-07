@@ -2,6 +2,7 @@
 @comment %**start of header
 @setfilename ../../info/emacs-xtra.info
 @settitle Specialized Emacs Features
+@include docstyle.texi
 @c Merge all functions, variables, and keys into the concept index.
 @syncodeindex fn cp
 @syncodeindex vr cp
@@ -25,8 +26,6 @@ is included in the section entitled ``GNU Free Documentation License''.
 modify this GNU manual.''
 @end quotation
 @end copying
-
-@documentencoding UTF-8
 
 @dircategory Emacs
 @direntry

@@ -167,8 +167,8 @@ nontrivial changes to the build process.
 	leim/CXTERM-DIC/QJ.tit
 	leim/CXTERM-DIC/SW.tit
 	leim/CXTERM-DIC/TONEPY.tit
-	leim/MISC-DIC/pinyin.map
 	leim/MISC-DIC/CTLau.html
+	leim/MISC-DIC/pinyin.map
 	leim/MISC-DIC/ziranma.cin
 
  * cp850
@@ -237,9 +237,11 @@ nontrivial changes to the build process.
 
      These files contain characters that cannot be encoded in UTF-8.
 
-	lisp/language/tibetan.el
-	lisp/language/tibet-util.el
+	lisp/language/ethio-util.el
+	lisp/language/ethiopic.el
 	lisp/language/ind-util.el
+	lisp/language/tibet-util.el
+	lisp/language/tibetan.el
 	lisp/leim/quail/ethiopic.el
 	lisp/leim/quail/tibetan.el
 

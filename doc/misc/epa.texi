@@ -2,7 +2,7 @@
 @c %**start of header
 @setfilename ../../info/epa.info
 @settitle EasyPG Assistant User's Manual
-@documentencoding UTF-8
+@include docstyle.texi
 @c %**end of header
 
 @set VERSION 1.0.0

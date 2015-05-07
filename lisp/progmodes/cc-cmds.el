@@ -1317,6 +1317,9 @@ keyword on the line, the keyword is not inserted inside a literal, and
   (autoload 'c-subword-mode "cc-subword"
     "Mode enabling subword movement and editing keys." t)))
 
+(declare-function c-forward-subword "ext:cc-subword" (&optional arg))
+(declare-function c-backward-subword "ext:cc-subword" (&optional arg))
+
 ;; "nomenclature" functions + c-scope-operator.
 (defun c-forward-into-nomenclature (&optional arg)
   "Compatibility alias for `c-forward-subword'."

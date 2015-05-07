@@ -1698,7 +1698,7 @@ Usually, the input method inserts the intermediate key sequence,
 or candidate translations corresponding to the sequence,
 at point in the current buffer.
 But, if this flag is non-nil, it displays them in echo area instead."
-  :type 'hook
+  :type 'boolean
   :group 'mule)
 
 (defvar input-method-exit-on-invalid-key nil

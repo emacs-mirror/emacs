@@ -2,9 +2,9 @@
 @c %**start of header
 @setfilename ../../info/erc.info
 @settitle ERC Manual
+@include docstyle.texi
 @syncodeindex fn cp
 @include emacsver.texi
-@documentencoding UTF-8
 @c %**end of header
 
 @copying

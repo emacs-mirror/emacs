@@ -626,6 +626,8 @@ You can replace this form with `gv-define-setter'.
 ;;     ...the rest, and build the 5-tuple))
 (make-obsolete 'get-setf-method 'gv-letplace "24.3")
 
+(declare-function cl--arglist-args "cl-macs" (args))
+
 (defmacro define-modify-macro (name arglist func &optional doc)
   "Define a `setf'-like modify macro.
 If NAME is called, it combines its PLACE argument with the other
@@ -639,6 +641,7 @@ You can replace this macro with `gv-letplace'."
                      symbolp &optional stringp)))
   (if (memq '&key arglist)
       (error "&key not allowed in define-modify-macro"))
+  (require 'cl-macs)                    ;For cl--arglist-args.
   (let ((place (make-symbol "--cl-place--")))
     `(cl-defmacro ,name (,place ,@arglist)
        ,doc

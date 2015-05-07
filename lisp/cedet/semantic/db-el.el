@@ -223,11 +223,11 @@ TOKTYPE is a hint to the type of tag desired."
 	    (symbol-name sym)
 	    "class"
 	    (semantic-elisp-desymbolify
-             (let ((class (find-class sym)))
-               (if (fboundp 'eieio-slot-descriptor-name)
-                   (mapcar #'eieio-slot-descriptor-name
-                           (eieio-class-slots class))
-                 (eieio--class-public-a class))))
+	     (let ((class (find-class sym)))
+	       (if (fboundp 'eieio--class-public-a) ; Emacs < 25.1
+		   (eieio--class-public-a class)
+		 (mapcar #'eieio-slot-descriptor-name
+			 (eieio-class-slots class)))))
 	    (semantic-elisp-desymbolify (eieio-class-parents sym)) ;; parents
 	    ))
 	  ((not toktype)

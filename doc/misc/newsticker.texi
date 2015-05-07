@@ -4,10 +4,10 @@
 @include emacsver.texi
 @set VERSION @value{EMACSVER}
 @settitle Newsticker @value{VERSION}
+@include docstyle.texi
 @syncodeindex vr cp
 @syncodeindex fn cp
 @syncodeindex pg cp
-@documentencoding UTF-8
 @comment %**end of header
 
 @copying

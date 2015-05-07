@@ -793,9 +793,10 @@ you type is correctly handled."
 		 keyseq)))
 
 (defun quail-insert-kbd-layout (kbd-layout)
-"Insert the visual keyboard layout table according to KBD-LAYOUT.
+  "Insert the visual keyboard layout table according to KBD-LAYOUT.
 The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
   (let (done-list layout i ch)
+    (setq bidi-paragraph-direction 'left-to-right)
     ;; At first, convert KBD-LAYOUT to the same size vector that
     ;; contains translated character or string.
     (setq layout (string-to-vector kbd-layout)

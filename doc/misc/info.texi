@@ -5,10 +5,10 @@
 @comment %**start of header
 @setfilename info.info
 @settitle Info
+@include docstyle.texi
 @syncodeindex fn cp
 @syncodeindex vr cp
 @syncodeindex ky cp
-@documentencoding UTF-8
 @comment %**end of header
 
 @copying

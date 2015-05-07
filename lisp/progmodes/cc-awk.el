@@ -61,6 +61,7 @@
 (cc-bytecomp-defun c-backward-token-1)
 (cc-bytecomp-defun c-beginning-of-statement-1)
 (cc-bytecomp-defun c-backward-sws)
+(cc-bytecomp-defun c-forward-sws)
 
 (defvar awk-mode-syntax-table
   (let ((st (make-syntax-table)))

@@ -2,10 +2,10 @@
 @c %**start of header
 @setfilename ../../info/todo-mode.info
 @settitle Todo Mode User Manual
+@include docstyle.texi
 @syncodeindex fn cp
 @syncodeindex vr cp
 @syncodeindex ky cp
-@documentencoding UTF-8
 @c %**end of header
 
 @copying

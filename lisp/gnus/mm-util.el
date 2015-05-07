@@ -1058,11 +1058,10 @@ This affects whether coding conversion should be attempted generally."
 		(length (memq (coding-system-base b) priorities)))
 	   t))))
 
-(eval-when-compile
-  (autoload 'latin-unity-massage-name "latin-unity")
-  (autoload 'latin-unity-maybe-remap "latin-unity")
-  (autoload 'latin-unity-representations-feasible-region "latin-unity")
-  (autoload 'latin-unity-representations-present-region "latin-unity"))
+(declare-function latin-unity-massage-name "ext:latin-unity")
+(declare-function latin-unity-maybe-remap "ext:latin-unity")
+(declare-function latin-unity-representations-feasible-region "ext:latin-unity")
+(declare-function latin-unity-representations-present-region "ext:latin-unity")
 
 (defvar latin-unity-coding-systems)
 (defvar latin-unity-ucs-list)

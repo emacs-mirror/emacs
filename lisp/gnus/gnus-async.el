@@ -226,9 +226,6 @@ that was fetched."
   `(lambda (arg)
      (gnus-async-article-callback arg ,group ,article ,mark ,summary ,next)))
 
-(eval-when-compile
-  (autoload 'gnus-html-prefetch-images "gnus-html"))
-
 (defun gnus-async-article-callback (arg group article mark summary next)
   "Function called when an async article is done being fetched."
   (save-excursion

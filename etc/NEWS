@@ -238,6 +238,8 @@ Unicode standards.
 
 * Changes in Specialized Modes and Packages in Emacs 25.1
 
+** New `xterm-screen-extra-capabilities' config.
+
 ** The `save-place' variable is replaced by a `save-place-mode'.
 
 ** Midnight-mode
@@ -691,6 +693,11 @@ a typographically-correct documents.
 
 * Incompatible Lisp Changes in Emacs 25.1
 
+** `indirect-function' does not signal `void-function' any more.
+This is mostly a bug-fix, since this change was missed back in 24.4 when
+symbol-function was changed not to signal `void-function' any more.
+*** As a consequence, the second arg of `indirect-function' is now obsolete.
+
 ** Comint, term, and compile do not set the EMACS env var any more.
 Use the INSIDE_EMACS environment variable instead.
 
@@ -741,6 +748,8 @@ behavior, set `diff-switches' to `-c'.
 
 
 * Lisp Changes in Emacs 25.1
+
+** The default value of `load-read-function' is now `read'.
 
 ** New hook `pre-redisplay-functions', a bit easier to use than pre-redisplay-function.
 
@@ -816,6 +825,9 @@ name.  The variable `system-name' is now obsolete.
 
 +++
 ** Function `write-region' no longer outputs "Wrote FILE" in batch mode.
+
+** If `pwd' is called with a prefix argument, insert the current default
+directory at point.
 
 ---
 ** New utilities in subr-x.el:

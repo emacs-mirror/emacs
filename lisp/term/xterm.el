@@ -29,6 +29,13 @@
   :version "24.1"
   :group 'terminals)
 
+(defconst xterm--extra-capabilities-type
+  ;; NOTE: If you add entries here, make sure to update
+  ;; `terminal-init-xterm' as well.
+  '(set (const :tag "modifyOtherKeys support" modifyOtherKeys)
+        (const :tag "report background" reportBackground)
+        (const :tag "set X selection" setSelection)))
+
 (defcustom xterm-extra-capabilities 'check
   "Whether Xterm supports some additional, more modern, features.
 If nil, just assume that it does not.
@@ -40,13 +47,8 @@ The relevant features are:
   reportBackground -- if supported, Xterm reports its background color
   setSelection     -- if supported, Xterm saves yanked text to the X selection"
   :version "24.1"
-  :type '(choice (const :tag "No" nil)
-                 (const :tag "Check" check)
-                 ;; NOTE: If you add entries here, make sure to update
-                 ;; `terminal-init-xterm' as well.
-                 (set (const :tag "modifyOtherKeys support" modifyOtherKeys)
-                      (const :tag "report background" reportBackground)
-                      (const :tag "set X selection" setSelection))))
+  :type `(choice (const :tag "Check" check)
+                 ,xterm--extra-capabilities-type))
 
 (defcustom xterm-max-cut-length 100000
   "Maximum number of bytes to cut into xterm using the OSC 52 sequence.
@@ -623,8 +625,11 @@ string bytes that can be copied is 3/4 of this value."
           (setq version 200))
         (when (equal (match-string 1 str) "83")
           ;; `screen' (which returns 83;40003;0) seems to also lack support for
-          ;; some of these (bug#17607).
-          (setq version 240))
+          ;; some of these (bug#17607, bug#20356).
+          ;; Note: this code path should normally not be used any more
+          ;; since term/screen.el now binds xterm-extra-capabilities
+          ;; to a fixed value, rather than using the dynamic checking.
+          (setq version 200))
         ;; If version is 242 or higher, assume the xterm supports
         ;; reporting the background color (TODO: maybe earlier
         ;; versions do too...)
@@ -925,6 +930,6 @@ versions of xterm."
     (set-terminal-parameter nil 'background-mode 'dark)
     t))
 
-(provide 'xterm)
-
+(provide 'xterm)                        ;Backward compatibility.
+(provide 'term/xterm)
 ;;; xterm.el ends here

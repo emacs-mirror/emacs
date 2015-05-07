@@ -1035,7 +1035,7 @@ or BRANCH^ (where \"^\" can be repeated)."
 	   (append (vc-switches 'git 'annotate)
 		   (list rev "--" name)))))
 
-(declare-function vc-annotate-convert-time "vc-annotate" (time))
+(declare-function vc-annotate-convert-time "vc-annotate" (&optional time))
 
 (defun vc-git-annotate-time ()
   (and (re-search-forward "[0-9a-f]+[^()]+(.* \\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\) \\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\) \\([-+0-9]+\\) +[0-9]+) " nil t)

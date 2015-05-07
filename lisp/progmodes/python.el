@@ -2268,7 +2268,7 @@ banner and the initial prompt are received separately."
       (while t
         (when (not (accept-process-output process timeout))
           (throw 'found nil))
-        (when (looking-back regexp)
+        (when (looking-back regexp (point-min))
           (throw 'found t))))))
 
 (defun python-shell-comint-end-of-output-p (output)

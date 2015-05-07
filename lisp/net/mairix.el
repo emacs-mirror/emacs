@@ -265,18 +265,22 @@ Currently there are 'threads and 'flags.")
 	(mail-fetch-field field)))))
 
 ;;; Gnus
-(eval-when-compile
-  (defvar gnus-article-buffer)
-  (autoload 'gnus-summary-toggle-header "gnus-sum")
-  (autoload 'gnus-buffer-exists-p "gnus-util")
-  (autoload 'message-field-value "message")
-  (autoload 'gnus-group-read-ephemeral-group "gnus-group")
-  (autoload 'gnus-alive-p "gnus-util"))
+
+;; For gnus-buffer-exists-p, although it seems that could be replaced by:
+;; (and buffer (get-buffer buffer))
+(eval-when-compile (require 'gnus-util))
+(defvar gnus-article-buffer)
+(declare-function gnus-group-read-ephemeral-group "gnus-group"
+		  (group method &optional activate quit-config
+		  request-only select-articles parameters number))
+(declare-function gnus-summary-toggle-header "gnus-sum" (&optional arg))
+(declare-function message-field-value "message" (header &optional not-all))
 
 ;; Display function:
 (defun mairix-gnus-ephemeral-nndoc (folder)
   "Create ephemeral nndoc group for reading mbox file FOLDER in Gnus."
-  (unless (gnus-alive-p)
+  (unless (and (fboundp 'gnus-alive-p)
+	       (gnus-alive-p))
     (error "Gnus is not running"))
   (gnus-group-read-ephemeral-group
    ;; add randomness to group string to prevent Gnus from using a
@@ -289,26 +293,29 @@ Currently there are 'threads and 'flags.")
 ;; Fetching mail header field:
 (defun mairix-gnus-fetch-field (field)
   "Get mail header FIELD for current message using Gnus."
-  (unless (gnus-alive-p)
+  (unless (and (fboundp 'gnus-alive-p)
+	       (gnus-alive-p))
     (error "Gnus is not running"))
   (unless (gnus-buffer-exists-p gnus-article-buffer)
     (error "No article buffer available"))
   (with-current-buffer gnus-article-buffer
+    ;; gnus-art requires gnus-sum and message.
     (gnus-summary-toggle-header 1)
     (message-field-value field)))
 
 ;;; VM
 ;;; written by Ulrich Mueller
 
-(eval-when-compile
-  (autoload 'vm-quit "vm-folder")
-  (autoload 'vm-visit-folder "vm")
-  (autoload 'vm-select-folder-buffer "vm-macro")
-  (autoload 'vm-check-for-killed-summary "vm-misc")
-  (autoload 'vm-get-header-contents "vm-summary")
-  (autoload 'vm-check-for-killed-summary "vm-misc")
-  (autoload 'vm-error-if-folder-empty "vm-misc")
-  (autoload 'vm-select-marked-or-prefixed-messages "vm-folder"))
+(declare-function vm-quit "ext:vm-folder" (&optional no-change))
+(declare-function vm-visit-folder "ext:vm-startup"
+		  (folder &optional read-only))
+(declare-function vm-select-folder-buffer "ext:vm-macro" ()) ; defsubst
+(declare-function vm-check-for-killed-summary "ext:vm-misc" ())
+(declare-function vm-error-if-folder-empty "ext:vm-misc" ())
+(declare-function vm-get-header-contents "ext:vm-summary"
+		  (message header-name-regexp &optional clump-sep))
+(declare-function vm-select-marked-or-prefixed-messages "ext:vm-folder"
+		  (prefix))
 
 ;; Display function
 (defun mairix-vm-display (folder)

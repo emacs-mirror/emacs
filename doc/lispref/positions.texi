@@ -888,6 +888,14 @@ type @code{nil}.  @xref{Marker Insertion Types}.  Therefore, when the
 saved point value is restored, it normally comes before the inserted
 text.
 
+@defmac save-mark-and-excursion body@dots{}
+@cindex mark excursion
+@cindex point excursion
+This macro is like @code{save-excursion}, but also saves and restores
+the mark location and @code{mark-active}.  This macro does what
+@code{save-excursion} did before Emacs 25.1.
+@end defmac
+
 @node Narrowing
 @section Narrowing
 @cindex narrowing

@@ -422,6 +422,47 @@
     ;; should return a copy
     (should-not (eq (cl-ldiff l '()) l))))
 
+(ert-deftest cl-lib-adjoin-test ()
+  (let ((nums '(1 2))
+        (myfn-p '=))
+    ;; add non-existing item to the front
+    (should (equal '(3 1 2) (cl-adjoin 3 nums)))
+    ;; just add - don't copy rest
+    (should (eq nums (cdr (cl-adjoin 3 nums))))
+    ;; add only when not already there
+    (should (eq nums (cl-adjoin 2 nums)))
+    (should (equal '(2 1 (2)) (cl-adjoin 2 '(1 (2)))))
+    ;; default test function is eql
+    (should (equal '(1.0 1 2) (cl-adjoin 1.0 nums)))
+    ;; own :test function - returns true if match
+    (should (equal '(1.0 1 2) (cl-adjoin 1.0 nums :test nil))) ;defaults to eql
+    (should (eq nums (cl-adjoin 2 nums :test myfn-p))) ;match
+    (should (equal '(3 1 2) (cl-adjoin 3 nums :test myfn-p))) ;no match
+    ;; own :test-not function - returns false if match
+    (should (equal '(1.0 1 2) (cl-adjoin 1.0 nums :test-not nil))) ;defaults to eql
+    (should (equal '(2 2) (cl-adjoin 2 '(2) :test-not myfn-p))) ; no match
+    (should (eq nums (cl-adjoin 2 nums :test-not myfn-p))) ; 1 matches
+    (should (eq nums (cl-adjoin 3 nums :test-not myfn-p))) ; 1 and 2 matches
+
+    ;; according to CLtL2 passing both :test and :test-not should signal error
+    ;;(should-error (cl-adjoin 3 nums :test 'myfn-p :test-not myfn-p))
+
+    ;; own :key fn
+    (should (eq nums (cl-adjoin 3 nums :key (lambda (x) (if (cl-evenp x) (1+ x) x)))))
+    (should (equal '(3 1 2) (cl-adjoin 3 nums :key (lambda (x) (if (cl-evenp x) (+ 2 x) x)))))
+
+    ;; convert using :key, then compare with :test
+    (should (eq nums (cl-adjoin 1 nums :key 'int-to-string :test 'string=)))
+    (should (equal '(3 1 2) (cl-adjoin 3 nums :key 'int-to-string :test 'string=)))
+    (should-error (cl-adjoin 3 nums :key 'int-to-string :test myfn-p)
+                  :type 'wrong-type-argument)
+
+    ;; convert using :key, then compare with :test-not
+    (should (eq nums (cl-adjoin 3 nums :key 'int-to-string :test-not 'string=)))
+    (should (equal '(1 1) (cl-adjoin 1 '(1) :key 'int-to-string :test-not 'string=)))
+    (should-error (cl-adjoin 1 nums :key 'int-to-string :test-not myfn-p)
+                  :type 'wrong-type-argument)))
+
 (ert-deftest cl-parse-integer ()
   (should-error (cl-parse-integer "abc"))
   (should (null (cl-parse-integer "abc" :junk-allowed t)))

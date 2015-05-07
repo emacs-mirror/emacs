@@ -1,9 +1,9 @@
-\input texinfo @c -*-texinfo-*-
+\input texinfo  @c -*- mode: texinfo; coding: utf-8 -*-
 @c %**start of header
 @setfilename ../../info/remember.info
 @settitle Remember Manual
+@include docstyle.texi
 @syncodeindex fn cp
-@documentencoding UTF-8
 @c %**end of header
 
 @copying

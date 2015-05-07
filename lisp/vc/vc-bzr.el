@@ -873,7 +873,7 @@ property containing author and date information."
                (move-marker (process-mark proc) (point))))
            (process-put proc :vc-left-over string)))))))
 
-(declare-function vc-annotate-convert-time "vc-annotate" (time))
+(declare-function vc-annotate-convert-time "vc-annotate" (&optional time))
 
 (defun vc-bzr-annotate-time ()
   (when (re-search-forward "^ *[0-9.]+ +.+? +|" nil t)

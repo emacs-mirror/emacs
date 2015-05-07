@@ -1,7 +1,8 @@
-\input texinfo
+\input texinfo  @c -*- coding: utf-8 -*-
 @c %**start of header
 @setfilename ../../info/org.info
 @settitle The Org Manual
+@include docstyle.texi
 
 @set VERSION 8.2.9
 
@@ -11,7 +12,6 @@
 @set MAINTAINER Carsten Dominik
 @set MAINTAINEREMAIL @email{carsten at orgmode dot org}
 @set MAINTAINERCONTACT @uref{mailto:carsten at orgmode dot org,contact the maintainer}
-@documentencoding UTF-8
 @c %**end of header
 @finalout
 
@@ -18487,7 +18487,7 @@ enabled source code highlighting in Gnus.
 Max-Planck-Institute for Neurology.  He also inspired the creation of a
 concept index for HTML export.
 @item
-@i{J@"urgen Vollmer} contributed code generating the table of contents
+@i{Jürgen Vollmer} contributed code generating the table of contents
 in HTML output.
 @item
 @i{Samuel Wales} has provided important feedback and bug reports.

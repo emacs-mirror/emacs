@@ -475,11 +475,12 @@ It can be quoted, or be inside a quoted form."
 		      (point)))
 		(scan-error pos))))
            ;; t if in function position.
-           (funpos (eq (char-before beg) ?\()))
+           (funpos (eq (char-before beg) ?\())
+           (quoted (elisp--form-quoted-p beg)))
       (when (and end (or (not (nth 8 (syntax-ppss)))
                          (eq (char-before beg) ?`)))
         (let ((table-etc
-               (if (not funpos)
+               (if (or (not funpos) quoted)
                    ;; FIXME: We could look at the first element of the list and
                    ;; use it to provide a more specific completion table in some
                    ;; cases.  E.g. filter out keywords that are not understood by
@@ -491,7 +492,7 @@ It can be quoted, or be inside a quoted form."
                            :company-doc-buffer #'elisp--company-doc-buffer
                            :company-docsig #'elisp--company-doc-string
                            :company-location #'elisp--company-location))
-                    ((elisp--form-quoted-p beg)
+                    (quoted
                      (list nil obarray
                            ;; Don't include all symbols (bug#16646).
                            :predicate (lambda (sym)
@@ -543,10 +544,11 @@ It can be quoted, or be inside a quoted form."
                                         (< (point) beg)))))
                         (list t obarray
                               :predicate (lambda (sym) (get sym 'error-conditions))))
-                       ((and ?\(
+                       ((and (or ?\( `let `let*)
                              (guard (save-excursion
                                       (goto-char (1- beg))
-                                      (up-list -1)
+                                      (when (eq parent ?\()
+                                        (up-list -1))
                                       (forward-symbol -1)
                                       (looking-at "\\_<let\\*?\\_>"))))
                         (list t obarray
@@ -579,6 +581,7 @@ It can be quoted, or be inside a quoted form."
 (declare-function xref-make-elisp-location "xref" (symbol type file))
 (declare-function xref-make-bogus-location "xref" (message))
 (declare-function xref-make "xref" (description location))
+(declare-function xref-collect-references "xref" (name dir))
 
 (defun elisp-xref-find (action id)
   (require 'find-func)
@@ -587,6 +590,8 @@ It can be quoted, or be inside a quoted form."
       (let ((sym (intern-soft id)))
         (when sym
           (elisp--xref-find-definitions sym))))
+    (`references
+     (elisp--xref-find-references id))
     (`apropos
      (elisp--xref-find-apropos id))))
 
@@ -599,12 +604,16 @@ It can be quoted, or be inside a quoted form."
                        (setq sym (car fun-lib))
                        (cdr fun-lib))))
            (`defvar (and (boundp sym)
-                         ;; Don't show minor modes twice.
-                         ;; TODO: If TYPE ever becomes dependent on the
-                         ;; context, move this check outside.
-                         (not (fboundp sym))
-                         (or (symbol-file sym 'defvar)
-                             (help-C-file-name sym 'var))))
+                         (let ((el-file (symbol-file sym 'defvar)))
+                           (if el-file
+                               (and
+                                ;; Don't show minor modes twice.
+                                ;; TODO: If TYPE ever becomes dependent on the
+                                ;; context, move this check outside.
+                                (not (and (fboundp sym)
+                                          (memq sym minor-mode-list)))
+                                el-file)
+                             (help-C-file-name sym 'var)))))
            (`feature (and (featurep sym)
                           ;; Skip when a function with the same name
                           ;; is defined, because it's probably in the
@@ -619,6 +628,12 @@ It can be quoted, or be inside a quoted form."
         (setq file (substring file 0 -1)))
       (xref-make-elisp-location sym type file))))
 
+(defvar elisp--xref-format
+  (let ((str "(%s %s)"))
+    (put-text-property 1 3 'face 'font-lock-keyword-face str)
+    (put-text-property 4 6 'face 'font-lock-function-name-face str)
+    str))
+
 (defun elisp--xref-find-definitions (symbol)
   (save-excursion
     (let (lst)
@@ -630,10 +645,32 @@ It can be quoted, or be inside a quoted form."
                   (xref-make-bogus-location (error-message-string err))))))
           (when loc
             (push
-             (xref-make (format "(%s %s)" type symbol)
+             (xref-make (format elisp--xref-format type symbol)
                         loc)
              lst))))
       lst)))
+
+(defvar package-user-dir)
+
+(defun elisp--xref-find-references (symbol)
+  (let* ((dirs (sort
+                (mapcar
+                 (lambda (dir)
+                   (file-name-as-directory (expand-file-name dir)))
+                 ;; FIXME: Why add package-user-dir?
+                 (cons package-user-dir load-path))
+                #'string<))
+         (ref dirs))
+    ;; Delete subdirectories from the list.
+    (while (cdr ref)
+      (if (string-prefix-p (car ref) (cadr ref))
+          (setcdr ref (cddr ref))
+        (setq ref (cdr ref))))
+    (cl-mapcan
+     (lambda (dir)
+       (and (file-exists-p dir)
+            (xref-collect-references symbol dir)))
+     dirs)))
 
 (defun elisp--xref-find-apropos (regexp)
   (apply #'nconc
@@ -1140,13 +1177,13 @@ which see."
     (cond ((null current-fnsym)
 	   nil)
 	  ((eq current-symbol (car current-fnsym))
-	   (or (apply #'elisp--get-fnsym-args-string current-fnsym)
-	       (elisp--get-var-docstring current-symbol)))
+	   (or (apply #'elisp-get-fnsym-args-string current-fnsym)
+	       (elisp-get-var-docstring current-symbol)))
 	  (t
-	   (or (elisp--get-var-docstring current-symbol)
-	       (apply #'elisp--get-fnsym-args-string current-fnsym))))))
+	   (or (elisp-get-var-docstring current-symbol)
+	       (apply #'elisp-get-fnsym-args-string current-fnsym))))))
 
-(defun elisp--get-fnsym-args-string (sym &optional index)
+(defun elisp-get-fnsym-args-string (sym &optional index prefix)
   "Return a string containing the parameter list of the function SYM.
 If SYM is a subr and no arglist is obtainable from the docstring
 or elsewhere, return a 1-line docstring."
@@ -1170,16 +1207,22 @@ or elsewhere, return a 1-line docstring."
 		     (car doc))
 		    (t (help-function-arglist sym)))))
              ;; Stringify, and store before highlighting, downcasing, etc.
-             ;; FIXME should truncate before storing.
-	     (elisp--last-data-store sym (elisp--function-argstring args)
+	     (elisp--last-data-store sym (elisp-function-argstring args)
                                     'function))))))
     ;; Highlight, truncate.
     (if argstring
-	(elisp--highlight-function-argument sym argstring index))))
+	(elisp--highlight-function-argument
+         sym argstring index
+         (or prefix
+             (concat (propertize (symbol-name sym) 'face
+                                 (if (functionp sym)
+                                     'font-lock-function-name-face
+                                   'font-lock-keyword-face))
+                     ": "))))))
 
-(defun elisp--highlight-function-argument (sym args index)
+(defun elisp--highlight-function-argument (sym args index prefix)
   "Highlight argument INDEX in ARGS list for function SYM.
-In the absence of INDEX, just call `elisp--docstring-format-sym-doc'."
+In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
   ;; FIXME: This should probably work on the list representation of `args'
   ;; rather than its string representation.
   ;; FIXME: This function is much too long, we need to split it up!
@@ -1264,9 +1307,9 @@ In the absence of INDEX, just call `elisp--docstring-format-sym-doc'."
                     ((string= argument "&allow-other-keys")) ; Skip.
                     ;; Back to index 0 in ARG1 ARG2 ARG2 ARG3 etc...
                     ;; like in `setq'.
-		    ((or (and (string-match-p "\\.\\.\\.$" argument)
+		    ((or (and (string-match-p "\\.\\.\\.\\'" argument)
                               (string= argument (car (last args-lst))))
-                         (and (string-match-p "\\.\\.\\.$"
+                         (and (string-match-p "\\.\\.\\.\\'"
                                               (substring args 1 (1- (length args))))
                               (= (length (remove "..." args-lst)) 2)
                               (> index 1) (eq (logand index 1) 1)))
@@ -1281,14 +1324,12 @@ In the absence of INDEX, just call `elisp--docstring-format-sym-doc'."
       (when start
 	(setq doc (copy-sequence args))
 	(add-text-properties start end (list 'face argument-face) doc))
-      (setq doc (elisp--docstring-format-sym-doc
-		 sym doc (if (functionp sym) 'font-lock-function-name-face
-                           'font-lock-keyword-face)))
+      (setq doc (eldoc-docstring-format-sym-doc prefix doc))
       doc)))
 
 ;; Return a string containing a brief (one-line) documentation string for
 ;; the variable.
-(defun elisp--get-var-docstring (sym)
+(defun elisp-get-var-docstring (sym)
   (cond ((not sym) nil)
         ((and (eq sym (aref elisp--eldoc-last-data 0))
               (eq 'variable (aref elisp--eldoc-last-data 2)))
@@ -1296,7 +1337,7 @@ In the absence of INDEX, just call `elisp--docstring-format-sym-doc'."
         (t
          (let ((doc (documentation-property sym 'variable-documentation t)))
            (when doc
-             (let ((doc (elisp--docstring-format-sym-doc
+             (let ((doc (eldoc-docstring-format-sym-doc
                          sym (elisp--docstring-first-line doc)
                          'font-lock-variable-name-face)))
                (elisp--last-data-store sym doc 'variable)))))))
@@ -1320,36 +1361,6 @@ In the absence of INDEX, just call `elisp--docstring-format-sym-doc'."
                    (substring doc start (match-beginning 0)))
                   ((zerop start) doc)
                   (t (substring doc start))))))))
-
-(defvar eldoc-echo-area-use-multiline-p)
-
-;; If the entire line cannot fit in the echo area, the symbol name may be
-;; truncated or eliminated entirely from the output to make room for the
-;; description.
-(defun elisp--docstring-format-sym-doc (sym doc face)
-  (save-match-data
-    (let* ((name (symbol-name sym))
-           (ea-multi eldoc-echo-area-use-multiline-p)
-           ;; Subtract 1 from window width since emacs will not write
-           ;; any chars to the last column, or in later versions, will
-           ;; cause a wraparound and resize of the echo area.
-           (ea-width (1- (window-width (minibuffer-window))))
-           (strip (- (+ (length name) (length ": ") (length doc)) ea-width)))
-      (cond ((or (<= strip 0)
-                 (eq ea-multi t)
-                 (and ea-multi (> (length doc) ea-width)))
-             (format "%s: %s" (propertize name 'face face) doc))
-            ((> (length doc) ea-width)
-             (substring (format "%s" doc) 0 ea-width))
-            ((>= strip (length name))
-             (format "%s" doc))
-            (t
-             ;; Show the end of the partial symbol name, rather
-             ;; than the beginning, since the former is more likely
-             ;; to be unique given package namespace conventions.
-             (setq name (substring name strip))
-             (format "%s: %s" (propertize name 'face face) doc))))))
-
 
 ;; Return a list of current function name and argument index.
 (defun elisp--fnsym-in-current-sexp ()
@@ -1394,7 +1405,7 @@ In the absence of INDEX, just call `elisp--docstring-format-sym-doc'."
          (memq (char-syntax c) '(?w ?_))
          (intern-soft (current-word)))))
 
-(defun elisp--function-argstring (arglist)
+(defun elisp-function-argstring (arglist)
   "Return ARGLIST as a string enclosed by ().
 ARGLIST is either a string, or a list of strings or symbols."
   (let ((str (cond ((stringp arglist) arglist)

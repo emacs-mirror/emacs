@@ -6,7 +6,7 @@
 
 @setfilename ../../info/auth.info
 @settitle Emacs auth-source Library @value{VERSION}
-@documentencoding UTF-8
+@include docstyle.texi
 
 @copying
 This file describes the Emacs auth-source library.

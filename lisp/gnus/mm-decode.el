@@ -1827,7 +1827,7 @@ If RECURSIVE, search recursively."
 	      (not (mm-long-lines-p 76))))))
 
 (declare-function libxml-parse-html-region "xml.c"
-		  (start end &optional base-url))
+		  (start end &optional base-url discard-comments))
 (declare-function shr-insert-document "shr" (dom))
 (defvar shr-blocked-images)
 (defvar shr-use-fonts)

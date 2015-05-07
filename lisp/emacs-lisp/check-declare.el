@@ -157,6 +157,7 @@ is a string giving details of the error."
           (setq re (format (if cflag
                                "^[ \t]*\\(DEFUN\\)[ \t]*([ \t]*\"%s\""
                              "^[ \t]*(\\(fset[ \t]+'\\|\
+cl-def\\(?:generic\\|method\\)\\|\
 def\\(?:un\\|subst\\|foo\\|method\\|class\\|\
 ine-\\(?:derived\\|generic\\|\\(?:global\\(?:ized\\)?-\\)?minor\\)-mode\\|\
 \\(?:ine-obsolete-function-\\)?alias[ \t]+'\\|\
@@ -200,8 +201,8 @@ ine-overloadable-function\\)\\)\
                               type)
                              'obsolete)
                             ;; Can't easily check arguments in these cases.
-                            ((string-match "\\`\\(def\\(alias\\|\
-method\\|class\\)\\|fset\\)\\>" type)
+                            ((string-match "\\`\\(def\\(alias\\|class\\)\\|\
+fset\\|\\(?:cl-\\)?defmethod\\)\\>" type)
                              t)
                             ((looking-at "\\((\\|nil\\)")
                              (byte-compile-arglist-signature
@@ -283,6 +284,8 @@ TYPE is a string giving the nature of the error.  Warning is displayed in
                              (file-name-nondirectory fnfile)
                              type)
                      nil check-declare-warning-buffer)))
+
+(declare-function compilation-forget-errors "compile" ())
 
 (defun check-declare-files (&rest files)
   "Check veracity of all `declare-function' statements in FILES.

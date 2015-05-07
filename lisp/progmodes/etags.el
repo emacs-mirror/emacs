@@ -2073,10 +2073,24 @@ for \\[find-tag] (which see)."
 ;; we hit the limit rarely.
 (defconst etags--xref-limit 1000)
 
+(defvar etags-xref-find-definitions-tag-order '(tag-exact-match-p
+                                                tag-implicit-name-match-p
+                                                tag-symbol-match-p)
+  "Tag order used in `etags-xref-find' to look for definitions.")
+
 ;;;###autoload
 (defun etags-xref-find (action id)
   (pcase action
     (`definitions (etags--xref-find-definitions id))
+    (`references
+     (let ((dirs (if tags-table-list
+                     (mapcar #'file-name-directory tags-table-list)
+                   ;; If no tags files are loaded, prompt for the dir.
+                   (list (read-directory-name "In directory: " nil nil t)))))
+       (cl-mapcan
+        (lambda (dir)
+          (xref-collect-references id dir))
+        dirs)))
     (`apropos (etags--xref-find-definitions id t))))
 
 (defun etags--xref-find-definitions (pattern &optional regexp?)
@@ -2094,7 +2108,7 @@ for \\[find-tag] (which see)."
       (while (visit-tags-table-buffer (not first-time))
         (setq first-time nil)
         (dolist (order-fun (cond (regexp? find-tag-regexp-tag-order)
-                                 (t find-tag-tag-order)))
+                                 (t etags-xref-find-definitions-tag-order)))
           (goto-char (point-min))
           (while (and (funcall search-fun pattern nil t)
                       (< (hash-table-count marks) etags--xref-limit))
@@ -2128,6 +2142,10 @@ for \\[find-tag] (which see)."
       (with-current-buffer buffer
         (etags-goto-tag-location tag-info)
         (point-marker)))))
+
+(cl-defmethod xref-location-line ((l xref-etags-location))
+  (with-slots (tag-info) l
+    (nth 1 tag-info)))
 
 
 (provide 'etags)

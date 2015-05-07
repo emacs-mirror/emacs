@@ -2,8 +2,8 @@
 @c %**start of header
 @setfilename ../../info/eudc.info
 @settitle Emacs Unified Directory Client (EUDC) Manual
+@include docstyle.texi
 @afourpaper
-@documentencoding UTF-8
 @syncodeindex fn cp
 @syncodeindex vr cp
 @c %**end of header

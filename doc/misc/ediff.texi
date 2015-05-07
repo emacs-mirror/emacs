@@ -1,4 +1,4 @@
-\input texinfo                  @c -*-texinfo-*-
+\input texinfo @c -*- mode: texinfo; coding: utf-8 -*-
 @c documentation for Ediff
 @c Written by Michael Kifer
 
@@ -10,7 +10,7 @@
 @setfilename ../../info/ediff.info
 
 @settitle Ediff User's Manual
-@documentencoding UTF-8
+@include docstyle.texi
 @synindex vr cp
 @synindex fn cp
 @synindex pg cp
@@ -2485,7 +2485,7 @@ Ray Nickson (nickson at cs.uq.oz.au),
 Dan Nicolaescu (dann at ics.uci.edu),
 David Petchey (petchey_david at jpmorgan.com),
 Benjamin Pierce (benjamin.pierce at cl.cam.ac.uk),
-Francois Pinard (pinard at iro.umontreal.ca),
+François Pinard (pinard at iro.umontreal.ca),
 Tibor Polgar (tlp00 at spg.amdahl.com),
 David Prince (dave0d at fegs.co.uk),
 Paul Raines (raines at slac.stanford.edu),

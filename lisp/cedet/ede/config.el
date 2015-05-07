@@ -268,6 +268,8 @@ programs from a project.")
 	 (cmdsym (intern-soft (car cmdsplit))))
     (call-interactively cmdsym t)))
 
+(declare-function ede-shell-run-something "ede/shell")
+
 (cl-defmethod project-run-target ((target ede-target-with-config-program))
   "Run the current project derived from TARGET."
   (let* ((proj (ede-target-parent target))
@@ -358,8 +360,14 @@ parsed again."))
 This target brings in methods used by Semantic to query
 the preprocessor map, and include paths.")
 
+(declare-function semanticdb-file-table-object "semantic/db"
+		  (file &optional dontload))
+(declare-function semanticdb-needs-refresh-p "semantic/db" (arg &rest args))
+(declare-function semanticdb-refresh-table "semantic/db" (arg &rest args))
+
 (cl-defmethod ede-preprocessor-map ((this ede-target-with-config-c))
   "Get the pre-processor map for some generic C code."
+  (require 'semantic/sb)
   (let* ((proj (ede-target-parent this))
 	 (root (ede-project-root proj))
 	 (config (ede-config-get-configuration proj))

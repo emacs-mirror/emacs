@@ -91,6 +91,10 @@
 
 (def-edebug-spec pcase-MACRO pcase--edebug-match-macro)
 
+;; Only called from edebug.
+(declare-function get-edebug-spec "edebug" (symbol))
+(declare-function edebug-match "edebug" (cursor specs))
+
 (defun pcase--edebug-match-macro (cursor)
   (let (specs)
     (mapatoms
@@ -158,12 +162,18 @@ Currently, the following patterns are provided this way:"
         ;; (puthash (car cases) `(,exp ,cases ,@expansion) pcase--memoize-2)
         expansion))))
 
+(declare-function help-fns--signature "help-fns"
+                  (function doc real-def real-function))
+
 ;; FIXME: Obviously, this will collide with nadvice's use of
 ;; function-documentation if we happen to advise `pcase'.
 (put 'pcase 'function-documentation '(pcase--make-docstring))
 (defun pcase--make-docstring ()
   (let* ((main (documentation (symbol-function 'pcase) 'raw))
          (ud (help-split-fundoc main 'pcase)))
+    ;; So that eg emacs -Q -l cl-lib --eval "(documentation 'pcase)" works,
+    ;; where cl-lib is anything using pcase-defmacro.
+    (require 'help-fns)
     (with-temp-buffer
       (insert (or (cdr ud) main))
       (mapatoms

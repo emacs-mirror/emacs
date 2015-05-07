@@ -22,13 +22,18 @@
 LC_ALL=C
 export LC_ALL
 
-gen_origin=${1?}
+# The newest revision that should not appear in the generated ChangeLog.
+gen_origin=2c1b8604946efbcd8ec5dd6c6dda7541ce4fc3c0
+test -n "$1" && test "$1" != "." && gen_origin=$1
+
+output=$2
+test -n "$output" || output=ChangeLog
 
 # If this is not a Git repository, just generate an empty ChangeLog.
 test -d ${srcprefix}.git || {
   # Remove any old ChangeLog, in case it is a vc-dwim symlink.
-  rm -f "${distprefix}ChangeLog" || exit
-  >"${distprefix}ChangeLog"
+  rm -f "${distprefix}$output" || exit
+  >"${distprefix}$output"
   exit
 }
 
@@ -78,4 +83,5 @@ if test -s "${distprefix}ChangeLog.tmp"; then
 fi
 
 # Install the generated ChangeLog.
-mv -i "${distprefix}ChangeLog.tmp" "${distprefix}ChangeLog"
+test "$output" = "ChangeLog.tmp" || \
+  mv -i "${distprefix}ChangeLog.tmp" "${distprefix}$output"
