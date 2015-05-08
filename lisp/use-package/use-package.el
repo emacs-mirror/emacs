@@ -434,9 +434,14 @@ manually updated package."
            (concat ":ensure wants an optional package name "
                    "(an unquoted symbol name)")))))))
 
-(defun use-package-ensure-elpa (package)
-  (when (not (package-installed-p package))
-    (package-install package)))
+(defun use-package-ensure-elpa (package &optional no-refresh)
+  (if (package-installed-p package)
+      t
+    (if (or (assoc package package-archive-contents) no-refresh)
+        (package-install package)
+      (progn
+        (package-refresh-contents)
+        (use-package-ensure-elpa package t)))))
 
 (defun use-package-handler/:ensure (name-symbol keyword ensure rest state)
   (let ((body (use-package-process-keywords name-symbol rest state)))
