@@ -1660,8 +1660,8 @@ characters present directly on the keyboard or using @key{Compose} or
 @cindex compose character
 @cindex dead character
 @item
-For Latin-1 only, you can use the key @kbd{C-x 8} as a ``compose
-character'' prefix for entry of non-@acronym{ASCII} Latin-1 printing
+You can use the key @kbd{C-x 8} as a ``compose character'' prefix for
+entry of non-@acronym{ASCII} Latin-1 and a few other printing
 characters.  @kbd{C-x 8} is good for insertion (in the minibuffer as
 well as other buffers), for searching, and in any other context where
 a key sequence is allowed.

@@ -615,9 +615,9 @@ ctagsfiles3 = [a-zA-Z]*.m
 ## rather than the file contents.
 TAGS: $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(srcdir)/$(ctagsfiles3)
 	"$(ETAGS)" --include=../lisp/TAGS --include=$(lwlibdir)/TAGS \
-	  --regex='{c}/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
+	  --regex='{c}/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/\1/' \
 	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) \
-	  --regex='{objc}/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
+	  --regex='{objc}/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/\1/' \
 	  $(srcdir)/$(ctagsfiles3)
 
 ## Arrange to make tags tables for ../lisp and ../lwlib,

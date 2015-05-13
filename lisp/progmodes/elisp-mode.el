@@ -581,7 +581,7 @@ It can be quoted, or be inside a quoted form."
 (declare-function xref-make-elisp-location "xref" (symbol type file))
 (declare-function xref-make-bogus-location "xref" (message))
 (declare-function xref-make "xref" (description location))
-(declare-function xref-collect-references "xref" (name dir))
+(declare-function xref-collect-matches "xref" (input dir &optional kind))
 
 (defun elisp-xref-find (action id)
   (require 'find-func)
@@ -591,7 +591,9 @@ It can be quoted, or be inside a quoted form."
         (when sym
           (elisp--xref-find-definitions sym))))
     (`references
-     (elisp--xref-find-references id))
+     (elisp--xref-find-matches id 'symbol))
+    (`matches
+     (elisp--xref-find-matches id 'regexp))
     (`apropos
      (elisp--xref-find-apropos id))))
 
@@ -652,12 +654,14 @@ It can be quoted, or be inside a quoted form."
 
 (defvar package-user-dir)
 
-(defun elisp--xref-find-references (symbol)
+(defun elisp--xref-find-matches (symbol kind)
   (let* ((dirs (sort
                 (mapcar
                  (lambda (dir)
                    (file-name-as-directory (expand-file-name dir)))
-                 ;; FIXME: Why add package-user-dir?
+                 ;; It's one level above a number of `load-path'
+                 ;; elements (one for each installed package).
+                 ;; Save us some process calls.
                  (cons package-user-dir load-path))
                 #'string<))
          (ref dirs))
@@ -669,7 +673,7 @@ It can be quoted, or be inside a quoted form."
     (cl-mapcan
      (lambda (dir)
        (and (file-exists-p dir)
-            (xref-collect-references symbol dir)))
+            (xref-collect-matches symbol dir kind)))
      dirs)))
 
 (defun elisp--xref-find-apropos (regexp)

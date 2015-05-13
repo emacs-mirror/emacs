@@ -2457,7 +2457,9 @@ of these dependencies, similar to the list returned by
          (t "disabled"))))
      (dir                               ;One of the installed packages.
       (cond
-       ((not (file-exists-p (package-desc-dir pkg-desc))) "deleted")
+       ((not (file-exists-p dir)) "deleted")
+       ;; Not inside `package-user-dir'.
+       ((not (file-in-directory-p dir package-user-dir)) "external")
        ((eq pkg-desc (cadr (assq name package-alist)))
         (if (not signed) "unsigned"
           (if (package--user-selected-p name)
@@ -2662,6 +2664,7 @@ Return (PKG-DESC [NAME VERSION STATUS DOC])."
   (let* ((status  (package-desc-status pkg))
          (face (pcase status
                  (`"built-in"  'font-lock-builtin-face)
+                 (`"external"  'font-lock-builtin-face)
                  (`"available" 'default)
                  (`"avail-obso" 'font-lock-comment-face)
                  (`"new"       'bold)
@@ -2977,6 +2980,8 @@ Optional argument NOQUERY non-nil means do not ask the user to confirm."
           ((string= sB "unsigned") nil)
           ((string= sA "held") t)
           ((string= sB "held") nil)
+          ((string= sA "external") t)
+          ((string= sB "external") nil)
           ((string= sA "built-in") t)
           ((string= sB "built-in") nil)
           ((string= sA "obsolete") t)

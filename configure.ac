@@ -2499,15 +2499,12 @@ if test x"$pkg_check_gtk" = xyes; then
     GTK_OBJ="gtkutil.o $GTK_OBJ"
     term_header=$gtk_term_header
     USE_X_TOOLKIT=none
-    if "$PKG_CONFIG" --atleast-version=2.10 gtk+-2.0; then
-      :
-    else
-      AC_MSG_WARN([[Your version of Gtk+ will have problems with
+    AC_MSG_WARN([[Your version of Gtk+ will have problems with
        closing open displays.  This is no problem if you just use
        one display, but if you use more than one and close one of them
-       Emacs may crash.]])
-      sleep 3
-    fi
+       Emacs may crash.
+       See http://bugzilla.gnome.org/show_bug.cgi?id=85715]])
+    sleep 3
   fi
 
 fi

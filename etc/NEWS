@@ -213,6 +213,9 @@ successive char insertions.
 
 ** Unicode names entered via C-x 8 RET now use substring completion by default.
 
+** C-x 8 now has shorthands for these chars: ‐ ‑ ‒ – — ― ‘ ’ “ ” † ‡ • ′ ″
+€ № ← → ↔ − ≈ ≠ ≤ ≥.  As before, you can type C-x 8 C-h to list shorthands.
+
 ** New minor mode global-eldoc-mode is enabled by default.
 
 ** Emacs now supports "bracketed paste mode" when running on a terminal
@@ -254,6 +257,17 @@ by default at least in Debian, for security reasons).
 ** xterm-mouse-mode now supports mouse-tracking (if your xterm supports it).
 
 ** package.el
+
+*** New "external" package status.
+An external package is any installed package that's not built-in and
+not from `package-user-dir', which usually means it's from an entry in
+`package-directory-list'.  They are treated much like built-in
+packages, in that they cannot be deleted through the package menu and
+are not considered for upgrades.
+
+The effect, is that a user can manually place a specific version of a
+package inside `package-directory-list' and the package menu will
+always respect that.
 
 *** If a package is available on multiple archives and one has higher
 priority (as per `package-archive-priorities') only that one is
@@ -539,6 +553,9 @@ and comments.
 
 ** VC and related modes
 
+*** Basic push support, via `vc-push', bound to `C-x v P'.
+Implemented for Bzr, Git, Hg.
+
 *** The new command vc-region-history shows the log+diff of the active region.
 
 *** New option `vc-annotate-background-mode' controls whether
@@ -551,6 +568,11 @@ allows to customize this.
 
 *** Two new faces `compare-windows-removed' and `compare-windows-added'
 replace the obsolete face `compare-windows'.
+
+---
+*** `log-edit-insert-changelog' converts "(tiny change)" to
+"Copyright-paperwork-exempt: yes".  Set `log-edit-rewrite-tiny-change'
+nil to disable this.
 
 ** VHDL mode supports VHDL'08.
 

@@ -669,10 +669,6 @@ lock_file (Lisp_Object fn)
   struct gcpro gcpro1;
   USE_SAFE_ALLOCA;
 
-  /* Don't do locking if the user has opted out.  */
-  if (! create_lockfiles)
-    return;
-
   /* Don't do locking while dumping Emacs.
      Uncompressing wtmp files uses call-process, which does not work
      in an uninitialized Emacs.  */
@@ -690,9 +686,6 @@ lock_file (Lisp_Object fn)
 #endif
   encoded_fn = ENCODE_FILE (fn);
 
-  /* Create the name of the lock-file for file fn */
-  MAKE_LOCK_NAME (lfname, encoded_fn);
-
   /* See if this file is visited and has changed on disk since it was
      visited.  */
   {
@@ -707,27 +700,35 @@ lock_file (Lisp_Object fn)
 
   }
 
-  /* Try to lock the lock.  */
-  if (0 < lock_if_free (&lock_info, lfname))
+  /* Don't do locking if the user has opted out.  */
+  if (create_lockfiles)
     {
-      /* Someone else has the lock.  Consider breaking it.  */
-      Lisp_Object attack;
-      char *dot = lock_info.dot;
-      ptrdiff_t pidlen = lock_info.colon - (dot + 1);
-      static char const replacement[] = " (pid ";
-      int replacementlen = sizeof replacement - 1;
-      memmove (dot + replacementlen, dot + 1, pidlen);
-      strcpy (dot + replacementlen + pidlen, ")");
-      memcpy (dot, replacement, replacementlen);
-      attack = call2 (intern ("ask-user-about-lock"), fn,
-		      build_string (lock_info.user));
-      /* Take the lock if the user said so.  */
-      if (!NILP (attack))
-	lock_file_1 (lfname, 1);
+
+      /* Create the name of the lock-file for file fn */
+      MAKE_LOCK_NAME (lfname, encoded_fn);
+
+      /* Try to lock the lock.  */
+      if (0 < lock_if_free (&lock_info, lfname))
+	{
+	  /* Someone else has the lock.  Consider breaking it.  */
+	  Lisp_Object attack;
+	  char *dot = lock_info.dot;
+	  ptrdiff_t pidlen = lock_info.colon - (dot + 1);
+	  static char const replacement[] = " (pid ";
+	  int replacementlen = sizeof replacement - 1;
+	  memmove (dot + replacementlen, dot + 1, pidlen);
+	  strcpy (dot + replacementlen + pidlen, ")");
+	  memcpy (dot, replacement, replacementlen);
+	  attack = call2 (intern ("ask-user-about-lock"), fn,
+			  build_string (lock_info.user));
+	  /* Take the lock if the user said so.  */
+	  if (!NILP (attack))
+	    lock_file_1 (lfname, 1);
+	}
+      SAFE_FREE ();
     }
 
   UNGCPRO;
-  SAFE_FREE ();
 }
 
 void

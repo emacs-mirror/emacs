@@ -95,20 +95,50 @@ string bytes that can be copied is 3/4 of this value."
 
 (define-key global-map [xterm-paste] #'xterm-paste)
 
-(defvar xterm-function-map
+(defvar xterm-rxvt-function-map
   (let ((map (make-sparse-keymap)))
+    (define-key map "\e[2~" [insert])
+    (define-key map "\e[3~" [delete])
+    (define-key map "\e[4~" [select])
+    (define-key map "\e[5~" [prior])
+    (define-key map "\e[6~" [next])
 
-    ;; xterm from X.org 6.8.2 uses these key definitions.
-    (define-key map "\eOP" [f1])
-    (define-key map "\eOQ" [f2])
-    (define-key map "\eOR" [f3])
-    (define-key map "\eOS" [f4])
     (define-key map "\e[15~" [f5])
     (define-key map "\e[17~" [f6])
     (define-key map "\e[18~" [f7])
     (define-key map "\e[19~" [f8])
     (define-key map "\e[20~" [f9])
     (define-key map "\e[21~" [f10])
+
+    (define-key map "\e[2;2~" [S-insert])
+
+    ;; Other versions of xterm might emit these.
+    (define-key map "\e[A" [up])
+    (define-key map "\e[B" [down])
+    (define-key map "\e[C" [right])
+    (define-key map "\e[D" [left])
+
+    (define-key map "\e[11~" [f1])
+    (define-key map "\e[12~" [f2])
+    (define-key map "\e[13~" [f3])
+    (define-key map "\e[14~" [f4])
+
+    ;; Recognize the start of a bracketed paste sequence.  The handler
+    ;; internally recognizes the end.
+    (define-key map "\e[200~" [xterm-paste])
+
+    map)
+  "Keymap of escape sequences, shared between xterm and rxvt support.")
+
+(defvar xterm-function-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map xterm-rxvt-function-map)
+
+    ;; xterm from X.org 6.8.2 uses these key definitions.
+    (define-key map "\eOP" [f1])
+    (define-key map "\eOQ" [f2])
+    (define-key map "\eOR" [f3])
+    (define-key map "\eOS" [f4])
     (define-key map "\e[23~" [f11])
     (define-key map "\e[24~" [f12])
 
@@ -237,12 +267,6 @@ string bytes that can be copied is 3/4 of this value."
     (define-key map "\e[1;3F" [M-end])
     (define-key map "\e[1;3H" [M-home])
 
-    (define-key map "\e[2~" [insert])
-    (define-key map "\e[3~" [delete])
-    (define-key map "\e[5~" [prior])
-    (define-key map "\e[6~" [next])
-
-    (define-key map "\e[2;2~" [S-insert])
     (define-key map "\e[3;2~" [S-delete])
     (define-key map "\e[5;2~" [S-prior])
     (define-key map "\e[6;2~" [S-next])
@@ -277,7 +301,6 @@ string bytes that can be copied is 3/4 of this value."
     (define-key map "\e[5;3~" [M-prior])
     (define-key map "\e[6;3~" [M-next])
 
-    (define-key map "\e[4~" [select])
     (define-key map "\e[29~" [print])
 
     (define-key map "\eOj" [kp-multiply])
@@ -482,10 +505,6 @@ string bytes that can be copied is 3/4 of this value."
         (format "\e[%d;%du" (nth 1 bind) (nth 0 bind)) (nth 2 bind)))
 
     ;; Other versions of xterm might emit these.
-    (define-key map "\e[A" [up])
-    (define-key map "\e[B" [down])
-    (define-key map "\e[C" [right])
-    (define-key map "\e[D" [left])
     (define-key map "\e[1~" [home])
 
     (define-key map "\eO2A" [S-up])
@@ -502,15 +521,6 @@ string bytes that can be copied is 3/4 of this value."
     (define-key map "\eO5F" [C-end])
     (define-key map "\eO5H" [C-home])
 
-    (define-key map "\e[11~" [f1])
-    (define-key map "\e[12~" [f2])
-    (define-key map "\e[13~" [f3])
-    (define-key map "\e[14~" [f4])
-
-    ;; Recognize the start of a bracketed paste sequence.  The handler
-    ;; internally recognizes the end.
-    (define-key map "\e[200~" [xterm-paste])
-    
     map)
   "Function key map overrides for xterm.")
 
@@ -579,6 +589,29 @@ string bytes that can be copied is 3/4 of this value."
 
     map)
   "Keymap of possible alternative meanings for some keys.")
+
+;; Set up colors, for those versions of xterm that support it.
+(defvar xterm-standard-colors
+  ;; The names in the comments taken from XTerm-col.ad in the xterm
+  ;; distribution, see ftp://dickey.his.com/xterm/.  RGB values are
+  ;; from rgb.txt.
+  '(("black"          0 (  0   0   0))	; black
+    ("red"            1 (205   0   0))	; red3
+    ("green"          2 (  0 205   0))	; green3
+    ("yellow"         3 (205 205   0))	; yellow3
+    ("blue"           4 (  0   0 238))	; blue2
+    ("magenta"        5 (205   0 205))	; magenta3
+    ("cyan"           6 (  0 205 205))	; cyan3
+    ("white"          7 (229 229 229))	; gray90
+    ("brightblack"    8 (127 127 127))	; gray50
+    ("brightred"      9 (255   0   0))	; red
+    ("brightgreen"   10 (  0 255   0))	; green
+    ("brightyellow"  11 (255 255   0))	; yellow
+    ("brightblue"    12 (92   92 255))	; rgb:5c/5c/ff
+    ("brightmagenta" 13 (255   0 255))	; magenta
+    ("brightcyan"    14 (  0 255 255))	; cyan
+    ("brightwhite"   15 (255 255 255)))	; white
+  "Names of 16 standard xterm/aixterm colors, their numbers, and RGB values.")
 
 (defun xterm--report-background-handler ()
   (let ((str "")
@@ -687,6 +720,14 @@ We run the first FUNCTION whose STRING matches the input events."
             (push (aref (car handler) (setq i (1- i)))
                   unread-command-events)))))))
 
+(defun xterm--push-map (map basemap)
+  ;; Use inheritance to let the main keymaps override those defaults.
+  ;; This way we don't override terminfo-derived settings or settings
+  ;; made in the init file.
+  (set-keymap-parent
+   basemap
+   (make-composed-keymap map (keymap-parent basemap))))
+
 (defun terminal-init-xterm ()
   "Terminal initialization function for xterm."
   ;; rxvt terminals sometimes set the TERM variable to "xterm", but
@@ -696,19 +737,10 @@ We run the first FUNCTION whose STRING matches the input events."
 	   (string-match "\\`rxvt" (getenv "COLORTERM" (selected-frame))))
       (tty-run-terminal-initialization (selected-frame) "rxvt")
 
-    (let ((map (copy-keymap xterm-alternatives-map)))
-      (set-keymap-parent map (keymap-parent local-function-key-map))
-      (set-keymap-parent local-function-key-map map))
+      (xterm--push-map xterm-alternatives-map local-function-key-map)
+      (xterm--push-map xterm-function-map     input-decode-map))
 
-    (let ((map (copy-keymap xterm-function-map)))
-
-      ;; Use inheritance to let the main keymap override those defaults.
-      ;; This way we don't override terminfo-derived settings or settings
-      ;; made in the init file.
-      (set-keymap-parent map (keymap-parent input-decode-map))
-      (set-keymap-parent input-decode-map map)))
-
-  (xterm-register-default-colors)
+  (xterm-register-default-colors xterm-standard-colors)
   (tty-set-up-initial-frame-faces)
 
   (if (eq xterm-extra-capabilities 'check)
@@ -807,43 +839,19 @@ hitting screen's max DCS length."
             "\a"
             (when screen "\e\\"))))))))
 
-;; Set up colors, for those versions of xterm that support it.
-(defvar xterm-standard-colors
-  ;; The names in the comments taken from XTerm-col.ad in the xterm
-  ;; distribution, see ftp://dickey.his.com/xterm/.  RGB values are
-  ;; from rgb.txt.
-  '(("black"          0 (  0   0   0))	; black
-    ("red"            1 (205   0   0))	; red3
-    ("green"          2 (  0 205   0))	; green3
-    ("yellow"         3 (205 205   0))	; yellow3
-    ("blue"           4 (  0   0 238))	; blue2
-    ("magenta"        5 (205   0 205))	; magenta3
-    ("cyan"           6 (  0 205 205))	; cyan3
-    ("white"          7 (229 229 229))	; gray90
-    ("brightblack"    8 (127 127 127))	; gray50
-    ("brightred"      9 (255   0   0))	; red
-    ("brightgreen"   10 (  0 255   0))	; green
-    ("brightyellow"  11 (255 255   0))	; yellow
-    ("brightblue"    12 (92   92 255))	; rgb:5c/5c/ff
-    ("brightmagenta" 13 (255   0 255))	; magenta
-    ("brightcyan"    14 (  0 255 255))	; cyan
-    ("brightwhite"   15 (255 255 255)))	; white
-  "Names of 16 standard xterm/aixterm colors, their numbers, and RGB values.")
-
 (defun xterm-rgb-convert-to-16bit (prim)
   "Convert an 8-bit primary color value PRIM to a corresponding 16-bit value."
   (logior prim (lsh prim 8)))
 
-(defun xterm-register-default-colors ()
+(defun xterm-register-default-colors (colors)
   "Register the default set of colors for xterm or compatible emulator.
 
 This function registers the number of colors returned by `display-color-cells'
-for the currently selected frame.  The first 16 colors are taken from
-`xterm-standard-colors', which see, while the rest are computed assuming
+for the currently selected frame.  The first (16) colors are taken from
+COLORS, which see, while the rest are computed assuming
 either the 88- or 256-color standard color scheme supported by latest
 versions of xterm."
-  (let* ((ncolors (display-color-cells (selected-frame)))
-	 (colors xterm-standard-colors)
+  (let* ((ncolors (display-color-cells))
 	 (color (car colors)))
     (if (> ncolors 0)
 	;; Clear the 8 default tty colors registered by startup.el
@@ -851,12 +859,12 @@ versions of xterm."
     ;; Only register as many colors as are supported by the display.
     (while (and (> ncolors 0) colors)
       (tty-color-define (car color) (cadr color)
-			(mapcar 'xterm-rgb-convert-to-16bit
+			(mapcar #'xterm-rgb-convert-to-16bit
 				(car (cddr color))))
       (setq colors (cdr colors)
 	    color (car colors)
 	    ncolors (1- ncolors)))
-    ;; We've exhausted the colors from `xterm-standard-colors'.  If there
+    ;; We've exhausted the colors from `colors'.  If there
     ;; are more colors to support, compute them now.
     (when (> ncolors 0)
       (cond
@@ -868,7 +876,7 @@ versions of xterm."
 	    ;; 88colres.pl in the xterm distribution.
 	    (tty-color-define (format "color-%d" (- 256 ncolors))
 			      (- 256 ncolors)
-			      (mapcar 'xterm-rgb-convert-to-16bit
+			      (mapcar #'xterm-rgb-convert-to-16bit
 				      (list (if (zerop r) 0 (+ (* r 40) 55))
 					    (if (zerop g) 0 (+ (* g 40) 55))
 					    (if (zerop b) 0 (+ (* b 40) 55)))))
@@ -895,7 +903,7 @@ versions of xterm."
 	  (while (> ncolors 8)
 	    (tty-color-define (format "color-%d" (- 88 ncolors))
 			      (- 88 ncolors)
-			      (mapcar 'xterm-rgb-convert-to-16bit
+			      (mapcar #'xterm-rgb-convert-to-16bit
 				      (list (nth r levels)
 					    (nth g levels)
 					    (nth b levels))))

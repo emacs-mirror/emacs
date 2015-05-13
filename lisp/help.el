@@ -691,7 +691,8 @@ POSITION is as documented in the function `key-binding'."
 (defun help--binding-locus (key position)
   "Describe in which keymap KEY is defined.
 Return a symbol pointing to that keymap if one exists ; otherwise
-return nil."
+return nil.  The argument POSITION is as documented in the
+function `key-binding'."
   (let ((map (help--key-binding-keymap key t nil position)))
     (when map
       (catch 'found

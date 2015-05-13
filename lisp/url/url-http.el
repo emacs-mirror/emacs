@@ -485,6 +485,8 @@ work correctly."
     )
   )
 
+(declare-function gnutls-peer-status "gnutls.c" (proc))
+
 (defun url-http-parse-headers ()
  "Parse and handle HTTP specific headers.
 Return t if and only if the current buffer is still active and

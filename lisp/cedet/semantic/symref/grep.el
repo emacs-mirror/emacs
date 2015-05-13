@@ -141,7 +141,7 @@ This shell should support pipe redirect syntax."
   "Perform a search with Grep."
   ;; Grep doesn't support some types of searches.
   (let ((st (oref tool :searchtype)))
-    (when (not (eq st 'symbol))
+    (when (not (memq st '(symbol regexp)))
       (error "Symref impl GREP does not support searchtype of %s" st))
     )
   ;; Find the root of the project, and do a find-grep...
@@ -150,13 +150,19 @@ This shell should support pipe redirect syntax."
 	 (filepattern (semantic-symref-derive-find-filepatterns))
 	 ;; Grep based flags.
 	 (grepflags (cond ((eq (oref tool :resulttype) 'file)
-			  "-l ")
-			 (t "-n ")))
-	 (greppat (cond ((eq (oref tool :searchtype) 'regexp)
-			 (oref tool searchfor))
-			(t
-			 (shell-quote-argument
-                          (concat "\\<" (oref tool searchfor) "\\>")))))
+                           "-l ")
+                          ((eq (oref tool :searchtype) 'regexp)
+                           "-nE ")
+                          (t "-n ")))
+	 (greppat (shell-quote-argument
+                   (cond ((eq (oref tool :searchtype) 'regexp)
+                          (oref tool searchfor))
+                         (t
+                          ;; Can't use the word boundaries: Grep
+                          ;; doesn't always agrees with the language
+                          ;; syntax on those.
+                          (format "\\(^\\|\\W\\)%s\\(\\W\\|$\\)"
+                                  (oref tool searchfor))))))
 	 ;; Misc
 	 (b (get-buffer-create "*Semantic SymRef*"))
 	 (ans nil)

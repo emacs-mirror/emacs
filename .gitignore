@@ -39,11 +39,13 @@ src/config.in
 Info.plist
 InfoPlist.strings
 Makefile
+makefile
 !admin/charsets/Makefile
 !etc/refcards/Makefile
 !test/automated/data/flymake/Makefile
 !test/indent/Makefile
-makefile
+!test/etags/Makefile
+!test/etags/make-src/Makefile
 /*.cache
 /confdefs.h
 /config.status
@@ -145,6 +147,10 @@ src/*.map
 # Tests.
 test/indent/*.new
 test/biditest.txt
+test/etags/srclist
+test/etags/regexfile
+test/etags/ETAGS
+test/etags/CTAGS
 
 # ctags, etags.
 TAGS
@@ -200,6 +206,7 @@ lisp/international/uni-*.el
 *.fn
 *.fns
 *.html
+!test/etags/html-src/*.html
 *.info
 *.ky
 *.kys
@@ -215,6 +222,7 @@ lisp/international/uni-*.el
 *.pj
 *.pjs
 *.ps
+!test/etags/ps-src/*.ps
 *.sc
 *.scs
 *.t2d/

@@ -949,6 +949,9 @@ Return a string with image data."
 		(search-forward "\r\n\r\n" nil t))
 	(shr-parse-image-data)))))
 
+(declare-function libxml-parse-xml-region "xml.c"
+		  (start end &optional base-url discard-comments))
+
 (defun shr-parse-image-data ()
   (let ((data (buffer-substring (point) (point-max)))
 	(content-type

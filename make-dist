@@ -52,6 +52,7 @@ make_tar=no
 default_gzip=gzip
 newer=""
 with_tests=no
+changelog=yes
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -71,6 +72,9 @@ while [ $# -gt 0 ]; do
     ## This option says don't check for bad file names, etc.
     "--no-check" )
       check=no
+    ;;
+    "--no-changelog" )
+      changelog=no
     ;;
     ## This option tells make-dist to make the distribution normally, then
     ## remove all files older than the given timestamp file.  This is useful
@@ -115,6 +119,7 @@ while [ $# -gt 0 ]; do
       echo "  --newer=TIME	don't include files older than TIME"
       echo "  --no-check	don't check for bad file names etc."
       echo "  --no-update	don't recompile or do analogous things"
+      echo "  --no-changelog	don't generate the top-level ChangeLog"
       echo "  --snapshot	same as --clean-up --no-update --tar --no-check"
       echo "  --tar		make a tar file"
       echo "  --tests	include the test/ directory"
@@ -277,11 +282,14 @@ fi
 echo "Creating top directory: '${tempdir}'"
 mkdir ${tempdir}
 
-if test -d .git; then
-  echo "Making top-level ChangeLog"
-  make distprefix=${tempdir}/ ChangeLog
-else
-  echo "No repository, so omitting top-level ChangeLog"
+if [ "$changelog" = yes ]; then
+  if test -d .git; then
+    echo "Making top-level ChangeLog"
+    make ChangeLog CHANGELOG=${tempdir}/ChangeLog || \
+      { x=$?; echo "make ChangeLog FAILED (try --no-changelog?)" >&2; exit $x; }
+  else
+    echo "No repository, so omitting top-level ChangeLog"
+  fi
 fi
 
 ### We copy in the top-level files before creating the subdirectories in

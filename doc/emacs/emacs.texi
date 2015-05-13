@@ -831,7 +831,7 @@ VC Directory Mode
 Version Control Branches
 
 * Switching Branches::    How to get to another existing branch.
-* VC Pull::               Updating the contents of a branch.
+* Pulling / Pushing::     Receiving/sending changes from/to elsewhere.
 * Merging::               Transferring changes between branches.
 * Creating Branches::     How to start a new branch.
 

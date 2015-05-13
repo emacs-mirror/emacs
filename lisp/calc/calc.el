@@ -154,6 +154,7 @@
 (declare-function math-parse-date "calc-forms" (math-pd-str))
 (declare-function math-lessp "calc-ext" (a b))
 (declare-function math-compare "calc-ext" (a b))
+(declare-function math-zerop "calc-misc" (a))
 (declare-function calc-embedded-finish-command "calc-embed" ())
 (declare-function calc-embedded-select-buffer "calc-embed" ())
 (declare-function calc-embedded-mode-line-change "calc-embed" ())

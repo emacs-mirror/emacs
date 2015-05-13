@@ -717,6 +717,9 @@ can thus take some time."
 
 (defvar log-edit-changelog-use-first nil)
 
+(defvar log-edit-rewrite-tiny-change t
+  "Non-nil means rewrite (tiny change).")
+
 (defvar log-edit-rewrite-fixes nil
   "Rule to rewrite bug numbers into Fixes: headers.
 The value should be of the form (REGEXP . REPLACEMENT)
@@ -761,7 +764,7 @@ regardless of user name or time."
 	     (log-edit-insert-changelog-entries (log-edit-files)))))
       (log-edit-set-common-indentation)
       ;; Add an Author: field if appropriate.
-      (when author (log-edit-add-field "Author" author))
+      (when author (log-edit-add-field "Author" (car author)))
       ;; Add a Fixes: field if applicable.
       (when (consp log-edit-rewrite-fixes)
 	(rfc822-goto-eoh)
@@ -782,7 +785,13 @@ regardless of user name or time."
 	       (goto-char start)
 	       (skip-chars-forward "^():")
 	       (skip-chars-forward ": ")
-	       (delete-region start (point))))))))
+	       (delete-region start (point)))))
+      ;; FIXME also add "Co-authored-by" when appropriate.
+      ;; Bzr accepts multiple --author arguments, others (?) don't.
+      (and log-edit-rewrite-tiny-change
+           (eq 'tiny (cdr author))
+           (goto-char (point-max))
+           (insert "\nCopyright-paperwork-exempt: yes\n")))))
 
 ;;;;
 ;;;; functions for getting commit message from ChangeLog a file...
@@ -868,19 +877,26 @@ Return non-nil if it is."
     (if (null log-edit-changelog-use-first)
         (looking-at (regexp-quote (format "%s  %s  <%s>" time name mail)))
       ;; Check the author, to potentially add it as a "Author: " header.
+      ;; FIXME This accumulates multiple authors, but only when there
+      ;; are multiple ChangeLog files.  It should also check for
+      ;; multiple authors in each individual entry.
       (when (looking-at "[^ \t]")
         (when (and (boundp 'log-edit-author)
                    (not (looking-at (format ".+  .+  <%s>"
                                             (regexp-quote mail))))
-                   (looking-at ".+  \\(.+  <.+>\\)"))
+                   (looking-at ".+  \\(.+  <.+>\\) *\\((tiny change)\\)?"))
           (let ((author (replace-regexp-in-string "  " " "
                                                   (match-string 1))))
             (unless (and log-edit-author
-                         (string-match (regexp-quote author) log-edit-author))
-              (setq log-edit-author
-                    (if log-edit-author
-                        (concat log-edit-author ", " author)
-                      author)))))
+                         (string-match (regexp-quote author)
+                                       (car log-edit-author)))
+              (if (not log-edit-author)
+                  (setq log-edit-author
+                        (cons author (if (match-string 2) 'tiny)))
+                (setcar log-edit-author
+                        (concat (car log-edit-author) ", " author))
+                (and (match-string 2) (not (cdr log-edit-author))
+                     (setcdr log-edit-author 'tiny))))))
         t))))
 
 (defun log-edit-changelog-entries (file)

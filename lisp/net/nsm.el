@@ -76,6 +76,8 @@ stored in plain text."
   "If non-nil, the connection is opened in a non-interactive context.
 This means that no queries should be performed.")
 
+(declare-function gnutls-peer-status "gnutls.c" (proc))
+
 (defun nsm-verify-connection (process host port &optional
 				      save-fingerprint warn-unencrypted)
   "Verify the security status of PROCESS that's connected to HOST:PORT.
@@ -121,6 +123,9 @@ unencrypted."
 	;; Do further protocol-level checks if the security is high.
 	(nsm-check-protocol process host port status settings)
       process)))
+
+(declare-function gnutls-peer-status-warning-describe "gnutls.c"
+		  (status-symbol))
 
 (defun nsm-check-certificate (process host port status settings)
   (let ((warnings (plist-get status :warnings)))

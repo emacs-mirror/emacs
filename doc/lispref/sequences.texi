@@ -797,7 +797,7 @@ vector or string (@pxref{Iteration} for more information about the
 @code{dolist} macro).  This is primarily useful for side-effects.
 @end defmac
 
-@defmac seq-let arguments sequense body@dots{}
+@defmac seq-let arguments sequence body@dots{}
 @cindex sequence destructuring
   This macro binds the variables in defined in the sequence
 @var{arguments} to the elements of the sequence @var{sequence}.

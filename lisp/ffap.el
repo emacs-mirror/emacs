@@ -1288,7 +1288,7 @@ which may actually result in an URL rather than a filename."
                    nil
                    nil
                    (if dir (cons guess (length dir)) guess)
-                   (list 'file-name-history)
+                   'file-name-history
                    (and buffer-file-name
                         (abbreviate-file-name buffer-file-name)))))
         ;; Remove the special handler manually.  We used to just let-bind

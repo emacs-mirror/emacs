@@ -4390,9 +4390,6 @@ usage: (format STRING &rest OBJECTS)  */)
     nchars = multibyte_chars_in_text ((unsigned char *) buf, p - buf);
   val = make_specified_string (buf, nchars, p - buf, multibyte);
 
-  /* If we allocated BUF with malloc, free it too.  */
-  SAFE_FREE ();
-
   /* If the format string has text properties, or any of the string
      arguments has text properties, set up text properties of the
      result string.  */
@@ -4497,6 +4494,9 @@ usage: (format STRING &rest OBJECTS)  */)
 
       UNGCPRO;
     }
+
+  /* If we allocated BUF or INFO with malloc, free it too.  */
+  SAFE_FREE ();
 
   return val;
 }

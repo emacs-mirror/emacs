@@ -413,12 +413,15 @@ into the minibuffer."
       ;; Now the original list FILES has been put back as it was.
       (nconc past pending))))
 
+(defvar lpr-printer-switch)
+
 ;;;###autoload
 (defun dired-do-print (&optional arg)
   "Print the marked (or next ARG) files.
 Uses the shell command coming from variables `lpr-command' and
 `lpr-switches' as default."
   (interactive "P")
+  (require 'lpr)
   (let* ((file-list (dired-get-marked-files t arg))
 	 (lpr-switches
 	  (if (and (stringp printer-name)

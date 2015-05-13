@@ -472,8 +472,12 @@ buffers that were opened."
     (goto-char (point-min))
     (forward-line (1- line))
 
-    ;; Search forward for the matching text
-    (when (re-search-forward (regexp-quote searchtxt)
+    ;; Search forward for the matching text.
+    ;; FIXME: This still fails if the regexp uses something specific
+    ;; to the extended syntax, like grouping.
+    (when (re-search-forward (if (memq searchtype '(regexp tagregexp))
+                                 searchtxt
+                               (regexp-quote searchtxt))
 			     (point-at-eol)
 			     t)
       (goto-char (match-beginning 0))

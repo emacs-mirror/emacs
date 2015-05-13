@@ -721,21 +721,21 @@ It is based on `log-edit-mode', and has Git-specific extensions.")
 ;; To be called via vc-pull from vc.el, which requires vc-dispatcher.
 (declare-function vc-compilation-mode "vc-dispatcher" (backend))
 
-(defun vc-git-pull (prompt)
-  "Pull changes into the current Git branch.
-Normally, this runs \"git pull\".  If PROMPT is non-nil, prompt
-for the Git command to run."
+(defun vc-git--pushpull (command prompt)
+  "Run COMMAND (a string; either push or pull) on the current Git branch.
+If PROMPT is non-nil, prompt for the Git command to run."
   (let* ((root (vc-git-root default-directory))
 	 (buffer (format "*vc-git : %s*" (expand-file-name root)))
-	 (command "pull")
 	 (git-program vc-git-program)
 	 args)
     ;; If necessary, prompt for the exact command.
+    ;; TODO if pushing, prompt if no default push location - cf bzr.
     (when prompt
       (setq args (split-string
-		  (read-shell-command "Git pull command: "
-                                      (format "%s pull" git-program)
-				      'vc-git-history)
+		  (read-shell-command
+                   (format "Git %s command: " command)
+                   (format "%s %s" git-program command)
+                   'vc-git-history)
 		  " " t))
       (setq git-program (car  args)
 	    command     (cadr args)
@@ -744,6 +744,18 @@ for the Git command to run."
     (apply 'vc-do-async-command buffer root git-program command args)
     (with-current-buffer buffer (vc-run-delayed (vc-compilation-mode 'git)))
     (vc-set-async-update buffer)))
+
+(defun vc-git-pull (prompt)
+  "Pull changes into the current Git branch.
+Normally, this runs \"git pull\".  If PROMPT is non-nil, prompt
+for the Git command to run."
+  (vc-git--pushpull "pull" prompt))
+
+(defun vc-git-push (prompt)
+  "Push changes from the current Git branch.
+Normally, this runs \"git push\".  If PROMPT is non-nil, prompt
+for the Git command to run."
+  (vc-git--pushpull "push" prompt))
 
 (defun vc-git-merge-branch ()
   "Merge changes into the current Git branch.

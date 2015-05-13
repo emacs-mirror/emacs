@@ -3,7 +3,7 @@ eval '(exit $?0)' && eval 'exec perl -wS "$0" ${1+"$@"}'
     if 0;
 # Convert git log output to ChangeLog format.
 
-my $VERSION = '2015-04-09 16:03'; # UTC
+my $VERSION = '2015-05-08 06:05'; # UTC
 # The definition above must lie within the first 8 lines in order
 # for the Emacs time-stamp write hook (at end) to update it.
 # If you change this file with Emacs, please let the write hook
@@ -324,7 +324,7 @@ sub git_dir_option($)
 
       # Format 'Copyright-paperwork-exempt: Yes' as a standard ChangeLog
       # `(tiny change)' annotation.
-      my $tiny = (grep (/^Copyright-paperwork-exempt:\s+[Yy]es$/, @line)
+      my $tiny = (grep (/^(?:Copyright-paperwork-exempt|Tiny-change):\s+[Yy]es$/, @line)
                   ? '  (tiny change)' : '');
 
       my $date_line = sprintf "%s  %s$tiny\n",
@@ -335,6 +335,7 @@ sub git_dir_option($)
       @line = grep !/^(?:Signed-off-by:[ ].*>$
                        |Co-authored-by:[ ]
                        |Copyright-paperwork-exempt:[ ]
+                       |Tiny-change:[ ]
                        )/x, @line;
 
       # Remove leading and trailing blank lines.

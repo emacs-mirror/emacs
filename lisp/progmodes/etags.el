@@ -947,6 +947,7 @@ onto a ring and may be popped back to with \\[pop-tag-mark].
 Contrast this with the ring of marks gone to by the command.
 
 See documentation of variable `tags-file-name'."
+  (declare (obsolete xref-find-definitions "25.1"))
   (interactive (find-tag-interactive "Find tag: "))
   (let* ((buf (find-tag-noselect tagname next-p regexp-p))
 	 (pos (with-current-buffer buf (point))))
@@ -2074,24 +2075,26 @@ for \\[find-tag] (which see)."
 (defconst etags--xref-limit 1000)
 
 (defvar etags-xref-find-definitions-tag-order '(tag-exact-match-p
-                                                tag-implicit-name-match-p
-                                                tag-symbol-match-p)
+                                                tag-implicit-name-match-p)
   "Tag order used in `etags-xref-find' to look for definitions.")
 
 ;;;###autoload
 (defun etags-xref-find (action id)
   (pcase action
     (`definitions (etags--xref-find-definitions id))
-    (`references
-     (let ((dirs (if tags-table-list
-                     (mapcar #'file-name-directory tags-table-list)
-                   ;; If no tags files are loaded, prompt for the dir.
-                   (list (read-directory-name "In directory: " nil nil t)))))
-       (cl-mapcan
-        (lambda (dir)
-          (xref-collect-references id dir))
-        dirs)))
+    (`references (etags--xref-find-matches id 'symbol))
+    (`matches (etags--xref-find-matches id 'regexp))
     (`apropos (etags--xref-find-definitions id t))))
+
+(defun etags--xref-find-matches (input kind)
+  (let ((dirs (if tags-table-list
+                  (mapcar #'file-name-directory tags-table-list)
+                ;; If no tags files are loaded, prompt for the dir.
+                (list (read-directory-name "In directory: " nil nil t)))))
+    (cl-mapcan
+     (lambda (dir)
+       (xref-collect-matches input dir kind))
+     dirs)))
 
 (defun etags--xref-find-definitions (pattern &optional regexp?)
   ;; This emulates the behaviour of `find-tag-in-order' but instead of

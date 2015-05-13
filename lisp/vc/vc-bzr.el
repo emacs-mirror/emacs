@@ -335,29 +335,31 @@ in the repository root directory of FILE."
 (declare-function vc-set-async-update "vc-dispatcher" (process-buffer))
 (declare-function vc-compilation-mode "vc-dispatcher" (backend))
 
-(defun vc-bzr-pull (prompt)
-  "Pull changes into the current Bzr branch.
-Normally, this runs \"bzr pull\".  However, if the branch is a
-bound branch, run \"bzr update\" instead.  If there is no default
-location from which to pull or update, or if PROMPT is non-nil,
-prompt for the Bzr command to run."
+(defun vc-bzr--pushpull (command prompt)
+    "Run COMMAND (a string; either push or pull) on the current Bzr branch.
+If PROMPT is non-nil, prompt for the Bzr command to run."
   (let* ((vc-bzr-program vc-bzr-program)
 	 (branch-conf (vc-bzr-branch-conf default-directory))
 	 ;; Check whether the branch is bound.
 	 (bound (assoc "bound" branch-conf))
 	 (bound (and bound (equal "true" (downcase (cdr bound)))))
-	 ;; If we need to do a "bzr pull", check for a parent.  If it
-	 ;; does not exist, bzr will need a pull location.
-	 (has-parent (unless bound
-		       (assoc "parent_location" branch-conf)))
-	 (command (if bound "update" "pull"))
+	 (has-loc (assoc (if (equal command "push")
+			     "push_location"
+			   "parent_location")
+			 branch-conf))
 	 args)
+    (when bound
+      (if (equal command "push")
+	  (user-error "Cannot push a bound branch")
+	(setq command "update")))
     ;; If necessary, prompt for the exact command.
-    (when (or prompt (not (or bound has-parent)))
+    (when (or prompt (if (equal command "push")
+			 (not has-loc)
+		       (not (or bound has-loc))))
       (setq args (split-string
 		  (read-shell-command
-		   "Bzr pull command: "
-		   (concat vc-bzr-program " " command)
+		   (format "Bzr %s command: " command)
+		   (format "%s %s" vc-bzr-program command)
 		   'vc-bzr-history)
 		  " " t))
       (setq vc-bzr-program (car  args)
@@ -367,6 +369,20 @@ prompt for the Bzr command to run."
     (let ((buf (apply 'vc-bzr-async-command command args)))
       (with-current-buffer buf (vc-run-delayed (vc-compilation-mode 'bzr)))
       (vc-set-async-update buf))))
+
+(defun vc-bzr-pull (prompt)
+  "Pull changes into the current Bzr branch.
+Normally, this runs \"bzr pull\".  However, if the branch is a
+bound branch, run \"bzr update\" instead.  If there is no default
+location from which to pull or update, or if PROMPT is non-nil,
+prompt for the Bzr command to run."
+  (vc-bzr--pushpull "pull" prompt))
+
+(defun vc-bzr-push (prompt)
+  "Push changes from the current Bzr branch.
+Normally, this runs \"bzr push\".  If there is no push location,
+or if PROMPT is non-nil, prompt for the Bzr command to run."
+  (vc-bzr--pushpull "push" prompt))
 
 (defun vc-bzr-merge-branch ()
   "Merge another Bzr branch into the current one.

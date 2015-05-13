@@ -2484,6 +2484,22 @@ tip revision are merged into the working file."
 ;;;###autoload
 (defalias 'vc-update 'vc-pull)
 
+;;;###autoload
+(defun vc-push (&optional arg)
+  "Push the current branch.
+You must be visiting a version controlled file, or in a `vc-dir' buffer.
+On a distributed version control system, this runs a \"push\"
+operation on the current branch, prompting for the precise command
+if required.  Optional prefix ARG non-nil forces a prompt.
+On a non-distributed version control system, this signals an error."
+  (interactive "P")
+  (let* ((vc-fileset (vc-deduce-fileset t))
+	 (backend (car vc-fileset)))
+;;;	 (files (cadr vc-fileset)))
+    (if (vc-find-backend-function backend 'push)
+        (vc-call-backend backend 'push arg)
+      (user-error "VC push is unsupported for `%s'" backend))))
+
 (defun vc-version-backup-file (file &optional rev)
   "Return name of backup file for revision REV of FILE.
 If version backups should be used for FILE, and there exists

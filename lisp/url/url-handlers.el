@@ -344,14 +344,14 @@ They count bytes from the beginning of the body."
 
 (put 'insert-file-contents 'url-file-handlers 'url-insert-file-contents)
 
-(defun url-file-name-completion (url directory &optional predicate)
+(defun url-file-name-completion (url _directory &optional _predicate)
   ;; Even if it's not implemented, it's not an error to ask for completion,
   ;; in case it's available (bug#14806).
   ;; (error "Unimplemented")
   url)
 (put 'file-name-completion 'url-file-handlers 'url-file-name-completion)
 
-(defun url-file-name-all-completions (file directory)
+(defun url-file-name-all-completions (_file _directory)
   ;; Even if it's not implemented, it's not an error to ask for completion,
   ;; in case it's available (bug#14806).
   ;; (error "Unimplemented")

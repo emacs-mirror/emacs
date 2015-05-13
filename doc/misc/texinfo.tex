@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2015-04-29.11}
+\def\texinfoversion{2015-05-06.11}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -3022,11 +3022,16 @@ end
   \TeX
 }
 
-% Some math mode symbols.
-\def\bullet{$\ptexbullet$}
-\def\geq{\ifmmode \ge\else $\ge$\fi}
-\def\leq{\ifmmode \le\else $\le$\fi}
-\def\minus{\ifmmode -\else $-$\fi}
+% Some math mode symbols.  Define \ensuremath to switch into math mode
+% unless we are already there.  Expansion tricks may not be needed here,
+% but safer, and can't hurt.
+\def\ensuremath{\ifmmode \expandafter\asis \else\expandafter\ensuredmath \fi}
+\def\ensuredmath#1{$\relax#1$}
+%
+\def\bullet{\ensuremath\ptexbullet}
+\def\geq{\ensuremath\ge}
+\def\leq{\ensuremath\le}
+\def\minus{\ensuremath-}
 
 % @dots{} outputs an ellipsis using the current font.
 % We do .5em per period so that it has the same spacing in the cm
@@ -9038,7 +9043,7 @@ directory should work if nowhere else does.}
   \gdef^^b4{\'{}}
   \gdef^^b5{$\mu$}
   \gdef^^b6{\P}
-  \gdef^^b7{\ifmmode\cdot\else $\cdot$\fi}
+  \gdef^^b7{\ensuremath\cdot}
   \gdef^^b8{\cedilla\ }
   \gdef^^b9{$^1$}
   \gdef^^ba{\ordm}
@@ -9397,19 +9402,19 @@ directory should work if nowhere else does.}
   \DeclareUnicodeCharacter{00A9}{\copyright}
   \DeclareUnicodeCharacter{00AA}{\ordf}
   \DeclareUnicodeCharacter{00AB}{\guillemetleft}
-  \DeclareUnicodeCharacter{00AC}{\ifmmode\lnot\else $\lnot$\fi}
+  \DeclareUnicodeCharacter{00AC}{\ensuremath\lnot}
   \DeclareUnicodeCharacter{00AD}{\-}
   \DeclareUnicodeCharacter{00AE}{\registeredsymbol}
   \DeclareUnicodeCharacter{00AF}{\={ }}
 
   \DeclareUnicodeCharacter{00B0}{\ringaccent{ }}
-  \DeclareUnicodeCharacter{00B1}{\ifmmode\pm\else $\pm$\fi}
+  \DeclareUnicodeCharacter{00B1}{\ensuremath\pm}
   \DeclareUnicodeCharacter{00B2}{$^2$}
   \DeclareUnicodeCharacter{00B3}{$^3$}
   \DeclareUnicodeCharacter{00B4}{\'{ }}
   \DeclareUnicodeCharacter{00B5}{$\mu$}
   \DeclareUnicodeCharacter{00B6}{\P}
-  \DeclareUnicodeCharacter{00B7}{\ifmmode\cdot\else $\cdot$\fi}
+  \DeclareUnicodeCharacter{00B7}{\ensuremath\cdot}
   \DeclareUnicodeCharacter{00B8}{\cedilla{ }}
   \DeclareUnicodeCharacter{00B9}{$^1$}
   \DeclareUnicodeCharacter{00BA}{\ordm}
@@ -9443,7 +9448,7 @@ directory should work if nowhere else does.}
   \DeclareUnicodeCharacter{00D4}{\^O}
   \DeclareUnicodeCharacter{00D5}{\~O}
   \DeclareUnicodeCharacter{00D6}{\"O}
-  \DeclareUnicodeCharacter{00D7}{\ifmmode\times\else $\times$\fi}
+  \DeclareUnicodeCharacter{00D7}{\ensuremath\times}
   \DeclareUnicodeCharacter{00D8}{\O}
   \DeclareUnicodeCharacter{00D9}{\`U}
   \DeclareUnicodeCharacter{00DA}{\'U}
@@ -9477,7 +9482,7 @@ directory should work if nowhere else does.}
   \DeclareUnicodeCharacter{00F4}{\^o}
   \DeclareUnicodeCharacter{00F5}{\~o}
   \DeclareUnicodeCharacter{00F6}{\"o}
-  \DeclareUnicodeCharacter{00F7}{\ifmmode\div\else $\div$\fi}
+  \DeclareUnicodeCharacter{00F7}{\ensuremath\div}
   \DeclareUnicodeCharacter{00F8}{\o}
   \DeclareUnicodeCharacter{00F9}{\`u}
   \DeclareUnicodeCharacter{00FA}{\'u}
@@ -9546,7 +9551,7 @@ directory should work if nowhere else does.}
   \DeclareUnicodeCharacter{0135}{\^{\dotless{j}}}
   \DeclareUnicodeCharacter{0136}{\cedilla{K}}
   \DeclareUnicodeCharacter{0137}{\cedilla{k}}
-  \DeclareUnicodeCharacter{0138}{\ifmmode\kappa\else $\kappa$\fi}  
+  \DeclareUnicodeCharacter{0138}{\ensuremath\kappa}  
   \DeclareUnicodeCharacter{0139}{\'L}
   \DeclareUnicodeCharacter{013A}{\'l}
   \DeclareUnicodeCharacter{013B}{\cedilla{L}}
@@ -9813,6 +9818,8 @@ directory should work if nowhere else does.}
   \DeclareUnicodeCharacter{201C}{\quotedblleft}
   \DeclareUnicodeCharacter{201D}{\quotedblright}
   \DeclareUnicodeCharacter{201E}{\quotedblbase}
+  \DeclareUnicodeCharacter{2020}{\ensuremath\dagger}
+  \DeclareUnicodeCharacter{2021}{\ensuremath\ddagger}
   \DeclareUnicodeCharacter{2022}{\bullet}
   \DeclareUnicodeCharacter{2026}{\dots}
   \DeclareUnicodeCharacter{2039}{\guilsinglleft}
@@ -9824,6 +9831,7 @@ directory should work if nowhere else does.}
 
   \DeclareUnicodeCharacter{2212}{\minus}
   \DeclareUnicodeCharacter{2217}{\point}
+  \DeclareUnicodeCharacter{2225}{\ensuremath\parallel}
   \DeclareUnicodeCharacter{2261}{\equiv}
 }% end of \utfeightchardefs
 

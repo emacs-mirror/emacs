@@ -419,4 +419,6 @@ the operating system.")
 	     (setq defined-colors (cons this-color defined-colors))))
       defined-colors)))
 
+(provide 'term/common-win)
+
 ;;; common-win.el ends here

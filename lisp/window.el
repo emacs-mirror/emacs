@@ -1835,6 +1835,8 @@ optional argument PIXELWISE is passed to the functions."
       (window-body-width window pixelwise)
     (window-body-height window pixelwise)))
 
+(declare-function font-info "font.c" (name &optional frame))
+
 (defun window-font-width (&optional window face)
    "Return average character width for the font of FACE used in WINDOW.
 WINDOW must be a live window and defaults to the selected one.
@@ -1865,6 +1867,8 @@ information for the remapped face."
 		(info (font-info (face-font face))))
 	   (aref info 3))
        (frame-char-height))))
+
+(defvar overflow-newline-into-fringe)
 
 (defun window-max-chars-per-line (&optional window face)
   "Return the number of characters that can be displayed on one line in WINDOW.
@@ -7186,6 +7190,8 @@ See also `fit-frame-to-buffer-margins'."
   (when (and (numberp margin)
 	     (<= left (- right margin)) (<= margin right))
     margin))
+
+(declare-function tool-bar-height "xdisp.c" (&optional frame pixelwise))
 
 (defun fit-frame-to-buffer (&optional frame max-height min-height max-width min-width only)
   "Adjust size of FRAME to display the contents of its buffer exactly.

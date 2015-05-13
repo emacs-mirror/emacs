@@ -728,7 +728,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 (defun ns-paste-secondary ()
   (interactive)
-  (insert (ns-get-selection-internal 'SECONDARY)))
+  (insert (gui-get-selection 'SECONDARY)))
 
 
 ;;;; Scrollbar handling.

@@ -280,7 +280,7 @@ START and END represent the boundary."
   "Draw axis information based upon a range to be spread along the edge.
 A is the chart to draw.  DIR is the direction.
 MARGIN, ZONE, START, and END specify restrictions in chart space."
-  (call-next-method)
+  (cl-call-next-method)
   ;; We prefer about 5 spaces between each value
   (let* ((i (car (oref a bounds)))
 	 (e (cdr (oref a bounds)))
@@ -333,7 +333,7 @@ Automatically compensates for direction."
   "Draw axis information based upon A range to be spread along the edge.
 Optional argument DIR is the direction of the chart.
 Optional arguments MARGIN, ZONE, START and END specify boundaries of the drawing."
-  (call-next-method)
+  (cl-call-next-method)
   ;; We prefer about 5 spaces between each value
   (let* ((i 0)
 	 (s (oref a items))

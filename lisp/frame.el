@@ -217,6 +217,7 @@ This function runs the hook `focus-out-hook'."
   "Non-nil means function `frame-notice-user-settings' wasn't run yet.")
 
 (declare-function tool-bar-mode "tool-bar" (&optional arg))
+(declare-function tool-bar-height "xdisp.c" (&optional frame pixelwise))
 
 (defalias 'tool-bar-lines-needed 'tool-bar-height)
 

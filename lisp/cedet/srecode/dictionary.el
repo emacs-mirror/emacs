@@ -195,8 +195,8 @@ associated with a buffer or parent."
 	      initfrombuff t)))
 
       ;; Create the new dictionary object.
-      (let ((dict (srecode-dictionary
-		   major-mode
+      (let ((dict (make-instance
+                   'srecode-dictionary
 		   :buffer   buffer
 		   :parent   parent
 		   :namehash (make-hash-table :test 'equal

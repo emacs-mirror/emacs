@@ -1828,6 +1828,8 @@ This takes effect when first loading the library.")
       ("array" (nil \n
 		    ("Item: " "<item>" str (if sgml-xml-mode "</item>") \n))
        "align")
+      ("article" \n)
+      ("aside" \n)
       ("au")
       ("b")
       ("big")
@@ -1853,7 +1855,10 @@ This takes effect when first loading the library.")
              "<dd>" (if sgml-xml-mode "</dd>") \n))
       ("em")
       ("fn" "id" "fn")  ;; Footnotes were deprecated in HTML 3.2
+      ("footer" \n)
       ("head" \n)
+      ("header" \n)
+      ("hgroup" \n)
       ("html" (\n
 	       "<head>\n"
 	       "<title>" (setq str (read-input "Title: ")) "</title>\n"
@@ -1871,6 +1876,7 @@ This takes effect when first loading the library.")
       ("lang")
       ("li" ,(not sgml-xml-mode))
       ("math" \n)
+      ("nav" \n)
       ("nobr")
       ("option" t ("value") ("label") ("selected" t))
       ("over" t)
@@ -1880,6 +1886,7 @@ This takes effect when first loading the library.")
       ("rev")
       ("s")
       ("samp")
+      ("section" \n)
       ("small")
       ("span" nil
 	("class"
@@ -1910,6 +1917,8 @@ This takes effect when first loading the library.")
     ("acronym" . "Acronym")
     ("address" . "Formatted mail address")
     ("array" . "Math array")
+    ("article" . "An independent part of document or site")
+    ("aside" . "Secondary content related to surrounding content (e.g. page or article)")
     ("au" . "Author")
     ("b" . "Bold face")
     ("base" . "Base address for URLs")
@@ -1939,6 +1948,7 @@ This takes effect when first loading the library.")
     ("figt" . "Figure text")
     ("fn" . "Footnote")  ;; No one supports special footnote rendering.
     ("font" . "Font size")
+    ("footer" . "Footer of a section")
     ("form" . "Form with input fields")
     ("group" . "Document grouping")
     ("h1" . "Most important section headline")
@@ -1948,6 +1958,8 @@ This takes effect when first loading the library.")
     ("h5" . "Unimportant section headline")
     ("h6" . "Least important section headline")
     ("head" . "Document header")
+    ("header" . "Header of a section")
+    ("hgroup" . "Group of headings - h1-h6 elements")
     ("hr" . "Horizontal rule")
     ("html" . "HTML Document")
     ("i" . "Italic face")
@@ -1960,8 +1972,9 @@ This takes effect when first loading the library.")
     ("li" . "List item")
     ("link" . "Link relationship")
     ("math" . "Math formula")
-    ("menu" . "Menu list (obsolete)")
+    ("menu" . "List of commands")
     ("mh" . "Form mail header")
+    ("nav" . "Group of navigational links")
     ("nextid" . "Allocate new id")
     ("nobr" . "Text without line break")
     ("ol" . "Ordered list")
@@ -1975,6 +1988,7 @@ This takes effect when first loading the library.")
     ("rev" . "Reverse video")
     ("s" . "Strikeout")
     ("samp" . "Sample text")
+    ("section" . "Section of a document")
     ("select" . "Selection list")
     ("small" . "Font size")
     ("sp" . "Nobreak space")
@@ -2241,6 +2255,33 @@ HTML Autoview mode is a buffer-local minor mode for use with
                                         (if sgml-xml-mode "<br />" "<br>"))
 			     "")))
    \n))
+
+(define-skeleton html-navigational-links
+  "Group of navigational links."
+  nil
+  "<nav>" \n
+  "<ul>" \n
+  "<li><a href=\"" (skeleton-read "URL: " "#") "\">"
+  (skeleton-read "Title: ") "</a>"
+  (if sgml-xml-mode (if sgml-xml-mode "</li>")) \n
+  "</ul>" \n
+  "</nav>")
+
+(define-skeleton html-html5-template
+  "Initial HTML5 template"
+  nil
+  "<!DOCTYPE html>" \n
+  "<html lang=\"en\">" \n
+  "<head>" \n
+  "<meta charset=\"utf-8\">" \n
+  "<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">" \n
+  "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">" \n
+  "<title>" (skeleton-read "Page Title: ") "</title>" \n
+  "</head>" \n
+  "<body>" \n
+  "<div id=\"app\"></div>" \n
+  "</body>" \n
+  "</html>")
 
 (provide 'sgml-mode)
 

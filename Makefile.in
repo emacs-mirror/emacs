@@ -1091,23 +1091,19 @@ bootstrap: bootstrap-clean
 .PHONY: ChangeLog change-history change-history-commit change-history-nocommit
 .PHONY: master-branch-is-current unchanged-history-files
 
-CHANGELOG =
-emacslog = $(srcdir)/build-aux/gitlog-to-emacslog
-
-# Convert git commit log to ChangeLog file.  make-dist uses this.
-# I guess this is PHONY because it generates in distprefix (which is
-# non-nil when called from make-dist)?
-# FIXME: test -f does not respect distprefix.
-ChangeLog:
-	@[ -n "${CHANGELOG}" ] || test ! -f ChangeLog
-	$(AM_V_GEN)distprefix=$(distprefix) srcprefix=$(srcdir)/ \
-	$(emacslog) . $(CHANGELOG)
-
+CHANGELOG = ChangeLog
+emacslog = build-aux/gitlog-to-emacslog
 # The ChangeLog history files are called ChangeLog.1, ChangeLog.2, ...,
 # ChangeLog.$(CHANGELOG_HISTORY_INDEX_MAX).  $(CHANGELOG_N) stands for
 # the newest (highest-numbered) ChangeLog history file.
 CHANGELOG_HISTORY_INDEX_MAX = 2
 CHANGELOG_N = ChangeLog.$(CHANGELOG_HISTORY_INDEX_MAX)
+
+# Convert git commit log to ChangeLog file.  make-dist uses this.
+# I guess this is PHONY so it always updates?
+ChangeLog:
+	$(AM_V_GEN)cd $(srcdir) && \
+	  ./$(emacslog) -o $(CHANGELOG) -n $(CHANGELOG_HISTORY_INDEX_MAX)
 
 # Check that we are in a good state for changing history.
 master-branch-is-current:
@@ -1119,13 +1115,14 @@ unchanged-history-files:
 # Copy newer commit messages to the start of the ChangeLog history file,
 # and consider them to be older.
 change-history-nocommit: master-branch-is-current unchanged-history-files
+	-rm -f ChangeLog.tmp
 	$(MAKE) ChangeLog CHANGELOG=ChangeLog.tmp
-	(sed '/^;; [L]ocal Variables:/,$$d' <ChangeLog.tmp && cat $(CHANGELOG_N)) \
+	(sed '/^See ChangeLog.[0-9]* for earlier/,$$d' <ChangeLog.tmp && cat $(CHANGELOG_N)) \
 	  >$(CHANGELOG_N).tmp
 	rm ChangeLog.tmp
 	new_origin=$$(git log --pretty=format:%H HEAD^!) && \
 	sed 's/^\(gen_origin=\).*/\1'"$$new_origin/" \
-	  < $(emacslog) > $(emacslog).tmp
+	  < $(emacslog) > $(emacslog).tmp && chmod +x $(emacslog).tmp
 	mv $(CHANGELOG_N).tmp $(CHANGELOG_N)
 	mv $(emacslog).tmp $(emacslog)
 

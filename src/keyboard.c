@@ -8722,12 +8722,10 @@ read_char_minibuf_menu_prompt (int commandflag,
       while (BUFFERP (obj));
       kset_defining_kbd_macro (current_kboard, orig_defn_macro);
 
-      if (!INTEGERP (obj) || XINT (obj) == -2)
-        return obj;
-
-      if (! EQ (obj, menu_prompt_more_char)
-	  && (!INTEGERP (menu_prompt_more_char)
-	      || ! EQ (obj, make_number (Ctl (XINT (menu_prompt_more_char))))))
+      if (!INTEGERP (obj) || XINT (obj) == -2
+	  || (! EQ (obj, menu_prompt_more_char)
+	      && (!INTEGERP (menu_prompt_more_char)
+		  || ! EQ (obj, make_number (Ctl (XINT (menu_prompt_more_char)))))))
 	{
 	  if (!NILP (KVAR (current_kboard, defining_kbd_macro)))
 	    store_kbd_macro_char (obj);

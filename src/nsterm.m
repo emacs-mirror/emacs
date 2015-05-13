@@ -3188,6 +3188,96 @@ ns_dumpglyphs_stretch (struct glyph_string *s)
 
 
 static void
+ns_draw_composite_glyph_string_foreground (struct glyph_string *s)
+{
+  int i, j, x;
+  struct font *font = s->font;
+
+  /* If first glyph of S has a left box line, start drawing the text
+     of S to the right of that box line.  */
+  if (s->face && s->face->box != FACE_NO_BOX
+      && s->first_glyph->left_box_line_p)
+    x = s->x + eabs (s->face->box_line_width);
+  else
+    x = s->x;
+
+  /* S is a glyph string for a composition.  S->cmp_from is the index
+     of the first character drawn for glyphs of this composition.
+     S->cmp_from == 0 means we are drawing the very first character of
+     this composition.  */
+
+  /* Draw a rectangle for the composition if the font for the very
+     first character of the composition could not be loaded.  */
+  if (s->font_not_found_p)
+    {
+      if (s->cmp_from == 0)
+        {
+          NSRect r = NSMakeRect (s->x, s->y, s->width-1, s->height -1);
+          ns_draw_box (r, 1, FRAME_CURSOR_COLOR (s->f), 1, 1);
+        }
+    }
+  else if (! s->first_glyph->u.cmp.automatic)
+    {
+      int y = s->ybase;
+
+      for (i = 0, j = s->cmp_from; i < s->nchars; i++, j++)
+	/* TAB in a composition means display glyphs with padding
+	   space on the left or right.  */
+	if (COMPOSITION_GLYPH (s->cmp, j) != '\t')
+	  {
+	    int xx = x + s->cmp->offsets[j * 2];
+	    int yy = y - s->cmp->offsets[j * 2 + 1];
+
+	    font->driver->draw (s, j, j + 1, xx, yy, false);
+	    if (s->face->overstrike)
+	      font->driver->draw (s, j, j + 1, xx + 1, yy, false);
+	  }
+    }
+  else
+    {
+      Lisp_Object gstring = composition_gstring_from_id (s->cmp_id);
+      Lisp_Object glyph;
+      int y = s->ybase;
+      int width = 0;
+
+      for (i = j = s->cmp_from; i < s->cmp_to; i++)
+	{
+	  glyph = LGSTRING_GLYPH (gstring, i);
+	  if (NILP (LGLYPH_ADJUSTMENT (glyph)))
+	    width += LGLYPH_WIDTH (glyph);
+	  else
+	    {
+	      int xoff, yoff, wadjust;
+
+	      if (j < i)
+		{
+		  font->driver->draw (s, j, i, x, y, false);
+		  if (s->face->overstrike)
+		    font->driver->draw (s, j, i, x + 1, y, false);
+		  x += width;
+		}
+	      xoff = LGLYPH_XOFF (glyph);
+	      yoff = LGLYPH_YOFF (glyph);
+	      wadjust = LGLYPH_WADJUST (glyph);
+	      font->driver->draw (s, i, i + 1, x + xoff, y + yoff, false);
+	      if (s->face->overstrike)
+		font->driver->draw (s, i, i + 1, x + xoff + 1, y + yoff,
+				    false);
+	      x += wadjust;
+	      j = i + 1;
+	      width = 0;
+	    }
+	}
+      if (j < i)
+	{
+	  font->driver->draw (s, j, i, x, y, false);
+	  if (s->face->overstrike)
+	    font->driver->draw (s, j, i, x + 1, y, false);
+	}
+    }
+}
+
+static void
 ns_draw_glyph_string (struct glyph_string *s)
 /* --------------------------------------------------------------------------
       External (RIF): Main draw-text call.
@@ -3279,13 +3369,14 @@ ns_draw_glyph_string (struct glyph_string *s)
 
       {
         BOOL isComposite = s->first_glyph->type == COMPOSITE_GLYPH;
-        int end = isComposite ? s->cmp_to : s->nchars;
 
-        font->driver->draw
-          (s, s->cmp_from, end, s->x, s->ybase,
-           (flags == NS_DUMPGLYPH_NORMAL && !s->background_filled_p)
-           || flags == NS_DUMPGLYPH_MOUSEFACE);
-
+        if (isComposite)
+          ns_draw_composite_glyph_string_foreground (s);
+        else
+          font->driver->draw
+            (s, s->cmp_from, s->nchars, s->x, s->ybase,
+             (flags == NS_DUMPGLYPH_NORMAL && !s->background_filled_p)
+             || flags == NS_DUMPGLYPH_MOUSEFACE);
       }
 
       {

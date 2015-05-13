@@ -138,6 +138,9 @@ Linum mode is a buffer-local minor mode."
       (mapc #'delete-overlay linum-available)
       (setq linum-available nil))))
 
+;; Behind display-graphic-p test.
+(declare-function font-info "font.c" (name &optional frame))
+
 (defun linum--face-width (face)
   (let ((info (font-info (face-font face)))
 	width)

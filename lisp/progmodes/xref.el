@@ -207,6 +207,9 @@ found, return nil.
  (apropos PATTERN): Find all symbols that match PATTERN.  PATTERN
 is a regexp.
 
+ (matches REGEXP): Find all matches for REGEXP in the related
+files.  REGEXP is an Emacs regular expression.
+
 IDENTIFIER can be any string returned by
 `xref-identifier-at-point-function', or from the table returned
 by `xref-identifier-completion-table-function'.
@@ -661,6 +664,12 @@ With prefix argument, prompt for the identifier."
   (interactive (list (xref--read-identifier "Find references of: ")))
   (xref--show-xrefs identifier 'references identifier nil))
 
+;;;###autoload
+(defun xref-find-regexp (regexp)
+  "Find all matches for REGEXP."
+  (interactive (list (xref--read-identifier "Find regexp: ")))
+  (xref--show-xrefs regexp 'matches regexp nil))
+
 (declare-function apropos-parse-pattern "apropos" (pattern))
 
 ;;;###autoload
@@ -713,38 +722,64 @@ and just use etags."
                 (cdr xref-etags-mode--saved))))
 
 (declare-function semantic-symref-find-references-by-name "semantic/symref")
+(declare-function semantic-symref-find-text "semantic/symref")
 (declare-function semantic-find-file-noselect "semantic/fw")
 
-(defun xref-collect-references (name dir)
-  "Collect mentions of NAME inside DIR.
-Uses the Semantic Symbol Reference API, see
-`semantic-symref-find-references-by-name' for details on which
-tools are used, and when."
+(defun xref-collect-matches (input dir &optional kind)
+  "Collect KIND matches for INPUT inside DIR according.
+KIND can be `symbol', `regexp' or nil, the last of which means
+literal matches.  This function uses the Semantic Symbol
+Reference API, see `semantic-symref-find-references-by-name' for
+details on which tools are used, and when."
   (require 'semantic/symref)
   (defvar semantic-symref-tool)
   (cl-assert (directory-name-p dir))
+  (when (null kind)
+    (setq input (regexp-quote input)))
   (let* ((default-directory dir)
          (semantic-symref-tool 'detect)
-         (res (semantic-symref-find-references-by-name name 'subdirs))
+         (res (if (eq kind 'symbol)
+                  (semantic-symref-find-references-by-name input 'subdirs)
+                (semantic-symref-find-text (xref--regexp-to-extended input)
+                                           'subdirs)))
          (hits (and res (oref res :hit-lines)))
          (orig-buffers (buffer-list)))
     (unwind-protect
         (delq nil
-              (mapcar (lambda (hit) (xref--collect-reference hit name)) hits))
+              (mapcar (lambda (hit) (xref--collect-match hit input kind)) hits))
       (mapc #'kill-buffer
             (cl-set-difference (buffer-list) orig-buffers)))))
 
-(defun xref--collect-reference (hit name)
+(defun xref--regexp-to-extended (str)
+  (replace-regexp-in-string
+   ;; FIXME: Add tests.  Move to subr.el, make a public function.
+   ;; Maybe error on Emacs-only constructs.
+   "\\(?:\\\\\\\\\\)*\\(?:\\\\[][]\\)?\\(?:\\[.+?\\]\\|\\(\\\\?[(){}|]\\)\\)"
+   (lambda (str)
+     (cond
+      ((not (match-beginning 1))
+       str)
+      ((eq (length (match-string 1 str)) 2)
+       (concat (substring str 0 (match-beginning 1))
+               (substring (match-string 1 str) 1 2)))
+      (t
+       (concat (substring str 0 (match-beginning 1))
+               "\\"
+               (match-string 1 str)))))
+   str t t))
+
+(defun xref--collect-match (hit input kind)
   (pcase-let* ((`(,line . ,file) hit)
                (buf (or (find-buffer-visiting file)
-                        (semantic-find-file-noselect file))))
+                        (semantic-find-file-noselect file)))
+               (input (if (eq kind 'symbol)
+                          (format "\\_<%s\\_>" (regexp-quote input))
+                        input)))
     (with-current-buffer buf
       (save-excursion
         (goto-char (point-min))
         (forward-line (1- line))
-        (when (re-search-forward (format "\\_<%s\\_>"
-                                         (regexp-quote name))
-                                 (line-end-position) t)
+        (when (re-search-forward input (line-end-position) t)
           (goto-char (match-beginning 0))
           (xref-make (buffer-substring
                       (line-beginning-position)

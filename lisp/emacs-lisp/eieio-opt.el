@@ -74,6 +74,9 @@ Argument CH-PREFIX is another character prefix to display."
 
 ;;; CLASS COMPLETION / DOCUMENTATION
 
+;; Called via help-fns-describe-function-functions.
+(declare-function help-fns-short-filename "help-fns" (filename))
+
 ;;;###autoload
 (defun eieio-help-class (class)
   "Print help description for CLASS.

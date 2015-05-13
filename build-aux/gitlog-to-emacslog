@@ -23,39 +23,58 @@ LC_ALL=C
 export LC_ALL
 
 # The newest revision that should not appear in the generated ChangeLog.
-gen_origin=2c1b8604946efbcd8ec5dd6c6dda7541ce4fc3c0
-test -n "$1" && test "$1" != "." && gen_origin=$1
+gen_origin=d2c7e14ac3bd2b517d35a86255c28d5b6d779451
+force=
+output=ChangeLog
+nmax=2
 
-output=$2
-test -n "$output" || output=ChangeLog
+while [ $# -gt 0 ]; do
+  case "$1" in
+      -g|--gen-origin) gen_origin="$2" ; shift ;;
+      -f|--force) force=1 ;;
+      -n|--nmax) nmax="$2"; shift ;;
+      -o|--output) output="$2" ; shift ;;
+      *) echo "Unrecognized argument: $1" >&2; exit 1 ;;
+  esac
+  shift
+done
+
+if [ ! -f ChangeLog.$nmax ]; then
+    echo "Can't find ChangeLog.$nmax" >&2
+    echo "Must be run from the top source directory" >&2
+    exit 1
+fi
+
+if [ -f "$output" ]; then
+    [ ! "$force" ] && echo "$output exists" >&2 && exit 1
+    rm -f "$output" || exit 1
+fi
 
 # If this is not a Git repository, just generate an empty ChangeLog.
-test -d ${srcprefix}.git || {
-  # Remove any old ChangeLog, in case it is a vc-dwim symlink.
-  rm -f "${distprefix}$output" || exit
-  >"${distprefix}$output"
+test -d .git || {
+  >"$output"
   exit
 }
 
 # Use Gnulib's packaged ChangeLog generator.
-${srcprefix}build-aux/gitlog-to-changelog --ignore-matching='^; ' \
+./build-aux/gitlog-to-changelog --ignore-matching='^; ' \
   --format='%B' \
-  "$gen_origin.." >"${distprefix}ChangeLog.tmp" || exit
+  "$gen_origin.." >"ChangeLog.tmp" || exit
 
-if test -s "${distprefix}ChangeLog.tmp"; then
+if test -s "ChangeLog.tmp"; then
 
   # Fix up bug references.
   # This would be better as eg a --transform option to gitlog-to-changelog,
   # but... effort.  FIXME does not handle rare cases like:
   # Fixes: debbugs:19434 debbugs:19519
   sed 's/	Fixes: \(debbugs:\|bug#\)\([0-9][0-9]*\)/	(Bug#\2)/' \
-      "${distprefix}ChangeLog.tmp" > "${distprefix}ChangeLog.tmp2"
-  mv "${distprefix}ChangeLog.tmp2" "${distprefix}ChangeLog.tmp"
+      "ChangeLog.tmp" > "ChangeLog.tmp2"
+  mv "ChangeLog.tmp2" "ChangeLog.tmp"
 
   # Find the years covered by the generated ChangeLog, so that
   # a proper copyright notice can be output.
   years=`
-    sed -n 's/^\([0-9][0-9]*\).*/\1/p' "${distprefix}ChangeLog.tmp" |
+    sed -n 's/^\([0-9][0-9]*\).*/\1/p' "ChangeLog.tmp" |
     sort -nu
   `
   start_year=
@@ -75,13 +94,13 @@ if test -s "${distprefix}ChangeLog.tmp"; then
   sed -n '
     1i\
 
-    /^;; Local Variables:/,${
+    /^See ChangeLog.[0-9]* for earlier/,${
+       s/ChangeLog\.[0-9]*/ChangeLog.'$nmax'/
        s/\(Copyright[ (C)]*\)[0-9]*-[0-9]*/\1'"$year_range"'/
        p
     }
-  ' <ChangeLog.2 >>"${distprefix}ChangeLog.tmp" || exit
+  ' <ChangeLog.$nmax >>"ChangeLog.tmp" || exit
 fi
 
 # Install the generated ChangeLog.
-test "$output" = "ChangeLog.tmp" || \
-  mv -i "${distprefix}ChangeLog.tmp" "${distprefix}$output"
+test "$output" = "ChangeLog.tmp" || mv "ChangeLog.tmp" "$output"

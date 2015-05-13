@@ -179,5 +179,15 @@
     (cl-list* "quatre" (cl-next-method-p) (cl-call-next-method)))
   (should (equal (cl--generic-1 4 5) '("quatre" t 4 5 nil))))
 
+(ert-deftest sm-generic-test-12-context ()
+  (cl-defgeneric cl--generic-1 ())
+  (cl-defmethod cl--generic-1 (&context (overwrite-mode (eql t)))   'is-t)
+  (cl-defmethod cl--generic-1 (&context (overwrite-mode (eql nil))) 'is-nil)
+  (cl-defmethod cl--generic-1 () 'other)
+  (should (equal (list (let ((overwrite-mode t))   (cl--generic-1))
+                       (let ((overwrite-mode nil)) (cl--generic-1))
+                       (let ((overwrite-mode 1))   (cl--generic-1)))
+                 '(is-t is-nil other))))
+
 (provide 'cl-generic-tests)
 ;;; cl-generic-tests.el ends here

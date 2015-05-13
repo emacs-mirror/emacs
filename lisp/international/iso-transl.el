@@ -1,4 +1,4 @@
-;;; iso-transl.el --- keyboard input definitions for ISO 8859-1  -*- coding: utf-8 -*-
+;;; iso-transl.el --- keyboard input for ISO 10646 chars -*- coding: utf-8 -*-
 
 ;; Copyright (C) 1987, 1993-1999, 2001-2015 Free Software Foundation,
 ;; Inc.
@@ -35,6 +35,10 @@
 ;; once you have loaded the package.  It is nontrivial
 ;; to make all of the Alt keys autoload, and it is not clear
 ;; that the dead accent keys SHOULD autoload this package.
+
+;; This package supports all characters defined by ISO 8859-1, along
+;; with a few other ISO 10646 characters commonly used in English and
+;; basic math.
 
 ;;; Code:
 
@@ -192,6 +196,31 @@
     ("~o"   . [?õ])
     ("~t"   . [?þ])
     ("~~"   . [?¬])
+    ("_h"   . [?‐])
+    ("_H"   . [?‑])
+    ("_f"   . [?‒])
+    ("_n"   . [?–])
+    ("_m"   . [?—])
+    ("_q"   . [?―])
+    ("["    . [?‘])
+    ("]"    . [?’])
+    ("{"    . [?“])
+    ("}"    . [?”])
+    ("1+"   . [?†])
+    ("2+"   . [?‡])
+    ("**"   . [?•])
+    ("*'"   . [?′])
+    ("*\""  . [?″])
+    ("*E"   . [?€])
+    ("No"   . [?№])
+    ("a<"   . [?←])
+    ("a>"   . [?→])
+    ("a="   . [?↔])
+    ("_-"   . [?−])
+    ("~="   . [?≈])
+    ("/="   . [?≠])
+    ("_<"   . [?≤])
+    ("_>"   . [?≥])
     ("' "   . "'")
     ("` "   . "`")
     ("\" "  . "\"")
