@@ -113,6 +113,7 @@ lisp = \
 	$(lispsource)/language/cham.elc \
 	$(lispsource)/indent.elc \
 	$(lispsource)/window.elc \
+	$(lispsource)/emacs-lisp/cl-generic.elc \
 	$(lispsource)/frame.elc \
 	$(lispsource)/term/tty-colors.elc \
 	$(lispsource)/font-core.elc \

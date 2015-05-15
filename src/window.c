@@ -1751,7 +1751,11 @@ if it isn't already recorded.  */)
 	  || b->clip_changed
 	  || b->prevent_redisplay_optimizations_p
 	  || window_outdated (w))
-      && !noninteractive)
+      /* Don't call display routines if we didn't yet create any real
+	 frames, because the glyph matrices are not yet allocated in
+	 that case.  This could happen in some code that runs in the
+	 daemon during initialization (e.g., see bug#20565).  */
+      && !(noninteractive || FRAME_INITIAL_P (WINDOW_XFRAME (w))))
     {
       struct text_pos startp;
       struct it it;

@@ -2537,7 +2537,7 @@ To be used in the ERT results buffer."
 (add-to-list 'minor-mode-alist '(ert--current-run-stats
                                  (:eval
                                   (ert--tests-running-mode-line-indicator))))
-(add-to-list 'emacs-lisp-mode-hook 'ert--activate-font-lock-keywords)
+(add-hook 'emacs-lisp-mode-hook #'ert--activate-font-lock-keywords)
 
 (defun ert--unload-function ()
   "Unload function to undo the side-effects of loading ert.el."
@@ -2548,7 +2548,7 @@ To be used in the ERT results buffer."
   nil)
 
 (defvar ert-unload-hook '())
-(add-hook 'ert-unload-hook 'ert--unload-function)
+(add-hook 'ert-unload-hook #'ert--unload-function)
 
 
 (provide 'ert)

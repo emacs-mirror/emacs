@@ -731,9 +731,10 @@ If ALIST is non-nil, the new pairs are prepended to it."
 ;;; Miscellaneous.
 
 (provide 'cl-lib)
-(or (load "cl-loaddefs" 'noerror 'quiet)
-    ;; When bootstrapping, cl-loaddefs hasn't been built yet!
-    (require 'cl-macs))
+(unless (load "cl-loaddefs" 'noerror 'quiet)
+  ;; When bootstrapping, cl-loaddefs hasn't been built yet!
+  (require 'cl-macs)
+  (require 'cl-seq))
 
 ;; Local variables:
 ;; byte-compile-dynamic: t

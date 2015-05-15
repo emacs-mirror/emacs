@@ -41,220 +41,8 @@ $unk_comment_lc	php-src/lce_functions.php	117
 $user_comment	php-src/lce_functions.php	109
 $user_comment	php-src/lce_functions.php	167
 $user_comment_lc	php-src/lce_functions.php	115
-( $arg 	perl-src/mirror.pl	468
-( $arg 	perl-src/mirror.pl	1506
-( $as 	perl-src/mirror.pl	3046
-( $atime, $mtime, $path 	perl-src/mirror.pl	4118
-( $attempts 	perl-src/mirror.pl	1548
-( $buffer, $in, $sofar 	perl-src/mirror.pl	3686
-( $bufsiz 	perl-src/mirror.pl	3685
-( $c 	perl-src/mirror.pl	634
-( $c 	perl-src/mirror.pl	706
-( $changed 	perl-src/mirror.pl	3916
-( $com 	perl-src/mirror.pl	3741
-( $comp 	perl-src/mirror.pl	2998
-( $comptemp 	perl-src/mirror.pl	2916
-( $con 	perl-src/mirror.pl	1241
-( $cont 	perl-src/mirror.pl	830
-( $count 	perl-src/mirror.pl	2353
-( $count 	perl-src/mirror.pl	3920
-( $d 	perl-src/mirror.pl	3691
-( $del, $kind 	perl-src/mirror.pl	3322
-( $del_patt 	perl-src/mirror.pl	3135
-( $dest, $existing 	perl-src/mirror.pl	2745
-( $dest_dir 	perl-src/mirror.pl	3684
-( $dest_path 	perl-src/mirror.pl	3066
-( $dest_path, $attribs 	perl-src/mirror.pl	2809
-( $dest_path, $dest_loc_mapi, $src_rem_mapi,  $rtime 	perl-src/mirror.pl	2685
-( $dest_path, $existing_path 	perl-src/mirror.pl	3400
-( $desti, $srci, $compress, $srciZ, $srcigz, $split, $dest_path_real 	perl-src/mirror.pl	2299
-( $dev,$ino,$fmode,$nlink,$uid,$gid,$rdev,$ssize,	perl-src/mirror.pl	1694
-( $diff 	perl-src/mirror.pl	3638
-( $dir 	perl-src/mirror.pl	3306
-( $dir 	perl-src/mirror.pl	3459
-( $dir 	perl-src/mirror.pl	3530
-( $dir 	perl-src/mirror.pl	3784
-( $dir, $file 	perl-src/mirror.pl	3064
-( $dir, $file, $temp, $compress, $split, $restart, $mesg, $got_mesg 	perl-src/mirror.pl	2872
-( $dir, $mode 	perl-src/mirror.pl	3499
-( $dir, $mp 	perl-src/mirror.pl	723
-( $dir, $rest 	perl-src/mirror.pl	3873
-( $dir_level 	perl-src/mirror.pl	1691
-( $dirname 	perl-src/mirror.pl	3284
-( $dirpart 	perl-src/mirror.pl	2746
-( $dirpart 	perl-src/mirror.pl	3905
-( $dirtmp 	perl-src/mirror.pl	1830
-( $dirtmp 	perl-src/mirror.pl	1859
-( $dl 	perl-src/mirror.pl	2788
-( $done 	perl-src/mirror.pl	2239
-( $dpp, $dps 	perl-src/mirror.pl	2509
-( $eqpl 	perl-src/mirror.pl	829
-( $err 	perl-src/mirror.pl	1601
-( $exit_status 	perl-src/mirror.pl	1030
-( $f 	perl-src/mirror.pl	725
-( $f 	perl-src/mirror.pl	1840
-( $f 	perl-src/mirror.pl	2770
-( $f 	perl-src/mirror.pl	2921
-( $f 	perl-src/mirror.pl	2997
-( $f, $fr, $flb, $flt, $flp, $flz, $frb, $frt 	perl-src/mirror.pl	1990
-( $f, $uf 	perl-src/mirror.pl	1878
-( $file 	perl-src/mirror.pl	3673
-( $file, $kind 	perl-src/mirror.pl	3991
-( $files_to_go, $dirs_to_go 	perl-src/mirror.pl	3125
-( $filesize 	perl-src/mirror.pl	3015
-( $flag, $p 	perl-src/mirror.pl	480
-( $flags 	perl-src/mirror.pl	1912
-( $fname 	perl-src/mirror.pl	758
-( $fname 	perl-src/mirror.pl	3379
-( $ft 	perl-src/mirror.pl	2747
-( $get_one_package 	perl-src/mirror.pl	1009
-( $i 	perl-src/mirror.pl	1692
-( $i 	perl-src/mirror.pl	2129
-( $i 	perl-src/mirror.pl	3917
-( $in 	perl-src/mirror.pl	3932
-( $index 	perl-src/mirror.pl	3697
-( $key 	perl-src/mirror.pl	964
-( $key, $val 	perl-src/mirror.pl	896
-( $key, $val, $overrides 	perl-src/mirror.pl	870
-( $key, $val, $str 	perl-src/mirror.pl	975
-( $key_val 	perl-src/mirror.pl	578
-( $last_prodded 	perl-src/mirror.pl	1643
-( $last_prodded 	perl-src/mirror.pl	2294
-( $lcwd 	perl-src/mirror.pl	4137
-( $locali 	perl-src/mirror.pl	3054
-( $locali 	perl-src/mirror.pl	3714
-( $map 	perl-src/mirror.pl	3645
-( $map 	perl-src/mirror.pl	3659
-( $mapi 	perl-src/mirror.pl	1763
-( $mapi 	perl-src/mirror.pl	2214
-( $mode 	perl-src/mirror.pl	3556
-( $msg 	perl-src/mirror.pl	972
-( $msg 	perl-src/mirror.pl	1963
-( $msg 	perl-src/mirror.pl	3417
-( $msg 	perl-src/mirror.pl	3431
-( $msg 	perl-src/mirror.pl	4030
-( $name 	perl-src/mirror.pl	2653
-( $newpath 	perl-src/mirror.pl	2838
-( $nle 	perl-src/mirror.pl	973
-( $now 	perl-src/mirror.pl	1493
-( $old 	perl-src/mirror.pl	2421
-( $old_dest_path 	perl-src/mirror.pl	2432
-( $old_dest_path, $existing_path, $tmp, $restart 	perl-src/mirror.pl	2300
-( $old_mode 	perl-src/mirror.pl	4124
-( $old_name 	perl-src/mirror.pl	2656
-( $old_path 	perl-src/mirror.pl	2130
-( $old_path 	perl-src/mirror.pl	2143
-( $old_sig 	perl-src/mirror.pl	2098
-( $orig_do_deletes 	perl-src/mirror.pl	3132
-( $orig_path 	perl-src/mirror.pl	3921
-( $orig_path, $points_to 	perl-src/mirror.pl	3904
-( $orig_save_deletes 	perl-src/mirror.pl	3133
-( $out 	perl-src/mirror.pl	974
-( $p 	perl-src/mirror.pl	2762
-( $p, $s, $trz, $t, $m 	perl-src/mirror.pl	2030
-( $package 	perl-src/mirror.pl	3965
-( $package, $filename, $line 	perl-src/mirror.pl	4031
-( $parse_state 	perl-src/mirror.pl	1946
-( $part 	perl-src/mirror.pl	3698
-( $pass 	perl-src/mirror.pl	3609
-( $path 	perl-src/mirror.pl	3763
-( $path 	perl-src/mirror.pl	3766
-( $path 	perl-src/mirror.pl	3888
-( $path 	perl-src/mirror.pl	3915
-( $path, $size, $time, $type, $mode, $rdir, $rcwd 	perl-src/mirror.pl	2127
-( $path, $src_path, $type 	perl-src/mirror.pl	3555
-( $path, $time 	perl-src/mirror.pl	2701
-( $path, $time, $size, $type, $mode, $name, $isdir, $value, $follow 	perl-src/mirror.pl	1693
-( $pathi 	perl-src/mirror.pl	3564
-( $pathi 	perl-src/mirror.pl	3568
-( $pathi, $path, *keep, *keep_totals, *keep_map, $kind 	perl-src/mirror.pl	4071
-( $per 	perl-src/mirror.pl	3162
-( $per 	perl-src/mirror.pl	3184
-( $pr_time 	perl-src/mirror.pl	2703
-( $prog 	perl-src/mirror.pl	3762
-( $program 	perl-src/mirror.pl	3782
-( $readme 	perl-src/mirror.pl	3730
-( $real 	perl-src/mirror.pl	2409
-( $real, $reali, $reali1 	perl-src/mirror.pl	2352
-( $real_save_dir, $save_dest 	perl-src/mirror.pl	3249
-( $reali 	perl-src/mirror.pl	2410
-( $res 	perl-src/mirror.pl	1549
-( $ret 	perl-src/mirror.pl	1587
-( $ret 	perl-src/mirror.pl	2097
-( $ret 	perl-src/mirror.pl	4126
-( $ri 	perl-src/mirror.pl	2203
-( $rls 	perl-src/mirror.pl	1825
-( $rooted 	perl-src/mirror.pl	3919
-( $save, $kind 	perl-src/mirror.pl	3247
-( $save_dir_tail 	perl-src/mirror.pl	3226
-( $sec,$min,$hour,$mday,$mon,$year,	perl-src/mirror.pl	678
-( $sig 	perl-src/mirror.pl	4029
-( $sig 	perl-src/mirror.pl	4038
-( $site, $path 	perl-src/mirror.pl	539
-( $site_path 	perl-src/mirror.pl	525
-( $size 	perl-src/mirror.pl	3840
-( $sizemsg 	perl-src/mirror.pl	3016
-( $sp, $dp 	perl-src/mirror.pl	2301
-( $src_file 	perl-src/mirror.pl	2915
-( $src_path 	perl-src/mirror.pl	2677
-( $src_path 	perl-src/mirror.pl	2808
-( $src_path, $dest_path, $attribs, $timestamp 	perl-src/mirror.pl	2871
-( $src_path, $dest_path, $got_mesg, $size 	perl-src/mirror.pl	3092
-( $src_path, $dest_path, $i 	perl-src/mirror.pl	2293
-( $src_path, $i 	perl-src/mirror.pl	3131
-( $srci 	perl-src/mirror.pl	2810
-( $srcsize 	perl-src/mirror.pl	3017
-( $status 	perl-src/mirror.pl	3442
-( $storename 	perl-src/mirror.pl	1793
-( $t 	perl-src/mirror.pl	1589
-( $t1, $t2 	perl-src/mirror.pl	3637
-( $temp, $dest_path, $time 	perl-src/mirror.pl	3683
-( $thing 	perl-src/mirror.pl	2721
-( $thing 	perl-src/mirror.pl	2738
-( $ti 	perl-src/mirror.pl	2975
-( $time 	perl-src/mirror.pl	3029
-( $time_to_sig 	perl-src/mirror.pl	4106
-( $tlb 	perl-src/mirror.pl	1995
-( $tlz 	perl-src/mirror.pl	2037
-( $tmp 	perl-src/mirror.pl	2666
-( $tmp_mode 	perl-src/mirror.pl	4125
-( $to , $tn 	perl-src/mirror.pl	1991
-( $todo, $msg 	perl-src/mirror.pl	3809
-( $type_changed 	perl-src/mirror.pl	1791
-( $udirtmp 	perl-src/mirror.pl	1792
-( $uid, $gid, $path 	perl-src/mirror.pl	4112
-( $unsquish 	perl-src/mirror.pl	1832
-( $unsquish 	perl-src/mirror.pl	1870
-( $update 	perl-src/mirror.pl	2534
-( $user 	perl-src/mirror.pl	595
-( $user 	perl-src/mirror.pl	3608
-( $v 	perl-src/mirror.pl	839
-( $v, $kind 	perl-src/mirror.pl	3860
-( $val 	perl-src/mirror.pl	953
-( $val 	perl-src/mirror.pl	1597
-( $val 	perl-src/mirror.pl	3392
-( $val 	perl-src/mirror.pl	3500
-( $val 	perl-src/mirror.pl	3531
-( $val_name 	perl-src/mirror.pl	902
-( $value 	perl-src/mirror.pl	2408
-( $| 	perl-src/mirror.pl	3610
-( *src_paths,	perl-src/mirror.pl	2286
-( *src_paths,	perl-src/mirror.pl	3121
-( *things 	perl-src/mirror.pl	3754
-( @dir, $d, $path 	perl-src/mirror.pl	3460
-( @dir_list 	perl-src/mirror.pl	2128
-( @dirs, $dir 	perl-src/mirror.pl	1642
-( @parts 	perl-src/mirror.pl	3933
-( @prog_path 	perl-src/mirror.pl	3783
-( @rhelp 	perl-src/mirror.pl	1289
-( @sub_dirs 	perl-src/mirror.pl	1329
-( @t 	perl-src/mirror.pl	1154
-( @t 	perl-src/mirror.pl	4006
 ($_,$flag,$opt,$f,$r,@temp	perl-src/yagrip.pl	8
-($filesize	perl-src/mirror.pl	2944
-($old_dir	perl-src/mirror.pl	3539
 ($prog,$_,@list	perl-src/yagrip.pl	39
-($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst	perl-src/mirror.pl	4013
 ($string,$flag,@string,@temp,@last	perl-src/yagrip.pl	40
 (a-forth-constant	forth-src/test-forth.fth	/^constant (a-forth-constant$/
 (another-forth-word	forth-src/test-forth.fth	/^: (another-forth-word) ( -- )$/
@@ -388,10 +176,6 @@ $user_comment_lc	php-src/lce_functions.php	115
 /wbytes	ps-src/rfc1245.ps	/^\/wbytes { $/
 /wh	ps-src/rfc1245.ps	/^\/wh { $/
 /yen	ps-src/rfc1245.ps	/^\/yen \/.notdef \/.notdef \/.notdef \/.notdef \/.notdef /
-::PctestActionAbort	cp-src/Pctest.h	53
-::PctestActionFiltered	cp-src/Pctest.h	51
-::PctestActionValid	cp-src/Pctest.h	47
-::PctestActionValidLasthop	cp-src/Pctest.h	49
 ::cat	cp-src/c.C	126
 ::dog	cp-src/c.C	126
 ::f	cp-src/c.C	/^     void f() {}$/
@@ -500,82 +284,11 @@ AUTO_LIST3	c-src/emacs/src/lisp.h	/^#define AUTO_LIST3(name, a, b, c)					\\$/
 AUTO_LIST4	c-src/emacs/src/lisp.h	/^#define AUTO_LIST4(name, a, b, c, d)					\\$/
 AUTO_STRING	c-src/emacs/src/lisp.h	/^#define AUTO_STRING(name, str)						\\$/
 AVAIL_ALLOCA	c-src/emacs/src/lisp.h	/^#define AVAIL_ALLOCA(size) (sa_avail -= (size), al/
-AWTEventMulticaster	java-src/AWTEMul.java	63
-AWTEventMulticaster.AWTEventMulticaster	java-src/AWTEMul.java	/^    protected AWTEventMulticaster(EventListener a,/
-AWTEventMulticaster.a	java-src/AWTEMul.java	69
-AWTEventMulticaster.actionPerformed	java-src/AWTEMul.java	/^    public void actionPerformed(ActionEvent e) {$/
-AWTEventMulticaster.add	java-src/AWTEMul.java	/^    public static ComponentListener add(ComponentL/
-AWTEventMulticaster.add	java-src/AWTEMul.java	/^    public static ContainerListener add(ContainerL/
-AWTEventMulticaster.add	java-src/AWTEMul.java	/^    public static FocusListener add(FocusListener /
-AWTEventMulticaster.add	java-src/AWTEMul.java	/^    public static KeyListener add(KeyListener a, K/
-AWTEventMulticaster.add	java-src/AWTEMul.java	/^    public static MouseListener add(MouseListener /
-AWTEventMulticaster.add	java-src/AWTEMul.java	/^    public static MouseMotionListener add(MouseMot/
-AWTEventMulticaster.add	java-src/AWTEMul.java	/^    public static WindowListener add(WindowListene/
-AWTEventMulticaster.add	java-src/AWTEMul.java	/^    public static ActionListener add(ActionListene/
-AWTEventMulticaster.add	java-src/AWTEMul.java	/^    public static ItemListener add(ItemListener a,/
-AWTEventMulticaster.add	java-src/AWTEMul.java	/^    public static AdjustmentListener add(Adjustmen/
-AWTEventMulticaster.add	java-src/AWTEMul.java	/^    public static TextListener add(TextListener a,/
-AWTEventMulticaster.addInternal	java-src/AWTEMul.java	/^    protected static EventListener addInternal(Eve/
-AWTEventMulticaster.adjustmentValueChanged	java-src/AWTEMul.java	/^    public void adjustmentValueChanged(AdjustmentE/
-AWTEventMulticaster.b	java-src/AWTEMul.java	69
-AWTEventMulticaster.componentAdded	java-src/AWTEMul.java	/^    public void componentAdded(ContainerEvent e) {/
-AWTEventMulticaster.componentHidden	java-src/AWTEMul.java	/^    public void componentHidden(ComponentEvent e) /
-AWTEventMulticaster.componentMoved	java-src/AWTEMul.java	/^    public void componentMoved(ComponentEvent e) {/
-AWTEventMulticaster.componentRemoved	java-src/AWTEMul.java	/^    public void componentRemoved(ContainerEvent e)/
-AWTEventMulticaster.componentResized	java-src/AWTEMul.java	/^    public void componentResized(ComponentEvent e)/
-AWTEventMulticaster.componentShown	java-src/AWTEMul.java	/^    public void componentShown(ComponentEvent e) {/
-AWTEventMulticaster.focusGained	java-src/AWTEMul.java	/^    public void focusGained(FocusEvent e) {$/
-AWTEventMulticaster.focusLost	java-src/AWTEMul.java	/^    public void focusLost(FocusEvent e) {$/
-AWTEventMulticaster.itemStateChanged	java-src/AWTEMul.java	/^    public void itemStateChanged(ItemEvent e) {$/
-AWTEventMulticaster.keyPressed	java-src/AWTEMul.java	/^    public void keyPressed(KeyEvent e) {$/
-AWTEventMulticaster.keyReleased	java-src/AWTEMul.java	/^    public void keyReleased(KeyEvent e) {$/
-AWTEventMulticaster.keyTyped	java-src/AWTEMul.java	/^    public void keyTyped(KeyEvent e) {$/
-AWTEventMulticaster.mouseClicked	java-src/AWTEMul.java	/^    public void mouseClicked(MouseEvent e) {$/
-AWTEventMulticaster.mouseDragged	java-src/AWTEMul.java	/^    public void mouseDragged(MouseEvent e) {$/
-AWTEventMulticaster.mouseEntered	java-src/AWTEMul.java	/^    public void mouseEntered(MouseEvent e) {$/
-AWTEventMulticaster.mouseExited	java-src/AWTEMul.java	/^    public void mouseExited(MouseEvent e) {$/
-AWTEventMulticaster.mouseMoved	java-src/AWTEMul.java	/^    public void mouseMoved(MouseEvent e) {$/
-AWTEventMulticaster.mousePressed	java-src/AWTEMul.java	/^    public void mousePressed(MouseEvent e) {$/
-AWTEventMulticaster.mouseReleased	java-src/AWTEMul.java	/^    public void mouseReleased(MouseEvent e) {$/
-AWTEventMulticaster.remove	java-src/AWTEMul.java	/^    protected EventListener remove(EventListener o/
-AWTEventMulticaster.remove	java-src/AWTEMul.java	/^    public static ComponentListener remove(Compone/
-AWTEventMulticaster.remove	java-src/AWTEMul.java	/^    public static ContainerListener remove(Contain/
-AWTEventMulticaster.remove	java-src/AWTEMul.java	/^    public static FocusListener remove(FocusListen/
-AWTEventMulticaster.remove	java-src/AWTEMul.java	/^    public static KeyListener remove(KeyListener l/
-AWTEventMulticaster.remove	java-src/AWTEMul.java	/^    public static MouseListener remove(MouseListen/
-AWTEventMulticaster.remove	java-src/AWTEMul.java	/^    public static MouseMotionListener remove(Mouse/
-AWTEventMulticaster.remove	java-src/AWTEMul.java	/^    public static WindowListener remove(WindowList/
-AWTEventMulticaster.remove	java-src/AWTEMul.java	/^    public static ActionListener remove(ActionList/
-AWTEventMulticaster.remove	java-src/AWTEMul.java	/^    public static ItemListener remove(ItemListener/
-AWTEventMulticaster.remove	java-src/AWTEMul.java	/^    public static AdjustmentListener remove(Adjust/
-AWTEventMulticaster.remove	java-src/AWTEMul.java	/^    public static TextListener remove(TextListener/
-AWTEventMulticaster.removeInternal	java-src/AWTEMul.java	/^    protected static EventListener removeInternal(/
-AWTEventMulticaster.save	java-src/AWTEMul.java	/^    static void save(ObjectOutputStream s, String /
-AWTEventMulticaster.saveInternal	java-src/AWTEMul.java	/^    protected void saveInternal(ObjectOutputStream/
-AWTEventMulticaster.textValueChanged	java-src/AWTEMul.java	/^    public void textValueChanged(TextEvent e) {$/
-AWTEventMulticaster.windowActivated	java-src/AWTEMul.java	/^    public void windowActivated(WindowEvent e) {$/
-AWTEventMulticaster.windowClosed	java-src/AWTEMul.java	/^    public void windowClosed(WindowEvent e) {$/
-AWTEventMulticaster.windowClosing	java-src/AWTEMul.java	/^    public void windowClosing(WindowEvent e) {$/
-AWTEventMulticaster.windowDeactivated	java-src/AWTEMul.java	/^    public void windowDeactivated(WindowEvent e) {/
-AWTEventMulticaster.windowDeiconified	java-src/AWTEMul.java	/^    public void windowDeiconified(WindowEvent e) {/
-AWTEventMulticaster.windowIconified	java-src/AWTEMul.java	/^    public void windowIconified(WindowEvent e) {$/
-AWTEventMulticaster.windowOpened	java-src/AWTEMul.java	/^    public void windowOpened(WindowEvent e) {$/
 Abort_Handler_Pointer/t	ada-src/2ataspri.ads	/^   type Abort_Handler_Pointer is access procedure /
 Abort_Task/p	ada-src/2ataspri.adb	/^   procedure Abort_Task (T : TCB_Ptr) is$/
 Abort_Task/p	ada-src/2ataspri.ads	/^   procedure Abort_Task (T : TCB_Ptr);$/
 Abort_Wrapper/p	ada-src/2ataspri.adb	/^   procedure Abort_Wrapper$/
 Abort_Wrapper/p	ada-src/2ataspri.adb	/^   procedure Abort_Wrapper$/
-Action_Pref	cp-src/abstract.H	704
-Action_Pref::Action_Pref	cp-src/abstract.C	/^Action_Pref::Action_Pref(Tree_Node *a_d, Tree_Node/
-Action_Pref::SetCollapsed	cp-src/abstract.C	/^void Action_Pref::SetCollapsed(char t)$/
-Action_Pref::SetDimensions	cp-src/abstract.C	/^void Action_Pref::SetDimensions(void)$/
-Action_Pref::SetFather	cp-src/abstract.C	/^void Action_Pref::SetFather(Tree_Node *f)$/
-Action_Pref::SetPosition	cp-src/abstract.C	/^void Action_Pref::SetPosition(Coord xx, Coord yy)$/
-Action_Pref::SetTextual	cp-src/abstract.C	/^void Action_Pref::SetTextual(char t, char s)$/
-Action_Pref::action_den	cp-src/abstract.H	706
-Action_Pref::bex	cp-src/abstract.H	707
-Action_Pref::border	cp-src/abstract.H	709
-Action_Pref::havebox	cp-src/abstract.H	708
 Ada_funcs	c-src/etags.c	/^Ada_funcs (FILE *inf)$/
 Ada_getit	c-src/etags.c	/^Ada_getit (FILE *inf, const char *name_qualifier)$/
 Ada_help	c-src/etags.c	475
@@ -614,7 +327,6 @@ BLOCKSIZE	c-src/emacs/src/gmalloc.c	126
 BOOL_VECTOR_BITS_PER_CHAR	c-src/emacs/src/lisp.h	114
 BOOL_VECTOR_BITS_PER_CHAR	c-src/emacs/src/lisp.h	115
 BOOL_VECTOR_P	c-src/emacs/src/lisp.h	/^BOOL_VECTOR_P (Lisp_Object a)$/
-BREAK	erl-src/lines.erl	/^-define(BREAK, 10).	% how many lines to store in e/
 BUFFERP	c-src/emacs/src/lisp.h	/^BUFFERP (Lisp_Object a)$/
 BUFFERSIZE	objc-src/Subprocess.h	43
 BUFFER_OBJFWDP	c-src/emacs/src/lisp.h	/^BUFFER_OBJFWDP (union Lisp_Fwd *a)$/
@@ -753,7 +465,7 @@ CONSTYPE_PURE	c-src/emacs/src/lisp.h	3739
 CONS_TO_INTEGER	c-src/emacs/src/lisp.h	/^#define CONS_TO_INTEGER(cons, type, var)				\\$/
 CONVERT_CHARSTRING_TO_VALUE	pas-src/common.pas	/^procedure CONVERT_CHARSTRING_TO_VALUE;(*($/
 CPPFLAGS	make-src/Makefile	49
-CPSRC	Makefile	/^CPSRC=$(addprefix .\/cp-src\/,c.C abstract.C abstrac/
+CPSRC	Makefile	/^CPSRC=$(addprefix .\/cp-src\/,c.C burton.cpp burton./
 CSRC	Makefile	/^CSRC=$(addprefix .\/c-src\/,abbrev.c .\/\/c.c torture./
 CTAGS	Makefile	/^CTAGS: FRC ${infiles}$/
 CTAGS	c-src/etags.c	146
@@ -770,26 +482,6 @@ C_entries	c-src/etags.c	/^C_entries (int c_ext, FILE *inf)$/
 C_stab_entry	c-src/etags.c	2271
 C_symtype	c-src/etags.c	/^C_symtype (char *str, int len, int c_ext)$/
 ChangeFileType	pas-src/common.pas	/^function ChangeFileType; (*(FileName : NameString;/
-Choice	cp-src/abstract.H	768
-Choice::ChangeH	cp-src/abstract.C	/^void Choice::ChangeH(int nh)$/
-Choice::ChangeW	cp-src/abstract.C	/^void Choice::ChangeW(int nw)$/
-Choice::Choice	cp-src/abstract.C	/^Choice::Choice(Tree_Node *b1, Tree_Node *b2)$/
-Choice::Get_Textual_H	cp-src/abstract.C	/^int Choice::Get_Textual_H()$/
-Choice::Get_Textual_W	cp-src/abstract.C	/^int Choice::Get_Textual_W()$/
-Choice::SetCollapsed	cp-src/abstract.C	/^void Choice::SetCollapsed(char t)$/
-Choice::SetDimensions	cp-src/abstract.C	/^void Choice::SetDimensions(void)$/
-Choice::SetFather	cp-src/abstract.C	/^void Choice::SetFather(Tree_Node *f)$/
-Choice::SetPosition	cp-src/abstract.C	/^void Choice::SetPosition(Coord xx, Coord yy)$/
-Choice::SetTerminalPos	cp-src/abstract.C	/^void Choice::SetTerminalPos()$/
-Choice::SetTextual	cp-src/abstract.C	/^void Choice::SetTextual(char t, char s)$/
-Choice::bex1	cp-src/abstract.H	770
-Choice::bex2	cp-src/abstract.H	770
-Choice::border	cp-src/abstract.H	774
-Choice::delta	cp-src/abstract.H	773
-Choice::havebox	cp-src/abstract.H	772
-Choice::xl	cp-src/abstract.H	771
-Choice::yl	cp-src/abstract.H	771
-Choice::yl1	cp-src/abstract.H	771
 Cjava_entries	c-src/etags.c	/^Cjava_entries (FILE *inf)$/
 Cjava_help	c-src/etags.c	551
 Cjava_suffixes	c-src/etags.c	549
@@ -798,35 +490,8 @@ Clear/p	ada-src/2ataspri.ads	/^   procedure Clear        (Cell : in out TAS_Cell
 Cobol_help	c-src/etags.c	558
 Cobol_paragraphs	c-src/etags.c	/^Cobol_paragraphs (FILE *inf)$/
 Cobol_suffixes	c-src/etags.c	556
-Comment	cp-src/abstract.H	105
-Comment::Comment	cp-src/abstract.C	/^Comment::Comment()$/
-Comment::SetComment	cp-src/abstract.C	/^void Comment::SetComment(char *comment)$/
-Comment::SetDimensions	cp-src/abstract.C	/^void Comment::SetDimensions(void)$/
-Comment::SetFather	cp-src/abstract.C	/^void Comment::SetFather(Tree_Node *f)$/
-Comment::SetPosition	cp-src/abstract.C	/^void Comment::SetPosition(Coord xx, Coord yy)$/
-Comment::comm	cp-src/abstract.H	107
-Comment::~Comment	cp-src/abstract.C	/^Comment::~Comment()$/
 CommentAD	php-src/lce_functions.php	70
 CommentAD	php-src/lce_functions.php	/^      function CommentAD($/
-Comment_List	cp-src/abstract.H	122
-Comment_List::Comment_List	cp-src/abstract.C	/^Comment_List::Comment_List(Comment *el, Comment_Li/
-Comment_List::SetDimensions	cp-src/abstract.C	/^void Comment_List::SetDimensions(void)$/
-Comment_List::SetFather	cp-src/abstract.C	/^void Comment_List::SetFather(Tree_Node *f)$/
-Comment_List::SetPosition	cp-src/abstract.C	/^void Comment_List::SetPosition(Coord xx, Coord yy)/
-Comment_List::elem	cp-src/abstract.H	124
-Comment_List::next	cp-src/abstract.H	125
-Communication	cp-src/abstract.H	627
-Communication::Communication	cp-src/abstract.C	/^Communication::Communication(ID_Place *i, Tree_Nod/
-Communication::SetCollapsed	cp-src/abstract.C	/^void Communication::SetCollapsed(char t)$/
-Communication::SetDimensions	cp-src/abstract.C	/^void Communication::SetDimensions(void)$/
-Communication::SetFather	cp-src/abstract.C	/^void Communication::SetFather(Tree_Node *f)$/
-Communication::SetPosition	cp-src/abstract.C	/^void Communication::SetPosition(Coord xx, Coord yy/
-Communication::SetTextual	cp-src/abstract.C	/^void Communication::SetTextual(char t, char)$/
-Communication::experiment_option	cp-src/abstract.H	630
-Communication::gate_identifier	cp-src/abstract.H	629
-Communication::hr	cp-src/abstract.H	632
-Communication::xl	cp-src/abstract.H	631
-Communication::yl	cp-src/abstract.H	631
 ConcatT	pas-src/common.pas	/^function ConcatT;(*($/
 Concept Index	tex-src/gzip.texi	/^@node Concept Index, , Problems, Top$/
 Cond_Signal/p	ada-src/2ataspri.adb	/^   procedure Cond_Signal (Cond : in out Condition_/
@@ -855,8 +520,6 @@ D::D	cp-src/fail.C	/^		D() : ::A::T2::T(97), x(1066) {}$/
 D::x	cp-src/fail.C	44
 DAEMON_RUNNING	c-src/emacs/src/lisp.h	4258
 DAEMON_RUNNING	c-src/emacs/src/lisp.h	4262
-DB	cp-src/cfront.H	/^#define DB(a) fprintf a$/
-DB	cp-src/cfront.H	/^#define DB(a) \/**\/$/
 DEAFUN	c.c	/^DEAFUN ("expand-file-name", Fexpand_file_name, Sex/
 DEBUG	c-src/etags.c	84
 DEBUG	c-src/etags.c	85
@@ -867,7 +530,6 @@ DEFAULT_HASH_SIZE	c-src/emacs/src/lisp.h	1940
 DEFAULT_HASH_SIZE	c-src/emacs/src/lisp.h	1940
 DEFAULT_REHASH_SIZE	c-src/emacs/src/lisp.h	1950
 DEFAULT_REHASH_THRESHOLD	c-src/emacs/src/lisp.h	1946
-DEFINED	cp-src/cfront.H	230
 DEFINE_GDB_SYMBOL_BEGIN	c-src/emacs/src/lisp.h	/^# define DEFINE_GDB_SYMBOL_BEGIN(type, id) DECLARE/
 DEFINE_GDB_SYMBOL_BEGIN	c-src/emacs/src/lisp.h	/^# define DEFINE_GDB_SYMBOL_BEGIN(type, id) extern /
 DEFINE_GDB_SYMBOL_END	c-src/emacs/src/lisp.h	/^# define DEFINE_GDB_SYMBOL_END(id) = id;$/
@@ -896,8 +558,6 @@ DEFVAR_INT	c-src/emacs/src/lisp.h	/^#define DEFVAR_INT(lname, vname, doc)		\\$/
 DEFVAR_KBOARD	c-src/emacs/src/lisp.h	/^#define DEFVAR_KBOARD(lname, vname, doc)			\\$/
 DEFVAR_LISP	c-src/emacs/src/lisp.h	/^#define DEFVAR_LISP(lname, vname, doc)		\\$/
 DEFVAR_LISP_NOPRO	c-src/emacs/src/lisp.h	/^#define DEFVAR_LISP_NOPRO(lname, vname, doc)	\\$/
-DEF_SEEN	cp-src/cfront.H	232
-DEL	cp-src/cfront.H	/^#define DEL(p) if (p && (p->permanent==0)) p->del(/
 DEVICE_LAST	c-src/h.h	24
 DEVICE_SWP	c-src/h.h	23
 DOS_NT	c-src/etags.c	117
@@ -917,34 +577,6 @@ Date::plus	cp-src/functions.cpp	/^void Date::plus ( int days , int month , int y
 Date::setDate	cp-src/functions.cpp	/^void Date::setDate ( int d , int m , int y ){$/
 Date::shift	cp-src/functions.cpp	/^void Date::shift ( void ){\/\/Shift this date to pre/
 Debug	cp-src/functions.cpp	/^void Debug ( int lineno, int level, char* func , c/
-Definition	cp-src/abstract.H	382
-Definition::Definition	cp-src/abstract.C	/^Definition::Definition(Tree_Node *b, Proc_List *p,/
-Definition::GetPath	cp-src/abstract.H	/^ char *GetPath() { return(path);};$/
-Definition::SetDimensions	cp-src/abstract.C	/^void Definition::SetDimensions(void)$/
-Definition::SetFather	cp-src/abstract.C	/^void Definition::SetFather(Tree_Node *f)$/
-Definition::SetPath	cp-src/abstract.C	/^void Definition::SetPath(char *p, char n, int& np,/
-Definition::SetPosition	cp-src/abstract.C	/^void Definition::SetPosition(Coord xx, Coord yy)$/
-Definition::bex	cp-src/abstract.H	384
-Definition::data_list	cp-src/abstract.H	386
-Definition::path	cp-src/abstract.H	387
-Definition::process_list	cp-src/abstract.H	385
-Disable	cp-src/abstract.H	746
-Disable::Disable	cp-src/abstract.C	/^Disable::Disable(Tree_Node *b1, Tree_Node *b2)$/
-Disable::Get_Textual_H	cp-src/abstract.C	/^int Disable::Get_Textual_H()$/
-Disable::Get_Textual_W	cp-src/abstract.C	/^int Disable::Get_Textual_W()$/
-Disable::SetCollapsed	cp-src/abstract.C	/^void Disable::SetCollapsed(char t)$/
-Disable::SetDimensions	cp-src/abstract.C	/^void Disable::SetDimensions(void)$/
-Disable::SetFather	cp-src/abstract.C	/^void Disable::SetFather(Tree_Node *f)$/
-Disable::SetPosition	cp-src/abstract.C	/^void Disable::SetPosition(Coord xx, Coord yy)$/
-Disable::SetTerminalPos	cp-src/abstract.C	/^void Disable::SetTerminalPos()$/
-Disable::SetTextual	cp-src/abstract.C	/^void Disable::SetTextual(char t, char s)$/
-Disable::bex1	cp-src/abstract.H	748
-Disable::bex2	cp-src/abstract.H	748
-Disable::border	cp-src/abstract.H	751
-Disable::havebox	cp-src/abstract.H	750
-Disable::xl	cp-src/abstract.H	749
-Disable::yl	cp-src/abstract.H	749
-Disable::yl2	cp-src/abstract.H	749
 DisposeANameList	pas-src/common.pas	/^procedure DisposeANameList( $/
 DisposeNameList	pas-src/common.pas	/^procedure DisposeNameList;$/
 ELEM_I	c-src/h.h	3
@@ -978,7 +610,7 @@ ENUM_BF	c-src/emacs/src/lisp.h	/^      ENUM_BF (specbind_tag) kind : CHAR_BIT;$/
 ENUM_BF	c-src/emacs/src/lisp.h	/^      ENUM_BF (specbind_tag) kind : CHAR_BIT;$/
 EQ	c-src/emacs/src/lisp.h	/^# define EQ(x, y) lisp_h_EQ (x, y)$/
 EQUAL	y-src/cccp.c	12
-ERLSRC	Makefile	/^ERLSRC=$(addprefix .\/erl-src\/,gs_dialog.erl lines./
+ERLSRC	Makefile	/^ERLSRC=$(addprefix .\/erl-src\/,gs_dialog.erl)$/
 ERROR	y-src/parse.y	303
 ERROR	parse.y	303
 ERROR	y-src/cccp.c	9
@@ -988,106 +620,14 @@ EXFUN	c-src/emacs/src/lisp.h	/^#define EXFUN(fnname, maxargs) \\$/
 EXTERNALLY_VISIBLE	c-src/emacs/src/keyboard.c	3497
 EXTERNALLY_VISIBLE	c-src/emacs/src/keyboard.c	4372
 EmptyNmStr	pas-src/common.pas	/^function EmptyNmStr(* : NameString*);$/
-Enable	cp-src/abstract.H	723
-Enable::Enable	cp-src/abstract.C	/^Enable::Enable(Tree_Node *b1, ID_List *g_i_l, Tree/
-Enable::Get_Textual_H	cp-src/abstract.C	/^int Enable::Get_Textual_H()$/
-Enable::Get_Textual_W	cp-src/abstract.C	/^int Enable::Get_Textual_W()$/
-Enable::SetCollapsed	cp-src/abstract.C	/^void Enable::SetCollapsed(char t)$/
-Enable::SetDimensions	cp-src/abstract.C	/^void Enable::SetDimensions(void)$/
-Enable::SetFather	cp-src/abstract.C	/^void Enable::SetFather(Tree_Node *f)$/
-Enable::SetPosition	cp-src/abstract.C	/^void Enable::SetPosition(Coord xx, Coord yy)$/
-Enable::SetTerminalPos	cp-src/abstract.C	/^void Enable::SetTerminalPos()$/
-Enable::SetTextual	cp-src/abstract.C	/^void Enable::SetTextual(char t, char s)$/
-Enable::Yclose	cp-src/abstract.H	727
-Enable::bex1	cp-src/abstract.H	725
-Enable::bex2	cp-src/abstract.H	725
-Enable::border	cp-src/abstract.H	729
-Enable::gate_id_list	cp-src/abstract.H	726
-Enable::havebox	cp-src/abstract.H	728
-Enable::xid	cp-src/abstract.H	727
-Enable::xl	cp-src/abstract.H	727
-Enable::xl2	cp-src/abstract.H	727
-Enable::yid	cp-src/abstract.H	727
-Enable::yl1	cp-src/abstract.H	727
-Enable::yl2	cp-src/abstract.H	727
 Environment	tex-src/gzip.texi	/^@node Environment, Tapes, Advanced usage, Top$/
-Equality	cp-src/abstract.H	473
-Equality::Equality	cp-src/abstract.C	/^Equality::Equality()$/
-Equality::Equality	cp-src/abstract.C	/^Equality::Equality(Tree_Node *ex1, Tree_Node *ex2)/
-Equality::SetCollapsed	cp-src/abstract.C	/^void Equality::SetCollapsed(char t)$/
-Equality::SetDimensions	cp-src/abstract.C	/^void Equality::SetDimensions(void)$/
-Equality::SetFather	cp-src/abstract.C	/^void Equality::SetFather(Tree_Node *f)$/
-Equality::SetPosition	cp-src/abstract.C	/^void Equality::SetPosition(Coord xx, Coord yy)$/
-Equality::express1	cp-src/abstract.H	475
-Equality::express2	cp-src/abstract.H	476
 Erlang_functions	c-src/etags.c	/^Erlang_functions (FILE *inf)$/
 Erlang_help	c-src/etags.c	567
 Erlang_suffixes	c-src/etags.c	565
 ErrStrToNmStr	pas-src/common.pas	/^function ErrStrToNmStr;(*($/
 Error_Information/t	ada-src/2ataspri.ads	/^   type Error_Information is new Interfaces.C.POSI/
-Exclam	cp-src/abstract.H	578
-Exclam::Exclam	cp-src/abstract.C	/^Exclam::Exclam(Tree_Node *v_e)$/
-Exclam::SetCollapsed	cp-src/abstract.C	/^void Exclam::SetCollapsed(char t)$/
-Exclam::SetDimensions	cp-src/abstract.C	/^void Exclam::SetDimensions(void)$/
-Exclam::SetFather	cp-src/abstract.C	/^void Exclam::SetFather(Tree_Node *f)$/
-Exclam::SetPosition	cp-src/abstract.C	/^void Exclam::SetPosition(Coord xx, Coord yy)$/
-Exclam::value_exp	cp-src/abstract.H	580
-Exit	cp-src/abstract.H	407
-Exit::Exit	cp-src/abstract.C	/^Exit::Exit(ID_List *sl)$/
-Exit::SetDimensions	cp-src/abstract.C	/^void Exit::SetDimensions(void)$/
-Exit::SetFather	cp-src/abstract.C	/^void Exit::SetFather(Tree_Node *f)$/
-Exit::SetPosition	cp-src/abstract.C	/^void Exit::SetPosition(Coord x1, Coord y1, Coord x/
-Exit::sort_list	cp-src/abstract.H	409
-Exit_Bex	cp-src/abstract.H	810
-Exit_Bex::Exit_Bex	cp-src/abstract.C	/^Exit_Bex::Exit_Bex(Exit_Entry_List *l)$/
-Exit_Bex::SetCollapsed	cp-src/abstract.C	/^void Exit_Bex::SetCollapsed(char t)$/
-Exit_Bex::SetDimensions	cp-src/abstract.C	/^void Exit_Bex::SetDimensions(void)$/
-Exit_Bex::SetFather	cp-src/abstract.C	/^void Exit_Bex::SetFather(Tree_Node *f)$/
-Exit_Bex::SetPosition	cp-src/abstract.C	/^void Exit_Bex::SetPosition(Coord xx, Coord yy)$/
-Exit_Bex::SetTextual	cp-src/abstract.C	/^void Exit_Bex::SetTextual(char t, char s)$/
-Exit_Bex::Xclose	cp-src/abstract.H	813
-Exit_Bex::Xopen	cp-src/abstract.H	813
-Exit_Bex::border	cp-src/abstract.H	815
-Exit_Bex::entry_list	cp-src/abstract.H	812
-Exit_Bex::havebox	cp-src/abstract.H	814
-Exit_Entry	cp-src/abstract.H	165
-Exit_Entry::Exit_Entry	cp-src/abstract.C	/^Exit_Entry::Exit_Entry() $/
-Exit_Entry::SetDimensions	cp-src/abstract.C	/^void Exit_Entry::SetDimensions(void)$/
-Exit_Entry::SetFather	cp-src/abstract.C	/^void Exit_Entry::SetFather(Tree_Node *f)$/
-Exit_Entry::SetPosition	cp-src/abstract.C	/^void Exit_Entry::SetPosition(Coord xx, Coord yy)$/
-Exit_Entry_List	cp-src/abstract.H	179
-Exit_Entry_List::Exit_Entry_List	cp-src/abstract.C	/^Exit_Entry_List::Exit_Entry_List(Tree_Node *el, Ex/
-Exit_Entry_List::SetCollapsed	cp-src/abstract.C	/^void Exit_Entry_List::SetCollapsed(char t)$/
-Exit_Entry_List::SetDimensions	cp-src/abstract.C	/^void Exit_Entry_List::SetDimensions(void)$/
-Exit_Entry_List::SetFather	cp-src/abstract.C	/^void Exit_Entry_List::SetFather(Tree_Node *f)$/
-Exit_Entry_List::SetPosition	cp-src/abstract.C	/^void Exit_Entry_List::SetPosition(Coord xx, Coord /
-Exit_Entry_List::elem	cp-src/abstract.H	181
-Exit_Entry_List::next	cp-src/abstract.H	182
 Exit_LL_Task/p	ada-src/2ataspri.adb	/^   procedure Exit_LL_Task is$/
 Exit_LL_Task/p	ada-src/2ataspri.ads	/^   procedure Exit_LL_Task;$/
-Exper_Off	cp-src/abstract.H	195
-Exper_Off::Exper_Off	cp-src/abstract.C	/^Exper_Off::Exper_Off()$/
-Exper_Off::SetDimensions	cp-src/abstract.C	/^void Exper_Off::SetDimensions(void)$/
-Exper_Off::SetFather	cp-src/abstract.C	/^void Exper_Off::SetFather(Tree_Node *f)$/
-Exper_Off::SetPosition	cp-src/abstract.C	/^void Exper_Off::SetPosition(Coord xx, Coord yy)$/
-Exper_Off_List	cp-src/abstract.H	207
-Exper_Off_List::Exper_Off_List	cp-src/abstract.C	/^Exper_Off_List::Exper_Off_List(Exper_Off *el, Expe/
-Exper_Off_List::SetCollapsed	cp-src/abstract.C	/^void Exper_Off_List::SetCollapsed(char t)$/
-Exper_Off_List::SetDimensions	cp-src/abstract.C	/^void Exper_Off_List::SetDimensions(void)$/
-Exper_Off_List::SetFather	cp-src/abstract.C	/^void Exper_Off_List::SetFather(Tree_Node *f)$/
-Exper_Off_List::SetPosition	cp-src/abstract.C	/^void Exper_Off_List::SetPosition(Coord xx, Coord y/
-Exper_Off_List::elem	cp-src/abstract.H	209
-Exper_Off_List::next	cp-src/abstract.H	210
-Experiment	cp-src/abstract.H	558
-Experiment::Experiment	cp-src/abstract.C	/^Experiment::Experiment(Exper_Off_List *e_of_l, Tre/
-Experiment::GetGuard	cp-src/abstract.H	/^ Tree_Node *GetGuard(void) { return(guard_option);/
-Experiment::SetCollapsed	cp-src/abstract.C	/^void Experiment::SetCollapsed(char t)$/
-Experiment::SetDimensions	cp-src/abstract.C	/^void Experiment::SetDimensions(void)$/
-Experiment::SetFather	cp-src/abstract.C	/^void Experiment::SetFather(Tree_Node *f)$/
-Experiment::SetPosition	cp-src/abstract.C	/^void Experiment::SetPosition(Coord xx, Coord yy)$/
-Experiment::SetTextual	cp-src/abstract.C	/^void Experiment::SetTextual(char t, char)$/
-Experiment::exp_offer_list	cp-src/abstract.H	560
-Experiment::guard_option	cp-src/abstract.H	561
 ExtractCommentInfo	pas-src/common.pas	/^procedure ExtractCommentInfo; (*($/
 FASTCFLAGS	make-src/Makefile	55
 FILTER	make-src/Makefile	58
@@ -1105,7 +645,6 @@ FRAMEP	c-src/emacs/src/lisp.h	/^FRAMEP (Lisp_Object a)$/
 FRC	Makefile	/^FRC:;$/
 FREEFLOOD	c-src/emacs/src/gmalloc.c	1858
 FSRC	Makefile	/^FSRC=$(addprefix .\/f-src\/,entry.for entry.strange_/
-FUDGE111	cp-src/cfront.H	791
 FUN0	y-src/parse.y	/^yylex FUN0()$/
 FUN0	parse.y	/^yylex FUN0()$/
 FUN1	y-src/parse.y	/^yyerror FUN1(char *, s)$/
@@ -1177,33 +716,7 @@ GENERIC_PTR	y-src/cccp.y	56
 GENERIC_PTR	y-src/cccp.y	58
 GEQ	y-src/cccp.c	15
 GROW_RAW_KEYBUF	c-src/emacs/src/keyboard.c	119
-Gate_Decl	cp-src/abstract.H	223
-Gate_Decl::Gate_Decl	cp-src/abstract.C	/^Gate_Decl::Gate_Decl(ID_List *g_id_l1, ID_List *g_/
-Gate_Decl::SetCollapsed	cp-src/abstract.C	/^void Gate_Decl::SetCollapsed(char t)$/
-Gate_Decl::SetDimensions	cp-src/abstract.C	/^void Gate_Decl::SetDimensions(void)$/
-Gate_Decl::SetFather	cp-src/abstract.C	/^void Gate_Decl::SetFather(Tree_Node *f)$/
-Gate_Decl::SetPosition	cp-src/abstract.C	/^void Gate_Decl::SetPosition(Coord xx, Coord yy)$/
-Gate_Decl::gate_id_list1	cp-src/abstract.H	225
-Gate_Decl::gate_id_list2	cp-src/abstract.H	226
-Gate_Decl_List	cp-src/abstract.H	239
-Gate_Decl_List::Gate_Decl_List	cp-src/abstract.C	/^Gate_Decl_List::Gate_Decl_List(Gate_Decl *el, Gate/
-Gate_Decl_List::SetCollapsed	cp-src/abstract.C	/^void Gate_Decl_List::SetCollapsed(char t)$/
-Gate_Decl_List::SetDimensions	cp-src/abstract.C	/^void Gate_Decl_List::SetDimensions(void)$/
-Gate_Decl_List::SetFather	cp-src/abstract.C	/^void Gate_Decl_List::SetFather(Tree_Node *f)$/
-Gate_Decl_List::SetPosition	cp-src/abstract.C	/^void Gate_Decl_List::SetPosition(Coord xx, Coord y/
-Gate_Decl_List::elem	cp-src/abstract.H	241
-Gate_Decl_List::next	cp-src/abstract.H	242
 GatherControls	pyt-src/server.py	/^    def GatherControls(self):$/
-Gen_Paral	cp-src/abstract.H	652
-Gen_Paral::Gen_Paral	cp-src/abstract.C	/^Gen_Paral::Gen_Paral(ID_List *g_i_l)$/
-Gen_Paral::HideGate	cp-src/abstract.H	/^ void HideGate() { ((ID_List *)gate_id_list)->Hide/
-Gen_Paral::SetCollapsed	cp-src/abstract.C	/^void Gen_Paral::SetCollapsed(char t)$/
-Gen_Paral::SetDimensions	cp-src/abstract.C	/^void Gen_Paral::SetDimensions(void)$/
-Gen_Paral::SetFather	cp-src/abstract.C	/^void Gen_Paral::SetFather(Tree_Node *f)$/
-Gen_Paral::SetPosition	cp-src/abstract.C	/^void Gen_Paral::SetPosition(Coord xx, Coord yy)$/
-Gen_Paral::Xclose	cp-src/abstract.H	655
-Gen_Paral::border	cp-src/abstract.H	656
-Gen_Paral::gate_id_list	cp-src/abstract.H	654
 GetLayerByName	lua-src/allegro.lua	/^function GetLayerByName (name)$/
 GetNameList	pas-src/common.pas	/^function GetNameList; (* : BinNodePointer;*)$/
 GetNewNameListNode	pas-src/common.pas	/^function GetNewNameListNode;(*($/
@@ -1213,24 +726,6 @@ Get_Own_Priority/f	ada-src/2ataspri.adb	/^   function Get_Own_Priority return Sy
 Get_Own_Priority/f	ada-src/2ataspri.ads	/^   function Get_Own_Priority return System.Any_Pri/
 Get_Priority/f	ada-src/2ataspri.adb	/^   function Get_Priority (T : TCB_Ptr) return Syst/
 Get_Priority/f	ada-src/2ataspri.ads	/^   function Get_Priority (T : TCB_Ptr) return Syst/
-Guard	cp-src/abstract.H	524
-Guard::Guard	cp-src/abstract.C	/^Guard::Guard(Equality *eq)$/
-Guard::SetCollapsed	cp-src/abstract.C	/^void Guard::SetCollapsed(char t)$/
-Guard::SetDimensions	cp-src/abstract.C	/^void Guard::SetDimensions(void)$/
-Guard::SetFather	cp-src/abstract.C	/^void Guard::SetFather(Tree_Node *f)$/
-Guard::SetPosition	cp-src/abstract.C	/^void Guard::SetPosition(Coord xx, Coord yy)$/
-Guard::equality	cp-src/abstract.H	526
-Guarded	cp-src/abstract.H	848
-Guarded::Guarded	cp-src/abstract.C	/^Guarded::Guarded(Equality *eq, Tree_Node *b)$/
-Guarded::SetCollapsed	cp-src/abstract.C	/^void Guarded::SetCollapsed(char t)$/
-Guarded::SetDimensions	cp-src/abstract.C	/^void Guarded::SetDimensions(void)$/
-Guarded::SetFather	cp-src/abstract.C	/^void Guarded::SetFather(Tree_Node *f)$/
-Guarded::SetPosition	cp-src/abstract.C	/^void Guarded::SetPosition(Coord xx, Coord yy)$/
-Guarded::SetTextual	cp-src/abstract.C	/^void Guarded::SetTextual(char t, char s)$/
-Guarded::Xclose	cp-src/abstract.H	852
-Guarded::bex	cp-src/abstract.H	851
-Guarded::border	cp-src/abstract.H	853
-Guarded::equality	cp-src/abstract.H	850
 HASH_HASH	c-src/emacs/src/lisp.h	/^HASH_HASH (struct Lisp_Hash_Table *h, ptrdiff_t id/
 HASH_INDEX	c-src/emacs/src/lisp.h	/^HASH_INDEX (struct Lisp_Hash_Table *h, ptrdiff_t i/
 HASH_KEY	c-src/emacs/src/lisp.h	/^HASH_KEY (struct Lisp_Hash_Table *h, ptrdiff_t idx/
@@ -1244,53 +739,6 @@ HTMLSRC	Makefile	/^HTMLSRC=$(addprefix .\/html-src\/,softwarelibero.htm/
 HTML_help	c-src/etags.c	584
 HTML_labels	c-src/etags.c	/^HTML_labels (FILE *inf)$/
 HTML_suffixes	c-src/etags.c	582
-Half_Container	cp-src/abstract.H	287
-Half_Container::Half_Container	cp-src/abstract.C	/^Half_Container::Half_Container(ID_List *g_l)$/
-Half_Container::SetCollapsed	cp-src/abstract.C	/^void Half_Container::SetCollapsed(char t)$/
-Half_Container::SetDimensions	cp-src/abstract.C	/^void Half_Container::SetDimensions(void)$/
-Half_Container::SetFather	cp-src/abstract.C	/^void Half_Container::SetFather(Tree_Node *f)$/
-Half_Container::SetPosition	cp-src/abstract.C	/^void Half_Container::SetPosition(Coord xx, Coord y/
-Half_Container::gate_list	cp-src/abstract.H	289
-Hide	cp-src/abstract.H	829
-Hide::Hide	cp-src/abstract.C	/^Hide::Hide(ID_List *g_l, Tree_Node *b)$/
-Hide::SetCollapsed	cp-src/abstract.C	/^void Hide::SetCollapsed(char t)$/
-Hide::SetDimensions	cp-src/abstract.C	/^void Hide::SetDimensions(void)$/
-Hide::SetFather	cp-src/abstract.C	/^void Hide::SetFather(Tree_Node *f)$/
-Hide::SetPosition	cp-src/abstract.C	/^void Hide::SetPosition(Coord xx, Coord yy)$/
-Hide::SetTextual	cp-src/abstract.C	/^void Hide::SetTextual(char t, char s)$/
-Hide::bex	cp-src/abstract.H	832
-Hide::border	cp-src/abstract.H	833
-Hide::gate_list	cp-src/abstract.H	831
-Hide::yl	cp-src/abstract.H	834
-ID_List	cp-src/abstract.H	47
-ID_List::BuildSigSorts	cp-src/abstract.C	/^void ID_List::BuildSigSorts(char bubble, Signature/
-ID_List::ClearIDs	cp-src/abstract.C	/^void ID_List::ClearIDs(void)$/
-ID_List::GetCardinality	cp-src/abstract.C	/^int ID_List::GetCardinality(int c)$/
-ID_List::HideMe	cp-src/abstract.C	/^void ID_List::HideMe(void)$/
-ID_List::ID_List	cp-src/abstract.C	/^ID_List::ID_List(ID_Place *el, ID_List *nxt)$/
-ID_List::SetAlignement	cp-src/abstract.C	/^void ID_List::SetAlignement(char a)$/
-ID_List::SetCollapsed	cp-src/abstract.C	/^void ID_List::SetCollapsed(char t)$/
-ID_List::SetDimensions	cp-src/abstract.C	/^void ID_List::SetDimensions(void)$/
-ID_List::SetFather	cp-src/abstract.C	/^void ID_List::SetFather(Tree_Node *f)$/
-ID_List::SetPosition	cp-src/abstract.C	/^void ID_List::SetPosition(Coord xx, Coord yy)$/
-ID_List::SetRBubble	cp-src/abstract.C	/^void ID_List::SetRBubble(char r)$/
-ID_List::SetVisible	cp-src/abstract.C	/^void ID_List::SetVisible(char v)$/
-ID_List::elem	cp-src/abstract.H	49
-ID_List::next	cp-src/abstract.H	50
-ID_Place	cp-src/abstract.H	23
-ID_Place::ClearID	cp-src/abstract.C	/^void ID_Place::ClearID(void)$/
-ID_Place::GetIdent	cp-src/abstract.H	/^ char *GetIdent() {return(str);};$/
-ID_Place::GetRBubble	cp-src/abstract.H	/^ char GetRBubble(void) { return(RBubble); };$/
-ID_Place::ID_Place	cp-src/abstract.C	/^ID_Place::ID_Place()$/
-ID_Place::RBubble	cp-src/abstract.H	26
-ID_Place::SetDimensions	cp-src/abstract.C	/^void ID_Place::SetDimensions(void)$/
-ID_Place::SetFather	cp-src/abstract.C	/^void ID_Place::SetFather(Tree_Node *f)$/
-ID_Place::SetIdent	cp-src/abstract.C	/^void ID_Place::SetIdent(char *identifier)$/
-ID_Place::SetPosition	cp-src/abstract.C	/^void ID_Place::SetPosition(Coord xx, Coord yy)$/
-ID_Place::SetRBubble	cp-src/abstract.H	/^ void SetRBubble(char r) { RBubble = r; };$/
-ID_Place::SetVisible	cp-src/abstract.C	/^void ID_Place::SetVisible(char v)$/
-ID_Place::str	cp-src/abstract.H	25
-ID_Place::~ID_Place	cp-src/abstract.C	/^ID_Place::~ID_Place()$/
 IEEE_FLOATING_POINT	c-src/emacs/src/lisp.h	2415
 IMAGEP	c-src/emacs/src/lisp.h	/^IMAGEP (Lisp_Object x)$/
 INPUT_EVENT_POS_MAX	c-src/emacs/src/keyboard.c	3698
@@ -1307,7 +755,6 @@ INTTYPEBITS	c-src/emacs/src/lisp.h	249
 INT_BIT	c-src/emacs/src/gmalloc.c	124
 INT_TYPE_SIZE	cccp.y	91
 INT_TYPE_SIZE	y-src/cccp.y	91
-IN_ERROR	cp-src/cfront.H	234
 ISALNUM	c-src/etags.c	/^#define ISALNUM(c)	isalnum (CHAR (c))$/
 ISALPHA	c-src/etags.c	/^#define ISALPHA(c)	isalpha (CHAR (c))$/
 ISDIGIT	c-src/etags.c	/^#define ISDIGIT(c)	isdigit (CHAR (c))$/
@@ -1316,38 +763,6 @@ ISO_FUNCTION_KEY_OFFSET	c-src/emacs/src/keyboard.c	5149
 ISUPPER	c-src/etags.c	/^# define ISUPPER(c)	isupper (CHAR (c))$/
 IS_DAEMON	c-src/emacs/src/lisp.h	4257
 IS_DAEMON	c-src/emacs/src/lisp.h	4261
-Id_Decl	cp-src/abstract.H	73
-Id_Decl::Id_Decl	cp-src/abstract.C	/^Id_Decl::Id_Decl(ID_List *l, ID_Place *s)$/
-Id_Decl::SetCollapsed	cp-src/abstract.C	/^void Id_Decl::SetCollapsed(char t)$/
-Id_Decl::SetDimensions	cp-src/abstract.C	/^void Id_Decl::SetDimensions(void)$/
-Id_Decl::SetFather	cp-src/abstract.C	/^void Id_Decl::SetFather(Tree_Node *f)$/
-Id_Decl::SetPosition	cp-src/abstract.C	/^void Id_Decl::SetPosition(Coord xx, Coord yy)$/
-Id_Decl::id_list	cp-src/abstract.H	75
-Id_Decl::sort_id	cp-src/abstract.H	76
-Id_Decl_List	cp-src/abstract.H	89
-Id_Decl_List::Id_Decl_List	cp-src/abstract.C	/^Id_Decl_List::Id_Decl_List(Id_Decl *el, Id_Decl_Li/
-Id_Decl_List::SetCollapsed	cp-src/abstract.C	/^void Id_Decl_List::SetCollapsed(char t)$/
-Id_Decl_List::SetDimensions	cp-src/abstract.C	/^void Id_Decl_List::SetDimensions(void)$/
-Id_Decl_List::SetFather	cp-src/abstract.C	/^void Id_Decl_List::SetFather(Tree_Node *f)$/
-Id_Decl_List::SetPosition	cp-src/abstract.C	/^void Id_Decl_List::SetPosition(Coord xx, Coord yy)/
-Id_Decl_List::elem	cp-src/abstract.H	91
-Id_Decl_List::next	cp-src/abstract.H	92
-Ident_Eq	cp-src/abstract.H	255
-Ident_Eq::Ident_Eq	cp-src/abstract.C	/^Ident_Eq::Ident_Eq(Id_Decl *idd, Value_Expr *ex)$/
-Ident_Eq::SetCollapsed	cp-src/abstract.C	/^void Ident_Eq::SetCollapsed(char t)$/
-Ident_Eq::SetDimensions	cp-src/abstract.C	/^void Ident_Eq::SetDimensions(void)$/
-Ident_Eq::SetFather	cp-src/abstract.C	/^void Ident_Eq::SetFather(Tree_Node *f)$/
-Ident_Eq::SetPosition	cp-src/abstract.C	/^void Ident_Eq::SetPosition(Coord xx, Coord yy)$/
-Ident_Eq::expr	cp-src/abstract.H	258
-Ident_Eq::iddecl	cp-src/abstract.H	257
-Ident_Eq_List	cp-src/abstract.H	271
-Ident_Eq_List::Ident_Eq_List	cp-src/abstract.C	/^Ident_Eq_List::Ident_Eq_List(Ident_Eq *el, Ident_E/
-Ident_Eq_List::SetCollapsed	cp-src/abstract.C	/^void Ident_Eq_List::SetCollapsed(char t)$/
-Ident_Eq_List::SetDimensions	cp-src/abstract.C	/^void Ident_Eq_List::SetDimensions(void)$/
-Ident_Eq_List::SetFather	cp-src/abstract.C	/^void Ident_Eq_List::SetFather(Tree_Node *f)$/
-Ident_Eq_List::SetPosition	cp-src/abstract.C	/^void Ident_Eq_List::SetPosition(Coord xx, Coord yy/
-Ident_Eq_List::elem	cp-src/abstract.H	273
-Ident_Eq_List::next	cp-src/abstract.H	274
 InitNameList	pas-src/common.pas	/^procedure InitNameList;$/
 InitNameStringPool	pas-src/common.pas	/^procedure InitNameStringPool;$/
 InitializeStringPackage	pas-src/common.pas	/^procedure InitializeStringPackage;$/
@@ -1371,155 +786,14 @@ Install_Abort_Handler/p	ada-src/2ataspri.adb	/^   procedure Install_Abort_Handle
 Install_Abort_Handler/p	ada-src/2ataspri.ads	/^   procedure Install_Abort_Handler (Handler : Abor/
 Install_Error_Handler/p	ada-src/2ataspri.adb	/^   procedure Install_Error_Handler (Handler : Syst/
 Install_Error_Handler/p	ada-src/2ataspri.ads	/^   procedure Install_Error_Handler (Handler : Syst/
-Interl	cp-src/abstract.H	672
-Interl::Interl	cp-src/abstract.C	/^Interl::Interl()$/
-Interl::SetDimensions	cp-src/abstract.C	/^void Interl::SetDimensions(void)$/
-Interl::SetFather	cp-src/abstract.C	/^void Interl::SetFather(Tree_Node *f)$/
-Interl::SetPosition	cp-src/abstract.C	/^void Interl::SetPosition(Coord xx, Coord yy)$/
-Internal	cp-src/abstract.H	614
-Internal::Internal	cp-src/abstract.C	/^Internal::Internal()$/
-Internal::SetDimensions	cp-src/abstract.C	/^void Internal::SetDimensions(void)$/
-Internal::SetFather	cp-src/abstract.C	/^void Internal::SetFather(Tree_Node *f)$/
-Internal::SetPosition	cp-src/abstract.C	/^void Internal::SetPosition(Coord xx, Coord yy)$/
 Invoking gzip	tex-src/gzip.texi	/^@node Invoking gzip, Advanced usage, Sample, Top$/
 IsControlChar	pas-src/common.pas	/^function IsControlChar; (*($/
 IsControlCharName	pas-src/common.pas	/^function IsControlCharName($/
 Is_Set/f	ada-src/2ataspri.adb	/^   function  Is_Set (Cell : in TAS_Cell) return Bo/
 Is_Set/f	ada-src/2ataspri.ads	/^   function  Is_Set       (Cell : in     TAS_Cell)/
-JAVASRC	Makefile	/^JAVASRC=$(addprefix .\/java-src\/,AWTEMul.java KeyEv/
 KBD_BUFFER_SIZE	c-src/emacs/src/keyboard.c	82
 KBYTES	objc-src/PackInsp.m	58
 KEY_TO_CHAR	c-src/emacs/src/keyboard.c	/^#define KEY_TO_CHAR(k) (XINT (k) & ((1 << CHARACTE/
-KeyEvent	java-src/KeyEve.java	36
-KeyEvent.CHAR_UNDEFINED	java-src/KeyEve.java	214
-KeyEvent.KEY_FIRST	java-src/KeyEve.java	41
-KeyEvent.KEY_LAST	java-src/KeyEve.java	46
-KeyEvent.KEY_PRESSED	java-src/KeyEve.java	57
-KeyEvent.KEY_RELEASED	java-src/KeyEve.java	62
-KeyEvent.KEY_TYPED	java-src/KeyEve.java	52
-KeyEvent.KeyEvent	java-src/KeyEve.java	/^    public KeyEvent(Component source, int id, long/
-KeyEvent.KeyEvent	java-src/KeyEve.java	/^    public KeyEvent(Component source, int id, long/
-KeyEvent.VK_0	java-src/KeyEve.java	110
-KeyEvent.VK_1	java-src/KeyEve.java	111
-KeyEvent.VK_2	java-src/KeyEve.java	112
-KeyEvent.VK_3	java-src/KeyEve.java	113
-KeyEvent.VK_4	java-src/KeyEve.java	114
-KeyEvent.VK_5	java-src/KeyEve.java	115
-KeyEvent.VK_6	java-src/KeyEve.java	116
-KeyEvent.VK_7	java-src/KeyEve.java	117
-KeyEvent.VK_8	java-src/KeyEve.java	118
-KeyEvent.VK_9	java-src/KeyEve.java	119
-KeyEvent.VK_A	java-src/KeyEve.java	125
-KeyEvent.VK_ACCEPT	java-src/KeyEve.java	200
-KeyEvent.VK_ADD	java-src/KeyEve.java	167
-KeyEvent.VK_ALT	java-src/KeyEve.java	92
-KeyEvent.VK_B	java-src/KeyEve.java	126
-KeyEvent.VK_BACK_QUOTE	java-src/KeyEve.java	193
-KeyEvent.VK_BACK_SLASH	java-src/KeyEve.java	153
-KeyEvent.VK_BACK_SPACE	java-src/KeyEve.java	86
-KeyEvent.VK_C	java-src/KeyEve.java	127
-KeyEvent.VK_CANCEL	java-src/KeyEve.java	88
-KeyEvent.VK_CAPS_LOCK	java-src/KeyEve.java	94
-KeyEvent.VK_CLEAR	java-src/KeyEve.java	89
-KeyEvent.VK_CLOSE_BRACKET	java-src/KeyEve.java	154
-KeyEvent.VK_COMMA	java-src/KeyEve.java	105
-KeyEvent.VK_CONTROL	java-src/KeyEve.java	91
-KeyEvent.VK_CONVERT	java-src/KeyEve.java	198
-KeyEvent.VK_D	java-src/KeyEve.java	128
-KeyEvent.VK_DECIMAL	java-src/KeyEve.java	170
-KeyEvent.VK_DELETE	java-src/KeyEve.java	184
-KeyEvent.VK_DIVIDE	java-src/KeyEve.java	171
-KeyEvent.VK_DOWN	java-src/KeyEve.java	104
-KeyEvent.VK_E	java-src/KeyEve.java	129
-KeyEvent.VK_END	java-src/KeyEve.java	99
-KeyEvent.VK_ENTER	java-src/KeyEve.java	85
-KeyEvent.VK_EQUALS	java-src/KeyEve.java	122
-KeyEvent.VK_ESCAPE	java-src/KeyEve.java	95
-KeyEvent.VK_F	java-src/KeyEve.java	130
-KeyEvent.VK_F1	java-src/KeyEve.java	172
-KeyEvent.VK_F10	java-src/KeyEve.java	181
-KeyEvent.VK_F11	java-src/KeyEve.java	182
-KeyEvent.VK_F12	java-src/KeyEve.java	183
-KeyEvent.VK_F2	java-src/KeyEve.java	173
-KeyEvent.VK_F3	java-src/KeyEve.java	174
-KeyEvent.VK_F4	java-src/KeyEve.java	175
-KeyEvent.VK_F5	java-src/KeyEve.java	176
-KeyEvent.VK_F6	java-src/KeyEve.java	177
-KeyEvent.VK_F7	java-src/KeyEve.java	178
-KeyEvent.VK_F8	java-src/KeyEve.java	179
-KeyEvent.VK_F9	java-src/KeyEve.java	180
-KeyEvent.VK_FINAL	java-src/KeyEve.java	197
-KeyEvent.VK_G	java-src/KeyEve.java	131
-KeyEvent.VK_H	java-src/KeyEve.java	132
-KeyEvent.VK_HELP	java-src/KeyEve.java	190
-KeyEvent.VK_HOME	java-src/KeyEve.java	100
-KeyEvent.VK_I	java-src/KeyEve.java	133
-KeyEvent.VK_INSERT	java-src/KeyEve.java	189
-KeyEvent.VK_J	java-src/KeyEve.java	134
-KeyEvent.VK_K	java-src/KeyEve.java	135
-KeyEvent.VK_KANA	java-src/KeyEve.java	202
-KeyEvent.VK_KANJI	java-src/KeyEve.java	203
-KeyEvent.VK_L	java-src/KeyEve.java	136
-KeyEvent.VK_LEFT	java-src/KeyEve.java	101
-KeyEvent.VK_M	java-src/KeyEve.java	137
-KeyEvent.VK_META	java-src/KeyEve.java	191
-KeyEvent.VK_MODECHANGE	java-src/KeyEve.java	201
-KeyEvent.VK_MULTIPLY	java-src/KeyEve.java	166
-KeyEvent.VK_N	java-src/KeyEve.java	138
-KeyEvent.VK_NONCONVERT	java-src/KeyEve.java	199
-KeyEvent.VK_NUMPAD0	java-src/KeyEve.java	156
-KeyEvent.VK_NUMPAD1	java-src/KeyEve.java	157
-KeyEvent.VK_NUMPAD2	java-src/KeyEve.java	158
-KeyEvent.VK_NUMPAD3	java-src/KeyEve.java	159
-KeyEvent.VK_NUMPAD4	java-src/KeyEve.java	160
-KeyEvent.VK_NUMPAD5	java-src/KeyEve.java	161
-KeyEvent.VK_NUMPAD6	java-src/KeyEve.java	162
-KeyEvent.VK_NUMPAD7	java-src/KeyEve.java	163
-KeyEvent.VK_NUMPAD8	java-src/KeyEve.java	164
-KeyEvent.VK_NUMPAD9	java-src/KeyEve.java	165
-KeyEvent.VK_NUM_LOCK	java-src/KeyEve.java	185
-KeyEvent.VK_O	java-src/KeyEve.java	139
-KeyEvent.VK_OPEN_BRACKET	java-src/KeyEve.java	152
-KeyEvent.VK_P	java-src/KeyEve.java	140
-KeyEvent.VK_PAGE_DOWN	java-src/KeyEve.java	98
-KeyEvent.VK_PAGE_UP	java-src/KeyEve.java	97
-KeyEvent.VK_PAUSE	java-src/KeyEve.java	93
-KeyEvent.VK_PERIOD	java-src/KeyEve.java	106
-KeyEvent.VK_PRINTSCREEN	java-src/KeyEve.java	188
-KeyEvent.VK_Q	java-src/KeyEve.java	141
-KeyEvent.VK_QUOTE	java-src/KeyEve.java	194
-KeyEvent.VK_R	java-src/KeyEve.java	142
-KeyEvent.VK_RIGHT	java-src/KeyEve.java	103
-KeyEvent.VK_S	java-src/KeyEve.java	143
-KeyEvent.VK_SCROLL_LOCK	java-src/KeyEve.java	186
-KeyEvent.VK_SEMICOLON	java-src/KeyEve.java	121
-KeyEvent.VK_SEPARATER	java-src/KeyEve.java	168
-KeyEvent.VK_SHIFT	java-src/KeyEve.java	90
-KeyEvent.VK_SLASH	java-src/KeyEve.java	107
-KeyEvent.VK_SPACE	java-src/KeyEve.java	96
-KeyEvent.VK_SUBTRACT	java-src/KeyEve.java	169
-KeyEvent.VK_T	java-src/KeyEve.java	144
-KeyEvent.VK_TAB	java-src/KeyEve.java	87
-KeyEvent.VK_U	java-src/KeyEve.java	145
-KeyEvent.VK_UNDEFINED	java-src/KeyEve.java	208
-KeyEvent.VK_UP	java-src/KeyEve.java	102
-KeyEvent.VK_V	java-src/KeyEve.java	146
-KeyEvent.VK_W	java-src/KeyEve.java	147
-KeyEvent.VK_X	java-src/KeyEve.java	148
-KeyEvent.VK_Y	java-src/KeyEve.java	149
-KeyEvent.VK_Z	java-src/KeyEve.java	150
-KeyEvent.getKeyChar	java-src/KeyEve.java	/^    public char getKeyChar() {$/
-KeyEvent.getKeyCode	java-src/KeyEve.java	/^    public int getKeyCode() {$/
-KeyEvent.getKeyModifiersText	java-src/KeyEve.java	/^    public static String getKeyModifiersText(int m/
-KeyEvent.getKeyText	java-src/KeyEve.java	/^    public static String getKeyText(int keyCode) {/
-KeyEvent.isActionKey	java-src/KeyEve.java	/^    public boolean isActionKey() {$/
-KeyEvent.keyChar	java-src/KeyEve.java	217
-KeyEvent.keyCode	java-src/KeyEve.java	216
-KeyEvent.paramString	java-src/KeyEve.java	/^    public String paramString() {$/
-KeyEvent.serialVersionUID	java-src/KeyEve.java	222
-KeyEvent.setKeyChar	java-src/KeyEve.java	/^    public void setKeyChar(char keyChar) {$/
-KeyEvent.setKeyCode	java-src/KeyEve.java	/^    public void setKeyCode(int keyCode) {$/
-KeyEvent.setModifiers	java-src/KeyEve.java	/^    public void setModifiers(int modifiers) {$/
 LATEST	make-src/Makefile	1
 LCE_COMMENT	php-src/lce_functions.php	13
 LCE_COMMENT_TOOL	php-src/lce_functions.php	17
@@ -1654,17 +928,6 @@ Lisp_functions	c-src/etags.c	/^Lisp_functions (FILE *inf)$/
 Lisp_help	c-src/etags.c	591
 Lisp_suffixes	c-src/etags.c	589
 ListEdit	pyt-src/server.py	/^class ListEdit(Frame):$/
-Local_Def	cp-src/abstract.H	914
-Local_Def::Local_Def	cp-src/abstract.C	/^Local_Def::Local_Def(Ident_Eq_List *e_l, Tree_Node/
-Local_Def::SetCollapsed	cp-src/abstract.C	/^void Local_Def::SetCollapsed(char t)$/
-Local_Def::SetDimensions	cp-src/abstract.C	/^void Local_Def::SetDimensions(void)$/
-Local_Def::SetFather	cp-src/abstract.C	/^void Local_Def::SetFather(Tree_Node *f)$/
-Local_Def::SetPosition	cp-src/abstract.C	/^void Local_Def::SetPosition(Coord xx, Coord yy)$/
-Local_Def::SetTextual	cp-src/abstract.C	/^void Local_Def::SetTextual(char t, char s)$/
-Local_Def::bex	cp-src/abstract.H	917
-Local_Def::border	cp-src/abstract.H	919
-Local_Def::equa_list	cp-src/abstract.H	916
-Local_Def::yl	cp-src/abstract.H	918
 Locate	pas-src/common.pas	/^function Locate; (*($/
 Lock/t	ada-src/2ataspri.ads	/^   type Lock is private;$/
 Lock/t	ada-src/2ataspri.ads	/^   type Lock is$/
@@ -1679,7 +942,6 @@ MAKESRC	Makefile	/^MAKESRC=$(addprefix .\/make-src\/,Makefile)$/
 MALLOCFLOOD	c-src/emacs/src/gmalloc.c	1857
 MANY	c-src/emacs/src/lisp.h	2833
 MARKERP	c-src/emacs/src/lisp.h	/^# define MARKERP(x) lisp_h_MARKERP (x)$/
-MAXCONT	cp-src/cfront.H	751
 MAXPATHLEN	c-src/etags.c	115
 MAX_ALLOCA	c-src/emacs/src/lisp.h	4556
 MAX_ALLOCA	c-src/emacs/src/lisp.h	4556
@@ -1705,7 +967,6 @@ MDiagArray2::MDiagArray2	cp-src/MDiagArray2.h	/^  MDiagArray2 (const MDiagArray2
 MDiagArray2::operator =	cp-src/MDiagArray2.h	/^  MDiagArray2<T>& operator = (const MDiagArray2<T>/
 MDiagArray2::operator MArray2<T>	cp-src/MDiagArray2.h	/^  operator MArray2<T> () const$/
 MDiagArray2::~MDiagArray2	cp-src/MDiagArray2.h	/^  ~MDiagArray2 (void) { }$/
-MIA	cp-src/cfront.H	779
 MIN_HASH_VALUE	c-src/etags.c	2328
 MIN_WORD_LENGTH	c-src/etags.c	2326
 MISCP	c-src/emacs/src/lisp.h	/^# define MISCP(x) lisp_h_MISCP (x)$/
@@ -1772,52 +1033,6 @@ NewLayerSet	lua-src/allegro.lua	/^function NewLayerSet (name)$/
 NewNameString	pas-src/common.pas	/^procedure NewNameString; (* (var NSP: NameStringPo/
 NmStrToErrStr	pas-src/common.pas	/^function NmStrToErrStr;(*($/
 NmStrToInteger	pas-src/common.pas	/^function NmStrToInteger; (* (Str : NameString) : i/
-NoExit	cp-src/abstract.H	421
-NoExit::NoExit	cp-src/abstract.C	/^NoExit::NoExit()$/
-NoExit::SetDimensions	cp-src/abstract.C	/^void NoExit::SetDimensions(void)$/
-NoExit::SetFather	cp-src/abstract.C	/^void NoExit::SetFather(Tree_Node *f)$/
-NoExit::SetPosition	cp-src/abstract.C	/^void NoExit::SetPosition(Coord xx, Coord yy)$/
-NoExperiment	cp-src/abstract.H	545
-NoExperiment::NoExperiment	cp-src/abstract.C	/^NoExperiment::NoExperiment()$/
-NoExperiment::SetDimensions	cp-src/abstract.C	/^void NoExperiment::SetDimensions(void)$/
-NoExperiment::SetFather	cp-src/abstract.C	/^void NoExperiment::SetFather(Tree_Node *f)$/
-NoExperiment::SetPosition	cp-src/abstract.C	/^void NoExperiment::SetPosition(Coord xx, Coord yy)/
-NoGuard	cp-src/abstract.H	511
-NoGuard::NoGuard	cp-src/abstract.C	/^NoGuard::NoGuard()$/
-NoGuard::SetDimensions	cp-src/abstract.C	/^void NoGuard::SetDimensions(void)$/
-NoGuard::SetFather	cp-src/abstract.C	/^void NoGuard::SetFather(Tree_Node *f)$/
-NoGuard::SetPosition	cp-src/abstract.C	/^void NoGuard::SetPosition(Coord xx, Coord yy)$/
-NullSecurityManager	java-src/SMan.java	817
-NullSecurityManager.checkAccept	java-src/SMan.java	/^    public void checkAccept(String host, int port)/
-NullSecurityManager.checkAccess	java-src/SMan.java	/^    public void checkAccess(Thread g) { }$/
-NullSecurityManager.checkAccess	java-src/SMan.java	/^    public void checkAccess(ThreadGroup g) { }$/
-NullSecurityManager.checkAwtEventQueueAccess	java-src/SMan.java	/^    public void checkAwtEventQueueAccess() { }$/
-NullSecurityManager.checkConnect	java-src/SMan.java	/^    public void checkConnect(String host, int port/
-NullSecurityManager.checkConnect	java-src/SMan.java	/^    public void checkConnect(String host, int port/
-NullSecurityManager.checkCreateClassLoader	java-src/SMan.java	/^    public void checkCreateClassLoader() { } $/
-NullSecurityManager.checkDelete	java-src/SMan.java	/^    public void checkDelete(String file) { }$/
-NullSecurityManager.checkExec	java-src/SMan.java	/^    public void checkExec(String cmd) { }$/
-NullSecurityManager.checkExit	java-src/SMan.java	/^    public void checkExit(int status) { }$/
-NullSecurityManager.checkLink	java-src/SMan.java	/^    public void checkLink(String lib) { }$/
-NullSecurityManager.checkListen	java-src/SMan.java	/^    public void checkListen(int port) { }$/
-NullSecurityManager.checkMemberAccess	java-src/SMan.java	/^    public void checkMemberAccess(Class clazz, int/
-NullSecurityManager.checkMulticast	java-src/SMan.java	/^    public void checkMulticast(InetAddress maddr) /
-NullSecurityManager.checkMulticast	java-src/SMan.java	/^    public void checkMulticast(InetAddress maddr, /
-NullSecurityManager.checkPackageAccess	java-src/SMan.java	/^    public void checkPackageAccess(String pkg) { }/
-NullSecurityManager.checkPackageDefinition	java-src/SMan.java	/^    public void checkPackageDefinition(String pkg)/
-NullSecurityManager.checkPrintJobAccess	java-src/SMan.java	/^    public void checkPrintJobAccess() { }$/
-NullSecurityManager.checkPropertiesAccess	java-src/SMan.java	/^    public void checkPropertiesAccess() { }$/
-NullSecurityManager.checkPropertyAccess	java-src/SMan.java	/^    public void checkPropertyAccess(String key) { /
-NullSecurityManager.checkPropertyAccess	java-src/SMan.java	/^    public void checkPropertyAccess(String key, St/
-NullSecurityManager.checkRead	java-src/SMan.java	/^    public void checkRead(FileDescriptor fd) { }$/
-NullSecurityManager.checkRead	java-src/SMan.java	/^    public void checkRead(String file) { }$/
-NullSecurityManager.checkRead	java-src/SMan.java	/^    public void checkRead(String file, Object cont/
-NullSecurityManager.checkSecurityAccess	java-src/SMan.java	/^    public void checkSecurityAccess(String provide/
-NullSecurityManager.checkSetFactory	java-src/SMan.java	/^    public void checkSetFactory() { }$/
-NullSecurityManager.checkSystemClipboardAccess	java-src/SMan.java	/^    public void checkSystemClipboardAccess() { }$/
-NullSecurityManager.checkTopLevelWindow	java-src/SMan.java	/^    public boolean checkTopLevelWindow(Object wind/
-NullSecurityManager.checkWrite	java-src/SMan.java	/^    public void checkWrite(FileDescriptor fd) { }$/
-NullSecurityManager.checkWrite	java-src/SMan.java	/^    public void checkWrite(String file) { }$/
 OBJCPPSRC	Makefile	/^OBJCPPSRC=$(addprefix .\/objcpp-src\/,SimpleCalc.H S/
 OBJCSRC	Makefile	/^OBJCSRC=$(addprefix .\/objc-src\/,Subprocess.h Subpr/
 OPENBUTTON	objc-src/PackInsp.m	47
@@ -1829,10 +1044,8 @@ Objc_suffixes	c-src/etags.c	609
 OperatorFun	c-src/h.h	88
 Overview	tex-src/gzip.texi	/^@node Overview, Sample, Copying, Top$/
 PASSRC	Makefile	/^PASSRC=$(addprefix .\/pas-src\/,common.pas)$/
-PCTEST_H	cp-src/Pctest.h	24
 PDT	c-src/h.h	/^  Date 04 May 87 235311 PDT (Mon)$/
 PERLSRC	Makefile	/^PERLSRC=$(addprefix .\/perl-src\/,htlmify-cystic yag/
-PERM	cp-src/cfront.H	/^#define PERM(p) p->permanent=1$/
 PHPSRC	Makefile	/^PHPSRC=$(addprefix .\/php-src\/,lce_functions.php pt/
 PHP_functions	c-src/etags.c	/^PHP_functions (FILE *inf)$/
 PHP_help	c-src/etags.c	639
@@ -1890,51 +1103,9 @@ PVEC_WINDOW	c-src/emacs/src/lisp.h	786
 PVEC_WINDOW_CONFIGURATION	c-src/emacs/src/lisp.h	791
 PYTSRC	Makefile	/^PYTSRC=$(addprefix .\/pyt-src\/,server.py)$/
 PackageInspector	objc-src/PackInsp.h	/^@interface PackageInspector:WMInspector$/
-Par	cp-src/abstract.H	933
-Par::Par	cp-src/abstract.C	/^Par::Par(Gate_Decl_List *g_d_l, Tree_Node *op, Tre/
-Par::SetCollapsed	cp-src/abstract.C	/^void Par::SetCollapsed(char t)$/
-Par::SetDimensions	cp-src/abstract.C	/^void Par::SetDimensions(void)$/
-Par::SetFather	cp-src/abstract.C	/^void Par::SetFather(Tree_Node *f)$/
-Par::SetPosition	cp-src/abstract.C	/^void Par::SetPosition(Coord xx, Coord yy)$/
-Par::SetTextual	cp-src/abstract.C	/^void Par::SetTextual(char t, char s)$/
-Par::bex	cp-src/abstract.H	936
-Par::border	cp-src/abstract.H	938
-Par::gate_decl_list	cp-src/abstract.H	935
-Par::oper	cp-src/abstract.H	936
-Par::xl	cp-src/abstract.H	937
-Par::yl	cp-src/abstract.H	937
-Parallel	cp-src/abstract.H	888
-Parallel::GetOperType	cp-src/abstract.H	/^ char GetOperType(void) { return(oper->GetType());/
-Parallel::Get_Textual_H	cp-src/abstract.C	/^int Parallel::Get_Textual_H()$/
-Parallel::Get_Textual_W	cp-src/abstract.C	/^int Parallel::Get_Textual_W()$/
-Parallel::Parallel	cp-src/abstract.C	/^Parallel::Parallel(Tree_Node *b1, Tree_Node *op, T/
-Parallel::SetCollapsed	cp-src/abstract.C	/^void Parallel::SetCollapsed(char t)$/
-Parallel::SetDimensions	cp-src/abstract.C	/^void Parallel::SetDimensions(void)$/
-Parallel::SetFather	cp-src/abstract.C	/^void Parallel::SetFather(Tree_Node *f)$/
-Parallel::SetPosition	cp-src/abstract.C	/^void Parallel::SetPosition(Coord xx, Coord yy)$/
-Parallel::SetTerminalPos	cp-src/abstract.C	/^void Parallel::SetTerminalPos()$/
-Parallel::SetTextual	cp-src/abstract.C	/^void Parallel::SetTextual(char t, char s)$/
-Parallel::bex1	cp-src/abstract.H	890
-Parallel::bex2	cp-src/abstract.H	890
-Parallel::border	cp-src/abstract.H	894
-Parallel::delta	cp-src/abstract.H	893
-Parallel::havebox	cp-src/abstract.H	892
-Parallel::oper	cp-src/abstract.H	890
-Parallel::xl	cp-src/abstract.H	891
-Parallel::yl	cp-src/abstract.H	891
-Parallel::yl1	cp-src/abstract.H	891
 Pascal_functions	c-src/etags.c	/^Pascal_functions (FILE *inf)$/
 Pascal_help	c-src/etags.c	621
 Pascal_suffixes	c-src/etags.c	619
-Pctest	cp-src/Pctest.h	56
-Pctest::GetAction	cp-src/Pctest.h	/^    virtual PctestActionType GetAction(TestRecord /
-Pctest::GetTargetName	cp-src/Pctest.h	/^    virtual char *GetTargetName() { return targetN/
-Pctest::Pctest	cp-src/Pctest.h	/^    Pctest() {$/
-Pctest::initialized	cp-src/Pctest.h	93
-Pctest::syscallTime	cp-src/Pctest.h	95
-Pctest::targetName	cp-src/Pctest.h	94
-Pctest::~Pctest	cp-src/Pctest.h	/^    virtual ~Pctest() { };$/
-PctestActionType	cp-src/Pctest.h	54
 Perl_functions	c-src/etags.c	/^Perl_functions (FILE *inf)$/
 Perl_help	c-src/etags.c	630
 Perl_interpreters	c-src/etags.c	628
@@ -1987,53 +1158,6 @@ Private_T/t	ada-src/waroquiers.ada	/^  type Private_T is private;$/
 Private_T/t	ada-src/waroquiers.ada	/^  type Private_T is$/
 Problems	tex-src/gzip.texi	/^@node Problems, Concept Index, Tapes, Top$/
 Proc/t	ada-src/2ataspri.ads	/^   type Proc is access procedure (Addr : System.Ad/
-Proc_Inst	cp-src/abstract.H	867
-Proc_Inst::Proc_Inst	cp-src/abstract.C	/^Proc_Inst::Proc_Inst(ID_Place *id, ID_List *g_i_l,/
-Proc_Inst::SetCollapsed	cp-src/abstract.C	/^void Proc_Inst::SetCollapsed(char t)$/
-Proc_Inst::SetDimensions	cp-src/abstract.C	/^void Proc_Inst::SetDimensions(void)$/
-Proc_Inst::SetFather	cp-src/abstract.C	/^void Proc_Inst::SetFather(Tree_Node *f)$/
-Proc_Inst::SetPosition	cp-src/abstract.C	/^void Proc_Inst::SetPosition(Coord xx, Coord yy)$/
-Proc_Inst::SetTextual	cp-src/abstract.C	/^void Proc_Inst::SetTextual(char t, char s)$/
-Proc_Inst::Xclose	cp-src/abstract.H	872
-Proc_Inst::Xopen	cp-src/abstract.H	872
-Proc_Inst::border	cp-src/abstract.H	874
-Proc_Inst::gate_list	cp-src/abstract.H	869
-Proc_Inst::hp	cp-src/abstract.H	873
-Proc_Inst::ident	cp-src/abstract.H	870
-Proc_Inst::value_expr_list	cp-src/abstract.H	871
-Proc_Inst::yl1	cp-src/abstract.H	872
-Proc_Inst::yp	cp-src/abstract.H	872
-Proc_List	cp-src/abstract.H	367
-Proc_List::GetPath	cp-src/abstract.C	/^char *Proc_List::GetPath()$/
-Proc_List::Proc_List	cp-src/abstract.C	/^Proc_List::Proc_List(Process *el, Proc_List *nxt)$/
-Proc_List::SetDimensions	cp-src/abstract.C	/^void Proc_List::SetDimensions(void)$/
-Proc_List::SetFather	cp-src/abstract.C	/^void Proc_List::SetFather(Tree_Node *f)$/
-Proc_List::SetPath	cp-src/abstract.C	/^void Proc_List::SetPath(char *p, char n, int& np, /
-Proc_List::SetPosition	cp-src/abstract.C	/^void Proc_List::SetPosition(Coord xx, Coord yy)$/
-Proc_List::elem	cp-src/abstract.H	369
-Proc_List::next	cp-src/abstract.H	370
-Process	cp-src/abstract.H	337
-Process::GetMaxX	cp-src/abstract.C	/^Coord Process::GetMaxX()$/
-Process::GetMaxY	cp-src/abstract.C	/^Coord Process::GetMaxY()$/
-Process::GetNesting	cp-src/abstract.H	/^ char GetNesting() {return(nesting);};$/
-Process::MaxX	cp-src/abstract.H	347
-Process::MaxY	cp-src/abstract.H	347
-Process::Process	cp-src/abstract.C	/^Process::Process(Comment_List *c_l, ID_Place *id, /
-Process::SetDimensions	cp-src/abstract.C	/^void Process::SetDimensions(void)$/
-Process::SetFather	cp-src/abstract.C	/^void Process::SetFather(Tree_Node *f)$/
-Process::SetPath	cp-src/abstract.C	/^void Process::SetPath(char *p, char n, int& np, in/
-Process::SetPosition	cp-src/abstract.C	/^void Process::SetPosition(Coord xx, Coord yy)$/
-Process::com_list	cp-src/abstract.H	339
-Process::def	cp-src/abstract.H	343
-Process::func	cp-src/abstract.H	344
-Process::gate_list	cp-src/abstract.H	341
-Process::id_decl_list	cp-src/abstract.H	342
-Process::ident	cp-src/abstract.H	340
-Process::nesting	cp-src/abstract.H	345
-Process::yl1	cp-src/abstract.H	346
-Process::yl2	cp-src/abstract.H	346
-Process::yl3	cp-src/abstract.H	346
-Process::ypath	cp-src/abstract.H	346
 Prolog_functions	c-src/etags.c	/^Prolog_functions (FILE *inf)$/
 Prolog_help	c-src/etags.c	654
 Prolog_suffixes	c-src/etags.c	652
@@ -2045,13 +1169,6 @@ Python_suffixes	c-src/etags.c	658
 QUIT	c-src/emacs/src/lisp.h	3101
 QUITP	c-src/emacs/src/lisp.h	3112
 Qpre_abbrev_expand_hook	c-src/abbrev.c	82
-Query	cp-src/abstract.H	593
-Query::Query	cp-src/abstract.C	/^Query::Query(Id_Decl *i_d)$/
-Query::SetCollapsed	cp-src/abstract.C	/^void Query::SetCollapsed(char t)$/
-Query::SetDimensions	cp-src/abstract.C	/^void Query::SetDimensions(void)$/
-Query::SetFather	cp-src/abstract.C	/^void Query::SetFather(Tree_Node *f)$/
-Query::SetPosition	cp-src/abstract.C	/^void Query::SetPosition(Coord xx, Coord yy)$/
-Query::id_decl	cp-src/abstract.H	595
 RANGED_INTEGERP	c-src/emacs/src/lisp.h	/^RANGED_INTEGERP (intmax_t lo, Lisp_Object x, intma/
 RCSid	objc-src/PackInsp.m	30
 READABLE_EVENTS_DO_TIMERS_NOW	c-src/emacs/src/keyboard.c	346
@@ -2214,7 +1331,6 @@ SETPRT	f-src/entry.strange_suffix	/^       ENTRY  SETPRT ( SHORT, EXPL, LONG, TR
 SET_SYMBOL_BLV	c-src/emacs/src/lisp.h	/^SET_SYMBOL_BLV (struct Lisp_Symbol *sym, struct Li/
 SET_SYMBOL_FWD	c-src/emacs/src/lisp.h	/^SET_SYMBOL_FWD (struct Lisp_Symbol *sym, union Lis/
 SET_SYMBOL_VAL	c-src/emacs/src/lisp.h	/^# define SET_SYMBOL_VAL(sym, v) lisp_h_SET_SYMBOL_/
-SIMPLIFIED	cp-src/cfront.H	231
 SINGLE_LETTER_MOD	c-src/emacs/src/keyboard.c	/^#define SINGLE_LETTER_MOD(BIT)				\\$/
 SINGLE_LETTER_MOD	c-src/emacs/src/keyboard.c	6212
 SINGLE_LETTER_MOD	c-src/emacs/src/keyboard.c	/^#define SINGLE_LETTER_MOD(BIT)				\\$/
@@ -2274,45 +1390,6 @@ Sample	tex-src/gzip.texi	/^@node Sample, Invoking gzip, Overview, Top$/
 Scheme_functions	c-src/etags.c	/^Scheme_functions (FILE *inf)$/
 Scheme_help	c-src/etags.c	667
 Scheme_suffixes	c-src/etags.c	665
-SecurityManager	java-src/SMan.java	80
-SecurityManager.SecurityManager	java-src/SMan.java	/^    protected SecurityManager() {$/
-SecurityManager.checkAccept	java-src/SMan.java	/^    public void checkAccept(String host, int port)/
-SecurityManager.checkAccess	java-src/SMan.java	/^    public void checkAccess(Thread g) {$/
-SecurityManager.checkAccess	java-src/SMan.java	/^    public void checkAccess(ThreadGroup g) {$/
-SecurityManager.checkAwtEventQueueAccess	java-src/SMan.java	/^    public void checkAwtEventQueueAccess() {$/
-SecurityManager.checkConnect	java-src/SMan.java	/^    public void checkConnect(String host, int port/
-SecurityManager.checkConnect	java-src/SMan.java	/^    public void checkConnect(String host, int port/
-SecurityManager.checkCreateClassLoader	java-src/SMan.java	/^    public void checkCreateClassLoader() {$/
-SecurityManager.checkDelete	java-src/SMan.java	/^    public void checkDelete(String file) {$/
-SecurityManager.checkExec	java-src/SMan.java	/^    public void checkExec(String cmd) {$/
-SecurityManager.checkExit	java-src/SMan.java	/^    public void checkExit(int status) {$/
-SecurityManager.checkLink	java-src/SMan.java	/^    public void checkLink(String lib) {$/
-SecurityManager.checkListen	java-src/SMan.java	/^    public void checkListen(int port) {$/
-SecurityManager.checkMemberAccess	java-src/SMan.java	/^    public void checkMemberAccess(Class clazz, int/
-SecurityManager.checkMulticast	java-src/SMan.java	/^    public void checkMulticast(InetAddress maddr) /
-SecurityManager.checkMulticast	java-src/SMan.java	/^    public void checkMulticast(InetAddress maddr, /
-SecurityManager.checkPackageAccess	java-src/SMan.java	/^    public void checkPackageAccess(String pkg) {$/
-SecurityManager.checkPackageDefinition	java-src/SMan.java	/^    public void checkPackageDefinition(String pkg)/
-SecurityManager.checkPrintJobAccess	java-src/SMan.java	/^    public void checkPrintJobAccess() {$/
-SecurityManager.checkPropertiesAccess	java-src/SMan.java	/^    public void checkPropertiesAccess() {$/
-SecurityManager.checkPropertyAccess	java-src/SMan.java	/^    public void checkPropertyAccess(String key) {$/
-SecurityManager.checkRead	java-src/SMan.java	/^    public void checkRead(FileDescriptor fd) {$/
-SecurityManager.checkRead	java-src/SMan.java	/^    public void checkRead(String file) {$/
-SecurityManager.checkRead	java-src/SMan.java	/^    public void checkRead(String file, Object cont/
-SecurityManager.checkSecurityAccess	java-src/SMan.java	/^    public void checkSecurityAccess(String action)/
-SecurityManager.checkSetFactory	java-src/SMan.java	/^    public void checkSetFactory() {$/
-SecurityManager.checkSystemClipboardAccess	java-src/SMan.java	/^    public void checkSystemClipboardAccess() {$/
-SecurityManager.checkTopLevelWindow	java-src/SMan.java	/^    public boolean checkTopLevelWindow(Object wind/
-SecurityManager.checkWrite	java-src/SMan.java	/^    public void checkWrite(FileDescriptor fd) {$/
-SecurityManager.checkWrite	java-src/SMan.java	/^    public void checkWrite(String file) {$/
-SecurityManager.currentLoadedClass	java-src/SMan.java	/^    protected Class currentLoadedClass() {$/
-SecurityManager.getInCheck	java-src/SMan.java	/^    public boolean getInCheck() {$/
-SecurityManager.getSecurityContext	java-src/SMan.java	/^    public Object getSecurityContext() {$/
-SecurityManager.getThreadGroup	java-src/SMan.java	/^    public ThreadGroup getThreadGroup() {$/
-SecurityManager.inCheck	java-src/SMan.java	87
-SecurityManager.inClass	java-src/SMan.java	/^    protected boolean inClass(String name) {$/
-SecurityManager.inClassLoader	java-src/SMan.java	/^    protected boolean inClassLoader() {$/
-SecurityManager.initialized	java-src/SMan.java	90
 SelectLayer	lua-src/allegro.lua	/^function SelectLayer (layer)$/
 Self/f	ada-src/2ataspri.adb	/^   function Self return TCB_Ptr is$/
 Self/f	ada-src/2ataspri.ads	/^   function Self return TCB_Ptr;$/
@@ -2326,150 +1403,14 @@ SimpleCalc	objcpp-src/SimpleCalc.H	/^@interface SimpleCalc:Object$/
 SkipBlanks	pas-src/common.pas	/^function SkipBlanks; (*($/
 SkipChars	pas-src/common.pas	/^function SkipChars; (*($/
 SkipSpaces	pas-src/common.pas	/^procedure SkipSpaces; (* (Str : NameString; var I /
-Sort_Id_Exit	cp-src/abstract.H	490
-Sort_Id_Exit::SetCollapsed	cp-src/abstract.C	/^void Sort_Id_Exit::SetCollapsed(char t)$/
-Sort_Id_Exit::SetDimensions	cp-src/abstract.C	/^void Sort_Id_Exit::SetDimensions(void)$/
-Sort_Id_Exit::SetFather	cp-src/abstract.C	/^void Sort_Id_Exit::SetFather(Tree_Node *f)$/
-Sort_Id_Exit::SetPosition	cp-src/abstract.C	/^void Sort_Id_Exit::SetPosition(Coord xx, Coord yy)/
-Sort_Id_Exit::Sort_Id_Exit	cp-src/abstract.C	/^Sort_Id_Exit::Sort_Id_Exit(ID_Place *s)$/
-Sort_Id_Exit::sort_id	cp-src/abstract.H	492
-Specification	cp-src/abstract.H	308
-Specification::GetMaxX	cp-src/abstract.C	/^Coord Specification::GetMaxX()$/
-Specification::GetMaxY	cp-src/abstract.C	/^Coord Specification::GetMaxY()$/
-Specification::MaxX	cp-src/abstract.H	321
-Specification::MaxY	cp-src/abstract.H	321
-Specification::SetDimensions	cp-src/abstract.C	/^void Specification::SetDimensions(void)$/
-Specification::SetFather	cp-src/abstract.C	/^void Specification::SetFather(Tree_Node *f)$/
-Specification::SetPath	cp-src/abstract.C	/^void Specification::SetPath(int& np, int& nd)$/
-Specification::SetPosition	cp-src/abstract.C	/^void Specification::SetPosition(Coord xx, Coord yy/
-Specification::Specification	cp-src/abstract.C	/^Specification::Specification(Comment_List *c_l, ID/
-Specification::com_list	cp-src/abstract.H	312
-Specification::com_list1	cp-src/abstract.H	316
-Specification::def	cp-src/abstract.H	319
-Specification::dt_list	cp-src/abstract.H	318
-Specification::func	cp-src/abstract.H	317
-Specification::gate_list	cp-src/abstract.H	314
-Specification::id_decl_list	cp-src/abstract.H	315
-Specification::ident	cp-src/abstract.H	313
-Specification::yl1	cp-src/abstract.H	320
-Specification::yl2	cp-src/abstract.H	320
-Specification::yl3	cp-src/abstract.H	320
 StartDay	cp-src/functions.cpp	/^Date StartDay(Date a,int days){\/\/Function to calcu/
-Stop	cp-src/abstract.H	793
-Stop::SetCollapsed	cp-src/abstract.C	/^void Stop::SetCollapsed(char t)$/
-Stop::SetDimensions	cp-src/abstract.C	/^void Stop::SetDimensions(void)$/
-Stop::SetFather	cp-src/abstract.C	/^void Stop::SetFather(Tree_Node *f)$/
-Stop::SetPosition	cp-src/abstract.C	/^void Stop::SetPosition(Coord xx, Coord yy)$/
-Stop::SetTextual	cp-src/abstract.C	/^void Stop::SetTextual(char t, char s)$/
-Stop::Stop	cp-src/abstract.C	/^Stop::Stop()$/
-Stop::border	cp-src/abstract.H	796
-Stop::havebox	cp-src/abstract.H	795
 StripPath	pas-src/common.pas	/^function StripPath; (*($/
 SubString	pas-src/common.pas	/^function SubString; (*($/
 Subprocess	objc-src/Subprocess.h	41
 Subprocess	objc-src/Subprocess.h	/^@interface Subprocess:Object$/
 Subprocess(Private)	objc-src/Subprocess.m	/^@interface Subprocess(Private)$/
-Sum_Gate	cp-src/abstract.H	952
-Sum_Gate::SetCollapsed	cp-src/abstract.C	/^void Sum_Gate::SetCollapsed(char t)$/
-Sum_Gate::SetDimensions	cp-src/abstract.C	/^void Sum_Gate::SetDimensions(void)$/
-Sum_Gate::SetFather	cp-src/abstract.C	/^void Sum_Gate::SetFather(Tree_Node *f)$/
-Sum_Gate::SetPosition	cp-src/abstract.C	/^void Sum_Gate::SetPosition(Coord xx, Coord yy)$/
-Sum_Gate::SetTerminalPos	cp-src/abstract.C	/^void Sum_Gate::SetTerminalPos()$/
-Sum_Gate::SetTextual	cp-src/abstract.C	/^void Sum_Gate::SetTextual(char t, char s)$/
-Sum_Gate::Sum_Gate	cp-src/abstract.C	/^Sum_Gate::Sum_Gate(Gate_Decl_List *g_d_l, Tree_Nod/
-Sum_Gate::Xch	cp-src/abstract.H	956
-Sum_Gate::Xclose	cp-src/abstract.H	956
-Sum_Gate::Ych	cp-src/abstract.H	956
-Sum_Gate::Yclose	cp-src/abstract.H	956
-Sum_Gate::bex	cp-src/abstract.H	955
-Sum_Gate::border	cp-src/abstract.H	957
-Sum_Gate::gate_decl_list	cp-src/abstract.H	954
-Sum_Gate::xl	cp-src/abstract.H	956
-Sum_Gate::yl	cp-src/abstract.H	956
-Sum_Ident	cp-src/abstract.H	972
-Sum_Ident::SetCollapsed	cp-src/abstract.C	/^void Sum_Ident::SetCollapsed(char t)$/
-Sum_Ident::SetDimensions	cp-src/abstract.C	/^void Sum_Ident::SetDimensions(void)$/
-Sum_Ident::SetFather	cp-src/abstract.C	/^void Sum_Ident::SetFather(Tree_Node *f)$/
-Sum_Ident::SetPosition	cp-src/abstract.C	/^void Sum_Ident::SetPosition(Coord xx, Coord yy)$/
-Sum_Ident::SetTerminalPos	cp-src/abstract.C	/^void Sum_Ident::SetTerminalPos()$/
-Sum_Ident::SetTextual	cp-src/abstract.C	/^void Sum_Ident::SetTextual(char t, char s)$/
-Sum_Ident::Sum_Ident	cp-src/abstract.C	/^Sum_Ident::Sum_Ident(Id_Decl_List *i_d_l, Tree_Nod/
-Sum_Ident::Xch	cp-src/abstract.H	976
-Sum_Ident::Xclose	cp-src/abstract.H	976
-Sum_Ident::Ych	cp-src/abstract.H	976
-Sum_Ident::Yclose	cp-src/abstract.H	976
-Sum_Ident::bex	cp-src/abstract.H	975
-Sum_Ident::border	cp-src/abstract.H	977
-Sum_Ident::ident_decl_list	cp-src/abstract.H	974
-Sum_Ident::xl	cp-src/abstract.H	976
-Sum_Ident::yl	cp-src/abstract.H	976
-Syncr	cp-src/abstract.H	685
-Syncr::SetDimensions	cp-src/abstract.C	/^void Syncr::SetDimensions(void)$/
-Syncr::SetFather	cp-src/abstract.C	/^void Syncr::SetFather(Tree_Node *f)$/
-Syncr::SetPosition	cp-src/abstract.C	/^void Syncr::SetPosition(Coord xx, Coord yy)$/
-Syncr::Syncr	cp-src/abstract.C	/^Syncr::Syncr()$/
 System.Task_Primitives/b	ada-src/2ataspri.adb	/^package body System.Task_Primitives is$/
 System.Task_Primitives/s	ada-src/2ataspri.ads	/^package System.Task_Primitives is$/
-SystemColor	java-src/SysCol.java	37
-SystemColor.ACTIVE_CAPTION	java-src/SysCol.java	47
-SystemColor.ACTIVE_CAPTION_BORDER	java-src/SysCol.java	57
-SystemColor.ACTIVE_CAPTION_TEXT	java-src/SysCol.java	52
-SystemColor.CONTROL	java-src/SysCol.java	127
-SystemColor.CONTROL_DK_SHADOW	java-src/SysCol.java	152
-SystemColor.CONTROL_HIGHLIGHT	java-src/SysCol.java	137
-SystemColor.CONTROL_LT_HIGHLIGHT	java-src/SysCol.java	142
-SystemColor.CONTROL_SHADOW	java-src/SysCol.java	147
-SystemColor.CONTROL_TEXT	java-src/SysCol.java	132
-SystemColor.DESKTOP	java-src/SysCol.java	42
-SystemColor.INACTIVE_CAPTION	java-src/SysCol.java	62
-SystemColor.INACTIVE_CAPTION_BORDER	java-src/SysCol.java	72
-SystemColor.INACTIVE_CAPTION_TEXT	java-src/SysCol.java	67
-SystemColor.INFO	java-src/SysCol.java	162
-SystemColor.INFO_TEXT	java-src/SysCol.java	167
-SystemColor.MENU	java-src/SysCol.java	92
-SystemColor.MENU_TEXT	java-src/SysCol.java	97
-SystemColor.NUM_COLORS	java-src/SysCol.java	172
-SystemColor.SCROLLBAR	java-src/SysCol.java	157
-SystemColor.SystemColor	java-src/SysCol.java	/^    private SystemColor(byte index) {$/
-SystemColor.TEXT	java-src/SysCol.java	102
-SystemColor.TEXT_HIGHLIGHT	java-src/SysCol.java	112
-SystemColor.TEXT_HIGHLIGHT_TEXT	java-src/SysCol.java	117
-SystemColor.TEXT_INACTIVE_TEXT	java-src/SysCol.java	122
-SystemColor.TEXT_TEXT	java-src/SysCol.java	107
-SystemColor.WINDOW	java-src/SysCol.java	77
-SystemColor.WINDOW_BORDER	java-src/SysCol.java	82
-SystemColor.WINDOW_TEXT	java-src/SysCol.java	87
-SystemColor.activeCaption	java-src/SysCol.java	182
-SystemColor.activeCaptionBorder	java-src/SysCol.java	192
-SystemColor.activeCaptionText	java-src/SysCol.java	187
-SystemColor.control	java-src/SysCol.java	262
-SystemColor.controlDkShadow	java-src/SysCol.java	287
-SystemColor.controlHighlight	java-src/SysCol.java	272
-SystemColor.controlLtHighlight	java-src/SysCol.java	277
-SystemColor.controlShadow	java-src/SysCol.java	282
-SystemColor.controlText	java-src/SysCol.java	267
-SystemColor.desktop	java-src/SysCol.java	177
-SystemColor.getRGB	java-src/SysCol.java	/^    public int getRGB() {$/
-SystemColor.inactiveCaption	java-src/SysCol.java	197
-SystemColor.inactiveCaptionBorder	java-src/SysCol.java	207
-SystemColor.inactiveCaptionText	java-src/SysCol.java	202
-SystemColor.info	java-src/SysCol.java	297
-SystemColor.infoText	java-src/SysCol.java	302
-SystemColor.menu	java-src/SysCol.java	227
-SystemColor.menuText	java-src/SysCol.java	232
-SystemColor.scrollbar	java-src/SysCol.java	292
-SystemColor.serialVersionUID	java-src/SysCol.java	340
-SystemColor.systemColors	java-src/SysCol.java	308
-SystemColor.text	java-src/SysCol.java	237
-SystemColor.textHighlight	java-src/SysCol.java	247
-SystemColor.textHighlightText	java-src/SysCol.java	252
-SystemColor.textInactiveText	java-src/SysCol.java	257
-SystemColor.textText	java-src/SysCol.java	242
-SystemColor.toString	java-src/SysCol.java	/^    public String toString() {$/
-SystemColor.updateSystemColors	java-src/SysCol.java	/^    private static void updateSystemColors() {$/
-SystemColor.window	java-src/SysCol.java	212
-SystemColor.windowBorder	java-src/SysCol.java	217
-SystemColor.windowText	java-src/SysCol.java	222
 T3	c.c	163
 TAG_PTR	c-src/emacs/src/lisp.h	/^#define TAG_PTR(tag, ptr) \\$/
 TAG_SYMOFFSET	c-src/emacs/src/lisp.h	/^#define TAG_SYMOFFSET(offset)				    \\$/
@@ -2504,15 +1445,6 @@ Task_Type/k	ada-src/waroquiers.ada	/^  task type Task_Type is$/
 TeX_commands	c-src/etags.c	/^TeX_commands (FILE *inf)$/
 TeX_help	c-src/etags.c	674
 TeX_suffixes	c-src/etags.c	672
-Term	cp-src/abstract.H	456
-Term::SetCollapsed	cp-src/abstract.C	/^void Term::SetCollapsed(char t)$/
-Term::SetDimensions	cp-src/abstract.C	/^void Term::SetDimensions(void)$/
-Term::SetFather	cp-src/abstract.C	/^void Term::SetFather(Tree_Node *f)$/
-Term::SetPosition	cp-src/abstract.C	/^void Term::SetPosition(Coord xx, Coord yy)$/
-Term::Term	cp-src/abstract.C	/^Term::Term(ID_Place *op, Value_Expr_List *el, ID_P/
-Term::expr_list	cp-src/abstract.H	459
-Term::op_ident	cp-src/abstract.H	458
-Term::sort_id	cp-src/abstract.H	460
 Test_Abort/p	ada-src/2ataspri.adb	/^   procedure Test_Abort is$/
 Test_Abort/p	ada-src/2ataspri.ads	/^   procedure Test_Abort;$/
 Test_And_Set/p	ada-src/2ataspri.adb	/^   procedure Test_And_Set (Cell : in out TAS_Cell;/
@@ -2520,50 +1452,6 @@ Test_And_Set/p	ada-src/2ataspri.ads	/^   procedure Test_And_Set (Cell : in out T
 Texinfo_help	c-src/etags.c	688
 Texinfo_nodes	c-src/etags.c	/^Texinfo_nodes (FILE *inf)$/
 Texinfo_suffixes	c-src/etags.c	686
-ThreadGroup	java-src/TG.java	54
-ThreadGroup.ThreadGroup	java-src/TG.java	/^    private ThreadGroup() {	\/\/ called from C code$/
-ThreadGroup.ThreadGroup	java-src/TG.java	/^    public ThreadGroup(String name) {$/
-ThreadGroup.ThreadGroup	java-src/TG.java	/^    public ThreadGroup(ThreadGroup parent, String /
-ThreadGroup.activeCount	java-src/TG.java	/^    public int activeCount() {$/
-ThreadGroup.activeGroupCount	java-src/TG.java	/^    public int activeGroupCount() {$/
-ThreadGroup.add	java-src/TG.java	/^    private final void add(ThreadGroup g){$/
-ThreadGroup.add	java-src/TG.java	/^    void add(Thread t) {$/
-ThreadGroup.allowThreadSuspension	java-src/TG.java	/^    public boolean allowThreadSuspension(boolean b/
-ThreadGroup.checkAccess	java-src/TG.java	/^    public final void checkAccess() {$/
-ThreadGroup.daemon	java-src/TG.java	59
-ThreadGroup.destroy	java-src/TG.java	/^    public final void destroy() {$/
-ThreadGroup.destroyed	java-src/TG.java	58
-ThreadGroup.enumerate	java-src/TG.java	/^    public int enumerate(Thread list[]) {$/
-ThreadGroup.enumerate	java-src/TG.java	/^    public int enumerate(Thread list[], boolean re/
-ThreadGroup.enumerate	java-src/TG.java	/^    private int enumerate(Thread list[], int n, bo/
-ThreadGroup.enumerate	java-src/TG.java	/^    public int enumerate(ThreadGroup list[]) {$/
-ThreadGroup.enumerate	java-src/TG.java	/^    public int enumerate(ThreadGroup list[], boole/
-ThreadGroup.enumerate	java-src/TG.java	/^    private int enumerate(ThreadGroup list[], int /
-ThreadGroup.getMaxPriority	java-src/TG.java	/^    public final int getMaxPriority() {$/
-ThreadGroup.getName	java-src/TG.java	/^    public final String getName() {$/
-ThreadGroup.getParent	java-src/TG.java	/^    public final ThreadGroup getParent() {$/
-ThreadGroup.groups	java-src/TG.java	66
-ThreadGroup.isDaemon	java-src/TG.java	/^    public final boolean isDaemon() {$/
-ThreadGroup.isDestroyed	java-src/TG.java	/^    public synchronized boolean isDestroyed() {$/
-ThreadGroup.list	java-src/TG.java	/^    public void list() {$/
-ThreadGroup.list	java-src/TG.java	/^    void list(PrintStream out, int indent) {$/
-ThreadGroup.maxPriority	java-src/TG.java	57
-ThreadGroup.name	java-src/TG.java	56
-ThreadGroup.ngroups	java-src/TG.java	65
-ThreadGroup.nthreads	java-src/TG.java	62
-ThreadGroup.parent	java-src/TG.java	55
-ThreadGroup.parentOf	java-src/TG.java	/^    public final boolean parentOf(ThreadGroup g) {/
-ThreadGroup.remove	java-src/TG.java	/^    private void remove(ThreadGroup g) {$/
-ThreadGroup.remove	java-src/TG.java	/^    void remove(Thread t) {$/
-ThreadGroup.resume	java-src/TG.java	/^    public final void resume() {$/
-ThreadGroup.setDaemon	java-src/TG.java	/^    public final void setDaemon(boolean daemon) {$/
-ThreadGroup.setMaxPriority	java-src/TG.java	/^    public final void setMaxPriority(int pri) {$/
-ThreadGroup.stop	java-src/TG.java	/^    public final void stop() {$/
-ThreadGroup.suspend	java-src/TG.java	/^    public final void suspend() {$/
-ThreadGroup.threads	java-src/TG.java	63
-ThreadGroup.toString	java-src/TG.java	/^    public String toString() {$/
-ThreadGroup.uncaughtException	java-src/TG.java	/^    public void uncaughtException(Thread t, Throwa/
-ThreadGroup.vmAllowSuspension	java-src/TG.java	60
 Time_to_position	c-src/emacs/src/keyboard.c	/^Time_to_position (Time encoded_pos)$/
 To_Lower	pas-src/common.pas	/^function To_Lower;(*(ch:char) : char;*)$/
 To_Start_Addr/f	ada-src/2ataspri.adb	/^      function To_Start_Addr is new$/
@@ -2589,7 +1477,6 @@ UNLOCK	c-src/emacs/src/gmalloc.c	/^#define UNLOCK()				\\$/
 UNLOCK	c-src/emacs/src/gmalloc.c	/^#define UNLOCK()$/
 UNLOCK_ALIGNED_BLOCKS	c-src/emacs/src/gmalloc.c	/^#define UNLOCK_ALIGNED_BLOCKS()				\\$/
 UNLOCK_ALIGNED_BLOCKS	c-src/emacs/src/gmalloc.c	/^#define UNLOCK_ALIGNED_BLOCKS()$/
-UNPERM	cp-src/cfront.H	/^#define UNPERM(p) p->permanent=0$/
 UNSIGNED_CMP	c-src/emacs/src/lisp.h	/^#define UNSIGNED_CMP(a, op, b)						\\$/
 USE_LSB_TAG	c-src/emacs/src/lisp.h	271
 USE_LSB_TAG	c-src/emacs/src/lisp.h	/^DEFINE_GDB_SYMBOL_BEGIN (bool, USE_LSB_TAG)$/
@@ -2620,27 +1507,6 @@ Vabbrev_start_location	c-src/abbrev.c	62
 Vabbrev_start_location_buffer	c-src/abbrev.c	65
 Vabbrev_table_name_list	c-src/abbrev.c	42
 ValToNmStr	pas-src/common.pas	/^function ValToNmStr; (*($/
-Value	cp-src/abstract.H	440
-Value::SetCollapsed	cp-src/abstract.C	/^void Value::SetCollapsed(char t)$/
-Value::SetDimensions	cp-src/abstract.C	/^void Value::SetDimensions(void)$/
-Value::SetFather	cp-src/abstract.C	/^void Value::SetFather(Tree_Node *f)$/
-Value::SetPosition	cp-src/abstract.C	/^void Value::SetPosition(Coord xx, Coord yy)$/
-Value::Value	cp-src/abstract.C	/^Value::Value(ID_Place *i, ID_Place *s)$/
-Value::ident	cp-src/abstract.H	442
-Value::sort_id	cp-src/abstract.H	443
-Value_Expr	cp-src/abstract.H	135
-Value_Expr::SetDimensions	cp-src/abstract.C	/^void Value_Expr::SetDimensions(void)$/
-Value_Expr::SetFather	cp-src/abstract.C	/^void Value_Expr::SetFather(Tree_Node *f)$/
-Value_Expr::SetPosition	cp-src/abstract.C	/^void Value_Expr::SetPosition(Coord xx, Coord yy)$/
-Value_Expr::Value_Expr	cp-src/abstract.C	/^Value_Expr::Value_Expr() $/
-Value_Expr_List	cp-src/abstract.H	149
-Value_Expr_List::SetCollapsed	cp-src/abstract.C	/^void Value_Expr_List::SetCollapsed(char t)$/
-Value_Expr_List::SetDimensions	cp-src/abstract.C	/^void Value_Expr_List::SetDimensions(void)$/
-Value_Expr_List::SetFather	cp-src/abstract.C	/^void Value_Expr_List::SetFather(Tree_Node *f)$/
-Value_Expr_List::SetPosition	cp-src/abstract.C	/^void Value_Expr_List::SetPosition(Coord xx, Coord /
-Value_Expr_List::Value_Expr_List	cp-src/abstract.C	/^Value_Expr_List::Value_Expr_List(Tree_Node *el, Va/
-Value_Expr_List::elem	cp-src/abstract.H	151
-Value_Expr_List::next	cp-src/abstract.H	152
 Vfundamental_mode_abbrev_table	c-src/abbrev.c	51
 Vglobal_abbrev_table	c-src/abbrev.c	47
 Vlast_abbrev	c-src/abbrev.c	69
@@ -3615,7 +2481,6 @@ abort-recursive-edit	c-src/emacs/src/keyboard.c	/^DEFUN ("abort-recursive-edit",
 abs/f	ada-src/etags-test-for.ada	/^   function "abs"   (Right : Complex) return Real'/
 absolute_dirname	c-src/etags.c	/^absolute_dirname (char *file, char *dir)$/
 absolute_filename	c-src/etags.c	/^absolute_filename (char *file, char *dir)$/
-abstract_hh	cp-src/abstract.H	16
 abt	cp-src/c.C	55
 accent_key_syms	c-src/emacs/src/keyboard.c	4625
 access_keymap_keyremap	c-src/emacs/src/keyboard.c	/^access_keymap_keyremap (Lisp_Object map, Lisp_Obje/
@@ -3659,8 +2524,6 @@ animals	c-src/h.h	81
 animals	cp-src/c.C	126
 any_kboard_state	c-src/emacs/src/keyboard.c	/^any_kboard_state ()$/
 appDidInit:	objcpp-src/SimpleCalc.M	/^- appDidInit:sender$/
-append	erl-src/lines.erl	/^append(Line, {L, List}) when list(List), L < ?BREA/
-append	erl-src/lists.erl	/^append(X,Y) -> erlang:append(X, Y).  %% A BIF at l/
 append	prol-src/natded.prolog	/^append([],Xs,Xs).$/
 appendToDisplay:	objcpp-src/SimpleCalc.M	/^- appendToDisplay:(const char *)theDigit$/
 append_list	prol-src/natded.prolog	/^append_list([],[]).$/
@@ -3711,30 +2574,12 @@ b	c-src/h.h	41
 b	c-src/h.h	103
 b	c-src/h.h	104
 backslash=0	tex-src/texinfo.tex	/^\\let\\indexbackslash=0  %overridden during \\printin/
-balance_left	erl-src/lines.erl	/^balance_left(N_Tot, $/
-balance_right	erl-src/lines.erl	/^balance_right(N_Tot, $/
 bar	c-src//c.c	/^void bar() {while(0) {}}$/
 bar	c.c	143
 bar	c-src/h.h	19
 bas_syn	prol-src/natded.prolog	/^bas_syn(n(_)).$/
 base	c-src/emacs/src/lisp.h	2188
 base	cp-src/c.C	/^double base (void) const { return rng_base;  }$/
-basetype	cp-src/cfront.H	323
-basetype::b_bits	cp-src/cfront.H	341
-basetype::b_const	cp-src/cfront.H	335
-basetype::b_field	cp-src/cfront.H	346
-basetype::b_fieldtype	cp-src/cfront.H	348
-basetype::b_inline	cp-src/cfront.H	337
-basetype::b_long	cp-src/cfront.H	340
-basetype::b_name	cp-src/cfront.H	344
-basetype::b_offset	cp-src/cfront.H	342
-basetype::b_short	cp-src/cfront.H	339
-basetype::b_sto	cp-src/cfront.H	343
-basetype::b_table	cp-src/cfront.H	345
-basetype::b_typedef	cp-src/cfront.H	336
-basetype::b_unsigned	cp-src/cfront.H	334
-basetype::b_virtual	cp-src/cfront.H	338
-basetype::b_xname	cp-src/cfront.H	347
 bb	c.c	275
 bbb	c.c	251
 bbbbbb	c-src/h.h	113
@@ -3751,8 +2596,6 @@ bits_word	c-src/emacs/src/lisp.h	127
 bla	c.c	/^int bla ()$/
 blah	tex-src/testenv.tex	/^\\section{blah}$/
 bletch	el-src/TAGTEST.EL	/^(foo::defmumble bletch beuarghh)$/
-block	cp-src/cfront.H	694
-block::block	cp-src/cfront.H	/^	block(loc ll, Pname nn, Pstmt ss) : (BLOCK,ll,ss)/
 blv	c-src/emacs/src/lisp.h	689
 blv_found	c-src/emacs/src/lisp.h	/^blv_found (struct Lisp_Buffer_Local_Value *blv)$/
 bodyindent	tex-src/texinfo.tex	/^\\newskip\\defbodyindent \\defbodyindent=.4in$/
@@ -3812,8 +2655,6 @@ c_ext	c-src/etags.c	2271
 caccacacca	c.c	/^caccacacca (a,b,c,d,e,f,g)$/
 cacheLRUEntry_s	c.c	172
 cacheLRUEntry_t	c.c	177
-call	cp-src/cfront.H	535
-call::call	cp-src/cfront.H	/^	call(Pexpr aa, Pexpr bb) : (CALL,aa,bb) { this=0;/
 calloc	c-src/emacs/src/gmalloc.c	66
 calloc	c-src/emacs/src/gmalloc.c	70
 calloc	c-src/emacs/src/gmalloc.c	/^calloc (size_t nmemb, size_t size)$/
@@ -3845,31 +2686,6 @@ childDidExit	objc-src/Subprocess.m	/^- childDidExit$/
 chunks_free	c-src/emacs/src/gmalloc.c	313
 chunks_used	c-src/emacs/src/gmalloc.c	311
 cjava	c-src/etags.c	2936
-classdef	cp-src/cfront.H	278
-classdef::bit_ass	cp-src/cfront.H	283
-classdef::c_body	cp-src/cfront.H	280
-classdef::clbase	cp-src/cfront.H	286
-classdef::conv	cp-src/cfront.H	299
-classdef::csu	cp-src/cfront.H	281
-classdef::friend_list	cp-src/cfront.H	292
-classdef::has_ctor	cp-src/cfront.H	/^	Pname	has_ctor()	{ return memtbl->look("_ctor",0)/
-classdef::has_dtor	cp-src/cfront.H	/^	Pname	has_dtor()	{ return memtbl->look("_dtor",0)/
-classdef::has_itor	cp-src/cfront.H	/^	Pname	has_itor()	{ return itor; }$/
-classdef::in_class	cp-src/cfront.H	295
-classdef::is_simple	cp-src/cfront.H	/^	TOK	is_simple()	{ return (csu==CLASS)?0:csu; };$/
-classdef::itor	cp-src/cfront.H	298
-classdef::mem_list	cp-src/cfront.H	288
-classdef::memtbl	cp-src/cfront.H	289
-classdef::obj_align	cp-src/cfront.H	282
-classdef::obj_size	cp-src/cfront.H	290
-classdef::pubbase	cp-src/cfront.H	279
-classdef::pubdef	cp-src/cfront.H	293
-classdef::real_size	cp-src/cfront.H	291
-classdef::string	cp-src/cfront.H	287
-classdef::this_type	cp-src/cfront.H	296
-classdef::tn_list	cp-src/cfront.H	294
-classdef::virt_count	cp-src/cfront.H	284
-classdef::virt_init	cp-src/cfront.H	297
 classifyLine	php-src/lce_functions.php	/^      function classifyLine($line)$/
 clear-abbrev-table	c-src/abbrev.c	/^DEFUN ("clear-abbrev-table", Fclear_abbrev_table, /
 clear-this-command-keys	c-src/emacs/src/keyboard.c	/^DEFUN ("clear-this-command-keys", Fclear_this_comm/
@@ -3901,7 +2717,6 @@ compressor	c-src/etags.c	188
 compressors	c-src/etags.c	457
 conalgorithm	html-src/algrthms.html	/^Convolutionally$/
 concat	c-src/etags.c	/^concat (const char *s1, const char *s2, const char/
-concat	erl-src/lists.erl	/^concat([H|T]) ->$/
 concatenatenamestrings	pas-src/common.pas	/^function concatenatenamestrings; (*($/
 consider_token	c-src/etags.c	/^consider_token (char *str, int len, int c, int *c_/
 constant	c-src/h.h	29
@@ -3913,10 +2728,7 @@ consult_lex	prol-src/natded.prolog	/^consult_lex:-$/
 contents	c-src/emacs/src/lisp.h	1372
 contents	c-src/emacs/src/lisp.h	1600
 contents	c-src/emacs/src/lisp.h	1624
-convert_from_list	erl-src/lines.erl	/^convert_from_list(L) when list(L) ->$/
-convert_to_list	erl-src/lines.erl	/^convert_to_list({_, List}) when list(List) ->$/
 count	c-src/emacs/src/lisp.h	1863
-count	erl-src/lines.erl	/^count({N, _}) ->$/
 count_layers	lua-src/allegro.lua	/^local function count_layers (layer)$/
 count_words	c-src/tab.c	/^static int		count_words(char *str, char delim)$/
 cow	cp-src/c.C	127
@@ -3940,16 +2752,6 @@ d	c-src/emacs/src/lisp.h	4679
 data	c-src/emacs/src/lisp.h	1395
 data	c-src/emacs/src/lisp.h	2129
 data	c-src/emacs/src/lisp.h	2395
-dbg	erl-src/lines.erl	/^-define(dbg(Fmt, Args), ok=io:format("~p: " ++ Fmt/
-dcl_context	cp-src/cfront.H	739
-dcl_context::c_this	cp-src/cfront.H	740
-dcl_context::cot	cp-src/cfront.H	743
-dcl_context::ftbl	cp-src/cfront.H	744
-dcl_context::nof	cp-src/cfront.H	745
-dcl_context::not	cp-src/cfront.H	742
-dcl_context::stack	cp-src/cfront.H	/^	void	stack()		{ cc++; *cc = *(cc-1); };$/
-dcl_context::tot	cp-src/cfront.H	741
-dcl_context::unstack	cp-src/cfront.H	/^	void	unstack()	{ cc--; };$/
 ddefineseen	c-src/etags.c	2462
 debian-bug	html-src/software.html	/^debian-bug.el$/
 decimalKey:	objcpp-src/SimpleCalc.M	/^- decimalKey:sender$/
@@ -3972,11 +2774,8 @@ defined_GC_CHECK_STRING_BYTES	c-src/emacs/src/lisp.h	4665
 definedef	c-src/etags.c	2464
 defun_func1	c.c	/^defun_func1()$/
 delegate	objc-src/Subprocess.m	/^- delegate$/
-delete	erl-src/lines.erl	/^delete(Lno, _) when Lno < 1 ->$/
-delete	erl-src/lists.erl	/^delete(Item, [Item|Rest]) ->$/
 deleteItem	pyt-src/server.py	/^    def deleteItem(self):$/
 delete_kboard	c-src/emacs/src/keyboard.c	/^delete_kboard (KBOARD *kb)$/
-delete_nth	erl-src/lines.erl	/^delete_nth(1, [H|T]) ->$/
 deliver_input_available_signal	c-src/emacs/src/keyboard.c	/^deliver_input_available_signal (int sig)$/
 deliver_interrupt_signal	c-src/emacs/src/keyboard.c	/^deliver_interrupt_signal (int sig)$/
 deliver_user_signal	c-src/emacs/src/keyboard.c	/^deliver_user_signal (int sig)$/
@@ -4029,14 +2828,6 @@ dummyfont	tex-src/texinfo.tex	/^\\let\\key=\\indexdummyfont$/
 dummyfont	tex-src/texinfo.tex	/^\\let\\var=\\indexdummyfont$/
 dummytex	tex-src/texinfo.tex	/^\\let\\TeX=\\indexdummytex$/
 dump	pyt-src/server.py	/^    def dump(self, folded):$/
-duplicate	erl-src/lists.erl	/^duplicate(N, X) when integer(N), N >= 0 -> duplica/
-ea	cp-src/cfront.H	80
-ea::ea	cp-src/cfront.H	/^	ea(void* pp) { p = pp; }$/
-ea::ea	cp-src/cfront.H	/^	ea(int ii)   { i = ii; }$/
-ea::ea	cp-src/cfront.H	/^	ea() {}$/
-ea::ea	cp-src/cfront.H	/^	ea(int i)	{ x; }$/
-ea::i	cp-src/cfront.H	83
-ea::p	cp-src/cfront.H	82
 eabs	c-src/emacs/src/lisp.h	/^#define eabs(x)         ((x) < 0 ? -(x) : (x))$/
 eassert	c-src/emacs/src/lisp.h	/^# define eassert(cond) ((void) (false && (cond))) /
 eassert	c-src/emacs/src/lisp.h	/^# define eassert(cond)						\\$/
@@ -4060,11 +2851,6 @@ editItem	pyt-src/server.py	/^    def editItem(self):$/
 editsite	pyt-src/server.py	/^    def editsite(self, site):$/
 edituser	pyt-src/server.py	/^    def edituser(self, user):$/
 egetenv	c-src/emacs/src/lisp.h	/^egetenv (const char *var)$/
-elist	cp-src/cfront.H	727
-elist::add	cp-src/cfront.H	/^	void	add(Pexpr e)	{ tail->e2 = e; tail = e; };$/
-elist::elist	cp-src/cfront.H	/^		elist(Pexpr e)	{ Nl++; head = tail = e; };$/
-elist::head	cp-src/cfront.H	728
-elist::tail	cp-src/cfront.H	729
 emacs_abort	c-src/emacs/src/lisp.h	/^extern _Noreturn void emacs_abort (void) NO_INLINE/
 end	c-src/emacs/src/regex.h	432
 end	c-src/emacs/src/keyboard.c	8753
@@ -4078,11 +2864,6 @@ entry	perl-src/htlmify-cystic	268
 entry	perl-src/htlmify-cystic	276
 entry	perl-src/htlmify-cystic	281
 entry	perl-src/htlmify-cystic	296
-enumdef	cp-src/cfront.H	265
-enumdef::e_body	cp-src/cfront.H	266
-enumdef::enumdef	cp-src/cfront.H	/^		enumdef(Pname n)	{ base=ENUM; mem=n; };$/
-enumdef::mem	cp-src/cfront.H	268
-enumdef::no_of_enumerators	cp-src/cfront.H	267
 equalsKey:	objcpp-src/SimpleCalc.M	/^- equalsKey:sender$/
 erlang_atom	c-src/etags.c	/^erlang_atom (char *s)$/
 erlang_attribute	c-src/etags.c	/^erlang_attribute (char *s)$/
@@ -4090,12 +2871,9 @@ erlang_func	c-src/etags.c	/^erlang_func (char *s, char *last)$/
 error	c-src/etags.c	/^static void error (const char *, ...) ATTRIBUTE_FO/
 error	c-src/etags.c	/^error (const char *format, ...)$/
 error	c-src/emacs/src/lisp.h	/^extern _Noreturn void error (const char *, ...) AT/
-error	cp-src/cfront.H	94
 error	cccp.y	/^error (msg)$/
 error	y-src/cccp.y	/^error (msg)$/
 error_signaled	c-src/etags.c	264
-estmt	cp-src/cfront.H	662
-estmt::estmt	cp-src/cfront.H	/^	estmt(TOK t, loc ll, Pexpr ee, Pstmt ss) : (t,ll,/
 etags	el-src/emacs/lisp/progmodes/etags.el	/^(defgroup etags nil "Tags tables."$/
 etags	html-src/software.html	/^Etags$/
 etags--xref-find-definitions	el-src/emacs/lisp/progmodes/etags.el	/^(defun etags--xref-find-definitions (pattern &opti/
@@ -4136,22 +2914,6 @@ expandmng_tree	prol-src/natded.prolog	/^expandmng_tree(tree(Rule,Syn:Sem,Trees),
 expandmng_trees	prol-src/natded.prolog	/^expandmng_trees([],[]).$/
 expandsyn	prol-src/natded.prolog	/^expandsyn(Syn,Syn):-$/
 explicitly-quoted-pending-delete-mode	el-src/TAGTEST.EL	/^(defalias (quote explicitly-quoted-pending-delete-/
-expr	cp-src/cfront.H	469
-expr::as_type	cp-src/cfront.H	499
-expr::cond	cp-src/cfront.H	497
-expr::e1	cp-src/cfront.H	485
-expr::e2	cp-src/cfront.H	490
-expr::fct_name	cp-src/cfront.H	496
-expr::i1	cp-src/cfront.H	487
-expr::il	cp-src/cfront.H	501
-expr::mem	cp-src/cfront.H	498
-expr::n_initializer	cp-src/cfront.H	491
-expr::n_table	cp-src/cfront.H	500
-expr::string	cp-src/cfront.H	486
-expr::string2	cp-src/cfront.H	492
-expr::syn_class	cp-src/cfront.H	482
-expr::tp	cp-src/cfront.H	481
-expr::tp2	cp-src/cfront.H	495
 expression_value	cccp.y	68
 expression_value	y-src/cccp.y	68
 extras	c-src/emacs/src/lisp.h	1603
@@ -4173,23 +2935,6 @@ fastmap	c-src/emacs/src/regex.h	355
 fastmap_accurate	c-src/emacs/src/regex.h	383
 fatal	c-src/etags.c	/^fatal (const char *s1, const char *s2)$/
 fatala	c.c	/^void fatala () __attribute__ ((noreturn));$/
-fct	cp-src/cfront.H	365
-fct::argtype	cp-src/cfront.H	372
-fct::b_init	cp-src/cfront.H	380
-fct::body	cp-src/cfront.H	376
-fct::declared	cp-src/cfront.H	/^	bit	declared() { return nargs_known; };$/
-fct::f_expr	cp-src/cfront.H	383
-fct::f_init	cp-src/cfront.H	377
-fct::f_inline	cp-src/cfront.H	370
-fct::f_result	cp-src/cfront.H	385
-fct::f_this	cp-src/cfront.H	374
-fct::f_virtual	cp-src/cfront.H	369
-fct::last_expanded	cp-src/cfront.H	384
-fct::memof	cp-src/cfront.H	375
-fct::nargs	cp-src/cfront.H	367
-fct::nargs_known	cp-src/cfront.H	368
-fct::returns	cp-src/cfront.H	371
-fct::s_returns	cp-src/cfront.H	373
 fdHandler	objc-src/Subprocess.m	/^fdHandler (int theFd, id self)$/
 fdHandler:	objc-src/Subprocess.m	/^- fdHandler:(int)theFd$/
 fdefunkey	c-src/etags.c	2409
@@ -4234,16 +2979,12 @@ fitchtreelist	prol-src/natded.prolog	/^fitchtreelist([]).$/
 fixup_locale	c-src/emacs/src/lisp.h	/^INLINE void fixup_locale (void) {}$/
 flag	c-src/getopt.h	83
 flag2str	pyt-src/server.py	/^def flag2str(value, string):$/
-flat_length	erl-src/lists.erl	/^flat_length(List) ->$/
-flatten	erl-src/lists.erl	/^flatten(List) ->$/
 flistseen	c-src/etags.c	2415
 fn	c-src/exit.c	/^    void EXFUN((*fn[1]), (NOARGS));$/
 fn	c-src/exit.strange_suffix	/^    void EXFUN((*fn[1]), (NOARGS));$/
 fnin	y-src/parse.y	67
 fnin	parse.y	67
 focus_set	pyt-src/server.py	/^    def focus_set(self):$/
-foldl	erl-src/lists.erl	/^foldl(F, As, Last, [Hd|Tail]) ->$/
-foldr	erl-src/lists.erl	/^foldr(F, As, [Hd|Tail], Last) ->$/
 follow_key	c-src/emacs/src/keyboard.c	/^follow_key (Lisp_Object keymap, Lisp_Object key)$/
 fonts	tex-src/texinfo.tex	/^\\obeyspaces \\obeylines \\ninett \\indexfonts \\rawbac/
 fonts\rm	tex-src/texinfo.tex	/^  \\indexfonts\\rm \\tolerance=9500 \\advance\\baseline/
@@ -4270,8 +3011,6 @@ force_auto_save_soon	c-src/emacs/src/keyboard.c	/^force_auto_save_soon (void)$/
 force_explicit_name	c-src/etags.c	265
 force_quit_count	c-src/emacs/src/keyboard.c	10387
 formatSize:inBuf:	objc-src/PackInsp.m	/^-(const char *)formatSize:(const char *)size inBuf/
-forstmt	cp-src/cfront.H	689
-forstmt::forstmt	cp-src/cfront.H	/^	forstmt(loc ll, Pstmt fss, Pexpr ee1, Pexpr ee2, /
 found	c-src/emacs/src/lisp.h	2344
 fracas	html-src/software.html	/^Fracas$/
 frag	c-src/emacs/src/gmalloc.c	152
@@ -4313,9 +3052,6 @@ gc_aset	c-src/emacs/src/lisp.h	/^gc_aset (Lisp_Object array, ptrdiff_t idx, Lisp
 gcmarkbit	c-src/emacs/src/lisp.h	656
 gcpro	c-src/emacs/src/lisp.h	3042
 gcpro	c-src/emacs/src/lisp.h	3132
-gen	cp-src/cfront.H	410
-gen::fct_list	cp-src/cfront.H	411
-gen::string	cp-src/cfront.H	412
 gen_help_event	c-src/emacs/src/keyboard.c	/^gen_help_event (Lisp_Object help, Lisp_Object fram/
 genalgorithm	html-src/algrthms.html	/^Generating the Data<\/font><\/i><\/b>$/
 generic_object	cp-src/clheir.hpp	13
@@ -4399,17 +3135,8 @@ ialpage	tex-src/texinfo.tex	/^  \\availdimen@=\\pageheight \\advance\\availdimen
 ialpage	tex-src/texinfo.tex	/^     \\dimen@=\\pageheight \\advance\\dimen@ by-\\ht\\pa/
 ialpage=	tex-src/texinfo.tex	/^  \\output={\\global\\setbox\\partialpage=$/
 idx	c-src/emacs/src/lisp.h	3150
-ifstmt	cp-src/cfront.H	672
-ifstmt::ifstmt	cp-src/cfront.H	/^	ifstmt(loc ll, Pexpr ee, Pstmt ss1, Pstmt ss2)$/
 ignore_case	c-src/etags.c	266
 ignore_mouse_drag_p	c-src/emacs/src/keyboard.c	1256
-iline	cp-src/cfront.H	780
-iline::arg	cp-src/cfront.H	785
-iline::fct_name	cp-src/cfront.H	781
-iline::i_next	cp-src/cfront.H	782
-iline::i_table	cp-src/cfront.H	783
-iline::local	cp-src/cfront.H	784
-iline::tp	cp-src/cfront.H	786
 ill=\relax	tex-src/texinfo.tex	/^\\let\\refill=\\relax$/
 immediate_quit	c-src/emacs/src/keyboard.c	174
 impatto	html-src/softwarelibero.html	/^Impatto pratico del software libero$/
@@ -4442,11 +3169,7 @@ input_available_clear_time	c-src/emacs/src/keyboard.c	324
 input_pending	c-src/emacs/src/keyboard.c	239
 input_polling_used	c-src/emacs/src/keyboard.c	/^input_polling_used (void)$/
 input_was_pending	c-src/emacs/src/keyboard.c	287
-insert	erl-src/lines.erl	/^insert(Lno, _, _) when Lno < 1 ->$/
 insert-abbrev-table-description	c-src/abbrev.c	/^DEFUN ("insert-abbrev-table-description", Finsert_/
-insert_after	erl-src/lines.erl	/^insert_after(Lno, _, _) when Lno < 1 ->$/
-insert_after_nth	erl-src/lines.erl	/^insert_after_nth(1, [H|T], X) ->$/
-insert_nth	erl-src/lines.erl	/^insert_nth(1, L, X) ->$/
 insertname	pas-src/common.pas	/^function insertname;(*($/
 instr	y-src/parse.y	80
 instr	parse.y	80
@@ -4500,8 +3223,6 @@ isoperator	prol-src/natded.prolog	/^isoperator(Char):-$/
 isoptab	prol-src/natded.prolog	/^isoptab('%').$/
 iswhite	c-src/etags.c	/^#define	iswhite(c)	(_wht[CHAR (c)]) \/* c is white /
 item_properties	c-src/emacs/src/keyboard.c	7568
-ival	cp-src/cfront.H	531
-ival::ival	cp-src/cfront.H	/^	ival(int ii) : (IVAL,0,0) {this=0; i1 = ii;}$/
 jmp	c-src/emacs/src/lisp.h	3044
 just_read_file	c-src/etags.c	/^just_read_file (FILE *inf)$/
 kbd_buffer	c-src/emacs/src/keyboard.c	291
@@ -4518,17 +3239,10 @@ kboard	c-src/emacs/src/keyboard.c	860
 kboard_stack	c-src/emacs/src/keyboard.c	858
 kboard_stack	c-src/emacs/src/keyboard.c	864
 key_and_value	c-src/emacs/src/lisp.h	1868
-keydelete	erl-src/lists.erl	/^keydelete(Key, N, [H|T]) when element(N, H) == Key/
-keymap	erl-src/lists.erl	/^keymap({Mod, Func}, Pos, List) ->$/
-keymember	erl-src/lists.erl	/^keymember(Key, N, [T|Ts]) when element(N, T) == Ke/
-keymerge	erl-src/lists.erl	/^keymerge(Index, X, Y) -> keymerge(Index, X, Y, [])/
 keyremap	c-src/emacs/src/keyboard.c	8742
 keyremap	c-src/emacs/src/keyboard.c	8754
 keyremap_step	c-src/emacs/src/keyboard.c	/^keyremap_step (Lisp_Object *keybuf, int bufsize, v/
-keyreplace	erl-src/lists.erl	/^keyreplace(Key,Pos,[],New) -> [];$/
 keys_of_keyboard	c-src/emacs/src/keyboard.c	/^keys_of_keyboard (void)$/
-keysearch	erl-src/lists.erl	/^keysearch(Key, N, [H|T]) when element(N, H) == Key/
-keysort	erl-src/lists.erl	/^keysort(Index, [X]) -> [X];$/
 keyval	prol-src/natded.prolog	/^keyval(key(Key,Val)) --> [Key,'='], valseq(Val).$/
 keyvalcgi	prol-src/natded.prolog	/^keyvalcgi(Key,Val):-$/
 keyvalscgi	prol-src/natded.prolog	/^keyvalscgi(KeyVals),$/
@@ -4554,7 +3268,6 @@ lang	c-src/etags.c	251
 lang	c-src/etags.c	259
 lang_names	c-src/etags.c	718
 language	c-src/etags.c	199
-last	erl-src/lists.erl	/^last([E]) ->$/
 last-tag	el-src/emacs/lisp/progmodes/etags.el	/^(defvar last-tag nil$/
 last_abbrev_point	c-src/abbrev.c	78
 last_auto_save	c-src/emacs/src/keyboard.c	214
@@ -4674,17 +3387,12 @@ loadContentsOf:inTable:	objc-src/PackInsp.m	/^-loadContentsOf:(const char *)type
 loadImage	objc-src/PackInsp.m	/^-loadImage$/
 loadKeyValuesFrom:inTable:	objc-src/PackInsp.m	/^-loadKeyValuesFrom:(const char *)type inTable:(Has/
 loadPORManager	php-src/lce_functions.php	/^  function &loadPORManager()$/
-loc	cp-src/cfront.H	67
-loc::file	cp-src/cfront.H	69
-loc::line	cp-src/cfront.H	70
 local_if_set	c-src/emacs/src/lisp.h	2338
 location	cp-src/clheir.hpp	33
 location::location	cp-src/clheir.hpp	/^    location() { }$/
 lookup	cccp.y	/^lookup (name, len, hash)$/
 lookup	y-src/cccp.y	/^lookup (name, len, hash)$/
 lowcase	c-src/etags.c	/^#define lowcase(c)	tolower (CHAR (c))$/
-lstmt	cp-src/cfront.H	680
-lstmt::lstmt	cp-src/cfront.H	/^	lstmt(TOK bb, loc ll, Pname nn, Pstmt ss) : (bb,l/
 lucid_event_type_list_p	c-src/emacs/src/keyboard.c	/^lucid_event_type_list_p (Lisp_Object object)$/
 mabort	c-src/emacs/src/gmalloc.c	/^mabort (enum mcheck_status status)$/
 mach_host_self	c-src/machsyscalls.h	/^SYSCALL (mach_host_self, -29,$/
@@ -4693,95 +3401,23 @@ mach_reply_port	c-src/machsyscalls.h	/^SYSCALL (mach_reply_port, -26,$/
 mach_task_self	c-src/machsyscalls.h	/^SYSCALL (mach_task_self, -28,$/
 mach_thread_self	c-src/machsyscalls.h	/^SYSCALL (mach_thread_self, -27,$/
 magic	c-src/emacs/src/gmalloc.c	1863
-main::alarm	perl-src/mirror.pl	/^sub alarm$/
-main::bsplit	perl-src/mirror.pl	/^sub bsplit$/
-main::checkout_regexps	perl-src/mirror.pl	/^sub checkout_regexps$/
-main::chown	perl-src/mirror.pl	/^sub chown$/
-main::clear_local	perl-src/mirror.pl	/^sub clear_local$/
-main::clear_remote	perl-src/mirror.pl	/^sub clear_remote$/
-main::command_line_override	perl-src/mirror.pl	/^sub command_line_override$/
-main::compare_dirs	perl-src/mirror.pl	/^sub compare_dirs$/
-main::compare_times	perl-src/mirror.pl	/^sub compare_times$/
-main::connect	perl-src/mirror.pl	/^sub connect$/
-main::create_assocs	perl-src/mirror.pl	/^sub create_assocs$/
-main::cwd	perl-src/mirror.pl	/^sub cwd$/
-main::delete_assocs	perl-src/mirror.pl	/^sub delete_assocs$/
-main::dir_exists	perl-src/mirror.pl	/^sub dir_exists$/
-main::dirpart	perl-src/mirror.pl	/^sub dirpart$/
-main::disconnect	perl-src/mirror.pl	/^sub disconnect$/
-main::do_all_transfers	perl-src/mirror.pl	/^sub do_all_transfers$/
-main::do_delete	perl-src/mirror.pl	/^sub do_delete$/
-main::do_deletes	perl-src/mirror.pl	/^sub do_deletes$/
-main::do_mirror	perl-src/mirror.pl	/^sub do_mirror$/
-main::expand_symlink	perl-src/mirror.pl	/^sub expand_symlink$/
 main::f1	perl-src/kai-test.pl	/^sub f1 {$/
 main::f2	perl-src/kai-test.pl	/^sub main::f2 {$/
 main::f7	perl-src/kai-test.pl	/^sub f7 {$/
 main::file_end	perl-src/htlmify-cystic	/^sub file_end ()$/
-main::filename_to_tempname	perl-src/mirror.pl	/^sub filename_to_tempname$/
-main::filesize	perl-src/mirror.pl	/^sub filesize$/
-main::find_prog	perl-src/mirror.pl	/^sub find_prog$/
 main::finish_appendices	perl-src/htlmify-cystic	/^sub finish_appendices ()$/
 main::finish_sections	perl-src/htlmify-cystic	/^sub finish_sections ()$/
 main::finish_subsections	perl-src/htlmify-cystic	/^sub finish_subsections ()$/
 main::finish_subsubsections	perl-src/htlmify-cystic	/^sub finish_subsubsections ()$/
-main::fix_package	perl-src/mirror.pl	/^sub fix_package$/
-main::flatten_path	perl-src/mirror.pl	/^sub flatten_path$/
-main::get_local_directory_details	perl-src/mirror.pl	/^sub get_local_directory_details$/
-main::get_passwd	perl-src/mirror.pl	/^sub get_passwd$/
-main::get_remote_directory_details	perl-src/mirror.pl	/^sub get_remote_directory_details$/
 main::getopt	perl-src/yagrip.pl	/^sub getopt {$/
-main::handler	perl-src/mirror.pl	/^sub handler$/
-main::interpret_config	perl-src/mirror.pl	/^sub interpret_config$/
-main::interpret_config_files	perl-src/mirror.pl	/^sub interpret_config_files$/
-main::istrue	perl-src/mirror.pl	/^sub istrue$/
-main::keep	perl-src/mirror.pl	/^sub keep$/
-main::log_upload	perl-src/mirror.pl	/^sub log_upload$/
-main::make_dir	perl-src/mirror.pl	/^sub make_dir$/
-main::make_dirs	perl-src/mirror.pl	/^sub make_dirs$/
-main::make_symlinks	perl-src/mirror.pl	/^sub make_symlinks$/
-main::map_name	perl-src/mirror.pl	/^sub map_name$/
-main::map_user_group	perl-src/mirror.pl	/^sub map_user_group$/
-main::mkdirs	perl-src/mirror.pl	/^sub mkdirs$/
-main::mksymlink	perl-src/mirror.pl	/^sub mksymlink$/
-main::msg	perl-src/mirror.pl	/^sub msg$/
-main::msg_version	perl-src/mirror.pl	/^sub msg_version$/
-main::myflock	perl-src/mirror.pl	/^sub myflock$/
-main::parse_line	perl-src/mirror.pl	/^sub parse_line$/
-main::parse_remote_details	perl-src/mirror.pl	/^sub parse_remote_details$/
-main::parse_remote_details_real	perl-src/mirror.pl	/^sub parse_remote_details_real$/
-main::parse_timeout	perl-src/mirror.pl	/^sub parse_timeout$/
-main::patch_ls_lR_file	perl-src/mirror.pl	/^sub patch_ls_lR_file$/
-main::pr_variables	perl-src/mirror.pl	/^sub pr_variables$/
-main::prod	perl-src/mirror.pl	/^sub prod$/
 main::read_toc	perl-src/htlmify-cystic	/^sub read_toc ()$/
-main::real_dir_from_path	perl-src/mirror.pl	/^sub real_dir_from_path$/
-main::save_delete	perl-src/mirror.pl	/^sub save_delete$/
-main::save_mkdir	perl-src/mirror.pl	/^sub save_mkdir$/
 main::section_href	perl-src/htlmify-cystic	/^sub section_href ($)$/
 main::section_name	perl-src/htlmify-cystic	/^sub section_name ($)$/
 main::section_url	perl-src/htlmify-cystic	/^sub section_url ()$/
 main::section_url_base	perl-src/htlmify-cystic	/^sub section_url_base ()$/
 main::section_url_name	perl-src/htlmify-cystic	/^sub section_url_name ()$/
-main::set_assoc_from_array	perl-src/mirror.pl	/^sub set_assoc_from_array$/
-main::set_attribs	perl-src/mirror.pl	/^sub set_attribs$/
-main::set_defaults	perl-src/mirror.pl	/^sub set_defaults$/
-main::set_timestamp	perl-src/mirror.pl	/^sub set_timestamp$/
-main::set_timestamps	perl-src/mirror.pl	/^sub set_timestamps$/
-main::set_variables	perl-src/mirror.pl	/^sub set_variables$/
-main::sys	perl-src/mirror.pl	/^sub sys$/
-main::t2str	perl-src/mirror.pl	/^sub t2str$/
-main::to_bytes	perl-src/mirror.pl	/^sub to_bytes$/
 main::toc_line	perl-src/htlmify-cystic	/^sub toc_line ($)$/
-main::transfer_file	perl-src/mirror.pl	/^sub transfer_file$/
-main::trap_signals	perl-src/mirror.pl	/^sub trap_signals$/
-main::unix2vms	perl-src/mirror.pl	/^sub unix2vms$/
-main::unlink_dbm	perl-src/mirror.pl	/^sub unlink_dbm$/
-main::upd_val	perl-src/mirror.pl	/^sub upd_val$/
 main::usage	perl-src/yagrip.pl	/^sub usage {$/
-main::utime	perl-src/mirror.pl	/^sub utime$/
-main::will_compress	perl-src/mirror.pl	/^sub will_compress$/
-main::will_split	perl-src/mirror.pl	/^sub will_split$/
 make-abbrev-table	c-src/abbrev.c	/^DEFUN ("make-abbrev-table", Fmake_abbrev_table, Sm/
 make_C_tag	c-src/etags.c	/^make_C_tag (bool isfun)$/
 make_coor	prol-src/natded.prolog	/^make_coor(s(_),Alpha,Sem1,Sem2,Alpha@Sem1@Sem2).$/
@@ -4816,7 +3452,6 @@ malloc_initialize_1	c-src/emacs/src/gmalloc.c	/^malloc_initialize_1 (void)$/
 mallochook	c-src/emacs/src/gmalloc.c	/^mallochook (size_t size)$/
 mao	c-src/h.h	101
 map	c-src/emacs/src/keyboard.c	8748
-map	erl-src/lists.erl	/^map(F, As, [Hd|Tail]) ->$/
 map_word	prol-src/natded.prolog	/^map_word([[_]|Ws],Exp):-$/
 mapping	html-src/algrthms.html	/^Mapping the Channel Symbols$/
 mapsyn	prol-src/natded.prolog	/^mapsyn(A\/B,AM\/BM):-$/
@@ -4826,7 +3461,6 @@ max	c.c	/^__attribute__ ((always_inline)) max (int a, int b)/
 max	c-src/emacs/src/lisp.h	58
 max	c-src/emacs/src/lisp.h	/^#define max(a, b) ((a) > (b) ? (a) : (b))$/
 max	cp-src/conway.cpp	/^#define max(x,y)  ((x > y) ? x : y)$/
-max	erl-src/lists.erl	/^max([H|T]) -> max(T, H).$/
 max_args	c-src/emacs/src/lisp.h	1686
 max_num_directions	cp-src/clheir.hpp	31
 max_num_generic_objects	cp-src/clheir.cpp	9
@@ -4836,7 +3470,6 @@ mcheck	c-src/emacs/src/gmalloc.c	/^mcheck (void (*func) (enum mcheck_status))$/
 mcheck_status	c-src/emacs/src/gmalloc.c	283
 mcheck_used	c-src/emacs/src/gmalloc.c	2012
 memalign	c-src/emacs/src/gmalloc.c	/^memalign (size_t alignment, size_t size)$/
-member	erl-src/lists.erl	/^member(X, [X|_]) ->$/
 member	prol-src/natded.prolog	/^member(X,[X|_]).$/
 memclear	c-src/emacs/src/lisp.h	/^memclear (void *p, ptrdiff_t nbytes)$/
 menu_bar_item	c-src/emacs/src/keyboard.c	/^menu_bar_item (Lisp_Object key, Lisp_Object item, /
@@ -4847,13 +3480,11 @@ menu_bar_one_keymap_changed_items	c-src/emacs/src/keyboard.c	7363
 menu_item_eval_property	c-src/emacs/src/keyboard.c	/^menu_item_eval_property (Lisp_Object sexpr)$/
 menu_item_eval_property_1	c-src/emacs/src/keyboard.c	/^menu_item_eval_property_1 (Lisp_Object arg)$/
 menu_separator_name_p	c-src/emacs/src/keyboard.c	/^menu_separator_name_p (const char *label)$/
-merge	erl-src/lists.erl	/^merge(X, Y) -> merge(X, Y, []).$/
 metasource	c-src/etags.c	198
 min	c-src/emacs/src/gmalloc.c	/^#define min(a, b) ((a) < (b) ? (a) : (b))$/
 min	c-src/emacs/src/lisp.h	57
 min	c-src/emacs/src/lisp.h	/^#define min(a, b) ((a) < (b) ? (a) : (b))$/
 min	cp-src/conway.cpp	/^#define min(x,y)  ((x > y) ? y : x)$/
-min	erl-src/lists.erl	/^min([H|T]) -> min(T, H).$/
 min_args	c-src/emacs/src/lisp.h	1686
 min_char	c-src/emacs/src/lisp.h	1621
 miti	html-src/softwarelibero.html	/^Sfatiamo alcuni miti$/
@@ -4888,7 +3519,6 @@ name	c-src/etags.c	2271
 name	c-src/emacs/src/keyboard.c	7241
 name	c-src/emacs/src/lisp.h	1808
 name	c-src/emacs/src/lisp.h	3144
-name	cp-src/cfront.H	557
 name	perl-src/htlmify-cystic	357
 name	tex-src/texinfo.tex	/^\\begingroup\\defname {#2}{#1}\\defunargs{#3}\\endgrou/
 name	tex-src/texinfo.tex	/^\\begingroup\\defname {#1}{Function}%$/
@@ -4912,36 +3542,9 @@ name	cccp.y	114
 name	y-src/cccp.y	43
 name	y-src/cccp.y	113
 name	y-src/cccp.y	113
-name::lex_level	cp-src/cfront.H	565
-name::n_addr_taken	cp-src/cfront.H	567
-name::n_assigned_to	cp-src/cfront.H	569
-name::n_evaluated	cp-src/cfront.H	563
-name::n_list	cp-src/cfront.H	575
-name::n_offset	cp-src/cfront.H	574
-name::n_oper	cp-src/cfront.H	558
-name::n_protect	cp-src/cfront.H	566
-name::n_qualifier	cp-src/cfront.H	578
-name::n_realscope	cp-src/cfront.H	579
-name::n_scope	cp-src/cfront.H	561
-name::n_stclass	cp-src/cfront.H	560
-name::n_sto	cp-src/cfront.H	559
-name::n_tbl_list	cp-src/cfront.H	576
-name::n_union	cp-src/cfront.H	562
-name::n_used	cp-src/cfront.H	568
-name::n_val	cp-src/cfront.H	571
-name::n_xref	cp-src/cfront.H	564
-name::take_addr	cp-src/cfront.H	/^	void	take_addr()	{ n_addr_taken++; };$/
-name::unhide	cp-src/cfront.H	/^	void	unhide()	{ n_key=0; n_list=0; };$/
-name::use	cp-src/cfront.H	/^	void	use()		{ n_used++; };$/
-name::where	cp-src/cfront.H	570
-name_list	cp-src/cfront.H	403
-name_list::f	cp-src/cfront.H	404
-name_list::l	cp-src/cfront.H	405
-name_list::name_list	cp-src/cfront.H	/^	name_list(Pname ff, Plist ll) { f=ff; l=ll; };$/
 named	c-src/etags.c	2505
 namestringequal	pas-src/common.pas	/^function namestringequal;(*(var Name1,Name2 : Name/
 nestlev	c-src/etags.c	2525
-new	erl-src/lines.erl	/^new() ->$/
 new	objc-src/PackInsp.m	/^+new$/
 new	perl-src/htlmify-cystic	163
 new_tag	perl-src/htlmify-cystic	18
@@ -4970,10 +3573,6 @@ next_weak	c-src/emacs/src/lisp.h	1875
 nextfree	c-src/emacs/src/lisp.h	3029
 nfree	c-src/emacs/src/gmalloc.c	150
 nl	c-src/etags.c	2521
-nlist	cp-src/cfront.H	708
-nlist::add	cp-src/cfront.H	/^	void	add(Pname n)	{ tail->n_list = n; tail = n; }/
-nlist::head	cp-src/cfront.H	709
-nlist::tail	cp-src/cfront.H	710
 no	tex-src/texinfo.tex	/^\\newcount \\appendixno  \\appendixno = `\\@$/
 no	tex-src/texinfo.tex	/^\\global\\advance \\appendixno by 1 \\message{Appendix/
 no	tex-src/texinfo.tex	/^\\ifnum\\secno=0 Appendix\\xreftie'char\\the\\appendixn/
@@ -4985,10 +3584,6 @@ no_lang_help	c-src/etags.c	707
 no_sub	c-src/emacs/src/regex.h	387
 nocase_tail	c-src/etags.c	/^nocase_tail (const char *cp)$/
 node	c-src/etags.c	225
-node	cp-src/cfront.H	165
-node::base	cp-src/cfront.H	166
-node::n_key	cp-src/cfront.H	167
-node::permanent	cp-src/cfront.H	168
 node_st	c-src/etags.c	214
 noderef	tex-src/texinfo.tex	/^\\appendixnoderef %$/
 noderef	tex-src/texinfo.tex	/^\\appendixnoderef %$/
@@ -5025,9 +3620,6 @@ notag4	c-src/torture.c	45
 notag4	c-src/dostorture.c	45
 notinname	c-src/etags.c	/^#define notinname(c)	(_nin[CHAR (c)]) \/* c is not /
 npending	c-src/emacs/src/keyboard.c	7244
-nth	erl-src/lines.erl	/^nth(L, _) when L < 1 ->$/
-nth	erl-src/lists.erl	/^nth(1, [H|T]) ->$/
-nthtail	erl-src/lists.erl	/^nthtail(1, [H|T]) ->$/
 ntool_bar_items	c-src/emacs/src/keyboard.c	7974
 numOfChannels	cp-src/c.C	1
 num_columns	cp-src/conway.cpp	16
@@ -5123,8 +3715,6 @@ pMu	c-src/emacs/src/lisp.h	151
 pMu	c-src/emacs/src/lisp.h	156
 p_next	c-src/etags.c	258
 pagesize	c-src/emacs/src/gmalloc.c	1703
-pair	cp-src/cfront.H	703
-pair::pair	cp-src/cfront.H	/^	pair(loc ll, Pstmt a, Pstmt b) : (PAIR,ll,a) { th/
 parent	c-src/emacs/src/keyboard.c	8745
 parent	c-src/emacs/src/lisp.h	1590
 parse	prol-src/natded.prolog	/^parse(Ws,Cat):-$/
@@ -5210,7 +3800,6 @@ pp_word	prol-src/natded.prolog	/^pp_word(W):-$/
 pp_word_list	prol-src/natded.prolog	/^pp_word_list([]).$/
 pp_word_list_rest	prol-src/natded.prolog	/^pp_word_list_rest([]).$/
 predicate	c-src/emacs/src/lisp.h	2307
-prefix	erl-src/lists.erl	/^prefix([X|PreTail], [X|Tail]) ->$/
 prev	c.c	175
 prev	c-src/emacs/src/gmalloc.c	165
 prev	c-src/emacs/src/gmalloc.c	189
@@ -5234,19 +3823,11 @@ prop	c-src/etags.c	209
 protect_malloc_state	c-src/emacs/src/gmalloc.c	/^protect_malloc_state (int protect_p)$/
 pthread_mutexattr_setprio_ceiling/f	ada-src/2ataspri.adb	/^   function pthread_mutexattr_setprio_ceiling$/
 pthread_mutexattr_setprotocol/f	ada-src/2ataspri.adb	/^   function pthread_mutexattr_setprotocol$/
-ptr	cp-src/cfront.H	435
-ptr::memof	cp-src/cfront.H	437
-ptr::ptr	cp-src/cfront.H	/^	ptr(TOK b, Ptype t, bit r = 0) { Nt++; base=b; ty/
-ptr::rdo	cp-src/cfront.H	438
 purpose	c-src/emacs/src/lisp.h	1594
 push_kboard	c-src/emacs/src/keyboard.c	/^push_kboard (struct kboard *k)$/
 pushclass_above	c-src/etags.c	/^pushclass_above (int bracelev, char *str, int len)/
 put_entries	c-src/etags.c	/^put_entries (register node *np)$/
 pvec_type	c-src/emacs/src/lisp.h	780
-pvtyp	cp-src/cfront.H	419
-pvtyp::typ	cp-src/cfront.H	420
-qexpr	cp-src/cfront.H	543
-qexpr::qexpr	cp-src/cfront.H	/^	qexpr(Pexpr ee, Pexpr ee1, Pexpr ee2) : (QUEST,ee/
 quantizing	html-src/algrthms.html	/^Quantizing the Received$/
 questo	../c/c.web	34
 quit_char	c-src/emacs/src/keyboard.c	192
@@ -5308,8 +3889,6 @@ recursive_edit_1	c-src/emacs/src/keyboard.c	/^recursive_edit_1 (void)$/
 recursive_edit_unwind	c-src/emacs/src/keyboard.c	/^recursive_edit_unwind (Lisp_Object buffer)$/
 reduce	prol-src/natded.prolog	/^reduce((X^M)@N,L):-     % beta reduction$/
 reduce_subterm	prol-src/natded.prolog	/^reduce_subterm(M,M2):-$/
-ref	cp-src/cfront.H	547
-ref::ref	cp-src/cfront.H	/^	ref(TOK ba, Pexpr a, Pname b) : (ba,a,0) { this=0/
 refreshPort	pyt-src/server.py	/^    def refreshPort(self):$/
 reg_errcode_t	c.c	279
 reg_errcode_t	c-src/emacs/src/regex.h	323
@@ -5339,8 +3918,6 @@ rehash_threshold	c-src/emacs/src/lisp.h	1839
 relative_filename	c-src/etags.c	/^relative_filename (char *file, char *dir)$/
 removeexp	prol-src/natded.prolog	/^removeexp(E,E,'NIL'):-!.$/
 reorder_modifiers	c-src/emacs/src/keyboard.c	/^reorder_modifiers (Lisp_Object symbol)$/
-replace	erl-src/lines.erl	/^replace(Lno, _, _) when Lno < 1 ->$/
-replace_nth	erl-src/lines.erl	/^replace_nth(1, [H|T], X) ->$/
 request	c.c	/^request request (a, b)$/
 requeued_events_pending_p	c-src/emacs/src/keyboard.c	/^requeued_events_pending_p (void)$/
 required_argument	c-src/getopt.h	90
@@ -5348,7 +3925,6 @@ reset-this-command-lengths	c-src/emacs/src/keyboard.c	/^DEFUN ("reset-this-comma
 restore_getcjmp	c-src/emacs/src/keyboard.c	/^restore_getcjmp (sys_jmp_buf temp)$/
 restore_kboard_configuration	c-src/emacs/src/keyboard.c	/^restore_kboard_configuration (int was_locked)$/
 return_to_command_loop	c-src/emacs/src/keyboard.c	135
-reverse	erl-src/lists.erl	/^reverse(X) ->$/
 reverse	prol-src/natded.prolog	/^reverse([],Ws,Ws).$/
 revert:	objc-src/PackInsp.m	/^-revert:sender$/
 right	c-src/etags.c	216
@@ -5403,7 +3979,6 @@ select_last	prol-src/natded.prolog	/^select_last([X],X,[]).$/
 send:	objc-src/Subprocess.m	/^- send:(const char *)string$/
 send:withNewline:	objc-src/Subprocess.m	/^- send:(const char *)string withNewline:(BOOL)want/
 separator_names	c-src/emacs/src/keyboard.c	7372
-seq	erl-src/lists.erl	/^seq(Min, Max) when integer(Min), integer(Max), Min/
 serializeToVars	php-src/lce_functions.php	/^      function serializeToVars($prefix)$/
 serializeToVars	php-src/lce_functions.php	/^      function serializeToVars($prefix)$/
 set-input-interrupt-mode	c-src/emacs/src/keyboard.c	/^DEFUN ("set-input-interrupt-mode", Fset_input_inte/
@@ -5469,23 +4044,14 @@ skeyseen	c-src/etags.c	2445
 skip_name	c-src/etags.c	/^skip_name (char *cp)$/
 skip_non_spaces	c-src/etags.c	/^skip_non_spaces (char *cp)$/
 skip_spaces	c-src/etags.c	/^skip_spaces (char *cp)$/
-slist	cp-src/cfront.H	718
-slist::add	cp-src/cfront.H	/^	void	add(Pstmt s)	{ tail->s_list = s; tail = s; }/
-slist::head	cp-src/cfront.H	719
-slist::slist	cp-src/cfront.H	/^		slist(Pstmt s)	{ Nl++; head = tail = s; };$/
-slist::tail	cp-src/cfront.H	720
 snarf-tag-function	el-src/emacs/lisp/progmodes/etags.el	/^(defvar snarf-tag-function nil$/
 snone	c-src/etags.c	2443
 some_mouse_moved	c-src/emacs/src/keyboard.c	/^some_mouse_moved (void)$/
-sort	erl-src/lists.erl	/^sort([X]) -> [X];$/
 space	tex-src/texinfo.tex	/^    {#2\\labelspace #1}\\dotfill\\doshortpageno{#3}}%/
 space	tex-src/texinfo.tex	/^  \\dosubsubsecentry{#2.#3.#4.#5\\labelspace#1}{#6}}/
 specbind_tag	c-src/emacs/src/lisp.h	2943
 specbinding	c-src/emacs/src/lisp.h	2955
 specialsymbol	prol-src/natded.prolog	/^specialsymbol(C1,C2,S):-$/
-split_and_keysort	erl-src/lists.erl	/^split_and_keysort([A,B|T], X, Y, Index) ->$/
-split_and_sort	erl-src/lists.erl	/^split_and_sort([A,B|T], X, Y) ->$/
-split_at	erl-src/lines.erl	/^split_at(Pos, L) ->$/
 splitexp	prol-src/natded.prolog	/^splitexp(E,E,('NIL','NIL')):-!.$/
 srclist	Makefile	/^srclist: Makefile$/
 ss3	c.c	255
@@ -5519,23 +4085,6 @@ start_up	prol-src/natded.prolog	/^start_up:-$/
 state_protected_p	c-src/emacs/src/gmalloc.c	400
 statetable	html-src/algrthms.html	/^Next$/
 step_everybody	cp-src/clheir.cpp	/^void step_everybody(void)$/
-stmt	cp-src/cfront.H	615
-stmt::case_list	cp-src/cfront.H	636
-stmt::case_value	cp-src/cfront.H	624
-stmt::d	cp-src/cfront.H	621
-stmt::e	cp-src/cfront.H	628
-stmt::e2	cp-src/cfront.H	622
-stmt::else_stmt	cp-src/cfront.H	635
-stmt::empty	cp-src/cfront.H	637
-stmt::for_init	cp-src/cfront.H	634
-stmt::has_default	cp-src/cfront.H	623
-stmt::memtbl	cp-src/cfront.H	632
-stmt::own_tbl	cp-src/cfront.H	629
-stmt::ret_tp	cp-src/cfront.H	625
-stmt::s	cp-src/cfront.H	617
-stmt::s2	cp-src/cfront.H	630
-stmt::s_list	cp-src/cfront.H	618
-stmt::where	cp-src/cfront.H	619
 stop_polling	c-src/emacs/src/keyboard.c	/^stop_polling (void)$/
 store_user_signal_events	c-src/emacs/src/keyboard.c	/^store_user_signal_events (void)$/
 strcaseeq	c-src/etags.c	/^#define strcaseeq(s,t)	(assert ((s)!=NULL && (t)!=/
@@ -5547,7 +4096,6 @@ strncaseeq	c-src/etags.c	/^#define strncaseeq(s,t,n) (assert ((s)!=NULL && (t/
 strneq	c-src/etags.c	/^#define strneq(s,t,n)	(assert ((s)!=NULL || (t)!=N/
 structdef	c-src/etags.c	2448
 stuff_buffered_input	c-src/emacs/src/keyboard.c	/^stuff_buffered_input (Lisp_Object stuffstring)$/
-sublist	erl-src/lists.erl	/^sublist(List, S, L) when L >= 0 ->$/
 subprocess:output:	objc-src/PackInsp.m	/^-subprocess:(Subprocess *)sender output:(char *)bu/
 subprocessDone:	objc-src/PackInsp.m	/^-subprocessDone:(Subprocess *)sender$/
 subsec=\relax	tex-src/texinfo.tex	/^\\let\\appendixsubsec=\\relax$/
@@ -5561,10 +4109,8 @@ subsubsection	perl-src/htlmify-cystic	27
 subsubsection=\relax	tex-src/texinfo.tex	/^\\let\\appendixsubsubsection=\\relax$/
 subtree	prol-src/natded.prolog	/^subtree(T,T).$/
 suffix	c-src/etags.c	186
-suffix	erl-src/lists.erl	/^suffix(Suffix, Suffix) ->$/
 suffixes	c-src/etags.c	195
 suggest_asking_for_help	c-src/etags.c	/^suggest_asking_for_help (void)$/
-sum	erl-src/lists.erl	/^sum(L)          -> sum(L, 0).$/
 suspend-emacs	c-src/emacs/src/keyboard.c	/^DEFUN ("suspend-emacs", Fsuspend_emacs, Ssuspend_e/
 sval	cccp.y	117
 sval	y-src/cccp.y	116
@@ -5596,19 +4142,6 @@ tab_count_words	c-src/tab.c	/^int			tab_count_words(char **tab)$/
 tab_delete_first	c-src/tab.c	/^int			tab_delete_first(char **tab)$/
 tab_fill	c-src/tab.c	/^char			**tab_fill(char *str, char delim)$/
 tab_free	c-src/tab.c	/^void			tab_free(char **tab)$/
-table	cp-src/cfront.H	175
-table::entries	cp-src/cfront.H	184
-table::free_slot	cp-src/cfront.H	183
-table::hashsize	cp-src/cfront.H	182
-table::hashtbl	cp-src/cfront.H	185
-table::init_stat	cp-src/cfront.H	177
-table::max	cp-src/cfront.H	/^	int	max()			{ return free_slot-1; };$/
-table::next	cp-src/cfront.H	189
-table::real_block	cp-src/cfront.H	186
-table::set_name	cp-src/cfront.H	/^	void	set_name(Pname n)	{ t_name = n; };$/
-table::set_scope	cp-src/cfront.H	/^	void	set_scope(Ptable t)	{ next = t; };$/
-table::size	cp-src/cfront.H	181
-table::t_name	cp-src/cfront.H	190
 tag-any-match-p	el-src/emacs/lisp/progmodes/etags.el	/^(defun tag-any-match-p (_tag)$/
 tag-exact-file-name-match-p	el-src/emacs/lisp/progmodes/etags.el	/^(defun tag-exact-file-name-match-p (tag)$/
 tag-exact-match-p	el-src/emacs/lisp/progmodes/etags.el	/^(defun tag-exact-match-p (tag)$/
@@ -5702,12 +4235,7 @@ test::f	cp-src/c.C	/^  int f(){return 0;};		\/\/ first comment$/
 test::ff	cp-src/c.C	/^  int ff(){return 1;};$/
 test::g	cp-src/c.C	/^  int g(){return 2;};$/
 test_undefined	c-src/emacs/src/keyboard.c	/^test_undefined (Lisp_Object binding)$/
-texpr	cp-src/cfront.H	527
-texpr::texpr	cp-src/cfront.H	/^	texpr(TOK bb, Ptype tt, Pexpr ee) : (bb,ee,0) {th/
-text_expr	cp-src/cfront.H	551
-text_expr::text_expr	cp-src/cfront.H	/^	text_expr(char* a, char* b) : (TEXT,0,0) { string/
 texttreelist	prol-src/natded.prolog	/^texttreelist([]).$/
-thing_to_list	erl-src/lists.erl	/^thing_to_list(X) when integer(X) -> integer_to_lis/
 this	c-src/a/b/b.c	1
 this-command-keys	c-src/emacs/src/keyboard.c	/^DEFUN ("this-command-keys", Fthis_command_keys, St/
 this-command-keys-vector	c-src/emacs/src/keyboard.c	/^DEFUN ("this-command-keys-vector", Fthis_command_k/
@@ -5770,12 +4298,6 @@ type	c-src/emacs/src/lisp.h	2296
 type	c-src/emacs/src/lisp.h	2304
 type	c-src/emacs/src/lisp.h	2364
 type	c-src/emacs/src/lisp.h	3025
-type	cp-src/cfront.H	236
-type::addrof	cp-src/cfront.H	/^inline Pptr type::addrof() { return new ptr(PTR,th/
-type::defined	cp-src/cfront.H	237
-type::integral	cp-src/cfront.H	/^	TOK	integral(TOK oo)	{ return kind(oo,I); };$/
-type::num_ptr	cp-src/cfront.H	/^	TOK	num_ptr(TOK oo)		{ return kind(oo,P); };$/
-type::numeric	cp-src/cfront.H	/^	TOK	numeric(TOK oo)		{ return kind(oo,N); };$/
 typefunargs	tex-src/texinfo.tex	/^\\deftypefunargs {#3}\\endgroup %$/
 typefunargs	tex-src/texinfo.tex	/^\\deftypefunargs {#4}\\endgroup %$/
 typemargin	tex-src/texinfo.tex	/^\\newskip\\deftypemargin \\deftypemargin=12pt$/
@@ -5836,10 +4358,6 @@ varargs	tex-src/texinfo.tex	/^\\defvarargs {#3}\\endgroup %$/
 varargs	tex-src/texinfo.tex	/^\\defvarargs {#2}\\endgroup %$/
 varargs	tex-src/texinfo.tex	/^\\defvarargs {#2}\\endgroup %$/
 vcopy	c-src/emacs/src/lisp.h	/^vcopy (Lisp_Object v, ptrdiff_t offset, Lisp_Objec/
-vec	cp-src/cfront.H	423
-vec::dim	cp-src/cfront.H	426
-vec::size	cp-src/cfront.H	427
-vec::vec	cp-src/cfront.H	/^	vec(Ptype t, Pexpr e) { Nt++; base=VEC; typ=t; di/
 vectorlike_header	c-src/emacs/src/lisp.h	1343
 verify-tags-table-function	el-src/emacs/lisp/progmodes/etags.el	/^(defvar verify-tags-table-function nil$/
 verify_ascii	c-src/emacs/src/lisp.h	/^# define verify_ascii(str) (str)$/
@@ -6008,6 +4526,5 @@ yyvsp	/usr/share/bison/bison.simple	746
 yyvsp	/usr/share/bison/bison.simple	919
 z	c.c	144
 z	c.c	164
-zf	erl-src/lists.erl	/^zf(F, As, [H|T]) ->$/
 |	tex-src/texinfo.tex	/^\\def|{{\\tt \\char '174}}$/
 ~	tex-src/texinfo.tex	/^\\def~{{\\tt \\char '176}}$/

@@ -193,6 +193,7 @@
 (load "language/cham")
 
 (load "indent")
+(load "emacs-lisp/cl-generic")
 (load "frame")
 (load "startup")
 (load "term/tty-colors")

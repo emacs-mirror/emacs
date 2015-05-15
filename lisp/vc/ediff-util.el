@@ -2318,6 +2318,7 @@ the number seen by the user."
 			      (narrow-to-region
 			       (ediff-get-diff-posn 'B 'beg n ctl-buf)
 			       (ediff-get-diff-posn 'B 'end n ctl-buf))
+			      (goto-char (point-min))
 			      (re-search-forward regex-B nil t))))
 	     (reg-C-match (if ediff-3way-comparison-job
 			      (ediff-with-current-buffer ediff-buffer-C
@@ -2325,6 +2326,7 @@ the number seen by the user."
 				  (narrow-to-region
 				   (ediff-get-diff-posn 'C 'beg n ctl-buf)
 				   (ediff-get-diff-posn 'C 'end n ctl-buf))
+                                  (goto-char (point-min))
 				  (re-search-forward regex-C nil t))))))
 	(not (eval (if ediff-3way-comparison-job
 		       (list ediff-focus-regexp-connective

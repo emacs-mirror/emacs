@@ -90,7 +90,7 @@
   ;; Change this function to use `cl-gensym' if you want the generated
   ;; code to be easier to read and debug.
   ;; (cl-gensym (apply #'format fmt args))
-  `(make-symbol ,fmt))
+  `(make-symbol (format ,fmt . ,args)))
 
 (defvar cps--dynamic-wrappers '(identity)
   "List of transformer functions to apply to atomic forms we

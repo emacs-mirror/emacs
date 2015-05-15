@@ -438,7 +438,16 @@ which case this method will be invoked when the argument is `eql' to VAL.
           ;; the generic function.
           current-load-list)
       ;; For aliases, cl--generic-name gives us the actual name.
-      (defalias (cl--generic-name generic) gfun))))
+      (funcall
+       (if purify-flag
+           ;; BEWARE!  Don't purify this function definition, since that leads
+           ;; to memory corruption if the hash-tables it holds are modified
+           ;; (the GC doesn't trace those pointers).
+           #'fset
+         ;; But do use `defalias' in the normal case, so that it interacts
+         ;; properly with nadvice, e.g. for tracing/debug-on-entry.
+         #'defalias)
+       (cl--generic-name generic) gfun))))
 
 (defmacro cl--generic-with-memoization (place &rest code)
   (declare (indent 1) (debug t))
@@ -696,6 +705,25 @@ methods.")
   (if (eq specializer t) (list cl--generic-t-generalizer)
     (error "Unknown specializer %S" specializer)))
 
+(defmacro cl--generic-prefill-dispatchers (arg-or-context specializer)
+  (unless (integerp arg-or-context)
+    (setq arg-or-context `(&context . ,arg-or-context)))
+  (unless (fboundp 'cl--generic-get-dispatcher)
+    (require 'cl-generic))
+  (let ((fun (cl--generic-get-dispatcher
+              `(,arg-or-context ,@(cl-generic-generalizers specializer)
+                                ,cl--generic-t-generalizer))))
+    ;; Recompute dispatch at run-time, since the generalizers may be slightly
+    ;; different (e.g. byte-compiled rather than interpreted).
+    ;; FIXME: There is a risk that the run-time generalizer is not equivalent
+    ;; to the compile-time one, in which case `fun' may not be correct
+    ;; any more!
+    `(let ((dispatch `(,',arg-or-context
+                       ,@(cl-generic-generalizers ',specializer)
+                       ,cl--generic-t-generalizer)))
+       ;; (message "Prefilling for %S with \n%S" dispatch ',fun)
+       (puthash dispatch ',fun cl--generic-dispatchers))))
+
 (cl-defmethod cl-generic-combine-methods (generic methods)
   "Standard support for :after, :before, :around, and `:extra NAME' qualifiers."
   (cl--generic-standard-method-combination generic methods))
@@ -869,17 +897,6 @@ Can only be used from within the lexical body of a primary or around method."
    80 (lambda (name) `(gethash (car-safe ,name) cl--generic-head-used))
    (lambda (tag) (if (eq (car-safe tag) 'head) (list tag)))))
 
-;; Pre-fill the cl--generic-dispatchers table.
-;; We have two copies of `(0 ...)' but we can't share them via `let' because
-;; they're not used at the same time (one is compile-time, one is run-time).
-(puthash `(0 ,cl--generic-head-generalizer ,cl--generic-t-generalizer)
-         (eval-when-compile
-           (unless (fboundp 'cl--generic-get-dispatcher)
-             (require 'cl-generic))
-           (cl--generic-get-dispatcher
-            `(0 ,cl--generic-head-generalizer ,cl--generic-t-generalizer)))
-         cl--generic-dispatchers)
-
 (cl-defmethod cl-generic-generalizers :extra "head" (specializer)
   "Support for the `(head VAL)' specializers."
   ;; We have to implement `head' here using the :extra qualifier,
@@ -889,6 +906,8 @@ Can only be used from within the lexical body of a primary or around method."
     (cl--generic-with-memoization
         (gethash (cadr specializer) cl--generic-head-used) specializer)
     (list cl--generic-head-generalizer)))
+
+(cl--generic-prefill-dispatchers 0 (head eql))
 
 ;;; Support for (eql <val>) specializers.
 
@@ -903,6 +922,9 @@ Can only be used from within the lexical body of a primary or around method."
   "Support for the `(eql VAL)' specializers."
   (puthash (cadr specializer) specializer cl--generic-eql-used)
   (list cl--generic-eql-generalizer))
+
+(cl--generic-prefill-dispatchers 0 (eql nil))
+(cl--generic-prefill-dispatchers window-system (eql nil))
 
 ;;; Support for cl-defstructs specializers.
 
@@ -960,6 +982,8 @@ Can only be used from within the lexical body of a primary or around method."
             (list cl--generic-struct-generalizer))))
    (cl-call-next-method)))
 
+(cl--generic-prefill-dispatchers 0 cl--generic-generalizer)
+
 ;;; Dispatch on "system types".
 
 (defconst cl--generic-typeof-types
@@ -997,6 +1021,8 @@ Can only be used from within the lexical body of a primary or around method."
               (message "`%S' also matches CL structs and EIEIO classes" type))
           (list cl--generic-typeof-generalizer)))
    (cl-call-next-method)))
+
+(cl--generic-prefill-dispatchers 0 integer)
 
 ;; Local variables:
 ;; generated-autoload-file: "cl-loaddefs.el"

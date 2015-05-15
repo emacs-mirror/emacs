@@ -554,7 +554,8 @@ and comments.
 ** VC and related modes
 
 *** Basic push support, via `vc-push', bound to `C-x v P'.
-Implemented for Bzr, Git, Hg.
+Implemented for Bzr, Git, Hg.  As part of this change, the pre-existing
+(undocumented) command vc-hg-push now behaves slightly differently.
 
 *** The new command vc-region-history shows the log+diff of the active region.
 

@@ -442,7 +442,7 @@ If no element is found, return nil."
 (unless (fboundp 'elisp--font-lock-flush-elisp-buffers)
   ;; In Emacs≥25, (via elisp--font-lock-flush-elisp-buffers and a few others)
   ;; we automatically highlight macros.
-  (add-to-list 'emacs-lisp-mode-hook #'seq--activate-font-lock-keywords))
+  (add-hook 'emacs-lisp-mode-hook #'seq--activate-font-lock-keywords))
 
 (provide 'seq)
 ;;; seq.el ends here
