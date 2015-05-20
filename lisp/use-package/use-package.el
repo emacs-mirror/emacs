@@ -181,16 +181,16 @@ ARGS is a list of forms, so `((foo))' if only `foo' is being called."
       (when body
         `((when ,(macroexp-progn
                   (use-package-expand name-string (format "pre-%s hook" keyword)
-                    `(run-hook-with-args-until-failure
-                      ',(intern (concat "use-package--" name-string
-                                        "--pre-" keyword-name "-hook")))))
+                    `((run-hook-with-args-until-failure
+                       ',(intern (concat "use-package--" name-string
+                                         "--pre-" keyword-name "-hook"))))))
             ,(macroexp-progn
               (use-package-expand name-string (format "%s" keyword) body))
             ,(macroexp-progn
               (use-package-expand name-string (format "post-%s hook" keyword)
-                `(run-hooks
-                  ',(intern (concat "use-package--" name-string
-                                    "--post-" keyword-name "-hook")))))))))))
+                `((run-hooks
+                   ',(intern (concat "use-package--" name-string
+                                     "--post-" keyword-name "-hook"))))))))))))
 
 (defun use-package--with-elapsed-timer (text body)
   "BODY is a list of forms, so `((foo))' if only `foo' is being called."
