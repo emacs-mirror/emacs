@@ -106,5 +106,7 @@ END {
   print "	      (setcar x (cdr x)) (setcdr x tmp)))";
   print "	map)";
   print "  (define-translation-table 'eucjp-ms-encode map))";
+  print "";
+  print "(provide 'eucjp-ms)";
 }
 

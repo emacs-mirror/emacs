@@ -37,7 +37,7 @@
 ;; the diary using bbdb-anniv.el.
 ;;
 ;; Put the following in /somewhere/at/home/diary.org and make sure
-;; that this file is in `org-agenda-files`
+;; that this file is in `org-agenda-files'.
 ;;
 ;; %%(org-bbdb-anniversaries)
 ;;

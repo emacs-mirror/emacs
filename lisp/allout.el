@@ -322,7 +322,7 @@ With value nil, inhibit any automatic allout-mode activation."
   "Default allout outline layout specification.
 
 This setting specifies the outline exposure to use when
-`allout-layout' has the local value `t'.  This docstring describes the
+`allout-layout' has the local value t.  This docstring describes the
 layout specifications.
 
 A list value specifies a default layout for the current buffer,
@@ -933,7 +933,7 @@ followed by the equivalent of `(allout-expose-topic 0 : -1 -1 0)'.
 \(This is the layout used for the allout.el source file.)
 
 `allout-default-layout' describes the specification format.
-`allout-layout' can additionally have the value `t', in which
+`allout-layout' can additionally have the value t, in which
 case the value of `allout-default-layout' is used.")
 (make-variable-buffer-local 'allout-layout)
 ;;;###autoload

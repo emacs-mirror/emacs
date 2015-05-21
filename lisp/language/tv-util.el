@@ -34,7 +34,7 @@
 		    (combining-vowel . "ꪴꪰꪲꪳꪷꪸꪾ")
 		    (combining-tone . "꪿꫁")
 		    (misc . "-"))))
-    ;; Set all TaiViet characters to `t'.
+    ;; Set all TaiViet characters to t.
     (set-char-table-range table (cons #xaa80 #xaac2) t)
     (set-char-table-range table (cons #xaadb #xaadf) t)
     ;; Overwrite it for special characters.

@@ -85,7 +85,7 @@
 ;; temporarily.  This shall be preferred over creation of a persistent
 ;; collection, when the information shall not live longer than Emacs.
 ;; The session collection can be addressed either by the string
-;; "session", or by `nil', whenever a collection parameter is needed.
+;; "session", or by nil, whenever a collection parameter is needed.
 
 ;; As already said, a collection is a group of secret items.  A secret
 ;; item has a label, the "secret" (which is a string), and a set of
@@ -418,7 +418,7 @@ returned, and it will be stored in `secrets-session-path'."
 (defun secrets-prompt-handler (&rest args)
   "Handler for signals emitted by `secrets-interface-prompt'."
   ;; An empty object path is always identified as `secrets-empty-path'
-  ;; or `nil'.  Either we set it explicitly, or it is returned by the
+  ;; or nil.  Either we set it explicitly, or it is returned by the
   ;; "Completed" signal.
   (if (car args) ;; dismissed
       (setq secrets-prompt-signal (list secrets-empty-path))

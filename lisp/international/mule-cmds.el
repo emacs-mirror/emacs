@@ -2708,6 +2708,14 @@ See also `locale-charset-language-names', `locale-language-names',
 	(set-terminal-coding-system 'utf-8)
 	(set-keyboard-coding-system 'utf-8)))
 
+    ;; If curved quotes don't work, display straight ASCII approximations.
+    (unless frame
+      (dolist (char-repl '((?‘ . [?\']) (?’ . [?\']) (?“ . [?\"]) (?” . [?\"])))
+        (when (not (char-displayable-p (car char-repl)))
+          (or standard-display-table
+              (setq standard-display-table (make-display-table)))
+          (aset standard-display-table (car char-repl) (cdr char-repl)))))
+
     ;; Default to A4 paper if we're not in a C, POSIX or US locale.
     ;; (See comments in Flocale_info.)
     (unless frame

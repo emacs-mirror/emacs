@@ -193,7 +193,7 @@
 ;;
 ;;    "^$*$ *"
 ;;
-;; 9) Set the variable ange-ftp-gateway-program-interactive to 't' to let
+;; 9) Set the variable ange-ftp-gateway-program-interactive to t to let
 ;;    ange-ftp know that it has to "hand-hold" the login to the gateway
 ;;    machine.
 ;;

@@ -165,7 +165,7 @@ buffers to allow certain parts of the text to be writable.
 ** A new function `directory-files-recursively' returns all matching
 files (recursively) under a directory.
 
-** The new `directory-name-p' can be used to check whether a file
+** The new function `directory-name-p' can be used to check whether a file
 name (as returned from, for instance, `file-name-all-completions' is
 a directory file name.  It returns non-nil if the last character in
 the name is a forward slash.
@@ -204,6 +204,10 @@ font, and (iii) the specified window.
 ** New variable `inhibit-message', when bound to non-nil, inhibits
    `message' and related functions from displaying messages the Echo
    Area.  The output is still logged to the *Messages* buffer.
+
+** It is now safe for a mode that derives `tabulated-list-mode' to not
+call `tabulated-list-init-header', in which case it will have no
+header.
 
 
 * Editing Changes in Emacs 25.1
@@ -581,8 +585,8 @@ nil to disable this.
 fitting for use in money calculations; factorial works with
 non-integer inputs.
 
-** HideIfDef mode now support full C/C++ expressions, argumented macro expansions
-, interactive macro evaluation and automatic scanning of #defined symbols.
+** HideIfDef mode now support full C/C++ expressions, argumented macro expansions,
+interactive macro evaluation and automatic scanning of #defined symbols.
 
 *** New custom variable `hide-ifdef-header-regexp' to define C/C++ header file
 name patterns. Default case-insensitive .h, .hh, .hpp and .hxx.
@@ -671,6 +675,20 @@ command line's password prompt.
 *** The new built-in command `clear' can scroll window contents out of sight.
 If provided with an optional non-nil argument, the scrollback contents will be cleared.
 
+*** New buffer syntax '#<buffer-name>', which is equivalent to
+'#<buffer buffer-name>'.  This shorthand makes interacting with
+buffers from eshell more convenient.  Custom variable
+`eshell-buffer-shorthand', which has been broken for a while, has been
+removed.
+
+*** By default, eshell "visual" program buffers (created by
+`eshell-visual-commands' and similar custom vars) are no longer killed
+when their processes die.  This fixes issues with short-lived commands
+and makes visual programs more useful in general.  For example, if
+"git log" is a visual command, it will always show the visual command
+buffer, even if the "git log" process dies.  For the old behavior,
+make the new option `eshell-destroy-buffer-when-process-dies' non-nil.
+
 ** Browse-url
 
 *** Support for the Conkeror web browser.
@@ -716,6 +734,10 @@ a typographically-correct documents.
 
 * Incompatible Lisp Changes in Emacs 25.1
 
+** The optional `predicate' argument of `lisp-complete-symbol' no longer
+has any effect.  (This change was made in Emacs 24.4 but was not
+advertised at the time.)
+
 ** `indirect-function' does not signal `void-function' any more.
 This is mostly a bug-fix, since this change was missed back in 24.4 when
 symbol-function was changed not to signal `void-function' any more.
@@ -733,7 +755,7 @@ If you want the old behavior of calling the function in the buffer
 from which the minibuffer was entered, call it with the new argument
 `switch-buffer'.
 
-** window-configurations no longer record the buffers's marks.
+** window-configurations no longer record the buffers' marks.
 
 ** inhibit-modification-hooks now also inhibits lock-file checks, as well as
 active region handling.
@@ -937,6 +959,11 @@ fullwidth frames, the behavior may depend on the toolkit used.
 ** New function `window-preserve-size' allows to preserve the size of
 windows without "fixing" it.  It's supported by `fit-window-to-buffer',
 `temp-buffer-resize-mode' and `display-buffer'.
+
++++
+** New option `switch-to-buffer-in-dedicated-window' allows to customize
+how `switch-to-buffer' proceeds interactively when the selected window
+is strongly dedicated to its buffer.
 
 ** Tearoff menus and detachable toolbars for Gtk+ has been removed.
 Those features have been deprecated in Gtk+ for a long time.

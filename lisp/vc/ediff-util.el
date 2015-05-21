@@ -3988,7 +3988,7 @@ and mail it to the address above.
 Please read this first:
 ----------------------
 
-Some ``bugs'' may actually be no bugs at all.  For instance, if you are
+Some \"bugs\" may actually be no bugs at all.  For instance, if you are
 reporting that certain difference regions are not matched as you think they
 should, this is most likely due to the way Unix diff program decides what
 constitutes a difference region.  Ediff is an Emacs interface to diff, and

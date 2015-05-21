@@ -35,8 +35,9 @@
 ;; Verifying Cancel-Lock is mainly a function of news servers, however,
 ;; you can verify your own article using the command `canlock-verify' in
 ;; the (raw) article buffer.  You will be prompted for the password for
-;; each time if the option `canlock-password' or `canlock-password-for-
-;; verify' is nil.  Note that setting these options is a bit unsafe.
+;; each time if the option `canlock-password' or
+;; `canlock-password-for-verify' is nil.  Note that setting these
+;; options is a bit unsafe.
 
 ;;; Code:
 

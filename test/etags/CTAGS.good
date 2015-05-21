@@ -47,7 +47,6 @@ $user_comment_lc	php-src/lce_functions.php	115
 (a-forth-constant	forth-src/test-forth.fth	/^constant (a-forth-constant$/
 (another-forth-word	forth-src/test-forth.fth	/^: (another-forth-word) ( -- )$/
 +	tex-src/texinfo.tex	/^\\def+{{\\tt \\char 43}}$/
-.PRECIOUS	Makefile	/^.PRECIOUS: ETAGS.good CTAGS.good$/
 /.notdef	ps-src/rfc1245.ps	/^\/.notdef \/.notdef \/.notdef \/.notdef \/.notdef \/.not/
 /.notdef	ps-src/rfc1245.ps	/^\/.notdef \/.notdef \/.notdef \/.notdef \/.notdef \/.not/
 /.notdef	ps-src/rfc1245.ps	/^\/.notdef \/.notdef \/.notdef \/.notdef \/.notdef \/.not/
@@ -244,7 +243,6 @@ A::operator+	cp-src/c.C	/^  A operator+(A& a) {};$/
 A::rosso	cp-src/c.C	40
 A::verde	cp-src/c.C	40
 A::~A	cp-src/c.C	/^A::~A() {}$/
-ADASRC	Makefile	/^ADASRC=$(addprefix .\/ada-src\/,etags-test-for.ada 2/
 ADDRESS	c-src/emacs/src/gmalloc.c	/^#define ADDRESS(B)	((void *) (((B) - 1) * BLOCKSIZ/
 ALIGNOF_STRUCT_LISP_VECTOR	c-src/emacs/src/lisp.h	1378
 ALLOCATED_BEFORE_DUMPING	c-src/emacs/src/gmalloc.c	/^#define ALLOCATED_BEFORE_DUMPING(P) \\$/
@@ -254,7 +252,6 @@ AND	y-src/cccp.c	11
 ANSIC	c-src/h.h	84
 ANSIC	c-src/h.h	85
 AREF	c-src/emacs/src/lisp.h	/^AREF (Lisp_Object array, ptrdiff_t idx)$/
-ARGS	Makefile	/^ARGS=- < srclist$/
 ARITH_EQUAL	c-src/emacs/src/lisp.h	3498
 ARITH_GRTR	c-src/emacs/src/lisp.h	3501
 ARITH_GRTR_OR_EQUAL	c-src/emacs/src/lisp.h	3503
@@ -267,7 +264,6 @@ ARRAY_MARK_FLAG	c-src/emacs/src/lisp.h	768
 ASCII_CHAR_P	c-src/emacs/src/lisp.h	/^#define ASCII_CHAR_P(c) UNSIGNED_CMP (c, <, 0x80)$/
 ASET	c-src/emacs/src/lisp.h	/^ASET (Lisp_Object array, ptrdiff_t idx, Lisp_Objec/
 ASIZE	c-src/emacs/src/lisp.h	/^ASIZE (Lisp_Object array)$/
-ASRC	Makefile	/^ASRC=$(addprefix .\/a-src\/,empty.zz empty.zz.gz)$/
 AST_Array::AST_Array	cp-src/c.C	/^AST_Array::AST_Array(UTL_ScopedName *n, unsigned l/
 AST_ConcreteType::AST_ConcreteType	cp-src/c.C	/^AST_ConcreteType::AST_ConcreteType(AST_Decl::NodeT/
 AST_Root	cp-src/c.C	92
@@ -465,13 +461,9 @@ CONSTYPE_PURE	c-src/emacs/src/lisp.h	3739
 CONS_TO_INTEGER	c-src/emacs/src/lisp.h	/^#define CONS_TO_INTEGER(cons, type, var)				\\$/
 CONVERT_CHARSTRING_TO_VALUE	pas-src/common.pas	/^procedure CONVERT_CHARSTRING_TO_VALUE;(*($/
 CPPFLAGS	make-src/Makefile	49
-CPSRC	Makefile	/^CPSRC=$(addprefix .\/cp-src\/,c.C burton.cpp burton./
-CSRC	Makefile	/^CSRC=$(addprefix .\/c-src\/,abbrev.c .\/\/c.c torture./
-CTAGS	Makefile	/^CTAGS: FRC ${infiles}$/
 CTAGS	c-src/etags.c	146
 CTAGS	c-src/etags.c	147
 CTAGS	c-src/etags.c	149
-CTAGS_PROG	Makefile	/^CTAGS_PROG=..\/..\/lib-src\/ctags$/
 C_AUTO	c-src/etags.c	2198
 C_EXT	c-src/etags.c	2193
 C_JAVA	c-src/etags.c	2197
@@ -580,7 +572,6 @@ Debug	cp-src/functions.cpp	/^void Debug ( int lineno, int level, char* func , c/
 DisposeANameList	pas-src/common.pas	/^procedure DisposeANameList( $/
 DisposeNameList	pas-src/common.pas	/^procedure DisposeNameList;$/
 ELEM_I	c-src/h.h	3
-ELSRC	Makefile	/^ELSRC=$(addprefix .\/el-src\/,TAGTEST.EL emacs\/lisp\//
 EMACS_INT	c-src/emacs/src/lisp.h	91
 EMACS_INT	c-src/emacs/src/lisp.h	96
 EMACS_INT	c-src/emacs/src/lisp.h	103
@@ -610,12 +601,9 @@ ENUM_BF	c-src/emacs/src/lisp.h	/^      ENUM_BF (specbind_tag) kind : CHAR_BIT;$/
 ENUM_BF	c-src/emacs/src/lisp.h	/^      ENUM_BF (specbind_tag) kind : CHAR_BIT;$/
 EQ	c-src/emacs/src/lisp.h	/^# define EQ(x, y) lisp_h_EQ (x, y)$/
 EQUAL	y-src/cccp.c	12
-ERLSRC	Makefile	/^ERLSRC=$(addprefix .\/erl-src\/,gs_dialog.erl)$/
 ERROR	y-src/parse.y	303
 ERROR	parse.y	303
 ERROR	y-src/cccp.c	9
-ETAGS	Makefile	/^ETAGS: FRC ${infiles}$/
-ETAGS_PROG	Makefile	/^ETAGS_PROG=..\/..\/lib-src\/etags$/
 EXFUN	c-src/emacs/src/lisp.h	/^#define EXFUN(fnname, maxargs) \\$/
 EXTERNALLY_VISIBLE	c-src/emacs/src/keyboard.c	3497
 EXTERNALLY_VISIBLE	c-src/emacs/src/keyboard.c	4372
@@ -638,13 +626,10 @@ FIXNUM_OVERFLOW_P	c-src/emacs/src/lisp.h	/^#define FIXNUM_OVERFLOW_P(i) \\$/
 FIXNUM_OVERFLOW_P	c-src/emacs/src/lisp.h	/^LISP_MACRO_DEFUN (EQ, bool, (Lisp_Object x, Lisp_O/
 FLOATP	c-src/emacs/src/lisp.h	/^# define FLOATP(x) lisp_h_FLOATP (x)$/
 FLOAT_TO_STRING_BUFSIZE	c-src/emacs/src/lisp.h	3927
-FORTHSRC	Makefile	/^FORTHSRC=$(addprefix .\/forth-src\/,test-forth.fth)$/
 FOR_EACH_ALIST_VALUE	c-src/emacs/src/lisp.h	/^#define FOR_EACH_ALIST_VALUE(head_var, list_var, v/
 FOR_EACH_TAIL	c-src/emacs/src/lisp.h	/^#define FOR_EACH_TAIL(hare, list, tortoise, n)	\\$/
 FRAMEP	c-src/emacs/src/lisp.h	/^FRAMEP (Lisp_Object a)$/
-FRC	Makefile	/^FRC:;$/
 FREEFLOOD	c-src/emacs/src/gmalloc.c	1858
-FSRC	Makefile	/^FSRC=$(addprefix .\/f-src\/,entry.for entry.strange_/
 FUN0	y-src/parse.y	/^yylex FUN0()$/
 FUN0	parse.y	/^yylex FUN0()$/
 FUN1	y-src/parse.y	/^yyerror FUN1(char *, s)$/
@@ -735,7 +720,6 @@ HASH_TABLE_SIZE	c-src/emacs/src/lisp.h	/^HASH_TABLE_SIZE (struct Lisp_Hash_Table
 HASH_VALUE	c-src/emacs/src/lisp.h	/^HASH_VALUE (struct Lisp_Hash_Table *h, ptrdiff_t i/
 HAVE_NTGUI	c-src/etags.c	116
 HEAP	c-src/emacs/src/gmalloc.c	131
-HTMLSRC	Makefile	/^HTMLSRC=$(addprefix .\/html-src\/,softwarelibero.htm/
 HTML_help	c-src/etags.c	584
 HTML_labels	c-src/etags.c	/^HTML_labels (FILE *inf)$/
 HTML_suffixes	c-src/etags.c	582
@@ -851,7 +835,6 @@ LTGT	cp-src/MDiagArray2.h	35
 LTGT	cp-src/MDiagArray2.h	39
 LTGT	cp-src/MDiagArray2.h	42
 LTGT	cp-src/MDiagArray2.h	144
-LUASRC	Makefile	/^LUASRC=$(addprefix .\/lua-src\/,allegro.lua)$/
 L_CELL	y-src/parse.c	10
 L_CONST	y-src/parse.c	13
 L_FN0	y-src/parse.c	14
@@ -938,7 +921,6 @@ Lua_suffixes	c-src/etags.c	598
 MAGICBYTE	c-src/emacs/src/gmalloc.c	1856
 MAGICFREE	c-src/emacs/src/gmalloc.c	1855
 MAGICWORD	c-src/emacs/src/gmalloc.c	1854
-MAKESRC	Makefile	/^MAKESRC=$(addprefix .\/make-src\/,Makefile)$/
 MALLOCFLOOD	c-src/emacs/src/gmalloc.c	1857
 MANY	c-src/emacs/src/lisp.h	2833
 MARKERP	c-src/emacs/src/lisp.h	/^# define MARKERP(x) lisp_h_MARKERP (x)$/
@@ -1016,7 +998,6 @@ NILP	c-src/emacs/src/lisp.h	/^# define NILP(x) lisp_h_NILP (x)$/
 NIL_IS_ZERO	c-src/emacs/src/lisp.h	1515
 NONPOINTER_BITS	c-src/emacs/src/lisp.h	78
 NONPOINTER_BITS	c-src/emacs/src/lisp.h	80
-NONSRCS	Makefile	/^NONSRCS=.\/f-src\/entry.strange .\/erl-src\/lists.erl /
 NONSRCS	make-src/Makefile	35
 NOTEQUAL	y-src/cccp.c	13
 NULL	cccp.y	51
@@ -1033,20 +1014,14 @@ NewLayerSet	lua-src/allegro.lua	/^function NewLayerSet (name)$/
 NewNameString	pas-src/common.pas	/^procedure NewNameString; (* (var NSP: NameStringPo/
 NmStrToErrStr	pas-src/common.pas	/^function NmStrToErrStr;(*($/
 NmStrToInteger	pas-src/common.pas	/^function NmStrToInteger; (* (Str : NameString) : i/
-OBJCPPSRC	Makefile	/^OBJCPPSRC=$(addprefix .\/objcpp-src\/,SimpleCalc.H S/
-OBJCSRC	Makefile	/^OBJCSRC=$(addprefix .\/objc-src\/,Subprocess.h Subpr/
 OPENBUTTON	objc-src/PackInsp.m	47
-OPTIONS	Makefile	/^OPTIONS=--members --declarations --regex=@regexfil/
 OR	y-src/cccp.c	10
 OVERLAYP	c-src/emacs/src/lisp.h	/^OVERLAYP (Lisp_Object x)$/
 Objc_help	c-src/etags.c	613
 Objc_suffixes	c-src/etags.c	609
 OperatorFun	c-src/h.h	88
 Overview	tex-src/gzip.texi	/^@node Overview, Sample, Copying, Top$/
-PASSRC	Makefile	/^PASSRC=$(addprefix .\/pas-src\/,common.pas)$/
 PDT	c-src/h.h	/^  Date 04 May 87 235311 PDT (Mon)$/
-PERLSRC	Makefile	/^PERLSRC=$(addprefix .\/perl-src\/,htlmify-cystic yag/
-PHPSRC	Makefile	/^PHPSRC=$(addprefix .\/php-src\/,lce_functions.php pt/
 PHP_functions	c-src/etags.c	/^PHP_functions (FILE *inf)$/
 PHP_help	c-src/etags.c	639
 PHP_suffixes	c-src/etags.c	637
@@ -1059,13 +1034,13 @@ POReader	php-src/lce_functions.php	163
 POReader	php-src/lce_functions.php	/^      function POReader($domain, $filename)$/
 PRINT_UNDOCUMENTED_OPTIONS_HELP	c-src/etags.c	804
 PROCESSP	c-src/emacs/src/lisp.h	/^PROCESSP (Lisp_Object a)$/
-PROLSRC	Makefile	/^PROLSRC=$(addprefix .\/prol-src\/,ordsets.prolog nat/
 PROP	c-src/emacs/src/keyboard.c	/^#define PROP(IDX) AREF (tool_bar_item_properties, /
 PROP	c-src/emacs/src/keyboard.c	8379
 PROTECT_MALLOC_STATE	c-src/emacs/src/gmalloc.c	/^#define PROTECT_MALLOC_STATE(PROT) protect_malloc_/
 PROTECT_MALLOC_STATE	c-src/emacs/src/gmalloc.c	/^#define PROTECT_MALLOC_STATE(PROT)	\/* empty *\/$/
 PRTPKG	f-src/entry.for	/^      LOGICAL FUNCTION PRTPKG ( SHORT, LONG, EXPL,/
 PRTPKG	f-src/entry.strange_suffix	/^      LOGICAL FUNCTION PRTPKG ( SHORT, LONG, EXPL,/
+PRTPKG	f-src/entry.strange	/^      LOGICAL FUNCTION PRTPKG ( SHORT, LONG, EXPL,/
 PSEUDO	c-src/sysdep.h	/^#define	PSEUDO(name, syscall_name, args)				      /
 PSEUDOVECSIZE	c-src/emacs/src/lisp.h	/^#define PSEUDOVECSIZE(type, nonlispfield)			\\$/
 PSEUDOVECTORP	c-src/emacs/src/lisp.h	/^PSEUDOVECTORP (Lisp_Object a, int code)$/
@@ -1076,7 +1051,6 @@ PSEUDOVECTOR_REST_MASK	c-src/emacs/src/lisp.h	814
 PSEUDOVECTOR_SIZE_BITS	c-src/emacs/src/lisp.h	808
 PSEUDOVECTOR_SIZE_MASK	c-src/emacs/src/lisp.h	809
 PSEUDOVECTOR_TYPEP	c-src/emacs/src/lisp.h	/^PSEUDOVECTOR_TYPEP (struct vectorlike_header *a, i/
-PSSRC	Makefile	/^PSSRC=$(addprefix .\/ps-src\/,rfc1245.ps)$/
 PS_functions	c-src/etags.c	/^PS_functions (FILE *inf)$/
 PS_help	c-src/etags.c	649
 PS_suffixes	c-src/etags.c	647
@@ -1101,7 +1075,6 @@ PVEC_TERMINAL	c-src/emacs/src/lisp.h	790
 PVEC_TYPE_MASK	c-src/emacs/src/lisp.h	819
 PVEC_WINDOW	c-src/emacs/src/lisp.h	786
 PVEC_WINDOW_CONFIGURATION	c-src/emacs/src/lisp.h	791
-PYTSRC	Makefile	/^PYTSRC=$(addprefix .\/pyt-src\/,server.py)$/
 PackageInspector	objc-src/PackInsp.h	/^@interface PackageInspector:WMInspector$/
 Pascal_functions	c-src/etags.c	/^Pascal_functions (FILE *inf)$/
 Pascal_help	c-src/etags.c	621
@@ -1192,7 +1165,6 @@ RECC_UNIBYTE	c-src/emacs/src/regex.h	617
 RECC_UPPER	c-src/emacs/src/regex.h	612
 RECC_WORD	c-src/emacs/src/regex.h	610
 RECC_XDIGIT	c-src/emacs/src/regex.h	614
-REGEX	Makefile	/^REGEX=\/[ \\t]*DEFVAR_[A-Z_ \\t\\n(]+"\\([^"]+\\)"\/$/
 REGS_FIXED	c-src/emacs/src/regex.h	378
 REGS_REALLOCATE	c-src/emacs/src/regex.h	377
 REGS_UNALLOCATED	c-src/emacs/src/regex.h	376
@@ -1267,7 +1239,6 @@ RE_TRANSLATE_TYPE	c-src/emacs/src/regex.h	332
 RE_UNMATCHED_RIGHT_PAREN_ORD	c-src/emacs/src/regex.h	136
 RSH	y-src/cccp.c	17
 RTE/s	ada-src/2ataspri.adb	/^   package RTE renames Interfaces.C.POSIX_RTE;$/
-RUN	Makefile	/^RUN=$/
 Range	cp-src/Range.h	35
 Range::Range	cp-src/Range.h	/^  Range (void)$/
 Range::Range	cp-src/Range.h	/^  Range (const Range& r)$/
@@ -1328,6 +1299,7 @@ SDTrefSkipSpaces	pas-src/common.pas	/^procedure SDTrefSkipSpaces;$/
 SDTrefStringToRec	pas-src/common.pas	/^procedure SDTrefStringToRec (* ($/
 SETPRT	f-src/entry.for	/^       ENTRY  SETPRT ( SHORT, EXPL, LONG, TRACE, D/
 SETPRT	f-src/entry.strange_suffix	/^       ENTRY  SETPRT ( SHORT, EXPL, LONG, TRACE, D/
+SETPRT	f-src/entry.strange	/^       ENTRY  SETPRT ( SHORT, EXPL, LONG, TRACE, D/
 SET_SYMBOL_BLV	c-src/emacs/src/lisp.h	/^SET_SYMBOL_BLV (struct Lisp_Symbol *sym, struct Li/
 SET_SYMBOL_FWD	c-src/emacs/src/lisp.h	/^SET_SYMBOL_FWD (struct Lisp_Symbol *sym, union Lis/
 SET_SYMBOL_VAL	c-src/emacs/src/lisp.h	/^# define SET_SYMBOL_VAL(sym, v) lisp_h_SET_SYMBOL_/
@@ -1344,7 +1316,6 @@ SPECPDL_UNWIND	c-src/emacs/src/lisp.h	2944
 SPECPDL_UNWIND_INT	c-src/emacs/src/lisp.h	2946
 SPECPDL_UNWIND_PTR	c-src/emacs/src/lisp.h	2945
 SPECPDL_UNWIND_VOID	c-src/emacs/src/lisp.h	2947
-SRCS	Makefile	/^SRCS=Makefile ${ADASRC} ${ASRC} ${CSRC} ${CPSRC} $/
 SREF	c-src/emacs/src/lisp.h	/^SREF (Lisp_Object string, ptrdiff_t index)$/
 SSDATA	c-src/emacs/src/lisp.h	/^SSDATA (Lisp_Object string)$/
 SSET	c-src/emacs/src/lisp.h	/^SSET (Lisp_Object string, ptrdiff_t index, unsigne/
@@ -1419,7 +1390,6 @@ TAS_Cell/t	ada-src/2ataspri.ads	/^   type TAS_Cell is$/
 TCB_Ptr/t	ada-src/2ataspri.ads	/^   type TCB_Ptr is access all Task_Control_Block;$/
 TERMINALP	c-src/emacs/src/lisp.h	/^TERMINALP (Lisp_Object a)$/
 TEST	php-src/ptest.php	1
-TEXSRC	Makefile	/^TEXSRC=$(addprefix .\/tex-src\/,testenv.tex gzip.tex/
 TEXTAGS	make-src/Makefile	204
 TEXTAGS	make-src/Makefile	219
 TEX_LESC	c-src/etags.c	4986
@@ -1604,7 +1574,6 @@ XUNTAG	c-src/emacs/src/lisp.h	/^XUNTAG (Lisp_Object a, int type)$/
 XWINDOW	c-src/emacs/src/lisp.h	/^XWINDOW (Lisp_Object a)$/
 Y	c-src/h.h	100
 YACC	c-src/etags.c	2199
-YSRC	Makefile	/^YSRC=$(addprefix .\/y-src\/,parse.y parse.c atest.y /
 YYABORT	/usr/share/bison/bison.simple	153
 YYABORT	/usr/share/bison/bison.simple	153
 YYACCEPT	/usr/share/bison/bison.simple	152
@@ -2574,7 +2543,7 @@ b	c-src/h.h	41
 b	c-src/h.h	103
 b	c-src/h.h	104
 backslash=0	tex-src/texinfo.tex	/^\\let\\indexbackslash=0  %overridden during \\printin/
-bar	c-src//c.c	/^void bar() {while(0) {}}$/
+bar	c-src/c.c	/^void bar() {while(0) {}}$/
 bar	c.c	143
 bar	c-src/h.h	19
 bas_syn	prol-src/natded.prolog	/^bas_syn(n(_)).$/
@@ -2667,7 +2636,6 @@ cat	c-src/h.h	81
 cat	prol-src/natded.prolog	/^cat(A, Alpha@Beta, Ass3, Qs3, tree(fe,A:Alpha@Beta/
 cat_atoms	prol-src/natded.prolog	/^cat_atoms(A1,A2,A3):-$/
 cccccccccc	c-src/h.h	115
-cdiff	Makefile	/^cdiff: CTAGS.good CTAGS ${infiles}$/
 cdr	c-src/emacs/src/lisp.h	1159
 cell	y-src/parse.y	278
 cgrep	html-src/software.html	/^cgrep$/
@@ -2677,7 +2645,6 @@ char_bits	c-src/emacs/src/lisp.h	2443
 char_table_specials	c-src/emacs/src/lisp.h	1692
 charset_unibyte	c-src/emacs/src/regex.h	410
 chartonmstr	pas-src/common.pas	/^function chartonmstr; (*($/
-check	Makefile	/^check:$/
 checkQuotation	php-src/lce_functions.php	/^      function checkQuotation($str)$/
 check_cons_list	c-src/emacs/src/lisp.h	/^#  define check_cons_list() lisp_h_check_cons_list/
 checkhdr	c-src/emacs/src/gmalloc.c	/^checkhdr (const struct hdr *hdr)$/
@@ -2846,7 +2813,6 @@ echo_message_buffer	c-src/emacs/src/keyboard.c	171
 echo_now	c-src/emacs/src/keyboard.c	/^echo_now (void)$/
 echo_truncate	c-src/emacs/src/keyboard.c	/^echo_truncate (ptrdiff_t nchars)$/
 echoing	c-src/emacs/src/keyboard.c	154
-ediff%	Makefile	/^ediff%: ETAGS.good% ETAGS ${infiles}$/
 editItem	pyt-src/server.py	/^    def editItem(self):$/
 editsite	pyt-src/server.py	/^    def editsite(self, site):$/
 edituser	pyt-src/server.py	/^    def edituser(self, user):$/
@@ -2918,7 +2884,7 @@ expression_value	cccp.y	68
 expression_value	y-src/cccp.y	68
 extras	c-src/emacs/src/lisp.h	1603
 extvar	c-src/h.h	109
-f	c-src//c.c	/^T f(){if(x){}$/
+f	c-src/c.c	/^T f(){if(x){}$/
 f	c.c	145
 f	c.c	156
 f	c.c	168
@@ -3002,7 +2968,7 @@ foo	f-src/entry.strange	/^       character*(*) function foo()$/
 foo	php-src/ptest.php	/^foo()$/
 foo::f	cp-src/c.C	/^     void f() {}$/
 foo::x	cp-src/c.C	80
-foobar	c-src//c.c	/^int foobar() {;}$/
+foobar	c-src/c.c	/^int foobar() {;}$/
 foobar	c.c	/^extern void foobar (void) __attribute__ ((section /
 foobar2	c-src/h.h	20
 foobar2_	c-src/h.h	16
@@ -3124,7 +3090,7 @@ hybrid_get_current_dir_name	c-src/emacs/src/gmalloc.c	/^hybrid_get_current_dir_n
 hybrid_malloc	c-src/emacs/src/gmalloc.c	/^hybrid_malloc (size_t size)$/
 hybrid_realloc	c-src/emacs/src/gmalloc.c	/^hybrid_realloc (void *ptr, size_t size)$/
 hypothetical_mem	prol-src/natded.prolog	/^hypothetical_mem(fi(N),Ass,_):-$/
-i	c-src//c.c	2
+i	c-src/c.c	2
 i	c.c	169
 i	c-src/emacs/src/lisp.h	567
 i	c-src/emacs/src/lisp.h	4673
@@ -3145,7 +3111,6 @@ inattribute	c-src/etags.c	2400
 index	c-src/emacs/src/lisp.h	1856
 infabsdir	c-src/etags.c	206
 infabsname	c-src/etags.c	205
-infiles	Makefile	/^infiles = $(filter-out ${NONSRCS},${SRCS}) srclist/
 infname	c-src/etags.c	204
 info	c-src/emacs/src/gmalloc.c	157
 infoPanel:	objcpp-src/SimpleCalc.M	/^- infoPanel:sender$/
@@ -3183,7 +3148,7 @@ integertonmstr	pas-src/common.pas	/^function integertonmstr; (* (TheInteger : in
 intensity1	f-src/entry.for	/^     & intensity1(efv,fv,svin,svquad,sfpv,maxp,val/
 intensity1	f-src/entry.strange_suffix	/^     & intensity1(efv,fv,svin,svquad,sfpv,maxp,val/
 intensity1	f-src/entry.strange	/^     & intensity1(efv,fv,svin,svquad,sfpv,maxp,val/
-interface_locate	c-src//c.c	/^interface_locate(void)$/
+interface_locate	c-src/c.c	/^interface_locate(void)$/
 intern	c-src/emacs/src/lisp.h	/^intern (const char *str)$/
 intern_c_string	c-src/emacs/src/lisp.h	/^intern_c_string (const char *str)$/
 internal_last_event_frame	c-src/emacs/src/keyboard.c	228
@@ -3615,9 +3580,7 @@ not_bol	c-src/emacs/src/regex.h	391
 not_eol	c-src/emacs/src/regex.h	394
 not_single_kboard_state	c-src/emacs/src/keyboard.c	/^not_single_kboard_state (KBOARD *kboard)$/
 notag2	c-src/torture.c	26
-notag2	c-src/dostorture.c	26
 notag4	c-src/torture.c	45
-notag4	c-src/dostorture.c	45
 notinname	c-src/etags.c	/^#define notinname(c)	(_nin[CHAR (c)]) \/* c is not /
 npending	c-src/emacs/src/keyboard.c	7244
 ntool_bar_items	c-src/emacs/src/keyboard.c	7974
@@ -3772,11 +3735,8 @@ post	pyt-src/server.py	/^    def post(self):$/
 post	pyt-src/server.py	/^    def post(self):$/
 pot_etags_version	c-src/etags.c	81
 pp1	c-src/torture.c	/^int pp1($/
-pp1	c-src/dostorture.c	/^int pp1($/
 pp2	c-src/torture.c	/^pp2$/
-pp2	c-src/dostorture.c	/^pp2$/
 pp3	c-src/torture.c	/^pp3(int bar)$/
-pp3	c-src/dostorture.c	/^pp3(int bar)$/
 pp_bas_cat	prol-src/natded.prolog	/^pp_bas_cat(Cat):-$/
 pp_cat	prol-src/natded.prolog	/^pp_cat(Syn:Sem):-$/
 pp_exp	prol-src/natded.prolog	/^pp_exp('NIL'):-$/
@@ -3901,7 +3861,6 @@ regex	make-src/Makefile	216
 regex	make-src/Makefile	219
 regex_t	c-src/emacs/src/regex.h	416
 regex_tag_multiline	c-src/etags.c	/^regex_tag_multiline (void)$/
-regexfile	Makefile	/^regexfile: Makefile$/
 regexp	c-src/etags.c	256
 regexp	c-src/etags.c	268
 registerAction:	objcpp-src/SimpleCalc.M	/^- registerAction:(SEL)action$/
@@ -4053,7 +4012,6 @@ specbind_tag	c-src/emacs/src/lisp.h	2943
 specbinding	c-src/emacs/src/lisp.h	2955
 specialsymbol	prol-src/natded.prolog	/^specialsymbol(C1,C2,S):-$/
 splitexp	prol-src/natded.prolog	/^splitexp(E,E,('NIL','NIL')):-!.$/
-srclist	Makefile	/^srclist: Makefile$/
 ss3	c.c	255
 sss1	c.c	252
 sss2	c.c	253
@@ -4155,18 +4113,12 @@ tag-re-match-p	el-src/emacs/lisp/progmodes/etags.el	/^(defun tag-re-match-p (re)
 tag-symbol-match-p	el-src/emacs/lisp/progmodes/etags.el	/^(defun tag-symbol-match-p (tag)$/
 tag-word-match-p	el-src/emacs/lisp/progmodes/etags.el	/^(defun tag-word-match-p (tag)$/
 tag1	c-src/torture.c	/^(*tag1 (sig, handler)) ()$/
-tag1	c-src/dostorture.c	/^(*tag1 (sig, handler)) ()$/
 tag1	c-src/h.h	110
 tag2	c-src/torture.c	/^(*tag2 (sig, handler)) ()$/
-tag2	c-src/dostorture.c	/^(*tag2 (sig, handler)) ()$/
 tag3	c-src/torture.c	/^(*tag3 (int sig, void (*handler) (int))) (int)$/
-tag3	c-src/dostorture.c	/^(*tag3 (int sig, void (*handler) (int))) (int)$/
 tag4	c-src/torture.c	/^(*tag4 (int sig, void (*handler) (int))) (int)$/
-tag4	c-src/dostorture.c	/^(*tag4 (int sig, void (*handler) (int))) (int)$/
 tag5	c-src/torture.c	/^tag5 (handler, arg)$/
-tag5	c-src/dostorture.c	/^tag5 (handler, arg)$/
 tag6	c-src/torture.c	/^tag6 (void (*handler) (void *), void *arg)$/
-tag6	c-src/dostorture.c	/^tag6 (void (*handler) (void *), void *arg)$/
 tag_or_ch	c-src/emacs/src/lisp.h	3026
 taggedfname	c-src/etags.c	207
 tags-add-tables	el-src/emacs/lisp/progmodes/etags.el	/^(defcustom tags-add-tables 'ask-user$/
@@ -4419,7 +4371,6 @@ xref-location-line	el-src/emacs/lisp/progmodes/etags.el	/^(cl-defmethod xref-loc
 xref-location-marker	el-src/emacs/lisp/progmodes/etags.el	/^(cl-defmethod xref-location-marker ((l xref-etags-/
 xref-make-etags-location	el-src/emacs/lisp/progmodes/etags.el	/^(defun xref-make-etags-location (tag-info file)$/
 xrnew	c-src/etags.c	/^#define xrnew(op, n, Type) ((op) = (Type *) xreall/
-xx	Makefile	/^xx="this line is here because of a fontlock bug$/
 y-get-selection-internal	c.c	/^      Fy_get_selection_internal, Sy_get_selection_/
 yyalloc	/usr/share/bison/bison.simple	83
 yyalloc	/usr/share/bison/bison.simple	83

@@ -7535,13 +7535,13 @@ elements (all size values are in pixels).
 
 - `title-bar-height' is the height of the title bar of FRAME.
 
-- `menu-bar-external' if `t' means the menu bar is by default external
+- `menu-bar-external' if t means the menu bar is by default external
   (not included in the inner size of FRAME).
 
 - `menu-bar-size' is a cons of the width and height of the menu bar of
   FRAME.
 
-- `tool-bar-external' if `t' means the tool bar is by default external
+- `tool-bar-external' if t means the tool bar is by default external
   (not included in the inner size of FRAME).
 
 - `tool-bar-side' tells tells on which side the tool bar on FRAME is by

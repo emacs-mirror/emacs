@@ -1908,9 +1908,9 @@ the buffer object itself and the current mark symbol."
 		     ;; Kill the line if the buffer is dead
 		     'kill)))
 	      ;; A given mapping function should return:
-	      ;; `nil' if it chose not to affect the buffer
+	      ;; nil if it chose not to affect the buffer
 	      ;; `kill' means the remove line from the buffer list
-	      ;; `t' otherwise
+	      ;; t otherwise
 	      (cl-incf ibuffer-map-lines-total)
 	      (cond ((null result)
 		     (forward-line 1))

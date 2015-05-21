@@ -7972,7 +7972,7 @@ comment at the start of cc-engine.el for more info."
   ;; This should be called with point inside an argument list.
   ;;
   ;; Only one level of enclosing parentheses is considered, so for
-  ;; instance `nil' is returned when in a function call within an asm
+  ;; instance nil is returned when in a function call within an asm
   ;; operand.
   ;;
   ;; This function might do hidden buffer changes.

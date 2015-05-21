@@ -32,7 +32,6 @@
 
 (require 'lisp-mode)			;for `doc-string-elt' properties.
 (require 'lisp-mnt)
-(require 'help-fns)			;for help-add-fundoc-usage.
 (eval-when-compile (require 'cl-lib))
 
 (defvar generated-autoload-file nil

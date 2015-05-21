@@ -1,46 +1,4 @@
 
-Makefile,683
-ADASRC=1,0
-ASRC=2,91
-CSRC=3,139
-CPSRC=7,410
-ELSRC=10,584
-ERLSRC=11,654
-FORTHSRC=12,699
-FSRC=13,749
-HTMLSRC=14,821
-LUASRC=16,950
-MAKESRC=17,993
-OBJCSRC=18,1035
-OBJCPPSRC=19,1116
-PASSRC=20,1179
-PERLSRC=21,1221
-PHPSRC=22,1291
-PSSRC=23,1363
-PROLSRC=24,1403
-PYTSRC=25,1465
-TEXSRC=26,1506
-YSRC=27,1585
-SRCS=28,1650
-NONSRCS=32,1902
-ETAGS_PROG=34,1976
-CTAGS_PROG=35,2007
-REGEX=37,2039
-xx=38,2085
-RUN=40,2134
-OPTIONS=42,2140
-ARGS=43,2192
-infiles 45,2210
-check:check47,2272
-ediff%:ediff%55,2575
-cdiff:cdiff58,2676
-ETAGS:ETAGS61,2773
-CTAGS:CTAGS64,2843
-srclist:srclist67,2921
-regexfile:regexfile71,3012
-.PRECIOUS:.PRECIOUS77,3189
-FRC:FRC79,3223
-
 ada-src/etags-test-for.ada,1969
    type LL_Task_Procedure_Access LL_Task_Procedure_Access/t1,0
    function Body_RequiredBody_Required/f3,78
@@ -780,19 +738,6 @@ void			tab_free(59,966
 char			**tab_fill(tab_fill70,1129
 int			tab_delete_first(91,1638
 int			tab_count_words(103,1820
-
-c-src/dostorture.c,197
-(*tag1 tag118,451
-#define notag2 26,552
-(*tag2 tag229,629
-(*tag3 tag339,771
-#define notag4 45,860
-(*tag4 tag448,954
-tag5 57,1080
-tag6 66,1207
-int pp1(74,1316
-pp287,1418
-pp3(100,1517
 
 c-src/emacs/src/gmalloc.c,7311
 #define USE_PTHREAD25,1002
@@ -3346,10 +3291,12 @@ f-src/entry.strange_suffix,172
      & intensity1(577,12231
        character*(*) function foo(579,12307
 
-f-src/entry.strange,103
-       ENTRY  MSGSEL 193,4382
-     & intensity1(375,8135
-       character*(*) function foo(377,8211
+f-src/entry.strange,171
+      LOGICAL FUNCTION PRTPKG 2,2
+       ENTRY  SETPRT 193,3793
+       ENTRY  MSGSEL 394,8405
+     & intensity1(576,12158
+       character*(*) function foo(578,12234
 
 forth-src/test-forth.fth,408
 : a-forth-word 20,301
@@ -3365,44 +3312,44 @@ constant (a-forth-constant(a-forth-constant38,628
 code assemby-code-word 43,685
 : a-forth-word 50,870
 
-html-src/softwarelibero.html,198
-Cos'è il software libero?4,38
-Licenze d'uso di un programmalicenze65,2474
-Sfatiamo alcuni miti138,6064
-Il movimento open sourceoss191,7968
-Impatto pratico del software liberoimpatto231,9986
+html-src/softwarelibero.html,200
+Cos'Ã¨ il software libero?4,38
+Licenze d'uso di un programmalicenze65,2500
+Sfatiamo alcuni miti138,6118
+Il movimento open sourceoss191,8037
+Impatto pratico del software liberoimpatto231,10066
 
 html-src/index.shtml,104
 &nbsp;8,281
-In evidenza15,446
-Comunicati e iniziative32,974
-Ultime notizie dall'associazione63,2027
+In evidenza15,447
+Comunicati e iniziative32,976
+Ultime notizie dall'associazione63,2030
 
 html-src/algrthms.html,467
-Tutorial on Convolutional Coding with Viterbi Decoding--Description of the Data Generation, Convolutional Encoding, Channel Mapping and AWGN, and Quantizing Algorithms7,276
-Descriptionalgorithms10,477
-Generating the Datagenalgorithm48,1953
-Convolutionallyconalgorithm55,2463
-Nextstatetable262,11331
-Outputoutputtable350,13571
-Mapping the Channel Symbolsmapping433,15786
-Adding Noise to theaddnoise439,16174
-Quantizing the Receivedquantizing469,18637
+Tutorial on Convolutional Coding with Viterbi Decoding--Description of the Data Generation, Convolutional Encoding, Channel Mapping and AWGN, and Quantizing Algorithms7,271
+Descriptionalgorithms10,472
+Generating the Datagenalgorithm48,1948
+Convolutionallyconalgorithm55,2458
+Nextstatetable262,11326
+Outputoutputtable350,13566
+Mapping the Channel Symbolsmapping433,15781
+Adding Noise to theaddnoise439,16169
+Quantizing the Receivedquantizing469,18632
 
-html-src/software.html,438
-Francesco Potortì Software Page9,280
-Software that I wrote for supporting my research activitysimulation36,1400
-MTGmtg41,1484
-Fracasfracas65,2626
-GaliLEOgalileo101,4234
-Leasqrleasqr114,4679
-Free software that I wrote for the GNU project or for my personal or workgnu142,6067
-Etagsetags148,6182
-checkiso161,6731
-cgrep178,7549
-debian-bug.eldebian-bug190,7981
-tcpdump205,8566
-Links to interesting softwarelinks216,8893
+html-src/software.html,439
+Francesco PotortÃ¬ Software Page9,280
+Software that I wrote for supporting my research activitysimulation36,1398
+MTGmtg41,1482
+Fracasfracas65,2624
+GaliLEOgalileo101,4232
+Leasqrleasqr114,4677
+Free software that I wrote for the GNU project or for my personal or workgnu142,6065
+Etagsetags148,6180
+checkiso161,6729
+cgrep178,7547
+debian-bug.eldebian-bug190,7979
+tcpdump205,8564
+Links to interesting softwarelinks216,8891
 
 lua-src/allegro.lua,400
 local function get_layer_by_name 7,175
@@ -4807,7 +4754,7 @@ Section\xreftie'char\the\appendixno.\the\secno.\the\subsecno.\the\subsubsecno %
 \global\def={=3306,107486
 \def\normalbackslash{\normalbackslash3320,107868
 
-c-src//c.c,76
+c-src/c.c,76
 T f(1,0
 }T i;2,14
 void bar(5,69

@@ -490,7 +490,7 @@ elements named \"foo\" exist in the WSDL you could use:
 
   (soap-wsdl-get \"foo\" WSDL 'soap-message-p)
 
-If USE-LOCAL-ALIAS-TABLE is not nil, `soap-local-xmlns` will be
+If USE-LOCAL-ALIAS-TABLE is not nil, `soap-local-xmlns' will be
 used to resolve the namespace alias."
   (let ((alias-table (soap-wsdl-alias-table wsdl))
         namespace element-name element)

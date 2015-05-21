@@ -727,7 +727,7 @@ BUFFER or FRAME."
     (user-error "No previous help buffer")))
 
 (defun help-go-forward ()
-  "Go back to next topic in this help buffer."
+  "Go to the next topic in this help buffer."
   (interactive)
   (if help-xref-forward-stack
       (help-xref-go-forward (current-buffer))

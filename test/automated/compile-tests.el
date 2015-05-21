@@ -204,9 +204,11 @@
     ("makepp: bla bla `/foo/bar.c' and `/foo/bar.h'" 35 nil nil "/foo/bar.h")
     ;; maven
     ("FooBar.java:[111,53] no interface expected here"
-     1 53 111 "FooBar.java")
+     1 53 111 "FooBar.java" 2)
     ("  [ERROR] /Users/cinsk/hello.java:[651,96] ';' expected"
-     15 96 651 "/Users/cinsk/hello.java") ;Bug#11517.
+     15 96 651 "/Users/cinsk/hello.java" 2) ;Bug#11517.
+    ("[WARNING] /foo/bar/Test.java:[27,43] unchecked conversion"
+     11 43 27 "/foo/bar/Test.java" 1) ;Bug#20556
     ;; mips-1 mips-2
     ("TrimMask (255) in solomon.c may be indistinguishable from TrimMasks (93) in solomo.c due to truncation"
      11 nil 255 "solomon.c")
@@ -335,6 +337,7 @@ END-LINE, if that matched.")
 	    (col  (nth 2 test))
 	    (line (nth 3 test))
 	    (file (nth 4 test))
+            (type (nth 5 test))
 	    end-col end-line)
 	(if (consp col)
 	    (setq end-col (cdr col) col (car col)))
@@ -342,13 +345,15 @@ END-LINE, if that matched.")
 	    (setq end-line (cdr line) line (car line)))
 	(and (equal (compilation--loc->col loc) col)
 	     (equal (compilation--loc->line loc) line)
-	     (or (not file) 
+             (or (not file)
                  (equal (caar (compilation--loc->file-struct loc)) file))
 	     (or (null end-col)
 	     	 (equal (car (cadr (nth 2 (compilation--loc->file-struct loc))))
 	     		end-col))
 	     (equal (car (nth 2 (compilation--loc->file-struct loc)))
-	     	    (or end-line line)))))))
+                    (or end-line line))
+             (or (null type)
+                 (equal type (compilation--message->type msg))))))))
 
 (ert-deftest compile-test-error-regexps ()
   "Test the `compilation-error-regexp-alist' regexps.

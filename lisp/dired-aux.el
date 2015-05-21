@@ -2257,7 +2257,7 @@ of marked files.  If KILL-ROOT is non-nil, kill DIRNAME as well."
   ;;   components are string-lessp.
   ;; Thus ("/usr/" "/usr/bin") and ("/usr/a/" "/usr/b/") are tree-lessp.
   ;; string-lessp could arguably be replaced by file-newer-than-file-p
-  ;;   if dired-actual-switches contained `t'.
+  ;;   if dired-actual-switches contained t.
   (setq dir1 (file-name-as-directory dir1)
 	dir2 (file-name-as-directory dir2))
   (let ((components-1 (dired-split "/" dir1))

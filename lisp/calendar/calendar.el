@@ -2182,7 +2182,7 @@ in `calendar-month-name-array'.  These abbreviations are used in
 the calendar menu entries, and can also be used in the diary
 file.  Do not include a trailing `.' in the strings specified in
 this variable, though you may use such in the diary file.  By
-default, each string is the first ``calendar-abbrev-length'
+default, each string is the first `calendar-abbrev-length'
 characters of the corresponding full name."
  :group 'calendar
  :set-after '(calendar-abbrev-length calendar-month-name-array)

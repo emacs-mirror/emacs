@@ -117,8 +117,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 		 (const :tag "None" t)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
-  :version "23.1"
-  :group 'vc-git)
+  :version "23.1")
 
 (defcustom vc-git-annotate-switches nil
   "String or list of strings specifying switches for Git blame under VC.
@@ -127,14 +126,24 @@ If nil, use the value of `vc-annotate-switches'.  If t, use no switches."
 		 (const :tag "None" t)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
-  :version "25.1"
-  :group 'vc-git)
+  :version "25.1")
+
+(defcustom vc-git-resolve-conflicts t
+  "When non-nil, mark conflicted file as resolved upon saving.
+That is performed after all conflict markers in it have been
+removed.  If the value is `unstage-maybe', and no merge is in
+progress, then after the last conflict is resolved, also clear
+the staging area."
+  :type '(choice (const :tag "Don't resolve" nil)
+                 (const :tag "Resolve" t)
+                 (const :tag "Resolve and maybe unstage all files"
+                        unstage-maybe))
+  :version "25.1")
 
 (defcustom vc-git-program "git"
   "Name of the Git executable (excluding any arguments)."
   :version "24.1"
-  :type 'string
-  :group 'vc-git)
+  :type 'string)
 
 (defcustom vc-git-root-log-format
   '("%d%h..: %an %ad %s"
@@ -154,7 +163,6 @@ format string (which is passed to \"git log\" via the argument
 matching the resulting Git log output, and KEYWORDS is a list of
 `font-lock-keywords' for highlighting the Log View buffer."
   :type '(list string string (repeat sexp))
-  :group 'vc-git
   :version "24.1")
 
 (defvar vc-git-commits-coding-system 'utf-8
@@ -801,12 +809,14 @@ This prompts for a branch to merge from."
   (save-excursion
     (goto-char (point-min))
     (unless (re-search-forward "^<<<<<<< " nil t)
-      (if (file-exists-p (expand-file-name ".git/MERGE_HEAD"
-                                           (vc-git-root buffer-file-name)))
-          ;; Doing a merge.
-          (vc-git-command nil 0 buffer-file-name "add")
-        ;; Doing something else.  Likely applying a stash (bug#20292).
-        (vc-git-command nil 0 buffer-file-name "reset"))
+      (vc-git-command nil 0 buffer-file-name "add")
+      (unless (or
+               (not (eq vc-git-resolve-conflicts 'unstage-maybe))
+               ;; Doing a merge, so bug#20292 doesn't apply.
+               (file-exists-p (expand-file-name ".git/MERGE_HEAD"
+                                                (vc-git-root buffer-file-name)))
+               (vc-git-conflicted-files (vc-git-root buffer-file-name)))
+        (vc-git-command nil 0 nil "reset"))
       ;; Remove the hook so that it is not called multiple times.
       (remove-hook 'after-save-hook 'vc-git-resolve-when-done t))))
 
@@ -823,7 +833,8 @@ This prompts for a branch to merge from."
                (re-search-forward "^<<<<<<< " nil 'noerror)))
     (vc-file-setprop buffer-file-name 'vc-state 'conflict)
     (smerge-start-session)
-    (add-hook 'after-save-hook 'vc-git-resolve-when-done nil 'local)
+    (when vc-git-resolve-conflicts
+      (add-hook 'after-save-hook 'vc-git-resolve-when-done nil 'local))
     (message "There are unresolved conflicts in this file")))
 
 ;;; HISTORY FUNCTIONS
@@ -949,13 +960,12 @@ or BRANCH^ (where \"^\" can be repeated)."
 
 (defun vc-git-expanded-log-entry (revision)
   (with-temp-buffer
-    (apply 'vc-git-command t nil nil (list "log" revision "-1"))
+    (apply 'vc-git-command t nil nil (list "log" revision "-1" "--"))
     (goto-char (point-min))
     (unless (eobp)
       ;; Indent the expanded log entry.
       (indent-region (point-min) (point-max) 2)
       (buffer-string))))
-
 
 (defun vc-git-region-history (file buffer lfrom lto)
   (vc-git-command buffer 'async nil "log" "-p" ;"--follow" ;FIXME: not supported?
@@ -1008,12 +1018,18 @@ or BRANCH^ (where \"^\" can be repeated)."
 
 (defun vc-git-diff (files &optional rev1 rev2 buffer async)
   "Get a difference report using Git between two revisions of FILES."
-  (let (process-file-side-effects)
+  (let (process-file-side-effects
+        (command "diff-tree"))
+    (if rev2
+        ;; Diffing against the empty tree.
+        (unless rev1 (setq rev1 "4b825dc642cb6eb9a060e54bf8d69288fbee4904"))
+      (setq command "diff-index")
+      (unless rev1 (setq rev1 "HEAD")))
     (if vc-git-diff-switches
         (apply #'vc-git-command (or buffer "*vc-diff*")
 	       (if async 'async 1)
 	       files
-               (if (and rev1 rev2) "diff-tree" "diff-index")
+               command
                "--exit-code"
                (append (vc-switches 'git 'diff)
                        (list "-p" (or rev1 "HEAD") rev2 "--")))
@@ -1022,7 +1038,7 @@ or BRANCH^ (where \"^\" can be repeated)."
                       (concat "diff "
                               (mapconcat 'identity
                                          (vc-switches nil 'diff) " "))
-                      (or rev1 "HEAD") rev2 "--"))))
+                      rev1 rev2 "--"))))
 
 (defun vc-git-revision-table (_files)
   ;; What about `files'?!?  --Stef
@@ -1043,23 +1059,25 @@ or BRANCH^ (where \"^\" can be repeated)."
 
 (defun vc-git-annotate-command (file buf &optional rev)
   (let ((name (file-relative-name file)))
-    (apply #'vc-git-command buf 'async nil "blame" "--date=iso"
+    (apply #'vc-git-command buf 'async nil "blame" "--date=short"
 	   (append (vc-switches 'git 'annotate)
 		   (list rev "--" name)))))
 
 (declare-function vc-annotate-convert-time "vc-annotate" (&optional time))
 
 (defun vc-git-annotate-time ()
-  (and (re-search-forward "[0-9a-f]+[^()]+(.* \\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\) \\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\) \\([-+0-9]+\\) +[0-9]+) " nil t)
+  (and (re-search-forward "^[0-9a-f^]+[^()]+(.*?\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\) \\(:?\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\) \\([-+0-9]+\\)\\)? *[0-9]+) " nil t)
        (vc-annotate-convert-time
         (apply #'encode-time (mapcar (lambda (match)
-                                       (string-to-number (match-string match)))
+                                       (if (match-beginning match)
+                                           (string-to-number (match-string match))
+                                         0))
                                      '(6 5 4 3 2 1 7))))))
 
 (defun vc-git-annotate-extract-revision-at-line ()
   (save-excursion
     (beginning-of-line)
-    (when (looking-at "\\([0-9a-f^][0-9a-f]+\\) \\(\\([^(]+\\) \\)?")
+    (when (looking-at "\\^?\\([0-9a-f]+\\) \\(\\([^(]+\\) \\)?")
       (let ((revision (match-string-no-properties 1)))
 	(if (match-beginning 2)
 	    (let ((fname (match-string-no-properties 3)))

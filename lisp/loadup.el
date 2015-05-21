@@ -26,20 +26,24 @@
 
 ;; This is loaded into a bare Emacs to make a dumpable one.
 
-;; If you add/remove Lisp files to be loaded here, consider the
-;; following issues:
+;; If you add a file to be loaded here, keep the following points in mind:
 
-;; i) Any file loaded on any platform should appear in $lisp in src/lisp.mk.
-;; Use the .el or .elc version as appropriate.
+;; i) If the file is no-byte-compile, explicitly load the .el version.
+;; Such files should (where possible) obey the doc-string conventions
+;; expected by make-docfile.  They should also be added to the
+;; uncompiled[] list in make-docfile.c.
 
+;; ii) If the file is dumped with Emacs (on any platform), put the
+;; load statement at the start of a line (leading whitespace is ok).
+
+;; iii) If the file is _not_ dumped with Emacs, make sure the load
+;; statement is _not_ at the start of a line.  See pcase for an example.
+
+;; These rules are so that src/Makefile can construct lisp.mk automatically.
 ;; This ensures both that the Lisp files are compiled (if necessary)
 ;; before the emacs executable is dumped, and that they are passed to
 ;; make-docfile.  (Any that are not processed for DOC will not have
-;; doc strings in the dumped Emacs.)  Because of this:
-
-;; ii) If the file is loaded uncompiled, it should (where possible)
-;; obey the doc-string conventions expected by make-docfile.  It
-;; should also be added to the uncompiled[] list in make-docfile.c.
+;; doc strings in the dumped Emacs.)
 
 ;;; Code:
 
@@ -117,8 +121,7 @@
   ;; Since loaddefs is not yet loaded, macroexp's uses of pcase will simply
   ;; fail until pcase is explicitly loaded.  This also means that we have to
   ;; disable eager macro-expansion while loading pcase.
-  (let ((macroexp--pending-eager-loads '(skip)))
-    (load "emacs-lisp/pcase"))
+  (let ((macroexp--pending-eager-loads '(skip))) (load "emacs-lisp/pcase"))
   ;; Re-load macroexp so as to eagerly macro-expand its uses of pcase.
   (let ((max-lisp-eval-depth (* 2 max-lisp-eval-depth)))
     (load "emacs-lisp/macroexp")))
@@ -139,9 +142,7 @@
 ;; should be updated by overwriting it with an up-to-date copy of
 ;; loaddefs.el that is uncorrupted by local changes.
 ;; autogen/update_autogen can be used to periodically update ldefs-boot.
-(condition-case nil
-    ;; Don't get confused if someone compiled this by mistake.
-    (load "loaddefs.el")
+(condition-case nil (load "loaddefs.el")
   ;; In case loaddefs hasn't been generated yet.
   (file-error (load "ldefs-boot.el")))
 
@@ -178,6 +179,8 @@
 (load "language/romanian")
 (load "language/greek")
 (load "language/hebrew")
+(load "international/cp51932.el")
+(load "international/eucjp-ms.el")
 (load "language/japanese")
 (load "language/korean")
 (load "language/lao")
@@ -287,7 +290,8 @@
 (load "electric")
 (load "emacs-lisp/eldoc")
 (load "cus-start") ;Late to reduce customize-rogue (needs loaddefs.el anyway)
-(if (not (eq system-type 'ms-dos)) (load "tooltip"))
+(if (not (eq system-type 'ms-dos))
+    (load "tooltip"))
 
 ;; This file doesn't exist when building a development version of Emacs
 ;; from the repository.  It is generated just after temacs is built.

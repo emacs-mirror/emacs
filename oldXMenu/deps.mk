@@ -32,7 +32,7 @@
 
 ### Commentary:
 
-## This file is inserted in oldXMenu/Makefile if AUTO_DEPEND=no.
+## This file is included in oldXMenu/Makefile if AUTO_DEPEND=no.
 ## It defines static dependencies between the various source files.
 
 ### Code:

@@ -53,12 +53,13 @@ int image_trace_num = 0;
    ========================================================================== */
 
 void *
-ns_image_from_XBM (unsigned char *bits, int width, int height)
+ns_image_from_XBM (unsigned char *bits, int width, int height,
+                   unsigned long fg, unsigned long bg)
 {
   NSTRACE (ns_image_from_XBM);
   return [[EmacsImage alloc] initFromXBM: bits
                                    width: width height: height
-                                    flip: YES];
+                                      fg: fg bg: bg];
 }
 
 void *
@@ -186,7 +187,11 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
 
   /* The next two lines cause the DPI of the image to be ignored.
      This seems to be the behavior users expect. */
+#ifdef NS_IMPL_COCOA
+#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_6
   [image setScalesWhenResized: YES];
+#endif
+#endif
   [image setSize: NSMakeSize([imgRep pixelsWide], [imgRep pixelsHigh])];
 
   [image setName: [NSString stringWithUTF8String: SSDATA (file)]];
@@ -204,16 +209,8 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
 
 
 - initFromXBM: (unsigned char *)bits width: (int)w height: (int)h
-         flip: (BOOL)flip
+           fg: (unsigned long)fg bg: (unsigned long)bg
 {
-  return [self initFromSkipXBM: bits width: w height: h flip: flip length: 0];
-}
-
-
-- initFromSkipXBM: (unsigned char *)bits width: (int)w height: (int)h
-             flip: (BOOL)flip length: (int)length;
-{
-  int bpr = (w + 7) / 8;
   unsigned char *planes[5];
 
   [self initWithSize: NSMakeSize (w, h)];
@@ -226,57 +223,58 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
                                     bytesPerRow: w bitsPerPixel: 0];
 
   [bmRep getBitmapDataPlanes: planes];
+
+  if (fg == 0 && bg == 0)
+    bg = 0xffffff;
+
   {
     /* pull bits out to set the (bytewise) alpha mask */
     int i, j, k;
     unsigned char *s = bits;
+    unsigned char *rr = planes[0];
+    unsigned char *gg = planes[1];
+    unsigned char *bb = planes[2];
     unsigned char *alpha = planes[3];
-    unsigned char swt[16] = {0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13,
-                             3, 11, 7, 15};
-    unsigned char c, bitPat;
+    unsigned char fgr = (fg >> 16) & 0xff;
+    unsigned char fgg = (fg >> 8) & 0xff;
+    unsigned char fgb = fg & 0xff;
+    unsigned char bgr = (bg >> 16) & 0xff;
+    unsigned char bgg = (bg >> 8) & 0xff;
+    unsigned char bgb = bg & 0xff;
+    unsigned char c;
 
-    for (j = 0; j < h; j++)
-      for (i = 0; i < bpr; i++)
+    int idx = 0;
+    for (j = 0; j < h; ++j)
+      for (i = 0; i < w; )
         {
-          if (length)
+          c = *s++;
+          for (k = 0; i < w && k < 8; ++k, ++i)
             {
-              unsigned char s1, s2;
-              while (*s++ != 'x' && s < bits + length);
-              if (s >= bits + length)
+              *alpha++ = 0xff;
+              if (c & 1)
                 {
-                  [bmRep release];
-                  bmRep = nil;
-                  return nil;
+                  *rr++ = fgr;
+                  *gg++ = fgg;
+                  *bb++ = fgb;
                 }
-#define hexchar(x) ('0' <= (x) && (x) <= '9' ? (x) - '0' : (x) - 'a' + 10)
-              s1 = *s++;
-              s2 = *s++;
-              c = hexchar (s1) * 0x10 + hexchar (s2);
-            }
-          else
-            c = *s++;
-
-          bitPat = flip ? swt[c >> 4] | (swt[c & 0xf] << 4) : c ^ 255;
-          for (k =0; k<8; k++)
-            {
-              *alpha++ = (bitPat & 0x80) ? 0xff : 0;
-              bitPat <<= 1;
+              else
+                {
+                  *rr++ = bgr;
+                  *gg++ = bgg;
+                  *bb++ = bgb;
+                }
+              idx++;
+              c >>= 1;
             }
         }
   }
 
+  xbm_fg = fg;
   [self addRepresentation: bmRep];
-
-  memset (planes[0], 0, w*h);
-  memset (planes[1], 0, w*h);
-  memset (planes[2], 0, w*h);
-  [self setXBMColor: [NSColor blackColor]];
   return self;
 }
 
-
-/* Set color for a bitmap image (see initFromSkipXBM).  Note that the alpha
-   is used as a mask, so we just memset the entire array. */
+/* Set color for a bitmap image.  */
 - setXBMColor: (NSColor *)color
 {
   NSSize s = [self size];
@@ -296,19 +294,21 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
 
   [bmRep getBitmapDataPlanes: planes];
 
-  /* we used to just do this, but Cocoa seems to have a bug when rendering
-     an alpha-masked image onto a dark background where it bloats the mask */
-   /* memset (planes[0..2], r, g, b*0xff, len); */
   {
     int i, len = s.width*s.height;
     int rr = r * 0xff, gg = g * 0xff, bb = b * 0xff;
-    for (i =0; i<len; i++)
-      if (planes[3][i] != 0)
+    unsigned char fgr = (xbm_fg >> 16) & 0xff;
+    unsigned char fgg = (xbm_fg >> 8) & 0xff;
+    unsigned char fgb = xbm_fg & 0xff;
+
+    for (i = 0; i < len; ++i)
+      if (planes[0][i] == fgr && planes[1][i] == fgg && planes[2][i] == fgb)
         {
           planes[0][i] = rr;
           planes[1][i] = gg;
           planes[2][i] = bb;
         }
+    xbm_fg = ((rr << 16) & 0xff) + ((gg << 8) & 0xff) + (bb & 0xff);
   }
 
   return self;
@@ -356,7 +356,11 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
 
           /* The next two lines cause the DPI of the image to be ignored.
              This seems to be the behavior users expect. */
+#ifdef NS_IMPL_COCOA
+#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_6
           [self setScalesWhenResized: YES];
+#endif
+#endif
           [self setSize: NSMakeSize([bmr pixelsWide], [bmr pixelsHigh])];
 
           break;

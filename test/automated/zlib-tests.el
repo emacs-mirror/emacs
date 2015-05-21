@@ -35,7 +35,7 @@
 	     (with-temp-buffer
 	       (set-buffer-multibyte nil)
 	       (insert-file-contents-literally
-		(expand-file-name "foo-gzipped" zlib-tests-data-directory))
+		(expand-file-name "foo.gz" zlib-tests-data-directory))
 	       (zlib-decompress-region (point-min) (point-max))
 	       (buffer-string))
 	     "foo\n"))))

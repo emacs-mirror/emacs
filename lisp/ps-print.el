@@ -809,7 +809,7 @@ Please send all bug fixes and enhancements to
 ;; on next page.  Visually, valid values are (the character `+' at right of
 ;; each column indicates that a line is printed):
 ;;
-;;		   `nil'        `follow'        `full'        `full-follow'
+;;		    nil         `follow'        `full'        `full-follow'
 ;; Current Page --------     -----------     ---------     ----------------
 ;;		1  XXXXX +   1  XXXXXXXX +   1  XXXXXX +   1  XXXXXXXXXXXXX +
 ;;		2  XXXXX +   2  XXXXXXXX +   2  XXXXXX +   2  XXXXXXXXXXXXX +
@@ -2117,7 +2117,7 @@ See also documentation for `ps-zebra-stripes' and `ps-zebra-stripe-height'."
 Visually, valid values are (the character `+' at right of each column indicates
 that a line is printed):
 
-		   `nil'        `follow'        `full'        `full-follow'
+		    nil         `follow'        `full'        `full-follow'
    Current Page --------     -----------     ---------     ----------------
 		1  XXXXX +   1  XXXXXXXX +   1  XXXXXX +   1  XXXXXXXXXXXXX +
 		2  XXXXX +   2  XXXXXXXX +   2  XXXXXX +   2  XXXXXXXXXXXXX +

@@ -528,7 +528,7 @@ argument list for `rst-re'.")
 
 (defvar rst-re-alist) ; Forward declare to use it in `rst-re'.
 
-;; FIXME: Use `sregex` or `rx` instead of re-inventing the wheel.
+;; FIXME: Use `sregex' or `rx' instead of re-inventing the wheel.
 (rst-testcover-add-compose 'rst-re)
 ;; testcover: ok.
 (defun rst-re (&rest args)
@@ -1512,8 +1512,8 @@ PFXARG (alternate behavior).
 
 This function is a bit of a swiss knife.  It is meant to adjust
 the adornments of a section title in reStructuredText.  It tries
-to deal with all the possible cases gracefully and to do `the
-right thing' in all cases.
+to deal with all the possible cases gracefully and to do \"the
+right thing\" in all cases.
 
 See the documentations of `rst-adjust-adornment-work' and
 `rst-promote-region' for full details.
@@ -3571,8 +3571,8 @@ of your own."
     ;;        properties on comments and literal blocks so they are *not*
     ;;        inline fontified.  See (elisp)Search-based Fontification.
 
-    ;; FIXME: And / or use `syntax-propertize` functions as in `octave-mod.el`
-    ;;        and other V24 modes.  May make `font-lock-extend-region`
+    ;; FIXME: And / or use `syntax-propertize' functions as in `octave-mod.el'
+    ;;        and other V24 modes.  May make `font-lock-extend-region'
     ;;        superfluous.
 
     ;; `Comments`_
@@ -3952,11 +3952,11 @@ string)) to be used for converting the document."
   :package-version "1.2.0")
 (rst-testcover-defcustom)
 
-;; FIXME: Must be `defcustom`.
+;; FIXME: Must be defcustom.
 (defvar rst-compile-primary-toolset 'html
   "The default tool-set for `rst-compile'.")
 
-;; FIXME: Must be `defcustom`.
+;; FIXME: Must be defcustom.
 (defvar rst-compile-secondary-toolset 'latex
   "The default tool-set for `rst-compile' with a prefix argument.")
 
@@ -4035,7 +4035,7 @@ buffer, if the region is not selected."
      (cadr (assq 'pseudoxml rst-compile-toolsets))
      standard-output)))
 
-;; FIXME: Should be `defcustom`.
+;; FIXME: Should be defcustom.
 (defvar rst-pdf-program "xpdf"
   "Program used to preview PDF files.")
 
@@ -4052,7 +4052,7 @@ buffer, if the region is not selected."
     ;; output.
     ))
 
-;; FIXME: Should be `defcustom` or use something like `browse-url`.
+;; FIXME: Should be defcustom or use something like `browse-url'.
 (defvar rst-slides-program "firefox"
   "Program used to preview S5 slides.")
 

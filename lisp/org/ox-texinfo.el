@@ -117,7 +117,7 @@
 (defcustom org-texinfo-coding-system nil
   "Default document encoding for Texinfo output.
 
-If `nil' it will default to `buffer-file-coding-system'."
+If nil it will default to `buffer-file-coding-system'."
   :group 'org-export-texinfo
   :type 'coding-system)
 

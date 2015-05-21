@@ -711,7 +711,7 @@ t              Synonym for `mathjax'."
 When `org-mode' is exporting an `org-mode' file to HTML, links to
 non-html files are directly put into a href tag in HTML.
 However, links to other Org-mode files (recognized by the
-extension `.org.) should become links to the corresponding html
+extension `.org') should become links to the corresponding html
 file, assuming that the linked `org-mode' file will also be
 converted to HTML.
 When nil, the links still point to the plain `.org' file."

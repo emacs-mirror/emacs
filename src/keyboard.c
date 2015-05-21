@@ -1702,7 +1702,8 @@ adjust_point_for_property (ptrdiff_t last_pt, bool modified)
       if (check_display
 	  && PT > BEGV && PT < ZV
 	  && !NILP (val = get_char_property_and_overlay
-		              (make_number (PT), Qdisplay, Qnil, &overlay))
+		              (make_number (PT), Qdisplay, selected_window,
+			       &overlay))
 	  && display_prop_intangible_p (val, overlay, PT, PT_BYTE)
 	  && (!OVERLAYP (overlay)
 	      ? get_property_and_range (PT, Qdisplay, &val, &beg, &end, Qnil)

@@ -76,6 +76,7 @@ lib/unistd.h
 lib/warn-on-use.h
 src/buildobj.h
 src/globals.h
+src/lisp.mk
 
 # Lisp-level sources built by 'make'.
 *cus-load.el

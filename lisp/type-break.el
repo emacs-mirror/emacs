@@ -45,7 +45,7 @@
 
 ;; If you find echo area messages annoying and would prefer to see messages
 ;; in the mode line instead, do M-x type-break-mode-line-message-mode
-;; or set the variable of the same name to `t'.
+;; or set the variable of the same name to t.
 
 ;; This program can truly cons up a storm because of all the calls to
 ;; `current-time' (which always returns fresh conses).  I'm dismayed by

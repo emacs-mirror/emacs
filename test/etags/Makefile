@@ -1,7 +1,7 @@
 ADASRC=$(addprefix ./ada-src/,etags-test-for.ada 2ataspri.adb 2ataspri.ads waroquiers.ada)
 ASRC=$(addprefix ./a-src/,empty.zz empty.zz.gz)
 CSRC=$(addprefix ./c-src/,abbrev.c .//c.c torture.c getopt.h etags.c\
- exit.c exit.strange_suffix sysdep.h tab.c dostorture.c\
+ exit.c exit.strange_suffix sysdep.h tab.c\
  emacs/src/gmalloc.c emacs/src/regex.h emacs/src/keyboard.c emacs/src/lisp.h\
  machsyscalls.c machsyscalls.h fail.c a/b/b.c) ../etags/c-src/h.h
 CPSRC=$(addprefix ./cp-src/,c.C burton.cpp burton.cpp\
@@ -25,7 +25,7 @@ PROLSRC=$(addprefix ./prol-src/,ordsets.prolog natded.prolog)
 PYTSRC=$(addprefix ./pyt-src/,server.py)
 TEXSRC=$(addprefix ./tex-src/,testenv.tex gzip.texi texinfo.tex nonewline.tex)
 YSRC=$(addprefix ./y-src/,parse.y parse.c atest.y cccp.c cccp.y)
-SRCS=Makefile ${ADASRC} ${ASRC} ${CSRC} ${CPSRC} ${ELSRC} ${ERLSRC} ${FSRC}\
+SRCS=${ADASRC} ${ASRC} ${CSRC} ${CPSRC} ${ELSRC} ${ERLSRC} ${FSRC}\
      ${FORTHSRC} ${HTMLSRC} ${JAVASRC} ${LUASRC} ${MAKESRC} ${OBJCSRC}\
      ${OBJCPPSRC} ${PASSRC} ${PHPSRC} ${PERLSRC} ${PSSRC} ${PROLSRC} ${PYTSRC}\
      ${TEXSRC} ${YSRC}
@@ -44,6 +44,9 @@ ARGS=- < srclist
 
 infiles = $(filter-out ${NONSRCS},${SRCS}) srclist regexfile
 
+.PHONY: check cdiff ETAGS CTAGS
+# Can't make ediff_1 through ediff_5 .PHONY, as they're implicit.
+
 check:
 	@$(MAKE) OPTIONS='--no-members' ediff_1
 	@$(MAKE) OPTIONS='--declarations --no-members' ediff_2
@@ -58,10 +61,10 @@ ediff%: ETAGS.good% ETAGS ${infiles}
 cdiff: CTAGS.good CTAGS ${infiles}
 	diff -u --suppress-common-lines --width=80 CTAGS.good CTAGS
 
-ETAGS: FRC ${infiles}
+ETAGS: ${infiles}
 	${RUN} ${ETAGS_PROG} ${OPTIONS} -o $@ ${ARGS}
 
-CTAGS: FRC ${infiles}
+CTAGS: ${infiles}
 	${RUN} ${CTAGS_PROG} -o $@ --regex=@regexfile ${ARGS}
 
 srclist: Makefile
@@ -70,10 +73,6 @@ srclist: Makefile
 
 regexfile: Makefile
 	@echo '	-- This is for GNU Emacs source files' > regexfile
-	@echo '${REGEX}' >> regexfile
-	@echo '{c}${REGEX}\\1/m' >> regexfile
+	@printf '%s\n' '${REGEX}' >> regexfile
+	@printf '%s\n' '{c}${REGEX}\\1/m' >> regexfile
 	@echo "regexfile remade"
-
-.PRECIOUS: ETAGS.good CTAGS.good
-
-FRC:;

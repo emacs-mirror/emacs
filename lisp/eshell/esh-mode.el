@@ -206,7 +206,7 @@ This is used by `eshell-watch-for-password-prompt'."
 
 ;; Internal Variables:
 
-;; these are only set to `nil' initially for the sake of the
+;; these are only set to nil initially for the sake of the
 ;; byte-compiler, when compiling other files which `require' this one
 (defvar eshell-mode nil)
 (defvar eshell-mode-map nil)

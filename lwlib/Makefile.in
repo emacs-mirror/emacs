@@ -70,10 +70,15 @@ am__v_at_0 = @
 am__v_at_1 =
 
 DEPDIR = deps
-## -MMD -MF $(DEPDIR)/$*.d if AUTO_DEPEND; else empty.
-DEPFLAGS = @DEPFLAGS@
-## ${MKDIR_P} ${DEPDIR} (if AUTO_DEPEND); else ':'.
-MKDEPDIR = @MKDEPDIR@
+AUTO_DEPEND = @AUTO_DEPEND@
+
+ifeq ($(AUTO_DEPEND),yes)
+DEPFLAGS = -MMD -MF ${DEPDIR}/$*.d -MP
+MKDEPDIR = ${MKDIR_P} ${DEPDIR}
+else
+DEPFLAGS =
+MKDEPDIR = :
+endif
 
 ## ../src is where the generated file (config.h, globals.h) are.
 ## $(srcdir)/../src is where the non-generated files (lisp.h) are.
@@ -102,8 +107,11 @@ globals_h = ../src/globals.h
 $(globals_h):
 	$(MAKE) -C ../src globals.h
 
-## Insert either autodeps.mk (if AUTO_DEPEND), else deps.mk.
-@lwlib_deps_frag@
+ifeq ($(AUTO_DEPEND),yes)
+-include $(ALLOBJS:%.o=${DEPDIR}/%.d)
+else
+include $(srcdir)/deps.mk
+endif
 
 .PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean
 

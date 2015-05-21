@@ -574,7 +574,7 @@ running the hook."
 
 ;; (defun buffer-syntactic-context (&optional buffer)
 ;;   "Syntactic context at point in BUFFER.
-;; Either of `string', `comment' or `nil'.
+;; Either of `string', `comment' or nil.
 ;; This is an XEmacs compatibility function."
 ;;   (with-current-buffer (or buffer (current-buffer))
 ;;     (syntax-ppss-context (syntax-ppss))))

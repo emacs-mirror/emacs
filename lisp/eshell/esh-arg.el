@@ -357,22 +357,31 @@ after are both returned."
 	  (goto-char (1+ end)))))))
 
 (defun eshell-parse-special-reference ()
-  "Parse a special syntax reference, of the form '#<type arg>'."
-  (if (and (not eshell-current-argument)
-	   (not eshell-current-quoted)
-	   (looking-at "#<\\(buffer\\|process\\)\\s-"))
-      (let ((here (point)))
-	(goto-char (match-end 0))
-	(let* ((buffer-p (string= (match-string 1) "buffer"))
-	       (end (eshell-find-delimiter ?\< ?\>)))
-	  (if (not end)
-	      (throw 'eshell-incomplete ?\<)
-	    (if (eshell-arg-delimiter (1+ end))
-		(prog1
-		    (list (if buffer-p 'get-buffer-create 'get-process)
-			  (buffer-substring-no-properties (point) end))
-		  (goto-char (1+ end)))
-	      (ignore (goto-char here))))))))
+  "Parse a special syntax reference, of the form '#<args>'.
+
+args           := `type' `whitespace' `arbitrary-args' | `arbitrary-args'
+type           := \"buffer\" or \"process\"
+arbitrary-args := any string of characters.
+
+If the form has no 'type', the syntax is parsed as if 'type' were
+\"buffer\"."
+  (when (and (not eshell-current-argument)
+             (not eshell-current-quoted)
+             (looking-at "#<\\(\\(buffer\\|process\\)\\s-\\)?"))
+    (let ((here (point)))
+      (goto-char (match-end 0)) ;; Go to the end of the match.
+      (let ((buffer-p (if (match-string 1)
+                          (string= (match-string 2) "buffer")
+                        t)) ;; buffer-p is non-nil by default.
+            (end (eshell-find-delimiter ?\< ?\>)))
+        (when (not end)
+          (throw 'eshell-incomplete ?\<))
+        (if (eshell-arg-delimiter (1+ end))
+            (prog1
+                (list (if buffer-p 'get-buffer-create 'get-process)
+                      (buffer-substring-no-properties (point) end))
+              (goto-char (1+ end)))
+          (ignore (goto-char here)))))))
 
 (defun eshell-parse-delimiter ()
   "Parse an argument delimiter, which is essentially a command operator."

@@ -815,6 +815,7 @@ be cleaner to combine them.
 @node Profiling
 @section Profiling
 @cindex profiling
+@cindex profile
 @cindex measuring resource usage
 @cindex memory usage
 

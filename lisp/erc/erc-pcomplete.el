@@ -33,7 +33,7 @@
 ;;
 ;; If you want nickname completions ordered such that the most recent
 ;; speakers are listed first, set
-;; `erc-pcomplete-order-nickname-completions' to `t'.
+;; `erc-pcomplete-order-nickname-completions' to t.
 ;;
 ;; See CREDITS for other contributors.
 ;;

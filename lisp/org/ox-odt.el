@@ -847,7 +847,7 @@ TABLE-CELL-STYLE-SELECTOR := `use-first-row-styles'       |
                              `use-banding-rows-styles'    |
                              `use-banding-columns-styles' |
                              `use-first-row-styles'
-ON-OR-OFF                 := `t' | `nil'
+ON-OR-OFF                 := t | nil
 
 For example, with the following configuration
 
@@ -3261,7 +3261,7 @@ contextual information."
   "Retrieve styles applicable to a table cell.
 R and C are (zero-based) row and column numbers of the table
 cell.  STYLE-SPEC is an entry in `org-odt-table-styles'
-applicable to the current table.  It is `nil' if the table is not
+applicable to the current table.  It is nil if the table is not
 associated with any style attributes.
 
 Return a cons of (TABLE-CELL-STYLE-NAME . PARAGRAPH-STYLE-NAME).

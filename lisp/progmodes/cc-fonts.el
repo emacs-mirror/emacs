@@ -1772,8 +1772,8 @@ on level 2 only and so aren't combined with `c-complex-decl-matchers'."
 ;; 		       "\\|"
 ;; 		       (c-lang-const c-symbol-key)
 ;; 		       "\\)")
-;; 	       `((c-font-lock-declarators limit t nil) ; That `nil' says use `font-lock-variable-name-face';
-;; 					; `t' would mean `font-lock-function-name-face'.
+;; 	       `((c-font-lock-declarators limit t nil) ; That nil says use `font-lock-variable-name-face';
+;; 					; t would mean `font-lock-function-name-face'.
 ;; 		 (progn
 ;; 		   (c-put-char-property (match-beginning 0) 'c-type
 ;; 					'c-decl-id-start)

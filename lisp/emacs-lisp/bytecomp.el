@@ -348,7 +348,7 @@ else the global value will be modified."
 ;;;###autoload
 (defun byte-compile-enable-warning (warning)
   "Change `byte-compile-warnings' to enable WARNING.
-If `byte-compile-warnings' is `t', do nothing.  Otherwise, if the
+If `byte-compile-warnings' is t, do nothing.  Otherwise, if the
 first element is `not', remove WARNING, else add it.
 Normally you should let-bind `byte-compile-warnings' before calling this,
 else the global value will be modified."

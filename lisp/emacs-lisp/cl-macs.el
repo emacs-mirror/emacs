@@ -294,7 +294,6 @@ FORM is of the form (ARGS . BODY)."
                       ;; apparently harmless computation, so it should not
                       ;; touch the match-data.
                       (save-match-data
-                        (require 'help-fns)
                         (cons (help-add-fundoc-usage
                                (if (stringp (car header)) (pop header))
                                ;; Be careful with make-symbol and (back)quote,

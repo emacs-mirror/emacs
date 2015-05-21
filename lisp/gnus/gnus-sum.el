@@ -4376,7 +4376,7 @@ Returns HEADER if it was entered in the DEPENDENCIES.  Returns nil otherwise."
      ;; The last case ignores an existing entry, except it adds any
      ;; additional Xrefs (in case the two articles came from different
      ;; servers.
-     ;; Also sets `header' to `nil' meaning that the `dependencies'
+     ;; Also sets `header' to nil meaning that the `dependencies'
      ;; table was *not* modified.
      (t
       (mail-header-set-xref

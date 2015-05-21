@@ -5443,7 +5443,7 @@ dynamically create item insertion commands.")
 The list consists of item insertion parameters that can be passed
 as insertion command arguments in fixed positions.  If a position
 in the list is not occupied by the corresponding parameter, it is
-occupied by `nil'."
+occupied by nil."
   (let* ((arg (list (car todo-insert-item--args)))
 	 (args (nconc (cdr todo-insert-item--args)
 		      (list (car (todo-insert-item--argsleft

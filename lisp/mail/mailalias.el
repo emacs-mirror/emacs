@@ -77,7 +77,7 @@ If not on matching header, `mail-complete-function' gets called instead."
 ;;;###autoload
 (defcustom mail-complete-style 'angles
   "Specifies how \\[mail-complete] formats the full name when it completes.
-If `nil', they contain just the return address like:
+If nil, they contain just the return address like:
 	king@grassland.com
 If `parens', they look like:
 	king@grassland.com (Elvis Parsley)

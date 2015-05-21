@@ -1034,7 +1034,7 @@ in Calc algebraic input.")
 
 (defun math-restore-placeholders (x)
   "Replace placeholders by the proper characters in the symbol x.
-This includes `#' for `_' and `'' for `%'.
+This includes ‘#’ for ‘_’ and ‘'’ for ‘%’.
 If the current Calc language does not use placeholders, return nil."
   (if (or (memq calc-language calc-lang-allow-underscores)
           (memq calc-language calc-lang-allow-percentsigns))

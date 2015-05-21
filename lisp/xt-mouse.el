@@ -321,21 +321,21 @@ Enables basic mouse tracking, mouse motion events and finally
 extended tracking on terminals that support it. The following
 escape sequences are understood by modern xterms:
 
-\"\\e[?1000h\" `Basic mouse mode´: Enables reports for mouse
+\"\\e[?1000h\" \"Basic mouse mode\": Enables reports for mouse
             clicks. There is a limit to the maximum row/column
             position (<= 223), which can be reported in this
             basic mode.
 
-\"\\e[?1002h\" `Mouse motion mode´: Enables reports for mouse
+\"\\e[?1002h\" \"Mouse motion mode\": Enables reports for mouse
             motion events during dragging operations.
 
-\"\\e[?1005h\" `UTF-8 coordinate extension`: Enables an extension
+\"\\e[?1005h\" \"UTF-8 coordinate extension\": Enables an extension
             to the basic mouse mode, which uses UTF-8
             characters to overcome the 223 row/column limit. This
             extension may conflict with non UTF-8 applications or
             non UTF-8 locales.
 
-\"\\e[?1006h\" `SGR coordinate extension´: Enables a newer
+\"\\e[?1006h\" \"SGR coordinate extension\": Enables a newer
             alternative extension to the basic mouse mode, which
             overcomes the 223 row/column limit without the
             drawbacks of the UTF-8 coordinate extension.

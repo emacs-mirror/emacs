@@ -1615,8 +1615,8 @@ function,command,variable,option or symbol." ms1))))))
 	    (or
 	     ;; * The documentation string for a variable that is a
 	     ;;   yes-or-no flag should start with words such as Non-nil
-	     ;;   means..., to make it clear that all non-`nil' values are
-	     ;;   equivalent and indicate explicitly what `nil' and non-`nil'
+	     ;;   means..., to make it clear that all non-nil values are
+	     ;;   equivalent and indicate explicitly what nil and non-nil
 	     ;;   mean.
 	     ;; * If a user option variable records a true-or-false
 	     ;;   condition, give it a name that ends in `-flag'.
@@ -2405,7 +2405,7 @@ Argument END is the maximum bounds to search in."
 According to the documentation for the function `error', the error list
 should not end with a period, and should start with a capital letter.
 The function `y-or-n-p' has similar constraints.
-Argument TYPE specifies the type of question, such as `error or `y-or-n-p."
+Argument TYPE specifies the type of question, such as `error' or `y-or-n-p'."
   ;; If type is nil, then attempt to derive it.
   (if (not type)
       (save-excursion
@@ -2613,9 +2613,12 @@ function called to create the messages."
 		     (count-lines (point-min) (or point (point-min))))
 		    ": " msg)))
     (with-current-buffer (get-buffer checkdoc-diagnostic-buffer)
-      (goto-char (point-max))
-      (let ((inhibit-read-only t))
-        (apply #'insert text)))))
+      (let ((inhibit-read-only t)
+            (pt (point-max)))
+        (goto-char pt)
+        (apply #'insert text)
+        (when noninteractive
+          (warn (buffer-substring pt (point-max))))))))
 
 (defun checkdoc-show-diagnostics ()
   "Display the checkdoc diagnostic buffer in a temporary window."

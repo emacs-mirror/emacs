@@ -1,3 +1,604 @@
+2015-05-17  Johan Bockgård  <bojohan@gnu.org>
+
+	Fix integer-valued `mouse-highlight' (Bug#20590)
+	* src/xterm.c (handle_one_xevent) [USE_GTK]: Fix ifdef scope.
+
+2015-05-17  Eli Zaretskii  <eliz@gnu.org>
+
+	MS-Windows followup for ASCIIfication of curved quotes
+	* lisp/term/w32console.el (terminal-init-w32console): Repeat the
+	test for curved quotes being displayable, after switching the
+	terminal encoding.  (Bug#20545)
+
+2015-05-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Spelling fixes
+
+2015-05-17  Jan D  <jan.h.d@swipnet.se>
+
+	Add comment that x_shift_glyphs_for_insert is never called.
+	* xterm.c (x_shift_glyphs_for_insert, x_redisplay_interface): Add
+	comment that this function is never called.
+
+2015-05-16  Glenn Morris  <rgm@gnu.org>
+
+	* src/lisp.mk: Remove from repository and generate at build-time.
+	* src/Makefile.in (lisp.mk): New rule to generate from loadup.el.
+	(shortlisp_filter): New variable.
+	(emacs$(EXEEXT), $(etc)/DOC): Depend on lisp.mk.
+	(distclean): Remove lisp.mk.
+	* Makefile.in ($(MAKEFILE_NAME)): No longer depend on src/lisp.mk.
+	* lisp/loadup.el: Tweak layout to make it easier to parse.
+	* make-dist: Do not distribute src/lisp.mk.
+
+2015-05-16  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Display shorter dates in Git annotate output
+	* lisp/vc/vc-git.el (vc-git-annotate-command): Use the short date
+	format (when not overridden with vc-git-annotate-switches).
+	(vc-git-annotate-time): Support the short format, as well as ISO
+	8601 that has been used until now (bug#5428).
+
+2015-05-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	ASCIIfy curved quotes on displays lacking them
+	* lisp/international/mule-cmds.el (set-locale-environment):
+	If curved quotes don't work, display straight ASCII approximations
+	(Bug#20545).
+
+2015-05-16  Glenn Morris  <rgm@gnu.org>
+
+	Small src/Makefile simplification.
+	* src/lisp.mk (shortlisp): Rename from lisp, remove $lispsource prefix.
+	* src/Makefile.in (lisp): Derive from shortlisp.
+	($(etc)/DOC): Use $shortlisp rather than parsing lisp.mk.
+
+2015-05-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp/help-mode.el (help-go-forward): Doc fix.
+	(Bug#20577)
+
+	* doc/lispref/debugging.texi (Profiling): Improve indexing.
+	(Bug#20576)
+
+2015-05-16  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Use `unless' to have one fewer `not'
+	* lisp/vc/vc-git.el (vc-git-resolve-when-done): Use `unless' to
+	have one fewer `not'.
+
+	Remove redundant :group declarations from vc-git.el
+	* lisp/vc/vc-git.el (vc-git-diff-switches)
+	(vc-git-annotate-switches, vc-git-resolve-conflicts)
+	(vc-git-program, vc-git-root-log-format): Remove the redundant
+	:group declarations.
+
+2015-05-16  Nicolas Petton  <nicolas@petton.fr>
+
+	Removes the predicate from lisp-complete-symbol (Bug#20456)
+	* lisp/emacs-lisp/lisp.el (lisp-complete-symbol): Do not use predicate
+	and remove it from the docstring.
+
+2015-05-16  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Add new option vc-git-resolve-conflicts
+	* lisp/vc/vc-git.el (vc-git-resolve-conflicts): New variable.
+	(vc-git-find-file-hook): Add to after-save-hook only when the
+	above is non-nil.
+	(vc-git-resolve-when-done): Update to honor the new variable.
+	(Bug#20292)
+
+2015-05-16  Eli Zaretskii  <eliz@gnu.org>
+
+	Merge branch 'master' of git.savannah.gnu.org:/srv/git/emacs
+
+2015-05-16  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/emacs-lisp/tabulated-list.el: Don't error on nil header-string
+	(tabulated-list-init-header): Document new behavior.
+	(tabulated-list-print-fake-header): No nothing if
+	`tabulated-list--header-string' is nil.
+	(tabulated-list--header-string): Add a docstring.
+	* doc/lispref/modes.texi (Tabulated List Mode): Document it.
+	* etc/NEWS: Document it.
+
+2015-05-15  Leo Liu  <sdl.web@gmail.com>
+
+	Revert "Fix cps--gensym"
+	* lisp/emacs-lisp/generator.el (cps--gensym): Revert commit
+	  fbda511ab8069d0115eafca411a43353b85431b1 on 2015-05-14.
+
+2015-05-15  Glenn Morris  <rgm@gnu.org>
+
+	Replace AC_SUBST_FILE in configure with include in Makefiles.
+	* configure.ac (DEPDIR, MKDEPDIR, deps_frag, lwlib_deps_frag)
+	(oldxmenu_deps_frag, lisp_frag): Remove output variables/files.
+	(AUTO_DEPEND): New output variable.
+	* lwlib/Makefile.in (AUTO_DEPEND): New, set by configure.
+	(DEPFLAGS, MKDEPDIR): Set directly via conditional.
+	(lwlib_deps_frag): Replace by conditional include.
+	* lwlib/autodeps.mk: Remove file.
+	* oldXMenu/Makefile.in (AUTO_DEPEND): New, set by configure.
+	(DEPFLAGS, MKDEPDIR): Set directly via conditional.
+	(oldxmenu_deps_frag): Replace by conditional include.
+	* oldXMenu/autodeps.mk: Remove file.
+	* src/Makefile.in (AUTO_DEPEND): New, set by configure.
+	(DEPFLAGS, MKDEPDIR): Set directly via conditional.
+	(lisp_frag): Replace by an include.
+	(deps_frag): Replace by conditional include.
+	* src/autodeps.mk: Remove file.
+
+	Tweak japanese.el's loading of dependencies.
+	* lisp/loadup.el: Explicitly load cp51932 and eucjp-ms.
+	* lisp/language/japanese.el: Use require rather than load.
+	* lisp/international/cp51932.el, lisp/international/eucjp-ms.el:
+	Provide a feature.
+	* admin/charsets/eucjp-ms.awk, admin/charsets/cp51932.awk:
+	Provide a feature in the generated file.
+
+2015-05-15  Jan D  <jan.h.d@swipnet.se>
+
+	Fix NS warnings.
+	* nsmenu.m (ns_popup_dialog)
+	* nsimage.m (initFromXBM:width:height:fg:bg:)
+	* nsfns.m (Fx_create_frame): Remove unused variables.
+	(Fns_read_file_name): Initialize fname, remove ret.
+	* nsterm.m (ns_draw_window_cursor): Handle DEFAULT_CURSOR in switch.
+	(ns_get_color, ns_set_horizontal_scroll_bar, keyDown): Remove unused
+	variable.
+	(init): Add parantesis in if.
+	(ns_create_terminal): Assign set_horizontal_scroll_bar_hook.
+
+2015-05-15  Jan Djärv  <jan.h.d@swipnet.se>
+
+	Fix a enum conversion warning in macfont.m
+	* src/macfont.h (CharacterCollection): Typedef to NSCharacterCollection.
+	(MAC_CHARACTER_COLLECTION_*): Use the NS variants.
+
+2015-05-15  Eli Zaretskii  <eliz@gnu.org>
+
+	Support de-alt dictionary with Aspell.
+	* lisp/textmodes/ispell.el (ispell-aspell-find-dictionary):
+	Support Aspell dictionaries with names like "de-alt".  (Bug#20581)
+
+2015-05-15  Jan Djärv  <jan.h.d@swipnet.se>
+
+	cus-start.el: Add ns-confirm-quit.
+	* cus-start.el: Add ns-confirm-quit.
+
+	Fix warnings on OSX 10.10.
+	* nsfns.m (MODAL_OK_RESPONSE): New define for different OSX versions.
+	(Fns_read_file_name): Check against MODAL_OK_RESPONSE.
+	(compute_tip_xy): Use convertRectToScreen for OSX >= 10.7
+	* nsmenu.m (initWithContentRect:styleMask:backing:defer:)
+	* nsimage.m (allocInitFromFile, setPixmapData): Only call
+	setScalesWhenResized for OSX < 10.6.
+	* nsterm.h (EmacsScroller): Declare scrollerWidth.
+	* nsterm.m (ns_copy_bits): New function that does not use deprecated
+	NSCopyBits.
+	(ns_scroll_run, ns_shift_glyphs_for_insert): Call ns_copy_bits.
+	(runAlertPanel): New function.
+	(applicationShouldTerminate:): Call runAlertPanel.
+	(initFrameFromEmacs, toggleFullScreen:): Only call useOptimizedDrawing
+	for OSX < 10.10.
+	(initFrameFromEmacs:): Only call allocateGState for OSX < 10.10.
+	(windowWillUseStandardFrame:defaultFrame:): Cast arg to abs to int.
+	(draggingEntered:): Returns NSDragOperation.
+	(scrollerWidth): Use scrollerWidthForControlSize for OSX >= 10.7.
+
+2015-05-15  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/emacs-lisp/package.el: Don't ensure-init during startup
+	(package--init-file-ensured): New variable.
+	(package-initialize, package--ensure-init-file): Use it.
+
+2015-05-15  Jan Djärv  <jan.h.d@swipnet.se>
+
+	Honor :fore/background for XBM on NS (Bug#14969).
+	* nsterm.h (EmacsImage): Add xbm_fg, remove initFromSkipXBM,
+	initFromXBM takes bg, fg args, remove flip arg.
+	(ns_image_from_XBM): Add bg, fg args.
+	* image.c (x_create_bitmap_from_data)
+	(Create_Pixmap_From_Bitmap_Data): ns_image_from_XBM takes bg, fg args.
+	* nsimage.m (ns_image_from_XBM): Add fg, bg args, pass to initFromXBM.
+	Remove flip arg.
+	(initFromSkipXBM): Move code to initFromXBM.
+	(initFromXBM): Actually set fg and bg, instead of playing alpha games.
+	Use fg, bg from args (Bug#14969).  Remove if (length) section, was always
+	false.
+	Remove bit flipping (bitPat, swt), generated incorrect images when
+	width/height wasn't a multiple of 8.
+	(setXBMColor:): Modify planes by comparing to saved xbm_fg.
+	* nsterm.m (ns_draw_fringe_bitmap): initFromXBM takes fg, bg args, remove
+	flip arg.
+
+2015-05-15  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/emacs-lisp/package.el: Be more careful with the init file
+	(package--ensure-init-file): Check that user-init-file is set,
+	exists, is readable, and is writable.  (Bug#20584)
+	Also expand the docstring.
+
+2015-05-14  Wilson Snyder  <wsnyder@wsnyder.org>
+
+	Sync with upstream verilog-mode revision 6232468
+	* lisp/progmodes/verilog-mode.el (verilog-font-lock-grouping-keywords-face)
+	(verilog-highlight-grouping-keywords): Fix use of face when
+	`verilog-highlight-grouping-keywords' set.  Reported by Jeff
+	Pompa.
+	(verilog-auto-reset): Fix AUTORESET to ignore member resets if
+	parent is reset, bug906. Reported by Ken Schmidt.
+	(verilog-auto-inout-module): Add fourth regexp argument to
+	AUTOINOUTMODULE and AUTOINOUTCOMP for signals to not match,
+	bug856. Reported by John Tillema.
+	(verilog-auto-inst-port): Fix AUTOINST interfaces to not show
+	modport if signal attachment is itself a modport.  Reported by
+	Matthew Lovell.
+	(verilog-auto-reset, verilog-auto-sense-sigs): Fix AUTORESET with
+	always_comb and always_latch, bug844.  Reported by Greg Hilton.
+	(verilog-at-constraint-p, verilog-beg-of-statement-1): Fix hanging
+	with many curly-bracket pairs, bug663.
+	(verilog-set-auto-endcomments): Fix end comments for functions of
+	type void, etc.  Reported by Alex Reed.
+	(verilog-do-indent): Fix electric tab deleting form-feeds.  Note
+	caused by indent-line-to deleting tabls pre 24.5.
+	(verilog-nameable-item-re): Fix nameable items that can have an
+	end-identifier to include endchecker, endgroup, endprogram,
+	endproperty, and endsequence.  Reported by Alex Reed.
+	(verilog-label-be): When auto-commenting a buffer, consider
+	auto-comments on all known keywords (not just a subset thereof).
+	Reported by Alex Reed.
+	(verilog-auto-end-comment-lines-re)
+	(verilog-end-block-ordered-re, verilog-set-auto-endcomments):
+	Automatically comment property/endproperty blocks to match other
+	similar blocks like sequence/endsequence, function/endfunction,
+	etc. Reported by Alex Reed.
+	(verilog-set-auto-endcomments): Detect the function- or task-name
+	when auto-commenting blocks that lack an explicit
+	portlist. Reported by Alex Reed.
+	(verilog-auto, verilog-auto-insert-last): Add AUTOINSERTLAST to
+	allow post-AUTO user fixups, bug826. Reported by Dennis
+	Muhlestein.
+	(verilog-no-indent-begin-re): When `verilog-indent-begin-after-if'
+	is nil, fix indenting initial/final to match always statements,
+	bug825. Reported by Tim Clapp.
+	(verilog-extended-complete-re): Fix indentation of DPI-C imports
+	with c_identifiers, and DPI-C imports, bug557. Reported by ZeDong
+	Mao and Jason Forkey.
+	(verilog-read-decls): Fix parsing typed interfaces.  Fix
+	AUTOINOUTMODPORT missing types.  Reported by Stephan Bourduas.
+	Fix localparam not being ignored in AUTOINSTPARAM,
+	bug889. Reported by Shannon Hill.
+	(verilog-auto-output-every): Add regexp to AUTOOUTPUTEVERY,
+	bug793.  Reported by Pierre-David Pfister.
+	(verilog-auto-arg-format, verilog-auto-arg-ports): Add
+	verilog-auto-arg-format to support newlines in AUTOARG. Reported
+	by Jie Xiao.
+	(verilog-batch-execute-func): Do not batch re-auto files loaded by
+	Local Variables. Fix printing "no changes to be saved" with
+	verilog-batch. Reported by Dan Dever.
+	(verilog-auto-inout-module): Fix AUTOINOUTMODULE not inserting
+	interface-only modules, bug721.  Reported by Dean Hoyt.
+	Author: Alex Reed <acreed4@gmail.com>
+	* lisp/progmodes/verilog-mode.el (verilog-beg-of-statement): Don't
+	treat '<keyword>:<identifier>' as the start of a labeled
+	statement, bug905.  Reported by Enzo Chi.
+	(verilog-directive-re, verilog-compiler-directives)
+	(verilog-keywords): Match full set of IEEE 2012-1800 compiler
+	directives (plus some extras) when determining indentation, bug
+	901.  Reported by Bernd Beuster.
+	(verilog-at-constraint-p): Fix indentation of coverpoint bins if
+	iff expression doesn't start with word-character, bug900.
+	(verilog-optional-signed-range-re, verilog-optional-signed-re):
+	Fix incorrect indentation/alignment of unsigned declarations,
+	bug897.
+	(verilog-looking-back, verilog-in-attribute-p): Fix labling of
+	always constructs, bug895.
+	(verilog-calc-1): Fix verilog-mode constraint indentation,
+	bug324. Reported by Eric Mastromarchi.
+	(verilog-beg-of-statement): Fix indenting for some forms of
+	constraintsm bug433.  Reported by Brad Parker.  Fix indentation of
+	continued assignment incorrect if first line ends with ']',
+	bug437. Reported by Dan Dever.  Fix indention of cover inside an
+	ifdef, bug 862. Reported by Bernd Beuster Fix labeling do-while
+	blocks, bug842.
+	(verilog-preprocessor-re): Fix fork/end UNMATCHED warning,
+	bug859. Reported by Kaushal Modi.
+	(verilog-set-auto-endcomments): Fix endlabel end comments, bug888.
+	(verilog-backward-token): Fix indenting sensitivity lists with
+	named events, bug840.  Reed.
+	(verilog-no-indent-begin-re): Fix `verilog-indent-begin-after-if'
+	nil not honoring 'forever', 'foreach', and 'do' keywords.
+
+2015-05-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Check for invalid GTK+ monitor scales
+	* src/gtkutil.c (xg_get_gdk_scale): Return 1 for invalid scales,
+	INT_MAX for too-large scales.  All callers changed to assume the
+	result is valid (Bug#20432).
+	(xg_frame_set_char_size, xg_update_scrollbar_pos):
+	Calculate scale only if needed.
+	show ASCII approximations instead.
+
+2015-05-14  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix daemon crashes when linum-mode is turned on early on
+	* src/window.c (Fwindow_end): Don't try calling display engine
+	functions on initial-frame frame.  (Bug#20565)
+
+	Fix selective diff browsing in Ediff
+	* lisp/vc/ediff-util.el (ediff-focus-on-regexp-matches): Go to the
+	beginning of the region before searching for the
+	ediff-regexp-focus-* regexps.  (Bug#20568)
+
+2015-05-14  Jan D  <jan.h.d@swipnet.se>
+
+	Fixes Bug#20142.
+	* gtkutil.c (delete_cb): Don't send delete event here, it does arrive
+	in the main loop, even for Gtk 3 (Bug#20142).
+
+	Don't access display after i/o error (Bug#19147).
+	* xterm.c (x_connection_closed): Add third arg ioerror.
+	If ioerror, set display to 0 (Bug#19147).
+	(x_error_quitter): Call x_connection_closed with third arg false.
+	(x_io_error_quitter): Call x_connection_closed with third arg true.
+
+	Handle GTK_SCALE, fixes Bug#20432.
+	* gtkutil.c (xg_get_gdk_scale): New function.
+	(xg_frame_set_char_size)
+	(x_wm_set_size_hint, xg_get_default_scrollbar_width)
+	(xg_get_default_scrollbar_height)
+	(xg_update_horizontal_scrollbar_pos): Take GTK_SCALE in to account
+	when setting sizes (Bug#20432).
+
+2015-05-13  Leo Liu  <sdl.web@gmail.com>
+
+	Fix cps--gensym
+	* lisp/emacs-lisp/generator.el (cps--gensym): Fix.
+
+2015-05-13  Glenn Morris  <rgm@gnu.org>
+
+	Fix bootstrap (void function cl-member).
+	* lisp/emacs-lisp/cl-lib.el: Load cl-seq if no cl-loaddefs file.
+	* lisp/emacs-lisp/cl-seq.el: Provide a feature.
+
+2015-05-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/loadup.el ("emacs-lisp/cl-generic"): Preload
+	* src/lisp.mk (lisp): Add emacs-lisp/cl-generic.elc.
+	* lisp/emacs-lisp/cl-generic.el (cl-generic-define-method):
+	Avoid defalias for closures which are not immutable.
+	(cl--generic-prefill-dispatchers): New macro.  Use it to prefill the
+	dispatchers table with various entries.
+	* lisp/emacs-lisp/ert.el (emacs-lisp-mode-hook):
+	* lisp/emacs-lisp/seq.el (emacs-lisp-mode-hook): Use add-hook.
+
+2015-05-13  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve tagging of C bindings in DEFVAR_*
+	* src/Makefile.in (TAGS): Add --regex options to tag the C binding
+	from DEFVAR_*.
+
+2015-05-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* src/editfns.c (Fformat): Fix use-after-free bug (Bug#20548).
+
+2015-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* lisp/progmodes/tcl.el (tcl-filter):
+	Handle comint-prompt-read-only like gud.el does.  (Bug#20549)
+
+	Add basic VC push support.
+	* lisp/vc/vc.el (vc-push): New autoloaded command.
+	* lisp/vc/vc-hooks.el (vc-prefix-map, vc-menu-map): Add vc-push.
+	* lisp/vc/vc-bzr.el (vc-bzr--pushpull): New, factored from vc-bzr-pull.
+	(vc-bzr-pull): Reimplement using vc-bzr--pushpull.
+	(vc-bzr-push): New.
+	* lisp/vc/vc-git.el (vc-git--pushpull): New, factored from vc-git-pull.
+	(vc-git-pull): Reimplement using vc-git--pushpull.
+	(vc-git-push): New.
+	* lisp/vc/vc-hg.el (vc-hg--pushpull): New, factored from vc-hg-pull.
+	(vc-hg-pull, vc-hg-push): Reimplement using vc-hg--pushpull.
+	* doc/emacs/maintaining.texi (Pulling / Pushing):
+	Rename from "VC Pull".  Mention pushing.
+	(VC With A Merging VCS, VC Change Log): Update xrefs.
+	(Branches): Update menu.
+	* doc/emacs/emacs.texi: Update menu.
+	* etc/NEWS: Mention this.
+
+2015-05-12  Nicolas Petton  <nicolas@petton.fr>
+
+	Improve the seq pcase pattern and the `seq-let' macro
+	* lisp/emacs-lisp/seq.el: The pcase pattern now matches only if the
+	object is a sequence, and binds each element of ARGS to the
+	corresponding element of the sequence.
+
+2015-05-12  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix tags created from DEFVAR_* declarations in C
+	* src/Makefile.in (TAGS): Improve the --regex argument to etags,
+	to make tags extracted from DEFVAR_* declarations more accurate.
+
+	Add a test suite for etags
+	* test/etags/: New test suite, adapted from
+	http://fly.isti.cnr.it/pub/software/unix/etags-regression-test.tar.bz2,
+	whose original author is Francesco Potortì <pot@gnu.org>.
+
+	Fix tagging of symbols in C enumerations
+	* lib-src/etags.c (consider_token): Don't tag symbols in
+	expressions that assign values to enum constants.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2015-05/msg00291.html
+	for details.
+	(C_entries): Reset fvdef to fvnone after processing a preprocessor
+	conditional and after a comma outside of parentheses.
+
+2015-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* lisp/url/url-handlers.el (url-file-name-completion)
+	(url-file-name-all-completions): Silence compiler.
+
+	* lisp/emacs-lisp/chart.el (chart-axis-draw): Replace obsolete alias.
+
+	* lisp/play/dunnet.el (dun-dos-boot-msg): Fix time.  (Bug#20554)
+
+2015-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/emacs-lisp/cl-generic.el: Add dispatch on &context arguments
+	(cl--generic-mandatory-args): Remove.
+	(cl--generic-split-args): New function.
+	(cl-generic-define, cl--generic-lambda): Use it.
+	(cl-generic-define-method): Use it as well, and add support for
+	context args.
+	(cl--generic-get-dispatcher): Handle &context dispatch.
+	(cl--generic-cache-miss): `dispatch-arg' can now be a context expression.
+	(cl--generic-dispatchers): Pre-fill.
+	* test/automated/cl-generic-tests.el (sm-generic-test-12-context): New test.
+
+2015-05-11  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Abort if "make ChangeLog" fails.  Add "--no-changelog".
+
+2015-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/term/xterm.el: Fix xterm-paste handling for rxvt
+	* lisp/term/rxvt.el: Require term/xterm.
+	(rxvt-function-map): Use xterm-rxvt-function-map.
+	(rxvt-standard-colors): Move before first use.
+	(terminal-init-rxvt): Use xterm--push-map and xterm-register-default-colors.
+	(rxvt-rgb-convert-to-16bit, rxvt-register-default-colors): Remove.
+	* lisp/term/xterm.el (xterm-rxvt-function-map): New var.
+	Move shared bindings between rxvt and xterm to it.
+	(xterm-function-map): Use it.  Move the xterm-paste binding to
+	xterm-rxvt-function-map (bug#20444).
+	(xterm-standard-colors): Move before first use.
+	(xterm--push-map): New function.
+	(xterm-register-default-colors): Take standard colors as argument.
+	(terminal-init-xterm): Use it.  Adjust call to
+	xterm-register-default-colors.
+
+2015-05-11  Glenn Morris  <rgm@gnu.org>
+
+	* lisp/term/x-win.el: Quieten --without-x compilation.
+	(x-own-selection-internal, x-disown-selection-internal)
+	(x-selection-owner-p, x-selection-exists-p, x-get-selection-internal):
+	Declare.
+
+	* Makefile.in (emacslog): Remove srcdir.
+	(ChangeLog): Update for the above.
+
+2015-05-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Spelling fix
+
+2015-05-10  Fabián Ezequiel Gallina  <fgallina@gnu.org>
+
+	python.el: better limit for looking-back calls
+	* lisp/progmodes/python.el (python-shell-accept-process-output):
+	Use last comint prompt start as limit for looking-back.
+
+2015-05-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	CEDET (srecode-insert-fcn): Fix use of oref on a class
+	* lisp/cedet/srecode/insert.el (srecode-insert-fcn): Fix use of oref on
+	a class.  Reported by Pierre Lorenzon.
+	(srecode-template-inserter-point): Remove declaration.
+
+	CEDET (srecode-create-dictionary): Avoid obsolete object name
+	* lisp/cedet/srecode/dictionary.el (srecode-create-dictionary):
+	Don't use a symbol as an object name.  Reported by Pierre Lorenzon.
+
+2015-05-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	C-x 8 shorthands for curved quotes, Euro, etc.
+	Although C-x 8 lets you insert arbitrary Unicode characters,
+	it's awkward to use this to insert commonly used symbols such as curved
+	quotes, the Euro symbol, etc.  This patch adds simpler sequences for
+	characters commonly found in English text and in basic math.
+	For example, assuming the Alt key works on your keyboard and iso-transl
+	is loaded, one can now type "A-[" instead of "A-RET LEFT SIN TAB RET"
+	to get the character "‘" (U+2018 LEFT SINGLE QUOTATION MARK).
+	(Bug#20499)
+	* doc/emacs/mule.texi (Unibyte Mode):
+	A few other printing characters now work too.
+	* etc/NEWS: Document this.
+	* lisp/international/iso-transl.el (iso-transl-char-map):
+	Also support the following characters:
+	‐ ‑ ‒ – — ― ‘ ’ “ ” † ‡ • ′ ″ € № ← → ↔ − ≈ ≠ ≤ ≥
+
+2015-05-10  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Add xref-find-regexp
+	* lisp/progmodes/xref.el (xref-find-function): Describe the
+	`matches' action.
+	(xref-find-regexp): New command, using it.
+	(xref-collect-references): Rename to xref-collect-matches.
+	(xref--collect-reference): Rename to xref--collect-match.
+	(xref-collect-matches, xref--collect-match): Accept new argument,
+	KIND.  Update accordingly.
+	(xref--regexp-to-extended): New function.
+	* lisp/progmodes/elisp-mode.el (elisp-xref-find): Support the
+	`matches' action.
+	(elisp--xref-find-matches): Accept new argument.  Resolve a FIXME.
+	* lisp/progmodes/etags.el (etags-xref-find):
+	Support the `matches' action.
+	(etags--xref-find-matches): New function.
+
+2015-05-10  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Fixes for recent change-history changes.
+	(change-history-nocommit): Update footer regexp.
+	Ensure output script stays executable.
+
+2015-05-10  Nicolas Petton  <nicolas@petton.fr>
+
+	New version of `seq-let' based on a pcase pattern
+	* lisp/emacs-lisp/seq.el (seq-let): Define the macro in terms of a
+	pcase pattern if `pcase-defmacro' is defined (Emacs>=25.1).
+
+2015-05-10  Przemysław Wojnowski  <esperanto@cumego.com>
+
+	Add basic HTML5 tags and a template
+	* lisp/textmodes/sgml-mode.el: Basic HTML5 support.
+	(html-tag-alist): Add HTML5 tags.
+	(html-tag-help): Add new tags descriptions.
+	(html-navigational-links): Template for nav links.
+	(html-html5-template): Template for a HTML5 page.
+
+2015-05-10  Dmitry Gutov  <dgutov@yandex.ru>
+
+	semantic/symref/grep: Don't use word boundaries
+	* lisp/cedet/semantic/symref/grep.el
+	(semantic-symref-perform-search): Instead of wrapping input in
+	word boundaries, check that the characters before and after are
+	not word constituents.
+
+	semantic/symref/grep: Support regexp search
+	* lisp/cedet/semantic/symref.el
+	(semantic-symref-hit-to-tag-via-buffer): Don't regexp-quote when
+	the search type is regexp.
+	* lisp/cedet/semantic/symref/grep.el
+	(semantic-symref-perform-search): Support the regexp search type.
+	Pass -E to Grep when it's used.
+
+	semantic-symref-regexp: Allow to input an arbitrary string
+	* lisp/cedet/semantic/symref/list.el (semantic-symref-regexp):
+	Allow to input an arbitrary string interactively.
+
+	Remove tag-symbol-match-p from etags-xref-find-definitions-tag-order
+	* lisp/progmodes/etags.el (etags-xref-find-definitions-tag-order):
+	Remove tag-symbol-match-p from the default value
+	(http://lists.gnu.org/archive/html/emacs-devel/2015-05/msg00292.html).
+
+	Declare find-tag obsolete
+	* lisp/progmodes/etags.el (find-tag): Declare obsolete in favor of
+	xref-find-definitions.
+
+2015-05-10  Jan D  <jan.h.d@swipnet.se>
+
+	Draw composite string correctly (Bug#20537).
+	* nsterm.m (ns_draw_composite_glyph_string_foreground): New function.
+	(ns_draw_glyph_string): Call it (Bug#20537).
+
 2015-05-09  Eli Zaretskii  <eliz@gnu.org>
 
 	Avoid infloop in ERC

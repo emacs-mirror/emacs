@@ -3,7 +3,7 @@ eval '(exit $?0)' && eval 'exec perl -wS "$0" ${1+"$@"}'
     if 0;
 # Convert git log output to ChangeLog format.
 
-my $VERSION = '2015-05-08 06:05'; # UTC
+my $VERSION = '2015-05-19 01:37'; # UTC
 # The definition above must lie within the first 8 lines in order
 # for the Emacs time-stamp write hook (at end) to update it.
 # If you change this file with Emacs, please let the write hook
@@ -74,6 +74,7 @@ OPTIONS:
                   the default is to convert all log entries.
    --until=DATE convert only the logs older than DATE.
    --ignore-matching=PAT ignore commit messages whose first lines match PAT.
+   --ignore-line=PAT ignore lines of commit messages that match PAT.
    --format=FMT set format string for commit subject and body;
                   see 'man git-log' for the list of format metacharacters;
                   the default is '%s%n%b%n'
@@ -228,6 +229,7 @@ sub git_dir_option($)
   my $append_dot = 0;
   my $cluster = 1;
   my $ignore_matching;
+  my $ignore_line;
   my $strip_tab = 0;
   my $strip_cherry_pick = 0;
   my $srcdir;
@@ -242,6 +244,7 @@ sub git_dir_option($)
      'append-dot' => \$append_dot,
      'cluster!' => \$cluster,
      'ignore-matching=s' => \$ignore_matching,
+     'ignore-line=s' => \$ignore_line,
      'strip-tab' => \$strip_tab,
      'strip-cherry-pick' => \$strip_cherry_pick,
      'srcdir=s' => \$srcdir,
@@ -349,6 +352,12 @@ sub git_dir_option($)
       if (! (defined $ignore_matching
              && @line && $line[0] =~ /$ignore_matching/))
         {
+          if (defined $ignore_line && @line)
+            {
+              @line = grep ! /$ignore_line/, @line;
+              while ($line[$#line] =~ /^\s*$/) { pop @line; }
+            }
+
           # Record whether there are two or more paragraphs.
           my $multi_paragraph = grep /^\s*$/, @line;
 

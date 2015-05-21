@@ -112,10 +112,15 @@ am__v_at_0 = @
 am__v_at_1 =
 
 DEPDIR = deps
-## -MMD -MF $(DEPDIR)/$*.d if AUTO_DEPEND; else empty.
-DEPFLAGS = @DEPFLAGS@
-## ${MKDIR_P} ${DEPDIR} (if AUTO_DEPEND); else ':'.
-MKDEPDIR = @MKDEPDIR@
+AUTO_DEPEND = @AUTO_DEPEND@
+
+ifeq ($(AUTO_DEPEND),yes)
+DEPFLAGS = -MMD -MF ${DEPDIR}/$*.d -MP
+MKDEPDIR = ${MKDIR_P} ${DEPDIR}
+else
+DEPFLAGS =
+MKDEPDIR = :
+endif
 
 ALL_CFLAGS=$(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) \
   $(C_SWITCH_X_SITE) $(DEPFLAGS) \
@@ -132,8 +137,11 @@ libXMenu11.a: $(OBJS) $(EXTRA)
 	$(AM_V_at)$(AR) $(ARFLAGS) $@ $(OBJS) $(EXTRA)
 	$(AM_V_at)$(RANLIB) $@
 
-## Insert either autodeps.mk (if AUTO_DEPEND), else deps.mk.
-@oldxmenu_deps_frag@
+ifeq ($(AUTO_DEPEND),yes)
+-include $(ALLOBJS:%.o=${DEPDIR}/%.d)
+else
+include $(srcdir)/deps.mk
+endif
 
 .PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean
 

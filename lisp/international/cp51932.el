@@ -468,3 +468,5 @@
 	      (setcar x (cdr x)) (setcdr x tmp)))
 	map)
   (define-translation-table 'cp51932-encode map))
+
+(provide 'cp51932)

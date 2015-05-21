@@ -52,4 +52,6 @@ END {
   print "	      (setcar x (cdr x)) (setcdr x tmp)))";
   print "	map)";
   print "  (define-translation-table 'cp51932-encode map))";
+  print "";
+  print "(provide 'cp51932)";
 }

@@ -1983,7 +1983,7 @@ system."
 
 (defvar c-lang-const-expansion nil)
 
-;; Ugly hack to pull in the definition of `cc-bytecomp-compiling-or-loading`
+;; Ugly hack to pull in the definition of `cc-bytecomp-compiling-or-loading'
 ;; from cc-bytecomp to make it available at loadtime.  This is the same
 ;; mechanism used in cc-mode.el for `c-populate-syntax-table'.
 (defalias 'cc-bytecomp-compiling-or-loading
@@ -2017,10 +2017,10 @@ The second argument can optionally be a docstring.  The rest of the
 arguments are one or more repetitions of LANG VAL where LANG specifies
 the language(s) that VAL applies to.  LANG is the name of the
 language, i.e. the mode name without the \"-mode\" suffix, or a list
-of such language names, or `t' for all languages.  VAL is a form to
+of such language names, or t for all languages.  VAL is a form to
 evaluate to get the value.
 
-If LANG isn't `t' or one of the core languages in CC Mode, it must
+If LANG isn't t or one of the core languages in CC Mode, it must
 have been declared with `c-add-language'.
 
 Neither NAME, LANG nor VAL are evaluated directly - they should not be
@@ -2030,7 +2030,7 @@ VAL to evaluate parts of it directly.
 When VAL is evaluated for some language, that language is temporarily
 made current so that `c-lang-const' without an explicit language can
 be used inside VAL to refer to the value of a language constant in the
-same language.  That is particularly useful if LANG is `t'.
+same language.  That is particularly useful if LANG is t.
 
 VAL is not evaluated right away but rather when the value is requested
 with `c-lang-const'.  Thus it's possible to use `c-lang-const' inside
@@ -2365,7 +2365,7 @@ fallback definition for all modes, to break the cycle).")
 
 (defun c-find-assignment-for-mode (source-pos mode match-any-lang _name)
   ;; Find the first assignment entry that applies to MODE at or after
-  ;; SOURCE-POS.  If MATCH-ANY-LANG is non-nil, entries with `t' as
+  ;; SOURCE-POS.  If MATCH-ANY-LANG is non-nil, entries with t as
   ;; the language list are considered to match, otherwise they don't.
   ;; On return SOURCE-POS is updated to point to the next assignment
   ;; after the returned one.  If no assignment is found,

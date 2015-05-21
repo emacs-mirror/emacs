@@ -100,7 +100,7 @@
     (setq byte-compile-not-obsolete-vars '(directory-sep-char)))
 
   ;; `remote-file-name-inhibit-cache' has been introduced with Emacs 24.1.
-  ;; Besides `t', `nil', and integer, we use also timestamps (as
+  ;; Besides t, nil, and integer, we use also timestamps (as
   ;; returned by `current-time') internally.
   (unless (boundp 'remote-file-name-inhibit-cache)
     (defvar remote-file-name-inhibit-cache nil))
@@ -459,7 +459,7 @@ element is not omitted."
   (delete "" (split-string string pattern)))
 
 (defun tramp-compat-process-running-p (process-name)
-  "Returns `t' if system process PROCESS-NAME is running for `user-login-name'."
+  "Returns t if system process PROCESS-NAME is running for `user-login-name'."
   (when (stringp process-name)
     (cond
      ;; GNU Emacs 22 on w32.

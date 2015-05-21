@@ -68,8 +68,8 @@ University of California, as described above. */
  * 1994 Line-by-line regexp tags by Tom Tromey.
  * 2001 Nested classes by Francesco Potortì (concept by Mykola Dzyuba).
  * 2002 #line directives by Francesco Potortì.
- *
- * Francesco Potortì <pot@gnu.org> has maintained and improved it since 1993.
+ * Francesco Potortì maintained and improved it for many years
+   starting in 1993.
  */
 
 /*
@@ -6484,7 +6484,6 @@ static void
 canonicalize_filename (register char *fn)
 {
   register char* cp;
-  char sep = '/';
 
 #ifdef DOS_NT
   /* Canonicalize drive letter case.  */
@@ -6492,19 +6491,33 @@ canonicalize_filename (register char *fn)
   if (fn[0] != '\0' && fn[1] == ':' && ISUPPER (fn[0]))
     fn[0] = lowcase (fn[0]);
 
-  sep = '\\';
-#endif
-
-  /* Collapse multiple separators into a single slash. */
+  /* Collapse multiple forward- and back-slashes into a single forward
+     slash. */
   for (cp = fn; *cp != '\0'; cp++, fn++)
-    if (*cp == sep)
+    if (*cp == '/' || *cp == '\\')
       {
 	*fn = '/';
-	while (cp[1] == sep)
+	while (cp[1] == '/' || cp[1] == '\\')
 	  cp++;
       }
     else
       *fn = *cp;
+
+#else  /* !DOS_NT */
+
+  /* Collapse multiple slashes into a single slash. */
+  for (cp = fn; *cp != '\0'; cp++, fn++)
+    if (*cp == '/')
+      {
+	*fn = '/';
+	while (cp[1] == '/')
+	  cp++;
+      }
+    else
+      *fn = *cp;
+
+#endif	/* !DOS_NT */
+
   *fn = '\0';
 }
 

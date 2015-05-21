@@ -498,7 +498,7 @@ access_keymap_1 (Lisp_Object map, Lisp_Object idx,
 	    if (INTEGERP (idx) && (XFASTINT (idx) & CHAR_MODIFIER_MASK) == 0)
 	      {
 		val = Faref (binding, idx);
-		/* `nil' has a special meaning for char-tables, so
+		/* nil has a special meaning for char-tables, so
 		   we use something else to record an explicitly
 		   unbound entry.  */
 		if (NILP (val))
@@ -849,7 +849,7 @@ store_in_keymap (Lisp_Object keymap, register Lisp_Object idx, Lisp_Object def)
 	    if (NATNUMP (idx) && !(XFASTINT (idx) & CHAR_MODIFIER_MASK))
 	      {
 		Faset (elt, idx,
-		       /* `nil' has a special meaning for char-tables, so
+		       /* nil has a special meaning for char-tables, so
 			  we use something else to record an explicitly
 			  unbound entry.  */
 		       NILP (def) ? Qt : def);

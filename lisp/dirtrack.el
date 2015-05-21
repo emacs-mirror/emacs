@@ -51,7 +51,7 @@
 ;; which matches your prompt up to and including the pathname part.
 ;; The second is a number which tells which regular expression group to
 ;; match to extract only the pathname.  If you use a multi-line prompt,
-;; add 't' as a third element.  Note that some of the functions in
+;; add t as a third element.  Note that some of the functions in
 ;; 'comint.el' assume a single-line prompt (eg, comint-bol).
 ;;
 ;; Determining this information may take some experimentation.  Using

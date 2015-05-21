@@ -161,7 +161,7 @@
 
 ;; The WoMan menu provides an option to make a contents menu for the
 ;; current man page (using imenu).  Alternatively, if you set the
-;; variable `woman-imenu' to `t' then WoMan will do it automatically
+;; variable `woman-imenu' to t then WoMan will do it automatically
 ;; for every man page.  The menu title is the value of the variable
 ;; `woman-imenu-title', which is "CONTENTS" by default.  By default,
 ;; the menu shows manual sections and subsections, but you can change
@@ -179,7 +179,7 @@
 ;; Howard Melman made (essentially) the following suggestions, which
 ;; are slightly different from the expression that I currently use.
 ;; You may prefer one of Howard's suggestions, which I think assume
-;; that `case-fold-search' is `t' (which it is by default):
+;; that `case-fold-search' is t (which it is by default):
 
 ;; (setq woman-imenu-generic-expression
 ;;       '((nil "^\\(   \\)?\\([A-Z][A-Z ]+[A-Z]\\)[ \t]*$" 2)))
@@ -217,7 +217,7 @@
 ;; This is modeled on the byte-compiler.  It logs all files formatted
 ;; by WoMan, and if WoMan finds anything that it cannot handle then it
 ;; writes a warning to this buffer.  If the variable `woman-show-log'
-;; is non-nil (by default it is `nil') then WoMan automatically
+;; is non-nil (by default it is nil) then WoMan automatically
 ;; displays this buffer.  Many WoMan warnings can be completely
 ;; ignored, because they are reporting the fact that WoMan has ignored
 ;; requests that it is correct to ignore.  In some future version this
@@ -228,8 +228,8 @@
 
 ;; Uninterpreted ?roff requests can optionally be left in the
 ;; formatted buffer to indicate precisely where they occur by
-;; resetting the variable `woman-ignore' to `nil' (by default it is
-;; `t').
+;; resetting the variable `woman-ignore' to nil (by default it is
+;; t).
 
 ;; Automatic initiation of woman decoding
 
@@ -278,7 +278,7 @@
 ;; CASE-DEPENDENCE OF FILENAMES.  By default, WoMan ignores case in
 ;; file pathnames only when it seems appropriate.  MS-Windows users
 ;; who want complete case independence should set the NTEmacs variable
-;; `w32-downcase-file-names' to `t' and use all lower case when
+;; `w32-downcase-file-names' to t and use all lower case when
 ;; setting WoMan file paths.
 
 ;; (1) INCOMPATIBLE CHANGE!  WoMan no longer uses a persistent topic

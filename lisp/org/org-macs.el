@@ -55,7 +55,7 @@
      ,@body))
 
 (defmacro org-called-interactively-p (&optional kind)
-  (declare (debug (&optional ("quote" symbolp)))) ;Why not just `t'?
+  (declare (debug (&optional ("quote" symbolp)))) ;Why not just t?
   (if (featurep 'xemacs)
       `(interactive-p)
     (if (or (> emacs-major-version 23)

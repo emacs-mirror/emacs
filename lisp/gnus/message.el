@@ -1123,7 +1123,7 @@ e.g. using `gnus-posting-styles':
 
 (defcustom message-cite-style nil
   "*The overall style to be used when yanking cited text.
-Value is either `nil' (no variable overrides) or a let-style list
+Value is either nil (no variable overrides) or a let-style list
 of pairs (VARIABLE VALUE) that will be bound in
 `message-yank-original' to do the quoting.
 

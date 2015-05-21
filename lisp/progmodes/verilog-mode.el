@@ -519,8 +519,8 @@ take you to the next lint error."
 
 (defvar verilog-tool 'verilog-linter
   "Which tool to use for building compiler-command.
-Either nil, `verilog-linter, `verilog-compiler,
-`verilog-coverage, `verilog-preprocessor, or `verilog-simulator.
+Either nil, `verilog-linter', `verilog-compiler',
+`verilog-coverage', `verilog-preprocessor', or `verilog-simulator'.
 Alternatively use the \"Choose Compilation Action\" menu.  See
 `verilog-set-compile-command' for more information.")
 
@@ -1674,7 +1674,7 @@ If third arg START is non-nil, start search at that index in STRING."
 
 (defsubst verilog-string-replace-matches (from-string to-string fixedcase literal string)
   "Replace occurrences of FROM-STRING with TO-STRING.
-FIXEDCASE and LITERAL as in `replace-match`.  STRING is what to replace.
+FIXEDCASE and LITERAL as in `replace-match'.  STRING is what to replace.
 The case (verilog-string-replace-matches \"o\" \"oo\" nil nil \"foobar\")
 will break, as the o's continuously replace.  xa -> x works ok though."
   ;; Hopefully soon to an Emacs built-in
@@ -5201,7 +5201,7 @@ becomes:
 (defun verilog-preprocess (&optional command filename)
   "Preprocess the buffer, similar to `compile', but put output in Verilog-Mode.
 Takes optional COMMAND or defaults to `verilog-preprocessor', and
-FILENAME to find directory to run in, or defaults to `buffer-file-name`."
+FILENAME to find directory to run in, or defaults to `buffer-file-name'."
   (interactive
    (list
     (let ((default (verilog-expand-command verilog-preprocessor)))
@@ -12648,7 +12648,7 @@ driver/monitor using AUTOINST in the testbench."
 (defun verilog-auto-insert-lisp ()
   "Expand AUTOINSERTLISP statements, as part of \\[verilog-auto].
 The Lisp code provided is called before other AUTOS are expanded,
-and the Lisp code generally will call `insert` to insert text
+and the Lisp code generally will call `insert' to insert text
 into the current file beginning on the line after the
 AUTOINSERTLISP.
 
@@ -12713,7 +12713,7 @@ text:
 (defun verilog-auto-insert-last ()
   "Expand AUTOINSERTLAST statements, as part of \\[verilog-auto].
 The Lisp code provided is called after all other AUTOS have been
-expanded, and the Lisp code generally will call `insert` to
+expanded, and the Lisp code generally will call `insert' to
 insert text into the current file beginning on the line after the
 AUTOINSERTLAST.
 

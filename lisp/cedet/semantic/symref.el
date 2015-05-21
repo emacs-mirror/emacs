@@ -351,7 +351,7 @@ until the next command is executed."
   (setq semantic-symref-recently-opened-buffers nil)
   (remove-hook 'post-command-hook 'semantic-symref-cleanup-recent-buffers-fcn)
   )
-  
+
 (cl-defmethod semantic-symref-result-get-tags ((result semantic-symref-result)
 					    &optional open-buffers)
   "Get the list of tags from the symref result RESULT.
@@ -512,7 +512,7 @@ buffers that were opened."
    (searchtype :initarg :searchtype
 		:type symbol
 		:documentation "The type of search to do.
-Values could be `symbol, `regexp, 'tagname, or 'completion.")
+Values could be 'symbol, 'regexp, 'tagname, or 'completion.")
    (searchscope :initarg :searchscope
 		:type symbol
 		:documentation

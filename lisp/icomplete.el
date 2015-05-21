@@ -149,16 +149,26 @@ icompletion is occurring."
 (defvar icomplete-minibuffer-map
   (let ((map (make-sparse-keymap)))
     (define-key map [?\M-\t] 'minibuffer-force-complete)
-    (define-key map [?\C-j]  'minibuffer-force-complete-and-exit)
+    (define-key map [?\C-j]  'icomplete-force-complete-and-exit)
     (define-key map [?\C-.]  'icomplete-forward-completions)
     (define-key map [?\C-,]  'icomplete-backward-completions)
     map)
   "Keymap used by `icomplete-mode' in the minibuffer.")
 
+(defun icomplete-force-complete-and-exit ()
+  "Complete the minibuffer and exit.
+Use the first of the matches if there are any displayed, and use
+the default otherwise."
+  (interactive)
+  (if (or icomplete-show-matches-on-no-input
+          (> (icomplete--field-end) (icomplete--field-beg)))
+      (minibuffer-force-complete-and-exit)
+    (minibuffer-complete-and-exit)))
+
 (defun icomplete-forward-completions ()
   "Step forward completions by one entry.
 Second entry becomes the first and can be selected with
-`minibuffer-force-complete-and-exit'."
+`icomplete-force-complete-and-exit'."
   (interactive)
   (let* ((beg (icomplete--field-beg))
          (end (icomplete--field-end))
@@ -171,7 +181,7 @@ Second entry becomes the first and can be selected with
 (defun icomplete-backward-completions ()
   "Step backward completions by one entry.
 Last entry becomes the first and can be selected with
-`minibuffer-force-complete-and-exit'."
+`icomplete-force-complete-and-exit'."
   (interactive)
   (let* ((beg (icomplete--field-beg))
          (end (icomplete--field-end))

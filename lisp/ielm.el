@@ -511,7 +511,7 @@ evaluations respectively.  If the working buffer is another IELM
 buffer, then the values in the working buffer are used.  The variables
 `*1', `*2' and `*3', yield the process buffer values.
 
-If, at the start of evaluation, `standard-output' is `t' (the
+If, at the start of evaluation, `standard-output' is t (the
 default), `standard-output' is set to a special function that
 causes output to be directed to the ielm buffer.
 `standard-output' is restored after evaluation unless explicitly

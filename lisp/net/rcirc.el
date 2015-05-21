@@ -1372,7 +1372,7 @@ if ARG is omitted or nil."
     (t         . "%fp*** %fs%n %r %m"))
   "An alist of formats used for printing responses.
 The format is looked up using the response-type as a key;
-if no match is found, the default entry (with a key of `t') is used.
+if no match is found, the default entry (with a key of t) is used.
 
 The entry's value part should be a string, which is inserted with
 the of the following escape sequences replaced by the described values:

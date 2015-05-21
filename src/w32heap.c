@@ -115,9 +115,9 @@ typedef struct _RTL_HEAP_PARAMETERS {
    to build only the first bootstrap-emacs.exe with the large size,
    and reset that to a lower value afterwards.  */
 #if defined _WIN64 || defined WIDE_EMACS_INT
-# define DUMPED_HEAP_SIZE (18*1024*1024)
+# define DUMPED_HEAP_SIZE (19*1024*1024)
 #else
-# define DUMPED_HEAP_SIZE (11*1024*1024)
+# define DUMPED_HEAP_SIZE (12*1024*1024)
 #endif
 
 static unsigned char dumped_data[DUMPED_HEAP_SIZE];

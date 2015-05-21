@@ -540,8 +540,8 @@ property is used for bidirectional display.
 
 @item old-name
 Corresponds to the Unicode @code{Unicode_1_Name} property.  The value
-is a string.  Unassigned codepoints, and characters that have no value
-for this property, the value is @code{nil}.
+is a string.  For unassigned codepoints, and characters that have no
+value for this property, the value is @code{nil}.
 
 @item iso-10646-comment
 Corresponds to the Unicode @code{ISO_Comment} property.  The value is

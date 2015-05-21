@@ -348,7 +348,7 @@ to `allout-body-modification-handler', and is always reset by
 images with lists containing the name of the icon directory (as
 found on the `load-path') and the icon name.
 
-Set this variable to `nil' to empty the cache, and have it replenish from the
+Set this variable to nil to empty the cache, and have it replenish from the
 filesystem.")
 ;;;_    = allout-widgets-unset-inhibit-read-only
 (defvar allout-widgets-unset-inhibit-read-only nil

@@ -669,7 +669,7 @@ SWITCHES is a list of characters.  Default sorting is alphabetic."
 		))))
   ;; Finally reverse file alist if necessary.
   ;; (eq below MUST compare `(not (memq ...))' to force comparison of
-  ;; `t' or `nil', rather than list tails!)
+  ;; t or nil, rather than list tails!)
   (if (eq (eq (not (memq ?U switches))	; unsorted order is reversed
 	      (not (memq ?r switches)))	; reversed sort order requested
 	  ls-lisp-dirs-first)		; already reversed

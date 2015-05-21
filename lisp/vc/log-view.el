@@ -404,7 +404,9 @@ This calls `log-view-expanded-log-entry-function' to do the work."
 	      (unless (and pos (log-view-inside-comment-p pos))
 		(error "Broken markup in `log-view-toggle-entry-display'"))
 	      (delete-region pos
-			     (next-single-property-change pos 'log-view-comment))
+                             (or
+                              (next-single-property-change pos 'log-view-comment)
+                              (point-max)))
 	      (put-text-property beg (1+ beg) 'log-view-entry-expanded nil)
 	      (if (< opoint pos)
 		  (goto-char opoint)))
@@ -469,7 +471,10 @@ It assumes that a log entry starts with a line matching
        ((looking-back "Show 2X entries    Show unlimited entries"
                       (line-beginning-position))
 	(setq looping nil)
-	(forward-line -1))))))
+	(forward-line -1))
+       ;; There are no buttons if we've turned on unlimited entries.
+       ((eobp)
+        (setq looping nil))))))
 
 (defun log-view-end-of-defun (&optional arg)
   "Move forward to the next Log View entry.

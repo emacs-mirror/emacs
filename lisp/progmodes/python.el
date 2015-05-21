@@ -3216,7 +3216,7 @@ With argument MSG show activation/deactivation message."
            (concat
             "Your `python-shell-interpreter' doesn't seem to "
             "support readline, yet `python-shell-completion-native' "
-            (format "was `t' and %S is not part of the "
+            (format "was t and %S is not part of the "
                     (file-name-nondirectory python-shell-interpreter))
             "`python-shell-completion-native-disabled-interpreters' "
             "list.  Native completions have been disabled locally. "))

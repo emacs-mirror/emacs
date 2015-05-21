@@ -34,8 +34,8 @@
 ;;; Code:
 
 ;;; Load translation tables for CP932.
-(load "international/cp51932")
-(load "international/eucjp-ms")
+(require 'cp51932)
+(require 'eucjp-ms)
 
 (define-coding-system 'iso-2022-jp
   "ISO 2022 based 7bit encoding for Japanese (MIME:ISO-2022-JP)."

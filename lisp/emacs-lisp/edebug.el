@@ -600,7 +600,7 @@ list of a symbol.")
 (defun edebug-get-form-data-entry (pnt &optional end-point)
   ;; Find the edebug form data entry which is closest to PNT.
   ;; If END-POINT is supplied, match must be exact.
-  ;; Return `nil' if none found.
+  ;; Return nil if none found.
   (let ((rest edebug-form-data)
 	closest-entry
 	(closest-dist 999999))  ;; Need maxint here.

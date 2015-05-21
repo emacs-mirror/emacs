@@ -2376,9 +2376,9 @@ Sets `gdb-thread-number' to new id."
   (let* ((result (gdb-json-string output-field))
          (thread-id (bindat-get-field result 'id)))
     (gdb-setq-thread-number thread-id)
-    ;; Typing `thread N` in GUD buffer makes GDB emit `^done` followed
-    ;; by `=thread-selected` notification. `^done` causes `gdb-update`
-    ;; as usually. Things happen to fast and second call (from
+    ;; Typing `thread N' in GUD buffer makes GDB emit `^done' followed
+    ;; by `=thread-selected' notification. `^done' causes `gdb-update'
+    ;; as usually. Things happen too fast and second call (from
     ;; gdb-thread-selected handler) gets cut off by our beloved
     ;; pending triggers.
     ;; Solution is `gdb-wait-for-pending' macro: it guarantees that its

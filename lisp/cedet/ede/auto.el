@@ -86,7 +86,7 @@ into memory.")
      ;; If the thing to match is stored in a config file.
      ((stringp fc)
       (when (file-exists-p fc)
-	(let ((matchstring 
+	(let ((matchstring
 	       (if (slot-boundp dirmatch 'configdatastash)
 		   (oref dirmatch configdatastash)
 		 nil)))
@@ -123,7 +123,7 @@ into memory.")
 		   (not (= (match-end 0) (length file))))
 	       )
 	  )))
-     
+
      ;; Add new matches here
      ;; ((stringp somenewslot ...)
      ;;   )
@@ -155,9 +155,9 @@ into memory.")
 Specifying this matcher object will allow EDE to perform a complex
 check without loading the project.
 
-NOTE: If you use dirmatch, you may need to set :root-only to `nil'.
+NOTE: If you use dirmatch, you may need to set :root-only to nil.
 While it may be a root based project, all subdirs will happen to return
-true for the dirmatch, so for scanning purposes, set it to `nil'.") 
+true for the dirmatch, so for scanning purposes, set it to nil.")
    (proj-root :initarg :proj-root
 	      :type function
 	      :documentation "A function symbol to call for the project root.
@@ -280,7 +280,7 @@ added.  Possible values are:
     (if f
 	(and f (file-exists-p f))
       (let ((dirmatch (oref this proj-root-dirmatch)))
-	(cond 
+	(cond
 	 ((stringp dirmatch)
 	  nil) ; <- do something here - maybe obsolete the option?
 	 ((ede-project-autoload-dirmatch-p dirmatch)
@@ -312,7 +312,7 @@ NOTE: Do not call this - it should only be called from `ede-load-project-file'."
 
 
 
-;;; -------- Old Methods 
+;;; -------- Old Methods
 ;; See if we can do without them.
 
 ;; @FIXME - delete from loaddefs to remove this.

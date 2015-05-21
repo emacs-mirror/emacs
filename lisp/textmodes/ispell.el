@@ -1075,9 +1075,11 @@ of `ispell-dictionary-base-alist' elements."
 	   (dolist ( tmp-path (list ispell-aspell-dict-dir
 				    ispell-aspell-data-dir ))
 	     ;; Try xx.dat first, strip out variant, country code, etc,
-	     ;; then try xx_YY.dat (without stripping country code).
+	     ;; then try xx_YY.dat (without stripping country code),
+	     ;; then try xx-alt.dat, for de-alt etc.
 	     (dolist (tmp-regexp (list "^[[:alpha:]]+"
-				       "^[[:alpha:]_]+"))
+				       "^[[:alpha:]_]+"
+                                       "^[[:alpha:]]+-\\(alt\\|old\\)"))
 	       (let ((fullpath
 		      (concat tmp-path "/"
 			      (and (string-match tmp-regexp dict-name)
@@ -3400,7 +3402,7 @@ Must be called after `ispell-buffer-local-parsing' due to dependence on mode."
 
 (defun ispell-ignore-fcc (start end)
   "Delete the Fcc: message header when large attachments are included.
-Return value `nil' if file with large attachments is saved.
+Return value nil if file with large attachments is saved.
 This can be used to avoid multiple questions for multiple large attachments.
 Returns point to starting location afterwards."
   (let ((result t))
@@ -3898,7 +3900,7 @@ Otherwise, it must be a function which is called to get the limit.")
 
 (defun ispell-mime-multipartp (&optional limit)
   "Return multipart message start boundary or nil if none."
-  ;; caller must ensure `case-fold-search' is set to `t'
+  ;; caller must ensure `case-fold-search' is set to t
   (and
    (re-search-forward
     "Content-Type: *multipart/\\([^ \t\n]*;[ \t]*[\n]?[ \t]*\\)+boundary="

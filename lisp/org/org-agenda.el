@@ -6642,7 +6642,7 @@ The modified list may contain inherited tags, and tags matched by
 
 LIST is the list of agenda items formatted by `org-agenda-list'.
 NDAYS is the span of the current agenda view.
-TODAYP is `t' when the current agenda view is on today."
+TODAYP is t when the current agenda view is on today."
   (catch 'exit
     (cond ((not org-agenda-use-time-grid) (throw 'exit list))
 	  ((and todayp (member 'today (car org-agenda-time-grid))))

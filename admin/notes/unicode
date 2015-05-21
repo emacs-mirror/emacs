@@ -245,6 +245,25 @@ nontrivial changes to the build process.
 	lisp/leim/quail/ethiopic.el
 	lisp/leim/quail/tibetan.el
 
+ * binary files
+
+     These files contain binary data, and are not text files.
+     Some of the entries in this list are patterns, and stand for any
+     files with the listed extension.
+
+	*.gz
+	*.icns
+	*.ico
+	*.pbm
+	*.pdf
+	*.png
+	*.sig
+	etc/e/eterm-color
+	etc/package-keyring.gpg
+	msdos/emacs.pif
+	nextstep/GNUstep/Emacs.base/Resources/emacs.tiff
+	nt/icons/hand.cur
+
 
 This file is part of GNU Emacs.
 

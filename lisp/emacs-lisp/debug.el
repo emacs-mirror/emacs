@@ -54,7 +54,7 @@ the middle is discarded, and just the beginning and end are displayed."
 The value affects the behavior of operations on any window
 previously showing the debugger buffer.
 
-`nil' means that if its window is not deleted when exiting the
+nil means that if its window is not deleted when exiting the
   debugger, invoking `switch-to-prev-buffer' will usually show
   the debugger buffer again.
 

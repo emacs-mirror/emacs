@@ -595,7 +595,7 @@ XEmacs user should have this variable set to nil, because
 (defcustom org-loop-over-headlines-in-active-region nil
   "Shall some commands act upon headlines in the active region?
 
-When set to `t', some commands will be performed in all headlines
+When set to t, some commands will be performed in all headlines
 within the active region.
 
 When set to `start-level', some commands will be performed in all
@@ -1452,7 +1452,7 @@ changed by an edit command."
 (defcustom org-remove-highlights-with-change t
   "Non-nil means any change to the buffer will remove temporary highlights.
 Such highlights are created by `org-occur' and `org-clock-display'.
-When nil, `C-c C-c needs to be used to get rid of the highlights.
+When nil, `C-c C-c' needs to be used to get rid of the highlights.
 The highlights created by `org-preview-latex-fragment' always need
 `C-c C-c' to be removed."
   :group 'org-sparse-trees
@@ -1575,7 +1575,7 @@ See the manual for examples."
   "Non-nil means Org will display descriptive links.
 E.g. [[http://orgmode.org][Org website]] will be displayed as
 \"Org Website\", hiding the link itself and just displaying its
-description.  When set to `nil', Org will display the full links
+description.  When set to nil, Org will display the full links
 literally.
 
 You can interactively set the value of this variable by calling
@@ -11558,7 +11558,7 @@ go to the location where the last refiling operation has put the subtree.
 With a numeric prefix argument of `2', refile to the running clock.
 
 With a numeric prefix argument of `3', emulate `org-refile-keep'
-being set to `t' and copy to the target location, don't move it.
+being set to t and copy to the target location, don't move it.
 Beware that keeping refiled entries may result in duplicated ID
 properties.
 
@@ -12077,7 +12077,7 @@ This is a list of abbreviation keys and values.  The value gets inserted
 if you type `<' followed by the key and then press the completion key,
 usually `M-TAB'.  %file will be replaced by a file name after prompting
 for the file using completion.  The cursor will be placed at the position
-of the `?` in the template.
+of the `?' in the template.
 There are two templates for each key, the first uses the original Org syntax,
 the second uses Emacs Muse-like syntax tags.  These Muse-like tags become
 the default when the /org-mtags.el/ module has been loaded.  See also the
@@ -15541,7 +15541,7 @@ and the new value.")
 
 (defun org-entry-put (pom property value)
   "Set PROPERTY to VALUE for entry at point-or-marker POM.
-If the value is `nil', it is converted to the empty string.
+If the value is nil, it is converted to the empty string.
 If it is not a string, an error is raised."
   (cond ((null value) (setq value ""))
 	((not (stringp value))
@@ -17749,7 +17749,7 @@ If no number is found, the return value is 0."
 (defcustom org-image-actual-width t
   "Should we use the actual width of images when inlining them?
 
-When set to `t', always use the image width.
+When set to t, always use the image width.
 
 When set to a number, use imagemagick (when available) to set
 the image's width to this value.
@@ -17776,7 +17776,7 @@ This requires Emacs >= 24.1, build with imagemagick support."
 
 (defcustom org-agenda-inhibit-startup nil
   "Inhibit startup when preparing agenda buffers.
-When this variable is `t', the initialization of the Org agenda
+When this variable is t, the initialization of the Org agenda
 buffers is inhibited: e.g. the visibility state is not set, the
 tables are not re-aligned, etc."
   :type 'boolean

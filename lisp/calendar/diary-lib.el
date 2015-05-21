@@ -104,9 +104,9 @@ are: `string', `symbol', `int', `tnil', `stringtnil.'"
                        (choice (const string :tag "A string")
                                (const symbol :tag "A symbol")
                                (const int :tag "An integer")
-                               (const tnil :tag "`t' or `nil'")
+                               (const tnil :tag "t or nil")
                                (const stringtnil
-                                      :tag "A string, `t', or `nil'"))))
+                                      :tag "A string, t, or nil"))))
   :group 'diary)
 
 (defcustom diary-glob-file-regexp-prefix "^\\#"
@@ -1671,7 +1671,7 @@ DAY MONTH YEAR in the European style).
 
   %%(diary-date MONTH DAY YEAR &optional MARK) text
     Entry applies if date is MONTH, DAY, YEAR.  DAY, MONTH, and YEAR can
-    be a list of integers, `t' (meaning all values), or an integer.
+    be a list of integers, t (meaning all values), or an integer.
 
   %%(diary-float MONTH DAYNAME N &optional DAY MARK) text
     Entry will appear on the Nth DAYNAME after/before MONTH DAY.
@@ -1679,7 +1679,7 @@ DAY MONTH YEAR in the European style).
     If N>0, use the Nth DAYNAME after MONTH DAY.
     If N<0, use the Nth DAYNAME before MONTH DAY.
     DAY defaults to 1 if N>0, and MONTH's last day otherwise.
-    MONTH can be a list of months, a single month, or `t' to
+    MONTH can be a list of months, a single month, or t to
     specify all months.
 
   %%(diary-block M1 D1 Y1 M2 D2 Y2 &optional MARK) text
@@ -1814,7 +1814,7 @@ form used internally by the calendar and diary."
 (defun diary-date (month day year &optional mark)
   "Specific date(s) diary entry.
 Entry applies if date is MONTH, DAY, YEAR.  Each parameter can be a
-list of integers, `t' (meaning all values), or an integer.  The order
+list of integers, t (meaning all values), or an integer.  The order
 of the input parameters changes according to `calendar-date-style'
 \(e.g. to DAY MONTH YEAR in the European style).
 
@@ -1863,7 +1863,7 @@ DAYNAME=0 means Sunday, DAYNAME=1 means Monday, and so on.
 If N>0, use the Nth DAYNAME after MONTH DAY.
 If N<0, use the Nth DAYNAME before MONTH DAY.
 DAY defaults to 1 if N>0, and MONTH's last day otherwise.
-MONTH can be a list of months, an integer, or `t' (meaning all months).
+MONTH can be a list of months, an integer, or t (meaning all months).
 Optional MARK specifies a face or single-character string to use when
 highlighting the day in the calendar."
   ;; This is messy because the diary entry may apply, but the date on which it

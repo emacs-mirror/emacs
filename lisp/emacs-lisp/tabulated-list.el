@@ -179,7 +179,9 @@ If ADVANCE is non-nil, move forward by one line afterwards."
     table)
   "The `glyphless-char-display' table in Tabulated List buffers.")
 
-(defvar tabulated-list--header-string nil)
+(defvar tabulated-list--header-string nil
+  "Holds the header if `tabulated-list-use-header-line' is nil.
+Populated by `tabulated-list-init-header'.")
 (defvar tabulated-list--header-overlay nil)
 
 (defun tabulated-list-init-header ()
@@ -243,15 +245,17 @@ If ADVANCE is non-nil, move forward by one line afterwards."
       (setq-local tabulated-list--header-string cols))))
 
 (defun tabulated-list-print-fake-header ()
-  "Insert a fake Tabulated List \"header line\" at the start of the buffer."
-  (goto-char (point-min))
-  (let ((inhibit-read-only t))
-    (insert tabulated-list--header-string "\n")
-    (if tabulated-list--header-overlay
-	(move-overlay tabulated-list--header-overlay (point-min) (point))
-      (setq-local tabulated-list--header-overlay
-                  (make-overlay (point-min) (point))))
-    (overlay-put tabulated-list--header-overlay 'face 'underline)))
+  "Insert a fake Tabulated List \"header line\" at the start of the buffer.
+Do nothing if `tabulated-list--header-string' is nil."
+  (when tabulated-list--header-string
+    (goto-char (point-min))
+    (let ((inhibit-read-only t))
+      (insert tabulated-list--header-string "\n")
+      (if tabulated-list--header-overlay
+          (move-overlay tabulated-list--header-overlay (point-min) (point))
+        (setq-local tabulated-list--header-overlay
+                    (make-overlay (point-min) (point))))
+      (overlay-put tabulated-list--header-overlay 'face 'underline))))
 
 (defun tabulated-list-revert (&rest ignored)
   "The `revert-buffer-function' for `tabulated-list-mode'.

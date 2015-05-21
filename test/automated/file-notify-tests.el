@@ -72,7 +72,7 @@
 (defun file-notify--test-local-enabled ()
   "Whether local file notification is enabled.
 This is needed for local `temporary-file-directory' only, in the
-remote case we return always `t'."
+remote case we return always t."
   (or file-notify--library
       (file-remote-p temporary-file-directory)))
 

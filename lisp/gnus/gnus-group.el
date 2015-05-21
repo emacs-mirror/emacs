@@ -3285,7 +3285,7 @@ mail messages or news articles in files that have numeric names."
 
    Rights is a string listing a (possibly empty) set of alphanumeric
    characters, each character listing a set of operations which is being
-   controlled.  Letters are reserved for ``standard'' rights, listed
+   controlled.  Letters are reserved for \"standard\" rights, listed
    below.  Digits are reserved for implementation or site defined rights.
 
    l - lookup (mailbox is visible to LIST/LSUB commands)

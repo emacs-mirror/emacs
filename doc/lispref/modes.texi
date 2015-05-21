@@ -958,9 +958,9 @@ Menu,,, emacs, The GNU Emacs Manual}).
 way, specifying @code{tabulated-list-mode} as the second argument
 (@pxref{Derived Modes}).  The body of the @code{define-derived-mode}
 form should specify the format of the tabulated data, by assigning
-values to the variables documented below; then, it should call the
-function @code{tabulated-list-init-header} to initialize the header
-line.
+values to the variables documented below; optionally, it can then call
+the function @code{tabulated-list-init-header}, which will populate a
+header with the names of the columns.
 
   The derived mode should also define a @dfn{listing command}.  This,
 not the mode command, is what the user calls (e.g., @kbd{M-x

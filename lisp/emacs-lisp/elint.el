@@ -46,8 +46,6 @@
 
 ;;; Code:
 
-(require 'help-fns)
-
 (defgroup elint nil
   "Linting for Emacs Lisp."
   :prefix "elint-"

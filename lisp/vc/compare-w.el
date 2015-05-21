@@ -88,7 +88,7 @@ regexp containing some field separator or a newline, depending on
 the nature of the difference units separator.  The variable can
 be made buffer-local.
 
-If the value of this variable is `nil' (option \"No sync\"), then
+If the value of this variable is nil (option \"No sync\"), then
 no synchronization is performed, and the function `ding' is called
 to beep or flash the screen when points are mismatched."
   :type '(choice function regexp (const :tag "No sync" nil))

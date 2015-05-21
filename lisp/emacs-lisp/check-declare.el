@@ -98,7 +98,7 @@ don't know how to recognize (e.g. some macros)."
                  (stringp (setq fnfile (nth 2 form)))
                  (setq fnfile (check-declare-locate fnfile
                                                     (expand-file-name file)))
-                 ;; Use `t' to distinguish unspecified arglist from empty one.
+                 ;; Use t to distinguish unspecified arglist from empty one.
                  (or (eq t (setq arglist (if (> len 3)
                                              (nth 3 form)
                                            t)))

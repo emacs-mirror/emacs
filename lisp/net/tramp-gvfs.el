@@ -1563,7 +1563,7 @@ connection if a previous connection has died for some reason."
 (defun tramp-gvfs-send-command (vec command &rest args)
   "Send the COMMAND with its ARGS to connection VEC.
 COMMAND is usually a command from the gvfs-* utilities.
-`call-process' is applied, and it returns `t' if the return code is zero."
+`call-process' is applied, and it returns t if the return code is zero."
   (with-current-buffer (tramp-get-connection-buffer vec)
     (tramp-gvfs-maybe-open-connection vec)
     (erase-buffer)

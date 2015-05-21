@@ -431,7 +431,7 @@ current `case-fold-search' setting."
 
 If
  * character before point is a space character,
- * character before that has “w” character syntax (i.e. it's a word
+ * character before that has \"w\" character syntax (i.e. it's a word
    constituent),
  * `tildify-space-pattern' matches when `looking-back' (no more than 10
    characters) from before the space character, and

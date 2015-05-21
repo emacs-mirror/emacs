@@ -233,7 +233,7 @@ x_create_bitmap_from_data (struct frame *f, char *bits, unsigned int width, unsi
 #endif /* HAVE_NTGUI */
 
 #ifdef HAVE_NS
-  void *bitmap = ns_image_from_XBM (bits, width, height);
+  void *bitmap = ns_image_from_XBM (bits, width, height, 0, 0);
   if (!bitmap)
       return -1;
 #endif
@@ -2648,7 +2648,7 @@ Create_Pixmap_From_Bitmap_Data (struct frame *f, struct image *img, char *data,
     convert_mono_to_color_image (f, img, fg, bg);
 
 #elif defined (HAVE_NS)
-  img->pixmap = ns_image_from_XBM (data, img->width, img->height);
+  img->pixmap = ns_image_from_XBM (data, img->width, img->height, fg, bg);
 
 #else
   img->pixmap =

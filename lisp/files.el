@@ -1092,14 +1092,14 @@ Tip: You can use this expansion of remote identifier components
 
 (defcustom remote-file-name-inhibit-cache 10
   "Whether to use the remote file-name cache for read access.
-When `nil', never expire cached values (caution)
-When `t', never use the cache (safe, but may be slow)
+When nil, never expire cached values (caution)
+When t, never use the cache (safe, but may be slow)
 A number means use cached values for that amount of seconds since caching.
 
 The attributes of remote files are cached for better performance.
 If they are changed outside of Emacs's control, the cached values
 become invalid, and must be reread.  If you are sure that nothing
-other than Emacs changes the files, you can set this variable to `nil'.
+other than Emacs changes the files, you can set this variable to nil.
 
 If a remote file is checked regularly, it might be a good idea to
 let-bind this variable to a value less than the interval between

@@ -736,22 +736,20 @@ character."
         )
     (call-interactively 'minibuffer-complete)))
 
-(defun lisp-complete-symbol (&optional predicate)
+(defun lisp-complete-symbol (&optional _predicate)
   "Perform completion on Lisp symbol preceding point.
 Compare that symbol against the known Lisp symbols.
 If no characters can be completed, display a list of possible completions.
 Repeating the command at that point scrolls the list.
 
-When called from a program, optional arg PREDICATE is a predicate
-determining which symbols are considered, e.g. `commandp'.
-If PREDICATE is nil, the context determines which symbols are
-considered.  If the symbol starts just after an open-parenthesis, only
-symbols with function definitions are considered.  Otherwise, all
-symbols with function definitions, values or properties are
-considered."
-  (declare (obsolete completion-at-point "24.4"))
+The context determines which symbols are considered.  If the
+symbol starts just after an open-parenthesis, only symbols with
+function definitions are considered.  Otherwise, all symbols with
+function definitions, values or properties are considered."
+  (declare (obsolete completion-at-point "24.4")
+           (advertised-calling-convention () "25.1"))
   (interactive)
-  (let* ((data (lisp-completion-at-point predicate))
+  (let* ((data (elisp-completion-at-point))
          (plist (nthcdr 3 data)))
     (if (null data)
         (minibuffer-message "Nothing to complete")

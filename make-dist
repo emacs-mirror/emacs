@@ -375,7 +375,7 @@ echo "Making links to 'src'"
  echo "  (It is ok if ln fails in some cases.)"
  ln [a-zA-Z]*.[chm] ../${tempdir}/src
  ln [a-zA-Z]*.in ../${tempdir}/src
- ln [a-zA-Z]*.mk ../${tempdir}/src
+ ln deps.mk ../${tempdir}/src
  ln README ChangeLog.*[0-9] ../${tempdir}/src
  ln makefile.w32-in ../${tempdir}/src
  ln .gdbinit .dbxinit ../${tempdir}/src

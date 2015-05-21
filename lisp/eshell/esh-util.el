@@ -33,7 +33,7 @@
 ;;; User Variables:
 
 (defcustom eshell-stringify-t t
-  "If non-nil, the string representation of t is 't'.
+  "If non-nil, the string representation of t is \"t\".
 If nil, t will be represented only in the exit code of the function,
 and not printed as a string.  This causes Lisp functions to behave
 similarly to external commands, as far as successful result output."

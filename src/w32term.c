@@ -1410,7 +1410,7 @@ x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 
       if (glyph->u.glyphless.method == GLYPHLESS_DISPLAY_ACRONYM)
 	{
-	  if (len > 1
+	  if (len > 0
 	      && CHAR_TABLE_P (Vglyphless_char_display)
 	      && (CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (Vglyphless_char_display))
 		  >= 1))

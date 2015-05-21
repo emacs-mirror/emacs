@@ -525,7 +525,7 @@ which case this method will be invoked when the argument is `eql' to VAL.
           (progn
             (while (and dispatches
                         (let ((x (nth 1 (car dispatches))))
-                          ;; No need to dispatch for `t' specializers.
+                          ;; No need to dispatch for t specializers.
                           (or (null x) (equal x cl--generic-t-generalizer))))
               (setq dispatches (cdr dispatches)))
             (pop dispatches))))
@@ -701,7 +701,7 @@ methods.")
       #'cl--generic-standard-method-combination)
 
 (cl-defmethod cl-generic-generalizers (specializer)
-  "Support for the catch-all `t' specializer."
+  "Support for the catch-all t specializer."
   (if (eq specializer t) (list cl--generic-t-generalizer)
     (error "Unknown specializer %S" specializer)))
 

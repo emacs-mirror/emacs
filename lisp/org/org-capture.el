@@ -201,7 +201,7 @@ properties are:
 
  :clock-resume       Start the interrupted clock when finishing the capture.
                      Note that :clock-keep has precedence over :clock-resume.
-                     When setting both to `t', the current clock will run and
+                     When setting both to t, the current clock will run and
                      the previous one will not be resumed.
 
  :unnarrowed         Do not narrow the target buffer, simply show the

@@ -4338,10 +4338,10 @@ Correct and validate again.\n"
             (goto-char (point-min))
             (forward-line 2)) ; first error message
           (display-buffer err-buf)
-          nil) ; return `nil' (i.e., buffer is invalid)
+          nil) ; return nil (i.e., buffer is invalid)
       (message "%s is syntactically correct"
                (if mark-active "Region" "Buffer"))
-      t))) ; return `t' (i.e., buffer is valid)
+      t))) ; return t (i.e., buffer is valid)
 
 (defun bibtex-validate-globally (&optional strings)
   "Check for duplicate keys in `bibtex-files'.
@@ -4395,9 +4395,9 @@ Return t if test was successful, nil otherwise."
             (goto-char (point-min))
             (forward-line 2)) ; first error message
           (display-buffer err-buf)
-          nil) ; return `nil' (i.e., buffer is invalid)
+          nil) ; return nil (i.e., buffer is invalid)
       (message "No duplicate keys.")
-      t))) ; return `t' (i.e., buffer is valid)
+      t))) ; return t (i.e., buffer is valid)
 
 (defun bibtex-next-field (begin &optional comma)
   "Move point to end of text of next BibTeX field or entry head.

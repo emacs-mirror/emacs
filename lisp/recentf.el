@@ -294,7 +294,7 @@ They are successively passed a file name to transform it."
             (function :tag "Other function")))))
 
 (defcustom recentf-show-file-shortcuts-flag t
-  "Whether to show ``[N]'' for the Nth item up to 10.
+  "Whether to show \"[N]\" for the Nth item up to 10.
 If non-nil, `recentf-open-files' will show labels for keys that can be
 used as shortcuts to open the Nth file."
   :group 'recentf

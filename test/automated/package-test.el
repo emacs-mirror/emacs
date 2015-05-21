@@ -124,7 +124,7 @@
           ,@(if upload-base
                 '((package-test-archive-upload-base (make-temp-file "pkg-archive-base-" t))
                   (package-archive-upload-base package-test-archive-upload-base))
-              (list (cl-gensym)))) ;; Dummy value so `let' doesn't try to bind `nil'
+              (list (cl-gensym)))) ;; Dummy value so `let' doesn't try to bind nil
      (let ((buf (get-buffer "*Packages*")))
        (when (buffer-live-p buf)
          (kill-buffer buf)))

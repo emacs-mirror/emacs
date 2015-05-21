@@ -99,10 +99,10 @@
 ;;      from the kill ring.  May be good if you don't know how far up in
 ;;      the kill-ring the required entry is, and don't want to mess with
 ;;      "Choose Next Paste".
-;;    `try-complete-lisp-symbol' : like `lisp-complete-symbol', but goes
+;;    `try-complete-lisp-symbol' : like `elisp-completion-at-point', but goes
 ;;      through all possibilities instead of completing what is unique.
 ;;      Might be tedious (usually a lot of possible completions) and
-;;      since its function is much like `lisp-complete-symbol', which
+;;      since its function is much like `completion-at-point', which
 ;;      already has a key of its own, you might want to remove this.
 ;;    `try-complete-lisp-symbol-partially' : To insert in the list just
 ;;      before `try-complete-lisp-symbol' for those who first want to get

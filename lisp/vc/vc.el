@@ -367,7 +367,8 @@
 ;;   BUFFER is nil.  If ASYNC is non-nil, run asynchronously.  If REV1
 ;;   and REV2 are non-nil, report differences from REV1 to REV2.  If
 ;;   REV1 is nil, use the working revision (as found in the
-;;   repository) as the older revision; if REV2 is nil, use the
+;;   repository) as the older revision if REV2 is nil as well;
+;;   otherwise, diff against an empty tree.  If REV2 is nil, use the
 ;;   current working-copy contents as the newer revision.  This
 ;;   function should pass the value of (vc-switches BACKEND 'diff) to
 ;;   the backend command.  It should return a status of either 0 (no

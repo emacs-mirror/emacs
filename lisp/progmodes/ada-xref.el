@@ -954,7 +954,7 @@ Return new value of PROJECT."
 	(append (mapcar 'directory-file-name compilation-search-path)
 		ada-search-directories))
 
-  ;; return 't', for decent display in message buffer when called interactively
+  ;; return t, for decent display in message buffer when called interactively
   t)
 
 (defun ada-find-references (&optional pos arg local-only)

@@ -172,7 +172,7 @@ Each function is called with ARG=1."
 		"\C-c\C-s"    ses-insert-ses-range
 		[S-mouse-3]   ses-insert-range-click
 		[C-S-mouse-3] ses-insert-ses-range-click
-		"\M-\C-i"     lisp-complete-symbol))
+		"\M-\C-i"     lisp-complete-symbol)) ; FIXME obsolete
 	(newmap (make-sparse-keymap)))
     (set-keymap-parent newmap minibuffer-local-map)
     (while keys
@@ -2276,7 +2276,7 @@ to are recalculated first."
     (when (and (< col (1- ses--numcols)) ;;Last column can't spill over, anyway
 	       (eq (ses-cell-value row (1+ col)) '*skip*))
       ;; This cell has spill-over.  We'll momentarily pretend the following cell
-      ;; has a `t' in it.
+      ;; has a t in it.
       (cl-progv
 	  (list (ses-cell-symbol row (1+ col)))
 	  '(t)
@@ -3528,11 +3528,11 @@ execution anyway.  Always returns t if `safe-functions' is t."
 ;;----------------------------------------------------------------------------
 
 (defun ses--clean-! (&rest x)
-  "Clean by `delq' list X from any occurrence of `nil' or `*skip*'."
+  "Clean by `delq' list X from any occurrence of nil or `*skip*'."
   (delq nil (delq '*skip* x)))
 
 (defun ses--clean-_ (x y)
-  "Clean list X  by replacing by Y any occurrence of `nil' or `*skip*'.
+  "Clean list X  by replacing by Y any occurrence of nil or `*skip*'.
 
 This will change X by making `setcar' on its cons cells."
   (let ((ret x) ret-elt)

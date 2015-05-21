@@ -167,7 +167,7 @@ can be obtained from `log-edit-files'."
 
 (defvar log-edit-changelog-full-paragraphs t
   "If non-nil, include full ChangeLog paragraphs in the log.
-This may be set in the ``local variables'' section of a ChangeLog, to
+This may be set in the \"local variables\" section of a ChangeLog, to
 indicate the policy for that ChangeLog.
 
 A ChangeLog paragraph is a bunch of log text containing no blank lines;

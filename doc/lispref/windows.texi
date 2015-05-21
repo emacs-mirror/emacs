@@ -2005,15 +2005,48 @@ list---both the global buffer list and the selected frame's buffer
 list (@pxref{Buffer List}).  However, this is not done if the
 optional argument @var{norecord} is non-@code{nil}.
 
-Sometimes, @code{switch-to-buffer} may be unable to display the buffer
-in the selected window.  This happens if the selected window is a
-minibuffer window, or if the selected window is strongly dedicated to
-its buffer (@pxref{Dedicated Windows}).  In that case, the command
-normally tries to display the buffer in some other window, by invoking
-@code{pop-to-buffer} (see below).  However, if the optional argument
-@var{force-same-window} is non-@code{nil}, it signals an error
-instead.
+Sometimes, the selected window may not be suitable for displaying the
+buffer.  This happens if the selected window is a minibuffer window, or
+if the selected window is strongly dedicated to its buffer
+(@pxref{Dedicated Windows}).  In such cases, the command normally tries
+to display the buffer in some other window, by invoking
+@code{pop-to-buffer} (see below).
+
+If the optional argument @var{force-same-window} is non-@code{nil} and
+the selected window is not suitable for displaying the buffer, this
+function always signals an error when called non-interactively.  In
+interactive use, if the selected window is a minibuffer window, this
+function will try to use some other window instead.  If the selected
+window is strongly dedicated to its buffer, the option
+@code{switch-to-buffer-in-dedicated-window} described next can be used
+to proceed.
 @end deffn
+
+@defopt switch-to-buffer-in-dedicated-window
+This option, if non-@code{nil}, allows @code{switch-to-buffer} to
+proceed when called interactively and the selected window is strongly
+dedicated to its buffer.
+
+The following values are respected:
+
+@table @code
+@item nil
+Disallows switching and signals an error as in non-interactive use.
+
+@item prompt
+Prompts the user whether to allow switching.
+
+@item pop
+Invokes @code{pop-to-buffer} to proceed.
+
+@item t
+Marks the selected window as non-dedicated and proceeds.
+@end table
+
+When called non-interactively, @code{switch-to-buffer} always signals an
+error when the selected window is dedicated to its buffer and
+@var{force-same-window} is non-@code{nil}.
+@end defopt
 
 By default, @code{switch-to-buffer} shows the buffer at its position of
 @code{point}.  This behavior can be tuned using the following option.

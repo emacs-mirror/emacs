@@ -58,7 +58,7 @@
   :type 'string)
 
 (defcustom org-babel-ruby-nil-to 'hline
-  "Replace 'nil' in ruby tables with this before returning."
+  "Replace nil in ruby tables with this before returning."
   :group 'org-babel
   :version "24.4"
   :package-version '(Org . "8.0")

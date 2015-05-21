@@ -287,7 +287,7 @@ Only has effect when `ruby-use-smie' is nil."
   :group 'ruby
   :safe 'booleanp)
 
-;; FIXME Woefully under documented.  What is the point of the last `t'?.
+;; FIXME Woefully under documented.  What is the point of the last t?.
 (defcustom ruby-deep-indent-paren '(?\( ?\[ ?\] t)
   "Deep indent lists in parenthesis when non-nil.
 The value t means continuous line.

@@ -84,13 +84,13 @@ Some of the FLAGS correspond to Gnus marks.")
 
 (defsubst nnmaildir--mark-to-flag (mark)
   "Find the Maildir flag that corresponds to MARK (an atom).
-Return a character, or `nil' if not found.
+Return a character, or nil if not found.
 See `nnmaildir-flag-mark-mapping'."
   (car (rassq mark nnmaildir-flag-mark-mapping)))
 
 (defsubst nnmaildir--flag-to-mark (flag)
   "Find the Gnus mark that corresponds to FLAG (a character).
-Return an atom, or `nil' if not found.
+Return an atom, or nil if not found.
 See `nnmaildir-flag-mark-mapping'."
   (cdr (assq flag nnmaildir-flag-mark-mapping)))
 

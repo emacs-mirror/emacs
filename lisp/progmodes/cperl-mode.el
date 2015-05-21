@@ -282,7 +282,7 @@ This is in addition to cperl-continued-statement-offset."
 
 (defcustom cperl-indent-wrt-brace t
   "*Non-nil means indent statements in if/etc block relative brace, not if/etc.
-Versions 5.2 ... 5.20 behaved as if this were `nil'."
+Versions 5.2 ... 5.20 behaved as if this were nil."
   :type 'boolean
   :group 'cperl-indentation-details)
 

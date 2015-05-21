@@ -1965,7 +1965,7 @@ Each entry is of the form (STATE MAGIC FACE ITEM-DESC [ GROUP-DESC ]), where
 
 STATE is one of the following symbols:
 
-`nil'
+nil
    For internal use, should never occur.
 `unknown'
    For internal use, should never occur.

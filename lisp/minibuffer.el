@@ -1241,16 +1241,12 @@ scroll the window of possible completions."
 (defun minibuffer-force-complete-and-exit ()
   "Complete the minibuffer with first of the matches and exit."
   (interactive)
-  (if (and (eq (minibuffer-prompt-end) (point-max))
-           minibuffer-default)
-      ;; Use the provided default if there's one (bug#17545).
-      (minibuffer-complete-and-exit)
-    (minibuffer-force-complete)
-    (completion--complete-and-exit
-     (minibuffer-prompt-end) (point-max) #'exit-minibuffer
-     ;; If the previous completion completed to an element which fails
-     ;; test-completion, then we shouldn't exit, but that should be rare.
-     (lambda () (minibuffer-message "Incomplete")))))
+  (minibuffer-force-complete)
+  (completion--complete-and-exit
+   (minibuffer-prompt-end) (point-max) #'exit-minibuffer
+   ;; If the previous completion completed to an element which fails
+   ;; test-completion, then we shouldn't exit, but that should be rare.
+   (lambda () (minibuffer-message "Incomplete"))))
 
 (defun minibuffer-force-complete (&optional start end)
   "Complete the minibuffer to an exact match.

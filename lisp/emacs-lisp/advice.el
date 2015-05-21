@@ -2149,7 +2149,6 @@ the cache-id will clear the cache."
 
 (defun ad-arglist (definition)
   "Return the argument list of DEFINITION."
-  (require 'help-fns)
   (help-function-arglist
    (if (or (macrop definition) (ad-advice-p definition))
        (cdr definition)
@@ -2473,8 +2472,6 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
 	       (format "%s-advice `%s'."
 		       (capitalize (symbol-name class))
 		       (ad-advice-name advice)))))))
-
-(require 'help-fns)	    ;For help-split-fundoc and help-add-fundoc-usage.
 
 (defun ad--make-advised-docstring (function &optional style)
   "Construct a documentation string for the advised FUNCTION.

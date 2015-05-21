@@ -49,8 +49,8 @@ C-F9 or `M-x ethio-toggle-space'
   Toggles space characters for keyboard input.  The current mode is
   indicated in mode-line, whether by `_' (ASCII space) or `፡'
   (Ethiopic colon-like word separator).  Even in the `፡' mode, an
-  ASCII space is inserted if the point is preceded by `an Ethiopic
-  punctuation followed by zero or more ASCII spaces'.
+  ASCII space is inserted if the point is preceded by an Ethiopic
+  punctuation char that is followed by zero or more ASCII spaces.
 
 S-F5 or `M-x ethio-toggle-punctuation'
   Toggles ASCII punctuation and Ethiopic punctuation for keyboard input.

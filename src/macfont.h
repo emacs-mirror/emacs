@@ -48,7 +48,7 @@ struct mac_glyph_layout
 typedef CTFontDescriptorRef FontDescriptorRef;
 typedef CTFontRef FontRef;
 typedef CTFontSymbolicTraits FontSymbolicTraits;
-typedef CTCharacterCollection CharacterCollection;
+typedef NSCharacterCollection CharacterCollection;
 
 #define MAC_FONT_NAME_ATTRIBUTE kCTFontNameAttribute
 #define MAC_FONT_FAMILY_NAME_ATTRIBUTE kCTFontFamilyNameAttribute
@@ -79,8 +79,8 @@ enum {
 };
 
 enum {
-  MAC_CHARACTER_COLLECTION_IDENTITY_MAPPING = kCTIdentityMappingCharacterCollection,
-  MAC_CHARACTER_COLLECTION_ADOBE_JAPAN1 = kCTAdobeJapan1CharacterCollection
+  MAC_CHARACTER_COLLECTION_IDENTITY_MAPPING = NSIdentityMappingCharacterCollection,
+  MAC_CHARACTER_COLLECTION_ADOBE_JAPAN1 = NSAdobeJapan1CharacterCollection
 };
 
 #define mac_font_descriptor_create_with_attributes \

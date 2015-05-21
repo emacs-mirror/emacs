@@ -6614,7 +6614,8 @@ Display a box containing the Unicode codepoint of the character, in
 hexadecimal notation.
 
 @item an @acronym{ASCII} string
-Display a box containing that string.
+Display a box containing that string.  The string should contain at
+most 6 @acronym{ASCII} characters.
 
 @item a cons cell @code{(@var{graphical} . @var{text})}
 Display with @var{graphical} on graphical displays, and with
@@ -6625,7 +6626,8 @@ must be one of the display methods described above.
 @noindent
 The @code{thin-space}, @code{empty-box}, @code{hex-code}, and
 @acronym{ASCII} string display methods are drawn with the
-@code{glyphless-char} face.
+@code{glyphless-char} face.  On text terminals, a box is emulated by
+square brackets, @samp{[]}.
 
 The char-table has one extra slot, which determines how to display any
 character that cannot be displayed with any available font, or cannot

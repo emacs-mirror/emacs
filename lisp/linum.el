@@ -62,7 +62,7 @@ See also `linum-before-numbering-hook'."
 
 (defcustom linum-eager t
   "Whether line numbers should be updated after each command.
-The conservative setting `nil' might miss some buffer changes,
+The conservative setting nil might miss some buffer changes,
 and you have to scroll or press \\[recenter-top-bottom] to update the numbers."
   :group 'linum
   :type 'boolean)

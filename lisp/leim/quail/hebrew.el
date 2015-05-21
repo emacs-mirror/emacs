@@ -113,8 +113,8 @@ Only Hebrew-related characters are considered.
 
 Based on latest draft of SI-1452 keyboard layout.
 Only Hebrew-related characters are considered.
- '`' is used to switch levels instead of Alt-Gr.
-Geresh is mapped to '`k'.
+ ‘`’ is used to switch levels instead of Alt-Gr.
+Geresh is mapped to ‘`k’.
 " nil t t t t nil nil nil nil nil t)
 
 (quail-define-rules
@@ -603,8 +603,8 @@ Not suitable for modern Hebrew input.
 
 Based on Society of Biblical Literature's SIL keyboard layout.
 Phonetic and not suitable for modern Hebrew input.
- '`' is used to switch levels instead of Alt-Gr.
- Euro Sign (€) is mapped to 'Z'.
+ ‘`’ is used to switch levels instead of Alt-Gr.
+ Euro Sign (€) is mapped to ‘Z’.
 " nil t t t t nil nil nil nil nil t)
 
 (quail-define-rules

@@ -341,13 +341,12 @@ typedef float EmacsCGFloat;
   NSBitmapImageRep *bmRep; /* used for accessing pixel data */
   unsigned char *pixmapData[5]; /* shortcut to access pixel data */
   NSColor *stippleMask;
+  unsigned long xbm_fg;
 }
 + allocInitFromFile: (Lisp_Object)file;
 - (void)dealloc;
 - initFromXBM: (unsigned char *)bits width: (int)w height: (int)h
-         flip: (BOOL)flip;
-- initFromSkipXBM: (unsigned char *)bits width: (int)w height: (int)h
-             flip: (BOOL)flip length: (int)length;
+                  fg: (unsigned long)fg bg: (unsigned long)bg;
 - setXBMColor: (NSColor *)color;
 - initForXPMWithDepth: (int)depth width: (int)width height: (int)height;
 - (void)setPixmapData;
@@ -397,6 +396,7 @@ typedef float EmacsCGFloat;
 - condemn;
 - reprieve;
 - (bool)judge;
++ (CGFloat)scrollerWidth;
 @end
 
 
@@ -864,7 +864,8 @@ extern void syms_of_nsselect (void);
 
 /* From nsimage.m, needed in image.c */
 struct image;
-extern void *ns_image_from_XBM (unsigned char *bits, int width, int height);
+extern void *ns_image_from_XBM (unsigned char *bits, int width, int height,
+                                unsigned long fg, unsigned long bg);
 extern void *ns_image_for_XPM (int width, int height, int depth);
 extern void *ns_image_from_file (Lisp_Object file);
 extern bool ns_load_image (struct frame *f, struct image *img,

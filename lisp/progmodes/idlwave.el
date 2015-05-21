@@ -1837,7 +1837,7 @@ The main features of this mode are
 5. Code Templates and Abbreviations
    --------------------------------
    Many Abbreviations are predefined to expand to code fragments and templates.
-   The abbreviations start generally with a `\\`.  Some examples:
+   The abbreviations start generally with a `\\'.  Some examples:
 
    \\pr        PROCEDURE template
    \\fu        FUNCTION template
@@ -2047,7 +2047,7 @@ If optional argument RESERVED is non-nil then the expansion
 consists of reserved words, which will be capitalized if
 `idlwave-reserved-word-upcase' is non-nil.
 Otherwise, the abbrev will be capitalized if `idlwave-abbrev-change-case'
-is non-nil, unless its value is \`down in which case the abbrev will be
+is non-nil, unless its value is `down' in which case the abbrev will be
 made into all lowercase.
 Returns non-nil if abbrev is left expanded."
   (if (idlwave-quoted)
@@ -8162,7 +8162,7 @@ demand _EXTRA in the keyword list."
 			       class
 			       (idlwave-routines)) 'do-link))))))
 
-    ;; If the class is `t', combine all keywords of all methods NAME
+    ;; If the class is t, combine all keywords of all methods NAME
     (when (eq class t)
       (mapc (lambda (entry)
 	      (and

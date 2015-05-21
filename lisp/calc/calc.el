@@ -2034,7 +2034,7 @@ See calc-keypad for details."
 ;; (YEAR MONTH DAY math-date-from-gregorian-dt(YEAR MONTH DAY)) for speed.
 (defcustom calc-gregorian-switch nil
   "The first day the Gregorian calendar is used by Calc's date forms.
-This is `nil' (the default) if the Gregorian calendar is the only one used.
+This is nil (the default) if the Gregorian calendar is the only one used.
 Otherwise, it should be a list `(YEAR MONTH DAY)' when Calc begins to use
 the Gregorian calendar; Calc will use the Julian calendar for earlier dates.
 The dates in which different regions of the world began to use the

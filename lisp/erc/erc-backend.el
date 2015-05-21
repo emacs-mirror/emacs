@@ -652,7 +652,7 @@ EVENT is the message received from the closed connection process."
                          (run-at-time erc-server-reconnect-timeout nil
                                       #'erc-process-sentinel-2
                                       event buffer)
-                       (error (concat "`erc-server-reconnect-timeout`"
+                       (error (concat "`erc-server-reconnect-timeout'"
                                       " must be a number")))))))))))
 
 (defun erc-process-sentinel-1 (event buffer)

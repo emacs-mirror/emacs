@@ -561,7 +561,7 @@ as filename."
         (let ((fname  (expand-file-name (car var))))
           (setq fname (org-protocol-check-filename-for-protocol
 		       fname (member var flist)  client))
-          (if (eq fname t) ;; greedy? We need the `t' return value.
+          (if (eq fname t) ;; greedy? We need the t return value.
               (progn
                 (ad-set-arg 0 nil)
                 (throw 'greedy t))

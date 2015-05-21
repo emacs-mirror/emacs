@@ -23,7 +23,7 @@ LC_ALL=C
 export LC_ALL
 
 # The newest revision that should not appear in the generated ChangeLog.
-gen_origin=d2c7e14ac3bd2b517d35a86255c28d5b6d779451
+gen_origin=f89080d18dd64e0c92c5f3d206182d65f23eafeb
 force=
 output=ChangeLog
 nmax=2
@@ -58,7 +58,7 @@ test -d .git || {
 
 # Use Gnulib's packaged ChangeLog generator.
 ./build-aux/gitlog-to-changelog --ignore-matching='^; ' \
-  --format='%B' \
+  --ignore-line='^; ' --format='%B' \
   "$gen_origin.." >"ChangeLog.tmp" || exit
 
 if test -s "ChangeLog.tmp"; then

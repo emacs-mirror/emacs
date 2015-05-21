@@ -85,7 +85,7 @@ create identical widgets:
 The third argument DOC is a documentation string for the widget."
   ;;
   (unless (or (null doc) (stringp doc))
-    (error "widget documentation must be `nil' or a string."))
+    (error "widget documentation must be nil or a string."))
   (put name 'widget-type (cons class args))
   (put name 'widget-documentation (purecopy doc))
   name)

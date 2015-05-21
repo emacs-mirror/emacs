@@ -488,8 +488,8 @@ If no window is at direction DIR, an error is signaled."
 
 
 ;;; end-user functions
-;; these are all simple interactive wrappers to `windmove-do-
-;; window-select', meant to be bound to keys.
+;; these are all simple interactive wrappers to
+;; `windmove-do-window-select', meant to be bound to keys.
 
 ;;;###autoload
 (defun windmove-left (&optional arg)

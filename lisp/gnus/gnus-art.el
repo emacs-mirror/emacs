@@ -1256,7 +1256,7 @@ how to control what it hides."
   :type gnus-article-treat-custom)
 
 (defcustom gnus-treat-strip-list-identifiers 'head
-  "Strip list identifiers from `gnus-list-identifiers`.
+  "Strip list identifiers from `gnus-list-identifiers'.
 Valid values are nil, t, `head', `first', `last', an integer or a
 predicate.  See Info node `(gnus)Customizing Articles'."
   :version "21.1"
@@ -1735,7 +1735,7 @@ regexp."
     (modify-syntax-entry ?` " " table)
     table)
   "Syntax table used in article mode buffers.
-Initialized from `text-mode-syntax-table.")
+Initialized from `text-mode-syntax-table'.")
 
 (defvar gnus-save-article-buffer nil)
 

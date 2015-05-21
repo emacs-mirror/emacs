@@ -1181,7 +1181,7 @@ gnutls_certificate_set_verify_flags.
 instead.
 
 :verify-error is a list of symbols to express verification checks or
-`t' to do all checks.  Currently it can contain `:trustfiles' and
+t to do all checks.  Currently it can contain `:trustfiles' and
 `:hostname' to verify the certificate or the hostname respectively.
 
 :min-prime-bits is the minimum accepted number of bits the client will

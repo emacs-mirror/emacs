@@ -3319,7 +3319,7 @@ It reads a directory name from an editable text field."
 	    ;; Avoid a confusing end-of-file error.
 	    (skip-syntax-forward "\\s-")
 	    (if (eobp)
-		(setq err "Empty sexp -- use `nil'?")
+		(setq err "Empty sexp -- use nil?")
 	      (unless (widget-apply widget :match (read (current-buffer)))
 		(setq err (widget-get widget :type-error))))
 	    ;; Allow whitespace after expression.

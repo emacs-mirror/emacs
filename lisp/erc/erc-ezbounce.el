@@ -78,7 +78,7 @@ The alist's format is as follows:
 (defun erc-ezb-get-login (server port)
   "Return an appropriate EZBounce login for SERVER and PORT.
 Look up entries in `erc-ezb-login-alist'. If the username or password
-in the alist is `nil', prompt for the appropriate values."
+in the alist is nil, prompt for the appropriate values."
   (let ((login (cdr (assoc (cons server port) erc-ezb-login-alist))))
     (when login
       (let ((username (car login))

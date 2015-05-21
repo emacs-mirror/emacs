@@ -241,11 +241,11 @@ This is to take advantage of TeXinfo's markup symbols."
 For instances where CLASS is the class being referenced, do not Xref
 that class.
 
- `function' => @dfn{function}
- `variable' => @code{variable}
- `class'    => @code{class} @xref{class}
- `unknown'  => @code{unknown}
- \"text\"     => ``text''
+ function   => @dfn{function}
+ variable   => @code{variable}
+ class      => @code{class} @xref{class}
+ unknown    => @code{unknown}
+ \" text \"   => `` text ''
  'quoteme   => @code{quoteme}
  non-nil    => non-@code{nil}
  t          => @code{t}

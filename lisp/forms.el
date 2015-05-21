@@ -1755,7 +1755,7 @@ Otherwise enables edit mode if the visited file is writable."
 With ARG: store the record after the current one.
 If `forms-new-record-filter' contains the name of a function,
 it is called to fill (some of) the fields with default values.
-If `forms-insert-after is non-nil, the default behavior is to insert
+If `forms-insert-after' is non-nil, the default behavior is to insert
 after the current record."
 
   (interactive "P")

@@ -4311,7 +4311,7 @@ one.  If non-nil, reset `quit-restore' parameter to nil.
 Optional second argument BURY-OR-KILL tells how to proceed with
 the buffer of WINDOW.  The following values are handled:
 
-`nil' means to not handle the buffer in a particular way.  This
+nil means to not handle the buffer in a particular way.  This
   means that if WINDOW is not deleted by this function, invoking
   `switch-to-prev-buffer' will usually show the buffer again.
 
@@ -6884,6 +6884,33 @@ the selected window or never appeared in it before, or if
   :group 'windows
   :version "24.3")
 
+(defcustom switch-to-buffer-in-dedicated-window nil
+  "Allow switching to buffer in strongly dedicated windows.
+If non-nil, allow `switch-to-buffer' to proceed when called
+interactively and the selected window is strongly dedicated to
+its buffer.
+
+The following values are recognized:
+
+nil - disallow switching; signal an error
+
+prompt - prompt user whether to allow switching
+
+pop - perform `pop-to-buffer' instead
+
+t - undedicate selected window and switch
+
+When called non-interactively, `switch-to-buffer' always signals
+an error when the selected window is dedicated to its buffer and
+FORCE-SAME-WINDOW is non-nil."
+  :type '(choice
+	  (const :tag "Disallow" nil)
+	  (const :tag "Prompt" prompt)
+	  (const :tag "Pop" pop)
+	  (const :tag "Allow" t))
+  :group 'windows
+  :version "25.1")
+
 (defun switch-to-buffer (buffer-or-name &optional norecord force-same-window)
   "Display buffer BUFFER-OR-NAME in the selected window.
 
@@ -6891,10 +6918,12 @@ WARNING: This is NOT the way to work on another buffer temporarily
 within a Lisp program!  Use `set-buffer' instead.  That avoids
 messing with the window-buffer correspondences.
 
-If the selected window cannot display the specified
-buffer (e.g. if it is a minibuffer window or strongly dedicated
-to another buffer), call `pop-to-buffer' to select the buffer in
-another window.
+If the selected window cannot display the specified buffer
+because it is a minibuffer window or strongly dedicated to
+another buffer, call `pop-to-buffer' to select the buffer in
+another window.  In interactive use, if the selected window is
+strongly dedicated to its buffer, the value of the option
+`switch-to-buffer-in-dedicated-window' specifies how to proceed.
 
 If called interactively, read the buffer name using the
 minibuffer.  The variable `confirm-nonexistent-file-or-buffer'
@@ -6911,8 +6940,9 @@ at the front of the buffer list, and do not make the window
 displaying it the most recently selected one.
 
 If optional argument FORCE-SAME-WINDOW is non-nil, the buffer
-must be displayed in the selected window; if that is impossible,
-signal an error rather than calling `pop-to-buffer'.
+must be displayed in the selected window when called
+non-interactively; if that is impossible, signal an error rather
+than calling `pop-to-buffer'.
 
 The option `switch-to-buffer-preserve-window-point' can be used
 to make the buffer appear at its last position in the selected
@@ -6920,7 +6950,25 @@ window.
 
 Return the buffer switched to."
   (interactive
-   (list (read-buffer-to-switch "Switch to buffer: ") nil 'force-same-window))
+   (let ((force-same-window
+          (cond
+           ((window-minibuffer-p) nil)
+           ((not (eq (window-dedicated-p) t)) 'force-same-window)
+           ((pcase switch-to-buffer-in-dedicated-window
+              (`nil (user-error
+                     "Cannot switch buffers in a dedicated window"))
+              (`prompt
+               (if (y-or-n-p
+                    (format "Window is dedicated to %s; undedicate it"
+                            (window-buffer)))
+                   (progn
+                     (set-window-dedicated-p nil nil)
+                     'force-same-window)
+                 (user-error
+                  "Cannot switch buffers in a dedicated window")))
+              (`pop nil)
+              (_ (set-window-dedicated-p nil nil) 'force-same-window))))))
+     (list (read-buffer-to-switch "Switch to buffer: ") nil force-same-window)))
   (let ((buffer (window-normalize-buffer-to-switch-to buffer-or-name)))
     (cond
      ;; Don't call set-window-buffer if it's not needed since it
@@ -8059,7 +8107,7 @@ This function is responsible for combining the sizes of the
 displayed windows and returning a cons (WIDTH . HEIGHT)
 describing the width and height with which Emacs will call
 `set-process-window-size' for that process.  If the function
-returns `nil', Emacs does not call `set-process-window-size'.
+returns nil, Emacs does not call `set-process-window-size'.
 
 This function is called with the process buffer as the current
 buffer and with two arguments: the process and a list of windows
