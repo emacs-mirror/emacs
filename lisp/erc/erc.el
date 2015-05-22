@@ -1,3 +1,4 @@
+
 ;; erc.el --- An Emacs Internet Relay Chat client  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1997-2015 Free Software Foundation, Inc.
@@ -12,6 +13,7 @@
 ;;               Kelvin White (kwhite@gnu.org)
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: IRC, chat, client, Internet
+
 ;; Version: 5.3
 
 ;; This file is part of GNU Emacs.
@@ -37,14 +39,12 @@
 ;; * http://sv.gnu.org/projects/erc/
 ;; * http://www.emacswiki.org/cgi-bin/wiki/ERC
 
+
+
 ;; As of 2006-06-13, ERC development is now hosted on Savannah
 ;; (http://sv.gnu.org/projects/erc).  I invite everyone who wants to
 ;; hack on it to contact me <mwolson@gnu.org> in order to get write
 ;; access to the shared Arch archive.
-
-;; Installation:
-
-;; Put erc.el in your load-path, and put (require 'erc) in your .emacs.
 
 ;; Configuration:
 
@@ -258,8 +258,22 @@ If nil, only \"> \" will be shown."
           (repeat :inline t :tag "Others" (string :tag "IRC Message Type"))))
 
 (defcustom erc-hide-list nil
-  "List of IRC type messages to hide.
+  "A global list of IRC message types to hide.
 A typical value would be '(\"JOIN\" \"PART\" \"QUIT\")."
+  :group 'erc-ignore
+  :type 'erc-message-type)
+
+(defcustom erc-network-hide-list nil
+  "A list of IRC networks to hide message types from.
+A typical value would be '((\"freenode\" \"MODE\")
+(\"OFTC\" \"JOIN\" \"QUIT\"))."
+  :group 'erc-ignore
+  :type 'erc-message-type)
+
+(defcustom erc-channel-hide-list nil
+  "A list of IRC channels to hide message types from.
+A typical value would be '((\"#emacs\" \"QUIT\" \JOIN\")
+(\"#erc\" \"NICK\")."
   :group 'erc-ignore
   :type 'erc-message-type)
 
@@ -2616,15 +2630,36 @@ otherwise `erc-server-announced-name'.  SERVER is matched against
                erc-common-server-suffixes))
         erc-server-announced-name)))
 
+(defun erc-add-targets (scope target-list)
+  (let ((targets
+	 (mapcar (lambda (targets) (member scope targets)) target-list)))
+    (cdr (apply 'append (delete nil targets)))))
+
 (defun erc-hide-current-message-p (parsed)
   "Predicate indicating whether the parsed ERC response PARSED should be hidden.
 
 Messages are always hidden if the message type of PARSED appears in
-`erc-hide-list'.  In addition, messages whose type is a member of
-`erc-lurker-hide-list' are hidden if `erc-lurker-p' returns true."
+`erc-hide-list'. Message types that appear in `erc-network-hide-list'
+or `erc-channel-hide-list' are are only hidden if the target matches
+the network or channel in the list. In addition, messages whose type
+is a member of `erc-lurker-hide-list' are hidden if `erc-lurker-p'
+returns non-nil."
   (let* ((command (erc-response.command parsed))
-         (sender (car (erc-parse-user (erc-response.sender parsed)))))
+         (sender (car (erc-parse-user (erc-response.sender parsed))))
+         (channel (nth 1 (erc-response.command-args parsed)))
+         (network (or (and (fboundp 'erc-network-name) (erc-network-name))
+		      (erc-shorten-server-name
+		       (or erc-server-announced-name
+			   erc-session-server))))
+	 (current-hide-list
+	  (when erc-network-hide-list
+	    (erc-add-targets network erc-network-hide-list)))
+	 (current-hide-list
+	  (apply 'append current-hide-list
+		 (when erc-channel-hide-list
+		   (erc-add-targets channel erc-channel-hide-list)))))
     (or (member command erc-hide-list)
+        (member command current-hide-list)
         (and (member command erc-lurker-hide-list) (erc-lurker-p sender)))))
 
 (defun erc-display-message (parsed type buffer msg &rest args)
@@ -4150,7 +4185,7 @@ See also `erc-display-error-notice'."
                                    ;; server's setting if we haven't
                                    ;; established a connection yet
                                    (- 9 (length erc-nick-uniquifier))))
-                                erc-nick-uniquifier)))
+				erc-nick-uniqifier)))
       (erc-cmd-NICK newnick)
       (erc-display-error-notice
        nil

@@ -5030,8 +5030,7 @@
 	* mouse.el (mouse-yank-primarY): Look for frame-type w32, not
 	system-type windows-nt.
 
-	* server.el (server-create-window-system-frame): Look for window
-	type.
+	* server.el (server-create-window-system-frame): Look for window type.
 	(server-proces-filter): Only force a window system when windows-nt
 	_and_ w32.  Explain why.
 

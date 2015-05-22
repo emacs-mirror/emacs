@@ -753,6 +753,26 @@ If non, @code{nil}, this is a list of IRC message types to hide, e.g.:
 @end example
 @end defopt
 
+@defopt erc-network-hide-list
+If non, @code{nil}, this is a list of IRC networks and message types
+to hide, e.g.:
+
+@example
+(setq erc-network-hide-list (("freenode" "JOIN" "PART" "QUIT")
+("OFTC" "JOIN" "PART""))
+@end example
+@end defopt
+
+@defopt erc-channel-hide-list
+If non, @code{nil}, this is a list of IRC channels and message types
+to hide, e.g.:
+
+@example
+(setq erc-channel-hide-list (("#erc" "JOIN" "PART" "QUIT")
+("#emacs" "NICK"))
+@end example
+@end defopt
+
 @defopt erc-lurker-hide-list
 Like @code{erc-hide-list}, but only applies to messages sent by
 lurkers.  The function @code{erc-lurker-p} determines whether a given

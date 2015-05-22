@@ -341,7 +341,7 @@ This variable is fed automatically by Emacs when installing a new package.
 This variable is used by `package-autoremove' to decide
 which packages are no longer needed.
 You can use it to (re)install packages on other machines
-by running `package-user-selected-packages-install'.
+by running `package-install-selected-packages'.
 
 To check if a package is contained in this list here, use
 `package--user-selected-p', as it may populate the variable with
@@ -2993,9 +2993,10 @@ Optional argument NOQUERY non-nil means do not ask the user to confirm."
                        "]")))
           (message (replace-regexp-in-string "__" "ing" message-template) "started")
           ;; Packages being upgraded are not marked as selected.
-          (package--save-selected-packages
-           (remove-dups (append (mapcar #'package-desc-name .install)
-                                package-selected-packages)))
+          (when .install
+            (dolist (p .install)
+              (cl-pushnew (package-desc-name p) package-selected-packages))
+            (package--save-selected-packages package-selected-packages))
           (package-menu--perform-transaction install-list delete-list)
           (when package-selected-packages
             (if-let ((removable (package--removable-packages)))

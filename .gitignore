@@ -40,7 +40,6 @@ Info.plist
 InfoPlist.strings
 Makefile
 makefile
-!admin/charsets/Makefile
 !etc/refcards/Makefile
 !test/automated/data/flymake/Makefile
 !test/indent/Makefile

@@ -107,13 +107,13 @@ char *w32_getenv (char *);
 /* Name used to invoke this program.  */
 const char *progname;
 
-/* The second argument to main. */
+/* The second argument to main.  */
 char **main_argv;
 
 /* Nonzero means don't wait for a response from Emacs.  --no-wait.  */
 int nowait = 0;
 
-/* Nonzero means don't print messages for successful operations.  --quiet. */
+/* Nonzero means don't print messages for successful operations.  --quiet.  */
 int quiet = 0;
 
 /* Nonzero means args are expressions to be evaluated.  --eval.  */
@@ -131,7 +131,7 @@ const char *alt_display = NULL;
 /* The parent window ID, if we are opening a frame via XEmbed.  */
 char *parent_id = NULL;
 
-/* Nonzero means open a new Emacs frame on the current terminal. */
+/* Nonzero means open a new Emacs frame on the current terminal.  */
 int tty = 0;
 
 /* If non-NULL, the name of an editor to fallback to if the server
@@ -148,7 +148,7 @@ const char *server_file = NULL;
 int emacs_pid = 0;
 
 /* If non-NULL, a string that should form a frame parameter alist to
-   be used for the new frame */
+   be used for the new frame.  */
 const char *frame_parameters = NULL;
 
 static _Noreturn void print_help_and_exit (void);

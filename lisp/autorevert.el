@@ -1,4 +1,4 @@
-;;; autorevert.el --- revert buffers when files on disk change
+;;; autorevert.el --- revert buffers when files on disk change  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1997-1999, 2001-2015 Free Software Foundation, Inc.
 
@@ -95,7 +95,7 @@
 ;; mode.  For example, the following line will activate Auto-Revert
 ;; Mode in all C mode buffers:
 ;;
-;; (add-hook 'c-mode-hook 'turn-on-auto-revert-mode)
+;; (add-hook 'c-mode-hook #'turn-on-auto-revert-mode)
 
 ;;; Code:
 
@@ -260,10 +260,9 @@ buffers.  CPU usage depends on the version control system."
   :type 'boolean
   :version "22.1")
 
-(defvar global-auto-revert-ignore-buffer nil
+(defvar-local global-auto-revert-ignore-buffer nil
   "When non-nil, Global Auto-Revert Mode will not revert this buffer.
 This variable becomes buffer local when set in any fashion.")
-(make-variable-buffer-local 'global-auto-revert-ignore-buffer)
 
 (defcustom auto-revert-remote-files nil
   "If non-nil remote files are also reverted."
@@ -315,9 +314,9 @@ the list of old buffers.")
   "Position of last known end of file.")
 
 (add-hook 'find-file-hook
- 	  (lambda ()
- 	    (set (make-local-variable 'auto-revert-tail-pos)
- 		 (nth 7 (file-attributes buffer-file-name)))))
+	  (lambda ()
+	    (setq-local auto-revert-tail-pos
+                        (nth 7 (file-attributes buffer-file-name)))))
 
 (defvar auto-revert-notify-watch-descriptor-hash-list
   (make-hash-table :test 'equal)
@@ -326,15 +325,13 @@ Hash key is a watch descriptor, hash value is a list of buffers
 which are related to files being watched and carrying the same
 default directory.")
 
-(defvar auto-revert-notify-watch-descriptor nil
+(defvar-local auto-revert-notify-watch-descriptor nil
   "The file watch descriptor active for the current buffer.")
-(make-variable-buffer-local 'auto-revert-notify-watch-descriptor)
 (put 'auto-revert-notify-watch-descriptor 'permanent-local t)
 
-(defvar auto-revert-notify-modified-p nil
+(defvar-local auto-revert-notify-modified-p nil
   "Non-nil when file has been modified on the file system.
 This has been reported by a file notification event.")
-(make-variable-buffer-local 'auto-revert-notify-modified-p)
 
 ;; Functions:
 
@@ -370,7 +367,7 @@ without being changed in the part that is already in the buffer."
   "Turn on Auto-Revert Mode.
 
 This function is designed to be added to hooks, for example:
-  (add-hook 'c-mode-hook 'turn-on-auto-revert-mode)"
+  (add-hook 'c-mode-hook #'turn-on-auto-revert-mode)"
   (auto-revert-mode 1))
 
 
@@ -420,8 +417,8 @@ Perform a full revert? ")
       ;; else we might reappend our own end when we save
       (add-hook 'before-save-hook (lambda () (auto-revert-tail-mode 0)) nil t)
       (or (local-variable-p 'auto-revert-tail-pos) ; don't lose prior position
-	  (set (make-local-variable 'auto-revert-tail-pos)
-	       (nth 7 (file-attributes buffer-file-name))))
+	  (setq-local auto-revert-tail-pos
+                      (nth 7 (file-attributes buffer-file-name))))
       ;; let auto-revert-mode set up the mechanism for us if it isn't already
       (or auto-revert-mode
 	  (let ((auto-revert-tail-mode t))
@@ -434,7 +431,7 @@ Perform a full revert? ")
   "Turn on Auto-Revert Tail mode.
 
 This function is designed to be added to hooks, for example:
-  (add-hook 'my-logfile-mode-hook 'turn-on-auto-revert-tail-mode)"
+  (add-hook 'my-logfile-mode-hook #'turn-on-auto-revert-tail-mode)"
   (auto-revert-tail-mode 1))
 
 
@@ -495,7 +492,7 @@ will use an up-to-date value of `auto-revert-interval'"
 	   (ignore-errors
 	     (file-notify-rm-watch auto-revert-notify-watch-descriptor)))))
      auto-revert-notify-watch-descriptor-hash-list)
-    (remove-hook 'kill-buffer-hook 'auto-revert-notify-rm-watch))
+    (remove-hook 'kill-buffer-hook #'auto-revert-notify-rm-watch))
   (setq auto-revert-notify-watch-descriptor nil
 	auto-revert-notify-modified-p nil))
 
@@ -508,7 +505,7 @@ will use an up-to-date value of `auto-revert-interval'"
 	  (file-symlink-p (or buffer-file-name default-directory)))
 
       ;; Fallback to file checks.
-      (set (make-local-variable 'auto-revert-use-notify) nil)
+      (setq-local auto-revert-use-notify nil)
 
     (when (not auto-revert-notify-watch-descriptor)
       (setq auto-revert-notify-watch-descriptor
@@ -530,10 +527,10 @@ will use an up-to-date value of `auto-revert-interval'"
 		   (gethash auto-revert-notify-watch-descriptor
 			    auto-revert-notify-watch-descriptor-hash-list))
 	     auto-revert-notify-watch-descriptor-hash-list)
-	    (add-hook (make-local-variable 'kill-buffer-hook)
-		      'auto-revert-notify-rm-watch))
+	    (add-hook 'kill-buffer-hook
+		      #'auto-revert-notify-rm-watch nil t))
 	;; Fallback to file checks.
-	(set (make-local-variable 'auto-revert-use-notify) nil)))))
+	(setq-local auto-revert-use-notify nil)))))
 
 ;; If we have file notifications, we want to update the auto-revert buffers
 ;; immediately when a notification occurs. Since file updates can happen very

@@ -237,14 +237,19 @@ BODY, if present, is used as the body of a default method.
                (`(,spec-args . ,_) (cl--generic-split-args args))
                (mandatory (mapcar #'car spec-args))
                (apo (assq :argument-precedence-order options)))
-    (setf (cl--generic-dispatches generic) nil)
+    (unless (fboundp name)
+      ;; If the generic function was fmakunbound, throw away previous methods.
+      (setf (cl--generic-dispatches generic) nil)
+      (setf (cl--generic-method-table generic) nil))
     (when apo
       (dolist (arg (cdr apo))
         (let ((pos (memq arg mandatory)))
           (unless pos (error "%S is not a mandatory argument" arg))
-          (push (list (- (length mandatory) (length pos)))
-                (cl--generic-dispatches generic)))))
-    (setf (cl--generic-method-table generic) nil)
+          (let* ((argno (- (length mandatory) (length pos)))
+                 (dispatches (cl--generic-dispatches generic))
+                 (dispatch (or (assq argno dispatches) (list argno))))
+            (setf (cl--generic-dispatches generic)
+                  (cons dispatch (delq dispatch dispatches)))))))
     (setf (cl--generic-options generic) options)
     (cl--generic-make-function generic)))
 
@@ -438,16 +443,14 @@ which case this method will be invoked when the argument is `eql' to VAL.
           ;; the generic function.
           current-load-list)
       ;; For aliases, cl--generic-name gives us the actual name.
-      (funcall
-       (if purify-flag
-           ;; BEWARE!  Don't purify this function definition, since that leads
-           ;; to memory corruption if the hash-tables it holds are modified
-           ;; (the GC doesn't trace those pointers).
-           #'fset
-         ;; But do use `defalias' in the normal case, so that it interacts
-         ;; properly with nadvice, e.g. for tracing/debug-on-entry.
-         #'defalias)
-       (cl--generic-name generic) gfun))))
+      (let ((purify-flag
+             ;; BEWARE!  Don't purify this function definition, since that leads
+             ;; to memory corruption if the hash-tables it holds are modified
+             ;; (the GC doesn't trace those pointers).
+             nil))
+        ;; But do use `defalias', so that it interacts properly with nadvice,
+        ;; e.g. for tracing/debug-on-entry.
+        (defalias (cl--generic-name generic) gfun)))))
 
 (defmacro cl--generic-with-memoization (place &rest code)
   (declare (indent 1) (debug t))
@@ -705,6 +708,11 @@ methods.")
   (if (eq specializer t) (list cl--generic-t-generalizer)
     (error "Unknown specializer %S" specializer)))
 
+(eval-when-compile
+  ;; This macro is brittle and only really important in order to be
+  ;; able to preload cl-generic without also preloading the byte-compiler,
+  ;; So we use `eval-when-compile' so as not keep it available longer than
+  ;; strictly needed.
 (defmacro cl--generic-prefill-dispatchers (arg-or-context specializer)
   (unless (integerp arg-or-context)
     (setq arg-or-context `(&context . ,arg-or-context)))
@@ -722,7 +730,7 @@ methods.")
                        ,@(cl-generic-generalizers ',specializer)
                        ,cl--generic-t-generalizer)))
        ;; (message "Prefilling for %S with \n%S" dispatch ',fun)
-       (puthash dispatch ',fun cl--generic-dispatchers))))
+       (puthash dispatch ',fun cl--generic-dispatchers)))))
 
 (cl-defmethod cl-generic-combine-methods (generic methods)
   "Standard support for :after, :before, :around, and `:extra NAME' qualifiers."
@@ -796,8 +804,6 @@ Can only be used from within the lexical body of a primary or around method."
         specializers qualifiers
         (cl--generic-method-table (cl--generic generic)))))
 
-(defalias 'cl-method-qualifiers 'cl--generic-method-qualifiers)
-
 ;;; Add support for describe-function
 
 (defun cl--generic-search-method (met-name)
@@ -850,6 +856,9 @@ Can only be used from within the lexical body of a primary or around method."
 
 (add-hook 'help-fns-describe-function-functions #'cl--generic-describe)
 (defun cl--generic-describe (function)
+  ;; Supposedly this is called from help-fns, so help-fns should be loaded at
+  ;; this point.
+  (declare-function help-fns-short-filename "help-fns" (filename))
   (let ((generic (if (symbolp function) (cl--generic function))))
     (when generic
       (require 'help-mode)              ;Needed for `help-function-def' button!

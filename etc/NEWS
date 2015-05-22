@@ -249,6 +249,13 @@ Unicode standards.
 
 ** The `save-place' variable is replaced by a `save-place-mode'.
 
+** ERC
+
+*** Hide message types by network or channel. `erc-hide-list' will
+hide all messages of the specified type, where `erc-network-hide-list'
+and `erc-channel-hide-list' will only hide the specified message types
+for the respective specified targets.
+
 ** Midnight-mode
 *** `midnight-mode' is a proper minor mode.
 *** clean-buffer-*-regexps can now specify buffers via predicate functions.
