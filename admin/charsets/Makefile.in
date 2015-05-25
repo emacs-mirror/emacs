@@ -25,11 +25,6 @@
 
 # Generate charset maps in etc/charsets.
 
-#  If your system doesn't have the directory /usr/share/i18n/charmaps,
-#  get the source of the latest glibc, gzip all the charmap files in
-#  the directory "localedate/charmaps", and set the variable
-#  GLIBC_CHARMAPS to that directory.
-
 SHELL = @SHELL@
 
 AWK = @AWK@
@@ -41,7 +36,7 @@ charsetdir = ${top_srcdir}/etc/charsets
 lispintdir = ${top_srcdir}/lisp/international
 mapfiledir = ${srcdir}/mapfiles
 
-GLIBC_CHARMAPS=/usr/share/i18n/charmaps
+GLIBC_CHARMAPS = ${srcdir}/glibc
 
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 AM_V_GEN = $(am__v_GEN_@AM_V@)
@@ -109,19 +104,12 @@ TRANS_TABLE := $(addprefix ${lispintdir}/,${TRANS_TABLE})
 CHARSETS = ${ISO8859} ${IBM} ${CODEPAGE} ${CJK} ${MISC} ${MULE}
 CHARSETS := $(addprefix ${charsetdir}/,${CHARSETS})
 
-## Those charsets whose source is not in GLIBC_CHARMAPS.
-LOCAL = MIK.map PTCP154.map stdenc.map symbol.map CP720.map CP858.map \
-  JISX213A.map CP932-2BYTE.map JISC6226.map \
-  CNS-2.map CNS-3.map CNS-4.map CNS-5.map CNS-6.map CNS-7.map \
-  ALTERNATIVNYJ.map GB180304.map \
-  ${MULE}
-LOCAL := $(addprefix ${charsetdir}/,${LOCAL})
+.PHONY: all
 
+all: ${srcdir}/charsets.stamp
 
-.PHONY: all local
-
-all: ${CHARSETS} ${TRANS_TABLE}
-local: ${LOCAL} ${TRANS_TABLE}
+${srcdir}/charsets.stamp: ${CHARSETS} ${TRANS_TABLE}
+	${AM_V_GEN}echo timestamp > $@
 
 ## Rules for each charset.
 
@@ -142,7 +130,7 @@ define map_template
  $(notdir ${1}): ${1}
 endef
 
-$(foreach mfile,${CHARSETS},$(eval $(call map_template,$(mfile))))
+$(foreach mfile,${CHARSETS} ${TRANS_TABLE},$(eval $(call map_template,$(mfile))))
 
 ${charsetdir}/VSCII.map: ${GLIBC_CHARMAPS}/TCVN5712-1.gz ${mapconv} ${compact}
 	${AM_V_GEN}${run_mapconv} $< '/^<.*[ 	]\/x[0-9a-f].[ 	]/' GLIBC-1 ${compact} > $@
@@ -316,7 +304,7 @@ ${charsetdir}/%.map: ${GLIBC_CHARMAPS}/%.gz ${mapconv} ${compact}
 	${AM_V_GEN}${run_mapconv} $< '/^<.*[ 	]\/x/' GLIBC-1 ${compact} > $@
 
 
-.PHONY: clean bootstrap-clean distclean maintainer-clean extraclean totalclean
+.PHONY: clean bootstrap-clean distclean maintainer-clean extraclean
 
 clean:
 	rm -f ${SED_SCRIPT}
@@ -330,7 +318,4 @@ maintainer-clean: distclean
 
 ## Do not remove these files, even in a bootstrap.  They rarely change.
 extraclean:
-	rm -f ${LOCAL} ${TRANS_TABLE}
-
-totalclean: extraclean
-	rm -f ${CHARSETS}
+	rm -f ${CHARSETS} ${TRANS_TABLE} ${srcdir}/charsets.stamp

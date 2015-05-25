@@ -474,13 +474,15 @@
                   :enable (and (cdr yank-menu) (not buffer-read-only))
                   :help "Choose a string from the kill ring and paste it"))
     (bindings--define-key menu [paste]
-      '(menu-item "Paste" yank
-                  :enable (and (or
-                                (gui-call gui-selection-exists-p 'CLIPBOARD)
-                                (if (featurep 'ns) ; like paste-from-menu
-                                    (cdr yank-menu)
-                                  kill-ring))
-                               (not buffer-read-only))
+      `(menu-item "Paste" yank
+                  :enable (funcall
+                           ',(lambda ()
+                               (and (or
+                                     (gui-backend-selection-exists-p 'CLIPBOARD)
+                                     (if (featurep 'ns) ; like paste-from-menu
+                                         (cdr yank-menu)
+                                       kill-ring))
+                                    (not buffer-read-only))))
                   :help "Paste (yank) text most recently cut/copied"))
     (bindings--define-key menu [copy]
       ;; ns-win.el said: Substitute a Copy function that works better
@@ -523,9 +525,12 @@
      '(and mark-active (not buffer-read-only)))
 (put 'clipboard-kill-ring-save 'menu-enable 'mark-active)
 (put 'clipboard-yank 'menu-enable
-     '(and (or (gui-call gui-selection-exists-p 'PRIMARY)
-	       (gui-call gui-selection-exists-p 'CLIPBOARD))
- 	   (not buffer-read-only)))
+     `(funcall ',(lambda ()
+                   (and (or (gui-backend-selection-exists-p 'PRIMARY)
+                            (gui-backend-selection-exists-p 'CLIPBOARD))
+                        (not buffer-read-only)))))
+
+(defvar gui-select-enable-clipboard)
 
 (defun clipboard-yank ()
   "Insert the clipboard contents, or the last stretch of killed text."

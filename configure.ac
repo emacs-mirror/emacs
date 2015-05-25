@@ -330,6 +330,7 @@ OPTION_DEFAULT_ON([tiff],[don't compile with TIFF image support])
 OPTION_DEFAULT_ON([gif],[don't compile with GIF image support])
 OPTION_DEFAULT_ON([png],[don't compile with PNG image support])
 OPTION_DEFAULT_ON([rsvg],[don't compile with SVG image support])
+OPTION_DEFAULT_OFF([cairo],[compile with Cairo drawing])
 OPTION_DEFAULT_ON([xml2],[don't compile with XML parsing support])
 OPTION_DEFAULT_ON([imagemagick],[don't compile with ImageMagick image support])
 
@@ -2410,6 +2411,7 @@ if test "${opsys}" != "mingw32"; then
        AC_DEFINE(HAVE_GTK3, 1, [Define to 1 if using GTK 3 or later.])
        GTK_OBJ=emacsgtkfixed.o
        gtk_term_header=gtkutil.h
+       USE_CAIRO=yes
        USE_GTK_TOOLKIT="GTK3"
        if test "x$ac_enable_gtk_deprecation_warnings" = x; then
 	 AC_DEFINE([GDK_DISABLE_DEPRECATION_WARNINGS], [1],
@@ -3113,6 +3115,25 @@ AC_SUBST(LIBOTF_CFLAGS)
 AC_SUBST(LIBOTF_LIBS)
 AC_SUBST(M17N_FLT_CFLAGS)
 AC_SUBST(M17N_FLT_LIBS)
+
+USE_CAIRO=no
+if test "${HAVE_X11}" = "yes"; then
+  if test "${with_cairo}" != "no"; then
+    CAIRO_REQUIRED=1.12.0
+    CAIRO_MODULE="cairo >= $CAIRO_REQUIRED"
+    PKG_CHECK_MODULES(CAIRO, $CAIRO_MODULE, USE_CAIRO=yes, :)
+    if test $USE_CAIRO = yes; then
+      AC_DEFINE(USE_CAIRO, 1, [Define to 1 if using cairo.])
+    else
+      AC_MSG_ERROR([cairo requested but not found.])
+    fi
+
+    CFLAGS="$CFLAGS $CAIRO_CFLAGS"
+    LIBS="$LIBS $CAIRO_LIBS"
+    AC_SUBST(CAIRO_CFLAGS)
+    AC_SUBST(CAIRO_LIBS)
+  fi
+fi
 
 ### Use -lXpm if available, unless '--with-xpm=no'.
 ### mingw32 doesn't use -lXpm, since it loads the library dynamically.
@@ -4048,8 +4069,8 @@ OLDCFLAGS="$CFLAGS"
 OLDLIBS="$LIBS"
 CFLAGS="$CFLAGS $GTK_CFLAGS $RSVG_CFLAGS $DBUS_CFLAGS $SETTINGS_CFLAGS"
 LIBS="$LIBS $GTK_LIBS $RSVG_LIBS $DBUS_LIBS $SETTINGS_LIBS"
-CFLAGS="$CFLAGS $GFILENOTIFY_CFLAGS"
-LIBS="$LIBS $GFILENOTIFY_LIBS"
+CFLAGS="$CFLAGS $GFILENOTIFY_CFLAGS $CAIRO_CFLAGS"
+LIBS="$LIBS $GFILENOTIFY_LIBS $CAIRO_LIBS"
 AC_MSG_CHECKING([whether GLib is linked in])
 AC_LINK_IFELSE([AC_LANG_PROGRAM(
 	[[#include <glib.h>
@@ -4815,7 +4836,9 @@ if test "${HAVE_X_WINDOWS}" = "yes" ; then
   XMENU_OBJ=xmenu.o
   XOBJ="xterm.o xfns.o xselect.o xrdb.o xsmfns.o xsettings.o"
   FONT_OBJ=xfont.o
-  if test "$HAVE_XFT" = "yes"; then
+  if test "$USE_CAIRO" = "yes"; then
+    FONT_OBJ="ftfont.o ftcrfont.o"
+  elif test "$HAVE_XFT" = "yes"; then
     FONT_OBJ="$FONT_OBJ ftfont.o xftfont.o ftxfont.o"
   elif test "$HAVE_FREETYPE" = "yes"; then
     FONT_OBJ="$FONT_OBJ ftfont.o ftxfont.o"
@@ -5184,6 +5207,7 @@ echo "  Does Emacs use -ltiff?                                  ${HAVE_TIFF}"
 echo "  Does Emacs use a gif library?                           ${HAVE_GIF} $LIBGIF"
 echo "  Does Emacs use a png library?                           ${HAVE_PNG} $LIBPNG"
 echo "  Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}"
+echo "  Does Emacs use cairo?                                   ${USE_CAIRO}"
 echo "  Does Emacs use imagemagick?                             ${HAVE_IMAGEMAGICK}"
 
 echo "  Does Emacs support sound?                               ${HAVE_SOUND}"

@@ -5280,11 +5280,15 @@ EMACS_FONT_LOG is set.  Otherwise, it is set to t.  */);
 #ifdef HAVE_FREETYPE
   syms_of_ftfont ();
 #ifdef HAVE_X_WINDOWS
+#ifdef USE_CAIRO
+  syms_of_ftcrfont ();
+#else
   syms_of_xfont ();
   syms_of_ftxfont ();
 #ifdef HAVE_XFT
   syms_of_xftfont ();
 #endif  /* HAVE_XFT */
+#endif  /* not USE_CAIRO */
 #endif	/* HAVE_X_WINDOWS */
 #else	/* not HAVE_FREETYPE */
 #ifdef HAVE_X_WINDOWS

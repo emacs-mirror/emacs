@@ -651,8 +651,8 @@ server or call `M-x server-force-delete' to forcibly disconnect it.")
 		       :name server-name
 		       :server t
 		       :noquery t
-		       :sentinel 'server-sentinel
-		       :filter 'server-process-filter
+		       :sentinel #'server-sentinel
+		       :filter #'server-process-filter
 		       ;; We must receive file names without being decoded.
 		       ;; Those are decoded by server-process-filter according
 		       ;; to file-name-coding-system.  Also don't get
@@ -840,9 +840,6 @@ This handles splitting the command if it would be bigger than
          (w (or (cdr (assq 'window-system parameters))
                 (window-system-for-display display))))
 
-    (unless (assq w window-system-initialization-alist)
-      (setq w nil))
-
     ;; Special case for ns.  This is because DISPLAY may not be set at all
     ;; which in the ns case isn't an error.  The variable display then becomes
     ;; the fully qualified hostname, which make-frame-on-display below
@@ -850,7 +847,12 @@ This handles splitting the command if it would be bigger than
     ;; It may also be a valid X display, but if Emacs is compiled for ns, it
     ;; can not make X frames.
     (if (featurep 'ns-win)
-	(setq w 'ns display "ns"))
+	(setq w 'ns display "ns")
+      ;; FIXME! Not sure what this was for, and not sure how it should work
+      ;; in the cl-defmethod new world!
+      ;;(unless (assq w window-system-initialization-alist)
+      ;;  (setq w nil))
+      )
 
     (cond (w
            ;; Flag frame as client-created, but use a dummy client.
@@ -1168,7 +1170,8 @@ The following commands are accepted by the client:
                    (setq file (expand-file-name file dir))
                    (push (cons file filepos) files)
                    (server-log (format "New file: %s %s"
-                                       file (or filepos "")) proc))
+                                       file (or filepos ""))
+                               proc))
                  (setq filepos nil))
 
                 ;; -eval EXPR:  Evaluate a Lisp expression.

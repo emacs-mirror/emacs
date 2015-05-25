@@ -787,9 +787,7 @@ We run the first FUNCTION whose STRING matches the input events."
 
 ;; FIXME: This defines the gui method for all terminals, even tho it only
 ;; supports a subset of them.
-(gui-method-define gui-set-selection nil #'xterm--set-selection)
-
-(defun xterm--set-selection (type data)
+(cl-defmethod gui-backend-set-selection (type data &context (window-system (eql nil)))
   "Copy DATA to the X selection using the OSC 52 escape sequence.
 
 TYPE specifies which selection to set; it must be either

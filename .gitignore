@@ -125,6 +125,7 @@ deps/
 *.tmp
 
 # Time stamps.
+*.stamp
 stamp_BLD
 src/gl-stamp
 src/stamp-h.in
@@ -189,11 +190,12 @@ src/emacs-[0-9]*
 src/temacs
 
 # Character-set info.
-admin/charsets/*.el
-admin/charsets/*.map
 admin/charsets/jisx2131-filter
 admin/unidata/unidata.txt
+etc/charsets/*.map
 lisp/international/charprop.el
+lisp/international/cp51932.el
+lisp/international/eucjp-ms.el
 lisp/international/uni-*.el
 
 # Documentation.
@@ -249,6 +251,8 @@ gnustmp*
 \#*\#
 ChangeLog
 [0-9]*.patch
+[0-9]*.txt
+/vc-dwim-log-*
 
 # Built by 'make install'.
 etc/emacs.tmpdesktop

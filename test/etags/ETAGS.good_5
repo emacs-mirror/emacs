@@ -2812,37 +2812,37 @@ int extvar;109,2053
 struct re_pattern_buffer 119,2277
 struct re_pattern_buffer { unsigned char *buffer;buffer119,2277
 
-cp-src/c.C,3629
+cp-src/c.C,3133
 template <typename ipc3dIslandHierarchy,1,0
 template <typename ipc3dIslandHierarchy, typename ipc3dChannelType,1,0
 template <typename ipc3dIslandHierarchy, typename ipc3dChannelType, unsigned numOfChannels,1,0
 template <typename ipc3dIslandHierarchy, typename ipc3dChannelType, unsigned numOfChannels, typename ipc3dLinkControl,1,0
 class CMultiChannelCSC19_3D2,151
-        ipc3dLinkControlSetup setup;CMultiChannelCSC19_3D::setup5,190
-        ipc3dCSC19<CMultiChannelCSC19_3D::ipc3dCSC196,227
-        ipc3dCSC19<ipc3dIslandHierarchy,ipcMultiChannel<ipc3dChannelType,numOfChannels>,ipcMultiChannel<ipc3dChannelType,numOfChannels>,ipc3dLinkControl> mcCSC;CMultiChannelCSC19_3D::mcCSC6,227
-        advTimer cscInitTime;CMultiChannelCSC19_3D::cscInitTime7,388
-        advTimer cscSegmentationTime;CMultiChannelCSC19_3D::cscSegmentationTime8,418
-        advTimer outputTime;CMultiChannelCSC19_3D::outputTime9,456
-        void execute(CMultiChannelCSC19_3D::execute11,493
+        ipc3dLinkControlSetup setup;5,190
+        ipc3dCSC19<ipc3dCSC196,227
+        ipc3dCSC19<ipc3dIslandHierarchy,ipcMultiChannel<ipc3dChannelType,numOfChannels>,ipcMultiChannel<ipc3dChannelType,numOfChannels>,ipc3dLinkControl> mcCSC;6,227
+        advTimer cscInitTime;7,388
+        advTimer cscSegmentationTime;8,418
+        advTimer outputTime;9,456
+        void execute(11,493
 static void my_function1(24,984
 int main 25,1026
 double base 26,1088
 operator += operator +=29,1174
 class TestRecord;31,1233
 typedef struct s1 32,1251
-   int counter;s1::counter33,1271
+   int counter;33,1271
 } t1;34,1287
 struct s2 35,1293
-   int counter;s2::counter36,1305
+   int counter;36,1305
 typedef struct s2 t2;38,1324
 class A 39,1346
-  enum { rosso,A::rosso40,1356
-  enum { rosso, giallo,A::giallo40,1356
-  enum { rosso, giallo, verde A::verde40,1356
-  enum { rosso, giallo, verde } colori;A::colori40,1356
-  const A& operator+(A::operator+41,1396
-const A& A::operator+(43,1431
+  enum { rosso,40,1356
+  enum { rosso, giallo,40,1356
+  enum { rosso, giallo, verde 40,1356
+  enum { rosso, giallo, verde } colori;40,1356
+  const A& operator+(41,1396
+const A& A::operator+(operator+43,1431
 void operator+(44,1467
 void operator -(operator -45,1495
 void operator int(operator int46,1524
@@ -2851,86 +2851,86 @@ int f(49,1571
 int A<int>::f(f50,1590
 A<float,B<int> > A<B<float>,int>::f(f51,1618
 template <class C, int n> class AT 52,1668
-template <class C, int n> class AT { C t[AT::t52,1668
+template <class C, int n> class AT { C t[t52,1668
 class AU 53,1716
-class AU { T x;AU::x53,1716
+class AU { T x;53,1716
 class B<B54,1735
-class B<int> { void f(B::f54,1735
+class B<int> { void f(54,1735
 const A::B::T& abt 55,1765
 class A 56,1791
-class A { class B A::B56,1791
-class A { class B { int f(A::B::f56,1791
+class A { class B 56,1791
+class A { class B { int f(56,1791
 class A 57,1826
-  int get_data(A::get_data58,1836
-  A operator+(A::operator+59,1860
+  int get_data(58,1836
+  A operator+(59,1860
 is_muldiv_operation(61,1887
 domain foo 68,1955
-     void f(foo::f69,1968
-void A::A(72,1989
+     void f(69,1968
+void A::A(A72,1989
 struct A 73,2004
-struct A { A(A::A73,2004
+struct A { A(73,2004
 struct B 74,2022
-struct B { B(B::B74,2022
-void B::B(75,2041
-void BE_Node::BE_Node(76,2056
+struct B { B(74,2022
+void B::B(B75,2041
+void BE_Node::BE_Node(BE_Node76,2056
 class BE_Node 77,2083
 struct foo 79,2102
-  int x;foo::x80,2115
+  int x;80,2115
 class test 86,2156
-  int f(test::f87,2169
-  int ff(test::ff89,2231
-  int g(test::g90,2254
+  int f(87,2169
+  int ff(89,2231
+  int g(90,2254
 class	AST_Root 92,2278
 class	AST_Root;96,2327
 AST_ConcreteType::AST_ConcreteType(99,2393
 AST_Array::AST_Array(107,2532
-     void f(::f115,2733
+     void f(115,2733
 struct A 117,2753
-    ~A(A::~A118,2764
-A::~A(120,2777
+    ~A(118,2764
+A::~A(~A120,2777
 struct B 122,2789
-    ~B(B::~B123,2800
-enum {dog,::dog126,2817
-enum {dog, cat}::cat126,2817
+    ~B(123,2800
+enum {dog,dog126,2817
+enum {dog, cat}cat126,2817
 enum {dog, cat} animals;126,2817
-struct {int teats;::teats127,2842
+struct {int teats;127,2842
 struct {int teats;} cow;127,2842
 class Boo 129,2868
-    enum {dog,Boo::dog130,2880
-    enum {dog, cat}Boo::cat130,2880
-    enum {dog, cat} animals;Boo::animals130,2880
-    struct {int treats;Boo::treats131,2909
-    struct {int treats;} cow;Boo::cow131,2909
-    int i,Boo::i132,2939
-    int i,a,Boo::a132,2939
-    int i,a,b;Boo::b132,2939
-    foo(Boo::foo133,2954
-    Boo(Boo::Boo137,2995
-    Boo(Boo::Boo138,3052
+    enum {dog,dog130,2880
+    enum {dog, cat}cat130,2880
+    enum {dog, cat} animals;130,2880
+    struct {int treats;131,2909
+    struct {int treats;} cow;131,2909
+    int i,132,2939
+    int i,a,132,2939
+    int i,a,b;132,2939
+    foo(133,2954
+    Boo(137,2995
+    Boo(138,3052
 Boo::Boo(141,3070
 typedef int should_see_this_one_enclosed_in_extern_C;149,3155
 typedef int (*should_see_this_function_pointer)should_see_this_function_pointer153,3228
 typedef int should_see_this_array_type[should_see_this_array_type156,3310
 
-cp-src/burton.cpp,103
-::dummy::dummy test::dummy1(1,0
-::dummy::dummy test::dummy2(6,64
-::dummy::dummy test::dummy3(11,143
+cp-src/burton.cpp,124
+::dummy::dummy test::dummy1(dummy11,0
+::dummy::dummy test::dummy2(dummy26,64
+::dummy::dummy test::dummy3(dummy311,143
 
-cp-src/functions.cpp,807
-void Date::setDate 5,148
-void Date::plus 32,939
-void Date::minus 42,1229
-void Date::shift 52,1407
-Date & Date::operator = Date::operator =62,1628
-Date & Date::operator += Date::operator +=69,1789
-Date & Date::operator -= Date::operator -=78,1939
-Date & Date::operator ++ Date::operator ++87,2080
-Date & Date::operator -- Date::operator --96,2216
-int Date::operator - Date::operator -104,2331
-int Date::operator < Date::operator <112,2483
-int Date::operator > Date::operator >116,2557
-int Date::operator == Date::operator ==120,2631
+cp-src/functions.cpp,778
+void Date::setDate setDate5,148
+void Date::plus plus32,939
+void Date::minus minus42,1229
+void Date::shift shift52,1407
+Date & Date::operator = operator =62,1628
+Date & Date::operator += operator +=69,1789
+Date & Date::operator -= operator -=78,1939
+Date & Date::operator ++ operator ++87,2080
+Date & Date::operator -- operator --96,2216
+int Date::operator - operator -104,2331
+int Date::operator < operator <112,2483
+int Date::operator > operator >116,2557
+int Date::operator == operator ==120,2631
 ostream& operator << operator <<124,2707
 istream& operator >> operator >>133,2943
 bool isLeap 159,3543
@@ -2941,7 +2941,7 @@ void Debug 201,4523
 int WorkingDays(211,4867
 Date StartDay(226,5129
 
-cp-src/MDiagArray2.h,1538
+cp-src/MDiagArray2.h,1194
 #define octave_MDiagArray2_h 29,870
 #undef LTGT35,967
 #define LTGT39,1031
@@ -2957,58 +2957,58 @@ operator - operator -66,1707
 product 69,1808
 operator - operator -72,1907
 class MDiagArray2 78,2022
-  MDiagArray2 MDiagArray2::MDiagArray282,2077
-  MDiagArray2 MDiagArray2::MDiagArray286,2154
-  MDiagArray2 MDiagArray2::MDiagArray287,2198
-  MDiagArray2 MDiagArray2::MDiagArray288,2254
-  MDiagArray2 MDiagArray2::MDiagArray289,2329
-  MDiagArray2 MDiagArray2::MDiagArray290,2387
-  MDiagArray2 MDiagArray2::MDiagArray291,2450
-  ~MDiagArray2 MDiagArray2::~MDiagArray293,2515
-  MDiagArray2<T>& operator = MDiagArray2::operator =95,2542
-      DiagArray2<T>::operator = MDiagArray2::operator =97,2603
-  operator MArray2<T> MDiagArray2::operator MArray2<T>101,2667
-  operator += MDiagArray2::operator +=116,2966
-  operator -= MDiagArray2::operator -=119,3057
-  friend MDiagArray2<T> operator * MDiagArray2::operator *123,3174
-  friend MDiagArray2<T> operator / MDiagArray2::operator /124,3253
-  friend MDiagArray2<T> operator * MDiagArray2::operator *128,3384
-  operator + MDiagArray2::operator +133,3544
-  operator - MDiagArray2::operator -136,3640
-  friend MDiagArray2<T> operator - MDiagArray2::operator -141,3803
+  MDiagArray2 82,2077
+  MDiagArray2 86,2154
+  MDiagArray2 87,2198
+  MDiagArray2 88,2254
+  MDiagArray2 89,2329
+  MDiagArray2 90,2387
+  MDiagArray2 91,2450
+  ~MDiagArray2 93,2515
+  MDiagArray2<T>& operator = operator =95,2542
+      DiagArray2<T>::operator = operator =97,2603
+  operator MArray2<T> operator MArray2<T>101,2667
+  operator += operator +=116,2966
+  operator -= operator -=119,3057
+  friend MDiagArray2<T> operator * operator *123,3174
+  friend MDiagArray2<T> operator / operator /124,3253
+  friend MDiagArray2<T> operator * operator *128,3384
+  operator + operator +133,3544
+  operator - operator -136,3640
+  friend MDiagArray2<T> operator - operator -141,3803
 #undef LTGT144,3874
 #define INSTANTIATE_MDIAGARRAY_FRIENDS(146,3887
 
-cp-src/Range.h,1136
+cp-src/Range.h,784
 #define octave_Range_h 24,765
 class istream;30,840
 class ostream;31,855
 class Matrix;32,870
 Range35,891
-  Range Range::Range39,909
-  Range Range::Range42,995
-  Range Range::Range46,1130
-  Range Range::Range50,1248
-  double base Range::base54,1376
-  double limit Range::limit55,1425
-  double inc Range::inc56,1475
-  int nelem Range::nelem57,1523
-  bool all_elements_are_ints Range::all_elements_are_ints59,1571
-  Matrix matrix_value Range::matrix_value61,1615
-  double min Range::min63,1652
-  double max Range::max64,1679
-  void sort Range::sort66,1707
-  void set_base Range::set_base68,1728
-  void set_limit Range::set_limit69,1774
-  void set_inc Range::set_inc70,1821
-  friend ostream& operator << Range::operator <<72,1867
-  friend istream& operator >> Range::operator >>73,1928
-  void print_range Range::print_range75,1984
-  double rng_base;Range::rng_base79,2023
-  double rng_limit;Range::rng_limit80,2042
-  double rng_inc;Range::rng_inc81,2062
-  int rng_nelem;Range::rng_nelem83,2081
-  int nelem_internal Range::nelem_internal85,2099
+  Range 39,909
+  Range 42,995
+  Range 46,1130
+  Range 50,1248
+  double base 54,1376
+  double limit 55,1425
+  double inc 56,1475
+  int nelem 57,1523
+  bool all_elements_are_ints 59,1571
+  Matrix matrix_value 61,1615
+  double min 63,1652
+  double max 64,1679
+  void sort 66,1707
+  void set_base 68,1728
+  void set_limit 69,1774
+  void set_inc 70,1821
+  friend ostream& operator << operator <<72,1867
+  friend istream& operator >> operator >>73,1928
+  void print_range 75,1984
+  double rng_base;79,2023
+  double rng_limit;80,2042
+  double rng_inc;81,2062
+  int rng_nelem;83,2081
+  int nelem_internal 85,2099
 extern Range operator - operator -88,2138
 
 cp-src/screen.cpp,228
@@ -3021,25 +3021,25 @@ void cursor_position(32,836
 void clear_screen(41,997
 void write_xyc(55,1247
 
-cp-src/screen.hpp,791
+cp-src/screen.hpp,538
 #define __COLORS9,401
 enum COLORS 11,419
-    BLACK,COLORS::BLACK12,433
-    BLUE,COLORS::BLUE13,471
-    GREEN,COLORS::GREEN14,481
-    CYAN,COLORS::CYAN15,492
-    RED,COLORS::RED16,502
-    MAGENTA,COLORS::MAGENTA17,511
-    BROWN,COLORS::BROWN18,524
-    LIGHTGRAY,COLORS::LIGHTGRAY19,535
-    DARKGRAY,COLORS::DARKGRAY20,550
-    LIGHTBLUE,COLORS::LIGHTBLUE21,589
-    LIGHTGREEN,COLORS::LIGHTGREEN22,604
-    LIGHTCYAN,COLORS::LIGHTCYAN23,620
-    LIGHTRED,COLORS::LIGHTRED24,635
-    LIGHTMAGENTA,COLORS::LIGHTMAGENTA25,649
-    YELLOW,COLORS::YELLOW26,667
-    WHITECOLORS::WHITE27,679
+    BLACK,12,433
+    BLUE,13,471
+    GREEN,14,481
+    CYAN,15,492
+    RED,16,502
+    MAGENTA,17,511
+    BROWN,18,524
+    LIGHTGRAY,19,535
+    DARKGRAY,20,550
+    LIGHTBLUE,21,589
+    LIGHTGREEN,22,604
+    LIGHTCYAN,23,620
+    LIGHTRED,24,635
+    LIGHTMAGENTA,25,649
+    YELLOW,26,667
+    WHITE27,679
 #define SCREEN_FP(31,700
 #define SCREEN_START 33,795
 void goto_xy(35,835
@@ -3048,96 +3048,96 @@ void cursor_position(37,907
 void clear_screen(38,935
 void write_xyc(39,960
 
-cp-src/conway.cpp,270
+cp-src/conway.cpp,288
 #define max(12,357
 #define min(13,393
 const int num_rows 15,430
 const int num_columns 16,470
 class site *field_of_play[field_of_play18,499
-int site::total_surrounding(20,550
+int site::total_surrounding(total_surrounding20,550
 void display(37,958
 void glider(50,1239
 void traffic_light(59,1478
 void main(67,1633
 
-cp-src/conway.hpp,483
+cp-src/conway.hpp,322
 class site:site5,235
-    char x,site::x7,269
-    char x, y,site::y7,269
-    char x, y, alive,site::alive7,269
-    char x, y, alive, next_alive;site::next_alive7,269
-    int total_surrounding(site::total_surrounding8,303
-    site(site::site10,344
-    ~site(site::~site11,397
-    char read(site::read12,410
-    void set(site::set13,444
-    void clear(site::clear14,478
-    void compute_next_state(site::compute_next_state15,514
-    void step(site::step22,717
+    char x,7,269
+    char x, y,7,269
+    char x, y, alive,7,269
+    char x, y, alive, next_alive;7,269
+    int total_surrounding(8,303
+    site(10,344
+    ~site(11,397
+    char read(12,410
+    void set(13,444
+    void clear(14,478
+    void compute_next_state(15,514
+    void step(22,717
 
-cp-src/clheir.cpp,307
+cp-src/clheir.cpp,359
 const int max_num_generic_objects 9,298
 generic_object * object_registry[object_registry10,340
 void init_registry(12,400
 void step_everybody(19,527
-void discrete_location::clear_neighbors(31,852
-generic_object::generic_object(36,981
-generic_object::~generic_object(48,1255
-void agent::move(53,1353
+void discrete_location::clear_neighbors(clear_neighbors31,852
+generic_object::generic_object(generic_object36,981
+generic_object::~generic_object(~generic_object48,1255
+void agent::move(move53,1353
 
-cp-src/clheir.hpp,1600
+cp-src/clheir.hpp,990
 extern void init_registry(10,452
 extern void step_everybody(11,485
 class generic_object13,520
-    int where_in_registry;generic_object::where_in_registry15,547
-    generic_object(generic_object::generic_object17,582
-    ~generic_object(generic_object::~generic_object19,724
-    virtual void compute_next_state(generic_object::compute_next_state21,842
-    virtual void step(generic_object::step22,888
+    int where_in_registry;15,547
+    generic_object(17,582
+    ~generic_object(19,724
+    virtual void compute_next_state(21,842
+    virtual void step(22,888
 const int max_num_directions 31,1219
 class location:location33,1289
-    location(location::location43,1642
-    ~location(location::~location44,1661
+    location(43,1642
+    ~location(44,1661
 class irregular_location:irregular_location47,1686
-    double x,irregular_location::x49,1734
-    double x, y,irregular_location::y49,1734
-    double x, y, z;irregular_location::z49,1734
-    irregular_location(irregular_location::irregular_location51,1762
-    ~irregular_location(irregular_location::~irregular_location53,1854
+    double x,49,1734
+    double x, y,49,1734
+    double x, y, z;49,1734
+    irregular_location(51,1762
+    ~irregular_location(53,1854
 class discrete_location:discrete_location56,1889
-    int x,discrete_location::x58,1936
-    int x, y,discrete_location::y58,1936
-    int x, y, z;discrete_location::z58,1936
-    class location *neighbors[discrete_location::neighbors59,1953
-    void clear_neighbors(discrete_location::clear_neighbors60,2004
-    discrete_location(discrete_location::discrete_location62,2044
-    ~discrete_location(discrete_location::~discrete_location65,2154
-    void assign_neighbor(discrete_location::assign_neighbor66,2184
+    int x,58,1936
+    int x, y,58,1936
+    int x, y, z;58,1936
+    class location *neighbors[neighbors59,1953
+    void clear_neighbors(60,2004
+    discrete_location(62,2044
+    ~discrete_location(65,2154
+    void assign_neighbor(66,2184
 class agent:agent75,2508
-    location *where;agent::where77,2549
-    agent(agent::agent79,2578
-    ~agent(agent::~agent80,2591
-    void move(agent::move81,2605
+    location *where;where77,2549
+    agent(79,2578
+    ~agent(80,2591
+    void move(81,2605
 
-cp-src/fail.C,438
+cp-src/fail.C,351
 struct A 7,263
-	   struct B A::B8,274
-		   struct C A::B::C9,289
-			   int x;A::B::C::x10,305
-			   C(A::B::C::C11,318
-			   operator int(A::B::C::operator int12,342
-		   typedef C T;A::B::T14,389
-	   typedef B T2;A::T216,414
+	   struct B 8,274
+		   struct C 9,289
+			   int x;10,305
+			   C(11,318
+			   operator int(operator int12,342
+		   typedef C T;14,389
+	   typedef B T2;16,414
 class String;20,437
 class A 23,453
-	class B A::B24,463
-		class C A::B::C25,474
-		int f(A::B::f26,488
-int A::B::f(31,521
+	class B 24,463
+		class C 25,474
+		int f(26,488
+int A::B::f(f31,521
 main(37,571
 	class D 41,622
-		D(D::D43,659
-		int x;D::x44,694
+		D(43,659
+		int x;44,694
 
 el-src/TAGTEST.EL,148
 (foo::defmumble bletch 1,0
@@ -3291,12 +3291,12 @@ f-src/entry.strange_suffix,172
      & intensity1(577,12231
        character*(*) function foo(579,12307
 
-f-src/entry.strange,171
-      LOGICAL FUNCTION PRTPKG 2,2
-       ENTRY  SETPRT 193,3793
-       ENTRY  MSGSEL 394,8405
-     & intensity1(576,12158
-       character*(*) function foo(578,12234
+f-src/entry.strange,172
+      LOGICAL FUNCTION PRTPKG 3,75
+       ENTRY  SETPRT 194,3866
+       ENTRY  MSGSEL 395,8478
+     & intensity1(577,12231
+       character*(*) function foo(579,12307
 
 forth-src/test-forth.fth,408
 : a-forth-word 20,301
@@ -3415,23 +3415,23 @@ objc-src/Subprocess.h,98
 #define BUFFERSIZE 43,1267
 @interface Subprocess:Subprocess45,1292
 
-objc-src/Subprocess.m,505
+objc-src/Subprocess.m,476
 #define	PTY_TEMPLATE 20,494
 #define	PTY_LENGTH 21,528
 static void showError(23,551
-@interface Subprocess(Private)Subprocess(Private)32,737
+@interface Subprocess(Private)32,737
 - childDidExit39,851
-- fdHandler:67,1589
+- fdHandler:fdHandler67,1589
 showError 98,2360
 fdHandler 112,2785
 getptys 119,2907
-- init:183,4815
-    andStdErr:init:withDelegate:andPtySupport:andStdErr:197,5147
-- send:(const char *)string withNewline:send:withNewline:300,7436
-- send:308,7599
+- init:init183,4815
+    andStdErr:init197,5147
+- send:(const char *)string withNewline:send300,7436
+- send:send308,7599
 - terminateInput314,7689
-- terminate:321,7810
-- setDelegate:332,7961
+- terminate:terminate321,7810
+- setDelegate:setDelegate332,7961
 - delegate338,8031
 
 objc-src/PackInsp.h,109
@@ -3439,7 +3439,7 @@ objc-src/PackInsp.h,109
 #define TYPESTOSTAT	37,1120
 @interface PackageInspector:PackageInspector39,1172
 
-objc-src/PackInsp.m,1360
+objc-src/PackInsp.m,1322
 static const char RCSid[RCSid30,1032
 #define VERSION	34,1116
 #   define DEBUG 37,1155
@@ -3456,46 +3456,46 @@ static const char RCSid[RCSid30,1032
 #define LOCALIZE(61,2585
 #define LOCALIZE_ARCH(62,2668
 +newnew67,2802
--showInfo:showInfo:93,3417
--revert:revert:107,3737
--ok:ok:136,4297
+-showInfo:showInfo93,3417
+-revert:revert107,3737
+-ok:ok136,4297
 -loadload143,4424
 #define LOOKUP(156,4826
 #undef LOOKUP176,5694
--loadKeyValuesFrom:(const char *)type inTable:loadKeyValuesFrom:inTable:186,5852
--loadContentsOf:(const char *)type inTable:loadContentsOf:inTable:238,7079
+-loadKeyValuesFrom:(const char *)type inTable:loadKeyValuesFrom186,5852
+-loadContentsOf:(const char *)type inTable:loadContentsOf238,7079
 -loadImageloadImage257,7552
 #define STAT_EQ(275,7940
 -(BOOL)shouldLoad280,8116
 -toggleDescriptiontoggleDescription301,8626
--(const char *)getPath:(char *)buf forType:getPath:forType:317,8899
+-(const char *)getPath:(char *)buf forType:getPath317,8899
 -setRevertButtonTitlesetRevertButtonTitle333,9320
--(const char *)formatSize:(const char *)size inBuf:formatSize:inBuf:344,9525
+-(const char *)formatSize:(const char *)size inBuf:formatSize344,9525
 #define WORKING	368,10045
 -(void)getArchs370,10100
--(void)addArchs:385,10520
--subprocess:(Subprocess *)sender output:subprocess:output:428,11351
--subprocessDone:subprocessDone:436,11484
+-(void)addArchs:addArchs385,10520
+-subprocess:(Subprocess *)sender output:subprocess428,11351
+-subprocessDone:subprocessDone436,11484
 static void openInWorkspace(446,11634
--open:open:464,12063
+-open:open464,12063
 
 objcpp-src/SimpleCalc.H,41
 @interface SimpleCalc:SimpleCalc14,400
 
-objcpp-src/SimpleCalc.M,300
+objcpp-src/SimpleCalc.M,445
 - init52,1747
-- appendToDisplay:60,1933
-- registerAction:70,2210
-- decimalKey:77,2348
-- numberKeys:91,2661
-- equalsKey:112,3192
-- operationKeys:131,3680
-- clearKey:153,4301
-- clearAllKey:160,4410
-- appDidInit:168,4591
-- windowWillClose:178,4882
-- infoPanel:186,5132
-- helpPanel:198,5482
+- appendToDisplay:appendToDisplay60,1933
+- registerAction:registerAction70,2210
+- decimalKey:decimalKey77,2348
+- numberKeys:numberKeys91,2661
+- equalsKey:equalsKey112,3192
+- operationKeys:operationKeys131,3680
+- clearKey:clearKey153,4301
+- clearAllKey:clearAllKey160,4410
+- appDidInit:appDidInit168,4591
+- windowWillClose:windowWillClose178,4882
+- infoPanel:infoPanel186,5132
+- helpPanel:helpPanel198,5482
 
 pas-src/common.pas,1875
 procedure InitializeStringPackage;26,527

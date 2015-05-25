@@ -676,9 +676,9 @@ With prefix argument, prompt for the identifier."
 (defun xref-find-apropos (pattern)
   "Find all meaningful symbols that match PATTERN.
 The argument has the same meaning as in `apropos'."
-  (interactive (list (read-from-minibuffer
+  (interactive (list (read-string
                       "Search for pattern (word list or regexp): "
-                      nil nil nil 'xref--read-pattern-history)))
+                      nil 'xref--read-pattern-history)))
   (require 'apropos)
   (xref--show-xrefs pattern 'apropos
                     (apropos-parse-pattern

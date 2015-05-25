@@ -231,7 +231,7 @@ The value nil is the same as the list (UTF8_STRING COMPOUND_TEXT STRING)."
 (defun x-get-clipboard ()
   "Return text pasted to the clipboard."
   (declare (obsolete gui-get-selection "25.1"))
-  (gui-call gui-get-selection 'CLIPBOARD 'STRING))
+  (gui-backend-get-selection 'CLIPBOARD 'STRING))
 
 (defun gui-get-primary-selection ()
   "Return the PRIMARY selection, or the best emulation thereof."
@@ -248,37 +248,36 @@ The value nil is the same as the list (UTF8_STRING COMPOUND_TEXT STRING)."
 
 ;;; Lower-level, backend dependent selection handling.
 
-(gui-method-declare gui-get-selection #'ignore
+(cl-defgeneric gui-backend-get-selection (_selection-symbol _target-type)
   "Return selected text.
-Called with 2 arguments: (SELECTION-SYMBOL TARGET-TYPE)
 SELECTION-SYMBOL is typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 \(Those are literal upper-case symbol names, since that's what X expects.)
-TARGET-TYPE is the type of data desired, typically `STRING'.")
+TARGET-TYPE is the type of data desired, typically `STRING'."
+  nil)
 
-(gui-method-declare gui-set-selection #'ignore
+(cl-defgeneric gui-backend-set-selection (_selection _value)
   "Method to assert a selection of type SELECTION and value VALUE.
 SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 If VALUE is nil and we own the selection SELECTION, disown it instead.
 Disowning it means there is no such selection.
 \(Those are literal upper-case symbol names, since that's what X expects.)
 VALUE is typically a string, or a cons of two markers, but may be
-anything that the functions on `selection-converter-alist' know about.
+anything that the functions on `selection-converter-alist' know about."
+  nil)
 
-Called with 2 args: (SELECTION VALUE).")
-
-(gui-method-declare gui-selection-owner-p #'ignore
+(cl-defgeneric gui-backend-selection-owner-p (_selection)
   "Whether the current Emacs process owns the given X Selection.
-Called with one argument: (SELECTION).
 The arg should be the name of the selection in question, typically one of
 the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
-\(Those are literal upper-case symbol names, since that's what X expects.)")
+\(Those are literal upper-case symbol names, since that's what X expects.)"
+  nil)
 
-(gui-method-declare gui-selection-exists-p #'ignore
+(cl-defgeneric gui-backend-selection-exists-p (_selection)
   "Whether there is an owner for the given X Selection.
-Called with one argument: (SELECTION).
 The arg should be the name of the selection in question, typically one of
 the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
-\(Those are literal upper-case symbol names, since that's what X expects.)")
+\(Those are literal upper-case symbol names, since that's what X expects.)"
+  nil)
 
 (defun gui-get-selection (&optional type data-type)
   "Return the value of an X Windows selection.
@@ -294,8 +293,8 @@ all upper-case names.  The most often used ones, in addition to
 DATA-TYPE is usually `STRING', but can also be one of the symbols
 in `selection-converter-alist', which see.  This argument is
 ignored on NS, MS-Windows and MS-DOS."
-  (let ((data (gui-call gui-get-selection (or type 'PRIMARY)
-                        (or data-type 'STRING))))
+  (let ((data (gui-backend-get-selection (or type 'PRIMARY)
+                                         (or data-type 'STRING))))
     (when (and (stringp data)
 	       (setq data-type (get-text-property 0 'foreign-selection data)))
       (let ((coding (or next-selection-coding-system
@@ -351,7 +350,7 @@ are not available to other programs."
 	     valid))
       (signal 'error (list "invalid selection" data)))
   (or type (setq type 'PRIMARY))
-  (gui-call gui-set-selection type data)
+  (gui-backend-set-selection type data)
   data)
 (define-obsolete-function-alias 'x-set-selection 'gui-set-selection "25.1")
 
@@ -511,7 +510,7 @@ two markers or an overlay.  Otherwise, it is nil."
     (apply 'vector all)))
 
 (defun xselect-convert-to-delete (selection _type _value)
-  (gui-call gui-set-selection selection nil)
+  (gui-backend-set-selection selection nil)
   ;; A return value of nil means that we do not know how to do this conversion,
   ;; and replies with an "error".  A return value of NULL means that we have
   ;; done the conversion (and any side-effects) but have no value to return.

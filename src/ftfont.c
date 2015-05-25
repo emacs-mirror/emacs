@@ -67,6 +67,8 @@ struct ftfont_info
   FT_Matrix matrix;
 };
 
+size_t ftfont_info_size = sizeof (struct ftfont_info);
+
 enum ftfont_cache_for
   {
     FTFONT_CACHE_FOR_FACE,
@@ -1161,8 +1163,11 @@ ftfont_list_family (struct frame *f)
 }
 
 
-static Lisp_Object
-ftfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
+Lisp_Object
+ftfont_open2 (struct frame *f,
+              Lisp_Object entity,
+              int pixel_size,
+              Lisp_Object font_object)
 {
   struct ftfont_info *ftfont_info;
   struct font *font;
@@ -1170,7 +1175,7 @@ ftfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
   FT_Face ft_face;
   FT_Size ft_size;
   FT_UInt size;
-  Lisp_Object val, filename, idx, cache, font_object;
+  Lisp_Object val, filename, idx, cache;
   bool scalable;
   int spacing;
   int i;
@@ -1210,8 +1215,6 @@ ftfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
       return Qnil;
     }
 
-  font_object = font_build_object (VECSIZE (struct ftfont_info),
-				   Qfreetype, entity, size);
   ASET (font_object, FONT_FILE_INDEX, filename);
   font = XFONT_OBJECT (font_object);
   ftfont_info = (struct ftfont_info *) font;
@@ -1292,6 +1295,19 @@ ftfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
     }
 
   return font_object;
+}
+
+static Lisp_Object
+ftfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
+{
+  Lisp_Object font_object;
+  FT_UInt size;
+  size = XINT (AREF (entity, FONT_SIZE_INDEX));
+  if (size == 0)
+    size = pixel_size;
+  font_object = font_build_object (VECSIZE (struct ftfont_info),
+				   Qfreetype, entity, size);
+  return ftfont_open2 (f, entity, pixel_size, font_object);
 }
 
 static void

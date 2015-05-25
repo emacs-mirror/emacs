@@ -1055,7 +1055,7 @@ the above variables (in particular, only after setting
 @code{tabulated-list-format}).
 @end defun
 
-@defun tabulated-list-print &optional remember-pos
+@defun tabulated-list-print &optional remember-pos update
 This function populates the current buffer with entries.  It should be
 called by the listing command.  It erases the buffer, sorts the entries
 specified by @code{tabulated-list-entries} according to
@@ -1065,6 +1065,13 @@ specified by @code{tabulated-list-entries} according to
 If the optional argument @var{remember-pos} is non-@code{nil}, this
 function looks for the @var{id} element on the current line, if any, and
 tries to move to that entry after all the entries are (re)inserted.
+
+If the optional argument @var{update} is non-@code{nil}, this function
+will only erase or add entries that have changed since the last print.
+This is several times faster if most entries haven't changed since the
+last time this function was called.  The only difference in outcome is
+that tags placed via @code{tabulated-list-put-tag} will not be removed
+from entries that haven't changed (normally all tags are removed).
 @end defun
 
 @node Generic Modes

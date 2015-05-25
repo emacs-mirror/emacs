@@ -1411,7 +1411,6 @@ extern void x_sync (struct frame *);
 #endif /* HAVE_X_WINDOWS */
 
 extern void x_query_colors (struct frame *f, XColor *, int);
-extern void x_query_color (struct frame *f, XColor *);
 extern void x_focus_frame (struct frame *);
 
 #ifndef HAVE_NS

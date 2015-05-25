@@ -1,3 +1,949 @@
+2015-05-24  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix last change in etags.c, which failed the test suite
+	* lib-src/etags.c (intoken): Add '$' to the set, as it was there
+	before the last change.
+
+2015-05-23  Glenn Morris  <rgm@gnu.org>
+
+	Remove charset map files from repository, generate in first bootstrap
+	* admin/charsets/Makefile.in (${srcdir}/charsets.stamp): New.
+	(all): Create the stamp file.
+	(extraclean): Delete the stamp file.
+	* src/Makefile.in (lispintdir, charsets): New variables.
+	(${lispintdir}/cp51932.el, ${lispintdir}/eucjp-ms.el, ${charsets}):
+	New rules.
+	(emacs$(EXEEXT), temacs$(EXEEXT)): Depend on $charsets.
+	* lisp/international/cp51932.el, lisp/international/eucjp-ms.el:
+	* etc/charsets/*.map: Remove from repository.
+
+2015-05-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Cleanup etags.c to use locale-independent code
+	Although this doesn't alter behavior (as etags doesn't use
+	setlocale), the new version is more clearly locale-independent and
+	the executable is a bit smaller on my platform.
+	* lib-src/etags.c: Include <limits.h>, for UCHAR_MAX.
+	Include <c-ctype.h> instead of <ctype.h>.
+	(CHARS, CHAR, init, _wht, _nin, _itk, _btk, _etk, white, nonam, endtk)
+	(begtk, midtk):
+	Remove; no longer needed.
+	(iswhite, ISALNUM, ISALPHA, ISDIGIT, ISLOWER, lowcase): Remove.
+	All callers changed to use c_isspace, c_isalnum, c_isalpha, c_isdigit,
+	c_islower, c_tolower, respectively.
+	(notinname, begtoken, intoken, endtoken): Rewrite as functions
+	instead of macros, and initialize the tables at compile-time
+	rather than at run-time.
+
+	Put default action first in src/Makefile
+	* src/Makefile.in (all): Put this rule before lisp.mk.
+	That way, plain 'make' works in the src directory again.
+
+2015-05-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Fix extraclean rule.
+	(extraclean_dirs): New.
+	(extraclean): Use it.
+
+2015-05-23  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid compiler warning in image.c on MS-Windows
+	* src/w32term.h (x_query_color): Add prototype, to avoid compiler
+	warning in image.c.
+
+2015-05-23  Glenn Morris  <rgm@gnu.org>
+
+	Fix --without-toolkit-scroll-bars builds.
+	* src/xterm.c (x_scroll_bar_set_handle) [!USE_TOOLKIT_SCROLL_BARS]:
+	Add new argument to x_clear_area1.
+	(XTset_horizontal_scroll_bar) [!USE_TOOLKIT_SCROLL_BARS]:
+	Update x_clear_area arguments.
+
+	* admin/charsets/glibc/: New directory, imported from glibc 2.21.
+	* admin/charsets/Makefile.in (GLIBC_CHARMAPS):
+	Change to included version.
+	(LOCAL, local, totalclean): Remove.
+	(extraclean): Delete all generated files.
+
+2015-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/pcmpl-cvs.el (pcmpl-cvs-entries): Don't assume CVS/Entries exists.
+
+	* lisp/progmodes/xref.el (xref-find-apropos): Use read-string.
+
+	tags-completion-at-point-function: Don't trust the find-tag function
+	* lisp/progmodes/etags.el (tags-completion-at-point-function):
+	Don't trust the find-tag function.
+
+2015-05-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Pacify --enable-gcc-warnings
+	* src/frame.h (x_query_color): Remove redundant extern decl.
+	* src/ftcrfont.c (ftcrfont_glyph_extents, ftcrfont_list)
+	(ftcrfont_match, ftcrfont_open, ftcrfont_close)
+	(ftcrfont_text_extents, ftcrfont_draw):
+	* src/xterm.c (x_set_window_size_1, *x_color_cells, x_update_end)
+	(XTframe_up_to_date, x_clear_area1, x_clear_frame)
+	(x_ins_del_lines, frame_highlight, frame_unhighlight)
+	(x_new_focus_frame, x_focus_changed, XTframe_rehighlight)
+	(x_draw_hollow_cursor, x_draw_bar_cursor, x_flush, x_update_begin)
+	(x_update_window_begin, x_connection_closed)
+	(x_set_clip_rectangles, x_reset_clip_rectangles, x_fill_rectangle)
+	(x_draw_rectangle, x_fill_trapezoid_for_relief, x_clear_window)
+	(*x_gc_get_ext_data, x_extension_initialize)
+	(x_cr_accumulate_data):
+	Remove redundant static decl.  Many of these GCC doesn't complain
+	about, but we might as well clean out the duplication while we're
+	in the neighborhood.
+	* src/xterm.c (x_fill_trapezoid_for_relief):
+	Remove decl of nonexistent function.
+
+2015-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Replace gui-method macros with cl-generic with &context
+	* lisp/frame.el (gui-method--name, gui-method, gui-method-define)
+	(gui-method-declare, gui-call): Remove.
+	(frame-creation-function): Use cl-defgeneric.
+	(make-frame): Adjust callers.
+	* lisp/menu-bar.el (menu-bar-edit-menu):
+	Use gui-backend-selection-exists-p.
+	* lisp/select.el (x-get-clipboard): Use gui-backend-get-selection.
+	(gui-backend-get-selection): New cl-generic to replace
+	gui-get-selection method.
+	(gui-backend-set-selection): New cl-generic to replace
+	gui-set-selection method.
+	(gui-selection-owner-p): New cl-generic to replace
+	gui-selection-owner-p method.
+	(gui-backend-selection-exists-p): New cl-generic to replace
+	gui-selection-exists-p method.  Adjust all callers.
+	* lisp/server.el (server-create-window-system-frame): Don't ignore
+	window-system spec even when unsupported.
+	* lisp/simple.el (deactivate-mark): Use new gui-backend-* functions.
+	* lisp/startup.el (handle-args-function, window-system-initialization):
+	Use cl-defgeneric.
+	(command-line): Adjust calls accordingly.
+	* lisp/term/ns-win.el (ns-window-system-initialization): Turn into
+	a window-system-initialization method.
+	(handle-args-function, frame-creation-function): Use cl-defmethod.
+	(gui-set-selection, gui-selection-owner-p, gui-selection-exists-p)
+	(gui-get-selection): Use cl-defmethod on the new functions instead.
+	* lisp/term/pc-win.el (w16-get-selection-value): Turn into
+	a gui-backend-get-selection method.
+	(gui-selection-exists-p, gui-selection-owner-p, gui-set-selection):
+	Use cl-defmethod on the new functions instead.
+	(msdos-window-system-initialization): Turn into
+	a window-system-initialization method.
+	(frame-creation-function, handle-args-function): Use cl-defmethod.
+	* lisp/term/w32-win.el (w32-window-system-initialization): Turn into
+	a window-system-initialization method.
+	(handle-args-function, frame-creation-function): Use cl-defmethod.
+	(gui-set-selection, gui-selection-owner-p, gui-selection-exists-p)
+	(gui-get-selection): Use cl-defmethod on the new functions instead.
+	* lisp/term/x-win.el (x-window-system-initialization): Turn into
+	a window-system-initialization method.
+	(handle-args-function, frame-creation-function): Use cl-defmethod.
+	(gui-set-selection, gui-selection-owner-p, gui-selection-exists-p)
+	(gui-get-selection): Use cl-defmethod on the new functions instead.
+	* lisp/term/xterm.el (xterm--set-selection): Turn into
+	a gui-backend-set-selection method.
+	* src/nsselect.m (Fns_selection_exists_p): Remove unused arg `terminal'.
+	(Fns_selection_owner_p): Remove unused arg `terminal'.
+	(Fns_get_selection): Remove unused args `time_stamp' and `terminal'.
+
+2015-05-23  Eli Zaretskii  <eliz@gnu.org>
+
+	Revert "Fix etags Bug#20629 that broke C++ support."
+	This reverts commit 13dd9d4f7e75d2c78aa5537cef09de03663e9748.
+
+2015-05-23  Jan D  <jan.h.d@swipnet.se>
+
+	Fix etags Bug#20629 that broke C++ support.
+	* etags.el (etags-xref-find-definitions-tag-order): Revert commit
+	from Sun May 10 (Bug#20629).
+
+	Merge branch 'cairo'.
+	Main work done by YAMAMOTO Mitsuharu <mituharu@math.s.chiba-u.ac.jp>.
+	Small fixes and image work by Jan D. <jan.h.d@swipnet.se>.
+
+	Merge branch 'master' into cairo
+
+	Fixes to compile cairo branch without cairo.
+	* src/gtkutil.c (xg_update_scrollbar_pos): x_clear_area takes frame as
+	first argument.
+	* src/xterm.c (handle_one_xevent): Surround x_cr_destroy_surface with
+	USE_CAIRO.
+
+2015-05-23  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/emacs-lisp/package.el: Always update selected-packages
+	(package--update-selected-packages): New function.
+	(package-menu-execute): Use it before starting the transaction,
+	this way the list of selected packages is updated even when the
+	transaction fails.
+	(package-menu--perform-transaction): Don't edit selected-packages.
+
+2015-05-23  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix etags reading of compressed files
+	* lib-src/etags.c (O_CLOEXEC) [WINDOWSNT]: Define.
+	Include fcntl.h, for O_CLOEXEC.
+	(process_file_name): Don't use 'popen', whose streams cannot be
+	rewound.  Instead, uncompress the file to a temporary file,
+	created by 'etags_mktmp', and read from that as usual.
+	(etags_mktmp): New function.
+	* test/etags/ETAGS.good_1:
+	* test/etags/ETAGS.good_2:
+	* test/etags/ETAGS.good_3:
+	* test/etags/ETAGS.good_4:
+	* test/etags/ETAGS.good_5: Update to be consistent with latest
+	changes in etags.c regarding reading compressed files.
+
+	Improve documentation of 'set-fontset-font'
+	* doc/lispref/display.texi (Fontsets): Document the value of nil
+	for the 3rd argument of 'set-fontset-font'.
+
+	Fix documentation of forward-line
+	* src/cmds.c (Fforward_line): Clarify the return value if the line
+	at end of accessible portion of the buffer has no newline.
+	* doc/lispref/positions.texi (Text Lines): Document what happens
+	if the line at end of accessible portion of buffer has no newline.
+	(Bug#20587)
+
+2015-05-22  Glenn Morris  <rgm@gnu.org>
+
+	* admin/charsets/Makefile.in (TRANS_TABLE): Add short aliases.
+
+	* admin/charsets/mapconv (LC_ALL): Set to C.
+
+	* Makefile.in: Add admin/charsets into top-level clean rules.
+	(clean): Add admin/charsets.
+	(maybeclean_dirs): New variable.
+	(distclean, bootstrap-clean, maintainer-clean): Use $maybeclean_dirs.
+
+	* admin/charsets/Makefile.in (LOCAL, local): Fix members.
+
+2015-05-22  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/emacs-lisp/package.el (package-selected-packages): Fix doc
+
+2015-05-22  Glenn Morris  <rgm@gnu.org>
+
+	Generate admin/charsets Makefile via configure, and make more portable.
+	* configure.ac (SUBDIR_MAKEFILES): Add admin/charsets/Makefile.
+	(admin/charsets/Makefile): Generate it.
+	* admin/charsets/Makefile.in: Rename from Makefile.
+	(AWK, srcdir, top_srcdir, AM_DEFAULT_VERBOSITY):
+	New variables, set by configure.
+	(charsetdir, lispintdir, mapfiledir, AM_V_GEN, am__v_GEN_)
+	(am__v_GEN_0, am__v_GEN_1, AM_V_at, am__v_at_, am__v_at_0)
+	(am__v_at_1, LOCAL, mapconv, run_mapconv, big5, compact, cp51932)
+	(cp932, eucjp_ms, gb180302, gb180304, kuten): New variables.
+	(TRANS_TABLE, CHARSETS): Add directory prefix to value.
+	(all): Declare PHONY.
+	(local): New PHONY target.
+	(map_template): New template.  Use to define short PHONY aliases.
+	(*.map): Add directory prefixes to targets and prerequisites.
+	Respect make verbosity.
+	(JISC6226.map): Replace non-portable sed append without newline.
+	(install): Remove rule.
+	(clean): Only delete temporary sedscript.
+	(bootstrap-clean, distclean, maintainer-clean, extraclean)
+	(totalclean): New PHONY rules.
+	* admin/charsets/mapconv (BASE): Replace basename with expr.
+	(FILE): Add "mapfiles" subdirectory.
+	(AWK): New variable.  Use throughout in place of "awk".
+	(main): Use "gunzip -c" in place of "zcat".
+	Don't leave whitespace before "p", for older sed.
+	* admin/charsets/mapfiles/PTCP154: Add final newline,
+	to make older sed versions happy.
+
+2015-05-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/autorevert.el: Use lexical-binding.  Fix hook usage.
+	(global-auto-revert-ignore-buffer, auto-revert-notify-modified-p)
+	(auto-revert-notify-watch-descriptor): Use defvar-local.
+	(find-file-hook, auto-revert-tail-mode, )
+	(auto-revert-notify-add-watch): Use setq-local.
+	(auto-revert-notify-add-watch): Don't call make-local-variable on
+	kill-buffer-hook (bug#20601).
+
+2015-05-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Change defgeneric so it doesn't completely redefine the function
+	* lisp/emacs-lisp/cl-generic.el (cl-generic-define): Don't throw away
+	previously defined methods.
+	(cl-generic-define-method): Let-bind purify-flag instead of using `fset'.
+	(cl--generic-prefill-dispatchers): Only define during compilation.
+	(cl-method-qualifiers): Remove redundant alias.
+	(help-fns-short-filename): Silence byte-compiler.
+	* test/automated/cl-generic-tests.el: Adjust to new defgeneric semantics.
+
+2015-05-21  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	(package-menu-execute): Remove reference to remove-dups
+
+2015-05-21  kwhite  <kwhite@gnu.org>
+
+	* lisp/erc/erc.el: Hide network/channel messages
+	(erc-network-hide-list, etc-channel-hide-list): New lists to define
+	message types per network/channel.
+	(erc-add-targets): New function to parse list of targets
+	(erc-hide-current-message-p): Modified to check for new targets
+
+2015-05-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't quote nil and t in doc strings
+	This is as per "Tips for Documentation Strings" in the elisp manual.
+	For consistency, do the same in diagnostics and comments.
+
+2015-05-21  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix a minor problem with mouse-face on mode line
+	* src/xdisp.c (note_mode_line_or_margin_highlight): Reset the
+	mouse face also if the mouse pointer hovers above mode-line glyphs
+	that don't come from any Lisp string.  (Bug#20620)
+
+2015-05-21  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/emacs-lisp/package.el: Fix selected-package logic
+	(package-menu-execute): Mark as selected all non-upgrade packages
+	being installed.
+	(package-menu--perform-transaction): Don't mark anything.
+
+	* lisp/emacs-lisp/package.el: Mode-line progress report
+	(package-menu--transaction-status): New variable.
+	(package-menu-mode, package-menu--perform-transaction): Use it.
+
+	* lisp/emacs-lisp/package.el: Better transaction messages
+	(package-menu--partition-transaction): New function.
+	(package-menu--prompt-transaction-p, package-menu-execute): Use
+	it.
+	(package-menu--perform-transaction): Don't do any messaging.
+
+	* lisp/emacs-lisp/package.el: Revert async package transactions
+	(package-menu-async): Update doc.
+	(package-install-from-archive, package-download-transaction)
+	(package-install, package-menu--perform-transaction)
+	(package-menu-execute): Remove asynchronous functionality.
+
+2015-05-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Revert doc string changes to f90.el
+	Problem reported by Glenn Morris in:
+	http://lists.gnu.org/archive/html/emacs-devel/2015-05/msg00596.html
+	* lisp/progmodes/f90.el (f90-mode, f90-abbrev-start):
+	Revert recent changes to doc strings, as it's intended that they
+	use grave accent, not quote.
+
+2015-05-20  Bozhidar Batsov  <bozhidar@batsov.com>
+
+	Improve parameter name
+
+	Add new inline function `hash-table-empty-p'
+
+2015-05-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't require help-fns when not needed
+	* lisp/emacs-lisp/autoload.el, lisp/emacs-lisp/advice.el:
+	* lisp/emacs-lisp/elint.el:
+	Don't require help-fns at the top level.
+	* lisp/emacs-lisp/advice.el (ad-arglist):
+	* lisp/emacs-lisp/cl-macs.el (cl--transform-lambda):
+	Don't require help-fns.  (Bug#17001)
+
+2015-05-20  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix slash collapsing in etags on MS-Windows
+	* lib-src/etags.c (canonicalize_filename) [DOS_NT]: Separate the
+	MS-Windows code from the Posix code, and support collapsing both
+	forward- and back-slashes on MS-Windows.  Fixes a regression found
+	by the test suite.
+
+	Improve documentation of glyphless-char-display
+	* doc/lispref/display.texi (Glyphless Chars): Improve
+	documentation of glyphless character display.
+
+	Fix "acronym" display of glyphless characters on w32
+	* src/w32term.c (x_draw_glyphless_glyph_string_foreground): Don't
+	ignore "acronym" substitutes of 1 character for glyphless characters.
+
+2015-05-20  Oleh Krehel  <ohwoeowho@gmail.com>
+
+	Add an automated test for let-when-compile
+	* test/automated/subr-tests.el (let-when-compile): New test.
+
+	Add let-when-compile macro instead of using pcase-let
+	* lisp/subr.el (let-when-compile): New let-like macro that makes its
+	bindings known to macros like `eval-when-compile' in the body.
+	* lisp/emacs-lisp/lisp-mode.el: Change the top-level `pcase-let' to a
+	  `let-when-compile'. Also comment out the unused lexical var
+	  `el-kws-re'.
+	The change greatly improves readability, while providing almost the
+	same (even shorter) byte code: instead of pre-evaluating 10 variables,
+	tossing them into a list, and destructuring that list a full screen
+	page later, the variables are simply bound as they are evaluated,
+	wrapped individually in `eval-when-compile'.
+
+2015-05-20  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/emacs-lisp/package.el: "Delete" button in Help buffer
+	(package-delete-button-action): New function.
+	(describe-package-1): Add Delete button.
+
+	* lisp/emacs-lisp/package.el: Better dependency description
+	(package--used-elsewhere-p): New optional arg, ALL, and return
+	package-desc objects instead of names.
+	(package-delete): Update accordingly.
+	(describe-package-1): Describe which packages require the package.
+
+2015-05-20  Martin Rudalics  <rudalics@gmx.at>
+
+	Fix handling and doc-string of FRAME arg of `other-buffer' (Bug#20533)
+	* src/buffer.c (Fother_buffer): Argument FRAME must denote a live frame.
+	Fix doc-string (Bug#20533).
+
+	Improve `switch-to-buffer' in strongly dedicated windows (Bug#20472)
+	* lisp/window.el (switch-to-buffer-in-dedicated-window): New option.
+	(switch-to-buffer): If the selected window is strongly dedicated
+	to its buffer, signal error before prompting for buffer name.  Handle
+	`switch-to-buffer-in-dedicated-window'.  (Bug#20472)
+	* doc/lispref/windows.texi (Switching Buffers): Document
+	`switch-to-buffer-in-dedicated-window'.
+
+2015-05-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Prefer "this" to “this” in doc strings
+	This mostly just straightens quotes introduced in my previous patch.
+	Suggested by Dmitry Gutov in:
+	http://lists.gnu.org/archive/html/emacs-devel/2015-05/msg00565.html
+	* lisp/faces.el, lisp/gnus/gnus-group.el, lisp/ldefs-boot.el:
+	* lisp/mail/supercite.el, lisp/net/tramp.el, lisp/recentf.el:
+	* lisp/textmodes/artist.el, lisp/textmodes/rst.el:
+	* lisp/textmodes/tildify.el, lisp/vc/ediff-util.el:
+	* lisp/vc/log-edit.el, lisp/xt-mouse.el:
+	Prefer straight double quotes to curved double quotes in doc strings.
+
+	Fix minor quoting problems in doc strings
+	These were glitches regardless of how or whether we tackle the
+	problem of grave accent in doc strings.
+	* lisp/calc/calc-aent.el (math-restore-placeholders):
+	* lisp/ido.el (ido-ignore-buffers, ido-ignore-files):
+	* lisp/leim/quail/cyrillic.el ("bulgarian-alt-phonetic"):
+	* lisp/leim/quail/hebrew.el ("hebrew-new")
+	("hebrew-biblical-sil"):
+	* lisp/leim/quail/thai.el ("thai-kesmanee"):
+	* lisp/progmodes/idlw-shell.el (idlwave-shell-file-name-chars):
+	Used curved quotes to avoid ambiguities like ‘`''’ in doc strings.
+	* lisp/calendar/calendar.el (calendar-month-abbrev-array):
+	* lisp/cedet/semantic/mru-bookmark.el (semantic-mrub-cache-flush-fcn):
+	* lisp/cedet/semantic/symref.el (semantic-symref-tool-baseclass):
+	* lisp/cedet/semantic/tag.el (semantic-tag-copy)
+	(semantic-tag-components):
+	* lisp/cedet/srecode/cpp.el (srecode-semantic-handle-:cpp):
+	* lisp/cedet/srecode/texi.el (srecode-texi-texify-docstring):
+	* lisp/emacs-lisp/byte-opt.el (byte-optimize-all-constp):
+	* lisp/emacs-lisp/checkdoc.el (checkdoc-message-text-engine):
+	* lisp/emacs-lisp/generator.el (iter-next):
+	* lisp/gnus/gnus-art.el (gnus-treat-strip-list-identifiers)
+	(gnus-article-mode-syntax-table):
+	* lisp/net/rlogin.el (rlogin-directory-tracking-mode):
+	* lisp/net/soap-client.el (soap-wsdl-get):
+	* lisp/net/telnet.el (telnet-mode):
+	* lisp/org/org-compat.el (org-number-sequence):
+	* lisp/org/org.el (org-remove-highlights-with-change)
+	(org-structure-template-alist):
+	* lisp/org/ox-html.el (org-html-link-org-files-as-html):
+	* lisp/play/handwrite.el (handwrite-10pt, handwrite-11pt)
+	(handwrite-12pt, handwrite-13pt):
+	* lisp/progmodes/f90.el (f90-mode, f90-abbrev-start):
+	* lisp/progmodes/idlwave.el (idlwave-mode, idlwave-check-abbrev):
+	* lisp/progmodes/verilog-mode.el (verilog-tool)
+	(verilog-string-replace-matches, verilog-preprocess)
+	(verilog-auto-insert-lisp, verilog-auto-insert-last):
+	* lisp/textmodes/makeinfo.el (makeinfo-options):
+	* src/font.c (Ffont_spec):
+	Fix minor quoting problems in doc strings, e.g., missing quote,
+	``x'' where `x' was meant, etc.
+	* lisp/erc/erc-backend.el (erc-process-sentinel-2):
+	Fix minor quoting problem in other string.
+	* lisp/leim/quail/ethiopic.el ("ethiopic"):
+	* lisp/term/tvi970.el (tvi970-set-keypad-mode):
+	Omit unnecessary quotes.
+	* lisp/faces.el (set-face-attribute, set-face-underline)
+	(set-face-inverse-video, x-create-frame-with-faces):
+	* lisp/gnus/gnus-group.el (gnus-group-nnimap-edit-acl):
+	* lisp/mail/supercite.el (sc-attribs-%@-addresses)
+	(sc-attribs-!-addresses, sc-attribs-<>-addresses):
+	* lisp/net/tramp.el (tramp-methods):
+	* lisp/recentf.el (recentf-show-file-shortcuts-flag):
+	* lisp/textmodes/artist.el (artist-ellipse-right-char)
+	(artist-ellipse-left-char, artist-vaporize-fuzziness)
+	(artist-spray-chars, artist-mode, artist-replace-string)
+	(artist-put-pixel, artist-text-see-thru):
+	* lisp/vc/ediff-util.el (ediff-submit-report):
+	* lisp/vc/log-edit.el (log-edit-changelog-full-paragraphs):
+	Use double-quotes rather than TeX markup in doc strings.
+	* lisp/skeleton.el (skeleton-pair-insert-maybe):
+	Reword to avoid the need for grave accent and apostrophe.
+	* lisp/xt-mouse.el (xterm-mouse-tracking-enable-sequence):
+	Don't use grave and acute accents to quote.
+
+2015-05-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/generator.el (cps--gensym, cps--transform-1): Silence compiler
+
+2015-05-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Try to port new etags tests to MS-Windows
+	* test/etags/CTAGS.good, test/etags/ETAGS.good_1:
+	* test/etags/ETAGS.good_2, test/etags/ETAGS.good_3:
+	* test/etags/ETAGS.good_4, test/etags/ETAGS.good_5:
+	Adjust to test-case changes below.
+	* test/etags/Makefile (CSRC): Remove dostorture.c.
+	Whatever it was trying to test, wasn't working portably.
+	(LC_ALL): Remove.  Apparently there wasn't an encoding problem,
+	just a line-ending problem.
+	* test/etags/c-src/dostorture.c: Remove.
+	* test/etags/cp-src/c.C: Remove stray CR.
+	* test/etags/html-src/algrthms.html: Remove trailing CRs.
+	State UTF-8 as the encoding.  The file is ASCII so it doesn't matter,
+	but if someone edits it later it should stay UTF-8-compatible.
+
+2015-05-19  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix display of overlapping window-specific overlays
+	* src/keyboard.c (adjust_point_for_property): When adjusting point
+	due to display strings, ignore overlays that are specific to
+	windows other than the currently selected one.
+	* src/xdisp.c (handle_single_display_spec): If the display
+	property comes from an overlay, arrange for buffer iteration to
+	resume only after the end of that overlay.  (Bug#20607)
+
+2015-05-19  Dmitry Gutov  <dgutov@yandex.ru>
+
+	New command icomplete-force-complete-and-exit
+	* lisp/icomplete.el (icomplete-force-complete-and-exit):
+	New command
+	(http://lists.gnu.org/archive/html/emacs-devel/2015-05/msg00461.html)
+	(http://lists.gnu.org/archive/html/emacs-devel/2015-05/msg00516.html).
+	(icomplete-minibuffer-map): Bind C-j to it.
+	(icomplete-forward-completions, icomplete-backward-completions):
+	Mention the new command in the docstring.
+	* lisp/minibuffer.el (minibuffer-force-complete-and-exit): Revert
+	the previous fix for bug#17545.
+
+2015-05-19  Martin Rudalics  <rudalics@gmx.at>
+
+	Fix last commit
+
+	In Elisp manual explain how to override window manager positioning (Bug#20552)
+	* doc/lispref/frames.texi (Position Parameters): Give example of
+	how to override a window manager positioning decision.
+
+	Clarify concept of "surrogate minibuffer frames" (Bug#20538)
+	* src/frame.c (Fdelete_frame): In doc-string mention that frame
+	can't be deleted if it has a surrogate minibuffer.
+	* doc/lispref/frames.texi (Minibuffers and Frames)
+	(Deleting Frames): Explain "surrogate minibuffer frames".
+
+	In w32heap.c bump DUMPED_HEAP_SIZE to 19/12 MB
+	* emacs-git/quick/src/w32heap.c (DUMPED_HEAP_SIZE): Bump to 19/12 MB.
+
+2015-05-18  Glenn Morris  <rgm@gnu.org>
+
+	Add option to ignore commit lines matching a pattern in ChangeLog.
+	* build-aux/gitlog-to-changelog: Add --ignore-line option.
+	* build-aux/gitlog-to-emacslog: Ignore lines matching '^; '.
+
+2015-05-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't skip new etags tests on non-UTF-8 hosts
+	Problem reported by Eli Zaretskii for MS-Windows.
+	* test/etags/Makefile (UTF8_LOCALE, UTF8_ENCODING): Remove.
+	(LC_ALL): Set to C if the current locale isn't UTF-8.
+	(.PHONY): Remove ediff_1 thru ediff_5.
+	(check): Always run.
+
+2015-05-18  Glenn Morris  <rgm@gnu.org>
+
+	* lisp/calculator.el (calculator-funcall):
+	* lisp/textmodes/artist.el (artist-spray-random-points):
+	Use standard degree/radian conversion utilities.
+
+	Further lisp-complete-symbol related cleanup.
+	* lisp/emacs-lisp/lisp.el (lisp-complete-symbol):
+	Unadvertise non-functional argument.  Replace obsolete alias.
+
+2015-05-18  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Add a test case for Maven warning ouput
+	* test/automated/compile-tests.el
+	(compile-tests--test-regexps-data): Add a case for Maven warning
+	ouput.
+	(compile--test-error-line): Check the compilation message type, if
+	it's specified in the test data.
+
+2015-05-18  Paul Pogonyshev  <pogonyshev@gmail.com>
+
+	Update Maven compilation-mode entry to distinguish warnings
+	* lisp/progmodes/compile.el
+	(compilation-error-regexp-alist-alist): Update Maven entry to
+	distinguish warnings (bug#20556).
+
+2015-05-18  Przemysław Wojnowski  <esperanto@cumego.com>
+
+	* test/automated/sgml-mode-tests.el: New file.
+
+2015-05-18  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Improve handling of the first Git revision
+	* lisp/vc/log-view.el (log-view-toggle-entry-display): When
+	there's no next entry, delete until the end of the buffer.
+	(log-view-end-of-defun-1): Stop at eob.
+	* lisp/vc/vc-annotate.el
+	(vc-annotate-show-diff-revision-at-line-internal): Don't give up
+	when previous-revision is nil.
+	* lisp/vc/vc-git.el (vc-git-expanded-log-entry): End the arguments
+	with `--' to avoid ambiguity.
+	(vc-git-annotate-extract-revision-at-line): Exclude `^' from the
+	returned revision string.
+	(vc-git-annotate-time): Expect `^' before the first revision.
+	* lisp/vc/vc-git.el (vc-git-diff): Diff against an empty tree if
+	REV1 is nil, and REV2 is not.
+	* lisp/vc/vc.el: Update the description of the `diff' function.
+
+2015-05-18  Oleh Krehel  <ohwoeowho@gmail.com>
+
+	Allow checkdoc to be called in batch
+	* lisp/emacs-lisp/checkdoc.el (checkdoc-error): When `noninteractive'
+	  is non-nil, echo the error with `warn'.
+	How it can be used in -batch:
+	(with-current-buffer (find-file "checkdoc.el")
+	  (checkdoc-current-buffer t))
+
+2015-05-18  Glenn Morris  <rgm@gnu.org>
+
+	* lisp/calendar/solar.el (solar-ecliptic-coordinates): Use float-pi.
+
+2015-05-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* admin/notes/unicode: New section "binary files".
+
+	Change new etags test to use UTF-8 encoding
+	* test/etags/CTAGS.good, test/etags/ETAGS.good_1:
+	* test/etags/ETAGS.good_2, test/etags/ETAGS.good_3:
+	* test/etags/ETAGS.good_4, test/etags/ETAGS.good_5:
+	* test/etags/html-src/index.shtml, test/etags/html-src/software.html:
+	* test/etags/html-src/softwarelibero.html:
+	Switch to UTF-8 encoding.
+	* test/etags/Makefile (SRCS): Adjust to switch to UTF-8.
+	Remove Makefile, as it's too incestuous to have the test input
+	include the build procedure.
+	(UTF8_LOCALE, UTF_ENCODING): New macros.
+	(LC_ALL): If possible, set to a UTF-8 encoding if not already UTF-8.
+	(check): Skip if not UTF-8.
+	(.PHONY): New rule.
+	(FRC): Remove, as superseded by .PHONY.  All uses removed.
+	(regexfile): Prefer printf to echo when outputting oddball chars.
+	(.PRECIOUS): Remove, as these files are not built.
+
+	Rename 'foo-gzipped' to 'foo.gz'
+	* test/automated/data/decompress/foo.gz:
+	Rename from test/automated/data/decompress/foo-gzipped,
+	to make it easier for other tools to tell that it's compressed.
+	* test/automated/zlib-tests.el (zlib--decompress):
+	Adjust to renamed file.
+
+2015-05-17  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Set up default-directory
+	* lisp/vc/vc-annotate.el (vc-annotate-mode-map): Remove duplicate
+	binding for `v'.
+	(vc-annotate-show-changeset-diff-revision-at-line): Set up an
+	appropriate value for default-directory.
+
+2015-05-17  Samer Masterson  <samer@samertm.com>
+
+	* lisp/eshell/em-term.el (eshell-term-sentinel):
+	No-op by default, only kills term buffer if
+	`eshell-destroy-buffer-when-process-dies' is non-nil.  (Bug#18108)
+	(eshell-destroy-buffer-when-process-dies): New custom to preserve
+	previous behavior.
+
+	eshell: Introduce new buffer syntax
+	The new buffer syntax '#<buffer-name>' is equivalent to '#<buffer
+	buffer-name>'.  Remove `eshell-buffer-shorthand', as it is no longer
+	needed (Bug#19319).
+	* lisp/eshell/esh-io.el (eshell-buffer-shorthand): Remove.
+	(eshell-get-target): Remove shorthand-specific code.
+	* lisp/eshell/esh-arg.el (eshell-parse-special-reference): Parse
+	'#<buffer-name>'.
+
+2015-05-17  Jan D  <jan.h.d@swipnet.se>
+
+	Merge branch 'master' into cairo
+
+2015-04-26  Jan D  <jan.h.d@swipnet.se>
+
+	Merge branch 'master' into cairo
+
+	Add PBM support for cairo.
+	* src/image.c (xcolor_to_argb32): New function.
+	(get_spec_bg_or_alpha_as_argb): Call xcolor_to_argb32.
+	(pbm_load, png_load_body, jpeg_load_body, gif_load): Only use
+	XImagePtr if ! USE_CAIRO.
+	(pbm_load): Add cairo support.
+
+2015-04-12  Jan D  <jan.h.d@swipnet.se>
+
+	x_free_cr_resources: Renamed from x_prepare_for_xlibdraw.
+	* src/xterm.c (x_free_cr_resources): Renamed from x_prepare_for_xlibdraw.
+	(x_cr_draw_frame, x_cr_export_frames, x_shift_glyphs_for_insert)
+	(x_free_frame_resources): Rename x_prepare_for_xlibdraw to
+	x_free_cr_resources.
+
+	Handle specified bg in images.  Use generic libpng code for PNG:s.
+	* src/image.c (get_spec_bg_or_alpha_as_argb)
+	(create_cairo_image_surface): New functions when USE_CAIRO.
+	(xpm_load): Call the above functions.  Handle XPM without mask
+	when USE_CAIRO.
+	(png_load_body): Handle USE_CAIRO case.
+	(png_load): Remove USE_CAIRO specific fuction, modify png_load_body
+	instead.
+	(jpeg_load_body): Call create_cairo_image_surface.
+	(gif_load, svg_load_image): Handle specified background, call
+	create_cairo_image_surface.
+	* src/xterm.c (x_draw_image_glyph_string): Added missing USE_CAIRO.
+
+2015-04-11  Jan D  <jan.h.d@swipnet.se>
+
+	Support GIF and Tiff with cairo.
+	* configure.ac: Allow jpeg with cairo.
+	Allow tiff and gif with cairo.
+	* src/image.c (jpeg_load_body): Create cairo image surface if USE_CAIRO.
+	(tiff_load): Create cairo image surface if USE_CAIRO.
+	(gif_load): Ditto.
+
+	Support JPEG with USE_CAIRO.
+	* configure.ac: Allow jpeg with cairo.
+	* src/image.c (jpeg_load_body): Create cairo image surface if USE_CAIRO.
+
+2015-04-05  Jan D  <jan.h.d@swipnet.se>
+
+	Support RSVG and cairo.
+	* configure.ac: Allow rsvg with cairo.  Move back HAVE_RSVG.
+	* src/dispextern.h (struct image): add cr_data2 if cairo.
+	* src/image.c: #undef COLOR_TABLE_SUPPORT when USE_CAIRO.
+	(x_clear_image): Free cr_data and cr_data2 if set.
+	(xpm_load): Assign data to cr_data2.
+	(svg_load_image): Convert from GdkPixbuf to CAIRO_FORMAT_ARGB32.
+
+2015-04-03  Jan D  <jan.h.d@swipnet.se>
+
+	Introduce limited Xpm support (32 bit ZPixmap) for Cairo.
+	* configure.ac (HAVE_RSVG): Move after cairo.
+	(USE_CAIRO): Disable rsvg, don't disable Xpm.
+	* src/image.c (prepare_image_for_display): Don't load if USE_CAIRO.
+	(x_clear_image): If USE_CAIRO, also free possible img->ximg->obdata and
+	don't return early.
+	(ALLOC_XPM_COLORS): Don't define when USE_CAIRO.
+	(xpm_load): Convert simple Xpms (32 bit ZPixmap) to CAIRO_FORMAT_ARGB32
+	and create a surface.
+
+	Tool tips for menus did not show any text.
+	* src/xterm.c (x_update_begin): Don't create any surface for non-visible
+	tip frames, the geometry may be wrong.
+
+	Merge branch 'master' into cairo, fixes tooltips not shown.
+
+	Merge branch 'master' into cairo
+
+	Add CAIRO_CFLAGS to lwlib/Makefile.in
+	* Makefile.in (CAIRO_CFLAGS): Add.
+
+2015-02-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* ftcrfont.c (ftcrfont_draw): Don't flush when drawing to screen.
+
+2015-02-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	Draw outermost line using black relief and erase corners also for cairo.
+	* xterm.c [USE_CAIRO]: Include math.h.
+	(enum corners) [USE_CAIRO]: New enum.
+	(x_erase_corners_for_relief) [USE_CAIRO]: New function.
+	(x_draw_relief_rect) [USE_CAIRO]: Use it.  If box width is larger
+	than 1, draw the outermost line using the black relief.
+
+	* xterm.c (x_fill_trapezoid_for_relief): Remove unnecessary cairo_close_path.
+
+2015-02-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xterm.c (x_draw_relief_rect) [USE_CAIRO]: Reset clipping.
+
+	* xterm.c (x_draw_stretch_glyph_string): Call x_reset_clip_rectangles instead of XSetClipMask.
+
+	Use int instead of unsigned int for width and height args.
+	* xterm.c (x_cr_draw_image, x_fill_rectangle, x_draw_rectangle)
+	(x_fill_trapezoid_for_relief): Use int instead of unsigned int for
+	width and height args.
+
+	Modernize k&r cairo-related function declarations.
+	* gtkutil.c (xg_page_setup_dialog, xg_get_page_setup, draw_page)
+	(xg_print_frames_dialog): Modernize k&r declarations.
+	* xfns.c (Fx_export_frames, Fx_page_setup_dialog, Fx_get_page_setup)
+	(Fx_print_frames_dialog): Modernize k&r declarations.
+	* xterm.c (x_gc_get_ext_data, x_extension_initialize, x_begin_cr_clip)
+	(x_end_cr_clip, x_set_cr_source_with_gc_foreground)
+	(x_set_cr_source_with_gc_background, x_cr_define_fringe_bitmap)
+	(x_cr_destroy_fringe_bitmap, x_cr_draw_frame, x_cr_accumulate_data)
+	(x_cr_destroy, x_cr_export_frames, x_prepare_for_xlibdraw)
+	(x_set_clip_rectangles, x_reset_clip_rectangles, x_fill_rectangle)
+	(x_draw_rectangle, x_clear_window, x_fill_trapezoid_for_relief)
+	(x_clear_area): Modernize k&r declarations.
+
+	Implement wave-style variant of underlining for cairo.
+	* xterm.c (x_draw_horizontal_wave) [USE_CAIRO]: New function.
+	(x_draw_underwave) [USE_CAIRO]: Use it.
+
+	* xterm.c (x_draw_window_divider): Use x_fill_rectangle instead of XFillRectangle.
+
+2015-02-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	Fix fringe bitmap initialization for cairo.
+	* fringe.c (init_fringe_bitmap) [USE_CAIRO]: Adjust bitmap data for
+	cairo image surface.
+	* xterm.c (x_cr_define_fringe_bitmap): Call cairo_surface_mark_dirty.
+
+2015-02-11  Jan D  <jan.h.d@swipnet.se>
+
+	Add cairo drawing.
+	* configure.ac (with-cairo): New option.
+	(USE_CAIRO): Default to yes for Gtk+ 3.  Add code to test for cairo,
+	set CAIRO_CFLAGS, CAIRO_LIBS.  Add ftcrfonto to FONT_OBJ if cairo.
+	Output "Does Emacs use cairo?".
+	* lisp/version.el (emacs-version): Add cairo version.
+	* src/Makefile.in (CAIRO_CFLAGS, CAIRO_LIBS): New variables.
+	(FONT_OBJ): Add comment about ftcrfont.
+	(ALL_CFLAGS): Add CAIRO_CFLAGS.
+	(LIBES): Add CAIRO_LIBS.
+	* src/dispextern.h (struct image): Add cr_data for cairo.
+	(x_cr_init_fringe): Declare.
+	* src/font.c (syms_of_font): Call syms_of_ftcrfont for cairo.
+	* src/font.h (ftcrfont_driver, syms_of_ftcrfont): Declare
+	* src/fringe.c (x_cr_init_fringe): New function name that shares code
+	with w32_init_fringe.
+	* src/ftcrfont.c: New font driver for cairo, based on the ftfont driver.
+	* src/ftfont.c (ftfont_info_size); New global variable.
+	(ftfont_open2): New extern function almost the same as old ftfont_open,
+	but takes the font_object as argument.
+	(ftfont_open): Build font object and call ftfont_open2.
+	* src/ftfont.h (ftfont_open2, ftfont_info_size): Declare.
+	* src/gtkutil.c (xg_clear_under_internal_border)
+	(xg_update_scrollbar_pos, xg_update_horizontal_scrollbar_pos): Only
+	queue_draw if not cairo.  Change args to x_clear_area.
+	(xg_get_font): Use Qftcr when using cairo, Qxft otherwise.
+	(xg_page_setup_dialog, xg_get_page_setup, draw_page)
+	(xg_print_frames_dialog): New functions for printing.
+	* src/gtkutil.h (xg_page_setup_dialog, xg_get_page_setup)
+	(xg_print_frames_dialog): Declare.
+	* src/image.c: Add defined (USE_CAIRO) for PNG.
+	Add !defined USE_CAIRO for W32 PNG code.
+	(x_clear_image): If cairo, destroy the surface in cr_data.
+	(png_load): Add new cairo compatible implementation.
+	(lookup_image_type): Add defined (USE_CAIRO) for define png_type.
+	* src/xfns.c: New section Printing.
+	(x-export-frames, x-page-setup-dialog, x-get-page-setup)
+	(x-print-frames-dialog): New printing functions.
+	(Fx_create_frame, x_create_tip_frame): Register ftcrfont if
+	cairo.
+	(syms_of_xfns): Defsym Qorientation, Qtop_margin, Qbottom_margin,
+	Qportrait, Qlandscape, Qreverse_portrait, Qreverse_landscape).
+	(syms_of_xfns): Provide cairo and defvar cairo-version-string.
+	defsubr Sx_page_setup_dialog, Sx_get_page_setup, Sx_print_frames_dialog.
+	* src/xterm.c (x_clear_area1, x_prepare_for_xlibdraw)
+	(x_set_clip_rectangles, x_reset_clip_rectangles, x_fill_rectangle)
+	(x_draw_rectangle, x_fill_trapezoid_for_relief, x_clear_window)
+	(x_gc_get_ext_data, x_extension_initialize, x_cr_accumulate_data):
+	Declare.
+	(FRAME_CR_CONTEXT, FRAME_CR_SURFACE): New macros.
+	(max_fringe_bmp, fringe_bmp): New variables.
+	(x_gc_get_ext_data, x_extension_initialize)
+	(x_cr_destroy_surface, x_begin_cr_clip, x_end_cr_clip)
+	(x_set_cr_source_with_gc_foreground)
+	(x_set_cr_source_with_gc_background, x_cr_define_fringe_bitmap)
+	(x_cr_destroy_fringe_bitmap, x_cr_draw_image, x_cr_draw_frame)
+	(x_cr_accumulate_data, x_cr_destroy, x_cr_export_frames)
+	(x_prepare_for_xlibdraw, x_set_clip_rectangles)
+	(x_reset_clip_rectangles, x_fill_rectangle, x_draw_rectangle)
+	(x_clear_window, x_fill_trapezoid_for_relief): New functions.
+	(x_update_begin): Create cairo surface if needed.
+	(x_draw_vertical_window_border): Call x_fill_rectangle for cairo.
+	(x_update_end): Paint cairo drawing surface to xlib surface.
+	(x_clear_under_internal_border, x_after_update_window_line): Adjust
+	arguments to x_clear_area.
+	(x_draw_fringe_bitmap): Call x_fill_rectangle.  Get GC values and
+	call x_cr_draw_image for cairo.  Call x_reset_clip_rectangles instead
+	of XSetClipMask.
+	(x_set_glyph_string_clipping)
+	(x_set_glyph_string_clipping_exactly): Use x_set_clip_rectangles
+	instead of XSetClipRectangles.
+	(x_clear_glyph_string_rect, x_draw_glyph_string_background): Use
+	x_fill_rectangle instead of XFillRectangle.
+	(x_draw_glyph_string_foreground)
+	(x_draw_composite_glyph_string_foreground)
+	(x_draw_glyphless_glyph_string_foreground): Use x_draw_rectangle instead
+	of XDrawRectangle.
+	(x_draw_relief_rect): Add code for USE_CAIRO.
+	Call x_reset_clip_rectangles instead of XSetClipMask.
+	(x_draw_box_rect): x_set_clip_rectangles instead of XSetClipRectangles,
+	x_fill_rectangle instead of XFillRectangle, x_reset_clip_rectangles
+	instead of XSetClipMask.
+	(x_draw_image_foreground, x_draw_image_foreground_1):
+	x_draw_rectangle instead of XDrawRectangle.
+	(x_draw_glyph_string_bg_rect): x_fill_rectangle instead of
+	XFillRectangle.
+	(x_draw_image_glyph_string): If img has cr_data, use it as
+	a cairo surface.
+	(x_draw_stretch_glyph_string): x_set_clip_rectangles instead of
+	XSetClipRectangles, x_fill_rectangle instead of XFillRectangle.
+	(x_draw_glyph_string): x_fill_rectangle instead of XFillRectangle.,
+	x_reset_clip_rectangles instead of XSetClipMask.
+	(x_shift_glyphs_for_insert): Call x_prepare_for_xlibdraw.
+	(x_clear_area1): New function that calls XClearArea.
+	(x_clear_area): Takes frame as parameter, calls x_clear_area1 for
+	non-cairo.
+	(x_clear_frame): x_clear_window instead of XClearWindow.
+	(x_scroll_run): Set frame garbaged if cairo.
+	(XTmouse_position): Initialize *part to 0.
+	(x_scroll_bar_create): Adjust arguments to x_clear_area.
+	(x_scroll_bar_set_handle): x_clear_area1 instead of x_clear_area,
+	x_fill_rectangle instead of XFillRectangle.
+	(XTset_vertical_scroll_bar, XTset_horizontal_scroll_bar): Adjust
+	arguments to x_clear_area.
+	(x_scroll_bar_expose): x_draw_rectangle instead of XDrawRectangle.
+	(handle_one_xevent): Adjust arguments to x_clear_area.
+	Destroy cairo surface for frame if ConfigureNotify.
+	(x_clip_to_row): x_set_clip_rectangles instead of XSetClipRectangles.
+	(x_draw_hollow_cursor): x_draw_rectangle instead of XDrawRectangle,
+	x_reset_clip_rectangles instead of XSetClipMask.
+	(x_draw_bar_cursor): x_fill_rectangle instead of XFillRectangle,
+	x_reset_clip_rectangles instead of XSetClipMask.
+	(x_clear_frame_area): Adjust arguments to x_clear_area.
+	(x_free_frame_resources): Call x_prepare_for_xlibdraw.
+	(x_term_init): Call x_extension_initialize if cairo.
+	(x_redisplay_interface): Add x_cr_define_fringe_bitmap,
+	x_cr_destroy_fringe_bitmap for cairo.
+	(x_initialize): Call x_cr_init_fringe for cairo.
+	* src/xterm.h: Add include of cairo header files.
+	(x_bitmap_record): Add img if cairo.
+	(x_gc_ext_data): New struct for cairo.
+	(x_display_info): Add ext_codes for cairo.
+	(x_output): Add cr_context and cr_surface for cairo.
+	(x_clear_area): Change arguments from Display*/Window to frame pointer.
+	(x_query_color, x_begin_cr_clip, x_end_cr_clip)
+	(x_set_cr_source_with_gc_foreground, x_set_cr_source_with_gc_background)
+	(x_cr_draw_frame, x_cr_export_frames): Declare.
+
 2015-05-17  Johan Bockgård  <bojohan@gnu.org>
 
 	Fix integer-valued `mouse-highlight' (Bug#20590)

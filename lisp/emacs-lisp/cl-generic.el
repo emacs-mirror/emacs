@@ -432,8 +432,10 @@ which case this method will be invoked when the argument is `eql' to VAL.
                           (> (cl--generic-generalizer-priority x)
                              (cl--generic-generalizer-priority y)))))))
         (setq i (1+ i))))
-    (if me (setcar me method)
-      (setf (cl--generic-method-table generic) (cons method mt)))
+    ;; We used to (setcar me method), but that can cause false positives in
+    ;; the hash-consing table of the method-builder (bug#20644).
+    ;; See the related FIXME in cl--generic-build-combined-method.
+    (setf (cl--generic-method-table generic) (cons method (delq (car me) mt)))
     (cl-pushnew `(cl-defmethod . (,(cl--generic-name generic) . ,specializers))
                 current-load-list :test #'equal)
     ;; FIXME: Try to avoid re-constructing a new function if the old one

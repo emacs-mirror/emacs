@@ -158,7 +158,7 @@ This includes password cache, file cache, connection cache, buffers."
   (if arg (insert tramp-version) (message tramp-version)))
 
 ;; Make the "reporter" functionality available for making bug reports about
-;; the package. A most useful piece of code.
+;; the package.  A most useful piece of code.
 
 (autoload 'reporter-submit-bug-report "reporter")
 

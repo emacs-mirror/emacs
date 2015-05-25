@@ -831,7 +831,7 @@ clean_dirs = $(mostlyclean_dirs) nextstep
 $(foreach dir,$(clean_dirs),$(eval $(call submake_template,$(dir),clean)))
 
 clean: $(clean_dirs:=_clean)
-	for dir in test/automated; do \
+	for dir in test/automated admin/charsets; do \
 	  [ ! -d $$dir ] || $(MAKE) -C $$dir clean; \
 	done
 	-rm -f *.tmp etc/*.tmp*
@@ -856,8 +856,10 @@ distclean_dirs = $(clean_dirs) leim lisp
 
 $(foreach dir,$(distclean_dirs),$(eval $(call submake_template,$(dir),distclean)))
 
+maybeclean_dirs = test/automated admin/grammars admin/unidata admin/charsets
+
 distclean: $(distclean_dirs:=_distclean)
-	for dir in test/automated admin/grammars admin/unidata; do \
+	for dir in ${maybeclean_dirs}; do \
 	  [ ! -d $$dir ] || $(MAKE) -C $$dir distclean; \
 	done
 	${top_distclean}
@@ -868,7 +870,7 @@ distclean: $(distclean_dirs:=_distclean)
 $(foreach dir,$(distclean_dirs),$(eval $(call submake_template,$(dir),bootstrap-clean)))
 
 bootstrap-clean: $(distclean_dirs:=_bootstrap-clean)
-	for dir in test/automated admin/grammars admin/unidata; do \
+	for dir in ${maybeclean_dirs}; do \
 	  [ ! -d $$dir ] || $(MAKE) -C $$dir bootstrap-clean; \
 	done
 	[ ! -f config.log ] || mv -f config.log config.log~
@@ -896,7 +898,7 @@ maintainer_clean_dirs = src leim lisp
 $(foreach dir,$(maintainer_clean_dirs),$(eval $(call submake_template,$(dir),maintainer-clean)))
 
 maintainer-clean: bootstrap-clean $(maintainer_clean_dirs:=_maintainer-clean)
-	for dir in test/automated admin/grammars admin/unidata; do \
+	for dir in ${maybeclean_dirs}; do \
 	  [ ! -d $$dir ] || $(MAKE) -C $$dir maintainer-clean; \
 	done
 	${top_maintainer_clean}
@@ -907,10 +909,12 @@ maintainer-clean: bootstrap-clean $(maintainer_clean_dirs:=_maintainer-clean)
 ### it deletes backup and autosave files too.
 ### Note that we abuse this in some subdirectories (eg leim),
 ### to delete some generated files that are slow to rebuild.
-$(foreach dir,$(SUBDIR),$(eval $(call submake_template,$(dir),extraclean)))
+extraclean_dirs = ${NTDIR} lib-src src leim \
+  admin/charsets admin/grammars admin/unidata
 
-## FIXME this is busted because most of these do not have extraclean rules.
-extraclean: $(SUBDIR:=_extraclean)
+$(foreach dir,$(extraclean_dirs),$(eval $(call submake_template,$(dir),extraclean)))
+
+extraclean: $(extraclean_dirs:=_extraclean)
 	${top_maintainer_clean}
 	-rm -f config-tmp-*
 	-rm -f *~ \#*

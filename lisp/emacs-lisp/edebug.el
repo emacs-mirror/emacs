@@ -561,7 +561,7 @@ already is one.)"
 (defun edebug-install-read-eval-functions ()
   (interactive)
   (add-function :around load-read-function #'edebug--read)
-  (advice-add 'eval-defun :override 'edebug-eval-defun))
+  (advice-add 'eval-defun :override #'edebug-eval-defun))
 
 (defun edebug-uninstall-read-eval-functions ()
   (interactive)

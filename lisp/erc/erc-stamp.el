@@ -370,8 +370,8 @@ Return the empty string if FORMAT is nil."
   (and erc-echo-timestamps (not (bound-and-true-p cursor-sensor-mode))
        (cursor-sensor-mode 1))
   (if erc-hide-timestamps
-      (add-to-invisibility-spec 'timespec)
-    (remove-from-invisibility-spec 'timespec)))
+      (add-to-invisibility-spec 'timestamp)
+    (remove-from-invisibility-spec 'timestamp)))
 
 (defun erc-hide-timestamps ()
   "Hide timestamp information from display."

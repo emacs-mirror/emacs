@@ -70,6 +70,19 @@ typedef GtkWidget *xt_or_gtk_widget;
 #define USE_GTK_TOOLTIP
 #endif
 
+#ifdef USE_CAIRO
+#include <cairo-xlib.h>
+#ifdef CAIRO_HAS_PDF_SURFACE
+#include <cairo-pdf.h>
+#endif
+#ifdef CAIRO_HAS_PS_SURFACE
+#include <cairo-ps.h>
+#endif
+#ifdef CAIRO_HAS_SVG_SURFACE
+#include <cairo-svg.h>
+#endif
+#endif
+
 #ifdef HAVE_X_I18N
 #include <X11/Xlocale.h>
 #endif
@@ -115,6 +128,9 @@ struct xim_inst_t
 
 struct x_bitmap_record
 {
+#ifdef USE_CAIRO
+  void *img;
+#endif
   Pixmap pixmap;
   bool have_mask;
   Pixmap mask;
@@ -123,6 +139,19 @@ struct x_bitmap_record
   /* Record some info about this pixmap.  */
   int height, width, depth;
 };
+
+#ifdef USE_CAIRO
+struct x_gc_ext_data
+{
+#define MAX_CLIP_RECTS 2
+  /* Number of clipping rectangles.  */
+  int n_clip_rects;
+
+  /* Clipping rectangles.  */
+  XRectangle clip_rects[MAX_CLIP_RECTS];
+};
+#endif
+
 
 /* For each X display, we have a structure that records
    information about it.  */
@@ -411,6 +440,10 @@ struct x_display_info
 
   /* SM */
   Atom Xatom_SM_CLIENT_ID;
+
+#ifdef USE_CAIRO
+  XExtCodes *ext_codes;
+#endif
 };
 
 #ifdef HAVE_X_I18N
@@ -636,7 +669,6 @@ struct x_output
   /* The offset we need to add to compensate for type A WMs.  */
   int move_offset_top;
   int move_offset_left;
-};
 
 /* Extreme 'short' and 'long' values suitable for libX11.  */
 #define X_SHRT_MAX 0x7fff
@@ -644,6 +676,14 @@ struct x_output
 #define X_LONG_MAX 0x7fffffff
 #define X_LONG_MIN (-1 - X_LONG_MAX)
 #define X_ULONG_MAX 0xffffffffUL
+
+#ifdef USE_CAIRO
+  /* Cairo drawing context.  */
+  cairo_t *cr_context;
+  /* Cairo surface for double buffering */
+  cairo_surface_t *cr_surface;
+#endif
+};
 
 #define No_Cursor (None)
 
@@ -991,7 +1031,8 @@ extern bool x_alloc_lighter_color_for_widget (Widget, Display *, Colormap,
 					      double, int);
 #endif
 extern bool x_alloc_nearest_color (struct frame *, Colormap, XColor *);
-extern void x_clear_area (Display *, Window, int, int, int, int);
+extern void x_query_color (struct frame *f, XColor *);
+extern void x_clear_area (struct frame *f, int, int, int, int);
 #if !defined USE_X_TOOLKIT && !defined USE_GTK
 extern void x_mouse_leave (struct x_display_info *);
 #endif
@@ -1000,6 +1041,14 @@ extern void x_mouse_leave (struct x_display_info *);
 extern int x_dispatch_event (XEvent *, Display *);
 #endif
 extern int x_x_to_emacs_modifiers (struct x_display_info *, int);
+#ifdef USE_CAIRO
+extern cairo_t *x_begin_cr_clip (struct frame *, GC);
+extern void x_end_cr_clip (struct frame *);
+extern void x_set_cr_source_with_gc_foreground (struct frame *, GC);
+extern void x_set_cr_source_with_gc_background (struct frame *, GC);
+extern void x_cr_draw_frame (cairo_t *, struct frame *);
+extern Lisp_Object x_cr_export_frames (Lisp_Object, cairo_surface_type_t);
+#endif
 
 INLINE int
 x_display_pixel_height (struct x_display_info *dpyinfo)

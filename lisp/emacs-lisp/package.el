@@ -2954,8 +2954,23 @@ objects removed."
       (dolist (elt (package--sort-by-dependence delete-list))
         (condition-case-unless-debug err
             (let ((inhibit-message t))
-              (package-delete elt))
+              (package-delete elt nil 'nosave))
           (error (message (cadr err))))))))
+
+(defun package--update-selected-packages (add remove)
+  "Update the `package-selected-packages' list according to ADD and REMOVE.
+ADD and REMOVE must be disjoint lists of package names (or
+`package-desc' objects) to be added and removed to the selected
+packages list, respectively."
+  (dolist (p add)
+    (cl-pushnew (if (package-desc-p p) (package-desc-name p) p)
+                package-selected-packages))
+  (dolist (p remove)
+    (setq package-selected-packages
+          (remove (if (package-desc-p p) (package-desc-name p) p)
+                  package-selected-packages)))
+  (when (or add remove)
+    (package--save-selected-packages package-selected-packages)))
 
 (defun package-menu-execute (&optional noquery)
   "Perform marked Package Menu actions.
@@ -2993,10 +3008,7 @@ Optional argument NOQUERY non-nil means do not ask the user to confirm."
                        "]")))
           (message (replace-regexp-in-string "__" "ing" message-template) "started")
           ;; Packages being upgraded are not marked as selected.
-          (when .install
-            (dolist (p .install)
-              (cl-pushnew (package-desc-name p) package-selected-packages))
-            (package--save-selected-packages package-selected-packages))
+          (package--update-selected-packages .install .delete)
           (package-menu--perform-transaction install-list delete-list)
           (when package-selected-packages
             (if-let ((removable (package--removable-packages)))

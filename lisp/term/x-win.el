@@ -29,8 +29,7 @@
 ;; Beginning in Emacs 23, the act of loading this file should not have
 ;; the side effect of initializing the window system or processing
 ;; command line arguments (this file is now loaded in loadup.el).  See
-;; the variables `handle-args-function-alist' and
-;; `window-system-initialization-alist' for more details.
+;; `handle-args-function' and `window-system-initialization' for more details.
 
 ;; startup.el will then examine startup files, and eventually call the hooks
 ;; which create the first window(s).
@@ -1206,7 +1205,8 @@ This returns an error if any Emacs frames are X frames."
 (defvar x-display-name)
 (defvar x-command-line-resources)
 
-(defun x-initialize-window-system (&optional display)
+(cl-defmethod window-system-initialization (&context (window-system (eql x))
+                                            &optional display)
   "Initialize Emacs for X frames and open the first connection to an X server."
   (cl-assert (not x-initialized))
 
@@ -1335,17 +1335,29 @@ This returns an error if any Emacs frames are X frames."
 		  (selection-symbol target-type &optional time-stamp terminal))
 
 (add-to-list 'display-format-alist '("\\`[^:]*:[0-9]+\\(\\.[0-9]+\\)?\\'" . x))
-(gui-method-define handle-args-function x #'x-handle-args)
-(gui-method-define frame-creation-function x #'x-create-frame-with-faces)
-(gui-method-define window-system-initialization x #'x-initialize-window-system)
+(cl-defmethod handle-args-function (args &context (window-system (eql x)))
+  (x-handle-args args))
 
-(gui-method-define gui-set-selection x
-                   (lambda (selection value)
-                     (if value (x-own-selection-internal selection value)
-                       (x-disown-selection-internal selection))))
-(gui-method-define gui-selection-owner-p x #'x-selection-owner-p)
-(gui-method-define gui-selection-exists-p x #'x-selection-exists-p)
-(gui-method-define gui-get-selection x #'x-get-selection-internal)
+(cl-defmethod frame-creation-function (params &context (window-system (eql x)))
+  (x-create-frame-with-faces params))
+
+(cl-defmethod gui-backend-set-selection (selection value
+                                         &context (window-system (eql x)))
+  (if value (x-own-selection-internal selection value)
+    (x-disown-selection-internal selection)))
+
+(cl-defmethod gui-backend-selection-owner-p (selection
+                                             &context (window-system (eql x)))
+  (x-selection-owner-p selection))
+
+(cl-defmethod gui-backend-selection-exists-p (selection
+                                              &context (window-system (eql x)))
+  (x-selection-exists-p selection))
+
+(cl-defmethod gui-backend-get-selection (selection-symbol target-type
+                                         &context (window-system (eql x))
+                                         &optional time-stamp terminal)
+  (x-get-selection-internal selection-symbol target-type time-stamp terminal))
 
 ;; Initiate drag and drop
 (add-hook 'after-make-frame-functions 'x-dnd-init-frame)

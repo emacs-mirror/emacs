@@ -27,34 +27,19 @@
 ;;; Code:
 (eval-when-compile (require 'cl-lib))
 
-;; Dispatch tables for GUI methods.
-
-(defun gui-method--name (base)
-  (intern (format "%s-alist" base)))
-
-(defmacro gui-method (name &optional type)
-  (macroexp-let2 nil type (or type `window-system)
-    `(alist-get ,type ,(gui-method--name name)
-                (lambda (&rest _args)
-                  (error "No method %S for %S frame" ',name ,type)))))
-
-(defmacro gui-method-define (name type fun)
-  `(setf (gui-method ,name ',type) ,fun))
-
-(defmacro gui-method-declare (name &optional tty-fun doc)
-  (declare (doc-string 3) (indent 2))
-  `(defvar ,(gui-method--name name)
-     ,(if tty-fun `(list (cons nil ,tty-fun))) ,doc))
-
-(defmacro gui-call (name &rest args)
-  `(funcall (gui-method ,name) ,@args))
-
-(gui-method-declare frame-creation-function
-    #'tty-create-frame-with-faces
+(cl-defgeneric frame-creation-function (params)
   "Method for window-system dependent functions to create a new frame.
 The window system startup file should add its frame creation
 function to this method, which should take an alist of parameters
 as its argument.")
+
+(cl-defmethod frame-creation-function (params
+                                       &context (window-system (eql nil)))
+  ;; It's tempting to get rid of tty-create-frame-with-faces and turn it into
+  ;; this method (i.e. move this method to faces.el), but faces.el is loaded
+  ;; much earlier from loadup.el (before cl-generic and even before
+  ;; cl-preloaded), so we'd first have to reorder that part.
+  (tty-create-frame-with-faces params))
 
 (defvar window-system-default-frame-alist nil
   "Window-system dependent default frame parameters.
@@ -687,7 +672,8 @@ the new frame according to its own rules."
 	 frame)
 
     (unless (get w 'window-system-initialized)
-      (funcall (gui-method window-system-initialization w) display)
+      (let ((window-system w))          ;Hack attack!
+        (window-system-initialization display))
       (setq x-display-name display)
       (put w 'window-system-initialized t))
 
@@ -704,8 +690,8 @@ the new frame according to its own rules."
 
 ;;     (setq frame-size-history '(1000))
 
-    (setq frame
-          (funcall (gui-method frame-creation-function w) params))
+    (setq frame (let ((window-system w)) ;Hack attack!
+                  (frame-creation-function params)))
     (normal-erase-is-backspace-setup-frame frame)
     ;; Inherit the original frame's parameters.
     (dolist (param frame-inherited-parameters)

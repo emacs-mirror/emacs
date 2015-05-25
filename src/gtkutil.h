@@ -180,6 +180,12 @@ extern bool xg_prepare_tooltip (struct frame *f,
 extern void xg_show_tooltip (struct frame *f, int root_x, int root_y);
 extern bool xg_hide_tooltip (struct frame *f);
 
+#ifdef USE_CAIRO
+extern void xg_page_setup_dialog (void);
+extern Lisp_Object xg_get_page_setup (void);
+extern void xg_print_frames_dialog (Lisp_Object);
+#endif
+
 /* Mark all callback data that are Lisp_object:s during GC.  */
 extern void xg_mark_data (void);
 

@@ -4808,14 +4808,14 @@ run `deactivate-mark-hook'."
       ;; the region prior to the last command modifying the buffer.
       ;; Set the selection to that, or to the current region.
       (cond (saved-region-selection
-	     (if (gui-call gui-selection-owner-p 'PRIMARY)
+	     (if (gui-backend-selection-owner-p 'PRIMARY)
 		 (gui-set-selection 'PRIMARY saved-region-selection))
 	     (setq saved-region-selection nil))
 	    ;; If another program has acquired the selection, region
 	    ;; deactivation should not clobber it (Bug#11772).
 	    ((and (/= (region-beginning) (region-end))
-		  (or (gui-call gui-selection-owner-p 'PRIMARY)
-		      (null (gui-call gui-selection-exists-p 'PRIMARY))))
+		  (or (gui-backend-selection-owner-p 'PRIMARY)
+		      (null (gui-backend-selection-exists-p 'PRIMARY))))
 	     (gui-set-selection 'PRIMARY
                                 (funcall region-extract-function nil)))))
     (when mark-active (force-mode-line-update)) ;Refresh toolbar (bug#16382).

@@ -11,7 +11,7 @@ etags, ctags \- generate tag file for Emacs, vi
 .SH SYNOPSIS
 .hy 0
 .na
-\fBetags\fP [\|\-aCDGIRVh\|] [\|\-i \fIfile\fP\|] [\|\-l \fIlanguage\fP\|]
+\fBetags\fP [\|\-aCDGIQRVh\|] [\|\-i \fIfile\fP\|] [\|\-l \fIlanguage\fP\|]
 .if n .br
 [\|\-o \fItagfile\fP\|] [\|\-r \fIregexp\fP\|]
 [\|\-\-parse\-stdin=\fIfile\fP\|]
@@ -20,11 +20,12 @@ etags, ctags \- generate tag file for Emacs, vi
 [\|\-\-no\-globals\|] [\|\-\-include=\fIfile\fP\|]
 [\|\-\-ignore\-indentation\|] [\|\-\-language=\fIlanguage\fP\|]
 [\|\-\-members\|] [\|\-\-no\-members\|] [\|\-\-output=\fItagfile\fP\|]
+[\|\-\-class\-qualify\|]
 [\|\-\-regex=\fIregexp\fP\|] [\|\-\-no\-regex\|]
 [\|\-\-help\|] [\|\-\-version\|]
 \fIfile\fP .\|.\|.
 
-\fBctags\fP [\|\-aCdgIRVh\|] [\|\-BtTuvwx\|] [\|\-l \fIlanguage\fP\|]
+\fBctags\fP [\|\-aCdgIQRVh\|] [\|\-BtTuvwx\|] [\|\-l \fIlanguage\fP\|]
 .if n .br
 [\|\-o \fItagfile\fP\|] [\|\-r \fIregexp\fP\|]
 [\|\-\-parse\-stdin=\fIfile\fP\|]
@@ -33,6 +34,7 @@ etags, ctags \- generate tag file for Emacs, vi
 [\|\-\-cxref\|] [\|\-\-no\-defines\|]
 [\|\-\-globals\|] [\|\-\-no\-globals\|] [\|\-\-ignore\-indentation\|]
 [\|\-\-language=\fIlanguage\fP\|] [\|\-\-members\|] [\|\-\-no\-members\|]
+[\|\-\-class\-qualify\|]
 [\|\-\-output=\fItagfile\fP\|] [\|\-\-regex=\fIregexp\fP\|]
 [\|\-\-update\|]
 [\|\-\-help\|] [\|\-\-version\|]
@@ -136,6 +138,14 @@ Only tag packages in Ada files.
 May be used (only once) in place of a file name on the command line.
 \fBetags\fP will read from standard input and mark the produced tags
 as belonging to the file \fBFILE\fP.
+.TP
+\fB\-\-class\-qualify\fP
+Qualify tag names with their class name in C++, ObjC, and Java.
+This produces tag names of the form \fIclass\fP\fB::\fP\fImember\fP
+for C++,
+\fIclass\fP\fB(\fP\fIcategory\fP\fB)\fP for Objective C, and \fIclass\fP\fB.\fP\fImember\fP for Java.
+For Objective C, this also produces class methods qualified with
+their arguments, as in \fIfoo\fP\fB:\fP\fIbar\fP\fB:\fP\fIbaz\fP\fB:\fP\fImore\fP.
 .TP
 \fB\-o\fP \fItagfile\fP, \fB\-\-output=\fItagfile\fP
 Explicit name of file for tag table; for \fBetags\fP only, a file name

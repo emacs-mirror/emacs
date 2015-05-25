@@ -175,10 +175,6 @@ $user_comment_lc	php-src/lce_functions.php	115
 /wbytes	ps-src/rfc1245.ps	/^\/wbytes { $/
 /wh	ps-src/rfc1245.ps	/^\/wh { $/
 /yen	ps-src/rfc1245.ps	/^\/yen \/.notdef \/.notdef \/.notdef \/.notdef \/.notdef /
-::cat	cp-src/c.C	126
-::dog	cp-src/c.C	126
-::f	cp-src/c.C	/^     void f() {}$/
-::teats	cp-src/c.C	127
 :a-forth-dictionary-entry	forth-src/test-forth.fth	/^create :a-forth-dictionary-entry$/
 <	tex-src/texinfo.tex	/^\\def<{{\\tt \\less}}$/
 =	tex-src/texinfo.tex	/^\\global\\let\\section = \\numberedsec$/
@@ -219,30 +215,11 @@ A	c.c	162
 A	cp-src/c.C	39
 A	cp-src/c.C	56
 A	cp-src/c.C	57
+A	cp-src/c.C	/^void A::A() {}$/
 A	cp-src/c.C	73
 A	cp-src/c.C	117
 A	cp-src/fail.C	7
 A	cp-src/fail.C	23
-A::A	cp-src/c.C	/^void A::A() {}$/
-A::B	cp-src/c.C	56
-A::B	cp-src/fail.C	8
-A::B	cp-src/fail.C	24
-A::B::C	cp-src/fail.C	9
-A::B::C	cp-src/fail.C	25
-A::B::C::C	cp-src/fail.C	/^			   C(int i) {x = i;}$/
-A::B::C::operator int	cp-src/fail.C	/^			   operator int() const {return x;}$/
-A::B::C::x	cp-src/fail.C	10
-A::B::T	cp-src/fail.C	14
-A::B::f	cp-src/fail.C	/^		int f() { return 5; }$/
-A::B::f	cp-src/fail.C	/^int A::B::f() { return 2; }$/
-A::T2	cp-src/fail.C	16
-A::colori	cp-src/c.C	40
-A::giallo	cp-src/c.C	40
-A::operator+	cp-src/c.C	/^const A& A::operator+(const A&) { }$/
-A::operator+	cp-src/c.C	/^  A operator+(A& a) {};$/
-A::rosso	cp-src/c.C	40
-A::verde	cp-src/c.C	40
-A::~A	cp-src/c.C	/^A::~A() {}$/
 ADDRESS	c-src/emacs/src/gmalloc.c	/^#define ADDRESS(B)	((void *) (((B) - 1) * BLOCKSIZ/
 ALIGNOF_STRUCT_LISP_VECTOR	c-src/emacs/src/lisp.h	1378
 ALLOCATED_BEFORE_DUMPING	c-src/emacs/src/gmalloc.c	/^#define ALLOCATED_BEFORE_DUMPING(P) \\$/
@@ -268,9 +245,7 @@ AST_Array::AST_Array	cp-src/c.C	/^AST_Array::AST_Array(UTL_ScopedName *n, unsign
 AST_ConcreteType::AST_ConcreteType	cp-src/c.C	/^AST_ConcreteType::AST_ConcreteType(AST_Decl::NodeT/
 AST_Root	cp-src/c.C	92
 AT	cp-src/c.C	52
-AT::t	cp-src/c.C	52
 AU	cp-src/c.C	53
-AU::x	cp-src/c.C	53
 AUTOLOADP	c-src/emacs/src/lisp.h	/^AUTOLOADP (Lisp_Object x)$/
 AUTO_CONS	c-src/emacs/src/lisp.h	/^#define AUTO_CONS(name, a, b) Lisp_Object name = A/
 AUTO_CONS_EXPR	c-src/emacs/src/lisp.h	/^#define AUTO_CONS_EXPR(a, b) \\$/
@@ -301,13 +276,14 @@ Asm_help	c-src/etags.c	504
 Asm_labels	c-src/etags.c	/^Asm_labels (FILE *inf)$/
 Asm_suffixes	c-src/etags.c	493
 B	cp-src/c.C	54
+B	cp-src/c.C	56
 B	cp-src/c.C	74
+B	cp-src/c.C	/^void B::B() {}$/
 B	cp-src/c.C	122
-B::B	cp-src/c.C	/^void B::B() {}$/
-B::f	cp-src/c.C	/^class B<int> { void f() {} };$/
-B::~B	cp-src/c.C	/^    ~B() {};$/
+B	cp-src/fail.C	8
+B	cp-src/fail.C	24
+BE_Node	cp-src/c.C	/^void BE_Node::BE_Node() {}$/
 BE_Node	cp-src/c.C	77
-BE_Node::BE_Node	cp-src/c.C	/^void BE_Node::BE_Node() {}$/
 BITS_PER_BITS_WORD	c-src/emacs/src/lisp.h	125
 BITS_PER_BITS_WORD	c-src/emacs/src/lisp.h	129
 BITS_PER_CHAR	c-src/emacs/src/lisp.h	136
@@ -316,13 +292,16 @@ BITS_PER_LONG	c-src/emacs/src/lisp.h	138
 BITS_PER_SHORT	c-src/emacs/src/lisp.h	137
 BITS_WORD_MAX	c-src/emacs/src/lisp.h	124
 BITS_WORD_MAX	c-src/emacs/src/lisp.h	128
+BLACK	cp-src/screen.hpp	12
 BLOCK	c-src/emacs/src/gmalloc.c	/^#define BLOCK(A)	(((char *) (A) - _heapbase) \/ BLO/
 BLOCKIFY	c-src/emacs/src/gmalloc.c	/^#define BLOCKIFY(SIZE)	(((SIZE) + BLOCKSIZE - 1) \//
 BLOCKLOG	c-src/emacs/src/gmalloc.c	125
 BLOCKSIZE	c-src/emacs/src/gmalloc.c	126
+BLUE	cp-src/screen.hpp	13
 BOOL_VECTOR_BITS_PER_CHAR	c-src/emacs/src/lisp.h	114
 BOOL_VECTOR_BITS_PER_CHAR	c-src/emacs/src/lisp.h	115
 BOOL_VECTOR_P	c-src/emacs/src/lisp.h	/^BOOL_VECTOR_P (Lisp_Object a)$/
+BROWN	cp-src/screen.hpp	18
 BUFFERP	c-src/emacs/src/lisp.h	/^BUFFERP (Lisp_Object a)$/
 BUFFERSIZE	objc-src/Subprocess.h	43
 BUFFER_OBJFWDP	c-src/emacs/src/lisp.h	/^BUFFER_OBJFWDP (union Lisp_Fwd *a)$/
@@ -337,18 +316,12 @@ Bidule/t	ada-src/etags-test-for.ada	/^  protected Bidule is$/
 Bidule/t	ada-src/waroquiers.ada	/^  protected Bidule is$/
 Body_Required/f	ada-src/etags-test-for.ada	/^   function Body_Required$/
 Boo	cp-src/c.C	129
-Boo::Boo	cp-src/c.C	/^    Boo(int _i, int _a, int _b) : i(_i), a(_a), b(/
+Boo	cp-src/c.C	/^    Boo(int _i, int _a, int _b) : i(_i), a(_a), b(/
 Boo::Boo	cp-src/c.C	/^Boo::Boo(Boo) :$/
-Boo::a	cp-src/c.C	132
-Boo::animals	cp-src/c.C	130
-Boo::b	cp-src/c.C	132
-Boo::cat	cp-src/c.C	130
-Boo::cow	cp-src/c.C	131
-Boo::dog	cp-src/c.C	130
-Boo::foo	cp-src/c.C	/^    foo() {$/
-Boo::i	cp-src/c.C	132
-Boo::treats	cp-src/c.C	131
 ButtonBar	pyt-src/server.py	/^def ButtonBar(frame, legend, ref, alternatives, co/
+C	cp-src/fail.C	9
+C	cp-src/fail.C	/^			   C(int i) {x = i;}$/
+C	cp-src/fail.C	25
 CALLMANY	c-src/emacs/src/lisp.h	/^#define CALLMANY(f, array) (f) (ARRAYELTS (array),/
 CALLN	c-src/emacs/src/lisp.h	/^#define CALLN(f, ...) CALLMANY (f, ((Lisp_Object [/
 CAR	c-src/emacs/src/lisp.h	/^CAR (Lisp_Object c)$/
@@ -421,32 +394,9 @@ CK_REL_C	parse.y	/^#define CK_REL_C(x)	if(   ((x)>0 && MAX_COL-(x)<cu/
 CK_REL_R	y-src/parse.y	/^#define CK_REL_R(x)	if(   ((x)>0 && MAX_ROW-(x)<cu/
 CK_REL_R	parse.y	/^#define CK_REL_R(x)	if(   ((x)>0 && MAX_ROW-(x)<cu/
 CMultiChannelCSC19_3D	cp-src/c.C	2
-CMultiChannelCSC19_3D::cscInitTime	cp-src/c.C	7
-CMultiChannelCSC19_3D::cscSegmentationTime	cp-src/c.C	8
-CMultiChannelCSC19_3D::execute	cp-src/c.C	/^        void execute(CPluginCSCState& p, int w, in/
-CMultiChannelCSC19_3D::ipc3dCSC19	cp-src/c.C	6
-CMultiChannelCSC19_3D::mcCSC	cp-src/c.C	6
-CMultiChannelCSC19_3D::outputTime	cp-src/c.C	9
-CMultiChannelCSC19_3D::setup	cp-src/c.C	5
 CNL	c-src/etags.c	/^#define CNL()								\\$/
 CNL_SAVE_DEFINEDEF	c-src/etags.c	/^#define CNL_SAVE_DEFINEDEF()						\\$/
 COLORS	cp-src/screen.hpp	11
-COLORS::BLACK	cp-src/screen.hpp	12
-COLORS::BLUE	cp-src/screen.hpp	13
-COLORS::BROWN	cp-src/screen.hpp	18
-COLORS::CYAN	cp-src/screen.hpp	15
-COLORS::DARKGRAY	cp-src/screen.hpp	20
-COLORS::GREEN	cp-src/screen.hpp	14
-COLORS::LIGHTBLUE	cp-src/screen.hpp	21
-COLORS::LIGHTCYAN	cp-src/screen.hpp	23
-COLORS::LIGHTGRAY	cp-src/screen.hpp	19
-COLORS::LIGHTGREEN	cp-src/screen.hpp	22
-COLORS::LIGHTMAGENTA	cp-src/screen.hpp	25
-COLORS::LIGHTRED	cp-src/screen.hpp	24
-COLORS::MAGENTA	cp-src/screen.hpp	17
-COLORS::RED	cp-src/screen.hpp	16
-COLORS::WHITE	cp-src/screen.hpp	27
-COLORS::YELLOW	cp-src/screen.hpp	26
 COMPILEDP	c-src/emacs/src/lisp.h	/^COMPILEDP (Lisp_Object a)$/
 COMPILED_ARGLIST	c-src/emacs/src/lisp.h	2431
 COMPILED_BYTECODE	c-src/emacs/src/lisp.h	2432
@@ -464,6 +414,7 @@ CPPFLAGS	make-src/Makefile	49
 CTAGS	c-src/etags.c	146
 CTAGS	c-src/etags.c	147
 CTAGS	c-src/etags.c	149
+CYAN	cp-src/screen.hpp	15
 C_AUTO	c-src/etags.c	2198
 C_EXT	c-src/etags.c	2193
 C_JAVA	c-src/etags.c	2197
@@ -508,10 +459,10 @@ Create_LL_Task/p	ada-src/2ataspri.ads	/^   procedure Create_LL_Task$/
 Cstar_entries	c-src/etags.c	/^Cstar_entries (FILE *inf)$/
 Cstar_suffixes	c-src/etags.c	562
 D	cp-src/fail.C	41
-D::D	cp-src/fail.C	/^		D() : ::A::T2::T(97), x(1066) {}$/
-D::x	cp-src/fail.C	44
+D	cp-src/fail.C	/^		D() : ::A::T2::T(97), x(1066) {}$/
 DAEMON_RUNNING	c-src/emacs/src/lisp.h	4258
 DAEMON_RUNNING	c-src/emacs/src/lisp.h	4262
+DARKGRAY	cp-src/screen.hpp	20
 DEAFUN	c.c	/^DEAFUN ("expand-file-name", Fexpand_file_name, Sex/
 DEBUG	c-src/etags.c	84
 DEBUG	c-src/etags.c	85
@@ -555,19 +506,6 @@ DEVICE_SWP	c-src/h.h	23
 DOS_NT	c-src/etags.c	117
 DOS_NT	c-src/etags.c	118
 DUMPED	c-src/emacs/src/gmalloc.c	80
-Date::minus	cp-src/functions.cpp	/^void Date::minus ( int days , int month , int year/
-Date::operator ++	cp-src/functions.cpp	/^Date & Date::operator ++ ( void ){$/
-Date::operator +=	cp-src/functions.cpp	/^Date & Date::operator += ( int days ){$/
-Date::operator -	cp-src/functions.cpp	/^int Date::operator - ( Date d ){$/
-Date::operator --	cp-src/functions.cpp	/^Date & Date::operator -- ( void ){$/
-Date::operator -=	cp-src/functions.cpp	/^Date & Date::operator -= ( int days ){$/
-Date::operator <	cp-src/functions.cpp	/^int Date::operator < ( Date d ) {$/
-Date::operator =	cp-src/functions.cpp	/^Date & Date::operator = ( Date d ){$/
-Date::operator ==	cp-src/functions.cpp	/^int Date::operator == ( Date d ) {$/
-Date::operator >	cp-src/functions.cpp	/^int Date::operator > ( Date d ) {$/
-Date::plus	cp-src/functions.cpp	/^void Date::plus ( int days , int month , int year /
-Date::setDate	cp-src/functions.cpp	/^void Date::setDate ( int d , int m , int y ){$/
-Date::shift	cp-src/functions.cpp	/^void Date::shift ( void ){\/\/Shift this date to pre/
 Debug	cp-src/functions.cpp	/^void Debug ( int lineno, int level, char* func , c/
 DisposeANameList	pas-src/common.pas	/^procedure DisposeANameList( $/
 DisposeNameList	pas-src/common.pas	/^procedure DisposeNameList;$/
@@ -700,6 +638,7 @@ GENERIC_PTR	cccp.y	58
 GENERIC_PTR	y-src/cccp.y	56
 GENERIC_PTR	y-src/cccp.y	58
 GEQ	y-src/cccp.c	15
+GREEN	cp-src/screen.hpp	14
 GROW_RAW_KEYBUF	c-src/emacs/src/keyboard.c	119
 GatherControls	pyt-src/server.py	/^    def GatherControls(self):$/
 GetLayerByName	lua-src/allegro.lua	/^function GetLayerByName (name)$/
@@ -791,6 +730,12 @@ LCE_WS	php-src/lce_functions.php	11
 LDFLAGS	make-src/Makefile	50
 LE	y-src/parse.c	7
 LEQ	y-src/cccp.c	14
+LIGHTBLUE	cp-src/screen.hpp	21
+LIGHTCYAN	cp-src/screen.hpp	23
+LIGHTGRAY	cp-src/screen.hpp	19
+LIGHTGREEN	cp-src/screen.hpp	22
+LIGHTMAGENTA	cp-src/screen.hpp	25
+LIGHTRED	cp-src/screen.hpp	24
 LISP_INITIALLY	c-src/emacs/src/lisp.h	/^#define LISP_INITIALLY(i) {i}$/
 LISP_INITIALLY	c-src/emacs/src/lisp.h	/^#define LISP_INITIALLY(i) (i)$/
 LISP_INITIALLY_ZERO	c-src/emacs/src/lisp.h	582
@@ -918,6 +863,7 @@ LowerCaseNmStr	pas-src/common.pas	/^function LowerCaseNmStr; (*($/
 Lua_functions	c-src/etags.c	/^Lua_functions (FILE *inf)$/
 Lua_help	c-src/etags.c	600
 Lua_suffixes	c-src/etags.c	598
+MAGENTA	cp-src/screen.hpp	17
 MAGICBYTE	c-src/emacs/src/gmalloc.c	1856
 MAGICFREE	c-src/emacs/src/gmalloc.c	1855
 MAGICWORD	c-src/emacs/src/gmalloc.c	1854
@@ -939,16 +885,13 @@ MCHECK_HEAD	c-src/emacs/src/gmalloc.c	288
 MCHECK_OK	c-src/emacs/src/gmalloc.c	286
 MCHECK_TAIL	c-src/emacs/src/gmalloc.c	289
 MDiagArray2	cp-src/MDiagArray2.h	78
-MDiagArray2::MDiagArray2	cp-src/MDiagArray2.h	/^  MDiagArray2 (T *d, int r, int c) : DiagArray2<T>/
-MDiagArray2::MDiagArray2	cp-src/MDiagArray2.h	/^  MDiagArray2 (void) : DiagArray2<T> () { }$/
-MDiagArray2::MDiagArray2	cp-src/MDiagArray2.h	/^  MDiagArray2 (int r, int c) : DiagArray2<T> (r, c/
-MDiagArray2::MDiagArray2	cp-src/MDiagArray2.h	/^  MDiagArray2 (int r, int c, const T& val) : DiagA/
-MDiagArray2::MDiagArray2	cp-src/MDiagArray2.h	/^  MDiagArray2 (const Array<T>& a) : DiagArray2<T> /
-MDiagArray2::MDiagArray2	cp-src/MDiagArray2.h	/^  MDiagArray2 (const DiagArray2<T>& a) : DiagArray/
-MDiagArray2::MDiagArray2	cp-src/MDiagArray2.h	/^  MDiagArray2 (const MDiagArray2<T>& a) : DiagArra/
-MDiagArray2::operator =	cp-src/MDiagArray2.h	/^  MDiagArray2<T>& operator = (const MDiagArray2<T>/
-MDiagArray2::operator MArray2<T>	cp-src/MDiagArray2.h	/^  operator MArray2<T> () const$/
-MDiagArray2::~MDiagArray2	cp-src/MDiagArray2.h	/^  ~MDiagArray2 (void) { }$/
+MDiagArray2	cp-src/MDiagArray2.h	/^  MDiagArray2 (T *d, int r, int c) : DiagArray2<T>/
+MDiagArray2	cp-src/MDiagArray2.h	/^  MDiagArray2 (void) : DiagArray2<T> () { }$/
+MDiagArray2	cp-src/MDiagArray2.h	/^  MDiagArray2 (int r, int c) : DiagArray2<T> (r, c/
+MDiagArray2	cp-src/MDiagArray2.h	/^  MDiagArray2 (int r, int c, const T& val) : DiagA/
+MDiagArray2	cp-src/MDiagArray2.h	/^  MDiagArray2 (const Array<T>& a) : DiagArray2<T> /
+MDiagArray2	cp-src/MDiagArray2.h	/^  MDiagArray2 (const DiagArray2<T>& a) : DiagArray/
+MDiagArray2	cp-src/MDiagArray2.h	/^  MDiagArray2 (const MDiagArray2<T>& a) : DiagArra/
 MIN_HASH_VALUE	c-src/etags.c	2328
 MIN_WORD_LENGTH	c-src/etags.c	2326
 MISCP	c-src/emacs/src/lisp.h	/^# define MISCP(x) lisp_h_MISCP (x)$/
@@ -1117,6 +1060,7 @@ Pkg1_Proc2/p	ada-src/waroquiers.ada	/^  procedure Pkg1_Proc2 (I : Integer);$/
 Pkg1_Proc2/p	ada-src/waroquiers.ada	/^  procedure Pkg1_Proc2 (I : Integer) is$/
 PostControls	pyt-src/server.py	/^    def PostControls(self):$/
 Pre_Call_State/t	ada-src/2ataspri.ads	/^   type Pre_Call_State is new System.Address;$/
+Private	objc-src/Subprocess.m	/^@interface Subprocess(Private)$/
 Private_T/b	ada-src/etags-test-for.ada	/^    task body Private_T is$/
 Private_T/b	ada-src/waroquiers.ada	/^    task body Private_T is$/
 Private_T/k	ada-src/etags-test-for.ada	/^    task Private_T;$/
@@ -1165,6 +1109,7 @@ RECC_UNIBYTE	c-src/emacs/src/regex.h	617
 RECC_UPPER	c-src/emacs/src/regex.h	612
 RECC_WORD	c-src/emacs/src/regex.h	610
 RECC_XDIGIT	c-src/emacs/src/regex.h	614
+RED	cp-src/screen.hpp	16
 REGS_FIXED	c-src/emacs/src/regex.h	378
 REGS_REALLOCATE	c-src/emacs/src/regex.h	377
 REGS_UNALLOCATED	c-src/emacs/src/regex.h	376
@@ -1240,21 +1185,10 @@ RE_UNMATCHED_RIGHT_PAREN_ORD	c-src/emacs/src/regex.h	136
 RSH	y-src/cccp.c	17
 RTE/s	ada-src/2ataspri.adb	/^   package RTE renames Interfaces.C.POSIX_RTE;$/
 Range	cp-src/Range.h	35
-Range::Range	cp-src/Range.h	/^  Range (void)$/
-Range::Range	cp-src/Range.h	/^  Range (const Range& r)$/
-Range::Range	cp-src/Range.h	/^  Range (double b, double l)$/
-Range::Range	cp-src/Range.h	/^  Range (double b, double l, double i)$/
-Range::base	cp-src/Range.h	/^  double base (void) const { return rng_base;  }$/
-Range::inc	cp-src/Range.h	/^  double inc (void) const { return rng_inc;   }$/
-Range::limit	cp-src/Range.h	/^  double limit (void) const { return rng_limit; }$/
-Range::nelem	cp-src/Range.h	/^  int nelem (void) const { return rng_nelem; }$/
-Range::rng_base	cp-src/Range.h	79
-Range::rng_inc	cp-src/Range.h	81
-Range::rng_limit	cp-src/Range.h	80
-Range::rng_nelem	cp-src/Range.h	83
-Range::set_base	cp-src/Range.h	/^  void set_base (double b) { rng_base = b;  }$/
-Range::set_inc	cp-src/Range.h	/^  void set_inc (double i) { rng_inc = i;   }$/
-Range::set_limit	cp-src/Range.h	/^  void set_limit (double l) { rng_limit = l; }$/
+Range	cp-src/Range.h	/^  Range (void)$/
+Range	cp-src/Range.h	/^  Range (const Range& r)$/
+Range	cp-src/Range.h	/^  Range (double b, double l)$/
+Range	cp-src/Range.h	/^  Range (double b, double l, double i)$/
 ReadVacation	cp-src/functions.cpp	/^void ReadVacation ( char *filename ) {$/
 Read_Lock/p	ada-src/2ataspri.adb	/^   procedure Read_Lock (L : in out Lock; Ceiling_V/
 Read_Lock/p	ada-src/2ataspri.ads	/^   procedure Read_Lock (L : in out Lock; Ceiling_V/
@@ -1379,9 +1313,10 @@ StripPath	pas-src/common.pas	/^function StripPath; (*($/
 SubString	pas-src/common.pas	/^function SubString; (*($/
 Subprocess	objc-src/Subprocess.h	41
 Subprocess	objc-src/Subprocess.h	/^@interface Subprocess:Object$/
-Subprocess(Private)	objc-src/Subprocess.m	/^@interface Subprocess(Private)$/
 System.Task_Primitives/b	ada-src/2ataspri.adb	/^package body System.Task_Primitives is$/
 System.Task_Primitives/s	ada-src/2ataspri.ads	/^package System.Task_Primitives is$/
+T	cp-src/fail.C	14
+T2	cp-src/fail.C	16
 T3	c.c	163
 TAG_PTR	c-src/emacs/src/lisp.h	/^#define TAG_PTR(tag, ptr) \\$/
 TAG_SYMOFFSET	c-src/emacs/src/lisp.h	/^#define TAG_SYMOFFSET(offset)				    \\$/
@@ -1487,6 +1422,7 @@ WAIT_READING_MAX	c-src/emacs/src/lisp.h	4281
 WAIT_READING_MAX	c-src/emacs/src/lisp.h	4283
 WCHAR_TYPE_SIZE	cccp.y	99
 WCHAR_TYPE_SIZE	y-src/cccp.y	99
+WHITE	cp-src/screen.hpp	27
 WINDOWP	c-src/emacs/src/lisp.h	/^WINDOWP (Lisp_Object a)$/
 WINDOWSNT	c-src/etags.c	101
 WINDOWSNT	c-src/etags.c	102
@@ -1574,6 +1510,7 @@ XUNTAG	c-src/emacs/src/lisp.h	/^XUNTAG (Lisp_Object a, int type)$/
 XWINDOW	c-src/emacs/src/lisp.h	/^XWINDOW (Lisp_Object a)$/
 Y	c-src/h.h	100
 YACC	c-src/etags.c	2199
+YELLOW	cp-src/screen.hpp	26
 YYABORT	/usr/share/bison/bison.simple	153
 YYABORT	/usr/share/bison/bison.simple	153
 YYACCEPT	/usr/share/bison/bison.simple	152
@@ -2420,6 +2357,7 @@ a	c.c	/^a()$/
 a	c.c	/^a ()$/
 a	c-src/h.h	40
 a	c-src/h.h	103
+a	cp-src/c.C	132
 a-forth-constant!	forth-src/test-forth.fth	/^99 constant a-forth-constant!$/
 a-forth-value?	forth-src/test-forth.fth	/^55 value a-forth-value?$/
 a-forth-word	forth-src/test-forth.fth	/^: a-forth-word ( a b c -- a*b+c )  + * ;$/
@@ -2457,7 +2395,7 @@ act	prol-src/natded.prolog	/^act(OutForm,OutSyn,Ws):-$/
 action	prol-src/natded.prolog	/^action(KeyVals):-$/
 active_maps	c-src/emacs/src/keyboard.c	/^active_maps (Lisp_Object first_event)$/
 actout	prol-src/natded.prolog	/^actout('Text',Trees):-$/
-addArchs:	objc-src/PackInsp.m	/^-(void)addArchs:(const char *)string$/
+addArchs	objc-src/PackInsp.m	/^-(void)addArchs:(const char *)string$/
 addPOReader	php-src/lce_functions.php	/^      function addPOReader($d_name, &$por)$/
 add_active	prol-src/natded.prolog	/^add_active([],Cat,Goal):-$/
 add_command_key	c-src/emacs/src/keyboard.c	/^add_command_key (Lisp_Object key)$/
@@ -2470,8 +2408,6 @@ address	cccp.y	114
 address	y-src/cccp.y	113
 adjust_point_for_property	c-src/emacs/src/keyboard.c	/^adjust_point_for_property (ptrdiff_t last_pt, bool/
 agent	cp-src/clheir.hpp	75
-agent::move	cp-src/clheir.cpp	/^void agent::move(int direction)$/
-agent::where	cp-src/clheir.hpp	77
 algorithms	html-src/algrthms.html	/^Description$/
 alias	c-src/emacs/src/lisp.h	688
 align	c-src/emacs/src/gmalloc.c	/^align (size_t size)$/
@@ -2481,6 +2417,7 @@ aligned_alloc	c-src/emacs/src/gmalloc.c	71
 aligned_alloc	c-src/emacs/src/gmalloc.c	/^aligned_alloc (size_t alignment, size_t size)$/
 aligned_alloc	c-src/emacs/src/gmalloc.c	1718
 alignlist	c-src/emacs/src/gmalloc.c	196
+alive	cp-src/conway.hpp	7
 all_kboards	c-src/emacs/src/keyboard.c	86
 allocate_kboard	c-src/emacs/src/keyboard.c	/^allocate_kboard (Lisp_Object type)$/
 allocated	c-src/emacs/src/regex.h	344
@@ -2491,10 +2428,11 @@ analyze_regex	c-src/etags.c	/^analyze_regex (char *regex_arg)$/
 andkeyvalseq	prol-src/natded.prolog	/^andkeyvalseq(KeyVals) --> ['&'], keyvalseq(KeyVals/
 animals	c-src/h.h	81
 animals	cp-src/c.C	126
+animals	cp-src/c.C	130
 any_kboard_state	c-src/emacs/src/keyboard.c	/^any_kboard_state ()$/
-appDidInit:	objcpp-src/SimpleCalc.M	/^- appDidInit:sender$/
+appDidInit	objcpp-src/SimpleCalc.M	/^- appDidInit:sender$/
 append	prol-src/natded.prolog	/^append([],Xs,Xs).$/
-appendToDisplay:	objcpp-src/SimpleCalc.M	/^- appendToDisplay:(const char *)theDigit$/
+appendToDisplay	objcpp-src/SimpleCalc.M	/^- appendToDisplay:(const char *)theDigit$/
 append_list	prol-src/natded.prolog	/^append_list([],[]).$/
 append_string	pas-src/common.pas	/^procedure append_string;(*($/
 append_tool_bar_item	c-src/emacs/src/keyboard.c	/^append_tool_bar_item (void)$/
@@ -2522,6 +2460,7 @@ asort	cp-src/functions.cpp	/^void asort(int *a, int num){$/
 assemby-code-word	forth-src/test-forth.fth	/^code assemby-code-word ( dunno what it does )$/
 assert	c-src/etags.c	135
 assert	c-src/etags.c	/^# define assert(x) ((void) 0)$/
+assign_neighbor	cp-src/clheir.hpp	/^    void assign_neighbor(int direction, location */
 at_end	c-src/etags.c	249
 at_filename	c-src/etags.c	247
 at_language	c-src/etags.c	245
@@ -2542,6 +2481,7 @@ b	c.c	/^b ()$/
 b	c-src/h.h	41
 b	c-src/h.h	103
 b	c-src/h.h	104
+b	cp-src/c.C	132
 backslash=0	tex-src/texinfo.tex	/^\\let\\indexbackslash=0  %overridden during \\printin/
 bar	c-src/c.c	/^void bar() {while(0) {}}$/
 bar	c.c	143
@@ -2549,6 +2489,7 @@ bar	c-src/h.h	19
 bas_syn	prol-src/natded.prolog	/^bas_syn(n(_)).$/
 base	c-src/emacs/src/lisp.h	2188
 base	cp-src/c.C	/^double base (void) const { return rng_base;  }$/
+base	cp-src/Range.h	/^  double base (void) const { return rng_base;  }$/
 bb	c.c	275
 bbb	c.c	251
 bbbbbb	c-src/h.h	113
@@ -2633,6 +2574,8 @@ cancel_echoing	c-src/emacs/src/keyboard.c	/^cancel_echoing (void)$/
 canonicalize_filename	c-src/etags.c	/^canonicalize_filename (register char *fn)$/
 case_Lisp_Int	c-src/emacs/src/lisp.h	438
 cat	c-src/h.h	81
+cat	cp-src/c.C	126
+cat	cp-src/c.C	130
 cat	prol-src/natded.prolog	/^cat(A, Alpha@Beta, Ass3, Qs3, tree(fe,A:Alpha@Beta/
 cat_atoms	prol-src/natded.prolog	/^cat_atoms(A1,A2,A3):-$/
 cccccccccc	c-src/h.h	115
@@ -2654,12 +2597,14 @@ chunks_free	c-src/emacs/src/gmalloc.c	313
 chunks_used	c-src/emacs/src/gmalloc.c	311
 cjava	c-src/etags.c	2936
 classifyLine	php-src/lce_functions.php	/^      function classifyLine($line)$/
+clear	cp-src/conway.hpp	/^    void clear(void) { alive = 0; }$/
 clear-abbrev-table	c-src/abbrev.c	/^DEFUN ("clear-abbrev-table", Fclear_abbrev_table, /
 clear-this-command-keys	c-src/emacs/src/keyboard.c	/^DEFUN ("clear-this-command-keys", Fclear_this_comm/
-clearAllKey:	objcpp-src/SimpleCalc.M	/^- clearAllKey:sender$/
-clearKey:	objcpp-src/SimpleCalc.M	/^- clearKey:sender$/
+clearAllKey	objcpp-src/SimpleCalc.M	/^- clearAllKey:sender$/
+clearKey	objcpp-src/SimpleCalc.M	/^- clearKey:sender$/
 clear_event	c-src/emacs/src/keyboard.c	/^clear_event (struct input_event *event)$/
 clear_input_pending	c-src/emacs/src/keyboard.c	/^clear_input_pending (void)$/
+clear_neighbors	cp-src/clheir.cpp	/^void discrete_location::clear_neighbors(void)$/
 clear_screen	cp-src/screen.cpp	/^void clear_screen(void)$/
 clear_waiting_for_input	c-src/emacs/src/keyboard.c	/^clear_waiting_for_input (void)$/
 cmd_error	c-src/emacs/src/keyboard.c	/^cmd_error (Lisp_Object data)$/
@@ -2668,6 +2613,7 @@ cmpfn	c-src/emacs/src/lisp.h	/^  bool (*cmpfn) (struct hash_table_test *t, Lisp_
 cmt	prol-src/natded.prolog	/^cmt:-$/
 cname	c-src/etags.c	2519
 cno	c-src/etags.c	224
+colori	cp-src/c.C	40
 commaargvals	prol-src/natded.prolog	/^commaargvals(Args) -->$/
 command	c-src/etags.c	187
 command-error-default-function	c-src/emacs/src/keyboard.c	/^DEFUN ("command-error-default-function", Fcommand_/
@@ -2682,6 +2628,8 @@ complete	prol-src/natded.prolog	/^complete(Cat):-$/
 complete-tag	el-src/emacs/lisp/progmodes/etags.el	/^(defun complete-tag ()$/
 compressor	c-src/etags.c	188
 compressors	c-src/etags.c	457
+compute_next_state	cp-src/conway.hpp	/^    void compute_next_state(void)$/
+compute_next_state	cp-src/clheir.hpp	/^    virtual void compute_next_state(void) { }$/
 conalgorithm	html-src/algrthms.html	/^Convolutionally$/
 concat	c-src/etags.c	/^concat (const char *s1, const char *s2, const char/
 concatenatenamestrings	pas-src/common.pas	/^function concatenatenamestrings; (*($/
@@ -2698,11 +2646,16 @@ contents	c-src/emacs/src/lisp.h	1624
 count	c-src/emacs/src/lisp.h	1863
 count_layers	lua-src/allegro.lua	/^local function count_layers (layer)$/
 count_words	c-src/tab.c	/^static int		count_words(char *str, char delim)$/
+counter	cp-src/c.C	33
+counter	cp-src/c.C	36
 cow	cp-src/c.C	127
+cow	cp-src/c.C	131
 cplpl	c-src/etags.c	2935
 createPOEntries	php-src/lce_functions.php	/^      function createPOEntries()$/
 createWidgets	pyt-src/server.py	/^    def createWidgets(self, host):$/
 createWidgets	pyt-src/server.py	/^    def createWidgets(self):$/
+cscInitTime	cp-src/c.C	7
+cscSegmentationTime	cp-src/c.C	8
 cstack	c-src/etags.c	2523
 curlb	c-src/etags.c	2929
 curlinepos	c-src/etags.c	2931
@@ -2721,7 +2674,7 @@ data	c-src/emacs/src/lisp.h	2129
 data	c-src/emacs/src/lisp.h	2395
 ddefineseen	c-src/etags.c	2462
 debian-bug	html-src/software.html	/^debian-bug.el$/
-decimalKey:	objcpp-src/SimpleCalc.M	/^- decimalKey:sender$/
+decimalKey	objcpp-src/SimpleCalc.M	/^- decimalKey:sender$/
 decode_timer	c-src/emacs/src/keyboard.c	/^decode_timer (Lisp_Object timer, struct timespec */
 def	c-src/h.h	35
 def	c-src/h.h	38
@@ -2757,18 +2710,14 @@ dignorerest	c-src/etags.c	2463
 discard-input	c-src/emacs/src/keyboard.c	/^DEFUN ("discard-input", Fdiscard_input, Sdiscard_i/
 discard_mouse_events	c-src/emacs/src/keyboard.c	/^discard_mouse_events (void)$/
 discrete_location	cp-src/clheir.hpp	56
-discrete_location::assign_neighbor	cp-src/clheir.hpp	/^    void assign_neighbor(int direction, location */
-discrete_location::clear_neighbors	cp-src/clheir.cpp	/^void discrete_location::clear_neighbors(void)$/
-discrete_location::discrete_location	cp-src/clheir.hpp	/^    discrete_location(int xi, int yi, int zi):$/
-discrete_location::neighbors	cp-src/clheir.hpp	59
-discrete_location::x	cp-src/clheir.hpp	58
-discrete_location::y	cp-src/clheir.hpp	58
-discrete_location::z	cp-src/clheir.hpp	58
+discrete_location	cp-src/clheir.hpp	/^    discrete_location(int xi, int yi, int zi):$/
 display	cp-src/conway.cpp	/^void display(void)$/
 disposetextstring	pas-src/common.pas	/^procedure disposetextstring;(*($/
 dnone	c-src/etags.c	2460
 doc	c-src/emacs/src/lisp.h	1689
 dog	c-src/h.h	81
+dog	cp-src/c.C	126
+dog	cp-src/c.C	130
 dotfill	tex-src/texinfo.tex	/^  \\null\\nobreak\\indexdotfill % Have leaders before/
 dotfill	tex-src/texinfo.tex	/^\\noindent\\hskip\\secondaryindent\\hbox{#1}\\indexdotf/
 double_click_count	c-src/emacs/src/keyboard.c	5222
@@ -2777,6 +2726,9 @@ dribble	c-src/emacs/src/keyboard.c	236
 dsharpseen	c-src/etags.c	2461
 dummies	tex-src/texinfo.tex	/^{\\indexdummies % Must do this here, since \\bf, etc/
 dummies	tex-src/texinfo.tex	/^{\\indexdummies % Must do this here, since \\bf, etc/
+dummy1	cp-src/burton.cpp	/^::dummy::dummy test::dummy1(void)$/
+dummy2	cp-src/burton.cpp	/^::dummy::dummy test::dummy2(::CORBA::Long dummy)$/
+dummy3	cp-src/burton.cpp	/^::dummy::dummy test::dummy3(char* name, ::CORBA::L/
 dummydots	tex-src/texinfo.tex	/^\\let\\dots=\\indexdummydots$/
 dummyfont	tex-src/texinfo.tex	/^\\let\\w=\\indexdummyfont$/
 dummyfont	tex-src/texinfo.tex	/^\\let\\t=\\indexdummyfont$/
@@ -2830,7 +2782,7 @@ entry	perl-src/htlmify-cystic	268
 entry	perl-src/htlmify-cystic	276
 entry	perl-src/htlmify-cystic	281
 entry	perl-src/htlmify-cystic	296
-equalsKey:	objcpp-src/SimpleCalc.M	/^- equalsKey:sender$/
+equalsKey	objcpp-src/SimpleCalc.M	/^- equalsKey:sender$/
 erlang_atom	c-src/etags.c	/^erlang_atom (char *s)$/
 erlang_attribute	c-src/etags.c	/^erlang_attribute (char *s)$/
 erlang_func	c-src/etags.c	/^erlang_func (char *s, char *last)$/
@@ -2864,6 +2816,7 @@ event-symbol-parse-modifiers	c-src/emacs/src/keyboard.c	/^DEFUN ("internal-event
 event_head	c-src/emacs/src/keyboard.c	11021
 event_to_kboard	c-src/emacs/src/keyboard.c	/^event_to_kboard (struct input_event *event)$/
 exact	c-src/emacs/src/gmalloc.c	200
+execute	cp-src/c.C	/^        void execute(CPluginCSCState& p, int w, in/
 exit	c-src/exit.c	/^DEFUN(exit, (status), int status)$/
 exit	c-src/exit.strange_suffix	/^DEFUN(exit, (status), int status)$/
 exit-recursive-edit	c-src/emacs/src/keyboard.c	/^DEFUN ("exit-recursive-edit", Fexit_recursive_edit/
@@ -2894,6 +2847,12 @@ f	cp-src/c.C	/^A<int>* f() {}$/
 f	cp-src/c.C	/^int f(A<int> x) {}$/
 f	cp-src/c.C	/^int A<int>::f(A<int>* x) {}$/
 f	cp-src/c.C	/^A<float,B<int> > A<B<float>,int>::f(A<int>* x) {}$/
+f	cp-src/c.C	/^class B<int> { void f() {} };$/
+f	cp-src/c.C	/^     void f() {}$/
+f	cp-src/c.C	/^  int f(){return 0;};		\/\/ first comment$/
+f	cp-src/c.C	/^     void f() {}$/
+f	cp-src/fail.C	/^		int f() { return 5; }$/
+f	cp-src/fail.C	/^int A::B::f() { return 2; }$/
 f1	c.c	/^     f1 () { \/* Do something. *\/; }$/
 f2	c.c	/^void f2 () { \/* Do something. *\/; }$/
 fast_string_match_ignore_case	c-src/emacs/src/lisp.h	/^fast_string_match_ignore_case (Lisp_Object regexp,/
@@ -2901,13 +2860,14 @@ fastmap	c-src/emacs/src/regex.h	355
 fastmap_accurate	c-src/emacs/src/regex.h	383
 fatal	c-src/etags.c	/^fatal (const char *s1, const char *s2)$/
 fatala	c.c	/^void fatala () __attribute__ ((noreturn));$/
+fdHandler	objc-src/Subprocess.m	/^- fdHandler:(int)theFd$/
 fdHandler	objc-src/Subprocess.m	/^fdHandler (int theFd, id self)$/
-fdHandler:	objc-src/Subprocess.m	/^- fdHandler:(int)theFd$/
 fdefunkey	c-src/etags.c	2409
 fdefunname	c-src/etags.c	2410
 fdesc	c-src/etags.c	201
 fdesc	c-src/etags.c	212
 fdp	c-src/etags.c	217
+ff	cp-src/c.C	/^  int ff(){return 1;};$/
 field_of_play	cp-src/conway.cpp	18
 fignore	c-src/etags.c	2416
 file-of-tag	el-src/emacs/lisp/progmodes/etags.el	/^(defun file-of-tag (&optional relative)$/
@@ -2962,12 +2922,11 @@ foo	c.c	189
 foo	c-src/h.h	18
 foo	cp-src/c.C	68
 foo	cp-src/c.C	79
+foo	cp-src/c.C	/^    foo() {$/
 foo	f-src/entry.for	/^       character*(*) function foo()$/
 foo	f-src/entry.strange_suffix	/^       character*(*) function foo()$/
 foo	f-src/entry.strange	/^       character*(*) function foo()$/
 foo	php-src/ptest.php	/^foo()$/
-foo::f	cp-src/c.C	/^     void f() {}$/
-foo::x	cp-src/c.C	80
 foobar	c-src/c.c	/^int foobar() {;}$/
 foobar	c.c	/^extern void foobar (void) __attribute__ ((section /
 foobar2	c-src/h.h	20
@@ -2976,7 +2935,7 @@ foperator	c-src/etags.c	2411
 force_auto_save_soon	c-src/emacs/src/keyboard.c	/^force_auto_save_soon (void)$/
 force_explicit_name	c-src/etags.c	265
 force_quit_count	c-src/emacs/src/keyboard.c	10387
-formatSize:inBuf:	objc-src/PackInsp.m	/^-(const char *)formatSize:(const char *)size inBuf/
+formatSize	objc-src/PackInsp.m	/^-(const char *)formatSize:(const char *)size inBuf/
 found	c-src/emacs/src/lisp.h	2344
 fracas	html-src/software.html	/^Fracas$/
 frag	c-src/emacs/src/gmalloc.c	152
@@ -3011,6 +2970,7 @@ fvnameseen	c-src/etags.c	2412
 fvnone	c-src/etags.c	2408
 fwd	c-src/emacs/src/lisp.h	690
 fwd	c-src/emacs/src/lisp.h	2346
+g	cp-src/c.C	/^  int g(){return 2;};$/
 galileo	html-src/software.html	/^GaliLEO$/
 gather	pyt-src/server.py	/^    def gather(self):$/
 gather	pyt-src/server.py	/^    def gather(self):$/
@@ -3020,16 +2980,12 @@ gcpro	c-src/emacs/src/lisp.h	3042
 gcpro	c-src/emacs/src/lisp.h	3132
 gen_help_event	c-src/emacs/src/keyboard.c	/^gen_help_event (Lisp_Object help, Lisp_Object fram/
 genalgorithm	html-src/algrthms.html	/^Generating the Data<\/font><\/i><\/b>$/
+generic_object	cp-src/clheir.cpp	/^generic_object::generic_object(void)$/
 generic_object	cp-src/clheir.hpp	13
-generic_object::compute_next_state	cp-src/clheir.hpp	/^    virtual void compute_next_state(void) { }$/
-generic_object::generic_object	cp-src/clheir.cpp	/^generic_object::generic_object(void)$/
-generic_object::step	cp-src/clheir.hpp	/^    virtual void step(void) { }$/
-generic_object::where_in_registry	cp-src/clheir.hpp	15
-generic_object::~generic_object	cp-src/clheir.cpp	/^generic_object::~generic_object(void)$/
 getArchs	objc-src/PackInsp.m	/^-(void)getArchs$/
 getDomainNames	php-src/lce_functions.php	/^      function getDomainNames()$/
 getPOReader	php-src/lce_functions.php	/^      function &getPOReader($domain)$/
-getPath:forType:	objc-src/PackInsp.m	/^-(const char *)getPath:(char *)buf forType:(const /
+getPath	objc-src/PackInsp.m	/^-(const char *)getPath:(char *)buf forType:(const /
 getTextDomains	php-src/lce_functions.php	/^  function getTextDomains($lines)$/
 get_compressor_from_suffix	c-src/etags.c	/^get_compressor_from_suffix (char *file, char **ext/
 get_contiguous_space	c-src/emacs/src/gmalloc.c	/^get_contiguous_space (ptrdiff_t size, void *positi/
@@ -3047,6 +3003,7 @@ gettext	php-src/lce_functions.php	/^      function gettext($msgid)$/
 ggg	c-src/h.h	10
 ghi1	c-src/h.h	36
 ghi2	c-src/h.h	39
+giallo	cp-src/c.C	40
 glider	cp-src/conway.cpp	/^void glider(int x, int y)$/
 gnu	html-src/software.html	/^Free software that I wrote for the GNU project or /
 gobble_input	c-src/emacs/src/keyboard.c	/^gobble_input (void)$/
@@ -3077,7 +3034,7 @@ header	c-src/emacs/src/lisp.h	1826
 header_size	c-src/emacs/src/lisp.h	1471
 heapsize	c-src/emacs/src/gmalloc.c	361
 help	c-src/etags.c	193
-helpPanel:	objcpp-src/SimpleCalc.M	/^- helpPanel:sender$/
+helpPanel	objcpp-src/SimpleCalc.M	/^- helpPanel:sender$/
 help_char_p	c-src/emacs/src/keyboard.c	/^help_char_p (Lisp_Object c)$/
 help_form_saved_window_configs	c-src/emacs/src/keyboard.c	2156
 helpwin	pyt-src/server.py	/^def helpwin(helpdict):$/
@@ -3095,6 +3052,7 @@ i	c.c	169
 i	c-src/emacs/src/lisp.h	567
 i	c-src/emacs/src/lisp.h	4673
 i	c-src/emacs/src/lisp.h	4679
+i	cp-src/c.C	132
 ialpage	tex-src/texinfo.tex	/^\\newbox\\partialpage$/
 ialpage	tex-src/texinfo.tex	/^  \\dimen@=\\pageheight \\advance\\dimen@ by-\\ht\\parti/
 ialpage	tex-src/texinfo.tex	/^  \\availdimen@=\\pageheight \\advance\\availdimen@ by/
@@ -3108,16 +3066,17 @@ immediate_quit	c-src/emacs/src/keyboard.c	174
 impatto	html-src/softwarelibero.html	/^Impatto pratico del software libero$/
 in_word_set	c-src/etags.c	/^in_word_set (register const char *str, register un/
 inattribute	c-src/etags.c	2400
+inc	cp-src/Range.h	/^  double inc (void) const { return rng_inc;   }$/
 index	c-src/emacs/src/lisp.h	1856
 infabsdir	c-src/etags.c	206
 infabsname	c-src/etags.c	205
 infname	c-src/etags.c	204
 info	c-src/emacs/src/gmalloc.c	157
-infoPanel:	objcpp-src/SimpleCalc.M	/^- infoPanel:sender$/
+infoPanel	objcpp-src/SimpleCalc.M	/^- infoPanel:sender$/
 init	c-src/etags.c	/^init (void)$/
+init	objc-src/Subprocess.m	/^- init:(const char *)subprocessString$/
+init	objc-src/Subprocess.m	/^    andStdErr:(BOOL)wantsStdErr$/
 init	objcpp-src/SimpleCalc.M	/^- init$/
-init:	objc-src/Subprocess.m	/^- init:(const char *)subprocessString$/
-init:withDelegate:andPtySupport:andStdErr:	objc-src/Subprocess.m	/^    andStdErr:(BOOL)wantsStdErr$/
 init_control	c.c	239
 init_kboard	c-src/emacs/src/keyboard.c	/^init_kboard (KBOARD *kb, Lisp_Object type)$/
 init_keyboard	c-src/emacs/src/keyboard.c	/^init_keyboard (void)$/
@@ -3161,14 +3120,12 @@ intoken	c-src/etags.c	/^#define	intoken(c)	(_itk[CHAR (c)]) \/* c can be in/
 intspec	c-src/emacs/src/lisp.h	1688
 intvar	c-src/emacs/src/lisp.h	2277
 invalidate_nodes	c-src/etags.c	/^invalidate_nodes (fdesc *badfdp, node **npp)$/
+ipc3dCSC19	cp-src/c.C	6
 ipc3dChannelType	cp-src/c.C	1
 ipc3dIslandHierarchy	cp-src/c.C	1
 ipc3dLinkControl	cp-src/c.C	1
 irregular_location	cp-src/clheir.hpp	47
-irregular_location::irregular_location	cp-src/clheir.hpp	/^    irregular_location(double xi, double yi, doubl/
-irregular_location::x	cp-src/clheir.hpp	49
-irregular_location::y	cp-src/clheir.hpp	49
-irregular_location::z	cp-src/clheir.hpp	49
+irregular_location	cp-src/clheir.hpp	/^    irregular_location(double xi, double yi, doubl/
 isComment	php-src/lce_functions.php	/^      function isComment($class)$/
 isHoliday	cp-src/functions.cpp	/^bool isHoliday ( Date d ){$/
 isLeap	cp-src/functions.cpp	/^bool isLeap ( int year ){$/
@@ -3285,6 +3242,7 @@ lex	prol-src/natded.prolog	/^lex(W,SynOut,Sem):-$/
 lexptr	cccp.y	332
 lexptr	y-src/cccp.y	332
 licenze	html-src/softwarelibero.html	/^Licenze d'uso di un programma$/
+limit	cp-src/Range.h	/^  double limit (void) const { return rng_limit; }$/
 line	c-src/etags.c	2493
 line	perl-src/htlmify-cystic	37
 line	y-src/parse.y	86
@@ -3348,13 +3306,13 @@ list4i	c-src/emacs/src/lisp.h	/^list4i (EMACS_INT x, EMACS_INT y, EMACS_INT w, E
 list_to_ord_set	prol-src/ordsets.prolog	/^list_to_ord_set(List, Set) :-$/
 lno	c-src/etags.c	223
 load	objc-src/PackInsp.m	/^-load$/
-loadContentsOf:inTable:	objc-src/PackInsp.m	/^-loadContentsOf:(const char *)type inTable:(HashTa/
+loadContentsOf	objc-src/PackInsp.m	/^-loadContentsOf:(const char *)type inTable:(HashTa/
 loadImage	objc-src/PackInsp.m	/^-loadImage$/
-loadKeyValuesFrom:inTable:	objc-src/PackInsp.m	/^-loadKeyValuesFrom:(const char *)type inTable:(Has/
+loadKeyValuesFrom	objc-src/PackInsp.m	/^-loadKeyValuesFrom:(const char *)type inTable:(Has/
 loadPORManager	php-src/lce_functions.php	/^  function &loadPORManager()$/
 local_if_set	c-src/emacs/src/lisp.h	2338
 location	cp-src/clheir.hpp	33
-location::location	cp-src/clheir.hpp	/^    location() { }$/
+location	cp-src/clheir.hpp	/^    location() { }$/
 lookup	cccp.y	/^lookup (name, len, hash)$/
 lookup	y-src/cccp.y	/^lookup (name, len, hash)$/
 lowcase	c-src/etags.c	/^#define lowcase(c)	tolower (CHAR (c))$/
@@ -3431,6 +3389,7 @@ max_num_directions	cp-src/clheir.hpp	31
 max_num_generic_objects	cp-src/clheir.cpp	9
 maxargs	c-src/emacs/src/lisp.h	2831
 maybe_gc	c-src/emacs/src/lisp.h	/^maybe_gc (void)$/
+mcCSC	cp-src/c.C	6
 mcheck	c-src/emacs/src/gmalloc.c	/^mcheck (void (*func) (enum mcheck_status))$/
 mcheck_status	c-src/emacs/src/gmalloc.c	283
 mcheck_used	c-src/emacs/src/gmalloc.c	2012
@@ -3452,6 +3411,7 @@ min	c-src/emacs/src/lisp.h	/^#define min(a, b) ((a) < (b) ? (a) : (b))$/
 min	cp-src/conway.cpp	/^#define min(x,y)  ((x > y) ? y : x)$/
 min_args	c-src/emacs/src/lisp.h	1686
 min_char	c-src/emacs/src/lisp.h	1621
+minus	cp-src/functions.cpp	/^void Date::minus ( int days , int month , int year/
 miti	html-src/softwarelibero.html	/^Sfatiamo alcuni miti$/
 modifier_names	c-src/emacs/src/keyboard.c	6319
 modifier_symbols	c-src/emacs/src/keyboard.c	6327
@@ -3460,6 +3420,7 @@ more_aligned_int	c.c	165
 morecore_nolock	c-src/emacs/src/gmalloc.c	/^morecore_nolock (size_t size)$/
 morecore_recursing	c-src/emacs/src/gmalloc.c	604
 mouse_syms	c-src/emacs/src/keyboard.c	4627
+move	cp-src/clheir.cpp	/^void agent::move(int direction)$/
 mprobe	c-src/emacs/src/gmalloc.c	/^mprobe (void *ptr)$/
 msgid	php-src/lce_functions.php	/^      function msgid($line, $class)$/
 msgstr	php-src/lce_functions.php	/^      function msgstr($line, $class)$/
@@ -3509,6 +3470,8 @@ name	y-src/cccp.y	113
 name	y-src/cccp.y	113
 named	c-src/etags.c	2505
 namestringequal	pas-src/common.pas	/^function namestringequal;(*(var Name1,Name2 : Name/
+neighbors	cp-src/clheir.hpp	59
+nelem	cp-src/Range.h	/^  int nelem (void) const { return rng_nelem; }$/
 nestlev	c-src/etags.c	2525
 new	objc-src/PackInsp.m	/^+new$/
 new	perl-src/htlmify-cystic	163
@@ -3532,6 +3495,7 @@ next	cccp.y	42
 next	y-src/cccp.y	42
 next-file	el-src/emacs/lisp/progmodes/etags.el	/^(defun next-file (&optional initialize novisit)$/
 next-file-list	el-src/emacs/lisp/progmodes/etags.el	/^(defvar next-file-list nil$/
+next_alive	cp-src/conway.hpp	7
 next_almost_prime	c-src/emacs/src/lisp.h	/^extern EMACS_INT next_almost_prime (EMACS_INT) ATT/
 next_free	c-src/emacs/src/lisp.h	1851
 next_weak	c-src/emacs/src/lisp.h	1875
@@ -3589,7 +3553,7 @@ num_columns	cp-src/conway.cpp	16
 num_input_events	c-src/emacs/src/keyboard.c	210
 num_regs	c-src/emacs/src/regex.h	430
 num_rows	cp-src/conway.cpp	15
-numberKeys:	objcpp-src/SimpleCalc.M	/^- numberKeys:sender$/
+numberKeys	objcpp-src/SimpleCalc.M	/^- numberKeys:sender$/
 number_len	c-src/etags.c	/^static int number_len (long) ATTRIBUTE_CONST;$/
 numbervars	prol-src/natded.prolog	/^numbervars(X):-$/
 nvars	c-src/emacs/src/lisp.h	3140
@@ -3611,7 +3575,7 @@ offset	c-src/emacs/src/lisp.h	2365
 oignore	c-src/etags.c	2483
 oimplementation	c-src/etags.c	2474
 oinbody	c-src/etags.c	2478
-ok:	objc-src/PackInsp.m	/^-ok:sender$/
+ok	objc-src/PackInsp.m	/^-ok:sender$/
 ok_to_echo_at_next_pause	c-src/emacs/src/keyboard.c	159
 omethodcolon	c-src/etags.c	2481
 omethodparm	c-src/etags.c	2482
@@ -3619,17 +3583,31 @@ omethodsign	c-src/etags.c	2479
 omethodtag	c-src/etags.c	2480
 onone	c-src/etags.c	2472
 oparenseen	c-src/etags.c	2476
+open	objc-src/PackInsp.m	/^-open:sender$/
 open-dribble-file	c-src/emacs/src/keyboard.c	/^DEFUN ("open-dribble-file", Fopen_dribble_file, So/
-open:	objc-src/PackInsp.m	/^-open:sender$/
 openInWorkspace	objc-src/PackInsp.m	/^static void openInWorkspace(const char *filename)$/
-operationKeys:	objcpp-src/SimpleCalc.M	/^- operationKeys:sender$/
+operationKeys	objcpp-src/SimpleCalc.M	/^- operationKeys:sender$/
 operator	cccp.y	438
 operator	y-src/cccp.y	438
+operator ++	cp-src/functions.cpp	/^Date & Date::operator ++ ( void ){$/
+operator +=	cp-src/functions.cpp	/^Date & Date::operator += ( int days ){$/
 operator -	cp-src/c.C	/^void operator -(int, int) {}$/
+operator -	cp-src/functions.cpp	/^int Date::operator - ( Date d ){$/
+operator --	cp-src/functions.cpp	/^Date & Date::operator -- ( void ){$/
+operator -=	cp-src/functions.cpp	/^Date & Date::operator -= ( int days ){$/
+operator <	cp-src/functions.cpp	/^int Date::operator < ( Date d ) {$/
 operator <<	cp-src/functions.cpp	/^ostream& operator <<  ( ostream &c, Date d ) {$/
+operator =	cp-src/functions.cpp	/^Date & Date::operator = ( Date d ){$/
+operator =	cp-src/MDiagArray2.h	/^  MDiagArray2<T>& operator = (const MDiagArray2<T>/
+operator ==	cp-src/functions.cpp	/^int Date::operator == ( Date d ) {$/
+operator >	cp-src/functions.cpp	/^int Date::operator > ( Date d ) {$/
 operator >>	cp-src/functions.cpp	/^istream& operator >> ( istream &i, Date & dd ){$/
+operator MArray2<T>	cp-src/MDiagArray2.h	/^  operator MArray2<T> () const$/
 operator int	cp-src/c.C	/^void operator int(int, int) {}$/
+operator int	cp-src/fail.C	/^			   operator int() const {return x;}$/
+operator+	cp-src/c.C	/^const A& A::operator+(const A&) { }$/
 operator+	cp-src/c.C	/^void operator+(int, int) {}$/
+operator+	cp-src/c.C	/^  A operator+(A& a) {};$/
 opparsebody\Edefop\defopx\defopheader\defoptype	tex-src/texinfo.tex	/^\\defopparsebody\\Edefop\\defopx\\defopheader\\defoptyp/
 oprotocol	c-src/etags.c	2473
 option	c-src/getopt.h	73
@@ -3657,6 +3635,7 @@ ord_union4	prol-src/ordsets.prolog	/^ord_union4(<, Head, Set1, Head2, Tail2, [He
 ord_union_all	prol-src/ordsets.prolog	/^ord_union_all(1, [Set|Sets], Set, Sets) :- !.$/
 oss	html-src/softwarelibero.html	/^Il movimento open source$/
 otagseen	c-src/etags.c	2475
+outputTime	cp-src/c.C	9
 output_file	perl-src/htlmify-cystic	35
 output_files	perl-src/htlmify-cystic	32
 outputtable	html-src/algrthms.html	/^Output$/
@@ -3715,6 +3694,7 @@ plain_C_entries	c-src/etags.c	/^plain_C_entries (FILE *inf)$/
 plain_C_suffixes	c-src/etags.c	643
 plainc	c-src/etags.c	2934
 plist	c-src/emacs/src/lisp.h	697
+plus	cp-src/functions.cpp	/^void Date::plus ( int days , int month , int year /
 plusvalseq	prol-src/natded.prolog	/^plusvalseq([]) --> [].$/
 pointer	c-src/emacs/src/lisp.h	2125
 poll_for_input	c-src/emacs/src/keyboard.c	/^poll_for_input (struct atimer *timer)$/
@@ -3811,6 +3791,7 @@ re_wctype	c-src/emacs/src/regex.h	601
 re_wctype_t	c-src/emacs/src/regex.h	599
 re_wctype_t	c-src/emacs/src/regex.h	618
 re_wctype_to_bit	c-src/emacs/src/regex.h	/^# define re_wctype_to_bit(cc) 0$/
+read	cp-src/conway.hpp	/^    char read() { return alive; }$/
 read	php-src/lce_functions.php	/^      function read()$/
 read-key-sequence	c-src/emacs/src/keyboard.c	/^DEFUN ("read-key-sequence", Fread_key_sequence, Sr/
 read-key-sequence-vector	c-src/emacs/src/keyboard.c	/^DEFUN ("read-key-sequence-vector", Fread_key_seque/
@@ -3863,7 +3844,7 @@ regex_t	c-src/emacs/src/regex.h	416
 regex_tag_multiline	c-src/etags.c	/^regex_tag_multiline (void)$/
 regexp	c-src/etags.c	256
 regexp	c-src/etags.c	268
-registerAction:	objcpp-src/SimpleCalc.M	/^- registerAction:(SEL)action$/
+registerAction	objcpp-src/SimpleCalc.M	/^- registerAction:(SEL)action$/
 register_heapinfo	c-src/emacs/src/gmalloc.c	/^register_heapinfo (void)$/
 regmatch_t	c-src/emacs/src/regex.h	451
 regoff_t	c-src/emacs/src/regex.h	423
@@ -3885,7 +3866,7 @@ restore_getcjmp	c-src/emacs/src/keyboard.c	/^restore_getcjmp (sys_jmp_buf temp)$
 restore_kboard_configuration	c-src/emacs/src/keyboard.c	/^restore_kboard_configuration (int was_locked)$/
 return_to_command_loop	c-src/emacs/src/keyboard.c	135
 reverse	prol-src/natded.prolog	/^reverse([],Ws,Ws).$/
-revert:	objc-src/PackInsp.m	/^-revert:sender$/
+revert	objc-src/PackInsp.m	/^-revert:sender$/
 right	c-src/etags.c	216
 right_shift	cccp.y	/^right_shift (a, b)$/
 right_shift	y-src/cccp.y	/^right_shift (a, b)$/
@@ -3893,6 +3874,11 @@ ring1	c.c	241
 ring2	c.c	242
 rm_eo	c-src/emacs/src/regex.h	450
 rm_so	c-src/emacs/src/regex.h	449
+rng_base	cp-src/Range.h	79
+rng_inc	cp-src/Range.h	81
+rng_limit	cp-src/Range.h	80
+rng_nelem	cp-src/Range.h	83
+rosso	cp-src/c.C	40
 rtint	c-src/h.h	60
 rtint	c-src/h.h	68
 rtstr	c-src/h.h	61
@@ -3905,9 +3891,7 @@ rtxp	c-src/h.h	70
 s	c-src/emacs/src/lisp.h	4672
 s	c-src/emacs/src/lisp.h	4678
 s1	cp-src/c.C	32
-s1::counter	cp-src/c.C	33
 s2	cp-src/c.C	35
-s2::counter	cp-src/c.C	36
 safe_run_hook_funcall	c-src/emacs/src/keyboard.c	/^safe_run_hook_funcall (ptrdiff_t nargs, Lisp_Objec/
 safe_run_hooks	c-src/emacs/src/keyboard.c	/^safe_run_hooks (Lisp_Object hook)$/
 safe_run_hooks_1	c-src/emacs/src/keyboard.c	/^safe_run_hooks_1 (ptrdiff_t nargs, Lisp_Object *ar/
@@ -3935,24 +3919,29 @@ select-tags-table-mode-map	el-src/emacs/lisp/progmodes/etags.el	/^(defvar select
 select-tags-table-quit	el-src/emacs/lisp/progmodes/etags.el	/^(defun select-tags-table-quit ()$/
 select-tags-table-select	el-src/emacs/lisp/progmodes/etags.el	/^(defun select-tags-table-select (button)$/
 select_last	prol-src/natded.prolog	/^select_last([X],X,[]).$/
-send:	objc-src/Subprocess.m	/^- send:(const char *)string$/
-send:withNewline:	objc-src/Subprocess.m	/^- send:(const char *)string withNewline:(BOOL)want/
+send	objc-src/Subprocess.m	/^- send:(const char *)string withNewline:(BOOL)want/
+send	objc-src/Subprocess.m	/^- send:(const char *)string$/
 separator_names	c-src/emacs/src/keyboard.c	7372
 serializeToVars	php-src/lce_functions.php	/^      function serializeToVars($prefix)$/
 serializeToVars	php-src/lce_functions.php	/^      function serializeToVars($prefix)$/
+set	cp-src/conway.hpp	/^    void set(void) { alive = 1; }$/
 set-input-interrupt-mode	c-src/emacs/src/keyboard.c	/^DEFUN ("set-input-interrupt-mode", Fset_input_inte/
 set-input-meta-mode	c-src/emacs/src/keyboard.c	/^DEFUN ("set-input-meta-mode", Fset_input_meta_mode/
 set-input-mode	c-src/emacs/src/keyboard.c	/^DEFUN ("set-input-mode", Fset_input_mode, Sset_inp/
 set-output-flow-control	c-src/emacs/src/keyboard.c	/^DEFUN ("set-output-flow-control", Fset_output_flow/
 set-quit-char	c-src/emacs/src/keyboard.c	/^DEFUN ("set-quit-char", Fset_quit_char, Sset_quit_/
-setDelegate:	objc-src/Subprocess.m	/^- setDelegate:anObject$/
+setDate	cp-src/functions.cpp	/^void Date::setDate ( int d , int m , int y ){$/
+setDelegate	objc-src/Subprocess.m	/^- setDelegate:anObject$/
 setRevertButtonTitle	objc-src/PackInsp.m	/^-setRevertButtonTitle$/
+set_base	cp-src/Range.h	/^  void set_base (double b) { rng_base = b;  }$/
 set_char_table_contents	c-src/emacs/src/lisp.h	/^set_char_table_contents (Lisp_Object table, ptrdif/
 set_char_table_defalt	c-src/emacs/src/lisp.h	/^set_char_table_defalt (Lisp_Object table, Lisp_Obj/
 set_char_table_extras	c-src/emacs/src/lisp.h	/^set_char_table_extras (Lisp_Object table, ptrdiff_/
 set_char_table_purpose	c-src/emacs/src/lisp.h	/^set_char_table_purpose (Lisp_Object table, Lisp_Ob/
 set_hash_key_slot	c-src/emacs/src/lisp.h	/^set_hash_key_slot (struct Lisp_Hash_Table *h, ptrd/
 set_hash_value_slot	c-src/emacs/src/lisp.h	/^set_hash_value_slot (struct Lisp_Hash_Table *h, pt/
+set_inc	cp-src/Range.h	/^  void set_inc (double i) { rng_inc = i;   }$/
+set_limit	cp-src/Range.h	/^  void set_limit (double l) { rng_limit = l; }$/
 set_overlay_plist	c-src/emacs/src/lisp.h	/^set_overlay_plist (Lisp_Object overlay, Lisp_Objec/
 set_poll_suppress_count	c-src/emacs/src/keyboard.c	/^set_poll_suppress_count (int count)$/
 set_prop	c-src/emacs/src/keyboard.c	/^set_prop (ptrdiff_t idx, Lisp_Object val)$/
@@ -3965,13 +3954,15 @@ set_symbol_next	c-src/emacs/src/lisp.h	/^set_symbol_next (Lisp_Object sym, struc
 set_symbol_plist	c-src/emacs/src/lisp.h	/^set_symbol_plist (Lisp_Object sym, Lisp_Object pli/
 set_waiting_for_input	c-src/emacs/src/keyboard.c	/^set_waiting_for_input (struct timespec *time_to_cl/
 setref	tex-src/texinfo.tex	/^\\expandafter\\expandafter\\expandafter\\appendixsetre/
+setup	cp-src/c.C	5
+shift	cp-src/functions.cpp	/^void Date::shift ( void ){\/\/Shift this date to pre/
 shouldLoad	objc-src/PackInsp.m	/^-(BOOL)shouldLoad$/
 should_see_this_array_type	cp-src/c.C	156
 should_see_this_function_pointer	cp-src/c.C	153
 should_see_this_one_enclosed_in_extern_C	cp-src/c.C	149
 show	erl-src/gs_dialog.erl	/^show(Module, Title, Message, Args) ->$/
 showError	objc-src/Subprocess.m	/^showError (const char *errorString, id theDelegate/
-showInfo:	objc-src/PackInsp.m	/^-showInfo:sender$/
+showInfo	objc-src/PackInsp.m	/^-showInfo:sender$/
 show_help_echo	c-src/emacs/src/keyboard.c	/^show_help_echo (Lisp_Object help, Lisp_Object wind/
 sig	c-src/emacs/src/keyboard.c	7238
 signal_handler	c-src/h.h	82
@@ -3981,17 +3972,7 @@ simulation	html-src/software.html	/^Software that I wrote for supporting my rese
 single_kboard	c-src/emacs/src/keyboard.c	89
 single_kboard_state	c-src/emacs/src/keyboard.c	/^single_kboard_state ()$/
 site	cp-src/conway.hpp	5
-site::alive	cp-src/conway.hpp	7
-site::clear	cp-src/conway.hpp	/^    void clear(void) { alive = 0; }$/
-site::compute_next_state	cp-src/conway.hpp	/^    void compute_next_state(void)$/
-site::next_alive	cp-src/conway.hpp	7
-site::read	cp-src/conway.hpp	/^    char read() { return alive; }$/
-site::set	cp-src/conway.hpp	/^    void set(void) { alive = 1; }$/
-site::site	cp-src/conway.hpp	/^    site(int xi, int yi): x(xi), y(yi), alive(0) {/
-site::step	cp-src/conway.hpp	/^    void step(void) { alive = next_alive; }$/
-site::total_surrounding	cp-src/conway.cpp	/^int site::total_surrounding(void)$/
-site::x	cp-src/conway.hpp	7
-site::y	cp-src/conway.hpp	7
+site	cp-src/conway.hpp	/^    site(int xi, int yi): x(xi), y(yi), alive(0) {/
 size	c-src/etags.c	236
 size	c-src/etags.c	2522
 size	c-src/emacs/src/gmalloc.c	156
@@ -4042,6 +4023,8 @@ start_polling	c-src/emacs/src/keyboard.c	/^start_polling (void)$/
 start_up	prol-src/natded.prolog	/^start_up:-$/
 state_protected_p	c-src/emacs/src/gmalloc.c	400
 statetable	html-src/algrthms.html	/^Next$/
+step	cp-src/conway.hpp	/^    void step(void) { alive = next_alive; }$/
+step	cp-src/clheir.hpp	/^    virtual void step(void) { }$/
 step_everybody	cp-src/clheir.cpp	/^void step_everybody(void)$/
 stop_polling	c-src/emacs/src/keyboard.c	/^stop_polling (void)$/
 store_user_signal_events	c-src/emacs/src/keyboard.c	/^store_user_signal_events (void)$/
@@ -4054,8 +4037,8 @@ strncaseeq	c-src/etags.c	/^#define strncaseeq(s,t,n) (assert ((s)!=NULL && (t/
 strneq	c-src/etags.c	/^#define strneq(s,t,n)	(assert ((s)!=NULL || (t)!=N/
 structdef	c-src/etags.c	2448
 stuff_buffered_input	c-src/emacs/src/keyboard.c	/^stuff_buffered_input (Lisp_Object stuffstring)$/
-subprocess:output:	objc-src/PackInsp.m	/^-subprocess:(Subprocess *)sender output:(char *)bu/
-subprocessDone:	objc-src/PackInsp.m	/^-subprocessDone:(Subprocess *)sender$/
+subprocess	objc-src/PackInsp.m	/^-subprocess:(Subprocess *)sender output:(char *)bu/
+subprocessDone	objc-src/PackInsp.m	/^-subprocessDone:(Subprocess *)sender$/
 subsec=\relax	tex-src/texinfo.tex	/^\\let\\appendixsubsec=\\relax$/
 subsection	perl-src/htlmify-cystic	26
 subsection=\relax	tex-src/texinfo.tex	/^\\let\\appendixsubsection=\\relax$/
@@ -4094,6 +4077,7 @@ sys_setjmp	c-src/emacs/src/lisp.h	/^# define sys_setjmp(j) _setjmp (j)$/
 sys_setjmp	c-src/emacs/src/lisp.h	/^# define sys_setjmp(j) sigsetjmp (j, 0)$/
 sys_setjmp	c-src/emacs/src/lisp.h	/^# define sys_setjmp(j) setjmp (j)$/
 syscall_error	c-src/sysdep.h	34
+t	cp-src/c.C	52
 t1	cp-src/c.C	34
 t2	cp-src/c.C	38
 tab_count_words	c-src/tab.c	/^int			tab_count_words(char **tab)$/
@@ -4172,20 +4156,15 @@ tags-verify-table	el-src/emacs/lisp/progmodes/etags.el	/^(defun tags-verify-tabl
 tags-with-face	el-src/emacs/lisp/progmodes/etags.el	/^(defmacro tags-with-face (face &rest body)$/
 target_multibyte	c-src/emacs/src/regex.h	407
 tcpdump	html-src/software.html	/^tcpdump$/
+teats	cp-src/c.C	127
 temporarily_switch_to_single_kboard	c-src/emacs/src/keyboard.c	/^temporarily_switch_to_single_kboard (struct frame /
 tend	c-src/etags.c	2432
-terminate:	objc-src/Subprocess.m	/^- terminate:sender$/
+terminate	objc-src/Subprocess.m	/^- terminate:sender$/
 terminateInput	objc-src/Subprocess.m	/^- terminateInput$/
 test	c-src/emacs/src/lisp.h	1871
 test	cp-src/c.C	86
 test	erl-src/gs_dialog.erl	/^test() ->$/
 test	php-src/ptest.php	/^test $/
-test::dummy1	cp-src/burton.cpp	/^::dummy::dummy test::dummy1(void)$/
-test::dummy2	cp-src/burton.cpp	/^::dummy::dummy test::dummy2(::CORBA::Long dummy)$/
-test::dummy3	cp-src/burton.cpp	/^::dummy::dummy test::dummy3(char* name, ::CORBA::L/
-test::f	cp-src/c.C	/^  int f(){return 0;};		\/\/ first comment$/
-test::ff	cp-src/c.C	/^  int ff(){return 1;};$/
-test::g	cp-src/c.C	/^  int g(){return 2;};$/
 test_undefined	c-src/emacs/src/keyboard.c	/^test_undefined (Lisp_Object binding)$/
 texttreelist	prol-src/natded.prolog	/^texttreelist([]).$/
 this	c-src/a/b/b.c	1
@@ -4230,6 +4209,7 @@ top_level_1	c-src/emacs/src/keyboard.c	/^top_level_1 (Lisp_Object ignore)$/
 top_level_2	c-src/emacs/src/keyboard.c	/^top_level_2 (void)$/
 total_keys	c-src/emacs/src/keyboard.c	97
 total_size_of_entries	c-src/etags.c	/^total_size_of_entries (register node *np)$/
+total_surrounding	cp-src/conway.cpp	/^int site::total_surrounding(void)$/
 totally_unblock_input	c-src/emacs/src/keyboard.c	/^totally_unblock_input (void)$/
 tpcmd	c-src/h.h	8
 tpcmd	c-src/h.h	15
@@ -4237,6 +4217,7 @@ track-mouse	c-src/emacs/src/keyboard.c	/^DEFUN ("internal--track-mouse", Ftrack_
 tracking_off	c-src/emacs/src/keyboard.c	/^tracking_off (Lisp_Object old_value)$/
 traffic_light	cp-src/conway.cpp	/^void traffic_light(int x, int y)$/
 translate	c-src/emacs/src/regex.h	361
+treats	cp-src/c.C	131
 tt	prol-src/natded.prolog	/^tt:-$/
 tt=cmtt10	tex-src/texinfo.tex	/^\\font\\deftt=cmtt10 scaled \\magstep1$/
 tty_read_avail_input	c-src/emacs/src/keyboard.c	/^tty_read_avail_input (struct terminal *terminal,$/
@@ -4311,6 +4292,7 @@ varargs	tex-src/texinfo.tex	/^\\defvarargs {#2}\\endgroup %$/
 varargs	tex-src/texinfo.tex	/^\\defvarargs {#2}\\endgroup %$/
 vcopy	c-src/emacs/src/lisp.h	/^vcopy (Lisp_Object v, ptrdiff_t offset, Lisp_Objec/
 vectorlike_header	c-src/emacs/src/lisp.h	1343
+verde	cp-src/c.C	40
 verify-tags-table-function	el-src/emacs/lisp/progmodes/etags.el	/^(defvar verify-tags-table-function nil$/
 verify_ascii	c-src/emacs/src/lisp.h	/^# define verify_ascii(str) (str)$/
 vignore	c-src/etags.c	2417
@@ -4329,11 +4311,13 @@ weak_alias	c-src/emacs/src/gmalloc.c	/^weak_alias (free, cfree)$/
 what	c-src/etags.c	252
 wheel_syms	c-src/emacs/src/keyboard.c	4628
 where	c-src/emacs/src/lisp.h	2348
+where	cp-src/clheir.hpp	77
+where_in_registry	cp-src/clheir.hpp	15
 width	make-src/Makefile	186
 width	make-src/Makefile	189
 width	make-src/Makefile	192
 width	make-src/Makefile	195
-windowWillClose:	objcpp-src/SimpleCalc.M	/^- windowWillClose:sender$/
+windowWillClose	objcpp-src/SimpleCalc.M	/^- windowWillClose:sender$/
 wipe_kboard	c-src/emacs/src/keyboard.c	/^wipe_kboard (KBOARD *kb)$/
 womboid	c-src/h.h	63
 womboid	c-src/h.h	75
@@ -4358,6 +4342,13 @@ x	c.c	153
 x	c.c	179
 x	c.c	188
 x	c.c	189
+x	cp-src/c.C	53
+x	cp-src/c.C	80
+x	cp-src/conway.hpp	7
+x	cp-src/clheir.hpp	49
+x	cp-src/clheir.hpp	58
+x	cp-src/fail.C	10
+x	cp-src/fail.C	44
 x	tex-src/texinfo.tex	/^\\refx{#1-snt}{} [\\printednodename], page\\tie\\refx{/
 x-get-selection-internal	c.c	/^DEFUN ("x-get-selection-internal", Fx_get_selectio/
 x-get-selection-internal	c.c	/^       Fx_get_selection_internal, Sx_get_selection/
@@ -4371,6 +4362,9 @@ xref-location-line	el-src/emacs/lisp/progmodes/etags.el	/^(cl-defmethod xref-loc
 xref-location-marker	el-src/emacs/lisp/progmodes/etags.el	/^(cl-defmethod xref-location-marker ((l xref-etags-/
 xref-make-etags-location	el-src/emacs/lisp/progmodes/etags.el	/^(defun xref-make-etags-location (tag-info file)$/
 xrnew	c-src/etags.c	/^#define xrnew(op, n, Type) ((op) = (Type *) xreall/
+y	cp-src/conway.hpp	7
+y	cp-src/clheir.hpp	49
+y	cp-src/clheir.hpp	58
 y-get-selection-internal	c.c	/^      Fy_get_selection_internal, Sy_get_selection_/
 yyalloc	/usr/share/bison/bison.simple	83
 yyalloc	/usr/share/bison/bison.simple	83
@@ -4477,5 +4471,11 @@ yyvsp	/usr/share/bison/bison.simple	746
 yyvsp	/usr/share/bison/bison.simple	919
 z	c.c	144
 z	c.c	164
+z	cp-src/clheir.hpp	49
+z	cp-src/clheir.hpp	58
 |	tex-src/texinfo.tex	/^\\def|{{\\tt \\char '174}}$/
 ~	tex-src/texinfo.tex	/^\\def~{{\\tt \\char '176}}$/
+~A	cp-src/c.C	/^A::~A() {}$/
+~B	cp-src/c.C	/^    ~B() {};$/
+~MDiagArray2	cp-src/MDiagArray2.h	/^  ~MDiagArray2 (void) { }$/
+~generic_object	cp-src/clheir.cpp	/^generic_object::~generic_object(void)$/

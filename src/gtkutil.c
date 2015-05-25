@@ -847,22 +847,23 @@ xg_clear_under_internal_border (struct frame *f)
 {
   if (FRAME_INTERNAL_BORDER_WIDTH (f) > 0)
     {
+#ifndef USE_CAIRO
       GtkWidget *wfixed = f->output_data.x->edit_widget;
 
       gtk_widget_queue_draw (wfixed);
       gdk_window_process_all_updates ();
-
-      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), 0, 0,
+#endif
+      x_clear_area (f, 0, 0,
 		    FRAME_PIXEL_WIDTH (f), FRAME_INTERNAL_BORDER_WIDTH (f));
 
-      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), 0, 0,
+      x_clear_area (f, 0, 0,
 		    FRAME_INTERNAL_BORDER_WIDTH (f), FRAME_PIXEL_HEIGHT (f));
 
-      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), 0,
+      x_clear_area (f, 0,
 		    FRAME_PIXEL_HEIGHT (f) - FRAME_INTERNAL_BORDER_WIDTH (f),
 		    FRAME_PIXEL_WIDTH (f), FRAME_INTERNAL_BORDER_WIDTH (f));
 
-      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+      x_clear_area (f,
 		    FRAME_PIXEL_WIDTH (f) - FRAME_INTERNAL_BORDER_WIDTH (f),
 		    0, FRAME_INTERNAL_BORDER_WIDTH (f), FRAME_PIXEL_HEIGHT (f));
     }
@@ -2141,12 +2142,18 @@ xg_get_font (struct frame *f, const char *default_name)
 	  PangoWeight weight = pango_font_description_get_weight (desc);
 	  PangoStyle  style  = pango_font_description_get_style (desc);
 
+#ifdef USE_CAIRO
+#define FONT_TYPE_WANTED (Qftcr)
+#else
+#define FONT_TYPE_WANTED (Qxft)
+#endif
 	  font = CALLN (Ffont_spec,
 			QCname, build_string (name),
 			QCsize, make_float (pango_units_to_double (size)),
 			QCweight, XG_WEIGHT_TO_SYMBOL (weight),
 			QCslant, XG_STYLE_TO_SYMBOL (style),
-			QCtype, Qxft);
+			QCtype,
+                        FONT_TYPE_WANTED);
 
 	  pango_font_description_free (desc);
 	  dupstring (&x_last_font_name, name);
@@ -3806,8 +3813,10 @@ xg_update_scrollbar_pos (struct frame *f,
           gtk_widget_show_all (wparent);
           gtk_widget_set_size_request (wscroll, width, height);
         }
+#ifndef USE_CAIRO
       gtk_widget_queue_draw (wfixed);
       gdk_window_process_all_updates ();
+#endif
       if (oldx != -1 && oldw > 0 && oldh > 0)
         {
           /* Clear under old scroll bar position.  This must be done after
@@ -3815,8 +3824,7 @@ xg_update_scrollbar_pos (struct frame *f,
              above.  */
 	  oldw += (scale - 1) * oldw;
 	  oldx -= (scale - 1) * oldw;
-          x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-                        oldx, oldy, oldw, oldh);
+          x_clear_area (f, oldx, oldy, oldw, oldh);
         }
 
       /* GTK does not redraw until the main loop is entered again, but
@@ -3882,7 +3890,7 @@ xg_update_horizontal_scrollbar_pos (struct frame *f,
 	/* Clear under old scroll bar position.  This must be done after
 	   the gtk_widget_queue_draw and gdk_window_process_all_updates
 	   above.  */
-	x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+	x_clear_area (f,
 		      oldx, oldy, oldw, oldh);
 
       /* GTK does not redraw until the main loop is entered again, but
@@ -4058,6 +4066,108 @@ xg_event_is_for_scrollbar (struct frame *f, const XEvent *event)
 
   return retval;
 }
+
+
+/***********************************************************************
+			       Printing
+ ***********************************************************************/
+#ifdef USE_CAIRO
+static GtkPrintSettings *print_settings = NULL;
+static GtkPageSetup *page_setup = NULL;
+
+void
+xg_page_setup_dialog (void)
+{
+  GtkPageSetup *new_page_setup = NULL;
+
+  if (print_settings == NULL)
+    print_settings = gtk_print_settings_new ();
+  new_page_setup = gtk_print_run_page_setup_dialog (NULL, page_setup,
+						    print_settings);
+  if (page_setup)
+    g_object_unref (page_setup);
+  page_setup = new_page_setup;
+}
+
+Lisp_Object
+xg_get_page_setup (void)
+{
+  Lisp_Object result, orientation_symbol;
+  GtkPageOrientation orientation;
+
+  if (page_setup == NULL)
+    page_setup = gtk_page_setup_new ();
+  result = list4 (Fcons (Qleft_margin,
+			 make_float (gtk_page_setup_get_left_margin (page_setup,
+								     GTK_UNIT_POINTS))),
+		  Fcons (Qright_margin,
+			 make_float (gtk_page_setup_get_right_margin (page_setup,
+								      GTK_UNIT_POINTS))),
+		  Fcons (Qtop_margin,
+			 make_float (gtk_page_setup_get_top_margin (page_setup,
+								    GTK_UNIT_POINTS))),
+		  Fcons (Qbottom_margin,
+			 make_float (gtk_page_setup_get_bottom_margin (page_setup,
+								       GTK_UNIT_POINTS))));
+  result = Fcons (Fcons (Qheight,
+			 make_float (gtk_page_setup_get_page_height (page_setup,
+								     GTK_UNIT_POINTS))),
+		  result);
+  result = Fcons (Fcons (Qwidth,
+			 make_float (gtk_page_setup_get_page_width (page_setup,
+								    GTK_UNIT_POINTS))),
+		  result);
+  orientation = gtk_page_setup_get_orientation (page_setup);
+  if (orientation == GTK_PAGE_ORIENTATION_PORTRAIT)
+    orientation_symbol = Qportrait;
+  else if (orientation == GTK_PAGE_ORIENTATION_LANDSCAPE)
+    orientation_symbol = Qlandscape;
+  else if (orientation == GTK_PAGE_ORIENTATION_REVERSE_PORTRAIT)
+    orientation_symbol = Qreverse_portrait;
+  else if (orientation == GTK_PAGE_ORIENTATION_REVERSE_LANDSCAPE)
+    orientation_symbol = Qreverse_landscape;
+  result = Fcons (Fcons (Qorientation, orientation_symbol), result);
+
+  return result;
+}
+
+static void
+draw_page (GtkPrintOperation *operation, GtkPrintContext *context,
+	   gint page_nr, gpointer user_data)
+{
+  Lisp_Object frames = *((Lisp_Object *) user_data);
+  struct frame *f = XFRAME (Fnth (make_number (page_nr), frames));
+  cairo_t *cr = gtk_print_context_get_cairo_context (context);
+
+  x_cr_draw_frame (cr, f);
+}
+
+void
+xg_print_frames_dialog (Lisp_Object frames)
+{
+  GtkPrintOperation *print;
+  GtkPrintOperationResult res;
+
+  print = gtk_print_operation_new ();
+  if (print_settings != NULL)
+    gtk_print_operation_set_print_settings (print, print_settings);
+  if (page_setup != NULL)
+    gtk_print_operation_set_default_page_setup (print, page_setup);
+  gtk_print_operation_set_n_pages (print, XINT (Flength (frames)));
+  g_signal_connect (print, "draw-page", G_CALLBACK (draw_page), &frames);
+  res = gtk_print_operation_run (print, GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG,
+                                 NULL, NULL);
+  if (res == GTK_PRINT_OPERATION_RESULT_APPLY)
+    {
+      if (print_settings != NULL)
+        g_object_unref (print_settings);
+      print_settings =
+	g_object_ref (gtk_print_operation_get_print_settings (print));
+    }
+  g_object_unref (print);
+}
+
+#endif	/* USE_CAIRO */
 
 
 

@@ -3116,6 +3116,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
       specbind (Qx_resource_name, name);
     }
 
+#ifdef USE_CAIRO
+  register_font_driver (&ftcrfont_driver, f);
+#else
 #ifdef HAVE_FREETYPE
 #ifdef HAVE_XFT
   register_font_driver (&xftfont_driver, f);
@@ -3124,6 +3127,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 #endif	/* not HAVE_XFT */
 #endif	/* HAVE_FREETYPE */
   register_font_driver (&xfont_driver, f);
+#endif	/* not USE_CAIRO */
 
   x_default_parameter (f, parms, Qfont_backend, Qnil,
 		       "fontBackend", "FontBackend", RES_TYPE_STRING);
@@ -5118,6 +5122,9 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
       specbind (Qx_resource_name, name);
     }
 
+#ifdef USE_CAIRO
+  register_font_driver (&ftcrfont_driver, f);
+#else
   register_font_driver (&xfont_driver, f);
 #ifdef HAVE_FREETYPE
 #ifdef HAVE_XFT
@@ -5126,6 +5133,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   register_font_driver (&ftxfont_driver, f);
 #endif	/* not HAVE_XFT */
 #endif	/* HAVE_FREETYPE */
+#endif	/* not USE_CAIRO */
 
   x_default_parameter (f, parms, Qfont_backend, Qnil,
 		       "fontBackend", "FontBackend", RES_TYPE_STRING);
@@ -6209,6 +6217,158 @@ present and mapped to the usual X keysyms.  */)
 
 
 /***********************************************************************
+			       Printing
+ ***********************************************************************/
+
+#ifdef USE_CAIRO
+DEFUN ("x-export-frames", Fx_export_frames, Sx_export_frames, 0, 2, 0,
+       doc: /* XXX Experimental.  Return image data of FRAMES in TYPE format.
+FRAMES should be nil (the selected frame), a frame, or a list of
+frames (each of which corresponds to one page).  Optional arg TYPE
+should be either `pdf' (default), `png', `ps', or `svg'.  Supported
+types are determined by the compile-time configuration of cairo.  */)
+     (Lisp_Object frames, Lisp_Object type)
+{
+  Lisp_Object result, rest, tmp;
+  cairo_surface_type_t surface_type;
+
+  if (NILP (frames))
+    frames = selected_frame;
+  if (!CONSP (frames))
+    frames = list1 (frames);
+
+  tmp = Qnil;
+  for (rest = frames; CONSP (rest); rest = XCDR (rest))
+    {
+      struct frame *f = XFRAME (XCAR (rest));
+
+      if (! FRAME_LIVE_P (f) || ! FRAME_X_P (f) || ! FRAME_LIVE_P (f))
+        error ("Invalid frame");
+
+      Lisp_Object frame;
+
+      XSETFRAME (frame, f);
+      tmp = Fcons (frame, tmp);
+    }
+  frames = Fnreverse (tmp);
+
+#ifdef CAIRO_HAS_PDF_SURFACE
+  if (NILP (type) || EQ (type, intern ("pdf"))) /* XXX: Qpdf */
+    surface_type = CAIRO_SURFACE_TYPE_PDF;
+  else
+#endif
+#ifdef CAIRO_HAS_PNG_FUNCTIONS
+  if (EQ (type, intern ("png")))
+    {
+      if (!NILP (XCDR (frames)))
+	error ("PNG export cannot handle multiple frames.");
+      surface_type = CAIRO_SURFACE_TYPE_IMAGE;
+    }
+  else
+#endif
+#ifdef CAIRO_HAS_PS_SURFACE
+  if (EQ (type, intern ("ps")))
+    surface_type = CAIRO_SURFACE_TYPE_PS;
+  else
+#endif
+#ifdef CAIRO_HAS_SVG_SURFACE
+  if (EQ (type, intern ("svg")))
+    {
+      /* For now, we stick to SVG 1.1.  */
+      if (!NILP (XCDR (frames)))
+	error ("SVG export cannot handle multiple frames.");
+      surface_type = CAIRO_SURFACE_TYPE_SVG;
+    }
+  else
+#endif
+    error ("Unsupported export type");
+
+  result = x_cr_export_frames (frames, surface_type);
+
+  return result;
+}
+
+#ifdef USE_GTK
+DEFUN ("x-page-setup-dialog", Fx_page_setup_dialog, Sx_page_setup_dialog, 0, 0, 0,
+       doc: /* Pop up a page setup dialog.
+The current page setup can be obtained using `x-get-page-setup'.  */)
+     (void)
+{
+  block_input ();
+  xg_page_setup_dialog ();
+  unblock_input ();
+
+  return Qnil;
+}
+
+DEFUN ("x-get-page-setup", Fx_get_page_setup, Sx_get_page_setup, 0, 0, 0,
+       doc: /* Return the value of the current page setup.
+The return value is an alist containing the following keys:
+
+  orientation: page orientation (symbol `portrait', `landscape',
+	`reverse-portrait', or `reverse-landscape').
+  width, height: page width/height in points not including margins.
+  left-margin, right-margin, top-margin, bottom-margin: print margins,
+	which is the parts of the page that the printer cannot print
+	on, in points.
+
+The paper width can be obtained as the sum of width, left-margin, and
+right-margin values.  Likewise, the paper height is the sum of height,
+top-margin, and bottom-margin values.  */)
+     (void)
+{
+  Lisp_Object result;
+
+  block_input ();
+  result = xg_get_page_setup ();
+  unblock_input ();
+
+  return result;
+}
+
+DEFUN ("x-print-frames-dialog", Fx_print_frames_dialog, Sx_print_frames_dialog, 0, 1, "",
+       doc: /* Pop up a print dialog to print the current contents of FRAMES.
+FRAMES should be nil (the selected frame), a frame, or a list of
+frames (each of which corresponds to one page).  Each frame should be
+visible.  */)
+     (Lisp_Object frames)
+{
+  Lisp_Object rest, tmp;
+
+  if (NILP (frames))
+    frames = selected_frame;
+  if (!CONSP (frames))
+    frames = list1 (frames);
+
+  tmp = Qnil;
+  for (rest = frames; CONSP (rest); rest = XCDR (rest))
+    {
+      struct frame *f = XFRAME (XCAR (rest));
+      if (! FRAME_LIVE_P (f) || ! FRAME_X_P (f) || ! FRAME_LIVE_P (f))
+        error ("Invalid frame");
+      Lisp_Object frame;
+
+      XSETFRAME (frame, f);
+      if (!EQ (Fframe_visible_p (frame), Qt))
+	error ("Frames to be printed must be visible.");
+      tmp = Fcons (frame, tmp);
+    }
+  frames = Fnreverse (tmp);
+
+  /* Make sure the current matrices are up-to-date.  */
+  Fredisplay (Qt);
+
+  block_input ();
+  xg_print_frames_dialog (frames);
+  unblock_input ();
+
+  return Qnil;
+}
+#endif	/* USE_GTK */
+#endif	/* USE_CAIRO */
+
+
+/***********************************************************************
 			    Initialization
  ***********************************************************************/
 
@@ -6264,6 +6424,16 @@ syms_of_xfns (void)
   DEFSYM (Qcancel_timer, "cancel-timer");
   DEFSYM (Qfont_param, "font-parameter");
   DEFSYM (Qmono, "mono");
+
+#ifdef USE_CAIRO
+  DEFSYM (Qorientation, "orientation");
+  DEFSYM (Qtop_margin, "top-margin");
+  DEFSYM (Qbottom_margin, "bottom-margin");
+  DEFSYM (Qportrait, "portrait");
+  DEFSYM (Qlandscape, "landscape");
+  DEFSYM (Qreverse_portrait, "reverse-portrait");
+  DEFSYM (Qreverse_landscape, "reverse-landscape");
+#endif
 
   Fput (Qundefined_color, Qerror_conditions,
 	listn (CONSTYPE_PURE, 2, Qundefined_color, Qerror));
@@ -6405,6 +6575,20 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
   }
 #endif /* USE_GTK */
 
+#ifdef USE_CAIRO
+  Fprovide (intern_c_string ("cairo"), Qnil);
+
+  DEFVAR_LISP ("cairo-version-string", Vcairo_version_string,
+               doc: /* Version info for cairo.  */);
+  {
+    char cairo_version[sizeof ".." + 3 * INT_STRLEN_BOUND (int)];
+    int len = sprintf (cairo_version, "%d.%d.%d",
+		       CAIRO_VERSION_MAJOR, CAIRO_VERSION_MINOR,
+                       CAIRO_VERSION_MICRO);
+    Vcairo_version_string = make_pure_string (cairo_version, len, len, false);
+  }
+#endif
+
   /* X window properties.  */
   defsubr (&Sx_change_window_property);
   defsubr (&Sx_delete_window_property);
@@ -6454,5 +6638,14 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
 
 #if defined (USE_GTK) && defined (HAVE_FREETYPE)
   defsubr (&Sx_select_font);
+#endif
+
+#ifdef USE_CAIRO
+  defsubr (&Sx_export_frames);
+#ifdef USE_GTK
+  defsubr (&Sx_page_setup_dialog);
+  defsubr (&Sx_get_page_setup);
+  defsubr (&Sx_print_frames_dialog);
+#endif
 #endif
 }

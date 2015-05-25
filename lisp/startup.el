@@ -355,7 +355,7 @@ is not allowed, since it would not work anyway.  The only way to set
 this variable usefully is to set it while building and dumping Emacs."
   :type '(choice (const :tag "none" nil) string)
   :group 'initialization
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :set (lambda (_variable _value)
 	  (error "Customizing `site-run-file' does not work")))
 
@@ -422,7 +422,7 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
   "Directory containing the Emacs TUTORIAL files."
   :group 'installation
   :type 'directory
-  :initialize 'custom-initialize-delay)
+  :initialize #'custom-initialize-delay)
 
 (defun normal-top-level-add-subdirs-to-load-path ()
   "Add all subdirectories of `default-directory' to `load-path'.
@@ -707,19 +707,21 @@ It is the default value of the variable `top-level'."
 (defconst tool-bar-images-pixel-height 24
   "Height in pixels of images in the tool-bar.")
 
-(gui-method-declare handle-args-function #'tty-handle-args
+(cl-defgeneric handle-args-function (args)
   "Method for processing window-system dependent command-line arguments.
 Window system startup files should add their own function to this
 method, which should parse the command line arguments.  Those
 pertaining to the window system should be processed and removed
 from the returned command line.")
+(cl-defmethod handle-args-function (args &context (window-system (eql nil)))
+  (tty-handle-args args))
 
-(gui-method-declare window-system-initialization #'ignore
+(cl-defgeneric window-system-initialization (&optional _display)
   "Method for window-system initialization.
 Window-system startup files should add their own implementation
-to this method.  The function should take no arguments,
-and initialize the window system environment to prepare for
-opening the first frame (e.g. open a connection to an X server).")
+to this method.  The function should initialize the window system environment
+to prepare for opening the first frame (e.g. open a connection to an X server)."
+  nil)
 
 (defun tty-handle-args (args)
   "Handle the X-like command-line arguments \"-fg\", \"-bg\", \"-name\", etc."
@@ -958,12 +960,11 @@ please check its value")
 	  (error "Unsupported window system `%s'" initial-window-system))
       ;; Process window-system specific command line parameters.
       (setq command-line-args
-	    (funcall
-             (gui-method handle-args-function initial-window-system)
-	     command-line-args))
+            (let ((window-system initial-window-system)) ;Hack attack!
+              (handle-args-function command-line-args)))
       ;; Initialize the window system. (Open connection, etc.)
-      (funcall
-       (gui-method window-system-initialization initial-window-system))
+      (let ((window-system initial-window-system)) ;Hack attack!
+        (window-system-initialization))
       (put initial-window-system 'window-system-initialized t))
     ;; If there was an error, print the error message and exit.
     (error
@@ -1026,8 +1027,8 @@ please check its value")
   ;; switch color support on or off in mid-session by setting the
   ;; tty-color-mode frame parameter.
   ;; Exception: the `pc' ``window system'' has only 16 fixed colors,
-  ;; and they are already set at this point by a suitable function in
-  ;; window-system-initialization-alist.
+  ;; and they are already set at this point by a suitable method of
+  ;; window-system-initialization.
   (or (eq initial-window-system 'pc)
       (tty-register-default-colors))
 

@@ -805,15 +805,16 @@ If no tags table is loaded, do nothing and return nil."
 				    case-fold-search))
 	  (pattern (funcall (or find-tag-default-function
 				(get major-mode 'find-tag-default-function)
-				'find-tag-default)))
+				#'find-tag-default)))
 	  beg)
       (when pattern
 	(save-excursion
           (forward-char (1- (length pattern)))
-          (search-backward pattern)
-          (setq beg (point))
-          (forward-char (length pattern))
-          (list beg (point) (tags-lazy-completion-table) :exclusive 'no))))))
+          ;; The find-tag function might be overly optimistic.
+          (when (search-backward pattern nil t)
+            (setq beg (point))
+            (forward-char (length pattern))
+            (list beg (point) (tags-lazy-completion-table) :exclusive 'no)))))))
 
 (defun find-tag-tag (string)
   "Read a tag name, with defaulting and completion."

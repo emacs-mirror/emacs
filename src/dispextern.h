@@ -2969,6 +2969,10 @@ struct image
   /* Pixmaps of the image.  */
   Pixmap pixmap, mask;
 
+#ifdef USE_CAIRO
+  void *cr_data;
+  void *cr_data2;
+#endif
 #ifdef HAVE_X_WINDOWS
   /* X images of the image, corresponding to the above Pixmaps.
      Non-NULL means it and its Pixmap counterpart may be out of sync
@@ -3329,6 +3333,9 @@ bool update_window_fringes (struct window *, bool);
 #ifdef HAVE_NTGUI
 void w32_init_fringe (struct redisplay_interface *);
 void w32_reset_fringes (void);
+#endif
+#ifdef USE_CAIRO
+void x_cr_init_fringe (struct redisplay_interface *);
 #endif
 
 extern unsigned row_hash (struct glyph_row *);

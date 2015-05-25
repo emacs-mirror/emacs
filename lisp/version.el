@@ -56,8 +56,8 @@ to the system configuration; look at `system-configuration' instead."
   (interactive "P")
   (let ((version-string
          (format (if (not (called-interactively-p 'interactive))
-		     "GNU Emacs %s (%s%s%s)\n of %s on %s"
-		   "GNU Emacs %s (%s%s%s) of %s on %s")
+		     "GNU Emacs %s (%s%s%s%s)\n of %s on %s"
+		   "GNU Emacs %s (%s%s%s%s) of %s on %s")
                  emacs-version
 		 system-configuration
 		 (cond ((featurep 'motif)
@@ -68,6 +68,9 @@ to the system configuration; look at `system-configuration' instead."
 		       ((featurep 'ns)
 			(format ", NS %s" ns-version-string))
 		       (t ""))
+		 (if (featurep 'cairo)
+		     (format ", cairo version %s" cairo-version-string)
+		   "")
 		 (if (and (boundp 'x-toolkit-scroll-bars)
 			  (memq x-toolkit-scroll-bars '(xaw xaw3d)))
 		     (format ", %s scroll bars"
