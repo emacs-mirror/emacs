@@ -8347,6 +8347,14 @@ syms_of_w32fns (void)
   DEFSYM (Qworkarea, "workarea");
   DEFSYM (Qmm_size, "mm-size");
   DEFSYM (Qframes, "frames");
+  DEFSYM (Qtip_frame, "tip-frame");
+  DEFSYM (Qunicode_sip, "unicode-sip");
+
+  /* Symbols used elsewhere, but only in MS-Windows-specific code.  */
+  DEFSYM (Qgnutls_dll, "gnutls");
+  DEFSYM (Qlibxml2_dll, "libxml2");
+  DEFSYM (Qserif, "serif");
+  DEFSYM (Qzlib_dll, "zlib");
 
   Fput (Qundefined_color, Qerror_conditions,
 	listn (CONSTYPE_PURE, 2, Qundefined_color, Qerror));

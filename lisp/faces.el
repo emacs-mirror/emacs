@@ -1428,18 +1428,19 @@ If FRAME is omitted or nil, use the selected frame."
 		  (when alias
 		    (setq face alias)
 		    (insert
-		     (format "\n  %s is an alias for the face `%s'.\n%s"
+		     (format "\n  %s is an alias for the face ‘%s’.\n%s"
 			     f alias
 			     (if (setq obsolete (get f 'obsolete-face))
-				 (format "  This face is obsolete%s; use `%s' instead.\n"
+				 (format "  This face is obsolete%s; use ‘%s’ instead.\n"
 					 (if (stringp obsolete)
 					     (format " since %s" obsolete)
 					   "")
 					 alias)
 			       ""))))
 		  (insert "\nDocumentation:\n"
-			  (or (face-documentation face)
-			      "Not documented as a face.")
+                          (substitute-command-keys
+                           (or (face-documentation face)
+                               "Not documented as a face."))
 			  "\n\n"))
 		(with-current-buffer standard-output
 		  (save-excursion
@@ -1448,12 +1449,12 @@ If FRAME is omitted or nil, use the selected frame."
 		    (help-xref-button 1 'help-customize-face f)))
 		(setq file-name (find-lisp-object-file-name f 'defface))
 		(when file-name
-		  (princ "Defined in `")
+		  (princ "Defined in ‘")
 		  (princ (file-name-nondirectory file-name))
-		  (princ "'")
+		  (princ "’")
 		  ;; Make a hyperlink to the library.
 		  (save-excursion
-		    (re-search-backward "`\\([^`']+\\)'" nil t)
+		    (re-search-backward "‘\\([^‘’]+\\)’" nil t)
 		    (help-xref-button 1 'help-face-def f file-name))
 		  (princ ".")
 		  (terpri)
@@ -1937,8 +1938,9 @@ Return nil if there is no face."
              (dolist (face faceprop)
                (if (facep face)
                    (push face faces))))))
-    (setq faces (delete-dups (nreverse faces)))
-    (if multiple faces (car faces))))
+    (if multiple
+        (delete-dups (nreverse faces))
+      (car (last faces)))))
 
 (defun foreground-color-at-point ()
   "Return the foreground color of the character after point."

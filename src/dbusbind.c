@@ -233,8 +233,12 @@ xd_symbol_to_dbus_type (Lisp_Object object)
 
 /* Transform the object to its string representation for debug
    messages.  */
-#define XD_OBJECT_TO_STRING(object)					\
-  SDATA (format2 ("%s", object, Qnil))
+static char *
+XD_OBJECT_TO_STRING (Lisp_Object object)
+{
+  AUTO_STRING (format, "%s");
+  return SSDATA (CALLN (Fformat, format, object));
+}
 
 #define XD_DBUS_VALIDATE_BUS_ADDRESS(bus)				\
   do {									\
@@ -1714,11 +1718,7 @@ init_dbusbind (void)
 void
 syms_of_dbusbind (void)
 {
-
-  DEFSYM (Qdbus__init_bus, "dbus--init-bus");
   defsubr (&Sdbus__init_bus);
-
-  DEFSYM (Qdbus_get_unique_name, "dbus-get-unique-name");
   defsubr (&Sdbus_get_unique_name);
 
   DEFSYM (Qdbus_message_internal, "dbus-message-internal");

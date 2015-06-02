@@ -67,7 +67,7 @@ files conditionalize this setup based on the TERM environment variable."
   :type 'string)
 
 ;;;###tramp-autoload
-(defcustom tramp-histfile-override t
+(defcustom tramp-histfile-override ".tramp_history"
   "When invoking a shell, override the HISTFILE with this value.
 When setting to a string, it redirects the shell history to that
 file.  Be careful when setting to \"/dev/null\"; this might
@@ -1459,12 +1459,14 @@ be non-negative integers."
 		  (tramp-shell-quote-argument localname))))))
 
       ;; We handle also the local part, because there doesn't exist
-      ;; `set-file-uid-gid'.  On W32 "chown" might not work.
-      (let ((uid (or (and (natnump uid) uid) (tramp-get-local-uid 'integer)))
-	    (gid (or (and (natnump gid) gid) (tramp-get-local-gid 'integer))))
-	(tramp-call-process
-	 nil "chown" nil nil nil
-         (format "%d:%d" uid gid) (tramp-shell-quote-argument filename))))))
+      ;; `set-file-uid-gid'.  On W32 "chown" might not work.  We add a
+      ;; timeout for this.
+      (with-timeout (5 nil)
+	(let ((uid (or (and (natnump uid) uid) (tramp-get-local-uid 'integer)))
+	      (gid (or (and (natnump gid) gid) (tramp-get-local-gid 'integer))))
+	  (tramp-call-process
+	   nil "chown" nil nil nil
+	   (format "%d:%d" uid gid) (tramp-shell-quote-argument filename)))))))
 
 (defun tramp-remote-selinux-p (vec)
   "Check, whether SELINUX is enabled on the remote host."
@@ -2129,9 +2131,10 @@ KEEP-DATE is non-nil if NEWNAME should have the same timestamp as FILENAME."
   (let ((coding-system-for-read 'binary)
 	(coding-system-for-write 'binary)
 	(jka-compr-inhibit t)
+	(inhibit-file-name-operation 'write-region)
 	(inhibit-file-name-handlers
-	 (cons epa-file-handler
-               (remq 'tramp-file-name-handler inhibit-file-name-handlers))))
+	 (cons 'epa-file-handler
+	       (remq 'tramp-file-name-handler inhibit-file-name-handlers))))
     (with-temp-file newname
       (set-buffer-multibyte nil)
       (insert-file-contents-literally filename)))
@@ -3752,17 +3755,6 @@ Only send the definition if it has not already been done."
 	 "Script %s sending failed" name)
 	(tramp-set-connection-property
 	 (tramp-get-connection-process vec) "scripts" (cons name scripts))))))
-
-(defun tramp-set-auto-save ()
-  (when (and ;; ange-ftp has its own auto-save mechanism
-	     (eq (tramp-find-foreign-file-name-handler (buffer-file-name))
-		 'tramp-sh-file-name-handler)
-             auto-save-default)
-    (auto-save-mode 1)))
-(add-hook 'find-file-hooks 'tramp-set-auto-save t)
-(add-hook 'tramp-unload-hook
-	  (lambda ()
-	    (remove-hook 'find-file-hooks 'tramp-set-auto-save)))
 
 (defun tramp-run-test (switch filename)
   "Run `test' on the remote system, given a SWITCH and a FILENAME.
@@ -5589,7 +5581,7 @@ function cell is returned to be applied on a buffer."
 		       (default-directory
 			 (tramp-compat-temporary-file-directory)))
 		   (apply
-		    'call-process-region (point-min) (point-max)
+		    'tramp-call-process-region ,vec (point-min) (point-max)
 		    (car (split-string ,compress)) t t nil
 		    (cdr (split-string ,compress)))))
 	    `(lambda (beg end)
@@ -5598,7 +5590,7 @@ function cell is returned to be applied on a buffer."
 		     (default-directory
 		       (tramp-compat-temporary-file-directory)))
 		 (apply
-		  'call-process-region beg end
+		  'tramp-call-process-region ,vec beg end
 		  (car (split-string ,compress)) t t nil
 		  (cdr (split-string ,compress))))
 	       (,coding (point-min) (point-max)))))

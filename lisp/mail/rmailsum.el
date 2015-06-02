@@ -287,23 +287,18 @@ LABELS should be a string containing the desired labels, separated by commas."
 			     (mail-comma-list-regexp labels)
 			     "\\)\\(,\\|\\'\\)")))
 
-;; FIXME "a string of regexps separated by commas" makes no sense because:
-;;  i) it's pointless (you can just use \\|)
-;; ii) it's broken (you can't specify a literal comma)
-;; rmail-summary-by-topic and rmail-summary-by-senders have the same issue.
 ;;;###autoload
 (defun rmail-summary-by-recipients (recipients &optional primary-only)
   "Display a summary of all messages with the given RECIPIENTS.
 Normally checks the To, From and Cc fields of headers;
 but if PRIMARY-ONLY is non-nil (prefix arg given),
  only look in the To and From fields.
-RECIPIENTS is a string of regexps separated by commas."
+RECIPIENTS is a regular expression."
   (interactive "sRecipients to summarize by: \nP")
   (rmail-new-summary
    (concat "recipients " recipients)
    (list 'rmail-summary-by-recipients recipients primary-only)
-   'rmail-message-recipients-p
-   (mail-comma-list-regexp recipients) primary-only))
+   'rmail-message-recipients-p recipients primary-only))
 
 (defun rmail-message-recipients-p (msg recipients &optional primary-only)
   (rmail-apply-in-message msg 'rmail-message-recipients-p-1
@@ -370,7 +365,7 @@ Emacs will list the message in the summary."
   "Display a summary of all messages with the given SUBJECT.
 Normally checks just the Subject field of headers; but with prefix
 argument WHOLE-MESSAGE is non-nil, looks in the whole message.
-SUBJECT is a string of regexps separated by commas."
+SUBJECT is a regular expression."
   (interactive
    ;; We quote the default subject, because if it contains regexp
    ;; special characters (eg "?"), it can fail to match itself.  (Bug#2333)
@@ -382,8 +377,7 @@ SUBJECT is a string of regexps separated by commas."
   (rmail-new-summary
    (concat "about " subject)
    (list 'rmail-summary-by-topic subject whole-message)
-   'rmail-message-subject-p
-   (mail-comma-list-regexp subject) whole-message))
+   'rmail-message-subject-p subject whole-message))
 
 (defun rmail-message-subject-p (msg subject &optional whole-message)
   (if whole-message
@@ -395,13 +389,11 @@ SUBJECT is a string of regexps separated by commas."
 ;;;###autoload
 (defun rmail-summary-by-senders (senders)
   "Display a summary of all messages whose \"From\" field matches SENDERS.
-SENDERS is a string of regexps separated by commas."
+SENDERS is a regular expression."
   (interactive "sSenders to summarize by: ")
   (rmail-new-summary
    (concat "senders " senders)
-   (list 'rmail-summary-by-senders senders)
-   'rmail-message-senders-p
-   (mail-comma-list-regexp senders)))
+   (list 'rmail-summary-by-senders senders) 'rmail-message-senders-p senders))
 
 (defun rmail-message-senders-p (msg senders)
   (string-match senders (or (rmail-get-header "From" msg) "")))

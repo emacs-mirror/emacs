@@ -4500,13 +4500,6 @@ usage: (format STRING &rest OBJECTS)  */)
 
   return val;
 }
-
-Lisp_Object
-format2 (const char *string1, Lisp_Object arg0, Lisp_Object arg1)
-{
-  AUTO_STRING (format, string1);
-  return CALLN (Fformat, format, arg0, arg1);
-}
 
 DEFUN ("char-equal", Fchar_equal, Schar_equal, 2, 2, 0,
        doc: /* Return t if two characters match, optionally ignoring case.

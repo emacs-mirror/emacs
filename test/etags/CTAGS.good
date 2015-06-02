@@ -931,6 +931,7 @@ MoveLayerAfter	lua-src/allegro.lua	/^function MoveLayerAfter (this_one)$/
 MoveLayerBefore	lua-src/allegro.lua	/^function MoveLayerBefore (this_one)$/
 MoveLayerBottom	lua-src/allegro.lua	/^function MoveLayerBottom ()$/
 MoveLayerTop	lua-src/allegro.lua	/^function MoveLayerTop ()$/
+Mx.cc	cp-src/x.cc	/^main(int argc, char *argv[])$/
 NAME	y-src/cccp.c	8
 NATNUMP	c-src/emacs/src/lisp.h	/^NATNUMP (Lisp_Object x)$/
 NDEBUG	c-src/etags.c	88
@@ -1508,6 +1509,7 @@ XTYPE	c-src/emacs/src/lisp.h	/^XTYPE (Lisp_Object a)$/
 XUNTAG	c-src/emacs/src/lisp.h	/^#  define XUNTAG(a, type) lisp_h_XUNTAG (a, type)$/
 XUNTAG	c-src/emacs/src/lisp.h	/^XUNTAG (Lisp_Object a, int type)$/
 XWINDOW	c-src/emacs/src/lisp.h	/^XWINDOW (Lisp_Object a)$/
+XX	cp-src/x.cc	1
 Y	c-src/h.h	100
 YACC	c-src/etags.c	2199
 YELLOW	cp-src/screen.hpp	26
@@ -2486,6 +2488,7 @@ backslash=0	tex-src/texinfo.tex	/^\\let\\indexbackslash=0  %overridden during \\
 bar	c-src/c.c	/^void bar() {while(0) {}}$/
 bar	c.c	143
 bar	c-src/h.h	19
+bar	cp-src/x.cc	/^XX::bar()$/
 bas_syn	prol-src/natded.prolog	/^bas_syn(n(_)).$/
 base	c-src/emacs/src/lisp.h	2188
 base	cp-src/c.C	/^double base (void) const { return rng_base;  }$/
@@ -2923,6 +2926,7 @@ foo	c-src/h.h	18
 foo	cp-src/c.C	68
 foo	cp-src/c.C	79
 foo	cp-src/c.C	/^    foo() {$/
+foo	cp-src/x.cc	/^XX::foo()$/
 foo	f-src/entry.for	/^       character*(*) function foo()$/
 foo	f-src/entry.strange_suffix	/^       character*(*) function foo()$/
 foo	f-src/entry.strange	/^       character*(*) function foo()$/
@@ -3544,7 +3548,9 @@ not_bol	c-src/emacs/src/regex.h	391
 not_eol	c-src/emacs/src/regex.h	394
 not_single_kboard_state	c-src/emacs/src/keyboard.c	/^not_single_kboard_state (KBOARD *kboard)$/
 notag2	c-src/torture.c	26
+notag2	c-src/dostorture.c	26
 notag4	c-src/torture.c	45
+notag4	c-src/dostorture.c	45
 notinname	c-src/etags.c	/^#define notinname(c)	(_nin[CHAR (c)]) \/* c is not /
 npending	c-src/emacs/src/keyboard.c	7244
 ntool_bar_items	c-src/emacs/src/keyboard.c	7974
@@ -3715,8 +3721,11 @@ post	pyt-src/server.py	/^    def post(self):$/
 post	pyt-src/server.py	/^    def post(self):$/
 pot_etags_version	c-src/etags.c	81
 pp1	c-src/torture.c	/^int pp1($/
+pp1	c-src/dostorture.c	/^int pp1($/
 pp2	c-src/torture.c	/^pp2$/
+pp2	c-src/dostorture.c	/^pp2$/
 pp3	c-src/torture.c	/^pp3(int bar)$/
+pp3	c-src/dostorture.c	/^pp3(int bar)$/
 pp_bas_cat	prol-src/natded.prolog	/^pp_bas_cat(Cat):-$/
 pp_cat	prol-src/natded.prolog	/^pp_cat(Syn:Sem):-$/
 pp_exp	prol-src/natded.prolog	/^pp_exp('NIL'):-$/
@@ -4097,12 +4106,18 @@ tag-re-match-p	el-src/emacs/lisp/progmodes/etags.el	/^(defun tag-re-match-p (re)
 tag-symbol-match-p	el-src/emacs/lisp/progmodes/etags.el	/^(defun tag-symbol-match-p (tag)$/
 tag-word-match-p	el-src/emacs/lisp/progmodes/etags.el	/^(defun tag-word-match-p (tag)$/
 tag1	c-src/torture.c	/^(*tag1 (sig, handler)) ()$/
+tag1	c-src/dostorture.c	/^(*tag1 (sig, handler)) ()$/
 tag1	c-src/h.h	110
 tag2	c-src/torture.c	/^(*tag2 (sig, handler)) ()$/
+tag2	c-src/dostorture.c	/^(*tag2 (sig, handler)) ()$/
 tag3	c-src/torture.c	/^(*tag3 (int sig, void (*handler) (int))) (int)$/
+tag3	c-src/dostorture.c	/^(*tag3 (int sig, void (*handler) (int))) (int)$/
 tag4	c-src/torture.c	/^(*tag4 (int sig, void (*handler) (int))) (int)$/
+tag4	c-src/dostorture.c	/^(*tag4 (int sig, void (*handler) (int))) (int)$/
 tag5	c-src/torture.c	/^tag5 (handler, arg)$/
+tag5	c-src/dostorture.c	/^tag5 (handler, arg)$/
 tag6	c-src/torture.c	/^tag6 (void (*handler) (void *), void *arg)$/
+tag6	c-src/dostorture.c	/^tag6 (void (*handler) (void *), void *arg)$/
 tag_or_ch	c-src/emacs/src/lisp.h	3026
 taggedfname	c-src/etags.c	207
 tags-add-tables	el-src/emacs/lisp/progmodes/etags.el	/^(defcustom tags-add-tables 'ask-user$/

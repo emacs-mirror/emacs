@@ -779,12 +779,12 @@ main (int argc, char **argv)
 	  tem2 = Fsymbol_value (intern_c_string ("emacs-copyright"));
 	  if (!STRINGP (tem))
 	    {
-	      fprintf (stderr, "Invalid value of `emacs-version'\n");
+	      fprintf (stderr, "Invalid value of 'emacs-version'\n");
 	      exit (1);
 	    }
 	  if (!STRINGP (tem2))
 	    {
-	      fprintf (stderr, "Invalid value of `emacs-copyright'\n");
+	      fprintf (stderr, "Invalid value of 'emacs-copyright'\n");
 	      exit (1);
 	    }
 	  else
@@ -1802,7 +1802,7 @@ sort_args (int argc, char **argv)
 		options[from] = standard_args[i].nargs;
 		priority[from] = standard_args[i].priority;
 		if (from + standard_args[i].nargs >= argc)
-		  fatal ("Option `%s' requires an argument\n", argv[from]);
+		  fatal ("Option '%s' requires an argument\n", argv[from]);
 		from += standard_args[i].nargs;
 		goto done;
 	      }
@@ -1839,7 +1839,7 @@ sort_args (int argc, char **argv)
 		  if (equals != 0)
 		    options[from] = 0;
 		  if (from + options[from] >= argc)
-		    fatal ("Option `%s' requires an argument\n", argv[from]);
+		    fatal ("Option '%s' requires an argument\n", argv[from]);
 		  from += options[from];
 		}
 	      /* FIXME When match < 0, shouldn't there be some error,
@@ -2440,7 +2440,10 @@ hpux, irix, usg-unix-v) indicates some sort of Unix system.  */);
   DEFVAR_LISP ("system-configuration-features", Vsystem_configuration_features,
 	       doc: /* String listing some of the main features this Emacs was compiled with.
 An element of the form \"FOO\" generally means that HAVE_FOO was
-defined during the build.  */);
+defined during the build.
+
+This is mainly intended for diagnostic purposes in bug reports.
+Don't rely on it for testing whether a feature you want to use is available.  */);
   Vsystem_configuration_features = build_string (EMACS_CONFIG_FEATURES);
 
   DEFVAR_BOOL ("noninteractive", noninteractive1,

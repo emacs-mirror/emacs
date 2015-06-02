@@ -127,6 +127,12 @@ sign (Unicode code-point @code{U+221E}):
   A numeric argument to @kbd{C-q} or @kbd{C-x 8 @key{RET}} specifies
 how many copies of the character to insert (@pxref{Arguments}).
 
+  In some contexts, if you type a quotation using grave accent and
+apostrophe @t{`like this'}, it is converted to a form @t{‘like this’}
+using single quotation marks.  Similarly, typing a quotation @t{``like
+this''} using double grave accent and apostrophe converts it to a form
+@t{“like this”} using double quotation marks.  @xref{Quotation Marks}.
+
 @node Moving Point
 @section Changing the Location of Point
 

@@ -47,7 +47,7 @@
 
 The difference from the ordinal Thai keyboard:
     ‘฿’ and ‘๏’ are assigned to ‘\\’ and ‘|’ respectively,
-    ‘ฃ’ and ‘ฅ’ are assigned to ‘`’ and ‘~’ respectively,
+    ‘ฃ’ and ‘ฅ’ are assigned to ‘\\=`’ and ‘~’ respectively,
     Don't know where to assign characters ‘๚’ and ‘๛’."
  nil t t t t nil nil nil nil nil t)
 

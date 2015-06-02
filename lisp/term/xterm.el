@@ -34,6 +34,7 @@
   ;; `terminal-init-xterm' as well.
   '(set (const :tag "modifyOtherKeys support" modifyOtherKeys)
         (const :tag "report background" reportBackground)
+        (const :tag "get X selection" getSelection)
         (const :tag "set X selection" setSelection)))
 
 (defcustom xterm-extra-capabilities 'check
@@ -45,7 +46,8 @@ If a list, assume that the listed features are supported, without checking.
 The relevant features are:
   modifyOtherKeys  -- if supported, more key bindings work (e.g., \"\\C-,\")
   reportBackground -- if supported, Xterm reports its background color
-  setSelection     -- if supported, Xterm saves yanked text to the X selection"
+  getSelection     -- if supported, Xterm yanks text from the X selection
+  setSelection     -- if supported, Xterm saves killed text to the X selection"
   :version "24.1"
   :type `(choice (const :tag "Check" check)
                  ,xterm--extra-capabilities-type))
@@ -674,15 +676,19 @@ string bytes that can be copied is 3/4 of this value."
         ;; introduced) or higher, initialize the
         ;; modifyOtherKeys support.
         (when (>= version 216)
-          (terminal-init-xterm-modify-other-keys))
+          (xterm--init-modify-other-keys))
         ;; In version 203 support for accessing the X selection was
         ;; added.  Hterm reports itself as version 256 and supports it
         ;; as well.  gnome-terminal doesn't and is excluded by this
         ;; test.
         (when (>= version 203)
-          (terminal-init-xterm-activate-set-selection))))))
+          ;; Most xterms seem to have it disabled by default, and if it's
+          ;; disabled, C-y will incur a timeout, so we only use it if the user
+          ;; explicitly requests it.
+          ;;(xterm--init-activate-get-selection)
+          (xterm--init-activate-set-selection))))))
 
-(defun xterm--query (query handlers)
+(defun xterm--query (query handlers &optional no-async)
   "Send QUERY string to the terminal and watch for a response.
 HANDLERS is an alist with elements of the form (STRING . FUNCTION).
 We run the first FUNCTION whose STRING matches the input events."
@@ -690,7 +696,7 @@ We run the first FUNCTION whose STRING matches the input events."
   ;; rather annoying (bug#6758).  Maybe we could always use the asynchronous
   ;; approach, but it's less tested.
   ;; FIXME: Merge the two branches.
-  (if (input-pending-p)
+  (if (and (input-pending-p) (not no-async))
       (progn
         (dolist (handler handlers)
           (define-key input-decode-map (car handler)
@@ -758,36 +764,73 @@ We run the first FUNCTION whose STRING matches the input events."
                     '(("\e]11;" .  xterm--report-background-handler))))
 
     (when (memq 'modifyOtherKeys xterm-extra-capabilities)
-      (terminal-init-xterm-modify-other-keys))
+      (xterm--init-modify-other-keys))
 
+    (when (memq 'getSelection xterm-extra-capabilities)
+      (xterm--init-activate-get-selection))
     (when (memq 'setSelection xterm-extra-capabilities)
-      (terminal-init-xterm-activate-set-selection)))
+      (xterm--init-activate-set-selection)))
 
   ;; Unconditionally enable bracketed paste mode: terminals that don't
   ;; support it just ignore the sequence.
-  (terminal-init-xterm-bracketed-paste-mode)
+  (xterm--init-bracketed-paste-mode)
 
   (run-hooks 'terminal-init-xterm-hook))
 
-(defun terminal-init-xterm-modify-other-keys ()
+(defun xterm--init-modify-other-keys ()
   "Terminal initialization for xterm's modifyOtherKeys support."
   (send-string-to-terminal "\e[>4;1m")
   (push "\e[>4m" (terminal-parameter nil 'tty-mode-reset-strings))
   (push "\e[>4;1m" (terminal-parameter nil 'tty-mode-set-strings)))
 
-(defun terminal-init-xterm-bracketed-paste-mode ()
+(defun xterm--init-bracketed-paste-mode ()
   "Terminal initialization for bracketed paste mode."
   (send-string-to-terminal "\e[?2004h")
   (push "\e[?2004l" (terminal-parameter nil 'tty-mode-reset-strings))
   (push "\e[?2004h" (terminal-parameter nil 'tty-mode-set-strings)))
 
-(defun terminal-init-xterm-activate-set-selection ()
+(defun xterm--init-activate-get-selection ()
+  "Terminal initialization for `gui-get-selection'."
+  (set-terminal-parameter nil 'xterm--get-selection t))
+
+(defun xterm--init-activate-set-selection ()
   "Terminal initialization for `gui-set-selection'."
   (set-terminal-parameter nil 'xterm--set-selection t))
 
-;; FIXME: This defines the gui method for all terminals, even tho it only
-;; supports a subset of them.
-(cl-defmethod gui-backend-set-selection (type data &context (window-system (eql nil)))
+(defun xterm--selection-char (type)
+  (pcase type
+    ('PRIMARY "p")
+    ('CLIPBOARD "c")
+    (_ (error "Invalid selection type: %S" type))))
+
+(cl-defmethod gui-backend-get-selection
+    (type data-type
+     &context (window-system (eql nil))
+              ;; Only applies to terminals which have it enabled.
+              ((terminal-parameter nil 'xterm--get-selection) (eql t)))
+  (unless (eq data-type 'STRING)
+    (error "Unsupported data type %S" data-type))
+  (let* ((screen (eq (terminal-parameter nil 'terminal-initted)
+                     'terminal-init-screen))
+         (query (concat "\e]52;" (xterm--selection-char type) ";")))
+    (with-temp-buffer
+      (set-buffer-multibyte nil)
+      (xterm--query
+       (concat (when screen "\eP") query "?\a" (when screen "\e\\"))
+       (list (cons query (lambda ()
+                           (while (let ((char (read-char)))
+                                    (unless (eq char ?\a)
+                                      (insert char)
+                                      t))))))
+       'no-async)
+      (base64-decode-region (point-min) (point-max))
+      (decode-coding-region (point-min) (point-max) 'utf-8-unix t))))
+
+(cl-defmethod gui-backend-set-selection
+    (type data
+     &context (window-system (eql nil))
+              ;; Only applies to terminals which have it enabled.
+              ((terminal-parameter nil 'xterm--set-selection) (eql t)))
   "Copy DATA to the X selection using the OSC 52 escape sequence.
 
 TYPE specifies which selection to set; it must be either
@@ -808,34 +851,24 @@ program.  When inside the screen program, this function also
 chops long DCS sequences into multiple smaller ones to avoid
 hitting screen's max DCS length."
   (let* ((screen (eq (terminal-parameter nil 'terminal-initted)
-                     'terminal-init-screen)))
-    ;; Only do something if the current terminal is actually an XTerm
-    ;; or screen.
-    (when (terminal-parameter nil 'xterm--set-selection)
-      (let* ((bytes (encode-coding-string data 'utf-8-unix))
-             (base-64 (if screen
-                          (replace-regexp-in-string
-                           "\n" "\e\\\eP"
-                           (base64-encode-string bytes)
-                           :fixedcase :literal)
-                        (base64-encode-string bytes :no-line-break)))
-             (length (length base-64)))
-        (if (> length xterm-max-cut-length)
-            (progn
-              (warn "Selection too long to send to terminal: %d bytes" length)
-              (sit-for 2))
-          (send-string-to-terminal
-           (concat
-            (when screen "\eP")
-            "\e]52;"
-            (pcase type
-              ('PRIMARY "p")
-              ('CLIPBOARD "c")
-              (_ (error "Invalid selection type: %S" type)))
-            ";"
-            base-64
-            "\a"
-            (when screen "\e\\"))))))))
+                     'terminal-init-screen))
+         (bytes (encode-coding-string data 'utf-8-unix))
+         (base-64 (if screen
+                      (replace-regexp-in-string
+                       "\n" "\e\\\eP"
+                       (base64-encode-string bytes)
+                       :fixedcase :literal)
+                    (base64-encode-string bytes :no-line-break)))
+         (length (length base-64)))
+    (if (> length xterm-max-cut-length)
+        (progn
+          (warn "Selection too long to send to terminal: %d bytes" length)
+          (sit-for 2))
+      (send-string-to-terminal
+       (concat
+        (when screen "\eP")
+        "\e]52;" (xterm--selection-char type) ";" base-64 "\a"
+        (when screen "\e\\"))))))
 
 (defun xterm-rgb-convert-to-16bit (prim)
   "Convert an 8-bit primary color value PRIM to a corresponding 16-bit value."

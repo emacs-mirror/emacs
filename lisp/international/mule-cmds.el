@@ -177,7 +177,7 @@
 		    "\\(charset\\)"
 		    "\\)\\s-+\\)?"
 		    ;; Note starting with word-syntax character:
-		    "`\\(\\sw\\(\\sw\\|\\s_\\)+\\)'")))
+		    "[`‘]\\(\\sw\\(\\sw\\|\\s_\\)+\\)['’]")))
 
 (defun coding-system-change-eol-conversion (coding-system eol-type)
   "Return a coding system which differs from CODING-SYSTEM in EOL conversion.
@@ -1588,7 +1588,7 @@ which marks the variable `default-input-method' as set for Custom buffers."
 	 (with-output-to-temp-buffer (help-buffer)
 	   (let ((elt (assoc input-method input-method-alist)))
 	     (princ (format
-		     "Input method: %s (`%s' in mode line) for %s\n  %s\n"
+		     "Input method: %s (‘%s’ in mode line) for %s\n  %s\n"
 		     input-method (nth 3 elt) (nth 1 elt) (nth 4 elt))))))))))
 
 (defun describe-current-input-method ()
@@ -2173,10 +2173,11 @@ See `set-language-info-alist' for use in programs."
 	      (search-backward (symbol-name (car l)))
 	      (help-xref-button 0 'help-coding-system (car l))
 	      (goto-char (point-max))
-	      (insert " (`"
+	      (insert " (‘"
 		      (coding-system-mnemonic (car l))
-		      "' in mode line):\n\t"
-		      (coding-system-doc-string (car l))
+		      "’ in mode line):\n\t"
+                      (substitute-command-keys
+                       (coding-system-doc-string (car l)))
 		      "\n")
 	      (let ((aliases (coding-system-aliases (car l))))
 		(when aliases
@@ -2687,14 +2688,22 @@ See also `locale-charset-language-names', `locale-language-names',
 
     ;; On Windows, override locale-coding-system,
     ;; default-file-name-coding-system, keyboard-coding-system,
-    ;; terminal-coding-system with system codepage.
+    ;; terminal-coding-system with the ANSI or console codepage.
     (when (and (eq system-type 'windows-nt)
                (boundp 'w32-ansi-code-page))
-      (let ((code-page-coding (intern (format "cp%d" w32-ansi-code-page))))
+      (let* ((code-page-coding
+              (intern (format "cp%d" (if noninteractive
+                                         (w32-get-console-codepage)
+                                       w32-ansi-code-page))))
+             (output-coding
+              (if noninteractive
+                  (intern (format "cp%d" (w32-get-console-output-codepage)))
+                code-page-coding)))
 	(when (coding-system-p code-page-coding)
+          (or output-coding (setq output-coding code-page-coding))
 	  (unless frame (setq locale-coding-system code-page-coding))
 	  (set-keyboard-coding-system code-page-coding frame)
-	  (set-terminal-coding-system code-page-coding frame)
+	  (set-terminal-coding-system output-coding frame)
 	  (setq default-file-name-coding-system code-page-coding))))
 
     (when (eq system-type 'darwin)

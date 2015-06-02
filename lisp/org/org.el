@@ -16955,12 +16955,12 @@ Allowed values for TYPE are:
 
 When TYPE is nil, fall back on returning a regexp that matches
 both scheduled and deadline timestamps."
-  (cond ((eq type 'all) "\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\(?: +[^]+0-9>\n -]+\\)?\\(?: +[0-9]\\{1,2\\}:[0-9]\\{2\\}\\)?\\)")
+  (cond ((eq type 'all) "\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\(?: +[^]+0-9>\r\n -]+\\)?\\(?: +[0-9]\\{1,2\\}:[0-9]\\{2\\}\\)?\\)")
 	((eq type 'active) org-ts-regexp)
-	((eq type 'inactive) "\\[\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\} ?[^\n>]*?\\)\\]")
+	((eq type 'inactive) "\\[\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\} ?[^\r\n>]*?\\)\\]")
 	((eq type 'scheduled) (concat "\\<" org-scheduled-string " *<\\([^>]+\\)>"))
 	((eq type 'deadline) (concat "\\<" org-deadline-string " *<\\([^>]+\\)>"))
-	((eq type 'closed) (concat org-closed-string " \\[\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\} ?[^\n>]*?\\)\\]"))
+	((eq type 'closed) (concat org-closed-string " \\[\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\} ?[^\r\n>]*?\\)\\]"))
 	((eq type 'scheduled-or-deadline)
 	 (concat "\\<\\(?:" org-deadline-string "\\|" org-scheduled-string "\\) *<\\([^>]+\\)>"))))
 

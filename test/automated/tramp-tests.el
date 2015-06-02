@@ -1523,6 +1523,89 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 	(ignore-errors (delete-directory tmp-name1 'recursive)))))
 
+(ert-deftest tramp-test30-make-auto-save-file-name ()
+  "Check `make-auto-save-file-name'."
+  (skip-unless (tramp--test-enabled))
+
+  (let ((tmp-name1 (tramp--test-make-temp-name))
+	(tmp-name2 (tramp--test-make-temp-name)))
+
+    (unwind-protect
+	(progn
+	  ;; Use default `auto-save-file-name-transforms' mechanism.
+	  (let (tramp-auto-save-directory)
+	    (with-temp-buffer
+	      (setq buffer-file-name tmp-name1)
+	      (should
+	       (string-equal
+		(make-auto-save-file-name)
+		;; This is taken from original `make-auto-save-file-name'.
+		(expand-file-name
+		 (format
+		  "#%s#"
+		  (subst-char-in-string
+		   ?/ ?! (replace-regexp-in-string "!" "!!" tmp-name1)))
+		 temporary-file-directory)))))
+
+	  ;; No mapping.
+	  (let (tramp-auto-save-directory auto-save-file-name-transforms)
+	    (with-temp-buffer
+	      (setq buffer-file-name tmp-name1)
+	      (should
+	       (string-equal
+		(make-auto-save-file-name)
+		(expand-file-name
+		 (format "#%s#" (file-name-nondirectory tmp-name1))
+		 tramp-test-temporary-file-directory)))))
+
+	  ;; Use default `tramp-auto-save-directory' mechanism.
+	  (let ((tramp-auto-save-directory tmp-name2))
+	    (with-temp-buffer
+	      (setq buffer-file-name tmp-name1)
+	      (should
+	       (string-equal
+		(make-auto-save-file-name)
+		;; This is taken from Tramp.
+		(expand-file-name
+		 (format
+		  "#%s#"
+		  (tramp-subst-strs-in-string
+		   '(("_" . "|")
+		     ("/" . "_a")
+		     (":" . "_b")
+		     ("|" . "__")
+		     ("[" . "_l")
+		     ("]" . "_r"))
+		   tmp-name1))
+		 tmp-name2)))
+	      (should (file-directory-p tmp-name2))))
+
+	  ;; Relative file names shall work, too.
+	  (let ((tramp-auto-save-directory "."))
+	    (with-temp-buffer
+	      (setq buffer-file-name tmp-name1
+		    default-directory tmp-name2)
+	      (should
+	       (string-equal
+		(make-auto-save-file-name)
+		;; This is taken from Tramp.
+		(expand-file-name
+		 (format
+		  "#%s#"
+		  (tramp-subst-strs-in-string
+		   '(("_" . "|")
+		     ("/" . "_a")
+		     (":" . "_b")
+		     ("|" . "__")
+		     ("[" . "_l")
+		     ("]" . "_r"))
+		   tmp-name1))
+		 tmp-name2)))
+	      (should (file-directory-p tmp-name2)))))
+
+      (ignore-errors (delete-file tmp-name1))
+      (ignore-errors (delete-directory tmp-name2 'recursive)))))
+
 (defun tramp--test-adb-p ()
   "Check, whether the remote host runs Android.
 This requires restrictions of file name syntax."
@@ -1701,13 +1784,13 @@ This requires restrictions of file name syntax."
    "{foo}bar{baz}"))
 
 ;; These tests are inspired by Bug#17238.
-(ert-deftest tramp-test30-special-characters ()
+(ert-deftest tramp-test31-special-characters ()
   "Check special characters in file names."
   (skip-unless (tramp--test-enabled))
 
   (tramp--test-special-characters))
 
-(ert-deftest tramp-test30-special-characters-with-stat ()
+(ert-deftest tramp-test31-special-characters-with-stat ()
   "Check special characters in file names.
 Use the `stat' command."
   (skip-unless (tramp--test-enabled))
@@ -1726,7 +1809,7 @@ Use the `stat' command."
     (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
       (tramp-set-connection-property v "perl" 'undef))))
 
-(ert-deftest tramp-test30-special-characters-with-perl ()
+(ert-deftest tramp-test31-special-characters-with-perl ()
   "Check special characters in file names.
 Use the `perl' command."
   (skip-unless (tramp--test-enabled))
@@ -1745,7 +1828,7 @@ Use the `perl' command."
     (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
       (tramp-set-connection-property v "stat" 'undef))))
 
-(ert-deftest tramp-test30-special-characters-with-ls ()
+(ert-deftest tramp-test31-special-characters-with-ls ()
   "Check special characters in file names.
 Use the `ls' command."
   (skip-unless (tramp--test-enabled))
@@ -1775,13 +1858,13 @@ Use the `ls' command."
      "银河系漫游指南系列"
      "Автостопом по гала́ктике")))
 
-(ert-deftest tramp-test31-utf8 ()
+(ert-deftest tramp-test32-utf8 ()
   "Check UTF8 encoding in file names and file contents."
   (skip-unless (tramp--test-enabled))
 
   (tramp--test-utf8))
 
-(ert-deftest tramp-test31-utf8-with-stat ()
+(ert-deftest tramp-test32-utf8-with-stat ()
   "Check UTF8 encoding in file names and file contents.
 Use the `stat' command."
   (skip-unless (tramp--test-enabled))
@@ -1800,7 +1883,7 @@ Use the `stat' command."
     (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
       (tramp-set-connection-property v "perl" 'undef))))
 
-(ert-deftest tramp-test31-utf8-with-perl ()
+(ert-deftest tramp-test32-utf8-with-perl ()
   "Check UTF8 encoding in file names and file contents.
 Use the `perl' command."
   (skip-unless (tramp--test-enabled))
@@ -1819,7 +1902,7 @@ Use the `perl' command."
     (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
       (tramp-set-connection-property v "stat" 'undef))))
 
-(ert-deftest tramp-test31-utf8-with-ls ()
+(ert-deftest tramp-test32-utf8-with-ls ()
   "Check UTF8 encoding in file names and file contents.
 Use the `ls' command."
   (skip-unless (tramp--test-enabled))
@@ -1839,7 +1922,7 @@ Use the `ls' command."
       (tramp-set-connection-property v "perl" 'undef))))
 
 ;; This test is inspired by Bug#16928.
-(ert-deftest tramp-test32-asynchronous-requests ()
+(ert-deftest tramp-test33-asynchronous-requests ()
   "Check parallel asynchronous requests.
 Such requests could arrive from timers, process filters and
 process sentinels.  They shall not disturb each other."
@@ -1928,7 +2011,7 @@ process sentinels.  They shall not disturb each other."
       (dolist (buf buffers)
 	(ignore-errors (kill-buffer buf)))))))
 
-(ert-deftest tramp-test33-recursive-load ()
+(ert-deftest tramp-test34-recursive-load ()
   "Check that Tramp does not fail due to recursive load."
   (skip-unless (tramp--test-enabled))
 
@@ -1951,7 +2034,7 @@ process sentinels.  They shall not disturb each other."
 	(mapconcat 'shell-quote-argument load-path " -L ")
 	(shell-quote-argument code)))))))
 
-(ert-deftest tramp-test34-unload ()
+(ert-deftest tramp-test35-unload ()
   "Check that Tramp and its subpackages unload completely.
 Since it unloads Tramp, it shall be the last test to run."
   ;; Mark as failed until all symbols are unbound.
@@ -1991,7 +2074,6 @@ Since it unloads Tramp, it shall be the last test to run."
 ;; * file-ownership-preserved-p
 ;; * file-selinux-context
 ;; * find-backup-file-name
-;; * make-auto-save-file-name
 ;; * set-file-acl
 ;; * set-file-selinux-context
 

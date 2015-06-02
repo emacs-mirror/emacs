@@ -900,9 +900,11 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
   ;; type :: word
   ;; type, stuff :: word
   ;; type, bind(c) :: word
+  ;; type, extends(stuff) :: word
   ;; NOT "type ("
   "\\_<\\(type\\)\\_>\\(?:\\(?:[^()\n]*\\|\
-.*,[ \t]*bind[ \t]*([ \t]*c[ \t]*)[ \t]*\\)::\\)?[ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)"
+.*,[ \t]*\\(?:bind\\|extends\\)[ \t]*(.*)[ \t]*\\)::\\)?\
+[ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)"
   "Regexp matching the definition of a derived type.")
 
 (defconst f90-typeis-re
@@ -1113,7 +1115,7 @@ For fixed format code, use `fortran-mode'.
  indented line.
 \\[f90-indent-subprogram] indents the current subprogram.
 
-Type `? or `\\[help-command] to display a list of built-in\
+Type \\=`? or \\=`\\[help-command] to display a list of built-in\
  abbrevs for F90 keywords.
 
 Key definitions:
@@ -1450,7 +1452,7 @@ if all else fails."
     (not (or (looking-at "end")
              (looking-at "\\(do\\|if\\|else\\(if\\|where\\)?\
 \\|select[ \t]*\\(case\\|type\\)\\|case\\|where\\|forall\\|\
-block\\|critical\\)\\_>")
+block\\|critical\\|enum\\)\\_>")
              (looking-at "\\(program\\|\\(?:sub\\)?module\\|\
 \\(?:abstract[ \t]*\\)?interface\\|block[ \t]*data\\)\\_>")
              (looking-at "\\(contains\\|\\(?:\\sw\\|\\s_\\)+[ \t]*:\\)")
@@ -2267,7 +2269,7 @@ Leave point at the end of line."
 ;; Abbrevs and keywords.
 
 (defun f90-abbrev-start ()
-  "Typing `\\[help-command] or `? lists all the F90 abbrevs.
+  "Typing \\=`\\[help-command] or \\=`? lists all the F90 abbrevs.
 Any other key combination is executed normally."
   (interactive "*")
   (self-insert-command 1)

@@ -904,7 +904,6 @@ syms_of_callint (void)
   DEFSYM (Qhandle_shift_selection, "handle-shift-selection");
   DEFSYM (Qread_number, "read-number");
   DEFSYM (Qfuncall_interactively, "funcall-interactively");
-  DEFSYM (Qcommand_debug_status, "command-debug-status");
   DEFSYM (Qenable_recursive_minibuffers, "enable-recursive-minibuffers");
   DEFSYM (Qmouse_leave_buffer_hook, "mouse-leave-buffer-hook");
 

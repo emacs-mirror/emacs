@@ -6378,7 +6378,6 @@ syms_of_xfaces (void)
   /* Names of basic faces.  */
   DEFSYM (Qdefault, "default");
   DEFSYM (Qtool_bar, "tool-bar");
-  DEFSYM (Qregion, "region");
   DEFSYM (Qfringe, "fringe");
   DEFSYM (Qheader_line, "header-line");
   DEFSYM (Qscroll_bar, "scroll-bar");
@@ -6399,13 +6398,6 @@ syms_of_xfaces (void)
 
   /* The name of the function used to compute colors on TTYs.  */
   DEFSYM (Qtty_color_alist, "tty-color-alist");
-
-  /* Allowed scalable fonts.  A value of nil means don't allow any
-     scalable fonts.  A value of t means allow the use of any scalable
-     font.  Otherwise, value must be a list of regular expressions.  A
-     font may be scaled if its name matches a regular expression in the
-     list.  */
-  DEFSYM (Qscalable_fonts_allowed, "scalable-fonts-allowed");
 
   Vparam_value_alist = list1 (Fcons (Qnil, Qnil));
   staticpro (&Vparam_value_alist);

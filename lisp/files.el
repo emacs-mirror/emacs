@@ -55,7 +55,7 @@ FROM with TO when it appears in a directory name.  This replacement is
 done when setting up the default directory of a newly visited file.
 
 FROM is matched against directory names anchored at the first
-character, so it should start with a \"\\\\`\", or, if directory
+character, so it should start with a \"\\\\\\=`\", or, if directory
 names cannot have embedded newlines, with a \"^\".
 
 FROM and TO should be equivalent names, which refer to the
@@ -4077,80 +4077,75 @@ on the original file; this means that the caller, after saving
 the buffer, should change the extended attributes of the new file
 to agree with the old attributes.
 BACKUPNAME is the backup file name, which is the old file renamed."
-  (if (and make-backup-files (not backup-inhibited)
-	   (not buffer-backed-up)
-	   (file-exists-p buffer-file-name)
-	   (memq (aref (elt (file-attributes buffer-file-name) 8) 0)
-		 '(?- ?l)))
-      (let ((real-file-name buffer-file-name)
-	    backup-info backupname targets setmodes)
+  (when (and make-backup-files (not backup-inhibited) (not buffer-backed-up))
+    (let ((attributes (file-attributes buffer-file-name)))
+      (when (and attributes (memq (aref (elt attributes 8) 0) '(?- ?l)))
 	;; If specified name is a symbolic link, chase it to the target.
-	;; Thus we make the backups in the directory where the real file is.
-	(setq real-file-name (file-chase-links real-file-name))
-	(setq backup-info (find-backup-file-name real-file-name)
-	      backupname (car backup-info)
-	      targets (cdr backup-info))
-	;; (if (file-directory-p buffer-file-name)
-	;;     (error "Cannot save buffer in directory %s" buffer-file-name))
-	(if backup-info
-	    (condition-case ()
-		(let ((delete-old-versions
-		       ;; If have old versions to maybe delete,
-		       ;; ask the user to confirm now, before doing anything.
-		       ;; But don't actually delete til later.
-		       (and targets
-			    (or (eq delete-old-versions t) (eq delete-old-versions nil))
-			    (or delete-old-versions
-				(y-or-n-p (format "Delete excess backup versions of %s? "
-						  real-file-name)))))
-		      (modes (file-modes buffer-file-name))
-		      (extended-attributes
-		       (file-extended-attributes buffer-file-name)))
-		  ;; Actually write the back up file.
-		  (condition-case ()
-		      (if (or file-precious-flag
-    ;			      (file-symlink-p buffer-file-name)
-			      backup-by-copying
-			      ;; Don't rename a suid or sgid file.
-			      (and modes (< 0 (logand modes #o6000)))
-			      (not (file-writable-p (file-name-directory real-file-name)))
-			      (and backup-by-copying-when-linked
-				   (> (file-nlinks real-file-name) 1))
-			      (and (or backup-by-copying-when-mismatch
-				       (integerp backup-by-copying-when-privileged-mismatch))
-				   (let ((attr (file-attributes real-file-name)))
-				     (and (or backup-by-copying-when-mismatch
-					      (and (integerp (nth 2 attr))
-						   (integerp backup-by-copying-when-privileged-mismatch)
-						   (<= (nth 2 attr) backup-by-copying-when-privileged-mismatch)))
-					  (not (file-ownership-preserved-p
-						real-file-name t))))))
-			  (backup-buffer-copy real-file-name
-					      backupname modes
-					      extended-attributes)
-			;; rename-file should delete old backup.
-			(rename-file real-file-name backupname t)
-			(setq setmodes (list modes extended-attributes
-					     backupname)))
-		    (file-error
-		     ;; If trouble writing the backup, write it in
-		     ;; .emacs.d/%backup%.
-		     (setq backupname (locate-user-emacs-file "%backup%~"))
-		     (message "Cannot write backup file; backing up in %s"
-			      backupname)
-		     (sleep-for 1)
-		     (backup-buffer-copy real-file-name backupname
-					 modes extended-attributes)))
-		  (setq buffer-backed-up t)
-		  ;; Now delete the old versions, if desired.
-		  (if delete-old-versions
-		      (while targets
-			(condition-case ()
-			    (delete-file (car targets))
-			  (file-error nil))
-			(setq targets (cdr targets))))
-		  setmodes)
-	    (file-error nil))))))
+	;; This makes backups in the directory where the real file is.
+	(let* ((real-file-name (file-chase-links buffer-file-name))
+	       (backup-info (find-backup-file-name real-file-name)))
+	  (when backup-info
+	    (let* ((backupname (car backup-info))
+		   (targets (cdr backup-info))
+		   (old-versions
+		    ;; If have old versions to maybe delete,
+		    ;; ask the user to confirm now, before doing anything.
+		    ;; But don't actually delete til later.
+		    (and targets
+			 (booleanp delete-old-versions)
+			 (or delete-old-versions
+			     (y-or-n-p
+			      (format "Delete excess backup versions of %s? "
+				      real-file-name)))
+			 targets))
+		   (modes (file-modes buffer-file-name))
+		   (extended-attributes
+		    (file-extended-attributes buffer-file-name))
+		   (copy-when-priv-mismatch
+		    backup-by-copying-when-privileged-mismatch)
+		   (make-copy
+		    (or file-precious-flag backup-by-copying
+			;; Don't rename a suid or sgid file.
+			(and modes (< 0 (logand modes #o6000)))
+			(not (file-writable-p
+			      (file-name-directory real-file-name)))
+			(and backup-by-copying-when-linked
+			     (< 1 (file-nlinks real-file-name)))
+			(and (or backup-by-copying-when-mismatch
+				 (and (integerp copy-when-priv-mismatch)
+				      (let ((attr (file-attributes
+						   real-file-name
+						   'integer)))
+					(<= (nth 2 attr)
+					    copy-when-priv-mismatch))))
+			     (not (file-ownership-preserved-p real-file-name
+							      t)))))
+		   setmodes)
+	      (condition-case ()
+		  (progn
+		    ;; Actually make the backup file.
+		    (if make-copy
+			(backup-buffer-copy real-file-name backupname
+					    modes extended-attributes)
+		      ;; rename-file should delete old backup.
+		      (rename-file real-file-name backupname t)
+		      (setq setmodes (list modes extended-attributes
+					   backupname)))
+		    (setq buffer-backed-up t)
+		    ;; Now delete the old versions, if desired.
+		    (dolist (old-version old-versions)
+		      (delete-file old-version)))
+		(file-error nil))
+	      ;; If trouble writing the backup, write it in .emacs.d/%backup%.
+	      (when (not buffer-backed-up)
+		(setq backupname (locate-user-emacs-file "%backup%~"))
+		(message "Cannot write backup file; backing up in %s"
+			 backupname)
+		(sleep-for 1)
+		(backup-buffer-copy real-file-name backupname
+				    modes extended-attributes)
+		(setq buffer-backed-up t))
+	      setmodes)))))))
 
 (defun backup-buffer-copy (from-name to-name modes extended-attributes)
   ;; Create temp files with strict access rights.  It's easy to

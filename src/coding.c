@@ -10828,18 +10828,11 @@ syms_of_coding (void)
   /* Target SERVICE is the fourth argument.  */
   Fput (Qopen_network_stream, Qtarget_idx, make_number (3));
 
-  DEFSYM (Qcoding_system, "coding-system");
-  DEFSYM (Qcoding_aliases, "coding-aliases");
-
-  DEFSYM (Qeol_type, "eol-type");
   DEFSYM (Qunix, "unix");
   DEFSYM (Qdos, "dos");
   DEFSYM (Qmac, "mac");
 
   DEFSYM (Qbuffer_file_coding_system, "buffer-file-coding-system");
-  DEFSYM (Qpost_read_conversion, "post-read-conversion");
-  DEFSYM (Qpre_write_conversion, "pre-write-conversion");
-  DEFSYM (Qdefault_char, "default-char");
   DEFSYM (Qundecided, "undecided");
   DEFSYM (Qno_conversion, "no-conversion");
   DEFSYM (Qraw_text, "raw-text");
@@ -10873,10 +10866,6 @@ syms_of_coding (void)
   DEFSYM (Qtranslation_table, "translation-table");
   Fput (Qtranslation_table, Qchar_table_extra_slots, make_number (2));
   DEFSYM (Qtranslation_table_id, "translation-table-id");
-  DEFSYM (Qtranslation_table_for_decode, "translation-table-for-decode");
-  DEFSYM (Qtranslation_table_for_encode, "translation-table-for-encode");
-
-  DEFSYM (Qvalid_codes, "valid-codes");
 
   /* Coding system emacs-mule and raw-text are for converting only
      end-of-line format.  */
@@ -11132,7 +11121,8 @@ See also the function `find-operation-coding-system'.  */);
 
   DEFVAR_LISP ("locale-coding-system", Vlocale_coding_system,
 	       doc: /* Coding system to use with system messages.
-Also used for decoding keyboard input on X Window system.  */);
+Also used for decoding keyboard input on X Window system, and for
+encoding standard output and error streams.  */);
   Vlocale_coding_system = Qnil;
 
   /* The eol mnemonics are reset in startup.el system-dependently.  */

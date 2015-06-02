@@ -4059,7 +4059,6 @@ extern bool let_shadows_global_binding_p (Lisp_Object symbol);
 
 /* Defined in editfns.c.  */
 extern void insert1 (Lisp_Object);
-extern Lisp_Object format2 (const char *, Lisp_Object, Lisp_Object);
 extern Lisp_Object save_excursion_save (void);
 extern Lisp_Object save_restriction_save (void);
 extern void save_excursion_restore (Lisp_Object);

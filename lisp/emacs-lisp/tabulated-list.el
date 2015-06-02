@@ -327,7 +327,8 @@ changing `tabulated-list-sort-key'."
 	 (setq entry-id (tabulated-list-get-id))
 	 (setq saved-col (current-column)))
     ;; Sort the entries, if necessary.
-    (setq entries (sort entries sorter))
+    (when sorter
+      (setq entries (sort entries sorter)))
     (unless (functionp tabulated-list-entries)
       (setq tabulated-list-entries entries))
     ;; Without a sorter, we have no way to just update.

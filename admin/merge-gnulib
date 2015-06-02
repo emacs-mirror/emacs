@@ -34,7 +34,7 @@ GNULIB_MODULES='
   getloadavg getopt-gnu gettime gettimeofday gitlog-to-changelog
   intprops largefile lstat
   manywarnings memrchr mkostemp mktime
-  pipe2 pselect pthread_sigmask putenv qacl readlink readlinkat
+  pipe2 pselect pthread_sigmask putenv qcopy-acl readlink readlinkat
   sig2str socklen stat-time stdalign stddef stdio
   stpcpy strftime strtoimax strtoumax symlink sys_stat
   sys_time time time_r timer-time timespec-add timespec-sub

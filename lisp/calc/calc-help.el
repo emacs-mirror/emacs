@@ -365,21 +365,23 @@ C-w  Describe how there is no warranty for Calc."
     (let (Info-history)
       (Info-goto-node (buffer-substring (match-beginning 1) (match-end 1))))
     (or (let ((case-fold-search nil))
-	  (or (re-search-forward (format "\\[`%s'\\]\\|(`%s')\\|\\<The[ \n]`%s'"
-                                         (or target (regexp-quote thing))
-                                         (or target (regexp-quote thing))
-                                         (or target (regexp-quote thing))) nil t)
+	  (or (re-search-forward
+               (format "\\[[`‘]%s['’]\\]\\|([`‘]%s['’])\\|\\<The[ \n][`‘]%s['’]"
+                       (or target (regexp-quote thing))
+                       (or target (regexp-quote thing))
+                       (or target (regexp-quote thing))) nil t)
 	      (and not-quoted
 		   (let ((case-fold-search t))
 		     (search-forward (or target thing) nil t)))
-	      (search-forward (format "`%s'" (or target thing)) nil t)
+	      (search-forward (format "[`‘]%s['’]" (or target thing)) nil t)
 	      (search-forward (or target thing) nil t)))
 	(let ((case-fold-search t))
-	  (or (re-search-forward (format "\\[`%s'\\]\\|(`%s')\\|\\<The[ \n]`%s'"
-                                         (or target (regexp-quote thing))
-                                         (or target (regexp-quote thing))
-                                         (or target (regexp-quote thing))) nil t)
-	      (search-forward (format "`%s'" (or target thing)) nil t)
+	  (or (re-search-forward
+               (format "\\[[`‘]%s['’]\\]\\|([`‘]%s['’])\\|\\<The[ \n][`‘]%s['’]"
+                       (or target (regexp-quote thing))
+                       (or target (regexp-quote thing))
+                       (or target (regexp-quote thing))) nil t)
+	      (search-forward (format "[`‘]%s['’]" (or target thing)) nil t)
 	      (search-forward (or target thing) nil t))))
     (beginning-of-line)
     (message "Found `%s' in %s" thing where)))

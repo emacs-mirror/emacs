@@ -876,11 +876,11 @@ Can only be used from within the lexical body of a primary or around method."
                                    (cl--generic-method-specializers method)))
                    (file (find-lisp-object-file-name met-name 'cl-defmethod)))
               (when file
-                (insert " in `")
+                (insert " in ‘")
                 (help-insert-xref-button (help-fns-short-filename file)
                                          'help-function-def met-name file
                                          'cl-defmethod)
-                (insert "'.\n")))
+                (insert "’.\n")))
             (insert "\n" (or (nth 2 info) "Undocumented") "\n\n")))))))
 
 ;;; Support for (head <val>) specializers.

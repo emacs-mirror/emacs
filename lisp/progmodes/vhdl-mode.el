@@ -8270,7 +8270,7 @@ case fixing to a region.  Calls functions `vhdl-indent-buffer',
   (setq end (save-excursion (goto-char end) (point-marker)))
   (save-excursion ; remove DOS EOL characters in UNIX file
     (goto-char beg)
-    (while (search-forward "" nil t)
+    (while (search-forward "\r" nil t)
       (replace-match "" nil t)))
   (when (nth 0 vhdl-beautify-options) (vhdl-fixup-whitespace-region beg end t))
   (when (nth 1 vhdl-beautify-options) (vhdl-fix-statement-region beg end))

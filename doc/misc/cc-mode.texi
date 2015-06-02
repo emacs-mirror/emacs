@@ -7173,11 +7173,12 @@ configuration.  In that case, we'd appreciate it if you isolate the
 Emacs Lisp code that triggers the bug and include it in your report.
 
 @cindex bug report mailing list
-Bug reports should be sent to @email{bug-cc-mode@@gnu.org}.  You can
-also send other questions and suggestions (kudos?@: @t{;-)} to that
-address.  It's a mailing list which you can join or browse an archive
-of; see the web site at @uref{http://cc-mode.sourceforge.net/} for
-further details.
+Reporting a bug using @code{c-submit-bug-report} files it in
+the GNU Bug Tracker at @url{http://debbugs.gnu.org}, then sends it on
+to @email{bug-cc-mode@@gnu.org}.  You can also send reports, other
+questions, and suggestions (kudos?@: @t{;-)} to that address.  It's a
+mailing list which you can join or browse an archive of; see the web site at
+@uref{http://cc-mode.sourceforge.net/} for further details.
 
 @cindex announcement mailing list
 If you want to get announcements of new @ccmode{} releases, send the

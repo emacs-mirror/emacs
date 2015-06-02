@@ -1811,8 +1811,8 @@ barf_or_query_if_file_exists (Lisp_Object absname, bool known_to_exist,
 	xsignal2 (Qfile_already_exists,
 		  build_string ("File already exists"), absname);
       GCPRO1 (absname);
-      tem = format2 ("File %s already exists; %s anyway? ",
-		     absname, build_string (querystring));
+      AUTO_STRING (format, "File %s already exists; %s anyway? ");
+      tem = CALLN (Fformat, format, absname, build_string (querystring));
       if (quick)
 	tem = call1 (intern ("y-or-n-p"), tem);
       else
@@ -1871,8 +1871,6 @@ permissions.  */)
   bool already_exists = false;
   mode_t new_mask;
   int ifd, ofd;
-  int n;
-  char buf[16 * 1024];
   struct stat st;
 #endif
 
@@ -1974,6 +1972,8 @@ permissions.  */)
 
   record_unwind_protect_int (close_file_unwind, ofd);
 
+  off_t oldsize = 0, newsize = 0;
+
   if (already_exists)
     {
       struct stat out_st;
@@ -1982,15 +1982,31 @@ permissions.  */)
       if (st.st_dev == out_st.st_dev && st.st_ino == out_st.st_ino)
 	report_file_errno ("Input and output files are the same",
 			   list2 (file, newname), 0);
-      if (ftruncate (ofd, 0) != 0)
-	report_file_error ("Truncating output file", newname);
+      if (S_ISREG (out_st.st_mode))
+	oldsize = out_st.st_size;
     }
 
   immediate_quit = 1;
   QUIT;
-  while ((n = emacs_read (ifd, buf, sizeof buf)) > 0)
-    if (emacs_write_sig (ofd, buf, n) != n)
-      report_file_error ("Write error", newname);
+  while (true)
+    {
+      char buf[MAX_ALLOCA];
+      ptrdiff_t n = emacs_read (ifd, buf, sizeof buf);
+      if (n < 0)
+	report_file_error ("Read error", file);
+      if (n == 0)
+	break;
+      if (emacs_write_sig (ofd, buf, n) != n)
+	report_file_error ("Write error", newname);
+      newsize += n;
+    }
+
+  /* Truncate any existing output file after writing the data.  This
+     is more likely to work than truncation before writing, if the
+     file system is out of space or the user is over disk quota.  */
+  if (newsize < oldsize && ftruncate (ofd, newsize) != 0)
+    report_file_error ("Truncating output file", newname);
+
   immediate_quit = 0;
 
 #ifndef MSDOS
@@ -5803,7 +5819,6 @@ syms_of_fileio (void)
   DEFSYM (Qcopy_file, "copy-file");
   DEFSYM (Qmake_directory_internal, "make-directory-internal");
   DEFSYM (Qmake_directory, "make-directory");
-  DEFSYM (Qdelete_directory_internal, "delete-directory-internal");
   DEFSYM (Qdelete_file, "delete-file");
   DEFSYM (Qrename_file, "rename-file");
   DEFSYM (Qadd_name_to_file, "add-name-to-file");

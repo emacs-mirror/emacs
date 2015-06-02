@@ -41,7 +41,7 @@
              | postfix | examples
  ------------+---------+----------
   acute      |    '    | a' -> á
-  grave      |    `    | a` -> à
+  grave      |    \\=`    | a\\=` -> à
   circumflex |    ^    | a^ -> â
   diaeresis  |    \"    | a\" -> ä
   tilde      |    ~    | a~ -> ã
@@ -390,7 +390,7 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
              | postfix | examples
  ------------+---------+----------
   acute      |    '    | a' -> á
-  grave      |    `    | a` -> à
+  grave      |    \\=`    | a\\=` -> à
   circumflex |    ^    | a^ -> â
   diaeresis  |    \"    | a\" -> ä
   dot        |    .    | c. -> ċ   i. -> ı   I. -> İ
@@ -746,7 +746,7 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
              | postfix | examples
  ------------+---------+----------
   acute      |    '    | a' -> á
-  grave      |    `    | a` -> à
+  grave      |    \\=`    | a\\=` -> à
   circumflex |    ^    | a^ -> â
   diaeresis  |    \"    | a\" -> ä
   tilde      |    ~    | a~ -> ã
@@ -1005,8 +1005,8 @@ OEE -> OE
  "french-postfix" "French" "FR<" t
  "French (Français) input method with postfix modifiers
 
-` pour grave, ' pour aigu, ^ pour circonflexe, et \" pour tréma.
-Par exemple: a` -> à   e' -> é.
+\\=` pour grave, ' pour aigu, ^ pour circonflexe, et \" pour tréma.
+Par exemple: a\\=` -> à   e' -> é.
 
 Ç, «, et » sont produits par C,, <<, et >>.
 
@@ -1117,7 +1117,7 @@ szz -> sz
  ("aue" ["aue"])
  ("Aue" ["Aue"])
  ("que" ["que"])
- ("Que" ["Que"]) 
+ ("Que" ["Que"])
 )
 
 (quail-define-package
@@ -1186,15 +1186,15 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  "italian-postfix" "Latin-1" "IT<" t
  "Italian (Italiano) input method with postfix modifiers
 
-a` -> à    A` -> À    e' -> é    << -> «
-e` -> è    E` -> È    E' -> É    >> -> »
-i` -> ì    I` -> Ì               o_ -> º
-o` -> ò    O` -> Ò               a_ -> ª
-u` -> ù    U` -> Ù
+a\\=` -> à    A\\=` -> À    e' -> é    << -> «
+e\\=` -> è    E\\=` -> È    E' -> É    >> -> »
+i\\=` -> ì    I\\=` -> Ì               o_ -> º
+o\\=` -> ò    O\\=` -> Ò               a_ -> ª
+u\\=` -> ù    U\\=` -> Ù
 
 Typewriter-style italian characters.
 
-Doubling the postfix separates the letter and postfix: e.g. a`` -> a`
+Doubling the postfix separates the letter and postfix: e.g. a\\=`\\=` -> a\\=`
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -2090,7 +2090,7 @@ of characters from a single Latin-N charset.
              | postfix | examples
  ------------+---------+----------
   acute      |    '    | a' -> á
-  grave      |    `    | a` -> à
+  grave      |    \\=`    | a\\=` -> à
   circumflex |    ^    | a^ -> â
   diaeresis  |    \"    | a\" -> ä
   tilde      |    ~    | a~ -> ã

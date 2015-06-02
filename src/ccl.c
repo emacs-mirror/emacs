@@ -2283,10 +2283,6 @@ syms_of_ccl (void)
   DEFSYM (Qccl, "ccl");
   DEFSYM (Qcclp, "cclp");
 
-  /* This symbol is a property which associates with ccl program vector.
-     Ex: (get 'ccl-big5-encoder 'ccl-program) returns ccl program vector.  */
-  DEFSYM (Qccl_program, "ccl-program");
-
   /* Symbols of ccl program have this property, a value of the property
      is an index for Vccl_program_table. */
   DEFSYM (Qccl_program_idx, "ccl-program-idx");

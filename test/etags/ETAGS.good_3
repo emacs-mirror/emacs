@@ -648,6 +648,19 @@ char			**tab_fill(tab_fill70,1129
 int			tab_delete_first(91,1638
 int			tab_count_words(103,1820
 
+c-src/dostorture.c,198
+(*tag1 tag118,468
+#define notag2 26,577
+(*tag2 tag229,657
+(*tag3 tag339,809
+#define notag4 45,904
+(*tag4 tag448,1001
+tag5 57,1136
+tag6 66,1272
+int pp1(74,1389
+pp287,1504
+pp3(100,1616
+
 c-src/emacs/src/gmalloc.c,4207
 #define USE_PTHREAD25,1002
 #undef get_current_dir_name33,1126
@@ -2186,54 +2199,60 @@ class AU 53,1716
 class AU { T x;53,1716
 class B<B54,1735
 class B<int> { void f(54,1735
-const A::B::T& abt 55,1765
-class A 56,1791
-class A { class B 56,1791
-class A 57,1826
-  A operator+(59,1860
-is_muldiv_operation(61,1887
-domain foo 68,1955
-     void f(69,1968
-void A::A(A72,1989
-struct A 73,2004
-struct B 74,2022
-void B::B(B75,2041
-void BE_Node::BE_Node(BE_Node76,2056
-class BE_Node 77,2083
-struct foo 79,2102
-  int x;80,2115
-class test 86,2156
-  int f(87,2169
-  int ff(89,2231
-  int g(90,2254
-class	AST_Root 92,2278
-AST_ConcreteType::AST_ConcreteType(99,2393
-AST_Array::AST_Array(107,2532
-     void f(115,2733
-struct A 117,2753
-A::~A(~A120,2777
-struct B 122,2789
-    ~B(123,2800
-enum {dog,dog126,2817
-enum {dog, cat}cat126,2817
-enum {dog, cat} animals;126,2817
-struct {int teats;127,2842
-struct {int teats;} cow;127,2842
-class Boo 129,2868
-    enum {dog,dog130,2880
-    enum {dog, cat}cat130,2880
-    enum {dog, cat} animals;130,2880
-    struct {int treats;131,2909
-    struct {int treats;} cow;131,2909
-    int i,132,2939
-    int i,a,132,2939
-    int i,a,b;132,2939
-    foo(133,2954
-    Boo(137,2995
-Boo::Boo(141,3070
-typedef int should_see_this_one_enclosed_in_extern_C;149,3155
-typedef int (*should_see_this_function_pointer)should_see_this_function_pointer153,3228
-typedef int should_see_this_array_type[should_see_this_array_type156,3310
+const A::B::T& abt 55,1766
+class A 56,1792
+class A { class B 56,1792
+class A 57,1827
+  A operator+(59,1861
+is_muldiv_operation(61,1888
+domain foo 68,1956
+     void f(69,1969
+void A::A(A72,1990
+struct A 73,2005
+struct B 74,2023
+void B::B(B75,2042
+void BE_Node::BE_Node(BE_Node76,2057
+class BE_Node 77,2084
+struct foo 79,2103
+  int x;80,2116
+class test 86,2157
+  int f(87,2170
+  int ff(89,2232
+  int g(90,2255
+class	AST_Root 92,2279
+AST_ConcreteType::AST_ConcreteType(99,2394
+AST_Array::AST_Array(107,2533
+     void f(115,2734
+struct A 117,2754
+A::~A(~A120,2778
+struct B 122,2790
+    ~B(123,2801
+enum {dog,dog126,2818
+enum {dog, cat}cat126,2818
+enum {dog, cat} animals;126,2818
+struct {int teats;127,2843
+struct {int teats;} cow;127,2843
+class Boo 129,2869
+    enum {dog,dog130,2881
+    enum {dog, cat}cat130,2881
+    enum {dog, cat} animals;130,2881
+    struct {int treats;131,2910
+    struct {int treats;} cow;131,2910
+    int i,132,2940
+    int i,a,132,2940
+    int i,a,b;132,2940
+    foo(133,2955
+    Boo(137,2996
+Boo::Boo(141,3071
+typedef int should_see_this_one_enclosed_in_extern_C;149,3156
+typedef int (*should_see_this_function_pointer)should_see_this_function_pointer153,3229
+typedef int should_see_this_array_type[should_see_this_array_type156,3311
+
+cp-src/x.cc,63
+class XX1,0
+XX::foo(foo9,60
+XX::bar(bar15,95
+main(21,126
 
 cp-src/burton.cpp,124
 ::dummy::dummy test::dummy1(dummy11,0
@@ -2595,15 +2614,15 @@ Comunicati e iniziative32,976
 Ultime notizie dall'associazione63,2030
 
 html-src/algrthms.html,467
-Tutorial on Convolutional Coding with Viterbi Decoding--Description of the Data Generation, Convolutional Encoding, Channel Mapping and AWGN, and Quantizing Algorithms7,271
-Descriptionalgorithms10,472
-Generating the Datagenalgorithm48,1948
-Convolutionallyconalgorithm55,2458
-Nextstatetable262,11326
-Outputoutputtable350,13566
-Mapping the Channel Symbolsmapping433,15781
-Adding Noise to theaddnoise439,16169
-Quantizing the Receivedquantizing469,18632
+Tutorial on Convolutional Coding with Viterbi Decoding--Description of the Data Generation, Convolutional Encoding, Channel Mapping and AWGN, and Quantizing Algorithms7,277
+Descriptionalgorithms10,481
+Generating the Datagenalgorithm48,1995
+Convolutionallyconalgorithm55,2512
+Nextstatetable262,11587
+Outputoutputtable350,13915
+Mapping the Channel Symbolsmapping433,16213
+Adding Noise to theaddnoise439,16607
+Quantizing the Receivedquantizing469,19100
 
 html-src/software.html,439
 Francesco Potortì Software Page9,280

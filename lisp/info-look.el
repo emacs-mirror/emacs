@@ -613,8 +613,8 @@ Return nil if there is nothing appropriate in the buffer near point."
   (condition-case nil
       (save-excursion
 	(let ((case-fold-search t)
-	      (ignored-chars "][()`',:.\" \t\n")
-	      (significant-chars "^][()`',:.\" \t\n")
+	      (ignored-chars "][()`'‘’,:.\" \t\n")
+	      (significant-chars "^][()`'‘’,:.\" \t\n")
 	      beg end)
 	  (cond
 	   ((and (memq (get-char-property (point) 'face)
@@ -899,7 +899,7 @@ Return nil if there is nothing appropriate in the buffer near point."
 
 (info-lookup-maybe-add-help
  :mode 'emacs-lisp-mode
- :regexp "[^][()`',\" \t\n]+"
+ :regexp "[^][()`'‘’,\" \t\n]+"
  :doc-spec '(;; Commands with key sequences appear in nodes as `foo' and
              ;; those without as `M-x foo'.
              ("(emacs)Command Index"  nil "['`‘]\\(M-x[ \t\n]+\\)?" "['’]")
@@ -917,24 +917,24 @@ Return nil if there is nothing appropriate in the buffer near point."
 ;; docstrings talk about elisp, so have apropos-mode follow emacs-lisp-mode
 (info-lookup-maybe-add-help
  :mode 'apropos-mode
- :regexp "[^][()`',\" \t\n]+" ;; same as emacs-lisp-mode above
+ :regexp "[^][()`'‘’,\" \t\n]+" ;; same as emacs-lisp-mode above
  :other-modes '(emacs-lisp-mode))
 
 (info-lookup-maybe-add-help
  :mode 'lisp-interaction-mode
- :regexp "[^][()`',\" \t\n]+"
+ :regexp "[^][()`'‘’,\" \t\n]+"
  :parse-rule 'ignore
  :other-modes '(emacs-lisp-mode))
 
 (info-lookup-maybe-add-help
  :mode 'lisp-mode
- :regexp "[^()`',\" \t\n]+"
+ :regexp "[^()`'‘’,\" \t\n]+"
  :parse-rule 'ignore
  :other-modes '(emacs-lisp-mode))
 
 (info-lookup-maybe-add-help
  :mode 'scheme-mode
- :regexp "[^()`',\" \t\n]+"
+ :regexp "[^()`'‘’,\" \t\n]+"
  :ignore-case t
  ;; Aubrey Jaffer's rendition from <URL:ftp://ftp-swiss.ai.mit.edu/pub/scm>
  :doc-spec '(("(r5rs)Index" nil
@@ -1041,13 +1041,13 @@ Return nil if there is nothing appropriate in the buffer near point."
 (info-lookup-maybe-add-help
  :mode 'Custom-mode
  :ignore-case t
- :regexp "[^][()`',:\" \t\n]+"
+ :regexp "[^][()`'‘’,:\" \t\n]+"
  :parse-rule 'info-lookup-guess-custom-symbol
  :other-modes '(emacs-lisp-mode))
 
 (info-lookup-maybe-add-help
  :mode 'help-mode
- :regexp "[^][()`',:\" \t\n]+"
+ :regexp "[^][()`'‘’,:\" \t\n]+"
  :other-modes '(emacs-lisp-mode))
 
 (provide 'info-look)

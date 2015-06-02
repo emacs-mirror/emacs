@@ -439,14 +439,13 @@ w32font_text_extents (struct font *font, unsigned *code,
   int total_width = 0;
   WORD *wcode;
   SIZE size;
+  bool first;
 
   struct w32font_info *w32_font = (struct w32font_info *) font;
 
   memset (metrics, 0, sizeof (struct font_metrics));
-  metrics->ascent = font->ascent;
-  metrics->descent = font->descent;
 
-  for (i = 0; i < nglyphs; i++)
+  for (i = 0, first = true; i < nglyphs; i++)
     {
       struct w32_metric_cache *char_metric;
       int block = *(code + i) / CACHE_BLOCKSIZE;
@@ -495,11 +494,24 @@ w32font_text_extents (struct font *font, unsigned *code,
 
       if (char_metric->status == W32METRIC_SUCCESS)
 	{
-	  metrics->lbearing = min (metrics->lbearing,
-				   metrics->width + char_metric->lbearing);
-	  metrics->rbearing = max (metrics->rbearing,
-				   metrics->width + char_metric->rbearing);
+	  if (first)
+	    {
+	      metrics->lbearing = char_metric->lbearing;
+	      metrics->rbearing = char_metric->rbearing;
+	      metrics->width    = 0;
+	      metrics->ascent   = char_metric->ascent;
+	      metrics->descent  = char_metric->descent;
+	      first = false;
+	    }
+	  if (metrics->lbearing > char_metric->lbearing)
+	    metrics->lbearing = char_metric->lbearing;
+	  if (metrics->rbearing < char_metric->rbearing)
+	    metrics->rbearing = char_metric->rbearing;
 	  metrics->width += char_metric->width;
+	  if (metrics->ascent < char_metric->ascent)
+	    metrics->ascent = char_metric->ascent;
+	  if (metrics->descent < char_metric->descent)
+	    metrics->descent = char_metric->descent;
 	}
       else
 	/* If we couldn't get metrics for a char,
@@ -574,6 +586,8 @@ w32font_text_extents (struct font *font, unsigned *code,
   metrics->width = total_width - w32_font->metrics.tmOverhang;
   metrics->lbearing = 0;
   metrics->rbearing = total_width;
+  metrics->ascent = font->ascent;
+  metrics->descent = font->descent;
 
   /* Restore state and release DC.  */
   SelectObject (dc, old_font);
@@ -2415,6 +2429,8 @@ compute_metrics (HDC dc, struct w32font_info *w32_font, unsigned int code,
       metrics->lbearing = gm.gmptGlyphOrigin.x;
       metrics->rbearing = gm.gmptGlyphOrigin.x + gm.gmBlackBoxX;
       metrics->width = gm.gmCellIncX;
+      metrics->ascent = gm.gmptGlyphOrigin.y;
+      metrics->descent = gm.gmBlackBoxY - gm.gmptGlyphOrigin.y;
       metrics->status = W32METRIC_SUCCESS;
     }
   else if (get_char_width_32_w (dc, code, code, &width) != 0)
@@ -2422,6 +2438,8 @@ compute_metrics (HDC dc, struct w32font_info *w32_font, unsigned int code,
       metrics->lbearing = 0;
       metrics->rbearing = width;
       metrics->width = width;
+      metrics->ascent = w32_font->font.ascent;
+      metrics->descent = w32_font->font.descent;
       metrics->status = W32METRIC_SUCCESS;
     }
   else

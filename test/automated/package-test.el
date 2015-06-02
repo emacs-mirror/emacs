@@ -393,8 +393,8 @@ Must called from within a `tar-mode' buffer."
      (describe-package 'simple-single)
      (goto-char (point-min))
      (should (search-forward "simple-single is an installed package." nil t))
-     (should (search-forward
-              "Status: Installed in `~/simple-single-1.3/' (unsigned)."
+     (should (re-search-forward
+              "Status: Installed in [`‘]~/simple-single-1.3/['’] (unsigned)."
               nil t))
      (should (search-forward "Version: 1.3" nil t))
      (should (search-forward "Summary: A single-file package with no dependencies"
@@ -466,8 +466,8 @@ Must called from within a `tar-mode' buffer."
        (goto-char (point-min))
        (should (re-search-forward "signed-good is an? \\(\\S-+\\) package." nil t))
        (should (string-equal (match-string-no-properties 1) "installed"))
-       (should (search-forward
-		"Status: Installed in `~/signed-good-1.0/'."
+       (should (re-search-forward
+		"Status: Installed in [`‘]~/signed-good-1.0/['’]."
 		nil t))))))
 
 

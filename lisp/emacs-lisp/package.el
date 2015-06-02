@@ -587,9 +587,10 @@ updates `package-alist'."
   (dolist (dir (cons package-user-dir package-directory-list))
     (when (file-directory-p dir)
       (dolist (subdir (directory-files dir))
-        (let ((pkg-dir (expand-file-name subdir dir)))
-          (when (file-directory-p pkg-dir)
-            (package-load-descriptor pkg-dir)))))))
+        (unless (equal subdir "..")
+          (let ((pkg-dir (expand-file-name subdir dir)))
+            (when (file-directory-p pkg-dir)
+              (package-load-descriptor pkg-dir))))))))
 
 (defun define-package (_name-string _version-string
                                     &optional _docstring _requirements
@@ -2137,17 +2138,17 @@ will be deleted."
                                    "Installed"
                                  (capitalize status)) ;FIXME: Why comment-face?
                                'font-lock-face 'font-lock-comment-face))
-           (insert " in `")
+           (insert " in ‘")
            ;; Todo: Add button for uninstalling.
            (help-insert-xref-button (abbreviate-file-name
                                      (file-name-as-directory pkg-dir))
                                     'help-package-def pkg-dir)
            (if (and (package-built-in-p name)
                     (not (package-built-in-p name version)))
-               (insert "',\n             shadowing a "
+               (insert "’,\n             shadowing a "
                        (propertize "built-in package"
                                    'font-lock-face 'font-lock-builtin-face))
-             (insert "'"))
+             (insert "’"))
            (if signed
                (insert ".")
              (insert " (unsigned)."))
@@ -2811,7 +2812,7 @@ The full list of keys can be viewed with \\[describe-mode]."
 
 (defun package-menu-get-status ()
   (let* ((id (tabulated-list-get-id))
-         (entry (and id (assq id tabulated-list-entries))))
+         (entry (and id (assoc id tabulated-list-entries))))
     (if entry
         (aref (cadr entry) 2)
       "")))
@@ -2855,15 +2856,15 @@ consideration."
              (push (cons name avail-pkg) upgrades))))
     upgrades))
 
-(defun package-menu-mark-upgrades ()
+(defvar package-menu--mark-upgrades-pending nil
+  "Whether mark-upgrades is waiting for a refresh to finish.")
+
+(defun package-menu--mark-upgrades-1 ()
   "Mark all upgradable packages in the Package Menu.
-For each installed package with a newer version available, place
-an (I)nstall flag on the available version and a (D)elete flag on
-the installed version.  A subsequent \\[package-menu-execute]
-call will upgrade the package."
-  (interactive)
+Implementation of `package-menu-mark-upgrades'."
   (unless (derived-mode-p 'package-menu-mode)
     (error "The current buffer is not a Package Menu"))
+  (setq package-menu--mark-upgrades-pending nil)
   (let ((upgrades (package-menu--find-upgrades)))
     (if (null upgrades)
         (message "No packages to upgrade.")
@@ -2880,8 +2881,24 @@ call will upgrade the package."
                   (t
                    (package-menu-mark-delete))))))
       (message "%d package%s marked for upgrading."
-               (length upgrades)
-               (if (= (length upgrades) 1) "" "s")))))
+        (length upgrades)
+        (if (= (length upgrades) 1) "" "s")))))
+
+(defun package-menu-mark-upgrades ()
+  "Mark all upgradable packages in the Package Menu.
+For each installed package with a newer version available, place
+an (I)nstall flag on the available version and a (D)elete flag on
+the installed version.  A subsequent \\[package-menu-execute]
+call will upgrade the package.
+
+If there's an async refresh operation in progress, the flags will
+be placed as part of `package-menu--post-refresh' instead of
+immediately."
+  (interactive)
+  (if (not package--downloads-in-progress)
+      (package-menu--mark-upgrades-1)
+    (setq package-menu--mark-upgrades-pending t)
+    (message "Waiting for refresh to finish...")))
 
 (defun package-menu--list-to-prompt (packages)
   "Return a string listing PACKAGES that's usable in a prompt.
@@ -3099,8 +3116,11 @@ after `package-menu--perform-transaction'."
   (let ((buf (get-buffer "*Packages*")))
     (when (buffer-live-p buf)
       (with-current-buffer buf
-        (revert-buffer nil 'noconfirm))))
-  (package-menu--find-and-notify-upgrades))
+        (run-hooks 'tabulated-list-revert-hook)
+        (tabulated-list-print 'remember 'update)
+        (if package-menu--mark-upgrades-pending
+            (package-menu--mark-upgrades-1)
+          (package-menu--find-and-notify-upgrades))))))
 
 ;;;###autoload
 (defun list-packages (&optional no-fetch)

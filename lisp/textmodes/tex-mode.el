@@ -1034,7 +1034,7 @@ says which mode to use."
 (define-derived-mode plain-tex-mode tex-mode "TeX"
   "Major mode for editing files of input for plain TeX.
 Makes $ and } display the characters they match.
-Makes \" insert `` when it seems to be the beginning of a quotation,
+Makes \" insert \\=`\\=` when it seems to be the beginning of a quotation,
 and '' when it appears to be the end; it inserts \" only after a \\.
 
 Use \\[tex-region] to run TeX on the current region, plus a \"header\"
@@ -1080,7 +1080,7 @@ special subshell is initiated, the hook `tex-shell-hook' is run."
 (define-derived-mode latex-mode tex-mode "LaTeX"
   "Major mode for editing files of input for LaTeX.
 Makes $ and } display the characters they match.
-Makes \" insert `` when it seems to be the beginning of a quotation,
+Makes \" insert \\=`\\=` when it seems to be the beginning of a quotation,
 and '' when it appears to be the end; it inserts \" only after a \\.
 
 Use \\[tex-region] to run LaTeX on the current region, plus the preamble
@@ -1162,7 +1162,7 @@ subshell is initiated, `tex-shell-hook' is run."
 (define-derived-mode slitex-mode latex-mode "SliTeX"
   "Major mode for editing files of input for SliTeX.
 Makes $ and } display the characters they match.
-Makes \" insert `` when it seems to be the beginning of a quotation,
+Makes \" insert \\=`\\=` when it seems to be the beginning of a quotation,
 and '' when it appears to be the end; it inserts \" only after a \\.
 
 Use \\[tex-region] to run SliTeX on the current region, plus the preamble
@@ -1296,7 +1296,7 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
 
 (defun tex-insert-quote (arg)
   "Insert the appropriate quote marks for TeX.
-Inserts the value of `tex-open-quote' (normally ``) or `tex-close-quote'
+Inserts the value of `tex-open-quote' (normally \\=`\\=`) or `tex-close-quote'
 \(normally '') depending on the context.  With prefix argument, always
 inserts \" characters."
   (interactive "*P")

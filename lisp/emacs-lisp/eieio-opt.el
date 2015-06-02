@@ -90,11 +90,11 @@ If CLASS is actually an object, then also display current values of that object.
 	  " class")
   (let ((location (find-lisp-object-file-name class 'eieio-defclass)))
     (when location
-      (insert " in `")
+      (insert " in ‘")
       (help-insert-xref-button
        (help-fns-short-filename location)
        'eieio-class-def class location 'eieio-defclass)
-      (insert "'")))
+      (insert "’")))
   (insert ".\n")
   ;; Parents
   (let ((pl (eieio-class-parents class))
@@ -103,10 +103,10 @@ If CLASS is actually an object, then also display current values of that object.
       (insert " Inherits from ")
       (while (setq cur (pop pl))
 	(setq cur (eieio--class-name cur))
-	(insert "`")
+	(insert "‘")
 	(help-insert-xref-button (symbol-name cur)
 				 'help-function cur)
-	(insert (if pl "', " "'")))
+	(insert (if pl "’, " "’")))
       (insert ".\n")))
   ;; Children
   (let ((ch (eieio-class-children class))
@@ -114,10 +114,10 @@ If CLASS is actually an object, then also display current values of that object.
     (when ch
       (insert " Children ")
       (while (setq cur (pop ch))
-	(insert "`")
+	(insert "‘")
 	(help-insert-xref-button (symbol-name cur)
 				 'help-function cur)
-	(insert (if ch "', " "'")))
+	(insert (if ch "’, " "’")))
       (insert ".\n")))
   ;; System documentation
   (let ((doc (documentation-property class 'variable-documentation)))
@@ -130,9 +130,9 @@ If CLASS is actually an object, then also display current values of that object.
     (when generics
       (insert (propertize "Specialized Methods:\n\n" 'face 'bold))
       (dolist (generic generics)
-        (insert "`")
+        (insert "‘")
         (help-insert-xref-button (symbol-name generic) 'help-function generic)
-        (insert "'")
+        (insert "’")
 	(pcase-dolist (`(,qualifiers ,args ,doc)
                        (eieio-method-documentation generic class))
           (insert (format " %s%S\n" qualifiers args)
@@ -245,11 +245,11 @@ are not abstract."
 	(setq location
 	      (find-lisp-object-file-name ctr def)))
       (when location
-	(insert " in `")
+	(insert " in ‘")
 	(help-insert-xref-button
 	 (help-fns-short-filename location)
 	 'eieio-class-def ctr location 'eieio-defclass)
-	(insert "'"))
+	(insert "’"))
       (insert ".\nCreates an object of class " (symbol-name ctr) ".")
       (goto-char (point-max))
       (if (autoloadp def)

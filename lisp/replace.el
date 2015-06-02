@@ -136,6 +136,16 @@ See `replace-regexp' and `query-replace-regexp-eval'.")
 (defun query-replace-descr (string)
   (mapconcat 'isearch-text-char-description string ""))
 
+(defun query-replace--split-string (string)
+  "Split string STRING at a character with property `separator'"
+  (let* ((length (length string))
+         (split-pos (text-property-any 0 length 'separator t string)))
+    (if (not split-pos)
+        (substring-no-properties string)
+      (cl-assert (not (text-property-any (1+ split-pos) length 'separator t string)))
+      (cons (substring-no-properties string 0 split-pos)
+            (substring-no-properties string (1+ split-pos) length)))))
+
 (defun query-replace-read-from (prompt regexp-flag)
   "Query and return the `from' argument of a query-replace operation.
 The return value can also be a pair (FROM . TO) indicating that the user
@@ -174,32 +184,30 @@ wants to replace FROM with TO."
 		  (read-regexp prompt nil 'query-replace-from-to-history)
 		(read-from-minibuffer
 		 prompt nil nil nil 'query-replace-from-to-history
-		 (car (if regexp-flag regexp-search-ring search-ring)) t)))))
+		 (car (if regexp-flag regexp-search-ring search-ring)) t))))
+           (to))
       (if (and (zerop (length from)) query-replace-defaults)
 	  (cons (caar query-replace-defaults)
 		(query-replace-compile-replacement
 		 (cdar query-replace-defaults) regexp-flag))
-	(let* ((to (if (and (string-match separator from)
-			    (get-text-property (match-beginning 0) 'separator from))
-		       (substring-no-properties from (match-end 0))))
-	       (from (if to (substring-no-properties from 0 (match-beginning 0))
-		       (substring-no-properties from))))
-	  (add-to-history query-replace-from-history-variable from nil t)
-	  ;; Warn if user types \n or \t, but don't reject the input.
-	  (and regexp-flag
-	       (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\(\\\\[nt]\\)" from)
-	       (let ((match (match-string 3 from)))
-		 (cond
-		  ((string= match "\\n")
-		   (message "Note: `\\n' here doesn't match a newline; to do that, type C-q C-j instead"))
-		  ((string= match "\\t")
-		   (message "Note: `\\t' here doesn't match a tab; to do that, just type TAB")))
-		 (sit-for 2)))
-	  (if (not to)
-	      from
-	    (add-to-history query-replace-to-history-variable to nil t)
-	    (add-to-history 'query-replace-defaults (cons from to) nil t)
-	    (cons from (query-replace-compile-replacement to regexp-flag))))))))
+        (setq from (query-replace--split-string from))
+        (when (consp from) (setq to (cdr from) from (car from)))
+        (add-to-history query-replace-from-history-variable from nil t)
+        ;; Warn if user types \n or \t, but don't reject the input.
+        (and regexp-flag
+             (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\(\\\\[nt]\\)" from)
+             (let ((match (match-string 3 from)))
+               (cond
+                ((string= match "\\n")
+                 (message "Note: `\\n' here doesn't match a newline; to do that, type C-q C-j instead"))
+                ((string= match "\\t")
+                 (message "Note: `\\t' here doesn't match a tab; to do that, just type TAB")))
+               (sit-for 2)))
+        (if (not to)
+            from
+          (add-to-history query-replace-to-history-variable to nil t)
+          (add-to-history 'query-replace-defaults (cons from to) nil t)
+          (cons from (query-replace-compile-replacement to regexp-flag)))))))
 
 (defun query-replace-compile-replacement (to regexp-flag)
   "Maybe convert a regexp replacement TO to Lisp.

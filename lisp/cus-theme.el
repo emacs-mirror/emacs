@@ -492,10 +492,10 @@ It includes all faces in list FACES."
 			 '("" "c")))
 	doc)
     (when fn
-      (princ " in `")
+      (princ " in ‘")
       (help-insert-xref-button (file-name-nondirectory fn)
 			       'help-theme-def fn)
-      (princ "'"))
+      (princ "’"))
     (princ ".\n")
     (if (custom-theme-p theme)
 	(progn
@@ -517,7 +517,7 @@ It includes all faces in list FACES."
 		 (setq doc (nth 2 sexp)))))))
     (princ "\n\nDocumentation:\n")
     (princ (if (stringp doc)
-	       doc
+	       (substitute-command-keys doc)
 	     "No documentation available.")))
   (princ "\n\nYou can ")
   (help-insert-xref-button "customize" 'help-theme-edit theme)

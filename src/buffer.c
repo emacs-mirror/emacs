@@ -1669,8 +1669,8 @@ cleaning up all windows currently displaying the buffer to be killed. */)
 	&& BUF_MODIFF (b) > BUF_SAVE_MODIFF (b))
       {
         GCPRO1 (buffer);
-        tem = do_yes_or_no_p (format2 ("Buffer %s modified; kill anyway? ",
-				       BVAR (b, name), make_number (0)));
+	AUTO_STRING (format, "Buffer %s modified; kill anyway? ");
+	tem = do_yes_or_no_p (CALLN (Fformat, format, BVAR (b, name)));
 	UNGCPRO;
 	if (NILP (tem))
 	  return unbind_to (count, Qnil);
@@ -5293,7 +5293,7 @@ init_buffer (int initialized)
   pwd = get_current_dir_name ();
 
   if (!pwd)
-    fatal ("`get_current_dir_name' failed: %s\n", strerror (errno));
+    fatal ("get_current_dir_name: %s\n", strerror (errno));
 
   /* Maybe this should really use some standard subroutine
      whose definition is filename syntax dependent.  */
@@ -5303,7 +5303,7 @@ init_buffer (int initialized)
       /* Grow buffer to add directory separator and '\0'.  */
       pwd = realloc (pwd, len + 2);
       if (!pwd)
-	fatal ("`get_current_dir_name' failed: %s\n", strerror (errno));
+	fatal ("get_current_dir_name: %s\n", strerror (errno));
       pwd[len] = DIRECTORY_SEP;
       pwd[len + 1] = '\0';
       len++;

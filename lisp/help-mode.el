@@ -322,7 +322,7 @@ Commands:
 		    "\\(source \\(?:code \\)?\\(?:of\\|for\\)\\)\\)"
 		    "[ \t\n]+\\)?"
 		    ;; Note starting with word-syntax character:
-		    "`\\(\\sw\\(\\sw\\|\\s_\\)+\\)'"))
+		    "[`‘]\\(\\sw\\(\\sw\\|\\s_\\)+\\)['’]"))
   "Regexp matching doc string references to symbols.
 
 The words preceding the quoted symbol can be used in doc strings to
@@ -337,11 +337,12 @@ when help commands related to multilingual environment (e.g.,
 
 
 (defconst help-xref-info-regexp
-  (purecopy "\\<[Ii]nfo[ \t\n]+\\(node\\|anchor\\)[ \t\n]+`\\([^']+\\)'")
+  (purecopy
+   "\\<[Ii]nfo[ \t\n]+\\(node\\|anchor\\)[ \t\n]+[`‘]\\([^'’]+\\)['’]")
   "Regexp matching doc string references to an Info node.")
 
 (defconst help-xref-url-regexp
-  (purecopy "\\<[Uu][Rr][Ll][ \t\n]+`\\([^']+\\)'")
+  (purecopy "\\<[Uu][Rr][Ll][ \t\n]+[`‘]\\([^'’]+\\)['’]")
   "Regexp matching doc string references to a URL.")
 
 ;;;###autoload

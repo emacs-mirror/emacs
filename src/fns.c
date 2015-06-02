@@ -3954,8 +3954,7 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 #ifdef ENABLE_CHECKING
       if (HASH_TABLE_P (Vpurify_flag)
 	  && XHASH_TABLE (Vpurify_flag) == h)
-	CALLN (Fmessage, build_string ("Growing hash table to: %d"),
-	       make_number (new_size));
+	message ("Growing hash table to: %"pI"d", new_size);
 #endif
 
       set_hash_key_and_value (h, larger_vector (h->key_and_value,
@@ -5074,8 +5073,6 @@ syms_of_fns (void)
   defsubr (&Sdefine_hash_table_test);
 
   DEFSYM (Qstring_lessp, "string-lessp");
-  DEFSYM (Qstring_collate_lessp, "string-collate-lessp");
-  DEFSYM (Qstring_collate_equalp, "string-collate-equalp");
   DEFSYM (Qprovide, "provide");
   DEFSYM (Qrequire, "require");
   DEFSYM (Qyes_or_no_p_history, "yes-or-no-p-history");

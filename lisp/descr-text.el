@@ -161,8 +161,8 @@ otherwise."
       ;; Buttons
       (when (and button (not (widgetp wid-button)))
 	(newline)
-	(insert "Here is a `" (format "%S" button-type)
-		"' button labeled `" button-label "'.\n\n"))
+	(insert "Here is a ‘" (format "%S" button-type)
+		"’ button labeled ‘" button-label "’.\n\n"))
       ;; Overlays
       (when overlays
 	(newline)
@@ -618,7 +618,14 @@ relevant to POS."
                                    'help-args '(,current-input-method))
 				 "input method")
 			 (list
-			  "type \"C-x 8 RET HEX-CODEPOINT\" or \"C-x 8 RET NAME\"")))))
+                          (let ((name
+                                 (or (get-char-code-property char 'name)
+                                     (get-char-code-property char 'old-name))))
+                            (if name
+                                (format
+                                 "type \"C-x 8 RET %x\" or \"C-x 8 RET %s\""
+                                 char name)
+                              (format "type \"C-x 8 RET %x\"" char))))))))
               ("buffer code"
                ,(if multibyte-p
                     (encoded-string-description
@@ -731,7 +738,7 @@ relevant to POS."
                       (when face
                         (insert (propertize " " 'display '(space :align-to 5))
                                 "face: ")
-                        (insert (concat "`" (symbol-name face) "'"))
+                        (insert (concat "‘" (symbol-name face) "’"))
                         (insert "\n")))))
               (insert "these terminal codes:\n")
               (dotimes (i (length disp-vector))

@@ -53,7 +53,7 @@
     effect   | prefix | examples
  ------------+--------+----------
     acute    |   '    | 'a -> á, '' -> ´
-    grave    |   `    | `a -> à
+    grave    |   \\=`    | \\=`a -> à
   circumflex |   ^    | ^a -> â
   diaeresis  |   \"    | \"a -> ä  \"\" -> ¨
     tilde    |   ~    | ~a -> ã
@@ -184,7 +184,7 @@
     effect   | prefix | examples
  ------------+--------+----------
     acute    |   '    | 'a -> á   '' -> ´
-    grave    |   `    | `a -> à
+    grave    |   \\=`    | \\=`a -> à
   diaeresis  |   \"    | \"i -> ï   \"\" -> ¨
     tilde    |   ~    | ~n -> ñ
    cedilla   |   ~    | ~c -> ç
@@ -259,7 +259,7 @@ Key translation rules are:
     effect   | prefix | examples
  ------------+--------+----------
     acute    |   '    | 'e -> é
-    grave    |   `    | `a -> à
+    grave    |   \\=`    | \\=`a -> à
   circumflex |   ^    | ^a -> â
   diaeresis  |   \"    | \"i -> ï
    cedilla   | ~ or , | ~c -> ç   ,c -> ç
@@ -398,7 +398,7 @@ Key translation rules are:
     effect   | prefix | examples
  ------------+--------+----------
     acute    |   '    | 'a -> á   '' -> ´
-    grave    |   `    | `a -> à
+    grave    |   \\=`    | \\=`a -> à
   circumflex |   ^    | ^a -> â
   diaeresis  |   \"    | \"u -> ü
     tilde    |   ~    | ~a -> ã
@@ -489,9 +489,9 @@ Key translation rules are:
   diaeresis  |   \"    | \"a -> ä   \"\" -> ¨
     breve    |   ~    | ~a -> ă
     caron    |   ~    | ~c -> č
-   cedilla   |   `    | `c -> ç   `e -> ?ę
-    misc     | ' ` ~  | 'd -> đ   `l -> ł   `z -> ż   ~o -> ő   ~u -> ű
-   symbol    |   ~    | `. -> ˙   ~~ -> ˘   ~. -> ?¸
+   cedilla   |   \\=`    | \\=`c -> ç   \\=`e -> ?ę
+    misc     | ' \\=` ~  | 'd -> đ   \\=`l -> ł   \\=`z -> ż   ~o -> ő   ~u -> ű
+   symbol    |   ~    | \\=`. -> ˙   ~~ -> ˘   ~. -> ?¸
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -596,13 +596,13 @@ Key translation rules are:
     effect   | prefix | examples
  ------------+--------+----------
     acute    |   '    | 'a -> á   '' -> ?´
-    grave    |   `    | `a -> à
+    grave    |   \\=`    | \\=`a -> à
   circumflex |   ^    | ^a -> â
   diaeresis  |   \"    | \"a -> ä   \"\" -> ¨
    cedilla   |   ~    | ~c -> ç   ~s -> ş   ~~ -> ¸
   dot above  |   / .  | /g -> ġ   .o -> ġ
     misc     | \" ~ /  | \"s -> ß   ~g -> ğ   ~u -> ŭ   /h -> ħ   /i -> ı
-   symbol    |   ~    | ~` -> ˘   /# -> £   /$ -> ¤   // -> °
+   symbol    |   ~    | ~\\=` -> ˘   /# -> £   /$ -> ¤   // -> °
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -737,7 +737,7 @@ For example, the character named `aogonek' is obtained by `/a'."
     effect   | prefix | examples
  ------------+--------+----------
     acute    |   '    | 'a -> á
-    grave    |   `    | `a -> à
+    grave    |   \\=`    | \\=`a -> à
   circumflex |   ^    | ^a -> â
   diaeresis  |   \"    | \"a -> ä, \"Y -> Ÿ
     tilde    |   ~    | ~a -> ã
@@ -872,7 +872,7 @@ For example, the character named `aogonek' is obtained by `/a'."
     effect   | prefix | examples
  ------------+--------+----------
     acute    |   '    | 'a -> á
-    grave    |   `    | `a -> à
+    grave    |   \\=`    | \\=`a -> à
   circumflex |   ^    | ^w -> ŵ
   diaeresis  |   \"    | \"a -> ä
   dot above  |   .    | .b -> ḃ
@@ -997,7 +997,7 @@ of characters from a single Latin-N charset.
     effect   | prefix | examples
  ------------+--------+----------
     acute    |   '    | 'a -> á, '' -> ´
-    grave    |   `    | `a -> à
+    grave    |   \\=`    | \\=`a -> à
   circumflex |   ^    | ^a -> â
   diaeresis  |   \"    | \"a -> ä  \"\" -> ¨
     tilde    |   ~    | ~a -> ã

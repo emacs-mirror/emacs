@@ -4843,7 +4843,7 @@ If prefix argument REVERSE is non-nil, sorts in reverse order.
 
 ;;;***
 
-;;;### (autoloads nil "rmailsum" "rmailsum.el" "b34aec2c31535804e2731992a64c8cdf")
+;;;### (autoloads nil "rmailsum" "rmailsum.el" "4bc0d1a65aede332348200e1937c84d4")
 ;;; Generated autoloads from rmailsum.el
 
 (autoload 'rmail-summary "rmailsum" "\
@@ -4862,7 +4862,7 @@ Display a summary of all messages with the given RECIPIENTS.
 Normally checks the To, From and Cc fields of headers;
 but if PRIMARY-ONLY is non-nil (prefix arg given),
  only look in the To and From fields.
-RECIPIENTS is a string of regexps separated by commas.
+RECIPIENTS is a regular expression.
 
 \(fn RECIPIENTS &optional PRIMARY-ONLY)" t nil)
 
@@ -4878,13 +4878,13 @@ Emacs will list the message in the summary.
 Display a summary of all messages with the given SUBJECT.
 Normally checks just the Subject field of headers; but with prefix
 argument WHOLE-MESSAGE is non-nil, looks in the whole message.
-SUBJECT is a string of regexps separated by commas.
+SUBJECT is a regular expression.
 
 \(fn SUBJECT &optional WHOLE-MESSAGE)" t nil)
 
 (autoload 'rmail-summary-by-senders "rmailsum" "\
 Display a summary of all messages whose \"From\" field matches SENDERS.
-SENDERS is a string of regexps separated by commas.
+SENDERS is a regular expression.
 
 \(fn SENDERS)" t nil)
 

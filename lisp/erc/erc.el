@@ -2474,7 +2474,7 @@ on the given server.")
 (defcustom erc-lurker-trim-nicks t
   "If t, trim trailing `erc-lurker-ignore-chars' from nicks.
 
-This causes e.g. nick and nick` to be considered as the same
+This causes e.g. nick and nick\\=` to be considered as the same
 individual for activity tracking and lurkiness detection
 purposes."
   :group 'erc-lurker

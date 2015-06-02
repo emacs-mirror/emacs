@@ -3670,7 +3670,6 @@ before making `inhibit-quit' nil.  */);
   DEFSYM (Qautoload, "autoload");
   DEFSYM (Qinhibit_debugger, "inhibit-debugger");
   DEFSYM (Qmacro, "macro");
-  DEFSYM (Qdeclare, "declare");
 
   /* Note that the process handling also uses Qexit, but we don't want
      to staticpro it twice, so we just do it here.  */

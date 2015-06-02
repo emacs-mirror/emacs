@@ -5133,10 +5133,6 @@ syms_of_font (void)
   DEFSYM (Qiso8859_1, "iso8859-1");
   DEFSYM (Qiso10646_1, "iso10646-1");
   DEFSYM (Qunicode_bmp, "unicode-bmp");
-  DEFSYM (Qunicode_sip, "unicode-sip");
-
-  /* Unicode category `Cf'.  */
-  DEFSYM (QCf, "Cf");
 
   /* Symbols representing keys of font extra info.  */
   DEFSYM (QCotf, ":otf");
@@ -5151,7 +5147,6 @@ syms_of_font (void)
   DEFSYM (QCscalable, ":scalable");
   DEFSYM (QCavgwidth, ":avgwidth");
   DEFSYM (QCfont_entity, ":font-entity");
-  DEFSYM (QCfc_unknown_spec, ":fc-unknown-spec");
 
   /* Symbols representing values of font spacing property.  */
   DEFSYM (Qc, "c");

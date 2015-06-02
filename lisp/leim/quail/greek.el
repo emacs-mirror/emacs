@@ -179,7 +179,7 @@ mark		key
 ------------------------
 ypogegrammeni	J
 psili		'  or  v
-dasia		`  or  V
+dasia		\\=`  or  V
 oxia		/
 varia		?
 perispomeni	\\  or  ^

@@ -99,6 +99,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "unexec.h"
 #include "lisp.h"
 
+#include <errno.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <stdarg.h>
@@ -1264,14 +1265,14 @@ unexec (const char *outfile, const char *infile)
   infd = emacs_open (infile, O_RDONLY, 0);
   if (infd < 0)
     {
-      unexec_error ("cannot open input file `%s'", infile);
+      unexec_error ("%s: %s", infile, strerror (errno));
     }
 
   outfd = emacs_open (outfile, O_WRONLY | O_TRUNC | O_CREAT, 0777);
   if (outfd < 0)
     {
       emacs_close (infd);
-      unexec_error ("cannot open output file `%s'", outfile);
+      unexec_error ("%s: %s", outfile, strerror (errno));
     }
 
   build_region_list ();

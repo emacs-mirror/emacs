@@ -4418,9 +4418,10 @@ init_lread (void)
 void
 dir_warning (char const *use, Lisp_Object dirname)
 {
-  static char const format[] = "Warning: %s `%s': %s\n";
+  static char const format[] = "Warning: %s '%s': %s\n";
   int access_errno = errno;
-  fprintf (stderr, format, use, SSDATA (dirname), strerror (access_errno));
+  fprintf (stderr, format, use, SSDATA (ENCODE_SYSTEM (dirname)),
+	   strerror (access_errno));
 
   /* Don't log the warning before we've initialized!!  */
   if (initialized)

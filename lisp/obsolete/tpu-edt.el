@@ -648,7 +648,7 @@ GOLD is the ASCII 7-bit escape sequence <ESC>OP.")
 (make-variable-buffer-local 'tpu-mark-flag)
 
 (defun tpu-set-mode-line (for-tpu)
-  "Set ``minor-mode-alist'' for TPU-edt, or reset it to default Emacs."
+  "Set `minor-mode-alist' for TPU-edt, or reset it to default Emacs."
   (let ((entries '((tpu-newline-and-indent-p tpu-newline-and-indent-string)
                    (tpu-rectangular-p tpu-rectangle-string)
                    (tpu-direction-string tpu-direction-string)

@@ -300,7 +300,7 @@ Thus, this does not include the current directory.")
 		 eshell-user-names)))))))
 
 (defun eshell/pwd (&rest args)
-  "Change output from `pwd` to be cleaner."
+  "Change output from ‘pwd’ to be cleaner."
   (let* ((path default-directory)
 	 (len (length path)))
     (if (and (> len 1)
@@ -348,8 +348,6 @@ in the minibuffer:
 		  index (1+ index)))))
     oldpath))
 
-(defvar dired-directory)
-
 (defun eshell/cd (&rest args)           ; all but first ignored
   "Alias to extend the behavior of `cd'."
   (setq args (eshell-flatten-list args))
@@ -394,11 +392,11 @@ in the minibuffer:
      (path
       (setq path (eshell-expand-multiple-dots path))))
     (unless handled
-      (setq dired-directory (or path "~"))
-      (let ((curdir (eshell/pwd)))
-	(unless (equal curdir dired-directory)
+      (let ((curdir (eshell/pwd))
+	    (newdir (or path "~")))
+	(unless (equal curdir newdir)
 	  (eshell-add-to-dir-ring curdir))
-	(let ((result (cd dired-directory)))
+	(let ((result (cd newdir)))
 	  (and eshell-cd-shows-directory
 	       (eshell-printn result)))
 	(run-hooks 'eshell-directory-change-hook)

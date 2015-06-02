@@ -2143,7 +2143,6 @@ syms_of_fontset (void)
   DEFSYM (Qfontset_info, "fontset-info");
   Fput (Qfontset_info, Qchar_table_extra_slots, make_number (1));
 
-  DEFSYM (Qprepend, "prepend");
   DEFSYM (Qappend, "append");
   DEFSYM (Qlatin, "latin");
 

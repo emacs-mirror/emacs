@@ -2208,8 +2208,7 @@ x_clipboard_manager_save_all (void)
       local_frame = XCAR (XCDR (XCDR (XCDR (local_selection))));
       if (FRAME_LIVE_P (XFRAME (local_frame)))
 	{
-	  AUTO_STRING (saving, "Saving clipboard to X clipboard manager...");
-	  Fmessage (1, &saving);
+	  message ("Saving clipboard to X clipboard manager...");
 	  internal_condition_case_1 (x_clipboard_manager_save, local_frame,
 				     Qt, x_clipboard_manager_error_2);
 	}
@@ -2688,11 +2687,9 @@ A value of 0 means wait as long as necessary.  This is initialized from the
   DEFSYM (QEMACS_TMP, "_EMACS_TMP_");
   DEFSYM (QTARGETS, "TARGETS");
   DEFSYM (QATOM, "ATOM");
-  DEFSYM (QATOM_PAIR, "ATOM_PAIR");
   DEFSYM (QCLIPBOARD_MANAGER, "CLIPBOARD_MANAGER");
   DEFSYM (QSAVE_TARGETS, "SAVE_TARGETS");
   DEFSYM (QNULL, "NULL");
-  DEFSYM (Qcompound_text_with_extensions, "compound-text-with-extensions");
   DEFSYM (Qforeign_selection, "foreign-selection");
   DEFSYM (Qx_lost_selection_functions, "x-lost-selection-functions");
   DEFSYM (Qx_sent_selection_functions, "x-sent-selection-functions");

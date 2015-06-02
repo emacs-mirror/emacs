@@ -1,3 +1,659 @@
+2015-05-30  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Make sure there's no explicit tag name
+	* lisp/progmodes/etags.el (tag-implicit-name-match-p): Make sure
+	there's no explicit tag name (bug#20629).
+
+2015-05-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove format2
+	* src/editfns.c, src/lisp.h (format2): Remove.
+	It is more trouble than it's worth, now that we have CALLN.
+	This is just a minor refactoring.
+	* src/buffer.c (Fkill_buffer):
+	* src/dbusbind.c (XD_OBJECT_TO_STRING):
+	* src/fileio.c (barf_or_query_if_file_exists):
+	Adjust to format2 going away.
+
+	Don't misencode C-generated messages
+	Also, be more consistent about calls to 'Fmessage' vs 'message'.
+	* src/alloc.c (Fgc_status):
+	Prefer AUTO_STRING to build_string for Fmessage call.
+	* src/data.c (Fmake_variable_buffer_local)
+	(Fmake_local_variable, Fmake_variable_frame_local):
+	* src/doc.c (store_function_docstring):
+	Use Fmessage, not message, since the argument can contain
+	non-ASCII characters, and this can cause the resulting message
+	to be incorrectly encoded for the current environment.
+	* src/fns.c (maybe_resize_hash_table):
+	* src/xselect.c (x_clipboard_manager_save_all):
+	Use message, not Fmessage, since Fmessage's power isn't needed here.
+	* src/process.c (Fmake_network_process): Reword message to avoid %s.
+	* src/xdisp.c (vmessage): Document restrictions on message contents.
+	(message_nolog) [false]: Remove unused code.
+
+	Use \r rather than ^M in string literals
+	This is less likely to cause problems on platforms that
+	use CRLF (or CR!) termination for lines.
+
+	Update .gitattributes to match current sources
+	http://lists.gnu.org/archive/html/emacs-devel/2015-05/msg00879.html
+	* .gitattributes: Accommodate tests that insist on DOS format.
+	Remove test/automated/data/decompress/foo-gzipped.
+	Add etc/e/eterm-color.
+
+2015-05-30  Eli Zaretskii  <eliz@gnu.org>
+
+	Document 'face-ignored-fonts'
+	* doc/emacs/mule.texi (Modifying Fontsets): Document
+	face-ignored-fonts.  (Bug#20628)
+
+	Merge branch 'master' of git.savannah.gnu.org:/srv/git/emacs
+
+	Add etags test for the new -Q option
+	* test/etags/ETAGS.good_1, test/etags/ETAGS.good_2:
+	* test/etags/ETAGS.good_3, test/etags/ETAGS.good_4:
+	* test/etags/ETAGS.good_5, test/etags/CTAGS.good: Adjust to
+	test-case changes below.
+	* test/etags/ETAGS.good_6: New file.
+	* test/etags/cp-src/x.cc: New file.
+	* test/etags/Makefile (CPSRC): Add x.cc.
+	(check): Add one more test, for -Q.
+
+2015-05-30  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Use list for the tags completion table, not obarray
+	* lisp/progmodes/etags.el (etags-tags-completion-table): Return a
+	list instead of an obarray
+	(http://lists.gnu.org/archive/html/emacs-devel/2015-05/msg00876.html).
+	(tags-completion-table): Combine those lists.
+	(tags-completion-table): Update the docstring.
+
+2015-05-30  Eli Zaretskii  <eliz@gnu.org>
+
+	Restore EOL format testing in etags
+	* test/etags/ETAGS.good_1, test/etags/ETAGS.good_2:
+	* test/etags/ETAGS.good_3, test/etags/ETAGS.good_4:
+	* test/etags/ETAGS.good_5, test/etags/CTAGS.good: Adjust to
+	test-case changes below.
+	* test/etags/html-src/algrthms.html: Convert back to DOS EOL format.
+	* test/etags/cp-src/c.C (B): Add back stray CR character.
+	* test/etags/c-src/dostorture.c: Add back.
+	* test/etags/Makefile (CSRC): Add back c-src/dostorture.c.
+
+2015-05-30  Vitaly Takmazov  <vitalyster@gmail.com>  (tiny change)
+
+	Declare Emacs on MS-Windows to be DPI-aware
+	* nt/emacs-x86.manifest (asmv3:windowsSettings): Add dpiAware.
+	* nt/emacs-x64.manifest (asmv3:windowsSettings): Add dpiAware.
+	This avoids Windows entering compatibility mode for Emacs,
+	which causes fonts to look less nice.
+
+2015-05-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	Improve Tramp traces.
+	* lisp/net/trampver.el (tramp-repository-get-version): New defun.
+	* lisp/net/tramp.el (tramp-debug-message): Use it.
+
+2015-05-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	backup-buffer minor reworking of internals
+	* lisp/files.el (backup-buffer): Rework to avoid a couple of
+	unused locals inadvertently introduced in the previous change.
+
+	backup-buffer now reports .emacs.d/%backup% ills
+	* lisp/files.el (backup-buffer): If the write to .emacs.d/%backup%
+	fails due to disk space exhaustion or whatever, do not pretend
+	that it succeeded.  More generally, do a better job of checking
+	for I/O failures, and limit the scope of the condition-case to
+	just the operations where file errors should be caught and ignored
+	(Bug#20595).  Also, don't bother trying to delete later backups if
+	an earlier deletion fails, as this is a sign of trouble and it's
+	better to stop when there's trouble.
+
+	copy-file now truncates output after writing
+	* src/fileio.c (Fcopy_file): Truncate output after writing rather
+	than before.  This is more likely to work than truncation before
+	writing, if the file system is out of space or the user is over
+	disk quota (Bug#20595).  Also, check for read errors.
+
+2015-05-29  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/emacs-lisp/package.el: Don't load from parent dir
+	(package-load-all-descriptors): Don't load descriptors from
+	directories above the package directories.
+
+2015-05-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib
+	This incorporates the following (Bug#20681):
+	2015-05-29 acl-permissions: Fix build on Mac OS X and older AIX
+	2015-05-29 acl-permissions: Fix build on Solaris and Cygwin
+	* lib/set-permissions.c: Copy from gnulib.
+
+2015-05-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	Improve Tramp traces.
+	* lisp/net/tramp.el (tramp-call-process-region): New defun.
+	* lisp/net/tramp-sh.el (tramp-get-inline-coding): Use it.
+
+2015-05-29  Glenn Morris  <rgm@gnu.org>
+
+	* test/automated/vc-tests.el: Try enabling tests on hydra.nixos.org.
+
+2015-05-29  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	* src/xfns.c (x_set_menu_bar_lines): Fix calls to x_clear_area.
+	The signature was changed in the cairo branch, merged on 2015-05-23.
+	This oversight broke compiling only the non-toolkit X version.
+
+2015-05-29  Samer Masterson  <samer@samertm.com>
+
+	* doc/lispref/os.texi: Update initial-buffer-choice docs.
+
+2015-05-29  Glenn Morris  <rgm@gnu.org>
+
+	* test/automated/vc-tests.el (vc-test-rcs04-checkout-model):
+	Mark as an expected failure.
+
+2015-05-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Change package test to look for curved quotes
+	* test/automated/package-test.el (package-test-describe-package)
+	(package-test-signed): Search for curved single quotes as well as
+	for grave accent and apostrophe.
+
+2015-05-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	gnus-art.el: Re-revert last change
+	* lisp/gnus/gnus-art.el (gnus-button-alist): Re-revert last change.
+	cf. <http://news.gmane.org/group/gmane.emacs.devel/thread=186896>
+
+2015-05-28  Samer Masterson  <samer@samertm.com>
+
+	Show files when `initial-buffer-choice' is non-nil
+	* startup.el (command-line-1): When Emacs is given a file as an
+	argument and `initial-buffer-choice' is non-nil, display both the file
+	and `initial-buffer-choice'.  For more than one file, show
+	`initial-buffer-choice' and *Buffer List*.  Refactor display-changing
+	commands out of the command line arg parser.
+	(initial-buffer-choice): Clarify docstring.
+
+2015-05-28  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix last commit
+	* nt/gnulib.mk (libgnu_a_SOURCES): Add get-permissions.c back.
+	(gnulib module qcopy-acl): Add back, as it is harmless.  This
+	minimizes differences wrt lib/gnulib.mk.
+
+	Fix the MS-Windows build as followup to gnulib update
+	* nt/gnulib.mk (libgnu_a_SOURCES): Remove get-permissions.c and
+	set-permissions.c, as they don't compile on MinGW.
+	(gnulib module qcopy-acl): Remove, as it needs set-permissions.c.
+
+2015-05-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Revert my change to gnus-art.el
+	* lisp/gnus/gnus-art.el (gnus-button-alist): Revert last change.
+	It wasn't that important, and it caused a Gnus build to fail.  See:
+	http://www.randomsample.de:4456/builders/emacs-devel/builds/734
+
+	New minor mode Electric Quote
+	This lets you easily insert quotes ‘like this’ by typing
+	quotes `like this', and similarly you can easily insert
+	quotes “like this” by typing quotes ``like this'' (Bug#20545).
+	* doc/emacs/basic.texi (Inserting Text):
+	* doc/emacs/modes.texi (Minor Modes):
+	* etc/NEWS: Document it.
+	* doc/emacs/text.texi (Quotation Marks): New section.
+	* lisp/electric.el (electric-quote-comment)
+	(electric-quote-string, electric-quote-paragraph):
+	New custom vars.
+	(electric--insertable-p)
+	(electric-quote-post-self-insert-function): New functions.
+	(electric-quote-mode, electric-quote-local-mode): New minor modes.
+	* lisp/progmodes/elisp-mode.el (emacs-lisp-mode):
+	Add curved single quotes to electric-pair-text-pairs.
+	Set electric-quote-string in this buffer.
+
+	A few more doc string fixes (Bug#20385)
+
+	Accept curved quotes in doc strings
+	* lisp/info-look.el (info-lookup-guess-custom-symbol):
+	(info-lookup-alist): Treat ‘’ like `' when parsing help buffers etc.
+
+	Generate curved quotes in pseudo-info nodes
+	* lisp/info.el (Info-virtual-index-find-node)
+	(Info-virtual-index, Info-apropos-find-node, info-apropos):
+	Quote ‘like this’, not `like this', when generating pseudo-info nodes.
+
+	Fix minor quoting problems in doc strings
+	Most of these fixes involve escaping grave accents that are
+	actually intended to be grave accents, not left quotes.
+	(Bug#20385)
+
+	Support curved quotes in doc strings
+	Emacs's traditional doc string style has been to quote symbols
+	`like this'.  This worked well on now-obsolete terminals where
+	` and ' were symmetric quotes, but nowadays curved quotes
+	‘like this’ look better.  Support quoting the new way too.
+	(Bug#20385)
+	* doc/lispref/tips.texi (Documentation Tips): Symbols can be quoted
+	‘like-this’ as well as `like-this'.
+	* etc/NEWS: Mention this.
+	* lisp/cedet/mode-local.el (overload-docstring-extension)
+	(mode-local-print-binding, mode-local-describe-bindings-2):
+	* lisp/cus-theme.el (describe-theme-1):
+	* lisp/descr-text.el (describe-text-properties-1, describe-char):
+	* lisp/emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine):
+	* lisp/emacs-lisp/cl-generic.el (cl--generic-describe):
+	* lisp/emacs-lisp/eieio-opt.el (eieio-help-class)
+	(eieio-help-constructor):
+	* lisp/emacs-lisp/package.el (describe-package-1):
+	* lisp/faces.el (describe-face):
+	* lisp/help-fns.el (help-fns--key-bindings)
+	(help-fns--compiler-macro, help-fns--parent-mode, help-fns--obsolete):
+	(help-fns--interactive-only, describe-function-1):
+	(describe-variable):
+	* lisp/help.el (describe-mode):
+	* lisp/international/mule-cmds.el (describe-input-method)
+	(describe-language-environment):
+	* lisp/international/mule-diag.el (describe-character-set)
+	(print-coding-system-briefly, list-input-methods)
+	(list-input-methods-1):
+	Insert curved quotes rather than grave accent and apostrophe.
+	* lisp/cedet/srecode/texi.el (srecode-texi-texify-docstring):
+	* lisp/emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine)
+	(checkdoc-proper-noun-region-engine):
+	* lisp/emacs-lisp/lisp-mode.el (lisp-el-font-lock-keywords-2)
+	(lisp-cl-font-lock-keywords-2):
+	* lisp/finder.el (finder-font-lock-keywords):
+	* lisp/gnus/gnus-art.el (gnus-button-alist):
+	* lisp/help-fns.el (help-do-arg-highlight)
+	(describe-function-1, describe-variable):
+	* lisp/help-mode.el (help-xref-symbol-regexp)
+	(help-xref-info-regexp, help-xref-url-regexp):
+	* lisp/help.el (describe-mode):
+	* lisp/international/mule-cmds.el (help-xref-mule-regexp-template):
+	* lisp/wid-edit.el (widget-documentation-link-regexp):
+	Parse symbols quoted ‘like-this’ as well as `like-this'.
+	* lisp/progmodes/elisp-mode.el (emacs-lisp-mode):
+	Add "‘" and "’" to electric-pair-text-pairs.
+	(elisp--form-quoted-p): Also allow "‘" as a quoting char.
+	(elisp-completion-at-point, elisp--preceding-sexp):
+	Also treat "‘" and "’" as quoting chars.
+
+	substitute-command-keys now curves quotes
+	So, for example, it turns "`abc'" into "‘abc’" (Bug#20385).
+	* doc/lispref/help.texi (Keys in Documentation):
+	* etc/NEWS: Document this.
+	* src/doc.c (Fsubstitute_command_keys): Implement it.
+
+2015-05-28  Glenn Morris  <rgm@gnu.org>
+
+	* lisp/mail/rmailsum.el (rmail-summary-by-recipients)
+	(rmail-summary-by-topic, rmail-summary-by-senders):
+	No longer strip leading/trailing whitespace.
+
+	* lisp/progmodes/f90.el (f90-type-def-re): Add "type, extends".
+	(f90-no-block-limit): Add "enum".  (Bug#20680)
+	* test/automated/f90.el (f90-test-bug20680, f90-test-bug20680b):
+	New tests.
+
+2015-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/isearch.el (isearch--current-buffer): Give a default value.
+
+	Un-revert changes mistakenly dropped by f9fabb2b
+
+2015-05-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib
+	This incorporates:
+	2015-05-27 qacl: Reimplement qset_acl and qcopy_acl (Bug#20666)
+	2015-05-27 file-has-acl: Split feature tests again (Bug#20667)
+	2015-05-27 string: fix build failure on BSD/OSX with FORTIFY_SOURCE
+	2015-05-26 stdio: limit __gnu_printf__ witness to gcc 4.4+
+	2015-05-26 inttypes: force correct mingw PRIdMAX even without <stdio.h>
+	2015-05-26 stdio: fix probe on mingw under gcc 5.1
+	* admin/merge-gnulib (GNULIB_MODULES):
+	Replace qacl with qcopy-acl, since we don't need the rest of qacl.
+	* doc/misc/texinfo.tex, lib/acl-internal.c, lib/acl-internal.h:
+	* lib/inttypes.in.h, lib/qcopy-acl.c, lib/qset-acl.c:
+	* lib/string.in.h, m4/acl.m4, m4/stdio_h.m4:
+	Get latest versions from gnulib.
+	* lib/get-permissions.c, lib/set-permissions.c: New files.
+	* lib/gnulib.mk, m4/gnulib-comp.m4:
+	Regenerate.
+	* nt/gnulib.mk: Merge lib/gnulib.mk changes by hand.
+
+2015-05-27  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Delete the old process in vc-setup-buffer
+	* lisp/vc/vc-dispatcher.el (vc-setup-buffer): Delete the old
+	process here.
+	(vc-do-command): Rather than here (bug#20608).
+
+2015-05-27  Ivan Shmakov  <ivan@siamics.net>
+
+	Avoid gratuitous delete-dups in face-at-point.
+	* lisp/faces.el (face-at-point): Do not compute the properly
+	ordered, duplicate-free list if only a single value is
+	requested anyway.  (Bug#20519)
+
+	Show the exact C-x 8 RET invocation in describe-char.
+	* lisp/descr-text.el (describe-char): Show the exact C-x 8 RET
+	invocation instead of a template.  (Bug#20522)
+
+2015-05-27  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/emacs-lisp/package.el: Don't erase tags on refresh
+	(package-menu--post-refresh): Call `tabulated-list-print' with the
+	UPDATE argument.  This only affects the refresh action, the revert
+	action still erases tags.
+	(package-menu-get-status): Change `assq' to `assoc'.
+	(package-menu--mark-upgrades-1): New function.
+	(package-menu--mark-upgrades-pending): New variable.
+	(package-menu-mark-upgrades): Use them to delay marking until
+	after refresh is done.
+	(package-menu--post-refresh): Call mark-upgrades-1 if
+	mark-upgrades-pending is non-nil.
+
+2015-05-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	Merge branch 'master' of git.sv.gnu.org:/srv/git/emacs
+	Conflicts:
+		lisp/net/tramp.el
+
+	Fix typo in commit 3953c4be2816537be95520605d45b866dc731f4b
+
+2015-05-27  Eli Zaretskii  <eliz@gnu.org>
+
+	Merge branch 'master' of git.savannah.gnu.org:/srv/git/emacs
+
+2015-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/isearch.el (isearch--current-buffer): New var
+	(isearch-update): Set cursor-sensor-inhibit here.
+	(isearch-done): Unset cursor-sensor-inhibit in the right buffer (bug#20532).
+
+	Change inhibit-point-motion-hooks to t
+	* src/textprop.c (syms_of_textprop): Default Vinhibit_point_motion_hooks
+	to t and document it as obsolete.
+
+2015-05-27  Eli Zaretskii  <eliz@gnu.org>
+
+	Support ZIP files that use Zip64 extensions
+	* lisp/arc-mode.el (archive-zip-summarize): Handle the new ZIP
+	format of central directory offsets used by Zip64 extensions.
+	(Bug#20665)
+
+2015-05-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	New test tramp-test30-make-auto-save-file-name
+	* tramp-tests.el (tramp-test30-make-auto-save-file-name): New test.
+	(tramp-test31-special-characters)
+	(tramp-test31-special-characters-with-stat)
+	(tramp-test31-special-characters-with-perl)
+	(tramp-test31-special-characters-with-ls, tramp-test32-utf8)
+	(tramp-test32-utf8-with-stat, tramp-test32-utf8-with-perl)
+	(tramp-test32-utf8-with-ls, tramp-test33-asynchronous-requests)
+	(tramp-test34-recursive-load, tramp-test35-unload): Rename.
+
+	Improve tramp-handle-make-auto-save-file-name
+	* tramp.el (tramp-auto-save-directory): Add :tags.
+	(tramp-handle-make-auto-save-file-name): Let native
+	`make-auto-save-file-name' use `auto-save-file-name-transforms',
+	if `tramp-auto-save-directory' is not set.
+
+2015-05-27  Glenn Morris  <rgm@gnu.org>
+
+	No longer set dired-directory in eshell.  (Bug#16477)
+	* lisp/eshell/esh-mode.el (eshell-mode):
+	* lisp/eshell/em-dirs.el (eshell/cd): No longer set dired-directory.
+
+	* lisp/mail/sendmail.el (mail-position-on-field): Doc fix.
+
+	Make c-submit-bug-report file reports at debbugs.gnu.org.  (Bug#15784)
+	* lisp/progmodes/cc-mode.el (c-mode-help-address):
+	Change to submit@debbugs.
+	(c-mode-bug-package): New constant.
+	(mail-position-on-field): Declare.
+	(c-submit-bug-report): Insert X-Debbugs-Package header.
+	* doc/misc/cc-mode.texi (Mailing Lists and Bug Reports):
+	Mention debbugs.gnu.org.
+
+2015-05-26  Glenn Morris  <rgm@gnu.org>
+
+	* lisp/mail/rmailsum.el: Commas no longer separate regexps.  (Bug#19026)
+	(rmail-summary-by-recipients, rmail-summary-by-topic)
+	(rmail-summary-by-senders): No longer use mail-comma-list-regexp.
+	* doc/emacs/rmail.texi (Rmail Make Summary): Update for this change.
+
+2015-05-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Handle curved quotes in info files
+	* lisp/calc/calc-help.el (calc-describe-thing):
+	* lisp/info.el (Info-find-index-name)
+	(Info-try-follow-nearest-node, Info-fontify-node):
+	* lisp/vc/ediff-help.el (ediff-help-for-quick-help):
+	In info files, process quotes ‘like this’ the same way we process
+	quotes `like this'.  This catches a few places we missed earlier.
+
+2015-05-26  Dmitry Gutov  <dgutov@yandex.ru>
+
+	xref-prompt-for-identifier: Use a list value
+	* lisp/progmodes/xref.el (xref-prompt-for-identifier): Allow list
+	value, to be interpreted as a list of commands.
+	(xref--prompt-p): New function.
+	(xref--read-identifier): Use it.
+
+2015-05-26  Eli Zaretskii  <eliz@gnu.org>
+
+	Teach MS-Windows font back-end return per-glyph ascent/descent
+	* src/w32font.h (struct w32_metric_cache): Add ascent and descent
+	values.
+	* src/w32font.c (w32font_text_extents): Compute, cache, and
+	accumulate per-glyph ascent and descent values, instead of copying
+	global values from the font.  If the values are not available from
+	the font data, i.e., non-TTF fonts, fall back on font-global values.
+	(compute_metrics): Compute and return per-glyph ascent and descent
+	values, if returned by GetGlyphOutlineW, falling back on
+	font-global values.  (Bug#20628)
+	* src/w32term.c (w32_draw_rectangle): Add 1 pixel to width and
+	height of rectangle to be drawn, to be compatible with
+	XDrawRectangle.  Fixes glyphless-char display as hex codes in a
+	box, when per-glyph ascent/descent values are used.
+
+2015-05-26  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/emacs-lisp/tabulated-list.el: Don't sort without sorter
+	(tabulated-list-print): Don't sort if sorter is nil
+
+2015-05-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix Bug#20621
+	* lisp/net/tramp-sh.el (tramp-set-auto-save): Remove it.  There
+	are major modes which set `auto-save-mode' on their own rules;
+	Tramp shall not overwrite such settings.
+	(Bug#20621)
+
+2015-05-26  Glenn Morris  <rgm@gnu.org>
+
+	* lisp/desktop.el: If modes aren't autoloaded, try simple guesswork.
+	(desktop-load-file): Guess that "foobar" defines "foobar-mode".
+	(desktop-buffer-mode-handlers, desktop-minor-mode-handlers):
+	Doc updates.
+	(vc-dir-mode): Remove unnecessary autoload.
+
+2015-05-25  Philipp Stephani  <phst@google.com>
+
+	* lisp/term/xterm.el: Add gui-get-selection support via OSC-52
+	(xterm--extra-capabilities-type): Add `getSelection'.
+	(xterm--query): Add `no-async' argument.
+	(xterm--init-activate-get-selection): New function.
+	(terminal-init-xterm): Use it.
+	(xterm--init-modify-other-keys): Rename from
+	terminal-init-xterm-modify-other-keys.
+	(xterm--init-bracketed-paste-mode): Rename from
+	terminal-init-xterm-bracketed-paste-mode.
+	(xterm--init-activate-set-selection): Rename from
+	terminal-init-xterm-activate-set-selection.
+	(xterm--selection-char): New function.
+	(gui-backend-set-selection): Use it.  Use the &context to only apply
+	this method in terminals where we enabled the feature.
+	(gui-backend-get-selection): New method.
+
+2015-05-25  Daniel Colascione  <dancol@dancol.org>
+
+	Add C-language keyword constants to C++
+	* lisp/progmodes/cc-langs.el (c-constant-kwds): Add C-language
+	keyword constants to C++.
+
+2015-05-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Make TAGS files more portable to MS-Windows
+	* etc/NEWS: Document this.
+	* lib-src/etags.c (readline_internal) [DOS_NT]:
+	Don't treat CRs differently from GNUish hosts.
+	* lisp/progmodes/etags.el (etags-goto-tag-location):
+	Adjust STARTPOS to account for the skipped CRs in dos-style files.
+
+2015-05-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	Improve fix of debbugs:20634 in tramp-sh.el
+
+2015-05-25  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix a typo in last commit
+	* lib-src/etags.c (C_entries): Fix a typo.
+	* test/etags/ETAGS.good_1:
+	* test/etags/ETAGS.good_2:
+	* test/etags/ETAGS.good_3:
+	* test/etags/ETAGS.good_4:
+	* test/etags/ETAGS.good_5:
+	* test/etags/CTAGS.good: Update due to the change in etags.c.
+
+	Fix tagging of class members in C-like OO languages
+	* lib-src/etags.c (longopts): Add new option --class-qualify and
+	its shorthand -Q.
+	(print_help): Add help text for --class-qualify.
+	(main): Add handling of -Q.
+	(consider_token, C_entries) <omethodparm>: Append argument types
+	to Objective C methods only if --class-qualify was specified.
+	Qualify C++, Objective C, and Java class members with their class
+	names only if --class-qualify was specified.
+	(C_entries): If --class-qualify was not specified, remove the
+	namespace and class qualifiers from tag names of C++ methods.
+	This allows to use etags.el as xref back-end without the
+	tag-symbol-match-p method, which greatly increases the number of
+	potentially false positives.  (Bug#20629)
+	* doc/man/etags.1: Update to document the new --class-qualify
+	option.
+	* test/etags/ETAGS.good_1:
+	* test/etags/ETAGS.good_2:
+	* test/etags/ETAGS.good_3:
+	* test/etags/ETAGS.good_4:
+	* test/etags/ETAGS.good_5:
+	* test/etags/CTAGS.good: Update due to changes in etags.c.
+
+2015-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	(cl-generic-define-method): Side effects are evil (bug#20644)
+	* lisp/emacs-lisp/cl-generic.el (cl-generic-define-method): Don't reuse
+	cons-cells that might be used as keys in an `equal' hash-table.
+
+2015-05-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	Make erc timestamps visible again
+	* lisp/erc/erc-stamp.el (erc-munge-invisibility-spec): Make
+	timestamps visible again (if requested).
+
+2015-05-25  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix last change in etags.c that broke tagging compresed files
+	* lib-src/etags.c (process_file_name) [MSDOS || DOS_NT]: Fix
+	quoting of decompression shell command for MS-Windows/MS-DOS.
+
+2015-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/emacs-lisp/cl-macs.el (cl-tagbody): Scope cl--tagbody-alist
+	(Bug#20639)
+
+2015-05-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix typo in 89035e247591c8d688fce922b7079881aa110f33
+
+2015-05-25  Orivej Desh  <orivej@gmx.fr>  (tiny change)
+
+	Fix IPv6 addresses in Tramp
+	* lisp/net/tramp-sh.el (tramp-make-copy-program-file-name):
+	Add sqare brackets around host name.
+
+2015-05-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	Inhibit `epa-file-handler' in Tramp
+	(Bug#20634)
+	* lisp/net/tramp-sh.el (tramp-do-copy-or-rename-file-via-buffer)
+	(tramp-sh-handle-insert-file-contents-literally): Inhibit also
+	`epa-file-handler'.
+
+2015-05-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/emacs-lisp/pcase.el: Use PAT rather than UPAT in docstring
+	(pcase-let): Document the behavior in case the pattern doesn't match.
+
+2015-05-24  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/emacs-lisp/tabulated-list.el: New optional print method
+	(tabulated-list-print): New optional argument, UPDATE.  If
+	non-nil, the list is printed by only adding and deleting the
+	changed entries, instead of erasing the whole buffer.  This method
+	is much faster when few or no entries have changed.
+	* doc/lispref/modes.texi (Tabulated List Mode): Document it.
+	* etc/NEWS: Document it.
+
+	* lisp/emacs-lisp/tabulated-list.el: Improve printing
+	(tabulated-list--get-sorter): New function.
+	(tabulated-list-print): Restore window-line when remember-pos is
+	passed and optimize away the `nreverse'.
+
+2015-05-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simpilify etags TEX mode scanning
+	* lib-src/etags.c (TEX_mode, TEX_esc, TEX_opgrp, TEX_clgrp):
+	Remove static vars.
+	(TeX_commands): Deduce escapes here instead.
+	(TEX_LESC, TEX_SESC, TEX_mode): Remove; all uses removed.
+	This removes the need for a reset_input call.
+
+	Improve etags I/O error reporting
+	* lib-src/etags.c:
+	Don't include sys/types.h and sys/stat.h; no longer needed.
+	(infilename): New static var.
+	(process_file_name): Don't call 'stat'.  Instead, just open the
+	file for reading and report any errors.  Don't bother making
+	a copy of the file argument; it's not needed.  Be more careful to
+	use the failing errno when reporting an error.
+	Quote the real name better (though no perfectly)
+	when passing it to the shell.
+	(reset_input): New function, which reports I/O errors.
+	All uses of 'rewind' changed to use this function.
+	(perhaps_more_input): New function, which also checks for
+	I/O errors.  All uses of 'feof' changed to use this function.
+	(analyze_regex): Report an error if fclose fails.
+	(readline_internal): Report an error if getc fails.
+	(etags_mktmp): Return an error if close fails.
+
+	etags.c: avoid side effects in 'if'
+	* lib-src/etags.c (process_file_name, Perl_functions)
+	(TEX_decode_env): Hoist side effects into previous statement.
+
+	.gitignore tweaks
+	* .gitignore: Ignore all *.stamp files.  Sort.
+	Ignore [0-9]*.txt (commonly used name for git patches)
+	and /vc-dwim-log-* (vc-dwim temporary).
+
 2015-05-24  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix last change in etags.c, which failed the test suite

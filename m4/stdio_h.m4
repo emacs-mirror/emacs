@@ -1,4 +1,4 @@
-# stdio_h.m4 serial 44
+# stdio_h.m4 serial 46
 dnl Copyright (C) 2007-2015 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -15,15 +15,21 @@ AC_DEFUN([gl_STDIO_H],
   dnl Determine whether __USE_MINGW_ANSI_STDIO makes printf and
   dnl inttypes.h behave like gnu instead of system; we must give our
   dnl printf wrapper the right attribute to match.
-  AC_CACHE_CHECK([whether inttypes macros match system or gnu printf],
+  AC_CACHE_CHECK([which flavor of printf attribute matches inttypes macros],
     [gl_cv_func_printf_attribute_flavor],
-    [AC_EGREP_CPP([findme .(ll|j)d. findme],
-      [#define __STDC_FORMAT_MACROS 1
+    [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+       #define __STDC_FORMAT_MACROS 1
        #include <stdio.h>
        #include <inttypes.h>
-       findme PRIdMAX findme
-      ], [gl_cv_func_printf_attribute_flavor=gnu],
-      [gl_cv_func_printf_attribute_flavor=system])])
+       /* For non-mingw systems, compilation will trivially succeed.
+          For mingw, compilation will succeed for older mingw (system
+          printf, "I64d") and fail for newer mingw (gnu printf, "lld"). */
+       #if ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__) && \
+         (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 4))
+       extern char PRIdMAX_probe[sizeof PRIdMAX == sizeof "I64d" ? 1 : -1];
+       #endif
+      ]])], [gl_cv_func_printf_attribute_flavor=system],
+      [gl_cv_func_printf_attribute_flavor=gnu])])
   if test "$gl_cv_func_printf_attribute_flavor" = gnu; then
     AC_DEFINE([GNULIB_PRINTF_ATTRIBUTE_FLAVOR_GNU], [1],
       [Define to 1 if printf and friends should be labeled with

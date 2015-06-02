@@ -93,7 +93,7 @@ developing GNU and promoting software freedom.''
 Published by the Free Software Foundation @*
 51 Franklin Street, Fifth Floor @*
 Boston, MA 02110-1301 USA @*
-ISBN 978-0-9831592-4-7
+ISBN 978-0-9831592-5-4
 
 @sp 2
 Cover art by Etienne Suvasa; cover design by Matt Lee.

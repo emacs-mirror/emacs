@@ -1849,7 +1849,9 @@ non-nil, returns the face for expected results.."
              (when (ert-test-documentation test)
                (insert "    "
                        (propertize
-                        (ert--string-first-line (ert-test-documentation test))
+                        (ert--string-first-line
+                         (substitute-command-keys
+                          (ert-test-documentation test)))
                         'font-lock-face 'font-lock-doc-face)
                        "\n"))
              (cl-etypecase result
@@ -2063,7 +2065,7 @@ and how to display message."
     "--"
     ["Show backtrace" ert-results-pop-to-backtrace-for-test-at-point]
     ["Show messages" ert-results-pop-to-messages-for-test-at-point]
-    ["Show `should' forms" ert-results-pop-to-should-forms-for-test-at-point]
+    ["Show ‘should’ forms" ert-results-pop-to-should-forms-for-test-at-point]
     ["Describe test" ert-results-describe-test-at-point]
     "--"
     ["Delete test" ert-delete-test]
@@ -2375,9 +2377,9 @@ To be used in the ERT results buffer."
            (ert--print-backtrace backtrace)
            (debugger-make-xrefs)
            (goto-char (point-min))
-           (insert "Backtrace for test `")
+           (insert "Backtrace for test ‘")
            (ert-insert-test-name-button (ert-test-name test))
-           (insert "':\n")))))))
+           (insert "’:\n")))))))
 
 (defun ert-results-pop-to-messages-for-test-at-point ()
   "Display the part of the *Messages* buffer generated during the test at point.
@@ -2396,9 +2398,9 @@ To be used in the ERT results buffer."
         (ert-simple-view-mode)
         (insert (ert-test-result-messages result))
         (goto-char (point-min))
-        (insert "Messages for test `")
+        (insert "Messages for test ‘")
         (ert-insert-test-name-button (ert-test-name test))
-        (insert "':\n")))))
+        (insert "’:\n")))))
 
 (defun ert-results-pop-to-should-forms-for-test-at-point ()
   "Display the list of `should' forms executed during the test at point.
@@ -2426,9 +2428,9 @@ To be used in the ERT results buffer."
                      (ert--pp-with-indentation-and-newline form-description)
                      (ert--make-xrefs-region begin (point)))))
         (goto-char (point-min))
-        (insert "`should' forms executed during test `")
+        (insert "‘should’ forms executed during test ‘")
         (ert-insert-test-name-button (ert-test-name test))
-        (insert "':\n")
+        (insert "’:\n")
         (insert "\n")
         (insert (concat "(Values are shallow copies and may have "
                         "looked different during the test if they\n"
@@ -2505,9 +2507,9 @@ To be used in the ERT results buffer."
           (let ((file-name (and test-name
                                 (symbol-file test-name 'ert-deftest))))
             (when file-name
-              (insert " defined in `" (file-name-nondirectory file-name) "'")
+              (insert " defined in ‘" (file-name-nondirectory file-name) "’")
               (save-excursion
-                (re-search-backward "`\\([^`']+\\)'" nil t)
+                (re-search-backward "‘\\([^‘’]+\\)’" nil t)
                 (help-xref-button 1 'help-function-def test-name file-name)))
             (insert ".")
             (fill-region-as-paragraph (point-min) (point))
@@ -2519,8 +2521,9 @@ To be used in the ERT results buffer."
                         "this documentation refers to an old definition.")
                 (fill-region-as-paragraph begin (point)))
               (insert "\n\n"))
-            (insert (or (ert-test-documentation test-definition)
-                        "It is not documented.")
+            (insert (substitute-command-keys
+                     (or (ert-test-documentation test-definition)
+                         "It is not documented."))
                     "\n")))))))
 
 (defun ert-results-describe-test-at-point ()

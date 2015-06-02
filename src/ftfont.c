@@ -2674,7 +2674,6 @@ syms_of_ftfont (void)
   /* Fontconfig's generic families and their aliases.  */
   DEFSYM (Qmonospace, "monospace");
   DEFSYM (Qsans_serif, "sans-serif");
-  DEFSYM (Qserif, "serif");
   DEFSYM (Qsans, "sans");
   DEFSYM (Qsans__serif, "sans serif");
 

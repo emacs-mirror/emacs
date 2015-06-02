@@ -1245,7 +1245,7 @@ This phonetic layout replaces all the Latin letters with Bulgarian
 \(Cyrillic) letters based on similarities in their pronunciation or look.
 
 Note that, since the letters ‘щ’, ‘ь’, ‘ю’ and ‘я’ are attached to the
-‘]’, ‘\’, ‘`’ and ‘[’ keys respectively, Caps Lock does not affect them."
+‘]’, ‘\’, ‘\\=`’ and ‘[’ keys respectively, Caps Lock does not affect them."
 nil t t t t nil nil nil nil nil t)
 
 ;;  Ю  1! 2@ 3№ 4$ 5% 6€ 7§ 8* 9( 0) -– =+ ьѝ
@@ -1412,7 +1412,7 @@ The letters Ц, М, Ч, Р, Л, Б and Ы are not affected by Caps Lock.
 In addition to original Bulgarian typewriter layout, keys \\ and |
 are transformed into ' and Ы respectively.  Some keyboards mark these
 keys as being transformed into ( and ) respectively.  For ( and ), use
-` and ~ respectively.  This input method follows XKB."
+\\=` and ~ respectively.  This input method follows XKB."
  nil t t t t nil nil nil nil nil t)
 
 ;;  () 1! 2? 3+ 4" 5% 6= 7: 8/ 9_ 0№ -I .V

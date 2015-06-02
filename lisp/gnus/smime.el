@@ -158,7 +158,7 @@ certificates to be sent with every message to each address."
 Directory should contain files (in PEM format) named to the X.509
 hash of the certificate.  This can be done using OpenSSL such as:
 
-$ ln -s ca.pem `openssl x509 -noout -hash -in ca.pem`.0
+$ ln -s ca.pem \\=`openssl x509 -noout -hash -in ca.pem\\=`.0
 
 where `ca.pem' is the file containing a PEM encoded X.509 CA
 certificate."

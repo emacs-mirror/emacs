@@ -314,7 +314,8 @@ Returns non-nil if conflicts remain."
 SKIP denotes whether those commits are actually skipped.  If END
 is nil, only the single commit BEG is merged."
   (with-temp-buffer
-    (insert "Merge from " branch "\n\n"
+    (insert (if skip "; " "")
+	    "Merge from " branch "\n\n"
 	    (if skip
 		(concat "The following commit"
 			(if end "s were " " was ")

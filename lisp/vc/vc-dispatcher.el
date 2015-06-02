@@ -171,6 +171,12 @@ Another is that undo information is not kept."
   (let ((camefrom (current-buffer))
 	(olddir default-directory))
     (set-buffer (get-buffer-create buf))
+    (let ((oldproc (get-buffer-process (current-buffer))))
+      ;; If we wanted to wait for oldproc to finish before doing
+      ;; something, we'd have used vc-eval-after.
+      ;; Use `delete-process' rather than `kill-process' because we don't
+      ;; want any of its output to appear from now on.
+      (when oldproc (delete-process oldproc)))
     (kill-all-local-variables)
     (set (make-local-variable 'vc-parent-buffer) camefrom)
     (set (make-local-variable 'vc-parent-buffer-name)
@@ -302,12 +308,6 @@ case, and the process object in the asynchronous case."
 		  (eq buffer (current-buffer)))
 	(vc-setup-buffer buffer))
       ;; If there's some previous async process still running, just kill it.
-      (let ((oldproc (get-buffer-process (current-buffer))))
-        ;; If we wanted to wait for oldproc to finish before doing
-        ;; something, we'd have used vc-eval-after.
-        ;; Use `delete-process' rather than `kill-process' because we don't
-        ;; want any of its output to appear from now on.
-        (when oldproc (delete-process oldproc)))
       (let ((squeezed (remq nil flags))
 	    (inhibit-read-only t)
 	    (status 0))

@@ -1823,7 +1823,7 @@ Key bindings:
 ;; bug reporting
 
 (defconst c-mode-help-address
-  "bug-cc-mode@gnu.org"
+  "submit@debbugs.gnu.org"
   "Address(es) for CC Mode bug reports.")
 
 (defun c-version ()
@@ -1839,6 +1839,13 @@ Key bindings:
 ;; Dynamic variables used by reporter.
 (defvar reporter-prompt-for-summary-p)
 (defvar reporter-dont-compact-list)
+
+;; This could be "emacs,cc-mode" in the version included in Emacs.
+(defconst c-mode-bug-package "cc-mode"
+  "The package to use in the bug submission.")
+
+;; reporter-submit-bug-report requires sendmail.
+(declare-function mail-position-on-field "sendmail" (field &optional soft))
 
 (defun c-submit-bug-report ()
   "Submit via mail a bug report on CC Mode."
@@ -1903,6 +1910,9 @@ Key bindings:
 	vars)
       (lambda ()
 	(run-hooks 'c-prepare-bug-report-hook)
+	(save-excursion
+	  (or (mail-position-on-field "X-Debbugs-Package")
+	      (insert c-mode-bug-package)))
 	(insert (format "Buffer Style: %s\nc-emacs-features: %s\n"
 			style c-features)))))))
 

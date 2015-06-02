@@ -526,7 +526,6 @@ internal_self_insert (int c, EMACS_INT n)
 void
 syms_of_cmds (void)
 {
-  DEFSYM (Qkill_backward_chars, "kill-backward-chars");
   DEFSYM (Qkill_forward_chars, "kill-forward-chars");
 
   /* A possible value for a buffer's overwrite-mode variable.  */

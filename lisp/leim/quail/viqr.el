@@ -53,7 +53,7 @@
     horn     |    +    | o+ -> ơ
  ------------+---------+----------
     acute    |    '    | a' -> á
-    grave    |    `    | a` -> à
+    grave    |    \\=`    | a\\=` -> à
   hook above |    ?    | a? -> ả
     tilde    |    ~    | a~ -> ã
    dot below |    .    | a. -> ạ

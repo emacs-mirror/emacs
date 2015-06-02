@@ -11089,10 +11089,6 @@ syms_of_keyboard (void)
   tool_bar_items_vector = Qnil;
 
   DEFSYM (Qtimer_event_handler, "timer-event-handler");
-  DEFSYM (Qdisabled_command_function, "disabled-command-function");
-  DEFSYM (Qself_insert_command, "self-insert-command");
-  DEFSYM (Qforward_char, "forward-char");
-  DEFSYM (Qbackward_char, "backward-char");
 
   /* Non-nil disable property on a command means do not execute it;
      call disabled-command-function's value instead.  */
@@ -11204,7 +11200,6 @@ syms_of_keyboard (void)
   DEFSYM (Qhandle_switch_frame, "handle-switch-frame");
   DEFSYM (Qhandle_select_window, "handle-select-window");
 
-  DEFSYM (Qinput_method_function, "input-method-function");
   DEFSYM (Qinput_method_exit_on_first_char, "input-method-exit-on-first-char");
   DEFSYM (Qinput_method_use_echo_area, "input-method-use-echo-area");
 

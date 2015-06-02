@@ -2400,7 +2400,7 @@ This construct is \"<keyword> <expression> :\"."
 	    "false" "true")		; Defined in C99.
   c++     (append
            '("nullptr")
-           (c-lang-const c-constant-kwds))
+           (c-lang-const c-constant-kwds c))
   objc    '("nil" "Nil" "YES" "NO" "NS_DURING" "NS_HANDLER" "NS_ENDHANDLER")
   idl     '("TRUE" "FALSE")
   java    '("true" "false" "null") ; technically "literals", not keywords

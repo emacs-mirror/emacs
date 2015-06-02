@@ -403,8 +403,8 @@
          ;; Words inside \\[] tend to be for `substitute-command-keys'.
          ("\\\\\\\\\\[\\(\\(?:\\sw\\|\\s_\\)+\\)\\]"
           (1 font-lock-constant-face prepend))
-         ;; Words inside `' tend to be symbol names.
-         ("`\\(\\(?:\\sw\\|\\s_\\)\\(?:\\sw\\|\\s_\\)+\\)'"
+         ;; Words inside ‘’ and `' tend to be symbol names.
+         ("[`‘]\\(\\(?:\\sw\\|\\s_\\)\\(?:\\sw\\|\\s_\\)+\\)['’]"
           (1 font-lock-constant-face prepend))
          ;; Constant values.
          ("\\_<:\\(?:\\sw\\|\\s_\\)+\\_>" 0 font-lock-builtin-face)
@@ -452,8 +452,8 @@
          ;; Erroneous structures.
          (,(concat "(" cl-errs-re "\\_>")
            (1 font-lock-warning-face))
-         ;; Words inside `' tend to be symbol names.
-         ("`\\(\\(?:\\sw\\|\\s_\\)\\(?:\\sw\\|\\s_\\)+\\)'"
+         ;; Words inside ‘’ and `' tend to be symbol names.
+         ("[`‘]\\(\\(?:\\sw\\|\\s_\\)\\(?:\\sw\\|\\s_\\)+\\)['’]"
           (1 font-lock-constant-face prepend))
          ;; Constant values.
          ("\\_<:\\(?:\\sw\\|\\s_\\)+\\_>" 0 font-lock-builtin-face)

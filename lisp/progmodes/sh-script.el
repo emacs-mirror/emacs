@@ -921,7 +921,7 @@ See `sh-feature'.")
      (:foreground "magenta"))
     (t
      (:weight bold)))
-  "Face to show quoted execs like `blabla`."
+  "Face to show quoted execs like \\=`blabla\\=`."
   :group 'sh-indentation)
 (define-obsolete-face-alias 'sh-heredoc-face 'sh-heredoc "22.1")
 (defvar sh-heredoc-face 'sh-heredoc)

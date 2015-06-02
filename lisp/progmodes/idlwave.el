@@ -742,8 +742,8 @@ The actions that can be performed are listed in `idlwave-indent-action-table'."
 
 (defcustom idlwave-abbrev-start-char "\\"
   "A single character string used to start abbreviations in abbrev mode.
-Possible characters to chose from: ~`\%
-or even '?'.  '.' is not a good choice because it can make structure
+Possible characters to choose from: ~\\=`\%
+or even ‘?’.  ‘.’ is not a good choice because it can make structure
 field names act like abbrevs in certain circumstances.
 
 Changes to this in `idlwave-mode-hook' will have no effect.  Instead a user

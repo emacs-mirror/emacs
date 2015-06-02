@@ -44,11 +44,11 @@
   "
            /\\_.-^^^-._/\\     The GNU
            \\_         _/
-            (     `o  `      (European ;-) Bison
-             \\      ` /
+            (     \\=`o  \\=`      (European ;-) Bison
+             \\      \\=` /
              (   D  ,\"       for Emacs!
-              ` ~ ,\"
-               `\"\""
+              \\=` ~ ,\"
+               \\=`\"\""
   :group 'semantic)
 
 

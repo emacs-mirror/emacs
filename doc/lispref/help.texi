@@ -318,10 +318,18 @@ stands for no text itself.  It is used only for a side effect: it
 specifies @var{mapvar}'s value as the keymap for any following
 @samp{\[@var{command}]} sequences in this documentation string.
 
+@item `
+(grave accent) stands for a left single quotation mark (@samp{‘}).
+
+@item '
+(apostrophe) stands for a right single quotation mark (@samp{’}) if
+preceded by grave accent and there are no intervening apostrophes.
+Otherwise, apostrophe stands for itself.
+
 @item \=
-quotes the following character and is discarded; thus, @samp{\=\[} puts
-@samp{\[} into the output, and @samp{\=\=} puts @samp{\=} into the
-output.
+quotes the following character and is discarded; thus, @samp{\=`} puts
+@samp{`} into the output, @samp{\=\[} puts @samp{\[} into the output,
+and @samp{\=\=} puts @samp{\=} into the output.
 @end table
 
 @strong{Please note:} Each @samp{\} must be doubled when written in a
@@ -354,8 +362,8 @@ specifies a key binding that the command does not actually have.
 @smallexample
 @group
 (substitute-command-keys
-   "To abort recursive edit, type: \\[abort-recursive-edit]")
-@result{} "To abort recursive edit, type: C-]"
+   "To abort recursive edit, type ‘\\[abort-recursive-edit]’.")
+@result{} "To abort recursive edit, type ‘C-]’."
 @end group
 
 @group
@@ -376,8 +384,8 @@ C-g             abort-recursive-edit
 @group
 (substitute-command-keys
    "To abort a recursive edit from the minibuffer, type\
-\\<minibuffer-local-must-match-map>\\[abort-recursive-edit].")
-@result{} "To abort a recursive edit from the minibuffer, type C-g."
+`\\<minibuffer-local-must-match-map>\\[abort-recursive-edit]'.")
+@result{} "To abort a recursive edit from the minibuffer, type ‘C-g’."
 @end group
 @end smallexample
 

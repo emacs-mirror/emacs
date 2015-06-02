@@ -9773,7 +9773,6 @@ non-numeric, there is no explicit limit on the size of images.  */);
   DEFSYM (QCcolor_symbols, ":color-symbols");
   DEFSYM (QCheuristic_mask, ":heuristic-mask");
   DEFSYM (QCindex, ":index");
-  DEFSYM (QCgeometry, ":geometry");
   DEFSYM (QCcrop, ":crop");
   DEFSYM (QCrotation, ":rotation");
   DEFSYM (QCmatrix, ":matrix");
@@ -9792,7 +9791,6 @@ non-numeric, there is no explicit limit on the size of images.  */);
 #ifdef HAVE_GHOSTSCRIPT
   ADD_IMAGE_TYPE (Qpostscript);
   DEFSYM (QCloader, ":loader");
-  DEFSYM (QCbounding_box, ":bounding-box");
   DEFSYM (QCpt_width, ":pt-width");
   DEFSYM (QCpt_height, ":pt-height");
 #endif /* HAVE_GHOSTSCRIPT */

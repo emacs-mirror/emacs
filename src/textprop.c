@@ -2344,8 +2344,16 @@ returned. */);
 
   DEFVAR_LISP ("inhibit-point-motion-hooks", Vinhibit_point_motion_hooks,
 	       doc: /* If non-nil, don't run `point-left' and `point-entered' text properties.
-This also inhibits the use of the `intangible' text property.  */);
-  Vinhibit_point_motion_hooks = Qnil;
+This also inhibits the use of the `intangible' text property.
+
+This variable is obsolete since Emacs-25.1.  Use `cursor-intangible-mode'
+or `cursor-sensor-mode' instead.  */);
+  /* FIXME: We should make-obsolete-variable, but that signals too many
+     warnings in code which does (let ((inhibit-point-motion-hooks t)) ...)
+     Ideally, make-obsolete-variable should let us specify that only the nil
+     value is obsolete, but that requires too many changes in bytecomp.el,
+     so for now we'll keep it "obsolete via the docstring".  */
+  Vinhibit_point_motion_hooks = Qt;
 
   DEFVAR_LISP ("text-property-default-nonsticky",
 	       Vtext_property_default_nonsticky,
@@ -2369,12 +2377,8 @@ inherits it if NONSTICKINESS is nil.  The `front-sticky' and
 
   /* Common attributes one might give text.  */
 
-  DEFSYM (Qforeground, "foreground");
-  DEFSYM (Qbackground, "background");
   DEFSYM (Qfont, "font");
   DEFSYM (Qface, "face");
-  DEFSYM (Qstipple, "stipple");
-  DEFSYM (Qunderline, "underline");
   DEFSYM (Qread_only, "read-only");
   DEFSYM (Qinvisible, "invisible");
   DEFSYM (Qintangible, "intangible");
@@ -2387,8 +2391,6 @@ inherits it if NONSTICKINESS is nil.  The `front-sticky' and
 
   /* Properties that text might use to specify certain actions.  */
 
-  DEFSYM (Qmouse_left, "mouse-left");
-  DEFSYM (Qmouse_entered, "mouse-entered");
   DEFSYM (Qpoint_left, "point-left");
   DEFSYM (Qpoint_entered, "point-entered");
 

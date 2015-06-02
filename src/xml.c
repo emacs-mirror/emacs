@@ -287,8 +287,6 @@ syms_of_xml (void)
 {
   defsubr (&Slibxml_parse_html_region);
   defsubr (&Slibxml_parse_xml_region);
-
-  DEFSYM (Qlibxml2_dll, "libxml2");
 }
 
 #endif /* HAVE_LIBXML2 */

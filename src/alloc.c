@@ -4542,9 +4542,9 @@ DEFUN ("gc-status", Fgc_status, Sgc_status, 0, 0, "",
   Lisp_Object zombie_list = Qnil;
   for (int i = 0; i < min (MAX_ZOMBIES, nzombies); i++)
     zombie_list = Fcons (zombies[i], zombie_list);
-  return CALLN (Fmessage,
-		build_string ("%d GCs, avg live/zombies = %.2f/%.2f"
-			      " (%f%%), max %d/%d\nzombies: %S"),
+  AUTO_STRING (format, ("%d GCs, avg live/zombies = %.2f/%.2f (%f%%),"
+			" max %d/%d\nzombies: %S"));
+  return CALLN (Fmessage, format,
 		make_number (ngcs), make_float (avg_live),
 		make_float (avg_zombies),
 		make_float (avg_zombies / avg_live / 100),
@@ -4775,7 +4775,7 @@ mark_memory (void *start, void *end)
        Lisp_Object obj = build_string ("test");
        struct Lisp_String *s = XSTRING (obj);
        Fgarbage_collect ();
-       fprintf (stderr, "test `%s'\n", s->data);
+       fprintf (stderr, "test '%s'\n", s->data);
        return Qnil;
      }
 

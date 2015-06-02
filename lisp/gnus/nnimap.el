@@ -1266,7 +1266,7 @@ If LIMIT, first try to limit the search to the N last articles."
 		    (progn (skip-chars-forward " \"")
 			   (point))
 		    (progn (end-of-line)
-			   (skip-chars-backward " \"")
+			   (skip-chars-backward " \r\"")
 			   (point)))))
 	(unless (member '%NoSelect flags)
 	  (push (utf7-decode (if (stringp group)

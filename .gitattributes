@@ -19,13 +19,16 @@
 
 # A few files use CRLF endings, even on non-Microsoft platforms.
 # Do not warn about trailing whitespace with these files.
-*.bat -whitespace
-admin/charsets/mapfiles/PTCP154 -whitespace
-leim/MISC-DIC/cangjie-table.b5 -whitespace
-leim/MISC-DIC/cangjie-table.cns -whitespace
-leim/MISC-DIC/pinyin.map -whitespace
-lib-src/update-game-score.exe.manifest -whitespace
-nt/nmake.defs -whitespace
+*.bat whitespace=cr-at-eol
+admin/charsets/mapfiles/PTCP154 whitespace=cr-at-eol
+leim/MISC-DIC/cangjie-table.b5 whitespace=cr-at-eol
+leim/MISC-DIC/cangjie-table.cns whitespace=cr-at-eol
+leim/MISC-DIC/pinyin.map whitespace=cr-at-eol
+lib-src/update-game-score.exe.manifest whitespace=cr-at-eol
+nt/nmake.defs whitespace=cr-at-eol
+test/etags/c-src/dostorture.c whitespace=cr-at-eol
+test/etags/cp-src/c.C whitespace=cr-at-eol
+test/etags/html-src/algrthms.html whitespace=cr-at-eol
 
 # The upstream maintainer does not want to remove trailing whitespace.
 doc/misc/texinfo.tex -whitespace=blank-at-eol
@@ -40,4 +43,4 @@ doc/misc/texinfo.tex -whitespace=blank-at-eol
 *.png binary
 *.sig binary
 *.tiff binary
-test/automated/data/decompress/foo-gzipped binary
+etc/e/eterm-color binary

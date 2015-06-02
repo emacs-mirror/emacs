@@ -6522,8 +6522,9 @@ no buffer display table.
 @defvar standard-display-table
 The value of this variable is the standard display table, which is
 used when Emacs is displaying a buffer in a window with neither a
-window display table nor a buffer display table defined.  Its default
-is @code{nil}.
+window display table nor a buffer display table defined, or when Emacs
+is outputting text to the standard output or error streams.  Its
+default is @code{nil}.
 @end defvar
 
 The @file{disp-table} library defines several functions for changing

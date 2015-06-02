@@ -1528,7 +1528,6 @@ syms_of_nsfont (void)
   DEFSYM (Qcondensed, "condensed");
   DEFSYM (Qexpanded, "expanded");
   DEFSYM (Qapple, "apple");
-  DEFSYM (Qroman, "roman");
   DEFSYM (Qmedium, "medium");
   DEFVAR_LISP ("ns-reg-to-script", Vns_reg_to_script,
                doc: /* Internal use: maps font registry to Unicode script. */);

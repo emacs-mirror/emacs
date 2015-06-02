@@ -200,6 +200,12 @@ Auto Save mode saves the buffer contents periodically to reduce the
 amount of work you can lose in case of a crash.  @xref{Auto Save}.
 
 @item
+Electric Quote mode automatically converts quotation marks.  For
+example, it requotes text typed @t{`like this'} to text @t{‘like
+this’}.  You can control what kind of text it operates in, and you can
+disable it entirely in individual buffers.  @xref{Quotation Marks}.
+
+@item
 Enriched mode enables editing and saving of formatted text.
 @xref{Enriched Text}.
 

@@ -416,7 +416,7 @@ Here are the clauses allowed in an `sregex' or `sregexq' expression:
   given set.  See below for how to construct a CHAR-CLAUSE.
 
 - the symbol `bot'
-  Stands for \"\\\\`\", matching the empty string at the beginning of
+  Stands for \"\\\\\\=`\", matching the empty string at the beginning of
   text (beginning of a string or of a buffer).
 
 - the symbol `eot'

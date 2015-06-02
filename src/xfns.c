@@ -1084,8 +1084,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 	  y = FRAME_TOP_MARGIN_HEIGHT (f);
 
 	  block_input ();
-	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			0, y, width, height);
+	  x_clear_area (f, 0, y, width, height);
 	  unblock_input ();
 	}
 
@@ -1095,8 +1094,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 	  height = nlines * FRAME_LINE_HEIGHT (f) - y;
 
 	  block_input ();
-	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			0, y, width, height);
+	  x_clear_area (f, 0, y, width, height);
 	  unblock_input ();
 	}
 
@@ -4521,7 +4519,8 @@ select_visual (struct x_display_info *dpyinfo)
       if (class == -1
 	  || !XMatchVisualInfo (dpy, XScreenNumberOfScreen (screen),
 				dpyinfo->n_planes, class, &vinfo))
-	fatal ("Invalid visual specification `%s'", SDATA (value));
+	fatal ("Invalid visual specification '%s'",
+	       SSDATA (ENCODE_SYSTEM (value)));
 
       dpyinfo->visual = vinfo.visual;
     }

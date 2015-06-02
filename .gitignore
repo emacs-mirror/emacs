@@ -155,6 +155,7 @@ test/etags/CTAGS
 
 # ctags, etags.
 TAGS
+!admin/notes/tags
 
 # GNU global.
 GPATH
@@ -207,7 +208,7 @@ lisp/international/uni-*.el
 *.dvi
 *.fn
 *.fns
-*.html
+doc/*/*.html
 !test/etags/html-src/*.html
 *.info
 *.ky
@@ -223,8 +224,7 @@ lisp/international/uni-*.el
 *.pgs
 *.pj
 *.pjs
-*.ps
-!test/etags/ps-src/*.ps
+doc/*/*.ps
 *.sc
 *.scs
 *.t2d/

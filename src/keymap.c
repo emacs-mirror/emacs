@@ -3739,9 +3739,6 @@ be preferred.  */);
 			 intern_c_string ("mouse-4"),
 			 intern_c_string ("mouse-5"));
 
-  DEFSYM (Qsingle_key_description, "single-key-description");
-  DEFSYM (Qkey_description, "key-description");
-
   /* Keymap used for minibuffers when doing completion.  */
   /* Keymap used for minibuffers when doing completion and require a match.  */
   DEFSYM (Qkeymapp, "keymapp");

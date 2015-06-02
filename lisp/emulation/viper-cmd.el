@@ -4400,7 +4400,7 @@ and regexp replace."
 ;; etc.
 (defun viper-cycle-through-mark-ring ()
   "Visit previous locations on the mark ring.
-One can use `` and '' to temporarily jump 1 step back."
+One can use \\=`\\=` and '' to temporarily jump 1 step back."
   (let* ((sv-pt (point)))
        ;; if repeated `m,' command, pop the previously saved mark.
        ;; Prev saved mark is actually prev saved point.  It is used if the

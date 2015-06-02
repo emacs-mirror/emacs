@@ -4905,7 +4905,6 @@ syms_of_frame (void)
   DEFSYM (Qframe_inhibit_resize, "frame-inhibit-resize");
   DEFSYM (Qx_set_fullscreen, "x-set-fullscreen");
   DEFSYM (Qx_check_fullscreen, "x-check-fullscreen");
-  DEFSYM (Qx_set_window_size_1, "x-set-window-size-1");
   DEFSYM (Qxg_frame_resized, "xg-frame-resized");
   DEFSYM (Qxg_frame_set_char_size_1, "xg-frame-set-char-size-1");
   DEFSYM (Qxg_frame_set_char_size_2, "xg-frame-set-char-size-2");
@@ -4922,7 +4921,6 @@ syms_of_frame (void)
   DEFSYM (Qset_window_configuration, "set-window-configuration");
   DEFSYM (Qx_create_frame_1, "x-create-frame-1");
   DEFSYM (Qx_create_frame_2, "x-create-frame-2");
-  DEFSYM (Qtip_frame, "tip-frame");
   DEFSYM (Qterminal_frame, "terminal-frame");
 
 #ifdef HAVE_NS
@@ -5074,12 +5072,10 @@ The pointer becomes visible again when the mouse is moved.  */);
   DEFVAR_LISP ("focus-in-hook", Vfocus_in_hook,
                doc: /* Normal hook run when a frame gains input focus.  */);
   Vfocus_in_hook = Qnil;
-  DEFSYM (Qfocus_in_hook, "focus-in-hook");
 
   DEFVAR_LISP ("focus-out-hook", Vfocus_out_hook,
                doc: /* Normal hook run when a frame loses input focus.  */);
   Vfocus_out_hook = Qnil;
-  DEFSYM (Qfocus_out_hook, "focus-out-hook");
 
   DEFVAR_LISP ("delete-frame-functions", Vdelete_frame_functions,
 	       doc: /* Functions run before deleting a frame.

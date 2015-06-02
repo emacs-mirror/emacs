@@ -39,6 +39,7 @@ AC_DEFUN([gl_EARLY],
   m4_pattern_allow([^gl_LTLIBOBJS$])dnl a variable
   AC_REQUIRE([gl_PROG_AR_RANLIB])
   # Code from module absolute-header:
+  # Code from module acl-permissions:
   # Code from module alloca-opt:
   # Code from module allocator:
   # Code from module at-internal:
@@ -105,7 +106,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module pselect:
   # Code from module pthread_sigmask:
   # Code from module putenv:
-  # Code from module qacl:
+  # Code from module qcopy-acl:
   # Code from module readlink:
   # Code from module readlinkat:
   # Code from module root-uid:
@@ -172,6 +173,7 @@ AC_DEFUN([gl_INIT],
   m4_pushdef([gl_LIBSOURCES_DIR], [])
   gl_COMMON
   gl_source_base='lib'
+  gl_FUNC_ACL
   gl_FUNC_ALLOCA
   gl_BYTESWAP
   AC_CHECK_FUNCS_ONCE([readlinkat])
@@ -317,7 +319,6 @@ AC_DEFUN([gl_INIT],
     gl_PREREQ_PUTENV
   fi
   gl_STDLIB_MODULE_INDICATOR([putenv])
-  gl_FUNC_ACL
   gl_FUNC_READLINK
   if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
     AC_LIBOBJ([readlink])
@@ -865,6 +866,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/fsync.c
   lib/ftoastr.c
   lib/ftoastr.h
+  lib/get-permissions.c
   lib/getdtablesize.c
   lib/getgroups.c
   lib/getloadavg.c
@@ -895,11 +897,11 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/pthread_sigmask.c
   lib/putenv.c
   lib/qcopy-acl.c
-  lib/qset-acl.c
   lib/readlink.c
   lib/readlinkat.c
   lib/root-uid.h
   lib/secure_getenv.c
+  lib/set-permissions.c
   lib/sha1.c
   lib/sha1.h
   lib/sha256.c

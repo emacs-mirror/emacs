@@ -332,7 +332,7 @@ meanings of these arguments."
       (let ((char (charset-iso-final-char charset)))
 	(when (> char 0)
 	  (insert "Final char of ISO2022 designation sequence: ")
-	  (insert (format "`%c'\n" char))))
+	  (insert (format "‘%c’\n" char))))
       (let (aliases)
 	(dolist (c charset-list)
 	  (if (and (not (eq c charset))
@@ -581,7 +581,7 @@ docstring, and print only the first line of the docstring."
 	    (if (string-match "\n" doc)
 		(setq doc (substring doc 0 (match-beginning 0))))
 	    (setq doc (concat "  " doc)))
-	  (princ (format "%s\n" doc))))))
+	  (princ (format "%s\n" (substitute-command-keys doc)))))))
 
 ;;;###autoload
 (defun describe-current-coding-system ()
@@ -1038,7 +1038,7 @@ see the function `describe-fontset' for the format of the list."
       (save-excursion
 	(goto-char (point-min))
 	(while (re-search-forward
-		"^  \\([^ ]+\\) (`.*' in mode line)$" nil t)
+		"^  \\([^ ]+\\) (‘.*’ in mode line)$" nil t)
 	  (help-xref-button 1 'help-input-method (match-string 1)))))))
 
 (defun list-input-methods-1 ()
@@ -1046,7 +1046,7 @@ see the function `describe-fontset' for the format of the list."
       (princ "
 No input method is available, perhaps because you have not
 installed LEIM (Libraries of Emacs Input Methods).")
-    (princ "LANGUAGE\n  NAME (`TITLE' in mode line)\n")
+    (princ "LANGUAGE\n  NAME (‘TITLE’ in mode line)\n")
     (princ "    SHORT-DESCRIPTION\n------------------------------\n")
     (setq input-method-alist
 	  (sort input-method-alist
@@ -1058,7 +1058,7 @@ installed LEIM (Libraries of Emacs Input Methods).")
 	  (setq language (nth 1 elt))
 	  (princ language)
 	  (terpri))
-	(princ (format "  %s (`%s' in mode line)\n    %s\n"
+	(princ (format "  %s (‘%s’ in mode line)\n    %s\n"
 		       (car elt)
 		       (let ((title (nth 3 elt)))
 			 (if (and (consp title) (stringp (car title)))
@@ -1066,8 +1066,9 @@ installed LEIM (Libraries of Emacs Input Methods).")
 			   title))
 		       ;; If the doc is multi-line, indent all
 		       ;; non-blank lines. (Bug#8066)
-		       (replace-regexp-in-string "\n\\(.\\)" "\n    \\1"
-						 (or (nth 4 elt) ""))))))))
+		       (replace-regexp-in-string
+                        "\n\\(.\\)" "\n    \\1"
+                        (substitute-command-keys (or (nth 4 elt) "")))))))))
 
 ;;; DIAGNOSIS
 

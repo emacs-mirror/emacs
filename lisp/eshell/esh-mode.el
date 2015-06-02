@@ -344,7 +344,6 @@ and the hook `eshell-exit-hook'."
 
   (setq local-abbrev-table eshell-mode-abbrev-table)
 
-  (set (make-local-variable 'dired-directory) default-directory)
   (set (make-local-variable 'list-buffers-directory)
        (expand-file-name default-directory))
 

@@ -231,7 +231,8 @@ Blank lines separate paragraphs.  Semicolons start comments.
   (lisp-mode-variables nil nil 'elisp)
   (add-hook 'after-load-functions #'elisp--font-lock-flush-elisp-buffers)
   (setq-local electric-pair-text-pairs
-              (cons '(?\` . ?\') electric-pair-text-pairs))
+              (append '((?\` . ?\') (?‘ . ?’)) electric-pair-text-pairs))
+  (setq-local electric-quote-string t)
   (setq imenu-case-fold-search nil)
   (add-function :before-until (local 'eldoc-documentation-function)
                 #'elisp-eldoc-documentation-function)
@@ -394,7 +395,7 @@ It can be quoted, or be inside a quoted form."
                ((or (eq (char-after) ?\[)
                     (progn
                       (skip-chars-backward " ")
-                      (memq (char-before) '(?' ?`))))
+                      (memq (char-before) '(?' ?` ?‘))))
                 (setq res t))
                ((eq (char-before) ?,)
                 (setq nesting nil))))
@@ -459,7 +460,7 @@ It can be quoted, or be inside a quoted form."
 	   (beg (condition-case nil
 		    (save-excursion
 		      (backward-sexp 1)
-		      (skip-syntax-forward "'")
+		      (skip-chars-forward "`',‘")
 		      (point))
 		  (scan-error pos)))
 	   (end
@@ -470,7 +471,7 @@ It can be quoted, or be inside a quoted form."
 		  (save-excursion
 		    (goto-char beg)
 		    (forward-sexp 1)
-                    (skip-chars-backward "'")
+                    (skip-chars-backward "'’")
 		    (when (>= (point) pos)
 		      (point)))
 		(scan-error pos))))
@@ -478,7 +479,7 @@ It can be quoted, or be inside a quoted form."
            (funpos (eq (char-before beg) ?\())
            (quoted (elisp--form-quoted-p beg)))
       (when (and end (or (not (nth 8 (syntax-ppss)))
-                         (eq (char-before beg) ?`)))
+                         (memq (char-before beg) '(?` ?‘))))
         (let ((table-etc
                (if (or (not funpos) quoted)
                    ;; FIXME: We could look at the first element of the list and
@@ -578,7 +579,6 @@ It can be quoted, or be inside a quoted form."
 
 ;;; Xref backend
 
-(declare-function xref-make-elisp-location "xref" (symbol type file))
 (declare-function xref-make-bogus-location "xref" (message))
 (declare-function xref-make "xref" (description location))
 (declare-function xref-collect-matches "xref" (input dir &optional kind))
@@ -591,9 +591,9 @@ It can be quoted, or be inside a quoted form."
         (when sym
           (elisp--xref-find-definitions sym))))
     (`references
-     (elisp--xref-find-matches id 'symbol))
+     (elisp--xref-find-matches id #'xref-collect-references))
     (`matches
-     (elisp--xref-find-matches id 'regexp))
+     (elisp--xref-find-matches id #'xref-collect-matches))
     (`apropos
      (elisp--xref-find-apropos id))))
 
@@ -654,7 +654,7 @@ It can be quoted, or be inside a quoted form."
 
 (defvar package-user-dir)
 
-(defun elisp--xref-find-matches (symbol kind)
+(defun elisp--xref-find-matches (symbol fun)
   (let* ((dirs (sort
                 (mapcar
                  (lambda (dir)
@@ -673,7 +673,7 @@ It can be quoted, or be inside a quoted form."
     (cl-mapcan
      (lambda (dir)
        (and (file-exists-p dir)
-            (xref-collect-matches symbol dir kind)))
+            (funcall fun symbol dir)))
      dirs)))
 
 (defun elisp--xref-find-apropos (regexp)
@@ -695,6 +695,24 @@ It can be quoted, or be inside a quoted form."
 
 (defun elisp--xref-identifier-completion-table ()
   elisp--xref-identifier-completion-table)
+
+(cl-defstruct (xref-elisp-location
+               (:constructor xref-make-elisp-location (symbol type file)))
+  "Location of an Emacs Lisp symbol definition."
+  symbol type file)
+
+(cl-defmethod xref-location-marker ((l xref-elisp-location))
+  (pcase-let (((cl-struct xref-elisp-location symbol type file) l))
+    (let ((buffer-point
+           (pcase type
+             (`defun (find-function-search-for-symbol symbol nil file))
+             ((or `defvar `defface)
+              (find-function-search-for-symbol symbol type file))
+             (`feature
+              (cons (find-file-noselect file) 1)))))
+      (with-current-buffer (car buffer-point)
+        (goto-char (or (cdr buffer-point) (point-min)))
+        (point-marker)))))
 
 ;;; Elisp Interaction mode
 
@@ -901,15 +919,17 @@ If CHAR is not a character, return nil."
 (defun elisp--preceding-sexp ()
   "Return sexp before the point."
   (let ((opoint (point))
-	ignore-quotes
+	(left-quote ?‘)
 	expr)
     (save-excursion
       (with-syntax-table emacs-lisp-mode-syntax-table
-	;; If this sexp appears to be enclosed in `...'
+	;; If this sexp appears to be enclosed in `...' or ‘...’
 	;; then ignore the surrounding quotes.
-	(setq ignore-quotes
-	      (or (eq (following-char) ?\')
-		  (eq (preceding-char) ?\')))
+	(cond ((eq (preceding-char) ?’)
+	       (progn (forward-char -1) (setq opoint (point))))
+	      ((or (eq (following-char) ?\')
+		   (eq (preceding-char) ?\'))
+	       (setq left-quote ?\`)))
 	(forward-sexp -1)
 	;; If we were after `?\e' (or similar case),
 	;; use the whole thing, not just the `e'.
@@ -933,7 +953,7 @@ If CHAR is not a character, return nil."
 	      (forward-sexp -1))))
 
 	(save-restriction
-	  (if (and ignore-quotes (eq (following-char) ?`))
+	  (if (eq (following-char) left-quote)
               ;; vladimir@cs.ualberta.ca 30-Jul-1997: Skip ` in `variable' so
               ;; that the value is returned, not the name.
 	      (forward-char))

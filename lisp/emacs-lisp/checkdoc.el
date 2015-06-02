@@ -1524,7 +1524,7 @@ may require more formatting")
      ;;     Instead, use the `\\[...]' construct to stand for them.
      (save-excursion
        (let ((f nil) (m nil) (start (point))
-	     (re "[^`A-Za-z0-9_]\\([CMA]-[a-zA-Z]\\|\\(\\([CMA]-\\)?\
+	     (re "[^`‘A-Za-z0-9_]\\([CMA]-[a-zA-Z]\\|\\(\\([CMA]-\\)?\
 mouse-[0-3]\\)\\)\\>"))
 	 ;; Find the first key sequence not in a sample
 	 (while (and (not f) (setq m (re-search-forward re e t)))
@@ -1554,7 +1554,8 @@ mouse-[0-3]\\)\\)\\>"))
      (save-excursion
        (let ((case-fold-search t)
 	     (ret nil) mb me)
-	 (while (and (re-search-forward "`\\(\\sw\\(\\sw\\|\\s_\\)+\\)'" e t)
+	 (while (and (re-search-forward
+                      "[`‘]\\(\\sw\\(\\sw\\|\\s_\\)+\\)['’]" e t)
 		     (not ret))
 	   (let* ((ms1 (match-string 1))
 		  (sym (intern-soft ms1)))
@@ -1785,16 +1786,17 @@ Replace with \"%s\"? " original replace)
 	     )))
      ;;* When a documentation string refers to a Lisp symbol, write it as
      ;;  it would be printed (which usually means in lower case), with
-     ;;  single-quotes around it.  For example: `lambda'.  There are two
-     ;;  exceptions: write t and nil without single-quotes.  (In this
-     ;;  manual, we normally do use single-quotes for those symbols.)
+     ;;  single-quotes around it.  For example: ‘lambda’.  There are two
+     ;;  exceptions: write t and nil without single-quotes.  (For
+     ;;  compatibility with an older Emacs style, quoting with ` and '
+     ;;  also works, e.g., `lambda' is treated like ‘lambda’.)
      (save-excursion
        (let ((found nil) (start (point)) (msg nil) (ms nil))
 	 (while (and (not msg)
 		     (re-search-forward
 		      ;; Ignore manual page references like
 		      ;; git-config(1).
-		      "[^-([`':a-zA-Z]\\(\\w+[:-]\\(\\w\\|\\s_\\)+\\)[^](']"
+		      "[^-([`'‘’:a-zA-Z]\\(\\w+[:-]\\(\\w\\|\\s_\\)+\\)[^]('’]"
 		      e t))
 	   (setq ms (match-string 1))
 	   ;; A . is a \s_ char, so we must remove periods from
@@ -1812,7 +1814,7 @@ Replace with \"%s\"? " original replace)
 		 (if (checkdoc-autofix-ask-replace
 		      (match-beginning 1) (+ (match-beginning 1)
 					     (length ms))
-		      msg (concat "`" ms "'") t)
+		      msg (concat "‘" ms "’") t)
 		     (setq msg nil)
 		   (setq msg
 			 (format "Lisp symbol `%s' should appear in quotes"
@@ -1824,7 +1826,7 @@ Replace with \"%s\"? " original replace)
 	   nil)))
      ;; t and nil case
      (save-excursion
-       (if (re-search-forward "\\(`\\(t\\|nil\\)'\\)" e t)
+       (if (re-search-forward "\\([`‘]\\(t\\|nil\\)['’]\\)" e t)
 	   (if (checkdoc-autofix-ask-replace
 		(match-beginning 1) (match-end 1)
 		(format "%s should not appear in quotes.  Remove? "
@@ -1989,7 +1991,7 @@ If the offending word is in a piece of quoted text, then it is skipped."
             (if (and (not (save-excursion
                             (goto-char b)
                             (forward-char -1)
-                            (looking-at "`\\|\"\\|\\.\\|\\\\")))
+                            (looking-at "[`\".‘]\\|\\\\")))
                      ;; surrounded by /, as in a URL or filename: /emacs/
                      (not (and (= ?/ (char-after e))
                                (= ?/ (char-before b))))

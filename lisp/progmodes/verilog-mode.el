@@ -597,11 +597,11 @@ Set to 0 to get them list right under containing block."
   "How to treat macro expansions in a declaration.
 If nil, indent as:
 	input [31:0] a;
-	input        `CP;
+	input        \\=`CP;
 	output       c;
 If non nil, treat as:
 	input [31:0] a;
-	input `CP    ;
+	input \\=`CP    ;
 	output       c;"
   :group 'verilog-mode-indent
   :type 'boolean)
@@ -628,7 +628,7 @@ Set to 0 to get such code to start at the left side of the screen."
 (put 'verilog-indent-level-behavioral 'safe-local-variable 'integerp)
 
 (defcustom verilog-indent-level-directive 1
-  "Indentation to add to each level of `ifdef declarations.
+  "Indentation to add to each level of \\=`ifdef declarations.
 Set to 0 to have all directives start at the left side of the screen."
   :group 'verilog-mode-indent
   :type 'integer)
@@ -733,8 +733,8 @@ file referenced.  If false, this is not supported."
 
 (defcustom verilog-auto-declare-nettype nil
   "Non-nil specifies the data type to use with `verilog-auto-input' etc.
-Set this to \"wire\" if the Verilog code uses \"`default_nettype
-none\".  Note using `default_nettype none isn't recommended practice; this
+Set this to \"wire\" if the Verilog code uses \"\\=`default_nettype
+none\".  Note using \\=`default_nettype none isn't recommended practice; this
 mode is experimental."
   :version "24.1"  ;; rev670
   :group 'verilog-mode-actions
@@ -3670,7 +3670,7 @@ Variables controlling indentation/edit style:
    Set to 0 to get such code to lined up underneath the task or
    function keyword.
  `verilog-indent-level-directive'     (default 1)
-   Indentation of `ifdef/`endif blocks.
+   Indentation of \\=`ifdef/\\=`endif blocks.
  `verilog-cexp-indent'              (default 1)
    Indentation of Verilog statements broken across lines i.e.:
       if (a)
@@ -9235,9 +9235,9 @@ Optionally associate it with the specified enumeration ENUMNAME."
           (add-to-list (make-local-variable enumvar) defname)))))
 
 (defun verilog-read-defines (&optional filename recurse subcall)
-  "Read `defines and parameters for the current file, or optional FILENAME.
+  "Read \\=`defines and parameters for the current file, or optional FILENAME.
 If the filename is provided, `verilog-library-flags' will be used to
-resolve it.  If optional RECURSE is non-nil, recurse through `includes.
+resolve it.  If optional RECURSE is non-nil, recurse through \\=`includes.
 
 Parameters must be simple assignments to constants, or have their own
 \"parameter\" label rather than a list of parameters.  Thus:
@@ -9320,8 +9320,8 @@ warning message, you need to add to your init file:
 	    (forward-comment 99999)))))))
 
 (defun verilog-read-includes ()
-  "Read `includes for the current file.
-This will find all of the `includes which are at the beginning of lines,
+  "Read \\=`includes for the current file.
+This will find all of the \\=`includes which are at the beginning of lines,
 ignoring any ifdefs or multiline comments around them.
 `verilog-read-defines' is then performed on the current and each included
 file.
@@ -9343,11 +9343,11 @@ variable over and over when many modules are compiled together, put a test
 around the inside each include file:
 
 foo.v (an include file):
-	`ifdef _FOO_V	// include if not already included
-	`else
-	`define _FOO_V
+	\\=`ifdef _FOO_V	// include if not already included
+	\\=`else
+	\\=`define _FOO_V
 	... contents of file
-	`endif // _FOO_V"
+	\\=`endif // _FOO_V"
   ;;slow:  (verilog-read-defines nil t)
   (save-excursion
     (verilog-getopt-flags)
@@ -11184,7 +11184,7 @@ Limitations:
   `verilog-library-extensions', and being found in the same directory, or
   by changing the variable `verilog-library-flags' or
   `verilog-library-directories'.  Macros `modname are translated through the
-  vh-{name} Emacs variable, if that is not found, it just ignores the `.
+  vh-{name} Emacs variable, if that is not found, it just ignores the \\=`.
 
   In templates you must have one signal per line, ending in a ), or ));,
   and have proper () nesting, including a final ); to end the template.
@@ -12754,8 +12754,8 @@ Limitations:
   lists.  AUTOSENSE will thus exclude them, and add a /*memory or*/ comment.
 
 Constant signals:
-  AUTOSENSE cannot always determine if a `define is a constant or a signal
-  (it could be in an include file for example).  If a `define or other signal
+  AUTOSENSE cannot always determine if a \\=`define is a constant or a signal
+  (it could be in an include file for example).  If a \\=`define or other signal
   is put into the AUTOSENSE list and is not desired, use the AUTO_CONSTANT
   declaration anywhere in the module (parenthesis are required):
 
@@ -12870,8 +12870,8 @@ them to a one.
 AUTORESET may try to reset arrays or structures that cannot be
 reset by a simple assignment, resulting in compile errors.  This
 is a feature to be taken as a hint that you need to reset these
-signals manually (or put them into a \"`ifdef NEVER signal<=`0;
-`endif\" so Verilog-Mode ignores them.)
+signals manually (or put them into a \"\\=`ifdef NEVER signal<=\\=`0;
+\\=`endif\" so Verilog-Mode ignores them.)
 
 An example:
 
@@ -13041,27 +13041,27 @@ Typing \\[verilog-auto] will make this into:
 
 (defun verilog-auto-undef ()
   "Expand AUTOUNDEF statements, as part of \\[verilog-auto].
-Take any `defines since the last AUTOUNDEF in the current file
-and create `undefs for them.  This is used to insure that
-file-local defines do not pollute the global `define name space.
+Take any \\=`defines since the last AUTOUNDEF in the current file
+and create \\=`undefs for them.  This is used to insure that
+file-local defines do not pollute the global \\=`define name space.
 
 Limitations:
-  AUTOUNDEF presumes any identifier following `define is the
-  name of a define.  Any `ifdefs are ignored.
+  AUTOUNDEF presumes any identifier following \\=`define is the
+  name of a define.  Any \\=`ifdefs are ignored.
 
-  AUTOUNDEF suppresses creating an `undef for any define that was
-  `undefed before the AUTOUNDEF.  This may be used to work around
-  the ignoring of `ifdefs as shown below.
+  AUTOUNDEF suppresses creating an \\=`undef for any define that was
+  \\=`undefed before the AUTOUNDEF.  This may be used to work around
+  the ignoring of \\=`ifdefs as shown below.
 
 An example:
 
-	`define XX_FOO
-	`define M_BAR(x)
-	`define M_BAZ
+	\\=`define XX_FOO
+	\\=`define M_BAR(x)
+	\\=`define M_BAZ
 	...
-	`ifdef NEVER
-	  `undef M_BAZ	// Emacs will see this and not `undef M_BAZ
-	`endif
+	\\=`ifdef NEVER
+	  \\=`undef M_BAZ	// Emacs will see this and not \\=`undef M_BAZ
+	\\=`endif
 	...
 	/*AUTOUNDEF*/
 
@@ -13070,8 +13070,8 @@ Typing \\[verilog-auto] will make this into:
 	...
 	/*AUTOUNDEF*/
 	// Beginning of automatic undefs
-	`undef XX_FOO
-	`undef M_BAR
+	\\=`undef XX_FOO
+	\\=`undef M_BAR
 	// End of automatics
 
 You may also provide an optional regular expression, in which case only
@@ -13466,12 +13466,12 @@ Using \\[describe-function], see also:
     `verilog-auto-reset'        for AUTORESET flop resets
     `verilog-auto-sense'        for AUTOSENSE or AS always sensitivity lists
     `verilog-auto-tieoff'       for AUTOTIEOFF output tieoffs
-    `verilog-auto-undef'        for AUTOUNDEF `undef of local `defines
+    `verilog-auto-undef'        for AUTOUNDEF \\=`undef of local \\=`defines
     `verilog-auto-unused'       for AUTOUNUSED unused inputs/inouts
     `verilog-auto-wire'         for AUTOWIRE instantiation wires
 
-    `verilog-read-defines'      for reading `define values
-    `verilog-read-includes'     for reading `includes
+    `verilog-read-defines'      for reading \\=`define values
+    `verilog-read-includes'     for reading \\=`includes
 
 If you have bugs with these autos, please file an issue at
 URL `http://www.veripool.org/verilog-mode' or contact the AUTOAUTHOR

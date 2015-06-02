@@ -992,58 +992,7 @@ to specify a command to run."
 				   grep-find-command)))
 	    (compilation-start regexp 'grep-mode))
       (setq dir (file-name-as-directory (expand-file-name dir)))
-      (require 'find-dired)		; for `find-name-arg'
-      (let ((command (grep-expand-template
-		      grep-find-template
-		      regexp
-		      (concat (shell-quote-argument "(")
-			      " " find-name-arg " "
-			      (mapconcat
-			       #'shell-quote-argument
-			       (split-string files)
-			       (concat " -o " find-name-arg " "))
-			      " "
-			      (shell-quote-argument ")"))
-		      dir
-		      (concat
-		       (and grep-find-ignored-directories
-			    (concat "-type d "
-				    (shell-quote-argument "(")
-				    ;; we should use shell-quote-argument here
-				    " -path "
-				    (mapconcat
-				     #'(lambda (ignore)
-					 (cond ((stringp ignore)
-						(shell-quote-argument
-						 (concat "*/" ignore)))
-					       ((consp ignore)
-						(and (funcall (car ignore) dir)
-						     (shell-quote-argument
-						      (concat "*/"
-							      (cdr ignore)))))))
-				     grep-find-ignored-directories
-				     " -o -path ")
-				    " "
-				    (shell-quote-argument ")")
-				    " -prune -o "))
-		       (and grep-find-ignored-files
-			    (concat (shell-quote-argument "!") " -type d "
-				    (shell-quote-argument "(")
-				    ;; we should use shell-quote-argument here
-				    " -name "
-				    (mapconcat
-				     #'(lambda (ignore)
-					 (cond ((stringp ignore)
-						(shell-quote-argument ignore))
-					       ((consp ignore)
-						(and (funcall (car ignore) dir)
-						     (shell-quote-argument
-						      (cdr ignore))))))
-				     grep-find-ignored-files
-				     " -o -name ")
-				    " "
-				    (shell-quote-argument ")")
-				    " -prune -o "))))))
+      (let ((command (rgrep-default-command regexp files dir)))
 	(when command
 	  (if confirm
 	      (setq command
@@ -1055,6 +1004,61 @@ to specify a command to run."
 	  ;; Set default-directory if we started rgrep in the *grep* buffer.
 	  (if (eq next-error-last-buffer (current-buffer))
 	      (setq default-directory dir)))))))
+
+(defun rgrep-default-command (regexp files dir)
+  "Compute the command for \\[rgrep] to use by default."
+  (require 'find-dired)      ; for `find-name-arg'
+  (grep-expand-template
+   grep-find-template
+   regexp
+   (concat (shell-quote-argument "(")
+           " " find-name-arg " "
+           (mapconcat
+            #'shell-quote-argument
+            (split-string files)
+            (concat " -o " find-name-arg " "))
+           " "
+           (shell-quote-argument ")"))
+   dir
+   (concat
+    (and grep-find-ignored-directories
+         (concat "-type d "
+                 (shell-quote-argument "(")
+                 ;; we should use shell-quote-argument here
+                 " -path "
+                 (mapconcat
+                  #'(lambda (ignore)
+                      (cond ((stringp ignore)
+                             (shell-quote-argument
+                              (concat "*/" ignore)))
+                            ((consp ignore)
+                             (and (funcall (car ignore) dir)
+                                  (shell-quote-argument
+                                   (concat "*/"
+                                           (cdr ignore)))))))
+                  grep-find-ignored-directories
+                  " -o -path ")
+                 " "
+                 (shell-quote-argument ")")
+                 " -prune -o "))
+    (and grep-find-ignored-files
+         (concat (shell-quote-argument "!") " -type d "
+                 (shell-quote-argument "(")
+                 ;; we should use shell-quote-argument here
+                 " -name "
+                 (mapconcat
+                  #'(lambda (ignore)
+                      (cond ((stringp ignore)
+                             (shell-quote-argument ignore))
+                            ((consp ignore)
+                             (and (funcall (car ignore) dir)
+                                  (shell-quote-argument
+                                   (cdr ignore))))))
+                  grep-find-ignored-files
+                  " -o -name ")
+                 " "
+                 (shell-quote-argument ")")
+                 " -prune -o ")))))
 
 ;;;###autoload
 (defun zrgrep (regexp &optional files dir confirm template)

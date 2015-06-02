@@ -3292,8 +3292,7 @@ usage: (make-network-process &rest ARGS)  */)
     {
       if (!NILP (host))
 	{
-	  message (":family local ignores the :host \"%s\" property",
-		   SDATA (host));
+	  message (":family local ignores the :host property");
 	  contact = Fplist_put (contact, QChost, Qnil);
 	  host = Qnil;
 	}
@@ -7575,7 +7574,6 @@ syms_of_process (void)
   DEFSYM (QClog, ":log");
   DEFSYM (QCnoquery, ":noquery");
   DEFSYM (QCstop, ":stop");
-  DEFSYM (QCoptions, ":options");
   DEFSYM (QCplist, ":plist");
   DEFSYM (QCcommand, ":command");
   DEFSYM (QCconnection_type, ":connection-type");

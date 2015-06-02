@@ -272,7 +272,7 @@ See the function `iso-accents-mode'."
 
 (defcustom iso-accents-enable '(?' ?` ?^ ?\" ?~ ?/)
   "List of accent keys that become prefixes in ISO Accents mode.
-The default is (?' ?` ?^ ?\" ?~ ?/), which contains all the supported
+The default is (?' ?\\=` ?^ ?\" ?~ ?/), which contains all the supported
 accent keys.  If you set this variable to a list in which some of those
 characters are missing, the missing ones do not act as accents.
 
@@ -346,7 +346,7 @@ the language you choose)."
   "Toggle ISO Accents mode, in which accents modify the following letter.
 This permits easy insertion of accented characters according to ISO-8859-1.
 When Iso-accents mode is enabled, accent character keys
-\(`, ', \", ^, / and ~) do not self-insert; instead, they modify the following
+\(\\=`, ', \", ^, / and ~) do not self-insert; instead, they modify the following
 letter key so that it inserts an ISO accented letter.
 
 You can customize ISO Accents mode to a particular language

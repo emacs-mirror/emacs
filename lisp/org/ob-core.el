@@ -2583,7 +2583,7 @@ block but are passed literally to the \"example-block\"."
 (defun org-babel-read (cell &optional inhibit-lisp-eval)
   "Convert the string value of CELL to a number if appropriate.
 Otherwise if cell looks like lisp (meaning it starts with a
-\"(\", \"'\", \"`\" or a \"[\") then read it as lisp,
+\"(\", \"'\", \"\\=`\" or a \"[\") then read it as lisp,
 otherwise return it unmodified as a string.  Optional argument
 NO-LISP-EVAL inhibits lisp evaluation for situations in which is
 it not appropriate."

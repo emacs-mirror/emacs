@@ -204,7 +204,7 @@ nil means it has not yet been computed;
 use function `tags-table-files' to do so.")
 
 (defvar tags-completion-table nil
-  "Obarray of tag names defined in current tags table.")
+  "List of tag names defined in current tags table.")
 
 (defvar tags-included-tables nil
   "List of tags tables included by the current tags table.")
@@ -759,23 +759,19 @@ tags table and its (recursively) included tags tables."
   (or tags-completion-table
       ;; No cached value for this buffer.
       (condition-case ()
-	  (let (current-table combined-table)
+	  (let (tables cont)
 	    (message "Making tags completion table for %s..." buffer-file-name)
 	    (save-excursion
 	      ;; Iterate over the current list of tags tables.
-	      (while (visit-tags-table-buffer (and combined-table t))
+	      (while (visit-tags-table-buffer cont)
 		;; Find possible completions in this table.
-		(setq current-table (funcall tags-completion-table-function))
-		;; Merge this buffer's completions into the combined table.
-		(if combined-table
-		    (mapatoms
-		     (lambda (sym) (intern (symbol-name sym) combined-table))
-		     current-table)
-		  (setq combined-table current-table))))
+                (push (funcall tags-completion-table-function) tables)
+                (setq cont t)))
 	    (message "Making tags completion table for %s...done"
 		     buffer-file-name)
 	    ;; Cache the result in a buffer-local variable.
-	    (setq tags-completion-table combined-table))
+	    (setq tags-completion-table
+                  (nreverse (delete-dups (apply #'nconc tables)))))
 	(quit (message "Tags completion table construction aborted.")
 	      (setq tags-completion-table nil)))))
 
@@ -1256,7 +1252,7 @@ buffer-local values of tags table format variables."
 
 
 (defun etags-tags-completion-table () ; Doc string?
-  (let ((table (make-vector 511 0))
+  (let (table
 	(progress-reporter
 	 (make-progress-reporter
 	  (format "Making tags completion table for %s..." buffer-file-name)
@@ -1276,7 +1272,7 @@ buffer-local values of tags table format variables."
 \\([-a-zA-Z0-9_+*$?:]+\\)[^-a-zA-Z0-9_+*$?:\177]*\\)\177\
 \\(\\([^\n\001]+\\)\001\\)?\\([0-9]+\\)?,\\([0-9]+\\)?\n"
 	      nil t)
-	(intern	(prog1 (if (match-beginning 5)
+	(push	(prog1 (if (match-beginning 5)
 			   ;; There is an explicit tag name.
 			   (buffer-substring (match-beginning 5) (match-end 5))
 			 ;; No explicit tag name.  Best guess.
@@ -1355,9 +1351,16 @@ hits the start of file."
 	    pat (concat (if (eq selective-display t)
 			    "\\(^\\|\^m\\)" "^")
 			(regexp-quote (car tag-info))))
-      ;; The character position in the tags table is 0-origin.
+      ;; The character position in the tags table is 0-origin and counts CRs.
       ;; Convert it to a 1-origin Emacs character position.
-      (if startpos (setq startpos (1+ startpos)))
+      (when startpos
+        (setq startpos (1+ startpos))
+        (when (and line
+                   (eq 1 (coding-system-eol-type buffer-file-coding-system)))
+          ;; Act as if CRs were elided from all preceding lines.
+          ;; Although this doesn't always give exactly the correct position,
+          ;; it does typically improve the guess.
+          (setq startpos (- startpos (1- line)))))
       ;; If no char pos was given, try the given line number.
       (or startpos
 	  (if line
@@ -1625,7 +1628,8 @@ Point should be just after a string that matches TAG."
   ;; Look at the comment of the make_tag function in lib-src/etags.c for
   ;; a textual description of the four rules.
   (and (string-match "^[^ \t()=,;]+$" tag) ;rule #1
-       (looking-at "[ \t()=,;]?\177")	;rules #2 and #4
+       ;; Rules #2 and #4, and a check that there's no explicit name.
+       (looking-at "[ \t()=,;]?\177\\(?:[0-9]+\\)?,\\(?:[0-9]+\\)?$")
        (save-excursion
 	 (backward-char (1+ (length tag)))
 	 (looking-at "[\n \t()=,;]"))))	;rule #3
@@ -2083,19 +2087,18 @@ for \\[find-tag] (which see)."
 (defun etags-xref-find (action id)
   (pcase action
     (`definitions (etags--xref-find-definitions id))
-    (`references (etags--xref-find-matches id 'symbol))
-    (`matches (etags--xref-find-matches id 'regexp))
+    (`references
+     (etags--xref-find-matches id #'xref-collect-references))
+    (`matches
+     (etags--xref-find-matches id #'xref-collect-matches))
     (`apropos (etags--xref-find-definitions id t))))
 
-(defun etags--xref-find-matches (input kind)
+(defun etags--xref-find-matches (input fun)
   (let ((dirs (if tags-table-list
                   (mapcar #'file-name-directory tags-table-list)
                 ;; If no tags files are loaded, prompt for the dir.
                 (list (read-directory-name "In directory: " nil nil t)))))
-    (cl-mapcan
-     (lambda (dir)
-       (xref-collect-matches input dir kind))
-     dirs)))
+    (cl-mapcan (lambda (dir) (funcall fun input dir)) dirs)))
 
 (defun etags--xref-find-definitions (pattern &optional regexp?)
   ;; This emulates the behaviour of `find-tag-in-order' but instead of

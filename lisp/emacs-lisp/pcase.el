@@ -133,8 +133,8 @@ FUN can refer to variables bound earlier in the pattern.
 FUN is assumed to be pure, i.e. it can be dropped if its result is not used,
 and two identical calls can be merged into one.
 E.g. you can match pairs where the cdr is larger than the car with a pattern
-like `(,a . ,(pred (< a))) or, with more checks:
-`(,(and a (pred numberp)) . ,(and (pred numberp) (pred (< a))))
+like \\=`(,a . ,(pred (< a))) or, with more checks:
+\\=`(,(and a (pred numberp)) . ,(and (pred numberp) (pred (< a))))
 
 Additional patterns can be defined via `pcase-defmacro'.
 Currently, the following patterns are provided this way:"

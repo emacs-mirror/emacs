@@ -7631,7 +7631,7 @@ $8	Match of the 8th set of parentheses in the last match (auto-local).
 $9	Match of the 9th set of parentheses in the last match (auto-local).
 $&	The string matched by the last pattern match (auto-local).
 $'	The string after what was matched by the last match (auto-local).
-$`	The string before what was matched by the last match (auto-local).
+$\\=`	The string before what was matched by the last match (auto-local).
 
 $(	The real gid of this process.
 $)	The effective gid of this process.
@@ -7647,7 +7647,7 @@ $;	Subscript separator for multi-dim array emulation.  Default \"\\034\".
 $<	The real uid of this process.
 $=	The page length of the current output channel.  Default is 60 lines.
 $>	The effective uid of this process.
-$?	The status returned by the last ``, pipe close or `system'.
+$?	The status returned by the last \\=`\\=`, pipe close or `system'.
 $@	The perl error message from the last eval or do @var{EXPR} command.
 $ARGV	The name of the current file used with <> .
 $[	Deprecated: The index of the first element/char in an array/string.
@@ -7888,7 +7888,7 @@ printf [FILEHANDLE] (FORMAT,LIST)
 push(ARRAY,LIST)
 q/STRING/	Synonym for 'STRING'
 qq/STRING/	Synonym for \"STRING\"
-qx/STRING/	Synonym for `STRING`
+qx/STRING/	Synonym for \\=`STRING\\=`
 rand[(EXPR)]
 read(FILEHANDLE,SCALAR,LENGTH[,OFFSET])
 readdir(DIRHANDLE)
@@ -8007,7 +8007,7 @@ pos STRING    Set/Get end-position of the last match over this string, see \\G.
 quotemeta [ EXPR ]	Quote regexp metacharacters.
 qw/WORD1 .../		Synonym of split('', 'WORD1 ...')
 readline FH	Synonym of <FH>.
-readpipe CMD	Synonym of `CMD`.
+readpipe CMD	Synonym of \\=`CMD\\=`.
 ref [ EXPR ]	Type of EXPR when dereferenced.
 sysopen FH, FILENAME, MODE [, PERM]	(MODE is numeric, see Fcntl.)
 tie VAR, PACKAGE, LIST	Hide an object behind a simple Perl variable.

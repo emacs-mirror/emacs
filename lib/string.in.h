@@ -15,15 +15,31 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef _@GUARD_PREFIX@_STRING_H
-
 #if __GNUC__ >= 3
 @PRAGMA_SYSTEM_HEADER@
 #endif
 @PRAGMA_COLUMNS@
 
+#if defined _GL_ALREADY_INCLUDING_STRING_H
+/* Special invocation convention:
+   - On OS X/NetBSD we have a sequence of nested includes
+       <string.h> -> <strings.h> -> "string.h"
+     In this situation system _chk variants due to -D_FORTIFY_SOURCE
+     might be used after any replacements defined here.  */
+
+#@INCLUDE_NEXT@ @NEXT_STRING_H@
+
+#else
+/* Normal invocation convention.  */
+
+#ifndef _@GUARD_PREFIX@_STRING_H
+
+#define _GL_ALREADY_INCLUDING_STRING_H
+
 /* The include_next requires a split double-inclusion guard.  */
 #@INCLUDE_NEXT@ @NEXT_STRING_H@
+
+#undef _GL_ALREADY_INCLUDING_STRING_H
 
 #ifndef _@GUARD_PREFIX@_STRING_H
 #define _@GUARD_PREFIX@_STRING_H
@@ -1027,3 +1043,4 @@ _GL_WARN_ON_USE (strverscmp, "strverscmp is unportable - "
 
 #endif /* _@GUARD_PREFIX@_STRING_H */
 #endif /* _@GUARD_PREFIX@_STRING_H */
+#endif

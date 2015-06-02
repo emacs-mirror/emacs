@@ -31,6 +31,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "window.h"
 #include "process.h"
 #include "dispextern.h"
+#include "disptab.h"
 #include "termchar.h"
 #include "intervals.h"
 #include "blockinput.h"
@@ -199,6 +200,61 @@ print_unwind (Lisp_Object saved_text)
   memcpy (print_buffer, SDATA (saved_text), SCHARS (saved_text));
 }
 
+/* Print character CH to the stdio stream STREAM.  */
+
+static void
+printchar_to_stream (unsigned int ch, FILE *stream)
+{
+  Lisp_Object dv IF_LINT (= Qnil);
+  ptrdiff_t i = 0, n = 1;
+
+  if (CHAR_VALID_P (ch) && DISP_TABLE_P (Vstandard_display_table))
+    {
+      dv = DISP_CHAR_VECTOR (XCHAR_TABLE (Vstandard_display_table), ch);
+      if (VECTORP (dv))
+	{
+	  n = ASIZE (dv);
+	  goto next_char;
+	}
+    }
+
+  while (true)
+    {
+      if (ASCII_CHAR_P (ch))
+	{
+	  putc (ch, stream);
+#ifdef WINDOWSNT
+	  /* Send the output to a debugger (nothing happens if there
+	     isn't one).  */
+	  if (print_output_debug_flag && stream == stderr)
+	    OutputDebugString ((char []) {ch, '\0'});
+#endif
+	}
+      else
+	{
+	  unsigned char mbstr[MAX_MULTIBYTE_LENGTH];
+	  int len = CHAR_STRING (ch, mbstr);
+	  Lisp_Object encoded_ch =
+	    ENCODE_SYSTEM (make_multibyte_string ((char *) mbstr, 1, len));
+
+	  fwrite (SSDATA (encoded_ch), 1, SBYTES (encoded_ch), stream);
+#ifdef WINDOWSNT
+	  if (print_output_debug_flag && stream == stderr)
+	    OutputDebugString (SSDATA (encoded_ch));
+#endif
+	}
+
+      i++;
+
+    next_char:
+      for (; i < n; i++)
+	if (CHARACTERP (AREF (dv, i)))
+	  break;
+      if (! (i < n))
+	break;
+      ch = XFASTINT (AREF (dv, i));
+    }
+}
 
 /* Print character CH using method FUN.  FUN nil means print to
    print_buffer.  FUN t means print to echo area or stdout if
@@ -230,7 +286,10 @@ printchar (unsigned int ch, Lisp_Object fun)
       else if (noninteractive)
 	{
 	  printchar_stdout_last = ch;
-	  fwrite (str, 1, len, stdout);
+	  if (DISP_TABLE_P (Vstandard_display_table))
+	    printchar_to_stream (ch, stdout);
+	  else
+	    fwrite (str, 1, len, stdout);
 	  noninteractive_need_newline = 1;
 	}
       else
@@ -271,7 +330,19 @@ strout (const char *ptr, ptrdiff_t size, ptrdiff_t size_byte,
     }
   else if (noninteractive && EQ (printcharfun, Qt))
     {
-      fwrite (ptr, 1, size_byte, stdout);
+      if (DISP_TABLE_P (Vstandard_display_table))
+	{
+	  int len;
+	  for (ptrdiff_t i = 0; i < size_byte; i += len)
+	    {
+	      int ch = STRING_CHAR_AND_LENGTH ((const unsigned char *) ptr + i,
+					       len);
+	      printchar_to_stream (ch, stdout);
+	    }
+	}
+      else
+	fwrite (ptr, 1, size_byte, stdout);
+
       noninteractive_need_newline = 1;
     }
   else if (EQ (printcharfun, Qt))
@@ -692,37 +763,8 @@ You can call print while debugging emacs, and pass it this function
 to make it write to the debugging output.  */)
   (Lisp_Object character)
 {
-  unsigned int ch;
-
   CHECK_NUMBER (character);
-  ch = XINT (character);
-  if (ASCII_CHAR_P (ch))
-    {
-      putc (ch, stderr);
-#ifdef WINDOWSNT
-      /* Send the output to a debugger (nothing happens if there isn't
-	 one).  */
-      if (print_output_debug_flag)
-	{
-	  char buf[2] = {(char) XINT (character), '\0'};
-	  OutputDebugString (buf);
-	}
-#endif
-    }
-  else
-    {
-      unsigned char mbstr[MAX_MULTIBYTE_LENGTH];
-      ptrdiff_t len = CHAR_STRING (ch, mbstr);
-      Lisp_Object encoded_ch =
-	ENCODE_SYSTEM (make_multibyte_string ((char *) mbstr, 1, len));
-
-      fwrite (SSDATA (encoded_ch), SBYTES (encoded_ch), 1, stderr);
-#ifdef WINDOWSNT
-      if (print_output_debug_flag)
-	OutputDebugString (SSDATA (encoded_ch));
-#endif
-    }
-
+  printchar_to_stream (XINT (character), stderr);
   return character;
 }
 
@@ -2190,7 +2232,6 @@ decimal point.  0 is not allowed with `e' or `g'.
 A value of nil means to use the shortest notation
 that represents the number without losing information.  */);
   Vfloat_output_format = Qnil;
-  DEFSYM (Qfloat_output_format, "float-output-format");
 
   DEFVAR_LISP ("print-length", Vprint_length,
 	       doc: /* Maximum length of list to print before abbreviating.

@@ -1658,7 +1658,6 @@ syms_of_gnutls (void)
 #ifdef HAVE_GNUTLS
   gnutls_global_initialized = 0;
 
-  DEFSYM (Qgnutls_dll, "gnutls");
   DEFSYM (Qgnutls_code, "gnutls-code");
   DEFSYM (Qgnutls_anon, "gnutls-anon");
   DEFSYM (Qgnutls_x509pki, "gnutls-x509pki");
@@ -1669,7 +1668,6 @@ syms_of_gnutls (void)
   DEFSYM (QCgnutls_bootprop_trustfiles, ":trustfiles");
   DEFSYM (QCgnutls_bootprop_keylist, ":keylist");
   DEFSYM (QCgnutls_bootprop_crlfiles, ":crlfiles");
-  DEFSYM (QCgnutls_bootprop_callbacks, ":callbacks");
   DEFSYM (QCgnutls_bootprop_min_prime_bits, ":min-prime-bits");
   DEFSYM (QCgnutls_bootprop_loglevel, ":loglevel");
   DEFSYM (QCgnutls_bootprop_verify_flags, ":verify-flags");

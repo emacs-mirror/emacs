@@ -932,12 +932,6 @@ convert the search string to a regexp used by regexp search functions."
   (add-hook 'post-command-hook 'isearch-post-command-hook)
   (add-hook 'mouse-leave-buffer-hook 'isearch-done)
   (add-hook 'kbd-macro-termination-hook 'isearch-done)
-  (make-local-variable 'cursor-sensor-inhibit)
-  (unless (boundp 'cursor-sensor-inhibit)
-    (setq cursor-sensor-inhibit nil))
-  ;; Suspend things like cursor-intangible during Isearch so we can search even
-  ;; within intangible text.
-  (push 'isearch cursor-sensor-inhibit)
 
   ;; isearch-mode can be made modal (in the sense of not returning to
   ;; the calling function until searching is completed) by entering
@@ -949,10 +943,23 @@ convert the search string to a regexp used by regexp search functions."
 
 
 ;; Some high level utilities.  Others below.
+(defvar isearch--current-buffer nil)
 
 (defun isearch-update ()
   "This is called after every isearch command to update the display.
 The last thing it does is to run `isearch-update-post-hook'."
+  (unless (eq (current-buffer) isearch--current-buffer)
+    (when isearch--current-buffer
+      (with-current-buffer isearch--current-buffer
+        (setq cursor-sensor-inhibit (delq 'isearch cursor-sensor-inhibit))))
+    (setq isearch--current-buffer (current-buffer))
+    (make-local-variable 'cursor-sensor-inhibit)
+    (unless (boundp 'cursor-sensor-inhibit)
+      (setq cursor-sensor-inhibit nil))
+    ;; Suspend things like cursor-intangible during Isearch so we can search
+    ;; even within intangible text.
+    (push 'isearch cursor-sensor-inhibit))
+
   (if (and (null unread-command-events)
 	   (null executing-kbd-macro))
       (progn
@@ -1026,7 +1033,9 @@ NOPUSH is t and EDIT is t."
   (remove-hook 'mouse-leave-buffer-hook 'isearch-done)
   (remove-hook 'kbd-macro-termination-hook 'isearch-done)
   (setq isearch-lazy-highlight-start nil)
-  (setq cursor-sensor-inhibit (delq 'isearch cursor-sensor-inhibit))
+  (with-current-buffer isearch--current-buffer
+    (setq isearch--current-buffer nil)
+    (setq cursor-sensor-inhibit (delq 'isearch cursor-sensor-inhibit)))
 
   ;; Called by all commands that terminate isearch-mode.
   ;; If NOPUSH is non-nil, we don't push the string on the search ring.

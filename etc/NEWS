@@ -70,6 +70,14 @@ so if you want to use it, you can always take a copy from an older Emacs.
 
 * Startup Changes in Emacs 25.1
 
++++
+** When Emacs is given a file as a command line argument and
+`initial-buffer-choice' is non-nil, display both the file and
+`initial-buffer-choice'.  When Emacs is given more than one file and
+`initial-buffer-choice' is non-nil, show `initial-buffer-choice'
+and *Buffer List*.  This makes Emacs convenient to use from the
+command line when `initial-buffer-choice' is non-nil.
+
 
 * Changes in Emacs 25.1
 
@@ -226,6 +234,8 @@ successive char insertions.
 ** C-x 8 now has shorthands for these chars: ‐ ‑ ‒ – — ― ‘ ’ “ ” † ‡ • ′ ″
 € № ← → ↔ − ≈ ≠ ≤ ≥.  As before, you can type C-x 8 C-h to list shorthands.
 
+** New minor mode electric-quote-mode for quoting ‘like this’ and “like this”.
+
 ** New minor mode global-eldoc-mode is enabled by default.
 
 ** Emacs now supports "bracketed paste mode" when running on a terminal
@@ -270,6 +280,10 @@ for the respective specified targets.
 in the surrounding GUI (using the OSC-52 escape sequence).  This only works
 if your xterm supports it and enables the `allowWindowOps' options (disabled
 by default at least in Debian, for security reasons).
+
+Similarly, you can yank the CLIPBOARD/PRIMARY selection (using the OSC-52
+escape sequence) if your xterm has the feature enabled but for that you
+additionally need to add `getSelection' to `xterm-extra-capabilities'.
 
 ** xterm-mouse-mode now supports mouse-tracking (if your xterm supports it).
 
@@ -516,15 +530,20 @@ alternatives to currently visited manuals.
 ---
 ** ntlm.el has support for NTLM2.
 
----
-** The Rmail commands d, C-d and u now handle repeat counts to delete or
+** Rmail
+
+*** The Rmail commands d, C-d and u take optional repeat counts to delete or
 undelete multiple messages.
 
-** Rmail can now render HTML mail messages if your Emacs was built with
+*** Rmail can now render HTML mail messages if your Emacs was built with
 libxml2 or if you have the Lynx browser installed.  By default, Rmail
 will display the HTML version of a mail message that has both HTML and
 plain text parts, if display of HTML email is possible; customize the
 `rmail-mime-prefer-html' option to `nil' if you don't want that.
+
++++
+*** In the commands that make summaries by subject, recipients, or senders,
+you can no longer use commas to separate regular expressions.
 
 ** SES now supports local printer functions; see `ses-define-local-printer'.
 
@@ -747,6 +766,8 @@ a typographically-correct documents.
 
 * Incompatible Lisp Changes in Emacs 25.1
 
+** `inhibit-point-motion-hooks' now defaults to t and is obsolete.
+
 ** The optional `predicate' argument of `lisp-complete-symbol' no longer
 has any effect.  (This change was made in Emacs 24.4 but was not
 advertised at the time.)
@@ -793,6 +814,12 @@ Emacs-21.
 when signaling a file error.  For example, it now reports "Permission
 denied" instead of "permission denied".  The old behavior was problematic
 in languages like German where downcasing rules depend on grammar.
+
+** (substitute-command-keys "`foo'") now returns "‘foo’".
+That is, it replaces grave accents by left single quotation marks, and
+apostrophes that match grave accents by right single quotation marks.
+As before, isolated apostrophes and characters preceded by \= are
+output as-is.
 
 +++
 ** The character classes [:alpha:] and [:alnum:] in regular expressions
@@ -871,9 +898,6 @@ permissions set to temporary values (e.g., for creating private files).
 
 ** You can access the slots of structures using `cl-struct-slot-value'.
 
-** Functions `rmail-delete-forward' and `rmail-delete-backward' take an
-optional repeat-count argument.
-
 ** Function `sort' can deal with vectors.
 
 ** Function `system-name' now returns an updated value if the current
@@ -893,6 +917,12 @@ directory at point.
     execute code depending whether all values are true.
 *** New macros `thread-first' and `thread-last' allow threading a form
     as the first or last argument of subsequent forms.
+
+** Documentation strings now support quoting with curved single quotes
+‘like-this’ in addition to the old style with grave accent and
+apostrophe `like-this'.  The new style looks better on today's displays.
+When an old-style string is copied to a help buffer it is converted to
+the new style.
 
 +++
 ** Time-related changes:
@@ -916,6 +946,12 @@ integers.
 +++
 ** New function `set-binary-mode' allows to switch a standard stream
 of the Emacs process to binary I/O mode.
+
+** In locales that cannot display curved quotes, ASCII approximations
+are installed in standard-display-table.
+
+** Standard output and error streams now transliterate characters via
+standard-display-table, and encode output using locale-coding-system.
 
 ** Miscellaneous name change
 
@@ -981,6 +1017,22 @@ is strongly dedicated to its buffer.
 ** Tearoff menus and detachable toolbars for Gtk+ has been removed.
 Those features have been deprecated in Gtk+ for a long time.
 
+** Miscellaneous
+
+*** etags no longer qualifies class members by default.
+By default, `etags' will not qualify class members for C-like
+object-oriented languages with their class names and namespaces, and
+will remove qualifications used explicitly in the code from the tag
+names it puts in TAGS files.  This is so the etags.el back-end for
+`xref-find-definitions' is more accurate and produces less false
+positives.
+
+Use --class-qualify (-Q) if you want the old default behavior of
+qualifying class members in C++, Java, and Objective C.  Note that
+using -Q might make some class members become "unknown" to `M-.'
+(`xref-find-definitions'); if so, you can use `C-u M-.' to specify the
+qualified names by hand.
+
 
 * Changes in Emacs 25.1 on Non-Free Operating Systems
 
@@ -991,6 +1043,9 @@ of Windows starting with Windows 9X.
 
 +++
 ** Emacs running on MS-Windows now supports the daemon mode.
+
+** The byte counts in etags-generated TAGS files are now the same on
+MS-Windows as they are on other platforms.
 
 ** OS X 10.5 or older is no longer supported.
 

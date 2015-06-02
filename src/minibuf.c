@@ -1910,13 +1910,10 @@ syms_of_minibuf (void)
   staticpro (&minibuf_save_list);
 
   DEFSYM (Qcompletion_ignore_case, "completion-ignore-case");
-  DEFSYM (Qread_file_name_internal, "read-file-name-internal");
   DEFSYM (Qminibuffer_default, "minibuffer-default");
   Fset (Qminibuffer_default, Qnil);
 
   DEFSYM (Qminibuffer_completion_table, "minibuffer-completion-table");
-  DEFSYM (Qminibuffer_completion_confirm, "minibuffer-completion-confirm");
-  DEFSYM (Qminibuffer_completion_predicate, "minibuffer-completion-predicate");
 
   staticpro (&last_minibuf_string);
   last_minibuf_string = Qnil;
@@ -1943,8 +1940,6 @@ syms_of_minibuf (void)
 	       doc: /* A history list for arguments that are Lisp expressions to evaluate.
 For example, `eval-expression' uses this.  */);
   Vread_expression_history = Qnil;
-
-  DEFSYM (Qread_expression_history, "read-expression-history");
 
   DEFVAR_LISP ("read-buffer-function", Vread_buffer_function,
 	       doc: /* If this is non-nil, `read-buffer' does its work by calling this function.

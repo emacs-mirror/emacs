@@ -236,10 +236,7 @@ globals_of_gfilenotify (void)
 void
 syms_of_gfilenotify (void)
 {
-  DEFSYM (Qgfile_add_watch, "gfile-add-watch");
   defsubr (&Sgfile_add_watch);
-
-  DEFSYM (Qgfile_rm_watch, "gfile-rm-watch");
   defsubr (&Sgfile_rm_watch);
 
   /* Filter objects.  */
