@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $Id: //info.ravenbrook.com/project/mps/master/test/function/1.c#2 $
+ id = $Id$
  summary = test malloc and free (for the manual)
  language = c
  link = testlib.o
