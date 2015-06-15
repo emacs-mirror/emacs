@@ -22,7 +22,7 @@ sub clib {
 
  while (defined($tlfile = <MANIFEST>)) {
   unless ($tlfile =~ /^%/) {
-   chop($tlfile);
+   chomp($tlfile);
    $tlfile = $testlib_dir."/".$tlfile;
    $tlobj = $tlfile;
    $tlobj =~ s/\.c/$obj_suffix/;
@@ -326,7 +326,7 @@ sub readSymbols {
  }
 
  while (<SYM>) {
-  chop;
+  chomp;
   if (/#define MMQA_SYMBOL_(.*)$/) {
    $mps_symbols{$1} = 1;
   } elsif (/#define MMQA_DEFINED_(.*)$/) {
@@ -340,7 +340,7 @@ sub readSymbols {
  }
 
  while (<SYM>) {
-  chop;
+  chomp;
   unless (/^%/) {
    $mps_assumed{$_} = 1;
   }
