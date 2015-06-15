@@ -3468,7 +3468,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "../tool/testrun.sh \"$TARGET_BUILD_DIR\" \"$TARGET_NAME\"\n";
+			shellScript = "../tool/testrun.sh -s \"$TARGET_NAME\" \"$TARGET_BUILD_DIR\"\n";
 			showEnvVarsInLog = 0;
 		};
 		2215A9B4192A47C500E9E2CE /* ShellScript */ = {
@@ -3482,7 +3482,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "../tool/testrun.sh \"$TARGET_BUILD_DIR\" \"$TARGET_NAME\"\n";
+			shellScript = "../tool/testrun.sh -s \"$TARGET_NAME\" \"$TARGET_BUILD_DIR\"\n";
 			showEnvVarsInLog = 0;
 		};
 		2215A9BC192A47CE00E9E2CE /* ShellScript */ = {
@@ -3496,7 +3496,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "../tool/testrun.sh \"$TARGET_BUILD_DIR\" \"$TARGET_NAME\"\n";
+			shellScript = "../tool/testrun.sh -s \"$TARGET_NAME\" \"$TARGET_BUILD_DIR\"\n";
 			showEnvVarsInLog = 0;
 		};
 		2215A9C4192A47D500E9E2CE /* ShellScript */ = {
@@ -3510,7 +3510,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "../tool/testrun.sh \"$TARGET_BUILD_DIR\" \"$TARGET_NAME\"\n";
+			shellScript = "../tool/testrun.sh -s \"$TARGET_NAME\" \"$TARGET_BUILD_DIR\"\n";
 			showEnvVarsInLog = 0;
 		};
 		22CDE8F416E9E9D400366D0A /* ShellScript */ = {
@@ -3524,7 +3524,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "../tool/testrun.sh \"$TARGET_BUILD_DIR\" \"$TARGET_NAME\"\n";
+			shellScript = "../tool/testrun.sh -s \"$TARGET_NAME\" \"$TARGET_BUILD_DIR\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
