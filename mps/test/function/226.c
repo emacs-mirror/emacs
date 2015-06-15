@@ -100,9 +100,9 @@ static void test(void) {
   mps_pool_create(&poolawl, arena, mps_class_awl(), format, getassociated),
   "create awl pool");
 
- cdie(
-  mps_pool_create(&poolmv, arena, mps_class_mv(), 0x4000, 128, 0x4000),
-  "create mv pool");
+ cdie(mps_pool_create(&poolmv, arena, mps_class_mv(),
+                      (size_t)0x4000, (size_t)128, (size_t)0x4000),
+      "create mv pool");
 
  cdie(
   mps_ap_create(&apawl, poolawl, mps_rank_exact()),
