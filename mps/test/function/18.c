@@ -5,7 +5,7 @@ TEST_HEADER
  language = c
  link = testlib.o newfmt.o
 OUTPUT_SPEC
- errtext = create pool: COMMIT_LIMIT
+ errtext = create AMC pool: COMMIT_LIMIT
 END_HEADER
 */
 
@@ -48,8 +48,8 @@ static void test(void)
  die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
  die(mps_pool_create(&pool, arena, mps_class_mv(),
-                     1024*32, 1024*16, 1024*256),
-     "pool");
+                     (size_t)(1024*32), (size_t)(1024*16), (size_t)(1024*256)),
+     "create MV pool");
 
  do {
   res = mps_alloc(&q, pool, 64*1024);
@@ -60,7 +60,7 @@ static void test(void)
  while (1) {
   p++;
   die(mmqa_pool_create_chain(&pool, arena, mps_class_amc(), format, chain),
-      "create pool");
+      "create AMC pool");
   report("pool", "%i", p);
  }
 
