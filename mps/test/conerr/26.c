@@ -26,7 +26,7 @@ static void test(void)
  cdie(mps_pool_create_k(&pool0, arena, mps_class_mv(), mps_args_none),
       "create pool 0");
 
- cdie(mps_pool_create(&pool1, arena, mps_class_mv(), mps_args_none),
+ cdie(mps_pool_create_k(&pool1, arena, mps_class_mv(), mps_args_none),
       "create pool 1");
 
  cdie(mps_alloc(&obj, pool0, 152), "allocate in 0");
