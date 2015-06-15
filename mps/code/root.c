@@ -1,7 +1,7 @@
 /* root.c: ROOT IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This is the implementation of the root datatype.
  *
@@ -263,7 +263,9 @@ Res RootCreateTable(Root *rootReturn, Arena arena,
   AVERT(Arena, arena);
   AVERT(Rank, rank);
   AVER(base != 0);
-  AVER(base < limit); 
+  AVER(AddrIsAligned(base, sizeof(Word)));
+  AVER(base < limit);
+  AVER(AddrIsAligned(limit, sizeof(Word)));
 
   theUnion.table.base = base;
   theUnion.table.limit = limit;
@@ -314,6 +316,13 @@ Res RootCreateReg(Root *rootReturn, Arena arena,
 
   return rootCreate(rootReturn, arena, rank, (RootMode)0, RootREG, &theUnion);
 }
+
+/* RootCreateFmt -- create root from block of formatted objects
+ *
+ * .fmt.no-align-check: Note that we don't check the alignment of base
+ * and limit. That's because we're only given the scan function, so we
+ * don't know the format's alignment requirements.
+ */
 
 Res RootCreateFmt(Root *rootReturn, Arena arena,
                   Rank rank, RootMode mode, mps_fmt_scan_t scan,
@@ -698,7 +707,7 @@ Res RootsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
