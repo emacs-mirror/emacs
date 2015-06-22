@@ -256,7 +256,8 @@ function symbol (unquoted)."
       elem)))
    ;; must be a symbol, non-symbol keymap case covered above
    ((and bind-key-describe-special-forms (keymapp elem))
-    (get elem 'variable-documentation))
+    (let ((doc (get elem 'variable-documentation)))
+      (if (stringp doc) doc elem)))
    ((symbolp elem)
     elem)
    (t
