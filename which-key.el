@@ -154,12 +154,11 @@ replace and the cdr is the replacement text. "
         (run-at-time which-key-close-buffer-idle-delay nil 'which-key/hide-buffer)))))
 
 (defun which-key/setup ()
-  "Create buffer for which-key and add buffer to `popwin:special-display-config'"
+  "Create buffer for which-key."
   (setq which-key-buffer (get-buffer-create which-key-buffer-name))
   (setq which-key-setup-p t))
 
 (defun which-key/show-buffer (height width)
-  ;; (message "w: %s h: %s" width height)
   (popwin:popup-buffer which-key-buffer-name
    :width width
    :height height
