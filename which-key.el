@@ -20,7 +20,7 @@
 (defvar which-key-idle-delay 0.5
   "Delay (in seconds) for which-key buffer to popup.")
 (defvar which-key-close-buffer-idle-delay 5
-  "Delay (in seconds) for which-key buffer to show.")
+  "Delay (in seconds) after which buffer is forced closed.")
 (defvar which-key-max-description-length 30
   "Truncate the description of keys to this length (adds
   \"..\")")
@@ -150,7 +150,8 @@ replace and the cdr is the replacement text. "
           (if bottom-or-top
               (setq buffer-height (+ 2 buffer-line-breaks))
             (setq buffer-width vertical-buffer-width)))
-        (which-key/show-buffer buffer-height buffer-width)))))
+        (which-key/show-buffer buffer-height buffer-width)
+        (run-at-time which-key-close-buffer-idle-delay nil 'which-key/hide-buffer)))))
 
 (defun which-key/setup ()
   "Create buffer for which-key and add buffer to `popwin:special-display-config'"
@@ -164,6 +165,11 @@ replace and the cdr is the replacement text. "
    :height height
    :noselect t
    :position which-key-buffer-position))
+
+(defun which-key/hide-buffer ()
+  "Like it says :\)"
+  (when (eq popwin:popup-buffer (get-buffer which-key-buffer))
+    (popwin:close-popup-window)))
 
 (defun which-key/turn-on-timer ()
   "Activate idle timer."
