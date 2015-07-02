@@ -15,11 +15,9 @@
 
 ;;; Code:
 
-(defvar which-key-timer nil
-  "Internal variable to hold reference to timer.")
-(defvar which-key-idle-delay 0.5
+(defvar which-key-idle-delay 0.6
   "Delay (in seconds) for which-key buffer to popup.")
-(defvar which-key-close-buffer-idle-delay 5
+(defvar which-key-close-buffer-idle-delay 4
   "Delay (in seconds) after which buffer is forced closed.")
 (defvar which-key-max-description-length 30
   "Truncate the description of keys to this length (adds
@@ -32,9 +30,6 @@
   "See `which-key-key-replacement-alist'. This is a list of cons
   cells for replacing the description of keys (usually the name
   of the corresponding function).")
-
-(defvar which-key-buffer nil
-  "Internal variable to hold reference to which-key buffer.")
 (defvar which-key-buffer-name "*which-key*"
   "Name of which-key buffer.")
 (defvar which-key-buffer-position 'bottom
@@ -42,8 +37,13 @@
 (defvar which-key-vertical-buffer-width 60
   "Width of which-key buffer .")
 
-(defvar which-key-setup-p nil
-  "Non-nil if which-key buffer has been setup")
+;; Internal Vars
+(defvar which-key--buffer nil
+  "Internal: Holds reference to which-key buffer.")
+(defvar which-key--timer nil
+  "Internal: Holds reference to timer.")
+(defvar which-key--setup-p nil
+  "Internal: Non-nil if which-key buffer has been setup")
 
 (define-minor-mode which-key-mode
   "Toggle which-key-mode."
@@ -113,7 +113,7 @@ replace and the cdr is the replacement text. "
     line-breaks))
 
 (defun which-key/update-buffer-and-show ()
-  "Fill which-key-buffer with key descriptions and reformat. Finally, show the buffer."
+  "Fill which-key--buffer with key descriptions and reformat. Finally, show the buffer."
   (let ((key (this-single-command-keys)))
     (when (> (length key) 0)
       (let ((buf (current-buffer))
@@ -140,7 +140,7 @@ replace and the cdr is the replacement text. "
           (setq formatted (mapcar (lambda (str)
                                     (which-key/format-matches str max-len-key max-len-desc))
                                   unformatted)))
-        (with-current-buffer (get-buffer which-key-buffer)
+        (with-current-buffer (get-buffer which-key--buffer)
           (erase-buffer)
           (setq vertical-buffer-width (which-key/get-vertical-buffer-width max-len-desc max-len-key))
           (setq buffer-line-breaks
@@ -155,7 +155,7 @@ replace and the cdr is the replacement text. "
 
 (defun which-key/setup ()
   "Create buffer for which-key."
-  (setq which-key-buffer (get-buffer-create which-key-buffer-name))
+  (setq which-key--buffer (get-buffer-create which-key-buffer-name))
   (setq which-key-setup-p t))
 
 (defun which-key/show-buffer (height width)
@@ -167,15 +167,15 @@ replace and the cdr is the replacement text. "
 
 (defun which-key/hide-buffer ()
   "Like it says :\)"
-  (when (eq popwin:popup-buffer (get-buffer which-key-buffer))
+  (when (eq popwin:popup-buffer (get-buffer which-key--buffer))
     (popwin:close-popup-window)))
 
 (defun which-key/turn-on-timer ()
   "Activate idle timer."
-  (setq which-key-timer
+  (setq which-key--timer
         (run-with-idle-timer which-key-idle-delay t 'which-key/update-buffer-and-show)))
 
 (defun which-key/turn-off-timer ()
   "Deactivate idle timer."
-  (cancel-timer which-key-timer))
+  (cancel-timer which-key--timer))
 
