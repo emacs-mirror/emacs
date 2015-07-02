@@ -6,7 +6,7 @@
 ;; URL: https://github.com/justbur/which-key/
 ;; Version: 0.1
 ;; Keywords:
-;; Package-Requires: ((s "1.9.0") (popwin "1.0.0"))
+;; Package-Requires: ((s "1.9.0"))
 
 ;;; Commentary:
 ;;
@@ -46,6 +46,8 @@
 ;; Internal Vars
 (defvar which-key--buffer nil
   "Internal: Holds reference to which-key buffer.")
+(defvar which-key--window nil
+  "Internal: Holds reference to which-key window.")
 (defvar which-key--timer nil
   "Internal: Holds reference to timer.")
 (defvar which-key--setup-p nil
@@ -55,7 +57,7 @@
   "Toggle which-key-mode."
   :global t
   :lighter " WK"
-  :require 'popwin
+  ;; :require 'popwin
   :require 's
   (funcall (if which-key-mode
                (progn
@@ -119,62 +121,72 @@ replace and the cdr is the replacement text. "
     line-breaks))
 
 (defun which-key/update-buffer-and-show ()
-  "Fill which-key--buffer with key descriptions and reformat. Finally, show the buffer."
+  "Fill which-key--buffer with key descriptions and reformat.
+Finally, show the buffer."
   (let ((key (this-single-command-keys)))
-    (when (> (length key) 0)
-      (let ((buf (current-buffer))
-            (key-str-qt (regexp-quote (key-description key)))
-            (bottom-or-top (member which-key-buffer-position '(top bottom)))
-            (max-len-key 0) (max-len-desc 0) key-match desc-match
-            unformatted formatted buffer-height buffer-width vertical-buffer-width)
-        ;; get keybindings
-        (with-temp-buffer
-          (describe-buffer-bindings buf key)
-          (goto-char (point-max))
-          (while (re-search-backward
-                  (format "^%s \\([^ \t]+\\)[ \t]+\\(\\(?:[^ \t\n]+ ?\\)+\\)$" key-str-qt)
-                  nil t)
-            (setq key-match (s-replace-all which-key-key-replacement-alist (match-string 1))
-                  desc-match (match-string 2)
-                  max-len-key (max max-len-key (length key-match))
-                  max-len-desc (max max-len-desc (length desc-match)))
-            (cl-pushnew (cons key-match desc-match) unformatted
-                        :test (lambda (x y) (string-equal (car x) (car y)))))
-          (setq max-len-desc (if (> max-len-desc which-key-max-description-length)
-                                 (+ 2 which-key-max-description-length) ; for the ..
-                               max-len-desc))
-          (setq formatted (mapcar (lambda (str)
-                                    (which-key/format-matches str max-len-key max-len-desc))
-                                  unformatted)))
-        (with-current-buffer (get-buffer which-key--buffer)
-          (erase-buffer)
-          (setq vertical-buffer-width (which-key/get-vertical-buffer-width max-len-desc max-len-key))
-          (setq buffer-line-breaks
-                (which-key/insert-keys formatted (unless bottom-or-top vertical-buffer-width)))
-          (goto-char (point-min))
-          (which-key/replace-strings-from-alist which-key-description-replacement-alist)
-          (if bottom-or-top
-              (setq buffer-height (+ 2 buffer-line-breaks))
-            (setq buffer-width vertical-buffer-width)))
-        (which-key/show-buffer buffer-height buffer-width)
-        (run-at-time which-key-close-buffer-idle-delay nil 'which-key/hide-buffer)))))
+    (if (> (length key) 0)
+        (progn
+          (let ((buf (current-buffer))
+                (key-str-qt (regexp-quote (key-description key)))
+                (bottom-or-top (member which-key-buffer-position '(top bottom)))
+                (max-len-key 0) (max-len-desc 0) key-match desc-match
+                unformatted formatted buffer-height buffer-width vertical-buffer-width)
+            ;; get keybindings
+            (with-temp-buffer
+              (describe-buffer-bindings buf key)
+              (goto-char (point-max))
+              (while (re-search-backward
+                      (format "^%s \\([^ \t]+\\)[ \t]+\\(\\(?:[^ \t\n]+ ?\\)+\\)$" key-str-qt)
+                      nil t)
+                (setq key-match (s-replace-all which-key-key-replacement-alist (match-string 1))
+                      desc-match (match-string 2)
+                      max-len-key (max max-len-key (length key-match))
+                      max-len-desc (max max-len-desc (length desc-match)))
+                (cl-pushnew (cons key-match desc-match) unformatted
+                            :test (lambda (x y) (string-equal (car x) (car y)))))
+              (setq max-len-desc (if (> max-len-desc which-key-max-description-length)
+                                     (+ 2 which-key-max-description-length) ; for the ..
+                                   max-len-desc))
+              (setq formatted (mapcar (lambda (str)
+                                        (which-key/format-matches str max-len-key max-len-desc))
+                                      unformatted)))
+            (with-current-buffer (get-buffer which-key--buffer)
+              (erase-buffer)
+              (setq vertical-buffer-width (which-key/get-vertical-buffer-width max-len-desc max-len-key)
+                    buffer-line-breaks
+                    (which-key/insert-keys formatted (unless bottom-or-top vertical-buffer-width)))
+              (goto-char (point-min))
+              (which-key/replace-strings-from-alist which-key-description-replacement-alist)
+              (if bottom-or-top
+                  (setq buffer-height (+ 2 buffer-line-breaks))
+                (setq buffer-width vertical-buffer-width)))
+            (setq which-key--window (which-key/show-buffer buffer-height buffer-width))
+            (setq which-key--close-timer (run-at-time which-key-close-buffer-idle-delay nil 'which-key/hide-buffer))))
+      ;; close the window
+      (when (window-live-p which-key--window) (which-key/hide-buffer)))))
 
 (defun which-key/setup ()
   "Create buffer for which-key."
   (setq which-key--buffer (get-buffer-create which-key-buffer-name))
   (setq which-key--setup-p t))
 
+;; (defun which-key/show-buffer-popwin (height width)
+;;   (popwin:popup-buffer which-key-buffer-name
+;;    :width width
+;;    :height height
+;;    :noselect t
+;;    :position which-key-buffer-position))
+
 (defun which-key/show-buffer (height width)
-  (popwin:popup-buffer which-key-buffer-name
-   :width width
-   :height height
-   :noselect t
-   :position which-key-buffer-position))
+  (setq alist (list (cons 'side which-key-buffer-position)
+                    (when height (cons 'window-height  height))
+                    (when width  (cons 'window-width  width))))
+   (display-buffer "*which-key*" (cons 'display-buffer-in-side-window alist)))
 
 (defun which-key/hide-buffer ()
   "Like it says :\)"
-  (when (eq popwin:popup-buffer (get-buffer which-key--buffer))
-    (popwin:close-popup-window)))
+  (when (window-live-p which-key--window)
+    (delete-window which-key--window)))
 
 (defun which-key/turn-on-timer ()
   "Activate idle timer."
