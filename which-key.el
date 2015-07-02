@@ -3,14 +3,20 @@
 ;; Copyright (C) 2015 Justin Burkett
 
 ;; Author: Justin Burkett <justin@burkett.cc>
-;; URL: http://github.com/justbur/which-key/
+;; URL: https://github.com/justbur/which-key/
 ;; Version: 0.1
 ;; Keywords:
-;; Package-Requires: ((s "1.9.0"))
+;; Package-Requires: ((s "1.9.0") (popwin "1.0.0"))
 
 ;;; Commentary:
 ;;
-;;  Rewrite of guide-key-mode.
+;;  This is a rewrite of guide-key https://github.com/kai2nenobu/guide-key
+;;  with the following goals:
+;;
+;;    1. Remove polling function for performance reasons
+;;    2. Try to simplify code as much as possible
+;;    3. Switch away from using popwin (planned)
+;;    4. Add replacement strings to create "aliases" for functions.
 ;;
 
 ;;; Code:
@@ -181,3 +187,4 @@ replace and the cdr is the replacement text. "
 
 (provide 'which-key)
 
+;;; which-key.el ends here
