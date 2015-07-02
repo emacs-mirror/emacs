@@ -121,8 +121,8 @@ replace and the cdr is the replacement text. "
             (bottom-or-top (member which-key-buffer-position '(top bottom)))
             (max-len-key 0) (max-len-desc 0) key-match desc-match
             unformatted formatted buffer-height buffer-width vertical-buffer-width)
-        (with-current-buffer (get-buffer which-key-buffer)
-          (erase-buffer)
+        ;; get keybindings
+        (with-temp-buffer
           (describe-buffer-bindings buf key)
           (goto-char (point-max))
           (while (re-search-backward
@@ -135,18 +135,18 @@ replace and the cdr is the replacement text. "
             (cl-pushnew (cons key-match desc-match) unformatted
                         :test (lambda (x y) (string-equal (car x) (car y)))))
           (setq max-len-desc (if (> max-len-desc which-key-max-description-length)
-                                 (+ 2 which-key-max-description-length)
+                                 (+ 2 which-key-max-description-length) ; for the ..
                                max-len-desc))
           (setq formatted (mapcar (lambda (str)
                                     (which-key/format-matches str max-len-key max-len-desc))
-                                  unformatted))
+                                  unformatted)))
+        (with-current-buffer (get-buffer which-key-buffer)
           (erase-buffer)
           (setq vertical-buffer-width (which-key/get-vertical-buffer-width max-len-desc max-len-key))
           (setq buffer-line-breaks
                 (which-key/insert-keys formatted (unless bottom-or-top vertical-buffer-width)))
           (goto-char (point-min))
           (which-key/replace-strings-from-alist which-key-description-replacement-alist)
-          ;; (message "%s" which-key-vertical-buffer-width)
           (if bottom-or-top
               (setq buffer-height (+ 2 buffer-line-breaks))
             (setq buffer-width vertical-buffer-width)))
