@@ -19,6 +19,8 @@
   "Internal variable to hold reference to timer.")
 (defvar which-key-idle-delay 0.5
   "Delay (in seconds) for which-key buffer to popup.")
+(defvar which-key-close-buffer-idle-delay 5
+  "Delay (in seconds) for which-key buffer to show.")
 (defvar which-key-max-description-length 30
   "Truncate the description of keys to this length (adds
   \"..\")")
@@ -37,7 +39,7 @@
   "Name of which-key buffer.")
 (defvar which-key-buffer-position 'bottom
   "Position of which-key buffer")
-(defvar which-key-vertical-buffer-width 80
+(defvar which-key-vertical-buffer-width 60
   "Width of which-key buffer .")
 
 (defvar which-key-setup-p nil
@@ -88,11 +90,16 @@ replace and the cdr is the replacement text. "
       (while (search-forward (car rep) nil t)
         (replace-match (cdr rep) nil t)))))
 
-(defun which-key/insert-keys (formatted-strings bottom-or-top)
+(defun which-key/get-vertical-buffer-width (max-len-key max-len-desc)
+  (min which-key-vertical-buffer-width (+ 3 max-len-desc max-len-key)))
+
+(defun which-key/insert-keys (formatted-strings vertical-buffer-width)
   "Insert strings into buffer breaking after `which-key-buffer-width'."
   (let ((char-count 0)
         (line-breaks 0)
-        (width (if bottom-or-top (frame-width) which-key-vertical-buffer-width)))
+        (width (if vertical-buffer-width
+                   vertical-buffer-width
+                   (frame-width))))
     (insert (mapconcat
              (lambda (str)
                (let* ((str-len (length (substring-no-properties str)))
@@ -112,34 +119,37 @@ replace and the cdr is the replacement text. "
       (let ((buf (current-buffer))
             (key-str-qt (regexp-quote (key-description key)))
             (bottom-or-top (member which-key-buffer-position '(top bottom)))
-            unformatted formatted buffer-height buffer-width)
+            (max-len-key 0) (max-len-desc 0) key-match desc-match
+            unformatted formatted buffer-height buffer-width vertical-buffer-width)
         (with-current-buffer (get-buffer which-key-buffer)
           (erase-buffer)
           (describe-buffer-bindings buf key)
           (goto-char (point-max))
-          (let ((max-len-key 0) (max-len-desc 0) key-match desc-match)
-            (while (re-search-backward
-                    (format "^%s \\([^ \t]+\\)[ \t]+\\(\\(?:[^ \t\n]+ ?\\)+\\)$" key-str-qt)
-                    nil t)
-              (setq key-match (s-replace-all which-key-key-replacement-alist (match-string 1))
-                    desc-match (match-string 2)
-                    max-len-key (max max-len-key (length key-match))
-                    max-len-desc (max max-len-desc (length desc-match)))
-              (cl-pushnew (cons key-match desc-match) unformatted
-                          :test (lambda (x y) (string-equal (car x) (car y)))))
-            (setq max-len-desc (if (> max-len-desc which-key-max-description-length)
-                                   (+ 2 which-key-max-description-length)
-                                 max-len-desc))
-            (setq formatted (mapcar (lambda (str)
-                                      (which-key/format-matches str max-len-key max-len-desc))
-                                    unformatted)))
+          (while (re-search-backward
+                  (format "^%s \\([^ \t]+\\)[ \t]+\\(\\(?:[^ \t\n]+ ?\\)+\\)$" key-str-qt)
+                  nil t)
+            (setq key-match (s-replace-all which-key-key-replacement-alist (match-string 1))
+                  desc-match (match-string 2)
+                  max-len-key (max max-len-key (length key-match))
+                  max-len-desc (max max-len-desc (length desc-match)))
+            (cl-pushnew (cons key-match desc-match) unformatted
+                        :test (lambda (x y) (string-equal (car x) (car y)))))
+          (setq max-len-desc (if (> max-len-desc which-key-max-description-length)
+                                 (+ 2 which-key-max-description-length)
+                               max-len-desc))
+          (setq formatted (mapcar (lambda (str)
+                                    (which-key/format-matches str max-len-key max-len-desc))
+                                  unformatted))
           (erase-buffer)
-          (setq buffer-line-breaks (which-key/insert-keys formatted bottom-or-top))
+          (setq vertical-buffer-width (which-key/get-vertical-buffer-width max-len-desc max-len-key))
+          (setq buffer-line-breaks
+                (which-key/insert-keys formatted (unless bottom-or-top vertical-buffer-width)))
           (goto-char (point-min))
           (which-key/replace-strings-from-alist which-key-description-replacement-alist)
+          ;; (message "%s" which-key-vertical-buffer-width)
           (if bottom-or-top
               (setq buffer-height (+ 2 buffer-line-breaks))
-            (setq buffer-width (* which-key-max-description-length (char-width)))))
+            (setq buffer-width vertical-buffer-width)))
         (which-key/show-buffer buffer-height buffer-width)))))
 
 (defun which-key/setup ()
