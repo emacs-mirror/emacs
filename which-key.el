@@ -179,3 +179,5 @@ replace and the cdr is the replacement text. "
   "Deactivate idle timer."
   (cancel-timer which-key--timer))
 
+(provide 'which-key)
+
