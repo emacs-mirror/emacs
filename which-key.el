@@ -35,10 +35,10 @@
   "Internal variable to hold reference to which-key buffer.")
 (defvar which-key-buffer-name "*which-key*"
   "Name of which-key buffer.")
-(defvar which-key-buffer-position 'right
+(defvar which-key-buffer-position 'bottom
   "Position of which-key buffer")
-(defvar which-key-buffer-width 80
-  "Width of which-key buffer (hardcoded for now).")
+(defvar which-key-vertical-buffer-width 80
+  "Width of which-key buffer .")
 
 (defvar which-key-setup-p nil
   "Non-nil if which-key buffer has been setup")
@@ -88,18 +88,22 @@ replace and the cdr is the replacement text. "
       (while (search-forward (car rep) nil t)
         (replace-match (cdr rep) nil t)))))
 
-(defun which-key/insert-keys (formatted-strings)
+(defun which-key/insert-keys (formatted-strings bottom-or-top)
   "Insert strings into buffer breaking after `which-key-buffer-width'."
-  (let ((char-count 0))
+  (let ((char-count 0)
+        (line-breaks 0)
+        (width (if bottom-or-top (frame-width) which-key-vertical-buffer-width)))
     (insert (mapconcat
              (lambda (str)
                (let* ((str-len (length (substring-no-properties str)))
                       (new-count (+ char-count str-len)))
-                 (if (> new-count which-key-buffer-width)
+                 (if (> new-count width)
                      (progn (setq char-count str-len)
+                            (cl-incf line-breaks)
                             (concat "\n" str))
                    (setq char-count new-count)
-                   str))) formatted-strings ""))))
+                   str))) formatted-strings ""))
+    line-breaks))
 
 (defun which-key/update-buffer-and-show ()
   "Fill which-key-buffer with key descriptions and reformat. Finally, show the buffer."
@@ -107,7 +111,8 @@ replace and the cdr is the replacement text. "
     (when (> (length key) 0)
       (let ((buf (current-buffer))
             (key-str-qt (regexp-quote (key-description key)))
-            unformatted formatted)
+            (bottom-or-top (member which-key-buffer-position '(top bottom)))
+            unformatted formatted buffer-height buffer-width)
         (with-current-buffer (get-buffer which-key-buffer)
           (erase-buffer)
           (describe-buffer-bindings buf key)
@@ -129,20 +134,26 @@ replace and the cdr is the replacement text. "
                                       (which-key/format-matches str max-len-key max-len-desc))
                                     unformatted)))
           (erase-buffer)
-          (which-key/insert-keys formatted)
+          (setq buffer-line-breaks (which-key/insert-keys formatted bottom-or-top))
           (goto-char (point-min))
-          (which-key/replace-strings-from-alist which-key-description-replacement-alist)))
-      (display-buffer which-key-buffer))))
+          (which-key/replace-strings-from-alist which-key-description-replacement-alist)
+          (if bottom-or-top
+              (setq buffer-height (+ 2 buffer-line-breaks))
+            (setq buffer-width (* which-key-max-description-length (char-width)))))
+        (which-key/show-buffer buffer-height buffer-width)))))
 
 (defun which-key/setup ()
   "Create buffer for which-key and add buffer to `popwin:special-display-config'"
   (setq which-key-buffer (get-buffer-create which-key-buffer-name))
-  (add-to-list 'popwin:special-display-config
-               `(,which-key-buffer-name
-                 :width ,which-key-buffer-width
-                 :noselect t
-                 :position ,which-key-buffer-position))
   (setq which-key-setup-p t))
+
+(defun which-key/show-buffer (height width)
+  ;; (message "w: %s h: %s" width height)
+  (popwin:popup-buffer which-key-buffer-name
+   :width width
+   :height height
+   :noselect t
+   :position which-key-buffer-position))
 
 (defun which-key/turn-on-timer ()
   "Activate idle timer."
