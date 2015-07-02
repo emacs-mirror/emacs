@@ -1,7 +1,7 @@
 # emacs-which-key
 Rewrite of guide-key-mode for emacs. 
 
-It's very, very rough right now. 
+It's very rough right now. 
 
 Planned features:
   1. Simplify code, especially the trigger mechanism to make it less resource
