@@ -32,10 +32,10 @@
   '((">". "") ("<" . "") ("left" ."←") ("right" . "→"))
   "The strings in the car of each cons cell are replaced with the
   strings in the cdr for each key.")
-(defvar which-key-description-replacement-alist nil
+(defvar which-key-general-replacement-alist nil
   "See `which-key-key-replacement-alist'. This is a list of cons
-  cells for replacing the description of keys (usually the name
-  of the corresponding function).")
+  cells for replacing any text, keys and descriptions. You can
+  also use elisp regexp in the car of the cells.")
 (defvar which-key-buffer-name "*which-key*"
   "Name of which-key buffer.")
 (defvar which-key-buffer-position 'bottom
@@ -94,9 +94,13 @@ length."
 which is an alist where the car of each element is the text to
 replace and the cdr is the replacement text. "
   (dolist (rep replacements)
-    (save-excursion
-      (while (search-forward (car rep) nil t)
-        (replace-match (cdr rep) nil t)))))
+    (let ((trunc-car (which-key/truncate-description (car rep)))
+          old-face)
+      (save-excursion
+        (while (or (search-forward (car rep) nil t)
+                   (search-forward trunc-car nil t))
+          (setq old-face (get-text-property (match-beginning 0) 'face))
+          (replace-match (propertize (cdr rep) 'face old-face) nil t))))))
 
 (defun which-key/get-vertical-buffer-width (max-len-key max-len-desc)
   (min which-key-vertical-buffer-width (+ 3 max-len-desc max-len-key)))
@@ -152,11 +156,12 @@ Finally, show the buffer."
                                       unformatted)))
             (with-current-buffer (get-buffer which-key--buffer)
               (erase-buffer)
-              (setq vertical-buffer-width (which-key/get-vertical-buffer-width max-len-desc max-len-key)
+              (setq vertical-buffer-width
+                    (which-key/get-vertical-buffer-width max-len-desc max-len-key)
                     buffer-line-breaks
                     (which-key/insert-keys formatted (unless bottom-or-top vertical-buffer-width)))
               (goto-char (point-min))
-              (which-key/replace-strings-from-alist which-key-description-replacement-alist)
+              (which-key/replace-strings-from-alist which-key-general-replacement-alist)
               (if bottom-or-top
                   (setq buffer-height (+ 2 buffer-line-breaks))
                 (setq buffer-width vertical-buffer-width)))
