@@ -130,6 +130,8 @@ Finally, show the buffer."
   (let ((key (this-single-command-keys)))
     (if (> (length key) 0)
         (progn
+          (when which-key--close-timer (cancel-timer which-key--close-timer))
+          (which-key/hide-buffer)
           (let ((buf (current-buffer))
                 (key-str-qt (regexp-quote (key-description key)))
                 (bottom-or-top (member which-key-buffer-position '(top bottom)))
