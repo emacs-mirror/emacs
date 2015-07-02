@@ -15,22 +15,36 @@
 
 ;;; Code:
 
-(defvar which-key-timer nil)
-(defvar which-key-idle-delay 0.5)
-(defvar which-key-max-description-length 30)
-(defvar which-key-description-replacement-alist nil)
+(defvar which-key-timer nil
+  "Internal variable to hold reference to timer.")
+(defvar which-key-idle-delay 0.5
+  "Delay (in seconds) for which-key buffer to popup.")
+(defvar which-key-max-description-length 30
+  "Truncate the description of keys to this length (adds
+  \"..\")")
 (defvar which-key-key-replacement-alist
-  '((">". "") ("<" . "") ("left" ."←") ("right" . "→")))
+  '((">". "") ("<" . "") ("left" ."←") ("right" . "→"))
+  "The strings in the car of each cons cell are replaced with the
+  strings in the cdr for each key.")
+(defvar which-key-description-replacement-alist nil
+  "See `which-key-key-replacement-alist'. This is a list of cons
+  cells for replacing the description of keys (usually the name
+  of the corresponding function).")
 
-(defvar which-key-buffer nil)
-(defvar which-key-buffer-name "*which-key*")
-(defvar which-key-buffer-position 'right)
-(defvar which-key-buffer-width 80)
+(defvar which-key-buffer nil
+  "Internal variable to hold reference to which-key buffer.")
+(defvar which-key-buffer-name "*which-key*"
+  "Name of which-key buffer.")
+(defvar which-key-buffer-position 'right
+  "Position of which-key buffer")
+(defvar which-key-buffer-width 80
+  "Width of which-key buffer (hardcoded for now).")
 
-(defvar which-key-setup-p nil)
+(defvar which-key-setup-p nil
+  "Non-nil if which-key buffer has been setup")
 
 (define-minor-mode which-key-mode
-  "Toggle which key mode."
+  "Toggle which-key-mode."
   :global t
   :lighter " WK"
   :require 'popwin
@@ -42,11 +56,15 @@
              'which-key/turn-off-timer)))
 
 (defsubst which-key/truncate-description (desc)
+  "Truncate key description to `which-key-max-description-length'."
   (if (> (length desc) which-key-max-description-length)
       (concat (substring desc 0 which-key-max-description-length) "..")
     desc))
 
 (defun which-key/format-matches (key-desc-cons max-len-key max-len-desc)
+  "Turn `key-desc-cons' into formatted strings (including text
+properties), and pad with spaces so that all are a uniform
+length."
   (let* ((key (car key-desc-cons))
          (desc (cdr key-desc-cons))
          (group (string-match-p "^group:" desc))
@@ -71,19 +89,20 @@ replace and the cdr is the replacement text. "
         (replace-match (cdr rep) nil t)))))
 
 (defun which-key/insert-keys (formatted-strings)
+  "Insert strings into buffer breaking after `which-key-buffer-width'."
   (let ((char-count 0))
-    (insert
-     (mapconcat
-      (lambda (str)
-        (let* ((str-len (length (substring-no-properties str)))
-               (new-count (+ char-count str-len)))
-          (if (> new-count which-key-buffer-width)
-              (progn (setq char-count str-len)
-                     (concat "\n" str))
-            (setq char-count new-count)
-            str))) formatted-strings ""))))
+    (insert (mapconcat
+             (lambda (str)
+               (let* ((str-len (length (substring-no-properties str)))
+                      (new-count (+ char-count str-len)))
+                 (if (> new-count which-key-buffer-width)
+                     (progn (setq char-count str-len)
+                            (concat "\n" str))
+                   (setq char-count new-count)
+                   str))) formatted-strings ""))))
 
 (defun which-key/update-buffer-and-show ()
+  "Fill which-key-buffer with key descriptions and reformat. Finally, show the buffer."
   (let ((key (this-single-command-keys)))
     (when (> (length key) 0)
       (let ((buf (current-buffer))
@@ -116,6 +135,7 @@ replace and the cdr is the replacement text. "
       (display-buffer which-key-buffer))))
 
 (defun which-key/setup ()
+  "Create buffer for which-key and add buffer to `popwin:special-display-config'"
   (setq which-key-buffer (get-buffer-create which-key-buffer-name))
   (add-to-list 'popwin:special-display-config
                `(,which-key-buffer-name
@@ -124,17 +144,12 @@ replace and the cdr is the replacement text. "
                  :position ,which-key-buffer-position))
   (setq which-key-setup-p t))
 
-(defun which-key/popup-buffer ()
-  (popwin:popup-buffer (get-buffer-create "*which-key*")
-                       :position which-key-buffer-position
-                       :noselect t
-                       ;; :height which-key/popup-window-size)
-                       :width which-key-buffer-width))
-
 (defun which-key/turn-on-timer ()
+  "Activate idle timer."
   (setq which-key-timer
         (run-with-idle-timer which-key-idle-delay t 'which-key/update-buffer-and-show)))
 
 (defun which-key/turn-off-timer ()
+  "Deactivate idle timer."
   (cancel-timer which-key-timer))
 
