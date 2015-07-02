@@ -22,8 +22,12 @@
 (defvar which-key-key-replacement-alist
   '((">". "") ("<" . "") ("left" ."←") ("right" . "→")))
 
+(defvar which-key-buffer nil)
+(defvar which-key-buffer-name "*which-key*")
 (defvar which-key-buffer-position 'right)
 (defvar which-key-buffer-width 80)
+
+(defvar which-key-setup-p nil)
 
 (define-minor-mode which-key-mode
   "Toggle which key mode."
@@ -32,7 +36,9 @@
   :require 'popwin
   :require 's
   (funcall (if which-key-mode
-               'which-key/turn-on-timer
+               (progn
+                 (unless which-key-setup-p (which-key/setup))
+                 'which-key/turn-on-timer)
              'which-key/turn-off-timer)))
 
 (defsubst which-key/truncate-description (desc)
@@ -83,7 +89,7 @@ replace and the cdr is the replacement text. "
       (let ((buf (current-buffer))
             (key-str-qt (regexp-quote (key-description key)))
             unformatted formatted)
-        (with-current-buffer (get-buffer-create "*which-key*")
+        (with-current-buffer (get-buffer which-key-buffer)
           (erase-buffer)
           (describe-buffer-bindings buf key)
           (goto-char (point-max))
@@ -107,7 +113,16 @@ replace and the cdr is the replacement text. "
           (which-key/insert-keys formatted)
           (goto-char (point-min))
           (which-key/replace-strings-from-alist which-key-description-replacement-alist)))
-      (which-key/popup-buffer))))
+      (display-buffer which-key-buffer))))
+
+(defun which-key/setup ()
+  (setq which-key-buffer (get-buffer-create which-key-buffer-name))
+  (add-to-list 'popwin:special-display-config
+               `(,which-key-buffer-name
+                 :width ,which-key-buffer-width
+                 :noselect t
+                 :position ,which-key-buffer-position))
+  (setq which-key-setup-p t))
 
 (defun which-key/popup-buffer ()
   (popwin:popup-buffer (get-buffer-create "*which-key*")
