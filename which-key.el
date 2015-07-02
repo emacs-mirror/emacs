@@ -53,7 +53,7 @@
   :require 's
   (funcall (if which-key-mode
                (progn
-                 (unless which-key-setup-p (which-key/setup))
+                 (unless which-key--setup-p (which-key/setup))
                  'which-key/turn-on-timer)
              'which-key/turn-off-timer)))
 
@@ -77,7 +77,7 @@ length."
          (key-padding (s-repeat (- max-len-key (length key)) " "))
          (padded-desc (s-pad-right max-len-desc " " tmp-desc)))
     (format (concat (propertize "[" 'face 'font-lock-comment-face) "%s"
-                    (propertize "]%s" 'face 'font-lock-comment-face)
+                    (propertize "]" 'face 'font-lock-comment-face) "%s"
                     (propertize " %s" 'face desc-face))
             key key-padding padded-desc)))
 
@@ -156,7 +156,7 @@ replace and the cdr is the replacement text. "
 (defun which-key/setup ()
   "Create buffer for which-key."
   (setq which-key--buffer (get-buffer-create which-key-buffer-name))
-  (setq which-key-setup-p t))
+  (setq which-key--setup-p t))
 
 (defun which-key/show-buffer (height width)
   (popwin:popup-buffer which-key-buffer-name
