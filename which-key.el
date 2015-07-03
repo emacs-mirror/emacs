@@ -178,6 +178,7 @@ Finally, show the buffer."
                     max-len-desc (1+ max-len-desc) ; pad with one character
                     formatted (which-key/format-matches
                                unformatted max-len-key max-len-desc)))
+            ;; populate buffer
             (with-current-buffer (get-buffer which-key--buffer)
               (erase-buffer)
               (setq buffer-width (which-key/buffer-width
@@ -186,9 +187,8 @@ Finally, show the buffer."
                                   formatted buffer-width))
               (goto-char (point-min))
               (which-key/replace-strings-from-alist
-               which-key-general-replacement-alist)
-              (setq-local cursor-type nil)
-              (setq-local cursor-in-non-selected-windows nil))
+               which-key-general-replacement-alist))
+            ;; show buffer
             (setq which-key--window (which-key/show-buffer
                                      (which-key/buffer-height line-breaks)
                                      buffer-width))
@@ -203,6 +203,9 @@ Finally, show the buffer."
   (require 's)
   (require 'popwin)
   (setq which-key--buffer (get-buffer-create which-key-buffer-name))
+  (with-current-buffer which-key--buffer
+    (setq-local cursor-type nil)
+    (setq-local cursor-in-non-selected-windows nil))
   (setq which-key--setup-p t))
 
 ;; (defun which-key/show-buffer (height width)
