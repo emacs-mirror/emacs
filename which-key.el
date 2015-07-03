@@ -50,6 +50,8 @@
   "Internal: Holds reference to which-key window.")
 (defvar which-key--timer nil
   "Internal: Holds reference to timer.")
+(defvar which-key--close-timer nil
+  "Internal: Holds reference to close window timer.")
 (defvar which-key--setup-p nil
   "Internal: Non-nil if which-key buffer has been setup")
 
