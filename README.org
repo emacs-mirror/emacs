@@ -2,7 +2,7 @@ Rewrite of guide-key-mode for emacs.
 
 Here's a recent picture showing what it does:
 
-[[./img/which-key-right.png]]
+[[./img/which-key-bottom.png]]
 
 * Status
 It is somewhat stable for me at the moment, but expect to see potentially weird
