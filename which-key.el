@@ -186,7 +186,8 @@ Finally, show the buffer."
                                   formatted buffer-width))
               (goto-char (point-min))
               (which-key/replace-strings-from-alist
-               which-key-general-replacement-alist))
+               which-key-general-replacement-alist)
+              (goto-char (point-max)))
             (setq which-key--window (which-key/show-buffer
                                      (which-key/buffer-height line-breaks)
                                      buffer-width))
