@@ -1,4 +1,4 @@
-;;; which-key.el
+;;; which-key.el --- Display available keybindings in popup
 
 ;; Copyright (C) 2015 Justin Burkett
 
@@ -6,7 +6,7 @@
 ;; URL: https://github.com/justbur/which-key/
 ;; Version: 0.1
 ;; Keywords:
-;; Package-Requires: ((s "1.9.0" popwin "1.0.0"))
+;; Package-Requires: ((s "1.9.0") (popwin "1.0.0"))
 
 ;;; Commentary:
 ;;
@@ -21,37 +21,36 @@
 
 ;;; Code:
 
-
 (defvar which-key-idle-delay 0.6
   "Delay (in seconds) for which-key buffer to popup.")
 (defvar which-key-close-buffer-idle-delay 4
   "Delay (in seconds) after which buffer is forced closed.")
 (defvar which-key-max-description-length 27
-  "Truncate the description of keys to this length (adds
-  \"..\")")
+  "Truncate the description of keys to this length.  Also adds
+\"..\".")
 (defvar which-key-key-replacement-alist
   '((">". "") ("<" . "") ("left" ."←") ("right" . "→"))
   "The strings in the car of each cons cell are replaced with the
-  strings in the cdr for each key.")
+strings in the cdr for each key.")
 (defvar which-key-general-replacement-alist nil
-  "See `which-key-key-replacement-alist'. This is a list of cons
-  cells for replacing any text, keys and descriptions. You can
-  also use elisp regexp in the car of the cells.")
+  "See `which-key-key-replacement-alist'.  This is a list of cons
+cells for replacing any text, keys and descriptions.  You can
+also use elisp regexp in the car of the cells.")
 (defvar which-key-buffer-name "*which-key*"
   "Name of which-key buffer.")
 (defvar which-key-buffer-position 'bottom
-  "Position of which-key buffer")
+  "Position of which-key buffer.")
 (defvar which-key-vertical-buffer-width 60
   "Width of which-key buffer .")
 
 (defconst which-key-buffer-display-function
   'display-buffer-in-side-window
-  "Controls where the buffer is displayed.
-  The current default is also controlled by
-  `which-key-buffer-position'. Other options are currently
-  disabled.")
+  "Controls where the buffer is displayed.  The current default is
+also controlled by `which-key-buffer-position'.  Other options are
+currently disabled.")
 
 ;; Internal Vars
+(defvar popwin:popup-buffer nil)
 (defvar which-key--buffer nil
   "Internal: Holds reference to which-key buffer.")
 (defvar which-key--window nil
@@ -61,8 +60,9 @@
 (defvar which-key--close-timer nil
   "Internal: Holds reference to close window timer.")
 (defvar which-key--setup-p nil
-  "Internal: Non-nil if which-key buffer has been setup")
+  "Internal: Non-nil if which-key buffer has been setup.")
 
+;;;###autoload
 (define-minor-mode which-key-mode
   "Toggle which-key-mode."
   :global t
@@ -74,15 +74,16 @@
              'which-key/turn-off-timer)))
 
 (defsubst which-key/truncate-description (desc)
-  "Truncate key description to `which-key-max-description-length'."
+  "Truncate DESC description to `which-key-max-description-length'."
   (if (> (length desc) which-key-max-description-length)
       (concat (substring desc 0 which-key-max-description-length) "..")
     desc))
 
 (defun which-key/format-matches (unformatted max-len-key max-len-desc)
-  "Turn `key-desc-cons' into formatted strings (including text
-properties), and pad with spaces so that all are a uniform
-length."
+  "Turn each key-desc-cons in UNFORMATTED into formatted
+strings (including text properties), and pad with spaces so that
+all are a uniform length.  MAX-LEN-KEY and MAX-LEN-DESC are the
+longest key and description in the buffer, respectively."
   (mapcar
    (lambda (key-desc-cons)
      (let* ((key (car key-desc-cons))
@@ -104,7 +105,7 @@ length."
 (defun which-key/replace-strings-from-alist (replacements)
   "Find and replace text in buffer according to REPLACEMENTS,
 which is an alist where the car of each element is the text to
-replace and the cdr is the replacement text. "
+replace and the cdr is the replacement text."
   (dolist (rep replacements)
     (let ((trunc-car (which-key/truncate-description (car rep)))
           old-face)
@@ -127,7 +128,7 @@ replace and the cdr is the replacement text. "
 (defsubst which-key/buffer-height (line-breaks) (+ 2 line-breaks))
 
 (defun which-key/insert-keys (formatted-strings buffer-width)
-  "Insert strings into buffer breaking after `which-key-buffer-width'."
+  "Insert FORMATTED-STRINGS into buffer, breaking after BUFFER-WIDTH."
   (let ((char-count 0)
         (line-breaks 0)
         (width (if buffer-width buffer-width (frame-width))))
@@ -221,6 +222,7 @@ Finally, show the buffer."
 ;;     (delete-window which-key--window)))
 
 (defun which-key/show-buffer (height width)
+  "Usign popwin popup buffer with dimensions HEIGHT and WIDTH."
   (popwin:popup-buffer which-key-buffer-name
                        :width width
                        :height height
@@ -228,7 +230,7 @@ Finally, show the buffer."
                        :position which-key-buffer-position))
 
 (defun which-key/hide-buffer ()
-  "Like it says :\)"
+  "Hide popwin buffer."
   (when (eq popwin:popup-buffer (get-buffer which-key--buffer))
     (popwin:close-popup-window)))
 
