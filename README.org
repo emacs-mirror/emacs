@@ -1,5 +1,9 @@
 Rewrite of guide-key-mode for emacs. 
 
+Here's a recent picture showing what it does:
+
+[[./img/which-key-right.png]]
+
 * Status
 It is somewhat stable for me at the moment, but expect to see potentially weird
 behavior (then to report it to me!).
