@@ -212,6 +212,18 @@ Finally, show the buffer."
   (when (window-live-p which-key--window)
     (delete-window which-key--window)))
 
+;; (defun which-key/show-buffer (height width)
+;;   (popwin:popup-buffer which-key-buffer-name
+;;                        :width width
+;;                        :height height
+;;                        :noselect t
+;;                        :position which-key-buffer-position))
+
+;; (defun which-key/hide-buffer ()
+;;   "Like it says :\)"
+;;   (when (eq popwin:popup-buffer (get-buffer which-key--buffer))
+;;     (popwin:close-popup-window)))
+
 (defun which-key/turn-on-timer ()
   "Activate idle timer."
   (setq which-key--timer
