@@ -6,7 +6,7 @@
 ;; URL: https://github.com/justbur/which-key/
 ;; Version: 0.1
 ;; Keywords:
-;; Package-Requires: ((s "1.9.0"))
+;; Package-Requires: ((s "1.9.0" popwin "1.0.0"))
 
 ;;; Commentary:
 ;;
@@ -20,6 +20,7 @@
 ;;
 
 ;;; Code:
+
 
 (defvar which-key-idle-delay 0.6
   "Delay (in seconds) for which-key buffer to popup.")
@@ -40,15 +41,15 @@
   "Name of which-key buffer.")
 (defvar which-key-buffer-position 'bottom
   "Position of which-key buffer")
-(defvar which-key-buffer-display-function
-  'display-buffer-in-side-window
-  "Controls where the buffer is displayed. Current options are
-  the default which is also controlled by
-  `which-key-buffer-position', and
-  `display-buffer-below-selected' which displays which-key only
-  under the currently selected window.")
 (defvar which-key-vertical-buffer-width 60
   "Width of which-key buffer .")
+
+(defconst which-key-buffer-display-function
+  'display-buffer-in-side-window
+  "Controls where the buffer is displayed.
+  The current default is also controlled by
+  `which-key-buffer-position'. Other options are currently
+  disabled.")
 
 ;; Internal Vars
 (defvar which-key--buffer nil
@@ -62,12 +63,10 @@
 (defvar which-key--setup-p nil
   "Internal: Non-nil if which-key buffer has been setup")
 
-
 (define-minor-mode which-key-mode
   "Toggle which-key-mode."
   :global t
   :lighter " WK"
-  :require 's
   (funcall (if which-key-mode
                (progn
                  (unless which-key--setup-p (which-key/setup))
@@ -120,8 +119,8 @@ replace and the cdr is the replacement text. "
          (min which-key-vertical-buffer-width (+ 3 max-len-desc max-len-key)))
         ((eq which-key-buffer-display-function 'display-buffer-in-side-window)
          (frame-width))
-        ((eq which-key-buffer-display-function 'display-buffer-below-selected)
-         sel-window-width)
+        ;; ((eq which-key-buffer-display-function 'display-buffer-below-selected)
+        ;;  sel-window-width)
         (t nil)))
 
 (defsubst which-key/buffer-height (line-breaks) (+ 2 line-breaks))
@@ -193,36 +192,38 @@ Finally, show the buffer."
                                           which-key-close-buffer-idle-delay
                                           nil 'which-key/hide-buffer))))
       ;; close the window
-      (which-key/hide-buffer)))
+      (which-key/hide-buffer))))
 
 (defun which-key/setup ()
   "Create buffer for which-key."
+  (require 's)
+  (require 'popwin)
   (setq which-key--buffer (get-buffer-create which-key-buffer-name))
   (setq which-key--setup-p t))
 
-(defun which-key/show-buffer (height width)
-  (let ((side which-key-buffer-position) alist)
-    (setq alist (list (when side   (cons 'side side))
-                      (when height (cons 'window-height  height))
-                      (when width  (cons 'window-width  width))))
-    (display-buffer "*which-key*" (cons which-key-buffer-display-function alist))))
-
-(defun which-key/hide-buffer ()
-  "Like it says :\)"
-  (when (window-live-p which-key--window)
-    (delete-window which-key--window)))
-
 ;; (defun which-key/show-buffer (height width)
-;;   (popwin:popup-buffer which-key-buffer-name
-;;                        :width width
-;;                        :height height
-;;                        :noselect t
-;;                        :position which-key-buffer-position))
+;;   (let ((side which-key-buffer-position) alist)
+;;     (setq alist (list (when side   (cons 'side side))
+;;                       (when height (cons 'window-height  height))
+;;                       (when width  (cons 'window-width  width))))
+;;     (display-buffer "*which-key*" (cons which-key-buffer-display-function alist))))
 
 ;; (defun which-key/hide-buffer ()
 ;;   "Like it says :\)"
-;;   (when (eq popwin:popup-buffer (get-buffer which-key--buffer))
-;;     (popwin:close-popup-window)))
+;;   (when (window-live-p which-key--window)
+;;     (delete-window which-key--window)))
+
+(defun which-key/show-buffer (height width)
+  (popwin:popup-buffer which-key-buffer-name
+                       :width width
+                       :height height
+                       :noselect t
+                       :position which-key-buffer-position))
+
+(defun which-key/hide-buffer ()
+  "Like it says :\)"
+  (when (eq popwin:popup-buffer (get-buffer which-key--buffer))
+    (popwin:close-popup-window)))
 
 (defun which-key/turn-on-timer ()
   "Activate idle timer."
