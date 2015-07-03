@@ -193,7 +193,7 @@ Finally, show the buffer."
                                           which-key-close-buffer-idle-delay
                                           nil 'which-key/hide-buffer))))
       ;; close the window
-      (when (window-live-p which-key--window) (which-key/hide-buffer)))))
+      (which-key/hide-buffer)))
 
 (defun which-key/setup ()
   "Create buffer for which-key."
