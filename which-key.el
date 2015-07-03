@@ -67,7 +67,6 @@
   "Toggle which-key-mode."
   :global t
   :lighter " WK"
-  ;; :require 'popwin
   :require 's
   (funcall (if which-key-mode
                (progn
@@ -126,28 +125,6 @@ replace and the cdr is the replacement text. "
         (t nil)))
 
 (defsubst which-key/buffer-height (line-breaks) (+ 2 line-breaks))
-
-;; (defun which-key/window-params-alist (max-len-key max-len-desc line-breaks selected-buf)
-;;   (let ((disp-func which-key-buffer-display-function)
-;;         (position which-key-buffer-position)
-;;         (selected-window (buffer-w))
-;;         width height side)
-;;     (cond
-;;      ((and (eq disp-func 'display-buffer-in-side-window)
-;;            (member position '(left right)))
-;;       (setq width (which-key/vertical-buffer-width max-len-desc max-len-key)
-;;             height (frame-height)
-;;             side position))
-;;      ((eq disp-func 'display-buffer-in-side-window)
-;;       (setq width (frame-width)
-;;             height (+ 2 line-breaks)
-;;             side position))
-;;      ((eq disp-func 'display-buffer-below-selected)
-;;       (setq height (+ 2 line-breaks)))
-;;      (t (error "error: Using unsupported buffer display function")))
-;;     (list (when width (cons 'window-width width))
-;;           (cons 'window-height height)
-;;           (when side (cons 'side side)))))
 
 (defun which-key/insert-keys (formatted-strings buffer-width)
   "Insert strings into buffer breaking after `which-key-buffer-width'."
@@ -223,19 +200,11 @@ Finally, show the buffer."
   (setq which-key--buffer (get-buffer-create which-key-buffer-name))
   (setq which-key--setup-p t))
 
-;; (defun which-key/show-buffer-popwin (height width)
-;;   (popwin:popup-buffer which-key-buffer-name
-;;    :width width
-;;    :height height
-;;    :noselect t
-;;    :position which-key-buffer-position))
-
 (defun which-key/show-buffer (height width)
   (let ((side which-key-buffer-position) alist)
     (setq alist (list (when side   (cons 'side side))
                       (when height (cons 'window-height  height))
                       (when width  (cons 'window-width  width))))
-    (message "h: %s w: %s s: %s" height width side)
     (display-buffer "*which-key*" (cons which-key-buffer-display-function alist))))
 
 (defun which-key/hide-buffer ()
