@@ -26,7 +26,7 @@
   "Delay (in seconds) for which-key buffer to popup.")
 (defvar which-key-close-buffer-idle-delay 4
   "Delay (in seconds) after which buffer is forced closed.")
-(defvar which-key-max-description-length 30
+(defvar which-key-max-description-length 27
   "Truncate the description of keys to this length (adds
   \"..\")")
 (defvar which-key-key-replacement-alist
@@ -187,7 +187,8 @@ Finally, show the buffer."
               (goto-char (point-min))
               (which-key/replace-strings-from-alist
                which-key-general-replacement-alist)
-              (goto-char (point-max)))
+              (setq-local cursor-type nil)
+              (setq-local cursor-in-non-selected-windows nil))
             (setq which-key--window (which-key/show-buffer
                                      (which-key/buffer-height line-breaks)
                                      buffer-width))
