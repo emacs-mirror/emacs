@@ -1,0 +1,12 @@
+Rewrite of guide-key-mode for emacs. 
+
+* Status
+It is somewhat stable for me at the moment, but expect to see potentially weird
+behavior (then to report it to me!).
+** Completed
+1. Use idle timers to trigger window popup instead of guide-key's constant
+   polling.
+2. Add support for replacement lists to modify key descriptions on the fly.
+** Ongoing/Planned 
+1. Explore alternatives to popwin like window-pupose and using display-buffer
+   directly
