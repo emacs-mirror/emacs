@@ -91,13 +91,14 @@ length."
             (prefix (string-match-p "^Prefix" desc))
             (desc-face (if (or prefix group)
                            'font-lock-keyword-face 'font-lock-function-name-face))
+            (sign (if (or prefix group) "▶" "→"))
             (tmp-desc (which-key/truncate-description (if group (substring desc 6) desc)))
             (key-padding (s-repeat (- max-len-key (length key)) " "))
             (padded-desc (s-pad-right max-len-desc " " tmp-desc)))
-       (format (concat (propertize "[" 'face 'font-lock-comment-face) "%s"
-                       (propertize "]" 'face 'font-lock-comment-face) "%s"
+       (format (concat (propertize "%s%s" 'face 'font-lock-constant-face) " "
+                       (propertize sign 'face 'font-lock-comment-face)
                        (propertize " %s" 'face desc-face))
-               key key-padding padded-desc)))
+               key-padding key padded-desc)))
    unformatted))
 
 (defun which-key/replace-strings-from-alist (replacements)
@@ -174,6 +175,7 @@ Finally, show the buffer."
               (setq max-len-desc (if (> max-len-desc which-key-max-description-length)
                                      (+ 2 which-key-max-description-length) ; for the ..
                                    max-len-desc)
+                    max-len-desc (1+ max-len-desc) ; pad with one character
                     formatted (which-key/format-matches
                                unformatted max-len-key max-len-desc)))
             (with-current-buffer (get-buffer which-key--buffer)
