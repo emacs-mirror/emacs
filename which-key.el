@@ -42,9 +42,11 @@ cells for replacing any text, keys and descriptions.")
   "Position of which-key buffer.")
 (defvar which-key-vertical-buffer-width 60
   "Width of which-key buffer .")
-(defvar which-key-use-minibuffer t
-  "Use the minibuffer to display the keybindings. This seems to
-be the most foolproof, so it's the default for now")
+(defvar which-key-display-method 'minibuffer
+  "Controls the method used to display the keys. The default is
+minibuffer, but other possibilities are 'popwin and
+'display-buffer. You will also be able write your own display
+function (not implemented yet).")
 
 (defconst which-key-buffer-display-function
   'display-buffer-in-side-window
@@ -73,12 +75,23 @@ currently disabled.")
  (if which-key-mode
      (progn
        (unless which-key--setup-p (which-key/setup))
-       (add-hook 'focus-out-hook 'which-key/turn-off-timer)
-       (add-hook 'focus-in-hook 'which-key/turn-on-timer)
-       (which-key/turn-on-timer))
-   (remove-hook 'focus-out-hook 'which-key/turn-off-timer)
-   (remove-hook 'focus-in-hook 'which-key/turn-on-timer)
-   (which-key/turn-off-timer)))
+       (add-hook 'focus-out-hook 'which-key/stop-open-timer)
+       (add-hook 'focus-in-hook 'which-key/start-open-timer)
+       (which-key/make-display-method-aliases which-key-display-method)
+       (which-key/start-open-timer))
+   (remove-hook 'focus-out-hook 'which-key/stop-open-timer)
+   (remove-hook 'focus-in-hook 'which-key/start-open-timer)
+   (which-key/stop-open-timer)))
+
+(defun which-key/setup ()
+  "Create buffer for which-key."
+  (require 's)
+  (require 'popwin)
+  (setq which-key--buffer (get-buffer-create which-key-buffer-name))
+  (with-current-buffer which-key--buffer
+    (setq-local cursor-type nil)
+    (setq-local cursor-in-non-selected-windows nil))
+  (setq which-key--setup-p t))
 
 (defsubst which-key/truncate-description (desc)
   "Truncate DESC description to `which-key-max-description-length'."
@@ -88,7 +101,7 @@ currently disabled.")
 
 (defun which-key/available-lines ()
   "Only works for minibuffer right now."
-  (when which-key-use-minibuffer
+  (when (eq which-key-display-method 'minibuffer)
     (if (floatp max-mini-window-height)
         (floor (* (frame-text-lines)
                   max-mini-window-height))
@@ -108,7 +121,8 @@ replace and the cdr is the replacement text."
 ;; (defsubst which-key/buffer-height (line-breaks) line-breaks)
 
 (defun which-key/buffer-width (column-width sel-window-width)
-  (cond (which-key-use-minibuffer (frame-text-cols))
+  (cond ((eq which-key-display-method 'minibuffer)
+         (frame-text-cols))
         ((and (eq which-key-buffer-display-function 'display-buffer-in-side-window)
               (member which-key-buffer-position '(left right)))
          (min which-key-vertical-buffer-width column-width))
@@ -187,12 +201,12 @@ longest key and description in the buffer, respectively."
               (push (subseq formatted-keys (* i n-columns) (min n-keys (* (1+ i) n-columns)))
                     lines)))
       (setq str-to-insert (mapconcat (lambda (x) (apply 'concat x)) (reverse lines) "\n"))
-      (if which-key-use-minibuffer
+      (if (eq which-key-display-method 'minibuffer)
           (let (message-log-max) (message "%s" str-to-insert))
         (insert str-to-insert)))
     n-lines))
 
-(defun which-key/update-buffer-and-show ()
+(defun which-key/update ()
   "Fill which-key--buffer with key descriptions and reformat.
 Finally, show the buffer."
   (let ((key (this-single-command-keys)))
@@ -210,58 +224,60 @@ Finally, show the buffer."
                  n-lines)
             ;; populate target buffer
             (setq n-lines (which-key/populate-buffer
-                           formatted-keys column-width buffer-width)))
-          ;; maybe show buffer
-          (unless which-key-use-minibuffer
-            (setq which-key--window (which-key/show-buffer n-lines buffer-width)
-                  which-key--close-timer (run-at-time
-                                          which-key-close-buffer-idle-delay
-                                          nil 'which-key/hide-buffer))))
+                           formatted-keys column-width buffer-width))
+            ;; show buffer
+            (unless (eq which-key-display-method 'minibuffer)
+              (setq which-key--window (which-key/show-buffer n-lines buffer-width)
+                    which-key--close-timer (run-at-time
+                                            which-key-close-buffer-idle-delay
+                                            nil 'which-key/hide-buffer)))))
       ;; command finished maybe close the window
       (which-key/hide-buffer))))
 
-(defun which-key/setup ()
-  "Create buffer for which-key."
-  (require 's)
-  (require 'popwin)
-  (setq which-key--buffer (get-buffer-create which-key-buffer-name))
-  (with-current-buffer which-key--buffer
-    (setq-local cursor-type nil)
-    (setq-local cursor-in-non-selected-windows nil))
-  (setq which-key--setup-p t))
+;; Display functions
 
-;; (defun which-key/show-buffer (height width)
-;;   (let ((side which-key-buffer-position) alist)
-;;     (setq alist (list (when side   (cons 'side side))
-;;                       (when height (cons 'window-height  height))
-;;                       (when width  (cons 'window-width  width))))
-;;     (display-buffer "*which-key*" (cons which-key-buffer-display-function alist))))
+(defun which-key/show-buffer-display-buffer (height width)
+  (let ((side which-key-buffer-position) alist)
+    (setq alist (list (when side   (cons 'side side))
+                      (when height (cons 'window-height  height))
+                      (when width  (cons 'window-width  width))))
+    (display-buffer "*which-key*" (cons which-key-buffer-display-function alist))))
 
-;; (defun which-key/hide-buffer ()
-;;   "Like it says :\)"
-;;   (when (window-live-p which-key--window)
-;;     (delete-window which-key--window)))
+(defun which-key/hide-buffer-display-buffer ()
+  (when (window-live-p which-key--window)
+    (delete-window which-key--window)))
 
-(defun which-key/show-buffer (height width)
+(defun which-key/show-buffer-popwin (height width)
   "Using popwin popup buffer with dimensions HEIGHT and WIDTH."
   (popwin:popup-buffer which-key-buffer-name
-                       :width width
                        :height height
+                       :width width
                        :noselect t
                        :position which-key-buffer-position))
 
-(defun which-key/hide-buffer ()
+(defun which-key/hide-buffer-popwin ()
   "Hide popwin buffer."
-  (when (and (not which-key-use-minibuffer)
-             (eq popwin:popup-buffer (get-buffer which-key--buffer)))
+  (when (eq popwin:popup-buffer (get-buffer which-key--buffer))
     (popwin:close-popup-window)))
 
-(defun which-key/turn-on-timer ()
-  "Activate idle timer."
-  (setq which-key--open-timer
-        (run-with-idle-timer which-key-idle-delay t 'which-key/update-buffer-and-show)))
+(defun which-key/make-display-method-aliases (method)
+  (cond
+   ((eq method 'minibuffer)
+    (defun which-key/hide-buffer ()))
+   ((member method '(popwin display-buffer))
+         (defalias 'which-key/show-buffer
+           (intern (concat "which-key/show-buffer-" (symbol-name method))))
+         (defalias 'which-key/hide-buffer
+           (intern (concat "which-key/hide-buffer-" (symbol-name method)))))
+        (t (error "error: Invalid choice for which-key-display-method"))))
 
-(defun which-key/turn-off-timer ()
+(defun which-key/start-open-timer ()
+  "Activate idle timer."
+  (when which-key--open-timer (cancel-timer which-key--open-timer)); start over
+  (setq which-key--open-timer
+        (run-with-idle-timer which-key-idle-delay t 'which-key/update)))
+
+(defun which-key/stop-open-timer ()
   "Deactivate idle timer."
   (cancel-timer which-key--open-timer))
 
