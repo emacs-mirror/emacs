@@ -32,7 +32,8 @@
   '((">". "") ("<" . "") ("left" ."←") ("right" . "→"))
   "The strings in the car of each cons cell are replaced with the
 strings in the cdr for each key.")
-(defvar which-key-general-replacement-alist nil
+(defvar which-key-general-replacement-alist
+  '(("Prefix Command" . "prefix"))
   "See `which-key-key-replacement-alist'.  This is a list of cons
 cells for replacing any text, keys and descriptions.")
 (defvar which-key-buffer-name "*which-key*"
@@ -98,14 +99,10 @@ currently disabled.")
 which is an alist where the car of each element is the text to
 replace and the cdr is the replacement text."
   (dolist (rep replacements)
-    (let ((trunc-car (which-key/truncate-description (car rep)))
-          old-face)
       (save-excursion
         (goto-char (point-min))
-        (while (or (search-forward (car rep) nil t)
-                   (search-forward trunc-car nil t))
-          (setq old-face (get-text-property (match-beginning 0) 'face))
-          (replace-match (propertize (cdr rep) 'face old-face) nil t))))))
+        (while (or (search-forward (car rep) nil t))
+          (replace-match (cdr rep) t t)))))
 
 ;; in case I decide to add padding
 ;; (defsubst which-key/buffer-height (line-breaks) line-breaks)
@@ -131,14 +128,17 @@ longest key and description in the buffer, respectively."
      (let* ((key (car key-desc-cons))
             (desc (cdr key-desc-cons))
             (group (string-match-p "^group:" desc))
+            (desc (if group (substring desc 6) desc))
             (prefix (string-match-p "^Prefix" desc))
+            (desc (if (or prefix group) (concat "+" desc) desc))
             (desc-face (if (or prefix group)
                            'font-lock-keyword-face 'font-lock-function-name-face))
-            (sign (if (or prefix group) "▶" "→"))
-            (tmp-desc (which-key/truncate-description (if group (substring desc 6) desc)))
+            ;; (sign (if (or prefix group) "▶" "→"))
+            (sign "→")
+            (desc (which-key/truncate-description desc))
             ;; pad keys to max-len-key
             (padded-key (s-pad-left max-len-key " " key))
-            (padded-desc (s-pad-right max-len-desc " " tmp-desc)))
+            (padded-desc (s-pad-right max-len-desc " " desc)))
        (format (concat (propertize "%s" 'face 'font-lock-constant-face) " "
                        (propertize sign 'face 'font-lock-comment-face) " "
                        (propertize "%s" 'face desc-face) " ")
