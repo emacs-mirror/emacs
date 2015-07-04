@@ -57,8 +57,8 @@ currently disabled.")
   "Internal: Holds reference to which-key buffer.")
 (defvar which-key--window nil
   "Internal: Holds reference to which-key window.")
-(defvar which-key--timer nil
-  "Internal: Holds reference to timer.")
+(defvar which-key--open-timer nil
+  "Internal: Holds reference to open window timer.")
 (defvar which-key--close-timer nil
   "Internal: Holds reference to close window timer.")
 (defvar which-key--setup-p nil
@@ -69,11 +69,15 @@ currently disabled.")
   "Toggle which-key-mode."
   :global t
   :lighter " WK"
-  (funcall (if which-key-mode
-               (progn
-                 (unless which-key--setup-p (which-key/setup))
-                 'which-key/turn-on-timer)
-             'which-key/turn-off-timer)))
+ (if which-key-mode
+     (progn
+       (unless which-key--setup-p (which-key/setup))
+       (add-hook 'focus-out-hook 'which-key/turn-off-timer)
+       (add-hook 'focus-in-hook 'which-key/turn-on-timer)
+       (which-key/turn-on-timer))
+   (remove-hook 'focus-out-hook 'which-key/turn-off-timer)
+   (remove-hook 'focus-in-hook 'which-key/turn-on-timer)
+   (which-key/turn-off-timer)))
 
 (defsubst which-key/truncate-description (desc)
   "Truncate DESC description to `which-key-max-description-length'."
@@ -254,12 +258,12 @@ Finally, show the buffer."
 
 (defun which-key/turn-on-timer ()
   "Activate idle timer."
-  (setq which-key--timer
+  (setq which-key--open-timer
         (run-with-idle-timer which-key-idle-delay t 'which-key/update-buffer-and-show)))
 
 (defun which-key/turn-off-timer ()
   "Deactivate idle timer."
-  (cancel-timer which-key--timer))
+  (cancel-timer which-key--open-timer))
 
 (provide 'which-key)
 
