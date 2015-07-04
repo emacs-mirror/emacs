@@ -177,11 +177,11 @@ longest key and description in the buffer, respectively."
          (max-lines (ceiling (/ (float n-keys) n-columns)))
          (n-lines (if n-lines (min n-lines max-lines) max-lines))
          lines str-to-insert start end)
-    (message "n-lines: %s" n-lines)
     (when (> n-columns 0)
       (dotimes (i n-lines)
-        (setq lines (push (subseq formatted-keys (* i n-columns) (* (1+ i) n-columns)) lines)))
-      (setq lns lines nlns n-lines)
+        (setq lines
+              (push (subseq formatted-keys (* i n-columns) (min n-keys (* (1+ i) n-columns)))
+                    lines)))
       (setq str-to-insert (mapconcat (lambda (x) (apply 'concat x)) (reverse lines) "\n"))
       (if which-key-use-minibuffer
           (let (message-log-max) (message "%s" str-to-insert))
