@@ -93,6 +93,8 @@ currently disabled.")
     (setq-local cursor-in-non-selected-windows nil))
   (setq which-key--setup-p t))
 
+;; Helper functions
+
 (defsubst which-key/truncate-description (desc)
   "Truncate DESC description to `which-key-max-description-length'."
   (if (> (length desc) which-key-max-description-length)
@@ -158,6 +160,8 @@ longest key and description in the buffer, respectively."
                        (propertize "%s" 'face desc-face) " ")
                padded-key padded-desc)))
    unformatted))
+
+;; "Core" functions
 
 (defun which-key/get-formatted-key-bindings (buffer key)
   (let ((max-len-key 0) (max-len-desc 0)
@@ -234,6 +238,18 @@ Finally, show the buffer."
       ;; command finished maybe close the window
       (which-key/hide-buffer))))
 
+;; Timers
+
+(defun which-key/start-open-timer ()
+  "Activate idle timer."
+  (when which-key--open-timer (cancel-timer which-key--open-timer)); start over
+  (setq which-key--open-timer
+        (run-with-idle-timer which-key-idle-delay t 'which-key/update)))
+
+(defun which-key/stop-open-timer ()
+  "Deactivate idle timer."
+  (cancel-timer which-key--open-timer))
+
 ;; Display functions
 
 (defun which-key/show-buffer-display-buffer (height width)
@@ -270,16 +286,6 @@ Finally, show the buffer."
          (defalias 'which-key/hide-buffer
            (intern (concat "which-key/hide-buffer-" (symbol-name method)))))
         (t (error "error: Invalid choice for which-key-display-method"))))
-
-(defun which-key/start-open-timer ()
-  "Activate idle timer."
-  (when which-key--open-timer (cancel-timer which-key--open-timer)); start over
-  (setq which-key--open-timer
-        (run-with-idle-timer which-key-idle-delay t 'which-key/update)))
-
-(defun which-key/stop-open-timer ()
-  "Deactivate idle timer."
-  (cancel-timer which-key--open-timer))
 
 (provide 'which-key)
 
