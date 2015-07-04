@@ -34,14 +34,16 @@
 strings in the cdr for each key.")
 (defvar which-key-general-replacement-alist nil
   "See `which-key-key-replacement-alist'.  This is a list of cons
-cells for replacing any text, keys and descriptions.  You can
-also use elisp regexp in the car of the cells.")
+cells for replacing any text, keys and descriptions.")
 (defvar which-key-buffer-name "*which-key*"
   "Name of which-key buffer.")
 (defvar which-key-buffer-position 'bottom
   "Position of which-key buffer.")
 (defvar which-key-vertical-buffer-width 60
   "Width of which-key buffer .")
+(defvar which-key-use-minibuffer t
+  "Use the minibuffer to display the keybindings. This seems to
+be the most foolproof, so it's the default for now")
 
 (defconst which-key-buffer-display-function
   'display-buffer-in-side-window
@@ -79,6 +81,42 @@ currently disabled.")
       (concat (substring desc 0 which-key-max-description-length) "..")
     desc))
 
+(defun which-key/available-lines ()
+  "Only works for minibuffer right now."
+  (when which-key-use-minibuffer
+    (if (floatp max-mini-window-height)
+        (floor (* (frame-text-lines)
+                  max-mini-window-height))
+      max-mini-window-height)))
+
+(defun which-key/replace-strings-from-alist (replacements)
+  "Find and replace text in buffer according to REPLACEMENTS,
+which is an alist where the car of each element is the text to
+replace and the cdr is the replacement text."
+  (dolist (rep replacements)
+    (let ((trunc-car (which-key/truncate-description (car rep)))
+          old-face)
+      (save-excursion
+        (goto-char (point-min))
+        (while (or (search-forward (car rep) nil t)
+                   (search-forward trunc-car nil t))
+          (setq old-face (get-text-property (match-beginning 0) 'face))
+          (replace-match (propertize (cdr rep) 'face old-face) nil t))))))
+
+;; in case I decide to add padding
+;; (defsubst which-key/buffer-height (line-breaks) line-breaks)
+
+(defun which-key/buffer-width (column-width sel-window-width)
+  (cond (which-key-use-minibuffer (frame-text-cols))
+        ((and (eq which-key-buffer-display-function 'display-buffer-in-side-window)
+              (member which-key-buffer-position '(left right)))
+         (min which-key-vertical-buffer-width column-width))
+        ((eq which-key-buffer-display-function 'display-buffer-in-side-window)
+         (frame-text-width))
+        ;; ((eq which-key-buffer-display-function 'display-buffer-below-selected)
+        ;;  sel-window-width)
+        (t nil)))
+
 (defun which-key/format-matches (unformatted max-len-key max-len-desc)
   "Turn each key-desc-cons in UNFORMATTED into formatted
 strings (including text properties), and pad with spaces so that
@@ -94,55 +132,61 @@ longest key and description in the buffer, respectively."
                            'font-lock-keyword-face 'font-lock-function-name-face))
             (sign (if (or prefix group) "▶" "→"))
             (tmp-desc (which-key/truncate-description (if group (substring desc 6) desc)))
-            (key-padding (s-repeat (- max-len-key (length key)) " "))
+            ;; pad keys to max-len-key
+            (padded-key (s-pad-left max-len-key " " key))
             (padded-desc (s-pad-right max-len-desc " " tmp-desc)))
-       (format (concat (propertize "%s%s" 'face 'font-lock-constant-face) " "
-                       (propertize sign 'face 'font-lock-comment-face)
-                       (propertize " %s" 'face desc-face))
-               key-padding key padded-desc)))
+       (format (concat (propertize "%s" 'face 'font-lock-constant-face) " "
+                       (propertize sign 'face 'font-lock-comment-face) " "
+                       (propertize "%s" 'face desc-face) " ")
+               padded-key padded-desc)))
    unformatted))
 
-(defun which-key/replace-strings-from-alist (replacements)
-  "Find and replace text in buffer according to REPLACEMENTS,
-which is an alist where the car of each element is the text to
-replace and the cdr is the replacement text."
-  (dolist (rep replacements)
-    (let ((trunc-car (which-key/truncate-description (car rep)))
-          old-face)
-      (save-excursion
-        (while (or (search-forward (car rep) nil t)
-                   (search-forward trunc-car nil t))
-          (setq old-face (get-text-property (match-beginning 0) 'face))
-          (replace-match (propertize (cdr rep) 'face old-face) nil t))))))
+(defun which-key/get-formatted-key-bindings (buffer key)
+  (let ((max-len-key 0) (max-len-desc 0)
+        (key-str-qt (regexp-quote (key-description key)))
+        key-match desc-match unformatted formatted)
+    (with-temp-buffer
+      (describe-buffer-bindings buffer key)
+      (which-key/replace-strings-from-alist which-key-general-replacement-alist)
+      (goto-char (point-max)) ; want to put last keys in first
+      (while (re-search-backward
+              (format "^%s \\([^ \t]+\\)[ \t]+\\(\\(?:[^ \t\n]+ ?\\)+\\)$"
+                      key-str-qt)
+              nil t)
+        (setq key-match (s-replace-all
+                         which-key-key-replacement-alist (match-string 1))
+              desc-match (match-string 2)
+              max-len-key (max max-len-key (length key-match))
+              max-len-desc (max max-len-desc (length desc-match)))
+        (cl-pushnew (cons key-match desc-match) unformatted
+                    :test (lambda (x y) (string-equal (car x) (car y)))))
+      (setq max-len-desc (if (> max-len-desc which-key-max-description-length)
+                             (+ 2 which-key-max-description-length) ; for the ..
+                           max-len-desc)
+            formatted (which-key/format-matches
+                       unformatted max-len-key max-len-desc)))
+    (cons formatted (+ 4 max-len-key max-len-desc))))
 
-(defun which-key/buffer-width (max-len-key max-len-desc sel-window-width)
-  (cond ((and (eq which-key-buffer-display-function 'display-buffer-in-side-window)
-              (member which-key-buffer-position '(left right)))
-         (min which-key-vertical-buffer-width (+ 3 max-len-desc max-len-key)))
-        ((eq which-key-buffer-display-function 'display-buffer-in-side-window)
-         (frame-width))
-        ;; ((eq which-key-buffer-display-function 'display-buffer-below-selected)
-        ;;  sel-window-width)
-        (t nil)))
-
-(defsubst which-key/buffer-height (line-breaks) (+ 2 line-breaks))
-
-(defun which-key/insert-keys (formatted-strings buffer-width)
+(defun which-key/populate-buffer (formatted-keys column-width buffer-width)
   "Insert FORMATTED-STRINGS into buffer, breaking after BUFFER-WIDTH."
-  (let ((char-count 0)
-        (line-breaks 0)
-        (width (if buffer-width buffer-width (frame-width))))
-    (insert (mapconcat
-             (lambda (str)
-               (let* ((str-len (length (substring-no-properties str)))
-                      (new-count (+ char-count str-len)))
-                 (if (> new-count width)
-                     (progn (setq char-count str-len)
-                            (cl-incf line-breaks)
-                            (concat "\n" str))
-                   (setq char-count new-count)
-                   str))) formatted-strings ""))
-    line-breaks))
+  (let* ((char-count 0) (line-breaks 0) (this-column 1)
+         (width (if buffer-width buffer-width (frame-text-width)))
+         (n-keys (length formatted-keys))
+         (n-columns (/ width column-width)) ;; integer division
+         (n-lines (which-key/available-lines))
+         (max-lines (ceiling (/ (float n-keys) n-columns)))
+         (n-lines (if n-lines (min n-lines max-lines) max-lines))
+         lines str-to-insert start end)
+    (message "n-lines: %s" n-lines)
+    (when (> n-columns 0)
+      (dotimes (i n-lines)
+        (setq lines (push (subseq formatted-keys (* i n-columns) (* (1+ i) n-columns)) lines)))
+      (setq lns lines nlns n-lines)
+      (setq str-to-insert (mapconcat (lambda (x) (apply 'concat x)) (reverse lines) "\n"))
+      (if which-key-use-minibuffer
+          (let (message-log-max) (message "%s" str-to-insert))
+        (insert str-to-insert)))
+    n-lines))
 
 (defun which-key/update-buffer-and-show ()
   "Fill which-key--buffer with key descriptions and reformat.
@@ -152,51 +196,24 @@ Finally, show the buffer."
         (progn
           (when which-key--close-timer (cancel-timer which-key--close-timer))
           (which-key/hide-buffer)
-          (let ((buf (current-buffer)) (win-width (window-width))
-                (key-str-qt (regexp-quote (key-description key)))
-                (bottom-or-top (member which-key-buffer-position '(top bottom)))
-                (max-len-key 0) (max-len-desc 0)
-                key-match desc-match unformatted formatted buffer-width
-                line-breaks)
-            ;; get keybindings
-            (with-temp-buffer
-              (describe-buffer-bindings buf key)
-              (goto-char (point-max))
-              (while (re-search-backward
-                      (format "^%s \\([^ \t]+\\)[ \t]+\\(\\(?:[^ \t\n]+ ?\\)+\\)$"
-                              key-str-qt)
-                      nil t)
-                (setq key-match (s-replace-all
-                                 which-key-key-replacement-alist (match-string 1))
-                      desc-match (match-string 2)
-                      max-len-key (max max-len-key (length key-match))
-                      max-len-desc (max max-len-desc (length desc-match)))
-                (cl-pushnew (cons key-match desc-match) unformatted
-                            :test (lambda (x y) (string-equal (car x) (car y)))))
-              (setq max-len-desc (if (> max-len-desc which-key-max-description-length)
-                                     (+ 2 which-key-max-description-length) ; for the ..
-                                   max-len-desc)
-                    max-len-desc (1+ max-len-desc) ; pad with one character
-                    formatted (which-key/format-matches
-                               unformatted max-len-key max-len-desc)))
-            ;; populate buffer
-            (with-current-buffer (get-buffer which-key--buffer)
-              (erase-buffer)
-              (setq buffer-width (which-key/buffer-width
-                                  max-len-key max-len-desc win-width)
-                    line-breaks  (which-key/insert-keys
-                                  formatted buffer-width))
-              (goto-char (point-min))
-              (which-key/replace-strings-from-alist
-               which-key-general-replacement-alist))
-            ;; show buffer
-            (setq which-key--window (which-key/show-buffer
-                                     (which-key/buffer-height line-breaks)
-                                     buffer-width))
-            (setq which-key--close-timer (run-at-time
+          (let* ((buf (current-buffer))
+                 (bottom-or-top (member which-key-buffer-position '(top bottom)))
+                 ;; get formatted key bindings
+                 (fmt-width-cons (which-key/get-formatted-key-bindings buf key))
+                 (formatted-keys (car fmt-width-cons))
+                 (column-width (cdr fmt-width-cons))
+                 (buffer-width (which-key/buffer-width column-width (window-width)))
+                 n-lines)
+            ;; populate target buffer
+            (setq n-lines (which-key/populate-buffer
+                           formatted-keys column-width buffer-width)))
+          ;; maybe show buffer
+          (unless which-key-use-minibuffer
+            (setq which-key--window (which-key/show-buffer n-lines buffer-width)
+                  which-key--close-timer (run-at-time
                                           which-key-close-buffer-idle-delay
                                           nil 'which-key/hide-buffer))))
-      ;; close the window
+      ;; command finished maybe close the window
       (which-key/hide-buffer))))
 
 (defun which-key/setup ()
@@ -222,7 +239,7 @@ Finally, show the buffer."
 ;;     (delete-window which-key--window)))
 
 (defun which-key/show-buffer (height width)
-  "Usign popwin popup buffer with dimensions HEIGHT and WIDTH."
+  "Using popwin popup buffer with dimensions HEIGHT and WIDTH."
   (popwin:popup-buffer which-key-buffer-name
                        :width width
                        :height height
@@ -231,7 +248,8 @@ Finally, show the buffer."
 
 (defun which-key/hide-buffer ()
   "Hide popwin buffer."
-  (when (eq popwin:popup-buffer (get-buffer which-key--buffer))
+  (when (and (not which-key-use-minibuffer)
+             (eq popwin:popup-buffer (get-buffer which-key--buffer)))
     (popwin:close-popup-window)))
 
 (defun which-key/turn-on-timer ()
