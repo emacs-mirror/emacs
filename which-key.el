@@ -291,3 +291,5 @@ longest key and description in the buffer, respectively."
   (if (> (length desc) which-key-max-description-length)
       (concat (substring desc 0 which-key-max-description-length) "..")
     desc))
+
+(provide 'which-key)
