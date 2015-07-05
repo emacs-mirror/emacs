@@ -293,3 +293,5 @@ longest key and description in the buffer, respectively."
     desc))
 
 (provide 'which-key)
+
+;;; which-key.el ends here
