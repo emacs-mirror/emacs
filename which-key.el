@@ -101,7 +101,7 @@ currently disabled.")
       (concat (substring desc 0 which-key-max-description-length) "..")
     desc))
 
-(defun which-key/available-lines ()
+(defun which-key/available-lines-per-page ()
   "Only works for minibuffer right now."
   (when (eq which-key-display-method 'minibuffer)
     (if (floatp max-mini-window-height)
@@ -189,25 +189,37 @@ longest key and description in the buffer, respectively."
                        unformatted max-len-key max-len-desc)))
     (cons formatted (+ 4 max-len-key max-len-desc))))
 
+(defun which-key/create-page (avl-lines n-columns keys)
+  (let (lines
+        (n-keys (length keys))
+        (n-lines (min (ceiling (/ (float n-keys) n-columns)) avl-lines)))
+    (dotimes (i n-lines)
+      (setq lines
+            (push
+             (subseq keys (* i n-columns) (min n-keys (* (1+ i) n-columns)))
+             lines)))
+    (mapconcat (lambda (x) (apply 'concat x)) (reverse lines) "\n")))
+
 (defun which-key/populate-buffer (formatted-keys column-width buffer-width)
-  "Insert FORMATTED-STRINGS into buffer, breaking after BUFFER-WIDTH."
-  (let* ((char-count 0) (line-breaks 0) (this-column 1)
-         (width (if buffer-width buffer-width (frame-text-width)))
+  "Insert FORMATTED-STRINGS into which-key buffer, breaking after BUFFER-WIDTH."
+  (let* ((width (if buffer-width buffer-width (frame-text-width)))
          (n-keys (length formatted-keys))
          (n-columns (/ width column-width)) ;; integer division
-         (n-lines (which-key/available-lines))
-         (max-lines (ceiling (/ (float n-keys) n-columns)))
-         (n-lines (if n-lines (min n-lines max-lines) max-lines))
-         lines str-to-insert start end)
+         (avl-lines/page (which-key/available-lines-per-page))
+         (n-keys/page (when avl-lines/page (* n-columns avl-lines/page)))
+         (n-pages (if n-keys/page
+                      (ceiling (/ (float n-keys) n-keys/page)) 1))
+         lines pages n-lines )
     (when (> n-columns 0)
-      (dotimes (i n-lines)
-        (setq lines
-              (push (subseq formatted-keys (* i n-columns) (min n-keys (* (1+ i) n-columns)))
-                    lines)))
-      (setq str-to-insert (mapconcat (lambda (x) (apply 'concat x)) (reverse lines) "\n"))
+      (dotimes (p n-pages)
+        (setq pages
+              (push (which-key/create-page avl-lines/page n-columns
+                     (subseq formatted-keys (* p n-keys/page)
+                             (min (* (1+ p) n-keys/page) n-keys))) pages)))
+      (setq pages (reverse pages))
       (if (eq which-key-display-method 'minibuffer)
-          (let (message-log-max) (message "%s" str-to-insert))
-        (insert str-to-insert)))
+          (let (message-log-max) (message "%s" (car pages)))
+        (insert (car pages))))
     n-lines))
 
 (defun which-key/update ()
@@ -249,6 +261,9 @@ Finally, show the buffer."
 (defun which-key/stop-open-timer ()
   "Deactivate idle timer."
   (cancel-timer which-key--open-timer))
+
+;; placeholder for page flipping 
+;; (defun which-key/start-next-page-timer ())
 
 ;; Display functions
 
