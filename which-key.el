@@ -21,6 +21,8 @@
 
 ;;; Code:
 
+(require 'cl-macs)
+(require 'cl-extra)
 (require 's)
 
 (defvar which-key-idle-delay 0.6
@@ -363,7 +365,7 @@ the maximum number of lines availabel in the target buffer."
     (dotimes (i n-lines)
       (setq lines
             (push
-             (seq-subseq keys (* i n-columns) (min n-keys (* (1+ i) n-columns)))
+             (cl-subseq keys (* i n-columns) (min n-keys (* (1+ i) n-columns)))
              lines)))
     (mapconcat (lambda (x) (apply 'concat x)) (reverse lines) "\n")))
 
@@ -384,7 +386,7 @@ the maximum number of lines availabel in the target buffer."
       (dotimes (p n-pages)
         (setq pages
               (push (which-key/create-page max-height n-columns
-                     (seq-subseq formatted-keys (* p max-keys/page)
+                     (cl-subseq formatted-keys (* p max-keys/page)
                              (min (* (1+ p) max-keys/page) n-keys))) pages)))
       ;; not doing anything with other pages for now
       (setq pages (reverse pages)
