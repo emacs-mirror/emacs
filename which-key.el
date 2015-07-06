@@ -21,6 +21,8 @@
 
 ;;; Code:
 
+(require 's)
+
 (defvar which-key-idle-delay 0.6
   "Delay (in seconds) for which-key buffer to popup.")
 ;; (defvar which-key-close-buffer-idle-delay 4
@@ -97,14 +99,11 @@ Used when `which-key-popup-type' is frame.")
     (remove-hook 'pre-command-hook #'which-key/hide-popup)
     (remove-hook 'focus-out-hook #'which-key/stop-open-timer)
     (remove-hook 'focus-in-hook #'which-key/start-open-timer)
-    (which-key/stop-open-timer)
-    (which-key/stop-close-timer)))
+    (which-key/stop-open-timer)))
+    ;; (which-key/stop-close-timer)))
 
 (defun which-key/setup ()
   "Create buffer for which-key."
-  (require 'cl)
-  (require 's)
-;;  (require 'popwin)
   (setq which-key--buffer (get-buffer-create which-key-buffer-name))
   (with-current-buffer which-key--buffer
     (setq-local cursor-type nil)
@@ -364,7 +363,7 @@ the maximum number of lines availabel in the target buffer."
     (dotimes (i n-lines)
       (setq lines
             (push
-             (subseq keys (* i n-columns) (min n-keys (* (1+ i) n-columns)))
+             (seq-subseq keys (* i n-columns) (min n-keys (* (1+ i) n-columns)))
              lines)))
     (mapconcat (lambda (x) (apply 'concat x)) (reverse lines) "\n")))
 
@@ -385,7 +384,7 @@ the maximum number of lines availabel in the target buffer."
       (dotimes (p n-pages)
         (setq pages
               (push (which-key/create-page max-height n-columns
-                     (subseq formatted-keys (* p max-keys/page)
+                     (seq-subseq formatted-keys (* p max-keys/page)
                              (min (* (1+ p) max-keys/page) n-keys))) pages)))
       ;; not doing anything with other pages for now
       (setq pages (reverse pages)

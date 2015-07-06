@@ -1,3 +1,4 @@
 *~
+*.elc
 # Used to setup library paths for emacs -Q
 private-test-setup.el
