@@ -80,8 +80,11 @@ Used when `which-key-popup-type' is frame.")
   (if which-key-mode
       (progn
         (unless which-key--setup-p (which-key/setup))
-        ;; turn off echo-keytrokes for minibuffer (it can interfer)
-        (when (eq which-key-popup-type 'minibuffer) (setq echo-keystrokes 0))
+        ;; make echo-keytrokes fast for minibuffer popup
+	;; (it can interfer if it's too slow)
+        (when (and (> echo-keystrokes 0)
+		   (eq which-key-popup-type 'minibuffer))
+	  (setq echo-keystrokes 0.1))
         (add-hook 'focus-out-hook 'which-key/stop-open-timer)
         (add-hook 'focus-in-hook 'which-key/start-open-timer)
         (which-key/start-open-timer))
@@ -344,7 +347,7 @@ of the intended popup."
          (n-pages (if max-keys/page
                       (ceiling (/ (float n-keys) max-keys/page)) 1))
          pages act-height)
-    (when (> n-columns 0)
+    (when (and (> n-keys 0) (> n-columns 0))
       (dotimes (p n-pages)
         (setq pages
               (push (which-key/create-page max-height n-columns
