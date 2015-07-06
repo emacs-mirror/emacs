@@ -6,7 +6,7 @@
 ;; URL: https://github.com/justbur/which-key/
 ;; Version: 0.1
 ;; Keywords:
-;; Package-Requires: ((emacs "24.3") (s "1.9.0") (popwin "1.0.0"))
+;; Package-Requires: ((emacs "24.3") (s "1.9.0"))
 
 ;;; Commentary:
 ;;
@@ -55,7 +55,7 @@ location is top or bottom.")
   "Maximum height of which-key popup when type is frame.")
 
 ;; Internal Vars
-(defvar popwin:popup-buffer nil)
+;; (defvar popwin:popup-buffer nil)
 (defvar which-key--buffer nil
   "Internal: Holds reference to which-key buffer.")
 (defvar which-key--window nil
@@ -88,8 +88,9 @@ Used when `which-key-popup-type' is frame.")
 
 (defun which-key/setup ()
   "Create buffer for which-key."
+  (require 'cl)
   (require 's)
-  (require 'popwin)
+;;  (require 'popwin)
   (setq which-key--buffer (get-buffer-create which-key-buffer-name))
   (with-current-buffer which-key--buffer
     (setq-local cursor-type nil)
