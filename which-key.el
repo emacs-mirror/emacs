@@ -365,24 +365,16 @@ of the intended popup."
           (goto-char (point-min)))))
     (cons act-height act-width)))
 
-(defun which-key/perform-replacements (key-desc-cons-list key-reps desc-reps &optional literal)
+(defun which-key/maybe-replace (text repl-alist &optional literal)
   "Find and replace text in buffer according to REPLACEMENTS,
 which is an alist where the car of each element is the text to
 replace and the cdr is the replacement text."
-  (mapcar
-   (lambda (el)
-     (let ((key (car el)) (desc (cdr el)))
-       (dolist (key-rep key-reps)
-         (setq key
-               (if (string-match (car key-rep) key)
-                   (replace-match (cdr key-rep) t literal key)
-                 key)))
-       (dolist (desc-rep desc-reps)
-         (setq desc
-               (if (string-match (car desc-rep) desc)
-                   (replace-match (cdr desc-rep) t literal desc)
-                 desc)))
-       (cons key desc))) key-desc-cons-list))
+  (dolist (repl repl-alist)
+    (setq text
+          (if (string-match (car repl) text)
+              (replace-match (cdr repl) t literal text)
+            text)))
+  text)
 
 (defsubst which-key/truncate-description (desc)
   "Truncate DESC description to `which-key-max-description-length'."
@@ -395,13 +387,12 @@ replace and the cdr is the replacement text."
 strings (including text properties), and pad with spaces so that
 all are a uniform length.  MAX-LEN-KEY and MAX-LEN-DESC are the
 longest key and description in the buffer, respectively."
-  (setq unformatted (which-key/perform-replacements
-                     unformatted which-key-key-replacement-alist
-                     which-key-description-replacement-alist nil))
   (mapcar
    (lambda (key-desc-cons)
-     (let* ((key (car key-desc-cons))
-            (desc (cdr key-desc-cons))
+     (let* ((key (which-key/maybe-replace (car key-desc-cons)
+                  which-key-key-replacement-alist))
+            (desc (which-key/maybe-replace (cdr key-desc-cons)
+                   which-key-description-replacement-alist))
             (group (string-match-p "^group:" desc))
             (desc (if group (substring desc 6) desc))
             (prefix (string-match-p "^Prefix" desc))
