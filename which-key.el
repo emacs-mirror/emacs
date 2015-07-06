@@ -28,6 +28,8 @@
 (defvar which-key-max-description-length 27
   "Truncate the description of keys to this length.  Also adds
 \"..\".")
+(defvar which-key-separator "→"
+  "Separator to use between key and description.")
 (defvar which-key-key-replacement-alist
   '(("<\\(\\(C-\\|M-\\)*.+\\)>" . "\\1") ("\\(left\\)" ."←")
     ("\\(right\\)" . "→"))
@@ -406,14 +408,13 @@ longest key and description in the buffer, respectively."
             (desc (if (or prefix group) (concat "+" desc) desc))
             (desc-face (if (or prefix group)
                            'font-lock-keyword-face 'font-lock-function-name-face))
-            ;; (sign (if (or prefix group) "▶" "→"))
-            (sign "→")
+            (separator which-key-separator)
             (desc (which-key/truncate-description desc))
             ;; pad keys to max-len-key
             (padded-key (s-pad-left max-len-key " " key))
             (padded-desc (s-pad-right max-len-desc " " desc)))
        (format (concat (propertize "%s" 'face 'font-lock-constant-face) " "
-                       (propertize sign 'face 'font-lock-comment-face) " "
+                       (propertize separator 'face 'font-lock-comment-face) " "
                        (propertize "%s" 'face desc-face) " ")
                padded-key padded-desc)))
    unformatted))
