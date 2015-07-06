@@ -69,6 +69,8 @@ location is top or bottom.")
 (defvar which-key--frame nil
   "Internal: Holds reference to which-key frame.
 Used when `which-key-popup-type' is frame.")
+(defvar which-key--echo-keystrokes-backup echo-keystrokes
+  "Internal: Backup the initial value of echo-keystrokes.")
 
 ;;;###autoload
 (define-minor-mode which-key-mode
@@ -78,9 +80,13 @@ Used when `which-key-popup-type' is frame.")
   (if which-key-mode
       (progn
         (unless which-key--setup-p (which-key/setup))
+        ;; turn off echo-keytrokes for minibuffer (it can interfer)
+        (when (eq which-key-popup-type 'minibuffer) (setq echo-keystrokes 0))
         (add-hook 'focus-out-hook 'which-key/stop-open-timer)
         (add-hook 'focus-in-hook 'which-key/start-open-timer)
         (which-key/start-open-timer))
+    ;; make sure echo-keystrokes returns to original value
+    (setq echo-keystrokes which-key--echo-keystrokes-backup)
     (remove-hook 'focus-out-hook 'which-key/stop-open-timer)
     (remove-hook 'focus-in-hook 'which-key/start-open-timer)
     (which-key/stop-open-timer)
