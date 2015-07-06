@@ -220,31 +220,58 @@ need to start the closing timer."
       (display-buffer-in-major-side-window which-key--buffer side 0 alist))))
 
 (defun which-key/show-buffer-frame (act-popup-dim)
-  (let ((orig-window (selected-window))
+  (let* ((orig-window (selected-window))
+         (frame-height (+ (car act-popup-dim)
+                          (if (with-current-buffer which-key--buffer
+                                mode-line-format)
+                              1
+                            0)))
+         ;; without adding 2, frame sometimes isn't wide enough for the buffer.
+         ;; this is probably because of the fringes. however, setting fringes
+         ;; sizes to 0 (instead of adding 2) didn't always make the frame wide
+         ;; enough. don't know why it is so.
+         (frame-width (+ (cdr act-popup-dim) 2))
         (new-window (if (and (frame-live-p which-key--frame)
                              (eq which-key--buffer
                                  (window-buffer (frame-root-window which-key--frame))))
-                        (which-key/show-buffer-reuse-frame)
-                      (which-key/show-buffer-new-frame act-popup-dim))))
-    (fit-frame-to-buffer (window-frame new-window))
-    (select-frame-set-input-focus (window-frame orig-window))
-    (select-window orig-window)
-    (setq which-key--frame (window-frame new-window))
-    new-window))
+                        (which-key/show-buffer-reuse-frame frame-height frame-width)
+                      (which-key/show-buffer-new-frame frame-height frame-width))))
+    (when new-window
+      ;; display successful
+      (setq which-key--frame (window-frame new-window))
+      new-window)))
 
-(defun which-key/show-buffer-new-frame (act-popup-dim)
-  (let* ((height (car act-popup-dim))
-         (width (cdr act-popup-dim))
-         (frame-params (delq nil (list (when (and height width) (cons 'height height))
-                                       (when (and height width) (cons 'width width))
-                                       (cons 'minibuffer nil)
-                                       (cons 'name "which-key"))))
-         (alist (list (cons 'pop-up-frame-parameters frame-params)
-                      (cons 'inhibit-switch-frame t))))
-    (display-buffer-pop-up-frame which-key--buffer alist)))
+(defun which-key/show-buffer-new-frame (frame-height frame-width)
+  (let* ((frame-params `((height . ,frame-height)
+                         (width . ,frame-width)
+                         ;; tell the window manager to respect the given sizes
+                         (user-size . t)
+                         ;; which-key frame doesn't need a minibuffer
+                         (minibuffer . nil)
+                         (name . "which-key")
+                         ;; no need for scroll bars in which-key frame
+                         (vertical-scroll-bars . nil)
+                         ;; (left-fringe . 0)
+                         ;; (right-fringe . 0)
+                         ;; (right-divider-width . 0)
+                         ;; make sure frame is visible
+                         (visibility . t)))
+         (alist `((pop-up-frame-parameters . ,frame-params)))
+         (orig-frame (selected-frame))
+         (new-window (display-buffer-pop-up-frame which-key--buffer alist)))
+    (when new-window
+      ;; display successful
+      (redirect-frame-focus (window-frame new-window) orig-frame)
+      new-window)))
 
-(defun which-key/show-buffer-reuse-frame ()
-  (display-buffer-reuse-window which-key--buffer `((reusable-frames . ,which-key--frame))))
+(defun which-key/show-buffer-reuse-frame (frame-height frame-width)
+  (let ((window
+         (display-buffer-reuse-window which-key--buffer
+                                      `((reusable-frames . ,which-key--frame)))))
+    (when window
+      ;; display successful
+      (set-frame-size (window-frame window) frame-width frame-height)
+      window)))
 
 ;; Keep for popwin maybe (Used to work)
 ;; (defun which-key/show-buffer-popwin (height width)
