@@ -39,7 +39,7 @@ cells for replacing any text, keys and descriptions.")
 (defvar which-key-buffer-name "*which-key*"
   "Name of which-key buffer.")
 (defvar which-key-popup-type 'minibuffer
-  "Supported types are minibuffer and side-window.")
+  "Supported types are minibuffer, side-window and frame.")
 (defvar which-key-side-window-location 'bottom
   "Location of which-key popup when `which-key-popup-type' is
 side-window.  Should be one of top, bottom, left or right.")
@@ -53,17 +53,6 @@ location is top or bottom.")
   "Maximum width of which-key popup when type is frame.")
 (defvar which-key-frame-max-height 20
   "Maximum height of which-key popup when type is frame.")
-;; (defvar which-key-display-method 'minibuffer
-;;   "Controls the method used to display the keys. The default is
-;; minibuffer, but other possibilities are 'popwin and
-;; 'display-buffer. You will also be able write your own display
-;; function (not implemented yet).")
-
-;; (defconst which-key-buffer-display-function
-;;   'display-buffer-in-side-window
-;;   "Controls where the buffer is displayed.  The current default is
-;; also controlled by `which-key-side-window-location'.  Other options are
-;; currently disabled.")
 
 ;; Internal Vars
 (defvar popwin:popup-buffer nil)
@@ -79,7 +68,7 @@ location is top or bottom.")
   "Internal: Non-nil if which-key buffer has been setup.")
 (defvar which-key--frame nil
   "Internal: Holds reference to which-key frame.
-Used when `which-key-popup-type' is 'popup.")
+Used when `which-key-popup-type' is frame.")
 
 ;;;###autoload
 (define-minor-mode which-key-mode
