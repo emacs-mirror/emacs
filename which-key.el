@@ -43,7 +43,7 @@ cells for replacing descriptions.")
   "Name of which-key buffer.")
 (defvar which-key-popup-type 'minibuffer
   "Supported types are minibuffer, side-window and frame.")
-(defvar which-key-side-window-location 'bottom
+(defvar which-key-side-window-location 'right
   "Location of which-key popup when `which-key-popup-type' is
 side-window.  Should be one of top, bottom, left or right.")
 (defvar which-key-side-window-max-width 60
