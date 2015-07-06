@@ -38,23 +38,28 @@ strings in the cdr for each key.")
 cells for replacing any text, keys and descriptions.")
 (defvar which-key-buffer-name "*which-key*"
   "Name of which-key buffer.")
-(defvar which-key-buffer-position 'bottom
-  "Position of which-key buffer.")
-(defvar which-key-vertical-buffer-width 60
-  "Width of which-key buffer.")
-(defvar which-key-horizontal-buffer-height 20
-  "Height of which-key buffer.")
-(defvar which-key-display-method 'minibuffer
-  "Controls the method used to display the keys. The default is
-minibuffer, but other possibilities are 'popwin and
-'display-buffer. You will also be able write your own display
-function (not implemented yet).")
+(defvar which-key-popup-type 'minibuffer
+  "Supported types are minibuffer and side-window.")
+(defvar which-key-side-window-location 'bottom
+  "Location of which-key popup when `which-key-popup-type' is
+side-window.  Should be one of top, bottom, left or right.")
+(defvar which-key-side-window-max-width 60
+  "Maximum width of which-key popup when type is side-window and
+location is left or right.")
+(defvar which-key-side-window-max-height 20
+  "Maximum height of which-key popup when type is side-window and
+location is top or bottom.")
+;; (defvar which-key-display-method 'minibuffer
+;;   "Controls the method used to display the keys. The default is
+;; minibuffer, but other possibilities are 'popwin and
+;; 'display-buffer. You will also be able write your own display
+;; function (not implemented yet).")
 
-(defconst which-key-buffer-display-function
-  'display-buffer-in-side-window
-  "Controls where the buffer is displayed.  The current default is
-also controlled by `which-key-buffer-position'.  Other options are
-currently disabled.")
+;; (defconst which-key-buffer-display-function
+;;   'display-buffer-in-side-window
+;;   "Controls where the buffer is displayed.  The current default is
+;; also controlled by `which-key-side-window-location'.  Other options are
+;; currently disabled.")
 
 ;; Internal Vars
 (defvar popwin:popup-buffer nil)
@@ -111,7 +116,7 @@ currently disabled.")
   (which-key/stop-close-timer)          ; start over
   (setq which-key--close-timer
         (run-at-time which-key-close-buffer-idle-delay
-                     nil 'which-key/hide-buffer)))
+                     nil 'which-key/hide-popup)))
 
 (defun which-key/stop-close-timer ()
   "Deactivate idle timer."
@@ -126,21 +131,20 @@ Finally, show the buffer."
     (if (> (length key) 0)
         (progn
           (which-key/stop-close-timer)
-          (which-key/hide-buffer)
+          (which-key/hide-popup)
           (let* ((buf (current-buffer))
-                 ;; (bottom-or-top (member which-key-buffer-position '(top bottom)))
                  ;; get formatted key bindings
                  (fmt-width-cons (which-key/get-formatted-key-bindings buf key))
                  (formatted-keys (car fmt-width-cons))
                  (column-width (cdr fmt-width-cons))
-                 (buffer-width (which-key/buffer-width column-width (window-width)))
                  ;; populate target buffer
-                 (n-lines (which-key/populate-buffer formatted-keys column-width buffer-width)))
+                 (popup-act-dim
+                  (which-key/populate-buffer formatted-keys column-width (window-width))))
             ;; show buffer
-            (when (which-key/show-buffer n-lines buffer-width)
+            (when (which-key/show-popup popup-act-dim)
               (which-key/start-close-timer))))
       ;; command finished maybe close the window
-      (which-key/hide-buffer))))
+      (which-key/hide-popup))))
 
 ;; Show/hide guide buffer
 
@@ -149,23 +153,26 @@ Finally, show the buffer."
 ;;   (when (window-live-p which-key--window)
 ;;     (delete-window which-key--window)))
 
-(defun which-key/hide-buffer ()
+(defun which-key/hide-popup ()
   (when (buffer-live-p which-key--buffer)
     (delete-windows-on which-key--buffer)))
 
-(defun which-key/show-buffer (height width)
-  "Show guide window.
-Return nil if no window is shown, or if there is no need to start the
-closing timer."
-  (cl-case which-key-display-method
-    (minibuffer (which-key/show-buffer-minibuffer height width))
-    (side-window (which-key/show-buffer-side-window height width))))
+(defun which-key/show-popup (act-popup-dim)
+  "Show guide window. ACT-POPUP-DIM includes the
+dimensions, (height . width) of the buffer text to be displayed
+in the popup.  Return nil if no window is shown, or if there is no
+need to start the closing timer."
+  (cl-case which-key-popup-type
+    (minibuffer (which-key/show-buffer-minibuffer act-popup-dim))
+    (side-window (which-key/show-buffer-side-window act-popup-dim))))
 
-(defun which-key/show-buffer-minibuffer (height width)
+(defun which-key/show-buffer-minibuffer (act-popup-dim)
   nil)
 
-(defun which-key/show-buffer-side-window (height width)
-  (let* ((side which-key-buffer-position)
+(defun which-key/show-buffer-side-window (act-popup-dim)
+  (let* ((height (car act-popup-dim))
+         (width (cdr act-popup-dim))
+         (side which-key-side-window-location)
          (alist (delq nil (list (when side (cons 'side side))
                                 (when height (cons 'window-height height))
                                 (when width (cons 'window-width width))))))
@@ -178,7 +185,7 @@ closing timer."
 ;;                        :height height
 ;;                        :width width
 ;;                        :noselect t
-;;                        :position which-key-buffer-position))
+;;                        :position which-key-side-window-location))
 
 ;; (defun which-key/hide-buffer-popwin ()
 ;;   "Hide popwin buffer."
@@ -187,44 +194,34 @@ closing timer."
 
 ;; Size functions
 
-(defun which-key/buffer-width (column-width sel-window-width)
-  (cl-case which-key-display-method
-    (minibuffer (which-key/buffer-width-minibuffer column-width sel-window-width))
-    (side-window (which-key/buffer-width-side-window column-width sel-window-width))))
+(defun which-key/popup-max-dimensions (column-width selected-window-width)
+  "Dimesion functions should return the maximum possible (height . width)
+of the intended popup."
+  (cl-case which-key-popup-type
+    (minibuffer (which-key/minibuffer-max-dimensions))
+    (side-window (which-key/side-window-max-dimensions column-width))))
 
-(defun which-key/buffer-width-minibuffer (column-width sel-window-width)
-  (frame-text-cols))
+(defun which-key/minibuffer-max-dimensions ()
+  (cons
+   ;; height
+   (if (floatp max-mini-window-height)
+       (floor (* (frame-text-lines)
+                 max-mini-window-height))
+     max-mini-window-height)
+   ;; width
+   (frame-text-cols)))
 
-(defun which-key/buffer-width-side-window (column-width sel-window-width)
-  (if (member which-key-buffer-position '(left right))
-      (min which-key-vertical-buffer-width column-width)
-    (frame-width)))
-
-;; (defun which-key/available-lines ()
-;;   "Only works for minibuffer right now."
-;;   (when (eq which-key-display-method 'minibuffer)
-;;     (if (floatp max-mini-window-height)
-;;         (floor (* (frame-text-lines)
-;;                   max-mini-window-height))
-;;       max-mini-window-height)))
-
-(defun which-key/available-lines ()
-  (cl-case which-key-display-method
-    (minibuffer (which-key/available-lines-minibuffer))
-    (side-window (which-key/available-lines-side-window))))
-
-(defun which-key/available-lines-minibuffer ()
-  "Only works for minibuffer right now."
-  (if (floatp max-mini-window-height)
-      (floor (* (frame-text-lines)
-                max-mini-window-height))
-    max-mini-window-height))
-
-(defun which-key/available-lines-side-window ()
-  (if (member which-key-buffer-position '(left right))
-      (frame-height)
-    ;; FIXME: change to something like (min which-*-height (calculate-max-height))
-    which-key-horizontal-buffer-height))
+(defun which-key/side-window-max-dimensions (column-width)
+  (cons
+   ;; height
+   (if (member which-key-side-window-location '(left right))
+       (frame-height)
+     ;; FIXME: change to something like (min which-*-height (calculate-max-height))
+     which-key-side-window-max-height)
+   ;; width
+   (if (member which-key-side-window-location '(left right))
+       (min which-key-side-window-max-width column-width)
+     (frame-width))))
 
 ;; Buffer contents functions
 
@@ -254,10 +251,10 @@ closing timer."
                        unformatted max-len-key max-len-desc)))
     (cons formatted (+ 4 max-len-key max-len-desc))))
 
-(defun which-key/create-page (avl-lines n-columns keys)
-  (let (lines
-        (n-keys (length keys))
-        (n-lines (min (ceiling (/ (float n-keys) n-columns)) avl-lines)))
+(defun which-key/create-page (max-lines n-columns keys)
+  (let* ((n-keys (length keys))
+         (n-lines (min (ceiling (/ (float n-keys) n-columns)) max-lines))
+         lines)
     (dotimes (i n-lines)
       (setq lines
             (push
@@ -265,28 +262,33 @@ closing timer."
              lines)))
     (mapconcat (lambda (x) (apply 'concat x)) (reverse lines) "\n")))
 
-(defun which-key/populate-buffer (formatted-keys column-width buffer-width)
+(defun which-key/populate-buffer (formatted-keys column-width sel-win-width)
   "Insert FORMATTED-STRINGS into which-key buffer, breaking after BUFFER-WIDTH."
-  (let* ((width (if buffer-width buffer-width (frame-text-width)))
-         (n-keys (length formatted-keys))
-         (n-columns (/ width column-width)) ;; integer division
-         (avl-lines/page (which-key/available-lines))
-         (n-keys/page (when avl-lines/page (* n-columns avl-lines/page)))
-         (n-pages (if n-keys/page
-                      (ceiling (/ (float n-keys) n-keys/page)) 1))
-         lines pages n-lines )
+  (let* ((n-keys (length formatted-keys))
+         (max-dims (which-key/popup-max-dimensions column-width sel-win-width))
+         (max-height (when (car max-dims) (car max-dims)))
+         (max-width (when (cdr max-dims) (cdr max-dims)))
+         (n-columns (/ max-width column-width)) ;; integer division
+         (act-width (* n-columns column-width))
+         ;; (avl-lines/page (which-key/available-lines))
+         (max-keys/page (when max-height (* n-columns max-height)))
+         (n-pages (if max-keys/page
+                      (ceiling (/ (float n-keys) max-keys/page)) 1))
+         pages act-height)
     (when (> n-columns 0)
       (dotimes (p n-pages)
         (setq pages
-              (push (which-key/create-page avl-lines/page n-columns
-                     (subseq formatted-keys (* p n-keys/page)
-                             (min (* (1+ p) n-keys/page) n-keys))) pages)))
-      (setq pages (reverse pages))
-      (if (eq which-key-display-method 'minibuffer)
+              (push (which-key/create-page max-height n-columns
+                     (subseq formatted-keys (* p max-keys/page)
+                             (min (* (1+ p) max-keys/page) n-keys))) pages)))
+      ;; not doing anything with other pages for now
+      (setq pages (reverse pages)
+            act-height (1+  (s-count-matches "\n" (car pages))))
+      (if (eq which-key-popup-type 'minibuffer)
           (let (message-log-max) (message "%s" (car pages)))
         (with-current-buffer which-key--buffer
           (insert (car pages)))))
-    n-lines))
+    (cons act-height act-width)))
 
 (defun which-key/replace-strings-from-alist (replacements)
   "Find and replace text in buffer according to REPLACEMENTS,
@@ -297,6 +299,12 @@ replace and the cdr is the replacement text."
       (goto-char (point-min))
       (while (or (search-forward (car rep) nil t))
         (replace-match (cdr rep) t t)))))
+
+(defsubst which-key/truncate-description (desc)
+  "Truncate DESC description to `which-key-max-description-length'."
+  (if (> (length desc) which-key-max-description-length)
+      (concat (substring desc 0 which-key-max-description-length) "..")
+    desc))
 
 (defun which-key/format-matches (unformatted max-len-key max-len-desc)
   "Turn each key-desc-cons in UNFORMATTED into formatted
@@ -324,12 +332,6 @@ longest key and description in the buffer, respectively."
                        (propertize "%s" 'face desc-face) " ")
                padded-key padded-desc)))
    unformatted))
-
-(defsubst which-key/truncate-description (desc)
-  "Truncate DESC description to `which-key-max-description-length'."
-  (if (> (length desc) which-key-max-description-length)
-      (concat (substring desc 0 which-key-max-description-length) "..")
-    desc))
 
 (provide 'which-key)
 
