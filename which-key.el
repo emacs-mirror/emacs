@@ -325,6 +325,9 @@ of the intended popup."
     (cons formatted (+ 4 max-len-key max-len-desc))))
 
 (defun which-key/create-page (max-lines n-columns keys)
+  "Format KEYS into string representing a single page of text.
+N-COLUMNS is the number of text columns to use and MAX-LINES is
+the maximum number of lines availabel in the target buffer."
   (let* ((n-keys (length keys))
          (n-lines (min (ceiling (/ (float n-keys) n-columns)) max-lines))
          lines)
@@ -366,9 +369,10 @@ of the intended popup."
     (cons act-height act-width)))
 
 (defun which-key/maybe-replace (text repl-alist &optional literal)
-  "Find and replace text in buffer according to REPLACEMENTS,
-which is an alist where the car of each element is the text to
-replace and the cdr is the replacement text."
+  "Perform replacements on TEXT.
+REPL-ALIST is an alist where the car of each element is the text
+to replace and the cdr is the replacement text. Unless LITERAL is
+non-nil regexp is used in the replacements."
   (dolist (repl repl-alist)
     (setq text
           (if (string-match (car repl) text)
@@ -385,8 +389,10 @@ replace and the cdr is the replacement text."
 (defun which-key/format-matches (unformatted max-len-key max-len-desc)
   "Turn each key-desc-cons in UNFORMATTED into formatted
 strings (including text properties), and pad with spaces so that
-all are a uniform length.  MAX-LEN-KEY and MAX-LEN-DESC are the
-longest key and description in the buffer, respectively."
+all are a uniform length. MAX-LEN-KEY and MAX-LEN-DESC are the
+longest key and description in the buffer, respectively.
+Replacements are performed using the key and description
+replacement alists."
   (mapcar
    (lambda (key-desc-cons)
      (let* ((key (which-key/maybe-replace (car key-desc-cons)
