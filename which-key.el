@@ -79,7 +79,7 @@ location is top or bottom.")
   "Internal: Non-nil if which-key buffer has been setup.")
 (defvar which-key--frame nil
   "Internal: Holds reference to which-key frame.
-Used when `which-key-popup-type' is 'popup.")
+Used when `which-key-popup-type' is frame.")
 
 ;;;###autoload
 (define-minor-mode which-key-mode
@@ -236,8 +236,8 @@ need to start the closing timer."
 (defun which-key/show-buffer-new-frame (act-popup-dim)
   (let* ((height (car act-popup-dim))
          (width (cdr act-popup-dim))
-         (frame-params (delq nil (list (when (and height width) (cons 'window-height height))
-                                       (when (and height width) (cons 'window-width width))
+         (frame-params (delq nil (list (when (and height width) (cons 'height height))
+                                       (when (and height width) (cons 'width width))
                                        (cons 'minibuffer nil)
                                        (cons 'name "which-key"))))
          (alist (list (cons 'pop-up-frame-parameters frame-params)
