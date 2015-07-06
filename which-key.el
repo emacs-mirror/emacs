@@ -6,7 +6,7 @@
 ;; URL: https://github.com/justbur/which-key/
 ;; Version: 0.1
 ;; Keywords:
-;; Package-Requires: ((s "1.9.0") (popwin "1.0.0"))
+;; Package-Requires: ((emacs "24.3") (s "1.9.0") (popwin "1.0.0"))
 
 ;;; Commentary:
 ;;
@@ -49,6 +49,10 @@ location is left or right.")
 (defvar which-key-side-window-max-height 20
   "Maximum height of which-key popup when type is side-window and
 location is top or bottom.")
+(defvar which-key-frame-max-width 60
+  "Maximum width of which-key popup when type is frame.")
+(defvar which-key-frame-max-height 20
+  "Maximum height of which-key popup when type is frame.")
 ;; (defvar which-key-display-method 'minibuffer
 ;;   "Controls the method used to display the keys. The default is
 ;; minibuffer, but other possibilities are 'popwin and
@@ -73,6 +77,9 @@ location is top or bottom.")
   "Internal: Holds reference to close window timer.")
 (defvar which-key--setup-p nil
   "Internal: Non-nil if which-key buffer has been setup.")
+(defvar which-key--frame nil
+  "Internal: Holds reference to which-key frame.
+Used when `which-key-popup-type' is 'popup.")
 
 ;;;###autoload
 (define-minor-mode which-key-mode
@@ -87,7 +94,8 @@ location is top or bottom.")
         (which-key/start-open-timer))
     (remove-hook 'focus-out-hook 'which-key/stop-open-timer)
     (remove-hook 'focus-in-hook 'which-key/start-open-timer)
-    (which-key/stop-open-timer)))
+    (which-key/stop-open-timer)
+    (which-key/stop-close-timer)))
 
 (defun which-key/setup ()
   "Create buffer for which-key."
@@ -131,7 +139,9 @@ Finally, show the buffer."
     (if (> (length key) 0)
         (progn
           (which-key/stop-close-timer)
-          (which-key/hide-popup)
+          ;; remove this because `which-key/show-popup' should be able to
+          ;; handle the case where which-key buffer is already displayed
+          ;; (which-key/hide-popup)
           (let* ((buf (current-buffer))
                  ;; get formatted key bindings
                  (fmt-width-cons (which-key/get-formatted-key-bindings buf key))
@@ -154,8 +164,23 @@ Finally, show the buffer."
 ;;     (delete-window which-key--window)))
 
 (defun which-key/hide-popup ()
+  (cl-case which-key-popup-type
+    (minibuffer (which-key/hide-buffer-minibuffer))
+    (side-window (which-key/hide-buffer-side-window))
+    (frame (which-key/hide-buffer-frame))))
+
+(defun which-key/hide-buffer-minibuffer ()
+  nil)
+
+(defun which-key/hide-buffer-side-window ()
   (when (buffer-live-p which-key--buffer)
-    (delete-windows-on which-key--buffer)))
+    ;; in case which-key buffer was shown in an existing window, `quit-window'
+    ;; will re-show the previous buffer, instead of closing the window
+    (quit-windows-on which-key--buffer)))
+
+(defun which-key/hide-buffer-frame ()
+  (when (frame-live-p which-key--frame)
+    (delete-frame which-key--frame)))
 
 (defun which-key/show-popup (act-popup-dim)
   "Show guide window. ACT-POPUP-DIM includes the
@@ -164,7 +189,8 @@ in the popup.  Return nil if no window is shown, or if there is no
 need to start the closing timer."
   (cl-case which-key-popup-type
     (minibuffer (which-key/show-buffer-minibuffer act-popup-dim))
-    (side-window (which-key/show-buffer-side-window act-popup-dim))))
+    (side-window (which-key/show-buffer-side-window act-popup-dim))
+    (frame (which-key/show-buffer-frame act-popup-dim))))
 
 (defun which-key/show-buffer-minibuffer (act-popup-dim)
   nil)
@@ -173,10 +199,53 @@ need to start the closing timer."
   (let* ((height (car act-popup-dim))
          (width (cdr act-popup-dim))
          (side which-key-side-window-location)
-         (alist (delq nil (list (when side (cons 'side side))
-                                (when height (cons 'window-height height))
+         (alist (delq nil (list (when height (cons 'window-height height))
                                 (when width (cons 'window-width width))))))
-    (display-buffer which-key--buffer (cons 'display-buffer-in-side-window alist))))
+    ;; Note: `display-buffer-in-side-window' and `display-buffer-in-major-side-window'
+    ;; were added in Emacs 24.3
+
+    ;; If two side windows exist in the same side, `display-buffer-in-side-window'
+    ;; will use on of them, which isn't desirable. `display-buffer-in-major-side-window'
+    ;; will pop a new window, so we use that.
+    ;; +-------------------------+         +-------------------------+
+    ;; |     regular window      |         |     regular window      |
+    ;; |                         |         +------------+------------+
+    ;; +------------+------------+   -->   | side-win 1 | side-win 2 |
+    ;; | side-win 1 | side-win 2 |         |------------+------------|
+    ;; |            |            |         |     which-key window    |
+    ;; +------------+------------+         +------------+------------+
+    ;; (display-buffer which-key--buffer (cons 'display-buffer-in-side-window alist))
+    ;; side defaults to bottom
+    (if (get-buffer-window which-key--buffer)
+        (display-buffer-reuse-window which-key--buffer alist)
+      (display-buffer-in-major-side-window which-key--buffer side 0 alist))))
+
+(defun which-key/show-buffer-frame (act-popup-dim)
+  (let ((orig-window (selected-window))
+        (new-window (if (and (frame-live-p which-key--frame)
+                             (eq which-key--buffer
+                                 (window-buffer (frame-root-window which-key--frame))))
+                        (which-key/show-buffer-reuse-frame)
+                      (which-key/show-buffer-new-frame act-popup-dim))))
+    (fit-frame-to-buffer (window-frame new-window))
+    (select-frame-set-input-focus (window-frame orig-window))
+    (select-window orig-window)
+    (setq which-key--frame (window-frame new-window))
+    new-window))
+
+(defun which-key/show-buffer-new-frame (act-popup-dim)
+  (let* ((height (car act-popup-dim))
+         (width (cdr act-popup-dim))
+         (frame-params (delq nil (list (when (and height width) (cons 'window-height height))
+                                       (when (and height width) (cons 'window-width width))
+                                       (cons 'minibuffer nil)
+                                       (cons 'name "which-key"))))
+         (alist (list (cons 'pop-up-frame-parameters frame-params)
+                      (cons 'inhibit-switch-frame t))))
+    (display-buffer-pop-up-frame which-key--buffer alist)))
+
+(defun which-key/show-buffer-reuse-frame ()
+  (display-buffer-reuse-window which-key--buffer `((reusable-frames . ,which-key--frame))))
 
 ;; Keep for popwin maybe (Used to work)
 ;; (defun which-key/show-buffer-popwin (height width)
@@ -199,7 +268,8 @@ need to start the closing timer."
 of the intended popup."
   (cl-case which-key-popup-type
     (minibuffer (which-key/minibuffer-max-dimensions))
-    (side-window (which-key/side-window-max-dimensions column-width))))
+    (side-window (which-key/side-window-max-dimensions column-width))
+    (frame (which-key/frame-max-dimensions))))
 
 (defun which-key/minibuffer-max-dimensions ()
   (cons
@@ -222,6 +292,9 @@ of the intended popup."
    (if (member which-key-side-window-location '(left right))
        (min which-key-side-window-max-width column-width)
      (frame-width))))
+
+(defun which-key/frame-max-dimensions ()
+  (cons which-key-frame-max-height which-key-frame-max-width))
 
 ;; Buffer contents functions
 
@@ -287,7 +360,9 @@ of the intended popup."
       (if (eq which-key-popup-type 'minibuffer)
           (let (message-log-max) (message "%s" (car pages)))
         (with-current-buffer which-key--buffer
-          (insert (car pages)))))
+          (erase-buffer)
+          (insert (car pages))
+          (goto-char (point-min)))))
     (cons act-height act-width)))
 
 (defun which-key/replace-strings-from-alist (replacements)
