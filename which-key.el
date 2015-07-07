@@ -152,17 +152,18 @@ Used when `which-key-popup-type' is frame.")
 (defun which-key/update ()
   "Fill which-key--buffer with key descriptions and reformat.
 Finally, show the buffer."
-  (let ((key (this-single-command-keys)))
-    (if (> (length key) 0)
+  (let ((prefix-keys (this-single-command-keys)))
+    (if (> (length prefix-keys) 0)
         (progn
           (let* ((buf (current-buffer))
                  ;; get formatted key bindings
-                 (fmt-width-cons (which-key/get-formatted-key-bindings buf key))
+                 (fmt-width-cons (which-key/get-formatted-key-bindings buf prefix-keys))
                  (formatted-keys (car fmt-width-cons))
                  (column-width (cdr fmt-width-cons))
                  ;; populate target buffer
                  (popup-act-dim
-                  (which-key/populate-buffer formatted-keys column-width (window-width))))
+                  (which-key/populate-buffer (key-description prefix-keys)
+                                             formatted-keys column-width (window-width))))
             ;; show buffer
             (which-key/show-popup popup-act-dim)))
       ;; command finished maybe close the window
@@ -357,27 +358,31 @@ of the intended popup."
             column-width (cdr format-res)))
     (cons formatted column-width)))
 
-(defun which-key/create-page (max-lines n-columns keys)
+(defun which-key/create-page (prefix-len max-lines n-columns keys)
   "Format KEYS into string representing a single page of text.
 N-COLUMNS is the number of text columns to use and MAX-LINES is
 the maximum number of lines availabel in the target buffer."
   (let* ((n-keys (length keys))
          (n-lines (min (ceiling (/ (float n-keys) n-columns)) max-lines))
+         (line-padding (s-repeat prefix-len " "))
          lines)
     (dotimes (i n-lines)
       (setq lines
             (push
              (cl-subseq keys (* i n-columns) (min n-keys (* (1+ i) n-columns)))
              lines)))
-    (mapconcat (lambda (x) (apply 'concat x)) (reverse lines) "\n")))
+    (mapconcat (lambda (x) (apply 'concat x)) (reverse lines) (concat "\n" line-padding))))
 
-(defun which-key/populate-buffer (formatted-keys column-width sel-win-width)
+(defun which-key/populate-buffer (prefix-keys formatted-keys column-width sel-win-width)
   "Insert FORMATTED-STRINGS into which-key buffer, breaking after BUFFER-WIDTH."
-  (let* ((n-keys (length formatted-keys))
+  (let* ((prefix-w-face (which-key/propertize-key prefix-keys))
+         (prefix-len (+ 2 (length (substring-no-properties prefix-w-face))))
+         (n-keys (length formatted-keys))
          (max-dims (which-key/popup-max-dimensions column-width sel-win-width))
          (max-height (when (car max-dims) (car max-dims)))
          (max-width (when (cdr max-dims) (cdr max-dims)))
-         (n-columns (/ max-width column-width)) ;; integer division
+         ;; the 3 leaves room for the ... possibly on the first page
+         (n-columns (/ (- max-width prefix-len 3) column-width)) ;; integer division
          (act-width (* n-columns column-width))
          ;; (avl-lines/page (which-key/available-lines))
          (max-keys/page (when max-height (* n-columns max-height)))
@@ -387,13 +392,13 @@ the maximum number of lines availabel in the target buffer."
     (when (and (> n-keys 0) (> n-columns 0))
       (dotimes (p n-pages)
         (setq pages
-              (push (which-key/create-page max-height n-columns
+              (push (which-key/create-page prefix-len max-height n-columns
                                            (cl-subseq formatted-keys (* p max-keys/page)
                                                       (min (* (1+ p) max-keys/page) n-keys))) pages)))
       ;; not doing anything with other pages for now
       (setq pages (reverse pages)
             act-height (1+  (s-count-matches "\n" (car pages))))
-      (setq first-page (car pages))
+      (setq first-page (concat prefix-w-face "  " (car pages)))
       (when (> (length pages) 1) (setq first-page (concat first-page "...")))
       (if (eq which-key-popup-type 'minibuffer)
           (let (message-log-max) (message "%s" first-page))
@@ -420,13 +425,13 @@ non-nil regexp is used in the replacements."
   (let ((key-w-face (propertize key 'face 'which-key-key-face)))
     (dolist (special-key which-key-special-keys)
       (when (string-match special-key key)
-        (setq key-w-face
-              (concat (substring key-w-face 0 (match-beginning 0))
-                      (propertize
-                       (substring key-w-face (match-beginning 0) (1+ (match-beginning 0)))
-                       'face 'which-key-special-key-face)
-                      (when (< (match-end 0) (length key-w-face))
-                        (substring key-w-face (1+ (match-end 0)) (length key-w-face)))))))
+        (let ((beg (match-beginning 0)) (end (match-end 0)))
+          (setq key-w-face
+                (concat (substring key-w-face 0 beg)
+                        (propertize (substring key-w-face beg (1+ beg))
+                         'face 'which-key-special-key-face)
+                        (when (< end (length key-w-face))
+                          (substring key-w-face end (length key-w-face))))))))
     key-w-face))
 
 (defsubst which-key/truncate-description (desc)
