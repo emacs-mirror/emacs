@@ -25,7 +25,7 @@
 (require 'cl-extra)
 (require 's)
 
-(defvar which-key-idle-delay 0.6
+(defvar which-key-idle-delay 1
   "Delay (in seconds) for which-key buffer to popup.")
 ;; (defvar which-key-close-buffer-idle-delay 4
 ;;   "Delay (in seconds) after which buffer is forced closed.")
@@ -97,11 +97,14 @@ Used when `which-key-popup-type' is frame.")
   (if which-key-mode
       (progn
         (unless which-key--setup-p (which-key/setup))
-        ;; make echo-keytrokes fast for minibuffer popup
+        ;; reduce echo-keytrokes for minibuffer popup
         ;; (it can interfer if it's too slow)
         (when (and (> echo-keystrokes 0)
                    (eq which-key-popup-type 'minibuffer))
-          (setq echo-keystrokes 0.1))
+          (setq echo-keystrokes
+                (min echo-keystrokes (/ (float which-key-idle-delay) 2)))
+          (message "Which-key-mode enabled (note echo-keystrokes changed from %s to %s)"
+                   which-key--echo-keystrokes-backup echo-keystrokes))
         (add-hook 'pre-command-hook #'which-key/hide-popup)
         (add-hook 'focus-out-hook #'which-key/stop-open-timer)
         (add-hook 'focus-in-hook #'which-key/start-open-timer)
