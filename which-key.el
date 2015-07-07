@@ -44,9 +44,12 @@ popup.")
     "The strings in the car of each cons cell are replaced with the
 strings in the cdr for each key.")
 (defvar which-key-description-replacement-alist
-  '(("Prefix Command" . "prefix"))
-  "See `which-key-key-replacement-alist'.  This is a list of cons
-cells for replacing descriptions.")
+  '(("Prefix Command" . "prefix") (".+/\\(.+\\)" . "\\1"))
+  "See `which-key-key-replacement-alist'. This is a list of cons
+cells for replacing descriptions. The second one removes
+\"namespace/\" from \"namespace/function\". This is a convention
+for naming functions but not a rule, so remove this replacement
+if it becomes problematic.")
 (defvar which-key-special-keys '("SPC" "TAB" "RET" "ESC" "DEL")
   "These keys will automatically be truncated to one character
 and have `which-key-special-key-face' applied to them.")
@@ -170,11 +173,6 @@ Finally, show the buffer."
       (which-key/hide-popup))))
 
 ;; Show/hide guide buffer
-
-;; Should this be used instead?
-;; (defun which-key/hide-buffer-display-buffer ()
-;;   (when (window-live-p which-key--window)
-;;     (delete-window which-key--window)))
 
 (defun which-key/hide-popup ()
   (cl-case which-key-popup-type
@@ -392,9 +390,10 @@ the maximum number of lines availabel in the target buffer."
     (when (and (> n-keys 0) (> n-columns 0))
       (dotimes (p n-pages)
         (setq pages
-              (push (which-key/create-page prefix-len max-height n-columns
-                                           (cl-subseq formatted-keys (* p max-keys/page)
-                                                      (min (* (1+ p) max-keys/page) n-keys))) pages)))
+              (push (which-key/create-page
+                     prefix-len max-height n-columns
+                     (cl-subseq formatted-keys (* p max-keys/page)
+                                (min (* (1+ p) max-keys/page) n-keys))) pages)))
       ;; not doing anything with other pages for now
       (setq pages (reverse pages)
             act-height (1+  (s-count-matches "\n" (car pages))))
