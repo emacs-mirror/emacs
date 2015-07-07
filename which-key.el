@@ -43,7 +43,7 @@ strings in the cdr for each key.")
   '(("Prefix Command" . "prefix"))
   "See `which-key-key-replacement-alist'.  This is a list of cons
 cells for replacing descriptions.")
-(defvar which-key-special-keys '("SPC" "TAB" "RET" "ESC"))
+(defvar which-key-special-keys '("SPC" "TAB" "RET" "ESC" "DEL"))
 (defvar which-key-buffer-name "*which-key*"
   "Name of which-key buffer.")
 (defvar which-key-popup-type 'minibuffer
