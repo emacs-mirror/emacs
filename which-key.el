@@ -387,7 +387,7 @@ the maximum number of lines availabel in the target buffer."
          (max-keys/page (when max-height (* n-columns max-height)))
          (n-pages (if max-keys/page
                       (ceiling (/ (float n-keys) max-keys/page)) 1))
-         pages act-height)
+         pages act-height first-page)
     (when (and (> n-keys 0) (> n-columns 0))
       (dotimes (p n-pages)
         (setq pages
@@ -397,11 +397,13 @@ the maximum number of lines availabel in the target buffer."
       ;; not doing anything with other pages for now
       (setq pages (reverse pages)
             act-height (1+  (s-count-matches "\n" (car pages))))
+      (setq first-page (car pages))
+      (when (> (length pages) 1) (setq first-page (concat first-page "...")))
       (if (eq which-key-popup-type 'minibuffer)
-          (let (message-log-max) (message "%s" (car pages)))
+          (let (message-log-max) (message "%s" first-page))
         (with-current-buffer which-key--buffer
           (erase-buffer)
-          (insert (car pages))
+          (insert first-page)
           (goto-char (point-min)))))
     (cons act-height act-width)))
 
