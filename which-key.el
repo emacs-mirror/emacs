@@ -43,7 +43,9 @@ strings in the cdr for each key.")
   '(("Prefix Command" . "prefix"))
   "See `which-key-key-replacement-alist'.  This is a list of cons
 cells for replacing descriptions.")
-(defvar which-key-special-keys '("SPC" "TAB" "RET" "ESC" "DEL"))
+(defvar which-key-special-keys '("SPC" "TAB" "RET" "ESC" "DEL")
+  "These keys will automatically be truncated to one character
+and have `which-key-special-key-face' applied to them.")
 (defvar which-key-buffer-name "*which-key*"
   "Name of which-key buffer.")
 (defvar which-key-popup-type 'minibuffer
@@ -63,12 +65,20 @@ location is top or bottom.")
   "Maximum height of which-key popup when type is frame.")
 
 ;; Faces
-(defvar which-key-key-face 'font-lock-constant-face)
-(defvar which-key-separator-face 'font-lock-comment-face)
-(defvar which-key-group-description-face 'font-lock-keyword-face)
-(defvar which-key-command-description-face 'font-lock-function-name-face)
+(defface which-key-key-face
+  '((t . (:inherit font-lock-constant-face)))
+  "Face for which-key keys")
+(defface which-key-separator-face
+  '((t . (:inherit font-lock-comment-face)))
+  "Face for the separator (default separator is an arrow)")
+(defface which-key-command-description-face
+  '((t . (:inherit font-lock-function-name-face)))
+  "Face for the key description when it is a command")
+(defface which-key-group-description-face
+  '((t . (:inherit font-lock-keyword-face)))
+  "Face for the key description when it is a group or prefix")
 (defface which-key-special-key-face
-  `((t . (:inherit ,which-key-key-face :inverse-video t :weight bold)) )
+  '((t . (:inherit which-key-key-face :inverse-video t :weight bold)))
   "Face for special keys (SPC, TAB, RET)")
 
 ;; Internal Vars
@@ -424,7 +434,7 @@ non-nil regexp is used in the replacements."
     new-string))
 
 (defun which-key/propertize-key (key)
-  (let ((key-w-face (propertize key 'face which-key-key-face)))
+  (let ((key-w-face (propertize key 'face 'which-key-key-face)))
     (dolist (special-key which-key-special-keys)
       (when (string-match special-key key)
         (setq key-w-face
@@ -451,7 +461,7 @@ Replacements are performed using the key and description
 replacement alists."
   (let ((max-key-width 0)
         (max-desc-width 0)
-        (sep-w-face (propertize which-key-separator 'face which-key-separator-face))
+        (sep-w-face (propertize which-key-separator 'face 'which-key-separator-face))
         (sep-width (length which-key-separator))
         after-replacements)
     ;; first replace and apply faces
@@ -467,8 +477,8 @@ replacement alists."
                     (prefix (string-match-p "^Prefix" desc))
                     (desc (if (or prefix group) (concat "+" desc) desc))
                     (desc-face (if (or prefix group)
-                                   which-key-group-description-face
-                                 which-key-command-description-face))
+                                   'which-key-group-description-face
+                                 'which-key-command-description-face))
                     (desc (which-key/truncate-description desc))
                     (key-w-face (which-key/propertize-key key))
                     (desc-w-face (propertize desc 'face desc-face))
