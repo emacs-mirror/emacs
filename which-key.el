@@ -68,7 +68,7 @@ location is top or bottom.")
 (defvar which-key-group-description-face 'font-lock-keyword-face)
 (defvar which-key-command-description-face 'font-lock-function-name-face)
 (defface which-key-special-key-face
-  `((t . (:inherit ,which-key-key-face :inverse-video t)) )
+  `((t . (:inherit ,which-key-key-face :inverse-video t :weight bold)) )
   "Face for special keys (SPC, TAB, RET)")
 
 ;; Internal Vars
