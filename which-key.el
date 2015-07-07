@@ -29,6 +29,12 @@
   "Delay (in seconds) for which-key buffer to popup.")
 ;; (defvar which-key-close-buffer-idle-delay 4
 ;;   "Delay (in seconds) after which buffer is forced closed.")
+(defvar which-key-echo-keystrokes
+  (min echo-keystrokes (/ (float which-key-idle-delay) 4))
+  "Value to use for echo-keystrokes. This only applies when
+`which-key-popup-type' is minibuffer. It needs to be less than
+`which-key-idle-delay' or else the echo will erase the which-key
+popup.")
 (defvar which-key-max-description-length 27
   "Truncate the description of keys to this length.  Also adds
 \"..\".")
@@ -107,12 +113,11 @@ Used when `which-key-popup-type' is frame.")
   (if which-key-mode
       (progn
         (unless which-key--setup-p (which-key/setup))
-        ;; reduce echo-keytrokes for minibuffer popup
+        ;; reduce echo-keystrokes for minibuffer popup
         ;; (it can interfer if it's too slow)
         (when (and (> echo-keystrokes 0)
                    (eq which-key-popup-type 'minibuffer))
-          (setq echo-keystrokes
-                (min echo-keystrokes (/ (float which-key-idle-delay) 2)))
+          (setq echo-keystrokes which-key-echo-keystrokes)
           (message "Which-key-mode enabled (note echo-keystrokes changed from %s to %s)"
                    which-key--echo-keystrokes-backup echo-keystrokes))
         (add-hook 'pre-command-hook #'which-key/hide-popup)
