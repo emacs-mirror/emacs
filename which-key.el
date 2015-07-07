@@ -303,12 +303,12 @@ need to start the closing timer."
 
 ;; Size functions
 
-(defun which-key/popup-max-dimensions (column-width selected-window-width)
+(defun which-key/popup-max-dimensions (selected-window-width)
   "Dimesion functions should return the maximum possible (height . width)
 of the intended popup."
   (cl-case which-key-popup-type
     (minibuffer (which-key/minibuffer-max-dimensions))
-    (side-window (which-key/side-window-max-dimensions column-width))
+    (side-window (which-key/side-window-max-dimensions))
     (frame (which-key/frame-max-dimensions))))
 
 (defun which-key/minibuffer-max-dimensions ()
@@ -321,7 +321,7 @@ of the intended popup."
    ;; width
    (frame-text-cols)))
 
-(defun which-key/side-window-max-dimensions (column-width)
+(defun which-key/side-window-max-dimensions ()
   (cons
    ;; height
    (if (member which-key-side-window-location '(left right))
@@ -330,7 +330,7 @@ of the intended popup."
      which-key-side-window-max-height)
    ;; width
    (if (member which-key-side-window-location '(left right))
-       (min which-key-side-window-max-width column-width)
+       which-key-side-window-max-width
      (frame-width))))
 
 (defun which-key/frame-max-dimensions ()
@@ -378,7 +378,7 @@ the maximum number of lines availabel in the target buffer."
   (let* ((prefix-w-face (which-key/propertize-key prefix-keys))
          (prefix-len (+ 2 (length (substring-no-properties prefix-w-face))))
          (n-keys (length formatted-keys))
-         (max-dims (which-key/popup-max-dimensions column-width sel-win-width))
+         (max-dims (which-key/popup-max-dimensions sel-win-width))
          (max-height (when (car max-dims) (car max-dims)))
          (max-width (when (cdr max-dims) (cdr max-dims)))
          ;; the 3 leaves room for the ... possibly on the first page
