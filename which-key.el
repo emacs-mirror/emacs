@@ -27,8 +27,6 @@
 
 (defvar which-key-idle-delay 1
   "Delay (in seconds) for which-key buffer to popup.")
-;; (defvar which-key-close-buffer-idle-delay 4
-;;   "Delay (in seconds) after which buffer is forced closed.")
 (defvar which-key-echo-keystrokes
   (min echo-keystrokes (/ (float which-key-idle-delay) 4))
   "Value to use for echo-keystrokes. This only applies when
@@ -95,8 +93,6 @@ location is top or bottom.")
   "Internal: Holds reference to which-key window.")
 (defvar which-key--open-timer nil
   "Internal: Holds reference to open window timer.")
-;; (defvar which-key--close-timer nil
-;;   "Internal: Holds reference to close window timer.")
 (defvar which-key--setup-p nil
   "Internal: Non-nil if which-key buffer has been setup.")
 (defvar which-key--frame nil
@@ -130,7 +126,6 @@ Used when `which-key-popup-type' is frame.")
     (remove-hook 'focus-out-hook #'which-key/stop-open-timer)
     (remove-hook 'focus-in-hook #'which-key/start-open-timer)
     (which-key/stop-open-timer)))
-;; (which-key/stop-close-timer)))
 
 (defun which-key/setup ()
   "Create buffer for which-key."
@@ -152,17 +147,6 @@ Used when `which-key-popup-type' is frame.")
   "Deactivate idle timer."
   (when which-key--open-timer (cancel-timer which-key--open-timer)))
 
-;; (defun which-key/start-close-timer ()
-;;   "Activate idle timer."
-;;   (which-key/stop-close-timer)          ; start over
-;;   (setq which-key--close-timer
-;;         (run-at-time which-key-close-buffer-idle-delay
-;;                      nil 'which-key/hide-popup)))
-
-;; (defun which-key/stop-close-timer ()
-;;   "Deactivate idle timer."
-;;   (when which-key--close-timer (cancel-timer which-key--close-timer)))
-
 ;; Update
 
 (defun which-key/update ()
@@ -171,10 +155,6 @@ Finally, show the buffer."
   (let ((key (this-single-command-keys)))
     (if (> (length key) 0)
         (progn
-          ;; (which-key/stop-close-timer)
-          ;; remove this because `which-key/show-popup' should be able to
-          ;; handle the case where which-key buffer is already displayed
-          ;; (which-key/hide-popup)
           (let* ((buf (current-buffer))
                  ;; get formatted key bindings
                  (fmt-width-cons (which-key/get-formatted-key-bindings buf key))
@@ -185,8 +165,6 @@ Finally, show the buffer."
                   (which-key/populate-buffer formatted-keys column-width (window-width))))
             ;; show buffer
             (which-key/show-popup popup-act-dim)))
-      ;; (when (which-key/show-popup popup-act-dim)
-      ;;   (which-key/start-close-timer))))
       ;; command finished maybe close the window
       (which-key/hide-popup))))
 
