@@ -393,7 +393,8 @@ the maximum number of lines availabel in the target buffer."
 
 (defun which-key/populate-buffer (prefix-keys formatted-keys column-width sel-win-width)
   "Insert FORMATTED-STRINGS into which-key buffer, breaking after BUFFER-WIDTH."
-  (let* ((prefix-w-face (which-key/propertize-key prefix-keys))
+  (let* ((vertical-mode (member which-key-side-window-location '(left right)))
+         (prefix-w-face (which-key/propertize-key prefix-keys))
          (prefix-len (+ 2 (length (substring-no-properties prefix-w-face))))
          (prefix-string (when which-key-show-prefix
                           (if (eq which-key-show-prefix 'left)
@@ -406,8 +407,11 @@ the maximum number of lines availabel in the target buffer."
                                     (if (eq which-key-show-prefix 'left)
                                         (- (cdr max-dims) prefix-len)
                                       (cdr max-dims)) 0))
-         ;; the 3 leaves room for the ... possibly on the first page (remove for now)
          (n-columns (/ max-width-for-columns column-width)) ;; integer division
+         (n-columns (if vertical-mode
+                        ;; use up vertical space first if possible
+                        (min n-columns (ceiling (/ (float n-keys) max-height)))
+                      n-columns))
          (act-width (+ (* n-columns column-width)
                        (if (eq which-key-show-prefix 'left) prefix-len 0)))
          ;; (avl-lines/page (which-key/available-lines))
