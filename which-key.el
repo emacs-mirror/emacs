@@ -50,6 +50,9 @@ cells for replacing descriptions. The second one removes
 \"namespace/\" from \"namespace/function\". This is a convention
 for naming functions but not a rule, so remove this replacement
 if it becomes problematic.")
+(defvar which-key-key-based-description-replacement-alist
+  '(("Prefix Command" . "prefix") (".+/\\(.+\\)" . "\\1")
+    ("SPC f f" "find files" t)))
 (defvar which-key-special-keys '("SPC" "TAB" "RET" "ESC" "DEL")
   "These keys will automatically be truncated to one character
 and have `which-key-special-key-face' applied to them.")
@@ -351,7 +354,7 @@ of the intended popup."
               desc-match (match-string 2))
         (cl-pushnew (cons key-match desc-match) unformatted
                     :test (lambda (x y) (string-equal (car x) (car y)))))
-      (setq format-res (which-key/format-matches unformatted)
+      (setq format-res (which-key/format-matches unformatted (key-description key))
             formatted (car format-res)
             column-width (cdr format-res)))
     (cons formatted column-width)))
@@ -407,18 +410,21 @@ the maximum number of lines availabel in the target buffer."
           (goto-char (point-min)))))
     (cons act-height act-width)))
 
-(defun which-key/maybe-replace (string repl-alist &optional literal)
+(defun which-key/maybe-replace (string repl-alist &optional keys literal)
   "Perform replacements on STRING.
 REPL-ALIST is an alist where the car of each element is the text
 to replace and the cdr is the replacement text. Unless LITERAL is
 non-nil regexp is used in the replacements."
   (let ((new-string string))
-    (dolist (repl repl-alist)
-      (setq new-string
-            (if (string-match (car repl) new-string)
-                (replace-match (cdr repl) t literal new-string)
-              new-string)))
-    new-string))
+    (if keys
+        (dolist (repl repl-alist)
+          (when (and (string-equal (nth 0 repl) keys))
+            (setq new-string (nth 1 repl))))
+        (dolist (repl repl-alist)
+            (when (string-match (car repl) new-string)
+              (setq new-string
+                    (replace-match (cdr repl) t literal new-string)))))
+      new-string))
 
 (defun which-key/propertize-key (key)
   (let ((key-w-face (propertize key 'face 'which-key-key-face)))
@@ -428,7 +434,7 @@ non-nil regexp is used in the replacements."
           (setq key-w-face
                 (concat (substring key-w-face 0 beg)
                         (propertize (substring key-w-face beg (1+ beg))
-                         'face 'which-key-special-key-face)
+                                    'face 'which-key-special-key-face)
                         (when (< end (length key-w-face))
                           (substring key-w-face end (length key-w-face))))))))
     key-w-face))
@@ -439,7 +445,7 @@ non-nil regexp is used in the replacements."
       (concat (substring desc 0 which-key-max-description-length) "..")
     desc))
 
-(defun which-key/format-matches (unformatted)
+(defun which-key/format-matches (unformatted prefix-keys)
   "Turn each key-desc-cons in UNFORMATTED into formatted
 strings (including text properties), and pad with spaces so that
 all are a uniform length. MAX-LEN-KEY and MAX-LEN-DESC are the
@@ -455,10 +461,14 @@ replacement alists."
     (setq after-replacements
           (mapcar
            (lambda (key-desc-cons)
-             (let* ((key (which-key/maybe-replace
+             (let* ((keys (concat prefix-keys " " (car key-desc-cons)))
+                    (key (which-key/maybe-replace
                           (car key-desc-cons) which-key-key-replacement-alist))
                     (desc (which-key/maybe-replace
                            (cdr key-desc-cons) which-key-description-replacement-alist))
+                    (desc (which-key/maybe-replace
+                           (cdr key-desc-cons) which-key-key-based-description-replacement-alist
+                           keys))
                     (group (string-match-p "^group:" desc))
                     (desc (if group (substring desc 6) desc))
                     (prefix (string-match-p "^Prefix" desc))
