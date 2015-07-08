@@ -38,20 +38,21 @@ popup.")
 (defvar which-key-separator "→"
   "Separator to use between key and description.")
 (defvar which-key-key-replacement-alist
-  '(("<\\(\\(C-\\|M-\\)*.+\\)>" . "\\1") ("\\(left\\)" ."←")
-    ("\\(right\\)" . "→"))
-    "The strings in the car of each cons cell are replaced with the
-strings in the cdr for each key.")
+  '(("<\\(\\(C-\\|M-\\)*.+\\)>"  "\\1") ("left" "←") ("right"  "→"))
+    "The strings in the first element of each list are replaced
+with the strings in the second for each key. Elisp regexp can be
+used as in the first example. The third element of each list may
+specify a value for `major-mode'. In this case the replacement
+will only apply in case that major-mode is active.")
 (defvar which-key-description-replacement-alist
-  '(("Prefix Command" . "prefix") (".+/\\(.+\\)" . "\\1"))
-  "See `which-key-key-replacement-alist'. This is a list of cons
-cells for replacing descriptions. The second one removes
-\"namespace/\" from \"namespace/function\". This is a convention
-for naming functions but not a rule, so remove this replacement
-if it becomes problematic.")
+  '(("Prefix Command"  "prefix") (".+/\\(.+\\)"  "\\1"))
+  "See `which-key-key-replacement-alist'. This is a list of lists
+for replacing descriptions. The second one removes \"namespace/\"
+from \"namespace/function\". This is a convention for naming
+functions but not a rule, so remove this replacement if it
+becomes problematic.")
 (defvar which-key-key-based-description-replacement-alist
-  '(("Prefix Command" . "prefix") (".+/\\(.+\\)" . "\\1")
-    ("SPC f f" "find files" t)))
+  '(("SPC f f" "find files")))
 (defvar which-key-special-keys '("SPC" "TAB" "RET" "ESC" "DEL")
   "These keys will automatically be truncated to one character
 and have `which-key-special-key-face' applied to them.")
@@ -362,11 +363,8 @@ of the intended popup."
         (setq key-match (match-string 1)
               desc-match (match-string 2))
         (cl-pushnew (cons key-match desc-match) unformatted
-                    :test (lambda (x y) (string-equal (car x) (car y)))))
-      (setq format-res (which-key/format-matches unformatted (key-description key))
-            formatted (car format-res)
-            column-width (cdr format-res)))
-    (cons formatted column-width)))
+                    :test (lambda (x y) (string-equal (car x) (car y))))))
+    (which-key/format-matches unformatted (key-description key))))
 
 (defun which-key/create-page (prefix-len max-lines n-columns keys)
   "Format KEYS into string representing a single page of text.
@@ -438,15 +436,23 @@ REPL-ALIST is an alist where the car of each element is the text
 to replace and the cdr is the replacement text. Unless LITERAL is
 non-nil regexp is used in the replacements."
   (let ((new-string string))
-    (if keys
+    (if keys ;; use key-based replacement
         (dolist (repl repl-alist)
-          (when (and (string-equal (nth 0 repl) keys))
-            (setq new-string (nth 1 repl))))
-        (dolist (repl repl-alist)
-            (when (string-match (car repl) new-string)
-              (setq new-string
-                    (replace-match (cdr repl) t literal new-string)))))
-      new-string))
+          (if (nth 2 repl) ;; major-mode option
+              (when (and (eq major-mode (nth 2 repl))
+                         (string-equal (nth 0 repl) keys))
+                (setq new-string (nth 1 repl)))
+            (when (string-equal (nth 0 repl) keys)
+              (setq new-string (nth 1 repl)))))
+      (dolist (repl repl-alist)
+        (if (nth 2 repl) ;; major-mode option
+            (when (and (eq major-mode (nth 2 repl))
+                       (string-match (nth 0 repl) new-string))
+              (replace-match (nth 1 repl) t literal new-string))
+          (when (string-match (nth 0 repl) new-string)
+            (setq new-string
+                  (replace-match (nth 1 repl) t literal new-string))))))
+    new-string))
 
 (defun which-key/propertize-key (key)
   (let ((key-w-face (propertize key 'face 'which-key-key-face)))
