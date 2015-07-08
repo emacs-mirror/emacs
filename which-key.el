@@ -241,7 +241,9 @@ need to start the closing timer."
     ;; side defaults to bottom
     (if (get-buffer-window which-key--buffer)
         (display-buffer-reuse-window which-key--buffer alist)
-      (display-buffer-in-major-side-window which-key--buffer side 0 alist))))
+      (display-buffer-in-major-side-window which-key--buffer side 0 alist))
+    (let ((fit-window-to-buffer-horizontally t))
+      (fit-window-to-buffer (get-buffer-window which-key--buffer)))))
 
 (defun which-key/show-buffer-frame (act-popup-dim)
   (let* ((orig-window (selected-window))
