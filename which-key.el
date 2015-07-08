@@ -399,9 +399,9 @@ the maximum number of lines availabel in the target buffer."
          (max-dims (which-key/popup-max-dimensions sel-win-width))
          (max-height (when (car max-dims) (car max-dims)))
          (max-width (if (cdr max-dims)
-                      (if (eq which-key-show-prefix 'left)
-                          (- (cdr max-dims) prefix-len)
-                        (cdr max-dims)) 0))
+                        (if (eq which-key-show-prefix 'left)
+                            (- (cdr max-dims) prefix-len)
+                          (cdr max-dims)) 0))
          ;; the 3 leaves room for the ... possibly on the first page (remove for now)
          (n-columns (/ max-width column-width)) ;; integer division
          (act-width (* n-columns column-width))
@@ -452,23 +452,22 @@ non-nil regexp is used in the replacements."
   (save-match-data
     (let ((new-string string))
       (dolist (repl repl-alist)
-        (when (string-match (nth 0 repl) new-string)
+        (when (string-match (car repl) new-string)
           (setq new-string
-                (replace-match (nth 1 repl) t literal new-string))))
+                (replace-match (cdr repl) t literal new-string))))
       new-string)))
 
 (defun which-key/propertize-key (key)
-  (let ((key-w-face (propertize key 'face 'which-key-key-face)))
-    (dolist (special-key which-key-special-keys)
-      (when (string-match special-key key)
-        (let ((beg (match-beginning 0)) (end (match-end 0)))
-          (setq key-w-face
-                (concat (substring key-w-face 0 beg)
-                        (propertize (substring key-w-face beg (1+ beg))
-                                    'face 'which-key-special-key-face)
-                        (when (< end (length key-w-face))
-                          (substring key-w-face end (length key-w-face))))))))
-    key-w-face))
+  (let ((key-w-face (propertize key 'face 'which-key-key-face))
+        (regexp (concat "\\(" (mapconcat 'identity which-key-special-keys "\\|") "\\)")))
+    (save-match-data
+      (if (string-match regexp key)
+          (let ((beg (match-beginning 0)) (end (match-end 0)))
+            (concat (substring key-w-face 0 beg)
+                    (propertize (substring key-w-face beg (1+ beg))
+                                'face 'which-key-special-key-face)
+                    (substring key-w-face end (length key-w-face))))
+        key-w-face))))
 
 (defsubst which-key/truncate-description (desc)
   "Truncate DESC description to `which-key-max-description-length'."
