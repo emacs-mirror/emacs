@@ -21,8 +21,7 @@
 
 ;;; Code:
 
-(require 'cl-macs)
-(require 'cl-extra)
+(require 'cl-lib)
 (require 's)
 
 (defvar which-key-idle-delay 1
