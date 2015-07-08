@@ -49,15 +49,19 @@ for replacing descriptions. The second one removes \"namespace/\"
 from \"namespace/function\". This is a convention for naming
 functions but not a rule, so remove this replacement if it
 becomes problematic.")
-(defvar which-key-key-based-description-replacement-alist
-  '(("SPC f f" "find files"))
-  "Like `which-key-key-replacement-alist', but the first element
-of each list matches on the key sequence. When there is a match
-the description of that key sequence is overwritten with the
-second element of the list. An optional third element of each
-list may specify a value for `major-mode'. In this case the
-replacement will only apply in case that major-mode is
-active.")
+(defvar which-key-key-based-description-replacement-alist '()
+  "Each item in the list is a cons cell. The car of each cons
+cell is either a string like \"C-c\", in which case it's
+interpreted as a key sequence or a value of `major-mode'. Here
+are two examples:
+
+(\"SPC f f\" . \"find files\")
+(emacs-lisp-mode . ((\"SPC m d\" . \"debug\")))
+
+In the first case the description of the key sequence \"SPC f f\"
+is overwritten with \"find files\". The second case works the
+same way using the alist matched when `major-mode' is
+emacs-lisp-mode.")
 (defvar which-key-special-keys '("SPC" "TAB" "RET" "ESC" "DEL")
   "These keys will automatically be truncated to one character
 and have `which-key-special-key-face' applied to them.")
@@ -436,12 +440,13 @@ the maximum number of lines availabel in the target buffer."
         )
       (cons 0 act-width))))
 
-(defun which-key/maybe-replace-key-based (string keys repl-alist)
-  (let ((ret-val (assoc-string keys repl-alist)))
-    (cond ((and ret-val (eq major-mode (nth 2 ret-val)))
-           (nth 1 ret-val))
-          ((and ret-val (not (nth 2 ret-val)))
-           (nth 1 ret-val))
+(defun which-key/maybe-replace-key-based (string keys)
+  (let* ((alist which-key-key-based-description-replacement-alist)
+         (str-res (assoc-string keys alist))
+         (mode-alist (assq major-mode alist))
+         (mode-res (when mode-alist (assoc-string keys mode-alist))))
+    (cond (mode-res (cdr mode-res))
+          (str-res (cdr str-res))
           (t string))))
 
 (defun which-key/maybe-replace (string repl-alist &optional literal)
@@ -494,8 +499,7 @@ key and description replacement alists."
                     (keys (concat prefix-keys " " key))
                     (key (which-key/maybe-replace key which-key-key-replacement-alist))
                     (desc (which-key/maybe-replace desc which-key-description-replacement-alist))
-                    (desc (which-key/maybe-replace-key-based desc keys
-                           which-key-key-based-description-replacement-alist))
+                    (desc (which-key/maybe-replace-key-based desc keys))
                     (group (string-match-p "^group:" desc))
                     (desc (if group (substring desc 6) desc))
                     (prefix (string-match-p "^Prefix" desc))
