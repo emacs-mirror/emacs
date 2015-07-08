@@ -402,19 +402,20 @@ the maximum number of lines availabel in the target buffer."
          (n-keys (length formatted-keys))
          (max-dims (which-key/popup-max-dimensions sel-win-width))
          (max-height (when (car max-dims) (car max-dims)))
-         (max-width (if (cdr max-dims)
-                        (if (eq which-key-show-prefix 'left)
-                            (- (cdr max-dims) prefix-len)
-                          (cdr max-dims)) 0))
+         (max-width-for-columns (if (cdr max-dims)
+                                    (if (eq which-key-show-prefix 'left)
+                                        (- (cdr max-dims) prefix-len)
+                                      (cdr max-dims)) 0))
          ;; the 3 leaves room for the ... possibly on the first page (remove for now)
-         (n-columns (/ max-width column-width)) ;; integer division
-         (act-width (* n-columns column-width))
+         (n-columns (/ max-width-for-columns column-width)) ;; integer division
+         (act-width (+ (* n-columns column-width)
+                       (if (eq which-key-show-prefix 'left) prefix-len 0)))
          ;; (avl-lines/page (which-key/available-lines))
          (max-keys/page (when max-height (* n-columns max-height)))
          (n-pages (if (> max-keys/page 0)
                       (ceiling (/ (float n-keys) max-keys/page)) 1))
          pages act-height first-page)
-    (if (and (> n-keys 0) (> act-width 0))
+    (if (and (> n-keys 0) (> n-columns 0))
         (progn
           (dotimes (p n-pages)
             (setq pages
@@ -436,7 +437,7 @@ the maximum number of lines availabel in the target buffer."
           (cons act-height act-width))
       (if (<= n-keys 0)
           (message "Can't display which-key buffer: There are no keys to show.")
-        (message "Can't display which-key buffer: A minimum width of %s chars is required, but your settings only allow for %s chars." column-width max-width)
+        (message "Can't display which-key buffer: A minimum width of %s chars is required, but your settings only allow for %s chars." column-width max-width-for-columns)
         )
       (cons 0 act-width))))
 
