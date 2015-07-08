@@ -168,21 +168,20 @@ Used when `which-key-popup-type' is frame.")
   "Fill which-key--buffer with key descriptions and reformat.
 Finally, show the buffer."
   (let ((prefix-keys (this-single-command-keys)))
-    (if (> (length prefix-keys) 0)
-        (progn
-          (let* ((buf (current-buffer))
-                 ;; get formatted key bindings
-                 (fmt-width-cons (which-key/get-formatted-key-bindings buf prefix-keys))
-                 (formatted-keys (car fmt-width-cons))
-                 (column-width (cdr fmt-width-cons))
-                 ;; populate target buffer
-                 (popup-act-dim
-                  (which-key/populate-buffer (key-description prefix-keys)
-                                             formatted-keys column-width (window-width))))
-            ;; show buffer
-            (which-key/show-popup popup-act-dim)))
-      ;; command finished maybe close the window
-      (which-key/hide-popup))))
+    (when (> (length prefix-keys) 0)
+      (let* ((buf (current-buffer))
+             ;; get formatted key bindings
+             (fmt-width-cons (which-key/get-formatted-key-bindings buf prefix-keys))
+             (formatted-keys (car fmt-width-cons))
+             (column-width (cdr fmt-width-cons))
+             ;; populate target buffer
+             (popup-act-dim
+              (which-key/populate-buffer (key-description prefix-keys)
+                                         formatted-keys column-width (window-width))))
+        ;; show buffer
+        (which-key/show-popup popup-act-dim)))))
+;; command finished maybe close the window
+;; (which-key/hide-popup))))
 
 ;; Show/hide guide buffer
 
