@@ -417,7 +417,7 @@ the maximum number of lines availabel in the target buffer."
           ;; not doing anything with other pages for now
           (setq pages (reverse pages)
                 first-page (concat prefix-string (car pages))
-                act-height (s-count-matches "\n" first-page))
+                act-height (1+ (s-count-matches "\n" first-page)))
           ;; (when (> (length pages) 1) (setq first-page (concat first-page "...")))
           (if (eq which-key-popup-type 'minibuffer)
               (let (message-log-max) (message "%s" first-page))
