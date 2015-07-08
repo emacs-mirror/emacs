@@ -57,6 +57,10 @@ if it becomes problematic.")
 and have `which-key-special-key-face' applied to them.")
 (defvar which-key-buffer-name "*which-key*"
   "Name of which-key buffer.")
+(defvar which-key-show-prefix 'left
+  "Whether to and where to display the current prfix sequence.
+Possible choices are left (the default), top and nil. Nil turns
+the feature off.")
 (defvar which-key-popup-type 'minibuffer
   "Supported types are minibuffer, side-window and frame.")
 (defvar which-key-side-window-location 'right
@@ -205,10 +209,11 @@ Finally, show the buffer."
 dimensions, (height . width) of the buffer text to be displayed
 in the popup.  Return nil if no window is shown, or if there is no
 need to start the closing timer."
-  (cl-case which-key-popup-type
-    (minibuffer (which-key/show-buffer-minibuffer act-popup-dim))
-    (side-window (which-key/show-buffer-side-window act-popup-dim))
-    (frame (which-key/show-buffer-frame act-popup-dim))))
+  (when (and (> (car act-popup-dim) 0) (> (cdr act-popup-dim) 0))
+    (cl-case which-key-popup-type
+      (minibuffer (which-key/show-buffer-minibuffer act-popup-dim))
+      (side-window (which-key/show-buffer-side-window act-popup-dim))
+      (frame (which-key/show-buffer-frame act-popup-dim)))))
 
 (defun which-key/show-buffer-minibuffer (act-popup-dim)
   nil)
@@ -369,7 +374,7 @@ N-COLUMNS is the number of text columns to use and MAX-LINES is
 the maximum number of lines availabel in the target buffer."
   (let* ((n-keys (length keys))
          (n-lines (min (ceiling (/ (float n-keys) n-columns)) max-lines))
-         (line-padding (s-repeat prefix-len " "))
+         (line-padding (when (eq which-key-show-prefix 'left) (s-repeat prefix-len " ")))
          lines)
     (dotimes (i n-lines)
       (setq lines
@@ -382,37 +387,50 @@ the maximum number of lines availabel in the target buffer."
   "Insert FORMATTED-STRINGS into which-key buffer, breaking after BUFFER-WIDTH."
   (let* ((prefix-w-face (which-key/propertize-key prefix-keys))
          (prefix-len (+ 2 (length (substring-no-properties prefix-w-face))))
+         (prefix-string (when which-key-show-prefix
+                          (if (eq which-key-show-prefix 'left)
+                              (concat prefix-w-face "  ")
+                            (concat prefix-w-face "-\n"))))
          (n-keys (length formatted-keys))
          (max-dims (which-key/popup-max-dimensions sel-win-width))
          (max-height (when (car max-dims) (car max-dims)))
-         (max-width (when (cdr max-dims) (cdr max-dims)))
-         ;; the 3 leaves room for the ... possibly on the first page
-         (n-columns (/ (- max-width prefix-len 3) column-width)) ;; integer division
+         (max-width (if (cdr max-dims)
+                      (if (eq which-key-show-prefix 'left)
+                          (- (cdr max-dims) prefix-len)
+                        (cdr max-dims)) 0))
+         ;; the 3 leaves room for the ... possibly on the first page (remove for now)
+         (n-columns (/ max-width column-width)) ;; integer division
          (act-width (* n-columns column-width))
          ;; (avl-lines/page (which-key/available-lines))
          (max-keys/page (when max-height (* n-columns max-height)))
-         (n-pages (if max-keys/page
+         (n-pages (if (> max-keys/page 0)
                       (ceiling (/ (float n-keys) max-keys/page)) 1))
          pages act-height first-page)
-    (when (and (> n-keys 0) (> n-columns 0))
-      (dotimes (p n-pages)
-        (setq pages
-              (push (which-key/create-page
-                     prefix-len max-height n-columns
-                     (cl-subseq formatted-keys (* p max-keys/page)
-                                (min (* (1+ p) max-keys/page) n-keys))) pages)))
-      ;; not doing anything with other pages for now
-      (setq pages (reverse pages)
-            act-height (1+  (s-count-matches "\n" (car pages))))
-      (setq first-page (concat prefix-w-face "  " (car pages)))
-      (when (> (length pages) 1) (setq first-page (concat first-page "...")))
-      (if (eq which-key-popup-type 'minibuffer)
-          (let (message-log-max) (message "%s" first-page))
-        (with-current-buffer which-key--buffer
-          (erase-buffer)
-          (insert first-page)
-          (goto-char (point-min)))))
-    (cons act-height act-width)))
+    (if (and (> n-keys 0) (> act-width 0))
+        (progn
+          (dotimes (p n-pages)
+            (setq pages
+                  (push (which-key/create-page
+                         prefix-len max-height n-columns
+                         (cl-subseq formatted-keys (* p max-keys/page)
+                                    (min (* (1+ p) max-keys/page) n-keys))) pages)))
+          ;; not doing anything with other pages for now
+          (setq pages (reverse pages)
+                first-page (concat prefix-string (car pages))
+                act-height (s-count-matches "\n" first-page))
+          ;; (when (> (length pages) 1) (setq first-page (concat first-page "...")))
+          (if (eq which-key-popup-type 'minibuffer)
+              (let (message-log-max) (message "%s" first-page))
+            (with-current-buffer which-key--buffer
+              (erase-buffer)
+              (insert first-page)
+              (goto-char (point-min))))
+          (cons act-height act-width))
+      (if (<= n-keys 0)
+          (message "Can't display which-key buffer: There are no keys to show.")
+        (message "Can't display which-key buffer: A minimum width of %s chars is required, but your settings only allow for %s chars." column-width max-width)
+        )
+      (cons 0 act-width))))
 
 (defun which-key/maybe-replace (string repl-alist &optional keys literal)
   "Perform replacements on STRING.
