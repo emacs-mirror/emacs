@@ -38,21 +38,26 @@ popup.")
 (defvar which-key-separator "→"
   "Separator to use between key and description.")
 (defvar which-key-key-replacement-alist
-  '(("<\\(\\(C-\\|M-\\)*.+\\)>"  "\\1") ("left" "←") ("right"  "→"))
-    "The strings in the first element of each list are replaced
-with the strings in the second for each key. Elisp regexp can be
-used as in the first example. The third element of each list may
-specify a value for `major-mode'. In this case the replacement
-will only apply in case that major-mode is active.")
+  '(("<\\(\\(C-\\|M-\\)*.+\\)>" . "\\1") ("left" . "←") ("right" . "→"))
+    "The strings in the car of each cons are replaced with the
+strings in the cdr for each key. Elisp regexp can be used as
+in the first example.")
 (defvar which-key-description-replacement-alist
-  '(("Prefix Command"  "prefix") (".+/\\(.+\\)"  "\\1"))
+  '(("Prefix Command" . "prefix") (".+/\\(.+\\)" . "\\1"))
   "See `which-key-key-replacement-alist'. This is a list of lists
 for replacing descriptions. The second one removes \"namespace/\"
 from \"namespace/function\". This is a convention for naming
 functions but not a rule, so remove this replacement if it
 becomes problematic.")
 (defvar which-key-key-based-description-replacement-alist
-  '(("SPC f f" "find files")))
+  '(("SPC f f" "find files"))
+  "Like `which-key-key-replacement-alist', but the first element
+of each list matches on the key sequence. When there is a match
+the description of that key sequence is overwritten with the
+second element of the list. An optional third element of each
+list may specify a value for `major-mode'. In this case the
+replacement will only apply in case that major-mode is
+active.")
 (defvar which-key-special-keys '("SPC" "TAB" "RET" "ESC" "DEL")
   "These keys will automatically be truncated to one character
 and have `which-key-special-key-face' applied to them.")
@@ -431,29 +436,26 @@ the maximum number of lines availabel in the target buffer."
         )
       (cons 0 act-width))))
 
-(defun which-key/maybe-replace (string repl-alist &optional keys literal)
+(defun which-key/maybe-replace-key-based (string keys repl-alist)
+  (let ((ret-val (assoc-string keys repl-alist)))
+    (cond ((and ret-val (eq major-mode (nth 2 ret-val)))
+           (nth 1 ret-val))
+          ((and ret-val (not (nth 2 ret-val)))
+           (nth 1 ret-val))
+          (t string))))
+
+(defun which-key/maybe-replace (string repl-alist &optional literal)
   "Perform replacements on STRING.
 REPL-ALIST is an alist where the car of each element is the text
 to replace and the cdr is the replacement text. Unless LITERAL is
 non-nil regexp is used in the replacements."
-  (let ((new-string string))
-    (if keys ;; use key-based replacement
-        (dolist (repl repl-alist)
-          (if (nth 2 repl) ;; major-mode option
-              (when (and (eq major-mode (nth 2 repl))
-                         (string-equal (nth 0 repl) keys))
-                (setq new-string (nth 1 repl)))
-            (when (string-equal (nth 0 repl) keys)
-              (setq new-string (nth 1 repl)))))
+  (save-match-data
+    (let ((new-string string))
       (dolist (repl repl-alist)
-        (if (nth 2 repl) ;; major-mode option
-            (when (and (eq major-mode (nth 2 repl))
-                       (string-match (nth 0 repl) new-string))
-              (replace-match (nth 1 repl) t literal new-string))
-          (when (string-match (nth 0 repl) new-string)
-            (setq new-string
-                  (replace-match (nth 1 repl) t literal new-string))))))
-    new-string))
+        (when (string-match (nth 0 repl) new-string)
+          (setq new-string
+                (replace-match (nth 1 repl) t literal new-string))))
+      new-string)))
 
 (defun which-key/propertize-key (key)
   (let ((key-w-face (propertize key 'face 'which-key-key-face)))
@@ -493,8 +495,8 @@ key and description replacement alists."
                     (keys (concat prefix-keys " " key))
                     (key (which-key/maybe-replace key which-key-key-replacement-alist))
                     (desc (which-key/maybe-replace desc which-key-description-replacement-alist))
-                    (desc (which-key/maybe-replace desc
-                           which-key-key-based-description-replacement-alist keys))
+                    (desc (which-key/maybe-replace-key-based desc keys
+                           which-key-key-based-description-replacement-alist))
                     (group (string-match-p "^group:" desc))
                     (desc (if group (substring desc 6) desc))
                     (prefix (string-match-p "^Prefix" desc))
