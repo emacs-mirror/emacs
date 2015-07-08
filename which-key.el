@@ -476,10 +476,8 @@ non-nil regexp is used in the replacements."
 (defun which-key/format-matches (unformatted prefix-keys)
   "Turn each key-desc-cons in UNFORMATTED into formatted
 strings (including text properties), and pad with spaces so that
-all are a uniform length. MAX-LEN-KEY and MAX-LEN-DESC are the
-longest key and description in the buffer, respectively.
-Replacements are performed using the key and description
-replacement alists."
+all are a uniform length. Replacements are performed using the
+key and description replacement alists."
   (let ((max-key-width 0)
         (max-desc-width 0)
         (sep-w-face (propertize which-key-separator 'face 'which-key-separator-face))
@@ -489,14 +487,13 @@ replacement alists."
     (setq after-replacements
           (mapcar
            (lambda (key-desc-cons)
-             (let* ((keys (concat prefix-keys " " (car key-desc-cons)))
-                    (key (which-key/maybe-replace
-                          (car key-desc-cons) which-key-key-replacement-alist))
-                    (desc (which-key/maybe-replace
-                           (cdr key-desc-cons) which-key-description-replacement-alist))
-                    (desc (which-key/maybe-replace
-                           (cdr key-desc-cons) which-key-key-based-description-replacement-alist
-                           keys))
+             (let* ((key (car key-desc-cons))
+                    (desc (cdr key-desc-cons))
+                    (keys (concat prefix-keys " " key))
+                    (key (which-key/maybe-replace key which-key-key-replacement-alist))
+                    (desc (which-key/maybe-replace desc which-key-description-replacement-alist))
+                    (desc (which-key/maybe-replace desc
+                           which-key-key-based-description-replacement-alist keys))
                     (group (string-match-p "^group:" desc))
                     (desc (if group (substring desc 6) desc))
                     (prefix (string-match-p "^Prefix" desc))
