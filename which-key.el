@@ -76,19 +76,24 @@ location is top or bottom.")
 ;; Faces
 (defface which-key-key-face
   '((t . (:inherit font-lock-constant-face)))
-  "Face for which-key keys")
+  "Face for which-key keys"
+  :group 'which-key)
 (defface which-key-separator-face
   '((t . (:inherit font-lock-comment-face)))
-  "Face for the separator (default separator is an arrow)")
+  "Face for the separator (default separator is an arrow)"
+  :group 'which-key)
 (defface which-key-command-description-face
   '((t . (:inherit font-lock-function-name-face)))
-  "Face for the key description when it is a command")
+  "Face for the key description when it is a command"
+  :group 'which-key)
 (defface which-key-group-description-face
   '((t . (:inherit font-lock-keyword-face)))
-  "Face for the key description when it is a group or prefix")
+  "Face for the key description when it is a group or prefix"
+  :group 'which-key)
 (defface which-key-special-key-face
   '((t . (:inherit which-key-key-face :inverse-video t :weight bold)))
-  "Face for special keys (SPC, TAB, RET)")
+  "Face for special keys (SPC, TAB, RET)"
+  :group 'which-key)
 
 ;; Internal Vars
 ;; (defvar popwin:popup-buffer nil)
