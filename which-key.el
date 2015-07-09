@@ -76,12 +76,16 @@ the feature off.")
 (defvar which-key-side-window-location 'right
   "Location of which-key popup when `which-key-popup-type' is
 side-window.  Should be one of top, bottom, left or right.")
-(defvar which-key-side-window-max-width 60
+(defvar which-key-side-window-max-width 0.333
   "Maximum width of which-key popup when type is side-window and
-location is left or right.")
-(defvar which-key-side-window-max-height 20
+location is left or right.
+This variable can also be a number between 0 and 1. In that case, it denotes
+a percentage out of the frame's width.")
+(defvar which-key-side-window-max-height 0.25
   "Maximum height of which-key popup when type is side-window and
-location is top or bottom.")
+location is top or bottom.
+This variable can also be a number between 0 and 1. In that case, it denotes
+a percentage out of the frame's height.")
 (defvar which-key-frame-max-width 60
   "Maximum width of which-key popup when type is frame.")
 (defvar which-key-frame-max-height 20
@@ -254,6 +258,66 @@ Finally, show the buffer."
 ;; command finished maybe close the window
 ;; (which-key/hide-popup))))
 
+;; window-size utilities
+
+(defun which-key/text-width-to-total (text-width)
+  "Convert window text-width to window total-width.
+TEXT-WIDTH is the desired text width of the window. The function calculates what
+total width is required for a window in the selected to have a text-width of
+TEXT-WIDTH columns. The calculation considers possible fringes and scroll bars.
+This function assumes that the desired window has the same character width as
+the frame."
+  (let ((char-width (frame-char-width)))
+    (+ text-width
+       (/ (frame-fringe-width) char-width)
+       (/ (frame-scroll-bar-width) char-width)
+       (if (which-key/char-enlarged-p) 1 0)
+       ;; add padding to account for possible wide (unicode) characters
+       3)))
+
+(defun which-key/total-width-to-text (total-width)
+  "Convert window total-width to window text-width.
+TOTAL-WIDTH is the desired total width of the window. The function calculates
+what text width fits such a window. The calculation considers possible fringes
+and scroll bars. This function assumes that the desired window has the same
+character width as the frame."
+  (let ((char-width (frame-char-width)))
+    (- total-width
+       (/ (frame-fringe-width) char-width)
+       (/ (frame-scroll-bar-width) char-width)
+       (if (which-key/char-enlarged-p) 1 0)
+       ;; add padding to account for possible wide (unicode) characters
+       3)))
+
+(defun which-key/char-enlarged-p (&optional frame)
+  (> (frame-char-width) (/ (float (frame-pixel-width)) (window-total-width (frame-root-window)))))
+
+(defun which-key/char-reduced-p (&optional frame)
+  (< (frame-char-width) (/ (float (frame-pixel-width)) (window-total-width (frame-root-window)))))
+
+(defun which-key/char-exact-p (&optional frame)
+  (= (frame-char-width) (/ (float (frame-pixel-width)) (window-total-width (frame-root-window)))))
+
+(defun which-key/width-or-percentage-to-width (width-or-percentage)
+  "Return window total width.
+If WIDTH-OR-PERCENTAGE is a whole number, return it unchanged. Otherwise, it
+should be a percentage (a number between 0 and 1) out of the frame's width.
+More precisely, it should be a percentage out of the frame's root window's
+total width."
+  (if (wholenump width-or-percentage)
+      width-or-percentage
+    (round (* width-or-percentage (window-total-width (frame-root-window))))))
+
+(defun which-key/height-or-percentage-to-height (height-or-percentage)
+  "Return window total height.
+If HEIGHT-OR-PERCENTAGE is a whole number, return it unchanged. Otherwise, it
+should be a percentage (a number between 0 and 1) out of the frame's height.
+More precisely, it should be a percentage out of the frame's root window's
+total height."
+  (if (wholenump height-or-percentage)
+      height-or-percentage
+    (round (* height-or-percentage (window-total-height (frame-root-window))))))
+
 ;; Show/hide guide buffer
 
 (defun which-key/hide-popup ()
@@ -289,12 +353,16 @@ need to start the closing timer."
 (defun which-key/show-buffer-minibuffer (act-popup-dim)
   nil)
 
-(defun which-key/show-buffer-side-window (act-popup-dim)
-  (let* ((height (car act-popup-dim))
-         (width (cdr act-popup-dim))
-         (side which-key-side-window-location)
-         (alist (delq nil (list (when height (cons 'window-height height))
-                                (when width (cons 'window-width width))))))
+;; &rest params because `fit-buffer-to-window' has a different call signature
+;; in different emacs versions
+(defun which-key/fit-buffer-to-window-horizontally (&optional window &rest params)
+  (let ((fit-window-to-buffer-horizontally t))
+    (apply #'fit-window-to-buffer window params)))
+
+(defun which-key/show-buffer-side-window (_act-popup-dim)
+  (let* ((side which-key-side-window-location)
+         (alist '((window-width . which-key/fit-buffer-to-window-horizontally)
+                  (window-height . fit-window-to-buffer))))
     ;; Note: `display-buffer-in-side-window' and `display-buffer-in-major-side-window'
     ;; were added in Emacs 24.3
 
@@ -311,11 +379,8 @@ need to start the closing timer."
     ;; (display-buffer which-key--buffer (cons 'display-buffer-in-side-window alist))
     ;; side defaults to bottom
     (if (get-buffer-window which-key--buffer)
-        (progn
-          (display-buffer-reuse-window which-key--buffer alist))
-      (display-buffer-in-major-side-window which-key--buffer side 0 alist))
-    (let ((fit-window-to-buffer-horizontally t))
-      (fit-window-to-buffer (get-buffer-window which-key--buffer)))))
+        (display-buffer-reuse-window which-key--buffer alist)
+      (display-buffer-in-major-side-window which-key--buffer side 0 alist))))
 
 (defun which-key/show-buffer-frame (act-popup-dim)
   (let* ((orig-window (selected-window))
@@ -412,11 +477,12 @@ of the intended popup."
        (- (frame-height) (window-text-height (minibuffer-window)) 1) ;; 1 is a kludge to make sure there is no overlap
           ;; (window-mode-line-height which-key--window))
      ;; FIXME: change to something like (min which-*-height (calculate-max-height))
-     which-key-side-window-max-height)
+     (which-key/height-or-percentage-to-height which-key-side-window-max-height))
    ;; width
    (if (member which-key-side-window-location '(left right))
-       which-key-side-window-max-width
-     (frame-width))))
+       (which-key/total-width-to-text (which-key/width-or-percentage-to-width
+                                       which-key-side-window-max-width))
+     (window-width (frame-root-window)))))
 
 (defun which-key/frame-max-dimensions ()
   (cons which-key-frame-max-height which-key-frame-max-width))
