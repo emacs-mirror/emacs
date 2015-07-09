@@ -160,6 +160,9 @@ Used when `which-key-popup-type' is frame.")
     (setq-local mode-line-format nil))
   (setq which-key--setup-p t))
 
+;; Default configuration functions for use by users. Should be the "best"
+;; configurations
+
 ;;;###autoload
 (defun which-key/setup-side-window-right ()
   "Apply suggested settings for side-window that opens on right."
@@ -195,6 +198,37 @@ bottom."
 (defun which-key/stop-open-timer ()
   "Deactivate idle timer."
   (when which-key--open-timer (cancel-timer which-key--open-timer)))
+
+;; Helper functions to modify replacement lists.
+
+(defun which-key//add-key-based-replacements (alist key repl &rest more)
+  (while key
+    (when (or (not (stringp key)) (not (stringp repl)))
+      (error "KEY and REPL should be strings"))
+    (cl-pushnew (cons key repl) alist
+                :test (lambda (x y) (string-equal (car x) (car y))))
+    (setq key (pop more)
+          repl (pop more)))
+  alist)
+
+(defun which-key/add-key-based-replacements (key repl &rest more)
+  ;; TODO: Make interactive
+  (setq which-key-key-based-description-replacement-alist
+        (which-key//add-key-based-replacements
+         which-key-key-based-description-replacement-alist key repl more)))
+
+(defun which-key/add-major-mode-key-based-replacements (mode key repl &rest more)
+  ;; TODO: Make interactive
+  (when (not (symbolp mode))
+    (error "MODE should be a symbol corresponding to a value of major-mode"))
+  (let ((mode-alist (car (assq which-key-key-based-description-replacement-alist))))
+    (setq mode-alist (which-key//add-key-based-replacements
+                      mode-alist key repl more)
+          which-key-key-based-description-replacement-alist
+          (delq mode which-key-key-based-description-replacement-alist)
+          which-key-key-based-description-replacement-alist
+          (push mode-alist
+                which-key-key-based-description-replacement-alist))))
 
 ;; Update
 
