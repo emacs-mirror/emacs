@@ -24,32 +24,45 @@
 (require 'cl-lib)
 (require 's)
 
-(defvar which-key-idle-delay 1
-  "Delay (in seconds) for which-key buffer to popup.")
-(defvar which-key-echo-keystrokes
+(defgroup which-key nil "Customization options for which-key-mode")
+(defcustom which-key-idle-delay 1
+  "Delay (in seconds) for which-key buffer to popup."
+  :group 'which-key
+  :type 'float)
+(defcustom which-key-echo-keystrokes
   (min echo-keystrokes (/ (float which-key-idle-delay) 4))
   "Value to use for echo-keystrokes. This only applies when
 `which-key-popup-type' is minibuffer. It needs to be less than
 `which-key-idle-delay' or else the echo will erase the which-key
-popup.")
-(defvar which-key-max-description-length 27
+popup."
+  :group 'which-key
+  :type 'float)
+(defcustom which-key-max-description-length 27
   "Truncate the description of keys to this length.  Also adds
-\"..\".")
-(defvar which-key-separator "→"
-  "Separator to use between key and description.")
-(defvar which-key-key-replacement-alist
+\"..\"."
+  :group 'which-key
+  :type 'integer)
+(defcustom which-key-separator "→"
+  "Separator to use between key and description."
+  :group 'which-key
+  :type 'string)
+(defcustom which-key-key-replacement-alist
   '(("<\\(\\(C-\\|M-\\)*.+\\)>" . "\\1") ("left" . "←") ("right" . "→"))
-    "The strings in the car of each cons are replaced with the
+  "The strings in the car of each cons are replaced with the
 strings in the cdr for each key. Elisp regexp can be used as
-in the first example.")
-(defvar which-key-description-replacement-alist
+in the first example."
+  :group 'which-key
+  :type '(alist :key-type regexp :value-type string))
+(defcustom which-key-description-replacement-alist
   '(("Prefix Command" . "prefix") (".+/\\(.+\\)" . "\\1"))
   "See `which-key-key-replacement-alist'. This is a list of lists
 for replacing descriptions. The second one removes \"namespace/\"
 from \"namespace/function\". This is a convention for naming
 functions but not a rule, so remove this replacement if it
-becomes problematic.")
-(defvar which-key-key-based-description-replacement-alist '()
+becomes problematic."
+  :group 'which-key
+  :type '(alist :key-type regexp :value-type string))
+(defcustom which-key-key-based-description-replacement-alist '()
   "Each item in the list is a cons cell. The car of each cons
 cell is either a string like \"C-c\", in which case it's
 interpreted as a key sequence or a value of `major-mode'. Here
@@ -61,35 +74,61 @@ are two examples:
 In the first case the description of the key sequence \"SPC f f\"
 is overwritten with \"find files\". The second case works the
 same way using the alist matched when `major-mode' is
-emacs-lisp-mode.")
-(defvar which-key-special-keys '("SPC" "TAB" "RET" "ESC" "DEL")
+emacs-lisp-mode."
+:group 'which-key)
+(defcustom which-key-special-keys '("SPC" "TAB" "RET" "ESC" "DEL")
   "These keys will automatically be truncated to one character
-and have `which-key-special-key-face' applied to them.")
-(defvar which-key-buffer-name "*which-key*"
-  "Name of which-key buffer.")
-(defvar which-key-show-prefix 'left
-  "Whether to and where to display the current prfix sequence.
+and have `which-key-special-key-face' applied to them."
+  :group 'which-key
+  :type '(list string))
+(defcustom which-key-buffer-name "*which-key*"
+  "Name of which-key buffer."
+  :group 'which-key
+  :type 'string)
+(defcustom which-key-show-prefix 'left
+  "Whether to and where to display the current prefix sequence.
 Possible choices are left (the default), top and nil. Nil turns
-the feature off.")
-(defvar which-key-popup-type 'minibuffer
-  "Supported types are minibuffer, side-window and frame.")
-(defvar which-key-side-window-location 'right
+the feature off."
+  :group 'which-key
+  :type '(radio (symbol :tag "Left of keys" left)
+                (symbol :tag "In first line" top)
+                (const  :tag "Hide" nil)))
+(defcustom which-key-popup-type 'minibuffer
+  "Supported types are minibuffer, side-window and frame."
+  :group 'which-key
+  :type '(radio (symbol :tag "Show in minibuffer" minibuffer)
+                (symbol :tag "Show in side window" side-window)
+                (symbol :tag "Show in popup frame" frame)))
+(defcustom which-key-side-window-location 'right
   "Location of which-key popup when `which-key-popup-type' is
-side-window.  Should be one of top, bottom, left or right.")
-(defvar which-key-side-window-max-width 0.333
+side-window.  Should be one of top, bottom, left or right."
+  :group 'which-key
+  :type '(radio (symbol right)
+                (symbol bottom)
+                (symbol left)
+                (symbol top)))
+(defcustom which-key-side-window-max-width 0.333
   "Maximum width of which-key popup when type is side-window and
 location is left or right.
 This variable can also be a number between 0 and 1. In that case, it denotes
-a percentage out of the frame's width.")
-(defvar which-key-side-window-max-height 0.25
+a percentage out of the frame's width."
+  :group 'which-key
+  :type 'float)
+(defcustom which-key-side-window-max-height 0.25
   "Maximum height of which-key popup when type is side-window and
 location is top or bottom.
 This variable can also be a number between 0 and 1. In that case, it denotes
-a percentage out of the frame's height.")
-(defvar which-key-frame-max-width 60
-  "Maximum width of which-key popup when type is frame.")
-(defvar which-key-frame-max-height 20
-  "Maximum height of which-key popup when type is frame.")
+a percentage out of the frame's height."
+  :group 'which-key
+  :type 'float)
+(defcustom which-key-frame-max-width 60
+  "Maximum width of which-key popup when type is frame."
+  :group 'which-key
+  :type 'integer)
+(defcustom which-key-frame-max-height 20
+  "Maximum height of which-key popup when type is frame."
+  :group 'which-key
+  :type 'integer)
 
 ;; Faces
 (defface which-key-key-face
