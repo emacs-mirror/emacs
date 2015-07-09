@@ -78,10 +78,14 @@ the feature off.")
 side-window.  Should be one of top, bottom, left or right.")
 (defvar which-key-side-window-max-width 60
   "Maximum width of which-key popup when type is side-window and
-location is left or right.")
+location is left or right.
+This variable can also be a number between 0 and 1. In that case, it denotes
+a percentage out of the frame's width.")
 (defvar which-key-side-window-max-height 20
   "Maximum height of which-key popup when type is side-window and
-location is top or bottom.")
+location is top or bottom.
+This variable can also be a number between 0 and 1. In that case, it denotes
+a percentage out of the frame's height.")
 (defvar which-key-frame-max-width 60
   "Maximum width of which-key popup when type is frame.")
 (defvar which-key-frame-max-height 20
@@ -256,6 +260,26 @@ character width as the frame."
 (defun which-key/char-exact-p (&optional frame)
   (= (frame-char-width) (/ (float (frame-pixel-width)) (window-total-width (frame-root-window)))))
 
+(defun which-key/width-or-percentage-to-width (width-or-percentage)
+  "Return window total width.
+If WIDTH-OR-PERCENTAGE is a whole number, return it unchanged. Otherwise, it
+should be a percentage (a number between 0 and 1) out of the frame's width.
+More precisely, it should be a percentage out of the frame's root window's
+total width."
+  (if (wholenump width-or-percentage)
+      width-or-percentage
+    (round (* width-or-percentage (window-total-width (frame-root-window))))))
+
+(defun which-key/height-or-percentage-to-height (height-or-percentage)
+  "Return window total height.
+If HEIGHT-OR-PERCENTAGE is a whole number, return it unchanged. Otherwise, it
+should be a percentage (a number between 0 and 1) out of the frame's height.
+More precisely, it should be a percentage out of the frame's root window's
+total height."
+  (if (wholenump height-or-percentage)
+      height-or-percentage
+    (round (* height-or-percentage (window-total-height (frame-root-window))))))
+
 ;; Show/hide guide buffer
 
 (defun which-key/hide-popup ()
@@ -412,10 +436,11 @@ of the intended popup."
           ;; (window-height (minibuffer-window))
           ;; (window-mode-line-height which-key--window))
      ;; FIXME: change to something like (min which-*-height (calculate-max-height))
-     which-key-side-window-max-height)
+     (which-key/height-or-percentage-to-height which-key-side-window-max-height))
    ;; width
    (if (member which-key-side-window-location '(left right))
-       (which-key/total-width-to-text which-key-side-window-max-width)
+       (which-key/total-width-to-text (which-key/width-or-percentage-to-width
+                                       which-key-side-window-max-width))
      (window-width (frame-root-window)))))
 
 (defun which-key/frame-max-dimensions ()
