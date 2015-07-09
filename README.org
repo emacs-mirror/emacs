@@ -1,7 +1,7 @@
 Rewrite of guide-key-mode for emacs. 
 
 * Install
-Add which-key.el to your load-path and require. Some thing like 
+Add which-key.el to your =load-path= and require. Something like 
 
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "path/to/which-key.el")
@@ -21,8 +21,8 @@ settings (which are configurable but not well documented at the moment).
 By default which-key makes substitutions for text all with the aim of saving
 space. The most noticeable are the "special keys" like SPC, TAB, RET, etc. This
 can be turned off, but the default is to truncate these keys to one character
-and display them using inverse-video (flips foreground and background colors).
-You can see the effect in the screenshots.
+and display them using =:inverse-video= (flips foreground and background
+colors). You can see the effect in the screenshots.
 
 There are other substitution abilities included, which are quite flexible
 (ability to use regexp for example). This makes which-key very customizable.
@@ -38,7 +38,7 @@ Take over the minibuffer. Setup by default, but you can also use
 [[./img/which-key-minibuffer.png]]
 
 Note the maximum height of the minibuffer is controlled through the built-in
-variable max-mini-window-height.
+variable =max-mini-window-height=.
 
 ** Side Window Right Option
 Popup side window on right. For defaults use
@@ -71,7 +71,7 @@ Popup side window on bottom. For defaults use
    where possible.
 3. Add support for replacement lists to modify key descriptions on the fly.
    Currently you can replace in the key or description field using regexp, and
-   using a key sequence (like "C-x 1") to fully replace the description (the
+   using a key sequence (like ="C-x 1"=) to fully replace the description (the
    latter can target major modes, too).
 ** Incomplete and Planned
 1. Come up with creative ways to fit more keys in buffer while still maintaining
