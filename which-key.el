@@ -237,7 +237,9 @@ the frame."
     (+ text-width
        (/ (frame-fringe-width) char-width)
        (/ (frame-scroll-bar-width) char-width)
-       (if (which-key/char-enlarged-p) 1 0))))
+       (if (which-key/char-enlarged-p) 1 0)
+       ;; add padding to account for possible wide (unicode) characters
+       3)))
 
 (defun which-key/total-width-to-text (total-width)
   "Convert window total-width to window text-width.
@@ -249,7 +251,9 @@ character width as the frame."
     (- total-width
        (/ (frame-fringe-width) char-width)
        (/ (frame-scroll-bar-width) char-width)
-       (if (which-key/char-enlarged-p) 1 0))))
+       (if (which-key/char-enlarged-p) 1 0)
+       ;; add padding to account for possible wide (unicode) characters
+       3)))
 
 (defun which-key/char-enlarged-p (&optional frame)
   (> (frame-char-width) (/ (float (frame-pixel-width)) (window-total-width (frame-root-window)))))
@@ -315,12 +319,16 @@ need to start the closing timer."
 (defun which-key/show-buffer-minibuffer (act-popup-dim)
   nil)
 
-(defun which-key/show-buffer-side-window (act-popup-dim)
-  (let* ((height (car act-popup-dim))
-         (width (which-key/text-width-to-total (cdr act-popup-dim)))
-         (side which-key-side-window-location)
-         (alist (delq nil (list (when height (cons 'window-height height))
-                                (when width (cons 'window-width width))))))
+;; &rest params because `fit-buffer-to-window' has a different call signature
+;; in different emacs versions
+(defun which-key/fit-buffer-to-window-horizontally (&optional window &rest params)
+  (let ((fit-window-to-buffer-horizontally t))
+    (apply #'fit-window-to-buffer window params)))
+
+(defun which-key/show-buffer-side-window (_act-popup-dim)
+  (let* ((side which-key-side-window-location)
+         (alist '((window-width . which-key/fit-buffer-to-window-horizontally)
+                  (window-height . fit-window-to-buffer))))
     ;; Note: `display-buffer-in-side-window' and `display-buffer-in-major-side-window'
     ;; were added in Emacs 24.3
 
