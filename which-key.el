@@ -177,7 +177,8 @@ Used when `which-key-popup-type' is frame.")
   "Fill which-key--buffer with key descriptions and reformat.
 Finally, show the buffer."
   (let ((prefix-keys (this-single-command-keys)))
-    (when (> (length prefix-keys) 0)
+    (when (and (> (length prefix-keys) 0)
+               (not (symbolp (key-binding prefix-keys))))
       (let* ((buf (current-buffer))
              ;; get formatted key bindings
              (fmt-width-cons (which-key/get-formatted-key-bindings buf prefix-keys))
