@@ -50,6 +50,16 @@ Popup side window on right. For defaults use
 [[./img/which-key-right.png]]
 
 
+** Side Window Bottom Option
+Popup side window on bottom. For defaults use
+
+#+BEGIN_SRC emacs-lisp
+(which-key/setup-side-window-bottom)
+#+END_SRC
+
+[[./img/which-key-bottom.png]]
+
+
 * Status/Goals
 ** Stability
 - It's very much a work in progress, so expect weird things to happen from time
