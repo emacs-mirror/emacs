@@ -76,12 +76,12 @@ the feature off.")
 (defvar which-key-side-window-location 'right
   "Location of which-key popup when `which-key-popup-type' is
 side-window.  Should be one of top, bottom, left or right.")
-(defvar which-key-side-window-max-width 60
+(defvar which-key-side-window-max-width 0.333
   "Maximum width of which-key popup when type is side-window and
 location is left or right.
 This variable can also be a number between 0 and 1. In that case, it denotes
 a percentage out of the frame's width.")
-(defvar which-key-side-window-max-height 20
+(defvar which-key-side-window-max-height 0.25
   "Maximum height of which-key popup when type is side-window and
 location is top or bottom.
 This variable can also be a number between 0 and 1. In that case, it denotes
