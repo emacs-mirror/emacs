@@ -161,7 +161,7 @@ Used when `which-key-popup-type' is frame.")
   (with-current-buffer which-key--buffer
     (setq-local cursor-type nil)
     (setq-local cursor-in-non-selected-windows nil)
-    (setq-local mode-line-format ""))
+    (setq-local mode-line-format nil))
   (setq which-key--setup-p t))
 
 ;;;###autoload
