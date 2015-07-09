@@ -205,33 +205,37 @@ bottom."
 
 ;; Helper functions to modify replacement lists.
 
-(defun which-key//add-key-based-replacements (alist key repl &rest more)
-  (while key
-    (when (or (not (stringp key)) (not (stringp repl)))
-      (error "KEY and REPL should be strings"))
-    (cl-pushnew (cons key repl) alist
-                :test (lambda (x y) (string-equal (car x) (car y))))
-    (setq key (pop more)
-          repl (pop more)))
+(defun which-key//add-key-based-replacements (alist key repl)
+  (when (or (not (stringp key)) (not (stringp repl)))
+    (error "KEY and REPL should be strings"))
+  (cl-pushnew (cons key repl) alist
+              :test (lambda (x y)
+                      (let ((cx (car x)) (cy (car y)))
+                        (or (and (stringp cx) (stringp cy) (string-equal cx cy))
+                            (and (symbolp cx) (symbolp cy) (eq cx cy))))))
   alist)
 
 (defun which-key/add-key-based-replacements (key repl &rest more)
   ;; TODO: Make interactive
-  (setq which-key-key-based-description-replacement-alist
-        (which-key//add-key-based-replacements
-         which-key-key-based-description-replacement-alist key repl more)))
+  (while key
+    (setq which-key-key-based-description-replacement-alist
+          (which-key//add-key-based-replacements
+           which-key-key-based-description-replacement-alist key repl))
+    (setq key (pop more) repl (pop more))))
 
 (defun which-key/add-major-mode-key-based-replacements (mode key repl &rest more)
   ;; TODO: Make interactive
   (when (not (symbolp mode))
     (error "MODE should be a symbol corresponding to a value of major-mode"))
   (let ((mode-alist (cdr (assq mode which-key-key-based-description-replacement-alist))))
-    (setq mode-alist (which-key//add-key-based-replacements
-                      mode-alist key repl more)
+    (while key
+      (setq mode-alist (which-key//add-key-based-replacements
+                        mode-alist key repl))
+      (setq key (pop more) repl (pop more)))
+    (setq which-key-key-based-description-replacement-alist
+          (assq-delete-all mode which-key-key-based-description-replacement-alist)
           which-key-key-based-description-replacement-alist
-          (delq mode which-key-key-based-description-replacement-alist)
-          which-key-key-based-description-replacement-alist
-          (push mode-alist
+          (push (cons mode mode-alist)
                 which-key-key-based-description-replacement-alist))))
 
 ;; Update
