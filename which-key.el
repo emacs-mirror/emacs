@@ -225,7 +225,7 @@ bottom."
   ;; TODO: Make interactive
   (when (not (symbolp mode))
     (error "MODE should be a symbol corresponding to a value of major-mode"))
-  (let ((mode-alist (cdr (assq which-key-key-based-description-replacement-alist))))
+  (let ((mode-alist (cdr (assq mode which-key-key-based-description-replacement-alist))))
     (setq mode-alist (which-key//add-key-based-replacements
                       mode-alist key repl more)
           which-key-key-based-description-replacement-alist
