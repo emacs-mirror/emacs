@@ -157,7 +157,7 @@ Used when `which-key-popup-type' is frame.")
   (with-current-buffer which-key--buffer
     (setq-local cursor-type nil)
     (setq-local cursor-in-non-selected-windows nil)
-    (setq-local mode-line-format ""))
+    (setq-local mode-line-format nil))
   (setq which-key--setup-p t))
 
 ;;;###autoload
@@ -375,8 +375,7 @@ of the intended popup."
   (cons
    ;; height
    (if (member which-key-side-window-location '(left right))
-       (- (frame-height) 1) ; 1 is for minibuffer
-          ;; (window-height (minibuffer-window))
+       (- (frame-height) (window-text-height (minibuffer-window)) 1) ;; 1 is a kludge to make sure there is no overlap
           ;; (window-mode-line-height which-key--window))
      ;; FIXME: change to something like (min which-*-height (calculate-max-height))
      which-key-side-window-max-height)
