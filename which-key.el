@@ -220,6 +220,42 @@ Finally, show the buffer."
 ;; command finished maybe close the window
 ;; (which-key/hide-popup))))
 
+;; window-size utilities
+
+(defun which-key/text-width-to-total (text-width)
+  "Convert window text-width to window total-width.
+TEXT-WIDTH is the desired text width of the window. The function calculates what
+total width is required for a window in the selected to have a text-width of
+TEXT-WIDTH columns. The calculation considers possible fringes and scroll bars.
+This function assumes that the desired window has the same character width as
+the frame."
+  (let ((char-width (frame-char-width)))
+    (+ text-width
+       (/ (frame-fringe-width) char-width)
+       (/ (frame-scroll-bar-width) char-width)
+       (if (which-key/char-enlarged-p) 1 0))))
+
+(defun which-key/total-width-to-text (total-width)
+  "Convert window total-width to window text-width.
+TOTAL-WIDTH is the desired total width of the window. The function calculates
+what text width fits such a window. The calculation considers possible fringes
+and scroll bars. This function assumes that the desired window has the same
+character width as the frame."
+  (let ((char-width (frame-char-width)))
+    (- total-width
+       (/ (frame-fringe-width) char-width)
+       (/ (frame-scroll-bar-width) char-width)
+       (if (which-key/char-enlarged-p) 1 0))))
+
+(defun which-key/char-enlarged-p (&optional frame)
+  (> (frame-char-width) (/ (float (frame-pixel-width)) (window-total-width (frame-root-window)))))
+
+(defun which-key/char-reduced-p (&optional frame)
+  (< (frame-char-width) (/ (float (frame-pixel-width)) (window-total-width (frame-root-window)))))
+
+(defun which-key/char-exact-p (&optional frame)
+  (= (frame-char-width) (/ (float (frame-pixel-width)) (window-total-width (frame-root-window)))))
+
 ;; Show/hide guide buffer
 
 (defun which-key/hide-popup ()
@@ -257,7 +293,7 @@ need to start the closing timer."
 
 (defun which-key/show-buffer-side-window (act-popup-dim)
   (let* ((height (car act-popup-dim))
-         (width (cdr act-popup-dim))
+         (width (which-key/text-width-to-total (cdr act-popup-dim)))
          (side which-key-side-window-location)
          (alist (delq nil (list (when height (cons 'window-height height))
                                 (when width (cons 'window-width width))))))
@@ -277,11 +313,8 @@ need to start the closing timer."
     ;; (display-buffer which-key--buffer (cons 'display-buffer-in-side-window alist))
     ;; side defaults to bottom
     (if (get-buffer-window which-key--buffer)
-        (progn
-          (display-buffer-reuse-window which-key--buffer alist))
-      (display-buffer-in-major-side-window which-key--buffer side 0 alist))
-    (let ((fit-window-to-buffer-horizontally t))
-      (fit-window-to-buffer (get-buffer-window which-key--buffer)))))
+        (display-buffer-reuse-window which-key--buffer alist)
+      (display-buffer-in-major-side-window which-key--buffer side 0 alist))))
 
 (defun which-key/show-buffer-frame (act-popup-dim)
   (let* ((orig-window (selected-window))
@@ -382,8 +415,8 @@ of the intended popup."
      which-key-side-window-max-height)
    ;; width
    (if (member which-key-side-window-location '(left right))
-       which-key-side-window-max-width
-     (frame-width))))
+       (which-key/total-width-to-text which-key-side-window-max-width)
+     (window-width (frame-root-window)))))
 
 (defun which-key/frame-max-dimensions ()
   (cons which-key-frame-max-height which-key-frame-max-width))
