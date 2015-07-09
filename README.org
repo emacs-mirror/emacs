@@ -1,16 +1,71 @@
 Rewrite of guide-key-mode for emacs. 
 
-Here's a recent picture showing what it does:
+* Install
+Add which-key.el to your load-path and require. Some thing like 
 
-[[./img/which-key-bottom.png]]
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'load-path "path/to/which-key.el")
+(require 'which-key)
+(which-key-mode)
+#+END_SRC
 
-* Status
-It is somewhat stable for me at the moment, but expect to see potentially weird
-behavior (then to report it to me!).
-** Completed
+There are 3 choices of default configs for you to try (then customize to your
+liking). The main choice is where you want the which-key buffer to display.
+Screenshots of the default options are shown in the next sections.
+
+In each case, we show as many key bindings as we can fit in the buffer within
+the constraints. The constraints are determined by several factors, including
+your emacs settings, the size of the current emacs frame, and the which-key
+settings (which are configurable but not well documented at the moment).
+
+By default which-key makes substitutions for text all with the aim of saving
+space. The most noticeable are the "special keys" like SPC, TAB, RET, etc. This
+can be turned off, but the default is to truncate these keys to one character
+and display them using inverse-video (flips foreground and background colors).
+You can see the effect in the screenshots.
+
+There are other substitution abilities included, which are quite flexible
+(ability to use regexp for example). This makes which-key very customizable.
+This functionality is targeting [[https://github.com/syl20bnr/spacemacs][spacemacs]].
+
+** Minibuffer Option
+Take over the minibuffer. Setup by default, but you can also use 
+
+#+BEGIN_SRC emacs-lisp
+(which-key/setup-minibuffer)
+#+END_SRC
+
+[[./img/which-key-minibuffer.png]]
+
+Note the maximum height of the minibuffer is controlled through the built-in
+variable max-mini-window-height.
+
+** Side Window Right Option
+Popup side window on right. For defaults use
+
+#+BEGIN_SRC emacs-lisp
+(which-key/setup-side-window-right)
+#+END_SRC
+
+[[./img/which-key-right.png]]
+
+
+* Status/Goals
+** Stability
+- It's very much a work in progress, so expect weird things to happen from time
+  to time. That being said, the default configuration works well for me.
+** Completed Goals
 1. Use idle timers to trigger window popup instead of guide-key's constant
    polling.
-2. Add support for replacement lists to modify key descriptions on the fly.
-** Ongoing/Planned 
-1. Explore alternatives to popwin like window-pupose and using display-buffer
-   directly
+2. Remove popwin as a "hard" dependency, prefering built-in display commands
+   where possible.
+3. Add support for replacement lists to modify key descriptions on the fly.
+   Currently you can replace in the key or description field using regexp, and
+   using a key sequence (like "C-x 1") to fully replace the description (the
+   latter can target major modes, too).
+** Incomplete and Planned
+1. Come up with creative ways to fit more keys in buffer while still maintaining
+   nice alignment and formatting. Such as
+   1. Automatic text scaling
+   2. Paging functionality 
+
