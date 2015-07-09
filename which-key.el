@@ -157,7 +157,7 @@ Used when `which-key-popup-type' is frame.")
   (with-current-buffer which-key--buffer
     (setq-local cursor-type nil)
     (setq-local cursor-in-non-selected-windows nil)
-    (hidden-mode-line-mode t))
+    (setq-local mode-line-format ""))
   (setq which-key--setup-p t))
 
 (defun which-key/setup-side-window-right ()
