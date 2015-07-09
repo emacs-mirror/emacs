@@ -160,21 +160,27 @@ Used when `which-key-popup-type' is frame.")
     (setq-local mode-line-format ""))
   (setq which-key--setup-p t))
 
+;;;###autoload
 (defun which-key/setup-side-window-right ()
   "Apply suggested settings for side-window that opens on right."
+  (interactive)
   (setq which-key-popup-type 'side-window
         which-key-side-window-location 'right
         which-key-show-prefix 'top))
 
+;;;###autoload
 (defun which-key/setup-side-window-bottom ()
   "Apply suggested settings for side-window that opens on
 bottom."
+  (interactive)
   (setq which-key-popup-type 'side-window
         which-key-side-window-location 'bottom
         which-key-show-prefix nil))
 
+;;;###autoload
 (defun which-key/setup-minibuffer ()
   "Apply suggested settings for minibuffer."
+  (interactive)
   (setq which-key-popup-type 'minibuffer
         which-key-show-prefix 'left))
 
