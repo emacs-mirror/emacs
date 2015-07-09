@@ -156,8 +156,27 @@ Used when `which-key-popup-type' is frame.")
   (setq which-key--buffer (get-buffer-create which-key-buffer-name))
   (with-current-buffer which-key--buffer
     (setq-local cursor-type nil)
-    (setq-local cursor-in-non-selected-windows nil))
+    (setq-local cursor-in-non-selected-windows nil)
+    (hidden-mode-line-mode t))
   (setq which-key--setup-p t))
+
+(defun which-key/setup-side-window-right ()
+  "Apply suggested settings for side-window that opens on right."
+  (setq which-key-popup-type 'side-window
+        which-key-side-window-location 'right
+        which-key-show-prefix 'top))
+
+(defun which-key/setup-side-window-bottom ()
+  "Apply suggested settings for side-window that opens on
+bottom."
+  (setq which-key-popup-type 'side-window
+        which-key-side-window-location 'bottom
+        which-key-show-prefix nil))
+
+(defun which-key/setup-minibuffer ()
+  "Apply suggested settings for minibuffer."
+  (setq which-key-popup-type 'minibuffer
+        which-key-show-prefix 'left))
 
 ;; Timers
 
@@ -250,7 +269,8 @@ need to start the closing timer."
     ;; (display-buffer which-key--buffer (cons 'display-buffer-in-side-window alist))
     ;; side defaults to bottom
     (if (get-buffer-window which-key--buffer)
-        (display-buffer-reuse-window which-key--buffer alist)
+        (progn
+          (display-buffer-reuse-window which-key--buffer alist))
       (display-buffer-in-major-side-window which-key--buffer side 0 alist))
     (let ((fit-window-to-buffer-horizontally t))
       (fit-window-to-buffer (get-buffer-window which-key--buffer)))))
@@ -347,7 +367,9 @@ of the intended popup."
   (cons
    ;; height
    (if (member which-key-side-window-location '(left right))
-       (frame-height)
+       (- (frame-height) 1) ; 1 is for minibuffer
+          ;; (window-height (minibuffer-window))
+          ;; (window-mode-line-height which-key--window))
      ;; FIXME: change to something like (min which-*-height (calculate-max-height))
      which-key-side-window-max-height)
    ;; width
@@ -383,16 +405,19 @@ N-COLUMNS is the number of text columns to use and MAX-LINES is
 the maximum number of lines availabel in the target buffer."
   (let* ((n-keys (length keys))
          (n-lines (min (ceiling (/ (float n-keys) n-columns)) max-lines))
-         (line-padding (when (eq which-key-show-prefix 'left) (s-repeat prefix-len " ")))
+         (line-padding (when (eq which-key-show-prefix 'left)
+                         (s-repeat prefix-len " ")))
          lines)
     (dotimes (i n-lines)
       (setq lines
-            (push
-             (cl-subseq keys (* i n-columns) (min n-keys (* (1+ i) n-columns)))
+            (push (cl-subseq keys (* i n-columns)
+                        (min n-keys (* (1+ i) n-columns)))
              lines)))
-    (mapconcat (lambda (x) (apply 'concat x)) (reverse lines) (concat "\n" line-padding))))
+    (mapconcat (lambda (x) (apply 'concat x))
+               (reverse lines) (concat "\n" line-padding))))
 
-(defun which-key/populate-buffer (prefix-keys formatted-keys column-width sel-win-width)
+(defun which-key/populate-buffer (prefix-keys formatted-keys
+                                  column-width sel-win-width)
   "Insert FORMATTED-STRINGS into which-key buffer, breaking after BUFFER-WIDTH."
   (let* ((vertical-mode (member which-key-side-window-location '(left right)))
          (prefix-w-face (which-key/propertize-key prefix-keys))
