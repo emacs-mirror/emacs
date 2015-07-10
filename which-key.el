@@ -232,17 +232,6 @@ bottom."
   (setq which-key-popup-type 'minibuffer
         which-key-show-prefix 'left))
 
-;; Timers
-
-(defun which-key/start-open-timer ()
-  "Activate idle timer."
-  (which-key/stop-open-timer)           ; start over
-  (setq which-key--open-timer
-        (run-with-idle-timer which-key-idle-delay t 'which-key/update)))
-
-(defun which-key/stop-open-timer ()
-  "Deactivate idle timer."
-  (when which-key--open-timer (cancel-timer which-key--open-timer)))
 
 ;; Helper functions to modify replacement lists.
 
@@ -279,29 +268,8 @@ bottom."
           (push (cons mode mode-alist)
                 which-key-key-based-description-replacement-alist))))
 
-;; Update
-
-(defun which-key/update ()
-  "Fill which-key--buffer with key descriptions and reformat.
-Finally, show the buffer."
-  (let ((prefix-keys (this-single-command-keys)))
-    ;;    (when (> (length prefix-keys) 0) (message "key: %s" (key-description prefix-keys)))
-    ;;    (when (> (length prefix-keys) 0) (message "key binding: %s" (key-binding prefix-keys)))
-    (when (and (> (length prefix-keys) 0)
-               (keymapp (key-binding prefix-keys)))
-      (let* ((buf (current-buffer))
-             ;; get formatted key bindings
-             (formatted-keys (which-key/get-formatted-key-bindings buf prefix-keys))
-             ;; populate target buffer
-             (popup-act-dim
-              (which-key/populate-buffer (key-description prefix-keys)
-                                         formatted-keys (window-width))))
-        ;; show buffer
-        (which-key/show-popup popup-act-dim)))))
-;; command finished maybe close the window
-;; (which-key/hide-popup))))
-
-;; window-size utilities
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Functions for computing window sizes
 
 (defun which-key/text-width-to-total (text-width)
   "Convert window text-width to window total-width.
@@ -361,6 +329,7 @@ total height."
       height-or-percentage
     (round (* height-or-percentage (window-total-height (frame-root-window))))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Show/hide guide buffer
 
 (defun which-key/hide-popup ()
@@ -493,7 +462,8 @@ need to start the closing timer."
 ;;   (when (eq popwin:popup-buffer (get-buffer which-key--buffer))
 ;;     (popwin:close-popup-window)))
 
-;; Size functions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Max dimension of available window functions
 
 (defun which-key/popup-max-dimensions (selected-window-width)
   "Dimesion functions should return the maximum possible (height . width)
@@ -530,7 +500,85 @@ of the intended popup."
 (defun which-key/frame-max-dimensions ()
   (cons which-key-frame-max-height which-key-frame-max-width))
 
-;; Buffer contents functions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Functions for retrieving and formatting keys
+
+(defun which-key/maybe-replace (string repl-alist &optional literal)
+  "Perform replacements on STRING.
+REPL-ALIST is an alist where the car of each element is the text
+to replace and the cdr is the replacement text. Unless LITERAL is
+non-nil regexp is used in the replacements."
+  (save-match-data
+    (let ((new-string string))
+      (dolist (repl repl-alist)
+        (when (string-match (car repl) new-string)
+          (setq new-string
+                (replace-match (cdr repl) t literal new-string))))
+      new-string)))
+
+(defun which-key/maybe-replace-key-based (string keys)
+  (let* ((alist which-key-key-based-description-replacement-alist)
+         (str-res (assoc-string keys alist))
+         (mode-alist (assq major-mode alist))
+         (mode-res (when mode-alist (assoc-string keys mode-alist))))
+    (cond (mode-res (cdr mode-res))
+          (str-res (cdr str-res))
+          (t string))))
+
+(defun which-key/propertize-key (key)
+  (let ((key-w-face (propertize key 'face 'which-key-key-face))
+        (regexp (concat "\\("
+                        (mapconcat 'identity which-key-special-keys
+                                   "\\|") "\\)")))
+    (save-match-data
+      (if (string-match regexp key)
+          (let ((beg (match-beginning 0)) (end (match-end 0)))
+            (concat (substring key-w-face 0 beg)
+                    (propertize (substring key-w-face beg (1+ beg))
+                                'face 'which-key-special-key-face)
+                    (substring key-w-face end (length key-w-face))))
+        key-w-face))))
+
+(defsubst which-key/truncate-description (desc)
+  "Truncate DESC description to `which-key-max-description-length'."
+  (if (> (length desc) which-key-max-description-length)
+      (concat (substring desc 0 which-key-max-description-length) "..")
+    desc))
+
+(defun which-key/format-and-replace (unformatted prefix-keys)
+  "Turn each key-desc-cons in UNFORMATTED into formatted
+strings (including text properties), and pad with spaces so that
+all are a uniform length. Replacements are performed using the
+key and description replacement alists."
+  (let ((max-key-width 0)) ;(max-desc-width 0)
+    ;; first replace and apply faces
+    (mapcar
+     (lambda (key-desc-cons)
+       (let* ((key (car key-desc-cons))
+              (desc (cdr key-desc-cons))
+              (keys (concat prefix-keys " " key))
+              (key (which-key/maybe-replace
+                    key which-key-key-replacement-alist))
+              (desc (which-key/maybe-replace
+                     desc which-key-description-replacement-alist))
+              (desc (which-key/maybe-replace-key-based desc keys))
+              (group (string-match-p "^group:" desc))
+              (desc (if group (substring desc 6) desc))
+              (prefix (string-match-p "^Prefix" desc))
+              (desc (if (or prefix group) (concat "+" desc) desc))
+              (desc-face (if (or prefix group)
+                             'which-key-group-description-face
+                           'which-key-command-description-face))
+              (desc (which-key/truncate-description desc))
+              (key-w-face (which-key/propertize-key key))
+              (desc-w-face (propertize desc 'face desc-face))
+              (key-width (length (substring-no-properties key-w-face))))
+         ;; (desc-width (length (substring-no-properties desc-w-face))))
+         (setq max-key-width (max key-width max-key-width))
+         ;; (setq max-desc-width (max desc-width max-desc-width))
+         (cons key-w-face desc-w-face)))
+     unformatted)))
+;; pad to max key-width and max desc-width
 
 (defun which-key/get-formatted-key-bindings (buffer key)
   (let ((key-str-qt (regexp-quote (key-description key)))
@@ -549,6 +597,9 @@ of the intended popup."
                     :test (lambda (x y) (string-equal (car x) (car y))))))
     (which-key/format-and-replace unformatted (key-description key))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Functions for laying out which-key buffer pages
+
 (defun which-key/create-page-vertical (max-lines max-width prefix-width key-cns)
   "Format KEYS into string representing a single page of text.
 N-COLUMNS is the number of text columns to use and MAX-LINES is
@@ -559,10 +610,13 @@ the maximum number of lines availabel in the target buffer."
          (rem-key-cns key-cns)
          (n-col-lines (min avl-lines n-keys))
          (act-n-lines n-col-lines) ; n-col-lines in first column
-         (all-columns (list (mapcar (lambda (i) (if (> i 1) (s-repeat prefix-width " ") ""))
+         (all-columns (list
+                       (mapcar (lambda (i)
+                                 (if (> i 1) (s-repeat prefix-width " ") ""))
                                      (number-sequence 1 n-col-lines))))
          (act-width prefix-width)
-         (sep-w-face (propertize which-key-separator 'face 'which-key-separator-face))
+         (sep-w-face (propertize which-key-separator
+                                 'face 'which-key-separator-face))
          col-key-cns col-key-width col-desc-width col-width col-split done
          n-columns new-column page)
     (message "ok")
@@ -654,79 +708,41 @@ the maximum number of lines availabel in the target buffer."
           (goto-char (point-min))))
       (cons (nth 1 first-page) (nth 2 first-page)))))
 
-(defun which-key/maybe-replace-key-based (string keys)
-  (let* ((alist which-key-key-based-description-replacement-alist)
-         (str-res (assoc-string keys alist))
-         (mode-alist (assq major-mode alist))
-         (mode-res (when mode-alist (assoc-string keys mode-alist))))
-    (cond (mode-res (cdr mode-res))
-          (str-res (cdr str-res))
-          (t string))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Update
 
-(defun which-key/maybe-replace (string repl-alist &optional literal)
-  "Perform replacements on STRING.
-REPL-ALIST is an alist where the car of each element is the text
-to replace and the cdr is the replacement text. Unless LITERAL is
-non-nil regexp is used in the replacements."
-  (save-match-data
-    (let ((new-string string))
-      (dolist (repl repl-alist)
-        (when (string-match (car repl) new-string)
-          (setq new-string
-                (replace-match (cdr repl) t literal new-string))))
-      new-string)))
+(defun which-key/update ()
+  "Fill which-key--buffer with key descriptions and reformat.
+Finally, show the buffer."
+  (let ((prefix-keys (this-single-command-keys)))
+    ;; (when (> (length prefix-keys) 0)
+    ;;  (message "key: %s" (key-description prefix-keys)))
+    ;; (when (> (length prefix-keys) 0)
+    ;;  (message "key binding: %s" (key-binding prefix-keys)))
+    (when (and (> (length prefix-keys) 0)
+               (keymapp (key-binding prefix-keys)))
+      (let* ((buf (current-buffer))
+             ;; get formatted key bindings
+             (formatted-keys (which-key/get-formatted-key-bindings
+                              buf prefix-keys))
+             ;; populate target buffer
+             (popup-act-dim (which-key/populate-buffer
+                             (key-description prefix-keys)
+                             formatted-keys (window-width))))
+        ;; show buffer
+        (which-key/show-popup popup-act-dim)))))
 
-(defun which-key/propertize-key (key)
-  (let ((key-w-face (propertize key 'face 'which-key-key-face))
-        (regexp (concat "\\(" (mapconcat 'identity which-key-special-keys "\\|") "\\)")))
-    (save-match-data
-      (if (string-match regexp key)
-          (let ((beg (match-beginning 0)) (end (match-end 0)))
-            (concat (substring key-w-face 0 beg)
-                    (propertize (substring key-w-face beg (1+ beg))
-                                'face 'which-key-special-key-face)
-                    (substring key-w-face end (length key-w-face))))
-        key-w-face))))
+;; Timers
 
-(defsubst which-key/truncate-description (desc)
-  "Truncate DESC description to `which-key-max-description-length'."
-  (if (> (length desc) which-key-max-description-length)
-      (concat (substring desc 0 which-key-max-description-length) "..")
-    desc))
+(defun which-key/start-open-timer ()
+  "Activate idle timer."
+  (which-key/stop-open-timer) ; start over
+  (setq which-key--open-timer
+        (run-with-idle-timer which-key-idle-delay t 'which-key/update)))
 
-(defun which-key/format-and-replace (unformatted prefix-keys)
-  "Turn each key-desc-cons in UNFORMATTED into formatted
-strings (including text properties), and pad with spaces so that
-all are a uniform length. Replacements are performed using the
-key and description replacement alists."
-  (let ((max-key-width 0)) ;(max-desc-width 0)
-    ;; first replace and apply faces
-    (mapcar
-     (lambda (key-desc-cons)
-       (let* ((key (car key-desc-cons))
-              (desc (cdr key-desc-cons))
-              (keys (concat prefix-keys " " key))
-              (key (which-key/maybe-replace key which-key-key-replacement-alist))
-              (desc (which-key/maybe-replace desc which-key-description-replacement-alist))
-              (desc (which-key/maybe-replace-key-based desc keys))
-              (group (string-match-p "^group:" desc))
-              (desc (if group (substring desc 6) desc))
-              (prefix (string-match-p "^Prefix" desc))
-              (desc (if (or prefix group) (concat "+" desc) desc))
-              (desc-face (if (or prefix group)
-                             'which-key-group-description-face
-                           'which-key-command-description-face))
-              (desc (which-key/truncate-description desc))
-              (key-w-face (which-key/propertize-key key))
-              (desc-w-face (propertize desc 'face desc-face))
-              (key-width (length (substring-no-properties key-w-face))))
-         ;; (desc-width (length (substring-no-properties desc-w-face))))
-         (setq max-key-width (max key-width max-key-width))
-         ;; (setq max-desc-width (max desc-width max-desc-width))
-         (cons key-w-face desc-w-face)))
-     unformatted)))
-;; pad to max key-width and max desc-width
-
+(defun which-key/stop-open-timer ()
+  "Deactivate idle timer."
+  (when which-key--open-timer (cancel-timer which-key--open-timer)))
 (provide 'which-key)
 
 ;;; which-key.el ends here
