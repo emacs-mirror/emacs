@@ -524,7 +524,7 @@ of the intended popup."
    (if (member which-key-side-window-location '(left right))
        (which-key/total-width-to-text (which-key/width-or-percentage-to-width
                                        which-key-side-window-max-width))
-     (window-width (frame-root-window)))))
+     (frame-width))))
 
 (defun which-key/frame-max-dimensions ()
   (cons which-key-frame-max-height which-key-frame-max-width))
