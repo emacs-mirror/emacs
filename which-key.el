@@ -289,13 +289,11 @@ Finally, show the buffer."
                (keymapp (key-binding prefix-keys)))
       (let* ((buf (current-buffer))
              ;; get formatted key bindings
-             (fmt-width-cons (which-key/get-formatted-key-bindings buf prefix-keys))
-             (formatted-keys (car fmt-width-cons))
-             (column-width (cdr fmt-width-cons))
+             (formatted-keys (which-key/get-formatted-key-bindings buf prefix-keys))
              ;; populate target buffer
              (popup-act-dim
               (which-key/populate-buffer (key-description prefix-keys)
-                                         formatted-keys column-width (window-width))))
+                                         formatted-keys (window-width))))
         ;; show buffer
         (which-key/show-popup popup-act-dim)))))
 ;; command finished maybe close the window
@@ -547,80 +545,144 @@ of the intended popup."
               desc-match (match-string 2))
         (cl-pushnew (cons key-match desc-match) unformatted
                     :test (lambda (x y) (string-equal (car x) (car y))))))
-    (which-key/format-matches unformatted (key-description key))))
+    (which-key/format-and-replace unformatted (key-description key))))
 
-(defun which-key/create-page (prefix-len max-lines n-columns keys)
+(defun which-key/create-page-vertical (max-lines max-width key-cns)
   "Format KEYS into string representing a single page of text.
 N-COLUMNS is the number of text columns to use and MAX-LINES is
 the maximum number of lines availabel in the target buffer."
-  (let* ((n-keys (length keys))
-         (n-lines (min (ceiling (/ (float n-keys) n-columns)) max-lines))
-         (line-padding (when (eq which-key-show-prefix 'left)
-                         (s-repeat prefix-len " ")))
-         lines)
-    (dotimes (i n-lines)
-      (setq lines
-            (push (cl-subseq keys (* i n-columns)
-                        (min n-keys (* (1+ i) n-columns)))
-             lines)))
-    (mapconcat (lambda (x) (apply 'concat x))
-               (reverse lines) (concat "\n" line-padding))))
+  (let* ((n-keys (length key-cns))
+         ;; (line-padding (when (eq which-key-show-prefix 'left)
+         ;;                 (s-repeat prefix-len " ")))
+         (avl-lines max-lines)
+         (avl-width max-width)
+         (rem-key-cns key-cns)
+         (n-col-lines (min avl-lines n-keys))
+         (act-n-lines n-col-lines) ; n-col-lines in first column
+         (act-width 0)
+         (col-i 0)
+         (sep-w-face (propertize which-key-separator 'face 'which-key-separator-face))
+         col-key-cns col-key-width col-desc-width col-width col-split done
+         all-columns new-column page)
+    (while (not done)
+      (setq col-split      (-split-at n-col-lines rem-key-cns)
+            col-key-cns    (car col-split)
+            rem-key-cns    (cadr col-split)
+            n-col-lines    (min avl-lines (length rem-key-cns))
+            col-key-width  (reduce (lambda (x y)
+                                     (max x (length (substring-no-properties (car y)))))
+                                   col-key-cns :initial-value 0)
+            col-desc-width (reduce (lambda (x y)
+                                     (max x (length (substring-no-properties (cdr y)))))
+                                   col-key-cns :initial-value 0)
+            col-width      (+ 4 (length (substring-no-properties sep-w-face))
+                              col-key-width col-desc-width)
+            new-column     (mapcar
+                            (lambda (k)
+                              (concat (s-repeat (- col-key-width (length (substring-no-properties (car k)))) " ")
+                                      (car k) " " sep-w-face " " (cdr k)
+                                      (s-repeat (- col-desc-width (length (substring-no-properties (cdr k)))) " ")
+                                      "  "))
+                            col-key-cns))
+      (if (<= col-width avl-width)
+          (setq all-columns (push new-column all-columns)
+                act-width   (+ act-width col-width)
+                avl-width   (- avl-width col-width))
+        (setq done t))
+      (when (<= (length rem-key-cns) 0) (setq done t)))
+    (setq all-columns (reverse all-columns))
+    (dotimes (i act-n-lines)
+      (dotimes (j (length all-columns))
+        (setq page (concat page (nth i (nth j all-columns))
+                           (when (and (not (= i (- act-n-lines 1)))
+                                      (= j (- (length all-columns) 1))) "\n")))))
+    (list page act-n-lines act-width rem-key-cns)))
 
-(defun which-key/populate-buffer (prefix-keys formatted-keys
-                                  column-width sel-win-width)
+(defun which-key/create-page (vertical max-lines max-width key-cns)
+  (let* ((first-try (which-key/create-page-vertical max-lines max-width key-cns))
+         (n-rem-keys (length (nth 3 first-try)))
+         (next-try-lines max-lines)
+         prev-try prev-n-rem-keys next-try found)
+    (if (or vertical (> n-rem-keys 0) (= max-lines 1))
+        first-try
+      ;; do a simple search for now (TODO: Implement binary search)
+      (while (not found)
+        (setq prev-try next-try
+              next-try-lines (- next-try-lines 1)
+              next-try (which-key/create-page-vertical next-try-lines max-width key-cns)
+              n-rem-keys (length (nth 3 next-try))
+              found (or (= next-try-lines 1) (> n-rem-keys 0))))
+      prev-try)))
+
+;; start on binary search (not correct yet)
+;; n-rem-keys is 0, try to get a better fit
+;; (while (not found)
+;;   (setq next-try-lines (/ (+ minline maxline) 2)
+;;         next-try (which-key/create-page-vertical next-try-lines max-width key-cns)
+;;         n-rem-keys (length (nth 3 next-try)))
+;;   (if (= n-rem-keys 0)
+;;       ;; not far enough
+;;       (setq maxline (- next-try-lines 1))
+;;     ;; too far
+;;     (setq minline (+ next-try-lines 1))
+;;       )
+;;         next-try-lines (if (= n-rem-keys 0)
+;;                            (/ (+ next-try-lines 1) 2)
+;;                          (/ (+ max-lines next-try-lines) 2)))
+
+
+(defun which-key/populate-buffer (prefix-keys formatted-keys sel-win-width)
   "Insert FORMATTED-STRINGS into which-key buffer, breaking after BUFFER-WIDTH."
-  (let* ((vertical-mode (and (eq which-key-popup-type 'side-window)
-                             (member which-key-side-window-location '(left right))))
-         (prefix-w-face (which-key/propertize-key prefix-keys))
-         (prefix-len (+ 2 (length (substring-no-properties prefix-w-face))))
-         (prefix-string (when which-key-show-prefix
-                          (if (eq which-key-show-prefix 'left)
-                              (concat prefix-w-face "  ")
-                            (concat prefix-w-face "-\n"))))
+  (let* ((vertical (and (eq which-key-popup-type 'side-window)
+                        (member which-key-side-window-location '(left right))))
+         (which-key-show-prefix nil) ; kill prefix for now
+         ;; (prefix-w-face (which-key/propertize-key prefix-keys))
+         ;; (prefix-len (+ 2 (length (substring-no-properties prefix-w-face))))
+         ;; (prefix-string (when which-key-show-prefix
+         ;;                  (if (eq which-key-show-prefix 'left)
+         ;;                      (concat prefix-w-face "  ")
+         ;;                    (concat prefix-w-face "-\n"))))
+         (prefix-string nil)
          (n-keys (length formatted-keys))
          (max-dims (which-key/popup-max-dimensions sel-win-width))
          (max-height (when (car max-dims) (car max-dims)))
-         (max-width-for-columns (if (cdr max-dims)
-                                    (if (eq which-key-show-prefix 'left)
-                                        (- (cdr max-dims) prefix-len)
-                                      (cdr max-dims)) 0))
-         (n-columns (/ max-width-for-columns column-width)) ;; integer division
-         (n-columns (if vertical-mode
-                        ;; use up vertical space first if possible
-                        (min n-columns (ceiling (/ (float n-keys) max-height)))
-                      n-columns))
-         (act-width (+ (* n-columns column-width)
-                       (if (eq which-key-show-prefix 'left) prefix-len 0)))
+         (avl-width (if (cdr max-dims)
+                        (if (eq which-key-show-prefix 'left)
+                            (- (cdr max-dims) prefix-len)
+                          (cdr max-dims)) 0))
+         ;; (act-width (+ (* n-columns column-width)
+         ;;               (if (eq which-key-show-prefix 'left) prefix-len 0)))
          ;; (avl-lines/page (which-key/available-lines))
-         (max-keys/page (when max-height (* n-columns max-height)))
-         (n-pages (if (> max-keys/page 0)
-                      (ceiling (/ (float n-keys) max-keys/page)) 1))
-         pages act-height first-page)
-    (if (and (> n-keys 0) (> n-columns 0))
-        (progn
-          (dotimes (p n-pages)
-            (setq pages
-                  (push (which-key/create-page
-                         prefix-len max-height n-columns
-                         (cl-subseq formatted-keys (* p max-keys/page)
-                                    (min (* (1+ p) max-keys/page) n-keys))) pages)))
-          ;; not doing anything with other pages for now
-          (setq pages (reverse pages)
-                first-page (concat prefix-string (car pages))
-                act-height (1+ (s-count-matches "\n" first-page)))
-          ;; (when (> (length pages) 1) (setq first-page (concat first-page "...")))
-          (if (eq which-key-popup-type 'minibuffer)
-              (let (message-log-max) (message "%s" first-page))
-            (with-current-buffer which-key--buffer
-              (erase-buffer)
-              (insert first-page)
-              (goto-char (point-min))))
-          (cons act-height act-width))
-      (if (<= n-keys 0)
-          (message "Can't display which-key buffer: There are no keys to show.")
-        (message "Can't display which-key buffer: A minimum width of %s chars is required, but your settings only allow for %s chars." column-width max-width-for-columns)
-        )
-      (cons 0 act-width))))
+         ;; (max-keys/page (when max-height (* n-columns max-height)))
+         ;; (n-pages (if (> max-keys/page 0)
+         ;;              (ceiling (/ (float n-keys) max-keys/page)) 1))
+         (keys-rem formatted-keys)
+         (act-height 0)
+         (act-width 0)
+         pages first-page first-page-str page-res)
+    (while keys-rem
+      (setq page-res (which-key/create-page vertical max-height avl-width keys-rem)
+            pages (push page-res pages)
+            keys-rem (nth 3 page-res)))
+    ;; not doing anything with other pages for now
+    (setq pages (reverse pages)
+          first-page (car pages)
+          first-page-str (concat prefix-string (car first-page))
+          act-height (nth 1 first-page)
+          act-width (nth 2 first-page))
+    ;; (when (> (length pages) 1) (setq first-page (concat first-page "...")))
+    (if (eq which-key-popup-type 'minibuffer)
+        (let (message-log-max) (message "%s" first-page-str))
+      (with-current-buffer which-key--buffer
+        (erase-buffer)
+        (insert first-page-str)
+        (goto-char (point-min))))
+    (cons act-height act-width)))
+;; (if (<= n-keys 0)
+;;     (message "Can't display which-key buffer: There are no keys to show.")
+;;   (message "Can't display which-key buffer: A minimum width of %s chars is required, but your settings only allow for %s chars." column-width avl-width)
+;;   )
+;; (cons 0 act-width)))
 
 (defun which-key/maybe-replace-key-based (string keys)
   (let* ((alist which-key-key-based-description-replacement-alist)
@@ -662,51 +724,38 @@ non-nil regexp is used in the replacements."
       (concat (substring desc 0 which-key-max-description-length) "..")
     desc))
 
-(defun which-key/format-matches (unformatted prefix-keys)
+(defun which-key/format-and-replace (unformatted prefix-keys)
   "Turn each key-desc-cons in UNFORMATTED into formatted
 strings (including text properties), and pad with spaces so that
 all are a uniform length. Replacements are performed using the
 key and description replacement alists."
-  (let ((max-key-width 0)
-        (max-desc-width 0)
-        (sep-w-face (propertize which-key-separator 'face 'which-key-separator-face))
-        (sep-width (length which-key-separator))
-        after-replacements)
+  (let ((max-key-width 0)) ;(max-desc-width 0)
     ;; first replace and apply faces
-    (setq after-replacements
-          (mapcar
-           (lambda (key-desc-cons)
-             (let* ((key (car key-desc-cons))
-                    (desc (cdr key-desc-cons))
-                    (keys (concat prefix-keys " " key))
-                    (key (which-key/maybe-replace key which-key-key-replacement-alist))
-                    (desc (which-key/maybe-replace desc which-key-description-replacement-alist))
-                    (desc (which-key/maybe-replace-key-based desc keys))
-                    (group (string-match-p "^group:" desc))
-                    (desc (if group (substring desc 6) desc))
-                    (prefix (string-match-p "^Prefix" desc))
-                    (desc (if (or prefix group) (concat "+" desc) desc))
-                    (desc-face (if (or prefix group)
-                                   'which-key-group-description-face
-                                 'which-key-command-description-face))
-                    (desc (which-key/truncate-description desc))
-                    (key-w-face (which-key/propertize-key key))
-                    (desc-w-face (propertize desc 'face desc-face))
-                    (key-width (length (substring-no-properties key-w-face)))
-                    (desc-width (length (substring-no-properties desc-w-face))))
-               (setq max-key-width (max key-width max-key-width))
-               (setq max-desc-width (max desc-width max-desc-width))
-               (cons key-w-face desc-w-face)))
-           unformatted))
-    ;; pad to max key-width and max desc-width
-    (cons
-     (mapcar (lambda (x)
-               (concat (s-pad-left max-key-width " " (car x))
-                       " " sep-w-face " "
-                       (s-pad-right max-desc-width " " (cdr x))
-                       " "))
-             after-replacements)
-     (+ 3 max-key-width sep-width max-desc-width ))))
+    (mapcar
+     (lambda (key-desc-cons)
+       (let* ((key (car key-desc-cons))
+              (desc (cdr key-desc-cons))
+              (keys (concat prefix-keys " " key))
+              (key (which-key/maybe-replace key which-key-key-replacement-alist))
+              (desc (which-key/maybe-replace desc which-key-description-replacement-alist))
+              (desc (which-key/maybe-replace-key-based desc keys))
+              (group (string-match-p "^group:" desc))
+              (desc (if group (substring desc 6) desc))
+              (prefix (string-match-p "^Prefix" desc))
+              (desc (if (or prefix group) (concat "+" desc) desc))
+              (desc-face (if (or prefix group)
+                             'which-key-group-description-face
+                           'which-key-command-description-face))
+              (desc (which-key/truncate-description desc))
+              (key-w-face (which-key/propertize-key key))
+              (desc-w-face (propertize desc 'face desc-face))
+              (key-width (length (substring-no-properties key-w-face))))
+         ;; (desc-width (length (substring-no-properties desc-w-face))))
+         (setq max-key-width (max key-width max-key-width))
+         ;; (setq max-desc-width (max desc-width max-desc-width))
+         (cons key-w-face desc-w-face)))
+     unformatted)))
+;; pad to max key-width and max desc-width
 
 (provide 'which-key)
 
