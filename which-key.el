@@ -651,7 +651,7 @@ the maximum number of lines availabel in the target buffer."
         (setq page (concat page (nth i (nth j all-columns))
                            (if (not (= j (- n-columns 1))) " "
                              (when (not (= i (- act-n-lines 1))) "\n"))))))
-    (list page act-n-lines act-width rem-key-cns)))
+    (list page act-n-lines act-width rem-key-cns (- (length key-cns) (length rem-key-cns)))))
 
 (defun which-key/create-page (vertical max-lines max-width prefix-width key-cns)
   (let* ((first-try (which-key/create-page-vertical max-lines max-width prefix-width key-cns))
@@ -685,16 +685,18 @@ the maximum number of lines availabel in the target buffer."
          (prefix-width (if (eq which-key-show-prefix 'left) prefix-len 0))
          (avl-width (when (cdr max-dims) (- (cdr max-dims) prefix-width)))
          (keys-rem formatted-keys)
-         pages first-page first-page-str page-res)
+         keys-per-page pages first-page first-page-str page-res)
     (while keys-rem
       (setq page-res (which-key/create-page vertical max-height avl-width prefix-width keys-rem)
             pages (push page-res pages)
+            keys-per-page (push (if (nth 4 page-res) (nth 4 page-res) 0) keys-per-page)
             keys-rem (nth 3 page-res)))
     ;; not doing anything with other pages for now
-    (setq pages (reverse pages)
+    (setq keys-per-page (reverse keys-per-page)
+          pages (reverse pages)
           first-page (car pages)
           first-page-str (concat prefix-string (car first-page)))
-    (if (= 0 (length first-page-str))
+    (if (or (<= n-keys 0) (<= (car keys-per-page) 0))
         (progn
           (message "which-key can't show keys: The settings and/or frame size are too restrictive.")
           (cons 0 0))
