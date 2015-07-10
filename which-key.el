@@ -25,7 +25,7 @@
 (require 's)
 
 (defgroup which-key nil "Customization options for which-key-mode")
-(defcustom which-key-idle-delay 1
+(defcustom which-key-idle-delay 1.0
   "Delay (in seconds) for which-key buffer to popup."
   :group 'which-key
   :type 'float)
@@ -80,7 +80,7 @@ emacs-lisp-mode."
   "These keys will automatically be truncated to one character
 and have `which-key-special-key-face' applied to them."
   :group 'which-key
-  :type '(list string))
+  :type '(repeat string))
 (defcustom which-key-buffer-name "*which-key*"
   "Name of which-key buffer."
   :group 'which-key
@@ -90,23 +90,23 @@ and have `which-key-special-key-face' applied to them."
 Possible choices are left (the default), top and nil. Nil turns
 the feature off."
   :group 'which-key
-  :type '(radio (symbol :tag "Left of keys" left)
-                (symbol :tag "In first line" top)
+  :type '(radio (const :tag "Left of keys" left)
+                (const :tag "In first line" top)
                 (const  :tag "Hide" nil)))
 (defcustom which-key-popup-type 'minibuffer
   "Supported types are minibuffer, side-window and frame."
   :group 'which-key
-  :type '(radio (symbol :tag "Show in minibuffer" minibuffer)
-                (symbol :tag "Show in side window" side-window)
-                (symbol :tag "Show in popup frame" frame)))
+  :type '(radio (const :tag "Show in minibuffer" minibuffer)
+                (const :tag "Show in side window" side-window)
+                (const :tag "Show in popup frame" frame)))
 (defcustom which-key-side-window-location 'right
   "Location of which-key popup when `which-key-popup-type' is
 side-window.  Should be one of top, bottom, left or right."
   :group 'which-key
-  :type '(radio (symbol right)
-                (symbol bottom)
-                (symbol left)
-                (symbol top)))
+  :type '(radio (const right)
+                (const bottom)
+                (const left)
+                (const top)))
 (defcustom which-key-side-window-max-width 0.333
   "Maximum width of which-key popup when type is side-window and
 location is left or right.
