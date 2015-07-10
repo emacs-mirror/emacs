@@ -569,7 +569,8 @@ the maximum number of lines availabel in the target buffer."
 (defun which-key/populate-buffer (prefix-keys formatted-keys
                                   column-width sel-win-width)
   "Insert FORMATTED-STRINGS into which-key buffer, breaking after BUFFER-WIDTH."
-  (let* ((vertical-mode (member which-key-side-window-location '(left right)))
+  (let* ((vertical-mode (and (eq which-key-popup-type 'side-window)
+                             (member which-key-side-window-location '(left right))))
          (prefix-w-face (which-key/propertize-key prefix-keys))
          (prefix-len (+ 2 (length (substring-no-properties prefix-w-face))))
          (prefix-string (when which-key-show-prefix
