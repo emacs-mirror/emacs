@@ -283,8 +283,8 @@ bottom."
   "Fill which-key--buffer with key descriptions and reformat.
 Finally, show the buffer."
   (let ((prefix-keys (this-single-command-keys)))
-;;    (when (> (length prefix-keys) 0) (message "key: %s" (key-description prefix-keys)))
-;;    (when (> (length prefix-keys) 0) (message "key binding: %s" (key-binding prefix-keys)))
+    ;;    (when (> (length prefix-keys) 0) (message "key: %s" (key-description prefix-keys)))
+    ;;    (when (> (length prefix-keys) 0) (message "key binding: %s" (key-binding prefix-keys)))
     (when (and (> (length prefix-keys) 0)
                (keymapp (key-binding prefix-keys)))
       (let* ((buf (current-buffer))
@@ -516,7 +516,7 @@ of the intended popup."
    ;; height
    (if (member which-key-side-window-location '(left right))
        (- (frame-height) (window-text-height (minibuffer-window)) 1) ;; 1 is a kludge to make sure there is no overlap
-          ;; (window-mode-line-height which-key--window))
+     ;; (window-mode-line-height which-key--window))
      ;; FIXME: change to something like (min which-*-height (calculate-max-height))
      (which-key/height-or-percentage-to-height which-key-side-window-max-height))
    ;; width
@@ -657,8 +657,6 @@ the maximum number of lines availabel in the target buffer."
          ;; (n-pages (if (> max-keys/page 0)
          ;;              (ceiling (/ (float n-keys) max-keys/page)) 1))
          (keys-rem formatted-keys)
-         (act-height 0)
-         (act-width 0)
          pages first-page first-page-str page-res)
     (while keys-rem
       (setq page-res (which-key/create-page vertical max-height avl-width keys-rem)
@@ -667,17 +665,19 @@ the maximum number of lines availabel in the target buffer."
     ;; not doing anything with other pages for now
     (setq pages (reverse pages)
           first-page (car pages)
-          first-page-str (concat prefix-string (car first-page))
-          act-height (nth 1 first-page)
-          act-width (nth 2 first-page))
-    ;; (when (> (length pages) 1) (setq first-page (concat first-page "...")))
-    (if (eq which-key-popup-type 'minibuffer)
-        (let (message-log-max) (message "%s" first-page-str))
-      (with-current-buffer which-key--buffer
-        (erase-buffer)
-        (insert first-page-str)
-        (goto-char (point-min))))
-    (cons act-height act-width)))
+          first-page-str (concat prefix-string (car first-page)))
+    (if (= 0 (length first-page-str))
+        (progn
+          (message "which-key can't show keys: The settings and/or frame size are too restrictive.")
+          (cons 0 0))
+      ;; (when (> (length pages) 1) (setq first-page (concat first-page "...")))
+      (if (eq which-key-popup-type 'minibuffer)
+          (let (message-log-max) (message "%s" first-page-str))
+        (with-current-buffer which-key--buffer
+          (erase-buffer)
+          (insert first-page-str)
+          (goto-char (point-min))))
+      (cons (nth 1 first-page) (nth 2 first-page)))))
 ;; (if (<= n-keys 0)
 ;;     (message "Can't display which-key buffer: There are no keys to show.")
 ;;   (message "Can't display which-key buffer: A minimum width of %s chars is required, but your settings only allow for %s chars." column-width avl-width)
