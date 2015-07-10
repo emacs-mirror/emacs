@@ -6,7 +6,7 @@
 ;; URL: https://github.com/justbur/which-key/
 ;; Version: 0.1
 ;; Keywords:
-;; Package-Requires: ((emacs "24.3") (s "1.9.0"))
+;; Package-Requires: ((emacs "24.3") (s "1.9.0") (dash "2.11.0"))
 
 ;;; Commentary:
 ;;
@@ -23,6 +23,7 @@
 
 (require 'cl-lib)
 (require 's)
+(require 'dash)
 
 (defgroup which-key nil "Customization options for which-key-mode")
 (defcustom which-key-idle-delay 1
