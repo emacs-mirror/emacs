@@ -611,7 +611,7 @@ the maximum number of lines availabel in the target buffer."
               next-try-lines (- next-try-lines 1)
               next-try (which-key/create-page-vertical next-try-lines max-width key-cns)
               n-rem-keys (length (nth 3 next-try))
-              found (or (= next-try-lines 1) (> n-rem-keys 0))))
+              found (or (= next-try-lines 0) (> n-rem-keys 0))))
       prev-try)))
 
 ;; start on binary search (not correct yet)
