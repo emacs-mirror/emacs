@@ -619,7 +619,6 @@ the maximum number of lines availabel in the target buffer."
                                  'face 'which-key-separator-face))
          col-key-cns col-key-width col-desc-width col-width col-split done
          n-columns new-column page)
-    (message "ok")
     (while (not done)
       (setq col-split      (-split-at n-col-lines rem-key-cns)
             col-key-cns    (car col-split)
