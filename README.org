@@ -13,6 +13,9 @@ Rewrite of guide-key-mode for emacs.
      - [[#incomplete-and-planned][Incomplete and Planned]]
  - [[#special-features][Special Features]]
      - [[#several-popup-types][Several Popup Types]]
+         - [[#minibuffer][minibuffer]]
+         - [[#side-window][side window]]
+         - [[#frame][frame]]
      - [[#custom-string-replacement][Custom String Replacement]]
      - [[#nice-display-with-split-frame][Nice Display with Split Frame]]
 
@@ -95,7 +98,46 @@ Popup side window on bottom. For defaults use
 
 * Special Features
 ** Several Popup Types
-TODO...
+There are three different popup types that which-key can use to display the
+available keys. The variable =which-key-popup-type= decides which one is used.
+*** minibuffer
+#+BEGIN_SRC emacs-lisp
+(setq which-key-popup-type 'minibuffer)
+#+END_SRC
+Show keys in the minibuffer.
+*** side window
+#+BEGIN_SRC emacs-lisp
+(setq which-key-popup-type 'side-window)
+#+END_SRC
+Show keys in a side window. This popup type has further options:
+#+BEGIN_SRC emacs-lisp
+;; location of which-key window. valid values: top, bottom, left, right
+(setq which-key-side-window-location 'bottom)
+
+;; max width of which-key window, when displayed at left or right.
+;; valid values: number of columns (integer), or percentage out of current
+;; frame's width (float larger than 0 and smaller than 1)
+(setq which-key-side-window-max-width 0.33)
+
+;; max height of which-key window, when displayed at top or bottom.
+;; valid values: number of lines (integer), or percentage out of current
+;; frame's height (float larger than 0 and smaller than 1)
+(setq which-key-side-window-max-height 0.25)
+#+END_SRC
+*** frame
+#+BEGIN_SRC emacs-lisp
+(setq which-key-popup-type 'frame)
+#+END_SRC
+Show keys in a popup frame. This popup won't work very well in a terminal,
+where only one frame can be shown at any given moment. This popup type has
+further options:
+#+BEGIN_SRC emacs-lisp
+;; max width of which-key frame: number of columns (an integer)
+(setq which-key-frame-max-width 60)
+
+;; max height of which-key frame: number of lines (an integer)
+(setq which-key-frame-max-height 20)
+#+END_SRC
 ** Custom String Replacement
 TODO...
 ** Nice Display with Split Frame
