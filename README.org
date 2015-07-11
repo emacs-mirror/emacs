@@ -68,6 +68,11 @@ Popup side window on right. For defaults use
 (which-key/setup-side-window-right)
 #+END_SRC
 
+Note the defaults are fairly conservative and will tend to not display on
+narrower frames. If you get a message saying which-key can't display the keys,
+try making your frame wider or adjusting the defaults related to the maximum
+width (see =M-x customize-group which-key=).
+
 [[./img/which-key-right.png]]
 
 ** Side Window Bottom Option
