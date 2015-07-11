@@ -1,4 +1,20 @@
+* which-key
 Rewrite of guide-key-mode for emacs. 
+
+* Table of Contents                                                   :TOC@4:
+ - [[#which-key][which-key]]
+ - [[#install][Install]]
+     - [[#minibuffer-option][Minibuffer Option]]
+     - [[#side-window-right-option][Side Window Right Option]]
+     - [[#side-window-bottom-option][Side Window Bottom Option]]
+ - [[#statusgoals][Status/Goals]]
+     - [[#stability][Stability]]
+     - [[#completed-goals][Completed Goals]]
+     - [[#incomplete-and-planned][Incomplete and Planned]]
+ - [[#special-features][Special Features]]
+     - [[#several-popup-types][Several Popup Types]]
+     - [[#custom-string-replacement][Custom String Replacement]]
+     - [[#nice-display-with-split-frame][Nice Display with Split Frame]]
 
 * Install
 Add which-key.el to your =load-path= and require. Something like 
@@ -49,7 +65,6 @@ Popup side window on right. For defaults use
 
 [[./img/which-key-right.png]]
 
-
 ** Side Window Bottom Option
 Popup side window on bottom. For defaults use
 
@@ -58,7 +73,6 @@ Popup side window on bottom. For defaults use
 #+END_SRC
 
 [[./img/which-key-bottom.png]]
-
 
 * Status/Goals
 ** Stability
@@ -71,11 +85,24 @@ Popup side window on bottom. For defaults use
    where possible.
 3. Add support for replacement lists to modify key descriptions on the fly.
    Currently you can replace in the key or description field using regexp, and
-   using a key sequence (like ="C-x 1"=) to fully replace the description (the
+   using a key sequence (like =C-x 1=) to fully replace the description (the
    latter can target major modes, too).
 ** Incomplete and Planned
 1. Come up with creative ways to fit more keys in buffer while still maintaining
    nice alignment and formatting. Such as
    1. Automatic text scaling
-   2. Paging functionality 
+   2. Paging functionality
 
+* Special Features
+** Several Popup Types
+TODO...
+** Custom String Replacement
+TODO...
+** Nice Display with Split Frame
+Unlike guide-key, which-key looks good even if the frame is split into several
+windows.
+#+CAPTION: which-key in a frame with 3 horizontal splits
+[[./img/which-key-right-split.png]]
+
+#+CAPTION: which-key in a frame with 2 vertical splits
+[[./img/which-key-bottom-split.png]]
