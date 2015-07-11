@@ -7,17 +7,19 @@ Rewrite of guide-key-mode for emacs.
      - [[#minibuffer-option][Minibuffer Option]]
      - [[#side-window-right-option][Side Window Right Option]]
      - [[#side-window-bottom-option][Side Window Bottom Option]]
- - [[#statusgoals][Status/Goals]]
-     - [[#stability][Stability]]
-     - [[#completed-goals][Completed Goals]]
-     - [[#incomplete-and-planned][Incomplete and Planned]]
- - [[#special-features][Special Features]]
+ - [[#special-features-and-configuration-options][Special Features and Configuration Options]]
      - [[#several-popup-types][Several Popup Types]]
          - [[#minibuffer][minibuffer]]
          - [[#side-window][side window]]
          - [[#frame][frame]]
      - [[#custom-string-replacement][Custom String Replacement]]
+         - [[#key-based-replacement]["Key-Based" replacement]]
+         - [[#key-and-description-replacement][Key and Description replacement]]
      - [[#nice-display-with-split-frame][Nice Display with Split Frame]]
+ - [[#statusgoals][Status/Goals]]
+     - [[#stability][Stability]]
+     - [[#completed-goals][Completed Goals]]
+     - [[#incomplete-and-planned][Incomplete and Planned]]
 
 * Install
 Add which-key.el to your =load-path= and require. Something like 
@@ -77,26 +79,7 @@ Popup side window on bottom. For defaults use
 
 [[./img/which-key-bottom.png]]
 
-* Status/Goals
-** Stability
-- It's very much a work in progress, so expect weird things to happen from time
-  to time. That being said, the default configuration works well for me.
-** Completed Goals
-1. Use idle timers to trigger window popup instead of guide-key's constant
-   polling.
-2. Remove popwin as a "hard" dependency, prefering built-in display commands
-   where possible.
-3. Add support for replacement lists to modify key descriptions on the fly.
-   Currently you can replace in the key or description field using regexp, and
-   using a key sequence (like =C-x 1=) to fully replace the description (the
-   latter can target major modes, too).
-** Incomplete and Planned
-1. Come up with creative ways to fit more keys in buffer while still maintaining
-   nice alignment and formatting. Such as
-   1. Automatic text scaling
-   2. Paging functionality
-
-* Special Features
+* Special Features and Configuration Options
 ** Several Popup Types
 There are three different popup types that which-key can use to display the
 available keys. The variable =which-key-popup-type= decides which one is used.
@@ -139,7 +122,63 @@ further options:
 (setq which-key-frame-max-height 20)
 #+END_SRC
 ** Custom String Replacement
-TODO...
+You can customize the way the keys show in the buffer using three different
+replacement methods, each of which corresponds replacement alist. The basic idea
+of behind each alist is that you specify a selection string in the =car= of each
+cons cell and the replacement string in the =cdr=.
+
+*** "Key-Based" replacement
+The relevant variable is the awkwardly named
+=which-key-key-based-description-replacement-alist=. In this alist you can have
+cons cells of two types. An example of the first type is
+
+#+BEGIN_SRC emacs-lisp
+("C-x C-f" . "find files")
+#+END_SRC
+
+where the string on the left is the key combination whose description you want
+to replace. For that key combination, which-key overwrites the description with
+the second string, "find files". In the second type of entry you can restrict
+the replacements to a major-mode. For example, 
+
+#+BEGIN_SRC emacs-lisp
+(org-mode . '(("C-c C-c" . "Org C-c C-c") ("C-c C-a" . "Org Attach"))
+#+END_SRC
+
+Here the first entry is the major-mode and the second is a list of the first
+type of entries. In case the same key combination is listed under a major-mode
+and by itself, the major-mode version will take precedence.
+
+There are two helper functions to add entries to this list,
+=which-key/add-key-based-replacements= and
+=which-key/add-major-mode-key-based-replacements=. You can modify the alist
+directly or use these.
+
+*** Key and Description replacement
+The second and third methods target the text used for the keys and the
+descriptions directly. The relevant variables are
+=which-key-key-replacement-alist= and =which-key-description-replacement-alist=.
+Here's an example of one of the default key replacements
+
+#+BEGIN_SRC emacs-lisp
+("<\\(\\(C-\\|M-\\)*.+\\)>" . "\\1")
+#+END_SRC
+
+The =car= takes a string which may use emacs regexp and the =cdr= takes a string
+with the replacement text. As shown, you can specify a sub-expression of the
+match. The replacements do not need to use regexp and can be as simple as
+
+#+BEGIN_SRC emacs-lisp
+("left" . "lft")
+#+END_SRC
+
+You can add this element to the key list with (there are no helper functions for
+these alists)
+
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'which-key-key-replacement-alist '("left" . "lft"))
+#+END_SRC
+
 ** Nice Display with Split Frame
 Unlike guide-key, which-key looks good even if the frame is split into several
 windows.
@@ -148,3 +187,22 @@ windows.
 
 #+CAPTION: which-key in a frame with 2 vertical splits
 [[./img/which-key-bottom-split.png]]
+
+* Status/Goals
+** Stability
+It's very much a work in progress, so expect weird things to happen from time to
+time. That being said, the default configuration works well for me.
+** Completed Goals
+1. Use idle timers to trigger window popup instead of guide-key's constant
+   polling.
+2. Remove popwin as a "hard" dependency, preferring built-in display commands
+   where possible.
+3. Add support for replacement lists to modify key descriptions on the fly.
+   Currently you can replace in the key or description field using regexp, and
+   using a key sequence (like =C-x 1=) to fully replace the description (the
+   latter can target major modes, too).
+** Incomplete and Planned
+1. Come up with creative ways to fit more keys in buffer while still maintaining
+   nice alignment and formatting. Such as
+   1. Automatic text scaling
+   2. Paging functionality
