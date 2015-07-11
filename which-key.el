@@ -617,10 +617,13 @@ the maximum number of lines availabel in the target buffer."
          (act-width prefix-width)
          (sep-w-face (propertize which-key-separator
                                  'face 'which-key-separator-face))
+         (max-iter 100)
+         (iter-n 0)
          col-key-cns col-key-width col-desc-width col-width col-split done
          n-columns new-column page)
-    (while (not done)
-      (setq col-split      (-split-at n-col-lines rem-key-cns)
+    (while (and (<= iter-n max-iter) (not done))
+      (setq iter-n         (1+ iter-n)
+            col-split      (-split-at n-col-lines rem-key-cns)
             col-key-cns    (car col-split)
             rem-key-cns    (cadr col-split)
             n-col-lines    (min avl-lines (length rem-key-cns))
@@ -657,12 +660,15 @@ the maximum number of lines availabel in the target buffer."
   (let* ((first-try (which-key/create-page-vertical max-lines max-width prefix-width key-cns))
          (n-rem-keys (length (nth 3 first-try)))
          (next-try-lines max-lines)
+         (iter-n 0)
+         (max-iter max-lines)
          prev-try prev-n-rem-keys next-try found)
     (if (or vertical (> n-rem-keys 0) (= max-lines 1))
         first-try
       ;; do a simple search for now (TODO: Implement binary search)
-      (while (not found)
-        (setq prev-try next-try
+      (while (and (<= iter-n max-iter) (not found))
+        (setq iter-n (1+ iter-n)
+              prev-try next-try
               next-try-lines (- next-try-lines 1)
               next-try (which-key/create-page-vertical next-try-lines max-width prefix-width key-cns)
               n-rem-keys (length (nth 3 next-try))
@@ -685,9 +691,12 @@ the maximum number of lines availabel in the target buffer."
          (prefix-width (if (eq which-key-show-prefix 'left) prefix-len 0))
          (avl-width (when (cdr max-dims) (- (cdr max-dims) prefix-width)))
          (keys-rem formatted-keys)
+         (max-iter (+ 1 n-keys))
+         (iter-n 0)
          keys-per-page pages first-page first-page-str page-res)
-    (while keys-rem
-      (setq page-res (which-key/create-page vertical max-height avl-width prefix-width keys-rem)
+    (while (and (<= iter-n max-iter) keys-rem)
+      (setq iter-n (1+ iter-n)
+            page-res (which-key/create-page vertical max-height avl-width prefix-width keys-rem)
             pages (push page-res pages)
             keys-per-page (push (if (nth 4 page-res) (nth 4 page-res) 0) keys-per-page)
             keys-rem (nth 3 page-res)))
