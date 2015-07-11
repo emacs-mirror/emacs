@@ -55,7 +55,8 @@ in the first example."
   :group 'which-key
   :type '(alist :key-type regexp :value-type string))
 (defcustom which-key-description-replacement-alist
-  '(("Prefix Command" . "prefix") (".+/\\(.+\\)" . "\\1"))
+  '(("Prefix Command" . "prefix") (".+/\\(.+\\)" . "\\1")
+    ("select-window-\\([1-9]\\)" . "Window \\1"))
   "See `which-key-key-replacement-alist'. This is a list of lists
 for replacing descriptions. The second one removes \"namespace/\"
 from \"namespace/function\". This is a convention for naming
