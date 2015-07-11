@@ -622,10 +622,13 @@ the maximum number of lines availabel in the target buffer."
                                  (if (> i 1) (s-repeat prefix-width " ") ""))
                                      (number-sequence 1 n-col-lines))))
          (act-width prefix-width)
+         (max-iter 100)
+         (iter-n 0)
          col-keys col-key-width col-desc-width col-width col-split done
          n-columns new-column page col-sep-width prev-rem-keys)
-    (while (not done)
-      (setq col-split      (-split-at n-col-lines rem-keys)
+    (while (and (<= iter-n max-iter) (not done))
+      (setq iter-n         (1+ iter-n)
+            col-split      (-split-at n-col-lines rem-keys)
             col-keys       (car col-split)
             prev-rem-keys  rem-keys
             rem-keys       (cadr col-split)
@@ -666,6 +669,8 @@ the maximum number of lines availabel in the target buffer."
          (n-rem-keys (length (nth 3 first-try)))
          (status-key-i (- n-keys n-rem-keys 1))
          (next-try-lines max-lines)
+         (iter-n 0)
+         (max-iter max-lines)
          prev-try prev-n-rem-keys next-try found status-key)
     (cond ((and (> n-rem-keys 0) use-status-key)
            (setq status-key
@@ -676,8 +681,9 @@ the maximum number of lines availabel in the target buffer."
                                            max-lines max-width prefix-width))
           ((or vertical (> n-rem-keys 0) (= 1 max-lines)) first-try)
           ;; do a simple search for now (TODO: Implement binary search)
-          (t (while (not found)
-               (setq prev-try next-try
+          (t (while (and (<= iter-n max-iter) (not found))
+               (setq iter-n (1+ iter-n)
+                     prev-try next-try
                      next-try-lines (- next-try-lines 1)
                      next-try (which-key/create-page-vertical
                                keys next-try-lines max-width prefix-width)
@@ -701,9 +707,10 @@ the maximum number of lines availabel in the target buffer."
          (prefix-width (if (eq which-key-show-prefix 'left) prefix-len 0))
          (avl-width (when (cdr max-dims) (- (cdr max-dims) prefix-width)))
          (keys-rem formatted-keys)
+         (max-pages (+ 1 (length keys-rem)))
          (page-n 0)
          keys-per-page pages first-page first-page-str page-res)
-    (while keys-rem
+    (while (and (<= page-n max-pages) keys-rem)
       (setq page-n (1+ page-n)
             page-res (which-key/create-page keys-rem
                                             max-lines avl-width prefix-width
