@@ -1,4 +1,23 @@
+* which-key
 Rewrite of guide-key-mode for emacs. 
+
+* Table of Contents                                                   :TOC@4:
+ - [[#which-key][which-key]]
+ - [[#install][Install]]
+     - [[#minibuffer-option][Minibuffer Option]]
+     - [[#side-window-right-option][Side Window Right Option]]
+     - [[#side-window-bottom-option][Side Window Bottom Option]]
+ - [[#statusgoals][Status/Goals]]
+     - [[#stability][Stability]]
+     - [[#completed-goals][Completed Goals]]
+     - [[#incomplete-and-planned][Incomplete and Planned]]
+ - [[#special-features][Special Features]]
+     - [[#several-popup-types][Several Popup Types]]
+         - [[#minibuffer][minibuffer]]
+         - [[#side-window][side window]]
+         - [[#frame][frame]]
+     - [[#custom-string-replacement][Custom String Replacement]]
+     - [[#nice-display-with-split-frame][Nice Display with Split Frame]]
 
 * Install
 Add which-key.el to your =load-path= and require. Something like 
@@ -49,7 +68,6 @@ Popup side window on right. For defaults use
 
 [[./img/which-key-right.png]]
 
-
 ** Side Window Bottom Option
 Popup side window on bottom. For defaults use
 
@@ -58,7 +76,6 @@ Popup side window on bottom. For defaults use
 #+END_SRC
 
 [[./img/which-key-bottom.png]]
-
 
 * Status/Goals
 ** Stability
@@ -71,11 +88,63 @@ Popup side window on bottom. For defaults use
    where possible.
 3. Add support for replacement lists to modify key descriptions on the fly.
    Currently you can replace in the key or description field using regexp, and
-   using a key sequence (like ="C-x 1"=) to fully replace the description (the
+   using a key sequence (like =C-x 1=) to fully replace the description (the
    latter can target major modes, too).
 ** Incomplete and Planned
 1. Come up with creative ways to fit more keys in buffer while still maintaining
    nice alignment and formatting. Such as
    1. Automatic text scaling
-   2. Paging functionality 
+   2. Paging functionality
 
+* Special Features
+** Several Popup Types
+There are three different popup types that which-key can use to display the
+available keys. The variable =which-key-popup-type= decides which one is used.
+*** minibuffer
+#+BEGIN_SRC emacs-lisp
+(setq which-key-popup-type 'minibuffer)
+#+END_SRC
+Show keys in the minibuffer.
+*** side window
+#+BEGIN_SRC emacs-lisp
+(setq which-key-popup-type 'side-window)
+#+END_SRC
+Show keys in a side window. This popup type has further options:
+#+BEGIN_SRC emacs-lisp
+;; location of which-key window. valid values: top, bottom, left, right
+(setq which-key-side-window-location 'bottom)
+
+;; max width of which-key window, when displayed at left or right.
+;; valid values: number of columns (integer), or percentage out of current
+;; frame's width (float larger than 0 and smaller than 1)
+(setq which-key-side-window-max-width 0.33)
+
+;; max height of which-key window, when displayed at top or bottom.
+;; valid values: number of lines (integer), or percentage out of current
+;; frame's height (float larger than 0 and smaller than 1)
+(setq which-key-side-window-max-height 0.25)
+#+END_SRC
+*** frame
+#+BEGIN_SRC emacs-lisp
+(setq which-key-popup-type 'frame)
+#+END_SRC
+Show keys in a popup frame. This popup won't work very well in a terminal,
+where only one frame can be shown at any given moment. This popup type has
+further options:
+#+BEGIN_SRC emacs-lisp
+;; max width of which-key frame: number of columns (an integer)
+(setq which-key-frame-max-width 60)
+
+;; max height of which-key frame: number of lines (an integer)
+(setq which-key-frame-max-height 20)
+#+END_SRC
+** Custom String Replacement
+TODO...
+** Nice Display with Split Frame
+Unlike guide-key, which-key looks good even if the frame is split into several
+windows.
+#+CAPTION: which-key in a frame with 3 horizontal splits
+[[./img/which-key-right-split.png]]
+
+#+CAPTION: which-key in a frame with 2 vertical splits
+[[./img/which-key-bottom-split.png]]
