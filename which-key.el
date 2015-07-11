@@ -47,6 +47,12 @@ popup."
   "Separator to use between key and description."
   :group 'which-key
   :type 'string)
+(defcustom which-key-unicode-correction 0
+  "Correction for wide unicode characters. Set to a positive
+number to adjust width of columns in case which-key is cutting
+off text on the right side of the window."
+  :group 'which-key
+  :type 'integer)
 (defcustom which-key-key-replacement-alist
   '(("<\\(\\(C-\\|M-\\)*.+\\)>" . "\\1") ("left" . "←") ("right" . "→"))
   "The strings in the car of each cons are replaced with the
@@ -712,7 +718,8 @@ the maximum number of lines availabel in the target buffer."
          (max-dims (which-key/popup-max-dimensions sel-win-width))
          (max-lines (when (car max-dims) (car max-dims)))
          (prefix-width (if (eq which-key-show-prefix 'left) prefix-len 0))
-         (avl-width (when (cdr max-dims) (- (cdr max-dims) prefix-width)))
+         (avl-width (when (cdr max-dims) (- (cdr max-dims)
+                                            prefix-width which-key-unicode-correction)))
          (keys-rem formatted-keys)
          (max-pages (+ 1 (length formatted-keys)))
          (page-n 0)
