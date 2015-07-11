@@ -620,7 +620,7 @@ the maximum number of lines availabel in the target buffer."
          (all-columns (list
                        (mapcar (lambda (i)
                                  (if (> i 1) (s-repeat prefix-width " ") ""))
-                                     (number-sequence 1 n-col-lines))))
+                               (number-sequence 1 n-col-lines))))
          (act-width prefix-width)
          (max-iter 100)
          (iter-n 0)
@@ -709,32 +709,40 @@ the maximum number of lines availabel in the target buffer."
          (keys-rem formatted-keys)
          (max-pages (+ 1 (length keys-rem)))
          (page-n 0)
-         keys-per-page pages first-page first-page-str page-res)
-    (while (and (<= page-n max-pages) keys-rem)
+         keys-per-page pages first-page first-page-str page-res no-room
+         max-pages-reached)
+    (while (and keys-rem (not max-pages-reached) (not no-room))
       (setq page-n (1+ page-n)
             page-res (which-key/create-page keys-rem
                                             max-lines avl-width prefix-width
                                             vertical use-status-key page-n)
             pages (push page-res pages)
             keys-per-page (push (if (nth 4 page-res) (nth 4 page-res) 0) keys-per-page)
-            keys-rem (nth 3 page-res)))
+            keys-rem (nth 3 page-res)
+            no-room (and (= page-n 1) (= (car keys-per-page) 0))
+            max-pages-reached (>= page-n max-pages)))
     ;; not doing anything with other pages for now
     (setq keys-per-page (reverse keys-per-page)
           pages (reverse pages)
           first-page (car pages)
           first-page-str (concat prefix-string (car first-page)))
-    (if (or (= (length formatted-keys) 0) (<= (car keys-per-page) 0))
-        (progn
-          (message "which-key can't show keys: The settings and/or frame size are too restrictive.")
-          (cons 0 0))
-      ;; (when (> (length pages) 1) (setq first-page (concat first-page "...")))
-      (if (eq which-key-popup-type 'minibuffer)
-          (let (message-log-max) (message "%s" first-page-str))
-        (with-current-buffer which-key--buffer
-          (erase-buffer)
-          (insert first-page-str)
-          (goto-char (point-min))))
-      (cons (nth 1 first-page) (nth 2 first-page)))))
+    (cond (no-room
+           (message "which-key can't show keys: The settings and/or frame size are too restrictive.")
+           (cons 0 0))
+          (max-pages-reached
+           (error "which-key reached the maximum number of pages")
+           (cons 0 0))
+          ((<= (length formatted-keys) 0)
+           (message "No keys to display")
+           (cons 0 0))
+          (t
+           (if (eq which-key-popup-type 'minibuffer)
+               (let (message-log-max) (message "%s" first-page-str))
+             (with-current-buffer which-key--buffer
+               (erase-buffer)
+               (insert first-page-str)
+               (goto-char (point-min))))
+           (cons (nth 1 first-page) (nth 2 first-page))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Update
