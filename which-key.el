@@ -674,7 +674,7 @@ the maximum number of lines availabel in the target buffer."
                                 'face 'font-lock-comment-face)))
            (which-key/create-page-vertical (-insert-at status-key-i status-key keys)
                                            max-lines max-width prefix-width))
-          ((or (> n-rem-keys 0) (= 1 max-lines)) first-try)
+          ((or vertical (> n-rem-keys 0) (= 1 max-lines)) first-try)
           ;; do a simple search for now (TODO: Implement binary search)
           (t (while (not found)
                (setq prev-try next-try
