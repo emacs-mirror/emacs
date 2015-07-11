@@ -142,7 +142,7 @@ the second string, "find files". In the second type of entry you can restrict
 the replacements to a major-mode. For example, 
 
 #+BEGIN_SRC emacs-lisp
-(org-mode . '(("C-c C-c" . "Org C-c C-c") ("C-c C-a" . "Org Attach"))
+(org-mode . (("C-c C-c" . "Org C-c C-c") ("C-c C-a" . "Org Attach"))
 #+END_SRC
 
 Here the first entry is the major-mode and the second is a list of the first
