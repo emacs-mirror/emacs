@@ -130,6 +130,12 @@ a percentage out of the frame's height."
   "Maximum height of which-key popup when type is frame."
   :group 'which-key
   :type 'integer)
+(defcustom which-key-show-page-number t
+  "Show page number and remaining keys in last slot, when keys
+are hidden?"
+  :group 'which-key
+  :type '(radio (const :tag "Yes" t)
+                (const :tag "No" nil)))
 
 ;; Faces
 (defface which-key-key-face
@@ -632,7 +638,7 @@ the maximum number of lines availabel in the target buffer."
             col-keys       (car col-split)
             prev-rem-keys  rem-keys
             rem-keys       (cadr col-split)
-            n-col-lines    (min avl-lines (length col-keys))
+            n-col-lines    (min avl-lines (length rem-keys))
             col-key-width  (which-key//max-len col-keys 0)
             col-sep-width  (which-key//max-len col-keys 1)
             col-desc-width (which-key//max-len col-keys 2)
@@ -670,17 +676,18 @@ the maximum number of lines availabel in the target buffer."
          (status-key-i (- n-keys n-rem-keys 1))
          (next-try-lines max-lines)
          (iter-n 0)
-         (max-iter max-lines)
+         (max-iter (+ 1 max-lines))
          prev-try prev-n-rem-keys next-try found status-key)
     (cond ((and (> n-rem-keys 0) use-status-key)
            (setq status-key
                  (cons 'status (propertize
-                                (format "Page %s (%s not shown)" page-n (1+ n-rem-keys))
+                                (format "%s keys not shown" (1+ n-rem-keys))
                                 'face 'font-lock-comment-face)))
            (which-key/create-page-vertical (-insert-at status-key-i status-key keys)
                                            max-lines max-width prefix-width))
-          ((or vertical (> n-rem-keys 0) (= 1 max-lines)) first-try)
-          ;; do a simple search for now (TODO: Implement binary search)
+          ((or vertical (> n-rem-keys 0) (= 1 max-lines))
+           first-try)
+          ;; do a simple search for the smallest number of lines (TODO: Implement binary search)
           (t (while (and (<= iter-n max-iter) (not found))
                (setq iter-n (1+ iter-n)
                      prev-try next-try
@@ -695,7 +702,6 @@ the maximum number of lines availabel in the target buffer."
   "Insert FORMATTED-STRINGS into which-key buffer, breaking after BUFFER-WIDTH."
   (let* ((vertical (and (eq which-key-popup-type 'side-window)
                         (member which-key-side-window-location '(left right))))
-         (use-status-key t)
          (prefix-w-face (which-key/propertize-key prefix-keys))
          (prefix-len (+ 2 (length (substring-no-properties prefix-w-face))))
          (prefix-string (when which-key-show-prefix
@@ -715,11 +721,11 @@ the maximum number of lines availabel in the target buffer."
       (setq page-n (1+ page-n)
             page-res (which-key/create-page keys-rem
                                             max-lines avl-width prefix-width
-                                            vertical use-status-key page-n)
+                                            vertical which-key-show-page-number page-n)
             pages (push page-res pages)
             keys-per-page (push (if (nth 4 page-res) (nth 4 page-res) 0) keys-per-page)
             keys-rem (nth 3 page-res)
-            no-room (and (= page-n 1) (= (car keys-per-page) 0))
+            no-room (<= (car keys-per-page) 0)
             max-pages-reached (>= page-n max-pages)))
     ;; not doing anything with other pages for now
     (setq keys-per-page (reverse keys-per-page)
@@ -730,10 +736,10 @@ the maximum number of lines availabel in the target buffer."
            (message "which-key can't show keys: The settings and/or frame size are too restrictive.")
            (cons 0 0))
           (max-pages-reached
-           (error "which-key reached the maximum number of pages")
+           (error "error: which-key reached the maximum number of pages")
            (cons 0 0))
           ((<= (length formatted-keys) 0)
-           (message "No keys to display")
+           (error "error: which-key: no keys to display")
            (cons 0 0))
           (t
            (if (eq which-key-popup-type 'minibuffer)
