@@ -80,6 +80,8 @@ Popup side window on bottom. For defaults use
 [[./img/which-key-bottom.png]]
 
 * Special Features and Configuration Options
+There are more options than the ones described here. All of the configurable
+variables are available through =M-x customize-group which-key=.
 ** Several Popup Types
 There are three different popup types that which-key can use to display the
 available keys. The variable =which-key-popup-type= decides which one is used.
