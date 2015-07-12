@@ -3,20 +3,15 @@
 ;; Copyright (C) 2015 Justin Burkett
 
 ;; Author: Justin Burkett <justin@burkett.cc>
-;; URL: https://github.com/justbur/which-key/
+;; URL: https://github.com/justbur/which-key
 ;; Version: 0.1
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3") (s "1.9.0") (dash "2.11.0"))
 
 ;;; Commentary:
 ;;
-;;  This is a rewrite of guide-key https://github.com/kai2nenobu/guide-key
-;;  with the following goals:
-;;
-;;    1. Remove polling function for performance reasons
-;;    2. Try to simplify code as much as possible
-;;    3. Switch away from using popwin (planned)
-;;    4. Add replacement strings to create "aliases" for functions.
+;;  This is a rewrite of guide-key https://github.com/kai2nenobu/guide-key. See
+;;  https://github.com/justbur/which-key for more information.
 ;;
 
 ;;; Code:
