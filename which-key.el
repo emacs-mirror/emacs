@@ -42,7 +42,7 @@ Also adds \"..\"."
   "Separator to use between key and description."
   :group 'which-key
   :type 'string)
-(defcustom which-key-unicode-correction 0
+(defcustom which-key-unicode-correction 1
   "Correction for wide unicode characters.
 Set to a positive number to adjust width of columns in case
 which-key is cutting off text on the right side of the window."
