@@ -32,15 +32,15 @@
   :type 'float)
 (defcustom which-key-echo-keystrokes
   (min echo-keystrokes (/ (float which-key-idle-delay) 4))
-  "Value to use for echo-keystrokes. This only applies when
-`which-key-popup-type' is minibuffer. It needs to be less than
-`which-key-idle-delay' or else the echo will erase the which-key
-popup."
+  "Value to use for `echo-keystrokes'.
+This only applies when `which-key-popup-type' is minibuffer.  It
+needs to be less than `which-key-idle-delay' or else the echo
+will erase the which-key popup."
   :group 'which-key
   :type 'float)
 (defcustom which-key-max-description-length 27
-  "Truncate the description of keys to this length.  Also adds
-\"..\"."
+  "Truncate the description of keys to this length.
+Also adds \"..\"."
   :group 'which-key
   :type 'integer)
 (defcustom which-key-separator "→"
@@ -48,33 +48,33 @@ popup."
   :group 'which-key
   :type 'string)
 (defcustom which-key-unicode-correction 0
-  "Correction for wide unicode characters. Set to a positive
-number to adjust width of columns in case which-key is cutting
-off text on the right side of the window."
+  "Correction for wide unicode characters.
+Set to a positive number to adjust width of columns in case
+which-key is cutting off text on the right side of the window."
   :group 'which-key
   :type 'integer)
 (defcustom which-key-key-replacement-alist
   '(("<\\(\\(C-\\|M-\\)*.+\\)>" . "\\1") ("left" . "←") ("right" . "→"))
   "The strings in the car of each cons are replaced with the
-strings in the cdr for each key. Elisp regexp can be used as
+strings in the cdr for each key.  Elisp regexp can be used as
 in the first example."
   :group 'which-key
   :type '(alist :key-type regexp :value-type string))
 (defcustom which-key-description-replacement-alist
   '(("Prefix Command" . "prefix") (".+/\\(.+\\)" . "\\1")
     ("select-window-\\([1-9]\\)" . "Window \\1"))
-  "See `which-key-key-replacement-alist'. This is a list of lists
-for replacing descriptions. The second one removes \"namespace/\"
-from \"namespace/function\". This is a convention for naming
-functions but not a rule, so remove this replacement if it
-becomes problematic."
+  "See `which-key-key-replacement-alist'.
+This is a list of lists for replacing descriptions.  The second
+one removes \"namespace/\" from \"namespace/function\".  This is a
+convention for naming functions but not a rule, so remove this
+replacement if it becomes problematic."
   :group 'which-key
   :type '(alist :key-type regexp :value-type string))
 (defcustom which-key-key-based-description-replacement-alist '()
-  "Each item in the list is a cons cell. The car of each cons
-cell is either a string like \"C-c\", in which case it's
-interpreted as a key sequence or a value of `major-mode'. Here
-are two examples:
+  "Each item in the list is a cons cell.
+The car of each cons cell is either a string like \"C-c\", in
+which case it's interpreted as a key sequence or a value of
+`major-mode'.  Here are two examples:
 
 (\"SPC f f\" . \"find files\")
 (emacs-lisp-mode . ((\"SPC m d\" . \"debug\")))
@@ -95,7 +95,7 @@ and have `which-key-special-key-face' applied to them."
   :type 'string)
 (defcustom which-key-show-prefix 'left
   "Whether to and where to display the current prefix sequence.
-Possible choices are left (the default), top and nil. Nil turns
+Possible choices are left (the default), top and nil.  Nil turns
 the feature off."
   :group 'which-key
   :type '(radio (const :tag "Left of keys" left)
@@ -137,9 +137,8 @@ a percentage out of the frame's height."
   "Maximum height of which-key popup when type is frame."
   :group 'which-key
   :type 'integer)
-(defcustom which-key-show-page-number t
-  "Show page number and remaining keys in last slot, when keys
-are hidden?"
+(defcustom which-key-show-remaining-keys t
+  "Show remaining keys in last slot, when keys are hidden."
   :group 'which-key
   :type '(radio (const :tag "Yes" t)
                 (const :tag "No" nil)))
@@ -180,7 +179,7 @@ are hidden?"
   "Internal: Holds reference to which-key frame.
 Used when `which-key-popup-type' is frame.")
 (defvar which-key--echo-keystrokes-backup echo-keystrokes
-  "Internal: Backup the initial value of echo-keystrokes.")
+  "Internal: Backup the initial value of `echo-keystrokes'.")
 
 ;;;###autoload
 (define-minor-mode which-key-mode
@@ -353,21 +352,26 @@ total height."
 ;; Show/hide guide buffer
 
 (defun which-key/hide-popup ()
+  "This function is called to hide the which-key buffer."
   (cl-case which-key-popup-type
     (minibuffer (which-key/hide-buffer-minibuffer))
     (side-window (which-key/hide-buffer-side-window))
     (frame (which-key/hide-buffer-frame))))
 
 (defun which-key/hide-buffer-minibuffer ()
+  "Does nothing. Stub for consistency with other hide-buffer
+functions."
   nil)
 
 (defun which-key/hide-buffer-side-window ()
+  "Hide which-key buffer when side-window popup is used."
   (when (buffer-live-p which-key--buffer)
     ;; in case which-key buffer was shown in an existing window, `quit-window'
     ;; will re-show the previous buffer, instead of closing the window
     (quit-windows-on which-key--buffer)))
 
 (defun which-key/hide-buffer-frame ()
+  "Hide which-key buffer when frame popup is used."
   (when (frame-live-p which-key--frame)
     (delete-frame which-key--frame)))
 
@@ -383,15 +387,19 @@ need to start the closing timer."
       (frame (which-key/show-buffer-frame act-popup-dim)))))
 
 (defun which-key/show-buffer-minibuffer (act-popup-dim)
+  "Does nothing. Stub for consistency with other show-buffer
+functions."
   nil)
 
-;; &rest params because `fit-buffer-to-window' has a different call signature
-;; in different emacs versions
 (defun which-key/fit-buffer-to-window-horizontally (&optional window &rest params)
+  "Slightly modified version of `fit-buffer-to-window'. Use &rest
+params because `fit-buffer-to-window' has a different call
+signature in different emacs versions"
   (let ((fit-window-to-buffer-horizontally t))
     (apply #'fit-window-to-buffer window params)))
 
 (defun which-key/show-buffer-side-window (_act-popup-dim)
+  "Show which-key buffer when popup type is side-window"
   (let* ((side which-key-side-window-location)
          (alist '((window-width . which-key/fit-buffer-to-window-horizontally)
                   (window-height . fit-window-to-buffer))))
@@ -415,6 +423,7 @@ need to start the closing timer."
       (display-buffer-in-major-side-window which-key--buffer side 0 alist))))
 
 (defun which-key/show-buffer-frame (act-popup-dim)
+  "Show which-key buffer when popup type is frame"
   (let* ((orig-window (selected-window))
          (frame-height (+ (car act-popup-dim)
                           (if (with-current-buffer which-key--buffer
@@ -437,6 +446,7 @@ need to start the closing timer."
       new-window)))
 
 (defun which-key/show-buffer-new-frame (frame-height frame-width)
+  "Helper for `which-key/show-buffer-frame'"
   (let* ((frame-params `((height . ,frame-height)
                          (width . ,frame-width)
                          ;; tell the window manager to respect the given sizes
@@ -460,6 +470,7 @@ need to start the closing timer."
       new-window)))
 
 (defun which-key/show-buffer-reuse-frame (frame-height frame-width)
+  "Helper for `which-key/show-buffer-frame'"
   (let ((window
          (display-buffer-reuse-window which-key--buffer
                                       `((reusable-frames . ,which-key--frame)))))
@@ -486,14 +497,18 @@ need to start the closing timer."
 ;; Max dimension of available window functions
 
 (defun which-key/popup-max-dimensions (selected-window-width)
-  "Dimesion functions should return the maximum possible (height . width)
-of the intended popup."
+  "Dimesion functions should return the maximum possible (height
+. width) of the intended popup. SELECTED-WINDOW-WIDTH is the
+width of currently active window, not the which-key buffer
+window."
   (cl-case which-key-popup-type
     (minibuffer (which-key/minibuffer-max-dimensions))
     (side-window (which-key/side-window-max-dimensions))
     (frame (which-key/frame-max-dimensions))))
 
 (defun which-key/minibuffer-max-dimensions ()
+  "Return max-dimensions of minibuffer (height . width) in lines
+and characters respectively."
   (cons
    ;; height
    (if (floatp max-mini-window-height)
@@ -504,6 +519,8 @@ of the intended popup."
    (frame-text-cols)))
 
 (defun which-key/side-window-max-dimensions ()
+  "Return max-dimensions of the side-window popup (height .
+width) in lines and characters respectively."
   (cons
    ;; height
    (if (member which-key-side-window-location '(left right))
@@ -518,6 +535,8 @@ of the intended popup."
      (frame-width))))
 
 (defun which-key/frame-max-dimensions ()
+  "Return max-dimensions of the frame popup (height .
+width) in lines and characters respectively."
   (cons which-key-frame-max-height which-key-frame-max-width))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -527,7 +546,8 @@ of the intended popup."
   "Perform replacements on STRING.
 REPL-ALIST is an alist where the car of each element is the text
 to replace and the cdr is the replacement text. Unless LITERAL is
-non-nil regexp is used in the replacements."
+non-nil regexp is used in the replacements. Whether or not a
+replacement occurs return the new STRING."
   (save-match-data
     (let ((new-string string))
       (dolist (repl repl-alist)
@@ -537,6 +557,10 @@ non-nil regexp is used in the replacements."
       new-string)))
 
 (defun which-key/maybe-replace-key-based (string keys)
+  "KEYS is a key sequence like \"C-c C-c\" and STRING is the
+description that is possibly replaced using the
+`which-key-key-based-description-replacement-alist'. Whether or
+not a replacement occurs return the new STRING."
   (let* ((alist which-key-key-based-description-replacement-alist)
          (str-res (assoc-string keys alist))
          (mode-alist (assq major-mode alist))
@@ -546,6 +570,9 @@ non-nil regexp is used in the replacements."
           (t string))))
 
 (defun which-key/propertize-key (key)
+  "Add a face to KEY. If KEY contains any \"special keys\"
+defined in `which-key-special-keys' then truncate and add the
+corresponding `which-key-special-key-face'."
   (let ((key-w-face (propertize key 'face 'which-key-key-face))
         (regexp (concat "\\("
                         (mapconcat 'identity which-key-special-keys
@@ -566,13 +593,11 @@ non-nil regexp is used in the replacements."
     desc))
 
 (defun which-key/format-and-replace (unformatted prefix-keys)
-  "Turn each key-desc-cons in UNFORMATTED into formatted
-strings (including text properties), and pad with spaces so that
-all are a uniform length. Replacements are performed using the
-key and description replacement alists."
+  "Take a list of (key . desc) cons cells in UNFORMATTED, add
+faces and perform replacements according to the three replacement
+alists. Returns a list (key separator description)."
   (let ((max-key-width 0)
-        (sep-w-face (propertize which-key-separator 'face 'which-key-separator-face))) ;(max-desc-width 0)
-    ;; first replace and apply faces
+        (sep-w-face (propertize which-key-separator 'face 'which-key-separator-face)))
     (mapcar
      (lambda (key-desc-cons)
        (let* ((key (car key-desc-cons))
@@ -594,19 +619,18 @@ key and description replacement alists."
               (key-w-face (which-key/propertize-key key))
               (desc-w-face (propertize desc 'face desc-face))
               (key-width (length (substring-no-properties key-w-face))))
-         ;; (desc-width (length (substring-no-properties desc-w-face))))
          (setq max-key-width (max key-width max-key-width))
-         ;; (setq max-desc-width (max desc-width max-desc-width))
          (list key-w-face sep-w-face desc-w-face)))
      unformatted)))
-;; pad to max key-width and max desc-width
 
-(defun which-key/get-formatted-key-bindings (buffer key)
-  (let ((key-str-qt (regexp-quote (key-description key)))
+(defun which-key/get-formatted-key-bindings (buffer key-seq)
+  "Uses `describe-buffer-bindings' to collect the key bindings in
+BUFFER that follow the key sequence KEY-SEQ."
+  (let ((key-str-qt (regexp-quote (key-description key-seq)))
         key-match desc-match unformatted format-res
         formatted column-width)
     (with-temp-buffer
-      (describe-buffer-bindings buffer key)
+      (describe-buffer-bindings buffer key-seq)
       (goto-char (point-max)) ; want to put last keys in first
       (while (re-search-backward
               (format "^%s \\([^ \t]+\\)[ \t]+\\(\\(?:[^ \t\n]+ ?\\)+\\)$"
@@ -616,12 +640,14 @@ key and description replacement alists."
               desc-match (match-string 2))
         (cl-pushnew (cons key-match desc-match) unformatted
                     :test (lambda (x y) (string-equal (car x) (car y))))))
-    (which-key/format-and-replace unformatted (key-description key))))
+    (which-key/format-and-replace unformatted (key-description key-seq))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions for laying out which-key buffer pages
 
 (defsubst which-key//max-len (keys index)
+  "Internal function for finding the max length of the INDEX
+element in each list element of KEYS."
   (cl-reduce
    (lambda (x y) (max x (if (eq (car y) 'status)
                             0 (length (substring-no-properties (nth index y))))))
@@ -629,8 +655,10 @@ key and description replacement alists."
 
 (defun which-key/create-page-vertical (keys max-lines max-width prefix-width)
   "Format KEYS into string representing a single page of text.
-N-COLUMNS is the number of text columns to use and MAX-LINES is
-the maximum number of lines availabel in the target buffer."
+Creates columns (padded to be of uniform width) of length
+MAX-LINES until keys run out or MAX-WIDTH is reached.  A non-zero
+PREFIX-WIDTH adds padding on the left side to allow for prefix
+keys to be written into the upper left porition of the page."
   (let* ((n-keys (length keys))
          (avl-lines max-lines)
          (avl-width (- (+ 1 max-width) prefix-width)); we get 1 back for not putting a space after the last column
@@ -670,7 +698,7 @@ the maximum number of lines availabel in the target buffer."
       (if (<= col-width avl-width)
           (setq all-columns (push new-column all-columns)
                 act-width   (+ act-width col-width)
-                avl-width   (- avl-width col-width)) 
+                avl-width   (- avl-width col-width))
         (setq done t
               rem-keys prev-rem-keys))
       (when (<= (length rem-keys) 0) (setq done t)))
@@ -683,7 +711,13 @@ the maximum number of lines availabel in the target buffer."
                              (when (not (= i (- act-n-lines 1))) "\n"))))))
     (list page act-n-lines act-width rem-keys (- n-keys (length rem-keys)))))
 
-(defun which-key/create-page (keys max-lines max-width prefix-width vertical use-status-key page-n)
+(defun which-key/create-page (keys max-lines max-width prefix-width &optional vertical use-status-key page-n)
+  "Create a page of KEYS with parameters MAX-LINES, MAX-WIDTH,PREFIX-WIDTH.
+Use as many keys as possible.  Use as few lines as possible unless
+VERTICAL is non-nil.  USE-STATUS-KEY inserts an informative
+message in place of the last key on the page if non-nil.  PAGE-N
+allows for the informative message to reference the current page
+number."
   (let* ((n-keys (length keys))
          (first-try (which-key/create-page-vertical keys max-lines max-width prefix-width))
          (n-rem-keys (length (nth 3 first-try)))
@@ -713,7 +747,10 @@ the maximum number of lines availabel in the target buffer."
              prev-try))))
 
 (defun which-key/populate-buffer (prefix-keys formatted-keys sel-win-width)
-  "Insert FORMATTED-STRINGS into which-key buffer, breaking after BUFFER-WIDTH."
+  "Insert FORMATTED-KEYS into which-key buffer.
+PREFIX-KEYS may be inserted into the buffer depending on the
+value of `which-key-show-prefix'.  SEL-WIN-WIDTH is passed to
+`which-key/popup-max-dimensions'."
   (let* ((vertical (and (eq which-key-popup-type 'side-window)
                         (member which-key-side-window-location '(left right))))
          (prefix-w-face (which-key/propertize-key prefix-keys))
@@ -736,7 +773,7 @@ the maximum number of lines availabel in the target buffer."
       (setq page-n (1+ page-n)
             page-res (which-key/create-page keys-rem
                                             max-lines avl-width prefix-width
-                                            vertical which-key-show-page-number page-n)
+                                            vertical which-key-show-remaining-keys page-n)
             pages (push page-res pages)
             keys-per-page (push (if (nth 4 page-res) (nth 4 page-res) 0) keys-per-page)
             keys-rem (nth 3 page-res)
@@ -751,7 +788,7 @@ the maximum number of lines availabel in the target buffer."
            (message "%s-  which-key can't show keys: Settings and/or frame size are too restrictive." prefix-keys)
            (cons 0 0))
           (max-pages-reached
-           (error "error: which-key reached the maximum number of pages")
+           (error "Which-key reached the maximum number of pages")
            (cons 0 0))
           ((<= (length formatted-keys) 0)
            (message "%s-  which-key: no keys to display" prefix-keys)
@@ -769,7 +806,7 @@ the maximum number of lines availabel in the target buffer."
 ;; Update
 
 (defun which-key/update ()
-  "Fill which-key--buffer with key descriptions and reformat.
+  "Fill `which-key--buffer' with key descriptions and reformat.
 Finally, show the buffer."
   (let ((prefix-keys (this-single-command-keys)))
     ;; (when (> (length prefix-keys) 0)
@@ -792,13 +829,13 @@ Finally, show the buffer."
 ;; Timers
 
 (defun which-key/start-open-timer ()
-  "Activate idle timer."
+  "Activate idle timer to trigger `which-key/update'."
   (which-key/stop-open-timer) ; start over
   (setq which-key--open-timer
         (run-with-idle-timer which-key-idle-delay t 'which-key/update)))
 
 (defun which-key/stop-open-timer ()
-  "Deactivate idle timer."
+  "Deactivate idle timer for `which-key/update'."
   (when which-key--open-timer (cancel-timer which-key--open-timer)))
 (provide 'which-key)
 
