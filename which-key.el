@@ -97,11 +97,12 @@ the feature off."
                 (const :tag "In first line" top)
                 (const  :tag "Hide" nil)))
 (defcustom which-key-popup-type 'minibuffer
-  "Supported types are minibuffer, side-window and frame."
+  "Supported types are minibuffer, side-window, frame, and custom."
   :group 'which-key
   :type '(radio (const :tag "Show in minibuffer" minibuffer)
                 (const :tag "Show in side window" side-window)
-                (const :tag "Show in popup frame" frame)))
+                (const :tag "Show in popup frame" frame)
+                (const :tag "Use your custom display functions" custom)))
 (defcustom which-key-side-window-location 'right
   "Location of which-key popup when `which-key-popup-type' is
 side-window.  Should be one of top, bottom, left or right."
@@ -159,6 +160,21 @@ a percentage out of the frame's height."
   '((t . (:inherit which-key-key-face :inverse-video t :weight bold)))
   "Face for special keys (SPC, TAB, RET)"
   :group 'which-key)
+
+;; Custom popup
+(defvar which-key/custom-popup-max-dimensions-function nil
+  "Variable to hold a custom max-dimensions function.
+Will be passed the width of the active window and is expected to
+return the maximum height in lines and width in characters of the
+which-key popup in the form a cons cell (height . width).")
+(defvar which-key/custom-hide-popup-function nil
+  "Variable to hold a custom hide-popup function.
+It takes no arguments and the return value is ignored.")
+(defvar which-key/custom-show-popup-function nil
+  "Variable to hold a custom show-popup function.
+Will be passed the required dimensions in the form (height .
+width) in lines and characters respectively. The return value is
+ignored.")
 
 ;; Internal Vars
 ;; (defvar popwin:popup-buffer nil)
@@ -351,7 +367,8 @@ total height."
   (cl-case which-key-popup-type
     (minibuffer (which-key/hide-buffer-minibuffer))
     (side-window (which-key/hide-buffer-side-window))
-    (frame (which-key/hide-buffer-frame))))
+    (frame (which-key/hide-buffer-frame))
+    (custom (funcall #'which-key/custom-hide-popup-function))))
 
 (defun which-key/hide-buffer-minibuffer ()
   "Does nothing. Stub for consistency with other hide-buffer
@@ -379,7 +396,8 @@ need to start the closing timer."
     (cl-case which-key-popup-type
       (minibuffer (which-key/show-buffer-minibuffer act-popup-dim))
       (side-window (which-key/show-buffer-side-window act-popup-dim))
-      (frame (which-key/show-buffer-frame act-popup-dim)))))
+      (frame (which-key/show-buffer-frame act-popup-dim))
+      (custom (funcall #'which-key/custom-show-popup-function act-popup-dim)))))
 
 (defun which-key/show-buffer-minibuffer (act-popup-dim)
   "Does nothing. Stub for consistency with other show-buffer
@@ -499,7 +517,8 @@ window."
   (cl-case which-key-popup-type
     (minibuffer (which-key/minibuffer-max-dimensions))
     (side-window (which-key/side-window-max-dimensions))
-    (frame (which-key/frame-max-dimensions))))
+    (frame (which-key/frame-max-dimensions))
+    (custom (funcall #'which-key/custom-popup-max-dimensions-function selected-window-width))))
 
 (defun which-key/minibuffer-max-dimensions ()
   "Return max-dimensions of minibuffer (height . width) in lines

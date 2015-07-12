@@ -12,6 +12,7 @@ Rewrite of guide-key-mode for emacs.
          - [[#minibuffer][minibuffer]]
          - [[#side-window][side window]]
          - [[#frame][frame]]
+         - [[#custom][custom]]
      - [[#custom-string-replacement][Custom String Replacement]]
          - [[#key-based-replacement]["Key-Based" replacement]]
          - [[#key-and-description-replacement][Key and Description replacement]]
@@ -88,8 +89,9 @@ Popup side window on bottom. For defaults use
 There are more options than the ones described here. All of the configurable
 variables are available through =M-x customize-group which-key=.
 ** Several Popup Types
-There are three different popup types that which-key can use to display the
-available keys. The variable =which-key-popup-type= decides which one is used.
+There are three different popup types that which-key can use by default to
+display the available keys. The variable =which-key-popup-type= decides which
+one is used.
 *** minibuffer
 #+BEGIN_SRC emacs-lisp
 (setq which-key-popup-type 'minibuffer)
@@ -115,6 +117,7 @@ Show keys in a side window. This popup type has further options:
 (setq which-key-side-window-max-height 0.25)
 #+END_SRC
 *** frame
+
 #+BEGIN_SRC emacs-lisp
 (setq which-key-popup-type 'frame)
 #+END_SRC
@@ -128,6 +131,36 @@ further options:
 ;; max height of which-key frame: number of lines (an integer)
 (setq which-key-frame-max-height 20)
 #+END_SRC
+
+*** custom
+Write your own display functions! This requires you to write three functions,
+=which-key/custom-popup-max-dimensions-function=,
+=which-key/custom-show-popup-function=, and
+=which-key/custom-hide-popup-function=. Refer to the documentation for those
+variables for more information, but here is a working example (this is the
+current implementation of side-window bottom).
+
+
+#+BEGIN_SRC emacs-lisp
+(setq which-key-popup-type 'custom)
+(defun which-key/custom-popup-max-dimensions-function (ignore)
+  (cons
+   (which-key/height-or-percentage-to-height which-key-side-window-max-height)
+   (frame-width)))
+(defun fit-horizonatally ()
+  (let ((fit-window-to-buffer-horizontally t))
+    (fit-window-to-buffer)))
+(defun which-key/custom-show-popup-function (act-popup-dim)
+  (let* ((alist '((window-width . fit-horizontally)
+                  (window-height . fit-window-to-buffer))))
+    (if (get-buffer-window which-key--buffer)
+        (display-buffer-reuse-window which-key--buffer alist)
+      (display-buffer-in-major-side-window which-key--buffer 'bottom 0 alist))))
+(defun which-key/custom-hide-popup-function ()
+  (when (buffer-live-p which-key--buffer)
+    (quit-windows-on which-key--buffer)))
+#+END_SRC
+
 ** Custom String Replacement
 You can customize the way the keys show in the buffer using three different
 replacement methods, each of which corresponds replacement alist. The basic idea
