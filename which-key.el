@@ -44,8 +44,17 @@ Also adds \"..\"."
   :type 'string)
 (defcustom which-key-unicode-correction 1
   "Correction for wide unicode characters.
-Set to a positive number to adjust width of columns in case
-which-key is cutting off text on the right side of the window."
+Since we measure width in terms of the number of characters,
+Unicode characters that are wider than ASCII characters throw off
+the calculation for available width in the which-key buffer. This
+variable allows you to adjust for the wide unicode characters by
+artificially reducing the available width in the buffer.
+
+The default of 1 means allow for the total extra width
+contributed by any wide unicode characters to be up to one
+additional ASCII character in the which-key buffer. Increase this
+number if you are seeing charaters get cutoff on the right side
+of the which-key popup."
   :group 'which-key
   :type 'integer)
 (defcustom which-key-key-replacement-alist
@@ -776,8 +785,9 @@ value of `which-key-show-prefix'.  SEL-WIN-WIDTH is passed to
          (max-dims (which-key/popup-max-dimensions sel-win-width))
          (max-lines (when (car max-dims) (car max-dims)))
          (prefix-width (if (eq which-key-show-prefix 'left) prefix-len 0))
-         (avl-width (when (cdr max-dims) (- (cdr max-dims)
-                                            prefix-width which-key-unicode-correction)))
+         (avl-width (when (cdr max-dims)
+                      (- (cdr max-dims)
+                         prefix-width which-key-unicode-correction)))
          (keys-rem formatted-keys)
          (max-pages (+ 1 (length formatted-keys)))
          (page-n 0)
