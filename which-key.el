@@ -249,16 +249,20 @@ bottom."
 ;; Helper functions to modify replacement lists.
 
 (defun which-key//add-key-based-replacements (alist key repl)
+  "Internal function to add (KEY . REPL) to ALIST."
   (when (or (not (stringp key)) (not (stringp repl)))
     (error "KEY and REPL should be strings"))
-  (cl-pushnew (cons key repl) alist
-              :test (lambda (x y)
-                      (let ((cx (car x)) (cy (car y)))
-                        (or (and (stringp cx) (stringp cy) (string-equal cx cy))
-                            (and (symbolp cx) (symbolp cy) (eq cx cy))))))
+  (when (assoc-string key alist)
+    (message "which-key note: The key %s already exists in %s. This addition will override that replacement."))
+  (setq alist (push (cons key repl) alist))
   alist)
 
 (defun which-key/add-key-based-replacements (key repl &rest more)
+  "Replace the description of a key sequence KEY (e.g., \"C-c
+C-c\") with REPL. Both KEY and REPL should be strings. MORE
+allows you to specifcy additional KEY REPL pairs. All
+replacements are added to
+`which-key-key-based-description-replacement-alist'."
   ;; TODO: Make interactive
   (while key
     (setq which-key-key-based-description-replacement-alist
@@ -267,6 +271,9 @@ bottom."
     (setq key (pop more) repl (pop more))))
 
 (defun which-key/add-major-mode-key-based-replacements (mode key repl &rest more)
+  "Functions like `which-key/add-key-based-replacements' with the
+exception that KEY and REPL (MORE contains addition KEY REPL
+pairs) will only apply when the major-mode MODE is active."
   ;; TODO: Make interactive
   (when (not (symbolp mode))
     (error "MODE should be a symbol corresponding to a value of major-mode"))
