@@ -272,7 +272,8 @@ bottom."
   (when (or (not (stringp key)) (not (stringp repl)))
     (error "KEY and REPL should be strings"))
   (when (assoc-string key alist)
-    (message "which-key note: The key %s already exists in %s. This addition will override that replacement."))
+    (message "which-key note: The key %s already exists in %s. This addition will override that replacement."
+             key alist))
   (setq alist (push (cons key repl) alist))
   alist)
 
