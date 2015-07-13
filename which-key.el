@@ -65,7 +65,7 @@ in the first example."
   :group 'which-key
   :type '(alist :key-type regexp :value-type string))
 (defcustom which-key-description-replacement-alist
-  '(("Prefix Command" . "prefix") (".+/\\(.+\\)" . "\\1")
+  '(("Prefix Command" . "prefix")
     ("select-window-\\([1-9]\\)" . "Window \\1"))
   "See `which-key-key-replacement-alist'.
 This is a list of lists for replacing descriptions.  The second
@@ -609,6 +609,20 @@ corresponding `which-key-special-key-face'."
                     (substring key-w-face end (length key-w-face))))
         key-w-face))))
 
+(defun which-key/propertize-description (description)
+  (let* ((desc description)
+         (group-prfx (string-match-p "^group:" desc))
+         (group (or group-prfx
+                    (keymapp (intern desc))
+                    (string-match-p "^Prefix" desc)))
+         (desc (if group-prfx (substring desc 6) desc))
+         (desc (if group (concat "+" desc) desc))
+         (desc (which-key/truncate-description desc)))
+    (propertize desc 'face
+                (if group
+                    'which-key-group-description-face
+                  'which-key-command-description-face))))
+
 (defsubst which-key/truncate-description (desc)
   "Truncate DESC description to `which-key-max-description-length'."
   (if (> (length desc) which-key-max-description-length)
@@ -631,16 +645,8 @@ alists. Returns a list (key separator description)."
               (desc (which-key/maybe-replace
                      desc which-key-description-replacement-alist))
               (desc (which-key/maybe-replace-key-based desc keys))
-              (group (string-match-p "^group:" desc))
-              (desc (if group (substring desc 6) desc))
-              (prefix (string-match-p "^Prefix" desc))
-              (desc (if (or prefix group) (concat "+" desc) desc))
-              (desc-face (if (or prefix group)
-                             'which-key-group-description-face
-                           'which-key-command-description-face))
-              (desc (which-key/truncate-description desc))
               (key-w-face (which-key/propertize-key key))
-              (desc-w-face (propertize desc 'face desc-face))
+              (desc-w-face (which-key/propertize-description desc))
               (key-width (length (substring-no-properties key-w-face))))
          (setq max-key-width (max key-width max-key-width))
          (list key-w-face sep-w-face desc-w-face)))
