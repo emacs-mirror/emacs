@@ -637,8 +637,7 @@ removing a \"group:\" prefix."
   "Take a list of (key . desc) cons cells in UNFORMATTED, add
 faces and perform replacements according to the three replacement
 alists. Returns a list (key separator description)."
-  (let ((max-key-width 0)
-        (sep-w-face (propertize which-key-separator 'face 'which-key-separator-face)))
+  (let ((sep-w-face (propertize which-key-separator 'face 'which-key-separator-face)))
     (mapcar
      (lambda (key-desc-cons)
        (let* ((key (car key-desc-cons))
@@ -650,9 +649,7 @@ alists. Returns a list (key separator description)."
                      desc which-key-description-replacement-alist))
               (desc (which-key/maybe-replace-key-based desc keys))
               (key-w-face (which-key/propertize-key key))
-              (desc-w-face (which-key/propertize-description desc))
-              (key-width (length (substring-no-properties key-w-face))))
-         (setq max-key-width (max key-width max-key-width))
+              (desc-w-face (which-key/propertize-description desc)))
          (list key-w-face sep-w-face desc-w-face)))
      unformatted)))
 
