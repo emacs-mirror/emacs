@@ -610,6 +610,10 @@ corresponding `which-key-special-key-face'."
         key-w-face))))
 
 (defun which-key/propertize-description (description)
+  "Add face to DESCRIPTION where the face chosen depends on
+whether the description represents a group or a command. Also
+make some minor adjustments to the description string, like
+removing a \"group:\" prefix."
   (let* ((desc description)
          (group-prfx (string-match-p "^group:" desc))
          (group (or group-prfx
