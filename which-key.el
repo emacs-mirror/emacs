@@ -42,7 +42,7 @@ Also adds \"..\"."
   "Separator to use between key and description."
   :group 'which-key
   :type 'string)
-(defcustom which-key-unicode-correction 1
+(defcustom which-key-unicode-correction 3
   "Correction for wide unicode characters.
 Since we measure width in terms of the number of characters,
 Unicode characters that are wider than ASCII characters throw off
@@ -193,7 +193,7 @@ ignored.")
   "Internal: Holds reference to which-key window.")
 (defvar which-key--open-timer nil
   "Internal: Holds reference to open window timer.")
-(defvar which-key--setup-p nil
+(defvar which-key--is-setup nil
   "Internal: Non-nil if which-key buffer has been setup.")
 (defvar which-key--frame nil
   "Internal: Holds reference to which-key frame.
@@ -208,7 +208,7 @@ Used when `which-key-popup-type' is frame.")
   :lighter " WK"
   (if which-key-mode
       (progn
-        (unless which-key--setup-p (which-key/setup))
+        (unless which-key--is-setup (which-key/setup))
         ;; reduce echo-keystrokes for minibuffer popup
         ;; (it can interfer if it's too slow)
         (when (and (> echo-keystrokes 0)
@@ -235,7 +235,7 @@ Used when `which-key-popup-type' is frame.")
     (setq-local cursor-type nil)
     (setq-local cursor-in-non-selected-windows nil)
     (setq-local mode-line-format nil))
-  (setq which-key--setup-p t))
+  (setq which-key--is-setup t))
 
 ;; Default configuration functions for use by users. Should be the "best"
 ;; configurations
@@ -690,7 +690,8 @@ PREFIX-WIDTH adds padding on the left side to allow for prefix
 keys to be written into the upper left porition of the page."
   (let* ((n-keys (length keys))
          (avl-lines max-lines)
-         (avl-width (- (+ 1 max-width) prefix-width)); we get 1 back for not putting a space after the last column
+         ;; we get 1 back for not putting a space after the last column
+         (avl-width (max 0 (- (+ 1 max-width) prefix-width which-key-unicode-correction)))
          (rem-keys keys)
          (n-col-lines (min avl-lines n-keys))
          (act-n-lines n-col-lines) ; n-col-lines in first column
@@ -703,6 +704,7 @@ keys to be written into the upper left porition of the page."
          (iter-n 0)
          col-keys col-key-width col-desc-width col-width col-split done
          n-columns new-column page col-sep-width prev-rem-keys)
+    ;; (message "frame-width %s prefix-width %s avl-width %s max-width %s" (frame-text-cols) prefix-width avl-width max-width)
     (while (and (<= iter-n max-iter) (not done))
       (setq iter-n         (1+ iter-n)
             col-split      (-split-at n-col-lines rem-keys)
@@ -791,9 +793,7 @@ value of `which-key-show-prefix'.  SEL-WIN-WIDTH is passed to
          (max-dims (which-key/popup-max-dimensions sel-win-width))
          (max-lines (when (car max-dims) (car max-dims)))
          (prefix-width (if (eq which-key-show-prefix 'left) prefix-len 0))
-         (avl-width (when (cdr max-dims)
-                      (- (cdr max-dims)
-                         prefix-width which-key-unicode-correction)))
+         (avl-width (when (cdr max-dims) (cdr max-dims)))
          (keys-rem formatted-keys)
          (max-pages (+ 1 (length formatted-keys)))
          (page-n 0)
