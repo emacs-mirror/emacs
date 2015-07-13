@@ -678,8 +678,8 @@ BUFFER that follow the key sequence KEY-SEQ."
 
 (defsubst which-key//join-columns (columns)
   "Transpose columns into rows, concat rows into lines and concat rows into page."
-  (let* (;; pad columns to same length and reverse order
-         (padded (reverse (apply (apply-partially #'-pad "") columns)))
+  (let* (;; pad reversed columns to same length
+         (padded (apply (apply-partially #'-pad "") (reverse columns)))
          ;; transpose columns to rows
          (rows (apply #'cl-mapcar #'list padded)))
     ;; join lines by space and rows by newline
