@@ -167,19 +167,25 @@ a percentage out of the frame's height."
   :group 'which-key)
 
 ;; Custom popup
-(defvar which-key/custom-popup-max-dimensions-function nil
+(defcustom which-key/custom-popup-max-dimensions-function nil
   "Variable to hold a custom max-dimensions function.
 Will be passed the width of the active window and is expected to
 return the maximum height in lines and width in characters of the
-which-key popup in the form a cons cell (height . width).")
-(defvar which-key/custom-hide-popup-function nil
+which-key popup in the form a cons cell (height . width)."
+  :group 'which-key
+  :type 'function)
+(defcustom which-key/custom-hide-popup-function nil
   "Variable to hold a custom hide-popup function.
-It takes no arguments and the return value is ignored.")
-(defvar which-key/custom-show-popup-function nil
+It takes no arguments and the return value is ignored."
+  :group 'which-key
+  :type 'function)
+(defcustom which-key/custom-show-popup-function nil
   "Variable to hold a custom show-popup function.
 Will be passed the required dimensions in the form (height .
 width) in lines and characters respectively. The return value is
-ignored.")
+ignored."
+  :group 'which-key
+  :type 'function)
 
 ;; Internal Vars
 ;; (defvar popwin:popup-buffer nil)
