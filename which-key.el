@@ -65,13 +65,9 @@ in the first example."
   :group 'which-key
   :type '(alist :key-type regexp :value-type string))
 (defcustom which-key-description-replacement-alist
-  '(("Prefix Command" . "prefix")
-    ("select-window-\\([1-9]\\)" . "Window \\1"))
+  '(("Prefix Command" . "prefix"))
   "See `which-key-key-replacement-alist'.
-This is a list of lists for replacing descriptions.  The second
-one removes \"namespace/\" from \"namespace/function\".  This is a
-convention for naming functions but not a rule, so remove this
-replacement if it becomes problematic."
+This is a list of lists for replacing descriptions."
   :group 'which-key
   :type '(alist :key-type regexp :value-type string))
 (defcustom which-key-key-based-description-replacement-alist '()
@@ -104,7 +100,7 @@ the feature off."
   :group 'which-key
   :type '(radio (const :tag "Left of keys" left)
                 (const :tag "In first line" top)
-                (const  :tag "Hide" nil)))
+                (const :tag "Hide" nil)))
 (defcustom which-key-popup-type 'minibuffer
   "Supported types are minibuffer, side-window, frame, and custom."
   :group 'which-key
