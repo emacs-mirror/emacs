@@ -676,6 +676,15 @@ BUFFER that follow the key sequence KEY-SEQ."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions for laying out which-key buffer pages
 
+(defsubst which-key//join-columns (columns)
+  "Transpose columns into rows, concat rows into lines and concat rows into page."
+  (let* (;; pad columns to same length and reverse order
+         (padded (reverse (apply (apply-partially #'-pad "") columns)))
+         ;; transpose columns to rows
+         (rows (apply #'cl-mapcar #'list padded)))
+    ;; join lines by space and rows by newline
+    (mapconcat (lambda (row) (mapconcat #'identity row " ")) rows "\n")))
+
 (defsubst which-key//max-len (keys index)
   "Internal function for finding the max length of the INDEX
 element in each list element of KEYS."
@@ -697,6 +706,7 @@ keys to be written into the upper left porition of the page."
          (rem-keys keys)
          (n-col-lines (min avl-lines n-keys))
          (act-n-lines n-col-lines) ; n-col-lines in first column
+         ;; Initial column for prefix (if used)
          (all-columns (list
                        (mapcar (lambda (i)
                                  (if (> i 1) (s-repeat prefix-width " ") ""))
@@ -705,7 +715,7 @@ keys to be written into the upper left porition of the page."
          (max-iter 100)
          (iter-n 0)
          col-keys col-key-width col-desc-width col-width col-split done
-         n-columns new-column page col-sep-width prev-rem-keys)
+         new-column page col-sep-width prev-rem-keys)
     ;; (message "frame-width %s prefix-width %s avl-width %s max-width %s" (frame-text-cols) prefix-width avl-width max-width)
     (while (and (<= iter-n max-iter) (not done))
       (setq iter-n         (1+ iter-n)
@@ -735,13 +745,7 @@ keys to be written into the upper left porition of the page."
         (setq done t
               rem-keys prev-rem-keys))
       (when (<= (length rem-keys) 0) (setq done t)))
-    (setq all-columns (reverse all-columns)
-          n-columns (length all-columns))
-    (dotimes (i act-n-lines)
-      (dotimes (j n-columns)
-        (setq page (concat page (nth i (nth j all-columns))
-                           (if (not (= j (- n-columns 1))) " "
-                             (when (not (= i (- act-n-lines 1))) "\n"))))))
+    (setq page (which-key//join-columns all-columns))
     (list page act-n-lines act-width rem-keys (- n-keys (length rem-keys)))))
 
 (defun which-key/create-page (keys max-lines max-width prefix-width &optional vertical use-status-key page-n)
