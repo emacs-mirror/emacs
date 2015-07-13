@@ -273,6 +273,7 @@ bottom."
   (setq alist (push (cons key repl) alist))
   alist)
 
+;;;###autoload
 (defun which-key/add-key-based-replacements (key repl &rest more)
   "Replace the description of a key sequence KEY (e.g., \"C-c
 C-c\") with REPL. Both KEY and REPL should be strings. MORE
@@ -286,6 +287,7 @@ replacements are added to
            which-key-key-based-description-replacement-alist key repl))
     (setq key (pop more) repl (pop more))))
 
+;;;###autoload
 (defun which-key/add-major-mode-key-based-replacements (mode key repl &rest more)
   "Functions like `which-key/add-key-based-replacements' with the
 exception that KEY and REPL (MORE contains addition KEY REPL
