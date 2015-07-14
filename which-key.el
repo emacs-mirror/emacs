@@ -273,10 +273,15 @@ bottom."
   "Internal function to add (KEY . REPL) to ALIST."
   (when (or (not (stringp key)) (not (stringp repl)))
     (error "KEY and REPL should be strings"))
-  (when (assoc-string key alist)
-    (message "which-key note: The key %s already exists in %s. This addition will override that replacement."
-             key alist))
-  (setq alist (push (cons key repl) alist))
+  (if alist
+      (progn
+        (if (assoc-string key alist)
+            (progn
+              (message "which-key note: The key %s already exists in %s. This addition will override that replacement."
+                       key alist)
+              (setcdr (assoc-string key alist) repl))
+          (push (cons key repl) alist)))
+    (setq alist (list (cons key repl))))
   alist)
 
 ;;;###autoload
@@ -303,14 +308,16 @@ pairs) will only apply when the major-mode MODE is active."
     (error "MODE should be a symbol corresponding to a value of major-mode"))
   (let ((mode-alist (cdr (assq mode which-key-key-based-description-replacement-alist))))
     (while key
-      (setq mode-alist (which-key//add-key-based-replacements
-                        mode-alist key repl))
+      (if mode-alist
+          (setq mode-alist (which-key//add-key-based-replacements mode-alist key repl))
+        (setq mode-alist (list (cons key repl))))
       (setq key (pop more) repl (pop more)))
-    (setq which-key-key-based-description-replacement-alist
-          (assq-delete-all mode which-key-key-based-description-replacement-alist)
-          which-key-key-based-description-replacement-alist
-          (push (cons mode mode-alist)
-                which-key-key-based-description-replacement-alist))))
+    (if (assq mode which-key-key-based-description-replacement-alist)
+        (setcdr (assq mode which-key-key-based-description-replacement-alist) mode-alist)
+      (push (cons mode mode-alist) which-key-key-based-description-replacement-alist))))
+;; (setq which-key-key-based-description-replacement-alist
+    ;;       (assq-delete-all mode which-key-key-based-description-replacement-alist))
+    ;; (push (cons mode mode-alist) which-key-key-based-description-replacement-alist)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions for computing window sizes
@@ -745,9 +752,9 @@ keys to be written into the upper left porition of the page."
                                                      (length (substring-no-properties (nth 2 k)))) " "))))
                             col-keys))
       (if (<= col-width avl-width)
-          (setq all-columns (push new-column all-columns)
-                act-width   (+ act-width col-width)
-                avl-width   (- avl-width col-width))
+          (progn  (push new-column all-columns)
+                  (setq act-width   (+ act-width col-width)
+                        avl-width   (- avl-width col-width)))
         (setq done t
               rem-keys prev-rem-keys))
       (when (<= (length rem-keys) 0) (setq done t)))
@@ -815,10 +822,10 @@ value of `which-key-show-prefix'.  SEL-WIN-WIDTH is passed to
       (setq page-n (1+ page-n)
             page-res (which-key/create-page keys-rem
                                             max-lines avl-width prefix-width
-                                            vertical which-key-show-remaining-keys page-n)
-            pages (push page-res pages)
-            keys-per-page (push (if (nth 4 page-res) (nth 4 page-res) 0) keys-per-page)
-            keys-rem (nth 3 page-res)
+                                            vertical which-key-show-remaining-keys page-n))
+      (push page-res pages)
+      (push (if (nth 4 page-res) (nth 4 page-res) 0) keys-per-page)
+      (setq keys-rem (nth 3 page-res)
             no-room (<= (car keys-per-page) 0)
             max-pages-reached (>= page-n max-pages)))
     ;; not doing anything with other pages for now
