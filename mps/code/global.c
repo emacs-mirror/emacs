@@ -653,7 +653,8 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
         res = PoolAccess(SegPool(seg), seg, addr, mode, context);
         AVER(res == ResOK); /* Mutator can't continue unless this succeeds */
       } else {
-        /* Protection was already cleared: nothing to do now. */
+        /* Protection was already cleared, for example by another thread
+           or a fault in a nested exception handler: nothing to do now. */
       }
       EVENT4(ArenaAccess, arena, count, addr, mode);
       ArenaLeave(arena);
