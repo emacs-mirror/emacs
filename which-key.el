@@ -46,13 +46,13 @@ Also adds \"..\"."
   "Correction for wide unicode characters.
 Since we measure width in terms of the number of characters,
 Unicode characters that are wider than ASCII characters throw off
-the calculation for available width in the which-key buffer. This
+the calculation for available width in the which-key buffer.  This
 variable allows you to adjust for the wide unicode characters by
 artificially reducing the available width in the buffer.
 
 The default of 1 means allow for the total extra width
 contributed by any wide unicode characters to be up to one
-additional ASCII character in the which-key buffer. Increase this
+additional ASCII character in the which-key buffer.  Increase this
 number if you are seeing charaters get cutoff on the right side
 of the which-key popup."
   :group 'which-key
@@ -109,8 +109,8 @@ the feature off."
                 (const :tag "Show in popup frame" frame)
                 (const :tag "Use your custom display functions" custom)))
 (defcustom which-key-side-window-location 'right
-  "Location of which-key popup when `which-key-popup-type' is
-side-window.  Should be one of top, bottom, left or right."
+  "Location of which-key popup when `which-key-popup-type' is side-window.
+Should be one of top, bottom, left or right."
   :group 'which-key
   :type '(radio (const right)
                 (const bottom)
@@ -182,7 +182,7 @@ It takes no arguments and the return value is ignored."
 (defcustom which-key/custom-show-popup-function nil
   "Variable to hold a custom show-popup function.
 Will be passed the required dimensions in the form (height .
-width) in lines and characters respectively. The return value is
+width) in lines and characters respectively.  The return value is
 ignored."
   :group 'which-key
   :type 'function)
@@ -282,31 +282,36 @@ bottom."
         (t (cons (cons key repl) alist))))
 
 ;;;###autoload
-(defun which-key/add-key-based-replacements (key repl &rest more)
-  "Replace the description of a key sequence KEY (e.g., \"C-c
-C-c\") with REPL. Both KEY and REPL should be strings. MORE
-allows you to specifcy additional KEY REPL pairs. All
+(defun which-key/add-key-based-replacements (key-sequence replacement &rest more)
+  "Replace the description of KEY-SEQUENCE with REPLACEMENT.
+Both KEY-SEQUENCE and REPLACEMENT should be strings.  For Example,
+
+\(which-key/add-key-based-replacements \"C-x 1\" \"maximize\"\)
+
+MORE allows you to specifcy additional KEY REPL pairs.  All
 replacements are added to
 `which-key-key-based-description-replacement-alist'."
   ;; TODO: Make interactive
-  (while key
+  (while key-sequence
     (setq which-key-key-based-description-replacement-alist
           (which-key//add-key-based-replacements
-           which-key-key-based-description-replacement-alist key repl))
-    (setq key (pop more) repl (pop more))))
+           which-key-key-based-description-replacement-alist
+           key-sequence replacement))
+    (setq key-sequence (pop more) replacement (pop more))))
 
 ;;;###autoload
-(defun which-key/add-major-mode-key-based-replacements (mode key repl &rest more)
-  "Functions like `which-key/add-key-based-replacements' with the
-exception that KEY and REPL (MORE contains addition KEY REPL
-pairs) will only apply when the major-mode MODE is active."
+(defun which-key/add-major-mode-key-based-replacements (mode key-sequence replacement &rest more)
+  "Functions like `which-key/add-key-based-replacements'.
+The difference is that MODE specifies the `major-mode' that must
+be active for KEY-SEQUENCE and REPLACEMENT (MORE contains
+addition KEY-SEQUENCE REPLACEMENT pairs) to apply."
   ;; TODO: Make interactive
   (when (not (symbolp mode))
     (error "MODE should be a symbol corresponding to a value of major-mode"))
   (let ((mode-alist (cdr (assq mode which-key-key-based-description-replacement-alist))))
-    (while key
-      (setq mode-alist (which-key//add-key-based-replacements mode-alist key repl))
-      (setq key (pop more) repl (pop more)))
+    (while key-sequence
+      (setq mode-alist (which-key//add-key-based-replacements mode-alist key-sequence replacement))
+      (setq key-sequence (pop more) replacement (pop more)))
     (if (assq mode which-key-key-based-description-replacement-alist)
         (setcdr (assq mode which-key-key-based-description-replacement-alist) mode-alist)
       (push (cons mode mode-alist) which-key-key-based-description-replacement-alist))))
@@ -319,11 +324,12 @@ pairs) will only apply when the major-mode MODE is active."
 
 (defun which-key/text-width-to-total (text-width)
   "Convert window text-width to window total-width.
-TEXT-WIDTH is the desired text width of the window. The function calculates what
-total width is required for a window in the selected to have a text-width of
-TEXT-WIDTH columns. The calculation considers possible fringes and scroll bars.
-This function assumes that the desired window has the same character width as
-the frame."
+TEXT-WIDTH is the desired text width of the window.  The function
+calculates what total width is required for a window in the
+selected to have a text-width of TEXT-WIDTH columns.  The
+calculation considers possible fringes and scroll bars.  This
+function assumes that the desired window has the same character
+width as the frame."
   (let ((char-width (frame-char-width)))
     (+ text-width
        (/ (frame-fringe-width) char-width)
@@ -334,9 +340,9 @@ the frame."
 
 (defun which-key/total-width-to-text (total-width)
   "Convert window total-width to window text-width.
-TOTAL-WIDTH is the desired total width of the window. The function calculates
-what text width fits such a window. The calculation considers possible fringes
-and scroll bars. This function assumes that the desired window has the same
+TOTAL-WIDTH is the desired total width of the window.  The function calculates
+what text width fits such a window.  The calculation considers possible fringes
+and scroll bars.  This function assumes that the desired window has the same
 character width as the frame."
   (let ((char-width (frame-char-width)))
     (- total-width
@@ -357,7 +363,7 @@ character width as the frame."
 
 (defun which-key/width-or-percentage-to-width (width-or-percentage)
   "Return window total width.
-If WIDTH-OR-PERCENTAGE is a whole number, return it unchanged. Otherwise, it
+If WIDTH-OR-PERCENTAGE is a whole number, return it unchanged.  Otherwise, it
 should be a percentage (a number between 0 and 1) out of the frame's width.
 More precisely, it should be a percentage out of the frame's root window's
 total width."
@@ -367,7 +373,7 @@ total width."
 
 (defun which-key/height-or-percentage-to-height (height-or-percentage)
   "Return window total height.
-If HEIGHT-OR-PERCENTAGE is a whole number, return it unchanged. Otherwise, it
+If HEIGHT-OR-PERCENTAGE is a whole number, return it unchanged.  Otherwise, it
 should be a percentage (a number between 0 and 1) out of the frame's height.
 More precisely, it should be a percentage out of the frame's root window's
 total height."
@@ -387,8 +393,8 @@ total height."
     (custom (funcall #'which-key/custom-hide-popup-function))))
 
 (defun which-key/hide-buffer-minibuffer ()
-  "Does nothing. Stub for consistency with other hide-buffer
-functions."
+  "Does nothing.
+Stub for consistency with other hide-buffer functions."
   nil)
 
 (defun which-key/hide-buffer-side-window ()
@@ -404,10 +410,10 @@ functions."
     (delete-frame which-key--frame)))
 
 (defun which-key/show-popup (act-popup-dim)
-  "Show guide window. ACT-POPUP-DIM includes the
-dimensions, (height . width) of the buffer text to be displayed
-in the popup.  Return nil if no window is shown, or if there is no
-need to start the closing timer."
+  "Show the which-key buffer.
+ACT-POPUP-DIM includes the dimensions, (height . width) of the
+buffer text to be displayed in the popup.  Return nil if no window
+is shown, or if there is no need to start the closing timer."
   (when (and (> (car act-popup-dim) 0) (> (cdr act-popup-dim) 0))
     (cl-case which-key-popup-type
       (minibuffer (which-key/show-buffer-minibuffer act-popup-dim))
@@ -416,19 +422,19 @@ need to start the closing timer."
       (custom (funcall #'which-key/custom-show-popup-function act-popup-dim)))))
 
 (defun which-key/show-buffer-minibuffer (act-popup-dim)
-  "Does nothing. Stub for consistency with other show-buffer
-functions."
+  "Does nothing.
+Stub for consistency with other show-buffer functions."
   nil)
 
 (defun which-key/fit-buffer-to-window-horizontally (&optional window &rest params)
-  "Slightly modified version of `fit-buffer-to-window'. Use &rest
-params because `fit-buffer-to-window' has a different call
-signature in different emacs versions"
+  "Slightly modified version of `fit-buffer-to-window'.
+Use &rest params because `fit-buffer-to-window' has a different
+call signature in different emacs versions"
   (let ((fit-window-to-buffer-horizontally t))
     (apply #'fit-window-to-buffer window params)))
 
 (defun which-key/show-buffer-side-window (_act-popup-dim)
-  "Show which-key buffer when popup type is side-window"
+  "Show which-key buffer when popup type is side-window."
   (let* ((side which-key-side-window-location)
          (alist '((window-width . which-key/fit-buffer-to-window-horizontally)
                   (window-height . fit-window-to-buffer))))
@@ -452,7 +458,7 @@ signature in different emacs versions"
       (display-buffer-in-major-side-window which-key--buffer side 0 alist))))
 
 (defun which-key/show-buffer-frame (act-popup-dim)
-  "Show which-key buffer when popup type is frame"
+  "Show which-key buffer when popup type is frame."
   (let* ((orig-window (selected-window))
          (frame-height (+ (car act-popup-dim)
                           (if (with-current-buffer which-key--buffer
@@ -475,7 +481,7 @@ signature in different emacs versions"
       new-window)))
 
 (defun which-key/show-buffer-new-frame (frame-height frame-width)
-  "Helper for `which-key/show-buffer-frame'"
+  "Helper for `which-key/show-buffer-frame'."
   (let* ((frame-params `((height . ,frame-height)
                          (width . ,frame-width)
                          ;; tell the window manager to respect the given sizes
@@ -499,7 +505,7 @@ signature in different emacs versions"
       new-window)))
 
 (defun which-key/show-buffer-reuse-frame (frame-height frame-width)
-  "Helper for `which-key/show-buffer-frame'"
+  "Helper for `which-key/show-buffer-frame'."
   (let ((window
          (display-buffer-reuse-window which-key--buffer
                                       `((reusable-frames . ,which-key--frame)))))
@@ -537,8 +543,8 @@ window."
     (custom (funcall #'which-key/custom-popup-max-dimensions-function selected-window-width))))
 
 (defun which-key/minibuffer-max-dimensions ()
-  "Return max-dimensions of minibuffer (height . width) in lines
-and characters respectively."
+  "Return max-dimensions of minibuffer (height . width).
+Measured in lines and characters respectively."
   (cons
    ;; height
    (if (floatp max-mini-window-height)
@@ -575,8 +581,8 @@ width) in lines and characters respectively."
 (defun which-key/maybe-replace (string repl-alist &optional literal)
   "Perform replacements on STRING.
 REPL-ALIST is an alist where the car of each element is the text
-to replace and the cdr is the replacement text. Unless LITERAL is
-non-nil regexp is used in the replacements. Whether or not a
+to replace and the cdr is the replacement text.  Unless LITERAL is
+non-nil regexp is used in the replacements.  Whether or not a
 replacement occurs return the new STRING."
   (save-match-data
     (let ((new-string string))
@@ -600,9 +606,10 @@ not a replacement occurs return the new STRING."
           (t string))))
 
 (defun which-key/propertize-key (key)
-  "Add a face to KEY. If KEY contains any \"special keys\"
-defined in `which-key-special-keys' then truncate and add the
-corresponding `which-key-special-key-face'."
+  "Add a face to KEY.
+If KEY contains any \"special keys\" defined in
+`which-key-special-keys' then truncate and add the corresponding
+`which-key-special-key-face'."
   (let ((key-w-face (propertize key 'face 'which-key-key-face))
         (regexp (concat "\\("
                         (mapconcat 'identity which-key-special-keys
@@ -615,6 +622,12 @@ corresponding `which-key-special-key-face'."
                                 'face 'which-key-special-key-face)
                     (substring key-w-face end (length key-w-face))))
         key-w-face))))
+
+(defsubst which-key/truncate-description (desc)
+  "Truncate DESC description to `which-key-max-description-length'."
+  (if (> (length desc) which-key-max-description-length)
+      (concat (substring desc 0 which-key-max-description-length) "..")
+    desc))
 
 (defsubst which-key//group-p (description)
   (or (string-match-p "^\\(group:\\|Prefix\\)" description)
@@ -634,12 +647,6 @@ removing a \"group:\" prefix."
                 (if group
                     'which-key-group-description-face
                   'which-key-command-description-face))))
-
-(defsubst which-key/truncate-description (desc)
-  "Truncate DESC description to `which-key-max-description-length'."
-  (if (> (length desc) which-key-max-description-length)
-      (concat (substring desc 0 which-key-max-description-length) "..")
-    desc))
 
 (defun which-key/format-and-replace (unformatted prefix-keys)
   "Take a list of (key . desc) cons cells in UNFORMATTED, add
