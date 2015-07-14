@@ -1,6 +1,6 @@
 * which-key Introduction
-This is of [[https://github.com/kai2nenobu/guide-key][guide-key-mode]] for emacs. The intention is to provide the following
-features:
+This is a rewrite of [[https://github.com/kai2nenobu/guide-key][guide-key-mode]] for emacs. The intention is to provide the
+following features:
 1. A different polling mechanism to make it lighter on resources than guide-key
 2. An improved display of keys with more keys being shown by default and a nicer
    presentation
