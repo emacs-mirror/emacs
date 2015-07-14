@@ -273,16 +273,13 @@ bottom."
   "Internal function to add (KEY . REPL) to ALIST."
   (when (or (not (stringp key)) (not (stringp repl)))
     (error "KEY and REPL should be strings"))
-  (if alist
-      (progn
-        (if (assoc-string key alist)
-            (progn
-              (message "which-key note: The key %s already exists in %s. This addition will override that replacement."
-                       key alist)
-              (setcdr (assoc-string key alist) repl))
-          (push (cons key repl) alist)))
-    (setq alist (list (cons key repl))))
-  alist)
+  (cond ((null alist) (list (cons key repl)))
+        ((assoc-string key alist)
+         (message "which-key note: The key %s already exists in %s. This addition will override that replacement."
+                  key alist)
+         (setcdr (assoc-string key alist) repl)
+         alist)
+        (t (cons (cons key repl) alist))))
 
 ;;;###autoload
 (defun which-key/add-key-based-replacements (key repl &rest more)
@@ -308,9 +305,7 @@ pairs) will only apply when the major-mode MODE is active."
     (error "MODE should be a symbol corresponding to a value of major-mode"))
   (let ((mode-alist (cdr (assq mode which-key-key-based-description-replacement-alist))))
     (while key
-      (if mode-alist
-          (setq mode-alist (which-key//add-key-based-replacements mode-alist key repl))
-        (setq mode-alist (list (cons key repl))))
+      (setq mode-alist (which-key//add-key-based-replacements mode-alist key repl))
       (setq key (pop more) repl (pop more)))
     (if (assq mode which-key-key-based-description-replacement-alist)
         (setcdr (assq mode which-key-key-based-description-replacement-alist) mode-alist)
