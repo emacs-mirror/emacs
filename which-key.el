@@ -614,17 +614,18 @@ corresponding `which-key-special-key-face'."
                     (substring key-w-face end (length key-w-face))))
         key-w-face))))
 
-(defun which-key/propertize-description (description)
+(defsubst which-key//group-p (description)
+  (or (string-match-p "^\\(group:\\|Prefix\\)" description)
+      (keymapp (intern description))))
+
+(defun which-key/propertize-description (description group)
   "Add face to DESCRIPTION where the face chosen depends on
 whether the description represents a group or a command. Also
 make some minor adjustments to the description string, like
 removing a \"group:\" prefix."
   (let* ((desc description)
-         (group-prfx (string-match-p "^group:" desc))
-         (group (or group-prfx
-                    (keymapp (intern desc))
-                    (string-match-p "^Prefix" desc)))
-         (desc (if group-prfx (substring desc 6) desc))
+         (desc (if (string-match-p "^group:" desc)
+                   (substring desc 6) desc))
          (desc (if group (concat "+" desc) desc))
          (desc (which-key/truncate-description desc)))
     (propertize desc 'face
@@ -647,6 +648,7 @@ alists. Returns a list (key separator description)."
      (lambda (key-desc-cons)
        (let* ((key (car key-desc-cons))
               (desc (cdr key-desc-cons))
+              (group (which-key//group-p desc))
               (keys (concat prefix-keys " " key))
               (key (which-key/maybe-replace
                     key which-key-key-replacement-alist))
@@ -654,7 +656,7 @@ alists. Returns a list (key separator description)."
                      desc which-key-description-replacement-alist))
               (desc (which-key/maybe-replace-key-based desc keys))
               (key-w-face (which-key/propertize-key key))
-              (desc-w-face (which-key/propertize-description desc)))
+              (desc-w-face (which-key/propertize-description desc group)))
          (list key-w-face sep-w-face desc-w-face)))
      unformatted)))
 
