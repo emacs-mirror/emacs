@@ -1,8 +1,17 @@
-* which-key
-Rewrite of guide-key-mode for emacs. 
+* which-key Introduction
+This is of [[https://github.com/kai2nenobu/guide-key][guide-key-mode]] for emacs. The intention is to provide the following
+features:
+1. A different polling mechanism to make it lighter on resources than guide-key
+2. An improved display of keys with more keys being shown by default and a nicer
+   presentation
+3. Customization options that allow for the rewriting of command names on the
+   fly through easily modifiable alists
+4. Good default configurations that work well with most themes
+5. A well configured back-end for displaying keys (removing the popwin
+   dependency) that can be easily customized by writing new display functions
 
 * Table of Contents                                                   :TOC@4:
- - [[#which-key][which-key]]
+ - [[#which-key-introduction][which-key Introduction]]
  - [[#install][Install]]
      - [[#minibuffer-option][Minibuffer Option]]
      - [[#side-window-right-option][Side Window Right Option]]
@@ -17,10 +26,8 @@ Rewrite of guide-key-mode for emacs.
          - [[#key-based-replacement]["Key-Based" replacement]]
          - [[#key-and-description-replacement][Key and Description replacement]]
      - [[#nice-display-with-split-frame][Nice Display with Split Frame]]
- - [[#statusgoals][Status/Goals]]
-     - [[#stability][Stability]]
-     - [[#completed-goals][Completed Goals]]
-     - [[#incomplete-and-planned][Incomplete and Planned]]
+ - [[#status][Status]]
+ - [[#thanks][Thanks]]
 
 * Install
 Add which-key.el to your =load-path= and require. Something like 
@@ -228,21 +235,9 @@ windows.
 #+CAPTION: which-key in a frame with 2 vertical splits
 [[./img/which-key-bottom-split.png]]
 
-* Status/Goals
-** Stability
-It's very much a work in progress, so expect weird things to happen from time to
-time. That being said, the default configuration works well for me.
-** Completed Goals
-1. Use idle timers to trigger window popup instead of guide-key's constant
-   polling.
-2. Remove popwin as a "hard" dependency, preferring built-in display commands
-   where possible.
-3. Add support for replacement lists to modify key descriptions on the fly.
-   Currently you can replace in the key or description field using regexp, and
-   using a key sequence (like =C-x 1=) to fully replace the description (the
-   latter can target major modes, too).
-** Incomplete and Planned
-1. Come up with creative ways to fit more keys in buffer while still maintaining
-   nice alignment and formatting. Such as
-   1. Automatic text scaling
-   2. Paging functionality
+* Status
+It requires testing on different platforms with different configurations, which
+is beyond my capabilities. The default configuration has been reasonably stable
+for me. 
+* Thanks
+Thanks to @bmag for helping with the initial development and finding many bugs.
