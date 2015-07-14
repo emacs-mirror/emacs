@@ -61,7 +61,7 @@ This functionality is targeting [[https://github.com/syl20bnr/spacemacs][spacema
 Take over the minibuffer. Setup by default, but you can also use 
 
 #+BEGIN_SRC emacs-lisp
-(which-key/setup-minibuffer)
+(which-key-setup-minibuffer)
 #+END_SRC
 
 [[./img/which-key-minibuffer.png]]
@@ -73,7 +73,7 @@ variable =max-mini-window-height=.
 Popup side window on right. For defaults use
 
 #+BEGIN_SRC emacs-lisp
-(which-key/setup-side-window-right)
+(which-key-setup-side-window-right)
 #+END_SRC
 
 Note the defaults are fairly conservative and will tend to not display on
@@ -87,7 +87,7 @@ width (see =M-x customize-group which-key=).
 Popup side window on bottom. For defaults use
 
 #+BEGIN_SRC emacs-lisp
-(which-key/setup-side-window-bottom)
+(which-key-setup-side-window-bottom)
 #+END_SRC
 
 [[./img/which-key-bottom.png]]
@@ -141,29 +141,29 @@ further options:
 
 *** custom
 Write your own display functions! This requires you to write three functions,
-=which-key/custom-popup-max-dimensions-function=,
-=which-key/custom-show-popup-function=, and
-=which-key/custom-hide-popup-function=. Refer to the documentation for those
+=which-key-custom-popup-max-dimensions-function=,
+=which-key-custom-show-popup-function=, and
+=which-key-custom-hide-popup-function=. Refer to the documentation for those
 variables for more information, but here is a working example (this is the
 current implementation of side-window bottom).
 
 
 #+BEGIN_SRC emacs-lisp
 (setq which-key-popup-type 'custom)
-(defun which-key/custom-popup-max-dimensions-function (ignore)
+(defun which-key-custom-popup-max-dimensions-function (ignore)
   (cons
-   (which-key/height-or-percentage-to-height which-key-side-window-max-height)
+   (which-key-height-or-percentage-to-height which-key-side-window-max-height)
    (frame-width)))
 (defun fit-horizonatally ()
   (let ((fit-window-to-buffer-horizontally t))
     (fit-window-to-buffer)))
-(defun which-key/custom-show-popup-function (act-popup-dim)
+(defun which-key-custom-show-popup-function (act-popup-dim)
   (let* ((alist '((window-width . fit-horizontally)
                   (window-height . fit-window-to-buffer))))
     (if (get-buffer-window which-key--buffer)
         (display-buffer-reuse-window which-key--buffer alist)
       (display-buffer-in-major-side-window which-key--buffer 'bottom 0 alist))))
-(defun which-key/custom-hide-popup-function ()
+(defun which-key-custom-hide-popup-function ()
   (when (buffer-live-p which-key--buffer)
     (quit-windows-on which-key--buffer)))
 #+END_SRC
@@ -197,8 +197,8 @@ type of entries. In case the same key combination is listed under a major-mode
 and by itself, the major-mode version will take precedence.
 
 There are two helper functions to add entries to this list,
-=which-key/add-key-based-replacements= and
-=which-key/add-major-mode-key-based-replacements=. You can modify the alist
+=which-key-add-key-based-replacements= and
+=which-key-add-major-mode-key-based-replacements=. You can modify the alist
 directly or use these.
 
 *** Key and Description replacement
