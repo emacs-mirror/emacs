@@ -263,7 +263,7 @@ Used when `which-key-popup-type' is frame.")
           (when (and (> echo-keystrokes 0)
                      (eq which-key-popup-type 'minibuffer))
             (setq echo-keystrokes which-key-echo-keystrokes)
-            (message "Which-key: note echo-keystrokes changed from %s to %s"
+            (message "which-key: echo-keystrokes changed from %s to %s"
                      which-key--echo-keystrokes-backup echo-keystrokes)))
         (add-hook 'pre-command-hook #'which-key--hide-popup)
         (add-hook 'focus-out-hook #'which-key--stop-open-timer)
@@ -322,7 +322,7 @@ bottom."
     (error "KEY and REPL should be strings"))
   (cond ((null alist) (list (cons key repl)))
         ((assoc-string key alist)
-         (message "Which-key: note the key %s already exists in %s. This addition will override that replacement."
+         (message "which-key: the key %s already exists in %s. This addition will override that replacement."
                   key alist)
          (setcdr (assoc-string key alist) repl)
          alist)
