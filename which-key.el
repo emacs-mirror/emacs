@@ -429,7 +429,7 @@ total height."
     (minibuffer (which-key--hide-buffer-minibuffer))
     (side-window (which-key--hide-buffer-side-window))
     (frame (which-key--hide-buffer-frame))
-    (custom (funcall #'which-key-custom-hide-popup-function))))
+    (custom (funcall which-key-custom-hide-popup-function))))
 
 (defun which-key--hide-buffer-minibuffer ()
   "Does nothing.
@@ -458,7 +458,7 @@ is shown, or if there is no need to start the closing timer."
       (minibuffer (which-key--show-buffer-minibuffer act-popup-dim))
       (side-window (which-key--show-buffer-side-window act-popup-dim))
       (frame (which-key--show-buffer-frame act-popup-dim))
-      (custom (funcall #'which-key-custom-show-popup-function act-popup-dim)))))
+      (custom (funcall which-key-custom-show-popup-function act-popup-dim)))))
 
 (defun which-key--show-buffer-minibuffer (act-popup-dim)
   "Does nothing.
@@ -579,7 +579,7 @@ window."
     (minibuffer (which-key--minibuffer-max-dimensions))
     (side-window (which-key--side-window-max-dimensions))
     (frame (which-key--frame-max-dimensions))
-    (custom (funcall #'which-key-custom-popup-max-dimensions-function selected-window-width))))
+    (custom (funcall which-key-custom-popup-max-dimensions-function selected-window-width))))
 
 (defun which-key--minibuffer-max-dimensions ()
   "Return max-dimensions of minibuffer (height . width).
