@@ -256,14 +256,15 @@ Used when `which-key-popup-type' is frame.")
   :lighter " WK"
   (if which-key-mode
       (progn
-        (unless which-key--is-setup (which-key--setup))
-        ;; reduce echo-keystrokes for minibuffer popup
-        ;; (it can interfer if it's too slow)
-        (when (and (> echo-keystrokes 0)
-                   (eq which-key-popup-type 'minibuffer))
-          (setq echo-keystrokes which-key-echo-keystrokes)
-          (message "Which-key-mode enabled (note echo-keystrokes changed from %s to %s)"
-                   which-key--echo-keystrokes-backup echo-keystrokes))
+        (unless which-key--is-setup
+          (which-key--setup)
+          ;; reduce echo-keystrokes for minibuffer popup
+          ;; (it can interfer if it's too slow)
+          (when (and (> echo-keystrokes 0)
+                     (eq which-key-popup-type 'minibuffer))
+            (setq echo-keystrokes which-key-echo-keystrokes)
+            (message "Which-key: note echo-keystrokes changed from %s to %s"
+                     which-key--echo-keystrokes-backup echo-keystrokes)))
         (add-hook 'pre-command-hook #'which-key--hide-popup)
         (add-hook 'focus-out-hook #'which-key--stop-open-timer)
         (add-hook 'focus-in-hook #'which-key--start-open-timer)
@@ -321,7 +322,7 @@ bottom."
     (error "KEY and REPL should be strings"))
   (cond ((null alist) (list (cons key repl)))
         ((assoc-string key alist)
-         (message "which-key note: The key %s already exists in %s. This addition will override that replacement."
+         (message "Which-key: note the key %s already exists in %s. This addition will override that replacement."
                   key alist)
          (setcdr (assoc-string key alist) repl)
          alist)
