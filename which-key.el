@@ -8,11 +8,23 @@
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3") (s "1.9.0") (dash "2.11.0"))
 
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 ;;; Commentary:
-;;
+
 ;;  This is a rewrite of guide-key https://github.com/kai2nenobu/guide-key. See
 ;;  https://github.com/justbur/emacs-which-key for more information.
-;;
 
 ;;; Code:
 
@@ -20,11 +32,16 @@
 (require 's)
 (require 'dash)
 
-(defgroup which-key nil "Customization options for which-key-mode")
+(defgroup which-key nil
+  "Customization options for which-key-mode"
+  :group 'help
+  :prefix "which-key-")
+
 (defcustom which-key-idle-delay 1.0
   "Delay (in seconds) for which-key buffer to popup."
   :group 'which-key
   :type 'float)
+
 (defcustom which-key-echo-keystrokes
   (min echo-keystrokes (/ (float which-key-idle-delay) 4))
   "Value to use for `echo-keystrokes'.
@@ -33,15 +50,18 @@ needs to be less than `which-key-idle-delay' or else the echo
 will erase the which-key popup."
   :group 'which-key
   :type 'float)
+
 (defcustom which-key-max-description-length 27
   "Truncate the description of keys to this length.
 Also adds \"..\"."
   :group 'which-key
   :type 'integer)
+
 (defcustom which-key-separator "→"
   "Separator to use between key and description."
   :group 'which-key
   :type 'string)
+
 (defcustom which-key-unicode-correction 3
   "Correction for wide unicode characters.
 Since we measure width in terms of the number of characters,
@@ -57,6 +77,7 @@ number if you are seeing charaters get cutoff on the right side
 of the which-key popup."
   :group 'which-key
   :type 'integer)
+
 (defcustom which-key-key-replacement-alist
   '(("<\\(\\(C-\\|M-\\)*.+\\)>" . "\\1") ("left" . "←") ("right" . "→"))
   "The strings in the car of each cons are replaced with the
@@ -64,12 +85,14 @@ strings in the cdr for each key.  Elisp regexp can be used as
 in the first example."
   :group 'which-key
   :type '(alist :key-type regexp :value-type string))
+
 (defcustom which-key-description-replacement-alist
   '(("Prefix Command" . "prefix"))
   "See `which-key-key-replacement-alist'.
 This is a list of lists for replacing descriptions."
   :group 'which-key
   :type '(alist :key-type regexp :value-type string))
+
 (defcustom which-key-key-based-description-replacement-alist '()
   "Each item in the list is a cons cell.
 The car of each cons cell is either a string like \"C-c\", in
@@ -84,15 +107,18 @@ is overwritten with \"find files\". The second case works the
 same way using the alist matched when `major-mode' is
 emacs-lisp-mode."
 :group 'which-key)
+
 (defcustom which-key-special-keys '("SPC" "TAB" "RET" "ESC" "DEL")
   "These keys will automatically be truncated to one character
 and have `which-key-special-key-face' applied to them."
   :group 'which-key
   :type '(repeat string))
+
 (defcustom which-key-buffer-name "*which-key*"
   "Name of which-key buffer."
   :group 'which-key
   :type 'string)
+
 (defcustom which-key-show-prefix 'left
   "Whether to and where to display the current prefix sequence.
 Possible choices are left (the default), top and nil.  Nil turns
@@ -101,6 +127,7 @@ the feature off."
   :type '(radio (const :tag "Left of keys" left)
                 (const :tag "In first line" top)
                 (const :tag "Hide" nil)))
+
 (defcustom which-key-popup-type 'minibuffer
   "Supported types are minibuffer, side-window, frame, and custom."
   :group 'which-key
@@ -108,6 +135,7 @@ the feature off."
                 (const :tag "Show in side window" side-window)
                 (const :tag "Show in popup frame" frame)
                 (const :tag "Use your custom display functions" custom)))
+
 (defcustom which-key-side-window-location 'right
   "Location of which-key popup when `which-key-popup-type' is side-window.
 Should be one of top, bottom, left or right."
@@ -116,6 +144,7 @@ Should be one of top, bottom, left or right."
                 (const bottom)
                 (const left)
                 (const top)))
+
 (defcustom which-key-side-window-max-width 0.333
   "Maximum width of which-key popup when type is side-window and
 location is left or right.
@@ -123,6 +152,7 @@ This variable can also be a number between 0 and 1. In that case, it denotes
 a percentage out of the frame's width."
   :group 'which-key
   :type 'float)
+
 (defcustom which-key-side-window-max-height 0.25
   "Maximum height of which-key popup when type is side-window and
 location is top or bottom.
@@ -130,14 +160,17 @@ This variable can also be a number between 0 and 1. In that case, it denotes
 a percentage out of the frame's height."
   :group 'which-key
   :type 'float)
+
 (defcustom which-key-frame-max-width 60
   "Maximum width of which-key popup when type is frame."
   :group 'which-key
   :type 'integer)
+
 (defcustom which-key-frame-max-height 20
   "Maximum height of which-key popup when type is frame."
   :group 'which-key
   :type 'integer)
+
 (defcustom which-key-show-remaining-keys t
   "Show remaining keys in last slot, when keys are hidden."
   :group 'which-key
@@ -149,18 +182,22 @@ a percentage out of the frame's height."
   '((t . (:inherit font-lock-constant-face)))
   "Face for which-key keys"
   :group 'which-key)
+
 (defface which-key-separator-face
   '((t . (:inherit font-lock-comment-face)))
   "Face for the separator (default separator is an arrow)"
   :group 'which-key)
+
 (defface which-key-command-description-face
   '((t . (:inherit font-lock-function-name-face)))
   "Face for the key description when it is a command"
   :group 'which-key)
+
 (defface which-key-group-description-face
   '((t . (:inherit font-lock-keyword-face)))
   "Face for the key description when it is a group or prefix"
   :group 'which-key)
+
 (defface which-key-special-key-face
   '((t . (:inherit which-key-key-face :inverse-video t :weight bold)))
   "Face for special keys (SPC, TAB, RET)"
@@ -174,11 +211,13 @@ return the maximum height in lines and width in characters of the
 which-key popup in the form a cons cell (height . width)."
   :group 'which-key
   :type 'function)
+
 (defcustom which-key-custom-hide-popup-function nil
   "Variable to hold a custom hide-popup function.
 It takes no arguments and the return value is ignored."
   :group 'which-key
   :type 'function)
+
 (defcustom which-key-custom-show-popup-function nil
   "Variable to hold a custom show-popup function.
 Will be passed the required dimensions in the form (height .
@@ -888,6 +927,7 @@ Finally, show the buffer."
 (defun which-key--stop-open-timer ()
   "Deactivate idle timer for `which-key--update'."
   (when which-key--open-timer (cancel-timer which-key--open-timer)))
-(provide 'which-key)
 
+
+(provide 'which-key)
 ;;; which-key.el ends here
