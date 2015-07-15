@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Version: 0.1
+;; Version: 0.2
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3") (s "1.9.0") (dash "2.11.0"))
 
@@ -70,7 +70,7 @@ the calculation for available width in the which-key buffer.  This
 variable allows you to adjust for the wide unicode characters by
 artificially reducing the available width in the buffer.
 
-The default of 1 means allow for the total extra width
+The default of 3 means allow for the total extra width
 contributed by any wide unicode characters to be up to one
 additional ASCII character in the which-key buffer.  Increase this
 number if you are seeing charaters get cutoff on the right side
