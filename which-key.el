@@ -226,6 +226,13 @@ ignored."
   :group 'which-key
   :type 'function)
 
+(defvar which-key-inhibit nil
+  "Prevent guide-key from popping up momentarily by setting this
+to a non-nil value for the execution of a command. Like this
+
+\(let \(\(which-key-inhibit t\)\)
+...\)")
+
 ;; Internal Vars
 ;; (defvar popwin:popup-buffer nil)
 (defvar which-key--buffer nil
@@ -904,7 +911,8 @@ Finally, show the buffer."
     ;; (when (> (length prefix-keys) 0)
     ;;  (message "key binding: %s" (key-binding prefix-keys)))
     (when (and (> (length prefix-keys) 0)
-               (keymapp (key-binding prefix-keys)))
+               (keymapp (key-binding prefix-keys))
+               (not which-key-inhibit))
       (let* ((buf (current-buffer))
              ;; get formatted key bindings
              (formatted-keys (which-key--get-formatted-key-bindings
