@@ -912,7 +912,10 @@ Finally, show the buffer."
     ;; (when (> (length prefix-keys) 0)
     ;;  (message "key binding: %s" (key-binding prefix-keys)))
     (when (and (> (length prefix-keys) 0)
-               (keymapp (key-binding prefix-keys))
+               (or
+                (keymapp (key-binding prefix-keys))
+                ;; Some keymaps are stored here like iso-transl-ctl-x-8-map
+                (keymapp (lookup-key key-translation-map prefix-keys)))
                (not which-key-inhibit))
       (let* ((buf (current-buffer))
              ;; get formatted key bindings
