@@ -334,7 +334,8 @@ bottom."
     (error "KEY and REPL should be strings"))
   (cond ((null alist) (list (cons key repl)))
         ((assoc-string key alist)
-         (message "which-key: the key %s already exists in %s. This addition will override that replacement."
+         (message "which-key: the key %s already exists in %s. This addition \
+will override that replacement."
                   key alist)
          (setcdr (assoc-string key alist) repl)
          alist)
@@ -409,13 +410,16 @@ character width as the frame."
        3)))
 
 (defun which-key--char-enlarged-p (&optional frame)
-  (> (frame-char-width) (/ (float (frame-pixel-width)) (window-total-width (frame-root-window)))))
+  (> (frame-char-width)
+     (/ (float (frame-pixel-width)) (window-total-width (frame-root-window)))))
 
 (defun which-key--char-reduced-p (&optional frame)
-  (< (frame-char-width) (/ (float (frame-pixel-width)) (window-total-width (frame-root-window)))))
+  (< (frame-char-width)
+     (/ (float (frame-pixel-width)) (window-total-width (frame-root-window)))))
 
 (defun which-key--char-exact-p (&optional frame)
-  (= (frame-char-width) (/ (float (frame-pixel-width)) (window-total-width (frame-root-window)))))
+  (= (frame-char-width)
+     (/ (float (frame-pixel-width)) (window-total-width (frame-root-window)))))
 
 (defun which-key--width-or-percentage-to-width (width-or-percentage)
   "Return window total width.
@@ -709,7 +713,8 @@ removing a \"group:\" prefix."
   "Take a list of (key . desc) cons cells in UNFORMATTED, add
 faces and perform replacements according to the three replacement
 alists. Returns a list (key separator description)."
-  (let ((sep-w-face (propertize which-key-separator 'face 'which-key-separator-face)))
+  (let ((sep-w-face
+         (propertize which-key-separator 'face 'which-key-separator-face)))
     (mapcar
      (lambda (key-desc-cons)
        (let* ((key (car key-desc-cons))
@@ -749,7 +754,7 @@ BUFFER that follow the key sequence KEY-SEQ."
 ;; Functions for laying out which-key buffer pages
 
 (defsubst which-key--join-columns (columns)
-  "Transpose columns into rows, concat rows into lines and concat rows into page."
+  "Transpose columns into rows, concat rows into lines and rows into page."
   (let* (;; pad reversed columns to same length
          (padded (apply (apply-partially #'-pad "") (reverse columns)))
          ;; transpose columns to rows
@@ -774,7 +779,9 @@ keys to be written into the upper left porition of the page."
   (let* ((n-keys (length keys))
          (avl-lines max-lines)
          ;; we get 1 back for not putting a space after the last column
-         (avl-width (max 0 (- (+ 1 max-width) prefix-width which-key-unicode-correction)))
+         (avl-width (max 0 (- (+ 1 max-width)
+                              prefix-width
+                              which-key-unicode-correction)))
          (rem-keys keys)
          (n-col-lines (min avl-lines n-keys))
          (act-n-lines n-col-lines) ; n-col-lines in first column
@@ -821,7 +828,8 @@ keys to be written into the upper left porition of the page."
     (setq page (which-key--join-columns all-columns))
     (list page act-n-lines act-width rem-keys (- n-keys (length rem-keys)))))
 
-(defun which-key--create-page (keys max-lines max-width prefix-width &optional vertical use-status-key page-n)
+(defun which-key--create-page (keys max-lines max-width prefix-width
+                                    &optional vertical use-status-key page-n)
   "Create a page of KEYS with parameters MAX-LINES, MAX-WIDTH,PREFIX-WIDTH.
 Use as many keys as possible.  Use as few lines as possible unless
 VERTICAL is non-nil.  USE-STATUS-KEY inserts an informative
@@ -829,7 +837,8 @@ message in place of the last key on the page if non-nil.  PAGE-N
 allows for the informative message to reference the current page
 number."
   (let* ((n-keys (length keys))
-         (first-try (which-key--create-page-vertical keys max-lines max-width prefix-width))
+         (first-try (which-key--create-page-vertical
+                     keys max-lines max-width prefix-width))
          (n-rem-keys (length (nth 3 first-try)))
          (status-key-i (- n-keys n-rem-keys 1))
          (next-try-lines max-lines)
@@ -842,7 +851,7 @@ number."
                                 (format "%s keys not shown" (1+ n-rem-keys))
                                 'face 'font-lock-comment-face)))
            (which-key--create-page-vertical (-insert-at status-key-i status-key keys)
-                                           max-lines max-width prefix-width))
+                                            max-lines max-width prefix-width))
           ((or vertical (> n-rem-keys 0) (= 1 max-lines))
            first-try)
           ;; do a simple search for the smallest number of lines
@@ -881,9 +890,9 @@ value of `which-key-show-prefix'.  SEL-WIN-WIDTH is passed to
          max-pages-reached)
     (while (and keys-rem (not max-pages-reached) (not no-room))
       (setq page-n (1+ page-n)
-            page-res (which-key--create-page keys-rem
-                                            max-lines avl-width prefix-width
-                                            vertical which-key-show-remaining-keys page-n))
+            page-res (which-key--create-page
+                      keys-rem max-lines avl-width prefix-width
+                      vertical which-key-show-remaining-keys page-n))
       (push page-res pages)
       (push (if (nth 4 page-res) (nth 4 page-res) 0) keys-per-page)
       (setq keys-rem (nth 3 page-res)
@@ -895,7 +904,8 @@ value of `which-key-show-prefix'.  SEL-WIN-WIDTH is passed to
           first-page (car pages)
           first-page-str (concat prefix-string (car first-page)))
     (cond ((<= (car keys-per-page) 0) ; check first page
-           (message "%s-  which-key can't show keys: Settings and/or frame size are too restrictive." prefix-keys)
+           (message "%s-  which-key can't show keys: Settings and/or frame size\
+ are too restrictive." prefix-keys)
            (cons 0 0))
           (max-pages-reached
            (error "Which-key reached the maximum number of pages")
