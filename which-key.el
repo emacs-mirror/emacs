@@ -285,14 +285,15 @@ set too high) and setup which-key buffer."
   (setq which-key--is-setup t))
 
 (defun which-key--setup-echo-keystrokes ()
-  "Initial setup for which-key.
-Reduce `echo-keystrokes' if necessary (it will interfer if it's
-set too high) and setup which-key buffer."
-  (when (and (> echo-keystrokes
-                (+ which-key-echo-keystrokes 0.00001))
-             (> which-key-echo-keystrokes 0))
-    (setq which-key--echo-keystrokes-backup echo-keystrokes
-          echo-keystrokes which-key-echo-keystrokes)
+  "Reduce `echo-keystrokes' if necessary (it will interfer if
+it's set too high)."
+  (when (> (abs (- echo-keystrokes which-key-echo-keystrokes)) 0.000001)
+    (setq which-key--echo-keystrokes-backup echo-keystrokes)
+    (if (> which-key-idle-delay which-key-echo-keystrokes)
+        (setq echo-keystrokes which-key-echo-keystrokes)
+      (setq which-key-echo-keystrokes
+            (min echo-keystrokes (/ (float which-key-idle-delay) 4))
+            echo-keystrokes which-key-echo-keystrokes))
     (message "which-key: echo-keystrokes changed from %s to %s"
              which-key--echo-keystrokes-backup echo-keystrokes)))
 
