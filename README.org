@@ -13,6 +13,9 @@ following features:
 * Table of Contents                                                   :TOC@4:
  - [[#which-key-introduction][which-key Introduction]]
  - [[#install][Install]]
+     - [[#melpa][MELPA]]
+     - [[#manually][Manually]]
+ - [[#initial-setup][Initial Setup]]
      - [[#minibuffer-option][Minibuffer Option]]
      - [[#side-window-right-option][Side Window Right Option]]
      - [[#side-window-bottom-option][Side Window Bottom Option]]
@@ -30,6 +33,11 @@ following features:
  - [[#thanks][Thanks]]
 
 * Install
+** MELPA
+After setting up [[http://melpa.org][MELPA]] as a repository, use =M-x package-install which-key= or
+your preferred method.
+
+** Manually
 Add which-key.el to your =load-path= and require. Something like 
 
 #+BEGIN_SRC emacs-lisp
@@ -38,9 +46,12 @@ Add which-key.el to your =load-path= and require. Something like
 (which-key-mode)
 #+END_SRC
 
-There are 3 choices of default configs for you to try (then customize to your
-liking). The main choice is where you want the which-key buffer to display.
-Screenshots of the default options are shown in the next sections.
+* Initial Setup
+No further setup is required if you are happy with the default setup. To try
+other options, there are 3 choices of default configs that are preconfigured
+(then customize to your liking). The main choice is where you want the which-key
+buffer to display. Screenshots of the default options are shown in the next
+sections.
 
 In each case, we show as many key bindings as we can fit in the buffer within
 the constraints. The constraints are determined by several factors, including
