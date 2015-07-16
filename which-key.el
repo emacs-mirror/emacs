@@ -114,7 +114,7 @@ and have `which-key-special-key-face' applied to them."
   :group 'which-key
   :type '(repeat string))
 
-(defcustom which-key-buffer-name "*which-key*"
+(defcustom which-key-buffer-name " *which-key*"
   "Name of which-key buffer."
   :group 'which-key
   :type 'string)
