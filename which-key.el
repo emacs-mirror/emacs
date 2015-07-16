@@ -277,7 +277,8 @@ set too high) and setup which-key buffer."
   (with-current-buffer which-key--buffer
     ;; suppress confusing minibuffer message
     (let (message-log-max)
-      (toggle-truncate-lines 1))
+      (toggle-truncate-lines 1)
+      (message ""))
     (setq-local cursor-type nil)
     (setq-local cursor-in-non-selected-windows nil)
     (setq-local mode-line-format nil))
