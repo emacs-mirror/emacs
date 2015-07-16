@@ -227,7 +227,7 @@ ignored."
   :type 'function)
 
 (defvar which-key-inhibit nil
-  "Prevent guide-key from popping up momentarily by setting this
+  "Prevent which-key from popping up momentarily by setting this
 to a non-nil value for the execution of a command. Like this
 
 \(let \(\(which-key-inhibit t\)\)
@@ -429,7 +429,7 @@ total height."
     (round (* height-or-percentage (window-total-height (frame-root-window))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Show/hide guide buffer
+;; Show/hide which-key buffer
 
 (defun which-key--hide-popup ()
   "This function is called to hide the which-key buffer."
@@ -915,7 +915,9 @@ Finally, show the buffer."
                (or
                 (keymapp (key-binding prefix-keys))
                 ;; Some keymaps are stored here like iso-transl-ctl-x-8-map
-                (keymapp (lookup-key key-translation-map prefix-keys)))
+                (keymapp (lookup-key key-translation-map prefix-keys))
+                ;; just in case someone uses one of these
+                (keymapp (lookup-key function-key-map prefix-keys)))
                (not which-key-inhibit))
       (let* ((buf (current-buffer))
              ;; get formatted key bindings
