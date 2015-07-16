@@ -681,12 +681,12 @@ If KEY contains any \"special keys\" defined in
             (concat (substring key-w-face 0 beg)
                     (propertize (substring key-w-face beg (1+ beg))
                                 'face 'which-key-special-key-face)
-                    (substring key-w-face end (length key-w-face))))
+                    (substring key-w-face end (string-width key-w-face))))
         key-w-face))))
 
 (defsubst which-key--truncate-description (desc)
   "Truncate DESC description to `which-key-max-description-length'."
-  (if (> (length desc) which-key-max-description-length)
+  (if (> (string-width desc) which-key-max-description-length)
       (concat (substring desc 0 which-key-max-description-length) "..")
     desc))
 
@@ -767,7 +767,7 @@ BUFFER that follow the key sequence KEY-SEQ."
 element in each list element of KEYS."
   (cl-reduce
    (lambda (x y) (max x (if (eq (car y) 'status)
-                            0 (length (substring-no-properties (nth index y))))))
+                            0 (string-width (nth index y)))))
    keys :initial-value 0))
 
 (defun which-key--create-page-vertical (keys max-lines max-width prefix-width)
@@ -813,10 +813,10 @@ keys to be written into the upper left porition of the page."
                               (if (eq (car k) 'status)
                                   (concat (s-repeat (+ col-key-width col-sep-width) " ") "  " (cdr k))
                                 (concat (s-repeat (- col-key-width
-                                                     (length (substring-no-properties (nth 0 k)))) " ")
+                                                     (string-width (nth 0 k))) " ")
                                         (nth 0 k) " " (nth 1 k) " " (nth 2 k)
                                         (s-repeat (- col-desc-width
-                                                     (length (substring-no-properties (nth 2 k)))) " "))))
+                                                     (string-width (nth 2 k))) " "))))
                             col-keys))
       (if (<= col-width avl-width)
           (progn  (push new-column all-columns)
@@ -874,7 +874,7 @@ value of `which-key-show-prefix'.  SEL-WIN-WIDTH is passed to
   (let* ((vertical (and (eq which-key-popup-type 'side-window)
                         (member which-key-side-window-location '(left right))))
          (prefix-w-face (which-key--propertize-key prefix-keys))
-         (prefix-len (+ 2 (length (substring-no-properties prefix-w-face))))
+         (prefix-len (+ 2 (string-width prefix-w-face)))
          (prefix-string (when which-key-show-prefix
                           (if (eq which-key-show-prefix 'left)
                               (concat prefix-w-face "  ")
