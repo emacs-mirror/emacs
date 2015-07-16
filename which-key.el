@@ -245,7 +245,7 @@ to a non-nil value for the execution of a command. Like this
 (defvar which-key--frame nil
   "Internal: Holds reference to which-key frame.
 Used when `which-key-popup-type' is frame.")
-(defvar which-key--echo-keystrokes-backup echo-keystrokes
+(defvar which-key--echo-keystrokes-backup nil
   "Internal: Backup the initial value of `echo-keystrokes'.")
 
 ;;;###autoload
@@ -255,17 +255,7 @@ Used when `which-key-popup-type' is frame.")
   :lighter " WK"
   (if which-key-mode
       (progn
-        (unless which-key--is-setup
-          (which-key--setup)
-          ;; reduce echo-keystrokes for minibuffer popup
-          ;; (it can interfer if it's too slow)
-          (when (and (> echo-keystrokes 0)
-                     (eq which-key-popup-type 'minibuffer)
-                     (not (= echo-keystrokes
-                             which-key--echo-keystrokes-backup)))
-            (setq echo-keystrokes which-key-echo-keystrokes)
-            (message "which-key: echo-keystrokes changed from %s to %s"
-                     which-key--echo-keystrokes-backup echo-keystrokes)))
+        (unless which-key--is-setup (which-key--setup))
         (add-hook 'pre-command-hook #'which-key--hide-popup)
         (add-hook 'focus-out-hook #'which-key--stop-open-timer)
         (add-hook 'focus-in-hook #'which-key--start-open-timer)
@@ -278,14 +268,32 @@ Used when `which-key-popup-type' is frame.")
     (which-key--stop-open-timer)))
 
 (defun which-key--setup ()
-  "Create buffer for which-key."
+  "Initial setup for which-key.
+Reduce `echo-keystrokes' if necessary (it will interfer if it's
+set too high) and setup which-key buffer."
+  (when (eq which-key-popup-type 'minibuffer)
+    (which-key--setup-echo-keystrokes))
   (setq which-key--buffer (get-buffer-create which-key-buffer-name))
   (with-current-buffer which-key--buffer
-    (toggle-truncate-lines 1)
+    ;; suppress confusing minibuffer message
+    (let (message-log-max)
+      (toggle-truncate-lines 1))
     (setq-local cursor-type nil)
     (setq-local cursor-in-non-selected-windows nil)
     (setq-local mode-line-format nil))
   (setq which-key--is-setup t))
+
+(defun which-key--setup-echo-keystrokes ()
+  "Initial setup for which-key.
+Reduce `echo-keystrokes' if necessary (it will interfer if it's
+set too high) and setup which-key buffer."
+  (when (and (> echo-keystrokes
+                (+ which-key-echo-keystrokes 0.00001))
+             (> which-key-echo-keystrokes 0))
+    (setq which-key--echo-keystrokes-backup echo-keystrokes
+          echo-keystrokes which-key-echo-keystrokes)
+    (message "which-key: echo-keystrokes changed from %s to %s"
+             which-key--echo-keystrokes-backup echo-keystrokes)))
 
 ;; Default configuration functions for use by users. Should be the "best"
 ;; configurations
@@ -311,6 +319,7 @@ bottom."
 (defun which-key-setup-minibuffer ()
   "Apply suggested settings for minibuffer."
   (interactive)
+  (which-key--setup-echo-keystrokes)
   (setq which-key-popup-type 'minibuffer
         which-key-show-prefix 'left))
 
