@@ -234,7 +234,6 @@ to a non-nil value for the execution of a command. Like this
 ...\)")
 
 ;; Internal Vars
-;; (defvar popwin:popup-buffer nil)
 (defvar which-key--buffer nil
   "Internal: Holds reference to which-key buffer.")
 (defvar which-key--window nil
@@ -261,7 +260,9 @@ Used when `which-key-popup-type' is frame.")
           ;; reduce echo-keystrokes for minibuffer popup
           ;; (it can interfer if it's too slow)
           (when (and (> echo-keystrokes 0)
-                     (eq which-key-popup-type 'minibuffer))
+                     (eq which-key-popup-type 'minibuffer)
+                     (not (= echo-keystrokes
+                             which-key--echo-keystrokes-backup)))
             (setq echo-keystrokes which-key-echo-keystrokes)
             (message "which-key: echo-keystrokes changed from %s to %s"
                      which-key--echo-keystrokes-backup echo-keystrokes)))
@@ -362,9 +363,6 @@ addition KEY-SEQUENCE REPLACEMENT pairs) to apply."
     (if (assq mode which-key-key-based-description-replacement-alist)
         (setcdr (assq mode which-key-key-based-description-replacement-alist) mode-alist)
       (push (cons mode mode-alist) which-key-key-based-description-replacement-alist))))
-;; (setq which-key-key-based-description-replacement-alist
-    ;;       (assq-delete-all mode which-key-key-based-description-replacement-alist))
-    ;; (push (cons mode mode-alist) which-key-key-based-description-replacement-alist)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions for computing window sizes
@@ -607,14 +605,15 @@ width) in lines and characters respectively."
   (cons
    ;; height
    (if (member which-key-side-window-location '(left right))
-       (- (frame-height) (window-text-height (minibuffer-window)) 1) ;; 1 is a kludge to make sure there is no overlap
+       ;; 1 is a kludge to make sure there is no overlap
+       (- (frame-height) (window-text-height (minibuffer-window)) 1)
      ;; (window-mode-line-height which-key--window))
      ;; FIXME: change to something like (min which-*-height (calculate-max-height))
      (which-key--height-or-percentage-to-height which-key-side-window-max-height))
    ;; width
    (if (member which-key-side-window-location '(left right))
        (which-key--total-width-to-text (which-key--width-or-percentage-to-width
-                                       which-key-side-window-max-width))
+                                        which-key-side-window-max-width))
      (frame-width))))
 
 (defun which-key--frame-max-dimensions ()
@@ -778,7 +777,8 @@ keys to be written into the upper left porition of the page."
          (iter-n 0)
          col-keys col-key-width col-desc-width col-width col-split done
          new-column page col-sep-width prev-rem-keys)
-    ;; (message "frame-width %s prefix-width %s avl-width %s max-width %s" (frame-text-cols) prefix-width avl-width max-width)
+    ;; (message "frame-width %s prefix-width %s avl-width %s max-width %s"
+    ;;          (frame-text-cols) prefix-width avl-width max-width)
     (while (and (<= iter-n max-iter) (not done))
       (setq iter-n         (1+ iter-n)
             col-split      (-split-at n-col-lines rem-keys)
@@ -834,7 +834,8 @@ number."
                                            max-lines max-width prefix-width))
           ((or vertical (> n-rem-keys 0) (= 1 max-lines))
            first-try)
-          ;; do a simple search for the smallest number of lines (TODO: Implement binary search)
+          ;; do a simple search for the smallest number of lines
+          ;; TODO: Implement binary search
           (t (while (and (<= iter-n max-iter) (not found))
                (setq iter-n (1+ iter-n)
                      prev-try next-try
@@ -920,14 +921,11 @@ Finally, show the buffer."
                 (keymapp (lookup-key function-key-map prefix-keys)))
                (not which-key-inhibit))
       (let* ((buf (current-buffer))
-             ;; get formatted key bindings
              (formatted-keys (which-key--get-formatted-key-bindings
                               buf prefix-keys))
-             ;; populate target buffer
              (popup-act-dim (which-key--populate-buffer
                              (key-description prefix-keys)
                              formatted-keys (window-width))))
-        ;; show buffer
         (which-key--show-popup popup-act-dim)))))
 
 ;; Timers
