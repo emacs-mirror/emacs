@@ -1,4 +1,6 @@
-* which-key Introduction
+[[http://melpa.org/packages/which-key-badge.svg]]
+* which-key 
+** Introduction
 This is a rewrite of [[https://github.com/kai2nenobu/guide-key][guide-key-mode]] for emacs. The intention is to provide the
 following features:
 1. A different polling mechanism to make it lighter on resources than guide-key
@@ -10,34 +12,35 @@ following features:
 5. A well configured back-end for displaying keys (removing the popwin
    dependency) that can be easily customized by writing new display functions
 
-* Table of Contents                                                   :TOC@4:
- - [[#which-key-introduction][which-key Introduction]]
- - [[#install][Install]]
-     - [[#melpa][MELPA]]
-     - [[#manually][Manually]]
- - [[#initial-setup][Initial Setup]]
-     - [[#minibuffer-option][Minibuffer Option]]
-     - [[#side-window-right-option][Side Window Right Option]]
-     - [[#side-window-bottom-option][Side Window Bottom Option]]
- - [[#special-features-and-configuration-options][Special Features and Configuration Options]]
-     - [[#several-popup-types][Several Popup Types]]
-         - [[#minibuffer][minibuffer]]
-         - [[#side-window][side window]]
-         - [[#frame][frame]]
-         - [[#custom][custom]]
-     - [[#custom-string-replacement][Custom String Replacement]]
-         - [[#key-based-replacement]["Key-Based" replacement]]
-         - [[#key-and-description-replacement][Key and Description replacement]]
-     - [[#nice-display-with-split-frame][Nice Display with Split Frame]]
- - [[#status][Status]]
- - [[#thanks][Thanks]]
+** Table of Contents                                                 :TOC@4:
+ - [[#which-key-][which-key ]]
+     - [[#introduction][Introduction]]
+     - [[#install][Install]]
+         - [[#melpa][MELPA]]
+         - [[#manually][Manually]]
+     - [[#initial-setup][Initial Setup]]
+         - [[#minibuffer-option][Minibuffer Option]]
+         - [[#side-window-right-option][Side Window Right Option]]
+         - [[#side-window-bottom-option][Side Window Bottom Option]]
+     - [[#special-features-and-configuration-options][Special Features and Configuration Options]]
+         - [[#several-popup-types][Several Popup Types]]
+             - [[#minibuffer][minibuffer]]
+             - [[#side-window][side window]]
+             - [[#frame][frame]]
+             - [[#custom][custom]]
+         - [[#custom-string-replacement][Custom String Replacement]]
+             - [[#key-based-replacement]["Key-Based" replacement]]
+             - [[#key-and-description-replacement][Key and Description replacement]]
+         - [[#nice-display-with-split-frame][Nice Display with Split Frame]]
+     - [[#status][Status]]
+     - [[#thanks][Thanks]]
 
-* Install
-** MELPA
+** Install
+*** MELPA
 After setting up [[http://melpa.org][MELPA]] as a repository, use =M-x package-install which-key= or
 your preferred method.
 
-** Manually
+*** Manually
 Add which-key.el to your =load-path= and require. Something like 
 
 #+BEGIN_SRC emacs-lisp
@@ -46,7 +49,7 @@ Add which-key.el to your =load-path= and require. Something like
 (which-key-mode)
 #+END_SRC
 
-* Initial Setup
+** Initial Setup
 No further setup is required if you are happy with the default setup. To try
 other options, there are 3 choices of default configs that are preconfigured
 (then customize to your liking). The main choice is where you want the which-key
@@ -68,7 +71,7 @@ There are other substitution abilities included, which are quite flexible
 (ability to use regexp for example). This makes which-key very customizable.
 This functionality is targeting [[https://github.com/syl20bnr/spacemacs][spacemacs]].
 
-** Minibuffer Option
+*** Minibuffer Option
 Take over the minibuffer. Setup by default, but you can also use 
 
 #+BEGIN_SRC emacs-lisp
@@ -80,7 +83,7 @@ Take over the minibuffer. Setup by default, but you can also use
 Note the maximum height of the minibuffer is controlled through the built-in
 variable =max-mini-window-height=.
 
-** Side Window Right Option
+*** Side Window Right Option
 Popup side window on right. For defaults use
 
 #+BEGIN_SRC emacs-lisp
@@ -94,7 +97,7 @@ width (see =M-x customize-group which-key=).
 
 [[./img/which-key-right.png]]
 
-** Side Window Bottom Option
+*** Side Window Bottom Option
 Popup side window on bottom. For defaults use
 
 #+BEGIN_SRC emacs-lisp
@@ -103,19 +106,19 @@ Popup side window on bottom. For defaults use
 
 [[./img/which-key-bottom.png]]
 
-* Special Features and Configuration Options
+** Special Features and Configuration Options
 There are more options than the ones described here. All of the configurable
 variables are available through =M-x customize-group which-key=.
-** Several Popup Types
+*** Several Popup Types
 There are three different popup types that which-key can use by default to
 display the available keys. The variable =which-key-popup-type= decides which
 one is used.
-*** minibuffer
+**** minibuffer
 #+BEGIN_SRC emacs-lisp
 (setq which-key-popup-type 'minibuffer)
 #+END_SRC
 Show keys in the minibuffer.
-*** side window
+**** side window
 #+BEGIN_SRC emacs-lisp
 (setq which-key-popup-type 'side-window)
 #+END_SRC
@@ -134,7 +137,7 @@ Show keys in a side window. This popup type has further options:
 ;; frame's height (float larger than 0 and smaller than 1)
 (setq which-key-side-window-max-height 0.25)
 #+END_SRC
-*** frame
+**** frame
 
 #+BEGIN_SRC emacs-lisp
 (setq which-key-popup-type 'frame)
@@ -150,7 +153,7 @@ further options:
 (setq which-key-frame-max-height 20)
 #+END_SRC
 
-*** custom
+**** custom
 Write your own display functions! This requires you to write three functions,
 =which-key-custom-popup-max-dimensions-function=,
 =which-key-custom-show-popup-function=, and
@@ -179,13 +182,13 @@ current implementation of side-window bottom).
     (quit-windows-on which-key--buffer)))
 #+END_SRC
 
-** Custom String Replacement
+*** Custom String Replacement
 You can customize the way the keys show in the buffer using three different
 replacement methods, each of which corresponds replacement alist. The basic idea
 of behind each alist is that you specify a selection string in the =car= of each
 cons cell and the replacement string in the =cdr=.
 
-*** "Key-Based" replacement
+**** "Key-Based" replacement
 The relevant variable is the awkwardly named
 =which-key-key-based-description-replacement-alist=. In this alist you can have
 cons cells of two types. An example of the first type is
@@ -212,7 +215,7 @@ There are two helper functions to add entries to this list,
 =which-key-add-major-mode-key-based-replacements=. You can modify the alist
 directly or use these.
 
-*** Key and Description replacement
+**** Key and Description replacement
 The second and third methods target the text used for the keys and the
 descriptions directly. The relevant variables are
 =which-key-key-replacement-alist= and =which-key-description-replacement-alist=.
@@ -237,7 +240,7 @@ these alists)
 (add-to-list 'which-key-key-replacement-alist '("left" . "lft"))
 #+END_SRC
 
-** Nice Display with Split Frame
+*** Nice Display with Split Frame
 Unlike guide-key, which-key looks good even if the frame is split into several
 windows.
 #+CAPTION: which-key in a frame with 3 horizontal splits
@@ -246,9 +249,9 @@ windows.
 #+CAPTION: which-key in a frame with 2 vertical splits
 [[./img/which-key-bottom-split.png]]
 
-* Status
+** Status
 It requires testing on different platforms with different configurations, which
 is beyond my capabilities. The default configuration has been reasonably stable
 for me. 
-* Thanks
+** Thanks
 Thanks to @bmag for helping with the initial development and finding many bugs.
