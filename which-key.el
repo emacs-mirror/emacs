@@ -894,14 +894,14 @@ value of `which-key-show-prefix'.  SEL-WIN-WIDTH is passed to
           pages (reverse pages)
           first-page (car pages)
           first-page-str (concat prefix-string (car first-page)))
-    (cond ((<= (car keys-per-page) 0) ; check first page
-           (message "%s-  which-key can't show keys: Settings and/or frame size are too restrictive." prefix-keys)
-           (cons 0 0))
-          (max-pages-reached
+    (cond (max-pages-reached
            (error "Which-key reached the maximum number of pages")
            (cons 0 0))
           ((<= (length formatted-keys) 0)
            (message "%s-  which-key: no keys to display" prefix-keys)
+           (cons 0 0))
+          ((<= (car keys-per-page) 0) ; check first page
+           (message "%s-  which-key can't show keys: Settings and/or frame size are too restrictive." prefix-keys)
            (cons 0 0))
           (t
            (if (eq which-key-popup-type 'minibuffer)
