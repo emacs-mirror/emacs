@@ -3663,8 +3663,7 @@ kbd_buffer_store_event_hold (register struct input_event *event,
           /* Don't read keyboard input until we have processed kbd_buffer.
              This happens when pasting text longer than KBD_BUFFER_SIZE/2.  */
           hold_keyboard_input ();
-          if (!noninteractive)
-            ignore_sigio ();
+          unrequest_sigio ();
           stop_polling ();
         }
 #endif	/* subprocesses */
@@ -3829,6 +3828,7 @@ kbd_buffer_get_event (KBOARD **kbp,
       /* Start reading input again because we have processed enough to
          be able to accept new events again.  */
       unhold_keyboard_input ();
+      request_sigio ();
       start_polling ();
     }
 #endif	/* subprocesses */

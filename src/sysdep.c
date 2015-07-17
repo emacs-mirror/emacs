@@ -649,15 +649,6 @@ unrequest_sigio (void)
   interrupts_deferred = 1;
 #endif
 }
-
-void
-ignore_sigio (void)
-{
-#ifdef USABLE_SIGIO
-  signal (SIGIO, SIG_IGN);
-#endif
-}
-
 
 /* Saving and restoring the process group of Emacs's terminal.  */
 
