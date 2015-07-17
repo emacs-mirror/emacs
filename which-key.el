@@ -732,13 +732,34 @@ alists. Returns a list (key separator description)."
      unformatted)))
 
 (defun which-key--key-description< (a b)
-  "Order key descriptions A and B."
-  (let ((la (string-width a))
-        (lb (string-width b)))
-    (cond ((and (= la 1) (= lb 1)) (string-lessp a b))
-          ((or (= la 1) (= lb 1)) (= la 1))
-          ((string-equal (substring a 0 2) (substring b 0 2))
-           (which-key--key-description< (substring a 2) (substring b 2)))
+  "Order key descriptions A and B.
+Order is lexicographic within a \"class\". Where the classes and
+the ordering of classes is listed below.
+
+special (SPC,TAB,...) < single char < mod (C-,M-,...) < other."
+  (let* ((aem? (string-equal a ""))
+         (bem? (string-equal b ""))
+         (a1? (= 1 (length a)))
+         (b1? (= 1 (length b)))
+         (srgxp "^\\(RET\\|SPC\\|TAB\\|DEL\\|LFD\\|ESC\\|NUL\\)")
+         (asp? (string-match-p srgxp a))
+         (bsp? (string-match-p srgxp b))
+         (prrgxp "^\\(M\\|C\\|S\\|A\\|H\\|s\\)-")
+         (apr? (string-match-p prrgxp a))
+         (bpr? (string-match-p prrgxp b)))
+    (cond ((or aem? bem?) (and aem? (not bem?)))
+          ((and asp? bsp?)
+           (if (string-equal (substring a 0 3) (substring b 0 3))
+               (which-key--key-description< (substring a 3) (substring b 3))
+             (string-lessp a b)))
+          ((or asp? bsp?) asp?)
+          ((and a1? b1?) (string-lessp a b))
+          ((or a1? b1?) a1?)
+          ((and apr? bpr?)
+           (if (string-equal (substring a 0 2) (substring b 0 2))
+               (which-key--key-description< (substring a 2) (substring b 2))
+             (string-lessp a b)))
+          ((or apr? bpr?) apr?)
           (t (string-lessp a b)))))
 
 (defun which-key--get-formatted-key-bindings (buffer key-seq)
