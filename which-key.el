@@ -733,8 +733,8 @@ alists. Returns a list (key separator description)."
 
 (defun which-key--key-description< (a b)
   "Order key descriptions A and B.
-Order is lexicographic within a \"class\". Where the classes and
-the ordering of classes is listed below.
+Order is lexicographic within a \"class\", where the classes and
+the ordering of classes are listed below.
 
 special (SPC,TAB,...) < single char < mod (C-,M-,...) < other."
   (let* ((aem? (string-equal a ""))
