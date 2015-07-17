@@ -177,6 +177,11 @@ a percentage out of the frame's height."
   :type '(radio (const :tag "Yes" t)
                 (const :tag "No" nil)))
 
+(defcustom which-key-sort nil
+  "Sort output by `key-description' if non-nil."
+  :group 'which-key
+  :type 'boolean)
+
 ;; Faces
 (defface which-key-key-face
   '((t . (:inherit font-lock-constant-face)))
@@ -726,6 +731,16 @@ alists. Returns a list (key separator description)."
          (list key-w-face sep-w-face desc-w-face)))
      unformatted)))
 
+(defun which-key--key-description< (a b)
+  "Order key descriptions A and B."
+  (let ((la (string-width a))
+        (lb (string-width b)))
+    (cond ((and (= la 1) (= lb 1)) (string-lessp a b))
+          ((or (= la 1) (= lb 1)) (= la 1))
+          ((string-equal (substring a 0 2) (substring b 0 2))
+           (which-key--key-description< (substring a 2) (substring b 2)))
+          (t (string-lessp a b)))))
+
 (defun which-key--get-formatted-key-bindings (buffer key-seq)
   "Uses `describe-buffer-bindings' to collect the key bindings in
 BUFFER that follow the key sequence KEY-SEQ."
@@ -743,6 +758,10 @@ BUFFER that follow the key sequence KEY-SEQ."
               desc-match (match-string 2))
         (cl-pushnew (cons key-match desc-match) unformatted
                     :test (lambda (x y) (string-equal (car x) (car y))))))
+    (when which-key-sort
+      (setq unformatted
+            (sort unformatted
+                  (lambda (a b) (which-key--key-description< (car a) (car b))))))
     (which-key--format-and-replace unformatted (key-description key-seq))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
