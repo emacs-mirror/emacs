@@ -875,7 +875,7 @@ element in each list element of KEYS."
 
 (defun which-key--lighter-status (n-shown n-tot)
   (when which-key-show-remaining-keys
-    (setq which-key--lighter-backup (cdr (assq 'which-key-mode minor-mode-alist)))
+    (setq which-key--lighter-backup (cadr (assq 'which-key-mode minor-mode-alist)))
     (setcar (cdr (assq 'which-key-mode minor-mode-alist))
             (format " WK: %s/%s keys" n-shown n-tot))))
 (defun which-key--lighter-restore ()
