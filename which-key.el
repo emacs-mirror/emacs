@@ -846,7 +846,7 @@ element in each list element of KEYS."
     (list :pages (reverse pages) :page-height avl-lines
           :page-widths (reverse page-widths)
           :keys/page (reverse keys/page) :n-pages n-pages
-          :tot-keys (length keys))))
+          :tot-keys (cl-reduce '+ keys/page :initial-value 0))))
 
 (defun which-key--create-pages (prefix-keys keys sel-win-width)
   (let* ((max-dims (which-key--popup-max-dimensions sel-win-width))
@@ -874,11 +874,13 @@ element in each list element of KEYS."
              (if (and (> avl-lines 1) found) prev-result result)))))
 
 (defun which-key--lighter-status (n-shown n-tot)
-  (setq which-key--lighter-backup (cdr (assq 'which-key-mode minor-mode-alist)))
-  (setcar (cdr (assq 'which-key-mode minor-mode-alist))
-          (format " WK: %s/%s keys" n-shown n-tot)))
+  (when which-key-show-remaining-keys
+    (setq which-key--lighter-backup (cdr (assq 'which-key-mode minor-mode-alist)))
+    (setcar (cdr (assq 'which-key-mode minor-mode-alist))
+            (format " WK: %s/%s keys" n-shown n-tot))))
 (defun which-key--lighter-restore ()
-  (setcar (cdr (assq 'which-key-mode minor-mode-alist)) which-key--lighter-backup))
+  (when which-key-show-remaining-keys
+    (setcar (cdr (assq 'which-key-mode minor-mode-alist)) which-key--lighter-backup)))
 
 (defun which-key--show-page (n &optional prefix-keys)
   "Show page N, starting from 0.
@@ -905,8 +907,7 @@ PREFIX-KEYS holds the description of the prefix keys."
                            (s-replace "\n" (concat "\n  " spaces) page))))
               ((eq which-key-show-prefix 'top)
                (setq page (concat prefix-w-face "-\n" page))))
-        (when which-key-show-remaining-keys
-          (which-key--lighter-status n-shown n-tot))
+        (which-key--lighter-status n-shown n-tot)
         (if (eq which-key-popup-type 'minibuffer)
             (let (message-log-max) (message "%s" page))
           (with-current-buffer which-key--buffer
