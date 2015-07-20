@@ -766,151 +766,6 @@ element in each list element of KEYS."
   (cl-reduce
    (lambda (x y) (max x (string-width (nth index y)))) keys :initial-value 0))
 
-;; (defun which-key--create-page-vertical (keys max-lines max-width prefix-keys)
-;;   "Format KEYS into string representing a single page of text.
-;; Creates columns (padded to be of uniform width) of length
-;; MAX-LINES until keys run out or MAX-WIDTH is reached.  A non-zero
-;; PREFIX-WIDTH adds padding on the left side to allow for prefix
-;; keys to be written into the upper left porition of the page."
-;;   (let* ((prefix-w-face (which-key--propertize-key prefix-keys))
-;;          (prefix-width (if (eq which-key-show-prefix 'left)
-;;                            (+ 2 (string-width prefix-w-face)) 0))
-;;          (prefix-top (when (eq which-key-show-prefix 'top)
-;;                        (concat prefix-w-face "-\n")))
-;;          (avl-lines (if prefix-top (- max-lines 1) max-lines))
-;;          (n-col-lines (min avl-lines (length keys)))
-;;          (prefix-col (when (eq which-key-show-prefix 'left)
-;;                        (append (list (concat prefix-w-face "  "))
-;;                                (-repeat (- n-col-lines 1) prefix-width))))
-;;          (all-columns (if prefix-col (list prefix-col) '()))
-;;          ;; we get 1 back for not putting a space after the last column
-;;          (avl-width (max 0 (- (+ 1 max-width)
-;;                               prefix-width
-;;                               which-key-unicode-correction)))
-;;          (act-n-lines (- n-col-lines (if prefix-top 1 0)))
-;;          (act-width prefix-width)
-;;          (rem-keys keys)
-;;          (max-iter 100) (iter-n 0)
-;;          col-keys col-key-width col-desc-width col-width col-split done
-;;          new-column col-sep-width prev-rem-keys)
-;;     ;; (message "frame-width %s prefix-width %s avl-width %s max-width %s"
-;;     ;;          (frame-text-cols) prefix-width avl-width max-width)
-;;     (while (and rem-keys (<= iter-n max-iter) (not done))
-;;       (setq iter-n         (1+ iter-n)
-;;             col-split      (-split-at n-col-lines rem-keys)
-;;             col-keys       (car col-split)
-;;             prev-rem-keys  rem-keys
-;;             rem-keys       (cadr col-split)
-;;             n-col-lines    (min avl-lines (length rem-keys))
-;;             col-key-width  (which-key--max-len col-keys 0)
-;;             col-sep-width  (which-key--max-len col-keys 1)
-;;             col-desc-width (which-key--max-len col-keys 2)
-;;             col-width      (+ 3 col-key-width col-sep-width col-desc-width)
-;;             new-column
-;;             (mapcar (lambda (k)
-;;                       (concat
-;;                        (s-repeat (- col-key-width (string-width (nth 0 k))) " ")
-;;                        (nth 0 k) " " (nth 1 k) " " (nth 2 k)
-;;                        (s-repeat (- col-desc-width (string-width (nth 2 k))) " ")))
-;;                     col-keys))
-;;       (if (<= col-width avl-width)
-;;           (progn  (push new-column all-columns)
-;;                   (setq act-width  (+ act-width col-width)
-;;                         avl-width  (- avl-width col-width)))
-;;         (setq done t rem-keys prev-rem-keys)))
-;;     (list :str (if prefix-top
-;;                    (concat prefix-top (which-key--join-columns all-columns))
-;;                  (which-key--join-columns all-columns))
-;;           :height act-n-lines :width act-width
-;;           :rem-keys rem-keys :n-rem-keys (length rem-keys)
-;;           :n-keys (- (length keys) (length rem-keys))
-;;           :last-col-width col-width)))
-
-;; (defun which-key--create-page (keys max-lines max-width prefix-keys
-;;                                     &optional vertical use-status-key page-n)
-;;   "Create a page of KEYS with parameters MAX-LINES, MAX-WIDTH,PREFIX-WIDTH.
-;; Use as many keys as possible.  Use as few lines as possible unless
-;; VERTICAL is non-nil.  USE-STATUS-KEY inserts an informative
-;; message in place of the last key on the page if non-nil.  PAGE-N
-;; allows for the informative message to reference the current page
-;; number."
-;;   (let* ((n-keys (length keys))
-;;          (first-try (which-key--create-page-vertical
-;;                      keys max-lines max-width prefix-keys))
-;;          (n-rem-keys (plist-get first-try :n-rem-keys))
-;;          (status-key-i (- n-keys n-rem-keys 1))
-;;          (next-try-lines max-lines)
-;;          (iter-n 0)
-;;          (max-iter (+ 1 max-lines))
-;;          prev-try prev-n-rem-keys next-try found status-key first-try-str)
-;;     (cond ((and (> n-rem-keys 0) use-status-key)
-;;            (setq status-key (propertize
-;;                              (format "%s keys not shown" (1+ n-rem-keys))
-;;                              'face 'font-lock-comment-face)
-;;                  first-try-str  (plist-get first-try :str)
-;;                  first-try-str  (substring
-;;                                  first-try-str 0
-;;                                  (- (length first-try-str)
-;;                                     (plist-get first-try :last-col-width))))
-;;            (plist-put first-try :str (concat first-try-str status-key)))
-;;           ((or vertical (> n-rem-keys 0) (= 1 max-lines))
-;;            first-try)
-;;           ;; do a simple search for the smallest number of lines
-;;           ;; TODO: Implement binary search
-;;           (t (while (and (<= iter-n max-iter) (not found))
-;;                (setq iter-n (1+ iter-n)
-;;                      prev-try next-try
-;;                      next-try-lines (- next-try-lines 1)
-;;                      next-try (which-key--create-page-vertical
-;;                                keys next-try-lines max-width prefix-keys)
-;;                      n-rem-keys (plist-get first-try :n-rem-keys)
-;;                      found (or (= next-try-lines 0) (> n-rem-keys 0))))
-;;              prev-try))))
-
-;; (defun which-key--create-pages (prefix-keys formatted-keys sel-win-width)
-;;   "Insert FORMATTED-KEYS into which-key buffer.
-;; PREFIX-KEYS may be inserted into the buffer depending on the
-;; value of `which-key-show-prefix'.  SEL-WIN-WIDTH is passed to
-;; `which-key--popup-max-dimensions'."
-;;   (let* ((vertical (and (eq which-key-popup-type 'side-window)
-;;                         (member which-key-side-window-location '(left right))))
-;;          (max-dims (which-key--popup-max-dimensions sel-win-width))
-;;          (max-lines (car max-dims))
-;;          (avl-width (cdr max-dims))
-;;          (rem-keys formatted-keys)
-;;          (max-pages (+ 1 (length formatted-keys)))
-;;          (page-n 0)
-;;          keys-per-page pages first-page first-page-str page-res no-room
-;;          max-pages-reached)
-;;     (while (and rem-keys (not max-pages-reached) (not no-room))
-;;       (setq page-n (1+ page-n)
-;;             page-res (which-key--create-page
-;;                       rem-keys max-lines avl-width prefix-keys
-;;                       vertical which-key-show-remaining-keys page-n))
-;;       (push page-res pages)
-;;       (push (if (plist-get page-res :n-keys)
-;;                 (plist-get page-res :n-keys) 0) keys-per-page)
-;;       (setq rem-keys (plist-get page-res :rem-keys)
-;;             no-room (<= (car keys-per-page) 0)
-;;             max-pages-reached (>= page-n max-pages)))
-;;     ;; not doing anything with other pages for now
-;;     (setq keys-per-page (reverse keys-per-page)
-;;           pages (reverse pages))
-
-;;     first-page (car pages)
-;;     first-page-str (concat prefix-string (plist-get first-page :str)))
-;;   (cond ((<= (car keys-per-page) 0) ; check first page
-;;          (message "%s-  which-key can't show keys: Settings and/or frame size\
-;;  are too restrictive." prefix-keys)
-;;          (cons 0 0))
-;;         (max-pages-reached
-;;          (error "Which-key reached the maximum number of pages")
-;;          (cons 0 0))
-;;         ((<= (length formatted-keys) 0)
-;;          (message "%s-  which-key: no keys to display" prefix-keys)
-;;          (cons 0 0))
-;;         (t pages)))
-
 (defun which-key--pad-column (col-keys)
   (let* ((col-key-width  (which-key--max-len col-keys 0))
          (col-sep-width  (which-key--max-len col-keys 1))
@@ -924,11 +779,14 @@ element in each list element of KEYS."
                      (s-repeat (- col-desc-width (string-width (nth 2 k))) " ")))
                   col-keys))))
 
-(defun which-key--partition-columns (keys avl-lines avl-width)
+(defun which-key--partition-columns (keys prefix-col avl-lines avl-width)
   (let ((cols-w-widths (mapcar #'which-key--pad-column
                                (-partition-all avl-lines keys)))
         (page-width 0) (n-pages 0)
         page-cols pages keys/page page-widths)
+    (when (and prefix-col (<= (car prefix-col) avl-width))
+      (push (cdr prefix-col) page-cols)
+      (setq page-width (car prefix-col)))
     (dolist (col cols-w-widths)
       (if (<= (+ (car col) page-width) avl-width)
           (progn (push (cdr col) page-cols)
@@ -937,7 +795,10 @@ element in each list element of KEYS."
           (push (which-key--join-columns page-cols) pages)
           (push (* (length page-cols) avl-lines) keys/page)
           (push page-width page-widths)
-          (setq n-pages (1+ n-pages) page-cols '() page-width 0))))
+          (setq n-pages (1+ n-pages) page-cols '() page-width 0)
+          (when (and prefix-col (<= (car prefix-col) avl-width))
+            (push (cdr prefix-col) page-cols)
+            (setq page-width (car prefix-col))))))
     (when (> (length page-cols) 0)
       (push (which-key--join-columns page-cols) pages)
       (push (* (length page-cols) avl-lines) keys/page)
@@ -954,19 +815,17 @@ element in each list element of KEYS."
          (prefix-w-face (which-key--propertize-key prefix-keys))
          (prefix-left (when (eq which-key-show-prefix 'left)
                         (+ 2 (string-width prefix-w-face))))
-         (prefix-top (when (eq which-key-show-prefix 'top)
-                       (concat prefix-w-face "-\n")))
+         (prefix-top (eq which-key-show-prefix 'top))
          (avl-lines (if prefix-top (- max-lines 1) max-lines))
          (avl-width (if prefix-left (- max-width prefix-left) max-width))
-         ;; (prefix-col (when prefix-left
-         ;;               (append (list (concat prefix-w-face "  "))
-         ;;                       (-repeat (- avl-lines 1) prefix-width))))
+         (prefix-col (when prefix-left
+                       (cons prefix-left
+                             (append (list (concat prefix-w-face "  "))
+                                     (-repeat (- avl-lines 1) (s-repeat prefix-left " "))))))
          (vertical (and (eq which-key-popup-type 'side-window)
                         (member which-key-side-window-location '(left right))))
-         (result (which-key--partition-columns keys avl-lines avl-width))
+         (result (which-key--partition-columns keys prefix-col avl-lines avl-width))
          pages keys/page n-pages found prev-result)
-    ;; (message "FIRST RESULT\n%s" result)
-    ;; (message "%s %s %s" avl-lines avl-width (plist-get result :n-pages))
     (cond ;; ((and (> n-rem-keys 0) use-status-key)
      ;;  (setq status-key (propertize
      ;;                    (format "%s keys not shown" (1+ n-rem-keys))
@@ -983,8 +842,11 @@ element in each list element of KEYS."
      (t (while (and (> avl-lines 1) (not found))
           (setq avl-lines (- avl-lines 1)
                 prev-result result
+                prefix-col (when prefix-left
+                              (cons prefix-left
+                                    (-take avl-lines (cdr prefix-col))))
                 result (which-key--partition-columns
-                        keys avl-lines avl-width)
+                        keys prefix-col avl-lines avl-width)
                 found (> (plist-get result :n-pages) 1)))
         (if (and (> avl-lines 1) found) prev-result result)))))
 
@@ -998,17 +860,23 @@ element in each list element of KEYS."
       (let* ((i (mod n n-pages))
              (page (nth i (plist-get which-key--pages-plist :pages)))
              (height (plist-get which-key--pages-plist :page-height))
-             (width (nth i (plist-get which-key--pages-plist :page-widths))))
+             (width (nth i (plist-get which-key--pages-plist :page-widths)))
+             (prefix-w-face (which-key--propertize-key prefix-keys)))
         (if (eq which-key-popup-type 'minibuffer)
-            (let (message-log-max) (message "%s" page))
+            (if (eq which-key-show-prefix 'top)
+                (let (message-log-max) (message "%s" (concat prefix-w-face "-\n" page)))
+              (let (message-log-max) (message "%s" page)))
           (with-current-buffer which-key--buffer
             (erase-buffer)
-            (insert page)
+            (if (eq which-key-show-prefix 'top)
+                (insert (concat prefix-w-face "-\n" page))
+              (insert page))
             (goto-char (point-min))))
         (which-key--show-popup (cons height width))))))
 
-(evil-leader/set-key "C-M-2" (lambda () (interactive) (which-key--show-page 1)))
-(evil-leader/set-key "C-M-2" (lambda () (interactive) (which-key--show-page 1)))
+;; (setq map (make-sparse-keymap))
+;; (define-key map (kbd "C-M-1") (lambda () (interactive) (which-key--show-page 0)))
+;; (define-key map (kbd "C-M-2") (lambda () (interactive) (which-key--show-page 1)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Update
@@ -1049,6 +917,9 @@ Finally, show the buffer."
   "Deactivate idle timer for `which-key--update'."
   (when which-key--open-timer (cancel-timer which-key--open-timer)))
 
+
+;; TODO
+;; fix status key
 
 (provide 'which-key)
 ;;; which-key.el ends here
