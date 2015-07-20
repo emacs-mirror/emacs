@@ -302,7 +302,8 @@ set too high) and setup which-key buffer."
 (defun which-key--setup-echo-keystrokes ()
   "Reduce `echo-keystrokes' if necessary (it will interfer if
 it's set too high)."
-  (when (> (abs (- echo-keystrokes which-key-echo-keystrokes)) 0.000001)
+  (when (and echo-keystrokes
+             (> (abs (- echo-keystrokes which-key-echo-keystrokes)) 0.000001))
     (setq which-key--echo-keystrokes-backup echo-keystrokes)
     (if (> which-key-idle-delay which-key-echo-keystrokes)
         (setq echo-keystrokes which-key-echo-keystrokes)
