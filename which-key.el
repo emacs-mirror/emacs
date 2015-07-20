@@ -852,7 +852,9 @@ element in each list element of KEYS."
           (push (which-key--join-columns page-cols) pages)
           (push (* (length page-cols) avl-lines) keys/page)
           (push page-width page-widths)
-          (setq n-pages (1+ n-pages) page-cols '() page-width 0))))
+          (setq n-pages (1+ n-pages)
+                page-cols (list (cdr col))
+                page-width (car col)))))
     (when (> (length page-cols) 0)
       (push (which-key--join-columns page-cols) pages)
       (push (* (length page-cols) avl-lines) keys/page)
@@ -877,6 +879,7 @@ element in each list element of KEYS."
                         (member which-key-side-window-location '(left right))))
          (result (which-key--partition-columns keys avl-lines avl-width))
          pages keys/page n-pages found prev-result)
+    (setq int result)
     (cond ((or vertical (> (plist-get result :n-pages) 1) (= 1 avl-lines))
            result)
           ;; do a simple search for the smallest number of lines
