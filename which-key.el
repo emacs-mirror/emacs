@@ -57,7 +57,7 @@ Also adds \"..\"."
   :group 'which-key
   :type 'integer)
 
-(defcustom which-key-separator "→"
+(defcustom which-key-separator " → "
   "Separator to use between key and description."
   :group 'which-key
   :type 'string)
@@ -830,12 +830,12 @@ element in each list element of KEYS."
   (let* ((col-key-width  (which-key--max-len col-keys 0))
          (col-sep-width  (which-key--max-len col-keys 1))
          (col-desc-width (which-key--max-len col-keys 2))
-         (col-width      (+ 3 col-key-width col-sep-width col-desc-width)))
+         (col-width      (+ 1 col-key-width col-sep-width col-desc-width)))
     (cons col-width
           (mapcar (lambda (k)
                     (concat
                      (s-repeat (- col-key-width (string-width (nth 0 k))) " ")
-                     (nth 0 k) " " (nth 1 k) " " (nth 2 k)
+                     (nth 0 k) (nth 1 k) (nth 2 k)
                      (s-repeat (- col-desc-width (string-width (nth 2 k))) " ")))
                   col-keys))))
 
