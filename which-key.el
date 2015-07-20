@@ -252,7 +252,8 @@ to a non-nil value for the execution of a command. Like this
 Used when `which-key-popup-type' is frame.")
 (defvar which-key--echo-keystrokes-backup nil
   "Internal: Backup the initial value of `echo-keystrokes'.")
-(defvar which-key--pages-plist nil)
+(defvar which-key--pages-plist nil
+  "Internal: Holds page objects")
 
 ;;;###autoload
 (define-minor-mode which-key-mode
@@ -891,6 +892,8 @@ element in each list element of KEYS."
         (if (and (> avl-lines 1) found) prev-result result)))))
 
 (defun which-key--show-page (n &optional prefix-keys)
+  "Show page N, starting from 0.
+PREFIX-KEYS holds the description of the prefix keys."
   (let ((n-pages (plist-get which-key--pages-plist :n-pages)))
     (if (= 0 n-pages)
         (if prefix-keys
