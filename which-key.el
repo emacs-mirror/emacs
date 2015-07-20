@@ -177,10 +177,12 @@ a percentage out of the frame's height."
   :type '(radio (const :tag "Yes" t)
                 (const :tag "No" nil)))
 
-(defcustom which-key-sort nil
-  "Sort output by `key-description' if non-nil."
+(defcustom which-key-sort-order 'which-key-key-order
+  "If nil, leave output unsorted. Set to `which-key-key-order' to
+order by key or `which-key-description-order' to order by
+description."
   :group 'which-key
-  :type 'boolean)
+  :type 'function)
 
 ;; Faces
 (defface which-key-key-face
@@ -743,11 +745,6 @@ alists. Returns a list (key separator description)."
      unformatted)))
 
 (defun which-key--key-description< (a b)
-  "Order key descriptions A and B.
-Order is lexicographic within a \"class\", where the classes and
-the ordering of classes are listed below.
-
-special (SPC,TAB,...) < single char < mod (C-,M-,...) < other."
   (let* ((aem? (string-equal a ""))
          (bem? (string-equal b ""))
          (a1? (= 1 (length a)))
@@ -773,6 +770,19 @@ special (SPC,TAB,...) < single char < mod (C-,M-,...) < other."
           ((or apr? bpr?) apr?)
           (t (string-lessp a b)))))
 
+(defsubst which-key-key-order (alst blst)
+  "Order key descriptions A and B.
+Order is lexicographic within a \"class\", where the classes and
+the ordering of classes are listed below.
+
+special (SPC,TAB,...) < single char < mod (C-,M-,...) < other."
+  (which-key--key-description< (car alst) (car blst)))
+
+(defsubst which-key-description-order (alst blst)
+  "Order descriptions of A and B.
+Uses `string-lessp' after applying lowercase."
+  (string-lessp (downcase (cdr alst)) (downcase (cdr blst))))
+
 (defun which-key--get-formatted-key-bindings (buffer key-seq)
   "Uses `describe-buffer-bindings' to collect the key bindings in
 BUFFER that follow the key sequence KEY-SEQ."
@@ -790,10 +800,9 @@ BUFFER that follow the key sequence KEY-SEQ."
               desc-match (match-string 2))
         (cl-pushnew (cons key-match desc-match) unformatted
                     :test (lambda (x y) (string-equal (car x) (car y))))))
-    (when which-key-sort
+    (when which-key-sort-order
       (setq unformatted
-            (sort unformatted
-                  (lambda (a b) (which-key--key-description< (car a) (car b))))))
+            (sort unformatted (lambda (a b) (funcall which-key-sort-order a b)))))
     (which-key--format-and-replace unformatted (key-description key-seq))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
