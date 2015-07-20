@@ -143,7 +143,9 @@ Should be one of top, bottom, left or right."
   :type '(radio (const right)
                 (const bottom)
                 (const left)
-                (const top)))
+                (const top)
+                (const right-bottom)
+                (const bottom-right)))
 
 (defcustom which-key-side-window-max-width 0.333
   "Maximum width of which-key popup when type is side-window and
@@ -950,11 +952,40 @@ Finally, show the buffer."
                (not which-key-inhibit))
       (let ((formatted-keys (which-key--get-formatted-key-bindings
                              (current-buffer) prefix-keys))
-            (prefix-keys-desc (key-description prefix-keys)))
-        (setq which-key--pages-plist (which-key--create-pages
-                                      prefix-keys-desc formatted-keys
-                                      (window-width)))
-        (which-key--show-page 0 prefix-keys-desc)))))
+            (prefix-keys-desc (key-description prefix-keys))
+            pages-right pages-bottom)
+        (cond ((and (eq which-key-popup-type 'side-window)
+                    (member which-key-side-window-location '(right-bottom bottom-right)))
+               (let ((which-key-side-window-location 'right))
+                 (setq pages-right (which-key--create-pages
+                                    prefix-keys-desc formatted-keys
+                                    (window-width))))
+               (let ((which-key-side-window-location 'bottom))
+                 (setq pages-bottom (which-key--create-pages
+                                     prefix-keys-desc formatted-keys
+                                     (window-width))))
+               (cond ((and (eq which-key-side-window-location 'right-bottom)
+                           (< 0 (plist-get pages-right :n-pages)))
+                     (setq which-key--pages-plist pages-right)
+                     (let ((which-key-side-window-location 'right))
+                       (which-key--show-page 0 prefix-keys-desc)))
+                     ((eq which-key-side-window-location 'right-bottom)
+                      (setq which-key--pages-plist pages-bottom)
+                      (let ((which-key-side-window-location 'bottom))
+                        (which-key--show-page 0 prefix-keys-desc)))
+                     ((and (eq which-key-side-window-location 'bottom-right)
+                           (< 0 (plist-get pages-bottom :n-pages)))
+                      (setq which-key--pages-plist pages-bottom)
+                      (let ((which-key-side-window-location 'bottom))
+                        (which-key--show-page 0 prefix-keys-desc)))
+                     ((eq which-key-side-window-location 'bottom-right)
+                      (setq which-key--pages-plist pages-bottom)
+                      (let ((which-key-side-window-location 'bottom))
+                        (which-key--show-page 0 prefix-keys-desc)))))
+              (t (setq which-key--pages-plist (which-key--create-pages
+                                               prefix-keys-desc formatted-keys
+                                               (window-width)))
+                 (which-key--show-page 0 prefix-keys-desc)))))))
 
 ;; Timers
 
