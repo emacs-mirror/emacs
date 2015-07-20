@@ -177,6 +177,11 @@ a percentage out of the frame's height."
   :type '(radio (const :tag "Yes" t)
                 (const :tag "No" nil)))
 
+(defcustom which-key-sort nil
+  "Sort output by `key-description' if non-nil."
+  :group 'which-key
+  :type 'boolean)
+
 ;; Faces
 (defface which-key-key-face
   '((t . (:inherit font-lock-constant-face)))
@@ -732,6 +737,37 @@ alists. Returns a list (key separator description)."
          (list key-w-face sep-w-face desc-w-face)))
      unformatted)))
 
+(defun which-key--key-description< (a b)
+  "Order key descriptions A and B.
+Order is lexicographic within a \"class\", where the classes and
+the ordering of classes are listed below.
+
+special (SPC,TAB,...) < single char < mod (C-,M-,...) < other."
+  (let* ((aem? (string-equal a ""))
+         (bem? (string-equal b ""))
+         (a1? (= 1 (length a)))
+         (b1? (= 1 (length b)))
+         (srgxp "^\\(RET\\|SPC\\|TAB\\|DEL\\|LFD\\|ESC\\|NUL\\)")
+         (asp? (string-match-p srgxp a))
+         (bsp? (string-match-p srgxp b))
+         (prrgxp "^\\(M\\|C\\|S\\|A\\|H\\|s\\)-")
+         (apr? (string-match-p prrgxp a))
+         (bpr? (string-match-p prrgxp b)))
+    (cond ((or aem? bem?) (and aem? (not bem?)))
+          ((and asp? bsp?)
+           (if (string-equal (substring a 0 3) (substring b 0 3))
+               (which-key--key-description< (substring a 3) (substring b 3))
+             (string-lessp a b)))
+          ((or asp? bsp?) asp?)
+          ((and a1? b1?) (string-lessp a b))
+          ((or a1? b1?) a1?)
+          ((and apr? bpr?)
+           (if (string-equal (substring a 0 2) (substring b 0 2))
+               (which-key--key-description< (substring a 2) (substring b 2))
+             (string-lessp a b)))
+          ((or apr? bpr?) apr?)
+          (t (string-lessp a b)))))
+
 (defun which-key--get-formatted-key-bindings (buffer key-seq)
   "Uses `describe-buffer-bindings' to collect the key bindings in
 BUFFER that follow the key sequence KEY-SEQ."
@@ -749,6 +785,10 @@ BUFFER that follow the key sequence KEY-SEQ."
               desc-match (match-string 2))
         (cl-pushnew (cons key-match desc-match) unformatted
                     :test (lambda (x y) (string-equal (car x) (car y))))))
+    (when which-key-sort
+      (setq unformatted
+            (sort unformatted
+                  (lambda (a b) (which-key--key-description< (car a) (car b))))))
     (which-key--format-and-replace unformatted (key-description key-seq))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
