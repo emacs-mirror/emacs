@@ -254,6 +254,8 @@ Used when `which-key-popup-type' is frame.")
   "Internal: Backup the initial value of `echo-keystrokes'.")
 (defvar which-key--pages-plist nil
   "Internal: Holds page objects")
+(defvar which-key--lighter-backup nil
+  "Internal: Holds lighter backup")
 
 ;;;###autoload
 (define-minor-mode which-key-mode
@@ -264,12 +266,14 @@ Used when `which-key-popup-type' is frame.")
       (progn
         (unless which-key--is-setup (which-key--setup))
         (add-hook 'pre-command-hook #'which-key--hide-popup)
+        (add-hook 'pre-command-hook #'which-key--lighter-restore)
         (add-hook 'focus-out-hook #'which-key--stop-open-timer)
         (add-hook 'focus-in-hook #'which-key--start-open-timer)
         (which-key--start-open-timer))
     ;; make sure echo-keystrokes returns to original value
     (setq echo-keystrokes which-key--echo-keystrokes-backup)
     (remove-hook 'pre-command-hook #'which-key--hide-popup)
+    (remove-hook 'pre-command-hook #'which-key--lighter-restore)
     (remove-hook 'focus-out-hook #'which-key--stop-open-timer)
     (remove-hook 'focus-in-hook #'which-key--start-open-timer)
     (which-key--stop-open-timer)))
@@ -841,7 +845,8 @@ element in each list element of KEYS."
       (setq n-pages (1+ n-pages)))
     (list :pages (reverse pages) :page-height avl-lines
           :page-widths (reverse page-widths)
-          :keys/page (reverse keys/page) :n-pages n-pages)))
+          :keys/page (reverse keys/page) :n-pages n-pages
+          :tot-keys (length keys))))
 
 (defun which-key--create-pages (prefix-keys keys sel-win-width)
   (let* ((max-dims (which-key--popup-max-dimensions sel-win-width))
@@ -857,26 +862,23 @@ element in each list element of KEYS."
                         (member which-key-side-window-location '(left right))))
          (result (which-key--partition-columns keys avl-lines avl-width))
          pages keys/page n-pages found prev-result)
-    (cond ;; ((and (> n-rem-keys 0) use-status-key)
-     ;;  (setq status-key (propertize
-     ;;                    (format "%s keys not shown" (1+ n-rem-keys))
-     ;;                    'face 'font-lock-comment-face)
-     ;;        first-try-str  (plist-get first-try :str)
-     ;;        first-try-str  (substring
-     ;;                        first-try-str 0
-     ;;                        (- (length first-try-str)
-     ;;                           (plist-get first-try :last-col-width))))
-     ;;  (plist-put first-try :str (concat first-try-str status-key)))
-     ((or vertical (> (plist-get result :n-pages) 1) (= 1 avl-lines))
-      result)
-     ;; do a simple search for the smallest number of lines
-     (t (while (and (> avl-lines 1) (not found))
-          (setq avl-lines (- avl-lines 1)
-                prev-result result
-                result (which-key--partition-columns
-                        keys avl-lines avl-width)
-                found (> (plist-get result :n-pages) 1)))
-        (if (and (> avl-lines 1) found) prev-result result)))))
+    (cond ((or vertical (> (plist-get result :n-pages) 1) (= 1 avl-lines))
+           result)
+          ;; do a simple search for the smallest number of lines
+          (t (while (and (> avl-lines 1) (not found))
+               (setq avl-lines (- avl-lines 1)
+                     prev-result result
+                     result (which-key--partition-columns
+                             keys avl-lines avl-width)
+                     found (> (plist-get result :n-pages) 1)))
+             (if (and (> avl-lines 1) found) prev-result result)))))
+
+(defun which-key--lighter-status (n-shown n-tot)
+  (setq which-key--lighter-backup (cdr (assq 'which-key-mode minor-mode-alist)))
+  (setcar (cdr (assq 'which-key-mode minor-mode-alist))
+          (format " WK: %s/%s keys" n-shown n-tot)))
+(defun which-key--lighter-restore ()
+  (setcar (cdr (assq 'which-key-mode minor-mode-alist)) which-key--lighter-backup))
 
 (defun which-key--show-page (n &optional prefix-keys)
   "Show page N, starting from 0.
@@ -891,6 +893,8 @@ PREFIX-KEYS holds the description of the prefix keys."
              (page (nth i (plist-get which-key--pages-plist :pages)))
              (height (plist-get which-key--pages-plist :page-height))
              (width (nth i (plist-get which-key--pages-plist :page-widths)))
+             (n-shown (nth i (plist-get which-key--pages-plist :keys/page)))
+             (n-tot (plist-get which-key--pages-plist :tot-keys))
              (prefix-w-face (which-key--propertize-key prefix-keys))
              (prefix-width (string-width prefix-w-face))
              spaces)
@@ -901,6 +905,8 @@ PREFIX-KEYS holds the description of the prefix keys."
                            (s-replace "\n" (concat "\n  " spaces) page))))
               ((eq which-key-show-prefix 'top)
                (setq page (concat prefix-w-face "-\n" page))))
+        (when which-key-show-remaining-keys
+          (which-key--lighter-status n-shown n-tot))
         (if (eq which-key-popup-type 'minibuffer)
             (let (message-log-max) (message "%s" page))
           (with-current-buffer which-key--buffer
