@@ -933,10 +933,11 @@ element in each list element of KEYS."
       (if (<= (+ (car col) page-width) avl-width)
           (progn (push (cdr col) page-cols)
                  (setq page-width (+ page-width (car col))))
-        (push (which-key--join-columns page-cols) pages)
-        (push (* (length page-cols) avl-lines) keys/page)
-        (push page-width page-widths)
-        (setq n-pages (1+ n-pages) page-cols '() page-width 0)))
+        (when (> (length page-cols) 0)
+          (push (which-key--join-columns page-cols) pages)
+          (push (* (length page-cols) avl-lines) keys/page)
+          (push page-width page-widths)
+          (setq n-pages (1+ n-pages) page-cols '() page-width 0))))
     (when (> (length page-cols) 0)
       (push (which-key--join-columns page-cols) pages)
       (push (* (length page-cols) avl-lines) keys/page)
@@ -987,18 +988,27 @@ element in each list element of KEYS."
                 found (> (plist-get result :n-pages) 1)))
         (if (and (> avl-lines 1) found) prev-result result)))))
 
-(defun which-key--show-page (n)
-  (let* ((i (mod n (length which-key--pages-plist)))
-         (page (nth i (plist-get which-key--pages-plist :pages)))
-         (height (plist-get which-key--pages-plist :page-height))
-         (width (nth i (plist-get which-key--pages-plist :page-widths))))
-    (if (eq which-key-popup-type 'minibuffer)
-        (let (message-log-max) (message "%s" page))
-      (with-current-buffer which-key--buffer
-        (erase-buffer)
-        (insert page)
-        (goto-char (point-min))))
-    (which-key--show-popup (cons height width))))
+(defun which-key--show-page (n &optional prefix-keys)
+  (let ((n-pages (plist-get which-key--pages-plist :n-pages)))
+    (if (= 0 n-pages)
+        (if prefix-keys
+            (message "%s-  which-key can't show keys: Settings and/or frame size are too restrictive."
+                     prefix-keys)
+          (message "which-key can't show keys: Settings and/or frame size are too restrictive."))
+      (let* ((i (mod n n-pages))
+             (page (nth i (plist-get which-key--pages-plist :pages)))
+             (height (plist-get which-key--pages-plist :page-height))
+             (width (nth i (plist-get which-key--pages-plist :page-widths))))
+        (if (eq which-key-popup-type 'minibuffer)
+            (let (message-log-max) (message "%s" page))
+          (with-current-buffer which-key--buffer
+            (erase-buffer)
+            (insert page)
+            (goto-char (point-min))))
+        (which-key--show-popup (cons height width))))))
+
+(evil-leader/set-key "C-M-2" (lambda () (interactive) (which-key--show-page 1)))
+(evil-leader/set-key "C-M-2" (lambda () (interactive) (which-key--show-page 1)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Update
@@ -1020,11 +1030,12 @@ Finally, show the buffer."
                 (keymapp (lookup-key function-key-map prefix-keys)))
                (not which-key-inhibit))
       (let ((formatted-keys (which-key--get-formatted-key-bindings
-                             (current-buffer) prefix-keys)))
+                             (current-buffer) prefix-keys))
+            (prefix-keys-desc (key-description prefix-keys)))
         (setq which-key--pages-plist (which-key--create-pages
-                                      (key-description prefix-keys)
-                                      formatted-keys (window-width)))
-        (which-key--show-page 0)))))
+                                      prefix-keys-desc formatted-keys
+                                      (window-width)))
+        (which-key--show-page 0 prefix-keys-desc)))))
 
 ;; Timers
 
