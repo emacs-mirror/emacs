@@ -921,8 +921,8 @@ element in each list element of KEYS."
   (let ((n-pages (plist-get which-key--pages-plist :n-pages))
         (prefix-keys (key-description which-key--current-prefix)))
     (if (= 0 n-pages)
-        (message "%s-  which-key can't show keys: Settings and/or frame size are too restrictive."
-                 prefix-keys)
+        (message "%s- which-key can't show keys: There is not \
+enough space based on your settings and frame size." prefix-keys)
       (setq which-key--current-page-n n)
       (let* ((i (mod n n-pages))
              (page (nth i (plist-get which-key--pages-plist :pages)))
@@ -1011,11 +1011,13 @@ Finally, show the buffer."
                                (current-buffer)))
               (prefix-keys-desc (key-description prefix-keys))
               pages-right pages-bottom)
-          (if (listp which-key-side-window-location)
-              (apply #'which-key--try-2-side-windows page-n which-key-side-window-location)
-            (setq which-key--pages-plist (which-key--create-pages formatted-keys
-                                                                  (window-width)))
-            (which-key--show-page page-n)))))))
+          (cond ((= (length formatted-keys) 0)
+                 (message "%s-  which-key: There are no keys to show" prefix-keys-desc))
+                ((listp which-key-side-window-location)
+                 (apply #'which-key--try-2-side-windows page-n which-key-side-window-location))
+                (t (setq which-key--pages-plist
+                         (which-key--create-pages formatted-keys (window-width)))
+                   (which-key--show-page page-n))))))))
 
 ;; Timers
 
