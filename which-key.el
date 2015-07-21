@@ -289,6 +289,12 @@ Used when `which-key-popup-type' is frame.")
   (if which-key-mode
       (progn
         (unless which-key--is-setup (which-key--setup))
+        ;; bind keys for paging
+        (mapc (lambda (prefix)
+                (define-key which-key-mode-map
+                  (kbd (concat prefix " " which-key-paging-key))
+                  'which-key-show-next-page))
+              which-key-paging-prefixes)
         (add-hook 'pre-command-hook #'which-key--hide-popup)
         (add-hook 'pre-command-hook #'which-key--lighter-restore)
         (add-hook 'focus-out-hook #'which-key--stop-open-timer)
@@ -308,11 +314,6 @@ Reduce `echo-keystrokes' if necessary (it will interfer if it's
 set too high) and setup which-key buffer."
   (when (eq which-key-popup-type 'minibuffer)
     (which-key--setup-echo-keystrokes))
-  (mapc (lambda (prefix)
-          (define-key which-key-mode-map
-            (kbd (concat prefix " " which-key-paging-key))
-            'which-key-show-next-page))
-        which-key-paging-prefixes)
   (setq which-key--buffer (get-buffer-create which-key-buffer-name))
   (with-current-buffer which-key--buffer
     ;; suppress confusing minibuffer message
