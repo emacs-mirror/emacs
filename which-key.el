@@ -176,7 +176,7 @@ a percentage out of the frame's height."
   :group 'which-key
   :type 'integer)
 
-(defcustom which-key-show-remaining-keys t
+(defcustom which-key-show-remaining-keys nil
   "Show remaining keys in last slot, when keys are hidden."
   :group 'which-key
   :type '(radio (const :tag "Yes" t)
@@ -958,7 +958,7 @@ element in each list element of KEYS."
 ;; (setq map (make-sparse-keymap))
 ;; (define-key map (kbd "C-M-1") (lambda () (interactive) (which-key--show-page 0)))
 ;; (define-key map (kbd "C-M-2") (lambda () (interactive) (which-key--show-page 1)))
-(evil-leader/set-key "<next>" 'which-key-show-next-page)
+;; (evil-leader/set-key "<next>" 'which-key-show-next-page)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Update
