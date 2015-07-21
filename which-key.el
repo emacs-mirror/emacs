@@ -332,6 +332,13 @@ it's set too high)."
         which-key-side-window-location 'right
         which-key-show-prefix 'top))
 
+(defun which-key-setup-side-window-right-bottom ()
+  "Apply suggested settings for side-window that opens on right if there is space and the bottom otherwise."
+  (interactive)
+  (setq which-key-popup-type 'side-window
+        which-key-side-window-location '(right bottom)
+        which-key-show-prefix 'top))
+
 ;;;###autoload
 (defun which-key-setup-side-window-bottom ()
   "Apply suggested settings for side-window that opens on
@@ -926,7 +933,7 @@ element in each list element of KEYS."
              (prefix-w-face (which-key--propertize-key prefix-keys))
              (status-left (propertize (format "%s/%s" (1+ i) n-pages)
                                       'face 'font-lock-comment-face))
-             (status-top (propertize (format "[%s/%s]" (1+ i) n-pages)
+             (status-top (propertize (format "(%s of %s)" (1+ i) n-pages)
                                      'face 'font-lock-comment-face))
              (first-col-width (+ 2 (max (string-width prefix-w-face)
                                         (string-width status-left))))
