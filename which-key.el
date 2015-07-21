@@ -238,6 +238,17 @@ ignored."
   :group 'which-key
   :type 'function)
 
+(defcustom which-key-paging-prefixes '()
+  "Enable paging for these prefixes."
+  :group 'which-key
+  :type '(repeat string))
+
+(defcustom which-key-paging-key "<f5>"
+  "Key to use for changing pages. Bound after each of the
+prefixes in `which-key-paging-prefixes'"
+  :group 'which-key
+  :type 'string)
+
 (defvar which-key-inhibit nil
   "Prevent which-key from popping up momentarily by setting this
 to a non-nil value for the execution of a command. Like this
@@ -274,6 +285,7 @@ Used when `which-key-popup-type' is frame.")
   "Toggle which-key-mode."
   :global t
   :lighter " WK"
+  :keymap '()
   (if which-key-mode
       (progn
         (unless which-key--is-setup (which-key--setup))
@@ -296,6 +308,11 @@ Reduce `echo-keystrokes' if necessary (it will interfer if it's
 set too high) and setup which-key buffer."
   (when (eq which-key-popup-type 'minibuffer)
     (which-key--setup-echo-keystrokes))
+  (mapc (lambda (prefix)
+          (define-key which-key-mode-map
+            (kbd (concat prefix " " which-key-paging-key))
+            'which-key-show-next-page))
+        which-key-paging-prefixes)
   (setq which-key--buffer (get-buffer-create which-key-buffer-name))
   (with-current-buffer which-key--buffer
     ;; suppress confusing minibuffer message
@@ -959,8 +976,10 @@ enough space based on your settings and frame size." prefix-keys)
 (defun which-key-show-next-page ()
   "Show the next page of keys."
   (interactive)
-  (setq which-key--request-page (1+ which-key--current-page-n))
-  (setq unread-command-events (listify-key-sequence which-key--last-prefix)))
+  (let ((next-page (if which-key--current-page-n
+                       (1+ which-key--current-page-n) 0)))
+    (setq which-key--request-page next-page)
+    (setq unread-command-events (listify-key-sequence which-key--current-prefix))))
 
 ;; (setq map (make-sparse-keymap))
 ;; (define-key map (kbd "C-M-1") (lambda () (interactive) (which-key--show-page 0)))
