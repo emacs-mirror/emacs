@@ -261,7 +261,7 @@ to a non-nil value for the execution of a command. Like this
   "Internal: Holds reference to which-key buffer.")
 (defvar which-key--window nil
   "Internal: Holds reference to which-key window.")
-(defvar which-key--open-timer nil
+(defvar which-key--timer nil
   "Internal: Holds reference to open window timer.")
 (defvar which-key--is-setup nil
   "Internal: Non-nil if which-key buffer has been setup.")
@@ -276,9 +276,7 @@ Used when `which-key-popup-type' is frame.")
   "Internal: Holds lighter backup")
 (defvar which-key--current-prefix nil
   "Internal: Holds current prefix")
-(defvar which-key--last-prefix nil)
 (defvar which-key--current-page-n nil)
-(defvar which-key--request-page nil)
 
 ;;;###autoload
 (define-minor-mode which-key-mode
@@ -297,16 +295,16 @@ Used when `which-key-popup-type' is frame.")
               which-key-paging-prefixes)
         (add-hook 'pre-command-hook #'which-key--hide-popup)
         (add-hook 'pre-command-hook #'which-key--lighter-restore)
-        (add-hook 'focus-out-hook #'which-key--stop-open-timer)
-        (add-hook 'focus-in-hook #'which-key--start-open-timer)
-        (which-key--start-open-timer))
+        (add-hook 'focus-out-hook #'which-key--stop-timer)
+        (add-hook 'focus-in-hook #'which-key--start-timer)
+        (which-key--start-timer))
     ;; make sure echo-keystrokes returns to original value
     (setq echo-keystrokes which-key--echo-keystrokes-backup)
     (remove-hook 'pre-command-hook #'which-key--hide-popup)
     (remove-hook 'pre-command-hook #'which-key--lighter-restore)
-    (remove-hook 'focus-out-hook #'which-key--stop-open-timer)
-    (remove-hook 'focus-in-hook #'which-key--start-open-timer)
-    (which-key--stop-open-timer)))
+    (remove-hook 'focus-out-hook #'which-key--stop-timer)
+    (remove-hook 'focus-in-hook #'which-key--start-timer)
+    (which-key--stop-timer)))
 
 (defun which-key--setup ()
   "Initial setup for which-key.
@@ -979,13 +977,16 @@ enough space based on your settings and frame size." prefix-keys)
   (interactive)
   (let ((next-page (if which-key--current-page-n
                        (1+ which-key--current-page-n) 0)))
-    (setq which-key--request-page next-page)
-    (setq unread-command-events (listify-key-sequence which-key--current-prefix))))
-
-;; (setq map (make-sparse-keymap))
-;; (define-key map (kbd "C-M-1") (lambda () (interactive) (which-key--show-page 0)))
-;; (define-key map (kbd "C-M-2") (lambda () (interactive) (which-key--show-page 1)))
-;; (evil-leader/set-key "<next>" 'which-key-show-next-page)
+    (which-key--stop-timer)
+    (setq unread-command-events (listify-key-sequence which-key--current-prefix))
+    (which-key--show-page next-page)
+    (let (timer)
+      (setq timer
+            (run-with-idle-timer 0.1 t
+             (lambda ()
+               (when (not (eq last-command 'which-key-show-next-page))
+                 (cancel-timer timer)
+                 (which-key--start-timer))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Update
@@ -1021,12 +1022,7 @@ Finally, show the buffer."
                 (keymapp (lookup-key function-key-map prefix-keys)))
                (not which-key-inhibit))
       (let ((page-n 0))
-        (if which-key--request-page
-            (progn
-              (setq page-n which-key--request-page
-                    which-key--request-page nil))
-          (setq which-key--last-prefix which-key--current-prefix
-                which-key--current-prefix prefix-keys))
+        (setq which-key--current-prefix prefix-keys)
         (let ((formatted-keys (which-key--get-formatted-key-bindings
                                (current-buffer)))
               (prefix-keys-desc (key-description prefix-keys))
@@ -1041,15 +1037,15 @@ Finally, show the buffer."
 
 ;; Timers
 
-(defun which-key--start-open-timer ()
+(defun which-key--start-timer ()
   "Activate idle timer to trigger `which-key--update'."
-  (which-key--stop-open-timer) ; start over
-  (setq which-key--open-timer
+  (which-key--stop-timer) ; start over
+  (setq which-key--timer
         (run-with-idle-timer which-key-idle-delay t 'which-key--update)))
 
-(defun which-key--stop-open-timer ()
+(defun which-key--stop-timer ()
   "Deactivate idle timer for `which-key--update'."
-  (when which-key--open-timer (cancel-timer which-key--open-timer)))
+  (when which-key--timer (cancel-timer which-key--timer)))
 
 
 ;; TODO
