@@ -252,7 +252,7 @@ descriptions directly. The relevant variables are
 Here's an example of one of the default key replacements
 
 #+BEGIN_SRC emacs-lisp
-("<\\(\\(C-\\|M-\\)*.+\\)>" . "\\1")
+("<\\([[:alnum:]-]+\\)>" . "\\1")
 #+END_SRC
 
 The =car= takes a string which may use emacs regexp and the =cdr= takes a string

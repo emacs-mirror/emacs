@@ -79,7 +79,7 @@ of the which-key popup."
   :type 'integer)
 
 (defcustom which-key-key-replacement-alist
-  '(("<\\(\\(C-\\|M-\\)*.+\\)>" . "\\1") ("left" . "←") ("right" . "→"))
+  '(("<\\([[:alnum:]-]+\\)>" . "\\1") ("left" . "←") ("right" . "→"))
   "The strings in the car of each cons are replaced with the
 strings in the cdr for each key.  Elisp regexp can be used as
 in the first example."
