@@ -993,7 +993,7 @@ enough space based on your settings and frame size." prefix-keys)
     (which-key--show-page next-page)
     (let (timer)
       (setq timer
-            (run-with-idle-timer 0.1 t
+            (run-with-idle-timer 0.2 t
              (lambda ()
                (when (or (not (eq real-last-command 'which-key-show-next-page))
                          (and (< 0 (length (this-single-command-keys)))
