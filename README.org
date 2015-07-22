@@ -89,7 +89,7 @@ There are other substitution abilities included, which are quite flexible
 This functionality is targeting [[https://github.com/syl20bnr/spacemacs][spacemacs]].
 
 *** Minibuffer Option
-Take over the minibuffer. Setup by default, but you can also use 
+Take over the minibuffer. For the recommended configuration use 
 
 #+BEGIN_SRC emacs-lisp
 (which-key-setup-minibuffer)
@@ -115,7 +115,7 @@ width (see =M-x customize-group which-key=).
 [[./img/which-key-right.png]]
 
 *** Side Window Bottom Option
-Popup side window on bottom. For defaults use
+Popup side window on bottom. This is the current default. To restore this setup use
 
 #+BEGIN_SRC emacs-lisp
 (which-key-setup-side-window-bottom)

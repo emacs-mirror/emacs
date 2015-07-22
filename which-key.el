@@ -119,16 +119,17 @@ and have `which-key-special-key-face' applied to them."
   :group 'which-key
   :type 'string)
 
-(defcustom which-key-show-prefix 'left
+(defcustom which-key-show-prefix 'echo
   "Whether to and where to display the current prefix sequence.
-Possible choices are left (the default), top and nil.  Nil turns
-the feature off."
+Possible choices are echo for echo area (the default), left, top
+and nil. Nil turns the feature off."
   :group 'which-key
   :type '(radio (const :tag "Left of keys" left)
                 (const :tag "In first line" top)
+                (const :tag "In echo area" echo)
                 (const :tag "Hide" nil)))
 
-(defcustom which-key-popup-type 'minibuffer
+(defcustom which-key-popup-type 'side-window
   "Supported types are minibuffer, side-window, frame, and custom."
   :group 'which-key
   :type '(radio (const :tag "Show in minibuffer" minibuffer)
@@ -136,7 +137,7 @@ the feature off."
                 (const :tag "Show in popup frame" frame)
                 (const :tag "Use your custom display functions" custom)))
 
-(defcustom which-key-side-window-location 'right
+(defcustom which-key-side-window-location 'bottom
   "Location of which-key popup when `which-key-popup-type' is side-window.
 Should be one of top, bottom, left or right. You can also specify
 a list of two locations, like (right bottom). In this case, the
@@ -312,7 +313,8 @@ Used when `which-key-popup-type' is frame.")
   "Initial setup for which-key.
 Reduce `echo-keystrokes' if necessary (it will interfer if it's
 set too high) and setup which-key buffer."
-  (when (eq which-key-popup-type 'minibuffer)
+  (when (or (eq which-key-show-prefix 'echo)
+	    (eq which-key-popup-type 'minibuffer))
     (which-key--setup-echo-keystrokes))
   (setq which-key--buffer (get-buffer-create which-key-buffer-name))
   (with-current-buffer which-key--buffer
@@ -362,9 +364,10 @@ it's set too high)."
   "Apply suggested settings for side-window that opens on
 bottom."
   (interactive)
+  (which-key--setup-echo-keystrokes)
   (setq which-key-popup-type 'side-window
         which-key-side-window-location 'bottom
-        which-key-show-prefix nil))
+        which-key-show-prefix 'echo))
 
 ;;;###autoload
 (defun which-key-setup-minibuffer ()
@@ -941,6 +944,7 @@ enough space based on your settings and frame size." prefix-keys)
              (n-shown (nth i (plist-get which-key--pages-plist :keys/page)))
              (n-tot (plist-get which-key--pages-plist :tot-keys))
              (prefix-w-face (which-key--propertize-key prefix-keys))
+             (dash-w-face (propertize "-" 'face 'which-key-key-face))
              (status-left (propertize (format "%s/%s" (1+ i) n-pages)
                                       'face 'font-lock-comment-face))
              (status-top (propertize (format "(%s of %s)" (1+ i) n-pages)
@@ -965,9 +969,14 @@ enough space based on your settings and frame size." prefix-keys)
                        page  (concat first (mapconcat #'identity (cdr lines) new-end)))))
               ((and (< 1 n-pages)
                     (eq which-key-show-prefix 'top))
-               (setq page (concat prefix-w-face "-  " status-top "\n" page)))
+               (setq page (concat prefix-w-face dash-w-face "  " status-top "\n" page)))
               ((eq which-key-show-prefix 'top)
-               (setq page (concat prefix-w-face "-  \n" page))))
+               (setq page (concat prefix-w-face dash-w-face "  \n" page)))
+              ((and (< 1 n-pages)
+                    (eq which-key-show-prefix 'echo))
+               (let (message-log-max) (message "%s" (concat prefix-w-face dash-w-face "  " status-top))))
+              ((eq which-key-show-prefix 'echo)
+               (let (message-log-max) (message "%s" (concat prefix-w-face dash-w-face "  ")))))
         (which-key--lighter-status n-shown n-tot)
         (if (eq which-key-popup-type 'minibuffer)
             (let (message-log-max) (message "%s" page))
@@ -1058,9 +1067,6 @@ Finally, show the buffer."
                                             (this-single-command-keys)))))
                    (cancel-timer which-key--paging-timer)
                    (which-key--start-timer))))))
-
-;; TODO
-;; fix status key
 
 (provide 'which-key)
 ;;; which-key.el ends here
