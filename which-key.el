@@ -969,8 +969,8 @@ enough space based on your settings and frame size." prefix-keys)
           (with-current-buffer which-key--buffer
             (erase-buffer)
             (insert page)
-            (goto-char (point-min))))
-        (which-key--show-popup (cons height width))))))
+            (goto-char (point-min)))
+          (which-key--show-popup (cons height width)))))))
 
 (defun which-key-show-next-page ()
   "Show the next page of keys."
