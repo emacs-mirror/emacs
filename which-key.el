@@ -494,15 +494,11 @@ total height."
 (defun which-key--hide-popup ()
   "This function is called to hide the which-key buffer."
   (cl-case which-key-popup-type
-    (minibuffer (which-key--hide-buffer-minibuffer))
+    ;; Not necessary to hide minibuffer
+    ;; (minibuffer (which-key--hide-buffer-minibuffer))
     (side-window (which-key--hide-buffer-side-window))
     (frame (which-key--hide-buffer-frame))
     (custom (funcall which-key-custom-hide-popup-function))))
-
-(defun which-key--hide-buffer-minibuffer ()
-  "Does nothing.
-Stub for consistency with other hide-buffer functions."
-  nil)
 
 (defun which-key--hide-buffer-side-window ()
   "Hide which-key buffer when side-window popup is used."
@@ -523,15 +519,11 @@ buffer text to be displayed in the popup.  Return nil if no window
 is shown, or if there is no need to start the closing timer."
   (when (and (> (car act-popup-dim) 0) (> (cdr act-popup-dim) 0))
     (cl-case which-key-popup-type
-      (minibuffer (which-key--show-buffer-minibuffer act-popup-dim))
+      ;; Not called for minibuffer
+      ;; (minibuffer (which-key--show-buffer-minibuffer act-popup-dim))
       (side-window (which-key--show-buffer-side-window act-popup-dim))
       (frame (which-key--show-buffer-frame act-popup-dim))
       (custom (funcall which-key-custom-show-popup-function act-popup-dim)))))
-
-(defun which-key--show-buffer-minibuffer (act-popup-dim)
-  "Does nothing.
-Stub for consistency with other show-buffer functions."
-  nil)
 
 (defun which-key--fit-buffer-to-window-horizontally (&optional window &rest params)
   "Slightly modified version of `fit-buffer-to-window'.
