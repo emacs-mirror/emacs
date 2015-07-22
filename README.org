@@ -21,6 +21,8 @@ following features:
 5. A well configured back-end for displaying keys (removing the popwin
    dependency) that can be easily customized by writing new display functions
 
+Many of these have been implemented and are described below.
+
 ** Table of Contents                                                 :TOC@4:
  - [[#which-key-][which-key ]]
      - [[#introduction][Introduction]]
@@ -31,6 +33,7 @@ following features:
          - [[#minibuffer-option][Minibuffer Option]]
          - [[#side-window-right-option][Side Window Right Option]]
          - [[#side-window-bottom-option][Side Window Bottom Option]]
+         - [[#side-window-right-then-bottom][Side Window Right then Bottom]]
      - [[#special-features-and-configuration-options][Special Features and Configuration Options]]
          - [[#several-popup-types][Several Popup Types]]
              - [[#minibuffer][minibuffer]]
@@ -40,6 +43,10 @@ following features:
          - [[#custom-string-replacement][Custom String Replacement]]
              - [[#key-based-replacement]["Key-Based" replacement]]
              - [[#key-and-description-replacement][Key and Description replacement]]
+         - [[#sorting][Sorting]]
+         - [[#paging][Paging]]
+         - [[#other-options][Other Options]]
+     - [[#more-examples][More Examples]]
          - [[#nice-display-with-split-frame][Nice Display with Split Frame]]
      - [[#status][Status]]
      - [[#thanks][Thanks]]
@@ -47,7 +54,8 @@ following features:
 ** Install
 *** MELPA
 After setting up [[http://melpa.org][MELPA]] as a repository, use =M-x package-install which-key= or
-your preferred method.
+your preferred method. You will need to call =which-key-mode= to enable the
+minor mode of course.
 
 *** Manually
 Add which-key.el to your =load-path= and require. Something like 
@@ -115,6 +123,15 @@ Popup side window on bottom. For defaults use
 
 [[./img/which-key-bottom.png]]
 
+*** Side Window Right then Bottom
+This is a combination of the previous two choices. It will try to use the right
+side, but if there is no room it will switch to using the bottom, which is
+usually easier to fit keys into.
+
+#+BEGIN_SRC emacs-lisp
+(which-key-setup-side-window-right-bottom)
+#+END_SRC
+
 ** Special Features and Configuration Options
 There are more options than the ones described here. All of the configurable
 variables are available through =M-x customize-group which-key=.
@@ -133,7 +150,10 @@ Show keys in the minibuffer.
 #+END_SRC
 Show keys in a side window. This popup type has further options:
 #+BEGIN_SRC emacs-lisp
-;; location of which-key window. valid values: top, bottom, left, right
+;; location of which-key window. valid values: top, bottom, left, right, 
+;; or a list of any of the two. If it's a list, which-key will always try
+;; the first location first. It will go to the second location if there is
+;; not enough room to display any keys in the first location
 (setq which-key-side-window-location 'bottom)
 
 ;; max width of which-key window, when displayed at left or right.
@@ -225,6 +245,7 @@ There are two helper functions to add entries to this list,
 directly or use these.
 
 **** Key and Description replacement
+
 The second and third methods target the text used for the keys and the
 descriptions directly. The relevant variables are
 =which-key-key-replacement-alist= and =which-key-description-replacement-alist=.
@@ -249,6 +270,80 @@ these alists)
 (add-to-list 'which-key-key-replacement-alist '("left" . "lft"))
 #+END_SRC
 
+*** Sorting
+By default the output is sorted by the key in a custom order. The default order
+is to sort lexicographically within each "class" of key, where the classes and
+their order are
+
+Special (SPC, TAB, RET, \ldots) < Single Character (a, b, \ldots) < Modifier (C-, M-, \ldots) < Other
+
+You can control the order by setting this variable. 
+
+#+BEGIN_SRC emacs-lisp
+(setq which-key-sort-order 'which-key-key-order)
+;; or (setq which-key-sort-order 'which-key-description-order)
+#+END_SRC
+
+The only other built-in option at the moment (besides using nil to turn off
+sorting completely) is =which-key-description-order=, which orders by the key's
+description based on the usual ordering of strings after applying =downcase=.
+
+*** Paging
+This is a new feature and may have bugs, so it is disabled by default. There are
+at least several prefixes that have many keys bound to them, like =C-x=.
+which-key displays as many keys as it can given your settings, but for these
+prefixes this may not be enough. The paging feature gives you the ability to
+bind a key to the function =which-key-show-next-page= which will cycle through
+the pages without changing the key sequence you were in the middle of typing.
+Essentially, all you need to do to enable this for a prefix like =C-x= is the
+following which will bind =<f5>= to the command.
+
+#+BEGIN_SRC emacs-lisp
+(define-key which-key-mode-map (kbd "C-x <f5>") 'which-key-show-next-page)
+#+END_SRC
+
+This is completely equivalent to 
+
+#+BEGIN_SRC emacs-lisp
+(setq which-key-paging-prefixes '("C-x"))
+(setq which-key-paging-key "<f5>")
+#+END_SRC
+
+where the latter are provided for convenience if you have a lot of prefixes.
+
+*** Other Options
+The options below are also available through customize. Their defaults are
+shown.
+
+#+BEGIN_SRC emacs-lisp
+  ;; Set the time delay (in seconds) for the which-key popup to appear.
+  (setq which-key-idle-delay 1.0) 
+
+  ;; Set the maximum length (in characters) for key descriptions (commands or
+  ;; prefixes). Descriptions that are longer are truncated and have ".." added
+  (setq which-key-max-description-length 27)
+
+  ;; Set the separator used between keys and descriptions. Change this setting to
+  ;; an ASCII character if your font does not show the default arrow. The second
+  ;; setting here allows for extra padding for unicode characters. which-key uses
+  ;; characters as a means of width measurement, so wide unicode characters can
+  ;; throw off the calculation.
+  (setq which-key-separator " → " )
+  (setq which-key-unicode-correction 3)
+
+  ;; Set the special keys. These are automatically truncated to one character
+  ;; and have which-key-special-key-face applied.
+  (setq which-key-special-keys '("SPC" "TAB" "RET" "ESC" "DEL"))
+
+  ;; Show the key prefix on the left or top (nil means hide the prefix). The
+  ;; prefix consists of the keys you have typed so far. which-key also shows the
+  ;; page information along with the prefix.
+  (setq which-key-show-prefix 'left)
+
+  ;; Set to t to show the count of keys shown vs. total keys in the mode line.
+  (setq which-key-show-remaining-keys nil)
+#+END_SRC
+** More Examples
 *** Nice Display with Split Frame
 Unlike guide-key, which-key looks good even if the frame is split into several
 windows.
