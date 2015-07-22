@@ -291,7 +291,7 @@ Used when `which-key-popup-type' is frame.")
         (mapc (lambda (prefix)
                 (define-key which-key-mode-map
                   (kbd (concat prefix " " which-key-paging-key))
-                  'which-key-show-next-page))
+                  #'which-key-show-next-page))
               which-key-paging-prefixes)
         (add-hook 'pre-command-hook #'which-key--hide-popup)
         (add-hook 'pre-command-hook #'which-key--lighter-restore)
@@ -1047,7 +1047,7 @@ Finally, show the buffer."
   "Activate idle timer to trigger `which-key--update'."
   (which-key--stop-timer) ; start over
   (setq which-key--timer
-        (run-with-idle-timer which-key-idle-delay t 'which-key--update)))
+        (run-with-idle-timer which-key-idle-delay t #'which-key--update)))
 
 (defun which-key--stop-timer ()
   "Deactivate idle timer for `which-key--update'."
