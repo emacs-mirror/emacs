@@ -189,6 +189,17 @@ description."
   :group 'which-key
   :type 'function)
 
+(defcustom which-key-paging-prefixes '()
+  "Enable paging for these prefixes."
+  :group 'which-key
+  :type '(repeat string))
+
+(defcustom which-key-paging-key "<f5>"
+  "Key to use for changing pages. Bound after each of the
+prefixes in `which-key-paging-prefixes'"
+  :group 'which-key
+  :type 'string)
+
 ;; Faces
 (defface which-key-key-face
   '((t . (:inherit font-lock-constant-face)))
@@ -237,17 +248,6 @@ width) in lines and characters respectively.  The return value is
 ignored."
   :group 'which-key
   :type 'function)
-
-(defcustom which-key-paging-prefixes '()
-  "Enable paging for these prefixes."
-  :group 'which-key
-  :type '(repeat string))
-
-(defcustom which-key-paging-key "<f5>"
-  "Key to use for changing pages. Bound after each of the
-prefixes in `which-key-paging-prefixes'"
-  :group 'which-key
-  :type 'string)
 
 (defvar which-key-inhibit nil
   "Prevent which-key from popping up momentarily by setting this
