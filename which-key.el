@@ -995,7 +995,10 @@ enough space based on your settings and frame size." prefix-keys)
       (setq timer
             (run-with-idle-timer 0.1 t
              (lambda ()
-               (unless (eq real-last-command 'which-key-show-next-page)
+               (when (or (not (eq real-last-command 'which-key-show-next-page))
+                         (and (< 0 (length (this-single-command-keys)))
+                              (not (equal which-key--current-prefix
+                                          (this-single-command-keys)))))
                  (cancel-timer timer)
                  (which-key--start-timer))))))))
 
