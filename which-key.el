@@ -263,6 +263,8 @@ to a non-nil value for the execution of a command. Like this
   "Internal: Holds reference to which-key window.")
 (defvar which-key--timer nil
   "Internal: Holds reference to open window timer.")
+(defvar which-key--paging-timer nil
+  "Internal: Holds reference to timer for paging.")
 (defvar which-key--is-setup nil
   "Internal: Non-nil if which-key buffer has been setup.")
 (defvar which-key--frame nil
@@ -983,16 +985,7 @@ enough space based on your settings and frame size." prefix-keys)
     (which-key--stop-timer)
     (setq unread-command-events (listify-key-sequence which-key--current-prefix))
     (which-key--show-page next-page)
-    (let (timer)
-      (setq timer
-            (run-with-idle-timer 0.2 t
-             (lambda ()
-               (when (or (not (eq real-last-command 'which-key-show-next-page))
-                         (and (< 0 (length (this-single-command-keys)))
-                              (not (equal which-key--current-prefix
-                                          (this-single-command-keys)))))
-                 (cancel-timer timer)
-                 (which-key--start-timer))))))))
+    (which-key--start-paging-timer)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Update
@@ -1053,6 +1046,18 @@ Finally, show the buffer."
   "Deactivate idle timer for `which-key--update'."
   (when which-key--timer (cancel-timer which-key--timer)))
 
+(defun which-key--start-paging-timer ()
+  "Activate timer to restart which-key after paging."
+  (when which-key--paging-timer (cancel-timer which-key--paging-timer))
+  (setq which-key--paging-timer
+        (run-with-idle-timer
+         0.2 t (lambda ()
+                 (when (or (not (eq real-last-command 'which-key-show-next-page))
+                           (and (< 0 (length (this-single-command-keys)))
+                                (not (equal which-key--current-prefix
+                                            (this-single-command-keys)))))
+                   (cancel-timer which-key--paging-timer)
+                   (which-key--start-timer))))))
 
 ;; TODO
 ;; fix status key
