@@ -997,7 +997,7 @@ enough space based on your settings and frame size." prefix-keys)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Update
 
-(defun which-key--try-2-side-windows (page-n loc1 loc2)
+(defun which-key--try-2-side-windows (page-n loc1 loc2 &rest _ignore)
   (let (pages1 pages2)
     (let ((which-key-side-window-location loc1))
       (setq pages1 (which-key--create-pages formatted-keys (window-width))))
