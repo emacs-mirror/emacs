@@ -867,8 +867,8 @@ element in each list element of KEYS."
 (defun which-key--partition-columns (keys avl-lines avl-width)
   (let ((cols-w-widths (mapcar #'which-key--pad-column
                                (-partition-all avl-lines keys)))
-        (page-width 0) (n-pages 0)
-        page-cols pages keys/page page-widths)
+        (page-width 0) (n-pages 0) (n-keys 0)
+        page-cols pages page-widths keys/page)
     (if (> (car (car cols-w-widths)) avl-width)
         ;; give up if first column doesn't fit
         (list :pages nil :page-height 0 :page-widths '(0)
@@ -876,17 +876,19 @@ element in each list element of KEYS."
       (dolist (col cols-w-widths)
         (if (<= (+ (car col) page-width) avl-width)
             (progn (push (cdr col) page-cols)
-                   (setq page-width (+ page-width (car col))))
+                   (setq page-width (+ page-width (car col))
+                         n-keys  (+ (length (cdr col)) n-keys)))
           (when (> (length page-cols) 0)
             (push (which-key--join-columns page-cols) pages)
-            (push (* (length page-cols) avl-lines) keys/page)
+            (push n-keys keys/page)
             (push page-width page-widths)
             (setq n-pages (1+ n-pages)
+                  n-keys (length (cdr col))
                   page-cols (list (cdr col))
                   page-width (car col)))))
       (when (> (length page-cols) 0)
         (push (which-key--join-columns page-cols) pages)
-        (push (* (length page-cols) avl-lines) keys/page)
+        (push n-keys keys/page)
         (push page-width page-widths)
         (setq n-pages (1+ n-pages)))
       (list :pages (reverse pages) :page-height avl-lines
@@ -918,7 +920,7 @@ element in each list element of KEYS."
                      result (which-key--partition-columns
                              keys avl-lines avl-width)
                      found (> (plist-get result :n-pages) 1)))
-             (if (and (> avl-lines 1) found) prev-result result)))))
+             (if found prev-result result)))))
 
 (defun which-key--lighter-status (n-shown n-tot)
   (when which-key-show-remaining-keys
