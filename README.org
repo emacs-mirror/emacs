@@ -275,7 +275,7 @@ By default the output is sorted by the key in a custom order. The default order
 is to sort lexicographically within each "class" of key, where the classes and
 their order are
 
-=Special (SPC, TAB, RET, ...) < Single Character (a, b, ...) < Modifier (C-, M-, ...) < Other=
+=Special (SPC, TAB, ...) < Single Character (a, ...) < Modifier (C-, M-, ...) < Other=
 
 You can control the order by setting this variable. 
 
