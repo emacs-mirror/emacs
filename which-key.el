@@ -940,7 +940,9 @@ area."
            (delay (if minibuffer 0.2 0.01))
            message-log-max)
       (unless minibuffer (message "%s" ,text))
-      (run-with-idle-timer delay nil (lambda () (message "%s" ,text))))))
+      (run-with-idle-timer delay nil
+                           (lambda () (let (message-log-max)
+                                        (message "%s" ,text)))))))
 
 (defun which-key--show-page (n)
   "Show page N, starting from 0."
