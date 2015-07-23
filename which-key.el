@@ -280,6 +280,7 @@ Used when `which-key-popup-type' is frame.")
 (defvar which-key--current-prefix nil
   "Internal: Holds current prefix")
 (defvar which-key--current-page-n nil)
+(defvar which-key--force-next-page-n nil)
 
 ;;;###autoload
 (define-minor-mode which-key-mode
@@ -934,23 +935,27 @@ element in each list element of KEYS."
 (defun which-key--show-page (n)
   "Show page N, starting from 0."
   (let ((n-pages (plist-get which-key--pages-plist :n-pages))
-        (prefix-keys (key-description which-key--current-prefix)))
+        (prefix-keys (key-description which-key--current-prefix))
+        page-n)
     (if (= 0 n-pages)
         (message "%s- which-key can't show keys: There is not \
 enough space based on your settings and frame size." prefix-keys)
-      (setq which-key--current-page-n n)
-      (let* ((i (mod n n-pages))
-             (page (nth i (plist-get which-key--pages-plist :pages)))
+      (if which-key--force-next-page-n
+          (setq page-n (mod which-key--force-next-page-n n-pages)
+                which-key--force-next-page-n nil)
+        (setq page-n (mod n n-pages)))
+      (setq which-key--current-page-n page-n)
+      (let* ((page (nth page-n (plist-get which-key--pages-plist :pages)))
              (height (plist-get which-key--pages-plist :page-height))
-             (width (nth i (plist-get which-key--pages-plist :page-widths)))
-             (n-shown (nth i (plist-get which-key--pages-plist :keys/page)))
+             (width (nth page-n (plist-get which-key--pages-plist :page-widths)))
+             (n-shown (nth page-n (plist-get which-key--pages-plist :keys/page)))
              (n-tot (plist-get which-key--pages-plist :tot-keys))
              (prefix-w-face (which-key--propertize-key prefix-keys))
              (dash-w-face (propertize "-" 'face 'which-key-key-face))
-             (status-left (propertize (format "%s/%s" (1+ i) n-pages)
+             (status-left (propertize (format "%s/%s" (1+ page-n) n-pages)
                                       'face 'font-lock-comment-face))
              (status-top (when (< 1 n-pages)
-                           (propertize (format "(%s of %s)" (1+ i) n-pages)
+                           (propertize (format "(%s of %s)" (1+ page-n) n-pages)
                                        'face 'font-lock-comment-face)))
              (first-col-width (+ 2 (max (string-width prefix-w-face)
                                         (string-width status-left))))
@@ -990,9 +995,15 @@ enough space based on your settings and frame size." prefix-keys)
   (let ((next-page (if which-key--current-page-n
                        (1+ which-key--current-page-n) 0)))
     (which-key--stop-timer)
-    (setq unread-command-events (listify-key-sequence which-key--current-prefix))
-    (which-key--show-page next-page)
-    (which-key--start-paging-timer)))
+    (if (eq which-key-popup-type 'minibuffer)
+        (progn (setq which-key--force-next-page-n next-page)
+               (which-key--start-timer)
+               (setq unread-command-events
+                     (listify-key-sequence which-key--current-prefix)))
+      (setq unread-command-events
+            (listify-key-sequence which-key--current-prefix))
+      (which-key--show-page next-page)
+      (which-key--start-paging-timer))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Update
