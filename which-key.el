@@ -42,8 +42,7 @@
   :group 'which-key
   :type 'float)
 
-(defcustom which-key-echo-keystrokes
-  (min echo-keystrokes (/ (float which-key-idle-delay) 4))
+(defcustom which-key-echo-keystrokes 0
   "Value to use for `echo-keystrokes'.
 This only applies when `which-key-popup-type' is minibuffer.  It
 needs to be less than `which-key-idle-delay' or else the echo
@@ -932,6 +931,17 @@ element in each list element of KEYS."
   (when which-key-show-remaining-keys
     (setcar (cdr (assq 'which-key-mode minor-mode-alist)) which-key--lighter-backup)))
 
+(defun which-key--echo (text)
+  "Echo TEXT to minibuffer without logging.
+Slight delay gets around evil functions that clear the echo
+area."
+  (eval
+   `(let* ((minibuffer (eq which-key-popup-type 'minibuffer))
+           (delay (if minibuffer 0.2 0.01))
+           message-log-max)
+      (unless minibuffer (message "%s" ,text))
+      (run-with-idle-timer delay nil (lambda () (message "%s" ,text))))))
+
 (defun which-key--show-page (n)
   "Show page N, starting from 0."
   (let ((n-pages (plist-get which-key--pages-plist :n-pages))
@@ -940,10 +950,7 @@ element in each list element of KEYS."
     (if (= 0 n-pages)
         (message "%s- which-key can't show keys: There is not \
 enough space based on your settings and frame size." prefix-keys)
-      (if which-key--force-next-page-n
-          (setq page-n (mod which-key--force-next-page-n n-pages)
-                which-key--force-next-page-n nil)
-        (setq page-n (mod n n-pages)))
+      (setq page-n (mod n n-pages))
       (setq which-key--current-page-n page-n)
       (let* ((page (nth page-n (plist-get which-key--pages-plist :pages)))
              (height (plist-get which-key--pages-plist :page-height))
@@ -978,11 +985,10 @@ enough space based on your settings and frame size." prefix-keys)
               ((eq which-key-show-prefix 'top)
                (setq page (concat prefix-w-face dash-w-face "  " status-top "\n" page)))
               ((eq which-key-show-prefix 'echo)
-               (let (message-log-max)
-                 (message "%s" (concat prefix-w-face dash-w-face "  " status-top)))))
+               (which-key--echo (concat prefix-w-face dash-w-face "  " status-top))))
         (which-key--lighter-status n-shown n-tot)
         (if (eq which-key-popup-type 'minibuffer)
-            (let (message-log-max) (message "%s" page))
+            (which-key--echo page)
           (with-current-buffer which-key--buffer
             (erase-buffer)
             (insert page)
@@ -995,15 +1001,10 @@ enough space based on your settings and frame size." prefix-keys)
   (let ((next-page (if which-key--current-page-n
                        (1+ which-key--current-page-n) 0)))
     (which-key--stop-timer)
-    (if (eq which-key-popup-type 'minibuffer)
-        (progn (setq which-key--force-next-page-n next-page)
-               (which-key--start-timer)
-               (setq unread-command-events
-                     (listify-key-sequence which-key--current-prefix)))
       (setq unread-command-events
             (listify-key-sequence which-key--current-prefix))
       (which-key--show-page next-page)
-      (which-key--start-paging-timer))))
+      (which-key--start-paging-timer)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Update
