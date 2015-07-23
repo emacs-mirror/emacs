@@ -126,7 +126,9 @@ Popup side window on bottom. This is the current default. To restore this setup 
 *** Side Window Right then Bottom
 This is a combination of the previous two choices. It will try to use the right
 side, but if there is no room it will switch to using the bottom, which is
-usually easier to fit keys into.
+usually easier to fit keys into. This setting can be helpful if the size of 
+the Emacs frame changes frequently, which might be the caes if you are using
+a dynamic/tiling window manager.
 
 #+BEGIN_SRC emacs-lisp
 (which-key-setup-side-window-right-bottom)
