@@ -76,7 +76,7 @@ sections.
 In each case, we show as many key bindings as we can fit in the buffer within
 the constraints. The constraints are determined by several factors, including
 your emacs settings, the size of the current emacs frame, and the which-key
-settings (which are configurable but not well documented at the moment).
+settings, most of which are described below. 
 
 By default which-key makes substitutions for text all with the aim of saving
 space. The most noticeable are the "special keys" like SPC, TAB, RET, etc. This
