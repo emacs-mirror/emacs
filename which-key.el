@@ -720,7 +720,8 @@ If KEY contains any \"special keys\" defined in
                         (mapconcat 'identity which-key-special-keys
                                    "\\|") "\\)")))
     (save-match-data
-      (if (string-match regexp key)
+      (if (and which-key-special-keys
+               (string-match regexp key))
           (let ((beg (match-beginning 0)) (end (match-end 0)))
             (concat (substring key-w-face 0 beg)
                     (propertize (substring key-w-face beg (1+ beg))
