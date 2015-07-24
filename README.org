@@ -80,9 +80,10 @@ settings (which are configurable but not well documented at the moment).
 
 By default which-key makes substitutions for text all with the aim of saving
 space. The most noticeable are the "special keys" like SPC, TAB, RET, etc. This
-can be turned off, but the default is to truncate these keys to one character
-and display them using =:inverse-video= (flips foreground and background
-colors). You can see the effect in the screenshots.
+can be turned off (see [[#other-options][Other Options]]), but the default is to
+truncate these keys to one character and display them using =:inverse-video=
+(flips foreground and background colors). You can see the effect in the
+screenshots.
 
 There are other substitution abilities included, which are quite flexible
 (ability to use regexp for example). This makes which-key very customizable.
@@ -333,8 +334,9 @@ shown.
   (setq which-key-separator " → " )
   (setq which-key-unicode-correction 3)
 
-  ;; Set the special keys. These are automatically truncated to one character
-  ;; and have which-key-special-key-face applied.
+  ;; Set the special keys. These are automatically truncated to one character and
+  ;; have which-key-special-key-face applied. Set this variable to nil to disable
+  ;; the feature
   (setq which-key-special-keys '("SPC" "TAB" "RET" "ESC" "DEL"))
 
   ;; Show the key prefix on the left or top (nil means hide the prefix). The
