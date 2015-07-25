@@ -211,6 +211,11 @@ prefixes in `which-key-paging-prefixes'"
   "Face for the separator (default separator is an arrow)"
   :group 'which-key)
 
+(defface which-key-note-face
+  '((t . (:inherit which-key-separator-face)))
+  "Face for notes or hints occasionally provided"
+  :group 'which-key)
+
 (defface which-key-command-description-face
   '((t . (:inherit font-lock-function-name-face)))
   "Face for the key description when it is a command"
@@ -964,7 +969,7 @@ enough space based on your settings and frame size." prefix-keys)
                                       'face 'which-key-separator-face))
              (status-top (when (< 1 n-pages)
                            (propertize (format "(%s of %s)" (1+ page-n) n-pages)
-                                       'face 'which-key-separator-face)))
+                                       'face 'which-key-note-face)))
              (first-col-width (+ 2 (max (string-width prefix-w-face)
                                         (string-width status-left))))
              (prefix-left (s-pad-right first-col-width " " prefix-w-face))
@@ -975,10 +980,10 @@ enough space based on your settings and frame size." prefix-keys)
                                           (kbd (concat prefix-keys
                                                        " "
                                                        which-key-paging-key)))))
-                            (propertize (concat "press "
+                            (propertize (format "[%s pg %s]"
                                                 which-key-paging-key
-                                                " for next page")
-                                        'face 'which-key-separator-face)))
+                                                (1+ (mod (1+ page-n) n-pages)))
+                                        'face 'which-key-note-face)))
              new-end lines first)
         (cond ((and (< 1 n-pages)
                     (eq which-key-show-prefix 'left))
@@ -994,12 +999,11 @@ enough space based on your settings and frame size." prefix-keys)
                        new-end (concat "\n" (s-repeat first-col-width " "))
                        page  (concat first (mapconcat #'identity (cdr lines) new-end)))))
               ((eq which-key-show-prefix 'top)
-               (setq page (concat prefix-w-face dash-w-face "  " status-top "\n" page)))
+               (setq page (concat prefix-w-face dash-w-face "  "
+                                  status-top " " nxt-pg-hint "\n" page)))
               ((eq which-key-show-prefix 'echo)
-               (which-key--echo (concat prefix-w-face
-                                        dash-w-face "  "
-                                        status-top
-                                        " " nxt-pg-hint))))
+               (which-key--echo (concat prefix-w-face dash-w-face "  "
+                                        status-top " " nxt-pg-hint))))
         (which-key--lighter-status n-shown n-tot)
         (if (eq which-key-popup-type 'minibuffer)
             (which-key--echo page)
