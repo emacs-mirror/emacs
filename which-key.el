@@ -1003,7 +1003,9 @@ enough space based on your settings and frame size." prefix-keys)
                        (1+ which-key--current-page-n) 0)))
     (which-key--stop-timer)
     (setq unread-command-events
-          (listify-key-sequence which-key--current-prefix))
+          ;; forces event into current key sequence
+          (mapcar (lambda (ev) (cons t ev))
+                  (listify-key-sequence which-key--current-prefix)))
     (if which-key--last-try-2-loc
         (let ((which-key-side-window-location which-key--last-try-2-loc))
           (which-key--show-page next-page))
