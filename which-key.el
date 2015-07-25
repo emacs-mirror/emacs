@@ -961,14 +961,24 @@ enough space based on your settings and frame size." prefix-keys)
              (prefix-w-face (which-key--propertize-key prefix-keys))
              (dash-w-face (propertize "-" 'face 'which-key-key-face))
              (status-left (propertize (format "%s/%s" (1+ page-n) n-pages)
-                                      'face 'font-lock-comment-face))
+                                      'face 'which-key-separator-face))
              (status-top (when (< 1 n-pages)
                            (propertize (format "(%s of %s)" (1+ page-n) n-pages)
-                                       'face 'font-lock-comment-face)))
+                                       'face 'which-key-separator-face)))
              (first-col-width (+ 2 (max (string-width prefix-w-face)
                                         (string-width status-left))))
              (prefix-left (s-pad-right first-col-width " " prefix-w-face))
              (status-left (s-pad-right first-col-width " " status-left))
+             (nxt-pg-hint (when (and (< 1 n-pages)
+                                     (eq 'which-key-show-next-page
+                                         (key-binding
+                                          (kbd (concat prefix-keys
+                                                       " "
+                                                       which-key-paging-key)))))
+                            (propertize (concat "press "
+                                                which-key-paging-key
+                                                " for next page")
+                                        'face 'which-key-separator-face)))
              new-end lines first)
         (cond ((and (< 1 n-pages)
                     (eq which-key-show-prefix 'left))
@@ -986,7 +996,10 @@ enough space based on your settings and frame size." prefix-keys)
               ((eq which-key-show-prefix 'top)
                (setq page (concat prefix-w-face dash-w-face "  " status-top "\n" page)))
               ((eq which-key-show-prefix 'echo)
-               (which-key--echo (concat prefix-w-face dash-w-face "  " status-top))))
+               (which-key--echo (concat prefix-w-face
+                                        dash-w-face "  "
+                                        status-top
+                                        " " nxt-pg-hint))))
         (which-key--lighter-status n-shown n-tot)
         (if (eq which-key-popup-type 'minibuffer)
             (which-key--echo page)
