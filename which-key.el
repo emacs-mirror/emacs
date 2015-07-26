@@ -200,6 +200,13 @@ prefixes in `which-key-paging-prefixes'"
   :group 'which-key
   :type 'string)
 
+(defcustom which-key-use-C-h-for-paging t
+  "Use C-h for paging if non-nil. Normally C-h after a prefix
+  calls `describe-prefix-bindings'. This changes that command to
+  a which-key paging command when which-key-mode is active."
+  :group 'which-key
+  :type 'boolean)
+
 ;; Faces
 (defface which-key-key-face
   '((t . (:inherit font-lock-constant-face)))
@@ -277,6 +284,8 @@ to a non-nil value for the execution of a command. Like this
 Used when `which-key-popup-type' is frame.")
 (defvar which-key--echo-keystrokes-backup nil
   "Internal: Backup the initial value of `echo-keystrokes'.")
+(defvar which-key--prefix-help-cmd-backup nil
+  "Internal: Backup the value of `prefix-help-command'.")
 (defvar which-key--pages-plist nil
   "Internal: Holds page objects")
 (defvar which-key--lighter-backup nil
@@ -302,12 +311,17 @@ Used when `which-key-popup-type' is frame.")
   (if which-key-mode
       (progn
         (unless which-key--is-setup (which-key--setup))
+        (when which-key-use-C-h-for-paging
+            (setq which-key--prefix-help-cmd-backup prefix-help-command
+                  prefix-help-command #'which-key-show-next-page))
         (add-hook 'pre-command-hook #'which-key--hide-popup)
         (add-hook 'pre-command-hook #'which-key--lighter-restore)
         (add-hook 'focus-out-hook #'which-key--stop-timer)
         (add-hook 'focus-in-hook #'which-key--start-timer)
         (which-key--start-timer))
     (setq echo-keystrokes which-key--echo-keystrokes-backup)
+    (when which-key-use-C-h-for-paging
+      (setq prefix-help-command which-key--prefix-help-cmd-backup))
     (remove-hook 'pre-command-hook #'which-key--hide-popup)
     (remove-hook 'pre-command-hook #'which-key--lighter-restore)
     (remove-hook 'focus-out-hook #'which-key--stop-timer)
@@ -381,7 +395,6 @@ bottom."
   (which-key--setup-echo-keystrokes)
   (setq which-key-popup-type 'minibuffer
         which-key-show-prefix 'left))
-
 
 ;; Helper functions to modify replacement lists.
 
@@ -974,16 +987,22 @@ enough space based on your settings and frame size." prefix-keys)
                                         (string-width status-left))))
              (prefix-left (s-pad-right first-col-width " " prefix-w-face))
              (status-left (s-pad-right first-col-width " " status-left))
-             (nxt-pg-hint (when (and (< 1 n-pages)
-                                     (eq 'which-key-show-next-page
-                                         (key-binding
-                                          (kbd (concat prefix-keys
-                                                       " "
-                                                       which-key-paging-key)))))
-                            (propertize (format "[%s pg %s]"
-                                                which-key-paging-key
-                                                (1+ (mod (1+ page-n) n-pages)))
-                                        'face 'which-key-note-face)))
+             (nxt-pg-hint (cond ((and (< 1 n-pages)
+                                      which-key-use-C-h-for-paging)
+                                 (propertize (format "[C-h pg %s]"
+                                                     (1+ (mod (1+ page-n) n-pages)))
+                                             'face 'which-key-note-face))
+                                ((and (< 1 n-pages)
+                                      (eq 'which-key-show-next-page
+                                          (key-binding
+                                           (kbd (concat prefix-keys
+                                                        " "
+                                                        which-key-paging-key)))))
+                                 (propertize (format "[%s pg %s]"
+                                                     which-key-paging-key
+                                                     (1+ (mod (1+ page-n) n-pages)))
+                                             'face 'which-key-note-face))
+                                (t nil)))
              new-end lines first)
         (cond ((and (< 1 n-pages)
                     (eq which-key-show-prefix 'left))
@@ -1029,6 +1048,16 @@ enough space based on your settings and frame size." prefix-keys)
       (which-key--show-page next-page))
     (which-key--start-paging-timer)))
 
+
+;; (defun which-key-show-first-page ()
+;;   "Show the first page of keys."
+;;   ;; (which-key--stop-timer)
+;;   ;; (setq which-key--prefix-help-cmd-backup prefix-help-command
+;;   ;;       prefix-help-command 'which-key-show-next-page)
+;;   (which-key--show-page 0)
+;;   )
+;;   ;; (which-key--start-paging-timer))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Update
 
@@ -1064,21 +1093,20 @@ Finally, show the buffer."
                 ;; just in case someone uses one of these
                 (keymapp (lookup-key function-key-map prefix-keys)))
                (not which-key-inhibit))
-      (let ((page-n 0))
-        (setq which-key--current-prefix prefix-keys
-              which-key--last-try-2-loc nil)
-        (let ((formatted-keys (which-key--get-formatted-key-bindings
-                               (current-buffer)))
-              (prefix-keys-desc (key-description prefix-keys)))
-          (cond ((= (length formatted-keys) 0)
-                 (message "%s-  which-key: There are no keys to show" prefix-keys-desc))
-                ((listp which-key-side-window-location)
-                 (setq which-key--last-try-2-loc
-                       (apply #'which-key--try-2-side-windows
-                              formatted-keys page-n which-key-side-window-location)))
-                (t (setq which-key--pages-plist
-                         (which-key--create-pages formatted-keys (window-width)))
-                   (which-key--show-page page-n))))))))
+      (setq which-key--current-prefix prefix-keys
+            which-key--last-try-2-loc nil)
+      (let ((formatted-keys (which-key--get-formatted-key-bindings
+                             (current-buffer)))
+            (prefix-keys-desc (key-description prefix-keys)))
+        (cond ((= (length formatted-keys) 0)
+               (message "%s-  which-key: There are no keys to show" prefix-keys-desc))
+              ((listp which-key-side-window-location)
+               (setq which-key--last-try-2-loc
+                     (apply #'which-key--try-2-side-windows
+                            formatted-keys 0 which-key-side-window-location)))
+              (t (setq which-key--pages-plist
+                       (which-key--create-pages formatted-keys (window-width)))
+                 (which-key--show-page 0)))))))
 
 ;; Timers
 
@@ -1102,6 +1130,7 @@ Finally, show the buffer."
                            (and (< 0 (length (this-single-command-keys)))
                                 (not (equal which-key--current-prefix
                                             (this-single-command-keys)))))
+                   (setq which-key--current-page-n nil)
                    (cancel-timer which-key--paging-timer)
                    (which-key--start-timer))))))
 

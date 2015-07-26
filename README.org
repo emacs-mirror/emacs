@@ -1,5 +1,20 @@
 * which-key 
 [[http://melpa.org/#/which-key][http://melpa.org/packages/which-key-badge.svg]]
+** What's new
+*** Paging
+- Paging is now turned on by default, using any prefix plus =C-h= (this doesn't
+  affect key sequences that start with =C-h= and will not override any key
+  sequences that end will =C-h=). See the [[#paging][Paging Section]] for more details and
+  for other options on using and/or disabling paging.
+- This makes which-key function as a replacement for the default behavior of
+  pressing =C-h= after a prefix which shows the key bindings for any prefix. It
+  is better though, because it saves the prefix that you just entered. So =C-x
+  C-h C-h C-x= will popup the which-key buffer for the prefix =C-x= change the
+  page twice and then execute the command bound to =C-x C-x=.
+- =C-h= will also now popup the which-key buffer to the first page if it is
+  pressed before =which-key-idle-delay= takes effect. This means you can set a
+  long idle delay if you like and just use =C-h= when you want to see
+  =which-key=.
 ** Introduction
 =which-key= is a minor mode for Emacs that displays the keybindings following your currently
 entered incomplete command (a prefix) in a popup. For example, after enabling the minor mode
@@ -25,6 +40,8 @@ Many of these have been implemented and are described below.
 
 ** Table of Contents                                                 :TOC@4:
  - [[#which-key-][which-key ]]
+     - [[#whats-new][What's new]]
+         - [[#paging][Paging]]
      - [[#introduction][Introduction]]
      - [[#install][Install]]
          - [[#melpa][MELPA]]
@@ -45,6 +62,8 @@ Many of these have been implemented and are described below.
              - [[#key-and-description-replacement][Key and Description replacement]]
          - [[#sorting][Sorting]]
          - [[#paging][Paging]]
+             - [[#method-1-default-using-c-h-or-help-char][Method 1 (default): Using C-h (or =help-char=)]]
+             - [[#method-2-bind-your-own-keys][Method 2: Bind your own keys]]
          - [[#other-options][Other Options]]
      - [[#more-examples][More Examples]]
          - [[#nice-display-with-split-frame][Nice Display with Split Frame]]
@@ -292,14 +311,34 @@ sorting completely) is =which-key-description-order=, which orders by the key's
 description based on the usual ordering of strings after applying =downcase=.
 
 *** Paging
-This is a new feature and may have bugs, so it is disabled by default. There are
-at least several prefixes that have many keys bound to them, like =C-x=.
-which-key displays as many keys as it can given your settings, but for these
-prefixes this may not be enough. The paging feature gives you the ability to
-bind a key to the function =which-key-show-next-page= which will cycle through
-the pages without changing the key sequence you were in the middle of typing.
-Essentially, all you need to do to enable this for a prefix like =C-x= is the
-following which will bind =<f5>= to the command.
+
+There are at least several prefixes that have many keys bound to them, like
+=C-x=. which-key displays as many keys as it can given your settings, but for
+these prefixes this may not be enough. The paging feature gives you the ability
+to bind a key to the function =which-key-show-next-page= which will cycle
+through the pages without changing the key sequence you were in the middle of
+typing. There are two slightly different ways of doing this.
+
+**** Method 1 (default): Using C-h (or =help-char=)
+This is the easiest way, and is turned on by default. Use
+#+BEGIN_SRC emacs-lisp
+(setq which-key-use-C-h-for-paging nil)
+#+END_SRC
+to disable the behavior (this will only take effect after toggling
+which-key-mode if it is already enabled). =C-h= can be used with any prefix to
+switch pages when there are multiple pages of keys. This changes the default
+behavior of emacs which is to show a list of keybindings that apply to a prefix.
+For example, if you were to type =C-x C-h= you would get a list of commands that
+follow =C-x=. This uses which-key instead to show those keys, and unlike the
+emacs default saves the incomplete prefix that you just entered so that the next
+keystroke can complete the command. As a bonus you can type =C-x C-h= and the
+which-key buffer will pop up immediately (i.e., before =which-key-idle-delay=
+kicks in).
+
+**** Method 2: Bind your own keys
+
+Essentially, all you need to do for a prefix like =C-x= is the following which
+will bind =<f5>= to the relevant command.
 
 #+BEGIN_SRC emacs-lisp
 (define-key which-key-mode-map (kbd "C-x <f5>") 'which-key-show-next-page)
