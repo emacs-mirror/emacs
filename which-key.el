@@ -870,6 +870,9 @@ element in each list element of KEYS."
    (lambda (x y) (max x (string-width (nth index y)))) keys :initial-value 0))
 
 (defun which-key--pad-column (col-keys)
+  "Take a column of (key separator description) COL-KEYS,
+calculate the max width in the column and pad all cells out to
+that width."
   (let* ((col-key-width  (which-key--max-len col-keys 0))
          (col-sep-width  (which-key--max-len col-keys 1))
          (col-desc-width (which-key--max-len col-keys 2))
