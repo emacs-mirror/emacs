@@ -19,10 +19,10 @@
 - Note that this behavior is easily disabled, and you have the ability to choose
   another binding of course.
 ** Introduction
-=which-key= is a minor mode for Emacs that displays the keybindings following your currently
+=which-key= is a minor mode for Emacs that displays the key bindings following your currently
 entered incomplete command (a prefix) in a popup. For example, after enabling the minor mode
 if you enter =C-x= and wait for the default of 1 second the minibuffer will expand with all of
-the available keybindings that follow =C-x= (or as many as space allows given your settings).
+the available key bindings that follow =C-x= (or as many as space allows given your settings).
 This includes prefixes like =C-x 8= which are shown in a different face. Screenshots of what
 the popup will look like are included below. =which-key= started as a rewrite of
 [[https://github.com/kai2nenobu/guide-key][guide-key-mode]], but the feature sets have diverged
@@ -97,7 +97,7 @@ sections.
 
 In each case, we show as many key bindings as we can fit in the buffer within
 the constraints. The constraints are determined by several factors, including
-your emacs settings, the size of the current emacs frame, and the which-key
+your Emacs settings, the size of the current Emacs frame, and the which-key
 settings, most of which are described below. 
 
 By default which-key makes substitutions for text all with the aim of saving
@@ -138,7 +138,7 @@ width (see =M-x customize-group which-key=).
 This is a combination of the previous two choices. It will try to use the right
 side, but if there is no room it will switch to using the bottom, which is
 usually easier to fit keys into. This setting can be helpful if the size of 
-the Emacs frame changes frequently, which might be the caes if you are using
+the Emacs frame changes frequently, which might be the case if you are using
 a dynamic/tiling window manager.
 
 #+BEGIN_SRC emacs-lisp
@@ -280,7 +280,7 @@ Here's an example of one of the default key replacements
 ("<\\([[:alnum:]-]+\\)>" . "\\1")
 #+END_SRC
 
-The =car= takes a string which may use emacs regexp and the =cdr= takes a string
+The =car= takes a string which may use Emacs regexp and the =cdr= takes a string
 with the replacement text. As shown, you can specify a sub-expression of the
 match. The replacements do not need to use regexp and can be as simple as
 
@@ -331,10 +331,10 @@ This is the easiest way, and is turned on by default. Use
 to disable the behavior (this will only take effect after toggling
 which-key-mode if it is already enabled). =C-h= can be used with any prefix to
 switch pages when there are multiple pages of keys. This changes the default
-behavior of emacs which is to show a list of keybindings that apply to a prefix.
+behavior of Emacs which is to show a list of key bindings that apply to a prefix.
 For example, if you were to type =C-x C-h= you would get a list of commands that
 follow =C-x=. This uses which-key instead to show those keys, and unlike the
-emacs default saves the incomplete prefix that you just entered so that the next
+Emacs default saves the incomplete prefix that you just entered so that the next
 keystroke can complete the command. As a bonus you can type =C-x C-h= and the
 which-key buffer will pop up immediately (i.e., before =which-key-idle-delay=
 kicks in).
@@ -371,8 +371,8 @@ shown.
 
   ;; Set the separator used between keys and descriptions. Change this setting to
   ;; an ASCII character if your font does not show the default arrow. The second
-  ;; setting here allows for extra padding for unicode characters. which-key uses
-  ;; characters as a means of width measurement, so wide unicode characters can
+  ;; setting here allows for extra padding for Unicode characters. which-key uses
+  ;; characters as a means of width measurement, so wide Unicode characters can
   ;; throw off the calculation.
   (setq which-key-separator " → " )
   (setq which-key-unicode-correction 3)
