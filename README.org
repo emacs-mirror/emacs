@@ -7,14 +7,17 @@
   sequences that end will =C-h=). See the [[#paging][Paging Section]] for more details and
   for other options on using and/or disabling paging.
 - This makes which-key function as a replacement for the default behavior of
-  pressing =C-h= after a prefix which shows the key bindings for any prefix. It
-  is better though, because it saves the prefix that you just entered. So =C-x
-  C-h C-h C-x= will popup the which-key buffer for the prefix =C-x= change the
-  page twice and then execute the command bound to =C-x C-x=.
+  pressing =C-h= after a prefix which shows the key bindings for any prefix
+  (this default command is =describe-prefix-bindings=). It is better though,
+  because it saves the prefix that you just entered. So =C-x C-h C-h C-x= will
+  popup the which-key buffer for the prefix =C-x= change the page twice and then
+  execute the command bound to =C-x C-x=.
 - =C-h= will also now popup the which-key buffer to the first page if it is
   pressed before =which-key-idle-delay= takes effect. This means you can set a
   long idle delay if you like and just use =C-h= when you want to see
   =which-key=.
+- Note that this behavior is easily disabled, and you have the ability to choose
+  another binding of course.
 ** Introduction
 =which-key= is a minor mode for Emacs that displays the keybindings following your currently
 entered incomplete command (a prefix) in a popup. For example, after enabling the minor mode
