@@ -8,9 +8,10 @@
   for other options on using and/or disabling paging.
 - This makes which-key function as a replacement for the default behavior of
   pressing =C-h= after a prefix which shows the key bindings for any prefix
-  (this default command is =describe-prefix-bindings=). It will also save the prefix that you just entered. So =C-x C-h C-h C-x= will
-  popup the which-key buffer for the prefix =C-x= change the page twice and then
-  execute the command bound to =C-x C-x=.
+  (this default command is =describe-prefix-bindings=). It will also save the
+  prefix that you just entered. So =C-x C-h C-h C-x= will popup the which-key
+  buffer for the prefix =C-x= change the page twice and then execute the command
+  bound to =C-x C-x=.
 - =C-h= will also now popup the which-key buffer to the first page if it is
   pressed before =which-key-idle-delay= takes effect. This means you can set a
   long idle delay if you like and just use =C-h= when you want to see
@@ -49,10 +50,10 @@ Many of these have been implemented and are described below.
          - [[#melpa][MELPA]]
          - [[#manually][Manually]]
      - [[#initial-setup][Initial Setup]]
-         - [[#minibuffer-option][Minibuffer Option]]
-         - [[#side-window-right-option][Side Window Right Option]]
          - [[#side-window-bottom-option][Side Window Bottom Option]]
+         - [[#side-window-right-option][Side Window Right Option]]
          - [[#side-window-right-then-bottom][Side Window Right then Bottom]]
+         - [[#minibuffer-option][Minibuffer Option]]
      - [[#special-features-and-configuration-options][Special Features and Configuration Options]]
          - [[#several-popup-types][Several Popup Types]]
              - [[#minibuffer][minibuffer]]
@@ -110,17 +111,14 @@ There are other substitution abilities included, which are quite flexible
 (ability to use regexp for example). This makes which-key very customizable.
 This functionality is targeting [[https://github.com/syl20bnr/spacemacs][spacemacs]].
 
-*** Minibuffer Option
-Take over the minibuffer. For the recommended configuration use 
+*** Side Window Bottom Option
+Popup side window on bottom. This is the current default. To restore this setup use
 
 #+BEGIN_SRC emacs-lisp
-(which-key-setup-minibuffer)
+(which-key-setup-side-window-bottom)
 #+END_SRC
 
-[[./img/which-key-minibuffer.png]]
-
-Note the maximum height of the minibuffer is controlled through the built-in
-variable =max-mini-window-height=.
+[[./img/which-key-bottom.png]]
 
 *** Side Window Right Option
 Popup side window on right. For defaults use
@@ -136,15 +134,6 @@ width (see =M-x customize-group which-key=).
 
 [[./img/which-key-right.png]]
 
-*** Side Window Bottom Option
-Popup side window on bottom. This is the current default. To restore this setup use
-
-#+BEGIN_SRC emacs-lisp
-(which-key-setup-side-window-bottom)
-#+END_SRC
-
-[[./img/which-key-bottom.png]]
-
 *** Side Window Right then Bottom
 This is a combination of the previous two choices. It will try to use the right
 side, but if there is no room it will switch to using the bottom, which is
@@ -155,6 +144,18 @@ a dynamic/tiling window manager.
 #+BEGIN_SRC emacs-lisp
 (which-key-setup-side-window-right-bottom)
 #+END_SRC
+
+*** Minibuffer Option
+Take over the minibuffer. For the recommended configuration use 
+
+#+BEGIN_SRC emacs-lisp
+(which-key-setup-minibuffer)
+#+END_SRC
+
+[[./img/which-key-minibuffer.png]]
+
+Note the maximum height of the minibuffer is controlled through the built-in
+variable =max-mini-window-height=.
 
 ** Special Features and Configuration Options
 There are more options than the ones described here. All of the configurable
