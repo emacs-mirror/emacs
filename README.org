@@ -8,8 +8,7 @@
   for other options on using and/or disabling paging.
 - This makes which-key function as a replacement for the default behavior of
   pressing =C-h= after a prefix which shows the key bindings for any prefix
-  (this default command is =describe-prefix-bindings=). It is better though,
-  because it saves the prefix that you just entered. So =C-x C-h C-h C-x= will
+  (this default command is =describe-prefix-bindings=). It will also save the prefix that you just entered. So =C-x C-h C-h C-x= will
   popup the which-key buffer for the prefix =C-x= change the page twice and then
   execute the command bound to =C-x C-x=.
 - =C-h= will also now popup the which-key buffer to the first page if it is
