@@ -292,8 +292,12 @@ Used when `which-key-popup-type' is frame.")
   "Internal: Holds lighter backup")
 (defvar which-key--current-prefix nil
   "Internal: Holds current prefix")
-(defvar which-key--current-page-n nil)
-(defvar which-key--last-try-2-loc nil)
+(defvar which-key--current-page-n nil
+  "Internal: Current pages of showing buffer. Nil means no buffer
+showing.")
+(defvar which-key--last-try-2-loc nil
+  "Internal: Last location of side-window when two locations
+used.")
 
 ;;;###autoload
 (define-minor-mode which-key-mode
@@ -797,6 +801,7 @@ alists. Returns a list (key separator description)."
      unformatted)))
 
 (defun which-key--key-description< (a b)
+  "Sorting function used for `which-key-key-order'."
   (let* ((aem? (string-equal a ""))
          (bem? (string-equal b ""))
          (a1? (= 1 (length a)))
@@ -888,6 +893,8 @@ that width."
                   col-keys))))
 
 (defun which-key--partition-columns (keys avl-lines avl-width)
+  "Convert list of KEYS to columns based on dimensions AVL-LINES and AVL-WIDTH.
+Returns a plist that holds the page strings, as well as metadata."
   (let ((cols-w-widths (mapcar #'which-key--pad-column
                                (-partition-all avl-lines keys)))
         (page-width 0) (n-pages 0) (n-keys 0)
@@ -920,6 +927,10 @@ that width."
             :tot-keys (cl-reduce '+ keys/page :initial-value 0)))))
 
 (defun which-key--create-pages (keys sel-win-width)
+  "Create page strings using `which-key--partition-columns'.
+Will try to find the best number of rows and columns using the
+given dimensions and the length and wdiths of KEYS. SEL-WIN-WIDTH
+is the width of the live window."
   (let* ((max-dims (which-key--popup-max-dimensions sel-win-width))
          (max-lines (car max-dims))
          (max-width (cdr max-dims))
@@ -946,11 +957,13 @@ that width."
              (if found prev-result result)))))
 
 (defun which-key--lighter-status (n-shown n-tot)
+  "Possibly show N-SHOWN keys and N-TOT keys in the mode line."
   (when which-key-show-remaining-keys
     (setq which-key--lighter-backup (cadr (assq 'which-key-mode minor-mode-alist)))
     (setcar (cdr (assq 'which-key-mode minor-mode-alist))
             (format " WK: %s/%s keys" n-shown n-tot))))
 (defun which-key--lighter-restore ()
+  "Restore the lighter for which-key."
   (when which-key-show-remaining-keys
     (setcar (cdr (assq 'which-key-mode minor-mode-alist)) which-key--lighter-backup)))
 
@@ -1038,7 +1051,8 @@ enough space based on your settings and frame size." prefix-keys)
           (which-key--show-popup (cons height width)))))))
 
 (defun which-key-show-next-page ()
-  "Show the next page of keys."
+  "Show the next page of keys.
+Will force an update if called before `which-key--update'."
   (interactive)
   (if which-key--current-page-n
       ;; triggered after timer shows buffer
@@ -1076,6 +1090,7 @@ enough space based on your settings and frame size." prefix-keys)
 ;; Update
 
 (defun which-key--try-2-side-windows (keys page-n loc1 loc2 &rest _ignore)
+  "Try to show KEYS (PAGE-N) in LOC1 first. Only if no keys fit fallback to LOC2."
   (let (pages1)
     (let ((which-key-side-window-location loc1))
       (setq pages1 (which-key--create-pages keys (window-width))))
