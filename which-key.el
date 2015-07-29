@@ -228,6 +228,11 @@ prefixes in `which-key-paging-prefixes'"
   "Face for the key description when it is a command"
   :group 'which-key)
 
+(defface which-key-local-map-description-face
+  '((t . (:inherit which-key-command-description-face)))
+  "Face for the key description when it is found in `current-local-map'"
+  :group 'which-key)
+
 (defface which-key-group-description-face
   '((t . (:inherit font-lock-keyword-face)))
   "Face for the key description when it is a group or prefix"
@@ -763,7 +768,7 @@ If KEY contains any \"special keys\" defined in
   (or (string-match-p "^\\(group:\\|Prefix\\)" description)
       (keymapp (intern description))))
 
-(defun which-key--propertize-description (description group)
+(defun which-key--propertize-description (description group local)
   "Add face to DESCRIPTION where the face chosen depends on
 whether the description represents a group or a command. Also
 make some minor adjustments to the description string, like
@@ -774,29 +779,31 @@ removing a \"group:\" prefix."
          (desc (if group (concat "+" desc) desc))
          (desc (which-key--truncate-description desc)))
     (propertize desc 'face
-                (if group
-                    'which-key-group-description-face
-                  'which-key-command-description-face))))
+                (cond (group 'which-key-group-description-face)
+                      (local 'which-key-local-map-description-face)
+                      (t 'which-key-command-description-face)))))
 
 (defun which-key--format-and-replace (unformatted)
   "Take a list of (key . desc) cons cells in UNFORMATTED, add
 faces and perform replacements according to the three replacement
 alists. Returns a list (key separator description)."
   (let ((sep-w-face
-         (propertize which-key-separator 'face 'which-key-separator-face)))
+         (propertize which-key-separator 'face 'which-key-separator-face))
+        (local-map (current-local-map)))
     (mapcar
      (lambda (key-desc-cons)
        (let* ((key (car key-desc-cons))
               (desc (cdr key-desc-cons))
               (group (which-key--group-p desc))
               (keys (concat (key-description which-key--current-prefix) " " key))
+              (local (eq (lookup-key local-map (kbd keys)) (intern desc)))
               (key (which-key--maybe-replace
                     key which-key-key-replacement-alist))
               (desc (which-key--maybe-replace
                      desc which-key-description-replacement-alist))
               (desc (which-key--maybe-replace-key-based desc keys))
               (key-w-face (which-key--propertize-key key))
-              (desc-w-face (which-key--propertize-description desc group)))
+              (desc-w-face (which-key--propertize-description desc group local)))
          (list key-w-face sep-w-face desc-w-face)))
      unformatted)))
 
@@ -840,10 +847,11 @@ special (SPC,TAB,...) < single char < mod (C-,M-,...) < other."
 Uses `string-lessp' after applying lowercase."
   (string-lessp (downcase (cdr alst)) (downcase (cdr blst))))
 
-(defun which-key--get-formatted-key-bindings (buffer)
+(defun which-key--get-formatted-key-bindings ()
   "Uses `describe-buffer-bindings' to collect the key bindings in
 BUFFER that follow the key sequence KEY-SEQ."
   (let ((key-str-qt (regexp-quote (key-description which-key--current-prefix)))
+        (buffer (current-buffer))
         key-match desc-match unformatted)
     (with-temp-buffer
       (describe-buffer-bindings buffer which-key--current-prefix)
@@ -1111,8 +1119,7 @@ Will force an update if called before `which-key--update'."
 Finally, show the buffer."
   (setq which-key--current-prefix prefix-keys
         which-key--last-try-2-loc nil)
-  (let ((formatted-keys (which-key--get-formatted-key-bindings
-                         (current-buffer)))
+  (let ((formatted-keys (which-key--get-formatted-key-bindings))
         (prefix-keys-desc (key-description prefix-keys)))
     (cond ((= (length formatted-keys) 0)
            (message "%s-  which-key: There are no keys to show" prefix-keys-desc))
