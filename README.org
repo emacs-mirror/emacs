@@ -5,12 +5,12 @@
 - The face =which-key-local-map-description-face= is now available. This face
   will be applied to any commands that are found using =(current-local-map)=
   (commands defined for the major mode are usually here). This allows you to
-  distinguish between local and global bindings visually. See [[#face-customization][Face Customization]]
+  distinguish between local and global bindings visually. See [[#face-customization-options][Face Customization]]
   for more information. 
 *** Paging
 - Paging is now turned on by default, using any prefix plus =C-h= (this doesn't
   affect key sequences that start with =C-h= and will not override any key
-  sequences that end will =C-h=). See the [[paging][Paging Section]] for more details and
+  sequences that end will =C-h=). See the [[#paging-options][Paging Section]] for more details and
   for other options on using and/or disabling paging.
 - This makes which-key function as a replacement for the default behavior of
   pressing =C-h= after a prefix which shows the key bindings for any prefix
@@ -62,19 +62,19 @@ Many of these have been implemented and are described below.
          - [[#side-window-right-then-bottom][Side Window Right then Bottom]]
          - [[#minibuffer-option][Minibuffer Option]]
      - [[#special-features-and-configuration-options][Special Features and Configuration Options]]
-         - [[#several-popup-types][Several Popup Types]]
+         - [[#popup-type-options][Popup Type Options]]
              - [[#minibuffer][minibuffer]]
              - [[#side-window][side window]]
              - [[#frame][frame]]
              - [[#custom][custom]]
-         - [[#custom-string-replacement][Custom String Replacement]]
+         - [[#custom-string-replacement-options][Custom String Replacement Options]]
              - [[#key-based-replacement]["Key-Based" replacement]]
              - [[#key-and-description-replacement][Key and Description replacement]]
-         - [[#sorting][Sorting]]
-         - [[#paging][Paging]]
+         - [[#sorting-options][Sorting Options]]
+         - [[#paging-options][Paging Options]]
              - [[#method-1-default-using-c-h-or-help-char][Method 1 (default): Using C-h (or =help-char=)]]
              - [[#method-2-bind-your-own-keys][Method 2: Bind your own keys]]
-         - [[#face-customization][Face Customization]]
+         - [[#face-customization-options][Face Customization Options]]
          - [[#other-options][Other Options]]
      - [[#more-examples][More Examples]]
          - [[#nice-display-with-split-frame][Nice Display with Split Frame]]
@@ -168,7 +168,7 @@ variable =max-mini-window-height=.
 ** Special Features and Configuration Options
 There are more options than the ones described here. All of the configurable
 variables are available through =M-x customize-group which-key=.
-*** Several Popup Types
+*** Popup Type Options
 There are three different popup types that which-key can use by default to
 display the available keys. The variable =which-key-popup-type= decides which
 one is used.
@@ -244,7 +244,7 @@ current implementation of side-window bottom).
     (quit-windows-on which-key--buffer)))
 #+END_SRC
 
-*** Custom String Replacement
+*** Custom String Replacement Options
 You can customize the way the keys show in the buffer using three different
 replacement methods, each of which corresponds replacement alist. The basic idea
 of behind each alist is that you specify a selection string in the =car= of each
@@ -303,7 +303,7 @@ these alists)
 (add-to-list 'which-key-key-replacement-alist '("left" . "lft"))
 #+END_SRC
 
-*** Sorting
+*** Sorting Options
 By default the output is sorted by the key in a custom order. The default order
 is to sort lexicographically within each "class" of key, where the classes and
 their order are
@@ -321,9 +321,7 @@ The only other built-in option at the moment (besides using nil to turn off
 sorting completely) is =which-key-description-order=, which orders by the key's
 description based on the usual ordering of strings after applying =downcase=.
 
-*** Paging
-<<paging>>
-
+*** Paging Options
 There are at least several prefixes that have many keys bound to them, like
 =C-x=. which-key displays as many keys as it can given your settings, but for
 these prefixes this may not be enough. The paging feature gives you the ability
@@ -365,7 +363,7 @@ This is completely equivalent to
 
 where the latter are provided for convenience if you have a lot of prefixes.
 
-*** Face Customization
+*** Face Customization Options
 The faces that which-key uses are
 | Face                                   | Applied To                    | Default Definition                                          |
 |----------------------------------------+-------------------------------+-------------------------------------------------------------|
