@@ -5,12 +5,12 @@
 - The face =which-key-local-map-description-face= is now available. This face
   will be applied to any commands that are found using =(current-local-map)=
   (commands defined for the major mode are usually here). This allows you to
-  distinguish between local and global bindings visually. See [[#faces][Face Customization]]
-  for more information.
+  distinguish between local and global bindings visually. See [[Face Customization]]
+  for more information. 
 *** Paging
 - Paging is now turned on by default, using any prefix plus =C-h= (this doesn't
   affect key sequences that start with =C-h= and will not override any key
-  sequences that end will =C-h=). See the [[#paging][Paging Section]] for more details and
+  sequences that end will =C-h=). See the [[paging][Paging Section]] for more details and
   for other options on using and/or disabling paging.
 - This makes which-key function as a replacement for the default behavior of
   pressing =C-h= after a prefix which shows the key bindings for any prefix
@@ -321,8 +321,8 @@ The only other built-in option at the moment (besides using nil to turn off
 sorting completely) is =which-key-description-order=, which orders by the key's
 description based on the usual ordering of strings after applying =downcase=.
 
-#+NAME: paging
 *** Paging
+<<paging>>
 
 There are at least several prefixes that have many keys bound to them, like
 =C-x=. which-key displays as many keys as it can given your settings, but for
@@ -349,8 +349,6 @@ kicks in).
 
 **** Method 2: Bind your own keys
 
-
-
 Essentially, all you need to do for a prefix like =C-x= is the following which
 will bind =<f5>= to the relevant command.
 
@@ -367,7 +365,6 @@ This is completely equivalent to
 
 where the latter are provided for convenience if you have a lot of prefixes.
 
-#+NAME: faces
 *** Face Customization
 The faces that which-key uses are
 | Face                                   | Applied To                    | Default Definition                                          |
