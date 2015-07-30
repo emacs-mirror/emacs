@@ -1,6 +1,12 @@
 * which-key 
 [[http://melpa.org/#/which-key][http://melpa.org/packages/which-key-badge.svg]]
 ** What's new
+*** Local map face
+- The face =which-key-local-map-description-face= is now available. This face
+  will be applied to any commands that are found using =(current-local-map)=
+  (commands defined for the major mode are usually here). This allows you to
+  distinguish between local and global bindings visually. See [[#faces][Face Customization]]
+  for more information.
 *** Paging
 - Paging is now turned on by default, using any prefix plus =C-h= (this doesn't
   affect key sequences that start with =C-h= and will not override any key
@@ -44,6 +50,7 @@ Many of these have been implemented and are described below.
 ** Table of Contents                                                 :TOC@4:
  - [[#which-key-][which-key ]]
      - [[#whats-new][What's new]]
+         - [[#local-map-face][Local map face]]
          - [[#paging][Paging]]
      - [[#introduction][Introduction]]
      - [[#install][Install]]
@@ -67,6 +74,7 @@ Many of these have been implemented and are described below.
          - [[#paging][Paging]]
              - [[#method-1-default-using-c-h-or-help-char][Method 1 (default): Using C-h (or =help-char=)]]
              - [[#method-2-bind-your-own-keys][Method 2: Bind your own keys]]
+         - [[#face-customization][Face Customization]]
          - [[#other-options][Other Options]]
      - [[#more-examples][More Examples]]
          - [[#nice-display-with-split-frame][Nice Display with Split Frame]]
@@ -341,6 +349,8 @@ kicks in).
 
 **** Method 2: Bind your own keys
 
+
+
 Essentially, all you need to do for a prefix like =C-x= is the following which
 will bind =<f5>= to the relevant command.
 
@@ -356,6 +366,39 @@ This is completely equivalent to
 #+END_SRC
 
 where the latter are provided for convenience if you have a lot of prefixes.
+
+#+NAME: faces
+*** Face Customization
+The faces that which-key uses are
+| Face                                   | Applied To                    | Default Definition                                          |
+|----------------------------------------+-------------------------------+-------------------------------------------------------------|
+| =which-key-key-face=                   | Every key sequence            | =:inherit font-lock-constant-face=                          |
+| =which-key-separator-face=             | The separator (→)             | =:inherit font-lock-comment-face=                           |
+| =which-key-note-face=                  | Hints and notes               | =:inherit which-key-separator-face=                         |
+| =which-key-special-key-face=           | User-defined special keys     | =:inherit which-key-key-face :inverse-video t :weight bold= |
+| =which-key-group-description-face=     | Command groups (i.e, keymaps) | =:inherit font-lock-keyword-face=                           |
+| =which-key-command-description-face=   | Commands not in local-map     | =:inherit font-lock-function-name-face=                     |
+| =which-key-local-map-description-face= | Commands in local-map         | =:inherit which-key-command-description-face=               |
+
+The last two deserve some explanation. A command lives in one of many possible
+keymaps. You can distinguish between local maps, which depend on the buffer you
+are in, which modes are active, etc., and the global map which applies
+everywhere. It might be useful for you to distinguish between the two. One way
+to do this is to remove the default face from
+=which-key-command-description-face= like this
+
+#+BEGIN_SRC emacs-lisp
+  (set-face-attribute 'which-key-command-description-face nil :inherit nil)
+#+END_SRC
+
+another is to make the local map keys appear in bold
+
+#+BEGIN_SRC emacs-lisp
+  (set-face-attribute 'which-key-local-map-description-face nil :weight 'bold)
+#+END_SRC
+
+You can also use =M-x customize-face= to customize any of the above faces to
+your liking.
 
 *** Other Options
 The options below are also available through customize. Their defaults are
