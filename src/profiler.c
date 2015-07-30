@@ -217,6 +217,12 @@ static EMACS_INT current_sampling_interval;
 
 /* Signal handler for sampling profiler.  */
 
+/* timer_getoverrun is not implemented on Cygwin, but the following
+   seems to be good enough for profiling. */
+#ifdef CYGWIN
+#define timer_getoverrun(x) 0
+#endif
+
 static void
 handle_profiler_signal (int signal)
 {
@@ -250,7 +256,7 @@ deliver_profiler_signal (int signal)
   deliver_process_signal (signal, handle_profiler_signal);
 }
 
-static enum profiler_cpu_running
+static int
 setup_cpu_timer (Lisp_Object sampling_interval)
 {
   struct sigaction action;
@@ -263,7 +269,7 @@ setup_cpu_timer (Lisp_Object sampling_interval)
 			  ? ((EMACS_INT) TYPE_MAXIMUM (time_t) * billion
 			     + (billion - 1))
 			  : EMACS_INT_MAX)))
-    return NOT_RUNNING;
+    return -1;
 
   current_sampling_interval = XINT (sampling_interval);
   interval = make_timespec (current_sampling_interval / billion,
@@ -336,9 +342,18 @@ See also `profiler-log-size' and `profiler-max-stack-depth'.  */)
 			  profiler_max_stack_depth);
     }
 
-  profiler_cpu_running = setup_cpu_timer (sampling_interval);
-  if (! profiler_cpu_running)
-    error ("Invalid sampling interval");
+  int status = setup_cpu_timer (sampling_interval);
+  if (status == -1)
+    {
+      profiler_cpu_running = NOT_RUNNING;
+      error ("Invalid sampling interval");
+    }
+  else
+    {
+      profiler_cpu_running = status;
+      if (! profiler_cpu_running)
+	error ("Unable to start profiler timer");
+    }
 
   return Qt;
 }

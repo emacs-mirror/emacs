@@ -48,6 +48,19 @@
               ..external ..external.too)))
     (list nil 0 1 2 3 "ext" "et"))))
 
+(ert-deftest let-alist-cons ()
+  (should
+   (equal
+    (let ((.external "ext")
+          (.external.too "et"))
+      (let-alist '((test-two . 0)
+                   (test-three . 1)
+                   (sublist . ((foo . 2)
+                               (bar . 3))))
+        (list `(, .test-one . , .test-two)
+              .sublist.bar ..external)))
+    (list '(nil . 0) 3 "ext"))))
+
 (defvar let-alist--test-counter 0
   "Used to count number of times a function is called.")
 

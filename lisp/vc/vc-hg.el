@@ -272,7 +272,7 @@ If LIMIT is non-nil, show no more than this many entries."
   (let ((inhibit-read-only t))
     (with-current-buffer
 	buffer
-      (apply 'vc-hg-command buffer 0 files "log"
+      (apply 'vc-hg-command buffer 'async files "log"
 	     (nconc
 	      (when start-revision (list (format "-r%s:0" start-revision)))
 	      (when limit (list "-l" (format "%s" limit)))

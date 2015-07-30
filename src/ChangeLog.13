@@ -10152,7 +10152,7 @@
 	(FRAME_TEXT_COLS_TO_PIXEL_WIDTH, FRAME_PIXEL_WIDTH_TO_TEXT_COLS)
 	(FRAME_TEXT_COLS_TO_PIXEL_WIDTH): Rewrite macros.
 	(FRAME_TOTAL_COLS_ARG): Remove macro.
-	* fringe.c (draw_fringe_bitmap_1): Handle right divder.
+	* fringe.c (draw_fringe_bitmap_1): Handle right divider.
 	* gtkutil.c (xg_frame_resized, xg_frame_set_char_size)
 	(x_wm_set_size_hint): Handle frame pixel sizes.
 	* indent.c (compute_motion, Fcompute_motion):

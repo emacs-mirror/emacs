@@ -464,14 +464,9 @@ This is called by `window-configuration-change-hook'."
 
 (defun longlines-search-function ()
   (cond
-   (isearch-word
-    (if isearch-forward 'word-search-forward 'word-search-backward))
-   (isearch-regexp
-    (if isearch-forward 're-search-forward 're-search-backward))
-   (t
-    (if isearch-forward
-	'longlines-search-forward
-      'longlines-search-backward))))
+   ((or isearch-word isearch-regexp) (isearch-search-fun-default))
+   (isearch-forward #'longlines-search-forward)
+   (t #'longlines-search-backward)))
 
 (defun longlines-search-forward (string &optional bound noerror count)
   (let ((search-spaces-regexp " *[ \n]"))

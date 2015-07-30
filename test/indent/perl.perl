@@ -59,3 +59,11 @@ print "hello" for /./;
 
 $fileType_filesButNot           # bug#12373?
     = join( '|', map { quotemeta($_).'$' } @{$fileType->{filesButNot}} );
+
+# There can be a comment between an if/when/while and a /<re>/ matcher!
+return 'W' if               #/^Not Available on Mobile/m;    #W=Web only
+    /This video is not available on mobile devices./m;       #bug#20800
+
+# A "y|abc|def|" shouldn't interfere when inside a string!
+$toto = " x \" string\"";
+$toto = " y \" string\"";       # This is not the `y' operator!

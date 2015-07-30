@@ -4965,6 +4965,9 @@ The event, EV, is the mouse event."
 	(artist-no-rb-set-point1 x1 y1))
     (unwind-protect
         (track-mouse
+          ;; We don't want flickering of mouse pointer shape while we
+          ;; drag the mouse.
+          (setq track-mouse 'dragging)
           (while (or (mouse-movement-p ev)
                      (member 'down (event-modifiers ev)))
             (setq ev-start-pos (artist-coord-win-to-buf

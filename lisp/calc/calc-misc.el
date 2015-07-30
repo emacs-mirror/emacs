@@ -217,7 +217,7 @@ Calc user interface as before (either C-x * C or C-x * K; initially C-x * C).
 (defun calc-help ()
   (interactive)
   (let ((msgs
-	 '("Press `h' for complete help; press `?' repeatedly for a summary"
+	 '("Press ‘h’ for complete help; press ‘?’ repeatedly for a summary"
 	   "Letter keys: Negate; Precision; Yank; Why; Xtended cmd; Quit"
 	   "Letter keys: SHIFT + Undo, reDo; Inverse, Hyperbolic, Option"
 	   "Letter keys: SHIFT + sQrt; Sin, Cos, Tan; Exp, Ln, logB"
@@ -225,7 +225,7 @@ Calc user interface as before (either C-x * C or C-x * K; initially C-x * C).
 	   "Letter keys: SHIFT + Num-eval; More-recn; eXec-kbd-macro; Keep-args"
 	   "Other keys: +, -, *, /, ^, \\ (int div), : (frac div)"
 	   "Other keys: & (1/x), | (concat), % (modulo), ! (factorial)"
-	   "Other keys: ' (alg-entry), = (eval), \\=` (edit); M-RET (last-args)"
+	   "Other keys: ' (alg-entry), = (eval), ` (edit); M-RET (last-args)"
 	   "Other keys: SPC/RET (enter/dup), LFD (over); < > (scroll horiz)"
 	   "Other keys: DEL (drop), M-DEL (drop-above); { } (scroll vert)"
 	   "Other keys: TAB (swap/roll-dn), M-TAB (roll-up)"

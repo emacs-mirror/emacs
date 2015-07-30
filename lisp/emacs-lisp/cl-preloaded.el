@@ -147,6 +147,7 @@
               ok)
             (error "Included struct %S has changed since compilation of %S"
                    parent name))))
+    (add-to-list 'current-load-list `(define-type . ,name))
     (cl--struct-register-child parent-class tag)
     (unless (eq named t)
       (eval `(defconst ,tag ',class) t)
@@ -195,7 +196,7 @@
                (:constructor nil)
                (:constructor cl--make-slot-descriptor
                 (name &optional initform type props))
-               (:copier cl--copy-slot-descriptor))
+               (:copier cl--copy-slot-descriptor-1))
   ;; FIXME: This is actually not used yet, for circularity reasons!
   "Descriptor of structure slot."
   name                                  ;Attribute name (symbol).
@@ -204,6 +205,11 @@
   ;; Extra properties, kept in an alist, can include:
   ;;  :documentation, :protection, :custom, :label, :group, :printer.
   (props nil :type alist))
+
+(defun cl--copy-slot-descriptor (slot)
+  (let ((new (cl--copy-slot-descriptor-1 slot)))
+    (cl-callf copy-alist (cl--slot-descriptor-props new))
+    new))
 
 (cl-defstruct (cl--class
                (:constructor nil)

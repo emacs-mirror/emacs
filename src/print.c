@@ -1590,33 +1590,32 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	  && print_depth > XINT (Vprint_level))
 	print_c_string ("...", printcharfun);
       else if (print_quoted && CONSP (XCDR (obj)) && NILP (XCDR (XCDR (obj)))
-	       && (EQ (XCAR (obj), Qquote)))
+	       && EQ (XCAR (obj), Qquote))
 	{
 	  printchar ('\'', printcharfun);
 	  print_object (XCAR (XCDR (obj)), printcharfun, escapeflag);
 	}
       else if (print_quoted && CONSP (XCDR (obj)) && NILP (XCDR (XCDR (obj)))
-	       && (EQ (XCAR (obj), Qfunction)))
+	       && EQ (XCAR (obj), Qfunction))
 	{
 	  print_c_string ("#'", printcharfun);
 	  print_object (XCAR (XCDR (obj)), printcharfun, escapeflag);
 	}
       else if (print_quoted && CONSP (XCDR (obj)) && NILP (XCDR (XCDR (obj)))
-	       && ((EQ (XCAR (obj), Qbackquote))))
+	       && EQ (XCAR (obj), Qbackquote))
 	{
-	  print_object (XCAR (obj), printcharfun, 0);
+	  printchar ('`', printcharfun);
 	  new_backquote_output++;
 	  print_object (XCAR (XCDR (obj)), printcharfun, escapeflag);
 	  new_backquote_output--;
 	}
       else if (print_quoted && CONSP (XCDR (obj)) && NILP (XCDR (XCDR (obj)))
 	       && new_backquote_output
-	       && ((EQ (XCAR (obj), Qbackquote)
-		    || EQ (XCAR (obj), Qcomma)
-		    || EQ (XCAR (obj), Qcomma_at)
-		    || EQ (XCAR (obj), Qcomma_dot))))
+	       && (EQ (XCAR (obj), Qcomma)
+		   || EQ (XCAR (obj), Qcomma_at)
+		   || EQ (XCAR (obj), Qcomma_dot)))
 	{
-	  print_object (XCAR (obj), printcharfun, 0);
+	  print_object (XCAR (obj), printcharfun, false);
 	  new_backquote_output--;
 	  print_object (XCAR (XCDR (obj)), printcharfun, escapeflag);
 	  new_backquote_output++;

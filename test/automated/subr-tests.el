@@ -2,7 +2,8 @@
 
 ;; Copyright (C) 2015 Free Software Foundation, Inc.
 
-;; Author: Oleh Krehel <ohwoeowho@gmail.com>
+;; Author: Oleh Krehel <ohwoeowho@gmail.com>,
+;;         Nicolas Petton <nicolas@petton.fr>
 ;; Keywords:
 
 ;; This file is part of GNU Emacs.
@@ -59,6 +60,27 @@
                            "\\<\\(?:\\(?:fals\\|tru\\)e\\)\\>")
                      (quote
                       (0 font-lock-keyword-face))))))))
+
+(ert-deftest string-comparison-test ()
+  (should (string-lessp "abc" "acb"))
+  (should (string-lessp "aBc" "abc"))
+  (should (string-lessp "abc" "abcd"))
+  (should (string-lessp "abc" "abcd"))
+  (should-not (string-lessp "abc" "abc"))
+  (should-not (string-lessp "" ""))
+
+  (should (string-greaterp "acb" "abc"))
+  (should (string-greaterp "abc" "aBc"))
+  (should (string-greaterp "abcd" "abc"))
+  (should (string-greaterp "abcd" "abc"))
+  (should-not (string-greaterp "abc" "abc"))
+  (should-not (string-greaterp "" ""))
+
+  ;; Symbols are also accepted
+  (should (string-lessp 'abc 'acb))
+  (should (string-lessp "abc" 'acb))
+  (should (string-greaterp 'acb 'abc))
+  (should (string-greaterp "acb" 'abc)))
 
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

@@ -2908,7 +2908,12 @@ font_open_entity (struct frame *f, Lisp_Object entity, int pixel_size)
 	       : font->average_width ? font->average_width
 	       : font->space_width ? font->space_width
 	       : 1);
-  height = (font->height ? font->height : 1);
+
+  int font_ascent, font_descent;
+  get_font_ascent_descent (font, &font_ascent, &font_descent);
+  height = font_ascent + font_descent;
+  if (height <= 0)
+    height = 1;
 #ifdef HAVE_WINDOW_SYSTEM
   FRAME_DISPLAY_INFO (f)->n_fonts++;
   if (FRAME_DISPLAY_INFO (f)->n_fonts == 1)
@@ -3332,6 +3337,38 @@ font_load_for_lface (struct frame *f, Lisp_Object *attrs, Lisp_Object spec)
       /* No font is listed for SPEC, but each font-backend may have
 	 different criteria about "font matching".  So, try it.  */
       entity = font_matching_entity (f, attrs, spec);
+      /* Perhaps the user asked for a font "Foobar-123", and we
+	 interpreted "-123" as the size, whereas it really is part of
+	 the name.  So we reset the size to nil and the family name to
+	 the entire "Foobar-123" thing, and try again with that.  */
+      if (NILP (entity))
+	{
+	  name = Ffont_get (spec, QCuser_spec);
+	  if (STRINGP (name))
+	    {
+	      char *p = SSDATA (name), *q = strrchr (p, '-');
+
+	      if (q != NULL && c_isdigit (q[1]))
+		{
+		  char *tail;
+		  double font_size = strtod (q + 1, &tail);
+
+		  if (font_size > 0 && tail != q + 1)
+		    {
+		      Lisp_Object lsize = Ffont_get (spec, QCsize);
+
+		      if ((FLOATP (lsize) && XFLOAT_DATA (lsize) == font_size)
+			  || (INTEGERP (lsize) && XINT (lsize) == font_size))
+			{
+			  ASET (spec, FONT_FAMILY_INDEX,
+				font_intern_prop (p, tail - p, 1));
+			  ASET (spec, FONT_SIZE_INDEX, Qnil);
+			  entity = font_matching_entity (f, attrs, spec);
+			}
+		    }
+		}
+	    }
+	}
       if (NILP (entity))
 	return Qnil;
     }
@@ -3852,8 +3889,10 @@ listed in the variable `script-representative-chars'.
 
 `:lang'
 
-VALUE must be a symbol of two-letter ISO-639 language names,
-e.g. `ja'.
+VALUE must be a symbol whose name is a two-letter ISO-639 language
+name, e.g. `ja'.  The value is matched against the "Additional Style"
+field of the XLFD spec of a font, if it's non-empty, on X, and
+against the codepages supported by the font on w32.
 
 `:otf'
 
@@ -5265,10 +5304,10 @@ See `font-weight-table' for the format of the vector. */);
   ASET (font_style_table, 2, Vfont_width_table);
 
   DEFVAR_LISP ("font-log", Vfont_log, doc: /*
-*Logging list of font related actions and results.
-The value t means to suppress the logging.
-The initial value is set to nil if the environment variable
-EMACS_FONT_LOG is set.  Otherwise, it is set to t.  */);
+A list that logs font-related actions and results, for debugging.
+The default value is t, which means to suppress logging.
+Set it to nil to enable logging.  If the environment variable
+EMACS_FONT_LOG is set at startup, it defaults to nil.  */);
   Vfont_log = Qnil;
 
 #ifdef HAVE_WINDOW_SYSTEM

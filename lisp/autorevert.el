@@ -615,64 +615,63 @@ no more reverts are possible until the next call of
 (defun auto-revert-handler ()
   "Revert current buffer, if appropriate.
 This is an internal function used by Auto-Revert Mode."
-  (when (or auto-revert-tail-mode (not (buffer-modified-p)))
-    (let* ((buffer (current-buffer)) size
-	   ;; Tramp caches the file attributes.  Setting
-	   ;; `remote-file-name-inhibit-cache' forces Tramp to reread
-	   ;; the values.
-	   (remote-file-name-inhibit-cache t)
-	   (revert
-	    (if buffer-file-name
-		(and (or auto-revert-remote-files
-			 (not (file-remote-p buffer-file-name)))
-		     (or (not auto-revert-use-notify)
-			 auto-revert-notify-modified-p)
-		     (if auto-revert-tail-mode
-			 (and (file-readable-p buffer-file-name)
-			      (/= auto-revert-tail-pos
-				  (setq size
-					(nth 7 (file-attributes
-						buffer-file-name)))))
-		       (funcall (or buffer-stale-function
-                                    #'buffer-stale--default-function)
-                                t)))
-	      (and (or auto-revert-mode
-		       global-auto-revert-non-file-buffers)
-		   (funcall (or buffer-stale-function
-				#'buffer-stale--default-function)
-			    t))))
-	   eob eoblist)
-      (setq auto-revert-notify-modified-p nil)
-      (when revert
-	(when (and auto-revert-verbose
-		   (not (eq revert 'fast)))
-	  (message "Reverting buffer `%s'." (buffer-name)))
-	;; If point (or a window point) is at the end of the buffer,
-	;; we want to keep it at the end after reverting.  This allows
-	;; to tail a file.
-	(when buffer-file-name
-	  (setq eob (eobp))
-	  (walk-windows
-	   (lambda (window)
-	     (and (eq (window-buffer window) buffer)
-		  (= (window-point window) (point-max))
-		  (push window eoblist)))
-	   'no-mini t))
-	(if auto-revert-tail-mode
-	    (auto-revert-tail-handler size)
-	  ;; Bind buffer-read-only in case user has done C-x C-q,
-	  ;; so as not to forget that.  This gives undesirable results
-	  ;; when the file's mode changes, but that is less common.
-	  (let ((buffer-read-only buffer-read-only))
-	    (revert-buffer 'ignore-auto 'dont-ask 'preserve-modes)))
-	(when buffer-file-name
-	  (when eob (goto-char (point-max)))
-	  (dolist (window eoblist)
-	    (set-window-point window (point-max)))))
-      ;; `preserve-modes' avoids changing the (minor) modes.  But we
-      ;; do want to reset the mode for VC, so we do it manually.
-      (when (or revert auto-revert-check-vc-info)
-	(vc-find-file-hook)))))
+  (let* ((buffer (current-buffer)) size
+         ;; Tramp caches the file attributes.  Setting
+         ;; `remote-file-name-inhibit-cache' forces Tramp to reread
+         ;; the values.
+         (remote-file-name-inhibit-cache t)
+         (revert
+          (if buffer-file-name
+              (and (or auto-revert-remote-files
+                       (not (file-remote-p buffer-file-name)))
+                   (or (not auto-revert-use-notify)
+                       auto-revert-notify-modified-p)
+                   (if auto-revert-tail-mode
+                       (and (file-readable-p buffer-file-name)
+                            (/= auto-revert-tail-pos
+                                (setq size
+                                      (nth 7 (file-attributes
+                                              buffer-file-name)))))
+                     (funcall (or buffer-stale-function
+                                  #'buffer-stale--default-function)
+                              t)))
+            (and (or auto-revert-mode
+                     global-auto-revert-non-file-buffers)
+                 (funcall (or buffer-stale-function
+                              #'buffer-stale--default-function)
+                          t))))
+         eob eoblist)
+    (setq auto-revert-notify-modified-p nil)
+    (when revert
+      (when (and auto-revert-verbose
+                 (not (eq revert 'fast)))
+        (message "Reverting buffer `%s'." (buffer-name)))
+      ;; If point (or a window point) is at the end of the buffer, we
+      ;; want to keep it at the end after reverting.  This allows to
+      ;; tail a file.
+      (when buffer-file-name
+        (setq eob (eobp))
+        (walk-windows
+         (lambda (window)
+           (and (eq (window-buffer window) buffer)
+                (= (window-point window) (point-max))
+                (push window eoblist)))
+         'no-mini t))
+      (if auto-revert-tail-mode
+          (auto-revert-tail-handler size)
+        ;; Bind buffer-read-only in case user has done C-x C-q, so as
+        ;; not to forget that.  This gives undesirable results when
+        ;; the file's mode changes, but that is less common.
+        (let ((buffer-read-only buffer-read-only))
+          (revert-buffer 'ignore-auto 'dont-ask 'preserve-modes)))
+      (when buffer-file-name
+        (when eob (goto-char (point-max)))
+        (dolist (window eoblist)
+          (set-window-point window (point-max)))))
+    ;; `preserve-modes' avoids changing the (minor) modes.  But we do
+    ;; want to reset the mode for VC, so we do it manually.
+    (when (or revert auto-revert-check-vc-info)
+      (vc-find-file-hook))))
 
 (defun auto-revert-tail-handler (size)
   (let ((modified (buffer-modified-p))

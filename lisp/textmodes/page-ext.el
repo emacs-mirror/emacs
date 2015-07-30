@@ -345,14 +345,13 @@ If point is in the pages directory buffer, insert the new page in the
 buffer associated with the directory.
 
 Insert the new page just before current page if
-  pages-directory-for-adding-new-page-before-current-page-p  variable
-is non-nil.  Else insert at exact location of point.
+`pages-directory-for-adding-new-page-before-current-page-p' is non-nil.
+Else insert at exact location of point.
 
-Narrow to new page if
-  pages-directory-for-adding-page-narrowing-p variable
-is non-nil.
+Narrow to new page if `pages-directory-for-adding-page-narrowing-p' is
+non-nil.
 
-Page begins with a `^L' as the default page-delimiter.
+Page begins with a '^L' as the default `page-delimiter'.
 Use \\[set-page-delimiter] to change the page-delimiter.
 Point is left in the body of page."
   (interactive "sHeader line: ")
@@ -516,7 +515,7 @@ resets the page-delimiter to the original value."
 (defun pages-directory
   (pages-list-all-headers-p count-lines-p &optional regexp)
   "Display a directory of the page headers in a temporary buffer.
-A header is the first non-blank line after the page-delimiter.
+A header is the first non-blank line after the `page-delimiter'.
 \\[pages-directory-mode]
 You may move point to one of the lines in the temporary buffer,
 then use \\<pages-directory-goto> to go to the same line in the pages buffer.
@@ -752,10 +751,10 @@ Move point to one of the lines in the displayed directory,
 then use \\[pages-directory-goto] to go to the same line
 in the addresses buffer.
 
-If    pages-directory-for-addresses-goto-narrowing-p    is non-nil,
+If `pages-directory-for-addresses-goto-narrowing-p' is non-nil,
 `pages-directory-goto' narrows addresses buffer to entry.
 
-If    pages-directory-for-addresses-buffer-keep-windows-p     is nil,
+If `pages-directory-for-addresses-buffer-keep-windows-p' is nil,
 this command deletes other windows when it displays the addresses
 directory."
 

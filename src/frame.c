@@ -3607,10 +3607,12 @@ x_set_font (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 	  Lisp_Object ascii_font = fontset_ascii (fontset);
 	  Lisp_Object spec = font_spec_from_name (ascii_font);
 
-	  if (NILP (spec))
-	    signal_error ("Invalid font name", ascii_font);
-
-	  if (! font_match_p (spec, font_object))
+	  /* SPEC might be nil because ASCII_FONT's name doesn't parse
+	     according to stupid XLFD rules, which, for example,
+	     disallow font names that include a dash followed by a
+	     number.  So in those cases we simply request x_new_font
+	     below to generate a new fontset.  */
+	  if (NILP (spec) || ! font_match_p (spec, font_object))
 	    fontset = -1;
 	}
     }

@@ -872,7 +872,8 @@ Return non-nil if it is."
 		  (and (boundp 'user-mail-address) user-mail-address)))
 	(time (or (and (boundp 'add-log-time-format)
 		       (functionp add-log-time-format)
-		       (funcall add-log-time-format))
+		       (funcall add-log-time-format
+				nil add-log-time-zone-rule))
 		  (format-time-string "%Y-%m-%d"))))
     (if (null log-edit-changelog-use-first)
         (looking-at (regexp-quote (format "%s  %s  <%s>" time name mail)))

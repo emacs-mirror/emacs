@@ -582,62 +582,127 @@ is no information where to trace the message.")
 
 ;; File name primitives.
 
+(defun tramp-gvfs-do-copy-or-rename-file
+  (op filename newname &optional ok-if-already-exists keep-date
+      preserve-uid-gid preserve-extended-attributes)
+  "Copy or rename a remote file.
+OP must be `copy' or `rename' and indicates the operation to perform.
+FILENAME specifies the file to copy or rename, NEWNAME is the name of
+the new file (for copy) or the new name of the file (for rename).
+OK-IF-ALREADY-EXISTS means don't barf if NEWNAME exists already.
+KEEP-DATE means to make sure that NEWNAME has the same timestamp
+as FILENAME.  PRESERVE-UID-GID, when non-nil, instructs to keep
+the uid and gid if both files are on the same host.
+PRESERVE-EXTENDED-ATTRIBUTES is ignored.
+
+This function is invoked by `tramp-gvfs-handle-copy-file' and
+`tramp-gvfs-handle-rename-file'.  It is an error if OP is neither
+of `copy' and `rename'.  FILENAME and NEWNAME must be absolute
+file names."
+  (unless (memq op '(copy rename))
+    (error "Unknown operation `%s', must be `copy' or `rename'" op))
+
+    (let ((t1 (tramp-tramp-file-p filename))
+	  (t2 (tramp-tramp-file-p newname))
+	  (equal-remote (tramp-equal-remote filename newname))
+	  (file-operation (intern (format "%s-file" op)))
+	  (gvfs-operation (if (eq op 'copy) "gvfs-copy" "gvfs-move"))
+	  (msg-operation (if (eq op 'copy) "Copying" "Renaming")))
+
+      (with-parsed-tramp-file-name (if t1 filename newname) nil
+	(when (and (not ok-if-already-exists) (file-exists-p newname))
+	  (tramp-error
+	   v 'file-already-exists "File %s already exists" newname))
+
+	(if (or (and equal-remote
+		     (tramp-get-connection-property v "direct-copy-failed" nil))
+		(and t1 (not (tramp-gvfs-file-name-p filename)))
+		(and t2 (not (tramp-gvfs-file-name-p newname))))
+
+	    ;; We cannot copy or rename directly.
+	    (let ((tmpfile (tramp-compat-make-temp-file filename)))
+	      (cond
+	       (preserve-extended-attributes
+		(tramp-compat-funcall
+		 file-operation
+		 filename tmpfile t keep-date preserve-uid-gid
+		 preserve-extended-attributes))
+	       (preserve-uid-gid
+		(tramp-compat-funcall
+		 file-operation filename tmpfile t keep-date preserve-uid-gid))
+	       (t
+		(tramp-compat-funcall
+		 file-operation filename tmpfile t keep-date)))
+	      (rename-file tmpfile newname ok-if-already-exists))
+
+	  ;; Direct action.
+	  (with-tramp-progress-reporter
+	      v 0 (format "%s %s to %s" msg-operation filename newname)
+	    (unless
+		(apply
+		 'tramp-gvfs-send-command v gvfs-operation
+		 (append
+		  (and (eq op 'copy) (or keep-date preserve-uid-gid)
+		       (list "--preserve"))
+		  (list
+		   (tramp-gvfs-url-file-name filename)
+		   (tramp-gvfs-url-file-name newname))))
+
+	      (if (or (not equal-remote)
+		      (and equal-remote
+			   (tramp-get-connection-property
+			    v "direct-copy-failed" nil)))
+		  ;; Propagate the error.
+		  (with-current-buffer (tramp-get-connection-buffer v)
+		    (goto-char (point-min))
+		    (tramp-error-with-buffer
+		     nil v 'file-error
+		     "%s failed, see buffer `%s' for details."
+		     msg-operation (buffer-name)))
+
+		;; Some WebDAV server, like the one from QNAP, do not
+		;; support direct copy/move.  Try a fallback.
+		(tramp-set-connection-property v "direct-copy-failed" t)
+		(tramp-gvfs-do-copy-or-rename-file
+		 op filename newname ok-if-already-exists keep-date
+		 preserve-uid-gid preserve-extended-attributes))))
+
+	  (when (and t1 (eq op 'rename))
+	    (with-parsed-tramp-file-name filename nil
+	      (tramp-flush-file-property v (file-name-directory localname))
+	      (tramp-flush-file-property v localname)))
+
+	  (when t2
+	    (with-parsed-tramp-file-name newname nil
+	      (tramp-flush-file-property v (file-name-directory localname))
+	      (tramp-flush-file-property v localname)))))))
+
 (defun tramp-gvfs-handle-copy-file
   (filename newname &optional ok-if-already-exists keep-date
 	    preserve-uid-gid preserve-extended-attributes)
   "Like `copy-file' for Tramp files."
-  (with-parsed-tramp-file-name
-      (if (tramp-tramp-file-p filename) filename newname) nil
-
-    (when (and (not ok-if-already-exists) (file-exists-p newname))
-      (tramp-error
-       v 'file-already-exists "File %s already exists" newname))
-
-    (if (or (and (tramp-tramp-file-p filename)
-		 (not (tramp-gvfs-file-name-p filename)))
-	    (and (tramp-tramp-file-p newname)
-		 (not (tramp-gvfs-file-name-p newname))))
-
-	;; We cannot call `copy-file' directly.  Use
-	;; `tramp-compat-funcall' for backward compatibility (number
-	;; of arguments).
-	(let ((tmpfile (tramp-compat-make-temp-file filename)))
-	  (cond
-	   (preserve-extended-attributes
-	    (tramp-compat-funcall
-	     'copy-file
-	     filename tmpfile t keep-date preserve-uid-gid
-	     preserve-extended-attributes))
-	   (preserve-uid-gid
-	    (tramp-compat-funcall
-	     'copy-file filename tmpfile t keep-date preserve-uid-gid))
-	   (t
-	    (copy-file filename tmpfile t keep-date)))
-	  (rename-file tmpfile newname ok-if-already-exists))
-
-      ;; Direct copy.
-      (with-tramp-progress-reporter
-	  v 0 (format "Copying %s to %s" filename newname)
-	(unless
-	    (let ((args
-		   (append (if (or keep-date preserve-uid-gid)
-			       (list "--preserve")
-			     nil)
-			   (list
-			    (tramp-gvfs-url-file-name filename)
-			    (tramp-gvfs-url-file-name newname)))))
-	      (apply 'tramp-gvfs-send-command v "gvfs-copy" args))
-	  ;; Propagate the error.
-	  (with-current-buffer (tramp-get-connection-buffer v)
-	    (goto-char (point-min))
-	    (tramp-error-with-buffer
-	     nil v 'file-error
-	     "Copying failed, see buffer `%s' for details." (buffer-name)))))
-
-      (when (tramp-tramp-file-p newname)
-	(with-parsed-tramp-file-name newname nil
-	  (tramp-flush-file-property v (file-name-directory localname))
-	  (tramp-flush-file-property v localname))))))
+  (setq filename (expand-file-name filename))
+  (setq newname (expand-file-name newname))
+  (cond
+   ;; At least one file a Tramp file?
+   ((or (tramp-tramp-file-p filename)
+	(tramp-tramp-file-p newname))
+    (tramp-gvfs-do-copy-or-rename-file
+     'copy filename newname ok-if-already-exists keep-date
+     preserve-uid-gid preserve-extended-attributes))
+   ;; Compat section.
+   (preserve-extended-attributes
+    (tramp-run-real-handler
+     'copy-file
+     (list filename newname ok-if-already-exists keep-date
+	   preserve-uid-gid preserve-extended-attributes)))
+   (preserve-uid-gid
+    (tramp-run-real-handler
+     'copy-file
+     (list filename newname ok-if-already-exists keep-date preserve-uid-gid)))
+   (t
+    (tramp-run-real-handler
+     'copy-file (list filename newname ok-if-already-exists keep-date)))))
 
 (defun tramp-gvfs-handle-delete-directory (directory &optional recursive trash)
   "Like `delete-directory' for Tramp files."
@@ -1016,60 +1081,35 @@ is no information where to trace the message.")
 
 (defun tramp-gvfs-handle-make-directory (dir &optional parents)
   "Like `make-directory' for Tramp files."
+  (setq dir (directory-file-name (expand-file-name dir)))
   (with-parsed-tramp-file-name dir nil
-    (unless
-	(apply
-	 'tramp-gvfs-send-command v "gvfs-mkdir"
-	 (if parents
-	     (list "-p" (tramp-gvfs-url-file-name dir))
-	   (list (tramp-gvfs-url-file-name dir))))
-      ;; Propagate the error.
-      (tramp-error v 'file-error "Couldn't make directory %s" dir))))
+    (tramp-flush-file-property v (file-name-directory localname))
+    (tramp-flush-directory-property v localname)
+    (save-match-data
+      (let ((ldir (file-name-directory dir)))
+	;; Make missing directory parts.  "gvfs-mkdir -p ..." does not
+	;; work robust.
+	(when (and parents (not (file-directory-p ldir)))
+	  (make-directory ldir parents))
+	;; Just do it.
+	(unless (tramp-gvfs-send-command
+		 v "gvfs-mkdir" (tramp-gvfs-url-file-name dir))
+	  (tramp-error v 'file-error "Couldn't make directory %s" dir))))))
 
 (defun tramp-gvfs-handle-rename-file
   (filename newname &optional ok-if-already-exists)
   "Like `rename-file' for Tramp files."
-  (with-parsed-tramp-file-name
-      (if (tramp-tramp-file-p filename) filename newname) nil
-
-    (when (and (not ok-if-already-exists) (file-exists-p newname))
-      (tramp-error
-       v 'file-already-exists "File %s already exists" newname))
-
-    (if (or (and (tramp-tramp-file-p filename)
-		 (not (tramp-gvfs-file-name-p filename)))
-	    (and (tramp-tramp-file-p newname)
-		 (not (tramp-gvfs-file-name-p newname))))
-
-	;; We cannot move directly.
-	(let ((tmpfile (tramp-compat-make-temp-file filename)))
-	  (rename-file filename tmpfile t)
-	  (rename-file tmpfile newname ok-if-already-exists))
-
-      ;; Direct move.
-      (with-tramp-progress-reporter
-	  v 0 (format "Renaming %s to %s" filename newname)
-	(unless
-	    (tramp-gvfs-send-command
-	     v "gvfs-move"
-	     (tramp-gvfs-url-file-name filename)
-	     (tramp-gvfs-url-file-name newname))
-	  ;; Propagate the error.
-	  (with-current-buffer (tramp-get-buffer v)
-	    (goto-char (point-min))
-	    (tramp-error-with-buffer
-	     nil v 'file-error
-	     "Renaming failed, see buffer `%s' for details." (buffer-name)))))
-
-      (when (tramp-tramp-file-p filename)
-	(with-parsed-tramp-file-name filename nil
-	  (tramp-flush-file-property v (file-name-directory localname))
-	  (tramp-flush-file-property v localname)))
-
-      (when (tramp-tramp-file-p newname)
-	(with-parsed-tramp-file-name newname nil
-	  (tramp-flush-file-property v (file-name-directory localname))
-	  (tramp-flush-file-property v localname))))))
+  ;; Check if both files are local -- invoke normal rename-file.
+  ;; Otherwise, use Tramp from local system.
+  (setq filename (expand-file-name filename))
+  (setq newname (expand-file-name newname))
+  ;; At least one file a Tramp file?
+  (if (or (tramp-tramp-file-p filename)
+          (tramp-tramp-file-p newname))
+      (tramp-gvfs-do-copy-or-rename-file
+       'rename filename newname ok-if-already-exists t t)
+    (tramp-run-real-handler
+     'rename-file (list filename newname ok-if-already-exists))))
 
 (defun tramp-gvfs-handle-write-region
   (start end filename &optional append visit lockname confirm)
@@ -1530,7 +1570,7 @@ connection if a previous connection has died for some reason."
 	;; indicated by the "mounted" signal, i.e. the "fuse-mountpoint"
 	;; file property.
 	(with-timeout
-	    ((or (tramp-get-method-parameter method 'tramp-connection-timeout)
+	    ((or (tramp-get-method-parameter vec 'tramp-connection-timeout)
 		 tramp-connection-timeout)
 	     (if (zerop (length (tramp-file-name-user vec)))
 		 (tramp-error

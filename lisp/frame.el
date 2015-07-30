@@ -1749,6 +1749,122 @@ left untouched.  FRAME nil or omitted means use the selected frame."
     'delete-frame-functions "22.1")
 
 
+;;; Window dividers.
+(defgroup window-divider nil
+  "Window dividers."
+  :version "25.1"
+  :group 'frames
+  :group 'windows)
+
+(defcustom window-divider-default-places 'right-only
+  "Default positions of window dividers.
+Possible values are `bottom-only' (dividers on the bottom of each
+window only), `right-only' (dividers on the right of each window
+only), and t (dividers on the bottom and on the right of each
+window).  The default is `right-only'.
+
+The value takes effect if and only if dividers are enabled by
+`window-divider-mode'.
+
+To position dividers on frames individually, use the frame
+parameters `bottom-divider-width' and `right-divider-width'."
+  :type '(choice (const :tag "Bottom only" bottom-only)
+		 (const :tag "Right only" right-only)
+		 (const :tag "Bottom and right" t))
+  :initialize 'custom-initialize-default
+  :set (lambda (symbol value)
+	 (set-default symbol value)
+         (when window-divider-mode
+           (window-divider-mode-apply t)))
+  :version "25.1")
+
+(defun window-divider-width-valid-p (value)
+  "Return non-nil if VALUE is a positive number."
+  (and (numberp value) (> value 0)))
+
+(defcustom window-divider-default-bottom-width 6
+  "Default width of dividers on bottom of windows.
+The value must be a positive integer and takes effect when bottom
+dividers are displayed by `window-divider-mode'.
+
+To adjust bottom dividers for frames individually, use the frame
+parameter `bottom-divider-width'."
+  :type '(restricted-sexp
+          :tag "Default width of bottom dividers"
+          :match-alternatives (frame-window-divider-width-valid-p))
+  :initialize 'custom-initialize-default
+  :set (lambda (symbol value)
+	 (set-default symbol value)
+         (when window-divider-mode
+           (window-divider-mode-apply t)))
+  :version "25.1")
+
+(defcustom window-divider-default-right-width 6
+  "Default width of dividers on the right of windows.
+The value must be a positive integer and takes effect when right
+dividers are displayed by `window-divider-mode'.
+
+To adjust right dividers for frames individually, use the frame
+parameter `right-divider-width'."
+  :type '(restricted-sexp
+          :tag "Default width of right dividers"
+          :match-alternatives (frame-window-divider-width-valid-p))
+  :initialize 'custom-initialize-default
+  :set (lambda (symbol value)
+	 (set-default symbol value)
+         (when window-divider-mode
+	   (window-divider-mode-apply t)))
+  :version "25.1")
+
+(defun window-divider-mode-apply (enable)
+  "Apply window divider places and widths to all frames.
+If ENABLE is nil, apply default places and widths.  Else reset
+all divider widths to zero."
+  (let ((bottom (if (and enable
+                         (memq window-divider-default-places
+                               '(bottom-only t)))
+                    window-divider-default-bottom-width
+                  0))
+        (right (if (and enable
+                        (memq window-divider-default-places
+                              '(right-only t)))
+                   window-divider-default-right-width
+                 0)))
+    (modify-all-frames-parameters
+     (list (cons 'bottom-divider-width bottom)
+           (cons 'right-divider-width right)))
+    (setq default-frame-alist
+          (assq-delete-all
+           'bottom-divider-width default-frame-alist))
+    (setq default-frame-alist
+          (assq-delete-all
+           'right-divider-width default-frame-alist))
+    (when (> bottom 0)
+      (setq default-frame-alist
+            (cons
+             (cons 'bottom-divider-width bottom)
+             default-frame-alist)))
+    (when (> right 0)
+      (setq default-frame-alist
+            (cons
+             (cons 'right-divider-width right)
+             default-frame-alist)))))
+
+(define-minor-mode window-divider-mode
+  "Display dividers between windows (Window Divider mode).
+With a prefix argument ARG, enable Window Divider mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+The option `window-divider-default-places' specifies on which
+side of a window dividers are displayed.  The options
+`window-divider-default-bottom-width' and
+`window-divider-default-right-width' specify their respective
+widths."
+  :group 'window-divider
+  :global t
+  (window-divider-mode-apply window-divider-mode))
+
 ;; Blinking cursor
 
 (defgroup cursor nil

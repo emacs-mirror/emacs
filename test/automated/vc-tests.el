@@ -130,7 +130,19 @@ For backends which dont support it, it is emulated."
 	    (make-temp-name "vc-test") temporary-file-directory)))
       (make-directory (expand-file-name "module" tmp-dir) 'parents)
       (make-directory (expand-file-name "CVSROOT" tmp-dir) 'parents)
-      (shell-command-to-string (format "cvs -Q -d:local:%s co module" tmp-dir))
+      (if (not (fboundp 'w32-application-type))
+          (shell-command-to-string (format "cvs -Q -d:local:%s co module"
+                                           tmp-dir))
+        (let ((cvs-prog (executable-find "cvs"))
+              (tdir tmp-dir))
+          ;; If CVS executable is an MSYS program, reformat the file
+          ;; name of TMP-DIR to have the /d/foo/bar form supported by
+          ;; MSYS programs.  (FIXME: What about Cygwin cvs.exe?)
+          (if (eq (w32-application-type cvs-prog) 'msys)
+              (setq tdir
+                    (concat "/" (substring tmp-dir 0 1) (substring tmp-dir 2))))
+          (shell-command-to-string (format "cvs -Q -d:local:%s co module"
+                                           tdir))))
       (rename-file "module/CVS" default-directory)
       (delete-directory "module" 'recursive)
       ;; We must cleanup the "remote" CVS repo as well.

@@ -1903,8 +1903,8 @@ the variable was first made obsolete (usually a version number
 string).
 
 The optional argument @var{access-type}, if non-@code{nil}, should
-should specify the kind of access that will trigger obsolescence
-warnings; it can be either @code{get} or @code{set}.
+specify the kind of access that will trigger obsolescence warnings; it
+can be either @code{get} or @code{set}.
 @end defun
 
   You can make two variables synonyms and declare one obsolete at the

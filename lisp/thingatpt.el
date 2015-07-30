@@ -1,4 +1,4 @@
-;;; thingatpt.el --- get the `thing' at point
+;;; thingatpt.el --- get the `thing' at point  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1991-1998, 2000-2015 Free Software Foundation, Inc.
 
@@ -178,34 +178,40 @@ The bounds of THING are determined by `bounds-of-thing-at-point'."
 ;;  Sexps
 
 (defun in-string-p ()
-  "Return non-nil if point is in a string.
-\[This is an internal function.]"
+  "Return non-nil if point is in a string."
+  (declare (obsolete "use (nth 3 (syntax-ppss)) instead." "25.1"))
   (let ((orig (point)))
     (save-excursion
       (beginning-of-defun)
       (nth 3 (parse-partial-sexp (point) orig)))))
 
-(defun end-of-sexp ()
-  "Move point to the end of the current sexp.
-\[This is an internal function.]"
+(defun thing-at-point--end-of-sexp ()
+  "Move point to the end of the current sexp."
   (let ((char-syntax (syntax-after (point))))
     (if (or (eq char-syntax ?\))
-	    (and (eq char-syntax ?\") (in-string-p)))
+	    (and (eq char-syntax ?\") (nth 3 (syntax-ppss))))
 	(forward-char 1)
       (forward-sexp 1))))
 
-(put 'sexp 'end-op 'end-of-sexp)
+(define-obsolete-function-alias 'end-of-sexp
+  'thing-at-point--end-of-sexp "25.1"
+  "This is an internal thingatpt function and should not be used.")
 
-(defun beginning-of-sexp ()
-  "Move point to the beginning of the current sexp.
-\[This is an internal function.]"
+(put 'sexp 'end-op 'thing-at-point--end-of-sexp)
+
+(defun thing-at-point--beginning-of-sexp ()
+  "Move point to the beginning of the current sexp."
   (let ((char-syntax (char-syntax (char-before))))
     (if (or (eq char-syntax ?\()
-	    (and (eq char-syntax ?\") (in-string-p)))
+	    (and (eq char-syntax ?\") (nth 3 (syntax-ppss))))
 	(forward-char -1)
       (forward-sexp -1))))
 
-(put 'sexp 'beginning-op 'beginning-of-sexp)
+(define-obsolete-function-alias 'beginning-of-sexp
+  'thing-at-point--beginning-of-sexp "25.1"
+  "This is an internal thingatpt function and should not be used.")
+
+(put 'sexp 'beginning-op 'thing-at-point--beginning-of-sexp)
 
 ;;  Lists
 
@@ -355,7 +361,7 @@ the bounds of a possible ill-formed URI (one lacking a scheme)."
       (if found
 	  (cons (match-beginning 1) (match-end 1))))))
 
-(defun thing-at-point--bounds-of-well-formed-url (beg end _pt)
+(defun thing-at-point--bounds-of-well-formed-url (beg end pt)
   (save-excursion
     (goto-char beg)
     (let (url-beg paren-end regexp)
@@ -382,7 +388,11 @@ the bounds of a possible ill-formed URI (one lacking a scheme)."
 				 (scan-lists (1- url-beg) 1 0))))
 	     (not (blink-matching-check-mismatch (1- url-beg) paren-end))
 	     (setq end (1- paren-end)))
-	(cons url-beg end)))))
+	;; Ensure PT is actually within BOUNDARY. Check the following
+	;; example with point on the beginning of the line:
+	;;
+	;; 3,1406710489,http://gnu.org,0,"0"
+	(and (<= url-beg pt end) (cons url-beg end))))))
 
 (put 'url 'thing-at-point 'thing-at-point-url-at-point)
 
@@ -550,7 +560,7 @@ with angle brackets.")
   "Return the sentence at point.  See `thing-at-point'."
   (thing-at-point 'sentence))
 
-(defun read-from-whole-string (str)
+(defun thing-at-point--read-from-whole-string (str)
   "Read a Lisp expression from STR.
 Signal an error if the entire string was not used."
   (let* ((read-data (read-from-string str))
@@ -564,9 +574,14 @@ Signal an error if the entire string was not used."
 	(error "Can't read whole string")
       (car read-data))))
 
+(define-obsolete-function-alias 'read-from-whole-string
+  'thing-at-point--read-from-whole-string "25.1"
+  "This is an internal thingatpt function and should not be used.")
+
 (defun form-at-point (&optional thing pred)
   (let ((sexp (ignore-errors
-		(read-from-whole-string (thing-at-point (or thing 'sexp))))))
+		(thing-at-point--read-from-whole-string
+		 (thing-at-point (or thing 'sexp))))))
     (if (or (not pred) (funcall pred sexp)) sexp)))
 
 ;;;###autoload

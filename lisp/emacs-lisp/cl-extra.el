@@ -299,22 +299,21 @@ If so, return the true (non-nil) value returned by PREDICATE.
 ;;;###autoload
 (defun cl-gcd (&rest args)
   "Return the greatest common divisor of the arguments."
-  (let ((a (abs (or (pop args) 0))))
-    (while args
-      (let ((b (abs (pop args))))
-	(while (> b 0) (setq b (% a (setq a b))))))
-    a))
+  (let ((a (or (pop args) 0)))
+    (dolist (b args)
+      (while (/= b 0)
+        (setq b (% a (setq a b)))))
+    (abs a)))
 
 ;;;###autoload
 (defun cl-lcm (&rest args)
   "Return the least common multiple of the arguments."
   (if (memq 0 args)
       0
-    (let ((a (abs (or (pop args) 1))))
-      (while args
-	(let ((b (abs (pop args))))
-	  (setq a (* (/ a (cl-gcd a b)) b))))
-      a)))
+    (let ((a (or (pop args) 1)))
+      (dolist (b args)
+        (setq a (* (/ a (cl-gcd a b)) b)))
+      (abs a))))
 
 ;;;###autoload
 (defun cl-isqrt (x)
@@ -431,7 +430,7 @@ Optional second arg STATE is a random-state object."
   ;; Inspired by "ran3" from Numerical Recipes.  Additive congruential method.
   (let ((vec (aref state 3)))
     (if (integerp vec)
-	(let ((i 0) (j (- 1357335 (% (abs vec) 1357333))) (k 1))
+	(let ((i 0) (j (- 1357335 (abs (% vec 1357333)))) (k 1))
 	  (aset state 3 (setq vec (make-vector 55 nil)))
 	  (aset vec 0 j)
 	  (while (> (setq i (% (+ i 21) 55)) 0)
@@ -689,6 +688,169 @@ including `cl-block' and `cl-eval-when'."
     (prog1 (cl-prettyprint form)
       (message ""))))
 
+;;; Integration into the online help system.
+
+(eval-when-compile (require 'cl-macs))  ;Explicitly, for cl--find-class.
+(require 'help-mode)
+
+;; FIXME: We could go crazy and add another entry so describe-symbol can be
+;; used with the slot names of CL structs (and/or EIEIO objects).
+(add-to-list 'describe-symbol-backends
+             `(nil ,#'cl-find-class ,(lambda (s _b _f) (cl-describe-type s))))
+
+(defconst cl--typedef-regexp
+  (concat "(" (regexp-opt '("defclass" "defstruct" "cl-defstruct"
+                            "cl-deftype" "deftype"))
+          "[ \t\r\n]+%s[ \t\r\n]+"))
+(with-eval-after-load 'find-func
+  (defvar find-function-regexp-alist)
+  (add-to-list 'find-function-regexp-alist
+               `(define-type . cl--typedef-regexp)))
+
+(define-button-type 'cl-help-type
+  :supertype 'help-function-def
+  'help-function #'cl-describe-type
+  'help-echo (purecopy "mouse-2, RET: describe this type"))
+
+(define-button-type 'cl-type-definition
+  :supertype 'help-function-def
+  'help-echo (purecopy "mouse-2, RET: find type definition"))
+
+(declare-function help-fns-short-filename "help-fns" (filename))
+
+;;;###autoload
+(defun cl-find-class (type) (cl--find-class type))
+
+;;;###autoload
+(defun cl-describe-type (type)
+  "Display the documentation for type TYPE (a symbol)."
+  (interactive
+   (let ((str (completing-read "Describe type: " obarray #'cl-find-class t)))
+     (if (<= (length str) 0)
+         (user-error "Abort!")
+       (list (intern str)))))
+  (help-setup-xref (list #'cl-describe-type type)
+                   (called-interactively-p 'interactive))
+  (save-excursion
+    (with-help-window (help-buffer)
+      (with-current-buffer standard-output
+        (let ((class (cl-find-class type)))
+          (if class
+              (cl--describe-class type class)
+            ;; FIXME: Describe other types (the built-in ones, or those from
+            ;; cl-deftype).
+            (user-error "Unknown type %S" type))))
+      (with-current-buffer standard-output
+        ;; Return the text we displayed.
+        (buffer-string)))))
+
+(defun cl--describe-class (type &optional class)
+  (unless class (setq class (cl--find-class type)))
+  (let ((location (find-lisp-object-file-name type 'define-type))
+        ;; FIXME: Add a `cl-class-of' or `cl-typeof' or somesuch.
+        (metatype (cl--class-name (symbol-value (aref class 0)))))
+    (insert (symbol-name type)
+            (substitute-command-keys " is a type (of kind ‘"))
+    (help-insert-xref-button (symbol-name metatype)
+                             'cl-help-type metatype)
+    (insert (substitute-command-keys "’)"))
+    (when location
+      (insert (substitute-command-keys " in ‘"))
+      (help-insert-xref-button
+       (help-fns-short-filename location)
+       'cl-type-definition type location 'define-type)
+      (insert (substitute-command-keys "’")))
+    (insert ".\n")
+
+    ;; Parents.
+    (let ((pl (cl--class-parents class))
+          cur)
+      (when pl
+        (insert " Inherits from ")
+        (while (setq cur (pop pl))
+          (setq cur (cl--class-name cur))
+          (insert (substitute-command-keys "‘"))
+          (help-insert-xref-button (symbol-name cur)
+                                   'cl-help-type cur)
+          (insert (substitute-command-keys (if pl "’, " "’"))))
+        (insert ".\n")))
+
+    ;; Children, if available.  ¡For EIEIO!
+    (let ((ch (condition-case nil
+                  (cl-struct-slot-value metatype 'children class)
+                (cl-struct-unknown-slot nil)))
+          cur)
+      (when ch
+        (insert " Children ")
+        (while (setq cur (pop ch))
+          (insert (substitute-command-keys "‘"))
+          (help-insert-xref-button (symbol-name cur)
+                                   'cl-help-type cur)
+          (insert (substitute-command-keys (if ch "’, " "’"))))
+        (insert ".\n")))
+
+    ;; Type's documentation.
+    (let ((doc (cl--class-docstring class)))
+      (when doc
+        (insert "\n" doc "\n\n")))
+
+    ;; Describe all the slots in this class.
+    (cl--describe-class-slots class)
+
+    ;; Describe all the methods specific to this class.
+    (let ((generics (cl--generic-all-functions type)))
+      (when generics
+        (insert (propertize "Specialized Methods:\n\n" 'face 'bold))
+        (dolist (generic generics)
+          (insert (substitute-command-keys "‘"))
+          (help-insert-xref-button (symbol-name generic)
+                                   'help-function generic)
+          (insert (substitute-command-keys "’"))
+          (pcase-dolist (`(,qualifiers ,args ,doc)
+                         (cl--generic-method-documentation generic type))
+            (insert (format " %s%S\n" qualifiers args)
+                    (or doc "")))
+          (insert "\n\n"))))))
+
+(defun cl--describe-class-slot (slot)
+  (insert
+   (concat
+    (propertize "Slot: " 'face 'bold)
+    (prin1-to-string (cl--slot-descriptor-name slot))
+    (unless (eq (cl--slot-descriptor-type slot) t)
+      (concat "    type = "
+              (prin1-to-string (cl--slot-descriptor-type slot))))
+    ;; FIXME: The default init form is treated differently for structs and for
+    ;; eieio objects: for structs, the default is nil, for eieio-objects
+    ;; it's a special "unbound" value.
+    (unless nil ;; (eq (cl--slot-descriptor-initform slot) eieio-unbound)
+      (concat "    default = "
+              (prin1-to-string (cl--slot-descriptor-initform slot))))
+    (when (alist-get :printer (cl--slot-descriptor-props slot))
+      (concat "    printer = "
+              (prin1-to-string
+               (alist-get :printer (cl--slot-descriptor-props slot)))))
+    (when (alist-get :documentation (cl--slot-descriptor-props slot))
+      (concat "\n  " (alist-get :documentation (cl--slot-descriptor-props slot))
+              "\n")))
+   "\n"))
+
+(defun cl--describe-class-slots (class)
+  "Print help description for the slots in CLASS.
+Outputs to the current buffer."
+  (let* ((slots (cl--class-slots class))
+         ;; FIXME: Add a `cl-class-of' or `cl-typeof' or somesuch.
+         (metatype (cl--class-name (symbol-value (aref class 0))))
+         ;; ¡For EIEIO!
+         (cslots (condition-case nil
+                     (cl-struct-slot-value metatype 'class-slots class)
+                   (cl-struct-unknown-slot nil))))
+    (insert (propertize "Instance Allocated Slots:\n\n"
+			'face 'bold))
+    (mapc #'cl--describe-class-slot slots)
+    (when (> (length cslots) 0)
+      (insert (propertize "\nClass Allocated Slots:\n\n" 'face 'bold))
+      (mapc #'cl--describe-class-slot cslots))))
 
 
 (run-hooks 'cl-extra-load-hook)

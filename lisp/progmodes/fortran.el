@@ -916,12 +916,12 @@ with no args, if that value is non-nil."
 
 (defun fortran-line-length (nchars &optional global)
   "Set the length of fixed-form Fortran lines to NCHARS.
-This normally only affects the current buffer, which must be in
-Fortran mode.  If the optional argument GLOBAL is non-nil, it
-affects all Fortran buffers, and also the default.
-If a numeric prefix argument is specified, it will be used as NCHARS,
-otherwise is a non-numeric prefix arg is specified, the length will be
-provided via the minibuffer, and otherwise the current column is used."
+By default this only affects the current buffer, which must be in
+Fortran mode.  If the optional argument GLOBAL is non-nil, it affects
+all Fortran buffers, and also the default.  The default value of NCHARS
+is the current column.  A numeric prefix argument specifies a value to
+use instead of the current column.  A non-numeric prefix argument prompts
+for the value to use."
   (interactive
    (list (cond
           ((numberp current-prefix-arg) current-prefix-arg)

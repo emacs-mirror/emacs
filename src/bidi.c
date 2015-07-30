@@ -2452,7 +2452,7 @@ typedef struct bpa_stack_entry {
 #define MAX_BPA_STACK ((int)max (MAX_ALLOCA / sizeof (bpa_stack_entry), 1))
 
 /* UAX#9 says to match opening brackets with the matching closing
-   brackets or their canonical equivalents.  As of Unicode 7.0, there
+   brackets or their canonical equivalents.  As of Unicode 8.0, there
    are only 2 bracket characters that have canonical equivalence
    decompositions: u+2329 and u+232A.  So instead of accessing the
    table in uni-decomposition.el, we just handle these 2 characters

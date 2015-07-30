@@ -904,7 +904,10 @@ The list is updated automatically by `defun-rcirc-command'.")
   "Function used for `completion-at-point-functions' in `rcirc-mode'."
   (and (rcirc-looking-at-input)
        (let* ((beg (save-excursion
-		     (if (re-search-backward " " rcirc-prompt-end-marker t)
+                     ;; On some networks it is common to message or
+                     ;; mention someone using @nick instead of just
+                     ;; nick.
+		     (if (re-search-backward "[[:space:]@]" rcirc-prompt-end-marker t)
 			 (1+ (point))
 		       rcirc-prompt-end-marker)))
 	      (table (if (and (= beg rcirc-prompt-end-marker)

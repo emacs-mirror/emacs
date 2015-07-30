@@ -249,16 +249,6 @@ so that they are registered at compile-time as well as run-time."
       `(progn ,@body))))           ; Avoid loading cl-macs.el for cl-eval-when.
 
 
-;;; Symbols.
-
-(defun cl--random-time ()
-  (let* ((time (copy-sequence (current-time-string))) (i (length time)) (v 0))
-    (while (>= (cl-decf i) 0) (setq v (+ (* v 3) (aref time i))))
-    v))
-
-(defvar cl--gensym-counter (* (logand (cl--random-time) 1023) 100))
-
-
 ;;; Numbers.
 
 (define-obsolete-function-alias 'cl-floatp-safe 'floatp "24.4")
@@ -297,6 +287,11 @@ If true return the decimal value of digit CHAR in RADIX."
       (signal 'args-out-of-range (list 'radix radix '(2 36))))
   (let ((n (aref cl-digit-char-table char)))
     (and n (< n (or radix 10)) n)))
+
+(defun cl--random-time ()
+  (let* ((time (copy-sequence (current-time-string))) (i (length time)) (v 0))
+    (while (>= (cl-decf i) 0) (setq v (+ (* v 3) (aref time i))))
+    v))
 
 (defvar cl--random-state
   (vector 'cl--random-state-tag -1 30 (cl--random-time)))

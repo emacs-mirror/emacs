@@ -321,11 +321,11 @@ changing `tabulated-list-sort-key'."
         (sorter (tabulated-list--get-sorter))
 	entry-id saved-pt saved-col window-line)
     (and remember-pos
+	 (setq entry-id (tabulated-list-get-id))
+	 (setq saved-col (current-column))
          (when (eq (window-buffer) (current-buffer))
            (setq window-line
-                 (count-screen-lines (window-start) (point))))
-	 (setq entry-id (tabulated-list-get-id))
-	 (setq saved-col (current-column)))
+                 (count-screen-lines (window-start) (point)))))
     ;; Sort the entries, if necessary.
     (when sorter
       (setq entries (sort entries sorter)))
@@ -347,7 +347,7 @@ changing `tabulated-list-sort-key'."
              (setq entry-id nil
                    saved-pt (point)))
         ;; If the buffer this empty, simply print each elt.
-        (if (eobp)
+        (if (or (not update) (eobp))
             (apply tabulated-list-printer elt)
           (while (let ((local-id (tabulated-list-get-id)))
                    ;; If we find id, then nothing to update.

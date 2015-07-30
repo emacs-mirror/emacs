@@ -14252,6 +14252,10 @@ If you need to tunnel via other systems to connect to the server, you
 can use this option, and customize @code{nnimap-shell-program} to be
 what you need.
 
+@item plain
+Non-encrypted and unsafe straight socket connection.
+@acronym{STARTTLS} will not be used even if it is available.
+
 @end table
 
 @item nnimap-authenticator

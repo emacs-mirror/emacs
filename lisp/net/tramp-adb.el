@@ -575,8 +575,10 @@ Emacs dired can't find files."
     (let ((tmpfile (tramp-compat-make-temp-file filename)))
       (with-tramp-progress-reporter
 	  v 3 (format "Fetching %s to tmp file %s" filename tmpfile)
-	(when (tramp-adb-execute-adb-command v "pull" localname tmpfile)
-	  (delete-file tmpfile)
+	;; "adb pull ..." does not always return an error code.
+	(when (or (tramp-adb-execute-adb-command v "pull" localname tmpfile)
+		  (not (file-exists-p tmpfile)))
+	  (ignore-errors (delete-file tmpfile))
 	  (tramp-error
 	   v 'file-error "Cannot make local copy of file `%s'" filename))
 	(set-file-modes

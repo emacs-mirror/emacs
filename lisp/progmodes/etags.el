@@ -1772,7 +1772,7 @@ if the file was newly read in, the value is the filename."
 	        "No \\[tags-search] or \\[tags-query-replace] in progress"))
   "Form for `tags-loop-continue' to eval to scan one file.
 If it returns non-nil, this file needs processing by evalling
-\`tags-loop-operate'.  Otherwise, move on to the next file.")
+`tags-loop-operate'.  Otherwise, move on to the next file.")
 
 (defun tags-loop-eval (form)
   "Evaluate FORM and return its result.
@@ -2087,18 +2087,15 @@ for \\[find-tag] (which see)."
 (defun etags-xref-find (action id)
   (pcase action
     (`definitions (etags--xref-find-definitions id))
-    (`references
-     (etags--xref-find-matches id #'xref-collect-references))
-    (`matches
-     (etags--xref-find-matches id #'xref-collect-matches))
+    (`references  (etags--xref-find-references id))
     (`apropos (etags--xref-find-definitions id t))))
 
-(defun etags--xref-find-matches (input fun)
-  (let ((dirs (if tags-table-list
-                  (mapcar #'file-name-directory tags-table-list)
-                ;; If no tags files are loaded, prompt for the dir.
-                (list (read-directory-name "In directory: " nil nil t)))))
-    (cl-mapcan (lambda (dir) (funcall fun input dir)) dirs)))
+(defun etags--xref-find-references (symbol)
+  ;; TODO: Merge together with the Elisp impl.
+  (cl-mapcan
+   (lambda (dir)
+     (xref-collect-references symbol dir))
+   (project-search-path (project-current))))
 
 (defun etags--xref-find-definitions (pattern &optional regexp?)
   ;; This emulates the behaviour of `find-tag-in-order' but instead of
@@ -2153,6 +2150,9 @@ for \\[find-tag] (which see)."
 (cl-defmethod xref-location-line ((l xref-etags-location))
   (with-slots (tag-info) l
     (nth 1 tag-info)))
+
+(defun etags-search-path ()
+  (mapcar #'file-name-directory tags-table-list))
 
 
 (provide 'etags)

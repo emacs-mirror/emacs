@@ -35,6 +35,11 @@ ac_cv_header_getopt_h=no
 # We don't want our struct timeval replaced due to Posix conformance
 gl_cv_sys_struct_timeval_tv_sec=yes
 
+# We don't want pthread.h to be picked up just because it defines timespec
+gl_cv_sys_struct_timespec_in_pthread_h=no
+# Or at all...
+ac_cv_header_pthread_h=no
+
 # ACL functions are implemented in w32.c
 ac_cv_search_acl_get_file="none required"
 ac_cv_func_acl_get_file=yes

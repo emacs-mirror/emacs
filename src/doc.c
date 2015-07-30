@@ -1,4 +1,4 @@
-/* Record indices of function doc strings stored in a file.
+/* Record indices of function doc strings stored in a file. -*- coding: utf-8 -*-
 
 Copyright (C) 1985-1986, 1993-1995, 1997-2015 Free Software Foundation,
 Inc.
@@ -32,6 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "character.h"
 #include "buffer.h"
+#include "disptab.h"
 #include "keyboard.h"
 #include "keymap.h"
 
@@ -683,6 +684,18 @@ the same file name is found in the `doc-directory'.  */)
   return unbind_to (count, Qnil);
 }
 
+/* Declare named constants for U+2018 LEFT SINGLE QUOTATION MARK and
+   U+2019 RIGHT SINGLE QUOTATION MARK, which have UTF-8 encodings
+   "\xE2\x80\x98" and "\xE2\x80\x99", respectively.  */
+enum
+  {
+    LEFT_SINGLE_QUOTATION_MARK = 0x2018,
+    uLSQM0 = 0xE2, uLSQM1 = 0x80, uLSQM2 = 0x98,
+    uRSQM0 = 0xE2, uRSQM1 = 0x80, uRSQM2 = 0x99,
+  };
+static unsigned char const LSQM[] = { uLSQM0, uLSQM1, uLSQM2 };
+static unsigned char const RSQM[] = { uRSQM0, uRSQM1, uRSQM2 };
+
 DEFUN ("substitute-command-keys", Fsubstitute_command_keys,
        Ssubstitute_command_keys, 1, 1, 0,
        doc: /* Substitute key descriptions for command names in STRING.
@@ -699,8 +712,10 @@ summary).
 Each substring of the form \\=\\<MAPVAR> specifies the use of MAPVAR
 as the keymap for future \\=\\[COMMAND] substrings.
 
-Each \\=` is replaced by ‘.  Each ' preceded by \\=` and without
-intervening ' is replaced by ’.
+Each \\=‘ and \\=’ are replaced by left and right quote.  Each \\=` is
+replaced by left quote, and each ' preceded by \\=` and without
+intervening ' is replaced by right quote.  Left and right quote
+characters are specified by ‘help-quote-translation’.
 
 \\=\\= quotes the following character and is discarded; thus,
 \\=\\=\\=\\= puts \\=\\= into the output, \\=\\=\\=\\[ puts \\=\\[ into the output, and
@@ -719,7 +734,7 @@ Otherwise, return a new string.  */)
   ptrdiff_t bsize;
   Lisp_Object tem;
   Lisp_Object keymap;
-  unsigned char *start;
+  unsigned char const *start;
   ptrdiff_t length, length_byte;
   Lisp_Object name;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
@@ -734,6 +749,21 @@ Otherwise, return a new string.  */)
   keymap = Qnil;
   name = Qnil;
   GCPRO4 (string, tem, keymap, name);
+
+  enum { unicode, grave_accent, apostrophe } quote_translation = unicode;
+  if (EQ (Vhelp_quote_translation, make_number ('`')))
+    quote_translation = grave_accent;
+  else if (EQ (Vhelp_quote_translation, make_number ('\'')))
+    quote_translation = apostrophe;
+  else if (NILP (Vhelp_quote_translation)
+	   && DISP_TABLE_P (Vstandard_display_table))
+    {
+      Lisp_Object dv = DISP_CHAR_VECTOR (XCHAR_TABLE (Vstandard_display_table),
+					 LEFT_SINGLE_QUOTATION_MARK);
+      if (VECTORP (dv) && ASIZE (dv) == 1
+	  && EQ (AREF (dv, 0), make_number ('`')))
+	quote_translation = grave_accent;
+    }
 
   multibyte = STRING_MULTIBYTE (string);
   nchars = 0;
@@ -932,22 +962,39 @@ Otherwise, return a new string.  */)
 	    strp = SDATA (string) + idx;
 	  }
 	}
-      else if (strp[0] == '`')
+      else if (strp[0] == '`' && quote_translation == unicode)
 	{
 	  in_quote = true;
-	  start = (unsigned char *) "\xE2\x80\x98"; /* ‘ */
+	  start = LSQM;
 	subst_quote:
 	  length = 1;
 	  length_byte = 3;
 	  idx = strp - SDATA (string) + 1;
 	  goto subst;
 	}
+      else if (strp[0] == '`' && quote_translation == apostrophe)
+	{
+	  *bufp++ = '\'';
+	  strp++;
+	  nchars++;
+	  changed = true;
+	}
       else if (strp[0] == '\'' && in_quote)
 	{
 	  in_quote = false;
-	  start = (unsigned char *) "\xE2\x80\x99"; /* ’ */
+	  start = RSQM;
 	  goto subst_quote;
 	}
+      else if (strp[0] == uLSQM0 && strp[1] == uLSQM1
+	       && (strp[2] == uLSQM2 || strp[2] == uRSQM2)
+	       && quote_translation != unicode)
+        {
+	  *bufp++ = (strp[2] == uLSQM2 && quote_translation == grave_accent
+		     ? '`' : '\'');
+	  strp += 3;
+	  nchars++;
+	  changed = true;
+        }
       else if (! multibyte)		/* just copy other chars */
 	*bufp++ = *strp++, nchars++;
       else
@@ -985,6 +1032,16 @@ syms_of_doc (void)
   DEFVAR_LISP ("build-files", Vbuild_files,
                doc: /* A list of files used to build this Emacs binary.  */);
   Vbuild_files = Qnil;
+
+  DEFVAR_LISP ("help-quote-translation", Vhelp_quote_translation,
+               doc: /* Style to use for single quotes in help.
+The value is a left single quote character of some style.
+Quote \\=‘like this\\=’ if the value is ?\\=‘ (left single quotation mark).
+Quote 'like this' if the value is ?' (apostrophe).
+Quote \\=`like this' if the value is ?\\=` (grave accent).
+The default value is nil, which means quote with left single quotation mark
+if displayable, and with grave accent otherwise.  */);
+  Vhelp_quote_translation = Qnil;
 
   defsubr (&Sdocumentation);
   defsubr (&Sdocumentation_property);

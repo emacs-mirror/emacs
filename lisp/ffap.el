@@ -1086,16 +1086,25 @@ Assumes the buffer has not changed."
 (declare-function w3-view-this-url "ext:w3" (&optional no-show))
 
 (defun ffap-url-at-point ()
-  "Return URL from around point if it exists, or nil."
+  "Return URL from around point if it exists, or nil.
+
+Sets the variable `ffap-string-at-point-region' to the bounds of URL, if any."
   (when ffap-url-regexp
     (or (and (eq major-mode 'w3-mode) ; In a w3 buffer button?
 	     (w3-view-this-url t))
 	(let ((thing-at-point-beginning-of-url-regexp ffap-url-regexp)
-	      (thing-at-point-default-mail-uri-scheme ffap-foo-at-bar-prefix))
-	  (thing-at-point-url-at-point ffap-lax-url
-				       (if (use-region-p)
-					   (cons (region-beginning)
-						 (region-end))))))))
+	      (thing-at-point-default-mail-uri-scheme ffap-foo-at-bar-prefix)
+              val)
+	  (setq val (thing-at-point-url-at-point ffap-lax-url
+                                                 (if (use-region-p)
+                                                     (cons (region-beginning)
+                                                           (region-end)))))
+          (if val
+              (let ((bounds (thing-at-point-bounds-of-url-at-point
+                             ffap-lax-url)))
+                (setq ffap-string-at-point-region
+                      (list (car bounds) (cdr bounds)))))
+          val))))
 
 (defvar ffap-gopher-regexp
   "^.*\\<\\(Type\\|Name\\|Path\\|Host\\|Port\\) *= *\\(.*\\) *$"
@@ -1103,7 +1112,9 @@ Assumes the buffer has not changed."
 The two subexpressions are the KEY and VALUE.")
 
 (defun ffap-gopher-at-point ()
-  "If point is inside a gopher bookmark block, return its URL."
+  "If point is inside a gopher bookmark block, return its URL.
+
+Sets the variable `ffap-string-at-point-region' to the bounds of URL, if any."
   ;; `gopher-parse-bookmark' from gopher.el is not so robust
   (save-excursion
     (beginning-of-line)
@@ -1112,6 +1123,7 @@ The two subexpressions are the KEY and VALUE.")
 	  (while (and (looking-at ffap-gopher-regexp) (not (bobp)))
 	    (forward-line -1))
 	  (or (looking-at ffap-gopher-regexp) (forward-line 1))
+          (setq ffap-string-at-point-region (list (point) (point)))
 	  (let ((type "1") path host (port "70"))
 	    (while (looking-at ffap-gopher-regexp)
 	      (let ((var (intern
@@ -1122,6 +1134,7 @@ The two subexpressions are the KEY and VALUE.")
 					   (match-end 2))))
 		(set var val)
 		(forward-line 1)))
+            (setcdr ffap-string-at-point-region (point))
 	    (if (and path (string-match "^ftp:.*@" path))
 		(concat "ftp://"
 			(substring path 4 (1- (match-end 0)))

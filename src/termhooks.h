@@ -248,6 +248,9 @@ enum event_kind
 
 };
 
+/* Bit width of an enum event_kind tag at the start of structs and unions.  */
+enum { EVENT_KIND_WIDTH = 16 };
+
 /* If a struct input_event has a kind which is SELECTION_REQUEST_EVENT
    or SELECTION_CLEAR_EVENT, then its contents are really described
    by `struct selection_input_event'; see xterm.h.  */
@@ -260,7 +263,7 @@ enum event_kind
 struct input_event
 {
   /* What kind of event was this?  */
-  ENUM_BF (event_kind) kind : 16;
+  ENUM_BF (event_kind) kind : EVENT_KIND_WIDTH;
 
   /* Used in scroll back click events.  */
   ENUM_BF (scroll_bar_part) part : 16;

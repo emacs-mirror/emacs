@@ -2301,6 +2301,23 @@ the function specified in @code{pop-up-frame-function}
 is added to the newly created frame's parameters.
 @end defun
 
+@defun display-buffer-use-some-frame buffer alist
+This function tries to ``display'' @var{buffer} by trying to find a
+frame that meets a predicate (by default any frame other than the
+current frame).
+
+If @var{alist} has a non-@code{nil} @code{`inhibit-switch-frame} entry,
+avoid raising the frame.
+
+If @var{alist} has a non-nil @code{frame-predicate} entry, its value is a
+function taking one argument (a frame), returning non-nil if the
+frame is a candidate; this function replaces the default predicate.
+
+If this function chooses a window on another frame, it makes that frame
+visible and, unless @var{alist} contains an @code{inhibit-switch-frame}
+entry (@pxref{Choosing Window Options}), raises that frame if necessary.
+@end defun
+
 @defun display-buffer-pop-up-window buffer alist
 This function tries to display @var{buffer} by splitting the largest
 or least recently-used window (typically one on the selected frame).
@@ -2545,6 +2562,21 @@ to split the window placing the new window to the right.  If the value
 is an integer, that means to split only if the original window has at
 least that many columns.  If the value is @code{nil}, that means not
 to split this way.
+@end defopt
+
+@defopt even-window-sizes
+This variable, if non-nil, causes @code{display-buffer} to even window
+sizes whenever it reuses an existing window and that window is adjacent
+to the selected one.
+
+If its value is @code{width-only}, sizes are evened only if the reused
+window is on the left or right of the selected one and the selected
+window is wider than the reused one.  If its value is @code{height-only}
+sizes are evened only if the reused window is above or beneath the
+selected window and the selected window is higher than the reused one.
+Any other non-@code{nil} value means to even sizes in any of these cases
+provided the selected window is larger than the reused one in the sense
+of their combination.
 @end defopt
 
 @defopt pop-up-frames
@@ -3690,7 +3722,7 @@ The coordinates are in the header line of @var{window}.
 The coordinates are in the divider separating @var{window} from a
 window on the right.
 
-@item right-divider
+@item bottom-divider
 The coordinates are in the divider separating @var{window} from a
 window beneath.
 

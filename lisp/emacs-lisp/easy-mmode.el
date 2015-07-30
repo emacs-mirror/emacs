@@ -180,7 +180,8 @@ For example, you could write
 	 (extra-args nil)
 	 (extra-keywords nil)
          (variable nil)          ;The PLACE where the state is stored.
-         (setter nil)            ;The function (if any) to set the mode var.
+         (setter `(setq ,mode))  ;The beginning of the exp to set the mode var.
+         (getter mode)           ;The exp to get the mode value.
          (modefun mode)          ;The minor mode function name we're defining.
 	 (require t)
 	 (after-hook nil)
@@ -195,7 +196,10 @@ For example, you could write
       (pcase keyw
 	(`:init-value (setq init-value (pop body)))
 	(`:lighter (setq lighter (purecopy (pop body))))
-	(`:global (setq globalp (pop body)))
+	(`:global (setq globalp (pop body))
+         (when (and globalp (symbolp mode))
+           (setq setter `(setq-default ,mode))
+           (setq getter `(default-value ',mode))))
 	(`:extra-args (setq extra-args (pop body)))
 	(`:set (setq set (list :set (pop body))))
 	(`:initialize (setq initialize (list :initialize (pop body))))
@@ -208,16 +212,18 @@ For example, you could write
                        (or (symbolp tmp)
                            (functionp tmp))))
              ;; PLACE is not of the form (GET . SET).
-             (setq mode variable)
-           (setq mode (car variable))
-           (setq setter (cdr variable))))
+             (progn
+               (setq setter `(setf ,variable))
+               (setq getter variable))
+           (setq getter (car variable))
+           (setq setter `(funcall #',(cdr variable)))))
 	(`:after-hook (setq after-hook (pop body)))
 	(_ (push keyw extra-keywords) (push (pop body) extra-keywords))))
 
     (setq keymap-sym (if (and keymap (symbolp keymap)) keymap
 		       (intern (concat mode-name "-map"))))
 
-    (unless set (setq set '(:set 'custom-set-minor-mode)))
+    (unless set (setq set '(:set #'custom-set-minor-mode)))
 
     (unless initialize
       (setq initialize '(:initialize 'custom-initialize-default)))
@@ -272,39 +278,30 @@ the mode if ARG is omitted or nil, and toggle it if ARG is `toggle'.
 	 ;; repeat-command still does the toggling correctly.
 	 (interactive (list (or current-prefix-arg 'toggle)))
 	 (let ((,last-message (current-message)))
-           (,@(if setter `(funcall #',setter)
-                (list (if (symbolp mode) 'setq 'setf) mode))
+           (,@setter
             (if (eq arg 'toggle)
-                (not ,mode)
+                (not ,getter)
               ;; A nil argument also means ON now.
               (> (prefix-numeric-value arg) 0)))
            ,@body
            ;; The on/off hooks are here for backward compatibility only.
-           (run-hooks ',hook (if ,mode ',hook-on ',hook-off))
+           (run-hooks ',hook (if ,getter ',hook-on ',hook-off))
            (if (called-interactively-p 'any)
                (progn
-                 ,(if (and globalp (symbolp mode))
-		      ;; Unnecessary but harmless if mode set buffer-locally
+                 ,(if (and globalp (not variable))
                       `(customize-mark-as-set ',mode))
                  ;; Avoid overwriting a message shown by the body,
                  ;; but do overwrite previous messages.
                  (unless (and (current-message)
                               (not (equal ,last-message
                                           (current-message))))
-                   (let ((local
-			  ,(if globalp
-			       (if (symbolp mode)
-				   `(if (local-variable-p ',mode)
-					" in current buffer"
-				      "")
-				 "")
-			     " in current buffer")))
+                   (let ((local ,(if globalp "" " in current buffer")))
 		     (message ,(format "%s %%sabled%%s" pretty-name)
-			      (if ,mode "en" "dis") local)))))
+			      (if ,getter "en" "dis") local)))))
 	   ,@(when after-hook `(,after-hook)))
 	 (force-mode-line-update)
 	 ;; Return the new setting.
-	 ,mode)
+	 ,getter)
 
        ;; Autoloading a define-minor-mode autoloads everything
        ;; up-to-here.
@@ -325,15 +322,16 @@ No problems result if this variable is not bound.
 		     (t (error "Invalid keymap %S" m))))
 	     ,(format "Keymap for `%s'." mode-name)))
 
-       ,(if (not (symbolp mode))
-            (if (or lighter keymap)
-                (error ":lighter and :keymap unsupported with mode expression %s" mode))
-          `(with-no-warnings
-             (add-minor-mode ',mode ',lighter
-                           ,(if keymap keymap-sym
-                                `(if (boundp ',keymap-sym) ,keymap-sym))
-                             nil
-                             ,(unless (eq mode modefun) `',modefun)))))))
+       ,(let ((modevar (pcase getter (`(default-value ',v) v) (_ getter))))
+          (if (not (symbolp modevar))
+              (if (or lighter keymap)
+                  (error ":lighter and :keymap unsupported with mode expression %S" getter))
+            `(with-no-warnings
+               (add-minor-mode ',modevar ',lighter
+                               ,(if keymap keymap-sym
+                                  `(if (boundp ',keymap-sym) ,keymap-sym))
+                               nil
+                               ,(unless (eq mode modefun) `',modefun))))))))
 
 ;;;
 ;;; make global minor mode
@@ -413,7 +411,7 @@ otherwise, disable it.  If called from Lisp, enable the mode if
 ARG is omitted or nil.
 
 %s is enabled in all buffers where
-\`%s' would do it.
+`%s' would do it.
 See `%s' for more information on %s."
 		  pretty-name pretty-global-name
 		  pretty-name turn-on mode pretty-name)

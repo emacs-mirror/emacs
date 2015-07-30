@@ -341,7 +341,9 @@ OPTION_DEFAULT_ON([m17n-flt],[don't use m17n-flt for text shaping])
 OPTION_DEFAULT_ON([toolkit-scroll-bars],[don't use Motif or Xaw3d scroll bars])
 OPTION_DEFAULT_ON([xaw3d],[don't use Xaw3d])
 OPTION_DEFAULT_ON([xim],[don't use X11 XIM])
-OPTION_DEFAULT_OFF([ns],[use NeXTstep (Cocoa or GNUstep) windowing system])
+AC_ARG_WITH([ns],[AS_HELP_STRING([--with-ns],
+[use Nextstep (OS X Cocoa or GNUstep) windowing system.
+On by default on Mac OS X.])],[],[with_ns=maybe])
 OPTION_DEFAULT_OFF([w32], [use native MS Windows GUI in a Cygwin build])
 
 OPTION_DEFAULT_ON([gpm],[don't use -lgpm for mouse support on a GNU/Linux console])
@@ -1749,6 +1751,7 @@ else
   fi
 fi
 
+test "${with_ns}" = maybe && test "${opsys}" != darwin && with_ns=no
 HAVE_NS=no
 NS_GNUSTEP_CONFIG=no
 NS_IMPL_COCOA=no
@@ -1819,8 +1822,9 @@ fail;
   CFLAGS="$CFLAGS $GNU_OBJC_CFLAGS"
 
   AC_CHECK_HEADER([AppKit/AppKit.h], [HAVE_NS=yes],
-		  [AC_MSG_ERROR(['--with-ns' was specified, but the include
-  files are missing or cannot be compiled.])])
+		  [AC_MSG_ERROR([The include files (AppKit/AppKit.h etc) that
+are required for a Nextstep build are missing or cannot be compiled.
+Either fix this, or re-configure with the option '--without-ns'.])])
 
   macfont_file=""
   if test "${NS_IMPL_COCOA}" = "yes"; then
@@ -2411,7 +2415,6 @@ if test "${opsys}" != "mingw32"; then
        AC_DEFINE(HAVE_GTK3, 1, [Define to 1 if using GTK 3 or later.])
        GTK_OBJ=emacsgtkfixed.o
        gtk_term_header=gtkutil.h
-       USE_CAIRO=yes
        USE_GTK_TOOLKIT="GTK3"
        if test "x$ac_enable_gtk_deprecation_warnings" = x; then
 	 AC_DEFINE([GDK_DISABLE_DEPRECATION_WARNINGS], [1],
@@ -2710,7 +2713,7 @@ NOTIFY_SUMMARY=no
 
 dnl FIXME?  Don't auto-detect on NS, but do allow someone to specify
 dnl a particular library.  This doesn't make much sense?
-if test "${with_ns}" = yes && test ${with_file_notification} = yes; then
+if test "${HAVE_ns}" = yes && test ${with_file_notification} = yes; then
   with_file_notification=no
 fi
 
@@ -4036,7 +4039,7 @@ AC_SUBST(KRB4LIB)
 
 AC_CHECK_HEADERS(valgrind/valgrind.h)
 
-AC_CHECK_FUNCS_ONCE(tzalloc tzset)
+AC_CHECK_FUNCS_ONCE(tzset)
 
 ok_so_far=yes
 AC_CHECK_FUNC(socket, , ok_so_far=no)
@@ -4437,14 +4440,17 @@ case $opsys in
     ;;
 
   sol2* )
-    dnl On SysVr4, grantpt(3) forks a subprocess, so keep sigchld_handler()
+    dnl On SysVr4, grantpt(3) forks a subprocess, so do not use
+    dnl O_CLOEXEC when opening the pty, and keep the SIGCHLD handler
     dnl from intercepting that death.  If any child but grantpt's should die
     dnl within, it should be caught after sigrelse(2).
+    AC_DEFINE(PTY_OPEN, [fd = open (pty_name, O_RDWR | O_NONBLOCK)])
     AC_DEFINE(PTY_TTY_NAME_SPRINTF, [{ char *ptsname (int), *ptyname; int grantpt_result; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); grantpt_result = grantpt (fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (grantpt_result == -1 || unlockpt (fd) == -1 || !(ptyname = ptsname (fd))) { emacs_close (fd); return -1; } snprintf (pty_name, PTY_NAME_SIZE, "%s", ptyname); }])
     ;;
 
   unixware )
     dnl Comments are as per sol2*.
+    AC_DEFINE(PTY_OPEN, [fd = open (pty_name, O_RDWR | O_NONBLOCK)])
     AC_DEFINE(PTY_TTY_NAME_SPRINTF, [{ char *ptsname (int), *ptyname; int grantpt_result; sigset_t blocked; sigemptyset (&blocked); sigaddset (&blocked, SIGCHLD); pthread_sigmask (SIG_BLOCK, &blocked, 0); grantpt_result = grantpt (fd); pthread_sigmask (SIG_UNBLOCK, &blocked, 0); if (grantpt_result == -1) fatal("could not grant slave pty"); if (unlockpt(fd) == -1) fatal("could not unlock slave pty"); if (!(ptyname = ptsname(fd))) fatal ("could not enable slave pty"); snprintf (pty_name, PTY_NAME_SIZE, "%s", ptyname); }])
     ;;
 esac
@@ -4457,7 +4463,7 @@ case $opsys in
     AC_DEFINE(FIRST_PTY_LETTER, ['z'])
     AC_DEFINE(PTY_NAME_SPRINTF, [strcpy (pty_name, "/dev/ptmx");])
     dnl Push various streams modules onto a PTY channel.  Used in process.c.
-    AC_DEFINE(SETUP_SLAVE_PTY, [if (ioctl (xforkin, I_PUSH, "ptem") == -1) fatal ("ioctl I_PUSH ptem"); if (ioctl (xforkin, I_PUSH, "ldterm") == -1) fatal ("ioctl I_PUSH ldterm"); if (ioctl (xforkin, I_PUSH, "ttcompat") == -1) fatal ("ioctl I_PUSH ttcompat");], [How to set up a slave PTY, if needed.])
+    AC_DEFINE(SETUP_SLAVE_PTY, [if (ioctl (forkin, I_PUSH, "ptem") == -1) fatal ("ioctl I_PUSH ptem"); if (ioctl (forkin, I_PUSH, "ldterm") == -1) fatal ("ioctl I_PUSH ldterm"); if (ioctl (forkin, I_PUSH, "ttcompat") == -1) fatal ("ioctl I_PUSH ttcompat");], [How to set up a slave PTY, if needed.])
     ;;
 esac
 
@@ -4590,9 +4596,7 @@ if test $emacs_cv_func_sigsetjmp = yes; then
 fi
 
 # We need all of these features to handle C stack overflows.
-if test "$ac_cv_header_sys_resource_h" = "yes" &&
-   test "$ac_cv_func_getrlimit" = "yes" &&
-   test "$emacs_cv_func_sigsetjmp" = "yes" &&
+if test "$emacs_cv_func_sigsetjmp" = "yes" &&
    test "$emacs_cv_alternate_stack" = yes; then
   AC_DEFINE([HAVE_STACK_OVERFLOW_HANDLING], 1,
     [Define to 1 if C stack overflow can be handled in some cases.])
@@ -5185,15 +5189,26 @@ fi
 
 optsep=
 emacs_config_features=
-for opt in XAW3D XPM JPEG TIFF GIF PNG RSVG IMAGEMAGICK SOUND GPM DBUS \
+for opt in XAW3D XPM JPEG TIFF GIF PNG RSVG CAIRO IMAGEMAGICK SOUND GPM DBUS \
   GCONF GSETTINGS NOTIFY ACL LIBSELINUX GNUTLS LIBXML2 FREETYPE M17N_FLT \
-  LIBOTF XFT ZLIB; do
+  LIBOTF XFT ZLIB TOOLKIT_SCROLL_BARS X_TOOLKIT X11 NS; do
 
     case $opt in
       NOTIFY|ACL) eval val=\${${opt}_SUMMARY} ;;
+      CAIRO|TOOLKIT_SCROLL_BARS|X_TOOLKIT) eval val=\${USE_$opt} ;;
       *) eval val=\${HAVE_$opt} ;;
     esac
-    test x"$val" = xno && continue
+    case x$val in
+      xno|xnone|x) continue ;;
+    esac
+    case $opt in
+      X_TOOLKIT)
+        case $val in
+          GTK*|LUCID|MOTIF) opt=$val ;;
+          *) continue ;;
+        esac
+      ;;
+    esac
     AS_VAR_APPEND([emacs_config_features], ["$optsep$opt"])
     optsep=' '
 done

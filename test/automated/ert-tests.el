@@ -349,6 +349,7 @@ This macro is used to test if macroexpansion in `should' works."
 		 '(progn
 		    (ert-set-test 'abc
 				  (progn
+				    "Constructor for objects of type `ert-test'."
 				    (vector 'cl-struct-ert-test 'abc "foo"
 					    #'(lambda nil)
 					    nil ':passed
@@ -363,6 +364,7 @@ This macro is used to test if macroexpansion in `should' works."
 		 '(progn
 		    (ert-set-test 'def
 				  (progn
+				    "Constructor for objects of type `ert-test'."
 				    (vector 'cl-struct-ert-test 'def nil
 					    #'(lambda nil)
 					    nil ':passed 'nil)))

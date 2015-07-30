@@ -1512,7 +1512,7 @@ one trustfile (usually a CA bundle).  */)
           || !NILP (Fmember (QCgnutls_bootprop_trustfiles, verify_error)))
         {
 	  emacs_gnutls_deinit (proc);
-	  error ("Certificate validation failed %s, verification code %u",
+	  error ("Certificate validation failed %s, verification code %x",
 		 c_hostname, peer_verification);
         }
       else

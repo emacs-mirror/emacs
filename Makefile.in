@@ -290,7 +290,7 @@ SUBDIR = $(NTDIR) lib lib-src src lisp
 
 # The subdir makefiles created by config.status.
 SUBDIR_MAKEFILES_IN = @SUBDIR_MAKEFILES_IN@
-SUBDIR_MAKEFILES = `echo $(SUBDIR_MAKEFILES_IN:.in=) | sed 's|$(srcdir)/||g'`
+SUBDIR_MAKEFILES = $(patsubst ${srcdir}/%,%,${SUBDIR_MAKEFILES_IN:.in=})
 
 # Subdirectories to install, and where they'll go.  lib-src's and nt's
 # makefiles know how to install them, so we don't do that here.
@@ -492,18 +492,17 @@ write_subdir=if [ -f "$${subdir}/subdirs.el" ]; \
 install-arch-dep: src install-arch-indep install-etcdoc install-$(NTDIR)
 	umask 022; ${MKDIR_P} "$(DESTDIR)${bindir}"
 	$(MAKE) -C lib-src install
-	if test "${ns_self_contained}" = "no"; then \
-	  ${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs${EXEEXT} "$(DESTDIR)${bindir}/$(EMACSFULL)" || exit 1 ; \
-	  chmod 1755 "$(DESTDIR)${bindir}/$(EMACSFULL)" || true; \
-	  if test "x${NO_BIN_LINK}" = x; then \
-	    rm -f "$(DESTDIR)${bindir}/$(EMACS)" ; \
-	    cd "$(DESTDIR)${bindir}" && $(LN_S_FILEONLY) $(EMACSFULL) $(EMACS); \
-	  fi; \
-	else \
-	  subdir=${ns_appresdir}/site-lisp; \
-	  ${write_subdir} || exit 1; \
-	  rm -rf ${ns_appresdir}/share; \
-	fi
+ifeq (${ns_self_contained},no)
+	${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs${EXEEXT} "$(DESTDIR)${bindir}/$(EMACSFULL)"
+	-chmod 755 "$(DESTDIR)${bindir}/$(EMACSFULL)"
+ifndef NO_BIN_LINK
+	rm -f "$(DESTDIR)${bindir}/$(EMACS)"
+	cd "$(DESTDIR)${bindir}" && $(LN_S_FILEONLY) $(EMACSFULL) $(EMACS)
+endif
+else
+	subdir=${ns_appresdir}/site-lisp && ${write_subdir}
+	rm -rf ${ns_appresdir}/share
+endif
 
 ### Windows-specific install target for installing programs produced
 ### in nt/, and its Posix do-nothing shadow.
@@ -1116,19 +1115,21 @@ unchanged-history-files:
 	x=$$(git diff-files --name-only $(CHANGELOG_N) $(emacslog)) && \
 	  test -z "$$x"
 
+# Regular expression that matches the newest commit covered by a ChangeLog.
+new_commit_regexp = ^commit [0123456789abcdef]* (inclusive)
+
 # Copy newer commit messages to the start of the ChangeLog history file,
 # and consider them to be older.
 change-history-nocommit: master-branch-is-current unchanged-history-files
 	-rm -f ChangeLog.tmp
 	$(MAKE) ChangeLog CHANGELOG=ChangeLog.tmp
-	(sed '/^See ChangeLog.[0-9]* for earlier/,$$d' <ChangeLog.tmp && cat $(CHANGELOG_N)) \
-	  >$(CHANGELOG_N).tmp
+	sed '/^This file records repository revisions/,$$d' \
+	  ChangeLog.tmp >$(CHANGELOG_N).tmp
+	new_commit_line=`grep '$(new_commit_regexp)' ChangeLog.tmp` && \
+	sed 's/$(new_commit_regexp).*/'"$$new_commit_line/" \
+	  $(CHANGELOG_N) >>$(CHANGELOG_N).tmp
 	rm ChangeLog.tmp
-	new_origin=$$(git log --pretty=format:%H HEAD^!) && \
-	sed 's/^\(gen_origin=\).*/\1'"$$new_origin/" \
-	  < $(emacslog) > $(emacslog).tmp && chmod +x $(emacslog).tmp
 	mv $(CHANGELOG_N).tmp $(CHANGELOG_N)
-	mv $(emacslog).tmp $(emacslog)
 
 change-history: change-history-nocommit
 	$(MAKE) $@-commit

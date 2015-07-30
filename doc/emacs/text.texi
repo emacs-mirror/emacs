@@ -410,6 +410,8 @@ beginning of a line.
 @cindex Quotation marks
 @cindex Electric Quote mode
 @cindex mode, Electric Quote
+@cindex curly quotes
+@cindex curved quotes
 @findex electric-quote-mode
   One common way to quote is the typewriter convention, which quotes
 using straight apostrophes @t{'like this'} or double-quotes @t{"like
@@ -443,7 +445,8 @@ variables.
 @kbd{M-x electric-quote-local-mode}.  To suppress it for a single use,
 type @kbd{C-q `} or @kbd{C-q '} instead of @kbd{`} or @kbd{'}.  To
 insert a curved quote even when Electric Quote is disabled or
-inactive, use @kbd{C-x 8 @key{RET}} (@code{insert-char}).
+inactive, you can type @kbd{C-x 8 [} for @t{‘}, @kbd{C-x 8 ]} for
+@t{’}, @kbd{C-x 8 @{} for @t{“}, and @kbd{C-x 8 @}} for @t{”}.
 @xref{Inserting Text}.
 
 @node Filling

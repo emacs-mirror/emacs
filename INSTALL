@@ -275,12 +275,13 @@ To disable individual types of image support in Emacs for some reason,
 even though configure finds the libraries, you can configure with one
 or more of these options:
 
-  --without-xpm        for XPM image support
-  --without-jpeg       for JPEG image support
-  --without-tiff       for TIFF image support
-  --without-gif        for GIF image support
-  --without-png        for PNG image support
-  --without-rsvg       for SVG image support
+  --without-xpm          for XPM image support
+  --without-jpeg         for JPEG image support
+  --without-tiff         for TIFF image support
+  --without-gif          for GIF image support
+  --without-png          for PNG image support
+  --without-rsvg         for SVG image support
+  --without-imagemagick  for Imagemagick support
 
 Use --without-toolkit-scroll-bars to disable Motif or Xaw3d scroll bars.
 

@@ -105,9 +105,9 @@ indentation following it (@code{delete-indentation}).
 (@code{delete-backward-char}), @key{delete}
 (@code{delete-forward-char}), and @kbd{C-d} (@code{delete-char}).
 @xref{Erasing}.  With a numeric argument, they delete the specified
-number of characters.  If the numeric argument is omitted or one, they
-delete all the text in the region if it is active (@pxref{Using
-Region}).
+number of characters.  If the numeric argument is omitted or one,
+@key{DEL} and @key{delete} delete all the text in the region if it is
+active (@pxref{Using Region}).
 
 @kindex M-\
 @findex delete-horizontal-space

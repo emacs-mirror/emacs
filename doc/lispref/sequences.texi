@@ -790,6 +790,40 @@ of type @var{type}.  @var{type} can be one of the following symbols:
 @end example
 @end defun
 
+@defun seq-min sequence
+  This function returns the smallest element of
+@var{sequence}. @var{sequence} must be a sequence of numbers or
+markers.
+
+@example
+@group
+(seq-min [3 1 2])
+@result{} 1
+@end group
+@group
+(seq-min "Hello")
+@result{} 72
+@end group
+@end example
+@end defun
+
+@defun seq-max sequence
+  This function returns the largest element of
+@var{sequence}. @var{sequence} must be a sequence of numbers or
+markers.
+
+@example
+@group
+(seq-max [1 3 2])
+@result{} 3
+@end group
+@group
+(seq-max "Hello")
+@result{} 111
+@end group
+@end example
+@end defun
+
 @defmac seq-doseq (var sequence) body@dots{}
 @cindex sequence iteration
   This macro is like @code{dolist}, except that @var{sequence} can be a list,

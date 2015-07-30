@@ -195,6 +195,7 @@ admin/charsets/jisx2131-filter
 admin/unidata/unidata.txt
 etc/charsets/*.map
 lisp/international/charprop.el
+lisp/international/charscript.el
 lisp/international/cp51932.el
 lisp/international/eucjp-ms.el
 lisp/international/uni-*.el
@@ -208,8 +209,6 @@ lisp/international/uni-*.el
 *.dvi
 *.fn
 *.fns
-doc/*/*.html
-!test/etags/html-src/*.html
 *.info
 *.ky
 *.kys
@@ -224,7 +223,6 @@ doc/*/*.html
 *.pgs
 *.pj
 *.pjs
-doc/*/*.ps
 *.sc
 *.scs
 *.t2d/
@@ -235,6 +233,10 @@ doc/*/*.ps
 *.tps
 *.vr
 *.vrs
+doc/*/*.html
+doc/*/*/*.html
+doc/*/*.ps
+doc/*/*/*.ps
 doc/emacs/emacsver.texi
 doc/man/emacs.1
 doc/misc/cc-mode.ss

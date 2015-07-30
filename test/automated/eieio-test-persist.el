@@ -48,7 +48,7 @@ This is usually a symbol that starts with `:'."
   (let* ((file (oref original file))
 	 (class (eieio-object-class original))
 	 (fromdisk (eieio-persistent-read file class))
-	 (cv (eieio--class-v class))
+	 (cv (cl--find-class class))
 	 (slots  (eieio--class-slots cv))
 	 )
     (unless (object-of-class-p fromdisk class)
@@ -62,7 +62,7 @@ This is usually a symbol that starts with `:'."
 	     (origvalue (eieio-oref original oneslot))
 	     (fromdiskvalue (eieio-oref fromdisk oneslot))
 	     (initarg-p (eieio--attribute-to-initarg
-                         (eieio--class-v class) oneslot))
+                         (cl--find-class class) oneslot))
 	     )
 
 	(if initarg-p

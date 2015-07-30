@@ -114,10 +114,6 @@ Each element has the form (KEYWORD . DESCRIPTION).")
     st)
   "Syntax table used while in `finder-mode'.")
 
-(defvar finder-font-lock-keywords
-  '(("[`‘]\\([^'`‘’]+\\)['’]" 1 font-lock-constant-face prepend))
-  "Font-lock keywords for Finder mode.")
-
 (defvar finder-headmark nil
   "Internal Finder mode variable, local in Finder buffer.")
 
@@ -197,7 +193,7 @@ from; the default is `load-path'."
 	summary keywords package version entry desc)
     (dolist (d (or dirs load-path))
       (when (file-exists-p (directory-file-name d))
-	(message "Directory %s" d)
+	(message "Scanning %s for finder" d)
 	(setq package-override
 	      (intern-soft
 	       (cdr-safe

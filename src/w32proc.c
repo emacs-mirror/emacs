@@ -1527,22 +1527,25 @@ waitpid (pid_t pid, int *status, int options)
 
 /* Implementation note: This function works with file names encoded in
    the current ANSI codepage.  */
-static void
+static int
 w32_executable_type (char * filename,
 		     int * is_dos_app,
 		     int * is_cygnus_app,
+		     int * is_msys_app,
 		     int * is_gui_app)
 {
   file_data executable;
   char * p;
+  int retval = 0;
 
   /* Default values in case we can't tell for sure.  */
   *is_dos_app = FALSE;
   *is_cygnus_app = FALSE;
+  *is_msys_app = FALSE;
   *is_gui_app = FALSE;
 
   if (!open_input_file (&executable, filename))
-    return;
+    return -1;
 
   p = strrchr (filename, '.');
 
@@ -1560,7 +1563,8 @@ w32_executable_type (char * filename,
 	 extension, which is defined in the registry.  */
       p = egetenv ("COMSPEC");
       if (p)
-	w32_executable_type (p, is_dos_app, is_cygnus_app, is_gui_app);
+	retval = w32_executable_type (p, is_dos_app, is_cygnus_app, is_msys_app,
+				      is_gui_app);
     }
   else
     {
@@ -1637,6 +1641,16 @@ w32_executable_type (char * filename,
                       *is_cygnus_app = TRUE;
                       break;
                     }
+		  else if (strncmp (dllname, "msys-", 5) == 0)
+		    {
+		      /* This catches both MSYS 1.x and MSYS2
+			 executables (the DLL name is msys-1.0.dll and
+			 msys-2.0.dll, respectively).  There doesn't
+			 seem to be a reason to distinguish between
+			 the two, for now.  */
+		      *is_msys_app = TRUE;
+		      break;
+		    }
                 }
             }
   	}
@@ -1644,6 +1658,7 @@ w32_executable_type (char * filename,
 
 unwind:
   close_file_data (&executable);
+  return retval;
 }
 
 static int
@@ -1702,7 +1717,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
   int arglen, numenv;
   pid_t pid;
   child_process *cp;
-  int is_dos_app, is_cygnus_app, is_gui_app;
+  int is_dos_app, is_cygnus_app, is_msys_app, is_gui_app;
   int do_quoting = 0;
   /* We pass our process ID to our children by setting up an environment
      variable in their environment.  */
@@ -1713,10 +1728,10 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
      argument being split into two or more. Arguments with wildcards
      are also quoted, for consistency with posix platforms, where wildcards
      are not expanded if we run the program directly without a shell.
-     Some extra whitespace characters need quoting in Cygwin programs,
+     Some extra whitespace characters need quoting in Cygwin/MSYS programs,
      so this list is conditionally modified below.  */
   char *sepchars = " \t*?";
-  /* This is for native w32 apps; modified below for Cygwin apps.  */
+  /* This is for native w32 apps; modified below for Cygwin/MSUS apps.  */
   char escape_char = '\\';
   char cmdname_a[MAX_PATH];
 
@@ -1777,15 +1792,17 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
   cmdname = cmdname_a;
   argv[0] = cmdname;
 
-  /* Determine whether program is a 16-bit DOS executable, or a 32-bit Windows
-     executable that is implicitly linked to the Cygnus dll (implying it
-     was compiled with the Cygnus GNU toolchain and hence relies on
-     cygwin.dll to parse the command line - we use this to decide how to
-     escape quote chars in command line args that must be quoted).
+  /* Determine whether program is a 16-bit DOS executable, or a 32-bit
+     Windows executable that is implicitly linked to the Cygnus or
+     MSYS dll (implying it was compiled with the Cygnus/MSYS GNU
+     toolchain and hence relies on cygwin.dll or MSYS DLL to parse the
+     command line - we use this to decide how to escape quote chars in
+     command line args that must be quoted).
 
      Also determine whether it is a GUI app, so that we don't hide its
      initial window unless specifically requested.  */
-  w32_executable_type (cmdname, &is_dos_app, &is_cygnus_app, &is_gui_app);
+  w32_executable_type (cmdname, &is_dos_app, &is_cygnus_app, &is_msys_app,
+		       &is_gui_app);
 
   /* On Windows 95, if cmdname is a DOS app, we invoke a helper
      application to start it by specifying the helper app as cmdname,
@@ -1845,10 +1862,10 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
       if (INTEGERP (Vw32_quote_process_args))
 	escape_char = XINT (Vw32_quote_process_args);
       else
-	escape_char = is_cygnus_app ? '"' : '\\';
+	escape_char = (is_cygnus_app || is_msys_app) ? '"' : '\\';
     }
 
-  /* Cygwin apps needs quoting a bit more often.  */
+  /* Cygwin/MSYS apps need quoting a bit more often.  */
   if (escape_char == '"')
     sepchars = "\r\n\t\f '";
 
@@ -1866,7 +1883,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
       for ( ; *p; p++)
 	{
 	  if (escape_char == '"' && *p == '\\')
-	    /* If it's a Cygwin app, \ needs to be escaped.  */
+	    /* If it's a Cygwin/MSYS app, \ needs to be escaped.  */
 	    arglen++;
 	  else if (*p == '"')
 	    {
@@ -2947,6 +2964,59 @@ If successful, the return value is t, otherwise nil.  */)
   return result;
 }
 
+DEFUN ("w32-application-type", Fw32_application_type,
+       Sw32_application_type, 1, 1, 0,
+       doc: /* Return the type of an MS-Windows PROGRAM.
+
+Knowing the type of an executable could be useful for formatting
+file names passed to it or for quoting its command-line arguments.
+
+PROGRAM should specify an executable file, including the extension.
+
+The value is one of the following:
+
+`dos'        -- a DOS .com program or some other non-PE executable
+`cygwin'     -- a Cygwin program that depends on Cygwin DLL
+`msys'       -- an MSYS 1.x or MSYS2 program
+`w32-native' -- a native Windows application
+`unknown'    -- a file that doesn't exist, or cannot be open, or whose
+                name is not encodable in the current ANSI codepage.
+
+Note that for .bat and .cmd batch files the function returns the type
+of their command interpreter, as specified by the \"COMSPEC\"
+environment variable.
+
+This function returns `unknown' for programs whose file names
+include characters not supported by the current ANSI codepage, as
+such programs cannot be invoked by Emacs anyway.  */)
+     (Lisp_Object program)
+{
+  int is_dos_app, is_cygwin_app, is_msys_app, dummy;
+  Lisp_Object encoded_progname;
+  char *progname, progname_a[MAX_PATH];
+
+  program = Fexpand_file_name (program, Qnil);
+  encoded_progname = ENCODE_FILE (program);
+  progname = SDATA (encoded_progname);
+  unixtodos_filename (progname);
+  filename_to_ansi (progname, progname_a);
+  /* Reject file names that cannot be encoded in the current ANSI
+     codepage.  */
+  if (_mbspbrk (progname_a, "?"))
+    return Qunknown;
+
+  if (w32_executable_type (progname_a, &is_dos_app, &is_cygwin_app,
+			   &is_msys_app, &dummy) != 0)
+    return Qunknown;
+  if (is_dos_app)
+    return Qdos;
+  if (is_cygwin_app)
+    return Qcygwin;
+  if (is_msys_app)
+    return Qmsys;
+  return Qw32_native;
+}
+
 #ifdef HAVE_LANGINFO_CODESET
 /* Emulation of nl_langinfo.  Used in fns.c:Flocale_info.  */
 char *
@@ -3257,16 +3327,16 @@ yield nil.  */)
   (Lisp_Object cp)
 {
   CHARSETINFO info;
-  DWORD dwcp;
+  DWORD_PTR dwcp;
 
   CHECK_NUMBER (cp);
 
   if (!IsValidCodePage (XINT (cp)))
     return Qnil;
 
-  /* Going through a temporary DWORD variable avoids compiler warning
+  /* Going through a temporary DWORD_PTR variable avoids compiler warning
      about cast to pointer from integer of different size, when
-     building --with-wide-int.  */
+     building --with-wide-int or building for 64bit.  */
   dwcp = XINT (cp);
   if (TranslateCharsetInfo ((DWORD *) dwcp, &info, TCI_SRCCODEPAGE))
     return make_number (info.ciCharset);
@@ -3429,6 +3499,9 @@ get_lcid (const char *locale_name)
 # define LINGUISTIC_IGNORECASE  0x00000010
 #endif
 
+typedef int (WINAPI *CompareStringW_Proc)
+  (LCID, DWORD, LPCWSTR, int, LPCWSTR, int);
+
 int
 w32_compare_strings (const char *s1, const char *s2, char *locname,
 		     int ignore_case)
@@ -3437,7 +3510,7 @@ w32_compare_strings (const char *s1, const char *s2, char *locname,
   wchar_t *string1_w, *string2_w;
   int val, needed;
   extern BOOL g_b_init_compare_string_w;
-  static int (WINAPI *pCompareStringW)(LCID, DWORD, LPCWSTR, int, LPCWSTR, int);
+  static CompareStringW_Proc pCompareStringW;
   DWORD flags = 0;
 
   USE_SAFE_ALLOCA;
@@ -3453,8 +3526,9 @@ w32_compare_strings (const char *s1, const char *s2, char *locname,
     {
       if (os_subtype == OS_9X)
 	{
-	  pCompareStringW = GetProcAddress (LoadLibrary ("Unicows.dll"),
-					    "CompareStringW");
+	  pCompareStringW =
+            (CompareStringW_Proc) GetProcAddress (LoadLibrary ("Unicows.dll"),
+                                                  "CompareStringW");
 	  if (!pCompareStringW)
 	    {
 	      errno = EINVAL;
@@ -3541,6 +3615,9 @@ syms_of_ntproc (void)
 {
   DEFSYM (Qhigh, "high");
   DEFSYM (Qlow, "low");
+  DEFSYM (Qcygwin, "cygwin");
+  DEFSYM (Qmsys, "msys");
+  DEFSYM (Qw32_native, "w32-native");
 
   defsubr (&Sw32_has_winsock);
   defsubr (&Sw32_unload_winsock);
@@ -3548,6 +3625,7 @@ syms_of_ntproc (void)
   defsubr (&Sw32_short_file_name);
   defsubr (&Sw32_long_file_name);
   defsubr (&Sw32_set_process_priority);
+  defsubr (&Sw32_application_type);
   defsubr (&Sw32_get_locale_info);
   defsubr (&Sw32_get_current_locale_id);
   defsubr (&Sw32_get_default_locale_id);

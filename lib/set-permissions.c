@@ -25,6 +25,8 @@
 
 #if USE_ACL
 # if ! defined HAVE_ACL_FROM_MODE && defined HAVE_ACL_FROM_TEXT /* FreeBSD, IRIX, Tru64 */
+#  if HAVE_ACL_GET_FILE && !HAVE_ACL_TYPE_EXTENDED
+
 static acl_t
 acl_from_mode (mode_t mode)
 {
@@ -46,6 +48,7 @@ acl_from_mode (mode_t mode)
 
   return acl_from_text (acl_text);
 }
+#  endif
 # endif
 
 # if HAVE_FACL && defined GETACL /* Solaris, Cygwin, not HP-UX */
@@ -269,7 +272,7 @@ set_acls_from_mode (const char *name, int desc, mode_t mode, bool *must_chmod)
   }
 }
 
-#elif HAVE_GETACL /* HP-UX */
+# elif HAVE_GETACL /* HP-UX */
 static int
 context_acl_from_mode (struct permission_context *ctx, const char *name, int desc)
 {
@@ -285,13 +288,13 @@ context_acl_from_mode (struct permission_context *ctx, const char *name, int des
 
   ctx->entries[0].uid = statbuf.st_uid;
   ctx->entries[0].gid = ACL_NSGROUP;
-  ctx->entries[0].mode = (mode >> 6) & 7;
+  ctx->entries[0].mode = (ctx->mode >> 6) & 7;
   ctx->entries[1].uid = ACL_NSUSER;
   ctx->entries[1].gid = statbuf.st_gid;
-  ctx->entries[1].mode = (mode >> 3) & 7;
+  ctx->entries[1].mode = (ctx->mode >> 3) & 7;
   ctx->entries[2].uid = ACL_NSUSER;
   ctx->entries[2].gid = ACL_NSGROUP;
-  ctx->entries[2].mode = mode & 7;
+  ctx->entries[2].mode = ctx->mode & 7;
   ctx->count = 3;
   return 0;
 }
@@ -304,24 +307,24 @@ context_aclv_from_mode (struct permission_context *ctx)
 
   ctx->aclv_entries[0].a_type = USER_OBJ;
   ctx->aclv_entries[0].a_id = 0; /* irrelevant */
-  ctx->aclv_entries[0].a_perm = (mode >> 6) & 7;
+  ctx->aclv_entries[0].a_perm = (ctx->mode >> 6) & 7;
   ctx->aclv_entries[1].a_type = GROUP_OBJ;
   ctx->aclv_entries[1].a_id = 0; /* irrelevant */
-  ctx->aclv_entries[1].a_perm = (mode >> 3) & 7;
+  ctx->aclv_entries[1].a_perm = (ctx->mode >> 3) & 7;
   ctx->aclv_entries[2].a_type = CLASS_OBJ;
   ctx->aclv_entries[2].a_id = 0;
-  ctx->aclv_entries[2].a_perm = (mode >> 3) & 7;
+  ctx->aclv_entries[2].a_perm = (ctx->mode >> 3) & 7;
   ctx->aclv_entries[3].a_type = OTHER_OBJ;
   ctx->aclv_entries[3].a_id = 0;
-  ctx->aclv_entries[3].a_perm = mode & 7;
+  ctx->aclv_entries[3].a_perm = ctx->mode & 7;
   ctx->aclv_count = 4;
 
-  ret = aclsort (sizeof (entries) / sizeof (struct acl), 1, entries);
+  ret = aclsort (ctx->aclv_count, 1, ctx->aclv_entries);
   if (ret > 0)
     abort ();
   return ret;
 }
-#endif
+#  endif
 
 # elif HAVE_ACLX_GET && defined ACL_AIX_WIP /* AIX */
 static int
@@ -458,19 +461,19 @@ context_acl_from_mode (struct permission_context *ctx)
 
   ctx->entries[0].a_type = USER_OBJ;
   ctx->entries[0].a_id = 0; /* irrelevant */
-  ctx->entries[0].a_perm = (mode >> 6) & 7;
+  ctx->entries[0].a_perm = (ctx->mode >> 6) & 7;
   ctx->entries[1].a_type = GROUP_OBJ;
   ctx->entries[1].a_id = 0; /* irrelevant */
-  ctx->entries[1].a_perm = (mode >> 3) & 7;
+  ctx->entries[1].a_perm = (ctx->mode >> 3) & 7;
   ctx->entries[2].a_type = CLASS_OBJ;
   ctx->entries[2].a_id = 0;
-  ctx->entries[2].a_perm = (mode >> 3) & 7;
+  ctx->entries[2].a_perm = (ctx->mode >> 3) & 7;
   ctx->entries[3].a_type = OTHER_OBJ;
   ctx->entries[3].a_id = 0;
-  ctx->entries[3].a_perm = mode & 7;
+  ctx->entries[3].a_perm = ctx->mode & 7;
   ctx->count = 4;
 
-  ret = aclsort (sizeof (entries) / sizeof (struct acl), 1, entries);
+  ret = aclsort (ctx->count, 1, entries);
   if (ret > 0)
     abort ();
   return ret;
@@ -483,18 +486,18 @@ set_acls (struct permission_context *ctx, const char *name, int desc,
 {
   int ret = 0;
 
-#if HAVE_ACL_GET_FILE
+# if HAVE_ACL_GET_FILE
   /* POSIX 1003.1e (draft 17 -- abandoned) specific version.  */
   /* Linux, FreeBSD, Mac OS X, IRIX, Tru64 */
 #  if !HAVE_ACL_TYPE_EXTENDED
   /* Linux, FreeBSD, IRIX, Tru64 */
 
-#    ifndef HAVE_ACL_FROM_TEXT
-#     error Must have acl_from_text (see POSIX 1003.1e draft 17).
-#    endif
-#    ifndef HAVE_ACL_DELETE_DEF_FILE
-#     error Must have acl_delete_def_file (see POSIX 1003.1e draft 17).
-#    endif
+#   ifndef HAVE_ACL_FROM_TEXT
+#    error Must have acl_from_text (see POSIX 1003.1e draft 17).
+#   endif
+#   ifndef HAVE_ACL_DELETE_DEF_FILE
+#    error Must have acl_delete_def_file (see POSIX 1003.1e draft 17).
+#   endif
 
   if (! ctx->acls_not_supported)
     {
@@ -527,7 +530,8 @@ set_acls (struct permission_context *ctx, const char *name, int desc,
 	      *acls_set = true;
 	      if (S_ISDIR(ctx->mode))
 		{
-		  if (! from_mode && ctx->default_acl)
+		  if (! from_mode && ctx->default_acl &&
+		      acl_default_nontrivial (ctx->default_acl))
 		    ret = acl_set_file (name, ACL_TYPE_DEFAULT,
 					ctx->default_acl);
 		  else
@@ -536,6 +540,15 @@ set_acls (struct permission_context *ctx, const char *name, int desc,
 	    }
 	}
     }
+
+# if HAVE_ACL_TYPE_NFS4  /* FreeBSD */
+
+  /* File systems either support POSIX ACLs (for example, ufs) or NFS4 ACLs
+     (for example, zfs). */
+
+  /* TODO: Implement setting ACLs once get_permissions() reads them. */
+
+# endif
 
 #  else /* HAVE_ACL_TYPE_EXTENDED */
   /* Mac OS X */
@@ -641,9 +654,9 @@ set_acls (struct permission_context *ctx, const char *name, int desc,
       else
 	*acls_set = true;
     }
-# endif
+#  endif
 
-#elif HAVE_GETACL /* HP-UX */
+# elif HAVE_GETACL /* HP-UX */
 
   if (from_mode)
     ret = context_acl_from_mode (ctx, name, desc);
@@ -657,7 +670,7 @@ set_acls (struct permission_context *ctx, const char *name, int desc,
       if (ret < 0)
 	{
 	  if ((errno == ENOSYS || errno == EOPNOTSUPP || errno == ENOTSUP)
-	      && (from_mode || !acl_nontrivial (ctx->count, ctx->entries, &source_statbuf)))
+	      && (from_mode || !acl_nontrivial (ctx->count, ctx->entries)))
 	    ret = 0;
 	}
       else
@@ -699,7 +712,7 @@ set_acls (struct permission_context *ctx, const char *name, int desc,
       if (desc != -1)
 	ret = fchacl (desc, &ctx->u.a, ctx->u.a.acl_len);
       else
-	ret = chacl (name, &ctx->u.a, ctx->u.a.acl_len);
+	ret = chacl ((char *) name, &ctx->u.a, ctx->u.a.acl_len);
       if (ret < 0)
 	{
 	  if (errno == ENOSYS && from_mode)
@@ -730,7 +743,7 @@ set_acls (struct permission_context *ctx, const char *name, int desc,
 
   /* Nothing to do. */
 
-#endif
+# endif
 
   return ret;
 }
@@ -774,7 +787,7 @@ set_permissions (struct permission_context *ctx, const char *name, int desc)
 
   early_chmod = false;
 # else
-  /* All other plaforms */
+  /* All other platforms */
   /* On Cygwin, it is necessary to call chmod before acl, because
      chmod can change the contents of the ACL (in ways that don't
      change the allowed accesses, but still visible).  */
@@ -801,10 +814,9 @@ set_permissions (struct permission_context *ctx, const char *name, int desc)
       int saved_errno = ret ? errno : 0;
 
       /* If we can't set an acl which we expect to be able to set, try setting
-	 the permissions to ctx->mode. Doe to possible inherited permissions,
+	 the permissions to ctx->mode. Due to possible inherited permissions,
 	 we cannot simply chmod.  */
 
-      acls_set = false;
       ret = set_acls (ctx, name, desc, true, &must_chmod, &acls_set);
       if (! acls_set)
 	must_chmod = true;

@@ -5691,8 +5691,16 @@ additional wait period, in milliseconds; this is for backwards compatibility.
   if (duration > 0)
     {
       struct timespec t = dtotimespec (duration);
-      wait_reading_process_output (min (t.tv_sec, WAIT_READING_MAX),
-				   t.tv_nsec, 0, 0, Qnil, NULL, 0);
+      struct timespec tend = timespec_add (current_timespec (), t);
+
+      /* wait_reading_process_output returns as soon as it detects
+	 output from any subprocess, so we wait in a loop until the
+	 time expires.  */
+      do {
+	wait_reading_process_output (min (t.tv_sec, WAIT_READING_MAX),
+				     t.tv_nsec, 0, 0, Qnil, NULL, 0);
+	t = timespec_sub (tend, current_timespec ());
+      } while (timespec_sign (t) > 0);
     }
 
   return Qnil;

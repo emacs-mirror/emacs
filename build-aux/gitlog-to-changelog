@@ -3,7 +3,7 @@ eval '(exit $?0)' && eval 'exec perl -wS "$0" ${1+"$@"}'
     if 0;
 # Convert git log output to ChangeLog format.
 
-my $VERSION = '2015-05-19 01:37'; # UTC
+my $VERSION = '2015-06-11 01:03'; # UTC
 # The definition above must lie within the first 8 lines in order
 # for the Emacs time-stamp write hook (at end) to update it.
 # If you change this file with Emacs, please let the write hook
@@ -270,6 +270,7 @@ sub git_dir_option($)
   my $prev_multi_paragraph;
   my $prev_date_line = '';
   my @prev_coauthors = ();
+  my @skipshas = ();
   while (1)
     {
       defined (my $in = <PIPE>)
@@ -289,6 +290,21 @@ sub git_dir_option($)
         or die "$ME:$.: malformed log entry\n";
       $sha =~ /^[0-9a-fA-F]{40}$/
         or die "$ME:$.: invalid SHA1: $sha\n";
+
+      my $skipflag = 0;
+      if (@skipshas)
+        {
+          foreach(@skipshas)
+            {
+              if ($sha =~ /^$_/)
+                {
+                  $skipflag = 1;
+                  ## Perhaps only warn if a pattern matches more than once?
+                  warn "$ME: warning: skipping $sha due to $_\n";
+                  last;
+                }
+            }
+        }
 
       # If this commit's log requires any transformation, do it now.
       my $code = $amend_code->{$sha};
@@ -348,9 +364,30 @@ sub git_dir_option($)
           while ($line[$#line] =~ /^\s*$/) { pop @line; }
         }
 
+      # Handle Emacs gitmerge.el "skipped" commits.
+      # Yes, this should be controlled by an option.  So sue me.
+      if ( grep /^(; )?Merge from /, @line )
+      {
+          my $found = 0;
+          foreach (@line)
+          {
+              if (grep /^The following commit.*skipped:$/, $_)
+              {
+                  $found = 1;
+                  ## Reset at each merge to reduce chance of false matches.
+                  @skipshas = ();
+                  next;
+              }
+              if ($found && $_ =~ /^([0-9a-fA-F]{7,}) [^ ]/)
+              {
+                  push ( @skipshas, $1 );
+              }
+          }
+      }
+
       # Ignore commits that match the --ignore-matching pattern, if specified.
-      if (! (defined $ignore_matching
-             && @line && $line[0] =~ /$ignore_matching/))
+      if (! ($skipflag || (defined $ignore_matching
+             && @line && $line[0] =~ /$ignore_matching/)))
         {
           if (defined $ignore_line && @line)
             {

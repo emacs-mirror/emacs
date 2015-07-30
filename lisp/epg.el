@@ -602,6 +602,20 @@ callback data (if any)."
       (setq process-environment
 	    (cons (concat "GPG_TTY=" terminal-name)
 		  (cons "TERM=xterm" process-environment))))
+    ;; Start the Emacs Pinentry server if allow-emacs-pinentry is set
+    ;; in ~/.gnupg/gpg-agent.conf.
+    (when (and (fboundp 'pinentry-start)
+	       (executable-find epg-gpgconf-program)
+	       (with-temp-buffer
+		 (when (= (call-process epg-gpgconf-program nil t nil
+					"--list-options" "gpg-agent")
+			  0)
+		   (goto-char (point-min))
+		   (re-search-forward "^allow-emacs-pinentry:.*:1$" nil t))))
+      (pinentry-start))
+    (setq process-environment
+	  (cons (format "INSIDE_EMACS=%s,epg" emacs-version)
+		process-environment))
     ;; Record modified time of gpg-agent socket to restore the Emacs
     ;; frame on text terminal in `epg-wait-for-completion'.
     ;; See

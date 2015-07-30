@@ -566,7 +566,7 @@ See also `calendar-intermonth-header'."
                         'font-lock-face 'font-lock-function-name-face)))
   :version "23.1")
 
-(defcustom diary-file "~/diary"
+(defcustom diary-file (locate-user-emacs-file "diary" "diary")
   "Name of the file in which one's personal diary of dates is kept.
 
 The file's entries are lines beginning with any of the forms
@@ -653,6 +653,7 @@ documentation of these hooks for details.
 
 Diary files can contain directives to include the contents of other files; for
 details, see the documentation for the variable `diary-list-entries-hook'."
+  :version "25.1"                  ; ~/diary -> locate-user-emacs-file
   :type 'file
   :group 'diary)
 
@@ -1194,7 +1195,7 @@ return negative results."
   (let ((year (calendar-extract-year date))
         offset-years)
     (cond ((zerop year)
-           (error "There was no year zero"))
+           (user-error "There was no year zero"))
           ((> year 0)
            (setq offset-years (1- year))
            (+ (calendar-day-number date) ; days this year
@@ -1379,7 +1380,7 @@ Optional integers MON and YR are used instead of today's date."
   ;; stands, almost all other calendar functions (eg holidays) would
   ;; at best have unpredictable results for such dates.
   (if (< (+ month (* 12 (1- year))) 2)
-      (error "Months before January, 1 AD cannot be displayed"))
+      (user-error "Months before January, 1 AD cannot be displayed"))
   (setq displayed-month month
         displayed-year year)
   (erase-buffer)

@@ -731,15 +731,11 @@ Complete list of commands:
 	     (buffer-substring (line-beginning-position 0)
 			       (line-end-position 0)))))
 
-(declare-function help-xref-interned "help-mode"
-                  (symbol &optional buffer frame))
-
 (defun debug-help-follow (&optional pos)
   "Follow cross-reference at POS, defaulting to point.
 
 For the cross-reference format, see `help-make-xrefs'."
   (interactive "d")
-  (require 'help-mode)
   ;; Ideally we'd just do (call-interactively 'help-follow) except that this
   ;; assumes we're already in a *Help* buffer and reuses it, so it ends up
   ;; incorrectly "reusing" the *Backtrace* buffer to show the help info.
@@ -755,7 +751,7 @@ For the cross-reference format, see `help-make-xrefs'."
 				(progn (skip-syntax-forward "w_")
 				       (point)))))))
       (when (or (boundp sym) (fboundp sym) (facep sym))
-        (help-xref-interned sym)))))
+        (describe-symbol sym)))))
 
 ;; When you change this, you may also need to change the number of
 ;; frames that the debugger skips.

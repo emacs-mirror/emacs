@@ -517,12 +517,6 @@ is only done with @kbd{M-x executable-set-magic}.  When this is
 called as a function, such as when Emacs puts a buffer in Shell script
 mode.  Otherwise you are always queried.
 
-@findex executable-self-display
-  @kbd{M-x executable-self-display} adds a magic number to the buffer, which
-will turn it into a self displaying text file, when called as a Un*x command.
-The ``interpreter'' used is @code{executable-self-display} with argument
-@samp{+2}.
-
 @node Timestamps
 @chapter Maintaining Timestamps in Modified Files
 @cindex timestamps

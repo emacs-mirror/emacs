@@ -364,25 +364,21 @@ C-w  Describe how there is no warranty for Calc."
 	  (error "Can't find `%s' in %s" thing where)))
     (let (Info-history)
       (Info-goto-node (buffer-substring (match-beginning 1) (match-end 1))))
-    (or (let ((case-fold-search nil))
-	  (or (re-search-forward
-               (format "\\[[`‘]%s['’]\\]\\|([`‘]%s['’])\\|\\<The[ \n][`‘]%s['’]"
-                       (or target (regexp-quote thing))
-                       (or target (regexp-quote thing))
-                       (or target (regexp-quote thing))) nil t)
-	      (and not-quoted
-		   (let ((case-fold-search t))
-		     (search-forward (or target thing) nil t)))
-	      (search-forward (format "[`‘]%s['’]" (or target thing)) nil t)
-	      (search-forward (or target thing) nil t)))
-	(let ((case-fold-search t))
-	  (or (re-search-forward
-               (format "\\[[`‘]%s['’]\\]\\|([`‘]%s['’])\\|\\<The[ \n][`‘]%s['’]"
-                       (or target (regexp-quote thing))
-                       (or target (regexp-quote thing))
-                       (or target (regexp-quote thing))) nil t)
-	      (search-forward (format "[`‘]%s['’]" (or target thing)) nil t)
-	      (search-forward (or target thing) nil t))))
+    (let* ((string-target (or target thing))
+           (quoted (format "['`‘]%s['’]" (regexp-quote string-target)))
+           (bracketed (format "\\[%s\\]\\|(%s)\\|\\<The[ \n]%s"
+                              quoted quoted quoted)))
+      (or (let ((case-fold-search nil))
+            (or (re-search-forward bracketed nil t)
+                (and not-quoted
+                     (let ((case-fold-search t))
+                       (search-forward string-target nil t)))
+                (re-search-forward quoted nil t)
+                (search-forward string-target nil t)))
+          (let ((case-fold-search t))
+            (or (re-search-forward bracketed nil t)
+                (re-search-forward quoted nil t)
+                (search-forward string-target nil t)))))
     (beginning-of-line)
     (message "Found `%s' in %s" thing where)))
 

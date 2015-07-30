@@ -897,13 +897,151 @@ macfont_descriptor_entity (FontDescriptorRef desc, Lisp_Object extra,
   return entity;
 }
 
+/* Cache for font family name symbols vs CFStrings.  A value of nil
+means the cache has been invalidated.  Otherwise the value is a Lisp
+hash table whose keys are symbols and the value for a key is either
+nil (no corresponding family name) or a Lisp save value wrapping the
+corresponding family name in CFString.  */
+
+static Lisp_Object macfont_family_cache;
+
+static void
+macfont_invalidate_family_cache (void)
+{
+  if (HASH_TABLE_P (macfont_family_cache))
+    {
+      struct Lisp_Hash_Table *h = XHASH_TABLE (macfont_family_cache);
+      ptrdiff_t i, size = HASH_TABLE_SIZE (h);
+
+      for (i = 0; i < size; ++i)
+	if (!NILP (HASH_HASH (h, i)))
+	  {
+	    Lisp_Object value = HASH_VALUE (h, i);
+
+	    if (SAVE_VALUEP (value))
+	      CFRelease (XSAVE_POINTER (value, 0));
+	  }
+      macfont_family_cache = Qnil;
+    }
+}
+
+static bool
+macfont_get_family_cache_if_present (Lisp_Object symbol, CFStringRef *string)
+{
+  if (HASH_TABLE_P (macfont_family_cache))
+    {
+      struct Lisp_Hash_Table *h = XHASH_TABLE (macfont_family_cache);
+      ptrdiff_t i = hash_lookup (h, symbol, NULL);
+
+      if (i >= 0)
+	{
+	  Lisp_Object value = HASH_VALUE (h, i);
+
+	  *string = SAVE_VALUEP (value) ? XSAVE_POINTER (value, 0) : NULL;
+
+	  return true;
+	}
+    }
+
+  return false;
+}
+
+static void
+macfont_set_family_cache (Lisp_Object symbol, CFStringRef string)
+{
+  struct Lisp_Hash_Table *h;
+  ptrdiff_t i;
+  EMACS_UINT hash;
+  Lisp_Object value;
+
+  if (!HASH_TABLE_P (macfont_family_cache))
+    {
+      Lisp_Object args[2];
+
+      args[0] = QCtest;
+      args[1] = Qeq;
+      macfont_family_cache = Fmake_hash_table (2, args);
+    }
+
+  h = XHASH_TABLE (macfont_family_cache);
+  i = hash_lookup (h, symbol, &hash);
+  value = string ? make_save_ptr ((void *) CFRetain (string)) : Qnil;
+  if (i >= 0)
+    {
+      Lisp_Object old_value = HASH_VALUE (h, i);
+
+      if (SAVE_VALUEP (old_value))
+	CFRelease (XSAVE_POINTER (old_value, 0));
+      set_hash_value_slot (h, i, value);
+    }
+  else
+    hash_put (h, symbol, value, hash);
+}
+
+/* Cache of all the available font family names except "LastResort"
+and those start with ".".  NULL means the cache has been invalidated.
+Otherwise, the value is CFArray of CFStrings and the elements are
+sorted in the canonical order (CTFontManagerCompareFontFamilyNames on
+OS X 10.6 and later).  */
+
+static CFArrayRef macfont_available_families_cache = NULL;
+
+static void
+macfont_invalidate_available_families_cache (void)
+{
+  if (macfont_available_families_cache)
+    {
+      CFRelease (macfont_available_families_cache);
+      macfont_available_families_cache = NULL;
+    }
+}
+
+static void
+macfont_handle_font_change_notification (CFNotificationCenterRef center,
+					 void *observer,
+					 CFStringRef name, const void *object,
+					 CFDictionaryRef userInfo)
+{
+  macfont_invalidate_family_cache ();
+  macfont_invalidate_available_families_cache ();
+}
+
+static void
+macfont_init_font_change_handler (void)
+{
+  static bool initialized = false;
+
+  if (initialized)
+    return;
+
+  initialized = true;
+  CFNotificationCenterAddObserver
+    (CFNotificationCenterGetLocalCenter (), NULL,
+     macfont_handle_font_change_notification,
+     kCTFontManagerRegisteredFontsChangedNotification,
+     NULL, CFNotificationSuspensionBehaviorCoalesce);
+}
+
+static CFArrayRef
+macfont_copy_available_families_cache (void)
+{
+  macfont_init_font_change_handler ();
+
+  if (macfont_available_families_cache == NULL)
+    macfont_available_families_cache = mac_font_create_available_families ();
+
+  return (macfont_available_families_cache
+	  ? CFRetain (macfont_available_families_cache) : NULL);
+}
+
 static CFStringRef
 macfont_create_family_with_symbol (Lisp_Object symbol)
 {
-  static CFArrayRef families = NULL;
   CFStringRef result = NULL, family_name;
-  int using_cache_p = 1;
   CFComparatorFunction family_name_comparator;
+
+  if (macfont_get_family_cache_if_present (symbol, &result))
+    return result ? CFRetain (result) : NULL;
 
   family_name = cfstring_create_with_string_noencode (SYMBOL_NAME (symbol));
   if (family_name == NULL)
@@ -917,41 +1055,31 @@ macfont_create_family_with_symbol (Lisp_Object symbol)
       == kCFCompareEqualTo)
     result = CFSTR ("LastResort");
   else
-    while (1)
-      {
-        CFIndex i, count;
+    {
+      CFIndex i, count;
+      CFArrayRef families = macfont_copy_available_families_cache ();
 
-        if (families == NULL)
-          {
-            families = mac_font_create_available_families ();
-            using_cache_p = 0;
-            if (families == NULL)
-              break;
-          }
+      if (families)
+	{
+	  count = CFArrayGetCount (families);
+	  i = CFArrayBSearchValues (families, CFRangeMake (0, count),
+				    (const void *) family_name,
+				    family_name_comparator, NULL);
+	  if (i < count)
+	    {
+	      CFStringRef name = CFArrayGetValueAtIndex (families, i);
 
-        count = CFArrayGetCount (families);
-        i = CFArrayBSearchValues (families, CFRangeMake (0, count),
-                                  (const void *) family_name,
-                                  family_name_comparator, NULL);
-        if (i < count)
-          {
-            CFStringRef name = CFArrayGetValueAtIndex (families, i);
-
-            if ((*family_name_comparator) (name, family_name, NULL)
-                == kCFCompareEqualTo)
-              result = CFRetain (name);
-          }
-
-        if (result || !using_cache_p)
-          break;
-        else
-          {
-            CFRelease (families);
-            families = NULL;
-          }
-      }
+	      if ((*family_name_comparator) (name, family_name, NULL)
+		  == kCFCompareEqualTo)
+		result = CFRetain (name);
+	    }
+	  CFRelease (families);
+	}
+    }
 
   CFRelease (family_name);
+
+  macfont_set_family_cache (symbol, result);
 
   return result;
 }
@@ -2091,7 +2219,7 @@ macfont_list (struct frame *f, Lisp_Object spec)
       CFStringRef pref_family;
       CFIndex families_count, pref_family_index = -1;
 
-      families = mac_font_create_available_families ();
+      families = macfont_copy_available_families_cache ();
       if (families == NULL)
         goto err;
 
@@ -2198,7 +2326,7 @@ macfont_list (struct frame *f, Lisp_Object spec)
         }
       CFRelease (pat_desc);
       if (! descs)
-        goto err;
+        continue;
 
       descs_count = CFArrayGetCount (descs);
       if (descs_count == 0
@@ -2380,7 +2508,7 @@ macfont_list_family (struct frame *frame)
 
   block_input ();
 
-  families = mac_font_create_available_families ();
+  families = macfont_copy_available_families_cache ();
   if (families)
     {
       CFIndex i, count = CFArrayGetCount (families);
@@ -3393,15 +3521,25 @@ mac_ctfont_create_preferred_family_for_attributes (CFDictionaryRef attributes)
 static inline double
 mac_ctfont_get_advance_width_for_glyph (CTFontRef font, CGGlyph glyph)
 {
-  return CTFontGetAdvancesForGlyphs (font, kCTFontDefaultOrientation,
-                                     &glyph, NULL, 1);
+  return CTFontGetAdvancesForGlyphs (font,
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1080
+				     kCTFontOrientationDefault,
+#else
+				     kCTFontDefaultOrientation,
+#endif
+				     &glyph, NULL, 1);
 }
 
 static inline CGRect
 mac_ctfont_get_bounding_rect_for_glyph (CTFontRef font, CGGlyph glyph)
 {
-  return CTFontGetBoundingRectsForGlyphs (font, kCTFontDefaultOrientation,
-                                          &glyph, NULL, 1);
+  return CTFontGetBoundingRectsForGlyphs (font,
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1080
+					  kCTFontOrientationDefault,
+#else
+					  kCTFontDefaultOrientation,
+#endif
+					  &glyph, NULL, 1);
 }
 
 static CFArrayRef
@@ -3763,7 +3901,7 @@ mac_font_copy_default_descriptors_for_language (CFStringRef language)
 #endif
     {
       CTFontRef user_font =
-        CTFontCreateUIFontForLanguage (kCTFontUserFontType, 0, language);
+	CTFontCreateUIFontForLanguage (kCTFontUIFontUser, 0, language);
 
       if (user_font)
         {
@@ -3923,4 +4061,7 @@ syms_of_macfont (void)
 
   /* The boolean-valued font property key specifying the use of leading.  */
   DEFSYM (QCminspace, ":minspace");
+
+  macfont_family_cache = Qnil;
+  staticpro (&macfont_family_cache);
 }

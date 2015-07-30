@@ -42,7 +42,7 @@
 ;; Váhids.  A cycle of 19 Váhids (361 years) is called a Kullu-Shay,
 ;; which means "all things".
 
-;; The calendar was named the "Badí` calendar" by its author, the Báb.
+;; The calendar was named the "Badí‘ calendar" by its author, the Báb.
 ;; It uses a week of seven days, corresponding to the Gregorian week,
 ;; each of which has its own name, again patterned after the
 ;; attributes of God.
@@ -56,9 +56,9 @@
 (require 'calendar)
 
 (defconst calendar-bahai-month-name-array
-  ["Bahá" "Jalál" "Jamál" "`Azamat" "Núr" "Rahmat" "Kalimát" "Kamál"
-   "Asmá" "`Izzat" "Mashiyyat" "`Ilm" "Qudrat" "Qawl" "Masá'il"
-   "Sharaf" "Sultán" "Mulk" "`Alá"]
+  ["Bahá" "Jalál" "Jamál" "‘Aẓamat" "Núr" "Raḥmat" "Kalimát" "Kamál"
+   "Asmá’" "‘Izzat" "Mashíyyat" "‘Ilm" "Qudrat" "Qawl" "Masá’il"
+   "Sharaf" "Sulṭán" "Mulk" "‘Alá’"]
   "Array of the month names in the Bahá'í calendar.")
 
 (defconst calendar-bahai-epoch (calendar-absolute-from-gregorian '(3 21 1844))

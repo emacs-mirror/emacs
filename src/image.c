@@ -3690,7 +3690,7 @@ xpm_load (struct frame *f, struct image *img)
       int i;
       uint32_t *od = (uint32_t *)data;
       uint32_t *id = (uint32_t *)img->ximg->data;
-      unsigned char *mid = img->mask_img ? img->mask_img->data : 0;
+      char *mid = img->mask_img ? img->mask_img->data : 0;
       uint32_t bgcolor = get_spec_bg_or_alpha_as_argb (img, f);
 
       for (i = 0; i < height; ++i)
@@ -5642,7 +5642,7 @@ png_image_p (Lisp_Object object)
 #endif /* HAVE_PNG || HAVE_NS || USE_CAIRO */
 
 
-#if defined HAVE_PNG && !defined HAVE_NS
+#if (defined HAVE_PNG && !defined HAVE_NS) || defined USE_CAIRO
 
 # ifdef WINDOWSNT
 /* PNG library details.  */

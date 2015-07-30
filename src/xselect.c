@@ -45,9 +45,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 struct prop_location;
 struct selection_data;
 
-static void x_decline_selection_request (struct input_event *);
-static bool x_convert_selection (struct input_event *, Lisp_Object,
-				 Lisp_Object, Atom, bool,
+static void x_decline_selection_request (struct selection_input_event *);
+static bool x_convert_selection (Lisp_Object, Lisp_Object, Atom, bool,
 				 struct x_display_info *);
 static bool waiting_for_other_props_on_window (Display *, Window);
 static struct prop_location *expect_property_change (Display *, Window,
@@ -117,7 +116,7 @@ selection_quantum (Display *display)
 
 struct selection_event_queue
   {
-    struct input_event event;
+    struct selection_input_event event;
     struct selection_event_queue *next;
   };
 
@@ -127,10 +126,22 @@ static struct selection_event_queue *selection_queue;
 
 static int x_queue_selection_requests;
 
+/* True if the input events are duplicates.  */
+
+static bool
+selection_input_event_equal (struct selection_input_event *a,
+			     struct selection_input_event *b)
+{
+  return (a->kind == b->kind && a->dpyinfo == b->dpyinfo
+	  && a->requestor == b->requestor && a->selection == b->selection
+	  && a->target == b->target && a->property == b->property
+	  && a->time == b->time);
+}
+
 /* Queue up an SELECTION_REQUEST_EVENT *EVENT, to be processed later.  */
 
 static void
-x_queue_event (struct input_event *event)
+x_queue_event (struct selection_input_event *event)
 {
   struct selection_event_queue *queue_tmp;
 
@@ -138,7 +149,7 @@ x_queue_event (struct input_event *event)
      This only happens for large requests which uses the incremental protocol.  */
   for (queue_tmp = selection_queue; queue_tmp; queue_tmp = queue_tmp->next)
     {
-      if (!memcmp (&queue_tmp->event, event, sizeof (*event)))
+      if (selection_input_event_equal (event, &queue_tmp->event))
 	{
 	  TRACE1 ("DECLINE DUP SELECTION EVENT %p", queue_tmp);
 	  x_decline_selection_request (event);
@@ -419,7 +430,7 @@ x_get_local_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
    meaning we were unable to do what they wanted.  */
 
 static void
-x_decline_selection_request (struct input_event *event)
+x_decline_selection_request (struct selection_input_event *event)
 {
   XEvent reply_base;
   XSelectionEvent *reply = &(reply_base.xselection);
@@ -444,7 +455,7 @@ x_decline_selection_request (struct input_event *event)
 
 /* This is the selection request currently being processed.
    It is set to zero when the request is fully processed.  */
-static struct input_event *x_selection_current_request;
+static struct selection_input_event *x_selection_current_request;
 
 /* Display info in x_selection_request.  */
 
@@ -549,7 +560,7 @@ static int x_reply_selection_request_cnt;
 #endif  /* TRACE_SELECTION */
 
 static void
-x_reply_selection_request (struct input_event *event,
+x_reply_selection_request (struct selection_input_event *event,
                            struct x_display_info *dpyinfo)
 {
   XEvent reply_base;
@@ -740,7 +751,7 @@ x_reply_selection_request (struct input_event *event,
    This is called from keyboard.c when such an event is found in the queue.  */
 
 static void
-x_handle_selection_request (struct input_event *event)
+x_handle_selection_request (struct selection_input_event *event)
 {
   struct gcpro gcpro1, gcpro2;
   Time local_selection_time;
@@ -809,7 +820,7 @@ x_handle_selection_request (struct input_event *event)
 					       AREF (multprop, 2*j+1));
 
 	  if (subproperty != None)
-	    x_convert_selection (event, selection_symbol, subtarget,
+	    x_convert_selection (selection_symbol, subtarget,
 				 subproperty, true, dpyinfo);
 	}
       success = true;
@@ -818,7 +829,7 @@ x_handle_selection_request (struct input_event *event)
     {
       if (property == None)
 	property = SELECTION_EVENT_TARGET (event);
-      success = x_convert_selection (event, selection_symbol,
+      success = x_convert_selection (selection_symbol,
 				     target_symbol, property,
 				     false, dpyinfo);
     }
@@ -849,7 +860,7 @@ x_handle_selection_request (struct input_event *event)
    Return true iff successful.  */
 
 static bool
-x_convert_selection (struct input_event *event, Lisp_Object selection_symbol,
+x_convert_selection (Lisp_Object selection_symbol,
 		     Lisp_Object target_symbol, Atom property,
 		     bool for_multiple, struct x_display_info *dpyinfo)
 {
@@ -902,7 +913,7 @@ x_convert_selection (struct input_event *event, Lisp_Object selection_symbol,
    This is called from keyboard.c when such an event is found in the queue.  */
 
 static void
-x_handle_selection_clear (struct input_event *event)
+x_handle_selection_clear (struct selection_input_event *event)
 {
   Atom selection = SELECTION_EVENT_SELECTION (event);
   Time changed_owner_time = SELECTION_EVENT_TIME (event);
@@ -954,7 +965,7 @@ x_handle_selection_clear (struct input_event *event)
 }
 
 void
-x_handle_selection_event (struct input_event *event)
+x_handle_selection_event (struct selection_input_event *event)
 {
   TRACE0 ("x_handle_selection_event");
   if (event->kind != SELECTION_REQUEST_EVENT)
@@ -2006,10 +2017,7 @@ On MS-DOS, all this does is return non-nil if we own the selection.  */)
 {
   Time timestamp;
   Atom selection_atom;
-  union {
-    struct selection_input_event sie;
-    struct input_event ie;
-  } event;
+  struct selection_input_event event;
   struct frame *f = frame_for_x_selection (terminal);
   struct x_display_info *dpyinfo;
 
@@ -2038,10 +2046,10 @@ On MS-DOS, all this does is return non-nil if we own the selection.  */)
      the selection owner to None.  The NCD server does, the MIT Sun4 server
      doesn't.  So we synthesize one; this means we might get two, but
      that's ok, because the second one won't have any effect.  */
-  SELECTION_EVENT_DPYINFO (&event.sie) = dpyinfo;
-  SELECTION_EVENT_SELECTION (&event.sie) = selection_atom;
-  SELECTION_EVENT_TIME (&event.sie) = timestamp;
-  x_handle_selection_clear (&event.ie);
+  SELECTION_EVENT_DPYINFO (&event) = dpyinfo;
+  SELECTION_EVENT_SELECTION (&event) = selection_atom;
+  SELECTION_EVENT_TIME (&event) = timestamp;
+  x_handle_selection_clear (&event);
 
   return Qt;
 }

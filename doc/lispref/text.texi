@@ -3509,10 +3509,12 @@ of the text.
 @cindex sticky text properties
 @cindex inheritance, text property
 
-  Self-inserting characters normally take on the same properties as the
-preceding character.  This is called @dfn{inheritance} of properties.
+  Self-inserting characters, the ones that get inserted into a buffer
+when the user types them (@pxref{Commands for Insertion}), normally
+take on the same properties as the preceding character.  This is
+called @dfn{inheritance} of properties.
 
-  A Lisp program can do insertion with inheritance or without,
+  By contrast, a Lisp program can do insertion with inheritance or without,
 depending on the choice of insertion primitive.  The ordinary text
 insertion functions, such as @code{insert}, do not inherit any
 properties.  They insert text with precisely the properties of the

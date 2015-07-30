@@ -1423,8 +1423,12 @@ Argument BACKEND is the backend you are using."
 
 (defun vc-default-ignore-completion-table (backend file)
   "Return the list of ignored files under BACKEND."
-  (vc--read-lines
-   (vc-call-backend backend 'find-ignore-file file)))
+  (cl-delete-if
+   (lambda (str)
+     ;; Commented or empty lines.
+     (string-match-p "\\`\\(?:#\\|[ \t\r\n]*\\'\\)" str))
+   (vc--read-lines
+    (vc-call-backend backend 'find-ignore-file file))))
 
 (defun vc--read-lines (file)
   "Return a list of lines of FILE."

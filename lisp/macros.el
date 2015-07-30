@@ -39,14 +39,14 @@ The symbol's function definition becomes the keyboard macro string.
 Such a \"function\" cannot be called from Lisp, but it is a valid editor command."
   (interactive "SName for last kbd macro: ")
   (or last-kbd-macro
-      (error "No keyboard macro defined"))
+      (user-error "No keyboard macro defined"))
   (and (fboundp symbol)
        (not (stringp (symbol-function symbol)))
        (not (vectorp (symbol-function symbol)))
-       (error "Function %s is already defined and not a keyboard macro"
+       (user-error "Function %s is already defined and not a keyboard macro"
 	      symbol))
   (if (string-equal symbol "")
-      (error "No command name given"))
+      (user-error "No command name given"))
   (fset symbol last-kbd-macro))
 
 ;;;###autoload
@@ -166,7 +166,7 @@ Your options are: \\<query-replace-map>
   (interactive "P")
   (or executing-kbd-macro
       defining-kbd-macro
-      (error "Not defining or executing kbd macro"))
+      (user-error "Not defining or executing kbd macro"))
   (if flag
       (let (executing-kbd-macro defining-kbd-macro)
 	(recursive-edit))
@@ -260,7 +260,7 @@ and then select the region of un-tablified names and use
   (or macro
       (progn
 	(if (null last-kbd-macro)
-	    (error "No keyboard macro has been defined"))
+	    (user-error "No keyboard macro has been defined"))
 	(setq macro last-kbd-macro)))
   (save-excursion
     (let ((end-marker (copy-marker bottom))

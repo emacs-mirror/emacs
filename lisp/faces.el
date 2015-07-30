@@ -753,7 +753,7 @@ is specified, `:italic' is ignored."
   (setq args (purecopy args))
   (let ((where (if (null frame) 0 frame))
 	(spec args)
-	family foundry)
+	family foundry orig-family orig-foundry)
     ;; If we set the new-frame defaults, this face is modified outside Custom.
     (if (memq where '(0 t))
 	(put (or (get face 'face-alias) face) 'face-modified t))
@@ -769,9 +769,16 @@ is specified, `:italic' is ignored."
     (when (or family foundry)
       (when (and (stringp family)
 		 (string-match "\\([^-]*\\)-\\([^-]*\\)" family))
+        (setq orig-foundry foundry
+              orig-family family)
 	(unless foundry
 	  (setq foundry (match-string 1 family)))
-	(setq family (match-string 2 family)))
+	(setq family (match-string 2 family))
+        ;; Reject bogus "families" that are all-digits -- those are some
+        ;; weird font names, like Foobar-12, that end in a number.
+        (when (string-match "\\`[0-9]*\\'" family)
+          (setq family orig-family)
+          (setq foundry orig-foundry)))
       (when (or (stringp family) (eq family 'unspecified))
 	(internal-set-lisp-face-attribute face :family (purecopy family)
 					  where))
@@ -1428,10 +1435,12 @@ If FRAME is omitted or nil, use the selected frame."
 		  (when alias
 		    (setq face alias)
 		    (insert
-		     (format "\n  %s is an alias for the face ‘%s’.\n%s"
+		     (format (substitute-command-keys
+                              "\n  %s is an alias for the face ‘%s’.\n%s")
 			     f alias
 			     (if (setq obsolete (get f 'obsolete-face))
-				 (format "  This face is obsolete%s; use ‘%s’ instead.\n"
+				 (format (substitute-command-keys
+                                          "  This face is obsolete%s; use ‘%s’ instead.\n")
 					 (if (stringp obsolete)
 					     (format " since %s" obsolete)
 					   "")
@@ -1449,12 +1458,13 @@ If FRAME is omitted or nil, use the selected frame."
 		    (help-xref-button 1 'help-customize-face f)))
 		(setq file-name (find-lisp-object-file-name f 'defface))
 		(when file-name
-		  (princ "Defined in ‘")
+		  (princ (substitute-command-keys "Defined in ‘"))
 		  (princ (file-name-nondirectory file-name))
-		  (princ "’")
+		  (princ (substitute-command-keys "’"))
 		  ;; Make a hyperlink to the library.
 		  (save-excursion
-		    (re-search-backward "‘\\([^‘’]+\\)’" nil t)
+		    (re-search-backward
+                     (substitute-command-keys "‘\\([^‘’]+\\)’") nil t)
 		    (help-xref-button 1 'help-face-def f file-name))
 		  (princ ".")
 		  (terpri)
@@ -2496,7 +2506,7 @@ is used for the inner part while the first pixel line/column is
 drawn with the `window-divider-first-pixel' face and the last
 pixel line/column with the `window-divider-last-pixel' face."
   :version "24.4"
-  :group 'frames
+  :group 'window-divider
   :group 'basic-faces)
 
 (defface window-divider-first-pixel
@@ -2507,7 +2517,7 @@ line/column is drawn with the foreground of this face.  If you do
 not want to accentuate the first pixel line/column, set this to
 the same as `window-divider' face."
   :version "24.4"
-  :group 'frames
+  :group 'window-divider
   :group 'basic-faces)
 
 (defface window-divider-last-pixel
@@ -2518,7 +2528,7 @@ line/column is drawn with the foreground of this face.  If you do
 not want to accentuate the last pixel line/column, set this to
 the same as `window-divider' face."
   :version "24.4"
-  :group 'frames
+  :group 'window-divider
   :group 'basic-faces)
 
 (defface minibuffer-prompt

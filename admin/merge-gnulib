@@ -37,20 +37,20 @@ GNULIB_MODULES='
   pipe2 pselect pthread_sigmask putenv qcopy-acl readlink readlinkat
   sig2str socklen stat-time stdalign stddef stdio
   stpcpy strftime strtoimax strtoumax symlink sys_stat
-  sys_time time time_r timer-time timespec-add timespec-sub
+  sys_time time time_r time_rz timegm timer-time timespec-add timespec-sub
   unsetenv update-copyright utimens
   vla warnings
 '
 
 GNULIB_TOOL_FLAGS='
   --avoid=close --avoid=dup
-  --avoid=fchdir --avoid=fstat
+  --avoid=fchdir --avoid=flexmember --avoid=fstat
   --avoid=malloc-posix --avoid=msvc-inval --avoid=msvc-nothrow
   --avoid=open --avoid=openat-die --avoid=opendir
   --avoid=raise
-  --avoid=save-cwd --avoid=select --avoid=sigprocmask
+  --avoid=save-cwd --avoid=select --avoid=setenv --avoid=sigprocmask
   --avoid=stdarg --avoid=stdbool
-  --avoid=threadlib
+  --avoid=threadlib --avoid=unsetenv
   --conditional-dependencies --import --no-changelog --no-vc-files
   --makefile-name=gnulib.mk
 '

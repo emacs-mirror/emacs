@@ -125,7 +125,7 @@ GREPPATTERN is the pattern used by grep."
                greppattern
                filepattern
                rootdir)))
-    ;; For some reason, my default has no <D> in it.
+    ;; http://debbugs.gnu.org/20719
     (when (string-match "find \\(\\.\\)" cmd)
       (setq cmd (replace-match rootdir t t cmd 1)))
     ;;(message "New command: %s" cmd)

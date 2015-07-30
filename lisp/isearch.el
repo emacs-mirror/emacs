@@ -519,6 +519,7 @@ This is like `describe-bindings', but displays only Isearch keys."
     (define-key map "\M-sw" 'isearch-toggle-word)
     (define-key map "\M-s_" 'isearch-toggle-symbol)
     (define-key map "\M-s " 'isearch-toggle-lax-whitespace)
+    (define-key map "\M-s'" #'isearch-toggle-character-fold)
 
     (define-key map [?\M-%] 'isearch-query-replace)
     (define-key map [?\C-\M-%] 'isearch-query-replace-regexp)
@@ -834,6 +835,9 @@ See the command `isearch-forward-symbol' for more information."
 ;;			     isearch-forward-regexp isearch-backward-regexp)
 ;;  "List of commands for which isearch-mode does not recursive-edit.")
 
+(autoload 'character-fold-to-regexp "character-fold")
+(put 'character-fold-to-regexp 'isearch-message-prefix "char-fold ")
+(defvar character-fold-search)
 
 (defun isearch-mode (forward &optional regexp op-fun recursive-edit word)
   "Start Isearch minor mode.
@@ -858,7 +862,9 @@ convert the search string to a regexp used by regexp search functions."
   ;; Initialize global vars.
   (setq isearch-forward forward
 	isearch-regexp regexp
-	isearch-word word
+	isearch-word (or word (and character-fold-search
+                                   (not regexp)
+                                   'character-fold-to-regexp))
 	isearch-op-fun op-fun
 	isearch-last-case-fold-search isearch-case-fold-search
 	isearch-case-fold-search case-fold-search
@@ -1178,8 +1184,8 @@ nonincremental search instead via `isearch-edit-string'."
   (if (and search-nonincremental-instead
 	   (= 0 (length isearch-string)))
       (let ((isearch-nonincremental t))
-	(isearch-edit-string)))
-  (isearch-done)
+	(isearch-edit-string)) ;; this calls isearch-done as well
+    (isearch-done))
   (isearch-clean-overlays))
 
 (defun isearch-fail-pos (&optional msg)
@@ -1494,7 +1500,7 @@ Use `isearch-exit' to quit without signaling."
   "Toggle word searching on or off."
   ;; The status stack is left unchanged.
   (interactive)
-  (setq isearch-word (not isearch-word))
+  (setq isearch-word (if (eq isearch-word t) nil t))
   (if isearch-word (setq isearch-regexp nil))
   (setq isearch-success t isearch-adjusted t)
   (isearch-update))
@@ -1504,6 +1510,15 @@ Use `isearch-exit' to quit without signaling."
   (interactive)
   (setq isearch-word (unless (eq isearch-word 'isearch-symbol-regexp)
 		       'isearch-symbol-regexp))
+  (if isearch-word (setq isearch-regexp nil))
+  (setq isearch-success t isearch-adjusted t)
+  (isearch-update))
+
+(defun isearch-toggle-character-fold ()
+  "Toggle character folding in searching on or off."
+  (interactive)
+  (setq isearch-word (unless (eq isearch-word #'character-fold-to-regexp)
+                       #'character-fold-to-regexp))
   (if isearch-word (setq isearch-regexp nil))
   (setq isearch-success t isearch-adjusted t)
   (isearch-update))
@@ -1751,16 +1766,8 @@ replacements from Isearch is `M-s w ... M-%'."
      (query-replace-read-to
       isearch-string
       (concat "Query replace"
-	      (if (or delimited isearch-word)
-		  (let* ((symbol (or delimited isearch-word))
-			 (string (and symbol (symbolp symbol)
-				      (get symbol 'isearch-message-prefix))))
-		    (if (stringp string)
-			;; Move space from the end to the beginning.
-			(replace-regexp-in-string "\\(.*\\) \\'" " \\1" string)
-		      " word"))
-		"")
-	      (if isearch-regexp " regexp" "")
+              (isearch--describe-word-mode (or delimited isearch-word) t)
+              (if isearch-regexp " regexp" "")
 	      (if backward " backward" "")
 	      (if (and transient-mark-mode mark-active) " in region" ""))
       isearch-regexp)
@@ -2506,6 +2513,21 @@ If there is no completion possible, say so and continue searching."
 	     (isearch-message-suffix c-q-hack)))
     (if c-q-hack m (let ((message-log-max nil)) (message "%s" m)))))
 
+(defun isearch--describe-word-mode (word-mode &optional space-before)
+  "Make a string for describing WORD-MODE.
+If SPACE-BEFORE is non-nil,  put a space before, instead of after,
+the word mode."
+  (let ((description
+         (cond ((and (symbolp word-mode)
+                     (get word-mode 'isearch-message-prefix))
+                (get word-mode 'isearch-message-prefix))
+               (word-mode "word ")
+               (t ""))))
+    (if space-before
+        ;; Move space from the end to the beginning.
+        (replace-regexp-in-string "\\(.*\\) \\'" " \\1" description)
+      description)))
+
 (defun isearch-message-prefix (&optional ellipsis nonincremental)
   ;; If about to search, and previous search regexp was invalid,
   ;; check that it still is.  If it is valid now,
@@ -2532,13 +2554,9 @@ If there is no completion possible, say so and continue searching."
                         (let ((np (cdr (assq 'isearch-message-prefix props))))
                           (if np (setq prefix (concat np prefix)))))
                       isearch-filter-predicate)
-		     prefix)
-		   (if isearch-word
-		       (or (and (symbolp isearch-word)
-				(get isearch-word 'isearch-message-prefix))
-			   "word ")
-		     "")
-		   (if isearch-regexp "regexp " "")
+                     prefix)
+                   (isearch--describe-word-mode isearch-word)
+                   (if isearch-regexp "regexp " "")
 		   (cond
 		    (multi-isearch-file-list "multi-file ")
 		    (multi-isearch-buffer-list "multi-buffer ")

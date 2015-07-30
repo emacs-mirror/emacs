@@ -803,7 +803,7 @@ Subclasses to override slot attributes.")
   (should (eq (oref-default 'slotattr-class-ok initform) 'no-init)))
 
 (ert-deftest eieio-test-32-slot-attribute-override-2 ()
-  (let* ((cv (eieio--class-v 'slotattr-ok))
+  (let* ((cv (cl--find-class 'slotattr-ok))
          (slots  (eieio--class-slots cv))
 	 (args   (eieio--class-initarg-tuples cv)))
     ;; :initarg should override for subclass

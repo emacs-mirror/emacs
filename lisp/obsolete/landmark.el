@@ -6,6 +6,7 @@
 ;; Created: December 16, 1996 - first release to usenet
 ;; Keywords: games, neural network, adaptive search, chemotaxis
 ;; Version: 1.0
+;; Obsolete-since: 25.1
 
 ;; This file is part of GNU Emacs.
 
@@ -24,6 +25,8 @@
 
 
 ;;; Commentary:
+
+;; *Note: This package has now moved to elpa.gnu.org.*
 
 ;; To try this, just type: M-x landmark-test-run
 

@@ -210,6 +210,12 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     for it.  Also note that \"/bin/sh\" exists on all Unixen,
     this might not be true for the value that you decide to use.
     You Have Been Warned.
+  * `tramp-remote-shell-login'
+    This specifies the arguments to let `tramp-remote-shell' run
+    as a login shell.  It defaults to (\"-l\"), but some shells,
+    like ksh, require another argument.  See
+    `tramp-connection-properties' for a way to overwrite the
+    default value.
   * `tramp-remote-shell-args'
     For implementation of `shell-command', this specifies the
     arguments to let `tramp-remote-shell' run a single command.
@@ -1099,11 +1105,20 @@ calling HANDLER.")
 ;; internal data structure.  Convenience functions for internal
 ;; data structure.
 
-(defun tramp-get-method-parameter (method param)
+(defun tramp-get-method-parameter (vec param)
   "Return the method parameter PARAM.
-If the `tramp-methods' entry does not exist, return nil."
-  (let ((entry (assoc param (assoc method tramp-methods))))
-    (when entry (cadr entry))))
+If VEC is a vector, check first in connection properties.
+Afterwards, check in `tramp-methods'.  If the `tramp-methods'
+entry does not exist, return nil."
+  (let ((hash-entry
+	 (replace-regexp-in-string "^tramp-" "" (symbol-name param))))
+    (if (tramp-connection-property-p vec hash-entry)
+	;; We use the cached property.
+	(tramp-get-connection-property  vec hash-entry nil)
+      ;; Use the static value from `tramp-methods'.
+      (let ((methods-entry
+	     (assoc param (assoc (tramp-file-name-method vec) tramp-methods))))
+	(when methods-entry (cadr methods-entry))))))
 
 (defun tramp-file-name-p (vec)
   "Check, whether VEC is a Tramp object."
@@ -1167,7 +1182,7 @@ If the `tramp-methods' entry does not exist, return nil."
       (or (and (stringp host)
 	       (string-match tramp-host-with-port-regexp host)
 	       (string-to-number (match-string 2 host)))
-	  (tramp-get-method-parameter method 'tramp-default-port)))))
+	  (tramp-get-method-parameter vec 'tramp-default-port)))))
 
 ;;;###tramp-autoload
 (defun tramp-tramp-file-p (name)
@@ -2912,7 +2927,8 @@ User is always nil."
      (tramp-file-name-user v)
      (tramp-file-name-host v)
      (tramp-run-real-handler
-      'file-name-as-directory (list (or (tramp-file-name-localname v) ""))))))
+      'file-name-as-directory (list (or (tramp-file-name-localname v) "")))
+     (tramp-file-name-hop v))))
 
 (defun tramp-handle-file-name-completion
   (filename directory &optional predicate)
@@ -2940,7 +2956,8 @@ User is always nil."
      (tramp-file-name-user v)
      (tramp-file-name-host v)
      (tramp-run-real-handler
-      'file-name-directory (list (or (tramp-file-name-localname v) ""))))))
+      'file-name-directory (list (or (tramp-file-name-localname v) "")))
+     (tramp-file-name-hop v))))
 
 (defun tramp-handle-file-name-nondirectory (file)
   "Like `file-name-nondirectory' but aware of Tramp files."
@@ -2977,7 +2994,8 @@ User is always nil."
 		((eq identification 'user) user)
 		((eq identification 'host) host)
 		((eq identification 'localname) localname)
-		(t (tramp-make-tramp-file-name method user host "")))))))))
+		((eq identification 'hop) hop)
+		(t (tramp-make-tramp-file-name method user host "" hop)))))))))
 
 (defun tramp-handle-file-symlink-p (filename)
   "Like `file-symlink-p' for Tramp files."
@@ -3092,8 +3110,7 @@ User is always nil."
 		    ;; name handlers.
 		    (when (and (or beg end)
 			       (tramp-get-method-parameter
-				(tramp-file-name-method v)
-				'tramp-login-program))
+				v 'tramp-login-program))
 		      (setq remote-copy (tramp-make-tramp-temp-file v))
 		      ;; This is defined in tramp-sh.el.  Let's assume
 		      ;; this is loaded already.
@@ -3144,7 +3161,7 @@ User is always nil."
 
 		    (when (and (null remote-copy)
 			       (tramp-get-method-parameter
-				method 'tramp-copy-keep-tmpfile))
+				v 'tramp-copy-keep-tmpfile))
 		      ;; We keep the local file for performance reasons,
 		      ;; useful for "rsync".
 		      (setq tramp-temp-buffer-file-name local-copy))
@@ -3228,12 +3245,10 @@ User is always nil."
 	 (args (append
 		(cons
 		 (tramp-get-method-parameter
-		  (tramp-file-name-method
-		   (tramp-dissect-file-name default-directory))
+		  (tramp-dissect-file-name default-directory)
 		  'tramp-remote-shell)
 		 (tramp-get-method-parameter
-		  (tramp-file-name-method
-		   (tramp-dissect-file-name default-directory))
+		  (tramp-dissect-file-name default-directory)
 		  'tramp-remote-shell-args))
 		(list (substring command 0 asynchronous))))
 	 current-buffer-p
@@ -3952,8 +3967,7 @@ be granted."
      ;; The method shall be applied to one of the shell file name
      ;; handlers.  `tramp-local-host-p' is also called for "smb" and
      ;; alike, where it must fail.
-     (tramp-get-method-parameter
-      (tramp-file-name-method vec) 'tramp-login-program)
+     (tramp-get-method-parameter vec 'tramp-login-program)
      ;; The local temp directory must be writable for the other user.
      (file-writable-p
       (tramp-make-tramp-file-name
@@ -3969,18 +3983,19 @@ be granted."
 
 (defun tramp-get-remote-tmpdir (vec)
   "Return directory for temporary files on the remote host identified by VEC."
-  (with-tramp-connection-property vec "tmpdir"
-    (let ((dir (tramp-make-tramp-file-name
-		(tramp-file-name-method vec)
-		(tramp-file-name-user vec)
-		(tramp-file-name-host vec)
-		(or
-		 (tramp-get-method-parameter
-		  (tramp-file-name-method vec) 'tramp-tmpdir)
-		 "/tmp"))))
-      (if (and (file-directory-p dir) (file-writable-p dir))
-	  dir
-	(tramp-error vec 'file-error "Directory %s not accessible" dir)))))
+  (when (file-remote-p (tramp-get-connection-property vec "tmpdir" ""))
+    ;; Compatibility code: Cached value shall be the local path only.
+    (tramp-set-connection-property vec "tmpdir" 'undef))
+  (let ((dir (tramp-make-tramp-file-name
+	      (tramp-file-name-method vec)
+	      (tramp-file-name-user vec)
+	      (tramp-file-name-host vec)
+	      (or (tramp-get-method-parameter vec 'tramp-tmpdir) "/tmp"))))
+    (with-tramp-connection-property vec "tmpdir"
+      (or (and (file-directory-p dir) (file-writable-p dir)
+	       (file-remote-p dir 'localname))
+	  (tramp-error vec 'file-error "Directory %s not accessible" dir)))
+    dir))
 
 ;;;###tramp-autoload
 (defun tramp-make-tramp-temp-file (vec)

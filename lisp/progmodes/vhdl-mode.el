@@ -5713,7 +5713,7 @@ the offset is simply returned."
        (t nil)))))
 
 (defun vhdl-in-extended-identifier-p ()
-  "Determine if point is inside extended identifier (delimited by '\')."
+  "Determine if point is inside extended identifier (delimited by ‘\\’)."
   (save-match-data
     (and (save-excursion (re-search-backward "\\\\" (vhdl-point 'bol) t))
 	 (save-excursion (re-search-forward "\\\\" (vhdl-point 'eol) t)))))

@@ -1318,6 +1318,11 @@ DTEND;VALUE=DATE-TIME:20030919T113000"
    "&9/19/2003 09:00-11:30 non-recurring\n UID: 1234567890uid\n"))
 
 (ert-deftest icalendar-import-with-timezone ()
+  ;; This is known to fail on MS-Windows, because the test assumes
+  ;; Posix features of specifying DST rules.
+  :expected-result (if (memq system-type '(windows-nt ms-dos))
+                       :failed
+                     :passed)
   ;; bug#11473
   (icalendar-tests--test-import
    "BEGIN:VCALENDAR
@@ -1446,6 +1451,11 @@ SUMMARY:and diary-anniversary
 ;; ======================================================================
 (ert-deftest icalendar-real-world ()
   "Perform real-world tests, as gathered from problem reports."
+  ;; This is known to fail on MS-Windows, since it doesn't support DST
+  ;; specification with month and day.
+  :expected-result (if (memq system-type '(windows-nt ms-dos))
+                       :failed
+                     :passed)
   ;; 2003-05-29
   (icalendar-tests--test-import
    "BEGIN:VCALENDAR

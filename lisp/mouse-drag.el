@@ -222,6 +222,8 @@ To test this function, evaluate:
 	 (col-scrolling-p (mouse-drag-should-do-col-scrolling)))
     (select-window start-window)
     (track-mouse
+      ;; Don't change the mouse pointer shape while we drag.
+      (setq track-mouse 'dragging)
       (while (progn
 	       (setq event (read-event)
 		     end (event-end event)

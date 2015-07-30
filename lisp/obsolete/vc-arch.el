@@ -397,7 +397,7 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
 	    (pcase (vc-state file)
 	      ((or `up-to-date `needs-update) ?-)
 	      (`added ?@)
-	      (t ?:))
+	      (_ ?:))
 	    rev)))
 
 (defun vc-arch-diff3-rej-p (rej)

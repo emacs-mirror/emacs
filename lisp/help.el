@@ -95,7 +95,7 @@
     (define-key map "k" 'describe-key)
     (define-key map "l" 'view-lossage)
     (define-key map "m" 'describe-mode)
-    (define-key map "o" 'describe-function-or-variable)
+    (define-key map "o" 'describe-symbol)
     (define-key map "n" 'view-emacs-news)
     (define-key map "p" 'finder-by-keyword)
     (define-key map "P" 'describe-package)
@@ -360,7 +360,7 @@ With argument, display info only for the selected version."
 	       (cons "NEWS"
 		     (directory-files data-directory nil
 				      "^NEWS\\.[0-9][-0-9]*$" nil)))
-	      (sort (delete-dups res) (lambda (a b) (string< b a)))))
+	      (sort (delete-dups res) #'string>)))
 	   (current (car all-versions)))
       (setq version (completing-read
 		     (format "Read NEWS for the version (default %s): " current)
@@ -964,12 +964,14 @@ documentation for the major and minor modes of that buffer."
 	(let* ((mode major-mode)
 	       (file-name (find-lisp-object-file-name mode nil)))
 	  (when file-name
-	    (princ (concat " defined in ‘" (file-name-nondirectory file-name)
-                           "’"))
+	    (princ (concat (substitute-command-keys " defined in ‘")
+                           (file-name-nondirectory file-name)
+                           (substitute-command-keys "’")))
 	    ;; Make a hyperlink to the library.
 	    (with-current-buffer standard-output
 	      (save-excursion
-		(re-search-backward "‘\\([^‘’]+\\)’" nil t)
+		(re-search-backward (substitute-command-keys "‘\\([^‘’]+\\)’")
+                                    nil t)
 		(help-xref-button 1 'help-function-def mode file-name)))))
 	(princ ":\n")
 	(princ (documentation major-mode)))))
@@ -1161,8 +1163,8 @@ size of WINDOW."
 		       (and (window-combined-p window t)
 			    fit-window-to-buffer-horizontally)))
 	      (and (eq quit-cadr 'frame)
-		     fit-frame-to-buffer
-		     (eq window (frame-root-window window))))
+                   fit-frame-to-buffer
+                   (eq window (frame-root-window window))))
 	(fit-window-to-buffer window height nil width nil t))))
 
 ;;; Help windows.
@@ -1349,6 +1351,11 @@ the help window if the current value of the user option
 	  (princ msg)))))
 
 
+(defun help--docstring-quote (string)
+  "Return a doc string that represents STRING.
+The result, when formatted by ‘substitute-command-keys’, should equal STRING."
+  (replace-regexp-in-string "['\\`]" "\\\\=\\&" string))
+
 ;; The following functions used to be in help-fns.el, which is not preloaded.
 ;; But for various reasons, they are more widely needed, so they were
 ;; moved to this file, which is preloaded.  http://debbugs.gnu.org/17001
@@ -1364,12 +1371,16 @@ DEF is the function whose usage we're looking for in DOCSTRING."
   ;; function's name in the doc string so we use `fn' as the anonymous
   ;; function name instead.
   (when (and docstring (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" docstring))
-    (cons (format "(%s%s"
-		  ;; Replace `fn' with the actual function name.
-		  (if (symbolp def) def "anonymous")
-		  (match-string 1 docstring))
-	  (unless (zerop (match-beginning 0))
-            (substring docstring 0 (match-beginning 0))))))
+    (let ((doc (unless (zerop (match-beginning 0))
+		 (substring docstring 0 (match-beginning 0))))
+	  (usage-tail (match-string 1 docstring)))
+      (cons (format "(%s%s"
+		    ;; Replace `fn' with the actual function name.
+		    (if (symbolp def)
+			(help--docstring-quote (format "%S" def))
+		      'anonymous)
+		    usage-tail)
+	    doc))))
 
 (defun help-add-fundoc-usage (docstring arglist)
   "Add the usage info to DOCSTRING.
@@ -1387,7 +1398,7 @@ ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
 	    (if (and (stringp arglist)
 		     (string-match "\\`([^ ]+\\(.*\\))\\'" arglist))
 		(concat "(fn" (match-string 1 arglist) ")")
-	      (format "%S" (help-make-usage 'fn arglist))))))
+	      (help--make-usage-docstring 'fn arglist)))))
 
 (defun help-function-arglist (def &optional preserve-names)
   "Return a formal argument list for the function DEF.
@@ -1442,7 +1453,7 @@ the same names as used in the original source code, when possible."
     "[Arg list not available until function definition is loaded.]")
    (t t)))
 
-(defun help-make-usage (function arglist)
+(defun help--make-usage (function arglist)
   (cons (if (symbolp function) function 'anonymous)
 	(mapcar (lambda (arg)
 		  (if (not (symbolp arg)) arg
@@ -1453,6 +1464,11 @@ the same names as used in the original source code, when possible."
                         (intern (upcase (substring name 1))))
                        (t (intern (upcase name)))))))
 		arglist)))
+
+(define-obsolete-function-alias 'help-make-usage 'help--make-usage "25.1")
+
+(defun help--make-usage-docstring (fn arglist)
+  (help--docstring-quote (format "%S" (help--make-usage fn arglist))))
 
 
 (provide 'help)

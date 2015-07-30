@@ -150,7 +150,8 @@ out all highlighting later with the command `compare-windows-dehighlight'."
 (defvar compare-windows-overlays2 nil)
 (defvar compare-windows-sync-point nil)
 
-(defcustom compare-windows-get-window-function 'compare-windows-get-recent-window
+(defcustom compare-windows-get-window-function
+  'compare-windows-get-recent-window
   "Function that provides the window to compare with."
   :type '(choice
 	  (function-item :tag "Most recently used window"
@@ -159,7 +160,7 @@ out all highlighting later with the command `compare-windows-dehighlight'."
 			 compare-windows-get-next-window)
 	  (function :tag "Your function"))
   :group 'compare-windows
-  :version "25.0")
+  :version "25.1")
 
 (defun compare-windows-get-recent-window ()
   "Return the most recently used window.

@@ -350,7 +350,7 @@ TAGS: etags${EXEEXT}
 	etags *.[ch]
 
 ../lib/libgnu.a: $(config_h)
-	$(MAKE) -C ../lib libgnu.a
+	$(MAKE) -C ../lib all
 
 regex.o: $(srcdir)/../src/regex.c $(srcdir)/../src/regex.h $(config_h)
 	$(AM_V_CC)$(CC) -c $(CPP_CFLAGS) $<

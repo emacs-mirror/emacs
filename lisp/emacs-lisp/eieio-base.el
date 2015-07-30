@@ -429,37 +429,28 @@ Optional argument COMMENT is a header line comment."
   "Save persistent object THIS to disk.
 Optional argument FILE overrides the file name specified in the object
 instance."
-  (save-excursion
-    (let ((b (set-buffer (get-buffer-create " *tmp object write*")))
-	  (default-directory (file-name-directory (oref this file)))
-	  (cfn (oref this file)))
-      (unwind-protect
-	  (save-excursion
-	    (erase-buffer)
-	    (let ((standard-output (current-buffer)))
-	      (oset this file
-		    (if file
-			(eieio-persistent-path-relative this file)
-		      (file-name-nondirectory cfn)))
-	      (object-write this (oref this file-header-line)))
-	    (let ((backup-inhibited (not (oref this do-backups)))
-		  (cs (car (find-coding-systems-region
-			    (point-min) (point-max)))))
-	      (unless (eq cs 'undecided)
-		(setq buffer-file-coding-system cs))
-	      ;; Old way - write file.  Leaves message behind.
-	      ;;(write-file cfn nil)
+  (when file (setq file (expand-file-name file)))
+  (with-temp-buffer
+    (let* ((cfn (or file (oref this file)))
+           (default-directory (file-name-directory cfn)))
+      (cl-letf ((standard-output (current-buffer))
+                ((oref this file)       ;FIXME: Why change it?
+                 (if file
+                     ;; FIXME: Makes a name relative to (oref this file),
+                     ;; whereas I think it should be relative to cfn.
+                     (eieio-persistent-path-relative this file)
+                   (file-name-nondirectory cfn))))
+        (object-write this (oref this file-header-line)))
+      (let ((backup-inhibited (not (oref this do-backups)))
+            (coding-system-for-write 'utf-8-emacs))
+        ;; Old way - write file.  Leaves message behind.
+        ;;(write-file cfn nil)
 
-	      ;; New way - Avoid the vast quantities of error checking
-	      ;; just so I can get at the special flags that disable
-	      ;; displaying random messages.
-	      (write-region (point-min) (point-max)
-			    cfn nil 1)
-	      ))
-	;; Restore :file, and kill the tmp buffer
-	(oset this file cfn)
-	(setq buffer-file-name nil)
-	(kill-buffer b)))))
+        ;; New way - Avoid the vast quantities of error checking
+        ;; just so I can get at the special flags that disable
+        ;; displaying random messages.
+        (write-region (point-min) (point-max) cfn nil 1)
+        ))))
 
 ;; Notes on the persistent object:
 ;; It should also set up some hooks to help it keep itself up to date.

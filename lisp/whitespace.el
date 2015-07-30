@@ -884,6 +884,7 @@ Used when `whitespace-style' includes `lines' or `lines-tail'."
   :type '(choice :tag "Line Length Limit"
 		 (integer :tag "Line Length")
 		 (const :tag "Use fill-column" nil))
+  :safe  'integerp
   :group 'whitespace)
 
 

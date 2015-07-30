@@ -34,8 +34,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* FTCR font driver.  */
 
-/* The actual structure for ftcr font that can be casted to struct
-   font.  */
+/* The actual structure for FTCR font.  A pointer to this structure
+   can be cast to struct font *.  */
 
 struct ftcrfont_info
 {

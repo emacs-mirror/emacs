@@ -1396,6 +1396,22 @@ Considers buffers closer to the car of `buffer-list' to be more recent."
 ;;     result))
 
 
+;; Needed if ls -lh is supported and also for GNU ls -ls.
+(defun dired-x--string-to-number (str)
+  "Like `string-to-number' but recognize a trailing unit prefix.
+For example, 2K is expanded to 2048.0.  The caller should make
+sure that a trailing letter in STR is one of BKkMGTPEZY."
+  (let* ((val (string-to-number str))
+         (u (unless (zerop val)
+              (aref str (1- (length str))))))
+    (when (and u (> u ?9))
+      (when (= u ?k)
+        (setq u ?K))
+      (let ((units '(?B ?K ?M ?G ?T ?P ?E ?Z ?Y)))
+        (while (and units (/= (pop units) u))
+          (setq val (* 1024.0 val)))))
+    val))
+
 ;; Does anyone use this? - lrd 6/29/93.
 ;; Apparently people do use it. - lrd 12/22/97.
 
@@ -1422,7 +1438,19 @@ For example, use
 
         (equal 0 size)
 
-to mark all zero length files."
+to mark all zero length files.
+
+There's an ambiguity when a single integer not followed by a unit
+prefix precedes the file mode: It is then parsed as inode number
+and not as block size (this always works for GNU coreutils ls).
+
+Another limitation is that the uid field is needed for the
+function to work correctly.  In particular, the field is not
+present for some values of `ls-lisp-emulation'.
+
+This function operates only on the buffer content and does not
+refer at all to the underlying file system.  Contrast this with
+`find-dired', which might be preferable for the task at hand."
   ;; Using sym="" instead of nil avoids the trap of
   ;; (string-match "foo" sym) into which a user would soon fall.
   ;; Give `equal' instead of `=' in the example, as this works on
@@ -1442,23 +1470,23 @@ to mark all zero length files."
         ;; to nil or the appropriate value, so they need not be initialized.
         ;; Moves point within the current line.
         (dired-move-to-filename)
-        (let (pos
-              (mode-len 10) ; length of mode string
-              ;; like in dired.el, but with subexpressions \1=inode, \2=s:
-              (dired-re-inode-size "\\s *\\([0-9]*\\)\\s *\\([0-9]*\\) ?"))
-          (beginning-of-line)
-          (forward-char 2)
-          (if (looking-at dired-re-inode-size)
-              (progn
-                (goto-char (match-end 0))
-                (setq inode (string-to-number
-                             (buffer-substring (match-beginning 1)
-                                               (match-end 1)))
-                      s (string-to-number
-                         (buffer-substring (match-beginning 2)
-                                           (match-end 2)))))
-            (setq inode nil
-                  s nil))
+        (let ((mode-len 10) ; length of mode string
+	      ;; like in dired.el, but with subexpressions \1=inode, \2=s:
+	      ;; GNU ls -hs suffixes the block count with a unit and
+	      ;; prints it as a float, FreeBSD does neither.
+	      (dired-re-inode-size "\\=\\s *\\([0-9]+\\s +\\)?\
+\\(?:\\([0-9]+\\(?:\\.[0-9]*\\)?[BkKMGTPEZY]?\\)? ?\\)"))
+	  (beginning-of-line)
+	  (forward-char 2)
+	  (search-forward-regexp dired-re-inode-size nil t)
+          ;; XXX Might be a size not followed by a unit prefix.
+          ;; We could set s to inode if it were otherwise nil,
+          ;; with a similar reasoning as below for setting gid to uid,
+          ;; but it would be even more whimsical.
+	  (setq inode (when (match-string 1)
+			(string-to-number (match-string 1))))
+	  (setq s (when (match-string 2)
+		    (dired-x--string-to-number (match-string 2))))
           (setq mode (buffer-substring (point) (+ mode-len (point))))
           (forward-char mode-len)
           ;; Skip any extended attributes marker ("." or "+").
@@ -1466,33 +1494,60 @@ to mark all zero length files."
               (forward-char 1))
           (setq nlink (read (current-buffer)))
           ;; Karsten Wenger <kw@cis.uni-muenchen.de> fixed uid.
-          (setq uid (buffer-substring (1+ (point))
-                                      (progn (forward-word 1) (point))))
-          (re-search-forward directory-listing-before-filename-regexp)
-          (goto-char (match-beginning 1))
-          (forward-char -1)
-          (setq size (string-to-number
-                      (buffer-substring (save-excursion
-                                          (backward-word 1)
-                                          (setq pos (point)))
+          ;; Another issue is that GNU ls -n right-justifies numerical
+          ;; UIDs and GIDs, while FreeBSD left-justifies them, so
+          ;; don't rely on a specific whitespace layout.  Both of them
+          ;; right-justify all other numbers, though.
+          ;; XXX Return a number if the uid or gid seems to be
+          ;; numerical?
+          (setq uid (buffer-substring (progn
+                                        (skip-chars-forward " \t")
+                                        (point))
+                                      (progn
+                                        (skip-chars-forward "^ \t")
                                         (point))))
-          (goto-char pos)
-          (backward-word 1)
-          ;; if no gid is displayed, gid will be set to uid
-          ;; but user will then not reference it anyway in PREDICATE.
-          (setq gid (buffer-substring (save-excursion
-                                        (forward-word 1) (point))
+	  (dired-move-to-filename)
+          (save-excursion
+            (setq time
+                  ;; The regexp below tries to match from the last
+                  ;; digit of the size field through a space after the
+                  ;; date.  Also, dates may have different formats
+                  ;; depending on file age, so the date column need
+                  ;; not be aligned to the right.
+                  (buffer-substring (save-excursion
+                                      (skip-chars-backward " \t")
                                       (point))
-                time (buffer-substring (match-beginning 1)
-                                       (1- (dired-move-to-filename)))
-                name (buffer-substring (point)
-                                       (or
-                                        (dired-move-to-end-of-filename t)
-                                        (point)))
-                sym (if (looking-at-p " -> ")
-                        (buffer-substring (progn (forward-char 4) (point))
-                                          (line-end-position))
-                      ""))
+                                    (progn
+                                      (re-search-backward
+                                       directory-listing-before-filename-regexp)
+                                      (skip-chars-forward "^ \t")
+                                      (1+ (point))))
+                  size (dired-x--string-to-number
+                        ;; We know that there's some kind of number
+                        ;; before point because the regexp search
+                        ;; above succeeded.  I don't think it's worth
+                        ;; doing an extra check for leading garbage.
+                        (buffer-substring (point)
+                                          (progn
+                                            (skip-chars-backward "^ \t")
+                                            (point))))
+                  ;; If no gid is displayed, gid will be set to uid
+                  ;; but the user will then not reference it anyway in
+                  ;; PREDICATE.
+                  gid (buffer-substring (progn
+                                          (skip-chars-backward " \t")
+                                          (point))
+                                        (progn
+                                          (skip-chars-backward "^ \t")
+                                          (point)))))
+	  (setq name (buffer-substring (point)
+				       (or
+					(dired-move-to-end-of-filename t)
+					(point)))
+		sym (if (looking-at " -> ")
+			(buffer-substring (progn (forward-char 4) (point))
+					  (line-end-position))
+		      ""))
           t)
         (eval predicate
               `((inode . ,inode)

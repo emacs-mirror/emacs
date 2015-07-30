@@ -987,7 +987,7 @@ See `sh-feature'.")
     "\\(?:\\(?:.*[^\\\n]\\)?\\(?:\\\\\\\\\\)*\\\\\n\\)*.*")
 
   (defconst sh-here-doc-open-re
-    (concat "<<-?\\s-*\\\\?\\(\\(?:['\"][^'\"]+['\"]\\|\\sw\\|[-/~._]\\)+\\)"
+    (concat "[^<]<<-?\\s-*\\\\?\\(\\(?:['\"][^'\"]+['\"]\\|\\sw\\|[-/~._]\\)+\\)"
             sh-escaped-line-re "\\(\n\\)")))
 
 (defun sh--inside-noncommand-expression (pos)
@@ -1064,7 +1064,16 @@ subshells can nest."
         (pcase (char-after)
           (?\' (pcase state
                  (`double-quote nil)
-                 (_ (forward-char 1) (skip-chars-forward "^'" limit))))
+                 (_ (forward-char 1)
+                    ;; FIXME: mark skipped double quotes as punctuation syntax.
+                    (let ((spos (point)))
+                      (skip-chars-forward "^'" limit)
+                      (save-excursion
+                        (let ((epos (point)))
+                          (goto-char spos)
+                          (while (search-forward "\"" epos t)
+                            (put-text-property (point) (1- (point))
+                                            'syntax-table '(1)))))))))
           (?\\ (forward-char 1))
           (?\" (pcase state
                  (`double-quote (setq state (pop states)))

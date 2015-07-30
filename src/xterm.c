@@ -555,7 +555,7 @@ x_cr_accumulate_data (void *closure, const unsigned char *data,
 {
   Lisp_Object *acc = (Lisp_Object *) closure;
 
-  *acc = Fcons (make_unibyte_string (data, length), *acc);
+  *acc = Fcons (make_unibyte_string ((char const *) data, length), *acc);
 
   return CAIRO_STATUS_SUCCESS;
 }
@@ -1727,6 +1727,11 @@ x_draw_glyph_string_background (struct glyph_string *s, bool force_p)
 	  s->background_filled_p = true;
 	}
       else if (FONT_HEIGHT (s->font) < s->height - 2 * box_line_width
+	       /* When xdisp.c ignores FONT_HEIGHT, we cannot trust
+		  font dimensions, since the actual glyphs might be
+		  much smaller.  So in that case we always clear the
+		  rectangle with background color.  */
+	       || FONT_TOO_HIGH (s->font)
 	       || s->font_not_found_p
 	       || s->extends_to_end_of_line_p
 	       || force_p)
@@ -6418,7 +6423,7 @@ x_scroll_bar_set_handle (struct scroll_bar *bar, int start, int end,
 		      f->output_data.x->scroll_bar_foreground_pixel);
 
     /* Draw the handle itself.  */
-    x_fill_rectangle (f, gc,
+    XFillRectangle (FRAME_X_DISPLAY (f), w, gc,
 		    /* x, y, width, height */
 		    VERTICAL_SCROLL_BAR_LEFT_BORDER,
 		    VERTICAL_SCROLL_BAR_TOP_BORDER + start,
@@ -6893,7 +6898,7 @@ x_scroll_bar_expose (struct scroll_bar *bar, const XEvent *event)
  		    f->output_data.x->scroll_bar_foreground_pixel);
 
   /* Draw a one-pixel border just inside the edges of the scroll bar.  */
-  x_draw_rectangle (f, gc,
+  XDrawRectangle (FRAME_X_DISPLAY (f), w, gc,
 		  /* x, y, width, height */
 		  0, 0, bar->width - 1, bar->height - 1);
 
@@ -7362,10 +7367,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		   const XEvent *event,
 		   int *finish, struct input_event *hold_quit)
 {
-  union {
-    struct input_event ie;
-    struct selection_input_event sie;
-  } inev;
+  union buffered_input_event inev;
   int count = 0;
   int do_help = 0;
   ptrdiff_t nbytes = 0;
@@ -7593,7 +7595,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       {
         const XSelectionClearEvent *eventp = &event->xselectionclear;
 
-        inev.ie.kind = SELECTION_CLEAR_EVENT;
+        inev.sie.kind = SELECTION_CLEAR_EVENT;
         SELECTION_EVENT_DPYINFO (&inev.sie) = dpyinfo;
         SELECTION_EVENT_SELECTION (&inev.sie) = eventp->selection;
         SELECTION_EVENT_TIME (&inev.sie) = eventp->time;
@@ -7609,7 +7611,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       {
 	const XSelectionRequestEvent *eventp = &event->xselectionrequest;
 
-	inev.ie.kind = SELECTION_REQUEST_EVENT;
+	inev.sie.kind = SELECTION_REQUEST_EVENT;
 	SELECTION_EVENT_DPYINFO (&inev.sie) = dpyinfo;
 	SELECTION_EVENT_REQUESTOR (&inev.sie) = eventp->requestor;
 	SELECTION_EVENT_SELECTION (&inev.sie) = eventp->selection;
@@ -7677,7 +7679,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
             }
           else
 	    {
-#if defined (USE_GTK) && ! defined (HAVE_GTK3) && ! defined (USE_CAIRO)
+#ifdef USE_GTK
 	      /* This seems to be needed for GTK 2.6 and later, see
 		 http://debbugs.gnu.org/cgi/bugreport.cgi?bug=15398.  */
 	      x_clear_area (f,
@@ -8120,7 +8122,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 				? ASCII_KEYSTROKE_EVENT
 				: MULTIBYTE_CHAR_KEYSTROKE_EVENT);
 		inev.ie.code = ch;
-		kbd_buffer_store_event_hold (&inev.ie, hold_quit);
+		kbd_buffer_store_buffered_event (&inev, hold_quit);
 	      }
 
 	    count += nchars;
@@ -8537,7 +8539,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
  done:
   if (inev.ie.kind != NO_EVENT)
     {
-      kbd_buffer_store_event_hold (&inev.ie, hold_quit);
+      kbd_buffer_store_buffered_event (&inev, hold_quit);
       count++;
     }
 
@@ -9419,7 +9421,7 @@ Lisp_Object
 x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 {
   struct font *font = XFONT_OBJECT (font_object);
-  int unit;
+  int unit, font_ascent, font_descent;
 
   if (fontset < 0)
     fontset = fontset_from_font (font_object);
@@ -9432,7 +9434,8 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
   FRAME_FONT (f) = font;
   FRAME_BASELINE_OFFSET (f) = font->baseline_offset;
   FRAME_COLUMN_WIDTH (f) = font->average_width;
-  FRAME_LINE_HEIGHT (f) = FONT_HEIGHT (font);
+  get_font_ascent_descent (font, &font_ascent, &font_descent);
+  FRAME_LINE_HEIGHT (f) = font_ascent + font_descent;
 
 #ifndef USE_X_TOOLKIT
   FRAME_MENU_BAR_HEIGHT (f) = FRAME_MENU_BAR_LINES (f) * FRAME_LINE_HEIGHT (f);

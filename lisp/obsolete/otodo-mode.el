@@ -734,7 +734,7 @@ If point is on an empty line, insert the entry there."
 Number of entries for each category is given by NOF-PRIORITIES which
 defaults to `todo-show-priorities'.
 
-If CATEGORY-PR-PAGE is non-nil, a page separator \'^L\' is inserted
+If CATEGORY-PR-PAGE is non-nil, a page separator '^L' is inserted
 between each category.
 INTERACTIVE should be non-nil if this function is called interactively."
 

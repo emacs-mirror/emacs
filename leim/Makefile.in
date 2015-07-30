@@ -29,6 +29,8 @@ srcdir=@srcdir@
 # Where the generated files go.
 leimdir = ${srcdir}/../lisp/leim
 
+EXEEXT = @EXEEXT@
+
 # 'make' verbosity.
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 

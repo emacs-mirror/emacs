@@ -177,7 +177,7 @@ contain wildcard characters:
   PATTERN is case-insensitive.
 
 The return value is a list of strings, suitable as arguments to
-\`set-face-font'.
+`set-face-font'.
 
 Fonts Emacs can't use may or may not be excluded
 even if they match PATTERN and FACE.

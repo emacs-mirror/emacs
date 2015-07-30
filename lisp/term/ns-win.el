@@ -930,12 +930,9 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 (declare-function ns-own-selection-internal "nsselect.m" (selection value))
 (declare-function ns-disown-selection-internal "nsselect.m" (selection))
-(declare-function ns-selection-owner-p "nsselect.m"
-                  (&optional selection terminal))
-(declare-function ns-selection-exists-p "nsselect.m"
-                  (&optional selection terminal))
-(declare-function ns-get-selection "nsselect.m"
-                  (selection-symbol target-type &optional time-stamp terminal))
+(declare-function ns-selection-owner-p "nsselect.m" (&optional selection))
+(declare-function ns-selection-exists-p "nsselect.m" (&optional selection))
+(declare-function ns-get-selection "nsselect.m" (selection-symbol target-type))
 
 (cl-defmethod gui-backend-set-selection (selection value
                                          &context (window-system (eql ns)))

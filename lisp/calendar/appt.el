@@ -511,13 +511,13 @@ The default is `appt-message-warning-time'."
   (interactive "sTime (hh:mm[am/pm]): \nsMessage: \n\
 sMinutes before the appointment to start warning: ")
   (unless (string-match appt-time-regexp time)
-    (error "Unacceptable time-string"))
+    (user-error "Unacceptable time-string"))
   (and (stringp warntime)
        (setq warntime (unless (string-equal warntime "")
                         (string-to-number warntime))))
   (and warntime
        (not (integerp warntime))
-       (error "Argument WARNTIME must be an integer, or nil"))
+       (user-error "Argument WARNTIME must be an integer, or nil"))
   (or appt-timer (appt-activate))
   (let ((time-msg (list (list (appt-convert-time time))
                         (concat time " " msg) t)))

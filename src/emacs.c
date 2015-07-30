@@ -849,10 +849,13 @@ main (int argc, char **argv)
     }
 #endif /* HAVE_PERSONALITY_LINUX32 */
 
-#if defined (HAVE_SETRLIMIT) && defined (RLIMIT_STACK)
-  /* Extend the stack space available.
-     Don't do that if dumping, since some systems (e.g. DJGPP)
-     might define a smaller stack limit at that time.  */
+#if defined (HAVE_SETRLIMIT) && defined (RLIMIT_STACK) && !defined (CYGWIN)
+  /* Extend the stack space available.  Don't do that if dumping,
+     since some systems (e.g. DJGPP) might define a smaller stack
+     limit at that time.  And it's not needed on Cygwin, since emacs
+     is built with an 8MB stack.  Moreover, the setrlimit call can
+     cause problems on Cygwin
+     (https://www.cygwin.com/ml/cygwin/2015-07/msg00096.html).  */
   if (1
 #ifndef CANNOT_DUMP
       && (!noninteractive || initialized)
@@ -886,7 +889,7 @@ main (int argc, char **argv)
 
       setrlimit (RLIMIT_STACK, &rlim);
     }
-#endif /* HAVE_SETRLIMIT and RLIMIT_STACK */
+#endif /* HAVE_SETRLIMIT and RLIMIT_STACK and not CYGWIN */
 
   /* Record (approximately) where the stack begins.  */
   stack_bottom = &stack_bottom_variable;
@@ -1555,7 +1558,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
   /* This calls putenv and so must precede init_process_emacs.  Also,
      it sets Voperating_system_release, which init_process_emacs uses.  */
-  init_editfns ();
+  init_editfns (dumping);
 
   /* These two call putenv.  */
 #ifdef HAVE_DBUS
@@ -2014,7 +2017,6 @@ shut_down_emacs (int sig, Lisp_Object stuff)
   /* There is a tendency for a SIGIO signal to arrive within exit,
      and cause a SIGHUP because the input descriptor is already closed.  */
   unrequest_sigio ();
-  ignore_sigio ();
 
   /* Do this only if terminating normally, we want glyph matrices
      etc. in a core dump.  */

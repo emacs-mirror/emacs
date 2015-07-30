@@ -1,4 +1,4 @@
-# pthread_sigmask.m4 serial 15
+# pthread_sigmask.m4 serial 16
 dnl Copyright (C) 2011-2015 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -39,6 +39,30 @@ AC_DEFUN([gl_FUNC_PTHREAD_SIGMASK],
                [gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD=no])
              LIBS="$gl_save_LIBS"
             ])
+          if test $gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD = yes; then
+            AC_CACHE_CHECK([whether pthread_sigmask is only a macro],
+              [gl_cv_func_pthread_sigmask_is_macro],
+              [gl_save_LIBS="$LIBS"
+               LIBS="$LIBS $LIBMULTITHREAD"
+               AC_LINK_IFELSE(
+                 [AC_LANG_PROGRAM(
+                    [[#include <pthread.h>
+                      #include <signal.h>
+                      #undef pthread_sigmask
+                    ]],
+                    [[return pthread_sigmask (0, (sigset_t *) 0, (sigset_t *) 0);]])
+                 ],
+                 [gl_cv_func_pthread_sigmask_is_macro=no],
+                 [gl_cv_func_pthread_sigmask_is_macro=yes])
+               LIBS="$gl_save_LIBS"
+              ])
+            if test $gl_cv_func_pthread_sigmask_is_macro = yes; then
+              dnl On MinGW pthread_sigmask is just a macro which always returns 0.
+              dnl It does not exist as a real function, which is required by POSIX.
+              REPLACE_PTHREAD_SIGMASK=1
+              gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD=no
+            fi
+          fi
           if test $gl_cv_func_pthread_sigmask_in_LIBMULTITHREAD = yes; then
             dnl pthread_sigmask is available with -pthread or -lpthread.
             LIB_PTHREAD_SIGMASK="$LIBMULTITHREAD"

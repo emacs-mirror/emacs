@@ -437,6 +437,8 @@ the mouse has been clicked."
   (let ((drags 0)
         event)
     (track-mouse
+      ;; Signal the display engine to freeze the mouse pointer shape.
+      (setq track-mouse 'dragging)
       (while (mouse-movement-p (setq event (read-event)))
         (setq drags (1+ drags))
         (when (eq window (posn-window (event-end event)))

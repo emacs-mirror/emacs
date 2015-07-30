@@ -839,6 +839,9 @@ static void x_draw_bottom_divider (struct window *w);
 static void notice_overwritten_cursor (struct window *,
                                        enum glyph_row_area,
                                        int, int, int, int);
+static int  normal_char_height (struct font *, int);
+static void normal_char_ascent_descent (struct font *, int, int *, int *);
+
 static void append_stretch_glyph (struct it *, Lisp_Object,
                                   int, int, int);
 
@@ -1767,7 +1770,7 @@ estimate_mode_line_height (struct frame *f, enum face_id face_id)
 	  if (face)
 	    {
 	      if (face->font)
-		height = FONT_HEIGHT (face->font);
+		height = normal_char_height (face->font, -1);
 	      if (face->box_line_width > 0)
 		height += 2 * face->box_line_width;
 	    }
@@ -2156,7 +2159,7 @@ get_phys_cursor_geometry (struct window *w, struct glyph_row *row,
 			  struct glyph *glyph, int *xp, int *yp, int *heightp)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
-  int x, y, wd, h, h0, y0;
+  int x, y, wd, h, h0, y0, ascent;
 
   /* Compute the width of the rectangle to draw.  If on a stretch
      glyph, and `x-stretch-block-cursor' is nil, don't draw a
@@ -2176,13 +2179,21 @@ get_phys_cursor_geometry (struct window *w, struct glyph_row *row,
     wd = min (FRAME_COLUMN_WIDTH (f), wd);
   w->phys_cursor_width = wd;
 
-  y = w->phys_cursor.y + row->ascent - glyph->ascent;
+  /* Don't let the hollow cursor glyph descend below the glyph row's
+     ascent value, lest the hollow cursor looks funny.  */
+  y = w->phys_cursor.y;
+  ascent = row->ascent;
+  if (row->ascent < glyph->ascent)
+    {
+      y =- glyph->ascent - row->ascent;
+      ascent = glyph->ascent;
+    }
 
   /* If y is below window bottom, ensure that we still see a cursor.  */
   h0 = min (FRAME_LINE_HEIGHT (f), row->visible_height);
 
-  h = max (h0, glyph->ascent + glyph->descent);
-  h0 = min (h0, glyph->ascent + glyph->descent);
+  h = max (h0, ascent + glyph->descent);
+  h0 = min (h0, ascent + glyph->descent);
 
   y0 = WINDOW_HEADER_LINE_HEIGHT (w);
   if (y < y0)
@@ -4889,7 +4900,7 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 	    {
 	      struct face *face = FACE_FROM_ID (it->f, it->face_id);
 	      it->voffset = - (XFLOATINT (value)
-			       * (FONT_HEIGHT (face->font)));
+			       * (normal_char_height (face->font, -1)));
 	    }
 #endif /* HAVE_WINDOW_SYSTEM */
 	}
@@ -9468,7 +9479,7 @@ move_it_vertically_backward (struct it *it, int dy)
 	     treating terminal frames specially here.  */
 
 	  if (!FRAME_WINDOW_P (it->f))
-	    move_it_vertically (it, target_y - (it->current_y + line_height));
+	    move_it_vertically (it, target_y - it->current_y);
 	  else
 	    {
 	      do
@@ -15134,11 +15145,13 @@ try_scrolling (Lisp_Object window, bool just_this_one_p,
 	    RESTORE_IT (&it, &it, it1data);
 	    move_it_by_lines (&it, 1);
 	    SAVE_IT (it1, it, it1data);
-	  } while (line_bottom_y (&it1) - start_y < amount_to_scroll);
+	  } while (IT_CHARPOS (it) < ZV
+		   && line_bottom_y (&it1) - start_y < amount_to_scroll);
+	  bidi_unshelve_cache (it1data, true);
 	}
 
       /* If STARTP is unchanged, move it down another screen line.  */
-      if (CHARPOS (it.current.pos) == CHARPOS (startp))
+      if (IT_CHARPOS (it) == CHARPOS (startp))
 	move_it_by_lines (&it, 1);
       startp = it.current.pos;
     }
@@ -19230,6 +19243,7 @@ append_space_for_newline (struct it *it, bool default_face_p)
 	  struct text_pos saved_pos;
 	  Lisp_Object saved_object;
 	  struct face *face;
+	  struct glyph *g;
 
 	  saved_object = it->object;
 	  saved_pos = it->position;
@@ -19260,6 +19274,25 @@ append_space_for_newline (struct it *it, bool default_face_p)
 	    it->end_of_box_run_p = false;
 
 	  PRODUCE_GLYPHS (it);
+
+#ifdef HAVE_WINDOW_SYSTEM
+	  /* Make sure this space glyph has the right ascent and
+	     descent values, or else cursor at end of line will look
+	     funny.  */
+	  g = it->glyph_row->glyphs[TEXT_AREA] + n;
+	  struct font *font = face->font ? face->font : FRAME_FONT (it->f);
+	  if (n == 0 || it->glyph_row->height < font->pixel_size)
+	    {
+	      normal_char_ascent_descent (font, -1, &it->ascent, &it->descent);
+	      it->max_ascent = it->ascent;
+	      it->max_descent = it->descent;
+	      /* Make sure compute_line_metrics recomputes the row height.  */
+	      it->glyph_row->height = 0;
+	    }
+
+	  g->ascent = it->max_ascent;
+	  g->descent = it->max_descent;
+#endif
 
 	  it->override_ascent = -1;
 	  it->constrain_row_ascent_descent_p = false;
@@ -21331,6 +21364,14 @@ Value is the new character position of point.  */)
       /* Setup the arena.  */
       SET_TEXT_POS (pt, PT, PT_BYTE);
       start_display (&it, w, pt);
+      /* When lines are truncated, we could be called with point
+	 outside of the windows edges, in which case move_it_*
+	 functions either prematurely stop at window's edge or jump to
+	 the next screen line, whereas we rely below on our ability to
+	 reach point, in order to start from its X coordinate.  So we
+	 need to disregard the window's horizontal extent in that case.  */
+      if (it.line_wrap == TRUNCATE)
+	it.last_visible_x = INFINITY;
 
       if (it.cmp_it.id < 0
 	  && it.method == GET_FROM_STRING
@@ -21422,6 +21463,8 @@ Value is the new character position of point.  */)
 	  if (pt_x > 0)
 	    {
 	      start_display (&it, w, pt);
+	      if (it.line_wrap == TRUNCATE)
+		it.last_visible_x = INFINITY;
 	      reseat_at_previous_visible_line_start (&it);
 	      it.current_x = it.current_y = it.hpos = 0;
 	      if (pt_vpos != 0)
@@ -21533,27 +21576,6 @@ Value is the new character position of point.  */)
 #endif
       if (it.current_x != target_x)
 	move_it_in_display_line_to (&it, ZV, target_x, MOVE_TO_POS | MOVE_TO_X);
-
-      /* When lines are truncated, the above loop will stop at the
-	 window edge.  But we want to get to the end of line, even if
-	 it is beyond the window edge; automatic hscroll will then
-	 scroll the window to show point as appropriate.  */
-      if (target_is_eol_p && it.line_wrap == TRUNCATE
-	  && get_next_display_element (&it))
-	{
-	  struct text_pos new_pos = it.current.pos;
-
-	  while (!ITERATOR_AT_END_OF_LINE_P (&it))
-	    {
-	      set_iterator_to_next (&it, false);
-	      if (it.method == GET_FROM_BUFFER)
-		new_pos = it.current.pos;
-	      if (!get_next_display_element (&it))
-		break;
-	    }
-
-	  it.current.pos = new_pos;
-	}
 
       /* If we ended up in a display string that covers point, move to
 	 buffer position to the right in the visual order.  */
@@ -23973,9 +23995,13 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
 
 #ifdef HAVE_WINDOW_SYSTEM
       if (EQ (prop, Qheight))
-	return OK_PIXELS (font ? FONT_HEIGHT (font) : FRAME_LINE_HEIGHT (it->f));
+	return OK_PIXELS (font
+			  ? normal_char_height (font, -1)
+			  : FRAME_LINE_HEIGHT (it->f));
       if (EQ (prop, Qwidth))
-	return OK_PIXELS (font ? FONT_WIDTH (font) : FRAME_COLUMN_WIDTH (it->f));
+	return OK_PIXELS (font
+			  ? FONT_WIDTH (font)
+			  : FRAME_COLUMN_WIDTH (it->f));
 #else
       if (EQ (prop, Qheight) || EQ (prop, Qwidth))
 	return OK_PIXELS (1);
@@ -24110,6 +24136,17 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
     }
 
   return false;
+}
+
+void
+get_font_ascent_descent (struct font *font, int *ascent, int *descent)
+{
+#ifdef HAVE_WINDOW_SYSTEM
+  normal_char_ascent_descent (font, -1, ascent, descent);
+#else
+  *ascent = 1;
+  *descent = 0;
+#endif
 }
 
 
@@ -24626,6 +24663,55 @@ get_per_char_metric (struct font *font, XChar2b *char2b)
     return NULL;
   font->driver->text_extents (font, &code, 1, &metrics);
   return &metrics;
+}
+
+/* A subroutine that computes "normal" values of ASCENT and DESCENT
+   for FONT.  Values are taken from font-global ones, except for fonts
+   that claim preposterously large values, but whose glyphs actually
+   have reasonable dimensions.  C is the character to use for metrics
+   if the font-global values are too large; if C is negative, the
+   function selects a default character.  */
+static void
+normal_char_ascent_descent (struct font *font, int c, int *ascent, int *descent)
+{
+  *ascent = FONT_BASE (font);
+  *descent = FONT_DESCENT (font);
+
+  if (FONT_TOO_HIGH (font))
+    {
+      XChar2b char2b;
+
+      /* Get metrics of C, defaulting to a reasonably sized ASCII
+	 character.  */
+      if (get_char_glyph_code (c >= 0 ? c : '{', font, &char2b))
+	{
+	  struct font_metrics *pcm = get_per_char_metric (font, &char2b);
+
+	  if (!(pcm->width == 0 && pcm->rbearing == 0 && pcm->lbearing == 0))
+	    {
+	      /* We add 1 pixel to character dimensions as heuristics
+		 that produces nicer display, e.g. when the face has
+		 the box attribute.  */
+	      *ascent = pcm->ascent + 1;
+	      *descent = pcm->descent + 1;
+	    }
+	}
+    }
+}
+
+/* A subroutine that computes a reasonable "normal character height"
+   for fonts that claim preposterously large vertical dimensions, but
+   whose glyphs are actually reasonably sized.  C is the character
+   whose metrics to use for those fonts, or -1 for default
+   character.  */
+static int
+normal_char_height (struct font *font, int c)
+{
+  int ascent, descent;
+
+  normal_char_ascent_descent (font, c, &ascent, &descent);
+
+  return ascent + descent;
 }
 
 /* EXPORT for RIF:
@@ -26065,6 +26151,8 @@ produce_stretch_glyph (struct it *it)
   /* Compute height.  */
   if (FRAME_WINDOW_P (it->f))
     {
+      int default_height = normal_char_height (font, ' ');
+
       if ((prop = Fplist_get (plist, QCheight), !NILP (prop))
 	  && calc_pixel_width_or_height (&tem, it, prop, font, false, 0))
 	{
@@ -26073,9 +26161,9 @@ produce_stretch_glyph (struct it *it)
 	}
       else if (prop = Fplist_get (plist, QCrelative_height),
 	       NUMVAL (prop) > 0)
-	height = FONT_HEIGHT (font) * NUMVAL (prop);
+	height = default_height * NUMVAL (prop);
       else
-	height = FONT_HEIGHT (font);
+	height = default_height;
 
       if (height <= 0 && (height < 0 || !zero_height_ok_p))
 	height = 1;
@@ -26299,8 +26387,7 @@ calc_line_height_property (struct it *it, Lisp_Object val, struct font *font,
 	boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
     }
 
-  ascent = FONT_BASE (font) + boff;
-  descent = FONT_DESCENT (font) - boff;
+  normal_char_ascent_descent (font, -1, &ascent, &descent);
 
   if (override)
     {
@@ -26426,8 +26513,9 @@ produce_glyphless_glyph (struct it *it, bool for_no_font, Lisp_Object acronym)
      ASCII face.  */
   face = FACE_FROM_ID (it->f, it->face_id)->ascii_face;
   font = face->font ? face->font : FRAME_FONT (it->f);
-  it->ascent = FONT_BASE (font) + font->baseline_offset;
-  it->descent = FONT_DESCENT (font) - font->baseline_offset;
+  normal_char_ascent_descent (font, -1, &it->ascent, &it->descent);
+  it->ascent += font->baseline_offset;
+  it->descent -= font->baseline_offset;
   base_height = it->ascent + it->descent;
   base_width = font->average_width;
 
@@ -26614,6 +26702,22 @@ x_produce_glyphs (struct it *it)
 	      it->phys_ascent = pcm->ascent + boff;
 	      it->phys_descent = pcm->descent - boff;
 	      it->pixel_width = pcm->width;
+	      /* Don't use font-global values for ascent and descent
+		 if they result in an exceedingly large line height.  */
+	      if (it->override_ascent < 0)
+		{
+		  if (FONT_TOO_HIGH (font))
+		    {
+		      it->ascent = it->phys_ascent;
+		      it->descent = it->phys_descent;
+		      /* These limitations are enforced by an
+			 assertion near the end of this function.  */
+		      if (it->ascent < 0)
+			it->ascent = 0;
+		      if (it->descent < 0)
+			it->descent = 0;
+		    }
+		}
 	    }
 	  else
 	    {
@@ -26741,8 +26845,18 @@ x_produce_glyphs (struct it *it)
 	    }
 	  else
 	    {
-	      it->ascent = FONT_BASE (font) + boff;
-	      it->descent = FONT_DESCENT (font) - boff;
+	      if (FONT_TOO_HIGH (font))
+		{
+		  it->ascent = font->pixel_size + boff - 1;
+		  it->descent = -boff + 1;
+		  if (it->descent < 0)
+		    it->descent = 0;
+		}
+	      else
+		{
+		  it->ascent = FONT_BASE (font) + boff;
+		  it->descent = FONT_DESCENT (font) - boff;
+		}
 	    }
 
 	  if (EQ (height, Qt))
@@ -26813,8 +26927,38 @@ x_produce_glyphs (struct it *it)
 
 	      it->pixel_width = next_tab_x - x;
 	      it->nglyphs = 1;
-	      it->ascent = it->phys_ascent = FONT_BASE (font) + boff;
-	      it->descent = it->phys_descent = FONT_DESCENT (font) - boff;
+	      if (FONT_TOO_HIGH (font))
+		{
+		  if (get_char_glyph_code (' ', font, &char2b))
+		    {
+		      pcm = get_per_char_metric (font, &char2b);
+		      if (pcm->width == 0
+			  && pcm->rbearing == 0 && pcm->lbearing == 0)
+			pcm = NULL;
+		    }
+
+		  if (pcm)
+		    {
+		      it->ascent = pcm->ascent + boff;
+		      it->descent = pcm->descent - boff;
+		    }
+		  else
+		    {
+		      it->ascent = font->pixel_size + boff - 1;
+		      it->descent = -boff + 1;
+		    }
+		  if (it->ascent < 0)
+		    it->ascent = 0;
+		  if (it->descent < 0)
+		    it->descent = 0;
+		}
+	      else
+		{
+		  it->ascent = FONT_BASE (font) + boff;
+		  it->descent = FONT_DESCENT (font) - boff;
+		}
+	      it->phys_ascent = it->ascent;
+	      it->phys_descent = it->descent;
 
 	      if (it->glyph_row)
 		{
@@ -26827,6 +26971,22 @@ x_produce_glyphs (struct it *it)
 	      it->pixel_width = 0;
 	      it->nglyphs = 1;
 	    }
+	}
+
+      if (FONT_TOO_HIGH (font))
+	{
+	  int font_ascent, font_descent;
+
+	  /* For very large fonts, where we ignore the declared font
+	     dimensions, and go by per-character metrics instead,
+	     don't let the row ascent and descent values (and the row
+	     height computed from them) be smaller than the "normal"
+	     character metrics.  This avoids unpleasant effects
+	     whereby lines on display would change their height
+	     depending on which characters are shown.  */
+	  normal_char_ascent_descent (font, -1, &font_ascent, &font_descent);
+	  it->max_ascent = max (it->max_ascent, font_ascent);
+	  it->max_descent = max (it->max_descent, font_descent);
 	}
     }
   else if (it->what == IT_COMPOSITION && it->cmp_it.ch < 0)
@@ -26894,9 +27054,10 @@ x_produce_glyphs (struct it *it)
 	  boff = font->baseline_offset;
 	  if (font->vertical_centering)
 	    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
-	  font_ascent = FONT_BASE (font) + boff;
-	  font_descent = FONT_DESCENT (font) - boff;
-	  font_height = FONT_HEIGHT (font);
+	  normal_char_ascent_descent (font, -1, &font_ascent, &font_descent);
+	  font_ascent +=  boff;
+	  font_descent -= boff;
+	  font_height = font_ascent + font_descent;
 
 	  cmp->font = font;
 
@@ -29171,7 +29332,7 @@ static void
 define_frame_cursor1 (struct frame *f, Cursor cursor, Lisp_Object pointer)
 {
   /* Do not change cursor shape while dragging mouse.  */
-  if (!NILP (do_mouse_tracking))
+  if (EQ (do_mouse_tracking, Qdragging))
     return;
 
   if (!NILP (pointer))
@@ -30138,8 +30299,11 @@ expose_area (struct window *w, struct glyph_row *row, XRectangle *r,
       /* Find the last one.  */
       last = first;
       first_x = x;
-      while (last < end
-	     && x < r->x + r->width)
+      /* Use a signed int intermediate value to avoid catastrophic
+	 failures due to comparison between signed and unsigned, when
+	 x is negative (can happen for wide images that are hscrolled).  */
+      int r_end = r->x + r->width;
+      while (last < end && x < r_end)
 	{
 	  x += last->pixel_width;
 	  ++last;
@@ -30413,6 +30577,11 @@ expose_window (struct window *w, XRectangle *fr)
 	 check later if it is changed.  */
       bool phys_cursor_on_p = w->phys_cursor_on_p;
 
+      /* Use a signed int intermediate value to avoid catastrophic
+	 failures due to comparison between signed and unsigned, when
+	 y0 or y1 is negative (can happen for tall images).  */
+      int r_bottom = r.y + r.height;
+
       /* Update lines intersecting rectangle R.  */
       first_overlapping_row = last_overlapping_row = NULL;
       for (row = w->current_matrix->rows;
@@ -30422,10 +30591,10 @@ expose_window (struct window *w, XRectangle *fr)
 	  int y0 = row->y;
 	  int y1 = MATRIX_ROW_BOTTOM_Y (row);
 
-	  if ((y0 >= r.y && y0 < r.y + r.height)
-	      || (y1 > r.y && y1 < r.y + r.height)
+	  if ((y0 >= r.y && y0 < r_bottom)
+	      || (y1 > r.y && y1 < r_bottom)
 	      || (r.y >= y0 && r.y < y1)
-	      || (r.y + r.height > y0 && r.y + r.height < y1))
+	      || (r_bottom > y0 && r_bottom < y1))
 	    {
 	      /* A header line may be overlapping, but there is no need
 		 to fix overlapping areas for them.  KFS 2005-02-12 */
@@ -30462,7 +30631,7 @@ expose_window (struct window *w, XRectangle *fr)
       if (WINDOW_WANTS_MODELINE_P (w)
 	  && (row = MATRIX_MODE_LINE_ROW (w->current_matrix),
 	      row->enabled_p)
-	  && row->y < r.y + r.height)
+	  && row->y < r_bottom)
 	{
 	  if (expose_line (w, row, &r))
 	    mouse_face_overwritten_p = true;
@@ -30792,6 +30961,8 @@ They are still logged to the *Messages* buffer.  */);
   DEFSYM (Qhand, "hand");
   DEFSYM (Qarrow, "arrow");
   /* also Qtext */
+
+  DEFSYM (Qdragging, "dragging");
 
   DEFSYM (Qinhibit_free_realized_faces, "inhibit-free-realized-faces");
 

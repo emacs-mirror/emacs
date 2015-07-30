@@ -78,6 +78,15 @@
         (should (member "backup-buffer" comps))
         (should-not (member "backup-inhibited" comps))))))
 
+(ert-deftest elisp-completes-functions-after-hash-quote ()
+  (ert-deftest elisp-completes-functions-after-let-bindings ()
+    (with-temp-buffer
+      (emacs-lisp-mode)
+      (insert "#'ba")
+      (let ((comps (elisp--test-completions)))
+        (should (member "backup-buffer" comps))
+        (should-not (member "backup-inhibited" comps))))))
+
 (ert-deftest elisp-completes-local-variables ()
   (with-temp-buffer
     (emacs-lisp-mode)
@@ -110,9 +119,9 @@
   ;; "system-name" is both: a variable and a function
   (let ((defs (elisp-xref-find 'definitions "system-name")))
     (should (= (length defs) 2))
-    (should (string= (xref--xref-description (nth 0 defs))
+    (should (string= (xref-item-summary (nth 0 defs))
                      "(defun system-name)"))
-    (should (string= (xref--xref-description (nth 1 defs))
+    (should (string= (xref-item-summary (nth 1 defs))
                      "(defvar system-name)")))
   ;; It's a minor mode, but the variable is defined in buffer.c
   (let ((defs (elisp-xref-find 'definitions "abbrev-mode")))
@@ -122,7 +131,7 @@
   ;; Both variable and function are defined in the same place.
   (let ((defs (elisp-xref-find 'definitions "visible-mode")))
     (should (= (length defs) 1))
-    (should (string= (xref--xref-description (nth 0 defs))
+    (should (string= (xref-item-summary (nth 0 defs))
                      "(defun visible-mode)"))))
 
 (provide 'elisp-mode-tests)

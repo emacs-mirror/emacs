@@ -138,7 +138,7 @@ Summary:
   (cl-generic-make-generalizer
    ;; Give it a slightly higher priority than `subclass' so that the
    ;; interleaved list comes before subclass's non-interleaved list.
-   61 (lambda (name) `(and (symbolp ,name) (eieio--class-v ,name)))
+   61 (lambda (name) `(and (symbolp ,name) (cl--find-class ,name)))
    #'eieio--generic-static-symbol-specializers))
 (defconst eieio--generic-static-object-generalizer
   (cl-generic-make-generalizer

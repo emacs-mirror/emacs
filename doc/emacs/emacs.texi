@@ -961,8 +961,8 @@ Conversion To and From Other Calendars
 
 The Diary
 
-* Displaying the Diary::   Viewing diary entries and associated calendar dates.
 * Format of Diary File::   Entering events in your diary.
+* Displaying the Diary::   Viewing diary entries and associated calendar dates.
 * Date Formats::           Various ways you can specify dates.
 * Adding to Diary::        Commands to create diary entries.
 * Special Diary Entries::  Anniversaries, blocks of dates, cyclic entries, etc.

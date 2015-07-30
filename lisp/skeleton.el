@@ -277,7 +277,8 @@ When done with skeleton, but before going back to `_'-point call
 (defun skeleton-read (prompt &optional initial-input recursive)
   "Function for reading a string from the minibuffer within skeletons.
 
-PROMPT must be a string or a form that evaluates to a string.
+PROMPT must be a string or a function that evaluates to a string.
+It may also be a form that evaluates to a string (deprecated).
 It may contain a `%s' which will be replaced by `skeleton-subprompt'.
 If non-nil second arg INITIAL-INPUT or variable `input' is a string or
 cons with index to insert before reading.  If third arg RECURSIVE is non-nil
@@ -306,12 +307,14 @@ automatically, and you are prompted to fill in the variable parts.")))
 	;; before point.
         (save-excursion (insert "\n")))
     (unwind-protect
-	(setq prompt (if (stringp prompt)
-			 (read-string (format prompt skeleton-subprompt)
-				      (setq initial-input
-					    (or initial-input
-						(symbol-value 'input))))
-		       (eval prompt)))
+	(setq prompt (cond ((stringp prompt)
+                            (read-string (format prompt skeleton-subprompt)
+                                         (setq initial-input
+                                               (or initial-input
+                                                   (symbol-value 'input)))))
+                           ((functionp prompt)
+                            (funcall prompt))
+                           (t (eval prompt))))
       (or eolp
 	  (delete-char 1))))
   (if (and recursive

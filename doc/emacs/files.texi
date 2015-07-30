@@ -1476,9 +1476,9 @@ unified format to context format.  When the mark is active, convert
 only the text within the region.
 
 @item C-c C-w
-@findex diff-refine-hunk
-Refine the current hunk so that it disregards changes in whitespace
-(@code{diff-refine-hunk}).
+@findex diff-ignore-whitespace-hunk
+Re-diff the current hunk, disregarding changes in whitespace
+(@code{diff-ignore-whitespace-hunk}).
 
 @item C-x 4 A
 @findex diff-add-change-log-entries-other-window
@@ -1745,7 +1745,8 @@ owner, are supported only for some of the archive formats.
 and repack archives.  However, you don't need these programs to look
 at the archive table of contents, only to extract or manipulate the
 subfiles in the archive.  Details of the program names and their
-options can be set in the @samp{Archive} Customize group.
+options can be set in the @samp{Archive} Customize group
+(@pxref{Customization Groups}).
 
 @node Remote Files
 @section Remote Files
@@ -1945,6 +1946,7 @@ opened files.  @kbd{M-x recentf-save-list} saves the current
 @code{recent-file-list} to a file, and @kbd{M-x recentf-edit-list}
 edits it.
 
+@c FIXME partial-completion-mode (complete.el) is obsolete.
   The @kbd{M-x ffap} command generalizes @code{find-file} with more
 powerful heuristic defaults (@pxref{FFAP}), often based on the text at
 point.  Partial Completion mode offers other features extending
@@ -1986,8 +1988,8 @@ non-@code{nil}.  With @kbd{f} (@code{image-next-frame}) and @kbd{b}
 (@code{image-previous-frame}) you can step through the individual
 frames.  Both commands accept a numeric prefix to step through several
 frames at once.  You can go to a specific frame with @kbd{F}
-(@code{image-goto-frame}).  Typing @kbd{a +}
-(@code{image-increase-speed}) increases the speed of the animation,
+(@code{image-goto-frame}).  Frames are indexed from 1.  Typing @kbd{a
++} (@code{image-increase-speed}) increases the speed of the animation,
 @kbd{a -} (@code{image-decrease-speed}) decreases it, and @kbd{a r}
 (@code{image-reverse-speed}) reverses it.  The command @kbd{a 0}
 (@code{image-reset-speed}) resets the speed to the original value.

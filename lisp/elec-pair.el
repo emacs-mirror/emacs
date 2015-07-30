@@ -499,7 +499,7 @@ happened."
                   (not (funcall electric-pair-inhibit-predicate
                                 last-command-event))))
          (save-excursion (electric-pair--insert pair)))))
-      (t
+      (_
        (when (and (if (functionp electric-pair-open-newline-between-pairs)
                       (funcall electric-pair-open-newline-between-pairs)
                     electric-pair-open-newline-between-pairs)

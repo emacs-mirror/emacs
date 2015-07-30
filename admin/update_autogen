@@ -94,7 +94,7 @@ changelog_flag=
 ldefs_in=lisp/loaddefs.el
 ldefs_out=lisp/ldefs-boot.el
 changelog_n=$(sed -n 's/CHANGELOG_HISTORY_INDEX_MAX *= *//p' Makefile.in)
-changelog_files="ChangeLog.$changelog_n build-aux/gitlog-to-emacslog"
+changelog_files="ChangeLog.$changelog_n"
 sources="configure.ac lib/Makefile.am"
 ## Files to copy into autogendir.
 ## Everything:

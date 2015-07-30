@@ -486,10 +486,6 @@ file contains a list of particularly well-known issues that have been
 encountered in compiling, installing and running Emacs.  Often, there
 are suggestions for workarounds and solutions.
 
-@item
-Some additional user-level problems can be found in @ref{Bugs and
-problems, , Bugs and problems, efaq, GNU Emacs FAQ}.
-
 @cindex bug tracker
 @item
 The GNU Bug Tracker at @url{http://debbugs.gnu.org}.  Emacs bugs are

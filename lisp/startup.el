@@ -581,7 +581,7 @@ It is the default value of the variable `top-level'."
         (set (make-local-variable 'window-point-insertion-type) t)
         ;; Give *Messages* the same default-directory as *scratch*,
         ;; just to keep things predictable.
-	(setq default-directory dir)))
+	(setq default-directory (or dir (expand-file-name "~/")))))
     ;; `user-full-name' is now known; reset its standard-value here.
     (put 'user-full-name 'standard-value
 	 (list (default-value 'user-full-name)))
@@ -590,11 +590,12 @@ It is the default value of the variable `top-level'."
       (and (stringp pwd)
 	   ;; Use FOO/., so that if FOO is a symlink, file-attributes
 	   ;; describes the directory linked to, not FOO itself.
-	   (or (equal (file-attributes
+	   (or (and default-directory
+		    (equal (file-attributes
 		       (concat (file-name-as-directory pwd) "."))
 		      (file-attributes
 		       (concat (file-name-as-directory default-directory)
-			       ".")))
+			       "."))))
 	       (setq process-environment
 		     (delete (concat "PWD=" pwd)
 			     process-environment)))))
@@ -609,12 +610,15 @@ It is the default value of the variable `top-level'."
 		(mapcar (lambda (dir)
 			  (decode-coding-string dir coding t))
 			charset-map-path))))
-    (setq default-directory (abbreviate-file-name default-directory))
+    (if default-directory
+	(setq default-directory (abbreviate-file-name default-directory))
+      (display-warning 'initialization "Error setting default-directory"))
     (let ((old-face-font-rescale-alist face-font-rescale-alist))
       (unwind-protect
 	  (command-line)
 	;; Do this again, in case .emacs defined more abbreviations.
-	(setq default-directory (abbreviate-file-name default-directory))
+	(if default-directory
+	    (setq default-directory (abbreviate-file-name default-directory)))
 	;; Specify the file for recording all the auto save files of this session.
 	;; This is used by recover-session.
 	(or auto-save-list-file-name
@@ -1013,6 +1017,13 @@ please check its value")
 				'("no" "off" "false" "0")))))
     (setq no-blinking-cursor t))
 
+  ;; If curved quotes don't work, display ASCII approximations.
+  (dolist (char-repl '((?‘ . [?\`]) (?’ . [?\']) (?“ . [?\"]) (?” . [?\"])))
+    (when (not (char-displayable-p (car char-repl)))
+      (or standard-display-table
+          (setq standard-display-table (make-display-table)))
+      (aset standard-display-table (car char-repl) (cdr char-repl))))
+
   ;; Re-evaluate predefined variables whose initial value depends on
   ;; the runtime context.
   (mapc 'custom-reevaluate-setting
@@ -1163,25 +1174,18 @@ please check its value")
 		(funcall inner)
 		(setq init-file-had-error nil))
 	    (error
-	     ;; Postpone displaying the warning until all hooks
-	     ;; in `after-init-hook' like `desktop-read' will finalize
-	     ;; possible changes in the window configuration.
-	     (add-hook
-	      'after-init-hook
-	      (lambda ()
-		(display-warning
-		 'initialization
-		 (format "An error occurred while loading `%s':\n\n%s%s%s\n\n\
+	     (display-warning
+	      'initialization
+	      (format "An error occurred while loading `%s':\n\n%s%s%s\n\n\
 To ensure normal operation, you should investigate and remove the
 cause of the error in your initialization file.  Start Emacs with
 the `--debug-init' option to view a complete error backtrace."
-			 user-init-file
-			 (get (car error) 'error-message)
-			 (if (cdr error) ": " "")
-			 (mapconcat (lambda (s) (prin1-to-string s t))
-				    (cdr error) ", "))
-		 :warning))
-	      t)
+		      user-init-file
+		      (get (car error) 'error-message)
+		      (if (cdr error) ": " "")
+		      (mapconcat (lambda (s) (prin1-to-string s t))
+				 (cdr error) ", "))
+	      :warning)
 	     (setq init-file-had-error t))))
 
       (if (and deactivate-mark transient-mark-mode)
@@ -1264,7 +1268,10 @@ the `--debug-init' option to view a complete error backtrace."
        (package-initialize))
 
   (setq after-init-time (current-time))
-  (run-hooks 'after-init-hook)
+  ;; Display any accumulated warnings after all functions in
+  ;; `after-init-hook' like `desktop-read' have finalized possible
+  ;; changes in the window configuration.
+  (run-hooks 'after-init-hook 'delayed-warnings-hook)
 
   ;; If *scratch* exists and init file didn't change its mode, initialize it.
   (if (get-buffer "*scratch*")
@@ -2193,19 +2200,23 @@ A fancy display is used on graphic displays, normal otherwise."
                ;; to zero when `process-file-arg' returns.
                (process-file-arg
                 (lambda (name)
-                  (let* ((file (expand-file-name
-                                (command-line-normalize-file-name name)
-                                dir))
-                         (buf (find-file-noselect file)))
-                    (setq displayable-buffers (cons buf displayable-buffers))
-                    (with-current-buffer buf
-                      (unless (zerop line)
-                        (goto-char (point-min))
-                        (forward-line (1- line)))
-                      (setq line 0)
-                      (unless (< column 1)
-                        (move-to-column (1- column)))
-                      (setq column 0))))))
+		  ;; This can only happen if PWD is deleted.
+		  (if (not (or dir (file-name-absolute-p name)))
+		      (message "Ignoring relative file name (%s) due to \
+nil default-directory" name)
+		    (let* ((file (expand-file-name
+				  (command-line-normalize-file-name name)
+				  dir))
+			   (buf (find-file-noselect file)))
+		      (setq displayable-buffers (cons buf displayable-buffers))
+		      (with-current-buffer buf
+			(unless (zerop line)
+			  (goto-char (point-min))
+			  (forward-line (1- line)))
+			(setq line 0)
+			(unless (< column 1)
+			  (move-to-column (1- column)))
+			(setq column 0)))))))
 
           ;; Add the long X options to longopts.
           (dolist (tem command-line-x-option-alist)

@@ -223,10 +223,11 @@ Visit file @var{filename} and select its buffer in another window
 Select a Dired buffer for directory @var{directory} in another window
 (@code{dired-other-window}).  @xref{Dired}.
 
-@findex mail-other-window
+@c Don't index @kbd{C-x 4 m} and @code{compose-mail-other-window}
+@c here, they are indexed in sending.texi, in the "Sending Mail" node.
 @item C-x 4 m
 Start composing a mail message, similar to @kbd{C-x m} (@pxref{Sending
-Mail}), but in another window (@code{mail-other-window}).
+Mail}), but in another window (@code{compose-mail-other-window}).
 
 @findex find-tag-other-window
 @item C-x 4 .
@@ -238,8 +239,10 @@ window (@code{find-file-read-only-other-window}).  @xref{Visiting}.
 @end table
 
 @node Change Window
-@section Deleting and Rearranging Windows
+@section Deleting and Resizing Windows
 
+@cindex delete window
+@cindex deleting windows
 @table @kbd
 @item C-x 0
 Delete the selected window (@code{delete-window}).
@@ -285,6 +288,8 @@ selected window.
 whole frame.  (This command cannot be used while the minibuffer window
 is active; attempting to do so signals an error.)
 
+@cindex resize window
+@cindex resizing windows
 @kindex C-x ^
 @findex enlarge-window
 @kindex C-x @}
@@ -310,6 +315,10 @@ signal an error if you attempt to reduce the width of any window below
 a certain minimum number of columns, specified by the variable
 @code{window-min-width} (the default is 10).
 
+  Mouse clicks on the mode line (@pxref{Mode Line Mouse}) or on window
+dividers (@pxref{Window Dividers}) provide another way to change window
+heights and to split or delete windows.
+
 @kindex C-x -
 @findex shrink-window-if-larger-than-buffer
   @kbd{C-x -} (@code{shrink-window-if-larger-than-buffer}) reduces the
@@ -321,9 +330,6 @@ lines to other windows in the frame.
 @findex balance-windows
   You can also use @kbd{C-x +} (@code{balance-windows}) to even out the
 heights of all the windows in the selected frame.
-
-  Mouse clicks on the mode line provide another way to change window
-heights and to delete windows.  @xref{Mode Line Mouse}.
 
 @node Displaying Buffers
 @section Displaying a Buffer in a Window

@@ -1167,6 +1167,12 @@ The following commands are accepted by the client:
                  (let ((file (pop args-left)))
                    (if coding-system
                        (setq file (decode-coding-string file coding-system)))
+                   ;; Allow Cygwin's emacsclient to be used as a file
+                   ;; handler on MS-Windows, in which case FILENAME
+                   ;; might start with a drive letter.
+                   (when (and (eq system-type 'cygwin)
+                              (string-match "\\`[A-Za-z]:" file))
+                     (setq file (cygwin-convert-file-name-from-windows file)))
                    (setq file (expand-file-name file dir))
                    (push (cons file filepos) files)
                    (server-log (format "New file: %s %s"

@@ -876,7 +876,7 @@ DOWNCASE    t:   Downcase words before using them."
       "\\\\label{\\(?1:[^}]*\\)}"
       ;; keyvals [..., label = {foo}, ...] forms used by ctable,
       ;; listings, minted, ...
-      "\\[[^]]*\\<label[[:space:]]*=[[:space:]]*{?\\(?1:[^],}]+\\)}?")
+      "\\[[^[]]*\\<label[[:space:]]*=[[:space:]]*{?\\(?1:[^],}]+\\)}?")
     "List of regexps matching \\label definitions.
 The default value matches usual \\label{...} definitions and
 keyval style [..., label = {...}, ...] label definitions.  It is
@@ -886,7 +886,7 @@ have to define it using \\(?1:...\\) when adding new regexps.
 When changed from Lisp, make sure to call
 `reftex-compile-variables' afterwards to make the change
 effective."
-    :version "24.4"
+    :version "25.1"
     :set (lambda (symbol value)
 	   (set symbol value)
 	   (when (fboundp 'reftex-compile-variables)

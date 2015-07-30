@@ -8301,7 +8301,11 @@ encode_coding_object (struct coding_system *coding,
 	}
     }
   else
-    code_conversion_save (0, 0);
+    {
+      code_conversion_save (0, 0);
+      coding->src_pos = from;
+      coding->src_pos_byte = from_byte;
+    }
 
   if (BUFFERP (dst_object))
     {
@@ -11053,7 +11057,7 @@ conversion.  */);
 
   DEFVAR_BOOL ("inhibit-eol-conversion", inhibit_eol_conversion,
 	       doc: /*
-*Non-nil means always inhibit code conversion of end-of-line format.
+Non-nil means always inhibit code conversion of end-of-line format.
 See info node `Coding Systems' and info node `Text and Binary' concerning
 such conversion.  */);
   inhibit_eol_conversion = 0;
@@ -11128,27 +11132,27 @@ encoding standard output and error streams.  */);
   /* The eol mnemonics are reset in startup.el system-dependently.  */
   DEFVAR_LISP ("eol-mnemonic-unix", eol_mnemonic_unix,
 	       doc: /*
-*String displayed in mode line for UNIX-like (LF) end-of-line format.  */);
+String displayed in mode line for UNIX-like (LF) end-of-line format.  */);
   eol_mnemonic_unix = build_pure_c_string (":");
 
   DEFVAR_LISP ("eol-mnemonic-dos", eol_mnemonic_dos,
 	       doc: /*
-*String displayed in mode line for DOS-like (CRLF) end-of-line format.  */);
+String displayed in mode line for DOS-like (CRLF) end-of-line format.  */);
   eol_mnemonic_dos = build_pure_c_string ("\\");
 
   DEFVAR_LISP ("eol-mnemonic-mac", eol_mnemonic_mac,
 	       doc: /*
-*String displayed in mode line for MAC-like (CR) end-of-line format.  */);
+String displayed in mode line for MAC-like (CR) end-of-line format.  */);
   eol_mnemonic_mac = build_pure_c_string ("/");
 
   DEFVAR_LISP ("eol-mnemonic-undecided", eol_mnemonic_undecided,
 	       doc: /*
-*String displayed in mode line when end-of-line format is not yet determined.  */);
+String displayed in mode line when end-of-line format is not yet determined.  */);
   eol_mnemonic_undecided = build_pure_c_string (":");
 
   DEFVAR_LISP ("enable-character-translation", Venable_character_translation,
 	       doc: /*
-*Non-nil enables character translation while encoding and decoding.  */);
+Non-nil enables character translation while encoding and decoding.  */);
   Venable_character_translation = Qt;
 
   DEFVAR_LISP ("standard-translation-table-for-decode",

@@ -47,9 +47,10 @@ explained in the corresponding sections.
 @subsection Auto Reverting the Buffer Menu
 
 If auto-reverting of non-file buffers is enabled, the Buffer Menu
-automatically reverts every @code{auto-revert-interval} seconds,
-whether there is a need for it or not.  (It would probably take longer
-to check whether there is a need than to actually revert.)
+(@pxref{Several Buffers}) automatically reverts every
+@code{auto-revert-interval} seconds, whether there is a need for it or
+not.  (It would probably take longer to check whether there is a need
+than to actually revert.)
 
 If the Buffer Menu inappropriately gets marked modified, just revert
 it manually using @kbd{g} and auto-reverting will resume.  However, if

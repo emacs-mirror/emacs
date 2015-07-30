@@ -69,7 +69,7 @@
           ;; Since we changed the terminal encoding, we need to repeat
           ;; the test for Unicode quotes being displayable.
           (dolist (char-repl
-                   '((?‘ . [?\']) (?’ . [?\']) (?“ . [?\"]) (?” . [?\"])))
+                   '((?‘ . [?\`]) (?’ . [?\']) (?“ . [?\"]) (?” . [?\"])))
             (when (not (char-displayable-p (car char-repl)))
               (or standard-display-table
                   (setq standard-display-table (make-display-table)))

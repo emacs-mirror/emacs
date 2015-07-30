@@ -70,9 +70,7 @@ Lisp_Object Fx_open_connection (Lisp_Object, Lisp_Object, Lisp_Object);
 static Lisp_Object as_script, *as_result;
 static int as_status;
 
-#ifdef GLYPH_DEBUG
 static ptrdiff_t image_cache_refcount;
-#endif
 
 
 /* ==========================================================================
@@ -1005,6 +1003,17 @@ unwind_create_frame (Lisp_Object frame)
       struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
 #endif
 
+      /* If the frame's image cache refcount is still the same as our
+	 private shadow variable, it means we are unwinding a frame
+	 for which we didn't yet call init_frame_faces, where the
+	 refcount is incremented.  Therefore, we increment it here, so
+	 that free_frame_faces, called in x_free_frame_resources
+	 below, will not mistakenly decrement the counter that was not
+	 incremented yet to account for this new frame.  */
+      if (FRAME_IMAGE_CACHE (f) != NULL
+	  && FRAME_IMAGE_CACHE (f)->refcount == image_cache_refcount)
+	FRAME_IMAGE_CACHE (f)->refcount++;
+
       x_free_frame_resources (f);
       free_glyphs (f);
 
@@ -1187,6 +1196,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
     register_font_driver (&nsfont_driver, f);
 #endif
 
+  image_cache_refcount =
+    FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
+
   x_default_parameter (f, parms, Qfont_backend, Qnil,
 			"fontBackend", "FontBackend", RES_TYPE_STRING);
 
@@ -1240,11 +1252,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       "leftFringe", "LeftFringe", RES_TYPE_NUMBER);
   x_default_parameter (f, parms, Qright_fringe, Qnil,
 		       "rightFringe", "RightFringe", RES_TYPE_NUMBER);
-
-#ifdef GLYPH_DEBUG
-  image_cache_refcount =
-    FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
-#endif
 
   init_frame_faces (f);
 
@@ -2666,7 +2673,7 @@ compute_tip_xy (struct frame *f,
                 int *root_x,
                 int *root_y)
 {
-  Lisp_Object left, top;
+  Lisp_Object left, top, right, bottom;
   EmacsView *view = FRAME_NS_VIEW (f);
   struct ns_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   NSPoint pt;
@@ -2674,8 +2681,11 @@ compute_tip_xy (struct frame *f,
   /* Start with user-specified or mouse position.  */
   left = Fcdr (Fassq (Qleft, parms));
   top = Fcdr (Fassq (Qtop, parms));
+  right = Fcdr (Fassq (Qright, parms));
+  bottom = Fcdr (Fassq (Qbottom, parms));
 
-  if (!INTEGERP (left) || !INTEGERP (top))
+  if ((!INTEGERP (left) && !INTEGERP (right))
+      || (!INTEGERP (top) && !INTEGERP (bottom)))
     {
       pt.x = dpyinfo->last_mouse_motion_x;
       pt.y = dpyinfo->last_mouse_motion_y;
@@ -2695,13 +2705,14 @@ compute_tip_xy (struct frame *f,
   else
     {
       /* Absolute coordinates.  */
-      pt.x = XINT (left);
-      pt.y = x_display_pixel_height (FRAME_DISPLAY_INFO (f)) - XINT (top)
-        - height;
+      pt.x = INTEGERP (left) ? XINT (left) : XINT (right);
+      pt.y = (x_display_pixel_height (FRAME_DISPLAY_INFO (f))
+	      - (INTEGERP (top) ? XINT (top) : XINT (bottom))
+	      - height);
     }
 
   /* Ensure in bounds.  (Note, screen origin = lower left.) */
-  if (INTEGERP (left))
+  if (INTEGERP (left) || INTEGERP (right))
     *root_x = pt.x;
   else if (pt.x + XINT (dx) <= 0)
     *root_x = 0; /* Can happen for negative dx */
@@ -2716,7 +2727,7 @@ compute_tip_xy (struct frame *f,
     /* Put it left justified on the screen -- it ought to fit that way.  */
     *root_x = 0;
 
-  if (INTEGERP (top))
+  if (INTEGERP (top) || INTEGERP (bottom))
     *root_y = pt.y;
   else if (pt.y - XINT (dy) - height >= 0)
     /* It fits below the pointer.  */
@@ -2746,12 +2757,18 @@ Automatically hide the tooltip after TIMEOUT seconds.  TIMEOUT nil
 means use the default timeout of 5 seconds.
 
 If the list of frame parameters PARMS contains a `left' parameter,
-the tooltip is displayed at that x-position.  Otherwise it is
-displayed at the mouse position, with offset DX added (default is 5 if
-DX isn't specified).  Likewise for the y-position; if a `top' frame
-parameter is specified, it determines the y-position of the tooltip
-window, otherwise it is displayed at the mouse position, with offset
-DY added (default is -10).
+display the tooltip at that x-position.  If the list of frame parameters
+PARMS contains no `left' but a `right' parameter, display the tooltip
+right-adjusted at that x-position. Otherwise display it at the
+x-position of the mouse, with offset DX added (default is 5 if DX isn't
+specified).
+
+Likewise for the y-position: If a `top' frame parameter is specified, it
+determines the position of the upper edge of the tooltip window.  If a
+`bottom' parameter but no `top' frame parameter is specified, it
+determines the position of the lower edge of the tooltip window.
+Otherwise display the tooltip window at the y-position of the mouse,
+with offset DY added (default is -10).
 
 A tooltip's maximum size is specified by `x-max-tooltip-size'.
 Text larger than the specified size is clipped.  */)
@@ -2860,17 +2877,23 @@ elements (all size values are in pixels).
   int inner_width = FRAME_PIXEL_WIDTH (f);
   int inner_height = FRAME_PIXEL_HEIGHT (f);
   Lisp_Object fullscreen = Fframe_parameter (frame, Qfullscreen);
-  int border = f->border_width;
-  int title = FRAME_NS_TITLEBAR_HEIGHT (f);
-  int outer_width = FRAME_PIXEL_WIDTH (f) + 2 * border;
-  int outer_height = FRAME_PIXEL_HEIGHT (f) + 2 * border;
-  int tool_bar_height = FRAME_TOOLBAR_HEIGHT (f);
-  int tool_bar_width = tool_bar_height > 0
-    ? outer_width - 2 * FRAME_INTERNAL_BORDER_WIDTH (f)
-    : 0;
+  int border, title, outer_width, outer_height;
+  int tool_bar_height, tool_bar_width;
   // Always 0 on NS.
   int menu_bar_height = 0;
   int menu_bar_width = 0;
+
+  if (FRAME_INITIAL_P (f) || !FRAME_NS_P (f))
+    return Qnil;
+
+  border = f->border_width;
+  title = FRAME_NS_TITLEBAR_HEIGHT (f);
+  outer_width = FRAME_PIXEL_WIDTH (f) + 2 * border;
+  outer_height = FRAME_PIXEL_HEIGHT (f) + 2 * border;
+  tool_bar_height = FRAME_TOOLBAR_HEIGHT (f);
+  tool_bar_width = tool_bar_height > 0
+    ? outer_width - 2 * FRAME_INTERNAL_BORDER_WIDTH (f)
+    : 0;
 
   return
     listn (CONSTYPE_HEAP, 10,
@@ -2899,7 +2922,6 @@ elements (all size values are in pixels).
 		  Fcons (make_number (inner_width),
 			 make_number (inner_height))));
 }
-
 
 /* ==========================================================================
 

@@ -196,8 +196,8 @@
             (should (string-match (concat
                                    "\\`ert-test-describe-test is a test"
                                    " defined in"
-                                   " [`‘]ert-x-tests.elc?['’]\\.\n\n"
-                                   "Tests [`‘]ert-describe-test['’]\\.\n\\'")
+                                   " ['`‘]ert-x-tests.elc?['’]\\.\n\n"
+                                   "Tests ['`‘]ert-describe-test['’]\\.\n\\'")
                                   (buffer-string)))))))))
 
 (ert-deftest ert-test-message-log-truncation ()

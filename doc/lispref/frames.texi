@@ -2018,6 +2018,19 @@ The value of @code{track-mouse} is that of the last form in @var{body}.
 You should design @var{body} to return when it sees the up-event that
 indicates the release of the button, or whatever kind of event means
 it is time to stop tracking.
+
+The @code{track-mouse} form causes Emacs to generate mouse motion
+events by binding the variable @code{mouse-tracking} to a
+non-@code{nil} value.  If that variable has the special value
+@code{dragging}, it additionally instructs the display engine to
+refrain from changing the shape of the mouse pointer.  This is
+desirable in Lisp programs that require mouse dragging across large
+portions of Emacs display, which might otherwise cause the mouse
+pointer to change its shape according to the display portion it hovers
+on (@pxref{Pointer Shape}).  Therefore, Lisp programs that need the
+mouse pointer to retain its original shape during dragging should bind
+@code{track-mouse} to the value @code{dragging} at the beginning of
+their @var{body}.
 @end defspec
 
 The usual purpose of tracking mouse motion is to indicate on the screen

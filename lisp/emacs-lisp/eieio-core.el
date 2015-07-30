@@ -126,23 +126,19 @@ Currently under control of this var:
 
 ;;; Important macros used internally in eieio.
 
-(defmacro eieio--class-v (class)        ;Use a macro, so it acts as a GV place.
-  "Internal: Return the class vector from the CLASS symbol."
-  (declare (debug t))
-  ;; No check: If eieio gets this far, it has probably been checked already.
-  `(get ,class 'eieio-class-definition))
+(require 'cl-macs)  ;For cl--find-class.
 
 (defsubst eieio--class-object (class)
   "Return the class object."
   (if (symbolp class)
       ;; Keep the symbol if class-v is nil, for better error messages.
-      (or (eieio--class-v class) class)
+      (or (cl--find-class class) class)
     class))
 
 (defun class-p (class)
   "Return non-nil if CLASS is a valid class vector.
 CLASS is a symbol."                     ;FIXME: Is it a vector or a symbol?
-  (and (symbolp class) (eieio--class-p (eieio--class-v class))))
+  (and (symbolp class) (eieio--class-p (cl--find-class class))))
 
 (defun eieio--class-print-name (class)
   "Return a printed representation of CLASS."
@@ -182,7 +178,7 @@ Return nil if that option doesn't exist."
 (defun class-abstract-p (class)
   "Return non-nil if CLASS is abstract.
 Abstract classes cannot be instantiated."
-  (eieio--class-option (eieio--class-v class) :abstract))
+  (eieio--class-option (cl--find-class class) :abstract))
 
 (defsubst eieio--class-method-invocation-order (class)
   "Return the invocation order of CLASS.
@@ -215,7 +211,7 @@ It creates an autoload function for CNAME's constructor."
   ;; simply not exist yet.  So instead we just don't store the list of parents
   ;; here in eieio-defclass-autoload at all, since it seems that they're just
   ;; not needed before the class is actually loaded.
-  (let* ((oldc (eieio--class-v cname))
+  (let* ((oldc (cl--find-class cname))
 	 (newc (eieio--class-make cname)))
     (if (eieio--class-p oldc)
 	nil ;; Do nothing if we already have this class.
@@ -229,7 +225,7 @@ It creates an autoload function for CNAME's constructor."
       ;; do this first so that we can call defmethod for the accessor.
       ;; The vector will be updated by the following while loop and will not
       ;; need to be stored a second time.
-      (setf (eieio--class-v cname) newc)
+      (setf (cl--find-class cname) newc)
 
       ;; Create an autoload on top of our constructor function.
       (autoload cname filename doc nil nil)
@@ -265,6 +261,8 @@ It creates an autoload function for CNAME's constructor."
     (and (eieio-object-p obj)
          (object-of-class-p obj class))))
 
+(defvar eieio--known-slot-names nil)
+
 (defun eieio-defclass-internal (cname superclasses slots options)
   "Define CNAME as a new subclass of SUPERCLASSES.
 SLOTS are the slots residing in that class definition, and OPTIONS
@@ -276,7 +274,7 @@ See `defclass' for more information."
   (run-hooks 'eieio-hook)
   (setq eieio-hook nil)
 
-  (let* ((oldc (let ((c (eieio--class-v cname))) (if (eieio--class-p c) c)))
+  (let* ((oldc (let ((c (cl--find-class cname))) (if (eieio--class-p c) c)))
 	 (newc (or oldc
                    ;; Reuse `oldc' instead of creating a new one, so that
                    ;; existing references stay valid.  E.g. when
@@ -312,7 +310,7 @@ See `defclass' for more information."
 	  (dolist (p superclasses)
 	    (if (not (and p (symbolp p)))
 		(error "Invalid parent class %S" p)
-              (let ((c (eieio--class-v p)))
+              (let ((c (cl--find-class p)))
                 (if (not (eieio--class-p c))
 		    ;; bad class
 		    (error "Given parent class %S is not a class" p)
@@ -371,7 +369,7 @@ See `defclass' for more information."
     ;; do this first so that we can call defmethod for the accessor.
     ;; The vector will be updated by the following while loop and will not
     ;; need to be stored a second time.
-    (setf (eieio--class-v cname) newc)
+    (setf (cl--find-class cname) newc)
 
     ;; Query each slot in the declaration list and mangle into the
     ;; class structure I have defined.
@@ -477,7 +475,7 @@ See `defclass' for more information."
         (put cname 'variable-documentation docstring)))
 
     ;; Save the file location where this class is defined.
-    (add-to-list 'current-load-list `(eieio-defclass . ,cname))
+    (add-to-list 'current-load-list `(define-type . ,cname))
 
     ;; We have a list of custom groups.  Store them into the options.
     (let ((g (eieio--class-option-assoc options :custom-groups)))
@@ -607,47 +605,48 @@ if default value is nil."
                               :key #'cl--slot-descriptor-name)))
          (cold (car (cl-member a (eieio--class-class-slots newc)
                                :key #'cl--slot-descriptor-name))))
-  (condition-case nil
-      (if (sequencep d) (setq d (copy-sequence d)))
-    ;; This copy can fail on a cons cell with a non-cons in the cdr.  Let's
-    ;; skip it if it doesn't work.
-    (error nil))
-  ;; (if (sequencep type) (setq type (copy-sequence type)))
-  ;; (if (sequencep cust) (setq cust (copy-sequence cust)))
-  ;; (if (sequencep custg) (setq custg (copy-sequence custg)))
+    (cl-pushnew a eieio--known-slot-names)
+    (condition-case nil
+        (if (sequencep d) (setq d (copy-sequence d)))
+      ;; This copy can fail on a cons cell with a non-cons in the cdr.  Let's
+      ;; skip it if it doesn't work.
+      (error nil))
+    ;; (if (sequencep type) (setq type (copy-sequence type)))
+    ;; (if (sequencep cust) (setq cust (copy-sequence cust)))
+    ;; (if (sequencep custg) (setq custg (copy-sequence custg)))
 
-  ;; To prevent override information w/out specification of storage,
-  ;; we need to do this little hack.
-  (if cold (setq alloc :class))
+    ;; To prevent override information w/out specification of storage,
+    ;; we need to do this little hack.
+    (if cold (setq alloc :class))
 
-  (if (memq alloc '(nil :instance))
-      ;; In this case, we modify the INSTANCE version of a given slot.
-      (progn
-        ;; Only add this element if it is so-far unique
-        (if (not old)
-            (progn
-              (eieio--perform-slot-validation-for-default slot skipnil)
-              (push slot (eieio--class-slots newc))
-              )
-          ;; When defaultoverride is true, we are usually adding new local
-          ;; attributes which must override the default value of any slot
-          ;; passed in by one of the parent classes.
-          (when defaultoverride
-            (eieio--slot-override old slot skipnil)))
-        (when init
-          (cl-pushnew (cons init a) (eieio--class-initarg-tuples newc)
-                      :test #'equal)))
-
-    ;; CLASS ALLOCATED SLOTS
-    (if (not cold)
+    (if (memq alloc '(nil :instance))
+        ;; In this case, we modify the INSTANCE version of a given slot.
         (progn
-          (eieio--perform-slot-validation-for-default slot skipnil)
-          ;; Here we have found a :class version of a slot.  This
-          ;; requires a very different approach.
-          (push slot (eieio--class-class-slots newc)))
-      (when defaultoverride
-        ;; There is a match, and we must override the old value.
-        (eieio--slot-override cold slot skipnil))))))
+          ;; Only add this element if it is so-far unique
+          (if (not old)
+              (progn
+                (eieio--perform-slot-validation-for-default slot skipnil)
+                (push slot (eieio--class-slots newc))
+                )
+            ;; When defaultoverride is true, we are usually adding new local
+            ;; attributes which must override the default value of any slot
+            ;; passed in by one of the parent classes.
+            (when defaultoverride
+              (eieio--slot-override old slot skipnil)))
+          (when init
+            (cl-pushnew (cons init a) (eieio--class-initarg-tuples newc)
+                        :test #'equal)))
+
+      ;; CLASS ALLOCATED SLOTS
+      (if (not cold)
+          (progn
+            (eieio--perform-slot-validation-for-default slot skipnil)
+            ;; Here we have found a :class version of a slot.  This
+            ;; requires a very different approach.
+            (push slot (eieio--class-class-slots newc)))
+        (when defaultoverride
+          ;; There is a match, and we must override the old value.
+          (eieio--slot-override cold slot skipnil))))))
 
 (defun eieio-copy-parents-into-subclass (newc)
   "Copy into NEWC the slots of PARENTS.
@@ -724,14 +723,23 @@ Argument FN is the function calling this verifier."
 
 
 ;;; Get/Set slots in an object.
-;;
+
 (defun eieio-oref (obj slot)
   "Return the value in OBJ at SLOT in the object vector."
+  (declare (compiler-macro
+            (lambda (exp)
+              (ignore obj)
+              (pcase slot
+                ((and (or `',name (and name (pred keywordp)))
+                      (guard (not (memq name eieio--known-slot-names))))
+                 (macroexp--warn-and-return
+                  (format "Unknown slot `%S'" name) exp 'compile-only))
+                (_ exp)))))
   (cl-check-type slot symbol)
   (cl-check-type obj (or eieio-object class))
   (let* ((class (cond ((symbolp obj)
                        (error "eieio-oref called on a class: %s" obj)
-                       (let ((c (eieio--class-v obj)))
+                       (let ((c (cl--find-class obj)))
                          (if (eieio--class-p c) (eieio-class-un-autoload obj))
                          c))
                       (t (eieio--object-class obj))))
@@ -757,7 +765,7 @@ Argument FN is the function calling this verifier."
 Fills in OBJ's SLOT with its default value."
   (cl-check-type obj (or eieio-object class))
   (cl-check-type slot symbol)
-  (let* ((cl (cond ((symbolp obj) (eieio--class-v obj))
+  (let* ((cl (cond ((symbolp obj) (cl--find-class obj))
                    (t (eieio--object-class obj))))
 	 (c (eieio--slot-name-index cl slot)))
     (if (not c)
@@ -964,7 +972,7 @@ If a consistent order does not exist, signal an error."
 
 (defun eieio--class-precedence-c3 (class)
   "Return all parents of CLASS in c3 order."
-  (let ((parents (eieio--class-parents (eieio--class-v class))))
+  (let ((parents (eieio--class-parents (cl--find-class class))))
     (eieio--c3-merge-lists
      (list class)
      (append
@@ -1084,14 +1092,14 @@ method invocation orders of the involved classes."
 
 (defconst eieio--generic-subclass-generalizer
   (cl-generic-make-generalizer
-   60 (lambda (name) `(and (symbolp ,name) (eieio--class-v ,name)))
+   60 (lambda (name) `(and (symbolp ,name) (cl--find-class ,name)))
    #'eieio--generic-subclass-specializers))
 
 (cl-defmethod cl-generic-generalizers ((_specializer (head subclass)))
   (list eieio--generic-subclass-generalizer))
 
 
-;;;### (autoloads nil "eieio-compat" "eieio-compat.el" "0609a7bdcd6f38876b7f5647047ddca9")
+;;;### (autoloads nil "eieio-compat" "eieio-compat.el" "ea8c7f24ed47c6b71ac37cbdae1c9931")
 ;;; Generated autoloads from eieio-compat.el
 
 (autoload 'eieio--defalias "eieio-compat" "\

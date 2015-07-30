@@ -507,7 +507,7 @@ don't yield.")
         next-state)))
 
     ;; Process everything else by just evaluating the form normally.
-    (t (cps--make-atomic-state form next-state))))
+    (_ (cps--make-atomic-state form next-state))))
 
 (defun cps--make-catch-wrapper (tag-binding next-state)
   (lambda (form)

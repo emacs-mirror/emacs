@@ -33,10 +33,19 @@ top_srcdir_abs = $(shell cd @top_srcdir@; pwd -P)
 @SET_MAKE@
 MKDIR_P = @MKDIR_P@
 
+## Emacs.app.
 ns_appdir = @ns_appdir@
+## GNUstep: ns_appdir; OS X: ns_appdir/Contents/MacOS
 ns_appbindir = @ns_appbindir@
+## GNUstep/Emacs.base or Cocoa/Emacs.base.
 ns_appsrc = @ns_appsrc@
+## GNUstep: GNUstep/Emacs.base/Resources/Info-gnustep.plist
+## OS X: Cocoa/Emacs.base/Contents/Info.plist
 ns_check_file = @ns_appdir@/@ns_check_file@
+
+.PHONY: all
+
+all: ${ns_appdir} ${ns_appbindir}/Emacs
 
 ${ns_check_file} ${ns_appdir}: ${srcdir}/${ns_appsrc} ${ns_appsrc}
 	rm -rf ${ns_appdir}
@@ -48,26 +57,30 @@ ${ns_check_file} ${ns_appdir}: ${srcdir}/${ns_appsrc} ${ns_appsrc}
 	    ( cd ${ns_appdir} ; umask 022; tar xf - )
 	touch ${ns_appdir}
 
-${ns_appbindir}:
-	${MKDIR_P} $@
-
-${ns_appbindir}/Emacs: ${ns_appdir} ${ns_check_file} ../src/emacs${EXEEXT} | \
-  ${ns_appbindir}
+## Don't create ns_appbindir via an order-only prerequisite, because
+## on GNUstep ns_appbindir and ns_bindir are the same, so
+## the rule for ns_appbindir would conflict with that for ns_appdir.
+${ns_appbindir}/Emacs: ${ns_appdir} ${ns_check_file} ../src/emacs${EXEEXT}
+	${MKDIR_P} ${ns_appbindir}
 	cp -f ../src/emacs${EXEEXT} $@
 
-.PHONY: all links
+.PHONY: FORCE
 
-all: ${ns_appdir} ${ns_appbindir}/Emacs
+../src/emacs${EXEEXT}: FORCE
+	${MAKE} -C ../src $(notdir $@)
 
 # create a fake installation pointing back to the source tree
 # to run GUI Emacs in-place
-links : ../src/emacs${EXEEXT} | ${ns_appbindir}
+.PHONY: links
+
+links: ../src/emacs${EXEEXT}
 	for d in $(shell cd ${srcdir}/${ns_appsrc}; find . -type d); do ${MKDIR_P} ${ns_appdir}/$$d; done
 	for f in $(shell cd ${srcdir}/${ns_appsrc}; find . -type f); do ln -s $(shell cd ${srcdir}; pwd -P)/${ns_appsrc}/$$f ${ns_appdir}/$$f; done
 	for d in $(shell cd ${ns_appsrc}; find . -type d); do ${MKDIR_P} ${ns_appdir}/$$d; done
 	for f in $(shell cd ${ns_appsrc}; find . -type f); do ln -s $(shell cd ${ns_appsrc}; pwd -P)/$$f ${ns_appdir}/$$f; done
 	ln -s $(top_srcdir_abs)/lisp ${ns_appdir}/Contents/Resources
 	ln -s $(top_srcdir_abs)/info ${ns_appdir}/Contents/Resources
+	${MKDIR_P} ${ns_appbindir}
 	ln -s $(abs_top_builddir)/src/emacs${EXEEXT} ${ns_appbindir}/Emacs
 	ln -s $(abs_top_builddir)/lib-src ${ns_appbindir}/bin
 	ln -s $(abs_top_builddir)/lib-src ${ns_appbindir}/libexec

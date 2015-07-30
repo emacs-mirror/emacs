@@ -960,7 +960,7 @@ struct scroll_bar
 
 struct selection_input_event
 {
-  int kind;
+  ENUM_BF (event_kind) kind : EVENT_KIND_WIDTH;
   struct x_display_info *dpyinfo;
   /* We spell it with an "o" here because X does.  */
   Window requestor;
@@ -970,23 +970,23 @@ struct selection_input_event
 
 /* Unlike macros below, this can't be used as an lvalue.  */
 INLINE Display *
-SELECTION_EVENT_DISPLAY (struct input_event *ev)
+SELECTION_EVENT_DISPLAY (struct selection_input_event *ev)
 {
-  return ((struct selection_input_event *) ev)->dpyinfo->display;
+  return ev->dpyinfo->display;
 }
 #define SELECTION_EVENT_DPYINFO(eventp) \
-  (((struct selection_input_event *) (eventp))->dpyinfo)
+  ((eventp)->dpyinfo)
 /* We spell it with an "o" here because X does.  */
 #define SELECTION_EVENT_REQUESTOR(eventp)	\
-  (((struct selection_input_event *) (eventp))->requestor)
+  ((eventp)->requestor)
 #define SELECTION_EVENT_SELECTION(eventp)	\
-  (((struct selection_input_event *) (eventp))->selection)
+  ((eventp)->selection)
 #define SELECTION_EVENT_TARGET(eventp)	\
-  (((struct selection_input_event *) (eventp))->target)
+  ((eventp)->target)
 #define SELECTION_EVENT_PROPERTY(eventp)	\
-  (((struct selection_input_event *) (eventp))->property)
+  ((eventp)->property)
 #define SELECTION_EVENT_TIME(eventp)	\
-  (((struct selection_input_event *) (eventp))->time)
+  ((eventp)->time)
 
 /* From xfns.c.  */
 
@@ -1079,7 +1079,7 @@ extern void x_clear_under_internal_border (struct frame *f);
 
 extern void x_handle_property_notify (const XPropertyEvent *);
 extern void x_handle_selection_notify (const XSelectionEvent *);
-extern void x_handle_selection_event (struct input_event *);
+extern void x_handle_selection_event (struct selection_input_event *);
 extern void x_clear_frame_selections (struct frame *);
 
 extern void x_send_client_event (Lisp_Object display,

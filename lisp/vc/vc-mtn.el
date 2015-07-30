@@ -179,15 +179,18 @@ switches."
 (defun vc-mtn-mode-line-string (file)
   "Return a string for `vc-mode-line' to put in the mode line for FILE."
   (let ((branch (vc-mtn-workfile-branch file)))
-    (dolist (rule vc-mtn-mode-line-rewrite)
-      (if (string-match (car rule) branch)
-	  (setq branch (replace-match (cdr rule) t nil branch))))
-    (format "Mtn%c%s"
-	    (pcase (vc-state file)
-	      ((or `up-to-date `needs-update) ?-)
-	      (`added ?@)
-	      (_ ?:))
-	    branch)))
+    (if branch
+        (progn
+          (dolist (rule vc-mtn-mode-line-rewrite)
+            (if (string-match (car rule) branch)
+                (setq branch (replace-match (cdr rule) t nil branch))))
+          (format "Mtn%c%s"
+                  (pcase (vc-state file)
+                    ((or `up-to-date `needs-update) ?-)
+                    (`added ?@)
+                    (_ ?:))
+                  branch))
+      "")))
 
 (defun vc-mtn-register (files &optional _comment)
   (vc-mtn-command nil 0 files "add"))
@@ -204,7 +207,10 @@ switches."
 					  comment))))
 
 (defun vc-mtn-find-revision (file rev buffer)
-  (vc-mtn-command buffer 0 file "cat" "-r" rev))
+  ;; null rev means latest revision
+  (if rev
+      (vc-mtn-command buffer 0 file "cat" "-r" rev)
+    (vc-mtn-command buffer 0 file "cat")))
 
 ;; (defun vc-mtn-checkout (file &optional rev)
 ;;   )

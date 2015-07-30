@@ -38,14 +38,12 @@ Optional argument DATE is the release date, default today."
 					  emacs-minor-version))
 		     (read-string "Release date: "
 				  (progn (require 'add-log)
-					 (let ((add-log-time-zone-rule t))
-					   (funcall add-log-time-format))))))
+                                         (funcall add-log-time-format nil t)))))
   (setq root (expand-file-name root))
   (unless (file-exists-p (expand-file-name "src/emacs.c" root))
     (user-error "%s doesn't seem to be the root of an Emacs source tree" root))
   (require 'add-log)
-  (or date (setq date (let ((add-log-time-zone-rule t))
-			(funcall add-log-time-format))))
+  (or date (setq date (funcall add-log-time-format nil t)))
   (let* ((logs (process-lines "find" root "-name" "ChangeLog"))
 	 (entry (format "%s  %s  <%s>\n\n\t* Version %s released.\n\n"
 			date

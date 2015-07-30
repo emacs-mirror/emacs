@@ -1652,10 +1652,14 @@ specified buffer position instead of point are used.
 
   if (NILP (position) && VECTORP (key))
     {
-      Lisp_Object event
-	/* mouse events may have a symbolic prefix indicating the
-	   scrollbar or mode line */
-	= AREF (key, SYMBOLP (AREF (key, 0)) && ASIZE (key) > 1 ? 1 : 0);
+      Lisp_Object event;
+
+      if (ASIZE (key) == 0)
+	return Qnil;
+
+      /* mouse events may have a symbolic prefix indicating the
+	 scrollbar or mode line */
+      event = AREF (key, SYMBOLP (AREF (key, 0)) && ASIZE (key) > 1 ? 1 : 0);
 
       /* We are not interested in locations without event data */
 

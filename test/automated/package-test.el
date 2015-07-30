@@ -50,7 +50,9 @@
                        :version '(1 3)
                        :summary "A single-file package with no dependencies"
                        :kind 'single
-                       :extras '((:url . "http://doodles.au")))
+                       :extras '((:authors ("J. R. Hacker" . "jrh@example.com"))
+                                 (:maintainer "J. R. Hacker" . "jrh@example.com")
+                                 (:url . "http://doodles.au")))
   "Expected `package-desc' parsed from simple-single-1.3.el.")
 
 (defvar simple-depend-desc
@@ -58,7 +60,9 @@
                        :version '(1 0)
                        :summary "A single-file package with a dependency."
                        :kind 'single
-                       :reqs '((simple-single (1 3))))
+                       :reqs '((simple-single (1 3)))
+                       :extras '((:authors ("J. R. Hacker" . "jrh@example.com"))
+                                 (:maintainer "J. R. Hacker" . "jrh@example.com")))
   "Expected `package-desc' parsed from simple-depend-1.0.el.")
 
 (defvar multi-file-desc
@@ -216,6 +220,8 @@ Must called from within a `tar-mode' buffer."
                                  "(define-package \"simple-single\" \"1.3\" "
                                  "\"A single-file package "
                                  "with no dependencies\" 'nil "
+                                 ":authors '((\"J. R. Hacker\" . \"jrh@example.com\")) "
+                                 ":maintainer '(\"J. R. Hacker\" . \"jrh@example.com\") "
                                  ":url \"http://doodles.au\""
                                  ")\n"))))
       (should (file-exists-p autoloads-file))
@@ -305,6 +311,7 @@ Must called from within a `tar-mode' buffer."
       (search-forward-regexp "^ +simple-single")
       (package-menu-mark-install)
       (package-menu-execute)
+      (run-hooks 'post-command-hook)
       (should (package-installed-p 'simple-single))
       (switch-to-buffer "*Packages*")
       (goto-char (point-min))
@@ -380,8 +387,9 @@ Must called from within a `tar-mode' buffer."
    (describe-package '5x5)
    (goto-char (point-min))
    (should (search-forward "5x5 is a built-in package." nil t))
-   (should (search-forward "Status: Built-in." nil t))
-   (should (search-forward "Summary: simple little puzzle game" nil t))
+   ;; Don't assume the descriptions are in any particular order.
+   (save-excursion (should (search-forward "Status: Built-in." nil t)))
+   (save-excursion (should (search-forward "Summary: simple little puzzle game" nil t)))
    (should (search-forward "The aim of 5x5" nil t)))
 
   ;; Installed
@@ -393,14 +401,11 @@ Must called from within a `tar-mode' buffer."
      (describe-package 'simple-single)
      (goto-char (point-min))
      (should (search-forward "simple-single is an installed package." nil t))
-     (should (re-search-forward
-              "Status: Installed in [`‘]~/simple-single-1.3/['’] (unsigned)."
-              nil t))
-     (should (search-forward "Version: 1.3" nil t))
-     (should (search-forward "Summary: A single-file package with no dependencies"
-                             nil t))
-     (should (search-forward "Homepage: http://doodles.au" nil t))
-     (should (re-search-forward "Keywords: \\[?frobnicate\\]?" nil t))
+     (save-excursion (should (re-search-forward "Status: Installed in ['`‘]simple-single-1.3/['’] (unsigned)." nil t)))
+     (save-excursion (should (search-forward "Version: 1.3" nil t)))
+     (save-excursion (should (search-forward "Summary: A single-file package with no dependencies" nil t)))
+     (save-excursion (should (search-forward "Homepage: http://doodles.au" nil t)))
+     (save-excursion (should (re-search-forward "Keywords: \\[?frobnicate\\]?" nil t)))
      ;; No description, though. Because at this point we don't know
      ;; what archive the package originated from, and we don't have
      ;; its readme file saved.
@@ -467,7 +472,7 @@ Must called from within a `tar-mode' buffer."
        (should (re-search-forward "signed-good is an? \\(\\S-+\\) package." nil t))
        (should (string-equal (match-string-no-properties 1) "installed"))
        (should (re-search-forward
-		"Status: Installed in [`‘]~/signed-good-1.0/['’]."
+		"Status: Installed in ['`‘]signed-good-1.0/['’]."
 		nil t))))))
 
 
@@ -481,7 +486,9 @@ Must called from within a `tar-mode' buffer."
         (package-make-ac-desc '(1 3) nil
                               "A single-file package with no dependencies"
                               'single
-                              '((:url . "http://doodles.au"))))
+                              '((:authors ("J. R. Hacker" . "jrh@example.com"))
+                                (:maintainer "J. R. Hacker" . "jrh@example.com")
+                                (:url . "http://doodles.au"))))
   "Expected contents of the archive entry from the \"simple-single\" package.")
 
 (defvar package-x-test--single-archive-entry-1-4
@@ -489,7 +496,8 @@ Must called from within a `tar-mode' buffer."
         (package-make-ac-desc '(1 4) nil
                               "A single-file package with no dependencies"
                               'single
-                              nil))
+                              '((:authors ("J. R. Hacker" . "jrh@example.com"))
+                                (:maintainer "J. R. Hacker" . "jrh@example.com"))))
   "Expected contents of the archive entry from the updated \"simple-single\" package.")
 
 (ert-deftest package-x-test-upload-buffer ()

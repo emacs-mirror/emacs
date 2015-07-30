@@ -44,8 +44,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/resource.h>
 #endif
 
+#include <errno.h>
 #include <float.h>
 #include <limits.h>
+
 #include <intprops.h>
 #include <strftime.h>
 #include <verify.h>
@@ -65,9 +67,8 @@ extern Lisp_Object w32_get_internal_run_time (void);
 #endif
 
 static struct lisp_time lisp_time_struct (Lisp_Object, int *);
-static void set_time_zone_rule (char const *);
 static Lisp_Object format_time_string (char const *, ptrdiff_t, struct timespec,
-				       bool, struct tm *);
+				       Lisp_Object, struct tm *);
 static long int tm_gmtoff (struct tm *);
 static int tm_diff (struct tm *, struct tm *);
 static void update_buffer_properties (ptrdiff_t, ptrdiff_t);
@@ -76,8 +77,13 @@ static void update_buffer_properties (ptrdiff_t, ptrdiff_t);
 # define HAVE_TM_GMTOFF false
 #endif
 
-/* The startup value of the TZ environment variable; null if unset.  */
-static char const *initial_tz;
+enum { tzeqlen = sizeof "TZ=" - 1 };
+
+/* Time zones equivalent to current local time, to wall clock time,
+   and to UTC, respectively.  */
+static timezone_t local_tz;
+static timezone_t wall_clock_tz;
+static timezone_t const utc_tz = 0;
 
 /* A valid but unlikely setting for the TZ environment variable.
    It is OK (though a bit slower) if the user chooses this value.  */
@@ -94,8 +100,97 @@ init_and_cache_system_name (void)
   cached_system_name = Vsystem_name;
 }
 
+static struct tm *
+emacs_localtime_rz (timezone_t tz, time_t const *t, struct tm *tm)
+{
+  tm = localtime_rz (tz, t, tm);
+  if (!tm && errno == ENOMEM)
+    memory_full (SIZE_MAX);
+  return tm;
+}
+
+static time_t
+emacs_mktime_z (timezone_t tz, struct tm *tm)
+{
+  errno = 0;
+  time_t t = mktime_z (tz, tm);
+  if (t == (time_t) -1 && errno == ENOMEM)
+    memory_full (SIZE_MAX);
+  return t;
+}
+
+/* Allocate a timezone, signaling on failure.  */
+static timezone_t
+xtzalloc (char const *name)
+{
+  timezone_t tz = tzalloc (name);
+  if (!tz)
+    memory_full (SIZE_MAX);
+  return tz;
+}
+
+/* Free a timezone, except do not free the time zone for local time.
+   Freeing utc_tz is also a no-op.  */
+static void
+xtzfree (timezone_t tz)
+{
+  if (tz != local_tz)
+    tzfree (tz);
+}
+
+/* Convert the Lisp time zone rule ZONE to a timezone_t object.
+   The returned value either is 0, or is LOCAL_TZ, or is newly allocated.
+   If SETTZ, set Emacs local time to the time zone rule; otherwise,
+   the caller should eventually pass the returned value to xtzfree.  */
+static timezone_t
+tzlookup (Lisp_Object zone, bool settz)
+{
+  static char const tzbuf_format[] = "XXX%s%"pI"d:%02d:%02d";
+  char tzbuf[sizeof tzbuf_format + INT_STRLEN_BOUND (EMACS_INT)];
+  char const *zone_string;
+  timezone_t new_tz;
+
+  if (NILP (zone))
+    return local_tz;
+  else if (EQ (zone, Qt))
+    {
+      zone_string = "UTC0";
+      new_tz = utc_tz;
+    }
+  else
+    {
+      if (EQ (zone, Qwall))
+	zone_string = 0;
+      else if (STRINGP (zone))
+	zone_string = SSDATA (zone);
+      else if (INTEGERP (zone))
+	{
+	  EMACS_INT abszone = eabs (XINT (zone)), hour = abszone / (60 * 60);
+	  int min = (abszone / 60) % 60, sec = abszone % 60;
+	  sprintf (tzbuf, tzbuf_format, &"-"[XINT (zone) < 0], hour, min, sec);
+	  zone_string = tzbuf;
+	}
+      else
+	xsignal2 (Qerror, build_string ("Invalid time zone specification"),
+		  zone);
+      new_tz = xtzalloc (zone_string);
+    }
+
+  if (settz)
+    {
+      block_input ();
+      emacs_setenv_TZ (zone_string);
+      timezone_t old_tz = local_tz;
+      local_tz = new_tz;
+      tzfree (old_tz);
+      unblock_input ();
+    }
+
+  return new_tz;
+}
+
 void
-init_editfns (void)
+init_editfns (bool dumping)
 {
   const char *user_name;
   register char *p;
@@ -108,7 +203,7 @@ init_editfns (void)
 #ifndef CANNOT_DUMP
   /* When just dumping out, set the time zone to a known unlikely value
      and skip the rest of this function.  */
-  if (!initialized)
+  if (dumping)
     {
 # ifdef HAVE_TZSET
       xputenv (dump_tz_string);
@@ -119,7 +214,6 @@ init_editfns (void)
 #endif
 
   char *tz = getenv ("TZ");
-  initial_tz = tz;
 
 #if !defined CANNOT_DUMP && defined HAVE_TZSET
   /* If the execution TZ happens to be the same as the dump TZ,
@@ -127,7 +221,7 @@ init_editfns (void)
      to force the underlying implementation to reload the TZ info.
      This is needed on implementations that load TZ info from files,
      since the TZ file contents may differ between dump and execution.  */
-  if (tz && strcmp (tz, &dump_tz_string[sizeof "TZ=" - 1]) == 0)
+  if (tz && strcmp (tz, &dump_tz_string[tzeqlen]) == 0)
     {
       ++*tz;
       tzset ();
@@ -135,9 +229,10 @@ init_editfns (void)
     }
 #endif
 
-  /* Call set_time_zone_rule now, so that its call to putenv is done
+  /* Set the time zone rule now, so that the call to putenv is done
      before multiple threads are active.  */
-  set_time_zone_rule (tz);
+  wall_clock_tz = xtzalloc (0);
+  tzlookup (tz ? build_string (tz) : Qwall, true);
 
   pw = getpwuid (getuid ());
 #ifdef MSDOS
@@ -1025,10 +1120,20 @@ DEFUN ("byte-to-position", Fbyte_to_position, Sbyte_to_position, 1, 1, 0,
 If BYTEPOS is out of range, the value is nil.  */)
   (Lisp_Object bytepos)
 {
+  ptrdiff_t pos_byte;
+
   CHECK_NUMBER (bytepos);
-  if (XINT (bytepos) < BEG_BYTE || XINT (bytepos) > Z_BYTE)
+  pos_byte = XINT (bytepos);
+  if (pos_byte < BEG_BYTE || pos_byte > Z_BYTE)
     return Qnil;
-  return make_number (BYTE_TO_CHAR (XINT (bytepos)));
+  if (Z != Z_BYTE)
+    /* There are multibyte characters in the buffer.
+       The argument of BYTE_TO_CHAR must be a byte position at
+       a character boundary, so search for the start of the current
+       character.  */
+    while (!CHAR_HEAD_P (FETCH_BYTE (pos_byte)))
+      pos_byte--;
+  return make_number (BYTE_TO_CHAR (pos_byte));
 }
 
 DEFUN ("following-char", Ffollowing_char, Sfollowing_char, 0, 0, 0,
@@ -1196,7 +1301,7 @@ of the user with that uid, or nil if there is no such user.  */)
      (That can happen if Emacs is dumpable
      but you decide to run `temacs -l loadup' and not dump.  */
   if (NILP (Vuser_login_name))
-    init_editfns ();
+    init_editfns (false);
 
   if (NILP (uid))
     return Vuser_login_name;
@@ -1219,7 +1324,7 @@ This ignores the environment variables LOGNAME and USER, so it differs from
      (That can happen if Emacs is dumpable
      but you decide to run `temacs -l loadup' and not dump.  */
   if (NILP (Vuser_login_name))
-    init_editfns ();
+    init_editfns (false);
   return Vuser_real_login_name;
 }
 
@@ -1373,30 +1478,6 @@ check_time_validity (int validity)
 	invalid_time ();
     }
 }
-
-/* A substitute for mktime_z on platforms that lack it.  It's not
-   thread-safe, but should be good enough for Emacs in typical use.  */
-#ifndef HAVE_TZALLOC
-static time_t
-mktime_z (timezone_t tz, struct tm *tm)
-{
-  char *oldtz = getenv ("TZ");
-  USE_SAFE_ALLOCA;
-  if (oldtz)
-    {
-      size_t oldtzsize = strlen (oldtz) + 1;
-      char *oldtzcopy = SAFE_ALLOCA (oldtzsize);
-      oldtz = strcpy (oldtzcopy, oldtz);
-    }
-  block_input ();
-  set_time_zone_rule (tz);
-  time_t t = mktime (tm);
-  set_time_zone_rule (oldtz);
-  unblock_input ();
-  SAFE_FREE ();
-  return t;
-}
-#endif
 
 /* Return the upper part of the time T (everything but the bottom 16 bits).  */
 static EMACS_INT
@@ -1838,7 +1919,7 @@ or (if you need time as a string) `format-time-string'.  */)
 
 /* Write information into buffer S of size MAXSIZE, according to the
    FORMAT of length FORMAT_LEN, using time information taken from *TP.
-   Default to Universal Time if UT, local time otherwise.
+   Use the time zone specified by TZ.
    Use NS as the number of nanoseconds in the %N directive.
    Return the number of bytes written, not including the terminating
    '\0'.  If S is NULL, nothing will be written anywhere; so to
@@ -1849,7 +1930,7 @@ or (if you need time as a string) `format-time-string'.  */)
    bytes in FORMAT and it does not support nanoseconds.  */
 static size_t
 emacs_nmemftime (char *s, size_t maxsize, const char *format,
-		 size_t format_len, const struct tm *tp, bool ut, int ns)
+		 size_t format_len, const struct tm *tp, timezone_t tz, int ns)
 {
   size_t total = 0;
 
@@ -1866,7 +1947,7 @@ emacs_nmemftime (char *s, size_t maxsize, const char *format,
       if (s)
 	s[0] = '\1';
 
-      result = nstrftime (s, maxsize, format, tp, ut, ns);
+      result = nstrftime (s, maxsize, format, tp, tz, ns);
 
       if (s)
 	{
@@ -1891,8 +1972,9 @@ DEFUN ("format-time-string", Fformat_time_string, Sformat_time_string, 1, 3, 0,
 TIME is specified as (HIGH LOW USEC PSEC), as returned by
 `current-time' or `file-attributes'.  The obsolete form (HIGH . LOW)
 is also still accepted.
-The third, optional, argument UNIVERSAL, if non-nil, means describe TIME
-as Universal Time; nil means describe TIME in the local time zone.
+The optional ZONE is omitted or nil for Emacs local time, t for
+Universal Time, `wall' for system wall clock time, or a string as in
+`set-time-zone-rule' for a time zone rule.
 The value is a copy of FORMAT-STRING, but with certain constructs replaced
 by text that describes the specified date and time in TIME:
 
@@ -1941,8 +2023,8 @@ The modifiers are `E' and `O'.  For certain characters X,
 
 For example, to produce full ISO 8601 format, use "%FT%T%z".
 
-usage: (format-time-string FORMAT-STRING &optional TIME UNIVERSAL)  */)
-  (Lisp_Object format_string, Lisp_Object timeval, Lisp_Object universal)
+usage: (format-time-string FORMAT-STRING &optional TIME ZONE)  */)
+  (Lisp_Object format_string, Lisp_Object timeval, Lisp_Object zone)
 {
   struct timespec t = lisp_time_argument (timeval);
   struct tm tm;
@@ -1951,12 +2033,12 @@ usage: (format-time-string FORMAT-STRING &optional TIME UNIVERSAL)  */)
   format_string = code_convert_string_norecord (format_string,
 						Vlocale_coding_system, 1);
   return format_time_string (SSDATA (format_string), SBYTES (format_string),
-			     t, ! NILP (universal), &tm);
+			     t, zone, &tm);
 }
 
 static Lisp_Object
 format_time_string (char const *format, ptrdiff_t formatlen,
-		    struct timespec t, bool ut, struct tm *tmp)
+		    struct timespec t, Lisp_Object zone, struct tm *tmp)
 {
   char buffer[4000];
   char *buf = buffer;
@@ -1966,36 +2048,48 @@ format_time_string (char const *format, ptrdiff_t formatlen,
   int ns = t.tv_nsec;
   USE_SAFE_ALLOCA;
 
-  tmp = ut ? gmtime_r (&t.tv_sec, tmp) : localtime_r (&t.tv_sec, tmp);
+  timezone_t tz = tzlookup (zone, false);
+  tmp = emacs_localtime_rz (tz, &t.tv_sec, tmp);
   if (! tmp)
-    time_overflow ();
+    {
+      xtzfree (tz);
+      time_overflow ();
+    }
   synchronize_system_time_locale ();
 
   while (true)
     {
       buf[0] = '\1';
-      len = emacs_nmemftime (buf, size, format, formatlen, tmp, ut, ns);
+      len = emacs_nmemftime (buf, size, format, formatlen, tmp, tz, ns);
       if ((0 < len && len < size) || (len == 0 && buf[0] == '\0'))
 	break;
 
       /* Buffer was too small, so make it bigger and try again.  */
-      len = emacs_nmemftime (NULL, SIZE_MAX, format, formatlen, tmp, ut, ns);
+      len = emacs_nmemftime (NULL, SIZE_MAX, format, formatlen, tmp, tz, ns);
       if (STRING_BYTES_BOUND <= len)
-	string_overflow ();
+	{
+	  xtzfree (tz);
+	  string_overflow ();
+	}
       size = len + 1;
       buf = SAFE_ALLOCA (size);
     }
 
+  xtzfree (tz);
   bufstring = make_unibyte_string (buf, len);
   SAFE_FREE ();
   return code_convert_string_norecord (bufstring, Vlocale_coding_system, 0);
 }
 
-DEFUN ("decode-time", Fdecode_time, Sdecode_time, 0, 1, 0,
-       doc: /* Decode a time value as (SEC MINUTE HOUR DAY MONTH YEAR DOW DST ZONE).
+DEFUN ("decode-time", Fdecode_time, Sdecode_time, 0, 2, 0,
+       doc: /* Decode a time value as (SEC MINUTE HOUR DAY MONTH YEAR DOW DST UTCOFF).
 The optional SPECIFIED-TIME should be a list of (HIGH LOW . IGNORED),
 as from `current-time' and `file-attributes', or nil to use the
 current time.  The obsolete form (HIGH . LOW) is also still accepted.
+The optional ZONE is omitted or nil for Emacs local time, t for
+Universal Time, `wall' for system wall clock time, or a string as in
+`set-time-zone-rule' for a time zone rule.
+
 The list has the following nine members: SEC is an integer between 0
 and 60; SEC is 60 for a leap second, which only some operating systems
 support.  MINUTE is an integer between 0 and 59.  HOUR is an integer
@@ -2003,15 +2097,20 @@ between 0 and 23.  DAY is an integer between 1 and 31.  MONTH is an
 integer between 1 and 12.  YEAR is an integer indicating the
 four-digit year.  DOW is the day of week, an integer between 0 and 6,
 where 0 is Sunday.  DST is t if daylight saving time is in effect,
-otherwise nil.  ZONE is an integer indicating the number of seconds
-east of Greenwich.  (Note that Common Lisp has different meanings for
-DOW and ZONE.)  */)
-  (Lisp_Object specified_time)
+otherwise nil.  UTCOFF is an integer indicating the UTC offset in
+seconds, i.e., the number of seconds east of Greenwich.  (Note that
+Common Lisp has different meanings for DOW and UTCOFF.)
+
+usage: (decode-time &optional TIME ZONE)  */)
+  (Lisp_Object specified_time, Lisp_Object zone)
 {
   time_t time_spec = lisp_seconds_argument (specified_time);
   struct tm local_tm, gmt_tm;
+  timezone_t tz = tzlookup (zone, false);
+  struct tm *tm = emacs_localtime_rz (tz, &time_spec, &local_tm);
+  xtzfree (tz);
 
-  if (! (localtime_r (&time_spec, &local_tm)
+  if (! (tm
 	 && MOST_NEGATIVE_FIXNUM - TM_YEAR_BASE <= local_tm.tm_year
 	 && local_tm.tm_year <= MOST_POSITIVE_FIXNUM - TM_YEAR_BASE))
     time_overflow ();
@@ -2049,35 +2148,13 @@ check_tm_member (Lisp_Object obj, int offset)
   return n - offset;
 }
 
-/* Decode ZONE as a time zone specification.  */
-
-static Lisp_Object
-decode_time_zone (Lisp_Object zone)
-{
-  if (EQ (zone, Qt))
-    return build_string ("UTC0");
-  else if (STRINGP (zone))
-    return zone;
-  else if (INTEGERP (zone))
-    {
-      static char const tzbuf_format[] = "XXX%s%"pI"d:%02d:%02d";
-      char tzbuf[sizeof tzbuf_format + INT_STRLEN_BOUND (EMACS_INT)];
-      EMACS_INT abszone = eabs (XINT (zone)), zone_hr = abszone / (60 * 60);
-      int zone_min = (abszone / 60) % 60, zone_sec = abszone % 60;
-
-      return make_formatted_string (tzbuf, tzbuf_format, &"-"[XINT (zone) < 0],
-				    zone_hr, zone_min, zone_sec);
-    }
-  else
-    xsignal2 (Qerror, build_string ("Invalid time zone specification"), zone);
-}
-
 DEFUN ("encode-time", Fencode_time, Sencode_time, 6, MANY, 0,
        doc: /* Convert SECOND, MINUTE, HOUR, DAY, MONTH, YEAR and ZONE to internal time.
 This is the reverse operation of `decode-time', which see.
-ZONE defaults to the current time zone rule.  This can
-be a string or t (as from `set-time-zone-rule'), or it can be a list
-\(as from `current-time-zone') or an integer (as from `decode-time')
+The optional ZONE is omitted or nil for Emacs local time, t for
+Universal Time, `wall' for system wall clock time, or a string as in
+`set-time-zone-rule' for a time zone rule.  It can also be a list (as
+from `current-time-zone') or an integer (as from `decode-time')
 applied without consideration for daylight saving time.
 
 You can pass more than 7 arguments; then the first six arguments
@@ -2110,14 +2187,9 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
 
   if (CONSP (zone))
     zone = XCAR (zone);
-  if (NILP (zone))
-    value = mktime (&tm);
-  else
-    {
-      timezone_t tz = tzalloc (SSDATA (decode_time_zone (zone)));
-      value = mktime_z (tz, &tm);
-      tzfree (tz);
-    }
+  timezone_t tz = tzlookup (zone, false);
+  value = emacs_mktime_z (tz, &tm);
+  xtzfree (tz);
 
   if (value == (time_t) -1)
     time_overflow ();
@@ -2125,7 +2197,8 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
   return list2i (hi_time (value), lo_time (value));
 }
 
-DEFUN ("current-time-string", Fcurrent_time_string, Scurrent_time_string, 0, 1, 0,
+DEFUN ("current-time-string", Fcurrent_time_string, Scurrent_time_string,
+       0, 2, 0,
        doc: /* Return the current local time, as a human-readable string.
 Programs can use this function to decode a time,
 since the number of columns in each field is fixed
@@ -2138,17 +2211,24 @@ If SPECIFIED-TIME is given, it is a time to format instead of the
 current time.  The argument should have the form (HIGH LOW . IGNORED).
 Thus, you can use times obtained from `current-time' and from
 `file-attributes'.  SPECIFIED-TIME can also have the form (HIGH . LOW),
-but this is considered obsolete.  */)
-  (Lisp_Object specified_time)
+but this is considered obsolete.
+
+The optional ZONE is omitted or nil for Emacs local time, t for
+Universal Time, `wall' for system wall clock time, or a string as in
+`set-time-zone-rule' for a time zone rule.  */)
+  (Lisp_Object specified_time, Lisp_Object zone)
 {
   time_t value = lisp_seconds_argument (specified_time);
+  timezone_t tz = tzlookup (zone, false);
 
   /* Convert to a string in ctime format, except without the trailing
      newline, and without the 4-digit year limit.  Don't use asctime
      or ctime, as they might dump core if the year is outside the
      range -999 .. 9999.  */
   struct tm tm;
-  if (! localtime_r (&value, &tm))
+  struct tm *tmp = emacs_localtime_rz (tz, &value, &tm);
+  xtzfree (tz);
+  if (! tmp)
     time_overflow ();
 
   static char const wday_name[][4] =
@@ -2200,7 +2280,7 @@ tm_gmtoff (struct tm *a)
 #endif
 }
 
-DEFUN ("current-time-zone", Fcurrent_time_zone, Scurrent_time_zone, 0, 1, 0,
+DEFUN ("current-time-zone", Fcurrent_time_zone, Scurrent_time_zone, 0, 2, 0,
        doc: /* Return the offset and name for the local time zone.
 This returns a list of the form (OFFSET NAME).
 OFFSET is an integer number of seconds ahead of UTC (east of Greenwich).
@@ -2211,11 +2291,13 @@ instead of using the current time.  The argument should have the form
 (HIGH LOW . IGNORED).  Thus, you can use times obtained from
 `current-time' and from `file-attributes'.  SPECIFIED-TIME can also
 have the form (HIGH . LOW), but this is considered obsolete.
+Optional second arg ZONE is omitted or nil for the local time zone, or
+a string as in `set-time-zone-rule'.
 
 Some operating systems cannot provide all this information to Emacs;
 in this case, `current-time-zone' returns a list containing nil for
 the data it can't find.  */)
-  (Lisp_Object specified_time)
+  (Lisp_Object specified_time, Lisp_Object zone)
 {
   struct timespec value;
   struct tm local_tm, gmt_tm;
@@ -2223,7 +2305,8 @@ the data it can't find.  */)
 
   zone_offset = Qnil;
   value = make_timespec (lisp_seconds_argument (specified_time), 0);
-  zone_name = format_time_string ("%Z", sizeof "%Z" - 1, value, 0, &local_tm);
+  zone_name = format_time_string ("%Z", sizeof "%Z" - 1, value,
+				  zone, &local_tm);
 
   if (HAVE_TM_GMTOFF || gmtime_r (&value.tv_sec, &gmt_tm))
     {
@@ -2249,42 +2332,48 @@ the data it can't find.  */)
 }
 
 DEFUN ("set-time-zone-rule", Fset_time_zone_rule, Sset_time_zone_rule, 1, 1, 0,
-       doc: /* Set the local time zone using TZ, a string specifying a time zone rule.
-If TZ is nil, use implementation-defined default time zone information.
-If TZ is t, use Universal Time.  If TZ is an integer, it is treated as in
-`encode-time'.
+       doc: /* Set the Emacs local time zone using TZ, a string specifying a time zone rule.
+If TZ is nil or `wall', use system wall clock time.  If TZ is t, use
+Universal Time.  If TZ is an integer, treat it as in `encode-time'.
 
-Instead of calling this function, you typically want (setenv "TZ" TZ).
-That changes both the environment of the Emacs process and the
-variable `process-environment', whereas `set-time-zone-rule' affects
-only the former.  */)
+Instead of calling this function, you typically want something else.
+To temporarily use a different time zone rule for just one invocation
+of `decode-time', `encode-time', or `format-time-string', pass the
+function a ZONE argument.  To change local time consistently
+throughout Emacs, call (setenv "TZ" TZ): this changes both the
+environment of the Emacs process and the variable
+`process-environment', whereas `set-time-zone-rule' affects only the
+former.  */)
   (Lisp_Object tz)
 {
-  const char *tzstring = NILP (tz) ? initial_tz : SSDATA (decode_time_zone (tz));
-
-  block_input ();
-  set_time_zone_rule (tzstring);
-  unblock_input ();
-
+  tzlookup (NILP (tz) ? Qwall : tz, true);
   return Qnil;
 }
 
-/* Set the local time zone rule to TZSTRING.
+/* A buffer holding a string of the form "TZ=value", intended
+   to be part of the environment.  If TZ is supposed to be unset,
+   the buffer string is "tZ=".  */
+ static char *tzvalbuf;
+
+/* Get the local time zone rule.  */
+char *
+emacs_getenv_TZ (void)
+{
+  return tzvalbuf[0] == 'T' ? tzvalbuf + tzeqlen : 0;
+}
+
+/* Set the local time zone rule to TZSTRING, which can be null to
+   denote wall clock time.  Do not record the setting in LOCAL_TZ.
 
    This function is not thread-safe, in theory because putenv is not,
    but mostly because of the static storage it updates.  Other threads
    that invoke localtime etc. may be adversely affected while this
    function is executing.  */
 
-static void
-set_time_zone_rule (const char *tzstring)
+int
+emacs_setenv_TZ (const char *tzstring)
 {
-  /* A buffer holding a string of the form "TZ=value", intended
-     to be part of the environment.  */
-  static char *tzvalbuf;
   static ptrdiff_t tzvalbufsize;
-
-  int tzeqlen = sizeof "TZ=" - 1;
   ptrdiff_t tzstringlen = tzstring ? strlen (tzstring) : 0;
   char *tzval = tzvalbuf;
   bool new_tzvalbuf = tzvalbufsize <= tzeqlen + tzstringlen;
@@ -2318,16 +2407,25 @@ set_time_zone_rule (const char *tzstring)
       tzval[tzeqlen] = 0;
     }
 
-  if (new_tzvalbuf)
+  if (new_tzvalbuf
+#ifdef WINDOWSNT
+      /* MS-Windows implementation of 'putenv' copies the argument
+	 string into a block it allocates, so modifying tzval string
+	 does not change the environment.  OTOH, the other threads run
+	 by Emacs on MS-Windows never call 'xputenv' or 'putenv' or
+	 'unsetenv', so the original cause for the dicey in-place
+	 modification technique doesn't exist there in the first
+	 place.  */
+      || 1
+#endif
+      )
     {
       /* Although this is not thread-safe, in practice this runs only
 	 on startup when there is only one thread.  */
       xputenv (tzval);
     }
 
-#ifdef HAVE_TZSET
-  tzset ();
-#endif
+  return 0;
 }
 
 /* Insert NARGS Lisp objects in the array ARGS by calling INSERT_FUNC
@@ -4922,6 +5020,7 @@ void
 syms_of_editfns (void)
 {
   DEFSYM (Qbuffer_access_fontify_functions, "buffer-access-fontify-functions");
+  DEFSYM (Qwall, "wall");
 
   DEFVAR_LISP ("inhibit-field-text-motion", Vinhibit_field_text_motion,
 	       doc: /* Non-nil means text motion commands don't notice fields.  */);

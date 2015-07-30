@@ -5293,41 +5293,47 @@ init_buffer (int initialized)
   pwd = get_current_dir_name ();
 
   if (!pwd)
-    fatal ("get_current_dir_name: %s\n", strerror (errno));
-
-  /* Maybe this should really use some standard subroutine
-     whose definition is filename syntax dependent.  */
-  len = strlen (pwd);
-  if (!(IS_DIRECTORY_SEP (pwd[len - 1])))
     {
-      /* Grow buffer to add directory separator and '\0'.  */
-      pwd = realloc (pwd, len + 2);
-      if (!pwd)
-	fatal ("get_current_dir_name: %s\n", strerror (errno));
-      pwd[len] = DIRECTORY_SEP;
-      pwd[len + 1] = '\0';
-      len++;
+      fprintf (stderr, "Error getting directory: %s\n",
+               emacs_strerror (errno));
+      bset_directory (current_buffer, Qnil);
     }
-
-  /* At this moment, we still don't know how to decode the directory
-     name.  So, we keep the bytes in unibyte form so that file I/O
-     routines correctly get the original bytes.  */
-  bset_directory (current_buffer, make_unibyte_string (pwd, len));
-
-  /* Add /: to the front of the name
-     if it would otherwise be treated as magic.  */
-  temp = Ffind_file_name_handler (BVAR (current_buffer, directory), Qt);
-  if (! NILP (temp)
-      /* If the default dir is just /, TEMP is non-nil
-	 because of the ange-ftp completion handler.
-	 However, it is not necessary to turn / into /:/.
-	 So avoid doing that.  */
-      && strcmp ("/", SSDATA (BVAR (current_buffer, directory))))
+  else
     {
-      AUTO_STRING (slash_colon, "/:");
-      bset_directory (current_buffer,
-		      concat2 (slash_colon,
-			       BVAR (current_buffer, directory)));
+      /* Maybe this should really use some standard subroutine
+         whose definition is filename syntax dependent.  */
+      len = strlen (pwd);
+      if (!(IS_DIRECTORY_SEP (pwd[len - 1])))
+        {
+          /* Grow buffer to add directory separator and '\0'.  */
+          pwd = realloc (pwd, len + 2);
+          if (!pwd)
+            fatal ("get_current_dir_name: %s\n", strerror (errno));
+          pwd[len] = DIRECTORY_SEP;
+          pwd[len + 1] = '\0';
+          len++;
+        }
+
+      /* At this moment, we still don't know how to decode the directory
+         name.  So, we keep the bytes in unibyte form so that file I/O
+         routines correctly get the original bytes.  */
+      bset_directory (current_buffer, make_unibyte_string (pwd, len));
+
+      /* Add /: to the front of the name
+         if it would otherwise be treated as magic.  */
+      temp = Ffind_file_name_handler (BVAR (current_buffer, directory), Qt);
+      if (! NILP (temp)
+          /* If the default dir is just /, TEMP is non-nil
+             because of the ange-ftp completion handler.
+             However, it is not necessary to turn / into /:/.
+             So avoid doing that.  */
+          && strcmp ("/", SSDATA (BVAR (current_buffer, directory))))
+        {
+          AUTO_STRING (slash_colon, "/:");
+          bset_directory (current_buffer,
+                          concat2 (slash_colon,
+                                   BVAR (current_buffer, directory)));
+        }
     }
 
   temp = get_minibuffer (0);
@@ -5732,7 +5738,7 @@ The values of `right-to-left' and `left-to-right' override that.
 Any other value is treated as nil.
 
 This variable has no effect unless the buffer's value of
-\`bidi-display-reordering' is non-nil.  */);
+`bidi-display-reordering' is non-nil.  */);
 
  DEFVAR_PER_BUFFER ("truncate-lines", &BVAR (current_buffer, truncate_lines), Qnil,
 		     doc: /* Non-nil means do not display continuation lines.

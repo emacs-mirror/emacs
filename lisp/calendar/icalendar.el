@@ -618,13 +618,7 @@ FIXME: multiple comma-separated values should be allowed!"
         (when (and (> (length isodatetimestring) 15)
                    ;; UTC specifier present
                    (char-equal ?Z (aref isodatetimestring 15)))
-          ;; if not UTC add current-time-zone offset
-          ;; current-time-zone should be called with actual UTC time
-          ;; (daylight saving at that time may differ to current one)
-          (setq second (+ (car (current-time-zone
-                                (encode-time second minute hour day month year
-                                             0)))
-                          second)))
+          (setq zone t))
         ;; shift if necessary
         (if day-shift
             (let ((mdy (calendar-gregorian-from-absolute

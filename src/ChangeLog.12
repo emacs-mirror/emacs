@@ -5623,7 +5623,7 @@
 2012-09-17  Kenichi Handa  <handa@gnu.org>
 
 	* font.c (Ffont_shape_gstring): Fix previous change; GLYPHs may
-	not covert the last few charactes.
+	not convert the last few characters.
 
 2012-09-16  Kenichi Handa  <handa@gnu.org>
 

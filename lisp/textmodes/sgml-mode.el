@@ -759,9 +759,10 @@ If QUIET, do not print a message when there are no attributes for TAG."
 	    (insert ?\s)
 	    (insert (funcall skeleton-transformation-function
 			     (setq attribute
-				   (skeleton-read '(completing-read
-						    "Attribute: "
-						    alist)))))
+				   (skeleton-read (lambda ()
+                                                    (completing-read
+                                                     "Attribute: "
+                                                     alist))))))
 	    (if (string= "" attribute)
 		(setq i 0)
 	      (sgml-value (assoc (downcase attribute) alist))
@@ -1177,13 +1178,16 @@ See `sgml-tag-alist' for info about attribute rules."
     (if (and (eq (car alist) t) (not sgml-xml-mode))
 	(when (cdr alist)
 	  (insert "=\"")
-	  (setq alist (skeleton-read '(completing-read "Value: " (cdr alist))))
+	  (setq alist (skeleton-read (lambda ()
+                                       (completing-read
+                                        "Value: " (cdr alist)))))
 	  (if (string< "" alist)
 	      (insert alist ?\")
 	    (delete-char -2)))
       (insert "=\"")
       (if (cdr alist)
-          (insert (skeleton-read '(completing-read "Value: " alist)))
+          (insert (skeleton-read (lambda ()
+                                   (completing-read "Value: " alist))))
         (when (null alist)
           (insert (skeleton-read '(read-string "Value: ")))))
       (insert ?\"))))

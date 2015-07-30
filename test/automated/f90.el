@@ -214,4 +214,30 @@ end module modname")
     (forward-line -1)
     (should (= 2 (current-indentation)))))
 
+(ert-deftest f90-test-bug20969 ()
+  "Test for http://debbugs.gnu.org/20969 ."
+  (with-temp-buffer
+    (f90-mode)
+    (insert "module modname
+type, extends ( sometype ), private :: type1
+integer :: part1
+end type type1
+end module modname")
+    (f90-indent-subprogram)
+    (forward-line -1)
+    (should (= 2 (current-indentation)))))
+
+(ert-deftest f90-test-bug20969b ()
+  "Test for http://debbugs.gnu.org/20969 ."
+  (with-temp-buffer
+    (f90-mode)
+    (insert "module modname
+type, private, extends ( sometype ) :: type1
+integer :: part1
+end type type1
+end module modname")
+    (f90-indent-subprogram)
+    (forward-line -1)
+    (should (= 2 (current-indentation)))))
+
 ;;; f90.el ends here

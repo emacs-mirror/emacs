@@ -161,7 +161,7 @@ whether X is known at compile time, macroexpand it completely in
 
 ;;; Symbols.
 
-(defvar cl--gensym-counter)
+(defvar cl--gensym-counter 0)
 ;;;###autoload
 (defun cl-gensym (&optional prefix)
   "Generate a new uninterned symbol.
@@ -2722,20 +2722,16 @@ non-nil value, that slot cannot be set via `setf'.
          (push `(defalias ',copier #'copy-sequence) forms))
     (if constructor
 	(push (list constructor
-		       (cons '&key (delq nil (copy-sequence slots))))
-		 constrs))
-    (while constrs
-      (let* ((name (caar constrs))
-             (rest (cdr (pop constrs)))
-             (args (car rest))
-             (doc  (cadr rest))
-	     (anames (cl--arglist-args args))
+                    (cons '&key (delq nil (copy-sequence slots))))
+              constrs))
+    (pcase-dolist (`(,cname ,args ,doc) constrs)
+      (let* ((anames (cl--arglist-args args))
 	     (make (cl-mapcar (function (lambda (s d) (if (memq s anames) s d)))
 			    slots defaults)))
-	(push `(cl-defsubst ,name
+	(push `(cl-defsubst ,cname
                    (&cl-defs (nil ,@descs) ,@args)
-                 ,@(if (stringp doc) (list doc)
-                     (if (stringp docstring) (list docstring)))
+                 ,(if (stringp doc) (list doc)
+                    (format "Constructor for objects of type `%s'." name))
                  ,@(if (cl--safe-expr-p `(progn ,@(mapcar #'cl-second descs)))
                        '((declare (side-effect-free t))))
                  (,(or type #'vector) ,@make))
@@ -2859,6 +2855,8 @@ slots skipped by :initial-offset may appear in the list."
               descs)))
     (nreverse descs)))
 
+(define-error 'cl-struct-unknown-slot "struct %S has no slot %S")
+
 (defun cl-struct-slot-offset (struct-type slot-name)
   "Return the offset of slot SLOT-NAME in STRUCT-TYPE.
 The returned zero-based slot index is relative to the start of
@@ -2868,7 +2866,7 @@ does not contain SLOT-NAME."
   (declare (side-effect-free t) (pure t))
   (or (gethash slot-name
                (cl--class-index-table (cl--struct-get-class struct-type)))
-      (error "struct %s has no slot %s" struct-type slot-name)))
+      (signal 'cl-struct-unknown-slot (list struct-type slot-name))))
 
 (defvar byte-compile-function-environment)
 (defvar byte-compile-macro-environment)

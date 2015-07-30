@@ -338,9 +338,12 @@ This command must be bound to a mouse click."
 	  (first-line window-min-height)
 	  (last-line (- (window-height) window-min-height)))
       (if (< last-line first-line)
-	  (error "Window too short to split")
-	(split-window-vertically
-	 (min (max new-height first-line) last-line))))))
+	  (user-error "Window too short to split")
+        ;; Bind `window-combination-resize' to nil so we are sure to get
+        ;; the split right at the line clicked on.
+        (let (window-combination-resize)
+          (split-window-vertically
+           (min (max new-height first-line) last-line)))))))
 
 (defun mouse-split-window-horizontally (click)
   "Select Emacs window mouse is on, then split it horizontally in half.
@@ -354,9 +357,12 @@ This command must be bound to a mouse click."
 	  (first-col window-min-width)
 	  (last-col (- (window-width) window-min-width)))
       (if (< last-col first-col)
-	  (error "Window too narrow to split")
-	(split-window-horizontally
-	 (min (max new-width first-col) last-col))))))
+	  (user-error "Window too narrow to split")
+        ;; Bind `window-combination-resize' to nil so we are sure to get
+        ;; the split right at the column clicked on.
+	(let (window-combination-resize)
+          (split-window-horizontally
+           (min (max new-width first-col) last-col)))))))
 
 (defun mouse-drag-line (start-event line)
   "Drag a mode line, header line, or vertical line with the mouse.
@@ -468,8 +474,10 @@ must be one of the symbols `header', `mode', or `vertical'."
 		  (setq dragged t)
 		  (adjust-window-trailing-edge window growth nil t))
 		(setq last-position position))))))
-      ;; Start tracking.
-      (setq track-mouse t)
+      ;; Start tracking.  The special value 'dragging' signals the
+      ;; display engine to freeze the mouse pointer shape for as long
+      ;; as we drag.
+      (setq track-mouse 'dragging)
       ;; Loop reading events and sampling the position of the mouse.
       (setq exitfun
 	    (set-transient-map
@@ -1913,20 +1921,25 @@ choose a font."
 ;; vertical-line prevents Emacs from signaling an error when the mouse
 ;; button is released after dragging these lines, on non-toolkit
 ;; versions.
-(global-set-key [mode-line mouse-1] 'mouse-select-window)
-(global-set-key [mode-line drag-mouse-1] 'mouse-select-window)
-(global-set-key [mode-line down-mouse-1] 'mouse-drag-mode-line)
 (global-set-key [header-line down-mouse-1] 'mouse-drag-header-line)
 (global-set-key [header-line mouse-1] 'mouse-select-window)
+;; (global-set-key [mode-line drag-mouse-1] 'mouse-select-window)
+(global-set-key [mode-line down-mouse-1] 'mouse-drag-mode-line)
+(global-set-key [mode-line mouse-1] 'mouse-select-window)
 (global-set-key [mode-line mouse-2] 'mouse-delete-other-windows)
 (global-set-key [mode-line mouse-3] 'mouse-delete-window)
 (global-set-key [mode-line C-mouse-2] 'mouse-split-window-horizontally)
 (global-set-key [vertical-scroll-bar C-mouse-2] 'mouse-split-window-vertically)
-(global-set-key [vertical-line C-mouse-2] 'mouse-split-window-vertically)
+(global-set-key [horizontal-scroll-bar C-mouse-2] 'mouse-split-window-horizontally)
 (global-set-key [vertical-line down-mouse-1] 'mouse-drag-vertical-line)
-(global-set-key [right-divider down-mouse-1] 'mouse-drag-vertical-line)
-(global-set-key [bottom-divider down-mouse-1] 'mouse-drag-mode-line)
 (global-set-key [vertical-line mouse-1] 'mouse-select-window)
+(global-set-key [vertical-line C-mouse-2] 'mouse-split-window-vertically)
+(global-set-key [right-divider down-mouse-1] 'mouse-drag-vertical-line)
+(global-set-key [right-divider mouse-1] 'ignore)
+(global-set-key [right-divider C-mouse-2] 'mouse-split-window-vertically)
+(global-set-key [bottom-divider down-mouse-1] 'mouse-drag-mode-line)
+(global-set-key [bottom-divider mouse-1] 'ignore)
+(global-set-key [bottom-divider C-mouse-2] 'mouse-split-window-horizontally)
 
 (provide 'mouse)
 

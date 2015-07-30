@@ -30,9 +30,7 @@ third parties.  @xref{Package Installation}.
 
   For information about turning an Emacs Lisp program into an
 installable package, @xref{Packaging,,,elisp, The Emacs Lisp Reference
-Manual}.  For information about finding third-party packages and other
-Emacs Lisp extensions, @xref{Packages that do not come with
-Emacs,,,efaq, GNU Emacs FAQ}.
+Manual}.
 
 @menu
 * Package Menu::         Buffer for viewing and managing packages.

@@ -322,6 +322,7 @@
 ;;; Code:
 
 (defvar recentf-list)
+(require 'seq)
 
 ;;;; Options
 
@@ -3180,11 +3181,19 @@ for first matching file."
       (if (> i 0)
 	  (setq ido-cur-list (ido-chop ido-cur-list (nth i ido-matches)))))))
 
-(defun ido-restrict-to-matches ()
-  "Set current item list to the currently matched items."
-  (interactive)
+(defun ido-restrict-to-matches (&optional removep)
+  "Set current item list to the currently matched items.
+
+When argument REMOVEP is non-nil, the currently matched items are
+instead removed from the current item list."
+  (interactive "P")
   (when ido-matches
-    (setq ido-cur-list ido-matches
+    (setq ido-cur-list (if removep
+                           ;; An important feature is to preserve the
+                           ;; order of the elements.
+                           (seq-difference ido-cur-list ido-matches)
+                         ido-matches)
+          ido-matches ido-cur-list
 	  ido-text-init ""
 	  ido-rescan nil
 	  ido-exit 'keep)

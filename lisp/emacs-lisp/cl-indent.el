@@ -839,6 +839,7 @@ optional\\|rest\\|key\\|allow-other-keys\\|aux\\|whole\\|body\\|environment\
 ;; In elisp, the else part of `if' is in an implicit progn, so indent
 ;; it more.
 (put 'if 'common-lisp-indent-function-for-elisp 2)
+(put 'with-output-to-string 'common-lisp-indent-function-for-elisp 0)
 
 
 ;(defun foo (x)

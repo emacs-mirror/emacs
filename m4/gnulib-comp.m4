@@ -98,6 +98,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module memrchr:
   # Code from module mkostemp:
   # Code from module mktime:
+  # Code from module mktime-internal:
   # Code from module multiarch:
   # Code from module nocrash:
   # Code from module openat-h:
@@ -141,13 +142,14 @@ AC_DEFUN([gl_EARLY],
   # Code from module tempname:
   # Code from module time:
   # Code from module time_r:
+  # Code from module time_rz:
+  # Code from module timegm:
   # Code from module timer-time:
   # Code from module timespec:
   # Code from module timespec-add:
   # Code from module timespec-sub:
   # Code from module u64:
   # Code from module unistd:
-  # Code from module unsetenv:
   # Code from module update-copyright:
   # Code from module utimens:
   # Code from module vararrays:
@@ -385,15 +387,20 @@ AC_DEFUN([gl_INIT],
     gl_PREREQ_TIME_R
   fi
   gl_TIME_MODULE_INDICATOR([time_r])
+  gl_TIME_RZ
+  if test "$HAVE_TIMEZONE_T" = 0; then
+    AC_LIBOBJ([time_rz])
+  fi
+  gl_TIME_MODULE_INDICATOR([time_rz])
+  gl_FUNC_TIMEGM
+  if test $HAVE_TIMEGM = 0 || test $REPLACE_TIMEGM = 1; then
+    AC_LIBOBJ([timegm])
+    gl_PREREQ_TIMEGM
+  fi
+  gl_TIME_MODULE_INDICATOR([timegm])
   gl_TIMER_TIME
   gl_TIMESPEC
   gl_UNISTD_H
-  gl_FUNC_UNSETENV
-  if test $HAVE_UNSETENV = 0 || test $REPLACE_UNSETENV = 1; then
-    AC_LIBOBJ([unsetenv])
-    gl_PREREQ_UNSETENV
-  fi
-  gl_STDLIB_MODULE_INDICATOR([unsetenv])
   gl_UTIMENS
   AC_C_VARARRAYS
   gl_gnulib_enabled_260941c0e5dc67ec9e87d1fb321c300b=false
@@ -404,6 +411,7 @@ AC_DEFUN([gl_INIT],
   gl_gnulib_enabled_getgroups=false
   gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=false
   gl_gnulib_enabled_a9786850e999ae65a836a6041e8e5ed1=false
+  gl_gnulib_enabled_5264294aa0a5557541b53c8c741f7f31=false
   gl_gnulib_enabled_03e0aaad4cb89ca757653bd367a6ccb7=false
   gl_gnulib_enabled_pathmax=false
   gl_gnulib_enabled_6099e9737f757db36c47fa9d9f02e88c=false
@@ -504,6 +512,17 @@ AC_DEFUN([gl_INIT],
       if test $HAVE_GROUP_MEMBER = 0; then
         func_gl_gnulib_m4code_682e609604ccaac6be382e4ee3a4eaec
       fi
+    fi
+  }
+  func_gl_gnulib_m4code_5264294aa0a5557541b53c8c741f7f31 ()
+  {
+    if ! $gl_gnulib_enabled_5264294aa0a5557541b53c8c741f7f31; then
+      gl_FUNC_MKTIME_INTERNAL
+      if test $REPLACE_MKTIME = 1; then
+        AC_LIBOBJ([mktime])
+        gl_PREREQ_MKTIME
+      fi
+      gl_gnulib_enabled_5264294aa0a5557541b53c8c741f7f31=true
     fi
   }
   func_gl_gnulib_m4code_03e0aaad4cb89ca757653bd367a6ccb7 ()
@@ -653,6 +672,9 @@ AC_DEFUN([gl_INIT],
   if { test $HAVE_DECL_STRTOUMAX = 0 || test $REPLACE_STRTOUMAX = 1; } && test $ac_cv_type_unsigned_long_long_int = yes; then
     func_gl_gnulib_m4code_strtoull
   fi
+  if test $HAVE_TIMEGM = 0 || test $REPLACE_TIMEGM = 1; then
+    func_gl_gnulib_m4code_5264294aa0a5557541b53c8c741f7f31
+  fi
   m4_pattern_allow([^gl_GNULIB_ENABLED_])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_260941c0e5dc67ec9e87d1fb321c300b], [$gl_gnulib_enabled_260941c0e5dc67ec9e87d1fb321c300b])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_dirfd], [$gl_gnulib_enabled_dirfd])
@@ -662,6 +684,7 @@ AC_DEFUN([gl_INIT],
   AM_CONDITIONAL([gl_GNULIB_ENABLED_getgroups], [$gl_gnulib_enabled_getgroups])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36], [$gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_a9786850e999ae65a836a6041e8e5ed1], [$gl_gnulib_enabled_a9786850e999ae65a836a6041e8e5ed1])
+  AM_CONDITIONAL([gl_GNULIB_ENABLED_5264294aa0a5557541b53c8c741f7f31], [$gl_gnulib_enabled_5264294aa0a5557541b53c8c741f7f31])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_03e0aaad4cb89ca757653bd367a6ccb7], [$gl_gnulib_enabled_03e0aaad4cb89ca757653bd367a6ccb7])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_pathmax], [$gl_gnulib_enabled_pathmax])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c], [$gl_gnulib_enabled_6099e9737f757db36c47fa9d9f02e88c])
@@ -936,8 +959,11 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/sys_types.in.h
   lib/tempname.c
   lib/tempname.h
+  lib/time-internal.h
   lib/time.in.h
   lib/time_r.c
+  lib/time_rz.c
+  lib/timegm.c
   lib/timespec-add.c
   lib/timespec-sub.c
   lib/timespec.c
@@ -946,7 +972,6 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/u64.h
   lib/unistd.c
   lib/unistd.in.h
-  lib/unsetenv.c
   lib/utimens.c
   lib/utimens.h
   lib/verify.h
@@ -1011,7 +1036,6 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/readlink.m4
   m4/readlinkat.m4
   m4/secure_getenv.m4
-  m4/setenv.m4
   m4/sha1.m4
   m4/sha256.m4
   m4/sha512.m4
@@ -1043,6 +1067,8 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/tempname.m4
   m4/time_h.m4
   m4/time_r.m4
+  m4/time_rz.m4
+  m4/timegm.m4
   m4/timer_time.m4
   m4/timespec.m4
   m4/tm_gmtoff.m4

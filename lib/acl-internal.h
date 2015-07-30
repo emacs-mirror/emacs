@@ -127,10 +127,8 @@ rpl_acl_set_fd (int fd, acl_t acl)
 #   define acl_extended_file(name) (-1)
 #  endif
 
-/* Linux-specific */
-#  ifndef HAVE_ACL_FROM_MODE
-#   define HAVE_ACL_FROM_MODE false
-#   define acl_from_mode(mode) (NULL)
+#  if ! defined HAVE_ACL_FROM_MODE && ! defined HAVE_ACL_FROM_TEXT
+#   define acl_from_mode (NULL)
 #  endif
 
 /* Set to 0 if a file's mode is stored independently from the ACL.  */
@@ -157,6 +155,12 @@ extern int acl_extended_nontrivial (acl_t);
    Return 0 if it is trivial, i.e. equivalent to a simple stat() mode.
    Return -1 and set errno upon failure to determine it.  */
 extern int acl_access_nontrivial (acl_t);
+
+/* ACL is an ACL, from a file, stored as type ACL_TYPE_DEFAULT.
+   Return 1 if the given ACL is non-trivial.
+   Return 0 if it is trivial, i.e. equivalent to a simple stat() mode.
+   Return -1 and set errno upon failure to determine it.  */
+extern int acl_default_nontrivial (acl_t);
 #  endif
 
 # elif HAVE_FACL && defined GETACL /* Solaris, Cygwin, not HP-UX */
@@ -289,6 +293,10 @@ struct permission_context {
 
 int get_permissions (const char *, int, mode_t, struct permission_context *);
 int set_permissions (struct permission_context *, const char *, int);
-void free_permission_context (struct permission_context *);
+void free_permission_context (struct permission_context *)
+#if ! (defined USE_ACL && (HAVE_ACL_GET_FILE || defined GETACL))
+    _GL_ATTRIBUTE_CONST
+#endif
+  ;
 
 _GL_INLINE_HEADER_END

@@ -1448,7 +1448,7 @@ this command arranges for all errors to enter the debugger."
       ;; Bind debug-on-error to something unique so that we can
       ;; detect when evalled code changes it.
       (let ((debug-on-error old-value))
-	(push (eval exp lexical-binding) values)
+	(push (eval (macroexpand-all exp) lexical-binding) values)
 	(setq new-value debug-on-error))
       ;; If evalled code has changed the value of debug-on-error,
       ;; propagate that change to the global binding.
@@ -3318,7 +3318,7 @@ display the error buffer if there were any errors.  When called
 interactively, this is t."
   (interactive (let (string)
 		 (unless (mark)
-		   (error "The mark is not set now, so there is no region"))
+		   (user-error "The mark is not set now, so there is no region"))
 		 ;; Do this before calling region-beginning
 		 ;; and region-end, in case subprocess output
 		 ;; relocates them while we are in the minibuffer.
@@ -3521,7 +3521,7 @@ support pty association, if PROGRAM is nil."
 (defvar tabulated-list-sort-key)
 (declare-function tabulated-list-init-header  "tabulated-list" ())
 (declare-function tabulated-list-print "tabulated-list"
-                  (&optional remember-pos))
+                  (&optional remember-pos update))
 
 (defvar process-menu-query-only nil)
 
@@ -4017,7 +4017,7 @@ some text between BEG and END, but we're killing the region."
   ;; calling `kill-append'.
   (interactive (list (mark) (point) 'region))
   (unless (and beg end)
-    (error "The mark is not set now, so there is no region"))
+    (user-error "The mark is not set now, so there is no region"))
   (condition-case nil
       (let ((string (if region
                         (funcall region-extract-function 'delete)
@@ -7314,6 +7314,11 @@ it were the arg to `interactive' (which see) to interactively read VALUE.
 If VARIABLE has been defined with `defcustom', then the type information
 in the definition is used to check that VALUE is valid.
 
+Note that this function is at heart equivalent to the basic `set' function.
+For a variable defined with `defcustom', it does not pay attention to
+any :set property that the variable might have (if you want that, use
+\\[customize-set-variable] instead).
+
 With a prefix argument, set VARIABLE to VALUE buffer-locally."
   (interactive
    (let* ((default-var (variable-at-point))
@@ -7358,8 +7363,8 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally."
       (require 'cus-edit)
       (setq type (widget-convert type))
       (unless (widget-apply type :match value)
-	(error "Value `%S' does not match type %S of %S"
-	       value (car type) variable))))
+	(user-error "Value `%S' does not match type %S of %S"
+		    value (car type) variable))))
 
   (if make-local
       (make-local-variable variable))

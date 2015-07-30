@@ -303,26 +303,26 @@ If string STR1 is greater, the value is a positive number N;
 }
 
 DEFUN ("string-lessp", Fstring_lessp, Sstring_lessp, 2, 2, 0,
-       doc: /* Return t if first arg string is less than second in lexicographic order.
+       doc: /* Return non-nil if STRING1 is less than STRING2 in lexicographic order.
 Case is significant.
 Symbols are also allowed; their print names are used instead.  */)
-  (register Lisp_Object s1, Lisp_Object s2)
+  (register Lisp_Object string1, Lisp_Object string2)
 {
   register ptrdiff_t end;
   register ptrdiff_t i1, i1_byte, i2, i2_byte;
 
-  if (SYMBOLP (s1))
-    s1 = SYMBOL_NAME (s1);
-  if (SYMBOLP (s2))
-    s2 = SYMBOL_NAME (s2);
-  CHECK_STRING (s1);
-  CHECK_STRING (s2);
+  if (SYMBOLP (string1))
+    string1 = SYMBOL_NAME (string1);
+  if (SYMBOLP (string2))
+    string2 = SYMBOL_NAME (string2);
+  CHECK_STRING (string1);
+  CHECK_STRING (string2);
 
   i1 = i1_byte = i2 = i2_byte = 0;
 
-  end = SCHARS (s1);
-  if (end > SCHARS (s2))
-    end = SCHARS (s2);
+  end = SCHARS (string1);
+  if (end > SCHARS (string2))
+    end = SCHARS (string2);
 
   while (i1 < end)
     {
@@ -330,13 +330,13 @@ Symbols are also allowed; their print names are used instead.  */)
 	 characters, not just the bytes.  */
       int c1, c2;
 
-      FETCH_STRING_CHAR_ADVANCE (c1, s1, i1, i1_byte);
-      FETCH_STRING_CHAR_ADVANCE (c2, s2, i2, i2_byte);
+      FETCH_STRING_CHAR_ADVANCE (c1, string1, i1, i1_byte);
+      FETCH_STRING_CHAR_ADVANCE (c2, string2, i2, i2_byte);
 
       if (c1 != c2)
 	return c1 < c2 ? Qt : Qnil;
     }
-  return i1 < SCHARS (s2) ? Qt : Qnil;
+  return i1 < SCHARS (string2) ? Qt : Qnil;
 }
 
 DEFUN ("string-collate-lessp", Fstring_collate_lessp, Sstring_collate_lessp, 2, 4, 0,
@@ -2686,7 +2686,7 @@ if `last-nonmenu-event' is nil, and `use-dialog-box' is non-nil.  */)
   CHECK_STRING (prompt);
 
   if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
-      && use_dialog_box)
+      && use_dialog_box && ! NILP (last_input_event))
     {
       Lisp_Object pane, menu, obj;
       redisplay_preserve_echo_area (4);

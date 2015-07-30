@@ -109,6 +109,7 @@ AC_DEFUN([gl_HEADER_TIME_H_DEFAULTS],
   GNULIB_STRPTIME=0;                     AC_SUBST([GNULIB_STRPTIME])
   GNULIB_TIMEGM=0;                       AC_SUBST([GNULIB_TIMEGM])
   GNULIB_TIME_R=0;                       AC_SUBST([GNULIB_TIME_R])
+  GNULIB_TIME_RZ=0;                      AC_SUBST([GNULIB_TIME_RZ])
   dnl Assume proper GNU behavior unless another module says otherwise.
   HAVE_DECL_LOCALTIME_R=1;               AC_SUBST([HAVE_DECL_LOCALTIME_R])
   HAVE_NANOSLEEP=1;                      AC_SUBST([HAVE_NANOSLEEP])

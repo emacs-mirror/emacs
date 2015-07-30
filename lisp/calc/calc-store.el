@@ -609,7 +609,8 @@
 
 (defun calc-insert-permanent-variable (var)
   (goto-char (point-min))
-  (if (search-forward (concat "(setq " (symbol-name var) " '") nil t)
+  (if (let (case-fold-search)
+        (search-forward (concat "(setq " (symbol-name var) " '") nil t))
       (progn
 	(setq calc-pv-pos (point-marker))
 	(forward-line -1)

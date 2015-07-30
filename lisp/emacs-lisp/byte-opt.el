@@ -292,7 +292,7 @@
               (format "Inlining closure %S failed" name))
              form))))
 
-      (t ;; Give up on inlining.
+      (_ ;; Give up on inlining.
        form))))
 
 ;; ((lambda ...) ...)

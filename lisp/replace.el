@@ -33,6 +33,14 @@
   :type 'boolean
   :group 'matching)
 
+(defcustom replace-character-fold t
+  "Non-nil means `query-replace' should do character folding in matches.
+This means, for instance, that ' will match a large variety of
+unicode quotes."
+  :type 'boolean
+  :group 'matching
+  :version "25.1")
+
 (defcustom replace-lax-whitespace nil
   "Non-nil means `query-replace' matches a sequence of whitespace chars.
 When you enter a space or spaces in the strings to be replaced,
@@ -156,6 +164,8 @@ wants to replace FROM with TO."
     ;; unavailable while preparing to dump.
     (custom-reevaluate-setting 'query-replace-from-to-separator)
     (let* ((history-add-new-input nil)
+	   (text-property-default-nonsticky
+	    (cons '(separator . t) text-property-default-nonsticky))
 	   (separator
 	    (when query-replace-from-to-separator
 	      (propertize "\0"
@@ -2002,7 +2012,10 @@ It is called with three arguments, as if it were
   ;; outside of this function because then another I-search
   ;; used after `recursive-edit' might override them.
   (let* ((isearch-regexp regexp-flag)
-	 (isearch-word delimited-flag)
+	 (isearch-word (or delimited-flag
+                           (and replace-character-fold
+                                (not regexp-flag)
+                                #'character-fold-to-regexp)))
 	 (isearch-lax-whitespace
 	  replace-lax-whitespace)
 	 (isearch-regexp-lax-whitespace

@@ -47,6 +47,7 @@ This variable first existed in version 19.23.")
 (defvar motif-version-string)
 (defvar gtk-version-string)
 (defvar ns-version-string)
+(defvar cairo-version-string)
 
 (defun emacs-version (&optional here)
   "Return string describing the version of Emacs that is running.
@@ -99,6 +100,30 @@ or if we could not determine the revision.")
 (define-obsolete-function-alias 'emacs-bzr-get-version
                                 'emacs-repository-get-version "24.4")
 
+(defun emacs-repository-version-git (dir)
+  "Ask git itself for the version information for directory DIR."
+  (message "Waiting for git...")
+  (with-temp-buffer
+    (let ((default-directory (file-name-as-directory dir)))
+      (and (eq 0
+	       (with-demoted-errors "Error running git rev-parse: %S"
+		 (call-process "git" nil '(t nil) nil "rev-parse" "HEAD")))
+	   (progn (goto-char (point-min))
+		  (looking-at "[0-9a-fA-F]\\{40\\}"))
+	   (match-string 0)))))
+
+(defun emacs-repository--version-git-1 (file)
+  "Internal subroutine of `emacs-repository-get-version'."
+  (when (file-readable-p file)
+    (erase-buffer)
+    (insert-file-contents file)
+    (cond ((looking-at "[0-9a-fA-F]\\{40\\}")
+	   (match-string 0))
+	  ((looking-at "ref: \\(.*\\)")
+	   (emacs-repository--version-git-1
+	    (expand-file-name (match-string 1)
+			      (file-name-directory file)))))))
+
 (defun emacs-repository-get-version (&optional dir external)
   "Try to return as a string the repository revision of the Emacs sources.
 The format of the returned string is dependent on the VCS in use.
@@ -107,21 +132,25 @@ control, or if we could not determine the revision.  Note that
 this reports on the current state of the sources, which may not
 correspond to the running Emacs.
 
-Optional argument DIR is a directory to use instead of
-`source-directory'.  Optional argument EXTERNAL is ignored and is
-retained for compatibility."
+Optional argument DIR is a directory to use instead of `source-directory'.
+Optional argument EXTERNAL non-nil means to just ask the VCS itself,
+if the sources appear to be under version control.  Otherwise only ask
+the VCS if we cannot find any information ourselves."
   (or dir (setq dir source-directory))
-  (cond ((file-directory-p (expand-file-name ".git" dir))
-	 (message "Waiting for git...")
-	 (with-temp-buffer
-	   (let ((default-directory (file-name-as-directory dir)))
-	     (and (eq 0
-		      (condition-case nil
-			  (call-process "git" nil '(t nil) nil "rev-parse"
-					"HEAD")
-			(error nil)))
-		  (not (zerop (buffer-size)))
-		  (replace-regexp-in-string "\n" "" (buffer-string))))))))
+  (when (file-directory-p (expand-file-name ".git" dir))
+    (if external
+	(emacs-repository-version-git dir)
+      (or (let ((files '("HEAD" "refs/heads/master"))
+		file rev)
+	    (with-temp-buffer
+	      (while (and (not rev)
+			  (setq file (car files)))
+		(setq file (expand-file-name (format ".git/%s" file) dir)
+		      files (cdr files)
+		      rev (emacs-repository--version-git-1 file))))
+	    rev)
+	  ;; AFAICS this doesn't work during dumping (bug#20799).
+	  (emacs-repository-version-git dir)))))
 
 ;; We put version info into the executable in the form that `ident' uses.
 (purecopy (concat "\n$Id: " (subst-char-in-string ?\n ?\s (emacs-version))

@@ -23,6 +23,8 @@
 
 SHELL = @SHELL@
 
+AWK = @AWK@
+
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
 top_builddir = @top_builddir@
@@ -51,7 +53,7 @@ am__v_at_1 =
 
 .PHONY: all unifiles
 
-all: ${top_srcdir}/src/macuvs.h unifiles
+all: ${top_srcdir}/src/macuvs.h unifiles ${unidir}/charscript.el
 
 ## Specify .elc as an order-only prereq so as to not needlessly rebuild
 ## target just because the .elc is missing.
@@ -94,6 +96,16 @@ unifiles: ${unidir}/charprop.el
 	  [ -f $(unidir)/$$f ] || exec $(MAKE) PHONY_EXTRAS=$< $<; \
 	done
 
+
+.PHONY: charscript.el
+charscript.el: ${unidir}/charscript.el
+
+blocks = ${srcdir}/blocks.awk
+
+${unidir}/charscript.el: ${srcdir}/Blocks.txt ${blocks}
+	$(AM_V_GEN)$(AWK) -f ${blocks} < $< > $@
+
+
 .PHONY: clean bootstrap-clean distclean maintainer-clean extraclean
 
 clean:
@@ -110,7 +122,7 @@ maintainer-clean: distclean
 ## change and it slows down bootstrap (a tiny bit).
 ## Cf leim/ja-dic (which is much slower).
 extraclean:
-	rm -f ${top_srcdir}/src/macuvs.h
+	rm -f ${top_srcdir}/src/macuvs.h ${unidir}/charscript.el*
   ifneq (,$(wildcard $(unidir)/charprop.el))
 	cd $(unidir) && \
 	  rm -f `sed -n 's/^;; FILE: //p' < charprop.el` charprop.el

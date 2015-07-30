@@ -29,6 +29,7 @@
 ;;; Code:
 
 (require 'lisp-mode)
+(eval-when-compile (require 'cl-lib))
 
 (define-abbrev-table 'emacs-lisp-mode-abbrev-table ()
   "Abbrev table for Emacs Lisp mode.
@@ -228,6 +229,7 @@ Blank lines separate paragraphs.  Semicolons start comments.
   :group 'lisp
   (defvar xref-find-function)
   (defvar xref-identifier-completion-table-function)
+  (defvar project-search-path-function)
   (lisp-mode-variables nil nil 'elisp)
   (add-hook 'after-load-functions #'elisp--font-lock-flush-elisp-buffers)
   (setq-local electric-pair-text-pairs
@@ -239,6 +241,7 @@ Blank lines separate paragraphs.  Semicolons start comments.
   (setq-local xref-find-function #'elisp-xref-find)
   (setq-local xref-identifier-completion-table-function
               #'elisp--xref-identifier-completion-table)
+  (setq-local project-search-path-function #'elisp-search-path)
   (add-hook 'completion-at-point-functions
             #'elisp-completion-at-point nil 'local))
 
@@ -460,7 +463,7 @@ It can be quoted, or be inside a quoted form."
 	   (beg (condition-case nil
 		    (save-excursion
 		      (backward-sexp 1)
-		      (skip-chars-forward "`',‘")
+		      (skip-chars-forward "`',‘#")
 		      (point))
 		  (scan-error pos)))
 	   (end
@@ -580,8 +583,8 @@ It can be quoted, or be inside a quoted form."
 ;;; Xref backend
 
 (declare-function xref-make-bogus-location "xref" (message))
-(declare-function xref-make "xref" (description location))
-(declare-function xref-collect-matches "xref" (input dir &optional kind))
+(declare-function xref-make "xref" (summary location))
+(declare-function xref-collect-references "xref" (symbol dir))
 
 (defun elisp-xref-find (action id)
   (require 'find-func)
@@ -591,9 +594,7 @@ It can be quoted, or be inside a quoted form."
         (when sym
           (elisp--xref-find-definitions sym))))
     (`references
-     (elisp--xref-find-matches id #'xref-collect-references))
-    (`matches
-     (elisp--xref-find-matches id #'xref-collect-matches))
+     (elisp--xref-find-references id))
     (`apropos
      (elisp--xref-find-apropos id))))
 
@@ -652,29 +653,14 @@ It can be quoted, or be inside a quoted form."
              lst))))
       lst)))
 
-(defvar package-user-dir)
+(declare-function project-search-path "project")
+(declare-function project-current "project")
 
-(defun elisp--xref-find-matches (symbol fun)
-  (let* ((dirs (sort
-                (mapcar
-                 (lambda (dir)
-                   (file-name-as-directory (expand-file-name dir)))
-                 ;; It's one level above a number of `load-path'
-                 ;; elements (one for each installed package).
-                 ;; Save us some process calls.
-                 (cons package-user-dir load-path))
-                #'string<))
-         (ref dirs))
-    ;; Delete subdirectories from the list.
-    (while (cdr ref)
-      (if (string-prefix-p (car ref) (cadr ref))
-          (setcdr ref (cddr ref))
-        (setq ref (cdr ref))))
-    (cl-mapcan
-     (lambda (dir)
-       (and (file-exists-p dir)
-            (funcall fun symbol dir)))
-     dirs)))
+(defun elisp--xref-find-references (symbol)
+  (cl-mapcan
+   (lambda (dir)
+     (xref-collect-references symbol dir))
+   (project-search-path (project-current))))
 
 (defun elisp--xref-find-apropos (regexp)
   (apply #'nconc
@@ -713,6 +699,13 @@ It can be quoted, or be inside a quoted form."
       (with-current-buffer (car buffer-point)
         (goto-char (or (cdr buffer-point) (point-min)))
         (point-marker)))))
+
+(cl-defmethod xref-location-group ((l xref-elisp-location))
+  (xref-elisp-location-file l))
+
+(defun elisp-search-path ()
+  (defvar package-user-dir)
+  (cons package-user-dir load-path))
 
 ;;; Elisp Interaction mode
 
@@ -1434,7 +1427,7 @@ In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
 ARGLIST is either a string, or a list of strings or symbols."
   (let ((str (cond ((stringp arglist) arglist)
                    ((not (listp arglist)) nil)
-                   (t (format "%S" (help-make-usage 'toto arglist))))))
+                   (t (help--make-usage-docstring 'toto arglist)))))
     (if (and str (string-match "\\`([^ )]+ ?" str))
         (replace-match "(" t t str)
       str)))

@@ -200,6 +200,12 @@ backtrace_next (union specbinding *pdl)
   return pdl;
 }
 
+/* Return a pointer to somewhere near the top of the C stack.  */
+void *
+near_C_stack_top (void)
+{
+  return backtrace_args (backtrace_top ());
+}
 
 void
 init_eval_once (void)
@@ -220,6 +226,8 @@ static struct handler handlerlist_sentinel;
 void
 init_eval (void)
 {
+  gcprolist = 0;
+  byte_stack_list = 0;
   specpdl_ptr = specpdl;
   { /* Put a dummy catcher at top-level so that handlerlist is never NULL.
        This is important since handlerlist->nextfree holds the freelist

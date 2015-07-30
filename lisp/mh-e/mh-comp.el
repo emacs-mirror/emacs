@@ -91,7 +91,7 @@ user's MH directory, then in the system MH lib directory.")
 Default is \"replgroupcomps\".
 
 This file is used to form replies to the sender and all recipients of
-a message. Only used if `(mh-variant-p 'nmh)' is non-nil.
+a message. Only used if ‘(mh-variant-p 'nmh)’ is non-nil.
 If not an absolute file name, the file is searched for first in the
 user's MH directory, then in the system MH lib directory.")
 

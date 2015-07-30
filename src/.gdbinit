@@ -72,9 +72,6 @@ end
 
 define xgetsym
   xgetptr $arg0
-  if (!USE_LSB_TAG)
-    set $ptr = ($ptr << GCTYPEBITS)
-  end
   set $ptr = ((struct Lisp_Symbol *) ((char *)lispsym + $ptr))
 end
 

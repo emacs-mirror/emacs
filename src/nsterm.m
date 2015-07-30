@@ -2928,6 +2928,11 @@ ns_maybe_dumpglyphs_background (struct glyph_string *s, char force_p)
     {
       int box_line_width = max (s->face->box_line_width, 0);
       if (FONT_HEIGHT (s->font) < s->height - 2 * box_line_width
+	  /* When xdisp.c ignores FONT_HEIGHT, we cannot trust font
+	     dimensions, since the actual glyphs might be much
+	     smaller.  So in that case we always clear the rectangle
+	     with background color.  */
+	  || FONT_TOO_HIGH (s->font)
           || s->font_not_found_p || s->extends_to_end_of_line_p || force_p)
 	{
           struct face *face;
@@ -7687,6 +7692,7 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 {
   struct font *font = XFONT_OBJECT (font_object);
   EmacsView *view = FRAME_NS_VIEW (f);
+  int font_ascent, font_descent;
 
   if (fontset < 0)
     fontset = fontset_from_font (font_object);
@@ -7701,7 +7707,8 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 
   FRAME_BASELINE_OFFSET (f) = font->baseline_offset;
   FRAME_COLUMN_WIDTH (f) = font->average_width;
-  FRAME_LINE_HEIGHT (f) = font->height;
+  get_font_ascent_descent (font, &font_ascent, &font_descent);
+  FRAME_LINE_HEIGHT (f) = font_ascent + font_descent;
 
   /* Compute the scroll bar width in character columns.  */
   if (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0)

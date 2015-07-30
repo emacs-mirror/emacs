@@ -732,9 +732,11 @@ composition_gstring_width (Lisp_Object gstring, ptrdiff_t from, ptrdiff_t to,
       if (FONT_OBJECT_P (font_object))
 	{
 	  struct font *font = XFONT_OBJECT (font_object);
+	  int font_ascent, font_descent;
 
-	  metrics->ascent = font->ascent;
-	  metrics->descent = font->descent;
+	  get_font_ascent_descent (font, &font_ascent, &font_descent);
+	  metrics->ascent = font_ascent;
+	  metrics->descent = font_descent;
 	}
       else
 	{

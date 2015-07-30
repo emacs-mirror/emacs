@@ -278,10 +278,7 @@ error !;
 #endif
 
 #ifndef alignas
-# define alignas(alignment) /* empty */
-# if USE_LSB_TAG
-#  error "USE_LSB_TAG requires alignas"
-# endif
+# error "alignas not defined"
 #endif
 
 #ifdef HAVE_STRUCT_ATTRIBUTE_ALIGNED
@@ -731,9 +728,7 @@ struct Lisp_Symbol
 
 /* Yield an integer that contains a symbol tag along with OFFSET.
    OFFSET should be the offset in bytes from 'lispsym' to the symbol.  */
-#define TAG_SYMOFFSET(offset)				    \
-  TAG_PTR (Lisp_Symbol,					    \
-	   ((uintptr_t) (offset) >> (USE_LSB_TAG ? 0 : GCTYPEBITS)))
+#define TAG_SYMOFFSET(offset) TAG_PTR (Lisp_Symbol, offset)
 
 /* XLI_BUILTIN_LISPSYM (iQwhatever) is equivalent to
    XLI (builtin_lisp_symbol (Qwhatever)),
@@ -905,8 +900,6 @@ INLINE struct Lisp_Symbol *
 XSYMBOL (Lisp_Object a)
 {
   uintptr_t i = (uintptr_t) XUNTAG (a, Lisp_Symbol);
-  if (! USE_LSB_TAG)
-    i <<= GCTYPEBITS;
   void *p = (char *) lispsym + i;
   return p;
 }
@@ -4042,6 +4035,7 @@ extern _Noreturn void verror (const char *, va_list)
   ATTRIBUTE_FORMAT_PRINTF (1, 0);
 extern void un_autoload (Lisp_Object);
 extern Lisp_Object call_debugger (Lisp_Object arg);
+extern void *near_C_stack_top (void);
 extern void init_eval_once (void);
 extern Lisp_Object safe_call (ptrdiff_t, Lisp_Object, ...);
 extern Lisp_Object safe_call1 (Lisp_Object, Lisp_Object);
@@ -4067,7 +4061,7 @@ extern _Noreturn void time_overflow (void);
 extern Lisp_Object make_buffer_string (ptrdiff_t, ptrdiff_t, bool);
 extern Lisp_Object make_buffer_string_both (ptrdiff_t, ptrdiff_t, ptrdiff_t,
 					    ptrdiff_t, bool);
-extern void init_editfns (void);
+extern void init_editfns (bool);
 extern void syms_of_editfns (void);
 
 /* Defined in buffer.c.  */

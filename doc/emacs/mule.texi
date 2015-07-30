@@ -136,8 +136,11 @@ displayed on your terminal, they appear as @samp{?} or as hollow boxes
   Keyboards, even in the countries where these character sets are
 used, generally don't have keys for all the characters in them.  You
 can insert characters that your keyboard does not support, using
-@kbd{C-q} (@code{quoted-insert}) or @kbd{C-x 8 @key{RET}}
-(@code{insert-char}).  @xref{Inserting Text}.  Emacs also supports
+@kbd{C-x 8 @key{RET}} (@code{insert-char}).  @xref{Inserting Text}.
+Shorthands are available for some common characters; for example, you
+can insert a left single quotation mark @t{‘} by typing @kbd{C-x 8
+[}, or in Electric Quote mode often by simply typing @kbd{`}.
+@xref{Quotation Marks}.  Emacs also supports
 various @dfn{input methods}, typically one for each script or
 language, which make it easier to type characters in the script.
 @xref{Input Methods}.

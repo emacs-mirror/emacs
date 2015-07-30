@@ -4,7 +4,7 @@
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: sequences
-;; Version: 1.7
+;; Version: 1.8
 ;; Package: seq
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -249,7 +249,7 @@ TYPE must be one of following symbols: vector, string or list.
     (`vector (apply #'vconcat seqs))
     (`string (apply #'concat seqs))
     (`list (apply #'append (append seqs '(nil))))
-    (t (error "Not a sequence type name: %S" type))))
+    (_ (error "Not a sequence type name: %S" type))))
 
 (defun seq-mapcat (function seq &optional type)
   "Concatenate the result of applying FUNCTION to each element of SEQ.
@@ -279,7 +279,7 @@ Equality is defined by TESTFN if non-nil or by `equal' if nil."
               '()))
 
 (defun seq-difference (seq1 seq2 &optional testfn)
-  "Return a list of th elements that appear in SEQ1 but not in SEQ2.
+  "Return a list of the elements that appear in SEQ1 but not in SEQ2.
 Equality is defined by TESTFN if non-nil or by `equal' if nil."
   (seq-reduce (lambda (acc elt)
                 (if (not (seq-contains-p seq2 elt testfn))
@@ -323,7 +323,17 @@ TYPE can be one of the following symbols: vector, string or list."
     (`vector (vconcat seq))
     (`string (concat seq))
     (`list (append seq nil))
-    (t (error "Not a sequence type name: %S" type))))
+    (_ (error "Not a sequence type name: %S" type))))
+
+(defun seq-min (seq)
+  "Return the smallest element of SEQ.
+SEQ must be a sequence of numbers or markers."
+  (apply #'min (seq-into seq 'list)))
+
+(defun seq-max (seq)
+    "Return the largest element of SEQ.
+SEQ must be a sequence of numbers or markers."
+  (apply #'max (seq-into seq 'list)))
 
 (defun seq--drop-list (list n)
   "Return a list from LIST without its first N elements.
@@ -379,7 +389,7 @@ This is an optimization for lists in `seq-take-while'."
                               ,(seq--elt-safe args (1+ index)))
                         bindings)
                   (setq rest-marker t)))
-          (t
+          (_
            (push `(app (pcase--flip seq--elt-safe ,index) ,name) bindings))))
       (setq index (1+ index)))
     bindings))
@@ -413,7 +423,7 @@ BINDINGS."
                           (seq-drop ,seq ,index))
                         bindings)
                   (setq rest-marker t)))
-          (t
+          (_
            (push `(,name (seq--elt-safe ,seq ,index)) bindings))))
       (setq index (1+ index)))
     bindings))

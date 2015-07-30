@@ -23,11 +23,10 @@ extern "C" {
 
 /* Just like strftime, but with two more arguments:
    POSIX requires that strftime use the local timezone information.
-   When __UTC is nonzero and tm->tm_zone is NULL or the empty string,
-   use UTC instead.  Use __NS as the number of nanoseconds in the
-   %N directive.  */
+   Use the timezone __TZ instead.  Use __NS as the number of
+   nanoseconds in the %N directive.  */
 size_t nstrftime (char *, size_t, char const *, struct tm const *,
-                  int __utc, int __ns);
+                  timezone_t __tz, int __ns);
 
 #ifdef __cplusplus
 }

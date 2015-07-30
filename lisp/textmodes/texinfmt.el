@@ -34,7 +34,7 @@
 If optional argument HERE is non-nil, insert info at point."
   (interactive "P")
   (let ((version-string
-         (format "Version of \`texinfmt.el\': %s" texinfmt-version)))
+         (format "Version of `texinfmt.el': %s" texinfmt-version)))
     (if here
         (insert version-string)
       (if (called-interactively-p 'interactive)

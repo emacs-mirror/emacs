@@ -33,7 +33,7 @@ int
 get_permissions (const char *name, int desc, mode_t mode,
 		 struct permission_context *ctx)
 {
-  memset (ctx, 0, sizeof(*ctx));
+  memset (ctx, 0, sizeof *ctx);
   ctx->mode = mode;
 
 #if USE_ACL && HAVE_ACL_GET_FILE
@@ -59,6 +59,12 @@ get_permissions (const char *name, int desc, mode_t mode,
       if (ctx->default_acl == NULL)
 	return -1;
     }
+
+# if HAVE_ACL_TYPE_NFS4  /* FreeBSD */
+
+  /* TODO (see set_permissions). */
+
+# endif
 
 #  else /* HAVE_ACL_TYPE_EXTENDED */
   /* Mac OS X */
@@ -215,38 +221,40 @@ get_permissions (const char *name, int desc, mode_t mode,
 
 #elif USE_ACL && HAVE_GETACL /* HP-UX */
 
-  int ret;
+  {
+    int ret;
 
-  if (desc != -1)
-    ret = fgetacl (desc, NACLENTRIES, ctx->entries);
-  else
-    ret = getacl (name, NACLENTRIES, ctx->entries);
-  if (ret < 0)
-    {
-      if (errno == ENOSYS || errno == EOPNOTSUPP || errno == ENOTSUP)
-	ret = 0;
-      else
-        return -1;
-    }
-  else if (ret > NACLENTRIES)
-    /* If NACLENTRIES cannot be trusted, use dynamic memory allocation.  */
-    abort ();
-  ctx->count = ret;
+    if (desc != -1)
+      ret = fgetacl (desc, NACLENTRIES, ctx->entries);
+    else
+      ret = getacl (name, NACLENTRIES, ctx->entries);
+    if (ret < 0)
+      {
+        if (errno == ENOSYS || errno == EOPNOTSUPP || errno == ENOTSUP)
+          ret = 0;
+        else
+          return -1;
+      }
+    else if (ret > NACLENTRIES)
+      /* If NACLENTRIES cannot be trusted, use dynamic memory allocation.  */
+      abort ();
+    ctx->count = ret;
 
 # if HAVE_ACLV_H
-  ret = acl ((char *) name, ACL_GET, NACLVENTRIES, ctx->aclv_entries);
-  if (ret < 0)
-    {
-      if (errno == ENOSYS || errno == EOPNOTSUPP || errno == EINVAL)
-        ret = 0;
-      else
-        return -2;
-    }
-  else if (ret > NACLVENTRIES)
-    /* If NACLVENTRIES cannot be trusted, use dynamic memory allocation.  */
+    ret = acl ((char *) name, ACL_GET, NACLVENTRIES, ctx->aclv_entries);
+    if (ret < 0)
+      {
+        if (errno == ENOSYS || errno == EOPNOTSUPP || errno == EINVAL)
+          ret = 0;
+        else
+          return -2;
+      }
+    else if (ret > NACLVENTRIES)
+      /* If NACLVENTRIES cannot be trusted, use dynamic memory allocation.  */
       abort ();
-  ctx->aclv_count = ret;
+    ctx->aclv_count = ret;
 # endif
+  }
 
 #elif USE_ACL && HAVE_ACLX_GET && ACL_AIX_WIP /* AIX */
 
@@ -254,24 +262,27 @@ get_permissions (const char *name, int desc, mode_t mode,
 
 #elif USE_ACL && HAVE_STATACL /* older AIX */
 
-  if (desc != -1)
-    ret = fstatacl (desc, STX_NORMAL, &ctx->u.a, sizeof (ctx->u));
-  else
-    ret = statacl (name, STX_NORMAL, &ctx->u.a, sizeof (ctx->u));
-  if (ret == 0)
-    ctx->have_u = true;
+  {
+    int ret;
+    if (desc != -1)
+      ret = fstatacl (desc, STX_NORMAL, &ctx->u.a, sizeof ctx->u);
+    else
+      ret = statacl ((char *) name, STX_NORMAL, &ctx->u.a, sizeof ctx->u);
+    if (ret == 0)
+      ctx->have_u = true;
+  }
 
 #elif USE_ACL && HAVE_ACLSORT /* NonStop Kernel */
 
-  int ret;
-
-  ret = acl ((char *) name, ACL_GET, NACLENTRIES, ctx->entries);
-  if (ret < 0)
-    return -1;
-  else if (ret > NACLENTRIES)
-    /* If NACLENTRIES cannot be trusted, use dynamic memory allocation.  */
-    abort ();
-  ctx->count = ret;
+  {
+    int ret = acl ((char *) name, ACL_GET, NACLENTRIES, ctx->entries);
+    if (ret < 0)
+      return -1;
+    else if (ret > NACLENTRIES)
+      /* If NACLENTRIES cannot be trusted, use dynamic memory allocation.  */
+      abort ();
+    ctx->count = ret;
+  }
 
 #endif
 

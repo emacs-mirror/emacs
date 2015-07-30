@@ -34,7 +34,7 @@
 ;; key sequence:
 ;;	consonant [+ semi-vowel-sign-lo ] + vowel [+ maa-sakod ] [+ tone-mark ]
 
-(defun quail-lao-update-translation (control-flag)
+(defun quail-lrt-update-translation (control-flag)
   (if (integerp control-flag)
       ;; Non-composable character typed.
       (setq quail-current-str
@@ -59,7 +59,7 @@
 `\\' (backslash) + `$'		=> ຯ		LAO ELLIPSIS
 "
  nil 'forget-last-selection 'deterministic 'kbd-translate 'show-layout
-  nil nil nil 'quail-lao-update-translation nil t)
+  nil nil nil 'quail-lrt-update-translation nil t)
 
 ;; LRT (Lao Roman Transcription) input method accepts the following
 ;; key sequence:

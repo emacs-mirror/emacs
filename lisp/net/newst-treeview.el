@@ -1,10 +1,9 @@
-;;; newst-treeview.el --- Treeview frontend for newsticker.
+;;; newst-treeview.el --- Treeview frontend for newsticker.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2008-2015 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-treeview.el
-;; URL:         http://www.nongnu.org/newsticker
 ;; Created:     2007
 ;; Keywords:    News, RSS, Atom
 ;; Package:     newsticker
@@ -219,7 +218,7 @@ their id stays constant."
     ;;(message "%s/%s %s/%s" (widget-get node1 :tag) (widget-get node2 :tag)
     ;;       (or id1 -1) (or id2 -1))
     (or (newsticker--treeview-ids-eq id1 id2)
-        (string= (widget-get node1 :tag) (widget-get node2 :tag)))))
+        (string= (widget-get node1 :nt-feed) (widget-get node2 :nt-feed)))))
 
 (defun newsticker--treeview-do-get-node-of-feed (feed-name startnode)
    "Recursively search node for feed FEED-NAME starting from STARTNODE."
@@ -259,8 +258,10 @@ their id stays constant."
 
 ;; ======================================================================
 
-(unless (fboundp 'declare-function) (defmacro declare-function (&rest r)))
+(unless (fboundp 'declare-function) (defmacro declare-function (&rest _)))
 (declare-function w3m-toggle-inline-images "ext:w3m" (&optional force no-cache))
+(defvar w3m-fill-column)
+(defvar w3-maximum-line-length)
 
 (defun newsticker--treeview-render-text (start end)
   "Render text between markers START and END."
@@ -351,7 +352,7 @@ If string SHOW-FEED is non-nil it is shown in the item string."
       (remove-overlays))))
 
 (defun newsticker--treeview-list-items-with-age-callback (widget
-                                                          changed-widget
+                                                          _changed-widget
                                                           &rest ages)
   "Fill newsticker treeview list window with items of certain age.
 This is a callback function for the treeview nodes.
@@ -360,7 +361,7 @@ Argument CHANGED-WIDGET is the widget that actually has changed.
 Optional argument AGES is the list of ages that are to be shown."
   (newsticker--treeview-list-clear)
   (widget-put widget :nt-selected t)
-  (apply 'newsticker--treeview-list-items-with-age ages))
+  (apply #'newsticker--treeview-list-items-with-age ages))
 
 (defun newsticker--treeview-list-items-with-age (&rest ages)
   "Actually fill newsticker treeview list window with items of certain age.
@@ -377,7 +378,7 @@ AGES is the list of ages that are to be shown."
   (newsticker--treeview-list-update nil))
 
 (defun newsticker--treeview-list-new-items (widget changed-widget
-                                                   &optional event)
+                                                   &optional _event)
   "Fill newsticker treeview list window with new items.
 This is a callback function for the treeview nodes.
 Argument WIDGET is the calling treeview widget.
@@ -390,7 +391,7 @@ Optional argument EVENT is the mouse event that triggered this action."
    "This is a virtual feed containing all new items"))
 
 (defun newsticker--treeview-list-immortal-items (widget changed-widget
-                                                        &optional event)
+                                                        &optional _event)
   "Fill newsticker treeview list window with immortal items.
 This is a callback function for the treeview nodes.
 Argument WIDGET is the calling treeview widget.
@@ -403,7 +404,7 @@ Optional argument EVENT is the mouse event that triggered this action."
    "This is a virtual feed containing all immortal items."))
 
 (defun newsticker--treeview-list-obsolete-items (widget changed-widget
-                                                        &optional event)
+                                                        &optional _event)
   "Fill newsticker treeview list window with obsolete items.
 This is a callback function for the treeview nodes.
 Argument WIDGET is the calling treeview widget.
@@ -455,8 +456,8 @@ Optional argument EVENT is the mouse event that triggered this action."
              (cdr (newsticker--cache-get-feed (intern feed-name)))))
       (newsticker--treeview-list-update nil))))
 
-(defun newsticker--treeview-list-feed-items (widget changed-widget
-                                                    &optional event)
+(defun newsticker--treeview-list-feed-items (widget _changed-widget
+                                                    &optional _event)
   "Callback function for listing feed items.
 Argument WIDGET is the calling treeview widget.
 Argument CHANGED-WIDGET is the widget that actually has changed.
@@ -583,11 +584,10 @@ The sort function is chosen according to the value of
 (defun newsticker--treeview-list-update-highlight ()
   "Update the highlight in the treeview list buffer."
   (newsticker--treeview-list-clear-highlight)
-    (let (pos num-lines)
-      (with-current-buffer (newsticker--treeview-list-buffer)
-        (let ((inhibit-read-only t))
-          (put-text-property (point-at-bol) (point-at-eol) :nt-selected t))
-        (newsticker--treeview-list-update-faces))))
+  (with-current-buffer (newsticker--treeview-list-buffer)
+    (let ((inhibit-read-only t))
+      (put-text-property (point-at-bol) (point-at-eol) :nt-selected t))
+    (newsticker--treeview-list-update-faces)))
 
 (defun newsticker--treeview-list-highlight-start ()
   "Return position of selection in treeview list buffer."
@@ -664,23 +664,22 @@ for the button."
 (defun newsticker--treeview-list-select (item)
   "Select ITEM in treeview's list buffer."
   (newsticker--treeview-list-clear-highlight)
-    (let (pos num-lines)
-      (save-current-buffer
-        (set-buffer (newsticker--treeview-list-buffer))
-        (goto-char (point-min))
-        (catch 'found
-          (while t
-            (let ((it (get-text-property (point) :nt-item)))
-              (when (eq it item)
-                (newsticker--treeview-list-update-highlight)
-                (newsticker--treeview-list-update-faces)
-                (newsticker--treeview-item-show
-                 item (get-text-property (point) :nt-feed))
-                (throw 'found t)))
-            (forward-line 1)
-            (when (eobp)
-              (goto-char (point-min))
-              (throw 'found nil)))))))
+  (save-current-buffer
+    (set-buffer (newsticker--treeview-list-buffer))
+    (goto-char (point-min))
+    (catch 'found
+      (while t
+        (let ((it (get-text-property (point) :nt-item)))
+          (when (eq it item)
+            (newsticker--treeview-list-update-highlight)
+            (newsticker--treeview-list-update-faces)
+            (newsticker--treeview-item-show
+             item (get-text-property (point) :nt-feed))
+            (throw 'found t)))
+        (forward-line 1)
+        (when (eobp)
+          (goto-char (point-min))
+          (throw 'found nil))))))
 
 ;; ======================================================================
 ;;; item window
@@ -863,8 +862,8 @@ Callback function for tree widget that adds nodes for feeds and subgroups."
       (widget-put icon :leaf-icon 'tree-widget-leaf-icon)
       (tree-widget-icon-create icon))))
 
-(defun newsticker--treeview-tree-expand-status (tree &optional changed-widget
-                                                     event)
+(defun newsticker--treeview-tree-expand-status (tree &optional _changed-widget
+                                                     _event)
   "Expand the vfeed TREE.
 Optional arguments CHANGED-WIDGET and EVENT are ignored."
   (tree-widget-set-theme "folder")
@@ -916,7 +915,7 @@ Optional arguments CHANGED-WIDGET and EVENT are ignored."
                            :tag (newsticker--treeview-propertize-tag
                                  "Feeds" 0 "feeds")
                            :expander 'newsticker--treeview-tree-expand
-                           :expander-p (lambda (&rest ignore) t)
+                           :expander-p (lambda (&rest _) t)
                            :leaf-icon 'newsticker--tree-widget-leaf-icon
                            :nt-group (cdr newsticker-groups)
                            :nt-id "feeds"
@@ -927,7 +926,7 @@ Optional arguments CHANGED-WIDGET and EVENT are ignored."
                            :tag (newsticker--treeview-propertize-tag
                                  "Virtual Feeds" 0 "vfeeds")
                            :expander 'newsticker--treeview-tree-expand-status
-                           :expander-p (lambda (&rest ignore) t)
+                           :expander-p (lambda (&rest _) t)
                            :leaf-icon 'newsticker--tree-widget-leaf-icon
                            :nt-id "vfeeds"
                            :keep '(:nt-id)
@@ -990,10 +989,10 @@ Optional argument NT-ID is added to the tag's properties."
 (defun newsticker--stat-num-items-for-group (feed-name-symbol &rest ages)
   "Count number of items in feed FEED-NAME-SYMBOL that have an age matching AGES."
   ;;(message "newsticker--stat-num-items-for-group %s %s" feed-name-symbol ages)
-  (let ((result (apply 'newsticker--stat-num-items feed-name-symbol ages)))
+  (let ((result (apply #'newsticker--stat-num-items feed-name-symbol ages)))
     (mapc (lambda (f-n)
             (setq result (+ result
-                            (apply 'newsticker--stat-num-items (intern f-n)
+                            (apply #'newsticker--stat-num-items (intern f-n)
                                    ages))))
           (newsticker--group-get-feeds
            (newsticker--group-get-group (symbol-name feed-name-symbol)) t))
@@ -1019,7 +1018,7 @@ the feed is a virtual feed."
     num-new))
 
 (defun newsticker--treeview-tree-update-tag (w &optional recursive
-                                               &rest ignore)
+                                               &rest _ignore)
   "Update tag for tree widget W.
 If RECURSIVE is non-nil recursively update parent widgets as
 well.  Argument IGNORE is ignored.  Note that this function, if
@@ -1042,8 +1041,7 @@ that case."
       (widget-put w :num-new num-new)
       (widget-put w :tag tag)
       (when (marker-position (widget-get w :from))
-        (let ((p (point))
-              (notify (widget-get w :notify)))
+        (let ((p (point)))
           ;; FIXME: This moves point!!!!
           (with-current-buffer (newsticker--treeview-tree-buffer)
             (widget-value-set w (widget-value w)))
@@ -1057,9 +1055,9 @@ that case."
         (newsticker--treeview-tree-do-update-tags w))
       (newsticker--treeview-tree-update-tag widget))))
 
-(defun newsticker--treeview-tree-update-tags (&rest ignore)
+(defun newsticker--treeview-tree-update-tags (&rest _ignore)
   "Update all tags of all trees.
-Arguments IGNORE are ignored."
+Arguments are ignored."
   (save-current-buffer
     (set-buffer (newsticker--treeview-tree-buffer))
     (let ((inhibit-read-only t))
@@ -1655,8 +1653,8 @@ Return t if a new feed was activated, nil otherwise."
            (completing-read
             "Jump to feed: "
             (append '("new" "obsolete" "immortal" "all")
-                    (mapcar 'car (append newsticker-url-list
-                                         newsticker-url-list-defaults)))
+                    (mapcar #'car (append newsticker-url-list
+                                          newsticker-url-list-defaults)))
             nil t))))
   (newsticker--treeview-unfold-node feed-name))
 
@@ -1788,7 +1786,8 @@ return a nested list."
                           (string= old-name (car elt)))
                      (cons new-name (cdr elt)))
                     (t
-                     elt))) parent-group)))
+                     elt)))
+            parent-group)))
 
 (defun newsticker-group-rename-group (old-name new-name)
   "Rename group OLD-NAME to NEW-NAME."
@@ -1808,7 +1807,7 @@ return a nested list."
 (defun newsticker--get-group-names (lst)
   "Do get the group names from LST."
   (delete nil (cons (car lst)
-                    (apply 'append
+                    (apply #'append
                            (mapcar (lambda (e)
                                      (cond ((listp e)
                                             (newsticker--get-group-names e))
@@ -1826,7 +1825,7 @@ Update treeview afterwards unless NO-UPDATE is non-nil."
   (interactive
    (let ((completion-ignore-case t))
      (list (completing-read "Name of feed or group to move: "
-                            (append (mapcar 'car newsticker-url-list)
+                            (append (mapcar #'car newsticker-url-list)
                                     (newsticker--group-names))
                             nil t newsticker--treeview-current-feed)
            (completing-read "Name of new parent group: " (newsticker--group-names)

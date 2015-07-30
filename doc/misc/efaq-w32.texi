@@ -159,26 +159,25 @@ instructions (requires DJGPP).
 @node Downloading
 @section Where can I download Emacs?
 
-@cindex precompiled binaries
-@cindex where to get Emacs binaries
-Pre-compiled versions are distributed from
-@uref{http://ftpmirror.gnu.org/emacs/windows/, ftp.gnu.org mirrors}.
-Emacs binaries are distributed as zip files, digitally signed by the
-developer who built them.  Generally most users will want the file
-@file{emacs-@value{EMACSVER}-bin-i686-pc-mingw.zip} for the 32-bit
-build, and @file{emacs-@value{EMACSVER}-bin-x86_64-w64-mingw32.zip}
-for the 64-bit build.  The zip archive contains everything you need to
-get started.
-
+@cindex getting Emacs
 @cindex where to get sources
 @cindex Emacs source code
 @cindex source for Emacs
-The latest source is available from
-@uref{http://ftpmirror.gnu.org/emacs/, ftp.gnu.org mirrors}.  It is
-distributed as a compressed tar file, digitally signed by the maintainer
-who made the release.
+You can download Emacs releases from
+@uref{http://ftpmirror.gnu.org/emacs/, ftp.gnu.org mirrors}.  They
+are distributed as compressed tar files, digitally signed by the
+maintainer who made the release.
 
-@cindex getting Emacs
+@cindex precompiled binaries
+@cindex where to get Emacs binaries
+Pre-compiled binaries for MS Windows may be made available on a
+best-effort basis in the @file{windows} subdirectory of the above ftp
+site (as zip files digitally signed by the person who built them).
+See the @file{README} file in that directory for more information.
+Building Emacs from source yourself should be straightforward,
+following the instructions in @file{nt/INSTALL}, so we encourage you
+to give it a try.  @xref{Compiling}.
+
 @cindex latest development version of Emacs
 @cindex Emacs Development
 The development version of Emacs is available from

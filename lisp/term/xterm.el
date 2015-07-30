@@ -688,6 +688,10 @@ string bytes that can be copied is 3/4 of this value."
           ;;(xterm--init-activate-get-selection)
           (xterm--init-activate-set-selection))))))
 
+(defvar xterm-query-timeout 2
+  "Seconds to wait for an answer from the terminal.
+Can be nil to mean \"no timeout\".")
+
 (defun xterm--query (query handlers &optional no-async)
   "Send QUERY string to the terminal and watch for a response.
 HANDLERS is an alist with elements of the form (STRING . FUNCTION).
@@ -696,35 +700,47 @@ We run the first FUNCTION whose STRING matches the input events."
   ;; rather annoying (bug#6758).  Maybe we could always use the asynchronous
   ;; approach, but it's less tested.
   ;; FIXME: Merge the two branches.
-  (if (and (input-pending-p) (not no-async))
-      (progn
-        (dolist (handler handlers)
-          (define-key input-decode-map (car handler)
-            (lambda (&optional _prompt)
-              ;; Unregister the handler, since we don't expect further answers.
-              (dolist (handler handlers)
-                (define-key input-decode-map (car handler) nil))
-              (funcall (cdr handler))
-              [])))
-        (send-string-to-terminal query))
-    ;; Pending input can be mistakenly returned by the calls to
-    ;; read-event below.  Discard it.
-    (send-string-to-terminal query)
-    (while handlers
-      (let ((handler (pop handlers))
-            (i 0))
-        (while (and (< i (length (car handler)))
-                    (let ((evt (read-event nil nil 2)))
-                      (or (eq evt (aref (car handler) i))
-                          (progn (if evt (push evt unread-command-events))
-                                 nil))))
-          (setq i (1+ i)))
-        (if (= i (length (car handler)))
-            (progn (setq handlers nil)
-                   (funcall (cdr handler)))
-          (while (> i 0)
-            (push (aref (car handler) (setq i (1- i)))
-                  unread-command-events)))))))
+  (let ((register
+         (lambda (handlers)
+           (dolist (handler handlers)
+             (define-key input-decode-map (car handler)
+               (lambda (&optional _prompt)
+                 ;; Unregister the handler, since we don't expect
+                 ;; further answers.
+                 (dolist (handler handlers)
+                   (define-key input-decode-map (car handler) nil))
+                 (funcall (cdr handler))
+                 []))))))
+    (if (and (or (null xterm-query-timeout) (input-pending-p))
+             (not no-async))
+        (progn
+          (funcall register handlers)
+          (send-string-to-terminal query))
+      ;; Pending input can be mistakenly returned by the calls to
+      ;; read-event below: discard it.
+      (discard-input)
+      (send-string-to-terminal query)
+      (while handlers
+        (let ((handler (pop handlers))
+              (i 0))
+          (while (and (< i (length (car handler)))
+                      (let ((evt (read-event nil nil xterm-query-timeout)))
+                        (if (and (null evt) (= i 0) (not no-async))
+                            ;; Timeout on the first event: fallback on async.
+                            (progn
+                              (funcall register (cons handler handlers))
+                              (setq handlers nil)
+                              nil)
+                          (or (eq evt (aref (car handler) i))
+                              (progn (if evt (push evt unread-command-events))
+                                     nil)))))
+            (setq i (1+ i)))
+          (if (= i (length (car handler)))
+              (progn (setq handlers nil)
+                     (funcall (cdr handler)))
+            (while (> i 0)
+              (push (aref (car handler) (setq i (1- i)))
+                    unread-command-events))))))))
 
 (defun xterm--push-map (map basemap)
   ;; Use inheritance to let the main keymaps override those defaults.

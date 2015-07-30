@@ -319,10 +319,22 @@ specifies @var{mapvar}'s value as the keymap for any following
 @samp{\[@var{command}]} sequences in this documentation string.
 
 @item `
-(grave accent) stands for a left single quotation mark (@samp{‘}).
+(grave accent) stands for a left quote, and alters the interpretation
+of the next unmatched apostrophe.
 
 @item '
-(apostrophe) stands for a right single quotation mark (@samp{’}) if
+(apostrophe) stands for a right quote if preceded by grave accent and
+there are no intervening apostrophes.  Otherwise, apostrophe stands
+for itself.
+
+@item ‘
+(left single quotation mark) stands for a left quote.
+
+@item ’
+(right single quotation mark) stands for a right quote.
+
+@item '
+(apostrophe) stands for a right quote if
 preceded by grave accent and there are no intervening apostrophes.
 Otherwise, apostrophe stands for itself.
 
@@ -334,6 +346,19 @@ and @samp{\=\=} puts @samp{\=} into the output.
 
 @strong{Please note:} Each @samp{\} must be doubled when written in a
 string in Emacs Lisp.
+
+@defvar help-quote-translation
+@cindex curved quotes
+The value of this variable specifies the style
+@code{substitute-command-keys} uses when generating left and right
+quotes.  If the variable's value is @code{?‘} (U+2018 LEFT SINGLE
+QUOTATION MARK), the style is @t{‘like this’} with curved single
+quotes.  If the value is @code{?'} (apostrophe), the style is @t{'like
+this'} with apostrophes.  If the value is @code{?`} (grave accent),
+the style is @t{`like this'} with grave accent and apostrophe.  The
+default value @code{nil} means to use curved single quotes if
+displayable, and grave accent and apostrophe otherwise.
+@end defvar
 
 @defun substitute-command-keys string
 This function scans @var{string} for the above special sequences and

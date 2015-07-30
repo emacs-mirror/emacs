@@ -1,12 +1,12 @@
-# BidiBrackets-7.0.0.txt
-# Date: 2014-01-21, 02:30:00 GMT [AG, LI, KW]
+# BidiBrackets-8.0.0.txt
+# Date: 2015-01-20, 19:00:00 GMT [AG, LI, KW]
 #
 # Bidi_Paired_Bracket and Bidi_Paired_Bracket_Type Properties
 # 
 # This file is a normative contributory data file in the Unicode
 # Character Database.
 #
-# Copyright (c) 1991-2014 Unicode, Inc.
+# Copyright (c) 1991-2015 Unicode, Inc.
 # For terms of use, see http://www.unicode.org/terms_of_use.html
 #
 # Bidi_Paired_Bracket is a normative property of type Miscellaneous,

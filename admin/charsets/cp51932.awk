@@ -31,7 +31,7 @@
 # already been mapped to 1 or 3.
 
 BEGIN {
-  print ";;; cp51932.el -- translation table for CP51932. -*- no-byte-compile: t -*-";
+  print ";;; cp51932.el -- translation table for CP51932";
   print ";;; Automatically generated from CP932-2BYTE.map";
   print "(let ((map";
   printf "       '(;JISEXT<->UNICODE";

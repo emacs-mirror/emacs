@@ -1814,7 +1814,9 @@ already.  If INFO-UNCHANGED is non-nil, dribble buffer is not updated."
   "Get the name of the newsgroup on the current line."
   (let ((group (get-text-property (point-at-bol) 'gnus-group)))
     (when group
-      (symbol-name group))))
+      (if (stringp group)
+	  group
+	(symbol-name group)))))
 
 (defun gnus-group-group-level ()
   "Get the level of the newsgroup on the current line."

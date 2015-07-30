@@ -177,7 +177,7 @@
 		    "\\(charset\\)"
 		    "\\)\\s-+\\)?"
 		    ;; Note starting with word-syntax character:
-		    "[`‘]\\(\\sw\\(\\sw\\|\\s_\\)+\\)['’]")))
+		    "['`‘]\\(\\sw\\(\\sw\\|\\s_\\)+\\)['’]")))
 
 (defun coding-system-change-eol-conversion (coding-system eol-type)
   "Return a coding system which differs from CODING-SYSTEM in EOL conversion.
@@ -2519,6 +2519,9 @@ is returned.  Thus, for instance, if charset \"ISO8859-2\",
 ;; too, for setting things such as calendar holidays, ps-print paper
 ;; size, spelling dictionary.
 
+(declare-function w32-get-console-codepage "w32proc.c" ())
+(declare-function w32-get-console-output-codepage "w32proc.c" ())
+
 (defun locale-translate (locale)
   "Expand LOCALE according to `locale-translation-file-name', if possible.
 For example, translate \"swedish\" into \"sv_SE.ISO8859-1\"."
@@ -2600,7 +2603,18 @@ See also `locale-charset-language-names', `locale-language-names',
 	(setq system-time-locale locale))
 
       (if (string-match "^[a-z][a-z]" locale)
-	  (setq current-iso639-language (intern (match-string 0 locale)))))
+          ;; The value of 'current-iso639-language' is matched against
+          ;; the ':lang' property of font-spec objects when selecting
+          ;; and prioritizing available fonts for displaying
+          ;; characters; see fontset.c.
+	  (setq current-iso639-language
+                ;; The call to 'downcase' is for w32, where the
+                ;; MS-Windows locale names are in caps, as in "ENU",
+                ;; the equivalent of the Posix "en_US".  Since the
+                ;; match mentioned above uses memq, and ':lang'
+                ;; properties have lower-case values, the letter-case
+                ;; must match exactly.
+                (intern (downcase (match-string 0 locale))))))
 
     (setq woman-locale
           (or system-messages-locale
@@ -2716,14 +2730,6 @@ See also `locale-charset-language-names', `locale-language-names',
 		 (equal (getenv "TERM_PROGRAM" frame) "Apple_Terminal"))
 	(set-terminal-coding-system 'utf-8)
 	(set-keyboard-coding-system 'utf-8)))
-
-    ;; If curved quotes don't work, display straight ASCII approximations.
-    (unless frame
-      (dolist (char-repl '((?‘ . [?\']) (?’ . [?\']) (?“ . [?\"]) (?” . [?\"])))
-        (when (not (char-displayable-p (car char-repl)))
-          (or standard-display-table
-              (setq standard-display-table (make-display-table)))
-          (aset standard-display-table (car char-repl) (cdr char-repl)))))
 
     ;; Default to A4 paper if we're not in a C, POSIX or US locale.
     ;; (See comments in Flocale_info.)

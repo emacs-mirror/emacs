@@ -1197,7 +1197,7 @@ ensure that all relevant variables are set.
 "
   (interactive "P")
   (if (string-equal diary-mail-addr "")
-      (error "You must set `diary-mail-addr' to use this command")
+      (user-error "You must set `diary-mail-addr' to use this command")
     (let ((diary-display-function 'diary-fancy-display))
       (diary-list-entries (calendar-current-date) (or ndays diary-mail-days)))
     (compose-mail diary-mail-addr
@@ -1969,7 +1969,7 @@ and %s by the ordinal ending of that number (that is, `st', `nd',
 An optional parameter MARK specifies a face or single-character
 string to use when highlighting the day in the calendar."
   (or (> n 0)
-      (error "Day count must be positive"))
+      (user-error "Day count must be positive"))
   (let* ((diff (- (calendar-absolute-from-gregorian date)
                   (calendar-absolute-from-gregorian
                    (diary-make-date month day year))))

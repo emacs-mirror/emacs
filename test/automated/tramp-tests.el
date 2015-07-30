@@ -49,6 +49,7 @@
 (declare-function tramp-get-remote-stat "tramp-sh")
 (declare-function tramp-get-remote-perl "tramp-sh")
 (defvar tramp-copy-size-limit)
+(defvar tramp-persistency-file-name)
 (defvar tramp-remote-process-environment)
 
 ;; There is no default value on w32 systems, which could work out of the box.
@@ -70,7 +71,8 @@
 (setq password-cache-expiry nil
       tramp-verbose 0
       tramp-copy-size-limit nil
-      tramp-message-show-message nil)
+      tramp-message-show-message nil
+      tramp-persistency-file-name nil)
 
 ;; This shall happen on hydra only.
 (when (getenv "NIX_STORE")
@@ -117,7 +119,9 @@ shall not contain a timeout."
   (declare (indent 1) (debug (natnump body)))
   `(let ((tramp-verbose ,verbose)
 	 (tramp-message-show-message t)
-	 (tramp-debug-on-error t))
+	 (tramp-debug-on-error t)
+	 (debug-ignored-errors
+	  (cons "^make-symbolic-link not supported$" debug-ignored-errors)))
      (unwind-protect
 	 (progn ,@body)
        (when (> tramp-verbose 3)
@@ -209,6 +213,7 @@ shall not contain a timeout."
     (should (string-equal (file-remote-p "/method::" 'user) "default-user"))
     (should (string-equal (file-remote-p "/method::" 'host) "default-host"))
     (should (string-equal (file-remote-p "/method::" 'localname) ""))
+    (should (string-equal (file-remote-p "/method::" 'hop) nil))
 
     ;; Expand `tramp-default-method' and `tramp-default-user'.
     (should (string-equal
@@ -218,6 +223,7 @@ shall not contain a timeout."
     (should (string-equal (file-remote-p "/host:" 'user) "default-user"))
     (should (string-equal (file-remote-p "/host:" 'host) "host"))
     (should (string-equal (file-remote-p "/host:" 'localname) ""))
+    (should (string-equal (file-remote-p "/host:" 'hop) nil))
 
     ;; Expand `tramp-default-method' and `tramp-default-host'.
     (should (string-equal
@@ -227,6 +233,7 @@ shall not contain a timeout."
     (should (string-equal (file-remote-p "/user@:" 'user) "user"))
     (should (string-equal (file-remote-p "/user@:" 'host) "default-host"))
     (should (string-equal (file-remote-p "/user@:" 'localname) ""))
+    (should (string-equal (file-remote-p "/user@:" 'hop) nil))
 
     ;; Expand `tramp-default-method'.
     (should (string-equal
@@ -237,6 +244,7 @@ shall not contain a timeout."
     (should (string-equal (file-remote-p "/user@host:" 'user) "user"))
     (should (string-equal (file-remote-p "/user@host:" 'host) "host"))
     (should (string-equal (file-remote-p "/user@host:" 'localname) ""))
+    (should (string-equal (file-remote-p "/user@host:" 'hop) nil))
 
     ;; Expand `tramp-default-user'.
     (should (string-equal
@@ -246,6 +254,7 @@ shall not contain a timeout."
     (should (string-equal (file-remote-p "/method:host:" 'user) "default-user"))
     (should (string-equal (file-remote-p "/method:host:" 'host) "host"))
     (should (string-equal (file-remote-p "/method:host:" 'localname) ""))
+    (should (string-equal (file-remote-p "/method:host:" 'hop) nil))
 
     ;; Expand `tramp-default-host'.
     (should (string-equal
@@ -256,6 +265,7 @@ shall not contain a timeout."
     (should (string-equal (file-remote-p "/method:user@:" 'host)
 			  "default-host"))
     (should (string-equal (file-remote-p "/method:user@:" 'localname) ""))
+    (should (string-equal (file-remote-p "/method:user@:" 'hop) nil))
 
     ;; No expansion.
     (should (string-equal
@@ -266,6 +276,7 @@ shall not contain a timeout."
     (should (string-equal (file-remote-p "/method:user@host:" 'user) "user"))
     (should (string-equal (file-remote-p "/method:user@host:" 'host) "host"))
     (should (string-equal (file-remote-p "/method:user@host:" 'localname) ""))
+    (should (string-equal (file-remote-p "/method:user@host:" 'hop) nil))
 
     ;; No expansion.
     (should (string-equal
@@ -279,6 +290,8 @@ shall not contain a timeout."
 	     (file-remote-p "/method:user@email@host:" 'host) "host"))
     (should (string-equal
 	     (file-remote-p "/method:user@email@host:" 'localname) ""))
+    (should (string-equal
+	     (file-remote-p "/method:user@email@host:" 'hop) nil))
 
     ;; Expand `tramp-default-method' and `tramp-default-user'.
     (should (string-equal
@@ -289,6 +302,7 @@ shall not contain a timeout."
     (should (string-equal (file-remote-p "/host#1234:" 'user) "default-user"))
     (should (string-equal (file-remote-p "/host#1234:" 'host) "host#1234"))
     (should (string-equal (file-remote-p "/host#1234:" 'localname) ""))
+    (should (string-equal (file-remote-p "/host#1234:" 'hop) nil))
 
     ;; Expand `tramp-default-method'.
     (should (string-equal
@@ -299,6 +313,7 @@ shall not contain a timeout."
     (should (string-equal (file-remote-p "/user@host#1234:" 'user) "user"))
     (should (string-equal (file-remote-p "/user@host#1234:" 'host) "host#1234"))
     (should (string-equal (file-remote-p "/user@host#1234:" 'localname) ""))
+    (should (string-equal (file-remote-p "/user@host#1234:" 'hop) nil))
 
     ;; Expand `tramp-default-user'.
     (should (string-equal
@@ -311,6 +326,7 @@ shall not contain a timeout."
     (should (string-equal
 	     (file-remote-p "/method:host#1234:" 'host) "host#1234"))
     (should (string-equal (file-remote-p "/method:host#1234:" 'localname) ""))
+    (should (string-equal (file-remote-p "/method:host#1234:" 'hop) nil))
 
     ;; No expansion.
     (should (string-equal
@@ -324,6 +340,8 @@ shall not contain a timeout."
 	     (file-remote-p "/method:user@host#1234:" 'host) "host#1234"))
     (should (string-equal
 	     (file-remote-p "/method:user@host#1234:" 'localname) ""))
+    (should (string-equal
+	     (file-remote-p "/method:user@host#1234:" 'hop) nil))
 
     ;; Expand `tramp-default-method' and `tramp-default-user'.
     (should (string-equal
@@ -333,6 +351,7 @@ shall not contain a timeout."
     (should (string-equal (file-remote-p "/1.2.3.4:" 'user) "default-user"))
     (should (string-equal (file-remote-p "/1.2.3.4:" 'host) "1.2.3.4"))
     (should (string-equal (file-remote-p "/1.2.3.4:" 'localname) ""))
+    (should (string-equal (file-remote-p "/1.2.3.4:" 'hop) nil))
 
     ;; Expand `tramp-default-method'.
     (should (string-equal
@@ -343,6 +362,7 @@ shall not contain a timeout."
     (should (string-equal (file-remote-p "/user@1.2.3.4:" 'user) "user"))
     (should (string-equal (file-remote-p "/user@1.2.3.4:" 'host) "1.2.3.4"))
     (should (string-equal (file-remote-p "/user@1.2.3.4:" 'localname) ""))
+    (should (string-equal (file-remote-p "/user@1.2.3.4:" 'hop) nil))
 
     ;; Expand `tramp-default-user'.
     (should (string-equal
@@ -353,6 +373,7 @@ shall not contain a timeout."
 	     (file-remote-p "/method:1.2.3.4:" 'user) "default-user"))
     (should (string-equal (file-remote-p "/method:1.2.3.4:" 'host) "1.2.3.4"))
     (should (string-equal (file-remote-p "/method:1.2.3.4:" 'localname) ""))
+    (should (string-equal (file-remote-p "/method:1.2.3.4:" 'hop) nil))
 
     ;; No expansion.
     (should (string-equal
@@ -365,6 +386,8 @@ shall not contain a timeout."
 	     (file-remote-p "/method:user@1.2.3.4:" 'host) "1.2.3.4"))
     (should (string-equal
 	     (file-remote-p "/method:user@1.2.3.4:" 'localname) ""))
+    (should (string-equal
+	     (file-remote-p "/method:user@1.2.3.4:" 'hop) nil))
 
     ;; Expand `tramp-default-method', `tramp-default-user' and
     ;; `tramp-default-host'.
@@ -376,6 +399,7 @@ shall not contain a timeout."
     (should (string-equal (file-remote-p "/[]:" 'user) "default-user"))
     (should (string-equal (file-remote-p "/[]:" 'host) "default-host"))
     (should (string-equal (file-remote-p "/[]:" 'localname) ""))
+    (should (string-equal (file-remote-p "/[]:" 'hop) nil))
 
     ;; Expand `tramp-default-method' and `tramp-default-user'.
     (let ((tramp-default-host "::1"))
@@ -385,7 +409,8 @@ shall not contain a timeout."
       (should (string-equal (file-remote-p "/[]:" 'method) "default-method"))
       (should (string-equal (file-remote-p "/[]:" 'user) "default-user"))
       (should (string-equal (file-remote-p "/[]:" 'host) "::1"))
-      (should (string-equal (file-remote-p "/[]:" 'localname) "")))
+      (should (string-equal (file-remote-p "/[]:" 'localname) ""))
+      (should (string-equal (file-remote-p "/[]:" 'hop) nil)))
 
     ;; Expand `tramp-default-method' and `tramp-default-user'.
     (should (string-equal
@@ -395,6 +420,7 @@ shall not contain a timeout."
     (should (string-equal (file-remote-p "/[::1]:" 'user) "default-user"))
     (should (string-equal (file-remote-p "/[::1]:" 'host) "::1"))
     (should (string-equal (file-remote-p "/[::1]:" 'localname) ""))
+    (should (string-equal (file-remote-p "/[::1]:" 'hop) nil))
 
     ;; Expand `tramp-default-method'.
     (should (string-equal
@@ -405,6 +431,7 @@ shall not contain a timeout."
     (should (string-equal (file-remote-p "/user@[::1]:" 'user) "user"))
     (should (string-equal (file-remote-p "/user@[::1]:" 'host) "::1"))
     (should (string-equal (file-remote-p "/user@[::1]:" 'localname) ""))
+    (should (string-equal (file-remote-p "/user@[::1]:" 'hop) nil))
 
     ;; Expand `tramp-default-user'.
     (should (string-equal
@@ -415,6 +442,7 @@ shall not contain a timeout."
 	     (file-remote-p "/method:[::1]:" 'user) "default-user"))
     (should (string-equal (file-remote-p "/method:[::1]:" 'host) "::1"))
     (should (string-equal (file-remote-p "/method:[::1]:" 'localname) ""))
+    (should (string-equal (file-remote-p "/method:[::1]:" 'hop) nil))
 
     ;; No expansion.
     (should (string-equal
@@ -426,6 +454,7 @@ shall not contain a timeout."
     (should (string-equal (file-remote-p "/method:user@[::1]:" 'host) "::1"))
     (should (string-equal
 	     (file-remote-p "/method:user@[::1]:" 'localname) ""))
+    (should (string-equal (file-remote-p "/method:user@[::1]:" 'hop) nil))
 
     ;; Local file name part.
     (should (string-equal (file-remote-p "/host:/:" 'localname) "/:"))
@@ -440,7 +469,8 @@ shall not contain a timeout."
     (should
      (string-equal
       (file-remote-p "/method1:user1@host1|method2:user2@host2:/path/to/file")
-      (format "/%s:%s@%s:" "method2" "user2" "host2")))
+      (format "/%s:%s@%s|%s:%s@%s:"
+	      "method1" "user1" "host1" "method2" "user2" "host2")))
     (should
      (string-equal
       (file-remote-p
@@ -461,12 +491,21 @@ shall not contain a timeout."
       (file-remote-p
        "/method1:user1@host1|method2:user2@host2:/path/to/file" 'localname)
       "/path/to/file"))
+    (should
+     (string-equal
+      (file-remote-p
+       "/method1:user1@host1|method2:user2@host2:/path/to/file" 'hop)
+      (format "%s:%s@%s|"
+	      "method1" "user1" "host1")))
 
     (should
      (string-equal
       (file-remote-p
        "/method1:user1@host1|method2:user2@host2|method3:user3@host3:/path/to/file")
-      (format "/%s:%s@%s:" "method3" "user3" "host3")))
+      (format "/%s:%s@%s|%s:%s@%s|%s:%s@%s:"
+	      "method1" "user1" "host1"
+	      "method2" "user2" "host2"
+	      "method3" "user3" "host3")))
     (should
      (string-equal
       (file-remote-p
@@ -490,7 +529,14 @@ shall not contain a timeout."
       (file-remote-p
        "/method1:user1@host1|method2:user2@host2|method3:user3@host3:/path/to/file"
        'localname)
-      "/path/to/file"))))
+      "/path/to/file"))
+    (should
+     (string-equal
+      (file-remote-p
+       "/method1:user1@host1|method2:user2@host2|method3:user3@host3:/path/to/file"
+       'hop)
+      (format "%s:%s@%s|%s:%s@%s|"
+	      "method1" "user1" "host1" "method2" "user2" "host2")))))
 
 (ert-deftest tramp-test03-file-name-defaults ()
   "Check default values for some methods."
@@ -622,6 +668,8 @@ This checks also `file-name-as-directory', `file-name-directory',
 		(tramp-inline-compress-start-size 2))
 	    (delete-file tmp-name2)
 	    (should (setq tmp-name2 (file-local-copy tmp-name1)))))
+
+      ;; Cleanup.
       (ignore-errors
 	(delete-file tmp-name1)
 	(delete-file tmp-name2)))))
@@ -645,6 +693,8 @@ This checks also `file-name-as-directory', `file-name-directory',
 	    ;; Replace.
 	    (insert-file-contents tmp-name nil nil nil 'replace)
 	    (should (string-equal (buffer-string) "foo"))))
+
+      ;; Cleanup.
       (ignore-errors (delete-file tmp-name)))))
 
 (ert-deftest tramp-test10-write-region ()
@@ -679,6 +729,8 @@ This checks also `file-name-as-directory', `file-name-directory',
 	  (with-temp-buffer
 	    (insert-file-contents tmp-name)
 	    (should (string-equal (buffer-string) "34"))))
+
+      ;; Cleanup.
       (ignore-errors (delete-file tmp-name)))))
 
 (ert-deftest tramp-test11-copy-file ()
@@ -707,6 +759,8 @@ This checks also `file-name-as-directory', `file-name-directory',
 	  (should
 	   (file-exists-p
 	    (expand-file-name (file-name-nondirectory tmp-name1) tmp-name3))))
+
+      ;; Cleanup.
       (ignore-errors (delete-file tmp-name1))
       (ignore-errors (delete-file tmp-name2))
       (ignore-errors (delete-directory tmp-name3 'recursive)))
@@ -727,6 +781,8 @@ This checks also `file-name-as-directory', `file-name-directory',
 	  (should
 	   (file-exists-p
 	    (expand-file-name (file-name-nondirectory tmp-name1) tmp-name5))))
+
+      ;; Cleanup.
       (ignore-errors (delete-file tmp-name1))
       (ignore-errors (delete-file tmp-name4))
       (ignore-errors (delete-directory tmp-name5 'recursive)))
@@ -747,6 +803,8 @@ This checks also `file-name-as-directory', `file-name-directory',
 	  (should
 	   (file-exists-p
 	    (expand-file-name (file-name-nondirectory tmp-name4) tmp-name3))))
+
+      ;; Cleanup.
       (ignore-errors (delete-file tmp-name1))
       (ignore-errors (delete-file tmp-name4))
       (ignore-errors (delete-directory tmp-name3 'recursive)))))
@@ -782,6 +840,8 @@ This checks also `file-name-as-directory', `file-name-directory',
 	  (should
 	   (file-exists-p
 	    (expand-file-name (file-name-nondirectory tmp-name1) tmp-name3))))
+
+      ;; Cleanup.
       (ignore-errors (delete-file tmp-name1))
       (ignore-errors (delete-file tmp-name2))
       (ignore-errors (delete-directory tmp-name3 'recursive)))
@@ -807,6 +867,8 @@ This checks also `file-name-as-directory', `file-name-directory',
 	  (should
 	   (file-exists-p
 	    (expand-file-name (file-name-nondirectory tmp-name1) tmp-name5))))
+
+      ;; Cleanup.
       (ignore-errors (delete-file tmp-name1))
       (ignore-errors (delete-file tmp-name4))
       (ignore-errors (delete-directory tmp-name5 'recursive)))
@@ -832,6 +894,8 @@ This checks also `file-name-as-directory', `file-name-directory',
 	  (should
 	   (file-exists-p
 	    (expand-file-name (file-name-nondirectory tmp-name4) tmp-name3))))
+
+      ;; Cleanup.
       (ignore-errors (delete-file tmp-name1))
       (ignore-errors (delete-file tmp-name4))
       (ignore-errors (delete-directory tmp-name3 'recursive)))))
@@ -841,20 +905,20 @@ This checks also `file-name-as-directory', `file-name-directory',
 This tests also `file-directory-p' and `file-accessible-directory-p'."
   (skip-unless (tramp--test-enabled))
 
-  (let ((tmp-name (tramp--test-make-temp-name)))
+  (let* ((tmp-name1 (tramp--test-make-temp-name))
+	 (tmp-name2 (expand-file-name "foo/bar" tmp-name1)))
     (unwind-protect
 	(progn
-	  (make-directory tmp-name)
-	  (should (file-directory-p tmp-name))
-	  (should (file-accessible-directory-p tmp-name))
-	  (should-error
-	   (make-directory (expand-file-name "foo/bar" tmp-name))
-	   :type 'file-error)
-	  (make-directory (expand-file-name "foo/bar" tmp-name) 'parents)
-	  (should (file-directory-p (expand-file-name "foo/bar" tmp-name)))
-	  (should
-	   (file-accessible-directory-p (expand-file-name "foo/bar" tmp-name))))
-      (ignore-errors (delete-directory tmp-name)))))
+	  (make-directory tmp-name1)
+	  (should (file-directory-p tmp-name1))
+	  (should (file-accessible-directory-p tmp-name1))
+	  (should-error (make-directory tmp-name2) :type 'file-error)
+	  (make-directory tmp-name2 'parents)
+	  (should (file-directory-p tmp-name2))
+	  (should (file-accessible-directory-p tmp-name2)))
+
+      ;; Cleanup.
+      (ignore-errors (delete-directory tmp-name1 'recursive)))))
 
 (ert-deftest tramp-test14-delete-directory ()
   "Check `delete-directory'."
@@ -903,6 +967,8 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	  (copy-directory tmp-name1 tmp-name2)
 	  (should (file-directory-p tmp-name3))
 	  (should (file-exists-p tmp-name6)))
+
+      ;; Cleanup.
       (ignore-errors
 	(delete-directory tmp-name1 'recursive)
 	(delete-directory tmp-name2 'recursive)))))
@@ -933,6 +999,8 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	  (should (equal (directory-files
 			  tmp-name1 'full directory-files-no-dot-files-regexp)
 			 `(,tmp-name2 ,tmp-name3))))
+
+      ;; Cleanup.
       (ignore-errors (delete-directory tmp-name1 'recursive)))))
 
 (ert-deftest tramp-test17-insert-directory ()
@@ -974,6 +1042,8 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	       "\\(total.+[[:digit:]]+\n\\)?"
 	       ;; We don't know in which order ".", ".." and "foo" appear.
 	       "\\(.+ \\(\\.?\\.\\|foo\\)\n\\)\\{3\\}")))))
+
+      ;; Cleanup.
       (ignore-errors (delete-directory tmp-name1 'recursive)))))
 
 (ert-deftest tramp-test18-file-attributes ()
@@ -1038,6 +1108,7 @@ This tests also `file-readable-p' and `file-regular-p'."
 	  (setq attr (file-attributes tmp-name1))
 	  (should (eq (car attr) t)))
 
+      ;; Cleanup.
       (ignore-errors (delete-directory tmp-name1)))))
 
 (ert-deftest tramp-test19-directory-files-and-attributes ()
@@ -1079,6 +1150,8 @@ This tests also `file-readable-p' and `file-regular-p'."
 	       (equal (file-attributes (car elt)) (cdr elt)))))
 	  (setq attr (directory-files-and-attributes tmp-name2 nil "^b"))
 	  (should (equal (mapcar 'car attr) '("bar" "boz"))))
+
+      ;; Cleanup.
       (ignore-errors (delete-directory tmp-name1 'recursive)))))
 
 (ert-deftest tramp-test20-file-modes ()
@@ -1108,6 +1181,8 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 	  ;; A file is always writable for user "root".
 	  (unless (zerop (nth 2 (file-attributes tmp-name)))
 	    (should-not (file-writable-p tmp-name))))
+
+      ;; Cleanup.
       (ignore-errors (delete-file tmp-name)))))
 
 (ert-deftest tramp-test21-file-links ()
@@ -1142,6 +1217,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (should (file-symlink-p tmp-name2))
 	  ;; `tmp-name3' is a local file name.
 	  (should-error (make-symbolic-link tmp-name1 tmp-name3)))
+
+      ;; Cleanup.
       (ignore-errors
 	(delete-file tmp-name1)
 	(delete-file tmp-name2)))
@@ -1157,6 +1234,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (should-not (file-symlink-p tmp-name2))
 	  ;; `tmp-name3' is a local file name.
 	  (should-error (add-name-to-file tmp-name1 tmp-name3)))
+
+      ;; Cleanup.
       (ignore-errors
 	(delete-file tmp-name1)
 	(delete-file tmp-name2)))
@@ -1214,6 +1293,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    ;; `tmp-name3' does not exist.
 	    (should (file-newer-than-file-p tmp-name2 tmp-name3))
 	    (should-not (file-newer-than-file-p tmp-name3 tmp-name1))))
+
+      ;; Cleanup.
       (ignore-errors
 	(delete-file tmp-name1)
 	(delete-file tmp-name2)))))
@@ -1233,6 +1314,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (set-visited-file-modtime '(0 1))
 	    (should (verify-visited-file-modtime))
 	    (should (equal (visited-file-modtime) '(0 1 0 0)))))
+
+      ;; Cleanup.
       (ignore-errors (delete-file tmp-name)))))
 
 (ert-deftest tramp-test24-file-name-completion ()
@@ -1255,6 +1338,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (should
 	   (equal (sort (file-name-all-completions "b" tmp-name) 'string-lessp)
 		  '("bold" "boz/"))))
+
+      ;; Cleanup.
       (ignore-errors (delete-directory tmp-name 'recursive)))))
 
 (ert-deftest tramp-test25-load ()
@@ -1271,6 +1356,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  ;(should-error (load tmp-name nil 'nomessage 'nosuffix 'must-suffix))
 	  (load tmp-name nil 'nomessage 'nosuffix)
 	  (should (featurep 'tramp-test-load)))
+
+      ;; Cleanup.
       (ignore-errors
 	(and (featurep 'tramp-test-load) (unload-feature 'tramp-test-load))
 	(delete-file tmp-name)))))
@@ -1317,6 +1404,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    ;; A non-nil DISPLAY must not raise the buffer.
 	    (should-not (get-buffer-window (current-buffer) t))))
 
+      ;; Cleanup.
       (ignore-errors (delete-file tmp-name)))))
 
 (ert-deftest tramp-test27-start-file-process ()
@@ -1345,6 +1433,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (while (< (- (point-max) (point-min)) (length "foo"))
 	      (accept-process-output proc 1)))
 	  (should (string-equal (buffer-string) "foo")))
+
+      ;; Cleanup.
       (ignore-errors (delete-process proc)))
 
     (unwind-protect
@@ -1361,6 +1451,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (while (< (- (point-max) (point-min)) (length "foo"))
 	      (accept-process-output proc 1)))
 	  (should (string-equal (buffer-string) "foo")))
+
+      ;; Cleanup.
       (ignore-errors
 	(delete-process proc)
 	(delete-file tmp-name)))
@@ -1380,6 +1472,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (while (< (- (point-max) (point-min)) (length "foo"))
 	      (accept-process-output proc 1)))
 	  (should (string-equal (buffer-string) "foo")))
+
+      ;; Cleanup.
       (ignore-errors (delete-process proc)))))
 
 (ert-deftest tramp-test28-shell-command ()
@@ -1409,6 +1503,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (should
 	   (string-equal
 	    (format "%s\n" (file-name-nondirectory tmp-name)) (buffer-string))))
+
+      ;; Cleanup.
       (ignore-errors (delete-file tmp-name)))
 
     (unwind-protect
@@ -1434,6 +1530,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (should
 	   (string-equal
 	    (format "%s\n" (file-name-nondirectory tmp-name)) (buffer-string))))
+
+      ;; Cleanup.
       (ignore-errors (delete-file tmp-name)))
 
     (unwind-protect
@@ -1461,6 +1559,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (should
 	   (string-equal
 	    (format "%s\n" (file-name-nondirectory tmp-name)) (buffer-string))))
+
+      ;; Cleanup.
       (ignore-errors (delete-file tmp-name)))))
 
 (ert-deftest tramp-test29-vc-registered ()
@@ -1521,7 +1621,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 			  (list (file-name-nondirectory tmp-name2)))))))
 	  (should (vc-registered tmp-name2)))
 
-	(ignore-errors (delete-directory tmp-name1 'recursive)))))
+      ;; Cleanup.
+      (ignore-errors (delete-directory tmp-name1 'recursive)))))
 
 (ert-deftest tramp-test30-make-auto-save-file-name ()
   "Check `make-auto-save-file-name'."
@@ -1603,23 +1704,43 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		 tmp-name2)))
 	      (should (file-directory-p tmp-name2)))))
 
+      ;; Cleanup.
       (ignore-errors (delete-file tmp-name1))
       (ignore-errors (delete-directory tmp-name2 'recursive)))))
 
 (defun tramp--test-adb-p ()
   "Check, whether the remote host runs Android.
 This requires restrictions of file name syntax."
-  (eq (tramp-find-foreign-file-name-handler
-       tramp-test-temporary-file-directory)
-      'tramp-adb-file-name-handler))
+  (tramp-adb-file-name-p tramp-test-temporary-file-directory))
+
+(defun tramp--test-ftp-p ()
+  "Check, whether an FTP-like method is used.
+This does not support globbing characters in file names (yet)."
+  ;; Globbing characters are ??, ?* and ?\[.
+  (and (eq (tramp-find-foreign-file-name-handler
+	    tramp-test-temporary-file-directory)
+	   'tramp-sh-file-name-handler)
+       (string-match
+	"ftp$" (file-remote-p tramp-test-temporary-file-directory 'method))))
+
+(defun tramp--test-gvfs-p ()
+  "Check, whether the remote host runs a GVFS based method.
+This requires restrictions of file name syntax."
+  (tramp-gvfs-file-name-p tramp-test-temporary-file-directory))
 
 (defun tramp--test-smb-or-windows-nt-p ()
   "Check, whether the locale or remote host runs MS Windows.
 This requires restrictions of file name syntax."
   (or (eq system-type 'windows-nt)
-      (eq (tramp-find-foreign-file-name-handler
-	   tramp-test-temporary-file-directory)
-	  'tramp-smb-file-name-handler)))
+      (tramp-smb-file-name-p tramp-test-temporary-file-directory)))
+
+(defun tramp--test-hpux-p ()
+  "Check, whether the remote host runs HP-UX.
+Several special characters do not work properly there."
+  ;; We must refill the cache.  `file-truename' does it.
+  (with-parsed-tramp-file-name
+      (file-truename tramp-test-temporary-file-directory) nil
+    (string-match "^HP-UX" (tramp-get-connection-property v "uname" ""))))
 
 (defun tramp--test-check-files (&rest files)
   "Run a simple but comprehensive test over every file in FILES."
@@ -1752,18 +1873,19 @@ This requires restrictions of file name syntax."
 	      (delete-directory file1)
 	      (should-not (file-exists-p file1)))))
 
+      ;; Cleanup.
       (ignore-errors (delete-directory tmp-name1 'recursive))
       (ignore-errors (delete-directory tmp-name2 'recursive)))))
 
 (defun tramp--test-special-characters ()
-  "Perform the test in `tramp-test30-special-characters*'."
+  "Perform the test in `tramp-test31-special-characters*'."
   ;; Newlines, slashes and backslashes in file names are not
   ;; supported.  So we don't test.  And we don't test the tab
   ;; character on Windows or Cygwin, because the backslash is
   ;; interpreted as a path separator, preventing "\t" from being
   ;; expanded to <TAB>.
   (tramp--test-check-files
-   (if (tramp--test-smb-or-windows-nt-p)
+   (if (or (tramp--test-gvfs-p) (tramp--test-smb-or-windows-nt-p))
        "foo bar baz"
      (if (or (tramp--test-adb-p) (eq system-type 'cygwin))
 	 " foo bar baz "
@@ -1772,15 +1894,28 @@ This requires restrictions of file name syntax."
    "-foo-bar-baz-"
    "%foo%bar%baz%"
    "&foo&bar&baz&"
-   (unless (tramp--test-smb-or-windows-nt-p) "?foo?bar?baz?")
-   (unless (tramp--test-smb-or-windows-nt-p) "*foo*bar*baz*")
-   (if (tramp--test-smb-or-windows-nt-p) "'foo'bar'baz'" "'foo\"bar'baz\"")
+   (unless (or (tramp--test-ftp-p)
+	       (tramp--test-gvfs-p)
+	       (tramp--test-smb-or-windows-nt-p))
+     "?foo?bar?baz?")
+   (unless (or (tramp--test-ftp-p)
+	       (tramp--test-gvfs-p)
+	       (tramp--test-smb-or-windows-nt-p))
+     "*foo*bar*baz*")
+   (if (or (tramp--test-gvfs-p) (tramp--test-smb-or-windows-nt-p))
+       "'foo'bar'baz'"
+     "'foo\"bar'baz\"")
    "#foo~bar#baz~"
-   (if (tramp--test-smb-or-windows-nt-p) "!foo!bar!baz!" "!foo|bar!baz|")
-   (if (tramp--test-smb-or-windows-nt-p) ";foo;bar;baz;" ":foo;bar:baz;")
-   (unless (tramp--test-smb-or-windows-nt-p) "<foo>bar<baz>")
+   (if (or (tramp--test-gvfs-p) (tramp--test-smb-or-windows-nt-p))
+       "!foo!bar!baz!"
+     "!foo|bar!baz|")
+   (if (or (tramp--test-gvfs-p) (tramp--test-smb-or-windows-nt-p))
+       ";foo;bar;baz;"
+     ":foo;bar:baz;")
+   (unless (or (tramp--test-gvfs-p) (tramp--test-smb-or-windows-nt-p))
+     "<foo>bar<baz>")
    "(foo)bar(baz)"
-   "[foo]bar[baz]"
+   (unless (or (tramp--test-ftp-p) (tramp--test-gvfs-p)) "[foo]bar[baz]")
    "{foo}bar{baz}"))
 
 ;; These tests are inspired by Bug#17238.
@@ -1801,13 +1936,12 @@ Use the `stat' command."
   (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
     (skip-unless (tramp-get-remote-stat v)))
 
-  (unwind-protect
-      (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
-	(tramp-set-connection-property v "perl" nil)
-	(tramp--test-special-characters))
-    ;; Reset suppressed properties.
-    (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
-      (tramp-set-connection-property v "perl" 'undef))))
+  (let ((tramp-connection-properties
+	 (append
+	  `((,(regexp-quote (file-remote-p tramp-test-temporary-file-directory))
+	     "perl" nil))
+	  tramp-connection-properties)))
+    (tramp--test-special-characters)))
 
 (ert-deftest tramp-test31-special-characters-with-perl ()
   "Check special characters in file names.
@@ -1820,13 +1954,12 @@ Use the `perl' command."
   (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
     (skip-unless (tramp-get-remote-perl v)))
 
-  (unwind-protect
-      (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
-	(tramp-set-connection-property v "stat" nil)
-	(tramp--test-special-characters))
-    ;; Reset suppressed properties.
-    (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
-      (tramp-set-connection-property v "stat" 'undef))))
+  (let ((tramp-connection-properties
+	 (append
+	  `((,(regexp-quote (file-remote-p tramp-test-temporary-file-directory))
+	     "stat" nil))
+	  tramp-connection-properties)))
+    (tramp--test-special-characters)))
 
 (ert-deftest tramp-test31-special-characters-with-ls ()
   "Check special characters in file names.
@@ -1837,24 +1970,24 @@ Use the `ls' command."
     (tramp-find-foreign-file-name-handler tramp-test-temporary-file-directory)
     'tramp-sh-file-name-handler))
 
-  (unwind-protect
-      (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
-	(tramp-set-connection-property v "stat" nil)
-	(tramp-set-connection-property v "perl" nil)
-	(tramp--test-special-characters))
-    ;; Reset suppressed properties.
-    (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
-      (tramp-set-connection-property v "stat" 'undef)
-      (tramp-set-connection-property v "perl" 'undef))))
+  (let ((tramp-connection-properties
+	 (append
+	  `((,(regexp-quote (file-remote-p tramp-test-temporary-file-directory))
+	     "perl" nil)
+	    (,(regexp-quote (file-remote-p tramp-test-temporary-file-directory))
+	     "stat" nil))
+	  tramp-connection-properties)))
+    (tramp--test-special-characters)))
 
 (defun tramp--test-utf8 ()
-  "Perform the test in `tramp-test31-utf8*'."
+  "Perform the test in `tramp-test32-utf8*'."
   (let ((coding-system-for-read 'utf-8)
 	(coding-system-for-write 'utf-8)
 	(file-name-coding-system 'utf-8))
     (tramp--test-check-files
-     "Γυρίστε το Γαλαξία με Ώτο Στοπ"
-     "أصبح بوسعك الآن تنزيل نسخة كاملة من موسوعة ويكيبيديا العربية لتصفحها بلا اتصال بالإنترنت"
+     (unless (tramp--test-hpux-p) "Γυρίστε το Γαλαξία με Ώτο Στοπ")
+     (unless (tramp--test-hpux-p)
+       "أصبح بوسعك الآن تنزيل نسخة كاملة من موسوعة ويكيبيديا العربية لتصفحها بلا اتصال بالإنترنت")
      "银河系漫游指南系列"
      "Автостопом по гала́ктике")))
 
@@ -1875,13 +2008,12 @@ Use the `stat' command."
   (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
     (skip-unless (tramp-get-remote-stat v)))
 
-  (unwind-protect
-      (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
-	(tramp-set-connection-property v "perl" nil)
-	(tramp--test-utf8))
-    ;; Reset suppressed properties.
-    (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
-      (tramp-set-connection-property v "perl" 'undef))))
+  (let ((tramp-connection-properties
+	 (append
+	  `((,(regexp-quote (file-remote-p tramp-test-temporary-file-directory))
+	     "perl" nil))
+	  tramp-connection-properties)))
+    (tramp--test-utf8)))
 
 (ert-deftest tramp-test32-utf8-with-perl ()
   "Check UTF8 encoding in file names and file contents.
@@ -1894,13 +2026,12 @@ Use the `perl' command."
   (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
     (skip-unless (tramp-get-remote-perl v)))
 
-  (unwind-protect
-      (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
-	(tramp-set-connection-property v "stat" nil)
-	(tramp--test-utf8))
-    ;; Reset suppressed properties.
-    (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
-      (tramp-set-connection-property v "stat" 'undef))))
+  (let ((tramp-connection-properties
+	 (append
+	  `((,(regexp-quote (file-remote-p tramp-test-temporary-file-directory))
+	     "stat" nil))
+	  tramp-connection-properties)))
+    (tramp--test-utf8)))
 
 (ert-deftest tramp-test32-utf8-with-ls ()
   "Check UTF8 encoding in file names and file contents.
@@ -1911,15 +2042,14 @@ Use the `ls' command."
     (tramp-find-foreign-file-name-handler tramp-test-temporary-file-directory)
     'tramp-sh-file-name-handler))
 
-  (unwind-protect
-      (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
-	(tramp-set-connection-property v "stat" nil)
-	(tramp-set-connection-property v "perl" nil)
-	(tramp--test-utf8))
-    ;; Reset suppressed properties.
-    (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
-      (tramp-set-connection-property v "stat" 'undef)
-      (tramp-set-connection-property v "perl" 'undef))))
+  (let ((tramp-connection-properties
+	 (append
+	  `((,(regexp-quote (file-remote-p tramp-test-temporary-file-directory))
+	     "perl" nil)
+	    (,(regexp-quote (file-remote-p tramp-test-temporary-file-directory))
+	     "stat" nil))
+	  tramp-connection-properties)))
+    (tramp--test-utf8)))
 
 ;; This test is inspired by Bug#16928.
 (ert-deftest tramp-test33-asynchronous-requests ()
@@ -2080,13 +2210,9 @@ Since it unloads Tramp, it shall be the last test to run."
 ;; * Work on skipped tests.  Make a comment, when it is impossible.
 ;; * Fix `tramp-test15-copy-directory' for `smb'.  Using tar in a pipe
 ;;   doesn't work well when an interactive password must be provided.
-;; * Fix `tramp-test27-start-file-process' for `nc' and on MS
-;;   Windows (`process-send-eof'?).
-;; * Fix `tramp-test30-special-characters' for `nc'.
-;; * Fix `tramp-test31-utf8' for `nc'/`telnet' (when target is a dumb
-;;   busybox).  Seems to be in `directory-files'.
-;; * Fix Bug#16928.  Set expected error of `tramp-test32-asynchronous-requests'.
-;; * Fix `tramp-test34-unload' (Not all symbols are unbound).  Set
+;; * Fix `tramp-test27-start-file-process' on MS Windows (`process-send-eof'?).
+;; * Fix Bug#16928.  Set expected error of `tramp-test33-asynchronous-requests'.
+;; * Fix `tramp-test35-unload' (Not all symbols are unbound).  Set
 ;;   expected error.
 
 (defun tramp-test-all (&optional interactive)

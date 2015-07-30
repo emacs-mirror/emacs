@@ -3013,7 +3013,8 @@ but before count is used up, nil is returned.  */)
 DEFUN ("backward-prefix-chars", Fbackward_prefix_chars, Sbackward_prefix_chars,
        0, 0, 0,
        doc: /* Move point backward over any number of chars with prefix syntax.
-This includes chars with "quote" or "prefix" syntax (' or p).  */)
+This includes chars with expression prefix syntax class (') and those with
+the prefix syntax flag (p).  */)
   (void)
 {
   ptrdiff_t beg = BEGV;

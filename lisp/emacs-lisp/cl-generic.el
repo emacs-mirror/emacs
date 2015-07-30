@@ -95,6 +95,7 @@
 ;; usually be simplified, or even completely skipped.
 
 (eval-when-compile (require 'cl-lib))
+(eval-when-compile (require 'cl-macs))  ;For cl--find-class.
 (eval-when-compile (require 'pcase))
 
 (cl-defstruct (cl--generic-generalizer
@@ -161,18 +162,6 @@
       (defalias name (cl--generic-make-function generic)))
     generic))
 
-(defun cl--generic-setf-rewrite (name)
-  (let* ((setter (intern (format "cl-generic-setter--%s" name)))
-         (exp `(unless (eq ',setter (get ',name 'cl-generic-setter))
-                 ;; (when (get ',name 'gv-expander)
-                 ;;   (error "gv-expander conflicts with (setf %S)" ',name))
-                 (setf (get ',name 'cl-generic-setter) ',setter)
-                 (gv-define-setter ,name (val &rest args)
-                   (cons ',setter (cons val args))))))
-    ;; Make sure `setf' can be used right away, e.g. in the body of the method.
-    (eval exp t)
-    (cons setter exp)))
-
 ;;;###autoload
 (defmacro cl-defgeneric (name args &rest options-and-methods)
   "Create a generic function NAME.
@@ -210,12 +199,10 @@ BODY, if present, is used as the body of a default method.
     (when options-and-methods
       ;; Anything remaining is assumed to be a default method body.
       (push `(,args ,@options-and-methods) methods))
+    (when (eq 'setf (car-safe name))
+      (require 'gv)
+      (setq name (gv-setter (cadr name))))
     `(progn
-       ,(when (eq 'setf (car-safe name))
-          (pcase-let ((`(,setter . ,code) (cl--generic-setf-rewrite
-                                           (cadr name))))
-            (setq name setter)
-            code))
        ,@(mapcar (lambda (declaration)
                    (let ((f (cdr (assq (car declaration)
                                        defun-declarations-alist))))
@@ -364,18 +351,15 @@ which case this method will be invoked when the argument is `eql' to VAL.
              list                       ; arguments
              [ &optional stringp ]      ; documentation string
              def-body)))                ; part to be debugged
-  (let ((qualifiers nil)
-        (setfizer (if (eq 'setf (car-safe name))
-                      ;; Call it before we call cl--generic-lambda.
-                      (cl--generic-setf-rewrite (cadr name)))))
+  (let ((qualifiers nil))
     (while (not (listp args))
       (push args qualifiers)
       (setq args (pop body)))
+    (when (eq 'setf (car-safe name))
+      (require 'gv)
+      (setq name (gv-setter (cadr name))))
     (pcase-let* ((`(,uses-cnm . ,fun) (cl--generic-lambda args body)))
       `(progn
-         ,(when setfizer
-            (setq name (car setfizer))
-            (cdr setfizer))
          ,(and (get name 'byte-obsolete-info)
                (or (not (fboundp 'byte-compile-warning-enabled-p))
                    (byte-compile-warning-enabled-p 'obsolete))
@@ -688,7 +672,6 @@ The tags should be chosen according to the following rules:
   This is because the method-cache is only indexed with the first non-nil
   tag (by order of decreasing priority).")
 
-
 (cl-defgeneric cl-generic-combine-methods (generic methods)
   "Build the effective method made of METHODS.
 It should return a function that expects the same arguments as the methods, and
@@ -702,8 +685,7 @@ methods.")
 ;; Temporary definition to let the next defmethod succeed.
 (fset 'cl-generic-generalizers
       (lambda (_specializer) (list cl--generic-t-generalizer)))
-(fset 'cl-generic-combine-methods
-      #'cl--generic-standard-method-combination)
+(fset 'cl-generic-combine-methods #'cl--generic-standard-method-combination)
 
 (cl-defmethod cl-generic-generalizers (specializer)
   "Support for the catch-all t specializer."
@@ -876,12 +858,61 @@ Can only be used from within the lexical body of a primary or around method."
                                    (cl--generic-method-specializers method)))
                    (file (find-lisp-object-file-name met-name 'cl-defmethod)))
               (when file
-                (insert " in ‘")
+                (insert (substitute-command-keys " in ‘"))
                 (help-insert-xref-button (help-fns-short-filename file)
                                          'help-function-def met-name file
                                          'cl-defmethod)
-                (insert "’.\n")))
+                (insert (substitute-command-keys "’.\n"))))
             (insert "\n" (or (nth 2 info) "Undocumented") "\n\n")))))))
+
+(defun cl--generic-specializers-apply-to-type-p (specializers type)
+  "Return non-nil if a method with SPECIALIZERS applies to TYPE."
+  (let ((applies nil))
+    (dolist (specializer specializers)
+      (if (memq (car-safe specializer) '(subclass eieio--static))
+          (setq specializer (nth 1 specializer)))
+      ;; Don't include the methods that are "too generic", such as those
+      ;; applying to `eieio-default-superclass'.
+      (and (not (memq specializer '(t eieio-default-superclass)))
+           (or (equal type specializer)
+               (when (symbolp specializer)
+                 (let ((sclass (cl--find-class specializer))
+                       (tclass (cl--find-class type)))
+                   (when (and sclass tclass)
+                     (member specializer (cl--generic-class-parents tclass))))))
+           (setq applies t)))
+    applies))
+
+(defun cl--generic-all-functions (&optional type)
+  "Return a list of all generic functions.
+Optional TYPE argument returns only those functions that contain
+methods for TYPE."
+  (let ((l nil))
+    (mapatoms
+     (lambda (symbol)
+       (let ((generic (and (fboundp symbol) (cl--generic symbol))))
+         (and generic
+	      (catch 'found
+		(if (null type) (throw 'found t))
+		(dolist (method (cl--generic-method-table generic))
+		  (if (cl--generic-specializers-apply-to-type-p
+		       (cl--generic-method-specializers method) type)
+		      (throw 'found t))))
+	      (push symbol l)))))
+    l))
+
+(defun cl--generic-method-documentation (function type)
+  "Return info for all methods of FUNCTION (a symbol) applicable to TYPE.
+The value returned is a list of elements of the form
+\(QUALIFIERS ARGS DOC)."
+  (let ((generic (cl--generic function))
+        (docs ()))
+    (when generic
+      (dolist (method (cl--generic-method-table generic))
+        (when (cl--generic-specializers-apply-to-type-p
+               (cl--generic-method-specializers method) type)
+          (push (cl--generic-method-info method) docs))))
+    docs))
 
 ;;; Support for (head <val>) specializers.
 
@@ -958,19 +989,22 @@ Can only be used from within the lexical body of a primary or around method."
           (if (eq (symbol-function tag) :quick-object-witness-check)
               tag))))
 
+(defun cl--generic-class-parents (class)
+  (let ((parents ())
+        (classes (list class)))
+    ;; BFS precedence.  FIXME: Use a topological sort.
+    (while (let ((class (pop classes)))
+             (cl-pushnew (cl--class-name class) parents)
+             (setq classes
+                   (append classes
+                           (cl--class-parents class)))))
+    (nreverse parents)))
+
 (defun cl--generic-struct-specializers (tag)
   (and (symbolp tag) (boundp tag)
        (let ((class (symbol-value tag)))
          (when (cl-typep class 'cl-structure-class)
-           (let ((types ())
-                 (classes (list class)))
-             ;; BFS precedence.
-             (while (let ((class (pop classes)))
-                      (push (cl--class-name class) types)
-                      (setq classes
-                            (append classes
-                                    (cl--class-parents class)))))
-             (nreverse types))))))
+           (cl--generic-class-parents class)))))
 
 (defconst cl--generic-struct-generalizer
   (cl-generic-make-generalizer

@@ -120,8 +120,8 @@ extern LWLIB_ID widget_id_tick;
 
 #define MAXREQUEST(dpy) (XMaxRequestSize (dpy))
 
-#ifdef GLYPH_DEBUG
 static ptrdiff_t image_cache_refcount;
+#ifdef GLYPH_DEBUG
 static int dpyinfo_refcount;
 #endif
 
@@ -2828,6 +2828,17 @@ unwind_create_frame (Lisp_Object frame)
       struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
 #endif
 
+      /* If the frame's image cache refcount is still the same as our
+	 private shadow variable, it means we are unwinding a frame
+	 for which we didn't yet call init_frame_faces, where the
+	 refcount is incremented.  Therefore, we increment it here, so
+	 that free_frame_faces, called in x_free_frame_resources
+	 below, will not mistakenly decrement the counter that was not
+	 incremented yet to account for this new frame.  */
+      if (FRAME_IMAGE_CACHE (f) != NULL
+	  && FRAME_IMAGE_CACHE (f)->refcount == image_cache_refcount)
+	FRAME_IMAGE_CACHE (f)->refcount++;
+
       x_free_frame_resources (f);
       free_glyphs (f);
 
@@ -3127,6 +3138,12 @@ This function is an internal primitive--use `make-frame' instead.  */)
   register_font_driver (&xfont_driver, f);
 #endif	/* not USE_CAIRO */
 
+  image_cache_refcount =
+    FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
+#ifdef GLYPH_DEBUG
+  dpyinfo_refcount = dpyinfo->reference_count;
+#endif /* GLYPH_DEBUG */
+
   x_default_parameter (f, parms, Qfont_backend, Qnil,
 		       "fontBackend", "FontBackend", RES_TYPE_STRING);
 
@@ -3204,12 +3221,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
   x_default_scroll_bar_color_parameter (f, parms, Qscroll_bar_background,
 					"scrollBarBackground",
 					"ScrollBarBackground", false);
-
-#ifdef GLYPH_DEBUG
-  image_cache_refcount =
-    FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
-  dpyinfo_refcount = dpyinfo->reference_count;
-#endif /* GLYPH_DEBUG */
 
   /* Init faces before x_default_parameter is called for the
      scroll-bar-width parameter because otherwise we end up in
@@ -4348,6 +4359,9 @@ elements (all size values are in pixels).
   int left_off, right_off, top_off, bottom_off, outer_border;
   XWindowAttributes atts;
 
+  if (FRAME_INITIAL_P (f) || !FRAME_X_P (f))
+    return Qnil;
+
   block_input ();
 
   XGetWindowAttributes (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &atts);
@@ -5134,6 +5148,12 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
 #endif	/* HAVE_FREETYPE */
 #endif	/* not USE_CAIRO */
 
+  image_cache_refcount =
+    FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
+#ifdef GLYPH_DEBUG
+  dpyinfo_refcount = dpyinfo->reference_count;
+#endif /* GLYPH_DEBUG */
+
   x_default_parameter (f, parms, Qfont_backend, Qnil,
 		       "fontBackend", "FontBackend", RES_TYPE_STRING);
 
@@ -5177,12 +5197,6 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
 		       "cursorColor", "Foreground", RES_TYPE_STRING);
   x_default_parameter (f, parms, Qborder_color, build_string ("black"),
 		       "borderColor", "BorderColor", RES_TYPE_STRING);
-
-#ifdef GLYPH_DEBUG
-  image_cache_refcount =
-    FRAME_IMAGE_CACHE (f) ? FRAME_IMAGE_CACHE (f)->refcount : 0;
-  dpyinfo_refcount = dpyinfo->reference_count;
-#endif /* GLYPH_DEBUG */
 
   /* Init faces before x_default_parameter is called for the
      scroll-bar-width parameter because otherwise we end up in
@@ -5333,7 +5347,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
 static void
 compute_tip_xy (struct frame *f, Lisp_Object parms, Lisp_Object dx, Lisp_Object dy, int width, int height, int *root_x, int *root_y)
 {
-  Lisp_Object left, top;
+  Lisp_Object left, top, right, bottom;
   int win_x, win_y;
   Window root, child;
   unsigned pmask;
@@ -5341,10 +5355,13 @@ compute_tip_xy (struct frame *f, Lisp_Object parms, Lisp_Object dx, Lisp_Object 
   /* User-specified position?  */
   left = Fcdr (Fassq (Qleft, parms));
   top  = Fcdr (Fassq (Qtop, parms));
+  right = Fcdr (Fassq (Qright, parms));
+  bottom = Fcdr (Fassq (Qbottom, parms));
 
   /* Move the tooltip window where the mouse pointer is.  Resize and
      show it.  */
-  if (!INTEGERP (left) || !INTEGERP (top))
+  if ((!INTEGERP (left) && !INTEGERP (right))
+      || (!INTEGERP (top) && !INTEGERP (bottom)))
     {
       block_input ();
       XQueryPointer (FRAME_X_DISPLAY (f), FRAME_DISPLAY_INFO (f)->root_window,
@@ -5354,6 +5371,8 @@ compute_tip_xy (struct frame *f, Lisp_Object parms, Lisp_Object dx, Lisp_Object 
 
   if (INTEGERP (top))
     *root_y = XINT (top);
+  else if (INTEGERP (bottom))
+    *root_y = XINT (bottom) - height;
   else if (*root_y + XINT (dy) <= 0)
     *root_y = 0; /* Can happen for negative dy */
   else if (*root_y + XINT (dy) + height
@@ -5369,6 +5388,8 @@ compute_tip_xy (struct frame *f, Lisp_Object parms, Lisp_Object dx, Lisp_Object 
 
   if (INTEGERP (left))
     *root_x = XINT (left);
+  else if (INTEGERP (right))
+    *root_y = XINT (right) - width;
   else if (*root_x + XINT (dx) <= 0)
     *root_x = 0; /* Can happen for negative dx */
   else if (*root_x + XINT (dx) + width
@@ -5398,13 +5419,19 @@ change the tooltip's appearance.
 Automatically hide the tooltip after TIMEOUT seconds.  TIMEOUT nil
 means use the default timeout of 5 seconds.
 
-If the list of frame parameters PARMS contains a `left' parameters,
-the tooltip is displayed at that x-position.  Otherwise it is
-displayed at the mouse position, with offset DX added (default is 5 if
-DX isn't specified).  Likewise for the y-position; if a `top' frame
-parameter is specified, it determines the y-position of the tooltip
-window, otherwise it is displayed at the mouse position, with offset
-DY added (default is -10).
+If the list of frame parameters PARMS contains a `left' parameter,
+display the tooltip at that x-position.  If the list of frame parameters
+PARMS contains no `left' but a `right' parameter, display the tooltip
+right-adjusted at that x-position. Otherwise display it at the
+x-position of the mouse, with offset DX added (default is 5 if DX isn't
+specified).
+
+Likewise for the y-position: If a `top' frame parameter is specified, it
+determines the position of the upper edge of the tooltip window.  If a
+`bottom' parameter but no `top' frame parameter is specified, it
+determines the position of the lower edge of the tooltip window.
+Otherwise display the tooltip window at the y-position of the mouse,
+with offset DY added (default is -10).
 
 A tooltip's maximum size is specified by `x-max-tooltip-size'.
 Text larger than the specified size is clipped.  */)

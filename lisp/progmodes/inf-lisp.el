@@ -126,7 +126,7 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
 
 ;;; This function exists for backwards compatibility.
 ;;; Previous versions of this package bound commands to C-c <letter>
-;;; bindings, which is not allowed by the gnumacs standard.
+;;; bindings, which is not allowed by the Emacs standard.
 
 ;;;  "This function binds many inferior-lisp commands to C-c <letter> bindings,
 ;;;where they are more accessible. C-c <letter> bindings are reserved for the
@@ -662,7 +662,7 @@ See variable `lisp-describe-sym-command'."
 ;;; Changed all keybindings of the form C-c <letter>. These are
 ;;; supposed to be reserved for the user to bind. This affected
 ;;; mainly the compile/eval-defun/region[-and-go] commands.
-;;; This was painful, but necessary to adhere to the gnumacs standard.
+;;; This was painful, but necessary to adhere to the Emacs standard.
 ;;; For some backwards compatibility, see the
 ;;;     cmulisp-install-letter-bindings
 ;;; function.

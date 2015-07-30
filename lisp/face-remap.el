@@ -330,7 +330,7 @@ a top-level keymap, `text-scale-increase' or
               ((or ?+ ?=) inc)
               (?- (- inc))
               (?0 0)
-              (t inc))))
+              (_ inc))))
       (text-scale-increase step)
       ;; (unless (zerop step)
       (message "Use +,-,0 for further adjustment")

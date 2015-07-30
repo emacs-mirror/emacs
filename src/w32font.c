@@ -650,12 +650,31 @@ w32font_draw (struct glyph_string *s, int from, int to,
       HBRUSH brush;
       RECT rect;
       struct font *font = s->font;
+      int ascent = font->ascent, descent = font->descent;
 
+      /* Font's global ascent and descent values might be
+	 preposterously large for some fonts.  We fix here the case
+	 when those fonts are used for display of glyphless
+	 characters, because drawing background with font dimensions
+	 in those cases makes the display illegible.  There's only one
+	 more call to the draw method with with_background set to
+	 true, and that's in x_draw_glyph_string_foreground, when
+	 drawing the cursor, where we have no such heuristics
+	 available.  FIXME.  */
+      if (s->first_glyph->type == GLYPHLESS_GLYPH
+	  && (s->first_glyph->u.glyphless.method == GLYPHLESS_DISPLAY_HEX_CODE
+	      || s->first_glyph->u.glyphless.method == GLYPHLESS_DISPLAY_ACRONYM))
+	{
+	  ascent =
+	    s->first_glyph->slice.glyphless.lower_yoff
+	    - s->first_glyph->slice.glyphless.upper_yoff;
+	  descent = 0;
+	}
       brush = CreateSolidBrush (s->gc->background);
       rect.left = x;
-      rect.top = y - font->ascent;
+      rect.top = y - ascent;
       rect.right = x + s->width;
-      rect.bottom = y + font->descent;
+      rect.bottom = y + descent;
       FillRect (s->hdc, &rect, brush);
       DeleteObject (brush);
     }

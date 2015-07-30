@@ -1,4 +1,4 @@
-;;; checkdoc.el --- check documentation strings for style requirements
+;;; checkdoc.el --- check documentation strings for style requirements  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1997-1998, 2001-2015 Free Software Foundation, Inc.
 
@@ -267,6 +267,11 @@ made in the style guide relating to order."
   :type 'boolean)
 ;;;###autoload(put 'checkdoc-arguments-in-order-flag 'safe-local-variable #'booleanp)
 
+(defcustom checkdoc-package-keywords-flag nil
+  "Non-nil means warn if this file's package keywords are not recognized.
+Currently, all recognized keywords must be on `finder-known-keywords'."
+  :type 'boolean)
+
 (define-obsolete-variable-alias 'checkdoc-style-hooks
   'checkdoc-style-functions "24.3")
 (defvar checkdoc-style-functions nil
@@ -315,6 +320,7 @@ This should be set in an Emacs Lisp file's local variables."
 
 ;;;###autoload
 (defun checkdoc-list-of-strings-p (obj)
+  "Return t when OBJ is a list of strings."
   ;; this is a function so it might be shared by checkdoc-proper-noun-list
   ;; and/or checkdoc-ispell-lisp-words in the future
   (and (listp obj)
@@ -866,9 +872,18 @@ otherwise stop after the first error."
 	(checkdoc-start)
 	(checkdoc-message-text)
 	(checkdoc-rogue-spaces)
+        (when checkdoc-package-keywords-flag
+          (checkdoc-package-keywords))
 	(not (called-interactively-p 'interactive))
 	(if take-notes (checkdoc-show-diagnostics))
 	(message "Checking buffer for style...Done."))))
+
+;;;###autoload
+(defun checkdoc-file (file)
+  "Check FILE for document, comment, error style, and rogue spaces."
+  (with-current-buffer (find-file-noselect file)
+    (let ((checkdoc-diagnostic-buffer "*warn*"))
+      (checkdoc-current-buffer t))))
 
 ;;;###autoload
 (defun checkdoc-start (&optional take-notes)
@@ -2611,16 +2626,16 @@ function called to create the messages."
   "Store POINT and MSG as errors in the checkdoc diagnostic buffer."
   (setq checkdoc-pending-errors t)
   (let ((text (list "\n" (checkdoc-buffer-label) ":"
-		    (int-to-string
-		     (count-lines (point-min) (or point (point-min))))
-		    ": " msg)))
-    (with-current-buffer (get-buffer checkdoc-diagnostic-buffer)
-      (let ((inhibit-read-only t)
-            (pt (point-max)))
-        (goto-char pt)
-        (apply #'insert text)
-        (when noninteractive
-          (warn (buffer-substring pt (point-max))))))))
+                    (int-to-string
+                     (count-lines (point-min) (or point (point-min))))
+                    ": " msg)))
+    (if (string= checkdoc-diagnostic-buffer "*warn*")
+        (warn (apply #'concat text))
+      (with-current-buffer (get-buffer checkdoc-diagnostic-buffer)
+          (let ((inhibit-read-only t)
+                (pt (point-max)))
+            (goto-char pt)
+            (apply #'insert text))))))
 
 (defun checkdoc-show-diagnostics ()
   "Display the checkdoc diagnostic buffer in a temporary window."
@@ -2636,6 +2651,39 @@ function called to create the messages."
             (recenter 0)))
 	(setq checkdoc-pending-errors nil)
 	nil)))
+
+(defun checkdoc-get-keywords ()
+  "Return a list of package keywords for the current file."
+  (save-excursion
+    (goto-char (point-min))
+    (when (re-search-forward "^;; Keywords: \\(.*\\)$" nil t)
+      (split-string (match-string-no-properties 1) ", " t))))
+
+(defvar finder-known-keywords)
+
+;;;###autoload
+(defun checkdoc-package-keywords ()
+  "Find package keywords that aren't in `finder-known-keywords'."
+  (interactive)
+  (require 'finder)
+  (let ((unrecognized-keys
+         (cl-remove-if
+          (lambda (x) (assoc (intern-soft x) finder-known-keywords))
+          (checkdoc-get-keywords))))
+    (if unrecognized-keys
+        (let* ((checkdoc-autofix-flag 'never)
+               (checkdoc-generate-compile-warnings-flag t))
+          (save-excursion
+            (goto-char (point-min))
+            (re-search-forward "^;; Keywords: \\(.*\\)$" nil t)
+            (checkdoc-start-section "checkdoc-package-keywords")
+            (checkdoc-create-error
+             (concat "Unrecognized keywords: "
+                     (mapconcat #'identity unrecognized-keys ", "))
+             (match-beginning 1) (match-end 1)))
+          (checkdoc-show-diagnostics))
+      (when (called-interactively-p 'any)
+        (message "No Package Keyword Errors.")))))
 
 (custom-add-option 'emacs-lisp-mode-hook 'checkdoc-minor-mode)
 

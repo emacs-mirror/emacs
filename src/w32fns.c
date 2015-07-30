@@ -73,6 +73,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <dlgs.h>
 #include <imm.h>
+#include <windowsx.h>
 
 #include "font.h"
 #include "w32font.h"
@@ -204,7 +205,8 @@ unsigned int msh_mousewheel = 0;
 static unsigned menu_free_timer = 0;
 
 #ifdef GLYPH_DEBUG
-static int image_cache_refcount, dpyinfo_refcount;
+static ptrdiff_t image_cache_refcount;
+static int dpyinfo_refcount;
 #endif
 
 static HWND w32_visible_system_caret_hwnd;
@@ -3492,13 +3494,31 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       return (msg == WM_XBUTTONDOWN || msg == WM_XBUTTONUP);
 
     case WM_MOUSEMOVE:
-      /* Ignore mouse movements as long as the menu is active.  These
-	 movements are processed by the window manager anyway, and
-	 it's wrong to handle them as if they happened on the
-	 underlying frame.  */
       f = x_window_to_frame (dpyinfo, hwnd);
-      if (f && f->output_data.w32->menubar_active)
-	return 0;
+      if (f)
+	{
+	  /* Ignore mouse movements as long as the menu is active.
+	     These movements are processed by the window manager
+	     anyway, and it's wrong to handle them as if they happened
+	     on the underlying frame.  */
+	  if (f->output_data.w32->menubar_active)
+	    return 0;
+
+	  /* If the mouse moved, and the mouse pointer is invisible,
+	     make it visible again.  We do this here so as to be able
+	     to show the mouse pointer even when the main
+	     (a.k.a. "Lisp") thread is busy doing something.  */
+	  static int last_x, last_y;
+	  int x = GET_X_LPARAM (lParam);
+	  int y = GET_Y_LPARAM (lParam);
+
+	  if (f->pointer_invisible
+	      && (x != last_x || y != last_y))
+	    f->pointer_invisible = false;
+
+	  last_x = x;
+	  last_y = y;
+	}
 
       /* If the mouse has just moved into the frame, start tracking
 	 it, so we will be notified when it leaves the frame.  Mouse
@@ -3973,11 +3993,17 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       if (LOWORD (lParam) == HTCLIENT)
 	{
 	  f = x_window_to_frame (dpyinfo, hwnd);
-	  if (f && f->output_data.w32->hourglass_p
-	      && !menubar_in_use && !current_popup_menu)
-	    SetCursor (f->output_data.w32->hourglass_cursor);
-	  else if (f)
-	    SetCursor (f->output_data.w32->current_cursor);
+	  if (f)
+	    {
+	      if (f->output_data.w32->hourglass_p
+		  && !menubar_in_use && !current_popup_menu)
+		SetCursor (f->output_data.w32->hourglass_cursor);
+	      else if (f->pointer_invisible)
+		SetCursor (NULL);
+	      else
+		SetCursor (f->output_data.w32->current_cursor);
+	    }
+
 	  return 0;
 	}
       goto dflt;
@@ -3989,8 +4015,15 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	if (f && cursor)
 	  {
 	    f->output_data.w32->current_cursor = cursor;
-	    if (!f->output_data.w32->hourglass_p)
-	      SetCursor (cursor);
+	    /* Don't change the cursor while menu-bar menu is in use.  */
+	    if (!f->output_data.w32->menubar_active
+		&& !f->output_data.w32->hourglass_p)
+	      {
+		if (f->pointer_invisible)
+		  SetCursor (NULL);
+		else
+		  SetCursor (cursor);
+	      }
 	  }
 	return 0;
       }
@@ -5805,8 +5838,6 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
 		       "cursorColor", "Foreground", RES_TYPE_STRING);
   x_default_parameter (f, parms, Qborder_color, build_string ("black"),
 		       "borderColor", "BorderColor", RES_TYPE_STRING);
-  x_default_parameter (f, parms, Qalpha, Qnil,
-                       "alpha", "Alpha", RES_TYPE_NUMBER);
 
   /* Init faces before x_default_parameter is called for the
      scroll-bar-width parameter because otherwise we end up in
@@ -5835,6 +5866,9 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
 		       "autoLower", "AutoRaiseLower", RES_TYPE_BOOLEAN);
   x_default_parameter (f, parms, Qcursor_type, Qbox,
 		       "cursorType", "CursorType", RES_TYPE_SYMBOL);
+  /* Process alpha here (Bug#17344).  */
+  x_default_parameter (f, parms, Qalpha, Qnil,
+                       "alpha", "Alpha", RES_TYPE_NUMBER);
 
   /* Dimensions, especially FRAME_LINES (f), must be done via
      change_frame_size.  Change will not be effected unless different
@@ -5907,23 +5941,26 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
    parameters for F.  DX and DY are specified offsets from the current
    location of the mouse.  WIDTH and HEIGHT are the width and height
    of the tooltip.  Return coordinates relative to the root window of
-   the display in *ROOT_X, and *ROOT_Y.  */
+   the display in *ROOT_X and *ROOT_Y.  */
 
 static void
 compute_tip_xy (struct frame *f,
 		Lisp_Object parms, Lisp_Object dx, Lisp_Object dy,
 		int width, int height, int *root_x, int *root_y)
 {
-  Lisp_Object left, top;
+  Lisp_Object left, top, right, bottom;
   int min_x, min_y, max_x, max_y;
 
   /* User-specified position?  */
   left = Fcdr (Fassq (Qleft, parms));
   top  = Fcdr (Fassq (Qtop, parms));
+  right = Fcdr (Fassq (Qright, parms));
+  bottom = Fcdr (Fassq (Qbottom, parms));
 
   /* Move the tooltip window where the mouse pointer is.  Resize and
      show it.  */
-  if (!INTEGERP (left) || !INTEGERP (top))
+  if ((!INTEGERP (left) && !INTEGERP (right))
+      || (!INTEGERP (top) && !INTEGERP (bottom)))
     {
       POINT pt;
 
@@ -5964,6 +6001,8 @@ compute_tip_xy (struct frame *f,
 
   if (INTEGERP (top))
     *root_y = XINT (top);
+  else if (INTEGERP (bottom))
+    *root_y = XINT (bottom) - height;
   else if (*root_y + XINT (dy) <= min_y)
     *root_y = min_y; /* Can happen for negative dy */
   else if (*root_y + XINT (dy) + height <= max_y)
@@ -5978,6 +6017,8 @@ compute_tip_xy (struct frame *f,
 
   if (INTEGERP (left))
     *root_x = XINT (left);
+  else if (INTEGERP (right))
+    *root_y = XINT (right) - width;
   else if (*root_x + XINT (dx) <= min_x)
     *root_x = 0; /* Can happen for negative dx */
   else if (*root_x + XINT (dx) + width <= max_x)
@@ -6007,12 +6048,18 @@ Automatically hide the tooltip after TIMEOUT seconds.  TIMEOUT nil
 means use the default timeout of 5 seconds.
 
 If the list of frame parameters PARMS contains a `left' parameter,
-the tooltip is displayed at that x-position.  Otherwise it is
-displayed at the mouse position, with offset DX added (default is 5 if
-DX isn't specified).  Likewise for the y-position; if a `top' frame
-parameter is specified, it determines the y-position of the tooltip
-window, otherwise it is displayed at the mouse position, with offset
-DY added (default is -10).
+display the tooltip at that x-position.  If the list of frame parameters
+PARMS contains no `left' but a `right' parameter, display the tooltip
+right-adjusted at that x-position. Otherwise display it at the
+x-position of the mouse, with offset DX added (default is 5 if DX isn't
+specified).
+
+Likewise for the y-position: If a `top' frame parameter is specified, it
+determines the position of the upper edge of the tooltip window.  If a
+`bottom' parameter but no `top' frame parameter is specified, it
+determines the position of the lower edge of the tooltip window.
+Otherwise display the tooltip window at the y-position of the mouse,
+with offset DY added (default is -10).
 
 A tooltip's maximum size is specified by `x-max-tooltip-size'.
 Text larger than the specified size is clipped.  */)
@@ -6888,7 +6935,8 @@ If optional parameter FRAME is not specified, use selected frame.  */)
 
   CHECK_NUMBER (command);
 
-  PostMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, XINT (command), 0);
+  if (FRAME_W32_P (f))
+    PostMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, XINT (command), 0);
 
   return Qnil;
 }
@@ -7475,6 +7523,9 @@ If FRAME is omitted or nil, the selected frame is used.  */)
   MENUBARINFO menu_bar;
   int width, height, single_height, wrapped_height;
 
+  if (FRAME_INITIAL_P (f) || !FRAME_W32_P (f))
+    return Qnil;
+
   block_input ();
 
   single_height = GetSystemMetrics (SM_CYMENU);
@@ -7505,6 +7556,9 @@ title bar and decorations.  */)
 {
   struct frame *f = decode_live_frame (frame);
   RECT rect;
+
+  if (FRAME_INITIAL_P (f) || !FRAME_W32_P (f))
+    return Qnil;
 
   block_input ();
 
@@ -7562,6 +7616,9 @@ elements (all size values are in pixels).
   int  border_width, border_height, title_height;
   int single_bar_height, wrapped_bar_height, menu_bar_height;
   Lisp_Object fullscreen = Fframe_parameter (frame, Qfullscreen);
+
+  if (FRAME_INITIAL_P (f) || !FRAME_W32_P (f))
+    return Qnil;
 
   block_input ();
 
@@ -7742,6 +7799,11 @@ The following %-sequences are provided:
 
 
 #ifdef WINDOWSNT
+typedef BOOL (WINAPI *GetDiskFreeSpaceExW_Proc)
+  (LPCWSTR, PULARGE_INTEGER, PULARGE_INTEGER, PULARGE_INTEGER);
+typedef BOOL (WINAPI *GetDiskFreeSpaceExA_Proc)
+  (LPCSTR, PULARGE_INTEGER, PULARGE_INTEGER, PULARGE_INTEGER);
+
 DEFUN ("file-system-info", Ffile_system_info, Sfile_system_info, 1, 1, 0,
        doc: /* Return storage information about the file system FILENAME is on.
 Value is a list of floats (TOTAL FREE AVAIL), where TOTAL is the total
@@ -7765,12 +7827,10 @@ If the underlying system call fails, value is nil.  */)
      added rather late on.  */
   {
     HMODULE hKernel = GetModuleHandle ("kernel32");
-    BOOL (WINAPI *pfn_GetDiskFreeSpaceExW)
-      (wchar_t *, PULARGE_INTEGER, PULARGE_INTEGER, PULARGE_INTEGER)
-      = GetProcAddress (hKernel, "GetDiskFreeSpaceExW");
-    BOOL (WINAPI *pfn_GetDiskFreeSpaceExA)
-      (char *, PULARGE_INTEGER, PULARGE_INTEGER, PULARGE_INTEGER)
-      = GetProcAddress (hKernel, "GetDiskFreeSpaceExA");
+    GetDiskFreeSpaceExW_Proc pfn_GetDiskFreeSpaceExW =
+      (GetDiskFreeSpaceExW_Proc) GetProcAddress (hKernel, "GetDiskFreeSpaceExW");
+    GetDiskFreeSpaceExA_Proc pfn_GetDiskFreeSpaceExA =
+      (GetDiskFreeSpaceExA_Proc) GetProcAddress (hKernel, "GetDiskFreeSpaceExA");
     bool have_pfn_GetDiskFreeSpaceEx =
       ((w32_unicode_filenames && pfn_GetDiskFreeSpaceExW)
        || (!w32_unicode_filenames && pfn_GetDiskFreeSpaceExA));

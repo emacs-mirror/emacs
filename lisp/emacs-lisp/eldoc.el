@@ -222,7 +222,7 @@ expression point is on."
            (memq eldoc-timer timer-idle-list)) ;FIXME: Why?
       (setq eldoc-timer
             (run-with-idle-timer
-	     eldoc-idle-delay t
+	     eldoc-idle-delay nil
 	     (lambda ()
                (when (or eldoc-mode
                          (and global-eldoc-mode

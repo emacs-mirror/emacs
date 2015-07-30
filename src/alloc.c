@@ -528,12 +528,8 @@ buffer_memory_full (ptrdiff_t nbytes)
    alignment that Emacs needs for C types and for USE_LSB_TAG.  */
 #define XMALLOC_BASE_ALIGNMENT alignof (max_align_t)
 
-#if USE_LSB_TAG
-# define XMALLOC_HEADER_ALIGNMENT \
-    COMMON_MULTIPLE (GCALIGNMENT, XMALLOC_BASE_ALIGNMENT)
-#else
-# define XMALLOC_HEADER_ALIGNMENT XMALLOC_BASE_ALIGNMENT
-#endif
+#define XMALLOC_HEADER_ALIGNMENT \
+   COMMON_MULTIPLE (GCALIGNMENT, XMALLOC_BASE_ALIGNMENT)
 #define XMALLOC_OVERRUN_SIZE_SIZE				\
    (((XMALLOC_OVERRUN_CHECK_SIZE + sizeof (size_t)		\
       + XMALLOC_HEADER_ALIGNMENT - 1)				\
@@ -2730,7 +2726,7 @@ enum
   {
     /* Alignment of struct Lisp_Vector objects.  */
     vector_alignment = COMMON_MULTIPLE (ALIGNOF_STRUCT_LISP_VECTOR,
-					USE_LSB_TAG ? GCALIGNMENT : 1),
+					GCALIGNMENT),
 
     /* Vector size requests are a multiple of this.  */
     roundup_size = COMMON_MULTIPLE (vector_alignment, word_size)
@@ -3299,15 +3295,13 @@ usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INT
  ***********************************************************************/
 
 /* Like struct Lisp_Symbol, but padded so that the size is a multiple
-   of the required alignment if LSB tags are used.  */
+   of the required alignment.  */
 
 union aligned_Lisp_Symbol
 {
   struct Lisp_Symbol s;
-#if USE_LSB_TAG
   unsigned char c[(sizeof (struct Lisp_Symbol) + GCALIGNMENT - 1)
 		  & -GCALIGNMENT];
-#endif
 };
 
 /* Each symbol_block is just under 1020 bytes long, since malloc
@@ -3411,15 +3405,13 @@ Its value is void, and its function definition and property list are nil.  */)
  ***********************************************************************/
 
 /* Like union Lisp_Misc, but padded so that its size is a multiple of
-   the required alignment when LSB tags are used.  */
+   the required alignment.  */
 
 union aligned_Lisp_Misc
 {
   union Lisp_Misc m;
-#if USE_LSB_TAG
   unsigned char c[(sizeof (union Lisp_Misc) + GCALIGNMENT - 1)
 		  & -GCALIGNMENT];
-#endif
 };
 
 /* Allocation of markers and other objects that share that structure.
@@ -4628,13 +4620,13 @@ mark_maybe_object (Lisp_Object obj)
 }
 
 /* Return true if P can point to Lisp data, and false otherwise.
-   USE_LSB_TAG needs Lisp data to be aligned on multiples of GCALIGNMENT.
-   Otherwise, assume that Lisp data is aligned on even addresses.  */
+   Symbols are implemented via offsets not pointers, but the offsets
+   are also multiples of GCALIGNMENT.  */
 
 static bool
 maybe_lisp_pointer (void *p)
 {
-  return !((intptr_t) p % (USE_LSB_TAG ? GCALIGNMENT : 2));
+  return (uintptr_t) p % GCALIGNMENT == 0;
 }
 
 /* If P points to Lisp data, mark that as live if it isn't already
@@ -4722,27 +4714,6 @@ mark_maybe_pointer (void *p)
    miss objects if __alignof__ were used.  */
 #define GC_POINTER_ALIGNMENT alignof (void *)
 
-/* Define POINTERS_MIGHT_HIDE_IN_OBJECTS to 1 if marking via C pointers does
-   not suffice, which is the typical case.  A host where a Lisp_Object is
-   wider than a pointer might allocate a Lisp_Object in non-adjacent halves.
-   If USE_LSB_TAG, the bottom half is not a valid pointer, but it should
-   suffice to widen it to to a Lisp_Object and check it that way.  */
-#if USE_LSB_TAG || VAL_MAX < UINTPTR_MAX
-# if !USE_LSB_TAG && VAL_MAX < UINTPTR_MAX >> GCTYPEBITS
-  /* If tag bits straddle pointer-word boundaries, neither mark_maybe_pointer
-     nor mark_maybe_object can follow the pointers.  This should not occur on
-     any practical porting target.  */
-#  error "MSB type bits straddle pointer-word boundaries"
-# endif
-  /* Marking via C pointers does not suffice, because Lisp_Objects contain
-     pointer words that hold pointers ORed with type bits.  */
-# define POINTERS_MIGHT_HIDE_IN_OBJECTS 1
-#else
-  /* Marking via C pointers suffices, because Lisp_Objects contain pointer
-     words that hold unmodified pointers.  */
-# define POINTERS_MIGHT_HIDE_IN_OBJECTS 0
-#endif
-
 /* Mark Lisp objects referenced from the address range START+OFFSET..END
    or END+OFFSET..START.  */
 
@@ -4788,8 +4759,7 @@ mark_memory (void *start, void *end)
       {
 	void *p = *(void **) ((char *) pp + i);
 	mark_maybe_pointer (p);
-	if (POINTERS_MIGHT_HIDE_IN_OBJECTS)
-	  mark_maybe_object (XIL ((intptr_t) p));
+	mark_maybe_object (XIL ((intptr_t) p));
       }
 }
 
@@ -5148,22 +5118,13 @@ static void *
 pure_alloc (size_t size, int type)
 {
   void *result;
-#if USE_LSB_TAG
-  size_t alignment = GCALIGNMENT;
-#else
-  size_t alignment = alignof (EMACS_INT);
-
-  /* Give Lisp_Floats an extra alignment.  */
-  if (type == Lisp_Float)
-    alignment = alignof (struct Lisp_Float);
-#endif
 
  again:
   if (type >= 0)
     {
       /* Allocate space for a Lisp object from the beginning of the free
 	 space with taking account of alignment.  */
-      result = ALIGN (purebeg + pure_bytes_used_lisp, alignment);
+      result = ALIGN (purebeg + pure_bytes_used_lisp, GCALIGNMENT);
       pure_bytes_used_lisp = ((char *)result - (char *)purebeg) + size;
     }
   else
@@ -7294,8 +7255,6 @@ init_alloc_once (void)
 void
 init_alloc (void)
 {
-  gcprolist = 0;
-  byte_stack_list = 0;
 #if GC_MARK_STACK
 #if !defined GC_SAVE_REGISTERS_ON_STACK && !defined GC_SETJMP_WORKS
   setjmp_tested_p = longjmps_done = 0;

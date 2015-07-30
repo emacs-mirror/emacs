@@ -562,9 +562,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 	    (message "Converting %s to quail-package..." file)
 	    (titdic-convert file targetdir))
 	  (setq files (cdr files)))
-	(setq command-line-args-left (cdr command-line-args-left)))
-      (message "Byte-compile the created files by:")
-      (message "  %% emacs -batch -f batch-byte-compile XXX.el")))
+	(setq command-line-args-left (cdr command-line-args-left)))))
   (kill-emacs 0))
 
 

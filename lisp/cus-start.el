@@ -181,6 +181,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 			       (repeat (directory :format "%v")))
 	     ;; coding.c
 	     (inhibit-eol-conversion mule boolean)
+	     (enable-character-translation mule boolean)
 	     (eol-mnemonic-undecided mule string)
 	     ;; startup.el fiddles with the values.  IMO, would be
 	     ;; simpler to just use #ifdefs in coding.c.
@@ -219,7 +220,16 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (visible-bell display boolean)
 	     (no-redraw-on-reenter display boolean)
 
-	     ;; dosfns.c
+	     ;; doc.c
+	     (help-quote-translation help
+				     (choice
+				      (character :tag "Quote with curved quotes"
+                                                 :value ?‘)
+				      (character :tag "Quote 'like this'" :value ?\')
+				      (character :tag "Quote `like this'" :value ?\`)
+				      (const :tag "Quote with curved quotes if displayable, 'like this' otherwise" nil))
+				     "25.1")
+             ;; dosfns.c
 	     (dos-display-scancodes display boolean)
 	     (dos-hyper-key keyboard integer)
 	     (dos-super-key keyboard integer)

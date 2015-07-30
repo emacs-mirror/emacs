@@ -598,16 +598,15 @@ PROMPT, INITIAL, HIST, and DEFAULT are the same as for `completing-read'."
 (defun overload-docstring-extension (overload)
   "Return the doc string that augments the description of OVERLOAD."
   (let ((doc "\n\This function can be overloaded\
- with ‘define-mode-local-override’.")
+ with `define-mode-local-override'.")
         (sym (overload-obsoleted-by overload)))
     (when sym
-      (setq doc (format "%s\nIt has made the overload ‘%s’ obsolete since %s."
+      (setq doc (format "%s\nIt has made the overload `%s' obsolete since %s."
                         doc sym (get sym 'overload-obsoleted-since))))
     (setq sym (overload-that-obsolete overload))
     (when sym
-      (setq doc (format
-                 "%s\nThis overload is obsolete since %s;\nuse ‘%s’ instead."
-                 doc (get overload 'overload-obsoleted-since) sym)))
+      (setq doc (format "%s\nThis overload is obsolete since %s;\nUse `%s' instead."
+                        doc (get overload 'overload-obsoleted-since) sym)))
     doc))
 
 (defun mode-local-augment-function-help (symbol)
@@ -630,9 +629,10 @@ SYMBOL is a function that can be overridden."
 (defun mode-local-print-binding (symbol)
   "Print the SYMBOL binding."
   (let ((value (symbol-value symbol)))
-    (princ (format "\n     ‘%s’ value is\n       " symbol))
+    (princ (format (substitute-command-keys "\n     ‘%s’ value is\n       ")
+                   symbol))
     (if (and value (symbolp value))
-        (princ (format "‘%s’" value))
+        (princ (format (substitute-command-keys "‘%s’") value))
       (let ((pt (point)))
         (pp value)
         (save-excursion
@@ -690,7 +690,7 @@ SYMBOL is a function that can be overridden."
       )
      ((symbolp buffer-or-mode)
       (setq mode buffer-or-mode)
-      (princ (format "‘%s’\n" buffer-or-mode))
+      (princ (format (substitute-command-keys "‘%s’\n") buffer-or-mode))
       )
      ((signal 'wrong-type-argument
               (list 'buffer-or-mode buffer-or-mode))))
@@ -700,7 +700,7 @@ SYMBOL is a function that can be overridden."
     (while mode
       (setq table (get mode 'mode-local-symbol-table))
       (when table
-        (princ (format "\n- From ‘%s’\n" mode))
+        (princ (format (substitute-command-keys "\n- From ‘%s’\n") mode))
         (mode-local-print-bindings table))
       (setq mode (get-mode-local-parent mode)))))
 

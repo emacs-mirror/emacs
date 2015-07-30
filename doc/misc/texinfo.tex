@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2015-05-26.15}
+\def\texinfoversion{2015-07-01.07}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -277,6 +277,7 @@
 % described on page 260 of The TeXbook.  It involves outputting two
 % marks for the sectioning macros, one before the section break, and
 % one after.  I won't pretend I can describe this better than DEK...
+%
 \def\domark{%
   \toks0=\expandafter{\lastchapterdefs}%
   \toks2=\expandafter{\lastsectiondefs}%
@@ -304,6 +305,7 @@
 % Avoid "undefined control sequence" errors.
 \def\lastchapterdefs{}
 \def\lastsectiondefs{}
+\def\lastsection{}
 \def\prevchapterdefs{}
 \def\prevsectiondefs{}
 \def\lastcolordefs{}
@@ -3195,8 +3197,15 @@ end
 \def\Eogonek{{\ecfont \char"86}}\def\macrocharE{E}
 \def\eogonek{{\ecfont \char"A6}}\def\macrochare{e}
 %
-% Use the ec* fonts (cm-super in outline format) for non-CM glyphs.
-\def\ecfont{%
+% Use the European Computer Modern fonts (cm-super in outline format)
+% for non-CM glyphs.  That is ec* for regular text and tc* for the text
+% companion symbols (LaTeX TS1 encoding).  Both are part of the ec
+% package and follow the same conventions.
+% 
+\def\ecfont{\etcfont{e}}
+\def\tcfont{\etcfont{t}}
+%
+\def\etcfont#1{%
   % We can't distinguish serif/sans and italic/slanted, but this
   % is used for crude hacks anyway (like adding French and German
   % quotes to documents typeset with CM, where we lose kerning), so
@@ -3205,14 +3214,14 @@ end
   \edef\nominalsize{\csname\curfontsize nominalsize\endcsname}%
   \ifmonospace
     % typewriter:
-    \font\thisecfont = ectt\ecsize \space at \nominalsize
+    \font\thisecfont = #1ctt\ecsize \space at \nominalsize
   \else
     \ifx\curfontstyle\bfstylename
       % bold:
-      \font\thisecfont = ecb\ifusingit{i}{x}\ecsize \space at \nominalsize
+      \font\thisecfont = #1cb\ifusingit{i}{x}\ecsize \space at \nominalsize
     \else
       % regular:
-      \font\thisecfont = ec\ifusingit{ti}{rm}\ecsize \space at \nominalsize
+      \font\thisecfont = #1c\ifusingit{ti}{rm}\ecsize \space at \nominalsize
     \fi
   \fi
   \thisecfont
@@ -6873,7 +6882,7 @@ end
 % typesetting commands (@smallbook, font changes, etc.) have to be done
 % beforehand -- and a) we want @copying to be done first in the source
 % file; b) letting users define the frontmatter in as flexible order as
-% possible is very desirable.
+% possible is desirable.
 %
 \def\copying{\checkenv{}\begingroup\scanargctxt\docopying}
 \def\docopying#1@end copying{\endgroup\def\copyingtext{#1}}
@@ -7441,6 +7450,12 @@ end
 %
 % \anythingelse will almost certainly be an error of some kind.
 
+\def\macrolineargctxt{% used for whole-line arguments without braces
+  \scanctxt
+  \catcode`\{=\other
+  \catcode`\}=\other
+}
+
 % \mbodybackslash is the definition of \ in @macro bodies.
 % It maps \foo\ => \csname macarg.foo\endcsname => #N
 % where N is the macro parameter number.
@@ -7514,12 +7529,14 @@ end
 % This makes use of the obscure feature that if the last token of a
 % <parameter list> is #, then the preceding argument is delimited by
 % an opening brace, and that opening brace is not consumed.
+% 
 \def\getargs#1{\getargsxxx#1{}}
 \def\getargsxxx#1#{\getmacname #1 \relax\getmacargs}
 \def\getmacname#1 #2\relax{\macname={#1}}
 \def\getmacargs#1{\def\argl{#1}}
 
-% For macro processing make @ a letter so that we can make Texinfo private macro names.
+% For macro processing make @ a letter so that we can make
+% private-to-Texinfo macro names.
 \edef\texiatcatcode{\the\catcode`\@}
 \catcode `@=11\relax
 
@@ -7550,6 +7567,7 @@ end
 %
 % If you compile with TeX (not eTeX), and you have macros with 10 or more
 % arguments, no macro can have more than 256 arguments (else error).
+% 
 \def\parsemargdef#1;{%
   \paramno=0\def\paramlist{}%
   \let\hash\relax
@@ -7593,7 +7611,6 @@ end
 % These two commands read recursive and nonrecursive macro bodies.
 % (They're different since rec and nonrec macros end differently.)
 %
-
 \catcode `\@\texiatcatcode
 \long\def\parsemacbody#1@end macro%
 {\xdef\temp{\eatcr{#1}}\endgroup\defmacro}%
@@ -7607,7 +7624,7 @@ end
 \long\def\nillm@{\nil@}%
 
 % This macro is expanded during the Texinfo macro expansion, not during its
-% definition.  It gets all the arguments values and assigns them to macros
+% definition.  It gets all the arguments' values and assigns them to macros
 % macarg.ARGNAME
 %
 % #1 is the macro name
@@ -7629,7 +7646,8 @@ end
   \fi
 }
 
-% 
+% Internal for \getargsval@.
+%  
 \def\getargvals@@{%
   \ifx\paramlist\nilm@
       % Some sanity check needed here that \argvaluelist is also empty.
@@ -7673,7 +7691,8 @@ end
 }
 
 % Replace arguments by their values in the macro body, and place the result
-% in macro \@tempa
+% in macro \@tempa.
+% 
 \def\macvalstoargs@{%
   %  To do this we use the property that token registers that are \the'ed
   % within an \edef  expand only once. So we are going to place all argument
@@ -7697,8 +7716,9 @@ end
   \expandafter\def\expandafter\@tempa\expandafter{\@tempc}%
   }
 
+% Define the named-macro outside of this group and then close this group. 
+% 
 \def\macargexpandinbody@{% 
-  %% Define the named-macro outside of this group and then close this group. 
   \expandafter
   \endgroup
   \macargdeflist@
@@ -7735,14 +7755,17 @@ end
   \next
 }
 
-% Save the token stack pointer into macro #1
+% Save the token stack pointer into macro #1:
 \def\texisavetoksstackpoint#1{\edef#1{\the\@cclvi}}
-% Restore the token stack pointer from number in macro #1
-\def\texirestoretoksstackpoint#1{\expandafter\mathchardef\expandafter\@cclvi#1\relax}
-% newtoks that can be used non \outer .
+%
+% Restore the token stack pointer from number in macro #1:
+\def\texirestoretoksstackpoint#1{\expandafter\mathchardef
+  \expandafter\@cclvi#1\relax}
+% Variant \newtoks that can be used non-\outer:
 \def\texinonouternewtoks{\alloc@ 5\toks \toksdef \@cclvi}
 
-% Tailing missing arguments are set to empty
+% Tailing missing arguments are set to empty.
+% 
 \def\setemptyargvalues@{%
   \ifx\paramlist\nilm@
     \let\next\macargexpandinbody@
@@ -7787,7 +7810,7 @@ end
         \noexpand\scanmacro{\temp}}%
     \or % 1
       \expandafter\xdef\csname\the\macname\endcsname{%
-         \bgroup\noexpand\macroargctxt
+         \bgroup
          \noexpand\braceorline
          \expandafter\noexpand\csname\the\macname xxx\endcsname}%
       \expandafter\xdef\csname\the\macname xxx\endcsname##1{%
@@ -7820,7 +7843,7 @@ end
         \noexpand\scanmacro{\temp}\egroup}%
     \or % 1
       \expandafter\xdef\csname\the\macname\endcsname{%
-         \bgroup\noexpand\macroargctxt
+         \bgroup
          \noexpand\braceorline
          \expandafter\noexpand\csname\the\macname xxx\endcsname}%
       \expandafter\xdef\csname\the\macname xxx\endcsname##1{%
@@ -7852,19 +7875,20 @@ end
     \fi
   \fi}
 
-\catcode `\@\texiatcatcode\relax
+\catcode `\@\texiatcatcode\relax % end private-to-Texinfo catcodes
 
 \def\norecurse#1{\bgroup\cslet{#1}{macsave.#1}}
 
-% \braceorline decides whether the next nonwhitespace character is a
-% {.  If so it reads up to the closing }, if not, it reads the whole
-% line.  Whatever was read is then fed to the next control sequence
-% as an argument (by \parsebrace or \parsearg).
+% \braceorline MAC is used for a one-argument macro MAC.  It checks
+% whether the next non-whitespace character is a {.  It sets the context
+% for reading the argument (slightly different in the two cases).  Then,
+% to read the argument, in the whole-line case, it then calls the
+% regular \parsearg MAC; in the lbrace case, it just calls MAC itself.
 % 
 \def\braceorline#1{\let\macnamexxx=#1\futurelet\nchar\braceorlinexxx}
 \def\braceorlinexxx{%
-  \ifx\nchar\bgroup\else
-    \expandafter\parsearg
+  \ifx\nchar\bgroup\macroargctxt
+  \else\macrolineargctxt\expandafter\parsearg
   \fi \macnamexxx}
 
 
@@ -9020,17 +9044,17 @@ directory should work if nowhere else does.}
 \def\latonechardefs{%
   \gdef^^a0{\tie}
   \gdef^^a1{\exclamdown}
-  \gdef^^a2{\missingcharmsg{CENT SIGN}}
-  \gdef^^a3{{\pounds}}
-  \gdef^^a4{\missingcharmsg{CURRENCY SIGN}}
-  \gdef^^a5{\missingcharmsg{YEN SIGN}}
-  \gdef^^a6{\missingcharmsg{BROKEN BAR}}
+  \gdef^^a2{{\tcfont \char162}} % cent
+  \gdef^^a3{\pounds}
+  \gdef^^a4{{\tcfont \char164}} % currency
+  \gdef^^a5{{\tcfont \char165}} % yen
+  \gdef^^a6{{\tcfont \char166}} % broken bar
   \gdef^^a7{\S}
   \gdef^^a8{\"{}}
   \gdef^^a9{\copyright}
   \gdef^^aa{\ordf}
   \gdef^^ab{\guillemetleft}
-  \gdef^^ac{$\lnot$}
+  \gdef^^ac{\ensuremath\lnot}
   \gdef^^ad{\-}
   \gdef^^ae{\registeredsymbol}
   \gdef^^af{\={}}
@@ -9395,7 +9419,11 @@ directory should work if nowhere else does.}
 \def\utfeightchardefs{%
   \DeclareUnicodeCharacter{00A0}{\tie}
   \DeclareUnicodeCharacter{00A1}{\exclamdown}
+  \DeclareUnicodeCharacter{00A2}{{\tcfont \char162}}% 0242=cent
   \DeclareUnicodeCharacter{00A3}{\pounds}
+  \DeclareUnicodeCharacter{00A4}{{\tcfont \char164}}% 0244=currency
+  \DeclareUnicodeCharacter{00A5}{{\tcfont \char165}}% 0245=yen
+  \DeclareUnicodeCharacter{00A6}{{\tcfont \char166}}% 0246=brokenbar
   \DeclareUnicodeCharacter{00A7}{\S}
   \DeclareUnicodeCharacter{00A8}{\"{ }}
   \DeclareUnicodeCharacter{00A9}{\copyright}

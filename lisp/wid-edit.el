@@ -2863,7 +2863,7 @@ The following properties have special meanings for this widget:
   :type 'boolean
   :group 'widget-documentation)
 
-(defcustom widget-documentation-link-regexp "[`‘]\\([^\n `'‘’]+\\)['’]"
+(defcustom widget-documentation-link-regexp "['`‘]\\([^\n `'‘’]+\\)['’]"
   "Regexp for matching potential links in documentation strings.
 The first group should be the link itself."
   :type 'regexp

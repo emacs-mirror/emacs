@@ -893,7 +893,7 @@ first update all existing menus in the buffer (incorporating
 descriptions from pre-existing menus) before it constructs the
 master menu.  If the argument is numeric (e.g., \"C-u 2\"),
 update all existing nodes as well, by calling
-\`texinfo-update-node' on the entire file.  Warning: do NOT
+`texinfo-update-node' on the entire file.  Warning: do NOT
 invoke with a numeric argument if your Texinfo file uses @node
 lines without the `Next', `Previous', `Up' pointers, as the
 result could be an invalid Texinfo file!

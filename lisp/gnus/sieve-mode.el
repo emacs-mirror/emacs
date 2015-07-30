@@ -140,7 +140,8 @@
 	   'sieve-action-commands-face)
      ;; test commands
      (cons (regexp-opt '("address" "allof" "anyof" "exists" "false"
-			 "true" "header" "not" "size" "envelope")
+			 "true" "header" "not" "size" "envelope"
+                         "body")
                        'words)
 	   'sieve-test-commands-face)
      (cons "\\Sw+:\\sw+"

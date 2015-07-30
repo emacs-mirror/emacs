@@ -898,12 +898,12 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
 (defconst f90-type-def-re
   ;; type word
   ;; type :: word
-  ;; type, stuff :: word
-  ;; type, bind(c) :: word
-  ;; type, extends(stuff) :: word
+  ;; type, attr-list :: word
+  ;;   where attr-list = attr [, attr ...]
+  ;;   and attr may include bind(c) or extends(thing)
   ;; NOT "type ("
   "\\_<\\(type\\)\\_>\\(?:\\(?:[^()\n]*\\|\
-.*,[ \t]*\\(?:bind\\|extends\\)[ \t]*(.*)[ \t]*\\)::\\)?\
+.*,[ \t]*\\(?:bind\\|extends\\)[ \t]*(.*).*\\)::\\)?\
 [ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)"
   "Regexp matching the definition of a derived type.")
 
@@ -2374,7 +2374,7 @@ With optional argument ALL, change the default for all present
 and future F90 buffers.  F90 mode normally treats backslash as an
 escape character."
   (or (derived-mode-p 'f90-mode)
-      (error "This function should only be used in F90 buffers"))
+      (user-error "This function should only be used in F90 buffers"))
   (when (equal (char-syntax ?\\ ) ?\\ )
     (or all (set-syntax-table (copy-syntax-table (syntax-table))))
     (modify-syntax-entry ?\\ ".")))

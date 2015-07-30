@@ -28,6 +28,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <unistd.h>
 #include <sys/param.h>
+#include <errno.h>
 #include <stdio.h>
 
 #include "lisp.h"
@@ -401,6 +402,14 @@ x_session_initialize (struct x_display_info *dpyinfo)
   char *previous_id = NULL;
   SmcCallbacks callbacks;
   ptrdiff_t name_len = 0;
+
+  /* libSM seems to crash if pwd is missing - see bug#18851.  */
+  if (! get_current_dir_name ())
+    {
+      fprintf (stderr, "Disabling session management due to pwd error: %s\n",
+               emacs_strerror (errno));
+      return;
+    }
 
   ice_fd = -1;
   doing_interact = false;

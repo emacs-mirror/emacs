@@ -288,18 +288,18 @@ static bool input_was_pending;
 
 /* Circular buffer for pre-read keyboard input.  */
 
-static struct input_event kbd_buffer[KBD_BUFFER_SIZE];
+static union buffered_input_event kbd_buffer[KBD_BUFFER_SIZE];
 
 /* Pointer to next available character in kbd_buffer.
    If kbd_fetch_ptr == kbd_store_ptr, the buffer is empty.
    This may be kbd_buffer + KBD_BUFFER_SIZE, meaning that the
    next available char is in kbd_buffer[0].  */
-static struct input_event *kbd_fetch_ptr;
+static union buffered_input_event *kbd_fetch_ptr;
 
 /* Pointer to next place to store character in kbd_buffer.  This
    may be kbd_buffer + KBD_BUFFER_SIZE, meaning that the next
    character should go in kbd_buffer[0].  */
-static struct input_event * volatile kbd_store_ptr;
+static union buffered_input_event *volatile kbd_store_ptr;
 
 /* The above pair of variables forms a "queue empty" flag.  When we
    enqueue a non-hook event, we increment kbd_store_ptr.  When we
@@ -372,14 +372,9 @@ static bool help_char_p (Lisp_Object);
 static void save_getcjmp (sys_jmp_buf);
 static void restore_getcjmp (sys_jmp_buf);
 static Lisp_Object apply_modifiers (int, Lisp_Object);
-static void clear_event (struct input_event *);
 static void restore_kboard_configuration (int);
-#ifdef USABLE_SIGIO
-static void deliver_input_available_signal (int signo);
-#endif
 static void handle_interrupt (bool);
 static _Noreturn void quit_throw_to_read_char (bool);
-static void process_special_events (void);
 static void timer_start_idle (void);
 static void timer_stop_idle (void);
 static void timer_resume_idle (void);
@@ -758,11 +753,11 @@ force_auto_save_soon (void)
 
 DEFUN ("recursive-edit", Frecursive_edit, Srecursive_edit, 0, 0, "",
        doc: /* Invoke the editor command loop recursively.
-To get out of the recursive edit, a command can throw to `exit' -- for
-instance `(throw 'exit nil)'.
-If you throw a value other than t, `recursive-edit' returns normally
+To get out of the recursive edit, a command can throw to ‘exit’ -- for
+instance ‘(throw 'exit nil)’.
+If you throw a value other than t, ‘recursive-edit’ returns normally
 to the function that called it.  Throwing a t value causes
-`recursive-edit' to quit, so that control returns to the command loop
+‘recursive-edit’ to quit, so that control returns to the command loop
 one level up.
 
 This function is called by the editor initialization to begin editing.  */)
@@ -1618,6 +1613,7 @@ command_loop_1 (void)
     finalize:
 
       if (current_buffer == prev_buffer
+	  && XBUFFER (XWINDOW (selected_window)->contents) == current_buffer
 	  && last_point_position != PT
 	  && NILP (Vdisable_point_adjustment)
 	  && NILP (Vglobal_disable_point_adjustment))
@@ -1685,6 +1681,8 @@ adjust_point_for_property (ptrdiff_t last_pt, bool modified)
      deleting characters around point.  */
   bool check_composition = ! modified, check_display = 1, check_invisible = 1;
   ptrdiff_t orig_pt = PT;
+
+  eassert (XBUFFER (XWINDOW (selected_window)->contents) == current_buffer);
 
   /* FIXME: cycling is probably not necessary because these properties
      can't be usefully combined anyway.  */
@@ -3443,7 +3441,7 @@ readable_events (int flags)
 #endif
 		   ))
         {
-          struct input_event *event;
+          union buffered_input_event *event;
 
           event = ((kbd_fetch_ptr < kbd_buffer + KBD_BUFFER_SIZE)
                    ? kbd_fetch_ptr
@@ -3460,8 +3458,8 @@ readable_events (int flags)
 		  && !((flags & READABLE_EVENTS_IGNORE_SQUEEZABLES)
 		       && (event->kind == SCROLL_BAR_CLICK_EVENT
 			   || event->kind == HORIZONTAL_SCROLL_BAR_CLICK_EVENT)
-		       && event->part == scroll_bar_handle
-		       && event->modifiers == 0)
+		       && event->ie.part == scroll_bar_handle
+		       && event->ie.modifiers == 0)
 #endif
 		  && !((flags & READABLE_EVENTS_FILTER_EVENTS)
 		       && event->kind == BUFFER_SWITCH_EVENT))
@@ -3548,8 +3546,8 @@ kbd_buffer_store_event (register struct input_event *event)
    subsequent input events have been parsed (and discarded).  */
 
 void
-kbd_buffer_store_event_hold (register struct input_event *event,
-			     struct input_event *hold_quit)
+kbd_buffer_store_buffered_event (union buffered_input_event *event,
+				 struct input_event *hold_quit)
 {
   if (event->kind == NO_EVENT)
     emacs_abort ();
@@ -3559,36 +3557,36 @@ kbd_buffer_store_event_hold (register struct input_event *event,
 
   if (event->kind == ASCII_KEYSTROKE_EVENT)
     {
-      register int c = event->code & 0377;
+      int c = event->ie.code & 0377;
 
-      if (event->modifiers & ctrl_modifier)
+      if (event->ie.modifiers & ctrl_modifier)
 	c = make_ctrl_char (c);
 
-      c |= (event->modifiers
+      c |= (event->ie.modifiers
 	    & (meta_modifier | alt_modifier
 	       | hyper_modifier | super_modifier));
 
       if (c == quit_char)
 	{
-	  KBOARD *kb = FRAME_KBOARD (XFRAME (event->frame_or_window));
-	  struct input_event *sp;
+	  KBOARD *kb = FRAME_KBOARD (XFRAME (event->ie.frame_or_window));
 
 	  if (single_kboard && kb != current_kboard)
 	    {
 	      kset_kbd_queue
-		(kb, list2 (make_lispy_switch_frame (event->frame_or_window),
+		(kb, list2 (make_lispy_switch_frame (event->ie.frame_or_window),
 			    make_number (c)));
 	      kb->kbd_queue_has_data = 1;
+	      union buffered_input_event *sp;
 	      for (sp = kbd_fetch_ptr; sp != kbd_store_ptr; sp++)
 		{
 		  if (sp == kbd_buffer + KBD_BUFFER_SIZE)
 		    sp = kbd_buffer;
 
-		  if (event_to_kboard (sp) == kb)
+		  if (event_to_kboard (&sp->ie) == kb)
 		    {
-		      sp->kind = NO_EVENT;
-		      sp->frame_or_window = Qnil;
-		      sp->arg = Qnil;
+		      sp->ie.kind = NO_EVENT;
+		      sp->ie.frame_or_window = Qnil;
+		      sp->ie.arg = Qnil;
 		    }
 		}
 	      return;
@@ -3596,7 +3594,7 @@ kbd_buffer_store_event_hold (register struct input_event *event,
 
 	  if (hold_quit)
 	    {
-	      *hold_quit = *event;
+	      *hold_quit = event->ie;
 	      return;
 	    }
 
@@ -3607,9 +3605,9 @@ kbd_buffer_store_event_hold (register struct input_event *event,
 	  {
 	    Lisp_Object focus;
 
-	    focus = FRAME_FOCUS_FRAME (XFRAME (event->frame_or_window));
+	    focus = FRAME_FOCUS_FRAME (XFRAME (event->ie.frame_or_window));
 	    if (NILP (focus))
-	      focus = event->frame_or_window;
+	      focus = event->ie.frame_or_window;
 	    internal_last_event_frame = focus;
 	    Vlast_event_frame = focus;
 	  }
@@ -3651,8 +3649,7 @@ kbd_buffer_store_event_hold (register struct input_event *event,
           /* Don't read keyboard input until we have processed kbd_buffer.
              This happens when pasting text longer than KBD_BUFFER_SIZE/2.  */
           hold_keyboard_input ();
-          if (!noninteractive)
-            ignore_sigio ();
+          unrequest_sigio ();
           stop_polling ();
         }
 #endif	/* subprocesses */
@@ -3679,21 +3676,26 @@ kbd_buffer_store_event_hold (register struct input_event *event,
 }
 
 
-/* Put an input event back in the head of the event queue.  */
+#ifdef HAVE_X11
+
+/* Put a selection input event back in the head of the event queue.  */
 
 void
-kbd_buffer_unget_event (register struct input_event *event)
+kbd_buffer_unget_event (struct selection_input_event *event)
 {
   if (kbd_fetch_ptr == kbd_buffer)
     kbd_fetch_ptr = kbd_buffer + KBD_BUFFER_SIZE;
 
   /* Don't let the very last slot in the buffer become full,  */
-  if (kbd_fetch_ptr - 1 != kbd_store_ptr)
+  union buffered_input_event *kp = kbd_fetch_ptr - 1;
+  if (kp != kbd_store_ptr)
     {
-      --kbd_fetch_ptr;
-      *kbd_fetch_ptr = *event;
+      kp->sie = *event;
+      kbd_fetch_ptr = kp;
     }
 }
+
+#endif
 
 /* Limit help event positions to this range, to avoid overflow problems.  */
 #define INPUT_EVENT_POS_MAX \
@@ -3773,7 +3775,7 @@ kbd_buffer_store_help_event (Lisp_Object frame, Lisp_Object help)
 void
 discard_mouse_events (void)
 {
-  struct input_event *sp;
+  union buffered_input_event *sp;
   for (sp = kbd_fetch_ptr; sp != kbd_store_ptr; sp++)
     {
       if (sp == kbd_buffer + KBD_BUFFER_SIZE)
@@ -3803,7 +3805,7 @@ discard_mouse_events (void)
 bool
 kbd_buffer_events_waiting (void)
 {
-  struct input_event *sp;
+  union buffered_input_event *sp;
 
   for (sp = kbd_fetch_ptr;
        sp != kbd_store_ptr && sp->kind == NO_EVENT;
@@ -3821,7 +3823,7 @@ kbd_buffer_events_waiting (void)
 /* Clear input event EVENT.  */
 
 static void
-clear_event (struct input_event *event)
+clear_event (union buffered_input_event *event)
 {
   event->kind = NO_EVENT;
 }
@@ -3846,6 +3848,7 @@ kbd_buffer_get_event (KBOARD **kbp,
       /* Start reading input again because we have processed enough to
          be able to accept new events again.  */
       unhold_keyboard_input ();
+      request_sigio ();
       start_polling ();
     }
 #endif	/* subprocesses */
@@ -3942,13 +3945,13 @@ kbd_buffer_get_event (KBOARD **kbp,
      mouse movement enabled and available.  */
   if (kbd_fetch_ptr != kbd_store_ptr)
     {
-      struct input_event *event;
+      union buffered_input_event *event;
 
       event = ((kbd_fetch_ptr < kbd_buffer + KBD_BUFFER_SIZE)
 	       ? kbd_fetch_ptr
 	       : kbd_buffer);
 
-      *kbp = event_to_kboard (event);
+      *kbp = event_to_kboard (&event->ie);
       if (*kbp == 0)
 	*kbp = current_kboard;  /* Better than returning null ptr?  */
 
@@ -3961,12 +3964,10 @@ kbd_buffer_get_event (KBOARD **kbp,
 	  || event->kind == SELECTION_CLEAR_EVENT)
 	{
 #ifdef HAVE_X11
-	  struct input_event copy;
-
 	  /* Remove it from the buffer before processing it,
 	     since otherwise swallow_events will see it
 	     and process it again.  */
-	  copy = *event;
+	  struct selection_input_event copy = event->sie;
 	  kbd_fetch_ptr = event + 1;
 	  input_pending = readable_events (0);
 	  x_handle_selection_event (&copy);
@@ -3980,7 +3981,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 #if defined (HAVE_NS)
       else if (event->kind == NS_TEXT_EVENT)
         {
-          if (event->code == KEY_NS_PUT_WORKING_TEXT)
+          if (event->ie.code == KEY_NS_PUT_WORKING_TEXT)
             obj = list1 (intern ("ns-put-working-text"));
           else
             obj = list1 (intern ("ns-unput-working-text"));
@@ -3995,7 +3996,7 @@ kbd_buffer_get_event (KBOARD **kbp,
       else if (event->kind == DELETE_WINDOW_EVENT)
 	{
 	  /* Make an event (delete-frame (FRAME)).  */
-	  obj = list2 (Qdelete_frame, list1 (event->frame_or_window));
+	  obj = list2 (Qdelete_frame, list1 (event->ie.frame_or_window));
 	  kbd_fetch_ptr = event + 1;
 	}
 #endif
@@ -4004,13 +4005,13 @@ kbd_buffer_get_event (KBOARD **kbp,
       else if (event->kind == ICONIFY_EVENT)
 	{
 	  /* Make an event (iconify-frame (FRAME)).  */
-	  obj = list2 (Qiconify_frame, list1 (event->frame_or_window));
+	  obj = list2 (Qiconify_frame, list1 (event->ie.frame_or_window));
 	  kbd_fetch_ptr = event + 1;
 	}
       else if (event->kind == DEICONIFY_EVENT)
 	{
 	  /* Make an event (make-frame-visible (FRAME)).  */
-	  obj = list2 (Qmake_frame_visible, list1 (event->frame_or_window));
+	  obj = list2 (Qmake_frame_visible, list1 (event->ie.frame_or_window));
 	  kbd_fetch_ptr = event + 1;
 	}
 #endif
@@ -4026,8 +4027,8 @@ kbd_buffer_get_event (KBOARD **kbp,
 	{
 	  kbd_fetch_ptr = event + 1;
 	  input_pending = readable_events (0);
-	  if (FRAME_LIVE_P (XFRAME (event->frame_or_window)))
-	    x_activate_menubar (XFRAME (event->frame_or_window));
+	  if (FRAME_LIVE_P (XFRAME (event->ie.frame_or_window)))
+	    x_activate_menubar (XFRAME (event->ie.frame_or_window));
 	}
 #endif
 #ifdef HAVE_NTGUI
@@ -4035,9 +4036,9 @@ kbd_buffer_get_event (KBOARD **kbp,
 	{
 	  /* Make an event (language-change FRAME CODEPAGE LANGUAGE-ID).  */
 	  obj = list4 (Qlanguage_change,
-		       event->frame_or_window,
-		       make_number (event->code),
-		       make_number (event->modifiers));
+		       event->ie.frame_or_window,
+		       make_number (event->ie.code),
+		       make_number (event->ie.modifiers));
 	  kbd_fetch_ptr = event + 1;
 	}
 #endif
@@ -4046,16 +4047,16 @@ kbd_buffer_get_event (KBOARD **kbp,
 	{
 #ifdef HAVE_W32NOTIFY
 	  /* Make an event (file-notify (DESCRIPTOR ACTION FILE) CALLBACK).  */
-	  obj = list3 (Qfile_notify, event->arg, event->frame_or_window);
+	  obj = list3 (Qfile_notify, event->ie.arg, event->ie.frame_or_window);
 #else
-          obj = make_lispy_event (event);
+          obj = make_lispy_event (&event->ie);
 #endif
 	  kbd_fetch_ptr = event + 1;
 	}
 #endif /* USE_FILE_NOTIFY */
       else if (event->kind == SAVE_SESSION_EVENT)
         {
-          obj = list2 (Qsave_session, event->arg);
+          obj = list2 (Qsave_session, event->ie.arg);
 	  kbd_fetch_ptr = event + 1;
         }
       /* Just discard these, by returning nil.
@@ -4072,11 +4073,11 @@ kbd_buffer_get_event (KBOARD **kbp,
 	{
 	  Lisp_Object object, position, help, frame, window;
 
-	  frame = event->frame_or_window;
-	  object = event->arg;
-	  position = make_number (Time_to_position (event->timestamp));
-	  window = event->x;
-	  help = event->y;
+	  frame = event->ie.frame_or_window;
+	  object = event->ie.arg;
+	  position = make_number (Time_to_position (event->ie.timestamp));
+	  window = event->ie.x;
+	  help = event->ie.y;
 	  clear_event (event);
 
 	  kbd_fetch_ptr = event + 1;
@@ -4092,14 +4093,14 @@ kbd_buffer_get_event (KBOARD **kbp,
 	     switch-frame event if necessary.  */
 	  Lisp_Object frame, focus;
 
-          frame = event->frame_or_window;
+          frame = event->ie.frame_or_window;
           focus = FRAME_FOCUS_FRAME (XFRAME (frame));
           if (FRAMEP (focus))
             frame = focus;
 
           if (
 #ifdef HAVE_X11
-              ! NILP (event->arg)
+              ! NILP (event->ie.arg)
               &&
 #endif
               !EQ (frame, internal_last_event_frame)
@@ -4116,7 +4117,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 #ifdef HAVE_WINDOW_SYSTEM
 
           Display_Info *di;
-          Lisp_Object frame = event->frame_or_window;
+          Lisp_Object frame = event->ie.frame_or_window;
           bool focused = false;
 
           for (di = x_display_list; di && ! focused; di = di->next)
@@ -4132,7 +4133,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 #ifdef HAVE_DBUS
       else if (event->kind == DBUS_EVENT)
 	{
-	  obj = make_lispy_event (event);
+	  obj = make_lispy_event (&event->ie);
 	  kbd_fetch_ptr = event + 1;
 	}
 #endif
@@ -4145,7 +4146,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 #endif
       else if (event->kind == CONFIG_CHANGED_EVENT)
 	{
-	  obj = make_lispy_event (event);
+	  obj = make_lispy_event (&event->ie);
 	  kbd_fetch_ptr = event + 1;
 	}
       else
@@ -4155,7 +4156,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 	  Lisp_Object frame;
 	  Lisp_Object focus;
 
-	  frame = event->frame_or_window;
+	  frame = event->ie.frame_or_window;
 	  if (CONSP (frame))
 	    frame = XCAR (frame);
 	  else if (WINDOWP (frame))
@@ -4175,7 +4176,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 
 	  if (NILP (obj))
 	    {
-	      obj = make_lispy_event (event);
+	      obj = make_lispy_event (&event->ie);
 
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
     || defined (HAVE_NS) || defined (USE_GTK)
@@ -4185,7 +4186,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 		 beginning of the menu sequence, and we might as well leave
 		 that as the `event with parameters' for this selection.  */
 	      if (used_mouse_menu
-		  && !EQ (event->frame_or_window, event->arg)
+		  && !EQ (event->ie.frame_or_window, event->ie.arg)
 		  && (event->kind == MENU_BAR_EVENT
 		      || event->kind == TOOL_BAR_EVENT))
 		*used_mouse_menu = 1;
@@ -4265,7 +4266,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 static void
 process_special_events (void)
 {
-  struct input_event *event;
+  union buffered_input_event *event;
 
   for (event = kbd_fetch_ptr; event != kbd_store_ptr; ++event)
     {
@@ -4288,23 +4289,22 @@ process_special_events (void)
 	     between kbd_fetch_ptr and EVENT one slot to the right,
 	     cyclically.  */
 
-	  struct input_event copy = *event;
-	  struct input_event *beg
+	  struct selection_input_event copy = event->sie;
+	  union buffered_input_event *beg
 	    = (kbd_fetch_ptr == kbd_buffer + KBD_BUFFER_SIZE)
 	    ? kbd_buffer : kbd_fetch_ptr;
 
 	  if (event > beg)
-	    memmove (beg + 1, beg, (event - beg) * sizeof (struct input_event));
+	    memmove (beg + 1, beg, (event - beg) * sizeof *beg);
 	  else if (event < beg)
 	    {
 	      if (event > kbd_buffer)
 		memmove (kbd_buffer + 1, kbd_buffer,
-			 (event - kbd_buffer) * sizeof (struct input_event));
+			 (event - kbd_buffer) * sizeof *kbd_buffer);
 	      *kbd_buffer = *(kbd_buffer + KBD_BUFFER_SIZE - 1);
 	      if (beg < kbd_buffer + KBD_BUFFER_SIZE - 1)
 		memmove (beg + 1, beg,
-			 (kbd_buffer + KBD_BUFFER_SIZE - 1 - beg)
-			 * sizeof (struct input_event));
+			 (kbd_buffer + KBD_BUFFER_SIZE - 1 - beg) * sizeof *beg);
 	    }
 
 	  if (kbd_fetch_ptr == kbd_buffer + KBD_BUFFER_SIZE)
@@ -4375,9 +4375,6 @@ timer_resume_idle (void)
 
   timer_idleness_start_time = timer_last_idleness_start_time;
 }
-
-/* This is only for debugging.  */
-struct input_event last_timer_event EXTERNALLY_VISIBLE;
 
 /* List of elisp functions to call, delayed because they were generated in
    a context where Elisp could not be safely run (e.g. redisplay, signal,
@@ -10326,7 +10323,7 @@ stuff_buffered_input (Lisp_Object stuffstring)
       if (kbd_fetch_ptr == kbd_buffer + KBD_BUFFER_SIZE)
 	kbd_fetch_ptr = kbd_buffer;
       if (kbd_fetch_ptr->kind == ASCII_KEYSTROKE_EVENT)
-	stuff_char (kbd_fetch_ptr->code);
+	stuff_char (kbd_fetch_ptr->ie.code);
 
       clear_event (kbd_fetch_ptr);
     }
@@ -10813,7 +10810,11 @@ The return value is similar to a mouse click position:
 The `posn-' functions access elements of such lists.  */)
   (Lisp_Object x, Lisp_Object y, Lisp_Object frame_or_window, Lisp_Object whole)
 {
-  CHECK_NATNUM (x);
+  CHECK_NUMBER (x);
+  /* We allow X of -1, for the newline in a R2L line that overflowed
+     into the left fringe.  */
+  if (XINT (x) != -1)
+    CHECK_NATNUM (x);
   CHECK_NATNUM (y);
 
   if (NILP (frame_or_window))
@@ -10861,8 +10862,9 @@ The `posn-' functions access elements of such lists.  */)
       Lisp_Object x = XCAR (tem);
       Lisp_Object y = XCAR (XCDR (tem));
 
-      /* Point invisible due to hscrolling?  */
-      if (XINT (x) < 0)
+      /* Point invisible due to hscrolling?  X can be -1 when a
+	 newline in a R2L line overflows into the left fringe.  */
+      if (XINT (x) < -1)
 	return Qnil;
       tem = Fposn_at_x_y (x, y, window, Qnil);
     }
@@ -11956,7 +11958,7 @@ mark_kboards (void)
       mark_object (KVAR (kb, echo_string));
     }
   {
-    struct input_event *event;
+    union buffered_input_event *event;
     for (event = kbd_fetch_ptr; event != kbd_store_ptr; event++)
       {
 	if (event == kbd_buffer + KBD_BUFFER_SIZE)
@@ -11965,10 +11967,10 @@ mark_kboards (void)
 	if (event->kind != SELECTION_REQUEST_EVENT
 	    && event->kind != SELECTION_CLEAR_EVENT)
 	  {
-	    mark_object (event->x);
-	    mark_object (event->y);
-	    mark_object (event->frame_or_window);
-	    mark_object (event->arg);
+	    mark_object (event->ie.x);
+	    mark_object (event->ie.y);
+	    mark_object (event->ie.frame_or_window);
+	    mark_object (event->ie.arg);
 	  }
       }
   }

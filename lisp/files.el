@@ -1640,7 +1640,9 @@ killed."
   (unless (run-hook-with-args-until-failure 'kill-buffer-query-functions)
     (user-error "Aborted"))
   (and (buffer-modified-p) buffer-file-name
-       (not (yes-or-no-p "Kill and replace the buffer without saving it? "))
+       (not (yes-or-no-p
+             (format "Kill and replace buffer `%s' without saving it? "
+                     (buffer-name))))
        (user-error "Aborted"))
   (let ((obuf (current-buffer))
 	(ofile buffer-file-name)
@@ -2610,7 +2612,7 @@ and `magic-mode-alist', which determines modes based on file contents.")
   "Alist mapping interpreter names to major modes.
 This is used for files whose first lines match `auto-mode-interpreter-regexp'.
 Each element looks like (REGEXP . MODE).
-If \\\\`REGEXP\\\\' matches the name (minus any directory part) of
+If REGEXP matches the entire name (minus any directory part) of
 the interpreter specified in the first line of a script, enable
 major mode MODE.
 
@@ -4844,9 +4846,9 @@ Before and after saving the buffer, this function runs
                    (file-exists-p buffer-file-name)
                    (> (file-nlinks buffer-file-name) 1)
                    (or dir-writable
-                       (error (concat (format
-                                       "Directory %s write-protected; " dir)
-                                      "cannot break hardlink when saving")))))
+                       (error (concat "Directory %s write-protected; "
+                                      "cannot break hardlink when saving")
+                              dir))))
 	  ;; Write temp name, then rename it.
 	  ;; This requires write access to the containing dir,
 	  ;; which is why we don't try it if we don't have that access.
@@ -5277,7 +5279,12 @@ Return nil if DIR is not an existing directory."
 	      dir  (file-truename dir))
 	(let ((ls1 (split-string file "/" t))
 	      (ls2 (split-string dir  "/" t))
-	      (root (if (string-match "\\`/" file) "/" ""))
+	      (root
+               (cond
+                ;; A UNC on Windows systems, or a "super-root" on Apollo.
+                ((string-match "\\`//" file) "//")
+                ((string-match "\\`/" file) "/")
+                (t "")))
 	      (mismatch nil))
 	  (while (and ls1 ls2 (not mismatch))
 	    (if (string-equal (car ls1) (car ls2))
@@ -5417,6 +5424,7 @@ This function only handles buffers that are visiting files.
 Non-file buffers need a custom function"
   (and buffer-file-name
        (file-readable-p buffer-file-name)
+       (not (buffer-modified-p (current-buffer)))
        (not (verify-visited-file-modtime (current-buffer)))))
 
 (defvar buffer-stale-function #'buffer-stale--default-function

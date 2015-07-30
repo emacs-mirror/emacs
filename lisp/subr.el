@@ -426,8 +426,8 @@ one is kept."
             (let ((elt (car retail)))
               (if (gethash elt hash)
                   (setcdr tail (cdr retail))
-                (puthash elt t hash)))
-            (setq tail retail)))
+                (puthash elt t hash)
+                (setq tail retail)))))
       (let ((tail list))
         (while tail
           (setcdr tail (delete (car tail) (cdr tail)))
@@ -440,16 +440,16 @@ one is kept."
 First and last elements are considered consecutive if CIRCULAR is
 non-nil."
   (let ((tail list) last)
-    (while (consp tail)
+    (while (cdr tail)
       (if (equal (car tail) (cadr tail))
 	  (setcdr tail (cddr tail))
-	(setq last (car tail)
+	(setq last tail
 	      tail (cdr tail))))
     (if (and circular
-	     (cdr list)
-	     (equal last (car list)))
-	(nbutlast list)
-      list)))
+	     last
+	     (equal (car tail) (car list)))
+	(setcdr last nil)))
+  list)
 
 (defun number-sequence (from &optional to inc)
   "Return a sequence of numbers from FROM to TO (both inclusive) as a list.
@@ -1213,14 +1213,14 @@ and `event-end' functions."
   "Return the window row number in POSITION and character number in that row.
 
 Return nil if POSITION does not contain the actual position; in that case
-\`posn-col-row' can be used to get approximate values.
+`posn-col-row' can be used to get approximate values.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions.
 
 This function does not account for the width on display, like the
 number of visual columns taken by a TAB or image.  If you need
 the coordinates of POSITION in character units, you should use
-\`posn-col-row', not this function."
+`posn-col-row', not this function."
   (nth 6 position))
 
 (defsubst posn-timestamp (position)
@@ -1384,6 +1384,7 @@ is converted into a string by expressing it in decimal."
 (defalias 'send-region 'process-send-region)
 (defalias 'string= 'string-equal)
 (defalias 'string< 'string-lessp)
+(defalias 'string> 'string-greaterp)
 (defalias 'move-marker 'set-marker)
 (defalias 'rplaca 'setcar)
 (defalias 'rplacd 'setcdr)
@@ -2347,6 +2348,7 @@ is nil and `use-dialog-box' is non-nil."
 		  (t (setq temp-prompt (concat "Please answer y or n.  "
 					       prompt))))))))
      ((and (display-popup-menus-p)
+           last-input-event             ; not during startup
 	   (listp last-nonmenu-event)
 	   use-dialog-box)
       (setq prompt (funcall padded prompt t)
@@ -3834,6 +3836,13 @@ consisting of STR followed by an invisible left-to-right mark
   (if (string-match "\\cR" str)
       (concat str (propertize (string ?\x200e) 'invisible t))
     str))
+
+(defun string-greaterp (string1 string2)
+  "Return non-nil if STRING1 is greater than STRING2 in lexicographic order.
+Case is significant.
+Symbols are also allowed; their print names are used instead."
+  (string-lessp string2 string1))
+
 
 ;;;; Specifying things to do later.
 
@@ -4057,9 +4066,10 @@ that can be added."
 
 (defun remove-from-invisibility-spec (element)
   "Remove ELEMENT from `buffer-invisibility-spec'."
-  (if (consp buffer-invisibility-spec)
-      (setq buffer-invisibility-spec
-	    (delete element buffer-invisibility-spec))))
+  (setq buffer-invisibility-spec
+        (if (consp buffer-invisibility-spec)
+	    (delete element buffer-invisibility-spec)
+          (list t))))
 
 ;;;; Syntax tables.
 

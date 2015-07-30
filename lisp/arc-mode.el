@@ -1841,8 +1841,8 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
       (or (string= "PK\006\006" (buffer-substring p (+ p 4)))
           (error "Unrecognized ZIP file format"))
       ;; Offset to central directory:
-      (setq p (+ (point-min)
-                 (archive-l-e (+ p 48) (if emacs-int-has-32bits 4 8)))))
+      (setq p (archive-l-e (+ p 48) (if emacs-int-has-32bits 4 8))))
+    (setq p (+ p (point-min)))
     (while (string= "PK\001\002" (buffer-substring p (+ p 4)))
       (let* ((creator (byte-after (+ p 5)))
 	     ;; (method  (archive-l-e (+ p 10) 2))

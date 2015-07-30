@@ -114,7 +114,7 @@ Each element has the form (WHERE BYTECODE STACK) where:
            (usage (help-split-fundoc origdoc function)))
       (setq usage (if (null usage)
                       (let ((arglist (help-function-arglist flist)))
-                        (format "%S" (help-make-usage function arglist)))
+                        (help--make-usage-docstring function arglist))
                     (setq origdoc (cdr usage)) (car usage)))
       (help-add-fundoc-usage (concat docstring origdoc) usage))))
 
@@ -522,8 +522,9 @@ of the piece of advice."
             (while
                 (progn
                   (funcall get-next-frame)
-                  (not (and (eq (nth 1 frame2) 'apply)
-                            (eq (nth 3 frame2) inneradvice)))))
+                  (and frame2
+                       (not (and (eq (nth 1 frame2) 'apply)
+                                 (eq (nth 3 frame2) inneradvice))))))
             (funcall get-next-frame)
             (funcall get-next-frame))))
       (- i origi 1))))

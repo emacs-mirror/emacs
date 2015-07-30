@@ -376,8 +376,12 @@ Subtests signal errors if something goes wrong."
   (with-current-buffer (get-buffer-create "*Compile-Log*")
     (goto-char (point-min))
     ;; Should warn that mt--test1[12] are first used as functions.
-    (should (re-search-forward "my--test11:\n.*macro" nil t))
-    (should (re-search-forward "my--test12:\n.*macro" nil t))
+    ;; The second alternative is for when the file name is so long
+    ;; that pretty-printing starts the message on the next line.
+    (should (or (re-search-forward "my--test11:\n.*macro" nil t)
+                (re-search-forward "my--test11:\n.*:\n.*macro" nil t)))
+    (should (or (re-search-forward "my--test12:\n.*macro" nil t)
+                (re-search-forward "my--test12:\n.*:\n.*macro" nil t)))
     (goto-char (point-min))
     ;; Should not warn that mt--test2 is not known to be defined.
     (should-not (re-search-forward "my--test2" nil t))))

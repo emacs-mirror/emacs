@@ -279,7 +279,21 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
   ;; Expand default-directory because svn gets confused by eg
   ;; file://~/path/to/file.  (Bug#15446).
   (vc-svn-command "*vc*" 0 "." "checkout"
-                  (concat "file://" (expand-file-name default-directory) "SVN")))
+                  (let ((defdir (expand-file-name default-directory))
+                        (svn-prog (executable-find "svn")))
+                    (when (and (fboundp 'w32-application-type)
+                               (eq (w32-application-type svn-prog) 'msys))
+                      (setq defdir
+                            (replace-regexp-in-string "^\\(.\\):/" "/\\1/"
+                                                      defdir)))
+                    (concat (if (and (stringp defdir)
+                                     (eq (aref defdir 0) ?/))
+                                "file://"
+                              ;; MS-Windows files d:/foo/bar need to
+                              ;; begin with 3 leading slashes.
+                              "file:///")
+                            defdir
+                            "SVN"))))
 
 (autoload 'vc-switches "vc")
 

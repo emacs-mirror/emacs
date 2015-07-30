@@ -511,8 +511,8 @@ the search string must exactly match a whole word.  In an incremental
 word search, the matching is more lax: while you are typing the search
 string, its first and last words need not match whole words.  This is
 so that the matching can proceed incrementally as you type.  This
-additional laxity does not apply to the lazy highlight, which always
-matches whole words.
+additional laxity does not apply to the lazy highlight
+(@pxref{Incremental Search}), which always matches whole words.
 
 @node Symbol Search
 @section Symbol Search
@@ -898,10 +898,10 @@ a conflict, you can use a ``shy'' group.
 @item \(?: @dots{} \)
 @cindex shy group, in regexp
 specifies a ``shy'' group that does not record the matched substring;
-you can't refer back to it with @samp{\@var{d}}.  This is useful
-in mechanically combining regular expressions, so that you
-can add groups for syntactic purposes without interfering with
-the numbering of the groups that are meant to be referred to.
+you can't refer back to it with @samp{\@var{d}} (see below).  This is
+useful in mechanically combining regular expressions, so that you can
+add groups for syntactic purposes without interfering with the
+numbering of the groups that are meant to be referred to.
 
 @item \@var{d}
 @cindex back reference, in regexp

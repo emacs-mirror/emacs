@@ -48,6 +48,51 @@
     map)
   "Keymap used for programming modes.")
 
+(defvar prog-indentation-context nil
+  "Non-nil while indenting embedded code chunks.
+There are languages where part of the code is actually written in
+a sub language, e.g., a Yacc/Bison or ANTLR grammar also consists
+of plain C code.  This variable enables the major mode of the
+main language to use the indentation engine of the sub mode for
+lines in code chunks written in the sub language.
+
+When a major mode of such a main language decides to delegate the
+indentation of a line/region to the indentation engine of the sub
+mode, it is supposed to bind this variable to non-nil around the call.
+
+The non-nil value looks as follows
+   \(FIRST-COLUMN (START . END) PREVIOUS-CHUNKS)
+
+FIRST-COLUMN is the column the indentation engine of the sub mode
+should usually choose for top-level language constructs inside
+the code chunk (instead of 0).
+
+START to END is the region of the code chunk.  See function
+`prog-widen' for additional info.
+
+PREVIOUS-CHUNKS, if non-nil, provides the indentation engine of
+the sub mode with the virtual context of the code chunk.  Valid
+values are:
+
+ - A string containing code which the indentation engine can
+   consider as standing in front of the code chunk.  To cache the
+   string's calculated syntactic information for repeated calls
+   with the same string, it is valid and expected for the inner
+   mode to add text-properties to the string.
+
+   A typical use case is for grammars with code chunks which are
+   to be indented like function bodies - the string would contain
+   a corresponding function header.
+
+ - A function called with the start position of the current
+   chunk.  It will return either the region of the previous chunk
+   as \(PREV-START . PREV-END) or nil if there is no further
+   previous chunk.
+
+   A typical use case are literate programming sources - the
+   function would successively return the code chunks of the
+   previous macro definitions for the same name.")
+
 (defun prog-indent-sexp (&optional defun)
   "Indent the expression after point.
 When interactively called with prefix, indent the enclosing defun
@@ -60,6 +105,27 @@ instead."
     (let ((start (point))
 	  (end (progn (forward-sexp 1) (point))))
       (indent-region start end nil))))
+
+(defun prog-first-column ()
+  "Return the indentation column normally used for top-level constructs."
+  (or (car prog-indentation-context) 0))
+
+(defun prog-widen ()
+  "Remove restrictions (narrowing) from current code chunk or buffer.
+This function can be used instead of `widen' in any function used
+by the indentation engine to make it respect the value
+`prog-indentation-context'.
+
+This function (like 'widen') is useful inside a
+`save-restriction' to make the indentation correctly work when
+narrowing is in effect."
+  (let ((chunk (cadr prog-indentation-context)))
+    (if chunk
+        ;; no widen necessary here, as narrow-to-region changes (not
+        ;; just narrows) existing restrictions
+        (narrow-to-region (car chunk) (or (cdr chunk) (point-max)))
+      (widen))))
+
 
 (defvar-local prettify-symbols-alist nil
   "Alist of symbol prettifications.

@@ -144,7 +144,7 @@ value to get similar behavior.
 When this option is non-nil, and `ls-lisp-use-string-collate' is also
 non-nil, the collation order produced on MS-Windows will ignore
 punctuation and symbol characters, which will, for example, place
-\`.foo' near `foo'.  See the documentation of `string-collate-lessp'
+`.foo' near `foo'.  See the documentation of `string-collate-lessp'
 and `w32-collate-ignore-punctuation' for more details.
 
 This option is ignored on platforms other than MS-Windows; to
@@ -237,13 +237,13 @@ to fail to line up, e.g. if month names are not all of the same length."
   :type 'boolean
   :group 'ls-lisp)
 
-(defvar ls-lisp-uid-d-fmt "-%d"
+(defvar ls-lisp-uid-d-fmt " %d"
   "Format to display integer UIDs.")
-(defvar ls-lisp-uid-s-fmt "-%s"
+(defvar ls-lisp-uid-s-fmt " %s"
   "Format to display user names.")
-(defvar ls-lisp-gid-d-fmt "-%d"
+(defvar ls-lisp-gid-d-fmt " %d"
   "Format to display integer GIDs.")
-(defvar ls-lisp-gid-s-fmt "-%s"
+(defvar ls-lisp-gid-s-fmt " %s"
   "Format to display user group names.")
 (defvar ls-lisp-filesize-d-fmt "%d"
   "Format to display integer file sizes.")
@@ -539,7 +539,7 @@ Responds to the window width as ls should but may not!"
   "Return t if string S1 should sort before string S2.
 Case is significant if `ls-lisp-ignore-case' is nil.
 Uses `string-collate-lessp' if `ls-lisp-use-string-collate' is non-nil,
-\`compare-strings' otherwise.
+`compare-strings' otherwise.
 On GNU/Linux systems, if the locale specifies UTF-8 as the codeset,
 the sorting order will place together file names that differ only
 by punctuation characters, like `.emacs' and `emacs'.  To have a

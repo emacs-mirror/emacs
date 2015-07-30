@@ -186,7 +186,7 @@ DEFUN ("eq", Feq, Seq, 2, 2, 0,
 }
 
 DEFUN ("null", Fnull, Snull, 1, 1, 0,
-       doc: /* Return t if OBJECT is nil.  */
+       doc: /* Return t if OBJECT is nil, and return nil otherwise.  */
        attributes: const)
   (Lisp_Object object)
 {

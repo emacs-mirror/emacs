@@ -308,12 +308,12 @@ matching the resulting Git log output, and KEYWORDS is a list of
 		  (pcase old-type
 		    (?\100 "   (type change file -> symlink)")
 		    (?\160 "   (type change subproject -> symlink)")
-		    (t "   (symlink)")))
+		    (_ "   (symlink)")))
 		  (?\160  ;; Subproject.
 		   (pcase old-type
 		     (?\100 "   (type change file -> subproject)")
 		     (?\120 "   (type change symlink -> subproject)")
-		     (t "   (subproject)")))
+		     (_ "   (subproject)")))
                   (?\110 nil)  ;; Directory (internal, not a real git state).
 		  (?\000  ;; Deleted or unknown.
 		   (pcase old-type

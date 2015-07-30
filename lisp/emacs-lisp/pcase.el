@@ -112,11 +112,12 @@ CASES is a list of elements of the form (PATTERN CODE...).
 
 Patterns can take the following forms:
   _		matches anything.
-  SELFQUOTING	matches itself.  This includes keywords, numbers, and strings.
   SYMBOL	matches anything and binds it to SYMBOL.
   (or PAT...)	matches if any of the patterns matches.
   (and PAT...)	matches if all the patterns match.
   'VAL		matches if the object is `equal' to VAL
+  ATOM		is a shorthand for 'ATOM.
+		   ATOM can be a keyword, an integer, or a string.
   (pred FUN)	matches if FUN applied to the object returns non-nil.
   (guard BOOLEXP)	matches if BOOLEXP evaluates to non-nil.
   (let PAT EXP)	matches if EXP matches PAT.
@@ -163,7 +164,7 @@ Currently, the following patterns are provided this way:"
         expansion))))
 
 (declare-function help-fns--signature "help-fns"
-                  (function doc real-def real-function))
+                  (function doc real-def real-function raw))
 
 ;; FIXME: Obviously, this will collide with nadvice's use of
 ;; function-documentation if we happen to advise `pcase'.
@@ -183,7 +184,7 @@ Currently, the following patterns are provided this way:"
              (insert "\n\n-- ")
              (let* ((doc (documentation me 'raw)))
                (setq doc (help-fns--signature symbol doc me
-                                              (indirect-function me)))
+                                              (indirect-function me) t))
                (insert "\n" (or doc "Not documented.")))))))
       (let ((combined-doc (buffer-string)))
         (if ud (help-add-fundoc-usage combined-doc (car ud)) combined-doc)))))
@@ -638,7 +639,7 @@ MATCH is the pattern that needs to be matched, of the form:
     res))
 
 (defun pcase--self-quoting-p (upat)
-  (or (keywordp upat) (numberp upat) (stringp upat)))
+  (or (keywordp upat) (integerp upat) (stringp upat)))
 
 (defun pcase--app-subst-match (match sym fun nsym)
   (cond
@@ -770,7 +771,12 @@ Otherwise, it defers to REST which is a list of branches of the form
            (sym (car cdrpopmatches))
            (upat (cdr cdrpopmatches)))
       (cond
-       ((memq upat '(t _)) (pcase--u1 matches code vars rest))
+       ((memq upat '(t _))
+        (let ((code (pcase--u1 matches code vars rest)))
+          (if (eq upat '_) code
+            (macroexp--warn-and-return
+             "Pattern t is deprecated.  Use `_' instead"
+             code))))
        ((eq upat 'pcase--dontcare) :pcase--dontcare)
        ((memq (car-safe upat) '(guard pred))
         (if (eq (car upat) 'pred) (pcase--mark-used sym))
@@ -784,7 +790,7 @@ Otherwise, it defers to REST which is a list of branches of the form
                        (pcase--eval (cadr upat) vars))
                      (pcase--u1 matches code vars then-rest)
                      (pcase--u else-rest))))
-       ((symbolp upat)
+       ((and (symbolp upat) upat)
         (pcase--mark-used sym)
         (if (not (assq upat vars))
             (pcase--u1 matches code (cons (cons upat sym) vars) rest)
@@ -854,7 +860,7 @@ Otherwise, it defers to REST which is a list of branches of the form
                      (pcase--u rest))
                    vars
                    (list `((and . ,matches) ,code . ,vars))))
-       (t (error "Unknown internal pattern `%S'" upat)))))
+       (t (error "Unknown pattern `%S'" upat)))))
    (t (error "Incorrect MATCH %S" (car matches)))))
 
 (def-edebug-spec
@@ -870,9 +876,9 @@ QPAT can take the following forms:
   (QPAT1 . QPAT2)       matches if QPAT1 matches the car and QPAT2 the cdr.
   [QPAT1 QPAT2..QPATn]  matches a vector of length n and QPAT1..QPATn match
                            its 0..(n-1)th elements, respectively.
-  ,PAT                 matches if the pattern PAT matches.
-  STRING                matches if the object is `equal' to STRING.
-  ATOM                  matches if the object is `eq' to ATOM."
+  ,PAT                  matches if the pcase pattern PAT matches.
+  ATOM                  matches if the object is `equal' to ATOM.
+			   ATOM can be a symbol, an integer, or a string."
   (declare (debug (pcase-QPAT)))
   (cond
    ((eq (car-safe qpat) '\,) (cadr qpat))
@@ -888,7 +894,8 @@ QPAT can take the following forms:
     `(and (pred consp)
           (app car ,(list '\` (car qpat)))
           (app cdr ,(list '\` (cdr qpat)))))
-   ((or (stringp qpat) (integerp qpat) (symbolp qpat)) `',qpat)))
+   ((or (stringp qpat) (integerp qpat) (symbolp qpat)) `',qpat)
+   (t (error "Unknown QPAT: %S" qpat))))
 
 
 (provide 'pcase)

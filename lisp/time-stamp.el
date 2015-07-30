@@ -420,16 +420,8 @@ format the string."
   (or ts-format
       (setq ts-format time-stamp-format))
   (if (stringp ts-format)
-      (if (stringp time-stamp-time-zone)
-	  (let ((ts-real-time-zone (getenv "TZ")))
-	    (unwind-protect
-		(progn
-		  (setenv "TZ" time-stamp-time-zone)
-		  (format-time-string
-		   (time-stamp-string-preprocess ts-format)))
-	      (setenv "TZ" ts-real-time-zone)))
-	(format-time-string
-	 (time-stamp-string-preprocess ts-format)))
+      (format-time-string (time-stamp-string-preprocess ts-format)
+                          nil time-stamp-time-zone)
     ;; handle version 1 compatibility
     (cond ((or (eq time-stamp-old-format-warn 'error)
 	       (and (eq time-stamp-old-format-warn 'ask)

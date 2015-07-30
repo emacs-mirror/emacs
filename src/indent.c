@@ -2134,17 +2134,20 @@ whether or not it is currently displayed in some window.  */)
 	  overshoot_handled = 1;
 	}
       else if (IT_CHARPOS (it) == PT - 1
-	       && FETCH_BYTE (PT - 1) == '\n'
-	       && nlines < 0)
+	       && FETCH_BYTE (PT_BYTE - 1) == '\n'
+	       && nlines <= 0)
 	{
 	  /* The position we started from was covered by a display
 	     property, so we moved to position before the string, and
-	     backed up one line, because the character at PT - 1 is a
-	     newline.  So we need one less line to go up.  */
+	     backed up one line, because the character at PT - 1 is
+	     a newline.  So we need one less line to go up (or exactly
+	     one line to go down if nlines == 0).  */
 	  nlines++;
 	  /* But we still need to record that one line, in order to
 	     return the correct value to the caller.  */
 	  vpos_init = -1;
+
+	  overshoot_handled = 1;
 	}
       if (lcols_given)
 	to_x = window_column_x (w, window, extract_float (lcols), lcols);
@@ -2159,7 +2162,7 @@ whether or not it is currently displayed in some window.  */)
 	}
       else if (overshoot_handled)
 	{
-	  it.vpos = 0;
+	  it.vpos = vpos_init;
 	  move_it_by_lines (&it, min (PTRDIFF_MAX, nlines));
 	}
       else

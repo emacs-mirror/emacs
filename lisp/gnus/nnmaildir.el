@@ -333,29 +333,24 @@ by nnmaildir-request-article.")
 ;; given group, if non-nil, be the current group of the current server.  Then
 ;; return the group object for the current group.
 (defun nnmaildir--prepare (server group)
-  (let (x groups)
-    (catch 'return
-      (if (null server)
-	  (unless (setq server nnmaildir--cur-server)
-	    (throw 'return nil))
-	(unless (setq server (intern-soft server nnmaildir--servers))
+  (catch 'return
+    (if (null server)
+	(unless (setq server nnmaildir--cur-server)
 	  (throw 'return nil))
-	(setq server (symbol-value server)
-	      nnmaildir--cur-server server))
-      (unless (setq groups (nnmaildir--srv-groups server))
+      (unless (setq server (intern-soft server nnmaildir--servers))
 	(throw 'return nil))
-      (unless (nnmaildir--srv-method server)
-	(setq x (concat "nnmaildir:" (nnmaildir--srv-address server))
-	      x (gnus-server-to-method x))
-	(unless x (throw 'return nil))
-	(setf (nnmaildir--srv-method server) x))
-      (if (null group)
-	  (unless (setq group (nnmaildir--srv-curgrp server))
-	    (throw 'return nil))
-	(unless (setq group (intern-soft group groups))
-	  (throw 'return nil))
-	(setq group (symbol-value group)))
-      group)))
+      (setq server (symbol-value server)
+	    nnmaildir--cur-server server))
+    (let ((groups (nnmaildir--srv-groups server)))
+      (when groups
+	(unless (nnmaildir--srv-method server)
+	  (setf (nnmaildir--srv-method server)
+		(or (gnus-server-to-method
+		     (concat "nnmaildir:" (nnmaildir--srv-address server)))
+		    (throw 'return nil))))
+	(if (null group)
+	    (nnmaildir--srv-curgrp server)
+	  (symbol-value (intern-soft group groups)))))))
 
 (defun nnmaildir--tab-to-space (string)
   (let ((pos 0))
@@ -428,7 +423,7 @@ by nnmaildir-request-article.")
 	(srv-dir (nnmaildir--srv-dir server))
 	(storage-version 1) ;; [version article-number msgid [...nov...]]
 	dir gname pgname msgdir prefix suffix file attr mtime novdir novfile
-	nov msgid nov-beg nov-mid nov-end field val old-extra num numdir
+	nov msgid nov-beg nov-mid nov-end field val old-extra num
 	deactivate-mark)
     (catch 'return
       (setq gname (nnmaildir--grp-name group)
@@ -668,7 +663,7 @@ by nnmaildir-request-article.")
     "/" "\\057" 'literal)
    ":" "\\072" 'literal))
 
-(defun nnmaildir-request-type (group &optional article)
+(defun nnmaildir-request-type (_group &optional _article)
   'mail)
 
 (defun nnmaildir-status-message (&optional server)
@@ -768,7 +763,7 @@ by nnmaildir-request-article.")
     (if (> (aref a 1) (aref b 1)) (throw 'return nil))
     (string-lessp (aref a 2) (aref b 2))))
 
-(defun nnmaildir--scan (gname scan-msgs groups method srv-dir srv-ls)
+(defun nnmaildir--scan (gname scan-msgs groups _method srv-dir srv-ls)
   (catch 'return
     (let ((36h-ago (- (car (current-time)) 2))
 	  absdir nndir tdir ndir cdir nattr cattr isnew pgname read-only ls
@@ -883,6 +878,10 @@ by nnmaildir-request-article.")
 	(setf (nnmaildir--grp-cur group) cattr)))
     t))
 
+(defvar nnmaildir-get-new-mail)
+(defvar nnmaildir-group-alist)
+(defvar nnmaildir-active-file)
+
 (defun nnmaildir-request-scan (&optional scan-group server)
   (let ((coding-system-for-write nnheader-file-coding-system)
 	(buffer-file-coding-system nil)
@@ -890,7 +889,7 @@ by nnmaildir-request-article.")
 	(nnmaildir-get-new-mail t)
 	(nnmaildir-group-alist nil)
 	(nnmaildir-active-file nil)
-	x srv-ls srv-dir method groups target-prefix group dirs grp-dir seen
+	x srv-ls srv-dir method groups target-prefix dirs seen
 	deactivate-mark)
     (nnmaildir--prepare server nil)
     (setq srv-ls (nnmaildir--srv-ls nnmaildir--cur-server)
@@ -966,7 +965,7 @@ by nnmaildir-request-article.")
 		(nnmaildir--srv-groups nnmaildir--cur-server))))
   t)
 
-(defun nnmaildir-request-newgroups (date &optional server)
+(defun nnmaildir-request-newgroups (_date &optional server)
   (nnmaildir-request-list server))
 
 (defun nnmaildir-retrieve-groups (groups &optional server)
@@ -995,9 +994,9 @@ by nnmaildir-request-article.")
 		  (nnmaildir--srvgrp-dir
 		   (nnmaildir--srv-dir nnmaildir--cur-server) gname)))
 	 (curdir-mtime (nth 5 (file-attributes curdir)))
-	 pgname flist always-marks never-marks old-marks dotfile num dir
-	 all-marks marks mark ranges markdir read end new-marks ls
-	 old-mmth new-mmth mtime mark-sym existing missing deactivate-mark)
+	 pgname flist always-marks never-marks old-marks dir
+	 all-marks marks ranges markdir read ls
+	 old-mmth new-mmth mtime existing missing deactivate-mark)
     (catch 'return
       (unless group
 	(setf (nnmaildir--srv-error nnmaildir--cur-server)
@@ -1096,7 +1095,7 @@ by nnmaildir-request-article.")
       (setf (nnmaildir--grp-mmth group) new-mmth)
       info)))
 
-(defun nnmaildir-request-group (gname &optional server fast info)
+(defun nnmaildir-request-group (gname &optional server fast _info)
   (let ((group (nnmaildir--prepare server gname))
 	deactivate-mark)
     (catch 'return
@@ -1119,7 +1118,7 @@ by nnmaildir-request-article.")
 	(insert " " (gnus-replace-in-string gname " " "\\ " t) "\n")
 	t))))
 
-(defun nnmaildir-request-create-group (gname &optional server args)
+(defun nnmaildir-request-create-group (gname &optional server _args)
   (nnmaildir--prepare server nil)
   (catch 'return
     (let ((target-prefix (nnmaildir--srv-target-prefix nnmaildir--cur-server))
@@ -1265,7 +1264,7 @@ by nnmaildir-request-article.")
 
 (defun nnmaildir-retrieve-headers (articles &optional gname server fetch-old)
   (let ((group (nnmaildir--prepare server gname))
-	srv-dir dir nlist mlist article num start stop nov nlist2 insert-nov
+	nlist mlist article num start stop nov insert-nov
 	deactivate-mark)
     (setq insert-nov
 	  (lambda (article)
@@ -1290,9 +1289,7 @@ by nnmaildir-request-article.")
 	(erase-buffer)
 	(setq mlist (nnmaildir--grp-mlist group)
 	      nlist (nnmaildir--grp-nlist group)
-	      gname (nnmaildir--grp-name group)
-	      srv-dir (nnmaildir--srv-dir nnmaildir--cur-server)
-	      dir (nnmaildir--srvgrp-dir srv-dir gname))
+	      gname (nnmaildir--grp-name group))
 	(cond
 	 ((null nlist))
 	 ((and fetch-old (not (numberp fetch-old)))
@@ -1363,7 +1360,7 @@ by nnmaildir-request-article.")
 	(nnheader-insert-file-contents nnmaildir-article-file-name))
       (cons gname num-msgid))))
 
-(defun nnmaildir-request-post (&optional server)
+(defun nnmaildir-request-post (&optional _server)
   (let (message-required-mail-headers)
     (funcall message-send-mail-function)))
 
@@ -1405,7 +1402,7 @@ by nnmaildir-request-article.")
       t)))
 
 (defun nnmaildir-request-move-article (article gname server accept-form
-					       &optional last move-is-internal)
+				       &optional _last _move-is-internal)
   (let ((group (nnmaildir--prepare server gname))
 	pgname suffix result nnmaildir--file deactivate-mark)
     (catch 'return
@@ -1442,7 +1439,7 @@ by nnmaildir-request-article.")
 	(nnmaildir--expired-article group article))
       result)))
 
-(defun nnmaildir-request-accept-article (gname &optional server last)
+(defun nnmaildir-request-accept-article (gname &optional server _last)
   (let ((group (nnmaildir--prepare server gname))
 	(coding-system-for-write nnheader-file-coding-system)
 	(buffer-file-coding-system nil)
@@ -1546,7 +1543,7 @@ by nnmaildir-request-article.")
 		    ga))
 	     group-art)))))
 
-(defun nnmaildir-active-number (gname)
+(defun nnmaildir-active-number (_gname)
   0)
 
 (declare-function gnus-group-mark-article-read "gnus-group" (group article))
@@ -1554,8 +1551,8 @@ by nnmaildir-request-article.")
 (defun nnmaildir-request-expire-articles (ranges &optional gname server force)
   (let ((no-force (not force))
 	(group (nnmaildir--prepare server gname))
-	pgname time boundary bound-iter high low target dir nlist nlist2
-	stop article didnt nnmaildir--file nnmaildir-article-file-name
+	pgname time boundary bound-iter high low target dir nlist
+	didnt nnmaildir--file nnmaildir-article-file-name
 	deactivate-mark)
     (catch 'return
       (unless group
@@ -1637,6 +1634,8 @@ by nnmaildir-request-article.")
 	(erase-buffer))
       didnt)))
 
+(defvar nnmaildir--article)
+
 (defun nnmaildir-request-set-mark (gname actions &optional server)
   (let* ((group (nnmaildir--prepare server gname))
 	 (curdir (nnmaildir--cur
@@ -1646,27 +1645,30 @@ by nnmaildir-request-article.")
 	 (coding-system-for-write nnheader-file-coding-system)
 	 (buffer-file-coding-system nil)
 	 (file-coding-system-alist nil)
-	 del-mark del-action add-action set-action marksdir nlist
-	 ranges begin end article all-marks todo-marks mdir mfile
-	 pgname ls permarkfile deactivate-mark)
-    (setq del-mark
+	 marksdir nlist
+	 ranges all-marks todo-marks mdir mfile
+	 pgname ls permarkfile deactivate-mark
+	 (del-mark
 	  (lambda (mark)
-	    (let ((prefix (nnmaildir--art-prefix article))
-		  (suffix (nnmaildir--art-suffix article))
+	    (let ((prefix (nnmaildir--art-prefix nnmaildir--article))
+		  (suffix (nnmaildir--art-suffix nnmaildir--article))
 		  (flag (nnmaildir--mark-to-flag mark)))
 	      (when flag
 		;; If this mark corresponds to a flag, remove the flag from
 		;; the file name.
 		(nnmaildir--article-set-flags
-		 article (nnmaildir--remove-flag flag suffix) curdir))
+		 nnmaildir--article (nnmaildir--remove-flag flag suffix)
+		 curdir))
 	      ;; We still want to delete the hardlink in the marks dir if
 	      ;; present, regardless of whether this mark has a maildir flag or
 	      ;; not, to avoid getting out of sync.
 	      (setq mfile (nnmaildir--subdir marksdir (symbol-name mark))
 		    mfile (concat mfile prefix))
-	      (nnmaildir--unlink mfile)))
-	  del-action (lambda (article) (mapcar del-mark todo-marks))
-	  add-action
+	      (nnmaildir--unlink mfile))))
+	 (del-action (lambda (article)
+		       (let ((nnmaildir--article article))
+			 (mapcar del-mark todo-marks))))
+	 (add-action
 	  (lambda (article)
 	    (mapcar
 	     (lambda (mark)
@@ -1695,13 +1697,14 @@ by nnmaildir-request-article.")
 			 (rename-file permarkfilenew permarkfile 'replace)
 			 (add-name-to-file permarkfile mfile)))
 		      (t (signal (car err) (cdr err))))))))
-	     todo-marks))
-	  set-action (lambda (article)
+	     todo-marks)))
+	 (set-action (lambda (article)
 		       (funcall add-action article)
-		       (mapcar (lambda (mark)
-				 (unless (memq mark todo-marks)
-				   (funcall del-mark mark)))
-			       all-marks)))
+		       (let ((nnmaildir--article article))
+			 (mapcar (lambda (mark)
+				   (unless (memq mark todo-marks)
+				     (funcall del-mark mark)))
+				 all-marks)))))
     (catch 'return
       (unless group
 	(setf (nnmaildir--srv-error nnmaildir--cur-server)
@@ -1728,7 +1731,7 @@ by nnmaildir-request-article.")
 	(setq ranges (car action)
 	      todo-marks (caddr action))
 	(dolist (mark todo-marks)
-	  (add-to-list 'all-marks mark))
+	  (pushnew mark all-marks :test #'equal))
 	(if (numberp (cdr ranges)) (setq ranges (list ranges)))
 	(nnmaildir--nlist-iterate nlist ranges
 				  (cond ((eq 'del (cadr action)) del-action)
@@ -1775,6 +1778,8 @@ by nnmaildir-request-article.")
       t)))
 
 (defun nnmaildir-close-server (&optional server)
+  (defvar flist) (defvar ls) (defvar dirs) (defvar dir)
+  (defvar files) (defvar file) (defvar x)
   (let (flist ls dirs dir files file x)
     (nnmaildir--prepare server nil)
     (when nnmaildir--cur-server

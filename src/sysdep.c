@@ -79,9 +79,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "msdos.h"
 #endif
 
-#ifdef HAVE_SYS_RESOURCE_H
-#include <sys/resource.h>
-#endif
 #include <sys/param.h>
 #include <sys/file.h>
 #include <fcntl.h>
@@ -660,14 +657,6 @@ unrequest_sigio (void)
   sigaddset (&blocked, SIGIO);
   pthread_sigmask (SIG_BLOCK, &blocked, 0);
   interrupts_deferred = 1;
-#endif
-}
-
-void
-ignore_sigio (void)
-{
-#ifdef USABLE_SIGIO
-  signal (SIGIO, SIG_IGN);
 #endif
 }
 
@@ -1625,13 +1614,57 @@ handle_arith_signal (int sig)
 
 #ifdef HAVE_STACK_OVERFLOW_HANDLING
 
-/* -1 if stack grows down as expected on most OS/ABI variants, 1 otherwise.  */
-
-static int stack_direction;
-
 /* Alternate stack used by SIGSEGV handler below.  */
 
 static unsigned char sigsegv_stack[SIGSTKSZ];
+
+
+/* Return true if SIGINFO indicates a stack overflow.  */
+
+static bool
+stack_overflow (siginfo_t *siginfo)
+{
+  /* In theory, a more-accurate heuristic can be obtained by using
+     GNU/Linux pthread_getattr_np along with POSIX pthread_attr_getstack
+     and pthread_attr_getguardsize to find the location and size of the
+     guard area.  In practice, though, these functions are so hard to
+     use reliably that they're not worth bothering with.  E.g., see:
+     https://sourceware.org/bugzilla/show_bug.cgi?id=16291
+     Other operating systems also have problems, e.g., Solaris's
+     stack_violation function is tailor-made for this problem, but it
+     doesn't work on Solaris 11.2 x86-64 with a 32-bit executable.
+
+     GNU libsigsegv is overkill for Emacs; otherwise it might be a
+     candidate here.  */
+
+  if (!siginfo)
+    return false;
+
+  /* The faulting address.  */
+  char *addr = siginfo->si_addr;
+  if (!addr)
+    return false;
+
+  /* The known top and bottom of the stack.  The actual stack may
+     extend a bit beyond these boundaries.  */
+  char *bot = stack_bottom;
+  char *top = near_C_stack_top ();
+
+  /* Log base 2 of the stack heuristic ratio.  This ratio is the size
+     of the known stack divided by the size of the guard area past the
+     end of the stack top.  The heuristic is that a bad address is
+     considered to be a stack overflow if it occurs within
+     stacksize>>LG_STACK_HEURISTIC bytes above the top of the known
+     stack.  This heuristic is not exactly correct but it's good
+     enough in practice.  */
+  enum { LG_STACK_HEURISTIC = 8 };
+
+  if (bot < top)
+    return 0 <= addr - top && addr - top < (top - bot) >> LG_STACK_HEURISTIC;
+  else
+    return 0 <= top - addr && top - addr < (bot - top) >> LG_STACK_HEURISTIC;
+}
+
 
 /* Attempt to recover from SIGSEGV caused by C stack overflow.  */
 
@@ -1640,28 +1673,15 @@ handle_sigsegv (int sig, siginfo_t *siginfo, void *arg)
 {
   /* Hard GC error may lead to stack overflow caused by
      too nested calls to mark_object.  No way to survive.  */
-  if (!gc_in_progress)
-    {
-      struct rlimit rlim;
+  bool fatal = gc_in_progress;
 
-      if (!getrlimit (RLIMIT_STACK, &rlim))
-	{
-	  enum { STACK_DANGER_ZONE = 16 * 1024 };
-	  char *beg, *end, *addr;
+#ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
+  if (!fatal && !pthread_equal (pthread_self (), main_thread))
+    fatal = true;
+#endif
 
-	  beg = stack_bottom;
-	  end = stack_bottom + stack_direction * rlim.rlim_cur;
-	  if (beg > end)
-	    addr = beg, beg = end, end = addr;
-	  addr = (char *) siginfo->si_addr;
-	  /* If we're somewhere on stack and too close to
-	     one of its boundaries, most likely this is it.  */
-	  if (beg < addr && addr < end
-	      && (addr - beg < STACK_DANGER_ZONE
-		  || end - addr < STACK_DANGER_ZONE))
-	    siglongjmp (return_to_command_loop, 1);
-	}
-    }
+  if (!fatal && stack_overflow (siginfo))
+    siglongjmp (return_to_command_loop, 1);
 
   /* Otherwise we can't do anything with this.  */
   deliver_fatal_thread_signal (sig);
@@ -1675,8 +1695,6 @@ init_sigsegv (void)
 {
   struct sigaction sa;
   stack_t ss;
-
-  stack_direction = ((char *) &ss < stack_bottom) ? -1 : 1;
 
   ss.ss_sp = sigsegv_stack;
   ss.ss_size = sizeof (sigsegv_stack);

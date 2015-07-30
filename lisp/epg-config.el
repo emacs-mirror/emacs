@@ -51,6 +51,11 @@
   :group 'epg
   :type 'string)
 
+(defcustom epg-gpgconf-program "gpgconf"
+  "The `gpgconf' executable."
+  :group 'epg
+  :type 'string)
+
 (defcustom epg-gpg-home-directory nil
   "The directory which contains the configuration files of `epg-gpg-program'."
   :group 'epg

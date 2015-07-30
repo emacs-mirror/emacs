@@ -1234,7 +1234,7 @@ three-element lists, with omitted @var{microsec} and @var{picosec}
 components defaulting to zero.
 
 @cindex time value
-  Function arguments, e.g., the @var{time-value} argument to
+  Function arguments, e.g., the @var{time} argument to
 @code{current-time-string}, accept a more-general @dfn{time value}
 format, which can be a list of integers as above, or a single number
 for seconds since the epoch, or @code{nil} for the current time.  You
@@ -1244,7 +1244,7 @@ of integers using @code{seconds-to-time}, and into other forms using
 @code{decode-time} and @code{float-time}.  These functions are
 described in the following sections.
 
-@defun current-time-string &optional time-value
+@defun current-time-string &optional time zone
 This function returns the current time and date as a human-readable
 string.  The format does not vary for the initial part of the string,
 which contains the day of week, month, day of month, and time of day
@@ -1255,8 +1255,9 @@ characters from the beginning of the string rather than from the end,
 as the year might not have exactly four digits, and additional
 information may some day be added at the end.
 
-The argument @var{time-value}, if given, specifies a time to format,
-instead of the current time.
+The argument @var{time}, if given, specifies a time to format,
+instead of the current time.  The optional argument @var{zone}
+defaults to the current time zone rule.
 
 @example
 @group
@@ -1275,9 +1276,9 @@ multiple of 1000, but this may change as higher-resolution clocks
 become available.
 @end defun
 
-@defun float-time &optional time-value
+@defun float-time &optional time
 This function returns the current time as a floating-point number of
-seconds since the epoch.  The optional argument @var{time-value}, if
+seconds since the epoch.  The optional argument @var{time}, if
 given, specifies a time to convert instead of the current time.
 
 @emph{Warning}: Since the result is floating point, it may not be
@@ -1286,14 +1287,14 @@ exact.  Do not use this function if precise time stamps are required.
 @code{time-to-seconds} is an alias for this function.
 @end defun
 
-@defun seconds-to-time time-value
+@defun seconds-to-time time
 This function converts a time value to list-of-integer form.
-For example, if @var{time-value} is a number, @code{(time-to-seconds
-(seconds-to-time @var{time-value}))} equals the number unless overflow
+For example, if @var{time} is a number, @code{(time-to-seconds
+(seconds-to-time @var{time}))} equals the number unless overflow
 or rounding errors occur.
 @end defun
 
-@defun current-time-zone &optional time-value
+@defun current-time-zone &optional time zone
 @cindex time zone, current
 This function returns a list describing the time zone that the user is
 in.
@@ -1309,15 +1310,27 @@ adjustment, then the value is constant through time.
 If the operating system doesn't supply all the information necessary to
 compute the value, the unknown elements of the list are @code{nil}.
 
-The argument @var{time-value}, if given, specifies a time value to
-analyze instead of the current time.
+The argument @var{time}, if given, specifies a time value to
+analyze instead of the current time.  The optional argument @var{zone}
+defaults to the current time zone rule.
 @end defun
 
-The current time zone is determined by the @env{TZ} environment
+@vindex TZ, environment variable
+The default time zone is determined by the @env{TZ} environment
 variable.  @xref{System Environment}.  For example, you can tell Emacs
-to use universal time with @code{(setenv "TZ" "UTC0")}.  If @env{TZ}
-is not in the environment, Emacs uses a platform-dependent default
-time zone.
+to default to universal time with @code{(setenv "TZ" "UTC0")}.  If
+@env{TZ} is not in the environment, Emacs uses system wall clock time,
+which is a platform-dependent default time zone.
+
+@cindex time zone rule
+Functions that convert to and from local time accept an optional
+@dfn{time zone rule} argument, which specifies the conversion's time
+zone and daylight saving time history.  If the time zone rule is
+omitted or @code{nil}, the conversion uses Emacs's default time zone.
+If it is @code{t}, the conversion uses Universal Time.  If it is
+@code{wall}, the conversion uses the system wall clock time.  If it is
+a string, the conversion uses the time zone rule equivalent to setting
+@env{TZ} to that string.
 
 @node Time Conversion
 @section Time Conversion
@@ -1340,13 +1353,14 @@ count the number of years since the year 1 B.C., and do not skip zero
 as traditional Gregorian years do; for example, the year number
 @minus{}37 represents the Gregorian year 38 B.C@.
 
-@defun decode-time &optional time-value
+@defun decode-time &optional time zone
 This function converts a time value into calendrical information.  If
-you don't specify @var{time-value}, it decodes the current time.  The return
+you don't specify @var{time}, it decodes the current time, and similarly
+@var{zone} defaults to the current time zone rule.  The return
 value is a list of nine elements, as follows:
 
 @example
-(@var{seconds} @var{minutes} @var{hour} @var{day} @var{month} @var{year} @var{dow} @var{dst} @var{zone})
+(@var{seconds} @var{minutes} @var{hour} @var{day} @var{month} @var{year} @var{dow} @var{dst} @var{utcoff})
 @end example
 
 Here is what the elements mean:
@@ -1370,13 +1384,13 @@ The day of week, as an integer between 0 and 6, where 0 stands for
 Sunday.
 @item dst
 @code{t} if daylight saving time is effect, otherwise @code{nil}.
-@item zone
-An integer indicating the time zone, as the number of seconds east of
-Greenwich.
+@item utcoff
+An integer indicating the UTC offset in seconds, i.e., the number of
+seconds east of Greenwich.
 @end table
 
 @strong{Common Lisp Note:} Common Lisp has different meanings for
-@var{dow} and @var{zone}.
+@var{dow} and @var{utcoff}.
 @end defun
 
 @defun encode-time seconds minutes hour day month year &optional zone
@@ -1389,12 +1403,11 @@ Year numbers less than 100 are not treated specially.  If you want them
 to stand for years above 1900, or years above 2000, you must alter them
 yourself before you call @code{encode-time}.
 
-The optional argument @var{zone} defaults to the current time zone and
-its daylight saving time rules.  If specified, it can be either a list
-(as you would get from @code{current-time-zone}), a string as in the
-@env{TZ} environment variable, @code{t} for Universal Time, or an
-integer (as you would get from @code{decode-time}).  The specified
-zone is used without any further alteration for daylight saving time.
+The optional argument @var{zone} defaults to the current time zone rule.
+In addition to the usual time zone rule values, it can also be a list
+(as you would get from @code{current-time-zone}) or an integer (as
+from @code{decode-time}), applied without any further alteration for
+daylight saving time.
 
 If you pass more than seven arguments to @code{encode-time}, the first
 six are used as @var{seconds} through @var{year}, the last argument is
@@ -1430,11 +1443,12 @@ This function parses the time-string @var{string} and returns the
 corresponding time value.
 @end defun
 
-@defun format-time-string format-string &optional time-value universal
+@defun format-time-string format-string &optional time zone
 
-This function converts @var{time-value} (or the current time, if
-@var{time-value} is omitted) to a string according to
-@var{format-string}.  The argument
+This function converts @var{time} (or the current time, if
+@var{time} is omitted) to a string according to
+@var{format-string}.  The conversion uses the time zone rule @var{zone}
+(or the current time zone rule, if omitted).  The argument
 @var{format-string} may contain @samp{%}-sequences which say to
 substitute parts of the time.  Here is a table of what the
 @samp{%}-sequences mean:

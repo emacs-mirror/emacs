@@ -115,6 +115,13 @@ acl_access_nontrivial (acl_t acl)
 #  endif
 }
 
+int
+acl_default_nontrivial (acl_t acl)
+{
+  /* acl is non-trivial if it is non-empty.  */
+  return (acl_entries (acl) > 0);
+}
+
 # endif
 
 #elif USE_ACL && HAVE_FACL && defined GETACL /* Solaris, Cygwin, not HP-UX */

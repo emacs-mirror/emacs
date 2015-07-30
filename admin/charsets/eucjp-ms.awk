@@ -38,7 +38,7 @@ BEGIN {
   JISX0208_FROM2 = "/xf5/xa1";
   JISX0212_FROM = "/x8f/xf3/xf3";
 
-  print ";;; eucjp-ms.el -- translation table for eucJP-ms. -*- no-byte-compile: t -*-";
+  print ";;; eucjp-ms.el -- translation table for eucJP-ms";
   print ";;; Automatically generated from /usr/share/i18n/charmaps/EUC-JP-MS.gz";
   print "(let ((map";
   print "       '(;JISEXT<->UNICODE";

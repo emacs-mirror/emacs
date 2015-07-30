@@ -4,7 +4,7 @@
 
 ;; Author: Artur Malabarba <bruce.connor.am@gmail.com>
 ;; Maintainer: Artur Malabarba <bruce.connor.am@gmail.com>
-;; Version: 1.0.3
+;; Version: 1.0.4
 ;; Keywords: extensions lisp
 ;; Prefix: let-alist
 ;; Separator: -
@@ -72,9 +72,9 @@ symbol, and each cdr is the same symbol without the `.'."
         ;; Return the cons cell inside a list, so it can be appended
         ;; with other results in the clause below.
         (list (cons data (intern (replace-match "" nil nil name)))))))
-   ((not (listp data)) nil)
-   (t (apply #'append
-        (mapcar #'let-alist--deep-dot-search data)))))
+   ((not (consp data)) nil)
+   (t (append (let-alist--deep-dot-search (car data))
+              (let-alist--deep-dot-search (cdr data))))))
 
 (defun let-alist--access-sexp (symbol variable)
   "Return a sexp used to access SYMBOL inside VARIABLE."

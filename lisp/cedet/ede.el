@@ -1517,6 +1517,22 @@ It does not apply the value to buffers."
   "Commit change to local variables in PROJ."
   nil)
 
+;;; Integration with project.el
+
+(defun project-try-ede (dir)
+  (let ((project-dir
+         (locate-dominating-file
+          dir
+          (lambda (dir)
+            (ede-directory-get-open-project dir 'ROOT)))))
+    (when project-dir
+      (ede-directory-get-open-project project-dir 'ROOT))))
+
+(cl-defmethod project-root ((project ede-project))
+  (ede-project-root-directory project))
+
+(add-hook 'project-find-functions #'project-try-ede)
+
 (provide 'ede)
 
 ;; Include this last because it depends on ede.

@@ -881,7 +881,7 @@ FUNCTION should take two parameters, a mark symbol and the cell value."
 
 ;; FIXME: Why not merge gnus-registry--set/remove-mark and
 ;; gnus-registry-set-article-mark-internal?
-(defun gnus-registry--set/remove-mark (remove mark articles)
+(defun gnus-registry--set/remove-mark (mark remove articles)
   "Set/remove the MARK over process-marked ARTICLES."
   ;; If this is called and the user doesn't want the
   ;; registry enabled, we'll ask anyhow.

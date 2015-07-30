@@ -474,32 +474,36 @@ inside @samp{<..>} brackets, but the tag names in Emacs do not include
 the brackets; e.g., Unicode specifies @samp{<small>} where Emacs uses
 @samp{small}.  }; the other elements are characters that give the
 compatibility decomposition sequence of this character.  For
-unassigned codepoints, the value is the character itself.
+characters that don't have decomposition sequences, and for unassigned
+codepoints, the value is a list with a single member, the character
+itself.
 
 @item decimal-digit-value
 Corresponds to the Unicode @code{Numeric_Value} property for
 characters whose @code{Numeric_Type} is @samp{Decimal}.  The value is
-an integer.  For unassigned codepoints, the value is
-@code{nil}, which means @acronym{NaN}, or ``not-a-number''.
+an integer, or @code{nil} if the character has no decimal digit value.
+For unassigned codepoints, the value is @code{nil}, which means
+@acronym{NaN}, or ``not-a-number''.
 
 @item digit-value
 Corresponds to the Unicode @code{Numeric_Value} property for
 characters whose @code{Numeric_Type} is @samp{Digit}.  The value is an
-integer.  Examples of such characters include compatibility
-subscript and superscript digits, for which the value is the
-corresponding number.  For unassigned codepoints, the value is
-@code{nil}, which means @acronym{NaN}.
+integer.  Examples of such characters include compatibility subscript
+and superscript digits, for which the value is the corresponding
+number.  For characters that don't have any numeric value, and for
+unassigned codepoints, the value is @code{nil}, which means
+@acronym{NaN}.
 
 @item numeric-value
 Corresponds to the Unicode @code{Numeric_Value} property for
 characters whose @code{Numeric_Type} is @samp{Numeric}.  The value of
-this property is a number.  Examples of
-characters that have this property include fractions, subscripts,
-superscripts, Roman numerals, currency numerators, and encircled
-numbers.  For example, the value of this property for the character
-@code{U+2155} (@sc{vulgar fraction one fifth}) is @code{0.2}.  For
-unassigned codepoints, the value is @code{nil}, which means
-@acronym{NaN}.
+this property is a number.  Examples of characters that have this
+property include fractions, subscripts, superscripts, Roman numerals,
+currency numerators, and encircled numbers.  For example, the value of
+this property for the character @code{U+2155} (@sc{vulgar fraction one
+fifth}) is @code{0.2}.  For characters that don't have any numeric
+value, and for unassigned codepoints, the value is @code{nil}, which
+means @acronym{NaN}.
 
 @cindex mirroring of characters
 @item mirrored
@@ -545,7 +549,8 @@ value for this property, the value is @code{nil}.
 
 @item iso-10646-comment
 Corresponds to the Unicode @code{ISO_Comment} property.  The value is
-a string.  For unassigned codepoints, the value is an empty string.
+either a string or @code{nil}.  For unassigned codepoints, the value
+is @code{nil}.
 
 @item uppercase
 Corresponds to the Unicode @code{Simple_Uppercase_Mapping} property.

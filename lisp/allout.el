@@ -5589,9 +5589,9 @@ Defaults:
 
 LISTIFIED is a list representing each topic header and body:
 
- \`(depth prefix text)'
+ `(depth prefix text)'
 
-or \`(depth prefix text bullet-plus)'
+or `(depth prefix text bullet-plus)'
 
 If `bullet-plus' is specified, it is inserted just after the entire prefix."
   (setq listified (cdr listified))

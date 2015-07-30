@@ -243,7 +243,9 @@ to the RCS command."
 	     ;; if available, use the secure registering option
 	     (and (vc-rcs-release-p "5.6.4") "-i")
 	     "-u"
-	     (and comment (concat "-t-" comment))
+             ;; Some old MS-Windows ports of RCS crash when "ci -i" is
+             ;; invoked without -t; indulge them.
+	     (concat "-t-" (or comment ""))
 	     (vc-switches 'RCS 'register))
       ;; parse output to find master file name and workfile version
       (with-current-buffer "*vc*"

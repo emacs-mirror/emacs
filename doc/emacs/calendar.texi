@@ -206,7 +206,7 @@ Move point to today's date (@code{calendar-goto-today}).
   @kbd{g d} (@code{calendar-goto-date}) prompts for a year, a month, and a day
 of the month, and then moves to that date.  Because the calendar includes all
 dates from the beginning of the current era, you must type the year in its
-entirety; that is, type @samp{1990}, not @samp{90}.
+entirety; that is, type @samp{2010}, not @samp{10}.
 
 @kindex g D @r{(Calendar mode)}
 @findex calendar-goto-day-of-year
@@ -919,46 +919,95 @@ years, and then displays the list of yahrzeit dates.
 
   The Emacs diary keeps track of appointments or other events on a daily
 basis, in conjunction with the calendar.  To use the diary feature, you
-must first create a @dfn{diary file} containing a list of events and
+must first create a diary file containing a list of events and
 their dates.  Then Emacs can automatically pick out and display the
 events for today, for the immediate future, or for any specified
 date.
-
-  The name of the diary file is specified by the variable
-@code{diary-file}; @file{~/diary} is the default.  Here's an example
-showing what that file looks like:
-
-@example
-12/22/2012  Twentieth wedding anniversary!!
-&1/1.       Happy New Year!
-10/22       Ruth's birthday.
-* 21, *:    Payday
-Tuesday--weekly meeting with grad students at 10am
-         Supowit, Shen, Bitner, and Kapoor to attend.
-1/13/89     Friday the thirteenth!!
-&thu 4pm    squash game with Lloyd.
-mar 16      Dad's birthday
-April 15, 2013 Income tax due.
-&* 15       time cards due.
-@end example
-
-@noindent
-This format is essentially the same as the one used by the separate
-@command{calendar} utility that is present on some Unix systems.  This
-example uses extra spaces to align the event descriptions of most of
-the entries.  Such formatting is purely a matter of taste.
 
   Although you probably will start by creating a diary manually, Emacs
 provides a number of commands to let you view, add, and change diary
 entries.
 
 @menu
-* Displaying the Diary::   Viewing diary entries and associated calendar dates.
 * Format of Diary File::   Entering events in your diary.
+* Displaying the Diary::   Viewing diary entries and associated calendar dates.
 * Date Formats::           Various ways you can specify dates.
 * Adding to Diary::        Commands to create diary entries.
 * Special Diary Entries::  Anniversaries, blocks of dates, cyclic entries, etc.
 @end menu
+
+@node Format of Diary File
+@subsection The Diary File
+@cindex diary file
+
+@vindex diary-file
+  Your @dfn{diary file} is a file that records events associated with
+particular dates.  The name of the diary file is specified by the
+variable @code{diary-file}.  The default is @file{~/.emacs.d/diary},
+though for compatibility with older versions Emacs will use
+@file{~/diary} if it exists.
+@ignore
+@c I don't think this is relevant any more.  The utility doesn't seem
+@c to be part of the default install on GNU/Linux machines these days.
+@c When I tried it with my basic diary file, it just died with an error.
+The @code{calendar} utility program supports a subset of the format
+allowed by the Emacs diary facilities, so you can use that utility to
+view the diary file, with reasonable results aside from the entries it
+cannot understand.
+@end ignore
+
+  Each entry in the diary file describes one event and consists of one
+or more lines.  An entry always begins with a date specification at the
+left margin.  The rest of the entry is simply text to describe the
+event.  If the entry has more than one line, then the lines after the
+first must begin with whitespace to indicate they continue a previous
+entry.  Lines that do not begin with valid dates and do not continue a
+preceding entry are ignored.  Here's an example:
+
+@example
+12/22/2015  Twentieth wedding anniversary!
+10/22       Ruth's birthday.
+* 21, *:    Payday
+Tuesday--weekly meeting with grad students at 10am
+         Supowit, Shen, Bitner, and Kapoor to attend.
+1/13/89     Friday the thirteenth!!
+thu 4pm     squash game with Lloyd.
+mar 16      Dad's birthday
+April 15, 2016 Income tax due.
+* 15        time cards due.
+@end example
+
+@noindent
+This example uses extra spaces to align the event descriptions of most
+of the entries.  Such formatting is purely a matter of taste.
+
+  You can also use a format where the first line of a diary entry
+consists only of the date or day name (with no following blanks or
+punctuation).  For example:
+
+@example
+02/11/2012
+      Bill B. visits Princeton today
+      2pm Cognitive Studies Committee meeting
+      2:30-5:30 Liz at Lawrenceville
+      4:00pm Dentist appt
+      7:30pm Dinner at George's
+      8:00-10:00pm concert
+@end example
+
+@noindent
+This entry will have a different appearance if you use the simple diary
+display
+@iftex
+(@pxref{Diary Display,,, emacs-xtra, Specialized Emacs Features}).
+@end iftex
+@ifnottex
+(@pxref{Diary Display}).
+@end ifnottex
+The simple diary display omits the date line at the beginning; only the
+continuation lines appear.  This style of entry looks neater when you
+display just a single day's entries, but can cause confusion if you ask
+for more than one day's entries.
 
 @node Displaying the Diary
 @subsection Displaying the Diary
@@ -990,9 +1039,9 @@ Mail yourself email reminders about upcoming diary entries.
 @kindex d @r{(Calendar mode)}
 @findex diary-view-entries
 @vindex calendar-view-diary-initially-flag
-  Displaying the diary entries with @kbd{d} shows in a separate window
+  Displaying the diary entries with @kbd{d} shows in a separate buffer
 the diary entries for the selected date in the calendar.  The mode line
-of the new window shows the date of the diary entries.  Holidays are
+of the new buffer shows the date of the diary entries.  Holidays are
 shown either in the buffer or in the mode line, depending on the display
 method you choose
 @iftex
@@ -1032,6 +1081,15 @@ turns off holiday marks (@pxref{Holidays}).  If the variable
 @code{calendar-mark-diary-entries-flag} is non-@code{nil}, creating or
 updating the calendar marks diary dates automatically.
 
+@vindex diary-nonmarking-symbol
+  To prevent an individual diary entry from being marked in the
+calendar, insert the string that @code{diary-nonmarking-symbol}
+specifies (the default is @samp{&}) at the beginning of the entry,
+before the date.  This has no effect on display of the entry in the
+diary buffer; it only affects marks on dates in the calendar.
+Nonmarking entries can be useful for generic entries that would
+otherwise mark many different dates.
+
 @kindex s @r{(Calendar mode)}
 @findex diary-show-all-entries
   To see the full diary file, rather than just some of the entries, use
@@ -1060,65 +1118,6 @@ diary.  To send such mail to yourself, use the command @kbd{M-x
 diary-mail-entries}.  A prefix argument specifies how many days
 (starting with today) to check; otherwise, the variable
 @code{diary-mail-days} says how many days.
-
-@node Format of Diary File
-@subsection The Diary File
-@cindex diary file
-
-@vindex diary-file
-  Your @dfn{diary file} is a file that records events associated with
-particular dates.  The name of the diary file is specified by the
-variable @code{diary-file}; @file{~/diary} is the default.  The
-@code{calendar} utility program supports a subset of the format allowed
-by the Emacs diary facilities, so you can use that utility to view the
-diary file, with reasonable results aside from the entries it cannot
-understand.
-
-  Each entry in the diary file describes one event and consists of one
-or more lines.  An entry always begins with a date specification at the
-left margin.  The rest of the entry is simply text to describe the
-event.  If the entry has more than one line, then the lines after the
-first must begin with whitespace to indicate they continue a previous
-entry.  Lines that do not begin with valid dates and do not continue a
-preceding entry are ignored.
-
-  You can also use a format where the first line of a diary entry
-consists only of the date or day name (with no following blanks or
-punctuation).  For example:
-
-@example
-02/11/2012
-      Bill B. visits Princeton today
-      2pm Cognitive Studies Committee meeting
-      2:30-5:30 Liz at Lawrenceville
-      4:00pm Dentist appt
-      7:30pm Dinner at George's
-      8:00-10:00pm concert
-@end example
-
-@noindent
-This entry will have a different appearance if you use the simple diary
-display
-@iftex
-(@pxref{Diary Display,,, emacs-xtra, Specialized Emacs Features}).
-@end iftex
-@ifnottex
-(@pxref{Diary Display}).
-@end ifnottex
-The simple diary display omits the date line at the beginning; only the
-continuation lines appear.  This style of entry looks neater when you
-display just a single day's entries, but can cause confusion if you ask
-for more than one day's entries.
-
-@vindex diary-nonmarking-symbol
-  You can inhibit the marking of certain diary entries in the calendar
-window; to do this, insert the string that
-@code{diary-nonmarking-symbol} specifies (default @samp{&}) at the
-beginning of the entry, before the date.  This
-has no effect on display of the entry in the diary window; it only
-affects marks on dates in the calendar window.  Nonmarking entries are
-especially useful for generic entries that would otherwise mark many
-different dates.
 
 @node Date Formats
 @subsection Date Formats
@@ -1271,12 +1270,12 @@ entry.  The entry looks like this:
 
 @findex diary-anniversary
 @example
-%%(diary-anniversary 10 31 1948) Arthur's birthday
+%%(diary-anniversary 10 31 1988) Arthur's birthday
 @end example
 
 @noindent
-This entry applies to October 31 in any year after 1948; @samp{10 31
-1948} specifies the date.  (If you are using the European or ISO
+This entry applies to October 31 in any year after 1988; @samp{10 31
+1988} specifies the date.  (If you are using the European or ISO
 calendar style, the input order of month, day and year is different.)
 The reason this expression requires a beginning year is that advanced
 diary functions can use it to calculate the number of elapsed years.
