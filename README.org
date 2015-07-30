@@ -5,7 +5,7 @@
 - The face =which-key-local-map-description-face= is now available. This face
   will be applied to any commands that are found using =(current-local-map)=
   (commands defined for the major mode are usually here). This allows you to
-  distinguish between local and global bindings visually. See [[Face Customization]]
+  distinguish between local and global bindings visually. See [[#face-customization][Face Customization]]
   for more information. 
 *** Paging
 - Paging is now turned on by default, using any prefix plus =C-h= (this doesn't
