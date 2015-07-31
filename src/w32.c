@@ -1490,7 +1490,7 @@ static int file_name_codepage;
 
 /* Produce a Windows ANSI codepage suitable for encoding file names.
    Return the information about that codepage in CP_INFO.  */
-static int
+int
 codepage_for_filenames (CPINFO *cp_info)
 {
   /* A simple cache to avoid calling GetCPInfo every time we need to

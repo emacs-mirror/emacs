@@ -1528,8 +1528,8 @@ It does not apply the value to buffers."
     (when project-dir
       (ede-directory-get-open-project project-dir 'ROOT))))
 
-(cl-defmethod project-root ((project ede-project))
-  (ede-project-root-directory project))
+(cl-defmethod project-roots ((project ede-project))
+  (list (ede-project-root-directory project)))
 
 (add-hook 'project-find-functions #'project-try-ede)
 

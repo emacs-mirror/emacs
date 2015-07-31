@@ -356,10 +356,11 @@ changing `tabulated-list-sort-key'."
                           nil)
                          ;; If this entry sorts after id (or it's the
                          ;; end), then just insert id and move on.
-                         ((funcall sorter elt
-                                   ;; FIXME: Might be faster if
-                                   ;; don't construct this list.
-                                   (list local-id (tabulated-list-get-entry)))
+                         ((or (not local-id)
+                              (funcall sorter elt
+                                       ;; FIXME: Might be faster if
+                                       ;; don't construct this list.
+                                       (list local-id (tabulated-list-get-entry))))
                           (apply tabulated-list-printer elt)
                           nil)
                          ;; We find an entry that sorts before id,

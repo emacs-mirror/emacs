@@ -767,6 +767,8 @@ With prefix argument, prompt for the identifier."
   (interactive (list (xref--read-identifier "Find references of: ")))
   (xref--show-xrefs identifier 'references identifier nil))
 
+;; TODO: Rename and move to project-find-regexp, as soon as idiomatic
+;; usage of xref from other packages has stabilized.
 ;;;###autoload
 (defun xref-find-regexp (regexp)
   "Find all matches for REGEXP.
@@ -777,13 +779,13 @@ to search in, and the file name pattern to search for."
   (let* ((proj (project-current))
          (files (if current-prefix-arg
                     (grep-read-files regexp)
-                  "*.*"))
+                  "*"))
          (dirs (if current-prefix-arg
                    (list (read-directory-name "Base directory: "
                                               nil default-directory t))
-                 (project--prune-directories
-                  (nconc
-                   (project-directories proj)
+                 (project-prune-directories
+                  (append
+                   (project-roots proj)
                    (project-search-path proj)))))
          (xref-find-function
           (lambda (_kind regexp)

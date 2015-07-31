@@ -37,16 +37,16 @@ that it is not applicable, or a project instance.")
 (declare-function etags-search-path "etags" ())
 
 (defvar project-search-path-function #'etags-search-path
-  "Function that returns a list of source directories.
+  "Function that returns a list of source root directories.
 
-The directories in which we can look for the declarations or
-other references to the symbols used in the current buffer.
-Depending on the language, it should include the headers search
-path, load path, class path, and so on.
+The directories in which we can recursively look for the
+declarations or other references to the symbols used in the
+current buffer.  Depending on the language, it should include the
+headers search path, load path, class path, or so on.
 
-The directory names should be absolute.  Normally set by the
-major mode.  Used in the default implementation of
-`project-search-path'.")
+The directory names should be absolute.  This variable is
+normally set by the major mode.  Used in the default
+implementation of `project-search-path'.")
 
 ;;;###autoload
 (defun project-current (&optional dir)
@@ -54,35 +54,29 @@ major mode.  Used in the default implementation of
   (unless dir (setq dir default-directory))
   (run-hook-with-args-until-success 'project-find-functions dir))
 
-(cl-defgeneric project-root (project)
-  "Return the root directory of the current project.
-The directory name should be absolute.")
-
+;; FIXME: Add MODE argument, like in `ede-source-paths'?
 (cl-defgeneric project-search-path (project)
-  "Return the list of source directories.
-Including any where source (or header, etc) files used by the
-current project may be found, inside or outside of the project
-tree.  The directory names should be absolute.
+  "Return the list of source root directories.
+Any directory roots where source (or header, etc) files used by
+the current project may be found, inside or outside of the
+current project tree(s).  The directory names should be absolute.
 
-A specialized implementation should use the value
-`project-search-path-function', or, better yet, call and combine
-the results from the functions that this value is set to by all
-major modes used in the project.  Alternatively, it can return a
-user-configurable value."
-  (project--prune-directories
-   (nconc (funcall project-search-path-function)
-          ;; Include these, because we don't know any better.
-          ;; But a specialized implementation may include only some of
-          ;; the project's subdirectories, if there are no source
-          ;; files at the top level.
-          (project-directories project))))
+Unless it really knows better, a specialized implementation
+should take into account the value returned by
+`project-search-path-function' and call
+`project-prune-directories' on the result."
+  (project-prune-directories
+   (append
+    ;; We don't know the project layout, like where the sources are,
+    ;; so we simply include the roots.
+    (project-roots project)
+    (funcall project-search-path-function))))
 
-(cl-defgeneric project-directories (project)
-  "Return the list of directories related to the current project.
+(cl-defgeneric project-roots (project)
+  "Return the list of directory roots related to the current project.
 It should include the current project root, as well as the roots
-of any currently open related projects, if they're meant to be
-edited together.  The directory names should be absolute."
-  (list (project-root project)))
+of any other currently open projects, if they're meant to be
+edited together.  The directory names should be absolute.")
 
 (cl-defgeneric project-ignores (_project)
   "Return the list of glob patterns that match ignored files.
@@ -103,8 +97,8 @@ end it with `/'."
                               (vc-call-backend backend 'root dir)))))
     (and root (cons 'vc root))))
 
-(cl-defmethod project-root ((project (head vc)))
-  (cdr project))
+(cl-defmethod project-roots ((project (head vc)))
+  (list (cdr project)))
 
 (cl-defmethod project-ignores ((project (head vc)))
   (nconc
@@ -121,10 +115,10 @@ end it with `/'."
 (defun project-ask-user (dir)
   (cons 'user (read-directory-name "Project root: " dir nil t)))
 
-(cl-defmethod project-root ((project (head user)))
-  (cdr project))
+(cl-defmethod project-roots ((project (head user)))
+  (list (cdr project)))
 
-(defun project--prune-directories (dirs)
+(defun project-prune-directories (dirs)
   "Returns a copy of DIRS sorted, without subdirectories or non-existing ones."
   (let* ((dirs (sort
                 (mapcar

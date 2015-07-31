@@ -655,6 +655,7 @@ It can be quoted, or be inside a quoted form."
 
 (declare-function project-search-path "project")
 (declare-function project-current "project")
+(declare-function project-prune-directories "project")
 
 (defun elisp--xref-find-references (symbol)
   (cl-mapcan

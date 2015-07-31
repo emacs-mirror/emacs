@@ -607,13 +607,12 @@ considered file(s)."
   (interactive
    (list (if (use-region-p) (region-beginning) (point))
          (if (use-region-p) (region-end) (point))))
-  (log-view-diff-common beg end t))
+  (when (eq (vc-call-backend log-view-vc-backend 'revision-granularity) 'file)
+    (error "The %s backend does not support changeset diffs" log-view-vc-backend))
+  (let ((default-directory (vc-root-dir)))
+    (log-view-diff-common beg end t)))
 
 (defun log-view-diff-common (beg end &optional whole-changeset)
-  (when (and whole-changeset
-             (eq (vc-call-backend log-view-vc-backend 'revision-granularity)
-                 'file))
-    (error "The %s backend does not support changeset diffs" log-view-vc-backend))
   (let ((to (log-view-current-tag beg))
         (fr (log-view-current-tag end)))
     (when (string-equal fr to)
