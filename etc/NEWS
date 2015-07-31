@@ -523,6 +523,20 @@ prefixed with `seq-' and work on lists, strings and vectors.
 The map library provides map-manipulation functions that work on alists,
 hash-table and arrays.  All functions are prefixed with "map-".
 
+** stream
+*** New stream library:
+The stream library provides an implementation of streams.  Streams are
+implemented as delayed evaluation of cons cells.
+
+The implementation is close to the one in the SICP book
+(https://mitpress.mit.edu/sicp/full-text/book/book-Z-H-24.html).
+
+Streams could be created from any sequencial input data, including
+sequences, , making operation on them lazy, a set of 2 forms (first
+and rest), making it easy to represent infinite sequences, buffers (by
+character), buffers (by line), buffers (by page), IO streams, orgmode
+table cells, etc.
+
 ** Calendar and diary
 
 +++
