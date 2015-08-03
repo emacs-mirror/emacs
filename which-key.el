@@ -921,7 +921,7 @@ Returns a plist that holds the page strings, as well as metadata."
   (let ((cols-w-widths (mapcar #'which-key--pad-column
                                (-partition-all avl-lines keys)))
         (page-width 0) (n-pages 0) (n-keys 0)
-        page-cols pages page-widths keys/page)
+        page-cols pages page-widths keys/page col)
     (if (> (apply #'max (mapcar #'car cols-w-widths)) avl-width)
         ;; give up if any columns don't fit
         (list :pages nil :page-height 0 :page-widths '(0)
