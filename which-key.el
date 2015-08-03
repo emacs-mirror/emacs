@@ -923,23 +923,26 @@ Returns a plist that holds the page strings, as well as metadata."
         (page-width 0) (n-pages 0) (n-keys 0)
         page-cols pages page-widths keys/page col)
     (if (> (apply #'max (mapcar #'car cols-w-widths)) avl-width)
-        ;; give up if any columns don't fit
+        ;; give up if no columns fit
         (list :pages nil :page-height 0 :page-widths '(0)
               :keys/page '(0) :n-pages 0 :tot-keys 0)
       (while cols-w-widths
-        (when (not (<= (+ (caar cols-w-widths) page-width) avl-width))
-          (error "which-key: error in partition-columns"))
+        ;; start new page
+        (cl-incf n-pages)
+        (setq col (pop cols-w-widths)
+              page-cols (list (cdr col))
+              page-width (car col)
+              n-keys (length (cdr col)))
+        ;; add additional columns as long as they fit
         (while (and cols-w-widths
                     (<= (+ (caar cols-w-widths) page-width) avl-width))
-          (setq col (pop cols-w-widths)
-                page-width (+ page-width (car col))
-                n-keys  (+ (length (cdr col)) n-keys))
-          (push (cdr col) page-cols))
+          (setq col (pop cols-w-widths))
+          (push (cdr col) page-cols)
+          (cl-incf page-width (car col))
+          (cl-incf n-keys (length (cdr col))))
         (push (which-key--join-columns page-cols) pages)
         (push n-keys keys/page)
-        (push page-width page-widths)
-        (setq n-pages (1+ n-pages)
-              n-keys 0 page-cols '() page-width 0))
+        (push page-width page-widths))
       (list :pages (reverse pages) :page-height avl-lines
             :page-widths (reverse page-widths)
             :keys/page (reverse keys/page) :n-pages n-pages
