@@ -307,6 +307,16 @@ failChunkCreate:
 }
 
 
+/* ClientArenaConfigure -- configure the arena */
+
+static Res ClientArenaConfigure(Arena arena, ArgList args)
+{
+  UNUSED(arena);
+  UNUSED(args);
+  return ResOK;
+}
+
+
 /* ClientArenaFinish -- finish the arena */
 
 static void ClientArenaFinish(Arena arena)
@@ -450,6 +460,7 @@ DEFINE_ARENA_CLASS(ClientArenaClass, this)
   this->offset = offsetof(ClientArenaStruct, arenaStruct);
   this->varargs = ClientArenaVarargs;
   this->init = ClientArenaInit;
+  this->configure = ClientArenaConfigure;
   this->finish = ClientArenaFinish;
   this->reserved = ClientArenaReserved;
   this->extend = ClientArenaExtend;

@@ -155,12 +155,18 @@ extern const struct mps_key_s _mps_key_ARGS_END;
 #define MPS_KEY_ARGS_END        (&_mps_key_ARGS_END)
 extern mps_arg_s mps_args_none[];
 
-extern const struct mps_key_s _mps_key_ARENA_SIZE;
-#define MPS_KEY_ARENA_SIZE      (&_mps_key_ARENA_SIZE)
-#define MPS_KEY_ARENA_SIZE_FIELD size
+extern const struct mps_key_s _mps_key_ARENA_COMMIT_LIMIT;
+#define MPS_KEY_ARENA_COMMIT_LIMIT (&_mps_key_ARENA_COMMIT_LIMIT)
+#define MPS_KEY_ARENA_COMMIT_LIMIT_FIELD size
 extern const struct mps_key_s _mps_key_ARENA_GRAIN_SIZE;
 #define MPS_KEY_ARENA_GRAIN_SIZE (&_mps_key_ARENA_GRAIN_SIZE)
 #define MPS_KEY_ARENA_GRAIN_SIZE_FIELD size
+extern const struct mps_key_s _mps_key_ARENA_SIZE;
+#define MPS_KEY_ARENA_SIZE      (&_mps_key_ARENA_SIZE)
+#define MPS_KEY_ARENA_SIZE_FIELD size
+extern const struct mps_key_s _mps_key_ARENA_SPARE_COMMIT_LIMIT;
+#define MPS_KEY_ARENA_SPARE_COMMIT_LIMIT (&_mps_key_ARENA_SPARE_COMMIT_LIMIT)
+#define MPS_KEY_ARENA_SPARE_COMMIT_LIMIT_FIELD size
 extern const struct mps_key_s _mps_key_ARENA_ZONED;
 #define MPS_KEY_ARENA_ZONED     (&_mps_key_ARENA_ZONED)
 #define MPS_KEY_ARENA_ZONED_FIELD b
@@ -433,6 +439,7 @@ extern mps_res_t mps_arena_create(mps_arena_t *, mps_arena_class_t, ...);
 extern mps_res_t mps_arena_create_v(mps_arena_t *, mps_arena_class_t, va_list);
 extern mps_res_t mps_arena_create_k(mps_arena_t *, mps_arena_class_t,
                                     mps_arg_s []);
+extern mps_res_t mps_arena_configure(mps_arena_t, mps_arg_s []);
 extern void mps_arena_destroy(mps_arena_t);
 
 extern size_t mps_arena_reserved(mps_arena_t);
