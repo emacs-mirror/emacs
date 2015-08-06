@@ -209,9 +209,9 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   arena->committed = (Size)0;
   /* commitLimit may be overridden by init (but probably not */
   /* as there's not much point) */
-  arena->commitLimit = (Size)-1;
+  arena->commitLimit = ARENA_DEFAULT_COMMIT_LIMIT;
   arena->spareCommitted = (Size)0;
-  arena->spareCommitLimit = ARENA_INIT_SPARE_COMMIT_LIMIT;
+  arena->spareCommitLimit = ARENA_DEFAULT_SPARE_COMMIT_LIMIT;
   arena->grainSize = grainSize;
   /* zoneShift is usually overridden by init */
   arena->zoneShift = ARENA_ZONESHIFT;
@@ -295,8 +295,10 @@ ARG_DEFINE_KEY(VMW3_TOP_DOWN, Bool);
 
 /* ArenaCreate -- create the arena and call initializers */
 
-ARG_DEFINE_KEY(ARENA_SIZE, Size);
+ARG_DEFINE_KEY(ARENA_COMMIT_LIMIT, Size);
 ARG_DEFINE_KEY(ARENA_GRAIN_SIZE, Size);
+ARG_DEFINE_KEY(ARENA_SIZE, Size);
+ARG_DEFINE_KEY(ARENA_SPARE_COMMIT_LIMIT, Size);
 ARG_DEFINE_KEY(ARENA_ZONED, Bool);
 
 Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
@@ -343,9 +345,15 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
     goto failGlobalsCompleteCreate;
 
   AVERT(Arena, arena);
+
+  res = ArenaConfigure(arena, args);
+  if (res != ResOK)
+    goto failConfigure;
+
   *arenaReturn = arena;
   return ResOK;
 
+failConfigure:
 failGlobalsCompleteCreate:
   ControlFinish(arena);
 failControlInit:
@@ -354,6 +362,31 @@ failStripeSize:
   (*class->finish)(arena);
 failInit:
   return res;
+}
+
+
+/* ArenaConfigure -- configure an arena */
+
+Res ArenaConfigure(Arena arena, ArgList args)
+{
+  Res res;
+  mps_arg_s arg;
+
+  AVERT(Arena, arena);
+  AVERT(ArgList, args);
+
+  if (ArgPick(&arg, args, MPS_KEY_ARENA_COMMIT_LIMIT)) {
+    Size limit = arg.val.size;
+    res = ArenaSetCommitLimit(arena, limit);
+    if (res != ResOK)
+      return res;
+  }
+  if (ArgPick(&arg, args, MPS_KEY_ARENA_SPARE_COMMIT_LIMIT)) {
+    Size limit = arg.val.size;
+    (void)ArenaSetSpareCommitLimit(arena, limit);
+  }
+
+  return (*arena->class->configure)(arena, args);
 }
 
 

@@ -617,6 +617,16 @@ failVMInit:
 }
 
 
+/* VMArenaConfigure -- configure the arena */
+
+static Res VMArenaConfigure(Arena arena, ArgList args)
+{
+  UNUSED(arena);
+  UNUSED(args);
+  return ResOK;
+}
+
+
 /* VMArenaFinish -- finish the arena */
 
 static void VMArenaFinish(Arena arena)
@@ -1203,6 +1213,7 @@ DEFINE_ARENA_CLASS(VMArenaClass, this)
   this->offset = offsetof(VMArenaStruct, arenaStruct);
   this->varargs = VMArenaVarargs;
   this->init = VMArenaInit;
+  this->configure = VMArenaConfigure;
   this->finish = VMArenaFinish;
   this->reserved = VMArenaReserved;
   this->purgeSpare = VMPurgeSpare;

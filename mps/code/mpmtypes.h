@@ -119,6 +119,7 @@ typedef unsigned FindDelete;            /* <design/land/> */
 typedef void (*ArenaVarargsMethod)(ArgStruct args[], va_list varargs);
 typedef Res (*ArenaInitMethod)(Arena *arenaReturn,
                                ArenaClass class, ArgList args);
+typedef Res (*ArenaConfigureMethod)(Arena arena, ArgList args);
 typedef void (*ArenaFinishMethod)(Arena arena);
 typedef Size (*ArenaReservedMethod)(Arena arena);
 typedef Size (*ArenaPurgeSpareMethod)(Arena arena, Size size);

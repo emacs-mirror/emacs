@@ -156,10 +156,16 @@ static mps_pool_debug_option_s fenceOptions = {
 };
 
 
-/* testInArena -- test all the pool classes in the given arena */
+/* test -- create arena using given class and arguments; test all the
+ * pool classes in this arena
+ */
 
-static void testInArena(mps_arena_t arena, mps_pool_debug_option_s *options)
+static void test(mps_arena_class_t arena_class, mps_arg_s arena_args[],
+                 mps_pool_debug_option_s *options)
 {
+  mps_arena_t arena;
+  die(mps_arena_create_k(&arena, arena_class, arena_args), "mps_arena_create");
+
   MPS_ARGS_BEGIN(args) {
     mps_align_t align = sizeof(void *) << (rnd() % 4);
     MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
@@ -195,45 +201,36 @@ static void testInArena(mps_arena_t arena, mps_pool_debug_option_s *options)
     die(stress(arena, NULL, align, randomSizeAligned, "MVT",
                mps_class_mvt(), args), "stress MVT");
   } MPS_ARGS_END(args);
+
+  mps_arena_destroy(arena);
 }
 
 
 int main(int argc, char *argv[])
 {
-  mps_arena_t arena;
-
   testlib_init(argc, argv);
 
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 2 * testArenaSIZE);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, rnd_grain(2*testArenaSIZE));
-    die(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
-        "mps_arena_create");
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_COMMIT_LIMIT, testArenaSIZE);
+    test(mps_arena_class_vm(), args, &fenceOptions);
   } MPS_ARGS_END(args);
-  die(mps_arena_commit_limit_set(arena, testArenaSIZE), "commit limit");
-  testInArena(arena, &fenceOptions);
-  mps_arena_destroy(arena);
 
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 2 * testArenaSIZE);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, FALSE);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, rnd_grain(2*testArenaSIZE));
-    die(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
-        "mps_arena_create");
+    test(mps_arena_class_vm(), args, &bothOptions);
   } MPS_ARGS_END(args);
-  testInArena(arena, &bothOptions);
-  mps_arena_destroy(arena);
 
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, testArenaSIZE);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, FALSE);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_CL_BASE, malloc(testArenaSIZE));
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, rnd_grain(testArenaSIZE));
-    die(mps_arena_create_k(&arena, mps_arena_class_cl(), args),
-        "mps_arena_create");
+    test(mps_arena_class_cl(), args, &bothOptions);
   } MPS_ARGS_END(args);
-  testInArena(arena, &bothOptions);
-  mps_arena_destroy(arena);
 
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;
