@@ -354,7 +354,8 @@ Memory Management Glossary: C
             The commit limit is a limit on the :term:`committed
             <mapped>` :term:`memory (2)` that the :term:`arena` will
             obtain from the operating system. It can be changed by
-            calling :c:func:`mps_arena_commit_limit_set`.
+            passing the :c:macro:`MPS_KEY_ARENA_COMMIT_LIMIT`
+            :term:`keyword argument` to :c:func:`mps_arena_configure`.
 
     committed (1)
 
