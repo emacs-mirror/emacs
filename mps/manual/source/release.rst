@@ -23,6 +23,16 @@ Interface changes
    :c:func:`mps_pool_free_size` and :c:func:`mps_pool_total_size`.
 
 
+Other changes
+.............
+
+#. :c:func:`mps_arena_committed` now returns a meaningful value (the
+   amount of memory marked as in use in the page tables) for
+   :term:`client arenas`. See job001887_.
+
+   .. _job001887: https://www.ravenbrook.com/project/mps/issue/job001887/
+
+
 .. _release-notes-1.114:
 
 Release 1.114.0

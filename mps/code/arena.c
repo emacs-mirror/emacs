@@ -85,7 +85,6 @@ DEFINE_CLASS(AbstractArenaClass, class)
   class->varargs = ArgTrivVarargs;
   class->init = NULL;
   class->finish = NULL;
-  class->reserved = NULL;
   class->purgeSpare = ArenaNoPurgeSpare;
   class->extend = ArenaNoExtend;
   class->grow = ArenaNoGrow;
@@ -113,7 +112,6 @@ Bool ArenaClassCheck(ArenaClass class)
   CHECKL(FUNCHECK(class->varargs));
   CHECKL(FUNCHECK(class->init));
   CHECKL(FUNCHECK(class->finish));
-  CHECKL(FUNCHECK(class->reserved));
   CHECKL(FUNCHECK(class->purgeSpare));
   CHECKL(FUNCHECK(class->extend));
   CHECKL(FUNCHECK(class->grow));
@@ -142,9 +140,12 @@ Bool ArenaCheck(Arena arena)
     CHECKD(Reservoir, &arena->reservoirStruct);
   }
 
-  /* Can't check that limit>=size because we may call ArenaCheck */
-  /* while the size is being adjusted. */
-
+  /* .reserved.check: Would like to check that arena->committed <=
+   * arena->reserved, but that isn't always true in the VM arena.
+   * Memory is committed early on when VMChunkCreate calls vmArenaMap
+   * (to provide a place for the chunk struct) but is not recorded as
+   * reserved until ChunkInit calls ArenaChunkInsert.
+   */
   CHECKL(arena->committed <= arena->commitLimit);
   CHECKL(arena->spareCommitted <= arena->committed);
 
@@ -206,6 +207,7 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
 
   arena->class = class;
 
+  arena->reserved = (Size)0;
   arena->committed = (Size)0;
   /* commitLimit may be overridden by init (but probably not */
   /* as there's not much point) */
@@ -454,7 +456,6 @@ void ControlFinish(Arena arena)
 Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 {
   Res res;
-  Size reserved;
 
   if (!TESTT(Arena, arena))
     return ResFAIL;
@@ -476,20 +477,9 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
       return res;
   }
 
-  /* Note: this Describe clause calls a function */
-  reserved = ArenaReserved(arena);
   res = WriteF(stream, depth + 2,
-               "reserved         $W  <-- "
-               "total size of address-space reserved\n",
-               (WriteFW)reserved,
-               NULL);
-  if (res != ResOK)
-    return res;
-
-  res = WriteF(stream, depth + 2,
-               "committed        $W  <-- "
-               "total bytes currently stored (in RAM or swap)\n",
-               (WriteFW)arena->committed,
+               "reserved         $W\n", (WriteFW)arena->reserved,
+               "committed        $W\n", (WriteFW)arena->committed,
                "commitLimit      $W\n", (WriteFW)arena->commitLimit,
                "spareCommitted   $W\n", (WriteFW)arena->spareCommitted,
                "spareCommitLimit $W\n", (WriteFW)arena->spareCommitLimit,
@@ -669,7 +659,10 @@ Res ControlDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
 }
 
 
-/* ArenaChunkInsert -- insert chunk into arena's chunk tree and ring */
+/* ArenaChunkInsert -- insert chunk into arena's chunk tree and ring,
+ * update the total reserved address space, and set the primary chunk
+ * if not already set.
+ */
 
 void ArenaChunkInsert(Arena arena, Chunk chunk) {
   Bool inserted;
@@ -687,10 +680,37 @@ void ArenaChunkInsert(Arena arena, Chunk chunk) {
   arena->chunkTree = updatedTree;
   RingAppend(&arena->chunkRing, &chunk->arenaRing);
 
+  arena->reserved += ChunkReserved(chunk);
+
   /* As part of the bootstrap, the first created chunk becomes the primary
      chunk.  This step allows ArenaFreeLandInsert to allocate pages. */
   if (arena->primary == NULL)
     arena->primary = chunk;
+}
+
+
+/* ArenaChunkRemoved -- chunk was removed from the arena and is being
+ * finished, so update the total reserved address space, and unset the
+ * primary chunk if necessary.
+ */
+
+void ArenaChunkRemoved(Arena arena, Chunk chunk)
+{
+  Size size;
+
+  AVERT(Arena, arena);
+  AVERT(Chunk, chunk);
+
+  size = ChunkReserved(chunk);
+  AVER(arena->reserved >= size);
+  arena->reserved -= size;
+
+  if (chunk == arena->primary) {
+    /* The primary chunk must be the last chunk to be removed. */
+    AVER(RingIsSingle(&arena->chunkRing));
+    AVER(arena->reserved == 0);
+    arena->primary = NULL;
+  }
 }
 
 
@@ -1231,7 +1251,7 @@ allDeposited:
 Size ArenaReserved(Arena arena)
 {
   AVERT(Arena, arena);
-  return (*arena->class->reserved)(arena);
+  return arena->reserved;
 }
 
 Size ArenaCommitted(Arena arena)
