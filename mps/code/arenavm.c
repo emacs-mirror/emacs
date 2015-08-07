@@ -323,7 +323,8 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size)
 
   /* Copy VM descriptor into its place in the chunk. */
   VMCopy(VMChunkVM(vmChunk), vm);
-  res = ChunkInit(VMChunk2Chunk(vmChunk), arena, base, limit, boot);
+  res = ChunkInit(VMChunk2Chunk(vmChunk), arena, base, limit,
+                  VMReserved(VMChunkVM(vmChunk)), boot);
   if (res != ResOK)
     goto failChunkInit;
 
@@ -560,6 +561,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   res = ArenaInit(arena, class, grainSize, args);
   if (res != ResOK)
     goto failArenaInit;
+  arena->reserved = VMReserved(vm);
   arena->committed = VMMapped(vm);
 
   /* Copy VM descriptor into its place in the arena. */
@@ -640,6 +642,7 @@ static void VMArenaFinish(Arena arena)
   RingFinish(&vmArena->spareRing);
 
   /* Destroying the chunks should leave only the arena's own VM. */
+  AVER(arena->reserved == VMReserved(VMArenaVM(vmArena)));
   AVER(arena->committed == VMMapped(VMArenaVM(vmArena)));
 
   vmArena->sig = SigInvalid;
@@ -651,25 +654,6 @@ static void VMArenaFinish(Arena arena)
   VMCopy(vm, VMArenaVM(vmArena));
   VMUnmap(vm, VMBase(vm), VMLimit(vm));
   VMFinish(vm);
-}
-
-
-/* VMArenaReserved -- return the amount of reserved address space
- *
- * Add up the reserved space from all the chunks.
- */
-
-static Size VMArenaReserved(Arena arena)
-{
-  Size reserved;
-  Ring node, next;
-
-  reserved = 0;
-  RING_FOR(node, &arena->chunkRing, next) {
-    VMChunk vmChunk = Chunk2VMChunk(RING_ELT(Chunk, arenaRing, node));
-    reserved += VMReserved(VMChunkVM(vmChunk));
-  }
-  return reserved;
 }
 
 
@@ -723,7 +707,7 @@ static Res VMArenaGrow(Arena arena, LocusPref pref, Size size)
   chunkSize = vmArenaChunkSize(vmArena, size);
 
   EVENT3(vmArenaExtendStart, size, chunkSize,
-         VMArenaReserved(VMArena2Arena(vmArena)));
+         ArenaReserved(VMArena2Arena(vmArena)));
 
   /* .chunk-create.fail: If we fail, try again with a smaller size */
   {
@@ -747,7 +731,7 @@ static Res VMArenaGrow(Arena arena, LocusPref pref, Size size)
       for(; chunkSize > chunkHalf; chunkSize -= sliceSize) {
         if(chunkSize < chunkMin) {
           EVENT2(vmArenaExtendFail, chunkMin,
-                 VMArenaReserved(VMArena2Arena(vmArena)));
+                 ArenaReserved(VMArena2Arena(vmArena)));
           return res;
         }
         res = VMChunkCreate(&newChunk, vmArena, chunkSize);
@@ -758,7 +742,7 @@ static Res VMArenaGrow(Arena arena, LocusPref pref, Size size)
   }
   
 vmArenaGrow_Done:
-  EVENT2(vmArenaExtendDone, chunkSize, VMArenaReserved(VMArena2Arena(vmArena)));
+  EVENT2(vmArenaExtendDone, chunkSize, ArenaReserved(VMArena2Arena(vmArena)));
   vmArena->extended(VMArena2Arena(vmArena),
 		    newChunk->base,
 		    AddrOffset(newChunk->base, newChunk->limit));
@@ -806,16 +790,23 @@ static Res pageDescMap(VMChunk vmChunk, Index basePI, Index limitPI)
   Size before = VMMapped(VMChunkVM(vmChunk));
   Arena arena = VMArena2Arena(VMChunkVMArena(vmChunk));
   Res res = SparseArrayMap(&vmChunk->pages, basePI, limitPI);
-  arena->committed += VMMapped(VMChunkVM(vmChunk)) - before;
+  Size after = VMMapped(VMChunkVM(vmChunk));
+  AVER(before <= after);
+  arena->committed += after - before;
   return res;
 }
 
 static void pageDescUnmap(VMChunk vmChunk, Index basePI, Index limitPI)
 {
+  Size size, after;
   Size before = VMMapped(VMChunkVM(vmChunk));
   Arena arena = VMArena2Arena(VMChunkVMArena(vmChunk));
   SparseArrayUnmap(&vmChunk->pages, basePI, limitPI);
-  arena->committed += VMMapped(VMChunkVM(vmChunk)) - before;
+  after = VMMapped(VMChunkVM(vmChunk));
+  AVER(after <= before);
+  size = before - after;
+  AVER(arena->committed >= size);
+  arena->committed -= size;
 }
 
 
@@ -1144,7 +1135,7 @@ static void VMCompact(Arena arena, Trace trace)
   AVERT(VMArena, vmArena);
   AVERT(Trace, trace);
 
-  vmem1 = VMArenaReserved(arena);
+  vmem1 = ArenaReserved(arena);
 
   /* Destroy chunks that are completely free, but not the primary
    * chunk. See <design/arena/#chunk.delete>
@@ -1154,7 +1145,7 @@ static void VMCompact(Arena arena, Trace trace)
 
   {
     Size vmem0 = trace->preTraceArenaReserved;
-    Size vmem2 = VMArenaReserved(arena);
+    Size vmem2 = ArenaReserved(arena);
 
     /* VMCompact event: emit for all client-requested collections, */
     /* plus any others where chunks were gained or lost during the */
@@ -1204,7 +1195,6 @@ DEFINE_ARENA_CLASS(VMArenaClass, this)
   this->varargs = VMArenaVarargs;
   this->init = VMArenaInit;
   this->finish = VMArenaFinish;
-  this->reserved = VMArenaReserved;
   this->purgeSpare = VMPurgeSpare;
   this->grow = VMArenaGrow;
   this->free = VMFree;
