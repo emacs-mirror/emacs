@@ -701,12 +701,16 @@ void ArenaChunkRemoved(Arena arena, Chunk chunk)
   AVERT(Arena, arena);
   AVERT(Chunk, chunk);
 
-  if (arena->primary == chunk)
-    arena->primary = NULL;
-
   size = ChunkReserved(chunk);
   AVER(arena->reserved >= size);
   arena->reserved -= size;
+
+  if (chunk == arena->primary) {
+    /* The primary chunk must be the last chunk to be removed. */
+    AVER(RingIsSingle(&arena->chunkRing));
+    AVER(arena->reserved == 0);
+    arena->primary = NULL;
+  }
 }
 
 
