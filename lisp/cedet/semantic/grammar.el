@@ -1203,8 +1203,8 @@ END is the limit of the search."
     (define-key km "\t"       'semantic-grammar-indent)
     (define-key km "\M-\t"    'semantic-grammar-complete)
     (define-key km "\C-c\C-c" 'semantic-grammar-create-package)
-    (define-key km "\C-cm"    'semantic-grammar-find-macro-expander)
-    (define-key km "\C-cik"    'semantic-grammar-insert-keyword)
+    (define-key km "\C-c\C-m" 'semantic-grammar-find-macro-expander)
+    (define-key km "\C-c\C-k" 'semantic-grammar-insert-keyword)
 ;;  (define-key km "\C-cc"    'semantic-grammar-generate-and-load)
 ;;  (define-key km "\C-cr"    'semantic-grammar-generate-one-rule)
 
