@@ -106,6 +106,10 @@ syntax as specified by the syntax table."
         imenu-create-index-function 'semantic-create-imenu-index
         )
   (setq semantic-lex-analyzer #'semantic-scheme-lexer)
+  (setq semantic-lex-syntax-modifications '((?/ "w")
+                                            (?@ "_")
+                                            )
+        )
   )
 
 (provide 'semantic/bovine/scm)
