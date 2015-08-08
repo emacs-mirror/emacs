@@ -1546,6 +1546,16 @@ Return the tag found or nil if not found."
                  semanticdb-current-database
                  (cdar (semanticdb-find-tags-by-name name nil t)))))))
 
+(defun semantic--grammar-find-macro-symbol-library (def)
+  "Return the library the macro defined by DEF is in."
+  (let ((lib (symbol-file (cdr def) 'defun)))
+    (if (not (string-match "\\.elc" lib))
+	lib
+      (setq lib2 (replace-match ".el" t t lib 0))
+      (if (file-exists-p lib2)
+	  lib2
+	lib))))
+
 (defsubst semantic--grammar-macro-lib-part (def)
   "Return the library part of the grammar macro defined by DEF."
   (let ((suf (format "-%s\\'" (regexp-quote (symbol-name (car def)))))
