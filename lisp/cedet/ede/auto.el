@@ -65,10 +65,11 @@ into memory.")
 
 (cl-defmethod ede-calc-fromconfig ((dirmatch ede-project-autoload-dirmatch))
   "Calculate the value of :fromconfig from DIRMATCH."
-  (let ((fc (oref dirmatch fromconfig)))
-    (cond ((stringp fc) fc)
-	  ((functionp fc) (funcall fc))
-	  (t (error "Unknown dirmatch object match style.")))
+  (let* ((fc (oref dirmatch fromconfig))
+	 (found (cond ((stringp fc) fc)
+		      ((functionp fc) (funcall fc))
+		      (t (error "Unknown dirmatch object match style.")))))
+    (expand-file-name found)
     ))
 
 
