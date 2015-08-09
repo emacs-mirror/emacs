@@ -136,6 +136,11 @@ All directories need at least one target.")
   "EDE Emacs Project target for Emacs Lisp code.
 All directories need at least one target.")
 
+(defclass ede-emacs-target-texi (ede-target)
+  ()
+  "EDE Emacs Project target for Emacs Lisp code.
+All directories need at least one target.")
+
 (defclass ede-emacs-target-misc (ede-target)
   ()
   "EDE Emacs Project target for Misc files.
@@ -186,6 +191,8 @@ If one doesn't exist, create a new one for this directory."
 		     'ede-emacs-target-c)
 		    ((string-match "elc?" ext)
 		     'ede-emacs-target-el)
+		    ((string-match "texi" ext)
+		     'ede-emacs-target-texi)
 		    (t 'ede-emacs-target-misc)))
 	 (targets (oref proj targets))
 	 (dir default-directory)
@@ -281,6 +288,40 @@ Knows about how the Emacs source tree is organized."
     (oset this name (car ver))
     (oset this version (cdr ver))
     ))
+
+;;; Compile Support
+;;
+(defmethod project-compile-project ((proj ede-emacs-project) &optional command)
+  "Compile the Emacs project.
+Argument COMMAND is the command to use when compiling."
+  (let ((default-directory (ede-project-root-directory proj)))
+    (require 'compile)
+    (compile "make all")))
+
+(defmethod project-compile-target ((proj ede-emacs-target-texi) &optional command)
+  "Compile the doc target for Emacs.
+Argument COMMAND is the command to use for compiling the target."
+  (let* ((default-directory (ede-project-root-directory (ede-current-project)))
+	 (command "make docs"))
+    (require 'compile)
+    (compile command)))
+
+(defmethod project-compile-target ((proj ede-emacs-target-el) &optional command)
+  "Compile the doc target for Emacs.
+Argument COMMAND is the command to use for compiling the target."
+  (let* ((default-directory (ede-project-root-directory (ede-current-project)))
+	 (command "make lisp"))
+    (require 'compile)
+    (compile command)))
+
+(defmethod project-compile-target ((proj ede-emacs-target-c) &optional command)
+  "Compile the doc target for Emacs.
+Argument COMMAND is the command to use for compiling the target."
+  (let* ((default-directory (ede-project-root-directory (ede-current-project)))
+	 (command "make src"))
+    (require 'compile)
+    (compile command)))
+
 
 (provide 'ede/emacs)
 
