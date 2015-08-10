@@ -183,13 +183,11 @@ If START is nil, it defaults to 0. If STEP is nil, it defaults to
 range is infinite."
   (unless start (setq start 0))
   (unless step (setq step 1))
-  (cond
-   ((equal start end) (stream-empty))
-   ((and end (> start end)) (error "Invalid range boundaries"))
-   (t
+  (if (equal start end)
+      (stream-empty)
     (stream-cons
      start
-     (stream-range (+ start step) end step)))))
+     (stream-range (+ start step) end step))))
 
 (defun stream-seq (seq)
   "Return a stream built from the sequence SEQ.

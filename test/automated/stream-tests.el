@@ -103,11 +103,11 @@
 (ert-deftest stream-range-test ()
   (should (stream-empty-p (stream-range 0 0)))
   (should (stream-empty-p (stream-range 3 3)))
-  (should-error (stream-range 3 2))
   (should (= 0 (stream-first (stream-range 0 6 2))))
   (should (= 2 (stream-first (stream-rest (stream-range 0 6 2)))))
   (should (= 4 (stream-first (stream-rest (stream-rest (stream-range 0 6 2))))))
-  (should (stream-empty-p (stream-rest (stream-rest (stream-rest (stream-range 0 6 2)))))))
+  (should (stream-empty-p (stream-rest (stream-rest (stream-rest (stream-range 0 6 2))))))
+  (should (= -4 (stream-first (stream-rest (stream-rest (stream-range 0 nil -2)))))))
 
 (ert-deftest stream-list-test ()
   (dolist (list '(nil '(1 2 3) '(a . b)))
