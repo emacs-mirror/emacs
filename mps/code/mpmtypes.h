@@ -121,7 +121,6 @@ typedef Res (*ArenaInitMethod)(Arena *arenaReturn,
                                ArenaClass class, ArgList args);
 typedef Res (*ArenaConfigureMethod)(Arena arena, ArgList args);
 typedef void (*ArenaFinishMethod)(Arena arena);
-typedef Size (*ArenaReservedMethod)(Arena arena);
 typedef Size (*ArenaPurgeSpareMethod)(Arena arena, Size size);
 typedef Res (*ArenaExtendMethod)(Arena arena, Addr base, Size size);
 typedef Res (*ArenaGrowMethod)(Arena arena, LocusPref pref, Size size);

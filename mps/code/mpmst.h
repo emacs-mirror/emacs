@@ -527,7 +527,6 @@ typedef struct mps_arena_class_s {
   ArenaInitMethod init;
   ArenaConfigureMethod configure;
   ArenaFinishMethod finish;
-  ArenaReservedMethod reserved;
   ArenaPurgeSpareMethod purgeSpare;
   ArenaExtendMethod extend;
   ArenaGrowMethod grow;
@@ -715,7 +714,8 @@ typedef struct mps_arena_s {
 
   ReservoirStruct reservoirStruct; /* <design/reservoir/> */
 
-  Size committed;               /* amount of committed RAM */
+  Size reserved;                /* total reserved address space */
+  Size committed;               /* total committed memory */
   Size commitLimit;             /* client-configurable commit limit */
 
   Size spareCommitted;          /* Amount of memory in hysteresis fund */

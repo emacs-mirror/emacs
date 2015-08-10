@@ -167,7 +167,8 @@ Bool ChunkCheck(Chunk chunk)
 
 /* ChunkInit -- initialize generic part of chunk */
 
-Res ChunkInit(Chunk chunk, Arena arena, Addr base, Addr limit, BootBlock boot)
+Res ChunkInit(Chunk chunk, Arena arena, Addr base, Addr limit, Size reserved,
+              BootBlock boot)
 {
   Size size;
   Count pages;
@@ -192,6 +193,7 @@ Res ChunkInit(Chunk chunk, Arena arena, Addr base, Addr limit, BootBlock boot)
   chunk->pageShift = pageShift = SizeLog2(chunk->pageSize);
   chunk->base = base;
   chunk->limit = limit;
+  chunk->reserved = reserved;
   size = ChunkSize(chunk);
 
   chunk->pages = pages = size >> pageShift;
@@ -262,17 +264,16 @@ void ChunkFinish(Chunk chunk)
                         PageIndexBase(chunk, chunk->allocBase),
                         chunk->limit);
 
+  ArenaChunkRemoved(arena, chunk);
+
   chunk->sig = SigInvalid;
 
   TreeFinish(&chunk->chunkTree);
   RingRemove(&chunk->arenaRing);
 
-  if (chunk->arena->primary == chunk)
-    chunk->arena->primary = NULL;
-
   /* Finish all other fields before class finish, because they might be */
   /* unmapped there. */
-  (chunk->arena->class->chunkFinish)(chunk);
+  (*arena->class->chunkFinish)(chunk);
 }
 
 

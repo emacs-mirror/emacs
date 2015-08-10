@@ -40,6 +40,15 @@ Interface changes
    :c:func:`mps_arena_spare_commit_limit_set` are deprecated in favour
    of :c:func:`mps_arena_configure`.
 
+Other changes
+.............
+
+#. :c:func:`mps_arena_committed` now returns a meaningful value (the
+   amount of memory marked as in use in the page tables) for
+   :term:`client arenas`. See job001887_.
+
+   .. _job001887: https://www.ravenbrook.com/project/mps/issue/job001887/
+
 
 .. _release-notes-1.114:
 

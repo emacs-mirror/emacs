@@ -17,6 +17,7 @@ Design
     guide.hex.trans
     guide.impl.c.format
     guide.impl.c.naming
+    guide.review
     interface-c
     keyword-arguments
     land
