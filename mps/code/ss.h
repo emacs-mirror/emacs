@@ -38,6 +38,7 @@ typedef struct StackContextStruct {
 /* STACK_CONTEXT_END -- clear context and leave arena */
 
 #define STACK_CONTEXT_END(arena) END; \
+  AVER(arena->scAtArenaEnter != NULL); \
   arena->scAtArenaEnter = NULL; \
   ArenaLeave(arena); \
   END
@@ -58,9 +59,12 @@ extern Res StackContextScan(ScanState ss, StackContext sc);
 
 #if defined(MPS_OS_XC)
 
-/* We call _setjmp rather than setjmp because _setjmp saves only the
- * register set and the stack while setjmp also saves the signal mask.
- * See _setjmp(2). */
+/* We call _setjmp rather than setjmp because we can be confident what
+ * it does via the source code at
+ * <http://www.opensource.apple.com/source/Libc/Libc-825.24/i386/sys/_setjmp.s>,
+ * and because _setjmp saves only the register set and the stack while
+ * setjmp also saves the signal mask, which we don't care about. See
+ * _setjmp(2). */
 
 #define STACK_CONTEXT_SAVE(sc) ((void)_setjmp((sc)->jumpBuffer))
 
@@ -71,7 +75,11 @@ extern Res StackContextScan(ScanState ss, StackContext sc);
 #endif /* platform defines */
 
 
-/* StackScan -- scan the mutator's stack and registers */
+/* StackScan -- scan the mutator's stack and registers
+ *
+ * This must be called between STACK_CONTEXT_BEGIN and
+ * STACK_CONTEXT_END.
+ */
 
 extern Res StackScan(ScanState ss, Addr *stackBot);
 
