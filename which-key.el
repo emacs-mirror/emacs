@@ -334,16 +334,18 @@ used.")
         (when which-key-use-C-h-for-paging
             (setq which-key--prefix-help-cmd-backup prefix-help-command
                   prefix-help-command #'which-key-show-next-page))
+        (when which-key-show-remaining-keys
+          (add-hook 'pre-command-hook #'which-key--lighter-restore))
         (add-hook 'pre-command-hook #'which-key--hide-popup)
-        (add-hook 'pre-command-hook #'which-key--lighter-restore)
         (add-hook 'focus-out-hook #'which-key--stop-timer)
         (add-hook 'focus-in-hook #'which-key--start-timer)
         (which-key--start-timer))
     (setq echo-keystrokes which-key--echo-keystrokes-backup)
     (when which-key-use-C-h-for-paging
       (setq prefix-help-command which-key--prefix-help-cmd-backup))
+    (when which-key-show-remaining-keys
+      (remove-hook 'pre-command-hook #'which-key--lighter-restore))
     (remove-hook 'pre-command-hook #'which-key--hide-popup)
-    (remove-hook 'pre-command-hook #'which-key--lighter-restore)
     (remove-hook 'focus-out-hook #'which-key--stop-timer)
     (remove-hook 'focus-in-hook #'which-key--start-timer)
     (which-key--stop-timer)))
@@ -985,6 +987,7 @@ is the width of the live window."
     (setq which-key--lighter-backup (cadr (assq 'which-key-mode minor-mode-alist)))
     (setcar (cdr (assq 'which-key-mode minor-mode-alist))
             (format " WK: %s/%s keys" n-shown n-tot))))
+
 (defun which-key--lighter-restore ()
   "Restore the lighter for which-key."
   (when which-key-show-remaining-keys
