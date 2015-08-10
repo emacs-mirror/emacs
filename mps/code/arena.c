@@ -197,6 +197,8 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
 {
   Res res;
   Bool zoned = ARENA_DEFAULT_ZONED;
+  Size commitLimit = ARENA_DEFAULT_COMMIT_LIMIT;
+  Size spareCommitLimit = ARENA_DEFAULT_SPARE_COMMIT_LIMIT;
   mps_arg_s arg;
 
   AVER(arena != NULL);
@@ -205,16 +207,18 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   
   if (ArgPick(&arg, args, MPS_KEY_ARENA_ZONED))
     zoned = arg.val.b;
+  if (ArgPick(&arg, args, MPS_KEY_ARENA_COMMIT_LIMIT))
+    commitLimit = arg.val.size;
+  if (ArgPick(&arg, args, MPS_KEY_ARENA_SPARE_COMMIT_LIMIT))
+    spareCommitLimit = arg.val.size;
 
   arena->class = class;
 
   arena->reserved = (Size)0;
   arena->committed = (Size)0;
-  /* commitLimit may be overridden by init (but probably not */
-  /* as there's not much point) */
-  arena->commitLimit = ARENA_DEFAULT_COMMIT_LIMIT;
+  arena->commitLimit = commitLimit;
   arena->spareCommitted = (Size)0;
-  arena->spareCommitLimit = ARENA_DEFAULT_SPARE_COMMIT_LIMIT;
+  arena->spareCommitLimit = spareCommitLimit;
   arena->grainSize = grainSize;
   /* zoneShift is usually overridden by init */
   arena->zoneShift = ARENA_ZONESHIFT;
@@ -362,15 +366,9 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
     goto failGlobalsCompleteCreate;
 
   AVERT(Arena, arena);
-
-  res = ArenaConfigure(arena, args);
-  if (res != ResOK)
-    goto failConfigure;
-
   *arenaReturn = arena;
   return ResOK;
 
-failConfigure:
 failGlobalsCompleteCreate:
   ControlFinish(arena);
 failControlInit:
