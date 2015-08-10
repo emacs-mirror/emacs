@@ -14,7 +14,7 @@
  * .assume.desc: The stack is descending (and so stackTop is a lower
  * address than stackBot).
  *
- * .assume.empty: The stack convention is "full" (and so we must scan
+ * .assume.full: The stack convention is "full" (and so we must scan
  * the word pointed to by stackTop but not the word pointed to by
  * stackBot).
  *
@@ -38,10 +38,10 @@ static Res stackScanInner(Arena arena, ScanState ss, Addr *stackBot,
   AVERT(ScanState, ss);
 
   stackTop = StackContextStackTop(sc);
-  AVER(stackTop < stackBot);                          /* .assume.down */
+  AVER(stackTop < stackBot);                          /* .assume.desc */
   AVER(AddrIsAligned((Addr)stackTop, sizeof(Addr)));  /* .assume.align */
 
-  res = TraceScanAreaTagged(ss, stackTop, stackBot);  /* .assume.bottom */
+  res = TraceScanAreaTagged(ss, stackTop, stackBot);  /* .assume.full */
   if (res != ResOK)
     return res;
 
