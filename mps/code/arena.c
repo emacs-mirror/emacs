@@ -41,6 +41,7 @@ Bool ArenaGrainSizeCheck(Size size)
 
 static void ArenaTrivCompact(Arena arena, Trace trace);
 static void arenaFreePage(Arena arena, Addr base, Pool pool);
+static void arenaFreeLandFinish(Arena arena);
 
 
 /* ArenaTrivDescribe -- produce trivial description of an arena */
@@ -301,6 +302,26 @@ ARG_DEFINE_KEY(ARENA_SIZE, Size);
 ARG_DEFINE_KEY(ARENA_GRAIN_SIZE, Size);
 ARG_DEFINE_KEY(ARENA_ZONED, Bool);
 
+static Res arenaFreeLandInit(Arena arena)
+{
+  Res res;
+
+  AVERT(Arena, arena);
+  AVER(!arena->hasFreeLand);
+  AVER(arena->primary != NULL);
+
+  /* With the primary chunk initialised we can add page memory to the freeLand
+   * that describes the free address space in the primary chunk. */
+  res = ArenaFreeLandInsert(arena,
+                            PageIndexBase(arena->primary,
+                                          arena->primary->allocBase),
+                            arena->primary->limit);
+  if (res != ResOK)
+    return res;
+  arena->hasFreeLand = TRUE;
+  return ResOK;
+}
+
 Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
 {
   Arena arena;
@@ -326,15 +347,9 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
     goto failStripeSize;
   }
 
-  /* With the primary chunk initialised we can add page memory to the freeLand
-     that describes the free address space in the primary chunk. */
-  res = ArenaFreeLandInsert(arena,
-                            PageIndexBase(arena->primary,
-                                          arena->primary->allocBase),
-                            arena->primary->limit);
+  res = arenaFreeLandInit(arena);
   if (res != ResOK)
-    goto failPrimaryLand;
-  arena->hasFreeLand = TRUE;
+    goto failFreeLandInit;
   
   res = ControlInit(arena);
   if (res != ResOK)
@@ -351,7 +366,8 @@ Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args)
 failGlobalsCompleteCreate:
   ControlFinish(arena);
 failControlInit:
-failPrimaryLand:
+  arenaFreeLandFinish(arena);
+failFreeLandInit:
 failStripeSize:
   (*class->finish)(arena);
 failInit:
@@ -392,6 +408,20 @@ static void arenaMFSPageFreeVisitor(Pool pool, Addr base, Size size,
   arenaFreePage(PoolArena(pool), base, pool);
 }
 
+static void arenaFreeLandFinish(Arena arena)
+{
+  /* We must tear down the freeLand before the chunks, because pages
+   * containing CBS blocks might be allocated in those chunks. */
+  AVER(arena->hasFreeLand);
+  arena->hasFreeLand = FALSE;
+  LandFinish(ArenaFreeLand(arena));
+
+  /* The CBS block pool can't free its own memory via ArenaFree because
+   * that would use the freeLand. */
+  MFSFinishTracts(ArenaCBSBlockPool(arena), arenaMFSPageFreeVisitor,
+                  UNUSED_POINTER, UNUSED_SIZE);
+}
+
 void ArenaDestroy(Arena arena)
 {
   AVERT(Arena, arena);
@@ -401,19 +431,9 @@ void ArenaDestroy(Arena arena)
   /* Empty the reservoir - see <code/reserv.c#reservoir.finish> */
   ReservoirSetLimit(ArenaReservoir(arena), 0);
 
-  arena->poolReady = FALSE;
   ControlFinish(arena);
 
-  /* We must tear down the freeLand before the chunks, because pages
-     containing CBS blocks might be allocated in those chunks. */
-  AVER(arena->hasFreeLand);
-  arena->hasFreeLand = FALSE;
-  LandFinish(ArenaFreeLand(arena));
-
-  /* The CBS block pool can't free its own memory via ArenaFree because
-     that would use the freeLand. */
-  MFSFinishTracts(ArenaCBSBlockPool(arena), arenaMFSPageFreeVisitor,
-                  UNUSED_POINTER, UNUSED_SIZE);
+  arenaFreeLandFinish(arena);
 
   /* Call class-specific finishing.  This will call ArenaFinish. */
   (*arena->class->finish)(arena);
@@ -429,6 +449,7 @@ Res ControlInit(Arena arena)
   Res res;
 
   AVERT(Arena, arena);
+  AVER(!arena->poolReady);
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, CONTROL_EXTEND_BY);
     res = PoolInit(MVPool(&arena->controlPoolStruct), arena,
@@ -446,6 +467,7 @@ Res ControlInit(Arena arena)
 void ControlFinish(Arena arena)
 {
   AVERT(Arena, arena);
+  AVER(arena->poolReady);
   arena->poolReady = FALSE;
   PoolFinish(MVPool(&arena->controlPoolStruct));
 }
