@@ -41,17 +41,30 @@ Requirements
 
 _`.req.stack.top`: Must locate the top of the mutator's stack. (This
 is needed for conservative garbage collection of uncooperative code,
-where references might be stored by mutator on its stack, to work.)
+where references might be stored by mutator on its stack.)
 
 _`.req.stack.bottom.not`: There is no requirement to locate the bottom
 of the stack. (The mutator supplies this as an argument to
 ``mps_root_create_reg()``.)
 
+_`.req.stack.platform`: Must implement the platform's stack
+conventions.
+
+_`.req.stack.platform.full-empty`: The implementation must take into
+account whether the stack is *full* (the stack pointer points to the
+last full location) or *empty* (the stack pointer points to the
+first empty location).
+
+_`.req.stack.platform.desc-asc`: The implementation must take into
+account whether the stack is *descending* (top of stack is at a lower
+address than bottom of stack) or *ascending* (top of stack is at a
+higher address than bottom of stack).
+
 _`.req.registers`: Must locate and scan all references in the
 mutator's *root registers*, the subset of registers which might
 contain references that do not also appear on the stack. (This is
 needed for conservative garbage collection of uncooperative code,
-where references might appear in registers, to work.)
+where references might appear in registers.)
 
 _`.req.entry`: Should save the mutator's context (stack and registers)
 at the point where it enters the MPS. (This avoids scanning registers
@@ -72,7 +85,9 @@ Design
 ------
 
 _`.sol.entry-points`: To meet `.req.stack.entry`_, the mutator's
-registers and stack must be recorded when the mutator enters the MPS.
+registers and stack must be recorded when the mutator enters the MPS,
+if there is a possibility that the MPS might need to know the mutator
+context.
 
 _`.sol.entry-points.fragile`: The analysis of which entry points might
 need to save the context (see `.anal.entry-points`_ below) is fragile.
@@ -93,24 +108,33 @@ been spilled onto the stack by the time the MPS is entered, so will be
 scanned by the stack scan. Floating-point registers and debugging
 registers do not, as far as we are aware, contain pointers.
 
-_`.sol.setjmp`: The C standard specifies that ``jmp_buf``
-"is an array type suitable for holding the information needed to
-restore a calling environment. The environment of a call to the
-``setjmp`` macro consists of information sufficient for a call to the
-``longjmp`` function to return execution to the correct block and
-invocation of that block, were it called recursively." This is what we
-need: the jump buffer needs to include the root registers in order to
-work as described. (A sufficiently perverse implementation could
-defeat this, but it works on all our supported platforms.)
+_`.sol.setjmp`: The values in callee-save registers can be found by
+calling ``setjmp`` and scanning the ``jmp_buf``.
 
-_`.sol.setjmp.scan`: An implementation can decode the jump
-buffer and scan just the root registers, or it can conservatively scan
-the whole of the jump buffer.
+_`.sol.setjmp.scan`: An implementation can decode the jump buffer and
+scan just the root registers, or it can conservatively scan the whole
+of the jump buffer.
+
+_`.sol.setjmp.justify`: The C standard specifies that ``jmp_buf`` "is
+an array type suitable for holding the information needed to restore a
+calling environment. The environment of a call to the ``setjmp`` macro
+consists of information sufficient for a call to the ``longjmp``
+function to return execution to the correct block and invocation of
+that block, were it called recursively." We believe that any
+reasonable implementation of ``setjmp`` must copy the callee-save
+registers into the ``jmp_buf`` in order to work as described.
+Otherwise, once the callee-save registers have been overwritten by
+other function calls, a ``longjmp`` would result in the callee-save
+registers having the wrong values.
 
 _`.sol.stack.top`: Similarly, an implementation can decode the jump
 buffer and get the top of the mutator's stack from the stack pointer
 register, or it can conservatively use the address of a local variable
 in the entry point to the MPS.
+
+_`.sol.stack.platform`: As of version 1.115, all supported platforms
+are *full* and *descending* so the implementation in ``StackScan``
+assumes this. New platforms must check this assumption.
 
 _`.sol.xc.alternative`: On OS X, we could use ``getcontext()`` from
 libunwind (see here_), but that produces deprecation warnings and
@@ -176,9 +200,9 @@ sources at changelevel 187410) showing which entry points might call
                      │       └ArenaCollect
                      │         └mps_arena_collect
                      └TraceStartCollectAll
-                       ├ArenaStep ⤴
-                       ├ArenaStartCollect ⤴
-                       └TracePoll ⤴
+                       ├ArenaStep [see above]
+                       ├ArenaStartCollect [see above]
+                       └TracePoll [see above]
 
 So the entry points that need to save the stack context are
 ``mps_arena_step()``, ``mps_alloc()``, ``mps_ap_fill()``,
@@ -212,6 +236,8 @@ Return ``ResOK`` if successful, or another result code if not. See the
 platform-specific implementation of ``StackContextScan()`` for the
 exact registers which are scanned.
 
+_`.if.scan.begin-end`: This function must be called between ``STACK_CONTEXT_BEGIN()`` and ``STACK_CONTEXT_END()``.
+
 ``STACK_CONTEXT_SAVE(StackContext sc)``
 
 _`.if.save`: Store the mutator context in the structure ``sc``.
@@ -227,8 +253,8 @@ violation of design.mps.config.no-spaghetti_.
 
 ``STACK_CONTEXT_BEGIN(Arena arena)``
 
-_`.if.begin`: Start an MPS operation that needs to know the mutator
-context. This macro must be used like this::
+_`.if.begin`: Start an MPS operation that may need to know the mutator
+context (see .sol.entry-points). This macro must be used like this::
 
     Res res;
     STACK_CONTEXT_BEGIN(arena) {
@@ -257,8 +283,9 @@ Implementations
 
 _`.impl.an`: Generic implementation in ``ssan.c``. Since the C
 standard does not specify where the callee-save registers appear in
-the jump buffer, the whole buffer must be scanned, and the top of the
-stack must be taken conservatively from a local variable.
+the jump buffer, the whole buffer must be scanned (see
+`.sol.setjmp.scan`_), and the top of the stack must be taken
+conservatively from a local variable.
 
 _`.impl.w3`: Windows implementation in ``ssw3i3mv.c`` and
 ``ssw3i6mv.c``. We know the layout of the jump buffer used by the

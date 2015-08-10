@@ -8,12 +8,15 @@
  *
  * This is a generic implementation, but it makes assumptions that,
  * while true on all the platforms we currently (version 1.115)
- * support, may not be true on all platforms.
+ * support, may not be true on all platforms. See
+ * <design/ss/#sol.platform>.
  * 
- * .assume.down: The stack grows downwards.
+ * .assume.desc: The stack is descending (and so stackTop is a lower
+ * address than stackBot).
  *
- * .assume.bottom: There is no need to scan the word pointed to by
- * stackBot.
+ * .assume.empty: The stack convention is "full" (and so we must scan
+ * the word pointed to by stackTop but not the word pointed to by
+ * stackBot).
  *
  * .assume.align: Addresses on the stack are aligned to sizeof(Addr).
  */
@@ -57,12 +60,12 @@ Res StackScan(ScanState ss, Addr *stackBot)
   AVERT(ScanState, ss);
   arena = ss->arena;
 
-  /* See <design/ss/#sol.entry-points.fragile> */
-  AVER(arena->scAtArenaEnter);
+  AVER(arena->scAtArenaEnter != NULL);
   if (arena->scAtArenaEnter) {
     res = stackScanInner(arena, ss, stackBot, arena->scAtArenaEnter);
   } else {
-    /* Somehow missed saving the context at the entry point: do it now. */
+    /* Somehow missed saving the context at the entry point (see
+     * <design/ss/#sol.entry-points.fragile>): do it now. */
     StackContextStruct sc;
     STACK_CONTEXT_SAVE(&sc);
     res = stackScanInner(arena, ss, stackBot, &sc);
