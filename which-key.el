@@ -868,17 +868,18 @@ BUFFER that follow the key sequence KEY-SEQ."
   (let ((key-str-qt (regexp-quote (key-description which-key--current-prefix)))
         (buffer (current-buffer))
         key-match desc-match unformatted)
-    (with-temp-buffer
-      (describe-buffer-bindings buffer which-key--current-prefix)
-      (goto-char (point-max)) ; want to put last keys in first
-      (while (re-search-backward
-              (format "^%s \\([^ \t]+\\)[ \t]+\\(\\(?:[^ \t\n]+ ?\\)+\\)$"
-                      key-str-qt)
-              nil t)
-        (setq key-match (match-string 1)
-              desc-match (match-string 2))
-        (cl-pushnew (cons key-match desc-match) unformatted
-                    :test (lambda (x y) (string-equal (car x) (car y))))))
+    (save-match-data
+      (with-temp-buffer
+        (describe-buffer-bindings buffer which-key--current-prefix)
+        (goto-char (point-max)) ; want to put last keys in first
+        (while (re-search-backward
+                (format "^%s \\([^ \t]+\\)[ \t]+\\(\\(?:[^ \t\n]+ ?\\)+\\)$"
+                        key-str-qt)
+                nil t)
+          (setq key-match (match-string 1)
+                desc-match (match-string 2))
+          (cl-pushnew (cons key-match desc-match) unformatted
+                      :test (lambda (x y) (string-equal (car x) (car y)))))))
     (when which-key-sort-order
       (setq unformatted
             (sort unformatted (lambda (a b) (funcall which-key-sort-order a b)))))
