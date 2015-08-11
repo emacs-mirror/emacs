@@ -16,7 +16,7 @@ Interface changes
    name :c:type:`mps_class_t` is still available via a ``typedef``,
    but is deprecated.
 
-#. The :ref:`pool-snc` pool class now implements the
+#. The :ref:`pool-snc` pool class now implements
    :c:func:`mps_pool_total_size` and :c:func:`mps_pool_free_size`.
 
 
