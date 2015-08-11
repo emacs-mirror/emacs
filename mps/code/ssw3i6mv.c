@@ -18,8 +18,8 @@
  * <http://msdn.microsoft.com/en-us/library/9z1stfyw%28v=vs.100%29.aspx>.
  *
  * "Calling conventions for different C++ compilers and operating systems";
- * Agner Fog; Copenhagen University College of Engineering; 2012-02-29;
- * <http://agner.org./optimize/calling_conventions.pdf>.
+ * Agner Fog; Copenhagen University College of Engineering; 2014-08-07;
+ * <http://agner.org/optimize/calling_conventions.pdf>.
  */
 
 #include "mpm.h"
