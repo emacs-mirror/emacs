@@ -13,7 +13,7 @@ From the test directory::
 
     PLATFORM=lii6ll # substitute your platform
     CODE=../code # code directory of the branch you are testing
-    make -C $CODE -f $PLATFORM.gmk VARIETY=cool $PLATFORM/cool/mps.o
+    make -B -C $CODE -f $PLATFORM.gmk VARIETY=cool $PLATFORM/cool/mps.o
     alias qa="perl test/qa -i $CODE -l $CODE/$PLATFORM/cool/mps.o"
     qa clib
     qa run function/5.c
