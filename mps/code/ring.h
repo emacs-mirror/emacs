@@ -30,7 +30,7 @@ typedef struct RingStruct {     /* double-ended queue structure */
 extern Bool RingCheck(Ring ring);
 extern Bool RingCheckSingle(Ring ring);
 extern Bool RingIsSingle(Ring ring);
-extern Size RingLength(Ring ring);
+extern Count RingLength(Ring ring);
 
 /* .ring.init: See <design/ring/#init> */
 extern void (RingInit)(Ring ring);
