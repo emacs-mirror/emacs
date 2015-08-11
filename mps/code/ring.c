@@ -65,14 +65,14 @@ Bool RingIsSingle(Ring ring)
  * See <design/ring/#length>
  */
 
-Size RingLength(Ring ring)
+Count RingLength(Ring ring)
 {
-  Size size = 0;
+  Count length = 0;
   Ring node, next;
   AVERT(Ring, ring);
   RING_FOR(node, ring, next)
-    ++ size;
-  return size;
+    ++ length;
+  return length;
 }
 
 
