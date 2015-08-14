@@ -210,13 +210,15 @@ SEQ can be a list, vector or string."
      (car list)
      (stream-list (cdr list)))))
 
+
 (defun stream-buffer (buffer-or-name &optional pos)
   "Return a stream of the characters of the buffer BUFFER-OR-NAME.
 BUFFER-OR-NAME may be a buffer or a string (buffer name).
 The sequence starts at POS if non-nil, 1 otherwise."
-  (unless pos (setq pos 1))
-  (if (>= pos (point-max))
-      (stream-empty)
+  (with-current-buffer buffer-or-name
+    (unless pos (setq pos (point-min)))
+    (if (>= pos (point-max))
+        (stream-empty))
     (stream-cons
      (with-current-buffer buffer-or-name
        (save-excursion
