@@ -54,6 +54,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
+(require 'seq)
 
 (eval-and-compile
   (defconst stream--identifier '--stream--
