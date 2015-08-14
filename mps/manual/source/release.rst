@@ -12,6 +12,11 @@ Release 1.115.0
 New features
 ............
 
+#. When creating an :ref:`pool-amc` pool, :c:func:`mps_pool_create_k`
+   accepts the new keyword argument :c:macro:`MPS_KEY_EXTEND_BY`,
+   specifying the minimum size of the memory segments that the pool
+   requests from the :term:`arena`.
+
 #. The function :c:func:`mps_arena_create_k` accepts two new
    :term:`keyword arguments`. :c:macro:`MPS_KEY_ARENA_COMMIT_LIMIT`
    sets the :term:`commit limit` for the arena, and
@@ -48,6 +53,30 @@ Other changes
    :term:`client arenas`. See job001887_.
 
    .. _job001887: https://www.ravenbrook.com/project/mps/issue/job001887/
+
+#. :ref:`pool-amc` pools now assert that exact references into the
+   pool are aligned to the pool's alignment. See job002175_.
+
+   .. _job002175: https://www.ravenbrook.com/project/mps/issue/job002175/
+
+#. Internal calculation of the address space available to the MPS no
+   longer takes time proportional to the number of times the arena has
+   been extended, speeding up allocation when memory is tight. See
+   job003814_.
+
+   .. _job003814: https://www.ravenbrook.com/project/mps/issue/job003814/
+
+#. Setting :c:macro:`MPS_KEY_SPARE` for a :ref:`pool-mvff` pool now
+   works. See job003870_.
+   
+   .. _job003870: https://www.ravenbrook.com/project/mps/issue/job003870/
+
+#. When the arena is out of memory and cannot be extended without
+   hitting the :term:`commit limit`, the MPS now returns
+   :c:macro:`MPS_RES_COMMIT_LIMIT` rather than substituting
+   :c:macro:`MPS_RES_RESOURCE`. See job003899_.
+   
+   .. _job003899: https://www.ravenbrook.com/project/mps/issue/job003899/
 
 
 .. _release-notes-1.114:
@@ -180,8 +209,8 @@ Other changes
 
 #. Allocation into :ref:`pool-awl` pools again reliably provokes
    garbage collections of the generation that the pool belongs to. (In
-   release 1.113.0, the generation would only be collected if a pool
-   of some other class allocated into it.) See job003772_.
+   version 1.113, the generation would only be collected if a pool of
+   some other class allocated into it.) See job003772_.
 
    .. _job003772: https://www.ravenbrook.com/project/mps/issue/job003772/
 
@@ -193,12 +222,20 @@ Other changes
    .. _job003773: https://www.ravenbrook.com/project/mps/issue/job003773/
 
 #. The :ref:`pool-mvt` and :ref:`pool-mvff` pool classes are now
-   around 25% faster (in our benchmarks) than they were in release
-   1.113.0.
+   around 25% faster (in our benchmarks) than they were in version
+   1.113.
 
 #. The default assertion handler in the default :term:`plinth` now
    flushes the telemetry stream before aborting. See
    :c:func:`mps_lib_assert_fail`.
+
+#. Garbage collection performance is substantially improved in the
+   situation where the arena has been extended many times. Critical
+   operations now take time logarithmic in the number of times the
+   arena has been extended (rather than linear, as in version 1.113
+   and earlier). See job003554_.
+
+   .. _job003554: https://www.ravenbrook.com/project/mps/issue/job003554/
 
 
 .. _release-notes-1.113:
