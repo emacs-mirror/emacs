@@ -74,6 +74,19 @@
 (defun stream--force (delayed)
   "Force the evaluation of DELAYED."
   (funcall delayed))
+
+(defmacro stream-make (&rest body)
+  "Return a stream built from BODY.
+BODY must return nil or a cons cell, which cdr is itself a
+stream."
+  (declare (debug t))
+  `(list ',stream--identifier (stream--delay ,@body)))
+
+(defmacro stream-cons (first rest)
+  "Return a stream built from the cons of FIRST and REST.
+FIRST and REST are forms and REST must return a stream."
+  (declare (debug t))
+  `(stream-make (cons ,first ,rest)))
 
 
 ;;; Convenient functions for creating streams
@@ -128,19 +141,6 @@ range is infinite."
      start
      (stream-range (+ start step) end step))))
 
-
-(defmacro stream-make (&rest body)
-  "Return a stream built from BODY.
-BODY must return nil or a cons cell, which cdr is itself a
-stream."
-  (declare (debug t))
-  `(list ',stream--identifier (stream--delay ,@body)))
-
-(defmacro stream-cons (first rest)
-  "Return a stream built from the cons of FIRST and REST.
-FIRST and REST are forms and REST must return a stream."
-  (declare (debug t))
-  `(stream-make (cons ,first ,rest)))
 
 (defun stream-p (stream)
   "Return non-nil if STREAM is a stream, nil otherwise."
