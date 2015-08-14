@@ -74,8 +74,8 @@ available, only language facilities.
 _`.int.free.lib`: We assume that the headers ``<float.h>``,
 ``<limits.h>``, ``<stdarg.h>`` and ``<stddef.h>`` are available in the
 freestanding environment, because they define only language features
-and not library calls. We assume that we may not make use of any other
-definitions if freestanding parts of the system.
+and not library calls. We assume that we may not make use of
+definitions in any other headers in freestanding parts of the system.
 
 _`.int.free.term`: We may not terminate the program in a freestanding
 environment, and therefore we may not call :c:func:`abort`. We can't
@@ -149,7 +149,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 1996-2014 Ravenbrook Limited. All rights reserved.
+Copyright © 1996-2015 Ravenbrook Limited. All rights reserved.
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
