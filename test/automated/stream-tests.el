@@ -111,7 +111,7 @@
 
 (ert-deftest stream-list-test ()
   (dolist (list '(nil '(1 2 3) '(a . b)))
-    (should (equal list (stream-to-list (stream-list list))))))
+    (should (equal list (stream-to-list (stream list))))))
 
 (provide 'stream-tests)
 ;;; stream-tests.el ends here

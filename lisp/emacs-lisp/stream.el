@@ -53,9 +53,11 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
+
 (eval-and-compile
   (defconst stream--identifier '--stream--
-   "Symbol internally used to identify streams."))
+    "Symbol internally used to identify streams."))
 
 (defmacro stream--delay (&rest body)
   "Delay the evaluation of BODY."
@@ -72,6 +74,60 @@
 (defun stream--force (delayed)
   "Force the evaluation of DELAYED."
   (funcall delayed))
+
+
+;;; Convenient functions for creating streams
+
+(cl-defgeneric stream (src)
+  "Return a new stream from SRC.")
+
+(cl-defmethod stream ((seq sequence))
+  "Return a stream built from the sequence SEQ.
+SEQ can be a list, vector or string."
+  (if (seq-empty-p seq)
+      (stream-empty)
+    (stream-cons
+     (seq-elt seq 0)
+     (stream (seq-subseq seq 1)))))
+
+(cl-defmethod stream ((list list))
+  "Return a stream built from the list LIST."
+  (if (null list)
+      (stream-empty)
+    (stream-cons
+     (car list)
+     (stream (cdr list)))))
+
+(cl-defmethod stream ((buffer buffer) &optional pos)
+  "Return a stream of the characters of the buffer BUFFER.
+BUFFER-OR-NAME may be a buffer or a string (buffer name).
+The sequence starts at POS if non-nil, 1 otherwise."
+  (with-current-buffer buffer
+    (unless pos (setq pos (point-min)))
+    (if (>= pos (point-max))
+        (stream-empty))
+    (stream-cons
+     (with-current-buffer buffer
+       (save-excursion
+         (save-restriction
+           (widen)
+           (goto-char pos)
+           (char-after (point)))))
+     (stream buffer (1+ pos)))))
+
+(defun stream-range (&optional start end step)
+  "Return a stream of the integers from START to END, stepping by STEP.
+If START is nil, it defaults to 0. If STEP is nil, it defaults to
+1.  START is inclusive and END is exclusive.  If END is nil, the
+range is infinite."
+  (unless start (setq start 0))
+  (unless step (setq step 1))
+  (if (equal start end)
+      (stream-empty)
+    (stream-cons
+     start
+     (stream-range (+ start step) end step))))
+
 
 (defmacro stream-make (&rest body)
   "Return a stream built from BODY.
@@ -129,8 +185,8 @@ FIRST and REST are forms and REST must return a stream."
   "Return a stream of the successive elements for which (PRED elt) is non-nil in STREAM."
   (stream-make
    (when (funcall pred (stream-first stream))
-       (cons (stream-first stream)
-             (stream-take-while pred (stream-rest stream))))))
+     (cons (stream-first stream)
+           (stream-take-while pred (stream-rest stream))))))
 
 (defun stream-drop-while (pred stream)
   "Return a stream from the first element for which (PRED elt) is nil in STREAM."
@@ -172,61 +228,6 @@ of FUNCTION to each element of STREAM."
          nil
        (cons (stream-first stream)
              (stream-filter pred (stream-rest stream)))))))
-
-
-;;; Convenient functions for creating streams
-
-(defun stream-range (&optional start end step)
-  "Return a stream of the integers from START to END, stepping by STEP.
-If START is nil, it defaults to 0. If STEP is nil, it defaults to
-1.  START is inclusive and END is exclusive.  If END is nil, the
-range is infinite."
-  (unless start (setq start 0))
-  (unless step (setq step 1))
-  (if (equal start end)
-      (stream-empty)
-    (stream-cons
-     start
-     (stream-range (+ start step) end step))))
-
-(defun stream-seq (seq)
-  "Return a stream built from the sequence SEQ.
-SEQ can be a list, vector or string."
-  (cond
-   ((listp seq)
-    (stream-list seq))
-   ((seq-empty-p seq)
-    (stream-empty))
-   (t
-    (stream-cons
-     (seq-elt seq 0)
-     (stream-seq (seq-subseq seq 1))))))
-
-(defun stream-list (list)
-  "Return a stream built from the list LIST."
-  (if (null list)
-      (stream-empty)
-    (stream-cons
-     (car list)
-     (stream-list (cdr list)))))
-
-
-(defun stream-buffer (buffer-or-name &optional pos)
-  "Return a stream of the characters of the buffer BUFFER-OR-NAME.
-BUFFER-OR-NAME may be a buffer or a string (buffer name).
-The sequence starts at POS if non-nil, 1 otherwise."
-  (with-current-buffer buffer-or-name
-    (unless pos (setq pos (point-min)))
-    (if (>= pos (point-max))
-        (stream-empty))
-    (stream-cons
-     (with-current-buffer buffer-or-name
-       (save-excursion
-         (save-restriction
-           (widen)
-           (goto-char pos)
-           (char-after (point)))))
-     (stream-buffer buffer-or-name (1+ pos)))))
 
 (provide 'stream)
 ;;; stream.el ends here
