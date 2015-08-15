@@ -118,6 +118,15 @@ same way using the alist matched when `major-mode' is
 emacs-lisp-mode."
 :group 'which-key)
 
+(defcustom which-key-prefix-title-alist '()
+  "An alist with elements f the form (key-sequence . prefix-title).
+key-sequence and prefix-title are both strings. key-sequence is a
+string suitable for calling the `kbd' function on. The title is
+displayed alongside the actual current key sequence when
+`which-key-show-prefix' is set to either top or echo."
+  :group 'which-key
+  :type '(alist :key-type string :value-type string))
+
 (defcustom which-key-special-keys '("SPC" "TAB" "RET" "ESC" "DEL")
   "These keys will automatically be truncated to one character
 and have `which-key-special-key-face' applied to them."
@@ -1024,9 +1033,15 @@ enough space based on your settings and frame size." prefix-keys)
              (dash-w-face (propertize "-" 'face 'which-key-key-face))
              (status-left (propertize (format "%s/%s" (1+ page-n) n-pages)
                                       'face 'which-key-separator-face))
-             (status-top (when (< 1 n-pages)
-                           (propertize (format "(%s of %s)" (1+ page-n) n-pages)
-                                       'face 'which-key-note-face)))
+             (status-top (when (assoc prefix-keys which-key-prefix-title-alist)
+                           (propertize
+                             (cdr (assoc prefix-keys which-key-prefix-title-alist))
+                             'face 'which-key-note-face)))
+             (status-top (concat status-top
+                                 (when (< 1 n-pages)
+                                   (propertize (format " (%s of %s)"
+                                                       (1+ page-n) n-pages)
+                                               'face 'which-key-note-face))))
              (first-col-width (+ 2 (max (string-width prefix-w-face)
                                         (string-width status-left))))
              (prefix-left (s-pad-right first-col-width " " prefix-w-face))
@@ -1062,10 +1077,10 @@ enough space based on your settings and frame size." prefix-keys)
                        new-end (concat "\n" (s-repeat first-col-width " "))
                        page  (concat first (mapconcat #'identity (cdr lines) new-end)))))
               ((eq which-key-show-prefix 'top)
-               (setq page (concat prefix-w-face dash-w-face "  "
+               (setq page (concat prefix-w-face dash-w-face " "
                                   status-top " " nxt-pg-hint "\n" page)))
               ((eq which-key-show-prefix 'echo)
-               (which-key--echo (concat prefix-w-face dash-w-face "  "
+               (which-key--echo (concat prefix-w-face dash-w-face " "
                                         status-top " " nxt-pg-hint))))
         (which-key--lighter-status n-shown n-tot)
         (if (eq which-key-popup-type 'minibuffer)
