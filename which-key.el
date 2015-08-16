@@ -120,10 +120,11 @@ emacs-lisp-mode."
 
 (defcustom which-key-prefix-title-alist '()
   "An alist with elements of the form (key-sequence . prefix-title).
-key-sequence is a sequence of the sort produced by `kbd'.
-prefix-title is a both string. The title is displayed alongside
-the actual current key sequence when `which-key-show-prefix' is
-set to either top or echo."
+key-sequence is a sequence of the sort produced by applying `kbd'
+then `listify-key-sequence' to create a canonical version of the
+key sequence. prefix-title is a string. The title is displayed
+alongside the actual current key sequence when
+`which-key-show-prefix' is set to either top or echo."
   :group 'which-key
   :type '(alist :key-type string :value-type string))
 
@@ -1033,10 +1034,10 @@ enough space based on your settings and frame size." prefix-keys)
              (dash-w-face (propertize "-" 'face 'which-key-key-face))
              (status-left (propertize (format "%s/%s" (1+ page-n) n-pages)
                                       'face 'which-key-separator-face))
-             (status-top (when (assoc which-key--current-prefix
+             (status-top (when (assoc (listify-key-sequence which-key--current-prefix)
                                       which-key-prefix-title-alist)
                            (propertize
-                            (cdr (assoc which-key--current-prefix
+                            (cdr (assoc (listify-key-sequence which-key--current-prefix)
                                         which-key-prefix-title-alist))
                              'face 'which-key-note-face)))
              (status-top (concat status-top
