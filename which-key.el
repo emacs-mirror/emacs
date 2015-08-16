@@ -478,6 +478,19 @@ addition KEY-SEQUENCE REPLACEMENT pairs) to apply."
         (setcdr (assq mode which-key-key-based-description-replacement-alist) mode-alist)
       (push (cons mode mode-alist) which-key-key-based-description-replacement-alist))))
 
+;;;###autoload
+(defun which-key-add-prefix-title (key-seq-str name &optional force)
+  "Add title for KEY-SEQ-STR given by TITLE.
+FORCE, if non-nil, will add the new title even if one already
+exists. KEY-SEQ-STR should be a key sequence string suitable for
+`kbd' and NAME should be a string."
+  (interactive)
+  (let ((key-seq-lst (listify-key-sequence (kbd key-seq-str))))
+    (if (and (null force)
+             (assoc key-seq-lst which-key-prefix-title-alist))
+        (message "which-key: Prefix title not added. A title exists for this prefix.")
+      (push (cons key-seq-lst name) which-key-prefix-title-alist))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions for computing window sizes
 
