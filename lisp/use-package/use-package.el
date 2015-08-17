@@ -910,7 +910,7 @@ deferred until the prefix key sequence is pressed."
              config-body)
           `((if (not ,(use-package-load-name name t))
                 (ignore
-                 (message (format "Could not load %s" name)))
+                 (message (format "Could not load %s" ',name)))
               ,@config-body)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
