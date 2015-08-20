@@ -660,6 +660,7 @@ extern Res ArenaNoExtend(Arena arena, Addr base, Size size);
 
 extern Res PolicyAlloc(Tract *tractReturn, Arena arena, LocusPref pref,
                        Size size, Pool pool);
+extern Bool PolicyStartTrace(Trace *traceReturn, Arena arena);
 
 
 /* Locus interface */
