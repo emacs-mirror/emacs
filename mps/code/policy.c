@@ -112,6 +112,87 @@ found:
 }
 
 
+/* PolicyStartTrace -- consider starting a trace
+ *
+ * If a trace was started, update *traceReturn and return TRUE.
+ * Otherwise, leave *traceReturn unchanged and return FALSE.
+ */
+
+Bool PolicyStartTrace(Trace *traceReturn, Arena arena)
+{
+  Res res;
+  Trace trace;
+  Size sFoundation, sCondemned, sSurvivors, sConsTrace;
+  double tTracePerScan; /* tTrace/cScan */
+  double dynamicDeferral;
+
+  /* Compute dynamic criterion.  See strategy.lisp-machine. */
+  AVER(arena->topGen.mortality >= 0.0);
+  AVER(arena->topGen.mortality <= 1.0);
+  sFoundation = (Size)0; /* condemning everything, only roots @@@@ */
+  /* @@@@ sCondemned should be scannable only */
+  sCondemned = ArenaCommitted(arena) - ArenaSpareCommitted(arena);
+  sSurvivors = (Size)(sCondemned * (1 - arena->topGen.mortality));
+  tTracePerScan = sFoundation + (sSurvivors * (1 + TraceCopyScanRATIO));
+  AVER(TraceWorkFactor >= 0);
+  AVER(sSurvivors + tTracePerScan * TraceWorkFactor <= (double)SizeMAX);
+  sConsTrace = (Size)(sSurvivors + tTracePerScan * TraceWorkFactor);
+  dynamicDeferral = (double)ArenaAvail(arena) - (double)sConsTrace;
+
+  if (dynamicDeferral < 0.0) {
+    /* Start full collection. */
+    res = TraceStartCollectAll(&trace, arena, TraceStartWhyDYNAMICCRITERION);
+    if (res != ResOK)
+      goto failStart;
+    *traceReturn = trace;
+    return TRUE;
+  } else {
+    /* Find the chain most over its capacity. */
+    Ring node, nextNode;
+    double firstTime = 0.0;
+    Chain firstChain = NULL;
+
+    RING_FOR(node, &arena->chainRing, nextNode) {
+      Chain chain = RING_ELT(Chain, chainRing, node);
+      double time;
+
+      AVERT(Chain, chain);
+      time = ChainDeferral(chain);
+      if (time < firstTime) {
+        firstTime = time; firstChain = chain;
+      }
+    }
+
+    /* If one was found, start collection on that chain. */
+    if(firstTime < 0) {
+      double mortality;
+
+      res = TraceCreate(&trace, arena, TraceStartWhyCHAIN_GEN0CAP);
+      AVER(res == ResOK);
+      res = ChainCondemnAuto(&mortality, firstChain, trace);
+      if (res != ResOK) /* should try some other trace, really @@@@ */
+        goto failCondemn;
+      trace->chain = firstChain;
+      ChainStartGC(firstChain, trace);
+      res = TraceStart(trace, mortality, trace->condemned * TraceWorkFactor);
+      /* We don't expect normal GC traces to fail to start. */
+      AVER(res == ResOK);
+      *traceReturn = trace;
+      return TRUE;
+    }
+  } /* (dynamicDeferral > 0.0) */
+  return FALSE;
+
+failCondemn:
+  TraceDestroy(trace);
+  /* This is an unlikely case, but clear the emergency flag so the next attempt
+     starts normally. */
+  ArenaSetEmergency(arena, FALSE);
+failStart:
+  return FALSE;
+}
+
+
 /* C. COPYRIGHT AND LICENSE
  *
  * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
