@@ -9,6 +9,7 @@
  * .sources: <design/strategy/>.
  */
 
+#include "chain.h"
 #include "mpm.h"
 
 SRCID(policy, "$Id$");
@@ -112,6 +113,70 @@ found:
 }
 
 
+/* policyCondemnChain -- condemn approriate parts of this chain
+ *
+ * This is only called if ChainDeferral returned a value sufficiently
+ * low that the tracer decided to start the collection.  (Usually
+ * such values are less than zero; see <design/trace/>)
+ */
+
+static Res policyCondemnChain(double *mortalityReturn, Chain chain, Trace trace)
+{
+  Res res;
+  size_t topCondemnedGen, i;
+  GenDesc gen;
+  ZoneSet condemnedSet = ZoneSetEMPTY;
+  Size condemnedSize = 0, survivorSize = 0, genNewSize, genTotalSize;
+
+  AVERT(Chain, chain);
+  AVERT(Trace, trace);
+
+  /* Find the highest generation that's over capacity. We will condemn
+   * this and all lower generations in the chain. */
+  topCondemnedGen = chain->genCount;
+  for (;;) {
+    /* It's an error to call this function unless some generation is
+     * over capacity as reported by ChainDeferral. */
+    AVER(topCondemnedGen > 0);
+    if (topCondemnedGen == 0)
+      return ResFAIL;
+    -- topCondemnedGen;
+    gen = &chain->gens[topCondemnedGen];
+    AVERT(GenDesc, gen);
+    genNewSize = GenDescNewSize(gen);
+    if (genNewSize >= gen->capacity * (Size)1024)
+      break;
+  }
+
+  /* At this point, we've decided to condemn topCondemnedGen and all
+   * lower generations. */
+  for (i = 0; i <= topCondemnedGen; ++i) {
+    gen = &chain->gens[i];
+    AVERT(GenDesc, gen);
+    condemnedSet = ZoneSetUnion(condemnedSet, gen->zones);
+    genTotalSize = GenDescTotalSize(gen);
+    genNewSize = GenDescNewSize(gen);
+    condemnedSize += genTotalSize;
+    survivorSize += (Size)(genNewSize * (1.0 - gen->mortality))
+                    /* predict survivors will survive again */
+                    + (genTotalSize - genNewSize);
+  }
+  
+  AVER(condemnedSet != ZoneSetEMPTY || condemnedSize == 0);
+  EVENT3(ChainCondemnAuto, chain, topCondemnedGen, chain->genCount);
+  
+  /* Condemn everything in these zones. */
+  if (condemnedSet != ZoneSetEMPTY) {
+    res = TraceCondemnZones(trace, condemnedSet);
+    if (res != ResOK)
+      return res;
+  }
+
+  *mortalityReturn = 1.0 - (double)survivorSize / condemnedSize;
+  return ResOK;
+}
+
+
 /* PolicyStartTrace -- consider starting a trace
  *
  * If a trace was started, update *traceReturn and return TRUE.
@@ -169,7 +234,7 @@ Bool PolicyStartTrace(Trace *traceReturn, Arena arena)
 
       res = TraceCreate(&trace, arena, TraceStartWhyCHAIN_GEN0CAP);
       AVER(res == ResOK);
-      res = ChainCondemnAuto(&mortality, firstChain, trace);
+      res = policyCondemnChain(&mortality, firstChain, trace);
       if (res != ResOK) /* should try some other trace, really @@@@ */
         goto failCondemn;
       trace->chain = firstChain;
