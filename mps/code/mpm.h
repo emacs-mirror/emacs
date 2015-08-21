@@ -623,8 +623,9 @@ extern void ArenaSetSpareCommitLimit(Arena arena, Size limit);
 extern Size ArenaNoPurgeSpare(Arena arena, Size size);
 extern Res ArenaNoGrow(Arena arena, LocusPref pref, Size size);
 
-extern double ArenaMutatorAllocSize(Arena arena);
 extern Size ArenaAvail(Arena arena);
+extern Size ArenaCollectable(Arena arena);
+extern Size ArenaScannable(Arena arena);
 
 extern Res ArenaExtend(Arena, Addr base, Size size);
 
@@ -661,6 +662,7 @@ extern Res ArenaNoExtend(Arena arena, Addr base, Size size);
 extern Res PolicyAlloc(Tract *tractReturn, Arena arena, LocusPref pref,
                        Size size, Pool pool);
 extern Bool PolicyStartTrace(Trace *traceReturn, Arena arena);
+extern double PolicyCollectionTime(Arena arena);
 
 
 /* Locus interface */

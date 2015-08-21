@@ -258,6 +258,29 @@ failStart:
 }
 
 
+/* PolicyCollectionTime -- estimate time to collect the world, in seconds */
+
+double PolicyCollectionTime(Arena arena)
+{
+  Size collectableSize;
+  double collectionRate;
+  double collectionTime;
+  
+  AVERT(Arena, arena);
+
+  collectableSize = ArenaCollectable(arena);
+  if (arena->tracedSize >= ARENA_MINIMUM_COLLECTABLE_SIZE
+      && arena->tracedTime > 0)
+    collectionRate = arena->tracedSize / arena->tracedTime;
+  else
+    collectionRate = ARENA_DEFAULT_COLLECTION_RATE;
+  collectionTime = collectableSize / collectionRate;
+  collectionTime += ARENA_DEFAULT_COLLECTION_OVERHEAD;
+
+  return collectionTime;
+}
+
+
 /* C. COPYRIGHT AND LICENSE
  *
  * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.

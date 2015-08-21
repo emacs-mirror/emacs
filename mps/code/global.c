@@ -765,36 +765,24 @@ static Bool arenaShouldCollectWorld(Arena arena,
                                     Clock now,
                                     Clock clocks_per_sec)
 {
-  double scanRate;
-  Size arenaSize;
-  double arenaScanTime;
-  double sinceLastWorldCollect;
-
   /* don't collect the world if we're not given any time */
   if ((interval > 0.0) && (multiplier > 0.0)) {
     /* don't collect the world if we're already collecting. */
     if (arena->busyTraces == TraceSetEMPTY) {
       /* don't collect the world if it's very small */
-      arenaSize = ArenaCommitted(arena) - ArenaSpareCommitted(arena);
-      if (arenaSize > 1000000) {
+      Size collectableSize = ArenaCollectable(arena);
+      if (collectableSize > ARENA_MINIMUM_COLLECTABLE_SIZE) {
         /* how long would it take to collect the world? */
-        if ((arena->tracedSize > 1000000.0) &&
-            (arena->tracedTime > 1.0))
-          scanRate = arena->tracedSize / arena->tracedTime;
-        else
-          scanRate = 25000000.0; /* a reasonable default. */
-        arenaScanTime = arenaSize / scanRate;
-        arenaScanTime += 0.1;   /* for overheads. */
+        double collectionTime = PolicyCollectionTime(arena);
 
         /* how long since we last collected the world? */
-        sinceLastWorldCollect = ((now - arena->lastWorldCollect) /
-                                 (double) clocks_per_sec);
+        double sinceLastWorldCollect = ((now - arena->lastWorldCollect) /
+                                        (double) clocks_per_sec);
         /* have to be offered enough time, and it has to be a long time
          * since we last did it. */
-        if ((interval * multiplier > arenaScanTime) &&
-            sinceLastWorldCollect > arenaScanTime * 10.0) {
+        if ((interval * multiplier > collectionTime) &&
+            sinceLastWorldCollect > collectionTime / ARENA_MAX_COLLECT_FRACTION)
           return TRUE;
-        }
       }
     }
   }

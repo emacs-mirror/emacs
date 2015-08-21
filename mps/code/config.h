@@ -392,22 +392,45 @@
 #define MVT_FRAG_LIMIT_DEFAULT    30
 
 
-/* Arena Configuration -- see <code/arena.c>
- *
- * .client.seg-size: ARENA_CLIENT_GRAIN_SIZE is the minimum size, in
- * bytes, of a grain in the client arena. It's set at 8192 with no
- * particular justification.
- */
+/* Arena Configuration -- see <code/arena.c> */
 
 #define ArenaPollALLOCTIME (65536.0)
 
 #define ARENA_ZONESHIFT         ((Shift)20)
+
+/* .client.seg-size: ARENA_CLIENT_GRAIN_SIZE is the minimum size, in
+ * bytes, of a grain in the client arena. It's set at 8192 with no
+ * particular justification. */
 
 #define ARENA_CLIENT_GRAIN_SIZE          ((Size)8192)
 
 #define ARENA_DEFAULT_ZONED     TRUE
 
 #define ArenaDefaultZONESET (ZoneSetUNIV << (MPS_WORD_WIDTH / 2))
+
+/* ARENA_MINIMUM_COLLECTABLE_SIZE is the minimum size (in bytes) of
+ * collectable memory that might be considered worthwhile to run a
+ * full garbage collection. */
+
+#define ARENA_MINIMUM_COLLECTABLE_SIZE ((Size)1000000)
+
+/* ARENA_DEFAULT_COLLECTION_RATE is an estimate of the MPS's
+ * collection rate (in bytes per second), for use in the case where
+ * there isn't enough data to use a measured value. */
+
+#define ARENA_DEFAULT_COLLECTION_RATE (25000000.0)
+
+/* ARENA_DEFAULT_COLLECTION_OVERHEAD is an estimate of the MPS's
+ * collection overhead (in seconds), for use in the case where there
+ * isn't enough data to use a measured value. */
+
+#define ARENA_DEFAULT_COLLECTION_OVERHEAD (0.1)
+
+/* ARENA_MAX_COLLECT_FRACTION is the maximum fraction of runtime that
+ * ArenaStep is prepared to spend in collections. */
+
+#define ARENA_MAX_COLLECT_FRACTION (0.1)
+
 /* TODO: This is left over from before the branch/2014-01-29/mps-chain-zones
    and 2014-01-17/cbs-tract-alloc reformed allocation, and may now be doing
    more harm than good.  Experiment with setting to ZoneSetUNIV. */
