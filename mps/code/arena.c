@@ -1024,10 +1024,19 @@ void ArenaFreeLandDelete(Arena arena, Addr base, Addr limit)
 }
 
 
-static Res arenaAllocFromLand(Tract *tractReturn, ZoneSet zones, Bool high,
-                             Size size, Pool pool)
+/* ArenaFreeLandAlloc -- allocate a continguous range of tracts of
+ * size bytes from the arena's free land.
+ *
+ * size, zones, and high are as for LandFindInZones.
+ *
+ * If successful, mark the allocated tracts as belonging to pool, set
+ * *tractReturn to point to the first tract in the range, and return
+ * ResOK.
+ */
+
+Res ArenaFreeLandAlloc(Tract *tractReturn, Arena arena, ZoneSet zones,
+                       Bool high, Size size, Pool pool)
 {
-  Arena arena;
   RangeStruct range, oldRange;
   Chunk chunk;
   Bool found, b;
@@ -1036,10 +1045,11 @@ static Res arenaAllocFromLand(Tract *tractReturn, ZoneSet zones, Bool high,
   Res res;
   
   AVER(tractReturn != NULL);
+  AVERT(Arena, arena);
   /* ZoneSet is arbitrary */
   AVER(size > (Size)0);
   AVERT(Pool, pool);
-  arena = PoolArena(pool);
+  AVER(arena == PoolArena(pool));
   AVER(SizeIsArenaGrains(size, arena));
   
   if (!arena->zoned)
@@ -1098,105 +1108,6 @@ failMark:
 }
 
 
-/* arenaAllocPolicy -- arena allocation policy implementation
- *
- * This is the code responsible for making decisions about where to allocate
- * memory.  Avoid distributing code for doing this elsewhere, so that policy
- * can be maintained and adjusted.
- *
- * TODO: This currently duplicates the policy from VMAllocPolicy in
- * //info.ravenbrook.com/project/mps/master/code/arenavm.c#36 in order
- * to avoid disruption to clients, but needs revision.
- */
-
-static Res arenaAllocPolicy(Tract *tractReturn, Arena arena, LocusPref pref,
-                            Size size, Pool pool)
-{
-  Res res;
-  Tract tract;
-  ZoneSet zones, moreZones, evenMoreZones;
-
-  AVER(tractReturn != NULL);
-  AVERT(LocusPref, pref);
-  AVER(size > (Size)0);
-  AVERT(Pool, pool);
-  
-  /* Don't attempt to allocate if doing so would definitely exceed the
-     commit limit. */
-  if (arena->spareCommitted < size) {
-    Size necessaryCommitIncrease = size - arena->spareCommitted;
-    if (arena->committed + necessaryCommitIncrease > arena->commitLimit
-        || arena->committed + necessaryCommitIncrease < arena->committed) {
-      return ResCOMMIT_LIMIT;
-    }
-  }
-
-  /* Plan A: allocate from the free Land in the requested zones */
-  zones = ZoneSetDiff(pref->zones, pref->avoid);
-  if (zones != ZoneSetEMPTY) {
-    res = arenaAllocFromLand(&tract, zones, pref->high, size, pool);
-    if (res == ResOK)
-      goto found;
-  }
-
-  /* Plan B: add free zones that aren't blacklisted */
-  /* TODO: Pools without ambiguous roots might not care about the blacklist. */
-  /* TODO: zones are precious and (currently) never deallocated, so we
-     should consider extending the arena first if address space is plentiful.
-     See also job003384. */
-  moreZones = ZoneSetUnion(pref->zones, ZoneSetDiff(arena->freeZones, pref->avoid));
-  if (moreZones != zones) {
-    res = arenaAllocFromLand(&tract, moreZones, pref->high, size, pool);
-    if (res == ResOK)
-      goto found;
-  }
-  
-  /* Plan C: Extend the arena, then try A and B again. */
-  if (moreZones != ZoneSetEMPTY) {
-    res = arena->class->grow(arena, pref, size);
-    if (res != ResOK)
-      return res;
-    if (zones != ZoneSetEMPTY) {
-      res = arenaAllocFromLand(&tract, zones, pref->high, size, pool);
-      if (res == ResOK)
-        goto found;
-    }
-    if (moreZones != zones) {
-      zones = ZoneSetUnion(zones, ZoneSetDiff(arena->freeZones, pref->avoid));
-      res = arenaAllocFromLand(&tract, moreZones, pref->high, size, pool);
-      if (res == ResOK)
-        goto found;
-    }
-  }
-
-  /* Plan D: add every zone that isn't blacklisted.  This might mix GC'd
-     objects with those from other generations, causing the zone check
-     to give false positives and slowing down the collector. */
-  /* TODO: log an event for this */
-  evenMoreZones = ZoneSetDiff(ZoneSetUNIV, pref->avoid);
-  if (evenMoreZones != moreZones) {
-    res = arenaAllocFromLand(&tract, evenMoreZones, pref->high, size, pool);
-    if (res == ResOK)
-      goto found;
-  }
-
-  /* Last resort: try anywhere.  This might put GC'd objects in zones where
-     common ambiguous bit patterns pin them down, causing the zone check
-     to give even more false positives permanently, and possibly retaining
-     garbage indefinitely. */
-  res = arenaAllocFromLand(&tract, ZoneSetUNIV, pref->high, size, pool);
-  if (res == ResOK)
-    goto found;
-
-  /* Uh oh. */
-  return res;
-
-found:
-  *tractReturn = tract;
-  return ResOK;
-}
-
-
 /* ArenaAlloc -- allocate some tracts from the arena */
 
 Res ArenaAlloc(Addr *baseReturn, LocusPref pref, Size size, Pool pool,
@@ -1229,7 +1140,7 @@ Res ArenaAlloc(Addr *baseReturn, LocusPref pref, Size size, Pool pool,
     }
   }
 
-  res = arenaAllocPolicy(&tract, arena, pref, size, pool);
+  res = PolicyAlloc(&tract, arena, pref, size, pool);
   if (res != ResOK) {
     if (withReservoirPermit) {
       Res resRes = ReservoirWithdraw(&base, &tract, reservoir, size, pool);
@@ -1425,6 +1336,24 @@ Size ArenaAvail(Arena arena)
      arena class, of course. */
 
   return sSwap - arena->committed + arena->spareCommitted;
+}
+
+
+/* ArenaCollectable -- return estimate of collectable memory in arena */
+
+Size ArenaCollectable(Arena arena)
+{
+  /* Conservative estimate -- see job003929. */
+  return ArenaCommitted(arena) - ArenaSpareCommitted(arena);
+}
+
+
+/* ArenaScannable -- return estimate of scannable memory in arena */
+
+Size ArenaScannable(Arena arena)
+{
+  /* Conservative estimate -- see job003929. */
+  return ArenaCommitted(arena) - ArenaSpareCommitted(arena);
 }
 
 
