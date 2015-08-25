@@ -706,7 +706,6 @@ void (ArenaPoll)(Globals globals)
   Clock start;
   Count quanta;
   Size tracedSize;
-  double nextPollThreshold = 0.0;
 
   AVERT(Globals, globals);
 
@@ -714,42 +713,32 @@ void (ArenaPoll)(Globals globals)
     return;
   if (globals->insidePoll)
     return;
-  if(globals->fillMutatorSize < globals->pollThreshold)
+  arena = GlobalsArena(globals);
+  if (!PolicyPoll(arena))
     return;
 
   globals->insidePoll = TRUE;
 
   /* fillMutatorSize has advanced; call TracePoll enough to catch up. */
-  arena = GlobalsArena(globals);
   start = ClockNow();
   quanta = 0;
 
   EVENT3(ArenaPoll, arena, start, 0);
 
-  while(globals->pollThreshold <= globals->fillMutatorSize) {
+  do {
     tracedSize = TracePoll(globals);
-
-    if(tracedSize == 0) {
-      /* No work to do.  Sleep until NOW + a bit. */
-      nextPollThreshold = globals->fillMutatorSize + ArenaPollALLOCTIME;
-    } else {
-      /* We did one quantum of work; consume one unit of 'time'. */
+    if (tracedSize > 0) {
       quanta += 1;
       arena->tracedSize += tracedSize;
-      nextPollThreshold = globals->pollThreshold + ArenaPollALLOCTIME;
     }
-
-    /* Advance pollThreshold; check: enough precision? */
-    AVER(nextPollThreshold > globals->pollThreshold);
-    globals->pollThreshold = nextPollThreshold;
-  }
+  } while (PolicyPollAgain(arena, start, tracedSize));
 
   /* Don't count time spent checking for work, if there was no work to do. */
   if(quanta > 0) {
     arena->tracedTime += (ClockNow() - start) / (double) ClocksPerSec();
   }
 
-  AVER(globals->fillMutatorSize < globals->pollThreshold);
+  AVER(!PolicyPoll(arena));
 
   EVENT3(ArenaPoll, arena, start, quanta);
 

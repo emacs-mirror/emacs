@@ -430,14 +430,85 @@ other uses of that:
   from ``poolGen.newSize`` and new is set to FALSE.
 
 
-Starting a Trace
+Policy
+------
+
+_`.policy`: Functions that make decisions about what action to take
+are collected into the policy module (policy.c). The purpose of doing
+so is to make it easier to understand this set of decisions and how
+they interact, and to make it easier to maintain and update the policy.
+
+
+Assignment of zones
+...................
+
+``Res PolicyAlloc(Tract *tractReturn, Arena arena, LocusPref pref, Size size, Pool pool)``
+
+_`.policy.alloc`: Allocate ``size`` bytes of memory on behalf of
+``pool``, based on the preferences described by ``pref``. If
+successful, update ``*tractReturn`` to point to the first tract in the
+allocated memory and return ``ResOK``. Otherwise, return a result code
+describing the problem, for example ``ResCOMMIT_LIMIT``.
+
+_`.policy.alloc.plan`: This tries various plans in succession until
+one succeeds. First, it tries to allocate from the arena's free land
+in the requested zones. Second, it tries allocating from free zones.
+Third, it tries extending the arena and then trying the first two
+plans again. Fourth, it tries allocating from any zone that is not
+blacklisted. Fifth, it tries allocating from any zone at all.
+
+_`.policy.alloc.issue`: This plan performs poorly under stress. See
+for example job003898_.
+
+.. _job003898: http://www.ravenbrook.com/project/mps/issue/job003898/
+
+
+
+Starting a trace
 ................
-TODO: Why do we start a trace?  How do we choose what to condemn?
+
+``Bool PolicyStartTrace(Trace *traceReturn, Arena arena)``
+
+_`.policy.start`: Consider starting a trace. If a trace was started,
+update ``*traceReturn`` to point to the trace and return TRUE.
+Otherwise, leave ``*traceReturn`` unchanged and return FALSE.
+
+_`.policy.start.impl`: This uses the "Lisp Machine" strategy, which
+tries to schedule collections so that the collector just keeps pace
+with the mutator: that is, it starts a collection when the predicted
+completion time of the collection is around the time when the mutator
+is predicted to reach the current memory limit. See [Pirinen]_.
 
 
-Trace Progress
+Trace progress
 ..............
-TODO: When do we do some tracing work?  How much tracing work do we do?
+
+``Bool PolicyPoll(Arena arena)``
+
+_`.policy.poll`: Return TRUE if the MPS should do some tracing work;
+FALSE if it should return to the mutator.
+
+``Bool PolicyPollAgain(Arena arena, Clock start, Size tracedSize)``
+
+_`.policy.poll.again`: Return TRUE if the MPS should do another unit
+of work; FALSE if it should return to the mutator. ``start`` is the
+clock time when the MPS was entered; ``tracedSize`` is the amount of
+work done by the last call to ``TracePoll()``.
+
+_`.policy.poll.impl`: The implementation balances collection work
+against mutator allocation so that there is approximately one call to
+``TraceQuantum()`` for every ``ArenaPollALLOCTIME`` bytes of
+allocation.
+
+
+References
+----------
+
+.. [Pirinen]
+   "The Lisp Machine Strategy";
+   Pekka Pirinin;
+   1998-04-27;
+   <https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mminfo/strategy/lisp-machine/>
 
 
 Document History

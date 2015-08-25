@@ -663,6 +663,8 @@ extern Res PolicyAlloc(Tract *tractReturn, Arena arena, LocusPref pref,
                        Size size, Pool pool);
 extern Bool PolicyStartTrace(Trace *traceReturn, Arena arena);
 extern double PolicyCollectionTime(Arena arena);
+extern Bool PolicyPoll(Arena arena);
+extern Bool PolicyPollAgain(Arena arena, Clock start, Size tracedSize);
 
 
 /* Locus interface */
