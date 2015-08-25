@@ -75,6 +75,9 @@ typedef struct mps_chain_s {
 } ChainStruct;
 
 
+extern Bool GenDescCheck(GenDesc gen);
+extern Size GenDescNewSize(GenDesc gen);
+extern Size GenDescTotalSize(GenDesc gen);
 extern Res GenDescDescribe(GenDesc gen, mps_lib_FILE *stream, Count depth);
 
 extern Res ChainCreate(Chain *chainReturn, Arena arena, size_t genCount,
@@ -83,7 +86,6 @@ extern void ChainDestroy(Chain chain);
 extern Bool ChainCheck(Chain chain);
 
 extern double ChainDeferral(Chain chain);
-extern Res ChainCondemnAuto(double *mortalityReturn, Chain chain, Trace trace);
 extern void ChainStartGC(Chain chain, Trace trace);
 extern void ChainEndGC(Chain chain, Trace trace);
 extern size_t ChainGens(Chain chain);
