@@ -278,8 +278,10 @@ double PolicyCollectionTime(Arena arena)
   AVERT(Arena, arena);
 
   collectableSize = ArenaCollectable(arena);
+  /* The condition arena->tracedTime >= 1.0 ensures that the division
+   * can't overflow. */
   if (arena->tracedSize >= ARENA_MINIMUM_COLLECTABLE_SIZE
-      && arena->tracedTime > 0)
+      && arena->tracedTime >= 1.0)
     collectionRate = arena->tracedSize / arena->tracedTime;
   else
     collectionRate = ARENA_DEFAULT_COLLECTION_RATE;
