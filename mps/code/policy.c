@@ -40,7 +40,7 @@ Res PolicyAlloc(Tract *tractReturn, Arena arena, LocusPref pref,
   AVERT(Arena, arena);
   AVERT(LocusPref, pref);
   AVER(size > (Size)0);
-  AVER(SizeIsAligned(size, ArenaGrainSize(arena)));
+  AVER(SizeIsArenaGrains(size, arena));
   AVERT(Pool, pool);
   AVER(arena == PoolArena(pool));
 
