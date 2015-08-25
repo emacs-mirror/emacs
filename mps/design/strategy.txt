@@ -153,7 +153,7 @@ Collections in the MPS start in one of two ways:
    indicates if the chain needs collecting, and if so, how urgent it
    is to collect that chain. The most urgent chain in need of
    collection (if any) is then condemned by calling
-   ``ChainCondemnAuto()``.
+   ``policyCondemnChain()``.
 
    This function chooses the set of generations to condemn, computes
    the zoneset corresponding to the union those generations, and
@@ -220,7 +220,7 @@ _`.accounting.poll`: ``ChainDeferral()`` uses the *new size* of each
 generation to determine which generations in the chain are over
 capacity and so might need to be collected via ``TracePoll()``.
 
-_`.accounting.condemn`: ``ChainCondemnAuto()`` uses the *new size* of
+_`.accounting.condemn`: ``policyCondemnChain()`` uses the *new size* of
 each generation to determine which generations in the chain will be
 collected; it also uses the *total size* of the generation to compute
 the mortality.
