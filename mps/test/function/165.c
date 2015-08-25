@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = simple spare_commit_limit test
+ summary = simple spare commit limit test
  language = c
  link = testlib.o rankfmt.o
  harness = 2.0
@@ -32,14 +32,15 @@ static void test(void)
 
  unsigned long com0, com1, com2;
 
-/* create a VM arena of 40MB */
+/* create a VM arena of 40MB with commit limit of 100MB, i.e. let the
+   arena do the limiting. */
 
- cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t)(1024*1024*40)),
-  "create arena");
-
-/* set the commit limit to 100MB, i.e. let the arena do the limiting */
-
- mps_arena_commit_limit_set(arena, (size_t) (1024ul*1024ul*100ul));
+ MPS_ARGS_BEGIN(args) {
+   MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 1024*1024*40);
+   MPS_ARGS_ADD(args, MPS_KEY_ARENA_COMMIT_LIMIT, 1024ul*1024ul*100ul);
+   cdie(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
+        "create arena");
+ } MPS_ARGS_END(args);
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
@@ -58,7 +59,10 @@ static void test(void)
 
 /* Set the spare commit limit to 0MB */
 
- mps_arena_spare_commit_limit_set(arena, (size_t) 0);
+ MPS_ARGS_BEGIN(args) {
+   MPS_ARGS_ADD(args, MPS_KEY_ARENA_SPARE_COMMIT_LIMIT, 0);
+   cdie(mps_arena_configure(arena, args), "mps_arena_configure");
+ } MPS_ARGS_END(args);
  die(mps_alloc(&objs[0], pool, BIGSIZE), "alloc");
  com0 = mps_arena_committed(arena);
  mps_free(pool, objs[0], BIGSIZE);
@@ -70,7 +74,10 @@ static void test(void)
 /* Try again but with arena hysteresis */
 
 /* nb. size_t unsigned, therefore (size_t)-1 is the maximum limit */
- mps_arena_spare_commit_limit_set(arena, (size_t)-1);
+ MPS_ARGS_BEGIN(args) {
+   MPS_ARGS_ADD(args, MPS_KEY_ARENA_SPARE_COMMIT_LIMIT, -1);
+   cdie(mps_arena_configure(arena, args), "mps_arena_configure");
+ } MPS_ARGS_END(args);
  die(mps_alloc(&objs[0], pool, BIGSIZE), "alloc");
  com0 = mps_arena_committed(arena);
  mps_free(pool, objs[0], BIGSIZE);
@@ -80,7 +87,10 @@ static void test(void)
  report("reduce2", "%ld", com0-com1);
 
 /* Reducing the spare committed limit should return most of the spare */
- mps_arena_spare_commit_limit_set(arena, (size_t)(1024*1024));
+ MPS_ARGS_BEGIN(args) {
+   MPS_ARGS_ADD(args, MPS_KEY_ARENA_SPARE_COMMIT_LIMIT, 1024*1024);
+   cdie(mps_arena_configure(arena, args), "mps_arena_configure");
+ } MPS_ARGS_END(args);
  com2 = mps_arena_committed(arena);
  report("reduce3", "%ld", com0-com2);
 

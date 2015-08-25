@@ -291,10 +291,10 @@ static void test_arena(int mode)
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, testArenaSIZE);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, rnd_grain(testArenaSIZE));
+    if (mode == ModeCOMMIT)
+      MPS_ARGS_ADD(args, MPS_KEY_ARENA_COMMIT_LIMIT, 2 * testArenaSIZE);
     die(mps_arena_create_k(&arena, mps_arena_class_vm(), args), "arena_create");
   } MPS_ARGS_END(args);
-  if (mode == ModeCOMMIT)
-    die(mps_arena_commit_limit_set(arena, 2 * testArenaSIZE), "set limit");
   mps_message_type_enable(arena, mps_message_type_gc());
   mps_message_type_enable(arena, mps_message_type_gc_start());
 
