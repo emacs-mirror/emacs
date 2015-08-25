@@ -25,6 +25,41 @@ supported interface.
 Deprecated in version 1.115
 ...........................
 
+.. c:function:: mps_res_t mps_arena_commit_limit_set(mps_arena_t arena, size_t limit)
+
+    .. deprecated::
+
+        Pass the :c:macro:`MPS_KEY_ARENA_COMMIT_LIMIT` :term:`keyword
+        argument` to :c:func:`mps_arena_create_k` or
+        :c:func:`mps_arena_configure`.
+
+    Change the :term:`commit limit` for an :term:`arena`.
+
+    ``arena`` is the arena to change the commit limit for.
+
+    ``limit`` is the new commit limit in :term:`bytes (1)`.
+
+    Returns :c:macro:`MPS_RES_OK` if successful, or another
+    :term:`result code` if not.
+
+
+.. c:function:: void mps_arena_spare_commit_limit_set(mps_arena_t arena, size_t limit)
+
+    Change the :term:`spare commit limit` for an :term:`arena`.
+
+    ``arena`` is the arena to change the spare commit limit for.
+
+    ``limit`` is the new spare commit limit in :term:`bytes (1)`.
+
+    Non-virtual-memory arena classes (for example, a :term:`client
+    arena`) do not have spare committed memory. For these arenas, this
+    function sets a value but has no other effect.
+
+    Initially the spare commit limit is a configuration-dependent
+    value. The value of the limit can be retrieved by the function
+    :c:func:`mps_arena_spare_commit_limit`.
+
+
 .. c:type:: typedef mps_pool_class_t mps_class_t
 
     .. deprecated::

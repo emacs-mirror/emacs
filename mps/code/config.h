@@ -405,6 +405,13 @@
 
 #define ARENA_CLIENT_GRAIN_SIZE          ((Size)8192)
 
+#define ARENA_DEFAULT_COMMIT_LIMIT ((Size)-1)
+
+/* TODO: This should be proportional to the memory usage of the MPS, not
+ * a constant.  That will require design, and then some interface and
+ * documenation changes. */
+#define ARENA_DEFAULT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
+
 #define ARENA_DEFAULT_ZONED     TRUE
 
 #define ArenaDefaultZONESET (ZoneSetUNIV << (MPS_WORD_WIDTH / 2))
@@ -610,11 +617,6 @@
 
 #define MPS_PROD_STRING         "mps"
 #define MPS_PROD_MPS
-
-/* TODO: This should be proportional to the memory usage of the MPS, not
-   a constant.  That will require design, and then some interface and
-   documenation changes. */
-#define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
 
 
 /* Default chain for GC pools

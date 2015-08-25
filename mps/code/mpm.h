@@ -497,6 +497,7 @@ extern Bool ArenaClassCheck(ArenaClass class);
 
 extern Bool ArenaCheck(Arena arena);
 extern Res ArenaCreate(Arena *arenaReturn, ArenaClass class, ArgList args);
+extern Res ArenaConfigure(Arena arena, ArgList args);
 extern void ArenaDestroy(Arena arena);
 extern Res ArenaInit(Arena arena, ArenaClass class, Size grainSize,
                      ArgList args);

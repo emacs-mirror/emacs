@@ -467,7 +467,8 @@ Memory Management Glossary: S
             committed memory` that the MPS will obtain from the
             operating system. It can be retrieved by calling
             :c:func:`mps_arena_spare_commit_limit` and changed by
-            calling :c:func:`mps_arena_spare_commit_limit_set`.
+            passing the :c:macro:`MPS_KEY_ARENA_SPARE_COMMIT_LIMIT`
+            :term:`keyword argument` to :c:func:`mps_arena_configure`.
 
     spare committed memory
 

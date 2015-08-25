@@ -5,6 +5,7 @@ TEST_HEADER
  language = c
  link = testlib.o
 OUTPUT_SPEC
+ create = COMMIT_LIMIT
  commit0 = FAIL
  commit10 = OK
  com_less = FAIL
@@ -33,8 +34,16 @@ static void test(void) {
  int i;
  mps_addr_t a;
  mps_res_t res;
+ size_t committed;
+ 
+ /* Create an arena with a commit limit that's too small for the
+  * essential MPS internal data structures -- this must fail with
+  * RES_COMMIT_LIMIT. */
 
-/* create an arena that can't grow beyond 20 M */
+ MPS_ARGS_BEGIN(args) {
+   MPS_ARGS_ADD(args, MPS_KEY_ARENA_COMMIT_LIMIT, 16 * 1024);
+   report_res("create", mps_arena_create_k(&arena, mps_arena_class_vm(), args));
+ } MPS_ARGS_END(args);
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) (1024*1024*20)),
   "create arena");

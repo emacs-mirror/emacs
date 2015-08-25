@@ -17,6 +17,16 @@ New features
    specifying the minimum size of the memory segments that the pool
    requests from the :term:`arena`.
 
+#. The function :c:func:`mps_arena_create_k` accepts two new
+   :term:`keyword arguments`. :c:macro:`MPS_KEY_ARENA_COMMIT_LIMIT`
+   sets the :term:`commit limit` for the arena, and
+   :c:macro:`MPS_KEY_ARENA_SPARE_COMMIT_LIMIT` sets the :term:`spare
+   commit limit` for the arena.
+
+#. The new function :c:func:`mps_arena_configure` provides a
+   :term:`keyword argument` interface for changing the properties of
+   an arena.
+
 
 Interface changes
 .................
@@ -31,6 +41,9 @@ Interface changes
    deprecated in favour of the generic functions
    :c:func:`mps_pool_free_size` and :c:func:`mps_pool_total_size`.
 
+#. The functions :c:func:`mps_arena_commit_limit_set` and
+   :c:func:`mps_arena_spare_commit_limit_set` are deprecated in favour
+   of :c:func:`mps_arena_configure`.
 
 Other changes
 .............

@@ -350,6 +350,20 @@ mps_res_t mps_arena_create_k(mps_arena_t *mps_arena_o,
 }
 
 
+/*  mps_arena_configure -- configure an arena object */
+
+mps_res_t mps_arena_configure(mps_arena_t arena, mps_arg_s args[])
+{
+  Res res;
+
+  ArenaEnter(arena);
+  res = ArenaConfigure(arena, args);
+  ArenaLeave(arena);
+
+  return (mps_res_t)res;
+}
+
+
 /* mps_arena_destroy -- destroy an arena object */
 
 void mps_arena_destroy(mps_arena_t arena)
