@@ -19,6 +19,14 @@ SRCID(policy, "$Id$");
  *
  * This is the code responsible for making decisions about where to allocate
  * memory.
+ *
+ * pref describes the address space preferences for the allocation.
+ * size is the amount of memory requested to be allocated, in bytes.
+ * pool is the pool that is requresting the memory.
+ *
+ * If successful, update *tractReturn to point to the initial tract of
+ * the allocated memory and return ResOK. Otherwise return a result
+ * code describing the problem.
  */
 
 Res PolicyAlloc(Tract *tractReturn, Arena arena, LocusPref pref,
@@ -32,6 +40,7 @@ Res PolicyAlloc(Tract *tractReturn, Arena arena, LocusPref pref,
   AVERT(Arena, arena);
   AVERT(LocusPref, pref);
   AVER(size > (Size)0);
+  AVER(SizeIsAligned(size, ArenaGrainSize(arena)));
   AVERT(Pool, pool);
   AVER(arena == PoolArena(pool));
 
@@ -45,7 +54,7 @@ Res PolicyAlloc(Tract *tractReturn, Arena arena, LocusPref pref,
     }
   }
 
-  /* Plan A: allocate from the free Land in the requested zones */
+  /* Plan A: allocate from the free land in the requested zones */
   zones = ZoneSetDiff(pref->zones, pref->avoid);
   if (zones != ZoneSetEMPTY) {
     res = ArenaFreeLandAlloc(&tract, arena, zones, pref->high, size, pool);
@@ -278,6 +287,55 @@ double PolicyCollectionTime(Arena arena)
   collectionTime += ARENA_DEFAULT_COLLECTION_OVERHEAD;
 
   return collectionTime;
+}
+
+
+/* PolicyPoll -- do some tracing work?
+ *
+ * Return TRUE if the MPS should do some tracing work; FALSE if it
+ * should return to the mutator.
+ */
+
+Bool PolicyPoll(Arena arena)
+{
+  Globals globals;
+  AVERT(Arena, arena);
+  globals = ArenaGlobals(arena);
+  return globals->pollThreshold <= globals->fillMutatorSize;
+}
+
+
+/* PolicyPollAgain -- do another unit of work?
+ *
+ * Return TRUE if the MPS should do another unit of work; FALSE if it
+ * should return to the mutator.
+ *
+ * start is the clock time when the MPS was entered.
+ * tracedSize is the amount of work done by the last call to TracePoll.
+ */
+
+Bool PolicyPollAgain(Arena arena, Clock start, Size tracedSize)
+{
+  Globals globals;
+  double nextPollThreshold;
+
+  AVERT(Arena, arena);
+  globals = ArenaGlobals(arena);
+  UNUSED(start);
+  
+  if (tracedSize == 0) {
+    /* No work was done.  Sleep until NOW + a bit. */
+    nextPollThreshold = globals->fillMutatorSize + ArenaPollALLOCTIME;
+  } else {
+    /* We did one quantum of work; consume one unit of 'time'. */
+    nextPollThreshold = globals->pollThreshold + ArenaPollALLOCTIME;
+  }
+
+  /* Advance pollThreshold; check: enough precision? */
+  AVER(nextPollThreshold > globals->pollThreshold);
+  globals->pollThreshold = nextPollThreshold;
+
+  return PolicyPoll(arena);
 }
 
 
