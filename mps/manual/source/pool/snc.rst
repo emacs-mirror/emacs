@@ -39,7 +39,7 @@ SNC properties
 
 * Supports allocation via :term:`allocation points` only. If an
   allocation point is created in an SNC pool, the call to
-  :c:func:`mps_ap_create_k` requires one keyword argument,
+  :c:func:`mps_ap_create_k` accepts one optional keyword argument,
   :c:macro:`MPS_KEY_RANK`.
 
 * Does not support deallocation via :c:func:`mps_free`.
@@ -112,11 +112,11 @@ SNC interface
         } MPS_ARGS_END(args);
 
     When creating an :term:`allocation point` on an SNC pool,
-    :c:func:`mps_ap_create_k` requires one keyword argument:
+    :c:func:`mps_ap_create_k` accepts one optional keyword argument:
 
-    * :c:macro:`MPS_KEY_RANK` (type :c:type:`mps_rank_t`) specifies
-      the :term:`rank` of references in objects allocated on this
-      allocation point. It must be :c:func:`mps_rank_exact`.
+    * :c:macro:`MPS_KEY_RANK` (type :c:type:`mps_rank_t`, default
+    :c:func:`mps_rank_exact`) specifies the :term:`rank` of references
+    in objects allocated on this allocation point.
 
     For example::
 
