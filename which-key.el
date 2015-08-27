@@ -54,9 +54,10 @@
 
 (defcustom which-key-echo-keystrokes 0
   "Value to use for `echo-keystrokes'.
-This only applies when `which-key-popup-type' is minibuffer.  It
-needs to be less than `which-key-idle-delay' or else the echo
-will erase the which-key popup."
+This only applies if `which-key-popup-type' is minibuffer or
+`which-key-show-prefix' is echo. It needs to be less than
+`which-key-idle-delay' or else the keystroke echo will erase the
+which-key popup."
   :group 'which-key
   :type 'float)
 
