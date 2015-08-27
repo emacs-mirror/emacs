@@ -341,6 +341,7 @@ used.")
             map)
   (if which-key-mode
       (progn
+        (setq which-key--echo-keystrokes-backup echo-keystrokes)
         (unless which-key--is-setup (which-key--setup))
         (when which-key-use-C-h-for-paging
             (setq which-key--prefix-help-cmd-backup prefix-help-command
@@ -382,16 +383,15 @@ set too high) and setup which-key buffer."
 (defun which-key--setup-echo-keystrokes ()
   "Reduce `echo-keystrokes' if necessary (it will interfer if
 it's set too high)."
-  (when (and echo-keystrokes
-             (> (abs (- echo-keystrokes which-key-echo-keystrokes)) 0.000001))
-    (setq which-key--echo-keystrokes-backup echo-keystrokes)
-    (if (> which-key-idle-delay which-key-echo-keystrokes)
-        (setq echo-keystrokes which-key-echo-keystrokes)
-      (setq which-key-echo-keystrokes
-            (min echo-keystrokes (/ (float which-key-idle-delay) 4))
-            echo-keystrokes which-key-echo-keystrokes))
-    (message "which-key: echo-keystrokes changed from %s to %s"
-             which-key--echo-keystrokes-backup echo-keystrokes)))
+  (let ((previous echo-keystrokes))
+    (when (and echo-keystrokes
+               (> (abs (- echo-keystrokes which-key-echo-keystrokes)) 0.000001))
+      (if (> which-key-idle-delay which-key-echo-keystrokes)
+          (setq echo-keystrokes which-key-echo-keystrokes)
+        (setq which-key-echo-keystrokes (/ (float which-key-idle-delay) 4)
+              echo-keystrokes which-key-echo-keystrokes))
+      (message "which-key: echo-keystrokes changed from %s to %s"
+               previous echo-keystrokes))))
 
 ;; Default configuration functions for use by users. Should be the "best"
 ;; configurations
