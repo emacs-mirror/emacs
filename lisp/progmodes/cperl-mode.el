@@ -1042,11 +1042,11 @@ In regular expressions (including character classes):
   cperl-can-font-lock)
 
 (defun cperl-putback-char (c)		; Emacs 19
-  (set 'unread-command-events (list c))) ; Avoid undefined warning
+  (push c unread-command-events))       ; Avoid undefined warning
 
 (if (featurep 'xemacs)
     (defun cperl-putback-char (c)	; XEmacs >= 19.12
-      (setq unread-command-events (list (eval '(character-to-event c))))))
+      (push (eval '(character-to-event c)) unread-command-events)))
 
 (or (fboundp 'uncomment-region)
     (defun uncomment-region (beg end)
@@ -7607,7 +7607,7 @@ than a line.  Your contribution to update/shorten it is appreciated."
 
 (defvar cperl-short-docs 'please-ignore-this-line
   ;; Perl4 version was written by Johan Vromans (jvromans@squirrel.nl)
-  "# based on '@(#)@ perl-descr.el 1.9 - describe-perl-symbol' [Perl 5]
+  "# based on \\='@(#)@ perl-descr.el 1.9 - describe-perl-symbol\\=' [Perl 5]
 ...	Range (list context); flip/flop [no flop when flip] (scalar context).
 ! ...	Logical negation.
 ... != ...	Numeric inequality.
@@ -7630,7 +7630,7 @@ $7	Match of the 7th set of parentheses in the last match (auto-local).
 $8	Match of the 8th set of parentheses in the last match (auto-local).
 $9	Match of the 9th set of parentheses in the last match (auto-local).
 $&	The string matched by the last pattern match (auto-local).
-$'	The string after what was matched by the last match (auto-local).
+$\\='	The string after what was matched by the last match (auto-local).
 $\\=`	The string before what was matched by the last match (auto-local).
 
 $(	The real gid of this process.
@@ -7886,7 +7886,7 @@ pop(ARRAY)
 print [FILEHANDLE] [(LIST)]
 printf [FILEHANDLE] (FORMAT,LIST)
 push(ARRAY,LIST)
-q/STRING/	Synonym for 'STRING'
+q/STRING/	Synonym for \\='STRING\\='
 qq/STRING/	Synonym for \"STRING\"
 qx/STRING/	Synonym for \\=`STRING\\=`
 rand[(EXPR)]
@@ -7988,7 +7988,7 @@ DESTROY		Shorthand for `sub DESTROY {...}'.
 abs [ EXPR ]	absolute value
 ... and ...		Low-precedence synonym for &&.
 bless REFERENCE [, PACKAGE]	Makes reference into an object of a package.
-chomp [LIST]	Strips $/ off LIST/$_.  Returns count.  Special if $/ eq ''!
+chomp [LIST]	Strips $/ off LIST/$_.  Returns count.  Special if $/ eq \\='\\='!
 chr		Converts a number to char with the same ordinal.
 else		Part of if/unless {BLOCK} elsif {BLOCK} else {BLOCK}.
 elsif		Part of if/unless {BLOCK} elsif {BLOCK} else {BLOCK}.
@@ -8005,7 +8005,7 @@ not ...		Low-precedence synonym for ! - negation.
 ... or ...		Low-precedence synonym for ||.
 pos STRING    Set/Get end-position of the last match over this string, see \\G.
 quotemeta [ EXPR ]	Quote regexp metacharacters.
-qw/WORD1 .../		Synonym of split('', 'WORD1 ...')
+qw/WORD1 .../		Synonym of split(\\='\\=', \\='WORD1 ...\\=')
 readline FH	Synonym of <FH>.
 readpipe CMD	Synonym of \\=`CMD\\=`.
 ref [ EXPR ]	Type of EXPR when dereferenced.

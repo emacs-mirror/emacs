@@ -845,6 +845,9 @@ static void normal_char_ascent_descent (struct font *, int, int *, int *);
 static void append_stretch_glyph (struct it *, Lisp_Object,
                                   int, int, int);
 
+static Lisp_Object get_it_property (struct it *, Lisp_Object);
+static Lisp_Object calc_line_height_property (struct it *, Lisp_Object,
+					      struct font *, int, bool);
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
@@ -3723,10 +3726,8 @@ handle_fontified_prop (struct it *it)
       else
 	{
 	  Lisp_Object fns, fn;
-	  struct gcpro gcpro1, gcpro2;
 
 	  fns = Qnil;
-	  GCPRO2 (val, fns);
 
 	  for (; CONSP (val); val = XCDR (val))
 	    {
@@ -3751,8 +3752,6 @@ handle_fontified_prop (struct it *it)
 	      else
 		safe_call1 (fn, pos);
 	    }
-
-	  UNGCPRO;
 	}
 
       unbind_to (count, Qnil);
@@ -4190,13 +4189,13 @@ handle_invisible_prop (struct it *it)
 
   if (STRINGP (it->string))
     {
-      Lisp_Object end_charpos, limit, charpos;
+      Lisp_Object end_charpos, limit;
 
       /* Get the value of the invisible text property at the
 	 current position.  Value will be nil if there is no such
 	 property.  */
-      charpos = make_number (IT_STRING_CHARPOS (*it));
-      prop = Fget_text_property (charpos, Qinvisible, it->string);
+      end_charpos = make_number (IT_STRING_CHARPOS (*it));
+      prop = Fget_text_property (end_charpos, Qinvisible, it->string);
       invis = TEXT_PROP_MEANS_INVISIBLE (prop);
 
       if (invis != 0 && IT_STRING_CHARPOS (*it) < it->end_charpos)
@@ -4214,8 +4213,12 @@ handle_invisible_prop (struct it *it)
 	  XSETINT (limit, len);
 	  do
 	    {
-	      end_charpos = Fnext_single_property_change (charpos, Qinvisible,
-							  it->string, limit);
+	      end_charpos
+		= Fnext_single_property_change (end_charpos, Qinvisible,
+						it->string, limit);
+	      /* Since LIMIT is always an integer, so should be the
+		 value returned by Fnext_single_property_change.  */
+	      eassert (INTEGERP (end_charpos));
 	      if (INTEGERP (end_charpos))
 		{
 		  endpos = XFASTINT (end_charpos);
@@ -4224,6 +4227,8 @@ handle_invisible_prop (struct it *it)
 		  if (invis == 2)
 		    display_ellipsis_p = true;
 		}
+	      else /* Should never happen; but if it does, exit the loop.  */
+		endpos = len;
 	    }
 	  while (invis != 0 && endpos < len);
 
@@ -4259,7 +4264,7 @@ handle_invisible_prop (struct it *it)
 		}
 	      else
 		{
-		  IT_STRING_CHARPOS (*it) = XFASTINT (end_charpos);
+		  IT_STRING_CHARPOS (*it) = endpos;
 		  compute_string_pos (&it->current.string_pos, old, it->string);
 		}
 	    }
@@ -4745,7 +4750,6 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
   if (!NILP (form) && !EQ (form, Qt))
     {
       ptrdiff_t count = SPECPDL_INDEX ();
-      struct gcpro gcpro1;
 
       /* Bind `object' to the object having the `display' property, a
 	 buffer or string.  Bind `position' to the position in the
@@ -4757,9 +4761,7 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
       specbind (Qobject, object);
       specbind (Qposition, make_number (CHARPOS (*position)));
       specbind (Qbuffer_position, make_number (bufpos));
-      GCPRO1 (form);
       form = safe_eval (form);
-      UNGCPRO;
       unbind_to (count, Qnil);
     }
 
@@ -5993,6 +5995,7 @@ pop_it (struct it *it)
 {
   struct iterator_stack_entry *p;
   bool from_display_prop = it->from_disp_prop_p;
+  ptrdiff_t prev_pos = IT_CHARPOS (*it);
 
   eassert (it->sp > 0);
   --it->sp;
@@ -6086,6 +6089,11 @@ pop_it (struct it *it)
 		   && IT_STRING_BYTEPOS (*it) == it->bidi_it.bytepos)
 	       || (CONSP (it->object) && it->method == GET_FROM_STRETCH));
     }
+  /* If we move the iterator over text covered by a display property
+     to a new buffer position, any info about previously seen overlays
+     is no longer valid.  */
+  if (from_display_prop && it->sp == 0 && CHARPOS (it->position) != prev_pos)
+    it->ignore_overlay_strings_at_pos_p = false;
 }
 
 
@@ -6913,9 +6921,10 @@ get_next_display_element (struct it *it)
 	     non-ASCII spaces and hyphens specially.  */
 	  if (! ASCII_CHAR_P (c) && ! NILP (Vnobreak_char_display))
 	    {
-	      if (c == 0xA0)
+	      if (c == NO_BREAK_SPACE)
 		nonascii_space_p = true;
-	      else if (c == 0xAD || c == 0x2010 || c == 0x2011)
+	      else if (c == SOFT_HYPHEN || c == HYPHEN
+		       || c == NON_BREAKING_HYPHEN)
 		nonascii_hyphen_p = true;
 	    }
 
@@ -9832,33 +9841,53 @@ include the height of both, if present, in the return value.  */)
 			       Messages
  ***********************************************************************/
 
+/* Return the number of arguments the format string FORMAT needs.  */
 
-/* Add a message with format string FORMAT and arguments ARG1 and ARG2
+static ptrdiff_t
+format_nargs (char const *format)
+{
+  ptrdiff_t nargs = 0;
+  for (char const *p = format; (p = strchr (p, '%')); p++)
+    if (p[1] == '%')
+      p++;
+    else
+      nargs++;
+  return nargs;
+}
+
+/* Add a message with format string FORMAT and formatted arguments
    to *Messages*.  */
 
 void
-add_to_log (const char *format, Lisp_Object arg1, Lisp_Object arg2)
+add_to_log (const char *format, ...)
 {
-  Lisp_Object msg, fmt;
-  char *buffer;
-  ptrdiff_t len;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+  va_list ap;
+  va_start (ap, format);
+  vadd_to_log (format, ap);
+  va_end (ap);
+}
+
+void
+vadd_to_log (char const *format, va_list ap)
+{
+  ptrdiff_t form_nargs = format_nargs (format);
+  ptrdiff_t nargs = 1 + form_nargs;
+  Lisp_Object args[10];
+  eassert (nargs <= ARRAYELTS (args));
+  AUTO_STRING (args0, format);
+  args[0] = args0;
+  for (ptrdiff_t i = 1; i <= nargs; i++)
+    args[i] = va_arg (ap, Lisp_Object);
+  Lisp_Object msg = Qnil;
+  msg = Fformat_message (nargs, args);
+
+  ptrdiff_t len = SBYTES (msg) + 1;
   USE_SAFE_ALLOCA;
-
-  fmt = msg = Qnil;
-  GCPRO4 (fmt, msg, arg1, arg2);
-
-  fmt = build_string (format);
-  msg = CALLN (Fformat, fmt, arg1, arg2);
-
-  len = SBYTES (msg) + 1;
-  buffer = SAFE_ALLOCA (len);
+  char *buffer = SAFE_ALLOCA (len);
   memcpy (buffer, SDATA (msg), len);
 
-  message_dolog (buffer, len - 1, true, false);
+  message_dolog (buffer, len - 1, true, STRING_MULTIBYTE (msg));
   SAFE_FREE ();
-
-  UNGCPRO;
 }
 
 
@@ -9897,7 +9926,6 @@ message_dolog (const char *m, ptrdiff_t nbytes, bool nlflag, bool multibyte)
       ptrdiff_t point_at_end = 0;
       ptrdiff_t zv_at_end = 0;
       Lisp_Object old_deactivate_mark;
-      struct gcpro gcpro1;
 
       old_deactivate_mark = Vdeactivate_mark;
       oldbuf = current_buffer;
@@ -9919,7 +9947,6 @@ message_dolog (const char *m, ptrdiff_t nbytes, bool nlflag, bool multibyte)
       set_marker_restricted_both (oldbegv, Qnil, BEGV, BEGV_BYTE);
       oldzv = message_dolog_marker3;
       set_marker_restricted_both (oldzv, Qnil, ZV, ZV_BYTE);
-      GCPRO1 (old_deactivate_mark);
 
       if (PT == Z)
 	point_at_end = 1;
@@ -10043,7 +10070,6 @@ message_dolog (const char *m, ptrdiff_t nbytes, bool nlflag, bool multibyte)
 	TEMP_SET_PT_BOTH (marker_position (oldpoint),
 			  marker_byte_position (oldpoint));
 
-      UNGCPRO;
       unchain_marker (XMARKER (oldpoint));
       unchain_marker (XMARKER (oldbegv));
       unchain_marker (XMARKER (oldzv));
@@ -10111,9 +10137,6 @@ message_log_check_duplicate (ptrdiff_t prev_bol_byte, ptrdiff_t this_bol_byte)
 void
 message3 (Lisp_Object m)
 {
-  struct gcpro gcpro1;
-
-  GCPRO1 (m);
   clear_message (true, true);
   cancel_echoing ();
 
@@ -10131,9 +10154,27 @@ message3 (Lisp_Object m)
     }
   if (! inhibit_message)
     message3_nolog (m);
-  UNGCPRO;
 }
 
+/* Log the message M to stderr.  Log an empty line if M is not a string.  */
+
+static void
+message_to_stderr (Lisp_Object m)
+{
+  if (noninteractive_need_newline)
+    {
+      noninteractive_need_newline = false;
+      fputc ('\n', stderr);
+    }
+  if (STRINGP (m))
+    {
+      Lisp_Object s = ENCODE_SYSTEM (m);
+      fwrite (SDATA (s), SBYTES (s), 1, stderr);
+    }
+  if (!cursor_in_echo_area)
+    fputc ('\n', stderr);
+  fflush (stderr);
+}
 
 /* The non-logging version of message3.
    This does not cancel echoing, because it is used for echoing.
@@ -10146,20 +10187,7 @@ message3_nolog (Lisp_Object m)
   struct frame *sf = SELECTED_FRAME ();
 
   if (FRAME_INITIAL_P (sf))
-    {
-      if (noninteractive_need_newline)
-	putc ('\n', stderr);
-      noninteractive_need_newline = false;
-      if (STRINGP (m))
-	{
-	  Lisp_Object s = ENCODE_SYSTEM (m);
-
-	  fwrite (SDATA (s), SBYTES (s), 1, stderr);
-	}
-      if (!cursor_in_echo_area)
-	fprintf (stderr, "\n");
-      fflush (stderr);
-    }
+    message_to_stderr (m);
   /* Error messages get reported properly by cmd_error, so this must be just an
      informative message; if the frame hasn't really been initialized yet, just
      toss it.  */
@@ -10226,24 +10254,12 @@ message_with_string (const char *m, Lisp_Object string, bool log)
 {
   CHECK_STRING (string);
 
+  bool need_message;
   if (noninteractive)
-    {
-      if (m)
-	{
-	  /* ENCODE_SYSTEM below can GC and/or relocate the
-	     Lisp data, so make sure we don't use it here.  */
-	  eassert (relocatable_string_data_p (m) != 1);
-
-	  if (noninteractive_need_newline)
-	    putc ('\n', stderr);
-	  noninteractive_need_newline = false;
-	  fprintf (stderr, m, SDATA (ENCODE_SYSTEM (string)));
-	  if (!cursor_in_echo_area)
-	    fprintf (stderr, "\n");
-	  fflush (stderr);
-	}
-    }
-  else if (INTERACTIVE)
+    need_message = !!m;
+  else if (!INTERACTIVE)
+    need_message = false;
+  else
     {
       /* The frame whose minibuffer we're going to display the message on.
 	 It may be larger than the selected frame, so we need
@@ -10259,22 +10275,22 @@ message_with_string (const char *m, Lisp_Object string, bool log)
       /* Error messages get reported properly by cmd_error, so this must be
 	 just an informative message; if the frame hasn't really been
 	 initialized yet, just toss it.  */
-      if (f->glyphs_initialized_p)
+      need_message = f->glyphs_initialized_p;
+    }
+
+  if (need_message)
+    {
+      AUTO_STRING (fmt, m);
+      Lisp_Object msg = CALLN (Fformat_message, fmt, string);
+
+      if (noninteractive)
+	message_to_stderr (msg);
+      else
 	{
-	  struct gcpro gcpro1, gcpro2;
-
-	  Lisp_Object fmt = build_string (m);
-	  Lisp_Object msg = string;
-	  GCPRO2 (fmt, msg);
-
-	  msg = CALLN (Fformat, fmt, msg);
-
 	  if (log)
 	    message3 (msg);
 	  else
 	    message3_nolog (msg);
-
-	  UNGCPRO;
 
 	  /* Print should start at the beginning of the message
 	     buffer next time.  */
@@ -10287,9 +10303,9 @@ message_with_string (const char *m, Lisp_Object string, bool log)
 /* Dump an informative message to the minibuf.  If M is 0, clear out
    any existing message, and let the mini-buffer text show through.
 
-   The message must be safe ASCII only.  If strings may contain escape
-   sequences or non-ASCII characters, convert them to Lisp strings and
-   use Fmessage.  */
+   The message must be safe ASCII and the format must not contain ` or
+   '.  If your message and format do not fit into this category,
+   convert your arguments to Lisp objects and use Fmessage instead.  */
 
 static void ATTRIBUTE_FORMAT_PRINTF (1, 0)
 vmessage (const char *m, va_list ap)
@@ -11567,7 +11583,6 @@ prepare_menu_bars (void)
 {
   bool all_windows = windows_or_buffers_changed || update_mode_lines;
   bool some_windows = REDISPLAY_SOME_P ();
-  struct gcpro gcpro1, gcpro2;
   Lisp_Object tooltip_frame;
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -11670,7 +11685,6 @@ prepare_menu_bars (void)
 	      /* Clear flag first in case we get an error below.  */
 	      FRAME_WINDOW_SIZES_CHANGED (f) = false;
 	      functions = Vwindow_size_change_functions;
-	      GCPRO2 (tail, functions);
 
 	      while (CONSP (functions))
 		{
@@ -11678,15 +11692,12 @@ prepare_menu_bars (void)
 		    call1 (XCAR (functions), frame);
 		  functions = XCDR (functions);
 		}
-	      UNGCPRO;
 	    }
 
-	  GCPRO1 (tail);
 	  menu_bar_hooks_run = update_menu_bar (f, false, menu_bar_hooks_run);
 #ifdef HAVE_WINDOW_SYSTEM
 	  update_tool_bar (f, false);
 #endif
-	  UNGCPRO;
 	}
 
       unbind_to (count, Qnil);
@@ -11872,7 +11883,6 @@ update_tool_bar (struct frame *f, bool save_match_data)
 	  ptrdiff_t count = SPECPDL_INDEX ();
 	  Lisp_Object frame, new_tool_bar;
           int new_n_tool_bar;
-	  struct gcpro gcpro1;
 
 	  /* Set current_buffer to the buffer of the selected
 	     window of the frame, so that we get the right local
@@ -11889,8 +11899,6 @@ update_tool_bar (struct frame *f, bool save_match_data)
 	      specbind (Qoverriding_terminal_local_map, Qnil);
 	      specbind (Qoverriding_local_map, Qnil);
 	    }
-
-	  GCPRO1 (new_tool_bar);
 
 	  /* We must temporarily set the selected frame to this frame
 	     before calling tool_bar_items, because the calculation of
@@ -11923,8 +11931,6 @@ update_tool_bar (struct frame *f, bool save_match_data)
               unblock_input ();
             }
 
-	  UNGCPRO;
-
 	  unbind_to (count, Qnil);
 	  set_buffer_internal_1 (prev);
 	}
@@ -11941,11 +11947,9 @@ static void
 build_desired_tool_bar_string (struct frame *f)
 {
   int i, size, size_needed;
-  struct gcpro gcpro1, gcpro2;
   Lisp_Object image, plist;
 
   image = plist = Qnil;
-  GCPRO2 (image, plist);
 
   /* Prepare F->desired_tool_bar_string.  If we can reuse it, do so.
      Otherwise, make a new string.  */
@@ -11965,11 +11969,8 @@ build_desired_tool_bar_string (struct frame *f)
   else
     {
       AUTO_LIST4 (props, Qdisplay, Qnil, Qmenu_item, Qnil);
-      struct gcpro gcpro1;
-      GCPRO1 (props);
       Fremove_text_properties (make_number (0), make_number (size),
 			       props, f->desired_tool_bar_string);
-      UNGCPRO;
     }
 
   /* Put a `display' property on the string for the images to display,
@@ -12082,8 +12083,6 @@ build_desired_tool_bar_string (struct frame *f)
       image = Fcons (Qimage, plist);
       AUTO_LIST4 (props, Qdisplay, image, Qmenu_item,
 		  make_number (i * TOOL_BAR_ITEM_NSLOTS));
-      struct gcpro gcpro1;
-      GCPRO1 (props);
 
       /* Let the last image hide all remaining spaces in the tool bar
          string.  The string can be longer than needed when we reuse a
@@ -12094,11 +12093,8 @@ build_desired_tool_bar_string (struct frame *f)
 	end = i + 1;
       Fadd_text_properties (make_number (i), make_number (end),
 			    props, f->desired_tool_bar_string);
-      UNGCPRO;
 #undef PROP
     }
-
-  UNGCPRO;
 }
 
 
@@ -17801,7 +17797,7 @@ try_window_id (struct window *w)
 #if false
 #define GIVE_UP(X)						\
   do {								\
-    fprintf (stderr, "try_window_id give up %d\n", (X));	\
+    TRACE ((stderr, "try_window_id give up %d\n", (X)));	\
     return 0;							\
   } while (false)
 #else
@@ -17823,7 +17819,7 @@ try_window_id (struct window *w)
      changed in the buffer displayed by the window, so give up if they
      have.  */
   if (w->last_overlay_modified != OVERLAY_MODIFF)
-    GIVE_UP (21);
+    GIVE_UP (200);
 
   /* Verify that narrowing has not changed.
      Also verify that we were not told to prevent redisplay optimizations.
@@ -17882,6 +17878,11 @@ try_window_id (struct window *w)
   if (!NILP (BVAR (XBUFFER (w->contents), bidi_display_reordering))
       && NILP (BVAR (XBUFFER (w->contents), bidi_paragraph_direction)))
     GIVE_UP (22);
+
+  /* Give up if the buffer has line-spacing set, as Lisp-level changes
+     to that variable require thorough redisplay.  */
+  if (!NILP (BVAR (XBUFFER (w->contents), extra_line_spacing)))
+    GIVE_UP (23);
 
   /* Make sure beg_unchanged and end_unchanged are up to date.  Do it
      only if buffer has really changed.  The reason is that the gap is
@@ -19278,12 +19279,74 @@ append_space_for_newline (struct it *it, bool default_face_p)
 #ifdef HAVE_WINDOW_SYSTEM
 	  /* Make sure this space glyph has the right ascent and
 	     descent values, or else cursor at end of line will look
-	     funny.  */
+	     funny, and height of empty lines will be incorrect.  */
 	  g = it->glyph_row->glyphs[TEXT_AREA] + n;
 	  struct font *font = face->font ? face->font : FRAME_FONT (it->f);
-	  if (n == 0 || it->glyph_row->height < font->pixel_size)
+	  if (n == 0)
 	    {
+	      Lisp_Object height, total_height;
+	      int extra_line_spacing = it->extra_line_spacing;
+	      int boff = font->baseline_offset;
+
+	      if (font->vertical_centering)
+		boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
+
+	      it->object = saved_object; /* get_it_property needs this */
 	      normal_char_ascent_descent (font, -1, &it->ascent, &it->descent);
+	      /* Must do a subset of line height processing from
+		 x_produce_glyph for newline characters.  */
+	      height = get_it_property (it, Qline_height);
+	      if (CONSP (height)
+		  && CONSP (XCDR (height))
+		  && NILP (XCDR (XCDR (height))))
+		{
+		  total_height = XCAR (XCDR (height));
+		  height = XCAR (height);
+		}
+	      else
+		total_height = Qnil;
+	      height = calc_line_height_property (it, height, font, boff, true);
+
+	      if (it->override_ascent >= 0)
+		{
+		  it->ascent = it->override_ascent;
+		  it->descent = it->override_descent;
+		  boff = it->override_boff;
+		}
+	      if (EQ (height, Qt))
+		extra_line_spacing = 0;
+	      else
+		{
+		  Lisp_Object spacing;
+
+		  it->phys_ascent = it->ascent;
+		  it->phys_descent = it->descent;
+		  if (!NILP (height)
+		      && XINT (height) > it->ascent + it->descent)
+		    it->ascent = XINT (height) - it->descent;
+
+		  if (!NILP (total_height))
+		    spacing = calc_line_height_property (it, total_height, font,
+							 boff, false);
+		  else
+		    {
+		      spacing = get_it_property (it, Qline_spacing);
+		      spacing = calc_line_height_property (it, spacing, font,
+							   boff, false);
+		    }
+		  if (INTEGERP (spacing))
+		    {
+		      extra_line_spacing = XINT (spacing);
+		      if (!NILP (total_height))
+			extra_line_spacing -= (it->phys_ascent + it->phys_descent);
+		    }
+		}
+	      if (extra_line_spacing > 0)
+		{
+		  it->descent += extra_line_spacing;
+		  if (extra_line_spacing > it->max_extra_line_spacing)
+		    it->max_extra_line_spacing = extra_line_spacing;
+		}
 	      it->max_ascent = it->ascent;
 	      it->max_descent = it->descent;
 	      /* Make sure compute_line_metrics recomputes the row height.  */

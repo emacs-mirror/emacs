@@ -2440,107 +2440,191 @@ Using `python-shell-interpreter' and
                      python-shell-interpreter-args)
              (python-shell-calculate-command)))))
 
+(ert-deftest python-shell-calculate-pythonpath-1 ()
+  "Test PYTHONPATH calculation."
+  (let ((process-environment '("PYTHONPATH=/path0"))
+        (python-shell-extra-pythonpaths '("/path1" "/path2")))
+    (should (string= (python-shell-calculate-pythonpath)
+                     "/path1:/path2:/path0"))))
+
+(ert-deftest python-shell-calculate-pythonpath-2 ()
+  "Test existing paths are moved to front."
+  (let ((process-environment '("PYTHONPATH=/path0:/path1"))
+        (python-shell-extra-pythonpaths '("/path1" "/path2")))
+    (should (string= (python-shell-calculate-pythonpath)
+                     "/path1:/path2:/path0"))))
+
 (ert-deftest python-shell-calculate-process-environment-1 ()
   "Test `python-shell-process-environment' modification."
   (let* ((python-shell-process-environment
           '("TESTVAR1=value1" "TESTVAR2=value2"))
-         (process-environment
-          (python-shell-calculate-process-environment)))
+         (process-environment (python-shell-calculate-process-environment)))
     (should (equal (getenv "TESTVAR1") "value1"))
     (should (equal (getenv "TESTVAR2") "value2"))))
 
 (ert-deftest python-shell-calculate-process-environment-2 ()
   "Test `python-shell-extra-pythonpaths' modification."
   (let* ((process-environment process-environment)
-         (original-pythonpath (setenv "PYTHONPATH" "path3"))
-         (paths '("path1" "path2"))
-         (python-shell-extra-pythonpaths paths)
-         (process-environment
-          (python-shell-calculate-process-environment)))
-    (should (equal (getenv "PYTHONPATH")
-                   (concat
-                    (mapconcat 'identity paths path-separator)
-                    path-separator original-pythonpath)))))
+         (original-pythonpath (setenv "PYTHONPATH" "/path0"))
+         (python-shell-extra-pythonpaths '("/path1" "/path2"))
+         (process-environment (python-shell-calculate-process-environment)))
+    (should (equal (getenv "PYTHONPATH") "/path1:/path2:/path0"))))
 
 (ert-deftest python-shell-calculate-process-environment-3 ()
   "Test `python-shell-virtualenv-root' modification."
-  (let* ((python-shell-virtualenv-root
-          (directory-file-name user-emacs-directory))
+  (let* ((python-shell-virtualenv-root "/env")
          (process-environment
-          (python-shell-calculate-process-environment)))
+          (let (process-environment process-environment)
+            (setenv "PYTHONHOME" "/home")
+            (setenv "VIRTUAL_ENV")
+            (python-shell-calculate-process-environment))))
     (should (not (getenv "PYTHONHOME")))
-    (should (string= (getenv "VIRTUAL_ENV") python-shell-virtualenv-root))))
+    (should (string= (getenv "VIRTUAL_ENV") "/env"))))
 
 (ert-deftest python-shell-calculate-process-environment-4 ()
-  "Test `python-shell-unbuffered' modification."
-  (setenv "PYTHONUNBUFFERED")
-  (let* ((process-environment
-          (python-shell-calculate-process-environment)))
-    ;; Defaults to t
-    (should python-shell-unbuffered)
+  "Test PYTHONUNBUFFERED when `python-shell-unbuffered' is non-nil."
+  (let* ((python-shell-unbuffered t)
+         (process-environment
+          (let ((process-environment process-environment))
+            (setenv "PYTHONUNBUFFERED")
+            (python-shell-calculate-process-environment))))
     (should (string= (getenv "PYTHONUNBUFFERED") "1"))))
 
 (ert-deftest python-shell-calculate-process-environment-5 ()
-  (setenv "PYTHONUNBUFFERED")
-  "Test `python-shell-unbuffered' modification."
+  "Test PYTHONUNBUFFERED when `python-shell-unbuffered' is nil."
   (let* ((python-shell-unbuffered nil)
          (process-environment
-          (python-shell-calculate-process-environment)))
+          (let ((process-environment process-environment))
+            (setenv "PYTHONUNBUFFERED")
+            (python-shell-calculate-process-environment))))
     (should (not (getenv "PYTHONUNBUFFERED")))))
+
+(ert-deftest python-shell-calculate-process-environment-6 ()
+  "Test PYTHONUNBUFFERED=1 when `python-shell-unbuffered' is nil."
+  (let* ((python-shell-unbuffered nil)
+         (process-environment
+          (let ((process-environment process-environment))
+            (setenv "PYTHONUNBUFFERED" "1")
+            (python-shell-calculate-process-environment))))
+    ;; User default settings must remain untouched:
+    (should (string= (getenv "PYTHONUNBUFFERED") "1"))))
+
+(ert-deftest python-shell-calculate-process-environment-7 ()
+  "Test no side-effects on `process-environment'."
+  (let* ((python-shell-process-environment
+          '("TESTVAR1=value1" "TESTVAR2=value2"))
+         (python-shell-virtualenv-root "/env")
+         (python-shell-unbuffered t)
+         (python-shell-extra-pythonpaths'("/path1" "/path2"))
+         (original-process-environment (copy-sequence process-environment)))
+    (python-shell-calculate-process-environment)
+    (should (equal process-environment original-process-environment))))
+
+(ert-deftest python-shell-calculate-process-environment-8 ()
+  "Test no side-effects on `tramp-remote-process-environment'."
+  (let* ((default-directory "/ssh::/example/dir/")
+         (python-shell-process-environment
+          '("TESTVAR1=value1" "TESTVAR2=value2"))
+         (python-shell-virtualenv-root "/env")
+         (python-shell-unbuffered t)
+         (python-shell-extra-pythonpaths'("/path1" "/path2"))
+         (original-process-environment
+          (copy-sequence tramp-remote-process-environment)))
+    (python-shell-calculate-process-environment)
+    (should (equal tramp-remote-process-environment original-process-environment))))
 
 (ert-deftest python-shell-calculate-exec-path-1 ()
   "Test `python-shell-exec-path' modification."
-  (let* ((original-exec-path exec-path)
-         (python-shell-exec-path '("path1" "path2"))
-         (exec-path (python-shell-calculate-exec-path)))
-    (should (equal
-             exec-path
-             (append python-shell-exec-path
-                     original-exec-path)))))
+  (let* ((exec-path '("/path0"))
+         (python-shell-exec-path '("/path1" "/path2"))
+         (new-exec-path (python-shell-calculate-exec-path)))
+    (should (equal new-exec-path '("/path1" "/path2" "/path0")))))
 
 (ert-deftest python-shell-calculate-exec-path-2 ()
   "Test `python-shell-virtualenv-root' modification."
-  (let* ((original-exec-path exec-path)
-         (python-shell-virtualenv-root
-          (directory-file-name (expand-file-name user-emacs-directory)))
-         (exec-path (python-shell-calculate-exec-path)))
-    (should (equal
-             exec-path
-             (append (cons
-                      (format "%s/bin" python-shell-virtualenv-root)
-                      original-exec-path))))))
+  (let* ((exec-path '("/path0"))
+         (python-shell-virtualenv-root "/env")
+         (new-exec-path (python-shell-calculate-exec-path)))
+    (should (equal new-exec-path '("/env/bin" "/path0")))))
+
+(ert-deftest python-shell-calculate-exec-path-3 ()
+  "Test complete `python-shell-virtualenv-root' modification."
+  (let* ((exec-path '("/path0"))
+         (python-shell-exec-path '("/path1" "/path2"))
+         (python-shell-virtualenv-root "/env")
+         (new-exec-path (python-shell-calculate-exec-path)))
+    (should (equal new-exec-path '("/env/bin" "/path1" "/path2" "/path0")))))
+
+(ert-deftest python-shell-calculate-exec-path-4 ()
+  "Test complete `python-shell-virtualenv-root' with remote."
+  (let* ((default-directory "/ssh::/example/dir/")
+         (python-shell-remote-exec-path '("/path0"))
+         (python-shell-exec-path '("/path1" "/path2"))
+         (python-shell-virtualenv-root "/env")
+         (new-exec-path (python-shell-calculate-exec-path)))
+    (should (equal new-exec-path '("/env/bin" "/path1" "/path2" "/path0")))))
+
+(ert-deftest python-shell-calculate-exec-path-5 ()
+  "Test no side-effects on `exec-path'."
+  (let* ((exec-path '("/path0"))
+         (python-shell-exec-path '("/path1" "/path2"))
+         (python-shell-virtualenv-root "/env")
+         (original-exec-path (copy-sequence exec-path)))
+    (python-shell-calculate-exec-path)
+    (should (equal exec-path original-exec-path))))
+
+(ert-deftest python-shell-calculate-exec-path-6 ()
+  "Test no side-effects on `python-shell-remote-exec-path'."
+  (let* ((default-directory "/ssh::/example/dir/")
+         (python-shell-remote-exec-path '("/path0"))
+         (python-shell-exec-path '("/path1" "/path2"))
+         (python-shell-virtualenv-root "/env")
+         (original-exec-path (copy-sequence python-shell-remote-exec-path)))
+    (python-shell-calculate-exec-path)
+    (should (equal python-shell-remote-exec-path original-exec-path))))
 
 (ert-deftest python-shell-with-environment-1 ()
-  "Test with local `default-directory'."
-  (let* ((original-exec-path exec-path)
-         (python-shell-virtualenv-root
-          (directory-file-name (expand-file-name user-emacs-directory))))
+  "Test environment with local `default-directory'."
+  (let* ((exec-path '("/path0"))
+         (python-shell-exec-path '("/path1" "/path2"))
+         (original-exec-path exec-path)
+         (python-shell-virtualenv-root "/env"))
     (python-shell-with-environment
-      (should (equal
-               exec-path
-               (append (cons
-                        (format "%s/bin" python-shell-virtualenv-root)
-                        original-exec-path))))
+      (should (equal exec-path '("/env/bin" "/path1" "/path2" "/path0")))
       (should (not (getenv "PYTHONHOME")))
-      (should (string= (getenv "VIRTUAL_ENV") python-shell-virtualenv-root)))))
+      (should (string= (getenv "VIRTUAL_ENV") "/env")))
+    (should (equal exec-path original-exec-path))))
 
 (ert-deftest python-shell-with-environment-2 ()
-  "Test with remote `default-directory'."
+  "Test environment with remote `default-directory'."
   (let* ((default-directory "/ssh::/example/dir/")
-         (original-exec-path tramp-remote-path)
-         (original-process-environment tramp-remote-process-environment)
-         (python-shell-virtualenv-root
-          (directory-file-name (expand-file-name user-emacs-directory))))
+         (python-shell-remote-exec-path '("/remote1" "/remote2"))
+         (python-shell-exec-path '("/path1" "/path2"))
+         (tramp-remote-process-environment '("EMACS=t"))
+         (original-process-environment (copy-sequence tramp-remote-process-environment))
+         (python-shell-virtualenv-root "/env"))
     (python-shell-with-environment
-      (should (equal
-               tramp-remote-path
-               (append (cons
-                        (format "%s/bin" python-shell-virtualenv-root)
-                        original-exec-path))))
-      (let ((process-environment tramp-remote-process-environment))
+      (should (equal (python-shell-calculate-exec-path)
+                     '("/env/bin" "/path1" "/path2" "/remote1" "/remote2")))
+      (let ((process-environment (python-shell-calculate-process-environment)))
         (should (not (getenv "PYTHONHOME")))
-        (should (string= (getenv "VIRTUAL_ENV")
-                         python-shell-virtualenv-root))))))
+        (should (string= (getenv "VIRTUAL_ENV") "/env"))
+        (should (equal tramp-remote-process-environment process-environment))))
+    (should (equal tramp-remote-process-environment original-process-environment))))
+
+(ert-deftest python-shell-with-environment-3 ()
+  "Test `python-shell-with-environment' is idempotent."
+  (let* ((python-shell-extra-pythonpaths '("/example/dir/"))
+         (python-shell-exec-path '("path1" "path2"))
+         (python-shell-virtualenv-root "/home/user/env")
+         (single-call
+          (python-shell-with-environment
+            (list exec-path process-environment)))
+         (nested-call
+          (python-shell-with-environment
+            (python-shell-with-environment
+              (list exec-path process-environment)))))
+    (should (equal single-call nested-call))))
 
 (ert-deftest python-shell-make-comint-1 ()
   "Check comint creation for global shell buffer."
@@ -3191,6 +3275,61 @@ class Foo(models.Model):
     pass
 
 "))))
+
+(ert-deftest python-shell-buffer-substring-10 ()
+  "Check substring from partial block."
+  (python-tests-with-temp-buffer
+   "
+def foo():
+    print ('a')
+"
+   (should (string= (python-shell-buffer-substring
+                     (python-tests-look-at "print ('a')")
+                     (point-max))
+                    "if True:
+
+    print ('a')
+"))))
+
+(ert-deftest python-shell-buffer-substring-11 ()
+  "Check substring from partial block and point within indentation."
+  (python-tests-with-temp-buffer
+   "
+def foo():
+    print ('a')
+"
+   (should (string= (python-shell-buffer-substring
+                     (progn
+                       (python-tests-look-at "print ('a')")
+                       (backward-char 1)
+                       (point))
+                     (point-max))
+                    "if True:
+
+    print ('a')
+"))))
+
+(ert-deftest python-shell-buffer-substring-12 ()
+  "Check substring from partial block and point in whitespace."
+  (python-tests-with-temp-buffer
+   "
+def foo():
+
+        # Whitespace
+
+    print ('a')
+"
+   (should (string= (python-shell-buffer-substring
+                     (python-tests-look-at "# Whitespace")
+                     (point-max))
+                    "if True:
+
+
+        # Whitespace
+
+    print ('a')
+"))))
+
 
 
 ;;; Shell completion

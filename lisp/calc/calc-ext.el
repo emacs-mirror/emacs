@@ -1097,10 +1097,10 @@ calc-tan calc-tanh calc-to-degrees calc-to-radians)
 
  ("calc-mode" calc-alg-simplify-mode calc-algebraic-mode
 calc-always-load-extensions calc-auto-recompute calc-auto-why
-calc-basic-simplify-mode calc-bin-simplify-mode calc-break-vectors 
-calc-center-justify calc-default-simplify-mode calc-display-raw 
-calc-eng-notation calc-ext-simplify-mode calc-fix-notation 
-calc-full-trail-vectors calc-full-vectors calc-get-modes calc-group-char 
+calc-basic-simplify-mode calc-bin-simplify-mode calc-break-vectors
+calc-center-justify calc-default-simplify-mode calc-display-raw
+calc-eng-notation calc-ext-simplify-mode calc-fix-notation
+calc-full-trail-vectors calc-full-vectors calc-get-modes calc-group-char
 calc-group-digits calc-infinite-mode calc-left-justify calc-left-label
 calc-line-breaking calc-line-numbering calc-matrix-brackets
 calc-matrix-center-justify calc-matrix-left-justify calc-matrix-mode
@@ -1177,7 +1177,7 @@ calc-trail-scroll-right calc-trail-yank)
  ("calc-undo" calc-last-args calc-redo)
 
  ("calc-units" calc-autorange-units calc-base-units
-calc-convert-temperature calc-convert-units 
+calc-convert-temperature calc-convert-units
 calc-convert-exact-units calc-define-unit
 calc-enter-units-table calc-explain-units calc-extract-units
 calc-get-unit-definition calc-permanent-units calc-quick-units
@@ -1245,7 +1245,7 @@ calc-kill calc-kill-region calc-yank))))
 
 
 (defun calc-record-message (tag &rest args)
-  (let ((msg (apply 'format args)))
+  (let ((msg (apply #'format-message args)))
     (message "%s" msg)
     (calc-record msg tag))
   (calc-clear-command-flag 'clear-message))
@@ -1957,7 +1957,7 @@ calc-kill calc-kill-region calc-yank))))
 		  (desc
 		   (if (symbolp func)
 		       (if (= (logand kind 3) 0)
-			   (format "`%c' = %s" key name)
+			   (format-message "‘%c’ = %s" key name)
 			 (if pos
 			     (format "%s%c%s"
 				     (downcase (substring name 0 pos))
@@ -1988,7 +1988,7 @@ calc-kill calc-kill-region calc-yank))))
      "kbd-macros: [ (if), : (else), | (else-if), ] (end-if)"
      "kbd-macros: < > (repeat), ( ) (for), { } (loop)"
      "kbd-macros: / (break)"
-     "kbd-macros: ` (save), ' (restore)")
+     "kbd-macros: \\=` (save), ' (restore)")
    "user" ?Z))
 
 

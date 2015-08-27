@@ -154,12 +154,12 @@
 
 (defmacro c-declare-lang-variables ()
   `(progn
-     ,@(mapcan (lambda (init)
-		 `(,(if (elt init 2)
-			`(defvar ,(car init) nil ,(elt init 2))
-		      `(defvar ,(car init) nil))
-		   (make-variable-buffer-local ',(car init))))
-	       (cdr c-lang-variable-inits))))
+     ,@(c--mapcan (lambda (init)
+		    `(,(if (elt init 2)
+			   `(defvar ,(car init) nil ,(elt init 2))
+			 `(defvar ,(car init) nil))
+		      (make-variable-buffer-local ',(car init))))
+		 (cdr c-lang-variable-inits))))
 (c-declare-lang-variables)
 
 
@@ -671,8 +671,8 @@ position if that is less ('same is returned in this case).
 
 NOERROR turns off error logging to `c-parsing-error'.
 
-Normally only ';' and virtual semicolons are considered to delimit
-statements, but if COMMA-DELIM is non-nil then ',' is treated
+Normally only `;' and virtual semicolons are considered to delimit
+statements, but if COMMA-DELIM is non-nil then `,' is treated
 as a delimiter too.
 
 Note that this function might do hidden buffer changes.  See the
@@ -3135,16 +3135,20 @@ comment at the start of cc-engine.el for more info."
 	nil))				; for the cond
 
      ((save-restriction
-        (narrow-to-region too-far-back (point-max))
-        (setq ren (c-safe (c-sc-scan-lists pos -1 -1))))
-
+	(narrow-to-region too-far-back (point-max))
+	(setq ren (c-safe (c-sc-scan-lists pos -1 -1))))
       ;; CASE 3: After a }/)/] before `here''s BOL.
       (list (1+ ren) (and dropped-cons pos) nil)) ; Return value
+
+     ((progn (setq good-pos (c-state-lit-beg (c-point 'bopl here-bol)))
+	     (>= cache-pos good-pos))
+      ;; CASE 3.5: Just after an existing entry in `c-state-cache' on `here''s
+      ;; line or the previous line.
+      (list cache-pos nil nil))
 
      (t
       ;; CASE 4; Best of a bad job: BOL before `here-bol', or beginning of
       ;; literal containing it.
-      (setq good-pos (c-state-lit-beg (c-point 'bopl here-bol)))
       (list good-pos (and dropped-cons good-pos) nil)))))
 
 
@@ -4612,7 +4616,7 @@ comment at the start of cc-engine.el for more info."
 (defun c-literal-type (range)
   "Convenience function that given the result of `c-literal-limits',
 returns nil or the type of literal that the range surrounds, one
-of the symbols 'c, 'c++ or 'string.  It's much faster than using
+of the symbols `c', `c++' or `string'.  It's much faster than using
 `c-in-literal' and is intended to be used when you need both the
 type of a literal and its limits.
 
@@ -11228,8 +11232,8 @@ Cannot combine absolute offsets %S and %S in `add' method"
 
 (cc-provide 'cc-engine)
 
-;;; Local Variables:
-;;; indent-tabs-mode: t
-;;; tab-width: 8
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: t
+;; tab-width: 8
+;; End:
 ;;; cc-engine.el ends here

@@ -360,7 +360,7 @@ this variable usefully is to set it while building and dumping Emacs."
   :group 'initialization
   :initialize #'custom-initialize-default
   :set (lambda (_variable _value)
-	  (error "Customizing `site-run-file' does not work")))
+	  (error "Customizing ‘site-run-file’ does not work")))
 
 (make-obsolete-variable 'system-name "use (system-name) instead" "25.1")
 
@@ -752,7 +752,7 @@ to prepare for opening the first frame (e.g. open a connection to an X server)."
 		(let ((elt (assoc completion tty-long-option-alist)))
 		  ;; Check for abbreviated long option.
 		  (or elt
-		      (error "Option `%s' is ambiguous" argi))
+		      (error "Option ‘%s’ is ambiguous" argi))
 		  (setq argi (cdr elt)))
 	      ;; Check for a short option.
 	      (setq argval nil
@@ -902,7 +902,7 @@ please check its value")
 		  ((stringp completion)
 		   (let ((elt (assoc completion longopts)))
 		     (unless elt
-		       (error "Option `%s' is ambiguous" argi))
+		       (error "Option ‘%s’ is ambiguous" argi))
 		     (setq argi (substring (car elt) 1))))
 		  (t
 		   (setq argval nil
@@ -945,7 +945,7 @@ please check its value")
           (setq done t)))
 	;; Was argval set but not used?
 	(and argval
-	     (error "Option `%s' doesn't allow an argument" argi))))
+	     (error "Option ‘%s’ doesn't allow an argument" argi))))
 
     ;; Re-attach the --display arg.
     (and display-arg (setq args (append display-arg args)))
@@ -964,7 +964,7 @@ please check its value")
 	       (not (featurep
 		     (intern
 		      (concat (symbol-name initial-window-system) "-win")))))
-	  (error "Unsupported window system `%s'" initial-window-system))
+	  (error "Unsupported window system ‘%s’" initial-window-system))
       ;; Process window-system specific command line parameters.
       (setq command-line-args
             (let ((window-system initial-window-system)) ;Hack attack!
@@ -1023,6 +1023,7 @@ please check its value")
       (or standard-display-table
           (setq standard-display-table (make-display-table)))
       (aset standard-display-table (car char-repl) (cdr char-repl))))
+  (setq internal--text-quoting-flag t)
 
   ;; Re-evaluate predefined variables whose initial value depends on
   ;; the runtime context.
@@ -1114,8 +1115,9 @@ please check its value")
 			      "~/.emacs")
 			     ((directory-files "~" nil "^_emacs\\(\\.elc?\\)?$")
 			      ;; Also support _emacs for compatibility, but warn about it.
-			      (push '(initialization
-				      "`_emacs' init file is deprecated, please use `.emacs'")
+			      (push `(initialization
+				      ,(format-message
+					"`_emacs' init file is deprecated, please use `.emacs'"))
 				    delayed-warnings-list)
 			      "~/_emacs")
 			     (t ;; But default to .emacs if _emacs does not exist.
@@ -1176,10 +1178,11 @@ please check its value")
 	    (error
 	     (display-warning
 	      'initialization
-	      (format "An error occurred while loading `%s':\n\n%s%s%s\n\n\
+	      (format-message "\
+An error occurred while loading ‘%s’:\n\n%s%s%s\n\n\
 To ensure normal operation, you should investigate and remove the
 cause of the error in your initialization file.  Start Emacs with
-the `--debug-init' option to view a complete error backtrace."
+the ‘--debug-init’ option to view a complete error backtrace."
 		      user-init-file
 		      (get (car error) 'error-message)
 		      (if (cdr error) ": " "")
@@ -1311,8 +1314,9 @@ the `--debug-init' option to view a complete error backtrace."
 			 (expand-file-name user-emacs-directory))
 	   (setq warned t)
 	   (display-warning 'initialization
-			    (format "Your `load-path' seems to contain
-your `.emacs.d' directory: %s\n\
+			    (format-message "\
+Your ‘load-path’ seems to contain\n\
+your ‘.emacs.d’ directory: %s\n\
 This is likely to cause problems...\n\
 Consider using a subdirectory instead, e.g.: %s"
                                     dir (expand-file-name
@@ -1882,7 +1886,7 @@ splash screen in another window."
 				   auto-save-list-file-prefix)))
 	    t)
 	   (insert "\n\nIf an Emacs session crashed recently, "
-		   "type Meta-x recover-session RET\nto recover"
+		   "type M-x recover-session RET\nto recover"
 		   " the files you were editing.\n"))
 
       (use-local-map splash-screen-keymap)
@@ -1997,9 +2001,9 @@ To quit a partially entered command, type Control-g.\n")
     (insert (substitute-command-keys "   \\[tmm-menubar]")))
 
   ;; Many users seem to have problems with these.
-  (insert "
+  (insert (substitute-command-keys "
 \(`C-' means use the CTRL key.  `M-' means use the Meta (or Alt) key.
-If you have no Meta key, you may instead type ESC followed by the character.)")
+If you have no Meta key, you may instead type ESC followed by the character.)"))
 
   ;; Insert links to useful tasks
   (insert "\nUseful tasks:\n")
@@ -2160,9 +2164,12 @@ A fancy display is used on graphic displays, normal otherwise."
   ;; which includes files parsed from the command line arguments and
   ;; `initial-buffer-choice'.  All of the display logic happens at the
   ;; end of this `let'.  As files as processed from the command line
-  ;; arguments, their buffers are prepended to `displayable-buffers'
-  ;; but they are not displayed until command line parsing has
-  ;; finished.
+  ;; arguments, their buffers are prepended to `displayable-buffers'.
+  ;; In order for options like "--eval" to work with the "--file" arg,
+  ;; the file buffers are set as the current buffer as they are seen
+  ;; on the command line (so "emacs --batch --file a --file b
+  ;; --eval='(message "%s" (buffer-name))'" will print "b"), but this
+  ;; does not affect the final displayed state of the buffers.
   (let ((displayable-buffers nil))
     ;; This `let' processes the command line arguments.
     (let ((command-line-args-left args-left))
@@ -2193,10 +2200,11 @@ A fancy display is used on graphic displays, normal otherwise."
                                 command-switch-alist)))
                (line 0)
                (column 0)
-               ;; `process-file-arg' opens a file buffer for `name'
-               ;; without switching to the buffer, adds the buffer to
+               ;; `process-file-arg' opens a file buffer for `name',
+               ;; sets that buffer as the current buffer without
+               ;; displaying it, adds the buffer to
                ;; `displayable-buffers', and puts the point at
-               ;; `line':`column'. `line' and `column' are both reset
+               ;; `line':`column'.  `line' and `column' are both reset
                ;; to zero when `process-file-arg' returns.
                (process-file-arg
                 (lambda (name)
@@ -2209,14 +2217,19 @@ nil default-directory" name)
 				  dir))
 			   (buf (find-file-noselect file)))
 		      (setq displayable-buffers (cons buf displayable-buffers))
-		      (with-current-buffer buf
-			(unless (zerop line)
-			  (goto-char (point-min))
-			  (forward-line (1- line)))
-			(setq line 0)
-			(unless (< column 1)
-			  (move-to-column (1- column)))
-			(setq column 0)))))))
+                      ;; Set the file buffer to the current buffer so
+                      ;; that it will be used with "--eval" and
+                      ;; similar options.
+                      (set-buffer buf)
+                      ;; Put the point at `line':`column' in the file
+                      ;; buffer, and reset `line' and `column' to 0.
+                      (unless (zerop line)
+                        (goto-char (point-min))
+                        (forward-line (1- line)))
+                      (setq line 0)
+                      (unless (< column 1)
+                        (move-to-column (1- column)))
+                      (setq column 0))))))
 
           ;; Add the long X options to longopts.
           (dolist (tem command-line-x-option-alist)
@@ -2251,7 +2264,7 @@ nil default-directory" name)
                     (if (stringp completion)
                         (let ((elt (member completion longopts)))
                           (or elt
-                              (error "Option `%s' is ambiguous" argi))
+                              (error "Option ‘%s’ is ambiguous" argi))
                           (setq argi (substring (car elt) 1)))
                       (setq argval nil
                             argi orig-argi)))))
@@ -2321,7 +2334,7 @@ nil default-directory" name)
                      (setq inhibit-startup-screen t)
                      (setq tem (or argval (pop command-line-args-left)))
                      (or (stringp tem)
-                         (error "File name omitted from `-insert' option"))
+                         (error "File name omitted from ‘-insert’ option"))
                      (insert-file-contents (command-line-normalize-file-name tem)))
 
                     ((equal argi "-kill")
@@ -2356,7 +2369,7 @@ nil default-directory" name)
                      ;; An explicit option to specify visiting a file.
                      (setq tem (or argval (pop command-line-args-left)))
                      (unless (stringp tem)
-                       (error "File name omitted from `%s' option" argi))
+                       (error "File name omitted from ‘%s’ option" argi))
                      (funcall process-file-arg tem))
 
                     ;; These command lines now have no effect.
@@ -2377,7 +2390,7 @@ nil default-directory" name)
                        (unless did-hook
                          ;; Presume that the argument is a file name.
                          (if (string-match "\\`-" argi)
-                             (error "Unknown option `%s'" argi))
+                             (error "Unknown option ‘%s’" argi))
                          ;; FIXME: Why do we only inhibit the startup
                          ;; screen for -nw?
                          (unless initial-window-system

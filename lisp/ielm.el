@@ -62,11 +62,11 @@ narrowing in effect.  This way you will be certain that none of
 the remaining prompts will be accidentally messed up.  You may
 wish to put something like the following in your init file:
 
-\(add-hook 'ielm-mode-hook
+\(add-hook \\='ielm-mode-hook
           (lambda ()
-             (define-key ielm-map \"\\C-w\" 'comint-kill-region)
+             (define-key ielm-map \"\\C-w\" \\='comint-kill-region)
              (define-key ielm-map [C-S-backspace]
-               'comint-kill-whole-line)))
+               \\='comint-kill-whole-line)))
 
 If you set `comint-prompt-read-only' to t, you might wish to use
 `comint-mode-hook' and `comint-mode-map' instead of
@@ -615,7 +615,7 @@ See `inferior-emacs-lisp-mode' for details."
       (with-current-buffer (get-buffer-create "*ielm*")
         (unless (zerop (buffer-size)) (setq old-point (point)))
         (inferior-emacs-lisp-mode)))
-    (switch-to-buffer "*ielm*")
+    (pop-to-buffer-same-window "*ielm*")
     (when old-point (push-mark old-point))))
 
 (provide 'ielm)

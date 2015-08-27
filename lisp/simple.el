@@ -693,7 +693,8 @@ any other non-digit terminates the character code and is then used as input."))
       (cond ((null translated))
 	    ((not (integerp translated))
 	     (setq unread-command-events
-                   (listify-key-sequence (this-single-command-raw-keys))
+                   (nconc (listify-key-sequence (this-single-command-raw-keys))
+                          unread-command-events)
 		   done t))
 	    ((/= (logand translated ?\M-\^@) 0)
 	     ;; Turn a meta-character into a character with the 0200 bit set.
@@ -713,7 +714,8 @@ any other non-digit terminates the character code and is then used as input."))
 	     (setq done t))
 	    ((not first)
 	     (setq unread-command-events
-                   (listify-key-sequence (this-single-command-raw-keys))
+                   (nconc (listify-key-sequence (this-single-command-raw-keys))
+                          unread-command-events)
 		   done t))
 	    (t (setq code translated
 		     done t)))
@@ -1255,10 +1257,7 @@ in *Help* buffer.  See also the command `describe-char'."
 	 (end (point-max))
          (pos (point))
 	 (total (buffer-size))
-	 (percent (if (> total 50000)
-		      ;; Avoid overflow from multiplying by 100!
-		      (/ (+ (/ total 200) (1- pos)) (max (/ total 100) 1))
-		    (/ (+ (/ total 2) (* 100 (1- pos))) (max total 1))))
+	 (percent (round (* 100.0 (1- pos)) (max 1 total)))
 	 (hscroll (if (= (window-hscroll) 0)
 		      ""
 		    (format " Hscroll=%d" (window-hscroll))))
@@ -1656,7 +1655,7 @@ invoking, give a prefix argument to `execute-extended-command'."
 		       (not executing-kbd-macro)
 		       (where-is-internal function overriding-local-map t))))
     (unless (commandp function)
-      (error "`%s' is not a valid command name" command-name))
+      (error "‘%s’ is not a valid command name" command-name))
     (setq this-command function)
     ;; Normally `real-this-command' should never be changed, but here we really
     ;; want to pretend that M-x <cmd> RET is nothing more than a "key
@@ -1690,11 +1689,11 @@ invoking, give a prefix argument to `execute-extended-command'."
                            (symbol-name function) typed))))
         (when binding
           (with-temp-message
-              (format "You can run the command `%s' with %s"
-                      function
-                      (if (stringp binding)
-                          (concat "M-x " binding " RET")
-                        (key-description binding)))
+              (format-message "You can run the command ‘%s’ with %s"
+                              function
+                              (if (stringp binding)
+                                  (concat "M-x " binding " RET")
+                                (key-description binding)))
             (sit-for (if (numberp suggest-key-bindings)
                          suggest-key-bindings
                        2))))))))
@@ -2797,16 +2796,18 @@ This variable only matters if `undo-ask-before-discard' is non-nil.")
 	;; but we don't want to ask the question again.
 	(setq undo-extra-outer-limit (+ size 50000))
 	(if (let (use-dialog-box track-mouse executing-kbd-macro )
-	      (yes-or-no-p (format "Buffer `%s' undo info is %d bytes long; discard it? "
-				   (buffer-name) size)))
+	      (yes-or-no-p (format-message
+                            "Buffer ‘%s’ undo info is %d bytes long; discard it? "
+                            (buffer-name) size)))
 	    (progn (setq buffer-undo-list nil)
 		   (setq undo-extra-outer-limit nil)
 		   t)
 	  nil))
     (display-warning '(undo discard-info)
 		     (concat
-		      (format "Buffer `%s' undo info was %d bytes long.\n"
-			      (buffer-name) size)
+		      (format-message
+                       "Buffer ‘%s’ undo info was %d bytes long.\n"
+                       (buffer-name) size)
 		      "The undo info was discarded because it exceeded \
 `undo-outer-limit'.
 
@@ -3564,8 +3565,9 @@ Also, delete any process that is exited or signaled."
 		  (buf-label (if (buffer-live-p buf)
 				 `(,(buffer-name buf)
 				   face link
-				   help-echo ,(concat "Visit buffer `"
-						      (buffer-name buf) "'")
+				   help-echo ,(format-message
+					       "Visit buffer ‘%s’"
+					       (buffer-name buf))
 				   follow-link t
 				   process-buffer ,buf
 				   action process-menu-visit-buffer)
@@ -6874,17 +6876,22 @@ If called from Lisp, enable the mode if ARG is omitted or nil."
 
 (defcustom blink-matching-paren t
   "Non-nil means show matching open-paren when close-paren is inserted.
-If t, highlight the paren.  If `jump', move cursor to its position."
+If t, highlight the paren.  If `jump', briefly move cursor to its
+position.  If `jump-offscreen', move cursor there even if the
+position is off screen.  With any other non-nil value, the
+off-screen position of the opening paren will be shown in the
+echo area."
   :type '(choice
           (const :tag "Disable" nil)
           (const :tag "Highlight" t)
-          (const :tag "Move cursor" jump))
+          (const :tag "Move cursor" jump)
+          (const :tag "Move cursor, even if off screen" jump-offscreen))
   :group 'paren-blinking)
 
 (defcustom blink-matching-paren-on-screen t
   "Non-nil means show matching open-paren when it is on screen.
 If nil, don't show it (but the open-paren can still be shown
-when it is off screen).
+in the echo area when it is off screen).
 
 This variable has no effect if `blink-matching-paren' is nil.
 \(In that case, the open-paren is never shown.)
@@ -6988,13 +6995,15 @@ The function should return non-nil if the two tokens do not match.")
               (minibuffer-message "No matching parenthesis found")
             (message "No matching parenthesis found"))))
        ((not blinkpos) nil)
-       ((pos-visible-in-window-p blinkpos)
+       ((or
+         (eq blink-matching-paren 'jump-offscreen)
+         (pos-visible-in-window-p blinkpos))
         ;; Matching open within window, temporarily move to or highlight
         ;; char after blinkpos but only if `blink-matching-paren-on-screen'
         ;; is non-nil.
         (and blink-matching-paren-on-screen
              (not show-paren-mode)
-             (if (eq blink-matching-paren 'jump)
+             (if (memq blink-matching-paren '(jump jump-offscreen))
                  (save-excursion
                    (goto-char blinkpos)
                    (sit-for blink-matching-delay))
@@ -7005,9 +7014,9 @@ The function should return non-nil if the two tokens do not match.")
                      (sit-for blink-matching-delay))
                  (delete-overlay blink-matching--overlay)))))
        (t
-        (save-excursion
-          (goto-char blinkpos)
-          (let ((open-paren-line-string
+        (let ((open-paren-line-string
+               (save-excursion
+                 (goto-char blinkpos)
                  ;; Show what precedes the open in its line, if anything.
                  (cond
                   ((save-excursion (skip-chars-backward " \t") (not (bolp)))
@@ -7034,10 +7043,10 @@ The function should return non-nil if the two tokens do not match.")
                     "..."
                     (buffer-substring blinkpos (1+ blinkpos))))
                   ;; There is nothing to show except the char itself.
-                  (t (buffer-substring blinkpos (1+ blinkpos))))))
-            (minibuffer-message
-             "Matches %s"
-             (substring-no-properties open-paren-line-string)))))))))
+                  (t (buffer-substring blinkpos (1+ blinkpos)))))))
+          (minibuffer-message
+           "Matches %s"
+           (substring-no-properties open-paren-line-string))))))))
 
 (defvar blink-paren-function 'blink-matching-open
   "Function called, if non-nil, whenever a close parenthesis is inserted.
@@ -7266,8 +7275,8 @@ buffer buried."
 			    (format "\
 The default mail mode is now Message mode.
 You have the following Mail mode variable%s customized:
-\n  %s\n\nTo use Mail mode, set `mail-user-agent' to sendmail-user-agent.
-To disable this warning, set `compose-mail-user-agent-warnings' to nil."
+\n  %s\n\nTo use Mail mode, set ‘mail-user-agent’ to sendmail-user-agent.
+To disable this warning, set ‘compose-mail-user-agent-warnings’ to nil."
 				    (if (> (length warn-vars) 1) "s" "")
 				    (mapconcat 'symbol-name
 					       warn-vars " "))))))
@@ -7338,8 +7347,8 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally."
 				(t "globally"))))
 	  (val (progn
                  (when obsolete
-                   (message (concat "`%S' is obsolete; "
-                                    (if (symbolp obsolete) "use `%S' instead" "%s"))
+                   (message (concat "‘%S’ is obsolete; "
+                                    (if (symbolp obsolete) "use ‘%S’ instead" "%s"))
                             var obsolete)
                    (sit-for 3))
                  (if prop
@@ -7363,7 +7372,7 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally."
       (require 'cus-edit)
       (setq type (widget-convert type))
       (unless (widget-apply type :match value)
-	(user-error "Value `%S' does not match type %S of %S"
+	(user-error "Value ‘%S’ does not match type %S of %S"
 		    value (car type) variable))))
 
   (if make-local
@@ -7574,7 +7583,7 @@ back on `completion-list-insert-choice-function' when nil."
   ;; `base-position'.  It's difficult to make any use of `base-size',
   ;; so we just ignore it.
   (unless (consp base-position)
-    (message "Obsolete `base-size' passed to choose-completion-string")
+    (message "Obsolete ‘base-size’ passed to choose-completion-string")
     (setq base-position nil))
 
   (let* ((buffer (or buffer completion-reference-buffer))
@@ -7687,8 +7696,7 @@ Called from `temp-buffer-show-hook'."
       (when completion-show-help
 	(goto-char (point-min))
 	(if (display-mouse-p)
-	    (insert (substitute-command-keys
-		     "Click on a completion to select it.\n")))
+	    (insert "Click on a completion to select it.\n"))
 	(insert (substitute-command-keys
 		 "In this buffer, type \\[choose-completion] to \
 select the completion near point.\n\n"))))))
@@ -8300,7 +8308,7 @@ CUSTOMIZATIONS, if non-nil, should be composed of alternating
     `(progn
 
        (defcustom ,varalt-sym nil
-         ,(format "Alist of alternative implementations for the `%s' command.
+         ,(format "Alist of alternative implementations for the ‘%s’ command.
 
 Each entry must be a pair (ALTNAME . ALTFUN), where:
 ALTNAME - The name shown at user to describe the alternative implementation.
@@ -8313,29 +8321,31 @@ ALTFUN  - The function called to implement this alternative."
        (defvar ,varimp-sym nil "Internal use only.")
 
        (defun ,command (&optional arg)
-         ,(format "Run generic command `%s'.
+         ,(format "Run generic command ‘%s’.
 If used for the first time, or with interactive ARG, ask the user which
-implementation to use for `%s'.  The variable `%s'
+implementation to use for ‘%s’.  The variable ‘%s’
 contains the list of implementations currently supported for this command."
                   command-name command-name varalt-name)
          (interactive "P")
          (when (or arg (null ,varimp-sym))
            (let ((val (completing-read
-		       ,(format "Select implementation for command `%s': "
-				command-name)
+		       ,(format-message
+                         "Select implementation for command ‘%s’: "
+                         command-name)
 		       ,varalt-sym nil t)))
              (unless (string-equal val "")
 	       (when (null ,varimp-sym)
 		 (message
-		  "Use `C-u M-x %s RET' to select another implementation"
+		  "Use ‘C-u M-x %s RET’ to select another implementation"
 		  ,command-name)
 		 (sit-for 3))
 	       (customize-save-variable ',varimp-sym
 					(cdr (assoc-string val ,varalt-sym))))))
          (if ,varimp-sym
              (call-interactively ,varimp-sym)
-           (message ,(format "No implementation selected for command `%s'"
-                             command-name)))))))
+           (message "%s" ,(format-message
+                           "No implementation selected for command ‘%s’"
+                           command-name)))))))
 
 
 

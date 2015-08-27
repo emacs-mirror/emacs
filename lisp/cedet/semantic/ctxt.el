@@ -362,7 +362,7 @@ This skips forward over symbols in a complex reference.
 For example, in the C statement:
   this.that().entry;
 
-If the cursor is on 'this', will move point to the ; after entry.")
+If the cursor is on `this', will move point to the ; after entry.")
 
 (defun semantic-ctxt-end-of-symbol-default (&optional point)
   "Move point to the end of the current symbol under POINT.

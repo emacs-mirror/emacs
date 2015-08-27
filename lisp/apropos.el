@@ -681,8 +681,8 @@ the output includes key-bindings of commands."
       (apropos-symbols-internal
        symbols apropos-do-all
        (concat
-        (format (substitute-command-keys
-                 "Library `%s' provides: %s\nand requires: %s")
+        (format-message
+                "Library ‘%s’ provides: %s\nand requires: %s"
                 file
                 (mapconcat 'apropos-library-button
                            (or provides '(nil)) " and ")
@@ -727,11 +727,10 @@ the output includes key-bindings of commands."
 		 (let ((alias (get symbol 'face-alias)))
 		   (if alias
 		       (if (facep alias)
-			   (format "%slias for the face `%s'."
-				   (if (get symbol 'obsolete-face)
-				       "Obsolete a"
-				     "A")
-				   alias)
+			   (format-message
+			    "%slias for the face `%s'."
+			    (if (get symbol 'obsolete-face) "Obsolete a" "A")
+			    alias)
 			 ;; Never happens in practice because fails
 			 ;; (facep symbol) test.
 			 "(alias for undefined face)")

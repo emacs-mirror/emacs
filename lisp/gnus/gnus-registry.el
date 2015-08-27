@@ -558,7 +558,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
                      do (gnus-message
                          ;; warn more if gnus-registry-track-extra
                          (if gnus-registry-track-extra 7 9)
-                         "%s (extra tracking) traced subject '%s' to %s"
+                         "%s (extra tracking) traced subject `%s' to %s"
                          log-agent subject group)
                     and collect group))
          ;; filter the found groups and return them
@@ -585,7 +585,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
                      do (gnus-message
                          ;; warn more if gnus-registry-track-extra
                          (if gnus-registry-track-extra 7 9)
-                         "%s (extra tracking) traced sender '%s' to %s"
+                         "%s (extra tracking) traced sender `%s' to %s"
                          log-agent sender group)
                      and collect group)))
 
@@ -615,7 +615,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
                          do (gnus-message
                              ;; warn more if gnus-registry-track-extra
                              (if gnus-registry-track-extra 7 9)
-                             "%s (extra tracking) traced recipient '%s' to %s"
+                             "%s (extra tracking) traced recipient `%s' to %s"
                              log-agent recp group)
                         and collect group)))))
 
@@ -630,7 +630,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 (defun gnus-registry-post-process-groups (mode key groups)
   "Inspects GROUPS found by MODE for KEY to determine which ones to follow.
 
-MODE can be 'subject' or 'sender' for example.  The KEY is the
+MODE can be `subject' or `sender' for example.  The KEY is the
 value by which MODE was searched.
 
 Transforms each group name to the equivalent short name.
@@ -712,12 +712,12 @@ possible.  Uses `gnus-registry-split-strategy'."
      ((null out)
       (gnus-message
        5
-       "%s: no matches for %s '%s'."
+       "%s: no matches for %s `%s'."
        log-agent mode key)
       nil)
      (t (gnus-message
          5
-         "%s: too many extra matches (%s) for %s '%s'.  Returning none."
+         "%s: too many extra matches (%s) for %s `%s'.  Returning none."
          log-agent out mode key)
         nil))))
 
@@ -1100,7 +1100,7 @@ only the last one's marks are returned."
         (when (and (< 0 expected)
                    (= 0 (mod count 100)))
           (message "importing: %d of %d (%.2f%%)"
-                   count expected (/ (* 100 count) expected)))
+                   count expected (/ (* 100.0 count) expected)))
         (setq entry (car-safe old)
               old (cdr-safe old))
         (let* ((id (car-safe entry))

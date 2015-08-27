@@ -45,7 +45,7 @@ commands, as a script file."
 (defcustom eshell-login-script (expand-file-name "login" eshell-directory-name)
   "If non-nil, a file to invoke when starting up Eshell interactively.
 This file should be a file containing Eshell commands, where comment
-lines begin with '#'."
+lines begin with ‘#’."
   :type 'file
   :group 'eshell-script)
 
@@ -89,7 +89,7 @@ This includes when running `eshell-command'."
 
 (defun eshell-source-file (file &optional args subcommand-p)
   "Execute a series of Eshell commands in FILE, passing ARGS.
-Comments begin with '#'."
+Comments begin with ‘#’."
   (interactive "f")
   (let ((orig (point))
 	(here (point-max))

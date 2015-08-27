@@ -267,7 +267,7 @@ The return value is undefined.
                                 (cdr body)
                               body)))
                     nil)
-                   (t (message "Warning: Unknown defun property `%S' in %S"
+                   (t (message "Warning: Unknown defun property ‘%S’ in %S"
                                (car x) name)))))
                    decls))
           (def (list 'defalias
@@ -317,7 +317,7 @@ The return value is undefined.
   (declare (debug defun) (doc-string 3))
   (or (memq (get name 'byte-optimizer)
 	    '(nil byte-compile-inline-expand))
-      (error "`%s' is a primitive" name))
+      (error "‘%s’ is a primitive" name))
   `(prog1
        (defun ,name ,arglist ,@body)
      (eval-and-compile
@@ -355,12 +355,12 @@ was first made obsolete, for example a date or a release number."
 						   &optional when docstring)
   "Set OBSOLETE-NAME's function definition to CURRENT-NAME and mark it obsolete.
 
-\(define-obsolete-function-alias 'old-fun 'new-fun \"22.1\" \"old-fun's doc.\")
+\(define-obsolete-function-alias \\='old-fun \\='new-fun \"22.1\" \"old-fun's doc.\")
 
 is equivalent to the following two lines of code:
 
-\(defalias 'old-fun 'new-fun \"old-fun's doc.\")
-\(make-obsolete 'old-fun 'new-fun \"22.1\")
+\(defalias \\='old-fun \\='new-fun \"old-fun's doc.\")
+\(make-obsolete \\='old-fun \\='new-fun \"22.1\")
 
 See the docstrings of `defalias' and `make-obsolete' for more details."
   (declare (doc-string 4)

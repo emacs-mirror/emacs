@@ -189,7 +189,7 @@ from the Local Variables list ignoring the input argument VALUE."
 	(unless (let ((case-fold-search t))
 		  (goto-char beg)
 		  (search-forward "Local Variables:" nil t))
-	  (throw 'exit (message "Can't add file-local variables"))))
+	  (throw 'exit (message "Can’t add file-local variables"))))
 
       ;; prefix is what comes before "local variables:" in its line.
       ;; suffix is what comes after "local variables:" in its line.

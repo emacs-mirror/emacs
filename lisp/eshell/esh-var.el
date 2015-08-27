@@ -116,7 +116,7 @@
 (require 'ring)
 
 (defgroup eshell-var nil
-  "Variable interpolation is introduced whenever the '$' character
+  "Variable interpolation is introduced whenever the ‘$’ character
 appears unquoted in any argument (except when that argument is
 surrounded by single quotes).  It may be used to interpolate a
 variable value, a subcommand, or even the result of a Lisp form."
@@ -148,7 +148,7 @@ variable value, a subcommand, or even the result of a Lisp form."
 
 (defcustom eshell-variable-name-regexp "[A-Za-z0-9_-]+"
   "A regexp identifying what constitutes a variable name reference.
-Note that this only applies for '$NAME'.  If the syntax '$<NAME>' is
+Note that this only applies for `$NAME'.  If the syntax `$<NAME>' is
 used, then NAME can contain any character, including angle brackets,
 if they are quoted with a backslash."
   :type 'regexp
@@ -186,12 +186,12 @@ if they are quoted with a backslash."
 It is very similar in concept to what `eshell-user-aliases-list' does
 for commands.  Each member of this defines the name of a command,
 and the Lisp value to return for that variable if it is accessed
-via the syntax '$NAME'.
+via the syntax `$NAME'.
 
 If the value is a function, that function will be called with two
 arguments: the list of the indices that was used in the reference, and
 whether the user is requesting the length of the ultimate element.
-For example, a reference of '$NAME[10][20]' would result in the
+For example, a reference of `$NAME[10][20]' would result in the
 function for alias `NAME' being called (assuming it were aliased to a
 function), and the arguments passed to this function would be the list
 '(10 20)', and nil."
@@ -231,7 +231,7 @@ function), and the arguments passed to this function would be the list
 	      'eshell-complete-variable-assignment nil t)))
 
 (defun eshell-handle-local-variables ()
-  "Allow for the syntax 'VAR=val <command> <args>'."
+  "Allow for the syntax `VAR=val <command> <args>'."
   ;; strip off any null commands, which can only happen if a variable
   ;; evaluates to nil, such as "$var x", where `var' is nil.  The
   ;; command name in that case becomes `x', for compatibility with

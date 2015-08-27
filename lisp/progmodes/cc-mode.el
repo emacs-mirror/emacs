@@ -1919,8 +1919,8 @@ Key bindings:
 
 (cc-provide 'cc-mode)
 
-;;; Local Variables:
-;;; indent-tabs-mode: t
-;;; tab-width: 8
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: t
+;; tab-width: 8
+;; End:
 ;;; cc-mode.el ends here

@@ -379,15 +379,15 @@ This mechanism is useful for correct interaction with the IDL function
 GET_KBRD, because in normal operation IDLWAVE only sends \\n terminated
 strings.  Here is some example code which makes use of the default spells.
 
-  print,'<chars>'               ; Make IDLWAVE switch to character mode
+  print,\\='<chars>\\='               ; Make IDLWAVE switch to character mode
   REPEAT BEGIN
       A = GET_KBRD(1)
       PRINT, BYTE(A)
-  ENDREP UNTIL A EQ 'q'
-  print,'</chars>'              ; Make IDLWAVE switch back to line mode
+  ENDREP UNTIL A EQ \\='q\\='
+  print,\\='</chars>\\='              ; Make IDLWAVE switch back to line mode
 
-  print,'Quit the program, y or n?'
-  print,'<onechar>'             ; Ask IDLWAVE to send one character
+  print,\\='Quit the program, y or n?\\='
+  print,\\='<onechar>\\='             ; Ask IDLWAVE to send one character
   answer = GET_KBRD(1)
 
 Since the IDLWAVE shell defines the system variable `!IDLWAVE_VERSION',
@@ -403,11 +403,11 @@ idlwave_char_input,/off          ; End the loop to send characters
 
 pro idlwave_char_input,on=on,off=off
   ;; Test if we are running under Emacs
-  defsysv,'!idlwave_version',exists=running_emacs
+  defsysv,\\='!idlwave_version\\=',exists=running_emacs
   if running_emacs then begin
-      if keyword_set(on) then         print,'<chars>' $
-        else if keyword_set(off) then print,'</chars>' $
-        else                          print,'<onechar>'
+      if keyword_set(on) then         print,\\='<chars>\\=' $
+        else if keyword_set(off) then print,\\='</chars>\\=' $
+        else                          print,\\='<onechar>\\='
   endif
 end"
   :group 'idlwave-shell-command-setup

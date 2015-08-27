@@ -251,7 +251,7 @@ assures that the current feed is completely visible."
   "List of functions run after the newsticker buffer has been updated.
 Each function is called after `newsticker-buffer-update' has been called.
 
-The default value '`newsticker-w3m-show-inline-images' loads inline
+The default value `\\='newsticker-w3m-show-inline-images' loads inline
 images."
   :type 'hook
   :group 'newsticker-plainview-hooks)
@@ -263,7 +263,7 @@ Each function is called after
 `newsticker-toggle-auto-narrow-to-feed' or
 `newsticker-toggle-auto-narrow-to-item' has been called.
 
-The default value '`newsticker-w3m-show-inline-images' loads inline
+The default value `\\='newsticker-w3m-show-inline-images' loads inline
 images."
   :type 'hook
   :group 'newsticker-plainview-hooks)

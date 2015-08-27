@@ -428,8 +428,10 @@ The variable `electric-layout-rules' says when and how to insert newlines."
   :type 'boolean :safe 'booleanp :group 'electricity)
 
 (defun electric--insertable-p (string)
-  (not (unencodable-char-position nil nil buffer-file-coding-system
-                                  nil string)))
+  (or (not buffer-file-coding-system)
+      (eq (coding-system-base buffer-file-coding-system) 'undecided)
+      (not (unencodable-char-position nil nil buffer-file-coding-system
+                                      nil string))))
 
 (defun electric-quote-post-self-insert-function ()
   "Function that ‘electric-quote-mode’ adds to ‘post-self-insert-hook’.
@@ -451,7 +453,7 @@ This requotes when a quoting key is typed."
         (save-excursion
           (if (eq last-command-event ?\`)
               (cond ((and (electric--insertable-p "“")
-                          (re-search-backward "[`‘]`" (- (point) 2) t))
+                          (search-backward "‘`" (- (point) 2) t))
                      (replace-match "“")
                      (when (and electric-pair-mode
                                 (eq (cdr-safe
@@ -463,19 +465,14 @@ This requotes when a quoting key is typed."
                           (search-backward "`" (1- (point)) t))
                      (replace-match "‘")
                      (setq last-command-event ?‘)))
-            (let ((pos (point)))
-              (if (memq (char-before (1- (point))) '(?\' ?’))
-                  (when (and (search-backward "“" start t)
-                             (eq pos (re-search-forward
-                                      "“\\(\\([^‘”]\\|‘[^‘’”]*’\\)*\\)['’]'"
-                                      pos t)))
-                    (replace-match "“\\1”")
-                    (setq last-command-event ?”))
-                (when (and (search-backward "‘" start t)
-                           (eq pos (re-search-forward
-                                    "‘\\([^’]*\\)'" pos t)))
-                  (replace-match "‘\\1’")
-                  (setq last-command-event ?’))))))))))
+            (cond ((and (electric--insertable-p "”")
+                        (search-backward "’'" (- (point) 2) t))
+                   (replace-match "”")
+                   (setq last-command-event ?”))
+                  ((and (electric--insertable-p "’")
+                        (search-backward "'" (1- (point)) t))
+                   (replace-match "’")
+                   (setq last-command-event ?’)))))))))
 
 (put 'electric-quote-post-self-insert-function 'priority 10)
 
@@ -486,11 +483,11 @@ With a prefix argument ARG, enable Electric Quote mode if
 ARG is positive, and disable it otherwise.  If called from Lisp,
 enable the mode if ARG is omitted or nil.
 
-When enabled, this replaces \\=`foo bar' with \\=‘foo bar\\=’ and replaces
-\\=`\\=`foo bar'' with “foo bar” as you type.  This occurs only in
-comments, strings, and text paragraphs, and these are selectively
-controlled with ‘electric-quote-comment’,
-‘electric-quote-string’, and ‘electric-quote-paragraph’.
+When enabled, as you type this replaces \\=` with \\=‘, \\=' with \\=’,
+\\=`\\=` with “, and \\='\\=' with ”.  This occurs only in comments, strings,
+and text paragraphs, and these are selectively controlled with
+‘electric-quote-comment’, ‘electric-quote-string’, and
+‘electric-quote-paragraph’.
 
 This is a global minor mode.  To toggle the mode in a single buffer,
 use ‘electric-quote-local-mode’."

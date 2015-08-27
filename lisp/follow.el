@@ -405,7 +405,7 @@ mileage may vary).
 
 To split one large window into two side-by-side windows, the commands
 `\\[split-window-right]' or \
-`M-x follow-delete-other-windows-and-split' can be used.
+`\\[follow-delete-other-windows-and-split]' can be used.
 
 Only windows displayed in the same frame follow each other.
 

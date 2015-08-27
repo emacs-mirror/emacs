@@ -690,7 +690,7 @@ Puts point on a blank line between them."
 (defun texinfo-insert-quote (&optional arg)
   "Insert the appropriate quote mark for Texinfo.
 Usually inserts the value of `texinfo-open-quote' (normally \\=`\\=`) or
-`texinfo-close-quote' (normally ''), depending on the context.
+`texinfo-close-quote' (normally \\='\\='), depending on the context.
 With prefix argument or inside @code or @example, inserts a plain \"."
   (interactive "*P")
   (let ((top (or (save-excursion (re-search-backward "@node\\>" nil t))

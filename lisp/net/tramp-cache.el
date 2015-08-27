@@ -157,7 +157,7 @@ Returns VALUE."
   ;; Unify localname.  Remove hop from vector.
   (setq key (copy-sequence key))
   (aset key 3 (tramp-run-real-handler 'directory-file-name (list file)))
-p  (aset key 4 nil)
+  (aset key 4 nil)
   (let ((hash (tramp-get-hash-table key)))
     ;; We put the timestamp there.
     (puthash property (cons (current-time) value) hash)
@@ -440,7 +440,7 @@ for all methods.  Resulting data are derived from connection history."
      (clrhash tramp-cache-data))
     (error
      ;; File is corrupted.
-     (message "Tramp persistency file '%s' is corrupted: %s"
+     (message "Tramp persistency file `%s' is corrupted: %s"
 	      tramp-persistency-file-name (error-message-string err))
      (clrhash tramp-cache-data))))
 

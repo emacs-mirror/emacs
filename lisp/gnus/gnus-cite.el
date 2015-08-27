@@ -786,12 +786,12 @@ See also the documentation for `gnus-article-highlight-citation'."
 (defun gnus-cite-delete-overlays ()
   (dolist (overlay gnus-cite-overlay-list)
     (ignore-errors
-      (when (or (not (gnus-overlay-end overlay))
-		(and (>= (gnus-overlay-end overlay) (point-min))
-		     (<= (gnus-overlay-end overlay) (point-max))))
+      (when (or (not (overlay-end overlay))
+		(and (>= (overlay-end overlay) (point-min))
+		     (<= (overlay-end overlay) (point-max))))
 	(setq gnus-cite-overlay-list (delete overlay gnus-cite-overlay-list))
 	(ignore-errors
-	  (gnus-delete-overlay overlay))))))
+	  (delete-overlay overlay))))))
 
 (defun gnus-cite-parse-wrapper ()
   ;; Wrap chopped gnus-cite-parse.
@@ -1096,10 +1096,10 @@ See also the documentation for `gnus-article-highlight-citation'."
 	(skip-chars-backward " \t")
 	(setq to (point))
 	(when (< from to)
-	  (push (setq overlay (gnus-make-overlay from to nil t))
+	  (push (setq overlay (make-overlay from to nil t))
 		gnus-cite-overlay-list)
-	  (gnus-overlay-put overlay 'evaporate t)
-	  (gnus-overlay-put overlay 'face face))))))
+	  (overlay-put overlay 'evaporate t)
+	  (overlay-put overlay 'face face))))))
 
 (defun gnus-cite-toggle (prefix)
   (with-current-buffer gnus-article-buffer

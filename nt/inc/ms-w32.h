@@ -187,6 +187,20 @@ extern struct tm * sys_localtime (const time_t *);
 #undef HAVE__SETJMP
 #endif
 
+/* The following is needed for recovery from C stack overflows.  */
+#include <setjmp.h>
+typedef jmp_buf sigjmp_buf;
+#ifdef MINGW_W64
+/* Evidently, MinGW64's longjmp crashes when invoked from an exception
+   handler, see https://sourceforge.net/p/mingw-w64/mailman/message/32421953/.
+   This seems to be an unsolved problem in the MinGW64 runtime.  So we
+   use the GCC intrinsics instead.  FIXME.  */
+#define sigsetjmp(j,m) __builtin_setjmp(j)
+#else
+#define sigsetjmp(j,m) setjmp(j)
+#endif
+extern void w32_reset_stack_overflow_guard (void);
+
 #ifdef _MSC_VER
 #include <sys/timeb.h>
 #include <sys/stat.h>

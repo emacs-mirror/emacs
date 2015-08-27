@@ -105,7 +105,7 @@ which files this object is interested in."
 	 :accessor ede-object-menu)
    )
   "A target is a structure that describes a file set that produces something.
-Targets, as with 'Make', is an entity that will manage a file set
+Targets, as with `Make', is an entity that will manage a file set
 and knows how to compile or otherwise transform those files into some
 other desired outcome.")
 
@@ -626,7 +626,7 @@ instead of the current project."
 (defun ede-normalize-file/directory (this project-file-name)
   "Fills :directory or :file slots if they're missing in project THIS.
 The other slot will be used to calculate values.
-PROJECT-FILE-NAME is a name of project file (short name, like 'pom.xml', etc."
+PROJECT-FILE-NAME is a name of project file (short name, like `pom.xml', etc."
   (when (and (or (not (slot-boundp this :file))
 		 (not (oref this :file)))
 	     (slot-boundp this :directory)

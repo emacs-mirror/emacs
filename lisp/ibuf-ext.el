@@ -1557,7 +1557,7 @@ You can then feed the file name(s) to other commands with \\[yank]."
 
 ;;;###autoload
 (defun ibuffer-mark-special-buffers ()
-  "Mark all buffers whose name begins and ends with '*'."
+  "Mark all buffers whose name begins and ends with `*'."
   (interactive)
   (ibuffer-mark-on-buffer
    #'(lambda (buf) (string-match "^\\*.+\\*$"

@@ -919,7 +919,7 @@ startup file, `~/.emacs-octave'."
       (let ((ch (read-event)))
         (if (eq ch ?\ )
             (set-window-configuration conf)
-          (setq unread-command-events (list ch)))))))
+          (push ch unread-command-events))))))
 
 (defun inferior-octave-output-digest (_proc string)
   "Special output filter for the inferior Octave process.

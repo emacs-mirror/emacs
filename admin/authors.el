@@ -1078,10 +1078,10 @@ to print a message if FILE is not found."
 		  (string-match "^[0-9.]+$" file)
 		  laxlog)
 	(setq authors-invalid-file-names
-	      (cons (format "%s:%d: unrecognized `%s' for %s"
-			    log-file
-			    (1+ (count-lines (point-min) pos))
-			    file author)
+	      (cons (format-message "%s:%d: unrecognized `%s' for %s"
+				    log-file
+				    (1+ (count-lines (point-min) pos))
+				    file author)
 		    authors-invalid-file-names)))
       valid)))
 
@@ -1154,7 +1154,7 @@ it is found in `authors-fixed-case'."
 	  (setq regexps (cdr regexps))))))
   (when author
     (setq author (replace-regexp-in-string "[ \t]*[(<].*$" "" author))
-    (setq author (replace-regexp-in-string "\`[ \t]+" "" author))
+    (setq author (replace-regexp-in-string "\\`[ \t]+" "" author))
     (setq author (replace-regexp-in-string "[ \t]+$" "" author))
     (setq author (replace-regexp-in-string "[ \t]+" " " author))
     (unless (string-match "[-, \t]" author)

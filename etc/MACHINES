@@ -10,12 +10,12 @@ Information about older releases, and platforms that are no longer
 supported, has been removed.  Consult older versions of this file if
 you are interested in this information.
 
-The `configure' script uses the configuration name, and the results of
+The 'configure' script uses the configuration name, and the results of
 testing the system, to decide which options to use in src/config.h and
 elsewhere (eg Makefiles).
 
 If you add support for a new configuration, add a section to this
-file, and edit the `configure.ac' source as needed.
+file, and edit the 'configure.ac' source as needed.
 
 Some obsolete platforms are unsupported beginning with Emacs 23.1.  See
 the list at the end of this file.
@@ -90,9 +90,9 @@ the list at the end of this file.
   On Solaris, do not use /usr/ucb/cc.  Use /opt/SUNWspro/bin/cc.  Make
   sure that /usr/ccs/bin and /opt/SUNWspro/bin are in your PATH before
   /usr/ucb.  (Most free software packages have the same requirement on
-  Solaris.)  With this compiler, use `/opt/SUNWspro/bin/cc -E' as the
+  Solaris.)  With this compiler, use '/opt/SUNWspro/bin/cc -E' as the
   preprocessor.  If this inserts extra whitespace into its output (see
-  the PROBLEMS file) then add the option `-Xs'.
+  the PROBLEMS file) then add the option '-Xs'.
 
   To build a 64-bit Emacs (with larger maximum buffer size) on a
   Solaris system which supports 64-bit executables, specify the -m64

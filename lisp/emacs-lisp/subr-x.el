@@ -90,7 +90,7 @@ threading."
   (when (> (length binding) 2)
     (signal
      'error
-     (cons "`let' bindings can have only one value-form" binding)))
+     (cons "‘let’ bindings can have only one value-form" binding)))
   binding)
 
 (defsubst internal--build-binding-value-form (binding prev-var)

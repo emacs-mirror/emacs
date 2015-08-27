@@ -638,7 +638,6 @@ to read the source, but we can explain some things here.
 @file{eval.c}.  (An ordinary function would have the same general
 appearance.)
 
-@cindex garbage collection protection
 @smallexample
 @group
 DEFUN ("or", For, Sor, 0, UNEVALLED, 0,
@@ -648,15 +647,10 @@ The remaining args are not evalled at all.
 If all args return nil, return nil.
 @end group
 @group
-usage: (or CONDITIONS ...)  */)
+usage: (or CONDITIONS...)  */)
   (Lisp_Object args)
 @{
-  register Lisp_Object val = Qnil;
-  struct gcpro gcpro1;
-@end group
-
-@group
-  GCPRO1 (args);
+  Lisp_Object val = Qnil;
 @end group
 
 @group
@@ -670,7 +664,6 @@ usage: (or CONDITIONS ...)  */)
 @end group
 
 @group
-  UNGCPRO;
   return val;
 @}
 @end group
@@ -774,36 +767,17 @@ a primitive to accept only a certain type of argument, you must check
 the type explicitly using a suitable predicate (@pxref{Type Predicates}).
 @cindex type checking internals
 
-@cindex @code{GCPRO} and @code{UNGCPRO}
+@cindex garbage collection protection
 @cindex protect C variables from garbage collection
-  Within the function @code{For} itself, note the use of the macros
-@code{GCPRO1} and @code{UNGCPRO}.  These macros are defined for the
-sake of the few platforms which do not use Emacs' default
-stack-marking garbage collector.  The @code{GCPRO1} macro ``protects''
-a variable from garbage collection, explicitly informing the garbage
-collector that that variable and all its contents must be as
-accessible.  GC protection is necessary in any function which can
-perform Lisp evaluation by calling @code{eval_sub} or @code{Feval} as
-a subroutine, either directly or indirectly.
-
-  It suffices to ensure that at least one pointer to each object is
-GC-protected.  Thus, a particular local variable can do without
-protection if it is certain that the object it points to will be
-preserved by some other pointer (such as another local variable that
-has a @code{GCPRO}).  Otherwise, the local variable needs a
-@code{GCPRO}.
-
-  The macro @code{GCPRO1} protects just one local variable.  If you
-want to protect two variables, use @code{GCPRO2} instead; repeating
-@code{GCPRO1} will not work.  Macros @code{GCPRO3}, @code{GCPRO4},
-@code{GCPRO5}, and @code{GCPRO6} also exist.  All these macros
-implicitly use local variables such as @code{gcpro1}; you must declare
-these explicitly, with type @code{struct gcpro}.  Thus, if you use
-@code{GCPRO2}, you must declare @code{gcpro1} and @code{gcpro2}.
-
-  @code{UNGCPRO} cancels the protection of the variables that are
-protected in the current function.  It is necessary to do this
-explicitly.
+  Within the function @code{For} itself, the local variable
+@code{args} refers to objects controlled by Emacs's stack-marking
+garbage collector.  Although the garbage collector does not reclaim
+objects reachable from C @code{Lisp_Object} stack variables, it may
+move non-object components of an object, such as string contents; so
+functions that access non-object components must take care to refetch
+their addresses after performing Lisp evaluation.  Lisp evaluation can
+occur via calls to @code{eval_sub} or @code{Feval}, either directly or
+indirectly.
 
   You must not use C initializers for static or global variables unless
 the variables are never written once Emacs is dumped.  These variables
@@ -932,9 +906,7 @@ the Lisp function @code{funcall} accepts an unlimited number of
 arguments, in C it takes two: the number of Lisp-level arguments, and a
 one-dimensional array containing their values.  The first Lisp-level
 argument is the Lisp function to call, and the rest are the arguments to
-pass to it.  Since @code{Ffuncall} can call the evaluator, you must
-protect pointers from garbage collection around the call to
-@code{Ffuncall}.
+pass to it.
 
   The C functions @code{call0}, @code{call1}, @code{call2}, and so on,
 provide handy ways to call a Lisp function conveniently with a fixed

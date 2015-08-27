@@ -1140,6 +1140,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 			     (looking-at "{"))
 			(c-safe (c-forward-sexp) t) ; over { .... }
 		      t)
+		    (< (point) limit)
 		    ;; FIXME: Should look for c-decl-end markers here;
 		    ;; we might go far into the following declarations
 		    ;; in e.g. ObjC mode (see e.g. methods-4.m).
@@ -1957,19 +1958,18 @@ higher."
 	      (cdr-safe (or (assq c-buffer-is-cc-mode c-doc-comment-style)
 			    (assq 'other c-doc-comment-style)))
 	    c-doc-comment-style))
-	 (list (nconc (apply 'nconc
-			     (mapcar
-			      (lambda (doc-style)
-				(let ((sym (intern
-					    (concat (symbol-name doc-style)
-						    "-font-lock-keywords"))))
-				  (cond ((fboundp sym)
-					 (funcall sym))
-					((boundp sym)
-					 (append (eval sym) nil)))))
-			      (if (listp doc-keywords)
-				  doc-keywords
-				(list doc-keywords))))
+	 (list (nconc (c--mapcan
+		       (lambda (doc-style)
+			 (let ((sym (intern
+				     (concat (symbol-name doc-style)
+					     "-font-lock-keywords"))))
+			   (cond ((fboundp sym)
+				  (funcall sym))
+				 ((boundp sym)
+				  (append (eval sym) nil)))))
+		       (if (listp doc-keywords)
+			   doc-keywords
+			 (list doc-keywords)))
 		      base-list)))
 
     ;; Kludge: If `c-font-lock-complex-decl-prepare' is on the list we
@@ -2704,8 +2704,8 @@ need for `pike-font-lock-extra-types'.")
 ;; 2006-07-10:  awk-font-lock-keywords has been moved back to cc-awk.el.
 (cc-provide 'cc-fonts)
 
-;;; Local Variables:
-;;; indent-tabs-mode: t
-;;; tab-width: 8
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: t
+;; tab-width: 8
+;; End:
 ;;; cc-fonts.el ends here

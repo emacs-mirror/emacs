@@ -108,7 +108,7 @@ attributes that are found."
 (defun org-irc-ellipsify-description (string &optional after)
   "Remove unnecessary white space from STRING and add ellipses if necessary.
 Strip starting and ending white space from STRING and replace any
-chars that the value AFTER with '...'"
+chars that the value AFTER with ‘...’"
   (let* ((after (number-to-string (or after 30)))
 	 (replace-map (list (cons "^[ \t]*" "")
 			    (cons "[ \t]*$" "")
@@ -172,7 +172,7 @@ the session itself."
 	    (org-store-link-props
 	     :type "irc"
 	     :link (concat "irc:/" link-text)
-	     :description (concat "irc session '" link-text "'")
+	     :description (concat "irc session `" link-text "'")
 	     :server (car (car link))
 	     :port (or (string-to-number (cadr (pop link))) erc-default-port)
 	     :nick (pop link))

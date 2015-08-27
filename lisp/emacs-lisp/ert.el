@@ -121,7 +121,7 @@ Emacs bug 6581 at URL `http://debbugs.gnu.org/cgi/bugreport.cgi?bug=6581'."
 
 (defun ert-get-test (symbol)
   "If SYMBOL names a test, return that.  Signal an error otherwise."
-  (unless (ert-test-boundp symbol) (error "No test named `%S'" symbol))
+  (unless (ert-test-boundp symbol) (error "No test named ‘%S’" symbol))
   (get symbol 'ert--test))
 
 (defun ert-set-test (symbol definition)

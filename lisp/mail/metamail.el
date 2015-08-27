@@ -150,7 +150,7 @@ redisplayed as output is inserted."
 
 ;;;###autoload
 (defun metamail-region (beg end &optional viewmode buffer nodisplay)
-  "Process current region through 'metamail'.
+  "Process current region through `metamail'.
 Optional argument VIEWMODE specifies the value of the
 EMACS_VIEW_MODE environment variable (defaulted to 1).
 Optional argument BUFFER specifies a buffer to be filled (nil

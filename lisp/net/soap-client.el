@@ -51,7 +51,8 @@
 
 (defsubst soap-warning (message &rest args)
   "Display a warning MESSAGE with ARGS, using the 'soap-client warning type."
-  (display-warning 'soap-client (apply 'format message args) :warning))
+  (display-warning 'soap-client (apply #'format-message message args)
+                   :warning))
 
 (defgroup soap-client nil
   "Access SOAP web services from Emacs."
@@ -1818,9 +1819,9 @@ operations in a WSDL document."
 (provide 'soap-client)
 
 
-;;; Local Variables:
-;;; eval: (outline-minor-mode 1)
-;;; outline-regexp: ";;;;+"
-;;; End:
+;; Local Variables:
+;; eval: (outline-minor-mode 1)
+;; outline-regexp: ";;;;+"
+;; End:
 
 ;;; soap-client.el ends here

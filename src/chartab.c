@@ -863,13 +863,11 @@ map_char_table (void (*c_function) (Lisp_Object, Lisp_Object, Lisp_Object),
 		Lisp_Object function, Lisp_Object table, Lisp_Object arg)
 {
   Lisp_Object range, val, parent;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   uniprop_decoder_t decoder = UNIPROP_GET_DECODER (table);
 
   range = Fcons (make_number (0), make_number (MAX_CHAR));
   parent = XCHAR_TABLE (table)->parent;
 
-  GCPRO4 (table, arg, range, parent);
   val = XCHAR_TABLE (table)->ascii;
   if (SUB_CHAR_TABLE_P (val))
     val = XSUB_CHAR_TABLE (val)->contents[0];
@@ -920,8 +918,6 @@ map_char_table (void (*c_function) (Lisp_Object, Lisp_Object, Lisp_Object),
 	    }
 	}
     }
-
-  UNGCPRO;
 }
 
 DEFUN ("map-char-table", Fmap_char_table, Smap_char_table,
@@ -1031,10 +1027,8 @@ map_char_table_for_charset (void (*c_function) (Lisp_Object, Lisp_Object),
 {
   Lisp_Object range;
   int c, i;
-  struct gcpro gcpro1;
 
   range = Fcons (Qnil, Qnil);
-  GCPRO1 (range);
 
   for (i = 0, c = 0; i < chartab_size[0]; i++, c += chartab_chars[0])
     {
@@ -1065,8 +1059,6 @@ map_char_table_for_charset (void (*c_function) (Lisp_Object, Lisp_Object),
       else
 	call2 (function, range, arg);
     }
-
-  UNGCPRO;
 }
 
 
@@ -1299,11 +1291,8 @@ uniprop_table (Lisp_Object prop)
   table = XCDR (val);
   if (STRINGP (table))
     {
-      struct gcpro gcpro1;
-      GCPRO1 (val);
       AUTO_STRING (intl, "international/");
       result = Fload (concat2 (intl, table), Qt, Qt, Qt, Qt);
-      UNGCPRO;
       if (NILP (result))
 	return Qnil;
       table = XCDR (val);

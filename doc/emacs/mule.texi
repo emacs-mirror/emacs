@@ -539,6 +539,8 @@ searching for what you have already entered.
   To find out how to input the character after point using the current
 input method, type @kbd{C-u C-x =}.  @xref{Position Info}.
 
+@c TODO: document complex-only/default/t of
+@c @code{input-method-verbose-flag}
 @vindex input-method-verbose-flag
 @vindex input-method-highlight-flag
   The variables @code{input-method-highlight-flag} and
@@ -1733,9 +1735,13 @@ internal representation within Emacs.
 @findex list-character-sets
   @kbd{M-x list-character-sets} displays a list of all supported
 charsets.  The list gives the names of charsets and additional
-information to identity each charset; see the
-@url{http://www.itscj.ipsj.or.jp/ISO-IR/, International Register of
-Coded Character Sets} for more details.  In this list,
+information to identity each charset; for more details, see the
+@url{https://www.itscj.ipsj.or.jp/itscj_english/iso-ir/ISO-IR.pdf,
+ISO International Register of Coded Character Sets to be Used with
+Escape Sequences (ISO-IR)} maintained by
+the @url{https://www.itscj.ipsj.or.jp/itscj_english/,
+Information Processing Society of Japan/Information Technology
+Standards Commission of Japan (IPSJ/ITSCJ)}.  In this list,
 charsets are divided into two categories: @dfn{normal charsets} are
 listed first, followed by @dfn{supplementary charsets}.  A
 supplementary charset is one that is used to define another charset

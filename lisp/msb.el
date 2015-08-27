@@ -745,8 +745,8 @@ to the buffer-list variable in FUNCTION-INFO."
 	    (msb--add-to-menu buffer info max-buffer-name-length)))
       (error (unless msb--error
 	       (setq msb--error
-		     (format
-		      "In msb-menu-cond, error for buffer `%s'."
+		     (format-message
+		      "In msb-menu-cond, error for buffer ‘%s’."
 		      (buffer-name buffer)))
 	       (error "%s" msb--error))))))
 

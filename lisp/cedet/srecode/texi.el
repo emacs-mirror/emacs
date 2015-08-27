@@ -245,7 +245,7 @@ that class.
  variable   => @code{variable}
  class      => @code{class} @xref{class}
  unknown    => @code{unknown}
- \"text\"     => \\=`\\=`text''
+ \"text\"     => \\=`\\=`text\\='\\='
  'quoteme   => @code{quoteme}
  non-nil    => non-@code{nil}
  t          => @code{t}

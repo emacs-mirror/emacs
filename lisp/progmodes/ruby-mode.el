@@ -1178,9 +1178,7 @@ delimiter."
           (setq in-string (match-end 0))
           (goto-char ruby-indent-point)))
        (t
-        (error (format "Bad string %s"
-                       (buffer-substring (point) pnt)
-                       ))))))
+        (error "Bad string %s" (buffer-substring (point) pnt))))))
   (list in-string nest depth pcol))
 
 (defun ruby-parse-region (start end)

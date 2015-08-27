@@ -9796,8 +9796,8 @@ x_set_offset (struct frame *f, register int xoff, register int yoff, int change_
    Specification/Extended Window Manager Hints at
    http://freedesktop.org/wiki/Specifications/wm-spec.  */
 
-static bool
-wm_supports (struct frame *f, Atom want_atom)
+bool
+x_wm_supports (struct frame *f, Atom want_atom)
 {
   Atom actual_type;
   unsigned long actual_size, bytes_remaining;
@@ -9990,7 +9990,7 @@ static bool
 do_ewmh_fullscreen (struct frame *f)
 {
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
-  bool have_net_atom = wm_supports (f, dpyinfo->Xatom_net_wm_state);
+  bool have_net_atom = x_wm_supports (f, dpyinfo->Xatom_net_wm_state);
   int cur;
   bool dummy;
 
@@ -9999,7 +9999,7 @@ do_ewmh_fullscreen (struct frame *f)
   /* Some window managers don't say they support _NET_WM_STATE, but they do say
      they support _NET_WM_STATE_FULLSCREEN.  Try that also.  */
   if (!have_net_atom)
-    have_net_atom = wm_supports (f, dpyinfo->Xatom_net_wm_state_fullscreen);
+    have_net_atom = x_wm_supports (f, dpyinfo->Xatom_net_wm_state_fullscreen);
 
   if (have_net_atom && cur != f->want_fullscreen)
     {
@@ -10169,6 +10169,8 @@ x_handle_net_wm_state (struct frame *f, const XPropertyEvent *event)
 static void
 x_check_fullscreen (struct frame *f)
 {
+  Lisp_Object lval = Qnil;
+
   if (do_ewmh_fullscreen (f))
     return;
 
@@ -10187,21 +10189,30 @@ x_check_fullscreen (struct frame *f)
       switch (f->want_fullscreen)
         {
           /* No difference between these two when there is no WM */
-        case FULLSCREEN_BOTH:
         case FULLSCREEN_MAXIMIZED:
+          lval = Qmaximized;
+          width = x_display_pixel_width (dpyinfo);
+          height = x_display_pixel_height (dpyinfo);
+          break;
+        case FULLSCREEN_BOTH:
+          lval = Qfullboth;
           width = x_display_pixel_width (dpyinfo);
           height = x_display_pixel_height (dpyinfo);
           break;
         case FULLSCREEN_WIDTH:
+          lval = Qfullwidth;
           width = x_display_pixel_width (dpyinfo);
 	  height = height + FRAME_MENUBAR_HEIGHT (f);
 	  break;
         case FULLSCREEN_HEIGHT:
+          lval = Qfullheight;
           height = x_display_pixel_height (dpyinfo);
         }
 
       frame_size_history_add
 	(f, Qx_check_fullscreen, width, height, Qnil);
+
+      x_wm_set_size_hint (f, 0, false);
 
       XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		     width, height);
@@ -10215,6 +10226,10 @@ x_check_fullscreen (struct frame *f)
 	  x_sync (f);
 	}
     }
+
+  /* `x_net_wm_state' might have reset the fullscreen frame parameter,
+     restore it. */
+  store_frame_param (f, Qfullscreen, lval);
 }
 
 /* This function is called by x_set_offset to determine whether the window
@@ -10578,7 +10593,7 @@ x_ewmh_activate_frame (struct frame *f)
 
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
 
-  if (FRAME_VISIBLE_P (f) && wm_supports (f, dpyinfo->Xatom_net_active_window))
+  if (FRAME_VISIBLE_P (f) && x_wm_supports (f, dpyinfo->Xatom_net_active_window))
     {
       Lisp_Object frame;
       XSETFRAME (frame, f);
@@ -11758,13 +11773,6 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	  {
 	    char *vendor = ServerVendor (dpy);
 
-	    /* Protect terminal from GC before removing it from the
-	       list of terminals.  */
-	    struct gcpro gcpro1;
-	    Lisp_Object gcpro_term;
-	    XSETTERMINAL (gcpro_term, terminal);
-	    GCPRO1 (gcpro_term);
-
 	    /* Temporarily hide the partially initialized terminal.  */
 	    terminal_list = terminal->next_terminal;
 	    unblock_input ();
@@ -11775,7 +11783,6 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	    block_input ();
 	    terminal->next_terminal = terminal_list;
  	    terminal_list = terminal;
-	    UNGCPRO;
 	  }
 
 	/* Don't let the initial kboard remain current longer than necessary.

@@ -1211,7 +1211,7 @@ For example, 9:30am would become 09:30 rather than  9:30."
   :type 'boolean)
 
 (defun org-agenda-time-of-day-to-ampm (time)
-  "Convert TIME of a string like '13:45' to an AM/PM style time string."
+  "Convert TIME of a string like ‘13:45’ to an AM/PM style time string."
   (let* ((hour-number (string-to-number (substring time 0 -3)))
          (minute (substring time -2))
          (ampm "am"))
@@ -1975,7 +1975,7 @@ estimate."
   :type 'boolean)
 
 (defcustom org-agenda-auto-exclude-function nil
-  "A function called with a tag to decide if it is filtered on '/ RET'.
+  "A function called with a tag to decide if it is filtered on ‘/ RET’.
 The sole argument to the function, which is called once for each
 possible tag, is a string giving the name of the tag.  The
 function should return either nil if the tag should be included
@@ -3625,9 +3625,9 @@ FILTER-ALIST is an alist of filters we need to apply when
 	  ;; Popup existing buffer
 	  (org-agenda-prepare-window (get-buffer org-agenda-buffer-name)
 				     filter-alist)
-	  (message "Sticky Agenda buffer, use `r' to refresh")
+	  (message "Sticky Agenda buffer, use ‘r’ to refresh")
 	  (or org-agenda-multi (org-agenda-fit-window-to-buffer))
-	  (throw 'exit "Sticky Agenda buffer, use `r' to refresh"))
+	  (throw 'exit "Sticky Agenda buffer, use ‘r’ to refresh"))
       (setq org-todo-keywords-for-agenda nil)
       (setq org-drawers-for-agenda nil)
       (put 'org-agenda-tag-filter :preset-filter

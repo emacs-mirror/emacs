@@ -1072,6 +1072,7 @@ x_display_set_last_user_time (struct x_display_info *dpyinfo, Time t)
 }
 
 extern void x_set_sticky (struct frame *, Lisp_Object, Lisp_Object);
+extern bool x_wm_supports (struct frame *, Atom);
 extern void x_wait_for_event (struct frame *, int);
 extern void x_clear_under_internal_border (struct frame *f);
 

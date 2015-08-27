@@ -225,7 +225,7 @@ Calc user interface as before (either C-x * C or C-x * K; initially C-x * C).
 	   "Letter keys: SHIFT + Num-eval; More-recn; eXec-kbd-macro; Keep-args"
 	   "Other keys: +, -, *, /, ^, \\ (int div), : (frac div)"
 	   "Other keys: & (1/x), | (concat), % (modulo), ! (factorial)"
-	   "Other keys: ' (alg-entry), = (eval), ` (edit); M-RET (last-args)"
+	   "Other keys: ' (alg-entry), = (eval), \\=` (edit); M-RET (last-args)"
 	   "Other keys: SPC/RET (enter/dup), LFD (over); < > (scroll horiz)"
 	   "Other keys: DEL (drop), M-DEL (drop-above); { } (scroll vert)"
 	   "Other keys: TAB (swap/roll-dn), M-TAB (roll-up)"
@@ -952,7 +952,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
 				nil nil nil
 				"Please describe exactly what actions triggered the bug and the
 precise symptoms of the bug.  If possible, include a backtrace by
-doing 'M-x toggle-debug-on-error', then reproducing the bug.
+doing ‘\\[toggle-debug-on-error]’, then reproducing the bug.
 " )))
 ;;;###autoload
 (defalias 'calc-report-bug 'report-calc-bug)

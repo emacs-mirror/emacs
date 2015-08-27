@@ -144,7 +144,7 @@
 			(")" . "Close")
 			("@" . "At"))
   "NATO phonetic alphabet.
-See ''International Code of Signals'' (INTERCO), United States
+See “International Code of Signals” (INTERCO), United States
 Edition, 1969 Edition (Revised 2003) available from National
 Geospatial-Intelligence Agency at URL `http://www.nga.mil/'")
 

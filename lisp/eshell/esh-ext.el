@@ -66,7 +66,7 @@ loaded into memory, thus beginning a new process."
 This can be useful on systems like Windows, where the operating system
 doesn't support the execution bit for shell scripts; or in cases where
 you want to associate an interpreter with a particular kind of script
-file, but the language won't let you but a '#!' interpreter line in
+file, but the language won't let you but a `#!' interpreter line in
 the file, and you don't want to make it executable since nothing else
 but Eshell will be able to understand
 `eshell-interpreter-alist'."

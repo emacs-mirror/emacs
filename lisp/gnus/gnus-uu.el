@@ -79,10 +79,10 @@ To change the behavior, you can either edit this variable or set
 
 For example:
 
-To make gnus-uu use 'xli' to display JPEG and GIF files, put the
+To make gnus-uu use `xli' to display JPEG and GIF files, put the
 following in your .emacs file:
 
-  (setq gnus-uu-user-view-rules '((\"jpg$\\\\|gif$\" \"xli\")))
+  (setq gnus-uu-user-view-rules \\='((\"jpg$\\\\|gif$\" \"xli\")))
 
 Both these variables are lists of lists with two string elements.  The
 first string is a regular expression.  If the file name matches this
@@ -140,7 +140,7 @@ details."
 
 (defcustom gnus-uu-user-archive-rules nil
   "A list that can be set to override the default archive unpacking commands.
-To use, for instance, 'untar' to unpack tar files and 'zip -x' to
+To use, for instance, `untar' to unpack tar files and `zip -x' to
 unpack zip files, say the following:
   (setq gnus-uu-user-archive-rules
     '((\"\\\\.tar$\" \"untar\")

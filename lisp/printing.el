@@ -5542,8 +5542,8 @@ If menu binding was not done, calls `pr-menu-bind'."
 		 ((file-exists-p res)
 		  (ding)
 		  (setq prompt "exists")
-		  (not (y-or-n-p (format "File `%s' exists; overwrite? "
-					 res))))
+		  (not (y-or-n-p (format-message
+				  "File `%s' exists; overwrite? " res))))
 		 (t nil))
       (setq res (read-file-name
 		 (format "File %s; PostScript file: " prompt)
@@ -6540,8 +6540,8 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 	((or (not (file-exists-p pr-i-out-file))
 	     pr-i-answer-yes
 	     (setq pr-i-answer-yes
-		   (y-or-n-p (format "File `%s' exists; overwrite? "
-				     pr-i-out-file))))
+		   (y-or-n-p (format-message "File `%s' exists; overwrite? "
+					     pr-i-out-file))))
 	 pr-i-out-file)
 	(t
 	 (error "File already exists"))))

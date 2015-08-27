@@ -4508,9 +4508,78 @@ encoded string (and the same mask) will decode the string."
      (setq i (1+ i)))
    (concat string-vector)))
 
+(defun rmail-epa-decrypt-1 (mime)
+  "Decrypt a single GnuPG encrypted text in a message.
+The starting string of the encrypted text should have just been regexp-matched.
+Argument MIME is non-nil if this is a mime message."
+  (let* ((armor-start (match-beginning 0))
+         (armor-prefix (buffer-substring
+                        (line-beginning-position)
+                        armor-start))
+         (armor-end-regexp)
+         armor-end after-end
+         unquote)
+    (if (string-match "<pre>\\'" armor-prefix)
+        (setq armor-prefix ""))
+
+    (setq armor-end-regexp
+          (concat "^"
+                  armor-prefix
+                  "-----END PGP MESSAGE-----$"))
+    (setq armor-end (re-search-forward armor-end-regexp
+                                       nil t))
+
+    (unless armor-end
+      (error "Encryption armor beginning has no matching end"))
+    (goto-char armor-start)
+
+    ;; Because epa--find-coding-system-for-mime-charset not autoloaded.
+    (require 'epa)
+
+    ;; Advance over this armor.
+    (goto-char armor-end)
+    (setq after-end (- (point-max) armor-end))
+
+    (when mime
+      (save-excursion
+        (goto-char armor-start)
+        (re-search-backward "^--" nil t)
+        (save-restriction
+          (narrow-to-region (point) armor-start)
+
+          ;; Use the charset specified in the armor.
+          (unless coding-system-for-read
+            (if (re-search-forward "^[ \t]*Charset[ \t\n]*:[ \t\n]*\\(.*\\)" nil t)
+                (setq coding-system-for-read
+                      (epa--find-coding-system-for-mime-charset
+                       (intern (downcase (match-string 1)))))))
+
+          (goto-char (point-min))
+          (if (re-search-forward "^[ \t]*Content-transfer-encoding[ \t\n]*:[ \t\n]*quoted-printable[ \t]*$" nil t)
+              (setq unquote t)))))
+
+    (when unquote
+      (let ((inhibit-read-only t))
+        (mail-unquote-printable-region armor-start
+                                       (- (point-max) after-end))))
+
+    ;; Decrypt it, maybe in place, maybe making new buffer.
+    (epa-decrypt-region
+     armor-start (- (point-max) after-end)
+     ;; Call back this function to prepare the output.
+     (lambda ()
+       (let ((inhibit-read-only t))
+         (delete-region armor-start (- (point-max) after-end))
+         (goto-char armor-start)
+         (current-buffer))))
+
+    (list armor-start (- (point-max) after-end) mime
+          armor-end-regexp)))
+
 ;; Should this have a key-binding, or be in a menu?
 ;; There doesn't really seem to be an appropriate menu.
 ;; Eg the edit command is not in a menu either.
+
 (defun rmail-epa-decrypt ()
   "Decrypt GnuPG or OpenPGP armors in current message."
   (interactive)
@@ -4519,12 +4588,14 @@ encoded string (and the same mask) will decode the string."
   ;; change it in one of the calls to `epa-decrypt-region'.
 
   (save-excursion
-    (let (decrypts (mime (rmail-mime-message-p)))
+    (let (decrypts (mime (rmail-mime-message-p))
+                   mime-disabled)
       (goto-char (point-min))
 
       ;; Turn off mime processing.
       (when (and mime
 		 (not (get-text-property (point-min) 'rmail-mime-hidden)))
+        (setq mime-disabled t)
 	(rmail-mime))
 
       ;; Now find all armored messages in the buffer
@@ -4532,74 +4603,12 @@ encoded string (and the same mask) will decode the string."
       (goto-char (point-min))
       (while (re-search-forward "-----BEGIN PGP MESSAGE-----$" nil t)
 	(let ((coding-system-for-read coding-system-for-read)
-	      (case-fold-search t)
-	      unquote
-	      armor-start armor-prefix armor-end-regexp armor-end after-end)
+	      (case-fold-search t))
 
-	  (setq armor-start (match-beginning 0)
-		armor-prefix (buffer-substring
-			      (line-beginning-position)
-			      armor-start))
-	  (if (string-match "<pre>\\'" armor-prefix)
-	      (setq armor-prefix ""))
+          (push (rmail-epa-decrypt-1 mime) decrypts)))
 
-	  (setq armor-end-regexp
-		(concat "^"
-			armor-prefix
-			"-----END PGP MESSAGE-----$"))
-	  (setq armor-end (re-search-forward armor-end-regexp
-					     nil t))
-
-	  (unless armor-end
-	    (error "Encryption armor beginning has no matching end"))
-	  (goto-char armor-start)
-
-	  ;; Because epa--find-coding-system-for-mime-charset not autoloaded.
-	  (require 'epa)
-
-	  ;; Advance over this armor.
-	  (goto-char armor-end)
-	  (setq after-end (- (point-max) armor-end))
-
-	  (when mime
-	    (save-excursion
-	      (goto-char armor-start)
-	      (re-search-backward "^--" nil t)
-	      (save-restriction
-		(narrow-to-region (point) armor-start)
-
-		;; Use the charset specified in the armor.
-		(unless coding-system-for-read
-		  (if (re-search-forward "^[ \t]*Charset[ \t\n]*:[ \t\n]*\\(.*\\)" nil t)
-		      (setq coding-system-for-read
-			    (epa--find-coding-system-for-mime-charset
-			     (intern (downcase (match-string 1)))))))
-
-		(goto-char (point-min))
-		(if (re-search-forward "^[ \t]*Content-transfer-encoding[ \t\n]*:[ \t\n]*quoted-printable[ \t]*$" nil t)
-		    (setq unquote t)))))
-
-	  (when unquote
-	    (let ((inhibit-read-only t))
-	      (mail-unquote-printable-region armor-start
-					     (- (point-max) after-end))))
-
-	  ;; Decrypt it, maybe in place, maybe making new buffer.
-	  (epa-decrypt-region
-	   armor-start (- (point-max) after-end)
-	   ;; Call back this function to prepare the output.
-	   (lambda ()
-	     (let ((inhibit-read-only t))
-	       (delete-region armor-start (- (point-max) after-end))
-	       (goto-char armor-start)
-	       (current-buffer))))
-
-	  (push (list armor-start (- (point-max) after-end) mime
-		      armor-end-regexp)
-		decrypts)))
-
-      (unless decrypts
-	(error "Nothing to decrypt"))
+      (when (and decrypts (eq major-mode 'rmail-mode))
+        (rmail-add-label "decrypt"))
 
       (when (and decrypts (rmail-buffers-swapped-p))
 	(when (y-or-n-p "Replace the original message? ")
@@ -4639,8 +4648,31 @@ encoded string (and the same mask) will decode the string."
 				(let ((value (match-string 0)))
 				  (unless (member value '("text/plain" "text/html"))
 				    (replace-match "text/plain"))))))))
-		      ))))))))))
- 
+		      )))))))
+
+      (when (and (null decrypts)
+                 mime mime-disabled)
+        ;; Re-enable mime processing.
+	(rmail-mime)
+        ;; Find each Show button and show that part.
+	(while (search-forward " Show " nil t)
+	  (forward-char -2)
+	  (let ((rmail-mime-render-html-function nil)
+		(entity (get-text-property (point) 'rmail-mime-entity)))
+            (unless (and (not (stringp entity))
+                         (rmail-mime-entity-truncated entity))
+              (push-button))))
+        (goto-char (point-min))
+        (while (re-search-forward "-----BEGIN PGP MESSAGE-----$" nil t)
+          (let ((coding-system-for-read coding-system-for-read)
+                (case-fold-search t))
+            (push (rmail-epa-decrypt-1 mime) decrypts)))
+
+        )
+
+      (unless decrypts
+	(error "Nothing to decrypt")))))
+
 
 ;;;;  Desktop support
 

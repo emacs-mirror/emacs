@@ -1612,7 +1612,7 @@ handle_arith_signal (int sig)
   xsignal0 (Qarith_error);
 }
 
-#ifdef HAVE_STACK_OVERFLOW_HANDLING
+#if defined HAVE_STACK_OVERFLOW_HANDLING && !defined WINDOWSNT
 
 /* Alternate stack used by SIGSEGV handler below.  */
 
@@ -1708,7 +1708,7 @@ init_sigsegv (void)
   return sigaction (SIGSEGV, &sa, NULL) < 0 ? 0 : 1;
 }
 
-#else /* not HAVE_STACK_OVERFLOW_HANDLING */
+#else /* not HAVE_STACK_OVERFLOW_HANDLING or WINDOWSNT */
 
 static bool
 init_sigsegv (void)
@@ -1716,7 +1716,7 @@ init_sigsegv (void)
   return 0;
 }
 
-#endif /* HAVE_STACK_OVERFLOW_HANDLING */
+#endif /* HAVE_STACK_OVERFLOW_HANDLING && !WINDOWSNT */
 
 static void
 deliver_arith_signal (int sig)
@@ -2719,10 +2719,8 @@ Lisp_Object
 list_system_processes (void)
 {
   Lisp_Object procdir, match, proclist, next;
-  struct gcpro gcpro1, gcpro2;
-  register Lisp_Object tail;
+  Lisp_Object tail;
 
-  GCPRO2 (procdir, match);
   /* For every process on the system, there's a directory in the
      "/proc" pseudo-directory whose name is the numeric ID of that
      process.  */
@@ -2737,7 +2735,6 @@ list_system_processes (void)
       next = XCDR (tail);
       XSETCAR (tail, Fstring_to_number (XCAR (tail), Qnil));
     }
-  UNGCPRO;
 
   /* directory_files_internal returns the files in reverse order; undo
      that.  */
@@ -2759,7 +2756,6 @@ list_system_processes (void)
   struct kinfo_proc *procs;
   size_t i;
 
-  struct gcpro gcpro1;
   Lisp_Object proclist = Qnil;
 
   if (sysctl (mib, 3, NULL, &len, NULL, 0) != 0)
@@ -2772,7 +2768,6 @@ list_system_processes (void)
       return proclist;
     }
 
-  GCPRO1 (proclist);
   len /= sizeof (struct kinfo_proc);
   for (i = 0; i < len; i++)
     {
@@ -2782,7 +2777,6 @@ list_system_processes (void)
       proclist = Fcons (make_fixnum_or_float (procs[i].ki_pid), proclist);
 #endif
     }
-  UNGCPRO;
 
   xfree (procs);
 
@@ -2993,15 +2987,12 @@ system_process_attributes (Lisp_Object pid)
   Lisp_Object attrs = Qnil;
   Lisp_Object cmd_str, decoded_cmd;
   ptrdiff_t count;
-  struct gcpro gcpro1, gcpro2;
 
   CHECK_NUMBER_OR_FLOAT (pid);
   CONS_TO_INTEGER (pid, pid_t, proc_id);
   sprintf (procfn, "/proc/%"pMd, proc_id);
   if (stat (procfn, &st) < 0)
     return attrs;
-
-  GCPRO2 (attrs, decoded_cmd);
 
   /* euid egid */
   uid = st.st_uid;
@@ -3191,7 +3182,6 @@ system_process_attributes (Lisp_Object pid)
       attrs = Fcons (Fcons (Qargs, decoded_cmd), attrs);
     }
 
-  UNGCPRO;
   return attrs;
 }
 
@@ -3230,7 +3220,6 @@ system_process_attributes (Lisp_Object pid)
   gid_t gid;
   Lisp_Object attrs = Qnil;
   Lisp_Object decoded_cmd;
-  struct gcpro gcpro1, gcpro2;
   ptrdiff_t count;
 
   CHECK_NUMBER_OR_FLOAT (pid);
@@ -3238,8 +3227,6 @@ system_process_attributes (Lisp_Object pid)
   sprintf (procfn, "/proc/%"pMd, proc_id);
   if (stat (procfn, &st) < 0)
     return attrs;
-
-  GCPRO2 (attrs, decoded_cmd);
 
   /* euid egid */
   uid = st.st_uid;
@@ -3333,7 +3320,6 @@ system_process_attributes (Lisp_Object pid)
       attrs = Fcons (Fcons (Qargs, decoded_cmd), attrs);
     }
   unbind_to (count, Qnil);
-  UNGCPRO;
   return attrs;
 }
 
@@ -3369,7 +3355,6 @@ system_process_attributes (Lisp_Object pid)
   struct kinfo_proc proc;
   size_t proclen = sizeof proc;
 
-  struct gcpro gcpro1, gcpro2;
   Lisp_Object attrs = Qnil;
   Lisp_Object decoded_comm;
 
@@ -3379,8 +3364,6 @@ system_process_attributes (Lisp_Object pid)
 
   if (sysctl (mib, 4, &proc, &proclen, NULL, 0) != 0)
     return attrs;
-
-  GCPRO2 (attrs, decoded_comm);
 
   attrs = Fcons (Fcons (Qeuid, make_fixnum_or_float (proc.ki_uid)), attrs);
 
@@ -3519,7 +3502,6 @@ system_process_attributes (Lisp_Object pid)
       attrs = Fcons (Fcons (Qargs, decoded_comm), attrs);
     }
 
-  UNGCPRO;
   return attrs;
 }
 

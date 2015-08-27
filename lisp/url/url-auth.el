@@ -262,12 +262,12 @@ URL    is the url you are requesting authorization to.  This can be either a
        string representing the URL, or the parsed representation returned by
        `url-generic-parse-url'
 REALM  is the realm at a specific site we are looking for.  This should be a
-       string specifying the exact realm, or nil or the symbol 'any' to
+       string specifying the exact realm, or nil or the symbol `any' to
        specify that the filename portion of the URL should be used as the
        realm
 TYPE   is the type of authentication to be returned.  This is either a string
-       representing the type (basic, digest, etc), or nil or the symbol 'any'
-       to specify that any authentication is acceptable.  If requesting 'any'
+       representing the type (basic, digest, etc), or nil or the symbol `any'
+       to specify that any authentication is acceptable.  If requesting `any'
        the strongest matching authentication will be returned.  If this is
        wrong, it's no big deal, the error from the server will specify exactly
        what type of auth to use

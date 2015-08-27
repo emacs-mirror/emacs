@@ -337,7 +337,7 @@ Use the  `semantic-symref-hit-tags' method to get this list.")
   "List of buffers opened by `semantic-symref-result-get-tags'.")
 
 (defun semantic-symref-cleanup-recent-buffers-fcn ()
-  "Hook function to be used in 'post-command-hook' to cleanup buffers.
+  "Hook function to be used in `post-command-hook' to cleanup buffers.
 Buffers collected during symref can result in some files being
 opened multiple times for one operation.  This will keep buffers open
 until the next command is executed."

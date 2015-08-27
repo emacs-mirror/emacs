@@ -218,7 +218,7 @@ the mode if ARG is omitted or nil."
   (when dirtrack-debug-mode
     (with-current-buffer (get-buffer-create dirtrack-debug-buffer)
       (goto-char (point-max))
-      (insert msg1 msg2 "\n"))))
+      (insert (substitute-command-keys msg1) msg2 "\n"))))
 
 (declare-function shell-prefixed-directory-name "shell" (dir))
 (declare-function shell-process-cd "shell" (arg))

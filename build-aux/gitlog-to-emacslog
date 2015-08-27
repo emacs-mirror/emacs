@@ -77,7 +77,7 @@ test -d .git || {
 # Maybe we should skip all "Merge branch 'master'" messages.
 # See eg the cairo-related ones.
 ./build-aux/gitlog-to-changelog \
-    --ignore-matching="^; |^Merge branch 'master' of git\.(savannah|sv)\.gnu\.org:/srv/git/emacs$" \
+    --ignore-matching="^; |^Merge branch 'master' of git\.(savannah|sv)\.gnu\.org:/srv/git/emacs$|^Merge remote-tracking branch '.*'$" \
   --ignore-line='^; ' --format='%B' \
   "$gen_origin..$new_origin" >"ChangeLog.tmp" || exit
 

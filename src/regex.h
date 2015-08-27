@@ -603,7 +603,9 @@ typedef wchar_t re_wchar_t;
 # define re_wctype_to_bit(cc) 0
 #else
 # define CHAR_CLASS_MAX_LENGTH  9 /* Namely, `multibyte'.  */
-# define btowc(c) c
+# ifndef emacs
+#  define btowc(c) c
+# endif
 
 /* Character classes.  */
 typedef enum { RECC_ERROR = 0,

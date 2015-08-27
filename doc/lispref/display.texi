@@ -247,7 +247,7 @@ messages in the echo area.
 @defun message format-string &rest arguments
 This function displays a message in the echo area.
 @var{format-string} is a format string, and @var{arguments} are the
-objects for its format specifications, like in the @code{format}
+objects for its format specifications, like in the @code{format-message}
 function (@pxref{Formatting Strings}).  The resulting formatted string
 is displayed in the echo area; if it contains @code{face} text
 properties, it is displayed with the specified faces (@pxref{Faces}).
@@ -375,7 +375,7 @@ reporting very fast.
 When this progress reporter is subsequently used, it will display
 @var{message} in the echo area, followed by progress percentage.
 @var{message} is treated as a simple string.  If you need it to depend
-on a filename, for instance, use @code{format} before calling this
+on a filename, for instance, use @code{format-message} before calling this
 function.
 
 The arguments @var{min-value} and @var{max-value} should be numbers
@@ -1897,9 +1897,9 @@ to or less than the display width of @var{ellipsis}.  If
 
 The following function returns the size in pixels of text as if it were
 displayed in a given window.  This function is used by
-@code{fit-window-to-buffer} (@pxref{Resizing Windows}) and
-@code{fit-frame-to-buffer} (@pxref{Size and Position}) to make a window
-exactly as large as the text it contains.
+@code{fit-window-to-buffer} and @code{fit-frame-to-buffer}
+(@pxref{Resizing Windows}) to make a window exactly as large as the text
+it contains.
 
 @defun window-text-pixel-size &optional window from to x-limit y-limit mode-and-header-line
 This function returns the size of the text of @var{window}'s buffer in
@@ -1952,12 +1952,12 @@ height of both, if present, in the return value.
 contents of the line, plus optional additional vertical line spacing
 above or below the display line.
 
-  The height of the line contents is the maximum height of any
-character or image on that display line, including the final newline
-if there is one.  (A display line that is continued doesn't include a
-final newline.)  That is the default line height, if you do nothing to
-specify a greater height.  (In the most common case, this equals the
-height of the default frame font.)
+  The height of the line contents is the maximum height of any character
+or image on that display line, including the final newline if there is
+one.  (A display line that is continued doesn't include a final
+newline.)  That is the default line height, if you do nothing to specify
+a greater height.  (In the most common case, this equals the height of
+the corresponding frame's default font, see @ref{Frame Font}.)
 
   There are several ways to explicitly specify a larger line height,
 either by specifying an absolute height for the display line, or by
@@ -5406,12 +5406,11 @@ This removes only images that were put into @var{buffer} the way
 @cindex size of image
 This function returns the size of an image as a pair
 @w{@code{(@var{width} . @var{height})}}.  @var{spec} is an image
-specification.  @var{pixels} non-@code{nil} means return sizes
-measured in pixels, otherwise return sizes measured in canonical
-character units (fractions of the width/height of the frame's default
-font).  @var{frame} is the frame on which the image will be displayed.
-@var{frame} null or omitted means use the selected frame (@pxref{Input
-Focus}).
+specification.  @var{pixels} non-@code{nil} means return sizes measured
+in pixels, otherwise return sizes measured in the default character size
+of @var{frame} (@pxref{Frame Font}).  @var{frame} is the frame on which
+the image will be displayed.  @var{frame} null or omitted means use the
+selected frame (@pxref{Input Focus}).
 @end defun
 
 @defvar max-image-size

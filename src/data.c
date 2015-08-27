@@ -1529,10 +1529,8 @@ usage: (setq-default [VAR VALUE]...)  */)
   (Lisp_Object args)
 {
   Lisp_Object args_left, symbol, val;
-  struct gcpro gcpro1;
 
   args_left = val = args;
-  GCPRO1 (args);
 
   while (CONSP (args_left))
     {
@@ -1542,7 +1540,6 @@ usage: (setq-default [VAR VALUE]...)  */)
       args_left = Fcdr (XCDR (args_left));
     }
 
-  UNGCPRO;
   return val;
 }
 

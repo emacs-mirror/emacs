@@ -696,12 +696,12 @@ pass nil for MODE and add the call to c-mode-hook.
 
 For example:
 
- (add-hook 'c-mode-hook
+ (add-hook \\='c-mode-hook
   (lambda ()
    (font-lock-add-keywords nil
-    '((\"\\\\\\=<\\\\(FIXME\\\\):\" 1 'font-lock-warning-face prepend)
+    \\='((\"\\\\\\=<\\\\(FIXME\\\\):\" 1 \\='font-lock-warning-face prepend)
       (\"\\\\\\=<\\\\(and\\\\|or\\\\|not\\\\)\\\\\\=>\" .
-       'font-lock-keyword-face)))))
+       \\='font-lock-keyword-face)))))
 
 The above procedure may fail to add keywords to derived modes if
 some involved major mode does not follow the standard conventions.
@@ -1051,7 +1051,7 @@ The region it returns may start or end in the middle of a line.")
    ;; Of course, this function doesn't do all of the above in all situations
    ;; (e.g. depending on whether jit-lock is in use) and it can't guess what
    ;; the caller wants.
-   (interactive-only "use `font-lock-ensure' or `font-lock-flush' instead."))
+   (interactive-only "use ‘font-lock-ensure’ or ‘font-lock-flush’ instead."))
   (interactive "p")
   (font-lock-set-defaults)
   (let ((font-lock-verbose (or font-lock-verbose interactively)))

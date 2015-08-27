@@ -41,6 +41,8 @@ This variable first existed in version 19.23.")
 (defconst emacs-build-time (current-time)
   "Time at which Emacs was dumped out.")
 
+;; I think this should be obsoleted/removed.  It's just one more meaningless
+;; difference between different builds.  It's usually not even an fqdn.
 (defconst emacs-build-system (system-name)
   "Name of the system on which Emacs was built.")
 
@@ -57,8 +59,8 @@ to the system configuration; look at `system-configuration' instead."
   (interactive "P")
   (let ((version-string
          (format (if (not (called-interactively-p 'interactive))
-		     "GNU Emacs %s (%s%s%s%s)\n of %s on %s"
-		   "GNU Emacs %s (%s%s%s%s) of %s on %s")
+		     "GNU Emacs %s (%s%s%s%s)\n of %s"
+		   "GNU Emacs %s (%s%s%s%s) of %s")
                  emacs-version
 		 system-configuration
 		 (cond ((featurep 'motif)
@@ -77,8 +79,7 @@ to the system configuration; look at `system-configuration' instead."
 		     (format ", %s scroll bars"
 			     (capitalize (symbol-name x-toolkit-scroll-bars)))
 		   "")
-		 (format-time-string "%Y-%m-%d" emacs-build-time)
-                 emacs-build-system)))
+		 (format-time-string "%Y-%m-%d" emacs-build-time))))
     (if here
         (insert version-string)
       (if (called-interactively-p 'interactive)

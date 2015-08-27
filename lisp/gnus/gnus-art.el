@@ -399,7 +399,7 @@ advertisements.  For example:
   "*Alist that says how to fontify certain phrases.
 Each item looks like this:
 
-  (\"_\\\\(\\\\w+\\\\)_\" 0 1 'underline)
+  (\"_\\\\(\\\\w+\\\\)_\" 0 1 \\='underline)
 
 The first element is a regular expression to be matched.  The second
 is a number that says what regular expression grouping used to find
@@ -5403,9 +5403,9 @@ Compressed files like .gz and .bz2 are decompressed."
 				    'gnus-undeletable t))))
 	  ;; We're in the article header.
 	  (delete-char -1)
-	  (dolist (ovl (gnus-overlays-in btn (point)))
-	    (gnus-overlay-put ovl 'gnus-button-attachment-extra t)
-	    (gnus-overlay-put ovl 'face nil))
+	  (dolist (ovl (overlays-in btn (point)))
+	    (overlay-put ovl 'gnus-button-attachment-extra t)
+	    (overlay-put ovl 'face nil))
 	  (save-restriction
 	    (message-narrow-to-field)
 	    (let ((gnus-treatment-function-alist
@@ -5798,9 +5798,9 @@ all parts."
 				    'gnus-undeletable t))))
 	  ;; We're in the article header.
 	  (delete-char -1)
-	  (dolist (ovl (gnus-overlays-in point (point)))
-	    (gnus-overlay-put ovl 'gnus-button-attachment-extra t)
-	    (gnus-overlay-put ovl 'face nil))
+	  (dolist (ovl (overlays-in point (point)))
+	    (overlay-put ovl 'gnus-button-attachment-extra t)
+	    (overlay-put ovl 'face nil))
 	  (save-restriction
 	    (message-narrow-to-field)
 	    (let ((gnus-treatment-function-alist
@@ -5889,8 +5889,8 @@ all parts."
 		(1- (point))
 	      (point)))
     (when gnus-article-button-face
-      (gnus-overlay-put (gnus-make-overlay b e nil t)
-			'face gnus-article-button-face))
+      (overlay-put (make-overlay b e nil t)
+		   'face gnus-article-button-face))
     (widget-convert-button
      'link b e
      :mime-handle handle
@@ -6452,9 +6452,9 @@ in the body.  Use `gnus-header-face-alist' to highlight buttons."
 		  (insert "\n")
 		  (end-of-line)))
 	      (insert "\n")
-	      (dolist (ovl (gnus-overlays-in (point-min) (point)))
-		(gnus-overlay-put ovl 'gnus-button-attachment-extra t)
-		(gnus-overlay-put ovl 'face nil))
+	      (dolist (ovl (overlays-in (point-min) (point)))
+		(overlay-put ovl 'gnus-button-attachment-extra t)
+		(overlay-put ovl 'face nil))
 	      (let ((gnus-treatment-function-alist
 		     '((gnus-treat-highlight-headers
 			gnus-article-highlight-headers))))
@@ -6871,11 +6871,13 @@ KEY is a string or a vector."
       (with-current-buffer gnus-article-current-summary
 	(setq unread-command-events
 	      (if (featurep 'xemacs)
-		  (append key nil)
-		(mapcar (lambda (x) (if (and (integerp x) (>= x 128))
-					(list 'meta (- x 128))
-				      x))
-			key)))
+		  (append key unread-command-events)
+		(nconc
+		 (mapcar (lambda (x) (if (and (integerp x) (>= x 128))
+					 (list 'meta (- x 128))
+				       x))
+			 key)
+		 unread-command-events)))
 	(let ((cursor-in-echo-area t)
 	      gnus-pick-mode)
 	  (describe-key (read-key-sequence nil t))))
@@ -6893,11 +6895,13 @@ KEY is a string or a vector."
       (with-current-buffer gnus-article-current-summary
 	(setq unread-command-events
 	      (if (featurep 'xemacs)
-		  (append key nil)
-		(mapcar (lambda (x) (if (and (integerp x) (>= x 128))
-					(list 'meta (- x 128))
-				      x))
-			key)))
+		  (append key unread-command-events)
+		(nconc
+		 (mapcar (lambda (x) (if (and (integerp x) (>= x 128))
+					 (list 'meta (- x 128))
+				       x))
+			 key)
+		 unread-command-events)))
 	(let ((cursor-in-echo-area t)
 	      gnus-pick-mode)
 	  (describe-key-briefly (read-key-sequence nil t) insert)))
@@ -8033,8 +8037,8 @@ It does this by highlighting everything after
       (save-restriction
 	(when (and gnus-signature-face
 		   (gnus-article-narrow-to-signature))
-	  (gnus-overlay-put (gnus-make-overlay (point-min) (point-max) nil t)
-			    'face gnus-signature-face)
+	  (overlay-put (make-overlay (point-min) (point-max) nil t)
+		       'face gnus-signature-face)
 	  (widen)
 	  (gnus-article-search-signature)
 	  (let ((start (match-beginning 0))
@@ -8132,12 +8136,12 @@ url is put as the `gnus-button-url' overlay property on the button."
 				       'gnus-button-push
 				       (list beg (assq 'gnus-button-url-regexp
 						       gnus-button-alist)))))
-	  (let ((overlay (gnus-make-overlay start end)))
-	    (gnus-overlay-put overlay 'evaporate t)
-	    (gnus-overlay-put overlay 'gnus-button-url
-			      (list (mapconcat 'identity (nreverse url) "")))
+	  (let ((overlay (make-overlay start end)))
+	    (overlay-put overlay 'evaporate t)
+	    (overlay-put overlay 'gnus-button-url
+			 (list (mapconcat 'identity (nreverse url) "")))
 	    (when gnus-article-mouse-face
-	      (gnus-overlay-put overlay 'mouse-face gnus-article-mouse-face)))
+	      (overlay-put overlay 'mouse-face gnus-article-mouse-face)))
 	  t)
       (goto-char opoint))))
 
@@ -8176,8 +8180,8 @@ url is put as the `gnus-button-url' overlay property on the button."
 (defun gnus-article-add-button (from to fun &optional data text)
   "Create a button between FROM and TO with callback FUN and data DATA."
   (when gnus-article-button-face
-    (gnus-overlay-put (gnus-make-overlay from to nil t)
-		      'face gnus-article-button-face))
+    (overlay-put (make-overlay from to nil t)
+		 'face gnus-article-button-face))
   (gnus-add-text-properties
    from to
    (nconc (and gnus-article-mouse-face
@@ -8516,8 +8520,8 @@ url is put as the `gnus-button-url' overlay property on the button."
 		(1- (point))
 	      (point)))
     (when gnus-article-button-face
-      (gnus-overlay-put (gnus-make-overlay b e nil t)
-                        'face gnus-article-button-face))
+      (overlay-put (make-overlay b e nil t)
+		   'face gnus-article-button-face))
     (widget-convert-button
      'link b e
      :action 'gnus-button-prev-page
@@ -8552,8 +8556,8 @@ url is put as the `gnus-button-url' overlay property on the button."
 		(1- (point))
 	      (point)))
     (when gnus-article-button-face
-      (gnus-overlay-put (gnus-make-overlay b e nil t)
-                        'face gnus-article-button-face))
+      (overlay-put (make-overlay b e nil t)
+		   'face gnus-article-button-face))
     (widget-convert-button
      'link b e
      :action 'gnus-button-next-page
@@ -8948,8 +8952,8 @@ For example:
 		(1- (point))
 	      (point)))
     (when gnus-article-button-face
-      (gnus-overlay-put (gnus-make-overlay b e nil t)
-                        'face gnus-article-button-face))
+      (overlay-put (make-overlay b e nil t)
+		   'face gnus-article-button-face))
     (widget-convert-button
      'link b e
      :mime-handle handle

@@ -626,7 +626,7 @@ current score file."
 	      (if mimic
 		  (progn
 		    (sit-for 1) (message "%c %c-" prefix hchar))
-		(message "%s header '%s' with match type (%s?): "
+		(message "%s header `%s' with match type (%s?): "
 			 (if increase "Increase" "Lower")
 			 (nth 1 entry)
 			 (mapconcat (lambda (s) (char-to-string (car s)))

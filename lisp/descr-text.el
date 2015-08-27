@@ -161,11 +161,8 @@ otherwise."
       ;; Buttons
       (when (and button (not (widgetp wid-button)))
 	(newline)
-	(insert (substitute-command-keys "Here is a ‘")
-		(format "%S" button-type)
-		(substitute-command-keys "’ button labeled ‘")
-		button-label
-		(substitute-command-keys "’.\n\n")))
+	(insert (format-message "Here is a ‘%S’ button labeled ‘%s’.\n\n"
+                                button-type button-label)))
       ;; Overlays
       (when overlays
 	(newline)
@@ -542,9 +539,7 @@ relevant to POS."
                ,(let* ((beg      (point-min))
                        (end      (point-max))
                        (total    (buffer-size))
-                       (percent  (if (> total 50000) ; Avoid overflow multiplying by 100
-                                     (/ (+ (/ total 200) (1- pos))  (max (/ total 100) 1))
-                                   (/ (+ (/ total 2) (* 100 (1- pos)))  (max total 1))))
+                       (percent  (round (* 100.0 (1- pos)) (max total 1)))
                        (hscroll  (if (= (window-hscroll) 0)
                                      ""
                                    (format ", Hscroll: %d" (window-hscroll))))
@@ -741,9 +736,7 @@ relevant to POS."
                       (when face
                         (insert (propertize " " 'display '(space :align-to 5))
                                 "face: ")
-                        (insert (substitute-command-keys "‘")
-                                (symbol-name face)
-                                (substitute-command-keys "’\n"))))))
+                        (insert (format-message "‘%s’\n" face))))))
               (insert "these terminal codes:\n")
               (dotimes (i (length disp-vector))
                 (insert (car (aref disp-vector i))
@@ -806,7 +799,8 @@ relevant to POS."
                   (insert "\n  " (car elt) ":"
                           (propertize " " 'display '(space :align-to 4))
                           (or (cdr elt) "-- not encodable --"))))
-              (insert "\nSee the variable `reference-point-alist' for "
+              (insert (substitute-command-keys
+		       "\nSee the variable `reference-point-alist' for ")
                       "the meaning of the rule.\n")))
 
           (unless eight-bit-p

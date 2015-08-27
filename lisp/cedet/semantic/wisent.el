@@ -322,9 +322,9 @@ the standard function `semantic-parse-region'."
 	       semantic--progress-reporter
 	       (progress-reporter-update
 		semantic--progress-reporter
-		(/ (* 100 (semantic-lex-token-start
-			   (car wisent-lex-istream)))
-		   (point-max))))))
+		(floor (* 100.0 (semantic-lex-token-start
+				 (car wisent-lex-istream)))
+		       (point-max))))))
     ;; Return parse tree
     (nreverse ptree)))
 

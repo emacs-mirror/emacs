@@ -1104,186 +1104,6 @@ end-trigger value is reset to nil.  */)
   return value;
 }
 
-DEFUN ("window-edges", Fwindow_edges, Swindow_edges, 0, 1, 0,
-       doc: /* Return a list of the edge coordinates of WINDOW.
-WINDOW must be a valid window and defaults to the selected one.
-
-The returned list has the form (LEFT TOP RIGHT BOTTOM).  TOP and BOTTOM
-count by lines, and LEFT and RIGHT count by columns, all relative to 0,
-0 at top left corner of frame.
-
-RIGHT is one more than the rightmost column occupied by WINDOW.  BOTTOM
-is one more than the bottommost row occupied by WINDOW.  The edges
-include the space used by WINDOW's scroll bar, display margins, fringes,
-header line, and/or mode line.  For the edges of just the text area, use
-`window-inside-edges'.  */)
-  (Lisp_Object window)
-{
-  register struct window *w = decode_valid_window (window);
-
-  return list4i (WINDOW_LEFT_EDGE_COL (w), WINDOW_TOP_EDGE_LINE (w),
-		 WINDOW_RIGHT_EDGE_COL (w), WINDOW_BOTTOM_EDGE_LINE (w));
-}
-
-DEFUN ("window-pixel-edges", Fwindow_pixel_edges, Swindow_pixel_edges, 0, 1, 0,
-       doc: /* Return a list of the edge pixel coordinates of WINDOW.
-WINDOW must be a valid window and defaults to the selected one.
-
-The returned list has the form (LEFT TOP RIGHT BOTTOM), all relative to
-0, 0 at the top left corner of the frame.
-
-RIGHT is one more than the rightmost x position occupied by WINDOW.
-BOTTOM is one more than the bottommost y position occupied by WINDOW.
-The pixel edges include the space used by WINDOW's scroll bar, display
-margins, fringes, header line, and/or mode line.  For the pixel edges
-of just the text area, use `window-inside-pixel-edges'.  */)
-  (Lisp_Object window)
-{
-  register struct window *w = decode_valid_window (window);
-
-  return list4i (WINDOW_LEFT_EDGE_X (w), WINDOW_TOP_EDGE_Y (w),
-		 WINDOW_RIGHT_EDGE_X (w), WINDOW_BOTTOM_EDGE_Y (w));
-}
-
-static void
-calc_absolute_offset (struct window *w, int *add_x, int *add_y)
-{
-  struct frame *f = XFRAME (w->frame);
-  *add_y = f->top_pos;
-#ifdef FRAME_MENUBAR_HEIGHT
-  *add_y += FRAME_MENUBAR_HEIGHT (f);
-#endif
-#ifdef FRAME_TOOLBAR_TOP_HEIGHT
-  *add_y += FRAME_TOOLBAR_TOP_HEIGHT (f);
-#elif defined (FRAME_TOOLBAR_HEIGHT)
-  *add_y += FRAME_TOOLBAR_HEIGHT (f);
-#endif
-#ifdef FRAME_NS_TITLEBAR_HEIGHT
-  *add_y += FRAME_NS_TITLEBAR_HEIGHT (f);
-#endif
-  *add_x = f->left_pos;
-#ifdef FRAME_TOOLBAR_LEFT_WIDTH
-  *add_x += FRAME_TOOLBAR_LEFT_WIDTH (f);
-#endif
-}
-
-DEFUN ("window-absolute-pixel-edges", Fwindow_absolute_pixel_edges,
-       Swindow_absolute_pixel_edges, 0, 1, 0,
-       doc: /* Return a list of the edge pixel coordinates of WINDOW.
-WINDOW must be a valid window and defaults to the selected one.
-
-The returned list has the form (LEFT TOP RIGHT BOTTOM), all relative to
-0, 0 at the top left corner of the display.
-
-RIGHT is one more than the rightmost x position occupied by WINDOW.
-BOTTOM is one more than the bottommost y position occupied by WINDOW.
-The pixel edges include the space used by WINDOW's scroll bar, display
-margins, fringes, header line, and/or mode line.  For the pixel edges
-of just the text area, use `window-inside-absolute-pixel-edges'.  */)
-  (Lisp_Object window)
-{
-  register struct window *w = decode_valid_window (window);
-  int add_x, add_y;
-
-  calc_absolute_offset (w, &add_x, &add_y);
-
-  return list4i (WINDOW_LEFT_EDGE_X (w) + add_x,
-		 WINDOW_TOP_EDGE_Y (w) + add_y,
-		 WINDOW_RIGHT_EDGE_X (w) + add_x,
-		 WINDOW_BOTTOM_EDGE_Y (w) + add_y);
-}
-
-DEFUN ("window-inside-edges", Fwindow_inside_edges, Swindow_inside_edges, 0, 1, 0,
-       doc: /* Return a list of the edge coordinates of WINDOW.
-WINDOW must be a live window and defaults to the selected one.
-
-The returned list has the form (LEFT TOP RIGHT BOTTOM).  TOP and BOTTOM
-count by lines, and LEFT and RIGHT count by columns, all relative to 0,
-0 at top left corner of frame.
-
-RIGHT is one more than the rightmost column of WINDOW's text area.
-BOTTOM is one more than the bottommost row of WINDOW's text area.  The
-inside edges do not include the space used by the WINDOW's scroll bar,
-display margins, fringes, header line, and/or mode line.  */)
-  (Lisp_Object window)
-{
-  register struct window *w = decode_live_window (window);
-
-  return list4i ((WINDOW_BOX_LEFT_EDGE_COL (w)
-		  + WINDOW_LEFT_MARGIN_COLS (w)
-		  + ((WINDOW_LEFT_FRINGE_WIDTH (w)
-		      + WINDOW_FRAME_COLUMN_WIDTH (w) - 1)
-		     / WINDOW_FRAME_COLUMN_WIDTH (w))),
-		 (WINDOW_TOP_EDGE_LINE (w)
-		  + WINDOW_HEADER_LINE_LINES (w)),
-		 (WINDOW_BOX_RIGHT_EDGE_COL (w)
-		  - WINDOW_RIGHT_MARGIN_COLS (w)
-		  - ((WINDOW_RIGHT_FRINGE_WIDTH (w)
-		      + WINDOW_FRAME_COLUMN_WIDTH (w) - 1)
-		     / WINDOW_FRAME_COLUMN_WIDTH (w))),
-		 (WINDOW_BOTTOM_EDGE_LINE (w)
-		  - WINDOW_MODE_LINE_LINES (w)));
-}
-
-DEFUN ("window-inside-pixel-edges", Fwindow_inside_pixel_edges, Swindow_inside_pixel_edges, 0, 1, 0,
-       doc: /* Return a list of the edge pixel coordinates of WINDOW's text area.
-WINDOW must be a live window and defaults to the selected one.
-
-The returned list has the form (LEFT TOP RIGHT BOTTOM), all relative to
-(0,0) at the top left corner of the frame's window area.
-
-RIGHT is one more than the rightmost x position of WINDOW's text area.
-BOTTOM is one more than the bottommost y position of WINDOW's text area.
-The inside edges do not include the space used by WINDOW's scroll bar,
-display margins, fringes, header line, and/or mode line.  */)
-  (Lisp_Object window)
-{
-  register struct window *w = decode_live_window (window);
-
-  return list4i ((WINDOW_BOX_LEFT_EDGE_X (w)
-		  + WINDOW_LEFT_MARGIN_WIDTH (w)
-		  + WINDOW_LEFT_FRINGE_WIDTH (w)),
-		 (WINDOW_TOP_EDGE_Y (w)
-		  + WINDOW_HEADER_LINE_HEIGHT (w)),
-		 (WINDOW_BOX_RIGHT_EDGE_X (w)
-		  - WINDOW_RIGHT_MARGIN_WIDTH (w)
-		  - WINDOW_RIGHT_FRINGE_WIDTH (w)),
-		 (WINDOW_BOTTOM_EDGE_Y (w)
-		  - WINDOW_MODE_LINE_HEIGHT (w)));
-}
-
-DEFUN ("window-inside-absolute-pixel-edges",
-       Fwindow_inside_absolute_pixel_edges,
-       Swindow_inside_absolute_pixel_edges, 0, 1, 0,
-       doc: /* Return a list of the edge pixel coordinates of WINDOW's text area.
-WINDOW must be a live window and defaults to the selected one.
-
-The returned list has the form (LEFT TOP RIGHT BOTTOM), all relative to
-(0,0) at the top left corner of the frame's window area.
-
-RIGHT is one more than the rightmost x position of WINDOW's text area.
-BOTTOM is one more than the bottommost y position of WINDOW's text area.
-The inside edges do not include the space used by WINDOW's scroll bar,
-display margins, fringes, header line, and/or mode line.  */)
-  (Lisp_Object window)
-{
-  register struct window *w = decode_live_window (window);
-  int add_x, add_y;
-
-  calc_absolute_offset (w, &add_x, &add_y);
-
-  return list4i ((WINDOW_BOX_LEFT_EDGE_X (w)
-		  + WINDOW_LEFT_MARGIN_WIDTH (w)
-		  + WINDOW_LEFT_FRINGE_WIDTH (w) + add_x),
-		 (WINDOW_TOP_EDGE_Y (w)
-		  + WINDOW_HEADER_LINE_HEIGHT (w) + add_y),
-		 (WINDOW_BOX_RIGHT_EDGE_X (w)
-		  - WINDOW_RIGHT_MARGIN_WIDTH (w)
-		  - WINDOW_RIGHT_FRINGE_WIDTH (w) + add_x),
-		 (WINDOW_BOTTOM_EDGE_Y (w)
-		  - WINDOW_MODE_LINE_HEIGHT (w) + add_y));
-}
-
 /* Test if the character at column X, row Y is within window W.
    If it is not, return ON_NOTHING;
    if it is on the window's vertical divider, return
@@ -2816,7 +2636,6 @@ window_loop (enum window_loop type, Lisp_Object obj, bool mini,
   Lisp_Object window, windows, best_window, frame_arg;
   bool frame_best_window_flag = false;
   struct frame *f;
-  struct gcpro gcpro1;
 
   /* If we're only looping through windows on a particular frame,
      frame points to that frame.  If we're looping through windows
@@ -2850,7 +2669,6 @@ window_loop (enum window_loop type, Lisp_Object obj, bool mini,
     window = FRAME_SELECTED_WINDOW (SELECTED_FRAME ());
 
   windows = window_list_1 (window, mini ? Qt : Qnil, frame_arg);
-  GCPRO1 (windows);
   best_window = Qnil;
 
   for (; CONSP (windows); windows = XCDR (windows))
@@ -2878,7 +2696,7 @@ window_loop (enum window_loop type, Lisp_Object obj, bool mini,
 	      {
 		if (EQ (window, selected_window))
 		  /* Preferably return the selected window.  */
-		  RETURN_UNGCPRO (window);
+		  return window;
 		else if (EQ (XWINDOW (window)->frame, selected_frame)
 			 && !frame_best_window_flag)
 		  /* Prefer windows on the current frame (but don't
@@ -2944,7 +2762,6 @@ window_loop (enum window_loop type, Lisp_Object obj, bool mini,
 	  }
     }
 
-  UNGCPRO;
   return best_window;
 }
 
@@ -7554,18 +7371,12 @@ displayed after a scrolling operation to be somewhat inaccurate.  */);
   defsubr (&Sset_window_hscroll);
   defsubr (&Swindow_redisplay_end_trigger);
   defsubr (&Sset_window_redisplay_end_trigger);
-  defsubr (&Swindow_edges);
-  defsubr (&Swindow_pixel_edges);
-  defsubr (&Swindow_absolute_pixel_edges);
   defsubr (&Swindow_mode_line_height);
   defsubr (&Swindow_header_line_height);
   defsubr (&Swindow_right_divider_width);
   defsubr (&Swindow_bottom_divider_width);
   defsubr (&Swindow_scroll_bar_width);
   defsubr (&Swindow_scroll_bar_height);
-  defsubr (&Swindow_inside_edges);
-  defsubr (&Swindow_inside_pixel_edges);
-  defsubr (&Swindow_inside_absolute_pixel_edges);
   defsubr (&Scoordinates_in_window_p);
   defsubr (&Swindow_at);
   defsubr (&Swindow_point);

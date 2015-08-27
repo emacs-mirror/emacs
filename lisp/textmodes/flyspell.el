@@ -501,7 +501,7 @@ invoking `ispell-change-dictionary'.
 
 Consider using the `ispell-parser' to check your text.  For instance
 consider adding:
-\(add-hook 'tex-mode-hook (function (lambda () (setq ispell-parser 'tex))))
+\(add-hook \\='tex-mode-hook (function (lambda () (setq ispell-parser \\='tex))))
 in your init file.
 
 \\[flyspell-region] checks all words inside a region.
@@ -1350,7 +1350,7 @@ that may be included as part of a word (see `ispell-dictionary-alist')."
 	(if (and flyspell-issue-message-flag (= count 100))
 	    (progn
 	      (message "Spell Checking...%d%%"
-		       (* 100 (/ (float (- (point) beg)) (- end beg))))
+		       (floor (* 100.0 (- (point) beg)) (- end beg)))
 	      (setq count 0))
 	  (setq count (+ 1 count)))
 	(flyspell-word)
@@ -1403,7 +1403,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 	  ;; be unnecessary too. -- rms.
 	  (if flyspell-issue-message-flag
 	      (message "Spell Checking...%d%% [%s]"
-		       (* 100 (/ (float (point)) (point-max)))
+		       (floor (* 100.0 (point)) (point-max))
 		       word))
 	  (with-current-buffer flyspell-large-region-buffer
 	    (goto-char buffer-scan-pos)
@@ -2326,7 +2326,7 @@ If the text between BEG and END is equal to a correction suggested by
 Ispell, after transposing two adjacent characters, correct the text,
 and return t.
 
-The third arg POSS is either the symbol 'doublon' or a list of
+The third arg POSS is either the symbol `doublon' or a list of
 possible corrections as returned by `ispell-parse-output'.
 
 This function is meant to be added to `flyspell-incorrect-hook'."
@@ -2356,7 +2356,7 @@ If the text between BEG and END is equal to a correction suggested by
 Ispell, after removing a pair of doubled characters, correct the text,
 and return t.
 
-The third arg POSS is either the symbol 'doublon' or a list of
+The third arg POSS is either the symbol `doublon' or a list of
 possible corrections as returned by `ispell-parse-output'.
 
 This function is meant to be added to `flyspell-incorrect-hook'."

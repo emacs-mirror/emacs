@@ -977,7 +977,7 @@ If the game is finished, this command requests for another game."
   (move-to-column (+ gomoku-x-offset (* gomoku-square-width (1- x)))))
 
 (defun gomoku-plot-square (square value)
-  "Draw 'X', 'O' or '.' on SQUARE depending on VALUE, leave point there."
+  "Draw ‘X’, ‘O’ or ‘.’ on SQUARE depending on VALUE, leave point there."
   (or (= value 1)
       (gomoku-goto-square square))
   (let ((inhibit-read-only t))

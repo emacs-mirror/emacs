@@ -228,7 +228,7 @@ This function is controlled by the settings of reftex-insert-label-flags."
                                  (symbol-value reftex-docstruct-symbol)))
               (ding)
               (if (y-or-n-p
-                   (format "Label '%s' exists. Use anyway? " label))
+                   (format-message "Label ‘%s’ exists. Use anyway? " label))
                   (setq valid t)))
 
              ;; Label is ok

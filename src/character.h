@@ -59,6 +59,30 @@ INLINE_HEADER_BEGIN
 /* Maximum leading code of multibyte characters.  */
 #define MAX_MULTIBYTE_LEADING_CODE 0xF8
 
+/* Unicode character values.  */
+enum
+{
+  NO_BREAK_SPACE = 0x00A0,
+  SOFT_HYPHEN = 0x00AD,
+  ZERO_WIDTH_NON_JOINER = 0x200C,
+  ZERO_WIDTH_JOINER = 0x200D,
+  HYPHEN = 0x2010,
+  NON_BREAKING_HYPHEN = 0x2011,
+  LEFT_SINGLE_QUOTATION_MARK = 0x2018,
+  RIGHT_SINGLE_QUOTATION_MARK = 0x2019,
+  PARAGRAPH_SEPARATOR = 0x2029,
+  LEFT_POINTING_ANGLE_BRACKET = 0x2329,
+  RIGHT_POINTING_ANGLE_BRACKET = 0x232A,
+  LEFT_ANGLE_BRACKET = 0x3008,
+  RIGHT_ANGLE_BRACKET = 0x3009,
+  OBJECT_REPLACEMENT_CHARACTER = 0xFFFC,
+};
+
+/* UTF-8 encodings.  Use \x escapes, so they are portable to pre-C11
+   compilers and can be concatenated with ordinary string literals.  */
+#define uLSQM "\xE2\x80\x98" /* U+2018 LEFT SINGLE QUOTATION MARK */
+#define uRSQM "\xE2\x80\x99" /* U+2019 RIGHT SINGLE QUOTATION MARK */
+
 /* Nonzero iff C is a character that corresponds to a raw 8-bit
    byte.  */
 #define CHAR_BYTE8_P(c) ((c) > MAX_5_BYTE_CHAR)

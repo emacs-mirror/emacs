@@ -416,7 +416,7 @@ Possible uses: If you don't want to save `filesets-data' in your normal
 configuration file, you can add a something like this
 
 	\(lambda ()
-	      \(insert (format \"(setq-default filesets-data '%S)\"
+	      \(insert (format \"(setq-default filesets-data \\='%S)\"
 			      filesets-data))
 	      \(newline 2))
 
@@ -975,7 +975,7 @@ being an association list with the fields:
 
 :pattern DIR PATTERN ... a base directory and a regexp matching
                          files in that directory.  Usually,
-                         PATTERN has the form '^REGEXP$'.  Unlike
+                         PATTERN has the form `^REGEXP$'.  Unlike
                          :tree, this form does not descend
                          recursively into subdirectories.
 
@@ -1799,7 +1799,7 @@ User will be queried, if no fileset name is provided."
 		     (current-buffer)))
 	 (name   (or name
 		     (completing-read
-		      (format "Add '%s' to fileset: " buffer)
+		      (format-message "Add ‘%s’ to fileset: " buffer)
 		      filesets-data nil)))
          (entry  (or (assoc name filesets-data)
                      (when (y-or-n-p
@@ -1808,7 +1808,8 @@ User will be queried, if no fileset name is provided."
                        (progn
       (add-to-list 'filesets-data (list name '(:files)))
       (message
-       "Fileset %s created.  Call `M-x filesets-save-config' to save."
+       (substitute-command-keys
+        "Fileset %s created.  Call `\\[filesets-save-config]' to save.")
        name)
       (car filesets-data))))))
     (if entry
@@ -1818,13 +1819,13 @@ User will be queried, if no fileset name is provided."
 					:test 'filesets-files-equalp)))
 	  (cond
 	   (inlist
-	    (message "Filesets: '%s' is already in '%s'" this name))
+	    (message "Filesets: ‘%s’ is already in ‘%s’" this name))
 	   ((and (equal (filesets-entry-mode entry) ':files)
 		 this)
 	    (filesets-entry-set-files entry (cons this files) t)
 	    (filesets-set-config name 'filesets-data filesets-data))
 	   (t
-	    (message "Filesets: Can't add '%s' to fileset '%s'" this name)))))))
+	    (message "Filesets: Can't add ‘%s’ to fileset ‘%s’" this name)))))))
 
 (defun filesets-remove-buffer (&optional name buffer)
   "Remove BUFFER (or current buffer) to fileset NAME.
@@ -1834,7 +1835,7 @@ User will be queried, if no fileset name is provided."
 		     (current-buffer)))
 	 (name   (or name
 		     (completing-read
-		      (format "Remove '%s' from fileset: " buffer)
+		      (format-message "Remove ‘%s’ from fileset: " buffer)
 		      filesets-data nil t)))
 		 (entry (assoc name filesets-data)))
     (if entry
@@ -1847,7 +1848,7 @@ User will be queried, if no fileset name is provided."
 	      (let ((new (list (cons ':files (delete (car inlist) files)))))
 		(setcdr entry new)
 		(filesets-set-config name 'filesets-data filesets-data))
-	    (message "Filesets: Can't remove '%s' from fileset '%s'"
+	    (message "Filesets: Can't remove ‘%s’ from fileset ‘%s’"
 		     this
 		     name))))))
 
@@ -2436,38 +2437,38 @@ fileset thinks this is necessary or not."
   (filesets-menu-cache-file-load))
 
 (defun filesets-update-pre010505 ()
-  (let ((msg
+  (let ((msg (format-message
 "Filesets: manual editing of user data required!
 
 Filesets has detected that you were using an older version before,
-which requires some manual updating. Type 'y' for editing the startup
+which requires some manual updating. Type ‘y’ for editing the startup
 file now.
 
-The layout of `filesets-data' has changed. Please delete your cache file
+The layout of ‘filesets-data’ has changed. Please delete your cache file
 and edit your startup file as shown below:
 
-1. `filesets-data': Edit all :pattern filesets in your startup file and
+1. ‘filesets-data’: Edit all :pattern filesets in your startup file and
 transform all entries as shown in this example:
 
    	\(\"Test\" (:pattern \"~/dir/^pattern$\"))
 	--> \(\"Test\" (:pattern \"~/dir/\" \"^pattern$\"))
 
-2. `filesets-data': Change all occurrences of \":document\" to \":ingroup\":
+2. ‘filesets-data’: Change all occurrences of \":document\" to \":ingroup\":
 
       \(\(\"Test\" \(:document \"~/dir/file\"))
       --> \(\(\"Test\" \(:ingroup \"~/dir/file\"))
 
-3. `filesets-subdocument-patterns': If you already modified the variable
-previously called `filesets-subdocument-patterns', change its name to
-`filesets-ingroup-patterns'.
+3. ‘filesets-subdocument-patterns’: If you already modified the variable
+previously called ‘filesets-subdocument-patterns’, change its name to
+‘filesets-ingroup-patterns’.
 
-4. `filesets-menu-cache-contents': If you already modified this
-variable, change the entry `filesets-subdocument--cache' to
-`filesets-ingroup-cache'.
+4. ‘filesets-menu-cache-contents’: If you already modified this
+variable, change the entry ‘filesets-subdocument--cache’ to
+‘filesets-ingroup-cache’.
 
 5. Type M-x filesets-update-cleanup and restart Emacs.
 
-We apologize for the inconvenience."))
+We apologize for the inconvenience.")))
     (let* ((cf (or custom-file user-init-file)))
       (switch-to-buffer-other-frame "*Filesets update*")
       (insert msg)

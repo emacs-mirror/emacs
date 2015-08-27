@@ -661,7 +661,7 @@ The caller of `iter-next' receives VALUE, and the next call to
 `iter-next' resumes execution at the previous
 `iter-yield' point."
   (identity value)
-  (error "`iter-yield' used outside a generator"))
+  (error "‘iter-yield’ used outside a generator"))
 
 (defmacro iter-yield-from (value)
   "When used inside a generator function, delegate to a sub-iterator.

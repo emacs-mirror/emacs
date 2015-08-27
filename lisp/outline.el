@@ -449,8 +449,8 @@ Otherwise, it will be one level below."
           ;; Why bother checking that it is indeed higher/lower level ?
           new-head
         ;; Didn't work, so ask what to do.
-        (read-string (format "%s heading for `%s': "
-                             (if up "Parent" "Demoted") head)
+        (read-string (format-message "%s heading for `%s': "
+				     (if up "Parent" "Demoted") head)
                      head nil nil t)))))
 
 (defun outline-promote (&optional which)

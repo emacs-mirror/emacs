@@ -1117,7 +1117,7 @@ See also `fortran-window-create'."
           (message "Type SPC to continue editing.")
           (let ((char (read-event)))
             (or (equal char ?\s)
-                (setq unread-command-events (list char))))))
+                (push char unread-command-events)))))
     (fortran-window-create)))
 
 (defun fortran-split-line ()

@@ -1107,7 +1107,7 @@ All HOST values should be in lower case.")
 (defun ange-ftp-message (fmt &rest args)
   "Display message in echo area, but indicate if truncated.
 Args are as in `message': a format string, plus arguments to be formatted."
-  (let ((msg (apply 'format fmt args))
+  (let ((msg (apply #'format-message fmt args))
 	(max (window-width (minibuffer-window))))
     (if noninteractive
 	msg
@@ -1613,7 +1613,7 @@ good, skip, fatal, or unknown."
 			  -6)))
 	 (if (zerop ange-ftp-xfer-size)
 	     (ange-ftp-message "%s...%dk" ange-ftp-process-msg kbytes)
-	   (let ((percent (/ (* 100 kbytes) ange-ftp-xfer-size)))
+	   (let ((percent (floor (* 100.0 kbytes) ange-ftp-xfer-size)))
 	     ;; cut out the redisplay of identical %-age messages.
 	     (unless (eq percent ange-ftp-last-percent)
 	       (setq ange-ftp-last-percent percent)
@@ -4626,7 +4626,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 	    (format  "%s %s \"%s\""	; remsh -l USER does not work well
 					; on a hp-ux machine I tried
 		     remote-shell-program host command))
-      (ange-ftp-message "Remote command '%s' ..." command)
+      (ange-ftp-message "Remote command ‘%s’ ..." command)
       ;; Cannot call ange-ftp-real-dired-run-shell-command here as it
       ;; would prepend "cd default-directory" --- which bombs because
       ;; default-directory is in ange-ftp syntax for remote file names.
@@ -5978,7 +5978,7 @@ Other orders of $ and _ seem to all work just fine.")
 
 (defcustom ange-ftp-bs2000-special-prefix
   "X"
-  "Prefix used for filenames starting with '#' or '@'."
+  "Prefix used for filenames starting with ‘#’ or ‘@’."
   :group 'ange-ftp
   :type 'string)
 

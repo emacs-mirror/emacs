@@ -1287,7 +1287,7 @@ Leave point after argument."
 (put 'uref 'texinfo-format 'texinfo-format-uref)
 (defun texinfo-format-uref ()
   "Format URL and optional URL-TITLE.
-Insert \\=` ... ' around URL if no URL-TITLE argument;
+Insert \\=` ... \\=' around URL if no URL-TITLE argument;
 otherwise, insert URL-TITLE followed by URL in parentheses."
   (let ((args (texinfo-format-parse-args)))
     (texinfo-discard-command)
@@ -2447,7 +2447,7 @@ Use only the FILENAME arg; for Info, ignore the other arguments to @image."
 ;; not lead to inserted ` ... ' in a table, but does elsewhere.
 (put 'option 'texinfo-format 'texinfo-format-option)
 (defun texinfo-format-option ()
-  "Insert \\=` ... ' around arg unless inside a table; in that case, no quotes."
+  "Insert \\=` ... \\=' around arg unless inside a table; in that case, no quotes."
   ;; `looking-at-backward' not available in v. 18.57, 20.2
   (if (not (search-backward ""    ; searched-for character is a control-H
                     (line-beginning-position)
@@ -2494,7 +2494,7 @@ Enclose the verbatim text, including the delimiters, in braces.  Print
 text exactly as written (but not the delimiters) in a fixed-width.
 
 For example, @verb\{|@|\} results in @ and
-@verb\{+@'e?\\=`!\\=`+} results in @'e?\\=`!\\=`."
+@verb\{+@\\='e?\\=`!\\=`+} results in @\\='e?\\=`!\\=`."
 
   (let ((delimiter (buffer-substring-no-properties
 		    (1+ texinfo-command-end) (+ 2 texinfo-command-end))))
@@ -3127,7 +3127,7 @@ Default is to leave paragraph indentation as is."
 ;; (put '\` 'texinfo-format 'texinfo-format-grave-accent)
 ;; (defun texinfo-format-grave-accent ()
 ;;   (texinfo-discard-command)
-;;   (insert "\`"))
+;;   (insert "`"))
 ;;
 ;; @'              ==>    '         acute accent
 ;; (put '\' 'texinfo-format 'texinfo-format-acute-accent)

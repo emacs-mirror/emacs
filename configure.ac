@@ -365,7 +365,7 @@ AC_ARG_WITH([file-notification],[AS_HELP_STRING([--with-file-notification=LIB],
     * ) AC_MSG_ERROR(['--with-file-notification=$withval' is invalid;
 this option's value should be 'yes', 'no', 'gfile', 'inotify' or 'w32'.
 'yes' is a synonym for 'w32' on MS-Windows, for 'no' on Nextstep,
-otherwise for the first of 'gfile' or 'inotify' that is usable.])
+otherwise for the first of 'inotify' or 'gfile' that is usable.])
     ;;
    esac
    with_file_notification=$val
@@ -2713,7 +2713,7 @@ NOTIFY_SUMMARY=no
 
 dnl FIXME?  Don't auto-detect on NS, but do allow someone to specify
 dnl a particular library.  This doesn't make much sense?
-if test "${HAVE_ns}" = yes && test ${with_file_notification} = yes; then
+if test "${HAVE_NS}" = yes && test ${with_file_notification} = yes; then
   with_file_notification=no
 fi
 
@@ -2733,22 +2733,7 @@ case $with_file_notification,$opsys in
     fi ;;
 esac
 
-dnl g_file_monitor exists since glib 2.18.  G_FILE_MONITOR_EVENT_MOVED
-dnl has been added in glib 2.24.  It has been tested under
-dnl GNU/Linux only.  We take precedence over inotify, but this makes
-dnl only sense when glib has been compiled with inotify support.  How
-dnl to check?
-case $with_file_notification,$NOTIFY_OBJ in
-  gfile, | yes,)
-    EMACS_CHECK_MODULES([GFILENOTIFY], [gio-2.0 >= 2.24])
-    if test "$HAVE_GFILENOTIFY" = "yes"; then
-       AC_DEFINE(HAVE_GFILENOTIFY, 1, [Define to 1 if using GFile.])
-       NOTIFY_OBJ=gfilenotify.o
-       NOTIFY_SUMMARY="yes -lgio (gfile)"
-    fi ;;
-esac
-
-dnl inotify is only available on GNU/Linux.
+dnl inotify is available only on GNU/Linux.
 case $with_file_notification,$NOTIFY_OBJ in
   inotify, | yes,)
     AC_CHECK_HEADER(sys/inotify.h)
@@ -2759,6 +2744,19 @@ case $with_file_notification,$NOTIFY_OBJ in
 	  NOTIFY_OBJ=inotify.o
 	  NOTIFY_SUMMARY="yes -lglibc (inotify)"
        fi
+    fi ;;
+esac
+
+dnl g_file_monitor exists since glib 2.18.  G_FILE_MONITOR_EVENT_MOVED
+dnl has been added in glib 2.24.  It has been tested under
+dnl GNU/Linux only.
+case $with_file_notification,$NOTIFY_OBJ in
+  gfile,* | yes,)
+    EMACS_CHECK_MODULES([GFILENOTIFY], [gio-2.0 >= 2.24])
+    if test "$HAVE_GFILENOTIFY" = "yes"; then
+       AC_DEFINE(HAVE_GFILENOTIFY, 1, [Define to 1 if using GFile.])
+       NOTIFY_OBJ=gfilenotify.o
+       NOTIFY_SUMMARY="yes -lgio (gfile)"
     fi ;;
 esac
 
@@ -4595,12 +4593,11 @@ if test $emacs_cv_func_sigsetjmp = yes; then
     [Define to 1 if sigsetjmp and siglongjmp work.])
 fi
 
-# We need all of these features to handle C stack overflows.
-if test "$emacs_cv_func_sigsetjmp" = "yes" &&
-   test "$emacs_cv_alternate_stack" = yes; then
-  AC_DEFINE([HAVE_STACK_OVERFLOW_HANDLING], 1,
-    [Define to 1 if C stack overflow can be handled in some cases.])
-fi
+case $emacs_cv_func_sigsetjmp,$emacs_cv_alternate_stack,$opsys in
+  yes,yes,* | *,*,mingw32)
+    AC_DEFINE([HAVE_STACK_OVERFLOW_HANDLING], 1,
+      [Define to 1 if C stack overflow can be handled in some cases.]);;
+esac
 
 case $opsys in
   sol2* | unixware )

@@ -113,10 +113,8 @@ Lisp_Object
 encode_current_directory (void)
 {
   Lisp_Object dir;
-  struct gcpro gcpro1;
 
   dir = BVAR (current_buffer, directory);
-  GCPRO1 (dir);
 
   dir = Funhandled_file_name_directory (dir);
 
@@ -138,7 +136,7 @@ encode_current_directory (void)
     report_file_error ("Setting current directory",
 		       BVAR (current_buffer, directory));
 
-  RETURN_UNGCPRO (dir);
+  return dir;
 }
 
 /* If P is reapable, record it as a deleted process and kill it.
@@ -252,7 +250,6 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
 {
   Lisp_Object infile, encoded_infile;
   int filefd;
-  struct gcpro gcpro1;
   ptrdiff_t count = SPECPDL_INDEX ();
 
   if (nargs >= 2 && ! NILP (args[1]))
@@ -263,14 +260,12 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
   else
     infile = build_string (NULL_DEVICE);
 
-  GCPRO1 (infile);
   encoded_infile = ENCODE_FILE (infile);
 
   filefd = emacs_open (SSDATA (encoded_infile), O_RDONLY, 0);
   if (filefd < 0)
     report_file_error ("Opening process input file", infile);
   record_unwind_protect_int (close_file_unwind, filefd);
-  UNGCPRO;
   return unbind_to (count, call_process (nargs, args, filefd, -1));
 }
 
@@ -422,26 +417,13 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
   /* Make sure that the child will be able to chdir to the current
      buffer's current directory, or its unhandled equivalent.  We
      can't just have the child check for an error when it does the
-     chdir, since it's in a vfork.
+     chdir, since it's in a vfork.  */
+  current_dir = encode_current_directory ();
 
-     We have to GCPRO around this because Fexpand_file_name,
-     Funhandled_file_name_directory, and Ffile_accessible_directory_p
-     might call a file name handling function.  The argument list is
-     protected by the caller, so all we really have to worry about is
-     buffer.  */
-  {
-    struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
-
-    current_dir = encode_current_directory ();
-
-    GCPRO4 (buffer, current_dir, error_file, output_file);
-
-    if (STRINGP (error_file))
-      error_file = ENCODE_FILE (error_file);
-    if (STRINGP (output_file))
-      output_file = ENCODE_FILE (output_file);
-    UNGCPRO;
-  }
+  if (STRINGP (error_file))
+    error_file = ENCODE_FILE (error_file);
+  if (STRINGP (output_file))
+    output_file = ENCODE_FILE (output_file);
 
   display_p = INTERACTIVE && nargs >= 4 && !NILP (args[3]);
 
@@ -454,13 +436,10 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 
   /* Search for program; barf if not found.  */
   {
-    struct gcpro gcpro1, gcpro2, gcpro3;
     int ok;
 
-    GCPRO3 (buffer, current_dir, error_file);
     ok = openp (Vexec_path, args[0], Vexec_suffixes, &path,
 		make_number (X_OK), false);
-    UNGCPRO;
     if (ok < 0)
       report_file_error ("Searching for program", args[0]);
   }
@@ -470,32 +449,26 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 
   SAFE_NALLOCA (new_argv, 1, nargs < 4 ? 2 : nargs - 2);
 
-  {
-    struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+  if (nargs > 4)
+    {
+      ptrdiff_t i;
 
-    GCPRO4 (buffer, current_dir, path, error_file);
-    if (nargs > 4)
-      {
-	ptrdiff_t i;
-
-	argument_coding.dst_multibyte = 0;
-	for (i = 4; i < nargs; i++)
-	  {
-	    argument_coding.src_multibyte = STRING_MULTIBYTE (args[i]);
-	    if (CODING_REQUIRE_ENCODING (&argument_coding))
-	      /* We must encode this argument.  */
-	      args[i] = encode_coding_string (&argument_coding, args[i], 1);
-	  }
-	for (i = 4; i < nargs; i++)
-	  new_argv[i - 3] = SSDATA (args[i]);
-	new_argv[i - 3] = 0;
-      }
-    else
-      new_argv[1] = 0;
-    path = ENCODE_FILE (path);
-    new_argv[0] = SSDATA (path);
-    UNGCPRO;
-  }
+      argument_coding.dst_multibyte = 0;
+      for (i = 4; i < nargs; i++)
+	{
+	  argument_coding.src_multibyte = STRING_MULTIBYTE (args[i]);
+	  if (CODING_REQUIRE_ENCODING (&argument_coding))
+	    /* We must encode this argument.  */
+	    args[i] = encode_coding_string (&argument_coding, args[i], 1);
+	}
+      for (i = 4; i < nargs; i++)
+	new_argv[i - 3] = SSDATA (args[i]);
+      new_argv[i - 3] = 0;
+    }
+  else
+    new_argv[1] = 0;
+  path = ENCODE_FILE (path);
+  new_argv[0] = SSDATA (path);
 
   discard_output = INTEGERP (buffer) || (NILP (buffer) && NILP (output_file));
 
@@ -936,7 +909,6 @@ create_temp_file (ptrdiff_t nargs, Lisp_Object *args,
 		  Lisp_Object *filename_string_ptr)
 {
   int fd;
-  struct gcpro gcpro1;
   Lisp_Object filename_string;
   Lisp_Object val, start, end;
   Lisp_Object tmpdir;
@@ -980,7 +952,6 @@ create_temp_file (ptrdiff_t nargs, Lisp_Object *args,
 #endif
 
     filename_string = Fcopy_sequence (ENCODE_FILE (pattern));
-    GCPRO1 (filename_string);
     tempfile = SSDATA (filename_string);
 
     count = SPECPDL_INDEX ();
@@ -1033,7 +1004,6 @@ create_temp_file (ptrdiff_t nargs, Lisp_Object *args,
      coding-system-for-read.  */
 
   *filename_string_ptr = filename_string;
-  UNGCPRO;
   return fd;
 }
 
@@ -1064,7 +1034,6 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.
 usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &rest ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  struct gcpro gcpro1;
   Lisp_Object infile, val;
   ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object start = args[0];
@@ -1095,8 +1064,6 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
       record_unwind_protect_int (close_file_unwind, fd);
     }
 
-  GCPRO1 (infile);
-
   if (nargs > 3 && !NILP (args[3]))
     Fdelete_region (start, end);
 
@@ -1113,7 +1080,7 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
   args[1] = infile;
 
   val = call_process (nargs, args, fd, empty_input ? -1 : count);
-  RETURN_UNGCPRO (unbind_to (count, val));
+  return unbind_to (count, val);
 }
 
 #ifndef WINDOWSNT

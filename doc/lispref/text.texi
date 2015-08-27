@@ -3472,8 +3472,10 @@ function called to display help strings.  These may be @code{help-echo}
 properties, menu help strings (@pxref{Simple Menu Items},
 @pxref{Extended Menu Items}), or tool bar help strings (@pxref{Tool
 Bar}).  The specified function is called with one argument, the help
-string to display.  Tooltip mode (@pxref{Tooltips,,, emacs, The GNU Emacs
-Manual}) provides an example.
+string to display, which is passed through
+@code{substitute-command-keys} before being given to the function; see
+@ref{Keys in Documentation}.  Tooltip mode (@pxref{Tooltips,,, emacs,
+The GNU Emacs Manual}) provides an example.
 @end defvar
 
 @node Format Properties

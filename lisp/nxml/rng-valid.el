@@ -345,17 +345,11 @@ The schema is set like `rng-auto-set-schema'."
 
 (defun rng-compute-mode-line-string ()
   (cond (rng-validate-timer
-	 (concat " Validated:"
-		 (number-to-string
-		  ;; Use floor rather than round because we want
-		  ;; to show 99% rather than 100% for changes near
-		  ;; the end.
-		  (floor (if (eq (buffer-size) 0)
-			     0.0
-			   (/ (* (- rng-validate-up-to-date-end (point-min))
-                                 100.0)
-			      (- (point-max) (point-min))))))
-		 "%%"))
+	 (format " Validated:%d%%"
+		 (if (= 0 (buffer-size))
+		     0
+		   (floor (- rng-validate-up-to-date-end (point-min))
+			  (- (point-max) (point-min))))))
 	((> rng-error-count 0)
 	 (concat " "
 		 (propertize "Invalid"

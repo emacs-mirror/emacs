@@ -2413,7 +2413,7 @@ arrives, whichever comes first.  The variable
 @code{minibuffer-message-timeout} specifies the number of seconds to
 wait in the absence of input.  It defaults to 2.  If @var{args} is
 non-@code{nil}, the actual message is obtained by passing @var{string}
-and @var{args} through @code{format}.  @xref{Formatting Strings}.
+and @var{args} through @code{format-message}.  @xref{Formatting Strings}.
 @end defun
 
 @deffn Command minibuffer-inactive-mode

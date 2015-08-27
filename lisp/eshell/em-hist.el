@@ -520,7 +520,7 @@ See also `eshell-read-history'."
 	(let ((ch (read-event)))
 	  (if (eq ch ?\ )
 	      (set-window-configuration conf)
-	    (setq unread-command-events (list ch))))))))
+	    (push ch unread-command-events)))))))
 
 (defun eshell-hist-word-reference (ref)
   "Return the word designator index referred to by REF."

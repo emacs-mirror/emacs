@@ -54,9 +54,9 @@ kick in, provided that you run under GDB.
 
 ** Getting control to the debugger
 
-`Fsignal' is a very useful place to put a breakpoint in.  All Lisp
+'Fsignal' is a very useful place to put a breakpoint in.  All Lisp
 errors go through there.  If you are only interested in errors that
-would fire the debugger, breaking at `maybe_call_debugger' is useful.
+would fire the debugger, breaking at 'maybe_call_debugger' is useful.
 
 It is useful, when debugging, to have a guaranteed way to return to
 the debugger at any time.  When using X, this is easy: type C-z at the
@@ -70,10 +70,10 @@ On modern POSIX systems, you can override that with this command:
 
    handle SIGINT stop nopass
 
-After this `handle' command, SIGINT will return control to GDB.  If
-you want the C-g to cause a QUIT within Emacs as well, omit the `nopass'.
+After this 'handle' command, SIGINT will return control to GDB.  If
+you want the C-g to cause a QUIT within Emacs as well, omit the 'nopass'.
 
-A technique that can work when `handle SIGINT' does not is to store
+A technique that can work when 'handle SIGINT' does not is to store
 the code for some character into the variable stop_character.  Thus,
 
     set stop_character = 29
@@ -81,7 +81,7 @@ the code for some character into the variable stop_character.  Thus,
 makes Control-] (decimal code 29) the stop character.
 Typing Control-] will cause immediate stop.  You cannot
 use the set command until the inferior process has been started.
-Put a breakpoint early in `main', or suspend the Emacs,
+Put a breakpoint early in 'main', or suspend the Emacs,
 to get an opportunity to do the set command.
 
 Another technique for get control to the debugger is to put a
@@ -91,7 +91,7 @@ is Fredraw_display, which you can invoke at will interactively with
 
 When Emacs is running in a terminal, it is sometimes useful to use a separate
 terminal for the debug session.  This can be done by starting Emacs as usual,
-then attaching to it from gdb with the `attach' command which is explained in
+then attaching to it from gdb with the 'attach' command which is explained in
 the node "Attach" of the GDB manual.
 
 On MS-Windows, you can start Emacs in its own separate terminal by
@@ -103,36 +103,36 @@ setting the new-console option before running Emacs under GDB:
 ** Examining Lisp object values.
 
 When you have a live process to debug, and it has not encountered a
-fatal error, you can use the GDB command `pr'.  First print the value
-in the ordinary way, with the `p' command.  Then type `pr' with no
+fatal error, you can use the GDB command 'pr'.  First print the value
+in the ordinary way, with the 'p' command.  Then type 'pr' with no
 arguments.  This calls a subroutine which uses the Lisp printer.
 
-You can also use `pp value' to print the emacs value directly.
+You can also use 'pp value' to print the emacs value directly.
 
-To see the current value of a Lisp Variable, use `pv variable'.
+To see the current value of a Lisp Variable, use 'pv variable'.
 
-Note: It is not a good idea to try `pr', `pp', or `pv' if you know that Emacs
+Note: It is not a good idea to try 'pr', 'pp', or 'pv' if you know that Emacs
 is in deep trouble: its stack smashed (e.g., if it encountered SIGSEGV
-due to stack overflow), or crucial data structures, such as `obarray',
-corrupted, etc.  In such cases, the Emacs subroutine called by `pr'
+due to stack overflow), or crucial data structures, such as 'obarray',
+corrupted, etc.  In such cases, the Emacs subroutine called by 'pr'
 might make more damage, like overwrite some data that is important for
 debugging the original problem.
 
-Also, on some systems it is impossible to use `pr' if you stopped
-Emacs while it was inside `select'.  This is in fact what happens if
+Also, on some systems it is impossible to use 'pr' if you stopped
+Emacs while it was inside 'select'.  This is in fact what happens if
 you stop Emacs while it is waiting.  In such a situation, don't try to
-use `pr'.  Instead, use `s' to step out of the system call.  Then
-Emacs will be between instructions and capable of handling `pr'.
+use 'pr'.  Instead, use 's' to step out of the system call.  Then
+Emacs will be between instructions and capable of handling 'pr'.
 
-If you can't use `pr' command, for whatever reason, you can use the
-`xpr' command to print out the data type and value of the last data
+If you can't use 'pr' command, for whatever reason, you can use the
+'xpr' command to print out the data type and value of the last data
 value, For example:
 
     p it->object
     xpr
 
 You may also analyze data values using lower-level commands.  Use the
-`xtype' command to print out the data type of the last data value.
+'xtype' command to print out the data type of the last data value.
 Once you know the data type, use the command that corresponds to that
 type.  Here are these commands:
 
@@ -181,20 +181,20 @@ Then Emacs hits the breakpoint:
     [...]
   }
 
-Now we can use `pr' to print the frame parameters:
+Now we can use 'pr' to print the frame parameters:
 
   (gdb) pp $->param_alist
   ((background-mode . light) (display-type . color) [...])
 
 The Emacs C code heavily uses macros defined in lisp.h.  So suppose
 we want the address of the l-value expression near the bottom of
-`add_command_key' from keyboard.c:
+'add_command_key' from keyboard.c:
 
   XVECTOR (this_command_keys)->contents[this_command_key_count++] = key;
 
 XVECTOR is a macro, so GDB only knows about it if Emacs has been compiled with
 preprocessor macro information.  GCC provides this if you specify the options
-`-gdwarf-N' (where N is 2 or higher) and `-g3'.  In this case, GDB can
+'-gdwarf-N' (where N is 2 or higher) and '-g3'.  In this case, GDB can
 evaluate expressions like "p XVECTOR (this_command_keys)".
 
 When this information isn't available, you can use the xvector command in GDB
@@ -210,20 +210,20 @@ to get the same result.  Here is how:
   (gdb) p &$
   $4 = (int *) 0x411008
 
-Here's a related example of macros and the GDB `define' command.
-There are many Lisp vectors such as `recent_keys', which contains the
+Here's a related example of macros and the GDB 'define' command.
+There are many Lisp vectors such as 'recent_keys', which contains the
 last 300 keystrokes.  We can print this Lisp vector
 
   p recent_keys
   pr
 
-But this may be inconvenient, since `recent_keys' is much more verbose
-than `C-h l'.  We might want to print only the last 10 elements of
-this vector.  `recent_keys' is updated in keyboard.c by the command
+But this may be inconvenient, since 'recent_keys' is much more verbose
+than 'C-h l'.  We might want to print only the last 10 elements of
+this vector.  'recent_keys' is updated in keyboard.c by the command
 
   XVECTOR (recent_keys)->contents[recent_keys_index] = c;
 
-So we define a GDB command `xvector-elts', so the last 10 keystrokes
+So we define a GDB command 'xvector-elts', so the last 10 keystrokes
 are printed by
 
   xvector-elts recent_keys recent_keys_index 10
@@ -242,15 +242,15 @@ where you can define xvector-elts as follows:
   document xvector-elts
   Prints a range of elements of a Lisp vector.
   xvector-elts  v n i
-  prints `i' elements of the vector `v' ending at the index `n'.
+  prints 'i' elements of the vector 'v' ending at the index 'n'.
   end
 
 ** Getting Lisp-level backtrace information within GDB
 
-The most convenient way is to use the `xbacktrace' command.  This
+The most convenient way is to use the 'xbacktrace' command.  This
 shows the names of the Lisp functions that are currently active.
 
-If that doesn't work (e.g., because the `backtrace_list' structure is
+If that doesn't work (e.g., because the 'backtrace_list' structure is
 corrupted), type "bt" at the GDB prompt, to produce the C-level
 backtrace, and look for stack frames that call Ffuncall.  Select them
 one by one in GDB, by typing "up N", where N is the appropriate number
@@ -291,25 +291,25 @@ some redisplay optimizations produce wrong results.  (You know that redisplay
 optimizations might be involved if "M-x redraw-display RET", or even just
 typing "M-x", causes Emacs to correct the bad display.)  Since the cursor
 blinking feature triggers periodic redisplay cycles, we recommend disabling
-`blink-cursor-mode' before invoking `trace-redisplay', so that you have less
+'blink-cursor-mode' before invoking 'trace-redisplay', so that you have less
 clutter in the trace.  You can also have up to 30 last trace messages dumped to
-standard error by invoking the `dump-redisplay-history' command.
+standard error by invoking the 'dump-redisplay-history' command.
 
 To find the code paths which were taken by the display engine, search xdisp.c
 for the trace messages you see.
 
-The command `dump-glyph-matrix' is useful for producing on standard error
+The command 'dump-glyph-matrix' is useful for producing on standard error
 stream a full dump of the selected window's glyph matrix.  See the function's
 doc string for more details.  If you are debugging redisplay issues in
-text-mode frames, you may find the command `dump-frame-glyph-matrix' useful.
+text-mode frames, you may find the command 'dump-frame-glyph-matrix' useful.
 
-Other commands useful for debugging redisplay are `dump-glyph-row' and
-`dump-tool-bar-row'.
+Other commands useful for debugging redisplay are 'dump-glyph-row' and
+'dump-tool-bar-row'.
 
 If you run Emacs under GDB, you can print the contents of any glyph matrix by
 just calling that function with the matrix as its argument.  For example, the
 following command will print the contents of the current matrix of the window
-whose pointer is in `w':
+whose pointer is in 'w':
 
   (gdb) p dump_glyph_matrix (w->current_matrix, 2)
 
@@ -321,51 +321,51 @@ disabled.  Configuring Emacs with --enable-checking='yes,glyphs' enables it.
 
 Building Emacs like that activates many assertions which scrutinize
 display code operation more than Emacs does normally.  (To see the
-code which tests these assertions, look for calls to the `eassert'
+code which tests these assertions, look for calls to the 'eassert'
 macros.)  Any assertion that is reported to fail should be investigated.
 
 When you debug display problems running emacs under X, you can use
-the `ff' command to flush all pending display updates to the screen.
+the 'ff' command to flush all pending display updates to the screen.
 
 The src/.gdbinit file defines many useful commands for dumping redisplay
 related data structures in a terse and user-friendly format:
 
- `ppt' prints value of PT, narrowing, and gap in current buffer.
- `pit' dumps the current display iterator `it'.
- `pwin' dumps the current window 'win'.
- `prow' dumps the current glyph_row `row'.
- `pg' dumps the current glyph `glyph'.
- `pgi' dumps the next glyph.
- `pgrow' dumps all glyphs in current glyph_row `row'.
- `pcursor' dumps current output_cursor.
+ 'ppt' prints value of PT, narrowing, and gap in current buffer.
+ 'pit' dumps the current display iterator 'it'.
+ 'pwin' dumps the current window 'win'.
+ 'prow' dumps the current glyph_row 'row'.
+ 'pg' dumps the current glyph 'glyph'.
+ 'pgi' dumps the next glyph.
+ 'pgrow' dumps all glyphs in current glyph_row 'row'.
+ 'pcursor' dumps current output_cursor.
 
-The above commands also exist in a version with an `x' suffix which takes an
-object of the relevant type as argument.  For example, `pgrowx' dumps all
-glyphs in its argument, which must be of type `struct glyph_row'.
+The above commands also exist in a version with an 'x' suffix which takes an
+object of the relevant type as argument.  For example, 'pgrowx' dumps all
+glyphs in its argument, which must be of type 'struct glyph_row'.
 
 Since redisplay is performed by Emacs very frequently, you need to place your
 breakpoints cleverly to avoid hitting them all the time, when the issue you are
 debugging did not (yet) happen.  Here are some useful techniques for that:
 
- . Put a breakpoint at `Fredraw_display' before running Emacs.  Then do
+ . Put a breakpoint at 'Fredraw_display' before running Emacs.  Then do
    whatever is required to reproduce the bad display, and invoke "M-x
    redraw-display".  The debugger will kick in, and you can set or enable
    breakpoints in strategic places, knowing that the bad display will be
    redrawn from scratch.
 
  . For debugging incorrect cursor position, a good place to put a breakpoint is
-   in `set_cursor_from_row'.  The first time this function is called as part of
-   `redraw-display', Emacs is redrawing the minibuffer window, which is usually
+   in 'set_cursor_from_row'.  The first time this function is called as part of
+   'redraw-display', Emacs is redrawing the minibuffer window, which is usually
    not what you want; type "continue" to get to the call you want.  In general,
-   always make sure `set_cursor_from_row' is called for the right window and
+   always make sure 'set_cursor_from_row' is called for the right window and
    buffer by examining the value of w->contents: it should be the buffer whose
    display you are debugging.
 
- . `set_cursor_from_row' is also a good place to look at the contents of a
-   screen line (a.k.a. "glyph row"), by means of the `pgrow' GDB command.  Of
+ . 'set_cursor_from_row' is also a good place to look at the contents of a
+   screen line (a.k.a. "glyph row"), by means of the 'pgrow' GDB command.  Of
    course, you need first to make sure the cursor is on the screen line which
-   you want to investigate.  If you have set a breakpoint in `Fredraw_display',
-   as advised above, move cursor to that line before invoking `redraw-display'.
+   you want to investigate.  If you have set a breakpoint in 'Fredraw_display',
+   as advised above, move cursor to that line before invoking 'redraw-display'.
 
  . If the problem happens only at some specific buffer position or for some
    specific rarely-used character, you can make your breakpoints conditional on
@@ -383,14 +383,14 @@ debugging did not (yet) happen.  Here are some useful techniques for that:
  . You can also make the breakpoints conditional on what object is being used
    for producing glyphs for display.  The it->method member has the value
    GET_FROM_BUFFER for displaying buffer contents, GET_FROM_STRING for
-   displaying a Lisp string (e.g., a `display' property or an overlay string),
-   GET_FROM_IMAGE for displaying an image, etc.  See `enum it_method' in
+   displaying a Lisp string (e.g., a 'display' property or an overlay string),
+   GET_FROM_IMAGE for displaying an image, etc.  See 'enum it_method' in
    dispextern.h for the full list of values.
 
 ** Following longjmp call.
 
 Recent versions of glibc (2.4+?) encrypt stored values for setjmp/longjmp which
-prevents GDB from being able to follow a longjmp call using `next'.  To
+prevents GDB from being able to follow a longjmp call using 'next'.  To
 disable this protection you need to set the environment variable
 LD_POINTER_GUARD to 0.
 
@@ -400,11 +400,11 @@ Debugging with GDB in Emacs offers some advantages over the command line (See
 the GDB Graphical Interface node of the Emacs manual).  There are also some
 features available just for debugging Emacs:
 
-1) The command gud-pp is available on the tool bar (the `pp' icon) and
+1) The command gud-pp is available on the tool bar (the 'pp' icon) and
    allows the user to print the s-expression of the variable at point,
    in the GUD buffer.
 
-2) Pressing `p' on a component of a watch expression that is a lisp object
+2) Pressing 'p' on a component of a watch expression that is a lisp object
    in the speedbar prints its s-expression in the GUD buffer.
 
 3) The STOP button on the tool bar is adjusted so that it sends SIGTSTP
@@ -415,11 +415,11 @@ features available just for debugging Emacs:
 
 ** Debugging what happens while preloading and dumping Emacs
 
-Debugging `temacs' is useful when you want to establish whether a
-problem happens in an undumped Emacs.  To run `temacs' under a
-debugger, type "gdb temacs", then start it with `r -batch -l loadup'.
+Debugging 'temacs' is useful when you want to establish whether a
+problem happens in an undumped Emacs.  To run 'temacs' under a
+debugger, type "gdb temacs", then start it with 'r -batch -l loadup'.
 
-If you need to debug what happens during dumping, start it with `r -batch -l
+If you need to debug what happens during dumping, start it with 'r -batch -l
 loadup dump' instead.  For debugging the bootstrap dumping, use "loadup
 bootstrap" instead of "loadup dump".
 
@@ -444,7 +444,7 @@ option, like this:
 
     emacs -xrm "emacs.synchronous: true"
 
-Setting a breakpoint in the function `x_error_quitter' and looking at
+Setting a breakpoint in the function 'x_error_quitter' and looking at
 the backtrace when Emacs stops inside that function will show what
 code causes the X protocol errors.
 
@@ -455,25 +455,25 @@ procedure:
   - Run Emacs under a debugger and put a breakpoint inside the
     primitive function which, when called from Lisp, triggers the X
     protocol errors.  For example, if the errors happen when you
-    delete a frame, put a breakpoint inside `Fdelete_frame'.
+    delete a frame, put a breakpoint inside 'Fdelete_frame'.
 
   - When the breakpoint breaks, step through the code, looking for
     calls to X functions (the ones whose names begin with "X" or
     "Xt" or "Xm").
 
-  - Insert calls to `XSync' before and after each call to the X
+  - Insert calls to 'XSync' before and after each call to the X
     functions, like this:
 
        XSync (f->output_data.x->display_info->display, 0);
 
-    where `f' is the pointer to the `struct frame' of the selected
+    where 'f' is the pointer to the 'struct frame' of the selected
     frame, normally available via XFRAME (selected_frame).  (Most
     functions which call X already have some variable that holds the
-    pointer to the frame, perhaps called `f' or `sf', so you shouldn't
+    pointer to the frame, perhaps called 'f' or 'sf', so you shouldn't
     need to compute it.)
 
     If your debugger can call functions in the program being debugged,
-    you should be able to issue the calls to `XSync' without recompiling
+    you should be able to issue the calls to 'XSync' without recompiling
     Emacs.  For example, with GDB, just type:
 
        call XSync (f->output_data.x->display_info->display, 0)
@@ -484,8 +484,8 @@ procedure:
 
     Either way, systematically step through the code and issue these
     calls until you find the first X function called by Emacs after
-    which a call to `XSync' winds up in the function
-    `x_error_quitter'.  The first X function call for which this
+    which a call to 'XSync' winds up in the function
+    'x_error_quitter'.  The first X function call for which this
     happens is the one that generated the X protocol error.
 
   - You should now look around this offending X call and try to figure
@@ -506,7 +506,7 @@ to start debugging.
 
 ** If the symptom of the bug is that Emacs fails to respond
 
-Don't assume Emacs is `hung'--it may instead be in an infinite loop.
+Don't assume Emacs is 'hung'--it may instead be in an infinite loop.
 To find out which, make the problem happen under GDB and stop Emacs
 once it is not responding.  (If Emacs is using X Windows directly, you
 can stop Emacs by typing C-z at the GDB job.  On MS-Windows, run Emacs
@@ -514,8 +514,8 @@ as usual, and then attach GDB to it -- that will usually interrupt
 whatever Emacs is doing and let you perform the steps described
 below.)
 
-Then try stepping with `step'.  If Emacs is hung, the `step' command
-won't return.  If it is looping, `step' will return.
+Then try stepping with 'step'.  If Emacs is hung, the 'step' command
+won't return.  If it is looping, 'step' will return.
 
 If this shows Emacs is hung in a system call, stop it again and
 examine the arguments of the call.  If you report the bug, it is very
@@ -524,19 +524,19 @@ what the arguments are.
 
 If Emacs is in an infinite loop, try to determine where the loop
 starts and ends.  The easiest way to do this is to use the GDB command
-`finish'.  Each time you use it, Emacs resumes execution until it
-exits one stack frame.  Keep typing `finish' until it doesn't
+'finish'.  Each time you use it, Emacs resumes execution until it
+exits one stack frame.  Keep typing 'finish' until it doesn't
 return--that means the infinite loop is in the stack frame which you
 just tried to finish.
 
-Stop Emacs again, and use `finish' repeatedly again until you get back
-to that frame.  Then use `next' to step through that frame.  By
+Stop Emacs again, and use 'finish' repeatedly again until you get back
+to that frame.  Then use 'next' to step through that frame.  By
 stepping, you will see where the loop starts and ends.  Also, examine
 the data being used in the loop and try to determine why the loop does
 not exit when it should.
 
 On GNU and Unix systems, you can also trying sending Emacs SIGUSR2,
-which, if `debug-on-event' has its default value, will cause Emacs to
+which, if 'debug-on-event' has its default value, will cause Emacs to
 attempt to break it out of its current loop and into the Lisp
 debugger.  This feature is useful when a C-level debugger is not
 conveniently available.
@@ -572,7 +572,7 @@ in such an extremity.  Do
     17:i
     :r -l loadup   (or whatever)
 
-It is necessary to refer to the file `nmout' to convert
+It is necessary to refer to the file 'nmout' to convert
 numeric addresses into symbols and vice versa.
 
 It is useful to be running under a window system.
@@ -591,7 +591,7 @@ screen.  To make these records, do
 
 The dribble file contains all characters read by Emacs from the
 terminal, and the termscript file contains all characters it sent to
-the terminal.  The use of the directory `~/' prevents interference
+the terminal.  The use of the directory '~/' prevents interference
 with any other user.
 
 If you have irreproducible display problems, put those two expressions
@@ -600,7 +600,7 @@ you were running, kill it, and rename the two files.  Then you can start
 another Emacs without clobbering those files, and use it to examine them.
 
 An easy way to see if too much text is being redrawn on a terminal is to
-evaluate `(setq inverse-video t)' before you try the operation you think
+evaluate '(setq inverse-video t)' before you try the operation you think
 will cause too much redrawing.  This doesn't refresh the screen, so only
 newly drawn text is in inverse video.
 
@@ -608,7 +608,7 @@ newly drawn text is in inverse video.
 
 If you encounter bugs whereby Emacs built with LessTif grabs all mouse
 and keyboard events, or LessTif menus behave weirdly, it might be
-helpful to set the `DEBUGSOURCES' and `DEBUG_FILE' environment
+helpful to set the 'DEBUGSOURCES' and 'DEBUG_FILE' environment
 variables, so that one can see what LessTif was doing at this point.
 For instance
 
@@ -617,7 +617,7 @@ For instance
   emacs &
 
 causes LessTif to print traces from the three named source files to a
-file in `/usr/tmp' (that file can get pretty large).  The above should
+file in '/usr/tmp' (that file can get pretty large).  The above should
 be typed at the shell prompt before invoking Emacs, as shown by the
 last line above.
 
@@ -628,29 +628,29 @@ the machine where you started GDB and use the debugger from there.
 
 ** Debugging problems which happen in GC
 
-The array `last_marked' (defined on alloc.c) can be used to display up
+The array 'last_marked' (defined on alloc.c) can be used to display up
 to 500 last objects marked by the garbage collection process.
 Whenever the garbage collector marks a Lisp object, it records the
-pointer to that object in the `last_marked' array, which is maintained
-as a circular buffer.  The variable `last_marked_index' holds the
-index into the `last_marked' array one place beyond where the pointer
+pointer to that object in the 'last_marked' array, which is maintained
+as a circular buffer.  The variable 'last_marked_index' holds the
+index into the 'last_marked' array one place beyond where the pointer
 to the very last marked object is stored.
 
 The single most important goal in debugging GC problems is to find the
 Lisp data structure that got corrupted.  This is not easy since GC
 changes the tag bits and relocates strings which make it hard to look
-at Lisp objects with commands such as `pr'.  It is sometimes necessary
+at Lisp objects with commands such as 'pr'.  It is sometimes necessary
 to convert Lisp_Object variables into pointers to C struct's manually.
 
-Use the `last_marked' array and the source to reconstruct the sequence
+Use the 'last_marked' array and the source to reconstruct the sequence
 that objects were marked.  In general, you need to correlate the
-values recorded in the `last_marked' array with the corresponding
+values recorded in the 'last_marked' array with the corresponding
 stack frames in the backtrace, beginning with the innermost frame.
-Some subroutines of `mark_object' are invoked recursively, others loop
+Some subroutines of 'mark_object' are invoked recursively, others loop
 over portions of the data structure and mark them as they go.  By
 looking at the code of those routines and comparing the frames in the
-backtrace with the values in `last_marked', you will be able to find
-connections between the values in `last_marked'.  E.g., when GC finds
+backtrace with the values in 'last_marked', you will be able to find
+connections between the values in 'last_marked'.  E.g., when GC finds
 a cons cell, it recursively marks its car and its cdr.  Similar things
 happen with properties of symbols, elements of vectors, etc.  Use
 these connections to reconstruct the data structure that was being
@@ -691,7 +691,7 @@ xterm window, then type these commands inside that window:
 Let's say these commands print "/dev/ttyp4" and "xterm", respectively.
 
 Now start Emacs (the normal, windowed-display session, i.e. without
-the `-nw' option), and invoke "M-x gdb RET emacs RET" from there.  Now
+the '-nw' option), and invoke "M-x gdb RET emacs RET" from there.  Now
 type these commands at GDB's prompt:
 
   (gdb) set args -nw -t /dev/ttyp4
@@ -702,7 +702,7 @@ The debugged Emacs should now start in no-window mode with its display
 directed to the xterm window you opened above.
 
 Similar arrangement is possible on a character terminal by using the
-`screen' package.
+'screen' package.
 
 On MS-Windows, you can start Emacs in its own separate terminal by
 setting the new-console option before running Emacs under GDB:
@@ -736,13 +736,13 @@ memory.  Here are some of the changes you might find necessary:
 
   - cd ..; src/temacs
 
-(Note that this runs `temacs' instead of the usual `emacs' executable.
+(Note that this runs 'temacs' instead of the usual 'emacs' executable.
 This avoids problems with dumping Emacs mentioned above.)
 
 Some malloc debugging libraries might print lots of false alarms for
 bitfields used by Emacs in some data structures.  If you want to get
 rid of the false alarms, you will have to hack the definitions of
-these data structures on the respective headers to remove the `:N'
+these data structures on the respective headers to remove the ':N'
 bitfield definitions (which will cause each such field to use a full
 int).
 
@@ -792,19 +792,19 @@ opened at Emacs' startup; this console window also shows the output of
 'debug_print'.
 
 For example, start and run Emacs in the debugger until it is waiting
-for user input.  Then click on the `Break' button in the debugger to
-halt execution.  Emacs should halt in `ZwUserGetMessage' waiting for
-an input event.  Use the `Call Stack' window to select the procedure
-`w32_msp_pump' up the call stack (see below for why you have to do
+for user input.  Then click on the 'Break' button in the debugger to
+halt execution.  Emacs should halt in 'ZwUserGetMessage' waiting for
+an input event.  Use the 'Call Stack' window to select the procedure
+'w32_msp_pump' up the call stack (see below for why you have to do
 this).  Open the QuickWatch window and enter
 "debug_print(Vexec_path)".  Evaluating this expression will then print
-out the contents of the Lisp variable `exec-path'.
+out the contents of the Lisp variable 'exec-path'.
 
 If QuickWatch reports that the symbol is unknown, then check the call
-stack in the `Call Stack' window.  If the selected frame in the call
+stack in the 'Call Stack' window.  If the selected frame in the call
 stack is not an Emacs procedure, then the debugger won't recognize
 Emacs symbols.  Instead, select a frame that is inside an Emacs
-procedure and try using `debug_print' again.
+procedure and try using 'debug_print' again.
 
 If QuickWatch invokes debug_print but nothing happens, then check the
 thread that is selected in the debugger.  If the selected thread is

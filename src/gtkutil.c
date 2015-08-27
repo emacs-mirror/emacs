@@ -382,10 +382,11 @@ xg_get_image_for_pixmap (struct frame *f,
   if (STRINGP (specified_file)
       && STRINGP (file = x_find_image_file (specified_file)))
     {
+      char *encoded_file = SSDATA (ENCODE_FILE (file));
       if (! old_widget)
-        old_widget = GTK_IMAGE (gtk_image_new_from_file (SSDATA (file)));
+        old_widget = GTK_IMAGE (gtk_image_new_from_file (encoded_file));
       else
-        gtk_image_set_from_file (old_widget, SSDATA (file));
+        gtk_image_set_from_file (old_widget, encoded_file);
 
       return GTK_WIDGET (old_widget);
     }
@@ -1374,7 +1375,9 @@ x_wm_set_size_hint (struct frame *f, long int flags, bool user_position)
 
   XSETFRAME (frame, f);
   fs_state = Fframe_parameter (frame, Qfullscreen);
-  if (EQ (fs_state, Qmaximized) || EQ (fs_state, Qfullboth))
+  if ((EQ (fs_state, Qmaximized) || EQ (fs_state, Qfullboth)) &&
+      (x_wm_supports (f, FRAME_DISPLAY_INFO (f)->Xatom_net_wm_state) ||
+       x_wm_supports (f, FRAME_DISPLAY_INFO (f)->Xatom_net_wm_state_fullscreen)))
     {
       /* Don't set hints when maximized or fullscreen.  Apparently KWin and
          Gtk3 don't get along and the frame shrinks (!).
@@ -1925,9 +1928,7 @@ xg_get_file_with_chooser (struct frame *f,
   if (default_filename)
     {
       Lisp_Object file;
-      struct gcpro gcpro1;
       char *utf8_filename;
-      GCPRO1 (file);
 
       file = build_string (default_filename);
 
@@ -1952,8 +1953,6 @@ xg_get_file_with_chooser (struct frame *f,
               gtk_file_chooser_set_current_name (GTK_FILE_CHOOSER (filewin), cp);
             }
         }
-
-      UNGCPRO;
     }
 
   *func = xg_get_file_name_from_chooser;
@@ -4456,8 +4455,6 @@ find_rtl_image (struct frame *f, Lisp_Object image, Lisp_Object rtl)
 {
   int i;
   Lisp_Object file, rtl_name;
-  struct gcpro gcpro1, gcpro2;
-  GCPRO2 (file, rtl_name);
 
   rtl_name = Ffile_name_nondirectory (rtl);
 

@@ -3447,8 +3447,8 @@ controlled by the sign of prefix numeric value."
   (interactive)
   (setq viper-parse-sexp-ignore-comments
 	(not viper-parse-sexp-ignore-comments))
-  (princ (format
-	  "From now on, `%%' will %signore parentheses inside comment fields"
+  (princ (format-message
+	  "From now on, ‘%%’ will %signore parentheses inside comment fields"
 	  (if viper-parse-sexp-ignore-comments "" "NOT "))))
 
 
@@ -3639,24 +3639,26 @@ the Emacs binding of `/'."
   (let (msg)
     (cond ((or (eq arg 1)
 	       (and (null arg)
-		    (y-or-n-p (format "Search style: '%s'.  Want '%s'? "
-				      (if viper-case-fold-search
-					  "case-insensitive" "case-sensitive")
-				      (if viper-case-fold-search
-					  "case-sensitive"
-					"case-insensitive")))))
+		    (y-or-n-p (format-message
+                               "Search style: ‘%s’.  Want ‘%s’? "
+                               (if viper-case-fold-search
+                                   "case-insensitive" "case-sensitive")
+                               (if viper-case-fold-search
+                                   "case-sensitive"
+                                 "case-insensitive")))))
 	   (setq viper-case-fold-search (null viper-case-fold-search))
 	   (if viper-case-fold-search
 	       (setq msg "Search becomes case-insensitive")
 	     (setq msg "Search becomes case-sensitive")))
 	  ((or (eq arg 2)
 	       (and (null arg)
-		    (y-or-n-p (format "Search style: '%s'.  Want '%s'? "
-				      (if viper-re-search
-					  "regexp-search" "vanilla-search")
-				      (if viper-re-search
-					  "vanilla-search"
-					"regexp-search")))))
+		    (y-or-n-p (format-message
+                               "Search style: ‘%s’.  Want ‘%s’? "
+                               (if viper-re-search
+                                   "regexp-search" "vanilla-search")
+                               (if viper-re-search
+                                   "vanilla-search"
+                                 "regexp-search")))))
 	   (setq viper-re-search (null viper-re-search))
 	   (if viper-re-search
 	       (setq msg "Search becomes regexp-style")
@@ -3986,8 +3988,8 @@ Null string will repeat previous search."
     (if (null buffer) (error "`%s': No such buffer" buffer-name))
     (if (or (not (buffer-modified-p buffer))
 	    (y-or-n-p
-	     (format
-	      "Buffer `%s' is modified, are you sure you want to kill it? "
+	     (format-message
+	      "Buffer ‘%s’ is modified, are you sure you want to kill it? "
 	      buffer-name)))
 	(kill-buffer buffer)
       (error "Buffer not killed"))))
@@ -4400,7 +4402,7 @@ and regexp replace."
 ;; etc.
 (defun viper-cycle-through-mark-ring ()
   "Visit previous locations on the mark ring.
-One can use \\=`\\=` and '' to temporarily jump 1 step back."
+One can use \\=`\\=` and \\='\\=' to temporarily jump 1 step back."
   (let* ((sv-pt (point)))
        ;; if repeated `m,' command, pop the previously saved mark.
        ;; Prev saved mark is actually prev saved point.  It is used if the
@@ -4636,8 +4638,8 @@ One can use \\=`\\=` and '' to temporarily jump 1 step back."
 					  (substring text 0 (- pos s))
 					  reg (substring text (- pos s)))))
 		     (princ
-		      (format
-		       "Textmarker `%c' is in buffer `%s' at line %d.\n"
+		      (format-message
+		       "Textmarker ‘%c’ is in buffer ‘%s’ at line %d.\n"
 				     reg (buffer-name buf) line-no))
 		     (princ (format "Here is some text around %c:\n\n %s"
 				     reg text)))
@@ -4782,10 +4784,10 @@ sensitive for VI-style look-and-feel."
 	  (setq repeated t))
 	(setq dont-change-unless t
 	      level-changed t)
-	(insert "
+	(insert (substitute-command-keys "
 Please specify your level of familiarity with the venomous VI PERil
 \(and the VI Plan for Emacs Rescue).
-You can change it at any time by typing `M-x viper-set-expert-level RET'
+You can change it at any time by typing `\\[viper-set-expert-level]'
 
  1 -- BEGINNER: Almost all Emacs features are suppressed.
        Feels almost like straight Vi.  File name completion and
@@ -4803,7 +4805,7 @@ You can change it at any time by typing `M-x viper-set-expert-level RET'
        viper-electric-mode, viper-want-ctl-h-help, viper-want-emacs-keys-in-vi,
        and viper-want-emacs-keys-in-insert.  Adjust these to your taste.
 
-Please, specify your level now: ")
+Please, specify your level now: "))
 
 	(setq viper-expert-level (- (viper-read-char-exclusive) ?0))
 	) ; end while

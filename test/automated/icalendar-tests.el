@@ -391,8 +391,8 @@ END:VTIMEZONE
 
 (ert-deftest icalendar--import-format-sample ()
   "Test method for `icalendar-import-format-sample'."
-  (should (string= (concat "SUMMARY=`a' DESCRIPTION=`b' LOCATION=`c' "
-                           "ORGANIZER=`d' STATUS=`' URL=`' CLASS=`'")
+  (should (string= (concat "SUMMARY='a' DESCRIPTION='b' LOCATION='c' "
+                           "ORGANIZER='d' STATUS='' URL='' CLASS=''")
 		   (icalendar-import-format-sample
                     (icalendar-tests--get-ical-event "BEGIN:VEVENT
 DTSTAMP:20030509T043439Z

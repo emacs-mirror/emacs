@@ -129,7 +129,7 @@ no entry at POS.  POS, if omitted or nil, defaults to point."
 TAG should be a string, with length <= `tabulated-list-padding'.
 If ADVANCE is non-nil, move forward by one line afterwards."
   (unless (stringp tag)
-    (error "Invalid argument to `tabulated-list-put-tag'"))
+    (error "Invalid argument to ‘tabulated-list-put-tag’"))
   (unless (> tabulated-list-padding 0)
     (error "Unable to tag the current line"))
   (save-excursion

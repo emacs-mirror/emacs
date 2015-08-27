@@ -1632,10 +1632,9 @@ cleaning up all windows currently displaying the buffer to be killed. */)
   (Lisp_Object buffer_or_name)
 {
   Lisp_Object buffer;
-  register struct buffer *b;
-  register Lisp_Object tem;
-  register struct Lisp_Marker *m;
-  struct gcpro gcpro1;
+  struct buffer *b;
+  Lisp_Object tem;
+  struct Lisp_Marker *m;
 
   if (NILP (buffer_or_name))
     buffer = Fcurrent_buffer ();
@@ -1668,10 +1667,8 @@ cleaning up all windows currently displaying the buffer to be killed. */)
     if (INTERACTIVE && !NILP (BVAR (b, filename))
 	&& BUF_MODIFF (b) > BUF_SAVE_MODIFF (b))
       {
-        GCPRO1 (buffer);
 	AUTO_STRING (format, "Buffer %s modified; kill anyway? ");
 	tem = do_yes_or_no_p (CALLN (Fformat, format, BVAR (b, name)));
-	UNGCPRO;
 	if (NILP (tem))
 	  return unbind_to (count, Qnil);
       }
@@ -1705,8 +1702,6 @@ cleaning up all windows currently displaying the buffer to be killed. */)
     {
       struct buffer *other;
 
-      GCPRO1 (buffer);
-
       FOR_EACH_BUFFER (other)
 	if (other->base_buffer == b)
 	  {
@@ -1714,8 +1709,6 @@ cleaning up all windows currently displaying the buffer to be killed. */)
 	    XSETBUFFER (buf, other);
 	    Fkill_buffer (buf);
 	  }
-
-      UNGCPRO;
 
       /* Exit if we now have killed the base buffer (Bug#11665).  */
       if (!BUFFER_LIVE_P (b))
@@ -1754,9 +1747,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
   /* Unlock this buffer's file, if it is locked.  */
   unlock_buffer (b);
 
-  GCPRO1 (buffer);
   kill_buffer_processes (buffer);
-  UNGCPRO;
 
 #ifdef HAVE_XWIDGETS
   GCPRO1 (buffer);
@@ -2417,7 +2408,6 @@ current buffer is cleared.  */)
   bool narrowed = (BEG != BEGV || Z != ZV);
   bool modified_p = !NILP (Fbuffer_modified_p (Qnil));
   Lisp_Object old_undo = BVAR (current_buffer, undo_list);
-  struct gcpro gcpro1;
 
   if (current_buffer->base_buffer)
     error ("Cannot do `set-buffer-multibyte' on an indirect buffer");
@@ -2425,8 +2415,6 @@ current buffer is cleared.  */)
   /* Do nothing if nothing actually changes.  */
   if (NILP (flag) == NILP (BVAR (current_buffer, enable_multibyte_characters)))
     return flag;
-
-  GCPRO1 (old_undo);
 
   /* Don't record these buffer changes.  We will put a special undo entry
      instead.  */
@@ -2656,8 +2644,6 @@ current buffer is cleared.  */)
 				    NILP (flag) ? Qt : Qnil),
 			     old_undo));
     }
-
-  UNGCPRO;
 
   current_buffer->prevent_redisplay_optimizations_p = 1;
 
@@ -4402,7 +4388,6 @@ report_overlay_modification (Lisp_Object start, Lisp_Object end, bool after,
   struct Lisp_Overlay *tail;
   /* True if this change is an insertion.  */
   bool insertion = (after ? XFASTINT (arg3) == 0 : EQ (start, end));
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
   overlay = Qnil;
   tail = NULL;
@@ -4495,7 +4480,6 @@ report_overlay_modification (Lisp_Object start, Lisp_Object end, bool after,
 	}
     }
 
-  GCPRO4 (overlay, arg1, arg2, arg3);
   {
     /* Call the functions recorded in last_overlay_modification_hooks.
        First copy the vector contents, in case some of these hooks
@@ -4519,17 +4503,12 @@ report_overlay_modification (Lisp_Object start, Lisp_Object end, bool after,
 
     SAFE_FREE ();
   }
-  UNGCPRO;
 }
 
 static void
 call_overlay_mod_hooks (Lisp_Object list, Lisp_Object overlay, bool after,
 			Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3)
 {
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
-
-  GCPRO4 (list, arg1, arg2, arg3);
-
   while (CONSP (list))
     {
       if (NILP (arg3))
@@ -4538,7 +4517,6 @@ call_overlay_mod_hooks (Lisp_Object list, Lisp_Object overlay, bool after,
 	call5 (XCAR (list), overlay, after ? Qt : Qnil, arg1, arg2, arg3);
       list = XCDR (list);
     }
-  UNGCPRO;
 }
 
 /* Delete any zero-sized overlays at position POS, if the `evaporate'
@@ -5548,12 +5526,12 @@ This is the same as (default-value 'indicate-buffer-boundaries).  */);
   DEFVAR_BUFFER_DEFAULTS ("default-fringe-indicator-alist",
 			  fringe_indicator_alist,
 			  doc: /* Default value of `fringe-indicator-alist' for buffers that don't override it.
-This is the same as (default-value 'fringe-indicator-alist').  */);
+This is the same as (default-value 'fringe-indicator-alist).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-fringe-cursor-alist",
 			  fringe_cursor_alist,
 			  doc: /* Default value of `fringe-cursor-alist' for buffers that don't override it.
-This is the same as (default-value 'fringe-cursor-alist').  */);
+This is the same as (default-value 'fringe-cursor-alist).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-scroll-up-aggressively",
 			  scroll_up_aggressively,

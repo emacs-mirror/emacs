@@ -2195,10 +2195,10 @@ value when the message is complete.
 
 Implement the following GDB/MI output grammar rule:
   result-class ==>
-       'done' | 'running' | 'connected' | 'error' | 'exit'
+       `done' | `running' | `connected' | `error' | `exit'
 
   async-class ==>
-       'stopped' | others (where others will be added depending on the needs
+       `stopped' | others (where others will be added depending on the needs
                            --this is still in development).")
 
 (defun gdbmi-bnf-result-and-async-record-impl ()

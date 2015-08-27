@@ -174,8 +174,8 @@ If you wish to change directory tracking styles during a session, use the
 function `rlogin-directory-tracking-mode' rather than simply setting the
 variable."
   (interactive (list
-		(read-from-minibuffer (format
-                                       "Arguments for `%s' (hostname first): "
+		(read-from-minibuffer (format-message
+                                       "Arguments for ‘%s’ (hostname first): "
                                        (file-name-nondirectory rlogin-program))
 				      nil nil nil 'rlogin-history)
 		current-prefix-arg))

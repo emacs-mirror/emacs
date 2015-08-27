@@ -8429,7 +8429,7 @@ articles that are younger than AGE days."
     (gnus-summary-position-point)))
 
 (defun gnus-summary-limit-to-extra (header regexp &optional not-matching)
-  "Limit the summary buffer to articles that match an 'extra' header."
+  "Limit the summary buffer to articles that match an `extra' header."
   (interactive
    (let ((header
 	  (intern
@@ -11695,20 +11695,10 @@ If ARG is positive number, turn showing conversation threads on."
     (gnus-message 6 "Threading is now %s" (if gnus-show-threads "on" "off"))
     (gnus-summary-position-point)))
 
-(eval-and-compile
-  (if (fboundp 'remove-overlays)
-      (defalias 'gnus-remove-overlays 'remove-overlays)
-    (defun gnus-remove-overlays (beg end name val)
-      "Clear BEG and END of overlays whose property NAME has value VAL.
-For compatibility with XEmacs."
-      (dolist (ov (gnus-overlays-in beg end))
-	(when (eq (gnus-overlay-get ov name) val)
-	  (gnus-delete-overlay ov))))))
-
 (defun gnus-summary-show-all-threads ()
   "Show all threads."
   (interactive)
-  (gnus-remove-overlays (point-min) (point-max) 'invisible 'gnus-sum)
+  (remove-overlays (point-min) (point-max) 'invisible 'gnus-sum)
   (gnus-summary-position-point))
 
 (defsubst gnus-summary--inv (p)
@@ -11735,7 +11725,7 @@ Returns nil if no thread was there to be shown."
 				    'gnus-sum))))
 		  (point)))))
     (when eoi
-      (gnus-remove-overlays beg eoi 'invisible 'gnus-sum)
+      (remove-overlays beg eoi 'invisible 'gnus-sum)
       (goto-char orig)
       (gnus-summary-position-point)
       eoi)))
@@ -11804,10 +11794,10 @@ Returns nil if no threads were there to be hidden."
 	       (search-backward "\n" start t))
 	  (progn
 	    (when (> (point) starteol)
-	      (gnus-remove-overlays starteol (point) 'invisible 'gnus-sum)
-	      (let ((ol (gnus-make-overlay starteol (point) nil t nil)))
-		(gnus-overlay-put ol 'invisible 'gnus-sum)
-		(gnus-overlay-put ol 'evaporate t)))
+	      (remove-overlays starteol (point) 'invisible 'gnus-sum)
+	      (let ((ol (make-overlay starteol (point) nil t nil)))
+		(overlay-put ol 'invisible 'gnus-sum)
+		(overlay-put ol 'evaporate t)))
 	    (gnus-summary-goto-subject article)
             (when (> start (point))
               (message "Hiding the thread moved us backwards, aborting!")
@@ -12626,11 +12616,11 @@ If REVERSE, save parts that do not match TYPE."
 	  (setq to end))
 	(if gnus-newsgroup-selected-overlay
 	    ;; Move old overlay.
-	    (gnus-move-overlay
+	    (move-overlay
 	     gnus-newsgroup-selected-overlay from to (current-buffer))
 	  ;; Create new overlay.
-	  (gnus-overlay-put
-	   (setq gnus-newsgroup-selected-overlay (gnus-make-overlay from to))
+	  (overlay-put
+	   (setq gnus-newsgroup-selected-overlay (make-overlay from to))
 	   'face gnus-summary-selected-face))))))
 
 (defvar gnus-summary-highlight-line-cached nil)

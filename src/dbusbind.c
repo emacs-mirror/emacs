@@ -906,11 +906,9 @@ xd_retrieve_arg (int dtype, DBusMessageIter *iter)
     case DBUS_TYPE_DICT_ENTRY:
       {
 	Lisp_Object result;
-	struct gcpro gcpro1;
 	DBusMessageIter subiter;
 	int subtype;
 	result = Qnil;
-	GCPRO1 (result);
 	dbus_message_iter_recurse (iter, &subiter);
 	while ((subtype = dbus_message_iter_get_arg_type (&subiter))
 	       != DBUS_TYPE_INVALID)
@@ -919,7 +917,7 @@ xd_retrieve_arg (int dtype, DBusMessageIter *iter)
 	    dbus_message_iter_next (&subiter);
 	  }
 	XD_DEBUG_MESSAGE ("%c %s", dtype, XD_OBJECT_TO_STRING (result));
-	RETURN_UNGCPRO (Fnreverse (result));
+	return Fnreverse (result);
       }
 
     default:
@@ -1259,7 +1257,6 @@ usage: (dbus-message-internal &rest REST)  */)
   Lisp_Object interface = Qnil;
   Lisp_Object member = Qnil;
   Lisp_Object result;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
   DBusConnection *connection;
   DBusMessage *dmessage;
   DBusMessageIter iter;
@@ -1317,9 +1314,6 @@ usage: (dbus-message-internal &rest REST)  */)
 	wrong_type_argument (Qinvalid_function, handler);
     }
 
-  /* Protect Lisp variables.  */
-  GCPRO6 (bus, service, path, interface, member, handler);
-
   /* Trace parameters.  */
   switch (mtype)
     {
@@ -1357,10 +1351,7 @@ usage: (dbus-message-internal &rest REST)  */)
   /* Create the D-Bus message.  */
   dmessage = dbus_message_new (mtype);
   if (dmessage == NULL)
-    {
-      UNGCPRO;
-      XD_SIGNAL1 (build_string ("Unable to create a new message"));
-    }
+    XD_SIGNAL1 (build_string ("Unable to create a new message"));
 
   if (STRINGP (service))
     {
@@ -1368,11 +1359,8 @@ usage: (dbus-message-internal &rest REST)  */)
 	/* Set destination.  */
 	{
 	  if (!dbus_message_set_destination (dmessage, SSDATA (service)))
-	    {
-	      UNGCPRO;
-	      XD_SIGNAL2 (build_string ("Unable to set the destination"),
-			  service);
-	    }
+	    XD_SIGNAL2 (build_string ("Unable to set the destination"),
+			service);
 	}
 
       else
@@ -1392,11 +1380,8 @@ usage: (dbus-message-internal &rest REST)  */)
 	      && (strcmp (dbus_bus_get_unique_name (connection), SSDATA (uname))
 		  != 0)
 	      && (!dbus_message_set_destination (dmessage, SSDATA (service))))
-	    {
-	      UNGCPRO;
-	      XD_SIGNAL2 (build_string ("Unable to set signal destination"),
-			  service);
-	    }
+	    XD_SIGNAL2 (build_string ("Unable to set signal destination"),
+			service);
 	}
     }
 
@@ -1407,26 +1392,17 @@ usage: (dbus-message-internal &rest REST)  */)
       if ((!dbus_message_set_path (dmessage, SSDATA (path)))
 	  || (!dbus_message_set_interface (dmessage, SSDATA (interface)))
 	  || (!dbus_message_set_member (dmessage, SSDATA (member))))
-	{
-	  UNGCPRO;
-	  XD_SIGNAL1 (build_string ("Unable to set the message parameter"));
-	}
+	XD_SIGNAL1 (build_string ("Unable to set the message parameter"));
     }
 
   else /* DBUS_MESSAGE_TYPE_METHOD_RETURN, DBUS_MESSAGE_TYPE_ERROR  */
     {
       if (!dbus_message_set_reply_serial (dmessage, serial))
-	{
-	  UNGCPRO;
-	  XD_SIGNAL1 (build_string ("Unable to create a return message"));
-	}
+	XD_SIGNAL1 (build_string ("Unable to create a return message"));
 
       if ((mtype == DBUS_MESSAGE_TYPE_ERROR)
 	  && (!dbus_message_set_error_name (dmessage, DBUS_ERROR_FAILED)))
-	{
-	  UNGCPRO;
-	  XD_SIGNAL1 (build_string ("Unable to create a error message"));
-	}
+	XD_SIGNAL1 (build_string ("Unable to create a error message"));
     }
 
   /* Check for timeout parameter.  */
@@ -1473,10 +1449,7 @@ usage: (dbus-message-internal &rest REST)  */)
 	 message queue.  */
       if (!dbus_connection_send_with_reply (connection, dmessage,
 					    NULL, timeout))
-	{
-	  UNGCPRO;
-	  XD_SIGNAL1 (build_string ("Cannot send message"));
-	}
+	XD_SIGNAL1 (build_string ("Cannot send message"));
 
       /* The result is the key in Vdbus_registered_objects_table.  */
       serial = dbus_message_get_serial (dmessage);
@@ -1491,10 +1464,7 @@ usage: (dbus-message-internal &rest REST)  */)
       /* Send the message.  The message is just added to the outgoing
 	 message queue.  */
       if (!dbus_connection_send (connection, dmessage, NULL))
-	{
-	  UNGCPRO;
-	  XD_SIGNAL1 (build_string ("Cannot send message"));
-	}
+	XD_SIGNAL1 (build_string ("Cannot send message"));
 
       result = Qnil;
     }
@@ -1505,7 +1475,7 @@ usage: (dbus-message-internal &rest REST)  */)
   dbus_message_unref (dmessage);
 
   /* Return the result.  */
-  RETURN_UNGCPRO (result);
+  return result;
 }
 
 /* Read one queued incoming message of the D-Bus BUS.
@@ -1515,7 +1485,6 @@ static void
 xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 {
   Lisp_Object args, key, value;
-  struct gcpro gcpro1;
   struct input_event event;
   DBusMessage *dmessage;
   DBusMessageIter iter;
@@ -1533,7 +1502,6 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 
   /* Collect the parameters.  */
   args = Qnil;
-  GCPRO1 (args);
 
   /* Loop over the resulting parameters.  Construct a list.  */
   if (dbus_message_iter_init (dmessage, &iter))
@@ -1657,8 +1625,6 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
   /* Cleanup.  */
  cleanup:
   dbus_message_unref (dmessage);
-
-  UNGCPRO;
 }
 
 /* Read queued incoming messages of the D-Bus BUS.

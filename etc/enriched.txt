@@ -22,7 +22,7 @@ and is also an example file in the <italic>text/enriched </italic>format.</inden
 <indent>Most of the time, you need not do anything to get these features
 to work.  If you visit a file that has been written out in
 <italic>text/enriched</italic> format, it will automatically be decoded, Emacs will
-enter `enriched-mode' while visiting it, and whenever you save it
+enter 'enriched-mode' while visiting it, and whenever you save it
 it will be saved in the same format it was read in.
 
 If you wish to create a new file, however, you will need to turn
@@ -39,7 +39,7 @@ it (which also turns on enriched-mode automatically):
 
 <fixed><indent>M-x format-decode-buffer RET text/enriched RET</indent></fixed></indent>
 
-    
+
 
 <x-bg-color><param>blue</param><x-color><param>white</param><bold>WHAT IS ENCODED</bold></x-color></x-bg-color>
 
@@ -73,7 +73,7 @@ the right margin, fully justified, centered, or left alone).</indent>
 
 <indent>You can add faces either with the menu or with <fixed>M-o.</fixed>  The face is
 applied to the current region.  If you are using
-`transient-mark-mode' and the region is not active, then the face
+'transient-mark-mode' and the region is not active, then the face
 applies to whatever you type next.  Any face can have colors.  If
 this is its lone attribute, the face is put on the color submenus
 of the "Text Properties" menu.</indent>
@@ -113,8 +113,8 @@ indenting only that part.</indent></indent>
 
 
 
-<indent><nofill>Several styles of justification are possible, the simplest being <italic>unfilled. 
-</italic>This means that your lines will be left as you write them. 
+<indent><nofill>Several styles of justification are possible, the simplest being <italic>unfilled.
+</italic>This means that your lines will be left as you write them.
 This paragraph is unfilled.</nofill>
 
 
@@ -125,16 +125,15 @@ lines are aligned at the left margin but left uneven at the right.</flushleft>
 <flushright>    <italic>FlushRight</italic> makes each line flush with the right margin instead.
     This paragraph is FlushRight.</flushright>
 
-    
 
 <flushboth><italic>FlushBoth </italic>regions, which are sometimes called "fully justified"
 are aligned evenly on both edges, so that the text on the page has
-a smooth appearance as in a book or newspaper article. 
+a smooth appearance as in a book or newspaper article.
 Unfortunately this does not look as nice with a fixed-width font
 as it does in a proportionally-spaced printed document; the extra
-spaces that are needed on the screen can make it hard to read. </flushboth>
+spaces that are needed on the screen can make it hard to read.</flushboth>
 
-<center>    
+<center>
 
     <bold>Center</bold>
 
@@ -145,10 +144,10 @@ spaces that are needed on the screen can make it hard to read. </flushboth>
     M-j or the "Text Properties" menu also can be used to change
     justification.
 
-    
+
 
 </center><flushboth>Note that justification can only change at hard newlines, because
-that is the unit over which filling gets done. </flushboth></indent>
+that is the unit over which filling gets done.</flushboth></indent>
 
 
 <x-bg-color><param>blue</param><x-color><param>white</param><bold>EXCERPTS</bold></x-color></x-bg-color>
@@ -156,7 +155,7 @@ that is the unit over which filling gets done. </flushboth></indent>
 
 <excerpt><indent>This is an example of an excerpt.  You can use them for quoted
 parts of other people's email messages and the like.  It is just a
-face, which is the same as the `italic' face by default.</indent></excerpt>
+face, which is the same as the 'italic' face by default.</indent></excerpt>
 
 
 <x-bg-color><param>blue</param><x-color><param>white</param><bold>THE FILE FORMAT</bold></x-color></x-bg-color>
@@ -221,7 +220,7 @@ it.</indent>
 
 + Notice and re-fill when window changes widths (optionally).
 
-+ Deal with the `category' text-property in a smart way.
++ Deal with the 'category' text-property in a smart way.
 
 + Interface w/ Gnus, VM, RMAIL.  Maybe Info too?  </indent>(Gnus 5.9 copes
 

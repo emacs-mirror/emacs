@@ -130,7 +130,7 @@ curly braces."
 
 (defun wisent-python-forward-balanced-expression ()
   "Move point to the end of the balanced expression at point.
-Here 'balanced expression' means anything matched by Emacs'
+Here “balanced expression” means anything matched by Emacs's
 open/close parenthesis syntax classes.  We can't use forward-sexp
 for this because that Emacs built-in can't parse Python's
 triple-quoted string syntax."
@@ -490,7 +490,7 @@ Return nil if there is nothing relevant."
 ;;
 (define-mode-local-override semantic-format-tag-abbreviate python-mode (tag &optional parent color)
   "Format an abbreviated tag for python.
-Shortens 'code' tags, but passes through for others."
+Shortens `code' tags, but passes through for others."
   (cond ((semantic-tag-of-class-p tag 'code)
 	 ;; Just take the first line.
 	 (let ((name (semantic-tag-name tag)))
@@ -533,9 +533,6 @@ Shortens 'code' tags, but passes through for others."
 				      (package  . "Package")
 				      (code . "Code")))
    )
-
-;;;###autoload
-(add-hook 'python-mode-hook 'wisent-python-default-setup)
 
 ;; Make sure the newer python modes pull in the same python
 ;; mode overrides.

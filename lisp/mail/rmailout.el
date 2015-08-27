@@ -345,6 +345,7 @@ the text directly to FILE-NAME, and displays a \"Wrote file\" message
 unless NOMSG is a symbol (neither nil nor t).
 AS-SEEN is non-nil if we are copying the message \"as seen\"."
   (let ((case-fold-search t)
+        encrypted-file-name
 	from date)
     (goto-char (point-min))
     ;; Preserve the Mail-From and MIME-Version fields
@@ -364,10 +365,45 @@ AS-SEEN is non-nil if we are copying the message \"as seen\"."
     (goto-char (point-min))
     (let ((buf (find-buffer-visiting file-name))
 	  (tembuf (current-buffer)))
+      (when (string-match "[.]gpg\\'" file-name)
+        (setq encrypted-file-name file-name
+              file-name (substring file-name 0 (match-beginning 0))))
       (if (null buf)
-	  (let ((coding-system-for-write 'raw-text-unix))
+	  (let ((coding-system-for-write 'raw-text-unix)
+                (coding-system-for-read 'raw-text-unix))
+            ;; If the specified file is encrypted, decrypt it.
+            (when encrypted-file-name
+              (with-temp-buffer
+                (insert-file-contents encrypted-file-name)
+                (write-region 1 (point-max) file-name nil 'nomsg)))
 	    ;; FIXME should ensure existing file ends with a blank line.
-	    (write-region (point-min) (point-max) file-name t nomsg))
+	    (write-region (point-min) (point-max) file-name t
+                          (if (or nomsg encrypted-file-name)
+                              'nomsg))
+            ;; If the specified file was encrypted, re-encrypt it.
+            (when encrypted-file-name
+              ;; Save the old encrypted file as a backup.
+              (rename-file encrypted-file-name
+                           (make-backup-file-name encrypted-file-name)
+                           t)
+              (if (= 0
+                     (call-process "gpg" nil nil
+                                   "--use-agent" "--batch" "--no-tty"
+                                   "--encrypt" "-r"
+                                   user-mail-address
+                                   file-name))
+                  ;; Delete the unencrypted file if encryption succeeded.
+                  (delete-file file-name)
+                ;; If encrypting failed, put back the original
+                ;; encrypted file and signal an error.
+                (rename-file (make-backup-file-name encrypted-file-name)
+                             encrypted-file-name
+                             t)
+                (error "Encryption failed; %s unchanged"
+                       encrypted-file-name))
+              (unless nomsg
+                (message "Added to %s" encrypted-file-name)))
+            )
 	(if (eq buf (current-buffer))
 	    (error "Can't output message to same file it's already in"))
 	;; File has been visited, in buffer BUF.

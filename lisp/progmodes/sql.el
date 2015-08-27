@@ -3799,7 +3799,7 @@ Note that SQL doesn't have an escape character unless you specify
 one.  If you specify backslash as escape character in SQL, you
 must tell Emacs.  Here's how to do that in your init file:
 
-\(add-hook 'sql-mode-hook
+\(add-hook \\='sql-mode-hook
           (lambda ()
 	    (modify-syntax-entry ?\\\\ \".\" sql-mode-syntax-table)))"
   :group 'SQL
@@ -3896,9 +3896,9 @@ If you want to make SQL buffers limited in length, add the function
 Here is an example for your init file.  It keeps the SQLi buffer a
 certain length.
 
-\(add-hook 'sql-interactive-mode-hook
+\(add-hook \\='sql-interactive-mode-hook
     \(function (lambda ()
-        \(setq comint-output-filter-functions 'comint-truncate-buffer))))
+        \(setq comint-output-filter-functions \\='comint-truncate-buffer))))
 
 Here is another example.  It will always put point back to the statement
 you entered, right above the output it created.
@@ -4276,7 +4276,7 @@ passed as command line arguments."
     ;; work for remote hosts; we suppress the check there.
     (unless (or (file-remote-p default-directory)
 		(executable-find program))
-      (error "Unable to locate SQL program \'%s\'" program))
+      (error "Unable to locate SQL program ‘%s’" program))
     ;; Make sure buffer name is unique.
     (when (sql-buffer-live-p (format "*%s*" buf-name))
       (setq buf-name (format "SQL-%s" product))

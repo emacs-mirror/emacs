@@ -367,7 +367,7 @@ without being changed in the part that is already in the buffer."
   "Turn on Auto-Revert Mode.
 
 This function is designed to be added to hooks, for example:
-  (add-hook 'c-mode-hook #'turn-on-auto-revert-mode)"
+  (add-hook \\='c-mode-hook #\\='turn-on-auto-revert-mode)"
   (auto-revert-mode 1))
 
 
@@ -431,7 +431,7 @@ Perform a full revert? ")
   "Turn on Auto-Revert Tail mode.
 
 This function is designed to be added to hooks, for example:
-  (add-hook 'my-logfile-mode-hook #'turn-on-auto-revert-tail-mode)"
+  (add-hook \\='my-logfile-mode-hook #\\='turn-on-auto-revert-tail-mode)"
   (auto-revert-tail-mode 1))
 
 

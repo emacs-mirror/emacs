@@ -919,7 +919,7 @@ STR occurs in the current buffer between BEG and END."
     ))
 
 (define-lex-regex-analyzer semantic-lex-spp-replace-or-symbol-or-keyword
-  "Like 'semantic-lex-symbol-or-keyword' plus preprocessor macro replacement."
+  "Like `semantic-lex-symbol-or-keyword' plus preprocessor macro replacement."
   "\\(\\sw\\|\\s_\\)+"
   (let ((str (match-string 0))
 	(beg (match-beginning 0))

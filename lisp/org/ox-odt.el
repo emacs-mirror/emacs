@@ -1389,8 +1389,8 @@ original parsed data.  INFO is a plist holding export options."
 	 ((member styles-file-type '("odt" "ott"))
 	  (org-odt--zip-extract styles-file "styles.xml" org-odt-zip-dir)))))
      (t
-      (error (format "Invalid specification of styles.xml file: %S"
-		     org-odt-styles-file))))
+      (error "Invalid specification of styles.xml file: %S"
+             org-odt-styles-file)))
 
     ;; create a manifest entry for styles.xml
     (org-odt-create-manifest-file-entry "text/xml" "styles.xml")

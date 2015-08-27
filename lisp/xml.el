@@ -326,8 +326,8 @@ URIs, and expanded names will be returned as a cons
 If PARSE-NS is an alist, it will be used as the mapping from
 namespace to URIs instead.
 
-If it is the symbol 'symbol-qnames, expanded names will be
-returned as a plain symbol 'namespace:foo instead of a cons.
+If it is the symbol `symbol-qnames', expanded names will be
+returned as a plain symbol `namespace:foo' instead of a cons.
 
 Both features can be combined by providing a cons cell
 
@@ -356,8 +356,8 @@ URIs, and expanded names will be returned as a cons
 If PARSE-NS is an alist, it will be used as the mapping from
 namespace to URIs instead.
 
-If it is the symbol 'symbol-qnames, expanded names will be
-returned as a plain symbol 'namespace:foo instead of a cons.
+If it is the symbol `symbol-qnames', expanded names will be
+returned as a plain symbol `namespace:foo' instead of a cons.
 
 Both features can be combined by providing a cons cell
 

@@ -193,7 +193,7 @@ The basic syntax is:
   *      .*      matches any group of characters (or none)
   #      *       matches zero or more occurrences of preceding
   ##     +       matches one or more occurrences of preceding
-  (x)    \(x\)   makes 'x' a regular expression group
+  (x)    \(x\)   makes ‘x’ a regular expression group
   |      \|      boolean OR within an expression group
   [a-b]  [a-b]   matches a character or range
   [^a]   [^a]    excludes a character or range
@@ -220,7 +220,7 @@ resulting regular expression."
 		  matched-in-pattern (1+ op-begin))
 	  (let ((xlat (assq op-char eshell-glob-translate-alist)))
 	    (if (not xlat)
-		(error "Unrecognized globbing character '%c'" op-char)
+		(error "Unrecognized globbing character ‘%c’" op-char)
 	      (if (stringp (cdr xlat))
 		  (setq regexp (concat regexp (cdr xlat))
 			matched-in-pattern (1+ op-begin))

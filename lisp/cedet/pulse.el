@@ -131,25 +131,28 @@ Return t if there is more drift to do, nil if completed."
   (if (>= (get 'pulse-highlight-face :iteration) pulse-iterations)
       nil
     (let* ((frame (color-values (face-background 'default)))
-	   (start (color-values (face-background
-				 (get 'pulse-highlight-face
-				      :startface)
-                                 nil t)))
-	   (frac  (list (/ (- (nth 0 frame) (nth 0 start)) pulse-iterations)
-			(/ (- (nth 1 frame) (nth 1 start)) pulse-iterations)
-			(/ (- (nth 2 frame) (nth 2 start)) pulse-iterations)))
-	   (it (get 'pulse-highlight-face :iteration))
-	   )
-      (set-face-background 'pulse-highlight-face
-			   (pulse-color-values-to-hex
-			    (list
-			     (+ (nth 0 start) (* (nth 0 frac) it))
-			     (+ (nth 1 start) (* (nth 1 frac) it))
-			     (+ (nth 2 start) (* (nth 2 frac) it)))))
-      (put 'pulse-highlight-face :iteration (1+ it))
-      (if (>= (1+ it) pulse-iterations)
-	  nil
-	t))))
+	   (pulse-background (face-background
+			      (get 'pulse-highlight-face
+				   :startface)
+                              nil t)));; can be nil
+      (when pulse-background
+	(let* ((start (color-values pulse-background))
+	       (frac  (list (/ (- (nth 0 frame) (nth 0 start)) pulse-iterations)
+			    (/ (- (nth 1 frame) (nth 1 start)) pulse-iterations)
+			    (/ (- (nth 2 frame) (nth 2 start)) pulse-iterations)))
+	       (it (get 'pulse-highlight-face :iteration))
+	       )
+	  (set-face-background 'pulse-highlight-face
+			       (pulse-color-values-to-hex
+				(list
+				 (+ (nth 0 start) (* (nth 0 frac) it))
+				 (+ (nth 1 start) (* (nth 1 frac) it))
+				 (+ (nth 2 start) (* (nth 2 frac) it)))))
+	  (put 'pulse-highlight-face :iteration (1+ it))
+	  (if (>= (1+ it) pulse-iterations)
+	      nil
+	    t)))
+      )))
 
 (defun pulse-reset-face (&optional face)
   "Reset the pulse highlighting FACE."

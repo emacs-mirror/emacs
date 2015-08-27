@@ -230,7 +230,7 @@ This variable needs to be set before org.el is loaded.  If you
 need to make a change while Emacs is running, use the customize
 interface or run the following code after updating it:
 
-  \(when (featurep 'org-element) (load \"org-element\" t t))"
+  \(when (featurep \\='org-element) (load \"org-element\" t t))"
   :group 'org-plain-lists
   :version "24.1"
   :type 'boolean
@@ -2555,8 +2555,8 @@ With optional prefix argument ALL, do this for the whole buffer."
 		     (checked (car (nth 3 cookie)))
 		     (total (cdr (nth 3 cookie)))
 		     (new (if percentp
-			      (format "[%d%%]" (/ (* 100 checked)
-						  (max 1 total)))
+			      (format "[%d%%]" (floor (* 100.0 checked)
+						      (max 1 total)))
 			    (format "[%d/%d]" checked total))))
 		(goto-char beg)
 		(insert new)

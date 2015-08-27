@@ -41,8 +41,9 @@
 	    (buffer-substring (overlay-start quail-overlay)
 			      (overlay-end quail-overlay))
 	    unread-command-events
-	    (string-to-list
-	     (substring quail-current-key control-flag)))
+	    (append
+	     (substring quail-current-key control-flag)
+             unread-command-events))
     (let ((lao-str (lao-transcribe-roman-to-lao-string quail-current-key)))
       (if (> (aref lao-str 0) 255)
 	  (setq quail-current-str lao-str)

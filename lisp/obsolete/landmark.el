@@ -866,7 +866,7 @@ If the game is finished, this command requests for another game."
   (move-to-column (+ landmark-x-offset (* landmark-square-width (1- x)))))
 
 (defun landmark-plot-square (square value)
-  "Draw 'X', 'O' or '.' on SQUARE depending on VALUE, leave point there."
+  "Draw ‘X’, ‘O’ or ‘.’ on SQUARE depending on VALUE, leave point there."
   (or (= value 1)
       (landmark-goto-square square))
   (let ((inhibit-read-only t))

@@ -574,7 +574,7 @@ If FACE is a face-alias, get the documentation for the target face."
   (let ((alias (get face 'face-alias)))
     (if alias
         (let ((doc (get alias 'face-documentation)))
-	  (format "%s is an alias for the face `%s'.%s" face alias
+	  (format-message "%s is an alias for the face ‘%s’.%s" face alias
                   (if doc (format "\n%s" doc)
                     "")))
       (get face 'face-documentation))))
@@ -1005,7 +1005,7 @@ a single face name."
     (setq default (car (split-string default crm-separator t))))
 
   (let ((prompt (if default
-                    (format "%s (default `%s'): " prompt default)
+                    (format-message "%s (default ‘%s’): " prompt default)
                   (format "%s: " prompt)))
         aliasfaces nonaliasfaces faces)
     ;; Build up the completion tables.
@@ -1136,10 +1136,10 @@ Value is the new attribute value."
   (setq name (concat (upcase (substring name 0 1)) (substring name 1)))
   (let* ((completion-ignore-case t)
 	 (value (completing-read
-		 (if default
-		     (format "%s for face `%s' (default %s): "
-			     name face default)
-		   (format "%s for face `%s': " name face))
+                 (format-message (if default
+                                     "%s for face ‘%s’ (default %s): "
+                                   "%s for face ‘%s’: ")
+                                 name face default)
 		 completion-alist nil nil nil nil default)))
     (if (equal value "") default value)))
 
@@ -1224,7 +1224,8 @@ of a global face.  Value is the new attribute value."
   "Read the name of a font for FACE on FRAME.
 If optional argument FRAME is nil or omitted, use the selected frame."
   (let ((completion-ignore-case t))
-    (completing-read (format "Set font attributes of face `%s' from font: " face)
+    (completing-read (format-message
+                      "Set font attributes of face ‘%s’ from font: " face)
 		     (append (fontset-list) (x-list-fonts "*" nil frame)))))
 
 
@@ -1435,17 +1436,17 @@ If FRAME is omitted or nil, use the selected frame."
 		  (when alias
 		    (setq face alias)
 		    (insert
-		     (format (substitute-command-keys
-                              "\n  %s is an alias for the face ‘%s’.\n%s")
-			     f alias
-			     (if (setq obsolete (get f 'obsolete-face))
-				 (format (substitute-command-keys
-                                          "  This face is obsolete%s; use ‘%s’ instead.\n")
-					 (if (stringp obsolete)
-					     (format " since %s" obsolete)
-					   "")
-					 alias)
-			       ""))))
+		     (format-message
+                      "\n  %s is an alias for the face ‘%s’.\n%s"
+                      f alias
+                      (if (setq obsolete (get f 'obsolete-face))
+                          (format-message
+                           "  This face is obsolete%s; use ‘%s’ instead.\n"
+                           (if (stringp obsolete)
+                               (format " since %s" obsolete)
+                             "")
+                           alias)
+                        ""))))
 		  (insert "\nDocumentation:\n"
                           (substitute-command-keys
                            (or (face-documentation face)
@@ -1551,7 +1552,7 @@ If FRAME is nil, the current FRAME is used."
 			       options))
 			((eq req 'supports)
 			 (display-supports-face-attributes-p options frame))
-			(t (error "Unknown req `%S' with options `%S'"
+			(t (error "Unknown req ‘%S’ with options ‘%S’"
 				  req options)))))
     match))
 
@@ -1924,7 +1925,7 @@ resulting color name in the echo area."
 				(logand 65535 (nth 0 components))
 				(logand 65535 (nth 1 components))
 				(logand 65535 (nth 2 components))))))))
-    (when msg (message "Color: `%s'" color))
+    (when msg (message "Color: ‘%s’" color))
     color))
 
 (defun face-at-point (&optional thing multiple)
@@ -2777,13 +2778,13 @@ also the same size as FACE on FRAME, or fail."
 		(if (string-match-p "\\*" pattern)
 		    (if (null (face-font face))
 			(error "No matching fonts are the same height as the frame default font")
-		      (error "No matching fonts are the same height as face `%s'" face))
+		      (error "No matching fonts are the same height as face ‘%s’" face))
 		  (if (null (face-font face))
-		      (error "Height of font `%s' doesn't match the frame default font"
+		      (error "Height of font ‘%s’ doesn't match the frame default font"
 			     pattern)
-		    (error "Height of font `%s' doesn't match face `%s'"
+		    (error "Height of font ‘%s’ doesn't match face ‘%s’"
 			   pattern face)))
-	      (error "No fonts match `%s'" pattern)))
+	      (error "No fonts match ‘%s’" pattern)))
 	(car fonts))
     (cdr (assq 'font (frame-parameters (selected-frame))))))
 

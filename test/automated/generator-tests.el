@@ -260,20 +260,6 @@ identical output.
       (iter-close iter)
       (should (not cps-test-closed-flag)))))
 
-(ert-deftest cps-test-iter-close-finalizer ()
-  (skip-unless gc-precise)
-  (garbage-collect)
-  (let ((cps-test-closed-flag nil))
-    (let ((iter (funcall
-                 (iter-lambda ()
-                   (unwind-protect (iter-yield 1)
-                     (setf cps-test-closed-flag t))))))
-      (should (equal (iter-next iter) 1))
-      (should (not cps-test-closed-flag))
-      (setf iter nil)
-      (garbage-collect)
-      (should cps-test-closed-flag))))
-
 (ert-deftest cps-test-iter-cleanup-once-only ()
   (let* ((nr-unwound 0)
          (iter

@@ -288,7 +288,7 @@ running (\"xwatch\", etc.)
 
 E.g.:
 
-\(add-hook 'nnmail-read-incoming-hook
+\(add-hook \\='nnmail-read-incoming-hook
 	  (lambda ()
 	    (call-process \"/local/bin/mailsend\" nil nil nil
 			  \"read\"
@@ -301,11 +301,11 @@ read.
 
 If you use `display-time', you could use something like this:
 
-\(add-hook 'nnmail-read-incoming-hook
+\(add-hook \\='nnmail-read-incoming-hook
 	  (lambda ()
 	    ;; Update the displayed time, since that will clear out
 	    ;; the flag that says you have mail.
-	    (when (eq (process-status \"display-time\") 'run)
+	    (when (eq (process-status \"display-time\") \\='run)
 	      (display-time-filter display-time-process \"\"))))"
   :group 'nnmail-prepare
   :type 'hook)
@@ -480,12 +480,12 @@ GROUP can contain \\& and \\N which will substitute from matching
 
 Example:
 
-\(setq nnmail-split-methods 'nnmail-split-fancy
+\(setq nnmail-split-methods \\='nnmail-split-fancy
       nnmail-split-fancy
       ;; Messages from the mailer daemon are not crossposted to any of
       ;; the ordinary groups.  Warnings are put in a separate group
       ;; from real errors.
-      '(| (\"from\" mail (| (\"subject\" \"warn.*\" \"mail.warning\")
+      \\='(| (\"from\" mail (| (\"subject\" \"warn.*\" \"mail.warning\")
 			  \"mail.misc\"))
 	  ;; Non-error messages are crossposted to all relevant
 	  ;; groups, but we don't crosspost between the group for the

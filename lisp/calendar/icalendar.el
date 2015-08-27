@@ -261,7 +261,7 @@ If non-nil all sexp diary entries are enumerated for
 `icalendar-export-sexp-enumeration-days' days instead of
 translating into an icalendar equivalent.  This affects the
 following sexp diary entries: `diary-anniversary',
-`diary-cyclic', `diary-date', `diary-float',`diary-block'.  All
+`diary-cyclic', `diary-date', `diary-float', `diary-block'.  All
 other sexp entries are enumerated in any case."
   :version "25.1"
   :type 'boolean
@@ -482,7 +482,7 @@ children."
     result))
 
 (defun icalendar--split-value (value-string)
-  "Split VALUE-STRING at ';='."
+  "Split VALUE-STRING at ‘;=’."
   (let ((result '())
         param-name param-value)
     (when value-string
@@ -1118,10 +1118,10 @@ FExport diary data into iCalendar file: ")
            (setq found-error t)
            (save-current-buffer
              (set-buffer (get-buffer-create "*icalendar-errors*"))
-             (insert (format "Error in line %d -- %s: `%s'\n"
-                             (count-lines (point-min) (point))
-                             error-val
-                             entry-main))))))
+             (insert (format-message "Error in line %d -- %s: ‘%s’\n"
+                                     (count-lines (point-min) (point))
+                                     error-val
+                                     entry-main))))))
 
       ;; we're done, insert everything into the file
       (save-current-buffer
@@ -1629,8 +1629,8 @@ enumeration, given as a time value, in same format as returned by
                                  (icalendar--convert-ordinary-to-ical
                                   nonmarker (format "%4d/%02d/%02d %s" y m d see))))
                              (;TODO:
-                              (error (format "Unsupported Sexp-entry: %s"
-                                             entry-main))))))
+                              (error "Unsupported Sexp-entry: %s"
+                                     entry-main)))))
                     (number-sequence
                      0 (- icalendar-export-sexp-enumeration-days 1))))))
         (t
@@ -1741,7 +1741,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
           (when day
             (progn
               (icalendar--dmsg "diary-float %s" entry-main)
-              (error "Don't know if or how to implement day in `diary-float'")))
+              (error "Don't know if or how to implement day in ‘diary-float’")))
 
           (cons (concat
                  ;;Start today (yes this is an arbitrary choice):
@@ -1788,7 +1788,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                     entry-main)
       (progn
         (icalendar--dmsg "diary-date %s" entry-main)
-        (error "`diary-date' is not supported yet"))
+        (error "‘diary-date’ is not supported yet"))
     ;; no match
     nil))
 
@@ -2104,7 +2104,7 @@ written into the buffer `*icalendar-errors*'."
                  (rrule (icalendar--get-event-property e 'RRULE))
                  (rdate (icalendar--get-event-property e 'RDATE))
                  (duration (icalendar--get-event-property e 'DURATION)))
-            (icalendar--dmsg "%s: `%s'" start-d summary)
+            (icalendar--dmsg "%s: ‘%s’" start-d summary)
             ;; check whether start-time is missing
             (if  (and dtstart
                       (string=
@@ -2282,7 +2282,7 @@ END-T is the event's end time in diary format."
                                                    interval))))
                  )
                 (t
-                 (message "Cannot handle COUNT attribute for `%s' events."
+                 (message "Cannot handle COUNT attribute for ‘%s’ events."
                           frequency)))
           (setq until-conv (icalendar--datetime-to-diary-date until))
           (setq until-1-conv (icalendar--datetime-to-diary-date until-1))
@@ -2473,8 +2473,8 @@ SUMMARY is not nil it must be a string that gives the summary of the
 entry.  In this case the user will be asked whether he wants to insert
 the entry."
   (when (or (not summary)
-            (y-or-n-p (format "Add appointment for `%s' to diary? "
-                              summary)))
+            (y-or-n-p (format-message "Add appointment for ‘%s’ to diary? "
+                                      summary)))
     (when summary
       (setq non-marking
             (y-or-n-p (format "Make appointment non-marking? "))))
@@ -2500,8 +2500,8 @@ the entry."
 ;; ======================================================================
 (defun icalendar-import-format-sample (event)
   "Example function for formatting an iCalendar EVENT."
-  (format (concat "SUMMARY=`%s' DESCRIPTION=`%s' LOCATION=`%s' ORGANIZER=`%s' "
-                  "STATUS=`%s' URL=`%s' CLASS=`%s'")
+  (format (concat "SUMMARY='%s' DESCRIPTION='%s' LOCATION='%s' ORGANIZER='%s' "
+                  "STATUS='%s' URL='%s' CLASS='%s'")
           (or (icalendar--get-event-property event 'SUMMARY) "")
           (or (icalendar--get-event-property event 'DESCRIPTION) "")
           (or (icalendar--get-event-property event 'LOCATION) "")

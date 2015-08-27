@@ -466,7 +466,7 @@ While this input method is active, the variable
 	  (list key)
 	(delete-region start (point))
 	(if key
-	    (setq unread-command-events (list key)))
+	    (push key unread-command-events))
 	(if (stringp output)
 	    (string-to-list output)
 	  (list output))))))

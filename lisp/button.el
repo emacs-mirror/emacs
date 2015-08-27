@@ -114,7 +114,7 @@ Mode-specific keymaps may want to use this as their parent keymap.")
   "Return the symbol used by button-type TYPE to store properties.
 Buttons inherit them by setting their `category' property to that symbol."
   (or (get type 'button-category-symbol)
-      (error "Unknown button type `%s'" type)))
+      (error "Unknown button type ‘%s’" type)))
 
 (defun define-button-type (name &rest properties)
   "Define a `button type' called NAME (a symbol).
@@ -208,7 +208,7 @@ changes to a supertype are not reflected in its subtypes)."
 	 (setq val (button-category-symbol val)))
 	((eq prop 'category)
 	 ;; Disallow updating the `category' property directly.
-	 (error "Button `category' property may not be set directly")))
+	 (error "Button ‘category’ property may not be set directly")))
   ;; Add the property.
   (cond ((overlayp button)
 	 (overlay-put button prop val))
@@ -333,7 +333,7 @@ Also see `insert-text-button'."
       (setq object beg beg 0 end (length object)))
     ;; Disallow setting the `category' property directly.
     (when (plist-get properties 'category)
-      (error "Button `category' property may not be set directly"))
+      (error "Button ‘category’ property may not be set directly"))
     (if (null type-entry)
 	;; The user didn't specify a `type' property, use the default.
 	(setq properties (cons 'category (cons 'default-button properties)))

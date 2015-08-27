@@ -146,11 +146,12 @@ and also to avoid outputting the warning during normal execution."
 (defun macroexp--obsolete-warning (fun obsolescence-data type)
   (let ((instead (car obsolescence-data))
         (asof (nth 2 obsolescence-data)))
-    (format "`%s' is an obsolete %s%s%s" fun type
-            (if asof (concat " (as of " asof ")") "")
-            (cond ((stringp instead) (concat "; " instead))
-                  (instead (format "; use `%s' instead." instead))
-                  (t ".")))))
+    (format-message
+     "‘%s’ is an obsolete %s%s%s" fun type
+     (if asof (concat " (as of " asof ")") "")
+     (cond ((stringp instead) (concat "; " instead))
+           (instead (format-message "; use ‘%s’ instead." instead))
+           (t ".")))))
 
 (defun macroexpand-1 (form &optional environment)
   "Perform (at most) one step of macroexpansion."

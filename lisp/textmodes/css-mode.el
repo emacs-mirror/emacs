@@ -198,6 +198,16 @@
     (modify-syntax-entry ?- "_" st)
     st))
 
+(eval-and-compile
+  (defconst css--uri-re
+    (concat
+     "url\\((\\)[[:space:]]*\\(?:\\\\.\\|[^()[:space:]\n'\"]\\)+"
+     "[[:space:]]*\\()\\)")))
+
+(defconst css-syntax-propertize-function
+  (syntax-propertize-rules
+   (css--uri-re (1 "|") (2 "|"))))
+
 (defconst css-escapes-re
   "\\\\\\(?:[^\000-\037\177]\\|[0-9a-fA-F]+[ \n\t\r\f]?\\)")
 (defconst css-nmchar-re (concat "\\(?:[-[:alnum:]]\\|" css-escapes-re "\\)"))
@@ -278,7 +288,13 @@
               "\\(?:\\(" css-proprietary-nmstart-re "\\)\\|"
               css-nmstart-re "\\)" css-nmchar-re "*"
               "\\)\\s-*:")
-     (1 (if (match-end 2) 'css-proprietary-property 'css-property)))))
+     (1 (if (match-end 2) 'css-proprietary-property 'css-property)))
+    ;; Make sure the parens in a url(...) expression receive the
+    ;; default face. This is done because the parens may sometimes
+    ;; receive generic string delimiter syntax (see
+    ;; `css-syntax-propertize-function').
+    (,css--uri-re
+     (1 'default t) (2 'default t))))
 
 (defvar css-font-lock-keywords (css--font-lock-keywords))
 
@@ -381,6 +397,8 @@ pseudo-classes, and at-rules."
   (setq-local comment-start-skip "/\\*+[ \t]*")
   (setq-local comment-end "*/")
   (setq-local comment-end-skip "[ \t]*\\*+/")
+  (setq-local syntax-propertize-function
+              css-syntax-propertize-function)
   (setq-local fill-paragraph-function #'css-fill-paragraph)
   (setq-local adaptive-fill-function #'css-adaptive-fill)
   (setq-local add-log-current-defun-function #'css-current-defun-name)

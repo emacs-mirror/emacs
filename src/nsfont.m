@@ -781,7 +781,7 @@ nsfont_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
 
   if (nsfont == nil)
     {
-      message_with_string ("*** Warning: font in family '%s' not found",
+      message_with_string ("*** Warning: font in family `%s' not found",
                           build_string ([family UTF8String]), 1);
       nsfont = [NSFont userFixedPitchFontOfSize: pixel_size];
     }

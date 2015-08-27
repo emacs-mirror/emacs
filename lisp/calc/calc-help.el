@@ -239,8 +239,8 @@ C-w  Describe how there is no warranty for Calc."
 		      (setq prompts (substring prompts 0 (match-beginning 0))))
 		  (if (string-match "\\` +" prompts)
 		      (setq prompts (substring prompts (match-end 0))))
-		  (setq msg (format
-			     "%s:  %s%s`%s'%s%s %s%s"
+		  (setq msg (format-message
+			     "%s:  %s%s‘%s’%s%s %s%s"
 			     (if (string-match
 				  "\\`\\(calc-[-a-zA-Z0-9]+\\) *\\(.*\\)\\'"
 				  cmd)
@@ -345,7 +345,7 @@ C-w  Describe how there is no warranty for Calc."
   (calc-describe-thing var "Variable Index"))
 
 (defun calc-describe-thing (thing where &optional target not-quoted)
-  (message "Looking for `%s' in %s..." thing where)
+  (message "Looking for ‘%s’ in %s..." thing where)
   (let ((savewin (current-window-configuration)))
     (calc-info-goto-node where)
     (or (let ((case-fold-search nil))
@@ -361,7 +361,7 @@ C-w  Describe how there is no warranty for Calc."
           (if Info-history
               (Info-last))
 	  (set-window-configuration savewin)
-	  (error "Can't find `%s' in %s" thing where)))
+	  (error "Can't find ‘%s’ in %s" thing where)))
     (let (Info-history)
       (Info-goto-node (buffer-substring (match-beginning 1) (match-end 1))))
     (let* ((string-target (or target thing))
@@ -380,7 +380,7 @@ C-w  Describe how there is no warranty for Calc."
                 (re-search-forward quoted nil t)
                 (search-forward string-target nil t)))))
     (beginning-of-line)
-    (message "Found `%s' in %s" thing where)))
+    (message "Found ‘%s’ in %s" thing where)))
 
 (defun calc-view-news ()
   (interactive)
@@ -400,11 +400,14 @@ C-w  Describe how there is no warranty for Calc."
     (princ "GNU Emacs Calculator.\n")
     (princ "  By Dave Gillespie.\n")
     (princ (format "  %s\n\n" emacs-copyright))
-    (princ "Type `h s' for a more detailed summary.\n")
-    (princ "Or type `h i' to read the full Calc manual on-line.\n\n")
+    (princ (format-message "Type ‘h s’ for a more detailed summary.\n"))
+    (princ (format-message
+            "Or type ‘h i’ to read the full Calc manual on-line.\n\n"))
     (princ "Basic keys:\n")
     (let* ((calc-full-help-flag t))
-      (mapc (function (lambda (x) (princ (format "  %s\n" x))))
+      (mapc (function (lambda (x) (princ (format
+                                          "  %s\n"
+                                          (substitute-command-keys x)))))
 	    (nreverse (cdr (reverse (cdr (calc-help))))))
       (mapc (function (lambda (prefix)
 			(let ((msgs (condition-case err
@@ -413,18 +416,22 @@ C-w  Describe how there is no warranty for Calc."
 			  (if (car msgs)
 			      (princ
 			       (if (eq (nth 2 msgs) ?v)
-				   "\n`v' or `V' prefix (vector/matrix) keys: \n"
+                                   (format-message
+                                    "\n‘v’ or ‘V’ prefix (vector/matrix) keys: \n")
 				 (if (nth 2 msgs)
-				     (format
-				      "\n`%c' prefix (%s) keys:\n"
+				     (format-message
+				      "\n‘%c’ prefix (%s) keys:\n"
 				      (nth 2 msgs)
 				      (or (cdr (assq (nth 2 msgs)
 						     calc-help-long-names))
 					  (nth 1 msgs)))
 				   (format "\n%s-modified keys:\n"
 					   (capitalize (nth 1 msgs)))))))
-			  (mapcar (function (lambda (x)
-				    (princ (format "  %s\n" x))))
+			  (mapcar (function
+                                   (lambda (x)
+                                     (princ (format
+                                             "  %s\n"
+                                             (substitute-command-keys x)))))
 				  (car msgs)))))
 	    '(calc-inverse-prefix-help
 	      calc-hyperbolic-prefix-help
@@ -539,7 +546,7 @@ C-w  Describe how there is no warranty for Calc."
    '("Select, Additional, Once; eVal, Formula; Rewrite"
      "More, Less, 1-9, Next, Previous"
      "Unselect, Clear; Display; Enable; Breakable"
-     "' (replace), ` (edit), +, -, *, /, RET (grab), DEL"
+     "' (replace), \\=` (edit), +, -, *, /, RET (grab), DEL"
      "SHIFT + swap: Left, Right; maybe: Select, Once"
      "SHIFT + Commute, Merge, Distrib, jump-Eqn, Isolate"
      "SHIFT + Negate, & (invert); Unpack")

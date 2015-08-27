@@ -692,10 +692,12 @@ Commands:                        Equivalent keys in read-only mode:
 	(insert
 	 "GNU Emacs Forms Mode\n\n"
 	 (if (file-exists-p forms-file)
-	     (concat "No records available in file `" forms-file "'\n\n")
-	   (format "Creating new file `%s'\nwith %d field%s per record\n\n"
-		   forms-file forms-number-of-fields
-		   (if (= 1 forms-number-of-fields) "" "s")))
+	     (format-message
+	      "No records available in file `%s'\n\n" forms-file)
+	   (format-message
+	    "Creating new file `%s'\nwith %d field%s per record\n\n"
+	    forms-file forms-number-of-fields
+	    (if (= 1 forms-number-of-fields) "" "s")))
 	 "Use " (substitute-command-keys "\\[forms-insert-record]")
 	 " to create new records.\n")
 	(setq forms--current-record 1)

@@ -114,7 +114,7 @@ The most significant byte comes first."
   "Insert VALUES for FIELDS as a sequence of bytes to the current buffer.
 VALUES and FIELDS are lists of integers and field symbols,
 respectively.  Byte length of each value is determined by the
-'uvs-field-size' property of the corresponding field."
+`uvs-field-size' property of the corresponding field."
   (while fields
     (let ((field (car fields))
 	  (value (car values)))

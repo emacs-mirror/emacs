@@ -218,7 +218,7 @@ for CLASS.  Optional ALLOW-SUBCLASS says that it is ok for
 `eieio-persistent-read' to load in subclasses of class instead of
 being pedantic."
   (unless class
-    (message "Unsafe call to `eieio-persistent-read'."))
+    (message "Unsafe call to ‘eieio-persistent-read’."))
   (when class (cl-check-type class class))
   (let ((ret nil)
 	(buffstr nil))

@@ -176,7 +176,7 @@ respective allout-mode keybinding variables, `allout-command-prefix',
 (defcustom allout-command-prefix "\C-c "
   "Key sequence to be used as prefix for outline mode command key bindings.
 
-Default is '\C-c<space>'; just '\C-c' is more short-and-sweet, if you're
+Default is `\C-c<space>'; just `\C-c' is more short-and-sweet, if you're
 willing to let allout use a bunch of \C-c keybindings."
   :type 'string
   :group 'allout-keybindings
@@ -229,7 +229,7 @@ See `allout-unprefixed-keybindings' for the list of keybindings
 that are not prefixed.
 
 Use vector format for the keys:
-  - put literal keys after a '?' question mark, eg: '?a', '?.'
+  - put literal keys after a ‘?’ question mark, eg: ‘?a’, ‘?.’
   - enclose control, shift, or meta-modified keys as sequences within
     parentheses, with the literal key, as above, preceded by the name(s)
     of the modifiers, eg: [(control ?a)]
@@ -257,7 +257,7 @@ This is in contrast to the majority of allout-mode bindings on
 preceding command key.
 
 Use vector format for the keys:
-  - put literal keys after a '?' question mark, eg: '?a', '?.'
+  - put literal keys after a ‘?’ question mark, eg: ‘?a’, ‘?.’
   - enclose control, shift, or meta-modified keys as sequences within
     parentheses, with the literal key, as above, preceded by the name(s)
     of the modifiers, eg: [(control ?a)]
@@ -610,7 +610,7 @@ strings."
 Allout outline mode will use the mode-specific `allout-mode-leaders' or
 comment-start string, if any, to lead the topic prefix string, so topic
 headers look like comments in the programming language.  It will also use
-the comment-start string, with an '_' appended, for `allout-primary-bullet'.
+the comment-start string, with an `_' appended, for `allout-primary-bullet'.
 
 String values are used as literals, not regular expressions, so
 do not escape any regular-expression characters.
@@ -1012,9 +1012,9 @@ determination of aberrance is according to the mistaken item
 being followed by a legitimate item of excessively greater depth.
 
 The classic example of a mistaken item, for a standard allout
-outline configuration, is a body line that begins with an '...'
+outline configuration, is a body line that begins with an ‘...’
 ellipsis.  This happens to contain a legitimate depth-2 header
-prefix, constituted by two '..' dots at the beginning of the
+prefix, constituted by two ‘..’ dots at the beginning of the
 line.  The only thing that can distinguish it *in principle* from
 a legitimate one is if the following real header is at a depth
 that is discontinuous from the depth of 2 implied by the
@@ -1326,20 +1326,20 @@ scope of the variable is restored along with its value.  If it was a void
 buffer-local value, then it is left as nil on resumption.
 
 The pairs are lists whose car is the name of the variable and car of the
-cdr is the new value: '(some-var some-value)'.  The pairs can actually be
+cdr is the new value: `(some-var some-value)'.  The pairs can actually be
 triples, where the third element qualifies the disposition of the setting,
 as described further below.
 
-If the optional third element is the symbol 'extend, then the new value
+If the optional third element is the symbol `extend', then the new value
 created by `cons'ing the second element of the pair onto the front of the
 existing value.
 
-If the optional third element is the symbol 'append, then the new value is
+If the optional third element is the symbol `append', then the new value is
 extended from the existing one by `append'ing a list containing the second
 element of the pair onto the end of the existing value.
 
 Extension, and resumptions in general, should not be used for hook
-functions -- use the 'local mode of `add-hook' for that, instead.
+functions -- use the `local' mode of `add-hook' for that, instead.
 
 The settings are stored on `allout-mode-prior-settings'."
   (while pairs
@@ -1838,7 +1838,7 @@ M-x outlineify-sticky       Activate outline mode for current buffer,
                             buffer with name derived from derived from that
                             of current buffer -- \"*BUFFERNAME exposed*\".
 \\[allout-flatten-exposed-to-buffer] `allout-flatten-exposed-to-buffer'
-                            Like above 'copy-exposed', but convert topic
+                            Like above `copy-exposed', but convert topic
                             prefixes to section.subsection... numeric
                             format.
 \\[customize-variable] allout-auto-activation
@@ -1862,7 +1862,7 @@ symmetric decryption keys, preventing entry of the correct key on
 subsequent decryption attempts until the cache times-out.  That
 can take several minutes.  (Decryption of other entries is not
 affected.)  Upgrade your EasyPG version, if you can, and you can
-deliberately clear your gpg-agent's cache by sending it a '-HUP'
+deliberately clear your gpg-agent's cache by sending it a `-HUP'
 signal.
 
 See `allout-toggle-current-subtree-encryption' function docstring
@@ -2080,21 +2080,21 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
                  use-layout
                  (and (not (string= allout-auto-activation "activate"))
                       (if (string= allout-auto-activation "ask")
-                          (if (y-or-n-p (format "Expose %s with layout '%s'? "
-                                                (buffer-name)
-                                                use-layout))
+                          (if (y-or-n-p (format-message
+                                         "Expose %s with layout ‘%s’? "
+                                         (buffer-name) use-layout))
                               t
                             (message "Skipped %s layout." (buffer-name))
                             nil)
                         t)))
         (save-excursion
-          (message "Adjusting '%s' exposure..." (buffer-name))
+          (message "Adjusting ‘%s’ exposure..." (buffer-name))
           (goto-char 0)
           (allout-this-or-next-heading)
           (condition-case err
               (progn
                 (apply 'allout-expose-topic (list use-layout))
-                (message "Adjusting '%s' exposure... done."
+                (message "Adjusting ‘%s’ exposure... done."
                          (buffer-name)))
             ;; Problem applying exposure -- notify user, but don't
             ;; interrupt, eg, file visit:
@@ -3483,9 +3483,10 @@ Offer one suitable for current depth DEPTH as default."
     (save-excursion
       (goto-char (allout-current-bullet-pos))
       (setq choice (solicit-char-in-string
-                    (format "Select bullet: %s ('%s' default): "
-                            sans-escapes
-                            (allout-substring-no-properties default-bullet))
+                    (format-message
+                     "Select bullet: %s (‘%s’ default): "
+                     sans-escapes
+                     (allout-substring-no-properties default-bullet))
                     sans-escapes
                     t)))
     (message "")
@@ -5134,15 +5135,15 @@ Simple (numeric and null-list) specs are interpreted as follows:
   -  - exposes the body of the corresponding topic.
 
 Examples:
-\(allout-expose-topic '(-1 : 0))
+\(allout-expose-topic \\='(-1 : 0))
 	Close this and all following topics at current level, exposing
 	only their immediate children, but close down the last topic
 	at this current level completely.
-\(allout-expose-topic '(-1 () : 1 0))
+\(allout-expose-topic \\='(-1 () : 1 0))
 	Close current topic so only the immediate subtopics are shown;
 	show the children in the second to last topic, and completely
 	close the last one.
-\(allout-expose-topic '(-2 : -1 *))
+\(allout-expose-topic \\='(-2 : -1 *))
         Expose children and grandchildren of all topics at current
 	level except the last two; expose children of the second to
 	last and completely open the last one."
@@ -5878,7 +5879,7 @@ With repeat count, copy the exposed portions of entire buffer."
 (defun allout-toggle-current-subtree-encryption (&optional keymode-cue)
   "Encrypt clear or decrypt encoded topic text.
 
-Allout uses Emacs 'epg' library to perform encryption.  Symmetric
+Allout uses Emacs ‘epg’ library to perform encryption.  Symmetric
 and keypair encryption are supported.  All encryption is ascii
 armored.
 
@@ -5940,7 +5941,7 @@ associated with it.  This can be used to dissociate any
 recipients with the file, by selecting no recipients in the
 dialog.
 
-Encryption and decryption uses the Emacs 'epg' library.
+Encryption and decryption uses the Emacs ‘epg’ library.
 
 Encrypted text will be ascii-armored.
 
@@ -6093,7 +6094,7 @@ symmetric decryption keys, preventing entry of the correct key on
 subsequent decryption attempts until the cache times-out.  That
 can take several minutes.  (Decryption of other entries is not
 affected.)  Upgrade your EasyPG version, if you can, and you can
-deliberately clear your gpg-agent's cache by sending it a '-HUP'
+deliberately clear your gpg-agent's cache by sending it a `-HUP'
 signal."
 
   (require 'epg)
@@ -6263,7 +6264,7 @@ the decryption."
   "Return the point of the next topic pending encryption, or nil if none.
 
 Such a topic has the `allout-topic-encryption-bullet' without an
-immediately following '*' that would mark the topic as being encrypted.
+immediately following `*' that would mark the topic as being encrypted.
 It must also have content."
   (let (done got content-beg)
     (save-match-data
@@ -6378,8 +6379,9 @@ for details on preparing Emacs for automatic allout activation."
     (if (allout-goto-prefix)
 	t
       (allout-open-topic 2)
-      (insert (concat "Dummy outline topic header -- see"
-                      "`allout-mode' docstring: `^Hm'."))
+      (insert (substitute-command-keys
+               (concat "Dummy outline topic header -- see"
+                       " ‘allout-mode’ docstring: ‘\\[describe-mode]’.")))
       (allout-adjust-file-variable
        "allout-layout" (or allout-layout '(-1 : 0))))))
 ;;;_   > allout-file-vars-section-data ()
@@ -6488,8 +6490,9 @@ not its value."
         got)
     (dolist (sym configvar-value)
       (if (not (boundp sym))
-          (if (yes-or-no-p (format "%s entry `%s' is unbound -- remove it? "
-                                   configvar-name sym))
+          (if (yes-or-no-p (format-message
+			    "%s entry `%s' is unbound -- remove it? "
+			    configvar-name sym))
               (delq sym (symbol-value configvar-name)))
         (push (symbol-value sym) got)))
     (reverse got)))
@@ -6543,7 +6546,7 @@ Optional arg DO-DEFAULTING indicates to accept empty input (CR)."
 (defun regexp-sans-escapes (regexp &optional successive-backslashes)
   "Return a copy of REGEXP with all character escapes stripped out.
 
-Representations of actual backslashes -- '\\\\\\\\' -- are left as a
+Representations of actual backslashes -- ‘\\\\\\\\’ -- are left as a
 single backslash.
 
 Optional arg SUCCESSIVE-BACKSLASHES is used internally for recursion."

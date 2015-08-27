@@ -40,7 +40,7 @@
 ;;;###autoload
 (progn
 (defgroup eshell-term nil
-  "This module causes visual commands (e.g., 'vi') to be executed by
+  "This module causes visual commands (e.g., `vi') to be executed by
 the `term' package, which comes with Emacs.  This package handles most
 of the ANSI control codes, allowing curses-based applications to run
 within an Emacs window.  The variable `eshell-visual-commands' defines

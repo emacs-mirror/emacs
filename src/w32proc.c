@@ -1748,13 +1748,9 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
      absolute.  So we double-check this here, just in case.  */
   if (faccessat (AT_FDCWD, cmdname, X_OK, AT_EACCESS) != 0)
     {
-      struct gcpro gcpro1;
-
       program = build_string (cmdname);
       full = Qnil;
-      GCPRO1 (program);
       openp (Vexec_path, program, Vexec_suffixes, &full, make_number (X_OK), 0);
-      UNGCPRO;
       if (NILP (full))
 	{
 	  errno = EINVAL;
@@ -1813,9 +1809,27 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
 
       cmdname = alloca (MAX_PATH);
       if (egetenv ("CMDPROXY"))
-	strcpy (cmdname, egetenv ("CMDPROXY"));
+	{
+	  /* Implementation note: since process-environment, where
+	     'egetenv' looks, is encoded in the system codepage, we
+	     don't need to encode the cmdproxy file name if we get it
+	     from the environment.  */
+	  strcpy (cmdname, egetenv ("CMDPROXY"));
+	}
       else
-	strcpy (lispstpcpy (cmdname, Vinvocation_directory), "cmdproxy.exe");
+	{
+	  char *q = lispstpcpy (cmdname,
+				/* exec-directory needs to be encoded.  */
+				ansi_encode_filename (Vexec_directory));
+	  /* If we are run from the source tree, use cmdproxy.exe from
+	     the same source tree.  */
+	  for (p = q - 2; p > cmdname; p = CharPrevA (cmdname, p))
+	    if (*p == '/')
+	      break;
+	  if (*p == '/' && xstrcasecmp (p, "/lib-src/") == 0)
+	    q = stpcpy (p, "/nt/");
+	  strcpy (q, "cmdproxy.exe");
+	}
 
       /* Can't use unixtodos_filename here, since that needs its file
 	 name argument encoded in UTF-8.  */

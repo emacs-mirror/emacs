@@ -1038,48 +1038,43 @@ static CFStringRef
 macfont_create_family_with_symbol (Lisp_Object symbol)
 {
   CFStringRef result = NULL, family_name;
-  CFComparatorFunction family_name_comparator;
+  CFDictionaryRef attributes = NULL;
+  FontDescriptorRef pat_desc = NULL;
 
   if (macfont_get_family_cache_if_present (symbol, &result))
     return result ? CFRetain (result) : NULL;
 
   family_name = cfstring_create_with_string_noencode (SYMBOL_NAME (symbol));
-  if (family_name == NULL)
-    return NULL;
-
+  if (family_name)
     {
-      family_name_comparator = CTFontManagerCompareFontFamilyNames;
+      attributes =
+	CFDictionaryCreate (NULL,
+			    (const void **) &MAC_FONT_FAMILY_NAME_ATTRIBUTE,
+			    (const void **) &family_name, 1,
+			    &kCFTypeDictionaryKeyCallBacks,
+			    &kCFTypeDictionaryValueCallBacks);
+      CFRelease (family_name);
     }
-
-  if ((*family_name_comparator) (family_name, CFSTR ("LastResort"), NULL)
-      == kCFCompareEqualTo)
-    result = CFSTR ("LastResort");
-  else
+  if (attributes)
     {
-      CFIndex i, count;
-      CFArrayRef families = macfont_copy_available_families_cache ();
+      pat_desc = mac_font_descriptor_create_with_attributes (attributes);
+      CFRelease (attributes);
+    }
+  if (pat_desc)
+    {
+      FontDescriptorRef desc =
+	mac_font_descriptor_create_matching_font_descriptor (pat_desc, NULL);
 
-      if (families)
+      if (desc)
 	{
-	  count = CFArrayGetCount (families);
-	  i = CFArrayBSearchValues (families, CFRangeMake (0, count),
-				    (const void *) family_name,
-				    family_name_comparator, NULL);
-	  if (i < count)
-	    {
-	      CFStringRef name = CFArrayGetValueAtIndex (families, i);
-
-	      if ((*family_name_comparator) (name, family_name, NULL)
-		  == kCFCompareEqualTo)
-		result = CFRetain (name);
-	    }
-	  CFRelease (families);
+	  result =
+	    mac_font_descriptor_copy_attribute (desc,
+						MAC_FONT_FAMILY_NAME_ATTRIBUTE);
+	  CFRelease (desc);
 	}
+      macfont_set_family_cache (symbol, result);
+      CFRelease (pat_desc);
     }
-
-  CFRelease (family_name);
-
-  macfont_set_family_cache (symbol, result);
 
   return result;
 }

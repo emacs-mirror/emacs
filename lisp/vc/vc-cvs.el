@@ -281,8 +281,8 @@ committed and support display of sticky tags."
     (propertize
      (if (zerop (length sticky-tag))
 	 string
-       (setq help-echo (format "%s on the '%s' branch"
-			       help-echo sticky-tag))
+       (setq help-echo (format-message "%s on the ‘%s’ branch"
+                                       help-echo sticky-tag))
        (concat string "[" sticky-tag "]"))
      'help-echo help-echo)))
 

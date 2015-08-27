@@ -476,7 +476,7 @@ element recalculates the buffer's index alist.")
 
 (defvar imenu--history-list nil
   ;; Making this buffer local caused it not to work!
-  "History list for 'jump-to-function-in-buffer'.")
+  "History list for `jump-to-function-in-buffer'.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -499,10 +499,7 @@ If REVERSE is non-nil then the beginning is 100 and the end is 0."
   (let ((pos (point))
 	(total (buffer-size)))
     (and reverse (setq pos (- total pos)))
-    (if (> total 50000)
-	;; Avoid overflow from multiplying by 100!
-	(/ (1- pos) (max (/ total 100) 1))
-      (/ (* 100 (1- pos)) (max total 1)))))
+    (floor (* 100.0 (1- pos)) (max total 1))))
 
 (defun imenu--split (list n)
   "Split LIST into sublists of max length N.

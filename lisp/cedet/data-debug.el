@@ -55,7 +55,7 @@
       (defalias 'data-debug-overlay-p 'extentp)
       (if (not (fboundp 'propertize))
 	  (defun dd-propertize (string &rest properties)
-	    "Mimic 'propertize' in from Emacs 23."
+	    "Mimic `propertize' in from Emacs 23."
 	    (add-text-properties 0 (length string) properties string)
 	    string
 	    )

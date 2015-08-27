@@ -261,7 +261,7 @@ Otherwise work like `message'."
 			mode-line-format)))
           (setq eldoc-mode-line-string
                 (when (stringp format-string)
-                  (apply 'format format-string args)))
+                  (apply #'format-message format-string args)))
           (force-mode-line-update)))
     (apply 'message format-string args)))
 
@@ -274,7 +274,7 @@ Otherwise work like `message'."
 		;; eldoc-last-message so eq test above might succeed on
 		;; subsequent calls.
 		((null (cdr args)) (car args))
-		(t (apply 'format args))))
+		(t (apply #'format-message args))))
     ;; In emacs 19.29 and later, and XEmacs 19.13 and later, all messages
     ;; are recorded in a log.  Do not put eldoc messages in that log since
     ;; they are Legion.

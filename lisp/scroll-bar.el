@@ -61,7 +61,7 @@ SIDE must be the symbol `left' or `right'."
          (cols  (nth 1 wsb)))
     (cond
      ((not (memq side '(left right)))
-      (error "`left' or `right' expected instead of %S" side))
+      (error "‘left’ or ‘right’ expected instead of %S" side))
      ((and (eq vtype side) cols))
      ((eq (frame-parameter nil 'vertical-scroll-bars) side)
       ;; nil means it's a non-toolkit scroll bar, and its width in

@@ -2305,7 +2305,7 @@ In effect it sets the `fill-prefix' when inside comments and then calls
     (pop-to-buffer nil)
     (Info-goto-node prolog-info-predicate-index)
     (if (not (re-search-forward str nil t))
-        (error (format "Help on predicate `%s' not found." predicate)))
+        (error "Help on predicate `%s' not found." predicate))
 
     (setq oldp (point))
     (if (re-search-forward str nil t)
@@ -2975,7 +2975,7 @@ Return the final point or nil if no such a beginning was found."
   (let* ((pinfo (prolog-clause-info))
          (predname (nth 0 pinfo))
          (arity (nth 1 pinfo)))
-    (message (format "%s/%d" predname arity))))
+    (message "%s/%d" predname arity)))
 
 (defun prolog-insert-predicate-template ()
   "Insert the template for the current clause."

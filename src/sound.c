@@ -1351,7 +1351,6 @@ Internal use only, use `play-sound' instead.  */)
 {
   Lisp_Object attrs[SOUND_ATTR_SENTINEL];
   ptrdiff_t count = SPECPDL_INDEX ();
-  struct gcpro gcpro1, gcpro2;
 
 #ifdef WINDOWSNT
   unsigned long ui_volume_tmp = UINT_MAX;
@@ -1363,7 +1362,6 @@ Internal use only, use `play-sound' instead.  */)
     error ("Invalid sound specification");
 
   Lisp_Object file = Qnil;
-  GCPRO2 (sound, file);
 
 #ifndef WINDOWSNT
   current_sound_device = xzalloc (sizeof *current_sound_device);
@@ -1452,7 +1450,6 @@ Internal use only, use `play-sound' instead.  */)
 
 #endif /* WINDOWSNT */
 
-  UNGCPRO;
   return unbind_to (count, Qnil);
 }
 

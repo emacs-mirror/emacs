@@ -633,7 +633,7 @@ if that fails, the doc string with `custom-guess-doc-alist'."
 	(setq found (nth 1 current)
 	      names nil)))
     (unless found
-      (let ((doc (documentation-property symbol 'variable-documentation))
+      (let ((doc (documentation-property symbol 'variable-documentation t))
 	    (docs custom-guess-doc-alist))
 	(when doc
 	  (while docs
@@ -1599,7 +1599,7 @@ This button will have a menu with all three reset operations."
 
 (defcustom custom-raised-buttons (not (equal (face-valid-attribute-values :box)
 					     '(("unspecified" . unspecified))))
-  "If non-nil, indicate active buttons in a `raised-button' style.
+  "If non-nil, indicate active buttons in a raised-button style.
 Otherwise use brackets."
   :type 'boolean
   :version "21.1"
@@ -1709,7 +1709,7 @@ Operate on all settings in this buffer:\n"))
 	    (mapcar (lambda (entry)
 		      (prog2
 			  (message "Creating customization items ...%2d%%"
-				   (/ (* 100.0 count) length))
+				   (floor (* 100.0 count) length))
 			  (widget-create (nth 1 entry)
 					 :tag (custom-unlispify-tag-name
 					       (nth 0 entry))
@@ -1748,7 +1748,7 @@ Operate on all settings in this buffer:\n"))
 on a button to invoke its action.
 Invoke [+] to expand a group, and [-] to collapse an expanded group.\n"
 			 (if custom-raised-buttons
-			     "`Raised' text indicates"
+			     "Raised text indicates"
 			   "Square brackets indicate")))
 
 
@@ -2457,7 +2457,7 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
   "Return documentation of VARIABLE for use in Custom buffer.
 Normally just return the docstring.  But if VARIABLE automatically
 becomes buffer local when set, append a message to that effect."
-  (format "%s%s" (documentation-property variable 'variable-documentation)
+  (format "%s%s" (documentation-property variable 'variable-documentation t)
 	  (if (and (local-variable-if-set-p variable)
 		   (or (not (local-variable-p variable))
 		       (with-temp-buffer
@@ -3990,12 +3990,12 @@ If GROUPS-ONLY is non-nil, return only those members that are groups."
 	 ;; (indent (widget-get widget :indent))
 	 (prefix (widget-get widget :custom-prefix))
 	 (buttons (widget-get widget :buttons))
-	 (tag (widget-get widget :tag))
+	 (tag (substitute-command-keys (widget-get widget :tag)))
 	 (symbol (widget-value widget))
 	 (members (custom-group-members symbol
 					(and (eq custom-buffer-style 'tree)
 					     custom-browse-only-groups)))
-	 (doc (widget-docstring widget)))
+	 (doc (substitute-command-keys (widget-docstring widget))))
     (cond ((and (eq custom-buffer-style 'tree)
 		(eq state 'hidden)
 		(or members (custom-unloaded-widget-p widget)))

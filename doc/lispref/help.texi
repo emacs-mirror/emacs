@@ -318,25 +318,13 @@ stands for no text itself.  It is used only for a side effect: it
 specifies @var{mapvar}'s value as the keymap for any following
 @samp{\[@var{command}]} sequences in this documentation string.
 
-@item `
-(grave accent) stands for a left quote, and alters the interpretation
-of the next unmatched apostrophe.
-
-@item '
-(apostrophe) stands for a right quote if preceded by grave accent and
-there are no intervening apostrophes.  Otherwise, apostrophe stands
-for itself.
-
 @item ‘
-(left single quotation mark) stands for a left quote.
+@itemx `
+(left single quotation mark and grave accent) both stand for a left quote.
 
 @item ’
-(right single quotation mark) stands for a right quote.
-
-@item '
-(apostrophe) stands for a right quote if
-preceded by grave accent and there are no intervening apostrophes.
-Otherwise, apostrophe stands for itself.
+@itemx '
+(right single quotation mark and apostrophe) both stand for a right quote.
 
 @item \=
 quotes the following character and is discarded; thus, @samp{\=`} puts
@@ -347,17 +335,17 @@ and @samp{\=\=} puts @samp{\=} into the output.
 @strong{Please note:} Each @samp{\} must be doubled when written in a
 string in Emacs Lisp.
 
-@defvar help-quote-translation
+@defvar text-quoting-style
 @cindex curved quotes
-The value of this variable specifies the style
-@code{substitute-command-keys} uses when generating left and right
-quotes.  If the variable's value is @code{?‘} (U+2018 LEFT SINGLE
-QUOTATION MARK), the style is @t{‘like this’} with curved single
-quotes.  If the value is @code{?'} (apostrophe), the style is @t{'like
-this'} with apostrophes.  If the value is @code{?`} (grave accent),
-the style is @t{`like this'} with grave accent and apostrophe.  The
-default value @code{nil} means to use curved single quotes if
-displayable, and grave accent and apostrophe otherwise.
+@cindex curly quotes
+The value of this variable specifies the style used to generate text
+quotes.  If the variable's value is @code{curve}, the style is
+@t{‘like this’} with curved single quotes.  If the value is
+@code{straight}, the style is @t{'like this'} with straight
+apostrophes.  If the value is @code{grave}, the style is @t{`like
+this'} with grave accent and apostrophe.  The default value @code{nil}
+acts like @code{curve} if curved single quotes are displayable, and
+like @code{grave} otherwise.
 @end defvar
 
 @defun substitute-command-keys string

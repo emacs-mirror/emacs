@@ -39,8 +39,18 @@ should be able to work around the problem either by porting the Emacs
 undumping code to GCC under IRIX, or by configuring --with-wide-int,
 or by sticking with Emacs 24.4.
 
+** The Emacs garbage collector assumes GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS.
+The GC_MAKE_GCPROS_NOOPS stack-marking variant has been the default
+since Emacs 24.4, and the other variants were undocumented and were
+obstacles to maintenance and development.  GC_MARK_STACK and its
+related symbols have been removed from the C internals.
+
 ** 'configure' now prefers gnustep-config when configuring GNUstep.
 If gnustep-config is not available, the old heuristics are used.
+
+---
+** 'configure' now prefers inotify to gfile for file notification,
+unless gfile is explicitly requested via --with-file-notification='gfile'.
 
 ---
 ** The configure option '--with-pkg-config-prog' has been removed.
@@ -84,7 +94,12 @@ command line when `initial-buffer-choice' is non-nil.
 
 * Changes in Emacs 25.1
 
-** New display-buffer action function display-buffer-use-some-frame
+** `xref-find-definitions' and `describe-function' now display
+   information about mode local overrides (defined by
+   cedet/mode-local.el `define-overloadable-function' and
+   `define-mode-local-overrides').
+
+** New `display-buffer' action function `display-buffer-use-some-frame'
 This displays the buffer in an existing frame other than the current
 frame, and allows the caller to specify a frame predicate to exclude
 frames.
@@ -267,7 +282,8 @@ successive char insertions.
 ** C-x 8 now has shorthands for these chars: ‐ ‑ ‒ – — ― ‘ ’ “ ” † ‡ • ′ ″
 € № ← → ↔ − ≈ ≠ ≤ ≥.  As before, you can type C-x 8 C-h to list shorthands.
 
-** New minor mode electric-quote-mode for quoting ‘like this’ and “like this”.
+** New minor mode electric-quote-mode for quoting ‘like this’ and “like this”
+as you type.  See also the new variable ‘text-quoting-style’.
 
 ** New minor mode global-eldoc-mode is enabled by default.
 
@@ -296,6 +312,13 @@ standards.
 
 ** Prog mode has some support for multi-mode indentation.
 See `prog-indentation-context' and `prog-widen'.
+
+** Prettify Symbols mode supports custom composition predicates.  By
+overriding the default `prettify-symbols-compose-predicate', modes can
+specify in which contexts a symbol map be composed to some unicode
+character.  `prettify-symbols-default-compose-p' is the default which
+is suitable for most programming languages such as C or Lisp (but not
+(La)TeX).
 
 ** New `xterm-screen-extra-capabilities' config.
 
@@ -546,6 +569,14 @@ See `diary-chinese-list-entries' and `diary-chinese-mark-entries'.
 *** The option `calendar-mode-line-format' can now be nil,
 which means to do nothing special with the mode line in calendars.
 
++++
+*** New option `calendar-weekend-days'.
+The option customizes which day headers receive the
+`calendar-weekend-header' face.
+
+---
+*** New optional args N and STRING for ‘holiday-greek-orthodox-easter’.
+
 ---
 *** Many items obsolete since at least version 23.1 have been removed.
 The majority were function/variable/face aliases, too numerous to list here.
@@ -681,6 +712,10 @@ name patterns (e.x. all "FOR_DOXYGEN_ONLY_*") to be excluded.
 
 *** New custom variable `tex-print-file-extension' to help users who
 use PDF instead of DVI.
+
+*** TeX mode now supports Prettify Symbols mode.  When enabling
+`prettify-symbols-mode' in a tex-mode buffer, \alpha ... \omega, and
+many other math macros are displayed using unicode characters.
 
 ** whitespace-mode: new 'big-indent style highlighting too much indentation.
 By default, 32 spaces and four TABs are considered to be too much but
@@ -886,16 +921,27 @@ when signaling a file error.  For example, it now reports "Permission
 denied" instead of "permission denied".  The old behavior was problematic
 in languages like German where downcasing rules depend on grammar.
 
++++
+** New variable ‘text-quoting-style’ to control how Emacs translates quotes.
+Set it to ‘curve’ for curved single quotes ‘like this’, to ‘straight’
+for straight apostrophes 'like this', and to ‘grave’ for grave accent
+and apostrophe `like this'.  The default value nil acts like ‘curve’
+if curved single quotes are displayable, and like ‘grave’ otherwise.
+The new variable affects display of diagnostics and help, but not of info.
+
++++
 ** substitute-command-keys now replaces quotes.
-That is, it replaces left single quotation marks (‘) by left quotes
-and right single quotation marks (’) by right quotes.  It also
-replaces grave accents by left quotes, and apostrophes that match
-grave accents by right quotes.  As before, isolated apostrophes and
-characters preceded by \= are output as-is.  Left and right quotes are
-determined by new custom variable ‘help-quote-translation’.  ?‘ means
-quote ‘like this’, ?' means quote 'like this', ?` means quote `like
-this', and nil (default) means quote ‘like this’ if displayable and
-'like this' otherwise.
+That is, it converts documentation strings’ quoting style as per the
+value of ‘text-quoting-style’.  Doc strings in source code can use
+either curved single quotes or grave accents and apostrophes.  As
+before, characters preceded by \= are output as-is.
+
++++
+** Message-issuing functions ‘error’, ‘message’, etc. now convert quotes.
+They use the new ‘format-message’ function instead of plain ‘format’,
+so that they now follow user preference as per ‘text-quoting-style’
+when processing curved single quotes, grave accents, and apostrophes
+in their format argument.
 
 +++
 ** The character classes [:alpha:] and [:alnum:] in regular expressions
@@ -1008,13 +1054,27 @@ directory at point.
 *** New macros `thread-first' and `thread-last' allow threading a form
     as the first or last argument of subsequent forms.
 
++++
 ** Documentation strings now support quoting with curved single quotes
 ‘like-this’ in addition to the old style with grave accent and
 apostrophe `like-this'.  The new style looks better on today's displays.
 In the new Electric Quote mode, you can enter curved single quotes
 into documentation by typing ` and '.  Outside Electric Quote mode,
 you can enter them by typing ‘C-x 8 [’ and ‘C-x 8 ]’, or (if your Alt
-key works) by typing ‘A-[’ and ‘A-]’.
+key works) by typing ‘A-[’ and ‘A-]’.  As described above under
+‘text-quoting-style’, the user can specify how to display doc string
+quotes.
+
++++
+** New function ‘format-message’ is like ‘format’ and also converts
+curved single quotes, grave accents and apostrophes as per
+‘text-quoting-style’.
+
++++
+** show-help-function's arg is converted via substitute-command-keys
+before being passed to the function.  Help strings, help-echo
+properties, etc. can therefore contain command key escapes and
+quotation marks.
 
 +++
 ** Time-related changes:
@@ -1087,6 +1147,29 @@ Horizontal scroll bars are turned off by default.
     `scroll-bar-height'.
 
 +++
+** New functions `frame-geometry' and `frame-edges' give access to a
+frame's geometry.
+
++++
+** New functions `mouse-absolute-pixel-position' and
+`set-mouse-absolute-pixel-position' get/set screen coordinates of the
+mouse cursor.
+
++++
+** The function `window-edges' now accepts three additional arguments to
+retrieve body, absolute and pixel edges of the window.
+
++++
+** The functions `window-inside-edges', `window-inside-pixel-edges' and
+`window-inside-absolute-pixel-edges' have been renamed to respectively
+`window-body-edges', `window-body-pixel-edges' and
+`window-absolute-body-pixel-edges'.  The old names are kept as aliases.
+
++++
+** New function `window-absolute-pixel-position' to get the screen
+coordinates of a visible buffer position.
+
++++
 ** The height of a frame's menu and tool bar are no longer counted in the
 frame's text height.  This means that the text height stands only for
 the height of the frame's root window plus that of the echo area (if
@@ -1145,6 +1228,13 @@ qualified names by hand.
 
 
 * Changes in Emacs 25.1 on Non-Free Operating Systems
+
+---
+** MS-Windows specific Emacs build scripts are no longer in the distribution
+This includes the makefile.w32-in files in various subdirectories, and
+the support files.  The file nt/configure.bat now just tells the user
+to use the procedure described in nt/INSTALL, by running the Posix
+`configure' script in the top-level directory.
 
 ---
 ** Building Emacs for MS-Windows requires at least Windows XP

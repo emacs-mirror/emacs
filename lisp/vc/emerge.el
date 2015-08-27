@@ -3089,7 +3089,7 @@ SPC, it is ignored; if it is anything else, it is processed as a command."
 	    (let* ((echo-keystrokes 0)
 		   (c (read-event)))
 	      (if (not (eq c 32))
-		  (setq unread-command-events (list c)))))
+		  (push c unread-command-events))))
 	(erase-buffer)))))
 
 ;; Improved auto-save file names.

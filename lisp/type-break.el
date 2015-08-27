@@ -803,8 +803,9 @@ this or ask the user to start one right now."
    (type-break-mode-line-message-mode)
    (t
     (beep t)
-    (message "%sYou should take a typing break now.  Do `M-x type-break'."
-             (type-break-time-stamp))
+    (message "%sYou should take a typing break now.  Do ‘%s’."
+             (type-break-time-stamp)
+             (substitute-command-keys "\\[type-break]"))
     (sit-for 1)
     (beep t)
     ;; return nil so query caller knows to reset reminder, as if user

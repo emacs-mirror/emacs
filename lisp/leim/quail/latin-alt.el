@@ -48,7 +48,7 @@ special (so you can use that to enter a slash).
 
              | postfix | examples
  ------------+---------+----------
-  acute      |    '    | a' -> á
+  acute      |    \\='    | a\\=' -> á
   grave      |    \\=`    | a\\=` -> à
   circumflex |    ^    | a^ -> â
   diaeresis  |    \"    | a\" -> ä
@@ -62,7 +62,7 @@ It seems natural to use comma for cedillas, but that is
 inconvenient in practice because commas are needed very
 often after a letter.
 
-Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
+Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -213,7 +213,7 @@ comma and period are not special (use \\=` instead).
 
              | postfix | examples
  ------------+---------+----------
-  acute      |    '    | a' -> á
+  acute      |    \\='    | a\\=' -> á
   ogonek     |    \\=`    | a\\=` -> ą
   diaeresis  |    \"    | a\" -> ä
   circumflex |    ^    | a^ -> â
@@ -230,7 +230,7 @@ It seems natural to use period and comma for dots/rings and
 cedillas/ogoneks, but that is inconvenient in practice, because
 periods and commas are needed very often after a letter.
 
-Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
+Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -408,7 +408,7 @@ special (use slash instead).
 
              | postfix | examples
  ------------+---------+----------
-  acute      |    '    | a' -> á
+  acute      |    \\='    | a\\=' -> á
   grave      |    \\=`    | a\\=` -> à
   circumflex |    ^    | a^ -> â
   diaeresis  |    \"    | a\" -> ä
@@ -423,7 +423,7 @@ It would be natural to use period and comma for dots and cedillas, but
 that would inconvenient in practice, because periods and commas are
 needed very often after a letter.
 
-Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
+Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -581,7 +581,7 @@ special (use ~ instead).
 
              | postfix | examples
  ------------+---------+----------
-  acute      |    '    | a' -> á
+  acute      |    \\='    | a\\=' -> á
   circumflex |    ^    | a^ -> â
   diaeresis  |    \"    | a\" -> ä
   ogonek     |    \\=`    | a\\=` -> ą
@@ -598,7 +598,7 @@ It seems natural to use period and comma for dots and
 cedillas/ogoneks, but that is inconvenient in practice, because
 periods and commas are needed very often after a letter.
 
-Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
+Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -778,7 +778,7 @@ special (use / instead).
 
              | postfix | examples
  ------------+---------+----------
-  acute      |    '    | a' -> á
+  acute      |    \\='    | a\\=' -> á
   grave      |    \\=`    | a\\=` -> à
   circumflex |    ^    | a^ -> â
   diaeresis  |    \"    | a\" -> ä
@@ -793,7 +793,7 @@ It seems natural to use period and comma for dots and cedillas, but
 that is inconvenient in practice, because periods and commas are
 needed very often after a letter.
 
-Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
+Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -930,13 +930,13 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  "french-alt-postfix" "French" "FR<" t
  "French (Français) input method with postfix modifiers
 
-\\=` pour grave, ' pour aigu, ^ pour circonflexe, et \" pour tréma.
-Par exemple: a\\=` -> à   e' -> é.
+\\=` pour grave, \\=' pour aigu, ^ pour circonflexe, et \" pour tréma.
+Par exemple: a\\=` -> à   e\\=' -> é.
 
 Ç, «, et » sont produits par C/, <<, et >>.
 
 En doublant la frappe des diacritiques, ils s'isoleront de la lettre.
-Par exemple: e'' -> e'
+Par exemple: e\\='\\=' -> e\\='
 
 Œ est produit par O/."
  nil t nil nil nil nil nil nil nil nil t)
@@ -1011,11 +1011,11 @@ Par exemple: e'' -> e'
  "italian-alt-postfix" "Latin-1" "IT<" t
  "Italian (Italiano) input method with postfix modifiers
 
-a' -> á    A' -> Á    a\\=` -> à    A\\=` -> À    i^ -> î    << -> «
-e' -> é    E' -> É    e\\=` -> è    E\\=` -> È    I^ -> Î    >> -> »
-i' -> í    I' -> Í    i\\=` -> ì    I\\=` -> Ì               o_ -> º
-o' -> ó    O' -> Ó    o\\=` -> ò    O\\=` -> Ò               a_ -> ª
-u' -> ú    U' -> Ú    u\\=` -> ù    U\\=` -> Ù
+a\\=' -> á    A\\=' -> Á    a\\=` -> à    A\\=` -> À    i^ -> î    << -> «
+e\\=' -> é    E\\=' -> É    e\\=` -> è    E\\=` -> È    I^ -> Î    >> -> »
+i\\=' -> í    I\\=' -> Í    i\\=` -> ì    I\\=` -> Ì               o_ -> º
+o\\=' -> ó    O\\=' -> Ó    o\\=` -> ò    O\\=` -> Ò               a_ -> ª
+u\\=' -> ú    U\\=' -> Ú    u\\=` -> ù    U\\=` -> Ù
 
 This method is for purists who like accents the old way.
 
@@ -1160,7 +1160,7 @@ Caters for French and Turkish as well as Dutch.
  ------------+---------+----------
              | postfix |
  ------------+---------+----------
-  acute      |    '    | a' -> á
+  acute      |    \\='    | a\\=' -> á
   grave      |    \\=`    | a\\=` -> à
   circumflex |    ^    | a^ -> â
   Turkish    | various | i/ -> ı  s, -> ş  g^ -> ğ   I/ -> İ
@@ -1170,7 +1170,7 @@ Caters for French and Turkish as well as Dutch.
  ------------+---------+----------
   diaeresis  |    \"    | \"a -> ä
 
-Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
+Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -1338,7 +1338,7 @@ of characters from a single Latin-N charset.
 
              | postfix | examples
  ------------+---------+----------
-  acute      |    '    | a' -> á
+  acute      |    \\='    | a\\=' -> á
   grave      |    \\=`    | a\\=` -> à
   circumflex |    ^    | a^ -> â
   diaeresis  |    \"    | a\" -> ä
@@ -1359,7 +1359,7 @@ It would be natural to use comma for cedillas, but that would be
 inconvenient in practice because commas are needed very often after a
 letter.
 
-Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
+Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
 " nil t nil nil nil nil nil nil nil nil t)
 
 ;; Fixme: ¦ § ¨ © ¬ ­ ® ¯ ° ± ² ³ ´ µ ¶ · ¸ ¹ ¼ ½ ¾ × ÷

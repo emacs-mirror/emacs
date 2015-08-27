@@ -490,7 +490,7 @@ textual parts.")
 			(funcall (nth 2 credentials)))
 		      ;; See if CAPABILITY is set as part of login
 		      ;; response.
-		      (dolist (response (cddr login-result))
+		      (dolist (response (cddr (nnimap-command "CAPABILITY")))
 			(when (string= "CAPABILITY" (upcase (car response)))
 			  (setf (nnimap-capabilities nnimap-object)
 				(mapcar #'upcase (cdr response))))))
@@ -930,17 +930,19 @@ textual parts.")
       ;; way.
       (let ((message-id (message-field-value "message-id")))
 	(if internal-move-group
-	    (let ((result
-		   (with-current-buffer (nnimap-buffer)
-		     (nnimap-command "UID COPY %d %S"
-				     article
-				     (utf7-encode internal-move-group t)))))
-	      (when (car result)
-		(nnimap-delete-article article)
-		(cons internal-move-group
-		      (or (nnimap-find-uid-response "COPYUID" (cadr result))
-			  (nnimap-find-article-by-message-id
-			   internal-move-group server message-id
+            (with-current-buffer (nnimap-buffer)
+              (let* ((can-move (nnimap-capability "MOVE"))
+                    (command (if can-move
+                                 "UID MOVE %d %S"
+                               "UID COPY %d %S"))
+                    (result (nnimap-command command article
+                                            (utf7-encode internal-move-group t))))
+                (when (and (car result) (not can-move))
+                  (nnimap-delete-article article))
+                (cons internal-move-group
+                      (or (nnimap-find-uid-response "COPYUID" (caddr result))
+                          (nnimap-find-article-by-message-id
+                           internal-move-group server message-id
                            nnimap-request-articles-find-limit)))))
 	  ;; Move the article to a different method.
 	  (let ((result (eval accept-form)))
@@ -980,11 +982,12 @@ textual parts.")
 	(gnus-sorted-complement articles deletable-articles))))))
 
 (defun nnimap-process-expiry-targets (articles group server)
-  (let ((deleted-articles nil))
+  (let ((deleted-articles nil)
+        (articles-to-delete nil))
     (cond
      ;; shortcut further processing if we're going to delete the articles
      ((eq nnmail-expiry-target 'delete)
-      (setq deleted-articles articles)
+      (setq articles-to-delete articles)
       t)
      ;; or just move them to another folder on the same IMAP server
      ((and (not (functionp nnmail-expiry-target))
@@ -994,11 +997,14 @@ textual parts.")
       (and (nnimap-change-group group server)
 	   (with-current-buffer (nnimap-buffer)
 	     (nnheader-message 7 "Expiring articles from %s: %s" group articles)
-	     (nnimap-command
-	      "UID COPY %s %S"
-	      (nnimap-article-ranges (gnus-compress-sequence articles))
-	      (utf7-encode (gnus-group-real-name nnmail-expiry-target) t))
-	     (setq deleted-articles articles)))
+             (let ((can-move (nnimap-capability "MOVE")))
+               (nnimap-command
+                (if can-move
+                    "UID MOVE %s %S"
+                  "UID COPY %s %S")
+                (nnimap-article-ranges (gnus-compress-sequence articles))
+                (utf7-encode (gnus-group-real-name nnmail-expiry-target) t))
+               (set (if can-move 'deleted-articles 'articles-to-delete) articles))))
       t)
      (t
       (dolist (article articles)
@@ -1019,11 +1025,13 @@ textual parts.")
 		    (setq target nil))
 		(nnheader-message 7 "Expiring article %s:%d" group article))
 	      (when target
-		(push article deleted-articles))))))
-      (setq deleted-articles (nreverse deleted-articles))))
+		(push article articles-to-delete))))))
+      (setq articles-to-delete (nreverse articles-to-delete))))
     ;; Change back to the current group again.
     (nnimap-change-group group server)
-    (nnimap-delete-article (gnus-compress-sequence deleted-articles))
+    (when articles-to-delete
+      (nnimap-delete-article (gnus-compress-sequence articles-to-delete))
+      (setq deleted-articles articles-to-delete))
     deleted-articles))
 
 (defun nnimap-find-expired-articles (group)
@@ -2060,6 +2068,7 @@ Return the server's response to the SELECT or EXAMINE command."
 				  nnmail-split-fancy))
 	  (nnmail-inhibit-default-split-group t)
 	  (groups (nnimap-get-groups))
+          (can-move (nnimap-capability "MOVE"))
 	  new-articles)
       (erase-buffer)
       (nnimap-command "SELECT %S" nnimap-inbox)
@@ -2094,14 +2103,16 @@ Return the server's response to the SELECT or EXAMINE command."
 		  ;; Don't copy if the message is already in its
 		  ;; target group.
 		  (unless (string= group nnimap-inbox)
-		   (push (list (nnimap-send-command
-				"UID COPY %s %S"
-				(nnimap-article-ranges ranges)
-				(utf7-encode group t))
-			       ranges)
-			 sequences)))))
+		    (push (list (nnimap-send-command
+				 (if can-move
+				     "UID MOVE %s %S"
+				   "UID COPY %s %S")
+				 (nnimap-article-ranges ranges)
+				 (utf7-encode group t))
+				ranges)
+			  sequences)))))
 	    ;; Wait for the last COPY response...
-	    (when sequences
+	    (when (and (not can-move) sequences)
 	      (nnimap-wait-for-response (caar sequences))
 	      ;; And then mark the successful copy actions as deleted,
 	      ;; and possibly expunge them.

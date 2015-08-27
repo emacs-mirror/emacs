@@ -3558,7 +3558,7 @@ Thus, use \\[backward-page] to find the beginning of a group of errors."
       (let ((inhibit-read-only t))
 	(cond ((stringp log)
 	       (insert (if args
-			   (apply (function format) log args)
+			   (apply #'format-message log args)
 			 log)))
 	      ((bufferp log)
 	       (insert-buffer-substring log))
@@ -3811,7 +3811,8 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 	    ((memq action '(copy private move link))
 	     (let ((overwrite (and (file-exists-p to)
 				   (y-or-n-p
-				    (format "Overwrite existing file `%s'? " to))))
+				    (format-message
+				     "Overwrite existing file `%s'? " to))))
 		   ;; Binding dired-overwrite-confirmed to nil makes
 		   ;; dired-handle-overwrite a no-op.  We instead use
 		   ;; y-or-n-p, which pops a graphical menu.
@@ -3824,7 +3825,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 				(car (find-backup-file-name to)))
 			  (or (eq dired-backup-overwrite 'always)
 			      (y-or-n-p
-			       (format
+			       (format-message
 				"Make backup for existing file `%s'? " to))))
 		 (rename-file to backup-file 0)
 		 (dired-relist-entry backup-file))
@@ -3895,7 +3896,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 
 ;;; Start of automatically extracted autoloads.
 
-;;;### (autoloads nil "dired-aux" "dired-aux.el" "45867cb96abef86d29a9850ee2113cf2")
+;;;### (autoloads nil "dired-aux" "dired-aux.el" "637aadf6baffb10be036ba4cec2372f9")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
@@ -4398,7 +4399,7 @@ instead.
 
 ;;;***
 
-;;;### (autoloads nil "dired-x" "dired-x.el" "183a6677a0dfc9e853e24b05abda5490")
+;;;### (autoloads nil "dired-x" "dired-x.el" "c1a6289ba8504b605595321436a9c04d")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\

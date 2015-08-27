@@ -85,7 +85,7 @@ This applies to `eval-defun', `eval-region', `eval-buffer', and
 
 You can use the command `edebug-all-defs' to toggle the value of this
 variable.  You may wish to make it local to each buffer with
-\(make-local-variable 'edebug-all-defs) in your
+\(make-local-variable \\='edebug-all-defs) in your
 `emacs-lisp-mode-hook'."
   :type 'boolean
   :group 'edebug)
@@ -880,7 +880,7 @@ Maybe clear the markers and delete the symbol's edebug property?"
 	      (setq dotted-form (edebug-read-storing-offsets stream))
 		    elements (nconc elements dotted-form)
 	      (if (not (eq (edebug-next-token-class) 'rparen))
-		  (edebug-syntax-error "Expected `)'"))
+		  (edebug-syntax-error "Expected ‘)’"))
 	      (setq edebug-read-dotted-list (listp dotted-form))
 	      ))
 	elements)
@@ -3373,7 +3373,7 @@ Return the result of the last expression."
 (defalias 'edebug-prin1 'prin1)
 (defalias 'edebug-print 'print)
 (defalias 'edebug-prin1-to-string 'prin1-to-string)
-(defalias 'edebug-format 'format)
+(defalias 'edebug-format 'format-message)
 (defalias 'edebug-message 'message)
 
 (defun edebug-eval-expression (expr)

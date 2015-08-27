@@ -286,8 +286,8 @@ makes the comment easier to read.  Default is 1.  nil means 0."
 This is useful when style-conventions require a certain minimal offset.
 Python's PEP8 for example recommends two spaces, so you could do:
 
-\(add-hook 'python-mode-hook
-   (lambda () (set (make-local-variable 'comment-inline-offset) 2)))
+\(add-hook \\='python-mode-hook
+   (lambda () (set (make-local-variable \\='comment-inline-offset) 2)))
 
 See `comment-padding' for whole-line comments."
   :version "24.3"

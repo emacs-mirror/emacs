@@ -1111,7 +1111,8 @@ If VEC is a vector, check first in connection properties.
 Afterwards, check in `tramp-methods'.  If the `tramp-methods'
 entry does not exist, return nil."
   (let ((hash-entry
-	 (replace-regexp-in-string "^tramp-" "" (symbol-name param))))
+	 (tramp-compat-replace-regexp-in-string
+	  "^tramp-" "" (symbol-name param))))
     (if (tramp-connection-property-p vec hash-entry)
 	;; We use the cached property.
 	(tramp-get-connection-property  vec hash-entry nil)
@@ -1503,7 +1504,7 @@ ARGUMENTS to actually emit the message (if applicable)."
 ;	    (1+ (count-lines (point-min) (cdr ffn)))))))
       (insert (format "%s " fn)))
     ;; The message.
-    (insert (apply 'format fmt-string arguments))))
+    (insert (apply #'format-message fmt-string arguments))))
 
 (defvar tramp-message-show-message t
   "Show Tramp message in the minibuffer.
@@ -1580,8 +1581,8 @@ signal identifier to be raised, remaining arguments passed to
        (error-message-string
 	(list signal
 	      (get signal 'error-message)
-	      (apply 'format fmt-string arguments)))))
-    (signal signal (list (apply 'format fmt-string arguments)))))
+	      (apply #'format-message fmt-string arguments)))))
+    (signal signal (list (apply #'format-message fmt-string arguments)))))
 
 (defsubst tramp-error-with-buffer
   (buf vec-or-proc signal fmt-string &rest arguments)
@@ -3093,7 +3094,7 @@ User is always nil."
 	       v 'file-error "File `%s' not found on remote host" filename)
 
 	    (with-tramp-progress-reporter
-		v 3 (format "Inserting `%s'" filename)
+		v 3 (format-message "Inserting `%s'" filename)
 	      (condition-case err
 		  (if (and (tramp-local-host-p v)
 			   (let (file-name-handler-alist)
@@ -3593,11 +3594,12 @@ connection buffer."
 	   (cond
 	    ((eq exit 'permission-denied) "Permission denied")
 	    ((eq exit 'process-died)
-	     (concat
-	      "Tramp failed to connect.  If this happens repeatedly, try\n"
-	      "    `M-x tramp-cleanup-this-connection'"))
+             (substitute-command-keys
+              (concat
+               "Tramp failed to connect.  If this happens repeatedly, try\n"
+               "    `\\[tramp-cleanup-this-connection]'")))
 	    ((eq exit 'timeout)
-	     (format
+	     (format-message
 	      "Timeout reached, see buffer `%s' for details"
 	      (tramp-get-connection-buffer vec)))
 	    (t "Login failed")))))

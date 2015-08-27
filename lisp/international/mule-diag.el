@@ -332,7 +332,7 @@ meanings of these arguments."
       (let ((char (charset-iso-final-char charset)))
 	(when (> char 0)
 	  (insert "Final char of ISO2022 designation sequence: ")
-	  (insert (format "‘%c’\n" char))))
+	  (insert (format-message "‘%c’\n" char))))
       (let (aliases)
 	(dolist (c charset-list)
 	  (if (and (not (eq c charset))
@@ -1058,17 +1058,18 @@ installed LEIM (Libraries of Emacs Input Methods).")
 	  (setq language (nth 1 elt))
 	  (princ language)
 	  (terpri))
-	(princ (format "  %s (‘%s’ in mode line)\n    %s\n"
-		       (car elt)
-		       (let ((title (nth 3 elt)))
-			 (if (and (consp title) (stringp (car title)))
-			     (car title)
-			   title))
-		       ;; If the doc is multi-line, indent all
-		       ;; non-blank lines. (Bug#8066)
-		       (replace-regexp-in-string
-                        "\n\\(.\\)" "\n    \\1"
-                        (substitute-command-keys (or (nth 4 elt) "")))))))))
+	(princ (format-message
+                "  %s (‘%s’ in mode line)\n    %s\n"
+                (car elt)
+                (let ((title (nth 3 elt)))
+                  (if (and (consp title) (stringp (car title)))
+                      (car title)
+                    title))
+                ;; If the doc is multi-line, indent all
+                ;; non-blank lines. (Bug#8066)
+                (replace-regexp-in-string
+                 "\n\\(.\\)" "\n    \\1"
+                 (substitute-command-keys (or (nth 4 elt) "")))))))))
 
 ;;; DIAGNOSIS
 

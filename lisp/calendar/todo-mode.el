@@ -237,7 +237,7 @@ The final element is \"*\", indicating an unspecified month.")
 		   (when (string= (widget-value widget) todo-item-mark)
 		     (widget-put
 		      widget :error
-		      "Invalid value: must be distinct from `todo-item-mark'")
+		      "Invalid value: must be distinct from ‘todo-item-mark’")
 		     widget)))
   :initialize 'custom-initialize-default
   :set 'todo-reset-prefix
@@ -1346,7 +1346,7 @@ todo or done items."
 				     "the archived category will remain\n"
 				     "after deleting the todo category.  "
 				     "Do you still want to delete it\n"
-				     "(see `todo-skip-archived-categories' "
+				     "(see ‘todo-skip-archived-categories’ "
 				     "for another option)? ")))
 		  (t
 		   (todo-y-or-n-p (concat "Permanently remove category \"" cat
@@ -1694,7 +1694,7 @@ only when no items are marked."
 		   (when (string= (widget-value widget) todo-prefix)
 		     (widget-put
 		      widget :error
-		      "Invalid value: must be distinct from `todo-prefix'")
+		      "Invalid value: must be distinct from ‘todo-prefix’")
 		     widget)))
   :set (lambda (symbol value)
 	 (custom-set-default symbol (propertize value 'face 'todo-mark)))
@@ -5034,7 +5034,7 @@ but the categories sexp differs from the current value of
 	;; Warn user if categories sexp has changed.
 	(unless (string= ssexp cats)
 	  (message (concat "The sexp at the beginning of the file differs "
-			   "from the value of `todo-categories.\n"
+			   "from the value of ‘todo-categories’.\n"
 			   "If the sexp is wrong, you can fix it with "
 			   "M-x todo-repair-categories-sexp,\n"
 			   "but note this reverts any changes you have "
@@ -5531,7 +5531,7 @@ already entered and those still available."
 			 (todo-insert-item--this-key)
 			 todo-insert-item--argsleft)))))))))
       (setq todo-insert-item--argsleft todo-insert-item--newargsleft))
-    (when prompt (message "Press a key (so far `%s'): %s"
+    (when prompt (message "Press a key (so far ‘%s’): %s"
 			  todo-insert-item--keys-so-far prompt))
     (set-transient-map map)
     (setq todo-insert-item--argsleft argsleft)))
@@ -5585,7 +5585,7 @@ already entered and those still available."
       (`delete (todo-edit-item--text 'comment-delete))
       (`diary (todo-edit-item--diary-inclusion))
       (`nonmarking (todo-edit-item--diary-inclusion 'nonmarking))
-      (`date (let ((todo-edit-item--prompt "Press a key (so far `e d'): "))
+      (`date (let ((todo-edit-item--prompt "Press a key (so far ‘e d’): "))
 	       (todo-edit-item--next-key
 		todo-edit-item--date-param-key-alist arg)))
       (`full (progn (todo-edit-item--header 'date)
@@ -6598,7 +6598,9 @@ Added to `window-configuration-change-hook' in Todo mode."
 
 \\{todo-mode-map}"
   (if (called-interactively-p 'any)
-      (message "Type `M-x todo-show' to enter Todo mode")
+      (message "%s"
+               (substitute-command-keys
+                "Type ‘\\[todo-show]’ to enter Todo mode"))
     (todo-modes-set-1)
     (todo-modes-set-2)
     (todo-modes-set-3)

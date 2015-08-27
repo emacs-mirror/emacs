@@ -1866,9 +1866,11 @@ cleaning up these problems."
 	      (whitespace-insert-value ws-tab-width)
 	      (when has-bogus
 		(goto-char (point-max))
-		(insert " Type `M-x whitespace-cleanup'"
+		(insert (substitute-command-keys
+                         " Type ‘\\[whitespace-cleanup]’")
 			" to cleanup the buffer.\n\n"
-			" Type `M-x whitespace-cleanup-region'"
+			(substitute-command-keys
+                         " Type ‘\\[whitespace-cleanup-region]’")
 			" to cleanup a region.\n\n"))
 	      (whitespace-display-window (current-buffer)))))
 	has-bogus))))

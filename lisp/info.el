@@ -3381,11 +3381,11 @@ Give an empty topic name to go to the Index node itself."
 	   (car (car Info-index-alternatives))
 	   (nth 2 (car Info-index-alternatives))
 	   (if (cdr Info-index-alternatives)
-	       (format "(%s total; use `%s' for next)"
-		       (length Info-index-alternatives)
-		       (key-description (where-is-internal
-					 'Info-index-next overriding-local-map
-					 t)))
+	       (format-message
+		"(%s total; use `%s' for next)"
+		(length Info-index-alternatives)
+		(key-description (where-is-internal
+				  'Info-index-next overriding-local-map t)))
 	     "(Only match)")))
 
 (defun Info-find-index-name (name)
@@ -3460,7 +3460,7 @@ MATCHES is a list of index matches found by `Info-index'.")
 	(when (equal (car (nth 0 nodeinfo)) (or filename Info-current-file))
 	  (insert
 	   (format "* %-20s %s.\n"
-		   (format "*Index for ‘%s’*::" (cdr (nth 0 nodeinfo)))
+		   (format-message "*Index for ‘%s’*::" (cdr (nth 0 nodeinfo)))
 		   (cdr (nth 0 nodeinfo)))))))))
 
 (defun Info-virtual-index (topic)
@@ -3495,7 +3495,8 @@ search results."
 	(setq Info-history-list ohist-list)
 	(Info-goto-node orignode)
 	(message "")))
-    (Info-find-node Info-current-file (format "*Index for ‘%s’*" topic))))
+    (Info-find-node Info-current-file
+                    (format-message "*Index for ‘%s’*" topic))))
 
 (add-to-list 'Info-virtual-files
 	     '("\\`\\*Apropos\\*\\'"
@@ -3634,7 +3635,7 @@ Build a menu of the possible matches."
 	(setq nodes (cdr nodes)))
       (if nodes
 	  (Info-find-node Info-apropos-file (car (car nodes)))
-	(setq nodename (format "Index for ‘%s’" string))
+	(setq nodename (format-message "Index for ‘%s’" string))
 	(push (list nodename string (Info-apropos-matches string))
 	      Info-apropos-nodes)
 	(Info-find-node Info-apropos-file nodename)))))
@@ -3662,7 +3663,7 @@ Build a menu of the possible matches."
 (defun info--prettify-description (desc)
   (if (stringp desc)
       (with-temp-buffer
-	(insert desc)
+	(insert (substitute-command-keys desc))
 	(if (equal ?. (char-before))
 	    (delete-char -1))
 	(goto-char (point-min))
@@ -3825,7 +3826,7 @@ with a list of packages that contain all specified keywords."
 		    (message (if flag "Type Space to see more"
 			       "Type Space to return to Info"))
 		    (if (not (eq ?\s (setq ch (read-event))))
-			(progn (setq unread-command-events (list ch)) nil)
+			(progn (push ch unread-command-events) nil)
 		      flag))
 	(scroll-up)))
     (bury-buffer "*Help*")))
@@ -3837,7 +3838,7 @@ START is a regular expression which will match the
     beginning of the tokens delimited string.
 ALL is a regular expression with a single
     parenthesized subpattern which is the token to be
-    returned.  E.g. '{\(.*\)}' would return any string
+    returned.  E.g. `{\(.*\)}' would return any string
     enclosed in braces around POS.
 ERRORSTRING optional fourth argument, controls action on no match:
     nil: return nil

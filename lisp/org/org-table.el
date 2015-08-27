@@ -3404,7 +3404,7 @@ Parameters get priority."
     (if (eq org-table-use-standard-references t)
 	(org-table-fedit-toggle-ref-type))
     (org-goto-line startline)
-    (message "Edit formulas, finish with `C-c C-c' or `C-c ' '.  See menu for more commands.")))
+    (message "Edit formulas, finish with ‘C-c C-c’ or ‘C-c '’.  See menu for more commands.")))
 
 (defun org-table-fedit-post-command ()
   (when (not (memq this-command '(lisp-complete-symbol)))

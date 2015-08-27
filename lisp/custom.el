@@ -548,13 +548,13 @@ VALUE should be a list of symbols.  For each symbol in that list,
 this specifies that SYMBOL should be set after the specified symbol,
 if both appear in constructs like `custom-set-variables'."
   (unless (listp value)
-    (error "Invalid custom dependency `%s'" value))
+    (error "Invalid custom dependency ‘%s’" value))
   (let* ((deps (get symbol 'custom-dependencies))
 	 (new-deps deps))
     (while value
       (let ((dep (car value)))
 	(unless (symbolp dep)
-	  (error "Invalid custom dependency `%s'" dep))
+	  (error "Invalid custom dependency ‘%s’" dep))
 	(unless (memq dep new-deps)
 	  (setq new-deps (cons dep new-deps)))
 	(setq value (cdr value))))
@@ -830,7 +830,7 @@ to the front of this list.")
 (defsubst custom-check-theme (theme)
   "Check whether THEME is valid, and signal an error if it is not."
   (unless (custom-theme-p theme)
-    (error "Unknown theme `%s'" theme)))
+    (error "Unknown theme ‘%s’" theme)))
 
 (defun custom-push-theme (prop symbol theme mode &optional value)
   "Record VALUE for face or variable SYMBOL in custom theme THEME.
@@ -1043,7 +1043,7 @@ list, in which A occurs before B if B was defined with a
     (when elt
       (cond
        ((eq (car elt) 'dependant)
-	(error "Circular custom dependency on `%s'" sym))
+	(error "Circular custom dependency on ‘%s’" sym))
        ((car elt)
 	(setcar elt 'dependant)
 	(dolist (dep (get sym 'custom-dependencies))
@@ -1201,7 +1201,7 @@ Return t if THEME was successfully loaded, nil otherwise."
 				     (custom-available-themes))))
     nil nil))
   (unless (custom-theme-name-valid-p theme)
-    (error "Invalid theme name `%s'" theme))
+    (error "Invalid theme name ‘%s’" theme))
   ;; If THEME is already enabled, re-enable it after loading, even if
   ;; NO-ENABLE is t.
   (if no-enable
@@ -1217,7 +1217,7 @@ Return t if THEME was successfully loaded, nil otherwise."
 			 '("" "c")))
 	hash)
     (unless fn
-      (error "Unable to find theme file for `%s'" theme))
+      (error "Unable to find theme file for ‘%s’" theme))
     (with-temp-buffer
       (insert-file-contents fn)
       (setq hash (secure-hash 'sha256 (current-buffer)))

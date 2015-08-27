@@ -814,7 +814,8 @@ opening delimiter and closing delimiter are mismatched---such as in
 @code{blink-matching-paren} turns the feature on or off: @code{nil}
 disables it, but the default is @code{t} to enable it.  Set it to
 @code{jump} to make indication work by momentarily moving the cursor
-to the matching opening delimiter.
+to the matching opening delimiter.  Set it to @code{jump-offscreen} to
+make the cursor jump, even if the opening delimiter is off screen.
 
 @item
 @code{blink-matching-delay} says how many seconds to keep indicating

@@ -384,8 +384,6 @@ x_get_local_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
 
       CHECK_SYMBOL (target_type);
       handler_fn = Fcdr (Fassq (target_type, Vselection_converter_alist));
-      /* gcpro is not needed here since nothing but HANDLER_FN
-	 is live, and that ought to be a symbol.  */
 
       if (!NILP (handler_fn))
 	value = call3 (handler_fn,
@@ -753,7 +751,6 @@ x_reply_selection_request (struct selection_input_event *event,
 static void
 x_handle_selection_request (struct selection_input_event *event)
 {
-  struct gcpro gcpro1, gcpro2;
   Time local_selection_time;
 
   struct x_display_info *dpyinfo = SELECTION_EVENT_DPYINFO (event);
@@ -765,7 +762,6 @@ x_handle_selection_request (struct selection_input_event *event)
   Lisp_Object local_selection_data;
   bool success = false;
   ptrdiff_t count = SPECPDL_INDEX ();
-  GCPRO2 (local_selection_data, target_symbol);
 
   if (!dpyinfo) goto DONE;
 
@@ -849,7 +845,6 @@ x_handle_selection_request (struct selection_input_event *event)
 	   selection_symbol, target_symbol, success ? Qt : Qnil);
 
   unbind_to (count, Qnil);
-  UNGCPRO;
 }
 
 /* Perform the requested selection conversion, and write the data to
@@ -864,10 +859,8 @@ x_convert_selection (Lisp_Object selection_symbol,
 		     Lisp_Object target_symbol, Atom property,
 		     bool for_multiple, struct x_display_info *dpyinfo)
 {
-  struct gcpro gcpro1;
   Lisp_Object lisp_selection;
   struct selection_data *cs;
-  GCPRO1 (lisp_selection);
 
   lisp_selection
     = x_get_local_selection (selection_symbol, target_symbol,
@@ -891,7 +884,6 @@ x_convert_selection (Lisp_Object selection_symbol,
 	  converted_selections = cs;
 	}
 
-      UNGCPRO;
       return false;
     }
 
@@ -904,7 +896,6 @@ x_convert_selection (Lisp_Object selection_symbol,
   cs->next = converted_selections;
   converted_selections = cs;
   lisp_data_to_selection_data (dpyinfo, lisp_selection, cs);
-  UNGCPRO;
   return true;
 }
 
@@ -1968,9 +1959,7 @@ On Nextstep, TIME-STAMP and TERMINAL are unused.  */)
    Lisp_Object time_stamp, Lisp_Object terminal)
 {
   Lisp_Object val = Qnil;
-  struct gcpro gcpro1, gcpro2;
   struct frame *f = frame_for_x_selection (terminal);
-  GCPRO2 (target_type, val); /* we store newly consed data into these */
 
   CHECK_SYMBOL (selection_symbol);
   CHECK_SYMBOL (target_type);
@@ -1986,8 +1975,8 @@ On Nextstep, TIME-STAMP and TERMINAL are unused.  */)
     {
       Lisp_Object frame;
       XSETFRAME (frame, f);
-      RETURN_UNGCPRO (x_get_foreign_selection (selection_symbol, target_type,
-					       time_stamp, frame));
+      return x_get_foreign_selection (selection_symbol, target_type,
+				      time_stamp, frame);
     }
 
   if (CONSP (val) && SYMBOLP (XCAR (val)))
@@ -1996,7 +1985,7 @@ On Nextstep, TIME-STAMP and TERMINAL are unused.  */)
       if (CONSP (val) && NILP (XCDR (val)))
 	val = XCAR (val);
     }
-  RETURN_UNGCPRO (clean_local_selection_data (val));
+  return clean_local_selection_data (val);
 }
 
 DEFUN ("x-disown-selection-internal", Fx_disown_selection_internal,
@@ -2148,8 +2137,9 @@ static Lisp_Object
 x_clipboard_manager_error_1 (Lisp_Object err)
 {
   AUTO_STRING (format, "X clipboard manager error: %s\n\
-If the problem persists, set `x-select-enable-clipboard-manager' to nil.");
-  CALLN (Fmessage, format, CAR (CDR (err)));
+If the problem persists, set `%s' to nil.");
+  AUTO_STRING (varname, "x-select-enable-clipboard-manager");
+  CALLN (Fmessage, format, CAR (CDR (err)), varname);
   return Qnil;
 }
 
@@ -2159,8 +2149,8 @@ static Lisp_Object
 x_clipboard_manager_error_2 (Lisp_Object err)
 {
   fprintf (stderr, "Error saving to X clipboard manager.\n\
-If the problem persists, set `x-select-enable-clipboard-manager' \
-to nil.\n");
+If the problem persists, set '%s' \
+to nil.\n", "x-select-enable-clipboard-manager");
   return Qnil;
 }
 

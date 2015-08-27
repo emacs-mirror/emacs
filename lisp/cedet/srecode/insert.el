@@ -216,7 +216,7 @@ insertions."
     (data-debug-insert-thing dictionary "" "> ")
     ;; Show the error message.
     (insert (propertize "Error" 'face '(:weight bold)) "\n")
-    (insert (apply #'format format args))
+    (insert (apply #'format-message format args))
     (pop-to-buffer (current-buffer))))
 
 (defun srecode-insert-report-error (dictionary format &rest args)
@@ -377,9 +377,9 @@ Can't be blank, or it might be used by regular variable insertion.")
     (where :initform 'begin
 	   :initarg :where
 	   :documentation
-	   "This should be 'begin or 'end, indicating where to insert a CR.
-When set to 'begin, it will insert a CR if we are not at 'bol'.
-When set to 'end it will insert a CR if we are not at 'eol'.")
+	   "This should be `begin' or `end', indicating where to insert a CR.
+When `begin', insert a CR if not at 'bol'.
+When `end', insert a CR if not at 'eol'.")
     ;; @TODO - Add slot and control for the number of blank
     ;;         lines before and after point.
    )
@@ -762,7 +762,7 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
 (cl-defmethod srecode-insert-method ((sti srecode-template-inserter-point)
 				  dictionary)
   "Insert the STI inserter.
-Save point in the class allocated 'point' slot.
+Save point in the class allocated `point' slot.
 If `srecode-template-inserter-point-override' non-nil then this
 generalized marker will do something else.  See
 `srecode-template-inserter-include-wrap' as an example."

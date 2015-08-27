@@ -793,7 +793,7 @@ TOTAL is the total number of letters in the ciphertext."
         (insert (caar temp-list)
                 (format "%4d%3d%%  "
                         (cl-cadar temp-list)
-                        (/ (* 100 (cl-cadar temp-list)) total)))
+                        (floor (* 100.0 (cl-cadar temp-list)) total)))
         (setq temp-list (nthcdr 4 temp-list)))
       (insert ?\n)
       (setq freq-list (cdr freq-list)
@@ -957,7 +957,7 @@ Creates the statistics buffer if it doesn't exist."
                     ": A B C D E F G H I J K L M N O P Q R S T U V W X Y Z *"
                     (format "%4d %4d %3d%%\n  "
                             (cl-third entry) (cl-second entry)
-                            (/ (* 100 (cl-second entry)) total-chars))
+                            (floor (* 100.0 (cl-second entry)) total-chars))
                     (decipher--digram-counts (aref decipher--after  i)) ?\n))))
       (setq buffer-read-only t)
       (set-buffer-modified-p nil)

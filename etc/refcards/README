@@ -13,10 +13,10 @@ split some of the files needed to process non-English output into
 separate, optional packages such as: texlive-lang-cyrillic,
 texlive-lang-czechslovak, texlive-lang-german, and texlive-lang-polish.
 
-Type `make all' (or `make pdf') to generate PDF versions of all the cards.
-For PostScript format, use `make ps'.
+Type 'make all' (or 'make pdf') to generate PDF versions of all the cards.
+For PostScript format, use 'make ps'.
 To only generate the cards for a specific language, use e.g.
-`make french' or `make french-ps'.  As mentioned above, you may need
+'make french' or 'make french-ps'.  As mentioned above, you may need
 to install extra TeX packages for some languages.
 
 PDF and PS copies of these cards are also available at

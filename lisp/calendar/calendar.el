@@ -190,6 +190,16 @@ movement commands will not work correctly."
          (calendar-redraw))
   :group 'calendar)
 
+(defcustom calendar-weekend-days '(0 6)
+  "Days of the week considered weekend days.
+0 means Sunday, 1 means Monday, and so on.
+
+Determines which day headers are fontified with
+`calendar-weekend-header'."
+  :type '(repeat integer)
+  :version "25.1"
+  :group 'calendar)
+
 (defcustom calendar-view-diary-initially-flag nil
   "Non-nil means display current date's diary entries on entry to calendar.
 The diary is displayed in another window when the calendar is first displayed,
@@ -350,7 +360,7 @@ See also `calendar-today-visible-hook'."
   "List of functions called whenever the cursor moves in the calendar.
 For example,
 
-  (add-hook 'calendar-move-hook (lambda () (diary-view-entries 1)))
+  (add-hook \\='calendar-move-hook (lambda () (diary-view-entries 1)))
 
 redisplays the diary for whatever date the cursor is moved to."
   :type 'hook
@@ -1454,7 +1464,7 @@ line."
      (insert
       (truncate-string-to-width
        (propertize (calendar-day-name j 'header t)
-                   'font-lock-face (if (memq j '(0 6))
+                   'font-lock-face (if (memq j calendar-weekend-days)
                                        'calendar-weekend-header
                                      'calendar-weekday-header))
        calendar-day-header-width nil ?\s)

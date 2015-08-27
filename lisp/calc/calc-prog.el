@@ -597,9 +597,9 @@
 	 ",")
 	((equal name "#")
 	 (search-backward "#")
-	 (error "Token '#' is reserved"))
+	 (error "Token ‘#’ is reserved"))
 	((and unquoted (string-match "#" name))
-	 (error "Tokens containing '#' must be quoted"))
+	 (error "Tokens containing ‘#’ must be quoted"))
 	((not (string-match "[^ ]" name))
 	 (search-backward "\"" nil t)
 	 (error "Blank tokens are not allowed"))
@@ -610,7 +610,7 @@
 	(quoted nil))
     (while (progn
 	     (skip-chars-forward "\n\t ")
-	     (if (eobp) (error "Expected '%s'" eterm))
+	     (if (eobp) (error "Expected ‘%s’" eterm))
 	     (not (looking-at term)))
       (cond ((looking-at "%%")
 	     (end-of-line))
@@ -618,7 +618,7 @@
 	     (forward-char 2)
 	     (let ((p (calc-read-parse-table-part "}" "}")))
 	       (or (looking-at "[+*?]")
-		   (error "Expected '+', '*', or '?'"))
+		   (error "Expected ‘+’, ‘*’, or ‘?’"))
 	       (let ((sym (intern (buffer-substring (point) (1+ (point))))))
 		 (forward-char 1)
 		 (looking-at "[^\n\t ]*")
@@ -650,7 +650,7 @@
 					      (match-end 1)))))))
 	     (goto-char (match-end 0)))
 	    ((looking-at ":=[\n\t ]")
-	     (error "Misplaced ':='"))
+	     (error "Misplaced ‘:=’"))
 	    (t
 	     (looking-at "[^\n\t ]*")
 	     (let ((end (match-end 0)))
@@ -673,7 +673,7 @@
   (or last-kbd-macro
       (error "No keyboard macro defined"))
   (setq calc-invocation-macro last-kbd-macro)
-  (message "Use `C-x * Z' to invoke this macro"))
+  (message "Use ‘C-x * Z’ to invoke this macro"))
 
 (defun calc-user-define-edit ()
   (interactive)  ; but no calc-wrapper!
@@ -1899,7 +1899,7 @@ Redefine the corresponding command."
 			  `((and
 			     (,chk ,var)
 			     (math-reject-arg ,var ',qual)))))
-	      (error "Unknown qualifier `%s'" qual-name))))))))
+	      (error "Unknown qualifier ‘%s’" qual-name))))))))
 
 (defun math-do-arg-list-check (args is-opt is-rest)
   (cond ((null args) nil)

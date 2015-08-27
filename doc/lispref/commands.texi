@@ -211,7 +211,7 @@ argument.
 
 The prompt string can use @samp{%} to include previous argument values
 (starting with the first argument) in the prompt.  This is done using
-@code{format} (@pxref{Formatting Strings}).  For example, here is how
+@code{format-message} (@pxref{Formatting Strings}).  For example, here is how
 you could read the name of an existing buffer followed by a new name to
 give to that buffer:
 

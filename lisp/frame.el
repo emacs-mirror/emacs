@@ -743,7 +743,7 @@ the name of an X display device (HOST.SERVER.SCREEN) or a tty device file."
       (frame-terminal f)))
    ((terminal-live-p device) device)
    (t
-    (error "Invalid argument %s in `get-device-terminal'" device))))
+    (error "Invalid argument %s in ‘get-device-terminal’" device))))
 
 (defun frames-on-display-list (&optional device)
   "Return a list of all frames on DEVICE.
@@ -894,7 +894,7 @@ If there is no frame by that name, signal an error."
 	 (frame (cdr (assoc name frame-names-alist))))
     (if frame
 	(select-frame-set-input-focus frame)
-      (error "There is no frame named `%s'" name))))
+      (error "There is no frame named ‘%s’" name))))
 
 
 ;;;; Background mode.
@@ -1311,6 +1311,136 @@ live frame and defaults to the selected one."
     (unless (memq vertical '(left right nil))
       (setq vertical default-frame-scroll-bars))
     (cons vertical (and horizontal 'bottom))))
+
+(declare-function x-frame-geometry "xfns.c" (&optional frame))
+(declare-function w32-frame-geometry "w32fns.c" (&optional frame))
+(declare-function ns-frame-geometry "nsfns.m" (&optional frame))
+
+(defun frame-geometry (&optional frame)
+  "Return geometric attributes of FRAME.
+FRAME must be a live frame and defaults to the selected one.  The return
+value is an association list of the attributes listed below.  All height
+and width values are in pixels.
+
+`outer-position' is a cons of the outer left and top edges of FRAME
+  relative to the origin - the position (0, 0) - of FRAME's display.
+
+`outer-size' is a cons of the outer width and height of FRAME.  The
+  outer size includes the title bar and the external borders as well as
+  any menu and/or tool bar of frame.
+
+`external-border-size' is a cons of the horizontal and vertical width of
+  FRAME's external borders as supplied by the window manager.
+
+`title-bar-size' is a cons of the width and height of the title bar of
+  FRAME as supplied by the window manager.  If both of them are zero,
+  FRAME has no title bar.  If only the width is zero, Emacs was not
+  able to retrieve the width information.
+
+`menu-bar-external', if non-nil, means the menu bar is external (never
+  included in the inner edges of FRAME).
+
+`menu-bar-size' is a cons of the width and height of the menu bar of
+  FRAME.
+
+`tool-bar-external', if non-nil, means the tool bar is external (never
+  included in the inner edges of FRAME).
+
+`tool-bar-position' tells on which side the tool bar on FRAME is and can
+  be one of `left', `top', `right' or `bottom'.  If this is nil, FRAME
+  has no tool bar.
+
+`tool-bar-size' is a cons of the width and height of the tool bar of
+  FRAME.
+
+`internal-border-width' is the width of the internal border of
+  FRAME."
+  (let* ((frame (window-normalize-frame frame))
+	 (frame-type (framep-on-display frame)))
+    (cond
+     ((eq frame-type 'x)
+      (x-frame-geometry frame))
+     ((eq frame-type 'w32)
+      (w32-frame-geometry frame))
+     ((eq frame-type 'ns)
+      (ns-frame-geometry frame))
+     (t
+      (list
+       '(outer-position 0 . 0)
+       (cons 'outer-size (cons (frame-width frame) (frame-height frame)))
+       '(external-border-size 0 . 0)
+       '(title-bar-size 0 . 0)
+       '(menu-bar-external . nil)
+       (let ((menu-bar-lines (frame-parameter frame 'menu-bar-lines)))
+	 (cons 'menu-bar-size
+	       (if menu-bar-lines
+		   (cons (frame-width frame) 1)
+		 1 0)))
+       '(tool-bar-external . nil)
+       '(tool-bar-position . nil)
+       '(tool-bar-size 0 . 0)
+       (cons 'internal-border-width
+	     (frame-parameter frame 'internal-border-width)))))))
+
+(declare-function x-frame-edges "xfns.c" (&optional frame type))
+(declare-function w32-frame-edges "w32fns.c" (&optional frame type))
+(declare-function ns-frame-edges "nsfns.m" (&optional frame type))
+
+(defun frame-edges (&optional frame type)
+  "Return coordinates of FRAME's edges.
+FRAME must be a live frame and defaults to the selected one.  The
+list returned has the form (LEFT TOP RIGHT BOTTOM) where all
+values are in pixels relative to the origin - the position (0, 0)
+- of FRAME's display.  For terminal frames all values are
+relative to LEFT and TOP which are both zero.
+
+Optional argument TYPE specifies the type of the edges.  TYPE
+`outer-edges' means to return the outer edges of FRAME.  TYPE
+`native-edges' (or nil) means to return the native edges of
+FRAME.  TYPE `inner-edges' means to return the inner edges of
+FRAME."
+  (let* ((frame (window-normalize-frame frame))
+	 (frame-type (framep-on-display frame)))
+    (cond
+     ((eq frame-type 'x)
+      (x-frame-edges frame type))
+     ((eq frame-type 'w32)
+      (w32-frame-edges frame type))
+     ((eq frame-type 'ns)
+      (ns-frame-edges frame type))
+     (t
+      (list 0 0 (frame-width frame) (frame-height frame))))))
+
+(declare-function w32-mouse-absolute-pixel-position "w32fns.c")
+(declare-function x-mouse-absolute-pixel-position "xfns.c")
+
+(defun mouse-absolute-pixel-position ()
+  "Return absolute position of mouse cursor in pixels.
+The position is returned as a cons cell (X . Y) of the
+coordinates of the mouse cursor position in pixels relative to a
+position (0, 0) of the selected frame's terminal."
+  (let ((frame-type (framep-on-display)))
+    (cond
+     ((eq frame-type 'x)
+      (x-mouse-absolute-pixel-position))
+     ((eq frame-type 'w32)
+      (w32-mouse-absolute-pixel-position))
+     (t
+      (cons 0 0)))))
+
+(declare-function w32-set-mouse-absolute-pixel-position "w32fns.c" (x y))
+(declare-function x-set-mouse-absolute-pixel-position "xfns.c" (x y))
+
+(defun set-mouse-absolute-pixel-position (x y)
+  "Move mouse pointer to absolute pixel position (X, Y).
+The coordinates X and Y are interpreted in pixels relative to a
+position (0, 0) of the selected frame's terminal."
+  (let ((frame-type (framep-on-display)))
+    (cond
+     ((eq frame-type 'x)
+      (x-set-mouse-absolute-pixel-position x y))
+     ((eq frame-type 'w32)
+      (w32-set-mouse-absolute-pixel-position x y)))))
 
 (defun frame-monitor-attributes (&optional frame)
   "Return the attributes of the physical monitor dominating FRAME.

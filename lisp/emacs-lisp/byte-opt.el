@@ -192,7 +192,7 @@
   ;; (if (aref byte-code-vector 0)
   ;;     (error "The old version of the disassembler is loaded.  Reload new-bytecomp as well"))
   (byte-compile-log-1
-   (apply 'format format
+   (apply #'format-message format
      (let (c a)
        (mapcar (lambda (arg)
 		  (if (not (consp arg))
@@ -255,11 +255,11 @@
                    (cdr (assq name byte-compile-function-environment)))))
     (pcase fn
       (`nil
-       (byte-compile-warn "attempt to inline `%s' before it was defined"
+       (byte-compile-warn "attempt to inline ‘%s’ before it was defined"
                           name)
        form)
       (`(autoload . ,_)
-       (error "File `%s' didn't define `%s'" (nth 1 fn) name))
+       (error "File ‘%s’ didn't define ‘%s’" (nth 1 fn) name))
       ((and (pred symbolp) (guard (not (eq fn t)))) ;A function alias.
        (byte-compile-inline-expand (cons fn (cdr form))))
       ((pred byte-code-function-p)
@@ -336,7 +336,7 @@
                                   bindings)
                    values nil))
             ((and (not optionalp) (null values))
-             (byte-compile-warn "attempt to open-code `%s' with too few arguments" name)
+             (byte-compile-warn "attempt to open-code ‘%s’ with too few arguments" name)
              (setq arglist nil values 'too-few))
             (t
              (setq bindings (cons (list (car arglist) (car values))
@@ -347,7 +347,7 @@
         (progn
           (or (eq values 'too-few)
               (byte-compile-warn
-               "attempt to open-code `%s' with too many arguments" name))
+               "attempt to open-code ‘%s’ with too many arguments" name))
           form)
 
 	                                ;; The following leads to infinite recursion when loading a
@@ -383,7 +383,7 @@
 	     form))
 	  ((eq fn 'quote)
 	   (if (cdr (cdr form))
-	       (byte-compile-warn "malformed quote form: `%s'"
+	       (byte-compile-warn "malformed quote form: ‘%s’"
 				  (prin1-to-string form)))
 	   ;; map (quote nil) to nil to simplify optimizer logic.
 	   ;; map quoted constants to nil if for-effect (just because).
@@ -407,7 +407,7 @@
 			 (if (symbolp binding)
 			     binding
 			   (if (cdr (cdr binding))
-			       (byte-compile-warn "malformed let binding: `%s'"
+			       (byte-compile-warn "malformed let binding: ‘%s’"
 						  (prin1-to-string binding)))
 			   (list (car binding)
 				 (byte-optimize-form (nth 1 binding) nil))))
@@ -420,7 +420,7 @@
 				(cons
 				 (byte-optimize-form (car clause) nil)
 				 (byte-optimize-body (cdr clause) for-effect))
-			      (byte-compile-warn "malformed cond form: `%s'"
+			      (byte-compile-warn "malformed cond form: ‘%s’"
 						 (prin1-to-string clause))
 			      clause))
 			 (cdr form))))
@@ -457,7 +457,7 @@
 
 	  ((eq fn 'if)
 	   (when (< (length form) 3)
-	     (byte-compile-warn "too few arguments for `if'"))
+	     (byte-compile-warn "too few arguments for ‘if’"))
 	   (cons fn
 	     (cons (byte-optimize-form (nth 1 form) nil)
 	       (cons
@@ -485,7 +485,7 @@
 	     (cons fn (mapcar 'byte-optimize-form (cdr form)))))
 
 	  ((eq fn 'interactive)
-	   (byte-compile-warn "misplaced interactive spec: `%s'"
+	   (byte-compile-warn "misplaced interactive spec: ‘%s’"
 			      (prin1-to-string form))
 	   nil)
 
@@ -539,7 +539,7 @@
            (cons fn (mapcar #'byte-optimize-form (cdr form))))
 
 	  ((not (symbolp fn))
-	   (byte-compile-warn "`%s' is a malformed function"
+	   (byte-compile-warn "‘%s’ is a malformed function"
 			      (prin1-to-string fn))
 	   form)
 
@@ -1054,7 +1054,7 @@
 
 (defun byte-optimize-while (form)
   (when (< (length form) 2)
-    (byte-compile-warn "too few arguments for `while'"))
+    (byte-compile-warn "too few arguments for ‘while’"))
   (if (nth 1 form)
       form))
 
@@ -1090,7 +1090,7 @@
 		  (nconc (list 'funcall fn) butlast
 			 (mapcar (lambda (x) (list 'quote x)) (nth 1 last))))
 	      (byte-compile-warn
-	       "last arg to apply can't be a literal atom: `%s'"
+	       "last arg to apply can't be a literal atom: ‘%s’"
 	       (prin1-to-string last))
 	      nil))
 	form)))

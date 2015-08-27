@@ -1984,7 +1984,6 @@ whether or not it is currently displayed in some window.  */)
   struct window *w;
   Lisp_Object old_buffer;
   EMACS_INT old_charpos IF_LINT (= 0), old_bytepos IF_LINT (= 0);
-  struct gcpro gcpro1;
   Lisp_Object lcols;
   void *itdata = NULL;
 
@@ -2000,7 +1999,6 @@ whether or not it is currently displayed in some window.  */)
   w = decode_live_window (window);
 
   old_buffer = Qnil;
-  GCPRO1 (old_buffer);
   if (XBUFFER (w->contents) != current_buffer)
     {
       /* Set the window's buffer temporarily to the current buffer.  */
@@ -2210,7 +2208,7 @@ whether or not it is currently displayed in some window.  */)
 		       old_charpos, old_bytepos);
     }
 
-  RETURN_UNGCPRO (make_number (it.vpos));
+  return make_number (it.vpos);
 }
 
 

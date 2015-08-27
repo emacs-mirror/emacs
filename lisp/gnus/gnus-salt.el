@@ -504,7 +504,7 @@ Two predefined functions are available:
       (when (setq win (get-buffer-window buf))
 	(select-window win)
 	(when gnus-selected-tree-overlay
-	  (goto-char (or (gnus-overlay-end gnus-selected-tree-overlay) 1)))
+	  (goto-char (or (overlay-end gnus-selected-tree-overlay) 1)))
 	(gnus-tree-minimize)))))
 
 (defun gnus-tree-show-summary ()
@@ -547,7 +547,7 @@ Two predefined functions are available:
     (when tree-window
       (select-window tree-window)
       (when gnus-selected-tree-overlay
-	(goto-char (or (gnus-overlay-end gnus-selected-tree-overlay) 1)))
+	(goto-char (or (overlay-end gnus-selected-tree-overlay) 1)))
       (let* ((top (cond ((< (window-height) 4) 0)
 			((< (window-height) 7) 1)
 			(t 2)))
@@ -858,12 +858,12 @@ it in the environment specified by BINDINGS."
 	(when (or (not gnus-selected-tree-overlay)
 		  (gnus-extent-detached-p gnus-selected-tree-overlay))
 	  ;; Create a new overlay.
-	  (gnus-overlay-put
+	  (overlay-put
 	   (setq gnus-selected-tree-overlay
-		 (gnus-make-overlay (point-min) (1+ (point-min))))
+		 (make-overlay (point-min) (1+ (point-min))))
 	   'face gnus-selected-tree-face))
 	;; Move the overlay to the article.
-	(gnus-move-overlay
+	(move-overlay
 	 gnus-selected-tree-overlay (goto-char (car region)) (cdr region))
 	(gnus-tree-minimize)
 	(gnus-tree-recenter)

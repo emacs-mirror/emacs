@@ -3360,8 +3360,10 @@ highlighted range in the spreadsheet."
 	 (ses-is-cell-sym-p new-name)
 	 (error "Already a cell name"))
    (and (boundp new-name)
-	(null (yes-or-no-p (format "`%S' is already bound outside this buffer, continue? "
-				   new-name)))
+	(null (yes-or-no-p
+	       (format-message
+		"`%S' is already bound outside this buffer, continue? "
+		new-name)))
 	(error "Already a bound cell name")))
   (let* (curcell
 	 (sym (if (ses-cell-p cell)

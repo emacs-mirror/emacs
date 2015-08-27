@@ -116,7 +116,7 @@ You can add further options here if you want to, but better use
 
 (defcustom mairix-update-options '("-F" "-Q")
   "Options when calling mairix for updating the database.
-The default is '-F' and '-Q' for making updates faster.  You
+The default is \"-F\" and \"-Q\" for making updates faster.  You
 should call mairix without these options from time to
 time (e.g. via cron job)."
   :type '(repeat string)
@@ -124,7 +124,7 @@ time (e.g. via cron job)."
 
 (defcustom mairix-search-options '("-Q")
   "Options when calling mairix for searching.
-The default is '-Q' for making searching faster."
+The default is \"-Q\" for making searching faster."
   :type '(repeat string)
   :group 'mairix)
 
@@ -398,7 +398,7 @@ Overwrite existing entry? ")
 				(concat "\n\n" (make-string 65 ?=)
 "\nYou can now customize your saved Mairix searches by modifying\n\
 the variable mairix-saved-searches. Don't forget to save your\nchanges \
-in your .emacs by pressing 'Save for Future Sessions'.\n"
+in your .emacs by pressing ‘Save for Future Sessions’.\n"
 (make-string 65 ?=) "\n")))
 
 (autoload 'mail-strip-quoted-names "mail-utils")
@@ -667,7 +667,8 @@ Fill in VALUES if based on an article."
 	     "                  up to N errors(missing/extra/different letters)\n"
 	     "    ^substring=  to match the substring at the beginning of a word.\n"))
     (widget-insert
-     "Whitespace will be converted to ',' (i.e. AND).  Use '/' for OR.\n\n")
+     (format-message
+      "Whitespace will be converted to ‘,’ (i.e. AND).  Use ‘/’ for OR.\n\n"))
     (setq mairix-widgets (mairix-widget-build-editable-fields values))
     (when (member 'flags mairix-widget-other)
       (widget-insert "\nFlags:\n      Seen:     ")
@@ -762,7 +763,7 @@ VALUES may contain values for editable fields from current article."
     (define-key map [(d)] 'mairix-select-delete)
     (define-key map [(s)] 'mairix-select-save)
     map)
-  "'mairix-searches-mode' keymap.")
+  "`mairix-searches-mode' keymap.")
 
 (defvar mairix-searches-mode-font-lock-keywords
   '(("^\\([0-9]+\\)"

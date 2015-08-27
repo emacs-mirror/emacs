@@ -611,7 +611,9 @@ callback data (if any)."
 					"--list-options" "gpg-agent")
 			  0)
 		   (goto-char (point-min))
-		   (re-search-forward "^allow-emacs-pinentry:.*:1$" nil t))))
+		   (re-search-forward
+                    "^allow-emacs-pinentry:\\(?:.*:\\)\\{8\\}1"
+                    nil t))))
       (pinentry-start))
     (setq process-environment
 	  (cons (format "INSIDE_EMACS=%s,epg" emacs-version)
@@ -1612,7 +1614,7 @@ handle the case where SIGNATURE has multiple signature.
 
 To check the verification results, use `epg-context-result-for' as follows:
 
-\(epg-context-result-for context 'verify)
+\(epg-context-result-for context \\='verify)
 
 which will return a list of `epg-signature' object."
   (unwind-protect
@@ -1647,7 +1649,7 @@ handle the case where SIGNATURE has multiple signature.
 
 To check the verification results, use `epg-context-result-for' as follows:
 
-\(epg-context-result-for context 'verify)
+\(epg-context-result-for context \\='verify)
 
 which will return a list of `epg-signature' object."
   (let ((coding-system-for-write 'binary)

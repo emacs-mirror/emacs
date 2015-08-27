@@ -797,7 +797,7 @@ load_pixmap (struct frame *f, Lisp_Object name)
 
   if (bitmap_id < 0)
     {
-      add_to_log ("Invalid or undefined bitmap `%s'", name, Qnil);
+      add_to_log ("Invalid or undefined bitmap `%s'", name);
       bitmap_id = 0;
     }
   else
@@ -1099,7 +1099,7 @@ load_color2 (struct frame *f, struct face *face, Lisp_Object name,
      to the values in an existing cell. */
   if (!defined_color (f, SSDATA (name), color, true))
     {
-      add_to_log ("Unable to load color \"%s\"", name, Qnil);
+      add_to_log ("Unable to load color \"%s\"", name);
 
       switch (target_index)
 	{
@@ -2177,17 +2177,12 @@ merge_named_face (struct frame *f, Lisp_Object face_name, Lisp_Object *to,
 			      face_name, NAMED_MERGE_POINT_NORMAL,
 			      &named_merge_points))
     {
-      struct gcpro gcpro1;
       Lisp_Object from[LFACE_VECTOR_SIZE];
       bool ok = get_lface_attributes (f, face_name, from, false,
 				      named_merge_points);
 
       if (ok)
-	{
-	  GCPRO1 (named_merge_point.face_name);
-	  merge_face_vectors (f, from, to, named_merge_points);
-	  UNGCPRO;
-	}
+	merge_face_vectors (f, from, to, named_merge_points);
 
       return ok;
     }
@@ -2247,7 +2242,7 @@ merge_face_ref (struct frame *f, Lisp_Object face_ref, Lisp_Object *to,
 	  else
 	    {
 	      if (err_msgs)
-		add_to_log ("Invalid face color", color_name, Qnil);
+		add_to_log ("Invalid face color %S", color_name);
 	      ok = false;
 	    }
 	}
@@ -2452,7 +2447,7 @@ merge_face_ref (struct frame *f, Lisp_Object face_ref, Lisp_Object *to,
       /* FACE_REF ought to be a face name.  */
       ok = merge_named_face (f, face_ref, to, named_merge_points);
       if (!ok && err_msgs)
-	add_to_log ("Invalid face reference: %s", face_ref, Qnil);
+	add_to_log ("Invalid face reference: %s", face_ref);
     }
 
   return ok;

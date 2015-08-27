@@ -122,7 +122,7 @@
 		  (insert-file-contents output-file-name)))
 	    (set-buffer errors-buffer)
 	    (if (memq status '(stop signal))
-		(error "%s exited abnormally: '%s'" program exit-status))
+		(error "%s exited abnormally: ‘%s’" program exit-status))
 	    (if (= 127 exit-status)
 		(error "%s could not be found" program))))
       (if passphrase-with-newline

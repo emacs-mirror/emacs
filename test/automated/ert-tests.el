@@ -345,6 +345,10 @@ This macro is used to test if macroexpansion in `should' works."
         (should (equal actual-condition expected-condition)))))))
 
 (ert-deftest ert-test-deftest ()
+  ;; FIXME: These tests don't look very good.  What is their intent, i.e. what
+  ;; are they really testing?  The precise generated code shouldn't matter, so
+  ;; we should either test the behavior of the code, or else try to express the
+  ;; kind of efficiency guarantees we're looking for.
   (should (equal (macroexpand '(ert-deftest abc () "foo" :tags '(bar)))
 		 '(progn
 		    (ert-set-test 'abc

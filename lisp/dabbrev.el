@@ -534,7 +534,7 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
       (if (not (or (eq dabbrev--last-buffer dabbrev--last-buffer-found)
 		   (minibuffer-window-active-p (selected-window))))
 	  (progn
-	    (message "Expansion found in '%s'"
+	    (message "Expansion found in `%s'"
 		     (buffer-name dabbrev--last-buffer))
 	    (setq dabbrev--last-buffer-found dabbrev--last-buffer))
 	(message nil))

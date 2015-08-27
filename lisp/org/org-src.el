@@ -270,8 +270,7 @@ the display of windows containing the Org buffer and the code buffer."
       (setq beg (move-marker beg (nth 0 info))
 	    end (move-marker end (nth 1 info))
 	    msg (if allow-write-back-p
-		    (substitute-command-keys
-		     "Edit, then exit with C-c ' (C-c and single quote) -- C-c C-k to abort")
+                    "Edit, then exit with C-c ' (C-c and single quote) -- C-c C-k to abort"
 		  "Exit with C-c ' (C-c and single quote) -- C-c C-k to abort")
 	    code (or code (buffer-substring-no-properties beg end))
 	    lang (or (cdr (assoc (nth 2 info) org-src-lang-modes))
@@ -468,8 +467,7 @@ the fragment in the Org-mode buffer."
   (let ((line (org-current-line))
 	(col (current-column))
 	(case-fold-search t)
-	(msg (substitute-command-keys
-	      "Edit, then exit with C-c ' (C-c and single quote) -- C-c C-k to abort"))
+	(msg "Edit, then exit with C-c ' (C-c and single quote) -- C-c C-k to abort")
 	(org-mode-p (derived-mode-p 'org-mode))
 	(beg (make-marker))
 	(end (make-marker))
@@ -867,9 +865,9 @@ This command is not bound to a key by default, to avoid conflicts
 with language major mode bindings.  To bind it to C-c @ in all
 language major modes, you could use
 
-  (add-hook 'org-src-mode-hook
+  (add-hook \\='org-src-mode-hook
             (lambda () (define-key org-src-mode-map \"\\C-c@\"
-                    'org-src-do-key-sequence-at-code-block)))
+                    \\='org-src-do-key-sequence-at-code-block)))
 
 In that case, for example, C-c @ t issued in code edit buffers
 would tangle the current Org code block, C-c @ e would execute

@@ -193,7 +193,7 @@ current command argument."
 
 (defcustom pcomplete-expand-before-complete nil
   "If non-nil, expand the current argument before completing it.
-This means that typing something such as '$HOME/bi' followed by
+This means that typing something such as `$HOME/bi' followed by
 \\[pcomplete-argument] will cause the variable reference to be
 resolved first, and the resultant value that will be completed against
 to be inserted in the buffer.  Note that exactly what gets expanded
@@ -1022,8 +1022,8 @@ string, use it as the completion stub instead of the default (which is
 the entire text of the current argument).
 
 For an example of when you might want to use STUB: if the current
-argument text is 'long-path-name/', you don't want the completions
-list display to be cluttered by 'long-path-name/' appearing at the
+argument text is `long-path-name/', you don't want the completions
+list display to be cluttered by `long-path-name/' appearing at the
 beginning of every alternative.  Not only does this make things less
 intelligible, but it is also inefficient.  Yet, if the completion list
 does not begin with this string for every entry, the current argument
@@ -1112,7 +1112,7 @@ Typing SPC flushes the help buffer."
                     (scroll-up))))
               (message ""))
              (t
-              (setq unread-command-events (list event))
+              (push event unread-command-events)
               (throw 'done nil)))))
       (if (and pcomplete-last-window-config
                pcomplete-restore-window-delay)

@@ -168,10 +168,10 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
 
 (defun eshell/info (&rest args)
   "Run the info command in-frame with the same behavior as command-line `info', ie:
-  'info'           => goes to top info window
-  'info arg1'      => IF arg1 is a file, then visits arg1
-  'info arg1'      => OTHERWISE goes to top info window and then menu item arg1
-  'info arg1 arg2' => does action for arg1 (either visit-file or menu-item) and then menu item arg2
+  `info'           => goes to top info window
+  `info arg1'      => IF arg1 is a file, then visits arg1
+  `info arg1'      => OTHERWISE goes to top info window and then menu item arg1
+  `info arg1 arg2' => does action for arg1 (either visit-file or menu-item) and then menu item arg2
   etc."
   (eval-and-compile (require 'info))
   (let ((file (cond
@@ -579,7 +579,7 @@ Copy SOURCE to DEST, or multiple SOURCE(s) to DIRECTORY.")
 Create a link to the specified TARGET with optional LINK_NAME.  If there is
 more than one TARGET, the last argument must be a directory;  create links
 in DIRECTORY to each TARGET.  Create hard links by default, symbolic links
-with '--symbolic'.  When creating hard links, each TARGET must exist.")
+with `--symbolic'.  When creating hard links, each TARGET must exist.")
    (let ((no-dereference t))
      (eshell-mvcpln-template "ln" "linking"
 			     (if symbolic

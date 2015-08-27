@@ -417,7 +417,7 @@ searched for NAME if it is not found in DICT.  This recursive
 lookup can be disabled by the optional argument NON-RECURSIVE.
 
 This function derives values for some special NAMEs, such as
-'FIRST' and 'LAST'."
+`FIRST' and `LAST'."
   (if (not (slot-boundp dict 'namehash))
       nil
     ;; Get the value of this name from the dictionary or its parent

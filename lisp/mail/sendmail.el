@@ -907,6 +907,8 @@ the user from the mailer."
                 (concat "\\(?:[[:space:];,]\\|\\`\\)"
                         (regexp-opt mail-mailing-lists t)
                         "\\(?:[[:space:];,]\\|\\'\\)"))))
+        (mail-combine-fields "To")
+        (mail-combine-fields "CC")
 	;; If there are mailing lists defined
 	(when ml
 	  (save-excursion
@@ -1074,6 +1076,71 @@ This function does not perform RFC2047 encoding."
 		 (replace-match "\\1(\\3)" t)
 		 (goto-char fullname-start))))
 	   (insert ")\n")))))
+
+(defun mail-combine-fields (field)
+  "Offer to combine all FIELD fields in buffer into one FIELD field.
+If this finds multiple FIELD fields, it asks the user whether
+to combine them into one, and does so if the user says y."
+  (let ((search-pattern (format "^%s[ \t]*:" field))
+        first-to-end
+        query-asked
+        query-answer
+        (old-point (point))
+        (old-max (point-max)))
+    (save-excursion
+      (save-restriction
+        (goto-char (point-min))
+        (narrow-to-region (point-min) (mail-header-end))
+        ;; Find the first FIELD field and record where it ends.
+        (when (re-search-forward search-pattern nil t)
+          (forward-line 1)
+          (re-search-forward "^[^ \t]" nil t)
+          (beginning-of-line)
+          (setq first-to-end (point-marker))
+          (set-marker-insertion-type first-to-end t)
+          ;; Find each following FIELD field
+          ;; and combine it with the first FIELD field.
+          (while (re-search-forward search-pattern nil t)
+            ;; For the second FIELD field, ask user to
+            ;; approve combining them.
+            ;; But if the user refuse to combine them, signal error.
+            (unless query-asked
+              (save-restriction
+                ;; This is just so the screen doesn't change.
+                (narrow-to-region (point-min) old-max)
+                (goto-char old-point)
+                (setq query-asked t)
+                (if (y-or-n-p (format "Message contains multiple %s fields.  Combine? " field))
+                    (setq query-answer t))))
+            (when query-answer
+              (let ((this-to-start (line-beginning-position))
+                    this-to-end
+                    this-to)
+                (forward-line 1)
+                (re-search-forward "^[^ \t]" nil t)
+                (beginning-of-line)
+                (setq this-to-end (point))
+                ;; Get the text of this FIELD field.
+                (setq this-to (buffer-substring this-to-start this-to-end))
+                ;; Delete it.
+                (delete-region this-to-start this-to-end)
+                (save-excursion
+                  ;; Put a comma after the first FIELD field.
+                  (goto-char first-to-end)
+                  (forward-char -1)
+                  (insert ",")
+                  ;; Copy this one after it.
+                  (goto-char first-to-end)
+                  (save-excursion
+                    (insert this-to))
+                  ;; Replace the FIELD: with spaces.
+                  (looking-at search-pattern)
+                  ;; Try to preserve alignment of contents of the field
+                  (let ((prefix-length (length (match-string 0))))
+                    (replace-match " ")
+                    (dotimes (i (1- prefix-length))
+                      (insert " ")))))))
+          (set-marker first-to-end nil))))))
 
 (defun mail-encode-header (beg end)
   "Encode the mail header between BEG and END according to RFC2047.

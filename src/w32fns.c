@@ -138,6 +138,19 @@ struct MONITOR_INFO
     DWORD   dwFlags;
 };
 
+#if _WIN32_WINDOWS >= 0x0410
+#define C_CHILDREN_TITLEBAR CCHILDREN_TITLEBAR
+typedef TITLEBARINFO TITLEBAR_INFO;
+#else
+#define C_CHILDREN_TITLEBAR 5
+typedef struct
+{
+  DWORD cbSize;
+  RECT  rcTitleBar;
+  DWORD rgstate[C_CHILDREN_TITLEBAR+1];
+} TITLEBAR_INFO, *PTITLEBAR_INFO;
+#endif
+
 #ifndef CCHDEVICENAME
 #define CCHDEVICENAME 32
 #endif
@@ -172,6 +185,8 @@ typedef BOOL CALLBACK (* MonitorEnum_Proc)
   (IN HMONITOR monitor, IN HDC hdc, IN RECT *rcMonitor, IN LPARAM dwData);
 typedef BOOL (WINAPI * EnumDisplayMonitors_Proc)
   (IN HDC hdc, IN RECT *rcClip, IN MonitorEnum_Proc fnEnum, IN LPARAM dwData);
+typedef BOOL (WINAPI * GetTitleBarInfo_Proc)
+  (IN HWND hwnd, OUT TITLEBAR_INFO* info);
 
 TrackMouseEvent_Proc track_mouse_event_fn = NULL;
 ImmGetCompositionString_Proc get_composition_string_fn = NULL;
@@ -182,6 +197,7 @@ MonitorFromPoint_Proc monitor_from_point_fn = NULL;
 GetMonitorInfo_Proc get_monitor_info_fn = NULL;
 MonitorFromWindow_Proc monitor_from_window_fn = NULL;
 EnumDisplayMonitors_Proc enum_display_monitors_fn = NULL;
+GetTitleBarInfo_Proc get_title_bar_info_fn = NULL;
 
 #ifdef NTGUI_UNICODE
 #define unicode_append_menu AppendMenuW
@@ -2848,11 +2864,11 @@ get_wm_chars (HWND aWnd, int *buf, int buflen, int ignore_ctrl, int ctrl,
     *ctrl_cnt = 0;
   if (is_dead)
     *is_dead = -1;
-  eassert(w32_unicode_gui);
+  eassert (w32_unicode_gui);
   while (buflen
 	 /* Should be called only when w32_unicode_gui:  */
-	 && PeekMessageW(&msg, aWnd, WM_KEYFIRST, WM_KEYLAST,
-		      PM_NOREMOVE | PM_NOYIELD)
+	 && PeekMessageW (&msg, aWnd, WM_KEYFIRST, WM_KEYLAST,
+			  PM_NOREMOVE | PM_NOYIELD)
 	 && (msg.message == WM_CHAR || msg.message == WM_SYSCHAR
 	     || msg.message == WM_DEADCHAR || msg.message == WM_SYSDEADCHAR
 	     || msg.message == WM_UNICHAR))
@@ -2861,7 +2877,7 @@ get_wm_chars (HWND aWnd, int *buf, int buflen, int ignore_ctrl, int ctrl,
 	 characters which come BEFORE the next keyup/keydown message.  */
       int dead;
 
-      GetMessageW(&msg, aWnd, msg.message, msg.message);
+      GetMessageW (&msg, aWnd, msg.message, msg.message);
       dead = (msg.message == WM_DEADCHAR || msg.message == WM_SYSDEADCHAR);
       if (is_dead)
 	*is_dead = (dead ? msg.wParam : -1);
@@ -2920,7 +2936,7 @@ get_wm_chars (HWND aWnd, int *buf, int buflen, int ignore_ctrl, int ctrl,
 	  && ((vk >= VK_NUMPAD0 && vk <= VK_DIVIDE)
 	      || (exp && ((vk >= VK_PRIOR && vk <= VK_DOWN) ||
 		     vk == VK_INSERT || vk == VK_DELETE || vk == VK_CLEAR)))
-	  && strchr("0123456789/*-+.,", code_unit))
+	  && strchr ("0123456789/*-+.,", code_unit))
 	continue;
       *buf++ = code_unit;
       buflen--;
@@ -2941,7 +2957,11 @@ get_wm_chars (HWND aWnd, int *buf, int buflen, int ignore_ctrl, int ctrl,
    environments!) should  have different values.  Moreover, switching to a
    non-Emacs window with the same language environment, and using (dead)keys
    there would change the value stored in the kernel, but not this value.  */
-static int after_deadkey = 0;
+/* A layout may emit deadkey=0.  It looks like this would reset the state
+   of the kernel's finite automaton (equivalent to emiting 0-length string,
+   which is otherwise impossible in the dead-key map of a layout).
+   Be ready to treat the case when this delivers WM_(SYS)DEADCHAR. */
+static int after_deadkey = -1;
 
 int
 deliver_wm_chars (int do_translate, HWND hwnd, UINT msg, UINT wParam,
@@ -2951,7 +2971,7 @@ deliver_wm_chars (int do_translate, HWND hwnd, UINT msg, UINT wParam,
      points to a keypress.
      (However, the "old style" TranslateMessage() would deliver at most 16 of
      them.)  Be on a safe side, and prepare to treat many more.  */
-  int ctrl_cnt, buf[1024], count, is_dead, after_dead = (after_deadkey != -1);
+  int ctrl_cnt, buf[1024], count, is_dead, after_dead = (after_deadkey > 0);
 
   /* Since the keypress processing logic of Windows has a lot of state, it
      is important to call TranslateMessage() for every keyup/keydown, AND
@@ -2974,7 +2994,7 @@ deliver_wm_chars (int do_translate, HWND hwnd, UINT msg, UINT wParam,
       windows_msg.time = GetMessageTime ();
       TranslateMessage (&windows_msg);
     }
-  count = get_wm_chars (hwnd, buf, sizeof(buf)/sizeof(*buf), 1,
+  count = get_wm_chars (hwnd, buf, sizeof (buf)/sizeof (*buf), 1,
 			/* The message may have been synthesized by
 			   who knows what; be conservative.  */
 			modifier_set (VK_LCONTROL)
@@ -3131,7 +3151,7 @@ deliver_wm_chars (int do_translate, HWND hwnd, UINT msg, UINT wParam,
 	    }
 	  else if (wmsg.dwModifiers & (alt_modifier | meta_modifier)
 		   || (console_modifiers
-		       & (RIGHT_WIN_PRESSED | RIGHT_WIN_PRESSED
+		       & (LEFT_WIN_PRESSED | RIGHT_WIN_PRESSED
 			  | APPS_PRESSED | SCROLLLOCK_ON)))
 	    {
 	      /* Pure Alt (or combination of Alt, Win, APPS, scrolllock.  */
@@ -3140,7 +3160,7 @@ deliver_wm_chars (int do_translate, HWND hwnd, UINT msg, UINT wParam,
 	  if (type_CtrlAlt)
 	    {
 	      /* Out of bound bitmap:  */
-	      SHORT r = VkKeyScanW( *b ), bitmap = 0x1FF;
+	      SHORT r = VkKeyScanW (*b), bitmap = 0x1FF;
 
 	      FPRINTF_WM_CHARS((stderr, "VkKeyScanW %#06x %#04x\n", (int)r,
 			       wParam));
@@ -3203,12 +3223,12 @@ deliver_wm_chars (int do_translate, HWND hwnd, UINT msg, UINT wParam,
 		 other cases, we ignore the delivered character.  */
 #define S_TYPES_TO_IGNORE_CHARACTER_PAYLOAD "aldb"
 #define S_TYPES_TO_REPORT_CHARACTER_PAYLOAD_WITH_MODIFIERS ""
-	      if (strchr(S_TYPES_TO_IGNORE_CHARACTER_PAYLOAD,
-			 type_CtrlAlt[hairy]))
+	      if (strchr (S_TYPES_TO_IGNORE_CHARACTER_PAYLOAD,
+			  type_CtrlAlt[hairy]))
 		return 0;
 	      /* If in neither list, report all the modifiers we see COMBINED
 		 WITH the reported character.  */
-	      if (strchr(S_TYPES_TO_REPORT_CHARACTER_PAYLOAD_WITH_MODIFIERS,
+	      if (strchr (S_TYPES_TO_REPORT_CHARACTER_PAYLOAD_WITH_MODIFIERS,
 			  type_CtrlAlt[hairy]))
 		strip_ExtraMods = 0;
 	    }
@@ -3572,7 +3592,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		 keycode, and expansion.  (Additionally, one knows
 		 boundaries of expansion of different keypresses.)  */
 	      res = deliver_wm_chars (1, hwnd, msg, wParam, lParam, 1);
-	      windows_translate = -( res != 0 );
+	      windows_translate = -(res != 0);
 	      if (res > 0) /* Bound to character(s) or a deadkey */
 		break;
 	      /* deliver_wm_chars may make some branches after this vestigal.  */
@@ -4954,7 +4974,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
   bool minibuffer_only = false;
   long window_prompting = 0;
   ptrdiff_t count = SPECPDL_INDEX ();
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   Lisp_Object display;
   struct w32_display_info *dpyinfo = NULL;
   Lisp_Object parent;
@@ -5003,7 +5022,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
   /* No need to protect DISPLAY because that's not used after passing
      it to make_frame_without_minibuffer.  */
   frame = Qnil;
-  GCPRO4 (parameters, parent, name, frame);
   tem = x_get_arg (dpyinfo, parameters, Qminibuffer, "minibuffer", "Minibuffer",
 		   RES_TYPE_SYMBOL);
   if (EQ (tem, Qnone) || NILP (tem))
@@ -5264,8 +5282,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
   for (tem = parameters; CONSP (tem); tem = XCDR (tem))
     if (CONSP (XCAR (tem)) && !NILP (XCAR (XCAR (tem))))
       fset_param_alist (f, Fcons (XCAR (tem), f->param_alist));
-
-  UNGCPRO;
 
   /* Make sure windows on this frame appear in calls to next-window
      and similar functions.  */
@@ -5590,7 +5606,6 @@ w32_display_monitor_attributes_list (void)
   Lisp_Object monitor_list = Qnil, monitor_frames, rest, frame;
   int i, n_monitors;
   HMONITOR *monitors;
-  struct gcpro gcpro1, gcpro2, gcpro3;
 
   if (!(enum_display_monitors_fn && get_monitor_info_fn
 	&& monitor_from_window_fn))
@@ -5631,8 +5646,6 @@ w32_display_monitor_attributes_list (void)
 	    ASET (monitor_frames, i, Fcons (frame, AREF (monitor_frames, i)));
 	}
     }
-
-  GCPRO3 (attributes_list, primary_monitor_attributes, monitor_frames);
 
   for (i = 0; i < n_monitors; i++)
     {
@@ -5680,8 +5693,6 @@ w32_display_monitor_attributes_list (void)
 
   if (!NILP (primary_monitor_attributes))
     attributes_list = Fcons (primary_monitor_attributes, attributes_list);
-
-  UNGCPRO;
 
   xfree (monitors);
 
@@ -5869,11 +5880,8 @@ terminate Emacs if we can't open the connection.
      HOME directory, then in Emacs etc dir for a file called rgb.txt. */
   {
     Lisp_Object color_file;
-    struct gcpro gcpro1;
 
     color_file = build_string ("~/rgb.txt");
-
-    GCPRO1 (color_file);
 
     if (NILP (Ffile_readable_p (color_file)))
       color_file =
@@ -5881,8 +5889,6 @@ terminate Emacs if we can't open the connection.
 			   Fsymbol_value (intern ("data-directory")));
 
     Vw32_color_map = Fx_load_color_file (color_file);
-
-    UNGCPRO;
   }
   if (NILP (Vw32_color_map))
     Vw32_color_map = w32_default_color_map ();
@@ -6170,7 +6176,6 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
   long window_prompting = 0;
   int width, height;
   ptrdiff_t count = SPECPDL_INDEX ();
-  struct gcpro gcpro1, gcpro2, gcpro3;
   struct kboard *kb;
   bool face_change_before = face_change;
   Lisp_Object buffer;
@@ -6195,7 +6200,6 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
   Vx_resource_name = name;
 
   frame = Qnil;
-  GCPRO3 (parms, name, frame);
   /* Make a frame without minibuffer nor mode-line.  */
   f = make_frame (false);
   f->wants_modeline = 0;
@@ -6371,8 +6375,6 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
 
   f->no_split = true;
 
-  UNGCPRO;
-
   /* Now that the frame is official, it counts as a reference to
      its display.  */
   FRAME_DISPLAY_INFO (f)->reference_count++;
@@ -6531,13 +6533,10 @@ Text larger than the specified size is clipped.  */)
   struct text_pos pos;
   int i, width, height;
   bool seen_reversed_p;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   int old_windows_or_buffers_changed = windows_or_buffers_changed;
   ptrdiff_t count = SPECPDL_INDEX ();
 
   specbind (Qinhibit_redisplay, Qt);
-
-  GCPRO4 (string, parms, frame, timeout);
 
   CHECK_STRING (string);
   f = decode_window_system_frame (frame);
@@ -6820,7 +6819,6 @@ Text larger than the specified size is clipped.  */)
   tip_timer = call3 (intern ("run-at-time"), timeout, Qnil,
 		     intern ("x-hide-tip"));
 
-  UNGCPRO;
   return unbind_to (count, Qnil);
 }
 
@@ -6832,7 +6830,6 @@ Value is t if tooltip was open, nil otherwise.  */)
 {
   ptrdiff_t count;
   Lisp_Object deleted, frame, timer;
-  struct gcpro gcpro1, gcpro2;
 
   /* Return quickly if nothing to do.  */
   if (NILP (tip_timer) && NILP (tip_frame))
@@ -6840,7 +6837,6 @@ Value is t if tooltip was open, nil otherwise.  */)
 
   frame = tip_frame;
   timer = tip_timer;
-  GCPRO2 (frame, timer);
   tip_frame = tip_timer = deleted = Qnil;
 
   count = SPECPDL_INDEX ();
@@ -6856,7 +6852,6 @@ Value is t if tooltip was open, nil otherwise.  */)
       deleted = Qt;
     }
 
-  UNGCPRO;
   return unbind_to (count, deleted);
 }
 
@@ -7029,13 +7024,7 @@ value of DIR as in previous invocations; this is standard Windows behavior.  */)
   char fname_ret[MAX_UTF8_PATH];
 #endif /* NTGUI_UNICODE */
 
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
-  GCPRO6 (prompt, dir, default_filename, mustmatch, only_dir_p, filename);
-
   {
-    struct gcpro gcpro1, gcpro2;
-    GCPRO2 (orig_dir, orig_prompt); /* There is no GCPRON, N>6.  */
-
     /* Note: under NTGUI_UNICODE, we do _NOT_ use ENCODE_FILE: the
        system file encoding expected by the platform APIs (e.g. Cygwin's
        POSIX implementation) may not be the same as the encoding expected
@@ -7264,15 +7253,13 @@ value of DIR as in previous invocations; this is standard Windows behavior.  */)
 	Qfile_name_history,
 	default_filename,
 	Qnil);
-
-    UNGCPRO;
   }
 
   /* Make "Cancel" equivalent to C-g.  */
   if (NILP (filename))
     Fsignal (Qquit, Qnil);
 
-  RETURN_UNGCPRO (filename);
+  return filename;
 }
 
 
@@ -7478,7 +7465,6 @@ a ShowWindow flag:
   char *doc_a = NULL, *params_a = NULL, *ops_a = NULL;
   Lisp_Object absdoc, handler;
   BOOL success;
-  struct gcpro gcpro1;
 #endif
 
   CHECK_STRING (document);
@@ -7578,7 +7564,6 @@ a ShowWindow flag:
      absolute.  But DOCUMENT does not have to be a file, it can be a
      URL, for example.  So we make it absolute only if it is an
      existing file; if it is a file that does not exist, tough.  */
-  GCPRO1 (absdoc);
   absdoc = Fexpand_file_name (document, Qnil);
   /* Don't call file handlers for file-exists-p, since they might
      attempt to access the file, which could fail or produce undesired
@@ -7602,7 +7587,6 @@ a ShowWindow flag:
     }
   else
     document = ENCODE_FILE (document);
-  UNGCPRO;
 
   current_dir = ENCODE_FILE (current_dir);
   /* Cannot use filename_to_utf16/ansi with DOCUMENT, since it could
@@ -7748,21 +7732,16 @@ w32_parse_hot_key (Lisp_Object key)
   int vk_code;
   int lisp_modifiers;
   int w32_modifiers;
-  struct gcpro gcpro1;
 
   CHECK_VECTOR (key);
 
   if (ASIZE (key) != 1)
     return Qnil;
 
-  GCPRO1 (key);
-
   c = AREF (key, 0);
 
   if (CONSP (c) && lucid_event_type_list_p (c))
     c = Fevent_convert_list (c);
-
-  UNGCPRO;
 
   if (! INTEGERP (c) && ! SYMBOLP (c))
     error ("Key definition is invalid");
@@ -7982,183 +7961,249 @@ This is a direct interface to the Windows API FindWindow function.  */)
   return Qt;
 }
 
-DEFUN ("w32-frame-menu-bar-size", Fw32_frame_menu_bar_size, Sw32_frame_menu_bar_size, 0, 1, 0,
-       doc: /* Return sizes of menu bar on frame FRAME.
-The return value is a list of four elements: The current width and
-height of FRAME's menu bar in pixels, the height of one menu bar line in
-a wrapped menu bar in pixels, and the height of a single line menu bar
-in pixels.
+DEFUN ("w32-frame-geometry", Fw32_frame_geometry, Sw32_frame_geometry, 0, 1, 0,
+       doc: /* Return geometric attributes of FRAME.
+FRAME must be a live frame and defaults to the selected one.  The return
+value is an association list of the attributes listed below.  All height
+and width values are in pixels.
 
-If FRAME is omitted or nil, the selected frame is used.  */)
-  (Lisp_Object frame)
-{
-  struct frame *f = decode_any_frame (frame);
-  MENUBARINFO menu_bar;
-  int width, height, single_height, wrapped_height;
+`outer-position' is a cons of the outer left and top edges of FRAME
+  relative to the origin - the position (0, 0) - of FRAME's display.
 
-  if (FRAME_INITIAL_P (f) || !FRAME_W32_P (f))
-    return Qnil;
+`outer-size' is a cons of the outer width and height of FRAME.  The
+  outer size includes the title bar and the external borders as well as
+  any menu and/or tool bar of frame.
 
-  block_input ();
+`external-border-size' is a cons of the horizontal and vertical width of
+  FRAME's external borders as supplied by the window manager.
 
-  single_height = GetSystemMetrics (SM_CYMENU);
-  wrapped_height = GetSystemMetrics (SM_CYMENUSIZE);
-  menu_bar.cbSize = sizeof (menu_bar);
-  menu_bar.rcBar.right = menu_bar.rcBar.left = 0;
-  menu_bar.rcBar.top = menu_bar.rcBar.bottom = 0;
-  GetMenuBarInfo (FRAME_W32_WINDOW (f), 0xFFFFFFFD, 0, &menu_bar);
-  width = menu_bar.rcBar.right - menu_bar.rcBar.left;
-  height = menu_bar.rcBar.bottom - menu_bar.rcBar.top;
+`title-bar-size' is a cons of the width and height of the title bar of
+  FRAME as supplied by the window manager.  If both of them are zero,
+  FRAME has no title bar.  If only the width is zero, Emacs was not
+  able to retrieve the width information.
 
-  unblock_input ();
+`menu-bar-external', if non-nil, means the menu bar is external (never
+  included in the inner edges of FRAME).
 
-  return list4 (make_number (width), make_number (height),
-		make_number (wrapped_height), make_number (single_height));
-}
-
-DEFUN ("w32-frame-rect", Fw32_frame_rect, Sw32_frame_rect, 0, 2, 0,
-       doc: /* Return boundary rectangle of FRAME in screen coordinates.
-FRAME must be a live frame and defaults to the selected one.
-
-The boundary rectangle is a list of four elements, specifying the left,
-top, right and bottom screen coordinates of FRAME including menu and
-title bar and decorations.  Optional argument CLIENT non-nil means to
-return the boundaries of the client rectangle which excludes menu and
-title bar and decorations.  */)
-  (Lisp_Object frame, Lisp_Object client)
-{
-  struct frame *f = decode_live_frame (frame);
-  RECT rect;
-
-  if (FRAME_INITIAL_P (f) || !FRAME_W32_P (f))
-    return Qnil;
-
-  block_input ();
-
-  if (!NILP (client))
-    GetClientRect (FRAME_W32_WINDOW (f), &rect);
-  else
-    GetWindowRect (FRAME_W32_WINDOW (f), &rect);
-
-  unblock_input ();
-
-  return list4 (make_number (rect.left), make_number (rect.top),
-		make_number (rect.right), make_number (rect.bottom));
-}
-
-DEFUN ("x-frame-geometry", Fx_frame_geometry, Sx_frame_geometry, 0, 1, 0,
-       doc: /* Return geometric attributes of frame FRAME.
-FRAME must be a live frame and defaults to the selected one.
-
-The return value is an association list containing the following
-elements (all size values are in pixels).
-
-- `frame-outer-size' is a cons of the outer width and height of FRAME.
-  The outer size includes the title bar and the external borders as well
-  as any menu and/or tool bar of frame.
-
-- `border' is a cons of the horizontal and vertical width of FRAME's
-  external borders.
-
-- `title-bar-height' is the height of the title bar of FRAME.
-
-- `menu-bar-external' if t means the menu bar is by default external
-  (not included in the inner size of FRAME).
-
-- `menu-bar-size' is a cons of the width and height of the menu bar of
+`menu-bar-size' is a cons of the width and height of the menu bar of
   FRAME.
 
-- `tool-bar-external' if t means the tool bar is by default external
-  (not included in the inner size of FRAME).
+`tool-bar-external', if non-nil, means the tool bar is external (never
+  included in the inner edges of FRAME).
 
-- `tool-bar-side' tells tells on which side the tool bar on FRAME is by
-  default and can be one of `left', `top', `right' or `bottom'.
+`tool-bar-position' tells on which side the tool bar on FRAME is and can
+  be one of `left', `top', `right' or `bottom'.  If this is nil, FRAME
+  has no tool bar.
 
-- `tool-bar-size' is a cons of the width and height of the tool bar of
+`tool-bar-size' is a cons of the width and height of the tool bar of
   FRAME.
 
-- `frame-inner-size' is a cons of the inner width and height of FRAME.
-  This excludes FRAME's title bar and external border as well as any
-  external menu and/or tool bar.  */)
+`internal-border-width' is the width of the internal border of
+  FRAME.  */)
   (Lisp_Object frame)
 {
   struct frame *f = decode_live_frame (frame);
-  Lisp_Object geometry = Qnil;
-  RECT frame_outer_edges, frame_inner_edges;
+
   MENUBARINFO menu_bar;
-  int  border_width, border_height, title_height;
-  int single_bar_height, wrapped_bar_height, menu_bar_height;
-  Lisp_Object fullscreen = Fframe_parameter (frame, Qfullscreen);
+  WINDOWINFO window;
+  int left, top, right, bottom;
+  unsigned int external_border_width, external_border_height;
+  int title_bar_width = 0, title_bar_height = 0;
+  int single_menu_bar_height, wrapped_menu_bar_height, menu_bar_height;
+  int tool_bar_height = FRAME_TOOL_BAR_HEIGHT (f);
+  int internal_border_width = FRAME_INTERNAL_BORDER_WIDTH (f);
+  bool fullboth = EQ (get_frame_param (f, Qfullscreen), Qfullboth);
 
   if (FRAME_INITIAL_P (f) || !FRAME_W32_P (f))
     return Qnil;
 
   block_input ();
-
-  /* Outer frame rectangle, including outer borders and title bar. */
-  GetWindowRect (FRAME_W32_WINDOW (f), &frame_outer_edges);
-  /* Inner frame rectangle, excluding borders and title bar.  */
-  GetClientRect (FRAME_W32_WINDOW (f), &frame_inner_edges);
-  /* Outer border.  */
-  border_width = GetSystemMetrics (SM_CXFRAME);
-  border_height = GetSystemMetrics (SM_CYFRAME);
+  /* Outer rectangle and borders.  */
+  window.cbSize = sizeof (window);
+  GetWindowInfo (FRAME_W32_WINDOW (f), &window);
+  external_border_width = window.cxWindowBorders;
+  external_border_height = window.cyWindowBorders;
   /* Title bar.  */
-  title_height = GetSystemMetrics (SM_CYCAPTION);
+  if (get_title_bar_info_fn)
+    {
+      TITLEBAR_INFO title_bar;
+
+      title_bar.cbSize = sizeof (title_bar);
+      title_bar.rcTitleBar.left = title_bar.rcTitleBar.right = 0;
+      title_bar.rcTitleBar.top = title_bar.rcTitleBar.bottom = 0;
+      for (int i = 0; i < 6; i++)
+	title_bar.rgstate[i] = 0;
+      if (get_title_bar_info_fn (FRAME_W32_WINDOW (f), &title_bar)
+	  && !(title_bar.rgstate[0] & 0x00008001))
+	{
+	  title_bar_width
+	    = title_bar.rcTitleBar.right - title_bar.rcTitleBar.left;
+	  title_bar_height
+	    = title_bar.rcTitleBar.bottom - title_bar.rcTitleBar.top;
+	}
+    }
+  else if ((window.dwStyle & WS_CAPTION) == WS_CAPTION)
+    title_bar_height = GetSystemMetrics (SM_CYCAPTION);
   /* Menu bar.  */
   menu_bar.cbSize = sizeof (menu_bar);
   menu_bar.rcBar.right = menu_bar.rcBar.left = 0;
   menu_bar.rcBar.top = menu_bar.rcBar.bottom = 0;
   GetMenuBarInfo (FRAME_W32_WINDOW (f), 0xFFFFFFFD, 0, &menu_bar);
-  single_bar_height = GetSystemMetrics (SM_CYMENU);
-  wrapped_bar_height = GetSystemMetrics (SM_CYMENUSIZE);
+  single_menu_bar_height = GetSystemMetrics (SM_CYMENU);
+  wrapped_menu_bar_height = GetSystemMetrics (SM_CYMENUSIZE);
   unblock_input ();
 
+  left = window.rcWindow.left;
+  top = window.rcWindow.top;
+  right = window.rcWindow.right;
+  bottom = window.rcWindow.bottom;
+
+  /* Menu bar.  */
   menu_bar_height = menu_bar.rcBar.bottom - menu_bar.rcBar.top;
   /* Fix menu bar height reported by GetMenuBarInfo.  */
-  if (menu_bar_height > single_bar_height)
+  if (menu_bar_height > single_menu_bar_height)
     /* A wrapped menu bar.  */
-    menu_bar_height += single_bar_height - wrapped_bar_height;
+    menu_bar_height += single_menu_bar_height - wrapped_menu_bar_height;
   else if (menu_bar_height > 0)
     /* A single line menu bar.  */
-    menu_bar_height = single_bar_height;
+    menu_bar_height = single_menu_bar_height;
 
-  return
-    listn (CONSTYPE_HEAP, 10,
-	   Fcons (Qframe_position,
-		  Fcons (make_number (frame_outer_edges.left),
-			 make_number (frame_outer_edges.top))),
-	   Fcons (Qframe_outer_size,
-		  Fcons (make_number
-			 (frame_outer_edges.right - frame_outer_edges.left),
-			 make_number
-			 (frame_outer_edges.bottom - frame_outer_edges.top))),
+  return listn (CONSTYPE_HEAP, 10,
+		Fcons (Qouter_position,
+		       Fcons (make_number (left), make_number (top))),
+		Fcons (Qouter_size,
+		       Fcons (make_number (right - left),
+			      make_number (bottom - top))),
 	   Fcons (Qexternal_border_size,
-		  ((EQ (fullscreen, Qfullboth) || EQ (fullscreen, Qfullscreen))
-		   ? Fcons (make_number (0), make_number (0))
-		   : Fcons (make_number (border_width),
-			    make_number (border_height)))),
-	   Fcons (Qtitle_height,
-		  ((EQ (fullscreen, Qfullboth) || EQ (fullscreen, Qfullscreen))
-		   ? make_number (0)
-		   : make_number (title_height))),
+		       Fcons (make_number (external_border_width),
+			      make_number (external_border_height))),
+		Fcons (Qtitle_bar_size,
+		       Fcons (make_number (title_bar_width),
+			      make_number (title_bar_height))),
 	   Fcons (Qmenu_bar_external, Qt),
 	   Fcons (Qmenu_bar_size,
 		  Fcons (make_number
 			 (menu_bar.rcBar.right - menu_bar.rcBar.left),
 			 make_number (menu_bar_height))),
 	   Fcons (Qtool_bar_external, Qnil),
-	   Fcons (Qtool_bar_position, Qtop),
+		Fcons (Qtool_bar_position, tool_bar_height ? Qtop : Qnil),
 	   Fcons (Qtool_bar_size,
-		  Fcons (make_number (FRAME_TOOL_BAR_LINES (f)
-				      ? (FRAME_PIXEL_WIDTH (f)
-					 - 2 * FRAME_INTERNAL_BORDER_WIDTH (f))
+		       Fcons (make_number
+			      (tool_bar_height
+			       ? right - left - 2 * internal_border_width
 				      : 0),
-			 make_number (FRAME_TOOL_BAR_HEIGHT (f)))),
-	   Fcons (Qframe_inner_size,
-		  Fcons (make_number
-			 (frame_inner_edges.right - frame_inner_edges.left),
-			 make_number
-			 (frame_inner_edges.bottom - frame_inner_edges.top))));
+			      make_number (tool_bar_height))),
+		Fcons (Qinternal_border_width,
+		       make_number (internal_border_width)));
+}
+
+DEFUN ("w32-frame-edges", Fw32_frame_edges, Sw32_frame_edges, 0, 2, 0,
+       doc: /* Return edge coordinates of FRAME.
+FRAME must be a live frame and defaults to the selected one.  The return
+value is a list of the form (LEFT, TOP, RIGHT, BOTTOM).  All values are
+in pixels relative to the origin - the position (0, 0) - of FRAME's
+display.
+
+If optional argument TYPE is the symbol `outer-edges', return the outer
+edges of FRAME.  The outer edges comprise the decorations of the window
+manager (like the title bar or external borders) as well as any external
+menu or tool bar of FRAME.  If optional argument TYPE is the symbol
+`native-edges' or nil, return the native edges of FRAME.  The native
+edges exclude the decorations of the window manager and any external
+menu or tool bar of FRAME.  If TYPE is the symbol `inner-edges', return
+the inner edges of FRAME.  These edges exclude title bar, any borders,
+menu bar or tool bar of FRAME.  */)
+  (Lisp_Object frame, Lisp_Object type)
+{
+  struct frame *f = decode_live_frame (frame);
+
+  if (FRAME_INITIAL_P (f) || !FRAME_W32_P (f))
+    return Qnil;
+
+  if (EQ (type, Qouter_edges))
+    {
+      RECT rectangle;
+
+      block_input ();
+      /* Outer frame rectangle, including outer borders and title bar. */
+      GetWindowRect (FRAME_W32_WINDOW (f), &rectangle);
+      unblock_input ();
+
+      return list4 (make_number (rectangle.left),
+		    make_number (rectangle.top),
+		    make_number (rectangle.right),
+		    make_number (rectangle.bottom));
+    }
+  else
+    {
+      RECT rectangle;
+      POINT pt;
+      int left, top, right, bottom;
+
+      block_input ();
+      /* Inner frame rectangle, excluding borders and title bar.  */
+      GetClientRect (FRAME_W32_WINDOW (f), &rectangle);
+      /* Get top-left corner of native rectangle in screen
+	 coordinates.  */
+      pt.x = 0;
+      pt.y = 0;
+      ClientToScreen (FRAME_W32_WINDOW (f), &pt);
+      unblock_input ();
+
+      left = pt.x;
+      top = pt.y;
+      right = left + rectangle.right;
+      bottom = top + rectangle.bottom;
+
+      if (EQ (type, Qinner_edges))
+	{
+	  int internal_border_width = FRAME_INTERNAL_BORDER_WIDTH (f);
+
+	  return list4 (make_number (left + internal_border_width),
+			make_number (top
+				     + FRAME_TOOL_BAR_HEIGHT (f)
+				     + internal_border_width),
+			make_number (right - internal_border_width),
+			make_number (bottom - internal_border_width));
+	}
+      else
+	return list4 (make_number (left), make_number (top),
+		      make_number (right), make_number (bottom));
+    }
+}
+
+DEFUN ("w32-mouse-absolute-pixel-position", Fw32_mouse_absolute_pixel_position,
+       Sw32_mouse_absolute_pixel_position, 0, 0, 0,
+       doc: /* Return absolute position of mouse cursor in pixels.
+The position is returned as a cons cell (X . Y) of the coordinates of
+the mouse cursor position in pixels relative to a position (0, 0) of the
+selected frame's display.  */)
+  (void)
+{
+  POINT pt;
+
+  block_input ();
+  GetCursorPos (&pt);
+  unblock_input ();
+
+  return Fcons (make_number (pt.x), make_number (pt.y));
+}
+
+DEFUN ("w32-set-mouse-absolute-pixel-position", Fw32_set_mouse_absolute_pixel_position,
+       Sw32_set_mouse_absolute_pixel_position, 2, 2, 0,
+       doc: /* Move mouse pointer to absolute pixel position (X, Y).
+The coordinates X and Y are interpreted in pixels relative to a position
+(0, 0) of the selected frame's display.  */)
+  (Lisp_Object x, Lisp_Object y)
+{
+  CHECK_TYPE_RANGED_INTEGER (int, x);
+  CHECK_TYPE_RANGED_INTEGER (int, y);
+
+  block_input ();
+  SetCursorPos (XINT (x), XINT (y));
+  unblock_input ();
+
+  return Qnil;
 }
 
 DEFUN ("w32-battery-status", Fw32_battery_status, Sw32_battery_status, 0, 0, 0,
@@ -9158,6 +9203,16 @@ Default is nil.
 This variable has effect only on NT family of systems, not on Windows 9X.  */);
   w32_use_fallback_wm_chars_method = 0;
 
+  DEFVAR_BOOL ("w32-disable-new-uniscribe-apis",
+	       w32_disable_new_uniscribe_apis,
+	       doc: /* Non-nil means don't use new Uniscribe APIs.
+The new APIs are used to access OTF features supported by fonts.
+This is intended only for debugging of the new Uniscribe-related code.
+Default is nil.
+
+This variable has effect only on Windows Vista and later.  */);
+  w32_disable_new_uniscribe_apis = 0;
+
 #if 0 /* TODO: Port to W32 */
   defsubr (&Sx_change_window_property);
   defsubr (&Sx_delete_window_property);
@@ -9184,7 +9239,10 @@ This variable has effect only on NT family of systems, not on Windows 9X.  */);
   defsubr (&Sx_open_connection);
   defsubr (&Sx_close_connection);
   defsubr (&Sx_display_list);
-  defsubr (&Sx_frame_geometry);
+  defsubr (&Sw32_frame_geometry);
+  defsubr (&Sw32_frame_edges);
+  defsubr (&Sw32_mouse_absolute_pixel_position);
+  defsubr (&Sw32_set_mouse_absolute_pixel_position);
   defsubr (&Sx_synchronize);
 
   /* W32 specific functions */
@@ -9200,8 +9258,6 @@ This variable has effect only on NT family of systems, not on Windows 9X.  */);
   defsubr (&Sw32_reconstruct_hot_key);
   defsubr (&Sw32_toggle_lock_key);
   defsubr (&Sw32_window_exists_p);
-  defsubr (&Sw32_frame_rect);
-  defsubr (&Sw32_frame_menu_bar_size);
   defsubr (&Sw32_battery_status);
   defsubr (&Sw32__menu_bar_in_use);
 
@@ -9239,17 +9295,70 @@ static DWORD except_code;
 static PVOID except_addr;
 
 #ifndef CYGWIN
+
+/* Stack overflow recovery.  */
+
+/* Re-establish the guard page at stack limit.  This is needed because
+   when a stack overflow is detected, Windows removes the guard bit
+   from the guard page, so if we don't re-establish that protection,
+   the next stack overflow will cause a crash.  */
+void
+w32_reset_stack_overflow_guard (void)
+{
+  /* MinGW headers don't declare this (should be in malloc.h).  */
+  _CRTIMP int __cdecl _resetstkoflw (void);
+
+  /* We ignore the return value.  If _resetstkoflw fails, the next
+     stack overflow will crash the program.  */
+  (void)_resetstkoflw ();
+}
+
+static void
+stack_overflow_handler (void)
+{
+  /* Hard GC error may lead to stack overflow caused by
+     too nested calls to mark_object.  No way to survive.  */
+  if (gc_in_progress)
+    terminate_due_to_signal (SIGSEGV, 40);
+#ifdef _WIN64
+  /* See ms-w32.h: MinGW64's longjmp crashes if invoked in this context.  */
+  __builtin_longjmp (return_to_command_loop, 1);
+#else
+  sys_longjmp (return_to_command_loop, 1);
+#endif
+}
+
 /* This handler records the exception code and the address where it
    was triggered so that this info could be included in the backtrace.
    Without that, the backtrace in some cases has no information
    whatsoever about the offending code, and looks as if the top-level
-   exception handler in the MinGW startup code di the one that
-   crashed.  */
+   exception handler in the MinGW startup code was the one that
+   crashed.  We also recover from stack overflow, by calling our stack
+   overflow handler that jumps back to top level.  */
 static LONG CALLBACK
 my_exception_handler (EXCEPTION_POINTERS * exception_data)
 {
   except_code = exception_data->ExceptionRecord->ExceptionCode;
   except_addr = exception_data->ExceptionRecord->ExceptionAddress;
+
+  /* If this is a stack overflow exception, attempt to recover.  */
+  if (exception_data->ExceptionRecord->ExceptionCode == EXCEPTION_STACK_OVERFLOW
+      && exception_data->ExceptionRecord->NumberParameters == 2
+      /* We can only longjmp to top level from the main thread.  */
+      && GetCurrentThreadId () == dwMainThreadId)
+    {
+      /* Call stack_overflow_handler ().  */
+#ifdef _WIN64
+      exception_data->ContextRecord->Rip = (DWORD_PTR) &stack_overflow_handler;
+#else
+      exception_data->ContextRecord->Eip = (DWORD_PTR) &stack_overflow_handler;
+#endif
+      /* Zero this out, so the stale address of the stack overflow
+	 exception we handled is not displayed in some future
+	 unrelated crash.  */
+      except_addr = 0;
+      return EXCEPTION_CONTINUE_EXECUTION;
+    }
 
   if (prev_exception_handler)
     return prev_exception_handler (exception_data);
@@ -9413,6 +9522,8 @@ globals_of_w32fns (void)
     GetProcAddress (user32_lib, "MonitorFromWindow");
   enum_display_monitors_fn = (EnumDisplayMonitors_Proc)
     GetProcAddress (user32_lib, "EnumDisplayMonitors");
+  get_title_bar_info_fn = (GetTitleBarInfo_Proc)
+    GetProcAddress (user32_lib, "GetTitleBarInfo");
 
   {
     HMODULE imm32_lib = GetModuleHandle ("imm32.dll");
@@ -9442,10 +9553,16 @@ globals_of_w32fns (void)
   else
     w32_unicode_gui = 0;
 
+  after_deadkey = -1;
+
   /* MessageBox does not work without this when linked to comctl32.dll 6.0.  */
   InitCommonControls ();
 
   syms_of_w32uniscribe ();
+
+  /* Needed for recovery from C stack overflows in batch mode.  */
+  if (noninteractive)
+    dwMainThreadId = GetCurrentThreadId ();
 }
 
 #ifdef NTGUI_UNICODE

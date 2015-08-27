@@ -369,12 +369,12 @@ If SCOPE is nil, the user is asked to specify the scope."
 	  (setq scope
 		(cond
 		 ((y-or-n-p
-		   (format
-		    "Map this macro for buffer `%s' only? "
+		   (format-message
+		    "Map this macro for buffer ‘%s’ only? "
 		    (buffer-name)))
 		  (setq msg
-			(format
-			 "%S is mapped to %s for %s in `%s'"
+			(format-message
+			 "%S is mapped to %s for %s in ‘%s’"
 			 (viper-display-macro macro-name)
 			 (viper-abbreviate-string
 			  (format
@@ -385,12 +385,12 @@ If SCOPE is nil, the user is asked to specify the scope."
 			 state-name (buffer-name)))
 		  (buffer-name))
 		 ((y-or-n-p
-		   (format
-		    "Map this macro for the major mode `%S' only? "
+		   (format-message
+		    "Map this macro for the major mode ‘%S’ only? "
 		    major-mode))
 		  (setq msg
-			(format
-			 "%S is mapped to %s for %s in `%S'"
+			(format-message
+			 "%S is mapped to %s for %s in ‘%S’"
 			 (viper-display-macro macro-name)
 			 (viper-abbreviate-string
 			  (format

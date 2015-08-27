@@ -2369,7 +2369,7 @@ If FORCE is non-nil, the .newsrc file is read."
                   (while (let (c
                                (cursor-in-echo-area t)
                                (echo-keystrokes 0))
-                           (message "Convert gnus from version '%s' to '%s'? (n/y/?)"
+                           (message "Convert gnus from version `%s' to `%s'? (n/y/?)"
                                     gnus-newsrc-file-version gnus-version)
                            (setq c (read-char-exclusive))
 
@@ -2390,8 +2390,8 @@ If FORCE is non-nil, the .newsrc file is read."
 
               (funcall func convert-to)))
           (gnus-dribble-enter
-           (format ";Converted gnus from version '%s' to '%s'."
-                   gnus-newsrc-file-version gnus-version)))))))
+           (gnus-format-message ";Converted gnus from version `%s' to `%s'."
+				gnus-newsrc-file-version gnus-version)))))))
 
 (defun gnus-convert-mark-converter-prompt (converter no-prompt)
   "Indicate whether CONVERTER requires gnus-convert-old-newsrc to

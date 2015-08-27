@@ -2299,8 +2299,8 @@ selected frame and no others."
 (defun get-buffer-window-list (&optional buffer-or-name minibuf all-frames)
   "Return list of all windows displaying BUFFER-OR-NAME, or nil if none.
 BUFFER-OR-NAME may be a buffer or the name of an existing buffer
-and defaults to the current buffer.  Windows are scanned starting
-with the selected window.
+and defaults to the current buffer.  If the selected window displays
+BUFFER-OR-NAME, it will be the first in the resulting list.
 
 MINIBUF t means include the minibuffer window even if the
 minibuffer is not active.  MINIBUF nil or omitted means include
@@ -3160,7 +3160,7 @@ move it as far as possible in the desired direction."
   (let* ((frame (window-frame window))
 	 (minibuffer-window (minibuffer-window frame))
 	 (right window)
-	 left this-delta min-delta max-delta ignore)
+	 left first-left first-right this-delta min-delta max-delta ignore)
 
     (unless pixelwise
       (setq pixelwise t)
@@ -3188,6 +3188,7 @@ move it as far as possible in the desired direction."
      (t
       ;; Set LEFT to the first resizable window on the left.  This step is
       ;; needed to handle fixed-size windows.
+      (setq first-left left)
       (while (and left
 		  (or (window-size-fixed-p left horizontal)
 		      (and (< delta 0)
@@ -3200,8 +3201,10 @@ move it as far as possible in the desired direction."
 				(not (window-combined-p left horizontal))))
 		    (window-left left)))))
       (unless left
+	;; We have to resize a size-preserved window.  Start again with
+	;; the window initially on the left.
 	(setq ignore 'preserved)
-	(setq left window)
+	(setq left first-left)
 	(while (and left
 		    (or (window-size-fixed-p left horizontal 'preserved)
 			(<= (window-size left horizontal t)
@@ -3220,6 +3223,7 @@ move it as far as possible in the desired direction."
 
       ;; Set RIGHT to the first resizable window on the right.  This step
       ;; is needed to handle fixed-size windows.
+      (setq first-right right)
       (while (and right
 		  (or (window-size-fixed-p right horizontal)
 		      (and (> delta 0)
@@ -3232,12 +3236,14 @@ move it as far as possible in the desired direction."
 				(not (window-combined-p right horizontal))))
 		    (window-right right)))))
       (unless right
+	;; We have to resize a size-preserved window.  Start again with
+	;; the window initially on the right.
 	(setq ignore 'preserved)
-	(setq right (window-right window))
+	(setq right first-right)
 	(while (and right
 		    (or (window-size-fixed-p right horizontal 'preserved))
 		    (<= (window-size right horizontal t)
-			(window-min-size right horizontal nil t)))
+			(window-min-size right horizontal 'preserved t)))
 	  (setq right
 		(or (window-right right)
 		    (progn
@@ -3421,6 +3427,134 @@ WINDOW pixelwise."
    window
    (- (window-min-delta window t nil nil nil nil window-resize-pixelwise))
    t nil window-resize-pixelwise))
+
+;;; Window edges
+(defun window-edges (&optional window body absolute pixelwise)
+  "Return a list of the edge distances of WINDOW.
+WINDOW must be a valid window and defaults to the selected one.
+The list returned has the form (LEFT TOP RIGHT BOTTOM).
+
+If the optional argument BODY is nil, this means to return the
+edges corresponding to the total size of WINDOW.  BODY non-nil
+means to return the edges of WINDOW's body (aka text area).  If
+BODY is non-nil, WINDOW must specify a live window.
+
+Optional argument ABSOLUTE nil means to return edges relative to
+the position of WINDOW's native frame.  ABSOLUTE non-nil means to
+return coordinates relative to the origin - the position (0, 0) -
+of FRAME's display.  On non-graphical systems this argument has
+no effect.
+
+Optional argument PIXELWISE nil means to return the coordinates
+in terms of the canonical character width and height of WINDOW's
+frame, rounded if necessary.  PIXELWISE non-nil means to return
+the coordinates in pixels where the values for RIGHT and BOTTOM
+are one more than the actual value of these edges.  Note that if
+ABSOLUTE is non-nil, PIXELWISE is implicitly non-nil too."
+  (let* ((window (window-normalize-window window body))
+	 (frame (window-frame window))
+	 (border-width (frame-border-width frame))
+	 (char-width (frame-char-width frame))
+	 (char-height (frame-char-height frame))
+	 (left (if pixelwise
+		   (+ (window-pixel-left window) border-width)
+		 (+ (window-left-column window)
+		    (/ border-width char-width))))
+	 (left-body
+	  (when body
+	    (+ (window-pixel-left window) border-width
+	       (if (eq (car (window-current-scroll-bars window)) 'left)
+		   (window-scroll-bar-width window)
+		 0)
+	       (nth 0 (window-fringes window))
+	       (* (or (nth 0 (window-margins window)) 0) char-width))))
+	 (top (if pixelwise
+		  (+ (window-pixel-top window) border-width)
+		(+ (window-top-line window)
+		   (/ border-width char-height))))
+	 (top-body
+	  (when body
+	    (+ (window-pixel-top window) border-width
+	       (window-header-line-height window))))
+	 (right (+ left (if pixelwise
+			    (window-pixel-width window)
+			  (window-total-width window))))
+	 (right-body (and body (+ left-body (window-body-width window t))))
+	 (bottom (+ top (if pixelwise
+			    (window-pixel-height window)
+			  (window-total-height window))))
+	 (bottom-body (and body (+ top-body (window-body-height window t))))
+	 left-off right-off)
+    (if absolute
+	(let* ((native-edges (frame-edges frame 'native-edges))
+	       (left-off (nth 0 native-edges))
+	       (top-off (nth 1 native-edges)))
+	      (if body
+		  (list (+ left-body left-off) (+ top-body top-off)
+			(+ right-body left-off) (+ bottom-body top-off))
+		(list (+ left left-off) (+ top top-off)
+		      (+ right left-off) (+ bottom top-off))))
+      (if body
+	  (if pixelwise
+	      (list left-body top-body right-body bottom-body)
+	    (list (/ left-body char-width) (/ top-body char-height)
+		  ;; Round up.
+		  (/ (+ right-body char-width -1) char-width)
+		  (/ (+ bottom-body char-height -1) char-height)))
+	(list left top right bottom)))))
+
+(defun window-body-edges (&optional window)
+  "Return a list of the edge coordinates of WINDOW's body.
+The return value is that of `window-edges' called with argument
+BODY non-nil."
+  (window-edges window t))
+(defalias 'window-inside-edges 'window-body-edges)
+
+(defun window-pixel-edges (&optional window)
+  "Return a list of the edge pixel coordinates of WINDOW.
+The return value is that of `window-edges' called with argument
+PIXELWISE non-nil."
+  (window-edges window nil nil t))
+
+(defun window-body-pixel-edges (&optional window)
+  "Return a list of the edge pixel coordinates of WINDOW's body.
+The return value is that of `window-edges' called with arguments
+BODY and PIXELWISE non-nil."
+  (window-edges window t nil t))
+(defalias 'window-inside-pixel-edges 'window-body-pixel-edges)
+
+(defun window-absolute-pixel-edges (&optional window)
+  "Return a list of the edge pixel coordinates of WINDOW.
+The return value is that of `window-edges' called with argument
+ABSOLUTE non-nil."
+  (window-edges window nil t t))
+
+(defun window-absolute-body-pixel-edges (&optional window)
+  "Return a list of the edge pixel coordinates of WINDOW's text area.
+The return value is that of `window-edges' called with arguments
+BODY and ABSOLUTE non-nil."
+  (window-edges window t t t))
+(defalias 'window-inside-absolute-pixel-edges 'window-absolute-body-pixel-edges)
+
+(defun window-absolute-pixel-position (&optional position window)
+  "Return display coordinates of POSITION in WINDOW.
+If the buffer position POSITION is visible in window WINDOW,
+return the display coordinates of the upper/left corner of the
+glyph at POSITION.  The return value is a cons of the X- and
+Y-coordinates of that corner, relative to an origin at (0, 0) of
+WINDOW's display.  Return nil if POSITION is not visible in
+WINDOW.
+
+WINDOW must be a live window and defaults to the selected window.
+POSITION defaults to the value of `window-point' of WINDOW."
+  (let* ((window (window-normalize-window window t))
+	 (pos-in-window
+	  (pos-visible-in-window-p
+	   (or position (window-point window)) window t)))
+    (when pos-in-window
+      (let ((edges (window-absolute-body-pixel-edges window)))
+	(cons (+ (nth 0 edges) (nth 0 pos-in-window))
+	      (+ (nth 1 edges) (nth 1 pos-in-window)))))))
 
 (defun frame-root-window-p (window)
   "Return non-nil if WINDOW is the root window of its frame."
@@ -5468,18 +5602,18 @@ windows can get as small as `window-safe-min-height' and
 (defun display-buffer-record-window (type window buffer)
   "Record information for window used by `display-buffer'.
 TYPE specifies the type of the calling operation and must be one
-of the symbols 'reuse (when WINDOW existed already and was
-reused for displaying BUFFER), 'window (when WINDOW was created
-on an already existing frame), or 'frame (when WINDOW was
+of the symbols `reuse' (when WINDOW existed already and was
+reused for displaying BUFFER), `window' (when WINDOW was created
+on an already existing frame), or `frame' (when WINDOW was
 created on a new frame).  WINDOW is the window used for or created
 by the `display-buffer' routines.  BUFFER is the buffer that
 shall be displayed.
 
 This function installs or updates the quit-restore parameter of
 WINDOW.  The quit-restore parameter is a list of four elements:
-The first element is one of the symbols 'window, 'frame, 'same or
-'other.  The second element is either one of the symbols 'window
-or 'frame or a list whose elements are the buffer previously
+The first element is one of the symbols `window', `frame', `same' or
+`other'.  The second element is either one of the symbols `window'
+or `frame' or a list whose elements are the buffer previously
 shown in the window, that buffer's window start and window point,
 and the window's height.  The third element is the window
 selected at the time the parameter was created.  The fourth
@@ -6244,6 +6378,7 @@ The actual non-nil value of this variable will be copied to the
 	   (const display-buffer-at-bottom)
 	   (const display-buffer-in-previous-window)
 	   (const display-buffer-use-some-window)
+	   (const display-buffer-use-some-frame)
 	   (function :tag "Other function"))
   "Custom type for `display-buffer' action functions.")
 
@@ -6388,6 +6523,7 @@ Available action functions include:
  `display-buffer-pop-up-window'
  `display-buffer-in-previous-window'
  `display-buffer-use-some-window'
+ `display-buffer-use-some-frame'
 
 Recognized alist entries include:
 
@@ -6490,7 +6626,7 @@ its documentation for additional customization information."
 
 (defun display-buffer-use-some-frame (buffer alist)
   "Display BUFFER in an existing frame that meets a predicate
-(by default any frame other than the current frame).  If
+\(by default any frame other than the current frame).  If
 successful, return the window used; otherwise return nil.
 
 If ALIST has a non-nil `inhibit-switch-frame' entry, avoid
@@ -6499,8 +6635,12 @@ raising the frame.
 If ALIST has a non-nil `frame-predicate' entry, its value is a
 function taking one argument (a frame), returning non-nil if the
 frame is a candidate; this function replaces the default
-predicate."
-  (let* ((predicate (or (cdr (assoc 'frame-predicate alist))
+predicate.
+
+If ALIST has a non-nil `inhibit-same-window' entry, avoid using
+the currently selected window (only useful with a frame-predicate
+that allows the selected frame)."
+  (let* ((predicate (or (cdr (assq 'frame-predicate alist))
                         (lambda (frame)
                           (and
                            (not (eq frame (selected-frame)))
@@ -6510,7 +6650,7 @@ predicate."
                                   (frame-first-window frame)))))
                           )))
          (frame (car (filtered-frame-list predicate)))
-         (window (and frame (get-lru-window frame))))
+         (window (and frame (get-lru-window frame nil (cdr (assq 'inhibit-same-window alist))))))
     (when window
       (prog1
           (window--display-buffer

@@ -59,7 +59,7 @@ It is used for TCP/IP devices."
 
 ;;;###tramp-autoload
 (defcustom tramp-adb-prompt
-  "^\\(?:[[:digit:]]*|?\\)?\\(?:[[:alnum:]]*@[[:alnum:]]*[^#\\$]*\\)?[#\\$][[:space:]]"
+  "^\\(?:[[:digit:]]*|?\\)?\\(?:[[:alnum:]\e;\[]*@[[:alnum:]]*[^#\\$]*\\)?[#\\$][[:space:]]"
   "Regexp used as prompt in almquist shell."
   :type 'string
   :version "24.4"
@@ -211,7 +211,7 @@ pass to the OPERATION."
 	 (lambda (elt)
 	   (setcar
 	    (cdr elt)
-	    (replace-regexp-in-string
+	    (tramp-compat-replace-regexp-in-string
 	     ":" tramp-prefix-port-format (car (cdr elt)))))
 	 result)
 	result))))
@@ -394,41 +394,42 @@ pass to the OPERATION."
   "Like `directory-files-and-attributes' for Tramp files."
   (when (file-directory-p directory)
     (with-parsed-tramp-file-name (expand-file-name directory) nil
-      (with-tramp-file-property
-	  v localname (format "directory-files-attributes-%s-%s-%s-%s"
-			      full match id-format nosort)
-	(with-current-buffer (tramp-get-buffer v)
-	  (when (tramp-adb-send-command-and-check
-		 v (format "%s -a -l %s"
-			   (tramp-adb-get-ls-command v)
-			   (tramp-shell-quote-argument localname)))
-	    ;; We insert also filename/. and filename/.., because "ls" doesn't.
-	    (narrow-to-region (point) (point))
-	    (tramp-adb-send-command
-	     v (format "%s -d -a -l %s %s"
-		       (tramp-adb-get-ls-command v)
-		       (tramp-shell-quote-argument
-			(concat (file-name-as-directory localname) "."))
-		       (tramp-shell-quote-argument
-			(concat (file-name-as-directory localname) ".."))))
-	    (widen))
-	  (tramp-adb-sh-fix-ls-output)
-	  (let ((result (tramp-do-parse-file-attributes-with-ls
-			 v (or id-format 'integer))))
-	    (when full
-	      (setq result
-		    (mapcar
-		     (lambda (x)
-		       (cons (expand-file-name (car x) directory) (cdr x)))
-		     result)))
-	    (unless nosort
-	      (setq result
-		    (sort result (lambda (x y) (string< (car x) (car y))))))
-	    (delq nil
-		  (mapcar (lambda (x)
-			    (if (or (not match) (string-match match (car x)))
-				x))
-			  result))))))))
+      (copy-tree
+       (with-tramp-file-property
+	   v localname (format "directory-files-and-attributes-%s-%s-%s-%s"
+			       full match id-format nosort)
+	 (with-current-buffer (tramp-get-buffer v)
+	   (when (tramp-adb-send-command-and-check
+		  v (format "%s -a -l %s"
+			    (tramp-adb-get-ls-command v)
+			    (tramp-shell-quote-argument localname)))
+	     ;; We insert also filename/. and filename/.., because "ls" doesn't.
+	     (narrow-to-region (point) (point))
+	     (tramp-adb-send-command
+	      v (format "%s -d -a -l %s %s"
+			(tramp-adb-get-ls-command v)
+			(tramp-shell-quote-argument
+			 (concat (file-name-as-directory localname) "."))
+			(tramp-shell-quote-argument
+			 (concat (file-name-as-directory localname) ".."))))
+	     (widen))
+	   (tramp-adb-sh-fix-ls-output)
+	   (let ((result (tramp-do-parse-file-attributes-with-ls
+			  v (or id-format 'integer))))
+	     (when full
+	       (setq result
+		     (mapcar
+		      (lambda (x)
+			(cons (expand-file-name (car x) directory) (cdr x)))
+		      result)))
+	     (unless nosort
+	       (setq result
+		     (sort result (lambda (x y) (string< (car x) (car y))))))
+	     (delq nil
+		   (mapcar (lambda (x)
+			     (if (or (not match) (string-match match (car x)))
+				 x))
+			   result)))))))))
 
 (defun tramp-adb-get-ls-command (vec)
   (with-tramp-connection-property vec "ls"
@@ -497,12 +498,11 @@ Emacs dired can't find files."
 
 (defun tramp-adb-ls-output-name-less-p (a b)
   "Sort \"ls\" output by name, ascending."
-  (let (posa posb)
-    (string-match directory-listing-before-filename-regexp a)
-    (setq posa (match-end 0))
-    (string-match directory-listing-before-filename-regexp b)
-    (setq posb (match-end 0))
-    (string-lessp (substring a posa) (substring b posb))))
+  (if (string-match directory-listing-before-filename-regexp a)
+      (let ((posa (match-end 0)))
+	(if (string-match directory-listing-before-filename-regexp b)
+	    (let ((posb (match-end 0)))
+	      (string-lessp (substring a posa) (substring b posb)))))))
 
 (defun tramp-adb-handle-make-directory (dir &optional parents)
   "Like `make-directory' for Tramp files."
@@ -635,7 +635,8 @@ But handle the case, if the \"test\" command is not available."
        'write-region
        (list start end tmpfile append 'no-message lockname confirm))
       (with-tramp-progress-reporter
-	  v 3 (format "Moving tmp file `%s' to `%s'" tmpfile filename)
+        v 3 (format-message
+             "Moving tmp file `%s' to `%s'" tmpfile filename)
 	(unwind-protect
 	    (when (tramp-adb-execute-adb-command v "push" tmpfile localname)
 	      (tramp-error v 'file-error "Cannot write: `%s'" filename))
@@ -652,6 +653,7 @@ But handle the case, if the \"test\" command is not available."
 (defun tramp-adb-handle-set-file-modes (filename mode)
   "Like `set-file-modes' for Tramp files."
   (with-parsed-tramp-file-name filename nil
+    (tramp-flush-file-property v (file-name-directory localname))
     (tramp-flush-file-property v localname)
     (tramp-adb-send-command-and-check
      v (format "chmod %s %s" (tramp-compat-decimal-to-octal mode) localname))))
@@ -659,6 +661,7 @@ But handle the case, if the \"test\" command is not available."
 (defun tramp-adb-handle-set-file-times (filename &optional time)
   "Like `set-file-times' for Tramp files."
   (with-parsed-tramp-file-name filename nil
+    (tramp-flush-file-property v (file-name-directory localname))
     (tramp-flush-file-property v localname)
     (let ((time (if (or (null time) (equal time '(0 0)))
 		    (current-time)
@@ -1030,7 +1033,7 @@ E.g. a host name \"192.168.1.1#5555\" returns \"192.168.1.1:5555\"
 	   (host (tramp-file-name-host vec))
 	   (port (tramp-file-name-port vec))
 	   (devices (mapcar 'cadr (tramp-adb-parse-device-names nil))))
-      (replace-regexp-in-string
+      (tramp-compat-replace-regexp-in-string
        tramp-prefix-port-format ":"
        (cond ((member host devices) host)
 	     ;; This is the case when the host is connected to the default port.
@@ -1046,7 +1049,7 @@ E.g. a host name \"192.168.1.1#5555\" returns \"192.168.1.1:5555\"
 		   (not (zerop (length host)))
 		   (not (tramp-adb-execute-adb-command
                          vec "connect"
-                         (replace-regexp-in-string
+                         (tramp-compat-replace-regexp-in-string
                           tramp-prefix-port-format ":" host))))
 	      ;; When new device connected, running other adb command (e.g.
 	      ;; adb shell) immediately will fail.  To get around this

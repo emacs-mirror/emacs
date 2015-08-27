@@ -399,10 +399,10 @@
   "If non-nil, give a y-or-n confirmation prompt before sending mail.
 This is done after the message is completely prepped, and you'll be
 looking at the top of the message in a buffer when you get the prompt.
-If set to the symbol 'queued, give the confirmation prompt only while
+If set to the symbol `queued', give the confirmation prompt only while
 running the queue (however, the prompt is always suppressed if you are
 processing the queue via `feedmail-run-the-queue-no-prompts').  If set
-to the symbol 'immediate, give the confirmation prompt only when
+to the symbol `immediate', give the confirmation prompt only when
 sending immediately.  For any other non-nil value, prompt in both
 cases.  You can give a timeout for the prompt; see variable
 `feedmail-confirm-outgoing-timeout'."
@@ -418,9 +418,9 @@ cases.  You can give a timeout for the prompt; see variable
 If nil, the prepped message will be shown, for confirmation or
 otherwise, in some window in the current frame without resizing
 anything.  That may or may not display enough of the message to
-distinguish it from others.  If set to the symbol 'queued, take
+distinguish it from others.  If set to the symbol ‘queued’, take
 this action only when running the queue.  If set to the symbol
-'immediate, take this action only when sending immediately.  For
+‘immediate’, take this action only when sending immediately.  For
 any other non-nil value, take the action in both cases.  Even if
 you're not confirming the sending of immediate or queued messages,
 it can still be interesting to see a lot about them as they are
@@ -471,9 +471,9 @@ Addresses for the message envelope are deduced by examining
 appropriate address headers in the message.  Generally, they will show
 up in the list of deduced addresses in the order that the headers
 happen to appear (duplicate addresses are eliminated in any case).
-This variable can be set to the symbol 'first, in which case the
+This variable can be set to the symbol ‘first’, in which case the
 Bcc:/Resent-Bcc: addresses will appear at the beginning in the list;
-or, it can be set to the symbol 'last, in which case they will appear
+or, it can be set to the symbol ‘last’, in which case they will appear
 at the end of the list.
 
 Why should you care?  Well, maybe you don't, and certainly the same
@@ -484,7 +484,7 @@ addresses are not handled first, there can be substantial delays in
 seeing the message again.  Some configurations of sendmail, for example,
 seem to try to deliver to each addressee at least once, immediately
 and serially, so slow SMTP conversations can add up to a delay.  There
-is an option for either 'first or 'last because you might have a
+is an option for either ‘first’ or ‘last’ because you might have a
 delivery agent that processes the addresses backwards."
   :group 'feedmail-headers
   :type '(choice (const nil)
@@ -1231,7 +1231,7 @@ If a string, it is used directly.
 If a function, it is called with no arguments from the buffer containing the raw
 text of the message.  It must return a string (which may be empty).
 
-If the symbol 'ask, you will be prompted for a string in the mini-buffer.
+If the symbol `ask', you will be prompted for a string in the mini-buffer.
 Filename completion is available so that you can inspect what's already been
 used, but feedmail will do further manipulation on the string you return, so
 it's not expected to be a complete filename."
@@ -1301,27 +1301,27 @@ the fact in the messages buffer."
 
 
 (defvar feedmail-queue-buffer-file-name nil
-  "If non-nil, has the value normally expected of 'buffer-file-name'.
+  "If non-nil, has the value normally expected of `buffer-file-name'.
 You are not intended to set this to something in your configuration.  Rather,
 you might programmatically set it to something via a hook or function
 advice or whatever.  You might like to do this if you are using a mail
-composition program that eventually uses sendmail.el's 'mail-send'
+composition program that eventually uses sendmail.el's `mail-send'
 function to process the message.  If there is a filename associated
-with the message buffer, 'mail-send' will ask you for confirmation.
+with the message buffer, `mail-send' will ask you for confirmation.
 There's no trivial way to avoid it.  It's unwise to just set the value
-of 'buffer-file-name' to nil because that will defeat feedmail's file
+of `buffer-file-name' to nil because that will defeat feedmail's file
 management features.  Instead, arrange for this variable to be set to
-the value of 'buffer-file-name' before setting that to nil.  An easy way
-to do that would be with defadvice on 'mail-send' \(undoing the
+the value of `buffer-file-name' before setting that to nil.  An easy way
+to do that would be with defadvice on `mail-send' \(undoing the
 assignments in a later advice\).
 
-feedmail will pretend that 'buffer-file-name', if nil, has the value
-assigned of 'feedmail-queue-buffer-file-name' and carry out its normal
+feedmail will pretend that `buffer-file-name', if nil, has the value
+assigned of `feedmail-queue-buffer-file-name' and carry out its normal
 activities.  feedmail does not restore the non-nil value of
-'buffer-file-name'.  For safe bookkeeping, the user should insure that
+`buffer-file-name'.  For safe bookkeeping, the user should insure that
 feedmail-queue-buffer-file-name is restored to nil.
 
-Example 'defadvice' for mail-send:
+Example `defadvice' for mail-send:
 
    (defadvice mail-send (before feedmail-mail-send-before-advice activate)
      (setq feedmail-queue-buffer-file-name buffer-file-name)
@@ -1354,7 +1354,7 @@ If you have `mail-send-hook' functions that should only be called for sending/
 queueing messages or only be called for the sending of queued messages, this is
 for you.  Add this function to `mail-send-hook' with something like this:
 
-	(add-hook 'mail-send-hook 'feedmail-mail-send-hook-splitter)
+	(add-hook \\='mail-send-hook \\='feedmail-mail-send-hook-splitter)
 
 Then add the functions you want called to either `feedmail-mail-send-hook-queued'
 or `feedmail-mail-send-hook', as appropriate.  The distinction is that
@@ -1551,7 +1551,7 @@ See feedmail-binmail-template documentation."
 					   "/bin/rmail %s" "/bin/mail %s"))
   "Command template for the subprocess which will get rid of the mail.
 It can result in any command understandable by /bin/sh.  Might not
-work at all in non-UNIX environments.  The single '%s', if present,
+work at all in non-UNIX environments.  The single `%s', if present,
 gets replaced by the space-separated, simplified list of addressees.
 Used in `feedmail-buffer-to-binmail' to form the shell command which
 will receive the contents of the prepped buffer as stdin.  The default
@@ -2053,7 +2053,7 @@ backup file names and the like)."
 		;; the handler for the condition-case
 		(error (setq messages-skipped (1+ messages-skipped))
 		       (ding t)
-		       (message "FQM: Trapped '%s', message left in queue." (car signal-stuff))
+		       (message "FQM: Trapped ‘%s’, message left in queue." (car signal-stuff))
 		       (sit-for 3)
 		       (message "FQM: Trap details: \"%s\""
 				(mapconcat 'identity (cdr signal-stuff) "\" \""))

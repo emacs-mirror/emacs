@@ -38,7 +38,7 @@
 ;; User Variables:
 
 (defcustom pcmpl-cvs-binary (or (executable-find "cvs") "cvs")
-  "The full path of the 'cvs' binary."
+  "The full path of the ‘cvs’ binary."
   :type 'file
   :group 'pcmpl-cvs)
 
@@ -154,7 +154,7 @@
 (defun pcmpl-cvs-entries (&optional opers)
   "Return the Entries for the current directory.
 If OPERS is a list of characters, return entries for which that
-operation character applies, as displayed by 'cvs -n update'."
+operation character applies, as displayed by ‘cvs -n update’."
   (let* ((arg (pcomplete-arg))
 	 (dir (file-name-as-directory
 	       (or (file-name-directory arg) "")))

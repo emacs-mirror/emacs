@@ -280,7 +280,7 @@
 		(cons (cons kana candidates) skkdic-okuri-nasi-entries)
 		skkdic-okuri-nasi-entries-count
 		(1+ skkdic-okuri-nasi-entries-count))
-	  (setq ratio (floor (/ (* (point) 100.0) (point-max))))
+	  (setq ratio (floor (* (point) 100.0) (point-max)))
 	  (if (/= (/ prev-ratio 10) (/ ratio 10))
 	      (progn
 		(message "collected %2d%% ..." ratio)
@@ -306,7 +306,7 @@
       (while l
 	(let ((kana (car (car l)))
 	      (candidates (cdr (car l))))
-	  (setq ratio (/ (* count 100) skkdic-okuri-nasi-entries-count)
+	  (setq ratio (floor (* count 100.0) skkdic-okuri-nasi-entries-count)
 		count (1+ count))
 	  (if (/= (/ prev-ratio 10) (/ ratio 10))
 	      (progn

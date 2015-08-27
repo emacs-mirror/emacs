@@ -964,9 +964,8 @@ documentation for the major and minor modes of that buffer."
 	(let* ((mode major-mode)
 	       (file-name (find-lisp-object-file-name mode nil)))
 	  (when file-name
-	    (princ (concat (substitute-command-keys " defined in ‘")
-                           (file-name-nondirectory file-name)
-                           (substitute-command-keys "’")))
+	    (princ (format-message " defined in ‘%s’"
+                                   (file-name-nondirectory file-name)))
 	    ;; Make a hyperlink to the library.
 	    (with-current-buffer standard-output
 	      (save-excursion
@@ -1042,7 +1041,7 @@ is currently activated with completion."
   (let ((minor-mode (lookup-minor-mode-from-indicator indicator)))
     (if minor-mode
 	(describe-minor-mode-from-symbol minor-mode)
-      (error "Cannot find minor mode for `%s'" indicator))))
+      (error "Cannot find minor mode for ‘%s’" indicator))))
 
 (defun lookup-minor-mode-from-indicator (indicator)
   "Return a minor mode symbol from its indicator on the mode line."

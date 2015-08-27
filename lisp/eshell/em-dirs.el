@@ -71,7 +71,7 @@ they lack somewhat in feel from the typical shell equivalents."
   "The function used to normalize the value of Eshell's `pwd'.
 The value returned by `pwd' is also used when recording the
 last-visited directory in the last-dir-ring, so it will affect the
-form of the list used by 'cd ='."
+form of the list used by `cd ='."
   :type '(radio (function-item file-truename)
 		(function-item expand-file-name)
 		(function-item identity)
@@ -115,7 +115,7 @@ calls \"ls\" and references `eshell-last-arguments'."
   :group 'eshell-dirs)
 
 (defcustom eshell-pushd-tohome nil
-  "If non-nil, make pushd with no arg behave as 'pushd ~' (like `cd').
+  "If non-nil, make pushd with no arg behave as `pushd ~' (like `cd').
 This mirrors the optional behavior of tcsh."
   :type 'boolean
   :group 'eshell-dirs)
@@ -150,11 +150,11 @@ If it is nil, the last-dir-ring will not be written to disk."
   "If non-nil, the size of the directory history ring.
 This ring is added to every time `cd' or `pushd' is used.  It simply
 stores the most recent directory locations Eshell has been in.  To
-return to the most recent entry, use 'cd -' (equivalent to 'cd -0').
-To return to an older entry, use 'cd -N', where N is an integer less
+return to the most recent entry, use `cd -' (equivalent to `cd -0').
+To return to an older entry, use `cd -N', where N is an integer less
 than `eshell-last-dir-ring-size'.  To return to the last directory
-matching a particular regexp, use 'cd =REGEXP'.  To display the
-directory history list, use 'cd ='.
+matching a particular regexp, use `cd =REGEXP'.  To display the
+directory history list, use `cd ='.
 
 This mechanism is very similar to that provided by `pushd', except
 it's far more automatic.  `pushd' allows the user to decide which
@@ -313,7 +313,7 @@ Thus, this does not include the current directory.")
       path)))
 
 (defun eshell-expand-multiple-dots (path)
-  "Convert '...' to '../..', '....' to '../../..', etc..
+  "Convert `...' to `../..', `....' to `../../..', etc..
 
 With the following piece of advice, you can make this functionality
 available in most of Emacs, with the exception of filename completion
@@ -364,7 +364,7 @@ in the minibuffer:
       (let ((curdir (eshell/pwd)))
 	(if (string-match path curdir)
 	    (setq path (replace-match subpath nil nil curdir))
-	  (error "Path substring '%s' not found" path))))
+	  (error "Path substring ‘%s’ not found" path))))
      ((and path (string-match "^-\\([0-9]*\\)$" path))
       (let ((index (match-string 1 path)))
 	(setq path

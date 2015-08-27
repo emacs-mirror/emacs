@@ -223,7 +223,7 @@
 ;;;###autoload
 (defun pcomplete/ack ()
   "Completion for the `ack' command.
-Start an argument with '-' to complete short options and '--' for
+Start an argument with `-' to complete short options and `--' for
 long options."
   ;; No space after =
   (while t

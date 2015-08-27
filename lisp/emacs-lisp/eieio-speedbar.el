@@ -323,7 +323,7 @@ Argument DEPTH is the depth at which the tag line is inserted."
 
 (cl-defmethod eieio-speedbar-child-make-tag-lines ((object eieio-speedbar) _depth)
   "Base method for creating tag lines for non-object children."
-  (error "You must implement `eieio-speedbar-child-make-tag-lines' for %s"
+  (error "You must implement ‘eieio-speedbar-child-make-tag-lines’ for %s"
 	 (eieio-object-name object)))
 
 (cl-defmethod eieio-speedbar-expand ((object eieio-speedbar) depth)
@@ -364,7 +364,7 @@ TOKEN is the object.  INDENT is the current indentation level."
 
 (cl-defmethod eieio-speedbar-child-description ((obj eieio-speedbar))
   "Return a description for a child of OBJ which is not an object."
-  (error "You must implement `eieio-speedbar-child-description' for %s"
+  (error "You must implement ‘eieio-speedbar-child-description’ for %s"
 	 (eieio-object-name obj)))
 
 (defun eieio-speedbar-item-info ()

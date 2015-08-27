@@ -163,9 +163,9 @@ Analogous to `mouse-position'."
 
 ;(defun mouse-avoidance-point-position-test ()
 ;  (interactive)
-;  (message (format "point=%s mouse=%s"
-;		   (cdr (mouse-avoidance-point-position))
-;		   (cdr (mouse-position)))))
+;  (message "point=%s mouse=%s"
+;	    (cdr (mouse-avoidance-point-position))
+;	    (cdr (mouse-position))))
 
 (defun mouse-avoidance-set-mouse-position (pos)
   ;; Carefully set mouse position to given position (X . Y)

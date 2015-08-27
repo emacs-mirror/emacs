@@ -156,7 +156,7 @@ Presumably if you call this you will insert something new there."
   "Display the string FMT formatted with ARGS at the end of the minibuffer."
   (if semantic-complete-inline-overlay
       (apply 'message fmt args)
-    (message (concat (buffer-string) (apply 'format fmt args)))))
+    (message (concat (buffer-string) (apply #'format-message fmt args)))))
 
 ;;; ------------------------------------------------------------
 ;;; MINIBUFFER: Option Selection harnesses
@@ -1491,7 +1491,7 @@ Not meaningful return value."
   "Display completions in *Completions* buffer, with focus highlight.
 A traditional displayor which can focus on a tag by showing it.
 Same as `semantic-displayor-traditional', but with selection between
-multiple tags with the same name done by 'focusing' on the source
+multiple tags with the same name done by focusing on the source
 location of the different tags to differentiate them.")
 
 (cl-defmethod semantic-displayor-focus-request
@@ -1665,7 +1665,7 @@ Display mechanism using tooltip for a list of possible completions.")
 	(when (>= (oref obj typing-count) 5)
 	  (oset obj mode 'standard)
 	  (setq mode 'standard)
-	  (message "Resetting inline-mode to 'standard'."))
+	  (message "Resetting inline-mode to ‘standard’."))
 	(when (and (> numcompl max-tags)
 		   (< (oref obj typing-count) 2))
 	  ;; Discretely hint at completion availability.
@@ -1684,7 +1684,7 @@ Display mechanism using tooltip for a list of possible completions.")
 	      (setq msg-tail (concat "\n[<TAB> " (number-to-string (- numcompl max-tags)) " more]"))
 	    (setq msg-tail (concat "\n[<n/a> " (number-to-string (- numcompl max-tags)) " more]"))
 	    (when (>= (oref obj typing-count) 2)
-	      (message "Refine search to display results beyond the '%s' limit"
+	      (message "Refine search to display results beyond the ‘%s’ limit"
 		       (symbol-name 'semantic-complete-inline-max-tags-extended)))))
 	 ((= numcompl 1)
 	  ;; two possible cases

@@ -72,7 +72,7 @@ For more information, see Info node `(elisp)Declaring Functions'."
 If FORM does return, signal an error."
   (declare (debug t))
   `(prog1 ,form
-     (error "Form marked with `noreturn' did return")))
+     (error "Form marked with ‘noreturn’ did return")))
 
 (defmacro 1value (form)
   "Evaluate FORM, expecting a constant return value.
@@ -295,7 +295,7 @@ In Emacs, the convention is that error messages start with a capital
 letter but *do not* end with a period.  Please follow this convention
 for the sake of consistency."
   (declare (advertised-calling-convention (string &rest args) "23.1"))
-  (signal 'error (list (apply 'format args))))
+  (signal 'error (list (apply #'format-message args))))
 
 (defun user-error (format &rest args)
   "Signal a pilot error, making error message by passing all args to `format'.
@@ -305,7 +305,7 @@ for the sake of consistency.
 This is just like `error' except that `user-error's are expected to be the
 result of an incorrect manipulation on the part of the user, rather than the
 result of an actual problem."
-  (signal 'user-error (list (apply #'format format args))))
+  (signal 'user-error (list (apply #'format-message format args))))
 
 (defun define-error (name message &optional parent)
   "Define NAME as a new error signal.
@@ -320,7 +320,7 @@ Defaults to `error'."
                     (mapcar (lambda (parent)
                               (cons parent
                                     (or (get parent 'error-conditions)
-                                        (error "Unknown signal `%s'" parent))))
+                                        (error "Unknown signal ‘%s’" parent))))
                             parent))
            (cons parent (get parent 'error-conditions)))))
     (put name 'error-conditions
@@ -1606,8 +1606,9 @@ can do the job."
           exp
         (let* ((sym (cadr list-var))
                (append (eval append))
-               (msg (format "`add-to-list' can't use lexical var `%s'; use `push' or `cl-pushnew'"
-                            sym))
+               (msg (format-message
+                     "‘add-to-list’ can't use lexical var ‘%s’; use ‘push’ or ‘cl-pushnew’"
+                     sym))
                ;; Big ugly hack so we only output a warning during
                ;; byte-compilation, and so we can use
                ;; byte-compile-not-lexical-var-p to silence the warning
@@ -2207,7 +2208,7 @@ Any input that is not one of CHARS is ignored.
 If optional argument INHIBIT-KEYBOARD-QUIT is non-nil, ignore
 keyboard-quit events while waiting for a valid input."
   (unless (consp chars)
-    (error "Called `read-char-choice' without valid char choices"))
+    (error "Called ‘read-char-choice’ without valid char choices"))
   (let (char done show-help (helpbuf " *Char Help*"))
     (let ((cursor-in-echo-area t)
           (executing-kbd-macro executing-kbd-macro)
@@ -2539,7 +2540,8 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
 	    (or (eq event exit-char)
 		(eq event (event-convert-list exit-char))
 		(setq unread-command-events
-                      (append (this-single-command-raw-keys))))))
+                      (append (this-single-command-raw-keys)
+                              unread-command-events)))))
       (delete-overlay ol))))
 
 
@@ -4760,7 +4762,7 @@ Examples of version conversion:
 
 See documentation for `version-separator' and `version-regexp-alist'."
   (or (and (stringp ver) (> (length ver) 0))
-      (error "Invalid version string: '%s'" ver))
+      (error "Invalid version string: ‘%s’" ver))
   ;; Change .x.y to 0.x.y
   (if (and (>= (length ver) (length version-separator))
 	   (string-equal (substring ver 0 (length version-separator))
@@ -4792,9 +4794,9 @@ See documentation for `version-separator' and `version-regexp-alist'."
 		  ((string-match "^[-_+ ]?\\([a-zA-Z]\\)$" s)
 		   (push (- (aref (downcase (match-string 1 s)) 0) ?a -1)
 			 lst))
-		  (t (error "Invalid version syntax: '%s'" ver))))))
+		  (t (error "Invalid version syntax: ‘%s’" ver))))))
       (if (null lst)
-	  (error "Invalid version syntax: '%s'" ver)
+	  (error "Invalid version syntax: ‘%s’" ver)
 	(nreverse lst)))))
 
 

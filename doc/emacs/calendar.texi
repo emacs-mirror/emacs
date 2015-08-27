@@ -177,10 +177,13 @@ repeat count indicating how many weeks, months, or years to move
 backward or forward.
 
 @vindex calendar-week-start-day
+@vindex calendar-weekend-days
 @cindex weeks, which day they start on
 @cindex calendar, first day of week
   By default, weeks begin on Sunday.  To make them begin on Monday
-instead, set the variable @code{calendar-week-start-day} to 1.
+instead, set the variable @code{calendar-week-start-day} to 1.  To
+change which day headers are highlighted as weekend days, set the
+variable @code{calendar-weekend-days}.
 
 @node Specified Dates
 @subsection Specified Dates

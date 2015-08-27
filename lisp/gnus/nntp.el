@@ -291,7 +291,7 @@ update their active files often, this can help.")
 (defvar nntp-async-process-list nil)
 
 (defvar nntp-authinfo-rejected nil
-"A custom error condition used to report 'Authentication Rejected' errors.
+"A custom error condition used to report `Authentication Rejected' errors.
 Condition handlers that match just this condition ensure that the nntp
 backend doesn't catch this error.")
 (put 'nntp-authinfo-rejected 'error-conditions '(error nntp-authinfo-rejected))
@@ -728,7 +728,7 @@ command whose response triggered the error."
                     (> number nntp-large-newsgroup)
                     (zerop (% received 20))
                     (nnheader-message 6 "NNTP: Receiving headers... %d%%"
-                                      (/ (* received 100) number)))
+                                      (floor (* received 100.0) number)))
                (nntp-accept-response))))
          (and (numberp nntp-large-newsgroup)
               (> number nntp-large-newsgroup)
@@ -965,7 +965,7 @@ command whose response triggered the error."
                   (> number nntp-large-newsgroup)
                   (zerop (% received 20))
                   (nnheader-message 6 "NNTP: Receiving articles... %d%%"
-                                    (/ (* received 100) number)))
+                                    (floor (* received 100.0) number)))
              (nntp-accept-response))))
        (and (numberp nntp-large-newsgroup)
             (> number nntp-large-newsgroup)

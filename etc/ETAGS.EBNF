@@ -88,7 +88,7 @@ that match it, Emacs then looks for an tag whose implicit tag name
 matches the request.  etags.c uses implicit tag names when possible, in
 order to reduce the size of the tags file.
   An implicit tag name is deduced from the pattern by discarding the
-last character if it is one of ` \f\t\n\r()=,;', then taking all the
+last character if it is one of ' \f\t\n\r()=,;', then taking all the
 rightmost consecutive characters in the pattern which are not one of
 those.
 

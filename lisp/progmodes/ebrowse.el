@@ -2015,7 +2015,7 @@ COLLAPSE non-nil means collapse the branch."
 (defun ebrowse-electric-list-looper (state condition)
   "Prevent cursor from moving beyond the buffer end.
 Don't let it move into the title lines.
-See 'Electric-command-loop' for a description of STATE and CONDITION."
+See `Electric-command-loop' for a description of STATE and CONDITION."
   (cond ((and condition
 	      (not (memq (car condition)
 			 '(buffer-read-only end-of-buffer
@@ -4223,7 +4223,8 @@ NUMBER-OF-STATIC-VARIABLES:"
 						    (1+ (point)))))))))
       (unless non-empty
 	(error "No tree buffers"))
-      (setf unread-command-events (listify-key-sequence "p"))
+      (setf unread-command-events
+            (nconc (listify-key-sequence "p") unread-command-events))
       (shrink-window-if-larger-than-buffer (selected-window))
       (setq buffer-read-only t))))
 

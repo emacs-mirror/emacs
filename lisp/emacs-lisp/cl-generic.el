@@ -192,7 +192,7 @@ BODY, if present, is used as the body of a default method.
          (when doc (error "Multiple doc strings for %S" name))
          (setq doc (cadr (pop options-and-methods))))
         (`declare
-         (when declarations (error "Multiple `declare' for %S" name))
+         (when declarations (error "Multiple ‘declare’ for %S" name))
          (setq declarations (pop options-and-methods)))
         (`:method (push (cdr (pop options-and-methods)) methods))
         (_ (push (pop options-and-methods) options))))
@@ -208,7 +208,7 @@ BODY, if present, is used as the body of a default method.
                                        defun-declarations-alist))))
                      (cond
                       (f (apply (car f) name args (cdr declaration)))
-                      (t (message "Warning: Unknown defun property `%S' in %S"
+                      (t (message "Warning: Unknown defun property ‘%S’ in %S"
                                   (car declaration) name)
                          nil))))
                  (cdr declarations))
@@ -791,6 +791,8 @@ Can only be used from within the lexical body of a primary or around method."
 ;;; Add support for describe-function
 
 (defun cl--generic-search-method (met-name)
+  "For `find-function-regexp-alist'. Searches for a cl-defmethod.
+MET-NAME is a cons (SYMBOL . SPECIALIZERS)."
   (let ((base-re (concat "(\\(?:cl-\\)?defmethod[ \t]+"
                          (regexp-quote (format "%s" (car met-name)))
 			 "\\_>")))
@@ -806,11 +808,15 @@ Can only be used from within the lexical body of a primary or around method."
       nil t)
      (re-search-forward base-re nil t))))
 
+;; WORKAROUND: This can't be a defconst due to bug#21237.
+(defvar cl--generic-find-defgeneric-regexp "(\\(?:cl-\\)?defgeneric[ \t]+%s\\>")
 
 (with-eval-after-load 'find-func
   (defvar find-function-regexp-alist)
   (add-to-list 'find-function-regexp-alist
-               `(cl-defmethod . ,#'cl--generic-search-method)))
+               `(cl-defmethod . ,#'cl--generic-search-method))
+  (add-to-list 'find-function-regexp-alist
+               `(cl-defgeneric . cl--generic-find-defgeneric-regexp)))
 
 (defun cl--generic-method-info (method)
   (let* ((specializers (cl--generic-method-specializers method))
@@ -986,8 +992,9 @@ The value returned is a list of elements of the form
   `(and (vectorp ,name)
         (> (length ,name) 0)
         (let ((tag (aref ,name 0)))
-          (if (eq (symbol-function tag) :quick-object-witness-check)
-              tag))))
+          (and (symbolp tag)
+               (eq (symbol-function tag) :quick-object-witness-check)
+               tag))))
 
 (defun cl--generic-class-parents (class)
   (let ((parents ())
@@ -1063,7 +1070,7 @@ The value returned is a list of elements of the form
    (and (assq type cl--generic-typeof-types)
         (progn
           (if (memq type '(vector array sequence))
-              (message "`%S' also matches CL structs and EIEIO classes" type))
+              (message "‘%S’ also matches CL structs and EIEIO classes" type))
           (list cl--generic-typeof-generalizer)))
    (cl-call-next-method)))
 

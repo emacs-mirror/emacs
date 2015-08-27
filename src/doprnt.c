@@ -49,8 +49,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    support features beyond those in `Fformat', which is used by `error' on the
    Lisp level.  */
 
-/* This function supports the following %-sequences in the `format'
-   argument:
+/* In the FORMAT argument this function supports ` and ' as directives
+   that output left and right quotes as per ‘text-quoting style’.  It
+   also supports the following %-sequences:
 
    %s means print a string argument.
    %S is silently treated as %s, for loose compatibility with `Fformat'.
@@ -144,6 +145,7 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
   /* Buffer we have got with malloc.  */
   char *big_buffer = NULL;
 
+  enum text_quoting_style quoting_style = text_quoting_style ();
   ptrdiff_t tem = -1;
   char *string;
   char fixed_buffer[20];	/* Default buffer for small formatting. */
@@ -164,7 +166,9 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
   /* Loop until end of format string or buffer full. */
   while (fmt < format_end && bufsize > 0)
     {
-      if (*fmt == '%')	/* Check for a '%' character */
+      char const *fmt0 = fmt;
+      char fmtchar = *fmt++;
+      if (fmtchar == '%')
 	{
 	  ptrdiff_t size_bound = 0;
 	  ptrdiff_t width;  /* Columns occupied by STRING on display.  */
@@ -180,7 +184,6 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 	  int maxmlen = max (max (1, pDlen), max (pIlen, pMlen));
 	  int mlen;
 
-	  fmt++;
 	  /* Copy this one %-spec into fmtcpy.  */
 	  string = fmtcpy;
 	  *string++ = '%';
@@ -438,22 +441,36 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 	    }
 	}
 
-      {
-	/* Just some character; Copy it if the whole multi-byte form
-	   fit in the buffer.  */
-	char *save_bufptr = bufptr;
+      char const *src;
+      ptrdiff_t srclen;
+      if (quoting_style == CURVE_QUOTING_STYLE && fmtchar == '`')
+	src = uLSQM, srclen = sizeof uLSQM - 1;
+      else if (quoting_style == CURVE_QUOTING_STYLE && fmtchar == '\'')
+	src = uRSQM, srclen = sizeof uRSQM - 1;
+      else if (quoting_style == STRAIGHT_QUOTING_STYLE && fmtchar == '`')
+	src = "'", srclen = 1;
+      else
+	{
+	  while (fmt < format_end && !CHAR_HEAD_P (*fmt))
+	    fmt++;
+	  src = fmt0, srclen = fmt - fmt0;
+	}
 
-	do { *bufptr++ = *fmt++; }
-	while (fmt < format_end && --bufsize > 0 && !CHAR_HEAD_P (*fmt));
-	if (!CHAR_HEAD_P (*fmt))
-	  {
-	    /* Truncate, but return value that will signal to caller
-	       that the buffer was too small.  */
-	    *save_bufptr = 0;
-	    break;
-	  }
-      }
-    };
+      if (bufsize < srclen)
+	{
+	  /* Truncate, but return value that will signal to caller
+	     that the buffer was too small.  */
+	  do
+	    *bufptr++ = '\0';
+	  while (--bufsize != 0);
+	}
+      else
+	{
+	  do
+	    *bufptr++ = *src++;
+	  while (--srclen != 0);
+	}
+    }
 
   /* If we had to malloc something, free it.  */
   xfree (big_buffer);
@@ -467,7 +484,8 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 /* Format to an unbounded buffer BUF.  This is like sprintf, except it
    is not limited to returning an 'int' so it doesn't have a silly 2
    GiB limit on typical 64-bit hosts.  However, it is limited to the
-   Emacs-style formats that doprnt supports.
+   Emacs-style formats that doprnt supports, and it requotes ` and '
+   as per ‘text-quoting-style’.
 
    Return the number of bytes put into BUF, excluding the terminating
    '\0'.  */

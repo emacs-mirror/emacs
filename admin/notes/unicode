@@ -226,7 +226,6 @@ nontrivial changes to the build process.
 	lisp/leim/quail/japanese.el
 	lisp/leim/quail/py-punct.el
 	lisp/leim/quail/pypunct-b5.el
-	lisp/term/x-win.el
 
      This file contains just Chinese characters, and has same problem.
      Also, it contains characters that cannot be encoded in UTF-8.

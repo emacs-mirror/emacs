@@ -59,8 +59,9 @@
 		 (setq quail-current-str (aref quail-current-key 0))))
 	  (if (integerp control-flag)
 	      (setq unread-command-events
-		    (string-to-list
-		     (substring quail-current-key control-flag)))))))
+		    (append
+		     (substring quail-current-key control-flag)
+                     unread-command-events))))))
   control-flag)
 
 ;; Convert Hiragana <-> Katakana in the current translation region.
@@ -103,7 +104,7 @@
 
 (defun quail-japanese-self-insert-and-switch-to-alpha (key idx)
   (quail-delete-region)
-  (setq unread-command-events (list (aref key (1- idx))))
+  (push (aref key (1- idx)) unread-command-events)
   (quail-japanese-switch-package "q" 1))
 
 (defvar quail-japanese-switch-table

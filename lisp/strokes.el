@@ -423,8 +423,9 @@ or for window START-WINDOW if that is specified."
   (interactive)
   (let ((command (cdar strokes-global-map)))
     (if (y-or-n-p
-	 (format "Really delete last stroke definition, defined to `%s'? "
-		 command))
+	 (format-message
+	  "Really delete last stroke definition, defined to `%s'? "
+	  command))
 	(progn
 	  (setq strokes-global-map (cdr strokes-global-map))
 	  (message "That stroke has been deleted"))
@@ -868,8 +869,8 @@ If no stroke matches, nothing is done and return value is nil."
 	  ((null strokes-global-map)
 	   (if (file-exists-p strokes-file)
 	       (and (y-or-n-p
-		     (format "No strokes loaded.  Load `%s'? "
-			     strokes-file))
+		     (format-message "No strokes loaded.  Load `%s'? "
+				     strokes-file))
 		    (strokes-load-user-strokes))
 	     (error "No strokes defined; use `strokes-global-set-stroke'")))
 	  (t

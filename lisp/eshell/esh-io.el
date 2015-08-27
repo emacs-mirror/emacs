@@ -182,7 +182,7 @@ not be added to this variable."
                 #'eshell--apply-redirections))
 
 (defun eshell-parse-redirection ()
-  "Parse an output redirection, such as '2>'."
+  "Parse an output redirection, such as `2>'."
   (if (and (not eshell-current-quoted)
 	   (looking-at "\\([0-9]\\)?\\(<\\|>+\\)&?\\([0-9]\\)?\\s-*"))
       (if eshell-current-argument

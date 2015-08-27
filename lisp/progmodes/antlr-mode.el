@@ -448,7 +448,7 @@ The standard value is (\"file\" \"grammar\" \"rule\" \"subrule\").  See
 	     "Generate default exception handler for each rule? "))
      ("codeGenMakeSwitchThreshold" nil
       (20600 antlr-read-value
-	     "Min number of alternatives for 'switch': "))
+	     "Min number of alternatives for `switch': "))
      ("codeGenBitsetTestThreshold" nil
       (20600 antlr-read-value
 	     "Min size of lookahead set for bitset test: "))

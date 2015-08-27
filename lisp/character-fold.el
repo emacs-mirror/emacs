@@ -24,7 +24,7 @@
 
 
 ;;;###autoload
-(defvar character-fold-search t
+(defvar character-fold-search nil
   "Non-nil if searches should fold similar characters.
 This means some characters will match entire groups of characters.
 For instance, \" will match all variants of double quotes, and
@@ -94,8 +94,7 @@ some).")
       ;; Add some manual entries.
       (dolist (it '((?\" "＂" "“" "”" "”" "„" "⹂" "〞" "‟" "‟" "❞" "❝" "❠" "“" "„" "〝" "〟" "🙷" "🙶" "🙸" "«" "»")
                     (?' "❟" "❛" "❜" "‘" "’" "‚" "‛" "‚" "󠀢" "❮" "❯" "‹" "›")
-                    (?` "❛" "‘" "‛" "󠀢" "❮" "‹")
-                    (?\s "\t" "\r" "\n")))
+                    (?` "❛" "‘" "‛" "󠀢" "❮" "‹")))
         (let ((idx (car it))
               (chars (cdr it)))
           (aset equiv idx (append chars (aref equiv idx)))))
@@ -121,12 +120,11 @@ If LAX is non-nil, any single whitespace character is allowed to
 match any number of times."
   (if character-fold-search
       (apply #'concat
-        (mapcar (lambda (c) (let ((out (or (aref character-fold-table c)
-                                      (regexp-quote (string c)))))
-                         (if (and lax (memq c '(?\s ?\t ?\r ?\n )))
-                             (concat out "+")
-                           out)))
-                string))
+             (mapcar (lambda (c) (if (and lax (memq c '(?\s ?\t ?\r ?\n)))
+                                "[ \t\n\r\xa0\x2002\x2d\x200a\x202f\x205f\x3000]+"
+                              (or (aref character-fold-table c)
+                                  (regexp-quote (string c)))))
+                     string))
     (regexp-quote string)))
 
 ;;; character-fold.el ends here

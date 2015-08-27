@@ -204,10 +204,10 @@ BUFFER is put back into its original major mode."
   (catch 'exit
     (if (pos-visible-in-window-p (point-max))
 	(progn (message "%s" (substitute-command-keys "<<< Press Space to bury the help buffer, Press \\[electric-help-retain] to retain it >>>"))
-	       (if (equal (setq unread-command-events (list (read-event)))
-			  '(?\s))
-		   (progn (setq unread-command-events nil)
-			  (throw 'exit t)))))
+               (let ((ev (read-event)))
+                 (if (equal ev ?\s)
+                     (throw 'exit t)
+                   (push ev unread-command-events)))))
     (let (up down both neither
 	  (standard (and (eq (key-binding " " nil t)
 			     'scroll-up)

@@ -394,7 +394,7 @@ The sub-protocol used to reach this function is set in
 `org-protocol-protocol-alist'.
 
 This function detects an URL, title and optional text, separated
-by '/'.  The location for a browser's bookmark looks like this:
+by `/'.  The location for a browser's bookmark looks like this:
 
   javascript:location.href='org-protocol://capture://'+ \\
         encodeURIComponent(location.href)+'/' \\

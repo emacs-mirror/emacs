@@ -484,7 +484,7 @@ This allows for context-sensitive checking whether pairing is appropriate.")
 Each alist element, which looks like (ELEMENT ...), is passed to
 `skeleton-insert' with no interactor.  Variable `str' does nothing.
 
-Elements might be (?\\=` ?\\=` _ \"''\"), (?\\( ?  _ \" )\") or (?{ \\n > _ \\n ?} >).")
+Elements might be (?\\=` ?\\=` _ \"\\='\\='\"), (?\\( ?  _ \" )\") or (?{ \\n > _ \\n ?} >).")
 
 (defvar skeleton-pair-default-alist '((?( _ ?)) (?\))
 				      (?[ _ ?]) (?\])

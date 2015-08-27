@@ -33,7 +33,7 @@
   :type 'boolean
   :group 'matching)
 
-(defcustom replace-character-fold t
+(defcustom replace-character-fold nil
   "Non-nil means `query-replace' should do character folding in matches.
 This means, for instance, that ' will match a large variety of
 unicode quotes."
@@ -209,9 +209,9 @@ wants to replace FROM with TO."
              (let ((match (match-string 3 from)))
                (cond
                 ((string= match "\\n")
-                 (message "Note: `\\n' here doesn't match a newline; to do that, type C-q C-j instead"))
+                 (message "Note: ‘\\n’ here doesn't match a newline; to do that, type C-q C-j instead"))
                 ((string= match "\\t")
-                 (message "Note: `\\t' here doesn't match a tab; to do that, just type TAB")))
+                 (message "Note: ‘\\t’ here doesn't match a tab; to do that, just type TAB")))
                (sit-for 2)))
         (if (not to)
             from
@@ -1140,7 +1140,7 @@ To return to ordinary Occur mode, use \\[occur-cease-edit]."
 	    (goto-char m)
 	    (recenter line)
 	    (if readonly
-		(message "Buffer `%s' is read only." buf)
+		(message "Buffer ‘%s’ is read only." buf)
 	      (delete-region (line-beginning-position) (line-end-position))
 	      (insert text))
 	    (move-to-column col)))))))
@@ -1495,7 +1495,8 @@ See also `multi-occur'."
 		     ;; Don't display regexp if with remaining text
 		     ;; it is longer than window-width.
 		     (if (> (+ (length regexp) 42) (window-width))
-			 "" (format " for `%s'" (query-replace-descr regexp)))))
+			 "" (format-message
+                             " for ‘%s’" (query-replace-descr regexp)))))
 	  (setq occur-revert-arguments (list regexp nlines bufs))
           (if (= count 0)
               (kill-buffer occur-buf)
@@ -2080,7 +2081,13 @@ see the documentation of `replace-match' to find out how to simulate
 `case-replace'.
 
 This function returns nil if and only if there were no matches to
-make, or the user didn't cancel the call."
+make, or the user didn't cancel the call.
+
+REPLACEMENTS is either a string, a list of strings, or a cons cell
+containing a function and its first argument.  The function is
+called to generate each replacement like this:
+  (funcall (car replacements) (cdr replacements) replace-count)
+It must return a string."
   (or map (setq map query-replace-map))
   (and query-flag minibuffer-auto-raise
        (raise-frame (window-frame (minibuffer-window))))
@@ -2136,11 +2143,6 @@ make, or the user didn't cancel the call."
     (when (eq (lookup-key map (vector last-input-event)) 'automatic-all)
       (setq query-flag nil multi-buffer t))
 
-    ;; REPLACEMENTS is either a string, a list of strings, or a cons cell
-    ;; containing a function and its first argument.  The function is
-    ;; called to generate each replacement like this:
-    ;;   (funcall (car replacements) (cdr replacements) replace-count)
-    ;; It must return a string.
     (cond
      ((stringp replacements)
       (setq next-replacement replacements

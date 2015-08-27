@@ -52,7 +52,7 @@
 
     effect   | prefix | examples
  ------------+--------+----------
-    acute    |   '    | 'a -> á, '' -> ´
+    acute    |   \\='    | \\='a -> á, \\='\\=' -> ´
     grave    |   \\=`    | \\=`a -> à
   circumflex |   ^    | ^a -> â
   diaeresis  |   \"    | \"a -> ä  \"\" -> ¨
@@ -183,7 +183,7 @@
 
     effect   | prefix | examples
  ------------+--------+----------
-    acute    |   '    | 'a -> á   '' -> ´
+    acute    |   \\='    | \\='a -> á   \\='\\=' -> ´
     grave    |   \\=`    | \\=`a -> à
   diaeresis  |   \"    | \"i -> ï   \"\" -> ¨
     tilde    |   ~    | ~n -> ñ
@@ -258,7 +258,7 @@ Key translation rules are:
 
     effect   | prefix | examples
  ------------+--------+----------
-    acute    |   '    | 'e -> é
+    acute    |   \\='    | \\='e -> é
     grave    |   \\=`    | \\=`a -> à
   circumflex |   ^    | ^a -> â
   diaeresis  |   \"    | \"i -> ï
@@ -338,9 +338,9 @@ Key translation rules are:
     effect   | prefix | examples
  ------------+--------+------------------
     tilde    |   \"    | \"a -> â
-  circumflex |   '    | 'a -> â, 'i -> î
-   cedilla   |   '    | 's -> ş, 't -> ţ
-   '         |   '    | '' -> '
+  circumflex |   \\='    | \\='a -> â, \\='i -> î
+   cedilla   |   \\='    | \\='s -> ş, \\='t -> ţ
+   \\='         |   \\='    | \\='\\=' -> \\='
    \"         |   \"    | \"\" -> \"
 " nil t nil nil nil nil nil nil nil nil t)
 
@@ -374,7 +374,7 @@ Key translation rules are:
  "irish-prefix" "Latin-1" "GA>" t
  "Irish input method with prefix modifiers
 Key translation rules are:
- 'A -> Á   'E -> É   'I -> Í   'O -> Ó   'U -> Ú
+ \\='A -> Á   \\='E -> É   \\='I -> Í   \\='O -> Ó   \\='U -> Ú
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -397,12 +397,12 @@ Key translation rules are:
 
     effect   | prefix | examples
  ------------+--------+----------
-    acute    |   '    | 'a -> á   '' -> ´
+    acute    |   \\='    | \\='a -> á   \\='\\=' -> ´
     grave    |   \\=`    | \\=`a -> à
   circumflex |   ^    | ^a -> â
   diaeresis  |   \"    | \"u -> ü
     tilde    |   ~    | ~a -> ã
-   cedilla   | ' or , | 'c -> ç   ,c -> ç
+   cedilla   | \\=' or , | \\='c -> ç   ,c -> ç
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -448,7 +448,7 @@ Key translation rules are:
 
     effect   | prefix | examples
  ------------+--------+----------
-    acute    |   '    | 'a -> á
+    acute    |   \\='    | \\='a -> á
   diaeresis  |   \"    | \"u -> ü
     tilde    |   ~    | ~n -> ñ
    symbol    |   ~    | ~> -> »   ~< -> «   ~! -> ¡   ~? -> ¿
@@ -484,13 +484,13 @@ Key translation rules are:
 
     effect   | prefix | examples
  ------------+--------+----------
-    acute    |   '    | 'a -> á   '' -> ?´
+    acute    |   \\='    | \\='a -> á   \\='\\=' -> ?´
   circumflex |   ^    | ^a -> â
   diaeresis  |   \"    | \"a -> ä   \"\" -> ¨
     breve    |   ~    | ~a -> ă
     caron    |   ~    | ~c -> č
    cedilla   |   \\=`    | \\=`c -> ç   \\=`e -> ?ę
-    misc     | ' \\=` ~  | 'd -> đ   \\=`l -> ł   \\=`z -> ż   ~o -> ő   ~u -> ű
+    misc     | \\=' \\=` ~  | \\='d -> đ   \\=`l -> ł   \\=`z -> ż   ~o -> ő   ~u -> ű
    symbol    |   ~    | \\=`. -> ˙   ~~ -> ˘   ~. -> ?¸
 " nil t nil nil nil nil nil nil nil nil t)
 
@@ -595,7 +595,7 @@ Key translation rules are:
 
     effect   | prefix | examples
  ------------+--------+----------
-    acute    |   '    | 'a -> á   '' -> ?´
+    acute    |   \\='    | \\='a -> á   \\='\\=' -> ?´
     grave    |   \\=`    | \\=`a -> à
   circumflex |   ^    | ^a -> â
   diaeresis  |   \"    | \"a -> ä   \"\" -> ¨
@@ -736,7 +736,7 @@ For example, the character named `aogonek' is obtained by `/a'."
 
     effect   | prefix | examples
  ------------+--------+----------
-    acute    |   '    | 'a -> á
+    acute    |   \\='    | \\='a -> á
     grave    |   \\=`    | \\=`a -> à
   circumflex |   ^    | ^a -> â
   diaeresis  |   \"    | \"a -> ä, \"Y -> Ÿ
@@ -871,7 +871,7 @@ For example, the character named `aogonek' is obtained by `/a'."
 
     effect   | prefix | examples
  ------------+--------+----------
-    acute    |   '    | 'a -> á
+    acute    |   \\='    | \\='a -> á
     grave    |   \\=`    | \\=`a -> à
   circumflex |   ^    | ^w -> ŵ
   diaeresis  |   \"    | \"a -> ä
@@ -996,7 +996,7 @@ of characters from a single Latin-N charset.
 
     effect   | prefix | examples
  ------------+--------+----------
-    acute    |   '    | 'a -> á, '' -> ´
+    acute    |   \\='    | \\='a -> á, \\='\\=' -> ´
     grave    |   \\=`    | \\=`a -> à
   circumflex |   ^    | ^a -> â
   diaeresis  |   \"    | \"a -> ä  \"\" -> ¨

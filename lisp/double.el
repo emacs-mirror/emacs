@@ -122,9 +122,10 @@ but not `C-u X' or `ESC X' since the X is not the prefix key."
 			 (append (make-list (1- (length (nth 1 entry)))
 					    127)
 				 (nth 2 entry)
-				 '(magic-end)))
+				 '(magic-end)
+                                 unread-command-events))
 		   (vector 127))
-	       (setq unread-command-events (list new))
+	       (push new unread-command-events)
 	       [ignore])))
 	  ((eq key 'magic-end)
 	   ;; End of double event.  Ignore.
@@ -134,7 +135,8 @@ but not `C-u X' or `ESC X' since the X is not the prefix key."
 	   (let ((exp (nth 1 (assoc key double-map))))
 	     (setq double-last-event key)
 	     (setq unread-command-events
-		   (append (substring exp 1) '(magic-start)))
+		   (append (substring exp 1) '(magic-start)
+                           unread-command-events))
 	     (vector (aref exp 0)))))))
 
 ;;; Mode

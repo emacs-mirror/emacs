@@ -481,9 +481,9 @@ text in allout item bodies.")
 
 \(That space is used to convey selected cues indicating body qualities,
 including things like:
- - encryption '~'
- - numbering '#'
- - indirect reference '@'
+ - encryption ‘~’
+ - numbering ‘#’
+ - indirect reference ‘@’
  - distinctive bullets - see `allout-distinctive-bullets-string'.)")
 ;;;_    = allout-span-to-category
 (defvar allout-span-to-category
@@ -869,7 +869,7 @@ Optional RECURSING is for internal use, to limit recursion."
     ;; tell the allout-widgets-post-command-business to reestablish the hook:
     (setq allout-widgets-reenable-before-change-handler t)
     ;; and raise an error to prevent the edit (and disable the hook):
-    (error
+    (error "%s"
      (substitute-command-keys allout-structure-unruly-deletion-message)))))
 ;;;_    > allout-widgets-after-change-handler
 (defun allout-widgets-after-change-handler (_beg _end _prelength)
@@ -2287,7 +2287,7 @@ Deletes allowed only when `inhibit-read-only' is t."
    ((yes-or-no-p "Unruly edit of outline structure - allow? ")
     (setq allout-widgets-unset-inhibit-read-only (not inhibit-read-only)
           inhibit-read-only t))
-   (t (error
+   (t (error "%s"
        (substitute-command-keys allout-structure-unruly-deletion-message)))))
 ;;;_   > allout-item-icon-key-handler ()
 (defun allout-item-icon-key-handler ()
@@ -2372,7 +2372,7 @@ The elements of LIST are not copied, just the list structure itself."
     (car list)))
 ;;;_  . allout-widgets-count-buttons-in-region (start end)
 (defun allout-widgets-count-buttons-in-region (start end)
-  "Debugging/diagnostic tool - count overlays with 'button' property in region."
+  "Debugging/diagnostic tool - count overlays with `button' property in region."
   (interactive "r")
   (setq start (or start (point-min))
         end (or end (point-max)))

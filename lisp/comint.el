@@ -184,11 +184,11 @@ narrowing in effect.  This way you will be certain that none of
 the remaining prompts will be accidentally messed up.  You may
 wish to put something like the following in your init file:
 
-\(add-hook 'comint-mode-hook
+\(add-hook \\='comint-mode-hook
 	  (lambda ()
-	    (define-key comint-mode-map [remap kill-region] 'comint-kill-region)
+	    (define-key comint-mode-map [remap kill-region] \\='comint-kill-region)
 	    (define-key comint-mode-map [remap kill-whole-line]
-	      'comint-kill-whole-line)))
+	      \\='comint-kill-whole-line)))
 
 If you sometimes use comint-mode on text-only terminals or with `emacs -nw',
 you might wish to use another binding for `comint-kill-whole-line'."
@@ -1051,7 +1051,7 @@ See also `comint-read-input-ring'."
       (let ((ch (read-event)))
 	(if (eq ch ?\s)
 	    (set-window-configuration conf)
-	  (setq unread-command-events (list ch)))))))
+	  (push ch unread-command-events))))))
 
 
 (defun comint-regexp-arg (prompt)
@@ -3365,7 +3365,8 @@ the completions."
 	    (set-window-configuration comint-dynamic-list-completions-config))
 	(if (eq first ?\s)
 	    (set-window-configuration comint-dynamic-list-completions-config)
-	  (setq unread-command-events (listify-key-sequence key)))))))
+	  (setq unread-command-events
+                (nconc (listify-key-sequence key) unread-command-events)))))))
 
 (defun comint-get-next-from-history ()
   "After fetching a line from input history, this fetches the following line.

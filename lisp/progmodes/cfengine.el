@@ -157,7 +157,7 @@ bundle agent rcfiles
   "Whether `cfengine-mode' should print debugging info.")
 
 (defvar cfengine-mode-syntax-cache nil
-  "Cache for `cfengine-mode' syntax trees obtained from 'cf-promises -s json'.")
+  "Cache for `cfengine-mode' syntax trees obtained from `cf-promises -s json'.")
 
 (defconst cfengine3-fallback-syntax
   '((functions

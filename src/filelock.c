@@ -666,7 +666,6 @@ lock_file (Lisp_Object fn)
   Lisp_Object orig_fn, encoded_fn;
   char *lfname;
   lock_info_type lock_info;
-  struct gcpro gcpro1;
   USE_SAFE_ALLOCA;
 
   /* Don't do locking while dumping Emacs.
@@ -676,7 +675,6 @@ lock_file (Lisp_Object fn)
     return;
 
   orig_fn = fn;
-  GCPRO1 (fn);
   fn = Fexpand_file_name (fn, Qnil);
 #ifdef WINDOWSNT
   /* Ensure we have only '/' separators, to avoid problems with
@@ -727,8 +725,6 @@ lock_file (Lisp_Object fn)
 	}
       SAFE_FREE ();
     }
-
-  UNGCPRO;
 }
 
 void

@@ -166,7 +166,7 @@ All values of the list must be uppercase strings.")
   "Return the first matching entry in `erc-dcc-list' which satisfies the
 constraints given as a plist in ARGS. Returns nil on no match.
 
-The property :nick is treated specially, if it contains a '!' character,
+The property :nick is treated specially, if it contains a ‘!’ character,
 it is treated as a nick!user@host string, and compared with the :nick property
 value of the individual elements using string-equal. Otherwise it is
 compared with `erc-nick-equal-p' which is IRC case-insensitive."
@@ -315,10 +315,10 @@ Should be set to a string or nil.  If nil, use the value of
 
 (defcustom erc-dcc-send-request 'ask
   "How to treat incoming DCC Send requests.
-'ask - Report the Send request, and wait for the user to manually accept it
-       You might want to set `erc-dcc-auto-masks' for this.
-'auto - Automatically accept the request and begin downloading the file
-'ignore - Ignore incoming DCC Send requests completely."
+`ask' - Report the Send request, and wait for the user to manually accept it
+        You might want to set `erc-dcc-auto-masks' for this.
+`auto' - Automatically accept the request and begin downloading the file
+`ignore' - Ignore incoming DCC Send requests completely."
   :group 'erc-dcc
   :type '(choice (const ask) (const auto) (const ignore)))
 
@@ -594,14 +594,9 @@ It lists the current state of `erc-dcc-list' in an easy to read manner."
                                             (get-buffer (plist-get elt :file))
                                           (+ (buffer-size) 0.0
                                              erc-dcc-byte-count))))
-                        (concat " ("
-                                (if (= byte-count 0)
-                                    "0"
-                                  (number-to-string
-                                   (truncate
-                                    (* 100
-                                       (/ byte-count (plist-get elt :size))))))
-                                "%)"))))
+                        (format " (%d%%)"
+                                (floor (* 100.0 byte-count)
+                                       (plist-get elt :size))))))
        ?f (or (and (plist-member elt :file) (plist-get elt :file)) "")))
     (erc-display-message
      nil 'notice 'active
@@ -718,9 +713,9 @@ match, returns that regexp and nil otherwise."
 
 (defcustom erc-dcc-chat-request 'ask
   "How to treat incoming DCC Chat requests.
-'ask - Report the Chat request, and wait for the user to manually accept it
-'auto - Automatically accept the request and open a new chat window
-'ignore - Ignore incoming DCC chat requests completely."
+`ask' - Report the Chat request, and wait for the user to manually accept it
+`auto' - Automatically accept the request and open a new chat window
+`ignore' - Ignore incoming DCC chat requests completely."
   :group 'erc-dcc
   :type '(choice (const ask) (const auto) (const ignore)))
 

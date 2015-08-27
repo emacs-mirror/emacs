@@ -291,7 +291,7 @@ If `org-store-link' was called with a prefix arg the meaning of
 	(group (gnus-group-jump-to-group group))))
 
 (defun org-gnus-no-new-news ()
-  "Like `M-x gnus' but doesn't check for new news."
+  "Like `\\[gnus]' but doesn't check for new news."
   (if (not (gnus-alive-p)) (if org-gnus-no-server (gnus-no-server) (gnus))))
 
 (provide 'org-gnus)

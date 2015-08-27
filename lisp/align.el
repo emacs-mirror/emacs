@@ -1348,7 +1348,7 @@ aligner would have dealt with are."
 	      (if real-beg
 		  (goto-char beg)
 		(if (or (not thissep) (eq thissep 'entire))
-		    (error "Cannot determine alignment region for '%s'"
+		    (error "Cannot determine alignment region for ‘%s’"
 			   (symbol-name (cdr (assq 'title rule)))))
 		(beginning-of-line)
 		(while (and (not (eobp))
@@ -1437,12 +1437,12 @@ aligner would have dealt with are."
                               (message
                                "Aligning `%s' (rule %d of %d) %d%%..."
                                (symbol-name symbol) rule-index rule-count
-                               (/ (* (- (point) real-beg) 100)
-                                  (- end-mark real-beg)))
+                               (floor (* (- (point) real-beg) 100.0)
+                                      (- end-mark real-beg)))
                             (message
                              "Aligning %d%%..."
-                             (/ (* (- (point) real-beg) 100)
-                                (- end-mark real-beg))))))
+                             (floor (* (- (point) real-beg) 100.0)
+                                    (- end-mark real-beg))))))
 
                     ;; if the search ended us on the beginning of
                     ;; the next line, move back to the end of the

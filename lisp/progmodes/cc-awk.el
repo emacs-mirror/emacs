@@ -1147,8 +1147,8 @@ comment at the start of cc-engine.el for more info."
 
 (cc-provide 'cc-awk)			; Changed from 'awk-mode, ACM 2002/5/21
 
-;;; Local Variables:
-;;; indent-tabs-mode: t
-;;; tab-width: 8
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: t
+;; tab-width: 8
+;; End:
 ;;; awk-mode.el ends here

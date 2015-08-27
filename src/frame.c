@@ -611,10 +611,10 @@ struct frame *
 make_frame (bool mini_p)
 {
   Lisp_Object frame;
-  register struct frame *f;
-  register struct window *rw, *mw;
-  register Lisp_Object root_window;
-  register Lisp_Object mini_window;
+  struct frame *f;
+  struct window *rw, *mw IF_LINT (= NULL);
+  Lisp_Object root_window;
+  Lisp_Object mini_window;
 
   f = allocate_frame ();
   XSETFRAME (frame, f);
@@ -735,10 +735,10 @@ make_frame (bool mini_p)
    default (the global minibuffer).  */
 
 struct frame *
-make_frame_without_minibuffer (register Lisp_Object mini_window, KBOARD *kb, Lisp_Object display)
+make_frame_without_minibuffer (Lisp_Object mini_window, KBOARD *kb,
+			       Lisp_Object display)
 {
-  register struct frame *f;
-  struct gcpro gcpro1;
+  struct frame *f;
 
   if (!NILP (mini_window))
     CHECK_LIVE_WINDOW (mini_window);
@@ -759,11 +759,9 @@ make_frame_without_minibuffer (register Lisp_Object mini_window, KBOARD *kb, Lis
           Lisp_Object frame_dummy;
 
           XSETFRAME (frame_dummy, f);
-          GCPRO1 (frame_dummy);
 	  /* If there's no minibuffer frame to use, create one.  */
 	  kset_default_minibuffer_frame
 	    (kb, call1 (intern ("make-initial-minibuffer-frame"), display));
-          UNGCPRO;
 	}
 
       mini_window
@@ -1855,7 +1853,6 @@ and returns whatever that function returns.  */)
   struct frame *f;
   Lisp_Object lispy_dummy;
   Lisp_Object x, y, retval;
-  struct gcpro gcpro1;
 
   f = SELECTED_FRAME ();
   x = y = Qnil;
@@ -1881,10 +1878,9 @@ and returns whatever that function returns.  */)
     }
   XSETFRAME (lispy_dummy, f);
   retval = Fcons (lispy_dummy, Fcons (x, y));
-  GCPRO1 (retval);
   if (!NILP (Vmouse_position_function))
     retval = call1 (Vmouse_position_function, retval);
-  RETURN_UNGCPRO (retval);
+  return retval;
 }
 
 DEFUN ("mouse-pixel-position", Fmouse_pixel_position,
@@ -1901,7 +1897,6 @@ and nil for X and Y.  */)
   struct frame *f;
   Lisp_Object lispy_dummy;
   Lisp_Object x, y, retval;
-  struct gcpro gcpro1;
 
   f = SELECTED_FRAME ();
   x = y = Qnil;
@@ -1919,10 +1914,9 @@ and nil for X and Y.  */)
 
   XSETFRAME (lispy_dummy, f);
   retval = Fcons (lispy_dummy, Fcons (x, y));
-  GCPRO1 (retval);
   if (!NILP (Vmouse_position_function))
     retval = call1 (Vmouse_position_function, retval);
-  RETURN_UNGCPRO (retval);
+  return retval;
 }
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -2510,13 +2504,11 @@ If FRAME is omitted or nil, return information on the currently selected frame. 
   Lisp_Object alist;
   struct frame *f = decode_any_frame (frame);
   int height, width;
-  struct gcpro gcpro1;
 
   if (!FRAME_LIVE_P (f))
     return Qnil;
 
   alist = Fcopy_alist (f->param_alist);
-  GCPRO1 (alist);
 
   if (!FRAME_WINDOW_P (f))
     {
@@ -2586,7 +2578,6 @@ If FRAME is omitted or nil, return information on the currently selected frame. 
       store_in_alist (&alist, Qmenu_bar_lines, lines);
     }
 
-  UNGCPRO;
   return alist;
 }
 
@@ -2977,24 +2968,40 @@ font height.  */)
   return Qnil;
 }
 
-DEFUN ("set-frame-position", Fset_frame_position,
-       Sset_frame_position, 3, 3, 0,
-       doc: /* Sets position of FRAME in pixels to XOFFSET by YOFFSET.
-If FRAME is nil, the selected frame is used.  XOFFSET and YOFFSET are
-actually the position of the upper left corner of the frame.  Negative
-values for XOFFSET or YOFFSET are interpreted relative to the rightmost
-or bottommost possible position (that stays within the screen).  */)
-  (Lisp_Object frame, Lisp_Object xoffset, Lisp_Object yoffset)
+DEFUN ("frame-position", Fframe_position,
+       Sframe_position, 0, 1, 0,
+       doc: /* Return top left corner of FRAME in pixels.
+FRAME must be a live frame and defaults to the selected one.  The return
+value is a cons (x, y) of the coordinates of the top left corner of
+FRAME's outer frame, in pixels relative to an origin (0, 0) of FRAME's
+display.  */)
+     (Lisp_Object frame)
 {
   register struct frame *f = decode_live_frame (frame);
 
-  CHECK_TYPE_RANGED_INTEGER (int, xoffset);
-  CHECK_TYPE_RANGED_INTEGER (int, yoffset);
+  return Fcons (make_number (f->left_pos), make_number (f->top_pos));
+}
+
+DEFUN ("set-frame-position", Fset_frame_position,
+       Sset_frame_position, 3, 3, 0,
+       doc: /* Set position of FRAME to (X, Y).
+FRAME must be a live frame and defaults to the selected one.  X and Y,
+if positive, specify the coordinate of the left and top edge of FRAME's
+outer frame in pixels relative to an origin (0, 0) of FRAME's display.
+If any of X or Y is negative, it specifies the coordinates of the right
+or bottom edge of the outer frame of FRAME relative to the right or
+bottom edge of FRAME's display.  */)
+  (Lisp_Object frame, Lisp_Object x, Lisp_Object y)
+{
+  register struct frame *f = decode_live_frame (frame);
+
+  CHECK_TYPE_RANGED_INTEGER (int, x);
+  CHECK_TYPE_RANGED_INTEGER (int, y);
 
   /* I think this should be done with a hook.  */
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
-    x_set_offset (f, XINT (xoffset), XINT (yoffset), 1);
+    x_set_offset (f, XINT (x), XINT (y), 1);
 #endif
 
   return Qt;
@@ -3119,8 +3126,6 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
   /* TAIL and ALIST are not used again below here.  */
   alist = tail = Qnil;
 
-  /* There is no need to gcpro LEFT, TOP, ICON_LEFT, or ICON_TOP,
-     because their values appear in VALUES and strings are not valid.  */
   top = left = Qunbound;
   icon_left = icon_top = Qunbound;
 
@@ -4890,15 +4895,17 @@ syms_of_frame (void)
   DEFSYM (Qframes, "frames");
   DEFSYM (Qsource, "source");
 
-  DEFSYM (Qframe_position, "frame-position");
-  DEFSYM (Qframe_outer_size, "frame-outer-size");
+  DEFSYM (Qouter_edges, "outer-edges");
+  DEFSYM (Qouter_position, "outer-position");
+  DEFSYM (Qouter_size, "outer-size");
+  DEFSYM (Qnative_edges, "native-edges");
+  DEFSYM (Qinner_edges, "inner-edges");
   DEFSYM (Qexternal_border_size, "external-border-size");
-  DEFSYM (Qtitle_height, "title-height");
+  DEFSYM (Qtitle_bar_size, "title-bar-size");
   DEFSYM (Qmenu_bar_external, "menu-bar-external");
   DEFSYM (Qmenu_bar_size, "menu-bar-size");
   DEFSYM (Qtool_bar_external, "tool-bar-external");
   DEFSYM (Qtool_bar_size, "tool-bar-size");
-  DEFSYM (Qframe_inner_size, "frame-inner-size");
   /* The following are used for frame_size_history.  */
   DEFSYM (Qadjust_frame_size_1, "adjust-frame-size-1");
   DEFSYM (Qadjust_frame_size_2, "adjust-frame-size-2");
@@ -5263,6 +5270,7 @@ in a more readable form.  */);
   defsubr (&Sset_frame_height);
   defsubr (&Sset_frame_width);
   defsubr (&Sset_frame_size);
+  defsubr (&Sframe_position);
   defsubr (&Sset_frame_position);
   defsubr (&Sframe_pointer_visible_p);
 

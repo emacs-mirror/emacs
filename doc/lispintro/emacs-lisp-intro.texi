@@ -1240,6 +1240,10 @@ command to do something.  (Usually, of course, it is the last of these
 three things that you really want!)
 
 @c use code for the single apostrophe, not samp.
+@findex quote
+@cindex @code{'} for quoting
+@cindex quoting using apostrophe
+@cindex apostrophe for quoting
 The single apostrophe, @code{'}, that I put in front of some of the
 example lists in preceding sections is called a @dfn{quote}; when it
 precedes a list, it tells Lisp to do nothing with the list, other than
@@ -2840,10 +2844,10 @@ following more complex expression:
 @c noindent
 In this case, the first argument to @code{other-buffer} tells it which
 buffer to skip---the current one---and the second argument tells
-@code{other-buffer} it is OK to switch to a visible buffer.
-In regular use, @code{switch-to-buffer} takes you to an invisible
-window since you would most likely use @kbd{C-x o} (@code{other-window})
-to go to another visible buffer.}
+@code{other-buffer} it is OK to switch to a visible buffer.  In
+regular use, @code{switch-to-buffer} takes you to a buffer not visible
+in windows since you would most likely use @kbd{C-x o}
+(@code{other-window}) to go to another visible buffer.}
 
 In the programming examples in later sections of this document, you will
 see the function @code{set-buffer} more often than
@@ -2909,7 +2913,7 @@ the following expression in the usual way:
 @end smallexample
 
 @noindent
-As I write this, the value of @code{point} is 65724.  The @code{point}
+As I write this, the value of point is 65724.  The @code{point}
 function is frequently used in some of the examples later in this
 book.
 
@@ -3227,6 +3231,7 @@ function, @code{multiply-by-seven}.  When you do this, a
 @smallexample
 @group
 multiply-by-seven is a Lisp function.
+
 (multiply-by-seven NUMBER)
 
 Multiply NUMBER by seven.
@@ -4152,8 +4157,8 @@ On the other hand, this function returns @code{nil} if the test is false.
 @section @code{save-excursion}
 @findex save-excursion
 @cindex Region, what it is
-@cindex Preserving point, mark, and buffer
-@cindex Point, mark, buffer preservation
+@cindex Preserving point and buffer
+@cindex Point and buffer preservation
 @findex point
 @findex mark
 
@@ -4202,7 +4207,7 @@ region}.  Numerous commands work on the region, including
 @code{center-region}, @code{count-lines-region}, @code{kill-region}, and
 @code{print-region}.
 
-The @code{save-excursion} special form saves the locations of point and
+The @code{save-excursion} special form saves the location of point and
 restores this position after the code within the body of the
 special form is evaluated by the Lisp interpreter.  Thus, if point were
 in the beginning of a piece of text and some code moved point to the end
@@ -4250,7 +4255,7 @@ one expression in the body, the value of the last one will be returned
 as the value of the @code{save-excursion} function.  The other
 expressions in the body are evaluated only for their side effects; and
 @code{save-excursion} itself is used only for its side effect (which
-is restoring the positions of point and mark).
+is restoring the position of point).
 
 @need 1250
 In more detail, the template for a @code{save-excursion} expression

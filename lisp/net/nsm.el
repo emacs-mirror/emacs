@@ -304,7 +304,7 @@ unencrypted."
 	(when (> (length cert) 0)
 	  (insert cert "\n"))
 	(let ((start (point)))
-	  (insert (apply 'format message args))
+	  (insert (apply #'format-message message args))
 	  (goto-char start)
 	  ;; Fill the first line of the message, which usually
 	  ;; contains lots of explanatory text.

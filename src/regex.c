@@ -1544,9 +1544,9 @@ do {									\
   DEBUG_PRINT ("  Push frame index: %zd\n", fail_stack.frame);		\
   PUSH_FAILURE_INT (fail_stack.frame);					\
   									\
-  DEBUG_PRINT ("  Push string %p: `", string_place);			\
+  DEBUG_PRINT ("  Push string %p: \"", string_place);			\
   DEBUG_PRINT_DOUBLE_STRING (string_place, string1, size1, string2, size2);\
-  DEBUG_PRINT ("'\n");							\
+  DEBUG_PRINT ("\"\n");							\
   PUSH_FAILURE_POINTER (string_place);					\
   									\
   DEBUG_PRINT ("  Push pattern %p: ", pattern);				\
@@ -1598,9 +1598,9 @@ do {									\
      on_failure_keep_string_jump opcode, and we want to throw away the	\
      saved NULL, thus retaining our current position in the string.  */	\
   str = POP_FAILURE_POINTER ();						\
-  DEBUG_PRINT ("  Popping string %p: `", str);				\
+  DEBUG_PRINT ("  Popping string %p: \"", str);				\
   DEBUG_PRINT_DOUBLE_STRING (str, string1, size1, string2, size2);	\
-  DEBUG_PRINT ("'\n");							\
+  DEBUG_PRINT ("\"\n");							\
 									\
   fail_stack.frame = POP_FAILURE_INT ();				\
   DEBUG_PRINT ("  Popping  frame index: %zd\n", fail_stack.frame);	\
@@ -5127,9 +5127,9 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const_re_char *string1,
 
   DEBUG_PRINT ("The compiled pattern is: ");
   DEBUG_PRINT_COMPILED_PATTERN (bufp, p, pend);
-  DEBUG_PRINT ("The string to match is: `");
+  DEBUG_PRINT ("The string to match is: \"");
   DEBUG_PRINT_DOUBLE_STRING (d, string1, size1, string2, size2);
-  DEBUG_PRINT ("'\n");
+  DEBUG_PRINT ("\"\n");
 
   /* This loops over pattern commands.  It exits by returning from the
      function if the match is complete, or it drops through if the match
@@ -5435,7 +5435,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const_re_char *string1,
 		    && buf_ch == '\000'))
 	      goto fail;
 
-	    DEBUG_PRINT ("  Matched `%d'.\n", *d);
+	    DEBUG_PRINT ("  Matched \"%d\".\n", *d);
 	    d += buf_charlen;
 	  }
 	  break;

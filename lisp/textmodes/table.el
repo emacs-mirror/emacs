@@ -1893,7 +1893,9 @@ all the table specific features."
 	    (while (and (re-search-forward border3 (point-max) t)
 			(not (and (input-pending-p)
 				  table-abort-recognition-when-input-pending)))
-	      (message "Recognizing tables...(%d%%)" (/ (* 100 (match-beginning 0)) (- (point-max) (point-min))))
+	      (message "Recognizing tables...(%d%%)"
+		       (floor (* 100.0 (match-beginning 0))
+			      (- (point-max) (point-min))))
 	      (let ((beg (match-beginning 0))
 		    end)
 		(if (re-search-forward non-border (point-max) t)
@@ -2804,8 +2806,8 @@ ORIENTATION is a symbol either horizontally or vertically."
 ;;;###autoload
 (defun table-justify (what justify)
   "Justify contents of a cell, a row of cells or a column of cells.
-WHAT is a symbol 'cell, 'row or 'column.  JUSTIFY is a symbol 'left,
-'center, 'right, 'top, 'middle, 'bottom or 'none."
+WHAT is a symbol ‘cell’, ‘row’ or ‘column’.  JUSTIFY is a symbol
+‘left’, ‘center’, ‘right’, ‘top’, ‘middle’, ‘bottom’ or ‘none’."
   (interactive
    (list (let* ((_ (barf-if-buffer-read-only))
 		(completion-ignore-case t)
@@ -2820,8 +2822,8 @@ WHAT is a symbol 'cell, 'row or 'column.  JUSTIFY is a symbol 'left,
 ;;;###autoload
 (defun table-justify-cell (justify &optional paragraph)
   "Justify cell contents.
-JUSTIFY is a symbol 'left, 'center or 'right for horizontal, or 'top,
-'middle, 'bottom or 'none for vertical.  When optional PARAGRAPH is
+JUSTIFY is a symbol ‘left’, ‘center’ or ‘right’ for horizontal, or ‘top’,
+‘middle’, ‘bottom’ or ‘none’ for vertical.  When optional PARAGRAPH is
 non-nil the justify operation is limited to the current paragraph,
 otherwise the entire cell contents is justified."
   (interactive
@@ -2833,8 +2835,8 @@ otherwise the entire cell contents is justified."
 ;;;###autoload
 (defun table-justify-row (justify)
   "Justify cells of a row.
-JUSTIFY is a symbol 'left, 'center or 'right for horizontal, or top,
-'middle, 'bottom or 'none for vertical."
+JUSTIFY is a symbol ‘left’, ‘center’ or ‘right’ for horizontal,
+or ‘top’, ‘middle’, ‘bottom’ or ‘none’ for vertical."
   (interactive
    (list (table--query-justification)))
   (let((cell-list (table--horizontal-cell-list nil nil 'top)))
@@ -2850,8 +2852,8 @@ JUSTIFY is a symbol 'left, 'center or 'right for horizontal, or top,
 ;;;###autoload
 (defun table-justify-column (justify)
   "Justify cells of a column.
-JUSTIFY is a symbol 'left, 'center or 'right for horizontal, or top,
-'middle, 'bottom or 'none for vertical."
+JUSTIFY is a symbol ‘left’, ‘center’ or ‘right’ for horizontal,
+or ‘top’, ‘middle’, ‘bottom’ or ‘none’ for vertical."
   (interactive
    (list (table--query-justification)))
   (let((cell-list (table--vertical-cell-list nil nil 'left)))
@@ -3339,8 +3341,8 @@ INTERVAL is the number of cells to travel between sequence element
 insertion which is normally 1.  When zero or less is given for
 INTERVAL it is interpreted as number of cells per row so that sequence
 is placed straight down vertically as long as the table's cell
-structure is uniform.  JUSTIFY is one of the symbol 'left, 'center or
-'right, that specifies justification of the inserted string.
+structure is uniform.  JUSTIFY is a symbol ‘left’, ‘center’ or
+‘right’ that specifies justification of the inserted string.
 
 Example:
 
@@ -4459,8 +4461,8 @@ looking at the appearance of the CELL contents."
 
 (defun table--justify-cell-contents (justify &optional paragraph)
   "Justify the current cell contents.
-JUSTIFY is a symbol 'left, 'center or 'right for horizontal, or 'top,
-'middle, 'bottom or 'none for vertical.  When PARAGRAPH is non-nil the
+JUSTIFY is a symbol ‘left’, ‘center’ or ‘right’ for horizontal, or ‘top’,
+‘middle’, ‘bottom’ or ‘none’ for vertical.  When PARAGRAPH is non-nil the
 justify operation is limited to the current paragraph."
   (table-with-cache-buffer
     (let ((beg (point-min))

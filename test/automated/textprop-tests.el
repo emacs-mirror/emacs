@@ -24,6 +24,18 @@
 
 (require 'ert)
 
+(ert-deftest textprop-tests-format ()
+  "Test ‘format’ with text properties."
+  ;; See Bug#21351.
+  (should (equal-including-properties
+           (format #("mouse-1, RET: %s -- w: copy %s"
+                     12 20 (face minibuffer-prompt)
+                     21 30 (face minibuffer-prompt))
+                   "visit" "link")
+           #("mouse-1, RET: visit -- w: copy link"
+             12 23 (face minibuffer-prompt)
+             24 35 (face minibuffer-prompt)))))
+
 (ert-deftest textprop-tests-font-lock--remove-face-from-text-property ()
   "Test `font-lock--remove-face-from-text-property'."
   (let* ((string "foobar")

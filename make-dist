@@ -338,7 +338,7 @@ files=`find lisp \( -name '*.el' -o -name '*.elc' -o -name 'ChangeLog*' \
  -o -name 'README' \)`
 
 ### Don't distribute site-init.el, site-load.el, or default.el.
-for file in lisp/Makefile.in lisp/makefile.w32-in $files; do
+for file in lisp/Makefile.in $files; do
   case $file in
     */site-init*|*/site-load*|*/default*) continue ;;
   esac
@@ -347,7 +347,6 @@ done
 
 echo "Making links to 'leim' and its subdirectories"
 (cd leim
- ln makefile.w32-in ../${tempdir}/leim
  ln ChangeLog.*[0-9] README ../${tempdir}/leim
  ln CXTERM-DIC/README CXTERM-DIC/*.tit ../${tempdir}/leim/CXTERM-DIC
  ln SKK-DIC/README SKK-DIC/SKK-JISYO.L ../${tempdir}/leim/SKK-DIC
@@ -377,7 +376,6 @@ echo "Making links to 'src'"
  ln [a-zA-Z]*.in ../${tempdir}/src
  ln deps.mk ../${tempdir}/src
  ln README ChangeLog.*[0-9] ../${tempdir}/src
- ln makefile.w32-in ../${tempdir}/src
  ln .gdbinit .dbxinit ../${tempdir}/src
  cd ../${tempdir}/src
  rm -f globals.h config.h epaths.h Makefile buildobj.h)
@@ -390,7 +388,7 @@ echo "Making links to 'lib'"
 (snippet_h=`(cd build-aux/snippet && ls *.h)`
  cd lib
  ln [a-zA-Z]*.[ch] ../${tempdir}/lib
- ln gnulib.mk Makefile.am Makefile.in makefile.w32-in ../${tempdir}/lib
+ ln gnulib.mk Makefile.am Makefile.in ../${tempdir}/lib
  cd ../${tempdir}/lib
  script='/[*]/d; s/\.in\.h$/.h/'
  rm -f `(echo "$snippet_h"; ls *.in.h) | sed "$script"`)
@@ -400,7 +398,6 @@ echo "Making links to 'lib-src'"
  ln [a-zA-Z]*.[ch] ../${tempdir}/lib-src
  ln ChangeLog.*[0-9] Makefile.in README ../${tempdir}/lib-src
  ln rcs2log ../${tempdir}/lib-src
- ln makefile.w32-in ../${tempdir}/lib-src
  ln update-game-score.exe.manifest ../${tempdir}/lib-src)
 
 echo "Making links to 'm4'"
@@ -410,11 +407,10 @@ echo "Making links to 'm4'"
 echo "Making links to 'nt'"
 (cd nt
  ln emacs-x86.manifest emacs-x64.manifest ../${tempdir}/nt
- ln config.nt emacs-src.tags ../${tempdir}/nt
- ln nmake.defs gmake.defs subdirs.el [a-z]*.bat [a-z]*.[ch] ../${tempdir}/nt
+ ln subdirs.el [a-z]*.bat [a-z]*.[ch] ../${tempdir}/nt
  ln *.in gnulib.mk ../${tempdir}/nt
  ln mingw-cfg.site epaths.nt INSTALL.OLD ../${tempdir}/nt
- ln ChangeLog.*[0-9] INSTALL README README.W32 makefile.w32-in ../${tempdir}/nt)
+ ln ChangeLog.*[0-9] INSTALL README README.W32 ../${tempdir}/nt)
 
 echo "Making links to 'nt/inc' and its subdirectories"
 for f in `find nt/inc -type f -name '[a-z]*.h'`; do
@@ -500,23 +496,22 @@ ln `find info -type f -print` ${tempdir}/info
 
 echo "Making links to 'doc/emacs'"
 (cd doc/emacs
- ln *.texi *.in makefile.w32-in ChangeLog.*[0-9] ../../${tempdir}/doc/emacs)
+ ln *.texi *.in ChangeLog.*[0-9] ../../${tempdir}/doc/emacs)
 
 echo "Making links to 'doc/misc'"
 (cd doc/misc
- ln *.texi *.tex *.in makefile.w32-in gnus-news.el ChangeLog.*[0-9] \
+ ln *.texi *.tex *.in gnus-news.el ChangeLog.*[0-9] \
     ../../${tempdir}/doc/misc)
 
 echo "Making links to 'doc/lispref'"
 (cd doc/lispref
- ln *.texi *.in makefile.w32-in README ChangeLog.*[0-9] \
-    ../../${tempdir}/doc/lispref
+ ln *.texi *.in README ChangeLog.*[0-9] ../../${tempdir}/doc/lispref
  ln spellfile ../../${tempdir}/doc/lispref
  ln two-volume.make two-volume-cross-refs.txt ../../${tempdir}/doc/lispref)
 
 echo "Making links to 'doc/lispintro'"
 (cd doc/lispintro
- ln *.texi *.in makefile.w32-in *.eps *.pdf ../../${tempdir}/doc/lispintro
+ ln *.texi *.in *.eps *.pdf ../../${tempdir}/doc/lispintro
  ln README ChangeLog.*[0-9] ../../${tempdir}/doc/lispintro
  cd ../../${tempdir}/doc/lispintro)
 

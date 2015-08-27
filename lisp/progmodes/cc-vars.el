@@ -1772,8 +1772,8 @@ It treats escaped EOLs as whitespace.")
 
 (cc-provide 'cc-vars)
 
-;;; Local Variables:
-;;; indent-tabs-mode: t
-;;; tab-width: 8
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: t
+;; tab-width: 8
+;; End:
 ;;; cc-vars.el ends here

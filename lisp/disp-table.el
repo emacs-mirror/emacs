@@ -281,7 +281,8 @@ in `.emacs'."
 	       (set-terminal-coding-system nil))))
 
     (display-warning 'i18n
-		     "`standard-display-european' is semi-obsolete; see its doc string for details"
+		     (format-message
+		      "`standard-display-european' is semi-obsolete; see its doc string for details")
 		     :warning)
 
     ;; Switch to Latin-1 language environment

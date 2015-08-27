@@ -31,9 +31,6 @@
 (autoload 'gnus-replace-in-string "gnus-util")
 (autoload 'gnus-read-shell-command "gnus-util")
 
-(autoload 'gnus-overlays-at "gnus")
-(autoload 'gnus-overlay-put "gnus")
-
 (autoload 'mm-inline-partial "mm-partial")
 (autoload 'mm-inline-external-body "mm-extern")
 (autoload 'mm-extern-cache-contents "mm-extern")
@@ -1915,8 +1912,8 @@ If RECURSIVE, search recursively."
 	 :keymap shr-map
 	 (get-text-property start 'shr-url))
 	(put-text-property start end 'local-map nil)
-	(dolist (overlay (gnus-overlays-at start))
-	  (gnus-overlay-put overlay 'face nil))
+	(dolist (overlay (overlays-at start))
+	  (overlay-put overlay 'face nil))
 	(setq start end)))))
 
 (defun mm-handle-filename (handle)

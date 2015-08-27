@@ -1305,7 +1305,7 @@ The returned value is a Quail map specific to KEY."
 
 (define-error 'quail-error nil)
 (defun quail-error (&rest args)
-  (signal 'quail-error (apply 'format args)))
+  (signal 'quail-error (apply #'format-message args)))
 
 (defun quail-input-string-to-events (str)
   "Convert input string STR to a list of events.
@@ -1415,7 +1415,8 @@ Return the input string."
 	      ;; KEYSEQ is not defined in the translation keymap.
 	      ;; Let's return the event(s) to the caller.
 	      (setq unread-command-events
-		    (string-to-list (this-single-command-raw-keys)))
+		    (append (this-single-command-raw-keys)
+                            unread-command-events))
 	      (setq quail-translating nil))))
 	(quail-delete-region)
 	quail-current-str)
@@ -1491,7 +1492,8 @@ Return the input string."
 	      ;; KEYSEQ is not defined in the conversion keymap.
 	      ;; Let's return the event(s) to the caller.
 	      (setq unread-command-events
-		    (string-to-list (this-single-command-raw-keys)))
+		    (append (this-single-command-raw-keys)
+                            unread-command-events))
 	      (setq quail-converting nil))))
 	(setq quail-translating nil)
 	(if (overlay-start quail-conv-overlay)

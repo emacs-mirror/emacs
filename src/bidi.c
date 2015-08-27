@@ -1313,13 +1313,13 @@ bidi_fetch_char (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t *disp_pos,
 	  /* `(space ...)' display specs are handled as paragraph
 	     separators for the purposes of the reordering; see UAX#9
 	     section 3 and clause HL1 in section 4.3 there.  */
-	  ch = 0x2029;
+	  ch = PARAGRAPH_SEPARATOR;
 	}
       else
 	{
 	  /* All other display specs are handled as the Unicode Object
 	     Replacement Character.  */
-	  ch = 0xFFFC;
+	  ch = OBJECT_REPLACEMENT_CHARACTER;
 	}
       disp_end_pos = compute_display_string_end (*disp_pos, string);
       if (disp_end_pos < 0)
@@ -2482,8 +2482,8 @@ typedef struct bpa_stack_entry {
 
 #define CANONICAL_EQU(c)					\
   ( ASCII_CHAR_P (c) ? c					\
-    : (c) == 0x2329 ? 0x3008					\
-    : (c) == 0x232a ? 0x3009					\
+    : (c) == LEFT_POINTING_ANGLE_BRACKET ? LEFT_ANGLE_BRACKET	\
+    : (c) == RIGHT_POINTING_ANGLE_BRACKET ? RIGHT_ANGLE_BRACKET	\
     : c )
 
 #ifdef ENABLE_CHECKING
@@ -3348,7 +3348,6 @@ bidi_move_to_visually_next (struct bidi_it *bidi_it)
 {
   int old_level, new_level, next_level;
   struct bidi_it sentinel;
-  struct gcpro gcpro1;
 
   if (bidi_it->charpos < 0 || bidi_it->bytepos < 0)
     emacs_abort ();
@@ -3357,11 +3356,6 @@ bidi_move_to_visually_next (struct bidi_it *bidi_it)
     {
       bidi_it->scan_dir = 1;	/* default to logical order */
     }
-
-  /* The code below can call eval, and thus cause GC.  If we are
-     iterating a Lisp string, make sure it won't be GCed.  */
-  if (STRINGP (bidi_it->string.lstring))
-    GCPRO1 (bidi_it->string.lstring);
 
   /* If we just passed a newline, initialize for the next line.  */
   if (!bidi_it->first_elt
@@ -3508,9 +3502,6 @@ bidi_move_to_visually_next (struct bidi_it *bidi_it)
 
   eassert (bidi_it->resolved_level >= 0
 	   && bidi_it->resolved_level <= BIDI_MAXDEPTH + 2);
-
-  if (STRINGP (bidi_it->string.lstring))
-    UNGCPRO;
 }
 
 /* Utility function for looking for strong directional characters

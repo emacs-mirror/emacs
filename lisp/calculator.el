@@ -311,7 +311,7 @@ user-defined operators, use `calculator-user-operators' instead.")
    9 (highest) (optional, defaults to 1);
 
 It it possible have a unary prefix version of a binary operator if it
-comes later in this list.  If the list begins with the symbol 'nobind,
+comes later in this list.  If the list begins with the symbol `nobind',
 then no key binding will take place -- this is only useful for
 predefined keys.
 

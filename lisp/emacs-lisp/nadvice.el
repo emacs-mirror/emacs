@@ -95,7 +95,7 @@ Each element has the form (WHERE BYTECODE STACK) where:
                (propertize (format "%s advice: " where)
                            'face 'warning)
                (let ((fun (advice--car flist)))
-                 (if (symbolp fun) (format "`%S'" fun)
+                 (if (symbolp fun) (format-message "‘%S’" fun)
                    (let* ((name (cdr (assq 'name (advice--props flist))))
                           (doc (documentation fun t))
                           (usage (help-split-fundoc doc function)))
@@ -176,7 +176,7 @@ WHERE is a symbol to select an entry in `advice--where-alist'."
           (advice--make-1 (aref main 1) (aref main 3)
                           (advice--car main) rest (advice--props main)))
       (let ((desc (assq where advice--where-alist)))
-        (unless desc (error "Unknown add-function location `%S'" where))
+        (unless desc (error "Unknown add-function location ‘%S’" where))
         (advice--make-1 (nth 1 desc) (nth 2 desc)
                         function main props)))))
 
@@ -461,7 +461,7 @@ otherwise it is named `SYMBOL@NAME'.
          (advice (cond ((null name) `(lambda ,lambda-list ,@body))
                        ((or (stringp name) (symbolp name))
                         (intern (format "%s@%s" symbol name)))
-                       (t (error "Unrecognized name spec `%S'" name)))))
+                       (t (error "Unrecognized name spec ‘%S’" name)))))
     `(prog1 ,@(and (symbolp advice) `((defun ,advice ,lambda-list ,@body)))
        (advice-add ',symbol ,where #',advice ,@(and props `(',props))))))
 

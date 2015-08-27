@@ -1863,8 +1863,7 @@ static Lisp_Object
 sort_list (Lisp_Object list, Lisp_Object predicate)
 {
   Lisp_Object front, back;
-  register Lisp_Object len, tem;
-  struct gcpro gcpro1, gcpro2;
+  Lisp_Object len, tem;
   EMACS_INT length;
 
   front = list;
@@ -1878,10 +1877,8 @@ sort_list (Lisp_Object list, Lisp_Object predicate)
   back = Fcdr (tem);
   Fsetcdr (tem, Qnil);
 
-  GCPRO2 (front, back);
   front = Fsort (front, predicate);
   back = Fsort (back, predicate);
-  UNGCPRO;
   return merge (front, back, predicate);
 }
 
@@ -1977,15 +1974,12 @@ sort_vector (Lisp_Object vector, Lisp_Object predicate)
     return;
   ptrdiff_t halflen = len >> 1;
   Lisp_Object *tmp;
-  struct gcpro gcpro1, gcpro2;
-  GCPRO2 (vector, predicate);
   USE_SAFE_ALLOCA;
   SAFE_ALLOCA_LISP (tmp, halflen);
   for (ptrdiff_t i = 0; i < halflen; i++)
     tmp[i] = make_number (0);
   sort_vector_inplace (predicate, len, XVECTOR (vector)->contents, tmp);
   SAFE_FREE ();
-  UNGCPRO;
 }
 
 DEFUN ("sort", Fsort, Ssort, 2, 2, 0,
@@ -2008,27 +2002,15 @@ the second.  */)
 Lisp_Object
 merge (Lisp_Object org_l1, Lisp_Object org_l2, Lisp_Object pred)
 {
-  Lisp_Object value;
-  register Lisp_Object tail;
-  Lisp_Object tem;
-  register Lisp_Object l1, l2;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
-
-  l1 = org_l1;
-  l2 = org_l2;
-  tail = Qnil;
-  value = Qnil;
-
-  /* It is sufficient to protect org_l1 and org_l2.
-     When l1 and l2 are updated, we copy the new values
-     back into the org_ vars.  */
-  GCPRO4 (org_l1, org_l2, pred, value);
+  Lisp_Object l1 = org_l1;
+  Lisp_Object l2 = org_l2;
+  Lisp_Object tail = Qnil;
+  Lisp_Object value = Qnil;
 
   while (1)
     {
       if (NILP (l1))
 	{
-	  UNGCPRO;
 	  if (NILP (tail))
 	    return l2;
 	  Fsetcdr (tail, l2);
@@ -2036,12 +2018,13 @@ merge (Lisp_Object org_l1, Lisp_Object org_l2, Lisp_Object pred)
 	}
       if (NILP (l2))
 	{
-	  UNGCPRO;
 	  if (NILP (tail))
 	    return l1;
 	  Fsetcdr (tail, l1);
 	  return value;
 	}
+
+      Lisp_Object tem;
       if (inorder (pred, Fcar (l1), Fcar (l2)))
 	{
 	  tem = l1;
@@ -2504,22 +2487,6 @@ mapcar1 (EMACS_INT leni, Lisp_Object *vals, Lisp_Object fn, Lisp_Object seq)
 {
   Lisp_Object tail, dummy;
   EMACS_INT i;
-  struct gcpro gcpro1, gcpro2, gcpro3;
-
-  if (vals)
-    {
-      /* Don't let vals contain any garbage when GC happens.  */
-      memclear (vals, leni * word_size);
-
-      GCPRO3 (dummy, fn, seq);
-      gcpro1.var = vals;
-      gcpro1.nvars = leni;
-    }
-  else
-    GCPRO2 (fn, seq);
-  /* We need not explicitly protect `tail' because it is used only on lists, and
-    1) lists are not relocated and 2) the list is marked via `seq' so will not
-    be freed */
 
   if (VECTORP (seq) || COMPILEDP (seq))
     {
@@ -2566,8 +2533,6 @@ mapcar1 (EMACS_INT leni, Lisp_Object *vals, Lisp_Object fn, Lisp_Object seq)
 	  tail = XCDR (tail);
 	}
     }
-
-  UNGCPRO;
 }
 
 DEFUN ("mapconcat", Fmapconcat, Smapconcat, 3, 3, 0,
@@ -2578,11 +2543,10 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
   (Lisp_Object function, Lisp_Object sequence, Lisp_Object separator)
 {
   Lisp_Object len;
-  register EMACS_INT leni;
+  EMACS_INT leni;
   EMACS_INT nargs;
   ptrdiff_t i;
-  register Lisp_Object *args;
-  struct gcpro gcpro1;
+  Lisp_Object *args;
   Lisp_Object ret;
   USE_SAFE_ALLOCA;
 
@@ -2595,9 +2559,7 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
 
   SAFE_ALLOCA_LISP (args, nargs);
 
-  GCPRO1 (separator);
   mapcar1 (leni, args, function, sequence);
-  UNGCPRO;
 
   for (i = leni - 1; i > 0; i--)
     args[i + i] = args[i];
@@ -2655,17 +2617,13 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
 }
 
 /* This is how C code calls `yes-or-no-p' and allows the user
-   to redefined it.
-
-   Anything that calls this function must protect from GC!  */
+   to redefine it.  */
 
 Lisp_Object
 do_yes_or_no_p (Lisp_Object prompt)
 {
   return call1 (intern ("yes-or-no-p"), prompt);
 }
-
-/* Anything that calls this function must protect from GC!  */
 
 DEFUN ("yes-or-no-p", Fyes_or_no_p, Syes_or_no_p, 1, 1, 0,
        doc: /* Ask user a yes-or-no question.
@@ -2681,7 +2639,6 @@ if `last-nonmenu-event' is nil, and `use-dialog-box' is non-nil.  */)
   (Lisp_Object prompt)
 {
   Lisp_Object ans;
-  struct gcpro gcpro1;
 
   CHECK_STRING (prompt);
 
@@ -2692,16 +2649,13 @@ if `last-nonmenu-event' is nil, and `use-dialog-box' is non-nil.  */)
       redisplay_preserve_echo_area (4);
       pane = list2 (Fcons (build_string ("Yes"), Qt),
 		    Fcons (build_string ("No"), Qnil));
-      GCPRO1 (pane);
       menu = Fcons (prompt, pane);
       obj = Fx_popup_dialog (Qt, menu, Qnil);
-      UNGCPRO;
       return obj;
     }
 
   AUTO_STRING (yes_or_no, "(yes or no) ");
   prompt = CALLN (Fconcat, prompt, yes_or_no);
-  GCPRO1 (prompt);
 
   while (1)
     {
@@ -2709,15 +2663,9 @@ if `last-nonmenu-event' is nil, and `use-dialog-box' is non-nil.  */)
 					      Qyes_or_no_p_history, Qnil,
 					      Qnil));
       if (SCHARS (ans) == 3 && !strcmp (SSDATA (ans), "yes"))
-	{
-	  UNGCPRO;
-	  return Qt;
-	}
+	return Qt;
       if (SCHARS (ans) == 2 && !strcmp (SSDATA (ans), "no"))
-	{
-	  UNGCPRO;
-	  return Qnil;
-	}
+	return Qnil;
 
       Fding (Qnil);
       Fdiscard_input ();
@@ -2834,7 +2782,6 @@ The normal messages at start and end of loading FILENAME are suppressed.  */)
   (Lisp_Object feature, Lisp_Object filename, Lisp_Object noerror)
 {
   Lisp_Object tem;
-  struct gcpro gcpro1, gcpro2;
   bool from_file = load_in_progress;
 
   CHECK_SYMBOL (feature);
@@ -2890,10 +2837,8 @@ The normal messages at start and end of loading FILENAME are suppressed.  */)
       Vautoload_queue = Qt;
 
       /* Load the file.  */
-      GCPRO2 (feature, filename);
       tem = Fload (NILP (filename) ? Fsymbol_name (feature) : filename,
 		   noerror, Qt, Qnil, (NILP (filename) ? Qt : Qnil));
-      UNGCPRO;
 
       /* If load failed entirely, return nil.  */
       if (NILP (tem))
@@ -2979,15 +2924,11 @@ ARGS are passed as extra arguments to the function.
 usage: (widget-apply WIDGET PROPERTY &rest ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  /* This function can GC.  */
-  struct gcpro gcpro1, gcpro2;
   Lisp_Object widget = args[0];
   Lisp_Object property = args[1];
   Lisp_Object propval = Fwidget_get (widget, property);
   Lisp_Object trailing_args = Flist (nargs - 2, args + 2);
-  GCPRO2 (propval, trailing_args);
   Lisp_Object result = CALLN (Fapply, propval, widget, trailing_args);
-  UNGCPRO;
   return result;
 }
 
@@ -3030,8 +2971,6 @@ The data read from the system are decoded using `locale-coding-system'.  */)
       Lisp_Object v = Fmake_vector (make_number (7), Qnil);
       const int days[7] = {DAY_1, DAY_2, DAY_3, DAY_4, DAY_5, DAY_6, DAY_7};
       int i;
-      struct gcpro gcpro1;
-      GCPRO1 (v);
       synchronize_system_time_locale ();
       for (i = 0; i < 7; i++)
 	{
@@ -3042,7 +2981,6 @@ The data read from the system are decoded using `locale-coding-system'.  */)
 	  ASET (v, i, code_convert_string_norecord (val, Vlocale_coding_system,
 						    0));
 	}
-      UNGCPRO;
       return v;
     }
 #endif	/* DAY_1 */
@@ -3053,8 +2991,6 @@ The data read from the system are decoded using `locale-coding-system'.  */)
       const int months[12] = {MON_1, MON_2, MON_3, MON_4, MON_5, MON_6, MON_7,
 			      MON_8, MON_9, MON_10, MON_11, MON_12};
       int i;
-      struct gcpro gcpro1;
-      GCPRO1 (v);
       synchronize_system_time_locale ();
       for (i = 0; i < 12; i++)
 	{
@@ -3063,7 +2999,6 @@ The data read from the system are decoded using `locale-coding-system'.  */)
 	  ASET (v, i, code_convert_string_norecord (val, Vlocale_coding_system,
 						    0));
 	}
-      UNGCPRO;
       return v;
     }
 #endif	/* MON_1 */
@@ -4015,7 +3950,6 @@ hash_lookup (struct Lisp_Hash_Table *h, Lisp_Object key, EMACS_UINT *hash)
   start_of_bucket = hash_code % ASIZE (h->index);
   idx = HASH_INDEX (h, start_of_bucket);
 
-  /* We need not gcpro idx since it's either an integer or nil.  */
   while (!NILP (idx))
     {
       ptrdiff_t i = XFASTINT (idx);
@@ -4079,7 +4013,6 @@ hash_remove_from_table (struct Lisp_Hash_Table *h, Lisp_Object key)
   idx = HASH_INDEX (h, start_of_bucket);
   prev = Qnil;
 
-  /* We need not gcpro idx, prev since they're either integers or nil.  */
   while (!NILP (idx))
     {
       ptrdiff_t i = XFASTINT (idx);

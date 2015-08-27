@@ -420,13 +420,11 @@ left and right single or double quotation marks @t{‘like this’} or
 @t{“like this”}.  Typewriter quotes are simple and portable; curved
 quotes are less ambiguous and typically look nicer.
 
-  Electric Quote mode makes it easier to type curved quotes.  It
-optionally converts a quotation's grave accent and apostrophe @t{`like
-this'} to single quotation marks @t{‘like this’}.  Similarly, it
-converts a quotation's double grave accent and double apostrophe
-@t{``like this''} to double quotation marks @t{“like this”}.  These
-conversions are suppressed in buffers whose coding systems cannot
-represent curved quote characters.
+  Electric Quote mode makes it easier to type curved quotes.  As you
+type characters it optionally converts @t{`} to @t{‘}, @t{'} to @t{’},
+@t{``} to @t{“}, and @t{''} to @t{”}.  These conversions are
+suppressed in buffers whose coding systems cannot represent curved
+quote characters.
 
 @vindex electric-quote-paragraph
 @vindex electric-quote-comment

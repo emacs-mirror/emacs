@@ -842,8 +842,11 @@ whose annotation is being edited.")
   "Return default annotation text for BOOKMARK-NAME.
 The default annotation text is simply some text explaining how to use
 annotations."
-  (concat "#  Type the annotation for bookmark '" bookmark-name "' here.\n"
-	  "#  All lines which start with a '#' will be deleted.\n"
+  (concat (format-message
+           "#  Type the annotation for bookmark ‘%s’ here.\n"
+           bookmark-name)
+	  (format-message
+           "#  All lines which start with a ‘#’ will be deleted.\n")
 	  "#  Type C-c C-c when done.\n#\n"
 	  "#  Author: " (user-full-name) " <" (user-login-name) "@"
 	  (system-name) ">\n"
@@ -1540,7 +1543,7 @@ deletion, or > if it is flagged for displaying."
   (let ((inhibit-read-only t))
     (erase-buffer)
     (if (not bookmark-bmenu-use-header-line)
-      (insert "% Bookmark\n- --------\n"))    
+      (insert "% Bookmark\n- --------\n"))
     (add-text-properties (point-min) (point)
 			 '(font-lock-face bookmark-menu-heading))
     (dolist (full-record (bookmark-maybe-sort-alist))
@@ -1581,9 +1584,9 @@ deletion, or > if it is flagged for displaying."
 (defun bookmark-bmenu-set-header ()
   "Sets the immutable header line."
   (let ((header (concat "%% " "Bookmark")))
-    (when bookmark-bmenu-toggle-filenames 
-      (setq header (concat header 
-			   (make-string (- bookmark-bmenu-file-column 
+    (when bookmark-bmenu-toggle-filenames
+      (setq header (concat header
+			   (make-string (- bookmark-bmenu-file-column
 					   (- (length header) 3))  ?\s)
 			   "File")))
     (let ((pos 0))

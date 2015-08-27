@@ -165,13 +165,13 @@ In order to substitute an alternate command form for execution, the
 hook function should throw it using the tag `eshell-replace-command'.
 For example:
 
-  (add-hook 'eshell-named-command-hook 'subst-with-cd)
+  (add-hook \\='eshell-named-command-hook \\='subst-with-cd)
   (defun subst-with-cd (command args)
-    (throw 'eshell-replace-command
+    (throw \\='eshell-replace-command
 	   (eshell-parse-command \"cd\" args)))
 
 Although useless, the above code will cause any non-glob, non-Lisp
-command (i.e., 'ls' as opposed to '*ls' or '(ls)') to be replaced by a
+command (i.e., `ls' as opposed to `*ls' or `(ls)') to be replaced by a
 call to `cd' using the arguments that were passed to the function."
   :type 'hook
   :group 'eshell-cmd)
@@ -243,7 +243,7 @@ return non-nil if the command is complex."
   "If non-nil, enable Eshell debugging code.
 This is slow, and only useful for debugging problems with Eshell.
 If you change this without using customize after Eshell has loaded,
-you must re-load 'esh-cmd.el'."
+you must re-load `esh-cmd.el'."
   :initialize 'custom-initialize-default
   :set (lambda (symbol value)
 	 (set symbol value)
@@ -390,7 +390,7 @@ hooks should be run before and after the command."
       (macroexp-progn commands))))
 
 (defun eshell-debug-command (tag subform)
-  "Output a debugging message to '*eshell last cmd*'."
+  "Output a debugging message to `*eshell last cmd*'."
   (let ((buf (get-buffer-create "*eshell last cmd*"))
 	(text (eshell-stringify eshell-current-command)))
     (with-current-buffer buf
@@ -424,14 +424,14 @@ hooks should be run before and after the command."
     (setq terms (cdr terms))))
 
 (defun eshell-rewrite-sexp-command (terms)
-  "Rewrite a sexp in initial position, such as '(+ 1 2)'."
+  "Rewrite a sexp in initial position, such as `(+ 1 2)'."
   ;; this occurs when a Lisp expression is in first position
   (if (and (listp (car terms))
 	   (eq (caar terms) 'eshell-command-to-value))
       (car (cdar terms))))
 
 (defun eshell-rewrite-initial-subcommand (terms)
-  "Rewrite a subcommand in initial position, such as '{+ 1 2}'."
+  "Rewrite a subcommand in initial position, such as `{+ 1 2}'."
   (if (and (listp (car terms))
 	   (eq (caar terms) 'eshell-as-subcommand))
       (car terms)))
@@ -634,7 +634,7 @@ For an external command, it means an exit code of 0."
     final))
 
 (defun eshell-parse-subcommand-argument ()
-  "Parse a subcommand argument of the form '{command}'."
+  "Parse a subcommand argument of the form `{command}'."
   (if (and (not eshell-current-argument)
 	   (not eshell-current-quoted)
 	   (eq (char-after) ?\{)

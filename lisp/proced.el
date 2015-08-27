@@ -1915,7 +1915,7 @@ and \f (formfeed) at the end."
       (let (buffer-read-only)
 	(cond ((stringp log)
 	       (insert (if args
-			   (apply 'format log args)
+			   (apply #'format-message log args)
 			 log)))
 	      ((bufferp log)
 	       (insert-buffer-substring log))
@@ -1924,8 +1924,8 @@ and \f (formfeed) at the end."
 	       (unless (bolp)
 		 (insert "\n"))
 	       (insert (current-time-string)
-		       "\tBuffer `" (buffer-name obuf) "', "
-                       (format "signal `%s'\n" (car args)))
+		       (format-message "\tBuffer ‘%s’, signal ‘%s’\n"
+				       (buffer-name obuf) (car args)))
 	       (goto-char (point-max))
 	       (insert "\f\n")))))))
 

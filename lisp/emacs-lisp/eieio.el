@@ -114,10 +114,10 @@ and reference them using the function `class-option'."
 
   (cond ((and (stringp (car options-and-doc))
               (/= 1 (% (length options-and-doc) 2)))
-         (error "Too many arguments to `defclass'"))
+         (error "Too many arguments to ‘defclass’"))
         ((and (symbolp (car options-and-doc))
               (/= 0 (% (length options-and-doc) 2)))
-         (error "Too many arguments to `defclass'")))
+         (error "Too many arguments to ‘defclass’")))
 
   (if (stringp (car options-and-doc))
       (setq options-and-doc
@@ -941,7 +941,7 @@ this object."
   "Change the class of OBJ to type CLASS.
 This may create or delete slots, but does not affect the return value
 of `eq'."
-  (error "EIEIO: `change-class' is unimplemented"))
+  (error "EIEIO: ‘change-class’ is unimplemented"))
 
 ;; Hook ourselves into help system for describing classes and methods.
 ;; FIXME: This is not actually needed any more since we can click on the
@@ -983,7 +983,7 @@ Optional argument GROUP is the sub-group of slots to display.
 
 ;;;***
 
-;;;### (autoloads nil "eieio-opt" "eieio-opt.el" "cb1aba7670b6a4b9c6f968c0ad6dc130")
+;;;### (autoloads nil "eieio-opt" "eieio-opt.el" "694d44fcd869546592d35f3321f62667")
 ;;; Generated autoloads from eieio-opt.el
 
 (autoload 'eieio-browse "eieio-opt" "\

@@ -343,7 +343,7 @@ of image data.  If that doesn't work, and SOURCE is a file name,
 use its file extension as image type.
 Optional DATA-P non-nil means SOURCE is a string containing image data."
   (when (and (not data-p) (not (stringp source)))
-    (error "Invalid image file name `%s'" source))
+    (error "Invalid image file name ‘%s’" source))
   (unless type
     (setq type (if data-p
 		   (image-type-from-data source)
@@ -351,13 +351,13 @@ Optional DATA-P non-nil means SOURCE is a string containing image data."
 		     (image-type-from-file-name source))))
     (or type (error "Cannot determine image type")))
   (or (memq type (and (boundp 'image-types) image-types))
-      (error "Invalid image type `%s'" type))
+      (error "Invalid image type ‘%s’" type))
   type)
 
 
 (if (fboundp 'image-metadata)           ; eg not --without-x
     (define-obsolete-function-alias 'image-extension-data
-      'image-metadata' "24.1"))
+      'image-metadata "24.1"))
 
 (define-obsolete-variable-alias
     'image-library-alist

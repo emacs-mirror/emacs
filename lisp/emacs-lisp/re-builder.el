@@ -458,7 +458,7 @@ matching parts of the target buffer will be highlighted."
   (setq reb-subexp-mode t)
   (reb-update-modestring)
   (use-local-map reb-subexp-mode-map)
-  (message "`0'-`9' to display subexpressions  `q' to quit subexp mode"))
+  (message "‘0’-‘9’ to display subexpressions  ‘q’ to quit subexp mode"))
 
 (defun reb-show-subexp (subexp &optional pause)
   "Visually show limit of subexpression SUBEXP of recent search.

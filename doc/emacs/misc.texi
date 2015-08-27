@@ -1675,6 +1675,7 @@ precedence.
 
 @cindex client frame
 @item -c
+@itemx --create-frame
 Create a new graphical @dfn{client frame}, instead of using an
 existing Emacs frame.  See below for the special behavior of @kbd{C-x
 C-c} in a client frame.  If Emacs cannot create a new graphical frame
@@ -2688,7 +2689,7 @@ character.  Keep dissociwords out of your documentation, if you want
 it to be well userenced and properbose.
 
 @findex dunnet
-  @kbd{M-x dunnet} runs an text-based adventure game.
+  @kbd{M-x dunnet} runs a text-based adventure game.
 
 @findex gomoku
 @cindex Go Moku

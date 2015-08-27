@@ -927,7 +927,7 @@ char_composable_p (int c)
 {
   Lisp_Object val;
   return (c > ' '
-	  && (c == 0x200C || c == 0x200D
+	  && (c == ZERO_WIDTH_NON_JOINER || c == ZERO_WIDTH_JOINER
 	      || (val = CHAR_TABLE_REF (Vunicode_category_table, c),
 		  (INTEGERP (val) && (XINT (val) <= UNICODE_CATEGORY_So)))));
 }

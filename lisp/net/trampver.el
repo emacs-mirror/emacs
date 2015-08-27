@@ -50,7 +50,8 @@
 		  (ignore-errors
 		    (call-process "git" nil '(t nil) nil "rev-parse" "HEAD")))
 		 (not (zerop (buffer-size)))
-		 (replace-regexp-in-string "\n" "" (buffer-string)))))))))
+		 (tramp-compat-replace-regexp-in-string
+		  "\n" "" (buffer-string)))))))))
 
 ;; Check for (X)Emacs version.
 (let ((x (if (or (>= emacs-major-version 22)

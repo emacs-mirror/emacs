@@ -533,7 +533,8 @@ Creates the directory if necessary and makes sure:
 		  ((and w32 (zerop uid))	  ; on FAT32?
 		   (display-warning
 		    'server
-		    (format "Using `%s' to store Emacs-server authentication files.
+		    (format-message "\
+Using `%s' to store Emacs-server authentication files.
 Directories on FAT32 filesystems are NOT secure against tampering.
 See variable `server-auth-dir' for details."
 			    (file-name-as-directory dir))
@@ -574,7 +575,7 @@ If the key is not valid, signal an error."
   (if server-auth-key
     (if (string-match-p "^[!-~]\\{64\\}$" server-auth-key)
         server-auth-key
-      (error "The key '%s' is invalid" server-auth-key))
+      (error "The key ‘%s’ is invalid" server-auth-key))
     (server-generate-key)))
 
 ;;;###autoload
@@ -624,8 +625,9 @@ To force-start a server, do \\[server-force-delete] and then
 	 (concat "Unable to start the Emacs server.\n"
 		 (format "There is an existing Emacs server, named %S.\n"
 			 server-name)
-		 "To start the server in this Emacs process, stop the existing
-server or call `M-x server-force-delete' to forcibly disconnect it.")
+		 (substitute-command-keys
+                  "To start the server in this Emacs process, stop the existing
+server or call `\\[server-force-delete]' to forcibly disconnect it."))
 	 :warning)
 	(setq leave-dead t))
       ;; If this Emacs already had a server, clear out associated status.

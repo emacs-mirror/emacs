@@ -100,10 +100,34 @@ Please send improvements and fixes to the maintainer."
   :group 'find-function
   :version "22.1")
 
+(defcustom find-feature-regexp
+  (concat ";;; Code:")
+  "The regexp used by `xref-find-definitions' when searching for a feature definition.
+Note it must contain a `%s' at the place where `format'
+should insert the feature name."
+  ;; We search for ";;; Code" rather than (feature '%s) because the
+  ;; former is near the start of the code, and the latter is very
+  ;; uninteresting. If the regexp is not found, just goes to
+  ;; (point-min), which is acceptable in this case.
+  :type 'regexp
+  :group 'xref
+  :version "25.0")
+
+(defcustom find-alias-regexp
+  "(defalias +'%s"
+  "The regexp used by `xref-find-definitions' to search for an alias definition.
+Note it must contain a `%s' at the place where `format'
+should insert the feature name."
+  :type 'regexp
+  :group 'xref
+  :version "25.0")
+
 (defvar find-function-regexp-alist
   '((nil . find-function-regexp)
     (defvar . find-variable-regexp)
-    (defface . find-face-regexp))
+    (defface . find-face-regexp)
+    (feature . find-feature-regexp)
+    (defalias . find-alias-regexp))
   "Alist mapping definition types into regexp variables.
 Each regexp variable's value should actually be a format string
 to be used to substitute the desired symbol name into the regexp.
@@ -272,7 +296,7 @@ Otherwise, TYPE specifies the kind of definition,
 and it is interpreted via `find-function-regexp-alist'.
 The search is done in the source for library LIBRARY."
   (if (null library)
-      (error "Don't know where `%s' is defined" symbol))
+      (error "Don't know where ‘%s’ is defined" symbol))
   ;; Some functions are defined as part of the construct
   ;; that defines something else.
   (while (and (symbolp symbol) (get symbol 'definition-name))
@@ -343,10 +367,11 @@ message about the whole chain of aliases."
           (not verbose)
           (setq aliases (if aliases
                             (concat aliases
-                                    (format ", which is an alias for `%s'"
-                                            (symbol-name def)))
-                          (format "`%s' is an alias for `%s'"
-                                  function (symbol-name def)))))
+                                    (format-message
+                                     ", which is an alias for ‘%s’"
+                                     (symbol-name def)))
+                          (format-message "‘%s’ is an alias for ‘%s’"
+                                          function (symbol-name def)))))
       (setq function (find-function-advised-original function)
             def (find-function-advised-original function)))
     (if aliases

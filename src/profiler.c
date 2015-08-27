@@ -38,7 +38,7 @@ typedef struct Lisp_Hash_Table log_t;
 static struct hash_table_test hashtest_profiler;
 
 static Lisp_Object
-make_log (int heap_size, int max_stack_depth)
+make_log (EMACS_INT heap_size, EMACS_INT max_stack_depth)
 {
   /* We use a standard Elisp hash-table object, but we use it in
      a special way.  This is OK as long as the object is not exposed
@@ -53,7 +53,7 @@ make_log (int heap_size, int max_stack_depth)
 
   /* What is special about our hash-tables is that the keys are pre-filled
      with the vectors we'll put in them.  */
-  int i = ASIZE (h->key_and_value) / 2;
+  ptrdiff_t i = ASIZE (h->key_and_value) >> 1;
   while (i > 0)
     set_hash_key_slot (h, --i,
 		       Fmake_vector (make_number (max_stack_depth), Qnil));
@@ -120,12 +120,11 @@ static void evict_lower_half (log_t *log)
 	  Fremhash (key, tmp);
 	}
 	eassert (EQ (log->next_free, make_number (i)));
-	{
-	  int j;
-	  eassert (VECTORP (key));
-	  for (j = 0; j < ASIZE (key); j++)
-	    ASET (key, j, Qnil);
-	}
+
+	eassert (VECTORP (key));
+	for (ptrdiff_t j = 0; j < ASIZE (key); j++)
+	  ASET (key, j, Qnil);
+
 	set_hash_key_slot (log, i, key);
       }
 }
@@ -165,9 +164,8 @@ record_backtrace (log_t *log, EMACS_INT count)
     else
       { /* BEWARE!  hash_put in general can allocate memory.
 	   But currently it only does that if log->next_free is nil.  */
-	int j;
 	eassert (!NILP (log->next_free));
-	j = hash_put (log, backtrace, make_number (count), hash);
+	ptrdiff_t j = hash_put (log, backtrace, make_number (count), hash);
 	/* Let's make sure we've put `backtrace' right where it
 	   already was to start with.  */
 	eassert (index == j);

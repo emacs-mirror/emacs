@@ -95,7 +95,7 @@ print statement."
 
 (defsubst semantic-tag-class (tag)
   "Return the class of TAG.
-That is, the symbol 'variable, 'function, 'type, or other.
+This is a symbol like `variable', `function', or `type'.
 There is no limit to the symbols that may represent the class of a tag.
 Each parser generates tags with classes defined by it.
 

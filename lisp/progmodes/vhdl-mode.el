@@ -2305,11 +2305,12 @@ Ignore byte-compiler warnings you might see."
 
 (defun vhdl-warning-when-idle (&rest args)
   "Wait until idle, then print out warning STRING and beep."
-  (if noninteractive
-      (vhdl-warning (apply 'format args) t)
-    (unless vhdl-warnings
-      (vhdl-run-when-idle .1 nil 'vhdl-print-warnings))
-    (push (apply 'format args) vhdl-warnings)))
+  (let ((message (apply #'format-message args)))
+    (if noninteractive
+        (vhdl-warning message t)
+      (unless vhdl-warnings
+        (vhdl-run-when-idle .1 nil 'vhdl-print-warnings))
+      (push message vhdl-warnings))))
 
 (defun vhdl-warning (string &optional nobeep)
   "Print out warning STRING and beep."
@@ -4421,7 +4422,7 @@ Usage:
     according to option `vhdl-argument-list-indent'.
 
       If option `vhdl-indent-tabs-mode' is nil, spaces are used instead of
-    tabs.  `M-x tabify' and `M-x untabify' allow to convert spaces to tabs
+    tabs.  `\\[tabify]' and `\\[untabify]' allow to convert spaces to tabs
     and vice versa.
 
       Syntax-based indentation can be very slow in large files.  Option
@@ -4732,7 +4733,7 @@ Usage:
     `vhdl-highlight-translate-off' is non-nil.
 
       For documentation and customization of the used colors see
-    customization group `vhdl-highlight-faces' (`M-x customize-group').  For
+    customization group `vhdl-highlight-faces' (`\\[customize-group]').  For
     highlighting of matching parenthesis, see customization group
     `paren-showing'.  Automatic buffer highlighting is turned on/off by
     option `global-font-lock-mode' (`font-lock-auto-fontify' in XEmacs).
@@ -4792,14 +4793,14 @@ Usage:
     sessions using the \"Save Options\" menu entry.
 
       Options and their detailed descriptions can also be accessed by using
-    the \"Customize\" menu entry or the command `M-x customize-option' (`M-x
-    customize-group' for groups).  Some customizations only take effect
+    the \"Customize\" menu entry or the command `\\[customize-option]'
+    (`\\[customize-group]' for groups).  Some customizations only take effect
     after some action (read the NOTE in the option documentation).
     Customization can also be done globally (i.e. site-wide, read the
     INSTALL file).
 
       Not all options are described in this documentation, so go and see
-    what other useful user options there are (`M-x vhdl-customize' or menu)!
+    what other useful user options there are (`\\[vhdl-customize]' or menu)!
 
 
   FILE EXTENSIONS:
@@ -4828,7 +4829,7 @@ Usage:
 Maintenance:
 ------------
 
-To submit a bug report, enter `M-x vhdl-submit-bug-report' within VHDL Mode.
+To submit a bug report, enter `\\[vhdl-submit-bug-report]' within VHDL Mode.
 Add a description of the problem and include a reproducible test case.
 
 Questions and enhancement requests can be sent to <reto@gnu.org>.
@@ -7383,11 +7384,11 @@ only-lines."
 		(- (nth 1 (current-time)) (aref vhdl-progress-info 2))))
     (let ((delta (- (aref vhdl-progress-info 1)
                     (aref vhdl-progress-info 0))))
-      (if (= 0 delta)
-          (message (concat string "... (100%s)") "%")
-        (message (concat string "... (%2d%s)")
-                 (/ (* 100 (- pos (aref vhdl-progress-info 0)))
-                    delta) "%")))
+      (message "%s... (%2d%%)" string
+	       (if (= 0 delta)
+		   100
+                 (floor (* 100.0 (- pos (aref vhdl-progress-info 0)))
+                        delta))))
     (aset vhdl-progress-info 2 (nth 1 (current-time)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -8734,10 +8735,11 @@ is omitted or nil."
 		  (let ((next-input (read-char)))
 		    (if (= next-input ?-) ; four dashes
 			(vhdl-comment-display t)
-		      (setq unread-command-events ; pushback the char
-			    (list (vhdl-character-to-event next-input))))))
-	      (setq unread-command-events ; pushback the char
-		    (list (vhdl-character-to-event next-input)))
+		      (push (vhdl-character-to-event next-input)
+                                        ; pushback the char
+                            unread-command-events))))
+              (push (vhdl-character-to-event next-input) ; pushback the char
+                    unread-command-events)
 	      (vhdl-comment-insert)))))
     (self-insert-command count)))
 
@@ -10755,8 +10757,8 @@ If starting after end-comment-column, start a new line."
 	(setq code t))
       (unless code
 	(insert "--")) ; hardwire to 1 space or use vhdl-basic-offset?
-      (setq unread-command-events
-	    (list (vhdl-character-to-event next-input)))))) ; pushback the char
+      (push (vhdl-character-to-event next-input) ; pushback the char
+            unread-command-events))))
 
 (defun vhdl-comment-display (&optional line-exists)
   "Add 2 comment lines at the current indent, making a display comment."
@@ -11310,8 +11312,8 @@ but not if inside a comment or quote."
 	;; delete CR which is still in event queue
 	(if (fboundp 'enqueue-eval-event)
 	    (enqueue-eval-event 'delete-char -1)
-	  (setq unread-command-events	; push back a delete char
-		(list (vhdl-character-to-event ?\177))))))))
+	  (push (vhdl-character-to-event ?\177)	; push back a delete char
+                unread-command-events))))))
 
 (defun vhdl-template-alias-hook ()
   (vhdl-hooked-abbrev 'vhdl-template-alias))
@@ -13881,10 +13883,10 @@ hierarchy otherwise.")
       ;; do for all files
       (while file-list
 	(unless noninteractive
-	  (message "Scanning %s %s\"%s\"... (%2d%s)"
+	  (message "Scanning %s %s\"%s\"... (%2d%%)"
 		   (if is-directory "directory" "files")
 		   (or num-string "") name
-		   (/ (* 100 (- no-files (length file-list))) no-files) "%"))
+		   (floor (* 100.0 (- no-files (length file-list))) no-files)))
 	(let ((file-name (abbreviate-file-name (car file-list)))
 	      ent-list arch-list arch-ent-list conf-list
 	      pack-list pack-body-list inst-list inst-ent-list)

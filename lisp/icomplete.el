@@ -122,7 +122,7 @@ This hook is run during minibuffer setup if Icomplete is active.
 It is intended for use in customizing Icomplete for interoperation
 with other features and packages.  For instance:
 
-  (add-hook 'icomplete-minibuffer-setup-hook
+  (add-hook \\='icomplete-minibuffer-setup-hook
 	     (lambda () (setq-local max-mini-window-height 3)))
 
 will constrain Emacs to a maximum minibuffer height of 3 lines when

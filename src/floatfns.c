@@ -377,32 +377,22 @@ rounding_driver (Lisp_Object arg, Lisp_Object divisor,
   return arg;
 }
 
-/* With C's /, the result is implementation-defined if either operand
-   is negative, so take care with negative operands in the following
-   integer functions.  */
-
 static EMACS_INT
 ceiling2 (EMACS_INT i1, EMACS_INT i2)
 {
-  return (i2 < 0
-	  ? (i1 < 0  ?  ((-1 - i1) / -i2) + 1  :  - (i1 / -i2))
-	  : (i1 <= 0  ?  - (-i1 / i2)  :  ((i1 - 1) / i2) + 1));
+  return i1 / i2 + ((i1 % i2 != 0) & ((i1 < 0) == (i2 < 0)));
 }
 
 static EMACS_INT
 floor2 (EMACS_INT i1, EMACS_INT i2)
 {
-  return (i2 < 0
-	  ? (i1 <= 0  ?  -i1 / -i2  :  -1 - ((i1 - 1) / -i2))
-	  : (i1 < 0  ?  -1 - ((-1 - i1) / i2)  :  i1 / i2));
+  return i1 / i2 - ((i1 % i2 != 0) & ((i1 < 0) != (i2 < 0)));
 }
 
 static EMACS_INT
 truncate2 (EMACS_INT i1, EMACS_INT i2)
 {
-  return (i2 < 0
-	  ? (i1 < 0  ?  -i1 / -i2  :  - (i1 / -i2))
-	  : (i1 < 0  ?  - (-i1 / i2)  :  i1 / i2));
+  return i1 / i2;
 }
 
 static EMACS_INT

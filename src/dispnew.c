@@ -181,7 +181,7 @@ add_window_display_history (struct window *w, const char *msg, bool paused_p)
   ++history_idx;
 
   snprintf (buf, sizeof redisplay_history[0].trace,
-	    "%"pMu": window %p (`%s')%s\n%s",
+	    "%"pMu": window %p (%s)%s\n%s",
 	    history_tick++,
 	    ptr,
 	    ((BUFFERP (w->contents)

@@ -90,7 +90,6 @@
 
 
 ;;; Todo list:
-;; * use kpsewhich
 ;; * let "/dir/file#key" jump to key (tag or regexp) in /dir/file
 ;; * find file of symbol if TAGS is loaded (like above)
 ;; * break long menus into multiple panes (like imenu?)
@@ -894,6 +893,24 @@ URL, or nil.  If nil, search the alist for further matches.")
   "Path where `ffap-tex-mode' looks for TeX files.
 If t, `ffap-tex-init' will initialize this when needed.")
 
+(defvar ffap-latex-guess-rules '(("" . ".sty")
+                               ("" . ".cls")
+                               ("" . ".ltx")
+                               ("" . ".tex")
+                               ("" . "") ;; in some rare cases the
+                                         ;; extension is already in
+                                         ;; the buffer.
+                               ("beamertheme" . ".sty")
+                               ("beamercolortheme". ".sty")
+                               ("beamerfonttheme". ".sty")
+                               ("beamerinnertheme". ".sty")
+                               ("beameroutertheme". ".sty")
+                               ("" . ".ldf"))
+  "List of rules for guessing a filename.
+Each rule is a cons (PREFIX . SUFFIX) used for guessing a
+filename from the word at point by prepending PREFIX and
+appending SUFFIX.")
+
 (defun ffap-tex-init ()
   ;; Compute ffap-tex-path if it is now t.
   (and (eq t ffap-tex-path)
@@ -917,9 +934,56 @@ If t, `ffap-tex-init' will initialize this when needed.")
   (ffap-locate-file name '(".tex" "") ffap-tex-path))
 
 (defun ffap-latex-mode (name)
-  (ffap-tex-init)
-  ;; only rare need for ""
-  (ffap-locate-file name '(".cls" ".sty" ".tex" "") ffap-tex-path))
+  "`ffap' function suitable for latex buffers.
+This uses the program kpsewhich if available. In this case, the
+variable `ffap-latex-guess-rules' is used for building a filename
+out of NAME."
+  (cond ((file-exists-p name)
+         name)
+        ((not (executable-find "kpsewhich"))
+         (ffap-tex-init)
+         (ffap-locate-file name '(".cls" ".sty" ".tex" "") ffap-tex-path))
+        (t
+         (let ((curbuf (current-buffer))
+               (guess-rules ffap-latex-guess-rules)
+               (preferred-suffix-rules '(("input" . ".tex")
+                                         ("include" . ".tex")
+                                         ("usepackage" . ".sty")
+                                         ("RequirePackageWithOptions" . ".sty")
+                                         ("RequirePackage" . ".sty")
+                                         ("documentclass" . ".cls")
+                                         ("documentstyle" . ".cls")
+                                         ("LoadClass" . ".cls")
+                                         ("LoadClassWithOptions" . ".cls")
+                                         ("bibliography" . ".bib")
+                                         ("addbibresource" . ""))))
+           ;; We now add preferred suffix in front of suffixes.
+           (when
+               ;; The condition is essentially:
+               ;; (assoc (TeX-current-macro)
+               ;;        (mapcar 'car preferred-suffix-rules))
+               ;; but (TeX-current-macro) can take time, so we just
+               ;; check if one of the `car' in preferred-suffix-rules
+               ;; is found before point on the current line.  It
+               ;; should cover most cases.
+               (save-excursion
+                 (re-search-backward (regexp-opt
+                                      (mapcar 'car preferred-suffix-rules))
+                                     (point-at-bol)
+                                     t))
+             (push (cons "" (cdr (assoc (match-string 0) ; i.e. "(TeX-current-macro)"
+                                        preferred-suffix-rules)))
+                   guess-rules))
+           (setq kpsewhich-args (mapcar (lambda (rule)
+                                          (concat (car rule) name (cdr rule)))
+                                        guess-rules))
+           (with-temp-buffer
+             (let ((process-environment (buffer-local-value
+                                         'process-environment curbuf))
+                   (exec-path (buffer-local-value 'exec-path curbuf)))
+               (apply #'call-process "kpsewhich"  nil  t  nil kpsewhich-args))
+             (when (< (point-min) (point-max))
+               (buffer-substring (goto-char (point-min)) (point-at-eol))))))))
 
 (defun ffap-tex (name)
   (ffap-tex-init)
@@ -1004,7 +1068,7 @@ If a given RFC isn't in these then `ffap-rfc-path' is offered."
     ;; Slightly controversial decisions:
     ;; * strip trailing "@" and ":"
     ;; * no commas (good for latex)
-    (file "--:\\\\$\\{\\}+<>@-Z_[:alpha:]~*?" "<@" "@>;.,!:")
+    (file "--:\\\\${}+<>@-Z_[:alpha:]~*?" "<@" "@>;.,!:")
     ;; An url, or maybe a email/news message-id:
     (url "--:=&?$+@-Z_[:alpha:]~#,%;*()!'" "^[0-9a-zA-Z]" ":;.,!?")
     ;; Find a string that does *not* contain a colon:
@@ -1013,6 +1077,9 @@ If a given RFC isn't in these then `ffap-rfc-path' is offered."
     (machine "-[:alnum:]." "" ".")
     ;; Mathematica paths: allow backquotes
     (math-mode ",-:$+<>@-Z_[:lower:]~`" "<" "@>;.,!?`:")
+    ;; (La)TeX: don't allow braces
+    (latex-mode "--:\\\\$+<>@-Z_[:alpha:]~*?" "<@" "@>;.,!:")
+    (tex-mode "--:\\\\$+<>@-Z_[:alpha:]~*?" "<@" "@>;.,!:")
     )
   "Alist of (MODE CHARS BEG END), where MODE is a symbol,
 possibly a major-mode name, or one of the symbols
@@ -1020,7 +1087,9 @@ possibly a major-mode name, or one of the symbols
 Function `ffap-string-at-point' uses the data fields as follows:
 1. find a maximal string of CHARS around point,
 2. strip BEG chars before point from the beginning,
-3. strip END chars after point from the end.")
+3. strip END chars after point from the end.
+The arguments CHARS, BEG and END are handled as described in
+`skip-chars-forward'.")
 
 (defvar ffap-string-at-point nil
   ;; Added at suggestion of RHOGEE (for ff-paths), 7/24/95.
@@ -1134,7 +1203,7 @@ Sets the variable `ffap-string-at-point-region' to the bounds of URL, if any."
 					   (match-end 2))))
 		(set var val)
 		(forward-line 1)))
-            (setcdr ffap-string-at-point-region (point))
+            (setcdr ffap-string-at-point-region (list (point)))
 	    (if (and path (string-match "^ftp:.*@" path))
 		(concat "ftp://"
 			(substring path 4 (1- (match-end 0)))
@@ -1568,7 +1637,7 @@ Applies `ffap-menu-text-plist' text properties at all matches."
 	    (add-text-properties (car ffap-string-at-point-region) (point)
 				 ffap-menu-text-plist)
 	    (message "Scanning...%2d%% <%s>"
-		     (/ (* 100 (- (point) (point-min))) range) item)))
+		     (floor (* 100.0 (- (point) (point-min))) range) item)))
       (or mod (restore-buffer-modified-p nil))))
   (message "Scanning...done")
   ;; Remove duplicates.

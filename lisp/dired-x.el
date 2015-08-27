@@ -149,7 +149,7 @@ regexp `dired-omit-files', nor files ending with extensions in
 To enable omitting in every Dired buffer, you can put this in
 your init file:
 
-  (add-hook 'dired-mode-hook (lambda () (dired-omit-mode)))
+  (add-hook \\='dired-mode-hook (lambda () (dired-omit-mode)))
 
 See Info node `(dired-x) Omitting Variables' for more information."
   :group 'dired-x
@@ -1353,12 +1353,12 @@ otherwise."
   (interactive)
   (let ((file (dired-get-filename t)))
     (if dired-bind-vm
-	(if (y-or-n-p (concat "Visit `" file
-			      "' as a mail folder with VM?"))
+	(if (y-or-n-p (format-message
+		       "Visit ‘%s’ as a mail folder with VM?" file))
 	    (dired-vm))
       ;; Read mail folder using rmail.
-      (if (y-or-n-p (concat "Visit `" file
-			    "' as a mailbox with RMAIL?"))
+      (if (y-or-n-p (format-message
+		     "Visit ‘%s’ as a mailbox with RMAIL?" file))
 	  (dired-rmail)))))
 
 

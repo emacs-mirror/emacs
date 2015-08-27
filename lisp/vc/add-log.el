@@ -685,7 +685,7 @@ nil, by matching `change-log-version-number-regexp-list'."
 
 Optional arg FILE-NAME specifies the file to use.
 If FILE-NAME is nil, use the value of `change-log-default-name'.
-If `change-log-default-name' is nil, behave as though it were 'ChangeLog'
+If `change-log-default-name' is nil, behave as though it were \"ChangeLog\"
 \(or whatever we use on this operating system).
 
 If `change-log-default-name' contains a leading directory component, then

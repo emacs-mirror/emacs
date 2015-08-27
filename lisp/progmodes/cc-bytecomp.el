@@ -439,8 +439,8 @@ exclude any functions that have been bound during compilation with
 
 (provide 'cc-bytecomp)
 
-;;; Local Variables:
-;;; indent-tabs-mode: t
-;;; tab-width: 8
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: t
+;; tab-width: 8
+;; End:
 ;;; cc-bytecomp.el ends here

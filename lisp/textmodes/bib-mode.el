@@ -82,8 +82,8 @@ A uthor		T itle		D ate  		J ournal
 V olume		N umber		P age		K eywords
 B in book or proceedings	E ditor		C ity & state
 I nstitution, school, or publisher
-R eport number or 'phd thesis' or 'masters thesis' or 'draft' or
-     'unnumbered' or 'unpublished'
+R eport number or `phd thesis' or `masters thesis' or `draft' or
+     `unnumbered' or `unpublished'
 W here can be found locally (login name, or ailib, etc.)
 X comments (not used in indexing)
 

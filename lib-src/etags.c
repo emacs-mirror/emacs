@@ -515,7 +515,7 @@ static const char *Ada_suffixes [] =
   { "ads", "adb", "ada", NULL };
 static const char Ada_help [] =
 "In Ada code, functions, procedures, packages, tasks and types are\n\
-tags.  Use the `--packages-only' option to create tags for\n\
+tags.  Use the '--packages-only' option to create tags for\n\
 packages only.\n\
 Ada tag names have suffixes indicating the type of entity:\n\
 	Entity type:	Qualifier:\n\
@@ -526,9 +526,9 @@ Ada tag names have suffixes indicating the type of entity:\n\
 	package body	/b\n\
 	type		/t\n\
 	task		/k\n\
-Thus, `M-x find-tag <RET> bidule/b <RET>' will go directly to the\n\
-body of the package `bidule', while `M-x find-tag <RET> bidule <RET>'\n\
-will just search for any tag `bidule'.";
+Thus, 'M-x find-tag <RET> bidule/b <RET>' will go directly to the\n\
+body of the package 'bidule', while 'M-x find-tag <RET> bidule <RET>'\n\
+will just search for any tag 'bidule'.";
 
 /* Assembly code */
 static const char *Asm_suffixes [] =
@@ -555,22 +555,22 @@ static const char *default_C_suffixes [] =
 #if CTAGS				/* C help for Ctags */
 static const char default_C_help [] =
 "In C code, any C function is a tag.  Use -t to tag typedefs.\n\
-Use -T to tag definitions of `struct', `union' and `enum'.\n\
-Use -d to tag `#define' macro definitions and `enum' constants.\n\
+Use -T to tag definitions of 'struct', 'union' and 'enum'.\n\
+Use -d to tag '#define' macro definitions and 'enum' constants.\n\
 Use --globals to tag global variables.\n\
 You can tag function declarations and external variables by\n\
-using `--declarations', and struct members by using `--members'.";
+using '--declarations', and struct members by using '--members'.";
 #else					/* C help for Etags */
 static const char default_C_help [] =
 "In C code, any C function or typedef is a tag, and so are\n\
-definitions of `struct', `union' and `enum'.  `#define' macro\n\
-definitions and `enum' constants are tags unless you specify\n\
-`--no-defines'.  Global variables are tags unless you specify\n\
-`--no-globals' and so are struct members unless you specify\n\
-`--no-members'.  Use of `--no-globals', `--no-defines' and\n\
-`--no-members' can make the tags table file much smaller.\n\
+definitions of 'struct', 'union' and 'enum'.  '#define' macro\n\
+definitions and 'enum' constants are tags unless you specify\n\
+'--no-defines'.  Global variables are tags unless you specify\n\
+'--no-globals' and so are struct members unless you specify\n\
+'--no-members'.  Use of '--no-globals', '--no-defines' and\n\
+'--no-members' can make the tags table file much smaller.\n\
 You can tag function declarations and external variables by\n\
-using `--declarations'.";
+using '--declarations'.";
 #endif	/* C help for Ctags and Etags */
 
 static const char *Cplusplus_suffixes [] =
@@ -582,10 +582,10 @@ static const char Cplusplus_help [] =
 "In C++ code, all the tag constructs of C code are tagged.  (Use\n\
 --help --lang=c --lang=c++ for full help.)\n\
 In addition to C tags, member functions are also recognized.  Member\n\
-variables are recognized unless you use the `--no-members' option.\n\
-Tags for variables and functions in classes are named `CLASS::VARIABLE'\n\
-and `CLASS::FUNCTION'.  `operator' definitions have tag names like\n\
-`operator+'.";
+variables are recognized unless you use the '--no-members' option.\n\
+Tags for variables and functions in classes are named 'CLASS::VARIABLE'\n\
+and 'CLASS::FUNCTION'.  'operator' definitions have tag names like\n\
+'operator+'.";
 
 static const char *Cjava_suffixes [] =
   { "java", NULL };
@@ -612,7 +612,7 @@ defined in the file.";
 const char *Forth_suffixes [] =
   { "fth", "tok", NULL };
 static const char Forth_help [] =
-"In Forth code, tags are words defined by `:',\n\
+"In Forth code, tags are words defined by ':',\n\
 constant, code, create, defer, value, variable, buffer:, field.";
 
 static const char *Fortran_suffixes [] =
@@ -623,18 +623,18 @@ static const char Fortran_help [] =
 static const char *HTML_suffixes [] =
   { "htm", "html", "shtml", NULL };
 static const char HTML_help [] =
-"In HTML input files, the tags are the `title' and the `h1', `h2',\n\
-`h3' headers.  Also, tags are `name=' in anchors and all\n\
-occurrences of `id='.";
+"In HTML input files, the tags are the 'title' and the 'h1', 'h2',\n\
+'h3' headers.  Also, tags are 'name=' in anchors and all\n\
+occurrences of 'id='.";
 
 static const char *Lisp_suffixes [] =
   { "cl", "clisp", "el", "l", "lisp", "LSP", "lsp", "ml", NULL };
 static const char Lisp_help [] =
-"In Lisp code, any function defined with `defun', any variable\n\
-defined with `defvar' or `defconst', and in general the first\n\
-argument of any expression that starts with `(def' in column zero\n\
+"In Lisp code, any function defined with 'defun', any variable\n\
+defined with 'defvar' or 'defconst', and in general the first\n\
+argument of any expression that starts with '(def' in column zero\n\
 is a tag.\n\
-The `--declarations' option tags \"(defvar foo)\" constructs too.";
+The '--declarations' option tags \"(defvar foo)\" constructs too.";
 
 static const char *Lua_suffixes [] =
   { "lua", "LUA", NULL };
@@ -645,7 +645,7 @@ static const char *Makefile_filenames [] =
   { "Makefile", "makefile", "GNUMakefile", "Makefile.in", "Makefile.am", NULL};
 static const char Makefile_help [] =
 "In makefiles, targets are tags; additionally, variables are tags\n\
-unless you specify `--no-globals'.";
+unless you specify '--no-globals'.";
 
 static const char *Objc_suffixes [] =
   { "lm",			/* Objective lex file */
@@ -654,7 +654,7 @@ static const char *Objc_suffixes [] =
 static const char Objc_help [] =
 "In Objective C code, tags include Objective C definitions for classes,\n\
 class categories, methods and protocols.  Tags for variables and\n\
-functions in classes are named `CLASS::VARIABLE' and `CLASS::FUNCTION'.\n\
+functions in classes are named 'CLASS::VARIABLE' and 'CLASS::FUNCTION'.\n\
 (Use --help --lang=c --lang=objc --lang=java for full help.)";
 
 static const char *Pascal_suffixes [] =
@@ -670,16 +670,16 @@ static const char *Perl_interpreters [] =
   { "perl", "@PERL@", NULL };
 static const char Perl_help [] =
 "In Perl code, the tags are the packages, subroutines and variables\n\
-defined by the `package', `sub', `my' and `local' keywords.  Use\n\
-`--globals' if you want to tag global variables.  Tags for\n\
-subroutines are named `PACKAGE::SUB'.  The name for subroutines\n\
-defined in the default package is `main::SUB'.";
+defined by the 'package', 'sub', 'my' and 'local' keywords.  Use\n\
+'--globals' if you want to tag global variables.  Tags for\n\
+subroutines are named 'PACKAGE::SUB'.  The name for subroutines\n\
+defined in the default package is 'main::SUB'.";
 
 static const char *PHP_suffixes [] =
   { "php", "php3", "php4", NULL };
 static const char PHP_help [] =
 "In PHP code, tags are functions, classes and defines.  Unless you use\n\
-the `--no-members' option, vars are tags too.";
+the '--no-members' option, vars are tags too.";
 
 static const char *plain_C_suffixes [] =
   { "pc",			/* Pro*C file */
@@ -699,28 +699,28 @@ line.";
 static const char *Python_suffixes [] =
   { "py", NULL };
 static const char Python_help [] =
-"In Python code, `def' or `class' at the beginning of a line\n\
+"In Python code, 'def' or 'class' at the beginning of a line\n\
 generate a tag.";
 
 /* Can't do the `SCM' or `scm' prefix with a version number. */
 static const char *Scheme_suffixes [] =
   { "oak", "sch", "scheme", "SCM", "scm", "SM", "sm", "ss", "t", NULL };
 static const char Scheme_help [] =
-"In Scheme code, tags include anything defined with `def' or with a\n\
-construct whose name starts with `def'.  They also include\n\
-variables set with `set!' at top level in the file.";
+"In Scheme code, tags include anything defined with 'def' or with a\n\
+construct whose name starts with 'def'.  They also include\n\
+variables set with 'set!' at top level in the file.";
 
 static const char *TeX_suffixes [] =
   { "bib", "clo", "cls", "ltx", "sty", "TeX", "tex", NULL };
 static const char TeX_help [] =
-"In LaTeX text, the argument of any of the commands `\\chapter',\n\
-`\\section', `\\subsection', `\\subsubsection', `\\eqno', `\\label',\n\
-`\\ref', `\\cite', `\\bibitem', `\\part', `\\appendix', `\\entry',\n\
-`\\index', `\\def', `\\newcommand', `\\renewcommand',\n\
-`\\newenvironment' or `\\renewenvironment' is a tag.\n\
+"In LaTeX text, the argument of any of the commands '\\chapter',\n\
+'\\section', '\\subsection', '\\subsubsection', '\\eqno', '\\label',\n\
+'\\ref', '\\cite', '\\bibitem', '\\part', '\\appendix', '\\entry',\n\
+'\\index', '\\def', '\\newcommand', '\\renewcommand',\n\
+'\\newenvironment' or '\\renewenvironment' is a tag.\n\
 \n\
 Other commands can be specified by setting the environment variable\n\
-`TEXTAGS' to a colon-separated list like, for example,\n\
+'TEXTAGS' to a colon-separated list like, for example,\n\
      TEXTAGS=\"mycommand:myothercommand\".";
 
 
@@ -738,11 +738,11 @@ C code are parsed as C code (use --help --lang=c --lang=yacc\n\
 for full help).";
 
 static const char auto_help [] =
-"`auto' is not a real language, it indicates to use\n\
+"'auto' is not a real language, it indicates to use\n\
 a default language for files base on file name suffix and file contents.";
 
 static const char none_help [] =
-"`none' is not a real language, it indicates to only do\n\
+"'none' is not a real language, it indicates to only do\n\
 regexp processing on files.";
 
 static const char no_lang_help [] =
@@ -809,8 +809,8 @@ default file names and dot suffixes:");
 	  printf (" .%s", *ext);
       puts ("");
     }
-  puts ("where `auto' means use default language for files based on file\n\
-name suffix, and `none' means only do regexp processing on files.\n\
+  puts ("where 'auto' means use default language for files based on file\n\
+name suffix, and 'none' means only do regexp processing on files.\n\
 If no language is specified and no matching suffix is found,\n\
 the first line of the file is read for a sharp-bang (#!) sequence\n\
 followed by the name of an interpreter.  If no such sequence is found,\n\
@@ -950,8 +950,8 @@ Relative ones are stored relative to the output file's directory.\n");
   puts ("	If TAGNAME/ is present, the tags created are named.\n\
 	For example Tcl named tags can be created with:\n\
 	  --regex=\"/proc[ \\t]+\\([^ \\t]+\\)/\\1/.\".\n\
-	MODS are optional one-letter modifiers: `i' means to ignore case,\n\
-	`m' means to allow multi-line matches, `s' implies `m' and\n\
+	MODS are optional one-letter modifiers: 'i' means to ignore case,\n\
+	'm' means to allow multi-line matches, 's' implies 'm' and\n\
 	causes dot to match any character, including newline.");
 
   puts ("-R, --no-regex\n\
@@ -1012,7 +1012,7 @@ Relative ones are stored relative to the output file's directory.\n");
         Print the version of the program.\n\
 -h, --help\n\
         Print this help message.\n\
-        Followed by one or more `--language' options prints detailed\n\
+        Followed by one or more '--language' options prints detailed\n\
         help about tag generation for the specified languages.");
 
   print_language_names ();
@@ -5797,7 +5797,7 @@ add_regex (char *regexp_pattern, language *lang)
 	need_filebuf = true;
 	break;
       default:
-	error ("invalid regexp modifier `%c', ignoring", modifiers[0]);
+	error ("invalid regexp modifier '%c', ignoring", modifiers[0]);
 	break;
       }
 
@@ -6368,7 +6368,7 @@ pfatal (const char *s1)
 static void
 suggest_asking_for_help (void)
 {
-  fprintf (stderr, "\tTry `%s --help' for a complete list of options.\n",
+  fprintf (stderr, "\tTry '%s --help' for a complete list of options.\n",
 	   progname);
   exit (EXIT_FAILURE);
 }

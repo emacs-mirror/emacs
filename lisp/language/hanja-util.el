@@ -6585,7 +6585,9 @@ The value is a hanja character that is selected interactively."
 		     (cmd (lookup-key hanja-keymap seq)))
 		(if (functionp cmd)
 		    (funcall cmd)
-		  (setq unread-command-events (listify-key-sequence seq))
+		  (setq unread-command-events
+                        (nconc (listify-key-sequence seq)
+                               unread-command-events))
 		  (throw 'exit-input-loop nil))))))
       (setq hanja-conversions nil))))
 

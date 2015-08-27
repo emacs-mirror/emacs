@@ -940,8 +940,9 @@ and their encoded form is inserted byte by byte."
 		     ch internal-hex))
 		   (setq encoded internal)
 		 (error
-		  "Can't encode `0x%x' with this buffer's coding system; try \\[hexl-insert-hex-string]"
-		  ch)))
+		  "Can't encode `0x%x' with this buffer's coding system; %s"
+		  ch
+		  (substitute-command-keys "try \\[hexl-insert-hex-string]"))))
 	     (while (> num 0)
 	       (mapc
 		(function (lambda (c) (hexl-insert-char c 1))) encoded)

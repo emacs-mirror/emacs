@@ -237,7 +237,7 @@ Point is left at the end of the arguments."
                    (let* ((here (point))
                           (arg (eshell-parse-argument)))
                      (if (= (point) here)
-                         (error "Failed to parse argument '%s'"
+                         (error "Failed to parse argument `%s'"
                                 (buffer-substring here (point-max))))
                      (and arg (nconc args (list arg)))))))
               (throw 'eshell-incomplete (if (listp delim)
@@ -357,13 +357,13 @@ after are both returned."
 	  (goto-char (1+ end)))))))
 
 (defun eshell-parse-special-reference ()
-  "Parse a special syntax reference, of the form '#<args>'.
+  "Parse a special syntax reference, of the form `#<args>'.
 
 args           := `type' `whitespace' `arbitrary-args' | `arbitrary-args'
 type           := \"buffer\" or \"process\"
 arbitrary-args := any string of characters.
 
-If the form has no 'type', the syntax is parsed as if 'type' were
+If the form has no `type', the syntax is parsed as if `type' were
 \"buffer\"."
   (when (and (not eshell-current-argument)
              (not eshell-current-quoted)

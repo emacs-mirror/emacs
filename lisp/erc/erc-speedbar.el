@@ -48,9 +48,9 @@
 (defcustom erc-speedbar-sort-users-type 'activity
   "How channel nicknames are sorted.
 
-'activity     - Sort users by channel activity
-'alphabetical - Sort users alphabetically
-nil           - Do not sort users"
+`activity'     - Sort users by channel activity
+`alphabetical' - Sort users alphabetically
+nil            - Do not sort users"
   :group 'erc-speedbar
   :type '(choice (const :tag "Sort users by channel activity" activity)
 		 (const :tag "Sort users alphabetically" alphabetical)
@@ -364,4 +364,3 @@ The INDENT level is ignored."
 ;; indent-tabs-mode: t
 ;; tab-width: 8
 ;; End:
-

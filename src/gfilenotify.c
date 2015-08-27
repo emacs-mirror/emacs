@@ -119,9 +119,9 @@ watched for some reason, this function signals a `file-notify-error' error.
 FLAGS is a list of conditions to set what will be watched for.  It can
 include the following symbols:
 
-  'watch-mounts' -- watch for mount events
-  'send-moved'   -- pair 'deleted' and 'created' events caused by file
-                    renames and send a single 'renamed' event instead
+  `watch-mounts' -- watch for mount events
+  `send-moved'   -- pair `deleted' and `created' events caused by file
+                    renames and send a single `renamed' event instead
 
 When any event happens, Emacs will call the CALLBACK function passing
 it a single argument EVENT, which is of the form
@@ -132,24 +132,25 @@ DESCRIPTOR is the same object as the one returned by this function.
 ACTION is the description of the event.  It could be any one of the
 following:
 
-  'changed'           -- FILE has changed
-  'changes-done-hint' -- a hint that this was probably the last change
+  `changed'           -- FILE has changed
+  `changes-done-hint' -- a hint that this was probably the last change
                          in a set of changes
-  'deleted'           -- FILE was deleted
-  'created'           -- FILE was created
-  'attribute-changed' -- a FILE attribute was changed
-  'pre-unmount'       -- the FILE location will soon be unmounted
-  'unmounted'         -- the FILE location was unmounted
-  'moved'             -- FILE was moved to FILE1
+  `deleted'           -- FILE was deleted
+  `created'           -- FILE was created
+  `attribute-changed' -- a FILE attribute was changed
+  `pre-unmount'       -- the FILE location will soon be unmounted
+  `unmounted'         -- the FILE location was unmounted
+  `moved'             -- FILE was moved to FILE1
 
 FILE is the name of the file whose event is being reported.  FILE1
-will be reported only in case of the 'moved' event.  */)
+will be reported only in case of the `moved' event.  */)
   (Lisp_Object file, Lisp_Object flags, Lisp_Object callback)
 {
   Lisp_Object watch_object;
   GFile *gfile;
   GFileMonitor *monitor;
   GFileMonitorFlags gflags = G_FILE_MONITOR_NONE;
+  GError *gerror = NULL;
 
   /* Check parameters.  */
   CHECK_STRING (file);
@@ -172,7 +173,14 @@ will be reported only in case of the 'moved' event.  */)
     gflags |= G_FILE_MONITOR_SEND_MOVED;
 
   /* Enable watch.  */
-  monitor = g_file_monitor (gfile, gflags, NULL, NULL);
+  monitor = g_file_monitor (gfile, gflags, NULL, &gerror);
+  if (gerror)
+    {
+      char msg[1024];
+      strcpy (msg, gerror->message);
+      g_error_free (gerror);
+      xsignal1 (Qfile_notify_error, build_string (msg));
+    }
   if (! monitor)
     xsignal2 (Qfile_notify_error, build_string ("Cannot watch file"), file);
 

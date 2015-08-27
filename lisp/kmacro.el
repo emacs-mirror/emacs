@@ -432,7 +432,7 @@ Optional arg EMPTY is message to print if no macros are defined."
       (setq last-input-event nil)))
   (when last-input-event
     (clear-this-command-keys t)
-    (setq unread-command-events (list last-input-event))))
+    (push last-input-event unread-command-events)))
 
 
 (defun kmacro-get-repeat-prefix ()

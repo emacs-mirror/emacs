@@ -410,7 +410,9 @@ When a Korean input method is off, convert the following hangul character."
 		      ((commandp cmd)
 		       (call-interactively cmd))
 		      (t
-		       (setq unread-command-events (listify-key-sequence seq))
+		       (setq unread-command-events
+                             (nconc (listify-key-sequence seq)
+                                    unread-command-events))
 		       (throw 'exit-input-loop nil))))))
 	(quail-delete-overlays)))))
 
@@ -454,7 +456,9 @@ When a Korean input method is off, convert the following hangul character."
 		      ((commandp cmd)
 		       (call-interactively cmd))
 		      (t
-		       (setq unread-command-events (listify-key-sequence seq))
+		       (setq unread-command-events
+                             (nconc (listify-key-sequence seq)
+                                    unread-command-events))
 		       (throw 'exit-input-loop nil))))))
 	(quail-delete-overlays)))))
 
@@ -499,7 +503,9 @@ When a Korean input method is off, convert the following hangul character."
 		      ((commandp cmd)
 		       (call-interactively cmd))
 		      (t
-		       (setq unread-command-events (listify-key-sequence seq))
+		       (setq unread-command-events
+                             (nconc (listify-key-sequence seq)
+                                    unread-command-events))
 		       (throw 'exit-input-loop nil))))))
 	(quail-delete-overlays)))))
 

@@ -555,7 +555,7 @@ load_charset_map_from_vector (struct charset *charset, Lisp_Object vec, int cont
 
   if (len % 2 == 1)
     {
-      add_to_log ("Failure in loading charset map: %V", vec, Qnil);
+      add_to_log ("Failure in loading charset map: %V", vec);
       return;
     }
 

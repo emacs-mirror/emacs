@@ -507,7 +507,7 @@ write_c_args (char *func, char *buf, int minargs, int maxargs)
 	{
 	  if (ident_length == 0)
 	    {
-	      error ("empty arg list for `%s' should be (void), not ()", func);
+	      error ("empty arg list for '%s' should be (void), not ()", func);
 	      continue;
 	    }
 
@@ -1163,7 +1163,7 @@ scan_c_stream (FILE *infile)
 	    }
 	  else if (defunflag && maxargs == -1 && !saw_usage)
 	    /* The DOC should provide the usage form.  */
-	    fprintf (stderr, "Missing `usage' for function `%s'.\n",
+	    fprintf (stderr, "Missing 'usage' for function '%s'.\n",
 		     input_buffer);
 	}
     }

@@ -1525,7 +1525,7 @@ If NON-RECURSIVE (which is the prefix) is t, don't unmark its subtopics."
 	   (read-string (format "Rename %s to: " topic) topic))))
   ;; Check whether the new name exists.
   (when (gnus-topic-find-topology new-name)
-    (error "Topic '%s' already exists" new-name))
+    (error "Topic `%s' already exists" new-name))
   ;; "nil" is an invalid name, for reasons I'd rather not go
   ;; into here.  Trust me.
   (when (equal new-name "nil")

@@ -75,6 +75,7 @@
 
 (defconst nnmaildir-flag-mark-mapping
   '((?F . tick)
+    (?P . forward)
     (?R . reply)
     (?S . read))
   "Alist mapping Maildir filename flags to Gnus marks.

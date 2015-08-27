@@ -187,13 +187,13 @@ It takes only one argument, the filename."
   :type  '(string))
 
 (defcustom hfy-src-doc-link-style "text-decoration: underline;"
-  "String to add to the '<style> a' variant of an htmlfontify CSS class."
+  "String to add to the ‘<style> a’ variant of an htmlfontify CSS class."
   :group 'htmlfontify
   :tag   "src-doc-link-style"
   :type  '(string))
 
 (defcustom hfy-src-doc-link-unstyle " text-decoration: none;"
-  "Regex to remove from the <style> a variant of an htmlfontify CSS class."
+  "Regex to remove from the ‘<style> a’ variant of an htmlfontify CSS class."
   :group 'htmlfontify
   :tag   "src-doc-link-unstyle"
   :type  '(string))
@@ -330,7 +330,7 @@ done;")
 (defcustom hfy-etags-cmd-alist
   hfy-etags-cmd-alist-default
   "Alist of possible shell commands that will generate etags output that
-`htmlfontify' can use.  '%s' will be replaced by `hfy-etags-bin'."
+`htmlfontify' can use.  `%s' will be replaced by `hfy-etags-bin'."
   :group 'htmlfontify
   :tag   "etags-cmd-alist"
   :type  '(alist :key-type (string) :value-type (string)))
@@ -389,8 +389,8 @@ exuberant-ctags' etags respectively."
 
 (defcustom hfy-istext-command "file %s | sed -e 's@^[^:]*:[ \t]*@@'"
   "Command to run with the name of a file, to see whether it is a text file
-or not.  The command should emit a string containing the word 'text' if
-the file is a text file, and a string not containing 'text' otherwise."
+or not.  The command should emit a string containing the word `text' if
+the file is a text file, and a string not containing `text' otherwise."
   :group 'htmlfontify
   :tag   "istext-command"
   :type  '(string))
@@ -500,12 +500,12 @@ tagged items, not the locations of their definitions.")
 (defvar hfy-style-assoc 'please-ignore-this-line
   "An assoc representing/describing an Emacs face.
 Properties may be repeated, in which case later properties should be
-treated as if they were inherited from a 'parent' font.
+treated as if they were inherited from a `parent' font.
 \(For some properties, only the first encountered value is of any importance,
 for others the values might be cumulative, and for others they might be
 cumulative in a complex way.)\n
 Some examples:\n
-\(hfy-face-to-style 'default) =>
+\(hfy-face-to-style \\='default) =>
   ((\"background\"      . \"rgb(0, 0, 0)\")
    (\"color\"           . \"rgb(255, 255, 255)\")
    (\"font-style\"      . \"normal\")
@@ -514,7 +514,7 @@ Some examples:\n
    (\"font-family\"     . \"misc-fixed\")
    (\"font-size\"       . \"13pt\")
    (\"text-decoration\" . \"none\"))\n
-\(hfy-face-to-style 'Info-title-3-face) =>
+\(hfy-face-to-style \\='Info-title-3-face) =>
   ((\"font-weight\"     . \"700\")
    (\"font-family\"     . \"helv\")
    (\"font-size\"       . \"120%\")
@@ -527,14 +527,14 @@ Some examples:\n
 
 (defvar hfy-facemap-assoc 'please-ignore-this-line
   "An assoc of (point . FACE-SYMBOL) or (point . DEFFACE-LIST)
-and (point . 'end) elements, in descending order of point value
+and (point . \\='end) elements, in descending order of point value
 \(ie from the file's end to its beginning).\n
 The map is in reverse order because inserting a <style> tag (or any other
 string) at `point' invalidates the map for all entries with a greater value of
 point.  By traversing the map from greatest to least point, we still invalidate
 the map as we go, but only those points we have already dealt with (and
 therefore no longer care about) will be invalid at any time.\n
-'((64820 . end)
+\\='((64820 . end)
   (64744 . font-lock-comment-face)
   (64736 . end)
   (64722 . font-lock-string-face)

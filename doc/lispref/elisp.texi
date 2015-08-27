@@ -1041,6 +1041,7 @@ Frames
 
 * Creating Frames::         Creating additional frames.
 * Multiple Terminals::      Displaying on several different devices.
+* Frame Geometry::          Geometric properties of frames.
 * Frame Parameters::        Controlling frame size, position, font, etc.
 * Terminal Parameters::     Parameters common for all frames on terminal.
 * Frame Titles::            Automatic updating of frame titles.
@@ -1064,12 +1065,18 @@ Frames
 * Resources::               Getting resource values from the server.
 * Display Feature Testing:: Determining the features of a terminal.
 
+Frame Geometry
+
+* Frame Layout::            Basic layout of frames.
+* Frame Font::              The default font of a frame and how to set it.
+* Size and Position::       Changing the size and position of a frame.
+* Implied Frame Resizing::  Implied resizing of frames and how to prevent it.
+
 Frame Parameters
 
 * Parameter Access::        How to change a frame's parameters.
 * Initial Parameters::      Specifying frame parameters when you make a frame.
 * Window Frame Parameters:: List of frame parameters for window systems.
-* Size and Position::       Changing the size and position of a frame.
 * Geometry::                Parsing geometry specifications.
 
 Window Frame Parameters

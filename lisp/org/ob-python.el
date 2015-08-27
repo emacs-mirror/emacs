@@ -64,7 +64,7 @@ This will typically be either 'python or 'python-mode."
   :type 'string)
 
 (defcustom org-babel-python-None-to 'hline
-  "Replace 'None' in python tables with this before returning."
+  "Replace ‘None’ in python tables with this before returning."
   :group 'org-babel
   :version "24.4"
   :package-version '(Org . "8.0")

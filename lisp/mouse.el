@@ -146,7 +146,7 @@ items `Turn Off' and `Help'."
 	  (describe-minor-mode-completion-table-for-indicator))))
   (let* ((minor-mode (lookup-minor-mode-from-indicator indicator))
          (mm-fun (or (get minor-mode :minor-mode-function) minor-mode)))
-    (unless minor-mode (error "Cannot find minor mode for `%s'" indicator))
+    (unless minor-mode (error "Cannot find minor mode for ‘%s’" indicator))
     (let* ((map (cdr-safe (assq minor-mode minor-mode-map-alist)))
            (menu (and (keymapp map) (lookup-key map [menu-bar]))))
       (setq menu
@@ -1027,7 +1027,7 @@ This must be bound to a mouse click."
   (interactive "e")
   (mouse-minibuffer-check click)
   (select-window (posn-window (event-start click)))
-  ;; We don't use save-excursion because that preserves the mark too.
+  ;; FIXME: Use save-excursion
   (let ((point-save (point)))
     (unwind-protect
 	(progn (mouse-set-point click)

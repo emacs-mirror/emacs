@@ -164,8 +164,8 @@ If CONFIRM is non-nil, the user will be asked for an NNTP server."
        (gnus-open-server gnus-select-method)
        gnus-batch-mode
        (gnus-y-or-n-p
-	(format
-	 "%s (%s) open error: '%s'.  Continue? "
+	(gnus-format-message
+	 "%s (%s) open error: `%s'.  Continue? "
 	 (car gnus-select-method) (cadr gnus-select-method)
 	 (gnus-status-message gnus-select-method)))
        (gnus-error 1 "Couldn't open server on %s"
@@ -555,7 +555,7 @@ the group's summary.
   (let ((saved-display
          (gnus-group-get-parameter group 'display :allow-list)))
 
-    ;; Tell gnus we really don't want any articles 
+    ;; Tell gnus we really don't want any articles
     (gnus-group-set-parameter group 'display 0)
 
     (unwind-protect
@@ -573,7 +573,7 @@ the group's summary.
   ;; Create it now and insert the message
   (let ((group-is-new (gnus-summary-setup-buffer group)))
     (condition-case err
-        (let ((article-number 
+        (let ((article-number
                (gnus-summary-insert-subject message-id)))
           (unless article-number
             (signal 'error "message-id not in group"))

@@ -2099,7 +2099,7 @@ If FLAG is nil, a message is echoed if point was incremented at least
          (let* ((size (- (point-max) (point-min)))
                 (perc (if (= size 0)
                           100
-                        (/ (* 100 (- (point) (point-min))) size))))
+                        (floor (* 100.0 (- (point) (point-min))) size))))
            (when (>= perc (+ bibtex-progress-lastperc
                              bibtex-progress-interval))
              (setq bibtex-progress-lastperc perc)

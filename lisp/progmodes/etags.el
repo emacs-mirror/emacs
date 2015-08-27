@@ -1754,7 +1754,7 @@ if the file was newly read in, the value is the filename."
 	 (with-current-buffer buffer
 	   (revert-buffer t t)))
     (if (not (and new novisit))
-	(find-file next novisit)
+	(find-file next)
       ;; Like find-file, but avoids random warning messages.
       (switch-to-buffer (get-buffer-create " *next-file*"))
       (kill-all-local-variables)
@@ -1846,7 +1846,9 @@ nil, we exit; otherwise we scan the next file."
 
 	  ;; Now operate on the file.
 	  ;; If value is non-nil, continue to scan the next file.
-	  (tags-loop-eval tags-loop-operate))
+          (save-restriction
+            (widen)
+            (tags-loop-eval tags-loop-operate)))
       (setq file-finished t))
     (and messaged
 	 (null tags-loop-operate)

@@ -185,9 +185,9 @@ diary buffer to be displayed with diary entries from various
 included files, each day's entries sorted into lexicographic
 order, add the following to your init file:
 
-     (setq diary-display-function 'diary-fancy-display)
-     (add-hook 'diary-list-entries-hook 'diary-include-other-diary-files)
-     (add-hook 'diary-list-entries-hook 'diary-sort-entries t)
+     (setq diary-display-function \\='diary-fancy-display)
+     (add-hook \\='diary-list-entries-hook \\='diary-include-other-diary-files)
+     (add-hook \\='diary-list-entries-hook \\='diary-sort-entries t)
 
 Note how the sort function is placed last, so that it can sort
 the entries included from other files.
@@ -484,8 +484,8 @@ If so, return the expanded file name, otherwise signal an error."
   (if (and diary-file (file-exists-p diary-file))
       (if (file-readable-p diary-file)
           diary-file
-        (error "Diary file `%s' is not readable" diary-file))
-    (error "Diary file `%s' does not exist" diary-file)))
+        (error "Diary file ‘%s’ is not readable" diary-file))
+    (error "Diary file ‘%s’ does not exist" diary-file)))
 
 ;;;###autoload
 (defun diary (&optional arg)
@@ -1197,7 +1197,7 @@ ensure that all relevant variables are set.
 "
   (interactive "P")
   (if (string-equal diary-mail-addr "")
-      (user-error "You must set `diary-mail-addr' to use this command")
+      (user-error "You must set ‘diary-mail-addr’ to use this command")
     (let ((diary-display-function 'diary-fancy-display))
       (diary-list-entries (calendar-current-date) (or ndays diary-mail-days)))
     (compose-mail diary-mail-addr
@@ -2527,7 +2527,7 @@ entry is found the user is asked to confirm its addition."
                 #'diary-from-outlook-rmail)
                ((memq major-mode '(gnus-summary-mode gnus-article-mode))
                 #'diary-from-outlook-gnus)
-               (t (error "Don't know how to snarf in `%s'" major-mode)))))
+               (t (error "Don't know how to snarf in ‘%s’" major-mode)))))
     (funcall func noconfirm)))
 
 (provide 'diary-lib)

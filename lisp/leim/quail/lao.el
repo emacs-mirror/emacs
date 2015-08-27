@@ -36,8 +36,9 @@
 	    (buffer-substring (overlay-start quail-overlay)
 			      (overlay-end quail-overlay))
 	    unread-command-events
-	    (string-to-list
-	     (substring quail-current-key control-flag)))
+	    (append
+	     (substring quail-current-key control-flag)
+             unread-command-events))
     (setq quail-current-str
 	  (compose-string (quail-lookup-map-and-concat quail-current-key))))
   control-flag)

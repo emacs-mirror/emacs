@@ -934,7 +934,7 @@ authentication.  To do that, you need to set the
 `message-send-mail-function' variable as `message-smtpmail-send-it'
 and put the following line in your ~/.gnus.el file:
 
-\(add-hook 'message-send-mail-hook 'mail-source-touch-pop)
+\(add-hook \\='message-send-mail-hook \\='mail-source-touch-pop)
 
 See the Gnus manual for details."
   (let ((sources (if mail-source-primary-source

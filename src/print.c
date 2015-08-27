@@ -469,8 +469,6 @@ print_string (Lisp_Object string, Lisp_Object printcharfun)
       ptrdiff_t i;
       ptrdiff_t size = SCHARS (string);
       ptrdiff_t size_byte = SBYTES (string);
-      struct gcpro gcpro1;
-      GCPRO1 (string);
       if (size == size_byte)
 	for (i = 0; i < size; i++)
 	  printchar (SREF (string, i), printcharfun);
@@ -484,7 +482,6 @@ print_string (Lisp_Object string, Lisp_Object printcharfun)
 	    printchar (ch, printcharfun);
 	    i += len;
 	  }
-      UNGCPRO;
     }
 }
 
@@ -743,17 +740,13 @@ If PRINTCHARFUN is omitted, the value of `standard-output' (which see)
 is used instead.  */)
   (Lisp_Object object, Lisp_Object printcharfun)
 {
-  struct gcpro gcpro1;
-
   if (NILP (printcharfun))
     printcharfun = Vstandard_output;
-  GCPRO1 (object);
   PRINTPREPARE;
   printchar ('\n', printcharfun);
   print (object, printcharfun, 1);
   printchar ('\n', printcharfun);
   PRINTFINISH;
-  UNGCPRO;
   return object;
 }
 
@@ -858,7 +851,6 @@ error message is constructed.  */)
 {
   struct buffer *old = current_buffer;
   Lisp_Object value;
-  struct gcpro gcpro1;
 
   /* If OBJ is (error STRING), just return STRING.
      That is not only faster, it also avoids the need to allocate
@@ -874,10 +866,8 @@ error message is constructed.  */)
   set_buffer_internal (XBUFFER (Vprin1_to_string_buffer));
   value = Fbuffer_string ();
 
-  GCPRO1 (value);
   Ferase_buffer ();
   set_buffer_internal (old);
-  UNGCPRO;
 
   return value;
 }
@@ -892,7 +882,6 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
 		     Lisp_Object caller)
 {
   Lisp_Object errname, errmsg, file_error, tail;
-  struct gcpro gcpro1;
 
   if (context != 0)
     write_string_1 (context, stream);
@@ -906,7 +895,7 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
       USE_SAFE_ALLOCA;
       char *name = SAFE_ALLOCA (cnamelen);
       memcpy (name, SDATA (cname), cnamelen);
-      message_dolog (name, cnamelen, 0, 0);
+      message_dolog (name, cnamelen, 0, STRING_MULTIBYTE (cname));
       message_dolog (": ", 2, 0, 0);
       SAFE_FREE ();
     }
@@ -931,7 +920,6 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
   /* Print an error message including the data items.  */
 
   tail = Fcdr_safe (data);
-  GCPRO1 (tail);
 
   /* For file-error, make error message by concatenating
      all the data items.  They are all strings.  */
@@ -944,7 +932,7 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
     if (!STRINGP (errmsg))
       write_string_1 ("peculiar error", stream);
     else if (SCHARS (errmsg))
-      Fprinc (errmsg, stream);
+      Fprinc (Fsubstitute_command_keys (errmsg), stream);
     else
       sep = NULL;
 
@@ -962,8 +950,6 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
 	  Fprin1 (obj, stream);
       }
   }
-
-  UNGCPRO;
 }
 
 
@@ -1432,15 +1418,12 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	print_string (obj, printcharfun);
       else
 	{
-	  register ptrdiff_t i, i_byte;
-	  struct gcpro gcpro1;
+	  ptrdiff_t i, i_byte;
 	  ptrdiff_t size_byte;
 	  /* True means we must ensure that the next character we output
 	     cannot be taken as part of a hex character escape.  */
 	  bool need_nonhex = false;
 	  bool multibyte = STRING_MULTIBYTE (obj);
-
-	  GCPRO1 (obj);
 
 	  if (! EQ (Vprint_charset_text_property, Qt))
 	    obj = print_prune_string_charset (obj);
@@ -1511,8 +1494,6 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 				  0, print_interval, printcharfun);
 	      printchar (')', printcharfun);
 	    }
-
-	  UNGCPRO;
 	}
       break;
 
@@ -1706,11 +1687,9 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	{
 	  ptrdiff_t i;
 	  unsigned char c;
-	  struct gcpro gcpro1;
 	  EMACS_INT size = bool_vector_size (obj);
 	  ptrdiff_t size_in_chars = bool_vector_bytes (size);
 	  ptrdiff_t real_size_in_chars = size_in_chars;
-	  GCPRO1 (obj);
 
 	  int len = sprintf (buf, "#&%"pI"d\"", size);
 	  strout (buf, len, len, printcharfun);
@@ -1747,8 +1726,6 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	  if (size_in_chars < real_size_in_chars)
 	    print_c_string (" ...", printcharfun);
 	  printchar ('\"', printcharfun);
-
-	  UNGCPRO;
 	}
       else if (SUBRP (obj))
 	{
@@ -2057,8 +2034,6 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	      {
 		ptrdiff_t amount = v->data[1].integer;
 
-#if GC_MARK_STACK
-
 		/* valid_lisp_object_p is reliable, so try to print up
 		   to 8 saved objects.  This code is rarely used, so
 		   it's OK that valid_lisp_object_p is slow.  */
@@ -2083,16 +2058,6 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 		  }
 		if (i == limit && i < amount)
 		  print_c_string (" ...", printcharfun);
-
-#else /* not GC_MARK_STACK */
-
-		/* There is no reliable way to determine whether the objects
-		   are initialized, so do not try to print them.  */
-
-		i = sprintf (buf, "with %"pD"d objects", amount);
-		strout (buf, i, i, printcharfun);
-
-#endif /* GC_MARK_STACK */
 	      }
 	    else
 	      {

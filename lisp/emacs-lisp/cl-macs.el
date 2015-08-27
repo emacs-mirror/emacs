@@ -1132,7 +1132,7 @@ For more details, see Info node `(cl)Loop Facility'.
     (cond
 
      ((null cl--loop-args)
-      (error "Malformed `cl-loop' macro"))
+      (error "Malformed ‘cl-loop’ macro"))
 
      ((eq word 'named)
       (setq cl--loop-name (pop cl--loop-args)))
@@ -1140,7 +1140,7 @@ For more details, see Info node `(cl)Loop Facility'.
      ((eq word 'initially)
       (if (memq (car cl--loop-args) '(do doing)) (pop cl--loop-args))
       (or (consp (car cl--loop-args))
-          (error "Syntax error on `initially' clause"))
+          (error "Syntax error on ‘initially’ clause"))
       (while (consp (car cl--loop-args))
 	(push (pop cl--loop-args) cl--loop-initially)))
 
@@ -1150,7 +1150,7 @@ For more details, see Info node `(cl)Loop Facility'.
                 (or (cl--pop2 cl--loop-args) '(quote nil)))
 	(if (memq (car cl--loop-args) '(do doing)) (pop cl--loop-args))
 	(or (consp (car cl--loop-args))
-            (error "Syntax error on `finally' clause"))
+            (error "Syntax error on ‘finally’ clause"))
 	(if (and (eq (caar cl--loop-args) 'return) (null cl--loop-name))
 	    (setq cl--loop-result-explicit
                   (or (nth 1 (pop cl--loop-args)) '(quote nil)))
@@ -1177,7 +1177,7 @@ For more details, see Info node `(cl)Loop Facility'.
 			     above below by))
 		(push word cl--loop-args)
 		(if (memq (car cl--loop-args) '(downto above))
-		    (error "Must specify `from' value for downward cl-loop"))
+		    (error "Must specify ‘from’ value for downward cl-loop"))
 		(let* ((down (or (eq (car cl--loop-args) 'downfrom)
 				 (memq (nth 2 cl--loop-args)
                                        '(downto above))))
@@ -1197,7 +1197,7 @@ For more details, see Info node `(cl)Loop Facility'.
 		       (step-var (and (not (macroexp-const-p step))
 				      (make-symbol "--cl-var--"))))
 		  (and step (numberp step) (<= step 0)
-		       (error "Loop `by' value is not positive: %s" step))
+		       (error "Loop ‘by’ value is not positive: %s" step))
 		  (push (list var (or start 0)) loop-for-bindings)
 		  (if end-var (push (list end-var end) loop-for-bindings))
 		  (if step-var (push (list step-var step)
@@ -1276,7 +1276,7 @@ For more details, see Info node `(cl)Loop Facility'.
 	       ((memq word '(element elements))
 		(let ((ref (or (memq (car cl--loop-args) '(in-ref of-ref))
 			       (and (not (memq (car cl--loop-args) '(in of)))
-				    (error "Expected `of'"))))
+				    (error "Expected ‘of’"))))
 		      (seq (cl--pop2 cl--loop-args))
 		      (temp-seq (make-symbol "--cl-seq--"))
 		      (temp-idx
@@ -1284,7 +1284,7 @@ For more details, see Info node `(cl)Loop Facility'.
                            (if (and (= (length (cadr cl--loop-args)) 2)
                                     (eq (cl-caadr cl--loop-args) 'index))
                                (cadr (cl--pop2 cl--loop-args))
-                             (error "Bad `using' clause"))
+                             (error "Bad ‘using’ clause"))
                          (make-symbol "--cl-idx--"))))
 		  (push (list temp-seq seq) loop-for-bindings)
 		  (push (list temp-idx 0) loop-for-bindings)
@@ -1309,7 +1309,7 @@ For more details, see Info node `(cl)Loop Facility'.
 
 	       ((memq word hash-types)
 		(or (memq (car cl--loop-args) '(in of))
-                    (error "Expected `of'"))
+                    (error "Expected ‘of’"))
 		(let* ((table (cl--pop2 cl--loop-args))
 		       (other
                         (if (eq (car cl--loop-args) 'using)
@@ -1317,7 +1317,7 @@ For more details, see Info node `(cl)Loop Facility'.
                                      (memq (cl-caadr cl--loop-args) hash-types)
                                      (not (eq (cl-caadr cl--loop-args) word)))
                                 (cadr (cl--pop2 cl--loop-args))
-                              (error "Bad `using' clause"))
+                              (error "Bad ‘using’ clause"))
                           (make-symbol "--cl-var--"))))
 		  (if (memq word '(hash-value hash-values))
 		      (setq var (prog1 other (setq other var))))
@@ -1372,7 +1372,7 @@ For more details, see Info node `(cl)Loop Facility'.
 
 	       ((memq word key-types)
 		(or (memq (car cl--loop-args) '(in of))
-                    (error "Expected `of'"))
+                    (error "Expected ‘of’"))
 		(let ((cl-map (cl--pop2 cl--loop-args))
 		      (other
                        (if (eq (car cl--loop-args) 'using)
@@ -1380,7 +1380,7 @@ For more details, see Info node `(cl)Loop Facility'.
                                     (memq (cl-caadr cl--loop-args) key-types)
                                     (not (eq (cl-caadr cl--loop-args) word)))
                                (cadr (cl--pop2 cl--loop-args))
-                             (error "Bad `using' clause"))
+                             (error "Bad ‘using’ clause"))
                          (make-symbol "--cl-var--"))))
 		  (if (memq word '(key-binding key-bindings))
 		      (setq var (prog1 other (setq other var))))
@@ -1430,7 +1430,7 @@ For more details, see Info node `(cl)Loop Facility'.
 				    (get word 'cl-loop-for-handler))))
 		  (if handler
 		      (funcall handler var)
-		    (error "Expected a `for' preposition, found %s" word)))))
+		    (error "Expected a ‘for’ preposition, found %s" word)))))
 	      (eq (car cl--loop-args) 'and))
 	  (setq ands t)
 	  (pop cl--loop-args))
@@ -1569,7 +1569,7 @@ For more details, see Info node `(cl)Loop Facility'.
 
      ((memq word '(do doing))
       (let ((body nil))
-	(or (consp (car cl--loop-args)) (error "Syntax error on `do' clause"))
+	(or (consp (car cl--loop-args)) (error "Syntax error on ‘do’ clause"))
 	(while (consp (car cl--loop-args)) (push (pop cl--loop-args) body))
 	(push (cons 'progn (nreverse (cons t body))) cl--loop-body)))
 
@@ -1802,7 +1802,7 @@ Labels have lexical scope and dynamic extent."
        `((go . ,(lambda (label)
                   (let ((catch-tag (cdr (assq label cl--tagbody-alist))))
                     (unless catch-tag
-                      (error "Unknown cl-tagbody go label `%S'" label))
+                      (error "Unknown cl-tagbody go label ‘%S’" label))
                     `(throw ',catch-tag ',label))))
          ,@macroexpand-all-environment)))))
 
@@ -2101,8 +2101,8 @@ by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...).
                                           macroexpand-all-environment))))
               (if (or (null (cdar bindings)) (cl-cddar bindings))
                   (macroexp--warn-and-return
-                   (format "Malformed `cl-symbol-macrolet' binding: %S"
-                           (car bindings))
+                   (format-message "Malformed ‘cl-symbol-macrolet’ binding: %S"
+                                   (car bindings))
                    expansion)
                 expansion)))
         (fset 'macroexpand previous-macroexpand))))))

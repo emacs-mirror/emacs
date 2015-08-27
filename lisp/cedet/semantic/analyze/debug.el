@@ -512,7 +512,7 @@ Optional argument CLASSCONSTRAINT says to output to tags of that class."
   )
 
 (defun semantic-analyzer-debug-global-miss-text (name-in)
-  "Use 'princ' to show text describing not finding symbol NAME-IN.
+  "Use `princ' to show text describing not finding symbol NAME-IN.
 NAME is the name of the unfound symbol."
   (let ((name (cond ((stringp name-in)
 		     name-in)

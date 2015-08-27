@@ -407,10 +407,7 @@ string is passed through `substitute-command-keys'.  */)
       if (NILP (tem) && try_reload)
 	{
 	  /* The file is newer, we need to reset the pointers.  */
-	  struct gcpro gcpro1, gcpro2;
-	  GCPRO2 (function, raw);
 	  try_reload = reread_doc_file (Fcar_safe (doc));
-	  UNGCPRO;
 	  if (try_reload)
 	    {
 	      try_reload = 0;
@@ -452,10 +449,7 @@ aren't strings.  */)
       if (NILP (tem) && try_reload)
 	{
 	  /* The file is newer, we need to reset the pointers.  */
-	  struct gcpro gcpro1, gcpro2, gcpro3;
-	  GCPRO3 (symbol, prop, raw);
 	  try_reload = reread_doc_file (Fcar_safe (doc));
-	  UNGCPRO;
 	  if (try_reload)
 	    {
 	      try_reload = 0;
@@ -684,17 +678,33 @@ the same file name is found in the `doc-directory'.  */)
   return unbind_to (count, Qnil);
 }
 
-/* Declare named constants for U+2018 LEFT SINGLE QUOTATION MARK and
-   U+2019 RIGHT SINGLE QUOTATION MARK, which have UTF-8 encodings
-   "\xE2\x80\x98" and "\xE2\x80\x99", respectively.  */
-enum
-  {
-    LEFT_SINGLE_QUOTATION_MARK = 0x2018,
-    uLSQM0 = 0xE2, uLSQM1 = 0x80, uLSQM2 = 0x98,
-    uRSQM0 = 0xE2, uRSQM1 = 0x80, uRSQM2 = 0x99,
-  };
-static unsigned char const LSQM[] = { uLSQM0, uLSQM1, uLSQM2 };
-static unsigned char const RSQM[] = { uRSQM0, uRSQM1, uRSQM2 };
+/* Return true if text quoting style should default to quote `like this'.  */
+static bool
+default_to_grave_quoting_style (void)
+{
+  if (!text_quoting_flag)
+    return true;
+  if (! DISP_TABLE_P (Vstandard_display_table))
+    return false;
+  Lisp_Object dv = DISP_CHAR_VECTOR (XCHAR_TABLE (Vstandard_display_table),
+				     LEFT_SINGLE_QUOTATION_MARK);
+  return (VECTORP (dv) && ASIZE (dv) == 1
+	  && EQ (AREF (dv, 0), make_number ('`')));
+}
+
+/* Return the current effective text quoting style.  */
+enum text_quoting_style
+text_quoting_style (void)
+{
+  if (NILP (Vtext_quoting_style)
+      ? default_to_grave_quoting_style ()
+      : EQ (Vtext_quoting_style, Qgrave))
+    return GRAVE_QUOTING_STYLE;
+  else if (EQ (Vtext_quoting_style, Qstraight))
+    return STRAIGHT_QUOTING_STYLE;
+  else
+    return CURVE_QUOTING_STYLE;
+}
 
 DEFUN ("substitute-command-keys", Fsubstitute_command_keys,
        Ssubstitute_command_keys, 1, 1, 0,
@@ -712,10 +722,9 @@ summary).
 Each substring of the form \\=\\<MAPVAR> specifies the use of MAPVAR
 as the keymap for future \\=\\[COMMAND] substrings.
 
-Each \\=‘ and \\=’ are replaced by left and right quote.  Each \\=` is
-replaced by left quote, and each ' preceded by \\=` and without
-intervening ' is replaced by right quote.  Left and right quote
-characters are specified by ‘help-quote-translation’.
+Each \\=‘ and \\=` is replaced by left quote, and each \\=’ and \\='
+is replaced by right quote.  Left and right quote characters are
+specified by ‘text-quoting-style’.
 
 \\=\\= quotes the following character and is discarded; thus,
 \\=\\=\\=\\= puts \\=\\= into the output, \\=\\=\\=\\[ puts \\=\\[ into the output, and
@@ -727,7 +736,6 @@ Otherwise, return a new string.  */)
 {
   char *buf;
   bool changed = false;
-  bool in_quote = false;
   unsigned char *strp;
   char *bufp;
   ptrdiff_t idx;
@@ -737,7 +745,6 @@ Otherwise, return a new string.  */)
   unsigned char const *start;
   ptrdiff_t length, length_byte;
   Lisp_Object name;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   bool multibyte;
   ptrdiff_t nchars;
 
@@ -748,22 +755,8 @@ Otherwise, return a new string.  */)
   tem = Qnil;
   keymap = Qnil;
   name = Qnil;
-  GCPRO4 (string, tem, keymap, name);
 
-  enum { unicode, grave_accent, apostrophe } quote_translation = unicode;
-  if (EQ (Vhelp_quote_translation, make_number ('`')))
-    quote_translation = grave_accent;
-  else if (EQ (Vhelp_quote_translation, make_number ('\'')))
-    quote_translation = apostrophe;
-  else if (NILP (Vhelp_quote_translation)
-	   && DISP_TABLE_P (Vstandard_display_table))
-    {
-      Lisp_Object dv = DISP_CHAR_VECTOR (XCHAR_TABLE (Vstandard_display_table),
-					 LEFT_SINGLE_QUOTATION_MARK);
-      if (VECTORP (dv) && ASIZE (dv) == 1
-	  && EQ (AREF (dv, 0), make_number ('`')))
-	quote_translation = grave_accent;
-    }
+  enum text_quoting_style quoting_style = text_quoting_style ();
 
   multibyte = STRING_MULTIBYTE (string);
   nchars = 0;
@@ -921,11 +914,13 @@ Otherwise, return a new string.  */)
 	  if (NILP (tem))
 	    {
 	      name = Fsymbol_name (name);
-	      insert_string ("\nUses keymap `");
+	      AUTO_STRING (msg_prefix, "\nUses keymap `");
+	      insert1 (Fsubstitute_command_keys (msg_prefix));
 	      insert_from_string (name, 0, 0,
 				  SCHARS (name),
 				  SBYTES (name), 1);
-	      insert_string ("', which is not currently defined.\n");
+	      AUTO_STRING (msg_suffix, "', which is not currently defined.\n");
+	      insert1 (Fsubstitute_command_keys (msg_suffix));
 	      if (start[-1] == '<') keymap = Qnil;
 	    }
 	  else if (start[-1] == '<')
@@ -962,52 +957,44 @@ Otherwise, return a new string.  */)
 	    strp = SDATA (string) + idx;
 	  }
 	}
-      else if (strp[0] == '`' && quote_translation == unicode)
+      else if ((strp[0] == '`' || strp[0] == '\'')
+	       && quoting_style == CURVE_QUOTING_STYLE)
 	{
-	  in_quote = true;
-	  start = LSQM;
-	subst_quote:
+	  start = (unsigned char const *) (strp[0] == '`' ? uLSQM : uRSQM);
 	  length = 1;
-	  length_byte = 3;
+	  length_byte = sizeof uLSQM - 1;
 	  idx = strp - SDATA (string) + 1;
 	  goto subst;
 	}
-      else if (strp[0] == '`' && quote_translation == apostrophe)
+      else if (strp[0] == '`' && quoting_style == STRAIGHT_QUOTING_STYLE)
 	{
 	  *bufp++ = '\'';
 	  strp++;
 	  nchars++;
 	  changed = true;
 	}
-      else if (strp[0] == '\'' && in_quote)
-	{
-	  in_quote = false;
-	  start = RSQM;
-	  goto subst_quote;
-	}
-      else if (strp[0] == uLSQM0 && strp[1] == uLSQM1
-	       && (strp[2] == uLSQM2 || strp[2] == uRSQM2)
-	       && quote_translation != unicode)
-        {
-	  *bufp++ = (strp[2] == uLSQM2 && quote_translation == grave_accent
-		     ? '`' : '\'');
-	  strp += 3;
-	  nchars++;
-	  changed = true;
-        }
-      else if (! multibyte)		/* just copy other chars */
+      else if (! multibyte)
 	*bufp++ = *strp++, nchars++;
       else
 	{
 	  int len;
-
-	  STRING_CHAR_AND_LENGTH (strp, len);
-	  if (len == 1)
-	    *bufp = *strp;
+	  int ch = STRING_CHAR_AND_LENGTH (strp, len);
+	  if ((ch == LEFT_SINGLE_QUOTATION_MARK
+	       || ch == RIGHT_SINGLE_QUOTATION_MARK)
+	      && quoting_style != CURVE_QUOTING_STYLE)
+	    {
+	      *bufp++ = ((ch == LEFT_SINGLE_QUOTATION_MARK
+			  && quoting_style == GRAVE_QUOTING_STYLE)
+			 ? '`' : '\'');
+	      strp += len;
+	      changed = true;
+	    }
 	  else
-	    memcpy (bufp, strp, len);
-	  strp += len;
-	  bufp += len;
+	    {
+	      do
+		*bufp++ = *strp++;
+	      while (--len != 0);
+	    }
 	  nchars++;
 	}
     }
@@ -1017,13 +1004,15 @@ Otherwise, return a new string.  */)
   else
     tem = string;
   xfree (buf);
-  RETURN_UNGCPRO (tem);
+  return tem;
 }
 
 void
 syms_of_doc (void)
 {
   DEFSYM (Qfunction_documentation, "function-documentation");
+  DEFSYM (Qgrave, "grave");
+  DEFSYM (Qstraight, "straight");
 
   DEFVAR_LISP ("internal-doc-file-name", Vdoc_file_name,
 	       doc: /* Name of file containing documentation strings of built-in symbols.  */);
@@ -1033,15 +1022,18 @@ syms_of_doc (void)
                doc: /* A list of files used to build this Emacs binary.  */);
   Vbuild_files = Qnil;
 
-  DEFVAR_LISP ("help-quote-translation", Vhelp_quote_translation,
-               doc: /* Style to use for single quotes in help.
-The value is a left single quote character of some style.
-Quote \\=‘like this\\=’ if the value is ?\\=‘ (left single quotation mark).
-Quote 'like this' if the value is ?' (apostrophe).
-Quote \\=`like this' if the value is ?\\=` (grave accent).
-The default value is nil, which means quote with left single quotation mark
-if displayable, and with grave accent otherwise.  */);
-  Vhelp_quote_translation = Qnil;
+  DEFVAR_LISP ("text-quoting-style", Vtext_quoting_style,
+               doc: /* Style to use for single quotes when generating text.
+‘curve’ means quote with curved single quotes \\=‘like this\\=’.
+‘straight’ means quote with straight apostrophes \\='like this\\='.
+‘grave’ means quote with grave accent and apostrophe \\=`like this\\='.
+The default value nil acts like ‘curve’ if curved single quotes are
+displayable, and like ‘grave’ otherwise.  */);
+  Vtext_quoting_style = Qnil;
+
+  DEFVAR_BOOL ("internal--text-quoting-flag", text_quoting_flag,
+	       doc: /* If nil, a nil ‘text-quoting-style’ is treated as ‘grave’.  */);
+  /* Initialized by ‘main’.  */
 
   defsubr (&Sdocumentation);
   defsubr (&Sdocumentation_property);

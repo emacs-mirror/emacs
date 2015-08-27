@@ -1107,7 +1107,7 @@
       (cons 'vec (nreverse (sort (copy-sequence (cdr vec)) 'math-beforep)))
     (math-reject-arg vec 'vectorp)))
 
-;; The variable math-grade-vec is local to calcFunc-grade and 
+;; The variable math-grade-vec is local to calcFunc-grade and
 ;; calcFunc-rgrade, but is used by math-grade-beforep, which is called
 ;; by calcFunc-grade and calcFunc-rgrade.
 (defvar math-grade-vec)
@@ -1149,7 +1149,7 @@
                  (setq bin (math-floor bin)))
             (and (natnump bin)
                  (< bin n)
-                 (aset res bin 
+                 (aset res bin
                        (math-add (aref res bin)
                                  (if wvec (car (setq wp (cdr wp))) wts)))))
            (cons 'vec (append res nil))))
@@ -1167,7 +1167,7 @@
                (while (and tbds (Math-lessp (car tbds) num))
                  (setq i (1+ i))
                  (setq tbds (cdr tbds)))
-               (aset res i 
+               (aset res i
                      (math-add (aref res i)
                                (if wvec (car (setq wp (cdr wp))) wts))))
              (setq vp (cdr vp)))
@@ -1550,7 +1550,7 @@ of two matrices is a matrix."
 ;; indirectly) by math-read-brackets.
 (defvar math-rb-close)
 
-;; The next few variables are local to math-read-exprs in calc-aent.el 
+;; The next few variables are local to math-read-exprs in calc-aent.el
 ;; and math-read-expr in calc-ext.el, but are set in functions they call.
 (defvar math-exp-pos)
 (defvar math-exp-str)
@@ -1618,13 +1618,13 @@ of two matrices is a matrix."
 	    (if (not (or (equal math-expr-data math-rb-close)
 			 (equal math-expr-data ")")
 			 (eq math-exp-token 'end)))
-		(throw 'syntax "Expected `]'")))
+		(throw 'syntax "Expected ‘]’")))
 	(if (equal math-expr-data ";")
 	    (let ((math-exp-keep-spaces space-sep))
 	      (setq vals (cons 'vec (math-read-matrix (list vals))))))
 	(if (not (or (equal math-expr-data math-rb-close)
 		     (eq math-exp-token 'end)))
-	    (throw 'syntax "Expected `]'")))
+	    (throw 'syntax "Expected ‘]’")))
       (or (eq math-exp-token 'end)
 	  (math-read-token))
       vals)))

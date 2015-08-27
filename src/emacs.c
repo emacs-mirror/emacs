@@ -98,6 +98,10 @@ extern void moncontrol (int mode);
 #include <locale.h>
 #endif
 
+#if HAVE_WCHAR_H
+# include <wchar.h>
+#endif
+
 #ifdef HAVE_SETRLIMIT
 #include <sys/time.h>
 #include <sys/resource.h>
@@ -346,6 +350,19 @@ setlocale (int cat, char const *locale)
   return 0;
 }
 #endif
+
+/* True if the current system locale uses UTF-8 encoding.  */
+static bool
+using_utf8 (void)
+{
+#ifdef HAVE_WCHAR_H
+  wchar_t wc;
+  mbstate_t mbs = { 0 };
+  return mbrtowc (&wc, "\xc4\x80", 2, &mbs) == 2 && wc == 0x100;
+#else
+  return false;
+#endif
+}
 
 
 /* Report a fatal error due to signal SIG, output a backtrace of at
@@ -700,9 +717,7 @@ close_output_streams (void)
 int
 main (int argc, char **argv)
 {
-#if GC_MARK_STACK
   Lisp_Object dummy;
-#endif
   char stack_bottom_variable;
   bool do_initial_setlocale;
   bool dumping;
@@ -721,9 +736,7 @@ main (int argc, char **argv)
   /* If we use --chdir, this records the original directory.  */
   char *original_pwd = 0;
 
-#if GC_MARK_STACK
   stack_base = &dummy;
-#endif
 
 #ifndef CANNOT_DUMP
   might_dump = !initialized;
@@ -927,6 +940,7 @@ main (int argc, char **argv)
      fixup_locale must wait until later, since it builds strings.  */
   if (do_initial_setlocale)
     setlocale (LC_ALL, "");
+  text_quoting_flag = using_utf8 ();
 
   inhibit_window_system = 0;
 
@@ -1920,16 +1934,12 @@ all of which are called before Emacs is actually killed.  */
        attributes: noreturn)
   (Lisp_Object arg)
 {
-  struct gcpro gcpro1;
   int exit_code;
-
-  GCPRO1 (arg);
 
   /* Fsignal calls emacs_abort () if it sees that waiting_for_input is
      set.  */
   waiting_for_input = 0;
   run_hook (Qkill_emacs_hook);
-  UNGCPRO;
 
 #ifdef HAVE_X_WINDOWS
   /* Transfer any clipboards we own to the clipboard manager.  */
@@ -2160,17 +2170,23 @@ synchronize_locale (int category, Lisp_Object *plocale, Lisp_Object desired_loca
 {
   if (! EQ (*plocale, desired_locale))
     {
+      *plocale = desired_locale;
 #ifdef WINDOWSNT
       /* Changing categories like LC_TIME usually requires to specify
 	 an encoding suitable for the new locale, but MS-Windows's
 	 'setlocale' will only switch the encoding when LC_ALL is
-	 specified.  So we ignore CATEGORY and use LC_ALL instead.  */
-      category = LC_ALL;
-#endif
-      *plocale = desired_locale;
+	 specified.  So we ignore CATEGORY, use LC_ALL instead, and
+	 then restore LC_NUMERIC to "C", so reading and printing
+	 numbers is unaffected.  */
+      setlocale (LC_ALL, (STRINGP (desired_locale)
+			  ? SSDATA (desired_locale)
+			  : ""));
+      fixup_locale ();
+#else  /* !WINDOWSNT */
       setlocale (category, (STRINGP (desired_locale)
 			    ? SSDATA (desired_locale)
 			    : ""));
+#endif	/* !WINDOWSNT */
     }
 }
 
@@ -2429,7 +2445,7 @@ Special values:
 Anything else (in Emacs 24.1, the possibilities are: aix, berkeley-unix,
 hpux, irix, usg-unix-v) indicates some sort of Unix system.  */);
   Vsystem_type = intern_c_string (SYSTEM_TYPE);
-  /* See configure.ac (and config.nt) for the possible SYSTEM_TYPEs.  */
+  /* See configure.ac for the possible SYSTEM_TYPEs.  */
 
   DEFVAR_LISP ("system-configuration", Vsystem_configuration,
 	       doc: /* Value is string indicating configuration Emacs was built for.  */);

@@ -338,15 +338,15 @@ computed (i.e., non-constant) values in `sregexq' expressions.  So
 automatically quote its values.  Literal sregex clauses must be
 explicitly quoted like so:
 
-  (sregex '(or \"Bob\" \"Robert\"))  =>  \"Bob\\\\|Robert\"
+  (sregex \\='(or \"Bob\" \"Robert\"))  =>  \"Bob\\\\|Robert\"
 
 but computed clauses can be included easily, allowing for the reuse
 of common clauses:
 
-  (let ((dotstar '(0+ any))
-        (whitespace '(1+ (syntax ?-)))
-        (digits '(1+ (char (?0 . ?9)))))
-    (sregex 'bol dotstar \":\" whitespace digits))  =>  \"^.*:\\\\s-+[0-9]+\"
+  (let ((dotstar \\='(0+ any))
+        (whitespace \\='(1+ (syntax ?-)))
+        (digits \\='(1+ (char (?0 . ?9)))))
+    (sregex \\='bol dotstar \":\" whitespace digits))  =>  \"^.*:\\\\s-+[0-9]+\"
 
 Here are the clauses allowed in an `sregex' or `sregexq' expression:
 

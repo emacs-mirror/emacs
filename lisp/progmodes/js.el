@@ -3560,9 +3560,10 @@ If one hasn't been set, or if it's stale, prompt for a new one."
   ;; the buffer containing the problem, JIT-lock will apply the
   ;; correct syntax to the regular expression literal and the problem
   ;; will mysteriously disappear.
-  ;; FIXME: We should actually do this fontification lazily by adding
+  ;; FIXME: We should instead do this fontification lazily by adding
   ;; calls to syntax-propertize wherever it's really needed.
-  (syntax-propertize (point-max)))
+  ;;(syntax-propertize (point-max))
+  )
 
 ;;;###autoload (defalias 'javascript-mode 'js-mode)
 

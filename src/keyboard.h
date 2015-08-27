@@ -170,7 +170,7 @@ struct kboard
        kbd_queue_has_data is 0.  When we push back an incomplete
        command, then this flag is 0, meaning we don't want to try
        reading from this KBOARD again until more input arrives.  */
-    char kbd_queue_has_data;
+    bool_bf kbd_queue_has_data;
 
     /* True means echo each character as typed.  */
     bool_bf immediate_echo : 1;

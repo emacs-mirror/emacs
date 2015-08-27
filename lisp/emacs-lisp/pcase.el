@@ -115,8 +115,8 @@ Patterns can take the following forms:
   SYMBOL	matches anything and binds it to SYMBOL.
   (or PAT...)	matches if any of the patterns matches.
   (and PAT...)	matches if all the patterns match.
-  'VAL		matches if the object is `equal' to VAL
-  ATOM		is a shorthand for 'ATOM.
+  \\='VAL		matches if the object is `equal' to VAL
+  ATOM		is a shorthand for \\='ATOM.
 		   ATOM can be a keyword, an integer, or a string.
   (pred FUN)	matches if FUN applied to the object returns non-nil.
   (guard BOOLEXP)	matches if BOOLEXP evaluates to non-nil.
@@ -197,7 +197,7 @@ Currently, the following patterns are provided this way:"
          (pcase--dontwarn-upats (cons x pcase--dontwarn-upats)))
     (pcase--expand
      ;; FIXME: Could we add the FILE:LINE data in the error message?
-     exp (append cases `((,x (error "No clause matching `%S'" ,x)))))))
+     exp (append cases `((,x (error "No clause matching ‘%S’" ,x)))))))
 
 ;;;###autoload
 (defmacro pcase-lambda (lambda-list &rest body)
@@ -775,7 +775,7 @@ Otherwise, it defers to REST which is a list of branches of the form
         (let ((code (pcase--u1 matches code vars rest)))
           (if (eq upat '_) code
             (macroexp--warn-and-return
-             "Pattern t is deprecated.  Use `_' instead"
+             "Pattern t is deprecated.  Use ‘_’ instead"
              code))))
        ((eq upat 'pcase--dontcare) :pcase--dontcare)
        ((memq (car-safe upat) '(guard pred))
@@ -860,7 +860,7 @@ Otherwise, it defers to REST which is a list of branches of the form
                      (pcase--u rest))
                    vars
                    (list `((and . ,matches) ,code . ,vars))))
-       (t (error "Unknown pattern `%S'" upat)))))
+       (t (error "Unknown pattern ‘%S’" upat)))))
    (t (error "Incorrect MATCH %S" (car matches)))))
 
 (def-edebug-spec

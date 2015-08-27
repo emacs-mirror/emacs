@@ -1651,7 +1651,7 @@ Do not call directly!"
 	     (setq woman-frame (make-frame)))))
     (set-buffer (get-buffer-create bufname))
     (condition-case nil
-        (switch-to-buffer (current-buffer))
+        (display-buffer (current-buffer))
       (error (pop-to-buffer (current-buffer))))
     (buffer-disable-undo)
     (setq buffer-read-only nil)
@@ -2061,14 +2061,14 @@ alist in `woman-buffer-alist' and return nil."
   (if (zerop woman-buffer-number)
       (let ((buffer (get-buffer (cdr (car woman-buffer-alist)))))
 	(if buffer
-	    (switch-to-buffer buffer)
+	    (display-buffer buffer)
 	  ;; Delete alist element:
 	  (setq woman-buffer-alist (cdr woman-buffer-alist))
 	  nil))
     (let* ((prev-ptr (nthcdr (1- woman-buffer-number) woman-buffer-alist))
 	   (buffer (get-buffer (cdr (car (cdr prev-ptr))))))
       (if buffer
-	  (switch-to-buffer buffer)
+	  (display-buffer buffer)
 	;; Delete alist element:
 	(setcdr prev-ptr (cdr (cdr prev-ptr)))
 	(if (>= woman-buffer-number (length woman-buffer-alist))

@@ -7833,9 +7833,7 @@ static void
 code_conversion_restore (Lisp_Object arg)
 {
   Lisp_Object current, workbuf;
-  struct gcpro gcpro1;
 
-  GCPRO1 (arg);
   current = XCAR (arg);
   workbuf = XCDR (arg);
   if (! NILP (workbuf))
@@ -7846,7 +7844,6 @@ code_conversion_restore (Lisp_Object arg)
 	Fkill_buffer (workbuf);
     }
   set_buffer_internal (XBUFFER (current));
-  UNGCPRO;
 }
 
 Lisp_Object
@@ -8118,16 +8115,12 @@ decode_coding_object (struct coding_system *coding,
 
   if (! NILP (CODING_ATTR_POST_READ (attrs)))
     {
-      struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
       ptrdiff_t prev_Z = Z, prev_Z_BYTE = Z_BYTE;
       Lisp_Object val;
 
       TEMP_SET_PT_BOTH (coding->dst_pos, coding->dst_pos_byte);
-      GCPRO5 (coding->src_object, coding->dst_object, src_object, dst_object,
-	      old_deactivate_mark);
       val = safe_call1 (CODING_ATTR_POST_READ (attrs),
 			make_number (coding->produced_char));
-      UNGCPRO;
       CHECK_NATNUM (val);
       coding->produced_char += Z - prev_Z;
       coding->produced += Z_BYTE - prev_Z_BYTE;
@@ -8255,15 +8248,8 @@ encode_coding_object (struct coding_system *coding,
 	  set_buffer_internal (XBUFFER (coding->src_object));
 	}
 
-      {
-	struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
-
-	GCPRO5 (coding->src_object, coding->dst_object, src_object, dst_object,
-		old_deactivate_mark);
-	safe_call2 (CODING_ATTR_PRE_WRITE (attrs),
-		    make_number (BEG), make_number (Z));
-	UNGCPRO;
-      }
+      safe_call2 (CODING_ATTR_PRE_WRITE (attrs),
+		  make_number (BEG), make_number (Z));
       if (XBUFFER (coding->src_object) != current_buffer)
 	kill_src_buffer = 1;
       coding->src_object = Fcurrent_buffer ();

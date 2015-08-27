@@ -1086,7 +1086,7 @@ display, or in the #+COLUMNS line of the current buffer."
 (defun org-nofm-to-completion (n m &optional percent)
   (if (not percent)
       (format "[%d/%d]" n m)
-    (format "[%d%%]"(floor (+ 0.5 (* 100. (/ (* 1.0 n) m)))))))
+    (format "[%d%%]" (round (* 100.0 n) m))))
 
 
 (defun org-columns-string-to-number (s fmt)

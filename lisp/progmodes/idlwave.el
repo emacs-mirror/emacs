@@ -4881,7 +4881,7 @@ Cache to disk for quick recovery."
 	      props (car (cdr elem)))
 	(if (= (mod elem-cnt msg-cnt) 0)
 	    (message "Converting XML routine info...%2d%%"
-		     (/ (* elem-cnt 100) nelem)))
+		     (floor (* elem-cnt 100.0) nelem)))
 	(cond
 	 ((eq type 'ROUTINE)
 	  (if (setq alias (assq 'alias_to props))
@@ -8694,7 +8694,7 @@ can be used to detect possible name clashes during this process."
       (erase-buffer)
       (while (setq routine (pop routines))
 	(if (= (mod (setq n (1+ n)) step) 0)
-	    (message "Compiling list...(%2d%%)" (/ (* n 100) nroutines)))
+	    (message "Compiling list...(%2d%%)" (floor (* n 100.0) nroutines)))
 
 	;; Get a list of all twins
 	(setq twins (idlwave-routine-twins routine (or lroutines routines)))

@@ -3747,27 +3747,27 @@ main (int argc, char **argv)
 	  fp = fopen (out_filename, "r");
 	  if (fp == NULL)
 	    {
-	      yyerror ("file `%s' must exist for --append", out_filename);
+	      yyerror ("file '%s' must exist for --append", out_filename);
 	      exit (EXIT_FAILURE);
 	    }
 
 	  rc = fseek (fp, 0, SEEK_END);
 	  if (rc == -1)
 	    {
-	      yyerror ("error seeking in file `%s'", out_filename);
+	      yyerror ("error seeking in file '%s'", out_filename);
 	      exit (EXIT_FAILURE);
 	    }
 
 	  rc = ftell (fp);
 	  if (rc == -1)
 	    {
-	      yyerror ("error getting size of file `%s'", out_filename);
+	      yyerror ("error getting size of file '%s'", out_filename);
 	      exit (EXIT_FAILURE);
 	    }
 
 	  else if (rc == 0)
 	    {
-	      yyerror ("file `%s' is empty", out_filename);
+	      yyerror ("file '%s' is empty", out_filename);
 	      /* It may be ok to use an empty file for appending.
 		 exit (EXIT_FAILURE); */
 	    }
@@ -3778,7 +3778,7 @@ main (int argc, char **argv)
       yyout = fopen (out_filename, f_append ? "a" : "w");
       if (yyout == NULL)
 	{
-	  yyerror ("cannot open output file `%s'", out_filename);
+	  yyerror ("cannot open output file '%s'", out_filename);
 	  exit (EXIT_FAILURE);
 	}
     }
@@ -3806,7 +3806,7 @@ main (int argc, char **argv)
           FILE *fp = fopen (input_filenames[i], "r");
 
           if (fp == NULL)
-            yyerror ("cannot open input file `%s'", input_filenames[i]);
+            yyerror ("cannot open input file '%s'", input_filenames[i]);
           else
             {
 	      char *file;

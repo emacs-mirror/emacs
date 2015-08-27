@@ -316,7 +316,7 @@ See also `warning-series', `warning-prefix-function' and
 (defun lwarn (type level message &rest args)
   "Display a warning message made from (format MESSAGE ARGS...).
 \\<special-mode-map>
-Aside from generating the message with `format',
+Aside from generating the message with `format-message',
 this is equivalent to `display-warning'.
 
 TYPE is the warning type: either a custom group name (a symbol),
@@ -332,15 +332,15 @@ LEVEL should be either :debug, :warning, :error, or :emergency
 :error     -- invalid data or circumstances.
 :warning   -- suspicious data or circumstances.
 :debug     -- info for debugging only."
-  (display-warning type (apply 'format message args) level))
+  (display-warning type (apply #'format-message message args) level))
 
 ;;;###autoload
 (defun warn (message &rest args)
   "Display a warning message made from (format MESSAGE ARGS...).
-Aside from generating the message with `format',
+Aside from generating the message with `format-message',
 this is equivalent to `display-warning', using
 `emacs' as the type and `:warning' as the level."
-  (display-warning 'emacs (apply 'format message args)))
+  (display-warning 'emacs (apply #'format-message message args)))
 
 (provide 'warnings)
 

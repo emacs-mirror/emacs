@@ -2054,7 +2054,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
                 (if spam-use-dig
                     (let ((query-result (query-dig query-string)))
                       (when query-result
-                        (gnus-message 6 "(DIG): positive blackhole check '%s'"
+                        (gnus-message 6 "(DIG): positive blackhole check `%s'"
                                       query-result)
                         (push (list ip server query-result)
                               matches)))

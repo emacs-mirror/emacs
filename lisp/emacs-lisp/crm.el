@@ -128,8 +128,8 @@ A value of nil specifies `try-completion'.  A value of t specifies
 `all-completions'.  A value of lambda specifies a test for an exact match.
 
 For more information on STRING, PREDICATE, and FLAG, see the Elisp
-Reference sections on 'Programmed Completion' and 'Basic Completion
-Functions'."
+Reference sections on “Programmed Completion” and “Basic Completion
+Functions”."
   (let ((beg 0))
     (while (string-match crm-separator string beg)
       (setq beg (match-end 0)))

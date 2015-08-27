@@ -4161,7 +4161,7 @@ cand replace with char: ")
         (let ((width (current-column)))
           (rst-delete-entire-line)
           (insert-char tochar width)))
-      (message (format "%d lines replaced." found)))))
+      (message "%d lines replaced." found))))
 
 ;; FIXME: Unbound command - should be bound or removed.
 (defun rst-join-paragraph ()

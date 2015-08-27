@@ -61,7 +61,7 @@ Blocks could hash sha1 values here.")
 
 (defcustom org-publish-project-alist nil
   "Association list to control publishing behavior.
-Each element of the alist is a publishing 'project.'  The CAR of
+Each element of the alist is a publishing “project”.  The CAR of
 each element is a string, uniquely identifying the project.  The
 CDR of each element is in one of the following forms:
 
@@ -711,7 +711,7 @@ If `:auto-sitemap' is set, publish the sitemap too.  If
 (defun org-publish-org-sitemap (project &optional sitemap-filename)
   "Create a sitemap of pages in set defined by PROJECT.
 Optionally set the filename of the sitemap with SITEMAP-FILENAME.
-Default for SITEMAP-FILENAME is 'sitemap.org'."
+Default for SITEMAP-FILENAME is `sitemap.org'."
   (let* ((project-plist (cdr project))
 	 (dir (file-name-as-directory
 	       (plist-get project-plist :base-directory)))

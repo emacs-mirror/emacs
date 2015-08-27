@@ -687,7 +687,7 @@ for use at QPOS."
 The text is displayed for `minibuffer-message-timeout' seconds,
 or until the next input event arrives, whichever comes first.
 Enclose MESSAGE in [...] if this is not yet the case.
-If ARGS are provided, then pass MESSAGE through `format'."
+If ARGS are provided, then pass MESSAGE through `format-message'."
   (if (not (minibufferp (current-buffer)))
       (progn
         (if args
@@ -702,7 +702,7 @@ If ARGS are provided, then pass MESSAGE through `format'."
                       ;; Make sure we can put-text-property.
                       (copy-sequence message)
                     (concat " [" message "]")))
-    (when args (setq message (apply 'format message args)))
+    (when args (setq message (apply #'format-message message args)))
     (let ((ol (make-overlay (point-max) (point-max) nil t t))
           ;; A quit during sit-for normally only interrupts the sit-for,
           ;; but since minibuffer-message is used at the end of a command,

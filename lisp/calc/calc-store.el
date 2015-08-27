@@ -442,7 +442,8 @@
 	 (setq calc-last-edited-variable var)
 	 (calc-edit-mode (list 'calc-finish-stack-edit (list 'quote var))
 			 t
-			 (concat "Editing variable `" (calc-var-name var) "'. "))
+			 (format-message
+                          "Editing variable ‘%s’" (calc-var-name var)))
 	 (and value
 	      (insert (math-format-nice-expr value (frame-width)) "\n")))))
   (calc-show-edit-buffer))

@@ -254,12 +254,7 @@ get_keymap (Lisp_Object object, bool error_if_not_keymap, bool autoload)
 	    {
 	      if (autoload)
 		{
-		  struct gcpro gcpro1, gcpro2;
-
-		  GCPRO2 (tem, object);
 		  Fautoload_do_load (tem, object, Qnil);
-		  UNGCPRO;
-
 		  goto autoload_retry;
 		}
 	      else
@@ -322,12 +317,10 @@ Return PARENT.  PARENT should be nil or another keymap.  */)
   (Lisp_Object keymap, Lisp_Object parent)
 {
   Lisp_Object list, prev;
-  struct gcpro gcpro1, gcpro2;
 
   /* Flush any reverse-map cache.  */
   where_is_cache = Qnil; where_is_cache_keymaps = Qt;
 
-  GCPRO2 (keymap, parent);
   keymap = get_keymap (keymap, 1, 1);
 
   if (!NILP (parent))
@@ -350,7 +343,7 @@ Return PARENT.  PARENT should be nil or another keymap.  */)
 	{
 	  CHECK_IMPURE (prev);
 	  XSETCDR (prev, parent);
-	  RETURN_UNGCPRO (parent);
+	  return parent;
 	}
       prev = list;
     }
@@ -397,9 +390,7 @@ access_keymap_1 (Lisp_Object map, Lisp_Object idx,
     {
       /* See if there is a meta-map.  If there's none, there is
          no binding for IDX, unless a default binding exists in MAP.  */
-      struct gcpro gcpro1;
       Lisp_Object event_meta_binding, event_meta_map;
-      GCPRO1 (map);
       /* A strange value in which Meta is set would cause
 	 infinite recursion.  Protect against that.  */
       if (XINT (meta_prefix_char) & CHAR_META)
@@ -407,7 +398,6 @@ access_keymap_1 (Lisp_Object map, Lisp_Object idx,
       event_meta_binding = access_keymap_1 (map, meta_prefix_char, t_ok,
 					    noinherit, autoload);
       event_meta_map = get_keymap (event_meta_binding, 0, autoload);
-      UNGCPRO;
       if (CONSP (event_meta_map))
 	{
 	  map = event_meta_map;
@@ -429,9 +419,6 @@ access_keymap_1 (Lisp_Object map, Lisp_Object idx,
     Lisp_Object t_binding = Qunbound;
     Lisp_Object retval = Qunbound;
     Lisp_Object retval_tail = Qnil;
-    struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
-
-    GCPRO4 (tail, idx, t_binding, retval);
 
     for (tail = (CONSP (map) && EQ (Qkeymap, XCAR (map))) ? XCDR (map) : map;
 	 (CONSP (tail)
@@ -539,7 +526,7 @@ access_keymap_1 (Lisp_Object map, Lisp_Object idx,
 	  }
 	QUIT;
       }
-    UNGCPRO;
+
     return EQ (Qunbound, retval) ? get_keyelt (t_binding, autoload) : retval;
   }
 }
@@ -584,11 +571,9 @@ map_keymap_internal (Lisp_Object map,
 		     Lisp_Object args,
 		     void *data)
 {
-  struct gcpro gcpro1, gcpro2, gcpro3;
   Lisp_Object tail
     = (CONSP (map) && EQ (Qkeymap, XCAR (map))) ? XCDR (map) : map;
 
-  GCPRO3 (map, args, tail);
   for (; CONSP (tail) && !EQ (Qkeymap, XCAR (tail)); tail = XCDR (tail))
     {
       Lisp_Object binding = XCAR (tail);
@@ -614,7 +599,7 @@ map_keymap_internal (Lisp_Object map,
 			make_save_funcptr_ptr_obj ((voidfuncptr) fun, data,
 						   args));
     }
-  UNGCPRO;
+
   return tail;
 }
 
@@ -630,8 +615,6 @@ void
 map_keymap (Lisp_Object map, map_keymap_function_t fun, Lisp_Object args,
 	    void *data, bool autoload)
 {
-  struct gcpro gcpro1;
-  GCPRO1 (args);
   map = get_keymap (map, 1, autoload);
   while (CONSP (map))
     {
@@ -645,7 +628,6 @@ map_keymap (Lisp_Object map, map_keymap_function_t fun, Lisp_Object args,
       if (!CONSP (map))
 	map = get_keymap (map, 0, autoload);
     }
-  UNGCPRO;
 }
 
 /* Same as map_keymap, but does it right, properly eliminating duplicate
@@ -653,14 +635,11 @@ map_keymap (Lisp_Object map, map_keymap_function_t fun, Lisp_Object args,
 void
 map_keymap_canonical (Lisp_Object map, map_keymap_function_t fun, Lisp_Object args, void *data)
 {
-  struct gcpro gcpro1;
-  GCPRO1 (args);
   /* map_keymap_canonical may be used from redisplay (e.g. when building menus)
      so be careful to ignore errors and to inhibit redisplay.  */
   map = safe_call1 (Qkeymap_canonicalize, map);
   /* No need to use `map_keymap' here because canonical map has no parent.  */
   map_keymap_internal (map, fun, args, data);
-  UNGCPRO;
 }
 
 DEFUN ("map-keymap-internal", Fmap_keymap_internal, Smap_keymap_internal, 2, 2, 0,
@@ -670,11 +649,8 @@ the definition it is bound to.  The event may be a character range.
 If KEYMAP has a parent, this function returns it without processing it.  */)
   (Lisp_Object function, Lisp_Object keymap)
 {
-  struct gcpro gcpro1;
-  GCPRO1 (function);
   keymap = get_keymap (keymap, 1, 1);
   keymap = map_keymap_internal (keymap, map_keymap_call, function, NULL);
-  UNGCPRO;
   return keymap;
 }
 
@@ -1079,14 +1055,12 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
   bool metized = 0;
   int meta_bit;
   ptrdiff_t length;
-  struct gcpro gcpro1, gcpro2, gcpro3;
 
-  GCPRO3 (keymap, key, def);
   keymap = get_keymap (keymap, 1, 1);
 
   length = CHECK_VECTOR_OR_STRING (key);
   if (length == 0)
-    RETURN_UNGCPRO (Qnil);
+    return Qnil;
 
   if (SYMBOLP (def) && !EQ (Vdefine_key_rebound_commands, Qt))
     Vdefine_key_rebound_commands = Fcons (def, Vdefine_key_rebound_commands);
@@ -1149,7 +1123,7 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
 	message_with_string ("Key sequence contains invalid event %s", c, 1);
 
       if (idx == length)
-	RETURN_UNGCPRO (store_in_keymap (keymap, c, def));
+	return store_in_keymap (keymap, c, def);
 
       cmd = access_keymap (keymap, c, 0, 1, 1);
 
@@ -1233,14 +1207,12 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
   Lisp_Object c;
   ptrdiff_t length;
   bool t_ok = !NILP (accept_default);
-  struct gcpro gcpro1, gcpro2;
 
-  GCPRO2 (keymap, key);
   keymap = get_keymap (keymap, 1, 1);
 
   length = CHECK_VECTOR_OR_STRING (key);
   if (length == 0)
-    RETURN_UNGCPRO (keymap);
+    return keymap;
 
   idx = 0;
   while (1)
@@ -1261,11 +1233,11 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
 
       cmd = access_keymap (keymap, c, t_ok, 0, 1);
       if (idx == length)
-	RETURN_UNGCPRO (cmd);
+	return cmd;
 
       keymap = get_keymap (cmd, 0, 1);
       if (!CONSP (keymap))
-	RETURN_UNGCPRO (make_number (idx));
+	return make_number (idx);
 
       QUIT;
     }
@@ -1744,14 +1716,10 @@ bindings; see the description of `lookup-key' for more details about this.  */)
   int nmaps;
   Lisp_Object binding;
   int i, j;
-  struct gcpro gcpro1, gcpro2;
 
   nmaps = current_minor_maps (&modes, &maps);
-  /* Note that all these maps are GCPRO'd
-     in the places where we found them.  */
 
   binding = Qnil;
-  GCPRO2 (key, binding);
 
   for (i = j = 0; i < nmaps; i++)
     if (!NILP (maps[i])
@@ -1761,10 +1729,9 @@ bindings; see the description of `lookup-key' for more details about this.  */)
 	if (KEYMAPP (binding))
 	  maps[j++] = Fcons (modes[i], binding);
 	else if (j == 0)
-	  RETURN_UNGCPRO (list1 (Fcons (modes[i], binding)));
+	  return list1 (Fcons (modes[i], binding));
       }
 
-  UNGCPRO;
   return Flist (j, maps);
 }
 
@@ -1921,8 +1888,6 @@ then the value includes only maps for prefixes that start with PREFIX.  */)
 {
   Lisp_Object maps, tail;
   EMACS_INT prefixlen = XFASTINT (Flength (prefix));
-
-  /* no need for gcpro because we don't autoload any keymaps.  */
 
   if (!NILP (prefix))
     {
@@ -2553,7 +2518,6 @@ The optional 5th arg NO-REMAP alters how command remapping is handled:
   Lisp_Object found = Qnil;
   /* 1 means ignore all menu bindings entirely.  */
   bool nomenus = !NILP (firstonly) && !EQ (firstonly, Qnon_ascii);
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
   /* List of sequences found via remapping.  Keep them in a separate
      variable, so as to push them later, since we prefer
      non-remapped binding.  */
@@ -2575,8 +2539,6 @@ The optional 5th arg NO-REMAP alters how command remapping is handled:
     keymaps = list2 (keymap, current_global_map);
   else
     keymaps = Fcurrent_active_maps (Qnil, Qnil);
-
-  GCPRO6 (definition, keymaps, found, sequences, remapped_sequences, tem);
 
   tem = Fcommand_remapping (definition, Qnil, keymaps);
   /* If `definition' is remapped to tem', then OT1H no key will run
@@ -2603,11 +2565,11 @@ The optional 5th arg NO-REMAP alters how command remapping is handled:
       /* We have a list of advertised bindings.  */
       while (CONSP (tem))
 	if (EQ (shadow_lookup (keymaps, XCAR (tem), Qnil, 0), definition))
-	  RETURN_UNGCPRO (XCAR (tem));
+	  return XCAR (tem);
 	else
 	  tem = XCDR (tem);
       if (EQ (shadow_lookup (keymaps, tem, Qnil, 0), definition))
-	RETURN_UNGCPRO (tem);
+	return tem;
     }
 
   sequences = Freverse (where_is_internal (definition, keymaps,
@@ -2676,13 +2638,11 @@ The optional 5th arg NO-REMAP alters how command remapping is handled:
 	 nil, then we should return the first ascii-only binding
 	 we find.  */
       if (EQ (firstonly, Qnon_ascii))
-	RETURN_UNGCPRO (sequence);
+	return sequence;
       else if (!NILP (firstonly)
 	       && 2 == preferred_sequence_p (sequence))
-	RETURN_UNGCPRO (sequence);
+	return sequence;
     }
-
-  UNGCPRO;
 
   found = Fnreverse (found);
 
@@ -2769,7 +2729,6 @@ The optional argument MENUS, if non-nil, says to mention menu bindings.
   Lisp_Object outbuf, shadow;
   bool nomenu = NILP (menus);
   Lisp_Object start1;
-  struct gcpro gcpro1;
 
   const char *alternate_heading
     = "\
@@ -2780,8 +2739,6 @@ You type        Translation\n\
   CHECK_BUFFER (buffer);
 
   shadow = Qnil;
-  GCPRO1 (shadow);
-
   outbuf = Fcurrent_buffer ();
 
   /* Report on alternates for keys.  */
@@ -2927,7 +2884,6 @@ You type        Translation\n\
     describe_map_tree (KVAR (current_kboard, Vinput_decode_map), 0, Qnil, prefix,
 		       "\f\nInput decoding map translations", nomenu, 1, 0, 0);
 
-  UNGCPRO;
   return Qnil;
 }
 
@@ -2959,7 +2915,6 @@ describe_map_tree (Lisp_Object startmap, bool partial, Lisp_Object shadow,
 		   bool transl, bool always_title, bool mention_shadow)
 {
   Lisp_Object maps, orig_maps, seen, sub_shadows;
-  struct gcpro gcpro1, gcpro2, gcpro3;
   bool something = 0;
   const char *key_heading
     = "\
@@ -2969,7 +2924,6 @@ key             binding\n\
   orig_maps = maps = Faccessible_keymaps (startmap, prefix);
   seen = Qnil;
   sub_shadows = Qnil;
-  GCPRO3 (maps, seen, sub_shadows);
 
   if (nomenu)
     {
@@ -3065,8 +3019,6 @@ key             binding\n\
 
   if (something)
     insert_string ("\n");
-
-  UNGCPRO;
 }
 
 static int previous_description_column;
@@ -3178,7 +3130,6 @@ describe_map (Lisp_Object map, Lisp_Object prefix,
   Lisp_Object suppress;
   Lisp_Object kludge;
   bool first = 1;
-  struct gcpro gcpro1, gcpro2, gcpro3;
 
   /* These accumulate the values from sparse keymap bindings,
      so we can sort them and handle them in order.  */
@@ -3197,8 +3148,6 @@ describe_map (Lisp_Object map, Lisp_Object prefix,
      fresh vector every time.  */
   kludge = Fmake_vector (make_number (1), Qnil);
   definition = Qnil;
-
-  GCPRO3 (prefix, definition, kludge);
 
   map = call1 (Qkeymap_canonicalize, map);
 
@@ -3350,7 +3299,6 @@ describe_map (Lisp_Object map, Lisp_Object prefix,
     }
 
   SAFE_FREE ();
-  UNGCPRO;
 }
 
 static void
@@ -3423,7 +3371,6 @@ describe_vector (Lisp_Object vector, Lisp_Object prefix, Lisp_Object args,
   Lisp_Object suppress;
   Lisp_Object kludge;
   bool first = 1;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   /* Range of elements to be handled.  */
   int from, to, stop;
   Lisp_Object character;
@@ -3449,7 +3396,6 @@ describe_vector (Lisp_Object vector, Lisp_Object prefix, Lisp_Object args,
      that is done once per vector element, we don't want to cons up a
      fresh vector every time.  */
   kludge = Fmake_vector (make_number (1), Qnil);
-  GCPRO4 (elt_prefix, prefix, definition, kludge);
 
   if (partial)
     suppress = intern ("suppress-keymap");
@@ -3599,8 +3545,6 @@ describe_vector (Lisp_Object vector, Lisp_Object prefix, Lisp_Object args,
       insert ("default", 7);
       (*elt_describer) (XCHAR_TABLE (vector)->defalt, args);
     }
-
-  UNGCPRO;
 }
 
 /* Apropos - finding all symbols whose names match a regexp.		*/

@@ -249,7 +249,7 @@ You should bind this variable with `let', but do not set it globally.")
     (define-key keymap "q" 'delete-window)
     keymap))
 
-(defvar epa-exit-buffer-function #'bury-buffer)
+(defvar epa-exit-buffer-function #'quit-window)
 
 (define-widget 'epa-key 'push-button
   "Button for representing a epg-key object."
@@ -462,14 +462,12 @@ If ARG is non-nil, mark the key."
       (widget-create 'link
 		     :notify (lambda (&rest _ignore) (abort-recursive-edit))
 		     :help-echo
-		     (substitute-command-keys
-		      "Click here or \\[abort-recursive-edit] to cancel")
+		     "Click here or \\[abort-recursive-edit] to cancel"
 		     "Cancel")
       (widget-create 'link
 		     :notify (lambda (&rest _ignore) (exit-recursive-edit))
 		     :help-echo
-		     (substitute-command-keys
-		      "Click here or \\[exit-recursive-edit] to finish")
+		     "Click here or \\[exit-recursive-edit] to finish"
 		     "OK")
       (insert "\n\n")
       (epa--insert-keys keys)
@@ -658,7 +656,7 @@ If SECRET is non-nil, list secret keys instead of public keys."
 	(if (= current total)
 	    (message "%s...done" prompt)
 	  (message "%s...%d%%" prompt
-		   (floor (* (/ current (float total)) 100))))
+		   (floor (* 100.0 current) total)))
       (message "%s..." prompt))))
 
 (defun epa-read-file-name (input)
@@ -843,10 +841,10 @@ should consider using the string based counterpart
 
 For example:
 
-\(let ((context (epg-make-context 'OpenPGP)))
+\(let ((context (epg-make-context \\='OpenPGP)))
   (decode-coding-string
     (epg-decrypt-string context (buffer-substring start end))
-    'utf-8))"
+    \\='utf-8))"
   (interactive "r")
   (save-excursion
     (let ((context (epg-make-context epa-protocol))
@@ -941,10 +939,10 @@ should consider using the string based counterpart
 
 For example:
 
-\(let ((context (epg-make-context 'OpenPGP)))
+\(let ((context (epg-make-context \\='OpenPGP)))
   (decode-coding-string
     (epg-verify-string context (buffer-substring start end))
-    'utf-8))"
+    \\='utf-8))"
   (declare (interactive-only t))
   (interactive "r")
   (let ((context (epg-make-context epa-protocol))
@@ -1030,10 +1028,10 @@ based counterpart `epg-sign-file' instead.
 
 For example:
 
-\(let ((context (epg-make-context 'OpenPGP)))
+\(let ((context (epg-make-context \\='OpenPGP)))
   (epg-sign-string
     context
-    (encode-coding-string (buffer-substring start end) 'utf-8)))"
+    (encode-coding-string (buffer-substring start end) \\='utf-8)))"
   (declare (interactive-only t))
   (interactive
    (let ((verbose current-prefix-arg))
@@ -1116,10 +1114,10 @@ file based counterpart `epg-encrypt-file' instead.
 
 For example:
 
-\(let ((context (epg-make-context 'OpenPGP)))
+\(let ((context (epg-make-context \\='OpenPGP)))
   (epg-encrypt-string
     context
-    (encode-coding-string (buffer-substring start end) 'utf-8)
+    (encode-coding-string (buffer-substring start end) \\='utf-8)
     nil))"
   (declare (interactive-only t))
   (interactive

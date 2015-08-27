@@ -105,7 +105,9 @@ tzalloc (char const *name)
       tz->tzname_copy[0] = tz->tzname_copy[1] = NULL;
 #endif
       tz->tz_is_set = !!name;
-      extend_abbrs (tz->abbrs, name, name_size);
+      tz->abbrs[0] = '\0';
+      if (name)
+        extend_abbrs (tz->abbrs, name, name_size);
     }
   return tz;
 }

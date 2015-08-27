@@ -400,7 +400,7 @@ OVERRIDE is either nil, require or t."
 (defun rng-c-error (&rest args)
   (rng-c-signal-incorrect-schema rng-c-file-name
 				 (rng-c-translate-position (point))
-				 (apply 'format args)))
+				 (apply #'format-message args)))
 
 (defun rng-c-parse-top-level (context)
   (let ((rng-c-namespace-decls nil)

@@ -1003,7 +1003,7 @@ immediately after the section's start-tag."
 ;;; Error handling
 
 (defun nxml-report-outline-error (msg err)
-  (error msg (apply 'format (cdr err))))
+  (error msg (apply #'format-message (cdr err))))
 
 (defun nxml-outline-error (&rest args)
   (signal 'nxml-outline-error args))

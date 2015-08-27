@@ -1268,8 +1268,8 @@ Note: does not update the layout."
                          (expand-file-name (concat newsticker-dir "/groups"))))
                    (file-exists-p newsticker-groups-filename)
                    (y-or-n-p
-                    (format
-                     (concat "Obsolete variable `newsticker-groups-filename' "
+                    (format-message
+                     (concat "Obsolete variable ‘newsticker-groups-filename’ "
                              "points to existing file \"%s\".\n"
                              "Read it? ")
                      newsticker-groups-filename))
@@ -1279,9 +1279,9 @@ Note: does not update the layout."
                    (find-file-noselect filename))))
     (and newsticker-groups-filename
          (file-exists-p newsticker-groups-filename)
-	 (y-or-n-p (format
+	 (y-or-n-p (format-message
                     (concat "Delete the file \"%s\",\nto which the obsolete "
-                            "variable `newsticker-groups-filename' points ? ")
+                            "variable ‘newsticker-groups-filename’ points ? ")
                     newsticker-groups-filename))
 	 (delete-file newsticker-groups-filename))
     (when buf

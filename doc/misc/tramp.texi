@@ -524,9 +524,9 @@ can use to connect to remote hosts and transfer files
 If you don't know which method is right for you, see @xref{Default
 Method}.
 
-@strong{Note:} In the following description, setting of user options
-or variables is explained.  Not all of them are autoloaded by
-@value{emacsname}.  All examples expect, that you have loaded
+@strong{Note} that the following descriptions reference the setting of
+user options or variables, not all of which are autoloaded by
+@value{emacsname}.  All examples assume that you have loaded
 @value{tramp} first:
 
 @lisp

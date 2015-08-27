@@ -112,7 +112,7 @@
 ;; Handle the -xrm option.
 (defun x-handle-xrm-switch (switch)
   (unless (consp x-invocation-args)
-    (error "%s: missing argument to `%s' option" (invocation-name) switch))
+    (error "%s: missing argument to ‘%s’ option" (invocation-name) switch))
   (setq x-command-line-resources
 	(if (null x-command-line-resources)
 	    (pop x-invocation-args)
@@ -152,7 +152,7 @@
 ;; the initial frame, too.
 (defun x-handle-name-switch (switch)
   (or (consp x-invocation-args)
-      (error "%s: missing argument to `%s' option" (invocation-name) switch))
+      (error "%s: missing argument to ‘%s’ option" (invocation-name) switch))
   (setq x-resource-name (pop x-invocation-args)
 	initial-frame-alist (cons (cons 'name x-resource-name)
 				  initial-frame-alist)))
@@ -207,7 +207,7 @@ have been processed."
 		  (let ((elt (assoc completion option-alist)))
 		    ;; Check for abbreviated long option.
 		    (or elt
-			(error "Option `%s' is ambiguous" this-switch))
+			(error "Option ‘%s’ is ambiguous" this-switch))
 		    (setq this-switch completion))))))
       (setq aelt (assoc this-switch option-alist))
       (if aelt (setq handler (nth 2 aelt)))

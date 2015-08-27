@@ -236,8 +236,11 @@ buffer in your bug report.
 		 (string-match
 		  (concat "[^" (symbol-value 'mm-7bit-chars) "]") val))
 	(with-current-buffer reporter-eval-buffer
-	  (set varsym (format "(base64-decode-string \"%s\")"
-			      (base64-encode-string val))))))
+	  (set
+	   varsym
+	   (format
+	    "(decode-coding-string (base64-decode-string \"%s\") 'raw-text)"
+	    (base64-encode-string (encode-coding-string val 'raw-text)))))))
 
     ;; Dump variable.
     (tramp-compat-funcall 'reporter-dump-variable varsym mailbuf)

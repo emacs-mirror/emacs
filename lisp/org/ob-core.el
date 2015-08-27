@@ -316,8 +316,8 @@ name of the code block."
 Do not query the user."
   (org-babel-check-confirm-evaluate info
     (not (when noeval
-	   (message (format "Evaluation of this%scode-block%sis disabled."
-			    code-block block-name))))))
+	   (message "Evaluation of this%scode-block%sis disabled."
+                    code-block block-name)))))
 
  ;; dynamically scoped for asynchronous export
 (defvar org-babel-confirm-evaluate-answer-no)
@@ -343,8 +343,8 @@ of potentially harmful code."
 		    (yes-or-no-p
 		     (format "Evaluate this%scode block%son your system? "
 			     code-block block-name)))
-	     (message (format "Evaluation of this%scode-block%sis aborted."
-			      code-block block-name)))))))
+	     (message "Evaluation of this%scode-block%sis aborted."
+                      code-block block-name))))))
 
 ;;;###autoload
 (defun org-babel-execute-safely-maybe ()
@@ -1677,7 +1677,7 @@ If the point is not on a source block then return nil."
     (if point
         ;; taken from `org-open-at-point'
         (progn (org-mark-ring-push) (goto-char point) (org-show-context))
-      (message "source-code block '%s' not found in this buffer" name))))
+      (message "source-code block ‘%s’ not found in this buffer" name))))
 
 (defun org-babel-find-named-block (name)
   "Find a named source-code block.
@@ -1712,7 +1712,7 @@ org-babel-named-src-block-regexp."
     (if point
         ;; taken from `org-open-at-point'
         (progn (goto-char point) (org-show-context))
-      (message "result '%s' not found in this buffer" name))))
+      (message "result ‘%s’ not found in this buffer" name))))
 
 (defun org-babel-find-named-result (name &optional point)
   "Find a named result.
@@ -2207,7 +2207,7 @@ file's directory then expand relative links."
   "Make true to capitalize begin/end example markers inserted by code blocks.")
 
 (defun org-babel-examplize-region (beg end &optional results-switches)
-  "Comment out region using the inline '==' or ': ' org example quote."
+  "Comment out region using the inline ‘==’ or ‘: ’ org example quote."
   (interactive "*r")
   (let ((chars-between (lambda (b e)
 			 (not (string-match "^[\\s]*$" (buffer-substring b e)))))
@@ -2406,7 +2406,7 @@ CONTEXT may be one of :tangle, :export or :eval."
   "Expand Noweb references in the body of the current source code block.
 
 For example the following reference would be replaced with the
-body of the source-code block named 'example-block'.
+body of the source-code block named `example-block'.
 
 <<example-block>>
 
@@ -2419,7 +2419,7 @@ This function must be called from inside of the buffer containing
 the source-code block which holds BODY.
 
 In addition the following syntax can be used to insert the
-results of evaluating the source-code block named 'example-block'.
+results of evaluating the source-code block named `example-block'.
 
 <<example-block()>>
 
@@ -2583,7 +2583,7 @@ block but are passed literally to the \"example-block\"."
 (defun org-babel-read (cell &optional inhibit-lisp-eval)
   "Convert the string value of CELL to a number if appropriate.
 Otherwise if cell looks like lisp (meaning it starts with a
-\"(\", \"'\", \"\\=`\" or a \"[\") then read it as lisp,
+\"(\", \"\\='\", \"\\=`\" or a \"[\") then read it as lisp,
 otherwise return it unmodified as a string.  Optional argument
 NO-LISP-EVAL inhibits lisp evaluation for situations in which is
 it not appropriate."

@@ -801,7 +801,7 @@ they appear; it is called a @dfn{format string}.
 
   Formatting is often useful for computing messages to be displayed.  In
 fact, the functions @code{message} and @code{error} provide the same
-formatting feature described here; they differ from @code{format} only
+formatting feature described here; they differ from @code{format-message} only
 in how they use the result of formatting.
 
 @defun format string &rest objects
@@ -813,6 +813,16 @@ arguments @var{objects} are the computed values to be formatted.
 The characters in @var{string}, other than the format specifications,
 are copied directly into the output, including their text properties,
 if any.
+@end defun
+
+@defun format-message string &rest objects
+@cindex curved quotes
+@cindex curly quotes
+This function acts like @code{format}, except it also converts any
+curved single quotes in @var{string} as per the value of
+@code{text-quoting-style}, and treats grave accent (@t{`}) and
+apostrophe (@t{'}) as if they were curved single quotes.  @xref{Keys
+in Documentation}.
 @end defun
 
 @cindex @samp{%} in format
@@ -913,20 +923,23 @@ specification is unusual in that it does not use a value.  For example,
   Any other format character results in an @samp{Invalid format
 operation} error.
 
-  Here are several examples:
+  Here are several examples, which assume the typical
+@code{text-quoting-style} settings:
 
 @example
 @group
-(format "The name of this buffer is %s." (buffer-name))
-     @result{} "The name of this buffer is strings.texi."
-
-(format "The buffer object prints as %s." (current-buffer))
-     @result{} "The buffer object prints as strings.texi."
-
 (format "The octal value of %d is %o,
          and the hex value is %x." 18 18 18)
      @result{} "The octal value of 18 is 22,
          and the hex value is 12."
+
+(format-message
+ "The name of this buffer is ‘%s’." (buffer-name))
+     @result{} "The name of this buffer is ‘strings.texi’."
+
+(format-message
+ "The buffer object prints as `%s'." (current-buffer))
+     @result{} "The buffer object prints as ‘strings.texi’."
 @end group
 @end example
 
@@ -948,7 +961,7 @@ the width specifier normally consists of spaces inserted on the left:
 If the width is too small, @code{format} does not truncate the
 object's printed representation.  Thus, you can use a width to specify
 a minimum spacing between columns with no risk of losing information.
-In the following three examples, @samp{%7s} specifies a minimum width
+In the following two examples, @samp{%7s} specifies a minimum width
 of 7.  In the first case, the string inserted in place of @samp{%7s}
 has only 3 letters, and needs 4 blank spaces as padding.  In the
 second case, the string @code{"specification"} is 13 letters wide but
@@ -1000,8 +1013,8 @@ ignored.
 (format "%06d is padded on the left with zeros" 123)
      @result{} "000123 is padded on the left with zeros"
 
-(format "%-6d is padded on the right" 123)
-     @result{} "123    is padded on the right"
+(format "'%-6d' is padded on the right" 123)
+     @result{} "'123   ' is padded on the right"
 
 (format "The word '%-7s' actually has %d letters in it."
         "foo" (length "foo"))

@@ -797,10 +797,10 @@ This is called whenever you create a new face, and at other times."
 	    symbol (intern name)))
     (setq menu 'facemenu-face-menu)
     (setq docstring
-	  (purecopy (format "Select face `%s' for subsequent insertion.
+	  (purecopy (format-message "Select face ‘%s’ for subsequent insertion.
 If the mark is active and there is no prefix argument,
-apply face `%s' to the region instead.
-This command was defined by `facemenu-add-new-face'."
+apply face ‘%s’ to the region instead.
+This command was defined by ‘facemenu-add-new-face’."
 		  name name)))
     (cond ((facemenu-iterate ; check if equivalent face is already in the menu
 	    (lambda (m) (and (listp m)
@@ -846,12 +846,12 @@ Return the event type (a symbol) of the added menu entry.
 This is called whenever you use a new color."
   (let (symbol)
     (unless (color-defined-p color)
-      (error "Color `%s' undefined" color))
+      (error "Color ‘%s’ undefined" color))
     (cond ((eq menu 'facemenu-foreground-menu)
 	   (setq symbol (intern (concat "fg:" color))))
 	  ((eq menu 'facemenu-background-menu)
 	   (setq symbol (intern (concat "bg:" color))))
-	  (t (error "MENU should be `facemenu-foreground-menu' or `facemenu-background-menu'")))
+	  (t (error "MENU should be ‘facemenu-foreground-menu’ or ‘facemenu-background-menu’")))
     (unless (facemenu-iterate ; Check if color is already in the menu.
 	     (lambda (m) (and (listp m)
 			      (eq (car m) symbol)))

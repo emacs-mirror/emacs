@@ -1649,7 +1649,7 @@ See also `term-read-input-ring'."
       (let ((ch (read-event)))
 	(if (eq ch ?\s)
 	    (set-window-configuration conf)
-	  (setq unread-command-events (list ch)))))))
+	  (push ch unread-command-events))))))
 
 
 (defun term-regexp-arg (prompt)
@@ -4128,7 +4128,9 @@ Typing SPC flushes the help buffer."
 	    (set-window-configuration conf))
 	(if (eq first ?\s)
 	    (set-window-configuration conf)
-	  (setq unread-command-events (listify-key-sequence key)))))))
+	  (setq unread-command-events
+                (nconc (listify-key-sequence key)
+                       unread-command-events)))))))
 
 ;; I need a make-term that doesn't surround with *s -mm
 (defun term-ansi-make-term (name program &optional startfile &rest switches)
