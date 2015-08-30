@@ -1034,20 +1034,28 @@ D-Bus compound type rules.  If those elements have a type different
 from the default type, they need to be prefixed with a type symbol.
 
 @lisp
-(dbus-call-method @dots{} :array '(:int32 @var{NAT-NUMBER} :int32 @var{NAT-NUMBER}))
+(dbus-call-method @dots{} '(:array :int32 @var{NAT-NUMBER} :int32 @var{NAT-NUMBER}))
 @end lisp
 
 There is an alternative form to specify a compound D-Bus type.  The
 keyword @code{:type}, followed by a type specifier, denotes a compound
-type as a list of type symbols.  For example, a type specifier
-@code{(:array :int32)} stands for an array of @code{DBUS_TYPE_INT32}
-elements.
+type as a list of type symbols.@footnote{This alternative form is
+available only if the subfeature @code{:type} exists.  Check it with
+
+@lisp
+(featurep 'dbus :type)
+@end lisp
+}
+For example, a type specifier @code{(:array :int32)} stands for an
+array of @code{DBUS_TYPE_INT32} elements.
 
 The above example is equivalent to:
 
 @lisp
 (dbus-call-method @dots{} :type '(:array :int32) '(@var{NAT-NUMBER} @var{NAT-NUMBER}))
 @end lisp
+
+The D-Bus compound type rules are:
 
 @itemize
 @item An array must contain only elements of the same D-Bus type.  It

@@ -32,7 +32,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define DBUS_NUM_MESSAGE_TYPES 5
 #endif
 
-
 /* Some platforms define the symbol "interface", but we want to use it
  * as a variable name below.  */
 
@@ -709,6 +708,7 @@ xd_append_arg (int dtype, Lisp_Object object, DBusMessageIter *iter)
 
   if (XD_BASIC_DBUS_TYPE (dtype))
     xd_append_basic_arg (dtype, object, iter);
+
   else /* Compound types.  */
     {
 
@@ -809,6 +809,7 @@ xd_type_spec_to_signature (char *signature, Lisp_Object spec)
 	wrong_type_argument (intern ("D-Bus"), spec);
       sprintf (signature, "%c", dtype);
     }
+
   else /* Compound types.  */
     {
       char *subsig;
@@ -881,6 +882,7 @@ xd_append_arg_with_type_spec (Lisp_Object spec, Lisp_Object object,
 	wrong_type_argument (intern ("D-Bus"), spec);
       xd_append_basic_arg (dtype, object, iter);
     }
+
   else /* Compound types.  */
     {
       char signature[DBUS_MAXIMUM_SIGNATURE_LENGTH];
@@ -2005,9 +2007,7 @@ be called when the D-Bus reply message arrives.  */);
   staticpro (&xd_registered_buses);
 
   /* Add subfeature `:type'.  */
-  subfeatures = pure_cons (pure_cons (QCdbus_type_type, pure_cons (Qt, Qnil)),
-			   subfeatures);
-
+  subfeatures = Fcons (QCdbus_type_type, subfeatures);
   Fprovide (intern_c_string ("dbusbind"), subfeatures);
 
 }

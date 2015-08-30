@@ -1813,7 +1813,8 @@ this connection to those buses."
   (dbus-ignore-errors
     (dbus-init-bus :session)))
 
-(provide 'dbus)
+;; Propagate subfeatures, like `:type'.
+(provide 'dbus (get 'dbusbind 'subfeatures))
 
 ;;; TODO:
 
