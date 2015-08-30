@@ -165,10 +165,10 @@ convert it to a string and return that."
   (if (stringp string-or-symbol) string-or-symbol
     (symbol-name string-or-symbol)))
 
-(defun use-package-load-name (name &optional noerror)
+(defun use-package-load-name (name)
   "Return a form which will load or require NAME depending on
 whether it's a string or symbol."
-  (if (stringp name) `(load ,name 'noerror) `(require ',name nil 'noerror)))
+  (if (stringp name) `(use-package-load ,name) `(use-package-require ',name)))
 
 (defun use-package-expand (name label form)
   "FORM is a list of forms, so `((foo))' if only `foo' is being called."
@@ -291,6 +291,24 @@ This is in contrast to merely setting it to 0."
                                     (use-package-keyword-index (car r)))))))
         (setq result (cons (car x) (cons (cdr x) result))))
       result)))
+
+(defun use-package-require (package)
+  "Require a package and handle any error from it."
+  (condition-case e
+      (require package)
+    (error (progn (use-package-require-error-handler package e)
+                  nil))))
+
+(defun use-package-load (name)
+  "Load a file and handle any error from it."
+  (condition-case e
+      (load name)
+    (error (progn (use-package-require-error-handler name e)
+                  nil))))
+
+(defun use-package-require-error-handler (package error)
+  "Main use package error handler for package loading."
+  (use-package-error (format "Could not load package.el: %s error: %s" package error)))
 
 (defsubst use-package-concat (&rest elems)
   "Delete all empty lists from ELEMS (nil or (list nil)), and append them."
@@ -697,21 +715,20 @@ works by binding the given key sequence to an invocation of this
 function for a particular keymap.  The keymap is expected to be
 defined by the package.  In this way, loading the package is
 deferred until the prefix key sequence is pressed."
-  (if (not (require package nil t))
-      (use-package-error (format "Could not load package.el: %s" package))
-    (if (and (boundp keymap-symbol)
-             (keymapp (symbol-value keymap-symbol)))
-        (let* ((kv (this-command-keys-vector))
-               (key (key-description kv))
-               (keymap (symbol-value keymap-symbol)))
-          (if override
-              (bind-key* key keymap)
-            (bind-key key keymap))
-          (setq unread-command-events
-                (listify-key-sequence kv)))
-      (use-package-error
-       (format "use-package: package.el %s failed to define keymap %s"
-               package keymap-symbol)))))
+  (if (use-package-require package)
+      (if (and (boundp keymap-symbol)
+               (keymapp (symbol-value keymap-symbol)))
+          (let* ((kv (this-command-keys-vector))
+                 (key (key-description kv))
+                 (keymap (symbol-value keymap-symbol)))
+            (if override
+                (bind-key* key keymap)
+              (bind-key key keymap))
+            (setq unread-command-events
+                  (listify-key-sequence kv)))
+        (use-package-error
+         (format "use-package: package.el %s failed to define keymap %s"
+                 package keymap-symbol)))))
 
 (defun use-package-handler/:bind-keymap
     (name keyword arg rest state &optional override)
@@ -836,7 +853,7 @@ deferred until the prefix key sequence is pressed."
      ;; Load the package after a set amount of idle time, if the argument to
      ;; `:defer' was a number.
      (when (numberp arg)
-       `((run-with-idle-timer ,arg nil #'require ',(use-package-as-symbol name) nil t)))
+       `((run-with-idle-timer ,arg nil #'use-package-require ',(use-package-as-symbol name))))
 
      ;; Since we deferring load, establish any necessary autoloads, and also
      ;; keep the byte-compiler happy.
@@ -908,10 +925,8 @@ deferred until the prefix key sequence is pressed."
             (use-package-concat
              (list (use-package-load-name name))
              config-body)
-          `((if (not ,(use-package-load-name name t))
-                (ignore
-                 (message (format "Could not load %s" ',name)))
-              ,@config-body)))))))
+          `((if (not (null ,(use-package-load-name name)))
+                ,@config-body)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
