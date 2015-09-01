@@ -1,29 +1,23 @@
 * which-key 
 [[http://melpa.org/#/which-key][http://melpa.org/packages/which-key-badge.svg]]
 ** What's new
-*** Local map face
-- The face =which-key-local-map-description-face= is now available. This face
-  will be applied to any commands that are found using =(current-local-map)=
-  (commands defined for the major mode are usually here). This allows you to
-  distinguish between local and global bindings visually. See [[#face-customization-options][Face Customization]]
-  for more information. 
 *** Paging
-- Paging is now turned on by default, using any prefix plus =C-h= (this doesn't
-  affect key sequences that start with =C-h= and will not override any key
-  sequences that end will =C-h=). See the [[#paging-options][Paging Section]] for more details and
-  for other options on using and/or disabling paging.
-- This makes which-key function as a replacement for the default behavior of
-  pressing =C-h= after a prefix which shows the key bindings for any prefix
-  (this default command is =describe-prefix-bindings=). It will also save the
-  prefix that you just entered. So =C-x C-h C-h C-x= will popup the which-key
-  buffer for the prefix =C-x= change the page twice and then execute the command
-  bound to =C-x C-x=.
-- =C-h= will also now popup the which-key buffer to the first page if it is
-  pressed before =which-key-idle-delay= takes effect. This means you can set a
-  long idle delay if you like and just use =C-h= when you want to see
-  =which-key=.
-- Note that this behavior is easily disabled, and you have the ability to choose
-  another binding of course.
+- The new option =which-key-prevent-C-h-from-cycling=, which is =nil= by default
+  allows one to take advantage of using =C-h= for paging as well as the default
+  Emacs behavior of using =C-h= to describe the bindings for the current key
+  sequence prefix.
+- The configuration below will allow you to switch paging using =C-h= until you
+  reach the last page of keys in the which-key buffer. The next press of =C-h=
+  will close the which-key buffer and trigger the default Emacs behavior on
+  =C-h=.
+  #+BEGIN_SRC Emacs-lisp
+  (setq which-key-use-C-h-for-paging t
+        which-key-prevent-C-h-from-cycling t)
+  #+END_SRC
+- This is especially useful for those who like =helm-descbinds= but also want to
+  use =C-h= as their which-key paging key.
+- Note =C-h= is by default equivalent to =?= in this context.
+  
 ** Introduction
 =which-key= is a minor mode for Emacs that displays the key bindings following your currently
 entered incomplete command (a prefix) in a popup. For example, after enabling the minor mode
@@ -49,37 +43,36 @@ Many of these have been implemented and are described below.
 
 ** Table of Contents                                                 :TOC@4:
  - [[#which-key-][which-key ]]
-     - [[#whats-new][What's new]]
-         - [[#local-map-face][Local map face]]
-         - [[#paging][Paging]]
-     - [[#introduction][Introduction]]
-     - [[#install][Install]]
-         - [[#melpa][MELPA]]
-         - [[#manually][Manually]]
-     - [[#initial-setup][Initial Setup]]
-         - [[#side-window-bottom-option][Side Window Bottom Option]]
-         - [[#side-window-right-option][Side Window Right Option]]
-         - [[#side-window-right-then-bottom][Side Window Right then Bottom]]
-         - [[#minibuffer-option][Minibuffer Option]]
-     - [[#special-features-and-configuration-options][Special Features and Configuration Options]]
-         - [[#popup-type-options][Popup Type Options]]
-             - [[#minibuffer][minibuffer]]
-             - [[#side-window][side window]]
-             - [[#frame][frame]]
-             - [[#custom][custom]]
-         - [[#custom-string-replacement-options][Custom String Replacement Options]]
-             - [[#key-based-replacement]["Key-Based" replacement]]
-             - [[#key-and-description-replacement][Key and Description replacement]]
-         - [[#sorting-options][Sorting Options]]
-         - [[#paging-options][Paging Options]]
-             - [[#method-1-default-using-c-h-or-help-char][Method 1 (default): Using C-h (or =help-char=)]]
-             - [[#method-2-bind-your-own-keys][Method 2: Bind your own keys]]
-         - [[#face-customization-options][Face Customization Options]]
-         - [[#other-options][Other Options]]
-     - [[#more-examples][More Examples]]
-         - [[#nice-display-with-split-frame][Nice Display with Split Frame]]
-     - [[#status][Status]]
-     - [[#thanks][Thanks]]
+   - [[#whats-new][What's new]]
+     - [[#paging][Paging]]
+   - [[#introduction][Introduction]]
+   - [[#install][Install]]
+     - [[#melpa][MELPA]]
+     - [[#manually][Manually]]
+   - [[#initial-setup][Initial Setup]]
+     - [[#side-window-bottom-option][Side Window Bottom Option]]
+     - [[#side-window-right-option][Side Window Right Option]]
+     - [[#side-window-right-then-bottom][Side Window Right then Bottom]]
+     - [[#minibuffer-option][Minibuffer Option]]
+   - [[#special-features-and-configuration-options][Special Features and Configuration Options]]
+     - [[#popup-type-options][Popup Type Options]]
+       - [[#minibuffer][minibuffer]]
+       - [[#side-window][side window]]
+       - [[#frame][frame]]
+       - [[#custom][custom]]
+     - [[#custom-string-replacement-options][Custom String Replacement Options]]
+       - [[#key-based-replacement]["Key-Based" replacement]]
+       - [[#key-and-description-replacement][Key and Description replacement]]
+     - [[#sorting-options][Sorting Options]]
+     - [[#paging-options][Paging Options]]
+       - [[#method-1-default-using-c-h-or-help-char][Method 1 (default): Using C-h (or =help-char=)]]
+       - [[#method-2-bind-your-own-keys][Method 2: Bind your own keys]]
+     - [[#face-customization-options][Face Customization Options]]
+     - [[#other-options][Other Options]]
+   - [[#more-examples][More Examples]]
+     - [[#nice-display-with-split-frame][Nice Display with Split Frame]]
+   - [[#status][Status]]
+   - [[#thanks][Thanks]]
 
 ** Install
 *** MELPA
@@ -90,7 +83,7 @@ minor mode of course.
 *** Manually
 Add which-key.el to your =load-path= and require. Something like 
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC Emacs-lisp
 (add-to-list 'load-path "path/to/which-key.el")
 (require 'which-key)
 (which-key-mode)
@@ -117,12 +110,12 @@ screenshots.
 
 There are other substitution abilities included, which are quite flexible
 (ability to use regexp for example). This makes which-key very customizable.
-This functionality is targeting [[https://github.com/syl20bnr/spacemacs][spacemacs]].
+This functionality is targeting [[https://github.com/syl20bnr/spacemacs][spacEmacs]].
 
 *** Side Window Bottom Option
 Popup side window on bottom. This is the current default. To restore this setup use
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC Emacs-lisp
 (which-key-setup-side-window-bottom)
 #+END_SRC
 
@@ -131,7 +124,7 @@ Popup side window on bottom. This is the current default. To restore this setup 
 *** Side Window Right Option
 Popup side window on right. For defaults use
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC Emacs-lisp
 (which-key-setup-side-window-right)
 #+END_SRC
 
@@ -149,14 +142,14 @@ usually easier to fit keys into. This setting can be helpful if the size of
 the Emacs frame changes frequently, which might be the case if you are using
 a dynamic/tiling window manager.
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC Emacs-lisp
 (which-key-setup-side-window-right-bottom)
 #+END_SRC
 
 *** Minibuffer Option
 Take over the minibuffer. For the recommended configuration use 
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC Emacs-lisp
 (which-key-setup-minibuffer)
 #+END_SRC
 
@@ -173,16 +166,16 @@ There are three different popup types that which-key can use by default to
 display the available keys. The variable =which-key-popup-type= decides which
 one is used.
 **** minibuffer
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC Emacs-lisp
 (setq which-key-popup-type 'minibuffer)
 #+END_SRC
 Show keys in the minibuffer.
 **** side window
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC Emacs-lisp
 (setq which-key-popup-type 'side-window)
 #+END_SRC
 Show keys in a side window. This popup type has further options:
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC Emacs-lisp
 ;; location of which-key window. valid values: top, bottom, left, right, 
 ;; or a list of any of the two. If it's a list, which-key will always try
 ;; the first location first. It will go to the second location if there is
@@ -201,13 +194,13 @@ Show keys in a side window. This popup type has further options:
 #+END_SRC
 **** frame
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC Emacs-lisp
 (setq which-key-popup-type 'frame)
 #+END_SRC
 Show keys in a popup frame. This popup won't work very well in a terminal,
 where only one frame can be shown at any given moment. This popup type has
 further options:
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC Emacs-lisp
 ;; max width of which-key frame: number of columns (an integer)
 (setq which-key-frame-max-width 60)
 
@@ -224,7 +217,7 @@ variables for more information, but here is a working example (this is the
 current implementation of side-window bottom).
 
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC Emacs-lisp
 (setq which-key-popup-type 'custom)
 (defun which-key-custom-popup-max-dimensions-function (ignore)
   (cons
@@ -255,7 +248,7 @@ The relevant variable is the awkwardly named
 =which-key-key-based-description-replacement-alist=. In this alist you can have
 cons cells of two types. An example of the first type is
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC Emacs-lisp
 ("C-x C-f" . "find files")
 #+END_SRC
 
@@ -264,7 +257,7 @@ to replace. For that key combination, which-key overwrites the description with
 the second string, "find files". In the second type of entry you can restrict
 the replacements to a major-mode. For example, 
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC Emacs-lisp
 (org-mode . (("C-c C-c" . "Org C-c C-c") ("C-c C-a" . "Org Attach"))
 #+END_SRC
 
@@ -284,7 +277,7 @@ descriptions directly. The relevant variables are
 =which-key-key-replacement-alist= and =which-key-description-replacement-alist=.
 Here's an example of one of the default key replacements
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC Emacs-lisp
 ("<\\([[:alnum:]-]+\\)>" . "\\1")
 #+END_SRC
 
@@ -292,14 +285,14 @@ The =car= takes a string which may use Emacs regexp and the =cdr= takes a string
 with the replacement text. As shown, you can specify a sub-expression of the
 match. The replacements do not need to use regexp and can be as simple as
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC Emacs-lisp
 ("left" . "lft")
 #+END_SRC
 
 You can add this element to the key list with (there are no helper functions for
 these alists)
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC Emacs-lisp
 (add-to-list 'which-key-key-replacement-alist '("left" . "lft"))
 #+END_SRC
 
@@ -312,7 +305,7 @@ their order are
 
 You can control the order by setting this variable. 
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC Emacs-lisp
 (setq which-key-sort-order 'which-key-key-order)
 ;; or (setq which-key-sort-order 'which-key-description-order)
 #+END_SRC
@@ -331,7 +324,7 @@ typing. There are two slightly different ways of doing this.
 
 **** Method 1 (default): Using C-h (or =help-char=)
 This is the easiest way, and is turned on by default. Use
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC Emacs-lisp
 (setq which-key-use-C-h-for-paging nil)
 #+END_SRC
 to disable the behavior (this will only take effect after toggling
@@ -345,18 +338,35 @@ keystroke can complete the command. As a bonus you can type =C-x C-h= and the
 which-key buffer will pop up immediately (i.e., before =which-key-idle-delay=
 kicks in).
 
+The option =which-key-prevent-C-h-from-cycling=, which is =nil= by default
+allows one to take advantage of using =C-h= for paging as well as the default
+Emacs behavior of using =C-h= to describe the bindings for the current key
+sequence prefix.
+
+The configuration below will allow you to switch paging using =C-h= until you
+reach the last page of keys in the which-key buffer. The next press of =C-h=
+will close the which-key buffer and trigger the default Emacs behavior on =C-h=.
+#+BEGIN_SRC Emacs-lisp
+(setq which-key-use-C-h-for-paging t
+      which-key-prevent-C-h-from-cycling t)
+#+END_SRC
+This is especially useful for those who like =helm-descbinds= but also want to
+use =C-h= as their which-key paging key.
+
+Note =C-h= is by default equivalent to =?= in this context.
+
 **** Method 2: Bind your own keys
 
 Essentially, all you need to do for a prefix like =C-x= is the following which
 will bind =<f5>= to the relevant command.
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC Emacs-lisp
 (define-key which-key-mode-map (kbd "C-x <f5>") 'which-key-show-next-page)
 #+END_SRC
 
 This is completely equivalent to 
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC Emacs-lisp
 (setq which-key-paging-prefixes '("C-x"))
 (setq which-key-paging-key "<f5>")
 #+END_SRC
@@ -382,13 +392,13 @@ everywhere. It might be useful for you to distinguish between the two. One way
 to do this is to remove the default face from
 =which-key-command-description-face= like this
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC Emacs-lisp
   (set-face-attribute 'which-key-command-description-face nil :inherit nil)
 #+END_SRC
 
 another is to make the local map keys appear in bold
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC Emacs-lisp
   (set-face-attribute 'which-key-local-map-description-face nil :weight 'bold)
 #+END_SRC
 
@@ -399,7 +409,7 @@ your liking.
 The options below are also available through customize. Their defaults are
 shown.
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC Emacs-lisp
   ;; Set the time delay (in seconds) for the which-key popup to appear.
   (setq which-key-idle-delay 1.0) 
 
