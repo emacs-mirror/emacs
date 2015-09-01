@@ -1158,8 +1158,6 @@ Will force an update if called before `which-key--update'."
            (next-event-if-not-showing
             (mapcar (lambda (ev) (cons t ev))
                     (listify-key-sequence keysbl)))
-           (n-pages
-            (plist-get which-key--pages-plist :n-pages))
            (next-page
             (if which-key--current-page-n (1+ which-key--current-page-n) 0)))
       (cond
