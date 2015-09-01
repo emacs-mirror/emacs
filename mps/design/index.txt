@@ -44,6 +44,7 @@ alloc-frame_            Allocation frame protocol
 an_                     Generic modules
 arena_                  Arena
 arenavm_                Virtual memory arena
+bootstrap_              Bootstrapping
 bt_                     Bit tables
 buffer_                 Allocation buffers and allocation points
 cbs_                    Coalescing block structures
@@ -122,6 +123,7 @@ writef_                 The WriteF function
 .. _an: an
 .. _arena: arena
 .. _arenavm: arenavm
+.. _bootstrap: bootstrap
 .. _bt: bt
 .. _buffer: buffer
 .. _cbs: cbs
