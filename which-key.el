@@ -229,6 +229,16 @@ prefixes in `which-key-paging-prefixes'"
   :group 'which-key
   :type 'boolean)
 
+(defcustom which-key-prevent-C-h-from-cycling nil
+  "Experimental: When using C-h for paging, which-key overrides
+  the default behavior of calling `describe-prefix-bindings'.
+  Setting this variable to t makes it so that when on the last
+  page, pressing C-h calls the default function instead of
+  cycling pages. If you want which-key to cycle, set this to
+  nil."
+  :group 'which-key
+  :type 'boolean)
+
 ;; Faces
 (defface which-key-key-face
   '((t . (:inherit font-lock-constant-face)))
@@ -343,9 +353,9 @@ used.")
       (progn
         (setq which-key--echo-keystrokes-backup echo-keystrokes)
         (unless which-key--is-setup (which-key--setup))
+        (setq which-key--prefix-help-cmd-backup prefix-help-command)
         (when which-key-use-C-h-for-paging
-            (setq which-key--prefix-help-cmd-backup prefix-help-command
-                  prefix-help-command #'which-key-show-next-page))
+            (setq prefix-help-command #'which-key-show-next-page))
         (when which-key-show-remaining-keys
           (add-hook 'pre-command-hook #'which-key--lighter-restore))
         (add-hook 'pre-command-hook #'which-key--hide-popup)
@@ -353,8 +363,7 @@ used.")
         (add-hook 'focus-in-hook #'which-key--start-timer)
         (which-key--start-timer))
     (setq echo-keystrokes which-key--echo-keystrokes-backup)
-    (when which-key-use-C-h-for-paging
-      (setq prefix-help-command which-key--prefix-help-cmd-backup))
+    (setq prefix-help-command which-key--prefix-help-cmd-backup)
     (when which-key-show-remaining-keys
       (remove-hook 'pre-command-hook #'which-key--lighter-restore))
     (remove-hook 'pre-command-hook #'which-key--hide-popup)
@@ -1063,7 +1072,12 @@ enough space based on your settings and frame size." prefix-keys)
                                         (string-width status-left))))
              (prefix-left (s-pad-right first-col-width " " prefix-w-face))
              (status-left (s-pad-right first-col-width " " status-left))
-             (nxt-pg-hint (cond ((and (< 1 n-pages)
+             (nxt-pg-hint (cond ((and (< 1 n-pages) (= (1+ page-n) n-pages)
+                                      which-key-prevent-C-h-from-cycling
+                                      which-key-use-C-h-for-paging)
+                                 (propertize "[C-h desc-binds]"
+                                             'face 'which-key-note-face))
+                                ((and (< 1 n-pages)
                                       which-key-use-C-h-for-paging)
                                  (propertize (format "[C-h pg %s]"
                                                      (1+ (mod (1+ page-n) n-pages)))
@@ -1114,17 +1128,24 @@ Will force an update if called before `which-key--update'."
   (interactive)
   (if which-key--current-page-n
       ;; triggered after timer shows buffer
-      (let ((next-page (1+ which-key--current-page-n)))
-        (which-key--stop-timer)
-        (setq unread-command-events
-              ;; forces event into current key sequence
-              (mapcar (lambda (ev) (cons t ev))
-                      (listify-key-sequence which-key--current-prefix)))
-        (if which-key--last-try-2-loc
-            (let ((which-key-side-window-location which-key--last-try-2-loc))
-              (which-key--show-page next-page))
-          (which-key--show-page next-page))
-        (which-key--start-paging-timer))
+      (let ((n-pages (plist-get which-key--pages-plist :n-pages))
+            (next-page (1+ which-key--current-page-n)))
+        (if (and which-key-prevent-C-h-from-cycling
+                 which-key-use-C-h-for-paging
+                 (>= next-page n-pages))
+            (progn
+              (which-key--hide-popup)
+              (describe-prefix-bindings))
+          (which-key--stop-timer)
+          (setq unread-command-events
+                ;; forces event into current key sequence
+                (mapcar (lambda (ev) (cons t ev))
+                        (listify-key-sequence which-key--current-prefix)))
+          (if which-key--last-try-2-loc
+              (let ((which-key-side-window-location which-key--last-try-2-loc))
+                (which-key--show-page next-page))
+            (which-key--show-page next-page))
+          (which-key--start-paging-timer)))
     ;; triggered before buffer is showing
     (let* ((keysbl (vconcat (butlast (append (this-single-command-keys) nil)))))
       (which-key--stop-timer)
