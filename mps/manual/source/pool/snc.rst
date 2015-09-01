@@ -115,8 +115,8 @@ SNC interface
     :c:func:`mps_ap_create_k` accepts one optional keyword argument:
 
     * :c:macro:`MPS_KEY_RANK` (type :c:type:`mps_rank_t`, default
-    :c:func:`mps_rank_exact`) specifies the :term:`rank` of references
-    in objects allocated on this allocation point.
+      :c:func:`mps_rank_exact`) specifies the :term:`rank` of references
+      in objects allocated on this allocation point.
 
     For example::
 
