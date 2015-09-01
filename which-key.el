@@ -332,6 +332,8 @@ Used when `which-key-popup-type' is frame.")
 (defvar which-key--current-page-n nil
   "Internal: Current pages of showing buffer. Nil means no buffer
 showing.")
+(defvar which-key--on-last-page nil
+  "Internal: Non-nil if showing last page.")
 (defvar which-key--last-try-2-loc nil
   "Internal: Last location of side-window when two locations
 used.")
@@ -572,13 +574,22 @@ total height."
 (defun which-key--hide-popup ()
   "This function is called to hide the which-key buffer."
   (unless (eq real-this-command 'which-key-show-next-page)
-    (setq which-key--current-page-n nil)
+    (setq which-key--current-page-n nil
+          which-key--on-last-page nil)
     (cl-case which-key-popup-type
       ;; Not necessary to hide minibuffer
       ;; (minibuffer (which-key--hide-buffer-minibuffer))
       (side-window (which-key--hide-buffer-side-window))
       (frame (which-key--hide-buffer-frame))
       (custom (funcall which-key-custom-hide-popup-function)))))
+
+(defun which-key--hide-popup-ignore-command ()
+  "Version of `which-key--hide-popup' without the check of
+`real-this-command'."
+  (cl-case which-key-popup-type
+    (side-window (which-key--hide-buffer-side-window))
+    (frame (which-key--hide-buffer-frame))
+    (custom (funcall which-key-custom-hide-popup-function))))
 
 (defun which-key--hide-buffer-side-window ()
   "Hide which-key buffer when side-window popup is used."
@@ -1046,8 +1057,9 @@ area."
     (if (= 0 n-pages)
         (message "%s- which-key can't show keys: There is not \
 enough space based on your settings and frame size." prefix-keys)
-      (setq page-n (mod n n-pages))
-      (setq which-key--current-page-n page-n)
+      (setq page-n (mod n n-pages)
+            which-key--current-page-n page-n)
+      (when (= n-pages (1+ n)) (setq which-key--on-last-page t))
       (let* ((page (nth page-n (plist-get which-key--pages-plist :pages)))
              (height (plist-get which-key--pages-plist :page-height))
              (width (nth page-n (plist-get which-key--pages-plist :page-widths)))
@@ -1072,14 +1084,16 @@ enough space based on your settings and frame size." prefix-keys)
                                         (string-width status-left))))
              (prefix-left (s-pad-right first-col-width " " prefix-w-face))
              (status-left (s-pad-right first-col-width " " status-left))
-             (nxt-pg-hint (cond ((and (< 1 n-pages) (= (1+ page-n) n-pages)
+             (nxt-pg-hint (cond ((and which-key--on-last-page
                                       which-key-prevent-C-h-from-cycling
                                       which-key-use-C-h-for-paging)
-                                 (propertize "[C-h desc-binds]"
+                                 (propertize (format "[C-h or ?%shelp]"
+                                                     which-key-separator)
                                              'face 'which-key-note-face))
                                 ((and (< 1 n-pages)
                                       which-key-use-C-h-for-paging)
-                                 (propertize (format "[C-h pg %s]"
+                                 (propertize (format "[C-h or ?%spg %s]"
+                                                     which-key-separator
                                                      (1+ (mod (1+ page-n) n-pages)))
                                              'face 'which-key-note-face))
                                 ((and (< 1 n-pages)
@@ -1126,35 +1140,43 @@ enough space based on your settings and frame size." prefix-keys)
   "Show the next page of keys.
 Will force an update if called before `which-key--update'."
   (interactive)
-  (if which-key--current-page-n
-      ;; triggered after timer shows buffer
-      (let ((n-pages (plist-get which-key--pages-plist :n-pages))
-            (next-page (1+ which-key--current-page-n)))
-        (if (and which-key-prevent-C-h-from-cycling
-                 which-key-use-C-h-for-paging
-                 (>= next-page n-pages))
-            (progn
-              (which-key--hide-popup)
-              (describe-prefix-bindings))
-          (which-key--stop-timer)
-          (setq unread-command-events
-                ;; forces event into current key sequence
-                (mapcar (lambda (ev) (cons t ev))
-                        (listify-key-sequence which-key--current-prefix)))
-          (if which-key--last-try-2-loc
-              (let ((which-key-side-window-location which-key--last-try-2-loc))
-                (which-key--show-page next-page))
-            (which-key--show-page next-page))
-          (which-key--start-paging-timer)))
-    ;; triggered before buffer is showing
-    (let* ((keysbl (vconcat (butlast (append (this-single-command-keys) nil)))))
-      (which-key--stop-timer)
-      (setq unread-command-events
+  (if (and which-key--current-page-n
+           which-key--on-last-page
+           which-key-use-C-h-for-paging
+           which-key-prevent-C-h-from-cycling)
+      (progn
+        (which-key--hide-popup-ignore-command)
+        (which-key--stop-timer)
+        (funcall which-key--prefix-help-cmd-backup)
+        (which-key--start-timer))
+    (let* ((next-event-if-showing
             ;; forces event into current key sequence
             (mapcar (lambda (ev) (cons t ev))
+                    (listify-key-sequence which-key--current-prefix)))
+           (keysbl
+            (vconcat (butlast (append (this-single-command-keys) nil))))
+           (next-event-if-not-showing
+            (mapcar (lambda (ev) (cons t ev))
                     (listify-key-sequence keysbl)))
-      (which-key--create-buffer-and-show keysbl)
-      (which-key--start-timer))))
+           (n-pages
+            (plist-get which-key--pages-plist :n-pages))
+           (next-page
+            (if which-key--current-page-n (1+ which-key--current-page-n) 0)))
+      (cond
+       ;; buffer not showing
+       ((null which-key--current-page-n)
+        (which-key--stop-timer)
+        (setq unread-command-events next-event-if-not-showing)
+        (which-key--create-buffer-and-show keysbl)
+        (which-key--start-timer))
+       (t
+        (which-key--stop-timer)
+        (setq unread-command-events next-event-if-showing)
+        (if which-key--last-try-2-loc
+            (let ((which-key-side-window-location which-key--last-try-2-loc))
+              (which-key--show-page next-page))
+          (which-key--show-page next-page))
+        (which-key--start-paging-timer))))))
 
 ;; (defun which-key-show-first-page ()
 ;;   "Show the first page of keys."
@@ -1241,7 +1263,8 @@ Finally, show the buffer."
                            (and (< 0 (length (this-single-command-keys)))
                                 (not (equal which-key--current-prefix
                                             (this-single-command-keys)))))
-                   (setq which-key--current-page-n nil)
+                   (setq which-key--current-page-n nil
+                         which-key--on-last-page nil)
                    (cancel-timer which-key--paging-timer)
                    (which-key--start-timer))))))
 
