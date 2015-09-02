@@ -583,7 +583,7 @@ void ArenaPark(Globals globals)
     TRACE_SET_ITER(ti, trace, arena->busyTraces, arena)
       TraceAdvance(trace);
       if(trace->state == TraceFINISHED) {
-        TraceDestroy(trace);
+        TraceDestroyFinished(trace);
       }
     TRACE_SET_ITER_END(ti, trace, arena->busyTraces, arena);
   }
