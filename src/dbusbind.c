@@ -190,6 +190,71 @@ xd_symbol_to_dbus_type (Lisp_Object object)
      : DBUS_TYPE_INVALID);
 }
 
+/* Determine the DBusType of a given Lisp symbol.  OBJECT must be one
+   of the predefined D-Bus type symbols.  */
+static Lisp_Object
+xd_dbus_type_to_symbol (int dtype)
+{
+  switch (dtype)
+    {
+    case DBUS_TYPE_BYTE:
+      return QCdbus_type_byte;
+
+    case DBUS_TYPE_BOOLEAN:
+      return QCdbus_type_boolean;
+
+    case DBUS_TYPE_INT16:
+      return QCdbus_type_int16;
+
+    case DBUS_TYPE_UINT16:
+      return QCdbus_type_uint16;
+
+    case DBUS_TYPE_INT32:
+      return QCdbus_type_int32;
+
+    case DBUS_TYPE_UINT32:
+      return QCdbus_type_uint32;
+
+    case DBUS_TYPE_INT64:
+      return QCdbus_type_int64;
+
+    case DBUS_TYPE_UINT64:
+      return QCdbus_type_uint64;
+
+    case DBUS_TYPE_DOUBLE:
+      return QCdbus_type_double;
+
+    case DBUS_TYPE_STRING:
+      return QCdbus_type_string;
+
+    case DBUS_TYPE_OBJECT_PATH:
+      return QCdbus_type_object_path;
+
+    case DBUS_TYPE_SIGNATURE:
+      return QCdbus_type_signature;
+
+#ifdef DBUS_TYPE_UNIX_FD
+    case DBUS_TYPE_UNIX_FD:
+      return QCdbus_type_unix_fd;
+
+#endif
+    case DBUS_TYPE_ARRAY:
+      return QCdbus_type_array;
+
+    case DBUS_TYPE_VARIANT:
+      return QCdbus_type_variant;
+
+    case DBUS_TYPE_STRUCT:
+      return QCdbus_type_struct;
+
+    case DBUS_TYPE_DICT_ENTRY:
+      return QCdbus_type_dict_entry;
+
+    default:
+      return DBUS_TYPE_INVALID;
+    }
+}
+
 /* Check whether a Lisp symbol is a predefined D-Bus type symbol.  */
 #define XD_DBUS_TYPE_P(object)						\
   (SYMBOLP (object) && ((xd_symbol_to_dbus_type (object) != DBUS_TYPE_INVALID)))
@@ -1087,6 +1152,55 @@ xd_retrieve_arg (int dtype, DBusMessageIter *iter)
     }
 }
 
+/* Convert argument type to a Lisp object.  The type DTYPE of the
+   argument of the D-Bus message must be a valid DBusType.  */
+static Lisp_Object
+xd_arg_type_to_lisp (int dtype, DBusMessageIter *iter)
+{
+  if (XD_BASIC_DBUS_TYPE (dtype))
+    return xd_dbus_type_to_symbol (dtype);
+
+  else /* Compound types.  */
+    {
+      switch (dtype)
+	{
+	case DBUS_TYPE_ARRAY:
+	  {
+	    DBusMessageIter subiter;
+	    int subtype;
+
+	    dbus_message_iter_recurse (iter, &subiter);
+	    subtype = dbus_message_iter_get_arg_type (&subiter);
+	    return list2 (QCdbus_type_array,
+			  xd_arg_type_to_lisp (subtype, &subiter));
+	  }
+
+	case DBUS_TYPE_VARIANT:
+	case DBUS_TYPE_STRUCT:
+	case DBUS_TYPE_DICT_ENTRY:
+	  {
+	    Lisp_Object result;
+	    DBusMessageIter subiter;
+	    int subtype;
+	    result = Qnil;
+	    dbus_message_iter_recurse (iter, &subiter);
+	    while ((subtype = dbus_message_iter_get_arg_type (&subiter))
+		   != DBUS_TYPE_INVALID)
+	      {
+		result = Fcons (xd_arg_type_to_lisp (subtype, &subiter),
+				result);
+		dbus_message_iter_next (&subiter);
+	      }
+	    return list2 (xd_dbus_type_to_symbol (dtype), Fnreverse (result));
+	  }
+
+	default:
+	  XD_DEBUG_MESSAGE ("DBusType '%c' not supported", dtype);
+	  return Qnil;
+	}
+    }
+}
+
 /* Return the number of references of the shared CONNECTION.  */
 static ptrdiff_t
 xd_get_connection_references (DBusConnection *connection)
@@ -1386,39 +1500,25 @@ DEFUN ("dbus-get-unique-name", Fdbus_get_unique_name, Sdbus_get_unique_name,
   return build_string (name);
 }
 
-DEFUN ("dbus-message-internal", Fdbus_message_internal, Sdbus_message_internal,
-       4, MANY, 0,
-       doc: /* Send a D-Bus message.
-This is an internal function, it shall not be used outside dbus.el.
+/* Structure describing a D-Bus message, created with xd_build_message.  */
+struct xd_message
+{
+  DBusMessage *dmessage;
 
-The following usages are expected:
+  /* Lisp objects used by Fdbus_message_internal.  */
+  Lisp_Object bus;
+  Lisp_Object handler;
+  int timeout;
+};
 
-`dbus-call-method', `dbus-call-method-asynchronously':
-  \(dbus-message-internal
-    dbus-message-type-method-call BUS SERVICE PATH INTERFACE METHOD HANDLER
-    &optional :timeout TIMEOUT &rest ARGS)
-
-`dbus-send-signal':
-  \(dbus-message-internal
-    dbus-message-type-signal BUS SERVICE PATH INTERFACE SIGNAL &rest ARGS)
-
-`dbus-method-return-internal':
-  \(dbus-message-internal
-    dbus-message-type-method-return BUS SERVICE SERIAL &rest ARGS)
-
-`dbus-method-error-internal':
-  \(dbus-message-internal
-    dbus-message-type-error BUS SERVICE SERIAL &rest ARGS)
-
-usage: (dbus-message-internal &rest REST)  */)
-  (ptrdiff_t nargs, Lisp_Object *args)
+static void
+xd_build_message (struct xd_message *xmessage,
+		  ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object message_type, bus, service, handler;
   Lisp_Object path = Qnil;
   Lisp_Object interface = Qnil;
   Lisp_Object member = Qnil;
-  Lisp_Object result;
-  DBusConnection *connection;
   DBusMessage *dmessage;
   DBusMessageIter iter;
   int dtype;
@@ -1506,9 +1606,6 @@ usage: (dbus-message-internal &rest REST)  */)
 			ui_serial);
     }
 
-  /* Retrieve bus address.  */
-  connection = xd_get_connection_address (bus);
-
   /* Create the D-Bus message.  */
   dmessage = dbus_message_new (mtype);
   if (dmessage == NULL)
@@ -1527,7 +1624,11 @@ usage: (dbus-message-internal &rest REST)  */)
       else
 	/* Set destination for unicast signals.  */
 	{
+	  DBusConnection *connection;
 	  Lisp_Object uname;
+
+	  /* Retrieve bus address.  */
+	  connection = xd_get_connection_address (bus);
 
 	  /* If it is the same unique name as we are registered at the
 	     bus or an unknown name, we regard it as broadcast message
@@ -1612,27 +1713,76 @@ usage: (dbus-message-internal &rest REST)  */)
 	}
     }
 
-  if (!NILP (handler))
+  xmessage->dmessage = dmessage;
+  xmessage->bus = bus;
+  xmessage->handler = handler;
+  xmessage->timeout = timeout;
+}
+
+DEFUN ("dbus-message-internal", Fdbus_message_internal, Sdbus_message_internal,
+       4, MANY, 0,
+       doc: /* Send a D-Bus message.
+This is an internal function, it shall not be used outside dbus.el.
+
+The following usages are expected:
+
+`dbus-call-method', `dbus-call-method-asynchronously':
+  \(dbus-message-internal
+    dbus-message-type-method-call BUS SERVICE PATH INTERFACE METHOD HANDLER
+    &optional :timeout TIMEOUT &rest ARGS)
+
+`dbus-send-signal':
+  \(dbus-message-internal
+    dbus-message-type-signal BUS SERVICE PATH INTERFACE SIGNAL &rest ARGS)
+
+`dbus-method-return-internal':
+  \(dbus-message-internal
+    dbus-message-type-method-return BUS SERVICE SERIAL &rest ARGS)
+
+`dbus-method-error-internal':
+  \(dbus-message-internal
+    dbus-message-type-error BUS SERVICE SERIAL &rest ARGS)
+
+usage: (dbus-message-internal &rest REST)  */)
+  (ptrdiff_t nargs, Lisp_Object *args)
+{
+  struct xd_message xmessage;
+  Lisp_Object result;
+  DBusConnection *connection;
+
+  xmessage.bus = Qnil;
+  xmessage.handler = Qnil;
+  xmessage.timeout = -1;
+
+  /* Create a D-Bus message.  */
+  xd_build_message (&xmessage, nargs, args);
+
+  /* Retrieve bus address.  */
+  connection = xd_get_connection_address (xmessage.bus);
+
+  if (!NILP (xmessage.handler))
     {
+      dbus_uint32_t serial;
+
       /* Send the message.  The message is just added to the outgoing
 	 message queue.  */
-      if (!dbus_connection_send_with_reply (connection, dmessage,
-					    NULL, timeout))
+      if (!dbus_connection_send_with_reply (connection, xmessage.dmessage,
+					    NULL, xmessage.timeout))
 	XD_SIGNAL1 (build_string ("Cannot send message"));
 
       /* The result is the key in Vdbus_registered_objects_table.  */
-      serial = dbus_message_get_serial (dmessage);
+      serial = dbus_message_get_serial (xmessage.dmessage);
       result = list3 (QCdbus_registered_serial,
-		      bus, make_fixnum_or_float (serial));
+		      xmessage.bus, make_fixnum_or_float (serial));
 
       /* Create a hash table entry.  */
-      Fputhash (result, handler, Vdbus_registered_objects_table);
+      Fputhash (result, xmessage.handler, Vdbus_registered_objects_table);
     }
   else
     {
       /* Send the message.  The message is just added to the outgoing
 	 message queue.  */
-      if (!dbus_connection_send (connection, dmessage, NULL))
+      if (!dbus_connection_send (connection, xmessage.dmessage, NULL))
 	XD_SIGNAL1 (build_string ("Cannot send message"));
 
       result = Qnil;
@@ -1641,7 +1791,91 @@ usage: (dbus-message-internal &rest REST)  */)
   XD_DEBUG_MESSAGE ("Message sent: %s", XD_OBJECT_TO_STRING (result));
 
   /* Cleanup.  */
-  dbus_message_unref (dmessage);
+  dbus_message_unref (xmessage.dmessage);
+
+  /* Return the result.  */
+  return result;
+}
+
+static Lisp_Object
+xd_dbus_message_to_lisp (DBusMessage *dmessage)
+{
+  Lisp_Object result = Qnil, args;
+  DBusMessageIter iter;
+  int mtype;
+
+  mtype = dbus_message_get_type (dmessage);
+  result = Fplist_put (result, QCdbus_type_type,
+			build_string (XD_MESSAGE_TYPE_TO_STRING (mtype)));
+
+#define ADD_HEADER(name)					\
+    {								\
+      const char *name = dbus_message_get_##name (dmessage);	\
+      if (name)							\
+        result = Fplist_put (result, QCdbus_message_##name,	\
+			     build_string (name));		\
+    }
+
+  ADD_HEADER (path);
+  ADD_HEADER (interface);
+  ADD_HEADER (member);
+  ADD_HEADER (destination);
+  ADD_HEADER (sender);
+  ADD_HEADER (signature);
+
+#undef ADD_HEADER
+
+  /* Collect the parameters.  */
+  args = Qnil;
+
+  /* Loop over the resulting parameters.  Construct a list.  */
+  if (dbus_message_iter_init (dmessage, &iter))
+    {
+      int dtype;
+
+      while ((dtype = dbus_message_iter_get_arg_type (&iter))
+	     != DBUS_TYPE_INVALID)
+	{
+	  args = Fcons (list2 (xd_arg_type_to_lisp (dtype, &iter),
+			       xd_retrieve_arg (dtype, &iter)), args);
+	  dbus_message_iter_next (&iter);
+	}
+      /* The arguments are stored in reverse order.  Reorder them.  */
+      args = Fnreverse (args);
+    }
+
+  result = Fplist_put (result, QCdbus_message_args, args);
+
+  return result;
+}
+
+DEFUN ("dbus-message-internal-to-lisp",
+       Fdbus_message_internal_to_lisp, Sdbus_message_internal_to_lisp,
+       4, MANY, 0,
+       doc: /* Create a D-Bus message and convert it to a Lisp expression.
+This is an internal function for testing purpose.
+
+This function works similar to `dbus-message-internal', but doesn't
+send the created message.
+
+usage: (dbus-message-internal-to-lisp &rest REST)  */)
+  (ptrdiff_t nargs, Lisp_Object *args)
+{
+  struct xd_message xmessage;
+  Lisp_Object result;
+
+  xmessage.bus = Qnil;
+  xmessage.handler = Qnil;
+  xmessage.timeout = -1;
+
+  /* Create a D-Bus message.  */
+  xd_build_message (&xmessage, nargs, args);
+
+  /* Convert the D-Bus message to a Lisp expression.  */
+  result = xd_dbus_message_to_lisp (xmessage.dmessage);
+
+  /* Cleanup.  */
+  dbus_message_unref (xmessage.dmessage);
 
   /* Return the result.  */
   return result;
@@ -1857,6 +2091,7 @@ syms_of_dbusbind (void)
 
   defsubr (&Sdbus__init_bus);
   defsubr (&Sdbus_get_unique_name);
+  defsubr (&Sdbus_message_internal_to_lisp);
 
   DEFSYM (Qdbus_message_internal, "dbus-message-internal");
   defsubr (&Sdbus_message_internal);
@@ -1898,6 +2133,15 @@ syms_of_dbusbind (void)
 
   /* Lisp symbol to indicate explicit typing of the following parameter.  */
   DEFSYM (QCdbus_type_type, ":type");
+
+  /* Lisp symbols to represent headers of a D-Bus message.  */
+  DEFSYM (QCdbus_message_path, ":path");
+  DEFSYM (QCdbus_message_interface, ":interface");
+  DEFSYM (QCdbus_message_member, ":member");
+  DEFSYM (QCdbus_message_destination, ":destination");
+  DEFSYM (QCdbus_message_sender, ":sender");
+  DEFSYM (QCdbus_message_signature, ":signature");
+  DEFSYM (QCdbus_message_args, ":args");
 
   /* Lisp symbols of objects in `dbus-registered-objects-table'.  */
   DEFSYM (QCdbus_registered_serial, ":serial");
