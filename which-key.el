@@ -158,6 +158,12 @@ and nil. Nil turns the feature off."
                 (const :tag "Show in popup frame" frame)
                 (const :tag "Use your custom display functions" custom)))
 
+(defcustom which-key-min-display-lines 1
+  "The minimum number of horizontal lines to display in the
+  which-key buffer."
+  :group 'which-key
+  :type 'integer)
+
 (defcustom which-key-side-window-location 'bottom
   "Location of which-key popup when `which-key-popup-type' is side-window.
 Should be one of top, bottom, left or right. You can also specify
@@ -1011,6 +1017,7 @@ is the width of the live window."
                         (+ 2 (string-width prefix-w-face))))
          (prefix-top (eq which-key-show-prefix 'top))
          (avl-lines (if prefix-top (- max-lines 1) max-lines))
+         (min-lines (min avl-lines which-key-min-display-lines))
          (avl-width (if prefix-left (- max-width prefix-left) max-width))
          (vertical (and (eq which-key-popup-type 'side-window)
                         (member which-key-side-window-location '(left right))))
@@ -1019,7 +1026,7 @@ is the width of the live window."
     (cond ((or vertical (> (plist-get result :n-pages) 1) (= 1 avl-lines))
            result)
           ;; do a simple search for the smallest number of lines
-          (t (while (and (> avl-lines 1) (not found))
+          (t (while (and (> avl-lines min-lines) (not found))
                (setq avl-lines (- avl-lines 1)
                      prev-result result
                      result (which-key--partition-columns
