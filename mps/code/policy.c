@@ -258,7 +258,7 @@ Bool PolicyStartTrace(Trace *traceReturn, Arena arena)
   return FALSE;
 
 failCondemn:
-  TraceDestroy(trace);
+  TraceDestroyInit(trace);
   /* This is an unlikely case, but clear the emergency flag so the next attempt
      starts normally. */
   ArenaSetEmergency(arena, FALSE);

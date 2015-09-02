@@ -158,6 +158,7 @@ Bool TraceCheck(Trace trace)
   /* Use trace->state to check more invariants. */
   switch(trace->state) {
     case TraceINIT:
+      CHECKL(!TraceSetIsMember(trace->arena->flippedTraces, trace));
       /* @@@@ What can be checked here? */
       break;
 
@@ -421,6 +422,9 @@ Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet)
       }
     } while (SegNext(&seg, arena, seg));
   }
+
+  if (!haveWhiteSegs)
+    return ResFAIL;
 
   EVENT3(TraceCondemnZones, trace, condemnedSet, trace->white);
 
@@ -755,7 +759,22 @@ found:
 }
 
 
-/* TraceDestroy -- destroy a trace object
+/* TraceDestroyInit -- destroy a trace object in state INIT */
+
+void TraceDestroyInit(Trace trace)
+{
+  AVERT(Trace, trace);
+  AVER(trace->state == TraceINIT);
+  AVER(trace->condemned == 0);
+
+  EVENT1(TraceDestroy, trace);
+
+  trace->sig = SigInvalid;
+  trace->arena->busyTraces = TraceSetDel(trace->arena->busyTraces, trace);
+}
+
+
+/* TraceDestroyFinished -- destroy a trace object in state FINISHED
  *
  * Finish and deallocate a Trace object, freeing up a TraceId.
  *
@@ -764,7 +783,7 @@ found:
  * etc. would need to be reset to black.  This also means the error
  * paths in this file don't work.  @@@@ */
 
-void TraceDestroy(Trace trace)
+void TraceDestroyFinished(Trace trace)
 {
   AVERT(Trace, trace);
   AVER(trace->state == TraceFINISHED);
@@ -1555,6 +1574,9 @@ static Res traceCondemnAll(Trace trace)
     }
   }
 
+  if (!haveWhiteSegs)
+    return ResFAIL;
+
   /* Notify all the chains. */
   RING_FOR(chainNode, &arena->chainRing, nextChainNode) {
     Chain chain = RING_ELT(Chain, chainRing, chainNode);
@@ -1630,6 +1652,7 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
   AVER(0.0 <= mortality);
   AVER(mortality <= 1.0);
   AVER(finishingTime >= 0.0);
+  AVER(trace->condemned > 0);
 
   arena = trace->arena;
   
@@ -1794,7 +1817,7 @@ failStart:
      if the assertion isn't hit, so drop through anyway. */
   NOTREACHED;
 failCondemn:
-  TraceDestroy(trace);
+  TraceDestroyInit(trace);
   /* We don't know how long it'll be before another collection.  Make sure
      the next one starts in normal mode. */
   ArenaSetEmergency(arena, FALSE);
@@ -1841,7 +1864,7 @@ Size TracePoll(Globals globals)
            && (ArenaEmergency(arena) || traceWorkClock(trace) < pollEnd));
   scannedSize = traceWorkClock(trace) - oldScannedSize;
   if (trace->state == TraceFINISHED) {
-    TraceDestroy(trace);
+    TraceDestroyFinished(trace);
     /* A trace finished, and hopefully reclaimed some memory, so clear any
      * emergency. */
     ArenaSetEmergency(arena, FALSE);

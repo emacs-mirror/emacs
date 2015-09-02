@@ -393,7 +393,8 @@ extern Bool TraceIdCheck(TraceId id);
 extern Bool TraceSetCheck(TraceSet ts);
 extern Bool TraceCheck(Trace trace);
 extern Res TraceCreate(Trace *traceReturn, Arena arena, int why);
-extern void TraceDestroy(Trace trace);
+extern void TraceDestroyInit(Trace trace);
+extern void TraceDestroyFinished(Trace trace);
 
 extern Res TraceAddWhite(Trace trace, Seg seg);
 extern Res TraceCondemnZones(Trace trace, ZoneSet condemnedSet);
