@@ -201,9 +201,9 @@ Some segments get condemned (made white).
 - Immediately calls ``traceFlip`` which flips the trace and moves
   it into state ``TraceFLIPPED``.
 
-Whilst a trace is alive every so often its ``traceQuantum`` method
-gets invoked (via ``TracePoll()``) in order to do a quantum of tracing
-work. ``traceQuantum`` is responsible for ticking through the trace's
+Whilst a trace is alive every so often its ``TraceAdvance()`` method
+gets invoked (via ``TracePoll()``) in order to do a step of tracing
+work. ``TraceAdvance()`` is responsible for ticking through the trace's
 top-level state machine. Most of the interesting work, the tracing,
 happens in the ``TraceFLIPPED`` state.
 
@@ -217,7 +217,7 @@ in this state; all traces are immediately flipped to be in the
 
 Once the trace is in the ``TraceFINISHED`` state it performs no more
 work and it can be safely destroyed. Generally the callers of
-``traceQuantum`` will destroy the trace.
+``TraceAdvance()`` will destroy the trace.
 
 
 Making progress: scanning grey segments
