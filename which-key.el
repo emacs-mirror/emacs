@@ -415,8 +415,10 @@ it's set too high)."
         which-key-side-window-location 'right
         which-key-show-prefix 'top))
 
+;;;###autoload
 (defun which-key-setup-side-window-right-bottom ()
-  "Apply suggested settings for side-window that opens on right if there is space and the bottom otherwise."
+  "Apply suggested settings for side-window that opens on right
+if there is space and the bottom otherwise."
   (interactive)
   (setq which-key-popup-type 'side-window
         which-key-side-window-location '(right bottom)
