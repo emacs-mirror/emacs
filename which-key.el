@@ -1056,15 +1056,15 @@ area."
   (let* ((paging-key (concat prefix-keys " " which-key-paging-key))
          (paging-key-bound (eq 'which-key-show-next-page
                                (key-binding (kbd paging-key))))
-         (key (if paging-key-bound which-key-paging-key "C-h or ?"))
+         (key (if paging-key-bound which-key-paging-key "C-h"))
          (next-page-n (format "pg %s" (1+ (mod (1+ page-n) n-pages))))
          (use-descbind (and which-key--on-last-page which-key-use-C-h-for-paging
                             which-key-prevent-C-h-from-cycling)))
     (when (or (and (< 1 n-pages) which-key-use-C-h-for-paging)
               (and (< 1 n-pages) paging-key-bound)
               use-descbind)
-      (propertize (format "[%s%s%s]" key which-key-separator
-                          (if use-descbind "describe bindings" next-page-n))
+      (propertize (format "[%s %s]" key
+                          (if use-descbind "help" next-page-n))
                   'face 'which-key-note-face))))
 
 (defun which-key--show-page (n)
