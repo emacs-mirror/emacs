@@ -497,8 +497,7 @@ work done by the last call to ``TracePoll()``.
 
 _`.policy.poll.impl`: The implementation balances collection work
 against mutator allocation so that there is approximately one call to
-``TraceQuantum()`` for every ``ArenaPollALLOCTIME`` bytes of
-allocation.
+``TracePoll()`` for every ``ArenaPollALLOCTIME`` bytes of allocation.
 
 
 References
