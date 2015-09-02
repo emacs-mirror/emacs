@@ -173,13 +173,14 @@ This includes initialization and closing the bus."
   (should-not (dbus-ping :session dbus-service-emacs 100)))
 
 (defun dbus--test-create-message-with-args (&rest args)
+  "Create a D-Bus message according to ARGS."
   (dbus-ignore-errors
     (apply #'dbus-message-internal-to-lisp
            dbus-message-type-method-call
            :session
            ;; Passing nil as SERVICE means not to require bus connection.
            nil
-           dbus-path-dbus dbus-interface-dbus "Hello" #'ignore :timeout 100
+           dbus-path-emacs dbus-interface-emacs "Hello" #'ignore :timeout 100
            args)))
 
 (ert-deftest dbus-test04-create-message-parameters ()
@@ -200,11 +201,24 @@ This includes initialization and closing the bus."
                    :type :int32 1))
     (should (equal (plist-get message :args) '((:int32 1))))
     (should (equal (plist-get message :signature) "i"))
-    ;; Test explicit type specifications for empty array.
+    ;; Test explicit type specifications for empty array with implicit
+    ;; element type.
     (setq message (dbus--test-create-message-with-args
                    '(:array)))
     (should (equal (plist-get message :args) '(((:array nil) nil))))
     (should (equal (plist-get message :signature) "as"))
+    ;; Test explicit type specifications for empty array with explicit
+    ;; element type.
+    (setq message (dbus--test-create-message-with-args
+                   '(:array :signature "u")))
+    (should (equal (plist-get message :args) '(((:array nil) nil))))
+    (should (equal (plist-get message :signature) "au"))
+    ;; Test explicit type specifications with `:type' keyword for empty array.
+    ;; DOES THIS WORK?
+    (setq message (dbus--test-create-message-with-args
+                   :type '(:array :uint32)))
+    (should (equal (plist-get message :args) '(((:array nil) nil))))
+    (should (equal (plist-get message :signature) "au"))
     ;; Test implicit type specifications for non-empty array.
     (setq message (dbus--test-create-message-with-args
                    '(1 2 3)))
