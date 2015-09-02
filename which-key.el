@@ -119,6 +119,14 @@ same way using the alist matched when `major-mode' is
 emacs-lisp-mode."
 :group 'which-key)
 
+(defcustom which-key-prefix-name-alist '()
+  "An alist with elements of the form (key-sequence . prefix-name).
+key-sequence is a sequence of the sort produced by applying `kbd'
+then `listify-key-sequence' to create a canonical version of the
+key sequence. prefix-name is a string."
+  :group 'which-key
+  :type '(alist :key-type string :value-type string))
+
 (defcustom which-key-prefix-title-alist '()
   "An alist with elements of the form (key-sequence . prefix-title).
 key-sequence is a sequence of the sort produced by applying `kbd'
@@ -498,17 +506,63 @@ addition KEY-SEQUENCE REPLACEMENT pairs) to apply."
       (push (cons mode mode-alist) which-key-key-based-description-replacement-alist))))
 
 ;;;###autoload
-(defun which-key-add-prefix-title (key-seq-str name &optional force)
+(defun which-key-add-prefix-title (key-seq-str title &optional force)
   "Add title for KEY-SEQ-STR given by TITLE.
 FORCE, if non-nil, will add the new title even if one already
 exists. KEY-SEQ-STR should be a key sequence string suitable for
-`kbd' and NAME should be a string."
+`kbd' and TITLE should be a string."
   (interactive)
   (let ((key-seq-lst (listify-key-sequence (kbd key-seq-str))))
     (if (and (null force)
              (assoc key-seq-lst which-key-prefix-title-alist))
         (message "which-key: Prefix title not added. A title exists for this prefix.")
-      (push (cons key-seq-lst name) which-key-prefix-title-alist))))
+      (push (cons key-seq-lst title) which-key-prefix-title-alist))))
+
+(defun which-key--declare-prefix-names (alist key name)
+  "Internal function to add (KEY . NAME) to ALIST."
+  (when (or (not (stringp key)) (not (stringp name)))
+    (error "KEY and NAME should be strings"))
+  (let ((key-lst (listify-key-sequence (kbd key))))
+    (cond ((null alist) (list (cons key-lst name)))
+          ((assoc key-lst alist)
+           (message "which-key: the key %s already exists in %s. This addition \
+will override that prefix-name."
+                    key-lst alist)
+           (setcdr (assoc key-lst alist) name)
+           alist)
+          (t (cons (cons key-lst name) alist)))))
+
+;;;###autoload
+(defun which-key-declare-prefix-names (key-sequence name &rest more)
+  "Name the KEY-SEQUENCE prefix NAME.
+Both KEY-SEQUENCE and NAME should be strings.  For Example,
+
+\(which-key-declare-prefix-names \"C-x 8\" \"unicode\"\)
+
+MORE allows you to specifcy additional KEY-SEQUENCE NAME pairs.  All
+names are added to `which-key-prefix-names-alist'."
+  (while key-sequence
+    (setq which-key-prefix-name-alist
+          (which-key--declare-prefix-names which-key-prefix-name-alist
+           key-sequence name))
+    (setq key-sequence (pop more) name (pop more))))
+
+;;;###autoload
+(defun which-key-declare-prefix-names-for-mode (mode key-sequence name &rest more)
+  "Functions like `which-key-declare-prefix-names'.
+The difference is that MODE specifies the `major-mode' that must
+be active for KEY-SEQUENCE and NAME (MORE contains
+addition KEY-SEQUENCE NAME pairs) to apply."
+  (when (not (symbolp mode))
+    (error "MODE should be a symbol corresponding to a value of major-mode"))
+  (let ((mode-alist (cdr (assq mode which-key-prefix-name-alist))))
+    (while key-sequence
+      (setq mode-alist (which-key--declare-prefix-names
+                        mode-alist key-sequence name))
+      (setq key-sequence (pop more) name (pop more)))
+    (if (assq mode which-key-prefix-name-alist)
+        (setcdr (assq mode which-key-prefix-name-alist) mode-alist)
+      (push (cons mode mode-alist) which-key-prefix-name-alist))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions for computing window sizes
@@ -794,6 +848,24 @@ replacement occurs return the new STRING."
                 (replace-match (cdr repl) t literal new-string))))
       new-string)))
 
+(defsubst which-key--current-key-list (key-str)
+  (append (listify-key-sequence which-key--current-prefix)
+          (listify-key-sequence (kbd key-str))))
+
+(defsubst which-key--current-key-string (key-str)
+  (key-description
+   (append (listify-key-sequence which-key--current-prefix)
+           (listify-key-sequence (kbd key-str)))))
+
+(defun which-key--maybe-get-prefix-name (key-lst desc)
+  (let* ((alist which-key-prefix-name-alist)
+         (res (assoc key-lst alist))
+         (mode-alist (assq major-mode alist))
+         (mode-res (when mode-alist (assoc key-lst mode-alist))))
+    (cond (mode-res (cdr mode-res))
+          (res (cdr res))
+          (t desc))))
+
 (defun which-key--maybe-replace-key-based (string keys)
   "KEYS is a key sequence like \"C-c C-c\" and STRING is the
 description that is possibly replaced using the
@@ -864,13 +936,18 @@ alists. Returns a list (key separator description)."
        (let* ((key (car key-desc-cons))
               (desc (cdr key-desc-cons))
               (group (which-key--group-p desc))
-              (keys (concat (key-description which-key--current-prefix) " " key))
-              (local (eq (which-key--safe-lookup-key local-map (kbd keys)) (intern desc)))
+              (keys (which-key--current-key-string key))
+              (key-lst (which-key--current-key-list key))
+              (local (eq (which-key--safe-lookup-key local-map (kbd keys))
+                         (intern desc)))
               (key (which-key--maybe-replace
                     key which-key-key-replacement-alist))
               (desc (which-key--maybe-replace
                      desc which-key-description-replacement-alist))
               (desc (which-key--maybe-replace-key-based desc keys))
+              (desc (if group
+                        (which-key--maybe-get-prefix-name key-lst desc)
+                      desc))
               (key-w-face (which-key--propertize-key key))
               (desc-w-face (which-key--propertize-description desc group local)))
          (list key-w-face sep-w-face desc-w-face)))
@@ -1094,10 +1171,10 @@ enough space based on your settings and frame size." prefix-keys)
              (dash-w-face (propertize "-" 'face 'which-key-key-face))
              (status-left (propertize (format "%s/%s" (1+ page-n) n-pages)
                                       'face 'which-key-separator-face))
-             (status-top (when (assoc (listify-key-sequence which-key--current-prefix)
+             (status-top (when (assoc (which-key--current-key-list "")
                                       which-key-prefix-title-alist)
                            (propertize
-                            (cdr (assoc (listify-key-sequence which-key--current-prefix)
+                            (cdr (assoc (which-key--current-key-list "")
                                         which-key-prefix-title-alist))
                             'face 'which-key-note-face)))
              (status-top (concat status-top
@@ -1155,12 +1232,11 @@ Will force an update if called before `which-key--update'."
     (let* ((next-event-if-showing
             ;; forces event into current key sequence
             (mapcar (lambda (ev) (cons t ev))
-                    (listify-key-sequence which-key--current-prefix)))
+                    (which-key--current-key-list "")))
            (keysbl
             (vconcat (butlast (append (this-single-command-keys) nil))))
            (next-event-if-not-showing
-            (mapcar (lambda (ev) (cons t ev))
-                    (listify-key-sequence keysbl)))
+            (mapcar (lambda (ev) (cons t ev)) (listify-key-sequence keysbl)))
            (next-page
             (if which-key--current-page-n (1+ which-key--current-page-n) 0)))
       (cond
