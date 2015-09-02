@@ -403,7 +403,7 @@ extern Size TracePoll(Globals globals);
 extern Rank TraceRankForAccess(Arena arena, Seg seg);
 extern void TraceSegAccess(Arena arena, Seg seg, AccessSet mode);
 
-extern void TraceQuantum(Trace trace);
+extern void TraceAdvance(Trace trace);
 extern Res TraceStartCollectAll(Trace *traceReturn, Arena arena, int why);
 extern Res TraceDescribe(Trace trace, mps_lib_FILE *stream, Count depth);
 
