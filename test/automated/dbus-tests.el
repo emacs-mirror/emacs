@@ -172,6 +172,62 @@ This includes initialization and closing the bus."
   (dbus-unregister-service :session dbus-service-emacs)
   (should-not (dbus-ping :session dbus-service-emacs 100)))
 
+(defun dbus--test-create-message-with-args (&rest args)
+  (dbus-ignore-errors
+    (apply #'dbus-message-internal-to-lisp
+           dbus-message-type-method-call
+           :session
+           ;; Passing nil as SERVICE means not to require bus connection.
+           nil
+           dbus-path-dbus dbus-interface-dbus "Hello" #'ignore :timeout 100
+           args)))
+
+(ert-deftest dbus-test04-create-message-parameters ()
+  "Test D-Bus message creation with various parameter specifications."
+  (let (message)
+    ;; Test implicit type specifications for basic types.
+    (setq message (dbus--test-create-message-with-args
+                   1))
+    (should (equal (plist-get message :args) '((:uint32 1))))
+    (should (equal (plist-get message :signature) "u"))
+    ;; Test explicit type specifications for basic types.
+    (setq message (dbus--test-create-message-with-args
+                   :int32 1))
+    (should (equal (plist-get message :args) '((:int32 1))))
+    (should (equal (plist-get message :signature) "i"))
+    ;; Test explicit type specifications with `:type' keyword for basic types.
+    (setq message (dbus--test-create-message-with-args
+                   :type :int32 1))
+    (should (equal (plist-get message :args) '((:int32 1))))
+    (should (equal (plist-get message :signature) "i"))
+    ;; Test explicit type specifications for empty array.
+    (setq message (dbus--test-create-message-with-args
+                   '(:array)))
+    (should (equal (plist-get message :args) '(((:array nil) nil))))
+    (should (equal (plist-get message :signature) "as"))
+    ;; Test implicit type specifications for non-empty array.
+    (setq message (dbus--test-create-message-with-args
+                   '(1 2 3)))
+    (should (equal (plist-get message :args) '(((:array :uint32) (1 2 3)))))
+    (should (equal (plist-get message :signature) "au"))
+    ;; Test explicit type specifications for non-empty array, while
+    ;; element types are implicitly specified.
+    (setq message (dbus--test-create-message-with-args
+                   '(:array 1 2 3)))
+    (should (equal (plist-get message :args) '(((:array :uint32) (1 2 3)))))
+    (should (equal (plist-get message :signature) "au"))
+    ;; Test explicit type specifications for compound types.
+    (setq message (dbus--test-create-message-with-args
+                   '(:array :int32 1 :int32 2 :int32 3)))
+    (should (equal (plist-get message :args) '(((:array :int32) (1 2 3)))))
+    (should (equal (plist-get message :signature) "ai"))
+    ;; Test explicit type specifications with `:type' keyword for
+    ;; compound types.
+    (setq message (dbus--test-create-message-with-args
+                   :type '(:array :int32) '(1 2 3)))
+    (should (equal (plist-get message :args) '(((:array :int32) (1 2 3)))))
+    (should (equal (plist-get message :signature) "ai"))))
+
 (defun dbus-test-all (&optional interactive)
   "Run all tests for \\[dbus]."
   (interactive "p")
