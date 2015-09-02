@@ -63,7 +63,7 @@ which-key popup."
 
 (defcustom which-key-max-description-length 27
   "Truncate the description of keys to this length.
-Also adds \"..\"."
+Also adds \"..\". If nil, disable any truncation."
   :group 'which-key
   :type 'integer)
 
@@ -829,7 +829,8 @@ If KEY contains any \"special keys\" defined in
 
 (defsubst which-key--truncate-description (desc)
   "Truncate DESC description to `which-key-max-description-length'."
-  (if (> (string-width desc) which-key-max-description-length)
+  (if (and which-key-max-description-length
+           (> (string-width desc) which-key-max-description-length))
       (concat (substring desc 0 which-key-max-description-length) "..")
     desc))
 
