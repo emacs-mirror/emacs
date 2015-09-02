@@ -359,7 +359,7 @@ static Res ArenaRootsWalk(Globals arenaGlobals, mps_roots_stepper_t f,
   rootsStepClosureFinish(rsc);
   /* Make this trace look like any other finished trace. */
   trace->state = TraceFINISHED;
-  TraceDestroy(trace);
+  TraceDestroyFinished(trace);
   AVER(!ArenaEmergency(arena)); /* There was no allocation. */
 
   return res;
