@@ -579,9 +579,9 @@ void ArenaPark(Globals globals)
   globals->clamped = TRUE;
 
   while(arena->busyTraces != TraceSetEMPTY) {
-    /* Poll active traces to make progress. */
+    /* Advance all active traces. */
     TRACE_SET_ITER(ti, trace, arena->busyTraces, arena)
-      TraceQuantum(trace);
+      TraceAdvance(trace);
       if(trace->state == TraceFINISHED) {
         TraceDestroy(trace);
       }
