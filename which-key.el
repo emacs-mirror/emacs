@@ -235,13 +235,12 @@ prefixes in `which-key-paging-prefixes'"
   :group 'which-key
   :type 'boolean)
 
-(defcustom which-key-prevent-C-h-from-cycling nil
-  "Experimental: When using C-h for paging, which-key overrides
-  the default behavior of calling `describe-prefix-bindings'.
-  Setting this variable to t makes it so that when on the last
-  page, pressing C-h calls the default function instead of
-  cycling pages. If you want which-key to cycle, set this to
-  nil."
+(defcustom which-key-prevent-C-h-from-cycling t
+  "When using C-h for paging, which-key overrides the default
+  behavior of calling `describe-prefix-bindings'. Setting this
+  variable to t makes it so that when on the last page, pressing
+  C-h calls the default function instead of cycling pages. If you
+  want which-key to cycle, set this to nil."
   :group 'which-key
   :type 'boolean)
 

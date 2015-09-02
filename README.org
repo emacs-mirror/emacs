@@ -2,14 +2,14 @@
 [[http://melpa.org/#/which-key][http://melpa.org/packages/which-key-badge.svg]]
 ** What's new
 *** Paging
-- The new option =which-key-prevent-C-h-from-cycling=, which is =nil= by default
+- The new option =which-key-prevent-C-h-from-cycling=, which is =t= by default
   allows one to take advantage of using =C-h= for paging as well as the default
   Emacs behavior of using =C-h= to describe the bindings for the current key
   sequence prefix.
-- The configuration below will allow you to switch paging using =C-h= until you
-  reach the last page of keys in the which-key buffer. The next press of =C-h=
-  will close the which-key buffer and trigger the default Emacs behavior on
-  =C-h=.
+- The (default) configuration below will allow you to switch paging using =C-h=
+  until you reach the last page of keys in the which-key buffer. The next press
+  of =C-h= will close the which-key buffer and trigger the default Emacs
+  behavior on =C-h=.
   #+BEGIN_SRC Emacs-lisp
   (setq which-key-use-C-h-for-paging t
         which-key-prevent-C-h-from-cycling t)
