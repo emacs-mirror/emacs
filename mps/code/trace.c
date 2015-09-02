@@ -1714,55 +1714,44 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
 }
 
 
-/* traceWorkClock -- a measure of the work done for this trace
- *
- * .workclock: Segment and root scanning work is the regulator.  */
+/* TraceAdvance -- progress a trace by one step */
 
-#define traceWorkClock(trace) ((trace)->segScanSize + (trace)->rootScanSize)
-
-
-/* TraceQuantum -- progresses a trace by one quantum */
-
-void TraceQuantum(Trace trace)
+void TraceAdvance(Trace trace)
 {
-  Size pollEnd;
   Arena arena;
 
   AVERT(Trace, trace);
   arena = trace->arena;
 
-  pollEnd = traceWorkClock(trace) + trace->rate;
-  do {
-    switch(trace->state) {
-      case TraceUNFLIPPED:
-        /* all traces are flipped in TraceStart at the moment */
-        NOTREACHED;
-        break;
-      case TraceFLIPPED: {
-        Seg seg;
-        Rank rank;
+  switch (trace->state) {
+  case TraceUNFLIPPED:
+    /* all traces are flipped in TraceStart at the moment */
+    NOTREACHED;
+    break;
+  case TraceFLIPPED: {
+    Seg seg;
+    Rank rank;
 
-        if(traceFindGrey(&seg, &rank, arena, trace->ti)) {
-          Res res;
-          res = traceScanSeg(TraceSetSingle(trace), rank, arena, seg);
-          /* Allocation failures should be handled by emergency mode, and we
-             don't expect any other error in a normal GC trace. */
-          AVER(res == ResOK);
-        } else {
-          trace->state = TraceRECLAIM;
-        }
-        break;
-      }
-      case TraceRECLAIM:
-        traceReclaim(trace);
-        break;
-      default:
-        NOTREACHED;
-        break;
+    if (traceFindGrey(&seg, &rank, arena, trace->ti)) {
+      Res res;
+      res = traceScanSeg(TraceSetSingle(trace), rank, arena, seg);
+      /* Allocation failures should be handled by emergency mode, and we
+       * don't expect any other error in a normal GC trace. */
+      AVER(res == ResOK);
+    } else {
+      trace->state = TraceRECLAIM;
     }
-  } while(trace->state != TraceFINISHED
-          && (ArenaEmergency(arena) || traceWorkClock(trace) < pollEnd));
+    break;
+  }
+  case TraceRECLAIM:
+    traceReclaim(trace);
+    break;
+  default:
+    NOTREACHED;
+    break;
+  }
 }
+
 
 /* TraceStartCollectAll: start a trace which condemns everything in
  * the arena.
@@ -1813,6 +1802,13 @@ failCondemn:
 }
 
 
+/* traceWorkClock -- a measure of the work done for this trace
+ *
+ * .workclock: Segment and root scanning work is the regulator.  */
+
+#define traceWorkClock(trace) ((trace)->segScanSize + (trace)->rootScanSize)
+
+
 /* TracePoll -- Check if there's any tracing work to be done
  *
  * Consider starting a trace if none is running; advance the running
@@ -1823,7 +1819,7 @@ Size TracePoll(Globals globals)
 {
   Trace trace;
   Arena arena;
-  Size oldScannedSize, scannedSize;
+  Size oldScannedSize, scannedSize, pollEnd;
 
   AVERT(Globals, globals);
   arena = GlobalsArena(globals);
@@ -1838,7 +1834,11 @@ Size TracePoll(Globals globals)
 
   AVER(arena->busyTraces == TraceSetSingle(trace));
   oldScannedSize = traceWorkClock(trace);
-  TraceQuantum(trace);
+  pollEnd = oldScannedSize + trace->rate;
+  do {
+    TraceAdvance(trace);
+  } while (trace->state != TraceFINISHED
+           && (ArenaEmergency(arena) || traceWorkClock(trace) < pollEnd));
   scannedSize = traceWorkClock(trace) - oldScannedSize;
   if (trace->state == TraceFINISHED) {
     TraceDestroy(trace);
