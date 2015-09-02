@@ -251,7 +251,7 @@ xd_dbus_type_to_symbol (int dtype)
       return QCdbus_type_dict_entry;
 
     default:
-      return DBUS_TYPE_INVALID;
+      return Qnil;
     }
 }
 
