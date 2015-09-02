@@ -1051,6 +1051,22 @@ area."
      delay nil (lambda () (let (message-log-max)
                             (message "%s" text))))))
 
+(defun which-key--next-page-hint (prefix-keys page-n n-pages)
+  "Return string for next page hint."
+  (let* ((paging-key (concat prefix-keys " " which-key-paging-key))
+         (paging-key-bound (eq 'which-key-show-next-page
+                               (key-binding (kbd paging-key))))
+         (key (if paging-key-bound which-key-paging-key "C-h or ?"))
+         (next-page-n (format "pg %s" (1+ (mod (1+ page-n) n-pages))))
+         (use-descbind (and which-key--on-last-page which-key-use-C-h-for-paging
+                            which-key-prevent-C-h-from-cycling)))
+    (when (or (and (< 1 n-pages) which-key-use-C-h-for-paging)
+              (and (< 1 n-pages) paging-key-bound)
+              use-descbind)
+      (propertize (format "[%s%s%s]" key which-key-separator
+                          (if use-descbind "describe bindings" next-page-n))
+                  'face 'which-key-note-face))))
+
 (defun which-key--show-page (n)
   "Show page N, starting from 0."
   (let ((n-pages (plist-get which-key--pages-plist :n-pages))
@@ -1076,7 +1092,7 @@ enough space based on your settings and frame size." prefix-keys)
                            (propertize
                             (cdr (assoc (listify-key-sequence which-key--current-prefix)
                                         which-key-prefix-title-alist))
-                             'face 'which-key-note-face)))
+                            'face 'which-key-note-face)))
              (status-top (concat status-top
                                  (when (< 1 n-pages)
                                    (propertize (format " (%s of %s)"
@@ -1086,29 +1102,7 @@ enough space based on your settings and frame size." prefix-keys)
                                         (string-width status-left))))
              (prefix-left (s-pad-right first-col-width " " prefix-w-face))
              (status-left (s-pad-right first-col-width " " status-left))
-             (nxt-pg-hint (cond ((and which-key--on-last-page
-                                      which-key-prevent-C-h-from-cycling
-                                      which-key-use-C-h-for-paging)
-                                 (propertize (format "[C-h or ?%sdescribe bindings]"
-                                                     which-key-separator)
-                                             'face 'which-key-note-face))
-                                ((and (< 1 n-pages)
-                                      which-key-use-C-h-for-paging)
-                                 (propertize (format "[C-h or ?%spg %s]"
-                                                     which-key-separator
-                                                     (1+ (mod (1+ page-n) n-pages)))
-                                             'face 'which-key-note-face))
-                                ((and (< 1 n-pages)
-                                      (eq 'which-key-show-next-page
-                                          (key-binding
-                                           (kbd (concat prefix-keys
-                                                        " "
-                                                        which-key-paging-key)))))
-                                 (propertize (format "[%s pg %s]"
-                                                     which-key-paging-key
-                                                     (1+ (mod (1+ page-n) n-pages)))
-                                             'face 'which-key-note-face))
-                                (t nil)))
+             (nxt-pg-hint (which-key--next-page-hint prefix-keys page-n n-pages))
              new-end lines first)
         (cond ((and (< 1 n-pages)
                     (eq which-key-show-prefix 'left))
