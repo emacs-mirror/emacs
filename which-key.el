@@ -1089,7 +1089,7 @@ enough space based on your settings and frame size." prefix-keys)
              (nxt-pg-hint (cond ((and which-key--on-last-page
                                       which-key-prevent-C-h-from-cycling
                                       which-key-use-C-h-for-paging)
-                                 (propertize (format "[C-h or ?%shelp]"
+                                 (propertize (format "[C-h or ?%sdescribe bindings]"
                                                      which-key-separator)
                                              'face 'which-key-note-face))
                                 ((and (< 1 n-pages)
