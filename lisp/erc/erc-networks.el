@@ -782,9 +782,9 @@ PORTS should be a list of either:
   numbers between LOW and HIGH (inclusive) is returned.
 
 As an example:
-  (erc-ports-list '(1)) => (1)
-  (erc-ports-list '((1 5))) => (1 2 3 4 5)
-  (erc-ports-list '(1 (3 5))) => (1 3 4 5)"
+  (erc-ports-list \\='(1)) => (1)
+  (erc-ports-list \\='((1 5))) => (1 2 3 4 5)
+  (erc-ports-list \\='(1 (3 5))) => (1 3 4 5)"
   (let (result)
     (dolist (p ports)
       (cond ((numberp p)
@@ -866,4 +866,3 @@ VALUE is the options value.")
 ;; indent-tabs-mode: t
 ;; tab-width: 8
 ;; End:
-

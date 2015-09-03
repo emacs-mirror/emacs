@@ -710,6 +710,7 @@ Type \\[isearch-toggle-invisible] to toggle search in invisible text.
 Type \\[isearch-toggle-regexp] to toggle regular-expression mode.
 Type \\[isearch-toggle-word] to toggle word mode.
 Type \\[isearch-toggle-symbol] to toggle symbol mode.
+Type \\[isearch-toggle-character-fold] to toggle character folding.
 
 Type \\[isearch-toggle-lax-whitespace] to toggle whitespace matching.
 In incremental searches, a space or spaces normally matches any whitespace

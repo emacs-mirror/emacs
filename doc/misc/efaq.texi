@@ -4336,7 +4336,7 @@ best fix I've been able to come up with:
 
 @lisp
 (defun rmail-reply-t ()
-  "Reply only to the sender of the current message. (See rmail-reply.)"
+  "Reply only to the sender of the current message. (See ‘rmail-reply’.)"
   (interactive)
   (rmail-reply t))
 

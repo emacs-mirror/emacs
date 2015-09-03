@@ -1054,7 +1054,7 @@ the MSB or LSB of a signal inside an AUTORESET.
 
 If nil, AUTORESET uses \"0\" as the constant.
 
-If `unbased', AUTORESET used the unbased unsized literal \"'0\"
+If `unbased', AUTORESET used the unbased unsized literal \"\\='0\"
 as the constant. This setting is strongly recommended for
 SystemVerilog designs."
   :type 'boolean
@@ -12794,7 +12794,7 @@ Constant signals:
   is put into the AUTOSENSE list and is not desired, use the AUTO_CONSTANT
   declaration anywhere in the module (parenthesis are required):
 
-	/* AUTO_CONSTANT ( `this_is_really_constant_dont_autosense_it ) */
+	/* AUTO_CONSTANT ( \\=`this_is_really_constant_dont_autosense_it ) */
 
   Better yet, use a parameter, which will be understood to be constant
   automatically.
@@ -12810,16 +12810,16 @@ OOps!
 An example:
 
 	   always @ (/*AS*/) begin
-	      /* AUTO_CONSTANT (`constant) */
-	      outin = ina | inb | `constant;
+	      /* AUTO_CONSTANT (\\=`constant) */
+	      outin = ina | inb | \\=`constant;
 	      out = outin;
 	   end
 
 Typing \\[verilog-auto] will make this into:
 
 	   always @ (/*AS*/ina or inb) begin
-	      /* AUTO_CONSTANT (`constant) */
-	      outin = ina | inb | `constant;
+	      /* AUTO_CONSTANT (\\=`constant) */
+	      outin = ina | inb | \\=`constant;
 	      out = outin;
 	   end
 
@@ -12827,7 +12827,7 @@ Note in Verilog 2001, you can often get the same result from the new @*
 operator.  (This was added to the language in part due to AUTOSENSE!)
 
 	   always @* begin
-	      outin = ina | inb | `constant;
+	      outin = ina | inb | \\=`constant;
 	      out = outin;
 	   end"
   (save-excursion

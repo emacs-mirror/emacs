@@ -293,7 +293,7 @@ extends to the end of the match for the regular expression."
 (defcustom idlwave-auto-fill-split-string t
   "If non-nil then auto fill will split strings with the IDL `+' operator.
 When the line end falls within a string, string concatenation with the
-'+' operator will be used to distribute a long string over lines.
+`+' operator will be used to distribute a long string over lines.
 If nil and a string is split then a terminal beep and warning are issued.
 
 This variable is ignored when `idlwave-fill-comment-line-only' is
@@ -768,8 +768,8 @@ Also see help for `idlwave-surround'."
   :type 'boolean)
 
 (defcustom idlwave-pad-keyword t
-  "Non-nil means pad '=' in keywords (routine calls or defs) like assignment.
-Whenever `idlwave-surround' is non-nil then this affects how '=' is
+  "Non-nil means pad `=' in keywords (routine calls or defs) like assignment.
+Whenever `idlwave-surround' is non-nil then this affects how `=' is
 padded for keywords and for variables.  If t, pad the same as for
 assignments.  If nil then spaces are removed.  With any other value,
 spaces are left unchanged."
@@ -1571,11 +1571,11 @@ Otherwise, if SELECT is non-nil then only an action is created.
 
 Some examples:
 No spaces before and 1 after a comma
-   (idlwave-action-and-binding \",\"  '(idlwave-surround 0 1))
+   (idlwave-action-and-binding \",\"  \\='(idlwave-surround 0 1))
 A minimum of 1 space before and after `=' (see `idlwave-expand-equal').
-   (idlwave-action-and-binding \"=\"  '(idlwave-expand-equal -1 -1))
+   (idlwave-action-and-binding \"=\"  \\='(idlwave-expand-equal -1 -1))
 Capitalize system variables - action only
-   (idlwave-action-and-binding idlwave-sysvar '(capitalize-word 1) t)"
+   (idlwave-action-and-binding idlwave-sysvar \\='(capitalize-word 1) t)"
   (if (not (equal select 'noaction))
       ;; Add action
       (let* ((table (if select 'idlwave-indent-action-table

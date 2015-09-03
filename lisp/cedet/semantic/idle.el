@@ -716,8 +716,8 @@ It might be useful to override this variable to add comment faces
 specific to a major mode.  For example, in jde mode:
 
 \(defvar-mode-local jde-mode semantic-idle-summary-out-of-context-faces
-   (append (default-value 'semantic-idle-summary-out-of-context-faces)
-	   '(jde-java-font-lock-doc-tag-face
+   (append (default-value \\='semantic-idle-summary-out-of-context-faces)
+	   \\='(jde-java-font-lock-doc-tag-face
 	     jde-java-font-lock-link-face
 	     jde-java-font-lock-bold-face
 	     jde-java-font-lock-underline-face

@@ -270,7 +270,7 @@ active server buffer available."
   ;; existing process.
   (when (or notest (erc-autoaway-some-open-server-buffer))
     (setq erc-autoaway-caused-away t)
-    (erc-cmd-GAWAY (format erc-autoaway-message idle-time))))
+    (erc-cmd-GAWAY (format-message erc-autoaway-message idle-time))))
 
 (defun erc-autoaway-reset-indicators (&rest stuff)
   "Reset indicators used by the erc-autoaway module."

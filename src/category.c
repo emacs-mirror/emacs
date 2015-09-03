@@ -491,7 +491,7 @@ between C1 and C2.
 
 For instance, to tell that there's a word boundary between Hiragana
 and Katakana (both are in the same script `kana'),
-the element `(?H . ?K) should be in this list.  */);
+the element `(?H . ?K)' should be in this list.  */);
 
   Vword_combining_categories = Qnil;
 

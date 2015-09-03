@@ -976,7 +976,7 @@ except when you want to create a new frame on another terminal.
 In that case, the `tty' parameter specifies the device file to open,
 and the `tty-type' parameter specifies the terminal type.  Example:
 
-   (make-terminal-frame '((tty . "/dev/pts/5") (tty-type . "xterm")))
+   (make-terminal-frame \\='((tty . "/dev/pts/5") (tty-type . "xterm")))
 
 Note that changing the size of one terminal frame automatically
 affects all frames on the same terminal device.  */)
@@ -5018,7 +5018,7 @@ You can also use a floating number between 0.0 and 1.0.  */);
   DEFVAR_LISP ("default-frame-alist", Vdefault_frame_alist,
 	       doc: /* Alist of default values for frame creation.
 These may be set in your init file, like this:
-  (setq default-frame-alist '((width . 80) (height . 55) (menu-bar-lines . 1)))
+  (setq default-frame-alist \\='((width . 80) (height . 55) (menu-bar-lines . 1)))
 These override values given in window system configuration data,
  including X Windows' defaults database.
 For values specific to the first Emacs frame, see `initial-frame-alist'.
@@ -5176,7 +5176,7 @@ width by the width of one scroll bar provided this option is nil and
 keep it unchanged if this option is either t or a list containing
 `vertical-scroll-bars'.
 
-The default value is '(tool-bar-lines) on Lucid, Motif and Windows
+The default value is \\='(tool-bar-lines) on Lucid, Motif and Windows
 \(which means that adding/removing a tool bar does not change the frame
 height), nil on all other window systems including GTK+ (which means
 that changing any of the parameters listed above may change the size of

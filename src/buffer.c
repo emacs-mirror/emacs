@@ -5408,140 +5408,140 @@ syms_of_buffer (void)
   DEFVAR_BUFFER_DEFAULTS ("default-mode-line-format",
 			  mode_line_format,
 			  doc: /* Default value of `mode-line-format' for buffers that don't override it.
-This is the same as (default-value 'mode-line-format).  */);
+This is the same as (default-value \\='mode-line-format).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-header-line-format",
 			  header_line_format,
 			  doc: /* Default value of `header-line-format' for buffers that don't override it.
-This is the same as (default-value 'header-line-format).  */);
+This is the same as (default-value \\='header-line-format).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-cursor-type", cursor_type,
 			  doc: /* Default value of `cursor-type' for buffers that don't override it.
-This is the same as (default-value 'cursor-type).  */);
+This is the same as (default-value \\='cursor-type).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-line-spacing",
 			  extra_line_spacing,
 			  doc: /* Default value of `line-spacing' for buffers that don't override it.
-This is the same as (default-value 'line-spacing).  */);
+This is the same as (default-value \\='line-spacing).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-cursor-in-non-selected-windows",
 			  cursor_in_non_selected_windows,
 			  doc: /* Default value of `cursor-in-non-selected-windows'.
-This is the same as (default-value 'cursor-in-non-selected-windows).  */);
+This is the same as (default-value \\='cursor-in-non-selected-windows).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-abbrev-mode",
 			  abbrev_mode,
 			  doc: /* Default value of `abbrev-mode' for buffers that do not override it.
-This is the same as (default-value 'abbrev-mode).  */);
+This is the same as (default-value \\='abbrev-mode).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-ctl-arrow",
 			  ctl_arrow,
 			  doc: /* Default value of `ctl-arrow' for buffers that do not override it.
-This is the same as (default-value 'ctl-arrow).  */);
+This is the same as (default-value \\='ctl-arrow).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-enable-multibyte-characters",
 			  enable_multibyte_characters,
 			  doc: /* Default value of `enable-multibyte-characters' for buffers not overriding it.
-This is the same as (default-value 'enable-multibyte-characters).  */);
+This is the same as (default-value \\='enable-multibyte-characters).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-buffer-file-coding-system",
 			  buffer_file_coding_system,
 			  doc: /* Default value of `buffer-file-coding-system' for buffers not overriding it.
-This is the same as (default-value 'buffer-file-coding-system).  */);
+This is the same as (default-value \\='buffer-file-coding-system).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-truncate-lines",
 			  truncate_lines,
 			  doc: /* Default value of `truncate-lines' for buffers that do not override it.
-This is the same as (default-value 'truncate-lines).  */);
+This is the same as (default-value \\='truncate-lines).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-fill-column",
 			  fill_column,
 			  doc: /* Default value of `fill-column' for buffers that do not override it.
-This is the same as (default-value 'fill-column).  */);
+This is the same as (default-value \\='fill-column).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-left-margin",
 			  left_margin,
 			  doc: /* Default value of `left-margin' for buffers that do not override it.
-This is the same as (default-value 'left-margin).  */);
+This is the same as (default-value \\='left-margin).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-tab-width",
 			  tab_width,
 			  doc: /* Default value of `tab-width' for buffers that do not override it.
 NOTE: This controls the display width of a TAB character, and not
 the size of an indentation step.
-This is the same as (default-value 'tab-width).  */);
+This is the same as (default-value \\='tab-width).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-case-fold-search",
 			  case_fold_search,
 			  doc: /* Default value of `case-fold-search' for buffers that don't override it.
-This is the same as (default-value 'case-fold-search).  */);
+This is the same as (default-value \\='case-fold-search).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-left-margin-width",
 			  left_margin_cols,
 			  doc: /* Default value of `left-margin-width' for buffers that don't override it.
-This is the same as (default-value 'left-margin-width).  */);
+This is the same as (default-value \\='left-margin-width).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-right-margin-width",
 			  right_margin_cols,
 			  doc: /* Default value of `right-margin-width' for buffers that don't override it.
-This is the same as (default-value 'right-margin-width).  */);
+This is the same as (default-value \\='right-margin-width).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-left-fringe-width",
 			  left_fringe_width,
 			  doc: /* Default value of `left-fringe-width' for buffers that don't override it.
-This is the same as (default-value 'left-fringe-width).  */);
+This is the same as (default-value \\='left-fringe-width).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-right-fringe-width",
 			  right_fringe_width,
 			  doc: /* Default value of `right-fringe-width' for buffers that don't override it.
-This is the same as (default-value 'right-fringe-width).  */);
+This is the same as (default-value \\='right-fringe-width).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-fringes-outside-margins",
 			  fringes_outside_margins,
 			  doc: /* Default value of `fringes-outside-margins' for buffers that don't override it.
-This is the same as (default-value 'fringes-outside-margins).  */);
+This is the same as (default-value \\='fringes-outside-margins).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-scroll-bar-width",
 			  scroll_bar_width,
 			  doc: /* Default value of `scroll-bar-width' for buffers that don't override it.
-This is the same as (default-value 'scroll-bar-width).  */);
+This is the same as (default-value \\='scroll-bar-width).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-vertical-scroll-bar",
 			  vertical_scroll_bar_type,
 			  doc: /* Default value of `vertical-scroll-bar' for buffers that don't override it.
-This is the same as (default-value 'vertical-scroll-bar).  */);
+This is the same as (default-value \\='vertical-scroll-bar).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-indicate-empty-lines",
 			  indicate_empty_lines,
 			  doc: /* Default value of `indicate-empty-lines' for buffers that don't override it.
-This is the same as (default-value 'indicate-empty-lines).  */);
+This is the same as (default-value \\='indicate-empty-lines).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-indicate-buffer-boundaries",
 			  indicate_buffer_boundaries,
 			  doc: /* Default value of `indicate-buffer-boundaries' for buffers that don't override it.
-This is the same as (default-value 'indicate-buffer-boundaries).  */);
+This is the same as (default-value \\='indicate-buffer-boundaries).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-fringe-indicator-alist",
 			  fringe_indicator_alist,
 			  doc: /* Default value of `fringe-indicator-alist' for buffers that don't override it.
-This is the same as (default-value 'fringe-indicator-alist).  */);
+This is the same as (default-value \\='fringe-indicator-alist).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-fringe-cursor-alist",
 			  fringe_cursor_alist,
 			  doc: /* Default value of `fringe-cursor-alist' for buffers that don't override it.
-This is the same as (default-value 'fringe-cursor-alist).  */);
+This is the same as (default-value \\='fringe-cursor-alist).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-scroll-up-aggressively",
 			  scroll_up_aggressively,
 			  doc: /* Default value of `scroll-up-aggressively'.
 This value applies in buffers that don't have their own local values.
-This is the same as (default-value 'scroll-up-aggressively).  */);
+This is the same as (default-value \\='scroll-up-aggressively).  */);
 
   DEFVAR_BUFFER_DEFAULTS ("default-scroll-down-aggressively",
 			  scroll_down_aggressively,
 			  doc: /* Default value of `scroll-down-aggressively'.
 This value applies in buffers that don't have their own local values.
-This is the same as (default-value 'scroll-down-aggressively).  */);
+This is the same as (default-value \\='scroll-down-aggressively).  */);
 
   DEFVAR_PER_BUFFER ("header-line-format",
 		     &BVAR (current_buffer, header_line_format),

@@ -237,7 +237,8 @@ The final element is \"*\", indicating an unspecified month.")
 		   (when (string= (widget-value widget) todo-item-mark)
 		     (widget-put
 		      widget :error
-		      "Invalid value: must be distinct from ‘todo-item-mark’")
+		      (format-message
+		       "Invalid value: must be distinct from ‘todo-item-mark’"))
 		     widget)))
   :initialize 'custom-initialize-default
   :set 'todo-reset-prefix
@@ -1694,7 +1695,8 @@ only when no items are marked."
 		   (when (string= (widget-value widget) todo-prefix)
 		     (widget-put
 		      widget :error
-		      "Invalid value: must be distinct from ‘todo-prefix’")
+		      (format-message
+		       "Invalid value: must be distinct from ‘todo-prefix’"))
 		     widget)))
   :set (lambda (symbol value)
 	 (custom-set-default symbol (propertize value 'face 'todo-mark)))

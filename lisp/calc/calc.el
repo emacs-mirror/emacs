@@ -736,7 +736,7 @@ If hms, angles are in degrees-minutes-seconds.")
 
 (defcalcmodevar calc-algebraic-mode nil
   "If non-nil, numeric entry accepts whole algebraic expressions.
-If nil, algebraic expressions must be preceded by \"'\".")
+If nil, algebraic expressions must be preceded by \"\\='\".")
 
 (defcalcmodevar calc-incomplete-algebraic-mode nil
   "Like calc-algebraic-mode except only affects ( and [ keys.")
@@ -1311,7 +1311,7 @@ This is an RPN calculator featuring arbitrary-precision integer, rational,
 floating-point, complex, matrix, and symbolic arithmetic.
 
 RPN calculation:  2 RET 3 +    produces 5.
-Algebraic style:  ' 2+3 RET    produces 5.
+Algebraic style:  \\=' 2+3 RET    produces 5.
 
 Basic operators are +, -, *, /, ^, & (reciprocal), % (modulo), n (change-sign).
 
@@ -1330,7 +1330,7 @@ Notations:  3.14e6     3.14 * 10^6
             [1 .. 4)   semi-open interval, 1 <= x < 4
             2 +/- 3    (p key) number with mean 2, standard deviation 3
             2 mod 3    (M key) number 2 computed modulo 3
-	    <1 jan 91> Date form (enter using ' key)
+	    <1 jan 91> Date form (enter using \\=' key)
 
 
 \\{calc-mode-map}

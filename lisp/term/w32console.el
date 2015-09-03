@@ -68,12 +68,7 @@
 	   (if oem-o-cs-p oem-code-page-output-coding oem-code-page-coding))
           ;; Since we changed the terminal encoding, we need to repeat
           ;; the test for Unicode quotes being displayable.
-          (dolist (char-repl
-                   '((?‘ . [?\`]) (?’ . [?\']) (?“ . [?\"]) (?” . [?\"])))
-            (when (not (char-displayable-p (car char-repl)))
-              (or standard-display-table
-                  (setq standard-display-table (make-display-table)))
-              (aset standard-display-table (car char-repl) (cdr char-repl))))))
+          (startup--setup-quote-display)))
   (let* ((colors w32-tty-standard-colors)
          (color (car colors)))
     (tty-color-clear)

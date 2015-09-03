@@ -125,7 +125,7 @@
     (cl-case type
       (defalias
        ;; summary: "(defalias xref)"
-       ;; target : "(defalias 'xref)"
+       ;; target : "(defalias 'xref"
        (concat "(defalias '" (substring (xref-item-summary xref) 10 -1)))
 
       (defun
@@ -211,7 +211,7 @@ to (xref-elisp-test-descr-to-target xref)."
 
 ;; alphabetical by test name
 
-;; FIXME: autoload
+;; Autoloads require no special support; they are handled as functions.
 
 ;; FIXME: defalias-defun-c cmpl-prefix-entry-head
 ;; FIXME: defalias-defvar-el allout-mode-map

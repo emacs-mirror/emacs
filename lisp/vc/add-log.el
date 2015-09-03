@@ -481,9 +481,9 @@ try to visit the file for the change under `point' instead."
 		(apply 'change-log-goto-source-1
 		       (append change-log-find-head change-log-find-tail))
 	      (error
-	       (format "Cannot find more matches for tag `%s' in file `%s'"
-		       (car change-log-find-head)
-		       (nth 2 change-log-find-head)))))
+	       "Cannot find more matches for tag `%s' in file `%s'"
+	       (car change-log-find-head)
+	       (nth 2 change-log-find-head))))
     (save-excursion
       (let* ((at (point))
 	     (tag-at (change-log-search-tag-name))
@@ -515,9 +515,8 @@ try to visit the file for the change under `point' instead."
 	  (condition-case nil
 	      (setq change-log-find-tail
 		    (apply 'change-log-goto-source-1 change-log-find-head))
-	    (error
-	     (format "Cannot find matches for tag `%s' in file `%s'"
-		     tag file)))))))))
+	    (error "Cannot find matches for tag `%s' in file `%s'"
+		   tag file))))))))
 
 (defun change-log-next-error (&optional argp reset)
   "Move to the Nth (default 1) next match in a ChangeLog buffer.

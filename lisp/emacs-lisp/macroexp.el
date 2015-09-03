@@ -149,7 +149,7 @@ and also to avoid outputting the warning during normal execution."
     (format-message
      "‘%s’ is an obsolete %s%s%s" fun type
      (if asof (concat " (as of " asof ")") "")
-     (cond ((stringp instead) (concat "; " instead))
+     (cond ((stringp instead) (concat "; " (substitute-command-keys instead)))
            (instead (format-message "; use ‘%s’ instead." instead))
            (t ".")))))
 

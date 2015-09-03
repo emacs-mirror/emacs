@@ -382,7 +382,7 @@ Enable automatic encryption/decryption of *.gpg files.
 @noindent
 By default, @code{epa-file} will try to use symmetric encryption, aka
 password-based encryption.  If you want to use public key encryption
-instead, do @kbd{M-x epa-file-select-keys}, which will pops up the key
+instead, do @kbd{M-x epa-file-select-keys}, which pops up the key
 selection dialog.
 
 @deffn Command epa-file-select-keys

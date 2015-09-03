@@ -1189,8 +1189,8 @@ and `defface'.
 
 For example, the MH-E package updates this alist as follows:
 
-     (add-to-list 'customize-package-emacs-version-alist
-                  '(MH-E (\"6.0\" . \"22.1\") (\"6.1\" . \"22.1\")
+     (add-to-list \\='customize-package-emacs-version-alist
+                  \\='(MH-E (\"6.0\" . \"22.1\") (\"6.1\" . \"22.1\")
                          (\"7.0\" . \"22.1\") (\"7.1\" . \"22.1\")
                          (\"7.2\" . \"22.1\") (\"7.3\" . \"22.1\")
                          (\"7.4\" . \"22.1\") (\"8.0\" . \"22.1\")))

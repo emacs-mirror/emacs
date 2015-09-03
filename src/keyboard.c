@@ -107,10 +107,6 @@ static Lisp_Object recent_keys;
 Lisp_Object this_command_keys;
 ptrdiff_t this_command_key_count;
 
-/* True after calling Freset_this_command_lengths.
-   Usually it is false.  */
-static bool this_command_key_count_reset;
-
 /* This vector is used as a buffer to record the events that were actually read
    by read_key_sequence.  */
 static Lisp_Object raw_keybuf;
@@ -123,11 +119,6 @@ static int raw_keybuf_count;
 /* Number of elements of this_command_keys
    that precede this key sequence.  */
 static ptrdiff_t this_single_command_key_start;
-
-/* Record values of this_command_key_count and echo_length ()
-   before this command was read.  */
-static ptrdiff_t before_command_key_count;
-static ptrdiff_t before_command_echo_length;
 
 #ifdef HAVE_STACK_OVERFLOW_HANDLING
 
@@ -441,10 +432,12 @@ echo_add_key (Lisp_Object c)
   ptrdiff_t size = sizeof initbuf;
   char *buffer = initbuf;
   char *ptr = buffer;
-  Lisp_Object echo_string;
+  Lisp_Object echo_string = KVAR (current_kboard, echo_string);
   USE_SAFE_ALLOCA;
 
-  echo_string = KVAR (current_kboard, echo_string);
+  if (STRINGP (echo_string) && SCHARS (echo_string) > 0)
+    /* Add a space at the end as a separator between keys.  */
+    ptr++[0] = ' ';
 
   /* If someone has passed us a composite event, use its head symbol.  */
   c = EVENT_HEAD (c);
@@ -486,46 +479,10 @@ echo_add_key (Lisp_Object c)
       ptr += len;
     }
 
-  /* Replace a dash from echo_dash with a space, otherwise add a space
-     at the end as a separator between keys.  */
-  AUTO_STRING (space, " ");
-  if (STRINGP (echo_string) && SCHARS (echo_string) > 1)
-    {
-      Lisp_Object last_char, prev_char, idx;
-
-      idx = make_number (SCHARS (echo_string) - 2);
-      prev_char = Faref (echo_string, idx);
-
-      idx = make_number (SCHARS (echo_string) - 1);
-      last_char = Faref (echo_string, idx);
-
-      /* We test PREV_CHAR to make sure this isn't the echoing of a
-	 minus-sign.  */
-      if (XINT (last_char) == '-' && XINT (prev_char) != ' ')
-	Faset (echo_string, idx, make_number (' '));
-      else
-	echo_string = concat2 (echo_string, space);
-    }
-  else if (STRINGP (echo_string) && SCHARS (echo_string) > 0)
-    echo_string = concat2 (echo_string, space);
-
   kset_echo_string
     (current_kboard,
      concat2 (echo_string, make_string (buffer, ptr - buffer)));
   SAFE_FREE ();
-}
-
-/* Add C to the echo string, if echoing is going on.  C can be a
-   character or a symbol.  */
-
-static void
-echo_char (Lisp_Object c)
-{
-  if (current_kboard->immediate_echo)
-    {
-      echo_add_key (c);
-      echo_now ();
-    }
 }
 
 /* Temporarily add a dash to the end of the echo string if it's not
@@ -537,9 +494,6 @@ echo_dash (void)
 {
   /* Do nothing if not echoing at all.  */
   if (NILP (KVAR (current_kboard, echo_string)))
-    return;
-
-  if (this_command_key_count == 0)
     return;
 
   if (!current_kboard->immediate_echo
@@ -574,6 +528,29 @@ echo_dash (void)
   echo_now ();
 }
 
+static void
+echo_update (void)
+{
+  if (current_kboard->immediate_echo)
+    {
+      ptrdiff_t i;
+      kset_echo_string (current_kboard,
+			call0 (Qinternal_echo_keystrokes_prefix));
+
+      for (i = 0; i < this_command_key_count; i++)
+	{
+	  Lisp_Object c;
+
+	  c = AREF (this_command_keys, i);
+	  if (! (EVENT_HAS_PARAMETERS (c)
+		 && EQ (EVENT_HEAD_KIND (EVENT_HEAD (c)), Qmouse_movement)))
+	    echo_add_key (c);
+	}
+
+      echo_now ();
+    }
+}
+
 /* Display the current echo string, and begin echoing if not already
    doing so.  */
 
@@ -582,31 +559,8 @@ echo_now (void)
 {
   if (!current_kboard->immediate_echo)
     {
-      ptrdiff_t i;
       current_kboard->immediate_echo = true;
-
-      for (i = 0; i < this_command_key_count; i++)
-	{
-	  Lisp_Object c;
-
-	  /* Set before_command_echo_length to the value that would
-	     have been saved before the start of this subcommand in
-	     command_loop_1, if we had already been echoing then.  */
-	  if (i == this_single_command_key_start)
-	    before_command_echo_length = echo_length ();
-
-	  c = AREF (this_command_keys, i);
-	  if (! (EVENT_HAS_PARAMETERS (c)
-		 && EQ (EVENT_HEAD_KIND (EVENT_HEAD (c)), Qmouse_movement)))
-	    echo_char (c);
-	}
-
-      /* Set before_command_echo_length to the value that would
-	 have been saved before the start of this subcommand in
-	 command_loop_1, if we had already been echoing then.  */
-      if (this_command_key_count == this_single_command_key_start)
-	before_command_echo_length = echo_length ();
-
+      echo_update ();
       /* Put a dash at the end to invite the user to type more.  */
       echo_dash ();
     }
@@ -666,20 +620,6 @@ echo_truncate (ptrdiff_t nchars)
 static void
 add_command_key (Lisp_Object key)
 {
-#if 0 /* Not needed after we made Freset_this_command_lengths
-	 do the job immediately.  */
-  /* If reset-this-command-length was called recently, obey it now.
-     See the doc string of that function for an explanation of why.  */
-  if (before_command_restore_flag)
-    {
-      this_command_key_count = before_command_key_count_1;
-      if (this_command_key_count < this_single_command_key_start)
-	this_single_command_key_start = this_command_key_count;
-      echo_truncate (before_command_echo_length_1);
-      before_command_restore_flag = 0;
-    }
-#endif
-
   if (this_command_key_count >= ASIZE (this_command_keys))
     this_command_keys = larger_vector (this_command_keys, 1, -1);
 
@@ -754,7 +694,7 @@ force_auto_save_soon (void)
 DEFUN ("recursive-edit", Frecursive_edit, Srecursive_edit, 0, 0, "",
        doc: /* Invoke the editor command loop recursively.
 To get out of the recursive edit, a command can throw to ‘exit’ -- for
-instance ‘(throw 'exit nil)’.
+instance ‘(throw \\='exit nil)’.
 If you throw a value other than t, ‘recursive-edit’ returns normally
 to the function that called it.  Throwing a t value causes
 ‘recursive-edit’ to quit, so that control returns to the command loop
@@ -1285,10 +1225,6 @@ static void adjust_point_for_property (ptrdiff_t, bool);
 /* The last boundary auto-added to buffer-undo-list.  */
 Lisp_Object last_undo_boundary;
 
-/* FIXME: This is wrong rather than test window-system, we should call
-   a new set-selection, which will then dispatch to x-set-selection, or
-   tty-set-selection, or w32-set-selection, ...  */
-
 Lisp_Object
 command_loop_1 (void)
 {
@@ -1306,7 +1242,6 @@ command_loop_1 (void)
   cancel_echoing ();
 
   this_command_key_count = 0;
-  this_command_key_count_reset = false;
   this_single_command_key_start = 0;
 
   if (NILP (Vmemory_full))
@@ -1394,9 +1329,6 @@ command_loop_1 (void)
 	  && !NILP (Ffboundp (Qrecompute_lucid_menubar)))
 	call0 (Qrecompute_lucid_menubar);
 
-      before_command_key_count = this_command_key_count;
-      before_command_echo_length = echo_length ();
-
       Vthis_command = Qnil;
       Vreal_this_command = Qnil;
       Vthis_original_command = Qnil;
@@ -1424,7 +1356,6 @@ command_loop_1 (void)
 	{
 	  cancel_echoing ();
 	  this_command_key_count = 0;
-	  this_command_key_count_reset = false;
 	  this_single_command_key_start = 0;
 	  goto finalize;
 	}
@@ -1509,14 +1440,13 @@ command_loop_1 (void)
               }
 #endif
 
-            if (NILP (KVAR (current_kboard, Vprefix_arg))) /* FIXME: Why?  --Stef  */
-              {
-		Lisp_Object undo = BVAR (current_buffer, undo_list);
-		Fundo_boundary ();
-		last_undo_boundary
-		  = (EQ (undo, BVAR (current_buffer, undo_list))
-		     ? Qnil : BVAR (current_buffer, undo_list));
-	      }
+	    {
+	      Lisp_Object undo = BVAR (current_buffer, undo_list);
+	      Fundo_boundary ();
+	      last_undo_boundary
+		= (EQ (undo, BVAR (current_buffer, undo_list))
+		   ? Qnil : BVAR (current_buffer, undo_list));
+	    }
             call1 (Qcommand_execute, Vthis_command);
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -1544,31 +1474,23 @@ command_loop_1 (void)
 
       safe_run_hooks (Qdeferred_action_function);
 
-      /* If there is a prefix argument,
-	 1) We don't want Vlast_command to be ``universal-argument''
-	 (that would be dumb), so don't set Vlast_command,
-	 2) we want to leave echoing on so that the prefix will be
-	 echoed as part of this key sequence, so don't call
-	 cancel_echoing, and
-	 3) we want to leave this_command_key_count non-zero, so that
-	 read_char will realize that it is re-reading a character, and
-	 not echo it a second time.
+      kset_last_command (current_kboard, Vthis_command);
+      kset_real_last_command (current_kboard, Vreal_this_command);
+      if (!CONSP (last_command_event))
+	kset_last_repeatable_command (current_kboard, Vreal_this_command);
 
-	 If the command didn't actually create a prefix arg,
-	 but is merely a frame event that is transparent to prefix args,
-	 then the above doesn't apply.  */
-      if (NILP (KVAR (current_kboard, Vprefix_arg))
-	  || CONSP (last_command_event))
+      this_command_key_count = 0;
+      this_single_command_key_start = 0;
+
+      if (current_kboard->immediate_echo
+	  && !NILP (call0 (Qinternal_echo_keystrokes_prefix)))
 	{
-	  kset_last_command (current_kboard, Vthis_command);
-	  kset_real_last_command (current_kboard, Vreal_this_command);
-	  if (!CONSP (last_command_event))
-	    kset_last_repeatable_command (current_kboard, Vreal_this_command);
-	  cancel_echoing ();
-	  this_command_key_count = 0;
-	  this_command_key_count_reset = false;
-	  this_single_command_key_start = 0;
+	  current_kboard->immediate_echo = false;
+	  /* Refresh the echo message.  */
+	  echo_now ();
 	}
+      else
+	cancel_echoing ();
 
       if (!NILP (BVAR (current_buffer, mark_active))
 	  && !NILP (Vrun_hooks))
@@ -2389,10 +2311,6 @@ read_char (int commandflag, Lisp_Object map,
 
   also_record = Qnil;
 
-#if 0  /* This was commented out as part of fixing echo for C-u left.  */
-  before_command_key_count = this_command_key_count;
-  before_command_echo_length = echo_length ();
-#endif
   c = Qnil;
   previous_echo_area_message = Qnil;
 
@@ -2470,8 +2388,6 @@ read_char (int commandflag, Lisp_Object map,
       reread = true;
       goto reread_for_input_method;
     }
-
-  this_command_key_count_reset = false;
 
   if (!NILP (Vexecuting_kbd_macro))
     {
@@ -2570,7 +2486,7 @@ read_char (int commandflag, Lisp_Object map,
 
      (3) There's only one place in 20.x where ok_to_echo_at_next_pause
      is set to a non-null value.  This is done in read_char and it is
-     set to echo_area_glyphs after a call to echo_char.  That means
+     set to echo_area_glyphs.  That means
      ok_to_echo_at_next_pause is either null or
      current_kboard->echobuf with the appropriate current_kboard at
      that time.
@@ -2674,7 +2590,8 @@ read_char (int commandflag, Lisp_Object map,
   if (minibuf_level == 0
       && !end_time
       && !current_kboard->immediate_echo
-      && this_command_key_count > 0
+      && (this_command_key_count > 0
+	  || !NILP (call0 (Qinternal_echo_keystrokes_prefix)))
       && ! noninteractive
       && echo_keystrokes_p ()
       && (/* No message.  */
@@ -3018,7 +2935,6 @@ read_char (int commandflag, Lisp_Object map,
     {
       Lisp_Object keys;
       ptrdiff_t key_count;
-      bool key_count_reset;
       ptrdiff_t command_key_start;
       ptrdiff_t count = SPECPDL_INDEX ();
 
@@ -3028,20 +2944,8 @@ read_char (int commandflag, Lisp_Object map,
       Lisp_Object saved_echo_string = KVAR (current_kboard, echo_string);
       ptrdiff_t saved_echo_after_prompt = current_kboard->echo_after_prompt;
 
-#if 0
-      if (before_command_restore_flag)
-	{
-	  this_command_key_count = before_command_key_count_1;
-	  if (this_command_key_count < this_single_command_key_start)
-	    this_single_command_key_start = this_command_key_count;
-	  echo_truncate (before_command_echo_length_1);
-	  before_command_restore_flag = 0;
-	}
-#endif
-
       /* Save the this_command_keys status.  */
       key_count = this_command_key_count;
-      key_count_reset = this_command_key_count_reset;
       command_key_start = this_single_command_key_start;
 
       if (key_count > 0)
@@ -3051,7 +2955,6 @@ read_char (int commandflag, Lisp_Object map,
 
       /* Clear out this_command_keys.  */
       this_command_key_count = 0;
-      this_command_key_count_reset = false;
       this_single_command_key_start = 0;
 
       /* Now wipe the echo area.  */
@@ -3075,7 +2978,6 @@ read_char (int commandflag, Lisp_Object map,
       /* Restore the saved echoing state
 	 and this_command_keys state.  */
       this_command_key_count = key_count;
-      this_command_key_count_reset = key_count_reset;
       this_single_command_key_start = command_key_start;
       if (key_count > 0)
 	this_command_keys = keys;
@@ -3141,28 +3043,23 @@ read_char (int commandflag, Lisp_Object map,
       goto retry;
     }
 
-  if ((! reread || this_command_key_count == 0
-       || this_command_key_count_reset)
+  if ((! reread || this_command_key_count == 0)
       && !end_time)
     {
 
       /* Don't echo mouse motion events.  */
-      if (echo_keystrokes_p ()
-	  && ! (EVENT_HAS_PARAMETERS (c)
-		&& EQ (EVENT_HEAD_KIND (EVENT_HEAD (c)), Qmouse_movement)))
-	{
-	  echo_char (c);
-	  if (! NILP (also_record))
-	    echo_char (also_record);
-	  /* Once we reread a character, echoing can happen
-	     the next time we pause to read a new one.  */
-	  ok_to_echo_at_next_pause = current_kboard;
-	}
+      if (! (EVENT_HAS_PARAMETERS (c)
+	     && EQ (EVENT_HEAD_KIND (EVENT_HEAD (c)), Qmouse_movement)))
+	/* Once we reread a character, echoing can happen
+	   the next time we pause to read a new one.  */
+	ok_to_echo_at_next_pause = current_kboard;
 
       /* Record this character as part of the current key.  */
       add_command_key (c);
       if (! NILP (also_record))
 	add_command_key (also_record);
+
+      echo_update ();
     }
 
   last_input_event = c;
@@ -3218,23 +3115,13 @@ record_menu_key (Lisp_Object c)
 
   record_char (c);
 
-#if 0
-  before_command_key_count = this_command_key_count;
-  before_command_echo_length = echo_length ();
-#endif
-
-  /* Don't echo mouse motion events.  */
-  if (echo_keystrokes_p ())
-    {
-      echo_char (c);
-
-      /* Once we reread a character, echoing can happen
-	 the next time we pause to read a new one.  */
-      ok_to_echo_at_next_pause = 0;
-    }
+  /* Once we reread a character, echoing can happen
+     the next time we pause to read a new one.  */
+  ok_to_echo_at_next_pause = NULL;
 
   /* Record this character as part of the current key.  */
   add_command_key (c);
+  echo_update ();
 
   /* Re-reading in the middle of a command.  */
   last_input_event = c;
@@ -9135,11 +9022,12 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	{
 	  key = keybuf[t];
 	  add_command_key (key);
-	  if (echo_keystrokes_p ()
-	      && current_kboard->immediate_echo)
+	  if (current_kboard->immediate_echo)
 	    {
-	      echo_add_key (key);
-	      echo_dash ();
+	      /* Set immediate_echo to false so as to force echo_now to
+		 redisplay (it will set immediate_echo right back to true).  */
+	      current_kboard->immediate_echo = false;
+	      echo_now ();
 	    }
 	}
 
@@ -9803,11 +9691,8 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 
      Better ideas?  */
   for (; t < mock_input; t++)
-    {
-      if (echo_keystrokes_p ())
-	echo_char (keybuf[t]);
-      add_command_key (keybuf[t]);
-    }
+    add_command_key (keybuf[t]);
+  echo_update ();
 
   return t;
 }
@@ -9834,7 +9719,6 @@ read_key_sequence_vs (Lisp_Object prompt, Lisp_Object continue_echo,
   if (NILP (continue_echo))
     {
       this_command_key_count = 0;
-      this_command_key_count_reset = false;
       this_single_command_key_start = 0;
     }
 
@@ -10091,33 +9975,6 @@ The value is always a vector.  */)
   return Fvector (raw_keybuf_count, XVECTOR (raw_keybuf)->contents);
 }
 
-DEFUN ("reset-this-command-lengths", Freset_this_command_lengths,
-       Sreset_this_command_lengths, 0, 0, 0,
-       doc: /* Make the unread events replace the last command and echo.
-Used in `universal-argument-other-key'.
-
-`universal-argument-other-key' rereads the event just typed.
-It then gets translated through `function-key-map'.
-The translated event has to replace the real events,
-both in the value of (this-command-keys) and in echoing.
-To achieve this, `universal-argument-other-key' calls
-`reset-this-command-lengths', which discards the record of reading
-these events the first time.  */)
-  (void)
-{
-  this_command_key_count = before_command_key_count;
-  if (this_command_key_count < this_single_command_key_start)
-    this_single_command_key_start = this_command_key_count;
-
-  echo_truncate (before_command_echo_length);
-
-  /* Cause whatever we put into unread-command-events
-     to echo as if it were being freshly read from the keyboard.  */
-  this_command_key_count_reset = true;
-
-  return Qnil;
-}
-
 DEFUN ("clear-this-command-keys", Fclear_this_command_keys,
        Sclear_this_command_keys, 0, 1, 0,
        doc: /* Clear out the vector that `this-command-keys' returns.
@@ -10128,7 +9985,6 @@ KEEP-RECORD is non-nil.  */)
   int i;
 
   this_command_key_count = 0;
-  this_command_key_count_reset = false;
 
   if (NILP (keep_record))
     {
@@ -11229,6 +11085,7 @@ syms_of_keyboard (void)
   staticpro (&raw_keybuf);
 
   DEFSYM (Qcommand_execute, "command-execute");
+  DEFSYM (Qinternal_echo_keystrokes_prefix, "internal-echo-keystrokes-prefix");
 
   accent_key_syms = Qnil;
   staticpro (&accent_key_syms);
@@ -11272,7 +11129,6 @@ syms_of_keyboard (void)
   defsubr (&Sthis_command_keys_vector);
   defsubr (&Sthis_single_command_keys);
   defsubr (&Sthis_single_command_raw_keys);
-  defsubr (&Sreset_this_command_lengths);
   defsubr (&Sclear_this_command_keys);
   defsubr (&Ssuspend_emacs);
   defsubr (&Sabort_recursive_edit);

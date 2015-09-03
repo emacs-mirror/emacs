@@ -252,15 +252,16 @@ This activates input method defined by PACKAGE-NAME by running
 		(with-output-to-temp-buffer "*Help*"
 		  (princ "Quail package \"")
 		  (princ package-name)
-		  (princ "\" can't be activated\n  because library \"")
+		  (princ (substitute-command-keys
+			  "\" can't be activated\n  because library \""))
 		  (princ (car libraries))
-		  (princ "\" is not in `load-path'.
+		  (princ (substitute-command-keys "\" is not in `load-path'.
 
 The most common case is that you have not yet installed appropriate
 libraries in LEIM (Libraries of Emacs Input Method) which is
 distributed separately from Emacs.
 
-LEIM is available from the same ftp directory as Emacs."))
+LEIM is available from the same ftp directory as Emacs.")))
 		(error "Can't use the Quail package `%s'" package-name))
 	    (setq libraries (cdr libraries))))))
   (quail-select-package package-name)
@@ -625,7 +626,7 @@ While this input method is active, the variable
   "Standard keyboard layout of printable characters Quail assumes.
 See the documentation of `quail-keyboard-layout' for this format.
 This layout is almost the same as that of VT100,
- but the location of key \\ (backslash) is just right of key ' (single-quote),
+ but the location of key \\ (backslash) is just right of key \\=' (single-quote),
  not right of RETURN key.")
 
 (defconst quail-keyboard-layout-len 180)
@@ -2533,35 +2534,37 @@ package to describe."
       (let ((done-list nil))
 	;; Show keyboard layout if the current package requests it..
 	(when (quail-show-layout)
-	  (insert "
+	  (insert (substitute-command-keys "
 KEYBOARD LAYOUT
 ---------------
 This input method works by translating individual input characters.
-Assuming that your actual keyboard has the `")
+Assuming that your actual keyboard has the `"))
 	  (help-insert-xref-button
 	   quail-keyboard-layout-type
 	   'quail-keyboard-layout-button
 	   quail-keyboard-layout-type)
-	  (insert "' layout,
+	  (insert (substitute-command-keys "' layout,
 translation results in the following \"virtual\" keyboard layout
 \(the labels on the keys indicate what character will be produced
 by each key, with and without holding Shift):
-")
+"))
 	  (setq done-list
 		(quail-insert-kbd-layout quail-keyboard-layout))
-	  (insert "If your keyboard has a different layout, rearranged from
-`")
+	  (insert (substitute-command-keys "\
+If your keyboard has a different layout, rearranged from
+`"))
 	  (help-insert-xref-button
 	   "standard"
 	   'quail-keyboard-layout-button "standard")
-	  (insert "', the \"virtual\" keyboard you get with this input method
+	  (insert (substitute-command-keys "\
+', the \"virtual\" keyboard you get with this input method
 will be rearranged in the same way.
 
 You can set the variable `quail-keyboard-layout-type' to specify
 the physical layout of your keyboard; the tables shown in
 documentation of input methods including this one are based on the
 physical keyboard layout as specified with that variable.
-")
+"))
 	  (help-insert-xref-button
 	   "[customize keyboard layout]"
 	   'quail-keyboard-customize-button 'quail-keyboard-layout-type)

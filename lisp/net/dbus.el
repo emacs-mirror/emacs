@@ -377,7 +377,7 @@ Example:
 
 \(dbus-call-method-asynchronously
   :system \"org.freedesktop.Hal\" \"/org/freedesktop/Hal/devices/computer\"
-  \"org.freedesktop.Hal.Device\" \"GetPropertyString\" 'message
+  \"org.freedesktop.Hal.Device\" \"GetPropertyString\" \\='message
   \"system.kernel.machine\")
 
   => \(:serial :system 2)
@@ -654,7 +654,7 @@ Example:
 
 \(dbus-register-signal
   :system \"org.freedesktop.Hal\" \"/org/freedesktop/Hal/Manager\"
-  \"org.freedesktop.Hal.Manager\" \"DeviceAdded\" 'my-signal-handler)
+  \"org.freedesktop.Hal.Manager\" \"DeviceAdded\" \\='my-signal-handler)
 
   => \(\(:signal :system \"org.freedesktop.Hal.Manager\" \"DeviceAdded\")
       \(\"org.freedesktop.Hal\" \"/org/freedesktop/Hal/Manager\" my-signal-handler))

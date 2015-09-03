@@ -4232,7 +4232,7 @@ Return t if test was successful, nil otherwise."
                (cond ((not previous))
                      ((member key key-list)
                       (push (cons (bibtex-current-line)
-                                  (format "Duplicate key `%s'" key))
+                                  (format-message "Duplicate key `%s'" key))
                             error-list))
                      ((and bibtex-maintain-sorted-entries
                            (not (bibtex-lessp previous current)))
@@ -4255,8 +4255,9 @@ Return t if test was successful, nil otherwise."
                          (cdr (assoc-string (car key) bibtex-reference-keys)))
                 (bibtex-search-entry (car key))
                 (push (cons (bibtex-current-line)
-                            (format "Duplicate key `%s' in %s" (car key)
-                                    (abbreviate-file-name (buffer-file-name buffer))))
+                            (format-message
+			     "Duplicate key `%s' in %s" (car key)
+			     (abbreviate-file-name (buffer-file-name buffer))))
                       error-list))))
 
           (when test-thoroughly
@@ -4306,14 +4307,16 @@ Return t if test was successful, nil otherwise."
                        (if (setq idx (nth 3 field))
                            (bibtex-vec-push alt-expect idx (car field))
                          (push (cons beg-line
-                                     (format "Required field `%s' missing"
-                                             (car field)))
+                                     (format-message
+				      "Required field `%s' missing"
+				      (car field)))
                                error-list)))
                      (dotimes (idx num-alt)
                        (unless (aref alt-fields idx)
                          (push (cons beg-line
-                                     (format "Alternative fields `%s' missing"
-                                             (aref alt-expect idx)))
+                                     (format-message
+				      "Alternative fields `%s' missing"
+				      (aref alt-expect idx)))
                                error-list))))))))
             (bibtex-progress-message 'done)))))
 
@@ -4327,7 +4330,8 @@ Return t if test was successful, nil otherwise."
             (unless (eq major-mode 'compilation-mode) (compilation-mode))
             (let ((inhibit-read-only t))
               (delete-region (point-min) (point-max))
-              (insert "BibTeX mode command `bibtex-validate'\n"
+              (insert (substitute-command-keys
+		       "BibTeX mode command `bibtex-validate'\n")
                       (if syntax-error
                           "Maybe undetected errors due to syntax errors.  \
 Correct and validate again.\n"
@@ -4362,9 +4366,10 @@ Return t if test was successful, nil otherwise."
               (if (or (and strings (bibtex-string= entry-type "string"))
                       (assoc-string entry-type bibtex-entry-alist t))
                   (if (member key key-list)
-                      (push (format "%s:%d: Duplicate key `%s'\n"
-                                    (buffer-file-name)
-                                    (bibtex-current-line) key)
+                      (push (format-message
+			     "%s:%d: Duplicate key `%s'\n"
+			     (buffer-file-name)
+			     (bibtex-current-line) key)
                             error-list)
                     (push key key-list))))
             (push (cons buffer key-list) buffer-key-list)))))
@@ -4377,9 +4382,10 @@ Return t if test was successful, nil otherwise."
           (dolist (key (cdr (assq buffer buffer-key-list)))
             (when (assoc-string key current-keys)
               (bibtex-search-entry key)
-              (push (format "%s:%d: Duplicate key `%s' in %s\n"
-                            (buffer-file-name) (bibtex-current-line) key
-                            (abbreviate-file-name (buffer-file-name buffer)))
+              (push (format-message
+		     "%s:%d: Duplicate key `%s' in %s\n"
+		     (buffer-file-name) (bibtex-current-line) key
+		     (abbreviate-file-name (buffer-file-name buffer)))
                     error-list))))))
 
     ;; Process error list
@@ -4389,7 +4395,8 @@ Return t if test was successful, nil otherwise."
             (unless (eq major-mode 'compilation-mode) (compilation-mode))
             (let ((inhibit-read-only t))
               (delete-region (point-min) (point-max))
-              (insert "BibTeX mode command `bibtex-validate-globally'\n\n")
+              (insert (substitute-command-keys
+		       "BibTeX mode command `bibtex-validate-globally'\n\n"))
               (dolist (err (sort error-list 'string-lessp)) (insert err))
               (set-buffer-modified-p nil))
             (goto-char (point-min))
@@ -5280,7 +5287,7 @@ where FILE is the BibTeX file of ENTRY."
             (bibtex-display-entries entries)
           (message "No BibTeX entries %smatching `%s'"
                    (if (string= "" field) ""
-                     (format "with field `%s' " field))
+                     (format-message "with field `%s' " field))
                    regexp)))
     entries))
 

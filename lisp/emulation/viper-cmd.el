@@ -1751,8 +1751,8 @@ invokes the command before that, etc."
 
     (setq this-command 'viper-display-current-destructive-command)
 
-    (message " `.' runs  %s%s"
-	     (concat "`" (viper-array-to-string keys) "'")
+    (message " `.' runs  `%s'%s"
+	     (viper-array-to-string keys)
 	     (viper-abbreviate-string
 	      (if (featurep 'xemacs)
 		  (replace-in-string ; xemacs
@@ -1763,7 +1763,8 @@ invokes the command before that, etc."
 		text ; emacs
 		)
 	      max-text-len
-	      "  inserting  `" "'" "    ......."))
+	      (format-message "  inserting  `") (format-message "'")
+	      "    ......."))
     ))
 
 
@@ -4341,7 +4342,7 @@ and regexp replace."
 	  (query-replace-regexp
 	   str
 	   (viper-read-string-with-history
-	    (format "Query replace regexp `%s' with: " str)
+	    (format-message "Query replace regexp `%s' with: " str)
 	    nil  ; no initial
 	    'viper-replace1-history
 	    (car viper-replace1-history) ; default
@@ -4349,7 +4350,7 @@ and regexp replace."
 	(query-replace
 	 str
 	 (viper-read-string-with-history
-	  (format "Query replace `%s' with: " str)
+	  (format-message "Query replace `%s' with: " str)
 	  nil  ; no initial
 	  'viper-replace1-history
 	  (car viper-replace1-history) ; default
@@ -4643,7 +4644,7 @@ One can use \\=`\\=` and \\='\\=' to temporarily jump 1 step back."
 				     reg (buffer-name buf) line-no))
 		     (princ (format "Here is some text around %c:\n\n %s"
 				     reg text)))
-		 (princ (format viper-EmptyTextmarker reg))))
+		 (princ (format-message viper-EmptyTextmarker reg))))
 	     ))
 	  (t (error viper-InvalidTextmarker reg)))))
 

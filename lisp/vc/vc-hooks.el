@@ -790,8 +790,9 @@ current, and kill the buffer that visits the link."
 (defun vc-default-find-file-hook (_backend)
   nil)
 
-(defun vc-find-file-hook ()
-  "Function for `find-file-hook' activating VC mode if appropriate."
+(defun vc-refresh-state ()
+  "Activate or deactivate VC mode as appropriate."
+  (interactive)
   ;; Recompute whether file is version controlled,
   ;; if user has killed the buffer and revisited.
   (when vc-mode
@@ -838,18 +839,19 @@ current, and kill the buffer that visits the link."
 
 		 (vc-follow-link)
 		 (message "Followed link to %s" buffer-file-name)
-		 (vc-find-file-hook))
+		 (vc-refresh-state))
 		(t
 		 (if (yes-or-no-p (format
 				   "Symbolic link to %s-controlled source file; follow link? " link-type))
 		     (progn (vc-follow-link)
 			    (message "Followed link to %s" buffer-file-name)
-			    (vc-find-file-hook))
+			    (vc-refresh-state))
 		   (message
 		    "Warning: editing through the link bypasses version control")
 		   )))))))))
 
-(add-hook 'find-file-hook 'vc-find-file-hook)
+(add-hook 'find-file-hook #'vc-refresh-state)
+(define-obsolete-function-alias 'vc-find-file-hook 'vc-refresh-state "25.1")
 
 (defun vc-kill-buffer-hook ()
   "Discard VC info about a file when we kill its buffer."

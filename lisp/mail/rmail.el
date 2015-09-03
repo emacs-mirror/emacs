@@ -894,7 +894,7 @@ isn't provided."
       (error
        (display-warning
 	'rmail
-	(format "Although MIME support is requested
+	(format-message "Although MIME support is requested
 through `rmail-enable-mime' being non-nil, the required feature
 `%s' (the value of `rmail-mime-feature')
 is not available in the current session.
@@ -2662,8 +2662,8 @@ Ask the user whether to add that list name to `mail-mailing-lists'."
 				      "\\>\\)"))
 			  addr))
 			(y-or-n-p
-			 (format "Add `%s' to `mail-mailing-lists'? "
-				 addr)))
+			 (format-message "Add `%s' to `mail-mailing-lists'? "
+					 addr)))
 	       (customize-save-variable 'mail-mailing-lists
 					(cons addr mail-mailing-lists)))))))))
 

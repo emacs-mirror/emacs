@@ -389,8 +389,9 @@ Optional arg DISPLAY non-nil means show messages in the echo area."
 		;; Put the messages inside a comment, so they won't get in
 		;; the way of font-lock, highlighting etc.
 		(insert
-		 (format "/* Preprocessor terminated with status %s\n\n   Messages from `%s\':\n\n"
-			 exit-status cppcommand))
+		 (format
+		  "/* Preprocessor terminated with status %s\n\n   Messages from '%s\':\n\n"
+		  exit-status cppcommand))
 		(goto-char (+ (point)
 			      (nth 1 (insert-file-contents tempname))))
 		(insert "\n\n*/\n")))

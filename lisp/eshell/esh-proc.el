@@ -409,7 +409,8 @@ If QUERY is non-nil, query the user with QUERY before calling FUNC."
 	       (or all
 		   (not (nth 2 entry)))
 	       (or (not query)
-		   (y-or-n-p (format query (process-name (car entry))))))
+		   (y-or-n-p (format-message query
+					     (process-name (car entry))))))
 	  (setq result (funcall func (car entry))))
       (unless (memq (process-status (car entry))
 		    '(run stop open closed))
@@ -480,11 +481,11 @@ See the variable `eshell-kill-processes-on-exit'."
     (save-window-excursion
       (list-processes)
       (if (or (not (eq eshell-kill-processes-on-exit 'ask))
-	      (y-or-n-p (format "Kill processes owned by `%s'? "
-				(buffer-name))))
+	      (y-or-n-p (format-message "Kill processes owned by `%s'? "
+					(buffer-name))))
 	  (eshell-round-robin-kill
 	   (if (eq eshell-kill-processes-on-exit 'every)
-	       "Kill Eshell child process `%s'? ")))
+	       (format-message "Kill Eshell child process `%s'? "))))
       (let ((buf (get-buffer "*Process List*")))
 	(if (and buf (buffer-live-p buf))
 	    (kill-buffer buf)))

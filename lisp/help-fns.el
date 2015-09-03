@@ -746,7 +746,7 @@ it is displayed along with the global value."
 		      (princ "Its ")))
 		(if valvoid
 		    (princ " is void as a variable.")
-		  (princ "'s "))))
+		  (princ (substitute-command-keys "’s ")))))
 	    (unless valvoid
 	      (with-current-buffer standard-output
 		(setq val-start-pos (point))
@@ -859,11 +859,14 @@ it is displayed along with the global value."
 	       ((not permanent-local))
 	       ((bufferp locus)
 		(setq extra-line t)
-		(princ "  This variable's buffer-local value is permanent.\n"))
+		(princ
+		 (substitute-command-keys
+		  "  This variable's buffer-local value is permanent.\n")))
 	       (t
 		(setq extra-line t)
-                (princ "  This variable's value is permanent \
-if it is given a local binding.\n")))
+                (princ (substitute-command-keys
+			"  This variable's value is permanent \
+if it is given a local binding.\n"))))
 
 	      ;; Mention if it's an alias.
               (unless (eq alias variable)
@@ -896,7 +899,8 @@ if it is given a local binding.\n")))
                                       (dir-locals-find-file
                                        (buffer-file-name buffer))))
                           (dir-file t))
-		      (princ "  This variable's value is directory-local")
+		      (princ (substitute-command-keys
+			      "  This variable's value is directory-local"))
 		      (if (null file)
 			  (princ ".\n")
 			(princ ", set ")
@@ -918,7 +922,8 @@ if it is given a local binding.\n")))
 			   file 'type 'help-dir-local-var-def
 			   'help-args (list variable file)))
 			(princ (substitute-command-keys "’.\n"))))
-		  (princ "  This variable's value is file-local.\n")))
+		  (princ (substitute-command-keys
+			  "  This variable's value is file-local.\n"))))
 
 	      (when (memq variable ignored-local-variables)
 		(setq extra-line t)

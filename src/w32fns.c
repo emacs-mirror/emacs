@@ -5782,8 +5782,8 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
 
 DEFUN ("set-message-beep", Fset_message_beep, Sset_message_beep, 1, 1, 0,
        doc: /* Set the sound generated when the bell is rung.
-SOUND is 'asterisk, 'exclamation, 'hand, 'question, 'ok, or 'silent
-to use the corresponding system sound for the bell.  The 'silent sound
+SOUND is `asterisk', `exclamation', `hand', `question', `ok', or `silent'
+to use the corresponding system sound for the bell.  The `silent' sound
 prevents Emacs from making any sound at all.
 SOUND is nil to use the normal beep.  */)
   (Lisp_Object sound)

@@ -289,7 +289,7 @@ the form:
 		   glob (car globs)
 		   len (length glob)))))
     (if (and recurse-p (not glob))
-	(error "'**' cannot end a globbing pattern"))
+	(error "‘**’ cannot end a globbing pattern"))
     (let ((index 1))
       (setq incl glob)
       (while (and (eq incl glob)

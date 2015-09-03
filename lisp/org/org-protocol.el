@@ -197,7 +197,7 @@ Possible properties are:
 Example:
 
    (setq org-protocol-project-alist
-       '((\"http://orgmode.org/worg/\"
+       \\='((\"http://orgmode.org/worg/\"
           :online-suffix \".php\"
           :working-suffix \".org\"
           :base-url \"http://orgmode.org/worg/\"
@@ -251,7 +251,7 @@ kill-client - If t, kill the client immediately, once the sub-protocol is
 Here is an example:
 
   (setq org-protocol-protocol-alist
-      '((\"my-protocol\"
+      \\='((\"my-protocol\"
          :protocol \"my-protocol\"
          :function my-protocol-handler-function)
         (\"your-protocol\"

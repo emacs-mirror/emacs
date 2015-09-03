@@ -405,7 +405,8 @@ or implementing a version specific to ")
 
     (princ "\n\nInclude Path Summary:")
     (when edeobj
-	(princ "\n\nThis file's project include search is handled by the EDE object:\n")
+	(princ (substitute-command-keys
+		"\n\nThis file's project include search is handled by the EDE object:\n"))
 	(princ "  Buffer Target:  ")
 	(princ (object-print edeobj))
 	(princ "\n")
@@ -463,12 +464,12 @@ or implementing a version specific to ")
 
 	  (princ "\nYou can fix the include path for ")
 	  (princ (symbol-name (oref table major-mode)))
-	  (princ " by using this function:
+	  (princ (substitute-command-keys " by using this function:
 
-M-x semantic-customize-system-include-path RET
+\\[semantic-customize-system-include-path]
 
 which customizes the mode specific variable for the mode-local
-variable `semantic-dependency-system-include-path'.")
+variable `semantic-dependency-system-include-path'."))
 	  )
 
       (princ "\n No unknown includes.\n"))

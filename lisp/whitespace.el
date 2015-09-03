@@ -1931,13 +1931,13 @@ cleaning up these problems."
 
 
 (defun whitespace-mark-x (nchars condition)
-  "Insert the mark ('X' or ' ') after NCHARS depending on CONDITION."
+  "Insert the mark (‘X’ or ‘ ’) after NCHARS depending on CONDITION."
   (forward-char nchars)
   (insert (if condition "X" " ")))
 
 
 (defun whitespace-insert-option-mark (the-list the-value)
-  "Insert the option mark ('X' or ' ') in toggle options buffer."
+  "Insert the option mark (‘X’ or ‘ ’) in toggle options buffer."
   (goto-char (point-min))
   (forward-line 2)
   (dolist (sym  the-list)

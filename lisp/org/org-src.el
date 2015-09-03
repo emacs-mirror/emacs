@@ -801,7 +801,7 @@ with \",*\", \",#+\", \",,*\" and \",,#+\"."
   "Save parent buffer with current state source-code buffer."
   (interactive)
   (if (string-match "Fixed Width" (buffer-name))
-      (user-error "Use C-c ' to save and exit, C-c C-k to abort editing")
+      (user-error "%s" "Use C-c ' to save and exit, C-c C-k to abort editing")
     (org-src-in-org-buffer (save-buffer))))
 
 (declare-function org-babel-tangle "ob-tangle" (&optional arg target-file lang))

@@ -6506,8 +6506,8 @@ If this variable is made buffer-local, the face remapping takes effect
 only in that buffer.  For instance, the mode my-mode could define a
 face `my-mode-default', and then in the mode setup function, do:
 
-   (set (make-local-variable 'face-remapping-alist)
-	'((default my-mode-default)))).
+   (set (make-local-variable \\='face-remapping-alist)
+	\\='((default my-mode-default)))).
 
 Because Emacs normally only redraws screen areas when the underlying
 buffer contents change, you may need to call `redraw-display' after

@@ -155,9 +155,9 @@ into memory.")
 Specifying this matcher object will allow EDE to perform a complex
 check without loading the project.
 
-NOTE: If you use dirmatch, you may need to set :root-only to nil.
+NOTE: If you use dirmatch, you may need to set :root-only to `nil'.
 While it may be a root based project, all subdirs will happen to return
-true for the dirmatch, so for scanning purposes, set it to nil.")
+true for the dirmatch, so for scanning purposes, set it to `nil'.")
    (proj-root :initarg :proj-root
 	      :type function
 	      :documentation "A function symbol to call for the project root.
@@ -197,23 +197,20 @@ type is required and the load function used.")
 
 (defvar ede-project-class-files
   (list
-   (ede-project-autoload "edeproject-makefile"
-			 :name "Make" :file 'ede/proj
+   (ede-project-autoload :name "Make" :file 'ede/proj
 			 :proj-file "Project.ede"
 			 :root-only nil
 			 :load-type 'ede-proj-load
 			 :class-sym 'ede-proj-project
 			 :safe-p nil)
-   (ede-project-autoload "edeproject-automake"
-			 :name "Automake" :file 'ede/proj
+   (ede-project-autoload :name "Automake" :file 'ede/proj
 			 :proj-file "Project.ede"
 			 :root-only nil
 			 :initializers '(:makefile-type Makefile.am)
 			 :load-type 'ede-proj-load
 			 :class-sym 'ede-proj-project
 			 :safe-p nil)
-   (ede-project-autoload "automake"
-			 :name "automake" :file 'ede/project-am
+   (ede-project-autoload :name "automake" :file 'ede/project-am
 			 :proj-file "Makefile.am"
 			 :root-only nil
 			 :load-type 'project-am-load
@@ -225,6 +222,19 @@ type is required and the load function used.")
 
 (put 'ede-project-class-files 'risky-local-variable t)
 
+(defun ede-show-supported-projects ()
+  "Display all the project types registered with EDE."
+  (interactive)
+  (let ((b (get-buffer-create "*EDE Autodetect Projects*")))
+    (set-buffer b)
+    (setq buffer-read-only nil)
+    (erase-buffer)
+    (dolist (prj ede-project-class-files)
+      (insert (oref prj name))
+      (newline))
+    (display-buffer b)
+ ))
+
 (defun ede-add-project-autoload (projauto &optional flag)
   "Add PROJAUTO, an EDE autoload definition to `ede-project-class-files'.
 Optional argument FLAG indicates how this autoload should be
@@ -234,8 +244,8 @@ added.  Possible values are:
             front of the list so more generic projects don't get priority."
   ;; First, can we identify PROJAUTO as already in the list?  If so, replace.
   (let ((projlist ede-project-class-files)
-	(projname (eieio-object-name-string projauto)))
-    (while (and projlist (not (string= (eieio-object-name-string (car projlist)) projname)))
+	(projname (oref projauto name)))
+    (while (and projlist (not (string= (oref (car projlist) name) projname)))
       (setq projlist (cdr projlist)))
 
     (if projlist
@@ -296,7 +306,7 @@ be loaded.
 
 NOTE: Do not call this - it should only be called from `ede-load-project-file'."
   ;; Last line of defense: don't load unsafe projects.
-  (when (not (or (oref this :safe-p)
+  (when (not (or (oref this safe-p)
 		 (ede-directory-safe-p dir)))
     (error "Attempt to load an unsafe project (bug elsewhere in EDE)"))
   ;; Things are good - so load the project.

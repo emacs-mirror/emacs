@@ -206,23 +206,23 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
 	       (not (file-symlink-p (car files))))
 	  (progn
 	    (if em-verbose
-		(eshell-printn (format "rm: removing directory `%s'"
-				       (car files))))
+		(eshell-printn (format-message "rm: removing directory `%s'"
+					       (car files))))
 	    (unless
 		(or em-preview
 		    (and em-interactive
 			 (not (y-or-n-p
-			       (format "rm: remove directory `%s'? "
-				       (car files))))))
+			       (format-message "rm: remove directory `%s'? "
+					       (car files))))))
 	      (eshell-funcalln 'delete-directory (car files) t t)))
 	(if em-verbose
-	    (eshell-printn (format "rm: removing file `%s'"
-				   (car files))))
+	    (eshell-printn (format-message "rm: removing file `%s'"
+					   (car files))))
 	(unless (or em-preview
 		    (and em-interactive
 			 (not (y-or-n-p
-			       (format "rm: remove `%s'? "
-				       (car files))))))
+			       (format-message "rm: remove `%s'? "
+					       (car files))))))
 	  (eshell-funcalln 'delete-file (car files) t))))
     (setq files (cdr files))))
 
@@ -260,28 +260,32 @@ Remove (unlink) the FILE(s).")
        (cond
 	((bufferp entry)
 	 (if em-verbose
-	     (eshell-printn (format "rm: removing buffer `%s'" entry)))
+	     (eshell-printn (format-message "rm: removing buffer `%s'" entry)))
 	 (unless (or em-preview
 		     (and em-interactive
-			  (not (y-or-n-p (format "rm: delete buffer `%s'? "
-						 entry)))))
+			  (not (y-or-n-p (format-message
+					  "rm: delete buffer `%s'? "
+					  entry)))))
 	   (eshell-funcalln 'kill-buffer entry)))
 	((eshell-processp entry)
 	 (if em-verbose
-	     (eshell-printn (format "rm: killing process `%s'" entry)))
+	     (eshell-printn (format-message "rm: killing process `%s'" entry)))
 	 (unless (or em-preview
 		     (and em-interactive
-			  (not (y-or-n-p (format "rm: kill process `%s'? "
-						 entry)))))
+			  (not (y-or-n-p (format-message
+					  "rm: kill process `%s'? "
+					  entry)))))
 	   (eshell-funcalln 'kill-process entry)))
 	((symbolp entry)
 	 (if em-verbose
-	     (eshell-printn (format "rm: uninterning symbol `%s'" entry)))
+	     (eshell-printn (format-message
+			     "rm: uninterning symbol `%s'" entry)))
 	 (unless
 	     (or em-preview
 		 (and em-interactive
-		      (not (y-or-n-p (format "rm: unintern symbol `%s'? "
-					     entry)))))
+		      (not (y-or-n-p (format-message
+				      "rm: unintern symbol `%s'? "
+				      entry)))))
 	   (eshell-funcalln 'unintern entry)))
 	((stringp entry)
 	 ;; -f should silently ignore missing files (bug#15373).
@@ -294,8 +298,8 @@ Remove (unlink) the FILE(s).")
 		   (if (or em-preview
 			   (not em-interactive)
 			   (y-or-n-p
-			    (format "rm: descend into directory `%s'? "
-				    entry)))
+			    (format-message "rm: descend into directory `%s'? "
+					    entry)))
 		     (eshell-remove-entries (list entry) t))
 		 (eshell-error (format "rm: %s: is a directory\n" entry)))
 	     (eshell-remove-entries (list entry) t))))))
@@ -369,8 +373,8 @@ Remove the DIRECTORY(ies), if they are empty.")
 	     (equal (nth 10 attr-target) (nth 10 attr))
 	     (nth 11 attr-target) (nth 11 attr)
 	     (equal (nth 11 attr-target) (nth 11 attr)))
-	(eshell-error (format "%s: `%s' and `%s' are the same file\n"
-			      command (car files) target)))
+	(eshell-error (format-message "%s: `%s' and `%s' are the same file\n"
+				      command (car files) target)))
        (t
 	(let ((source (car files))
 	      (target (if is-dir

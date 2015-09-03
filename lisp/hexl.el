@@ -935,7 +935,7 @@ and their encoded form is inserted byte by byte."
 		     (mapconcat (function (lambda (c) (format "%x" c)))
 				internal " "))
 	       (if (yes-or-no-p
-		    (format
+		    (format-message
 		     "Insert char 0x%x's internal representation \"%s\"? "
 		     ch internal-hex))
 		   (setq encoded internal)

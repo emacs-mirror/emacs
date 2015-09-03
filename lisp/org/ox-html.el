@@ -833,7 +833,7 @@ you can reuse them:
 For example:
 
 \(setq org-html-table-row-tags
-      (cons '(cond (top-row-p \"<tr class=\\\"tr-top\\\">\")
+      (cons \\='(cond (top-row-p \"<tr class=\\\"tr-top\\\">\")
                    (bottom-row-p \"<tr class=\\\"tr-bottom\\\">\")
                    (t (if (= (mod row-number 2) 1)
 			  \"<tr class=\\\"tr-odd\\\">\"

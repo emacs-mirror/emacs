@@ -683,9 +683,9 @@ end of the current highlighting list.
 
 For example:
 
- (font-lock-add-keywords 'c-mode
-  '((\"\\\\\\=<\\\\(FIXME\\\\):\" 1 'font-lock-warning-face prepend)
-    (\"\\\\\\=<\\\\(and\\\\|or\\\\|not\\\\)\\\\\\=>\" . 'font-lock-keyword-face)))
+ (font-lock-add-keywords \\='c-mode
+  \\='((\"\\\\\\=<\\\\(FIXME\\\\):\" 1 \\='font-lock-warning-face prepend)
+    (\"\\\\\\=<\\\\(and\\\\|or\\\\|not\\\\)\\\\\\=>\" . \\='font-lock-keyword-face)))
 
 adds two fontification patterns for C mode, to fontify `FIXME:' words, even in
 comments, and to fontify `and', `or' and `not' words as keywords.

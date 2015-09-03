@@ -327,7 +327,7 @@ the evaluated constant value at compile time."
 
 (defun c-populate-syntax-table (table)
   "Populate the given syntax table as necessary for a C-like language.
-This includes setting ' and \" as string delimiters, and setting up
+This includes setting \\=' and \" as string delimiters, and setting up
 the comment syntax to handle both line style \"//\" and block style
 \"/*\" \"*/\" comments."
 

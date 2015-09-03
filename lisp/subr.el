@@ -2277,7 +2277,18 @@ floating point support."
     t)
    ((input-pending-p t)
     nil)
-   ((<= seconds 0)
+   ((or (<= seconds 0)
+        ;; We are going to call read-event below, which will record
+        ;; the the next key as part of the macro, even if that key
+        ;; invokes kmacro-end-macro, so if we are recording a macro,
+        ;; the macro will recursively call itself.  In addition, when
+        ;; that key is removed from unread-command-events, it will be
+        ;; recorded the second time, so the macro will have each key
+        ;; doubled.  This used to happen if a macro was defined with
+        ;; Flyspell mode active (because Flyspell calls sit-for in its
+        ;; post-command-hook, see bug #21329.)  To avoid all that, we
+        ;; simply disable the wait when we are recording a macro.
+        defining-kbd-macro)
     (or nodisp (redisplay)))
    (t
     (or nodisp (redisplay))

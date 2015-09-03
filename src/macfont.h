@@ -45,81 +45,31 @@ struct mac_glyph_layout
   CGGlyph glyph_id;
 };
 
-typedef CTFontDescriptorRef FontDescriptorRef;
-typedef CTFontRef FontRef;
-typedef CTFontSymbolicTraits FontSymbolicTraits;
-typedef NSCharacterCollection CharacterCollection;
-
-#define MAC_FONT_NAME_ATTRIBUTE kCTFontNameAttribute
-#define MAC_FONT_FAMILY_NAME_ATTRIBUTE kCTFontFamilyNameAttribute
-#define MAC_FONT_TRAITS_ATTRIBUTE kCTFontTraitsAttribute
-#define MAC_FONT_SIZE_ATTRIBUTE kCTFontSizeAttribute
-#define MAC_FONT_CASCADE_LIST_ATTRIBUTE kCTFontCascadeListAttribute
-#define MAC_FONT_CHARACTER_SET_ATTRIBUTE kCTFontCharacterSetAttribute
-#define MAC_FONT_LANGUAGES_ATTRIBUTE kCTFontLanguagesAttribute
-#define MAC_FONT_FORMAT_ATTRIBUTE kCTFontFormatAttribute
-#define MAC_FONT_SYMBOLIC_TRAIT kCTFontSymbolicTrait
-#define MAC_FONT_WEIGHT_TRAIT kCTFontWeightTrait
-#define MAC_FONT_WIDTH_TRAIT kCTFontWidthTrait
-#define MAC_FONT_SLANT_TRAIT kCTFontSlantTrait
-
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 1080
 enum {
-  MAC_FONT_TRAIT_ITALIC = kCTFontItalicTrait,
-  MAC_FONT_TRAIT_BOLD = kCTFontBoldTrait,
-  MAC_FONT_TRAIT_MONO_SPACE = kCTFontMonoSpaceTrait,
+  kCTFontTraitItalic = kCTFontItalicTrait,
+  kCTFontTraitBold = kCTFontBoldTrait,
+  kCTFontTraitMonoSpace = kCTFontMonoSpaceTrait,
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
-  MAC_FONT_TRAIT_COLOR_GLYPHS = kCTFontColorGlyphsTrait
+  kCTFontTraitColorGlyphs = kCTFontColorGlyphsTrait
 #else
-  MAC_FONT_TRAIT_COLOR_GLYPHS = (1 << 13)
+  kCTFontTraitColorGlyphs = (1 << 13)
 #endif
 };
 
 enum {
-  MAC_FONT_FORMAT_BITMAP = kCTFontFormatBitmap
+  kCTCharacterCollectionIdentityMapping = kCTIdentityMappingCharacterCollection,
+  kCTCharacterCollectionAdobeJapan1 = kCTAdobeJapan1CharacterCollection
 };
 
 enum {
-  MAC_CHARACTER_COLLECTION_IDENTITY_MAPPING = NSIdentityMappingCharacterCollection,
-  MAC_CHARACTER_COLLECTION_ADOBE_JAPAN1 = NSAdobeJapan1CharacterCollection
+  kCTFontOrientationDefault = kCTFontDefaultOrientation
 };
+#endif
 
-#define mac_font_descriptor_create_with_attributes \
-  CTFontDescriptorCreateWithAttributes
-#define mac_font_descriptor_create_matching_font_descriptors \
-  CTFontDescriptorCreateMatchingFontDescriptors
-#define mac_font_descriptor_create_matching_font_descriptor \
-  CTFontDescriptorCreateMatchingFontDescriptor
-#define mac_font_descriptor_copy_attribute CTFontDescriptorCopyAttribute
-#define mac_font_descriptor_supports_languages \
-  mac_ctfont_descriptor_supports_languages
-#define mac_font_create_with_name(name, size) \
-  CTFontCreateWithName (name, size, NULL)
-#define mac_font_get_size CTFontGetSize
-#define mac_font_copy_family_name CTFontCopyFamilyName
-#define mac_font_copy_character_set CTFontCopyCharacterSet
-#define mac_font_get_glyphs_for_characters CTFontGetGlyphsForCharacters
-#define mac_font_get_ascent CTFontGetAscent
-#define mac_font_get_descent CTFontGetDescent
-#define mac_font_get_leading CTFontGetLeading
-#define mac_font_get_underline_position CTFontGetUnderlinePosition
-#define mac_font_get_underline_thickness CTFontGetUnderlineThickness
-#define mac_font_copy_graphics_font(font) CTFontCopyGraphicsFont (font, NULL)
-#define mac_font_copy_non_synthetic_table(font, table) \
-  CTFontCopyTable (font, table, kCTFontTableOptionNoOptions)
-
-#define mac_font_create_preferred_family_for_attributes \
-  mac_ctfont_create_preferred_family_for_attributes
-#define mac_font_get_advance_width_for_glyph \
-  mac_ctfont_get_advance_width_for_glyph
-#define mac_font_get_bounding_rect_for_glyph \
-  mac_ctfont_get_bounding_rect_for_glyph
-#define mac_font_create_available_families mac_ctfont_create_available_families
-#define mac_font_shape mac_ctfont_shape
 #if USE_CT_GLYPH_INFO
 #define mac_font_get_glyph_for_cid mac_ctfont_get_glyph_for_cid
 #endif
-
-#define mac_nsctfont_copy_font_descriptor CTFontCopyFontDescriptor
 
 #ifndef kCTVersionNumber10_9
 #define kCTVersionNumber10_9 0x00060000

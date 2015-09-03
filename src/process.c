@@ -2685,7 +2685,7 @@ Examples:
 \(serial-process-configure :process "/dev/ttyS0" :speed 1200)
 
 \(serial-process-configure
-    :buffer "COM1" :stopbits 1 :parity 'odd :flowcontrol 'hw)
+    :buffer "COM1" :stopbits 1 :parity \\='odd :flowcontrol \\='hw)
 
 \(serial-process-configure :port "\\\\.\\COM13" :bytesize 7)
 
@@ -2785,7 +2785,7 @@ Examples:
 
 \(make-serial-process :port "COM1" :speed 115200 :stopbits 2)
 
-\(make-serial-process :port "\\\\.\\COM13" :speed 1200 :bytesize 7 :parity 'odd)
+\(make-serial-process :port "\\\\.\\COM13" :speed 1200 :bytesize 7 :parity \\='odd)
 
 \(make-serial-process :port "/dev/tty.BlueConsole-SPP-1" :speed nil)
 

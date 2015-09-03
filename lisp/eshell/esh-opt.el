@@ -82,7 +82,7 @@ and `eshell-stringify-list'.
 
 For example, OPTIONS might look like:
 
-  '((?C  nil         nil multi-column    \"multi-column display\")
+   ((?C  nil         nil multi-column    \"multi-column display\")
     (nil \"help\"      nil nil             \"show this usage display\")
     (?r  \"reverse\"   nil reverse-list    \"reverse order while sorting\")
     :external \"ls\"

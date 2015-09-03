@@ -632,13 +632,13 @@ for logging the warning.  By default, it is @file{*Warnings*}.
 @end defun
 
 @defun lwarn type level message &rest args
-This function reports a warning using the value of @code{(format
+This function reports a warning using the value of @code{(format-message
 @var{message} @var{args}...)} as the message in the @file{*Warnings*}
 buffer.  In other respects it is equivalent to @code{display-warning}.
 @end defun
 
 @defun warn message &rest args
-This function reports a warning using the value of @code{(format
+This function reports a warning using the value of @code{(format-message
 @var{message} @var{args}...)} as the message, @code{(emacs)} as the
 type, and @code{:warning} as the severity level.  It exists for
 compatibility only; we recommend not using it, because you should
@@ -6531,8 +6531,12 @@ no buffer display table.
 The value of this variable is the standard display table, which is
 used when Emacs is displaying a buffer in a window with neither a
 window display table nor a buffer display table defined, or when Emacs
-is outputting text to the standard output or error streams.  Its
-default is @code{nil}.
+is outputting text to the standard output or error streams.  Although its
+default is typically @code{nil}, in an interactive session if the
+locale cannot display curved quotes, or if the initial value of
+@code{text-quoting-style} specifies a preference for ASCII, its
+default maps curved quotes to ASCII approximations.  @xref{Keys in
+Documentation}.
 @end defvar
 
 The @file{disp-table} library defines several functions for changing

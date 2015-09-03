@@ -2655,11 +2655,7 @@ and the directory must allow you to open files in it.  In order to use a
 directory as a buffer's current directory, this predicate must return true.
 A directory name spec may be given instead; then the value is t
 if the directory so specified exists and really is a readable and
-searchable directory.
-
-The result might be a false positive on MS-Windows in some rare cases,
-i.e., this function could return t for a directory that is not
-accessible by the current user.  */)
+searchable directory.  */)
   (Lisp_Object filename)
 {
   Lisp_Object absname;
@@ -2689,10 +2685,18 @@ bool
 file_accessible_directory_p (Lisp_Object file)
 {
 #ifdef DOS_NT
-  /* There's no need to test whether FILE is searchable, as the
-     searchable/executable bit is invented on DOS_NT platforms.  */
+# ifdef WINDOWSNT
+  /* We need a special-purpose test because (a) NTFS security data is
+     not reflected in Posix-style mode bits, and (b) the trick with
+     accessing "DIR/.", used below on Posix hosts, doesn't work on
+     Windows, because "DIR/." is normalized to just "DIR" before
+     hitting the disk.  */
+  return (SBYTES (file) == 0
+	  || w32_accessible_directory_p (SSDATA (file), SBYTES (file)));
+# else	/* MSDOS */
   return file_directory_p (SSDATA (file));
-#else
+# endif	 /* MSDOS */
+#else	 /* !DOS_NT */
   /* On POSIXish platforms, use just one system call; this avoids a
      race and is typically faster.  */
   const char *data = SSDATA (file);
@@ -2725,7 +2729,7 @@ file_accessible_directory_p (Lisp_Object file)
   SAFE_FREE ();
   errno = saved_errno;
   return ok;
-#endif
+#endif	/* !DOS_NT */
 }
 
 DEFUN ("file-regular-p", Ffile_regular_p, Sfile_regular_p, 1, 1, 0,
@@ -5874,7 +5878,7 @@ the arguments that were passed to that primitive.  For example, if you
 do (file-exists-p FILENAME) and FILENAME is handled by HANDLER, then
 HANDLER is called like this:
 
-  (funcall HANDLER 'file-exists-p FILENAME)
+  (funcall HANDLER \\='file-exists-p FILENAME)
 
 Note that HANDLER must be able to handle all I/O primitives; if it has
 nothing special to do for a primitive, it should reinvoke the

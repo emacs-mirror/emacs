@@ -1668,7 +1668,7 @@ this function causes a local value to exist for this buffer,
 just as setting the variable would do.
 
 This function returns VARIABLE, and therefore
-  (set (make-local-variable 'VARIABLE) VALUE-EXP)
+  (set (make-local-variable \\='VARIABLE) VALUE-EXP)
 works.
 
 See also `make-variable-buffer-local'.

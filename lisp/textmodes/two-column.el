@@ -373,9 +373,8 @@ First column's text    sSs  Second column's text
 \(See  \\[describe-mode] .)"
   (interactive "*p")
   (and (2C-other)
-       (if (y-or-n-p (concat "Overwrite associated buffer `"
-			     (buffer-name (2C-other))
-			     "'? "))
+       (if (y-or-n-p (format-message "Overwrite associated buffer ‘%s’? "
+				     (buffer-name (2C-other))))
 	   (with-current-buffer (2C-other)
 	     (erase-buffer))
 	 (signal 'quit nil)))

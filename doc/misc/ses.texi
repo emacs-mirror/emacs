@@ -1046,7 +1046,7 @@ the data area, such as hidden constants you want to refer to in your
 formulas.
 
 You can override the variable @code{ses--symbolic-formulas} to be a list of
-symbols (as parenthesized strings) to show as completions for the '
+symbols (as parenthesized strings) to show as completions for the @kbd{'}
 command.  This initial completions list is used instead of the actual
 set of symbols-as-formulas in the spreadsheet.
 

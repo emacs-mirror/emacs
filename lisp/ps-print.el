@@ -1953,7 +1953,7 @@ If you set option `ps-selected-pages', first the pages are
 filtered by option `ps-selected-pages' and then by `ps-even-or-odd-pages'.
 For example, if we have:
 
-   (setq ps-selected-pages '(1 4 (6 . 10) (12 . 16) 20))
+   (setq ps-selected-pages \\='(1 4 (6 . 10) (12 . 16) 20))
 
 Combining with `ps-even-or-odd-pages' and option `ps-n-up-printing', we have:
 
@@ -2249,9 +2249,9 @@ X, Y, XSCALE, YSCALE and ROTATION may be a floating point number, an integer
 number or a string.  If it is a string, the string should contain PostScript
 programming that returns a float or integer value.
 
-For example, if you wish to print an EPS image on all pages do:
+For example, if you wish to print an EPS image on all pages use:
 
-   '((\"~/images/EPS-image.ps\"))"
+   ((\"~/images/EPS-image.ps\"))"
   :type '(repeat
 	  (list
 	   (file   :tag "EPS File")
@@ -2300,9 +2300,9 @@ X, Y, FONTSIZE, GRAY and ROTATION may be a floating point number, an integer
 number or a string.  If it is a string, the string should contain PostScript
 programming that returns a float or integer value.
 
-For example, if you wish to print text \"Preliminary\" on all pages do:
+For example, if you wish to print text \"Preliminary\" on all pages use:
 
-   '((\"Preliminary\"))"
+   ((\"Preliminary\"))"
   :type '(repeat
 	  (list
 	   (string :tag "Text")

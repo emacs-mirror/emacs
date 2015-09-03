@@ -850,15 +850,16 @@ t if it successfully authenticates, nil otherwise."
       (while (or (not user) (not passwd))
 	(setq user (or imap-username
 		       (read-from-minibuffer
-			(concat "imap: username for " imap-server
-				" (using stream `" (symbol-name imap-stream)
-				"'): ")
+			(format-message
+			 "imap: username for %s (using stream ‘%s’): "
+			 imap-server imap-stream)
 			(or user imap-default-user))))
-	(setq passwd (or imap-password
-			 (read-passwd
-			  (concat "imap: password for " user "@"
-				  imap-server " (using authenticator `"
-				  (symbol-name imap-auth) "'): "))))
+	(setq passwd
+	      (or imap-password
+		  (read-passwd
+		   (format-message
+		    "imap: password for %s@%s (using authenticator ‘%s’): "
+		    user imap-server imap-auth))))
 	(when (and user passwd)
 	  (if (funcall loginfunc user passwd)
 	      (progn

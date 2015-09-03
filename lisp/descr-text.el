@@ -724,25 +724,17 @@ relevant to POS."
           (when disp-vector
             (insert
              "\nThe display table entry is displayed by ")
-            (if (display-graphic-p (selected-frame))
-                (progn
-                  (insert "these fonts (glyph codes):\n")
-                  (dotimes (i (length disp-vector))
-                    (insert (glyph-char (car (aref disp-vector i))) ?:
-                            (propertize " " 'display '(space :align-to 5))
-                            (or (cdr (aref disp-vector i)) "-- no font --")
-                            "\n")
-                    (let ((face (glyph-face (car (aref disp-vector i)))))
-                      (when face
-                        (insert (propertize " " 'display '(space :align-to 5))
-                                "face: ")
-                        (insert (format-message "‘%s’\n" face))))))
-              (insert "these terminal codes:\n")
-              (dotimes (i (length disp-vector))
-                (insert (car (aref disp-vector i))
-                        (propertize " " 'display '(space :align-to 5))
-                        (or (cdr (aref disp-vector i)) "-- not encodable --")
-                        "\n"))))
+            (insert "these fonts (glyph codes):\n")
+            (dotimes (i (length disp-vector))
+              (insert (glyph-char (car (aref disp-vector i))) ?:
+                      (propertize " " 'display '(space :align-to 5))
+                      (or (cdr (aref disp-vector i)) "-- no font --")
+                      "\n")
+              (let ((face (glyph-face (car (aref disp-vector i)))))
+                (when face
+                  (insert (propertize " " 'display '(space :align-to 5))
+                          "face: ")
+                  (insert (format-message "‘%s’\n" face))))))
 
           (when composition
             (insert "\nComposed")

@@ -164,7 +164,7 @@ This behavior is generally undesirable.  If this option is non-nil, the outermos
   :version "25.1")
 
 (defcustom hide-ifdef-header-regexp
-  "\\.h\\(h\\|xx\\|pp\\)?\\'"
+  "\\.h\\(h\\|xx\\|pp\\|\\+\\+\\)?\\'"
   "C/C++ header file name patterns to determine if current buffer is a header.
 Effective only if `hide-ifdef-expand-reinclusion-protection' is t."
   :type 'string

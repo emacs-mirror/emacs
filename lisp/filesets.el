@@ -951,7 +951,7 @@ variable will take effect after rebuilding the menu.
 Caveat: Fileset names have to be unique.
 
 Example definition:
-      '\(\(\"My Wiki\"
+      \\='\(\(\"My Wiki\"
 	 \(:ingroup \"~/Etc/My-Wiki/WikiContents\"))
 	\(\"My Homepage\"
 	 \(:pattern \"~/public_html/\" \"^.+\\\\.html$\")

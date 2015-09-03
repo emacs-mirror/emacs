@@ -122,7 +122,7 @@ not align (only setting space according to `conf-assignment-space')."
     (define-key menu-map [c-s0] '("--"))
     (define-key menu-map [conf-quote-normal]
       '(menu-item "Set quote syntax normal" conf-quote-normal
-		  :help "Set the syntax of \' and \" to punctuation"))
+		  :help "Set the syntax of \\=' and \" to punctuation"))
     (define-key menu-map [conf-align-assignments]
       '(menu-item "Align assignments" conf-align-assignments
 		  :help "Align assignments"))
@@ -296,8 +296,8 @@ contents of the region.  Otherwise, operate on the whole buffer."
 
 
 (defun conf-quote-normal (arg)
-  "Set the syntax of ' and \" to punctuation.
-With prefix arg, only do it for ' if 1, or only for \" if 2.
+  "Set the syntax of \\=' and \" to punctuation.
+With prefix arg, only do it for \\=' if 1, or only for \" if 2.
 This only affects the current buffer.  Some conf files use quotes
 to delimit strings, while others allow quotes as simple parts of
 the assigned value.  In those files font locking will be wrong,

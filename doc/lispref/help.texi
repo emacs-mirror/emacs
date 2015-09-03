@@ -345,7 +345,9 @@ quotes.  If the variable's value is @code{curve}, the style is
 apostrophes.  If the value is @code{grave}, the style is @t{`like
 this'} with grave accent and apostrophe.  The default value @code{nil}
 acts like @code{curve} if curved single quotes are displayable, and
-like @code{grave} otherwise.
+like @code{grave} otherwise.  To use the traditional @code{grave}
+style, put the line @code{(setq text-quoting-style 'grave)} into your
+@file{~/.emacs} file.
 @end defvar
 
 @defun substitute-command-keys string

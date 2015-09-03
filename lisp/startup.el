@@ -803,6 +803,20 @@ to prepare for opening the first frame (e.g. open a connection to an X server)."
 (defvar server-name)
 (defvar server-process)
 
+(defun startup--setup-quote-display ()
+  "Display ASCII approximations on user request or if curved quotes don't work."
+  (when (memq text-quoting-style '(nil grave straight))
+    (dolist (char-repl '((?‘ . ?\`) (?’ . ?\') (?“ . ?\") (?” . ?\")))
+      (let ((char (car char-repl))
+            (repl (cdr char-repl)))
+        (when (or text-quoting-style (not (char-displayable-p char)))
+          (when (and (eq repl ?\`) (eq text-quoting-style 'straight))
+            (setq repl ?\'))
+          (unless standard-display-table
+            (setq standard-display-table (make-display-table)))
+          (aset standard-display-table char
+                (vector (make-glyph-code repl 'shadow))))))))
+
 (defun command-line ()
   "A subroutine of `normal-top-level'.
 Amongst another things, it parses the command-line arguments."
@@ -1017,13 +1031,9 @@ please check its value")
 				'("no" "off" "false" "0")))))
     (setq no-blinking-cursor t))
 
-  ;; If curved quotes don't work, display ASCII approximations.
-  (dolist (char-repl '((?‘ . [?\`]) (?’ . [?\']) (?“ . [?\"]) (?” . [?\"])))
-    (when (not (char-displayable-p (car char-repl)))
-      (or standard-display-table
-          (setq standard-display-table (make-display-table)))
-      (aset standard-display-table (car char-repl) (cdr char-repl))))
-  (setq internal--text-quoting-flag t)
+  (unless noninteractive
+    (startup--setup-quote-display)
+    (setq internal--text-quoting-flag t))
 
   ;; Re-evaluate predefined variables whose initial value depends on
   ;; the runtime context.
@@ -1229,6 +1239,11 @@ the ‘--debug-init’ option to view a complete error backtrace."
 	;; unibyte (display table, terminal coding system &c).
 	(set-language-environment current-language-environment)))
 
+    ;; Setup quote display again, if the init file sets
+    ;; text-quoting-style to a non-nil value.
+    (when (and (not noninteractive) text-quoting-style)
+      (startup--setup-quote-display))
+
     ;; Do this here in case the init file sets mail-host-address.
     (if (equal user-mail-address "")
 	(setq user-mail-address (or (getenv "EMAIL")
@@ -1375,11 +1390,11 @@ settings will be marked as \"CHANGED outside of Customize\"."
 
 (defcustom initial-scratch-message (purecopy "\
 ;; This buffer is for notes you don't want to save, and for Lisp evaluation.
-;; If you want to create a file, visit that file with C-x C-f,
+;; If you want to create a file, visit that file with \\[find-file],
 ;; then enter the text in that file's own buffer.
 
 ")
-  "Initial message displayed in *scratch* buffer at startup.
+  "Initial documentation displayed in *scratch* buffer at startup.
 If this is nil, no message will be displayed."
   :type '(choice (text :tag "Message")
 		 (const :tag "none" nil))
@@ -1935,7 +1950,8 @@ To quit a partially entered command, type Control-g.\n")
   (insert-button "Visit New File"
 		 'action (lambda (_button) (call-interactively 'find-file))
 		 'follow-link t)
-  (insert "\t\tSpecify a new file's name, to edit the file\n")
+  (insert (substitute-command-keys
+	   "\t\tSpecify a new file's name, to edit the file\n"))
   (insert-button "Open Home Directory"
 		 'action (lambda (_button) (dired "~"))
 		 'follow-link t)
@@ -2414,7 +2430,7 @@ nil default-directory" name)
 	 (get-buffer "*scratch*")
 	 (with-current-buffer "*scratch*"
 	   (when (zerop (buffer-size))
-	     (insert initial-scratch-message)
+	     (insert (substitute-command-keys initial-scratch-message))
 	     (set-buffer-modified-p nil))))
 
     ;; Prepend `initial-buffer-choice' to `displayable-buffers'.

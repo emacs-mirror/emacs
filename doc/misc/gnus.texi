@@ -21033,8 +21033,8 @@ function:
 
 @lisp
 (defun gnus-decay-score (score)
-  "Decay SCORE according to `gnus-score-decay-constant'
-and `gnus-score-decay-scale'."
+  "Decay SCORE according to ‘gnus-score-decay-constant’
+and ‘gnus-score-decay-scale’."
   (let ((n (- score
               (* (if (< score 0) -1 1)
                  (min (abs score)
@@ -24080,7 +24080,7 @@ spam.  And here is the nifty function:
 
 @lisp
 (defun my-gnus-raze-spam ()
-  "Submit SPAM to Vipul's Razor, then mark it as expirable."
+  "Submit SPAM to Vipul’s Razor, then mark it as expirable."
   (interactive)
   (gnus-summary-save-in-pipe "razor-report -f -d" t)
   (gnus-summary-mark-as-expirable 1))

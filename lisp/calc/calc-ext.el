@@ -1988,7 +1988,7 @@ calc-kill calc-kill-region calc-yank))))
      "kbd-macros: [ (if), : (else), | (else-if), ] (end-if)"
      "kbd-macros: < > (repeat), ( ) (for), { } (loop)"
      "kbd-macros: / (break)"
-     "kbd-macros: \\=` (save), ' (restore)")
+     "kbd-macros: \\=` (save), \\=' (restore)")
    "user" ?Z))
 
 

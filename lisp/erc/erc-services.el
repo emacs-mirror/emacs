@@ -172,7 +172,7 @@ You can also use M-x erc-nickserv-identify-mode to change modes."
 
 Example of use:
   (setq erc-nickserv-passwords
-        '((freenode ((\"nick-one\" . \"password\")
+        \\='((freenode ((\"nick-one\" . \"password\")
                      (\"nick-two\" . \"password\")))
           (DALnet ((\"nick\" . \"password\")))))"
   :group 'erc-services

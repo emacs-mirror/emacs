@@ -6629,7 +6629,7 @@ in special contexts.
        ;; Table: enter it or move to the next field.
        ((org-at-table-p 'any)
 	(if (org-at-table.el-p)
-	    (message "Use C-c ' to edit table.el tables")
+	    (message "%s" "Use C-c ' to edit table.el tables")
 	  (if arg (org-table-edit-field t)
 	    (org-table-justify-field-maybe)
 	    (call-interactively 'org-table-next-field))))
@@ -17102,7 +17102,7 @@ days in order to avoid rounding problems."
     (error (error "Bad timestamp `%s'%s\nError was: %s"
 		  s (if (not (and buffer pos))
 			""
-		      (format " at %d in buffer `%s'" pos buffer))
+		      (format-message " at %d in buffer `%s'" pos buffer))
 		  (cdr errdata)))))
 
 (defun org-time-string-to-seconds (s)
@@ -17130,7 +17130,7 @@ The variable `date' is bound by the calendar when this is called."
 	 (error (error "Bad timestamp `%s'%s\nError was: %s"
 		       s (if (not (and buffer pos))
 			     ""
-			   (format " at %d in buffer `%s'" pos buffer))
+			   (format-message " at %d in buffer `%s'" pos buffer))
 		       (cdr errdata))))))))
 
 (defun org-days-to-iso-week (days)
@@ -20446,7 +20446,7 @@ This command does many different things, depending on context:
 	   ;; a `table.el' type, just give up.  At a table row or
 	   ;; cell, maybe recalculate line but always align table.
 	   (if (eq (org-element-property :type context) 'table.el)
-	       (message "Use C-c ' to edit table.el tables")
+	       (message "%s" "Use C-c ' to edit table.el tables")
 	     (let ((org-enable-table-editor t))
 	       (if (or (eq type 'table)
 		       ;; Check if point is at a TBLFM line.

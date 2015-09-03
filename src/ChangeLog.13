@@ -5245,8 +5245,7 @@
 	(xg_set_toolkit_horizontal_scroll_bar_thumb)
 	(xg_get_default_scrollbar_height)
 	(xg_clear_under_internal_border): Extern.
-	* gtkutil.c (xg_frame_resized): Don't call
-	do_pending_window_change.
+	* gtkutil.c (xg_frame_resized): Call do_pending_window_change.
 	(xg_frame_set_char_size): Use adjust_frame_size.
 	(style_changed_cb): Call update_theme_scrollbar_height and
 	x_set_scroll_bar_default_height.
@@ -5367,7 +5366,7 @@
 	build without toolkit.  Always clear under internal border.
 	(x_set_window_size): Don't check frame size or recompute
 	fringes.  Reset fullscreen status before applying sizes.
-	Always resize as requested by pixelwise argument.  Don't call
+	Always resize as requested by pixelwise argument.  Call
 	do_pending_window_change.
 	(x_wm_set_size_hint): Add call for FRAME_SCROLL_BAR_AREA_HEIGHT.
 	(w32_initialize_display_info): Initialize dpyinfo's
@@ -5519,7 +5518,7 @@
 	Call x_net_wm_state.
 	(x_set_window_size_1, x_wm_set_size_hint): Don't call
 	check_frame_size.
-	(x_set_window_size): Don't call check_frame_size and
+	(x_set_window_size): Don't call check_frame_size.  Call
 	do_pending_window_change.
 	(x_term_init): Init horizontal_scroll_bar_cursor display info.
 	(x_create_terminal): Add set_horizontal_scroll_bar_hook.

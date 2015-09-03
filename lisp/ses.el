@@ -1491,11 +1491,11 @@ by (ROWINCR,COLINCR)."
   "Produce a copy of FORMULA where all symbols that refer to cells in row
 STARTROW or above, and col STARTCOL or above, are altered by adding ROWINCR
 and COLINCR.  STARTROW and STARTCOL are 0-based.  Example:
-	(ses-relocate-formula '(+ A1 B2 D3) 1 2 1 -1)
+	(ses-relocate-formula \\='(+ A1 B2 D3) 1 2 1 -1)
 	=> (+ A1 B2 C4)
 If ROWINCR or COLINCR is negative, references to cells being deleted are
 removed.  Example:
-	(ses-relocate-formula '(+ A1 B2 D3) 0 1 0 -1)
+	(ses-relocate-formula \\='(+ A1 B2 D3) 0 1 0 -1)
 	=> (+ A1 C3)
 Sets `ses-relocate-return' to 'delete if cell-references were removed."
   (let (rowcol result)

@@ -291,8 +291,8 @@ BEG argument is ignored.
 This function is meant to be used to set `tildify-foreach-region-function'
 variable.  For example, for an XML file one might use:
   (setq-local tildify-foreach-region-function
-    (apply-partially 'tildify-foreach-ignore-environments
-                     '((\"<! *--\" . \"-- *>\") (\"<\" . \">\"))))"
+    (apply-partially \\='tildify-foreach-ignore-environments
+                     \\='((\"<! *--\" . \"-- *>\") (\"<\" . \">\"))))"
   (let ((beg-re (concat "\\(?:" (mapconcat 'car pairs "\\)\\|\\(?:") "\\)"))
         p end-re)
     (save-excursion

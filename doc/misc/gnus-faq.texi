@@ -1671,7 +1671,7 @@ instead (works for newer versions as well):
          (setq message-user-fqdn fqdn)
        (gnus-message 1 "Redefining `message-make-fqdn'.")
        (defun message-make-fqdn ()
-         "Return user's fully qualified domain name."
+         "Return user’s fully qualified domain name."
          fqdn))))
 @end example
 @noindent
@@ -1765,9 +1765,9 @@ snippet by Frank Haun <pille3003@@fhaun.de> in
 
 @example
 (defun my-archive-article (&optional n)
-  "Copies one or more article(s) to a corresponding `nnml:' group, e.g.,
-`gnus.ding' goes to `nnml:1.gnus.ding'. And `nnml:List-gnus.ding' goes
-to `nnml:1.List-gnus-ding'.
+  "Copies one or more article(s) to a corresponding ‘nnml:’ group, e.g.,
+‘gnus.ding’ goes to ‘nnml:1.gnus.ding’. And ‘nnml:List-gnus.ding’ goes
+to ‘nnml:1.List-gnus-ding’.
 
 Use process marks or mark a region in the summary buffer to archive
 more then one article."

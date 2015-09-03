@@ -262,15 +262,15 @@
 This is exactly like `sregexq' (q.v.) except that it evaluates all its
 arguments, so literal sregex clauses must be quoted.  For example:
 
-  (sregex '(or \"Bob\" \"Robert\"))  =>  \"Bob\\\\|Robert\"
+  (sregex \\='(or \"Bob\" \"Robert\"))  =>  \"Bob\\\\|Robert\"
 
 An argument-evaluating sregex interpreter lets you reuse sregex
 subexpressions:
 
-  (let ((dotstar '(0+ any))
-        (whitespace '(1+ (syntax ?-)))
-        (digits '(1+ (char (?0 . ?9)))))
-    (sregex 'bol dotstar \":\" whitespace digits))  =>  \"^.*:\\\\s-+[0-9]+\""
+  (let ((dotstar \\='(0+ any))
+        (whitespace \\='(1+ (syntax ?-)))
+        (digits \\='(1+ (char (?0 . ?9)))))
+    (sregex \\='bol dotstar \":\" whitespace digits))  =>  \"^.*:\\\\s-+[0-9]+\""
   (sregex--sequence exps nil))
 
 (defmacro sregexq (&rest exps)

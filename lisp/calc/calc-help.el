@@ -546,7 +546,7 @@ C-w  Describe how there is no warranty for Calc."
    '("Select, Additional, Once; eVal, Formula; Rewrite"
      "More, Less, 1-9, Next, Previous"
      "Unselect, Clear; Display; Enable; Breakable"
-     "' (replace), \\=` (edit), +, -, *, /, RET (grab), DEL"
+     "\\=' (replace), \\=` (edit), +, -, *, /, RET (grab), DEL"
      "SHIFT + swap: Left, Right; maybe: Select, Once"
      "SHIFT + Commute, Merge, Distrib, jump-Eqn, Isolate"
      "SHIFT + Negate, & (invert); Unpack")

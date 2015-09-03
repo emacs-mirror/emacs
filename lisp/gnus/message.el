@@ -2235,7 +2235,7 @@ contains a valid encoded word.  Decode again? "
 	  (unless cs-coding
 	    (setq cs-coding
 		  (mm-read-coding-system
-		   (format "\
+		   (gnus-format-message "\
 Decoded Subject \"%s\"
 contains an encoded word.  The charset `%s' is unknown or invalid.
 Hit RET to replace non-decodable characters with \"%s\" or enter replacement
@@ -4510,7 +4510,7 @@ This function could be useful in `message-setup-hook'."
 	  (dolist (bog (message-bogus-recipient-p addr))
 	    (and bog
 		 (not (y-or-n-p
-		       (format
+		       (gnus-format-message
 			"Address `%s'%s might be bogus.  Continue? "
 			bog
 			;; If the encoded version of the email address
@@ -8484,7 +8484,7 @@ Header and body are separated by `mail-header-separator'."
 	(when force
 	  (sit-for message-send-form-letter-delay))
 	(if (or force
-		  (y-or-n-p (format "Send message to `%s'? " to)))
+		  (y-or-n-p (gnus-format-message "Send message to `%s'? " to)))
 	    (progn
 	      (setq sent (1+ sent))
 	      (message-send-and-exit))

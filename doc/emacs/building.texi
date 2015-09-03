@@ -1549,7 +1549,7 @@ mode are the same as in Emacs Lisp mode.
   At startup, the @file{*scratch*} buffer contains a short message, in
 the form of a Lisp comment, that explains what it is for.  This
 message is controlled by the variable @code{initial-scratch-message},
-which should be either a string, or @code{nil} (which means to
+which should be either a documentation string, or @code{nil} (which means to
 suppress the message).
 
 @findex ielm

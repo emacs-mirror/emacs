@@ -512,7 +512,7 @@ Sets buffer local variables for EDE."
 	(when projdetect
 	  ;; No project was loaded, but we have a project description
 	  ;; object.  This means that we try to load it.
-	  ;; 
+	  ;;
 	  ;; Before loading, we need to check if it is a safe
 	  ;; project to load before requesting it to be loaded.
 
@@ -728,9 +728,10 @@ Return nil if DIR should not be in `ede-project-directories'."
       (when (listp ede-project-directories)
 	(or (member dir ede-project-directories)
 	    (when (funcall ede-check-project-query-fcn
-			   (format "`%s' is not listed in `ede-project-directories'.
+			   (format-message
+			    "`%s' is not listed in `ede-project-directories'.
 Add it to the list of allowed project directories? "
-				   dir))
+			    dir))
 	      (push dir ede-project-directories)
 	      ;; If possible, save `ede-project-directories'.
 	      (if (or custom-file user-init-file)
@@ -799,7 +800,7 @@ Optional argument NAME is the name to give this project."
 					      "Unknown file name specifier %S"
 					      pf)))
 				:targets nil)
-		 
+
 		 ))
 	 (inits (oref obj initializers)))
     ;; Force the name to match for new objects.

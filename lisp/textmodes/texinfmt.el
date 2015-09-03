@@ -34,7 +34,7 @@
 If optional argument HERE is non-nil, insert info at point."
   (interactive "P")
   (let ((version-string
-         (format "Version of `texinfmt.el': %s" texinfmt-version)))
+         (format-message "Version of `texinfmt.el': %s" texinfmt-version)))
     (if here
         (insert version-string)
       (if (called-interactively-p 'interactive)
@@ -330,25 +330,24 @@ converted to Info is stored in a temporary buffer."
           (let ((arg (texinfo-parse-arg-discard)))
             (insert " "
               texinfo-region-buffer-name
-              " buffer for:  `")
+              (format-message " buffer for:  `"))
             (insert (file-name-nondirectory (expand-file-name arg)))
-            (insert "',        -*-Text-*-\n")))
+            (insert (format-message "',        -*-Text-*-\n"))))
       ;; Else no `@setfilename' line
       (insert " "
               texinfo-region-buffer-name
               " buffer                       -*-Text-*-\n"))
-    (insert "produced by `texinfo-format-region'\n"
+    (insert (format-message "produced by `texinfo-format-region'\n")
             "from a region in: "
             (if (buffer-file-name input-buffer)
-                  (concat "`"
-                          (file-name-sans-versions
-                           (file-name-nondirectory
-                            (buffer-file-name input-buffer)))
-                          "'")
-                (concat "buffer `" (buffer-name input-buffer) "'"))
-              "\nusing `texinfmt.el' version "
-              texinfmt-version
-              ".\n\n")
+		(format-message "`%s'"
+			(file-name-sans-versions
+			 (file-name-nondirectory
+			  (buffer-file-name input-buffer))))
+	      (format-message "buffer `%s'" (buffer-name input-buffer)))
+            (format-message "\nusing `texinfmt.el' version ")
+            texinfmt-version
+            ".\n\n")
 
     ;; Now convert for real.
     (goto-char (point-min))
@@ -479,19 +478,18 @@ if large.  You can use `Info-split' to do this manually."
     ;; Insert info about how this file was made.
     (insert "Info file: "
             texinfo-format-filename ",    -*-Text-*-\n"
-            "produced by `texinfo-format-buffer'\n"
+            (format-message "produced by `texinfo-format-buffer'\n")
             ;; Date string removed so that regression testing is easier.
             ;; "on "
             ;; (insert (format-time-string "%e %b %Y")) " "
             "from file"
             (if (buffer-file-name input-buffer)
-                (concat " `"
+                (format-message " `%s'"
                         (file-name-sans-versions
                          (file-name-nondirectory
-                          (buffer-file-name input-buffer)))
-                        "'")
-              (concat "buffer `" (buffer-name input-buffer) "'"))
-            "\nusing `texinfmt.el' version "
+                          (buffer-file-name input-buffer))))
+              (format-message "buffer `%s'" (buffer-name input-buffer)))
+            (format-message "\nusing `texinfmt.el' version ")
             texinfmt-version
             ".\n\n")
     ;; Return data for indices.

@@ -587,7 +587,7 @@ Theme files are named *-theme.el in `"))
 		 :follow-link 'mouse-face
 		 :action (lambda (_widget &rest _ignore)
 			   (describe-variable 'custom-theme-load-path)))
-  (widget-insert "'.\n\n")
+  (widget-insert (substitute-command-keys "'.\n\n"))
 
   ;; If the user has made customizations, display a warning and
   ;; provide buttons to disable or convert them.

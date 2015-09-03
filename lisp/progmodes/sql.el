@@ -2609,8 +2609,8 @@ of the current highlighting list.
 
 For example:
 
- (sql-add-product-keywords 'ms
-  '((\"\\\\b\\\\w+_t\\\\b\" . font-lock-type-face)))
+ (sql-add-product-keywords \\='ms
+  \\='((\"\\\\b\\\\w+_t\\\\b\" . font-lock-type-face)))
 
 adds a fontification pattern to fontify identifiers ending in
 `_t' as data types."

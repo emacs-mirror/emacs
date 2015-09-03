@@ -855,7 +855,7 @@ external if displayed external."
 				      (concat
 				       "using external program \""
 				       (format method filename) "\"")
-				    (format
+				    (gnus-format-message
 				     "by calling `%s' on the contents)" method))
 				  "? "))))))
 	    (if external

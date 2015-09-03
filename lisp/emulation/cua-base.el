@@ -685,7 +685,7 @@ a cons (TYPE . COLOR), then both properties are affected."
 (defvar cua--prefix-override-timer nil)
 (defvar cua--prefix-override-length nil)
 
-(defun cua--prefix-override-replay (arg repeat)
+(defun cua--prefix-override-replay (repeat)
   (let* ((keys (this-command-keys))
 	 (i (length keys))
 	 (key (aref keys (1- i))))
@@ -705,21 +705,23 @@ a cons (TYPE . COLOR), then both properties are affected."
     ;; Don't record this command
     (setq this-command last-command)
     ;; Restore the prefix arg
-    (setq prefix-arg arg)
-    (reset-this-command-lengths)
+    ;; This should make it so that exchange-point-and-mark gets the prefix when
+    ;; you do C-u C-x C-x C-x work (where the C-u is properly passed to the C-x
+    ;; C-x binding after the first C-x C-x was rewritten to just C-x).
+    (prefix-command-preserve-state)
     ;; Push the key back on the event queue
     (setq unread-command-events (cons key unread-command-events))))
 
-(defun cua--prefix-override-handler (arg)
+(defun cua--prefix-override-handler ()
   "Start timer waiting for prefix key to be followed by another key.
 Repeating prefix key when region is active works as a single prefix key."
-  (interactive "P")
-  (cua--prefix-override-replay arg 0))
+  (interactive)
+  (cua--prefix-override-replay 0))
 
-(defun cua--prefix-repeat-handler (arg)
+(defun cua--prefix-repeat-handler ()
   "Repeating prefix key when region is active works as a single prefix key."
-  (interactive "P")
-  (cua--prefix-override-replay arg 1))
+  (interactive)
+  (cua--prefix-override-replay 1))
 
 (defun cua--prefix-copy-handler (arg)
   "Copy region/rectangle, then replay last key."
@@ -742,7 +744,8 @@ Repeating prefix key when region is active works as a single prefix key."
   (when (= (length (this-command-keys)) cua--prefix-override-length)
     (setq unread-command-events (cons 'timeout unread-command-events))
     (if prefix-arg
-      (reset-this-command-lengths)
+        nil
+      ;; FIXME: Why?
       (setq overriding-terminal-local-map nil))
     (cua--select-keymaps)))
 
@@ -755,8 +758,9 @@ Repeating prefix key when region is active works as a single prefix key."
   (call-interactively this-command))
 
 (defun cua--keep-active ()
-  (setq mark-active t
-	deactivate-mark nil))
+  (when (mark t)
+    (setq mark-active t
+          deactivate-mark nil)))
 
 (defun cua--deactivate (&optional now)
   (if (not now)
@@ -944,7 +948,7 @@ See also `exchange-point-and-mark'."
   (cond ((null cua-enable-cua-keys)
 	 (exchange-point-and-mark arg))
 	(arg
-	 (setq mark-active t))
+         (when (mark t) (setq mark-active t)))
 	(t
 	 (let (mark-active)
 	   (exchange-point-and-mark)
@@ -1212,25 +1216,28 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 
 (defvar cua--keymaps-initialized nil)
 
-(defun cua--shift-control-prefix (prefix arg)
+(defun cua--shift-control-prefix (prefix)
   ;; handle S-C-x and S-C-c by emulating the fast double prefix function.
   ;; Don't record this command
   (setq this-command last-command)
   ;; Restore the prefix arg
-  (setq prefix-arg arg)
-  (reset-this-command-lengths)
+  ;; This should make it so that exchange-point-and-mark gets the prefix when
+  ;; you do C-u S-C-x C-x work (where the C-u is properly passed to the C-x
+  ;; C-x binding after the first S-C-x was rewritten to just C-x).
+  (prefix-command-preserve-state)
   ;; Activate the cua--prefix-repeat-keymap
   (setq cua--prefix-override-timer 'shift)
   ;; Push duplicate keys back on the event queue
-  (setq unread-command-events (cons prefix (cons prefix unread-command-events))))
+  (setq unread-command-events
+        (cons prefix (cons prefix unread-command-events))))
 
-(defun cua--shift-control-c-prefix (arg)
-  (interactive "P")
-  (cua--shift-control-prefix ?\C-c arg))
+(defun cua--shift-control-c-prefix ()
+  (interactive)
+  (cua--shift-control-prefix ?\C-c))
 
-(defun cua--shift-control-x-prefix (arg)
-  (interactive "P")
-  (cua--shift-control-prefix ?\C-x arg))
+(defun cua--shift-control-x-prefix ()
+  (interactive)
+  (cua--shift-control-prefix ?\C-x))
 
 (defun cua--init-keymaps ()
   ;; Cache actual rectangle modifier key.

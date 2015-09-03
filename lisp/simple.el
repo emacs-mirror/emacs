@@ -1711,9 +1711,13 @@ The argument SPECIAL, if non-nil, means that this command is executing
 a special event, so ignore the prefix argument and don't clear it."
   (setq debug-on-next-call nil)
   (let ((prefixarg (unless special
+                     ;; FIXME: This should probably be done around
+                     ;; pre-command-hook rather than here!
                      (prog1 prefix-arg
                        (setq current-prefix-arg prefix-arg)
-                       (setq prefix-arg nil)))))
+                       (setq prefix-arg nil)
+                       (when current-prefix-arg
+                         (prefix-command-update))))))
     (if (and (symbolp cmd)
              (get cmd 'disabled)
              disabled-command-function)
@@ -3626,6 +3630,73 @@ see other processes running on the system, use `list-system-processes'."
   (display-buffer buffer)
   nil)
 
+;;;; Prefix commands
+
+(setq prefix-command--needs-update nil)
+(setq prefix-command--last-echo nil)
+
+(defun internal-echo-keystrokes-prefix ()
+  ;; BEWARE: Called directly from the C code.
+  (if (not prefix-command--needs-update)
+      prefix-command--last-echo
+    (setq prefix-command--last-echo
+          (let ((strs nil))
+            (run-hook-wrapped 'prefix-command-echo-keystrokes-functions
+                              (lambda (fun) (push (funcall fun) strs)))
+            (setq strs (delq nil strs))
+            (when strs (mapconcat #'identity strs " "))))))
+
+(defvar prefix-command-echo-keystrokes-functions nil
+  "Abnormal hook which constructs the description of the current prefix state.
+Each function is called with no argument, should return a string or nil.")
+
+(defun prefix-command-update ()
+  "Update state of prefix commands.
+Call it whenever you change the \"prefix command state\"."
+  (setq prefix-command--needs-update t))
+
+(defvar prefix-command-preserve-state-hook nil
+  "Normal hook run when a command needs to preserve the prefix.")
+
+(defun prefix-command-preserve-state ()
+  "Pass the current prefix command state to the next command.
+Should be called by all prefix commands.
+Runs `prefix-command-preserve-state-hook'."
+  (run-hooks 'prefix-command-preserve-state-hook)
+  ;; If the current command is a prefix command, we don't want the next (real)
+  ;; command to have `last-command' set to, say, `universal-argument'.
+  (setq this-command last-command)
+  (setq real-this-command real-last-command)
+  (prefix-command-update))
+
+(defun reset-this-command-lengths ()
+  (declare (obsolete prefix-command-preserve-state "25.1"))
+  nil)
+
+;;;;; The main prefix command.
+
+;; FIXME: Declaration of `prefix-arg' should be moved here!?
+
+(add-hook 'prefix-command-echo-keystrokes-functions
+          #'universal-argument--description)
+(defun universal-argument--description ()
+  (when prefix-arg
+    (concat "C-u"
+            (pcase prefix-arg
+              (`(-) " -")
+              (`(,(and (pred integerp) n))
+               (let ((str ""))
+                 (while (and (> n 4) (= (mod n 4) 0))
+                   (setq str (concat str " C-u"))
+                   (setq n (/ n 4)))
+                 (if (= n 4) str (format " %s" prefix-arg))))
+              (_ (format " %s" prefix-arg))))))
+
+(add-hook 'prefix-command-preserve-state-hook
+          #'universal-argument--preserve)
+(defun universal-argument--preserve ()
+  (setq prefix-arg current-prefix-arg))
+
 (defvar universal-argument-map
   (let ((map (make-sparse-keymap))
         (universal-argument-minus
@@ -3664,7 +3735,8 @@ see other processes running on the system, use `list-system-processes'."
   "Keymap used while processing \\[universal-argument].")
 
 (defun universal-argument--mode ()
-  (set-transient-map universal-argument-map))
+  (prefix-command-update)
+  (set-transient-map universal-argument-map nil))
 
 (defun universal-argument ()
   "Begin a numeric argument for the following command.
@@ -3677,6 +3749,7 @@ For some commands, just \\[universal-argument] by itself serves as a flag
 which is different in effect from any particular numeric argument.
 These commands include \\[set-mark-command] and \\[start-kbd-macro]."
   (interactive)
+  (prefix-command-preserve-state)
   (setq prefix-arg (list 4))
   (universal-argument--mode))
 
@@ -3684,6 +3757,7 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
   ;; A subsequent C-u means to multiply the factor by 4 if we've typed
   ;; nothing but C-u's; otherwise it means to terminate the prefix arg.
   (interactive "P")
+  (prefix-command-preserve-state)
   (setq prefix-arg (if (consp arg)
                        (list (* 4 (car arg)))
                      (if (eq arg '-)
@@ -3695,6 +3769,7 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
   "Begin a negative numeric argument for the next command.
 \\[universal-argument] following digits or minus sign ends the argument."
   (interactive "P")
+  (prefix-command-preserve-state)
   (setq prefix-arg (cond ((integerp arg) (- arg))
                          ((eq arg '-) nil)
                          (t '-)))
@@ -3704,6 +3779,7 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
   "Part of the numeric argument for the next command.
 \\[universal-argument] following digits or minus sign ends the argument."
   (interactive "P")
+  (prefix-command-preserve-state)
   (let* ((char (if (integerp last-command-event)
 		   last-command-event
 		 (get last-command-event 'ascii-character)))

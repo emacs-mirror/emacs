@@ -550,12 +550,12 @@ For example, to display the ISO week numbers:
 
   (setq calendar-week-start-day 1
         calendar-intermonth-text
-        '(propertize
+        \\='(propertize
           (format \"%2d\"
                   (car
                    (calendar-iso-from-absolute
                     (calendar-absolute-from-gregorian (list month day year)))))
-          'font-lock-face 'font-lock-function-name-face))
+          \\='font-lock-face \\='font-lock-function-name-face))
 
 See also `calendar-intermonth-header'."
   :group 'calendar

@@ -1122,7 +1122,7 @@ See Info node `(octave)Function Files'."
         (let* ((func (buffer-substring name-start name-end))
                (file (file-name-sans-extension
                       (file-name-nondirectory buffer-file-name)))
-               (help-form (format "\
+               (help-form (format-message "\
 a: Use function name `%s'
 b: Use file name `%s'
 q: Don't fix\n" func file))
@@ -1728,12 +1728,12 @@ code line."
                  (dir (file-name-directory
                        (directory-file-name (file-name-directory file)))))
             (replace-match "" nil nil nil 1)
-            (insert "`")
+            (insert (substitute-command-keys "`"))
             ;; Include the parent directory which may be regarded as
             ;; the category for the FN.
             (help-insert-xref-button (file-relative-name file dir)
                                      'octave-help-file fn)
-            (insert "'")))
+            (insert (substitute-command-keys "'"))))
         ;; Make 'See also' clickable.
         (with-syntax-table octave-mode-syntax-table
           (when (re-search-forward "^\\s-*See also:" nil t)
@@ -1816,8 +1816,8 @@ If the environment variable OCTAVE_SRCDIR is set, it is searched first."
            (error "File `%s' not found" name))
        file))
     (`"mex"
-     (if (yes-or-no-p (format "File `%s' may be binary; open? "
-                              (file-name-nondirectory name)))
+     (if (yes-or-no-p (format-message "File `%s' may be binary; open? "
+				      (file-name-nondirectory name)))
          name
        (user-error "Aborted")))
     (_ name)))
@@ -1847,7 +1847,7 @@ if iskeyword('%s') disp('`%s'' is a keyword') else which('%s') endif\n"
           (when (string-match "from the file \\(.*\\)$" line)
             (setq file (match-string 1 line))))
         (if (not file)
-            (user-error "%s" (or line (format "`%s' not found" fn)))
+            (user-error "%s" (or line (format-message "`%s' not found" fn)))
           (ring-insert find-tag-marker-ring (point-marker))
           (setq file (funcall octave-find-definition-filename-function file))
           (when file

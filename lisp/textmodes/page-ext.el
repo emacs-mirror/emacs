@@ -395,8 +395,8 @@ Point is left in the body of page."
   "Search for REGEXP, starting from point, and narrow to page it is in."
   (interactive (list
                 (read-string
-                 (format "Search for `%s' (end with RET): "
-                         (or pages-last-search "regexp")))))
+                 (format-message "Search for `%s' (end with RET): "
+				 (or pages-last-search "regexp")))))
   (if (equal regexp "")
       (setq regexp pages-last-search)
     (setq pages-last-search regexp))
@@ -549,16 +549,18 @@ directory for only the accessible portion of the buffer."
           (list nil
                 nil
                 (read-string
-                 (format "Select according to `%s' (end with RET): "
-                         (or pages-directory-previous-regexp "regexp")))))
+                 (format-message
+		  "Select according to `%s' (end with RET): "
+		  (or pages-directory-previous-regexp "regexp")))))
          ((> (prefix-numeric-value current-prefix-arg) 0)
           (list t t nil))
          ((< (prefix-numeric-value current-prefix-arg) 0)
           (list nil
                 t
                 (read-string
-                 (format "Select according to `%s' (end with RET): "
-                         (or pages-directory-previous-regexp "regexp")))))))
+                 (format-message
+		  "Select according to `%s' (end with RET): "
+		  (or pages-directory-previous-regexp "regexp")))))))
 
   (if (equal regexp "")
       (setq regexp pages-directory-previous-regexp)

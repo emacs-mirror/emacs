@@ -517,7 +517,7 @@ DEFUN ("quote", Fquote, Squote, 1, UNEVALLED, 0,
 Warning: `quote' does not construct its return value, but just returns
 the value that was pre-constructed by the Lisp reader (see info node
 `(elisp)Printed Representation').
-This means that '(a . b) is not identical to (cons 'a 'b): the former
+This means that \\='(a . b) is not identical to (cons \\='a \\='b): the former
 does not cons.  Quoting should be reserved for constants that will
 never be modified by side-effects, unless you like self-modifying code.
 See the common pitfall in info node `(elisp)Rearrangement' for an example
@@ -2196,7 +2196,7 @@ eval_sub (Lisp_Object form)
 DEFUN ("apply", Fapply, Sapply, 1, MANY, 0,
        doc: /* Call FUNCTION with our remaining args, using our last arg as list of args.
 Then return the value FUNCTION returns.
-Thus, (apply '+ 1 2 '(3 4)) returns 10.
+Thus, (apply \\='+ 1 2 \\='(3 4)) returns 10.
 usage: (apply FUNCTION &rest ARGUMENTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
@@ -2557,7 +2557,7 @@ DEFUN ("functionp", Ffunctionp, Sfunctionp, 1, 1, 0,
 DEFUN ("funcall", Ffuncall, Sfuncall, 1, MANY, 0,
        doc: /* Call first argument as a function, passing remaining arguments to it.
 Return the value that function returns.
-Thus, (funcall 'cons 'x 'y) returns (x . y).
+Thus, (funcall \\='cons \\='x \\='y) returns (x . y).
 usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {

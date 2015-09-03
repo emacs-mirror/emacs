@@ -1954,7 +1954,7 @@ from the comment."
   "Return non-nil if the current point is in a code fragment.
 A code fragment is identified by an open parenthesis followed by a
 symbol which is a valid function or a word in all CAPS, or a parenthesis
-that is quoted with the ' character.  Only the region from START to LIMIT
+that is quoted with the \\=' character.  Only the region from START to LIMIT
 is allowed while searching for the bounding parenthesis."
   (save-match-data
     (save-restriction

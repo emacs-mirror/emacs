@@ -225,7 +225,7 @@ Calc user interface as before (either C-x * C or C-x * K; initially C-x * C).
 	   "Letter keys: SHIFT + Num-eval; More-recn; eXec-kbd-macro; Keep-args"
 	   "Other keys: +, -, *, /, ^, \\ (int div), : (frac div)"
 	   "Other keys: & (1/x), | (concat), % (modulo), ! (factorial)"
-	   "Other keys: ' (alg-entry), = (eval), \\=` (edit); M-RET (last-args)"
+	   "Other keys: \\=' (alg-entry), = (eval), \\=` (edit); M-RET (last-args)"
 	   "Other keys: SPC/RET (enter/dup), LFD (over); < > (scroll horiz)"
 	   "Other keys: DEL (drop), M-DEL (drop-above); { } (scroll vert)"
 	   "Other keys: TAB (swap/roll-dn), M-TAB (roll-up)"
@@ -253,11 +253,12 @@ Calc user interface as before (either C-x * C or C-x * K; initially C-x * C).
                   0))
           (let ((msg (nth calc-help-phase msgs)))
             (message "%s" (if msg
-                              (concat msg ":"
+                              (concat (substitute-command-keys msg) ":"
                                       (make-string (- (apply 'max
                                                              (mapcar 'length
                                                                      msgs))
-                                                      (length msg)) 32)
+                                                      (length msg))
+						   ?\ )
                                       "  [?=MORE]")
                             ""))))))))
 

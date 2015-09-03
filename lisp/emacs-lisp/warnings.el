@@ -314,7 +314,7 @@ See also `warning-series', `warning-prefix-function' and
 ;; Any keymap that is defined will do.
 ;;;###autoload
 (defun lwarn (type level message &rest args)
-  "Display a warning message made from (format MESSAGE ARGS...).
+  "Display a warning message made from (format-message MESSAGE ARGS...).
 \\<special-mode-map>
 Aside from generating the message with `format-message',
 this is equivalent to `display-warning'.
@@ -336,7 +336,7 @@ LEVEL should be either :debug, :warning, :error, or :emergency
 
 ;;;###autoload
 (defun warn (message &rest args)
-  "Display a warning message made from (format MESSAGE ARGS...).
+  "Display a warning message made from (format-message MESSAGE ARGS...).
 Aside from generating the message with `format-message',
 this is equivalent to `display-warning', using
 `emacs' as the type and `:warning' as the level."

@@ -209,11 +209,11 @@ It creates the Imenu index for the buffer, if necessary."
 		   (< buffer-saved-size which-func-maxout)
 		   (= which-func-maxout 0)))
 	  (setq imenu--index-alist
-		(save-excursion (funcall imenu-create-index-function))))
+                (save-excursion (funcall imenu-create-index-function))))
+    (imenu-unavailable
+     (setq which-func-mode nil))
     (error
-     (unless (equal err
-                    '(user-error "This buffer cannot use `imenu-default-create-index-function'"))
-       (message "which-func-ff-hook error: %S" err))
+     (message "which-func-ff-hook error: %S" err)
      (setq which-func-mode nil))))
 
 (defun which-func-update ()

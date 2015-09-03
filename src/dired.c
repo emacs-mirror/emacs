@@ -816,7 +816,7 @@ DEFUN ("file-attributes", Ffile_attributes, Sfile_attributes, 1, 2, 0,
 Value is nil if specified file cannot be opened.
 
 ID-FORMAT specifies the preferred format of attributes uid and gid (see
-below) - valid values are 'string and 'integer.  The latter is the
+below) - valid values are `string' and `integer'.  The latter is the
 default, but we plan to change that, so you should specify a non-nil value
 for ID-FORMAT if you use the returned uid or gid.
 

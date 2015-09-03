@@ -568,7 +568,7 @@ may be bound to temporary variables which are introduced
 automatically to preserve proper execution order of the arguments.
 For example:
 
-  (defsetf nth (n x) (v) `(setcar (nthcdr ,n ,x) ,v))
+  (defsetf nth (n x) (v) \\=`(setcar (nthcdr ,n ,x) ,v))
 
 You can replace this form with `gv-define-setter'.
 

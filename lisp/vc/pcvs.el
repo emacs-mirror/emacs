@@ -968,10 +968,10 @@ With a prefix argument, prompt for cvs FLAGS to use."
 The files are stored to DIR."
   (interactive
    (let* ((branch (cvs-prefix-get 'cvs-branch-prefix))
-	  (prompt (format "CVS Checkout Directory for `%s%s': "
-			 (cvs-get-module)
-			 (if branch (format " (branch: %s)" branch)
-			   ""))))
+	  (prompt (format-message "CVS Checkout Directory for `%s%s': "
+				  (cvs-get-module)
+				  (if branch (format " (branch: %s)" branch)
+				    ""))))
      (list (read-directory-name prompt nil default-directory nil))))
   (let ((modules (split-string-and-unquote (cvs-get-module)))
 	(flags (cvs-add-branch-prefix
@@ -2403,9 +2403,9 @@ The exact behavior is determined also by `cvs-dired-use-hook'."
 			 (goto-char (point-min))
 			 (looking-at ".*to add this file permanently\n\\'"))
                 (dolist (file (if (listp files) files (list files)))
-                  (insert "cvs add: scheduling file `"
-                          (file-name-nondirectory file)
-                          "' for addition\n")))
+                  (insert (format-message
+			   "cvs add: scheduling file `%s' for addition\n"
+			   (file-name-nondirectory file)))))
 	      ;; VC never (?) does `cvs -n update' so dcd=nil
 	      ;; should probably always be the right choice.
 	      (cvs-parse-process nil subdir))))))))

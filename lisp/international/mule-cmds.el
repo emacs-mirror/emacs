@@ -744,7 +744,8 @@ e.g., for sending an email message.\n ")
 	    (when unsafe
 	      (insert (if rejected "The other coding systems"
 			"However, each of them")
-		      " encountered characters it couldn't encode:\n")
+		      (substitute-command-keys
+		       " encountered characters it couldn't encode:\n"))
 	      (dolist (coding unsafe)
 		(insert (format "  %s cannot encode these:" (car coding)))
 		(let ((i 0)
@@ -1285,9 +1286,9 @@ Emacs loads this file at startup time.")
 ;;    INPUT-METHOD LANGUAGE-NAME ACTIVATE-FUNC
 ;;    TITLE DESCRIPTION
 ;;    ARG ...)
-;; See the function `register-input-method' for the meanings of the arguments.
+;; See the function ‘register-input-method’ for the meanings of the arguments.
 ;;
-;; If this directory is included in `load-path', Emacs automatically
+;; If this directory is included in ‘load-path’, Emacs automatically
 ;; loads this file at startup time.
 
 "

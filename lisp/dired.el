@@ -3567,7 +3567,7 @@ Thus, use \\[backward-page] to find the beginning of a group of errors."
 	       (unless (bolp)
 		 (insert "\n"))
 	       (insert (current-time-string)
-		       "\tBuffer `" (buffer-name obuf) "'\n")
+		       (format-message "\tBuffer ‘%s’\n" (buffer-name obuf)))
 	       (goto-char (point-max))
 	       (insert "\f\n")))))))
 

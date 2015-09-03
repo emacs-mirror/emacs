@@ -3471,7 +3471,7 @@ are not performed."
     (with-output-to-temp-buffer (concat "*Apropos Members*")
       (set-buffer standard-output)
       (erase-buffer)
-      (insert "Members matching `" regexp "'\n\n")
+      (insert (format-message "Members matching ‘%s’\n\n" regexp))
       (cl-loop for s in (ebrowse-list-of-matching-members members regexp) do
                (cl-loop for info in (gethash s members) do
                         (ebrowse-draw-file-member-info info))))))

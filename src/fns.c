@@ -347,7 +347,7 @@ This function obeys the conventions for collation order in your
 locale settings.  For example, punctuation and whitespace characters
 might be considered less significant for sorting:
 
-\(sort '\("11" "12" "1 1" "1 2" "1.1" "1.2") 'string-collate-lessp)
+\(sort '\("11" "12" "1 1" "1 2" "1.1" "1.2") \\='string-collate-lessp)
   => \("11" "1 1" "1.1" "12" "1 2" "1.2")
 
 The optional argument LOCALE, a string, overrides the setting of your
@@ -1083,7 +1083,7 @@ multibyte character of charset `eight-bit'.
 See also `string-to-multibyte'.
 
 Beware, this often doesn't really do what you think it does.
-It is similar to (decode-coding-string STRING 'utf-8-emacs).
+It is similar to (decode-coding-string STRING \\='utf-8-emacs).
 If you're not sure, whether to use `string-as-multibyte' or
 `string-to-multibyte', use `string-to-multibyte'.  */)
   (Lisp_Object string)

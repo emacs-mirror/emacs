@@ -330,7 +330,7 @@ to match a mail address in the From: header, BANNER is one of a symbol
 If ADDRESS matches author's mail address, it will remove things like
 advertisements.  For example:
 
-\((\"@yoo-hoo\\\\.co\\\\.jp\\\\'\" . \"\\n_+\\nDo You Yoo-hoo!\\\\?\\n.*\\n.*\\n\"))
+\((\"@yoo-hoo\\\\.co\\\\.jp\\\\\\='\" . \"\\n_+\\nDo You Yoo-hoo!\\\\?\\n.*\\n.*\\n\"))
 "
   :type '(repeat
 	  (cons
@@ -886,12 +886,12 @@ Here are examples:
 
 ;; Specify the altitude of Face images in the From header.
 \(setq gnus-face-properties-alist
-      '((pbm . (:face gnus-x-face :ascent 80))
+      \\='((pbm . (:face gnus-x-face :ascent 80))
 	(png . (:ascent 80))))
 
 ;; Show Face images as pressed buttons.
 \(setq gnus-face-properties-alist
-      '((pbm . (:face gnus-x-face :relief -2))
+      \\='((pbm . (:face gnus-x-face :relief -2))
 	(png . (:relief -2))))
 
 See the manual for the valid properties for various image types.
@@ -2428,7 +2428,7 @@ long lines if and only if arg is positive."
 	      (unless (setq from (gnus-article-goto-header "from"))
 		(insert "From:")
 		(setq from (point))
-		(insert " [no `from' set]\n"))
+		(insert " [no 'from' set]\n"))
 	      (while faces
 		(when (setq png (gnus-convert-face-to-png (pop faces)))
 		  (setq image
@@ -2770,7 +2770,7 @@ summary buffer."
       (cond ((file-directory-p file)
 	     (when (or (not (eq how 'file))
 		       (gnus-y-or-n-p
-			(format
+			(gnus-format-message
 			 "Delete temporary HTML file(s) in directory `%s'? "
 			 (file-name-as-directory file))))
 	       (gnus-delete-directory file)))

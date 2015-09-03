@@ -494,9 +494,10 @@ You can also use the keyboard accelerators indicated like this: [K]ey."
     (set-buffer buffer)
     (setq cpp-edit-symbols symbols)
     (erase-buffer)
-    (insert "CPP Display Information for `")
+    (insert (substitute-command-keys "CPP Display Information for `"))
     (cpp-make-button (buffer-name cpp-edit-buffer) 'cpp-edit-home)
-    (insert "'\n\nClick mouse-2 on item you want to change or use\n"
+    (insert (substitute-command-keys
+	     "'\n\nClick mouse-2 on item you want to change or use\n")
 	    "or switch to this buffer and type the keyboard equivalents.\n"
 	    "Keyboard equivalents are indicated with brackets like [T]his.\n\n")
     (cpp-make-button "[H]ome (display the C file)" 'cpp-edit-home)

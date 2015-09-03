@@ -1719,6 +1719,9 @@ Unless optional argument INPLACE is non-nil, return a new string."
 	    (aset newstr i tochar)))
       newstr)))
 
+(unless (fboundp 'format-message)
+  (defalias 'format-message 'format))
+
 (defun ediff-abbrev-jobname (jobname)
   (cond ((eq jobname 'ediff-directories)
 	 "Compare two directories")

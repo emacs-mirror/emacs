@@ -240,8 +240,9 @@ executable."
 			 (save-window-excursion
 			   ;; Make buffer visible before question.
 			   (switch-to-buffer (current-buffer))
-			   (y-or-n-p (concat "Replace magic number by `"
-					     executable-prefix argument "'? "))))
+			   (y-or-n-p (format-message
+				      "Replace magic number by `%s%s'? "
+				      executable-prefix argument))))
 		     (progn
 		       (replace-match argument t t nil 1)
 		       (message "Magic number changed to `%s'"

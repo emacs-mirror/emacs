@@ -217,7 +217,7 @@ will try to match against both the From and the To header.
 Example:
 
 \(setq nnmail-fancy-expiry-targets
-      '((to-from \"boss\" \"nnfolder:Work\")
+      \\='((to-from \"boss\" \"nnfolder:Work\")
 	(\"Subject\" \"IMPORTANT\" \"nnfolder:IMPORTANT.%Y.%b\")
 	(\"from\" \".*\" \"nnfolder:Archive-%Y\")))
 
@@ -465,7 +465,7 @@ GROUP: Mail will be stored in GROUP (a string).
 junk: Mail will be deleted.  Use with care!  Do not submerge in water!
   Example:
   (setq nnmail-split-fancy
-	'(| (\"Subject\" \"MAKE MONEY FAST\" junk)
+	\\='(| (\"Subject\" \"MAKE MONEY FAST\" junk)
 	    ...other.rules.omitted...))
 
 FIELD must match a complete field name.  VALUE must match a complete

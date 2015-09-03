@@ -151,15 +151,15 @@ maximum in the reminder is not that painful, I think.  Although this
 scheme might appear somewhat weird at a first glance, it is very powerful.
 In order to make this clear, here are some examples:
 
-- '(0 . day): this is the default value of `nndiary-reminders'.  It means
+- (0 . day): this is the default value of `nndiary-reminders'.  It means
   pop up the appointments of the day each morning at 00:00.
 
-- '(1 . day): this means pop up the appointments the day before, at 00:00.
+- (1 . day): this means pop up the appointments the day before, at 00:00.
 
-- '(6 . hour): for an appointment at 18:30, this would pop up the
+- (6 . hour): for an appointment at 18:30, this would pop up the
   appointment message at 12:00.
 
-- '(360 . minute): for an appointment at 18:30 and 15 seconds, this would
+- (360 . minute): for an appointment at 18:30 and 15 seconds, this would
   pop up the appointment message at 12:30."
   :group 'nndiary
   :type '(repeat (cons :format "%v\n"

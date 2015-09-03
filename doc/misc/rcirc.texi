@@ -909,7 +909,7 @@ The real answer, therefore, is a @code{/reconnect} command:
      "Reconnect the server process."
      (interactive "i")
      (unless process
-       (error "There's no process for this target"))
+       (error "There’s no process for this target"))
      (let* ((server (car (process-contact process)))
             (port (process-contact process :service))
             (nick (rcirc-nick process))

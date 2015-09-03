@@ -920,8 +920,6 @@ xg_frame_resized (struct frame *f, int pixelwidth, int pixelheight)
       change_frame_size (f, width, height, 0, 1, 0, 1);
       SET_FRAME_GARBAGED (f);
       cancel_mouse_face (f);
-
-      do_pending_window_change (0);
     }
 }
 

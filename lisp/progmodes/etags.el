@@ -171,7 +171,7 @@ is the symbol being selected.
 
 Example value:
 
-  '((\"Emacs Lisp\" Info-goto-emacs-command-node obarray)
+   ((\"Emacs Lisp\" Info-goto-emacs-command-node obarray)
     (\"Common Lisp\" common-lisp-hyperspec common-lisp-hyperspec-obarray)
     (\"SCWM\" scwm-documentation scwm-obarray))"
   :group 'etags
@@ -1459,7 +1459,7 @@ hits the start of file."
         (when (symbolp symbs)
           (if (boundp symbs)
 	      (setq symbs (symbol-value symbs))
-	    (insert "symbol `" (symbol-name symbs) "' has no value\n")
+	    (insert (format-message "symbol ‘%s’ has no value\n" symbs))
 	    (setq symbs nil)))
         (if (vectorp symbs)
 	    (mapatoms ins-symb symbs)
@@ -1469,13 +1469,13 @@ hits the start of file."
 
 (defun etags-tags-apropos (string) ; Doc string?
   (when tags-apropos-verbose
-    (princ "Tags in file `")
+    (princ (substitute-command-keys "Tags in file `"))
     (tags-with-face 'highlight (princ buffer-file-name))
-    (princ "':\n\n"))
+    (princ (substitute-command-keys "':\n\n")))
   (goto-char (point-min))
   (let ((progress-reporter (make-progress-reporter
-			    (format "Making tags apropos buffer for `%s'..."
-				    string)
+			    (format-message
+			     "Making tags apropos buffer for `%s'..." string)
 			    (point-min) (point-max))))
     (while (re-search-forward string nil t)
       (progress-reporter-update progress-reporter (point))
@@ -1920,9 +1920,9 @@ directory specification."
 				      'tags-complete-tags-table-file
 				      nil t nil)))
   (with-output-to-temp-buffer "*Tags List*"
-    (princ "Tags in file `")
+    (princ (substitute-command-keys "Tags in file `"))
     (tags-with-face 'highlight (princ file))
-    (princ "':\n\n")
+    (princ (substitute-command-keys "':\n\n"))
     (save-excursion
       (let ((first-time t)
 	    (gotany nil))
@@ -1944,9 +1944,10 @@ directory specification."
   (declare (obsolete xref-find-apropos "25.1"))
   (interactive "sTags apropos (regexp): ")
   (with-output-to-temp-buffer "*Tags List*"
-    (princ "Click mouse-2 to follow tags.\n\nTags matching regexp `")
+    (princ (substitute-command-keys
+	    "Click mouse-2 to follow tags.\n\nTags matching regexp `"))
     (tags-with-face 'highlight (princ regexp))
-    (princ "':\n\n")
+    (princ (substitute-command-keys "':\n\n"))
     (save-excursion
       (let ((first-time t))
 	(while (visit-tags-table-buffer (not first-time))

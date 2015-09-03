@@ -195,7 +195,7 @@ It now exits if the option @code{--batch} was specified.
 
 @item
 If the @file{*scratch*} buffer exists and is empty, it inserts
-@code{initial-scratch-message} into that buffer.
+@code{(substitute-command-keys initial-scratch-message)} into that buffer.
 
 @item
 If @code{initial-buffer-choice} is a string, it visits the file (or
@@ -314,6 +314,7 @@ file will not inhibit the message for someone else.
 
 @defopt initial-scratch-message
 This variable, if non-@code{nil}, should be a string, which is
+treated as documentation to be
 inserted into the @file{*scratch*} buffer when Emacs starts up.  If it
 is @code{nil}, the @file{*scratch*} buffer is empty.
 @end defopt
@@ -1927,7 +1928,7 @@ idleness.  Here's an example:
 
 @example
 (defvar my-resume-timer nil
-  "Timer for `my-timer-function' to reschedule itself, or nil.")
+  "Timer for ‘my-timer-function’ to reschedule itself, or nil.")
 
 (defun my-timer-function ()
   ;; @r{If the user types a command while @code{my-resume-timer}}

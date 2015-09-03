@@ -344,7 +344,7 @@
     (`(:elem . arg) 0)
     (`(:list-intro . ,(or `";" `"")) t) ;"" stands for BOB (bug#15467).
     (`(:before . "{")
-     (when (smie-rule-hanging-p)
+     (when (or (smie-rule-hanging-p) (smie-rule-bolp))
        (smie-backward-sexp ";")
        (smie-indent-virtual)))
     (`(:before . ,(or "{" "("))

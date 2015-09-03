@@ -2176,7 +2176,8 @@ actually in their parent which is not accessible.")
 
       (princ "\n\nInclude Path Summary:\n")
       (when (and (boundp 'ede-object) ede-object)
-	(princ "\n  This file's project include is handled by:\n")
+	(princ (substitute-command-keys
+		"\n  This file's project include is handled by:\n"))
 	(let ((objs (if (listp ede-object)
 			ede-object
 		      (list ede-object))))
@@ -2194,14 +2195,16 @@ actually in their parent which is not accessible.")
 	)
 
       (when semantic-dependency-include-path
-	(princ "\n  This file's generic include path is:\n")
+	(princ (substitute-command-keys
+		"\n  This file's generic include path is:\n"))
 	(dolist (dir semantic-dependency-include-path)
 	  (princ "    ")
 	  (princ dir)
 	  (princ "\n")))
 
       (when semantic-dependency-system-include-path
-	(princ "\n  This file's system include path is:\n")
+	(princ (substitute-command-keys
+		"\n  This file's system include path is:\n"))
 	(dolist (dir semantic-dependency-system-include-path)
 	  (princ "    ")
 	  (princ dir)

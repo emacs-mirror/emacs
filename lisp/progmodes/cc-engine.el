@@ -618,11 +618,12 @@ comment at the start of cc-engine.el for more info."
 (defmacro c-bos-report-error ()
   '(unless noerror
      (setq c-parsing-error
-	   (format "No matching `%s' found for `%s' on line %d"
-		   (elt saved-pos 1)
-		   (elt saved-pos 2)
-		   (1+ (count-lines (point-min)
-				    (c-point 'bol (elt saved-pos 0))))))))
+	   (format-message
+	    "No matching `%s' found for `%s' on line %d"
+	    (elt saved-pos 1)
+	    (elt saved-pos 2)
+	    (1+ (count-lines (point-min)
+			     (c-point 'bol (elt saved-pos 0))))))))
 
 (defun c-beginning-of-statement-1 (&optional lim ignore-labels
 					     noerror comma-delim)

@@ -109,13 +109,14 @@ without okurigana are placed at the head of the returned list."
 	  (load-library "ja-dic/ja-dic")
 	(error (ding)
 	       (with-output-to-temp-buffer "*Help*"
-		 (princ "The library `ja-dic' can't be loaded.
+		 (princ (substitute-command-keys "\
+The library `ja-dic' can't be loaded.
 
 The most common case is that you have not yet installed the library
 included in LEIM (Libraries of Emacs Input Method) which is
 distributed separately from Emacs.
 
-LEIM is available from the same ftp directory as Emacs."))
+LEIM is available from the same ftp directory as Emacs.")))
 	       (signal (car err) (cdr err)))))
 
   (let ((vec (make-vector len 0))

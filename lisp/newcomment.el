@@ -1266,7 +1266,7 @@ Else, call `comment-indent'.
 You can configure `comment-style' to change the way regions are commented."
   (interactive "*P")
   (comment-normalize-vars)
-  (if (and mark-active transient-mark-mode)
+  (if (use-region-p)
       (comment-or-uncomment-region (region-beginning) (region-end) arg)
     (if (save-excursion (beginning-of-line) (not (looking-at "\\s-*$")))
 	;; FIXME: If there's no comment to kill on this line and ARG is

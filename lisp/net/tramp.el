@@ -1750,7 +1750,7 @@ Example:
 
     (tramp-set-completion-function
      \"ssh\"
-     '((tramp-parse-sconfig \"/etc/ssh_config\")
+     \\='((tramp-parse-sconfig \"/etc/ssh_config\")
        (tramp-parse-sconfig \"~/.ssh/config\")))"
 
   (let ((r function-list)
@@ -4258,6 +4258,16 @@ Invokes `password-read' if available, `read-passwd' else."
 ;;;###tramp-autoload
 (defun tramp-clear-passwd (vec)
   "Clear password cache for connection related to VEC."
+  (let ((hop (tramp-file-name-hop vec)))
+    (when hop
+      ;; Clear also the passwords of the hops.
+      (tramp-clear-passwd
+       (tramp-dissect-file-name
+	(concat
+	 tramp-prefix-format
+	 (tramp-compat-replace-regexp-in-string
+	  (concat tramp-postfix-hop-regexp "$")
+	  tramp-postfix-host-format hop))))))
   (tramp-compat-funcall
    'password-cache-remove
    (tramp-make-tramp-file-name

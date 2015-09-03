@@ -60,7 +60,7 @@ S-SPC or `M-x ethio-insert-ethio-space'
   Always insert an Ethiopic word separator `፡'.  With a prefix number,
   insert that many word separators.
 
-C-' or `M-x ethio-gemination'
+C-\\=' or `M-x ethio-gemination'
   Compose the character before the point with the Ethiopic gemination mark.
   If the character is already composed, decompose it and remove the
   gemination mark."

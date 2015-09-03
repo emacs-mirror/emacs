@@ -3763,7 +3763,7 @@ Build a menu of the possible matches."
     ;; I think nxml is the only exception - maybe it should be just be renamed.
     (let ((str (ignore-errors (lm-commentary (find-library-name nodename)))))
       (if (null str)
-	  (insert "Can't find package description.\n\n")
+	  (insert "Can’t find package description.\n\n")
 	(insert
 	 (with-temp-buffer
 	   (insert str)

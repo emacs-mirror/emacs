@@ -910,10 +910,12 @@ This is recursive; that is, included files may include other files."
                                 (diary-list-entries original-date number t)))))
             (display-warning
              :error
-             (format "Can't read included diary file %s\n" diary-file)))
+             (format-message "Can't read included diary file %s\n"
+			     diary-file)))
         (display-warning
          :error
-         (format "Can't find included diary file %s\n" diary-file)))))
+         (format-message "Can't find included diary file %s\n"
+			 diary-file)))))
   (goto-char (point-min)))
 
 (defun diary-include-other-diary-files ()

@@ -1649,7 +1649,7 @@ only these files will be asked to be saved."
   "Contact the Emacs server named SERVER and evaluate FORM there.
 Returns the result of the evaluation, or signals an error if it
 cannot contact the specified server.  For example:
-  (server-eval-at \"server\" '(emacs-pid))
+  (server-eval-at \"server\" \\='(emacs-pid))
 returns the process ID of the Emacs instance running \"server\"."
   (let* ((server-dir (if server-use-tcp server-auth-dir server-socket-dir))
 	 (server-file (expand-file-name server server-dir))

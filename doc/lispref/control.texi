@@ -315,7 +315,7 @@ between a few different constant values:
 @example
 (pcase (get-return-code x)
   (`success       (message "Done!"))
-  (`would-block   (message "Sorry, can't do it now"))
+  (`would-block   (message "Sorry, can’t do it now"))
   (`read-only     (message "The shmliblick is read-only"))
   (`access-denied (message "You do not have the needed rights"))
   (code           (message "Unknown return code %S" code)))

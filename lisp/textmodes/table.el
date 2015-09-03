@@ -3349,17 +3349,17 @@ Example:
   (progn
     (table-insert 16 3 5 1)
     (table-forward-cell 15)
-    (table-insert-sequence \"D0\" -16 1 1 'center)
+    (table-insert-sequence \"D0\" -16 1 1 \\='center)
     (table-forward-cell 16)
-    (table-insert-sequence \"A[0]\" -16 1 1 'center)
+    (table-insert-sequence \"A[0]\" -16 1 1 \\='center)
     (table-forward-cell 1)
-    (table-insert-sequence \"-\" 16 0 1 'center))
+    (table-insert-sequence \"-\" 16 0 1 \\='center))
 
   (progn
     (table-insert 16 8 5 1)
-    (table-insert-sequence \"@\" 0 1 2 'right)
+    (table-insert-sequence \"@\" 0 1 2 \\='right)
     (table-forward-cell 1)
-    (table-insert-sequence \"64\" 0 1 2 'left))"
+    (table-insert-sequence \"64\" 0 1 2 \\='left))"
   (interactive
    (progn
      (barf-if-buffer-read-only)

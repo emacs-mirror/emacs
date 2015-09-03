@@ -941,7 +941,6 @@ without repeating the prefix."
 (defvar kmacro-step-edit-inserting)  	 ;; inserting into macro
 (defvar kmacro-step-edit-appending)  	 ;; append to end of macro
 (defvar kmacro-step-edit-replace)    	 ;; replace orig macro when done
-(defvar kmacro-step-edit-prefix-index)   ;; index of first prefix arg key
 (defvar kmacro-step-edit-key-index)      ;; index of current key
 (defvar kmacro-step-edit-action)     	 ;; automatic action on next pre-command hook
 (defvar kmacro-step-edit-help)     	 ;; kmacro step edit help enabled
@@ -975,11 +974,6 @@ without repeating the prefix."
 This keymap is an extension to the `query-replace-map', allowing the
 following additional answers: `insert', `insert-1', `replace', `replace-1',
 `append', `append-end', `act-repeat', `skip-end', `skip-keep'.")
-
-(defvar kmacro-step-edit-prefix-commands
-  '(universal-argument universal-argument-more universal-argument-minus
-		       digit-argument negative-argument)
-  "Commands which build up a prefix arg for the current command.")
 
 (defun kmacro-step-edit-prompt (macro index)
   ;; Show step-edit prompt
@@ -1084,21 +1078,13 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
       ;; Handle prefix arg, or query user
       (cond
        (act act) ;; set above
-       ((memq this-command kmacro-step-edit-prefix-commands)
-	(unless kmacro-step-edit-prefix-index
-	  (setq kmacro-step-edit-prefix-index kmacro-step-edit-key-index))
-	(setq act 'universal-argument))
-       ((eq this-command 'universal-argument-other-key)
-	(setq act 'universal-argument))
        (t
-	(kmacro-step-edit-prompt macro (or kmacro-step-edit-prefix-index kmacro-step-edit-key-index))
+	(kmacro-step-edit-prompt macro kmacro-step-edit-key-index)
 	(setq act (lookup-key kmacro-step-edit-map
 			      (vector (with-current-buffer (current-buffer) (read-event))))))))
 
     ;; Resume macro execution and perform the action
     (cond
-     ((eq act 'universal-argument)
-      nil)
      ((cond
        ((eq act 'act)
 	t)
@@ -1110,7 +1096,6 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
 	(setq kmacro-step-edit-active 'ignore)
 	nil)
        ((eq act 'skip)
-	(setq kmacro-step-edit-prefix-index nil)
 	nil)
        ((eq act 'skip-keep)
 	(setq this-command 'ignore)
@@ -1123,12 +1108,11 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
 	(setq act t)
 	t)
        ((member act '(insert-1 insert))
-	(setq executing-kbd-macro-index (or kmacro-step-edit-prefix-index kmacro-step-edit-key-index))
+	(setq executing-kbd-macro-index kmacro-step-edit-key-index)
 	(setq kmacro-step-edit-inserting (if (eq act 'insert-1) 1 t))
 	nil)
        ((member act '(replace-1 replace))
 	(setq kmacro-step-edit-inserting (if (eq act 'replace-1) 1 t))
-	(setq kmacro-step-edit-prefix-index nil)
 	(if (= executing-kbd-macro-index (length executing-kbd-macro))
 	    (setq executing-kbd-macro (vconcat executing-kbd-macro [nil])
 		  kmacro-step-edit-appending t))
@@ -1148,19 +1132,19 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
 	(setq act t)
 	t)
        ((eq act 'help)
-	(setq executing-kbd-macro-index (or kmacro-step-edit-prefix-index kmacro-step-edit-key-index))
+	(setq executing-kbd-macro-index kmacro-step-edit-key-index)
 	(setq kmacro-step-edit-help (not kmacro-step-edit-help))
 	nil)
        (t ;; Ignore unknown responses
-	(setq executing-kbd-macro-index (or kmacro-step-edit-prefix-index kmacro-step-edit-key-index))
+	(setq executing-kbd-macro-index kmacro-step-edit-key-index)
 	nil))
-      (if (> executing-kbd-macro-index (or kmacro-step-edit-prefix-index kmacro-step-edit-key-index))
+      (if (> executing-kbd-macro-index kmacro-step-edit-key-index)
 	  (setq kmacro-step-edit-new-macro
 		(vconcat kmacro-step-edit-new-macro
 			 (substring executing-kbd-macro
-				    (or kmacro-step-edit-prefix-index kmacro-step-edit-key-index)
-				    (if (eq act t) nil executing-kbd-macro-index)))
-		kmacro-step-edit-prefix-index nil))
+				    kmacro-step-edit-key-index
+				    (if (eq act t) nil
+                                      executing-kbd-macro-index)))))
       (if restore-index
 	  (setq executing-kbd-macro-index restore-index)))
      (t
@@ -1175,12 +1159,10 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
 	(executing-kbd-macro nil)
 	(defining-kbd-macro nil)
 	cmd keys next-index)
-    (setq executing-kbd-macro-index (or kmacro-step-edit-prefix-index kmacro-step-edit-key-index)
-	  kmacro-step-edit-prefix-index nil)
+    (setq executing-kbd-macro-index kmacro-step-edit-key-index)
     (kmacro-step-edit-prompt macro nil)
     ;; Now, we have read a key sequence from the macro, but we don't want
     ;; to execute it yet.  So push it back and read another sequence.
-    (reset-this-command-lengths)
     (setq keys (read-key-sequence nil nil nil nil t))
     (setq cmd (key-binding keys t nil))
     (if (cond
@@ -1201,25 +1183,12 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
 		    unread-command-events nil)))
 	  (setq cmd 'ignore)
 	  nil)
-	 ((memq cmd kmacro-step-edit-prefix-commands)
-	  (reset-this-command-lengths)
-	  nil)
-	 ((eq cmd 'universal-argument-other-key)
-	  (setq kmacro-step-edit-action t)
-	  (reset-this-command-lengths)
-	  (if (numberp kmacro-step-edit-inserting)
-	      (setq kmacro-step-edit-inserting nil))
-	  nil)
 	 ((numberp kmacro-step-edit-inserting)
 	  (setq kmacro-step-edit-inserting nil)
 	  nil)
 	 ((equal keys "\C-j")
 	  (setq kmacro-step-edit-inserting nil)
 	  (setq kmacro-step-edit-action nil)
-	  ;; Forget any (partial) prefix arg from next command
-	  (setq kmacro-step-edit-prefix-index nil)
-	  (reset-this-command-lengths)
-	  (setq overriding-terminal-local-map nil)
 	  (setq next-index kmacro-step-edit-key-index)
 	  t)
 	 (t nil))
@@ -1278,7 +1247,6 @@ To customize possible responses, change the \"bindings\" in `kmacro-step-edit-ma
 	(kmacro-step-edit-inserting nil)
 	(kmacro-step-edit-appending nil)
 	(kmacro-step-edit-replace t)
-	(kmacro-step-edit-prefix-index nil)
 	(kmacro-step-edit-key-index 0)
 	(kmacro-step-edit-action nil)
 	(kmacro-step-edit-help nil)

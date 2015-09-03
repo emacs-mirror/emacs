@@ -1082,7 +1082,7 @@ As an example:
 Would expand to:
 
   (prog2
-      (defvar erc-server-311-functions 'erc-server-311
+      (defvar erc-server-311-functions \\='erc-server-311
         \"Some non-generic variable documentation.
 
   Hook called upon receiving a 311 server response.
@@ -1136,7 +1136,8 @@ Would expand to:
                         aliases))
   (let* ((hook-name (intern (format "erc-server-%s-functions" name)))
          (fn-name (intern (format "erc-server-%s" name)))
-         (hook-doc (format "%sHook called upon receiving a %%s server response.
+         (hook-doc (format-message "\
+%sHook called upon receiving a %%s server response.
 Each function is called with two arguments, the process associated
 with the response and the parsed response.  If the function returns
 non-nil, stop processing the hook.  Otherwise, continue.
@@ -1146,7 +1147,8 @@ See also `%s'."
                                (concat extra-var-doc "\n\n")
                              "")
                            fn-name))
-         (fn-doc (format "%sHandler for a %s server response.
+         (fn-doc (format-message "\
+%sHandler for a %s server response.
 PROC is the server process which returned the response.
 PARSED is the actual response as an `erc-response' struct.
 If you want to add responses don't modify this function, but rather

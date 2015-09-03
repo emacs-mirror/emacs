@@ -337,8 +337,8 @@ and the face `eldoc-highlight-function-argument', if they are to have any
 effect.
 
 Major modes should modify this variable using `add-function', for example:
-  (add-function :before-until (local 'eldoc-documentation-function)
-                #'foo-mode-eldoc-function)
+  (add-function :before-until (local \\='eldoc-documentation-function)
+                #\\='foo-mode-eldoc-function)
 so that the global documentation function (i.e. the default value of the
 variable) is taken into account if the major mode specific function does not
 return any documentation.")

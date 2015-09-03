@@ -82,7 +82,7 @@ list and for correcting times of day in the solar and lunar calculations.
 
 For example, if daylight saving time ends on the last Sunday in October:
 
-      '(calendar-nth-named-day -1 0 10 year)
+      (calendar-nth-named-day -1 0 10 year)
 
 If the locale never uses daylight saving time, set this to nil."
   :type 'sexp

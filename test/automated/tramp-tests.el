@@ -1118,9 +1118,10 @@ This tests also `file-readable-p' and `file-regular-p'."
 	       t)))
 	  (when (file-symlink-p tmp-name2)
 	    (setq attr (file-attributes tmp-name2))
-	    (should (string-equal
-		     (car attr)
-		     (file-remote-p (file-truename tmp-name3) 'localname)))
+	    (should
+	     (string-equal
+	      (car attr)
+	      (tramp-file-name-localname (tramp-dissect-file-name tmp-name3))))
 	    (delete-file tmp-name2))
 
 	  (delete-file tmp-name1)

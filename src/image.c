@@ -9752,7 +9752,7 @@ syms_of_image (void)
      defining the supported image types.  */
   DEFVAR_LISP ("image-types", Vimage_types,
     doc: /* List of potentially supported image types.
-Each element of the list is a symbol for an image type, like 'jpeg or 'png.
+Each element of the list is a symbol for an image type, like `jpeg' or `png'.
 To check whether it is really supported, use `image-type-available-p'.  */);
   Vimage_types = Qnil;
 

@@ -3399,30 +3399,41 @@ sys_readdir (DIR *dirp)
   /* If we aren't dir_finding, do a find-first, otherwise do a find-next. */
   else if (dir_find_handle == INVALID_HANDLE_VALUE)
     {
-      char filename[MAX_UTF8_PATH + 2];
+      char filename[MAX_UTF8_PATH];
       int ln;
+      bool last_slash = true;
 
+      /* Note: We don't need to worry about dir_pathname being longer
+	 than MAX_UTF8_PATH, as sys_opendir already took care of that
+	 when it called map_w32_filename: that function will put a "?"
+	 in its return value in that case, thus failing all the calls
+	 below.  */
       strcpy (filename, dir_pathname);
       ln = strlen (filename);
       if (!IS_DIRECTORY_SEP (filename[ln - 1]))
-	filename[ln++] = '\\';
-      strcpy (filename + ln, "*");
+	last_slash = false;
 
       /* Note: No need to resolve symlinks in FILENAME, because
 	 FindFirst opens the directory that is the target of a
 	 symlink.  */
       if (w32_unicode_filenames)
 	{
-	  wchar_t fnw[MAX_PATH];
+	  wchar_t fnw[MAX_PATH + 2];
 
 	  filename_to_utf16 (filename, fnw);
+	  if (!last_slash)
+	    wcscat (fnw, L"\\");
+	  wcscat (fnw, L"*");
 	  dir_find_handle = FindFirstFileW (fnw, &dir_find_data_w);
 	}
       else
 	{
-	  char fna[MAX_PATH];
+	  char fna[MAX_PATH + 2];
 
 	  filename_to_ansi (filename, fna);
+	  if (!last_slash)
+	    strcat (fna, "\\");
+	  strcat (fna, "*");
 	  /* If FILENAME is not representable by the current ANSI
 	     codepage, we don't want FindFirstFileA to interpret the
 	     '?' characters as a wildcard.  */
@@ -3815,7 +3826,7 @@ faccessat (int dirfd, const char * path, int mode, int flags)
 		  errno = EACCES;
 		  return -1;
 		}
-	      break;
+	      goto check_attrs;
 	    }
 	  /* FALLTHROUGH */
 	case ERROR_FILE_NOT_FOUND:
@@ -3828,6 +3839,8 @@ faccessat (int dirfd, const char * path, int mode, int flags)
 	}
       return -1;
     }
+
+ check_attrs:
   if ((mode & X_OK) != 0
       && !(is_exec (path) || (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0))
     {
@@ -3845,6 +3858,76 @@ faccessat (int dirfd, const char * path, int mode, int flags)
       return -1;
     }
   return 0;
+}
+
+/* A special test for DIRNAME being a directory accessible by the
+   current user.  This is needed because the security permissions in
+   directory's ACLs are not visible in the Posix-style mode bits
+   returned by 'stat' and in attributes returned by GetFileAttributes.
+   So a directory would seem like it's readable by the current user,
+   but will in fact error out with EACCES when they actually try.  */
+int
+w32_accessible_directory_p (const char *dirname, ptrdiff_t dirlen)
+{
+  char pattern[MAX_UTF8_PATH];
+  bool last_slash = dirlen > 0 && IS_DIRECTORY_SEP (dirname[dirlen - 1]);
+  HANDLE dh;
+
+  /* Network volumes need a different reading method.  */
+  if (is_unc_volume (dirname))
+    {
+      void *read_result = NULL;
+      wchar_t fnw[MAX_PATH];
+      char fna[MAX_PATH];
+
+      dh = open_unc_volume (dirname);
+      if (dh != INVALID_HANDLE_VALUE)
+	{
+	  read_result = read_unc_volume (dh, fnw, fna, MAX_PATH);
+	  close_unc_volume (dh);
+	}
+      /* Treat empty volumes as accessible.  */
+      return read_result != NULL || GetLastError () == ERROR_NO_MORE_ITEMS;
+    }
+
+  /* Note: map_w32_filename makes sure DIRNAME is not longer than
+     MAX_UTF8_PATH.  */
+  strcpy (pattern, map_w32_filename (dirname, NULL));
+
+  /* Note: No need to resolve symlinks in FILENAME, because FindFirst
+     opens the directory that is the target of a symlink.  */
+  if (w32_unicode_filenames)
+    {
+      wchar_t pat_w[MAX_PATH + 2];
+      WIN32_FIND_DATAW dfd_w;
+
+      filename_to_utf16 (pattern, pat_w);
+      if (!last_slash)
+	wcscat (pat_w, L"\\");
+      wcscat (pat_w, L"*");
+      dh = FindFirstFileW (pat_w, &dfd_w);
+    }
+  else
+    {
+      char pat_a[MAX_PATH + 2];
+      WIN32_FIND_DATAA dfd_a;
+
+      filename_to_ansi (pattern, pat_a);
+      if (!last_slash)
+	strcpy (pat_a, "\\");
+      strcat (pat_a, "*");
+      /* In case DIRNAME cannot be expressed in characters from the
+	 current ANSI codepage.  */
+      if (_mbspbrk (pat_a, "?"))
+	dh = INVALID_HANDLE_VALUE;
+      else
+	dh = FindFirstFileA (pat_a, &dfd_a);
+    }
+
+  if (dh == INVALID_HANDLE_VALUE)
+    return 0;
+  FindClose (dh);
+  return 1;
 }
 
 /* A version of 'access' to be used locally with file names in

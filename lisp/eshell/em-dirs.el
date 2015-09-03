@@ -243,8 +243,9 @@ Thus, this does not include the current directory.")
 		   eshell-ask-to-save-last-dir
 		   (or (eq eshell-ask-to-save-last-dir 'always)
 		       (y-or-n-p
-			(format "Save last dir ring for Eshell buffer `%s'? "
-				(buffer-name buf)))))
+			(format-message
+			 "Save last dir ring for Eshell buffer `%s'? "
+			 (buffer-name buf)))))
 	      (eshell-write-last-dir-ring))))))
 
 (defun eshell-lone-directory-p (file)

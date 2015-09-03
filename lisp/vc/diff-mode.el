@@ -2128,7 +2128,8 @@ fixed, visit it in a buffer."
 	(goto-char hunk-end))
       (if modified-buffers
 	  (message "Deleted trailing whitespace from %s."
-		   (mapconcat (lambda (buf) (concat "`" (buffer-name buf) "'"))
+		   (mapconcat (lambda (buf) (format-message
+					     "`%s'" (buffer-name buf)))
 			      modified-buffers ", "))
 	(message "No trailing whitespace to delete.")))))
 

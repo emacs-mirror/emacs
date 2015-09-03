@@ -653,7 +653,8 @@ non-nil result supercedes the xrefs produced by
 
       ;; FIXME: advised function; list of advice functions
 
-      ;; FIXME: aliased variable
+      ;; Coding system symbols do not appear in ‘load-history’,
+      ;; so we can’t get a location for them.
 
       (when (and (symbolp symbol)
                  (symbol-function symbol)

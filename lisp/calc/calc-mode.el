@@ -258,7 +258,7 @@
    (setq calc-display-raw (if calc-display-raw nil (if arg 0 t)))
    (calc-do-refresh)
    (if calc-display-raw
-       (message "Press d ' again to cancel \"raw\" display mode"))))
+       (message "%s" "Press d ' again to cancel \"raw\" display mode"))))
 
 
 
@@ -446,11 +446,11 @@
      (calc-change-mode '(calc-algebraic-mode calc-incomplete-algebraic-mode)
 		       (list (not calc-algebraic-mode) nil)))
    (use-local-map calc-mode-map)
-   (message (if calc-algebraic-mode
-		"Numeric keys and ( and [ begin algebraic entry"
-	      (if calc-incomplete-algebraic-mode
-		  "Only ( and [ begin algebraic entry"
-		"No keys except ' and $ begin algebraic entry")))))
+   (message "%s" (if calc-algebraic-mode
+		     "Numeric keys and ( and [ begin algebraic entry"
+		   (if calc-incomplete-algebraic-mode
+		       "Only ( and [ begin algebraic entry"
+		     "No keys except ' and $ begin algebraic entry")))))
 
 (defun calc-symbolic-mode (n)
   (interactive "P")

@@ -191,7 +191,7 @@ Each element in this list is a list of a character and a number that
 will be stored in that character's register.
 
 For example, use this to define the golden ratio number:
-  (setq calculator-user-registers '((?g .  1.61803398875)))
+  (setq calculator-user-registers \\='((?g .  1.61803398875)))
 before you load calculator."
   :type  '(repeat (cons character number))
   :set   (lambda (_ val)
@@ -214,7 +214,7 @@ Examples:
   t as a prefix key:
 
   (setq calculator-user-operators
-        '((\"tf\" cl-to-fr (+ 32 (/ (* X 9) 5)) 1)
+        \\='((\"tf\" cl-to-fr (+ 32 (/ (* X 9) 5)) 1)
           (\"tc\" fr-to-cl (/ (* (- X 32) 5) 9) 1)
           (\"tp\" kg-to-lb (/ X 0.453592)       1)
           (\"tk\" lb-to-kg (* X 0.453592)       1)
@@ -226,8 +226,8 @@ Examples:
   version of `X' and `F' for a recursive call.  Here is a [very
   inefficient] Fibonacci number calculation:
 
-  (add-to-list 'calculator-user-operators
-               '(\"F\" fib
+  (add-to-list \\='calculator-user-operators
+               \\='(\"F\" fib
                  (if (<= TX 1) 1 (+ (F (- TX 1)) (F (- TX 2))))))
 
   Note that this will be either postfix or prefix, according to

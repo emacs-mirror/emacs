@@ -218,7 +218,7 @@ return a Lisp form that does the assignment.
 The first arg in ARGLIST (the one that receives VAL) receives an expression
 which can do arbitrary things, whereas the other arguments are all guaranteed
 to be pure and copyable.  Example use:
-  (gv-define-setter aref (v a i) `(aset ,a ,i ,v))"
+  (gv-define-setter aref (v a i) \\=`(aset ,a ,i ,v))"
   (declare (indent 2) (debug (&define name sexp body)))
   `(gv-define-expander ,name
      (lambda (do &rest args)

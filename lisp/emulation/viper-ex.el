@@ -491,7 +491,7 @@ reversed."
 	     (forward-char 1)
 	     (cond ((looking-at "'") (setq ex-token nil))
 		   ((looking-at "[a-z]") (setq ex-token (following-char)))
-		   (t (error "Marks are ' and a-z")))
+		   (t (error "%s" "Marks are ' and a-z")))
 	     (forward-char 1))
 	    ((looking-at "\n")
 	     (setq ex-token-type 'end-mark)
@@ -2190,7 +2190,7 @@ Please contact your system administrator. "
 (defun ex-compile ()
   "Reads args from the command line, then runs make with the args.
 If no args are given, then it runs the last compile command.
-Type 'mak ' (including the space) to run make with no args."
+Type `mak ' (including the space) to run make with no args."
   (let (args)
     (with-current-buffer (setq viper-ex-work-buf
                                (get-buffer-create viper-ex-work-buf-name))

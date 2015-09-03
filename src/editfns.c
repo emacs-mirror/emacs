@@ -2156,7 +2156,7 @@ applied without consideration for daylight saving time.
 You can pass more than 7 arguments; then the first six arguments
 are used as SECOND through YEAR, and the *last* argument is used as ZONE.
 The intervening arguments are ignored.
-This feature lets (apply 'encode-time (decode-time ...)) work.
+This feature lets (apply \\='encode-time (decode-time ...)) work.
 
 Out-of-range values for SECOND, MINUTE, HOUR, DAY, or MONTH are allowed;
 for example, a DAY of 0 means the day preceding the given month.

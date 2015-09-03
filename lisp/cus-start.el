@@ -220,15 +220,6 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (visible-bell display boolean)
 	     (no-redraw-on-reenter display boolean)
 
-	     ;; doc.c
-	     (text-quoting-style
-              help
-              (choice
-               (const :tag "Quote with curved single quotes \\=‘like this\\=’" curve)
-               (const :tag "Quote with straight apostrophes \\='like this\\='" straight)
-               (const :tag "Quote with grave accent and apostrophe \\=`like this\\='" grave)
-               (const :tag "Use curved quotes if displayable, grave accent and apostrophe otherwise" nil))
-              "25.1")
              ;; dosfns.c
 	     (dos-display-scancodes display boolean)
 	     (dos-hyper-key keyboard integer)

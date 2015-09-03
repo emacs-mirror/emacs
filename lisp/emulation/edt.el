@@ -1984,7 +1984,8 @@ created."
                  (if (edt-y-or-n-p "Do you want to run it now? ")
                      (load-file path)
                    (error "EDT Emulation not configured")))
-             (insert "Nope, I can't seem to find it.  :-(\n\n")
+             (insert (substitute-command-keys
+		      "Nope, I can't seem to find it.  :-(\n\n"))
              (sit-for 20)
              (error "EDT Emulation not configured"))))))
 

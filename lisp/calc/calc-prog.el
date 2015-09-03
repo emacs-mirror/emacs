@@ -1441,7 +1441,7 @@ Redefine the corresponding command."
 	   (let ((calc-kbd-push-level 0))
 	     (execute-kbd-macro (substring body 0 -2))))
        (let ((calc-kbd-push-level (1+ calc-kbd-push-level)))
-	 (message "Saving modes; type Z' to restore")
+	 (message "%s" "Saving modes; type Z' to restore")
 	 (recursive-edit))))))
 
 (defun calc-kbd-pop ()
@@ -1450,7 +1450,7 @@ Redefine the corresponding command."
       (progn
 	(message "Mode settings restored")
 	(exit-recursive-edit))
-    (error "Unbalanced Z' in keyboard macro")))
+    (error "%s" "Unbalanced Z' in keyboard macro")))
 
 
 ;; (defun calc-kbd-report (msg)

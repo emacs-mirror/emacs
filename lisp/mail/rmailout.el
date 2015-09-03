@@ -85,8 +85,11 @@ This uses `rmail-output-file-alist'."
 				      (error
 				       (display-warning
 					:error
-					(format "Error evaluating \
-`rmail-output-file-alist' element:\nregexp: %s\naction: %s\nerror: %S\n"
+					(format-message "\
+Error evaluating `rmail-output-file-alist' element:
+regexp: %s
+action: %s
+error: %S\n"
 						(caar tail) (cdar tail) err))
 				       nil))))
 			  (setq tail (cdr tail)))

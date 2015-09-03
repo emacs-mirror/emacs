@@ -1205,7 +1205,7 @@ If non-nil, TEXT is a string that will be printed as a heading."
     (set-buffer standard-output)
     (princ "Symbol ")
     (prin1 symbol)
-    (princ "'s plist is\n (")
+    (princ (substitute-command-keys "'s plist is\n ("))
     (put-text-property (+ (point-min) 7) (- (point) 14)
 		       'face 'apropos-symbol)
     (insert (apropos-format-plist symbol "\n  "))

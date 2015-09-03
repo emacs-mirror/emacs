@@ -248,26 +248,30 @@ matching the resulting Git log output, and KEYWORDS is a list of
             (vc-git--state-code diff-letter)))
       (if (vc-git--empty-db-p) 'added 'up-to-date))))
 
-(defun vc-git-working-revision (file)
+(defun vc-git-working-revision (_file)
   "Git-specific version of `vc-working-revision'."
-  (let* (process-file-side-effects
-         (str (vc-git--run-command-string nil "symbolic-ref" "HEAD")))
-    (vc-file-setprop file 'vc-git-detached (null str))
-    (if str
-        (if (string-match "^\\(refs/heads/\\)?\\(.+\\)$" str)
-            (match-string 2 str)
-          str)
-      (vc-git--rev-parse "HEAD"))))
+  (let (process-file-side-effects)
+    (vc-git--rev-parse "HEAD")))
+
+(defun vc-git--symbolic-ref (file)
+  (or
+   (vc-file-getprop file 'vc-git-symbolic-ref)
+   (let* (process-file-side-effects
+          (str (vc-git--run-command-string nil "symbolic-ref" "HEAD")))
+     (vc-file-setprop file 'vc-git-symbolic-ref
+                      (if str
+                          (if (string-match "^\\(refs/heads/\\)?\\(.+\\)$" str)
+                              (match-string 2 str)
+                            str))))))
 
 (defun vc-git-mode-line-string (file)
   "Return a string for `vc-mode-line' to put in the mode line for FILE."
   (let* ((rev (vc-working-revision file))
-         (detached (vc-file-getprop file 'vc-git-detached))
+         (disp-rev (or (vc-git--symbolic-ref file)
+                       (substring rev 0 7)))
          (def-ml (vc-default-mode-line-string 'Git file))
          (help-echo (get-text-property 0 'help-echo def-ml)))
-    (propertize (if detached
-                    (substring def-ml 0 (- 7 (length rev)))
-                  def-ml)
+    (propertize (replace-regexp-in-string (concat rev "\\'") disp-rev def-ml t t)
                 'help-echo (concat help-echo "\nCurrent revision: " rev))))
 
 (cl-defstruct (vc-git-extra-fileinfo

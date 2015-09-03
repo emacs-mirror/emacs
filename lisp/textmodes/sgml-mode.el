@@ -106,10 +106,10 @@ This list is used when first loading the `sgml-mode' library.
 The supported characters and potential disadvantages are:
 
   ?\\\"	Makes \" in text start a string.
-  ?'	Makes ' in text start a string.
+  ?\\='	Makes \\=' in text start a string.
   ?-	Makes -- in text start a comment.
 
-When only one of ?\\\" or ?' are included, \"'\" or '\"', as can be found in
+When only one of ?\\\" or ?\\=' are included, \"\\='\" or \\='\"\\=', as can be found in
 DTDs, start a string.  To partially avoid this problem this also makes these
 self insert as named entities depending on `sgml-quick-keys'.
 
@@ -482,14 +482,14 @@ This function is designed for use in `fill-nobreak-predicate'.
 (define-derived-mode sgml-mode text-mode '(sgml-xml-mode "XML" "SGML")
   "Major mode for editing SGML documents.
 Makes > match <.
-Keys <, &, SPC within <>, \", / and ' can be electric depending on
+Keys <, &, SPC within <>, \", / and \\=' can be electric depending on
 `sgml-quick-keys'.
 
 An argument of N to a tag-inserting command means to wrap it around
 the next N words.  In Transient Mark mode, when the mark is active,
 N defaults to -1, which means to wrap it around the current region.
 
-If you like upcased tags, put (setq sgml-transformation-function 'upcase)
+If you like upcased tags, put (setq sgml-transformation-function \\='upcase)
 in your init file.
 
 Use \\[sgml-validate] to validate your document with an SGML parser.
@@ -2066,7 +2066,7 @@ Images in many formats can be inlined with <img src=\"URL\">.
 If you mainly create your own documents, `sgml-specials' might be
 interesting.  But note that some HTML 2 browsers can't handle `&apos;'.
 To work around that, do:
-   (eval-after-load \"sgml-mode\" '(aset sgml-char-names ?' nil))
+   (eval-after-load \"sgml-mode\" '(aset sgml-char-names ?\\=' nil))
 
 \\{html-mode-map}"
   (setq-local sgml-display-text html-display-text)

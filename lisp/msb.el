@@ -777,7 +777,7 @@ SORT-PREDICATE.
 
 Example:
 \(msb--aggregate-alist
- '((a . a1) (a . a2) (b . b1) (c . c3) (a . a4) (a . a3) (b . b3) (b . b2))
+ \\='((a . a1) (a . a2) (b . b1) (c . c3) (a . a4) (a . a3) (b . b3) (b . b2))
  (function string=)
  (lambda (item1 item2)
    (string< (symbol-name item1) (symbol-name item2))))

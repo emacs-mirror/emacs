@@ -833,10 +833,9 @@ vector or string (@pxref{Iteration} for more information about the
 
 @defmac seq-let arguments sequence body@dots{}
 @cindex sequence destructuring
-  This macro binds the variables in defined in the sequence
-@var{arguments} to the elements of the sequence @var{sequence}.
-@var{arguments} can itself include sequences allowing for nested
-destructuring.
+  This macro binds the variables defined in @var{arguments} to the
+elements of the sequence @var{sequence}.  @var{arguments} can itself
+include sequences allowing for nested destructuring.
 
 The @var{arguments} sequence can also include the @code{&rest} marker
 followed by a variable name to be bound to the rest of

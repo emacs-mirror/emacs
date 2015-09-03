@@ -1016,8 +1016,8 @@ be finished later after the completion of an asynchronous subprocess."
     ;; we can modify any `let' forms to evaluate only once.
     (if (macrop (car form))
 	(let ((exp (eshell-copy-tree (macroexpand form))))
-	  (eshell-manipulate (format "expanding macro `%s'"
-				     (symbol-name (car form)))
+	  (eshell-manipulate (format-message "expanding macro `%s'"
+					     (symbol-name (car form)))
 	    (setcar form (car exp))
 	    (setcdr form (cdr exp)))))
     (let ((args (cdr form)))
@@ -1095,8 +1095,8 @@ be finished later after the completion of an asynchronous subprocess."
        (t
 	(if (and args (not (memq (car form) '(run-hooks))))
 	    (eshell-manipulate
-		(format "evaluating arguments to `%s'"
-			(symbol-name (car form)))
+		(format-message "evaluating arguments to `%s'"
+				(symbol-name (car form)))
 	      (while args
 		(setcar args (eshell-do-eval (car args) synchronous-p))
 		(setq args (cdr args)))))

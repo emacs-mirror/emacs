@@ -4548,11 +4548,11 @@ Format paragraphs upto TO."
 
 (defun WoMan-log (format &rest args)
   "Log a message out of FORMAT control string and optional ARGS."
-  (WoMan-log-1 (apply 'format format args)))
+  (WoMan-log-1 (apply #'format-message format args)))
 
 (defun WoMan-warn (format &rest args)
   "Log a warning message out of FORMAT control string and optional ARGS."
-  (setq format (apply 'format format args))
+  (setq format (apply #'format-message format args))
   (WoMan-log-1 (concat "**  " format)))
 
 ;; request is not used dynamically by any callees.

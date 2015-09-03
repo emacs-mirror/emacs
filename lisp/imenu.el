@@ -348,6 +348,12 @@ Don't move point."
 ;;; Lisp
 ;;;
 
+(define-error 'imenu-unavailable "imenu unavailable")
+
+(defun imenu-unavailable-error (format &rest args)
+  (signal 'imenu-unavailable
+          (list (apply #'format-message format args))))
+
 (defun imenu-example--lisp-extract-index-name ()
   ;; Example of a candidate for `imenu-extract-index-name-function'.
   ;; This will generate a flat index of definitions in a lisp file.
@@ -590,7 +596,8 @@ See `imenu--index-alist' for the format of the index alist."
 		  (funcall imenu-create-index-function))))
 	(imenu--truncate-items imenu--index-alist)))
   (or imenu--index-alist noerror
-      (user-error "No items suitable for an index found in this buffer"))
+      (imenu-unavailable-error
+       "No items suitable for an index found in this buffer"))
   (or imenu--index-alist
       (setq imenu--index-alist (list nil)))
   ;; Add a rescan option to the index.
@@ -704,7 +711,7 @@ The alternate method, which is the one most often used, is to call
 	((and imenu-generic-expression)
 	 (imenu--generic-function imenu-generic-expression))
 	(t
-	 (user-error "This buffer cannot use `imenu-default-create-index-function'"))))
+         (imenu-unavailable-error "This buffer cannot use `imenu-default-create-index-function'"))))
 
 ;;;
 ;;; Generic index gathering function.
@@ -956,8 +963,8 @@ See the command `imenu' for more information."
 	    `(menu-item ,name ,imenu--menubar-keymap))
 	  (use-local-map newmap)
 	  (add-hook 'menu-bar-update-hook 'imenu-update-menubar)))
-    (user-error "The mode `%s' does not support Imenu"
-                (format-mode-line mode-name))))
+    (imenu-unavailable-error "The mode `%s' does not support Imenu"
+                             (format-mode-line mode-name))))
 
 ;;;###autoload
 (defun imenu-add-menubar-index ()

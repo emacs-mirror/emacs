@@ -418,6 +418,10 @@ Pass BUFFER to the XEmacs version of `move-to-column'."
 (unless (fboundp 'user-error)
   (defalias 'user-error 'error))
 
+;; ‘format-message’ is available only from 25 on
+(unless (fboundp 'format-message)
+  (defalias 'format-message 'format))
+
 (defmacro org-no-popups (&rest body)
   "Suppress popup windows.
 Let-bind some variables to nil around BODY to achieve the desired

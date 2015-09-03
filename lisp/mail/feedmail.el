@@ -1889,7 +1889,8 @@ with various lower-level mechanisms to provide features such as queueing."
 (defun feedmail-message-action-help-blat (d-string)
   (feedmail-say-debug ">in-> feedmail-message-action-help-blat")
   (with-output-to-temp-buffer feedmail-p-h-b-n
-    (princ "You're dispatching a message and feedmail queuing is enabled.
+    (princ (substitute-command-keys "\
+You're dispatching a message and feedmail queuing is enabled.
 Typing ? again will normally scroll this help buffer.
 
 Choices:
@@ -1914,7 +1915,7 @@ Synonyms:
    y  YUP          do the default behavior \(same as \"C-m\"\)
   SPC SCROLL UP    \(same as \">\"\)
 
-The user-configurable default is currently \"")
+The user-configurable default is currently \""))
 	(princ d-string)
 	(princ "\".  For other possibilities,
 see the variable feedmail-prompt-before-queue-user-alist.
