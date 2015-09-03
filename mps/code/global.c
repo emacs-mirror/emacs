@@ -747,39 +747,37 @@ void (ArenaPoll)(Globals globals)
  * and whether much time has passed since the last time we did that
  * opportunistically. */
 static Bool arenaShouldCollectWorld(Arena arena,
-                                    double interval,
-                                    double multiplier,
+                                    double availableTime,
                                     Clock now,
                                     Clock clocks_per_sec)
 {
-  /* don't collect the world if we're not given any time */
-  if ((interval > 0.0) && (multiplier > 0.0)) {
-    /* don't collect the world if we're already collecting. */
-    if (arena->busyTraces == TraceSetEMPTY) {
-      /* don't collect the world if it's very small */
-      Size collectableSize = ArenaCollectable(arena);
-      if (collectableSize > ARENA_MINIMUM_COLLECTABLE_SIZE) {
-        /* how long would it take to collect the world? */
-        double collectionTime = PolicyCollectionTime(arena);
+  AVERT(Arena, arena);
+  /* Can't collect the world if we're not given any time. */
+  AVER(availableTime > 0.0);
+  /* Can't collect the world if we're already collecting. */
+  AVER(arena->busyTraces == TraceSetEMPTY);
 
-        /* how long since we last collected the world? */
-        double sinceLastWorldCollect = ((now - arena->lastWorldCollect) /
-                                        (double) clocks_per_sec);
-        /* have to be offered enough time, and it has to be a long time
-         * since we last did it. */
-        if ((interval * multiplier > collectionTime) &&
-            sinceLastWorldCollect > collectionTime / ARENA_MAX_COLLECT_FRACTION)
-          return TRUE;
-      }
-    }
+  /* Don't collect the world if it's very small. */
+  Size collectableSize = ArenaCollectable(arena);
+  if (collectableSize > ARENA_MINIMUM_COLLECTABLE_SIZE) {
+    /* How long would it take to collect the world? */
+    double collectionTime = PolicyCollectionTime(arena);
+    
+    /* How long since we last collected the world? */
+    double sinceLastWorldCollect = ((now - arena->lastWorldCollect) /
+                                    (double) clocks_per_sec);
+    /* have to be offered enough time, and it has to be a long time
+     * since we last did it. */
+    if ((availableTime > collectionTime) &&
+        sinceLastWorldCollect > collectionTime / ARENA_MAX_COLLECT_FRACTION)
+      return TRUE;
   }
   return FALSE;
 }
 
 Bool ArenaStep(Globals globals, double interval, double multiplier)
 {
-  Work work;
-  Bool moreWork, workWasDone = FALSE;
+  Bool workWasDone = FALSE;
   Clock start, end, now;
   Clock clocks_per_sec;
   Arena arena;
@@ -791,30 +789,35 @@ Bool ArenaStep(Globals globals, double interval, double multiplier)
   arena = GlobalsArena(globals);
   clocks_per_sec = ClocksPerSec();
 
-  start = ClockNow();
+  start = now = ClockNow();
   end = start + (Clock)(interval * clocks_per_sec);
   AVER(end >= start);
 
-  if (arenaShouldCollectWorld(arena, interval, multiplier,
-                              start, clocks_per_sec))
-  {
-    Res res;
-    Trace trace;
-    res = TraceStartCollectAll(&trace, arena, TraceStartWhyOPPORTUNISM);
-    if (res == ResOK) {
-      arena->lastWorldCollect = start;
-      workWasDone = TRUE;
-    }
-  }
-
   /* loop while there is work to do and time on the clock. */
   do {
-    moreWork = TracePoll(&work, globals);
-    now = ClockNow();
-    if (moreWork) {
-      workWasDone = TRUE;
+    Trace trace;
+    if (arena->busyTraces != TraceSetEMPTY) {
+      trace = ArenaTrace(arena, (TraceId)0);
+    } else {
+      /* No traces are running: consider collecting the world. */
+      if (arenaShouldCollectWorld(arena, end - now, now, clocks_per_sec)) {
+        Res res;
+        res = TraceStartCollectAll(&trace, arena, TraceStartWhyOPPORTUNISM);
+        if (res != ResOK)
+          break;
+        arena->lastWorldCollect = now;
+      } else {
+        /* Not worth collecting the world; consider starting a trace. */
+        if (!PolicyStartTrace(&trace, arena))
+          break;
+      }
     }
-  } while (moreWork && now < end);
+    TraceAdvance(trace);
+    if (trace->state == TraceFINISHED)
+      TraceDestroyFinished(trace);
+    workWasDone = TRUE;
+    now = ClockNow();
+  } while (now < end);
 
   if (workWasDone) {
     ArenaAccumulateTime(arena, start);
