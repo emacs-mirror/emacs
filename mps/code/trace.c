@@ -1737,14 +1737,23 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
 }
 
 
+/* traceWorkClock -- a measure of the work done for this trace
+ *
+ * .workclock: Segment and root scanning work is the regulator.  */
+
+#define traceWorkClock(trace) ((trace)->segScanSize + (trace)->rootScanSize)
+
+
 /* TraceAdvance -- progress a trace by one step */
 
 void TraceAdvance(Trace trace)
 {
   Arena arena;
+  Size oldWork, newWork;
 
   AVERT(Trace, trace);
   arena = trace->arena;
+  oldWork = traceWorkClock(trace);
 
   switch (trace->state) {
   case TraceUNFLIPPED:
@@ -1773,6 +1782,10 @@ void TraceAdvance(Trace trace)
     NOTREACHED;
     break;
   }
+
+  newWork = traceWorkClock(trace);
+  AVER(newWork >= oldWork);
+  arena->tracedSize += newWork - oldWork;
 }
 
 
@@ -1823,13 +1836,6 @@ failCondemn:
   ArenaSetEmergency(arena, FALSE);
   return res;
 }
-
-
-/* traceWorkClock -- a measure of the work done for this trace
- *
- * .workclock: Segment and root scanning work is the regulator.  */
-
-#define traceWorkClock(trace) ((trace)->segScanSize + (trace)->rootScanSize)
 
 
 /* TracePoll -- Check if there's any tracing work to be done

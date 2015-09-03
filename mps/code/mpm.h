@@ -537,6 +537,7 @@ extern Bool ArenaGrainSizeCheck(Size size);
 #define AddrIsArenaGrain(addr, arena) AddrIsAligned(addr, ArenaGrainSize(arena))
 #define SizeArenaGrains(size, arena) SizeAlignUp(size, ArenaGrainSize(arena))
 #define SizeIsArenaGrains(size, arena) SizeIsAligned(size, ArenaGrainSize(arena))
+#define ArenaAccumulateTime(arena, start) ((arena)->tracedTime += (ClockNow() - (start)) / (double) ClocksPerSec())
 
 extern void ArenaEnterLock(Arena arena, Bool recursive);
 extern void ArenaLeaveLock(Arena arena, Bool recursive);
