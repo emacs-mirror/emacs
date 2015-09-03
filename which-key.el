@@ -564,9 +564,9 @@ addition KEY-SEQUENCE NAME pairs) to apply."
         (-name (if (consp name) (car name) name))
         (-title (if (consp name) (cdr name) name)))
     (while key-sequence
-      (setq mode-name-alist (which-key--add-key-val-to-list
+      (setq mode-name-alist (which-key--add-key-val-to-alist
                              mode-name-alist key-sequence -name)
-            mode-title-alist (which-key--add-key-val-to-list
+            mode-title-alist (which-key--add-key-val-to-alist
                               mode-title-alist key-sequence -title))
       (setq key-sequence (pop more) name (pop more)))
     (if (assq mode which-key-prefix-name-alist)
