@@ -1750,9 +1750,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
   kill_buffer_processes (buffer);
 
 #ifdef HAVE_XWIDGETS
-  GCPRO1 (buffer);
   kill_buffer_xwidgets (buffer);
-  UNGCPRO;
 #endif
   /* Killing buffer processes may run sentinels which may have killed
      our buffer.  */
