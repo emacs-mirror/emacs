@@ -1871,8 +1871,7 @@ Work TracePoll(Globals globals)
   endWork = oldWork + trace->quantumWork;
   do {
     TraceAdvance(trace);
-  } while (trace->state != TraceFINISHED
-           && (ArenaEmergency(arena) || traceWork(trace) < endWork));
+  } while (trace->state != TraceFINISHED && traceWork(trace) < endWork);
   newWork = traceWork(trace);
   AVER(newWork >= oldWork);
   work = newWork - oldWork;
