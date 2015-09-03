@@ -771,6 +771,9 @@ void TraceDestroyInit(Trace trace)
 
   trace->sig = SigInvalid;
   trace->arena->busyTraces = TraceSetDel(trace->arena->busyTraces, trace);
+
+  /* Clear the emergency flag so the next trace starts normally. */
+  ArenaSetEmergency(trace->arena, FALSE);
 }
 
 
@@ -828,6 +831,9 @@ void TraceDestroyFinished(Trace trace)
   trace->sig = SigInvalid;
   trace->arena->busyTraces = TraceSetDel(trace->arena->busyTraces, trace);
   trace->arena->flippedTraces = TraceSetDel(trace->arena->flippedTraces, trace);
+
+  /* Hopefully the trace reclaimed some memory, so clear any emergency. */
+  ArenaSetEmergency(trace->arena, FALSE);
 }
 
 
@@ -1833,9 +1839,6 @@ failStart:
   NOTREACHED;
 failCondemn:
   TraceDestroyInit(trace);
-  /* We don't know how long it'll be before another collection.  Make sure
-     the next one starts in normal mode. */
-  ArenaSetEmergency(arena, FALSE);
   return res;
 }
 
@@ -1873,12 +1876,8 @@ Work TracePoll(Globals globals)
   newWork = traceWork(trace);
   AVER(newWork >= oldWork);
   work = newWork - oldWork;
-  if (trace->state == TraceFINISHED) {
+  if (trace->state == TraceFINISHED)
     TraceDestroyFinished(trace);
-    /* A trace finished, and hopefully reclaimed some memory, so clear any
-     * emergency. */
-    ArenaSetEmergency(arena, FALSE);
-  }
   return work;
 }
 

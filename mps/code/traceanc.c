@@ -591,10 +591,9 @@ void ArenaPark(Globals globals)
   }
 
   ArenaAccumulateTime(arena, start);
-  
-  /* Clear any emergency flag so that the next collection starts normally.
-     Any traces that have been finished may have reclaimed memory. */
-  ArenaSetEmergency(arena, FALSE);
+
+  /* All traces have finished so there must not be an emergency. */
+  AVER(!ArenaEmergency(arena));
 }
 
 /* ArenaStartCollect -- start a collection of everything in the
