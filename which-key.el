@@ -852,14 +852,16 @@ replacement occurs return the new STRING."
                 (replace-match (cdr repl) t literal new-string))))
       new-string)))
 
-(defsubst which-key--current-key-list (key-str)
+(defsubst which-key--current-key-list (&optional key-str)
   (append (listify-key-sequence which-key--current-prefix)
-          (listify-key-sequence (kbd key-str))))
+          (when key-str
+            (listify-key-sequence (kbd key-str)))))
 
-(defsubst which-key--current-key-string (key-str)
+(defsubst which-key--current-key-string (&optional key-str)
   (key-description
    (append (listify-key-sequence which-key--current-prefix)
-           (listify-key-sequence (kbd key-str)))))
+           (when key-str
+             (listify-key-sequence (kbd key-str))))))
 
 (defun which-key--maybe-get-prefix-name (key-lst desc)
   (let* ((alist which-key-prefix-name-alist)
@@ -1175,10 +1177,10 @@ enough space based on your settings and frame size." prefix-keys)
              (dash-w-face (propertize "-" 'face 'which-key-key-face))
              (status-left (propertize (format "%s/%s" (1+ page-n) n-pages)
                                       'face 'which-key-separator-face))
-             (status-top (when (assoc (which-key--current-key-list "")
+             (status-top (when (assoc (which-key--current-key-list)
                                       which-key-prefix-title-alist)
                            (propertize
-                            (cdr (assoc (which-key--current-key-list "")
+                            (cdr (assoc (which-key--current-key-list)
                                         which-key-prefix-title-alist))
                             'face 'which-key-note-face)))
              (status-top (concat status-top
@@ -1236,7 +1238,7 @@ Will force an update if called before `which-key--update'."
     (let* ((next-event-if-showing
             ;; forces event into current key sequence
             (mapcar (lambda (ev) (cons t ev))
-                    (which-key--current-key-list "")))
+                    (which-key--current-key-list)))
            (keysbl
             (vconcat (butlast (append (this-single-command-keys) nil))))
            (next-event-if-not-showing
