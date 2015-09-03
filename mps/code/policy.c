@@ -333,7 +333,7 @@ Bool PolicyPollAgain(Arena arena, Clock start, Work tracedWork)
   AVER(nextPollThreshold > globals->pollThreshold);
   globals->pollThreshold = nextPollThreshold;
 
-  return PolicyPoll(arena);
+  return ArenaEmergency(arena) || PolicyPoll(arena);
 }
 
 
