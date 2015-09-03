@@ -280,9 +280,8 @@ double PolicyCollectionTime(Arena arena)
   collectableSize = ArenaCollectable(arena);
   /* The condition arena->tracedTime >= 1.0 ensures that the division
    * can't overflow. */
-  if (arena->tracedSize >= ARENA_MINIMUM_COLLECTABLE_SIZE
-      && arena->tracedTime >= 1.0)
-    collectionRate = arena->tracedSize / arena->tracedTime;
+  if (arena->tracedTime >= 1.0)
+    collectionRate = arena->tracedWork / arena->tracedTime;
   else
     collectionRate = ARENA_DEFAULT_COLLECTION_RATE;
   collectionTime = collectableSize / collectionRate;
@@ -313,10 +312,10 @@ Bool PolicyPoll(Arena arena)
  * should return to the mutator.
  *
  * start is the clock time when the MPS was entered.
- * tracedSize is the amount of work done by the last call to TracePoll.
+ * tracedWork is the amount of work done by the last call to TracePoll.
  */
 
-Bool PolicyPollAgain(Arena arena, Clock start, Size tracedSize)
+Bool PolicyPollAgain(Arena arena, Clock start, Work tracedWork)
 {
   Globals globals;
   double nextPollThreshold;
@@ -325,7 +324,7 @@ Bool PolicyPollAgain(Arena arena, Clock start, Size tracedSize)
   globals = ArenaGlobals(arena);
   UNUSED(start);
   
-  if (tracedSize == 0) {
+  if (tracedWork == 0) {
     /* No work was done.  Sleep until NOW + a bit. */
     nextPollThreshold = globals->fillMutatorSize + ArenaPollALLOCTIME;
   } else {

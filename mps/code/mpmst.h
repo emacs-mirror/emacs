@@ -486,7 +486,7 @@ typedef struct TraceStruct {
   Size condemned;               /* condemned bytes */
   Size notCondemned;            /* collectable but not condemned */
   Size foundation;              /* initial grey set size */
-  Size rate;                    /* segs to scan per increment */
+  Work quantumWork;             /* collection work constituting a quantum */
   STATISTIC_DECL(Count greySegCount); /* number of grey segs */
   STATISTIC_DECL(Count greySegMax); /* max number of grey segs */
   STATISTIC_DECL(Count rootScanCount); /* number of roots scanned */
@@ -777,7 +777,7 @@ typedef struct mps_arena_s {
   TraceMessage tMessage[TraceLIMIT];  /* <design/message-gc/> */
 
   /* policy fields */
-  double tracedSize;
+  double tracedWork;
   double tracedTime;
   Clock lastWorldCollect;
 

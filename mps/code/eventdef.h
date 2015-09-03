@@ -36,7 +36,7 @@
  */
 
 #define EVENT_VERSION_MAJOR  ((unsigned)1)
-#define EVENT_VERSION_MEDIAN ((unsigned)4)
+#define EVENT_VERSION_MEDIAN ((unsigned)5)
 #define EVENT_VERSION_MINOR  ((unsigned)0)
 
 
@@ -447,7 +447,7 @@
   PARAM(X,  1, W, condemned) \
   PARAM(X,  2, W, notCondemned) \
   PARAM(X,  3, W, foundation) \
-  PARAM(X,  4, W, rate) \
+  PARAM(X,  4, W, quantumWork) \
   PARAM(X,  5, D, mortality) \
   PARAM(X,  6, D, finishingTime)
 
@@ -674,7 +674,7 @@
   PARAM(X,  4, W, notCondemned) /* collectible but not condemned bytes */ \
   PARAM(X,  5, W, foundation)   /* foundation size */ \
   PARAM(X,  6, W, white)        /* white reference set */ \
-  PARAM(X,  7, W, rate)         /* segs to scan per increment */
+  PARAM(X,  7, W, quantumWork)  /* work constituting a quantum */
 
 #define EVENT_VMCompact_PARAMS(PARAM, X) \
   PARAM(X,  0, W, vmem0)        /* pre-collection reserved size */ \
