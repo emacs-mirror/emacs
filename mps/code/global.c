@@ -214,6 +214,8 @@ Bool GlobalsCheck(Globals arenaGlobals)
   CHECKL(RingCheck(&arenaRing));
 
   CHECKL(BoolCheck(arena->emergency));
+  /* There can only be an emergency when a trace is busy. */
+  CHECKL(!arena->emergency || arena->busyTraces != TraceSetEMPTY);
   
   if (arenaGlobals->defaultChain != NULL)
     CHECKD(Chain, arenaGlobals->defaultChain);
