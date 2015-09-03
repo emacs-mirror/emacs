@@ -189,7 +189,7 @@ Bool GlobalsCheck(Globals arenaGlobals)
     CHECKD_NOSIG(Ring, &arena->greyRing[rank]);
   CHECKD_NOSIG(Ring, &arena->chainRing);
 
-  CHECKL(arena->tracedSize >= 0.0);
+  CHECKL(arena->tracedWork >= 0.0);
   CHECKL(arena->tracedTime >= 0.0);
   /* no check for arena->lastWorldCollect (Clock) */
 
@@ -287,7 +287,7 @@ Res GlobalsInit(Globals arenaGlobals)
   arena->finalPool = NULL;
   arena->busyTraces = TraceSetEMPTY;    /* <code/trace.c> */
   arena->flippedTraces = TraceSetEMPTY; /* <code/trace.c> */
-  arena->tracedSize = 0.0;
+  arena->tracedWork = 0.0;
   arena->tracedTime = 0.0;
   arena->lastWorldCollect = ClockNow();
   arena->insideShield = FALSE;          /* <code/shield.c> */
@@ -705,7 +705,7 @@ void (ArenaPoll)(Globals globals)
   Arena arena;
   Clock start;
   Count quanta;
-  Size tracedSize;
+  Work tracedWork;
 
   AVERT(Globals, globals);
 
@@ -726,11 +726,11 @@ void (ArenaPoll)(Globals globals)
   EVENT3(ArenaPoll, arena, start, 0);
 
   do {
-    tracedSize = TracePoll(globals);
-    if (tracedSize > 0) {
+    tracedWork = TracePoll(globals);
+    if (tracedWork > 0) {
       quanta += 1;
     }
-  } while (PolicyPollAgain(arena, start, tracedSize));
+  } while (PolicyPollAgain(arena, start, tracedWork));
 
   /* Don't count time spent checking for work, if there was no work to do. */
   if(quanta > 0) {
@@ -779,7 +779,7 @@ static Bool arenaShouldCollectWorld(Arena arena,
 
 Bool ArenaStep(Globals globals, double interval, double multiplier)
 {
-  Size scanned;
+  Work work;
   Bool stepped;
   Clock start, end, now;
   Clock clocks_per_sec;
@@ -812,12 +812,12 @@ Bool ArenaStep(Globals globals, double interval, double multiplier)
 
   /* loop while there is work to do and time on the clock. */
   do {
-    scanned = TracePoll(globals);
+    work = TracePoll(globals);
     now = ClockNow();
-    if (scanned > 0) {
+    if (work > 0) {
       stepped = TRUE;
     }
-  } while ((scanned > 0) && (now < end));
+  } while ((work > 0) && (now < end));
 
   if (stepped) {
     ArenaAccumulateTime(arena, start);
