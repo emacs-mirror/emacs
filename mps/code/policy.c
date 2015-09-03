@@ -309,20 +309,20 @@ Bool PolicyPoll(Arena arena)
  * should return to the mutator.
  *
  * start is the clock time when the MPS was entered.
- * tracedWork is the amount of work done by the last call to TracePoll.
+ * moreWork and tracedWork are the results of the last call to TracePoll.
  */
 
-Bool PolicyPollAgain(Arena arena, Clock start, Work tracedWork)
+Bool PolicyPollAgain(Arena arena, Bool moreWork, Work tracedWork)
 {
   Globals globals;
   double nextPollThreshold;
 
   AVERT(Arena, arena);
   globals = ArenaGlobals(arena);
-  UNUSED(start);
+  UNUSED(tracedWork);
   
-  if (tracedWork == 0) {
-    /* No work was done.  Sleep until NOW + a bit. */
+  if (!moreWork) {
+    /* No more work to do.  Sleep until NOW + a bit. */
     nextPollThreshold = globals->fillMutatorSize + ArenaPollALLOCTIME;
   } else {
     /* We did one quantum of work; consume one unit of 'time'. */

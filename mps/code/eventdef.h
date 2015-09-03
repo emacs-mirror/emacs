@@ -655,7 +655,7 @@
 #define EVENT_ArenaPoll_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) \
   PARAM(X,  1, W, start) \
-  PARAM(X,  2, W, quanta)
+  PARAM(X,  2, B, workWasDone)
 
 #define EVENT_ArenaSetEmergency_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) \
