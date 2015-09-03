@@ -729,13 +729,12 @@ void (ArenaPoll)(Globals globals)
     tracedSize = TracePoll(globals);
     if (tracedSize > 0) {
       quanta += 1;
-      arena->tracedSize += tracedSize;
     }
   } while (PolicyPollAgain(arena, start, tracedSize));
 
   /* Don't count time spent checking for work, if there was no work to do. */
   if(quanta > 0) {
-    arena->tracedTime += (ClockNow() - start) / (double) ClocksPerSec();
+    ArenaAccumulateTime(arena, start);
   }
 
   AVER(!PolicyPoll(arena));
@@ -817,12 +816,11 @@ Bool ArenaStep(Globals globals, double interval, double multiplier)
     now = ClockNow();
     if (scanned > 0) {
       stepped = TRUE;
-      arena->tracedSize += scanned;
     }
   } while ((scanned > 0) && (now < end));
 
   if (stepped) {
-    arena->tracedTime += (now - start) / (double) clocks_per_sec;
+    ArenaAccumulateTime(arena, start);
   }
 
   return stepped;
