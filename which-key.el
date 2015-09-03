@@ -549,7 +549,7 @@ to `which-key-prefix-title-alist'."
               (which-key--add-key-val-to-alist which-key-prefix-title-alist
                                                key-sequence -title)))
     (setq key-sequence (pop more) name (pop more))))
-(put 'which-key-declare-prefix-names 'lisp-indent-function 'defun)
+(put 'which-key-declare-prefixes 'lisp-indent-function 'defun)
 
 ;;;###autoload
 (defun which-key-declare-prefixes-for-mode (mode key-sequence name &rest more)
@@ -572,7 +572,7 @@ addition KEY-SEQUENCE NAME pairs) to apply."
     (if (assq mode which-key-prefix-name-alist)
         (setcdr (assq mode which-key-prefix-name-alist) mode-name-alist)
       (push (cons mode mode-name-alist) which-key-prefix-name-alist))))
-(put 'which-key-declare-prefix-names-for-mode 'lisp-indent-function 'defun)
+(put 'which-key-declare-prefixes-for-mode 'lisp-indent-function 'defun)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions for computing window sizes
