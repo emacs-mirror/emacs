@@ -1846,10 +1846,12 @@ failCondemn:
 /* TracePoll -- Check if there's any tracing work to be done
  *
  * Consider starting a trace if none is running; advance the running
- * trace (if any) by one quantum. Return a measure of the work done.
+ * trace (if any) by one quantum. If there may be more work to do,
+ * update *workReturn with a measure of the work done and return TRUE.
+ * Otherwise return FALSE.
  */
 
-Work TracePoll(Globals globals)
+Bool TracePoll(Work *workReturn, Globals globals)
 {
   Trace trace;
   Arena arena;
@@ -1863,7 +1865,7 @@ Work TracePoll(Globals globals)
   } else {
     /* No traces are running: consider starting one now. */
     if (!PolicyStartTrace(&trace, arena))
-      return (Size)0;
+      return FALSE;
   }
 
   AVER(arena->busyTraces == TraceSetSingle(trace));
@@ -1877,7 +1879,8 @@ Work TracePoll(Globals globals)
   work = newWork - oldWork;
   if (trace->state == TraceFINISHED)
     TraceDestroyFinished(trace);
-  return work;
+  *workReturn = work;
+  return TRUE;
 }
 
 

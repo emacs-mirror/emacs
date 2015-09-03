@@ -704,7 +704,7 @@ void (ArenaPoll)(Globals globals)
 {
   Arena arena;
   Clock start;
-  Count quanta;
+  Bool moreWork, workWasDone = FALSE;
   Work tracedWork;
 
   AVERT(Globals, globals);
@@ -721,25 +721,24 @@ void (ArenaPoll)(Globals globals)
 
   /* fillMutatorSize has advanced; call TracePoll enough to catch up. */
   start = ClockNow();
-  quanta = 0;
 
-  EVENT3(ArenaPoll, arena, start, 0);
+  EVENT3(ArenaPoll, arena, start, FALSE);
 
   do {
-    tracedWork = TracePoll(globals);
-    if (tracedWork > 0) {
-      quanta += 1;
+    moreWork = TracePoll(&tracedWork, globals);
+    if (moreWork) {
+      workWasDone = TRUE;
     }
-  } while (PolicyPollAgain(arena, start, tracedWork));
+  } while (PolicyPollAgain(arena, moreWork, tracedWork));
 
   /* Don't count time spent checking for work, if there was no work to do. */
-  if(quanta > 0) {
+  if (workWasDone) {
     ArenaAccumulateTime(arena, start);
   }
 
   AVER(!PolicyPoll(arena));
 
-  EVENT3(ArenaPoll, arena, start, quanta);
+  EVENT3(ArenaPoll, arena, start, BOOLOF(workWasDone));
 
   globals->insidePoll = FALSE;
 }
@@ -780,7 +779,7 @@ static Bool arenaShouldCollectWorld(Arena arena,
 Bool ArenaStep(Globals globals, double interval, double multiplier)
 {
   Work work;
-  Bool stepped;
+  Bool moreWork, workWasDone = FALSE;
   Clock start, end, now;
   Clock clocks_per_sec;
   Arena arena;
@@ -796,8 +795,6 @@ Bool ArenaStep(Globals globals, double interval, double multiplier)
   end = start + (Clock)(interval * clocks_per_sec);
   AVER(end >= start);
 
-  stepped = FALSE;
-
   if (arenaShouldCollectWorld(arena, interval, multiplier,
                               start, clocks_per_sec))
   {
@@ -806,24 +803,24 @@ Bool ArenaStep(Globals globals, double interval, double multiplier)
     res = TraceStartCollectAll(&trace, arena, TraceStartWhyOPPORTUNISM);
     if (res == ResOK) {
       arena->lastWorldCollect = start;
-      stepped = TRUE;
+      workWasDone = TRUE;
     }
   }
 
   /* loop while there is work to do and time on the clock. */
   do {
-    work = TracePoll(globals);
+    moreWork = TracePoll(&work, globals);
     now = ClockNow();
-    if (work > 0) {
-      stepped = TRUE;
+    if (moreWork) {
+      workWasDone = TRUE;
     }
-  } while ((work > 0) && (now < end));
+  } while (moreWork && now < end);
 
-  if (stepped) {
+  if (workWasDone) {
     ArenaAccumulateTime(arena, start);
   }
 
-  return stepped;
+  return workWasDone;
 }
 
 /* ArenaFinalize -- registers an object for finalization
