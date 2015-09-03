@@ -214,7 +214,6 @@ This includes initialization and closing the bus."
     (should (equal (plist-get message :args) '(((:array nil) nil))))
     (should (equal (plist-get message :signature) "au"))
     ;; Test explicit type specifications with `:type' keyword for empty array.
-    ;; DOES THIS WORK?
     (setq message (dbus--test-create-message-with-args
                    :type '(:array :uint32)))
     (should (equal (plist-get message :args) '(((:array nil) nil))))

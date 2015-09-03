@@ -1683,7 +1683,16 @@ xd_build_message (Lisp_Object caller, struct xd_message *xmessage,
     {
       if (EQ (args[count], QCdbus_type_type))
 	{
-	  xd_append_arg_with_type_spec (args[count+1], args[count+2], &iter);
+	  /* At least one object must follow the `:type' symbol.  */
+	  if (!(count+1 < nargs))
+	    wrong_type_argument (intern ("D-Bus"), QCdbus_type_type);
+
+	  /* It is possible that no argument follows a type
+	     specification, when the type is an empty compound type.
+	     Assume it as nil.  */
+	  xd_append_arg_with_type_spec (args[count+1],
+					count+2 < nargs ? args[count+2] : Qnil,
+					&iter);
 	  count += 2;
 	}
       else
