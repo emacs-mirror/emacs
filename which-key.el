@@ -487,6 +487,7 @@ replacements are added to
            which-key-key-based-description-replacement-alist
            key-sequence replacement))
     (setq key-sequence (pop more) replacement (pop more))))
+(put 'which-key-add-key-based-replacements 'lisp-indent-function 'defun)
 
 ;;;###autoload
 (defun which-key-add-major-mode-key-based-replacements (mode key-sequence replacement &rest more)
@@ -504,6 +505,7 @@ addition KEY-SEQUENCE REPLACEMENT pairs) to apply."
     (if (assq mode which-key-key-based-description-replacement-alist)
         (setcdr (assq mode which-key-key-based-description-replacement-alist) mode-alist)
       (push (cons mode mode-alist) which-key-key-based-description-replacement-alist))))
+(put 'which-key-add-major-mode-key-based-replacements 'lisp-indent-function 'defun)
 
 ;;;###autoload
 (defun which-key-add-prefix-title (key-seq-str title &optional force)
@@ -546,6 +548,7 @@ names are added to `which-key-prefix-names-alist'."
           (which-key--declare-prefix-names which-key-prefix-name-alist
            key-sequence name))
     (setq key-sequence (pop more) name (pop more))))
+(put 'which-key-declare-prefix-names 'lisp-indent-function 'defun)
 
 ;;;###autoload
 (defun which-key-declare-prefix-names-for-mode (mode key-sequence name &rest more)
@@ -563,6 +566,7 @@ addition KEY-SEQUENCE NAME pairs) to apply."
     (if (assq mode which-key-prefix-name-alist)
         (setcdr (assq mode which-key-prefix-name-alist) mode-alist)
       (push (cons mode mode-alist) which-key-prefix-name-alist))))
+(put 'which-key-declare-prefix-names-for-mode 'lisp-indent-function 'defun)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions for computing window sizes
