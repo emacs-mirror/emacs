@@ -1821,6 +1821,9 @@ xd_dbus_message_to_lisp (DBusMessage *dmessage)
   XD_ADD_HEADER (member);
   XD_ADD_HEADER (destination);
   XD_ADD_HEADER (sender);
+
+  /* Don't redefine `:signature'.  */
+#define QCdbus_message_signature QCdbus_type_signature
   XD_ADD_HEADER (signature);
 
 #undef XD_ADD_HEADER
@@ -2141,7 +2144,6 @@ syms_of_dbusbind (void)
   DEFSYM (QCdbus_message_member, ":member");
   DEFSYM (QCdbus_message_destination, ":destination");
   DEFSYM (QCdbus_message_sender, ":sender");
-  DEFSYM (QCdbus_message_signature, ":signature");
   DEFSYM (QCdbus_message_args, ":args");
 
   /* Lisp symbols of objects in `dbus-registered-objects-table'.  */
