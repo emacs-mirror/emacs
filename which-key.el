@@ -464,9 +464,8 @@ bottom."
   (let ((key-lst (listify-key-sequence (kbd key))))
     (cond ((null alist) (list (cons key-lst value)))
           ((assoc key-lst alist)
-           (message "which-key: the key %s already exists in %s. This addition \
-will override that value."
-                    key alist)
+           (message "which-key: changing %s name from %s to %s"
+                    key (cdr (assoc key-lst alist)) value)
            (setcdr (assoc key-lst alist) value)
            alist)
           (t (cons (cons key-lst value) alist)))))
