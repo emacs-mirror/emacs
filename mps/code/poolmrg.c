@@ -620,6 +620,7 @@ static Res MRGRefSegScan(ScanState ss, MRGRefSeg refseg, MRG mrg)
             MRGFinalize(arena, linkseg, i);
           }
         }
+        ss->scannedSize += sizeof *refPart;
       }
     }
   } TRACE_SCAN_END(ss);
