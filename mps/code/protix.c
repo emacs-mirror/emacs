@@ -1,7 +1,7 @@
 /* protix.c: PROTECTION FOR UNIX
  *
  *  $Id$
- *  Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
  *
  *  Somewhat generic across different Unix systems.  Shared between
  *  OS X, FreeBSD, and Linux.
@@ -66,6 +66,7 @@ void ProtSet(Addr base, Addr limit, AccessSet mode)
   AVER(base < limit);
   AVER(base != 0);
   AVER(AddrOffset(base, limit) <= INT_MAX);     /* should be redundant */
+  AVERT(AccessSet, mode);
 
   /* Convert between MPS AccessSet and UNIX PROT thingies.
      In this function, AccessREAD means protect against read accesses
@@ -122,7 +123,7 @@ Size ProtGranularity(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
