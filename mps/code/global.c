@@ -780,7 +780,7 @@ static Bool arenaShouldCollectWorld(Arena arena,
 Bool ArenaStep(Globals globals, double interval, double multiplier)
 {
   Bool workWasDone = FALSE;
-  Clock start, end, now;
+  Clock start, intervalEnd, availableEnd, now;
   Clock clocks_per_sec;
   Arena arena;
 
@@ -792,8 +792,10 @@ Bool ArenaStep(Globals globals, double interval, double multiplier)
   clocks_per_sec = ClocksPerSec();
 
   start = now = ClockNow();
-  end = start + (Clock)(interval * clocks_per_sec);
-  AVER(end >= start);
+  intervalEnd = start + (Clock)(interval * clocks_per_sec);
+  AVER(intervalEnd >= start);
+  availableEnd = start + (Clock)(interval * multiplier * clocks_per_sec);
+  AVER(availableEnd >= start);
 
   /* loop while there is work to do and time on the clock. */
   do {
@@ -802,7 +804,9 @@ Bool ArenaStep(Globals globals, double interval, double multiplier)
       trace = ArenaTrace(arena, (TraceId)0);
     } else {
       /* No traces are running: consider collecting the world. */
-      if (arenaShouldCollectWorld(arena, end - now, now, clocks_per_sec)) {
+      if (arenaShouldCollectWorld(arena, availableEnd - now, now,
+                                  clocks_per_sec))
+      {
         Res res;
         res = TraceStartCollectAll(&trace, arena, TraceStartWhyOPPORTUNISM);
         if (res != ResOK)
@@ -819,7 +823,7 @@ Bool ArenaStep(Globals globals, double interval, double multiplier)
       TraceDestroyFinished(trace);
     workWasDone = TRUE;
     now = ClockNow();
-  } while (now < end);
+  } while (now < intervalEnd);
 
   if (workWasDone) {
     ArenaAccumulateTime(arena, start);
