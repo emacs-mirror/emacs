@@ -665,7 +665,6 @@ extern Bool PolicyShouldCollectWorld(Arena arena, double interval,
                                      double multiplier, Clock now,
                                      Clock clocks_per_sec);
 extern Bool PolicyStartTrace(Trace *traceReturn, Arena arena);
-extern double PolicyCollectionTime(Arena arena);
 extern Bool PolicyPoll(Arena arena);
 extern Bool PolicyPollAgain(Arena arena, Clock start, Size tracedSize);
 
