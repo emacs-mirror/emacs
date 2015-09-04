@@ -32,13 +32,9 @@
  * stack itself.
  */
 
-extern Res StackScan(ScanState ss, Addr *stackBot);
-
-
-extern Res StackScanInner(ScanState ss,
-                          Addr *stackBot,
-                          Addr *stackTop,
-                          Count nSavedRegs);
+extern Res StackScan(ScanState ss, Word *stackBot, Word mask, Word pattern);
+extern Res StackScanInner(ScanState ss, Word *stackBot, Word *stackTop,
+                          Count nSavedRegs, Word mask, Word pattern);
 
 #endif /* ss_h */
 

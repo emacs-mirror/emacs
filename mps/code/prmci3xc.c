@@ -96,7 +96,8 @@ Addr MutatorFaultContextSP(MutatorFaultContext mfc)
 }
 
 
-Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc)
+Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc,
+                            Word mask, Word pattern)
 {
   x86_thread_state32_t *mc;
   Res res;
@@ -105,9 +106,10 @@ Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc)
      unnecessarily scans the rest of the context.  The optimisation
      to scan only relevant parts would be machine dependent. */
   mc = mfc->threadState;
-  res = TraceScanAreaTagged(ss,
-                            (Addr *)mc,
-                            (Addr *)((char *)mc + sizeof(*mc)));
+  res = TraceScanAreaMasked(ss,
+                            (Word *)mc,
+                            (Word *)((char *)mc + sizeof(*mc)),
+                            mask, pattern);
   return res;
 }
 

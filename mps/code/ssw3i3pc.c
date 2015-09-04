@@ -46,7 +46,7 @@ typedef struct __JUMP_BUFFER {
 } _JUMP_BUFFER;
 
 
-Res StackScan(ScanState ss, Addr *stackBot)
+Res StackScan(ScanState ss, Word *stackBot, Word mask, Word pattern)
 {
   jmp_buf jb;
 
@@ -58,7 +58,8 @@ Res StackScan(ScanState ss, Addr *stackBot)
   AVER(offsetof(_JUMP_BUFFER, Edi) == offsetof(_JUMP_BUFFER, Ebx) + 4);
   AVER(offsetof(_JUMP_BUFFER, Esi) == offsetof(_JUMP_BUFFER, Ebx) + 8);
 
-  return StackScanInner(ss, stackBot, (Addr *)&((_JUMP_BUFFER *)jb)->Ebx, 3);
+  return StackScanInner(ss, stackBot, (Word *)&((_JUMP_BUFFER *)jb)->Ebx, 3,
+                        mask, pattern);
 }
 
 
