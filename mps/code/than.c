@@ -115,10 +115,11 @@ Arena ThreadArena(Thread thread)
 }
 
 
-Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
+Res ThreadScan(ScanState ss, Thread thread, Word *stackBot,
+               Word mask, Word pattern)
 {
   UNUSED(thread);
-  return StackScan(ss, stackBot);
+  return StackScan(ss, stackBot, mask, pattern);
 }
 
 

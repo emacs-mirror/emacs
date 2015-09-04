@@ -17,6 +17,10 @@ New features
    specifying the minimum size of the memory segments that the pool
    requests from the :term:`arena`.
 
+#. New function :c:func:`mps_root_create_reg_masked` applies a mask
+   and pattern test to all words in registers and on the stack when
+   scanning them. This supports tagged references in these locations.
+
 
 Interface changes
 .................

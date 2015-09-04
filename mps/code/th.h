@@ -67,7 +67,8 @@ extern Thread ThreadRingThread(Ring threadRing);
 
 extern Arena ThreadArena(Thread thread);
 
-extern Res ThreadScan(ScanState ss, Thread thread, void *stackBot);
+extern Res ThreadScan(ScanState ss, Thread thread, Word *stackBot,
+                      Word mask, Word pattern);
 
 
 #endif /* th_h */

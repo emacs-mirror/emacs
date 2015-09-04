@@ -222,7 +222,8 @@ Arena ThreadArena(Thread thread)
 
 /* ThreadScan -- scan the state of a thread (stack and regs) */
 
-Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
+Res ThreadScan(ScanState ss, Thread thread, Word *stackBot,
+               Word mask, Word pattern)
 {
   pthread_t self;
   Res res;
@@ -231,12 +232,13 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
   self = pthread_self();
   if(pthread_equal(self, thread->id)) {
     /* scan this thread's stack */
-    res = StackScan(ss, stackBot);
+    res = StackScan(ss, stackBot, mask, pattern);
     if(res != ResOK)
       return res;
   } else {
     MutatorFaultContext mfc;
-    Addr *stackBase, *stackLimit, stackPtr;
+    Word *stackBase, *stackLimit;
+    Addr stackPtr;
 
     mfc = thread->mfc;
     if(mfc == NULL) {
@@ -248,20 +250,20 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
 
     stackPtr = MutatorFaultContextSP(mfc);
     /* .stack.align */
-    stackBase  = (Addr *)AddrAlignUp(stackPtr, sizeof(Addr));
-    stackLimit = (Addr *)stackBot;
+    stackBase  = (Word *)AddrAlignUp(stackPtr, sizeof(Addr));
+    stackLimit = stackBot;
     if (stackBase >= stackLimit)
       return ResOK;    /* .stack.below-bottom */
 
     /* scan stack inclusive of current sp and exclusive of
      * stackBot (.stack.full-descend)
      */
-    res = TraceScanAreaTagged(ss, stackBase, stackLimit);
+    res = TraceScanAreaMasked(ss, stackBase, stackLimit, mask, pattern);
     if(res != ResOK)
       return res;
 
     /* scan the registers in the mutator fault context */
-    res = MutatorFaultContextScan(ss, mfc);
+    res = MutatorFaultContextScan(ss, mfc, mask, pattern);
     if(res != ResOK)
       return res;
   }

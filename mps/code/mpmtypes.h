@@ -362,6 +362,7 @@ enum {
   RootTABLE,
   RootTABLE_MASKED,
   RootREG,
+  RootREG_MASKED,
   RootFMT,
   RootLIMIT
 };

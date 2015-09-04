@@ -1304,7 +1304,7 @@ mps_res_t mps_root_create_table(mps_root_t *mps_root_o, mps_arena_t arena,
   /* limit pointers.  Be careful. */
 
   res = RootCreateTable(&root, arena, rank, mode,
-                        (Addr *)base, (Addr *)base + size);
+                        (Word *)base, (Word *)base + size);
 
   ArenaLeave(arena);
 
@@ -1335,7 +1335,7 @@ mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
   /* See .root.table-size. */
 
   res = RootCreateTableMasked(&root, arena, rank, mode,
-                              (Addr *)base, (Addr *)base + size,
+                              (Word *)base, (Word *)base + size,
                               mask);
 
   ArenaLeave(arena);
@@ -1401,6 +1401,37 @@ mps_res_t mps_root_create_reg(mps_root_t *mps_root_o, mps_arena_t arena,
 }
 
 
+mps_res_t mps_root_create_reg_masked(mps_root_t *mps_root_o, mps_arena_t arena,
+                                     mps_rank_t mps_rank, mps_rm_t mps_rm,
+                                     mps_thr_t thread, mps_word_t mask,
+                                     mps_word_t pattern, void *reg_scan_p)
+{
+  Rank rank = (Rank)mps_rank;
+  Root root;
+  Res res;
+
+  ArenaEnter(arena);
+
+  AVER(mps_root_o != NULL);
+  AVER(reg_scan_p != NULL); /* stackBot */
+  AVER(AddrIsAligned(reg_scan_p, sizeof(Word)));
+  AVER(rank == mps_rank_ambig());
+  AVER(mps_rm == (mps_rm_t)0);
+  AVER((~mask & pattern) == 0);
+
+  /* See .root-mode. */
+  res = RootCreateRegMasked(&root, arena, rank, thread,
+                            mask, pattern, (Addr)reg_scan_p);
+
+  ArenaLeave(arena);
+
+  if (res != ResOK)
+    return (mps_res_t)res;
+  *mps_root_o = (mps_root_t)root;
+  return MPS_RES_OK;
+}
+
+
 /* mps_stack_scan_ambig -- scan the thread state ambiguously
  *
  * See .reg-scan.  */
@@ -1410,7 +1441,7 @@ mps_res_t mps_stack_scan_ambig(mps_ss_t mps_ss,
 {
   ScanState ss = PARENT(ScanStateStruct, ss_s, mps_ss);
   UNUSED(s);
-  return ThreadScan(ss, thread, p);
+  return ThreadScan(ss, thread, (Word *)p, sizeof(mps_word_t) - 1, 0);
 }
 
 

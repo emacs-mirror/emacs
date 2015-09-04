@@ -1425,11 +1425,10 @@ void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
  * [base, limit).  I.e., it calls Fix on all words from base up to
  * limit, inclusive of base and exclusive of limit.  */
 
-Res TraceScanArea(ScanState ss, Addr *base, Addr *limit)
+Res TraceScanArea(ScanState ss, Word *base, Word *limit)
 {
   Res res;
-  Addr *p;
-  Ref ref;
+  Word word, *p;
 
   AVER(base != NULL);
   AVER(limit != NULL);
@@ -1442,10 +1441,10 @@ Res TraceScanArea(ScanState ss, Addr *base, Addr *limit)
   loop:
     if (p >= limit)
       goto out;
-    ref = *p++;
-    if(!TRACE_FIX1(ss, ref))
+    word = *p++;
+    if(!TRACE_FIX1(ss, (Ref)word))
       goto loop;
-    res = TRACE_FIX2(ss, p-1);
+    res = TRACE_FIX2(ss, (Ref *)(p-1));
     if(res == ResOK)
       goto loop;
     return res;
@@ -1457,43 +1456,21 @@ Res TraceScanArea(ScanState ss, Addr *base, Addr *limit)
 }
 
 
-/* TraceScanAreaTagged -- scan contiguous area of tagged references
- *
- * .tagging: This is as TraceScanArea except words are only fixed they are
- * tagged as zero according to the alignment of a Word.
- *
- * See also PoolSingleAccess <code/poolabs.c#.tagging>.
- *
- * TODO: Generalise the handling of tags so that pools can decide how
- * their objects are tagged. This may use the user defined format
- * to describe how tags are done */
-Res TraceScanAreaTagged(ScanState ss, Addr *base, Addr *limit)
-{
-  Word mask;
-  
-  /* NOTE: An optimisation that maybe worth considering is setting some of the
-   * top bits in the mask as an early catch of addresses outside the arena.
-   * This might help slightly on 64-bit windows. However these are picked up
-   * soon afterwards by later checks.  The bottom bits are more important
-   * to check as we ignore them in AMCFix, so the non-reference could
-   * otherwise end up pinning an object. */
-  mask = sizeof(Word) - 1;
-  AVER(WordIsP2(mask + 1));
-  return TraceScanAreaMasked(ss, base, limit, mask);
-}
-
-
 /* TraceScanAreaMasked -- scan contiguous area of filtered references
  *
- * This is as TraceScanArea except words are only fixed if they are zero
- * when masked with a mask.  */
+ * This is as TraceScanArea except words are only fixed if they have
+ * the given value when masked with a mask.
+ *
+ * This has ATTRIBUTE_NO_SANITIZE_ADDRESS otherwise Clang's address
+ * sanitizer will think we have run off the end of an array.
+ */
 
 ATTRIBUTE_NO_SANITIZE_ADDRESS
-Res TraceScanAreaMasked(ScanState ss, Addr *base, Addr *limit, Word mask)
+Res TraceScanAreaMasked(ScanState ss, Word *base, Word *limit, Word mask,
+                        Word pattern)
 {
   Res res;
-  Addr *p;
-  Ref ref;
+  Word word, *p;
 
   AVERT(ScanState, ss);
   AVER(base != NULL);
@@ -1507,12 +1484,12 @@ Res TraceScanAreaMasked(ScanState ss, Addr *base, Addr *limit, Word mask)
   loop:
     if (p >= limit)
       goto out;
-    ref = *p++;
-    if (((Word)ref & mask)
-      != 0) goto loop;
-    if (!TRACE_FIX1(ss, ref))
+    word = *p++;
+    if ((word & mask) != pattern)
       goto loop;
-    res = TRACE_FIX2(ss, p-1);
+    if (!TRACE_FIX1(ss, (Ref)word))
+      goto loop;
+    res = TRACE_FIX2(ss, (Ref *)(p-1));
     if(res == ResOK)
       goto loop;
     return res;

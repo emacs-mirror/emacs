@@ -38,13 +38,14 @@ typedef struct RootStruct {
       size_t s;                 /* environment for scan */
     } fun;
     struct {
-      Addr *base;               /* beginning of table */
-      Addr *limit;              /* one off end of table */
+      Word *base;               /* beginning of table */
+      Word *limit;              /* one off end of table */
     } table;
     struct {
-      Addr *base;               /* beginning of table */
-      Addr *limit;              /* one off end of table */
+      Word *base;               /* beginning of table */
+      Word *limit;              /* one off end of table */
       Word mask;                /* tag mask for scanning */
+      Word pattern;             /* tag pattern for scanning */
     } tableMasked;
     struct {
       mps_reg_scan_t scan;      /* function for scanning registers */
@@ -52,6 +53,12 @@ typedef struct RootStruct {
       void *p;                  /* passed to scan */
       size_t s;                 /* passed to scan */
     } reg;
+    struct {
+      Thread thread;            /* passed to scan */
+      Word mask;                /* tag mask for scanning */
+      Word pattern;             /* tag pattern for scanning */
+      Word *stackBot;           /* bottom of stack */
+    } regMasked;
     struct {
       mps_fmt_scan_t scan;      /* format-like scanner */
       Addr base, limit;         /* passed to scan */
@@ -67,7 +74,8 @@ typedef struct RootStruct {
 Bool RootVarCheck(RootVar rootVar)
 {
   CHECKL(rootVar == RootTABLE || rootVar == RootTABLE_MASKED
-         || rootVar == RootFUN || rootVar == RootFMT || rootVar == RootREG);
+         || rootVar == RootFUN || rootVar == RootFMT || rootVar == RootREG
+         || rootVar == RootREG_MASKED);
   UNUSED(rootVar);
   return TRUE;
 }
@@ -112,7 +120,7 @@ Bool RootCheck(Root root)
     case RootTABLE_MASKED:
     CHECKL(root->the.tableMasked.base != 0);
     CHECKL(root->the.tableMasked.base < root->the.tableMasked.limit);
-    /* Can't check anything about the mask. */
+    CHECKL((~root->the.tableMasked.mask & root->the.tableMasked.pattern) == 0);
     break;
 
     case RootFUN:
@@ -122,6 +130,13 @@ Bool RootCheck(Root root)
     case RootREG:
     CHECKL(root->the.reg.scan != NULL);
     CHECKD_NOSIG(Thread, root->the.reg.thread); /* <design/check/#hidden-type> */
+    /* Can't check anything about p or s. */
+    break;
+
+    case RootREG_MASKED:
+    CHECKD_NOSIG(Thread, root->the.regMasked.thread); /* <design/check/#hidden-type> */
+    CHECKL((~root->the.regMasked.mask & root->the.regMasked.pattern) == 0);
+    /* Can't check anything about stackBot. */
     break;
 
     case RootFMT:
@@ -254,7 +269,7 @@ static Res rootCreateProtectable(Root *rootReturn, Arena arena,
 }
 
 Res RootCreateTable(Root *rootReturn, Arena arena,
-                    Rank rank, RootMode mode, Addr *base, Addr *limit)
+                    Rank rank, RootMode mode, Word *base, Word *limit)
 {
   Res res;
   union RootUnion theUnion;
@@ -276,7 +291,7 @@ Res RootCreateTable(Root *rootReturn, Arena arena,
 }
 
 Res RootCreateTableMasked(Root *rootReturn, Arena arena,
-                          Rank rank, RootMode mode, Addr *base, Addr *limit,
+                          Rank rank, RootMode mode, Word *base, Word *limit,
                           Word mask)
 {
   union RootUnion theUnion;
@@ -291,6 +306,7 @@ Res RootCreateTableMasked(Root *rootReturn, Arena arena,
   theUnion.tableMasked.base = base;
   theUnion.tableMasked.limit = limit;
   theUnion.tableMasked.mask = mask;
+  theUnion.tableMasked.pattern = 0;
 
   return rootCreateProtectable(rootReturn, arena, rank, mode, RootTABLE_MASKED,
                                (Addr)base, (Addr)limit, &theUnion);
@@ -315,6 +331,28 @@ Res RootCreateReg(Root *rootReturn, Arena arena,
   theUnion.reg.s = s;
 
   return rootCreate(rootReturn, arena, rank, (RootMode)0, RootREG, &theUnion);
+}
+
+Res RootCreateRegMasked(Root *rootReturn, Arena arena,
+                        Rank rank, Thread thread,
+                        Word mask, Word pattern, Addr stackBot)
+{
+  union RootUnion theUnion;
+
+  AVER(rootReturn != NULL);
+  AVERT(Arena, arena);
+  AVERT(Rank, rank);
+  AVERT(Thread, thread);
+  AVER(ThreadArena(thread) == arena);
+  AVER((~mask & pattern) == 0);
+
+  theUnion.regMasked.thread = thread;
+  theUnion.regMasked.mask = mask;
+  theUnion.regMasked.pattern = pattern;
+  theUnion.regMasked.stackBot = stackBot;
+
+  return rootCreate(rootReturn, arena, rank, (RootMode)0, RootREG_MASKED,
+                    &theUnion);
 }
 
 /* RootCreateFmt -- create root from block of formatted objects
@@ -481,7 +519,8 @@ Res RootScan(ScanState ss, Root root)
     res = TraceScanAreaMasked(ss,
                               root->the.tableMasked.base,
                               root->the.tableMasked.limit,
-                              root->the.tableMasked.mask);
+                              root->the.tableMasked.mask,
+                              root->the.tableMasked.pattern);
     ss->scannedSize += AddrOffset(root->the.table.base, root->the.table.limit);
     if (res != ResOK)
       goto failScan;
@@ -500,6 +539,15 @@ Res RootScan(ScanState ss, Root root)
       goto failScan;
     break;
 
+    case RootREG_MASKED:
+    res = ThreadScan(ss, root->the.regMasked.thread,
+                     root->the.regMasked.stackBot,
+                     root->the.regMasked.mask,
+                     root->the.regMasked.pattern);
+    if (res != ResOK)
+      goto failScan;
+    break;
+    
     case RootFMT:
     res = (*root->the.fmt.scan)(&ss->ss_s, root->the.fmt.base, root->the.fmt.limit);
     ss->scannedSize += AddrOffset(root->the.fmt.base, root->the.fmt.limit);
