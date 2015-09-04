@@ -335,7 +335,7 @@ Res RootCreateReg(Root *rootReturn, Arena arena,
 
 Res RootCreateRegMasked(Root *rootReturn, Arena arena,
                         Rank rank, Thread thread,
-                        Word mask, Word pattern, Addr stackBot)
+                        Word mask, Word pattern, Word *stackBot)
 {
   union RootUnion theUnion;
 
