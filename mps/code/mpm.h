@@ -664,8 +664,9 @@ extern Res ArenaNoExtend(Arena arena, Addr base, Size size);
 
 extern Res PolicyAlloc(Tract *tractReturn, Arena arena, LocusPref pref,
                        Size size, Pool pool);
+extern Bool PolicyShouldCollectWorld(Arena arena, double availableTime,
+                                     Clock now, Clock clocks_per_sec);
 extern Bool PolicyStartTrace(Trace *traceReturn, Arena arena);
-extern double PolicyCollectionTime(Arena arena);
 extern Bool PolicyPoll(Arena arena);
 extern Bool PolicyPollAgain(Arena arena, Bool moreWork, Work tracedWork);
 

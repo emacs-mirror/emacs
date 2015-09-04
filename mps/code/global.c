@@ -745,37 +745,8 @@ void (ArenaPoll)(Globals globals)
   globals->insidePoll = FALSE;
 }
 
-/* Work out whether we have enough time here to collect the world,
- * and whether much time has passed since the last time we did that
- * opportunistically. */
-static Bool arenaShouldCollectWorld(Arena arena,
-                                    double availableTime,
-                                    Clock now,
-                                    Clock clocks_per_sec)
-{
-  AVERT(Arena, arena);
-  /* Can't collect the world if we're not given any time. */
-  AVER(availableTime > 0.0);
-  /* Can't collect the world if we're already collecting. */
-  AVER(arena->busyTraces == TraceSetEMPTY);
 
-  /* Don't collect the world if it's very small. */
-  Size collectableSize = ArenaCollectable(arena);
-  if (collectableSize > ARENA_MINIMUM_COLLECTABLE_SIZE) {
-    /* How long would it take to collect the world? */
-    double collectionTime = PolicyCollectionTime(arena);
-    
-    /* How long since we last collected the world? */
-    double sinceLastWorldCollect = ((now - arena->lastWorldCollect) /
-                                    (double) clocks_per_sec);
-    /* have to be offered enough time, and it has to be a long time
-     * since we last did it. */
-    if ((availableTime > collectionTime) &&
-        sinceLastWorldCollect > collectionTime / ARENA_MAX_COLLECT_FRACTION)
-      return TRUE;
-  }
-  return FALSE;
-}
+/* ArenaStep -- use idle time for collection work */
 
 Bool ArenaStep(Globals globals, double interval, double multiplier)
 {
@@ -804,8 +775,8 @@ Bool ArenaStep(Globals globals, double interval, double multiplier)
       trace = ArenaTrace(arena, (TraceId)0);
     } else {
       /* No traces are running: consider collecting the world. */
-      if (arenaShouldCollectWorld(arena, availableEnd - now, now,
-                                  clocks_per_sec))
+      if (PolicyShouldCollectWorld(arena, availableEnd - now, now,
+                                   clocks_per_sec))
       {
         Res res;
         res = TraceStartCollectAll(&trace, arena, TraceStartWhyOPPORTUNISM);

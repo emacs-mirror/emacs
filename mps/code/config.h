@@ -413,8 +413,6 @@
 
 #define ARENA_DEFAULT_ZONED     TRUE
 
-#define ArenaDefaultZONESET (ZoneSetUNIV << (MPS_WORD_WIDTH / 2))
-
 /* ARENA_MINIMUM_COLLECTABLE_SIZE is the minimum size (in bytes) of
  * collectable memory that might be considered worthwhile to run a
  * full garbage collection. */
@@ -439,9 +437,16 @@
 
 #define ARENA_MAX_COLLECT_FRACTION (0.1)
 
-/* TODO: This is left over from before the branch/2014-01-29/mps-chain-zones
-   and 2014-01-17/cbs-tract-alloc reformed allocation, and may now be doing
-   more harm than good.  Experiment with setting to ZoneSetUNIV. */
+/* ArenaDefaultZONESET is the zone set used by LocusPrefDEFAULT.
+ *
+ * TODO: This is left over from before branches 2014-01-29/mps-chain-zones
+ * and 2014-01-17/cbs-tract-alloc reformed allocation, and may now be
+ * doing more harm than good. Experiment with setting to ZoneSetUNIV. */
+
+#define ArenaDefaultZONESET (ZoneSetUNIV << (MPS_WORD_WIDTH / 2))
+
+/* LocusPrefDEFAULT is the allocation preference used by manual pool
+ * classes (these don't care where they allocate). */
 
 #define LocusPrefDEFAULT { \
   LocusPrefSig,        /* sig */ \

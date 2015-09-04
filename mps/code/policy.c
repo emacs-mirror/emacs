@@ -122,11 +122,77 @@ found:
 }
 
 
+/* policyCollectionTime -- estimate time to collect the world, in seconds */
+
+static double policyCollectionTime(Arena arena)
+{
+  Size collectableSize;
+  double collectionRate;
+  double collectionTime;
+  
+  AVERT(Arena, arena);
+
+  collectableSize = ArenaCollectable(arena);
+  /* The condition arena->tracedTime >= 1.0 ensures that the division
+   * can't overflow. */
+  if (arena->tracedTime >= 1.0)
+    collectionRate = arena->tracedWork / arena->tracedTime;
+  else
+    collectionRate = ARENA_DEFAULT_COLLECTION_RATE;
+  collectionTime = collectableSize / collectionRate;
+  collectionTime += ARENA_DEFAULT_COLLECTION_OVERHEAD;
+
+  return collectionTime;
+}
+
+
+/* PolicyShouldCollectWorld -- should we collect the world now?
+ *
+ * Return TRUE if we should try collecting the world now, FALSE if
+ * not.
+ *
+ * This is the policy behind mps_arena_step, and so the client
+ * must have provided us with enough time to collect the world, and
+ * enough time must have passed since the last time we did that
+ * opportunistically.
+ */
+
+Bool PolicyShouldCollectWorld(Arena arena, double availableTime,
+                              Clock now, Clock clocks_per_sec)
+{
+  AVERT(Arena, arena);
+  /* Can't collect the world if we're not given any time. */
+  AVER(availableTime > 0.0);
+  /* Can't collect the world if we're already collecting. */
+  AVER(arena->busyTraces == TraceSetEMPTY);
+
+  /* Don't collect the world if it's very small. */
+  Size collectableSize = ArenaCollectable(arena);
+  if (collectableSize > ARENA_MINIMUM_COLLECTABLE_SIZE) {
+    /* How long would it take to collect the world? */
+    double collectionTime = policyCollectionTime(arena);
+    
+    /* How long since we last collected the world? */
+    double sinceLastWorldCollect = ((now - arena->lastWorldCollect) /
+                                    (double) clocks_per_sec);
+    /* have to be offered enough time, and it has to be a long time
+     * since we last did it. */
+    if ((availableTime > collectionTime) &&
+        sinceLastWorldCollect > collectionTime / ARENA_MAX_COLLECT_FRACTION)
+      return TRUE;
+  }
+  return FALSE;
+}
+
+
 /* policyCondemnChain -- condemn approriate parts of this chain
  *
+ * If successful, set *mortalityReturn to an estimate of the mortality
+ * of the condemned parts of this chain and return ResOK.
+ *
  * This is only called if ChainDeferral returned a value sufficiently
- * low that the tracer decided to start the collection.  (Usually
- * such values are less than zero; see <design/trace/>)
+ * low that we decided to start the collection. (Usually such values
+ * are less than zero; see <design/strategy/#policy.start.chain>.)
  */
 
 static Res policyCondemnChain(double *mortalityReturn, Chain chain, Trace trace)
@@ -261,30 +327,6 @@ failCondemn:
   TraceDestroyInit(trace);
 failStart:
   return FALSE;
-}
-
-
-/* PolicyCollectionTime -- estimate time to collect the world, in seconds */
-
-double PolicyCollectionTime(Arena arena)
-{
-  Size collectableSize;
-  double collectionRate;
-  double collectionTime;
-  
-  AVERT(Arena, arena);
-
-  collectableSize = ArenaCollectable(arena);
-  /* The condition arena->tracedTime >= 1.0 ensures that the division
-   * can't overflow. */
-  if (arena->tracedTime >= 1.0)
-    collectionRate = arena->tracedWork / arena->tracedTime;
-  else
-    collectionRate = ARENA_DEFAULT_COLLECTION_RATE;
-  collectionTime = collectableSize / collectionRate;
-  collectionTime += ARENA_DEFAULT_COLLECTION_OVERHEAD;
-
-  return collectionTime;
 }
 
 
