@@ -30,7 +30,8 @@ extern void ProtSync(Arena arena);
 extern Bool ProtCanStepInstruction(MutatorFaultContext context);
 extern Res ProtStepInstruction(MutatorFaultContext context);
 extern Addr MutatorFaultContextSP(MutatorFaultContext mfc);
-extern Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc);
+extern Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc,
+                                   Word mask, Word pattern);
 
 
 #endif /* prot_h */

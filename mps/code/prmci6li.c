@@ -105,7 +105,8 @@ Addr MutatorFaultContextSP(MutatorFaultContext mfc)
 }
 
 
-Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc)
+Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc,
+                            Word mask, Word pattern)
 {
   mcontext_t *mc;
   Res res;
@@ -115,8 +116,9 @@ Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc)
      to scan only relevant parts would be machine dependent. */
   mc = &mfc->ucontext->uc_mcontext;
   res = TraceScanAreaTagged(ss,
-                            (Addr *)mc,
-                            (Addr *)((char *)mc + sizeof(*mc)));
+                            (Word *)mc,
+                            (Word *)((char *)mc + sizeof(*mc)),
+                            mask, pattern);
   return res;
 }
 

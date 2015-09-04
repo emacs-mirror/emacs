@@ -393,10 +393,12 @@ Root interface
     The registered root description persists until it is destroyed by
     calling :c:func:`mps_root_destroy`.
 
+
 .. c:function:: mps_res_t mps_root_create_reg(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_thr_t thr, mps_reg_scan_t reg_scan, void *p, size_t s)
 
     Register a :term:`root` that consists of the :term:`references`
-    fixed in a :term:`thread's <thread>` stack by a scanning function.
+    fixed in a :term:`thread's <thread>` registers and stack by a
+    scanning function.
 
     ``root_o`` points to a location that will hold the address of the
     new root description.
@@ -427,7 +429,10 @@ Root interface
 
         It is not supported for :term:`client programs` to pass their
         own scanning functions to this function. The built-in MPS
-        function :c:func:`mps_stack_scan_ambig` must be used.
+        function :c:func:`mps_stack_scan_ambig` must be used. In this
+        case the ``p`` argument must be a pointer into the thread's
+        stack, as described for :c:func:`mps_root_create_reg_masked`
+        below, and the ``s`` argument is ignored.
 
         This function is intended as a hook should we ever need to
         allow client-specific extension or customization of stack and
@@ -483,11 +488,14 @@ Root interface
 
     It scans all integer registers and everything on the stack of the
     thread given, and can therefore only be used with :term:`ambiguous
-    roots`. It only scans locations that are at, or higher on the
-    stack (that is, more recently added), the stack bottom that was
-    passed to :c:func:`mps_thread_reg`. References are assumed to be
-    represented as machine words, and are required to be
-    4-byte-aligned; unaligned values are ignored.
+    roots`. It scans locations that are more recently added than the
+    stack bottom that was passed in the ``p`` argument to
+    :c:func:`mps_root_create_reg`.
+
+    References are assumed to be represented as machine words, and are
+    required to be word-aligned; unaligned values are ignored. If
+    references are tagged, use :c:func:`mps_root_create_reg_masked`
+    instead.
 
     .. note::
 
@@ -496,6 +504,63 @@ Root interface
         and in some cases on the compiler.
 
 
+.. c:function:: mps_res_t mps_root_create_reg_masked(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_thr_t thr, mps_word_t mask, mps_word_t pattern, void *stack)
+
+    Register a :term:`root` that consists of the :term:`references` in
+    a :term:`thread's <thread>` registers and stack that match a
+    binary pattern.
+
+    ``root_o`` points to a location that will hold the address of the
+    new root description.
+
+    ``arena`` is the arena.
+
+    ``rank`` is the :term:`rank` of references in the root.
+
+    ``rm`` is the :term:`root mode`.
+
+    ``thr`` is the thread.
+
+    ``mask`` is an arbitrary mask that is applied to each word in the
+    thread's registers and stack.
+
+    ``pattern`` is an arbitrary pattern; any word that is unequal to
+    this (after masking with ``mask``) is not considered to be a
+    reference.
+
+    ``stack`` is a pointer into the thread's stack. On platforms where
+    the stack grows downwards (currently, all supported platforms),
+    locations below this address will be scanned.
+
+    Returns :c:macro:`MPS_RES_OK` if the root was registered
+    successfully, :c:macro:`MPS_RES_MEMORY` if the new root
+    description could not be allocated, or another :term:`result code`
+    if there was another error.
+
+    The registered root description persists until it is destroyed by
+    calling :c:func:`mps_root_destroy`.
+
+    .. warning::
+
+        A risk of using tagged pointers in registers and on the stack
+        is that in some circumstances, an optimizing compiler might
+        optimize away the tagged pointer, keeping only the untagged
+        version of the pointer. In this situation the pointer would be
+        ignored and if it was the last reference to the object the MPS
+        might incorrectly determine that it was dead. 
+
+        You can avoid this risk by setting ``mask`` and ``pattern`` to
+        zero: in this case all words in registers and on the stack are
+        scanned, leading to possible additional scanning and retention.
+
+     .. note::
+        
+        An optimization that may be worth considering is setting some
+        of the top bits in ``mask`` so that addresses that cannot be
+        allocated by the MPS are rejected quickly. This requires
+        expertise with the platform's virtual memory interface.
+
+                
 .. c:function:: mps_res_t mps_root_create_table(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t count)
 
     Register a :term:`root` that consists of a vector of

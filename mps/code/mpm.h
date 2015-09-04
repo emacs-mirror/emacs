@@ -472,10 +472,9 @@ extern double TraceWorkFactor;
     } \
   END
 
-extern Res TraceScanArea(ScanState ss, Addr *base, Addr *limit);
-extern Res TraceScanAreaTagged(ScanState ss, Addr *base, Addr *limit);
-extern Res TraceScanAreaMasked(ScanState ss,
-                               Addr *base, Addr *limit, Word mask);
+extern Res TraceScanArea(ScanState ss, Word *base, Word *limit);
+extern Res TraceScanAreaMasked(ScanState ss, Word *base, Word *limit,
+                               Word mask, Word value);
 extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena,
                                Seg seg, Ref *refIO);
 
@@ -948,15 +947,19 @@ extern void LDMerge(mps_ld_t ld, Arena arena, mps_ld_t from);
 
 extern Res RootCreateTable(Root *rootReturn, Arena arena,
                            Rank rank, RootMode mode,
-                           Addr *base, Addr *limit);
+                           Word *base, Word *limit);
 extern Res RootCreateTableMasked(Root *rootReturn, Arena arena,
                                  Rank rank, RootMode mode,
-                                 Addr *base, Addr *limit,
+                                 Word *base, Word *limit,
                                  Word mask);
 extern Res RootCreateReg(Root *rootReturn, Arena arena,
                            Rank rank, Thread thread,
                            mps_reg_scan_t scan,
                            void *p, size_t s);
+extern Res RootCreateRegMasked(Root *rootReturn, Arena arena,
+                               Rank rank, Thread thread,
+                               Word mask, Word pattern,
+                               Addr stackBot);
 extern Res RootCreateFmt(Root *rootReturn, Arena arena,
                            Rank rank, RootMode mode,
                            mps_fmt_scan_t scan,

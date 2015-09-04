@@ -67,7 +67,8 @@
 SRCID(thw3i6, "$Id$");
 
 
-Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
+Res ThreadScan(ScanState ss, Thread thread, Word *stackBot,
+               Word mask, Word pattern)
 {
   DWORD id;
   Res res;
@@ -77,7 +78,8 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
   if(id != thread->id) { /* .thread.id */
     CONTEXT context;
     BOOL success;
-    Addr *stackBase, *stackLimit, stackPtr;
+    Word *stackBase, *stackLimit;
+    Addr stackPtr;
 
     /* scan stack and register roots in other threads */
 
@@ -95,15 +97,15 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
 
     stackPtr  = (Addr)context.Rsp;   /* .i6.sp */
     /* .stack.align */
-    stackBase  = (Addr *)AddrAlignUp(stackPtr, sizeof(Addr));
-    stackLimit = (Addr *)stackBot;
+    stackBase  = (Word *)AddrAlignUp(stackPtr, sizeof(Addr));
+    stackLimit = stackBot;
     if (stackBase >= stackLimit)
       return ResOK;    /* .stack.below-bottom */
 
     /* scan stack inclusive of current sp and exclusive of
      * stackBot (.stack.full-descend)
      */
-    res = TraceScanAreaTagged(ss, stackBase, stackLimit);
+    res = TraceScanAreaMasked(ss, stackBase, stackLimit, mask, pattern);
     if(res != ResOK)
       return res;
 
@@ -112,13 +114,14 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
      * unnecessarily scans the rest of the context.  The optimisation
      * to scan only relevant parts would be machine dependent.
      */
-    res = TraceScanAreaTagged(ss, (Addr *)&context,
-           (Addr *)((char *)&context + sizeof(CONTEXT)));
+    res = TraceScanAreaMasked(ss, (Word *)&context,
+                              (Word *)((char *)&context + sizeof(CONTEXT)),
+                              mask, pattern);
     if(res != ResOK)
       return res;
 
   } else { /* scan this thread's stack */
-    res = StackScan(ss, stackBot);
+    res = StackScan(ss, stackBot, mask, pattern);
     if(res != ResOK)
       return res;
   }
