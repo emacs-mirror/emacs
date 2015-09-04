@@ -1,7 +1,7 @@
 /* shield.c: SHIELD IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
  *
  * See: idea.shield, design.mps.shield.
  *
@@ -105,6 +105,7 @@ static void protLower(Arena arena, Seg seg, AccessSet mode)
   AVERT_CRITICAL(Arena, arena);
   UNUSED(arena);
   AVERT_CRITICAL(Seg, seg);
+  AVERT_CRITICAL(AccessSet, mode);
 
   if (SegPM(seg) & mode) {
     SegSetPM(seg, SegPM(seg) & ~mode);
@@ -191,6 +192,7 @@ void (ShieldRaise) (Arena arena, Seg seg, AccessSet mode)
   /* can't check seg. Nor can we check arena as that checks the */
   /* segs in the cache. */
 
+  AVERT(AccessSet, mode);
   AVER((SegSM(seg) & mode) == AccessSetEMPTY);
   SegSetSM(seg, SegSM(seg) | mode); /* inv.prot.shield preserved */
 
@@ -204,6 +206,7 @@ void (ShieldRaise) (Arena arena, Seg seg, AccessSet mode)
 void (ShieldLower)(Arena arena, Seg seg, AccessSet mode)
 {
   /* Don't check seg or arena, see .seg.broken */
+  AVERT(AccessSet, mode);
   AVER((SegSM(seg) & mode) == mode);
   /* synced(seg) is not changed by the following
    * preserving inv.unsynced.suspended
@@ -336,7 +339,7 @@ void (ShieldCover)(Arena arena, Seg seg)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
