@@ -160,6 +160,8 @@ static double policyCollectionTime(Arena arena)
 Bool PolicyShouldCollectWorld(Arena arena, double availableTime,
                               Clock now, Clock clocks_per_sec)
 {
+  Size collectableSize;
+
   AVERT(Arena, arena);
   /* Can't collect the world if we're not given any time. */
   AVER(availableTime > 0.0);
@@ -167,7 +169,7 @@ Bool PolicyShouldCollectWorld(Arena arena, double availableTime,
   AVER(arena->busyTraces == TraceSetEMPTY);
 
   /* Don't collect the world if it's very small. */
-  Size collectableSize = ArenaCollectable(arena);
+  collectableSize = ArenaCollectable(arena);
   if (collectableSize > ARENA_MINIMUM_COLLECTABLE_SIZE) {
     /* How long would it take to collect the world? */
     double collectionTime = policyCollectionTime(arena);
