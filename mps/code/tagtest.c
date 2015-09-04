@@ -32,7 +32,7 @@ static mps_word_t tag_imm = 6;   /* Tag bits indicating immediate value */
 #define TAGGED(value, type) (((mps_word_t)(value) & ~TAG_MASK) + tag_ ## type)
 #define UNTAGGED(word, type) ((type ## _t)((mps_word_t)(word) & ~TAG_MASK))
 
-static mps_word_t cons(mps_ap_t ap, mps_word_t car, mps_word_t cdr)
+static mps_word_t make_cons(mps_ap_t ap, mps_word_t car, mps_word_t cdr)
 {
   cons_t obj;
   mps_addr_t addr;
@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
 
   die(mps_ap_create_k(&ap, pool, mps_args_none), "ap");
   
-  cons(ap, nil, nil);
+  make_cons(ap, nil, nil);
   
   mps_arena_park(arena);
   mps_ap_destroy(ap);
