@@ -1421,7 +1421,7 @@ mps_res_t mps_root_create_reg_masked(mps_root_t *mps_root_o, mps_arena_t arena,
 
   /* See .root-mode. */
   res = RootCreateRegMasked(&root, arena, rank, thread,
-                            mask, pattern, (Addr)reg_scan_p);
+                            mask, pattern, (Word *)reg_scan_p);
 
   ArenaLeave(arena);
 

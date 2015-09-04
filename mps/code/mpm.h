@@ -959,7 +959,7 @@ extern Res RootCreateReg(Root *rootReturn, Arena arena,
 extern Res RootCreateRegMasked(Root *rootReturn, Arena arena,
                                Rank rank, Thread thread,
                                Word mask, Word pattern,
-                               Addr stackBot);
+                               Word *stackBot);
 extern Res RootCreateFmt(Root *rootReturn, Arena arena,
                            Rank rank, RootMode mode,
                            mps_fmt_scan_t scan,
