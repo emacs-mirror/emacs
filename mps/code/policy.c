@@ -122,6 +122,45 @@ found:
 }
 
 
+/* PolicyShouldCollectWorld -- should we collect the world now?
+ *
+ * Return TRUE if we should try collecting the world now, FALSE if
+ * not.
+ *
+ * This is the policy behind mps_arena_step, and so there the client
+ * must have provided us with be enough time to collect the world, and
+ * enough time must have passed since the last time we did that
+ * opportunistically.
+ */
+
+Bool PolicyShouldCollectWorld(Arena arena, double interval, double multiplier,
+                              Clock now, Clock clocks_per_sec)
+{
+  /* don't collect the world if we're not given any time */
+  if ((interval > 0.0) && (multiplier > 0.0)) {
+    /* don't collect the world if we're already collecting. */
+    if (arena->busyTraces == TraceSetEMPTY) {
+      /* don't collect the world if it's very small */
+      Size collectableSize = ArenaCollectable(arena);
+      if (collectableSize > ARENA_MINIMUM_COLLECTABLE_SIZE) {
+        /* how long would it take to collect the world? */
+        double collectionTime = PolicyCollectionTime(arena);
+
+        /* how long since we last collected the world? */
+        double sinceLastWorldCollect = ((now - arena->lastWorldCollect) /
+                                        (double) clocks_per_sec);
+        /* have to be offered enough time, and it has to be a long time
+         * since we last did it. */
+        if ((interval * multiplier > collectionTime) &&
+            sinceLastWorldCollect > collectionTime / ARENA_MAX_COLLECT_FRACTION)
+          return TRUE;
+      }
+    }
+  }
+  return FALSE;
+}
+
+
 /* policyCondemnChain -- condemn approriate parts of this chain
  *
  * This is only called if ChainDeferral returned a value sufficiently
