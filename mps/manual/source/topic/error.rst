@@ -304,8 +304,15 @@ this documentation.
     The client program destroyed an MPS data structure without having
     destroyed all the data structures that it owns first. For example,
     it destroyed an arena without first destroying all pools in that
-    arena, or it destroyed a pool without first destroying all
-    allocation points created on that pool.
+    arena, or it destroyed a thread without first destroying all
+    roots using that thread.
+
+
+``seg.c: gcseg->buffer == NULL``
+
+    The client program destroyed pool without first destroying all the
+    allocation points created on that pool. The allocation points must
+    be destroyed first.
 
 
 ``trace.c: ss->rank < RankEXACT``
