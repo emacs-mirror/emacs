@@ -283,6 +283,7 @@ TEST_TARGETS=\
     sacss \
     segsmss \
     steptest \
+    tagtest \
     teletest \
     walkt0 \
     zcoll \
@@ -509,6 +510,9 @@ $(PFM)/$(VARIETY)/sacss: $(PFM)/$(VARIETY)/sacss.o \
 
 $(PFM)/$(VARIETY)/segsmss: $(PFM)/$(VARIETY)/segsmss.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/tagtest: $(PFM)/$(VARIETY)/tagtest.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/teletest: $(PFM)/$(VARIETY)/teletest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
