@@ -161,29 +161,31 @@ Bool PolicyShouldCollectWorld(Arena arena, double availableTime,
                               Clock now, Clock clocks_per_sec)
 {
   Size collectableSize;
+  double collectionTime, sinceLastWorldCollect;
 
   AVERT(Arena, arena);
-  /* Can't collect the world if we're not given any time. */
-  AVER(availableTime > 0.0);
   /* Can't collect the world if we're already collecting. */
   AVER(arena->busyTraces == TraceSetEMPTY);
 
+  if (availableTime <= 0.0)
+    /* Can't collect the world if we're not given any time. */
+    return FALSE;
+
   /* Don't collect the world if it's very small. */
   collectableSize = ArenaCollectable(arena);
-  if (collectableSize > ARENA_MINIMUM_COLLECTABLE_SIZE) {
-    /* How long would it take to collect the world? */
-    double collectionTime = policyCollectionTime(arena);
-    
-    /* How long since we last collected the world? */
-    double sinceLastWorldCollect = ((now - arena->lastWorldCollect) /
-                                    (double) clocks_per_sec);
-    /* have to be offered enough time, and it has to be a long time
-     * since we last did it. */
-    if ((availableTime > collectionTime) &&
-        sinceLastWorldCollect > collectionTime / ARENA_MAX_COLLECT_FRACTION)
-      return TRUE;
-  }
-  return FALSE;
+  if (collectableSize < ARENA_MINIMUM_COLLECTABLE_SIZE)
+    return FALSE;
+
+  /* How long would it take to collect the world? */
+  collectionTime = policyCollectionTime(arena);
+
+  /* How long since we last collected the world? */
+  sinceLastWorldCollect = ((now - arena->lastWorldCollect) /
+                           (double) clocks_per_sec);
+
+  /* Offered enough time, and long enough since we last did it? */
+  return availableTime > collectionTime
+    && sinceLastWorldCollect > collectionTime / ARENA_MAX_COLLECT_FRACTION;
 }
 
 
