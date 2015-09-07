@@ -8,8 +8,10 @@
  * scanning.
  */
 
-#include <stdio.h> /* printf */
+#include <limits.h>             /* CHAR_BIT */
+#include <stdio.h>              /* printf */
 
+#include "mpm.h"
 #include "mps.h"
 #include "mpsavm.h"
 #include "mpscamc.h"
@@ -24,13 +26,13 @@ typedef struct cons_s {
 typedef mps_word_t imm_t;       /* Immediate value. */
 typedef mps_word_t fwd_t;       /* Fowarding pointer. */
 
+static mps_word_t tag_bits;     /* Number of tag bits */
 static mps_word_t tag_cons;     /* Tag bits indicating pointer to cons */
 static mps_word_t tag_fwd;      /* Tag bits indicating forwarding pointer */
 static mps_word_t tag_imm;      /* Tag bits indicating immediate value */
 static mps_word_t tag_invalid;  /* Invalid tag bits */
 
-#define TAG_BITS (3)            /* Number of tag bits */
-#define TAG_COUNT ((mps_word_t)1 << TAG_BITS) /* Number of distinct tags */
+#define TAG_COUNT ((mps_word_t)1 << tag_bits) /* Number of distinct tags */
 #define TAG_MASK (TAG_COUNT - 1) /* Tag mask */
 #define TAG(word) ((mps_word_t)(word) & TAG_MASK)
 #define TAGGED(value, type) (((mps_word_t)(value) & ~TAG_MASK) + tag_ ## type)
@@ -127,7 +129,7 @@ static mps_word_t alloc_list(mps_arena_t arena, mps_ap_t ap, size_t count)
   size_t i;
   for (i = 0; i < count; ++i) {
     mps_addr_t addr;
-    p = make_cons(ap, TAGGED(i << TAG_BITS, imm), p);
+    p = make_cons(ap, TAGGED(i << tag_bits, imm), p);
     Insist(TAG(p) == tag_cons);
     addr = (mps_addr_t)p;
     die(mps_finalize(arena, &addr), "finalize");
@@ -161,7 +163,7 @@ static void test(int mode, void *marker)
   mps_word_t p;
   size_t i;
   size_t finalized = 0;
-  size_t expected_finalized = 0;
+  size_t expected = 0;
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), mps_args_none), "arena");
   mps_message_type_enable(arena, mps_message_type_finalization());
@@ -172,19 +174,19 @@ static void test(int mode, void *marker)
     /* Default stack scanner only recognizes words tagged with 0. */
     die(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
                             mps_stack_scan_ambig, marker, 0), "root");
-    expected_finalized = (tag_cons != 0) * OBJCOUNT;
+    expected = (tag_cons != 0) * OBJCOUNT;
     break;
   case MODE_CONS:
     /* Scan words tagged "cons" -- everything will live. */
     die(mps_root_create_reg_masked(&root, arena, mps_rank_ambig(), 0, thread,
                                    TAG_MASK, tag_cons, marker), "root");
-    expected_finalized = 0;
+    expected = 0;
     break;
   case MODE_INVALID:
     /* Scan words tagged "invalid" -- everything will die. */
     die(mps_root_create_reg_masked(&root, arena, mps_rank_ambig(), 0, thread,
                                    TAG_MASK, tag_invalid, marker), "root");
-    expected_finalized = OBJCOUNT;
+    expected = OBJCOUNT;
     break;
   default:
     Insist(0);
@@ -210,6 +212,8 @@ static void test(int mode, void *marker)
   die(mps_ap_create_k(&ap, pool, mps_args_none), "ap");
 
   p = alloc_list(arena, ap, OBJCOUNT);
+  printf("tag_cons=%lu &p=%p expected=%lu\n",
+         (unsigned long)tag_cons, (void*)&p, (unsigned long)expected);
 
   mps_arena_collect(arena);
   while (mps_message_poll(arena)) {
@@ -223,8 +227,8 @@ static void test(int mode, void *marker)
     ++ finalized;
   }
 
-  Insist(finalized == expected_finalized);
-  for (i = 0; i < OBJCOUNT - expected_finalized; ++i) {
+  Insist(finalized == expected);
+  for (i = 0; i < OBJCOUNT - expected; ++i) {
     Insist(TAG(p) == tag_cons);
     p = UNTAGGED(p, cons)->cdr;
   }
@@ -241,18 +245,22 @@ static void test(int mode, void *marker)
 int main(int argc, char *argv[])
 {
   void *marker = &marker;
-  mps_word_t tags[TAG_COUNT];
+  mps_word_t tags[MPS_WORD_WIDTH / CHAR_BIT];
   size_t i;
   int mode;
 
   testlib_init(argc, argv);
 
+  /* Work out how many tags to use. */
+  tag_bits = SizeLog2(MPS_WORD_WIDTH / CHAR_BIT);
+  Insist(TAG_COUNT <= NELEMS(tags));
+
   /* Shuffle the tags. */
-  for (i = 0; i < NELEMS(tags); ++i) {
+  for (i = 0; i < TAG_COUNT; ++i) {
     tags[i] = i;
   }
-  for (i = 0; i < NELEMS(tags); ++i) {
-    size_t j = i + rnd() % (NELEMS(tags) - i);
+  for (i = 0; i < TAG_COUNT; ++i) {
+    size_t j = i + rnd() % (TAG_COUNT - i);
     mps_word_t t = tags[i];
     tags[i] = tags[j];
     tags[j] = t;
