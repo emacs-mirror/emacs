@@ -17,13 +17,6 @@
 
 #define OBJCOUNT (1000)         /* Number of conses to allocate */
 
-enum {
-  MODE_DEFAULT,                 /* Use default scanner (tagged with 0). */
-  MODE_CONS,                    /* Scan words tagged "cons". */
-  MODE_INVALID,                 /* Scan words tagged "invalid". */
-  MODE_LIMIT
-};
-
 typedef struct cons_s {
   mps_word_t car, cdr;
 } cons_s, *cons_t;
@@ -119,6 +112,44 @@ static mps_addr_t skip(mps_addr_t addr)
   return (mps_addr_t)((char *)addr + sizeof(cons_s));
 }
 
+
+/* alloc_list -- Allocate a linked list with 'count' entries. The
+ * attribute prevents the compiler from inlining this function into
+ * test, which might leave untagged temporaries on the stack,
+ * confusing the test logic.
+ */
+
+ATTRIBUTE_NOINLINE
+static mps_word_t alloc_list(mps_arena_t arena, mps_ap_t ap, size_t count)
+{
+  mps_word_t nil = TAGGED(NULL, cons);
+  mps_word_t p = nil;
+  size_t i;
+  for (i = 0; i < count; ++i) {
+    mps_addr_t addr;
+    p = make_cons(ap, TAGGED(i << TAG_BITS, imm), p);
+    Insist(TAG(p) == tag_cons);
+    addr = (mps_addr_t)p;
+    die(mps_finalize(arena, &addr), "finalize");
+  }
+  return p;
+}
+
+
+/* test -- Run the test case in the specified mode. The attribute
+ * prevents the compiler from inlining this function into main, which
+ * might end up with stack slots like 'p' being above 'marker' and so
+ * not scanned.
+ */
+
+enum {
+  MODE_DEFAULT,                 /* Use default scanner (tagged with 0). */
+  MODE_CONS,                    /* Scan words tagged "cons". */
+  MODE_INVALID,                 /* Scan words tagged "invalid". */
+  MODE_LIMIT
+};
+
+ATTRIBUTE_NOINLINE
 static void test(int mode, void *marker)
 {
   mps_arena_t arena;
@@ -127,10 +158,10 @@ static void test(int mode, void *marker)
   mps_fmt_t fmt;
   mps_pool_t pool;
   mps_ap_t ap;
-  mps_word_t nil = TAGGED(NULL, cons);
-  mps_word_t i, p;
+  mps_word_t p;
+  size_t i;
   size_t finalized = 0;
-  size_t expected_finalized;
+  size_t expected_finalized = 0;
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), mps_args_none), "arena");
   mps_message_type_enable(arena, mps_message_type_finalization());
@@ -178,14 +209,7 @@ static void test(int mode, void *marker)
 
   die(mps_ap_create_k(&ap, pool, mps_args_none), "ap");
 
-  p = nil;
-  for (i = 0; i < OBJCOUNT; ++i) {
-    mps_addr_t addr;
-    p = make_cons(ap, TAGGED(i << TAG_BITS, imm), p);
-    Insist(TAG(p) == tag_cons);
-    addr = (mps_addr_t)p;
-    die(mps_finalize(arena, &addr), "finalize");
-  }
+  p = alloc_list(arena, ap, OBJCOUNT);
 
   mps_arena_collect(arena);
   while (mps_message_poll(arena)) {
@@ -194,10 +218,16 @@ static void test(int mode, void *marker)
     cdie(mps_message_get(&message, arena, mps_message_type_finalization()),
          "message_get");
     mps_message_finalization_ref(&objaddr, arena, message);
+    Insist(TAG(objaddr) == tag_cons);
     mps_message_discard(arena, message);
     ++ finalized;
   }
+
   Insist(finalized == expected_finalized);
+  for (i = 0; i < OBJCOUNT - expected_finalized; ++i) {
+    Insist(TAG(p) == tag_cons);
+    p = UNTAGGED(p, cons)->cdr;
+  }
 
   mps_arena_park(arena);
   mps_ap_destroy(ap);
