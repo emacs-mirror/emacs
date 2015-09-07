@@ -15,19 +15,30 @@
 #include "mpscamc.h"
 #include "testlib.h"
 
+#define OBJCOUNT (1000)         /* Number of conses to allocate */
+
+enum {
+  MODE_DEFAULT,                 /* Use default scanner (tagged with 0). */
+  MODE_CONS,                    /* Scan words tagged "cons". */
+  MODE_INVALID,                 /* Scan words tagged "invalid". */
+  MODE_LIMIT
+};
+
 typedef struct cons_s {
   mps_word_t car, cdr;
 } cons_s, *cons_t;
 
-typedef mps_word_t imm_t;    /* Immediate value. */
-typedef mps_word_t fwd_t;    /* Fowarding pointer. */
+typedef mps_word_t imm_t;       /* Immediate value. */
+typedef mps_word_t fwd_t;       /* Fowarding pointer. */
 
-static size_t tag_bits = 3;      /* Number of tag bits */
-static mps_word_t tag_cons = 5;  /* Tag bits indicating pointer to cons */
-static mps_word_t tag_fwd = 2;   /* Tag bits indicating forwarding pointer */
-static mps_word_t tag_imm = 6;   /* Tag bits indicating immediate value */
+static mps_word_t tag_cons;     /* Tag bits indicating pointer to cons */
+static mps_word_t tag_fwd;      /* Tag bits indicating forwarding pointer */
+static mps_word_t tag_imm;      /* Tag bits indicating immediate value */
+static mps_word_t tag_invalid;  /* Invalid tag bits */
 
-#define TAG_MASK ((((mps_word_t)1 << tag_bits) - 1))
+#define TAG_BITS (3)            /* Number of tag bits */
+#define TAG_COUNT ((mps_word_t)1 << TAG_BITS) /* Number of distinct tags */
+#define TAG_MASK (TAG_COUNT - 1) /* Tag mask */
 #define TAG(word) ((mps_word_t)(word) & TAG_MASK)
 #define TAGGED(value, type) (((mps_word_t)(value) & ~TAG_MASK) + tag_ ## type)
 #define UNTAGGED(word, type) ((type ## _t)((mps_word_t)(word) & ~TAG_MASK))
@@ -58,7 +69,7 @@ static void fwd(mps_addr_t old, mps_addr_t new)
 
 static mps_addr_t isfwd(mps_addr_t addr)
 {
-  cons_t cons;  
+  cons_t cons;
   if (TAG(addr) != tag_cons)
     return NULL;
   cons = UNTAGGED(addr, cons);
@@ -77,22 +88,27 @@ static void pad(mps_addr_t addr, size_t size)
   }
 }
 
-static mps_res_t scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
+static mps_res_t scan(mps_ss_t ss, mps_addr_t client_base,
+                      mps_addr_t client_limit)
 {
+  mps_addr_t *base, *limit;
+  Insist(TAG(client_base) == tag_cons);
+  Insist(TAG(client_limit) == tag_cons);
+  base = (mps_addr_t *)UNTAGGED(client_base, cons);
+  limit = (mps_addr_t *)UNTAGGED(client_limit, cons);
   MPS_SCAN_BEGIN(ss) {
     while (base < limit) {
-      mps_word_t *word = base;
-      if (MPS_FIX1(ss, *word)) {
-        mps_word_t tag = TAG(*word);
+      if (MPS_FIX1(ss, *base)) {
+        mps_addr_t addr = *base;
+        mps_word_t tag = TAG(addr);
         if (tag == tag_cons) {
-          mps_addr_t addr = UNTAGGED(*word, cons);
           mps_res_t res = MPS_FIX2(ss, &addr);
           if (res != MPS_RES_OK)
             return res;
-          *word = TAGGED(addr, cons);
+          *base = addr;
         }
-        base = (mps_addr_t)((char *)base + sizeof(cons_s));
       }
+      ++base;
     }
   } MPS_SCAN_END(ss);
   return MPS_RES_OK;
@@ -103,9 +119,8 @@ static mps_addr_t skip(mps_addr_t addr)
   return (mps_addr_t)((char *)addr + sizeof(cons_s));
 }
 
-int main(int argc, char *argv[])
+static void test(int mode, void *marker)
 {
-  void *marker = &marker;
   mps_arena_t arena;
   mps_thr_t thread;
   mps_root_t root;
@@ -113,14 +128,37 @@ int main(int argc, char *argv[])
   mps_pool_t pool;
   mps_ap_t ap;
   mps_word_t nil = TAGGED(NULL, cons);
-
-  testlib_init(argc, argv);
+  mps_word_t i, p;
+  size_t finalized = 0;
+  size_t expected_finalized;
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), mps_args_none), "arena");
+  mps_message_type_enable(arena, mps_message_type_finalization());
   die(mps_thread_reg(&thread, arena), "thread");
 
-  die(mps_root_create_reg_masked(&root, arena, mps_rank_ambig(), 0, thread,
-                                 TAG_MASK, tag_cons, marker), "root");
+  switch (mode) {
+  case MODE_DEFAULT:
+    /* Default stack scanner only recognizes words tagged with 0. */
+    die(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
+                            mps_stack_scan_ambig, marker, 0), "root");
+    expected_finalized = (tag_cons != 0) * OBJCOUNT;
+    break;
+  case MODE_CONS:
+    /* Scan words tagged "cons" -- everything will live. */
+    die(mps_root_create_reg_masked(&root, arena, mps_rank_ambig(), 0, thread,
+                                   TAG_MASK, tag_cons, marker), "root");
+    expected_finalized = 0;
+    break;
+  case MODE_INVALID:
+    /* Scan words tagged "invalid" -- everything will die. */
+    die(mps_root_create_reg_masked(&root, arena, mps_rank_ambig(), 0, thread,
+                                   TAG_MASK, tag_invalid, marker), "root");
+    expected_finalized = OBJCOUNT;
+    break;
+  default:
+    Insist(0);
+    break;
+  }
 
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_FMT_HEADER_SIZE, tag_cons);
@@ -139,9 +177,28 @@ int main(int argc, char *argv[])
   } MPS_ARGS_END(args);
 
   die(mps_ap_create_k(&ap, pool, mps_args_none), "ap");
-  
-  make_cons(ap, nil, nil);
-  
+
+  p = nil;
+  for (i = 0; i < OBJCOUNT; ++i) {
+    mps_addr_t addr;
+    p = make_cons(ap, TAGGED(i << TAG_BITS, imm), p);
+    Insist(TAG(p) == tag_cons);
+    addr = (mps_addr_t)p;
+    die(mps_finalize(arena, &addr), "finalize");
+  }
+
+  mps_arena_collect(arena);
+  while (mps_message_poll(arena)) {
+    mps_message_t message;
+    mps_addr_t objaddr;
+    cdie(mps_message_get(&message, arena, mps_message_type_finalization()),
+         "message_get");
+    mps_message_finalization_ref(&objaddr, arena, message);
+    mps_message_discard(arena, message);
+    ++ finalized;
+  }
+  Insist(finalized == expected_finalized);
+
   mps_arena_park(arena);
   mps_ap_destroy(ap);
   mps_pool_destroy(pool);
@@ -149,6 +206,35 @@ int main(int argc, char *argv[])
   mps_root_destroy(root);
   mps_thread_dereg(thread);
   mps_arena_destroy(arena);
+}
+
+int main(int argc, char *argv[])
+{
+  void *marker = &marker;
+  mps_word_t tags[TAG_COUNT];
+  size_t i;
+  int mode;
+
+  testlib_init(argc, argv);
+
+  /* Shuffle the tags. */
+  for (i = 0; i < NELEMS(tags); ++i) {
+    tags[i] = i;
+  }
+  for (i = 0; i < NELEMS(tags); ++i) {
+    size_t j = i + rnd() % (NELEMS(tags) - i);
+    mps_word_t t = tags[i];
+    tags[i] = tags[j];
+    tags[j] = t;
+  }
+  tag_cons = tags[0];
+  tag_fwd = tags[1];
+  tag_imm = tags[2];
+  tag_invalid = tags[3];
+
+  for (mode = 0; mode < MODE_LIMIT; ++mode) {
+    test(mode, marker);
+  }
 
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;
