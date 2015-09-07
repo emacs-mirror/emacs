@@ -8,7 +8,6 @@
  * scanning.
  */
 
-#include <limits.h>             /* CHAR_BIT */
 #include <stdio.h>              /* printf */
 
 #include "mpm.h"
@@ -245,14 +244,14 @@ static void test(int mode, void *marker)
 int main(int argc, char *argv[])
 {
   void *marker = &marker;
-  mps_word_t tags[MPS_WORD_WIDTH / CHAR_BIT];
+  mps_word_t tags[sizeof(mps_word_t)];
   size_t i;
   int mode;
 
   testlib_init(argc, argv);
 
   /* Work out how many tags to use. */
-  tag_bits = SizeLog2(MPS_WORD_WIDTH / CHAR_BIT);
+  tag_bits = SizeLog2(sizeof(mps_word_t));
   Insist(TAG_COUNT <= NELEMS(tags));
 
   /* Shuffle the tags. */
