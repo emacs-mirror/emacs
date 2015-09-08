@@ -155,9 +155,11 @@ Client arenas
     It also accepts two optional keyword arguments:
 
     * :c:macro:`MPS_KEY_ARENA_COMMIT_LIMIT` (type :c:type:`size_t`) is
-      the commit limit in :term:`bytes (1)`. See
-      :c:func:`mps_arena_commit_limit` for details. The default commit
-      limit is the maximum value of the :c:type:`size_t` type.
+      the maximum amount of memory, in :term:`bytes (1)`, that the MPS
+      will use out of the provided chunk (or chunks, if the arena is
+      extended). See :c:func:`mps_arena_commit_limit` for details. The
+      default commit limit is the maximum value of the
+      :c:type:`size_t` type.
 
     * :c:macro:`MPS_KEY_ARENA_GRAIN_SIZE` (type :c:type:`size_t`,
       default 8192) is the granularity with which the arena will
@@ -256,7 +258,8 @@ Virtual memory arenas
           efficient garbage collection will become.
 
     * :c:macro:`MPS_KEY_ARENA_COMMIT_LIMIT` (type :c:type:`size_t`) is
-      the commit limit in :term:`bytes (1)`. See
+      the maximum amount of main memory, in :term:`bytes (1)`, that
+      the MPS will obtain from the operating system. See
       :c:func:`mps_arena_commit_limit` for details. The default commit
       limit is the maximum value of the :c:type:`size_t` type.
 
@@ -336,11 +339,15 @@ Arena properties
 
     ``arena`` is the arena to return the commit limit for.
 
-    Returns the commit limit in :term:`bytes (1)`. The commit limit
-    controls how much main memory the MPS will obtain from the
-    operating system. The function :c:func:`mps_arena_committed`
-    returns the current committed memory; this never exceeds the
-    commit limit.
+    Returns the commit limit in :term:`bytes (1)`.
+
+    For a :term:`client arena`, this this the maximum amount of
+    memory, in :term:`bytes (1)`, that the MPS will use out of the
+    chunks provided by the client to the arena.
+
+    For a :term:`virtual memory arena`, this is the maximum amount of
+    memory that the MPS will map to RAM via the operating system's
+    virtual memory interface.
 
     The commit limit can be changed by passing the
     :c:macro:`MPS_KEY_ARENA_COMMIT_LIMIT` :term:`keyword argument` to
