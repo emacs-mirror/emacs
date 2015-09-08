@@ -403,7 +403,9 @@ Res ArenaConfigure(Arena arena, ArgList args)
   }
   if (ArgPick(&arg, args, MPS_KEY_SPARE_COMMIT_LIMIT)) {
     Size limit = arg.val.size;
-    (void)ArenaSetSpareCommitLimit(arena, limit);
+    res = ArenaSetSpareCommitLimit(arena, limit);
+    if (res != ResOK)
+      return res;
   }
 
   return (*arena->class->configure)(arena, args);
@@ -1339,7 +1341,7 @@ Size ArenaSpareCommitLimit(Arena arena)
   return arena->spareCommitLimit;
 }
 
-void ArenaSetSpareCommitLimit(Arena arena, Size limit)
+Res ArenaSetSpareCommitLimit(Arena arena, Size limit)
 {
   AVERT(Arena, arena);
   /* Can't check limit, as all possible values are allowed. */
@@ -1351,7 +1353,7 @@ void ArenaSetSpareCommitLimit(Arena arena, Size limit)
   }
 
   EVENT2(SpareCommitLimitSet, arena, limit);
-  return;
+  return ResOK;
 }
 
 /* Used by arenas which don't use spare committed memory */
