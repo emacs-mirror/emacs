@@ -432,13 +432,13 @@ bytes; ``spareCommitLimit`` records the limit (set by the user) on the
 amount of spare committed memory. ``spareCommitted`` is modified by
 the arena class but its value is used by the generic arena code. There
 are two uses: a getter function for this value is provided through the
-MPS interface (``mps_arena_spare_commit_limit_set()``), and by the
-``SetSpareCommitLimit()`` function to determine whether the amount of
-spare committed memory needs to be reduced. ``spareCommitLimit`` is
-manipulated by generic arena code, however the associated semantics
-are the responsibility of the class. It is the class's responsibility
-to ensure that it doesn't use more spare committed bytes than the
-value in ``spareCommitLimit``.
+MPS interface (``mps_arena_spare_commit_limit()``), and by the
+``ArenaSetSpareCommitLimit()`` function to determine whether the
+amount of spare committed memory needs to be reduced.
+``spareCommitLimit`` is manipulated by generic arena code, however the
+associated semantics are the responsibility of the class. It is the
+class's responsibility to ensure that it doesn't use more spare
+committed bytes than the value in ``spareCommitLimit``.
 
 _`.spare-commit-limit`: The function ``ArenaSetSpareCommitLimit()`` sets
 the ``spareCommitLimit`` field. If the limit is set to a value lower
