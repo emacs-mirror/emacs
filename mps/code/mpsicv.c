@@ -348,7 +348,7 @@ static void arena_commit_test(mps_arena_t arena)
   } while (res == MPS_RES_OK);
   die_expect(res, MPS_RES_COMMIT_LIMIT, "Commit limit allocation");
   MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_ARENA_COMMIT_LIMIT, limit);
+    MPS_ARGS_ADD(args, MPS_KEY_COMMIT_LIMIT, limit);
     die(mps_arena_configure(arena, args), "commit_limit_set after");
   } MPS_ARGS_END(args);
   res = mps_alloc(&p, pool, FILLER_OBJECT_SIZE);

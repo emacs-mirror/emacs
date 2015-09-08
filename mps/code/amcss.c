@@ -312,7 +312,7 @@ int main(int argc, char *argv[])
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, scale * testArenaSIZE);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, grainSize);
-    MPS_ARGS_ADD(args, MPS_KEY_ARENA_COMMIT_LIMIT, scale * testArenaSIZE);
+    MPS_ARGS_ADD(args, MPS_KEY_COMMIT_LIMIT, scale * testArenaSIZE);
     die(mps_arena_create_k(&arena, mps_arena_class_vm(), args), "arena_create");
   } MPS_ARGS_END(args);
   mps_message_type_enable(arena, mps_message_type_gc());
