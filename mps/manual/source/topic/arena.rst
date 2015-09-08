@@ -154,7 +154,7 @@ Client arenas
 
     It also accepts two optional keyword arguments:
 
-    * :c:macro:`MPS_KEY_ARENA_COMMIT_LIMIT` (type :c:type:`size_t`) is
+    * :c:macro:`MPS_KEY_COMMIT_LIMIT` (type :c:type:`size_t`) is
       the maximum amount of memory, in :term:`bytes (1)`, that the MPS
       will use out of the provided chunk (or chunks, if the arena is
       extended). See :c:func:`mps_arena_commit_limit` for details. The
@@ -188,7 +188,7 @@ Client arenas
 
     When configuring a client arena, :c:func:`mps_arena_configure`
     accepts the :term:`keyword argument`
-    :c:macro:`MPS_KEY_ARENA_COMMIT_LIMIT` as described above.
+    :c:macro:`MPS_KEY_COMMIT_LIMIT` as described above.
 
 
 .. c:function:: mps_res_t mps_arena_extend(mps_arena_t arena, mps_addr_t base, size_t size)
@@ -257,7 +257,7 @@ Virtual memory arenas
           more times it has to extend its address space, the less
           efficient garbage collection will become.
 
-    * :c:macro:`MPS_KEY_ARENA_COMMIT_LIMIT` (type :c:type:`size_t`) is
+    * :c:macro:`MPS_KEY_COMMIT_LIMIT` (type :c:type:`size_t`) is
       the maximum amount of main memory, in :term:`bytes (1)`, that
       the MPS will obtain from the operating system. See
       :c:func:`mps_arena_commit_limit` for details. The default commit
@@ -274,7 +274,7 @@ Virtual memory arenas
       that's smaller than the operating system page size, the MPS
       rounds it up to the page size and continues.
 
-    * :c:macro:`MPS_KEY_ARENA_SPARE_COMMIT_LIMIT` (type
+    * :c:macro:`MPS_KEY_SPARE_COMMIT_LIMIT` (type
       :c:type:`size_t`, default 0) is the spare commit limit in
       :term:`bytes (1)`. See :c:func:`mps_arena_spare_commit_limit`
       for details.
@@ -314,8 +314,8 @@ Virtual memory arenas
 
     When configuring a virtual memory arena,
     :c:func:`mps_arena_configure` accepts the :term:`keyword
-    arguments` :c:macro:`MPS_KEY_ARENA_COMMIT_LIMIT` and
-    :c:macro:`MPS_KEY_ARENA_SPARE_COMMIT_LIMIT` as described above.
+    arguments` :c:macro:`MPS_KEY_COMMIT_LIMIT` and
+    :c:macro:`MPS_KEY_SPARE_COMMIT_LIMIT` as described above.
 
 
 .. index::
@@ -350,7 +350,7 @@ Arena properties
     virtual memory interface.
 
     The commit limit can be changed by passing the
-    :c:macro:`MPS_KEY_ARENA_COMMIT_LIMIT` :term:`keyword argument` to
+    :c:macro:`MPS_KEY_COMMIT_LIMIT` :term:`keyword argument` to
     :c:func:`mps_arena_create_k` or :c:func:`mps_arena_configure`. The
     commit limit cannot be set to a value that is lower than the
     number of bytes that the MPS is using. If an attempt is made to
@@ -470,7 +470,7 @@ Arena properties
     the MPS is allowed to have.
 
     The spare commit limit can be changed by passing the
-    :c:macro:`MPS_KEY_ARENA_SPARE_COMMIT_LIMIT` :term:`keyword
+    :c:macro:`MPS_KEY_SPARE_COMMIT_LIMIT` :term:`keyword
     argument` to :c:func:`mps_arena_create_k` or
     :c:func:`mps_arena_configure`. Setting it to a value lower than
     the current amount of spare committed memory causes spare
@@ -499,7 +499,7 @@ Arena properties
     :c:func:`mps_arena_commit_limit`.
 
     The amount of "spare committed" memory can be limited passing the
-    :c:macro:`MPS_KEY_ARENA_SPARE_COMMIT_LIMIT` :term:`keyword
+    :c:macro:`MPS_KEY_SPARE_COMMIT_LIMIT` :term:`keyword
     argument` to :c:func:`mps_arena_create_k` or
     :c:func:`mps_arena_configure`. The value of the limit can be
     retrieved with :c:func:`mps_arena_spare_commit_limit`. This is

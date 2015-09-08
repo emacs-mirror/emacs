@@ -37,7 +37,7 @@ static void test(void)
 
  MPS_ARGS_BEGIN(args) {
    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 1024*1024*40);
-   MPS_ARGS_ADD(args, MPS_KEY_ARENA_COMMIT_LIMIT, 1024ul*1024ul*100ul);
+   MPS_ARGS_ADD(args, MPS_KEY_COMMIT_LIMIT, 1024ul*1024ul*100ul);
    cdie(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
         "create arena");
  } MPS_ARGS_END(args);
@@ -60,7 +60,7 @@ static void test(void)
 /* Set the spare commit limit to 0MB */
 
  MPS_ARGS_BEGIN(args) {
-   MPS_ARGS_ADD(args, MPS_KEY_ARENA_SPARE_COMMIT_LIMIT, 0);
+   MPS_ARGS_ADD(args, MPS_KEY_SPARE_COMMIT_LIMIT, 0);
    cdie(mps_arena_configure(arena, args), "mps_arena_configure");
  } MPS_ARGS_END(args);
  die(mps_alloc(&objs[0], pool, BIGSIZE), "alloc");
@@ -75,7 +75,7 @@ static void test(void)
 
 /* nb. size_t unsigned, therefore (size_t)-1 is the maximum limit */
  MPS_ARGS_BEGIN(args) {
-   MPS_ARGS_ADD(args, MPS_KEY_ARENA_SPARE_COMMIT_LIMIT, -1);
+   MPS_ARGS_ADD(args, MPS_KEY_SPARE_COMMIT_LIMIT, -1);
    cdie(mps_arena_configure(arena, args), "mps_arena_configure");
  } MPS_ARGS_END(args);
  die(mps_alloc(&objs[0], pool, BIGSIZE), "alloc");
@@ -88,7 +88,7 @@ static void test(void)
 
 /* Reducing the spare committed limit should return most of the spare */
  MPS_ARGS_BEGIN(args) {
-   MPS_ARGS_ADD(args, MPS_KEY_ARENA_SPARE_COMMIT_LIMIT, 1024*1024);
+   MPS_ARGS_ADD(args, MPS_KEY_SPARE_COMMIT_LIMIT, 1024*1024);
    cdie(mps_arena_configure(arena, args), "mps_arena_configure");
  } MPS_ARGS_END(args);
  com2 = mps_arena_committed(arena);

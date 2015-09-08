@@ -207,9 +207,9 @@ Res ArenaInit(Arena arena, ArenaClass class, Size grainSize, ArgList args)
   
   if (ArgPick(&arg, args, MPS_KEY_ARENA_ZONED))
     zoned = arg.val.b;
-  if (ArgPick(&arg, args, MPS_KEY_ARENA_COMMIT_LIMIT))
+  if (ArgPick(&arg, args, MPS_KEY_COMMIT_LIMIT))
     commitLimit = arg.val.size;
-  if (ArgPick(&arg, args, MPS_KEY_ARENA_SPARE_COMMIT_LIMIT))
+  if (ArgPick(&arg, args, MPS_KEY_SPARE_COMMIT_LIMIT))
     spareCommitLimit = arg.val.size;
 
   arena->class = class;
@@ -289,11 +289,11 @@ ARG_DEFINE_KEY(VMW3_TOP_DOWN, Bool);
 
 /* ArenaCreate -- create the arena and call initializers */
 
-ARG_DEFINE_KEY(ARENA_COMMIT_LIMIT, Size);
 ARG_DEFINE_KEY(ARENA_GRAIN_SIZE, Size);
 ARG_DEFINE_KEY(ARENA_SIZE, Size);
-ARG_DEFINE_KEY(ARENA_SPARE_COMMIT_LIMIT, Size);
 ARG_DEFINE_KEY(ARENA_ZONED, Bool);
+ARG_DEFINE_KEY(COMMIT_LIMIT, Size);
+ARG_DEFINE_KEY(SPARE_COMMIT_LIMIT, Size);
 
 static Res arenaFreeLandInit(Arena arena)
 {
@@ -395,13 +395,13 @@ Res ArenaConfigure(Arena arena, ArgList args)
   AVERT(Arena, arena);
   AVERT(ArgList, args);
 
-  if (ArgPick(&arg, args, MPS_KEY_ARENA_COMMIT_LIMIT)) {
+  if (ArgPick(&arg, args, MPS_KEY_COMMIT_LIMIT)) {
     Size limit = arg.val.size;
     res = ArenaSetCommitLimit(arena, limit);
     if (res != ResOK)
       return res;
   }
-  if (ArgPick(&arg, args, MPS_KEY_ARENA_SPARE_COMMIT_LIMIT)) {
+  if (ArgPick(&arg, args, MPS_KEY_SPARE_COMMIT_LIMIT)) {
     Size limit = arg.val.size;
     (void)ArenaSetSpareCommitLimit(arena, limit);
   }
