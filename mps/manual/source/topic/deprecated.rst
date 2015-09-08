@@ -29,7 +29,7 @@ Deprecated in version 1.115
 
     .. deprecated::
 
-        Pass the :c:macro:`MPS_KEY_ARENA_COMMIT_LIMIT` :term:`keyword
+        Pass the :c:macro:`MPS_KEY_COMMIT_LIMIT` :term:`keyword
         argument` to :c:func:`mps_arena_create_k` or
         :c:func:`mps_arena_configure`.
 

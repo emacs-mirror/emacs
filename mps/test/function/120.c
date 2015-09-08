@@ -41,7 +41,7 @@ static void test(void) {
   * RES_COMMIT_LIMIT. */
 
  MPS_ARGS_BEGIN(args) {
-   MPS_ARGS_ADD(args, MPS_KEY_ARENA_COMMIT_LIMIT, 16 * 1024);
+   MPS_ARGS_ADD(args, MPS_KEY_COMMIT_LIMIT, 16 * 1024);
    report_res("create", mps_arena_create_k(&arena, mps_arena_class_vm(), args));
  } MPS_ARGS_END(args);
 

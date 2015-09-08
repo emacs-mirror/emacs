@@ -213,7 +213,7 @@ int main(int argc, char *argv[])
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 2 * testArenaSIZE);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, rnd_grain(2*testArenaSIZE));
-    MPS_ARGS_ADD(args, MPS_KEY_ARENA_COMMIT_LIMIT, testArenaSIZE);
+    MPS_ARGS_ADD(args, MPS_KEY_COMMIT_LIMIT, testArenaSIZE);
     test(mps_arena_class_vm(), args, &fenceOptions);
   } MPS_ARGS_END(args);
 

@@ -19,7 +19,7 @@ static void test(void)
   mps_arena_t arena;
 
   MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_ARENA_COMMIT_LIMIT, 16 * 1024);
+    MPS_ARGS_ADD(args, MPS_KEY_COMMIT_LIMIT, 16 * 1024);
     report_res("create1",
                mps_arena_create_k(&arena, mps_arena_class_vm(), args));
   } MPS_ARGS_END(args);
@@ -28,7 +28,7 @@ static void test(void)
              mps_arena_create_k(&arena, mps_arena_class_vm(), mps_args_none));
 
   MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_ARENA_COMMIT_LIMIT, 16 * 1024);
+    MPS_ARGS_ADD(args, MPS_KEY_COMMIT_LIMIT, 16 * 1024);
     report_res("configure", mps_arena_configure(arena, args));
   } MPS_ARGS_END(args);
 

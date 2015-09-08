@@ -18,9 +18,9 @@ New features
    requests from the :term:`arena`.
 
 #. The function :c:func:`mps_arena_create_k` accepts two new
-   :term:`keyword arguments`. :c:macro:`MPS_KEY_ARENA_COMMIT_LIMIT`
+   :term:`keyword arguments`. :c:macro:`MPS_KEY_COMMIT_LIMIT`
    sets the :term:`commit limit` for the arena, and
-   :c:macro:`MPS_KEY_ARENA_SPARE_COMMIT_LIMIT` sets the :term:`spare
+   :c:macro:`MPS_KEY_SPARE_COMMIT_LIMIT` sets the :term:`spare
    commit limit` for the arena.
 
 #. The new function :c:func:`mps_arena_configure` provides a
