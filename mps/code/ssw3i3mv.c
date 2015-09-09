@@ -33,9 +33,9 @@ Res StackScan(ScanState ss, Word *stackBot, Word mask, Word pattern)
   /* These checks will just serve to warn us at compile-time if the
      setjmp.h header changes to indicate that the registers we want aren't
      saved any more. */
+  AVER(sizeof(((_JUMP_BUFFER *)jb)->Ebx) == sizeof(Word));
   AVER(sizeof(((_JUMP_BUFFER *)jb)->Edi) == sizeof(Word));
   AVER(sizeof(((_JUMP_BUFFER *)jb)->Esi) == sizeof(Word));
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->Ebx) == sizeof(Word));
 
   /* Ensure that the callee-save registers will be found by
      StackScanInner when it's passed the address of the Ebx field. */
