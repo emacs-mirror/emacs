@@ -85,7 +85,6 @@ Res PolicyAlloc(Tract *tractReturn, Arena arena, LocusPref pref,
         goto found;
     }
     if (moreZones != zones) {
-      zones = ZoneSetUnion(zones, ZoneSetDiff(arena->freeZones, pref->avoid));
       res = ArenaFreeLandAlloc(&tract, arena, moreZones, pref->high,
                                size, pool);
       if (res == ResOK)
