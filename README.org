@@ -338,7 +338,7 @@ keystroke can complete the command. As a bonus you can type =C-x C-h= and the
 which-key buffer will pop up immediately (i.e., before =which-key-idle-delay=
 kicks in).
 
-The option =which-key-prevent-C-h-from-cycling=, which is =nil= by default
+The option =which-key-prevent-C-h-from-cycling=, which is =t= by default
 allows one to take advantage of using =C-h= for paging as well as the default
 Emacs behavior of using =C-h= to describe the bindings for the current key
 sequence prefix.
