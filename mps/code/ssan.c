@@ -35,7 +35,7 @@ Res StackScan(ScanState ss, Word *stackBot, Word mask, Word pattern)
 
   (void)setjmp(jb);
 
-  return StackScanInner(ss, stackBot, stackTop, sizeof jb / sizeof(Word*),
+  return StackScanInner(ss, stackBot, stackTop, sizeof jb / sizeof(Word),
                         mask, pattern);
 }
 

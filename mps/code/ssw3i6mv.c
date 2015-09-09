@@ -41,9 +41,11 @@ Res StackScan(ScanState ss, Word *stackBot, Word mask, Word pattern)
   /* These checks will just serve to warn us at compile-time if the
      setjmp.h header changes to indicate that the registers we want aren't
      saved any more. */
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->Rdi) == sizeof(Word));
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->Rsi) == sizeof(Word));
+  AVER(sizeof(((_JUMP_BUFFER *)jb)->Rbx) == sizeof(Word));
+  AVER(sizeof(((_JUMP_BUFFER *)jb)->Rsp) == sizeof(Word));
   AVER(sizeof(((_JUMP_BUFFER *)jb)->Rbp) == sizeof(Word));
+  AVER(sizeof(((_JUMP_BUFFER *)jb)->Rsi) == sizeof(Word));
+  AVER(sizeof(((_JUMP_BUFFER *)jb)->Rdi) == sizeof(Word));
   AVER(sizeof(((_JUMP_BUFFER *)jb)->R12) == sizeof(Word));
   AVER(sizeof(((_JUMP_BUFFER *)jb)->R13) == sizeof(Word));
   AVER(sizeof(((_JUMP_BUFFER *)jb)->R14) == sizeof(Word));

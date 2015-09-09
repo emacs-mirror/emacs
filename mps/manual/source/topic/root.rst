@@ -83,7 +83,7 @@ Roots can be deregistered at any time by calling
 :c:func:`mps_root_destroy`. All roots registered in an :term:`arena`
 must be deregistered before the arena is destroyed.
 
-There are five ways to register a root, depending on how you need to
+There are six ways to register a root, depending on how you need to
 scan it for references:
 
 #. :c:func:`mps_root_create` if you need a custom root scanning
@@ -104,6 +104,10 @@ scan it for references:
    :term:`registers` and :term:`control stack` of a thread. See
    :ref:`topic-root-thread` below.
 
+#. :c:func:`mps_root_create_reg_masked` if the root consists of the
+   :term:`registers` and :term:`control stack` of a thread, and that
+   thread keeps tagged references in registers or on the stack. See
+   :ref:`topic-root-thread` below.
 
 .. index::
    pair: root; cautions
@@ -147,11 +151,12 @@ Thread roots
 
 Every thread's registers and control stack potentially contain
 references to allocated objects, so should be registered as a root by
-calling :c:func:`mps_root_create_reg`. It's not easy to write a
-scanner for the registers and the stack: it depends on the operating
-system, the processor architecture, and in some cases on the compiler.
-For this reason, the MPS provides :c:func:`mps_stack_scan_ambig` (and
-in fact, this is the only supported stack scanner).
+calling :c:func:`mps_root_create_reg` or
+:c:func:`mps_root_create_reg_masked`. It's not easy to write a scanner
+for the registers and the stack: it depends on the operating system,
+the processor architecture, and in some cases on the compiler.  For
+this reason, the MPS provides :c:func:`mps_stack_scan_ambig` (and in
+fact, this is the only supported stack scanner).
 
 A stack scanner needs to know how to find the bottom of the part of the
 stack to scan. The bottom of the relevant part of stack can be found by
@@ -508,7 +513,7 @@ Root interface
 
     Register a :term:`root` that consists of the :term:`references` in
     a :term:`thread's <thread>` registers and stack that match a
-    binary pattern.
+    binary pattern, for instance tagged as pointers.
 
     ``root_o`` points to a location that will hold the address of the
     new root description.

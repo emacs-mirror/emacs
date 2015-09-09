@@ -53,6 +53,13 @@ Res StackScan(ScanState ss, Word *stackBot, Word mask, Word pattern)
   /* .assume.ms-compat */
   (void)setjmp(jb);
 
+  /* These checks, on the _JUMP_BUFFER defined above, are mainly here
+   * to maintain similarity to the matching code on the MPS_BUILD_MV
+   * version of this code. */
+  AVER(sizeof(((_JUMP_BUFFER *)jb)->Ebx) == sizeof(Word));
+  AVER(sizeof(((_JUMP_BUFFER *)jb)->Edi) == sizeof(Word));
+  AVER(sizeof(((_JUMP_BUFFER *)jb)->Esi) == sizeof(Word));
+
   /* Ensure that the callee-save registers will be found by
      StackScanInner when it's passed the address of the Ebx field. */
   AVER(offsetof(_JUMP_BUFFER, Edi) == offsetof(_JUMP_BUFFER, Ebx) + 4);
