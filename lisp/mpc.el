@@ -268,7 +268,10 @@ defaults to 6600 and HOST defaults to localhost."
                 (if (string-match "[^[:digit:]]" v)
                     (string-to-number v)
                   v)))))
-    (when (string-prefix-p "/" host)    ;FIXME: Use file-name-absolute-p?
+    (when (file-name-absolute-p host)
+      ;; Expand file name because `file-name-absolute-p'
+      ;; considers paths beginning with "~" as absolute
+      (setq host (expand-file-name host))
       (setq local t))
 
     (mpc--debug "Connecting to %s:%s..." host port)
@@ -909,8 +912,13 @@ If PLAYLIST is t or nil or missing, use the main playlist."
 (defun mpc-file-local-copy (file)
   ;; Try to set mpc-mpd-music-directory.
   (when (and (null mpc-mpd-music-directory)
-             (string-match "\\`localhost" mpc-host))
-    (let ((files '("~/.mpdconf" "/etc/mpd.conf"))
+             (or (string-match "\\`localhost" mpc-host)
+                 (file-name-absolute-p mpc-host)))
+    (let ((files `(,(let ((xdg (getenv "XDG_CONFIG_HOME")))
+                      (concat (if (and xdg (file-name-absolute-p xdg))
+                                  xdg "~/.config")
+                              "/mpd/mpd.conf"))
+                   "~/.mpdconf" "~/.mpd/mpd.conf" "/etc/mpd.conf"))
           file)
       (while (and files (not file))
         (if (file-exists-p (car files)) (setq file (car files)))

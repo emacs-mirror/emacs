@@ -850,7 +850,7 @@ Fills in the default value in CLASS' in SLOT with VALUE."
       ;; gnus/registry.el, so it might be used elsewhere as well, so let's
       ;; keep it for now.
       ;; FIXME: Generate a compile-time warning for it!
-      ;; (error "Can't ‘oset-default’ an instance-allocated slot: %S of %S"
+      ;; (error "Can't `oset-default' an instance-allocated slot: %S of %S"
       ;;        slot class)
       (eieio--validate-slot-value class c value slot)
       ;; Set this into the storage for defaults.

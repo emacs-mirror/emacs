@@ -677,7 +677,7 @@ SYMBOL is a function that can be overridden."
     result))
 
 (defun xref-mode-local-overload (symbol)
-  "For ‘elisp-xref-find-def-functions’; add overloads for SYMBOL."
+  "For `elisp-xref-find-def-functions'; add overloads for SYMBOL."
   ;; Current buffer is the buffer where xref-find-definitions was invoked.
   (when (get symbol 'mode-local-overload)
     (let* ((symbol-file (find-lisp-object-file-name symbol (symbol-function symbol)))
@@ -738,11 +738,11 @@ SYMBOL is a function that can be overridden."
 
 (defconst xref-mode-local-find-overloadable-regexp
   "(\\(\\(define-overloadable-function\\)\\|\\(define-overload\\)\\) +%s"
-  "Regexp used by ‘xref-find-definitions’ when searching for a
+  "Regexp used by `xref-find-definitions' when searching for a
   mode-local overloadable function definition.")
 
 (defun xref-mode-local-find-override (meta-name)
-  "Function used by ‘xref-find-definitions’ when searching for an
+  "Function used by `xref-find-definitions' when searching for an
   override of a mode-local overloadable function.
 META-NAME is a cons (OVERLOADABLE-SYMBOL . MAJOR-MODE)."
   (let* ((override (car meta-name))

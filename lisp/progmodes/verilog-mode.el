@@ -8666,7 +8666,7 @@ Return an array of [outputs inouts inputs wire reg assign const]."
 
 (defun verilog-read-sub-decls-expr (submoddecls comment port expr)
   "For `verilog-read-sub-decls-line', parse a subexpression and add signals."
-  ;;(message "vrsde: ‘%s’" expr)
+  ;;(message "vrsde: `%s'" expr)
   ;; Replace special /*[....]*/ comments inserted by verilog-auto-inst-port
   (setq expr (verilog-string-replace-matches "/\\*\\(\\[[^*]+\\]\\)\\*/" "\\1" nil nil expr))
   ;; Remove front operators
@@ -8685,25 +8685,25 @@ Return an array of [outputs inouts inputs wire reg assign const]."
     (let (sig vec multidim)
       ;; Remove leading reduction operators, etc
       (setq expr (verilog-string-replace-matches "^\\s-*[---+~!|&]+\\s-*" "" nil nil expr))
-      ;;(message "vrsde-ptop: ‘%s’" expr)
+      ;;(message "vrsde-ptop: `%s'" expr)
       (cond  ; Find \signal. Final space is part of escaped signal name
        ((string-match "^\\s-*\\(\\\\[^ \t\n\f]+\\s-\\)" expr)
-	;;(message "vrsde-s: ‘%s’" (match-string 1 expr))
+	;;(message "vrsde-s: `%s'" (match-string 1 expr))
 	(setq sig (match-string 1 expr)
 	      expr (substring expr (match-end 0))))
        ;; Find signal
        ((string-match "^\\s-*\\([a-zA-Z_][a-zA-Z_0-9]*\\)" expr)
-	;;(message "vrsde-s: ‘%s’" (match-string 1 expr))
+	;;(message "vrsde-s: `%s'" (match-string 1 expr))
 	(setq sig (verilog-string-remove-spaces (match-string 1 expr))
 	      expr (substring expr (match-end 0)))))
       ;; Find [vector] or [multi][multi][multi][vector]
       (while (string-match "^\\s-*\\(\\[[^]]+\\]\\)" expr)
-	;;(message "vrsde-v: ‘%s’" (match-string 1 expr))
+	;;(message "vrsde-v: `%s'" (match-string 1 expr))
 	(when vec (setq multidim (cons vec multidim)))
 	(setq vec (match-string 1 expr)
 	      expr (substring expr (match-end 0))))
       ;; If found signal, and nothing unrecognized, add the signal
-      ;;(message "vrsde-rem: ‘%s’" expr)
+      ;;(message "vrsde-rem: `%s'" expr)
       (when (and sig (string-match "^\\s-*$" expr))
 	(verilog-read-sub-decls-sig submoddecls comment port sig vec multidim))))))
 

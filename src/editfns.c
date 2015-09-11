@@ -4154,7 +4154,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 		      || conversion == 'X'))
 	    error ("Invalid format operation %%%c",
 		   STRING_CHAR ((unsigned char *) format - 1));
-	  else if (! (INTEGERP (args[n]) || FLOATP (args[n])))
+	  else if (! NUMBERP (args[n]))
 	    error ("Format specifier doesn't match argument type");
 	  else
 	    {

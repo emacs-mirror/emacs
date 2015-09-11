@@ -284,7 +284,7 @@ per-character basis, this may not be accurate."
 		 ;; On a text terminal supporting glyph codes, CHAR is
 		 ;; displayable if its glyph code is nonnegative.
 		 (<= 0 font-glyph))
-	     ;; On a teext terminal without glyph codes, CHAR is displayable
+	     ;; On a text terminal without glyph codes, CHAR is displayable
 	     ;; if the coding system for the terminal can encode it.
 	     (let ((coding (terminal-coding-system)))
 	       (when coding

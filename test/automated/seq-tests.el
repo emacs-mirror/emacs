@@ -138,6 +138,16 @@ Evaluate BODY for each created sequence.
     (should-not (seq-some #'test-sequences-oddp seq)))
   (should (seq-some #'null '(1 nil 2))))
 
+(ert-deftest test-seq-find ()
+  (with-test-sequences (seq '(4 3 2 1))
+    (should (= 4 (seq-find #'test-sequences-evenp seq)))
+    (should (= 3 (seq-find #'test-sequences-oddp seq)))
+    (should-not (seq-find (lambda (elt) (> elt 10)) seq)))
+  (should-not (seq-find #'null '(1 nil 2)))
+  (should-not (seq-find #'null '(1 nil 2) t))
+  (should-not (seq-find #'null '(1 2 3)))
+  (should (seq-find #'null '(1 2 3) 'sentinel)))
+
 (ert-deftest test-seq-contains ()
   (with-test-sequences (seq '(3 4 5 6))
     (should (seq-contains seq 3))

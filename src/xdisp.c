@@ -24136,7 +24136,7 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
 	prop = Qnil;
     }
 
-  if (INTEGERP (prop) || FLOATP (prop))
+  if (NUMBERP (prop))
     {
       int base_unit = (width_p
 		       ? FRAME_COLUMN_WIDTH (it->f)
@@ -24195,7 +24195,7 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
 	    car = Qnil;
 	}
 
-      if (INTEGERP (car) || FLOATP (car))
+      if (NUMBERP (car))
 	{
 	  double fact;
 	  pixels = XFLOATINT (car);
@@ -29300,7 +29300,7 @@ on_hot_spot_p (Lisp_Object hot_spot, int x, int y)
       Lisp_Object lr, lx0, ly0;
       if (CONSP (circ)
 	  && CONSP (XCAR (circ))
-	  && (lr = XCDR (circ), INTEGERP (lr) || FLOATP (lr))
+	  && (lr = XCDR (circ), NUMBERP (lr))
 	  && (lx0 = XCAR (XCAR (circ)), INTEGERP (lx0))
 	  && (ly0 = XCDR (XCAR (circ)), INTEGERP (ly0)))
 	{

@@ -2742,7 +2742,7 @@ XFLOATINT (Lisp_Object n)
 INLINE void
 CHECK_NUMBER_OR_FLOAT (Lisp_Object x)
 {
-  CHECK_TYPE (FLOATP (x) || INTEGERP (x), Qnumberp, x);
+  CHECK_TYPE (NUMBERP (x), Qnumberp, x);
 }
 
 #define CHECK_NUMBER_OR_FLOAT_COERCE_MARKER(x)				\
@@ -2750,7 +2750,7 @@ CHECK_NUMBER_OR_FLOAT (Lisp_Object x)
     if (MARKERP (x))							\
       XSETFASTINT (x, marker_position (x));				\
     else								\
-      CHECK_TYPE (INTEGERP (x) || FLOATP (x), Qnumber_or_marker_p, x);	\
+      CHECK_TYPE (NUMBERP (x), Qnumber_or_marker_p, x);			\
   } while (false)
 
 /* Since we can't assign directly to the CAR or CDR fields of a cons

@@ -168,7 +168,8 @@
 ;;  "Switch to non-existing buffers only upon confirmation."
 ;;  (interactive "BSwitch to buffer: ")
 ;;  (if (or (get-buffer (ad-get-arg 0))
-;;          (y-or-n-p (format "‘%s’ does not exist, create? " (ad-get-arg 0))))
+;;          (y-or-n-p (format-message "`%s' does not exist, create? "
+;;                                    (ad-get-arg 0))))
 ;;      ad-do-it))
 ;;
 ;;(defadvice find-file (before existing-files-only activate)

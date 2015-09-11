@@ -1,4 +1,4 @@
-;;; file-notify-tests.el --- Tests of file notifications
+;;; file-notify-tests.el --- Tests of file notifications  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2013-2015 Free Software Foundation, Inc.
 
@@ -39,6 +39,9 @@
 (require 'filenotify)
 (require 'tramp)
 
+(declare-function tramp-get-remote-gvfs-monitor-dir "tramp-sh")
+(declare-function tramp-get-remote-inotifywait "tramp-sh")
+
 ;; There is no default value on w32 systems, which could work out of the box.
 (defconst file-notify-test-remote-temporary-file-directory
   (cond
@@ -61,6 +64,25 @@
 (defvar file-notify--test-results nil)
 (defvar file-notify--test-event nil)
 (defvar file-notify--test-events nil)
+
+(defun file-notify--test-cleanup ()
+  "Cleanup after a test."
+  (file-notify-rm-watch file-notify--test-desc)
+
+  (when (and file-notify--test-tmpfile
+             (file-exists-p file-notify--test-tmpfile))
+    (delete-file file-notify--test-tmpfile))
+  (when (and file-notify--test-tmpfile1
+             (file-exists-p file-notify--test-tmpfile1))
+    (delete-file file-notify--test-tmpfile1))
+
+  (setq file-notify--test-tmpfile nil)
+  (setq file-notify--test-tmpfile1 nil)
+  (setq file-notify--test-desc nil)
+  (setq file-notify--test-results nil)
+  (setq file-notify--test-events nil)
+  (when file-notify--test-event
+    (error "file-notify--test-event should not be set but bound dynamically")))
 
 (setq password-cache-expiry nil
       tramp-verbose 0
@@ -117,10 +139,27 @@ being the result.")
 (ert-deftest file-notify-test00-availability ()
   "Test availability of `file-notify'."
   (skip-unless (file-notify--test-local-enabled))
+  ;; Report the native library which has been used.
+  (message
+   "%s library: `%s'"
+   (if (null (file-remote-p temporary-file-directory)) "Local" "Remote")
+   (if (null (file-remote-p temporary-file-directory))
+       file-notify--library
+     ;; FIXME: This is rude, using Tramp internal functions.  Maybe
+     ;; the upcoming `file-notify-available-p' could return the used
+     ;; native library.
+     (with-parsed-tramp-file-name temporary-file-directory nil
+         (cond
+          ;; gvfs-monitor-dir.
+          ((tramp-get-remote-gvfs-monitor-dir v) 'gfilenotify)
+          ;; inotifywait.
+          ((tramp-get-remote-inotifywait v) 'inotify)
+          ;; None.
+          (t (ert-fail "No remote library available"))))))
   (should
    (setq file-notify--test-desc
          (file-notify-add-watch temporary-file-directory '(change) 'ignore)))
-  (file-notify-rm-watch file-notify--test-desc))
+  (file-notify--test-cleanup))
 
 (file-notify--deftest-remote file-notify-test00-availability
   "Test availability of `file-notify' for remote files.")
@@ -158,7 +197,9 @@ being the result.")
   (should
    (equal (should-error
            (file-notify-add-watch temporary-file-directory '(change) 3))
-          '(wrong-type-argument 3))))
+          '(wrong-type-argument 3)))
+
+  (file-notify--test-cleanup))
 
 (file-notify--deftest-remote file-notify-test01-add-watch
   "Check `file-notify-add-watch' for remote files.")
@@ -181,13 +222,13 @@ is bound somewhere."
       (file-notify--event-file1-name file-notify--test-event)
       file-notify--test-tmpfile1))))
 
-(defun file-notify--test-event-handler (file-notify--test-event)
+(defun file-notify--test-event-handler (event)
   "Run a test over FILE-NOTIFY--TEST-EVENT.
 For later analysis, append the test result to
 `file-notify--test-results' and the event to
 `file-notify--test-events'."
-  (let ((result
-	 (ert-run-test (make-ert-test :body 'file-notify--test-event-test))))
+  (let* ((file-notify--test-event event)
+         (result (ert-run-test (make-ert-test :body 'file-notify--test-event-test))))
     (setq file-notify--test-events
           (append file-notify--test-events `(,file-notify--test-event)))
     (setq file-notify--test-results
@@ -205,6 +246,20 @@ TIMEOUT is the maximum time to wait for, in seconds."
      (while (null ,until)
        (read-event nil nil 0.1))))
 
+(defmacro file-notify--test-with-events (n timeout assert-fn &rest body)
+  "Run BODY collecting N events and then run ASSERT-FN.
+Don't wait longer than TIMEOUT seconds for the events to be delivered."
+  (declare (indent 3))
+  (let ((outer (make-symbol "outer")))
+    `(let ((,outer file-notify--test-events))
+       (let ((file-notify--test-events nil))
+         ,@body
+         (file-notify--wait-for-events
+          ,timeout (= ,n (length file-notify--test-events)))
+         (funcall ,assert-fn file-notify--test-events)
+         (setq ,outer (append ,outer file-notify--test-events)))
+       (setq file-notify--test-events ,outer))))
+
 (ert-deftest file-notify-test02-events ()
   "Check file creation/removal notifications."
   (skip-unless (file-notify--test-local-enabled))
@@ -221,40 +276,49 @@ TIMEOUT is the maximum time to wait for, in seconds."
         (should file-notify--test-desc)
 
         ;; Check creation, change, and deletion.
-        (write-region
-         "any text" nil file-notify--test-tmpfile nil 'no-message)
-        (delete-file file-notify--test-tmpfile)
-        (sleep-for 0.1)
+        (file-notify--test-with-events
+            3 3 (lambda (events)
+                  (should (equal '(created changed deleted)
+                                 (mapcar #'cadr events))))
+          (write-region
+           "any text" nil file-notify--test-tmpfile nil 'no-message)
+          (delete-file file-notify--test-tmpfile))
 
-        ;; Check copy and rename.
-        (write-region
-         "any text" nil file-notify--test-tmpfile nil 'no-message)
-        (copy-file file-notify--test-tmpfile file-notify--test-tmpfile1)
-        (delete-file file-notify--test-tmpfile)
-        (delete-file file-notify--test-tmpfile1)
-        (sleep-for 0.1)
+        ;; Check copy.
+        (file-notify--test-with-events
+            3 3 (lambda (events)
+                  (should (equal '(created changed deleted)
+                                 (mapcar #'cadr events))))
+          (write-region
+           "any text" nil file-notify--test-tmpfile nil 'no-message)
+          (copy-file file-notify--test-tmpfile file-notify--test-tmpfile1)
+          (delete-file file-notify--test-tmpfile)
+          (delete-file file-notify--test-tmpfile1))
 
-        (write-region
-         "any text" nil file-notify--test-tmpfile nil 'no-message)
-        (rename-file file-notify--test-tmpfile file-notify--test-tmpfile1)
-        (delete-file file-notify--test-tmpfile1)
-        (sleep-for 0.1))
+        ;; Check rename.
+        (file-notify--test-with-events
+            3 3 (lambda (events)
+                  (should (equal '(created changed renamed)
+                                 (mapcar #'cadr events))))
+          (write-region
+           "any text" nil file-notify--test-tmpfile nil 'no-message)
+          (rename-file file-notify--test-tmpfile file-notify--test-tmpfile1)
+          ;; After the rename, we won't get events anymore.
+          (delete-file file-notify--test-tmpfile1))
 
-    ;; Wait for events, and exit.
-    (file-notify--wait-for-events 5 file-notify--test-results)
-    (should (equal (mapcar #'cadr file-notify--test-events)
-                   '(created changed deleted
-                             created changed deleted
-                             created changed renamed)))
-    (file-notify-rm-watch file-notify--test-desc)
-    (ignore-errors (delete-file file-notify--test-tmpfile))
-    (ignore-errors (delete-file file-notify--test-tmpfile1)))
+        ;; Check the global sequence again just to make sure that
+        ;; `file-notify--test-events' has been set correctly.
+        (should (equal (mapcar #'cadr file-notify--test-events)
+                       '(created changed deleted
+                                 created changed deleted
+                                 created changed renamed)))
 
-  (should file-notify--test-results)
-  (dolist (result file-notify--test-results)
-    ;;(message "%s" (ert-test-result-messages result))
-    (when (ert-test-failed-p result)
-      (ert-fail (cadr (ert-test-result-with-condition-condition result))))))
+        (should file-notify--test-results)
+        (dolist (result file-notify--test-results)
+          ;;(message "%s" (ert-test-result-messages result))
+          (when (ert-test-failed-p result)
+            (ert-fail (cadr (ert-test-result-with-condition-condition result))))))
+    (file-notify--test-cleanup)))
 
 (file-notify--deftest-remote file-notify-test02-events
   "Check file creation/removal notifications for remote files.")
@@ -313,7 +377,7 @@ This test is skipped in batch mode."
 
       ;; Exit.
       (ignore-errors (kill-buffer buf))
-      (ignore-errors (delete-file file-notify--test-tmpfile)))))
+      (file-notify--test-cleanup))))
 
 (file-notify--deftest-remote file-notify-test03-autorevert
   "Check autorevert via file notification for remote files.

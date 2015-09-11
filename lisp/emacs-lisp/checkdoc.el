@@ -1663,7 +1663,7 @@ function,command,variable,option or symbol." ms1))))))
 	     ;;    	  (concat "\\<" (regexp-quote (car fp)) "\\>")
 	     ;;    	  newname))
 	     ;;         (checkdoc-create-error
-	     ;;          "Flag variable names should normally end in ‘-flag’" s
+	     ;;          "Flag variable names should normally end in `-flag'" s
 	     ;;          (marker-position e)))))
 	     ;; Done with variables
 	     ))

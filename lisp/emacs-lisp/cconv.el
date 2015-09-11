@@ -679,7 +679,7 @@ and updates the data stored in ENV."
 
     ;; ((and `(quote ,v . ,_) (guard (assq v env)))
     ;;  (byte-compile-log-warning
-    ;;   (format-message "Possible confusion variable/symbol for ‘%S’" v)))
+    ;;   (format-message "Possible confusion variable/symbol for `%S'" v)))
 
     (`(quote . ,_) nil)                 ; quote form
     (`(function . ,_) nil)              ; same as quote

@@ -1084,14 +1084,23 @@ documentation @var{docstring}, for the category table @var{table}.
 
 Here's an example of defining a new category for characters that have
 strong right-to-left directionality (@pxref{Bidirectional Display})
-and using it in a special category table:
+and using it in a special category table.  To obtain the information
+about the directionality of characters, the example code uses the
+@samp{bidi-class} Unicode property (@pxref{Character Properties,
+bidi-class}).
 
 @example
 (defvar special-category-table-for-bidi
+  ;;     Make an empty category-table.
   (let ((category-table (make-category-table))
+        ;; Create a char-table which gives the 'bidi-class' Unicode
+        ;; property for each character.
         (uniprop-table (unicode-property-table-internal 'bidi-class)))
     (define-category ?R "Characters of bidi-class R, AL, or RLO"
                      category-table)
+    ;; Modify the category entry of each character whose 'bidi-class'
+    ;; Unicode property is R, AL, or RLO -- these have a
+    ;; right-to-left directionality.
     (map-char-table
      #'(lambda (key val)
          (if (memq val '(R AL RLO))

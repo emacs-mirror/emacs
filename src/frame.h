@@ -618,7 +618,7 @@ fset_desired_tool_bar_string (struct frame *f, Lisp_Object val)
 }
 #endif /* HAVE_WINDOW_SYSTEM && !USE_GTK && !HAVE_NS */
 
-#define NUMVAL(X) ((INTEGERP (X) || FLOATP (X)) ? XFLOATINT (X) : -1)
+#define NUMVAL(X) (NUMBERP (X) ? XFLOATINT (X) : -1)
 
 INLINE double
 default_pixels_per_inch_x (void)

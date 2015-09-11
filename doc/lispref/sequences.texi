@@ -578,6 +578,28 @@ value is the value returned by @var{predicate}.
 @end example
 @end defun
 
+@defun seq-find predicate sequence &optional sentinel
+  This function returns the first element for which @var{predicate}
+returns non-@code{nil} in @var{sequence}.  If no element matches
+@var{predicate}, @var{sentinel} is returned if non-@code{nil},
+@code{nil} otherwise.
+
+Note that this function has an ambiguity if the found element is
+@code{nil}, and if no @var{sentinel} is specified, as it cannot be
+known if an element was found or not.
+
+@example
+@group
+(seq-find #'numberp ["abc" 1 nil])
+@result{} 1
+@end group
+@group
+(seq-find #'numberp ["abc" "def"])
+@result{} nil
+@end group
+@end example
+@end defun
+
 @defun seq-every-p predicate sequence
   This function returns non-@code{nil} if applying @var{predicate}
 to every element of @var{sequence} returns non-@code{nil}.

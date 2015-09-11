@@ -2271,7 +2271,7 @@ x_fill_property_data (Display *dpy, Lisp_Object data, void *ret, int format)
     {
       Lisp_Object o = XCAR (iter);
 
-      if (INTEGERP (o) || FLOATP (o) || CONSP (o))
+      if (NUMBERP (o) || CONSP (o))
         {
           if (CONSP (o)
 	      && RANGED_INTEGERP (X_LONG_MIN >> 16, XCAR (o), X_LONG_MAX >> 16)
@@ -2547,7 +2547,7 @@ x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from,
       else
         error ("DEST as a string must be one of PointerWindow or InputFocus");
     }
-  else if (INTEGERP (dest) || FLOATP (dest) || CONSP (dest))
+  else if (NUMBERP (dest) || CONSP (dest))
     CONS_TO_INTEGER (dest, Window, wdest);
   else
     error ("DEST must be a frame, nil, string, number or cons");
