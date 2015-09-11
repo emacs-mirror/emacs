@@ -114,10 +114,10 @@ and reference them using the function `class-option'."
 
   (cond ((and (stringp (car options-and-doc))
               (/= 1 (% (length options-and-doc) 2)))
-         (error "Too many arguments to ‘defclass’"))
+         (error "Too many arguments to `defclass'"))
         ((and (symbolp (car options-and-doc))
               (/= 0 (% (length options-and-doc) 2)))
-         (error "Too many arguments to ‘defclass’")))
+         (error "Too many arguments to `defclass'")))
 
   (if (stringp (car options-and-doc))
       (setq options-and-doc
@@ -235,7 +235,8 @@ This method is obsolete."
            (let ((f (intern (format "%s-child-p" name))))
              `((defalias ',f ',testsym2)
                (make-obsolete
-                ',f ,(format "use (cl-typep ... '%s) instead" name) "25.1"))))
+                ',f ,(format "use (cl-typep ... \\='%s) instead" name)
+                "25.1"))))
 
        ;; When using typep, (typep OBJ 'myclass) returns t for objects which
        ;; are subclasses of myclass.  For our predicates, however, it is
@@ -348,10 +349,10 @@ variable name of the same name as the slot."
 
 (pcase-defmacro eieio (&rest fields)
   "Pcase patterns to match EIEIO objects.
-Elements of FIELDS can be of the form (NAME UPAT) in which case the contents of
-field NAME is matched against UPAT, or they can be of the form NAME which
+Elements of FIELDS can be of the form (NAME PAT) in which case the contents of
+field NAME is matched against PAT, or they can be of the form NAME which
 is a shorthand for (NAME NAME)."
-  (declare (debug (&rest [&or (sexp pcase-UPAT) sexp])))
+  (declare (debug (&rest [&or (sexp pcase-PAT) sexp])))
   (let ((is (make-symbol "table")))
     ;; FIXME: This generates a horrendous mess of redundant let bindings.
     ;; `pcase' needs to be improved somehow to introduce let-bindings more
@@ -941,7 +942,7 @@ this object."
   "Change the class of OBJ to type CLASS.
 This may create or delete slots, but does not affect the return value
 of `eq'."
-  (error "EIEIO: ‘change-class’ is unimplemented"))
+  (error "EIEIO: `change-class' is unimplemented"))
 
 ;; Hook ourselves into help system for describing classes and methods.
 ;; FIXME: This is not actually needed any more since we can click on the
@@ -983,7 +984,7 @@ Optional argument GROUP is the sub-group of slots to display.
 
 ;;;***
 
-;;;### (autoloads nil "eieio-opt" "eieio-opt.el" "694d44fcd869546592d35f3321f62667")
+;;;### (autoloads nil "eieio-opt" "eieio-opt.el" "d00419c898056fadf2f8e491f864aa1e")
 ;;; Generated autoloads from eieio-opt.el
 
 (autoload 'eieio-browse "eieio-opt" "\

@@ -687,8 +687,8 @@ to put saved Dired buffers automatically into Virtual Dired mode.
 
 Also useful for `auto-mode-alist' like this:
 
-  (add-to-list 'auto-mode-alist
-               '(\"[^/]\\\\.dired\\\\'\" . dired-virtual-mode))"
+  (add-to-list \\='auto-mode-alist
+               \\='(\"[^/]\\\\.dired\\\\\\='\" . dired-virtual-mode))"
   (interactive)
   (dired-virtual (dired-virtual-guess-dir)))
 
@@ -1354,11 +1354,11 @@ otherwise."
   (let ((file (dired-get-filename t)))
     (if dired-bind-vm
 	(if (y-or-n-p (format-message
-		       "Visit ‘%s’ as a mail folder with VM?" file))
+		       "Visit `%s' as a mail folder with VM?" file))
 	    (dired-vm))
       ;; Read mail folder using rmail.
       (if (y-or-n-p (format-message
-		     "Visit ‘%s’ as a mailbox with RMAIL?" file))
+		     "Visit `%s' as a mailbox with RMAIL?" file))
 	  (dired-rmail)))))
 
 

@@ -80,7 +80,7 @@ create identical widgets:
 
 * (widget-create NAME)
 
-* (apply 'widget-create CLASS ARGS)
+* (apply \\='widget-create CLASS ARGS)
 
 The third argument DOC is a documentation string for the widget."
   ;;

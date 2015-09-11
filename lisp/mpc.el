@@ -253,6 +253,7 @@ defaults to 6600 and HOST defaults to localhost."
 
 (defun mpc--proc-connect (host)
   (let ((port 6600)
+        local
         pass)
 
     (when (string-match "\\`\\(?:\\(.*\\)@\\)?\\(.*?\\)\\(?::\\(.*\\)\\)?\\'"
@@ -267,6 +268,8 @@ defaults to 6600 and HOST defaults to localhost."
                 (if (string-match "[^[:digit:]]" v)
                     (string-to-number v)
                   v)))))
+    (when (string-prefix-p "/" host)    ;FIXME: Use file-name-absolute-p?
+      (setq local t))
 
     (mpc--debug "Connecting to %s:%s..." host port)
     (with-current-buffer (get-buffer-create (format " *mpc-%s:%s*" host port))
@@ -279,7 +282,10 @@ defaults to 6600 and HOST defaults to localhost."
       (let* ((coding-system-for-read 'utf-8-unix)
              (coding-system-for-write 'utf-8-unix)
              (proc (condition-case err
-                       (open-network-stream "MPC" (current-buffer) host port)
+                       (make-network-process :name "MPC" :buffer (current-buffer)
+                                             :host (unless local host)
+                                             :service (if local host port)
+                                             :family (if local 'local))
                      (error (user-error (error-message-string err))))))
         (when (processp mpc-proc)
           ;; Inherit the properties of the previous connection.
@@ -1751,7 +1757,7 @@ A value of t means the main playlist.")
                      (completing-read "Rename playlist: "
                                       (mpc-cmd-list 'Playlist)
                                       nil 'require-match)))
-          (newname (read-string (format-message "Rename ‘%s’ to: " oldname))))
+          (newname (read-string (format-message "Rename `%s' to: " oldname))))
      (if (zerop (length newname))
          (error "Aborted")
        (list oldname newname))))
@@ -2630,6 +2636,8 @@ This is used so that they can be compared with `eq', which is needed for
   (interactive
    (progn
      (if current-prefix-arg
+         ;; FIXME: We should provide some completion here, especially for the
+         ;; case where the user specifies a local socket/file name.
          (setq mpc-host (read-string "MPD host and port: " nil nil mpc-host)))
      nil))
   (let* ((song-buf (mpc-songs-buf))

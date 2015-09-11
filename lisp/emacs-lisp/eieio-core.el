@@ -219,7 +219,8 @@ It creates an autoload function for CNAME's constructor."
       ;; turn this into a usable self-pointing symbol
       (when eieio-backward-compatibility
         (set cname cname)
-        (make-obsolete-variable cname (format "use '%s instead" cname) "25.1"))
+        (make-obsolete-variable cname (format "use \\='%s instead" cname)
+                                "25.1"))
 
       ;; Store the new class vector definition into the symbol.  We need to
       ;; do this first so that we can call defmethod for the accessor.
@@ -338,7 +339,8 @@ See `defclass' for more information."
     ;; turn this into a usable self-pointing symbol;  FIXME: Why?
     (when eieio-backward-compatibility
       (set cname cname)
-      (make-obsolete-variable cname (format "use '%s instead" cname) "25.1"))
+      (make-obsolete-variable cname (format "use \\='%s instead" cname)
+                              "25.1"))
 
     ;; Create a handy list of the class test too
     (when eieio-backward-compatibility
@@ -357,8 +359,9 @@ See `defclass' for more information."
                                       (object-of-class-p (car obj) ,cname)))
                        (setq obj (cdr obj)))
                      ans))))
-        (make-obsolete csym (format "use (cl-typep ... '(list-of %s)) instead"
-                                    cname)
+        (make-obsolete csym (format
+                             "use (cl-typep ... \\='(list-of %s)) instead"
+                             cname)
                        "25.1")))
 
     ;; Before adding new slots, let's add all the methods and classes
@@ -407,7 +410,7 @@ See `defclass' for more information."
                  (progn
                    (set initarg initarg)
                    (make-obsolete-variable
-                    initarg (format "use '%s instead" initarg) "25.1"))))
+                    initarg (format "use \\='%s instead" initarg) "25.1"))))
 
 	;; The customgroup should be a list of symbols.
 	(cond ((and (null customg) custom)
@@ -544,7 +547,7 @@ If SKIPNIL is non-nil, then if default value is nil return t instead."
     (if (not (eq type t))
         (if (not (equal type tp))
             (error
-             "Child slot type ‘%s’ does not match inherited type ‘%s’ for ‘%s’"
+             "Child slot type `%s' does not match inherited type `%s' for `%s'"
              type tp a))
       (setf (cl--slot-descriptor-type new) tp))
     ;; If we have a repeat, only update the initarg...
@@ -564,7 +567,7 @@ If SKIPNIL is non-nil, then if default value is nil return t instead."
     (let ((super-prot (alist-get :protection oprops))
           (prot (alist-get :protection nprops)))
       (if (not (eq prot super-prot))
-          (error "Child slot protection ‘%s’ does not match inherited protection ‘%s’ for ‘%s’"
+          (error "Child slot protection `%s' does not match inherited protection `%s' for `%s'"
                  prot super-prot a)))
     ;; End original PLN
 
@@ -733,7 +736,7 @@ Argument FN is the function calling this verifier."
                 ((and (or `',name (and name (pred keywordp)))
                       (guard (not (memq name eieio--known-slot-names))))
                  (macroexp--warn-and-return
-                  (format-message "Unknown slot ‘%S’" name) exp 'compile-only))
+                  (format-message "Unknown slot `%S'" name) exp 'compile-only))
                 (_ exp)))))
   (cl-check-type slot symbol)
   (cl-check-type obj (or eieio-object class))

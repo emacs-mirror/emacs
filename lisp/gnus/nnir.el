@@ -350,10 +350,10 @@ result, `gnus-retrieve-headers' will be called instead."
 (defcustom nnir-swish++-additional-switches '()
   "*A list of strings, to be given as additional arguments to swish++.
 
-Note that this should be a list.  Ie, do NOT use the following:
+Note that this should be a list.  I.e., do NOT use the following:
     (setq nnir-swish++-additional-switches \"-i -w\") ; wrong
 Instead, use this:
-    (setq nnir-swish++-additional-switches '(\"-i\" \"-w\"))"
+    (setq nnir-swish++-additional-switches \\='(\"-i\" \"-w\"))"
   :type '(repeat (string))
   :group 'nnir)
 
@@ -399,10 +399,10 @@ This cannot be a server parameter."
 (defcustom nnir-swish-e-additional-switches '()
   "*A list of strings, to be given as additional arguments to swish-e.
 
-Note that this should be a list.  Ie, do NOT use the following:
+Note that this should be a list.  I.e., do NOT use the following:
     (setq nnir-swish-e-additional-switches \"-i -w\") ; wrong
 Instead, use this:
-    (setq nnir-swish-e-additional-switches '(\"-i\" \"-w\"))
+    (setq nnir-swish-e-additional-switches \\='(\"-i\" \"-w\"))
 
 This could be a server parameter."
   :type '(repeat (string))
@@ -429,10 +429,10 @@ This could be a server parameter."
 
 (defcustom nnir-hyrex-additional-switches '()
   "*A list of strings, to be given as additional arguments for nnir-search.
-Note that this should be a list. Ie, do NOT use the following:
+Note that this should be a list. I.e., do NOT use the following:
     (setq nnir-hyrex-additional-switches \"-ddl ddl.xml -c nnir\") ; wrong !
 Instead, use this:
-    (setq nnir-hyrex-additional-switches '(\"-ddl\" \"ddl.xml\" \"-c\" \"nnir\"))"
+    (setq nnir-hyrex-additional-switches \\='(\"-ddl\" \"ddl.xml\" \"-c\" \"nnir\"))"
   :type '(repeat (string))
   :group 'nnir)
 
@@ -471,10 +471,10 @@ arrive at the correct group name, \"mail.misc\"."
 The switches `-q', `-a', and `-s' are always used, very few other switches
 make any sense in this context.
 
-Note that this should be a list.  Ie, do NOT use the following:
+Note that this should be a list.  I.e., do NOT use the following:
     (setq nnir-namazu-additional-switches \"-i -w\") ; wrong
 Instead, use this:
-    (setq nnir-namazu-additional-switches '(\"-i\" \"-w\"))"
+    (setq nnir-namazu-additional-switches \\='(\"-i\" \"-w\"))"
   :type '(repeat (string))
   :group 'nnir)
 
@@ -500,10 +500,10 @@ arrive at the correct group name, \"mail.misc\"."
 (defcustom nnir-notmuch-additional-switches '()
   "*A list of strings, to be given as additional arguments to notmuch.
 
-Note that this should be a list.  Ie, do NOT use the following:
+Note that this should be a list.  I.e., do NOT use the following:
     (setq nnir-notmuch-additional-switches \"-i -w\") ; wrong
 Instead, use this:
-    (setq nnir-notmuch-additional-switches '(\"-i\" \"-w\"))"
+    (setq nnir-notmuch-additional-switches \\='(\"-i\" \"-w\"))"
   :version "24.1"
   :type '(repeat (string))
   :group 'nnir)

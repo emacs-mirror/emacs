@@ -1269,7 +1269,7 @@ Note: does not update the layout."
                    (file-exists-p newsticker-groups-filename)
                    (y-or-n-p
                     (format-message
-                     (concat "Obsolete variable ‘newsticker-groups-filename’ "
+                     (concat "Obsolete variable `newsticker-groups-filename' "
                              "points to existing file \"%s\".\n"
                              "Read it? ")
                      newsticker-groups-filename))
@@ -1281,7 +1281,7 @@ Note: does not update the layout."
          (file-exists-p newsticker-groups-filename)
 	 (y-or-n-p (format-message
                     (concat "Delete the file \"%s\",\nto which the obsolete "
-                            "variable ‘newsticker-groups-filename’ points ? ")
+                            "variable `newsticker-groups-filename' points ? ")
                     newsticker-groups-filename))
 	 (delete-file newsticker-groups-filename))
     (when buf

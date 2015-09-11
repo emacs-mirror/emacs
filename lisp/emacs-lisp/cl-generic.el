@@ -192,7 +192,7 @@ BODY, if present, is used as the body of a default method.
          (when doc (error "Multiple doc strings for %S" name))
          (setq doc (cadr (pop options-and-methods))))
         (`declare
-         (when declarations (error "Multiple ‘declare’ for %S" name))
+         (when declarations (error "Multiple `declare' for %S" name))
          (setq declarations (pop options-and-methods)))
         (`:method (push (cdr (pop options-and-methods)) methods))
         (_ (push (pop options-and-methods) options))))
@@ -208,7 +208,7 @@ BODY, if present, is used as the body of a default method.
                                        defun-declarations-alist))))
                      (cond
                       (f (apply (car f) name args (cdr declaration)))
-                      (t (message "Warning: Unknown defun property ‘%S’ in %S"
+                      (t (message "Warning: Unknown defun property `%S' in %S"
                                   (car declaration) name)
                          nil))))
                  (cdr declarations))
@@ -864,11 +864,11 @@ MET-NAME is a cons (SYMBOL . SPECIALIZERS)."
                                    (cl--generic-method-specializers method)))
                    (file (find-lisp-object-file-name met-name 'cl-defmethod)))
               (when file
-                (insert (substitute-command-keys " in ‘"))
+                (insert (substitute-command-keys " in `"))
                 (help-insert-xref-button (help-fns-short-filename file)
                                          'help-function-def met-name file
                                          'cl-defmethod)
-                (insert (substitute-command-keys "’.\n"))))
+                (insert (substitute-command-keys "'.\n"))))
             (insert "\n" (or (nth 2 info) "Undocumented") "\n\n")))))))
 
 (defun cl--generic-specializers-apply-to-type-p (specializers type)
@@ -1069,8 +1069,11 @@ The value returned is a list of elements of the form
   (or
    (and (assq type cl--generic-typeof-types)
         (progn
-          (if (memq type '(vector array sequence))
-              (message "‘%S’ also matches CL structs and EIEIO classes" type))
+          ;; FIXME: While this wrinkle in the semantics can be occasionally
+          ;; problematic, this warning is more often annoying than helpful.
+          ;;(if (memq type '(vector array sequence))
+          ;;    (message "`%S' also matches CL structs and EIEIO classes"
+          ;;             type))
           (list cl--generic-typeof-generalizer)))
    (cl-call-next-method)))
 

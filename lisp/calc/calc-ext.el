@@ -1957,7 +1957,7 @@ calc-kill calc-kill-region calc-yank))))
 		  (desc
 		   (if (symbolp func)
 		       (if (= (logand kind 3) 0)
-			   (format-message "‘%c’ = %s" key name)
+			   (format-message "`%c' = %s" key name)
 			 (if pos
 			     (format "%s%c%s"
 				     (downcase (substring name 0 pos))

@@ -60,6 +60,7 @@
 (defvar file-notify--test-desc nil)
 (defvar file-notify--test-results nil)
 (defvar file-notify--test-event nil)
+(defvar file-notify--test-events nil)
 
 (setq password-cache-expiry nil
       tramp-verbose 0
@@ -166,7 +167,7 @@ being the result.")
   "Ert test function to be called by `file-notify--test-event-handler'.
 We cannot pass arguments, so we assume that `file-notify--test-event'
 is bound somewhere."
-  ;(message "Event %S" file-notify--test-event)
+  ;;(message "Event %S" file-notify--test-event)
   ;; Check the descriptor.
   (should (equal (car file-notify--test-event) file-notify--test-desc))
   ;; Check the file name.
@@ -182,9 +183,13 @@ is bound somewhere."
 
 (defun file-notify--test-event-handler (file-notify--test-event)
   "Run a test over FILE-NOTIFY--TEST-EVENT.
-Save the result in `file-notify--test-results', for later analysis."
+For later analysis, append the test result to
+`file-notify--test-results' and the event to
+`file-notify--test-events'."
   (let ((result
 	 (ert-run-test (make-ert-test :body 'file-notify--test-event-test))))
+    (setq file-notify--test-events
+          (append file-notify--test-events `(,file-notify--test-event)))
     (setq file-notify--test-results
 	  (append file-notify--test-results `(,result)))))
 
@@ -194,7 +199,7 @@ Save the result in `file-notify--test-results', for later analysis."
    (make-temp-name "file-notify-test") temporary-file-directory))
 
 (defmacro file-notify--wait-for-events (timeout until)
-  "Wait for file notification events until form UNTIL is true.
+  "Wait for and return file notification events until form UNTIL is true.
 TIMEOUT is the maximum time to wait for, in seconds."
   `(with-timeout (,timeout (ignore))
      (while (null ,until)
@@ -206,6 +211,7 @@ TIMEOUT is the maximum time to wait for, in seconds."
   (unwind-protect
       (progn
         (setq file-notify--test-results nil
+              file-notify--test-events nil
               file-notify--test-tmpfile (file-notify--test-make-temp-name)
               file-notify--test-tmpfile1 (file-notify--test-make-temp-name)
               file-notify--test-desc
@@ -214,7 +220,7 @@ TIMEOUT is the maximum time to wait for, in seconds."
                '(change) 'file-notify--test-event-handler))
         (should file-notify--test-desc)
 
-        ;; Check creation and removal.
+        ;; Check creation, change, and deletion.
         (write-region
          "any text" nil file-notify--test-tmpfile nil 'no-message)
         (delete-file file-notify--test-tmpfile)
@@ -236,13 +242,17 @@ TIMEOUT is the maximum time to wait for, in seconds."
 
     ;; Wait for events, and exit.
     (file-notify--wait-for-events 5 file-notify--test-results)
+    (should (equal (mapcar #'cadr file-notify--test-events)
+                   '(created changed deleted
+                             created changed deleted
+                             created changed renamed)))
     (file-notify-rm-watch file-notify--test-desc)
     (ignore-errors (delete-file file-notify--test-tmpfile))
     (ignore-errors (delete-file file-notify--test-tmpfile1)))
 
   (should file-notify--test-results)
   (dolist (result file-notify--test-results)
-    ;(message "%s" (ert-test-result-messages result))
+    ;;(message "%s" (ert-test-result-messages result))
     (when (ert-test-failed-p result)
       (ert-fail (cadr (ert-test-result-with-condition-condition result))))))
 

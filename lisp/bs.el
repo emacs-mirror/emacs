@@ -1314,7 +1314,7 @@ ALL-BUFFERS is the list of buffers appearing in Buffer Selection Menu."
   (format-mode-line mode-name nil nil start-buffer))
 
 (defun bs--get-file-name (_start-buffer _all-buffers)
-  "Return string for column ‘File’ in Buffer Selection Menu.
+  "Return string for column `File' in Buffer Selection Menu.
 This is the variable `buffer-file-name' of current buffer.
 If not visiting a file, `list-buffers-directory' is returned instead.
 START-BUFFER is the buffer where we started buffer selection.

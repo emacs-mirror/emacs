@@ -1561,7 +1561,7 @@ Around advice such as:
 
 @example
 (defadvice foo (around foo-around)
-  "Ignore case in ‘foo’."
+  "Ignore case in `foo'."
   (let ((case-fold-search t))
     ad-do-it))
 (ad-activate 'foo)
@@ -1571,7 +1571,7 @@ could translate into:
 
 @example
 (defun foo--foo-around (orig-fun &rest args)
-  "Ignore case in ‘foo’."
+  "Ignore case in `foo'."
   (let ((case-fold-search t))
     (apply orig-fun args)))
 (advice-add 'foo :around #'foo--foo-around)

@@ -833,7 +833,7 @@ string in the mode line), and a semicolon or comma is typed (see
 no arguments, and should return one of the following values:
 
   nil             -- no determination made, continue checking
-  'stop           -- do not insert a newline, and stop checking
+  `stop'          -- do not insert a newline, and stop checking
   (anything else) -- insert a newline, and stop checking
 
 If every function in the list is called with no determination made,

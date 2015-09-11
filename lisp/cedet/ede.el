@@ -764,7 +764,7 @@ Optional argument NAME is the name to give this project."
 			       (if cs
 				   (error "No valid interactive sub project types for %s"
 					  cs)
-				 (error "EDE error: Can't fin project types to create")))
+				 (error "EDE error: Can't find project types to create")))
 			     r)
 			   )
 			  nil t)))

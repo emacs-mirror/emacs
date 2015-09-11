@@ -457,7 +457,7 @@ Wrapper for org-ctags-rebuild-tags-file-then-find-tag."
   (if (and (buffer-file-name)
 	   (y-or-n-p
 	    (format-message
-	     "Tag ‘%s’ not found.  Rebuild table ‘%s/TAGS’ and look again?"
+	     "Tag `%s' not found.  Rebuild table `%s/TAGS' and look again?"
 	     name
 	     (file-name-directory (buffer-file-name)))))
       (org-ctags-rebuild-tags-file-then-find-tag name)

@@ -209,7 +209,7 @@ args that OPTION can receive and ARGS are the arguments for OPTION.
 If DONT-QUOTE is non-nil, arguments are quoted for passing them to
 the shell."
   (when (and (numberp argcount) (< (length args) argcount))
-    (error "‘%s’ needs at least %d arguments" option argcount))
+    (error "`%s' needs at least %d arguments" option argcount))
   (let ((oper (or oper 'find-or)))
     (if (and args (length args))
         (funcall oper (mapcar (lambda (x)
@@ -247,7 +247,7 @@ them into valid switches.  The result is -and(ed) together."
             (find-to-string
              (find-generic option oper argcnt (cdr form) dont-quote))))
          (t
-          (error "Sorry I don't know how to handle ‘%s’" (car form))))))))
+          (error "Sorry I don't know how to handle `%s'" (car form))))))))
 
 (provide 'find-cmd)
 

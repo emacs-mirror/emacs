@@ -803,7 +803,7 @@ this or ask the user to start one right now."
    (type-break-mode-line-message-mode)
    (t
     (beep t)
-    (message "%sYou should take a typing break now.  Do ‘%s’."
+    (message "%sYou should take a typing break now.  Do `%s'."
              (type-break-time-stamp)
              (substitute-command-keys "\\[type-break]"))
     (sit-for 1)

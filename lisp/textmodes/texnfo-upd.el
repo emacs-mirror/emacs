@@ -1407,7 +1407,7 @@ level in the Texinfo file; when looking for the `Previous' pointer,
 the section found will be at the same or higher hierarchical level in
 the Texinfo file; when looking for the `Up' pointer, the section found
 will be at some level higher in the Texinfo file.  The fourth argument
-\(one of `next’, `previous’, or `up'\) specifies whether to find the
+\(one of `next', `previous', or `up'\) specifies whether to find the
 `Next', `Previous', or `Up' pointer."
   (let ((case-fold-search t))
     (cond ((eq direction 'next)

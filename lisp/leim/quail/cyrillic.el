@@ -839,7 +839,7 @@ Sorry, but `ghe with upturn' is not included in ISO 8859-5."
  "ЯВЕРТЫ Roman transcription
 
 This layout is based on Roman transcription by phonemic resemblance.
-When preceded by a ‘/’, the second and the third rows (number key row) change
+When preceded by a `/', the second and the third rows (number key row) change
 as follows.
 
   keytop | Q  W  E  R  T  Y  U  I  O  P  A  S  D
@@ -1244,8 +1244,8 @@ Unicode based."
 This phonetic layout replaces all the Latin letters with Bulgarian
 \(Cyrillic) letters based on similarities in their pronunciation or look.
 
-Note that, since the letters ‘щ’, ‘ь’, ‘ю’ and ‘я’ are attached to the
-‘]’, ‘\’, ‘\\=`’ and ‘[’ keys respectively, Caps Lock does not affect them."
+Note that, since the letters `щ', `ь', `ю' and `я' are attached to the
+`]', `\', `\\=`' and `[' keys respectively, Caps Lock does not affect them."
 nil t t t t nil nil nil nil nil t)
 
 ;;  Ю  1! 2@ 3№ 4$ 5% 6€ 7§ 8* 9( 0) -– =+ ьѝ

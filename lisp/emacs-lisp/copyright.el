@@ -350,7 +350,7 @@ independently replaces consecutive years with a range."
   (or (getenv "ORGANIZATION")
       str)
   '(if (copyright-offset-too-large-p)
-       (message "Copyright extends beyond ‘copyright-limit’ and won't be updated automatically."))
+       (message "Copyright extends beyond `copyright-limit' and won't be updated automatically."))
   comment-end \n)
 
 ;; TODO: recurse, exclude COPYING etc.
@@ -361,7 +361,7 @@ If FIX is non-nil, run `copyright-fix-years' instead."
   (interactive "DDirectory: \nMFilenames matching (regexp): ")
   (dolist (file (directory-files directory t match nil))
     (unless (file-directory-p file)
-      (message "Updating file ‘%s’" file)
+      (message "Updating file `%s'" file)
       ;; FIXME we should not use find-file+save+kill.
       (let ((enable-local-variables :safe)
 	    (enable-local-eval nil))

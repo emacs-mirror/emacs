@@ -234,7 +234,7 @@ of it available such that:
 
 This variable has three possible values:
     nil: no packages are hidden;
-    archive: only criteria (a) is used;
+    `archive': only criteria (a) is used;
     t: both criteria are used.
 
 This variable has no effect if `package-menu--hide-packages' is
@@ -456,13 +456,13 @@ This is, approximately, the inverse of `version-to-list'.
           (push (int-to-string num) str-list)
           (push "." str-list))
          ((< num -4)
-          (error "Invalid version list ‘%s’" vlist))
+          (error "Invalid version list `%s'" vlist))
          (t
           ;; pre, or beta, or alpha
           (cond ((equal "." (car str-list))
                  (pop str-list))
                 ((not (string-match "[0-9]+" (car str-list)))
-                 (error "Invalid version list ‘%s’" vlist)))
+                 (error "Invalid version list `%s'" vlist)))
           (push (cond ((= num -1) "pre")
                       ((= num -2) "beta")
                       ((= num -3) "alpha")
@@ -623,7 +623,7 @@ Return the max version (as a string) if the package is held at a lower version."
           ((stringp force)              ; held
            (unless (version-list-= version (version-to-list force))
              force))
-          (t (error "Invalid element in ‘package-load-list’")))))
+          (t (error "Invalid element in `package-load-list'")))))
 
 (defun package-built-in-p (package &optional min-version)
   "Return true if PACKAGE is built-in to Emacs.
@@ -639,6 +639,28 @@ specifying the minimum acceptable version."
         (require 'finder-inf nil t) ; For `package--builtins'.
         (assq package package--builtins))))))
 
+(defun package--autoloads-file-name (pkg-desc)
+  "Return the absolute name of the autoloads file, sans extension.
+PKG-DESC is a `package-desc' object."
+  (expand-file-name
+   (format "%s-autoloads" (package-desc-name pkg-desc))
+   (package-desc-dir pkg-desc)))
+
+(defun package--activate-autoloads-and-load-path (pkg-desc)
+  "Load the autoloads file and add package dir to `load-path'.
+PKG-DESC is a `package-desc' object."
+  (let* ((old-lp load-path)
+         (pkg-dir (package-desc-dir pkg-desc))
+         (pkg-dir-dir (file-name-as-directory pkg-dir)))
+    (with-demoted-errors "Error loading autoloads: %s"
+      (load (package--autoloads-file-name pkg-desc) nil t))
+    (when (and (eq old-lp load-path)
+               (not (or (member pkg-dir load-path)
+                        (member pkg-dir-dir load-path))))
+      ;; Old packages don't add themselves to the `load-path', so we have to
+      ;; do it ourselves.
+      (push pkg-dir load-path))))
+
 (defvar Info-directory-list)
 (declare-function info-initialize "info" ())
 
@@ -648,24 +670,14 @@ If RELOAD is non-nil, also `load' any files inside the package which
 correspond to previously loaded files (those returned by
 `package--list-loaded-files')."
   (let* ((name (package-desc-name pkg-desc))
-         (pkg-dir (package-desc-dir pkg-desc))
-         (pkg-dir-dir (file-name-as-directory pkg-dir)))
+         (pkg-dir (package-desc-dir pkg-desc)))
     (unless pkg-dir
-      (error "Internal error: unable to find directory for ‘%s’"
+      (error "Internal error: unable to find directory for `%s'"
              (package-desc-full-name pkg-desc)))
-    ;; Add to load path, add autoloads, and activate the package.
-    (let* ((old-lp load-path)
-           (autoloads-file (expand-file-name
-                            (format "%s-autoloads" name) pkg-dir))
-           (loaded-files-list (and reload (package--list-loaded-files pkg-dir))))
-      (with-demoted-errors "Error in package-activate-1: %s"
-        (load autoloads-file nil t))
-      (when (and (eq old-lp load-path)
-                 (not (or (member pkg-dir load-path)
-                          (member pkg-dir-dir load-path))))
-        ;; Old packages don't add themselves to the `load-path', so we have to
-        ;; do it ourselves.
-        (push pkg-dir load-path))
+    (let* ((loaded-files-list (when reload
+                                (package--list-loaded-files pkg-dir))))
+      ;; Add to load path, add autoloads, and activate the package.
+      (package--activate-autoloads-and-load-path pkg-desc)
       ;; Call `load' on all files in `pkg-dir' already present in
       ;; `load-history'.  This is done so that macros in these files are updated
       ;; to their new definitions.  If another package is being installed which
@@ -674,7 +686,8 @@ correspond to previously loaded files (those returned by
       (with-demoted-errors "Error in package-activate-1: %s"
         (mapc (lambda (feature) (load feature nil t))
               ;; Skip autoloads file since we already evaluated it above.
-              (remove (file-truename autoloads-file) loaded-files-list))))
+              (remove (file-truename (package--autoloads-file-name pkg-desc))
+                      loaded-files-list))))
     ;; Add info node.
     (when (file-exists-p (expand-file-name "dir" pkg-dir))
       ;; FIXME: not the friendliest, but simple.
@@ -754,8 +767,8 @@ Newer versions are always activated, regardless of FORCE."
                        (unless (package-activate (car req))
                          (throw 'dep-failure req))))))
         (if fail
-            (warn "Unable to activate package ‘%s’.
-Required package ‘%s-%s’ is unavailable"
+            (warn "Unable to activate package `%s'.
+Required package `%s-%s' is unavailable"
                   package (car fail) (package-version-join (cadr fail)))
           ;; If all goes well, activate the package itself.
           (package-activate-1 pkg-vec force)))))))
@@ -919,8 +932,9 @@ untar into a directory named DIR; otherwise, signal an error."
 (defun package--compile (pkg-desc)
   "Byte-compile installed package PKG-DESC."
   (let ((warning-minimum-level :error)
-        (save-silently inhibit-message))
-    (package-activate-1 pkg-desc)
+        (save-silently inhibit-message)
+        (load-path load-path))
+    (package--activate-autoloads-and-load-path pkg-desc)
     (byte-recompile-directory (package-desc-dir pkg-desc) 0 t)))
 
 ;;;; Inferring package from current buffer
@@ -1372,13 +1386,18 @@ If successful, set `package-archive-contents'."
 The variable `package-load-list' controls which packages to load.
 If optional arg NO-ACTIVATE is non-nil, don't activate packages.
 If `user-init-file' does not mention `(package-initialize)', add
-it to the file."
+it to the file.
+If called as part of loading `user-init-file', set
+`package-enable-at-startup' to nil, to prevent accidentally
+loading packages twice."
   (interactive)
   (setq package-alist nil)
   (if (equal user-init-file load-file-name)
       ;; If `package-initialize' is being called as part of loading
       ;; the init file, it's obvious we don't need to ensure-init.
-      (setq package--init-file-ensured t)
+      (setq package--init-file-ensured t
+            ;; And likely we don't need to run it again after init.
+            package-enable-at-startup nil)
     (package--ensure-init-file))
   (package-load-all-descriptors)
   (package-read-all-archive-contents)
@@ -1465,7 +1484,7 @@ similar to an entry in `package-alist'.  Save the cached copy to
                ;; Even if the sig fails, this download is done, so
                ;; remove it from the in-progress list.
                (package--update-downloads-in-progress archive)
-               (error "Unsigned archive ‘%s’" name))
+               (error "Unsigned archive `%s'" name))
              ;; Write out the archives file.
              (write-region content nil local-file nil 'silent)
              ;; Write out good signatures into archive-contents.signed file.
@@ -1495,7 +1514,7 @@ perform the downloads asynchronously."
          (when async
            ;; The t at the end means to propagate connection errors.
            (lambda () (package--update-downloads-in-progress archive) t)))
-      (error (message "Failed to download ‘%s’ archive."
+      (error (message "Failed to download `%s' archive."
                (car archive))))))
 
 ;;;###autoload
@@ -1564,7 +1583,7 @@ SEEN is used internally to detect infinite recursion."
                          (package-desc-full-name already))
               (setq packages (delq already packages))
               (setq already nil))
-          (error "Need package ‘%s-%s’, but only %s is being installed"
+          (error "Need package `%s-%s', but only %s is being installed"
                  next-pkg (package-version-join next-version)
                  (package-version-join (package-desc-version already)))))
       (cond
@@ -1593,20 +1612,20 @@ SEEN is used internally to detect infinite recursion."
                   (setq problem
                         (if (stringp disabled)
                             (format-message
-                             "Package ‘%s’ held at version %s, but version %s required"
+                             "Package `%s' held at version %s, but version %s required"
                              next-pkg disabled
                              (package-version-join next-version))
-                          (format-message "Required package ‘%s’ is disabled"
+                          (format-message "Required package `%s' is disabled"
                                           next-pkg)))))
                (t (setq found pkg-desc)))))
           (unless found
             (cond
              (problem (error "%s" problem))
              (found-something
-              (error "Need package ‘%s-%s’, but only %s is available"
+              (error "Need package `%s-%s', but only %s is available"
                      next-pkg (package-version-join next-version)
                      found-something))
-             (t (error "Package ‘%s-%s’ is unavailable"
+             (t (error "Package `%s-%s' is unavailable"
                        next-pkg (package-version-join next-version)))))
           (setq packages
                 (package-compute-transaction (cons found packages)
@@ -1766,7 +1785,7 @@ if all the in-between dependencies are also in PACKAGE-LIST."
              (unless (or good-sigs (eq package-check-signature 'allow-unsigned))
                ;; Even if the sig fails, this download is done, so
                ;; remove it from the in-progress list.
-               (error "Unsigned package: ‘%s’"
+               (error "Unsigned package: `%s'"
                  (package-desc-name pkg-desc)))
              ;; Signature checked, unpack now.
              (with-temp-buffer (insert content)
@@ -1833,12 +1852,12 @@ add a call to it along with some explanatory comments."
                     (save-restriction
                       (widen)
                       (goto-char (point-min))
-                      (search-forward "(package-initialize)" nil 'noerror))))
+                      (re-search-forward "(package-initialize\\_>" nil 'noerror))))
               ;; Don't visit the file if we don't have to.
               (with-temp-buffer
                 (insert-file-contents user-init-file)
                 (goto-char (point-min))
-                (search-forward "(package-initialize)" nil 'noerror)))))
+                (re-search-forward "(package-initialize\\_>" nil 'noerror)))))
       (unless contains-init
         (with-current-buffer (or buffer
                                  (let ((delay-mode-hooks t))
@@ -1907,7 +1926,7 @@ to install it but still mark it as selected."
                                                (package-desc-reqs pkg)))
               (package-compute-transaction () (list (list pkg))))))
       (package-download-transaction transaction)
-    (message "‘%s’ is already installed" (package-desc-full-name pkg))))
+    (message "`%s' is already installed" (package-desc-full-name pkg))))
 
 (defun package-strip-rcs-id (str)
   "Strip RCS version ID from the version string STR.
@@ -1982,7 +2001,7 @@ If some packages are not installed propose to install them."
   ;; using here, because the outcome is the same either way (nothing
   ;; gets installed).
   (if (not package-selected-packages)
-      (message "‘package-selected-packages’ is empty, nothing to install")
+      (message "`package-selected-packages' is empty, nothing to install")
     (cl-loop for p in package-selected-packages
              unless (package-installed-p p)
              collect p into lst
@@ -2047,13 +2066,13 @@ If NOSAVE is non-nil, the package is not removed from
                                   (expand-file-name package-user-dir))
                                  (expand-file-name dir)))
            ;; Don't delete "system" packages.
-           (error "Package ‘%s’ is a system package, not deleting"
+           (error "Package `%s' is a system package, not deleting"
                   (package-desc-full-name pkg-desc)))
           ((and (null force)
                 (setq pkg-used-elsewhere-by
                       (package--used-elsewhere-p pkg-desc)))
            ;; Don't delete packages used as dependency elsewhere.
-           (error "Package ‘%s’ is used by ‘%s’ as dependency, not deleting"
+           (error "Package `%s' is used by `%s' as dependency, not deleting"
                   (package-desc-full-name pkg-desc)
                   (package-desc-name pkg-used-elsewhere-by)))
           (t
@@ -2068,7 +2087,7 @@ If NOSAVE is non-nil, the package is not removed from
              (delete pkg-desc pkgs)
              (unless (cdr pkgs)
                (setq package-alist (delq pkgs package-alist))))
-           (message "Package ‘%s’ deleted." (package-desc-full-name pkg-desc))))))
+           (message "Package `%s' deleted." (package-desc-full-name pkg-desc))))))
 
 ;;;###autoload
 (defun package-reinstall (pkg)
@@ -2097,7 +2116,8 @@ will be deleted."
   ;; do absolutely nothing.
   (when (or package-selected-packages
             (yes-or-no-p
-             "‘package-selected-packages’ is empty! Really remove ALL packages? "))
+             (format-message
+              "`package-selected-packages' is empty! Really remove ALL packages? ")))
     (let ((removable (package--removable-packages)))
       (if removable
           (when (y-or-n-p
@@ -2144,7 +2164,7 @@ will be deleted."
       (with-current-buffer standard-output
         (describe-package-1 package)))))
 
-(defface package-help-section-name-face
+(defface package-help-section-name
   '((t :inherit (bold font-lock-function-name-face)))
   "Face used on section names in package description buffers."
   :version "25.1")
@@ -2155,7 +2175,7 @@ If more STRINGS are provided, insert them followed by a newline.
 Otherwise no newline is inserted."
   (declare (indent 1))
   (insert (make-string (max 0 (- 11 (string-width name))) ?\s)
-          (propertize (concat name ": ") 'font-lock-face 'package-help-section-name-face))
+          (propertize (concat name ": ") 'font-lock-face 'package-help-section-name))
   (when strings
     (apply #'insert strings)
     (insert "\n")))
@@ -2205,7 +2225,7 @@ Otherwise no newline is inserted."
                                    "Installed"
                                  (capitalize status))
                                'font-lock-face 'package-status-builtin-face))
-           (insert (substitute-command-keys " in ‘"))
+           (insert (substitute-command-keys " in `"))
            (let ((dir (abbreviate-file-name
                        (file-name-as-directory
                         (if (file-in-directory-p pkg-dir package-user-dir)
@@ -2215,10 +2235,10 @@ Otherwise no newline is inserted."
            (if (and (package-built-in-p name)
                     (not (package-built-in-p name version)))
                (insert (substitute-command-keys
-                        "’,\n             shadowing a ")
+                        "',\n             shadowing a ")
                        (propertize "built-in package"
                                    'font-lock-face 'package-status-builtin-face))
-             (insert (substitute-command-keys "’")))
+             (insert (substitute-command-keys "'")))
            (if signed
                (insert ".")
              (insert " (unsigned)."))
@@ -2366,7 +2386,7 @@ Otherwise no newline is inserted."
 
 (defun package-install-button-action (button)
   (let ((pkg-desc (button-get button 'package-desc)))
-    (when (y-or-n-p (format-message "Install package ‘%s’? "
+    (when (y-or-n-p (format-message "Install package `%s'? "
                                     (package-desc-full-name pkg-desc)))
       (package-install pkg-desc nil)
       (revert-buffer nil t)
@@ -2374,7 +2394,7 @@ Otherwise no newline is inserted."
 
 (defun package-delete-button-action (button)
   (let ((pkg-desc (button-get button 'package-desc)))
-    (when (y-or-n-p (format-message "Delete package ‘%s’? "
+    (when (y-or-n-p (format-message "Delete package `%s'? "
                                     (package-desc-full-name pkg-desc)))
       (package-delete pkg-desc)
       (revert-buffer nil t)
@@ -2759,68 +2779,68 @@ Return (PKG-DESC [NAME VERSION STATUS DOC])."
 
 
 ;;; Package menu faces
-(defface package-name-face
+(defface package-name
   '((t :inherit link))
   "Face used on package names in the package menu."
   :version "25.1")
 
-(defface package-description-face
+(defface package-description
   '((t :inherit default))
   "Face used on package description summaries in the package menu."
   :version "25.1")
 
-(defface package-status-built-in-face
+(defface package-status-built-in
   '((t :inherit font-lock-builtin-face))
   "Face used on the status and version of built-in packages."
   :version "25.1")
 
-(defface package-status-external-face
+(defface package-status-external
   '((t :inherit package-status-builtin-face))
   "Face used on the status and version of external packages."
   :version "25.1")
 
-(defface package-status-available-face
+(defface package-status-available
   '((t :inherit default))
   "Face used on the status and version of available packages."
   :version "25.1")
 
-(defface package-status-new-face
-  '((t :inherit (bold package-status-available-face)))
+(defface package-status-new
+  '((t :inherit (bold package-status-available)))
   "Face used on the status and version of new packages."
   :version "25.1")
 
-(defface package-status-held-face
+(defface package-status-held
   '((t :inherit font-lock-constant-face))
   "Face used on the status and version of held packages."
   :version "25.1")
 
-(defface package-status-disabled-face
+(defface package-status-disabled
   '((t :inherit font-lock-warning-face))
   "Face used on the status and version of disabled packages."
   :version "25.1")
 
-(defface package-status-installed-face
+(defface package-status-installed
   '((t :inherit font-lock-comment-face))
   "Face used on the status and version of installed packages."
   :version "25.1")
 
-(defface package-status-dependency-face
-  '((t :inherit package-status-installed-face))
+(defface package-status-dependency
+  '((t :inherit package-status-installed))
   "Face used on the status and version of dependency packages."
   :version "25.1")
 
-(defface package-status-unsigned-face
+(defface package-status-unsigned
   '((t :inherit font-lock-warning-face))
   "Face used on the status and version of unsigned packages."
   :version "25.1")
 
-(defface package-status-incompat-face
+(defface package-status-incompat
   '((t :inherit font-lock-comment-face))
   "Face used on the status and version of incompat packages."
   :version "25.1")
 
-(defface package-status-avail-obso-face
-  '((t :inherit package-status-incompat-face))
+(defface package-status-avail-obso
+  '((t :inherit package-status-incompat))
   "Face used on the status and version of avail-obso packages."
   :version "25.1")
 
@@ -2832,22 +2852,22 @@ PKG is a package-desc object.
 Return (PKG-DESC [NAME VERSION STATUS DOC])."
   (let* ((status  (package-desc-status pkg))
          (face (pcase status
-                 (`"built-in"  'package-status-built-in-face)
-                 (`"external"  'package-status-external-face)
-                 (`"available" 'package-status-available-face)
-                 (`"avail-obso" 'package-status-avail-obso-face)
-                 (`"new"       'package-status-new-face)
-                 (`"held"      'package-status-held-face)
-                 (`"disabled"  'package-status-disabled-face)
-                 (`"installed" 'package-status-installed-face)
-                 (`"dependency" 'package-status-dependency-face)
-                 (`"unsigned"  'package-status-unsigned-face)
-                 (`"incompat"  'package-status-incompat-face)
+                 (`"built-in"  'package-status-built-in)
+                 (`"external"  'package-status-external)
+                 (`"available" 'package-status-available)
+                 (`"avail-obso" 'package-status-avail-obso)
+                 (`"new"       'package-status-new)
+                 (`"held"      'package-status-held)
+                 (`"disabled"  'package-status-disabled)
+                 (`"installed" 'package-status-installed)
+                 (`"dependency" 'package-status-dependency)
+                 (`"unsigned"  'package-status-unsigned)
+                 (`"incompat"  'package-status-incompat)
                  (_            'font-lock-warning-face)))) ; obsolete.
     (list pkg
           `[(,(symbol-name (package-desc-name pkg))
-             face package-name-face
-             font-lock-face package-name-face
+             face package-name
+             font-lock-face package-name
              follow-link t
              package-desc ,pkg
              action package-menu-describe-package)
@@ -2859,7 +2879,7 @@ Return (PKG-DESC [NAME VERSION STATUS DOC])."
                   (list (propertize (or (package-desc-archive pkg) "")
                                     'font-lock-face face)))
             ,(propertize (package-desc-summary pkg)
-                         'font-lock-face 'package-description-face)])))
+                         'font-lock-face 'package-description)])))
 
 (defvar package-menu--old-archive-contents nil
   "`package-archive-contents' before the latest refresh.")
@@ -2893,8 +2913,8 @@ If optional arg BUTTON is non-nil, describe its associated package."
            (cl-remove-if-not (lambda (e) (string-match re (symbol-name (car e))))
                              package-archive-contents)))
       (message (substitute-command-keys
-                (concat "Hiding %s packages, type ‘\\[package-menu-toggle-hiding]’"
-                        " to toggle or ‘\\[customize-variable] RET package-hidden-regexps’"
+                (concat "Hiding %s packages, type `\\[package-menu-toggle-hiding]'"
+                        " to toggle or `\\[customize-variable] RET package-hidden-regexps'"
                         " to customize it"))
         (length hidden)))))
 
@@ -3078,7 +3098,7 @@ prompt (see `package-menu--prompt-transaction-p')."
       (length packages)
       (mapconcat #'package-desc-full-name packages ", ")))
    ;; Exactly 1
-   (t (format-message "package ‘%s’"
+   (t (format-message "package `%s'"
                       (package-desc-full-name (car packages))))))
 
 (defun package-menu--prompt-transaction-p (delete install upgrade)
@@ -3134,7 +3154,7 @@ objects removed."
       (condition-case-unless-debug err
           (let ((inhibit-message package-menu-async))
             (package-delete elt nil 'nosave))
-        (error (message "Error trying to delete ‘%s’: %S"
+        (error (message "Error trying to delete `%s': %S"
                  (package-desc-full-name elt)
                  err))))))
 
@@ -3265,7 +3285,7 @@ Store this list in `package-menu--new-package-list'."
 (defun package-menu--find-and-notify-upgrades ()
   "Notify the user of upgradable packages."
   (when-let ((upgrades (package-menu--find-upgrades)))
-    (message "%d package%s can be upgraded; type ‘%s’ to mark %s for upgrading."
+    (message "%d package%s can be upgraded; type `%s' to mark %s for upgrading."
       (length upgrades)
       (if (= (length upgrades) 1) "" "s")
       (substitute-command-keys "\\[package-menu-mark-upgrades]")

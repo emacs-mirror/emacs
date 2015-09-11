@@ -252,14 +252,6 @@ If SEQ is empty, return INITIAL-VALUE and FUNCTION is not called."
         (setq acc (funcall function acc elt)))
       acc)))
 
-(cl-defgeneric seq-some-p (pred seq)
-  "Return any element for which (PRED element) is non-nil in SEQ, nil otherwise."
-  (catch 'seq--break
-    (seq-doseq (elt seq)
-      (when (funcall pred elt)
-        (throw 'seq--break elt)))
-    nil))
-
 (cl-defgeneric seq-every-p (pred seq)
   "Return non-nil if (PRED element) is non-nil for all elements of the sequence SEQ."
   (catch 'seq--break
@@ -267,6 +259,16 @@ If SEQ is empty, return INITIAL-VALUE and FUNCTION is not called."
       (or (funcall pred elt)
           (throw 'seq--break nil)))
     t))
+
+(cl-defgeneric seq-some (pred seq)
+  "Return non-nil if (PRED element) is non-nil for any element in SEQ, nil otherwise.
+If so, return the non-nil value returned by PRED."
+  (catch 'seq--break
+    (seq-doseq (elt seq)
+      (let ((result (funcall pred elt)))
+        (when result
+          (throw 'seq--break result))))
+    nil))
 
 (cl-defgeneric seq-count (pred seq)
   "Return the number of elements for which (PRED element) is non-nil in SEQ."
@@ -276,19 +278,19 @@ If SEQ is empty, return INITIAL-VALUE and FUNCTION is not called."
         (setq count (+ 1 count))))
     count))
 
-(cl-defgeneric seq-contains-p (seq elt &optional testfn)
+(cl-defgeneric seq-contains (seq elt &optional testfn)
   "Return the first element in SEQ that equals to ELT.
 Equality is defined by TESTFN if non-nil or by `equal' if nil."
-  (seq-some-p (lambda (e)
-                (funcall (or testfn #'equal) elt e))
-              seq))
+  (seq-some (lambda (e)
+              (funcall (or testfn #'equal) elt e))
+            seq))
 
 (cl-defgeneric seq-uniq (seq &optional testfn)
   "Return a list of the elements of SEQ with duplicates removed.
 TESTFN is used to compare elements, or `equal' if TESTFN is nil."
   (let ((result '()))
     (seq-doseq (elt seq)
-      (unless (seq-contains-p result elt testfn)
+      (unless (seq-contains result elt testfn)
         (setq result (cons elt result))))
     (nreverse result)))
 
@@ -313,7 +315,7 @@ negative integer or 0, nil is returned."
   "Return a list of the elements that appear in both SEQ1 and SEQ2.
 Equality is defined by TESTFN if non-nil or by `equal' if nil."
   (seq-reduce (lambda (acc elt)
-                (if (seq-contains-p seq2 elt testfn)
+                (if (seq-contains seq2 elt testfn)
                     (cons elt acc)
                   acc))
               (seq-reverse seq1)
@@ -323,7 +325,7 @@ Equality is defined by TESTFN if non-nil or by `equal' if nil."
   "Return a list of the elements that appear in SEQ1 but not in SEQ2.
 Equality is defined by TESTFN if non-nil or by `equal' if nil."
   (seq-reduce (lambda (acc elt)
-                (if (not (seq-contains-p seq2 elt testfn))
+                (if (not (seq-contains seq2 elt testfn))
                     (cons elt acc)
                   acc))
               (seq-reverse seq1)
@@ -415,13 +417,7 @@ If no element is found, return nil."
     (nreverse result)))
 
 (cl-defmethod seq-drop-while (pred (list list))
-  "Optimized implementation of `seq-drop-while' for lists"
-  (while (and list (funcall pred (car list)))
-    (setq list (cdr list)))
-  list)
-
-(cl-defmethod seq-drop-while (pred (list list))
-  "Optimized implementation of `seq-drop-while' for lists"
+  "Optimized implementation of `seq-drop-while' for lists."
   (while (and list (funcall pred (car list)))
     (setq list (cdr list)))
   list)

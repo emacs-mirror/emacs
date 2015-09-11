@@ -1131,7 +1131,7 @@ Presets to impersonate popular mail agents are found in the
 message-cite-style-* variables.  This variable is intended for
 use in `gnus-posting-styles', such as:
 
-  ((posting-from-work-p) (eval (set (make-local-variable 'message-cite-style) message-cite-style-outlook)))"
+  ((posting-from-work-p) (eval (set (make-local-variable \\='message-cite-style) message-cite-style-outlook)))"
   :version "24.1"
   :group 'message-insertion
   :type '(choice (const :tag "Do not override variables" :value nil)

@@ -1456,7 +1456,8 @@ Useful commands:
 	  (map-extents 'delete-extent)
        (mapc 'delete-overlay (overlays-in 1 1)))
 
-      (insert "This is a registry of all active Ediff sessions.
+      (insert (substitute-command-keys "\
+This is a registry of all active Ediff sessions.
 
 Useful commands:
      button2, `v', RET over a session record:  switch to that session
@@ -1471,7 +1472,7 @@ Useful commands:
 \t\tActive Ediff Sessions:
 \t\t----------------------
 
-")
+"))
       ;; purge registry list from dead buffers
       (mapc (lambda (elt)
 	      (if (not (ediff-buffer-live-p elt))

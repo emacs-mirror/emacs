@@ -270,8 +270,10 @@ matching the resulting Git log output, and KEYWORDS is a list of
          (disp-rev (or (vc-git--symbolic-ref file)
                        (substring rev 0 7)))
          (def-ml (vc-default-mode-line-string 'Git file))
-         (help-echo (get-text-property 0 'help-echo def-ml)))
+         (help-echo (get-text-property 0 'help-echo def-ml))
+         (face   (get-text-property 0 'face def-ml)))
     (propertize (replace-regexp-in-string (concat rev "\\'") disp-rev def-ml t t)
+                'face face
                 'help-echo (concat help-echo "\nCurrent revision: " rev))))
 
 (cl-defstruct (vc-git-extra-fileinfo

@@ -1867,10 +1867,10 @@ cleaning up these problems."
 	      (when has-bogus
 		(goto-char (point-max))
 		(insert (substitute-command-keys
-                         " Type ‘\\[whitespace-cleanup]’")
+                         " Type `\\[whitespace-cleanup]'")
 			" to cleanup the buffer.\n\n"
 			(substitute-command-keys
-                         " Type ‘\\[whitespace-cleanup-region]’")
+                         " Type `\\[whitespace-cleanup-region]'")
 			" to cleanup a region.\n\n"))
 	      (whitespace-display-window (current-buffer)))))
 	has-bogus))))
@@ -1931,13 +1931,13 @@ cleaning up these problems."
 
 
 (defun whitespace-mark-x (nchars condition)
-  "Insert the mark (‘X’ or ‘ ’) after NCHARS depending on CONDITION."
+  "Insert the mark (`X' or ` ') after NCHARS depending on CONDITION."
   (forward-char nchars)
   (insert (if condition "X" " ")))
 
 
 (defun whitespace-insert-option-mark (the-list the-value)
-  "Insert the option mark (‘X’ or ‘ ’) in toggle options buffer."
+  "Insert the option mark (`X' or ` ') in toggle options buffer."
   (goto-char (point-min))
   (forward-line 2)
   (dolist (sym  the-list)

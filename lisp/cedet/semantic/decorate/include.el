@@ -540,7 +540,7 @@ For C/C++ includes located within a project, you can use a special
 EDE project that will wrap an existing build system.  You can do that
 like this in your .emacs file:
 
-  (ede-cpp-root-project \"NAME\" :file \"FILENAME\" :locate-fcn 'MYFCN)
+  (ede-cpp-root-project \"NAME\" :file \"FILENAME\" :locate-fcn \\='MYFCN)
 
 See the CEDET manual, the EDE manual, or the commentary in
 ede/cpp-root.el for more.

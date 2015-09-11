@@ -634,7 +634,7 @@ move into or out of sexps (not even normal expression parentheses).
 
 If point is already at the earliest statement within braces or parens,
 this function doesn't move back into any whitespace preceding it; it
-returns 'same in this case.
+returns `same' in this case.
 
 Stop at statement continuation tokens like \"else\", \"catch\",
 \"finally\" and the \"while\" in \"do ... while\" if the start point
@@ -656,19 +656,19 @@ start of the definition in a \"#define\".  Also stop at start of
 macros before leaving them.
 
 Return:
-'label          if stopped at a label or \"case...:\" or \"default:\";
-'same           if stopped at the beginning of the current statement;
-'up             if stepped to a containing statement;
-'previous       if stepped to a preceding statement;
-'beginning      if stepped from a statement continuation clause to
+`label'         if stopped at a label or \"case...:\" or \"default:\";
+`same'          if stopped at the beginning of the current statement;
+`up'            if stepped to a containing statement;
+`previous'      if stepped to a preceding statement;
+`beginning'     if stepped from a statement continuation clause to
                 its start clause; or
-'macro          if stepped to a macro start.
-Note that 'same and not 'label is returned if stopped at the same
+`macro'         if stepped to a macro start.
+Note that `same' and not `label' is returned if stopped at the same
 label without crossing the colon character.
 
 LIM may be given to limit the search.  If the search hits the limit,
 point will be left at the closest following token, or at the start
-position if that is less ('same is returned in this case).
+position if that is less (`same' is returned in this case).
 
 NOERROR turns off error logging to `c-parsing-error'.
 

@@ -273,43 +273,48 @@ per-character basis, this may not be accurate."
 	((not enable-multibyte-characters)
 	 ;; Maybe there's a font for it, but we can't put it in the buffer.
 	 nil)
-	((display-multi-font-p)
-	 ;; On a window system, a character is displayable if we have
-	 ;; a font for that character in the default face of the
-	 ;; currently selected frame.
-	 (car (internal-char-font nil char)))
 	(t
-	 ;; On a terminal, a character is displayable if the coding
-	 ;; system for the terminal can encode it.
-	 (let ((coding (terminal-coding-system)))
-	   (when coding
-	     (let ((cs-list (coding-system-get coding :charset-list)))
-	       (cond
-		 ((listp cs-list)
-		  (catch 'tag
-		    (mapc #'(lambda (charset)
-			      (if (encode-char char charset)
-				  (throw 'tag charset)))
-			  cs-list)
-		    nil))
-		 ((eq cs-list 'iso-2022)
-		  (catch 'tag2
-		    (mapc #'(lambda (charset)
-			      (if (and (plist-get (charset-plist charset)
-						  :iso-final-char)
-				       (encode-char char charset))
-				  (throw 'tag2 charset)))
-			  charset-list)
-		    nil))
-		 ((eq cs-list 'emacs-mule)
-		  (catch 'tag3
-		    (mapc #'(lambda (charset)
-			      (if (and (plist-get (charset-plist charset)
-						  :emacs-mule-id)
-				       (encode-char char charset))
-				  (throw 'tag3 charset)))
-			  charset-list)
-		    nil)))))))))
+	 (let ((font-glyph (internal-char-font nil char)))
+	   (if font-glyph
+	       (if (consp font-glyph)
+		   ;; On a window system, a character is displayable
+		   ;; if a font for that character is in the default
+		   ;; face of the currently selected frame.
+		   (car font-glyph)
+		 ;; On a text terminal supporting glyph codes, CHAR is
+		 ;; displayable if its glyph code is nonnegative.
+		 (<= 0 font-glyph))
+	     ;; On a teext terminal without glyph codes, CHAR is displayable
+	     ;; if the coding system for the terminal can encode it.
+	     (let ((coding (terminal-coding-system)))
+	       (when coding
+		 (let ((cs-list (coding-system-get coding :charset-list)))
+		   (cond
+		    ((listp cs-list)
+		     (catch 'tag
+		       (mapc #'(lambda (charset)
+				 (if (encode-char char charset)
+				     (throw 'tag charset)))
+			     cs-list)
+		       nil))
+		    ((eq cs-list 'iso-2022)
+		     (catch 'tag2
+		       (mapc #'(lambda (charset)
+				 (if (and (plist-get (charset-plist charset)
+						     :iso-final-char)
+					  (encode-char char charset))
+				     (throw 'tag2 charset)))
+			     charset-list)
+		       nil))
+		    ((eq cs-list 'emacs-mule)
+		     (catch 'tag3
+		       (mapc #'(lambda (charset)
+				 (if (and (plist-get (charset-plist charset)
+						     :emacs-mule-id)
+					  (encode-char char charset))
+				     (throw 'tag3 charset)))
+			     charset-list)
+		       nil)))))))))))
 
 (defun filepos-to-bufferpos--dos (byte f)
   (let ((eol-offset 0)

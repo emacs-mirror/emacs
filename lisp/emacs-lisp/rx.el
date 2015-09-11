@@ -324,7 +324,7 @@ a standalone symbol."
 (defun rx-check (form)
   "Check FORM according to its car's parsing info."
   (unless (listp form)
-    (error "rx ‘%s’ needs argument(s)" form))
+    (error "rx `%s' needs argument(s)" form))
   (let* ((rx (rx-info (car form) 'head))
 	 (nargs (1- (length form)))
 	 (min-args (nth 1 rx))
@@ -332,16 +332,16 @@ a standalone symbol."
 	 (type-pred (nth 3 rx)))
     (when (and (not (null min-args))
 	       (< nargs min-args))
-      (error "rx form ‘%s’ requires at least %d args"
+      (error "rx form `%s' requires at least %d args"
 	     (car form) min-args))
     (when (and (not (null max-args))
 	       (> nargs max-args))
-      (error "rx form ‘%s’ accepts at most %d args"
+      (error "rx form `%s' accepts at most %d args"
 	     (car form) max-args))
     (when (not (null type-pred))
       (dolist (sub-form (cdr form))
 	(unless (funcall type-pred sub-form)
-	  (error "rx form ‘%s’ requires args satisfying ‘%s’"
+	  (error "rx form `%s' requires args satisfying `%s'"
 		 (car form) type-pred))))))
 
 
@@ -395,7 +395,7 @@ FORM is of the form `(and FORM1 ...)'."
 (defun rx-anything (form)
   "Match any character."
   (if (consp form)
-      (error "rx ‘anything’ syntax error: %s" form))
+      (error "rx `anything' syntax error: %s" form))
   (rx-or (list 'or 'not-newline ?\n)))
 
 
@@ -452,7 +452,7 @@ Only both edges of each range is checked."
   (let ((i 0)
 	c1 c2 l)
     (if (= 0 (length str))
-	(error "String arg for Rx ‘any’ must not be empty"))
+	(error "String arg for Rx `any' must not be empty"))
     (while (string-match ".-." str i)
       ;; string before range: convert it to characters
       (if (< i (match-beginning 0))
@@ -482,13 +482,13 @@ Only both edges of each range is checked."
 			  (error nil))))
        (if (or (null translation)
 	       (null (string-match "\\`\\[\\[:[-a-z]+:\\]\\]\\'" translation)))
-	   (error "Invalid char class ‘%s’ in Rx ‘any’" arg))
+	   (error "Invalid char class `%s' in Rx `any'" arg))
        (list (substring translation 1 -1)))) ; strip outer brackets
     ((and (integerp (car-safe arg)) (integerp (cdr-safe arg)))
      (list arg))
     ((stringp arg) (rx-check-any-string arg))
     ((error
-      "rx ‘any’ requires string, character, char pair or char class args"))))
+      "rx `any' requires string, character, char pair or char class args"))))
 
 
 (defun rx-any (form)
@@ -581,7 +581,7 @@ ARG is optional."
 	      (eq arg 'word-boundary)
 	      (and (consp arg)
 		   (memq (car arg) '(not any in syntax category))))
-    (error "rx ‘not’ syntax error: %s" arg))
+    (error "rx `not' syntax error: %s" arg))
   t)
 
 
@@ -640,7 +640,7 @@ If SKIP is non-nil, allow that number of items after the head, i.e.
   (setq form (rx-trans-forms form 1))
   (unless (and (integerp (nth 1 form))
 	       (> (nth 1 form) 0))
-    (error "rx ‘=’ requires positive integer first arg"))
+    (error "rx `=' requires positive integer first arg"))
   (format "%s\\{%d\\}" (rx-form (nth 2 form) '*) (nth 1 form)))
 
 
@@ -650,7 +650,7 @@ If SKIP is non-nil, allow that number of items after the head, i.e.
   (setq form (rx-trans-forms form 1))
   (unless (and (integerp (nth 1 form))
 	       (> (nth 1 form) 0))
-    (error "rx ‘>=’ requires positive integer first arg"))
+    (error "rx `>=' requires positive integer first arg"))
   (format "%s\\{%d,\\}" (rx-form (nth 2 form) '*) (nth 1 form)))
 
 
@@ -671,14 +671,14 @@ FORM is either `(repeat N FORM1)' or `(repeat N M FORMS...)'."
   (cond ((= (length form) 3)
 	 (unless (and (integerp (nth 1 form))
 		      (> (nth 1 form) 0))
-	   (error "rx ‘repeat’ requires positive integer first arg"))
+	   (error "rx `repeat' requires positive integer first arg"))
 	 (format "%s\\{%d\\}" (rx-form (nth 2 form) '*) (nth 1 form)))
 	((or (not (integerp (nth 2 form)))
 	     (< (nth 2 form) 0)
 	     (not (integerp (nth 1 form)))
 	     (< (nth 1 form) 0)
 	     (< (nth 2 form) (nth 1 form)))
-	 (error "rx ‘repeat’ range error"))
+	 (error "rx `repeat' range error"))
 	(t
 	 (format "%s\\{%d,%d\\}" (rx-form (nth 3 form) '*)
 		 (nth 1 form) (nth 2 form)))))
@@ -713,7 +713,7 @@ FORM is either `(repeat N FORM1)' or `(repeat N M FORMS...)'."
 (defun rx-check-backref (arg)
   "Check arg ARG for Rx `backref'."
   (or (and (integerp arg) (>= arg 1) (<= arg 9))
-      (error "rx ‘backref’ requires numeric 1<=arg<=9: %s" arg)))
+      (error "rx `backref' requires numeric 1<=arg<=9: %s" arg)))
 
 (defun rx-kleene (form)
   "Parse and produce code from FORM.
@@ -786,7 +786,7 @@ of all atomic regexps."
           (if (= 1 (length name))
               (setq syntax (aref name 0))))))
       (unless syntax
-	(error "Unknown rx syntax ‘%s’" sym)))
+	(error "Unknown rx syntax `%s'" sym)))
     (format "\\s%c" syntax)))
 
 
@@ -794,7 +794,7 @@ of all atomic regexps."
   "Check the argument FORM of a `(category FORM)'."
   (unless (or (integerp form)
 	      (cdr (assq form rx-categories)))
-    (error "Unknown category ‘%s’" form))
+    (error "Unknown category `%s'" form))
   t)
 
 
@@ -846,16 +846,16 @@ shy groups around the result and some more in other functions."
       (cond ((stringp info)
              info)
             ((null info)
-             (error "Unknown rx form ‘%s’" form))
+             (error "Unknown rx form `%s'" form))
             (t
              (funcall (nth 0 info) form)))))
    ((consp form)
     (let ((info (rx-info (car form) 'head)))
       (unless (consp info)
-        (error "Unknown rx form ‘%s’" (car form)))
+        (error "Unknown rx form `%s'" (car form)))
       (funcall (nth 0 info) form)))
    (t
-    (error "rx syntax error at ‘%s’" form))))
+    (error "rx syntax error at `%s'" form))))
 
 
 ;;;###autoload

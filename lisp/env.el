@@ -175,7 +175,7 @@ a side-effect."
       (let ((codings (find-coding-systems-string (concat variable value))))
 	(unless (or (eq 'undecided (car codings))
 		    (memq (coding-system-base locale-coding-system) codings))
-	  (error "Can't encode ‘%s=%s’ with ‘locale-coding-system’"
+	  (error "Can't encode `%s=%s' with `locale-coding-system'"
 		 variable (or value "")))))
   (and value
        substitute-env-vars
@@ -185,7 +185,7 @@ a side-effect."
   (if (and value (multibyte-string-p value))
       (setq value (encode-coding-string value locale-coding-system)))
   (if (string-match "=" variable)
-      (error "Environment variable name ‘%s’ contains ‘=’" variable))
+      (error "Environment variable name `%s' contains `='" variable))
   (if (string-equal "TZ" variable)
       (set-time-zone-rule value))
   (setq process-environment (setenv-internal process-environment

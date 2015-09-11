@@ -652,7 +652,7 @@ SORT-PRED if desired."
     (set-buffer b)
     (erase-buffer)
     (insert "cd " d ";du -sk * \n")
-    (message "Running ‘cd %s;du -sk *’..." d)
+    (message "Running `cd %s;du -sk *'..." d)
     (call-process-region (point-min) (point-max) shell-file-name t
 			 (current-buffer) nil)
     (goto-char (point-min))

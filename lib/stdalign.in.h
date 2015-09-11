@@ -64,7 +64,9 @@
 #  define _Alignof(type) offsetof (struct { char __a; type __b; }, __b)
 # endif
 #endif
-#define alignof _Alignof
+#if ! (defined __cplusplus && 201103 <= __cplusplus)
+# define alignof _Alignof
+#endif
 #define __alignof_is_defined 1
 
 /* alignas (A), also known as _Alignas (A), aligns a variable or type
@@ -105,8 +107,11 @@
 #  define _Alignas(a) __declspec (align (a))
 # endif
 #endif
-#if defined _Alignas || (defined __STDC_VERSION && 201112 <= __STDC_VERSION__)
+#if ((defined _Alignas && ! (defined __cplusplus && 201103 <= __cplusplus)) \
+     || (defined __STDC_VERSION && 201112 <= __STDC_VERSION__))
 # define alignas _Alignas
+#endif
+#if defined alignas || (defined __cplusplus && 201103 <= __cplusplus)
 # define __alignas_is_defined 1
 #endif
 

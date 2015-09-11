@@ -40,7 +40,7 @@ For on-demand loading of external libraries, @pxref{Dynamic Libraries}.
 * Repeated Loading::        Precautions about loading a file twice.
 * Named Features::          Loading a library if it isn't already loaded.
 * Where Defined::           Finding which file defined a certain symbol.
-* Unloading::               How to "unload" a library that was loaded.
+* Unloading::               How to ``unload'' a library that was loaded.
 * Hooks for Loading::       Providing code to be run when
                               particular libraries are loaded.
 @end menu

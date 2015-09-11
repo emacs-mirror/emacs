@@ -2850,7 +2850,7 @@ then the filename reader will only accept a file that exists.
 
 A typical use:
  (interactive (comint-get-source \"Compile file: \" prev-lisp-dir/file
-                                 '(lisp-mode) t))"
+                                 \\='(lisp-mode) t))"
   (let* ((def (comint-source-default prev-dir/file source-modes))
 	 (stringfile (comint-extract-string))
 	 (sfile-p (and stringfile

@@ -1,3 +1,635 @@
+2015-09-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Spelling fix (Bug#21420)
+
+2015-09-05  Nicolas Petton  <nicolas@petton.fr>
+
+	Improve the semantic of map-some
+	Update map-some to return the returned by the predicate, similar to
+	seq-some.
+	* lisp/emacs-lisp/map.el (map-some): Update the function to return the
+	  return value of the predicate.
+	* test/automated/map-tests.el (test-map-some): Update the test to check
+	  for non-nil values only.
+
+	Rename map-contains-key-p and map-some-p
+	Remove the "-p" suffix from both function names.
+	* lisp/emacs-lisp/map.el (map-contains-key, map-some): Rename the functions.
+	* test/automated/map-tests.el (test-map-contains-key, test-map-some):
+	  Update both test functions.
+
+	Improve the semantic of seq-some
+	Update seq-some to return non-nil if the predicate returns non-nil for
+	any element of the seq, in which case the returned value is the one
+	returned by the predicate.
+	* lisp/emacs-lisp/seq.el (seq-some): Update the function and its
+	  docstring.
+	* test/automated/seq-tests.el (test-seq-some): Add a regression test.
+	* doc/lispref/sequences.texi (Sequence Functions): Update the
+	  documentation for seq-some.
+
+	Rename seq-some-p to seq-some and seq-contains-p to seq-contains
+	* lisp/emacs-lisp/seq.el (seq-some, seq-contains): Rename the functions
+	  without the "-p" prefix.
+	* test/automated/seq-tests.el (test-seq-some, test-seq-contains): Update
+	  the tests accordingly.
+	* doc/lispref/sequences.texi (Sequence Functions): Update the
+	  documentation for seq.el.
+
+2015-09-05  Paul Eggert  <eggert@Penguin.CS.UCLA.EDU>
+
+	text-quoting-style for usage of fn names with ‘’
+	* lisp/help.el (help--docstring-quote): Don’t assume
+	text-quoting-style is ‘curve’ when generating usage strings for
+	functions whose names contain curved quotes.
+
+2015-09-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix fix for describe-function keybinding confusion
+	This fixes a bug introduced by the previous patch.
+	* lisp/help-fns.el (help-fns--signature):
+	Last arg of help-fns--signature is now a buffer, or nil if a
+	raw signature is wanted.  All callers changed.
+	(describe-function-1): Use this to do the right thing with signatures.
+
+2015-09-05  Johan Bockgård  <bojohan@gnu.org>
+
+	* doc/lispref/frames.texi (Mouse Tracking): Fix typo.
+
+	Use PAT rather than UPAT in pcase macros
+	* lisp/emacs-lisp/cl-macs.el (cl-struct) <pcase-defmacro>:
+	* lisp/emacs-lisp/eieio.el (eieio) <pcase-defmacro>: Use PAT rather
+	  than UPAT.
+
+2015-09-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix describe-function keybinding confusion
+	* lisp/help-fns.el (describe-function-1): Compute signature
+	in the original buffer, not in standard-output, so that
+	substitute-command-keys uses the proper keybindings.
+	This fixes Bug#21412, introduced in commit
+	2015-06-11T10:23:46-0700!eggert@cs.ucla.edu.
+
+2015-09-05  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* doc/emacs/programs.texi (Program Modes): Remove an index entry.
+
+2015-09-05  Robert Pluim  <rpluim@gmail.com>  (tiny change)
+
+	Avoid read error messages from 'inotify'
+	* src/process.c (wait_reading_process_output): Add a
+	'tls_available' set and manipulate it instead of 'Available' when
+	checking TLS inputs.  Assign the value to 'Available' only if we
+	find any TLS data waiting to be read.  This avoids error messages
+	from 'inotify' that tries to read data it shouldn't.  (Bug#21337)
+
+2015-09-05  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid errors in thing-at-point with 2nd argument non-nil
+	* lisp/thingatpt.el (thing-at-point): Only call 'length' on
+	sequences.  (Bug#21391)
+
+2015-09-05  Philip  <pipcet@gmail.com>  (tiny change)
+
+	Fix segfaults due to using a stale face ID
+	* src/xdisp.c (forget_escape_and_glyphless_faces): New function.
+	(display_echo_area_1, redisplay_internal): Call it to avoid
+	reusing stale face IDs for 'escape-glyph' and 'glyphless-char'
+	faces, which could case a segfault if the frame's face cache was
+	freed since the last redisplay.  (Bug#21394)
+	* src/xfaces.c (free_realized_faces): Call forget_escape_and_glyphless_faces.
+	* src/dispextern.h (forget_escape_and_glyphless_faces): Add prototype.
+
+2015-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems with " in manual
+
+2015-09-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* doc/misc/tramp.texi (Frequently Asked Questions): New item for ad-hoc
+	multi-hop files.
+
+2015-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Support automated ‘make check’ in non-C locale
+	This lets the builder optionally test Emacs behavior in other locales.
+	The C locale is still the default for tests.
+	* test/automated/Makefile.in (TEST_LOCALE): New macro.
+	(emacs): Use it.
+	* test/automated/flymake-tests.el (flymake-tests--current-face):
+	Use C locale for subprocesses so that tests behave as expected.
+	* test/automated/python-tests.el:
+	(python-shell-prompt-validate-regexps-1)
+	(python-shell-prompt-validate-regexps-2)
+	(python-shell-prompt-validate-regexps-3)
+	(python-shell-prompt-validate-regexps-4)
+	(python-shell-prompt-validate-regexps-5)
+	(python-shell-prompt-validate-regexps-6)
+	(python-shell-prompt-set-calculated-regexps-1):
+	Adjust expected output to match locale.
+	* test/automated/tildify-tests.el (tildify-test--test)
+	(tildify-space-test--test, tildify-space-undo-test--test):
+	This test assumes UTF-8 encoding.
+
+2015-09-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix some more docstring etc. quoting problems
+	Mostly these fixes prevent the transliteration of apostrophes
+	that should stay apostrophes.  Also, prefer curved quotes in
+	Bahá’í proper names, as that’s the preferred Bahá’í style and
+	these names are chock-full of non-ASCII characters anyway.
+	* lisp/emacs-lisp/eieio-core.el (eieio-defclass-autoload)
+	(eieio-defclass-internal):
+	* lisp/emacs-lisp/eieio.el (defclass):
+	* lisp/hi-lock.el (hi-lock-mode):
+	Don’t transliterate Lisp apostrophes when generating a
+	doc string or diagnostic.
+	* lisp/international/mule-diag.el (list-coding-systems-1):
+	* lisp/international/ogonek.el (ogonek-jak, ogonek-how):
+	* lisp/mail/sendmail.el (sendmail-query-user-about-smtp):
+	* lisp/vc/ediff-mult.el (ediff-redraw-registry-buffer):
+	* lisp/vc/ediff-ptch.el (ediff-fixup-patch-map):
+	Substitute quotes before putting them in the help buffer.
+
+2015-09-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Re-add the notion of echo_prompt lost in the translation
+	* src/keyboard.h (struct kboard): Replace echo_after_prompt with new
+	echo_prompt which contains the actual string.  Update all uses.
+	* src/keyboard.c (kset_echo_prompt): New function.
+	(echo_update): Add echo_prompt at the very beginning.
+	(read_char): Remove workaround for bug#19875, not needed any more.
+	(read_key_sequence): Set echo_prompt rather than echo_string (bug#21403).
+	(mark_kboards): Mark echo_prompt.
+
+	Fix disassembly of non-compiled lexical functions (bug#21377)
+	* lisp/emacs-lisp/bytecomp.el (byte-compile): Handle `closure' arg.
+	* lisp/emacs-lisp/disass.el: Use lexical-binding.
+	(disassemble): Recognize `closure's as well.
+	(disassemble-internal): Use indirect-function and
+	help-function-arglist, and accept `closure's.
+	(disassemble-internal): Use interactive-form.
+	(disassemble-1): Use functionp.
+
+	(tex--prettify-symbols-compose-p): Don't compose in verbatim blocks!
+	* lisp/textmodes/tex-mode.el (tex--prettify-symbols-compose-p):
+	Don't compose inside verbatim blocks!
+
+2015-09-03  Mark Oteiza  <mvoteiza@udel.edu>
+
+	* lisp/thingatpt.el (thing-at-point-uri-schemes): Add "man:"
+	(bug#19441)
+
+	* lisp/mpc.el (mpc--proc-connect): Handle unix sockets (bug#19394)
+
+2015-09-03  Dmitry Gutov  <dgutov@yandex.ru>
+
+	vc-git-mode-line-string: Explicitly re-apply the face
+	* lisp/vc/vc-git.el (vc-git-mode-line-string): Explicitly re-apply
+	the face (bug#21404).
+
+2015-09-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Treat initial-scratch-message as a doc string
+	* doc/emacs/building.texi (Lisp Interaction):
+	* doc/lispref/os.texi (Startup Summary):
+	* etc/NEWS: Document this.
+	* lisp/startup.el (initial-scratch-message):
+	Look up find-file’s key rather than hardcoding it.
+	(command-line-1): Substitute the doc string.
+	This also substitutes the quotes, which will help test display
+	quoting at startup.
+
+	Fix describe-char bug with glyphs on terminals
+	* lisp/descr-text.el (describe-char): Terminals can have glyphs in
+	buffers too, so don’t treat them differently from graphic displays.
+	Without this fix, describe-char would throw an error on a terminal
+	if given a glyph with a non-default face.
+
+	Follow text-quoting-style in display table init
+	This attempts to fix a problem reported by Alan Mackenzie in:
+	http://lists.gnu.org/archive/html/emacs-devel/2015-09/msg00112.html
+	* doc/lispref/display.texi (Active Display Table):
+	Mention how text-quoting-style affects it.
+	* doc/lispref/help.texi (Keys in Documentation):
+	Say how to set text-quoting-style in ~/.emacs.
+	* etc/NEWS: Document the change.
+	* lisp/startup.el (startup--setup-quote-display):
+	Follow user preference if text-quoting-style is set.
+	(command-line): Setup quote display again if user expresses
+	a preference in .emacs.
+
+2015-09-02  K. Handa  <handa@gnu.org>
+
+	Fix typo
+	* ftfont.c (ftfont_drive_otf): otf_positioning_type_components_mask -> OTF_positioning_type_components_mask.
+
+	fix previous change
+	* ftfont.c (ftfont_drive_otf): Remember some bits of
+	OTF_Glyph->positioning_type in MFLTGlyphFT->libotf_positioning_type.
+
+2015-09-01  David Caldwell  <david@porkrind.org>  (tiny change)
+
+	* lisp/vc/vc-hooks.el (vc-refresh-state): New command
+	(vc-refresh-state): Rename from vc-find-file-hook and make interactive.
+	(vc-find-file-hook): Redefine as obsolete alias.
+
+2015-09-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Escape ` and ' in doc
+	Escape apostrophes and grave accents in docstrings if they are
+	are supposed to stand for themselves and are not quotes.  Remove
+	apostrophes from docstring examples like ‘'(calendar-nth-named-day
+	-1 0 10 year)’ that confuse source code with data.  Do some other
+	minor docstring fixups as well, e.g., insert a missing close
+	quote.
+
+2015-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Generalize the prefix-command machinery of C-u
+	* lisp/simple.el (prefix-command-echo-keystrokes-functions)
+	(prefix-command-preserve-state-hook): New hooks.
+	(internal-echo-keystrokes-prefix): New function.
+	(prefix-command--needs-update, prefix-command--last-echo): New vars.
+	(prefix-command-update, prefix-command-preserve): New functions.
+	(reset-this-command-lengths): New compatibility definition.
+	(universal-argument--mode): Call prefix-command-update.
+	(universal-argument, universal-argument-more, negative-argument)
+	(digit-argument): Call prefix-command-preserve-state.
+	* src/keyboard.c: Call internal-echo-keystrokes-prefix to build
+	the "prefix argument" to echo.
+	(this_command_key_count_reset, before_command_key_count)
+	(before_command_echo_length): Delete variables.
+	(echo_add_key): Always add a space.
+	(echo_char): Remove.
+	(echo_dash): Don't give up when this_command_key_count is 0, since that
+	is now the case after a prefix command.
+	(echo_update): New function, extracted from echo_now.
+	(echo_now): Use it.
+	(add_command_key, read_char, record_menu_key): Remove old disabled code.
+	(command_loop_1): Don't refrain from pushing an undo boundary when
+	prefix-arg is set.  Remove other prefix-arg special case, now handled
+	directly in the prefix commands instead.  But call echo_now if there's
+	a prefix state to echo.
+	(read_char, record_menu_key): Use echo_update instead of echo_char.
+	(read_key_sequence): Use echo_now rather than echo_dash/echo_char.
+	(Freset_this_command_lengths): Delete function.
+	(syms_of_keyboard): Define Qinternal_echo_keystrokes_prefix.
+	(syms_of_keyboard): Don't defsubr Sreset_this_command_lengths.
+	* lisp/simple.el: Use those new hooks for C-u.
+	(universal-argument--description): New function.
+	(prefix-command-echo-keystrokes-functions): Use it.
+	(universal-argument--preserve): New function.
+	(prefix-command-preserve-state-hook): Use it.
+	(command-execute): Call prefix-command-update if needed.
+	* lisp/kmacro.el (kmacro-step-edit-prefix-commands)
+	(kmacro-step-edit-prefix-index): Delete variables.
+	(kmacro-step-edit-query, kmacro-step-edit-insert): Remove ad-hoc
+	support for prefix arg commands.
+	(kmacro-step-edit-macro): Don't bind kmacro-step-edit-prefix-index.
+	* lisp/emulation/cua-base.el (cua--prefix-override-replay)
+	(cua--shift-control-prefix): Use prefix-command-preserve-state.
+	Remove now unused arg `arg'.
+	(cua--prefix-override-handler, cua--prefix-repeat-handler)
+	(cua--shift-control-c-prefix, cua--shift-control-x-prefix):
+	Update accordingly.
+	(cua--prefix-override-timeout): Don't call reset-this-command-lengths
+	any more.
+	(cua--keep-active, cua-exchange-point-and-mark): Don't set mark-active
+	if the mark is not set.
+
+2015-09-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Rework quoting in tutorial
+	* doc/lispintro/emacs-lisp-intro.texi (Sample let Expression)
+	(if in more detail, type-of-animal in detail, else): Rework the
+	early example to use " rather than ' so that we don’t burden
+	complete novices with the low-priority detail of text quoting style.
+	(Complete zap-to-char, kill-region, Complete copy-region-as-kill)
+	(kill-new function, kill-ring-yank-pointer)
+	(Complete forward-sentence, Loading Files)
+	(Code for current-kill, Code for current-kill, yank):
+	Resurrect the Emacs 22 versions of the code, which uses grave
+	quoting style in doc strings.
+	(Complete zap-to-char): Mention how quoting works in doc strings.
+
+	Setup quote display only if interactive
+	* lisp/startup.el (command-line):
+	Skip call to startup--setup-quote-display if noninteractive.
+	Without this change, python-shell-prompt-validate-regexps-1
+	fails in test/automated/python-tests.el when run in an
+	en_US.utf8 locale on Fedora.
+
+2015-09-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	Use defalias at the top level
+	* lisp/gnus/gnus-util.el (gnus-format-message):
+	* lisp/net/tls.el (tls-format-message): Use defalias at the top level
+	so as to make eval-and-compile unnecessary.  Thanks to Stefan Monnier.
+
+2015-09-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	terminal-init-w32console mimicks command-line
+	Problem reported by Eli Zaretskii.
+	* lisp/startup.el (startup--setup-quote-display):
+	New function, refactored from a part of ‘command-line’.
+	(command-line): Use it.
+	* lisp/term/w32console.el (terminal-init-w32console):
+	Use it, so that this function stays consistent with ‘command-line’.
+
+	Display replacement quotes with shadow glyphs
+	* lisp/startup.el (command-line): When displaying ASCII
+	replacements for curved quotes, use a shadow glyph instead of a
+	regular one, to avoid ambiguity.
+
+2015-09-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* lisp/net/tramp-sh.el (tramp-methods) <sudo>: Mask "Password:".
+
+2015-09-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Docstring fixes re quotes in C code
+	Fix some docstring quoting problems, mostly by escaping apostrophe.
+
+2015-09-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	Some Tramp password fixes
+	* lisp/net/tramp.el (tramp-clear-passwd): Clear also the passwords
+	of the hops.
+	* lisp/net/tramp-sh.el (tramp-methods) <sudo>: Move "-p" "Password:"
+	at the beginning of the command.  Otherwise, it could be
+	interpreted as password prompt if the remote host echoes the
+	command.
+	(tramp-remote-coding-commands): Add "openssl enc -base64".
+
+2015-09-01  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Make vc-git-working-revision always return the commit hash
+	* lisp/vc/vc-git.el (vc-git-working-revision):
+	Return the commit hash (bug#21383).
+	(vc-git--symbolic-ref): New function, extracted from above.
+	(vc-git-mode-line-string): Use it.
+
+2015-09-01  K. Handa  <handa@gnu.org>
+
+	Use the new type MFLTGlyphFT for MFLTGlyphString.glyphs.
+	* ftfont.c (MFLTGlyphFT): New type.
+	(ftfont_get_glyph_id, ftfont_get_metrics, ftfont_drive_otf)
+	(ftfont_shape_by_flt): Make MFLTGlyphFT the actual type of
+	elements in the array MFLTGlyphString.glyphs.
+
+2015-09-01  Stephen Leake  <stephen_leake@stephe-leake.org>
+
+	Improve comments in elisp-mode.el, elisp-mode-tests.el
+	* lisp/progmodes/elisp-mode.el: Clean up FIXMEs, comments.
+
+	Delete Emacs 25 test in mode-local.el
+	* lisp/cedet/mode-local.el (describe-mode-local-overload): Fix missed an
+	edit in previous commit.
+
+	Show all known mode-local overrides in *Help*
+	* lisp/cedet/mode-local.el (describe-mode-local-overload): Assume Emacs
+	25. Add all known mode-local overrides.
+
+2015-09-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* lisp/gnus/gnus-sum.el (gnus-summary-search-article):
+	Ensure that the article where the search word is found is displayed
+	and pointed to in the summary buffer.
+
+2015-08-31  Zachary Kanfer  <zkanfer@gmail.com>  (tiny change)
+
+	* lisp/newcomment.el (comment-dwim): Use `use-region-p'
+	When the region is active, but is empty (length 0), act as though
+	the region was not active; that is, put a comment at the end of
+	the line.  (Bug#21119)
+
+2015-08-31  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	Port tls.el to older Emacs
+	* lisp/net/tls.el (tls-format-message):
+	Alias to format-message, or format if not available.
+	(open-tls-stream): Use it.
+
+2015-08-31  Rüdiger Sonderfeld  <ruediger@c-plusplus.net>
+
+	hideif.el: Recognize .h++ as C++ header.
+	* lisp/progmodes/hideif.el (hide-ifdef-header-regexp): Add .h++.
+
+	isearch: Document character folding mode.
+	* isearch.el (isearch-forward): Mention `isearch-toggle-character-fold'
+	in docstring.
+
+2015-08-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Quoting fixes in ERC and Eshell
+	* lisp/erc/erc-autoaway.el (erc-autoaway-set-away):
+	* lisp/erc/erc-backend.el (define-erc-response-handler):
+	* lisp/erc/erc-fill.el (erc-fill-static-center):
+	* lisp/eshell/em-dirs.el (eshell-save-some-last-dir):
+	* lisp/eshell/em-glob.el (eshell-glob-entries):
+	* lisp/eshell/em-hist.el (eshell-save-some-history):
+	* lisp/eshell/em-unix.el (eshell-remove-entries, eshell/rm)
+	(eshell-shuffle-files):
+	* lisp/eshell/esh-cmd.el (eshell-do-eval):
+	* lisp/eshell/esh-proc.el (eshell-process-interact)
+	(eshell-query-kill-processes):
+	Respect ‘text-quoting-style’ in diagnostics and doc strings.
+
+	Quoting fixes in Gnus
+	* lisp/gnus/gnus-agent.el:
+	(gnus-agent-possibly-synchronize-flags-server):
+	* lisp/gnus/gnus-art.el (gnus-article-browse-delete-temp-files):
+	* lisp/gnus/gnus-eform.el (gnus-edit-form):
+	* lisp/gnus/gnus-group.el (gnus-group-edit-group)
+	(gnus-group-nnimap-edit-acl):
+	* lisp/gnus/gnus-topic.el (gnus-topic-edit-parameters):
+	* lisp/gnus/mail-source.el (mail-source-delete-old-incoming):
+	* lisp/gnus/message.el (message-strip-subject-encoded-words)
+	(message-check-recipients, message-send-form-letter):
+	* lisp/gnus/mm-decode.el (mm-display-part):
+	* lisp/gnus/mm-uu.el (mm-uu-pgp-signed-extract-1):
+	* lisp/gnus/mml-smime.el (mml-smime-get-dns-cert)
+	(mml-smime-get-ldap-cert):
+	* lisp/gnus/spam-report.el (spam-report-process-queue):
+	Respect ‘text-quoting-style’ in diagnostics.
+	* lisp/gnus/gnus-art.el (article-display-face)
+	* lisp/gnus/gnus-fun.el (gnus-display-x-face-in-from):
+	Use straight quoting in email.
+	* lisp/gnus/rfc2231.el (rfc2231-decode-encoded-string):
+	Escape apostrophes in doc strings.
+
+	Quoting fixes in lisp mail, mh-e, net, url
+	* lisp/mail/emacsbug.el (report-emacs-bug)
+	(report-emacs-bug-hook): Use straight quotes in outgoing email,
+	* lisp/mail/feedmail.el (feedmail-message-action-help-blat):
+	* lisp/mail/rmail.el (rmail-unknown-mail-followup-to):
+	* lisp/mail/rmailout.el (rmail-output-read-file-name):
+	* lisp/net/imap.el (imap-interactive-login):
+	* lisp/net/tls.el (open-tls-stream):
+	* lisp/url/url-auth.el (url-register-auth-scheme):
+	Respect ‘text-quoting-style’ in diagnostics.
+	* lisp/mh-e/mh-e.el (mh-sortm-args):
+	Quote docstring example using text quotes, not as a Lisp quote.
+
+2015-08-31  Stephen Leake  <stephen_leake@stephe-leake.org>
+
+	Fix some byte-compiler warnings in EDE
+	This fixes a bug that caused ede-generic-new-autoloader to overwrite the
+	existing autoloader list, rather than add to it.
+	* lisp/cedet/ede/auto.el (ede-project-class-files): Delete obsolete name
+	argument to eieio class constructor.
+	(ede-show-supported-projects): New.
+	(ede-add-project-autoload): Replace obsolete `eieio-object-name-string'
+	with (oref ... name).
+	(ede-auto-load-project): Use slot name, not initarg key.
+	* lisp/cedet/ede/generic.el (ede-generic-load,
+	ede-generic-find-matching-target): Use slot name, not initarg key.
+	(ede-find-target): Use oref-default on class name.
+	(ede-generic-new-autoloader): Delete obsolete name argument to eieio
+	class constructor.
+	(ede-enable-generic-projects): Make project type names unique.
+
+2015-08-31  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix directory accessibility tests for w32 network volumes
+	* src/w32.c (faccessat): Don't fail with network volumes without a
+	share.
+	(w32_accessible_directory_p): Handle network volumes without a
+	share.
+
+	Fix handling long file names in readdir on MS-Windows
+	* src/w32.c (sys_readdir): Append "\*" to the directory after
+	converting it to UTF-16/ANSI, not before, to avoid overflowing the
+	260-character limit on file names in filename_to_utf16/ansi.
+
+	Make file-accessible-directory-p reliable on MS-Windows
+	* src/w32.c (w32_accessible_directory_p): New function.
+	* src/w32.h (w32_accessible_directory_p): Add prototype.
+	* src/fileio.c (file_accessible_directory_p) [WINDOWSNT]: Call
+	w32_accessible_directory_p to test a directory for accessibility
+	by the current user.  (Bug#21346)
+	(Ffile_accessible_directory_p): Remove the w32 specific caveat
+	from the doc string.
+
+2015-08-31  Martin Rudalics  <rudalics@gmx.at>
+
+	Don't call do_pending_window_change in signal handlers (Bug#21380)
+	* src/gtkutil.c (xg_frame_resized):
+	* src/xterm.c (x_set_window_size):
+	* src/w32term.c (x_set_window_size): Don't call
+	do_pending_window_change.
+
+2015-08-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Quoting fixes in lisp/org
+	* lisp/org/org-agenda.el (org-search-view, org-todo-list)
+	(org-tags-view):
+	* lisp/org/org-capture.el (org-capture-mode)
+	* lisp/org/org-ctags.el (org-ctags-visit-buffer-or-file)
+	(org-ctags-ask-append-topic):
+	* lisp/org/org.el (org-time-string-to-time)
+	(org-time-string-to-absolute):
+	* lisp/org/org-ctags.el (org-ctags-visit-buffer-or-file)
+	(org-ctags-ask-append-topic):
+	* lisp/org/org.el (org-time-string-to-time)
+	(org-time-string-to-absolute):
+	Respect ‘text-quoting-style’ in diagnostics.
+	* lisp/org/org-agenda.el (org-agenda-custom-commands)
+	(org-agenda-dim-blocked-tasks): Plural of TODO is TODOs, not TODO’s.
+	* lisp/org/org-capture.el (org-capture-fill-template):
+	Avoid contraction in output file that might be ASCII.
+	* lisp/org/org-compat.el (format-message):
+	Define if not already defined, for backward compatibility.
+	* lisp/org/org-src.el (org-edit-src-save):
+	* lisp/org/org.el (org-cycle, org-ctrl-c-ctrl-c):
+	Escape apostrophes in diagnostics.
+
+	Treat “instead” strings as docstrings
+	* lisp/emacs-lisp/bytecomp.el (byte-compile-form):
+	* lisp/emacs-lisp/macroexp.el (macroexp--obsolete-warning):
+	Substitute quotes in instead strings.
+
+2015-08-31  Nicolas Petton  <nicolas@petton.fr>
+
+	Better documentation of seq-let
+	* doc/lispref/sequences.texi (Sequence Functions): Rephrase the
+	documentation of seq-let.
+
+2015-08-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp/international/ccl.el: Fix quoting.
+
+	Quoting fixes in lisp/international and lisp/leim
+	* lisp/international/ccl.el (ccl-dump, ccl-dump-call):
+	* lisp/international/ja-dic-utl.el (skkdic-lookup-key):
+	* lisp/international/mule-cmds.el:
+	(select-safe-coding-system-interactively, leim-list-file-name):
+	* lisp/international/quail.el (quail-use-package, quail-help):
+	* lisp/international/titdic-cnv.el (tit-process-header)
+	(miscdic-convert):
+	Respect text quoting style in doc strings and diagnostics.
+	* lisp/international/quail.el (lisp/international/quail.el):
+	* lisp/leim/quail/ethiopic.el ("ethiopic"):
+	Escape apostrophes in doc strings.
+
+	Make ‘text-quoting-style’ a plain defvar
+	It doesn’t need customization, as it’s likely useful only by experts.
+	Suggested by Stefan Monnier in:
+	http://lists.gnu.org/archive/html/emacs-devel/2015-08/msg01020.html
+	* lisp/cus-start.el: Remove doc.c section for builtin customized vars.
+
+	Quoting fixes in lisp/textmodes
+	* lisp/textmodes/bibtex.el (bibtex-validate)
+	(bibtex-validate-globally, bibtex-search-entries):
+	* lisp/textmodes/ispell.el (ispell-command-loop):
+	* lisp/textmodes/page-ext.el (search-pages, pages-directory):
+	* lisp/textmodes/texinfmt.el (texinfmt-version)
+	(texinfo-format-region, texinfo-format-buffer-1):
+	* lisp/textmodes/two-column.el (2C-split):
+	Respect text quoting style in doc strings and diagnostics.
+	* lisp/textmodes/conf-mode.el (conf-mode-map, conf-quote-normal):
+	* lisp/textmodes/sgml-mode.el (sgml-specials, sgml-mode):
+	Escape apostrophes in doc strings.
+
+	Documentation fixes re quotes
+	Prefer curved quotes in examples if users will typically see
+	curved quotes when the examples run.
+	Mention format-message when appropriate.
+	Don’t use @code in examples.
+	Quote an apostrophe with @kbd.
+
+	Quoting fixes in lisp/progmodes
+	* lisp/progmodes/cc-engine.el (c-bos-report-error):
+	* lisp/progmodes/cpp.el (cpp-edit-reset):
+	* lisp/progmodes/ebrowse.el (ebrowse-tags-apropos):
+	* lisp/progmodes/etags.el (etags-tags-apropos-additional)
+	(etags-tags-apropos, list-tags, tags-apropos):
+	* lisp/progmodes/executable.el (executable-set-magic):
+	* lisp/progmodes/octave.el (octave-sync-function-file-names)
+	(octave-help, octave-find-definition-default-filename)
+	(octave-find-definition):
+	Respect text quoting style in doc strings and diagnostics.
+	* lisp/progmodes/cc-langs.el (c-populate-syntax-table):
+	* lisp/progmodes/verilog-mode.el (verilog-auto-reset-widths):
+	* lisp/progmodes/vhdl-mode.el (vhdl-electric-quote):
+	Escape apostrophes in doc strings.
+	* lisp/progmodes/cmacexp.el (c-macro-expansion):
+	Use straight quoting in ASCII comment.
+	* lisp/progmodes/idlwave.el (idlwave-auto-fill-split-string)
+	(idlwave-pad-keyword):
+	* lisp/progmodes/vhdl-mode.el (vhdl-widget-directory-validate)
+	(vhdl-electric-open-bracket, vhdl-electric-close-bracket):
+	(vhdl-electric-semicolon, vhdl-electric-comma)
+	(vhdl-electric-period, vhdl-electric-equal):
+	Use directed quotes in diagnostics and doc strings.
+
+2015-08-30  Xue Fuqiao  <xfq.free@gmail.com>
+
+	Minor documentation and NEWS tweak
+	* doc/lispintro/emacs-lisp-intro.texi (fwd-para let): Add an index
+	entry.
+
 2015-08-30  Michael Albinus  <michael.albinus@gmx.de>
 
 	* lisp/net/tramp-sh.el (tramp-convert-file-attributes):
@@ -11395,7 +12027,7 @@
 
 This file records repository revisions from
 commit 9d56a21e6a696ad19ac65c4b405aeca44785884a (exclusive) to
-commit cc90c25a50e536669ac327f7e05ec9194d1650d0 (inclusive).
+commit 88b9a8000da6cf2d4aede86e9eae4f00016d0d6b (inclusive).
 See ChangeLog.1 for earlier changes.
 
 ;; Local Variables:

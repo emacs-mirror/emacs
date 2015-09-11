@@ -133,10 +133,10 @@ main-content <=MAIN_CONTENT;\\n\" rtfm-section file style rtfm-section file))
 \(defun rtfm-build-source-docs (section srcdir destdir)
   (interactive
    \"s section[eg- emacs / p4-blame]:\\nD source-dir: \\nD output-dir: \")
-  (require 'htmlfontify)
+  (require \\='htmlfontify)
   (hfy-load-tags-cache srcdir)
-  (let ((hfy-page-header  'rtfm-build-page-header)
-        (hfy-page-footer  'rtfm-build-page-footer)
+  (let ((hfy-page-header  \\='rtfm-build-page-header)
+        (hfy-page-footer  \\='rtfm-build-page-footer)
         (rtfm-section                     section)
         (hfy-index-file                   \"index\"))
     (htmlfontify-run-etags srcdir)
@@ -187,13 +187,13 @@ It takes only one argument, the filename."
   :type  '(string))
 
 (defcustom hfy-src-doc-link-style "text-decoration: underline;"
-  "String to add to the ‘<style> a’ variant of an htmlfontify CSS class."
+  "String to add to the `<style> a' variant of an htmlfontify CSS class."
   :group 'htmlfontify
   :tag   "src-doc-link-style"
   :type  '(string))
 
 (defcustom hfy-src-doc-link-unstyle " text-decoration: none;"
-  "Regex to remove from the ‘<style> a’ variant of an htmlfontify CSS class."
+  "Regex to remove from the `<style> a' variant of an htmlfontify CSS class."
   :group 'htmlfontify
   :tag   "src-doc-link-unstyle"
   :type  '(string))

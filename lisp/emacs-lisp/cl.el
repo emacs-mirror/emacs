@@ -86,7 +86,7 @@
 
 (defun cl-unload-function ()
   "Stop unloading of the Common Lisp extensions."
-  (message "Cannot unload the feature ‘cl’")
+  (message "Cannot unload the feature `cl'")
   ;; Stop standard unloading!
   t)
 
@@ -459,15 +459,15 @@ definitions, or lack thereof).
              (if (or (and (fboundp (car x))
                           (eq (car-safe (symbol-function (car x))) 'macro))
                      (cdr (assq (car x) macroexpand-all-environment)))
-                 (error "Use ‘labels’, not ‘flet’, to rebind macro names"))
+                 (error "Use `labels', not `flet', to rebind macro names"))
              (let ((func `(cl-function
                            (lambda ,(cadr x)
                              (cl-block ,(car x) ,@(cddr x))))))
                (when (cl--compiling-file)
                  ;; Bug#411.  It would be nice to fix this.
                  (and (get (car x) 'byte-compile)
-                      (error "Byte-compiling a redefinition of ‘%s’ \
-will not work - use ‘labels’ instead" (symbol-name (car x))))
+                      (error "Byte-compiling a redefinition of `%s' \
+will not work - use `labels' instead" (symbol-name (car x))))
                  ;; FIXME This affects the rest of the file, when it
                  ;; should be restricted to the flet body.
                  (and (boundp 'byte-compile-function-environment)

@@ -1943,7 +1943,9 @@ Fill in VALUES if based on an article."
     (kill-all-local-variables)
     (erase-buffer)
     (widget-insert "Specify your query for Mairix (check boxes for activating fields):\n\n")
-    (widget-insert "(Whitespaces will be converted to ‘,’ (i.e. AND). Use ‘/’ for OR.)\n\n")
+    (widget-insert
+     (substitute-command-keys
+      "(Whitespaces will be converted to `,' (i.e. AND). Use `/' for OR.)\n\n"))
 ;    (make-local-variable 'nnmairix-widgets)
     (setq nnmairix-widgets (nnmairix-widget-build-editable-fields values))
     (when (member 'flags nnmairix-widget-other)

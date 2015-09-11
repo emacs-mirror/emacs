@@ -964,12 +964,12 @@ documentation for the major and minor modes of that buffer."
 	(let* ((mode major-mode)
 	       (file-name (find-lisp-object-file-name mode nil)))
 	  (when file-name
-	    (princ (format-message " defined in ‘%s’"
+	    (princ (format-message " defined in `%s'"
                                    (file-name-nondirectory file-name)))
 	    ;; Make a hyperlink to the library.
 	    (with-current-buffer standard-output
 	      (save-excursion
-		(re-search-backward (substitute-command-keys "‘\\([^‘’]+\\)’")
+		(re-search-backward (substitute-command-keys "`\\([^`']+\\)'")
                                     nil t)
 		(help-xref-button 1 'help-function-def mode file-name)))))
 	(princ ":\n")
@@ -1041,7 +1041,7 @@ is currently activated with completion."
   (let ((minor-mode (lookup-minor-mode-from-indicator indicator)))
     (if minor-mode
 	(describe-minor-mode-from-symbol minor-mode)
-      (error "Cannot find minor mode for ‘%s’" indicator))))
+      (error "Cannot find minor mode for `%s'" indicator))))
 
 (defun lookup-minor-mode-from-indicator (indicator)
   "Return a minor mode symbol from its indicator on the mode line."
@@ -1352,8 +1352,8 @@ the help window if the current value of the user option
 
 (defun help--docstring-quote (string)
   "Return a doc string that represents STRING.
-The result, when formatted by ‘substitute-command-keys’, should equal STRING."
-  (replace-regexp-in-string "['\\`]" "\\\\=\\&" string))
+The result, when formatted by `substitute-command-keys', should equal STRING."
+  (replace-regexp-in-string "['\\`‘’]" "\\\\=\\&" string))
 
 ;; The following functions used to be in help-fns.el, which is not preloaded.
 ;; But for various reasons, they are more widely needed, so they were

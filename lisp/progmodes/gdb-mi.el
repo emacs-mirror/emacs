@@ -2065,7 +2065,7 @@ a GDB/MI reply message."
 (defun gdbmi-bnf-gdb-prompt ()
   "Implementation of the following GDB/MI output grammar rule:
   gdb-prompt ==>
-       '(gdb)' nl
+       `(gdb)' nl
 
   nl ==>
        CR | CR-LF"
@@ -2085,7 +2085,7 @@ a GDB/MI reply message."
   "Implementation of the following GDB/MI output grammar rule:
 
   result-record ==>
-       [ token ] '^' result-class ( ',' result )* nl
+       [ token ] `^' result-class ( `,' result )* nl
 
   token ==>
        any sequence of digits."
@@ -2110,16 +2110,16 @@ a GDB/MI reply message."
        exec-async-output | status-async-output | notify-async-output
 
   exec-async-output ==>
-       [ token ] '*' async-output
+       [ token ] `*' async-output
 
   status-async-output ==>
-       [ token ] '+' async-output
+       [ token ] `+' async-output
 
   notify-async-output ==>
-       [ token ] '=' async-output
+       [ token ] `=' async-output
 
   async-output ==>
-       async-class ( ',' result )* nl"
+       async-class ( `,' result )* nl"
 
   (gdbmi-bnf-result-and-async-record-impl))
 
@@ -2130,13 +2130,13 @@ a GDB/MI reply message."
        console-stream-output | target-stream-output | log-stream-output
 
   console-stream-output ==>
-       '~' c-string
+       `~' c-string
 
   target-stream-output ==>
-       '@' c-string
+       `@' c-string
 
   log-stream-output ==>
-       '&' c-string"
+       `&' c-string"
   (when (< gdbmi-bnf-offset (length gud-marker-acc))
     (if (and (member (aref gud-marker-acc gdbmi-bnf-offset) '(?~ ?@ ?&))
              (string-match (concat "\\([~@&]\\)\\(" gdb--string-regexp "\\)\n")
@@ -4038,6 +4038,8 @@ member."
       (let ((name (bindat-get-field local 'name))
             (value (bindat-get-field local 'value))
             (type (bindat-get-field local 'type)))
+        (when (not value)
+          (setq value "<complex data type>"))
         (if (or (not value)
                 (string-match "\\0x" value))
             (add-text-properties 0 (length name)

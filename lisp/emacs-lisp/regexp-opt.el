@@ -92,7 +92,7 @@ is enclosed by at least one regexp grouping construct.
 The returned regexp is typically more efficient than the equivalent regexp:
 
  (let ((open (if PAREN \"\\\\(\" \"\")) (close (if PAREN \"\\\\)\" \"\")))
-   (concat open (mapconcat 'regexp-quote STRINGS \"\\\\|\") close))
+   (concat open (mapconcat \\='regexp-quote STRINGS \"\\\\|\") close))
 
 If PAREN is `words', then the resulting regexp is additionally surrounded
 by \\=\\< and \\>.

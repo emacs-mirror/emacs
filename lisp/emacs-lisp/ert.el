@@ -121,7 +121,7 @@ Emacs bug 6581 at URL `http://debbugs.gnu.org/cgi/bugreport.cgi?bug=6581'."
 
 (defun ert-get-test (symbol)
   "If SYMBOL names a test, return that.  Signal an error otherwise."
-  (unless (ert-test-boundp symbol) (error "No test named ‘%S’" symbol))
+  (unless (ert-test-boundp symbol) (error "No test named `%S'" symbol))
   (get symbol 'ert--test))
 
 (defun ert-set-test (symbol definition)
@@ -2065,7 +2065,7 @@ and how to display message."
     "--"
     ["Show backtrace" ert-results-pop-to-backtrace-for-test-at-point]
     ["Show messages" ert-results-pop-to-messages-for-test-at-point]
-    ["Show ‘should’ forms" ert-results-pop-to-should-forms-for-test-at-point]
+    ["Show `should' forms" ert-results-pop-to-should-forms-for-test-at-point]
     ["Describe test" ert-results-describe-test-at-point]
     "--"
     ["Delete test" ert-delete-test]
@@ -2377,9 +2377,9 @@ To be used in the ERT results buffer."
            (ert--print-backtrace backtrace)
            (debugger-make-xrefs)
            (goto-char (point-min))
-           (insert "Backtrace for test ‘")
+           (insert (substitute-command-keys "Backtrace for test `"))
            (ert-insert-test-name-button (ert-test-name test))
-           (insert "’:\n")))))))
+           (insert (substitute-command-keys "':\n"))))))))
 
 (defun ert-results-pop-to-messages-for-test-at-point ()
   "Display the part of the *Messages* buffer generated during the test at point.
@@ -2398,9 +2398,9 @@ To be used in the ERT results buffer."
         (ert-simple-view-mode)
         (insert (ert-test-result-messages result))
         (goto-char (point-min))
-        (insert "Messages for test ‘")
+        (insert (substitute-command-keys "Messages for test `"))
         (ert-insert-test-name-button (ert-test-name test))
-        (insert "’:\n")))))
+        (insert (substitute-command-keys "':\n"))))))
 
 (defun ert-results-pop-to-should-forms-for-test-at-point ()
   "Display the list of `should' forms executed during the test at point.
@@ -2428,9 +2428,10 @@ To be used in the ERT results buffer."
                      (ert--pp-with-indentation-and-newline form-description)
                      (ert--make-xrefs-region begin (point)))))
         (goto-char (point-min))
-        (insert "‘should’ forms executed during test ‘")
+        (insert (substitute-command-keys
+                 "`should' forms executed during test `"))
         (ert-insert-test-name-button (ert-test-name test))
-        (insert "’:\n")
+        (insert (substitute-command-keys "':\n"))
         (insert "\n")
         (insert (concat "(Values are shallow copies and may have "
                         "looked different during the test if they\n"
@@ -2507,9 +2508,11 @@ To be used in the ERT results buffer."
           (let ((file-name (and test-name
                                 (symbol-file test-name 'ert-deftest))))
             (when file-name
-              (insert " defined in ‘" (file-name-nondirectory file-name) "’")
+              (insert (format-message " defined in `%s'"
+                                      (file-name-nondirectory file-name)))
               (save-excursion
-                (re-search-backward "‘\\([^‘’]+\\)’" nil t)
+                (re-search-backward (substitute-command-keys "`\\([^`']+\\)'")
+                                    nil t)
                 (help-xref-button 1 'help-function-def test-name file-name)))
             (insert ".")
             (fill-region-as-paragraph (point-min) (point))

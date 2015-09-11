@@ -378,7 +378,7 @@ use either \\[customize] or the function `ido-mode'."
   '("\\` ")
   "List of regexps or functions matching buffer names to ignore.
 For example, traditional behavior is not to list buffers whose names begin
-with a space, for which the regexp is ‘\\\\=` ’.  See the source file for
+with a space, for which the regexp is `\\\\=` '.  See the source file for
 example functions that filter buffer names."
   :type '(repeat (choice regexp function))
   :group 'ido)
@@ -387,7 +387,7 @@ example functions that filter buffer names."
   '("\\`CVS/" "\\`#" "\\`.#" "\\`\\.\\./" "\\`\\./")
   "List of regexps or functions matching file names to ignore.
 For example, traditional behavior is not to list files whose names begin
-with a #, for which the regexp is ‘\\\\=`#’.  See the source file for
+with a #, for which the regexp is `\\\\=`#'.  See the source file for
 example functions that filter filenames."
   :type '(repeat (choice regexp function))
   :group 'ido)

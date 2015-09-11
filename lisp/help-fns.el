@@ -319,7 +319,7 @@ suitable file is found, return nil."
             (when remapped
               (princ "Its keys are remapped to ")
               (princ (if (symbolp remapped)
-                         (format-message "‘%s’" remapped)
+                         (format-message "`%s'" remapped)
 		       "an anonymous command"))
               (princ ".\n"))
 
@@ -353,22 +353,22 @@ suitable file is found, return nil."
       (insert "\nThis function has a compiler macro")
       (if (symbolp handler)
           (progn
-            (insert (format-message " ‘%s’" handler))
+            (insert (format-message " `%s'" handler))
             (save-excursion
-              (re-search-backward (substitute-command-keys "‘\\([^‘’]+\\)’")
+              (re-search-backward (substitute-command-keys "`\\([^`']+\\)'")
                                   nil t)
               (help-xref-button 1 'help-function handler)))
         ;; FIXME: Obsolete since 24.4.
         (let ((lib (get function 'compiler-macro-file)))
           (when (stringp lib)
-            (insert (format-message " in ‘%s’" lib))
+            (insert (format-message " in `%s'" lib))
             (save-excursion
-              (re-search-backward (substitute-command-keys "‘\\([^‘’]+\\)’")
+              (re-search-backward (substitute-command-keys "`\\([^`']+\\)'")
                                   nil t)
               (help-xref-button 1 'help-function-cmacro function lib)))))
       (insert ".\n"))))
 
-(defun help-fns--signature (function doc real-def real-function raw)
+(defun help-fns--signature (function doc real-def real-function buffer)
   "Insert usage at point and return docstring.  With highlighting."
   (if (keymapp function)
       doc                       ; If definition is a keymap, skip arglist note.
@@ -402,10 +402,13 @@ suitable file is found, return nil."
              (use1 (replace-regexp-in-string
                     "\\`(\\\\=\\\\\\\\=` \\([^\n ]*\\))\\'"
                     "\\\\=`\\1" use t))
-             (high (if raw
-                       (cons use1 doc)
-                     (help-highlight-arguments (substitute-command-keys use1)
-                                               (substitute-command-keys doc)))))
+             (high (if buffer
+                       (let (subst-use1 subst-doc)
+                         (with-current-buffer buffer
+                           (setq subst-use1 (substitute-command-keys use1))
+                           (setq subst-doc (substitute-command-keys doc)))
+                         (help-highlight-arguments subst-use1 subst-doc))
+                     (cons use1 doc))))
         (let ((fill-begin (point))
               (high-usage (car high))
               (high-doc (cdr high)))
@@ -419,13 +422,13 @@ suitable file is found, return nil."
                           (get function
                                'derived-mode-parent))))
     (when parent-mode
-      (insert (substitute-command-keys "\nParent mode: ‘"))
+      (insert (substitute-command-keys "\nParent mode: `"))
       (let ((beg (point)))
         (insert (format "%s" parent-mode))
         (make-text-button beg (point)
                           'type 'help-function
                           'help-args (list parent-mode)))
-      (insert (substitute-command-keys "’.\n")))))
+      (insert (substitute-command-keys "'.\n")))))
 
 (defun help-fns--obsolete (function)
   ;; Ignore lambda constructs, keyboard macros, etc.
@@ -441,7 +444,7 @@ suitable file is found, return nil."
       (when (nth 2 obsolete)
         (insert (format " since %s" (nth 2 obsolete))))
       (insert (cond ((stringp use) (concat ";\n" use))
-                    (use (format-message ";\nuse ‘%s’ instead." use))
+                    (use (format-message ";\nuse `%s' instead." use))
                     (t "."))
               "\n"))))
 
@@ -477,7 +480,7 @@ FILE is the file where FUNCTION was probably defined."
                           (format ";\nin Lisp code %s" interactive-only))
                          ((and (symbolp 'interactive-only)
                                (not (eq interactive-only t)))
-                          (format-message ";\nin Lisp code use ‘%s’ instead."
+                          (format-message ";\nin Lisp code use `%s' instead."
                                           interactive-only))
                          (t "."))
                    "\n")))))
@@ -546,7 +549,7 @@ FILE is the file where FUNCTION was probably defined."
 		 ;; Aliases are Lisp functions, so we need to check
 		 ;; aliases before functions.
 		 (aliased
-		  (format-message "an alias for ‘%s’" real-def))
+		  (format-message "an alias for `%s'" real-def))
 		 ((autoloadp def)
 		  (format "%s autoloaded %s"
 			  (if (commandp def) "an interactive" "an")
@@ -581,21 +584,21 @@ FILE is the file where FUNCTION was probably defined."
 	(save-excursion
 	  (save-match-data
 	    (when (re-search-backward (substitute-command-keys
-                                       "alias for ‘\\([^‘’]+\\)’")
+                                       "alias for `\\([^`']+\\)'")
                                       nil t)
 	      (help-xref-button 1 'help-function real-def)))))
 
       (when file-name
 	;; We used to add .el to the file name,
 	;; but that's completely wrong when the user used load-file.
-	(princ (format-message " in ‘%s’"
+	(princ (format-message " in `%s'"
                                (if (eq file-name 'C-source)
                                    "C source code"
                                  (help-fns-short-filename file-name))))
 	;; Make a hyperlink to the library.
 	(with-current-buffer standard-output
 	  (save-excursion
-	    (re-search-backward (substitute-command-keys "‘\\([^‘’]+\\)’")
+	    (re-search-backward (substitute-command-keys "`\\([^`']+\\)'")
                                 nil t)
 	    (help-xref-button 1 'help-function-def function file-name))))
       (princ ".")
@@ -604,7 +607,8 @@ FILE is the file where FUNCTION was probably defined."
 				  (point)))
       (terpri)(terpri)
 
-      (let ((doc-raw (documentation function t)))
+      (let ((doc-raw (documentation function t))
+            (key-bindings-buffer (current-buffer)))
 
 	;; If the function is autoloaded, and its docstring has
 	;; key substitution constructs, load the library.
@@ -615,11 +619,11 @@ FILE is the file where FUNCTION was probably defined."
 
         (help-fns--key-bindings function)
         (with-current-buffer standard-output
-	  (let ((doc (help-fns--signature function doc-raw sig-key
-                                          real-function nil)))
-	    (run-hook-with-args 'help-fns-describe-function-functions function)
-	    (insert "\n"
-		    (or doc "Not documented."))))))))
+          (let ((doc (help-fns--signature function doc-raw sig-key
+                                          real-function key-bindings-buffer)))
+            (run-hook-with-args 'help-fns-describe-function-functions function)
+            (insert "\n"
+                    (or doc "Not documented."))))))))
 
 ;; Add defaults to `help-fns-describe-function-functions'.
 (add-hook 'help-fns-describe-function-functions #'help-fns--obsolete)
@@ -730,14 +734,14 @@ it is displayed along with the global value."
 	      (if file-name
 		  (progn
 		    (princ (format-message
-                            " is a variable defined in ‘%s’.\n"
+                            " is a variable defined in `%s'.\n"
                             (if (eq file-name 'C-source)
                                 "C source code"
                               (file-name-nondirectory file-name))))
 		    (with-current-buffer standard-output
 		      (save-excursion
 			(re-search-backward (substitute-command-keys
-                                             "‘\\([^‘’]+\\)’")
+                                             "`\\([^`']+\\)'")
                                             nil t)
 			(help-xref-button 1 'help-variable-def
 					  variable file-name)))
@@ -746,7 +750,7 @@ it is displayed along with the global value."
 		      (princ "Its ")))
 		(if valvoid
 		    (princ " is void as a variable.")
-		  (princ (substitute-command-keys "’s ")))))
+		  (princ (substitute-command-keys "'s ")))))
 	    (unless valvoid
 	      (with-current-buffer standard-output
 		(setq val-start-pos (point))
@@ -872,7 +876,7 @@ if it is given a local binding.\n"))))
               (unless (eq alias variable)
                 (setq extra-line t)
                 (princ (format-message
-                        "  This variable is an alias for ‘%s’.\n"
+                        "  This variable is an alias for `%s'.\n"
                         alias)))
 
               (when obsolete
@@ -881,7 +885,7 @@ if it is given a local binding.\n"))))
                 (if (nth 2 obsolete)
                     (princ (format " since %s" (nth 2 obsolete))))
 		(princ (cond ((stringp use) (concat ";\n  " use))
-			     (use (format-message ";\n  use ‘%s’ instead."
+			     (use (format-message ";\n  use `%s' instead."
                                                   (car obsolete)))
 			     (t ".")))
                 (terpri))
@@ -915,13 +919,13 @@ if it is given a local binding.\n"))))
                                     dir-file nil)))
 			(princ (substitute-command-keys
                                 (if dir-file
-                                    "by the file\n  ‘"
-                                  "for the directory\n  ‘")))
+                                    "by the file\n  `"
+                                  "for the directory\n  `")))
 			(with-current-buffer standard-output
 			  (insert-text-button
 			   file 'type 'help-dir-local-var-def
 			   'help-args (list variable file)))
-			(princ (substitute-command-keys "’.\n"))))
+			(princ (substitute-command-keys "'.\n"))))
 		  (princ (substitute-command-keys
 			  "  This variable's value is file-local.\n"))))
 
@@ -938,7 +942,7 @@ file-local variable.\n")
 		(when (assq variable safe-local-variable-values)
 		  (princ (substitute-command-keys
                           "  However, you have added it to \
-‘safe-local-variable-values’.\n"))))
+`safe-local-variable-values'.\n"))))
 
 	      (when safe-var
                 (setq extra-line t)
@@ -946,7 +950,7 @@ file-local variable.\n")
 		(princ "if its value\n  satisfies the predicate ")
 		(princ (if (byte-code-function-p safe-var)
 			   "which is a byte-compiled expression.\n"
-			 (format-message "‘%s’.\n" safe-var))))
+			 (format-message "`%s'.\n" safe-var))))
 
               (if extra-line (terpri))
 	      (princ "Documentation:\n")

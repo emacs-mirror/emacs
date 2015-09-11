@@ -648,7 +648,7 @@ If point is on an empty line, insert the entry there."
     (forward-line (1- todo-previous-line))
     (let ((item (todo-item-string-start)))
       (setq todo-previous-answer
-            (y-or-n-p (format-message "More important than ‘%s’? " item)))))
+            (y-or-n-p (format-message "More important than `%s'? " item)))))
   todo-previous-answer)
 (defalias 'todo-ask-p 'todo-more-important-p)
 

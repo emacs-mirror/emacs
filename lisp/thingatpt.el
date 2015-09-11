@@ -145,7 +145,7 @@ a symbol as a valid THING."
            (let ((bounds (bounds-of-thing-at-point thing)))
              (when bounds
                (buffer-substring (car bounds) (cdr bounds)))))))
-    (when (and text no-properties)
+    (when (and text no-properties (sequencep text))
       (set-text-properties 0 (length text) nil text))
     text))
 
@@ -289,7 +289,7 @@ If nil, construct the regexp from `thing-at-point-uri-schemes'.")
     "uuid:" "vemmi://"  "webcal://" "xri://" "xmlrpc.beep://"
     "xmlrpc.beeps://" "z39.50r://" "z39.50s://" "xmpp:"
     ;; Compatibility
-    "fax:" "mms://" "mmsh://" "modem:" "prospero:" "snews:"
+    "fax:" "man:" "mms://" "mmsh://" "modem:" "prospero:" "snews:"
     "wais://")
   "List of URI schemes recognized by `thing-at-point-url-at-point'.
 Each string in this list should correspond to the start of a

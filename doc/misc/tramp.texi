@@ -3691,6 +3691,24 @@ I would like to thank all @value{tramp} users who have contributed to
 the different recipes!
 
 
+@item I have saved @value{tramp} file names as indicated.  But it
+doesn't work in a new @value{emacsname} session!
+
+If you have saved an ad-hoc multi-hop @value{tramp} file name
+(@pxref{Ad-hoc multi-hops}) via bookmarks, recent files,
+@ifset emacs
+filecache, bbdb,
+@end ifset
+or another package, you must use the full ad-hoc file name including
+all hops, like @file{@trampfn{ssh, bird,
+bastion|ssh@value{postfixhop}news.my.domain, /opt/news/etc}}.
+
+Alternatively, if you save only the abbreviated multi-hop file name
+@file{@trampfn{ssh, news, news.my.domain, /opt/news/etc}}, the
+customer option @code{tramp-save-ad-hoc-proxies} must be set to a to a
+non-@code{nil} value.
+
+
 @ifset emacs
 @item
 How can I use @value{tramp} to connect to a remote @value{emacsname}

@@ -1870,7 +1870,7 @@ function at point for which PREDICATE returns non-nil)."
     (if (equal function "")
 	(if (ad-is-advised default)
 	    default
-	  (error "ad-read-advised-function: ‘%s’ is not advised" default))
+	  (error "ad-read-advised-function: `%s' is not advised" default))
       (intern function))))
 
 (defvar ad-advice-class-completion-table
@@ -1887,7 +1887,7 @@ class of FUNCTION)."
 	    (cl-dolist (class ad-advice-classes)
 	      (if (ad-get-advice-info-field function class)
 		  (cl-return class)))
-	    (error "ad-read-advice-class: ‘%s’ has no advices" function)))
+	    (error "ad-read-advice-class: `%s' has no advices" function)))
   (let ((class (completing-read
 		(format "%s (default %s): " (or prompt "Class") default)
 		ad-advice-class-completion-table nil t)))
@@ -1904,7 +1904,7 @@ An optional PROMPT is used to prompt for the name."
 		  (ad-get-advice-info-field function class)))
 	 (default
 	   (if (null name-completion-table)
-	       (error "ad-read-advice-name: ‘%s’ has no %s advice"
+	       (error "ad-read-advice-name: `%s' has no %s advice"
 		      function class)
 	     (car (car name-completion-table))))
 	 (prompt (format "%s (default %s): " (or prompt "Name") default))
@@ -1995,9 +1995,9 @@ FUNCTION was not advised)."
   (interactive (ad-read-advice-specification "Enable advice of"))
   (if (ad-is-advised function)
       (if (eq (ad-enable-advice-internal function class name t) 0)
-	  (error "ad-enable-advice: ‘%s’ has no %s advice matching ‘%s’"
+	  (error "ad-enable-advice: `%s' has no %s advice matching `%s'"
 		 function class name))
-    (error "ad-enable-advice: ‘%s’ is not advised" function)))
+    (error "ad-enable-advice: `%s' is not advised" function)))
 
 ;;;###autoload
 (defun ad-disable-advice (function class name)
@@ -2005,9 +2005,9 @@ FUNCTION was not advised)."
   (interactive (ad-read-advice-specification "Disable advice of"))
   (if (ad-is-advised function)
       (if (eq (ad-enable-advice-internal function class name nil) 0)
-	  (error "ad-disable-advice: ‘%s’ has no %s advice matching ‘%s’"
+	  (error "ad-disable-advice: `%s' has no %s advice matching `%s'"
 		 function class name))
-    (error "ad-disable-advice: ‘%s’ is not advised" function)))
+    (error "ad-disable-advice: `%s' is not advised" function)))
 
 (defun ad-enable-regexp-internal (regexp class flag)
   "Set enable FLAGs of all CLASS advices whose name contains a REGEXP match.
@@ -2053,9 +2053,9 @@ in that CLASS."
 	    (ad-set-advice-info-field
 	     function class
 	     (delq advice-to-remove (ad-get-advice-info-field function class)))
-	  (error "ad-remove-advice: ‘%s’ has no %s advice ‘%s’"
+	  (error "ad-remove-advice: `%s' has no %s advice `%s'"
 		 function class name)))
-    (error "ad-remove-advice: ‘%s’ is not advised" function)))
+    (error "ad-remove-advice: `%s' is not advised" function)))
 
 ;;;###autoload
 (defun ad-add-advice (function advice class position)
@@ -2319,7 +2319,7 @@ INDEX counts from zero."
              ,value-form))
 	  (argument-access
 	   `(setq ,argument-access ,value-form))
-	  (t (error "ad-set-argument: No argument at position %d of ‘%s’"
+	  (t (error "ad-set-argument: No argument at position %d of `%s'"
 		    index arglist)))))
 
 (defun ad-get-arguments (arglist index)
@@ -2361,7 +2361,7 @@ The assignment starts at position INDEX."
       (setq index (1+ index))
       (setq values-index (1+ values-index)))
     (if (null set-forms)
-	(error "ad-set-arguments: No argument at position %d of ‘%s’"
+	(error "ad-set-arguments: No argument at position %d of `%s'"
 	       index arglist)
         (if (= (length set-forms) 1)
             ;; For exactly one set-form we can use values-form directly,...
@@ -2412,14 +2412,14 @@ The assignment starts at position INDEX."
 ;; The mapping should work for any two argument lists.
 
 (defun ad-map-arglists (source-arglist target-arglist)
-  "Make ‘funcall/apply’ form to map SOURCE-ARGLIST to TARGET-ARGLIST.
+  "Make `funcall/apply' form to map SOURCE-ARGLIST to TARGET-ARGLIST.
 The arguments supplied to TARGET-ARGLIST will be taken from SOURCE-ARGLIST just
 as if they had been supplied to a function with TARGET-ARGLIST directly.
 Excess source arguments will be neglected, missing source arguments will be
-supplied as nil.  Returns a ‘funcall’ or ‘apply’ form with the second element
-being ‘function’ which has to be replaced by an actual function argument.
-Example: ‘(ad-map-arglists '(a &rest args) '(w x y z))’ will return
-         ‘(funcall ad--addoit-function a (car args) (car (cdr args)) (nth 2 args))’."
+supplied as nil.  Returns a `funcall' or `apply' form with the second element
+being `function' which has to be replaced by an actual function argument.
+Example: (ad-map-arglists '(a &rest args) '(w x y z)) will return
+         (funcall ad--addoit-function a (car args) (car (cdr args)) (nth 2 args))."
   (let* ((parsed-source-arglist (ad-parse-arglist source-arglist))
 	 (source-reqopt-args (append (nth 0 parsed-source-arglist)
 				     (nth 1 parsed-source-arglist)))
@@ -2911,14 +2911,14 @@ the value of `ad-redefinition-action' and de/activate again."
 	    (if (not (eq current-definition original-definition))
 		;; We have a redefinition:
 		(if (not (memq ad-redefinition-action '(accept discard warn)))
-		    (error "ad-redefinition-action: ‘%s’ %s"
+		    (error "ad-redefinition-action: `%s' %s"
 			   function "invalidly redefined")
 		  (if (eq ad-redefinition-action 'discard)
 		      nil ;; Just drop it!
 		    (funcall (or fsetfun #'fset) function newdef)
                     (ad-activate-internal function)
 		    (if (eq ad-redefinition-action 'warn)
-			(message "ad-handle-definition: ‘%s’ got redefined"
+			(message "ad-handle-definition: `%s' got redefined"
 				 function))))
 	      ;; either advised def or correct original is in place:
 	      nil)
@@ -2953,7 +2953,7 @@ definition will always be cached for later usage."
 	 current-prefix-arg))
   (cond
    ((not (ad-is-advised function))
-    (error "ad-activate: ‘%s’ is not advised" function))
+    (error "ad-activate: `%s' is not advised" function))
    ;; Just return for forward advised and not yet defined functions:
    ((not (ad-get-orig-definition function)) nil)
    ((not (ad-has-any-advice function)) (ad-unadvise function))
@@ -2977,10 +2977,10 @@ a call to `ad-activate'."
   (interactive
    (list (ad-read-advised-function "Deactivate advice of" 'ad-is-active)))
   (if (not (ad-is-advised function))
-      (error "ad-deactivate: ‘%s’ is not advised" function)
+      (error "ad-deactivate: `%s' is not advised" function)
     (cond ((ad-is-active function)
 	   (if (not (ad-get-orig-definition function))
-	       (error "ad-deactivate: ‘%s’ has no original definition"
+	       (error "ad-deactivate: `%s' has no original definition"
 		      function)
              (ad-clear-advicefunname-definition function)
 	     (ad-set-advice-info-field function 'active nil)

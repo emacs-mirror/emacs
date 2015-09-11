@@ -466,7 +466,7 @@ See also `lazy-lock-stealth-load'."
 With arg, turn Lazy Lock mode on if and only if arg is positive.  Enable it
 automatically in your `~/.emacs' by:
 
- (setq font-lock-support-mode 'lazy-lock-mode)
+ (setq font-lock-support-mode \\='lazy-lock-mode)
 
 For a newer font-lock support mode with similar functionality, see
 `jit-lock-mode'.  Eventually, Lazy Lock mode will be deprecated in

@@ -1348,7 +1348,7 @@ aligner would have dealt with are."
 	      (if real-beg
 		  (goto-char beg)
 		(if (or (not thissep) (eq thissep 'entire))
-		    (error "Cannot determine alignment region for ‘%s’"
+		    (error "Cannot determine alignment region for `%s'"
 			   (symbol-name (cdr (assq 'title rule)))))
 		(beginning-of-line)
 		(while (and (not (eobp))

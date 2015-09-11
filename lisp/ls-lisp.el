@@ -222,7 +222,7 @@ current year.  The OLD-TIME-FORMAT is used for older files.  To use ISO
 8601 dates, you could set:
 
 \(setq ls-lisp-format-time-list
-       '(\"%Y-%m-%d %H:%M\"
+       \\='(\"%Y-%m-%d %H:%M\"
          \"%Y-%m-%d      \"))"
   :type '(list (string :tag "Early time format")
 	       (string :tag "Old time format"))

@@ -419,21 +419,21 @@ names and the function is called when OUTPUT is available."
                                         return-nil-if-folder-empty)
   "Normalizes FOLDER name.
 
-Makes sure that two ‘/’ characters never occur next to each
-other. Also all occurrences of ‘..’ and ‘.’ are suitably
+Makes sure that two `/' characters never occur next to each
+other. Also all occurrences of `..' and `.' are suitably
 processed. So \"+inbox/../news\" will be normalized to \"+news\".
 
-If optional argument EMPTY-STRING-OKAY is nil then a ‘+’ is added
+If optional argument EMPTY-STRING-OKAY is nil then a `+' is added
 at the front if FOLDER lacks one. If non-nil and FOLDER is the
 empty string then nothing is added.
 
 If optional argument DONT-REMOVE-TRAILING-SLASH is non-nil then a
-trailing ‘/’ if present is retained (if present), otherwise it is
+trailing `/' if present is retained (if present), otherwise it is
 removed.
 
 If optional argument RETURN-NIL-IF-FOLDER-EMPTY is non-nil, then
 return nil if FOLDER is \"\" or \"+\". This is useful when
-normalizing the folder for the ‘folders’ command which displays
+normalizing the folder for the `folders' command which displays
 the directories in / if passed \"+\". This is usually not
 desired. If this argument is non-nil, then EMPTY-STRING-OKAY has
 no effect."

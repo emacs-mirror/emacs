@@ -25,7 +25,7 @@ representing the variable.
 
 @menu
 * Global Variables::            Variable values that exist permanently, everywhere.
-* Constant Variables::          Certain "variables" have values that never change.
+* Constant Variables::          Certain ``variables'' have values that never change.
 * Local Variables::             Variable values that exist only temporarily.
 * Void Variables::              Symbols that lack values.
 * Defining Variables::          A definition says a symbol is used as a variable.

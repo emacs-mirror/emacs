@@ -1455,7 +1455,7 @@ Fill comments, backslashed lines, and variable definitions specially."
 
 (defun makefile-browser-insert-continuation ()
   "Insert a makefile continuation.
-In the makefile buffer, go to (end-of-line), insert a ‘\\’
+In the makefile buffer, go to (end-of-line), insert a `\\'
 character, insert a new blank line, go to that line and indent by one TAB.
 This is most useful in the process of creating continued lines when copying
 large dependencies from the browser to the client buffer.

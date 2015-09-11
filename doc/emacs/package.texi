@@ -232,7 +232,7 @@ in your init file depends on a package).  In that case, your init file
 should call the function @code{package-initialize}.  It is up to you
 to ensure that relevant user options, such as @code{package-load-list}
 (see below), are set up prior to the @code{package-initialize} call.
-You should also set @code{package-enable-at-startup} to @code{nil}, to
+This will automatically set @code{package-enable-at-startup} to @code{nil}, to
 avoid loading the packages again after processing the init file.
 Alternatively, you may choose to completely inhibit package loading at
 startup, and invoke the command @kbd{M-x package-initialize} to load

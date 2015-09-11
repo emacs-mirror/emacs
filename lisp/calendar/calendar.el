@@ -42,7 +42,7 @@
 ;; can be translated from the (usual) Gregorian calendar to the day of
 ;; the year/days remaining in year, to the ISO commercial calendar, to
 ;; the Julian (old style) calendar, to the Hebrew calendar, to the
-;; Islamic calendar, to the Bahá'í calendar, to the French
+;; Islamic calendar, to the Bahá’í calendar, to the French
 ;; Revolutionary calendar, to the Mayan calendar, to the Chinese
 ;; calendar, to the Coptic calendar, to the Ethiopic calendar, and to
 ;; the astronomical (Julian) day number.  Times of sunrise/sunset can
@@ -53,7 +53,7 @@
 ;; The following files are part of the calendar/diary code:
 
 ;;    appt.el                    Appointment notification
-;;    cal-bahai.el               Bahá'í calendar
+;;    cal-bahai.el               Bahá’í calendar
 ;;    cal-china.el               Chinese calendar
 ;;    cal-coptic.el              Coptic/Ethiopic calendars
 ;;    cal-dst.el                 Daylight saving time rules
@@ -375,7 +375,7 @@ When this expression is evaluated, DAY, MONTH, and YEAR are
 integers appropriate to the relevant date.  For example, to
 display the ISO date:
 
-  (setq calendar-date-echo-text '(format \"ISO date: %s\"
+  (setq calendar-date-echo-text \\='(format \"ISO date: %s\"
                                          (calendar-iso-date-string
                                           (list month day year))))
 Changing this variable without using customize has no effect on
@@ -655,7 +655,7 @@ causes the diary entry \"Vacation\" to appear from November 1 through
 November 10, 1990.  See the documentation for the function
 `diary-list-sexp-entries' for more details.
 
-Diary entries based on the Hebrew, the Islamic and/or the Bahá'í
+Diary entries based on the Hebrew, the Islamic and/or the Bahá’í
 calendar are also possible, but because these are somewhat slow, they
 are ignored unless you set the `diary-nongregorian-listing-hook' and
 the `diary-nongregorian-marking-hook' appropriately.  See the
@@ -690,7 +690,7 @@ details, see the documentation for the variable `diary-list-entries-hook'."
   :group 'diary)
 
 (defcustom diary-bahai-entry-symbol "B"
-  "Symbol indicating a diary entry according to the Bahá'í calendar."
+  "Symbol indicating a diary entry according to the Bahá’í calendar."
   :type 'string
   :group 'diary)
 
@@ -1013,9 +1013,9 @@ calendar."
   :group 'holidays)
 
 (defcustom calendar-bahai-all-holidays-flag nil
-  "If nil, show only major holidays from the Bahá'í calendar.
+  "If nil, show only major holidays from the Bahá’í calendar.
 These are the days on which work and school must be suspended.
-Otherwise, show all the holidays that would appear in a complete Bahá'í
+Otherwise, show all the holidays that would appear in a complete Bahá’í
 calendar."
   :type 'boolean
   :group 'holidays)
@@ -1708,13 +1708,13 @@ remaining in the year, and the ISO week/year numbers:
 
   (list
    \"\"
-   '(calendar-hebrew-date-string date)
-   '(let* ((year (calendar-extract-year date))
+   \\='(calendar-hebrew-date-string date)
+   \\='(let* ((year (calendar-extract-year date))
            (d (calendar-day-number date))
            (days-remaining
             (- (calendar-day-number (list 12 31 year)) d)))
       (format \"%d/%d\" d days-remaining))
-   '(let* ((d (calendar-absolute-from-gregorian date))
+   \\='(let* ((d (calendar-absolute-from-gregorian date))
            (iso-date (calendar-iso-from-absolute d)))
       (format \"ISO week %d of %d\"
         (calendar-extract-month iso-date)
@@ -2571,7 +2571,7 @@ DATE is (month day year).  Calendars that do not apply are omitted."
            (unless (string-equal
                     (setq odate (calendar-bahai-date-string date))
                     "")
-             (format "Bahá'í date: %s" odate))
+             (format "Bahá’í date: %s" odate))
            (format "Chinese date: %s"
                    (calendar-chinese-date-string date))
            (unless (string-equal

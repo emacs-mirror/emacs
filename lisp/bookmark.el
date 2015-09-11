@@ -843,10 +843,10 @@ whose annotation is being edited.")
 The default annotation text is simply some text explaining how to use
 annotations."
   (concat (format-message
-           "#  Type the annotation for bookmark ‘%s’ here.\n"
+           "#  Type the annotation for bookmark `%s' here.\n"
            bookmark-name)
 	  (format-message
-           "#  All lines which start with a ‘#’ will be deleted.\n")
+           "#  All lines which start with a `#' will be deleted.\n")
 	  "#  Type C-c C-c when done.\n#\n"
 	  "#  Author: " (user-full-name) " <" (user-login-name) "@"
 	  (system-name) ">\n"

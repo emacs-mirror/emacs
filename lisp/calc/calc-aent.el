@@ -1034,7 +1034,7 @@ in Calc algebraic input.")
 
 (defun math-restore-placeholders (x)
   "Replace placeholders by the proper characters in the symbol x.
-This includes ‘#’ for ‘_’ and ‘'’ for ‘%’.
+This includes `#' for `_' and `'' for `%'.
 If the current Calc language does not use placeholders, return nil."
   (if (or (memq calc-language calc-lang-allow-underscores)
           (memq calc-language calc-lang-allow-percentsigns))
@@ -1057,7 +1057,7 @@ If the current Calc language does not use placeholders, return nil."
 (defun math-read-if (cond op)
   (let ((then (math-read-expr-level 0)))
     (or (equal math-expr-data ":")
-	(throw 'syntax "Expected ‘:’"))
+	(throw 'syntax "Expected `:'"))
     (math-read-token)
     (list 'calcFunc-if cond then (math-read-expr-level (nth 3 op)))))
 
@@ -1121,7 +1121,7 @@ If the current Calc language does not use placeholders, return nil."
 				   (math-read-expr-list))))
 		       (if (not (or (equal math-expr-data calc-function-close)
 				    (eq math-exp-token 'end)))
-			   (throw 'syntax "Expected ‘)’"))
+			   (throw 'syntax "Expected `)'"))
 		       (math-read-token)
 		       (if (and (memq calc-language
                                       calc-lang-parens-are-subscripts)
@@ -1177,7 +1177,7 @@ If the current Calc language does not use placeholders, return nil."
                          (setq el (cdr el))))
 		     (if (equal math-expr-data "]")
 			 (math-read-token)
-		       (throw 'syntax "Expected ‘]’")))
+		       (throw 'syntax "Expected `]'")))
 		   val)))))
 	  ((eq math-exp-token 'dollar)
 	   (let ((abs (if (> math-expr-data 0) math-expr-data (- math-expr-data))))
@@ -1246,7 +1246,7 @@ If the current Calc language does not use placeholders, return nil."
 	     (if (not (or (equal math-expr-data ")")
 			  (and (equal math-expr-data "]") (eq (car-safe exp) 'intv))
 			  (eq math-exp-token 'end)))
-		 (throw 'syntax "Expected ‘)’"))
+		 (throw 'syntax "Expected `)'"))
 	     (math-read-token)
 	     exp))
 	  ((eq math-exp-token 'string)

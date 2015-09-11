@@ -4477,7 +4477,7 @@ More specifically, after a generate and before an endgenerate."
     (= nest 0) )) ; return nest
 
 (defun verilog-in-deferred-immediate-final-p ()
-  "Return true if inside an ‘assert/assume/cover final’ statement."
+  "Return true if inside an `assert/assume/cover final' statement."
   (interactive)
   (and (looking-at "final")
        (verilog-looking-back "\\<\\(?:assert\\|assume\\|cover\\)\\>\\s-+" nil))
@@ -7221,7 +7221,7 @@ will be completed at runtime and should not be added to this list.")
 
 (defun verilog-func-completion (type)
   "Build regular expression for module/task/function names.
-TYPE is ‘module’, ‘tf’ for task or function, or t if unknown."
+TYPE is `module', `tf' for task or function, or t if unknown."
   (if (string= verilog-str "")
       (setq verilog-str "[a-zA-Z_]"))
   (let ((verilog-str (concat (cond
@@ -7294,7 +7294,7 @@ must be a function to be called for every match to check if this should
 really be a match.  If VERILOG-FLAG is t, the function returns a list of
 all possible completions.  If VERILOG-FLAG is nil it returns a string,
 the longest possible completion, or t if VERILOG-STR is an exact match.
-If VERILOG-FLAG is ‘lambda’, the function returns t if VERILOG-STR is an
+If VERILOG-FLAG is `lambda', the function returns t if VERILOG-STR is an
 exact match, nil otherwise."
   (save-excursion
     (let ((verilog-all nil))
@@ -7489,7 +7489,7 @@ VERILOG-PRED is non-nil, it must be a function to be called for every match
 to check if this should really be a match.  If VERILOG-FLAG is t, the
 function returns a list of all possible completions.  If it is nil it
 returns a string, the longest possible completion, or t if VERILOG-STR is
-an exact match.  If VERILOG-FLAG is ‘lambda’, the function returns t if
+an exact match.  If VERILOG-FLAG is `lambda', the function returns t if
 VERILOG-STR is an exact match, nil otherwise."
   (save-excursion
     (let ((verilog-all nil)
@@ -10099,7 +10099,7 @@ if non-nil."
 
 ;; Combined
 (defun verilog-decls-get-signals (decls)
-  "Return all declared signals in DECLS, excluding ‘assign’ statements."
+  "Return all declared signals in DECLS, excluding `assign' statements."
   (append
    (verilog-decls-get-outputs decls)
    (verilog-decls-get-inouts decls)
@@ -11484,14 +11484,14 @@ Lisp Templates:
   Lisp functions:
 
 	vl-name        Name portion of the input/output port.
-	vl-bits        Bus bits portion of the input/output port (‘[2:0]’).
-	vl-mbits       Multidimensional array bits for port (‘[2:0][3:0]’).
-	vl-width       Width of the input/output port (‘3’ for [2:0]).
+	vl-bits        Bus bits portion of the input/output port (`[2:0]').
+	vl-mbits       Multidimensional array bits for port (`[2:0][3:0]').
+	vl-width       Width of the input/output port (`3' for [2:0]).
                        May be a (...) expression if bits isn't a constant.
 	vl-dir         Direction of the pin input/output/inout/interface.
 	vl-modport     The modport, if an interface with a modport.
-	vl-cell-type   Module name/type of the cell (‘InstModule’).
-	vl-cell-name   Instance name of the cell (‘instName’).
+	vl-cell-type   Module name/type of the cell (`InstModule').
+	vl-cell-name   Instance name of the cell (`instName').
 
   Normal Lisp variables may be used in expressions.  See
   `verilog-read-defines' which can set vh-{definename} variables for use
@@ -14177,7 +14177,7 @@ Files are checked based on `verilog-library-flags'."
 			     (match-string 1) (buffer-file-name))))
 	  (when warn
 	    (message
-	     "File ‘%s’ isn't readable, use shift-mouse2 to paste in this field"
+	     "File `%s' isn't readable, use shift-mouse2 to paste in this field"
 	     (match-string 1))))))))
 
 

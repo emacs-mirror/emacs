@@ -443,7 +443,7 @@
 	 (calc-edit-mode (list 'calc-finish-stack-edit (list 'quote var))
 			 t
 			 (format-message
-                          "Editing variable ‘%s’" (calc-var-name var)))
+                          "Editing variable `%s'" (calc-var-name var)))
 	 (and value
 	      (insert (math-format-nice-expr value (frame-width)) "\n")))))
   (calc-show-edit-buffer))

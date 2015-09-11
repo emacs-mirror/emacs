@@ -9268,7 +9268,7 @@ documentation string.  For example:
 @smallexample
 @group
 (defvar shell-command-default-error-buffer nil
-  "*Buffer name for ‘shell-command’ @dots{} error output.
+  "*Buffer name for `shell-command' @dots{} error output.
 @dots{} ")
 @end group
 @end smallexample
@@ -11107,7 +11107,7 @@ up the number of pebbles in a triangle.
 @smallexample
 @group
 (defun triangle-using-dotimes (number-of-rows)
-  "Using ‘dotimes’, add up the number of pebbles in a triangle."
+  "Using `dotimes', add up the number of pebbles in a triangle."
 (let ((total 0))  ; otherwise a total is a void variable
   (dotimes (number number-of-rows total)
     (setq total (+ total (1+ number))))))
@@ -13514,8 +13514,8 @@ For example:
 @smallexample
 @group
 (let* ((foo 7)
-      (bar (* 3 foo)))
-  (message "‘bar’ is %d." bar))
+       (bar (* 3 foo)))
+  (message "`bar' is %d." bar))
      @result{} ‘bar’ is 21.
 @end group
 @end smallexample
@@ -13758,7 +13758,7 @@ All this leads to the following function definition:
   "Print number of words in the region.
 Words are defined as at least one word-constituent
 character followed by at least one character that
-is not a word-constituent.  The buffer’s syntax
+is not a word-constituent.  The buffer's syntax
 table determines which characters these are."
   (interactive "r")
   (message "Counting words in region ... ")
@@ -13825,7 +13825,7 @@ parenthesis and type @kbd{C-x C-e} to install it.
 (defun @value{COUNT-WORDS} (beginning end)
   "Print number of words in the region.
 Words are defined as at least one word-constituent character followed
-by at least one character that is not a word-constituent.  The buffer’s
+by at least one character that is not a word-constituent.  The buffer's
 syntax table determines which characters these are."
 @end group
 @group
@@ -13947,7 +13947,7 @@ What happens is this: the search is limited to the region, and fails
 as you expect because there are no word-constituent characters in the
 region.  Since it fails, we receive an error message.  But we do not
 want to receive an error message in this case; we want to receive the
-message that "The region does NOT have any words."
+message ``The region does NOT have any words.''
 
 The solution to this problem is to provide @code{re-search-forward}
 with a third argument of @code{t}, which causes the function to return
@@ -14987,13 +14987,13 @@ beginning of the file.  The function definition looks like this:
 @smallexample
 @group
 (defun lengths-list-file (filename)
-  "Return list of definitions’ lengths within FILE.
+  "Return list of definitions' lengths within FILE.
 The returned list is a list of numbers.
 Each number is the number of words or
 symbols in one function definition."
 @end group
 @group
-  (message "Working on ‘%s’ ... " filename)
+  (message "Working on `%s' ... " filename)
   (save-excursion
     (let ((buffer (find-file-noselect filename))
           (lengths-list))
@@ -15759,7 +15759,7 @@ simpler to write a list manually.  Here it is:
   160 170 180 190 200
   210 220 230 240 250
   260 270 280 290 300)
- "List specifying ranges for ‘defuns-per-range’.")
+ "List specifying ranges for `defuns-per-range'.")
 @end group
 @end smallexample
 
@@ -19943,7 +19943,7 @@ row, and the value of the width of the top line, which is calculated
 @group
 (defun Y-axis-element (number full-Y-label-width)
   "Construct a NUMBERed label element.
-A numbered element looks like this ‘  5 - ’,
+A numbered element looks like this `  5 - ',
 and is padded as needed so all line up with
 the element for the largest number."
 @end group
@@ -20044,7 +20044,7 @@ the @code{print-Y-axis} function, which inserts the list as a column.
 Height must be the maximum height of the graph.
 Full width is the width of the highest label element."
 ;; Value of height and full-Y-label-width
-;; are passed by ‘print-graph’.
+;; are passed by print-graph.
 @end group
 @group
   (let ((start (point)))
@@ -21169,7 +21169,7 @@ each column."
 @end group
 @group
 ;; Value of symbol-width and full-Y-label-width
-;; are passed by ‘print-graph’.
+;; are passed by print-graph.
   (let* ((leading-spaces
           (make-string full-Y-label-width ? ))
        ;; symbol-width @r{is provided by} graph-body-print
@@ -21269,7 +21269,7 @@ Here are all the graphing definitions in their final form:
   110 120 130 140 150
   160 170 180 190 200
   210 220 230 240 250)
- "List specifying ranges for ‘defuns-per-range’.")
+ "List specifying ranges for `defuns-per-range'.")
 @end group
 
 @group
@@ -21330,14 +21330,14 @@ as graph-symbol.")
 @smallexample
 @group
 (defun lengths-list-file (filename)
-  "Return list of definitions’ lengths within FILE.
+  "Return list of definitions' lengths within FILE.
 The returned list is a list of numbers.
 Each number is the number of words or
 symbols in one function definition."
 @end group
 
 @group
-  (message "Working on ‘%s’ ... " filename)
+  (message "Working on `%s' ... " filename)
   (save-excursion
     (let ((buffer (find-file-noselect filename))
           (lengths-list))
@@ -21467,7 +21467,7 @@ The strings are either graph-blank or graph-symbol."
 @group
 (defun Y-axis-element (number full-Y-label-width)
   "Construct a NUMBERed label element.
-A numbered element looks like this ‘  5 - ’,
+A numbered element looks like this `  5 - ',
 and is padded as needed so all line up with
 the element for the largest number."
 @end group
@@ -21497,7 +21497,7 @@ Optionally, print according to VERTICAL-STEP."
 @end group
 @group
 ;; Value of height and full-Y-label-width
-;; are passed by ‘print-graph’.
+;; are passed by 'print-graph'.
   (let ((start (point)))
     (insert-rectangle
      (Y-axis-column height full-Y-label-width vertical-step))
@@ -21662,7 +21662,7 @@ each column."
 @end group
 @group
 ;; Value of symbol-width and full-Y-label-width
-;; are passed by ‘print-graph’.
+;; are passed by 'print-graph'.
   (let* ((leading-spaces
           (make-string full-Y-label-width ? ))
        ;; symbol-width @r{is provided by} graph-body-print

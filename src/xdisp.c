@@ -771,7 +771,7 @@ static void push_it (struct it *, struct text_pos *);
 static void iterate_out_of_display_property (struct it *);
 static void pop_it (struct it *);
 static void redisplay_internal (void);
-static bool echo_area_display (bool);
+static void echo_area_display (bool);
 static void redisplay_windows (Lisp_Object);
 static void redisplay_window (Lisp_Object, bool);
 static Lisp_Object redisplay_window_error (Lisp_Object);
@@ -6825,6 +6825,18 @@ merge_glyphless_glyph_face (struct it *it)
   return face_id;
 }
 
+/* Forget the `escape-glyph' and `glyphless-char' faces.  This should
+   be called before redisplaying windows, and when the frame's face
+   cache is freed.  */
+void
+forget_escape_and_glyphless_faces (void)
+{
+  last_escape_glyph_frame = NULL;
+  last_escape_glyph_face_id = (1 << FACE_ID_BITS);
+  last_glyphless_glyph_frame = NULL;
+  last_glyphless_glyph_face_id = (1 << FACE_ID_BITS);
+}
+
 /* Load IT's display element fields with information about the next
    display element from the current position of IT.  Value is false if
    end of buffer (or C string) is reached.  */
@@ -10724,6 +10736,11 @@ display_echo_area_1 (ptrdiff_t a1, Lisp_Object a2)
   Lisp_Object window;
   struct text_pos start;
 
+  /* We are about to enter redisplay without going through
+     redisplay_internal, so we need to forget these faces by hand
+     here.  */
+  forget_escape_and_glyphless_faces ();
+
   /* Do this before displaying, so that we have a large enough glyph
      matrix for the display.  If we can't get enough space for the
      whole text, display the last N lines.  That works by setting w->start.  */
@@ -11153,11 +11170,10 @@ clear_garbaged_frames (void)
 }
 
 
-/* Redisplay the echo area of the selected frame.  If UPDATE_FRAME_P,
-   update selected_frame.  Value is true if the mini-windows height
-   has been changed.  */
+/* Redisplay the echo area of the selected frame.  If UPDATE_FRAME_P, update
+   selected_frame.  */
 
-static bool
+static void
 echo_area_display (bool update_frame_p)
 {
   Lisp_Object mini_window;
@@ -11172,14 +11188,14 @@ echo_area_display (bool update_frame_p)
 
   /* Don't display if frame is invisible or not yet initialized.  */
   if (!FRAME_VISIBLE_P (f) || !f->glyphs_initialized_p)
-    return false;
+    return;
 
 #ifdef HAVE_WINDOW_SYSTEM
   /* When Emacs starts, selected_frame may be the initial terminal
      frame.  If we let this through, a message would be displayed on
      the terminal.  */
   if (FRAME_INITIAL_P (XFRAME (selected_frame)))
-    return false;
+    return;
 #endif /* HAVE_WINDOW_SYSTEM */
 
   /* Redraw garbaged frames.  */
@@ -11217,7 +11233,7 @@ echo_area_display (bool update_frame_p)
 		 pending input.  */
 	      ptrdiff_t count = SPECPDL_INDEX ();
 	      specbind (Qredisplay_dont_pause, Qt);
-	      windows_or_buffers_changed = 44;
+	      fset_redisplay (f);
 	      redisplay_internal ();
 	      unbind_to (count, Qnil);
 	    }
@@ -11253,7 +11269,16 @@ echo_area_display (bool update_frame_p)
   if (EQ (mini_window, selected_window))
     CHARPOS (this_line_start_pos) = 0;
 
-  return window_height_changed_p;
+  if (window_height_changed_p)
+    {
+      fset_redisplay (f);
+
+      /* If window configuration was changed, frames may have been
+	 marked garbaged.  Clear them or we will experience
+	 surprises wrt scrolling.
+	 FIXME: How/why/when?  */
+      clear_garbaged_frames ();
+    }
 }
 
 /* True if W's buffer was changed but not saved.  */
@@ -13377,10 +13402,7 @@ redisplay_internal (void)
   sw = w;
 
   pending = false;
-  last_escape_glyph_frame = NULL;
-  last_escape_glyph_face_id = (1 << FACE_ID_BITS);
-  last_glyphless_glyph_frame = NULL;
-  last_glyphless_glyph_face_id = (1 << FACE_ID_BITS);
+  forget_escape_and_glyphless_faces ();
 
   /* If face_change, init_iterator will free all realized faces, which
      includes the faces referenced from current matrices.  So, we
@@ -13482,7 +13504,7 @@ redisplay_internal (void)
 	     echo-area doesn't show through.  */
 	  && !MINI_WINDOW_P (XWINDOW (selected_window))))
     {
-      bool window_height_changed_p = echo_area_display (false);
+      echo_area_display (false);
 
       if (message_cleared_p)
 	update_miniwindow_p = true;
@@ -13495,16 +13517,6 @@ redisplay_internal (void)
 	 the echo area.  */
       if (!display_last_displayed_message_p)
 	message_cleared_p = false;
-
-      if (window_height_changed_p)
-	{
-	  windows_or_buffers_changed = 50;
-
-	  /* If window configuration was changed, frames may have been
-	     marked garbaged.  Clear them or we will experience
-	     surprises wrt scrolling.  */
-	  clear_garbaged_frames ();
-	}
     }
   else if (EQ (selected_window, minibuf_window)
 	   && (current_buffer->clip_changed || window_outdated (w))

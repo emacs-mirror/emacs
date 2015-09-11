@@ -235,7 +235,7 @@ Optional arguments are:
 ARG any arguments to the ACTION command,
 OUTPUT-FORMAT is the file format to output (default is jpeg),
 ACTION-PREFIX is the symbol to place before the ACTION command
-              (defaults to '-' but can sometimes be '+')."
+              (defaults to `-' but can sometimes be `+')."
   (call-process thumbs-conversion-program nil nil nil
 		(or action-prefix "-")
 		action

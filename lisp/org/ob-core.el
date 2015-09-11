@@ -1677,7 +1677,7 @@ If the point is not on a source block then return nil."
     (if point
         ;; taken from `org-open-at-point'
         (progn (org-mark-ring-push) (goto-char point) (org-show-context))
-      (message "source-code block ‘%s’ not found in this buffer" name))))
+      (message "source-code block `%s' not found in this buffer" name))))
 
 (defun org-babel-find-named-block (name)
   "Find a named source-code block.
@@ -1712,7 +1712,7 @@ org-babel-named-src-block-regexp."
     (if point
         ;; taken from `org-open-at-point'
         (progn (goto-char point) (org-show-context))
-      (message "result ‘%s’ not found in this buffer" name))))
+      (message "result `%s' not found in this buffer" name))))
 
 (defun org-babel-find-named-result (name &optional point)
   "Find a named result.
@@ -2207,7 +2207,7 @@ file's directory then expand relative links."
   "Make true to capitalize begin/end example markers inserted by code blocks.")
 
 (defun org-babel-examplize-region (beg end &optional results-switches)
-  "Comment out region using the inline ‘==’ or ‘: ’ org example quote."
+  "Comment out region using the inline `==' or `: ' org example quote."
   (interactive "*r")
   (let ((chars-between (lambda (b e)
 			 (not (string-match "^[\\s]*$" (buffer-substring b e)))))

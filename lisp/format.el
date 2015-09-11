@@ -395,7 +395,7 @@ unless you supply a prefix argument."
 				  (cdr (assq 'default-directory
 					     (buffer-local-variables)))
 				  nil nil (buffer-name))))
-	  (fmt (format-read (format-message "Write file ‘%s’ in format: "
+	  (fmt (format-read (format-message "Write file `%s' in format: "
                                             (file-name-nondirectory file)))))
      (list file fmt (not current-prefix-arg))))
   (let ((old-formats buffer-file-format)
@@ -416,7 +416,7 @@ If FORMAT is nil then do not do any format conversion."
   (interactive
    ;; Same interactive spec as write-file, plus format question.
    (let* ((file (read-file-name "Find file: "))
-	  (fmt (format-read (format-message "Read file ‘%s’ in format: "
+	  (fmt (format-read (format-message "Read file `%s' in format: "
                                             (file-name-nondirectory file)))))
      (list file fmt)))
   (let ((format-alist nil))
@@ -435,7 +435,7 @@ a list (ABSOLUTE-FILE-NAME SIZE)."
   (interactive
    ;; Same interactive spec as write-file, plus format question.
    (let* ((file (read-file-name "Find file: "))
-	  (fmt (format-read (format-message "Read file ‘%s’ in format: "
+	  (fmt (format-read (format-message "Read file `%s' in format: "
                                             (file-name-nondirectory file)))))
      (list file fmt)))
   (let (value size old-undo)

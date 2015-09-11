@@ -398,7 +398,7 @@ Overwrite existing entry? ")
 				(concat "\n\n" (make-string 65 ?=)
 "\nYou can now customize your saved Mairix searches by modifying\n\
 the variable mairix-saved-searches. Don't forget to save your\nchanges \
-in your .emacs by pressing ‘Save for Future Sessions’.\n"
+in your .emacs by pressing `Save for Future Sessions'.\n"
 (make-string 65 ?=) "\n")))
 
 (autoload 'mail-strip-quoted-names "mail-utils")
@@ -668,7 +668,7 @@ Fill in VALUES if based on an article."
 	     "    ^substring=  to match the substring at the beginning of a word.\n"))
     (widget-insert
      (format-message
-      "Whitespace will be converted to ‘,’ (i.e. AND).  Use ‘/’ for OR.\n\n"))
+      "Whitespace will be converted to `,' (i.e. AND).  Use `/' for OR.\n\n"))
     (setq mairix-widgets (mairix-widget-build-editable-fields values))
     (when (member 'flags mairix-widget-other)
       (widget-insert "\nFlags:\n      Seen:     ")

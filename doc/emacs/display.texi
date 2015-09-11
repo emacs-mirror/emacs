@@ -1480,6 +1480,15 @@ customizing the variable @code{glyphless-char-display-control}.
 @xref{Glyphless Chars,, Glyphless Character Display, elisp, The Emacs
 Lisp Reference Manual}, for details.
 
+@cindex curly quotes
+@cindex curved quotes
+@cindex escape-glyph face
+  If the curved quotes @samp{‘}, @samp{’}, @samp{“}, and @samp{”} are
+known to look just like @acronym{ASCII} characters, they are shown
+with the @code{escape-glyph} face.  Curved quotes that cannot be
+displayed are shown as their @acronym{ASCII} approximations @samp{`},
+@samp{'}, and @samp{"} with the @code{escape-glyph} face.
+
 @node Cursor Display
 @section Displaying the Cursor
 @cindex text cursor

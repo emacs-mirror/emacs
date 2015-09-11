@@ -3837,11 +3837,11 @@ DEFUN ("format-message", Fformat_message, Sformat_message, 1, MANY, 0,
 The first argument is a format control string.
 The other arguments are substituted into it to make the result, a string.
 
-This acts like ‘format’, except it also replaces each left single
+This acts like `format', except it also replaces each left single
 quotation mark (\\=‘) and grave accent (\\=`) by a left quote, and each
 right single quotation mark (\\=’) and apostrophe (\\=') by a right quote.
 The left and right quote replacement characters are specified by
-‘text-quoting-style’.
+`text-quoting-style'.
 
 usage: (format-message STRING &rest OBJECTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)

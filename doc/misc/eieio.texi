@@ -1529,7 +1529,7 @@ Currently, the default superclass is defined as follows:
   nil
   "Default parent class for classes with no specified parent class.
 Its slots are automatically adopted by classes with no specified
-parents.  This class is not stored in the ‘parent’ slot of a class vector."
+parents.  This class is not stored in the `parent' slot of a class vector."
   :abstract t)
 @end example
 

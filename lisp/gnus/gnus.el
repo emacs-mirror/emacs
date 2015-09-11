@@ -1362,7 +1362,7 @@ If you want to save your mail in one group and the news articles you
 write in another group, you could say something like:
 
  \(setq gnus-message-archive-group
-	'((if (message-news-p)
+	\\='((if (message-news-p)
 	      \"misc-news\"
 	    \"misc-mail\")))
 
@@ -2396,7 +2396,7 @@ less space and be faster as a result.
 This variable can also be a list of visual elements to switch on.  For
 instance, to switch off all visual things except menus, you can say:
 
-   (setq gnus-visual '(menu))
+   (setq gnus-visual \\='(menu))
 
 Valid elements include `summary-highlight', `group-highlight',
 `article-highlight', `mouse-face', `summary-menu', `group-menu',

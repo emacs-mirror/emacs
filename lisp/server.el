@@ -575,7 +575,7 @@ If the key is not valid, signal an error."
   (if server-auth-key
     (if (string-match-p "^[!-~]\\{64\\}$" server-auth-key)
         server-auth-key
-      (error "The key ‘%s’ is invalid" server-auth-key))
+      (error "The key `%s' is invalid" server-auth-key))
     (server-generate-key)))
 
 ;;;###autoload

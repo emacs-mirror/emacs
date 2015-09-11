@@ -294,9 +294,9 @@ Typically it should contain something like this:
 
   (tree-widget-set-parent-theme \"my-parent-theme\")
   (tree-widget-set-image-properties
-   (if (featurep 'xemacs)
-       '(:ascent center)
-     '(:ascent center :mask (heuristic t))
+   (if (featurep \\='xemacs)
+       \\='(:ascent center)
+     \\='(:ascent center :mask (heuristic t))
      ))"
   (or name (setq name (or tree-widget-theme "default")))
   (unless (string-equal name (tree-widget-theme-name))

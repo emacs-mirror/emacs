@@ -388,6 +388,11 @@ struct terminal
     the selection-values.  */
   Lisp_Object Vselection_alist;
 
+  /* If a char-table, this maps characters to terminal glyph codes.
+     If t, the mapping is not available.  If nil, it is not known
+     whether the mapping is available.  */
+  Lisp_Object glyph_code_table;
+
   /* All fields before `next_terminal' should be Lisp_Object and are traced
      by the GC.  All fields afterwards are ignored by the GC.  */
 
@@ -695,6 +700,7 @@ extern struct terminal *get_named_terminal (const char *);
 extern struct terminal *create_terminal (enum output_method,
 					 struct redisplay_interface *);
 extern void delete_terminal (struct terminal *);
+extern Lisp_Object terminal_glyph_code (struct terminal *, int);
 
 /* The initial terminal device, created by initial_term_init.  */
 extern struct terminal *initial_terminal;

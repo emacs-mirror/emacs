@@ -380,6 +380,11 @@ kset_echo_string (struct kboard *kb, Lisp_Object val)
   kb->echo_string_ = val;
 }
 static void
+kset_echo_prompt (struct kboard *kb, Lisp_Object val)
+{
+  kb->echo_prompt_ = val;
+}
+static void
 kset_kbd_queue (struct kboard *kb, Lisp_Object val)
 {
   kb->kbd_queue_ = val;
@@ -501,8 +506,9 @@ echo_dash (void)
     return;
 
   /* Do nothing if we just printed a prompt.  */
-  if (current_kboard->echo_after_prompt
-      == SCHARS (KVAR (current_kboard, echo_string)))
+  if (STRINGP (KVAR (current_kboard, echo_prompt))
+      && (SCHARS (KVAR (current_kboard, echo_prompt))
+	  == SCHARS (KVAR (current_kboard, echo_string))))
     return;
 
   /* Do nothing if we have already put a dash at the end.  */
@@ -534,8 +540,12 @@ echo_update (void)
   if (current_kboard->immediate_echo)
     {
       ptrdiff_t i;
+      Lisp_Object prompt = KVAR (current_kboard, echo_prompt);
+      Lisp_Object prefix = call0 (Qinternal_echo_keystrokes_prefix);
       kset_echo_string (current_kboard,
-			call0 (Qinternal_echo_keystrokes_prefix));
+			NILP (prompt) ? prefix
+			: NILP (prefix) ? prompt
+			: concat2 (prompt, prefix));
 
       for (i = 0; i < this_command_key_count; i++)
 	{
@@ -584,7 +594,7 @@ void
 cancel_echoing (void)
 {
   current_kboard->immediate_echo = false;
-  current_kboard->echo_after_prompt = -1;
+  kset_echo_prompt (current_kboard, Qnil);
   kset_echo_string (current_kboard, Qnil);
   ok_to_echo_at_next_pause = NULL;
   echo_kboard = NULL;
@@ -693,11 +703,11 @@ force_auto_save_soon (void)
 
 DEFUN ("recursive-edit", Frecursive_edit, Srecursive_edit, 0, 0, "",
        doc: /* Invoke the editor command loop recursively.
-To get out of the recursive edit, a command can throw to ‘exit’ -- for
-instance ‘(throw \\='exit nil)’.
-If you throw a value other than t, ‘recursive-edit’ returns normally
+To get out of the recursive edit, a command can throw to `exit' -- for
+instance (throw \\='exit nil).
+If you throw a value other than t, `recursive-edit' returns normally
 to the function that called it.  Throwing a t value causes
-‘recursive-edit’ to quit, so that control returns to the command loop
+`recursive-edit' to quit, so that control returns to the command loop
 one level up.
 
 This function is called by the editor initialization to begin editing.  */)
@@ -2942,7 +2952,7 @@ read_char (int commandflag, Lisp_Object map,
       bool saved_immediate_echo = current_kboard->immediate_echo;
       struct kboard *saved_ok_to_echo = ok_to_echo_at_next_pause;
       Lisp_Object saved_echo_string = KVAR (current_kboard, echo_string);
-      ptrdiff_t saved_echo_after_prompt = current_kboard->echo_after_prompt;
+      Lisp_Object saved_echo_prompt = KVAR (current_kboard, echo_prompt);
 
       /* Save the this_command_keys status.  */
       key_count = this_command_key_count;
@@ -2984,15 +2994,8 @@ read_char (int commandflag, Lisp_Object map,
 
       cancel_echoing ();
       ok_to_echo_at_next_pause = saved_ok_to_echo;
-      /* Do not restore the echo area string when the user is
-         introducing a prefix argument. Otherwise we end with
-         repetitions of the partially introduced prefix
-         argument. (bug#19875) */
-      if (NILP (intern ("prefix-arg")))
-        {
-          kset_echo_string (current_kboard, saved_echo_string);
-        }
-      current_kboard->echo_after_prompt = saved_echo_after_prompt;
+      kset_echo_string (current_kboard, saved_echo_string);
+      kset_echo_prompt (current_kboard, saved_echo_prompt);
       if (saved_immediate_echo)
 	echo_now ();
 
@@ -8885,8 +8888,8 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	  /* Install the string PROMPT as the beginning of the string
 	     of echoing, so that it serves as a prompt for the next
 	     character.  */
-	  kset_echo_string (current_kboard, prompt);
-	  current_kboard->echo_after_prompt = SCHARS (prompt);
+	  kset_echo_prompt (current_kboard, prompt);
+	  current_kboard->immediate_echo = false;
 	  echo_now ();
 	}
       else if (cursor_in_echo_area
@@ -10710,7 +10713,7 @@ init_kboard (KBOARD *kb, Lisp_Object type)
   kb->kbd_queue_has_data = false;
   kb->immediate_echo = false;
   kset_echo_string (kb, Qnil);
-  kb->echo_after_prompt = -1;
+  kset_echo_prompt (kb, Qnil);
   kb->kbd_macro_buffer = 0;
   kb->kbd_macro_bufsize = 0;
   kset_defining_kbd_macro (kb, Qnil);
@@ -11777,6 +11780,7 @@ mark_kboards (void)
       mark_object (KVAR (kb, Vlocal_function_key_map));
       mark_object (KVAR (kb, Vdefault_minibuffer_frame));
       mark_object (KVAR (kb, echo_string));
+      mark_object (KVAR (kb, echo_prompt));
     }
   {
     union buffered_input_event *event;

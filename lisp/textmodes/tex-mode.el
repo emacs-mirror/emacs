@@ -3410,6 +3410,8 @@ There might be text before point."
     (not (or
           ;; Don't compose \alpha@foo.
           (eq after-syntax ?_)
+          ;; Don't compose inside verbatim blocks!
+          (nth 8 (syntax-ppss))
           ;; The \alpha in \alpha2 may be composed but of course \alphax may not.
           (and (eq after-syntax ?w)
                (or (< after-char ?0)

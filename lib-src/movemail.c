@@ -246,13 +246,14 @@ main (int argc, char **argv)
 #ifndef DISABLE_DIRECT_ACCESS
 
   char *lockname = 0;
+  char *spool_name = 0;
 
-#ifndef MAIL_USE_SYSTEM_LOCK
 #ifdef MAIL_USE_MAILLOCK
   spool_name = mail_spool_name (inname);
 #endif
   if (! spool_name)
     {
+#ifndef MAIL_USE_SYSTEM_LOCK
       /* Use a lock file named after our first argument with .lock appended:
 	 If it exists, the mail file is locked.  */
       /* Note: this locking mechanism is *required* by the mailer
@@ -323,8 +324,8 @@ main (int argc, char **argv)
 	}
 
       delete_lockname = lockname;
-    }
 #endif /* not MAIL_USE_SYSTEM_LOCK */
+    }
 
 #ifdef SIGCHLD
   signal (SIGCHLD, SIG_DFL);

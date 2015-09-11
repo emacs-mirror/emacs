@@ -119,11 +119,11 @@ completed.  `pattern' is nil when `mail-directory-requery' is nil.
 
 The value might look like this:
 
-  '(remote-shell-program \"HOST\" \"-nl\" \"USER\" \"COMMAND\")
+  (remote-shell-program \"HOST\" \"-nl\" \"USER\" \"COMMAND\")
 
 or like this:
 
-  '(remote-shell-program \"HOST\" \"-n\" \"COMMAND '^\" pattern \"'\")"
+  (remote-shell-program \"HOST\" \"-n\" \"COMMAND \\='^\" pattern \"\\='\")"
   :type 'sexp
   :group 'mailalias)
 (put 'mail-directory-process 'risky-local-variable t)
@@ -512,7 +512,7 @@ PREFIX is the string we want to complete."
 				     mail-aliases))
 				(if (consp mail-local-names)
 				    mail-local-names)
-				(or directory 
+				(or directory
 				    (when (consp mail-directory-names)
 				      mail-directory-names)))
 			(lambda (a b)

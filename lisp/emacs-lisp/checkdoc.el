@@ -1419,7 +1419,7 @@ regexp short cuts work.  FP is the function defun information."
        (when (re-search-forward "^(" e t)
 	 (if (checkdoc-autofix-ask-replace (match-beginning 0)
 					   (match-end 0)
-					   "Escape this ‘(’? "
+					   (format-message "Escape this `('? ")
 					   "\\(")
 	     nil
 	   (checkdoc-create-error
@@ -1715,7 +1715,7 @@ function,command,variable,option or symbol." ms1))))))
 			     (if (checkdoc-autofix-ask-replace
 				  (match-beginning 1) (match-end 1)
 				  (format-message
-				   "If this is the argument ‘%s’, it should appear as %s.  Fix? "
+				   "If this is the argument `%s', it should appear as %s.  Fix? "
 				   (car args) (upcase (car args)))
 				  (upcase (car args)) t)
 				 (setq found (match-beginning 1))))))
@@ -1741,7 +1741,7 @@ function,command,variable,option or symbol." ms1))))))
 			 nil)
 		     (checkdoc-create-error
 		      (format-message
-		       "Argument ‘%s’ should appear (as %s) in the doc string"
+		       "Argument `%s' should appear (as %s) in the doc string"
 		       (car args) (upcase (car args)))
 		      s (marker-position e)))
 		 (if (or (and order (eq order 'yes))
@@ -1825,15 +1825,15 @@ Replace with \"%s\"? " original replace)
 		    (or (boundp found) (fboundp found)))
 	       (progn
 		 (setq msg (format-message
-                            "Add quotes around Lisp symbol ‘%s’? " ms))
+                            "Add quotes around Lisp symbol `%s'? " ms))
 		 (if (checkdoc-autofix-ask-replace
 		      (match-beginning 1) (+ (match-beginning 1)
 					     (length ms))
-		      msg (concat "‘" ms "’") t)
+		      msg (format-message "`%s'" ms) t)
 		     (setq msg nil)
 		   (setq msg
 			 (format-message
-                          "Lisp symbol ‘%s’ should appear in quotes" ms))))))
+                          "Lisp symbol `%s' should appear in quotes" ms))))))
 	 (if msg
 	     (checkdoc-create-error msg (match-beginning 1)
 				    (+ (match-beginning 1)
@@ -1849,7 +1849,7 @@ Replace with \"%s\"? " original replace)
 		(match-string 2) t)
 	       nil
 	     (checkdoc-create-error
-	      "Symbols t and nil should not appear in ‘...’ quotes"
+	      "Symbols t and nil should not appear in single quotes"
 	      (match-beginning 1) (match-end 1)))))
      ;; Here is some basic sentence formatting
      (checkdoc-sentencespace-region-engine (point) e)
@@ -2487,22 +2487,24 @@ Argument TYPE specifies the type of question, such as `error' or `y-or-n-p'."
 	       ;; If we see a ?, then replace with "? ".
 	       (if (checkdoc-autofix-ask-replace
 		    (match-beginning 0) (match-end 0)
-		    "‘y-or-n-p’ argument should end with \"? \".  Fix? "
+                    (format-message
+                     "`y-or-n-p' argument should end with \"? \".  Fix? ")
 		    "? " t)
 		   nil
 		 (checkdoc-create-error
-		  "‘y-or-n-p’ argument should end with \"? \""
+		  "`y-or-n-p' argument should end with \"? \""
 		  (match-beginning 0) (match-end 0)))
 	     (if (save-excursion (forward-sexp 1)
 				 (forward-char -2)
 				 (looking-at " "))
 		 (if (checkdoc-autofix-ask-replace
 		      (match-beginning 0) (match-end 0)
-		      "‘y-or-n-p’ argument should end with \"? \".  Fix? "
+                      (format-message
+                       "`y-or-n-p' argument should end with \"? \".  Fix? ")
 		      "? " t)
 		     nil
 		   (checkdoc-create-error
-		    "‘y-or-n-p’ argument should end with \"? \""
+		    "`y-or-n-p' argument should end with \"? \""
 		    (match-beginning 0) (match-end 0)))
 	       (if (and ;; if this isn't true, we have a problem.
 		    (save-excursion (forward-sexp 1)
@@ -2510,11 +2512,12 @@ Argument TYPE specifies the type of question, such as `error' or `y-or-n-p'."
 				    (looking-at "\""))
 		    (checkdoc-autofix-ask-replace
 		     (match-beginning 0) (match-end 0)
-		     "‘y-or-n-p’ argument should end with \"? \".  Fix? "
+                     (format-message
+                      "`y-or-n-p' argument should end with \"? \".  Fix? ")
 		     "? \"" t))
 		   nil
 		 (checkdoc-create-error
-		  "‘y-or-n-p’ argument should end with \"? \""
+		  "`y-or-n-p' argument should end with \"? \""
 		  (match-beginning 0) (match-end 0)))))))
      ;; Now, let's just run the spell checker on this guy.
      (checkdoc-ispell-docstring-engine (save-excursion (forward-sexp 1)

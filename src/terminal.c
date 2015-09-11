@@ -28,6 +28,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "coding.h"
 #include "keyboard.h"
 
+#ifdef HAVE_LINUX_KD_H
+# include <errno.h>
+# include <linux/kd.h>
+# include <sys/ioctl.h>
+#endif
+
 /* Chain of all terminals currently in use.  */
 struct terminal *terminal_list;
 
@@ -524,6 +530,65 @@ selected frame's terminal).  */)
   (Lisp_Object terminal, Lisp_Object parameter, Lisp_Object value)
 {
   return store_terminal_param (decode_live_terminal (terminal), parameter, value);
+}
+
+#if HAVE_LINUX_KD_H
+
+/* Compute the glyph code table for T.  */
+
+static void
+calculate_glyph_code_table (struct terminal *t)
+{
+  Lisp_Object glyphtab = Qt;
+  enum { initial_unipairs = 1000 };
+  int entry_ct = initial_unipairs;
+  struct unipair unipair_buffer[initial_unipairs];
+  struct unipair *entries = unipair_buffer;
+  struct unipair *alloced = 0;
+
+  while (true)
+    {
+      int fd = fileno (t->display_info.tty->output);
+      struct unimapdesc unimapdesc = { entry_ct, entries };
+      if (ioctl (fd, GIO_UNIMAP, &unimapdesc) == 0)
+	{
+	  glyphtab = Fmake_char_table (Qnil, make_number (-1));
+	  for (int i = 0; i < unimapdesc.entry_ct; i++)
+	    char_table_set (glyphtab, entries[i].unicode,
+			    make_number (entries[i].fontpos));
+	  break;
+	}
+      if (errno != ENOMEM)
+	break;
+      entry_ct = unimapdesc.entry_ct;
+      entries = alloced = xrealloc (alloced, entry_ct * sizeof *alloced);
+    }
+
+  xfree (alloced);
+  t->glyph_code_table = glyphtab;
+}
+#endif
+
+/* Return the glyph code in T of character CH, or -1 if CH does not
+   have a font position in T, or nil if T does not report glyph codes.  */
+
+Lisp_Object
+terminal_glyph_code (struct terminal *t, int ch)
+{
+#if HAVE_LINUX_KD_H
+  if (t->type == output_termcap)
+    {
+      /* As a hack, recompute the table when CH is the maximum
+	 character.  */
+      if (NILP (t->glyph_code_table) || ch == MAX_CHAR)
+	calculate_glyph_code_table (t);
+
+      if (! EQ (t->glyph_code_table, Qt))
+	return char_table_ref (t->glyph_code_table, ch);
+    }
+#endif
+
+  return Qnil;
 }
 
 /* Initial frame has no device-dependent output data, but has

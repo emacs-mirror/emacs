@@ -25,7 +25,7 @@
 (require 'ert)
 
 (ert-deftest textprop-tests-format ()
-  "Test ‘format’ with text properties."
+  "Test `format' with text properties."
   ;; See Bug#21351.
   (should (equal-including-properties
            (format #("mouse-1, RET: %s -- w: copy %s"

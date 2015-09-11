@@ -832,14 +832,6 @@ notifications, if Emacs is compiled with file notification support.
 
 *** landmark.el (moved to elpa.gnu.org)
 
-+++
-** The character classes [:graph:] and [:print:] in regular expressions
-no longer match every multibyte character.  Instead, Emacs now
-consults the Unicode character properties to determine which
-characters are graphic or printable.  In particular, surrogates and
-unassigned codepoints are now rejected.  If you want the old behavior,
-use [:multibyte:] instead.
-
 
 * New Modes and Packages in Emacs 25.1
 
@@ -863,6 +855,13 @@ other languages), so `auto-tildify-mode' makes it easier to create
 a typographically-correct documents.
 
 * Incompatible Lisp Changes in Emacs 25.1
+
++++
+** `package-initialize' now sets `package-enable-at-startup' to nil if
+called during startup.  Users who call this function in their init
+file and still expect it to be run after startup should set
+`package-enable-at-startup' to t after the call to
+`package-initialize'.
 
 ** `:global' minor mode use `setq-default' rather than `setq'.
 This means that you can't use `make-local-variable' and expect them to
@@ -955,6 +954,14 @@ If you want the old behavior where they matched any character with
 word syntax, use `\sw' instead.
 
 +++
+** The character classes [:graph:] and [:print:] in regular expressions
+no longer match every multibyte character.  Instead, Emacs now
+consults the Unicode character properties to determine which
+characters are graphic or printable.  In particular, surrogates and
+unassigned codepoints are now rejected.  If you want the old behavior,
+use [:multibyte:] instead.
+
++++
 ** The `diff' command uses the unified format now.  To restore the old
 behavior, set `diff-switches' to `-c'.
 
@@ -969,6 +976,9 @@ be updated accordingly.
 
 
 * Lisp Changes in Emacs 25.1
+
+** syntax-propertize is now automatically called on-demand during forward
+parsing functions like `forward-sexp'.
 
 ** New hooks prefix-command-echo-keystrokes-functions and
 prefix-command-preserve-state-hook, to allow the definition of prefix
@@ -1118,8 +1128,7 @@ integers.
 of the Emacs process to binary I/O mode.
 
 ** ASCII approximations to curved quotes are put in standard-display-table
-if the locale cannot display curved quotes, or if text-quoting-style
-initially specifies a preference for ASCII.
+if the terminal cannot display curved quotes.
 
 ** Standard output and error streams now transliterate characters via
 standard-display-table, and encode output using locale-coding-system.

@@ -1070,7 +1070,7 @@ Value is name of that font."
 	(condition-case nil
 	    (setq ascii-font (x-resolve-font-name pattern))
 	  (error
-	   (message "Warning: no fonts matching ‘%s’ available" pattern)
+	   (message "Warning: no fonts matching `%s' available" pattern)
 	   (aset xlfd-fields index "*")
 	   (setq index (1+ index))))))
     (unless ascii-font

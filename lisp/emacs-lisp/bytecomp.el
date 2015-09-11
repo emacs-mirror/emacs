@@ -814,7 +814,7 @@ CONST2 may be evaluated multiple times."
 	    off (cdr lap-entry))
       (cond
        ((not (symbolp op))
-        (error "Non-symbolic opcode ‘%s’" op))
+        (error "Non-symbolic opcode `%s'" op))
        ((eq op 'TAG)
         (setcar off pc))
        (t
@@ -1120,7 +1120,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 		pt)
 	   (when dir
 	     (unless was-same
-	       (insert (format-message "Leaving directory ‘%s’\n"
+	       (insert (format-message "Leaving directory `%s'\n"
                                        default-directory))))
 	   (unless (bolp)
 	     (insert "\n"))
@@ -1136,7 +1136,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 	   (when dir
 	     (setq default-directory dir)
 	     (unless was-same
-	       (insert (format-message "Entering directory ‘%s’\n"
+	       (insert (format-message "Entering directory `%s'\n"
                                        default-directory))))
 	   (setq byte-compile-last-logged-file byte-compile-current-file
 		 byte-compile-last-warned-form nil)
@@ -1339,7 +1339,7 @@ extra args."
 	  (nargs (- (length form) 2)))
       (unless (= nargs nfields)
 	(byte-compile-warn
-	 "‘%s’ called with %d args to fill %d format field(s)" (car form)
+	 "`%s' called with %d args to fill %d format field(s)" (car form)
 	 nargs nfields)))))
 
 (dolist (elt '(format message error))
@@ -1359,7 +1359,7 @@ extra args."
           (plist-get keyword-args :group)
           (not (and (consp name) (eq (car name) 'quote)))
           (byte-compile-warn
-           "%s for ‘%s’ fails to specify containing group"
+           "%s for `%s' fails to specify containing group"
            (cdr (assq (car form)
                       '((custom-declare-group . defgroup)
                         (custom-declare-face . defface)
@@ -1378,7 +1378,7 @@ extra args."
   (let ((calls (assq name byte-compile-unresolved-functions))
         nums sig min max)
     (when (and calls macrop)
-      (byte-compile-warn "macro ‘%s’ defined too late" name))
+      (byte-compile-warn "macro `%s' defined too late" name))
     (setq byte-compile-unresolved-functions
           (delq calls byte-compile-unresolved-functions))
     (setq calls (delq t calls))      ;Ignore higher-order uses of the function.
@@ -1386,7 +1386,7 @@ extra args."
       (when (and (symbolp name)
                  (eq (function-get name 'byte-optimizer)
                      'byte-compile-inline-expand))
-        (byte-compile-warn "defsubst ‘%s’ was used before it was defined"
+        (byte-compile-warn "defsubst `%s' was used before it was defined"
                            name))
       (setq sig (byte-compile-arglist-signature arglist)
             nums (sort (copy-sequence (cdr calls)) (function <))
@@ -1465,7 +1465,7 @@ extra args."
 			  ;; so don't warn about them.
 			  macroexpand
 			  cl--compiling-file))))
-	(byte-compile-warn "function ‘%s’ from cl package called at runtime"
+	(byte-compile-warn "function `%s' from cl package called at runtime"
 			   func)))
   form)
 
@@ -1507,12 +1507,12 @@ extra args."
 	(if (fboundp f) (push f noruntime) (push f unresolved)))
       ;; Complain about the no-run-time functions
       (byte-compile-print-syms
-       "the function ‘%s’ might not be defined at runtime."
+       "the function `%s' might not be defined at runtime."
        "the following functions might not be defined at runtime:"
        noruntime)
       ;; Complain about the unresolved functions
       (byte-compile-print-syms
-       "the function ‘%s’ is not known to be defined."
+       "the function `%s' is not known to be defined."
        "the following functions are not known to be defined:"
        unresolved)))
   nil)
@@ -1818,7 +1818,7 @@ The value is non-nil if there were no errors, nil if errors."
 	  ;; 	   (byte-compile-abbreviate-file filename)
 	  ;; 	   (with-current-buffer input-buffer no-byte-compile))
 	  (when (file-exists-p target-file)
-	    (message "%s deleted because of ‘no-byte-compile: %s’"
+	    (message "%s deleted because of `no-byte-compile: %s'"
 		     (byte-compile-abbreviate-file target-file)
 		     (buffer-local-value 'no-byte-compile input-buffer))
 	    (condition-case nil (delete-file target-file) (error nil)))
@@ -2301,12 +2301,12 @@ list that represents a doc string reference.
   (when (and (symbolp sym)
              (not (string-match "[-*/:$]" (symbol-name sym)))
              (byte-compile-warning-enabled-p 'lexical))
-    (byte-compile-warn "global/dynamic var ‘%s’ lacks a prefix"
+    (byte-compile-warn "global/dynamic var `%s' lacks a prefix"
                        sym))
   (when (memq sym byte-compile-lexical-variables)
     (setq byte-compile-lexical-variables
           (delq sym byte-compile-lexical-variables))
-    (byte-compile-warn "Variable ‘%S’ declared after its first use" sym))
+    (byte-compile-warn "Variable `%S' declared after its first use" sym))
   (push sym byte-compile-bound-variables))
 
 (defun byte-compile-file-form-defvar (form)
@@ -2423,7 +2423,7 @@ not to take responsibility for the actual compilation of the code."
                     ;; Don't warn when compiling the stubs in byte-run...
                     (not (assq name byte-compile-initial-macro-environment)))
                (byte-compile-warn
-                "‘%s’ defined multiple times, as both function and macro"
+                "`%s' defined multiple times, as both function and macro"
                 name))
            (setcdr that-one nil))
           (this-one
@@ -2431,13 +2431,13 @@ not to take responsibility for the actual compilation of the code."
                       ;; Hack: Don't warn when compiling the magic internal
                       ;; byte-compiler macros in byte-run.el...
                       (not (assq name byte-compile-initial-macro-environment)))
-             (byte-compile-warn "%s ‘%s’ defined multiple times in this file"
+             (byte-compile-warn "%s `%s' defined multiple times in this file"
                                 (if macro "macro" "function")
                                 name)))
           ((eq (car-safe (symbol-function name))
                (if macro 'lambda 'macro))
            (when (byte-compile-warning-enabled-p 'redefine)
-             (byte-compile-warn "%s ‘%s’ being redefined as a %s"
+             (byte-compile-warn "%s `%s' being redefined as a %s"
                                 (if macro "function" "macro")
                                 name
                                 (if macro "macro" "function")))
@@ -2454,7 +2454,7 @@ not to take responsibility for the actual compilation of the code."
                (stringp (car-safe (cdr-safe (cdr-safe body)))))
       ;; FIXME: We've done that already just above, so this looks wrong!
       ;;(byte-compile-set-symbol-position name)
-      (byte-compile-warn "probable ‘\"’ without ‘\\’ in doc string of %s"
+      (byte-compile-warn "probable `\"' without `\\' in doc string of %s"
                          name))
 
     (if (not (listp body))
@@ -2585,7 +2585,9 @@ If FORM is a lambda or a macro, byte-compile it as a function."
                  (if (symbolp form) form "provided"))
         fun)
        (t
-        (when (symbolp form)
+        (when (or (symbolp form) (eq (car-safe fun) 'closure))
+          ;; `fun' is a function *value*, so try to recover its corresponding
+          ;; source code.
           (setq lexical-binding (eq (car fun) 'closure))
           (setq fun (byte-compile--reify-function fun)))
         ;; Expand macros.
@@ -2980,13 +2982,13 @@ for symbols generated by the byte compiler itself."
             (`(',var . ,_)
              (when (assq var byte-compile-lexical-variables)
                (byte-compile-log-warning
-                (format-message "%s cannot use lexical var ‘%s’" fn var)
+                (format-message "%s cannot use lexical var `%s'" fn var)
                 nil :error)))))
         (when (macroexp--const-symbol-p fn)
-          (byte-compile-warn "‘%s’ called as a function" fn))
+          (byte-compile-warn "`%s' called as a function" fn))
 	(when (and (byte-compile-warning-enabled-p 'interactive-only)
 		   interactive-only)
-	  (byte-compile-warn "‘%s’ is for interactive use only%s"
+	  (byte-compile-warn "`%s' is for interactive use only%s"
 			     fn
 			     (cond ((stringp interactive-only)
 				    (format "; %s"
@@ -2994,7 +2996,7 @@ for symbols generated by the byte compiler itself."
 					     interactive-only)))
 				   ((and (symbolp 'interactive-only)
 					 (not (eq interactive-only t)))
-				    (format-message "; use ‘%s’ instead."
+				    (format-message "; use `%s' instead."
                                                     interactive-only))
 				   (t "."))))
         (if (eq (car-safe (symbol-function (car form))) 'macro)
@@ -3039,7 +3041,7 @@ for symbols generated by the byte compiler itself."
              (byte-compile-warning-enabled-p 'mapcar))
     (byte-compile-set-symbol-position 'mapcar)
     (byte-compile-warn
-     "‘mapcar’ called for effect; use ‘mapc’ or ‘dolist’ instead"))
+     "`mapcar' called for effect; use `mapc' or `dolist' instead"))
   (byte-compile-push-constant (car form))
   (mapc 'byte-compile-form (cdr form))	; wasteful, but faster.
   (byte-compile-out 'byte-call (length (cdr form))))
@@ -3127,8 +3129,8 @@ for symbols generated by the byte compiler itself."
   (cond ((or (not (symbolp var)) (macroexp--const-symbol-p var))
 	 (when (byte-compile-warning-enabled-p 'constants)
 	   (byte-compile-warn (if (eq access-type 'let-bind)
-				  "attempt to let-bind %s ‘%s’"
-				"variable reference to %s ‘%s’")
+				  "attempt to let-bind %s `%s'"
+				"variable reference to %s `%s'")
 			      (if (symbolp var) "constant" "nonvariable")
 			      (prin1-to-string var))))
 	((let ((od (get var 'byte-obsolete-variable)))
@@ -3166,7 +3168,7 @@ for symbols generated by the byte compiler itself."
 		  (boundp var)
 		  (memq var byte-compile-bound-variables)
 		  (memq var byte-compile-free-references))
-	(byte-compile-warn "reference to free variable ‘%S’" var)
+	(byte-compile-warn "reference to free variable `%S'" var)
 	(push var byte-compile-free-references))
       (byte-compile-dynamic-variable-op 'byte-varref var))))
 
@@ -3182,7 +3184,7 @@ for symbols generated by the byte compiler itself."
 		  (boundp var)
 		  (memq var byte-compile-bound-variables)
 		  (memq var byte-compile-free-assignments))
-	(byte-compile-warn "assignment to free variable ‘%s’" var)
+	(byte-compile-warn "assignment to free variable `%s'" var)
 	(push var byte-compile-free-assignments))
       (byte-compile-dynamic-variable-op 'byte-varset var))))
 
@@ -3363,7 +3365,7 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 
 (defun byte-compile-subr-wrong-args (form n)
   (byte-compile-set-symbol-position (car form))
-  (byte-compile-warn "‘%s’ called with %d arg%s, but requires %s"
+  (byte-compile-warn "`%s' called with %d arg%s, but requires %s"
 		     (car form) (length (cdr form))
 		     (if (= 1 (length (cdr form))) "" "s") n)
   ;; Get run-time wrong-number-of-args error.
@@ -3731,7 +3733,7 @@ discarding."
 		 (macroexp--const-symbol-p var t))
 	     (byte-compile-warning-enabled-p 'constants)
 	     (byte-compile-warn
-	      "variable assignment to %s ‘%s’"
+	      "variable assignment to %s `%s'"
 	      (if (symbolp var) "constant" "nonvariable")
 	      (prin1-to-string var)))
 	(byte-compile-normal-call `(set-default ',var ,@(cdr form)))))))
@@ -4105,7 +4107,7 @@ binding slots have been popped."
   (list 'not
     (cons (or (get (car form) 'byte-compile-negated-op)
 	      (error
-	       "Compiler error: ‘%s’ has no ‘byte-compile-negated-op’ property"
+	       "Compiler error: `%s' has no `byte-compile-negated-op' property"
 	       (car form)))
 	  (cdr form))))
 
@@ -4168,7 +4170,7 @@ binding slots have been popped."
     (byte-compile-set-symbol-position 'condition-case)
     (unless (symbolp var)
       (byte-compile-warn
-       "‘%s’ is not a variable-name or nil (in condition-case)" var))
+       "`%s' is not a variable-name or nil (in condition-case)" var))
     (if fun-bodies (setq var (make-symbol "err")))
     (byte-compile-push-constant var)
     (if fun-bodies
@@ -4187,7 +4189,7 @@ binding slots have been popped."
                                              (setq ok nil)))
                                        ok))))
                        (byte-compile-warn
-                        "‘%S’ is not a condition name or list of such (in condition-case)"
+                        "`%S' is not a condition name or list of such (in condition-case)"
                         condition))
                       ;; (not (or (eq condition 't)
                       ;;         (and (stringp (get condition 'error-message))
@@ -4220,7 +4222,7 @@ binding slots have been popped."
     (byte-compile-set-symbol-position 'condition-case)
     (unless (symbolp var)
       (byte-compile-warn
-       "‘%s’ is not a variable-name or nil (in condition-case)" var))
+       "`%s' is not a variable-name or nil (in condition-case)" var))
 
     (dolist (clause (reverse clauses))
       (let ((condition (nth 1 clause)))
@@ -4228,7 +4230,7 @@ binding slots have been popped."
         (dolist (c condition)
           (unless (and c (symbolp c))
             (byte-compile-warn
-             "‘%S’ is not a condition name (in condition-case)" c))
+             "`%S' is not a condition name (in condition-case)" c))
           ;; In reality, the `error-conditions' property is only required
           ;; for the argument to `signal', not to `condition-case'.
           ;;(unless (consp (get c 'error-conditions))
@@ -4270,7 +4272,7 @@ binding slots have been popped."
   (if (and (eq 'set-buffer (car-safe (car-safe (cdr form))))
            (byte-compile-warning-enabled-p 'suspicious))
       (byte-compile-warn
-       "Use ‘with-current-buffer’ rather than save-excursion+set-buffer"))
+       "Use `with-current-buffer' rather than save-excursion+set-buffer"))
   (byte-compile-out 'byte-save-excursion 0)
   (byte-compile-body-do-effect (cdr form))
   (byte-compile-out 'byte-unbind 1))
@@ -4310,7 +4312,7 @@ binding slots have been popped."
   (when (and (symbolp (nth 1 form))
              (not (string-match "[-*/:$]" (symbol-name (nth 1 form))))
              (byte-compile-warning-enabled-p 'lexical))
-    (byte-compile-warn "global/dynamic var ‘%s’ lacks a prefix"
+    (byte-compile-warn "global/dynamic var `%s' lacks a prefix"
                        (nth 1 form)))
   (let ((fun (nth 0 form))
 	(var (nth 1 form))
@@ -4321,7 +4323,7 @@ binding slots have been popped."
 	      (and (eq fun 'defconst) (null (cddr form))))
       (let ((ncall (length (cdr form))))
 	(byte-compile-warn
-	 "‘%s’ called with %d argument%s, but %s %s"
+	 "`%s' called with %d argument%s, but %s %s"
 	 fun ncall
 	 (if (= 1 ncall) "" "s")
 	 (if (< ncall 2) "requires" "accepts only")
@@ -4330,7 +4332,7 @@ binding slots have been popped."
     (if (eq fun 'defconst)
 	(push var byte-compile-const-variables))
     (when (and string (not (stringp string)))
-      (byte-compile-warn "third arg to ‘%s %s’ is not a string: %s"
+      (byte-compile-warn "third arg to `%s %s' is not a string: %s"
                          fun var string))
     (byte-compile-form-do-effect
      (if (cddr form)  ; `value' provided
@@ -4353,7 +4355,7 @@ binding slots have been popped."
        (not (fboundp (eval (nth 1 form))))
        (byte-compile-warn
 	"The compiler ignores `autoload' except at top level.  You should
-     probably put the autoload of the macro ‘%s’ at top-level."
+     probably put the autoload of the macro `%s' at top-level."
 	(eval (nth 1 form))))
   (byte-compile-normal-call form))
 
@@ -4361,7 +4363,7 @@ binding slots have been popped."
 ;; The ones that remain are errors.
 (defun byte-compile-lambda-form (_form)
   (byte-compile-set-symbol-position 'lambda)
-  (error "‘lambda’ used as function name is invalid"))
+  (error "`lambda' used as function name is invalid"))
 
 ;; Compile normally, but deal with warnings for the function being defined.
 (put 'defalias 'byte-hunk-handler 'byte-compile-file-form-defalias)
@@ -4433,7 +4435,7 @@ binding slots have been popped."
   (if (and (eq (car-safe (car-safe (cdr-safe form))) 'quote)
            (byte-compile-warning-enabled-p 'make-local))
       (byte-compile-warn
-       "‘make-variable-buffer-local’ not called at toplevel"))
+       "`make-variable-buffer-local' not called at toplevel"))
   (byte-compile-normal-call form))
 (put 'make-variable-buffer-local
      'byte-hunk-handler 'byte-compile-form-make-variable-buffer-local)
@@ -4565,7 +4567,7 @@ invoked interactively."
                                       (length (nth 2 y))))))
                       (`name
                        (lambda (x y) (string< (car x) (car y))))
-                      (_ (error "‘byte-compile-call-tree-sort’: ‘%s’ - unknown sort mode"
+                      (_ (error "`byte-compile-call-tree-sort': `%s' - unknown sort mode"
                                 byte-compile-call-tree-sort))))))
     (message "Generating call tree...")
     (let ((rest byte-compile-call-tree)
@@ -4678,7 +4680,7 @@ already up-to-date."
   ;; startup.el.
   (defvar command-line-args-left)	;Avoid 'free variable' warning
   (if (not noninteractive)
-      (error "‘batch-byte-compile’ is to be used only with -batch"))
+      (error "`batch-byte-compile' is to be used only with -batch"))
   (let ((error nil))
     (while command-line-args-left
       (if (file-directory-p (expand-file-name (car command-line-args-left)))

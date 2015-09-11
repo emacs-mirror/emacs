@@ -301,7 +301,7 @@ Thus, this does not include the current directory.")
 		 eshell-user-names)))))))
 
 (defun eshell/pwd (&rest args)
-  "Change output from ‘pwd’ to be cleaner."
+  "Change output from `pwd' to be cleaner."
   (let* ((path default-directory)
 	 (len (length path)))
     (if (and (> len 1)
@@ -365,7 +365,7 @@ in the minibuffer:
       (let ((curdir (eshell/pwd)))
 	(if (string-match path curdir)
 	    (setq path (replace-match subpath nil nil curdir))
-	  (error "Path substring ‘%s’ not found" path))))
+	  (error "Path substring `%s' not found" path))))
      ((and path (string-match "^-\\([0-9]*\\)$" path))
       (let ((index (match-string 1 path)))
 	(setq path

@@ -217,7 +217,7 @@ Calc user interface as before (either C-x * C or C-x * K; initially C-x * C).
 (defun calc-help ()
   (interactive)
   (let ((msgs
-	 '("Press ‘h’ for complete help; press ‘?’ repeatedly for a summary"
+	 '("Press `h' for complete help; press `?' repeatedly for a summary"
 	   "Letter keys: Negate; Precision; Yank; Why; Xtended cmd; Quit"
 	   "Letter keys: SHIFT + Undo, reDo; Inverse, Hyperbolic, Option"
 	   "Letter keys: SHIFT + sQrt; Sin, Cos, Tan; Exp, Ln, logB"
@@ -953,7 +953,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
 				nil nil nil
 				"Please describe exactly what actions triggered the bug and the
 precise symptoms of the bug.  If possible, include a backtrace by
-doing ‘\\[toggle-debug-on-error]’, then reproducing the bug.
+doing `\\[toggle-debug-on-error]', then reproducing the bug.
 " )))
 ;;;###autoload
 (defalias 'calc-report-bug 'report-calc-bug)

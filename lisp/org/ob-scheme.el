@@ -109,7 +109,7 @@ For a named session, the buffer name will be the session name.
 
 If the session is unnamed (nil), generate a name.
 
-If the session is ‘none’, use nil for the session name, and
+If the session is `none', use nil for the session name, and
 org-babel-scheme-execute-with-geiser will use a temporary session."
   (let ((result
 	 (cond ((not name)

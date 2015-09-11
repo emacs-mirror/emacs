@@ -175,7 +175,7 @@ function `rlogin-directory-tracking-mode' rather than simply setting the
 variable."
   (interactive (list
 		(read-from-minibuffer (format-message
-                                       "Arguments for ‘%s’ (hostname first): "
+                                       "Arguments for `%s' (hostname first): "
                                        (file-name-nondirectory rlogin-program))
 				      nil nil nil 'rlogin-history)
 		current-prefix-arg))

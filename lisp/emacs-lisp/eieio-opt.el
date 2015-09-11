@@ -141,11 +141,11 @@ are not abstract."
 	(setq location
 	      (find-lisp-object-file-name ctr def)))
       (when location
-	(insert (substitute-command-keys " in ‘"))
+	(insert (substitute-command-keys " in `"))
 	(help-insert-xref-button
 	 (help-fns-short-filename location)
 	 'cl-type-definition ctr location 'define-type)
-	(insert (substitute-command-keys "’")))
+	(insert (substitute-command-keys "'")))
       (insert ".\nCreates an object of class " (symbol-name ctr) ".")
       (goto-char (point-max))
       (if (autoloadp def)

@@ -229,7 +229,7 @@ See `allout-unprefixed-keybindings' for the list of keybindings
 that are not prefixed.
 
 Use vector format for the keys:
-  - put literal keys after a ‘?’ question mark, eg: ‘?a’, ‘?.’
+  - put literal keys after a `?' question mark, eg: `?a', `?.'
   - enclose control, shift, or meta-modified keys as sequences within
     parentheses, with the literal key, as above, preceded by the name(s)
     of the modifiers, eg: [(control ?a)]
@@ -257,7 +257,7 @@ This is in contrast to the majority of allout-mode bindings on
 preceding command key.
 
 Use vector format for the keys:
-  - put literal keys after a ‘?’ question mark, eg: ‘?a’, ‘?.’
+  - put literal keys after a `?' question mark, eg: `?a', `?.'
   - enclose control, shift, or meta-modified keys as sequences within
     parentheses, with the literal key, as above, preceded by the name(s)
     of the modifiers, eg: [(control ?a)]
@@ -1012,9 +1012,9 @@ determination of aberrance is according to the mistaken item
 being followed by a legitimate item of excessively greater depth.
 
 The classic example of a mistaken item, for a standard allout
-outline configuration, is a body line that begins with an ‘...’
+outline configuration, is a body line that begins with an `...'
 ellipsis.  This happens to contain a legitimate depth-2 header
-prefix, constituted by two ‘..’ dots at the beginning of the
+prefix, constituted by two `..' dots at the beginning of the
 line.  The only thing that can distinguish it *in principle* from
 a legitimate one is if the following real header is at a depth
 that is discontinuous from the depth of 2 implied by the
@@ -2081,20 +2081,20 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
                  (and (not (string= allout-auto-activation "activate"))
                       (if (string= allout-auto-activation "ask")
                           (if (y-or-n-p (format-message
-                                         "Expose %s with layout ‘%s’? "
+                                         "Expose %s with layout `%s'? "
                                          (buffer-name) use-layout))
                               t
                             (message "Skipped %s layout." (buffer-name))
                             nil)
                         t)))
         (save-excursion
-          (message "Adjusting ‘%s’ exposure..." (buffer-name))
+          (message "Adjusting `%s' exposure..." (buffer-name))
           (goto-char 0)
           (allout-this-or-next-heading)
           (condition-case err
               (progn
                 (apply 'allout-expose-topic (list use-layout))
-                (message "Adjusting ‘%s’ exposure... done."
+                (message "Adjusting `%s' exposure... done."
                          (buffer-name)))
             ;; Problem applying exposure -- notify user, but don't
             ;; interrupt, eg, file visit:
@@ -3484,7 +3484,7 @@ Offer one suitable for current depth DEPTH as default."
       (goto-char (allout-current-bullet-pos))
       (setq choice (solicit-char-in-string
                     (format-message
-                     "Select bullet: %s (‘%s’ default): "
+                     "Select bullet: %s (`%s' default): "
                      sans-escapes
                      (allout-substring-no-properties default-bullet))
                     sans-escapes
@@ -5879,7 +5879,7 @@ With repeat count, copy the exposed portions of entire buffer."
 (defun allout-toggle-current-subtree-encryption (&optional keymode-cue)
   "Encrypt clear or decrypt encoded topic text.
 
-Allout uses Emacs ‘epg’ library to perform encryption.  Symmetric
+Allout uses Emacs `epg' library to perform encryption.  Symmetric
 and keypair encryption are supported.  All encryption is ascii
 armored.
 
@@ -5941,7 +5941,7 @@ associated with it.  This can be used to dissociate any
 recipients with the file, by selecting no recipients in the
 dialog.
 
-Encryption and decryption uses the Emacs ‘epg’ library.
+Encryption and decryption uses the Emacs `epg' library.
 
 Encrypted text will be ascii-armored.
 
@@ -6381,7 +6381,7 @@ for details on preparing Emacs for automatic allout activation."
       (allout-open-topic 2)
       (insert (substitute-command-keys
                (concat "Dummy outline topic header -- see"
-                       " ‘allout-mode’ docstring: ‘\\[describe-mode]’.")))
+                       " `allout-mode' docstring: `\\[describe-mode]'.")))
       (allout-adjust-file-variable
        "allout-layout" (or allout-layout '(-1 : 0))))))
 ;;;_   > allout-file-vars-section-data ()
@@ -6546,7 +6546,7 @@ Optional arg DO-DEFAULTING indicates to accept empty input (CR)."
 (defun regexp-sans-escapes (regexp &optional successive-backslashes)
   "Return a copy of REGEXP with all character escapes stripped out.
 
-Representations of actual backslashes -- ‘\\\\\\\\’ -- are left as a
+Representations of actual backslashes -- `\\\\\\\\' -- are left as a
 single backslash.
 
 Optional arg SUCCESSIVE-BACKSLASHES is used internally for recursion."

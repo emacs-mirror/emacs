@@ -583,7 +583,7 @@ the Insert state."
 
 (defcustom viper-keep-point-on-repeat t
   "If t, don't move point when repeating previous command.
-This is useful for doing repeated changes with the ‘.’ key.
+This is useful for doing repeated changes with the `.' key.
 The user can change this to nil, if she likes when the cursor moves
 to a new place after repeating previous Vi command."
   :type 'boolean

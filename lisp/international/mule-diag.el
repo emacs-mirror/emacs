@@ -332,7 +332,7 @@ meanings of these arguments."
       (let ((char (charset-iso-final-char charset)))
 	(when (> char 0)
 	  (insert "Final char of ISO2022 designation sequence: ")
-	  (insert (format-message "‘%c’\n" char))))
+	  (insert (format-message "`%c'\n" char))))
       (let (aliases)
 	(dolist (c charset-list)
 	  (if (and (not (eq c charset))
@@ -770,7 +770,7 @@ but still contains full information about each coding system."
 # MNEMONIC-LETTER -- CODING-SYSTEM-NAME
 #   DOC-STRING
 ")
-    (princ "\
+    (princ (substitute-command-keys "\
 #########################
 ## LIST OF CODING SYSTEMS
 ## Each line corresponds to one coding system
@@ -794,7 +794,7 @@ but still contains full information about each coding system."
 ##      0
 ##  POST-READ-CONVERSION, PRE-WRITE-CONVERSION = function name to be called
 ##
-"))
+")))
   (dolist (coding-system (sort-coding-systems (coding-system-list 'base-only)))
     (if (null arg)
 	(print-coding-system-briefly coding-system 'tightly)
@@ -1038,7 +1038,8 @@ see the function `describe-fontset' for the format of the list."
       (save-excursion
 	(goto-char (point-min))
 	(while (re-search-forward
-		"^  \\([^ ]+\\) (‘.*’ in mode line)$" nil t)
+		(substitute-command-keys "^  \\([^ ]+\\) (`.*' in mode line)$")
+                nil t)
 	  (help-xref-button 1 'help-input-method (match-string 1)))))))
 
 (defun list-input-methods-1 ()
@@ -1046,7 +1047,8 @@ see the function `describe-fontset' for the format of the list."
       (princ "
 No input method is available, perhaps because you have not
 installed LEIM (Libraries of Emacs Input Methods).")
-    (princ "LANGUAGE\n  NAME (‘TITLE’ in mode line)\n")
+    (princ (substitute-command-keys
+            "LANGUAGE\n  NAME (`TITLE' in mode line)\n"))
     (princ "    SHORT-DESCRIPTION\n------------------------------\n")
     (setq input-method-alist
 	  (sort input-method-alist
@@ -1059,7 +1061,7 @@ installed LEIM (Libraries of Emacs Input Methods).")
 	  (princ language)
 	  (terpri))
 	(princ (format-message
-                "  %s (‘%s’ in mode line)\n    %s\n"
+                "  %s (`%s' in mode line)\n    %s\n"
                 (car elt)
                 (let ((title (nth 3 elt)))
                   (if (and (consp title) (stringp (car title)))

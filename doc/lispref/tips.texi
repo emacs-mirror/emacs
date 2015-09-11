@@ -689,7 +689,7 @@ immediately before the symbol name.  (Case makes no difference in
 recognizing these indicator words.)  For example, if you write
 
 @example
-This function sets the variable ‘buffer-file-name’.
+This function sets the variable `buffer-file-name'.
 @end example
 
 @noindent
@@ -702,7 +702,7 @@ you can write the words @samp{symbol} or @samp{program} before the
 symbol name to prevent making any hyperlink.  For example,
 
 @example
-If the argument KIND-OF-RESULT is the symbol ‘list’,
+If the argument KIND-OF-RESULT is the symbol `list',
 this function returns a list of all the objects
 that satisfy the criterion.
 @end example
@@ -727,7 +727,7 @@ name of the Info node (or anchor), preceded by
 anchor}.  The Info file name defaults to @samp{emacs}.  For example,
 
 @smallexample
-See Info node ‘Font Lock’ and Info node ‘(elisp)Font Lock Basics’.
+See Info node `Font Lock' and Info node `(elisp)Font Lock Basics'.
 @end smallexample
 
 Finally, to create a hyperlink to URLs, write the single-quoted URL,
@@ -735,7 +735,7 @@ preceded by @samp{URL}.  For example,
 
 @smallexample
 The home page for the GNU project has more information (see URL
-‘http://www.gnu.org/’).
+`http://www.gnu.org/').
 @end smallexample
 
 @item

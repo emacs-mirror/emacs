@@ -817,15 +817,15 @@ Variables controlling indentation style and extra features:
   Amount of extra indentation for text in full-line comments (default 0).
 `fortran-comment-indent-style'
   How to indent the text in full-line comments. Allowed values are:
-  nil       don't change the indentation
-  fixed     indent to `fortran-comment-line-extra-indent' beyond the
+  nil         don't change the indentation
+  `fixed'     indent to `fortran-comment-line-extra-indent' beyond the
               value of either
                 `fortran-minimum-statement-indent-fixed' (fixed format) or
                 `fortran-minimum-statement-indent-tab' (TAB format),
               depending on the continuation format in use.
-  relative  indent to `fortran-comment-line-extra-indent' beyond the
+  `relative'  indent to `fortran-comment-line-extra-indent' beyond the
               indentation for a line of code.
-  (default 'fixed)
+  (default `fixed')
 `fortran-comment-indent-char'
   Single-character string to be inserted instead of space for
   full-line comment indentation (default \" \").

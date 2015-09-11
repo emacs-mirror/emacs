@@ -1342,13 +1342,13 @@ to replace all remaining occurrences without asking again.
 to replace all remaining occurrences in all remaining buffers in
 multi-buffer replacements (like the Dired @key{Q} command that performs
 query replace on selected files).  It answers this question and all
-subsequent questions in the series with "yes", without further
+subsequent questions in the series with ``yes'', without further
 user interaction.
 
 @item N @r{(Upper-case)}
 to skip to the next buffer in multi-buffer replacements without
 replacing remaining occurrences in the current buffer.  It answers
-this question "no", gives up on the questions for the current buffer,
+this question ``no'', gives up on the questions for the current buffer,
 and continues to the next buffer in the sequence.
 
 @item ^

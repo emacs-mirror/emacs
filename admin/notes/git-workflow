@@ -46,6 +46,24 @@ top of that.  Then say
 git push
 
 
+Sending patches
+===============
+
+If you lack push access or would like feedback before pushing a patch,
+you can send a patch file as a bug report.  After committing your
+change locally, do:
+
+git format-patch -1
+
+This creates a file 0001-DESCRIPTION.patch containing the patch, where
+DESCRIPTION comes from the first line of your patch's commit message.
+You can attach the patch file to email that you send to
+bug-gnu-emacs@gnu.org.  You can also configure git to email patches
+directly (see <http://git-scm.com/docs/git-send-email>) and do:
+
+git send-email --to=bug-gnu-emacs@gnu.org 0001-DESCRIPTION.patch
+
+
 Backporting to emacs-24
 =======================
 

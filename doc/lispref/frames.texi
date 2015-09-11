@@ -1781,7 +1781,7 @@ symbol) of @var{terminal}.  If @var{terminal} has no setting for
 @end defun
 
 @defun set-terminal-parameter terminal parameter value
-This function sets the parameter @var{parm} of @var{terminal} to the
+This function sets the parameter @var{parameter} of @var{terminal} to the
 specified @var{value}, and returns the previous value of that
 parameter.
 @end defun
@@ -2256,7 +2256,7 @@ indicates the release of the button, or whatever kind of event means
 it is time to stop tracking.
 
 The @code{track-mouse} form causes Emacs to generate mouse motion
-events by binding the variable @code{mouse-tracking} to a
+events by binding the variable @code{track-mouse} to a
 non-@code{nil} value.  If that variable has the special value
 @code{dragging}, it additionally instructs the display engine to
 refrain from changing the shape of the mouse pointer.  This is

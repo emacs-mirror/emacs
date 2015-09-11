@@ -175,9 +175,8 @@ struct kboard
     /* True means echo each character as typed.  */
     bool_bf immediate_echo : 1;
 
-    /* If we have echoed a prompt string specified by the user,
-       this is its length in characters.  Otherwise this is -1.  */
-    ptrdiff_t echo_after_prompt;
+    /* If we have a prompt string specified by the user, this is it.  */
+    Lisp_Object echo_prompt_;
   };
 
 INLINE void

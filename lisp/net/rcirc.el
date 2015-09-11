@@ -926,7 +926,7 @@ The list is updated automatically by `defun-rcirc-command'.")
 
 (defun rcirc-complete ()
   "Cycle through completions from list of nicks in channel or IRC commands.
-IRC command completion is performed only if ‘/’ is the first input char."
+IRC command completion is performed only if `/' is the first input char."
   (interactive)
   (unless (rcirc-looking-at-input)
     (error "Point not located after rcirc prompt"))

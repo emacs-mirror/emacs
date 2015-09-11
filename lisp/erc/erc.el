@@ -230,7 +230,7 @@ prompt you for it.")
 (defcustom erc-hide-prompt nil
   "If non-nil, do not display the prompt for commands.
 
-\(A command is any input starting with a ‘/’).
+\(A command is any input starting with a `/').
 
 See also the variables `erc-prompt' and `erc-command-indicator'."
   :group 'erc-display
@@ -667,7 +667,7 @@ See also the variable `erc-prompt'."
   "Indicator used by ERC for showing commands.
 
 If non-nil, this will be used in the ERC buffer to indicate
-commands (i.e., input starting with a ‘/’).
+commands (i.e., input starting with a `/').
 
 If nil, the prompt will be constructed from the variable `erc-prompt'."
   :group 'erc-display
@@ -2789,7 +2789,7 @@ this function from interpreting the line as a command."
 (defun erc-cmd-SAY (line)
   "Send LINE to the current query or channel as a message, not a command.
 
-Use this when you want to send a message with a leading ‘/’.  Note
+Use this when you want to send a message with a leading `/'.  Note
 that since multi-line messages are never a command, you don't
 need this when pasting multiple lines of text."
   (if (string-match "^\\s-*$" line)
@@ -3119,9 +3119,9 @@ a script after exceeding the flood threshold."
         (erc-display-message nil 'error (current-buffer)
                              'cannot-read-file ?f file))
        (t
-        (message "Loading ‘%s’..." file)
+        (message "Loading `%s'..." file)
         (erc-load-script file)
-        (message "Loading ‘%s’...done" file))))
+        (message "Loading `%s'...done" file))))
     t)
    (t nil)))
 
@@ -3259,7 +3259,7 @@ The lines are shown in a buffer named `*Occur*'.
 It serves as a menu to find any of the occurrences in this buffer.
 \\[describe-mode] in that buffer will explain how.
 
-If LINE contains upper case characters (excluding those preceded by ‘\\’),
+If LINE contains upper case characters (excluding those preceded by `\\'),
 the matching is case-sensitive."
   (occur line)
   t)
@@ -4466,7 +4466,7 @@ See also: `erc-echo-notice-in-user-buffers',
   "Handle the logging in process of connection."
   (unless erc-logged-in
     (setq erc-logged-in t)
-    (message "Logging in as ‘%s’... done" (erc-current-nick))
+    (message "Logging in as `%s'... done" (erc-current-nick))
     ;; execute a startup script
     (let ((f (erc-select-startup-file)))
       (when f
@@ -5203,7 +5203,7 @@ So far the following TYPE/L pairs are supported:
 
        Event                    TYPE                   L
 
-    nickname change            'nick                (NEW-NICK)"
+    nickname change            `nick'                (NEW-NICK)"
   (erc-log (format "user-change: type: %S  nlh: %S  l: %S" type nlh l))
   (cond
    ;; nickname change
@@ -6512,7 +6512,7 @@ All windows are opened in the current frame."
     . "\n\nConnection failed!  Not re-establishing connection.\n")
    (finished . "\n\n*** ERC finished ***\n")
    (terminated . "\n\n*** ERC terminated: %e\n")
-   (login . "Logging in as ‘%n’...")
+   (login . "Logging in as `%n'...")
    (nick-in-use . "%n is in use. Choose new nickname: ")
    (nick-too-long
     . "WARNING: Nick length (%i) exceeds max NICKLEN(%l) defined by server")

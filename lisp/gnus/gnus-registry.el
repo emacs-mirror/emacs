@@ -194,17 +194,17 @@ are tracked this way by default."
   "The splitting strategy applied to the keys in `gnus-registry-track-extra'.
 
 Given a set of unique found groups G and counts for each element
-of G, and a key K (typically 'sender or 'subject):
+of G, and a key K (typically `sender' or `subject'):
 
 When nil, if G has only one element, use it.  Otherwise give up.
 This is the fastest but also least useful strategy.
 
-When 'majority, use the majority by count.  So if there is a
+When `majority', use the majority by count.  So if there is a
 group with the most articles counted by K, use that.  Ties are
 resolved in no particular order, simply the first one found wins.
 This is the slowest strategy but also the most accurate one.
 
-When 'first, the first element of G wins.  This is fast and
+When `first', the first element of G wins.  This is fast and
 should be OK if your senders and subjects don't \"bleed\" across
 groups."
   :group 'gnus-registry

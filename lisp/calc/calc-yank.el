@@ -603,9 +603,9 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
     (insert (propertize
              (concat
               (or title title "Calc Edit Mode. ")
-              (format-message "Press ‘C-c C-c’")
+              (format-message "Press `C-c C-c'")
               (if allow-ret "" " or RET")
-              (format-message " to finish, ‘C-x k RET’ to cancel.\n\n"))
+              (format-message " to finish, `C-x k RET' to cancel.\n\n"))
              'font-lock-face 'italic 'read-only t 'rear-nonsticky t 'front-sticky t))
     (make-local-variable 'calc-edit-top)
     (setq calc-edit-top (point))))

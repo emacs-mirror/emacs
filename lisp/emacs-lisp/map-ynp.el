@@ -199,9 +199,9 @@ Returns the number of actions taken."
 				   (action (if help (nth 2 help) "act on")))
 			       (concat
 				(format-message "\
-Type SPC or ‘y’ to %s the current %s;
-DEL or ‘n’ to skip the current %s;
-RET or ‘q’ to give up on the %s (skip all remaining %s);
+Type SPC or `y' to %s the current %s;
+DEL or `n' to skip the current %s;
+RET or `q' to give up on the %s (skip all remaining %s);
 C-g to quit (cancel the whole command);
 ! to %s all remaining %s;\n"
 					action object object action objects action

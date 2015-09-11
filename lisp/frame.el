@@ -743,7 +743,7 @@ the name of an X display device (HOST.SERVER.SCREEN) or a tty device file."
       (frame-terminal f)))
    ((terminal-live-p device) device)
    (t
-    (error "Invalid argument %s in ‘get-device-terminal’" device))))
+    (error "Invalid argument %s in `get-device-terminal'" device))))
 
 (defun frames-on-display-list (&optional device)
   "Return a list of all frames on DEVICE.
@@ -894,7 +894,7 @@ If there is no frame by that name, signal an error."
 	 (frame (cdr (assoc name frame-names-alist))))
     (if frame
 	(select-frame-set-input-focus frame)
-      (error "There is no frame named ‘%s’" name))))
+      (error "There is no frame named `%s'" name))))
 
 
 ;;;; Background mode.

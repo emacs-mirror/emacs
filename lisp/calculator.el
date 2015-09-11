@@ -1551,7 +1551,7 @@ Used by `calculator-paste' and `get-register'."
   + - * / \\(div) %(rem) _(-X,postfix) ;(1/X,postfix) ^(exp) L(og)
   Q(sqrt) !(fact) S(in) C(os) T(an) |(or) #(xor) &(and) ~(not)
 * >/< repeats last binary operation with its 2nd (1st) arg as postfix op
-* I inverses next trig function        * '/\"/{} - display/display args
+* I inverses next trig function        * \\='/\"/{} - display/display args
 * D         - switch to all-decimal, or toggle deg/rad mode
 * B/O/H/X   - binary/octal/hex mode for i/o (X is a shortcut for H)
 * i/o       - prefix for d/b/o/x - set only input/output modes

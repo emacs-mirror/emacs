@@ -2213,13 +2213,13 @@ One way to generate local rules is the command `smie-config-guess'."
     (let* ((existing (assq major-mode smie-config))
            (config
             (cond ((null existing)
-                   (message "Local rules saved in ‘smie-config’")
+                   (message "Local rules saved in `smie-config'")
                    smie-config--buffer-local)
                   ((y-or-n-p "Replace the existing mode's config? ")
-                   (message "Mode rules replaced in ‘smie-config’")
+                   (message "Mode rules replaced in `smie-config'")
                    smie-config--buffer-local)
                   ((y-or-n-p "Merge with existing mode's config? ")
-                   (message "Mode rules adjusted in ‘smie-config’")
+                   (message "Mode rules adjusted in `smie-config'")
                    (append smie-config--buffer-local (cdr existing)))
                   (t (error "Abort")))))
       (if existing

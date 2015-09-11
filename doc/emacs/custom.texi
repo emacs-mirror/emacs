@@ -28,7 +28,7 @@ Reference Manual}.
                           to decide what to do; by setting variables,
                           you can control their functioning.
 * Key Bindings::        The keymaps say what command each key runs.
-                          By changing them, you can "redefine keys".
+                          By changing them, you can ``redefine keys''.
 * Init File::           How to write common customizations in the
                           initialization file.
 @end menu

@@ -328,7 +328,7 @@ compatibility with versions of Emacs that lack the variable
 
     (let* ((load-path (image-load-path-for-library \"mh-e\" \"mh-logo.xpm\"))
            (image-load-path (cons (car load-path)
-                                  (when (boundp 'image-load-path)
+                                  (when (boundp \\='image-load-path)
                                     image-load-path))))
       (mh-tool-bar-folder-buttons-init))"
   (unless library (error "No library specified"))

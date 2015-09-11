@@ -1090,10 +1090,13 @@ This only works when `display-time' is enabled."
       (if (and (imap-open server port stream authentication buf)
 	       (imap-authenticate
 		user (or (cdr (assoc from mail-source-password-cache))
-			 password) buf)
-	       (imap-mailbox-select mailbox nil buf))
+                         password) buf))
+          (let ((mailbox-list (if (listp mailbox) mailbox (list mailbox))))
+            (dolist (mailbox mailbox-list)
+              (when (imap-mailbox-select mailbox nil buf)
 	  (let ((coding-system-for-write mail-source-imap-file-coding-system)
 		str)
+            (message "Fetching from %s..." mailbox)
 	    (with-temp-file mail-source-crash-box
 	      ;; Avoid converting 8-bit chars from inserted strings to
 	      ;; multibyte.
@@ -1128,8 +1131,8 @@ This only works when `display-time' is enabled."
 	       fetchflag nil buf))
 	    (if dontexpunge
 		(imap-mailbox-unselect buf)
-	      (imap-mailbox-close nil buf))
-	    (imap-close buf))
+              (imap-mailbox-close nil buf)))))
+            (imap-close buf))
 	(imap-close buf)
 	;; We nix out the password in case the error
 	;; was because of a wrong password being given.

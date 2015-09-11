@@ -78,7 +78,7 @@ for editing such pictures.
 * TeX Mode::            Editing TeX and LaTeX files.
 * HTML Mode::           Editing HTML and SGML files.
 * Nroff Mode::          Editing input to the nroff formatter.
-* Enriched Text::       Editing text "enriched" with fonts, colors, etc.
+* Enriched Text::       Editing text ``enriched'' with fonts, colors, etc.
 * Text Based Tables::   Commands for editing text-based tables.
 * Two-Column::          Splitting text columns into separate windows.
 @end menu
@@ -2072,7 +2072,7 @@ serves as an example of the features of Enriched mode.
 * Enriched Indentation::    Changing the left and right margins.
 * Enriched Justification::  Centering, setting text flush with the
                               left or right margin, etc.
-* Enriched Properties::     The "special" text properties submenu.
+* Enriched Properties::     The ``special'' text properties submenu.
 @end menu
 
 @node Enriched Mode

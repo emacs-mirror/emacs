@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 INLINE_HEADER_BEGIN
 
 extern void update_syntax_table (ptrdiff_t, EMACS_INT, bool, Lisp_Object);
+extern void update_syntax_table_forward (ptrdiff_t, bool, Lisp_Object);
 
 /* The standard syntax table is stored where it will automatically
    be used in all new buffers.  */
@@ -52,30 +53,32 @@ enum syntaxcode
 		       other side by any char with the same syntaxcode.  */
     Sstring_fence,  /* Starts/ends string which is delimited on the
 		       other side by any char with the same syntaxcode.  */
-    Smax	 /* Upper bound on codes that are meaningful */
+    Smax	 /* Upper bound on codes that are meaningful.  */
   };
 
 
 struct gl_state_s
 {
-  Lisp_Object object;			/* The object we are scanning. */
-  ptrdiff_t start;			/* Where to stop. */
-  ptrdiff_t stop;			/* Where to stop. */
+  Lisp_Object object;			/* The object we are scanning.  */
+  ptrdiff_t start;			/* Where to stop.  */
+  ptrdiff_t stop;			/* Where to stop.  */
   bool use_global;			/* Whether to use global_code
-					   or c_s_t. */
-  Lisp_Object global_code;		/* Syntax code of current char. */
-  Lisp_Object current_syntax_table;	/* Syntax table for current pos. */
-  Lisp_Object old_prop;			/* Syntax-table prop at prev pos. */
-  ptrdiff_t b_property;			/* First index where c_s_t is valid. */
+					   or c_s_t.  */
+  Lisp_Object global_code;		/* Syntax code of current char.  */
+  Lisp_Object current_syntax_table;	/* Syntax table for current pos.  */
+  Lisp_Object old_prop;			/* Syntax-table prop at prev pos.  */
+  ptrdiff_t b_property;			/* First index where c_s_t is valid.  */
   ptrdiff_t e_property;			/* First index where c_s_t is
-					   not valid. */
-  INTERVAL forward_i;			/* Where to start lookup on forward */
+					   not valid.  */
+  bool e_property_truncated;		/* true if e_property if was truncated
+					   by parse_sexp_propertize_done.  */
+  INTERVAL forward_i;			/* Where to start lookup on forward.  */
   INTERVAL backward_i;			/* or backward movement.  The
 					   data in c_s_t is valid
 					   between these intervals,
 					   and possibly at the
 					   intervals too, depending
-					   on: */
+					   on:  */
   /* Offset for positions specified to UPDATE_SYNTAX_TABLE.  */
   ptrdiff_t offset;
 };
@@ -173,7 +176,7 @@ INLINE void
 UPDATE_SYNTAX_TABLE_FORWARD (ptrdiff_t charpos)
 {
   if (parse_sexp_lookup_properties && charpos >= gl_state.e_property)
-    update_syntax_table (charpos + gl_state.offset, 1, false, gl_state.object);
+    update_syntax_table_forward (charpos + gl_state.offset, false, gl_state.object);
 }
 
 /* Make syntax table state (gl_state) good for CHARPOS, assuming it is
@@ -201,6 +204,7 @@ INLINE void
 SETUP_BUFFER_SYNTAX_TABLE (void)
 {
   gl_state.use_global = false;
+  gl_state.e_property_truncated = false;
   gl_state.current_syntax_table = BVAR (current_buffer, syntax_table);
 }
 

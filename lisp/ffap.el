@@ -412,9 +412,9 @@ Optional SERVICE specifies the port used (default \"discard\").
 Optional QUIET flag suppresses the \"Pinging...\" message.
 Optional STRATEGY overrides the three variables above.
 Returned values:
- t      means that HOST answered.
-'accept means the relevant variable told us to accept.
-\"mesg\"  means HOST exists, but does not respond for some reason."
+ t       means that HOST answered.
+`accept' means the relevant variable told us to accept.
+\"mesg\"   means HOST exists, but does not respond for some reason."
   ;; Try some (Emory local):
   ;; (ffap-machine-p "ftp" nil nil 'ping)
   ;; (ffap-machine-p "nonesuch" nil nil 'ping)

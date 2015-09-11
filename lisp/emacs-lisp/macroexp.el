@@ -147,10 +147,10 @@ and also to avoid outputting the warning during normal execution."
   (let ((instead (car obsolescence-data))
         (asof (nth 2 obsolescence-data)))
     (format-message
-     "‘%s’ is an obsolete %s%s%s" fun type
+     "`%s' is an obsolete %s%s%s" fun type
      (if asof (concat " (as of " asof ")") "")
      (cond ((stringp instead) (concat "; " (substitute-command-keys instead)))
-           (instead (format-message "; use ‘%s’ instead." instead))
+           (instead (format-message "; use `%s' instead." instead))
            (t ".")))))
 
 (defun macroexpand-1 (form &optional environment)

@@ -5868,7 +5868,7 @@ one of the regular expressions in `special-display-regexps'.
 
 This variable can be set in your init file, like this:
 
-  (setq special-display-frame-alist '((width . 80) (height . 20)))
+  (setq special-display-frame-alist \\='((width . 80) (height . 20)))
 
 These supersede the values given in `default-frame-alist'."
   :type '(repeat (cons :format "%v"

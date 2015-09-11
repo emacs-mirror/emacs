@@ -104,7 +104,7 @@
   "Manpage cleaning filter command phrases.
 This variable contains a list of the following form:
 
-'((command-string phrase-string*)*)
+  ((command-string phrase-string*)*)
 
 Each phrase-string is concatenated onto the command-string to form a
 command filter.  The (standard) output (and standard error) of the Un*x

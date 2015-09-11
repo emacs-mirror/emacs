@@ -175,14 +175,14 @@ Comparison is done via `equal'.  The index is 0-based."
   "Return the next item in the RING, after ITEM.
 Raise error if ITEM is not in the RING."
   (let ((curr-index (ring-member ring item)))
-    (unless curr-index (error "Item is not in the ring: ‘%s’" item))
+    (unless curr-index (error "Item is not in the ring: `%s'" item))
     (ring-ref ring (ring-plus1 curr-index (ring-length ring)))))
 
 (defun ring-previous (ring item)
   "Return the previous item in the RING, before ITEM.
 Raise error if ITEM is not in the RING."
   (let ((curr-index (ring-member ring item)))
-    (unless curr-index (error "Item is not in the ring: ‘%s’" item))
+    (unless curr-index (error "Item is not in the ring: `%s'" item))
     (ring-ref ring (ring-minus1 curr-index (ring-length ring)))))
 
 (defun ring-extend (ring x)

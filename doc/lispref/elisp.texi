@@ -453,7 +453,7 @@ Kinds of Forms
                               we find the real function via the symbol.
 * Function Forms::          Forms that call functions.
 * Macro Forms::             Forms that call macros.
-* Special Forms::           "Special forms" are idiosyncratic primitives,
+* Special Forms::           ``Special forms'' are idiosyncratic primitives,
                               most of them extremely important.
 * Autoloading::             Functions set up to load files
                               containing their real definitions.
@@ -485,7 +485,7 @@ Errors
 Variables
 
 * Global Variables::        Variable values that exist permanently, everywhere.
-* Constant Variables::      Certain "variables" have values that never change.
+* Constant Variables::      Certain ``variables'' have values that never change.
 * Local Variables::         Variable values that exist only temporarily.
 * Void Variables::          Symbols that lack values.
 * Defining Variables::      A definition says a symbol is used as a variable.
@@ -599,7 +599,7 @@ Loading
 * Repeated Loading::        Precautions about loading a file twice.
 * Named Features::          Loading a library if it isn't already loaded.
 * Where Defined::           Finding which file defined a certain symbol.
-* Unloading::               How to "unload" a library that was loaded.
+* Unloading::               How to ``unload'' a library that was loaded.
 * Hooks for Loading::       Providing code to be run when
                               particular libraries are loaded.
 
@@ -990,7 +990,7 @@ Buffers
                               is visited.
 * Buffer Modification::     A buffer is @dfn{modified} if it needs to be saved.
 * Modification Time::       Determining whether the visited file was changed
-                              "behind Emacs's back".
+                              ``behind Emacs's back''.
 * Read Only Buffers::       Modifying text is not allowed in a
                               read-only buffer.
 * Buffer List::             How to look at all the existing buffers.
@@ -1117,8 +1117,8 @@ Markers
 * Marker Insertion Types::  Two ways a marker can relocate when you
                               insert where it points.
 * Moving Markers::          Moving the marker to a new buffer or position.
-* The Mark::                How "the mark" is implemented with a marker.
-* The Region::              How to access "the region".
+* The Mark::                How ``the mark'' is implemented with a marker.
+* The Region::              How to access ``the region''.
 
 Text
 
@@ -1152,7 +1152,7 @@ Text
 * Base 64::                 Conversion to or from base 64 encoding.
 * Checksum/Hash::           Computing cryptographic hashes.
 * Parsing HTML/XML::        Parsing HTML and XML.
-* Atomic Changes::          Installing several buffer changes "atomically".
+* Atomic Changes::          Installing several buffer changes ``atomically''.
 * Change Hooks::            Supplying functions to be run when text is changed.
 
 The Kill Ring

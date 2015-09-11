@@ -113,8 +113,10 @@ package loading is disabled if the user option
 This function initializes Emacs' internal record of which packages are
 installed, and loads them.  The user option @code{package-load-list}
 specifies which packages to load; by default, all installed packages
-are loaded.  @xref{Package Installation,,, emacs, The GNU Emacs
-Manual}.
+are loaded.  If called during startup, this function also sets
+@code{package-enable-at-startup} to @code{nil}, to avoid accidentally
+loading the packages twice.  @xref{Package Installation,,, emacs, The
+GNU Emacs Manual}.
 
 The optional argument @var{no-activate}, if non-@code{nil}, causes
 Emacs to update its record of installed packages without actually

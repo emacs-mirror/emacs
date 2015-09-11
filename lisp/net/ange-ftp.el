@@ -4626,7 +4626,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 	    (format  "%s %s \"%s\""	; remsh -l USER does not work well
 					; on a hp-ux machine I tried
 		     remote-shell-program host command))
-      (ange-ftp-message "Remote command ‘%s’ ..." command)
+      (ange-ftp-message "Remote command `%s' ..." command)
       ;; Cannot call ange-ftp-real-dired-run-shell-command here as it
       ;; would prepend "cd default-directory" --- which bombs because
       ;; default-directory is in ange-ftp syntax for remote file names.
@@ -5978,7 +5978,7 @@ Other orders of $ and _ seem to all work just fine.")
 
 (defcustom ange-ftp-bs2000-special-prefix
   "X"
-  "Prefix used for filenames starting with ‘#’ or ‘@’."
+  "Prefix used for filenames starting with `#' or `@'."
   :group 'ange-ftp
   :type 'string)
 

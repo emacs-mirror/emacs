@@ -415,7 +415,7 @@ as an integer unless JUNK-ALLOWED is non-nil."
 	(cond ((and junk-allowed (null sum)) sum)
 	      (junk-allowed (* sign sum))
 	      ((or (/= start end) (null sum))
-	       (error "Not an integer string: ‘%s’" string))
+	       (error "Not an integer string: `%s'" string))
 	      (t (* sign sum)))))))
 
 
@@ -774,16 +774,16 @@ including `cl-block' and `cl-eval-when'."
         ;; FIXME: Add a `cl-class-of' or `cl-typeof' or somesuch.
         (metatype (cl--class-name (symbol-value (aref class 0)))))
     (insert (symbol-name type)
-            (substitute-command-keys " is a type (of kind ‘"))
+            (substitute-command-keys " is a type (of kind `"))
     (help-insert-xref-button (symbol-name metatype)
                              'cl-help-type metatype)
-    (insert (substitute-command-keys "’)"))
+    (insert (substitute-command-keys "')"))
     (when location
-      (insert (substitute-command-keys " in ‘"))
+      (insert (substitute-command-keys " in `"))
       (help-insert-xref-button
        (help-fns-short-filename location)
        'cl-type-definition type location 'define-type)
-      (insert (substitute-command-keys "’")))
+      (insert (substitute-command-keys "'")))
     (insert ".\n")
 
     ;; Parents.
@@ -793,10 +793,10 @@ including `cl-block' and `cl-eval-when'."
         (insert " Inherits from ")
         (while (setq cur (pop pl))
           (setq cur (cl--class-name cur))
-          (insert (substitute-command-keys "‘"))
+          (insert (substitute-command-keys "`"))
           (help-insert-xref-button (symbol-name cur)
                                    'cl-help-type cur)
-          (insert (substitute-command-keys (if pl "’, " "’"))))
+          (insert (substitute-command-keys (if pl "', " "'"))))
         (insert ".\n")))
 
     ;; Children, if available.  ¡For EIEIO!
@@ -807,10 +807,10 @@ including `cl-block' and `cl-eval-when'."
       (when ch
         (insert " Children ")
         (while (setq cur (pop ch))
-          (insert (substitute-command-keys "‘"))
+          (insert (substitute-command-keys "`"))
           (help-insert-xref-button (symbol-name cur)
                                    'cl-help-type cur)
-          (insert (substitute-command-keys (if ch "’, " "’"))))
+          (insert (substitute-command-keys (if ch "', " "'"))))
         (insert ".\n")))
 
     ;; Type's documentation.
@@ -826,10 +826,10 @@ including `cl-block' and `cl-eval-when'."
       (when generics
         (insert (propertize "Specialized Methods:\n\n" 'face 'bold))
         (dolist (generic generics)
-          (insert (substitute-command-keys "‘"))
+          (insert (substitute-command-keys "`"))
           (help-insert-xref-button (symbol-name generic)
                                    'help-function generic)
-          (insert (substitute-command-keys "’"))
+          (insert (substitute-command-keys "'"))
           (pcase-dolist (`(,qualifiers ,args ,doc)
                          (cl--generic-method-documentation generic type))
             (insert (format " %s%S\n" qualifiers args)

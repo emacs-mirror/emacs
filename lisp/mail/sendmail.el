@@ -525,31 +525,33 @@ This also saves the value of `send-mail-function' via Customize."
 	  ;; Query the user.
 	  (with-temp-buffer
 	    (rename-buffer "*Emacs Mail Setup Help*" t)
-	    (insert "\
+	    (insert (substitute-command-keys "\
  Emacs is about to send an email message, but it has not been
  configured for sending email.  To tell Emacs how to send email:
 
- - Type `"
+ - Type `")
 		    (propertize "mail client" 'face 'bold)
-		    "' to start your default email client and
-   pass it the message text.\n\n")
+		    (substitute-command-keys "\
+' to start your default email client and
+   pass it the message text.\n\n"))
 	    (and sendmail-program
 		 (executable-find sendmail-program)
-		 (insert "\
- - Type `"
+		 (insert (substitute-command-keys "\
+ - Type `")
 			 (propertize "transport" 'face 'bold)
-			 "' to invoke the system's mail transport agent
-   (the `"
+			 (substitute-command-keys "\
+' to invoke the system's mail transport agent
+   (the `")
 			 sendmail-program
-			 "' program).\n\n"))
-	    (insert "\
- - Type `"
+			 (substitute-command-keys "' program).\n\n")))
+	    (insert (substitute-command-keys "\
+ - Type `")
 		    (propertize "smtp" 'face 'bold)
-		    "' to send mail directly to an \"outgoing mail\" server.
+		    (substitute-command-keys "' to send mail directly to an \"outgoing mail\" server.
    (Emacs may prompt you for SMTP settings).
 
  Emacs will record your selection and will use it thereafter.
- To change it later, customize the option `send-mail-function'.\n")
+ To change it later, customize the option `send-mail-function'.\n"))
 	    (goto-char (point-min))
 	    (display-buffer (current-buffer))
 	    (let ((completion-ignore-case t))

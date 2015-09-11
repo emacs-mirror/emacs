@@ -873,7 +873,7 @@ With argument, fill and justify."
   (set-frame-width (selected-frame) width))
 
 (defun tpu-toggle-newline-and-indent nil
-  "Toggle between ‘newline and indent’ and ‘simple newline’."
+  "Toggle between `newline-and-indent' and simple `newline'."
   (interactive)
   (cond (tpu-newline-and-indent-p
          (setq tpu-newline-and-indent-string "")
@@ -1313,7 +1313,7 @@ kill modified buffers without asking."
 		(if tpu-regexp-p "en" "dis"))))
 
 (defun tpu-regexp-prompt (prompt)
-  "Read a string, adding ‘RE ’ to the prompt if tpu-regexp-p is set."
+  "Read a string, adding `RE ' to the prompt if tpu-regexp-p is set."
   (let ((re-prompt (concat (if tpu-regexp-p "RE ") prompt)))
     (read-from-minibuffer re-prompt nil nil nil 'tpu-regexp-prompt-hist)))
 

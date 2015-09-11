@@ -72,7 +72,7 @@ For more information, see Info node `(elisp)Declaring Functions'."
 If FORM does return, signal an error."
   (declare (debug t))
   `(prog1 ,form
-     (error "Form marked with ‘noreturn’ did return")))
+     (error "Form marked with `noreturn' did return")))
 
 (defmacro 1value (form)
   "Evaluate FORM, expecting a constant return value.
@@ -320,7 +320,7 @@ Defaults to `error'."
                     (mapcar (lambda (parent)
                               (cons parent
                                     (or (get parent 'error-conditions)
-                                        (error "Unknown signal ‘%s’" parent))))
+                                        (error "Unknown signal `%s'" parent))))
                             parent))
            (cons parent (get parent 'error-conditions)))))
     (put name 'error-conditions
@@ -1607,7 +1607,7 @@ can do the job."
         (let* ((sym (cadr list-var))
                (append (eval append))
                (msg (format-message
-                     "‘add-to-list’ can't use lexical var ‘%s’; use ‘push’ or ‘cl-pushnew’"
+                     "`add-to-list' can't use lexical var `%s'; use `push' or `cl-pushnew'"
                      sym))
                ;; Big ugly hack so we only output a warning during
                ;; byte-compilation, and so we can use
@@ -2208,7 +2208,7 @@ Any input that is not one of CHARS is ignored.
 If optional argument INHIBIT-KEYBOARD-QUIT is non-nil, ignore
 keyboard-quit events while waiting for a valid input."
   (unless (consp chars)
-    (error "Called ‘read-char-choice’ without valid char choices"))
+    (error "Called `read-char-choice' without valid char choices"))
   (let (char done show-help (helpbuf " *Char Help*"))
     (let ((cursor-in-echo-area t)
           (executing-kbd-macro executing-kbd-macro)
@@ -4773,7 +4773,7 @@ Examples of version conversion:
 
 See documentation for `version-separator' and `version-regexp-alist'."
   (or (and (stringp ver) (> (length ver) 0))
-      (error "Invalid version string: ‘%s’" ver))
+      (error "Invalid version string: `%s'" ver))
   ;; Change .x.y to 0.x.y
   (if (and (>= (length ver) (length version-separator))
 	   (string-equal (substring ver 0 (length version-separator))
@@ -4805,9 +4805,9 @@ See documentation for `version-separator' and `version-regexp-alist'."
 		  ((string-match "^[-_+ ]?\\([a-zA-Z]\\)$" s)
 		   (push (- (aref (downcase (match-string 1 s)) 0) ?a -1)
 			 lst))
-		  (t (error "Invalid version syntax: ‘%s’" ver))))))
+		  (t (error "Invalid version syntax: `%s'" ver))))))
       (if (null lst)
-	  (error "Invalid version syntax: ‘%s’" ver)
+	  (error "Invalid version syntax: `%s'" ver)
 	(nreverse lst)))))
 
 

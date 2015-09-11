@@ -717,7 +717,7 @@ Notification is shown only once."
 	  (unless org-clock-notification-was-shown
 	    (setq org-clock-notification-was-shown t)
 	    (org-notify
-	     (format-message "Task ‘%s’ should be finished by now. (%s)"
+	     (format-message "Task `%s' should be finished by now. (%s)"
                              org-clock-heading org-clock-effort)
              org-clock-sound))
 	(setq org-clock-notification-was-shown nil)))))
@@ -948,7 +948,7 @@ k/K      Keep X minutes of the idle time (default is all).  If this
          clocked back in at the present time.
 
 g/G      Indicate that you “got back” X minutes ago.  This is quite
-         different from ‘k’: it clocks you out from the beginning of
+         different from `k': it clocks you out from the beginning of
          the idle period and clock you back in X minutes ago.
 
 s/S      Subtract the idle time from the current clock.  This is the

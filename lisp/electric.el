@@ -434,12 +434,12 @@ The variable `electric-layout-rules' says when and how to insert newlines."
                                       nil string))))
 
 (defun electric-quote-post-self-insert-function ()
-  "Function that ‘electric-quote-mode’ adds to ‘post-self-insert-hook’.
+  "Function that `electric-quote-mode' adds to `post-self-insert-hook'.
 This requotes when a quoting key is typed."
   (when (and electric-quote-mode
              (memq last-command-event '(?\' ?\`)))
     (let ((start
-           (if comment-start
+           (if (and comment-start comment-use-syntax)
                (when (or electric-quote-comment electric-quote-string)
                  (let ((syntax (syntax-ppss)))
                    (and (or (and electric-quote-comment (nth 4 syntax))
@@ -486,11 +486,11 @@ enable the mode if ARG is omitted or nil.
 When enabled, as you type this replaces \\=` with \\=‘, \\=' with \\=’,
 \\=`\\=` with “, and \\='\\=' with ”.  This occurs only in comments, strings,
 and text paragraphs, and these are selectively controlled with
-‘electric-quote-comment’, ‘electric-quote-string’, and
-‘electric-quote-paragraph’.
+`electric-quote-comment', `electric-quote-string', and
+`electric-quote-paragraph'.
 
 This is a global minor mode.  To toggle the mode in a single buffer,
-use ‘electric-quote-local-mode’."
+use `electric-quote-local-mode'."
   :global t :group 'electricity
   :initialize 'custom-initialize-delay
   :init-value nil
@@ -507,7 +507,7 @@ use ‘electric-quote-local-mode’."
 
 ;;;###autoload
 (define-minor-mode electric-quote-local-mode
-  "Toggle ‘electric-quote-mode’ only in this buffer."
+  "Toggle `electric-quote-mode' only in this buffer."
   :variable (buffer-local-value 'electric-quote-mode (current-buffer))
   (cond
    ((eq electric-quote-mode (default-value 'electric-quote-mode))

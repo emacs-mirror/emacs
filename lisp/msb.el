@@ -746,7 +746,7 @@ to the buffer-list variable in FUNCTION-INFO."
       (error (unless msb--error
 	       (setq msb--error
 		     (format-message
-		      "In msb-menu-cond, error for buffer ‘%s’."
+		      "In msb-menu-cond, error for buffer `%s'."
 		      (buffer-name buffer)))
 	       (error "%s" msb--error))))))
 

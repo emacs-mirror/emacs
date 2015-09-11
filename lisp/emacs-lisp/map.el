@@ -249,21 +249,22 @@ MAP can be a list, hash-table or array."
     :array (seq-empty-p map)
     :hash-table (zerop (hash-table-count map))))
 
-(defun map-contains-key-p (map key &optional testfn)
+(defun map-contains-key (map key &optional testfn)
   "Return non-nil if MAP contain the key KEY, nil otherwise.
 Equality is defined by TESTFN if non-nil or by `equal' if nil.
 
 MAP can be a list, hash-table or array."
-  (seq-contains-p (map-keys map) key testfn))
+  (seq-contains (map-keys map) key testfn))
 
-(defun map-some-p (pred map)
-  "Return a key/value pair for which (PRED key val) is non-nil in MAP.
+(defun map-some (pred map)
+  "Return a non-nil if (PRED key val) is non-nil for any key/value pair in MAP.
 
 MAP can be a list, hash-table or array."
   (catch 'map--break
     (map-apply (lambda (key value)
-                 (when (funcall pred key value)
-                   (throw 'map--break (cons key value))))
+                 (let ((result (funcall pred key value)))
+                   (when result
+                     (throw 'map--break result))))
                map)
     nil))
 

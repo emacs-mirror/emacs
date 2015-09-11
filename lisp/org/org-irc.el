@@ -108,7 +108,7 @@ attributes that are found."
 (defun org-irc-ellipsify-description (string &optional after)
   "Remove unnecessary white space from STRING and add ellipses if necessary.
 Strip starting and ending white space from STRING and replace any
-chars that the value AFTER with ‘...’"
+chars that the value AFTER with `...'"
   (let* ((after (number-to-string (or after 30)))
 	 (replace-map (list (cons "^[ \t]*" "")
 			    (cons "[ \t]*$" "")

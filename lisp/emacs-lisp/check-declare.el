@@ -106,7 +106,7 @@ don't know how to recognize (e.g. some macros)."
                  (symbolp (setq fileonly (nth 4 form))))
             (setq alist (cons (list fnfile fn arglist fileonly) alist))
           ;; FIXME make this more noticeable.
-          (if form (message "Malformed declaration for ‘%s’" (cadr form))))))
+          (if form (message "Malformed declaration for `%s'" (cadr form))))))
     (message "%sdone" m)
     alist))
 
@@ -279,7 +279,7 @@ TYPE is a string giving the nature of the error.  Warning is displayed in
            entry))
         (warning-fill-prefix "    "))
     (display-warning 'check-declare
-                     (format-message "said ‘%s’ was defined in %s: %s"
+                     (format-message "said `%s' was defined in %s: %s"
                                      fn (file-name-nondirectory fnfile) type)
                      nil check-declare-warning-buffer)))
 
@@ -318,7 +318,7 @@ Return a list of any errors found."
 See `check-declare-directory' for more information."
   (interactive "fFile to check: ")
   (or (file-exists-p file)
-      (error "File ‘%s’ not found" file))
+      (error "File `%s' not found" file))
   (let ((m (format "Checking %s..." file))
         errlist)
     (message "%s" m)
@@ -332,8 +332,8 @@ See `check-declare-directory' for more information."
 Returns non-nil if any false statements are found."
   (interactive "DDirectory to check: ")
   (or (file-directory-p (setq root (expand-file-name root)))
-      (error "Directory ‘%s’ not found" root))
-  (let ((m "Checking ‘declare-function’ statements...")
+      (error "Directory `%s' not found" root))
+  (let ((m "Checking `declare-function' statements...")
         (m2 "Finding files with declarations...")
         errlist files)
     (message "%s" m)

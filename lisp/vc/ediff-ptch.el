@@ -406,7 +406,7 @@ other files, enter /dev/null
 		  (with-output-to-temp-buffer ediff-msg-buffer
 		    (ediff-with-current-buffer standard-output
 		      (fundamental-mode))
-		    (princ (format "
+		    (princ (format-message "
 Ediff has inferred that
 	%s
 	%s

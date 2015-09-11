@@ -2066,7 +2066,7 @@ Images in many formats can be inlined with <img src=\"URL\">.
 If you mainly create your own documents, `sgml-specials' might be
 interesting.  But note that some HTML 2 browsers can't handle `&apos;'.
 To work around that, do:
-   (eval-after-load \"sgml-mode\" '(aset sgml-char-names ?\\=' nil))
+   (eval-after-load \"sgml-mode\" \\='(aset sgml-char-names ?\\=' nil))
 
 \\{html-mode-map}"
   (setq-local sgml-display-text html-display-text)

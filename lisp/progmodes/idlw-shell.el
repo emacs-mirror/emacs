@@ -152,7 +152,7 @@ This variable can have 3 values:
 nil        Arrows just move the cursor
 t          Arrows force the cursor back to the current command line and
            walk the history
-'cmdline   When the cursor is in the current command line, arrows walk the
+`cmdline'  When the cursor is in the current command line, arrows walk the
            history.  Everywhere else in the buffer, arrows move the cursor."
   :group 'idlwave-shell-general-setup
   :type '(choice
@@ -229,7 +229,7 @@ to set this option to nil."
 
 (defcustom idlwave-shell-file-name-chars "~/A-Za-z0-9+:_.$#%={}\\- "
   "The characters allowed in file names, as a string.
-Used for file name completion.  Must not contain ‘'’, ‘,’ and ‘\"’
+Used for file name completion.  Must not contain `\\='', `,' and `\"'
 because these are used as separators by IDL."
   :group 'idlwave-shell-general-setup
   :type 'string)
@@ -439,15 +439,13 @@ Value decides about the method which is used to mark the line.  Valid values
 are:
 
 nil       Do not mark the line
-'arrow    Use the overlay arrow
-'face     Use `idlwave-shell-stop-line-face' to highlight the line.
+`arrow'   Use the overlay arrow
+`face'    Use `idlwave-shell-stop-line-face' to highlight the line.
 t         Use what IDLWAVE thinks is best.  Will be a face where possible,
           otherwise the overlay arrow.
 The overlay-arrow has the disadvantage to hide the first chars of a line.
 Since many people do not have the main block of IDL programs indented,
-a face highlighting may be better.
-In Emacs 21, the overlay arrow is displayed in a special area and never
-hides any code, so setting this to 'arrow on Emacs 21 sounds like a good idea."
+a face highlighting may be better."
   :group 'idlwave-shell-highlighting-and-faces
   :type '(choice
 	  (const :tag "No marking" nil)
@@ -494,10 +492,10 @@ where IDL is stopped, when in Electric Debug Mode."
   "Non-nil means, mark breakpoints in the source files.
 Valid values are:
 nil        Do not mark breakpoints.
-'face      Highlight line with `idlwave-shell-breakpoint-face'.
-'glyph     Red dot at the beginning of line.  If the display does not
-           support glyphs, will use 'face instead.
-t          Glyph when possible, otherwise face (same effect as 'glyph)."
+`face'     Highlight line with `idlwave-shell-breakpoint-face'.
+`glyph'    Red dot at the beginning of line.  If the display does not
+           support glyphs, will use `face' instead.
+t          Glyph when possible, otherwise face (same effect as `glyph')."
   :group 'idlwave-shell-highlighting-and-faces
   :type '(choice
 	  (const :tag "No marking" nil)
@@ -3911,7 +3909,7 @@ Elements of the alist have the form:
 
 (defun idlwave-shell-module-source-query (module &optional type)
   "Determine the source file for a given module.
-Query as a function if TYPE set to something beside 'pro."
+Query as a function if TYPE set to something beside `pro'."
   (if module
       (idlwave-shell-send-command
        (format "print,(routine_info('%s',/SOURCE%s)).PATH" module

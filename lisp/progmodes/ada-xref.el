@@ -286,7 +286,7 @@ On Windows systems, this will properly handle .exe extension as well."
 		    (ada-find-file-in-dir (concat exec-name ".exe") exec-path))))
     (if result
 	result
-      (error "‘%s’ not found in path" exec-name))))
+      (error "`%s' not found in path" exec-name))))
 
 (defun ada-initialize-runtime-library (cross-prefix)
   "Initialize the variables for the runtime library location.

@@ -892,11 +892,11 @@ more readable?
 
 @subsubheading Answer
 
-Gnus offers you several functions to "wash" incoming mail, you can
+Gnus offers you several functions to ``wash'' incoming mail, you can
 find them if you browse through the menu, item
-Article->Washing. The most interesting ones are probably "Wrap
-long lines" (@samp{W w}), "Decode ROT13"
-(@samp{W r}) and "Outlook Deuglify" which repairs
+Article->Washing. The most interesting ones are probably ``Wrap
+long lines'' (@samp{W w}), ``Decode ROT13''
+(@samp{W r}) and ``Outlook Deuglify'' which repairs
 the dumb quoting used by many users of Microsoft products
 (@samp{W Y f} gives you full deuglify.
 See @samp{W Y C-h} or have a look at the menus for
@@ -1016,8 +1016,8 @@ mail groups. Is this a bug?
 
 No, that's a matter of design of Gnus, fixing this would
 mean reimplementation of major parts of Gnus'
-back ends. Gnus thinks "highest-article-number @minus{}
-lowest-article-number = total-number-of-articles". This
+back ends. Gnus thinks ``highest-article-number @minus{}
+lowest-article-number = total-number-of-articles''. This
 works OK for Usenet groups, but if you delete and move
 many messages in mail groups, this fails. To cure the
 symptom, enter the group via @samp{C-u RET}
@@ -1085,8 +1085,8 @@ You've got to play around with the variable
 gnus-summary-line-format. Its value is a string of
 symbols which stand for things like author, date, subject
 etc. A list of the available specifiers can be found in the
-manual node "Summary Buffer Lines" and the often forgotten
-node "Formatting Variables" and its sub-nodes. There
+manual node ``Summary Buffer Lines'' and the often forgotten
+node ``Formatting Variables'' and its sub-nodes. There
 you'll find useful things like positioning the cursor and
 tabulators which allow you a summary in table form, but
 sadly hard tabulators are broken in 5.8.8.
@@ -1671,7 +1671,7 @@ instead (works for newer versions as well):
          (setq message-user-fqdn fqdn)
        (gnus-message 1 "Redefining `message-make-fqdn'.")
        (defun message-make-fqdn ()
-         "Return user’s fully qualified domain name."
+         "Return user's fully qualified domain name."
          fqdn))))
 @end example
 @noindent
@@ -1765,9 +1765,9 @@ snippet by Frank Haun <pille3003@@fhaun.de> in
 
 @example
 (defun my-archive-article (&optional n)
-  "Copies one or more article(s) to a corresponding ‘nnml:’ group, e.g.,
-‘gnus.ding’ goes to ‘nnml:1.gnus.ding’. And ‘nnml:List-gnus.ding’ goes
-to ‘nnml:1.List-gnus-ding’.
+  "Copies one or more article(s) to a corresponding `nnml:' group, e.g.,
+`gnus.ding' goes to `nnml:1.gnus.ding'. And `nnml:List-gnus.ding' goes
+to `nnml:1.List-gnus-ding'.
 
 Use process marks or mark a region in the summary buffer to archive
 more then one article."

@@ -1224,7 +1224,7 @@ use for the dialog.  It defaults to \"*`recentf-menu-title'*\"."
                        ", or type the corresponding digit key,"
                      "")
                    " to open it.\n"
-                   (format-message "Click on Cancel or type ‘q’ to cancel.\n"))
+                   (format-message "Click on Cancel or type `q' to cancel.\n"))
     ;; Use a L&F that looks like the recentf menu.
     (tree-widget-set-theme "folder")
     (apply 'widget-create

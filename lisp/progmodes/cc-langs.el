@@ -926,14 +926,14 @@ following elements.  The car of each element describes the type of the
 operator group, and the cdr is a list of the operator tokens in it.
 The operator group types are:
 
-'prefix         Unary prefix operators.
-'postfix        Unary postfix operators.
-'postfix-if-paren
+`prefix'        Unary prefix operators.
+`postfix'       Unary postfix operators.
+`postfix-if-paren'
 		Unary postfix operators if and only if the chars have
 		parenthesis syntax.
-'left-assoc     Binary left associative operators (i.e. a+b+c means (a+b)+c).
-'right-assoc    Binary right associative operators (i.e. a=b=c means a=(b=c)).
-'right-assoc-sequence
+`left-assoc'    Binary left associative operators (i.e. a+b+c means (a+b)+c).
+`right-assoc'   Binary right associative operators (i.e. a=b=c means a=(b=c)).
+`right-assoc-sequence'
                 Right associative operator that constitutes of a
                 sequence of tokens that separate expressions.  All the
                 tokens in the group are in this case taken as

@@ -267,7 +267,7 @@ The return value is undefined.
                                 (cdr body)
                               body)))
                     nil)
-                   (t (message "Warning: Unknown defun property ‘%S’ in %S"
+                   (t (message "Warning: Unknown defun property `%S' in %S"
                                (car x) name)))))
                    decls))
           (def (list 'defalias
@@ -317,7 +317,7 @@ The return value is undefined.
   (declare (debug defun) (doc-string 3))
   (or (memq (get name 'byte-optimizer)
 	    '(nil byte-compile-inline-expand))
-      (error "‘%s’ is a primitive" name))
+      (error "`%s' is a primitive" name))
   `(prog1
        (defun ,name ,arglist ,@body)
      (eval-and-compile

@@ -286,7 +286,7 @@ representation will be parsed correctly."
 (defun json-read-string ()
   "Read the JSON string at point."
   (unless (char-equal (json-peek) ?\")
-    (signal 'json-string-format (list "doesn’t start with ‘\"’!")))
+    (signal 'json-string-format (list "doesn't start with `\"'!")))
   ;; Skip over the '"'
   (json-advance)
   (let ((characters '())

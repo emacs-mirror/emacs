@@ -1924,7 +1924,7 @@ and \f (formfeed) at the end."
 	       (unless (bolp)
 		 (insert "\n"))
 	       (insert (current-time-string)
-		       (format-message "\tBuffer ‘%s’, signal ‘%s’\n"
+		       (format-message "\tBuffer `%s', signal `%s'\n"
 				       (buffer-name obuf) (car args)))
 	       (goto-char (point-max))
 	       (insert "\f\n")))))))

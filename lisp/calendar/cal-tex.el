@@ -1602,7 +1602,7 @@ informative header, and run HOOK."
         (goto-char (point-min))
         (when (search-forward "documentclass" nil t)
           (forward-line 1)
-          ;; Eg for some Bahai holidays.
+          ;; E.g., for some Bahá’í holidays.
           ;; FIXME latin1 might not always be right.
           (insert "\\usepackage[latin1]{inputenc}\n"))))
   (latex-mode)

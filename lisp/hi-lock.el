@@ -362,7 +362,7 @@ Hi-lock: end is found.  A mode is excluded if it's in the list
     (setq hi-lock-archaic-interface-message-used t)
     (if hi-lock-archaic-interface-deduce
         (global-hi-lock-mode hi-lock-mode)
-      (warn
+      (warn "%s"
        "Possible archaic use of (hi-lock-mode).
 Use (global-hi-lock-mode 1) in .emacs to enable hi-lock for all buffers,
 use (hi-lock-mode 1) for individual buffers.  For compatibility with Emacs

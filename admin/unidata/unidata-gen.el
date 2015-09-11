@@ -445,7 +445,7 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 	;; (4) possibly update the switch cases in
 	;;     bidi.c:bidi_get_type and bidi.c:bidi_get_category.
 	(bidi-warning "\
-** Found new bidi-class ‘%s’, please update bidi.c and dispextern.h")
+** Found new bidi-class `%s', please update bidi.c and dispextern.h")
 	tail elt range val val-code idx slot
 	prev-range-data)
     (setq val-list (cons nil (copy-sequence val-list)))

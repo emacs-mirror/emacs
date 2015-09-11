@@ -439,7 +439,7 @@ For example, adding to the default a specific translation of an ange-ftp
 address to an HTTP URL:
 
     (setq browse-url-filename-alist
-	  '((\"/webmaster@webserver:/home/www/html/\" .
+	  \\='((\"/webmaster@webserver:/home/www/html/\" .
 	     \"http://www.acme.co.uk/\")
             (\"^/\\(ftp@\\|anonymous@\\)?\\([^:]+\\):/*\" . \"ftp://\\2/\")
             (\"^/\\([^:@]+@\\)?\\([^:]+\\):/*\" . \"ftp://\\1\\2/\")

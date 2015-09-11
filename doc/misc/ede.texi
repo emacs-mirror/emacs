@@ -867,14 +867,14 @@ It would look like this:
   )
 
 (defun MY-ROOT-FCN ()
-  "Return the root fcn for ‘default-directory’"
+  "Return the root fcn for `default-directory'"
   ;; You might be able to use 'ede-cpp-root-project-root'
   ;; and not write this at all.
   )
 
 (defun MY-LOAD (dir)
-  "Load a project of type ‘cpp-root’ for the directory DIR.
-Return nil if there isn’t one."
+  "Load a project of type `cpp-root' for the directory DIR.
+Return nil if there isn't one."
   ;; Use your preferred construction method here.
   (ede-cpp-root-project "NAME" :file (expand-file-name "FILE" dir)
                                :locate-fcn 'MYFCN)

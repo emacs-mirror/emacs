@@ -116,7 +116,7 @@
 (require 'ring)
 
 (defgroup eshell-var nil
-  "Variable interpolation is introduced whenever the ‘$’ character
+  "Variable interpolation is introduced whenever the `$' character
 appears unquoted in any argument (except when that argument is
 surrounded by single quotes).  It may be used to interpolate a
 variable value, a subcommand, or even the result of a Lisp form."

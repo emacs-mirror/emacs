@@ -72,7 +72,7 @@ For instance, if you want Gnus to beep every time you connect
 to innd, you could say something like:
 
 \(setq nntp-server-action-alist
-       '((\"innd\" (ding))))
+       \\='((\"innd\" (ding))))
 
 You probably don't want to do that, though.")
 

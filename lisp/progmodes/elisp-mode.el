@@ -641,7 +641,7 @@ non-nil result supercedes the xrefs produced by
 ;; FIXME: name should be singular; match xref-find-definition
 (defun elisp--xref-find-definitions (symbol)
   ;; The file name is not known when `symbol' is defined via interactive eval.
-  (let (xrefs temp)
+  (let (xrefs)
 
     (let ((temp elisp-xref-find-def-functions))
       (while (and (null xrefs)
@@ -928,6 +928,7 @@ Semicolons start comments.
             (goto-char end)))))))
 
 (defun elisp-byte-code-syntax-propertize (start end)
+  (goto-char start)
   (elisp--byte-code-comment end (point))
   (funcall
    (syntax-propertize-rules
@@ -1322,7 +1323,7 @@ which see."
   0 - contains the last symbol read from the buffer.
   1 - contains the string last displayed in the echo area for variables,
       or argument string for functions.
-  2 - 'function if function args, 'variable if variable documentation.")
+  2 - `function' if function args, `variable' if variable documentation.")
 
 (defun elisp-eldoc-documentation-function ()
   "`eldoc-documentation-function' (which see) for Emacs Lisp."

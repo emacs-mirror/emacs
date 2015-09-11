@@ -58,7 +58,7 @@ the character after point.
 * Base 64::          Conversion to or from base 64 encoding.
 * Checksum/Hash::    Computing cryptographic hashes.
 * Parsing HTML/XML:: Parsing HTML and XML.
-* Atomic Changes::   Installing several buffer changes "atomically".
+* Atomic Changes::   Installing several buffer changes ``atomically''.
 * Change Hooks::     Supplying functions to be run when text is changed.
 @end menu
 
@@ -1960,7 +1960,7 @@ Called from a program, there are three arguments:
 @group
 REVERSE (non-nil means reverse order),\
  BEG and END (region to sort).
-The variable ‘sort-fold-case’ determines\
+The variable `sort-fold-case' determines\
  whether alphabetic case affects
 the sort order."
 @end group

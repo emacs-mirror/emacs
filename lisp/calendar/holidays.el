@@ -173,15 +173,15 @@ See the documentation for `calendar-holidays' for details."
   '((holiday-bahai-new-year)
     (holiday-bahai-ridvan)      ; respects calendar-bahai-all-holidays-flag
     (holiday-fixed  5 23 "Declaration of the Báb")
-    (holiday-fixed  5 29 "Ascension of Bahá'u'lláh")
+    (holiday-fixed  5 29 "Ascension of Bahá’u’lláh")
     (holiday-fixed  7  9 "Martyrdom of the Báb")
     (holiday-fixed 10 20 "Birth of the Báb")
-    (holiday-fixed 11 12 "Birth of Bahá'u'lláh")
+    (holiday-fixed 11 12 "Birth of Bahá’u’lláh")
     (if calendar-bahai-all-holidays-flag
         (append
          (holiday-fixed 11 26 "Day of the Covenant")
-         (holiday-fixed 11 28 "Ascension of `Abdu'l-Bahá")))))
-  "Bahá'í holidays.
+         (holiday-fixed 11 28 "Ascension of `Abdu’l-Bahá")))))
+  "Bahá’í holidays.
 See the documentation for `calendar-holidays' for details."
   :type 'sexp
   :group 'holidays)
@@ -254,7 +254,7 @@ Several basic functions are provided for this purpose:
                                K>0, and MONTH's last day otherwise.
     (holiday-hebrew MONTH DAY STRING)  a fixed date on the Hebrew calendar
     (holiday-islamic MONTH DAY STRING) a fixed date on the Islamic calendar
-    (holiday-bahai MONTH DAY STRING)   a fixed date on the Bahá'í calendar
+    (holiday-bahai MONTH DAY STRING)   a fixed date on the Bahá’í calendar
     (holiday-julian MONTH DAY STRING)  a fixed date on the Julian calendar
     (holiday-sexp SEXP STRING) SEXP is a Gregorian-date-valued expression
                                in the variable `year'; if it evaluates to
@@ -282,11 +282,11 @@ To add the Islamic feast celebrating Mohammed's birthday, use
      (holiday-islamic 3 12 \"Mohammed's Birthday\")
 
 since the Islamic months are numbered from 1 starting with Muharram.
-To add an entry for the Bahá'í festival of Ridvan, use
+To add an entry for the Bahá’í festival of Ridvan, use
 
      (holiday-bahai 2 13 \"Festival of Ridvan\")
 
-since the Bahá'í months are numbered from 1 starting with Bahá.
+since the Bahá’í months are numbered from 1 starting with Bahá.
 To add Thomas Jefferson's birthday, April 2, 1743 (Julian), use
 
      (holiday-julian 4 2 \"Jefferson's Birthday\")
@@ -296,7 +296,7 @@ example, to include American presidential elections, which occur on the first
 Tuesday after the first Monday in November of years divisible by 4, add
 
      (holiday-sexp
-       '(if (zerop (% year 4))
+       \\='(if (zerop (% year 4))
            (calendar-gregorian-from-absolute
              (1+ (calendar-dayname-on-or-before
                    1 (+ 6 (calendar-absolute-from-gregorian
@@ -460,7 +460,7 @@ The optional LABEL is used to label the buffer created."
             (if holiday-islamic-holidays
                 (cons "Islamic" holiday-islamic-holidays))
             (if holiday-bahai-holidays
-                (cons "Bahá'í" holiday-bahai-holidays))
+                (cons "Bahá’í" holiday-bahai-holidays))
             (if holiday-oriental-holidays
                 (cons "Oriental" holiday-oriental-holidays))
             (if holiday-solar-holidays

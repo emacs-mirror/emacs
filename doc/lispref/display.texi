@@ -6533,10 +6533,8 @@ used when Emacs is displaying a buffer in a window with neither a
 window display table nor a buffer display table defined, or when Emacs
 is outputting text to the standard output or error streams.  Although its
 default is typically @code{nil}, in an interactive session if the
-locale cannot display curved quotes, or if the initial value of
-@code{text-quoting-style} specifies a preference for ASCII, its
-default maps curved quotes to ASCII approximations.  @xref{Keys in
-Documentation}.
+terminal cannot display curved quotes, its default maps curved quotes
+to ASCII approximations.  @xref{Keys in Documentation}.
 @end defvar
 
 The @file{disp-table} library defines several functions for changing

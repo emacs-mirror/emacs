@@ -807,6 +807,7 @@ textual parts.")
 		     nil
 		   group)
 		 server))
+	(info (when info (list info)))
 	active)
     (with-current-buffer nntp-server-buffer
       (when result
@@ -814,10 +815,11 @@ textual parts.")
 		  (not (setq active
 			     (nth 2 (assoc group nnimap-current-infos)))))
 	  (let ((sequences (nnimap-retrieve-group-data-early
-			    server (list info))))
-	    (nnimap-finish-retrieve-group-infos server (list info) sequences
+			    server info)))
+	    (nnimap-finish-retrieve-group-infos server info sequences
 						t)
 	    (setq active (nth 2 (assoc group nnimap-current-infos)))))
+	(setq active (or active '(0 . 1)))
 	(erase-buffer)
 	(insert (format "211 %d %d %d %S\n"
 			(- (cdr active) (car active))

@@ -1425,7 +1425,7 @@ single - statement is not continued.
 begin  - current line is the first in a continued statement.
 end    - current line is the last in a continued statement
 middle - current line is neither first nor last in a continued statement.
-Comment lines embedded amongst continued lines return 'middle."
+Comment lines embedded amongst continued lines return `middle'."
   (let (pcont cont)
     (save-excursion
       (setq pcont (if (f90-previous-statement) (f90-line-continued))))

@@ -2920,7 +2920,8 @@ and `python-shell-interpreter-args' in the new shell buffer."
                                    :type 'user-error)))
     (should
      (string= (cadr error-data)
-              "Invalid regexp \\( in `python-shell-prompt-input-regexps'"))))
+              (format-message
+               "Invalid regexp \\( in `python-shell-prompt-input-regexps'")))))
 
 (ert-deftest python-shell-prompt-validate-regexps-2 ()
   "Check `python-shell-prompt-output-regexps' are validated."
@@ -2929,7 +2930,8 @@ and `python-shell-interpreter-args' in the new shell buffer."
                                    :type 'user-error)))
     (should
      (string= (cadr error-data)
-              "Invalid regexp \\( in `python-shell-prompt-output-regexps'"))))
+              (format-message
+               "Invalid regexp \\( in `python-shell-prompt-output-regexps'")))))
 
 (ert-deftest python-shell-prompt-validate-regexps-3 ()
   "Check `python-shell-prompt-regexp' is validated."
@@ -2938,7 +2940,8 @@ and `python-shell-interpreter-args' in the new shell buffer."
                                    :type 'user-error)))
     (should
      (string= (cadr error-data)
-              "Invalid regexp \\( in `python-shell-prompt-regexp'"))))
+              (format-message
+               "Invalid regexp \\( in `python-shell-prompt-regexp'")))))
 
 (ert-deftest python-shell-prompt-validate-regexps-4 ()
   "Check `python-shell-prompt-block-regexp' is validated."
@@ -2947,7 +2950,8 @@ and `python-shell-interpreter-args' in the new shell buffer."
                                    :type 'user-error)))
     (should
      (string= (cadr error-data)
-              "Invalid regexp \\( in `python-shell-prompt-block-regexp'"))))
+              (format-message
+               "Invalid regexp \\( in `python-shell-prompt-block-regexp'")))))
 
 (ert-deftest python-shell-prompt-validate-regexps-5 ()
   "Check `python-shell-prompt-pdb-regexp' is validated."
@@ -2956,7 +2960,8 @@ and `python-shell-interpreter-args' in the new shell buffer."
                                    :type 'user-error)))
     (should
      (string= (cadr error-data)
-              "Invalid regexp \\( in `python-shell-prompt-pdb-regexp'"))))
+              (format-message
+               "Invalid regexp \\( in `python-shell-prompt-pdb-regexp'")))))
 
 (ert-deftest python-shell-prompt-validate-regexps-6 ()
   "Check `python-shell-prompt-output-regexp' is validated."
@@ -2965,7 +2970,8 @@ and `python-shell-interpreter-args' in the new shell buffer."
                                    :type 'user-error)))
     (should
      (string= (cadr error-data)
-              "Invalid regexp \\( in `python-shell-prompt-output-regexp'"))))
+              (format-message
+               "Invalid regexp \\( in `python-shell-prompt-output-regexp'")))))
 
 (ert-deftest python-shell-prompt-validate-regexps-7 ()
   "Check default regexps are valid."
@@ -2982,7 +2988,8 @@ and `python-shell-interpreter-args' in the new shell buffer."
                                    :type 'user-error)))
     (should
      (string= (cadr error-data)
-              "Invalid regexp \\( in `python-shell-prompt-output-regexp'"))))
+              (format-message
+               "Invalid regexp \\( in `python-shell-prompt-output-regexp'")))))
 
 (ert-deftest python-shell-prompt-set-calculated-regexps-2 ()
   "Check `python-shell-prompt-input-regexps' are set."

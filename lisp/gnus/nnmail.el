@@ -83,7 +83,7 @@ If you'd like, for instance, one mail group for mail from the
 else, you could do something like this:
 
  (setq nnmail-split-methods
-       '((\"mail.4ad\" \"From:.*4ad\")
+       \\='((\"mail.4ad\" \"From:.*4ad\")
 	 (\"mail.junk\" \"From:.*Lars\\\\|Subject:.*buy\")
 	 (\"mail.misc\" \"\")))
 
@@ -180,7 +180,7 @@ E.g.:
       (lambda (newsgroup)
 	(cond ((string-match \"private\" newsgroup) 31)
 	      ((string-match \"junk\" newsgroup) 1)
-	      ((string-match \"important\" newsgroup) 'never)
+	      ((string-match \"important\" newsgroup) \\='never)
 	      (t 7))))"
   :group 'nnmail-expire
   :type '(choice (const :tag "nnmail-expiry-wait" nil)

@@ -1787,100 +1787,6 @@ update_auto_fontset_alist (Lisp_Object font_object, Lisp_Object fontset)
 }
 
 
-/* Return a cons (FONT-OBJECT . GLYPH-CODE).
-   FONT-OBJECT is the font for the character at POSITION in the current
-   buffer.  This is computed from all the text properties and overlays
-   that apply to POSITION.  POSITION may be nil, in which case,
-   FONT-SPEC is the font for displaying the character CH with the
-   default face.
-
-   GLYPH-CODE is the glyph code in the font to use for the character.
-
-   If the 2nd optional arg CH is non-nil, it is a character to check
-   the font instead of the character at POSITION.
-
-   It returns nil in the following cases:
-
-   (1) The window system doesn't have a font for the character (thus
-   it is displayed by an empty box).
-
-   (2) The character code is invalid.
-
-   (3) If POSITION is not nil, and the current buffer is not displayed
-   in any window.
-
-   In addition, the returned font name may not take into account of
-   such redisplay engine hooks as what used in jit-lock-mode if
-   POSITION is currently not visible.  */
-
-
-DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
-       doc: /* For internal use only.  */)
-  (Lisp_Object position, Lisp_Object ch)
-{
-  ptrdiff_t pos, pos_byte, dummy;
-  int face_id;
-  int c;
-  struct frame *f;
-  struct face *face;
-
-  if (NILP (position))
-    {
-      CHECK_CHARACTER (ch);
-      c = XINT (ch);
-      f = XFRAME (selected_frame);
-      face_id = lookup_basic_face (f, DEFAULT_FACE_ID);
-      pos = -1;
-    }
-  else
-    {
-      Lisp_Object window;
-      struct window *w;
-
-      CHECK_NUMBER_COERCE_MARKER (position);
-      if (! (BEGV <= XINT (position) && XINT (position) < ZV))
-	args_out_of_range_3 (position, make_number (BEGV), make_number (ZV));
-      pos = XINT (position);
-      pos_byte = CHAR_TO_BYTE (pos);
-      if (NILP (ch))
-	c = FETCH_CHAR (pos_byte);
-      else
-	{
-	  CHECK_NATNUM (ch);
-	  c = XINT (ch);
-	}
-      window = Fget_buffer_window (Fcurrent_buffer (), Qnil);
-      if (NILP (window))
-	return Qnil;
-      w = XWINDOW (window);
-      f = XFRAME (w->frame);
-      face_id = face_at_buffer_position (w, pos, &dummy,
-					 pos + 100, false, -1);
-    }
-  if (! CHAR_VALID_P (c))
-    return Qnil;
-  if (!FRAME_WINDOW_P (f))
-    return Qnil;
-  /* We need the basic faces to be valid below, so recompute them if
-     some code just happened to clear the face cache.  */
-  if (FRAME_FACE_CACHE (f)->used == 0)
-    recompute_basic_faces (f);
-  face_id = FACE_FOR_CHAR (f, FACE_FROM_ID (f, face_id), c, pos, Qnil);
-  face = FACE_FROM_ID (f, face_id);
-  if (face->font)
-    {
-      unsigned code = face->font->driver->encode_char (face->font, c);
-      Lisp_Object font_object;
-
-      if (code == FONT_INVALID_CODE)
-	return Qnil;
-      XSETFONT (font_object, face->font);
-      return Fcons (font_object, INTEGER_TO_CONS (code));
-    }
-  return Qnil;
-}
-
-
 DEFUN ("fontset-info", Ffontset_info, Sfontset_info, 1, 2, 0,
        doc: /* Return information about a fontset FONTSET on frame FRAME.
 
@@ -2247,7 +2153,6 @@ at the vertical center of lines.  */);
   defsubr (&Squery_fontset);
   defsubr (&Snew_fontset);
   defsubr (&Sset_fontset_font);
-  defsubr (&Sinternal_char_font);
   defsubr (&Sfontset_info);
   defsubr (&Sfontset_font);
   defsubr (&Sfontset_list);

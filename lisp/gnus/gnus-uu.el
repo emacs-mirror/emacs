@@ -143,7 +143,7 @@ details."
 To use, for instance, `untar' to unpack tar files and `zip -x' to
 unpack zip files, say the following:
   (setq gnus-uu-user-archive-rules
-    '((\"\\\\.tar$\" \"untar\")
+    \\='((\"\\\\.tar$\" \"untar\")
       (\"\\\\.zip$\" \"zip -x\")))"
   :group 'gnus-extract-archive
   :type '(repeat (group regexp (string :tag "Command"))))

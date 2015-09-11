@@ -1961,7 +1961,7 @@ can include a line like this in your Viper customization file:
 
 Viper lets you define hot keys, i.e., you can associate keyboard keys
 such as F1, Help, PgDn, etc., with Emacs Lisp functions (that may already
-exist or that you will write).  Each key has a "preferred form" in
+exist or that you will write).  Each key has a ``preferred form'' in
 Emacs.  For instance, the Up key's preferred form is [up], the Help key's
 preferred form is [help], and the Undo key has the preferred form [f14].
 You can find out the preferred form of a key by typing @kbd{M-x

@@ -400,9 +400,9 @@ To prefer, for instance, utf-8, say the following:
   \(prefer-coding-system \\='utf-8)"
   (interactive "zPrefer coding system: ")
   (if (not (and coding-system (coding-system-p coding-system)))
-      (error "Invalid coding system ‘%s’" coding-system))
+      (error "Invalid coding system `%s'" coding-system))
   (if (memq (coding-system-type coding-system) '(raw-text undecided))
-      (error "Can't prefer the coding system ‘%s’" coding-system))
+      (error "Can't prefer the coding system `%s'" coding-system))
   (let ((base (coding-system-base coding-system))
 	(eol-type (coding-system-eol-type coding-system)))
     (set-coding-system-priority base)
@@ -417,7 +417,7 @@ To prefer, for instance, utf-8, say the following:
     (set-default-coding-systems base)
     (if (called-interactively-p 'interactive)
 	(or (eq base default-file-name-coding-system)
-	    (message "The default value of ‘file-name-coding-system’ was not changed because the specified coding system is not suitable for file names.")))))
+	    (message "The default value of `file-name-coding-system' was not changed because the specified coding system is not suitable for file names.")))))
 
 (defvar sort-coding-systems-predicate nil
   "If non-nil, a predicate function to sort coding systems.
@@ -719,14 +719,14 @@ DEFAULT is the coding system to use by default in the query."
 	      (insert "No default coding systems to try for "
 		      (if (stringp from)
 			  (format "string \"%s\"." from)
-			(format-message "buffer ‘%s’." bufname)))
+			(format-message "buffer `%s'." bufname)))
 	    (insert
 	     "These default coding systems were tried to encode"
 	     (if (stringp from)
 		 (concat " \"" (if (> (length from) 10)
 				   (concat (substring from 0 10) "...\"")
 				 (concat from "\"")))
-	       (format-message " text\nin the buffer ‘%s’" bufname))
+	       (format-message " text\nin the buffer `%s'" bufname))
 	     ":\n")
 	    (let ((pos (point))
 		  (fill-prefix "  "))
@@ -876,13 +876,13 @@ and TO is ignored."
 		  (setq auto-cs (car auto-cs))
 		(display-warning
 		 'mule
-		 (format "\
-Invalid coding system ‘%s’ is specified
+		 (format-message "\
+Invalid coding system `%s' is specified
 for the current buffer/file by the %s.
 It is highly recommended to fix it before writing to a file."
 			 (car auto-cs)
 			 (if (eq (cdr auto-cs) :coding) ":coding tag"
-			   (format-message "variable ‘%s’" (cdr auto-cs))))
+			   (format-message "variable `%s'" (cdr auto-cs))))
 		 :warning)
 		(or (yes-or-no-p "Really proceed with writing? ")
 		    (error "Save aborted"))
@@ -1452,7 +1452,7 @@ If INPUT-METHOD is nil, deactivate any current input method."
   (unless (or current-input-method (null input-method))
     (let ((slot (assoc input-method input-method-alist)))
       (if (null slot)
-	  (error "Can't activate input method ‘%s’" input-method))
+	  (error "Can't activate input method `%s'" input-method))
       (setq current-input-method-title nil)
       (let ((func (nth 2 slot)))
 	(if (functionp func)
@@ -1461,7 +1461,7 @@ If INPUT-METHOD is nil, deactivate any current input method."
 	      (progn
 		(require (cdr func))
 		(apply (car func) input-method (nthcdr 5 slot)))
-	    (error "Can't activate input method ‘%s’" input-method))))
+	    (error "Can't activate input method `%s'" input-method))))
       (setq current-input-method input-method)
       (or (stringp current-input-method-title)
 	  (setq current-input-method-title (nth 3 slot)))
@@ -1539,7 +1539,7 @@ which marks the variable `default-input-method' as set for Custom buffers."
 
   (interactive "P\np")
   (if toggle-input-method-active
-      (error "Recursive use of ‘toggle-input-method’"))
+      (error "Recursive use of `toggle-input-method'"))
   (if (and current-input-method (not arg))
       (deactivate-input-method)
     (let ((toggle-input-method-active t)
@@ -1589,7 +1589,7 @@ which marks the variable `default-input-method' as set for Custom buffers."
 	 (with-output-to-temp-buffer (help-buffer)
 	   (let ((elt (assoc input-method input-method-alist)))
 	     (princ (format-message
-		     "Input method: %s (‘%s’ in mode line) for %s\n  %s\n"
+		     "Input method: %s (`%s' in mode line) for %s\n  %s\n"
 		     input-method (nth 3 elt) (nth 1 elt) (nth 4 elt))))))))))
 
 (defun describe-current-input-method ()
@@ -1599,7 +1599,7 @@ This is a subroutine for `describe-input-method'."
       (if (and (symbolp describe-current-input-method-function)
 	       (fboundp describe-current-input-method-function))
 	  (funcall describe-current-input-method-function)
-	(message "No way to describe the current input method ‘%s’"
+	(message "No way to describe the current input method `%s'"
 		 current-input-method)
 	(ding))
     (error "No input method is activated now")))
@@ -2174,9 +2174,9 @@ See `set-language-info-alist' for use in programs."
 	      (search-backward (symbol-name (car l)))
 	      (help-xref-button 0 'help-coding-system (car l))
 	      (goto-char (point-max))
-	      (insert " (‘"
+	      (insert (substitute-command-keys " (`")
 		      (coding-system-mnemonic (car l))
-		      "’ in mode line):\n\t"
+		      (substitute-command-keys "' in mode line):\n\t")
                       (substitute-command-keys
                        (coding-system-doc-string (car l)))
 		      "\n")

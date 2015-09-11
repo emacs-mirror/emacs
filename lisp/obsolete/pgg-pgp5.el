@@ -115,7 +115,7 @@ Bourne shell or its equivalent \(not tcsh) is needed for \"2>\"."
 	    (pgg-convert-lbt-region (point-min)(point-max) 'LF)
 
 	    (if (memq status '(stop signal))
-		(error "%s exited abnormally: ‘%s’" program exit-status))
+		(error "%s exited abnormally: `%s'" program exit-status))
 	    (if (= 127 exit-status)
 		(error "%s could not be found" program))
 

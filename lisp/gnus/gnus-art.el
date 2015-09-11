@@ -195,16 +195,16 @@ this list."
   "Headers that are only to be displayed if they have interesting data.
 Possible values in this list are:
 
-  'empty       Headers with no content.
-  'newsgroups  Newsgroup identical to Gnus group.
-  'to-address  To identical to To-address.
-  'to-list     To identical to To-list.
-  'cc-list     CC identical to To-list.
-  'followup-to Followup-to identical to Newsgroups.
-  'reply-to    Reply-to identical to From.
-  'date        Date less than four days old.
-  'long-to     To and/or Cc longer than 1024 characters.
-  'many-to     Multiple To and/or Cc."
+  `empty'       Headers with no content.
+  `newsgroups'  Newsgroup identical to Gnus group.
+  `to-address'  To identical to To-address.
+  `to-list'     To identical to To-list.
+  `cc-list'     CC identical to To-list.
+  `followup-to' Followup-to identical to Newsgroups.
+  `reply-to'    Reply-to identical to From.
+  `date'        Date less than four days old.
+  `long-to'     To and/or Cc longer than 1024 characters.
+  `many-to'     Multiple To and/or Cc."
   :type '(set (const :tag "Headers with no content." empty)
 	      (const :tag "Newsgroups identical to Gnus group." newsgroups)
 	      (const :tag "To identical to To-address." to-address)
@@ -661,7 +661,7 @@ For instance, if you would like to save articles related to Gnus in
 the file \"gnus-stuff\", and articles related to VM in \"vm-stuff\",
 you could set this variable to something like:
 
- '((\"^Subject:.*gnus\\|^Newsgroups:.*gnus\" \"gnus-stuff\")
+  ((\"^Subject:.*gnus\\|^Newsgroups:.*gnus\" \"gnus-stuff\")
    (\"^Subject:.*vm\\|^Xref:.*vm\" \"vm-stuff\"))
 
 This variable is an alist where the key is the match and the

@@ -73,11 +73,11 @@ This function overrides `get-local-variables'."
 (define-mode-local-override semantic-tag-protection javascript-mode (tag &optional parent)
   "Return protection information about TAG with optional PARENT.
 This function returns on of the following symbols:
-   nil        - No special protection.  Language dependent.
-   'public    - Anyone can access this TAG.
-   'private   - Only methods in the local scope can access TAG.
-   'protected - Like private for outside scopes, like public for child
-                classes.
+   nil         - No special protection.  Language dependent.
+   `public'    - Anyone can access this TAG.
+   `private'   - Only methods in the local scope can access TAG.
+   `protected' - Like private for outside scopes, like public for child
+                 classes.
 Some languages may choose to provide additional return symbols specific
 to themselves.  Use of this function should allow for this.
 
@@ -114,7 +114,7 @@ This is currently needed for the mozrepl omniscient database."
 	    (setq symlist (list (match-string 1 tmp)
 				(substring tmp (1+ (match-end 1)) (length tmp))))
 	    (setq symlist (list tmp))))))))
-	  
+
 ;;; Setup Function
 ;;
 ;; Since javascript-mode is an alias for js-mode, let it inherit all

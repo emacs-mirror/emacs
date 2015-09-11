@@ -2303,7 +2303,7 @@ buffers which are visiting a file."
 (defun ibuffer (&optional other-window-p name qualifiers noselect
 			  shrink filter-groups formats)
   "Begin using Ibuffer to edit a list of buffers.
-Type ‘h’ after entering ibuffer for more information.
+Type `h' after entering ibuffer for more information.
 
 All arguments are optional.
 OTHER-WINDOW-P says to use another window.

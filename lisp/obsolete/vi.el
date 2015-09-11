@@ -832,7 +832,7 @@ Possible prefix-arg cases are nil, INTEGER, (nil . CHAR) or (INTEGER . CHAR)."
 
 (defun vi-goto-mark (mark-char &optional line-flag)
   "Go to marked position or line (if line-flag is given).
-Goto mark ‘@’ means jump into and pop the top mark on the mark ring."
+Goto mark `@' means jump into and pop the top mark on the mark ring."
   (cond ((char-equal mark-char last-command-event)	; `` or ''
 	 (exchange-point-and-mark) (if line-flag (back-to-indentation)))
 	((char-equal mark-char ?@)	; jump and pop mark

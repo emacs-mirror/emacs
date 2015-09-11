@@ -180,7 +180,7 @@ This code doesn't really need to be macro expanded everywhere."
 		(concat usage
 			(format-message "
 This command is implemented in Lisp.  If an unrecognized option is
-passed to this command, the external version ‘%s’
+passed to this command, the external version `%s'
 will be called instead." extcmd)))))
     (throw 'eshell-usage usage)))
 

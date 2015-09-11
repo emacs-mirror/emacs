@@ -481,7 +481,7 @@ value of the variable, after updating it:
       \(dolist (backend val)
         \(cond
          \((not (load (format \"ox-%s\" backend) t t))
-          \(message \"Problems while trying to load export back-end ‘%s’\"
+          \(message \"Problems while trying to load export back-end \\=`%s\\='\"
                    backend))
          \((not (memq backend new-list)) (push backend new-list))))
       \(set-default \\='org-export-backends new-list)))
@@ -1982,7 +1982,7 @@ file identifier are
                  filename matches the regexp.  If you want to
                  use groups here, use shy groups.
 
-                 Example: (\"\\.x?html\\'\" . \"firefox %s\")
+                 Example: (\"\\.x?html\\\\='\" . \"firefox %s\")
                           (\"\\(?:xhtml\\|html\\)\" . \"firefox %s\")
                           to open *.html and *.xhtml with firefox.
 
@@ -1998,7 +1998,7 @@ file identifier are
                  In a custom lisp form, you can access the group matches with
                  (match-string n link).
 
-                 Example: (\"\\.pdf::\\(\\d+\\)\\'\" . \"evince -p %1 %s\")
+                 Example: (\"\\.pdf::\\(\\d+\\)\\\\='\" . \"evince -p %1 %s\")
                      to open [[file:document.pdf::5]] with evince at page 5.
 
  `directory'   Matches a directory
@@ -12222,13 +12222,13 @@ With a triple \\[universal-argument] prefix, circumvent any state blocking.
 With a numeric prefix arg of 0, inhibit note taking for the change.
 
 For calling through lisp, arg is also interpreted in the following way:
-'none             -> empty state
-\"\"(empty string)  -> switch to empty state
-'done             -> switch to DONE
-'nextset          -> switch to the next set of keywords
-'previousset      -> switch to the previous set of keywords
-\"WAITING\"         -> switch to the specified keyword, but only if it
-                     really is a member of `org-todo-keywords'."
+`none'             -> empty state
+\"\" (empty string)  -> switch to empty state
+`done'             -> switch to DONE
+`nextset'          -> switch to the next set of keywords
+`previousset'      -> switch to the previous set of keywords
+\"WAITING\"          -> switch to the specified keyword, but only if it
+                      really is a member of `org-todo-keywords'."
   (interactive "P")
   (if (and (org-region-active-p) org-loop-over-headlines-in-active-region)
       (let ((cl (if (eq org-loop-over-headlines-in-active-region 'start-level)

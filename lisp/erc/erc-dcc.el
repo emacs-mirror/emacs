@@ -166,7 +166,7 @@ All values of the list must be uppercase strings.")
   "Return the first matching entry in `erc-dcc-list' which satisfies the
 constraints given as a plist in ARGS. Returns nil on no match.
 
-The property :nick is treated specially, if it contains a ‘!’ character,
+The property :nick is treated specially, if it contains a `!' character,
 it is treated as a nick!user@host string, and compared with the :nick property
 value of the individual elements using string-equal. Otherwise it is
 compared with `erc-nick-equal-p' which is IRC case-insensitive."

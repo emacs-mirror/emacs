@@ -4276,7 +4276,7 @@ passed as command line arguments."
     ;; work for remote hosts; we suppress the check there.
     (unless (or (file-remote-p default-directory)
 		(executable-find program))
-      (error "Unable to locate SQL program ‘%s’" program))
+      (error "Unable to locate SQL program `%s'" program))
     ;; Make sure buffer name is unique.
     (when (sql-buffer-live-p (format "*%s*" buf-name))
       (setq buf-name (format "SQL-%s" product))

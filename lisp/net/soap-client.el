@@ -489,7 +489,7 @@ structure predicate for the type of element you want to retrieve.
 For example, to retrieve a message named \"foo\" when other
 elements named \"foo\" exist in the WSDL you could use:
 
-  (soap-wsdl-get \"foo\" WSDL 'soap-message-p)
+  (soap-wsdl-get \"foo\" WSDL \\='soap-message-p)
 
 If USE-LOCAL-ALIAS-TABLE is not nil, `soap-local-xmlns' will be
 used to resolve the namespace alias."

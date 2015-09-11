@@ -160,7 +160,7 @@ a simple pass through function could be used:
     (setq-local tildify-foreach-region-function
                 (lambda (cb beg end) (funcall cb beg end)))
 or better still:
-    (setq-local tildify-foreach-region-function 'funcall)
+    (setq-local tildify-foreach-region-function \\='funcall)
 See `tildify-foreach-ignore-environments' function for other ways to use the
 variable."
   :version "25.1"

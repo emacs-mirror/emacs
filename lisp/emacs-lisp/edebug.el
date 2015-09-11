@@ -880,7 +880,7 @@ Maybe clear the markers and delete the symbol's edebug property?"
 	      (setq dotted-form (edebug-read-storing-offsets stream))
 		    elements (nconc elements dotted-form)
 	      (if (not (eq (edebug-next-token-class) 'rparen))
-		  (edebug-syntax-error "Expected ‘)’"))
+		  (edebug-syntax-error "Expected `)'"))
 	      (setq edebug-read-dotted-list (listp dotted-form))
 	      ))
 	elements)

@@ -97,7 +97,6 @@ your favorite language, the mode might be implemented in a package not
 distributed with Emacs (@pxref{Packages}); or you can contribute one.
 
 @kindex DEL @r{(programming modes)}
-@findex c-electric-backspace
 @findex backward-delete-char-untabify
   In most programming languages, indentation should vary from line to
 line to illustrate the structure of the program.  Therefore, in most

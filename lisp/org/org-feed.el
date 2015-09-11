@@ -691,7 +691,7 @@ formatted as a string, not the original XML data."
 	 (t
 	  (setq entry (plist-put entry :description
 				 (format-message
-                                  "Unknown ‘%s’ content." type)))))))
+                                  "Unknown `%s' content." type)))))))
     entry))
 
 (provide 'org-feed)

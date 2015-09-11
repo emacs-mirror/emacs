@@ -1928,7 +1928,7 @@ idleness.  Here's an example:
 
 @example
 (defvar my-resume-timer nil
-  "Timer for ‘my-timer-function’ to reschedule itself, or nil.")
+  "Timer for `my-timer-function' to reschedule itself, or nil.")
 
 (defun my-timer-function ()
   ;; @r{If the user types a command while @code{my-resume-timer}}
@@ -2480,7 +2480,7 @@ argument of another @code{notifications-notify} call.  For example:
 @end group
 
 @group
-A message window opens on the desktop.  Press "I agree"
+A message window opens on the desktop.  Press ``I agree''.
      @result{} Message 22, key "Confirm" pressed
         Message 22, closed due to "dismissed"
 @end group
@@ -2675,31 +2675,13 @@ being reported.  For example:
 @end example
 
 Whether the action @code{renamed} is returned, depends on the used
-watch library.  It can be expected, when a directory is watched, and
-both @var{file} and @var{file1} belong to this directory.  Otherwise,
-the actions @code{deleted} and @code{created} could be returned in a
-random order.
+watch library.  Otherwise, the actions @code{deleted} and
+@code{created} could be returned in a random order.
 
 @example
 @group
 (rename-file "/tmp/foo" "/tmp/bla")
      @result{} Event (35025468 renamed "/tmp/foo" "/tmp/bla")
-@end group
-
-@group
-(file-notify-add-watch
-  "/var/tmp" '(change attribute-change) 'my-notify-callback)
-     @result{} 35025504
-@end group
-
-@group
-(rename-file "/tmp/bla" "/var/tmp/bla")
-     @result{} ;; gfilenotify
-        Event (35025468 renamed "/tmp/bla" "/var/tmp/bla")
-
-     @result{} ;; inotify
-        Event (35025504 created "/var/tmp/bla")
-        Event (35025468 deleted "/tmp/bla")
 @end group
 @end example
 @end defun

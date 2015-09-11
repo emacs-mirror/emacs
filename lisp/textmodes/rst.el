@@ -2138,15 +2138,15 @@ for completion and choices.
 
  (a) If user selects bullets or #, it's just added.
  (b) If user selects enumerations, a further prompt is given.  User needs to
-     input a starting item, for example 'e' for 'A)' style.
+     input a starting item, for example `e' for `A)' style.
 
 The position of the new list is arranged according to whether or not the
 current line and the previous line are blank lines.
 
 2. When continuing a list, one thing needs to be noticed:
 
-List style alphabetical list, such as 'a.', and roman numerical list, such as
-'i.', have some overlapping items, for example 'v.' The function can deal with
+List style alphabetical list, such as `a.', and roman numerical list, such as
+`i.', have some overlapping items, for example `v.' The function can deal with
 the problem elegantly in most situations.  But when those overlapped list are
 preceded by a blank line, it is hard to determine which type to use
 automatically.  The function uses alphabetical list by default.  If you want

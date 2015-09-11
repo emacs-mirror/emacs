@@ -1268,7 +1268,7 @@ buffer-local values of tags table format variables."
       ;;   \6 is the line to start searching at;
       ;;   \7 is the char to start searching at.
       (while (re-search-forward
-	      "^\\(\\([^\177]+[^-a-zA-Z0-9_+*$:\177]+\\)?\
+	      "^\\(\\([^\177]*[^-a-zA-Z0-9_+*$:\177]+\\)?\
 \\([-a-zA-Z0-9_+*$?:]+\\)[^-a-zA-Z0-9_+*$?:\177]*\\)\177\
 \\(\\([^\n\001]+\\)\001\\)?\\([0-9]+\\)?,\\([0-9]+\\)?\n"
 	      nil t)
@@ -1459,7 +1459,7 @@ hits the start of file."
         (when (symbolp symbs)
           (if (boundp symbs)
 	      (setq symbs (symbol-value symbs))
-	    (insert (format-message "symbol ‘%s’ has no value\n" symbs))
+	    (insert (format-message "symbol `%s' has no value\n" symbs))
 	    (setq symbs nil)))
         (if (vectorp symbs)
 	    (mapatoms ins-symb symbs)

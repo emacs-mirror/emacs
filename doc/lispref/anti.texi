@@ -56,8 +56,8 @@ there is no need to worry about the insertion of right-to-left text
 messing up how lines and paragraphs are displayed, the function
 @code{bidi-string-mark-left-to-right} has been removed; so have many
 other functions and variables related to bidirectional display.
-Unicode directionality characters like @code{U+200E} ("left-to-right
-mark") have no special effect on display.
+Unicode directionality characters like @code{U+200E} LEFT-TO-RIGHT
+MARK have no special effect on display.
 
 @item
 Emacs windows now have most of their internal state hidden from Lisp.

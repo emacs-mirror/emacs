@@ -1089,13 +1089,13 @@ and using it in a special category table:
 @example
 (defvar special-category-table-for-bidi
   (let ((category-table (make-category-table))
-	(uniprop-table (unicode-property-table-internal 'bidi-class)))
+        (uniprop-table (unicode-property-table-internal 'bidi-class)))
     (define-category ?R "Characters of bidi-class R, AL, or RLO"
                      category-table)
     (map-char-table
      #'(lambda (key val)
-	 (if (memq val '(R AL RLO))
-	     (modify-category-entry key ?R category-table)))
+         (if (memq val '(R AL RLO))
+             (modify-category-entry key ?R category-table)))
      uniprop-table)
     category-table))
 @end example

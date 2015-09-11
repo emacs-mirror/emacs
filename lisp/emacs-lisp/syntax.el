@@ -297,7 +297,10 @@ The return value is a function suitable for `syntax-propertize-function'."
     (set (make-local-variable 'parse-sexp-lookup-properties) t)
     (save-excursion
       (with-silent-modifications
+        (make-local-variable 'parse-sexp-propertize-done) ;Just in case!
         (let* ((start (max syntax-propertize--done (point-min)))
+               ;; Avoid recursion!
+               (parse-sexp-propertize-done most-positive-fixnum)
                (end (max pos
                          (min (point-max)
                               (+ start syntax-propertize-chunk-size))))
@@ -323,6 +326,18 @@ The return value is a function suitable for `syntax-propertize-function'."
           (remove-text-properties start end
                                   '(syntax-table nil syntax-multiline nil))
           (funcall syntax-propertize-function start end))))))
+
+;;; Link syntax-propertize with the new parse-sexp-propertize.
+
+(setq-default parse-sexp-propertize-function #'syntax--jit-propertize)
+(defun syntax--jit-propertize (charpos)
+  (if (not syntax-propertize-function)
+      (setq parse-sexp-propertize-done (1+ (point-max)))
+    (syntax-propertize charpos)
+    (setq parse-sexp-propertize-done
+          (if (= (point-max) syntax-propertize--done)
+              (1+ (point-max))
+            syntax-propertize--done))))
 
 ;;; Incrementally compute and memoize parser state.
 

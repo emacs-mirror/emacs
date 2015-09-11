@@ -324,7 +324,7 @@ This function is called, by name, directly by the C code."
               (apply (timer--function timer) (timer--args timer)))
           (error (message "Error running timer%s: %S"
                           (if (symbolp (timer--function timer))
-                              (format-message " ‘%s’" (timer--function timer))
+                              (format-message " `%s'" (timer--function timer))
                             "")
                           err)))
         (when (and retrigger

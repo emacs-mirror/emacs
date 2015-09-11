@@ -390,8 +390,8 @@ elements is negated."
   "Go to the location of ITEM and display the buffer.
 WINDOW controls how the buffer is displayed:
   nil      -- switch-to-buffer
-  'window  -- pop-to-buffer (other window)
-  'frame   -- pop-to-buffer (other frame)"
+  `window' -- pop-to-buffer (other window)
+  `frame'  -- pop-to-buffer (other frame)"
   (let* ((marker (save-excursion
                    (xref-location-marker (xref-item-location item))))
          (buf (marker-buffer marker)))

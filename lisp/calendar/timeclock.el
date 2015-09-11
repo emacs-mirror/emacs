@@ -305,8 +305,8 @@ display (non-nil means on)."
               ;; on calling this function.
               (if display-time-mode
                   (timeclock-update-mode-line)
-                (message "Activate ‘display-time-mode’ or turn off \
-‘timeclock-use-display-time’ to see timeclock information"))
+                (message "Activate `display-time-mode' or turn off \
+`timeclock-use-display-time' to see timeclock information"))
               (add-hook 'display-time-hook 'timeclock-update-mode-line))
           (setq timeclock-update-timer
                 (run-at-time nil 60 'timeclock-update-mode-line))))
@@ -575,7 +575,7 @@ relative only to the time worked today, and not to past time."
 OLD-DEFAULT hours are set for every day that has no number indicated."
   (interactive "P")
   (if old-default (setq old-default (prefix-numeric-value old-default))
-    (error "‘timelog-make-hours-explicit’ requires an explicit argument"))
+    (error "`timelog-make-hours-explicit' requires an explicit argument"))
   (let ((extant-timelog (find-buffer-visiting timeclock-file))
 	current-date)
     (with-current-buffer (find-file-noselect timeclock-file t)
@@ -589,7 +589,7 @@ OLD-DEFAULT hours are set for every day that has no number indicated."
 		(unless (looking-at
 			 (concat "^\\([bhioO]\\) \\([0-9]+/[0-9]+/[0-9]+\\) "
 				 "\\([0-9]+:[0-9]+:[0-9]+\\)"))
-		  (error "Can't parse ‘%s’" timeclock-file))
+		  (error "Can't parse `%s'" timeclock-file))
 		(let ((this-date (match-string 2)))
 		  (unless (or (and current-date
 				   (string= this-date current-date))
@@ -919,7 +919,7 @@ following format:
   (DEBT ENTRIES-BY-DAY ENTRIES-BY-PROJECT)
 
 DEBT is a floating point number representing the number of seconds
-“owed” before any work was done.  For a new file (one without a ‘b’
+“owed” before any work was done.  For a new file (one without a `b'
 entry), this is always zero.
 
 The two entries lists have similar formats.  They are both alists,

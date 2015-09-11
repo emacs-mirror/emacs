@@ -995,10 +995,10 @@ directory if it does not exist."
 	       (put 'user-emacs-directory-warning 'this-session t)
 	       (display-warning 'initialization
 				(format "\
-Unable to %s ‘user-emacs-directory’ (%s).
+Unable to %s `user-emacs-directory' (%s).
 Any data that would normally be written there may be lost!
 If you never want to see this message again,
-customize the variable ‘user-emacs-directory-warning’."
+customize the variable `user-emacs-directory-warning'."
 					errtype user-emacs-directory)))))
        bestname))))
 
@@ -1641,7 +1641,7 @@ killed."
     (user-error "Aborted"))
   (and (buffer-modified-p) buffer-file-name
        (not (yes-or-no-p
-             (format-message "Kill and replace buffer ‘%s’ without saving it? "
+             (format-message "Kill and replace buffer `%s' without saving it? "
                              (buffer-name))))
        (user-error "Aborted"))
   (let ((obuf (current-buffer))
@@ -2789,7 +2789,7 @@ we don't actually set it to the same mode the buffer already has."
 	(catch 'nop
 	  (dolist (mode (nreverse modes))
 	    (if (not (functionp mode))
-		(message "Ignoring unknown mode ‘%s’" mode)
+		(message "Ignoring unknown mode `%s'" mode)
 	      (setq done t)
 	      (or (set-auto-mode-0 mode keep-mode-if-same)
 		  ;; continuing would call minor modes again, toggling them off
@@ -2803,7 +2803,7 @@ we don't actually set it to the same mode the buffer already has."
 	 (setq mode (hack-local-variables t))
 	 (not (memq mode modes))	; already tried and failed
 	 (if (not (functionp mode))
-	     (message "Ignoring unknown mode ‘%s’" mode)
+	     (message "Ignoring unknown mode `%s'" mode)
 	   (setq done t)
 	   (set-auto-mode-0 mode keep-mode-if-same)))
     ;; If we didn't, look for an interpreter specified in the first line.
@@ -3420,7 +3420,7 @@ local variables, but directory-local variables may still be applied."
 				 (display-warning
                                   :warning
                                   (format-message
-                                   "%s: ‘lexical-binding’ at end of file unreliable"
+                                   "%s: `lexical-binding' at end of file unreliable"
                                    (file-name-nondirectory
                                     (or buffer-file-name ""))))))
 			      (t
@@ -3557,7 +3557,7 @@ It is dangerous if either of these conditions are met:
                  var (if since (format " (since %s)" since))
                  (if (stringp instead)
                      (substitute-command-keys instead)
-                   (format-message "use ‘%s’ instead" instead)))))))
+                   (format-message "use `%s' instead" instead)))))))
 
 (defun hack-one-local-variable (var val)
   "Set local variable VAR with value VAL.
@@ -3674,7 +3674,7 @@ variables from CLASS are applied to the buffer.  The variables
 for a class are defined using `dir-locals-set-class-variables'."
   (setq directory (file-name-as-directory (expand-file-name directory)))
   (unless (assq class dir-locals-class-alist)
-    (error "No such class ‘%s’" (symbol-name class)))
+    (error "No such class `%s'" (symbol-name class)))
   (push (list directory class mtime) dir-locals-directory-cache))
 
 (defun dir-locals-set-class-variables (class variables)
@@ -4030,7 +4030,7 @@ Interactively, confirmation is required unless you supply a prefix argument."
 		       (listp last-nonmenu-event)
 		       use-dialog-box))
 	     (or (y-or-n-p (format-message
-                            "File ‘%s’ exists; overwrite? " filename))
+                            "File `%s' exists; overwrite? " filename))
 		 (user-error "Canceled")))
 	(set-visited-file-name filename (not confirm))))
   (set-buffer-modified-p t)
@@ -4736,7 +4736,7 @@ Before and after saving the buffer, this function runs
                         ;; existing directory.
                         (error "%s is a directory" filename)
                       (unless (y-or-n-p (format-message
-                                         "File ‘%s’ exists; overwrite? "
+                                         "File `%s' exists; overwrite? "
                                          filename))
                         (error "Canceled"))))
                 (set-visited-file-name filename)))
@@ -4778,7 +4778,7 @@ Before and after saving the buffer, this function runs
 		  (unless (file-exists-p dir)
 		    (if (y-or-n-p
 			 (format-message
-                          "Directory ‘%s’ does not exist; create? " dir))
+                          "Directory `%s' does not exist; create? " dir))
 			(make-directory dir t)
 		      (error "Canceled")))
 		  (setq setmodes (basic-save-buffer-1))))
@@ -5221,7 +5221,7 @@ given.  With a prefix argument, TRASH is nil."
      (list dir
 	   (if (directory-files	dir nil directory-files-no-dot-files-regexp)
 	       (y-or-n-p
-		(format-message "Directory ‘%s’ is not empty, really %s? "
+		(format-message "Directory `%s' is not empty, really %s? "
                                 dir (if trashing "trash" "delete")))
 	     nil)
 	   (null current-prefix-arg))))
@@ -5327,7 +5327,7 @@ directly into NEWNAME instead."
 	    default-directory default-directory nil nil)
 	   current-prefix-arg t nil)))
   (when (file-in-directory-p newname directory)
-    (error "Cannot copy ‘%s’ into its subdirectory ‘%s’"
+    (error "Cannot copy `%s' into its subdirectory `%s'"
            directory newname))
   ;; If default-directory is a remote directory, make sure we find its
   ;; copy-directory handler.
@@ -5699,7 +5699,7 @@ To choose one, move point to the proper line and then type C-c C-c.
 Then you'll be asked about a number of files to recover."
   (interactive)
   (if (null auto-save-list-file-prefix)
-      (error "You set ‘auto-save-list-file-prefix’ to disable making session files"))
+      (error "You set `auto-save-list-file-prefix' to disable making session files"))
   (let ((dir (file-name-directory auto-save-list-file-prefix))
         (nd (file-name-nondirectory auto-save-list-file-prefix)))
     (unless (file-directory-p dir)
@@ -5793,7 +5793,7 @@ This command is used in the special Dired buffer created by
 			       (condition-case nil
 				   (save-excursion (recover-file file))
 				 (error
-				  "Failed to recover ‘%s’" file)))
+				  "Failed to recover `%s'" file)))
 			     files
 			     '("file" "files" "recover"))
 	    (message "No files can be recovered from this session now")))
@@ -6478,7 +6478,7 @@ normally equivalent short `-D' option is just passed on to
 		 file result)
 	      ;; Unix.  Access the file to get a suitable error.
 	      (access-file file "Reading directory")
-	      (error "Listing directory failed but ‘access-file’ worked")))
+	      (error "Listing directory failed but `access-file' worked")))
 
 	  (when (if (stringp switches)
 		    (string-match "--dired\\>" switches)
@@ -6771,7 +6771,7 @@ for the specified category of users."
 	((= char ?g) #o2070)
 	((= char ?o) #o1007)
 	((= char ?a) #o7777)
-	(t (error "%c: bad ‘who’ character" char))))
+	(t (error "%c: bad `who' character" char))))
 
 (defun file-modes-char-to-right (char &optional from)
   "Convert CHAR to a numeric value of mode bits.
@@ -6843,7 +6843,7 @@ as in \"og+rX-w\"."
 		    (file-modes-rights-to-number (substring modes (match-end 1))
 						 num-who num-modes)
 		    modes (substring modes (match-end 3))))
-	  (error "Parse error in modes near ‘%s’" (substring modes 0))))
+	  (error "Parse error in modes near `%s'" (substring modes 0))))
       num-modes)))
 
 (defun read-file-modes (&optional prompt orig-file)
@@ -6912,7 +6912,7 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
 					       trash-dir)))
 	   ;; We can't trash a parent directory of trash-directory.
 	   (if (string-prefix-p fn trash-dir)
-	       (error "Trash directory ‘%s’ is a subdirectory of ‘%s’"
+	       (error "Trash directory `%s' is a subdirectory of `%s'"
 		      trash-dir filename))
 	   (unless (file-directory-p trash-dir)
 	     (make-directory trash-dir t))

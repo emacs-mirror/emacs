@@ -1153,9 +1153,9 @@ path."
   "Sorting of the entries found in BibTeX databases by reftex-citation.
 Possible values:
 nil            Do not sort entries.
-'author        Sort entries by author name.
-'year          Sort entries by increasing year.
-'reverse-year  Sort entries by decreasing year."
+`author'       Sort entries by author name.
+`year'         Sort entries by increasing year.
+`reverse-year' Sort entries by decreasing year."
   :group 'reftex-citation-support
   :type '(choice (const :tag "not" nil)
                  (const :tag "by author" author)

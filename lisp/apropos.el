@@ -682,7 +682,7 @@ the output includes key-bindings of commands."
        symbols apropos-do-all
        (concat
         (format-message
-                "Library ‘%s’ provides: %s\nand requires: %s"
+                "Library `%s' provides: %s\nand requires: %s"
                 file
                 (mapconcat 'apropos-library-button
                            (or provides '(nil)) " and ")

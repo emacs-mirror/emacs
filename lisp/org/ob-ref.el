@@ -176,7 +176,7 @@ the variable."
 	    ;;       buffer (marker-buffer id-loc)
 	    ;;       loc (marker-position id-loc))
 	    ;; (move-marker id-loc nil)
-	    (error "Reference ‘%s’ not found in this buffer" ref))
+	    (error "Reference `%s' not found in this buffer" ref))
 	  (cond
 	   (lob-info (setq type 'lob))
 	   (id (setq type 'id))

@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2015-07-01.07}
+\def\texinfoversion{2015-09-05.20}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -310,7 +310,9 @@
 \def\prevsectiondefs{}
 \def\lastcolordefs{}
 
+
 % Main output routine.
+%
 \chardef\PAGE = 255
 \output = {\onepageout{\pagecontents\PAGE}}
 
@@ -344,10 +346,10 @@
     \normalturnoffactive  % \ in index entries must not stay \, e.g., if
                % the page break happens to be in the middle of an example.
                % We don't want .vr (or whatever) entries like this:
-               % \entry{{\tt \indexbackslash }acronym}{32}{\code {\acronym}}
+               % \entry{{\indexbackslash }acronym}{32}{\code {\acronym}}
                % "\acronym" won't work when it's read back in;
                % it needs to be
-               % {\code {{\tt \backslashcurfont }acronym}
+               % {\code {{\backslashcurfont }acronym}
     \shipout\vbox{%
       % Do this early so pdf references go to the beginning of the page.
       \ifpdfmakepagedest \pdfdest name{\the\pageno} xyz\fi
@@ -427,9 +429,13 @@
 \def\nsbot{\vbox
   {\hrule height\cornerlong depth\cornerthick width\cornerthick}}
 
+
+% Argument parsing
+
 % Parse an argument, then pass it to #1.  The argument is the rest of
 % the input line (except we remove a trailing comment).  #1 should be a
 % macro which expects an ordinary undelimited TeX argument.
+% For example, \def\foo{\parsearg\fooxxx}.
 %
 \def\parsearg{\parseargusing{}}
 \def\parseargusing#1#2{%
@@ -448,9 +454,11 @@
   }%
 }
 
-% First remove any @comment, then any @c comment.
+% First remove any @comment, then any @c comment.  Also remove a @texinfoc
+% comment (see \scanmacro for details).  Pass the result on to \argcheckspaces.
 \def\argremovecomment#1\comment#2\ArgTerm{\argremovec #1\c\ArgTerm}
-\def\argremovec#1\c#2\ArgTerm{\argcheckspaces#1\^^M\ArgTerm}
+\def\argremovec#1\c#2\ArgTerm{\argremovetexinfoc #1\texinfoc\ArgTerm}
+\def\argremovetexinfoc#1\texinfoc#2\ArgTerm{\argcheckspaces#1\^^M\ArgTerm}
 
 % Each occurrence of `\^^M' or `<space>\^^M' is replaced by a single space.
 %
@@ -939,12 +947,20 @@ where each line of input produces a line of output.}
 % @c is the same as @comment
 % @ignore ... @end ignore  is another way to write a comment
 %
-\def\comment{\begingroup \catcode`\^^M=\other%
+\def\comment{\begingroup \catcode`\^^M=\active%
+\catcode`\@=\other \catcode`\{=\other \catcode`\}=\other\commentxxx}%
+
+{\catcode`\^^M=\active%
+\gdef\commentxxx#1^^M{\endgroup%
+\futurelet\nexttoken\commentxxxx}%
+\gdef\commentxxxx{\ifx\nexttoken\aftermacro\expandafter\comment\fi}%
+}
+
+\def\c{\begingroup \catcode`\^^M=\active%
 \catcode`\@=\other \catcode`\{=\other \catcode`\}=\other%
-\commentxxx}
-{\catcode`\^^M=\other \gdef\commentxxx#1^^M{\endgroup}}
-%
-\let\c=\comment
+\cxxx}
+{\catcode`\^^M=\active \gdef\cxxx#1^^M{\endgroup}}
+% See comment in \scanmacro about why the definitions of @c and @comment differ
 
 % @paragraphindent NCHARS
 % We'll use ems for NCHARS, close enough.
@@ -1037,17 +1053,15 @@ where each line of input produces a line of output.}
 \newif\iflinks \linkstrue % by default we want the aux files.
 \let\novalidate = \linksfalse
 
-% @setfilename is done at the beginning of every texinfo file.
-% So open here the files we need to have open while reading the input.
+% @setfilename is done at the beginning of every texinfo file.  So open
+% here some of the files we need to have open while reading the input.
 % This makes it possible to make a .fmt file for texinfo.
 \def\setfilename{%
-   \fixbackslash  % Turn off hack to swallow `\input texinfo'.
    \iflinks
      \tryauxfile
      % Open the new aux file.  TeX will close it automatically at exit.
      \immediate\openout\auxfile=\jobname.aux
    \fi % \openindices needs to do some work in any case.
-   \openindices
    \let\setfilename=\comment % Ignore extra @setfilename cmds.
    %
    % If texinfo.cnf is present on the system, read it.
@@ -1057,17 +1071,6 @@ where each line of input produces a line of output.}
    \closein 1
    %
    \comment % Ignore the actual filename.
-}
-
-% Called from \setfilename.
-%
-\def\openindices{%
-  \newindex{cp}%
-  \newcodeindex{fn}%
-  \newcodeindex{vr}%
-  \newcodeindex{tp}%
-  \newcodeindex{ky}%
-  \newcodeindex{pg}%
 }
 
 % @bye.
@@ -1884,6 +1887,7 @@ end
 % Section fonts (14.4pt).
 \def\secnominalsize{14pt}
 \setfont\secrm\rmbshape{12}{\magstep1}{OT1}
+\setfont\secrmnotbold\rmshape{12}{\magstep1}{OT1}
 \setfont\secit\itbshape{10}{\magstep2}{OT1IT}
 \setfont\secsl\slbshape{10}{\magstep2}{OT1}
 \setfont\sectt\ttbshape{12}{\magstep1}{OT1TT}
@@ -2880,9 +2884,6 @@ end
 %
 \def\sup{\ifmmode \expandafter\ptexsp \else \expandafter\finishsup\fi}
 \def\finishsup#1{$\ptexsp{\hbox{\selectfonts\lllsize #1}}$}%
-
-% ctrl is no longer a Texinfo command, but leave this definition for fun.
-\def\ctrl #1{{\tt \rawbackslash \hat}#1}
 
 % @inlinefmt{FMTNAME,PROCESSED-TEXT} and @inlineraw{FMTNAME,RAW-TEXT}.
 % Ignore unless FMTNAME == tex; then it is like @iftex and @tex,
@@ -4358,19 +4359,16 @@ end
 % except not \outer, so it can be used within macros and \if's.
 \edef\newwrite{\makecsname{ptexnewwrite}}
 
-% \newindex {foo} defines an index named foo.
-% It automatically defines \fooindex such that
-% \fooindex ...rest of line... puts an entry in the index foo.
-% It also defines \fooindfile to be the number of the output channel for
-% the file that accumulates this index.  The file's extension is foo.
+% \newindex {foo} defines an index named IX.
+% It automatically defines \IXindex such that
+% \IXindex ...rest of line... puts an entry in the index IX.
+% It also defines \IXindfile to be the number of the output channel for
+% the file that accumulates this index.  The file's extension is IX.
 % The name of an index should be no more than 2 characters long
 % for the sake of vms.
 %
 \def\newindex#1{%
-  \iflinks
-    \expandafter\newwrite \csname#1indfile\endcsname
-    \openout \csname#1indfile\endcsname \jobname.#1 % Open the file
-  \fi
+  \expandafter\chardef\csname#1indfile\endcsname=0
   \expandafter\xdef\csname#1index\endcsname{%     % Define @#1index
     \noexpand\doindex{#1}}
 }
@@ -4384,13 +4382,18 @@ end
 \def\defcodeindex{\parsearg\newcodeindex}
 %
 \def\newcodeindex#1{%
-  \iflinks
-    \expandafter\newwrite \csname#1indfile\endcsname
-    \openout \csname#1indfile\endcsname \jobname.#1
-  \fi
+  \expandafter\chardef\csname#1indfile\endcsname=0
   \expandafter\xdef\csname#1index\endcsname{%
     \noexpand\docodeindex{#1}}%
 }
+
+% The default indices:
+\newindex{cp}%      concepts,
+\newcodeindex{fn}%  functions,
+\newcodeindex{vr}%  variables,
+\newcodeindex{tp}%  types,
+\newcodeindex{ky}%  keys
+\newcodeindex{pg}%  and programs.
 
 
 % @synindex foo bar    makes index foo feed into index bar.
@@ -4420,24 +4423,19 @@ end
   \expandafter\xdef\csname#2index\endcsname{\noexpand#1{#3}}%
 }
 
-% Define \doindex, the driver for all \fooindex macros.
+% Define \doindex, the driver for all index macros.
 % Argument #1 is generated by the calling \fooindex macro,
-%  and it is "foo", the name of the index.
+% and it the two-letter name of the index.
 
-% \doindex just uses \parsearg; it calls \doind for the actual work.
-% This is because \doind is more useful to call from other macros.
-
-% There is also \dosubind {index}{topic}{subtopic}
-% which makes an entry in a two-level index such as the operation index.
-
-\def\doindex#1{\edef\indexname{#1}\parsearg\singleindexer}
-\def\singleindexer #1{\doind{\indexname}{#1}}
+\def\doindex#1{\edef\indexname{#1}\parsearg\doindexxxx}
+\def\doindexxxx #1{\doind{\indexname}{#1}}
 
 % like the previous two, but they put @code around the argument.
-\def\docodeindex#1{\edef\indexname{#1}\parsearg\singlecodeindexer}
-\def\singlecodeindexer #1{\doind{\indexname}{\code{#1}}}
+\def\docodeindex#1{\edef\indexname{#1}\parsearg\docodeindexxxx}
+\def\docodeindexxxx #1{\doind{\indexname}{\code{#1}}}
 
-% Take care of Texinfo commands that can appear in an index entry.
+% Used when writing an index entry out to an index file, to prevent
+% expansion of Texinfo commands that can appear in an index entry.
 % Since there are some commands we want to expand, and others we don't,
 % we have to laboriously prevent expansion for those that we don't.
 %
@@ -4454,31 +4452,6 @@ end
   % should use @lbracechar and @rbracechar?
   \def\{{{\tt\char123}}%
   \def\}{{\tt\char125}}%
-  %
-  % I don't entirely understand this, but when an index entry is
-  % generated from a macro call, the \endinput which \scanmacro inserts
-  % causes processing to be prematurely terminated.  This is,
-  % apparently, because \indexsorttmp is fully expanded, and \endinput
-  % is an expandable command.  The redefinition below makes \endinput
-  % disappear altogether for that purpose -- although logging shows that
-  % processing continues to some further point.  On the other hand, it
-  % seems \endinput does not hurt in the printed index arg, since that
-  % is still getting written without apparent harm.
-  %
-  % Sample source (mac-idx3.tex, reported by Graham Percival to
-  % help-texinfo, 22may06):
-  % @macro funindex {WORD}
-  % @findex xyz
-  % @end macro
-  % ...
-  % @funindex commtest
-  % This is not enough to reproduce the bug, but it gives the flavor.
-  %
-  % Sample whatsit resulting:
-  % .@write3{\entry{xyz}{@folio }{@code {xyz@endinput }}}
-  %
-  % So:
-  \let\endinput = \empty
   %
   % Do the redefinitions.
   \commondummies
@@ -4691,6 +4664,31 @@ end
 % For testing: output @{ and @} in index sort strings as \{ and \}.
 \newif\ifusebracesinindexes
 
+\let\indexlbrace\relax
+\let\indexrbrace\relax
+
+{\catcode`\@=0
+\catcode`\\=13
+  @gdef@backslashdisappear{@def\{}}
+}
+
+{
+\catcode`\<=13
+\catcode`\-=13
+  \gdef\indexnonalnumdisappear{%
+    \backslashdisappear
+    \def-{}%
+    \def<{}%
+  }
+
+  \gdef\indexnonalnumreappear{%
+    \useindexbackslash
+    \let-\normaldash
+    \let<\normalless
+  }
+}
+
+
 % \indexnofonts is used when outputting the strings to sort the index
 % by, and when constructing control sequence names.  It eliminates all
 % control sequences and just writes whatever the best ASCII sort string
@@ -4716,16 +4714,10 @@ end
   \def\_{\normalunderscore}%
   \def\-{}% @- shouldn't affect sorting
   %
-  % Unfortunately, texindex is not prepared to handle braces in the
-  % content at all.  So for index sorting, we map @{ and @} to strings
-  % starting with |, since that ASCII character is between ASCII { and }.
-  \ifusebracesinindexes
-    \def\lbracechar{\lbracecmd}%
-    \def\rbracechar{\rbracecmd}%
-  \else
-    \def\lbracechar{|a}%
-    \def\rbracechar{|b}%
-  \fi
+  % Unfortunately, texindex < 6.0 is not prepared to handle braces in the
+  % content at all, so these won't be sorted in ASCII order.
+  \def\lbracechar{{\indexlbrace}}%
+  \def\rbracechar{{\indexrbrace}}%
   \let\{=\lbracechar
   \let\}=\rbracechar
   %
@@ -4737,7 +4729,7 @@ end
   \def\L{L}%
   \def\OE{OE}%
   \def\O{O}%
-  \def\TH{ZZZ}%
+  \def\TH{TH}%
   \def\aa{aa}%
   \def\ae{ae}%
   \def\dh{dzz}%
@@ -4749,7 +4741,7 @@ end
   \def\o{o}%
   \def\questiondown{?}%
   \def\ss{ss}%
-  \def\th{zzz}%
+  \def\th{th}%
   %
   \def\LaTeX{LaTeX}%
   \def\TeX{TeX}%
@@ -4807,14 +4799,17 @@ end
 {\catcode`\`=\active
  \gdef\indexlquoteignore{\let`=\empty}}
 
-\let\indexbackslash=0  %overridden during \printindex.
 \let\SETmarginindex=\relax % put index entries in margin (undocumented)?
 
 % Most index entries go through here, but \dosubind is the general case.
 % #1 is the index name, #2 is the entry text.
 \def\doind#1#2{\dosubind{#1}{#2}{}}
 
-% Workhorse for all \fooindexes.
+% There is also \dosubind {index}{topic}{subtopic}
+% which makes an entry in a two-level index such as the operation index.
+% TODO: Two-level index?  Operation index?
+
+% Workhorse for all indexes.
 % #1 is name of index, #2 is stuff to put there, #3 is subentry --
 % empty if called from \doind, as we usually are (the main exception
 % is with most defuns, which call us directly).
@@ -4822,6 +4817,7 @@ end
 \def\dosubind#1#2#3{%
   \iflinks
   {%
+    \requireopenindexfile{#1}%
     % Store the main index entry text (including the third arg).
     \toks0 = {#2}%
     % If third arg is present, precede it with a space.
@@ -4837,7 +4833,40 @@ end
   \fi
 }
 
-% Write the entry in \toks0 to the index file:
+% Check if an index file has been opened, and if not, open it.
+\def\requireopenindexfile#1{%
+\ifnum\csname #1indfile\endcsname=0
+  \expandafter\newwrite \csname#1indfile\endcsname
+  \openout \csname#1indfile\endcsname \jobname.#1 % Open the file
+\fi}
+
+% Output \ as {\indexbackslash}, because \ is an escape character in
+% the index files.
+\let\indexbackslash=\relax
+{\catcode`\@=0 \catcode`\\=\active
+  @gdef@useindexbackslash{@def\{{@indexbackslash}}}
+}
+
+% Definition for writing index entry text.
+\def\sortas#1{\ignorespaces}%
+
+% Definition for writing index entry sort key.  Should occur at the at
+% the beginning of the index entry, like
+%     @cindex @sortas{september} \september
+% The \ignorespaces takes care of following space, but there's no way
+% to remove space before it.
+{
+\catcode`\-=13
+\gdef\indexwritesortas{%
+  \begingroup
+  \indexnonalnumreappear
+  \indexwritesortasxxx}
+\gdef\indexwritesortasxxx#1{%
+  \xdef\indexsortkey{#1}\endgroup}
+}
+
+
+% Write the entry in \toks0 to the index file.
 %
 \def\dosubindwrite{%
   % Put the index entry in the margin if desired.
@@ -4847,14 +4876,20 @@ end
   %
   % Remember, we are within a group.
   \indexdummies % Must do this here, since \bf, etc expand at this stage
-  \def\backslashcurfont{\indexbackslash}% \indexbackslash isn't defined now
-      % so it will be output as is; and it will print as backslash.
-  %
-  % Process the index entry with all font commands turned off, to
-  % get the string to sort by.
+  \useindexbackslash % \indexbackslash isn't defined now so it will be output 
+                     % as is; and it will print as backslash.
+  % Get the string to sort by, by processing the index entry with all
+  % font commands turned off.
   {\indexnofonts
-   \edef\temp{\the\toks0}% need full expansion
-   \xdef\indexsorttmp{\temp}%
+   \xdef\indexsortkey{}%
+   \let\sortas=\indexwritesortas
+   \indexnonalnumdisappear
+   \edef\temp{\the\toks0}%
+   \setbox\dummybox = \hbox{\temp}% Make sure to execute any \sortas
+   \ifx\indexsortkey\empty
+     \xdef\indexsortkey{\temp}%
+     \ifx\indexsortkey\empty\xdef\indexsortkey{ }\fi
+   \fi
   }%
   %
   % Set up the complete index entry, with both the sort key and
@@ -4864,10 +4899,11 @@ end
   % sorted result.
   \edef\temp{%
     \write\writeto{%
-      \string\entry{\indexsorttmp}{\noexpand\folio}{\the\toks0}}%
+      \string\entry{\indexsortkey}{\noexpand\folio}{\the\toks0}}%
   }%
   \temp
 }
+\newbox\dummybox % used above
 
 % Take care of unwanted page breaks/skips around a whatsit:
 %
@@ -5012,7 +5048,9 @@ end
       % Index files are almost Texinfo source, but we use \ as the escape
       % character.  It would be better to use @, but that's too big a change
       % to make right now.
-      \def\indexbackslash{\backslashcurfont}%
+      \def\indexbackslash{\ttbackslash}%
+      \let\indexlbrace\{   % Likewise, set these sequences for braces
+      \let\indexrbrace\}   % used in the sort key.
       \catcode`\\ = 0
       \escapechar = `\\
       \begindoublecolumns
@@ -5026,18 +5064,47 @@ end
 % These macros are used by the sorted index file itself.
 % Change them to control the appearance of the index.
 
-\def\initial#1{{%
-  % Some minor font changes for the special characters.
-  \let\tentt=\sectt \let\tt=\sectt \let\sf=\sectt
+{\catcode`\/=13 \catcode`\-=13 \catcode`\^=13 \catcode`\~=13 \catcode`\_=13
+\catcode`\|=13 \catcode`\<=13 \catcode`\>=13 \catcode`\+=13 \catcode`\"=13
+\catcode`\$=3
+\gdef\initialglyphs{%
+  % Some changes for non-alphabetic characters.  Using the glyphs from the
+  % math fonts looks more consistent than the typewriter font used elsewhere
+  % for these characters.
+  \def\indexbackslash{\math{\backslash}}%
+  \let\\=\indexbackslash
   %
+  % Can't get bold backslash so don't use bold forward slash
+  \catcode`\/=13
+  \def/{{\secrmnotbold \normalslash}}%
+  \def-{{\normaldash\normaldash}}% en dash `--'
+  \def^{{\chapbf \normalcaret}}
+  \let~=\normaltilde
+  \def\_{%
+     \leavevmode \kern.07em \vbox{\hrule width.3em height.1ex}\kern .07em }%
+  \def|{$\vert$}%
+  \def<{$\less$}%
+  \def>{$\gtr$}%
+  \def+{$\normalplus$}%
+}}
+
+\def\initial{%
+  \bgroup
+  \initialglyphs
+  \initialx
+}
+
+\def\initialx#1{%
   % Remove any glue we may have, we'll be inserting our own.
   \removelastskip
   %
   % We like breaks before the index initials, so insert a bonus.
+  % The glue before the bonus allows a little bit of space at the
+  % bottom of a column to reduce an increase in inter-line spacing.
   \nobreak
-  \vskip 0pt plus 3\baselineskip
-  \penalty 0
-  \vskip 0pt plus -3\baselineskip
+  \vskip 0pt plus 6\baselineskip
+  \penalty -300 
+  \vskip 0pt plus -6\baselineskip
   %
   % Typeset the initial.  Making this add up to a whole number of
   % baselineskips increases the chance of the dots lining up from column
@@ -5046,23 +5113,20 @@ end
   %
   % No shrink because it confuses \balancecolumns.
   \vskip 1.67\baselineskip plus .5\baselineskip
-  \leftline{\secbf #1}%
+  \leftline{\secfonts \secbf #1}%
+  % \secfonts is inside the argument of \leftline so that the change of
+  % \baselineskip will not affect any glue inserted before the vbox that
+  % \leftline creates.
   % Do our best not to break after the initial.
   \nobreak
   \vskip .33\baselineskip plus .1\baselineskip
-}}
+  \egroup % \initialglyphs
+}
 
 % \entry typesets a paragraph consisting of the text (#1), dot leaders, and
 % then page number (#2) flushed to the right margin.  It is used for index
 % and table of contents entries.  The paragraph is indented by \leftskip.
 %
-% A straightforward implementation would start like this:
-%	\def\entry#1#2{...
-% But this freezes the catcodes in the argument, and can cause problems to
-% @code, which sets - active.  This problem was fixed by a kludge---
-% ``-'' was active throughout whole index, but this isn't really right.
-% The right solution is to prevent \entry from swallowing the whole text.
-%                                 --kasal, 21nov03
 \def\entry{%
   \begingroup
     %
@@ -5095,7 +5159,7 @@ end
     %
     % A bit of stretch before each entry for the benefit of balancing
     % columns.
-    \vskip 0pt plus1pt
+    \vskip 0pt plus0.5pt
     %
     % When reading the text of entry, convert explicit line breaks
     % from @* into spaces.  The user might give these in long section
@@ -5227,7 +5291,7 @@ end
 }
 
 % The double-column output routine for all double-column pages except
-% the last.
+% the last, which is done by \balancecolumns.
 %
 \def\doublecolumnout{%
   \splittopskip=\topskip \splitmaxdepth=\maxdepth
@@ -5309,28 +5373,45 @@ end
   \pagegoal = \vsize
 }
 %
-% Called at the end of the double column material.
+% Only called for the last of the double column material.  \doublecolumnout 
+% does the others.
 \def\balancecolumns{%
   \setbox0 = \vbox{\unvbox255}% like \box255 but more efficient, see p.120.
   \dimen@ = \ht0
   \advance\dimen@ by \topskip
   \advance\dimen@ by-\baselineskip
-  \divide\dimen@ by 2 % target to split to
-  %debug\message{final 2-column material height=\the\ht0, target=\the\dimen@.}%
-  \splittopskip = \topskip
-  % Loop until we get a decent breakpoint.
-  {%
-    \vbadness = 10000
-    \loop
-      \global\setbox3 = \copy0
-      \global\setbox1 = \vsplit3 to \dimen@
-    \ifdim\ht3>\dimen@
-      \global\advance\dimen@ by 1pt
-    \repeat
-  }%
-  %debug\message{split to \the\dimen@, column heights: \the\ht1, \the\ht3.}%
-  \setbox0=\vbox to\dimen@{\unvbox1}%
-  \setbox2=\vbox to\dimen@{\unvbox3}%
+  \ifdim\dimen@<14\baselineskip
+    % Don't split a short final column in two.
+    \setbox2=\vbox{}%
+  \else
+    \divide\dimen@ by 2 % target to split to
+    \dimen@ii = \dimen@
+    \splittopskip = \topskip
+    % Loop until the second column is no higher than the first
+    {%
+      \vbadness = 10000
+      \loop
+        \global\setbox3 = \copy0
+        \global\setbox1 = \vsplit3 to \dimen@
+        % Remove glue from bottom of first column to
+        % make sure it is higher than the second.
+        \global\setbox1 = \vbox{\unvbox1\unpenalty\unskip}%
+      \ifdim\ht3>\ht1
+        \global\advance\dimen@ by 1pt
+      \repeat
+    }%
+    \multiply\dimen@ii by 4
+    \divide\dimen@ii by 5
+    \ifdim\ht3<\dimen@ii
+      % Column heights are too different, so don't make their bottoms
+      % flush with each other
+      \setbox0=\vbox to\dimen@{\unvbox1\vfill}%
+      \setbox2=\vbox to\dimen@{\unvbox3\vfill}%
+    \else
+      \setbox0=\vbox to\dimen@{\unvbox1}%
+      \setbox2=\vbox to\dimen@{\unvbox3}%
+    \fi
+  \fi
   %
   \pagesofar
 }
@@ -7315,34 +7396,42 @@ end
   }
 \fi
 
-\def\scanmacro#1{\begingroup
+\let\aftermacroxxx\relax
+\def\aftermacro{\aftermacroxxx}
+
+% alias because \c means cedilla in @tex or @math
+\let\texinfoc=\c
+
+% Used at the time of macro expansion.
+% Argument is macro body with arguments substituted
+\def\scanmacro#1{%
   \newlinechar`\^^M
   \let\xeatspaces\eatspaces
   %
-  % Undo catcode changes of \startcontents and \doprintindex
-  % When called from @insertcopying or (short)caption, we need active
-  % backslash to get it printed correctly.  Previously, we had
-  % \catcode`\\=\other instead.  We'll see whether a problem appears
-  % with macro expansion.				--kasal, 19aug04
-  \catcode`\@=0 \catcode`\\=\active \escapechar=`\@
+  % Process the macro body under the current catcode regime.
+  \scantokens{#1\texinfoc}\aftermacro%
   %
-  % ... and for \example:
-  \spaceisspace
-  %
-  % The \empty here causes a following catcode 5 newline to be eaten as
-  % part of reading whitespace after a control sequence.  It does not
-  % eat a catcode 13 newline.  There's no good way to handle the two
-  % cases (untried: maybe e-TeX's \everyeof could help, though plain TeX
-  % would then have different behavior).  See the Macro Details node in
-  % the manual for the workaround we recommend for macros and
-  % line-oriented commands.
-  % 
-  \scantokens{#1\empty}%
-\endgroup}
+  % The \c is to remove the \newlinechar added by \scantokens, and
+  % can be noticed by \parsearg.
+  %   The \aftermacro allows a \comment at the end of the macro definition
+  % to duplicate itself past the final \newlinechar added by \scantokens:
+  % this is used in the definition of \group to comment out a newline.  We
+  % don't do the same for \c to support Texinfo files with macros that ended
+  % with a @c, which should no longer be necessary.
+  %   We avoid surrounding the call to \scantokens with \bgroup and \egroup
+  % to allow macros to open or close groups themselves.
+}
 
 \def\scanexp#1{%
+  \bgroup
+  % Undo catcode changes of \startcontents and \printindex
+  % When called from @insertcopying or (short)caption, we need active
+  % backslash to get it printed correctly.
+  % FIXME: This may not be needed.
+  %\catcode`\@=0 \catcode`\\=\active \escapechar=`\@
   \edef\temp{\noexpand\scanmacro{#1}}%
   \temp
+  \egroup
 }
 
 \newcount\paramno   % Count of parameters
@@ -7408,7 +7497,6 @@ end
   \catcode`\+=\other
   \catcode`\<=\other
   \catcode`\>=\other
-  \catcode`\@=\other
   \catcode`\^=\other
   \catcode`\_=\other
   \catcode`\|=\other
@@ -7418,37 +7506,28 @@ end
 
 \def\scanargctxt{% used for copying and captions, not macros.
   \scanctxt
+  \catcode`\@=\other
   \catcode`\\=\other
   \catcode`\^^M=\other
 }
 
 \def\macrobodyctxt{% used for @macro definitions
   \scanctxt
+  \catcode`\ =\other
+  \catcode`\@=\other
   \catcode`\{=\other
   \catcode`\}=\other
   \catcode`\^^M=\other
   \usembodybackslash
 }
 
-\def\macroargctxt{% used when scanning invocations
+% Used when scanning braced macro arguments.  Note, however, that catcode
+% changes here are ineffectual if the macro invocation was nested inside
+% an argument to another Texinfo command.
+\def\macroargctxt{%
   \scanctxt
-  \catcode`\\=0
+  \catcode`\\=\active
 }
-% why catcode 0 for \ in the above?  To recognize \\ \{ \} as "escapes"
-% for the single characters \ { }.  Thus, we end up with the "commands"
-% that would be written @\ @{ @} in a Texinfo document.
-% 
-% We already have @{ and @}.  For @\, we define it here, and only for
-% this purpose, to produce a typewriter backslash (so, the @\ that we
-% define for @math can't be used with @macro calls):
-%
-\def\\{\normalbackslash}%
-% 
-% We would like to do this for \, too, since that is what makeinfo does.
-% But it is not possible, because Texinfo already has a command @, for a
-% cedilla accent.  Documents must use @comma{} instead.
-%
-% \anythingelse will almost certainly be an error of some kind.
 
 \def\macrolineargctxt{% used for whole-line arguments without braces
   \scanctxt
@@ -7610,12 +7689,12 @@ end
 
 % These two commands read recursive and nonrecursive macro bodies.
 % (They're different since rec and nonrec macros end differently.)
-%
+% Set \temp to the body of the macro, and call \defmacro.
 \catcode `\@\texiatcatcode
-\long\def\parsemacbody#1@end macro%
-{\xdef\temp{\eatcr{#1}}\endgroup\defmacro}%
-\long\def\parsermacbody#1@end rmacro%
-{\xdef\temp{\eatcr{#1}}\endgroup\defmacro}%
+{\catcode`\ =\other\long\gdef\parsemacbody#1@end macro{%
+\xdef\temp{\eatcr{#1}}\endgroup\defmacro}}%
+{\catcode`\ =\other\long\gdef\parsermacbody#1@end rmacro{%
+\xdef\temp{\eatcr{#1}}\endgroup\defmacro}}%
 \catcode `\@=11\relax
 
 \let\endargs@\relax
@@ -7795,15 +7874,16 @@ end
    \long\def#2{#4}%
 }
 
-% This defines a Texinfo @macro. There are eight cases: recursive and
-% nonrecursive macros of zero, one, up to nine, and many arguments.
+% This defines a Texinfo @macro.  \temp has the body of the macro in it.
+% There are eight cases: recursive and nonrecursive macros of zero, one,
+% up to nine, and many arguments.
 % Much magic with \expandafter here.
 % \xdef is used so that macro definitions will survive the file
 % they're defined in; @include reads the file inside a group.
 %
 \def\defmacro{%
   \let\hash=##% convert placeholders to macro parameter chars
-  \ifrecursive
+  \ifrecursive   %%%%%%%%%%%%%% Recursive %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     \ifcase\paramno
     % 0
       \expandafter\xdef\csname\the\macname\endcsname{%
@@ -7835,12 +7915,11 @@ end
         \global\expandafter\let\csname mac.\the\macname .recurse\endcsname\gobble
       \fi
     \fi
-  \else
+  \else  %%%%%%%%%%%%%%%%%%%%%% Non-recursive %%%%%%%%%%%%%%%%%%%%%%%%%%
     \ifcase\paramno
     % 0
       \expandafter\xdef\csname\the\macname\endcsname{%
-        \noexpand\norecurse{\the\macname}%
-        \noexpand\scanmacro{\temp}\egroup}%
+        \noexpand\scanmacro{\temp}}%
     \or % 1
       \expandafter\xdef\csname\the\macname\endcsname{%
          \bgroup
@@ -7848,8 +7927,8 @@ end
          \expandafter\noexpand\csname\the\macname xxx\endcsname}%
       \expandafter\xdef\csname\the\macname xxx\endcsname##1{%
         \egroup
-        \noexpand\norecurse{\the\macname}%
-        \noexpand\scanmacro{\temp}\egroup}%
+        \noexpand\scanmacro{\temp}%
+        }%
     \else % at most 9
       \ifnum\paramno<10\relax
         \expandafter\xdef\csname\the\macname\endcsname{%
@@ -7863,8 +7942,8 @@ end
         \csname\the\macname xxx\endcsname
         \paramlist{%
             \egroup
-            \noexpand\norecurse{\the\macname}%
-            \noexpand\scanmacro{\temp}\egroup}%
+            \noexpand\scanmacro{\temp}%
+            }%
       \else % 10 or more:
         \expandafter\xdef\csname\the\macname\endcsname{%
           \noexpand\getargvals@{\the\macname}{\argl}%
@@ -7879,16 +7958,86 @@ end
 
 \def\norecurse#1{\bgroup\cslet{#1}{macsave.#1}}
 
+
+{\catcode`\@=0 \catcode`\\=13
+@catcode`@_=11
+
+% Call #1 with a list of tokens #2, with any doubled backslashes in #2
+% compressed to one.
+@gdef@passargtomacro#1#2{%
+  @def@the_macro{#1}%
+  @def@pending_backslash{}%
+  @def@finish{@finish}%
+  @def@arg_result{}%
+  @let@next_token=@relax
+  @add_segment#2\@finish\%
+}
+
+% Input stream is just after a backslash.  If the next token is not a
+% backslash, process the rest of the argument; otherwise, remove the next
+% token.
+@gdef@look_ahead{%
+  @futurelet@next_token@look_aheadzzz}
+@gdef@look_aheadzzz{%
+  @ifx@next_token\%
+   @let@next=@gobble_and_check_finish 
+  @else
+   @let@next=@add_segment
+  @fi@next
+}
+
+% Double backslash found.  Add a single backslash here.
+@gdef@gobble_and_check_finish#1{%
+  @add_the_backslash
+  @def@pending_backslash{}%
+  @futurelet@next_token@add_segment
+}
+
+% append a backslash to \arg_result
+@gdef@add_the_backslash{%
+  @expandafter@gdef@expandafter@arg_result@expandafter{@arg_result\}%
+}
+
+% Input stream is either at the start of the argument, or just after a 
+% backslash sequence, either a lone backslash, or a doubled backslash.  
+% \next_token contains the first token in the input stream: if it is \finish, 
+% finish; otherwise, append to \arg_result the segment of the argument up until
+% the next backslash.  \pending_backslash contains a backslash to represent
+% a backslash just before the start of the input stream that has not been
+% added to \arg_result.
+@gdef@add_segment#1\{%
+@ifx@next_token@finish
+  @let@next=@call_the_macro%
+@else
+  @let@next=@look_ahead
+  %
+  % append to @arg_result
+  % token list registers might be better
+  @expandafter@expandafter@expandafter@gdef
+  @expandafter@expandafter@expandafter@arg_result
+  @expandafter@expandafter@expandafter{%
+  @expandafter@arg_result
+  @pending_backslash#1}%
+  @def@pending_backslash{\}%
+@fi@next}
+
+@gdef@call_the_macro{@expandafter@the_macro@expandafter{@arg_result}}
+
+}
+
 % \braceorline MAC is used for a one-argument macro MAC.  It checks
 % whether the next non-whitespace character is a {.  It sets the context
 % for reading the argument (slightly different in the two cases).  Then,
-% to read the argument, in the whole-line case, it then calls the
-% regular \parsearg MAC; in the lbrace case, it just calls MAC itself.
+% to read the argument, in the whole-line case, it then calls the regular
+% \parsearg MAC; in the lbrace case, it calls \passargtomacro MAC.
 % 
 \def\braceorline#1{\let\macnamexxx=#1\futurelet\nchar\braceorlinexxx}
 \def\braceorlinexxx{%
-  \ifx\nchar\bgroup\macroargctxt
-  \else\macrolineargctxt\expandafter\parsearg
+  \ifx\nchar\bgroup
+    \macroargctxt
+    \expandafter\passargtomacro
+  \else
+    \macrolineargctxt\expandafter\parsearg
   \fi \macnamexxx}
 
 
@@ -8009,9 +8158,12 @@ end
 % node name, #4 the name of the Info file, #5 the name of the printed
 % manual.  All but the node name can be omitted.
 %
-\def\pxref#1{\putwordsee{} \xrefX[#1,,,,,,,]}
-\def\xref#1{\putwordSee{} \xrefX[#1,,,,,,,]}
-\def\ref#1{\xrefX[#1,,,,,,,]}
+\def\pxref{\putwordsee{} \xrefXX}
+\def\xref{\putwordSee{} \xrefXX}
+\def\ref{\xrefXX}
+
+\def\xrefXX#1{\def\xrefXXarg{#1}\futurelet\tokenafterxref\xrefXXX}
+\def\xrefXXX{\expandafter\xrefX\expandafter[\xrefXXarg,,,,,,,]}
 %
 \newbox\toprefbox
 \newbox\printedrefnamebox
@@ -8155,6 +8307,12 @@ end
       %
       % output the `page 3'.
       \turnoffactive \putwordpage\tie\refx{#1-pg}{}%
+           \ifx,\tokenafterxref
+      \else\ifx.\tokenafterxref
+      \else\ifx;\tokenafterxref
+      \else\ifx)\tokenafterxref
+      \else,% add a , if xref not followed by punctuation
+      \fi\fi\fi\fi
     \fi\fi
   \fi
   \endlink
@@ -10186,8 +10344,8 @@ directory should work if nowhere else does.}
 \def\activedoublequote{{\tt\char34}}
 \let"=\activedoublequote
 \catcode`\~=\active \def\activetilde{{\tt\char126}} \let~ = \activetilde
-\chardef\hat=`\^
-\catcode`\^=\active \def\activehat{{\tt \hat}} \let^ = \activehat
+\chardef\hatchar=`\^
+\catcode`\^=\active \def\activehat{{\tt \hatchar}} \let^ = \activehat
 
 \catcode`\_=\active
 \def_{\ifusingtt\normalunderscore\_}
@@ -10204,6 +10362,8 @@ directory should work if nowhere else does.}
 \catcode`\>=\active \def\activegtr{{\tt \gtr}}\let> = \activegtr
 \catcode`\+=\active \def+{{\tt \char 43}}
 \catcode`\$=\active \def${\ifusingit{{\sl\$}}\normaldollar}%$ font-lock fix
+\catcode`\-=\active \let-=\normaldash
+
 
 % used for headline/footline in the output routine, in case the page
 % breaks in the middle of an @tex block.
@@ -10217,12 +10377,6 @@ directory should work if nowhere else does.}
   \let\i = \smartitalic
   % in principle, all other definitions in \tex have to be undone too.
 }
-
-% If a .fmt file is being used, characters that might appear in a file
-% name cannot be active until we have parsed the command line.
-% So turn them off again, and have \everyjob (or @setfilename) turn them on.
-% \otherifyactive is called near the end of this file.
-\def\otherifyactive{\catcode`+=\other \catcode`\_=\other}
 
 % Used sometimes to turn off (effectively) the active characters even after
 % parsing them.
@@ -10242,23 +10396,22 @@ directory should work if nowhere else does.}
 % \doublebackslash is two of them (for the pdf outlines).
 {\catcode`\\=\other @gdef@realbackslash{\} @gdef@doublebackslash{\\}}
 
-% In texinfo, backslash is an active character; it prints the backslash
+% In Texinfo, backslash is an active character; it prints the backslash
 % in fixed width font.
 \catcode`\\=\active  % @ for escape char from now on.
 
-% The story here is that in math mode, the \char of \backslashcurfont
-% ends up printing the roman \ from the math symbol font (because \char
-% in math mode uses the \mathcode, and plain.tex sets
-% \mathcode`\\="026E).  It seems better for @backslashchar{} to always
-% print a typewriter backslash, hence we use an explicit \mathchar,
+% Print a typewriter backslash.  For math mode, we can't simply use
+% \backslashcurfont: the story here is that in math mode, the \char
+% of \backslashcurfont ends up printing the roman \ from the math symbol
+% font (because \char in math mode uses the \mathcode, and plain.tex
+% sets \mathcode`\\="026E).  Hence we use an explicit \mathchar,
 % which is the decimal equivalent of "715c (class 7, e.g., use \fam;
 % ignored family value; char position "5C).  We can't use " for the
 % usual hex value because it has already been made active.
-@def@normalbackslash{{@tt @ifmmode @mathchar29020 @else @backslashcurfont @fi}}
-@let@backslashchar = @normalbackslash % @backslashchar{} is for user documents.
 
-% On startup, @fixbackslash assigns:
-%  @let \ = @normalbackslash
+@def@ttbackslash{{@tt @ifmmode @mathchar29020 @else @backslashcurfont @fi}}
+@let@backslashchar = @ttbackslash % @backslashchar{} is for user documents.
+
 % \rawbackslash defines an active \ to do \backslashcurfont.
 % \otherbackslash defines an active \ to be a literal `\' character with
 % catcode other.  We switch back and forth between these.
@@ -10266,8 +10419,7 @@ directory should work if nowhere else does.}
 @gdef@otherbackslash{@let\=@realbackslash}
 
 % Same as @turnoffactive except outputs \ as {\tt\char`\\} instead of
-% the literal character `\'.  Also revert - to its normal character, in
-% case the active - from code has slipped in.
+% the literal character `\'.
 %
 {@catcode`- = @active
  @gdef@normalturnoffactive{%
@@ -10278,39 +10430,55 @@ directory should work if nowhere else does.}
    @let+=@normalplus
    @let<=@normalless
    @let>=@normalgreater
-   @let\=@normalbackslash
    @let^=@normalcaret
    @let_=@normalunderscore
    @let|=@normalverticalbar
    @let~=@normaltilde
+   @let\=@ttbackslash
    @markupsetuplqdefault
    @markupsetuprqdefault
    @unsepspaces
  }
 }
 
-% Make _ and + \other characters, temporarily.
-% This is canceled by @fixbackslash.
-@otherifyactive
+% If a .fmt file is being used, characters that might appear in a file
+% name cannot be active until we have parsed the command line.
+% So turn them off again, and have @fixbackslash turn them back on.
+@catcode`+=@other @catcode`@_=@other
 
+% \enablebackslashhack - allow file to begin `\input texinfo'
+%
 % If a .fmt file is being used, we don't want the `\input texinfo' to show up.
 % That is what \eatinput is for; after that, the `\' should revert to printing
 % a backslash.
-%
-@gdef@eatinput input texinfo{@fixbackslash}
-@global@let\ = @eatinput
+% If the file did not have a `\input texinfo', then it is turned off after
+% the first line; otherwise the first `\' in the file would cause an error.
+% This is used on the very last line of this file, texinfo.tex.
+% We also use @c to call @fixbackslash, in case ends of lines are hidden.
+{
+@catcode`@^=7
+@catcode`@^^M=13@gdef@enablebackslashhack{%
+  @global@let\ = @eatinput%
+  @catcode`@^^M=13%
+  @def@c{@fixbackslash@c}%
+  @def ^^M{@let^^M@secondlinenl}%
+  @gdef @secondlinenl{@let^^M@thirdlinenl}%
+  @gdef @thirdlinenl{@fixbackslash}%
+}}
 
-% On the other hand, perhaps the file did not have a `\input texinfo'. Then
-% the first `\' in the file would cause an error. This macro tries to fix
-% that, assuming it is called before the first `\' could plausibly occur.
-% Also turn back on active characters that might appear in the input
-% file name, in case not using a pre-dumped format.
-%
+{@catcode`@^=7 @catcode`@^^M=13%
+@gdef@eatinput input texinfo#1^^M{@fixbackslash}}
+
 @gdef@fixbackslash{%
-  @ifx\@eatinput @let\ = @normalbackslash @fi
+  @ifx\@eatinput @let\ = @ttbackslash @fi
+  @catcode13=5 % regular end of line
+  @let@c=@texinfoc
+  % Also turn back on active characters that might appear in the input
+  % file name, in case not using a pre-dumped format.
   @catcode`+=@active
   @catcode`@_=@active
 }
+
 
 % Say @foo, not \foo, in error messages.
 @escapechar = `@@
@@ -10351,3 +10519,4 @@ directory should work if nowhere else does.}
 @ignore
    arch-tag: e1b36e32-c96e-4135-a41a-0b2efa2ea115
 @end ignore
+@enablebackslashhack

@@ -91,7 +91,7 @@ spaces.  You might want to install ls from GNU Coreutils, which does
 support this option.  Alternatively, you might want to use Emacs's
 own emulation of \"ls\", by using:
   (setq ls-lisp-use-insert-directory-program nil)
-  (require 'ls-lisp)
+  (require \\='ls-lisp)
 This is used by default on MS Windows, which does not have an \"ls\" program.
 Note that `ls-lisp' does not support as many options as GNU ls, though.
 For more details, see Info node `(emacs)ls in Lisp'."
@@ -3567,7 +3567,7 @@ Thus, use \\[backward-page] to find the beginning of a group of errors."
 	       (unless (bolp)
 		 (insert "\n"))
 	       (insert (current-time-string)
-		       (format-message "\tBuffer ‘%s’\n" (buffer-name obuf)))
+		       (format-message "\tBuffer `%s'\n" (buffer-name obuf)))
 	       (goto-char (point-max))
 	       (insert "\f\n")))))))
 
@@ -4399,7 +4399,7 @@ instead.
 
 ;;;***
 
-;;;### (autoloads nil "dired-x" "dired-x.el" "c1a6289ba8504b605595321436a9c04d")
+;;;### (autoloads nil "dired-x" "dired-x.el" "63be23901985afd2a9aadc64f2aacf37")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\

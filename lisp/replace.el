@@ -209,9 +209,9 @@ wants to replace FROM with TO."
              (let ((match (match-string 3 from)))
                (cond
                 ((string= match "\\n")
-                 (message "Note: ‘\\n’ here doesn't match a newline; to do that, type C-q C-j instead"))
+                 (message "Note: `\\n' here doesn't match a newline; to do that, type C-q C-j instead"))
                 ((string= match "\\t")
-                 (message "Note: ‘\\t’ here doesn't match a tab; to do that, just type TAB")))
+                 (message "Note: `\\t' here doesn't match a tab; to do that, just type TAB")))
                (sit-for 2)))
         (if (not to)
             from
@@ -1140,7 +1140,7 @@ To return to ordinary Occur mode, use \\[occur-cease-edit]."
 	    (goto-char m)
 	    (recenter line)
 	    (if readonly
-		(message "Buffer ‘%s’ is read only." buf)
+		(message "Buffer `%s' is read only." buf)
 	      (delete-region (line-beginning-position) (line-end-position))
 	      (insert text))
 	    (move-to-column col)))))))
@@ -1496,7 +1496,7 @@ See also `multi-occur'."
 		     ;; it is longer than window-width.
 		     (if (> (+ (length regexp) 42) (window-width))
 			 "" (format-message
-                             " for ‘%s’" (query-replace-descr regexp)))))
+                             " for `%s'" (query-replace-descr regexp)))))
 	  (setq occur-revert-arguments (list regexp nlines bufs))
           (if (= count 0)
               (kill-buffer occur-buf)

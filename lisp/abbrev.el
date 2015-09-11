@@ -399,7 +399,7 @@ A prefix argument means don't query; expand all abbrevs."
 		   (buffer-substring-no-properties
 		    (save-excursion (forward-word -1) (point))
 		    pnt)))
-	    (if (or noquery (y-or-n-p (format-message "Expand ‘%s’? " string)))
+	    (if (or noquery (y-or-n-p (format-message "Expand `%s'? " string)))
 		(expand-abbrev)))))))
 
 ;;; Abbrev properties.

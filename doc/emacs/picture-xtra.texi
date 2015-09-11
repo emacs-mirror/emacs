@@ -53,7 +53,7 @@ Additional extensions to Picture mode can be found in
 @menu
 * Basic Picture::         Basic concepts and simple commands of Picture Mode.
 * Insert in Picture::     Controlling direction of cursor motion
-                            after "self-inserting" characters.
+                            after ``self-inserting'' characters.
 * Tabs in Picture::       Various features for tab stops and indentation.
 * Rectangles in Picture:: Clearing and superimposing rectangles.
 @end menu

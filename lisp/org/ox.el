@@ -1060,7 +1060,7 @@ keywords are understood:
     Menu entry for the export dispatcher.  It should be a list
     like:
 
-      '(KEY DESCRIPTION-OR-ORDINAL ACTION-OR-MENU)
+      (KEY DESCRIPTION-OR-ORDINAL ACTION-OR-MENU)
 
     where :
 
@@ -1084,17 +1084,17 @@ keywords are understood:
       If it is an alist, associations should follow the
       pattern:
 
-        '(KEY DESCRIPTION ACTION)
+        (KEY DESCRIPTION ACTION)
 
       where KEY, DESCRIPTION and ACTION are described above.
 
     Valid values include:
 
-      '(?m \"My Special Back-end\" my-special-export-function)
+       (?m \"My Special Back-end\" my-special-export-function)
 
       or
 
-      '(?l \"Export to LaTeX\"
+       (?l \"Export to LaTeX\"
            \(?p \"As PDF file\" org-latex-export-to-pdf)
            \(?o \"As PDF file and open\"
                \(lambda (a s v b)
@@ -1105,7 +1105,7 @@ keywords are understood:
       or the following, which will be added to the previous
       sub-menu,
 
-      '(?l 1
+       (?l 1
           \((?B \"As TEX buffer (Beamer)\" org-beamer-export-as-latex)
            \(?P \"As PDF file (Beamer)\" org-beamer-export-to-pdf)))
 
@@ -5553,7 +5553,7 @@ and `org-export-to-file' for more specialized functions."
                                       (kill-buffer proc-buffer))))
                            (org-export-add-to-stack proc-buffer nil p)
                            (ding)
-                           (message "Process ‘%s’ exited abnormally" p))
+                           (message "Process `%s' exited abnormally" p))
                        (unless org-export-async-debug
                          (delete-file ,,temp-file)))))))))))))
 

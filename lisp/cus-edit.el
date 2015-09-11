@@ -477,7 +477,7 @@
 (defun custom-split-regexp-maybe (regexp)
   "If REGEXP is a string, split it to a list at `\\|'.
 You can get the original back from the result with:
-  (mapconcat 'identity result \"\\|\")
+  (mapconcat \\='identity result \"\\|\")
 
 IF REGEXP is not a string, return it unchanged."
   (if (stringp regexp)

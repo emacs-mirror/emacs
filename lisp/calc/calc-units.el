@@ -1625,10 +1625,10 @@ If COMP or STD is non-nil, put that in the units table instead."
              (format-message
               (concat
                "(**) When in TeX or LaTeX display mode, the TeX specific unit\n"
-               "names will not use the ‘tex’ prefix; the unit name for a\n"
-               "TeX point will be ‘pt’ instead of ‘texpt’, for example.\n"
+               "names will not use the `tex' prefix; the unit name for a\n"
+               "TeX point will be `pt' instead of `texpt', for example.\n"
                "To avoid conflicts, the unit names for pint and parsec will\n"
-               "be ‘pint’ and ‘parsec’ instead of ‘pt’ and ‘pc’."))))
+               "be `pint' and `parsec' instead of `pt' and `pc'."))))
 	  (view-mode)
 	  (message "Formatting units table...done"))
 	(setq math-units-table-buffer-valid t)

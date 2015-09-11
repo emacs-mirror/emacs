@@ -66,16 +66,16 @@
 
 ;; describes 'mailto:'
 (defconst rfc2368-mailto-scheme-index 1
-  "Describes the ‘mailto:’ portion of the url.")
+  "Describes the `mailto:' portion of the url.")
 ;; i'm going to call this part the 'prequery'
 (defconst rfc2368-mailto-prequery-index 2
-  "Describes the portion of the url between ‘mailto:’ and ‘?’.")
+  "Describes the portion of the url between `mailto:' and `?'.")
 ;; i'm going to call this part the 'query'
 (defconst rfc2368-mailto-query-index 4
-  "Describes the portion of the url after ‘?’.")
+  "Describes the portion of the url after `?'.")
 
 (defun rfc2368-unhexify-string (string)
-  "Unhexify STRING -- e.g. ‘hello%20there’ -> ‘hello there’."
+  "Unhexify STRING -- e.g. `hello%20there' -> `hello there'."
   (replace-regexp-in-string "%[[:xdigit:]]\\{2\\}"
 			    (lambda (match)
 			      (string (string-to-number (substring match 1)

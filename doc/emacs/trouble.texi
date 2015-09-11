@@ -1345,16 +1345,16 @@ Emacs has additional style and coding conventions:
 @item
 @ifset WWW_GNU_ORG
 @ifhtml
-the "Tips" Appendix in the Emacs Lisp Reference
+the ``Tips'' Appendix in the Emacs Lisp Reference
 @url{http://www.gnu.org/software/emacs/manual/html_node/elisp/Tips.html}.
 @end ifhtml
 @ifnothtml
-@xref{Tips, "Tips" Appendix in the Emacs Lisp Reference, Tips
+@xref{Tips, ``Tips'' Appendix in the Emacs Lisp Reference, Tips
 Appendix, elisp, Emacs Lisp Reference}.
 @end ifnothtml
 @end ifset
 @ifclear WWW_GNU_ORG
-@xref{Tips, "Tips" Appendix in the Emacs Lisp Reference, Tips
+@xref{Tips, ``Tips'' Appendix in the Emacs Lisp Reference, Tips
 Appendix, elisp, Emacs Lisp Reference}.
 @end ifclear
 
@@ -1398,7 +1398,7 @@ See gnu-misc-discuss instead.)
 
 A copyright disclaimer is also a possibility, but we prefer an assignment.
 Note that the disclaimer, like an assignment, involves you sending
-signed paperwork to the FSF (simply saying "this is in the public domain"
+signed paperwork to the FSF (simply saying ``this is in the public domain''
 is not enough).  Also, a disclaimer cannot be applied to future work, it
 has to be repeated each time you want to send something new.
 

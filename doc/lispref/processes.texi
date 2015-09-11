@@ -1720,13 +1720,13 @@ sentinel, the eventual call to the sentinel will use the new one.
 @group
 (defun msg-me (process event)
    (princ
-     (format "Process: %s had the event ‘%s’" process event)))
+     (format "Process: %s had the event '%s'" process event)))
 (set-process-sentinel (get-process "shell") 'msg-me)
      @result{} msg-me
 @end group
 @group
 (kill-process (get-process "shell"))
-     @print{} Process: #<process shell> had the event ‘killed’
+     @print{} Process: #<process shell> had the event 'killed'
      @result{} #<process shell>
 @end group
 @end smallexample

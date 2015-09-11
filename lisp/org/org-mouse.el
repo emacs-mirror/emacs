@@ -539,7 +539,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 		((stringp (nth 2 entry))
 		 (concat (org-mouse-agenda-type (nth 1 entry))
 			 (nth 2 entry)))
-		(t "Agenda Command ‘%s’"))
+		(t "Agenda Command `%s'"))
 	       30))))
      "--"
      ["Delete Blank Lines" delete-blank-lines
@@ -566,7 +566,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
       (save-excursion (org-apply-on-list wrap-fun nil)))))
 
 (defun org-mouse-bolp ()
-  "Return true if there only spaces, tabs, and ‘*’ before point.
+  "Return true if there only spaces, tabs, and `*' before point.
 This means, between the beginning of line and the point."
   (save-excursion
     (skip-chars-backward " \t*") (bolp)))
@@ -708,9 +708,9 @@ This means, between the beginning of line and the point."
      ((org-mouse-looking-at ":\\([A-Za-z0-9_]+\\):" "A-Za-z0-9_" -1) ;tags
       (popup-menu
        `(nil
-	 [,(format-message "Display ‘%s’" (match-string 1))
+	 [,(format-message "Display `%s'" (match-string 1))
 	  (org-tags-view nil ,(match-string 1))]
-	 [,(format-message "Sparse Tree ‘%s’" (match-string 1))
+	 [,(format-message "Sparse Tree `%s'" (match-string 1))
 	  (org-tags-sparse-tree nil ,(match-string 1))]
 	 "--"
 	 ,@(org-mouse-tag-menu))))

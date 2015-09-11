@@ -4534,6 +4534,8 @@ sys_rmdir (const char * path)
 int
 sys_unlink (const char * path)
 {
+  int rmstatus, e;
+
   path = map_w32_filename (path, NULL);
 
   if (w32_unicode_filenames)
@@ -4541,9 +4543,18 @@ sys_unlink (const char * path)
       wchar_t path_w[MAX_PATH];
 
       filename_to_utf16 (path, path_w);
-      /* On Unix, unlink works without write permission. */
+      /* On Unix, unlink works without write permission.  */
       _wchmod (path_w, 0666);
-      return _wunlink (path_w);
+      rmstatus = _wunlink (path_w);
+      e = errno;
+      /* Symlinks to directories can only be deleted by _rmdir;
+	 _unlink returns EACCES.  */
+      if (rmstatus != 0
+	  && errno == EACCES
+	  && (is_symlink (path) & FILE_ATTRIBUTE_DIRECTORY) != 0)
+	rmstatus = _wrmdir (path_w);
+      else
+	errno = e;
     }
   else
     {
@@ -4551,8 +4562,17 @@ sys_unlink (const char * path)
 
       filename_to_ansi (path, path_a);
       _chmod (path_a, 0666);
-      return _unlink (path_a);
+      rmstatus = _unlink (path_a);
+      e = errno;
+      if (rmstatus != 0
+	  && errno == EACCES
+	  && (is_symlink (path) & FILE_ATTRIBUTE_DIRECTORY) != 0)
+	rmstatus = _rmdir (path_a);
+      else
+	errno = e;
     }
+
+  return rmstatus;
 }
 
 static FILETIME utc_base_ft;
@@ -5626,7 +5646,8 @@ symlink (char const *filename, char const *linkname)
 /* A quick inexpensive test of whether FILENAME identifies a file that
    is a symlink.  Returns non-zero if it is, zero otherwise.  FILENAME
    must already be in the normalized form returned by
-   map_w32_filename.
+   map_w32_filename.  If the symlink is to a directory, the
+   FILE_ATTRIBUTE_DIRECTORY bit will be set in the return value.
 
    Note: for repeated operations on many files, it is best to test
    whether the underlying volume actually supports symlinks, by
@@ -5684,6 +5705,8 @@ is_symlink (const char *filename)
       attrs_mean_symlink =
 	(wfdw.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0
 	&& (wfdw.dwReserved0 & IO_REPARSE_TAG_SYMLINK) == IO_REPARSE_TAG_SYMLINK;
+      if (attrs_mean_symlink)
+	attrs_mean_symlink |= (wfdw.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
     }
   else if (_mbspbrk (filename_a, "?"))
     {
@@ -5697,6 +5720,8 @@ is_symlink (const char *filename)
       attrs_mean_symlink =
 	(wfda.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0
 	&& (wfda.dwReserved0 & IO_REPARSE_TAG_SYMLINK) == IO_REPARSE_TAG_SYMLINK;
+      if (attrs_mean_symlink)
+	attrs_mean_symlink |= (wfda.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
     }
   if (fh == INVALID_HANDLE_VALUE)
     return 0;

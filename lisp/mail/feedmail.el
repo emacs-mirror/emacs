@@ -418,9 +418,9 @@ cases.  You can give a timeout for the prompt; see variable
 If nil, the prepped message will be shown, for confirmation or
 otherwise, in some window in the current frame without resizing
 anything.  That may or may not display enough of the message to
-distinguish it from others.  If set to the symbol ‘queued’, take
+distinguish it from others.  If set to the symbol `queued', take
 this action only when running the queue.  If set to the symbol
-‘immediate’, take this action only when sending immediately.  For
+`immediate', take this action only when sending immediately.  For
 any other non-nil value, take the action in both cases.  Even if
 you're not confirming the sending of immediate or queued messages,
 it can still be interesting to see a lot about them as they are
@@ -471,9 +471,9 @@ Addresses for the message envelope are deduced by examining
 appropriate address headers in the message.  Generally, they will show
 up in the list of deduced addresses in the order that the headers
 happen to appear (duplicate addresses are eliminated in any case).
-This variable can be set to the symbol ‘first’, in which case the
+This variable can be set to the symbol `first', in which case the
 Bcc:/Resent-Bcc: addresses will appear at the beginning in the list;
-or, it can be set to the symbol ‘last’, in which case they will appear
+or, it can be set to the symbol `last', in which case they will appear
 at the end of the list.
 
 Why should you care?  Well, maybe you don't, and certainly the same
@@ -484,7 +484,7 @@ addresses are not handled first, there can be substantial delays in
 seeing the message again.  Some configurations of sendmail, for example,
 seem to try to deliver to each addressee at least once, immediately
 and serially, so slow SMTP conversations can add up to a delay.  There
-is an option for either ‘first’ or ‘last’ because you might have a
+is an option for either `first' or `last' because you might have a
 delivery agent that processes the addresses backwards."
   :group 'feedmail-headers
   :type '(choice (const nil)
@@ -566,7 +566,7 @@ but common in some proprietary systems."
   "If non-nil and the email has no Sender: header, use this value.
 May be nil, in which case nothing in particular is done with respect
 to Sender: lines.  By design, will not replace an existing Sender:
-line, but you can achieve that with a fiddle-plex 'replace action.
+line, but you can achieve that with a fiddle-plex replace action.
 NB: it makes no sense to use the value t since there is no sensible
 default for Sender:.
 
@@ -1745,7 +1745,7 @@ applied to a file after you've just read it from disk: for example, a
 feedmail FQM message file from a queue.  You could use something like
 this:
 
-\(setq auto-mode-alist \(cons \'\(\"\\\\.fqm$\" . feedmail-vm-mail-mode\) auto-mode-alist\)\)
+\(setq auto-mode-alist \(cons \\='\(\"\\\\.fqm$\" . feedmail-vm-mail-mode\) auto-mode-alist\)\)
 "
   (feedmail-say-debug ">in-> feedmail-vm-mail-mode")
   (let ((the-buf (current-buffer)))
@@ -2054,7 +2054,7 @@ backup file names and the like)."
 		;; the handler for the condition-case
 		(error (setq messages-skipped (1+ messages-skipped))
 		       (ding t)
-		       (message "FQM: Trapped ‘%s’, message left in queue." (car signal-stuff))
+		       (message "FQM: Trapped `%s', message left in queue." (car signal-stuff))
 		       (sit-for 3)
 		       (message "FQM: Trap details: \"%s\""
 				(mapconcat 'identity (cdr signal-stuff) "\" \""))

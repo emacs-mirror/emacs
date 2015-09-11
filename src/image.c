@@ -7499,6 +7499,12 @@ gif_image_p (Lisp_Object object)
 #  define GIFLIB_MAJOR 4
 # endif
 
+/* GifErrorString is declared to return char const * when GIFLIB_MAJOR
+   and GIFLIB_MINOR indicate 5.1 or later.  Do not bother using it in
+   earlier releases, where either it returns char * or GIFLIB_MINOR
+   may be incorrect.  */
+# define HAVE_GIFERRORSTRING (5 < GIFLIB_MAJOR + (1 <= GIFLIB_MINOR))
+
 # ifdef WINDOWSNT
 
 /* GIF library details.  */
@@ -7514,7 +7520,9 @@ DEF_DLL_FN (GifFileType *, DGifOpenFileName, (const char *));
 #  else
 DEF_DLL_FN (GifFileType *, DGifOpen, (void *, InputFunc, int *));
 DEF_DLL_FN (GifFileType *, DGifOpenFileName, (const char *, int *));
-DEF_DLL_FN (char *, GifErrorString, (int));
+#  endif
+#  if HAVE_GIFERRORSTRING
+DEF_DLL_FN (char const *, GifErrorString, (int));
 #  endif
 
 static bool
@@ -7529,7 +7537,7 @@ init_gif_functions (void)
   LOAD_DLL_FN (library, DGifSlurp);
   LOAD_DLL_FN (library, DGifOpen);
   LOAD_DLL_FN (library, DGifOpenFileName);
-#  if GIFLIB_MAJOR >= 5
+#  if HAVE_GIFERRORSTRING
   LOAD_DLL_FN (library, GifErrorString);
 #  endif
   return 1;
@@ -7641,20 +7649,19 @@ gif_load (struct frame *f, struct image *img)
       /* Open the GIF file.  */
 #if GIFLIB_MAJOR < 5
       gif = DGifOpenFileName (SSDATA (encoded_file));
-      if (gif == NULL)
-	{
-	  image_error ("Cannot open `%s'", file);
-	  return 0;
-	}
 #else
       gif = DGifOpenFileName (SSDATA (encoded_file), &gif_err);
+#endif
       if (gif == NULL)
 	{
+#if HAVE_GIFERRORSTRING
 	  image_error ("Cannot open `%s': %s",
 		       file, build_string (GifErrorString (gif_err)));
+#else
+	  image_error ("Cannot open `%s'", file);
+#endif
 	  return 0;
 	}
-#endif
     }
   else
     {
@@ -7672,20 +7679,19 @@ gif_load (struct frame *f, struct image *img)
 
 #if GIFLIB_MAJOR < 5
       gif = DGifOpen (&memsrc, gif_read_from_memory);
-      if (!gif)
-	{
-	  image_error ("Cannot open memory source `%s'", img->spec);
-	  return 0;
-	}
 #else
       gif = DGifOpen (&memsrc, gif_read_from_memory, &gif_err);
+#endif
       if (!gif)
 	{
+#if HAVE_GIFERRORSTRING
 	  image_error ("Cannot open memory source `%s': %s",
 		       img->spec, build_string (GifErrorString (gif_err)));
+#else
+	  image_error ("Cannot open memory source `%s'", img->spec);
+#endif
 	  return 0;
 	}
-#endif
     }
 
   /* Before reading entire contents, check the declared image size. */
@@ -7980,8 +7986,8 @@ gif_load (struct frame *f, struct image *img)
 
   if (gif_close (gif, &gif_err) == GIF_ERROR)
     {
-#if 5 <= GIFLIB_MAJOR
-      char *error_text = GifErrorString (gif_err);
+#if HAVE_GIFERRORSTRING
+      char const *error_text = GifErrorString (gif_err);
 
       if (error_text)
 	image_error ("Error closing `%s': %s",

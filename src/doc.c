@@ -724,7 +724,7 @@ as the keymap for future \\=\\[COMMAND] substrings.
 
 Each \\=‘ and \\=` is replaced by left quote, and each \\=’ and \\='
 is replaced by right quote.  Left and right quote characters are
-specified by ‘text-quoting-style’.
+specified by `text-quoting-style'.
 
 \\=\\= quotes the following character and is discarded; thus,
 \\=\\=\\=\\= puts \\=\\= into the output, \\=\\=\\=\\[ puts \\=\\[ into the output, and
@@ -1024,15 +1024,15 @@ syms_of_doc (void)
 
   DEFVAR_LISP ("text-quoting-style", Vtext_quoting_style,
                doc: /* Style to use for single quotes when generating text.
-‘curve’ means quote with curved single quotes \\=‘like this\\=’.
-‘straight’ means quote with straight apostrophes \\='like this\\='.
-‘grave’ means quote with grave accent and apostrophe \\=`like this\\='.
-The default value nil acts like ‘curve’ if curved single quotes are
-displayable, and like ‘grave’ otherwise.  */);
+`curve' means quote with curved single quotes \\=‘like this\\=’.
+`straight' means quote with straight apostrophes \\='like this\\='.
+`grave' means quote with grave accent and apostrophe \\=`like this\\='.
+The default value nil acts like `curve' if curved single quotes are
+displayable, and like `grave' otherwise.  */);
   Vtext_quoting_style = Qnil;
 
   DEFVAR_BOOL ("internal--text-quoting-flag", text_quoting_flag,
-	       doc: /* If nil, a nil ‘text-quoting-style’ is treated as ‘grave’.  */);
+	       doc: /* If nil, a nil `text-quoting-style' is treated as `grave'.  */);
   /* Initialized by ‘main’.  */
 
   defsubr (&Sdocumentation);

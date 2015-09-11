@@ -161,7 +161,7 @@ otherwise."
       ;; Buttons
       (when (and button (not (widgetp wid-button)))
 	(newline)
-	(insert (format-message "Here is a ‘%S’ button labeled ‘%s’.\n\n"
+	(insert (format-message "Here is a `%S' button labeled `%s'.\n\n"
                                 button-type button-label)))
       ;; Overlays
       (when overlays
@@ -734,7 +734,7 @@ relevant to POS."
                 (when face
                   (insert (propertize " " 'display '(space :align-to 5))
                           "face: ")
-                  (insert (format-message "‘%s’\n" face))))))
+                  (insert (format-message "`%s'\n" face))))))
 
           (when composition
             (insert "\nComposed")

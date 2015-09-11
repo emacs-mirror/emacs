@@ -3273,6 +3273,7 @@ extern ptrdiff_t compute_display_string_end (ptrdiff_t,
 					     struct bidi_string_data *);
 extern void produce_stretch_glyph (struct it *);
 extern int merge_glyphless_glyph_face (struct it *);
+extern void forget_escape_and_glyphless_faces (void);
 
 extern void get_font_ascent_descent (struct font *, int *, int *);
 

@@ -230,8 +230,8 @@ string.	 INCOMPATIBLE-VERSION can be nil.
 RESERVED arguments are kept for a later use.
 Return:
 - nil if everything is ok.
-- 'outdated if VERSION is less than MINIMUM.
-- 'incompatible if VERSION is not backward compatible with MINIMUM.
+- `outdated' if VERSION is less than MINIMUM.
+- `incompatible' if VERSION is not backward compatible with MINIMUM.
 - t if the check failed."
   (let ((code (if (stringp version)
 		  (inversion-decode-version version)

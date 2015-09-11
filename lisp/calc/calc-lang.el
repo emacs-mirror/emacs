@@ -94,7 +94,7 @@
   (interactive)
   (calc-wrapper
    (calc-set-language 'c)
-   (message "‘C’ language mode")))
+   (message "C language mode")))
 
 (put 'c 'math-oper-table
   '( ( "u!"    calcFunc-lnot -1 1000 )
@@ -387,7 +387,7 @@
 	      math-exp-token 'end
 	      math-expr-data "\000")
 	x)
-    (throw 'syntax "Unmatched closing ‘/’")))
+    (throw 'syntax "Unmatched closing `/'")))
 
 (defun math-parse-fortran-subscr (sym args)
   (setq sym (math-build-var-name sym))
@@ -695,7 +695,7 @@
 
 (defun math-parse-tex-sum (f val)
   (let (low high save)
-    (or (equal math-expr-data "_") (throw 'syntax "Expected ‘_’"))
+    (or (equal math-expr-data "_") (throw 'syntax "Expected `_'"))
     (math-read-token)
     (setq save math-exp-old-pos)
     (setq low (math-read-factor))
@@ -703,7 +703,7 @@
 	(progn
 	  (setq math-exp-old-pos (1+ save))
 	  (throw 'syntax "Expected equation")))
-    (or (equal math-expr-data "^") (throw 'syntax "Expected ‘^’"))
+    (or (equal math-expr-data "^") (throw 'syntax "Expected `^'"))
     (math-read-token)
     (setq high (math-read-factor))
     (list (nth 2 f) (math-read-factor) (nth 1 low) (nth 2 low) high)))
@@ -1165,14 +1165,14 @@
     (while (assoc math-expr-data '(("ccol") ("lcol") ("rcol")))
       (math-read-token)
       (or (equal math-expr-data calc-function-open)
-	  (throw 'syntax "Expected ‘{’"))
+	  (throw 'syntax "Expected `{'"))
       (math-read-token)
       (setq vec (cons (cons 'vec (math-read-expr-list)) vec))
       (or (equal math-expr-data calc-function-close)
-	  (throw 'syntax "Expected ‘}’"))
+	  (throw 'syntax "Expected `}'"))
       (math-read-token))
     (or (equal math-expr-data calc-function-close)
-	(throw 'syntax "Expected ‘}’"))
+	(throw 'syntax "Expected `}'"))
     (math-read-token)
     (math-transpose (cons 'vec (nreverse vec)))))
 
@@ -1187,7 +1187,7 @@
 			  (math-read-expr-list))))
 	      (if (not (or (equal math-expr-data calc-function-close)
 			   (eq math-exp-token 'end)))
-		  (throw 'syntax "Expected ‘)’"))
+		  (throw 'syntax "Expected `)'"))
 	      (math-read-token)
 	      (cons (intern (format "calcFunc-%s'" (nth 1 x))) args)))
 	(list 'var
@@ -1211,7 +1211,7 @@
   (interactive)
   (calc-wrapper
    (calc-set-language 'yacas)
-   (message "‘Yacas’ language mode")))
+   (message "Yacas language mode")))
 
 (put 'yacas 'math-vector-brackets "{}")
 
@@ -1427,7 +1427,7 @@
   (interactive)
   (calc-wrapper
    (calc-set-language 'maxima)
-   (message "‘Maxima’ language mode")))
+   (message "Maxima language mode")))
 
 (put 'maxima 'math-oper-table
      '(("+"    +               100  100)
@@ -1625,7 +1625,7 @@
   (interactive)
   (calc-wrapper
    (calc-set-language 'giac)
-   (message "‘Giac’ language mode")))
+   (message "Giac language mode")))
 
 (put 'giac 'math-oper-table
   '( ( "["    (math-read-giac-subscr) 250 -1 )
@@ -1817,7 +1817,7 @@ order to Calc's."
 (defun math-read-giac-subscr (x op)
   (let ((idx (math-read-expr-level 0)))
     (or (equal math-expr-data "]")
-	(throw 'syntax "Expected ‘]’"))
+	(throw 'syntax "Expected `]'"))
     (math-read-token)
     (list 'calcFunc-subscr x (calc-normalize (list '+ idx 1)))))
 
@@ -1954,7 +1954,7 @@ order to Calc's."
 	     (progn
 	       (math-read-token)
 	       (equal math-expr-data "]")))
-	(throw 'syntax "Expected ‘]]’"))
+	(throw 'syntax "Expected `]]'"))
     (math-read-token)
     (list 'calcFunc-subscr x idx)))
 
@@ -2237,7 +2237,7 @@ order to Calc's."
 	       (if (= sep ?\.)
 		   (setq h (1+ h)))
 	       (if (= sep ?\])
-		   (math-read-big-error (1- h) v "Expected ‘)’"))
+		   (math-read-big-error (1- h) v "Expected `)'"))
 	       (if (= sep ?\))
 		   (setq p (math-read-big-rec
                             (1+ math-rb-h1) math-rb-v1 (1- h) math-rb-v2 v))
@@ -2252,7 +2252,7 @@ order to Calc's."
 						      0 1)
 						  p))))
 		       ((= (math-read-big-char (1- h) v) ?\])
-			(math-read-big-error (1- h) v "Expected ‘)’"))
+			(math-read-big-error (1- h) v "Expected `)'"))
 		       ((= sep ?\,)
 			(or (and (math-realp (car p)) (math-realp (nth 1 p)))
 			    (math-read-big-error
@@ -2280,7 +2280,7 @@ order to Calc's."
 			(setq h (math-read-big-balance (1+ hleft) v "["))
 			(if hright
 			    (or (= h hright)
-				(math-read-big-error hright v "Expected ‘]’"))
+				(math-read-big-error hright v "Expected `]'"))
 			  (setq hright h))
 			(setq p (cons (math-read-big-rec
 				       hleft v h (1+ v)) p))
@@ -2293,7 +2293,7 @@ order to Calc's."
 			 (setq h (1+ h)))
 		     (and (= (math-read-big-char h v) ?\])
 			  (setq h (1+ h))))
-		   (math-read-big-error (1- h) v "Expected ‘]’"))
+		   (math-read-big-error (1- h) v "Expected `]'"))
 	       (if (= (math-read-big-char h vtop) ?\,)
 		   (setq h (1+ h)))
 	       (math-read-big-emptyp math-rb-h1 (1+ v) (1- h) math-rb-v2 nil t)
@@ -2317,7 +2317,7 @@ order to Calc's."
 	     (setq widest (math-read-big-char (1- h) v))
 	     (if (or (memq widest '(?\; ?\)))
 		     (and (eq widest ?\.) (cdr p)))
-		 (math-read-big-error (1- h) v "Expected ‘]’"))
+		 (math-read-big-error (1- h) v "Expected `]'"))
 	     (if (= widest ?\.)
 		 (setq h (1+ h)
 		       widest (math-read-big-balance h v "[")
@@ -2369,7 +2369,7 @@ order to Calc's."
 				  h widest)
 			    (= (math-read-big-char (1- h) v) ?\,)))
 		   (or (= (math-read-big-char (1- h) v) ?\))
-		       (math-read-big-error (1- h) v "Expected ‘)’"))
+		       (math-read-big-error (1- h) v "Expected `)'"))
 		   (setq p (cons line (nreverse p))))
 	       (setq p (list 'var
 			     (intern (math-remove-dashes p))
@@ -2433,7 +2433,7 @@ order to Calc's."
                                            math-rb-v2 baseline nil t)))
 		 (or (= (math-read-big-char math-read-big-h2 baseline) ?\:)
 		     (math-read-big-error math-read-big-h2 baseline
-                                          "Expected ‘:’"))
+                                          "Expected `:'"))
 		 (setq p (list (nth 1 widest) p y
 			       (math-read-big-rec
                                 (1+ math-read-big-h2) math-rb-v1 math-rb-h2 math-rb-v2
@@ -2509,7 +2509,7 @@ order to Calc's."
       (if (>= h len)
 	  (if what
 	      (math-read-big-error nil v (format-message
-                                          "Unmatched ‘%s’" what))
+                                          "Unmatched `%s'" what))
 	    (setq count 0))
 	(if (memq (aref line h) '(?\( ?\[))
 	    (setq count (1+ count))

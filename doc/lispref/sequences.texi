@@ -557,18 +557,23 @@ calling @var{function}.
 @end example
 @end defun
 
-@defun seq-some-p predicate sequence
-  This function returns the first member of sequence for which @var{predicate}
-returns non-@code{nil}.
+@defun seq-some predicate sequence
+  This function returns non-@code{nil} if @var{predicate} returns
+non-@code{nil} for any element of @var{sequence}.  If so, the returned
+value is the value returned by @var{predicate}.
 
 @example
 @group
-(seq-some-p #'numberp ["abc" 1 nil])
-@result{} 1
+(seq-some #'numberp ["abc" 1 nil])
+@result{} t
 @end group
 @group
-(seq-some-p #'numberp ["abc" "def"])
+(seq-some #'numberp ["abc" "def"])
 @result{} nil
+@end group
+@group
+(seq-some #'null ["abc" 1 nil])
+@result{} t
 @end group
 @end example
 @end defun
@@ -583,7 +588,7 @@ to every element of @var{sequence} returns non-@code{nil}.
 @result{} t
 @end group
 @group
-(seq-some-p #'numberp [2 4 "6"])
+(seq-some #'numberp [2 4 "6"])
 @result{} nil
 @end group
 @end example
@@ -621,18 +626,18 @@ according to @var{function}, a function of two arguments that returns
 non-@code{nil} if the first argument should sort before the second.
 @end defun
 
-@defun seq-contains-p sequence elt &optional function
+@defun seq-contains sequence elt &optional function
   This function returns the first element in @var{sequence} that is equal to
 @var{elt}.  If the optional argument @var{function} is non-@code{nil},
 it is a function of two arguments to use instead of the default @code{equal}.
 
 @example
 @group
-(seq-contains-p '(symbol1 symbol2) 'symbol1)
+(seq-contains '(symbol1 symbol2) 'symbol1)
 @result{} symbol1
 @end group
 @group
-(seq-contains-p '(symbol1 symbol2) 'symbol3)
+(seq-contains '(symbol1 symbol2) 'symbol3)
 @result{} nil
 @end group
 @end example

@@ -4173,6 +4173,8 @@ free_realized_faces (struct face_cache *c)
 	  c->faces_by_id[i] = NULL;
 	}
 
+      /* Forget the escape-glyph and glyphless-char faces.  */
+      forget_escape_and_glyphless_faces ();
       c->used = 0;
       size = FACE_CACHE_BUCKETS_SIZE * sizeof *c->buckets;
       memset (c->buckets, 0, size);
@@ -4184,7 +4186,7 @@ free_realized_faces (struct face_cache *c)
       if (WINDOWP (f->root_window))
 	{
 	  clear_current_matrices (f);
-	  windows_or_buffers_changed = 58;
+	  fset_redisplay (f);
 	}
 
       unblock_input ();
@@ -4204,6 +4206,7 @@ free_all_realized_faces (Lisp_Object frame)
       Lisp_Object rest;
       FOR_EACH_FRAME (rest, frame)
 	free_realized_faces (FRAME_FACE_CACHE (XFRAME (frame)));
+      windows_or_buffers_changed = 58;
     }
   else
     free_realized_faces (FRAME_FACE_CACHE (XFRAME (frame)));

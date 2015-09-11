@@ -240,7 +240,7 @@ C-w  Describe how there is no warranty for Calc."
 		  (if (string-match "\\` +" prompts)
 		      (setq prompts (substring prompts (match-end 0))))
 		  (setq msg (format-message
-			     "%s:  %s%s‘%s’%s%s %s%s"
+			     "%s:  %s%s`%s'%s%s %s%s"
 			     (if (string-match
 				  "\\`\\(calc-[-a-zA-Z0-9]+\\) *\\(.*\\)\\'"
 				  cmd)
@@ -345,7 +345,7 @@ C-w  Describe how there is no warranty for Calc."
   (calc-describe-thing var "Variable Index"))
 
 (defun calc-describe-thing (thing where &optional target not-quoted)
-  (message "Looking for ‘%s’ in %s..." thing where)
+  (message "Looking for `%s' in %s..." thing where)
   (let ((savewin (current-window-configuration)))
     (calc-info-goto-node where)
     (or (let ((case-fold-search nil))
@@ -361,7 +361,7 @@ C-w  Describe how there is no warranty for Calc."
           (if Info-history
               (Info-last))
 	  (set-window-configuration savewin)
-	  (error "Can't find ‘%s’ in %s" thing where)))
+	  (error "Can't find `%s' in %s" thing where)))
     (let (Info-history)
       (Info-goto-node (buffer-substring (match-beginning 1) (match-end 1))))
     (let* ((string-target (or target thing))
@@ -380,7 +380,7 @@ C-w  Describe how there is no warranty for Calc."
                 (re-search-forward quoted nil t)
                 (search-forward string-target nil t)))))
     (beginning-of-line)
-    (message "Found ‘%s’ in %s" thing where)))
+    (message "Found `%s' in %s" thing where)))
 
 (defun calc-view-news ()
   (interactive)
@@ -400,9 +400,9 @@ C-w  Describe how there is no warranty for Calc."
     (princ "GNU Emacs Calculator.\n")
     (princ "  By Dave Gillespie.\n")
     (princ (format "  %s\n\n" emacs-copyright))
-    (princ (format-message "Type ‘h s’ for a more detailed summary.\n"))
+    (princ (format-message "Type `h s' for a more detailed summary.\n"))
     (princ (format-message
-            "Or type ‘h i’ to read the full Calc manual on-line.\n\n"))
+            "Or type `h i' to read the full Calc manual on-line.\n\n"))
     (princ "Basic keys:\n")
     (let* ((calc-full-help-flag t))
       (mapc (function (lambda (x) (princ (format
@@ -417,10 +417,10 @@ C-w  Describe how there is no warranty for Calc."
 			      (princ
 			       (if (eq (nth 2 msgs) ?v)
                                    (format-message
-                                    "\n‘v’ or ‘V’ prefix (vector/matrix) keys: \n")
+                                    "\n`v' or `V' prefix (vector/matrix) keys: \n")
 				 (if (nth 2 msgs)
 				     (format-message
-				      "\n‘%c’ prefix (%s) keys:\n"
+				      "\n`%c' prefix (%s) keys:\n"
 				      (nth 2 msgs)
 				      (or (cdr (assq (nth 2 msgs)
 						     calc-help-long-names))

@@ -851,14 +851,14 @@ t if it successfully authenticates, nil otherwise."
 	(setq user (or imap-username
 		       (read-from-minibuffer
 			(format-message
-			 "imap: username for %s (using stream ‘%s’): "
+			 "imap: username for %s (using stream `%s'): "
 			 imap-server imap-stream)
 			(or user imap-default-user))))
 	(setq passwd
 	      (or imap-password
 		  (read-passwd
 		   (format-message
-		    "imap: password for %s@%s (using authenticator ‘%s’): "
+		    "imap: password for %s@%s (using authenticator `%s'): "
 		    user imap-server imap-auth))))
 	(when (and user passwd)
 	  (if (funcall loginfunc user passwd)

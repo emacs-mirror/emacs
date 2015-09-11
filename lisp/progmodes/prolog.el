@@ -402,11 +402,11 @@ Only used in ( If -> Then ; Else) and ( Disj1 ; Disj2 ) style expressions."
 (defcustom prolog-parse-mode 'beg-of-clause
   "The parse mode used (decides from which point parsing is done).
 Legal values:
-'beg-of-line   - starts parsing at the beginning of a line, unless the
-                 previous line ends with a backslash.  Fast, but has
-                 problems detecting multiline /* */ comments.
-'beg-of-clause - starts parsing at the beginning of the current clause.
-                 Slow, but copes better with /* */ comments."
+`beg-of-line'   - starts parsing at the beginning of a line, unless the
+                  previous line ends with a backslash.  Fast, but has
+                  problems detecting multiline /* */ comments.
+`beg-of-clause' - starts parsing at the beginning of the current clause.
+                  Slow, but copes better with /* */ comments."
   :version "24.1"
   :group 'prolog-indentation
   :type '(choice (const :value beg-of-line)
@@ -1209,7 +1209,7 @@ using the commands `send-region', `send-string' and \\[prolog-consult-region].
 Commands:
 Tab indents for Prolog; with argument, shifts rest
  of expression rigidly with the current line.
-Paragraphs are separated only by blank lines and '%%'. '%'s start comments.
+Paragraphs are separated only by blank lines and `%%'. `%'s start comments.
 
 Return at end of buffer sends line as input.
 Return not at end copies rest of line to end and sends it.

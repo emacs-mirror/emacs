@@ -297,7 +297,7 @@ refreshed when things change.  See `semanticdb-ref-test'.
 Note for overloading:  If you opt to overload this function for your
 major mode, and your routine takes a long time, be sure to call
 
- (semantic-throw-on-input 'your-symbol-here)
+ (semantic-throw-on-input \\='your-symbol-here)
 
 so that it can be called from the idle work handler."
   )

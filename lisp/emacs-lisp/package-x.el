@@ -296,7 +296,7 @@ destination, prompt for one."
             ((string-match "\\.tar\\'" file)
              (tar-mode) (package-tar-file-info))
             ((string-match "\\.el\\'" file) (package-buffer-info))
-            (t (error "Unrecognized extension ‘%s’"
+            (t (error "Unrecognized extension `%s'"
                       (file-name-extension file))))))
       (package-upload-buffer-internal pkg-desc (file-name-extension file)))))
 

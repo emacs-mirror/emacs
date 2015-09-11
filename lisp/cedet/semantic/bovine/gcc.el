@@ -137,9 +137,9 @@ to give to the program."
   "The GCC setup data.
 This is setup by `semantic-gcc-setup'.
 This is an alist, and should include keys of:
-  'version  - the version of gcc
-  '--host   - the host symbol (used in include directories)
-  '--prefix - where GCC was installed.
+  `version'  - the version of gcc
+  `--host'   - the host symbol (used in include directories)
+  `--prefix' - where GCC was installed.
 It should also include other symbols GCC was compiled with.")
 
 ;;;###autoload

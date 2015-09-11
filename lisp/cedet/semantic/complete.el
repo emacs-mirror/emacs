@@ -1665,7 +1665,7 @@ Display mechanism using tooltip for a list of possible completions.")
 	(when (>= (oref obj typing-count) 5)
 	  (oset obj mode 'standard)
 	  (setq mode 'standard)
-	  (message "Resetting inline-mode to ‘standard’."))
+	  (message "Resetting inline-mode to `standard'."))
 	(when (and (> numcompl max-tags)
 		   (< (oref obj typing-count) 2))
 	  ;; Discretely hint at completion availability.
@@ -1684,7 +1684,7 @@ Display mechanism using tooltip for a list of possible completions.")
 	      (setq msg-tail (concat "\n[<TAB> " (number-to-string (- numcompl max-tags)) " more]"))
 	    (setq msg-tail (concat "\n[<n/a> " (number-to-string (- numcompl max-tags)) " more]"))
 	    (when (>= (oref obj typing-count) 2)
-	      (message "Refine search to display results beyond the ‘%s’ limit"
+	      (message "Refine search to display results beyond the `%s' limit"
 		       (symbol-name 'semantic-complete-inline-max-tags-extended)))))
 	 ((= numcompl 1)
 	  ;; two possible cases

@@ -384,9 +384,9 @@ The structure includes the guides lines, bullet, and bullet cue.")
 
 Entries on the list are lists whose first element is a symbol indicating
 the change type and subsequent elements are data specific to that change
-type.  Specifically:
+type.  For example:
 
- 'exposure `allout-exposure-from' `allout-exposure-to' `allout-exposure-flag'
+  (exposure ALLOUT-EXPOSURE-FROM ALLOUT-EXPOSURE-TO ALLOUT-EXPOSURE-FLAG)
 
 The changes are recorded in reverse order, with new values pushed
 onto the front.")
@@ -481,9 +481,9 @@ text in allout item bodies.")
 
 \(That space is used to convey selected cues indicating body qualities,
 including things like:
- - encryption ‘~’
- - numbering ‘#’
- - indirect reference ‘@’
+ - encryption `~'
+ - numbering `#'
+ - indirect reference `@'
  - distinctive bullets - see `allout-distinctive-bullets-string'.)")
 ;;;_    = allout-span-to-category
 (defvar allout-span-to-category

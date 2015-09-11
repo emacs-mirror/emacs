@@ -20,8 +20,8 @@ deleted, so that it stays with the two characters on either side of it.
 * Marker Insertion Types::   Two ways a marker can relocate when you
                                insert where it points.
 * Moving Markers::           Moving the marker to a new buffer or position.
-* The Mark::                 How "the mark" is implemented with a marker.
-* The Region::               How to access "the region".
+* The Mark::                 How ``the mark'' is implemented with a marker.
+* The Region::               How to access ``the region''.
 @end menu
 
 @node Overview of Markers

@@ -110,11 +110,11 @@
      (setq n (and (not (eq calc-auto-why t)) (if calc-auto-why t 1))))
    (calc-change-mode 'calc-auto-why n nil)
    (cond ((null n)
-	  (message "User must press ‘w’ to explain unsimplified results"))
+	  (message "User must press `w' to explain unsimplified results"))
 	 ((eq n t)
-	  (message "Automatically doing ‘w’ to explain unsimplified results"))
+	  (message "Automatically doing `w' to explain unsimplified results"))
 	 (t
-	  (message "Automatically doing ‘w’ only for unusual messages")))))
+	  (message "Automatically doing `w' only for unusual messages")))))
 
 (defun calc-group-digits (n)
   (interactive "P")
@@ -272,7 +272,7 @@
 	 (vals (mapcar (function (lambda (v) (symbol-value (car v))))
 		       calc-mode-var-list)))
      (unless calc-settings-file
-       (error "No ‘calc-settings-file’ specified"))
+       (error "No `calc-settings-file' specified"))
      (set-buffer (find-file-noselect (substitute-in-file-name
 				      calc-settings-file)))
      (goto-char (point-min))
@@ -572,8 +572,8 @@
    (calc-change-mode 'calc-auto-recompute arg nil t)
    (calc-refresh-evaltos)
    (message (if calc-auto-recompute
-		"Automatically recomputing ‘=>’ forms when necessary"
-	      "Not recomputing ‘=>’ forms automatically"))))
+		"Automatically recomputing `=>' forms when necessary"
+	      "Not recomputing `=>' forms automatically"))))
 
 (defun calc-working (n)
   (interactive "P")

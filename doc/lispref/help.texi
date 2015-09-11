@@ -377,7 +377,7 @@ specifies a key binding that the command does not actually have.
 @smallexample
 @group
 (substitute-command-keys
-   "To abort recursive edit, type ‘\\[abort-recursive-edit]’.")
+   "To abort recursive edit, type `\\[abort-recursive-edit]'.")
 @result{} "To abort recursive edit, type ‘C-]’."
 @end group
 
@@ -398,7 +398,7 @@ C-g             abort-recursive-edit
 
 @group
 (substitute-command-keys
-   "To abort a recursive edit from the minibuffer, type\
+   "To abort a recursive edit from the minibuffer, type \
 `\\<minibuffer-local-must-match-map>\\[abort-recursive-edit]'.")
 @result{} "To abort a recursive edit from the minibuffer, type ‘C-g’."
 @end group

@@ -475,7 +475,7 @@ same value during coverage testing."
     (aset testcover-vector idx (cons '1value val)))
    ((not (and (eq (car-safe (aref testcover-vector idx)) '1value)
 	      (equal (cdr (aref testcover-vector idx)) val)))
-    (error "Value of form marked with ‘1value’ does vary: %s" val)))
+    (error "Value of form marked with `1value' does vary: %s" val)))
   val)
 
 

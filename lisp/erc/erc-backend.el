@@ -1100,12 +1100,12 @@ Would expand to:
   add things to `erc-server-311-functions' instead.\"
         (do-stuff-with-whois proc parsed))
 
-    (puthash \"311\" 'erc-server-311-functions erc-server-responses)
-    (puthash \"WHOIS\" 'erc-server-WHOIS-functions erc-server-responses)
-    (puthash \"WI\" 'erc-server-WI-functions erc-server-responses)
+    (puthash \"311\" \\='erc-server-311-functions erc-server-responses)
+    (puthash \"WHOIS\" \\='erc-server-WHOIS-functions erc-server-responses)
+    (puthash \"WI\" \\='erc-server-WI-functions erc-server-responses)
 
-    (defalias 'erc-server-WHOIS 'erc-server-311)
-    (defvar erc-server-WHOIS-functions 'erc-server-311
+    (defalias \\='erc-server-WHOIS \\='erc-server-311)
+    (defvar erc-server-WHOIS-functions \\='erc-server-311
       \"Some non-generic variable documentation.
 
   Hook called upon receiving a WHOIS server response.
@@ -1116,8 +1116,8 @@ Would expand to:
 
   See also `erc-server-311'.\")
 
-    (defalias 'erc-server-WI 'erc-server-311)
-    (defvar erc-server-WI-functions 'erc-server-311
+    (defalias \\='erc-server-WI \\='erc-server-311)
+    (defvar erc-server-WI-functions \\='erc-server-311
       \"Some non-generic variable documentation.
 
   Hook called upon receiving a WI server response.

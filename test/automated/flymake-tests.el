@@ -34,6 +34,7 @@
 (defun flymake-tests--current-face (file predicate)
   (let ((buffer (find-file-noselect
                  (expand-file-name file flymake-tests-data-directory)))
+        (process-environment (cons "LC_ALL=C" process-environment))
         (i 0))
     (unwind-protect
         (with-current-buffer buffer

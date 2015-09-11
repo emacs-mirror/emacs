@@ -190,7 +190,7 @@
     (:booktitle    . "Title of a book, part of which is being cited.  See the LaTeX book for how to type titles.  For book entries, use the title field instead.")
     (:chapter      . "A chapter (or section or whatever) number.")
     (:crossref     . "The database key of the entry being cross referenced.")
-    (:edition      . "The edition of a book for example, ‘Second’.  This should be an ordinal, and should have the first letter capitalized, as shown here; the standard styles convert to lower case when necessary.")
+    (:edition      . "The edition of a book for example, 'Second'.  This should be an ordinal, and should have the first letter capitalized, as shown here; the standard styles convert to lower case when necessary.")
     (:editor       . "Name(s) of editor(s), typed as indicated in the LaTeX book.  If there is also an author field, then the editor field gives the editor of the book or collection in which the reference appears.")
     (:howpublished . "How something strange has been published.  The first word should be capitalized.")
     (:institution  . "The sponsoring institution of a technical report.")
@@ -205,9 +205,9 @@
     (:school       . "The name of the school where a thesis was written.")
     (:series       . "The name of a series or set of books.  When citing an entire book, the title field gives its title and an optional series field gives the name of a series or multi-volume set in which the book is published.")
     (:title        . "The work’s title, typed as explained in the LaTeX book.")
-    (:type         . "The type of a technical report for example, ‘Research Note’.")
+    (:type         . "The type of a technical report for example, 'Research Note'.")
     (:volume       . "The volume of a journal or multi-volume book.")
-    (:year         . "The year of publication or, for an unpublished work, the year it was written.  Generally it should consist of four numerals, such as 1984, although the standard styles can handle any year whose last four nonpunctuation characters are numerals, such as ‘(about 1984)’"))
+    (:year         . "The year of publication or, for an unpublished work, the year it was written.  Generally it should consist of four numerals, such as 1984, although the standard styles can handle any year whose last four nonpunctuation characters are numerals, such as '(about 1984)'"))
   "Bibtex fields with descriptions.")
 
 (defvar org-bibtex-entries nil
@@ -221,7 +221,7 @@
 
 (defcustom org-bibtex-prefix nil
   "Optional prefix for all bibtex property names.
-For example setting to ‘BIB_’ would allow interoperability with fireforg."
+For example setting to `BIB_' would allow interoperability with fireforg."
   :group 'org-bibtex
   :version "24.1"
   :type  '(choice

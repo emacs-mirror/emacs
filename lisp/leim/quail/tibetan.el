@@ -155,7 +155,7 @@
             and to get da-drag in  -r-d, -l-d .)
   |     : Special signs.
 
-  Tsheg is assigned to SPC.  Space is assigned to period ‘.’.
+  Tsheg is assigned to SPC.  Space is assigned to period `.'.
 "
  nil nil nil nil nil nil nil nil
  'quail-tibetan-update-translation)
@@ -411,7 +411,7 @@
       +---------------------------------------------+
          |zཞ|xཟ|cའ|vཡ|bར|nལ|mཤ|,ས|.ཧ|/ཨ|
          +---------------------------------------+
-  The key ‘h’ is used for consonant stacking.
+  The key `h' is used for consonant stacking.
 
   [SHIFTED]
 
@@ -427,14 +427,14 @@
 
   DIFFERENCE FROM THE ORIGINAL TIBKEY:
 
-    1. Vowel ‘a’ should be typed explicitly by the key ‘A’.
+    1. Vowel `a' should be typed explicitly by the key `A'.
        This is really inconvenient.  But to make the coding
        scheme clear, it is desirable to have an explicit
-       vowel sign for ‘a’.
+       vowel sign for `a'.
     2. Tsheg is assigned to SPC key.  You can input a space
-       by typing ‘>’.
+       by typing `>'.
     4. To avoid the default stacking ���� and to obtain གཡ,
-       type ‘E’ instead of ‘v’ (=ཡ).
+       type `E' instead of `v' (=ཡ).
     3. There are many characters that are not supported in the
        current implementation (especially special signs).
        I hope I'll complete in a future revision.

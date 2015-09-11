@@ -135,7 +135,7 @@ In this state, use LFD to send a line and end it with a carriage-return."
 (defun kermit-clean-on ()
   "Delete all null characters and ^M's from the kermit output.
 Note that another (perhaps better) way to do this is to use the
-command ‘kermit | tr -d '\\015'’."
+command `kermit | tr -d \\='\\015\\=''."
   (interactive)
   (set-process-filter (get-buffer-process (current-buffer))
 		      'kermit-clean-filter))

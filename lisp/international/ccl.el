@@ -967,8 +967,7 @@ is a list of CCL-BLOCKs."
   (let ((len (length ccl-code))
 	(buffer-mag (aref ccl-code 0)))
     (cond ((= buffer-mag 0)
-	   (insert (substitute-command-keys
-                    "Don’t output anything.\n")))
+	   (insert (substitute-command-keys "Don't output anything.\n")))
 	  ((= buffer-mag 1)
 	   (insert "Out-buffer must be as large as in-buffer.\n"))
 	  (t

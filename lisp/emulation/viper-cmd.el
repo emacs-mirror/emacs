@@ -3449,7 +3449,7 @@ controlled by the sign of prefix numeric value."
   (setq viper-parse-sexp-ignore-comments
 	(not viper-parse-sexp-ignore-comments))
   (princ (format-message
-	  "From now on, ‘%%’ will %signore parentheses inside comment fields"
+	  "From now on, `%%' will %signore parentheses inside comment fields"
 	  (if viper-parse-sexp-ignore-comments "" "NOT "))))
 
 
@@ -3641,7 +3641,7 @@ the Emacs binding of `/'."
     (cond ((or (eq arg 1)
 	       (and (null arg)
 		    (y-or-n-p (format-message
-                               "Search style: ‘%s’.  Want ‘%s’? "
+                               "Search style: `%s'.  Want `%s'? "
                                (if viper-case-fold-search
                                    "case-insensitive" "case-sensitive")
                                (if viper-case-fold-search
@@ -3654,7 +3654,7 @@ the Emacs binding of `/'."
 	  ((or (eq arg 2)
 	       (and (null arg)
 		    (y-or-n-p (format-message
-                               "Search style: ‘%s’.  Want ‘%s’? "
+                               "Search style: `%s'.  Want `%s'? "
                                (if viper-re-search
                                    "regexp-search" "vanilla-search")
                                (if viper-re-search
@@ -3990,7 +3990,7 @@ Null string will repeat previous search."
     (if (or (not (buffer-modified-p buffer))
 	    (y-or-n-p
 	     (format-message
-	      "Buffer ‘%s’ is modified, are you sure you want to kill it? "
+	      "Buffer `%s' is modified, are you sure you want to kill it? "
 	      buffer-name)))
 	(kill-buffer buffer)
       (error "Buffer not killed"))))
@@ -4640,7 +4640,7 @@ One can use \\=`\\=` and \\='\\=' to temporarily jump 1 step back."
 					  reg (substring text (- pos s)))))
 		     (princ
 		      (format-message
-		       "Textmarker ‘%c’ is in buffer ‘%s’ at line %d.\n"
+		       "Textmarker `%c' is in buffer `%s' at line %d.\n"
 				     reg (buffer-name buf) line-no))
 		     (princ (format "Here is some text around %c:\n\n %s"
 				     reg text)))

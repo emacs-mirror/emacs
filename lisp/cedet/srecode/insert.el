@@ -45,9 +45,9 @@
 Only the ASK style inserter will query the user for a value.
 Dictionary value references that ask begin with the ? character.
 Possible values are:
-  'ask   - Prompt in the minibuffer as the value is inserted.
-  'field - Use the dictionary macro name as the inserted value,
-           and place a field there.  Matched fields change together.
+  `ask'   - Prompt in the minibuffer as the value is inserted.
+  `field' - Use the dictionary macro name as the inserted value,
+            and place a field there.  Matched fields change together.
 
 NOTE: The field feature does not yet work with XEmacs."
   :group 'srecode

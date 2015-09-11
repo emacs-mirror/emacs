@@ -393,7 +393,7 @@ FILE should be in a form suitable for passing to `locate-library'."
       (if (locate-library (match-string 1))
           (make-text-button (match-beginning 1) (match-end 1)
                             'xref (match-string-no-properties 1)
-                            'help-echo "Read this file’s commentary"
+                            'help-echo "Read this file's commentary"
                             :type 'finder-xref)))
     (goto-char (point-min))
     (setq buffer-read-only t)

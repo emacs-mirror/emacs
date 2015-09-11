@@ -376,7 +376,7 @@ The following values are allowed:
 
 nil       Don't scan any buffers.
 t         Scan all `idlwave-mode' buffers in the current editing session.
-current   Scan only the current buffer, but no other buffers."
+`current' Scan only the current buffer, but no other buffers."
   :group 'idlwave-routine-info
   :type '(choice
 	  (const :tag "No buffer" nil)
@@ -743,7 +743,7 @@ The actions that can be performed are listed in `idlwave-indent-action-table'."
 (defcustom idlwave-abbrev-start-char "\\"
   "A single character string used to start abbreviations in abbrev mode.
 Possible characters to choose from: ~\\=`\%
-or even ‘?’.  ‘.’ is not a good choice because it can make structure
+or even `?'.  `.' is not a good choice because it can make structure
 field names act like abbrevs in certain circumstances.
 
 Changes to this in `idlwave-mode-hook' will have no effect.  Instead a user
@@ -5833,15 +5833,15 @@ to override IDLWAVE's idea of what should be completed at point.
 Possible values are:
 
 0  <=>  query for the completion type
-1  <=>  'procedure
-2  <=>  'procedure-keyword
-3  <=>  'function
-4  <=>  'function-keyword
-5  <=>  'procedure-method
-6  <=>  'procedure-method-keyword
-7  <=>  'function-method
-8  <=>  'function-method-keyword
-9  <=>  'class
+1  <=>  `procedure'
+2  <=>  `procedure-keyword'
+3  <=>  `function'
+4  <=>  `function-keyword'
+5  <=>  `procedure-method'
+6  <=>  `procedure-method-keyword'
+7  <=>  `function-method'
+8  <=>  `function-method-keyword'
+9  <=>  `class'
 
 As a special case, the universal argument C-u forces completion of
 function names in places where the default would be a keyword.

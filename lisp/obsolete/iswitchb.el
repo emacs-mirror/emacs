@@ -1096,7 +1096,7 @@ Return the modified list with the last element prepended to it."
 	      (and iswitchb-prompt-newbuffer
 		   (y-or-n-p
 		    (format-message
-		     "No buffer matching ‘%s’, create one? "
+		     "No buffer matching `%s', create one? "
 		     buf)))))
 	;; then create a new buffer
 	(progn

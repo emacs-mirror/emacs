@@ -786,7 +786,7 @@ without interactive confirmation, if it exists as a topic."
 
 (defvar woman-file-regexp nil
   "Regexp used to select (possibly compressed) man source files, e.g.
-\"\\.\\([0-9lmnt]\\w*\\)\\(\\.\\(g?z\\|bz2\\|xz\\)\\)?\\'\".
+\"\\.\\([0-9lmnt]\\w*\\)\\(\\.\\(g?z\\|bz2\\|xz\\)\\)?\\\\='\".
 Built automatically from the customizable user options
 `woman-uncompressed-file-regexp' and `woman-file-compression-regexp'.")
 
@@ -816,7 +816,7 @@ becoming more common in the GNU world.  For example, the man pages
 in the ncurses package include `toe.1m', `form.3x', etc.
 
 Note: an optional compression regexp will be appended, so this regexp
-MUST NOT end with any kind of string terminator such as $ or \\'."
+MUST NOT end with any kind of string terminator such as $ or \\\\='."
   :type 'regexp
   :set 'set-woman-file-regexp
   :group 'woman-interface)
@@ -826,8 +826,8 @@ MUST NOT end with any kind of string terminator such as $ or \\'."
   "Do not change this unless you are sure you know what you are doing!
 Regexp used to match compressed man file extensions for which
 decompressors are available and handled by auto-compression mode,
-e.g. \"\\\\.\\\\(g?z\\\\|bz2\\\\|xz\\\\)\\\\'\" for `gzip', `bzip2', or `xz'.
-Should begin with \\. and end with \\' and MUST NOT be optional."
+e.g. \"\\\\.\\\\(g?z\\\\|bz2\\\\|xz\\\\)\\\\\\='\" for `gzip', `bzip2', or `xz'.
+Should begin with \\. and end with \\\\=' and MUST NOT be optional."
   ;; Should be compatible with car of
   ;; `jka-compr-file-name-handler-entry', but that is unduly
   ;; complicated, includes an inappropriate extension (.tgz) and is
@@ -3719,7 +3719,7 @@ expression in parentheses.  Leaves point after the value."
   "Find and return start of next control line.
 PAT, if non-nil, specifies an additional component of the control
 line regexp to search for, which is appended to the default
-regexp, \"\\(\\\\c\\)?\\n[.']\"."
+regexp, \"\\(\\\\c\\)?\\n[.\\=']\"."
   (let ((pattern (concat "\\(\\\\c\\)?\n[.']" pat))
         to)
     (save-excursion
@@ -3981,7 +3981,7 @@ Optional argument NUMERIC, if non-nil, means the argument is numeric."
     (goto-char from)))
 
 (defun woman-horizontal-line ()
-  "\\l'Nc' -- Draw a horizontal line of length N using character c, default _."
+  "\\l\\='Nc\\=' -- Draw a horizontal line of length N using character c, default _."
   (delete-char -1)
   (delete-char 1)
   (looking-at "\\(.\\)\\(.*\\)\\1")

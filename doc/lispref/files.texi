@@ -1291,10 +1291,10 @@ has only one name (the name @file{files.texi} in the current default
 directory).
 
 @item "lh"
-is owned by the user with name "lh".
+is owned by the user with name @samp{lh}.
 
 @item "users"
-is in the group with name "users".
+is in the group with name @samp{users}.
 
 @item (20614 64019 50040 152000)
 was last accessed on October 23, 2012, at 20:12:03.050040152 UTC.

@@ -904,8 +904,8 @@
   (dolist (script '(devanagari sanskrit bengali tamil telugu assamese
 			       oriya kannada malayalam gujarati punjabi))
     (define-charset (intern (format "%s-cdac" script))
-      (format-message
-       "Glyphs of %s script for CDAC font.  Subset of ‘indian-glyph’."
+      (format
+       "Glyphs of %s script for CDAC font.  Subset of `indian-glyph'."
        (capitalize (symbol-name script)))
       :short-name (format "CDAC %s glyphs" (capitalize (symbol-name script)))
       :supplementary-p t
@@ -916,8 +916,8 @@
   (dolist (script '(devanagari bengali punjabi gujarati
 			       oriya tamil telugu kannada malayalam))
     (define-charset (intern (format "%s-akruti" script))
-      (format-message
-       "Glyphs of %s script for AKRUTI font.  Subset of ‘indian-glyph’."
+      (format
+       "Glyphs of %s script for AKRUTI font.  Subset of `indian-glyph'."
        (capitalize (symbol-name script)))
       :short-name (format "AKRUTI %s glyphs" (capitalize (symbol-name script)))
       :supplementary-p t

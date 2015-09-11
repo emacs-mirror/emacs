@@ -340,7 +340,7 @@ that was visited in the buffer.
 * Customize Save::      Customizing the saving of files.
 * Interlocking::        How Emacs protects against simultaneous editing
                           of one file by two users.
-* Shadowing: File Shadowing.  Copying files to "shadows" automatically.
+* Shadowing: File Shadowing.  Copying files to ``shadows'' automatically.
 * Time Stamps::         Emacs can update time stamps on saved files.
 @end menu
 
