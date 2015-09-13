@@ -306,8 +306,9 @@ element, regardless of any text on the command line.  In that case,
 		   eshell-save-history-on-exit
 		   (or (eq eshell-save-history-on-exit t)
 		       (y-or-n-p
-			(format "Save input history for Eshell buffer `%s'? "
-				(buffer-name buf)))))
+			(format-message
+			 "Save input history for Eshell buffer `%s'? "
+			 (buffer-name buf)))))
 	      (eshell-write-history))))))
 
 (defun eshell/history (&rest args)
@@ -520,7 +521,7 @@ See also `eshell-read-history'."
 	(let ((ch (read-event)))
 	  (if (eq ch ?\ )
 	      (set-window-configuration conf)
-	    (setq unread-command-events (list ch))))))))
+	    (push ch unread-command-events)))))))
 
 (defun eshell-hist-word-reference (ref)
   "Return the word designator index referred to by REF."

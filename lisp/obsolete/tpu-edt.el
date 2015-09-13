@@ -648,7 +648,7 @@ GOLD is the ASCII 7-bit escape sequence <ESC>OP.")
 (make-variable-buffer-local 'tpu-mark-flag)
 
 (defun tpu-set-mode-line (for-tpu)
-  "Set ``minor-mode-alist'' for TPU-edt, or reset it to default Emacs."
+  "Set `minor-mode-alist' for TPU-edt, or reset it to default Emacs."
   (let ((entries '((tpu-newline-and-indent-p tpu-newline-and-indent-string)
                    (tpu-rectangular-p tpu-rectangle-string)
                    (tpu-direction-string tpu-direction-string)
@@ -873,7 +873,7 @@ With argument, fill and justify."
   (set-frame-width (selected-frame) width))
 
 (defun tpu-toggle-newline-and-indent nil
-  "Toggle between 'newline and indent' and 'simple newline'."
+  "Toggle between `newline-and-indent' and simple `newline'."
   (interactive)
   (cond (tpu-newline-and-indent-p
          (setq tpu-newline-and-indent-string "")
@@ -1124,7 +1124,7 @@ if ARG is omitted or nil."
 
     M-x help-for-help <CR> p <CR>
 
-  Where `M-x' might be any of `Gold-KP7', 'Do', or 'ESC-x'.
+  Where `M-x' might be any of `Gold-KP7', `Do', or `ESC-x'.
 
   When you successfully invoke this part of the Emacs help facility, you
   will see a buffer named `*Finder*' listing a number of topics.  Look for
@@ -1313,7 +1313,7 @@ kill modified buffers without asking."
 		(if tpu-regexp-p "en" "dis"))))
 
 (defun tpu-regexp-prompt (prompt)
-  "Read a string, adding 'RE' to the prompt if tpu-regexp-p is set."
+  "Read a string, adding `RE ' to the prompt if tpu-regexp-p is set."
   (let ((re-prompt (concat (if tpu-regexp-p "RE ") prompt)))
     (read-from-minibuffer re-prompt nil nil nil 'tpu-regexp-prompt-hist)))
 

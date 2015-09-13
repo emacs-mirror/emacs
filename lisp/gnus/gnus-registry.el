@@ -194,17 +194,17 @@ are tracked this way by default."
   "The splitting strategy applied to the keys in `gnus-registry-track-extra'.
 
 Given a set of unique found groups G and counts for each element
-of G, and a key K (typically 'sender or 'subject):
+of G, and a key K (typically `sender' or `subject'):
 
 When nil, if G has only one element, use it.  Otherwise give up.
 This is the fastest but also least useful strategy.
 
-When 'majority, use the majority by count.  So if there is a
+When `majority', use the majority by count.  So if there is a
 group with the most articles counted by K, use that.  Ties are
 resolved in no particular order, simply the first one found wins.
 This is the slowest strategy but also the most accurate one.
 
-When 'first, the first element of G wins.  This is fast and
+When `first', the first element of G wins.  This is fast and
 should be OK if your senders and subjects don't \"bleed\" across
 groups."
   :group 'gnus-registry
@@ -277,16 +277,16 @@ This can slow pruning down.  Set to nil to perform no sorting."
 (defun gnus-registry-fixup-registry (db)
   (when db
     (let ((old (oref db tracked)))
-      (oset db precious
+      (setf (oref db precious)
             (append gnus-registry-extra-entries-precious
                     '()))
-      (oset db max-size
+      (setf (oref db max-size)
             (or gnus-registry-max-entries
                 most-positive-fixnum))
-      (oset db prune-factor
+      (setf (oref db prune-factor)
             (or gnus-registry-prune-factor
 		0.1))
-      (oset db tracked
+      (setf (oref db tracked)
             (append gnus-registry-track-extra
                     '(mark group keyword)))
       (when (not (equal old (oref db tracked)))
@@ -297,14 +297,13 @@ This can slow pruning down.  Set to nil to perform no sorting."
 (defun gnus-registry-make-db (&optional file)
   (interactive "fGnus registry persistence file: \n")
   (gnus-registry-fixup-registry
-   (registry-db
-    "Gnus Registry"
-    :file (or file gnus-registry-cache-file)
-    ;; these parameters are set in `gnus-registry-fixup-registry'
-    :max-size most-positive-fixnum
-    :version registry-db-version
-    :precious nil
-    :tracked nil)))
+   (make-instance 'registry-db
+                  :file (or file gnus-registry-cache-file)
+                  ;; these parameters are set in `gnus-registry-fixup-registry'
+                  :max-size most-positive-fixnum
+                  :version registry-db-version
+                  :precious nil
+                  :tracked nil)))
 
 (defvar gnus-registry-db (gnus-registry-make-db)
   "The article registry by Message ID.  See `registry-db'.")
@@ -336,7 +335,7 @@ This is not required after changing `gnus-registry-cache-file'."
 			   old-file-name file)))
 	     (progn
 	       (gnus-registry-read old-file-name)
-	       (oset gnus-registry-db :file file)
+	       (setf (oref gnus-registry-db file) file)
 	       (gnus-message 1 "Registry filename changed to %s" file))
 	   (gnus-registry-remake-db t))))
       (error
@@ -398,8 +397,7 @@ This is not required after changing `gnus-registry-cache-file'."
          (sender (nth 0 (gnus-registry-extract-addresses
                          (mail-header-from data-header))))
          (from (gnus-group-guess-full-name-from-command-method from))
-         (to (if to (gnus-group-guess-full-name-from-command-method to) nil))
-         (to-name (if to to "the Bit Bucket")))
+         (to (if to (gnus-group-guess-full-name-from-command-method to) nil)))
     (gnus-message 7 "Gnus registry: article %s %s from %s to %s"
                   id (if method "respooling" "going") from to)
 
@@ -455,7 +453,8 @@ This is not required after changing `gnus-registry-cache-file'."
         (let ((new (or (assq (first kv) entry)
                        (list (first kv)))))
           (dolist (toadd (cdr kv))
-            (add-to-list 'new toadd t))
+            (unless (member toadd new)
+              (setq new (append new (list toadd)))))
           (setq entry (cons new
                             (assq-delete-all (first kv) entry))))))
     (gnus-message 10 "Gnus registry: new entry for %s is %S"
@@ -559,7 +558,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
                      do (gnus-message
                          ;; warn more if gnus-registry-track-extra
                          (if gnus-registry-track-extra 7 9)
-                         "%s (extra tracking) traced subject '%s' to %s"
+                         "%s (extra tracking) traced subject `%s' to %s"
                          log-agent subject group)
                     and collect group))
          ;; filter the found groups and return them
@@ -586,7 +585,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
                      do (gnus-message
                          ;; warn more if gnus-registry-track-extra
                          (if gnus-registry-track-extra 7 9)
-                         "%s (extra tracking) traced sender '%s' to %s"
+                         "%s (extra tracking) traced sender `%s' to %s"
                          log-agent sender group)
                      and collect group)))
 
@@ -616,7 +615,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
                          do (gnus-message
                              ;; warn more if gnus-registry-track-extra
                              (if gnus-registry-track-extra 7 9)
-                             "%s (extra tracking) traced recipient '%s' to %s"
+                             "%s (extra tracking) traced recipient `%s' to %s"
                              log-agent recp group)
                         and collect group)))))
 
@@ -631,7 +630,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 (defun gnus-registry-post-process-groups (mode key groups)
   "Inspects GROUPS found by MODE for KEY to determine which ones to follow.
 
-MODE can be 'subject' or 'sender' for example.  The KEY is the
+MODE can be `subject' or `sender' for example.  The KEY is the
 value by which MODE was searched.
 
 Transforms each group name to the equivalent short name.
@@ -699,7 +698,7 @@ possible.  Uses `gnus-registry-split-strategy'."
                  10
                  "%s: stripped group %s to %s"
                  log-agent group short-name))
-              (add-to-list 'out short-name))
+              (pushnew short-name out :test #'equal))
           ;; else...
           (gnus-message
            7
@@ -713,12 +712,12 @@ possible.  Uses `gnus-registry-split-strategy'."
      ((null out)
       (gnus-message
        5
-       "%s: no matches for %s '%s'."
+       "%s: no matches for %s `%s'."
        log-agent mode key)
       nil)
      (t (gnus-message
          5
-         "%s: too many extra matches (%s) for %s '%s'.  Returning none."
+         "%s: too many extra matches (%s) for %s `%s'.  Returning none."
          log-agent out mode key)
         nil))))
 
@@ -785,8 +784,9 @@ Overrides existing keywords with FORCE set non-nil."
           (gnus-registry-set-id-key id 'keyword words)))))
 
 (defun gnus-registry-keywords ()
-  (let ((table (registry-lookup-secondary gnus-registry-db 'keyword)))
-    (when table (maphash (lambda (k v) k) table))))
+  (let ((table (registry-lookup-secondary gnus-registry-db 'keyword))
+        (ks ()))
+    (when table (maphash (lambda (k _v) (push k ks)) table) ks)))
 
 (defun gnus-registry-find-keywords (keyword)
   (interactive (list
@@ -881,7 +881,7 @@ FUNCTION should take two parameters, a mark symbol and the cell value."
 
 ;; FIXME: Why not merge gnus-registry--set/remove-mark and
 ;; gnus-registry-set-article-mark-internal?
-(defun gnus-registry--set/remove-mark (remove mark articles)
+(defun gnus-registry--set/remove-mark (mark remove articles)
   "Set/remove the MARK over process-marked ARTICLES."
   ;; If this is called and the user doesn't want the
   ;; registry enabled, we'll ask anyhow.
@@ -1100,11 +1100,10 @@ only the last one's marks are returned."
         (when (and (< 0 expected)
                    (= 0 (mod count 100)))
           (message "importing: %d of %d (%.2f%%)"
-                   count expected (/ (* 100 count) expected)))
+                   count expected (/ (* 100.0 count) expected)))
         (setq entry (car-safe old)
               old (cdr-safe old))
         (let* ((id (car-safe entry))
-               (new-entry (gnus-registry-get-or-make-entry id))
                (rest (cdr-safe entry))
                (groups (loop for p in rest
                              when (stringp p)

@@ -206,7 +206,7 @@ about which direction is natural.  Perhaps it has to do with which
 hemisphere you're in.)
 
 To test this function, evaluate:
-    (global-set-key [down-mouse-2] 'mouse-drag-throw)"
+    (global-set-key [down-mouse-2] \\='mouse-drag-throw)"
   (interactive "e")
   ;; we want to do save-selected-window, but that requires 19.29
   (let* ((start-posn (event-start start-event))
@@ -222,6 +222,8 @@ To test this function, evaluate:
 	 (col-scrolling-p (mouse-drag-should-do-col-scrolling)))
     (select-window start-window)
     (track-mouse
+      ;; Don't change the mouse pointer shape while we drag.
+      (setq track-mouse 'dragging)
       (while (progn
 	       (setq event (read-event)
 		     end (event-end event)
@@ -264,7 +266,7 @@ Drag scrolling is identical to the \"hand\" option in MacPaint, or the
 middle button in Tk text widgets.
 
 To test this function, evaluate:
-    (global-set-key [down-mouse-2] 'mouse-drag-drag)"
+    (global-set-key [down-mouse-2] \\='mouse-drag-drag)"
   (interactive "e")
   ;; we want to do save-selected-window, but that requires 19.29
   (let* ((start-posn (event-start start-event))

@@ -57,7 +57,7 @@ fit these criteria."
   :group 'shr
   :type '(choice (const nil) regexp))
 
-(defcustom shr-use-fonts nil
+(defcustom shr-use-fonts t
   "If non-nil, use proportional fonts for text."
   :version "25.1"
   :group 'shr
@@ -152,7 +152,6 @@ cid: URL as the argument.")
 (defvar shr-ignore-cache nil)
 (defvar shr-external-rendering-functions nil)
 (defvar shr-target-id nil)
-(defvar shr-inhibit-decoration nil)
 (defvar shr-table-separator-length 1)
 (defvar shr-table-separator-pixel-width 0)
 (defvar shr-table-id nil)
@@ -178,7 +177,7 @@ cid: URL as the argument.")
 
 ;; Public functions and commands.
 (declare-function libxml-parse-html-region "xml.c"
-		  (start end &optional base-url))
+		  (start end &optional base-url discard-comments))
 
 (defun shr-render-buffer (buffer)
   "Display the HTML rendering of the current buffer."
@@ -709,6 +708,9 @@ size, and full-buffer size."
 	  shr-base))
   (when (zerop (length url))
     (setq url nil))
+  ;; Strip leading whitespace
+  (and url (string-match "\\`\\s-+" url)
+       (setq url (substring url (match-end 0))))
   (cond ((or (not url)
 	     (not base)
 	     (string-match "\\`[a-z]*:" url))
@@ -780,16 +782,15 @@ size, and full-buffer size."
 ;; blank text at the start of the line, and the newline at the end, to
 ;; avoid ugliness.
 (defun shr-add-font (start end type)
-  (unless shr-inhibit-decoration
-    (save-excursion
-      (goto-char start)
-      (while (< (point) end)
-	(when (bolp)
-	  (skip-chars-forward " "))
-	(add-face-text-property (point) (min (line-end-position) end) type t)
-	(if (< (line-end-position) end)
-	    (forward-line 1)
-	  (goto-char end))))))
+  (save-excursion
+    (goto-char start)
+    (while (< (point) end)
+      (when (bolp)
+        (skip-chars-forward " "))
+      (add-face-text-property (point) (min (line-end-position) end) type t)
+      (if (< (line-end-position) end)
+          (forward-line 1)
+        (goto-char end)))))
 
 (defun shr-mouse-browse-url (ev)
   "Browse the URL under the mouse cursor."
@@ -948,6 +949,9 @@ Return a string with image data."
 		(search-forward "\r\n\r\n" nil t))
 	(shr-parse-image-data)))))
 
+(declare-function libxml-parse-xml-region "xml.c"
+		  (start end &optional base-url discard-comments))
+
 (defun shr-parse-image-data ()
   (let ((data (buffer-substring (point) (point-max)))
 	(content-type
@@ -1038,8 +1042,7 @@ ones, in case fg and bg are nil."
                (shr-color-visible bg fg)))))))
 
 (defun shr-colorize-region (start end fg &optional bg)
-  (when (and (not shr-inhibit-decoration)
-	     (or fg bg))
+  (when (or fg bg)
     (let ((new-colors (shr-color-check fg bg)))
       (when new-colors
 	(when fg
@@ -1209,8 +1212,7 @@ ones, in case fg and bg are nil."
 	(shr-ensure-newline)
 	(insert " "))
       (put-text-property start (1+ start) 'shr-target-id shr-target-id))
-    (when (and url
-	       (not shr-inhibit-decoration))
+    (when url
       (shr-urlify (or shr-start start) (shr-expand-url url) title))))
 
 (defun shr-tag-object (dom)
@@ -1802,7 +1804,6 @@ The preference is a float determined from `shr-prefer-media-type'."
 
 (defun shr-make-table-1 (dom widths &optional fill)
   (let ((trs nil)
-	(shr-inhibit-decoration (not fill))
 	(rowspans (make-vector (length widths) 0))
 	(colspan-remaining 0)
 	colspan-width colspan-count

@@ -147,11 +147,16 @@ This is used by `declare'.")
 (defvar macro-declarations-alist
   (cons
    (list 'debug
-         #'(lambda (name _args spec)
-             (list 'progn :autoload-end
-                   (list 'put (list 'quote name)
-                         ''edebug-form-spec (list 'quote spec)))))
-   defun-declarations-alist)
+	 #'(lambda (name _args spec)
+	     (list 'progn :autoload-end
+		   (list 'put (list 'quote name)
+			 ''edebug-form-spec (list 'quote spec)))))
+   (cons
+    (list 'no-font-lock-keyword
+	  #'(lambda (name _args val)
+	      (list 'function-put (list 'quote name)
+		    ''no-font-lock-keyword (list 'quote val))))
+    defun-declarations-alist))
   "List associating properties of macros to their macro expansion.
 Each element of the list takes the form (PROP FUN) where FUN is a function.
 For each (PROP . VALUES) in a macro's declaration, the FUN corresponding
@@ -201,6 +206,19 @@ The return value is undefined.
 			  (message "Warning: Unknown macro property %S in %S"
 				   (car x) name))))
 		  decls)))
+	   ;; Refresh font-lock if this is a new macro, or it is an
+	   ;; existing macro whose 'no-font-lock-keyword declaration
+	   ;; has changed.
+	   (if (and
+		;; If lisp-mode hasn't been loaded, there's no reason
+		;; to flush.
+		(fboundp 'lisp--el-font-lock-flush-elisp-buffers)
+		(or (not (fboundp name)) ;; new macro
+		    (and (fboundp name)  ;; existing macro
+			 (member `(function-put ',name 'no-font-lock-keyword
+						',(get name 'no-font-lock-keyword))
+				 declarations))))
+	       (lisp--el-font-lock-flush-elisp-buffers))
 	   (if declarations
 	       (cons 'prog1 (cons def declarations))
 	     def))))))
@@ -337,12 +355,12 @@ was first made obsolete, for example a date or a release number."
 						   &optional when docstring)
   "Set OBSOLETE-NAME's function definition to CURRENT-NAME and mark it obsolete.
 
-\(define-obsolete-function-alias 'old-fun 'new-fun \"22.1\" \"old-fun's doc.\")
+\(define-obsolete-function-alias \\='old-fun \\='new-fun \"22.1\" \"old-fun's doc.\")
 
 is equivalent to the following two lines of code:
 
-\(defalias 'old-fun 'new-fun \"old-fun's doc.\")
-\(make-obsolete 'old-fun 'new-fun \"22.1\")
+\(defalias \\='old-fun \\='new-fun \"old-fun's doc.\")
+\(make-obsolete \\='old-fun \\='new-fun \"22.1\")
 
 See the docstrings of `defalias' and `make-obsolete' for more details."
   (declare (doc-string 4)
@@ -375,7 +393,7 @@ ACCESS-TYPE if non-nil should specify the kind of access that will trigger
 This uses `defvaralias' and `make-obsolete-variable' (which see).
 See the Info node `(elisp)Variable Aliases' for more details.
 
-If CURRENT-NAME is a defcustom (more generally, any variable
+If CURRENT-NAME is a defcustom or a defvar (more generally, any variable
 where OBSOLETE-NAME may be set, e.g. in an init file, before the
 alias is defined), then the define-obsolete-variable-alias
 statement should be evaluated before the defcustom, if user
@@ -389,7 +407,7 @@ variable (this is due to the way `defvaralias' works).
 For the benefit of `custom-set-variables', if OBSOLETE-NAME has
 any of the following properties, they are copied to
 CURRENT-NAME, if it does not already have them:
-'saved-value, 'saved-variable-comment."
+`saved-value', `saved-variable-comment'."
   (declare (doc-string 4)
            (advertised-calling-convention
             ;; New code should always provide the `when' argument.

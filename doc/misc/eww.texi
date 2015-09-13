@@ -2,7 +2,7 @@
 @c %**start of header
 @setfilename ../../info/eww.info
 @settitle Emacs Web Wowser
-@documentencoding UTF-8
+@include docstyle.texi
 @c %**end of header
 
 @copying
@@ -126,7 +126,7 @@ specified in @code{eww-download-directory} (Default: @file{~/Downloads/}).
 @cindex History
   EWW remembers the URLs you have visited to allow you to go back and
 forth between them.  By pressing @kbd{l} (@code{eww-back-url}) you go
-to the previous URL.  You can go forward again with @kbd{r}
+to the previous URL@.  You can go forward again with @kbd{r}
 (@code{eww-forward-url}).  If you want an overview of your browsing
 history press @kbd{H} (@code{eww-list-histories}) to open the history
 buffer @file{*eww history*}.  The history is lost when EWW is quit.
@@ -247,7 +247,7 @@ Sessions, , emacs, The GNU Emacs Manual}.
 
 @vindex eww-desktop-remove-duplicates
   EWW history may sensibly contain multiple entries for the same page
-URI.  At run-time, these entries may still have different associated
+URI@.  At run-time, these entries may still have different associated
 point positions or the actual Web page contents.
 The latter, however, tend to be overly large to preserve in the
 desktop file, so they get omitted, thus rendering the respective

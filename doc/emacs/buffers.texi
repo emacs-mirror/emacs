@@ -226,10 +226,10 @@ Scroll through buffer @var{buffer}.  @xref{View Mode}.
 @cindex read-only buffer
   A buffer can be @dfn{read-only}, which means that commands to change
 its contents are not allowed.  The mode line indicates read-only
-buffers with @samp{%%} or @samp{%*} near the left margin.  Read-only
-buffers are usually made by subsystems such as Dired and Rmail that
-have special commands to operate on the text; also by visiting a file
-whose access control says you cannot write it.
+buffers with @samp{%%} or @samp{%*} near the left margin.  @xref{Mode
+Line}.  Read-only buffers are usually made by subsystems such as Dired
+and Rmail that have special commands to operate on the text; also by
+visiting a file whose access control says you cannot write it.
 
 @findex read-only-mode
 @vindex view-read-only
@@ -349,7 +349,7 @@ the Customization buffer to set the variable @code{midnight-mode} to
 @table @kbd
 @item M-x buffer-menu
 Begin editing a buffer listing all Emacs buffers.
-@item M-x buffer-menu-other-window.
+@item M-x buffer-menu-other-window
 Similar, but do it in another window.
 @end table
 
@@ -520,7 +520,7 @@ the @var{n}-th column (@code{tabulated-list-sort}).
 @findex Buffer-menu-toggle-files-only
 @kindex T @r{(Buffer Menu)}
 Delete, or reinsert, lines for non-file buffers
-@code{Buffer-menu-toggle-files-only}).  This command toggles the
+(@code{Buffer-menu-toggle-files-only}).  This command toggles the
 inclusion of such buffers in the buffer list.
 @end table
 
@@ -642,7 +642,7 @@ the directory names in reverse order, so that @file{/top/middle/file}
 becomes @samp{file\middle\top}, while @code{post-forward} puts them in
 forward order after the file name, as in @samp{file|top/middle}.  If
 @code{uniquify-buffer-name-style} is set to @code{nil}, the buffer
-names simply get @samp{<2>}, @samp{<3>}, etc. appended.
+names simply get @samp{<2>}, @samp{<3>}, etc.@: appended.
 
   Which rule to follow for putting the directory names in the buffer
 name is not very important if you are going to @emph{look} at the

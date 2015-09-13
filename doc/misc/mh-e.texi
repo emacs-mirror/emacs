@@ -5,7 +5,7 @@
 @c %**start of header
 @setfilename ../../info/mh-e.info
 @settitle The MH-E Manual
-@documentencoding UTF-8
+@include docstyle.texi
 @c %**end of header
 
 @c Version of the software and manual.
@@ -3159,13 +3159,13 @@ code to @file{~/.emacs}.
 @smalllisp
 @group
 (defvar my-mh-screen-saved nil
-  "Set to non-@code{nil} when MH-E window configuration shown.")
+  "Set to non-nil when MH-E window configuration shown.")
 (defvar my-normal-screen nil "Normal window configuration.")
 (defvar my-mh-screen nil "MH-E window configuration.")
 
 (defun my-mh-rmail (&optional arg)
   "Toggle between MH-E and normal screen configurations.
-With non-@code{nil} or prefix argument, @i{inc} mailbox as well
+With non-nil or prefix argument, include mailbox as well
 when going into mail."
   (interactive "P")                 ; @r{user callable function, P=prefix arg}
   (setq my-mh-screen-saved          ; @r{save state}
@@ -3474,7 +3474,7 @@ bindings, for example:
 @smalllisp
 @group
 (defvar my-mh-init-done nil
-  "Non-@code{nil} when one-time MH-E settings made.")
+  "Non-nil when one-time MH-E settings made.")
 
 (defun my-mh-folder-mode-hook ()
   "Hook to set key bindings in MH-Folder mode."

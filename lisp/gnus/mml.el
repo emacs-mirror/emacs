@@ -463,7 +463,7 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 (defvar mml-inhibit-compute-boundary nil)
 
 (declare-function libxml-parse-html-region "xml.c"
-		  (start end &optional base-url))
+		  (start end &optional base-url discard-comments))
 
 (defun mml-generate-mime (&optional multipart-type)
   "Generate a MIME message based on the current MML document.

@@ -72,7 +72,7 @@ inputs, but they all support @key{F1}.)
 * Language Help::       Help relating to international language support.
 * Misc Help::           Other help commands.
 * Help Files::          Commands to display auxiliary help files.
-* Help Echo::           Help on active text and tooltips ("balloon help").
+* Help Echo::           Help on active text and tooltips (``balloon help'').
 @end menu
 
 @iftex
@@ -122,7 +122,8 @@ Display the name and documentation of the command that @var{key} runs
 Display a description of your last 300 keystrokes
 (@code{view-lossage}).
 @item C-h m
-Display documentation of the current major mode (@code{describe-mode}).
+Display documentation of the current major mode and minor modes
+(@code{describe-mode}).
 @item C-h n
 Display news of recent Emacs changes (@code{view-emacs-news}).
 @item C-h p
@@ -358,8 +359,11 @@ view, describe, default.
 @end quotation
 
 @vindex apropos-do-all
-  If the variable @code{apropos-do-all} is non-@code{nil}, the apropos
-commands always behave as if they had been given a prefix argument.
+  If the variable @code{apropos-do-all} is non-@code{nil}, most
+apropos commands behave as if they had been given a prefix argument.
+There is one exception: @code{apropos-variable} without a prefix
+argument will always search for all variables, no matter what the
+value of @code{apropos-do-all} is.
 
 @vindex apropos-sort-by-scores
 @cindex apropos search results, order by score

@@ -269,13 +269,13 @@ try_file (char *tmpl, void *flags)
 }
 
 static int
-try_dir (char *tmpl, void *flags)
+try_dir (char *tmpl, void *flags _GL_UNUSED)
 {
   return __mkdir (tmpl, S_IRUSR | S_IWUSR | S_IXUSR);
 }
 
 static int
-try_nocreate (char *tmpl, void *flags)
+try_nocreate (char *tmpl, void *flags _GL_UNUSED)
 {
   struct_stat64 st;
 

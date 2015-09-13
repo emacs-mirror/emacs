@@ -111,7 +111,7 @@ See `run-hooks'."
           (current-buffer)))))
 
 (defvar vc-dir-menu-map
-  (let ((map (make-sparse-keymap "VC-dir")))
+  (let ((map (make-sparse-keymap "VC-Dir")))
     (define-key map [quit]
       '(menu-item "Quit" quit-window
 		  :help "Quit"))
@@ -204,6 +204,10 @@ See `run-hooks'."
 		  :help "List the change log for the current tree in a window"))
     ;; VC commands.
     (define-key map [sepvccmd] '("--"))
+    (define-key map [push]
+      '(menu-item "Push Changes" vc-push
+		  :enable (vc-find-backend-function vc-dir-backend 'push)
+		  :help "Push the current branch's changes"))
     (define-key map [update]
       '(menu-item "Update to Latest Version" vc-update
 		  :help "Update the current fileset's files to their tip revisions"))
@@ -246,6 +250,8 @@ See `run-hooks'."
     (define-key map "D" 'vc-root-diff)	   ;; C-x v D
     (define-key map "i" 'vc-register)	   ;; C-x v i
     (define-key map "+" 'vc-update)	   ;; C-x v +
+    ;; I'd prefer some kind of symmetry with vc-update:
+    (define-key map "P" 'vc-push)	   ;; C-x v P
     (define-key map "l" 'vc-print-log)	   ;; C-x v l
     (define-key map "L" 'vc-print-root-log) ;; C-x v L
     (define-key map "I" 'vc-log-incoming)   ;; C-x v I
@@ -294,7 +300,7 @@ See `run-hooks'."
       `(menu-item
 	;; VC backends can use this to add mode-specific menu items to
 	;; vc-dir-menu-map.
-	"VC-dir" ,vc-dir-menu-map :filter vc-dir-menu-map-filter))
+	"VC-Dir" ,vc-dir-menu-map :filter vc-dir-menu-map-filter))
     map)
   "Keymap for directory buffer.")
 

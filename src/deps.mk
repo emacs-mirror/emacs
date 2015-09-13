@@ -20,7 +20,7 @@
 
 ## Commentary:
 ##
-## This file is inserted in src/Makefile if AUTO_DEPEND=no.
+## This file is included in src/Makefile if AUTO_DEPEND=no.
 ## It defines static dependencies between the various source files.
 
 ## FIXME some of these dependencies are platform-specific.

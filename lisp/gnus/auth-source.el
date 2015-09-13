@@ -242,7 +242,7 @@ EPA/EPG set up, the file will be encrypted and decrypted
 automatically.  See Info node `(epa)Encrypting/decrypting gpg files'
 for details.
 
-It's best to customize this with `M-x customize-variable' because the choices
+It's best to customize this with `\\[customize-variable]' because the choices
 can get pretty complex."
   :group 'auth-source
   :version "24.1" ;; No Gnus
@@ -577,25 +577,25 @@ port keys.
 
 Here's an example:
 
-\(let ((auth-source-creation-defaults '((user . \"defaultUser\")
+\(let ((auth-source-creation-defaults \\='((user . \"defaultUser\")
                                         (A    . \"default A\"))))
-  (auth-source-search :host \"mine\" :type 'netrc :max 1
+  (auth-source-search :host \"mine\" :type \\='netrc :max 1
                       :P \"pppp\" :Q \"qqqq\"
                       :create t))
 
 which says:
 
-\"Search for any entry matching host 'mine' in backends of type
- 'netrc', maximum one result.
+\"Search for any entry matching host `mine' in backends of type
+ `netrc', maximum one result.
 
  Create a new entry if you found none.  The netrc backend will
  automatically require host, user, and port.  The host will be
- 'mine'.  We prompt for the user with default 'defaultUser' and
+ `mine'.  We prompt for the user with default `defaultUser' and
  for the port without a default.  We will not prompt for A, Q,
  or P.  The resulting token will only have keys user, host, and
  port.\"
 
-:create '(A B C) also means to create a token if possible.
+:create \\='(A B C) also means to create a token if possible.
 
 The behavior is like :create t but if the list contains any
 parameter, that parameter will be required in the resulting
@@ -604,32 +604,32 @@ search parameters or from user input.  If any queries are needed,
 the alist `auth-source-creation-defaults' will be checked for the
 default value.  If the user, host, or port are missing, the alist
 `auth-source-creation-prompts' will be used to look up the
-prompts IN THAT ORDER (so the 'user prompt will be queried first,
-then 'host, then 'port, and finally 'secret).  Each prompt string
+prompts IN THAT ORDER (so the `user' prompt will be queried first,
+then `host', then `port', and finally `secret').  Each prompt string
 can use %u, %h, and %p to show the user, host, and port.
 
 Here's an example:
 
-\(let ((auth-source-creation-defaults '((user . \"defaultUser\")
+\(let ((auth-source-creation-defaults \\='((user . \"defaultUser\")
                                         (A    . \"default A\")))
        (auth-source-creation-prompts
-        '((password . \"Enter IMAP password for %h:%p: \"))))
-  (auth-source-search :host '(\"nonesuch\" \"twosuch\") :type 'netrc :max 1
+        \\='((password . \"Enter IMAP password for %h:%p: \"))))
+  (auth-source-search :host \\='(\"nonesuch\" \"twosuch\") :type \\='netrc :max 1
                       :P \"pppp\" :Q \"qqqq\"
-                      :create '(A B Q)))
+                      :create \\='(A B Q)))
 
 which says:
 
-\"Search for any entry matching host 'nonesuch'
- or 'twosuch' in backends of type 'netrc', maximum one result.
+\"Search for any entry matching host `nonesuch'
+ or `twosuch' in backends of type `netrc', maximum one result.
 
  Create a new entry if you found none.  The netrc backend will
  automatically require host, user, and port.  The host will be
- 'nonesuch' and Q will be 'qqqq'.  We prompt for the password
+ `nonesuch' and Q will be `qqqq'.  We prompt for the password
  with the shown prompt.  We will not prompt for Q.  The resulting
  token will have keys user, host, port, A, B, and Q.  It will not
  have P with any value, even though P is used in the search to
- find only entries that have P set to 'pppp'.\"
+ find only entries that have P set to `pppp'.\"
 
 When multiple values are specified in the search parameter, the
 user is prompted for which one.  So :host (X Y Z) would ask the
@@ -650,8 +650,8 @@ property.
 Use `auth-source-delete' in ELisp code instead of calling
 `auth-source-search' directly with this parameter.
 
-:type (X Y Z) will check only those backend types.  'netrc and
-'secrets are the only ones supported right now.
+:type (X Y Z) will check only those backend types.  `netrc' and
+`secrets' are the only ones supported right now.
 
 :max N means to try to return at most N items (defaults to 1).
 More than N items may be returned, depending on the search and
@@ -1097,7 +1097,7 @@ Note that the MAX parameter is used so we can exit the parse early."
           (if (equal item2 "machine")
               (progn
                 (gnus-error 1
-                 "%s: Unexpected 'machine' token at line %d"
+                 "%s: Unexpected `machine' token at line %d"
                  "auth-source-netrc-parse-entries"
                  (auth-source-current-line))
                 (forward-line 1))
@@ -1554,23 +1554,23 @@ matching, do a wider search and narrow it down yourself.
 
 You'll get back all the properties of the token as a plist.
 
-Here's an example that looks for the first item in the 'Login'
+Here's an example that looks for the first item in the `Login'
 Secrets collection:
 
- \(let ((auth-sources '(\"secrets:Login\")))
+ \(let ((auth-sources \\='(\"secrets:Login\")))
     (auth-source-search :max 1)
 
-Here's another that looks for the first item in the 'Login'
-Secrets collection whose label contains 'gnus':
+Here's another that looks for the first item in the `Login'
+Secrets collection whose label contains `gnus':
 
- \(let ((auth-sources '(\"secrets:Login\")))
+ \(let ((auth-sources \\='(\"secrets:Login\")))
     (auth-source-search :max 1 :label \"gnus\")
 
-And this one looks for the first item in the 'Login' Secrets
+And this one looks for the first item in the `Login' Secrets
 collection that's a Google Chrome entry for the git.gnus.org site
 authentication tokens:
 
- \(let ((auth-sources '(\"secrets:Login\")))
+ \(let ((auth-sources \\='(\"secrets:Login\")))
     (auth-source-search :max 1 :signon_realm \"https://git.gnus.org/Git\"))
 "
 
@@ -1674,8 +1674,8 @@ matching, do a wider search and narrow it down yourself.
 
 You'll get back all the properties of the token as a plist.
 
-The :type key is either 'macos-keychain-internet or
-'macos-keychain-generic.
+The :type key is either `macos-keychain-internet' or
+`macos-keychain-generic'.
 
 For the internet keychain type, the :label key searches the
 item's labels (\"-l LABEL\" passed to \"/usr/bin/security\").
@@ -1691,19 +1691,19 @@ field), :user maps to \"-a USER\", and :port maps to \"-s PORT\".
 Here's an example that looks for the first item in the default
 generic MacOS Keychain:
 
- \(let ((auth-sources '(macos-keychain-generic)))
+ \(let ((auth-sources \\='(macos-keychain-generic)))
     (auth-source-search :max 1)
 
 Here's another that looks for the first item in the internet
-MacOS Keychain collection whose label is 'gnus':
+MacOS Keychain collection whose label is `gnus':
 
- \(let ((auth-sources '(macos-keychain-internet)))
+ \(let ((auth-sources \\='(macos-keychain-internet)))
     (auth-source-search :max 1 :label \"gnus\")
 
 And this one looks for the first item in the internet keychain
 entries for git.gnus.org:
 
- \(let ((auth-sources '(macos-keychain-internet\")))
+ \(let ((auth-sources \\='(macos-keychain-internet\")))
     (auth-source-search :max 1 :host \"git.gnus.org\"))
 "
   ;; TODO

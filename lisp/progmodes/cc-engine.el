@@ -154,12 +154,12 @@
 
 (defmacro c-declare-lang-variables ()
   `(progn
-     ,@(mapcan (lambda (init)
-		 `(,(if (elt init 2)
-			`(defvar ,(car init) nil ,(elt init 2))
-		      `(defvar ,(car init) nil))
-		   (make-variable-buffer-local ',(car init))))
-	       (cdr c-lang-variable-inits))))
+     ,@(c--mapcan (lambda (init)
+		    `(,(if (elt init 2)
+			   `(defvar ,(car init) nil ,(elt init 2))
+			 `(defvar ,(car init) nil))
+		      (make-variable-buffer-local ',(car init))))
+		 (cdr c-lang-variable-inits))))
 (c-declare-lang-variables)
 
 
@@ -618,11 +618,12 @@ comment at the start of cc-engine.el for more info."
 (defmacro c-bos-report-error ()
   '(unless noerror
      (setq c-parsing-error
-	   (format "No matching `%s' found for `%s' on line %d"
-		   (elt saved-pos 1)
-		   (elt saved-pos 2)
-		   (1+ (count-lines (point-min)
-				    (c-point 'bol (elt saved-pos 0))))))))
+	   (format-message
+	    "No matching `%s' found for `%s' on line %d"
+	    (elt saved-pos 1)
+	    (elt saved-pos 2)
+	    (1+ (count-lines (point-min)
+			     (c-point 'bol (elt saved-pos 0))))))))
 
 (defun c-beginning-of-statement-1 (&optional lim ignore-labels
 					     noerror comma-delim)
@@ -633,7 +634,7 @@ move into or out of sexps (not even normal expression parentheses).
 
 If point is already at the earliest statement within braces or parens,
 this function doesn't move back into any whitespace preceding it; it
-returns 'same in this case.
+returns `same' in this case.
 
 Stop at statement continuation tokens like \"else\", \"catch\",
 \"finally\" and the \"while\" in \"do ... while\" if the start point
@@ -655,24 +656,24 @@ start of the definition in a \"#define\".  Also stop at start of
 macros before leaving them.
 
 Return:
-'label          if stopped at a label or \"case...:\" or \"default:\";
-'same           if stopped at the beginning of the current statement;
-'up             if stepped to a containing statement;
-'previous       if stepped to a preceding statement;
-'beginning      if stepped from a statement continuation clause to
+`label'         if stopped at a label or \"case...:\" or \"default:\";
+`same'          if stopped at the beginning of the current statement;
+`up'            if stepped to a containing statement;
+`previous'      if stepped to a preceding statement;
+`beginning'     if stepped from a statement continuation clause to
                 its start clause; or
-'macro          if stepped to a macro start.
-Note that 'same and not 'label is returned if stopped at the same
+`macro'         if stepped to a macro start.
+Note that `same' and not `label' is returned if stopped at the same
 label without crossing the colon character.
 
 LIM may be given to limit the search.  If the search hits the limit,
 point will be left at the closest following token, or at the start
-position if that is less ('same is returned in this case).
+position if that is less (`same' is returned in this case).
 
 NOERROR turns off error logging to `c-parsing-error'.
 
-Normally only ';' and virtual semicolons are considered to delimit
-statements, but if COMMA-DELIM is non-nil then ',' is treated
+Normally only `;' and virtual semicolons are considered to delimit
+statements, but if COMMA-DELIM is non-nil then `,' is treated
 as a delimiter too.
 
 Note that this function might do hidden buffer changes.  See the
@@ -3135,16 +3136,20 @@ comment at the start of cc-engine.el for more info."
 	nil))				; for the cond
 
      ((save-restriction
-        (narrow-to-region too-far-back (point-max))
-        (setq ren (c-safe (c-sc-scan-lists pos -1 -1))))
-
+	(narrow-to-region too-far-back (point-max))
+	(setq ren (c-safe (c-sc-scan-lists pos -1 -1))))
       ;; CASE 3: After a }/)/] before `here''s BOL.
       (list (1+ ren) (and dropped-cons pos) nil)) ; Return value
+
+     ((progn (setq good-pos (c-state-lit-beg (c-point 'bopl here-bol)))
+	     (>= cache-pos good-pos))
+      ;; CASE 3.5: Just after an existing entry in `c-state-cache' on `here''s
+      ;; line or the previous line.
+      (list cache-pos nil nil))
 
      (t
       ;; CASE 4; Best of a bad job: BOL before `here-bol', or beginning of
       ;; literal containing it.
-      (setq good-pos (c-state-lit-beg (c-point 'bopl here-bol)))
       (list good-pos (and dropped-cons good-pos) nil)))))
 
 
@@ -4612,7 +4617,7 @@ comment at the start of cc-engine.el for more info."
 (defun c-literal-type (range)
   "Convenience function that given the result of `c-literal-limits',
 returns nil or the type of literal that the range surrounds, one
-of the symbols 'c, 'c++ or 'string.  It's much faster than using
+of the symbols `c', `c++' or `string'.  It's much faster than using
 `c-in-literal' and is intended to be used when you need both the
 type of a literal and its limits.
 
@@ -7972,7 +7977,7 @@ comment at the start of cc-engine.el for more info."
   ;; This should be called with point inside an argument list.
   ;;
   ;; Only one level of enclosing parentheses is considered, so for
-  ;; instance `nil' is returned when in a function call within an asm
+  ;; instance nil is returned when in a function call within an asm
   ;; operand.
   ;;
   ;; This function might do hidden buffer changes.
@@ -11228,8 +11233,8 @@ Cannot combine absolute offsets %S and %S in `add' method"
 
 (cc-provide 'cc-engine)
 
-;;; Local Variables:
-;;; indent-tabs-mode: t
-;;; tab-width: 8
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: t
+;; tab-width: 8
+;; End:
 ;;; cc-engine.el ends here

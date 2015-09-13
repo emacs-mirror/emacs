@@ -259,7 +259,7 @@ defaults to GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT."
     (message "%s: (err=[%s] %s) %s"
              "gnutls.el"
              doit (gnutls-error-string doit)
-             (apply 'format format (or params '(nil))))))
+             (apply #'format-message format (or params '(nil))))))
 
 (provide 'gnutls)
 

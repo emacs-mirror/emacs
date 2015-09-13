@@ -130,7 +130,19 @@ For backends which dont support it, it is emulated."
 	    (make-temp-name "vc-test") temporary-file-directory)))
       (make-directory (expand-file-name "module" tmp-dir) 'parents)
       (make-directory (expand-file-name "CVSROOT" tmp-dir) 'parents)
-      (shell-command-to-string (format "cvs -Q -d:local:%s co module" tmp-dir))
+      (if (not (fboundp 'w32-application-type))
+          (shell-command-to-string (format "cvs -Q -d:local:%s co module"
+                                           tmp-dir))
+        (let ((cvs-prog (executable-find "cvs"))
+              (tdir tmp-dir))
+          ;; If CVS executable is an MSYS program, reformat the file
+          ;; name of TMP-DIR to have the /d/foo/bar form supported by
+          ;; MSYS programs.  (FIXME: What about Cygwin cvs.exe?)
+          (if (eq (w32-application-type cvs-prog) 'msys)
+              (setq tdir
+                    (concat "/" (substring tmp-dir 0 1) (substring tmp-dir 2))))
+          (shell-command-to-string (format "cvs -Q -d:local:%s co module"
+                                           tdir))))
       (rename-file "module/CVS" default-directory)
       (delete-directory "module" 'recursive)
       ;; We must cleanup the "remote" CVS repo as well.
@@ -527,73 +539,69 @@ For backends which dont support it, `vc-not-supported' is signalled."
 (defun vc-test--arch-enabled ()
   (executable-find vc-arch-program))
 
-;; There are too many failed test cases yet.  We suppress them on hydra.
-(if (getenv "NIX_STORE")
-    (ert-deftest vc-test ()
-      "Dummy test case for hydra."
-      (ert-pass))
+;; Create the test cases.
+(dolist (backend vc-handled-backends)
+  (let ((backend-string (downcase (symbol-name backend))))
+    (require (intern (format "vc-%s" backend-string)))
+    (eval
+     ;; Check, whether the backend is supported.
+     `(when (funcall ',(intern (format "vc-test--%s-enabled" backend-string)))
 
-  ;; Create the test cases.
-  (dolist (backend vc-handled-backends)
-    (let ((backend-string (downcase (symbol-name backend))))
-      (require (intern (format "vc-%s" backend-string)))
-      (eval
-       ;; Check, whether the backend is supported.
-       `(when (funcall ',(intern (format "vc-test--%s-enabled" backend-string)))
+	(ert-deftest
+	    ,(intern (format "vc-test-%s00-create-repo" backend-string)) ()
+	  ,(format "Check `vc-create-repo' for the %s backend."
+		   backend-string)
+	  (vc-test--create-repo ',backend))
 
-	  (ert-deftest
-	      ,(intern (format "vc-test-%s00-create-repo" backend-string)) ()
-	    ,(format "Check `vc-create-repo' for the %s backend."
-		     backend-string)
-	    (vc-test--create-repo ',backend))
+	(ert-deftest
+	    ,(intern (format "vc-test-%s01-register" backend-string)) ()
+	  ,(format
+	    "Check `vc-register' and `vc-registered' for the %s backend."
+	    backend-string)
+	  (skip-unless
+	   (ert-test-passed-p
+	    (ert-test-most-recent-result
+	     (ert-get-test
+	      ',(intern
+		 (format "vc-test-%s00-create-repo" backend-string))))))
+	  (vc-test--register ',backend))
 
-	  (ert-deftest
-	      ,(intern (format "vc-test-%s01-register" backend-string)) ()
-	    ,(format
-	      "Check `vc-register' and `vc-registered' for the %s backend."
-	      backend-string)
-	    (skip-unless
-	     (ert-test-passed-p
-	      (ert-test-most-recent-result
-	       (ert-get-test
-		',(intern
-		   (format "vc-test-%s00-create-repo" backend-string))))))
-	    (vc-test--register ',backend))
+	(ert-deftest
+	    ,(intern (format "vc-test-%s02-state" backend-string)) ()
+	  ,(format "Check `vc-state' for the %s backend." backend-string)
+	  (skip-unless
+	   (ert-test-passed-p
+	    (ert-test-most-recent-result
+	     (ert-get-test
+	      ',(intern
+		 (format "vc-test-%s01-register" backend-string))))))
+	  (vc-test--state ',backend))
 
-	  (ert-deftest
-	      ,(intern (format "vc-test-%s02-state" backend-string)) ()
-	    ,(format "Check `vc-state' for the %s backend." backend-string)
-	    (skip-unless
-	     (ert-test-passed-p
-	      (ert-test-most-recent-result
-	       (ert-get-test
-		',(intern
-		   (format "vc-test-%s01-register" backend-string))))))
-	    (vc-test--state ',backend))
+	(ert-deftest
+	    ,(intern (format "vc-test-%s03-working-revision" backend-string)) ()
+	  ,(format "Check `vc-working-revision' for the %s backend."
+		   backend-string)
+	  (skip-unless
+	   (ert-test-passed-p
+	    (ert-test-most-recent-result
+	     (ert-get-test
+	      ',(intern
+		 (format "vc-test-%s01-register" backend-string))))))
+	  (vc-test--working-revision ',backend))
 
-	  (ert-deftest
-	      ,(intern (format "vc-test-%s03-working-revision" backend-string)) ()
-	    ,(format "Check `vc-working-revision' for the %s backend."
-		     backend-string)
-	    (skip-unless
-	     (ert-test-passed-p
-	      (ert-test-most-recent-result
-	       (ert-get-test
-		',(intern
-		   (format "vc-test-%s01-register" backend-string))))))
-	    (vc-test--working-revision ',backend))
-
-	  (ert-deftest
-	      ,(intern (format "vc-test-%s04-checkout-model" backend-string)) ()
-	    ,(format "Check `vc-checkout-model' for the %s backend."
-		     backend-string)
-	    (skip-unless
-	     (ert-test-passed-p
-	      (ert-test-most-recent-result
-	       (ert-get-test
-		',(intern
-		   (format "vc-test-%s01-register" backend-string))))))
-	    (vc-test--checkout-model ',backend)))))))
+	(ert-deftest
+	    ,(intern (format "vc-test-%s04-checkout-model" backend-string)) ()
+	  ,(format "Check `vc-checkout-model' for the %s backend."
+		   backend-string)
+	  ;; FIXME make this pass.
+	  :expected-result ,(if (equal backend 'RCS) :failed :passed)
+	  (skip-unless
+	   (ert-test-passed-p
+	    (ert-test-most-recent-result
+	     (ert-get-test
+	      ',(intern
+		 (format "vc-test-%s01-register" backend-string))))))
+	  (vc-test--checkout-model ',backend))))))
 
 (provide 'vc-tests)
 ;;; vc-tests.el ends here

@@ -8,5 +8,5 @@ necessary, use:
 tic -o ../ ./eterm-color.ti
 
 The compiled file is used by lisp/term.el, so if it is moved term.el
-needs to be changed.  terminfo requires it to be stored in an `e'
+needs to be changed.  terminfo requires it to be stored in an 'e'
 subdirectory (the first character of the file name).

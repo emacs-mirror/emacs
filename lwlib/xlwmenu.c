@@ -105,7 +105,7 @@ xlwMenuTranslations [] =
 
 /* FIXME: F10 should enter the menu, the first one in the menu-bar.  */
 
-#define offset(field) XtOffset(XlwMenuWidget, field)
+#define offset(field) offsetof (XlwMenuRec, field)
 static XtResource
 xlwMenuResources[] =
 {
@@ -1719,7 +1719,7 @@ make_shadow_gcs (XlwMenuWidget mw)
 					    1.2, 0x8000))
 #else
       XQueryColor (dpy, cmap, &topc);
-      /* don't overflow/wrap! */
+      /* Don't overflow/wrap!  */
       topc.red   = MINL (65535, topc.red   * 1.2);
       topc.green = MINL (65535, topc.green * 1.2);
       topc.blue  = MINL (65535, topc.blue  * 1.2);
@@ -1780,8 +1780,8 @@ make_shadow_gcs (XlwMenuWidget mw)
 	}
     }
 
-  if (!mw->menu.top_shadow_pixmap &&
-      mw->menu.top_shadow_color == mw->core.background_pixel)
+  if (!mw->menu.top_shadow_pixmap
+      && mw->menu.top_shadow_color == mw->core.background_pixel)
     {
       mw->menu.top_shadow_pixmap = mw->menu.gray_pixmap;
       if (mw->menu.free_top_shadow_color_p)
@@ -1791,8 +1791,8 @@ make_shadow_gcs (XlwMenuWidget mw)
 	}
       mw->menu.top_shadow_color = mw->menu.foreground;
     }
-  if (!mw->menu.bottom_shadow_pixmap &&
-      mw->menu.bottom_shadow_color == mw->core.background_pixel)
+  if (!mw->menu.bottom_shadow_pixmap
+      && mw->menu.bottom_shadow_color == mw->core.background_pixel)
     {
       mw->menu.bottom_shadow_pixmap = mw->menu.gray_pixmap;
       if (mw->menu.free_bottom_shadow_color_p)
@@ -1856,7 +1856,7 @@ openXftFont (XlwMenuWidget mw)
   if (fname && strcmp (fname, "none") != 0)
     {
       int screen = XScreenNumberOfScreen (mw->core.screen);
-      int len = strlen (fname), i = len-1;
+      int len = strlen (fname), i = len - 1;
       /* Try to convert Gtk-syntax (Sans 9) to Xft syntax Sans-9.  */
       while (i > 0 && '0' <= fname[i] && fname[i] <= '9')
         --i;
@@ -1880,7 +1880,7 @@ openXftFont (XlwMenuWidget mw)
 static void
 XlwMenuInitialize (Widget request, Widget w, ArgList args, Cardinal *num_args)
 {
-  /* Get the GCs and the widget size */
+  /* Get the GCs and the widget size.  */
   XlwMenuWidget mw = (XlwMenuWidget) w;
   Window window = RootWindowOfScreen (DefaultScreenOfDisplay (XtDisplay (mw)));
   Display* display = XtDisplay (mw);
@@ -2014,7 +2014,7 @@ XlwMenuRealize (Widget w, Mask *valueMask, XSetWindowAttributes *attributes)
 
 /* Only the toplevel menubar/popup is a widget so it's the only one that
    receives expose events through Xt.  So we repaint all the other panes
-   when receiving an Expose event. */
+   when receiving an Expose event.  */
 static void
 XlwMenuRedisplay (Widget w, XEvent *ev, Region region)
 {
@@ -2056,14 +2056,14 @@ XlwMenuDestroy (Widget w)
   release_drawing_gcs (mw);
   release_shadow_gcs (mw);
 
-  /* this doesn't come from the resource db but is created explicitly
-     so we must free it ourselves. */
+  /* This doesn't come from the resource db but is created explicitly
+     so we must free it ourselves.  */
   XFreePixmap (XtDisplay (mw), mw->menu.gray_pixmap);
   mw->menu.gray_pixmap = (Pixmap) -1;
 
   /* Don't free mw->menu.contents because that comes from our creator.
      The `*_stack' elements are just pointers into `contents' so leave
-     that alone too.  But free the stacks themselves. */
+     that alone too.  But free the stacks themselves.  */
   if (mw->menu.old_stack) XtFree ((char *) mw->menu.old_stack);
   if (mw->menu.new_stack) XtFree ((char *) mw->menu.new_stack);
 
@@ -2093,7 +2093,7 @@ XlwMenuDestroy (Widget w)
 
   if (mw->menu.windows [0].pixmap != None)
     XFreePixmap (XtDisplay (mw), mw->menu.windows [0].pixmap);
-  /* start from 1 because the one in slot 0 is w->core.window */
+  /* Start from 1 because the one in slot 0 is w->core.window.  */
   for (i = 1; i < mw->menu.windows_length; i++)
     {
       if (mw->menu.windows [i].pixmap != None)
@@ -2170,7 +2170,7 @@ XlwMenuSetValues (Widget current, Widget request, Widget new,
 	    XSetWindowBackground (XtDisplay (oldmw),
 				  oldmw->menu.windows [i].window,
 				  newmw->core.background_pixel);
-	    /* clear windows and generate expose events */
+	    /* Clear windows and generate expose events.  */
 	    XClearArea (XtDisplay (oldmw), oldmw->menu.windows[i].window,
 			0, 0, 0, 0, True);
 	  }
@@ -2244,7 +2244,7 @@ handle_single_motion_event (XlwMenuWidget mw, XMotionEvent *ev)
     set_new_state (mw, val, level);
   remap_menubar (mw);
 
-  /* Sync with the display.  Makes it feel better on X terms. */
+  /* Sync with the display.  Makes it feel better on X terms.  */
   XSync (XtDisplay (mw), False);
 }
 
@@ -2256,7 +2256,7 @@ handle_motion_event (XlwMenuWidget mw, XMotionEvent *ev)
   int state = ev->state;
   XMotionEvent oldev = *ev;
 
-  /* allow motion events to be generated again */
+  /* Allow motion events to be generated again.  */
   if (ev->is_hint
       && XQueryPointer (XtDisplay (mw), ev->window,
 			&ev->root, &ev->subwindow,
@@ -2293,11 +2293,11 @@ Start (Widget w, XEvent *ev, String *params, Cardinal *num_params)
 	 releasing the button should always pop the menu down.  */
       next_release_must_exit = 1;
 
-      /* notes the absolute position of the menubar window */
+      /* Notes the absolute position of the menubar window.  */
       mw->menu.windows [0].x = ev->xmotion.x_root - ev->xmotion.x;
       mw->menu.windows [0].y = ev->xmotion.y_root - ev->xmotion.y;
 
-      /* handles the down like a move, slots are compatible */
+      /* Handles the down like a move, slots are compatible.  */
       ev->xmotion.is_hint = 0;
       handle_motion_event (mw, &ev->xmotion);
     }
@@ -2327,7 +2327,7 @@ find_first_selectable (XlwMenuWidget mw, widget_value *item, int skip_titles)
   while (lw_separator_p (current->name, &separator, 0) || !current->enabled
          || (skip_titles && !current->call_data && !current->contents))
     if (current->next)
-      current=current->next;
+      current = current->next;
     else
       return NULL;
 
@@ -2340,9 +2340,9 @@ find_next_selectable (XlwMenuWidget mw, widget_value *item, int skip_titles)
   widget_value *current = item;
   enum menu_separator separator;
 
-  while (current->next && (current=current->next) &&
-	 (lw_separator_p (current->name, &separator, 0) || !current->enabled
-          || (skip_titles && !current->call_data && !current->contents)))
+  while (current->next && (current = current->next)
+	 && (lw_separator_p (current->name, &separator, 0) || !current->enabled
+	     || (skip_titles && !current->call_data && !current->contents)))
     ;
 
   if (current == item)
@@ -2357,7 +2357,7 @@ find_next_selectable (XlwMenuWidget mw, widget_value *item, int skip_titles)
                  && !current->contents))
 	{
 	  if (current->next)
-	    current=current->next;
+	    current = current->next;
 
 	  if (current == item)
 	    break;
@@ -2374,12 +2374,12 @@ find_prev_selectable (XlwMenuWidget mw, widget_value *item, int skip_titles)
   widget_value *current = item;
   widget_value *prev = item;
 
-  while ((current=find_next_selectable (mw, current, skip_titles))
+  while ((current = find_next_selectable (mw, current, skip_titles))
          != item)
     {
       if (prev == current)
 	break;
-      prev=current;
+      prev = current;
     }
 
   return prev;
@@ -2560,7 +2560,7 @@ Select (Widget w, XEvent *ev, String *params, Cardinal *num_params)
 	  < XtGetMultiClickTime (XtDisplay (w))))
     return;
 
-  /* pop down everything.  */
+  /* Pop down everything.  */
   mw->menu.new_depth = 1;
   remap_menubar (mw);
 
@@ -2582,7 +2582,7 @@ Select (Widget w, XEvent *ev, String *params, Cardinal *num_params)
 }
 
 
-/* Special code to pop-up a menu */
+/* Special code to pop-up a menu.  */
 static void
 pop_up_menu (XlwMenuWidget mw, XButtonPressedEvent *event)
 {
@@ -2619,14 +2619,14 @@ pop_up_menu (XlwMenuWidget mw, XButtonPressedEvent *event)
   mw->menu.popped_up = True;
   if (XtIsShell (XtParent ((Widget)mw)))
     {
-      fprintf(stderr, "Config %d %d\n", x, y);
+      /* fprintf (stderr, "Config %d %d\n", x, y); */
       XtConfigureWidget (XtParent ((Widget)mw), x, y, w, h,
 			 XtParent ((Widget)mw)->core.border_width);
       XtPopup (XtParent ((Widget)mw), XtGrabExclusive);
       display_menu (mw, 0, False, NULL, NULL, NULL);
       mw->menu.windows [0].x = x + borderwidth;
       mw->menu.windows [0].y = y + borderwidth;
-      mw->menu.top_depth = 1;  /* Popup menus don't have a bar so top is 1  */
+      mw->menu.top_depth = 1;  /* Popup menus don't have a bar so top is 1.  */
     }
   else
     {
@@ -2634,7 +2634,7 @@ pop_up_menu (XlwMenuWidget mw, XButtonPressedEvent *event)
 
       XtAddGrab ((Widget) mw, True, True);
 
-      /* notes the absolute position of the menubar window */
+      /* Notes the absolute position of the menubar window.  */
       mw->menu.windows [0].x = ev->xmotion.x_root - ev->xmotion.x;
       mw->menu.windows [0].y = ev->xmotion.y_root - ev->xmotion.y;
       mw->menu.top_depth = 2;

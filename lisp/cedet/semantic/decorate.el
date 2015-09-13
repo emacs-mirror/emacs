@@ -88,20 +88,6 @@ If VISIBLE is non-nil, make the text visible."
   "Return non-nil if TAG is invisible."
   (semantic-overlay-get (semantic-tag-overlay tag) 'invisible))
 
-(defun semantic-set-tag-intangible (tag &optional tangible)
-  "Enable the text in TAG to be made intangible.
-If TANGIBLE is non-nil, make the text visible.
-This function does not have meaning in XEmacs because it seems that
-the extent 'intangible' property does not exist."
-  (semantic-overlay-put (semantic-tag-overlay tag) 'intangible
-			(not tangible)))
-
-(defun semantic-tag-intangible-p (tag)
-  "Return non-nil if TAG is intangible.
-This function does not have meaning in XEmacs because it seems that
-the extent 'intangible' property does not exist."
-  (semantic-overlay-get (semantic-tag-overlay tag) 'intangible))
-
 (defun semantic-overlay-signal-read-only
   (overlay after start end &optional len)
   "Hook used in modification hooks to prevent modification.

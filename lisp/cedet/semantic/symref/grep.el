@@ -46,9 +46,11 @@ and those hits returned.")
   '((c-mode "*.[ch]")
     (c++-mode "*.[chCH]" "*.[ch]pp" "*.cc" "*.hh")
     (html-mode "*.s?html" "*.php")
+    (ruby-mode "*.r[bu]" "*.rake" "*.gemspec" "*.erb" "*.haml"
+               "Rakefile" "Thorfile" "Capfile" "Guardfile" "Vagrantfile")
     )
-  "List of major modes and file extension pattern regexp.
-See find -regex man page for format.")
+  "List of major modes and file extension pattern.
+See find -name man page for format.")
 
 (defun semantic-symref-derive-find-filepatterns (&optional mode)
   "Derive a list of file patterns for the current buffer.
@@ -85,6 +87,9 @@ Optional argument MODE specifies the `major-mode' to test."
 	   (error "Customize `semantic-symref-filepattern-alist' for %s" major-mode))
 	  )))
 
+(defvar grepflags)
+(defvar greppattern)
+
 (defvar semantic-symref-grep-expand-keywords
   (condition-case nil
       (let* ((kw (copy-alist grep-expand-keywords))
@@ -96,7 +101,7 @@ Optional argument MODE specifies the `major-mode' to test."
     (error nil))
   "Grep expand keywords used when expanding templates for symref.")
 
-(defun semantic-symref-grep-use-template (rootdir filepattern grepflags greppattern)
+(defun semantic-symref-grep-use-template (rootdir filepattern flags pattern)
   "Use the grep template expand feature to create a grep command.
 ROOTDIR is the root location to run the `find' from.
 FILEPATTERN is a string representing find flags for searching file patterns.
@@ -104,18 +109,29 @@ GREPFLAGS are flags passed to grep, such as -n or -l.
 GREPPATTERN is the pattern used by grep."
   ;; We have grep-compute-defaults.  Let's use it.
   (grep-compute-defaults)
-  (let* ((grep-expand-keywords semantic-symref-grep-expand-keywords)
-	 (cmd (grep-expand-template grep-find-template
-				    greppattern
-				    filepattern
-				    rootdir)))
-    ;; For some reason, my default has no <D> in it.
+  (let* ((grepflags flags)
+         (greppattern pattern)
+         (grep-expand-keywords semantic-symref-grep-expand-keywords)
+	 (cmd (grep-expand-template
+               (if (memq system-type '(windows-nt ms-dos))
+                   ;; grep-find uses '--color=always' on MS-Windows
+                   ;; because it wants the colorized output, to show
+                   ;; it to the user.  By contrast, here we don't show
+                   ;; the output, and the SGR escapes get in the way
+                   ;; of parsing the output.
+                   (replace-regexp-in-string "--color=always" ""
+                                             grep-find-template t t)
+                 grep-find-template)
+               greppattern
+               filepattern
+               rootdir)))
+    ;; http://debbugs.gnu.org/20719
     (when (string-match "find \\(\\.\\)" cmd)
       (setq cmd (replace-match rootdir t t cmd 1)))
     ;;(message "New command: %s" cmd)
     cmd))
 
-(defcustom semantic-symref-grep-shell "sh"
+(defcustom semantic-symref-grep-shell shell-file-name
   "The shell command to use for executing find/grep.
 This shell should support pipe redirect syntax."
   :group 'semantic
@@ -125,22 +141,28 @@ This shell should support pipe redirect syntax."
   "Perform a search with Grep."
   ;; Grep doesn't support some types of searches.
   (let ((st (oref tool :searchtype)))
-    (when (not (eq st 'symbol))
+    (when (not (memq st '(symbol regexp)))
       (error "Symref impl GREP does not support searchtype of %s" st))
     )
   ;; Find the root of the project, and do a find-grep...
   (let* (;; Find the file patterns to use.
-	 (pat (cdr (assoc major-mode semantic-symref-filepattern-alist)))
 	 (rootdir (semantic-symref-calculate-rootdir))
 	 (filepattern (semantic-symref-derive-find-filepatterns))
 	 ;; Grep based flags.
 	 (grepflags (cond ((eq (oref tool :resulttype) 'file)
-			  "-l ")
-			 (t "-n ")))
-	 (greppat (cond ((eq (oref tool :searchtype) 'regexp)
-			 (oref tool searchfor))
-			(t
-			 (concat "'\\<" (oref tool searchfor) "\\>'"))))
+                           "-l ")
+                          ((eq (oref tool :searchtype) 'regexp)
+                           "-nE ")
+                          (t "-n ")))
+	 (greppat (shell-quote-argument
+                   (cond ((eq (oref tool :searchtype) 'regexp)
+                          (oref tool searchfor))
+                         (t
+                          ;; Can't use the word boundaries: Grep
+                          ;; doesn't always agrees with the language
+                          ;; syntax on those.
+                          (format "\\(^\\|\\W\\)%s\\(\\W\\|$\\)"
+                                  (oref tool searchfor))))))
 	 ;; Misc
 	 (b (get-buffer-create "*Semantic SymRef*"))
 	 (ans nil)
@@ -158,10 +180,12 @@ This shell should support pipe redirect syntax."
 	  (let ((cmd (concat "find " default-directory " -type f " filepattern " -print0 "
 			     "| xargs -0 grep -H " grepflags "-e " greppat)))
 	    ;;(message "Old command: %s" cmd)
-	    (call-process semantic-symref-grep-shell nil b nil "-c" cmd)
+	    (call-process semantic-symref-grep-shell nil b nil
+                          shell-command-switch cmd)
 	    )
 	(let ((cmd (semantic-symref-grep-use-template rootdir filepattern grepflags greppat)))
-	  (call-process semantic-symref-grep-shell nil b nil "-c" cmd))
+	  (call-process semantic-symref-grep-shell nil b nil
+                        shell-command-switch cmd))
 	))
     (setq ans (semantic-symref-parse-tool-output tool b))
     ;; Return the answer

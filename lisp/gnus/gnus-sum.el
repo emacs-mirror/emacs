@@ -997,7 +997,7 @@ following hook:
 		       (mail-header-set-subject
 			header
 			(gnus-simplify-subject
-			 (mail-header-subject header) 're-only)))
+			 (mail-header-subject header) \\='re-only)))
 		     gnus-newsgroup-headers)))"
   :group 'gnus-group-select
   :type 'hook)
@@ -1656,7 +1656,7 @@ while still allowing them to affect operations done in other buffers.
 For example:
 
 \(setq gnus-newsgroup-variables
-     '(message-use-followup-to
+     \\='(message-use-followup-to
        (gnus-visible-headers .
 	 \"^From:\\\\|^Newsgroups:\\\\|^Subject:\\\\|^Date:\\\\|^To:\")))
 ")
@@ -2424,6 +2424,7 @@ increase the score of each group you read."
 	      ["Lapsed" gnus-article-date-lapsed t]
 	      ["User-defined" gnus-article-date-user t])
 	     ("Display"
+	      ["Display HTML images" gnus-article-show-images t]
 	      ["Remove images" gnus-article-remove-images t]
 	      ["Toggle smiley" gnus-treat-smiley t]
 	      ["Show X-Face" gnus-article-display-x-face t]
@@ -4375,7 +4376,7 @@ Returns HEADER if it was entered in the DEPENDENCIES.  Returns nil otherwise."
      ;; The last case ignores an existing entry, except it adds any
      ;; additional Xrefs (in case the two articles came from different
      ;; servers.
-     ;; Also sets `header' to `nil' meaning that the `dependencies'
+     ;; Also sets `header' to nil meaning that the `dependencies'
      ;; table was *not* modified.
      (t
       (mail-header-set-xref
@@ -8428,7 +8429,7 @@ articles that are younger than AGE days."
     (gnus-summary-position-point)))
 
 (defun gnus-summary-limit-to-extra (header regexp &optional not-matching)
-  "Limit the summary buffer to articles that match an 'extra' header."
+  "Limit the summary buffer to articles that match an `extra' header."
   (interactive
    (let ((header
 	  (intern
@@ -9067,22 +9068,24 @@ non-numeric or nil fetch the number specified by the
 		       (regexp-opt ',(append refs (list id subject)))))))
 	      (gnus-fetch-headers (list last) (if (numberp limit)
 						  (* 2 limit) limit) t))))
-	 article-ids)
+	 article-ids new-unreads)
     (when (listp new-headers)
       (dolist (header new-headers)
-	(push (mail-header-number header) article-ids)
-	(when (member (mail-header-number header) gnus-newsgroup-unselected)
-          (push (mail-header-number header) gnus-newsgroup-unreads)
-          (setq gnus-newsgroup-unselected
-                (delete (mail-header-number header)
-			gnus-newsgroup-unselected))))
+	(push (mail-header-number header) article-ids))
+      (setq article-ids (nreverse article-ids))
+      (setq new-unreads
+	    (gnus-sorted-intersection gnus-newsgroup-unselected article-ids))
+      (setq gnus-newsgroup-unselected
+	    (gnus-sorted-ndifference gnus-newsgroup-unselected new-unreads))
+      (setq gnus-newsgroup-unreads
+	    (gnus-sorted-nunion gnus-newsgroup-unreads new-unreads))
       (setq gnus-newsgroup-headers
             (gnus-delete-duplicate-headers
              (gnus-merge
               'list gnus-newsgroup-headers new-headers
               'gnus-article-sort-by-number)))
       (setq gnus-newsgroup-articles
-      	    (gnus-sorted-nunion gnus-newsgroup-articles (nreverse article-ids)))
+	    (gnus-sorted-nunion gnus-newsgroup-articles article-ids))
       (gnus-summary-limit-include-thread id)))
   (gnus-summary-show-thread))
 
@@ -9486,6 +9489,7 @@ Optional argument BACKWARD means do search for backward.
     ;; Return whether we found the regexp.
     (when (eq found 'found)
       (goto-char point)
+      (sit-for 0) ;; Ensure that the point is visible in the summary window.
       (gnus-summary-show-thread)
       (gnus-summary-goto-subject gnus-current-article)
       (gnus-summary-position-point)
@@ -9867,9 +9871,11 @@ invalid IDNA string (`xn--bar' is invalid).
 You must have GNU Libidn (URL `http://www.gnu.org/software/libidn/')
 installed for this command to work."
   (interactive "P")
-  (if (not (and (condition-case nil (require 'idna)
-		  (file-error))
-		(mm-coding-system-p 'utf-8)
+  (if (not (and (mm-coding-system-p 'utf-8)
+		(condition-case nil
+		    (require 'idna)
+		  (file-error)
+		  (invalid-operation))
 		(symbol-value 'idna-program)
 		(executable-find (symbol-value 'idna-program))))
       (gnus-message
@@ -11690,20 +11696,10 @@ If ARG is positive number, turn showing conversation threads on."
     (gnus-message 6 "Threading is now %s" (if gnus-show-threads "on" "off"))
     (gnus-summary-position-point)))
 
-(eval-and-compile
-  (if (fboundp 'remove-overlays)
-      (defalias 'gnus-remove-overlays 'remove-overlays)
-    (defun gnus-remove-overlays (beg end name val)
-      "Clear BEG and END of overlays whose property NAME has value VAL.
-For compatibility with XEmacs."
-      (dolist (ov (gnus-overlays-in beg end))
-	(when (eq (gnus-overlay-get ov name) val)
-	  (gnus-delete-overlay ov))))))
-
 (defun gnus-summary-show-all-threads ()
   "Show all threads."
   (interactive)
-  (gnus-remove-overlays (point-min) (point-max) 'invisible 'gnus-sum)
+  (remove-overlays (point-min) (point-max) 'invisible 'gnus-sum)
   (gnus-summary-position-point))
 
 (defsubst gnus-summary--inv (p)
@@ -11730,7 +11726,7 @@ Returns nil if no thread was there to be shown."
 				    'gnus-sum))))
 		  (point)))))
     (when eoi
-      (gnus-remove-overlays beg eoi 'invisible 'gnus-sum)
+      (remove-overlays beg eoi 'invisible 'gnus-sum)
       (goto-char orig)
       (gnus-summary-position-point)
       eoi)))
@@ -11799,10 +11795,10 @@ Returns nil if no threads were there to be hidden."
 	       (search-backward "\n" start t))
 	  (progn
 	    (when (> (point) starteol)
-	      (gnus-remove-overlays starteol (point) 'invisible 'gnus-sum)
-	      (let ((ol (gnus-make-overlay starteol (point) nil t nil)))
-		(gnus-overlay-put ol 'invisible 'gnus-sum)
-		(gnus-overlay-put ol 'evaporate t)))
+	      (remove-overlays starteol (point) 'invisible 'gnus-sum)
+	      (let ((ol (make-overlay starteol (point) nil t nil)))
+		(overlay-put ol 'invisible 'gnus-sum)
+		(overlay-put ol 'evaporate t)))
 	    (gnus-summary-goto-subject article)
             (when (> start (point))
               (message "Hiding the thread moved us backwards, aborting!")
@@ -12621,11 +12617,11 @@ If REVERSE, save parts that do not match TYPE."
 	  (setq to end))
 	(if gnus-newsgroup-selected-overlay
 	    ;; Move old overlay.
-	    (gnus-move-overlay
+	    (move-overlay
 	     gnus-newsgroup-selected-overlay from to (current-buffer))
 	  ;; Create new overlay.
-	  (gnus-overlay-put
-	   (setq gnus-newsgroup-selected-overlay (gnus-make-overlay from to))
+	  (overlay-put
+	   (setq gnus-newsgroup-selected-overlay (make-overlay from to))
 	   'face gnus-summary-selected-face))))))
 
 (defvar gnus-summary-highlight-line-cached nil)

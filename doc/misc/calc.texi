@@ -1,10 +1,10 @@
-\input texinfo                  @c -*-texinfo-*-
+\input texinfo @c -*- mode: texinfo; coding: utf-8 -*-
 @comment %**start of header (This is for running Texinfo on a region.)
 @c smallbook
 @setfilename ../../info/calc.info
 @c [title]
 @settitle GNU Emacs Calc Manual
-@documentencoding UTF-8
+@include docstyle.texi
 @setchapternewpage odd
 @comment %**end of header (This is for running Texinfo on a region.)
 
@@ -12,9 +12,9 @@
 
 @c The following macros are used for conditional output for single lines.
 @c @texline foo
-@c    `foo' will appear only in TeX output
+@c    'foo' will appear only in TeX output
 @c @infoline foo
-@c    `foo' will appear only in non-TeX output
+@c    'foo' will appear only in non-TeX output
 
 @c @expr{expr} will typeset an expression;
 @c $x$ in TeX, @samp{x} otherwise.
@@ -431,7 +431,7 @@ Type @kbd{2 @key{RET} 3 + Q} to compute
 @noindent
 Type @kbd{P 2 ^} to compute
 @texline @math{\pi^2 = 9.86960440109}.
-@infoline the value of `pi' squared, 9.86960440109.
+@infoline the value of @cpi{} squared, 9.86960440109.
 
 @noindent
 Type @key{TAB} to exchange the order of these two results.
@@ -455,7 +455,7 @@ Type @kbd{' sqrt(2+3) @key{RET}} to compute
 @noindent
 Type @kbd{' pi^2 @key{RET}} to enter
 @texline @math{\pi^2}.
-@infoline `pi' squared.
+@infoline @cpi{} squared.
 To evaluate this symbolic formula as a number, type @kbd{=}.
 
 @noindent
@@ -1203,9 +1203,7 @@ algebra system for microcomputers.
 Many people have contributed to Calc by reporting bugs and suggesting
 features, large and small.  A few deserve special mention:  Tim Peters,
 who helped develop the ideas that led to the selection commands, rewrite
-rules, and many other algebra features;
-@texline Fran\c{c}ois
-@infoline Francois
+rules, and many other algebra features; François
 Pinard, who contributed an early prototype of the Calc Summary appendix
 as well as providing valuable suggestions in many other areas of Calc;
 Carl Witty, whose eagle eyes discovered many typographical and factual
@@ -1241,7 +1239,7 @@ finished in two weeks.
 @c [tutorial]
 
 @ifinfo
-@c This node is accessed by the `C-x * t' command.
+@c This node is accessed by the 'C-x * t' command.
 @node Interactive Tutorial, Tutorial, Getting Started, Top
 @chapter Tutorial
 
@@ -2164,7 +2162,7 @@ the prefix.
 
 One more way to correct an error is by editing the stack entries.
 The actual Stack buffer is marked read-only and must not be edited
-directly, but you can press @kbd{`} (the backquote or accent grave)
+directly, but you can press @kbd{`} (grave accent)
 to edit a stack entry.
 
 Try entering @samp{3.141439} now.  If this is supposed to represent
@@ -2471,7 +2469,7 @@ We don't have enough space here to show all the zeros!  They won't
 fit on a typical screen, either, so you will have to use horizontal
 scrolling to see them all.  Press @kbd{<} and @kbd{>} to scroll the
 stack window left and right by half its width.  Another way to view
-something large is to press @kbd{`} (back-quote) to edit the top of
+something large is to press @kbd{`} (grave accent) to edit the top of
 stack in a separate window.  (Press @kbd{C-c C-c} when you are done.)
 
 You can enter non-decimal numbers using the @kbd{#} symbol, too.
@@ -3658,7 +3656,7 @@ fast!  (But of course if you use @kbd{t .} you will lose the ability
 to get old vectors back using the @kbd{t y} command.)
 
 An easy way to view a full vector when @kbd{v .} mode is active is
-to press @kbd{`} (back-quote) to edit the vector; editing always works
+to press @kbd{`} (grave accent) to edit the vector; editing always works
 with the full, unabbreviated value.
 
 @cindex Least-squares for fitting a straight line
@@ -6012,7 +6010,7 @@ fix, though:
 @end smallexample
 
 @noindent
-When we type @kbd{Z `} (that's a back-quote character), Calc saves
+When we type @kbd{Z `} (that's a grave accent), Calc saves
 its mode settings and the contents of the ten ``quick variables''
 for later reference.  When we type @kbd{Z '} (that's an apostrophe
 now), Calc restores those saved values.  Thus the @kbd{p 4} and
@@ -7218,9 +7216,7 @@ so that the mapping operation works; no prime factor will ever be
 zero, so adding zeros on the left and right is safe.  From then on
 the job is pretty straightforward.
 
-Incidentally, Calc provides the
-@texline @dfn{M@"obius} @math{\mu}
-@infoline @dfn{Moebius mu}
+Incidentally, Calc provides the @dfn{Möbius μ}
 function which is zero if and only if its argument is square-free.  It
 would be a much more convenient way to do the above test in practice.
 
@@ -8098,7 +8094,7 @@ argument is exactly what we want to map over:
 @end smallexample
 
 @noindent
-Et voil@`a, September 13, 1991 is a Friday.
+Et voilà, September 13, 1991 is a Friday.
 
 @smallexample
 @group
@@ -9042,7 +9038,7 @@ matrix (or other value) to the power @expr{n} in only
 @texline @math{\log_2 n}
 @infoline @expr{log(n,2)}
 steps.  For example, this program can compute the 1000th Fibonacci
-number (a 209-digit integer!) in about 10 steps; even though the
+number (a 209-digit integer!)@: in about 10 steps; even though the
 @kbd{Z < ... Z >} solution had much simpler steps, it would have
 required so many steps that it would not have been practical.
 
@@ -10029,7 +10025,7 @@ this would be to fix a typo, as the full Emacs cursor motion and editing
 keys are available during algebraic entry but not during numeric entry.
 
 In the same vein, during either numeric or algebraic entry you can
-press @kbd{`} (backquote) to switch to @code{calc-edit} mode, where
+press @kbd{`} (grave accent) to switch to @code{calc-edit} mode, where
 you complete your half-finished entry in a separate buffer.
 @xref{Editing Stack Entries}.
 
@@ -10174,7 +10170,7 @@ an ASCII character.
 
 For example, the quoted character @samp{"x"} produces the vector
 result @samp{[120]} (because 120 is the ASCII code of the lower-case
-`x'; @pxref{Strings}).  Since this is a vector, not an integer, it
+``x''; @pxref{Strings}).  Since this is a vector, not an integer, it
 is displayed only according to the current mode settings.  But
 running Quick Calc again and entering @samp{120} will produce the
 result @samp{120 (16#78, 8#170, x)} which shows the number in its
@@ -11098,12 +11094,12 @@ noon GMT@.)  Julian day numbering is largely used in astronomy.
 @cindex Unix time format
 The Unix operating system measures time as an integer number of
 seconds since midnight, Jan 1, 1970.  To convert a Calc date
-value into a Unix time stamp, first subtract 719164 (the code
+value into a Unix time stamp, first subtract 719163 (the code
 for @samp{<Jan 1, 1970>}), then multiply by 86400 (the number of
 seconds in a day) and press @kbd{R} to round to the nearest
 integer.  If you have a date form, you can simply subtract the
 day @samp{<Jan 1, 1970>} instead of unpacking and subtracting
-719164.  Likewise, divide by 86400 and add @samp{<Jan 1, 1970>}
+719163.  Likewise, divide by 86400 and add @samp{<Jan 1, 1970>}
 to convert from Unix time to a Calc date form.  (Note that
 Unix normally maintains the time in the GMT time zone; you may
 need to subtract five hours to get New York time, or eight hours
@@ -11871,10 +11867,10 @@ the stack objects at the levels determined by the point and the mark.
 @cindex Editing the stack with Emacs
 The @kbd{`} (@code{calc-edit}) command creates a temporary buffer
 (@file{*Calc Edit*}) for editing the top-of-stack value using regular
-Emacs commands.  Note that @kbd{`} is a backquote, not a quote. With a
-numeric prefix argument, it edits the specified number of stack entries
-at once.  (An argument of zero edits the entire stack; a negative
-argument edits one specific stack entry.)
+Emacs commands.  Note that @kbd{`} is a grave accent, not an apostrophe.
+With a numeric prefix argument, it edits the specified number of stack
+entries at once.  (An argument of zero edits the entire stack; a
+negative argument edits one specific stack entry.)
 
 When you are done editing, press @kbd{C-c C-c} to finish and return
 to Calc.  The @key{RET} and @key{LFD} keys also work to finish most
@@ -13609,11 +13605,11 @@ Weekday:  ``Sunday'' for Sunday.
 @item Iww
 Week number:  ISO 8601 week number, ``W01'' for week 1.
 @item d
-Day of year:  ``34'' for Feb. 3.
+Day of year:  ``34'' for Feb.@: 3.
 @item ddd
-Day of year:  ``034'' for Feb. 3.
+Day of year:  ``034'' for Feb.@: 3.
 @item bdd
-Day of year:  `` 34'' for Feb. 3.
+Day of year:  `` 34'' for Feb.@: 3.
 @item T
 Letter:  Literal ``T''.
 @item h
@@ -19228,7 +19224,7 @@ non-empty sets, respectively.
 The @kbd{k p} (@code{calc-prime-test}) command checks if the integer on
 the top of the stack is prime.  For integers less than eight million, the
 answer is always exact and reasonably fast.  For larger integers, a
-probabilistic method is used (see Knuth vol. II, section 4.5.4, algorithm P).
+probabilistic method is used (see Knuth vol.@: II, section 4.5.4, algorithm P).
 The number is first checked against small prime factors (up to 13).  Then,
 any number of iterations of the algorithm are performed.  Each step either
 discovers that the number is non-prime, or substantially increases the
@@ -19304,9 +19300,7 @@ are relatively prime to @expr{n}.
 @pindex calc-moebius
 @tindex moebius
 The @kbd{k m} (@code{calc-moebius}) [@code{moebius}] command computes the
-@texline M@"obius @math{\mu}
-@infoline Moebius ``mu''
-function.  If the input number is a product of @expr{k}
+Möbius μ function.  If the input number is a product of @expr{k}
 distinct factors, this is @expr{(-1)^k}.  If the input number has any
 duplicate factors (i.e., can be divided by the same prime more than once),
 the result is zero.
@@ -27698,9 +27692,7 @@ the keyboard macro @kbd{' tri($) @key{RET}} to make a command that applies
 @code{tri} to the value on the top of the stack.  @xref{Programming}.
 
 @cindex Quaternions
-The following rule set, contributed by
-@texline Fran\c cois
-@infoline Francois
+The following rule set, contributed by François
 Pinard, implements @dfn{quaternions}, a generalization of the concept of
 complex numbers.  Quaternions have four components, and are here
 represented by function calls @samp{quat(@var{w}, [@var{x}, @var{y},
@@ -27860,13 +27852,19 @@ while typing @kbd{u c au/yr @key{RET}} produces
 
 If the units you request are inconsistent with the original units, the
 number will be converted into your units times whatever ``remainder''
-units are left over.  (This can be disabled; @pxref{Customizing Calc}.)
-For example, converting @samp{55 mph} into acres
-produces @samp{6.08e-3 acre / m s}.  (Recall that multiplication binds
-more strongly than division in Calc formulas, so the units here are
-acres per meter-second.)  Remainder units are expressed in terms of
+units are left over.  For example, converting @samp{55 mph} into acres
+produces @samp{6.08e-3 acre / (m s)}. Remainder units are expressed in terms of
 ``fundamental'' units like @samp{m} and @samp{s}, regardless of the
 input units.
+
+@kindex u n
+@pindex calc-convert-exact-units
+If you intend that your new units be consistent with the original
+units, the @kbd{u n} (@code{calc-convert-exact-units}) command will
+check the units before the conversion.  For example, to change
+@samp{mi/hr} to @samp{km/hr}, you could type @kbd{u c km @key{RET}},
+but @kbd{u n km @key{RET}} would signal an error.
+You would need to type @kbd{u n km/hr @key{RET}}.
 
 One special exception is that if you specify a single unit name, and
 a compatible unit appears somewhere in the units expression, then
@@ -28042,7 +28040,7 @@ based on a fundamental physical process (although there are efforts to
 change this) is the kilogram, which was originally defined as the mass
 of one liter of water, but is now defined as the mass of the
 international prototype of the kilogram (IPK), a cylinder of platinum-iridium
-kept at the Bureau international des poids et mesures in S@`evres,
+kept at the Bureau international des poids et mesures in Sèvres,
 France.  (There are several copies of the IPK throughout the world.)
 The British imperial units, once defined in terms of physical objects,
 were redefined in 1963 in terms of SI units.  The US customary units,
@@ -31842,7 +31840,7 @@ local variables inside the macro should not affect any variables
 outside the macro.  The @kbd{Z `} (@code{calc-kbd-push}) and @kbd{Z '}
 (@code{calc-kbd-pop}) commands give you both of these capabilities.
 
-When you type @kbd{Z `} (with a backquote or accent grave character),
+When you type @kbd{Z `} (with a grave accent),
 the values of various mode settings are saved away.  The ten ``quick''
 variables @code{q0} through @code{q9} are also saved.  When
 you type @w{@kbd{Z '}} (with an apostrophe), these values are restored.
@@ -34278,7 +34276,7 @@ you can call it again with the same @var{n} to get a greater certainty;
 
 @defun to-simple-fraction f
 If @var{f} is a floating-point number which can be represented exactly
-as a small rational number. return that number, else return @var{f}.
+as a small rational number, return that number, else return @var{f}.
 For example, 0.75 would be converted to 3:4.  This function is very
 fast.
 @end defun
@@ -35684,19 +35682,6 @@ as @samp{a/(b*c)}. If @code{calc-multiplication-has-precedence} is
 of @code{calc-multiplication-has-precedence} is @code{t}.
 @end defvar
 
-@defvar calc-ensure-consistent-units
-When converting units, the variable @code{calc-ensure-consistent-units}
-determines whether or not the target units need to be consistent with the
-original units.  If @code{calc-ensure-consistent-units} is @code{nil}, then
-the target units don't need to have the same dimensions as the original units;
-for example, converting @samp{100 ft/s} to @samp{m} will produce @samp{30.48 m/s}.
-If @code{calc-ensure-consistent-units} is non-@code{nil}, then the target units
-need to have the same dimensions as the original units; for example, converting
-@samp{100 ft/s} to @samp{m} will result in an error, since @samp{ft/s} and @samp{m}
-have different dimensions. The default value of @code{calc-ensure-consistent-units}
-is @code{nil}.
-@end defvar
-
 @defvar calc-context-sensitive-enter
 The commands @code{calc-enter} and @code{calc-pop} will typically
 duplicate the top of the stack.  If
@@ -36497,6 +36482,7 @@ keystrokes are not listed in this summary.
 @r{   defn@:      u d   @:unit, descr  @:        @:calc-define-unit@:}
 @r{       @:      u e   @:             @:        @:calc-explain-units@:}
 @r{       @:      u g   @:unit         @:        @:calc-get-unit-definition@:}
+@r{       @:      u n   @:units        @:    18  @:calc-convert-exact-units@:}
 @r{       @:      u p   @:             @:        @:calc-permanent-units@:}
 @r{      a@:      u r   @:             @:        @:calc-remove-units@:}
 @r{      a@:      u s   @:             @:        @:usimplify@:(a)}
@@ -36661,6 +36647,8 @@ keystrokes are not listed in this summary.
 
 @end format
 
+@c Avoid '@:' from here on, as it now means \sumsep in tex mode.
+
 @noindent
 NOTES
 
@@ -36799,9 +36787,9 @@ The @expr{op} prompt can be answered with the key sequence for the
 desired function, or with @kbd{x} or @kbd{z} followed by a function name,
 or with @kbd{$} to take a formula from the top of the stack, or with
 @kbd{'} and a typed formula.  In the last two cases, the formula may
-be a nameless function like @samp{<#1+#2>} or @samp{<x, y : x+y>}, or it
-may include @kbd{$}, @kbd{$$}, etc. (where @kbd{$} will correspond to the
-last argument of the created function), or otherwise you will be
+be a nameless function like @samp{<#1+#2>} or @samp{<x, y : x+y>}; or it
+may include @kbd{$}, @kbd{$$}, etc., where @kbd{$} will correspond to the
+last argument of the created function; or otherwise you will be
 prompted for an argument list.  The number of vectors popped from the
 stack by @kbd{V M} depends on the number of arguments of the function.
 

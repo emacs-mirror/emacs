@@ -2,10 +2,10 @@
 @c %**start of header
 @setfilename ../../info/widget.info
 @settitle The Emacs Widget Library
+@include docstyle.texi
 @syncodeindex fn cp
 @syncodeindex vr cp
 @syncodeindex ky cp
-@documentencoding UTF-8
 @c %**end of header
 
 @copying
@@ -66,7 +66,7 @@ modify this GNU manual.''
 @chapter Introduction
 
 Most graphical user interface toolkits provide a number of standard
-user interface controls (sometimes known as `widgets' or `gadgets').
+user interface controls (sometimes known as ``widgets'' or ``gadgets'').
 Emacs doesn't really support anything like this, except for an
 incredibly powerful text ``widget.''  On the other hand, Emacs does
 provide the necessary primitives to implement many other widgets

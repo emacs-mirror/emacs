@@ -304,7 +304,7 @@ same way as well-formedness error."
 (defun nxml-parse-error (position &rest args)
   (nxml-signal-file-parse-error nxml-parse-file-name
 				(or position xmltok-start)
-				(apply 'format args)))
+				(apply #'format-message args)))
 
 (defun nxml-check-xmltok-errors ()
   (when xmltok-errors

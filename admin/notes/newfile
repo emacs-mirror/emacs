@@ -6,7 +6,7 @@ CHECKLIST FOR ADDING A NEW FILE TO EMACS -*- outline -*-
 format, copyright and license notice, etc).
 
 ** Make sure the filename does not cause the DOS port any problems (8+3).
-Run the `doschk' program like this:
+Run the 'doschk' program like this:
 
     find /path/to/emacs -print | doschk
 

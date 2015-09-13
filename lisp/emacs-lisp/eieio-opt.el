@@ -31,7 +31,6 @@
 (require 'eieio)
 (require 'find-func)
 (require 'speedbar)
-(require 'help-mode)
 
 ;;; Code:
 ;;;###autoload
@@ -60,7 +59,7 @@ Argument PREFIX is the character prefix to use.
 Argument CH-PREFIX is another character prefix to display."
   (cl-check-type this-root class)
   (let ((myname (symbol-name this-root))
-	(chl (eieio--class-children (eieio--class-v this-root)))
+	(chl (eieio--class-children (cl--find-class this-root)))
 	(fprefix (concat ch-prefix "  +--"))
 	(mprefix (concat ch-prefix "  |  "))
 	(lprefix (concat ch-prefix "     ")))
@@ -74,136 +73,11 @@ Argument CH-PREFIX is another character prefix to display."
 
 ;;; CLASS COMPLETION / DOCUMENTATION
 
-;;;###autoload
-(defun eieio-help-class (class)
-  "Print help description for CLASS.
-If CLASS is actually an object, then also display current values of that object."
-  ;; Header line
-  (prin1 class)
-  (insert " is a"
-	  (if (eieio--class-option (eieio--class-v class) :abstract)
-	      "n abstract"
-	    "")
-	  " class")
-  (let ((location (find-lisp-object-file-name class 'eieio-defclass)))
-    (when location
-      (insert " in `")
-      (help-insert-xref-button
-       (help-fns-short-filename location)
-       'eieio-class-def class location 'eieio-defclass)
-      (insert "'")))
-  (insert ".\n")
-  ;; Parents
-  (let ((pl (eieio-class-parents class))
-	cur)
-    (when pl
-      (insert " Inherits from ")
-      (while (setq cur (pop pl))
-	(setq cur (eieio--class-symbol cur))
-	(insert "`")
-	(help-insert-xref-button (symbol-name cur)
-				 'help-function cur)
-	(insert (if pl "', " "'")))
-      (insert ".\n")))
-  ;; Children
-  (let ((ch (eieio-class-children class))
-	cur)
-    (when ch
-      (insert " Children ")
-      (while (setq cur (pop ch))
-	(insert "`")
-	(help-insert-xref-button (symbol-name cur)
-				 'help-function cur)
-	(insert (if ch "', " "'")))
-      (insert ".\n")))
-  ;; System documentation
-  (let ((doc (documentation-property class 'variable-documentation)))
-    (when doc
-      (insert "\n" doc "\n\n")))
-  ;; Describe all the slots in this class.
-  (eieio-help-class-slots class)
-  ;; Describe all the methods specific to this class.
-  (let ((generics (eieio-all-generic-functions class)))
-    (when generics
-      (insert (propertize "Specialized Methods:\n\n" 'face 'bold))
-      (dolist (generic generics)
-        (insert "`")
-        (help-insert-xref-button (symbol-name generic) 'help-function generic)
-        (insert "'")
-	(pcase-dolist (`(,qualifiers ,args ,doc)
-                       (eieio-method-documentation generic class))
-          (insert (format " %s%S\n" qualifiers args)
-                  (or doc "")))
-	(insert "\n\n")))))
+;; Called via help-fns-describe-function-functions.
+(declare-function help-fns-short-filename "help-fns" (filename))
 
-(defun eieio-help-class-slots (class)
-  "Print help description for the slots in CLASS.
-Outputs to the current buffer."
-  (let* ((cv (eieio--class-v class))
-	 (docs   (eieio--class-public-doc cv))
-	 (names  (eieio--class-public-a cv))
-	 (deflt  (eieio--class-public-d cv))
-	 (types  (eieio--class-public-type cv))
-	 (publp (eieio--class-public-printer cv))
-	 (i      0)
-	 (prot   (eieio--class-protection cv))
-	 )
-    (insert (propertize "Instance Allocated Slots:\n\n"
-			'face 'bold))
-    (while names
-      (insert
-       (concat
-	(when (car prot)
-	  (propertize "Private " 'face 'bold))
-	(propertize "Slot: " 'face 'bold)
-	(prin1-to-string (car names))
-	(unless (eq (aref types i) t)
-	  (concat "    type = "
-		  (prin1-to-string (aref types i))))
-	(unless (eq (car deflt) eieio-unbound)
-	  (concat "    default = "
-		  (prin1-to-string (car deflt))))
-	(when (car publp)
-	  (concat "    printer = "
-		  (prin1-to-string (car publp))))
-	(when (car docs)
-	  (concat "\n  " (car docs) "\n"))
-	"\n"))
-      (setq names (cdr names)
-	    docs (cdr docs)
-	    deflt (cdr deflt)
-	    publp (cdr publp)
-	    prot (cdr prot)
-	    i (1+ i)))
-    (setq docs  (eieio--class-class-allocation-doc cv)
-	  names (eieio--class-class-allocation-a cv)
-	  types (eieio--class-class-allocation-type cv)
-	  i     0
-	  prot  (eieio--class-class-allocation-protection cv))
-    (when names
-      (insert (propertize "\nClass Allocated Slots:\n\n" 'face 'bold)))
-    (while names
-      (insert
-       (concat
-	(when (car prot)
-	  "Private ")
-	"Slot: "
-	(prin1-to-string (car names))
-	(unless (eq (aref types i) t)
-	  (concat "    type = "
-		  (prin1-to-string (aref types i))))
-	(condition-case nil
-	    (let ((value (eieio-oref class (car names))))
-	      (concat "   value = "
-		      (prin1-to-string value)))
-	  (error nil))
-	(when (car docs)
-	  (concat "\n\n " (car docs) "\n"))
-	"\n"))
-      (setq names (cdr names)
-	    docs (cdr docs)
-	    prot (cdr prot)
-	    i (1+ i)))))
+;;;###autoload
+(define-obsolete-function-alias 'eieio-help-class 'cl--describe-class "25.1")
 
 (defun eieio-build-class-alist (&optional class instantiable-only buildlist)
   "Return an alist of all currently active classes for completion purposes.
@@ -212,7 +86,7 @@ If INSTANTIABLE-ONLY is non nil, only allow names of classes which
 are not abstract, otherwise allow all classes.
 Optional argument BUILDLIST is more list to attach and is used internally."
   (let* ((cc (or class 'eieio-default-superclass))
-	 (sublst (eieio--class-children (eieio--class-v cc))))
+	 (sublst (eieio--class-children (cl--find-class cc))))
     (unless (assoc (symbol-name cc) buildlist)
       (when (or (not instantiable-only) (not (class-abstract-p cc)))
         ;; FIXME: Completion tables don't need alists, and ede/generic.el needs
@@ -248,22 +122,13 @@ are not abstract."
 
 ;;; METHOD COMPLETION / DOC
 
-(define-button-type 'eieio-class-def
-  :supertype 'help-function-def
-  'help-echo (purecopy "mouse-2, RET: find class definition"))
-
-(defconst eieio--defclass-regexp "(defclass[ \t\r\n]+%s[ \t\r\n]+")
-(with-eval-after-load 'find-func
-  (defvar find-function-regexp-alist)
-  (add-to-list 'find-function-regexp-alist
-               `(eieio-defclass . eieio--defclass-regexp)))
 
 ;;;###autoload
 (defun eieio-help-constructor (ctr)
   "Describe CTR if it is a class constructor."
   (when (class-p ctr)
     (erase-buffer)
-    (let ((location (find-lisp-object-file-name ctr 'eieio-defclass))
+    (let ((location (find-lisp-object-file-name ctr 'define-type))
 	  (def (symbol-function ctr)))
       (goto-char (point-min))
       (prin1 ctr)
@@ -276,11 +141,11 @@ are not abstract."
 	(setq location
 	      (find-lisp-object-file-name ctr def)))
       (when location
-	(insert " in `")
+	(insert (substitute-command-keys " in `"))
 	(help-insert-xref-button
 	 (help-fns-short-filename location)
-	 'eieio-class-def ctr location 'eieio-defclass)
-	(insert "'"))
+	 'cl-type-definition ctr location 'define-type)
+	(insert (substitute-command-keys "'")))
       (insert ".\nCreates an object of class " (symbol-name ctr) ".")
       (goto-char (point-max))
       (if (autoloadp def)
@@ -290,50 +155,6 @@ are not abstract."
 	  (eieio-help-class ctr))
 	))))
 
-(defun eieio--specializers-apply-to-class-p (specializers class)
-  "Return non-nil if a method with SPECIALIZERS applies to CLASS."
-  (let ((applies nil))
-    (dolist (specializer specializers)
-      (if (memq (car-safe specializer) '(subclass eieio--static))
-          (setq specializer (nth 1 specializer)))
-      ;; Don't include the methods that are "too generic", such as those
-      ;; applying to `eieio-default-superclass'.
-      (and (not (memq specializer '(t eieio-default-superclass)))
-           (class-p specializer)
-           (child-of-class-p class specializer)
-           (setq applies t)))
-    applies))
-
-(defun eieio-all-generic-functions (&optional class)
-  "Return a list of all generic functions.
-Optional CLASS argument returns only those functions that contain
-methods for CLASS."
-  (let ((l nil))
-    (mapatoms
-     (lambda (symbol)
-       (let ((generic (and (fboundp symbol) (cl--generic symbol))))
-         (and generic
-	      (catch 'found
-		(if (null class) (throw 'found t))
-		(dolist (method (cl--generic-method-table generic))
-		  (if (eieio--specializers-apply-to-class-p
-		       (cl--generic-method-specializers method) class)
-		      (throw 'found t))))
-	      (push symbol l)))))
-    l))
-
-(defun eieio-method-documentation (generic class)
-  "Return info for all methods of GENERIC applicable to CLASS.
-The value returned is a list of elements of the form
-\(QUALIFIERS ARGS DOC)."
-  (let ((generic (cl--generic generic))
-        (docs ()))
-    (when generic
-      (dolist (method (cl--generic-method-table generic))
-        (when (eieio--specializers-apply-to-class-p
-               (cl--generic-method-specializers method) class)
-          (push (cl--generic-method-info method) docs))))
-    docs))
 
 ;;; METHOD STATS
 ;;
@@ -341,7 +162,7 @@ The value returned is a list of elements of the form
 (defun eieio-display-method-list ()
   "Display a list of all the methods and what features are used."
   (interactive)
-  (let* ((meth1 (eieio-all-generic-functions))
+  (let* ((meth1 (cl--generic-all-functions))
 	 (meth (sort meth1 (lambda (a b)
 			     (string< (symbol-name a)
 				      (symbol-name b)))))
@@ -422,13 +243,13 @@ The value returned is a list of elements of the form
     (princ "Methods Primary Only: ")
     (prin1 primaryonly)
     (princ "\t")
-    (princ (format "%d" (* (/ (float primaryonly) (float methidx)) 100)))
+    (princ (format "%d" (floor (* 100.0 primaryonly) methidx)))
     (princ "% of total methods")
     (terpri)
     (princ "Only One Primary Impl: ")
     (prin1 oneprimary)
     (princ "\t")
-    (princ (format "%d" (* (/ (float oneprimary) (float primaryonly)) 100)))
+    (princ (format "%d" (floor (* 100.0 oneprimary) primaryonly)))
     (princ "% of total primary methods")
     (terpri)
     ))
@@ -483,7 +304,7 @@ current expansion depth."
 (defun eieio-class-button (class depth)
   "Draw a speedbar button at the current point for CLASS at DEPTH."
   (cl-check-type class class)
-  (let ((subclasses (eieio--class-children (eieio--class-v class))))
+  (let ((subclasses (eieio--class-children (cl--find-class class))))
     (if subclasses
 	(speedbar-make-tag-line 'angle ?+
 				'eieio-sb-expand
@@ -508,7 +329,7 @@ Argument INDENT is the depth of indentation."
 	 (speedbar-with-writable
 	   (save-excursion
 	     (end-of-line) (forward-char 1)
-	     (let ((subclasses (eieio--class-children (eieio--class-v class))))
+	     (let ((subclasses (eieio--class-children (cl--find-class class))))
 	       (while subclasses
 		 (eieio-class-button (car subclasses) (1+ indent))
 		 (setq subclasses (cdr subclasses)))))))

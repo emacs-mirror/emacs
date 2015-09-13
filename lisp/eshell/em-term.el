@@ -40,7 +40,7 @@
 ;;;###autoload
 (progn
 (defgroup eshell-term nil
-  "This module causes visual commands (e.g., 'vi') to be executed by
+  "This module causes visual commands (e.g., `vi') to be executed by
 the `term' package, which comes with Emacs.  This package handles most
 of the ANSI control codes, allowing curses-based applications to run
 within an Emacs window.  The variable `eshell-visual-commands' defines
@@ -132,6 +132,13 @@ character to the invoked process."
   :type 'boolean
   :group 'eshell-term)
 
+(defcustom eshell-destroy-buffer-when-process-dies nil
+  "If non-nil, term buffers are destroyed after their processes die.
+WARNING: Setting this to non-nil may result in unexpected
+behavior for short-lived processes, see bug#18108."
+  :type 'boolean
+  :group 'eshell-term)
+
 ;;; Internal Variables:
 
 (defvar eshell-parent-buffer)
@@ -190,20 +197,24 @@ allowed."
   nil)
 
 ;; Process sentinels receive two arguments.
-(defun eshell-term-sentinel (proc _string)
-  "Destroy the buffer visiting PROC."
-  (let ((proc-buf (process-buffer proc)))
-    (when (and proc-buf (buffer-live-p proc-buf)
-	       (not (eq 'run (process-status proc)))
-	       (= (process-exit-status proc) 0))
-      (if (eq (current-buffer) proc-buf)
-	  (let ((buf (and (boundp 'eshell-parent-buffer)
-			  eshell-parent-buffer
-			  (buffer-live-p eshell-parent-buffer)
-			  eshell-parent-buffer)))
-	    (if buf
-		(switch-to-buffer buf))))
-      (kill-buffer proc-buf))))
+(defun eshell-term-sentinel (proc msg)
+  "Clean up the buffer visiting PROC.
+If `eshell-destroy-buffer-when-process-dies' is non-nil, destroy
+the buffer."
+  (term-sentinel proc msg) ;; First call the normal term sentinel.
+  (when eshell-destroy-buffer-when-process-dies
+    (let ((proc-buf (process-buffer proc)))
+      (when (and proc-buf (buffer-live-p proc-buf)
+                 (not (eq 'run (process-status proc)))
+                 (= (process-exit-status proc) 0))
+        (if (eq (current-buffer) proc-buf)
+            (let ((buf (and (boundp 'eshell-parent-buffer)
+                            eshell-parent-buffer
+                            (buffer-live-p eshell-parent-buffer)
+                            eshell-parent-buffer)))
+              (if buf
+                  (switch-to-buffer buf))))
+        (kill-buffer proc-buf)))))
 
 ;; jww (1999-09-17): The code below will allow Eshell to send input
 ;; characters directly to the currently running interactive process.

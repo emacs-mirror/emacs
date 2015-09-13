@@ -601,7 +601,7 @@ in order to mimic default behavior:
 	  title
 	  \(when tags
             \(format \"\\\\hfill{}\\\\textsc{:%s:}\"
-                    \(mapconcat 'identity tags \":\")))))
+                    \(mapconcat \\='identity tags \":\")))))
     \(format (concat \"\\\\begin{center}\\n\"
 		    \"\\\\fbox{\\n\"
 		    \"\\\\begin{minipage}[c]{.6\\\\textwidth}\\n\"
@@ -626,21 +626,21 @@ listings package, and if you want to have color, the color
 package.  Just add these to `org-latex-packages-alist', for
 example using customize, or with something like:
 
-  \(require 'ox-latex)
-  \(add-to-list 'org-latex-packages-alist '(\"\" \"listings\"))
-  \(add-to-list 'org-latex-packages-alist '(\"\" \"color\"))
+  \(require \\='ox-latex)
+  \(add-to-list \\='org-latex-packages-alist \\='(\"\" \"listings\"))
+  \(add-to-list \\='org-latex-packages-alist \\='(\"\" \"color\"))
 
 Alternatively,
 
-  \(setq org-latex-listings 'minted)
+  \(setq org-latex-listings \\='minted)
 
 causes source code to be exported using the minted package as
 opposed to listings.  If you want to use minted, you need to add
 the minted package to `org-latex-packages-alist', for example
 using customize, or with
 
-  \(require 'ox-latex)
-  \(add-to-list 'org-latex-packages-alist '(\"\" \"minted\"))
+  \(require \\='ox-latex)
+  \(add-to-list \\='org-latex-packages-alist \\='(\"\" \"minted\"))
 
 In addition, it is necessary to install pygments
 \(http://pygments.org), and to configure the variable
@@ -2846,7 +2846,7 @@ Return PDF file name or an error if it couldn't be produced."
 				(file-name-directory full-name)
 			      default-directory))
 	 errors)
-    (unless snippet (message (format "Processing LaTeX file %s..." texfile)))
+    (unless snippet (message "Processing LaTeX file %s..." texfile))
     (save-window-excursion
       (cond
        ;; A function is provided: Apply it.

@@ -104,7 +104,7 @@
   "Manpage cleaning filter command phrases.
 This variable contains a list of the following form:
 
-'((command-string phrase-string*)*)
+  ((command-string phrase-string*)*)
 
 Each phrase-string is concatenated onto the command-string to form a
 command filter.  The (standard) output (and standard error) of the Un*x
@@ -747,7 +747,8 @@ POS defaults to `point'."
 	  ;; Record the distance traveled.
 	  (setq distance (- column (current-column)))
 	  (when (looking-back
-		 (concat "([ \t]*\\(?:" Man-section-regexp "\\)[ \t]*)"))
+		 (concat "([ \t]*\\(?:" Man-section-regexp "\\)[ \t]*)")
+                 (line-beginning-position))
 	    ;; Skip section number backwards.
 	    (goto-char (match-beginning 0))
 	    (skip-chars-backward " \t"))

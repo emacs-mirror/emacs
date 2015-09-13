@@ -279,7 +279,7 @@ Variables: `handwrite-linespace'     (default 12)
     (handwrite-set-pagenumber-on)))
 
 (defun handwrite-10pt ()
-  "Specify 10-point output for `handwrite.
+  "Specify 10-point output for `handwrite'.
 This sets `handwrite-fontsize' to 10 and finds correct
 values for `handwrite-linespace' and `handwrite-numlines'."
   (interactive)
@@ -290,7 +290,7 @@ values for `handwrite-linespace' and `handwrite-numlines'."
 
 
 (defun handwrite-11pt ()
-  "Specify 11-point output for `handwrite.
+  "Specify 11-point output for `handwrite'.
 This sets `handwrite-fontsize' to 11 and finds correct
 values for `handwrite-linespace' and `handwrite-numlines'."
   (interactive)
@@ -300,7 +300,7 @@ values for `handwrite-linespace' and `handwrite-numlines'."
   (message "Handwrite output size set to 11 points"))
 
 (defun handwrite-12pt ()
-  "Specify 12-point output for `handwrite.
+  "Specify 12-point output for `handwrite'.
 This sets `handwrite-fontsize' to 12 and finds correct
 values for `handwrite-linespace' and `handwrite-numlines'."
   (interactive)
@@ -310,7 +310,7 @@ values for `handwrite-linespace' and `handwrite-numlines'."
   (message "Handwrite output size set to 12 points"))
 
 (defun handwrite-13pt ()
-  "Specify 13-point output for `handwrite.
+  "Specify 13-point output for `handwrite'.
 This sets `handwrite-fontsize' to 13 and finds correct
 values for `handwrite-linespace' and `handwrite-numlines'."
   (interactive)

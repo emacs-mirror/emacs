@@ -104,10 +104,12 @@ Typical values are 73 (+x) or -493 (rwxr-xr-x)."
 (defvar executable-command nil)
 
 (defcustom executable-self-display "tail"
-  "Command you use with argument `+2' to make text files self-display.
+  "Command you use with argument `-n+2' to make text files self-display.
 Note that the like of `more' doesn't work too well under Emacs \\[shell]."
   :type 'string
   :group 'executable)
+
+(make-obsolete-variable 'executable-self-display nil "25.1" 'set)
 
 
 (defvar executable-font-lock-keywords
@@ -238,8 +240,9 @@ executable."
 			 (save-window-excursion
 			   ;; Make buffer visible before question.
 			   (switch-to-buffer (current-buffer))
-			   (y-or-n-p (concat "Replace magic number by `"
-					     executable-prefix argument "'? "))))
+			   (y-or-n-p (format-message
+				      "Replace magic number by `%s%s'? "
+				      executable-prefix argument))))
 		     (progn
 		       (replace-match argument t t nil 1)
 		       (message "Magic number changed to `%s'"
@@ -251,14 +254,14 @@ executable."
 
 
 
-;;;###autoload
 (defun executable-self-display ()
   "Turn a text file into a self-displaying Un*x command.
 The magic number of such a command displays all lines but itself."
+  (declare (obsolete nil "25.1"))
   (interactive)
   (if (eq this-command 'executable-self-display)
       (setq this-command 'executable-set-magic))
-  (executable-set-magic executable-self-display "+2"))
+  (executable-set-magic executable-self-display "-n+2"))
 
 ;;;###autoload
 (defun executable-make-buffer-file-executable-if-script-p ()

@@ -617,8 +617,26 @@ xftfont_draw (struct glyph_string *s, int from, int to, int x, int y,
     XftDrawSetClip (xft_draw, NULL);
 
   if (with_background)
-    XftDrawRect (xft_draw, &bg,
-		 x, y - s->font->ascent, s->width, s->font->height);
+    {
+      int height = FONT_HEIGHT (s->font), ascent = FONT_BASE (s->font);
+
+      /* Font's global height and ascent values might be
+	 preposterously large for some fonts.  We fix here the case
+	 when those fonts are used for display of glyphless
+	 characters, because drawing background with font dimensions
+	 in those cases makes the display illegible.  There's only one
+	 more call to the draw method with with_background set to
+	 true, and that's in x_draw_glyph_string_foreground, when
+	 drawing the cursor, where we have no such heuristics
+	 available.  FIXME.  */
+      if (s->first_glyph->type == GLYPHLESS_GLYPH
+	  && (s->first_glyph->u.glyphless.method == GLYPHLESS_DISPLAY_HEX_CODE
+	      || s->first_glyph->u.glyphless.method == GLYPHLESS_DISPLAY_ACRONYM))
+	height = ascent =
+	  s->first_glyph->slice.glyphless.lower_yoff
+	  - s->first_glyph->slice.glyphless.upper_yoff;
+      XftDrawRect (xft_draw, &bg, x, y - ascent, s->width, height);
+    }
   code = alloca (sizeof (FT_UInt) * len);
   for (i = 0; i < len; i++)
     code[i] = ((XCHAR2B_BYTE1 (s->char2b + from + i) << 8)

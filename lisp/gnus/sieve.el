@@ -275,21 +275,9 @@ Used to bracket operations which move point in the sieve-buffer."
   (interactive "d")
   (get-char-property (or pos (point)) 'script-name))
 
-(eval-and-compile
-  (defalias 'sieve-make-overlay (if (featurep 'xemacs)
-				    'make-extent
-				  'make-overlay))
-  (defalias 'sieve-overlay-put (if (featurep 'xemacs)
-				   'set-extent-property
-				 'overlay-put))
-  (defalias 'sieve-overlays-at (if  (featurep 'xemacs)
-				   'extents-at
-				 'overlays-at)))
-
 (defun sieve-highlight (on)
   "Turn ON or off highlighting on the current language overlay."
-  (sieve-overlay-put (car (sieve-overlays-at (point)))
-		     'face (if on 'highlight 'default)))
+  (overlay-put (car (overlays-at (point))) 'face (if on 'highlight 'default)))
 
 (defun sieve-insert-scripts (scripts)
   "Format and insert LANGUAGE-LIST strings into current buffer at point."
@@ -300,11 +288,11 @@ Used to bracket operations which move point in the sieve-buffer."
       (if (consp script)
 	  (insert (format " ACTIVE %s" (cdr script)))
 	(insert (format "        %s" script)))
-      (setq ext (sieve-make-overlay p (point)))
-      (sieve-overlay-put ext 'mouse-face 'highlight)
-      (sieve-overlay-put ext 'script-name (if (consp script)
-					      (cdr script)
-					    script))
+      (setq ext (make-overlay p (point)))
+      (overlay-put ext 'mouse-face 'highlight)
+      (overlay-put ext 'script-name (if (consp script)
+					(cdr script)
+				      script))
       (insert "\n"))))
 
 (defun sieve-open-server (server &optional port)

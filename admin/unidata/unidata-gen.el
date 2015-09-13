@@ -102,7 +102,8 @@
 	 (tail table)
 	 (block-names '(("^<CJK Ideograph" . CJK\ IDEOGRAPH)
 			("^<Hangul Syllable" . HANGUL\ SYLLABLE)
-			("^<.*Surrogate" . nil)
+			("^<.*High Surrogate" . HIGH\ SURROGATE)
+			("^<.*Low Surrogate" . LOW\ SURROGATE)
 			("^<.*Private Use" . PRIVATE\ USE)))
 	 val char name)
     (setq unidata-text-file (expand-file-name unidata-text-file unidata-dir))
@@ -137,11 +138,8 @@
 		    (if (string-match (caar l) block-name)
 			(setq name (cdar l) l nil)
 		      (setq l (cdr l))))
-		  (if (not name)
-		      ;; As this is a surrogate pair range, ignore it.
-		      (setq val nil)
-		    (setcar val (cons first char))
-		    (setcar (cdr val) name))))
+		  (setcar val (cons first char))
+		  (setcar (cdr val) name)))
 
 	    (when val
 	      (setcdr tail (list val))
@@ -447,7 +445,7 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 	;; (4) possibly update the switch cases in
 	;;     bidi.c:bidi_get_type and bidi.c:bidi_get_category.
 	(bidi-warning "\
-** Found new bidi-class '%s', please update bidi.c and dispextern.h")
+** Found new bidi-class `%s', please update bidi.c and dispextern.h")
 	tail elt range val val-code idx slot
 	prev-range-data)
     (setq val-list (cons nil (copy-sequence val-list)))
@@ -782,6 +780,10 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 	    ((eq sym 'CJK\ IDEOGRAPH)
 	     (format "%s-%04X" sym char))
 	    ((eq sym 'CJK\ COMPATIBILITY\ IDEOGRAPH)
+	     (format "%s-%04X" sym char))
+	    ((eq sym 'HIGH\ SURROGATE)
+	     (format "%s-%04X" sym char))
+	    ((eq sym 'LOW\ SURROGATE)
 	     (format "%s-%04X" sym char))
 	    ((eq sym 'VARIATION\ SELECTOR)
 	     (format "%s-%d" sym (+ (- char #xe0100) 17))))))))

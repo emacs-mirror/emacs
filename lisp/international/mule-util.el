@@ -1,4 +1,4 @@
-;;; mule-util.el --- utility functions for multilingual environment (mule)
+;;; mule-util.el --- utility functions for multilingual environment (mule)  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1997-1998, 2000-2015 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
@@ -30,8 +30,7 @@
 
 ;;; Code:
 
-;;; String manipulations while paying attention to multibyte
-;;; characters.
+;;; String manipulations while paying attention to multibyte characters.
 
 ;;;###autoload
 (defsubst string-to-list (string)
@@ -49,7 +48,6 @@
   (if (integerp obj)
       (aset string idx obj)
     (let ((len1 (length obj))
-	  (len2 (length string))
 	  (i 0))
       (while (< i len1)
 	(aset string (+ idx i) (aref obj i))
@@ -90,7 +88,6 @@ defaults to `truncate-string-ellipsis'."
     (setq ellipsis truncate-string-ellipsis))
   (let ((str-len (length str))
 	(str-width (string-width str))
-	(ellipsis-len (if ellipsis (length ellipsis) 0))
 	(ellipsis-width (if ellipsis (string-width ellipsis) 0))
 	(idx 0)
 	(column 0)
@@ -129,8 +126,8 @@ defaults to `truncate-string-ellipsis'."
 	      tail-padding ellipsis))))
 
 
-;;; Nested alist handler.  Nested alist is alist whose elements are
-;;; also nested alist.
+;;; Nested alist handler.
+;; Nested alist is alist whose elements are also nested alist.
 
 ;;;###autoload
 (defsubst nested-alist-p (obj)
@@ -276,43 +273,223 @@ per-character basis, this may not be accurate."
 	((not enable-multibyte-characters)
 	 ;; Maybe there's a font for it, but we can't put it in the buffer.
 	 nil)
-	((display-multi-font-p)
-	 ;; On a window system, a character is displayable if we have
-	 ;; a font for that character in the default face of the
-	 ;; currently selected frame.
-	 (car (internal-char-font nil char)))
 	(t
-	 ;; On a terminal, a character is displayable if the coding
-	 ;; system for the terminal can encode it.
-	 (let ((coding (terminal-coding-system)))
-	   (when coding
-	     (let ((cs-list (coding-system-get coding :charset-list)))
-	       (cond
-		 ((listp cs-list)
-		  (catch 'tag
-		    (mapc #'(lambda (charset)
-			      (if (encode-char char charset)
-				  (throw 'tag charset)))
-			  cs-list)
-		    nil))
-		 ((eq cs-list 'iso-2022)
-		  (catch 'tag2
-		    (mapc #'(lambda (charset)
-			      (if (and (plist-get (charset-plist charset)
-						  :iso-final-char)
-				       (encode-char char charset))
-				  (throw 'tag2 charset)))
-			  charset-list)
-		    nil))
-		 ((eq cs-list 'emacs-mule)
-		  (catch 'tag3
-		    (mapc #'(lambda (charset)
-			      (if (and (plist-get (charset-plist charset)
-						  :emacs-mule-id)
-				       (encode-char char charset))
-				  (throw 'tag3 charset)))
-			  charset-list)
-		    nil)))))))))
+	 (let ((font-glyph (internal-char-font nil char)))
+	   (if font-glyph
+	       (if (consp font-glyph)
+		   ;; On a window system, a character is displayable
+		   ;; if a font for that character is in the default
+		   ;; face of the currently selected frame.
+		   (car font-glyph)
+		 ;; On a text terminal supporting glyph codes, CHAR is
+		 ;; displayable if its glyph code is nonnegative.
+		 (<= 0 font-glyph))
+	     ;; On a text terminal without glyph codes, CHAR is displayable
+	     ;; if the coding system for the terminal can encode it.
+	     (let ((coding (terminal-coding-system)))
+	       (when coding
+		 (let ((cs-list (coding-system-get coding :charset-list)))
+		   (cond
+		    ((listp cs-list)
+		     (catch 'tag
+		       (mapc #'(lambda (charset)
+				 (if (encode-char char charset)
+				     (throw 'tag charset)))
+			     cs-list)
+		       nil))
+		    ((eq cs-list 'iso-2022)
+		     (catch 'tag2
+		       (mapc #'(lambda (charset)
+				 (if (and (plist-get (charset-plist charset)
+						     :iso-final-char)
+					  (encode-char char charset))
+				     (throw 'tag2 charset)))
+			     charset-list)
+		       nil))
+		    ((eq cs-list 'emacs-mule)
+		     (catch 'tag3
+		       (mapc #'(lambda (charset)
+				 (if (and (plist-get (charset-plist charset)
+						     :emacs-mule-id)
+					  (encode-char char charset))
+				     (throw 'tag3 charset)))
+			     charset-list)
+		       nil)))))))))))
+
+(defun filepos-to-bufferpos--dos (byte f)
+  (let ((eol-offset 0)
+        ;; Make sure we terminate, even if BYTE falls right in the middle
+        ;; of a CRLF or some other weird corner case.
+        (omin 0) (omax most-positive-fixnum)
+        pos lines)
+    (while
+        (progn
+          (setq pos (funcall f (- byte eol-offset)))
+          ;; Protect against accidental values of BYTE outside of the
+          ;; valid region.
+          (when (null pos)
+            (if (<= byte eol-offset)
+                (setq pos (point-min))
+              (setq pos (point-max))))
+          ;; Adjust POS for DOS EOL format.
+          (setq lines (1- (line-number-at-pos pos)))
+          (and (not (= lines eol-offset)) (> omax omin)))
+      (if (> lines eol-offset)
+          (setq omax (min (1- omax) lines)
+                eol-offset omax)
+        (setq omin (max (1+ omin) lines)
+              eol-offset omin)))
+    pos))
+
+;;;###autoload
+(defun filepos-to-bufferpos (byte &optional quality coding-system)
+  "Try to return the buffer position corresponding to a particular file position.
+The file position is given as a (0-based) BYTE count.
+The function presumes the file is encoded with CODING-SYSTEM, which defaults
+to `buffer-file-coding-system'.
+QUALITY can be:
+  `approximate', in which case we may cut some corners to avoid
+    excessive work.
+  `exact', in which case we may end up re-(en/de)coding a large
+    part of the file/buffer.
+  nil, in which case we may return nil rather than an approximation."
+  (unless coding-system (setq coding-system buffer-file-coding-system))
+  (let ((eol (coding-system-eol-type coding-system))
+        (type (coding-system-type coding-system))
+        (base (coding-system-base coding-system))
+        (pm (save-restriction (widen) (point-min))))
+    (and (eq type 'utf-8)
+         ;; Any post-read/pre-write conversions mean it's not really UTF-8.
+         (not (null (coding-system-get coding-system :post-read-conversion)))
+         (setq type 'not-utf-8))
+    (and (memq type '(charset raw-text undecided))
+         ;; The following are all of type 'charset', but they are
+         ;; actually variable-width encodings.
+         (not (memq base '(chinese-gbk chinese-gb18030 euc-tw euc-jis-2004
+                                       korean-iso-8bit chinese-iso-8bit
+                                       japanese-iso-8bit chinese-big5-hkscs
+                                       japanese-cp932 korean-cp949)))
+         (setq type 'single-byte))
+    (pcase type
+      (`utf-8
+       (when (coding-system-get coding-system :bom)
+         (setq byte (max 0 (- byte 3))))
+       (if (= eol 1)
+           (filepos-to-bufferpos--dos (+ pm byte) #'byte-to-position)
+         (byte-to-position (+ pm byte))))
+      (`single-byte
+       (if (= eol 1)
+           (filepos-to-bufferpos--dos (+ pm byte) #'identity)
+         (+ pm byte)))
+      ((and `utf-16
+            ;; FIXME: For utf-16, we could use the same approach as used for
+            ;; dos EOLs (counting the number of non-BMP chars instead of the
+            ;; number of lines).
+            (guard (not (eq quality 'exact))))
+       ;; Account for BOM, which is always 2 bytes in UTF-16.
+       (when (coding-system-get coding-system :bom)
+         (setq byte (max 0 (- byte 2))))
+       ;; In approximate mode, assume all characters are within the
+       ;; BMP, i.e. take up 2 bytes.
+       (setq byte (/ byte 2))
+       (if (= eol 1)
+           (filepos-to-bufferpos--dos (+ pm byte) #'identity)
+         (+ pm byte)))
+      (_
+       (pcase quality
+         (`approximate (byte-to-position (+ pm byte)))
+         (`exact
+          ;; Rather than assume that the file exists and still holds the right
+          ;; data, we reconstruct it based on the buffer's content.
+          (let ((buf (current-buffer)))
+            (with-temp-buffer
+              (set-buffer-multibyte nil)
+              (let ((tmp-buf (current-buffer)))
+                (with-current-buffer buf
+                  (save-restriction
+                    (widen)
+                    ;; Since encoding should always return more bytes than
+                    ;; there were chars, encoding all chars up to (+ byte pm)
+                    ;; guarantees the encoded result has at least `byte' bytes.
+                    (encode-coding-region pm (min (point-max) (+ pm byte))
+                                          coding-system tmp-buf)))
+                (+ pm (length
+                       (decode-coding-region (point-min)
+                                             (min (point-max) (+ pm byte))
+                                             coding-system t))))))))))))
+;;;###autoload
+(defun bufferpos-to-filepos (position &optional quality coding-system)
+  "Try to return the file byte corresponding to a particular buffer POSITION.
+Value is the file position given as a (0-based) byte count.
+The function presumes the file is encoded with CODING-SYSTEM, which defaults
+to `buffer-file-coding-system'.
+QUALITY can be:
+  `approximate', in which case we may cut some corners to avoid
+    excessive work.
+  `exact', in which case we may end up re-(en/de)coding a large
+    part of the file/buffer.
+  nil, in which case we may return nil rather than an approximation."
+  (unless coding-system (setq coding-system buffer-file-coding-system))
+  (let* ((eol (coding-system-eol-type coding-system))
+         (lineno (if (= eol 1) (1- (line-number-at-pos position)) 0))
+         (type (coding-system-type coding-system))
+         (base (coding-system-base coding-system))
+         byte)
+    (and (eq type 'utf-8)
+         ;; Any post-read/pre-write conversions mean it's not really UTF-8.
+         (not (null (coding-system-get coding-system :post-read-conversion)))
+         (setq type 'not-utf-8))
+    (and (memq type '(charset raw-text undecided))
+         ;; The following are all of type 'charset', but they are
+         ;; actually variable-width encodings.
+         (not (memq base '(chinese-gbk chinese-gb18030 euc-tw euc-jis-2004
+                                       korean-iso-8bit chinese-iso-8bit
+                                       japanese-iso-8bit chinese-big5-hkscs
+                                       japanese-cp932 korean-cp949)))
+         (setq type 'single-byte))
+    (pcase type
+      (`utf-8
+       (setq byte (position-bytes position))
+       (when (null byte)
+         (if (<= position 0)
+             (setq byte 1)
+           (setq byte (position-bytes (point-max)))))
+       (setq byte (1- byte))
+       (+ byte
+          ;; Account for BOM, if any.
+          (if (coding-system-get coding-system :bom) 3 0)
+          ;; Account for CR in CRLF pairs.
+          lineno))
+      (`single-byte
+       (+ position -1 lineno))
+      ((and `utf-16
+            ;; FIXME: For utf-16, we could use the same approach as used for
+            ;; dos EOLs (counting the number of non-BMP chars instead of the
+            ;; number of lines).
+            (guard (not (eq quality 'exact))))
+       ;; In approximate mode, assume all characters are within the
+       ;; BMP, i.e. each one takes up 2 bytes.
+       (+ (* (1- position) 2)
+          ;; Account for BOM, if any.
+          (if (coding-system-get coding-system :bom) 2 0)
+          ;; Account for CR in CRLF pairs.
+          lineno))
+      (_
+       (pcase quality
+         (`approximate (+ (position-bytes position) -1 lineno))
+         (`exact
+          ;; Rather than assume that the file exists and still holds the right
+          ;; data, we reconstruct its relevant portion.
+          (let ((buf (current-buffer)))
+            (with-temp-buffer
+              (set-buffer-multibyte nil)
+              (let ((tmp-buf (current-buffer)))
+                (with-current-buffer buf
+                  (save-restriction
+                    (widen)
+                    (encode-coding-region (point-min) (min (point-max) position)
+                                          coding-system tmp-buf)))
+                (1- (point-max)))))))))))
 
 (provide 'mule-util)
 

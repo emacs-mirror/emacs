@@ -82,7 +82,7 @@
 (defcustom pop3-authentication-scheme 'pass
   "*POP3 authentication scheme.
 Defaults to `pass', for the standard USER/PASS authentication.  The other
-valid value is 'apop'."
+valid value is `apop'."
   :type '(choice (const :tag "Normal user/password" pass)
 		 (const :tag "APOP" apop))
   :version "22.1" ;; Oort Gnus

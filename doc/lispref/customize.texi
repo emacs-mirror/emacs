@@ -842,7 +842,7 @@ symbols, and symbols are not treated like other Lisp expressions.
 
 @item (radio @var{element-types}@dots{})
 This is similar to @code{choice}, except that the choices are displayed
-using `radio buttons' rather than a menu.  This has the advantage of
+using ``radio buttons'' rather than a menu.  This has the advantage of
 displaying documentation for the choices when applicable and so is often
 a good choice for a choice between constant functions
 (@code{function-item} customization types).

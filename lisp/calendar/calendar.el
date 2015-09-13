@@ -42,7 +42,7 @@
 ;; can be translated from the (usual) Gregorian calendar to the day of
 ;; the year/days remaining in year, to the ISO commercial calendar, to
 ;; the Julian (old style) calendar, to the Hebrew calendar, to the
-;; Islamic calendar, to the Bahá'í calendar, to the French
+;; Islamic calendar, to the Bahá’í calendar, to the French
 ;; Revolutionary calendar, to the Mayan calendar, to the Chinese
 ;; calendar, to the Coptic calendar, to the Ethiopic calendar, and to
 ;; the astronomical (Julian) day number.  Times of sunrise/sunset can
@@ -53,7 +53,7 @@
 ;; The following files are part of the calendar/diary code:
 
 ;;    appt.el                    Appointment notification
-;;    cal-bahai.el               Bahá'í calendar
+;;    cal-bahai.el               Bahá’í calendar
 ;;    cal-china.el               Chinese calendar
 ;;    cal-coptic.el              Coptic/Ethiopic calendars
 ;;    cal-dst.el                 Daylight saving time rules
@@ -188,6 +188,16 @@ movement commands will not work correctly."
   :set (lambda (sym val)
          (set sym val)
          (calendar-redraw))
+  :group 'calendar)
+
+(defcustom calendar-weekend-days '(0 6)
+  "Days of the week considered weekend days.
+0 means Sunday, 1 means Monday, and so on.
+
+Determines which day headers are fontified with
+`calendar-weekend-header'."
+  :type '(repeat integer)
+  :version "25.1"
   :group 'calendar)
 
 (defcustom calendar-view-diary-initially-flag nil
@@ -350,7 +360,7 @@ See also `calendar-today-visible-hook'."
   "List of functions called whenever the cursor moves in the calendar.
 For example,
 
-  (add-hook 'calendar-move-hook (lambda () (diary-view-entries 1)))
+  (add-hook \\='calendar-move-hook (lambda () (diary-view-entries 1)))
 
 redisplays the diary for whatever date the cursor is moved to."
   :type 'hook
@@ -365,7 +375,7 @@ When this expression is evaluated, DAY, MONTH, and YEAR are
 integers appropriate to the relevant date.  For example, to
 display the ISO date:
 
-  (setq calendar-date-echo-text '(format \"ISO date: %s\"
+  (setq calendar-date-echo-text \\='(format \"ISO date: %s\"
                                          (calendar-iso-date-string
                                           (list month day year))))
 Changing this variable without using customize has no effect on
@@ -540,12 +550,12 @@ For example, to display the ISO week numbers:
 
   (setq calendar-week-start-day 1
         calendar-intermonth-text
-        '(propertize
+        \\='(propertize
           (format \"%2d\"
                   (car
                    (calendar-iso-from-absolute
                     (calendar-absolute-from-gregorian (list month day year)))))
-          'font-lock-face 'font-lock-function-name-face))
+          \\='font-lock-face \\='font-lock-function-name-face))
 
 See also `calendar-intermonth-header'."
   :group 'calendar
@@ -566,7 +576,7 @@ See also `calendar-intermonth-header'."
                         'font-lock-face 'font-lock-function-name-face)))
   :version "23.1")
 
-(defcustom diary-file "~/diary"
+(defcustom diary-file (locate-user-emacs-file "diary" "diary")
   "Name of the file in which one's personal diary of dates is kept.
 
 The file's entries are lines beginning with any of the forms
@@ -645,7 +655,7 @@ causes the diary entry \"Vacation\" to appear from November 1 through
 November 10, 1990.  See the documentation for the function
 `diary-list-sexp-entries' for more details.
 
-Diary entries based on the Hebrew, the Islamic and/or the Bahá'í
+Diary entries based on the Hebrew, the Islamic and/or the Bahá’í
 calendar are also possible, but because these are somewhat slow, they
 are ignored unless you set the `diary-nongregorian-listing-hook' and
 the `diary-nongregorian-marking-hook' appropriately.  See the
@@ -653,6 +663,7 @@ documentation of these hooks for details.
 
 Diary files can contain directives to include the contents of other files; for
 details, see the documentation for the variable `diary-list-entries-hook'."
+  :version "25.1"                  ; ~/diary -> locate-user-emacs-file
   :type 'file
   :group 'diary)
 
@@ -679,7 +690,7 @@ details, see the documentation for the variable `diary-list-entries-hook'."
   :group 'diary)
 
 (defcustom diary-bahai-entry-symbol "B"
-  "Symbol indicating a diary entry according to the Bahá'í calendar."
+  "Symbol indicating a diary entry according to the Bahá’í calendar."
   :type 'string
   :group 'diary)
 
@@ -1002,9 +1013,9 @@ calendar."
   :group 'holidays)
 
 (defcustom calendar-bahai-all-holidays-flag nil
-  "If nil, show only major holidays from the Bahá'í calendar.
+  "If nil, show only major holidays from the Bahá’í calendar.
 These are the days on which work and school must be suspended.
-Otherwise, show all the holidays that would appear in a complete Bahá'í
+Otherwise, show all the holidays that would appear in a complete Bahá’í
 calendar."
   :type 'boolean
   :group 'holidays)
@@ -1194,7 +1205,7 @@ return negative results."
   (let ((year (calendar-extract-year date))
         offset-years)
     (cond ((zerop year)
-           (error "There was no year zero"))
+           (user-error "There was no year zero"))
           ((> year 0)
            (setq offset-years (1- year))
            (+ (calendar-day-number date) ; days this year
@@ -1379,7 +1390,7 @@ Optional integers MON and YR are used instead of today's date."
   ;; stands, almost all other calendar functions (eg holidays) would
   ;; at best have unpredictable results for such dates.
   (if (< (+ month (* 12 (1- year))) 2)
-      (error "Months before January, 1 AD cannot be displayed"))
+      (user-error "Months before January, 1 AD cannot be displayed"))
   (setq displayed-month month
         displayed-year year)
   (erase-buffer)
@@ -1453,7 +1464,7 @@ line."
      (insert
       (truncate-string-to-width
        (propertize (calendar-day-name j 'header t)
-                   'font-lock-face (if (memq j '(0 6))
+                   'font-lock-face (if (memq j calendar-weekend-days)
                                        'calendar-weekend-header
                                      'calendar-weekday-header))
        calendar-day-header-width nil ?\s)
@@ -1697,13 +1708,13 @@ remaining in the year, and the ISO week/year numbers:
 
   (list
    \"\"
-   '(calendar-hebrew-date-string date)
-   '(let* ((year (calendar-extract-year date))
+   \\='(calendar-hebrew-date-string date)
+   \\='(let* ((year (calendar-extract-year date))
            (d (calendar-day-number date))
            (days-remaining
             (- (calendar-day-number (list 12 31 year)) d)))
       (format \"%d/%d\" d days-remaining))
-   '(let* ((d (calendar-absolute-from-gregorian date))
+   \\='(let* ((d (calendar-absolute-from-gregorian date))
            (iso-date (calendar-iso-from-absolute d)))
       (format \"ISO week %d of %d\"
         (calendar-extract-month iso-date)
@@ -2182,7 +2193,7 @@ in `calendar-month-name-array'.  These abbreviations are used in
 the calendar menu entries, and can also be used in the diary
 file.  Do not include a trailing `.' in the strings specified in
 this variable, though you may use such in the diary file.  By
-default, each string is the first ``calendar-abbrev-length'
+default, each string is the first `calendar-abbrev-length'
 characters of the corresponding full name."
  :group 'calendar
  :set-after '(calendar-abbrev-length calendar-month-name-array)
@@ -2560,7 +2571,7 @@ DATE is (month day year).  Calendars that do not apply are omitted."
            (unless (string-equal
                     (setq odate (calendar-bahai-date-string date))
                     "")
-             (format "Bahá'í date: %s" odate))
+             (format "Bahá’í date: %s" odate))
            (format "Chinese date: %s"
                    (calendar-chinese-date-string date))
            (unless (string-equal

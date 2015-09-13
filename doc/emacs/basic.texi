@@ -104,10 +104,22 @@ the letters @kbd{a} to @kbd{f} serve as part of a character code,
 just like digits.  Case is ignored.
 
 @findex insert-char
-@kindex C-x 8 RET
+@kindex C-x 8
 @cindex Unicode characters, inserting
 @cindex insert Unicode character
 @cindex characters, inserting by name or code-point
+@cindex curly quotes
+@cindex curved quotes
+  A few common Unicode characters can be inserted via a command
+starting with @kbd{C-x 8}.  For example, @kbd{C-x 8 [} inserts @t{‘}
+which is Unicode code-point @code{U+2018} LEFT SINGLE QUOTATION MARK,
+sometimes called a left single ``curved quote'' or ``curly quote''.
+Similarly, @kbd{C-x 8 ]}, @kbd{C-x 8 @{} and @kbd{C-x 8 @}} insert the
+curved quotes @t{’}, @t{“} and @t{”}, respectively.  Also, a working
+Alt key acts like @kbd{C-x 8}; e.g., @kbd{A-[} acts like @kbd{C-x 8 [}
+and inserts @t{‘}.  To see which characters have @kbd{C-x 8}
+shorthands, type @kbd{C-x 8 C-h}.
+
   Alternatively, you can use the command @kbd{C-x 8 @key{RET}}
 (@code{insert-char}).  This prompts for the Unicode name or code-point
 of a character, using the minibuffer.  If you enter a name, the
@@ -116,15 +128,26 @@ code-point, it should be as a hexadecimal number (the convention for
 Unicode), or a number with a specified radix, e.g., @code{#o23072}
 (octal); @xref{Integer Basics,,, elisp, The Emacs Lisp Reference
 Manual}.  The command then inserts the corresponding character into
-the buffer.  For example, both of the following insert the infinity
-sign (Unicode code-point @code{U+221E}):
+the buffer.
+
+  In some contexts, if you type a quotation using grave accent and
+apostrophe @t{`like this'}, it is converted to a form @t{‘like this’}
+using single quotation marks.  Similarly, typing a quotation @t{``like
+this''} using double grave accent and apostrophe converts it to a form
+@t{“like this”} using double quotation marks.  @xref{Quotation Marks}.
+
+  For example, the following all insert the same character:
 
 @example
-@kbd{C-x 8 @key{RET} infinity @key{RET}}
-@kbd{C-x 8 @key{RET} 221e @key{RET}}
+@kbd{C-x 8 @key{RET} left single quotation mark @key{RET}}
+@kbd{C-x 8 @key{RET} left sin @key{TAB} @key{RET}}
+@kbd{C-x 8 @key{RET} 2018 @key{RET}}
+@kbd{C-x 8 [}
+@kbd{A-[}  @r{(if the Alt key works)}
+@kbd{`}    @r{(in Electric Quote mode)}
 @end example
 
-  A numeric argument to @kbd{C-q} or @kbd{C-x 8 @key{RET}} specifies
+  A numeric argument to @kbd{C-q} or @kbd{C-x 8 ...} specifies
 how many copies of the character to insert (@pxref{Arguments}).
 
 @node Moving Point
@@ -206,14 +229,14 @@ preserves position within the line, like @kbd{C-n}.
 @item C-a
 @itemx @key{Home}
 @kindex C-a
-@kindex HOME
+@kindex HOME key
 @findex move-beginning-of-line
 Move to the beginning of the line (@code{move-beginning-of-line}).
 
 @item C-e
 @itemx @key{End}
 @kindex C-e
-@kindex END
+@kindex END key
 @findex move-end-of-line
 Move to the end of the line (@code{move-end-of-line}).
 

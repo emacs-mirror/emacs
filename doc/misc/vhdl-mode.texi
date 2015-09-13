@@ -2,7 +2,7 @@
 
 @setfilename ../../info/vhdl-mode.info
 @settitle VHDL Mode, an Emacs mode for editing VHDL code
-@documentencoding UTF-8
+@include docstyle.texi
 
 @c Adapted from the VHDL Mode texinfo manual version 2 by Rodney J. Whitby.
 @c Adapted from the CC Mode texinfo manual by Barry A. Warsaw.
@@ -159,7 +159,7 @@ the construct on that line.  A @dfn{syntactic component} consists of a
 pair of information (in lisp parlance, a @emph{cons cell}), where the
 first part is a @dfn{syntactic symbol}, and the second part is a
 @dfn{relative buffer position}.  Syntactic symbols describe elements of
-VHDL code, e.g. @code{statement}, @code{comment}, @code{block-open},
+VHDL code, e.g., @code{statement}, @code{comment}, @code{block-open},
 @code{block-close}, etc.  @xref{Syntactic Symbols}, for a complete list
 of currently recognized syntactic symbols and their semantics.  Also,
 the variable @code{vhdl-offsets-alist} contains the list of currently
@@ -633,8 +633,8 @@ similar to what is allowed in @code{vhdl-offsets-alist}.  When the file is
 visited, VHDL Mode will automatically institute these offsets using
 @code{vhdl-set-offset}.  @xref{Customizing Indentation}.
 
-Note that file style settings (i.e. @code{vhdl-file-style}) are applied
-before file offset settings (i.e. @code{vhdl-file-offsets}).
+Note that file style settings (i.e., @code{vhdl-file-style}) are applied
+before file offset settings (i.e., @code{vhdl-file-offsets}).
 
 
 @node     Advanced Customizations
@@ -898,7 +898,7 @@ The official Emacs VHDL Mode Home Page can be found at
 @chapter  Sample @file{.emacs} file
 @cindex   Sample @file{.emacs} file
 
-Most customizations can be done using the `Customize' entry in the
+Most customizations can be done using the ``Customize'' entry in the
 VHDL Mode menu, which requires no editing of the .emacs file.
 If you want to customize indentation, here you go:
 

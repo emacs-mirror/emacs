@@ -1,4 +1,4 @@
-;;; autorevert.el --- revert buffers when files on disk change
+;;; autorevert.el --- revert buffers when files on disk change  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1997-1999, 2001-2015 Free Software Foundation, Inc.
 
@@ -95,7 +95,7 @@
 ;; mode.  For example, the following line will activate Auto-Revert
 ;; Mode in all C mode buffers:
 ;;
-;; (add-hook 'c-mode-hook 'turn-on-auto-revert-mode)
+;; (add-hook 'c-mode-hook #'turn-on-auto-revert-mode)
 
 ;;; Code:
 
@@ -260,10 +260,9 @@ buffers.  CPU usage depends on the version control system."
   :type 'boolean
   :version "22.1")
 
-(defvar global-auto-revert-ignore-buffer nil
+(defvar-local global-auto-revert-ignore-buffer nil
   "When non-nil, Global Auto-Revert Mode will not revert this buffer.
 This variable becomes buffer local when set in any fashion.")
-(make-variable-buffer-local 'global-auto-revert-ignore-buffer)
 
 (defcustom auto-revert-remote-files nil
   "If non-nil remote files are also reverted."
@@ -315,9 +314,9 @@ the list of old buffers.")
   "Position of last known end of file.")
 
 (add-hook 'find-file-hook
- 	  (lambda ()
- 	    (set (make-local-variable 'auto-revert-tail-pos)
- 		 (nth 7 (file-attributes buffer-file-name)))))
+	  (lambda ()
+	    (setq-local auto-revert-tail-pos
+                        (nth 7 (file-attributes buffer-file-name)))))
 
 (defvar auto-revert-notify-watch-descriptor-hash-list
   (make-hash-table :test 'equal)
@@ -326,15 +325,13 @@ Hash key is a watch descriptor, hash value is a list of buffers
 which are related to files being watched and carrying the same
 default directory.")
 
-(defvar auto-revert-notify-watch-descriptor nil
+(defvar-local auto-revert-notify-watch-descriptor nil
   "The file watch descriptor active for the current buffer.")
-(make-variable-buffer-local 'auto-revert-notify-watch-descriptor)
 (put 'auto-revert-notify-watch-descriptor 'permanent-local t)
 
-(defvar auto-revert-notify-modified-p nil
+(defvar-local auto-revert-notify-modified-p nil
   "Non-nil when file has been modified on the file system.
 This has been reported by a file notification event.")
-(make-variable-buffer-local 'auto-revert-notify-modified-p)
 
 ;; Functions:
 
@@ -370,7 +367,7 @@ without being changed in the part that is already in the buffer."
   "Turn on Auto-Revert Mode.
 
 This function is designed to be added to hooks, for example:
-  (add-hook 'c-mode-hook 'turn-on-auto-revert-mode)"
+  (add-hook \\='c-mode-hook #\\='turn-on-auto-revert-mode)"
   (auto-revert-mode 1))
 
 
@@ -420,8 +417,8 @@ Perform a full revert? ")
       ;; else we might reappend our own end when we save
       (add-hook 'before-save-hook (lambda () (auto-revert-tail-mode 0)) nil t)
       (or (local-variable-p 'auto-revert-tail-pos) ; don't lose prior position
-	  (set (make-local-variable 'auto-revert-tail-pos)
-	       (nth 7 (file-attributes buffer-file-name))))
+	  (setq-local auto-revert-tail-pos
+                      (nth 7 (file-attributes buffer-file-name))))
       ;; let auto-revert-mode set up the mechanism for us if it isn't already
       (or auto-revert-mode
 	  (let ((auto-revert-tail-mode t))
@@ -434,7 +431,7 @@ Perform a full revert? ")
   "Turn on Auto-Revert Tail mode.
 
 This function is designed to be added to hooks, for example:
-  (add-hook 'my-logfile-mode-hook 'turn-on-auto-revert-tail-mode)"
+  (add-hook \\='my-logfile-mode-hook #\\='turn-on-auto-revert-tail-mode)"
   (auto-revert-tail-mode 1))
 
 
@@ -495,7 +492,7 @@ will use an up-to-date value of `auto-revert-interval'"
 	   (ignore-errors
 	     (file-notify-rm-watch auto-revert-notify-watch-descriptor)))))
      auto-revert-notify-watch-descriptor-hash-list)
-    (remove-hook 'kill-buffer-hook 'auto-revert-notify-rm-watch))
+    (remove-hook 'kill-buffer-hook #'auto-revert-notify-rm-watch))
   (setq auto-revert-notify-watch-descriptor nil
 	auto-revert-notify-modified-p nil))
 
@@ -508,7 +505,7 @@ will use an up-to-date value of `auto-revert-interval'"
 	  (file-symlink-p (or buffer-file-name default-directory)))
 
       ;; Fallback to file checks.
-      (set (make-local-variable 'auto-revert-use-notify) nil)
+      (setq-local auto-revert-use-notify nil)
 
     (when (not auto-revert-notify-watch-descriptor)
       (setq auto-revert-notify-watch-descriptor
@@ -530,10 +527,10 @@ will use an up-to-date value of `auto-revert-interval'"
 		   (gethash auto-revert-notify-watch-descriptor
 			    auto-revert-notify-watch-descriptor-hash-list))
 	     auto-revert-notify-watch-descriptor-hash-list)
-	    (add-hook (make-local-variable 'kill-buffer-hook)
-		      'auto-revert-notify-rm-watch))
+	    (add-hook 'kill-buffer-hook
+		      #'auto-revert-notify-rm-watch nil t))
 	;; Fallback to file checks.
-	(set (make-local-variable 'auto-revert-use-notify) nil)))))
+	(setq-local auto-revert-use-notify nil)))))
 
 ;; If we have file notifications, we want to update the auto-revert buffers
 ;; immediately when a notification occurs. Since file updates can happen very
@@ -618,64 +615,63 @@ no more reverts are possible until the next call of
 (defun auto-revert-handler ()
   "Revert current buffer, if appropriate.
 This is an internal function used by Auto-Revert Mode."
-  (when (or auto-revert-tail-mode (not (buffer-modified-p)))
-    (let* ((buffer (current-buffer)) size
-	   ;; Tramp caches the file attributes.  Setting
-	   ;; `remote-file-name-inhibit-cache' forces Tramp to reread
-	   ;; the values.
-	   (remote-file-name-inhibit-cache t)
-	   (revert
-	    (if buffer-file-name
-		(and (or auto-revert-remote-files
-			 (not (file-remote-p buffer-file-name)))
-		     (or (not auto-revert-use-notify)
-			 auto-revert-notify-modified-p)
-		     (if auto-revert-tail-mode
-			 (and (file-readable-p buffer-file-name)
-			      (/= auto-revert-tail-pos
-				  (setq size
-					(nth 7 (file-attributes
-						buffer-file-name)))))
-		       (funcall (or buffer-stale-function
-                                    #'buffer-stale--default-function)
-                                t)))
-	      (and (or auto-revert-mode
-		       global-auto-revert-non-file-buffers)
-		   (funcall (or buffer-stale-function
-				#'buffer-stale--default-function)
-			    t))))
-	   eob eoblist)
-      (setq auto-revert-notify-modified-p nil)
-      (when revert
-	(when (and auto-revert-verbose
-		   (not (eq revert 'fast)))
-	  (message "Reverting buffer `%s'." (buffer-name)))
-	;; If point (or a window point) is at the end of the buffer,
-	;; we want to keep it at the end after reverting.  This allows
-	;; to tail a file.
-	(when buffer-file-name
-	  (setq eob (eobp))
-	  (walk-windows
-	   (lambda (window)
-	     (and (eq (window-buffer window) buffer)
-		  (= (window-point window) (point-max))
-		  (push window eoblist)))
-	   'no-mini t))
-	(if auto-revert-tail-mode
-	    (auto-revert-tail-handler size)
-	  ;; Bind buffer-read-only in case user has done C-x C-q,
-	  ;; so as not to forget that.  This gives undesirable results
-	  ;; when the file's mode changes, but that is less common.
-	  (let ((buffer-read-only buffer-read-only))
-	    (revert-buffer 'ignore-auto 'dont-ask 'preserve-modes)))
-	(when buffer-file-name
-	  (when eob (goto-char (point-max)))
-	  (dolist (window eoblist)
-	    (set-window-point window (point-max)))))
-      ;; `preserve-modes' avoids changing the (minor) modes.  But we
-      ;; do want to reset the mode for VC, so we do it manually.
-      (when (or revert auto-revert-check-vc-info)
-	(vc-find-file-hook)))))
+  (let* ((buffer (current-buffer)) size
+         ;; Tramp caches the file attributes.  Setting
+         ;; `remote-file-name-inhibit-cache' forces Tramp to reread
+         ;; the values.
+         (remote-file-name-inhibit-cache t)
+         (revert
+          (if buffer-file-name
+              (and (or auto-revert-remote-files
+                       (not (file-remote-p buffer-file-name)))
+                   (or (not auto-revert-use-notify)
+                       auto-revert-notify-modified-p)
+                   (if auto-revert-tail-mode
+                       (and (file-readable-p buffer-file-name)
+                            (/= auto-revert-tail-pos
+                                (setq size
+                                      (nth 7 (file-attributes
+                                              buffer-file-name)))))
+                     (funcall (or buffer-stale-function
+                                  #'buffer-stale--default-function)
+                              t)))
+            (and (or auto-revert-mode
+                     global-auto-revert-non-file-buffers)
+                 (funcall (or buffer-stale-function
+                              #'buffer-stale--default-function)
+                          t))))
+         eob eoblist)
+    (setq auto-revert-notify-modified-p nil)
+    (when revert
+      (when (and auto-revert-verbose
+                 (not (eq revert 'fast)))
+        (message "Reverting buffer `%s'." (buffer-name)))
+      ;; If point (or a window point) is at the end of the buffer, we
+      ;; want to keep it at the end after reverting.  This allows to
+      ;; tail a file.
+      (when buffer-file-name
+        (setq eob (eobp))
+        (walk-windows
+         (lambda (window)
+           (and (eq (window-buffer window) buffer)
+                (= (window-point window) (point-max))
+                (push window eoblist)))
+         'no-mini t))
+      (if auto-revert-tail-mode
+          (auto-revert-tail-handler size)
+        ;; Bind buffer-read-only in case user has done C-x C-q, so as
+        ;; not to forget that.  This gives undesirable results when
+        ;; the file's mode changes, but that is less common.
+        (let ((buffer-read-only buffer-read-only))
+          (revert-buffer 'ignore-auto 'dont-ask 'preserve-modes)))
+      (when buffer-file-name
+        (when eob (goto-char (point-max)))
+        (dolist (window eoblist)
+          (set-window-point window (point-max)))))
+    ;; `preserve-modes' avoids changing the (minor) modes.  But we do
+    ;; want to reset the mode for VC, so we do it manually.
+    (when (or revert auto-revert-check-vc-info)
+      (vc-find-file-hook))))
 
 (defun auto-revert-tail-handler (size)
   (let ((modified (buffer-modified-p))

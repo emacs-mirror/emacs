@@ -127,18 +127,13 @@ rpl_acl_set_fd (int fd, acl_t acl)
 #   define acl_extended_file(name) (-1)
 #  endif
 
-/* Linux-specific */
-#  ifndef HAVE_ACL_FROM_MODE
-#   define HAVE_ACL_FROM_MODE false
-#   define acl_from_mode(mode) (NULL)
+#  if ! defined HAVE_ACL_FROM_MODE && ! defined HAVE_ACL_FROM_TEXT
+#   define acl_from_mode (NULL)
 #  endif
 
-/* Set to 1 if a file's mode is implicit by the ACL.
-   Set to 0 if a file's mode is stored independently from the ACL.  */
+/* Set to 0 if a file's mode is stored independently from the ACL.  */
 #  if (HAVE_ACL_COPY_EXT_NATIVE && HAVE_ACL_CREATE_ENTRY_NP) || defined __sgi /* Mac OS X, IRIX */
 #   define MODE_INSIDE_ACL 0
-#  else
-#   define MODE_INSIDE_ACL 1
 #  endif
 
 /* Return the number of entries in ACL.
@@ -160,16 +155,19 @@ extern int acl_extended_nontrivial (acl_t);
    Return 0 if it is trivial, i.e. equivalent to a simple stat() mode.
    Return -1 and set errno upon failure to determine it.  */
 extern int acl_access_nontrivial (acl_t);
+
+/* ACL is an ACL, from a file, stored as type ACL_TYPE_DEFAULT.
+   Return 1 if the given ACL is non-trivial.
+   Return 0 if it is trivial, i.e. equivalent to a simple stat() mode.
+   Return -1 and set errno upon failure to determine it.  */
+extern int acl_default_nontrivial (acl_t);
 #  endif
 
 # elif HAVE_FACL && defined GETACL /* Solaris, Cygwin, not HP-UX */
 
-/* Set to 1 if a file's mode is implicit by the ACL.
-   Set to 0 if a file's mode is stored independently from the ACL.  */
+/* Set to 0 if a file's mode is stored independently from the ACL.  */
 #  if defined __CYGWIN__ /* Cygwin */
 #   define MODE_INSIDE_ACL 0
-#  else /* Solaris */
-#   define MODE_INSIDE_ACL 1
 #  endif
 
 /* Return 1 if the given ACL is non-trivial.
@@ -220,7 +218,7 @@ extern int acl_ace_nontrivial (int count, ace_t *entries) _GL_ATTRIBUTE_PURE;
 
 /* Return 1 if the given ACL is non-trivial.
    Return 0 if it is trivial, i.e. equivalent to a simple stat() mode.  */
-extern int acl_nontrivial (int count, struct acl_entry *entries, struct stat *sb);
+extern int acl_nontrivial (int count, struct acl_entry *entries);
 
 #  if HAVE_ACLV_H /* HP-UX >= 11.11 */
 
@@ -248,6 +246,57 @@ extern int acl_nontrivial (int count, struct acl *entries);
 
 # endif
 
+/* Set to 1 if a file's mode is implicit by the ACL.  */
+# ifndef MODE_INSIDE_ACL
+#  define MODE_INSIDE_ACL 1
+# endif
+
 #endif
+
+struct permission_context {
+  mode_t mode;
+#ifdef USE_ACL
+# if HAVE_ACL_GET_FILE /* Linux, FreeBSD, Mac OS X, IRIX, Tru64 */
+  acl_t acl;
+#  if !HAVE_ACL_TYPE_EXTENDED
+  acl_t default_acl;
+#  endif
+  bool acls_not_supported;
+
+# elif defined GETACL /* Solaris, Cygwin */
+  int count;
+  aclent_t *entries;
+#  ifdef ACE_GETACL
+  int ace_count;
+  ace_t *ace_entries;
+#  endif
+
+# elif HAVE_GETACL /* HP-UX */
+  struct acl_entry entries[NACLENTRIES];
+  int count;
+#  if HAVE_ACLV_H
+  struct acl aclv_entries[NACLVENTRIES];
+  int aclv_count;
+#  endif
+
+# elif HAVE_STATACL /* older AIX */
+  union { struct acl a; char room[4096]; } u;
+  bool have_u;
+
+# elif HAVE_ACLSORT /* NonStop Kernel */
+  struct acl entries[NACLENTRIES];
+  int count;
+
+# endif
+#endif
+};
+
+int get_permissions (const char *, int, mode_t, struct permission_context *);
+int set_permissions (struct permission_context *, const char *, int);
+void free_permission_context (struct permission_context *)
+#if ! (defined USE_ACL && (HAVE_ACL_GET_FILE || defined GETACL))
+    _GL_ATTRIBUTE_CONST
+#endif
+  ;
 
 _GL_INLINE_HEADER_END

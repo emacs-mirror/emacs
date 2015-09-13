@@ -54,7 +54,7 @@ we make that menu bar item (the one at that position) the default choice.
 
 Note that \\[menu-bar-open] by default drops down TTY menus; if you want it
 to invoke `tmm-menubar' instead, customize the variable
-\`tty-menu-open-use-tmm' to a non-nil value."
+`tty-menu-open-use-tmm' to a non-nil value."
   (interactive)
   (run-hooks 'menu-bar-update-hook)
   ;; Obey menu-bar-final-items; put those items last.

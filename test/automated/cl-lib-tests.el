@@ -1,4 +1,4 @@
-;;; cl-lib.el --- tests for emacs-lisp/cl-lib.el
+;;; cl-lib.el --- tests for emacs-lisp/cl-lib.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2013-2015 Free Software Foundation, Inc.
 
@@ -204,7 +204,10 @@
                     :b :a :a 42)
            '(42 :a))))
 
-(cl-defstruct mystruct (abc :readonly t) def)
+(cl-defstruct (mystruct
+               (:constructor cl-lib--con-1 (&aux (abc 1)))
+               (:constructor cl-lib--con-2 (&optional def)))
+  (abc 5 :readonly t) (def nil))
 (ert-deftest cl-lib-struct-accessors ()
   (let ((x (make-mystruct :abc 1 :def 2)))
     (should (eql (cl-struct-slot-value 'mystruct 'abc x) 1))
@@ -213,8 +216,17 @@
     (should (eql (cl-struct-slot-value 'mystruct 'def x) -1))
     (should (eql (cl-struct-slot-offset 'mystruct 'abc) 1))
     (should-error (cl-struct-slot-offset 'mystruct 'marypoppins))
-    (should (equal (cl-struct-slot-info 'mystruct)
-                   '((cl-tag-slot) (abc :readonly t) (def))))))
+    (should (pcase (cl-struct-slot-info 'mystruct)
+              (`((cl-tag-slot) (abc 5 :readonly t)
+                 (def . ,(or `nil `(nil))))
+               t)))))
+
+(ert-deftest cl-lib-arglist-performance ()
+  ;; An `&aux' should not cause lambda's arglist to be turned into an &rest
+  ;; that's parsed by hand.
+  (should (equal () (help-function-arglist 'cl-lib--con-1)))
+  (should (pcase (help-function-arglist 'cl-lib--con-2)
+            (`(&optional ,_) t))))
 
 (ert-deftest cl-the ()
   (should (eql (cl-the integer 42) 42))
@@ -410,6 +422,47 @@
     ;; should return a copy
     (should-not (eq (cl-ldiff l '()) l))))
 
+(ert-deftest cl-lib-adjoin-test ()
+  (let ((nums '(1 2))
+        (myfn-p '=))
+    ;; add non-existing item to the front
+    (should (equal '(3 1 2) (cl-adjoin 3 nums)))
+    ;; just add - don't copy rest
+    (should (eq nums (cdr (cl-adjoin 3 nums))))
+    ;; add only when not already there
+    (should (eq nums (cl-adjoin 2 nums)))
+    (should (equal '(2 1 (2)) (cl-adjoin 2 '(1 (2)))))
+    ;; default test function is eql
+    (should (equal '(1.0 1 2) (cl-adjoin 1.0 nums)))
+    ;; own :test function - returns true if match
+    (should (equal '(1.0 1 2) (cl-adjoin 1.0 nums :test nil))) ;defaults to eql
+    (should (eq nums (cl-adjoin 2 nums :test myfn-p))) ;match
+    (should (equal '(3 1 2) (cl-adjoin 3 nums :test myfn-p))) ;no match
+    ;; own :test-not function - returns false if match
+    (should (equal '(1.0 1 2) (cl-adjoin 1.0 nums :test-not nil))) ;defaults to eql
+    (should (equal '(2 2) (cl-adjoin 2 '(2) :test-not myfn-p))) ; no match
+    (should (eq nums (cl-adjoin 2 nums :test-not myfn-p))) ; 1 matches
+    (should (eq nums (cl-adjoin 3 nums :test-not myfn-p))) ; 1 and 2 matches
+
+    ;; according to CLtL2 passing both :test and :test-not should signal error
+    ;;(should-error (cl-adjoin 3 nums :test 'myfn-p :test-not myfn-p))
+
+    ;; own :key fn
+    (should (eq nums (cl-adjoin 3 nums :key (lambda (x) (if (cl-evenp x) (1+ x) x)))))
+    (should (equal '(3 1 2) (cl-adjoin 3 nums :key (lambda (x) (if (cl-evenp x) (+ 2 x) x)))))
+
+    ;; convert using :key, then compare with :test
+    (should (eq nums (cl-adjoin 1 nums :key 'int-to-string :test 'string=)))
+    (should (equal '(3 1 2) (cl-adjoin 3 nums :key 'int-to-string :test 'string=)))
+    (should-error (cl-adjoin 3 nums :key 'int-to-string :test myfn-p)
+                  :type 'wrong-type-argument)
+
+    ;; convert using :key, then compare with :test-not
+    (should (eq nums (cl-adjoin 3 nums :key 'int-to-string :test-not 'string=)))
+    (should (equal '(1 1) (cl-adjoin 1 '(1) :key 'int-to-string :test-not 'string=)))
+    (should-error (cl-adjoin 1 nums :key 'int-to-string :test-not myfn-p)
+                  :type 'wrong-type-argument)))
+
 (ert-deftest cl-parse-integer ()
   (should-error (cl-parse-integer "abc"))
   (should (null (cl-parse-integer "abc" :junk-allowed t)))
@@ -426,5 +479,12 @@
 
 (ert-deftest cl-flet-test ()
   (should (equal (cl-flet ((f1 (x) x)) (let ((x #'f1)) (funcall x 5))) 5)))
+
+(ert-deftest cl-lib-test-typep ()
+  (cl-deftype cl-lib-test-type (&optional x) `(member ,x))
+  ;; Make sure we correctly implement the rule that deftype's optional args
+  ;; default to `*' rather than to nil.
+  (should (cl-typep '* 'cl-lib-test-type))
+  (should-not (cl-typep 1 'cl-lib-test-type)))
 
 ;;; cl-lib.el ends here

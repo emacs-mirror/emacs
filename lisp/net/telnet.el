@@ -237,7 +237,7 @@ Normally input is edited in Emacs and sent a line at a time."
 (define-derived-mode telnet-mode comint-mode "Telnet"
   "This mode is for using telnet (or rsh) from a buffer to another host.
 It has most of the same commands as comint-mode.
-There is a variable ``telnet-interrupt-string'' which is the character
+There is a variable `telnet-interrupt-string' which is the character
 sent to try to stop execution of a job on the remote host.
 Data is sent to the remote host when RET is typed."
   (set (make-local-variable 'window-point-insertion-type) t)

@@ -220,7 +220,7 @@ Interactively, reads the register using `register-read-with-preview'."
 (set-advertised-calling-convention 'frame-configuration-to-register
 				   '(register) "24.4")
 
-(make-obsolete 'frame-configuration-to-register 'frameset-to-register' "24.4")
+(make-obsolete 'frame-configuration-to-register 'frameset-to-register "24.4")
 
 (defalias 'register-to-point 'jump-to-register)
 (defun jump-to-register (register &optional delete)

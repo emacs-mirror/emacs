@@ -786,6 +786,138 @@ alarm (int seconds)
 #endif
 }
 
+
+
+/* Here's an overview of how support for subprocesses and
+   network/serial streams is implemented on MS-Windows.
+
+   The management of both subprocesses and network/serial streams
+   circles around the child_procs[] array, which can record up to the
+   grand total of MAX_CHILDREN (= 32) of these.  (The reasons for the
+   32 limitation will become clear below.)  Each member of
+   child_procs[] is a child_process structure, defined on w32.h.
+
+   A related data structure is the fd_info[] array, which holds twice
+   as many members, 64, and records the information about file
+   descriptors used for communicating with subprocesses and
+   network/serial devices.  Each member of the array is the filedesc
+   structure, which records the Windows handle for communications,
+   such as the read end of the pipe to a subprocess, a socket handle,
+   etc.
+
+   Both these arrays reference each other: there's a member of
+   child_process structure that records the corresponding file
+   descriptor, and there's a member of filedesc structure that holds a
+   pointer to the corresponding child_process.
+
+   Whenever Emacs starts a subprocess or opens a network/serial
+   stream, the function new_child is called to prepare a new
+   child_process structure.  new_child looks for the first vacant slot
+   in the child_procs[] array, initializes it, and starts a "reader
+   thread" that will watch the output of the subprocess/stream and its
+   status.  (If no vacant slot can be found, new_child returns a
+   failure indication to its caller, and the higher-level Emacs
+   primitive that called it will then fail with EMFILE or EAGAIN.)
+
+   The reader thread started by new_child communicates with the main
+   (a.k.a. "Lisp") thread via two event objects and a status, all of
+   them recorded by the members of the child_process structure in
+   child_procs[].  The event objects serve as semaphores between the
+   reader thread and the 'pselect' emulation in sys_select, as follows:
+
+     . Initially, the reader thread is waiting for the char_consumed
+       event to become signaled by sys_select, which is an indication
+       for the reader thread to go ahead and try reading more stuff
+       from the subprocess/stream.
+
+     . The reader thread then attempts to read by calling a
+       blocking-read function.  When the read call returns, either
+       successfully or with some failure indication, the reader thread
+       updates the status of the read accordingly, and signals the 2nd
+       event object, char_avail, on whose handle sys_select is
+       waiting.  This tells sys_select that the file descriptor
+       allocated for the subprocess or the the stream is ready to be
+       read from.
+
+   When the subprocess exits or the network/serial stream is closed,
+   the reader thread sets the status accordingly and exits.  It also
+   exits when the main thread sets the status to STATUS_READ_ERROR
+   and/or the char_avail and char_consumed event handles become NULL;
+   this is how delete_child, called by Emacs when a subprocess or a
+   stream is terminated, terminates the reader thread as part of
+   deleting the child_process object.
+
+   The sys_select function emulates the Posix 'pselect' function; it
+   is needed because the Windows 'select' function supports only
+   network sockets, while Emacs expects 'pselect' to work for any file
+   descriptor, including pipes and serial streams.
+
+   When sys_select is called, it uses the information in fd_info[]
+   array to convert the file descriptors which it was asked to watch
+   into Windows handles.  In general, the handle to watch is the
+   handle of the char_avail event of the child_process structure that
+   corresponds to the file descriptor.  In addition, for subprocesses,
+   sys_select watches one more handle: the handle for the subprocess,
+   so that it could emulate the SIGCHLD signal when the subprocess
+   exits.
+
+   If file descriptor zero (stdin) doesn't have its bit set in the
+   'rfds' argument to sys_select, the function always watches for
+   keyboard interrupts, to be able to interrupt the wait and return
+   when the user presses C-g.
+
+   Having collected the handles to watch, sys_select calls
+   WaitForMultipleObjects to wait for any one of them to become
+   signaled.  Since WaitForMultipleObjects can only watch up to 64
+   handles, Emacs on Windows is limited to maximum 32 child_process
+   objects (since a subprocess consumes 2 handles to be watched, see
+   above).
+
+   When any of the handles become signaled, sys_select does whatever
+   is appropriate for the corresponding child_process object:
+
+     . If it's a handle to the char_avail event, sys_select marks the
+       corresponding bit in 'rfds', and Emacs will then read from that
+       file descriptor.
+
+     . If it's a handle to the process, sys_select calls the SIGCHLD
+       handler, to inform Emacs of the fact that the subprocess
+       exited.
+
+   The waitpid emulation works very similar to sys_select, except that
+   it only watches handles of subprocesses, and doesn't synchronize
+   with the reader thread.
+
+   Because socket descriptors on Windows are handles, while Emacs
+   expects them to be file descriptors, all low-level I/O functions,
+   such as 'read' and 'write', and all socket operations, like
+   'connect', 'recvfrom', 'accept', etc., are redirected to the
+   corresponding 'sys_*' functions, which must convert a file
+   descriptor to a handle using the fd_info[] array, and then invoke
+   the corresponding Windows API on the handle.  Most of these
+   redirected 'sys_*' functions are implemented on w32.c.
+
+   When the file descriptor was produced by functions such as 'open',
+   the corresponding handle is obtained by calling _get_osfhandle.  To
+   produce a file descriptor for a socket handle, which has no file
+   descriptor as far as Windows is concerned, the function
+   socket_to_fd opens the null device; the resulting file descriptor
+   will never be used directly in any I/O API, but serves as an index
+   into the fd_info[] array, where the socket handle is stored.  The
+   SOCK_HANDLE macro retrieves the handle when given the file
+   descriptor.
+
+   The function sys_kill emulates the Posix 'kill' functionality to
+   terminate other processes.  It does that by attaching to the
+   foreground window of the process and sending a Ctrl-C or Ctrl-BREAK
+   signal to the process; if that doesn't work, then it calls
+   TerminateProcess to forcibly terminate the process.  Note that this
+   only terminates the immediate process whose PID was passed to
+   sys_kill; it doesn't terminate the child processes of that process.
+   This means, for example, that an Emacs subprocess run through a
+   shell might not be killed, because sys_kill will only terminate the
+   shell.  (In practice, however, such problems are very rare.)  */
+
 /* Defined in <process.h> which conflicts with the local copy */
 #define _P_NOWAIT 1
 
@@ -1011,7 +1143,9 @@ reader_thread (void *arg)
     {
       int rc;
 
-      if (cp->fd >= 0 && fd_info[cp->fd].flags & FILE_LISTEN)
+      if (cp->fd >= 0 && (fd_info[cp->fd].flags & FILE_CONNECT) != 0)
+	rc = _sys_wait_connect (cp->fd);
+      else if (cp->fd >= 0 && (fd_info[cp->fd].flags & FILE_LISTEN) != 0)
 	rc = _sys_wait_accept (cp->fd);
       else
 	rc = _sys_read_ahead (cp->fd);
@@ -1031,8 +1165,8 @@ reader_thread (void *arg)
 	  return 1;
 	}
 
-      if (rc == STATUS_READ_ERROR)
-	return 1;
+      if (rc == STATUS_READ_ERROR || rc == STATUS_CONNECT_FAILED)
+	return 2;
 
       /* If the read died, the child has died so let the thread die */
       if (rc == STATUS_READ_FAILED)
@@ -1393,22 +1527,25 @@ waitpid (pid_t pid, int *status, int options)
 
 /* Implementation note: This function works with file names encoded in
    the current ANSI codepage.  */
-static void
+static int
 w32_executable_type (char * filename,
 		     int * is_dos_app,
 		     int * is_cygnus_app,
+		     int * is_msys_app,
 		     int * is_gui_app)
 {
   file_data executable;
   char * p;
+  int retval = 0;
 
   /* Default values in case we can't tell for sure.  */
   *is_dos_app = FALSE;
   *is_cygnus_app = FALSE;
+  *is_msys_app = FALSE;
   *is_gui_app = FALSE;
 
   if (!open_input_file (&executable, filename))
-    return;
+    return -1;
 
   p = strrchr (filename, '.');
 
@@ -1426,7 +1563,8 @@ w32_executable_type (char * filename,
 	 extension, which is defined in the registry.  */
       p = egetenv ("COMSPEC");
       if (p)
-	w32_executable_type (p, is_dos_app, is_cygnus_app, is_gui_app);
+	retval = w32_executable_type (p, is_dos_app, is_cygnus_app, is_msys_app,
+				      is_gui_app);
     }
   else
     {
@@ -1479,29 +1617,40 @@ w32_executable_type (char * filename,
 #endif
           if (data_dir)
             {
-              /* Look for cygwin.dll in DLL import list. */
+              /* Look for Cygwin DLL in the DLL import list. */
               IMAGE_DATA_DIRECTORY import_dir =
                 data_dir[IMAGE_DIRECTORY_ENTRY_IMPORT];
-              IMAGE_IMPORT_DESCRIPTOR * imports;
-              IMAGE_SECTION_HEADER * section;
-
-              section = rva_to_section (import_dir.VirtualAddress, nt_header);
-              imports = RVA_TO_PTR (import_dir.VirtualAddress, section,
-                                    executable);
+              IMAGE_IMPORT_DESCRIPTOR * imports =
+		RVA_TO_PTR (import_dir.VirtualAddress,
+			    rva_to_section (import_dir.VirtualAddress,
+					    nt_header),
+			    executable);
 
               for ( ; imports->Name; imports++)
                 {
+		  IMAGE_SECTION_HEADER * section =
+		    rva_to_section (imports->Name, nt_header);
                   char * dllname = RVA_TO_PTR (imports->Name, section,
                                                executable);
 
-                  /* The exact name of the cygwin dll has changed with
-                     various releases, but hopefully this will be reasonably
-                     future proof.  */
+                  /* The exact name of the Cygwin DLL has changed with
+                     various releases, but hopefully this will be
+                     reasonably future-proof.  */
                   if (strncmp (dllname, "cygwin", 6) == 0)
                     {
                       *is_cygnus_app = TRUE;
                       break;
                     }
+		  else if (strncmp (dllname, "msys-", 5) == 0)
+		    {
+		      /* This catches both MSYS 1.x and MSYS2
+			 executables (the DLL name is msys-1.0.dll and
+			 msys-2.0.dll, respectively).  There doesn't
+			 seem to be a reason to distinguish between
+			 the two, for now.  */
+		      *is_msys_app = TRUE;
+		      break;
+		    }
                 }
             }
   	}
@@ -1509,6 +1658,7 @@ w32_executable_type (char * filename,
 
 unwind:
   close_file_data (&executable);
+  return retval;
 }
 
 static int
@@ -1567,7 +1717,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
   int arglen, numenv;
   pid_t pid;
   child_process *cp;
-  int is_dos_app, is_cygnus_app, is_gui_app;
+  int is_dos_app, is_cygnus_app, is_msys_app, is_gui_app;
   int do_quoting = 0;
   /* We pass our process ID to our children by setting up an environment
      variable in their environment.  */
@@ -1578,10 +1728,10 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
      argument being split into two or more. Arguments with wildcards
      are also quoted, for consistency with posix platforms, where wildcards
      are not expanded if we run the program directly without a shell.
-     Some extra whitespace characters need quoting in Cygwin programs,
+     Some extra whitespace characters need quoting in Cygwin/MSYS programs,
      so this list is conditionally modified below.  */
   char *sepchars = " \t*?";
-  /* This is for native w32 apps; modified below for Cygwin apps.  */
+  /* This is for native w32 apps; modified below for Cygwin/MSUS apps.  */
   char escape_char = '\\';
   char cmdname_a[MAX_PATH];
 
@@ -1598,13 +1748,9 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
      absolute.  So we double-check this here, just in case.  */
   if (faccessat (AT_FDCWD, cmdname, X_OK, AT_EACCESS) != 0)
     {
-      struct gcpro gcpro1;
-
       program = build_string (cmdname);
       full = Qnil;
-      GCPRO1 (program);
       openp (Vexec_path, program, Vexec_suffixes, &full, make_number (X_OK), 0);
-      UNGCPRO;
       if (NILP (full))
 	{
 	  errno = EINVAL;
@@ -1642,15 +1788,17 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
   cmdname = cmdname_a;
   argv[0] = cmdname;
 
-  /* Determine whether program is a 16-bit DOS executable, or a 32-bit Windows
-     executable that is implicitly linked to the Cygnus dll (implying it
-     was compiled with the Cygnus GNU toolchain and hence relies on
-     cygwin.dll to parse the command line - we use this to decide how to
-     escape quote chars in command line args that must be quoted).
+  /* Determine whether program is a 16-bit DOS executable, or a 32-bit
+     Windows executable that is implicitly linked to the Cygnus or
+     MSYS dll (implying it was compiled with the Cygnus/MSYS GNU
+     toolchain and hence relies on cygwin.dll or MSYS DLL to parse the
+     command line - we use this to decide how to escape quote chars in
+     command line args that must be quoted).
 
      Also determine whether it is a GUI app, so that we don't hide its
      initial window unless specifically requested.  */
-  w32_executable_type (cmdname, &is_dos_app, &is_cygnus_app, &is_gui_app);
+  w32_executable_type (cmdname, &is_dos_app, &is_cygnus_app, &is_msys_app,
+		       &is_gui_app);
 
   /* On Windows 95, if cmdname is a DOS app, we invoke a helper
      application to start it by specifying the helper app as cmdname,
@@ -1661,9 +1809,27 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
 
       cmdname = alloca (MAX_PATH);
       if (egetenv ("CMDPROXY"))
-	strcpy (cmdname, egetenv ("CMDPROXY"));
+	{
+	  /* Implementation note: since process-environment, where
+	     'egetenv' looks, is encoded in the system codepage, we
+	     don't need to encode the cmdproxy file name if we get it
+	     from the environment.  */
+	  strcpy (cmdname, egetenv ("CMDPROXY"));
+	}
       else
-	strcpy (lispstpcpy (cmdname, Vinvocation_directory), "cmdproxy.exe");
+	{
+	  char *q = lispstpcpy (cmdname,
+				/* exec-directory needs to be encoded.  */
+				ansi_encode_filename (Vexec_directory));
+	  /* If we are run from the source tree, use cmdproxy.exe from
+	     the same source tree.  */
+	  for (p = q - 2; p > cmdname; p = CharPrevA (cmdname, p))
+	    if (*p == '/')
+	      break;
+	  if (*p == '/' && xstrcasecmp (p, "/lib-src/") == 0)
+	    q = stpcpy (p, "/nt/");
+	  strcpy (q, "cmdproxy.exe");
+	}
 
       /* Can't use unixtodos_filename here, since that needs its file
 	 name argument encoded in UTF-8.  */
@@ -1710,10 +1876,10 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
       if (INTEGERP (Vw32_quote_process_args))
 	escape_char = XINT (Vw32_quote_process_args);
       else
-	escape_char = is_cygnus_app ? '"' : '\\';
+	escape_char = (is_cygnus_app || is_msys_app) ? '"' : '\\';
     }
 
-  /* Cygwin apps needs quoting a bit more often.  */
+  /* Cygwin/MSYS apps need quoting a bit more often.  */
   if (escape_char == '"')
     sepchars = "\r\n\t\f '";
 
@@ -1731,7 +1897,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
       for ( ; *p; p++)
 	{
 	  if (escape_char == '"' && *p == '\\')
-	    /* If it's a Cygwin app, \ needs to be escaped.  */
+	    /* If it's a Cygwin/MSYS app, \ needs to be escaped.  */
 	    arglen++;
 	  else if (*p == '"')
 	    {
@@ -1929,7 +2095,7 @@ int
 sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 	    struct timespec *timeout, void *ignored)
 {
-  SELECT_TYPE orfds;
+  SELECT_TYPE orfds, owfds;
   DWORD timeout_ms, start_time;
   int i, nh, nc, nr;
   DWORD active;
@@ -1947,15 +2113,27 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
       return 0;
     }
 
-  /* Otherwise, we only handle rfds, so fail otherwise.  */
-  if (rfds == NULL || wfds != NULL || efds != NULL)
+  /* Otherwise, we only handle rfds and wfds, so fail otherwise.  */
+  if ((rfds == NULL && wfds == NULL) || efds != NULL)
     {
       errno = EINVAL;
       return -1;
     }
 
-  orfds = *rfds;
-  FD_ZERO (rfds);
+  if (rfds)
+    {
+      orfds = *rfds;
+      FD_ZERO (rfds);
+    }
+  else
+    FD_ZERO (&orfds);
+  if (wfds)
+    {
+      owfds = *wfds;
+      FD_ZERO (wfds);
+    }
+  else
+    FD_ZERO (&owfds);
   nr = 0;
 
   /* If interrupt_handle is available and valid, always wait on it, to
@@ -1970,7 +2148,7 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 
   /* Build a list of pipe handles to wait on.  */
   for (i = 0; i < nfds; i++)
-    if (FD_ISSET (i, &orfds))
+    if (FD_ISSET (i, &orfds) || FD_ISSET (i, &owfds))
       {
 	if (i == 0)
 	  {
@@ -1984,7 +2162,7 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 
 	    /* Check for any emacs-generated input in the queue since
 	       it won't be detected in the wait */
-	    if (detect_input_pending ())
+	    if (rfds && detect_input_pending ())
 	      {
 		FD_SET (i, rfds);
 		return 1;
@@ -1999,6 +2177,13 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 	  {
 	    /* Child process and socket/comm port input.  */
 	    cp = fd_info[i].cp;
+	    if (FD_ISSET (i, &owfds)
+		&& cp
+		&& (fd_info[i].flags && FILE_CONNECT) == 0)
+	      {
+		DebPrint (("sys_select: fd %d is in wfds, but FILE_CONNECT is reset!\n", i));
+		cp = NULL;
+	      }
 	    if (cp)
 	      {
 		int current_status = cp->status;
@@ -2007,6 +2192,8 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 		  {
 		    /* Tell reader thread which file handle to use. */
 		    cp->fd = i;
+		    /* Zero out the error code.  */
+		    cp->errcode = 0;
 		    /* Wake up the reader thread for this process */
 		    cp->status = STATUS_READ_READY;
 		    if (!SetEvent (cp->char_consumed))
@@ -2197,7 +2384,7 @@ count_children:
 
 	  if (cp->fd >= 0 && (fd_info[cp->fd].flags & FILE_AT_EOF) == 0)
 	    fd_info[cp->fd].flags |= FILE_SEND_SIGCHLD;
-	  /* SIG_DFL for SIGCHLD is ignore */
+	  /* SIG_DFL for SIGCHLD is ignored */
 	  else if (sig_handlers[SIGCHLD] != SIG_DFL &&
 		   sig_handlers[SIGCHLD] != SIG_IGN)
 	    {
@@ -2214,7 +2401,7 @@ count_children:
 	  errno = EINTR;
 	  return -1;
 	}
-      else if (fdindex[active] == 0)
+      else if (rfds && fdindex[active] == 0)
 	{
 	  /* Keyboard input available */
 	  FD_SET (0, rfds);
@@ -2222,9 +2409,33 @@ count_children:
 	}
       else
 	{
-	  /* must be a socket or pipe - read ahead should have
-             completed, either succeeding or failing.  */
-	  FD_SET (fdindex[active], rfds);
+	  /* Must be a socket or pipe - read ahead should have
+             completed, either succeeding or failing.  If this handle
+             was waiting for an async 'connect', reset the connect
+             flag, so it could read from now on.  */
+	  if (wfds && (fd_info[fdindex[active]].flags & FILE_CONNECT) != 0)
+	    {
+	      cp = fd_info[fdindex[active]].cp;
+	      if (cp)
+		{
+		  /* Don't reset the FILE_CONNECT bit and don't
+		     acknowledge the read if the status is
+		     STATUS_CONNECT_FAILED or some other
+		     failure. That's because the thread exits in those
+		     cases, so it doesn't need the ACK, and we want to
+		     keep the FILE_CONNECT bit as evidence that the
+		     connect failed, to be checked in sys_read.  */
+		  if (cp->status == STATUS_READ_SUCCEEDED)
+		    {
+		      fd_info[cp->fd].flags &= ~FILE_CONNECT;
+		      cp->status = STATUS_READ_ACKNOWLEDGED;
+		    }
+		  ResetEvent (cp->char_avail);
+		}
+	      FD_SET (fdindex[active], wfds);
+	    }
+	  else if (rfds)
+	    FD_SET (fdindex[active], rfds);
 	  nr++;
 	}
 
@@ -2767,6 +2978,59 @@ If successful, the return value is t, otherwise nil.  */)
   return result;
 }
 
+DEFUN ("w32-application-type", Fw32_application_type,
+       Sw32_application_type, 1, 1, 0,
+       doc: /* Return the type of an MS-Windows PROGRAM.
+
+Knowing the type of an executable could be useful for formatting
+file names passed to it or for quoting its command-line arguments.
+
+PROGRAM should specify an executable file, including the extension.
+
+The value is one of the following:
+
+`dos'        -- a DOS .com program or some other non-PE executable
+`cygwin'     -- a Cygwin program that depends on Cygwin DLL
+`msys'       -- an MSYS 1.x or MSYS2 program
+`w32-native' -- a native Windows application
+`unknown'    -- a file that doesn't exist, or cannot be open, or whose
+                name is not encodable in the current ANSI codepage.
+
+Note that for .bat and .cmd batch files the function returns the type
+of their command interpreter, as specified by the \"COMSPEC\"
+environment variable.
+
+This function returns `unknown' for programs whose file names
+include characters not supported by the current ANSI codepage, as
+such programs cannot be invoked by Emacs anyway.  */)
+     (Lisp_Object program)
+{
+  int is_dos_app, is_cygwin_app, is_msys_app, dummy;
+  Lisp_Object encoded_progname;
+  char *progname, progname_a[MAX_PATH];
+
+  program = Fexpand_file_name (program, Qnil);
+  encoded_progname = ENCODE_FILE (program);
+  progname = SDATA (encoded_progname);
+  unixtodos_filename (progname);
+  filename_to_ansi (progname, progname_a);
+  /* Reject file names that cannot be encoded in the current ANSI
+     codepage.  */
+  if (_mbspbrk (progname_a, "?"))
+    return Qunknown;
+
+  if (w32_executable_type (progname_a, &is_dos_app, &is_cygwin_app,
+			   &is_msys_app, &dummy) != 0)
+    return Qunknown;
+  if (is_dos_app)
+    return Qdos;
+  if (is_cygwin_app)
+    return Qcygwin;
+  if (is_msys_app)
+    return Qmsys;
+  return Qw32_native;
+}
+
 #ifdef HAVE_LANGINFO_CODESET
 /* Emulation of nl_langinfo.  Used in fns.c:Flocale_info.  */
 char *
@@ -3077,16 +3341,16 @@ yield nil.  */)
   (Lisp_Object cp)
 {
   CHARSETINFO info;
-  DWORD dwcp;
+  DWORD_PTR dwcp;
 
   CHECK_NUMBER (cp);
 
   if (!IsValidCodePage (XINT (cp)))
     return Qnil;
 
-  /* Going through a temporary DWORD variable avoids compiler warning
+  /* Going through a temporary DWORD_PTR variable avoids compiler warning
      about cast to pointer from integer of different size, when
-     building --with-wide-int.  */
+     building --with-wide-int or building for 64bit.  */
   dwcp = XINT (cp);
   if (TranslateCharsetInfo ((DWORD *) dwcp, &info, TCI_SRCCODEPAGE))
     return make_number (info.ciCharset);
@@ -3249,6 +3513,9 @@ get_lcid (const char *locale_name)
 # define LINGUISTIC_IGNORECASE  0x00000010
 #endif
 
+typedef int (WINAPI *CompareStringW_Proc)
+  (LCID, DWORD, LPCWSTR, int, LPCWSTR, int);
+
 int
 w32_compare_strings (const char *s1, const char *s2, char *locname,
 		     int ignore_case)
@@ -3257,7 +3524,7 @@ w32_compare_strings (const char *s1, const char *s2, char *locname,
   wchar_t *string1_w, *string2_w;
   int val, needed;
   extern BOOL g_b_init_compare_string_w;
-  static int (WINAPI *pCompareStringW)(LCID, DWORD, LPCWSTR, int, LPCWSTR, int);
+  static CompareStringW_Proc pCompareStringW;
   DWORD flags = 0;
 
   USE_SAFE_ALLOCA;
@@ -3273,8 +3540,9 @@ w32_compare_strings (const char *s1, const char *s2, char *locname,
     {
       if (os_subtype == OS_9X)
 	{
-	  pCompareStringW = GetProcAddress (LoadLibrary ("Unicows.dll"),
-					    "CompareStringW");
+	  pCompareStringW =
+            (CompareStringW_Proc) GetProcAddress (LoadLibrary ("Unicows.dll"),
+                                                  "CompareStringW");
 	  if (!pCompareStringW)
 	    {
 	      errno = EINVAL;
@@ -3361,6 +3629,9 @@ syms_of_ntproc (void)
 {
   DEFSYM (Qhigh, "high");
   DEFSYM (Qlow, "low");
+  DEFSYM (Qcygwin, "cygwin");
+  DEFSYM (Qmsys, "msys");
+  DEFSYM (Qw32_native, "w32-native");
 
   defsubr (&Sw32_has_winsock);
   defsubr (&Sw32_unload_winsock);
@@ -3368,6 +3639,7 @@ syms_of_ntproc (void)
   defsubr (&Sw32_short_file_name);
   defsubr (&Sw32_long_file_name);
   defsubr (&Sw32_set_process_priority);
+  defsubr (&Sw32_application_type);
   defsubr (&Sw32_get_locale_info);
   defsubr (&Sw32_get_current_locale_id);
   defsubr (&Sw32_get_default_locale_id);

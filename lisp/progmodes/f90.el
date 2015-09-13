@@ -898,11 +898,13 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
 (defconst f90-type-def-re
   ;; type word
   ;; type :: word
-  ;; type, stuff :: word
-  ;; type, bind(c) :: word
+  ;; type, attr-list :: word
+  ;;   where attr-list = attr [, attr ...]
+  ;;   and attr may include bind(c) or extends(thing)
   ;; NOT "type ("
   "\\_<\\(type\\)\\_>\\(?:\\(?:[^()\n]*\\|\
-.*,[ \t]*bind[ \t]*([ \t]*c[ \t]*)[ \t]*\\)::\\)?[ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)"
+.*,[ \t]*\\(?:bind\\|extends\\)[ \t]*(.*).*\\)::\\)?\
+[ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)"
   "Regexp matching the definition of a derived type.")
 
 (defconst f90-typeis-re
@@ -1113,7 +1115,7 @@ For fixed format code, use `fortran-mode'.
  indented line.
 \\[f90-indent-subprogram] indents the current subprogram.
 
-Type `? or `\\[help-command] to display a list of built-in\
+Type \\=`? or \\=`\\[help-command] to display a list of built-in\
  abbrevs for F90 keywords.
 
 Key definitions:
@@ -1423,7 +1425,7 @@ single - statement is not continued.
 begin  - current line is the first in a continued statement.
 end    - current line is the last in a continued statement
 middle - current line is neither first nor last in a continued statement.
-Comment lines embedded amongst continued lines return 'middle."
+Comment lines embedded amongst continued lines return `middle'."
   (let (pcont cont)
     (save-excursion
       (setq pcont (if (f90-previous-statement) (f90-line-continued))))
@@ -1450,7 +1452,7 @@ if all else fails."
     (not (or (looking-at "end")
              (looking-at "\\(do\\|if\\|else\\(if\\|where\\)?\
 \\|select[ \t]*\\(case\\|type\\)\\|case\\|where\\|forall\\|\
-block\\|critical\\)\\_>")
+block\\|critical\\|enum\\)\\_>")
              (looking-at "\\(program\\|\\(?:sub\\)?module\\|\
 \\(?:abstract[ \t]*\\)?interface\\|block[ \t]*data\\)\\_>")
              (looking-at "\\(contains\\|\\(?:\\sw\\|\\s_\\)+[ \t]*:\\)")
@@ -2267,7 +2269,7 @@ Leave point at the end of line."
 ;; Abbrevs and keywords.
 
 (defun f90-abbrev-start ()
-  "Typing `\\[help-command] or `? lists all the F90 abbrevs.
+  "Typing \\=`\\[help-command] or \\=`? lists all the F90 abbrevs.
 Any other key combination is executed normally."
   (interactive "*")
   (self-insert-command 1)
@@ -2372,7 +2374,7 @@ With optional argument ALL, change the default for all present
 and future F90 buffers.  F90 mode normally treats backslash as an
 escape character."
   (or (derived-mode-p 'f90-mode)
-      (error "This function should only be used in F90 buffers"))
+      (user-error "This function should only be used in F90 buffers"))
   (when (equal (char-syntax ?\\ ) ?\\ )
     (or all (set-syntax-table (copy-syntax-table (syntax-table))))
     (modify-syntax-entry ?\\ ".")))

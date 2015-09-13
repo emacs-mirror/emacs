@@ -107,13 +107,13 @@ char *w32_getenv (char *);
 /* Name used to invoke this program.  */
 const char *progname;
 
-/* The second argument to main. */
+/* The second argument to main.  */
 char **main_argv;
 
 /* Nonzero means don't wait for a response from Emacs.  --no-wait.  */
 int nowait = 0;
 
-/* Nonzero means don't print messages for successful operations.  --quiet. */
+/* Nonzero means don't print messages for successful operations.  --quiet.  */
 int quiet = 0;
 
 /* Nonzero means args are expressions to be evaluated.  --eval.  */
@@ -131,7 +131,7 @@ const char *alt_display = NULL;
 /* The parent window ID, if we are opening a frame via XEmbed.  */
 char *parent_id = NULL;
 
-/* Nonzero means open a new Emacs frame on the current terminal. */
+/* Nonzero means open a new Emacs frame on the current terminal.  */
 int tty = 0;
 
 /* If non-NULL, the name of an editor to fallback to if the server
@@ -148,7 +148,7 @@ const char *server_file = NULL;
 int emacs_pid = 0;
 
 /* If non-NULL, a string that should form a frame parameter alist to
-   be used for the new frame */
+   be used for the new frame.  */
 const char *frame_parameters = NULL;
 
 static _Noreturn void print_help_and_exit (void);
@@ -539,7 +539,7 @@ decode_options (int argc, char **argv)
           break;
 
 	default:
-	  message (true, "Try `%s --help' for more information\n", progname);
+	  message (true, "Try '%s --help' for more information\n", progname);
 	  exit (EXIT_FAILURE);
 	  break;
 	}
@@ -961,6 +961,13 @@ set_tcp_socket (const char *local_server_file)
   /* Open up an AF_INET socket.  */
   if ((s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
     {
+      /* Since we have an alternate to try out, this is not an error
+	 yet; popping out a modal dialog at this stage would make -a
+	 option totally useless for emacsclientw -- the user will
+	 still get an error message if the alternate editor fails.  */
+#ifdef WINDOWSNT
+      if(!(w32_window_app () && alternate_editor))
+#endif
       sock_err_message ("socket");
       return INVALID_SOCKET;
     }
@@ -968,6 +975,9 @@ set_tcp_socket (const char *local_server_file)
   /* Set up the socket.  */
   if (connect (s, (struct sockaddr *) &server, sizeof server) < 0)
     {
+#ifdef WINDOWSNT
+      if(!(w32_window_app () && alternate_editor))
+#endif
       sock_err_message ("connect");
       return INVALID_SOCKET;
     }
@@ -1601,7 +1611,7 @@ main (int argc, char **argv)
   if ((argc - optind < 1) && !eval && current_frame)
     {
       message (true, "%s: file name or argument required\n"
-	       "Try `%s --help' for more information\n",
+	       "Try '%s --help' for more information\n",
 	       progname, progname);
       exit (EXIT_FAILURE);
     }

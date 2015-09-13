@@ -84,7 +84,7 @@ HEADER - Shown section if in a header file."
 ;;;###autoload
 (defun srecode-semantic-handle-:cpp (dict)
   "Add macros into the dictionary DICT based on the current c file.
-Calls `srecode-semantic-handle-:c.
+Calls `srecode-semantic-handle-:c'.
 Also adds the following:
  - nothing -"
   (srecode-semantic-handle-:c dict)

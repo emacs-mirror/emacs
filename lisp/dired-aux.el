@@ -413,12 +413,15 @@ into the minibuffer."
       ;; Now the original list FILES has been put back as it was.
       (nconc past pending))))
 
+(defvar lpr-printer-switch)
+
 ;;;###autoload
 (defun dired-do-print (&optional arg)
   "Print the marked (or next ARG) files.
 Uses the shell command coming from variables `lpr-command' and
 `lpr-switches' as default."
   (interactive "P")
+  (require 'lpr)
   (let* ((file-list (dired-get-marked-files t arg))
 	 (lpr-switches
 	  (if (and (stringp printer-name)
@@ -683,9 +686,11 @@ can be produced by `dired-get-marked-files', for example."
     (if (cond ((not (or on-each no-subst))
 	       (error "You can not combine `*' and `?' substitution marks"))
 	      ((and star on-each)
-	       (y-or-n-p "Confirm--do you mean to use `*' as a wildcard? "))
+	       (y-or-n-p (format-message
+			  "Confirm--do you mean to use `*' as a wildcard? ")))
 	      ((and qmark no-subst)
-	       (y-or-n-p "Confirm--do you mean to use `?' as a wildcard? "))
+	       (y-or-n-p (format-message
+			  "Confirm--do you mean to use `?' as a wildcard? ")))
 	      (t))
 	(if on-each
 	    (dired-bunch-files
@@ -1003,7 +1008,7 @@ return t; if SYM is q or ESC, return nil."
 	   nil)     ; skip, and don't ask again
 	  (t        ; no previous answer - ask now
 	   (setq prompt
-		 (concat (apply 'format prompt args)
+		 (concat (apply #'format-message prompt args)
 			 (if help-form
 			     (format " [Type yn!q or %s] "
 				     (key-description (vector help-char)))
@@ -1494,7 +1499,7 @@ or with the current marker character if MARKER-CHAR is t."
           (let* ((overwrite (file-exists-p to))
                  (dired-overwrite-confirmed ; for dired-handle-overwrite
                   (and overwrite
-                       (let ((help-form '(format "\
+                       (let ((help-form '(format-message "\
 Type SPC or `y' to overwrite file `%s',
 DEL or `n' to skip to next,
 ESC or `q' to not overwrite any of the remaining files,
@@ -1875,11 +1880,11 @@ of `dired-dwim-target', which see."
   ;; Optional arg MARKER-CHAR as in dired-create-files.
   (let* ((fn-list (dired-get-marked-files nil arg))
 	 (operation-prompt (concat operation " `%s' to `%s'?"))
-	 (rename-regexp-help-form (format "\
+	 (rename-regexp-help-form (format-message "\
 Type SPC or `y' to %s one match, DEL or `n' to skip to next,
 `!' to %s all remaining matches with no more questions."
-					  (downcase operation)
-					  (downcase operation)))
+						  (downcase operation)
+						  (downcase operation)))
 	 (regexp-name-constructor
 	  ;; Function to construct new filename using REGEXP and NEWNAME:
 	  (if whole-name		; easy (but rare) case
@@ -2000,11 +2005,11 @@ See function `dired-do-rename-regexp' for more info."
 	(let ((to (concat (file-name-directory from)
 			  (funcall basename-constructor
 				   (file-name-nondirectory from)))))
-	  (and (let ((help-form (format "\
+	  (and (let ((help-form (format-message "\
 Type SPC or `y' to %s one file, DEL or `n' to skip to next,
 `!' to %s all remaining matches with no more questions."
-					(downcase operation)
-					(downcase operation))))
+						(downcase operation)
+						(downcase operation))))
 		 (dired-query 'rename-non-directory-query
 			      (concat operation " `%s' to `%s'")
 			      (dired-make-relative from)
@@ -2254,7 +2259,7 @@ of marked files.  If KILL-ROOT is non-nil, kill DIRNAME as well."
   ;;   components are string-lessp.
   ;; Thus ("/usr/" "/usr/bin") and ("/usr/a/" "/usr/b/") are tree-lessp.
   ;; string-lessp could arguably be replaced by file-newer-than-file-p
-  ;;   if dired-actual-switches contained `t'.
+  ;;   if dired-actual-switches contained t.
   (setq dir1 (file-name-as-directory dir1)
 	dir2 (file-name-as-directory dir2))
   (let ((components-1 (dired-split "/" dir1))

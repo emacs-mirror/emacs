@@ -6345,7 +6345,7 @@ killed after process termination."
   (when ebnf-log
     (with-current-buffer (get-buffer-create "*Ebnf2ps Log*")
       (goto-char (point-max))
-      (insert (apply 'format format-str args) "\n"))))
+      (insert (apply #'format-message format-str args) "\n"))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

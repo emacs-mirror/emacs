@@ -214,7 +214,7 @@ property list, or no properties if there is no plist before it.
 
 As a simple example,
 
-\(ert-propertized-string \"foo \" '(face italic) \"bar\" \" baz\" nil \
+\(ert-propertized-string \"foo \" \\='(face italic) \"bar\" \" baz\" nil \
 \" quux\"\)
 
 would return the string \"foo bar baz quux\" where the substring

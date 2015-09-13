@@ -50,8 +50,9 @@
 	    (buffer-substring (overlay-start quail-overlay)
 			      (overlay-end quail-overlay))
 	    unread-command-events
-	    (string-to-list
-	     (substring quail-current-key control-flag)))
+	    (append
+	     (substring quail-current-key control-flag)
+             unread-command-events))
     ;; Special treatment of "-d..." and "-y...".
     (if (string-match "^-[dy]" quail-current-key)
 	(setq quail-current-key (substring quail-current-key 1)))
@@ -133,7 +134,7 @@
     |ཏ་ t |ཐ་ th |ད་ d  |དྷ་ dh |ན་ n |   ོ o          ༑       ;
     |པ་ p |ཕ་ ph |བ་ b  |བྷ་ bh |མ་ m |   ཻ ai (ee, E) ༏        $
     |ཙ་ ts|ཚ་ tsh|ཛ་ dz |ཛྷ་ dzh|ཝ་ w |   ཽ au (oo, O) ༐        &
-    |ཞ་ zh|ཟ་ z  |འ་ '  |       |ཡ་ y |   ྀ I          ༄༅   *
+    |ཞ་ zh|ཟ་ z  |འ་ \\='  |       |ཡ་ y |   ྀ I          ༄༅   *
     |ར་ r |ལ་ l  |ཤ་ sh |ཥ་ SH |ས་ s |   ཿ :         ༄༅༅  #
     |ཧ་ h |ཨ་ A  |ཀྵ་ kSH|       |      |   ཾ M           ༼ ༽   < >
     +-------------------------------------+   ༔  %
@@ -141,7 +142,7 @@
 
   NOT SPECIFIED IN EXT. WYLIE:
     +--------------------------------------------------------+
-    |ྂ = ~ |ྃ = ` |྄ = , |྅ = @ |༷ = _o|༵ = _O|༆ = ^|
+    |ྂ = ~ |ྃ = \\=` |྄ = , |྅ = @ |༷ = _o|༵ = _O|༆ = ^|
     +--------------------------------------------------------+
     |ྈ = x |ྉ = X |྆ = v |྇ = V |ྊ = q |ྋ = Q |
     +-----------------------------------------------+
@@ -154,7 +155,7 @@
             and to get da-drag in  -r-d, -l-d .)
   |     : Special signs.
 
-  Tsheg is assigned to SPC.  Space is assigned to period '.'.
+  Tsheg is assigned to SPC.  Space is assigned to period `.'.
 "
  nil nil nil nil nil nil nil nil
  'quail-tibetan-update-translation)
@@ -381,8 +382,9 @@
 	    (buffer-substring (overlay-start quail-overlay)
 			      (overlay-end quail-overlay))
 	    unread-command-events
-	    (string-to-list
-	     (substring quail-current-key control-flag)))
+	    (append
+	     (substring quail-current-key control-flag)
+             unread-command-events))
     (let ((transcription (quail-tibkey-to-transcription quail-current-key)))
       (if (> (length transcription) 0)
 	  (let ((quail-current-key transcription))
@@ -405,11 +407,11 @@
   +-------------------------------------------------------+
      |qཀ|wཁ|eག|rང|tཅ|yཆ|uཇ|iཉ|oཏ|pཐ|[ད|]ན|
      +-----------------------------------------------+
-      |aཔ| sཕ| dབ|fམ|gུ|h  |jོ|kཙ|lཚ|;ཛ|'ཝ|
+      |aཔ| sཕ| dབ|fམ|gུ|h  |jོ|kཙ|lཚ|;ཛ|\\='ཝ|
       +---------------------------------------------+
          |zཞ|xཟ|cའ|vཡ|bར|nལ|mཤ|,ས|.ཧ|/ཨ|
          +---------------------------------------+
-  The key 'h' is used for consonant stacking.
+  The key `h' is used for consonant stacking.
 
   [SHIFTED]
 
@@ -425,14 +427,14 @@
 
   DIFFERENCE FROM THE ORIGINAL TIBKEY:
 
-    1. Vowel 'a' should be typed explicitly by the key 'A'.
+    1. Vowel `a' should be typed explicitly by the key `A'.
        This is really inconvenient.  But to make the coding
        scheme clear, it is desirable to have an explicit
-       vowel sign for 'a'.
+       vowel sign for `a'.
     2. Tsheg is assigned to SPC key.  You can input a space
-       by typing '>'.
+       by typing `>'.
     4. To avoid the default stacking ���� and to obtain གཡ,
-       type 'E' instead of 'v' (=ཡ).
+       type `E' instead of `v' (=ཡ).
     3. There are many characters that are not supported in the
        current implementation (especially special signs).
        I hope I'll complete in a future revision.

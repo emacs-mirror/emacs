@@ -209,7 +209,6 @@ This function can be called only in unibyte buffers.  */)
 void
 syms_of_decompress (void)
 {
-  DEFSYM (Qzlib_dll, "zlib");
   defsubr (&Szlib_decompress_region);
   defsubr (&Szlib_available_p);
 }

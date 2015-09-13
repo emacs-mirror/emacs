@@ -314,8 +314,8 @@ is `interprogram-cut-paste'.")
     (if (eq selection 'PRIMARY)
 	(or (gui-selection-value)
 	    (bound-and-true-p x-last-selected-text-primary)
-            gui-last-selected-text)
-      (x-get-selection selection)))
+            gui--last-selected-text-primary)
+      (gui-get-selection selection)))
   "Function to call to get the selection.
 Called with one argument:
 

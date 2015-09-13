@@ -2,7 +2,7 @@
 @c %**start of header
 @setfilename ../../info/reftex.info
 @settitle RefTeX User Manual
-@documentencoding UTF-8
+@include docstyle.texi
 @synindex ky cp
 @syncodeindex vr cp
 @syncodeindex fn cp
@@ -608,7 +608,7 @@ Show calling point in another window.  This is the point from where
 
 @item <
 Promote the current section.  This will convert @code{\section} to
-@code{\chapter}, @code{\subsection} to @code{\section} etc. If there is
+@code{\chapter}, @code{\subsection} to @code{\section} etc.  If there is
 an active region, all sections in the region will be promoted, including
 the one at point.  To avoid mistakes, @RefTeX{} requires a fresh
 document scan before executing this command; if necessary, it will
@@ -1000,7 +1000,7 @@ In eqs. (1), (2), (3)--(4), (5) and (6)
 @item u
 Unmark a marked entry.
 
-@c FIXME: Do we need `A' as well for consistency?
+@c FIXME: Do we need 'A' as well for consistency?
 @cindex LaTeX packages, @code{saferef}
 @cindex @code{saferef}, LaTeX package
 @item a
@@ -1567,7 +1567,7 @@ Here is the setup:
 @cindex @code{linguex}, LaTeX package
 @cindex LaTeX packages, @code{linguex}
 A more complex example is the @file{linguex.sty} package which defines
-list macros @samp{\ex.}, @samp{\a.}, @samp{\b.} etc. for lists which are
+list macros @samp{\ex.}, @samp{\a.}, @samp{\b.} etc.@: for lists which are
 terminated by @samp{\z.} or by an empty line.
 
 @example
@@ -4192,7 +4192,7 @@ List of magic words which identify a reference to be of this type.  If
 the word before point is equal to one of these words when calling
 @code{reftex-reference}, the label list offered will be automatically
 restricted to labels of the correct type.  If the first element of this
-word list is the symbol `regexp', the strings are interpreted as regular
+word list is the symbol @code{regexp}, the strings are interpreted as regular
 expressions.
 
 @item @var{toc-level}
@@ -4247,7 +4247,7 @@ but this process can be slow when a document contains thousands of
 labels.  If you use label prefixes consistently, you may speed up
 document parsing by setting this variable to a non-@code{nil} value.  RefTeX
 will then compare the label prefix with the prefixes found in
-`reftex-label-alist' and derive the correct label type in this way.
+@code{reftex-label-alist} and derive the correct label type in this way.
 Possible values for this option are:
 
 @example
@@ -4913,7 +4913,7 @@ The keymap which is active in the @file{*Index*} buffer
 
 @defopt reftex-view-crossref-extra
 Macros which can be used for the display of cross references.
-This is used when `reftex-view-crossref' is called with point in an
+This is used when @code{reftex-view-crossref} is called with point in an
 argument of a macro.  Note that crossref viewing for citations,
 references (both ways) and index entries is hard-coded.  This variable
 is only to configure additional structures for which crossreference
@@ -5447,7 +5447,7 @@ deleted from the toc buffer with the @kbd{d} key.
 @noindent @b{Version 4.19}
 @itemize @bullet
 @item
-New command `reftex-toc-recenter' (@kbd{C-c -}) which shows the current
+New command @code{reftex-toc-recenter} (@kbd{C-c -}) which shows the current
 section in the TOC buffer without selecting the TOC window.
 @item
 Recentering happens automatically in idle time when the option
@@ -5459,7 +5459,7 @@ buffer.
 The highlight in the TOC buffer stays when the focus moves to a
 different window.
 @item
-New command `reftex-goto-label'.
+New command @code{reftex-goto-label}.
 @item
 Part numbers are no longer included in chapter numbers, and a new
 part does not reset the chapter counter.  See new option
@@ -5906,7 +5906,7 @@ When no BibTeX database files are specified, citations can also use
 @noindent @b{Version 3.11}
 @itemize @bullet
 @item
-Fixed bug which led to naked label in (e.g.@:) footnotes.
+Fixed bug which led to naked label in (e.g.)@: footnotes.
 @item
 Added scroll-other-window functions to RefTeX-Select.
 @end itemize

@@ -133,10 +133,10 @@ main-content <=MAIN_CONTENT;\\n\" rtfm-section file style rtfm-section file))
 \(defun rtfm-build-source-docs (section srcdir destdir)
   (interactive
    \"s section[eg- emacs / p4-blame]:\\nD source-dir: \\nD output-dir: \")
-  (require 'htmlfontify)
+  (require \\='htmlfontify)
   (hfy-load-tags-cache srcdir)
-  (let ((hfy-page-header  'rtfm-build-page-header)
-        (hfy-page-footer  'rtfm-build-page-footer)
+  (let ((hfy-page-header  \\='rtfm-build-page-header)
+        (hfy-page-footer  \\='rtfm-build-page-footer)
         (rtfm-section                     section)
         (hfy-index-file                   \"index\"))
     (htmlfontify-run-etags srcdir)
@@ -187,13 +187,13 @@ It takes only one argument, the filename."
   :type  '(string))
 
 (defcustom hfy-src-doc-link-style "text-decoration: underline;"
-  "String to add to the '<style> a' variant of an htmlfontify CSS class."
+  "String to add to the `<style> a' variant of an htmlfontify CSS class."
   :group 'htmlfontify
   :tag   "src-doc-link-style"
   :type  '(string))
 
 (defcustom hfy-src-doc-link-unstyle " text-decoration: none;"
-  "Regex to remove from the <style> a variant of an htmlfontify CSS class."
+  "Regex to remove from the `<style> a' variant of an htmlfontify CSS class."
   :group 'htmlfontify
   :tag   "src-doc-link-unstyle"
   :type  '(string))
@@ -330,7 +330,7 @@ done;")
 (defcustom hfy-etags-cmd-alist
   hfy-etags-cmd-alist-default
   "Alist of possible shell commands that will generate etags output that
-`htmlfontify' can use.  '%s' will be replaced by `hfy-etags-bin'."
+`htmlfontify' can use.  `%s' will be replaced by `hfy-etags-bin'."
   :group 'htmlfontify
   :tag   "etags-cmd-alist"
   :type  '(alist :key-type (string) :value-type (string)))
@@ -389,8 +389,8 @@ exuberant-ctags' etags respectively."
 
 (defcustom hfy-istext-command "file %s | sed -e 's@^[^:]*:[ \t]*@@'"
   "Command to run with the name of a file, to see whether it is a text file
-or not.  The command should emit a string containing the word 'text' if
-the file is a text file, and a string not containing 'text' otherwise."
+or not.  The command should emit a string containing the word `text' if
+the file is a text file, and a string not containing `text' otherwise."
   :group 'htmlfontify
   :tag   "istext-command"
   :type  '(string))
@@ -440,7 +440,7 @@ and so on."
              (background (choice (const :tag "Dark"          dark     )
                                  (const :tag "Bright"        light    ))) ))
 
-(defcustom hfy-optimisations (list 'keep-overlays)
+(defcustom hfy-optimizations (list 'keep-overlays)
   "Optimizations to turn on: So far, the following have been implemented:\n
   merge-adjacent-tags: If two (or more) span tags are adjacent, identical and
                        separated by nothing more than whitespace, they will
@@ -475,6 +475,7 @@ which can never slow you down, but may result in incomplete fontification."
                (const :tag "body-text-only"       body-text-only      ))
   :group 'htmlfontify
   :tag   "optimizations")
+(define-obsolete-variable-alias 'hfy-optimisations 'hfy-optimizations "25.1")
 
 (defvar hfy-tags-cache nil
   "Alist of the form:\n
@@ -499,12 +500,12 @@ tagged items, not the locations of their definitions.")
 (defvar hfy-style-assoc 'please-ignore-this-line
   "An assoc representing/describing an Emacs face.
 Properties may be repeated, in which case later properties should be
-treated as if they were inherited from a 'parent' font.
+treated as if they were inherited from a `parent' font.
 \(For some properties, only the first encountered value is of any importance,
 for others the values might be cumulative, and for others they might be
 cumulative in a complex way.)\n
 Some examples:\n
-\(hfy-face-to-style 'default) =>
+\(hfy-face-to-style \\='default) =>
   ((\"background\"      . \"rgb(0, 0, 0)\")
    (\"color\"           . \"rgb(255, 255, 255)\")
    (\"font-style\"      . \"normal\")
@@ -513,7 +514,7 @@ Some examples:\n
    (\"font-family\"     . \"misc-fixed\")
    (\"font-size\"       . \"13pt\")
    (\"text-decoration\" . \"none\"))\n
-\(hfy-face-to-style 'Info-title-3-face) =>
+\(hfy-face-to-style \\='Info-title-3-face) =>
   ((\"font-weight\"     . \"700\")
    (\"font-family\"     . \"helv\")
    (\"font-size\"       . \"120%\")
@@ -526,14 +527,14 @@ Some examples:\n
 
 (defvar hfy-facemap-assoc 'please-ignore-this-line
   "An assoc of (point . FACE-SYMBOL) or (point . DEFFACE-LIST)
-and (point . 'end) elements, in descending order of point value
+and (point . \\='end) elements, in descending order of point value
 \(ie from the file's end to its beginning).\n
 The map is in reverse order because inserting a <style> tag (or any other
 string) at `point' invalidates the map for all entries with a greater value of
 point.  By traversing the map from greatest to least point, we still invalidate
 the map as we go, but only those points we have already dealt with (and
 therefore no longer care about) will be invalid at any time.\n
-'((64820 . end)
+\\='((64820 . end)
   (64744 . font-lock-comment-face)
   (64736 . end)
   (64722 . font-lock-string-face)
@@ -606,7 +607,7 @@ in a windowing system - try to trick it..."
 
 (defun hfy-opt (symbol)
   "Is option SYMBOL set."
-  (memq symbol hfy-optimisations))
+  (memq symbol hfy-optimizations))
 
 (defun hfy-default-header (file style)
   "Default value for `hfy-page-header'.
@@ -1197,7 +1198,7 @@ MAP is the invisibility map as returned by `hfy-find-invisible-ranges'."
 ;; -- v
 (defun hfy-face-at (p)
   "Find face in effect at point P.
-If overlays are to be considered (see `hfy-optimisations') then this may
+If overlays are to be considered (see `hfy-optimizations') then this may
 return a `defface' style list of face properties instead of a face symbol."
   ;;(message "hfy-face-at");;DBUG
   ;; Fix-me: clean up, remove face-name etc
@@ -1795,8 +1796,8 @@ FILE, if set, is the file name."
 It is assumed that STRING has text properties that allow it to be
 fontified.  This is a simple convenience wrapper around
 `htmlfontify-buffer'."
-  (let* ((hfy-optimisations-1 (copy-sequence hfy-optimisations))
-         (hfy-optimisations (add-to-list 'hfy-optimisations-1
+  (let* ((hfy-optimizations-1 (copy-sequence hfy-optimizations))
+         (hfy-optimizations (add-to-list 'hfy-optimizations-1
                                          'skip-refontification)))
     (with-temp-buffer
       (insert string)

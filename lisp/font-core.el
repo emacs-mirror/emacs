@@ -106,7 +106,7 @@ fontifying different parts of buffer text, use \\[customize-face].
 You can enable Font Lock mode in any major mode automatically by turning on in
 the major mode's hook.  For example, put in your ~/.emacs:
 
- (add-hook 'c-mode-hook 'turn-on-font-lock)
+ (add-hook \\='c-mode-hook \\='turn-on-font-lock)
 
 Alternatively, you can use Global Font Lock mode to automagically turn on Font
 Lock mode in buffers whose major mode supports it and whose major mode is one

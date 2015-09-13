@@ -1,4 +1,4 @@
-@c -*-texinfo-*-
+@c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1998-1999, 2001-2015 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
@@ -248,7 +248,7 @@ unibyte string, it is returned unchanged.  Use this function for
 characters.
 @end defun
 
-@c FIXME: Should `@var{character}' be `@var{byte}'?
+@c FIXME: Should '@var{character}' be '@var{byte}'?
 @defun byte-to-string byte
 @cindex byte to string
 This function returns a unibyte string containing a single byte of
@@ -474,32 +474,36 @@ inside @samp{<..>} brackets, but the tag names in Emacs do not include
 the brackets; e.g., Unicode specifies @samp{<small>} where Emacs uses
 @samp{small}.  }; the other elements are characters that give the
 compatibility decomposition sequence of this character.  For
-unassigned codepoints, the value is the character itself.
+characters that don't have decomposition sequences, and for unassigned
+codepoints, the value is a list with a single member, the character
+itself.
 
 @item decimal-digit-value
 Corresponds to the Unicode @code{Numeric_Value} property for
 characters whose @code{Numeric_Type} is @samp{Decimal}.  The value is
-an integer.  For unassigned codepoints, the value is
-@code{nil}, which means @acronym{NaN}, or ``not-a-number''.
+an integer, or @code{nil} if the character has no decimal digit value.
+For unassigned codepoints, the value is @code{nil}, which means
+@acronym{NaN}, or ``not-a-number''.
 
 @item digit-value
 Corresponds to the Unicode @code{Numeric_Value} property for
 characters whose @code{Numeric_Type} is @samp{Digit}.  The value is an
-integer.  Examples of such characters include compatibility
-subscript and superscript digits, for which the value is the
-corresponding number.  For unassigned codepoints, the value is
-@code{nil}, which means @acronym{NaN}.
+integer.  Examples of such characters include compatibility subscript
+and superscript digits, for which the value is the corresponding
+number.  For characters that don't have any numeric value, and for
+unassigned codepoints, the value is @code{nil}, which means
+@acronym{NaN}.
 
 @item numeric-value
 Corresponds to the Unicode @code{Numeric_Value} property for
 characters whose @code{Numeric_Type} is @samp{Numeric}.  The value of
-this property is a number.  Examples of
-characters that have this property include fractions, subscripts,
-superscripts, Roman numerals, currency numerators, and encircled
-numbers.  For example, the value of this property for the character
-@code{U+2155} (@sc{vulgar fraction one fifth}) is @code{0.2}.  For
-unassigned codepoints, the value is @code{nil}, which means
-@acronym{NaN}.
+this property is a number.  Examples of characters that have this
+property include fractions, subscripts, superscripts, Roman numerals,
+currency numerators, and encircled numbers.  For example, the value of
+this property for the character @code{U+2155} (@sc{vulgar fraction one
+fifth}) is @code{0.2}.  For characters that don't have any numeric
+value, and for unassigned codepoints, the value is @code{nil}, which
+means @acronym{NaN}.
 
 @cindex mirroring of characters
 @item mirrored
@@ -540,12 +544,13 @@ property is used for bidirectional display.
 
 @item old-name
 Corresponds to the Unicode @code{Unicode_1_Name} property.  The value
-is a string.  Unassigned codepoints, and characters that have no value
-for this property, the value is @code{nil}.
+is a string.  For unassigned codepoints, and characters that have no
+value for this property, the value is @code{nil}.
 
 @item iso-10646-comment
 Corresponds to the Unicode @code{ISO_Comment} property.  The value is
-a string.  For unassigned codepoints, the value is an empty string.
+either a string or @code{nil}.  For unassigned codepoints, the value
+is @code{nil}.
 
 @item uppercase
 Corresponds to the Unicode @code{Simple_Uppercase_Mapping} property.
@@ -1375,7 +1380,7 @@ alternatives described above.
 
 The optional argument @var{accept-default-p}, if non-@code{nil},
 should be a function to determine whether a coding system selected
-without user interaction is acceptable. @code{select-safe-coding-system}
+without user interaction is acceptable.  @code{select-safe-coding-system}
 calls this function with one argument, the base coding system of the
 selected coding system.  If @var{accept-default-p} returns @code{nil},
 @code{select-safe-coding-system} rejects the silently selected coding
@@ -1437,7 +1442,7 @@ don't change these variables; instead, override them using
 @cindex file contents, and default coding system
 @defopt auto-coding-regexp-alist
 This variable is an alist of text patterns and corresponding coding
-systems. Each element has the form @code{(@var{regexp}
+systems.  Each element has the form @code{(@var{regexp}
 . @var{coding-system})}; a file whose first few kilobytes match
 @var{regexp} is decoded with @var{coding-system} when its contents are
 read into a buffer.  The settings in this alist take priority over
@@ -1817,7 +1822,7 @@ original text:
 @example
 @group
 (decode-coding-string "Gr\374ss Gott" 'latin-1)
-     @result{} #("Gr@"uss Gott" 0 9 (charset iso-8859-1))
+     @result{} #("Grüss Gott" 0 9 (charset iso-8859-1))
 @end group
 @end example
 @end defun
@@ -1959,6 +1964,7 @@ how Emacs interacts with these features.
 @cindex keyboard input decoding on X
 This variable specifies the coding system to use for decoding system
 error messages and---on X Window system only---keyboard input, for
+sending batch output to the standard output and error streams, for
 encoding the format argument to @code{format-time-string}, and for
 decoding the return value of @code{format-time-string}.
 @end defvar

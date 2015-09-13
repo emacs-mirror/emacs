@@ -83,7 +83,7 @@ If t, use no switches."
   t			   ;`svn' doesn't support common args like -c or -b.
   "String or list of strings specifying extra switches for svn diff under VC.
 If nil, use the value of `vc-diff-switches' (or `diff-switches'),
-together with \"-x --diff-cmd=\"`diff-command' (since 'svn diff'
+together with \"-x --diff-cmd=\"`diff-command' (since `svn diff'
 does not support the default \"-c\" value of `diff-switches').
 If you want to force an empty list of arguments, use t."
   :type '(choice (const :tag "Unspecified" nil)
@@ -279,7 +279,21 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
   ;; Expand default-directory because svn gets confused by eg
   ;; file://~/path/to/file.  (Bug#15446).
   (vc-svn-command "*vc*" 0 "." "checkout"
-                  (concat "file://" (expand-file-name default-directory) "SVN")))
+                  (let ((defdir (expand-file-name default-directory))
+                        (svn-prog (executable-find "svn")))
+                    (when (and (fboundp 'w32-application-type)
+                               (eq (w32-application-type svn-prog) 'msys))
+                      (setq defdir
+                            (replace-regexp-in-string "^\\(.\\):/" "/\\1/"
+                                                      defdir)))
+                    (concat (if (and (stringp defdir)
+                                     (eq (aref defdir 0) ?/))
+                                "file://"
+                              ;; MS-Windows files d:/foo/bar need to
+                              ;; begin with 3 leading slashes.
+                              "file:///")
+                            defdir
+                            "SVN"))))
 
 (autoload 'vc-switches "vc")
 

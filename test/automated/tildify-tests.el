@@ -55,6 +55,7 @@ If IS-XML is non-nil, <pre> tag is not treated specially."
 INPUT is the initial content of the buffer and EXPECTED is expected result
 after `tildify-buffer' is run."
   (with-temp-buffer
+    (setq-local buffer-file-coding-system 'utf-8)
     (dolist (mode modes)
       (erase-buffer)
       (funcall mode)
@@ -187,6 +188,7 @@ The function must terminate as soon as callback returns nil."
 
 (defun tildify-space-test--test (modes nbsp env-open &optional set-space-string)
   (with-temp-buffer
+    (setq-local buffer-file-coding-system 'utf-8)
     (dolist (mode modes)
       (funcall mode)
       (when set-space-string
@@ -226,6 +228,7 @@ The function must terminate as soon as callback returns nil."
 (defun tildify-space-undo-test--test
     (modes nbsp env-open &optional set-space-string)
   (with-temp-buffer
+    (setq-local buffer-file-coding-system 'utf-8)
     (dolist (mode modes)
       (funcall mode)
       (when set-space-string

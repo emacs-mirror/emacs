@@ -109,7 +109,7 @@ as unread by Gnus.")
 	  (and large
 	       (zerop (% count 20))
 	       (nnheader-message 5 "nnmh: Receiving headers... %d%%"
-				 (/ (* count 100) number))))
+				 (floor (* count 100.0) number))))
 
 	(when large
 	  (nnheader-message 5 "nnmh: Receiving headers...done"))
@@ -259,12 +259,12 @@ as unread by Gnus.")
 					       &optional server force)
   (nnmh-possibly-change-directory newsgroup server)
   (let ((is-old t)
+	(dir nnmh-current-directory)
 	article rest mod-time)
     (nnheader-init-server-buffer)
 
     (while (and articles is-old)
-      (setq article (concat nnmh-current-directory
-			    (int-to-string (car articles))))
+      (setq article (concat dir (int-to-string (car articles))))
       (when (setq mod-time (nth 5 (file-attributes article)))
 	(if (and (nnmh-deletable-article-p newsgroup (car articles))
 		 (setq is-old

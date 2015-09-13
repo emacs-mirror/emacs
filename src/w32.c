@@ -1490,7 +1490,7 @@ static int file_name_codepage;
 
 /* Produce a Windows ANSI codepage suitable for encoding file names.
    Return the information about that codepage in CP_INFO.  */
-static int
+int
 codepage_for_filenames (CPINFO *cp_info)
 {
   /* A simple cache to avoid calling GetCPInfo every time we need to
@@ -3399,30 +3399,41 @@ sys_readdir (DIR *dirp)
   /* If we aren't dir_finding, do a find-first, otherwise do a find-next. */
   else if (dir_find_handle == INVALID_HANDLE_VALUE)
     {
-      char filename[MAX_UTF8_PATH + 2];
+      char filename[MAX_UTF8_PATH];
       int ln;
+      bool last_slash = true;
 
+      /* Note: We don't need to worry about dir_pathname being longer
+	 than MAX_UTF8_PATH, as sys_opendir already took care of that
+	 when it called map_w32_filename: that function will put a "?"
+	 in its return value in that case, thus failing all the calls
+	 below.  */
       strcpy (filename, dir_pathname);
       ln = strlen (filename);
       if (!IS_DIRECTORY_SEP (filename[ln - 1]))
-	filename[ln++] = '\\';
-      strcpy (filename + ln, "*");
+	last_slash = false;
 
       /* Note: No need to resolve symlinks in FILENAME, because
 	 FindFirst opens the directory that is the target of a
 	 symlink.  */
       if (w32_unicode_filenames)
 	{
-	  wchar_t fnw[MAX_PATH];
+	  wchar_t fnw[MAX_PATH + 2];
 
 	  filename_to_utf16 (filename, fnw);
+	  if (!last_slash)
+	    wcscat (fnw, L"\\");
+	  wcscat (fnw, L"*");
 	  dir_find_handle = FindFirstFileW (fnw, &dir_find_data_w);
 	}
       else
 	{
-	  char fna[MAX_PATH];
+	  char fna[MAX_PATH + 2];
 
 	  filename_to_ansi (filename, fna);
+	  if (!last_slash)
+	    strcat (fna, "\\");
+	  strcat (fna, "*");
 	  /* If FILENAME is not representable by the current ANSI
 	     codepage, we don't want FindFirstFileA to interpret the
 	     '?' characters as a wildcard.  */
@@ -3815,7 +3826,7 @@ faccessat (int dirfd, const char * path, int mode, int flags)
 		  errno = EACCES;
 		  return -1;
 		}
-	      break;
+	      goto check_attrs;
 	    }
 	  /* FALLTHROUGH */
 	case ERROR_FILE_NOT_FOUND:
@@ -3828,6 +3839,8 @@ faccessat (int dirfd, const char * path, int mode, int flags)
 	}
       return -1;
     }
+
+ check_attrs:
   if ((mode & X_OK) != 0
       && !(is_exec (path) || (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0))
     {
@@ -3845,6 +3858,76 @@ faccessat (int dirfd, const char * path, int mode, int flags)
       return -1;
     }
   return 0;
+}
+
+/* A special test for DIRNAME being a directory accessible by the
+   current user.  This is needed because the security permissions in
+   directory's ACLs are not visible in the Posix-style mode bits
+   returned by 'stat' and in attributes returned by GetFileAttributes.
+   So a directory would seem like it's readable by the current user,
+   but will in fact error out with EACCES when they actually try.  */
+int
+w32_accessible_directory_p (const char *dirname, ptrdiff_t dirlen)
+{
+  char pattern[MAX_UTF8_PATH];
+  bool last_slash = dirlen > 0 && IS_DIRECTORY_SEP (dirname[dirlen - 1]);
+  HANDLE dh;
+
+  /* Network volumes need a different reading method.  */
+  if (is_unc_volume (dirname))
+    {
+      void *read_result = NULL;
+      wchar_t fnw[MAX_PATH];
+      char fna[MAX_PATH];
+
+      dh = open_unc_volume (dirname);
+      if (dh != INVALID_HANDLE_VALUE)
+	{
+	  read_result = read_unc_volume (dh, fnw, fna, MAX_PATH);
+	  close_unc_volume (dh);
+	}
+      /* Treat empty volumes as accessible.  */
+      return read_result != NULL || GetLastError () == ERROR_NO_MORE_ITEMS;
+    }
+
+  /* Note: map_w32_filename makes sure DIRNAME is not longer than
+     MAX_UTF8_PATH.  */
+  strcpy (pattern, map_w32_filename (dirname, NULL));
+
+  /* Note: No need to resolve symlinks in FILENAME, because FindFirst
+     opens the directory that is the target of a symlink.  */
+  if (w32_unicode_filenames)
+    {
+      wchar_t pat_w[MAX_PATH + 2];
+      WIN32_FIND_DATAW dfd_w;
+
+      filename_to_utf16 (pattern, pat_w);
+      if (!last_slash)
+	wcscat (pat_w, L"\\");
+      wcscat (pat_w, L"*");
+      dh = FindFirstFileW (pat_w, &dfd_w);
+    }
+  else
+    {
+      char pat_a[MAX_PATH + 2];
+      WIN32_FIND_DATAA dfd_a;
+
+      filename_to_ansi (pattern, pat_a);
+      if (!last_slash)
+	strcpy (pat_a, "\\");
+      strcat (pat_a, "*");
+      /* In case DIRNAME cannot be expressed in characters from the
+	 current ANSI codepage.  */
+      if (_mbspbrk (pat_a, "?"))
+	dh = INVALID_HANDLE_VALUE;
+      else
+	dh = FindFirstFileA (pat_a, &dfd_a);
+    }
+
+  if (dh == INVALID_HANDLE_VALUE)
+    return 0;
+  FindClose (dh);
+  return 1;
 }
 
 /* A version of 'access' to be used locally with file names in
@@ -4451,6 +4534,8 @@ sys_rmdir (const char * path)
 int
 sys_unlink (const char * path)
 {
+  int rmstatus, e;
+
   path = map_w32_filename (path, NULL);
 
   if (w32_unicode_filenames)
@@ -4458,9 +4543,18 @@ sys_unlink (const char * path)
       wchar_t path_w[MAX_PATH];
 
       filename_to_utf16 (path, path_w);
-      /* On Unix, unlink works without write permission. */
+      /* On Unix, unlink works without write permission.  */
       _wchmod (path_w, 0666);
-      return _wunlink (path_w);
+      rmstatus = _wunlink (path_w);
+      e = errno;
+      /* Symlinks to directories can only be deleted by _rmdir;
+	 _unlink returns EACCES.  */
+      if (rmstatus != 0
+	  && errno == EACCES
+	  && (is_symlink (path) & FILE_ATTRIBUTE_DIRECTORY) != 0)
+	rmstatus = _wrmdir (path_w);
+      else
+	errno = e;
     }
   else
     {
@@ -4468,8 +4562,17 @@ sys_unlink (const char * path)
 
       filename_to_ansi (path, path_a);
       _chmod (path_a, 0666);
-      return _unlink (path_a);
+      rmstatus = _unlink (path_a);
+      e = errno;
+      if (rmstatus != 0
+	  && errno == EACCES
+	  && (is_symlink (path) & FILE_ATTRIBUTE_DIRECTORY) != 0)
+	rmstatus = _rmdir (path_a);
+      else
+	errno = e;
     }
+
+  return rmstatus;
 }
 
 static FILETIME utc_base_ft;
@@ -5543,7 +5646,8 @@ symlink (char const *filename, char const *linkname)
 /* A quick inexpensive test of whether FILENAME identifies a file that
    is a symlink.  Returns non-zero if it is, zero otherwise.  FILENAME
    must already be in the normalized form returned by
-   map_w32_filename.
+   map_w32_filename.  If the symlink is to a directory, the
+   FILE_ATTRIBUTE_DIRECTORY bit will be set in the return value.
 
    Note: for repeated operations on many files, it is best to test
    whether the underlying volume actually supports symlinks, by
@@ -5601,6 +5705,8 @@ is_symlink (const char *filename)
       attrs_mean_symlink =
 	(wfdw.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0
 	&& (wfdw.dwReserved0 & IO_REPARSE_TAG_SYMLINK) == IO_REPARSE_TAG_SYMLINK;
+      if (attrs_mean_symlink)
+	attrs_mean_symlink |= (wfdw.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
     }
   else if (_mbspbrk (filename_a, "?"))
     {
@@ -5614,6 +5720,8 @@ is_symlink (const char *filename)
       attrs_mean_symlink =
 	(wfda.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0
 	&& (wfda.dwReserved0 & IO_REPARSE_TAG_SYMLINK) == IO_REPARSE_TAG_SYMLINK;
+      if (attrs_mean_symlink)
+	attrs_mean_symlink |= (wfda.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
     }
   if (fh == INVALID_HANDLE_VALUE)
     return 0;
@@ -6544,7 +6652,6 @@ global_memory_status_ex (MEMORY_STATUS_EX *buf)
 Lisp_Object
 list_system_processes (void)
 {
-  struct gcpro gcpro1;
   Lisp_Object proclist = Qnil;
   HANDLE h_snapshot;
 
@@ -6556,8 +6663,6 @@ list_system_processes (void)
       DWORD proc_id;
       BOOL res;
 
-      GCPRO1 (proclist);
-
       proc_entry.dwSize = sizeof (PROCESSENTRY32);
       for (res = process32_first (h_snapshot, &proc_entry); res;
 	   res = process32_next  (h_snapshot, &proc_entry))
@@ -6567,7 +6672,6 @@ list_system_processes (void)
 	}
 
       CloseHandle (h_snapshot);
-      UNGCPRO;
       proclist = Fnreverse (proclist);
     }
 
@@ -6696,7 +6800,6 @@ process_times (HANDLE h_proc, Lisp_Object *ctime, Lisp_Object *etime,
 Lisp_Object
 system_process_attributes (Lisp_Object pid)
 {
-  struct gcpro gcpro1, gcpro2, gcpro3;
   Lisp_Object attrs = Qnil;
   Lisp_Object cmd_str, decoded_cmd, tem;
   HANDLE h_snapshot, h_proc;
@@ -6727,8 +6830,6 @@ system_process_attributes (Lisp_Object pid)
   proc_id = FLOATP (pid) ? XFLOAT_DATA (pid) : XINT (pid);
 
   h_snapshot = create_toolhelp32_snapshot (TH32CS_SNAPPROCESS, 0);
-
-  GCPRO3 (attrs, decoded_cmd, tem);
 
   if (h_snapshot != INVALID_HANDLE_VALUE)
     {
@@ -6771,10 +6872,7 @@ system_process_attributes (Lisp_Object pid)
     }
 
   if (!found_proc)
-    {
-      UNGCPRO;
-      return Qnil;
-    }
+    return Qnil;
 
   h_proc = OpenProcess (PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
 			FALSE, proc_id);
@@ -6991,7 +7089,6 @@ system_process_attributes (Lisp_Object pid)
 
   if (h_proc)
     CloseHandle (h_proc);
-  UNGCPRO;
   return attrs;
 }
 
@@ -7038,6 +7135,9 @@ int (PASCAL *pfn_WSAStartup) (WORD wVersionRequired, LPWSADATA lpWSAData);
 void (PASCAL *pfn_WSASetLastError) (int iError);
 int (PASCAL *pfn_WSAGetLastError) (void);
 int (PASCAL *pfn_WSAEventSelect) (SOCKET s, HANDLE hEventObject, long lNetworkEvents);
+int (PASCAL *pfn_WSAEnumNetworkEvents) (SOCKET s, HANDLE hEventObject,
+					WSANETWORKEVENTS *NetworkEvents);
+
 HANDLE (PASCAL *pfn_WSACreateEvent) (void);
 int (PASCAL *pfn_WSACloseEvent) (HANDLE hEvent);
 int (PASCAL *pfn_socket) (int af, int type, int protocol);
@@ -7123,6 +7223,7 @@ init_winsock (int load_now)
       LOAD_PROC (WSASetLastError);
       LOAD_PROC (WSAGetLastError);
       LOAD_PROC (WSAEventSelect);
+      LOAD_PROC (WSAEnumNetworkEvents);
       LOAD_PROC (WSACreateEvent);
       LOAD_PROC (WSACloseEvent);
       LOAD_PROC (socket);
@@ -7206,6 +7307,8 @@ set_errno (void)
     case WSAEMFILE:		errno = EMFILE; break;
     case WSAENAMETOOLONG: 	errno = ENAMETOOLONG; break;
     case WSAENOTEMPTY:		errno = ENOTEMPTY; break;
+    case WSAEWOULDBLOCK:	errno = EWOULDBLOCK; break;
+    case WSAENOTCONN:		errno = ENOTCONN; break;
     default:			errno = wsa_err; break;
     }
 }
@@ -7473,7 +7576,17 @@ sys_connect (int s, const struct sockaddr * name, int namelen)
     {
       int rc = pfn_connect (SOCK_HANDLE (s), name, namelen);
       if (rc == SOCKET_ERROR)
-	set_errno ();
+	{
+	  set_errno ();
+	  /* If this is a non-blocking 'connect', set the bit in flags
+	     that will tell reader_thread to wait for connection
+	     before trying to read.  */
+	  if (errno == EWOULDBLOCK && (fd_info[s].flags & FILE_NDELAY) != 0)
+	    {
+	      errno = EINPROGRESS; /* that's what process.c expects */
+	      fd_info[s].flags |= FILE_CONNECT;
+	    }
+	}
       return rc;
     }
   errno = ENOTSOCK;
@@ -7984,6 +8097,8 @@ _sys_read_ahead (int fd)
       emacs_abort ();
     }
 
+  if ((fd_info[fd].flags & FILE_CONNECT) != 0)
+    DebPrint (("_sys_read_ahead: read requested from fd %d, which waits for async connect!\n", fd));
   cp->status = STATUS_READ_IN_PROGRESS;
 
   if (fd_info[fd].flags & FILE_PIPE)
@@ -8106,6 +8221,60 @@ _sys_wait_accept (int fd)
 }
 
 int
+_sys_wait_connect (int fd)
+{
+  HANDLE hEv;
+  child_process * cp;
+  int rc;
+
+  if (fd < 0 || fd >= MAXDESC)
+    return STATUS_READ_ERROR;
+
+  cp = fd_info[fd].cp;
+  if (cp == NULL || cp->fd != fd || cp->status != STATUS_READ_READY)
+    return STATUS_READ_ERROR;
+
+  cp->status = STATUS_READ_FAILED;
+
+  hEv = pfn_WSACreateEvent ();
+  rc = pfn_WSAEventSelect (SOCK_HANDLE (fd), hEv, FD_CONNECT);
+  if (rc != SOCKET_ERROR)
+    {
+      do {
+	rc = WaitForSingleObject (hEv, 500);
+	Sleep (5);
+      } while (rc == WAIT_TIMEOUT
+	       && cp->status != STATUS_READ_ERROR
+	       && cp->char_avail);
+      if (rc == WAIT_OBJECT_0)
+	{
+	  /* We've got an event, but it could be a successful
+	     connection, or it could be a failure.  Find out
+	     which one is it.  */
+	  WSANETWORKEVENTS events;
+
+	  pfn_WSAEnumNetworkEvents (SOCK_HANDLE (fd), hEv, &events);
+	  if ((events.lNetworkEvents & FD_CONNECT) != 0
+	      && events.iErrorCode[FD_CONNECT_BIT])
+	    {
+	      cp->status = STATUS_CONNECT_FAILED;
+	      cp->errcode = events.iErrorCode[FD_CONNECT_BIT];
+	    }
+	  else
+	    {
+	      cp->status = STATUS_READ_SUCCEEDED;
+	      cp->errcode = 0;
+	    }
+	}
+      pfn_WSAEventSelect (SOCK_HANDLE (fd), NULL, 0);
+    }
+  else
+    pfn_WSACloseEvent (hEv);
+
+  return cp->status;
+}
+
+int
 sys_read (int fd, char * buffer, unsigned int count)
 {
   int nchars;
@@ -8174,6 +8343,7 @@ sys_read (int fd, char * buffer, unsigned int count)
 	      ResetEvent (cp->char_avail);
 
 	    case STATUS_READ_ACKNOWLEDGED:
+	    case STATUS_CONNECT_FAILED:
 	      break;
 
 	    default:
@@ -8239,7 +8409,29 @@ sys_read (int fd, char * buffer, unsigned int count)
 	    {
 	      if (winsock_lib == NULL) emacs_abort ();
 
-	      /* do the equivalent of a non-blocking read */
+	      /* When a non-blocking 'connect' call fails,
+		 wait_reading_process_output detects this by calling
+		 'getpeername', and then attempts to obtain the connection
+		 error code by trying to read 1 byte from the socket.  If
+		 we try to serve that read by calling 'recv' below, the
+		 error we get is a generic WSAENOTCONN, not the actual
+		 connection error.  So instead, we use the actual error
+		 code stashed by '_sys_wait_connect' in cp->errcode.
+		 Alternatively, we could have used 'getsockopt', like on
+		 GNU/Linux, but: (a) I have no idea whether the winsock
+		 version could hang, as it does "on some systems" (see the
+		 comment in process.c); and (b) 'getsockopt' on Windows is
+		 documented to clear the socket error for the entire
+		 process, which I'm not sure is TRT; FIXME.  */
+	      if (current_status == STATUS_CONNECT_FAILED
+		  && (fd_info[fd].flags & FILE_CONNECT) != 0
+		  && cp->errcode != 0)
+		{
+		  pfn_WSASetLastError (cp->errcode);
+		  set_errno ();
+		  return -1;
+		}
+	      /* Do the equivalent of a non-blocking read.  */
 	      pfn_ioctlsocket (SOCK_HANDLE (fd), FIONREAD, &waiting);
 	      if (waiting == 0 && nchars == 0)
 	        {
@@ -8253,9 +8445,9 @@ sys_read (int fd, char * buffer, unsigned int count)
 		  int res = pfn_recv (SOCK_HANDLE (fd), buffer, count, 0);
 		  if (res == SOCKET_ERROR)
 		    {
-		      DebPrint (("sys_read.recv failed with error %d on socket %ld\n",
-				 pfn_WSAGetLastError (), SOCK_HANDLE (fd)));
 		      set_errno ();
+		      DebPrint (("sys_read.recv failed with error %d on socket %ld\n",
+				 errno, SOCK_HANDLE (fd)));
 		      return -1;
 		    }
 		  nchars += res;
@@ -9376,6 +9568,26 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
 
   childp2 = Fplist_put (childp2, QCsummary, build_string (summary));
   pset_childp (p, childp2);
+}
+
+/* For make-pipe-process */
+void
+register_aux_fd (int infd)
+{
+  child_process *cp;
+
+  cp = new_child ();
+  if (!cp)
+    error ("Could not create child process");
+  cp->fd = infd;
+  cp->status = STATUS_READ_ACKNOWLEDGED;
+
+  if (fd_info[ infd ].cp != NULL)
+    {
+      error ("fd_info[fd = %d] is already in use", infd);
+    }
+  fd_info[ infd ].cp = cp;
+  fd_info[ infd ].hnd = (HANDLE) _get_osfhandle (infd);
 }
 
 #ifdef HAVE_GNUTLS

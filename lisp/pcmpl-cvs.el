@@ -38,7 +38,7 @@
 ;; User Variables:
 
 (defcustom pcmpl-cvs-binary (or (executable-find "cvs") "cvs")
-  "The full path of the 'cvs' binary."
+  "The full path of the `cvs' binary."
   :type 'file
   :group 'pcmpl-cvs)
 
@@ -154,7 +154,7 @@
 (defun pcmpl-cvs-entries (&optional opers)
   "Return the Entries for the current directory.
 If OPERS is a list of characters, return entries for which that
-operation character applies, as displayed by 'cvs -n update'."
+operation character applies, as displayed by `cvs -n update'."
   (let* ((arg (pcomplete-arg))
 	 (dir (file-name-as-directory
 	       (or (file-name-directory arg) "")))
@@ -164,27 +164,28 @@ operation character applies, as displayed by 'cvs -n update'."
 	(with-temp-buffer
 	  (and dir (cd dir))
 	  (call-process pcmpl-cvs-binary nil t nil
-			"-q" "-n" "-f" "update"); "-l")
+			"-q" "-n" "-f" "update") ; "-l")
 	  (goto-char (point-min))
 	  (while (re-search-forward "^\\(.\\) \\(.+\\)$" nil t)
 	    (if (memq (string-to-char (match-string 1)) opers)
 		(setq entries (cons (match-string 2) entries)))))
-      (with-temp-buffer
-	(insert-file-contents (concat dir "CVS/Entries"))
-	(goto-char (point-min))
-	(while (not (eobp))
-	  ;; Normal file: /NAME   -> "" "NAME"
-	  ;; Directory  : D/NAME  -> "D" "NAME"
-	  (let* ((fields (split-string (buffer-substring
-					(line-beginning-position)
-					(line-end-position))
-				       "/"))
-		 (text (nth 1 fields)))
-	    (when text
-	      (if (string= (nth 0 fields) "D")
-		  (setq text (file-name-as-directory text)))
-	      (setq entries (cons text entries))))
-	  (forward-line))))
+      (when (file-exists-p (expand-file-name "CVS/Entries" dir))
+        (with-temp-buffer
+          (insert-file-contents (expand-file-name "CVS/Entries" dir))
+          (goto-char (point-min))
+          (while (not (eobp))
+            ;; Normal file: /NAME   -> "" "NAME"
+            ;; Directory  : D/NAME  -> "D" "NAME"
+            (let* ((fields (split-string (buffer-substring
+                                          (line-beginning-position)
+                                          (line-end-position))
+                                         "/"))
+                   (text (nth 1 fields)))
+              (when text
+                (if (string= (nth 0 fields) "D")
+                    (setq text (file-name-as-directory text)))
+                (setq entries (cons text entries))))
+            (forward-line)))))
     (setq pcomplete-stub nondir)
     (pcomplete-uniqify-list entries)))
 

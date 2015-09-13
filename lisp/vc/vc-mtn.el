@@ -179,15 +179,18 @@ switches."
 (defun vc-mtn-mode-line-string (file)
   "Return a string for `vc-mode-line' to put in the mode line for FILE."
   (let ((branch (vc-mtn-workfile-branch file)))
-    (dolist (rule vc-mtn-mode-line-rewrite)
-      (if (string-match (car rule) branch)
-	  (setq branch (replace-match (cdr rule) t nil branch))))
-    (format "Mtn%c%s"
-	    (pcase (vc-state file)
-	      ((or `up-to-date `needs-update) ?-)
-	      (`added ?@)
-	      (_ ?:))
-	    branch)))
+    (if branch
+        (progn
+          (dolist (rule vc-mtn-mode-line-rewrite)
+            (if (string-match (car rule) branch)
+                (setq branch (replace-match (cdr rule) t nil branch))))
+          (format "Mtn%c%s"
+                  (pcase (vc-state file)
+                    ((or `up-to-date `needs-update) ?-)
+                    (`added ?@)
+                    (_ ?:))
+                  branch))
+      "")))
 
 (defun vc-mtn-register (files &optional _comment)
   (vc-mtn-command nil 0 files "add"))
@@ -204,7 +207,10 @@ switches."
 					  comment))))
 
 (defun vc-mtn-find-revision (file rev buffer)
-  (vc-mtn-command buffer 0 file "cat" "-r" rev))
+  ;; null rev means latest revision
+  (if rev
+      (vc-mtn-command buffer 0 file "cat" "-r" rev)
+    (vc-mtn-command buffer 0 file "cat")))
 
 ;; (defun vc-mtn-checkout (file &optional rev)
 ;;   )
@@ -261,7 +267,7 @@ If LIMIT is non-nil, show no more than this many entries."
 	 (append (vc-switches 'mtn 'annotate)
 		 (if rev (list "-r" rev)))))
 
-(declare-function vc-annotate-convert-time "vc-annotate" (time))
+(declare-function vc-annotate-convert-time "vc-annotate" (&optional time))
 
 (defconst vc-mtn-annotate-full-re
   "^ *\\([0-9a-f]+\\)\\.* by [^ ]+ \\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\): ")

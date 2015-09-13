@@ -160,7 +160,7 @@ a simple pass through function could be used:
     (setq-local tildify-foreach-region-function
                 (lambda (cb beg end) (funcall cb beg end)))
 or better still:
-    (setq-local tildify-foreach-region-function 'funcall)
+    (setq-local tildify-foreach-region-function \\='funcall)
 See `tildify-foreach-ignore-environments' function for other ways to use the
 variable."
   :version "25.1"
@@ -291,8 +291,8 @@ BEG argument is ignored.
 This function is meant to be used to set `tildify-foreach-region-function'
 variable.  For example, for an XML file one might use:
   (setq-local tildify-foreach-region-function
-    (apply-partially 'tildify-foreach-ignore-environments
-                     '((\"<! *--\" . \"-- *>\") (\"<\" . \">\"))))"
+    (apply-partially \\='tildify-foreach-ignore-environments
+                     \\='((\"<! *--\" . \"-- *>\") (\"<\" . \">\"))))"
   (let ((beg-re (concat "\\(?:" (mapconcat 'car pairs "\\)\\|\\(?:") "\\)"))
         p end-re)
     (save-excursion
@@ -431,7 +431,7 @@ current `case-fold-search' setting."
 
 If
  * character before point is a space character,
- * character before that has “w” character syntax (i.e. it's a word
+ * character before that has \"w\" character syntax (i.e. it's a word
    constituent),
  * `tildify-space-pattern' matches when `looking-back' (no more than 10
    characters) from before the space character, and

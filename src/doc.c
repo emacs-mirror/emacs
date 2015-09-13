@@ -1,4 +1,4 @@
-/* Record indices of function doc strings stored in a file.
+/* Record indices of function doc strings stored in a file. -*- coding: utf-8 -*-
 
 Copyright (C) 1985-1986, 1993-1995, 1997-2015 Free Software Foundation,
 Inc.
@@ -32,6 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "character.h"
 #include "buffer.h"
+#include "disptab.h"
 #include "keyboard.h"
 #include "keymap.h"
 
@@ -406,10 +407,7 @@ string is passed through `substitute-command-keys'.  */)
       if (NILP (tem) && try_reload)
 	{
 	  /* The file is newer, we need to reset the pointers.  */
-	  struct gcpro gcpro1, gcpro2;
-	  GCPRO2 (function, raw);
 	  try_reload = reread_doc_file (Fcar_safe (doc));
-	  UNGCPRO;
 	  if (try_reload)
 	    {
 	      try_reload = 0;
@@ -451,10 +449,7 @@ aren't strings.  */)
       if (NILP (tem) && try_reload)
 	{
 	  /* The file is newer, we need to reset the pointers.  */
-	  struct gcpro gcpro1, gcpro2, gcpro3;
-	  GCPRO3 (symbol, prop, raw);
 	  try_reload = reread_doc_file (Fcar_safe (doc));
-	  UNGCPRO;
 	  if (try_reload)
 	    {
 	      try_reload = 0;
@@ -516,8 +511,13 @@ store_function_docstring (Lisp_Object obj, ptrdiff_t offset)
       if ((ASIZE (fun) & PSEUDOVECTOR_SIZE_MASK) > COMPILED_DOC_STRING)
 	ASET (fun, COMPILED_DOC_STRING, make_number (offset));
       else
-	message ("No docstring slot for %s",
-		 SYMBOLP (obj) ? SSDATA (SYMBOL_NAME (obj)) : "<anonymous>");
+	{
+	  AUTO_STRING (format, "No docstring slot for %s");
+	  CALLN (Fmessage, format,
+		 (SYMBOLP (obj)
+		  ? SYMBOL_NAME (obj)
+		  : build_string ("<anonymous>")));
+	}
     }
 }
 
@@ -678,6 +678,34 @@ the same file name is found in the `doc-directory'.  */)
   return unbind_to (count, Qnil);
 }
 
+/* Return true if text quoting style should default to quote `like this'.  */
+static bool
+default_to_grave_quoting_style (void)
+{
+  if (!text_quoting_flag)
+    return true;
+  if (! DISP_TABLE_P (Vstandard_display_table))
+    return false;
+  Lisp_Object dv = DISP_CHAR_VECTOR (XCHAR_TABLE (Vstandard_display_table),
+				     LEFT_SINGLE_QUOTATION_MARK);
+  return (VECTORP (dv) && ASIZE (dv) == 1
+	  && EQ (AREF (dv, 0), make_number ('`')));
+}
+
+/* Return the current effective text quoting style.  */
+enum text_quoting_style
+text_quoting_style (void)
+{
+  if (NILP (Vtext_quoting_style)
+      ? default_to_grave_quoting_style ()
+      : EQ (Vtext_quoting_style, Qgrave))
+    return GRAVE_QUOTING_STYLE;
+  else if (EQ (Vtext_quoting_style, Qstraight))
+    return STRAIGHT_QUOTING_STYLE;
+  else
+    return CURVE_QUOTING_STYLE;
+}
+
 DEFUN ("substitute-command-keys", Fsubstitute_command_keys,
        Ssubstitute_command_keys, 1, 1, 0,
        doc: /* Substitute key descriptions for command names in STRING.
@@ -693,25 +721,30 @@ summary).
 
 Each substring of the form \\=\\<MAPVAR> specifies the use of MAPVAR
 as the keymap for future \\=\\[COMMAND] substrings.
-\\=\\= quotes the following character and is discarded;
-thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ into the output.
+
+Each \\=‘ and \\=` is replaced by left quote, and each \\=’ and \\='
+is replaced by right quote.  Left and right quote characters are
+specified by `text-quoting-style'.
+
+\\=\\= quotes the following character and is discarded; thus,
+\\=\\=\\=\\= puts \\=\\= into the output, \\=\\=\\=\\[ puts \\=\\[ into the output, and
+\\=\\=\\=` puts \\=` into the output.
 
 Return the original STRING if no substitutions are made.
 Otherwise, return a new string.  */)
   (Lisp_Object string)
 {
   char *buf;
-  bool changed = 0;
+  bool changed = false;
   unsigned char *strp;
   char *bufp;
   ptrdiff_t idx;
   ptrdiff_t bsize;
   Lisp_Object tem;
   Lisp_Object keymap;
-  unsigned char *start;
+  unsigned char const *start;
   ptrdiff_t length, length_byte;
   Lisp_Object name;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   bool multibyte;
   ptrdiff_t nchars;
 
@@ -722,7 +755,8 @@ Otherwise, return a new string.  */)
   tem = Qnil;
   keymap = Qnil;
   name = Qnil;
-  GCPRO4 (string, tem, keymap, name);
+
+  enum text_quoting_style quoting_style = text_quoting_style ();
 
   multibyte = STRING_MULTIBYTE (string);
   nchars = 0;
@@ -734,6 +768,12 @@ Otherwise, return a new string.  */)
   keymap = Voverriding_local_map;
 
   bsize = SBYTES (string);
+
+  /* Add some room for expansion due to quote replacement.  */
+  enum { EXTRA_ROOM = 20 };
+  if (bsize <= STRING_BYTES_BOUND - EXTRA_ROOM)
+    bsize += EXTRA_ROOM;
+
   bufp = buf = xmalloc (bsize);
 
   strp = SDATA (string);
@@ -743,7 +783,7 @@ Otherwise, return a new string.  */)
 	{
 	  /* \= quotes the next character;
 	     thus, to put in \[ without its special meaning, use \=\[.  */
-	  changed = 1;
+	  changed = true;
 	  strp += 2;
 	  if (multibyte)
 	    {
@@ -766,7 +806,6 @@ Otherwise, return a new string.  */)
 	  ptrdiff_t start_idx;
 	  bool follow_remap = 1;
 
-	  changed = 1;
 	  strp += 2;		/* skip \[ */
 	  start = strp;
 	  start_idx = start - SDATA (string);
@@ -833,7 +872,6 @@ Otherwise, return a new string.  */)
 	  Lisp_Object earlier_maps;
 	  ptrdiff_t count = SPECPDL_INDEX ();
 
-	  changed = 1;
 	  strp += 2;		/* skip \{ or \< */
 	  start = strp;
 	  start_idx = start - SDATA (string);
@@ -876,11 +914,13 @@ Otherwise, return a new string.  */)
 	  if (NILP (tem))
 	    {
 	      name = Fsymbol_name (name);
-	      insert_string ("\nUses keymap `");
+	      AUTO_STRING (msg_prefix, "\nUses keymap `");
+	      insert1 (Fsubstitute_command_keys (msg_prefix));
 	      insert_from_string (name, 0, 0,
 				  SCHARS (name),
 				  SBYTES (name), 1);
-	      insert_string ("', which is not currently defined.\n");
+	      AUTO_STRING (msg_suffix, "', which is not currently defined.\n");
+	      insert1 (Fsubstitute_command_keys (msg_suffix));
 	      if (start[-1] == '<') keymap = Qnil;
 	    }
 	  else if (start[-1] == '<')
@@ -903,6 +943,7 @@ Otherwise, return a new string.  */)
 	  length = SCHARS (tem);
 	  length_byte = SBYTES (tem);
 	subst:
+	  changed = true;
 	  {
 	    ptrdiff_t offset = bufp - buf;
 	    if (STRING_BYTES_BOUND - length_byte < bsize)
@@ -916,19 +957,44 @@ Otherwise, return a new string.  */)
 	    strp = SDATA (string) + idx;
 	  }
 	}
-      else if (! multibyte)		/* just copy other chars */
+      else if ((strp[0] == '`' || strp[0] == '\'')
+	       && quoting_style == CURVE_QUOTING_STYLE)
+	{
+	  start = (unsigned char const *) (strp[0] == '`' ? uLSQM : uRSQM);
+	  length = 1;
+	  length_byte = sizeof uLSQM - 1;
+	  idx = strp - SDATA (string) + 1;
+	  goto subst;
+	}
+      else if (strp[0] == '`' && quoting_style == STRAIGHT_QUOTING_STYLE)
+	{
+	  *bufp++ = '\'';
+	  strp++;
+	  nchars++;
+	  changed = true;
+	}
+      else if (! multibyte)
 	*bufp++ = *strp++, nchars++;
       else
 	{
 	  int len;
-
-	  STRING_CHAR_AND_LENGTH (strp, len);
-	  if (len == 1)
-	    *bufp = *strp;
+	  int ch = STRING_CHAR_AND_LENGTH (strp, len);
+	  if ((ch == LEFT_SINGLE_QUOTATION_MARK
+	       || ch == RIGHT_SINGLE_QUOTATION_MARK)
+	      && quoting_style != CURVE_QUOTING_STYLE)
+	    {
+	      *bufp++ = ((ch == LEFT_SINGLE_QUOTATION_MARK
+			  && quoting_style == GRAVE_QUOTING_STYLE)
+			 ? '`' : '\'');
+	      strp += len;
+	      changed = true;
+	    }
 	  else
-	    memcpy (bufp, strp, len);
-	  strp += len;
-	  bufp += len;
+	    {
+	      do
+		*bufp++ = *strp++;
+	      while (--len != 0);
+	    }
 	  nchars++;
 	}
     }
@@ -938,13 +1004,15 @@ Otherwise, return a new string.  */)
   else
     tem = string;
   xfree (buf);
-  RETURN_UNGCPRO (tem);
+  return tem;
 }
 
 void
 syms_of_doc (void)
 {
   DEFSYM (Qfunction_documentation, "function-documentation");
+  DEFSYM (Qgrave, "grave");
+  DEFSYM (Qstraight, "straight");
 
   DEFVAR_LISP ("internal-doc-file-name", Vdoc_file_name,
 	       doc: /* Name of file containing documentation strings of built-in symbols.  */);
@@ -953,6 +1021,19 @@ syms_of_doc (void)
   DEFVAR_LISP ("build-files", Vbuild_files,
                doc: /* A list of files used to build this Emacs binary.  */);
   Vbuild_files = Qnil;
+
+  DEFVAR_LISP ("text-quoting-style", Vtext_quoting_style,
+               doc: /* Style to use for single quotes when generating text.
+`curve' means quote with curved single quotes \\=‘like this\\=’.
+`straight' means quote with straight apostrophes \\='like this\\='.
+`grave' means quote with grave accent and apostrophe \\=`like this\\='.
+The default value nil acts like `curve' if curved single quotes are
+displayable, and like `grave' otherwise.  */);
+  Vtext_quoting_style = Qnil;
+
+  DEFVAR_BOOL ("internal--text-quoting-flag", text_quoting_flag,
+	       doc: /* If nil, a nil `text-quoting-style' is treated as `grave'.  */);
+  /* Initialized by ‘main’.  */
 
   defsubr (&Sdocumentation);
   defsubr (&Sdocumentation_property);

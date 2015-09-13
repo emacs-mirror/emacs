@@ -174,7 +174,7 @@ If you wish to change directory tracking styles during a session, use the
 function `rlogin-directory-tracking-mode' rather than simply setting the
 variable."
   (interactive (list
-		(read-from-minibuffer (format
+		(read-from-minibuffer (format-message
                                        "Arguments for `%s' (hostname first): "
                                        (file-name-nondirectory rlogin-program))
 				      nil nil nil 'rlogin-history)
@@ -235,14 +235,14 @@ variable."
   "Do remote or local directory tracking, or disable entirely.
 
 If called with no prefix argument or a unspecified prefix argument (just
-``\\[universal-argument]'' with no number) do remote directory tracking via
+`\\[universal-argument]' with no number) do remote directory tracking via
 ange-ftp.  If called as a function, give it no argument.
 
 If called with a negative prefix argument, disable directory tracking
 entirely.
 
 If called with a positive, numeric prefix argument, e.g.
-``\\[universal-argument] 1 M-x rlogin-directory-tracking-mode\'',
+`\\[universal-argument] 1 M-x rlogin-directory-tracking-mode',
 then do directory tracking but assume the remote filesystem is the same as
 the local system.  This only works in general if the remote machine and the
 local one share the same directories (e.g. through NFS)."

@@ -166,21 +166,17 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
   struct re_pattern_buffer *bufp = NULL;
   bool needsep = 0;
   ptrdiff_t count = SPECPDL_INDEX ();
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
 #ifdef WINDOWSNT
   Lisp_Object w32_save = Qnil;
 #endif
 
   /* Don't let the compiler optimize away all copies of DIRECTORY,
-     which would break GC; see Bug#16986.  Although this is required
-     only in the common case where GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS,
-     it shouldn't break anything in the other cases.  */
+     which would break GC; see Bug#16986.  */
   Lisp_Object volatile directory_volatile = directory;
 
   /* Because of file name handlers, these functions might call
      Ffuncall, and cause a GC.  */
   list = encoded_directory = dirfilename = Qnil;
-  GCPRO5 (match, directory, list, dirfilename, encoded_directory);
   dirfilename = Fdirectory_file_name (directory);
 
   if (!NILP (match))
@@ -254,8 +250,6 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
       ptrdiff_t len = dirent_namelen (dp);
       Lisp_Object name = make_unibyte_string (dp->d_name, len);
       Lisp_Object finalname = name;
-      struct gcpro gcpro1, gcpro2;
-      GCPRO2 (finalname, name);
 
       /* Note: DECODE_FILE can GC; it should protect its argument,
 	 though.  */
@@ -314,8 +308,6 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 	  else
 	    list = Fcons (finalname, list);
 	}
-
-      UNGCPRO;
     }
 
   block_input ();
@@ -334,7 +326,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 		  attrs ? Qfile_attributes_lessp : Qstring_lessp);
 
   (void) directory_volatile;
-  RETURN_UNGCPRO (list);
+  return list;
 }
 
 
@@ -472,7 +464,6 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
      anything.  */
   bool includeall = 1;
   ptrdiff_t count = SPECPDL_INDEX ();
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
 
   elt = Qnil;
 
@@ -480,7 +471,6 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 
   bestmatch = Qnil;
   encoded_file = encoded_dir = Qnil;
-  GCPRO5 (file, dirname, bestmatch, encoded_file, encoded_dir);
   specbind (Qdefault_directory, dirname);
 
   /* Do completion on the encoded file name
@@ -640,18 +630,8 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 	name = Ffile_name_as_directory (name);
 
       /* Test the predicate, if any.  */
-      if (!NILP (predicate))
-	{
-	  Lisp_Object val;
-	  struct gcpro gcpro1;
-
-	  GCPRO1 (name);
-	  val = call1 (predicate, name);
-	  UNGCPRO;
-
-	  if (NILP (val))
-	    continue;
-	}
+      if (!NILP (predicate) && NILP (call1 (predicate, name)))
+	continue;
 
       /* Suitably record this match.  */
 
@@ -731,7 +711,6 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 	}
     }
 
-  UNGCPRO;
   /* This closes the directory.  */
   bestmatch = unbind_to (count, bestmatch);
 
@@ -837,7 +816,7 @@ DEFUN ("file-attributes", Ffile_attributes, Sfile_attributes, 1, 2, 0,
 Value is nil if specified file cannot be opened.
 
 ID-FORMAT specifies the preferred format of attributes uid and gid (see
-below) - valid values are 'string and 'integer.  The latter is the
+below) - valid values are `string' and `integer'.  The latter is the
 default, but we plan to change that, so you should specify a non-nil value
 for ID-FORMAT if you use the returned uid or gid.
 

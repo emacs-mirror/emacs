@@ -10,7 +10,7 @@
 @cindex switches (command line)
 @cindex startup (command line arguments)
 @cindex invocation (command line arguments)
-@c FIXME: Document `--smid'?  --xfq
+@c FIXME: Document '--smid'?  --xfq
 
   Emacs supports command line arguments to request various actions
 when invoking Emacs.  These are for compatibility with other editors
@@ -442,22 +442,31 @@ special meanings in Emacs.  Most of these variables are also used by
 some other programs.  Emacs does not require any of these environment
 variables to be set, but it uses their values if they are set.
 
-@vtable @env
+@c This used to be @vtable, but that enters the variables alone into
+@c the Variable Index, which in some cases, like ``HOME'', might be
+@c confused with keys by that name, and other cases, like ``NAME'',
+@c might be confused with general-purpose phrases.
+@table @env
 @item CDPATH
+@vindex CDPATH, environment variable
 Used by the @code{cd} command to search for the directory you specify,
 when you specify a relative directory name.
 @item DBUS_SESSION_BUS_ADDRESS
+@vindex DBUS_SESSION_BUS_ADDRESS, environment variable
 Used by D-Bus when Emacs is compiled with it.  Usually, there is no
 need to change it.  Setting it to a dummy address, like
 @samp{unix:path=/dev/null}, suppresses connections to the D-Bus session
 bus as well as autolaunching the D-Bus session bus if not running yet.
 @item EMACSDATA
+@vindex EMACSDATA, environment variable
 Directory for the architecture-independent files that come with Emacs.
 This is used to initialize the variable @code{data-directory}.
 @item EMACSDOC
+#vindex EMACSDOC, environment variable
 Directory for the documentation string file, which is used to
 initialize the Lisp variable @code{doc-directory}.
 @item EMACSLOADPATH
+#vindex EMACSLOADPATH, environment variable
 A colon-separated list of directories@footnote{Here and below,
 whenever we say ``colon-separated list of directories'', it pertains
 to Unix and GNU/Linux systems.  On MS-DOS and MS-Windows, the
@@ -471,23 +480,28 @@ the default @code{load-path}.  To specify an empty element in the
 middle of the list, use 2 colons in a row, as in
 @samp{EMACSLOADPATH="/tmp::/foo"}.
 @item EMACSPATH
+@vindex EMACSPATH, environment variable
 A colon-separated list of directories to search for executable files.
 If set, Emacs uses this in addition to @env{PATH} (see below) when
 initializing the variable @code{exec-path} (@pxref{Shell}).
 @item EMAIL
+@vindex EMAIL, environment variable
 @vindex user-mail-address@r{, initialization}
 Your email address; used to initialize the Lisp variable
 @code{user-mail-address}, which the Emacs mail interface puts into the
 @samp{From} header of outgoing messages (@pxref{Mail Headers}).
 @item ESHELL
+@vindex ESHELL, environment variable
 Used for shell-mode to override the @env{SHELL} environment variable
 (@pxref{Interactive Shell}).
 @item HISTFILE
+@vindex HISTFILE, environment variable
 The name of the file that shell commands are saved in between logins.
 This variable defaults to @file{~/.bash_history} if you use Bash, to
 @file{~/.sh_history} if you use ksh, and to @file{~/.history}
 otherwise.
 @item HOME
+@vindex HOME, environment variable
 The location of your files in the directory tree; used for
 expansion of file names starting with a tilde (@file{~}).  On MS-DOS,
 it defaults to the directory from which Emacs was started, with
@@ -499,6 +513,7 @@ where @var{username} is your user name), though for backwards
 compatibility @file{C:/} will be used instead if a @file{.emacs} file
 is found there.
 @item HOSTNAME
+@vindex HOSTNAME, environment variable
 The name of the machine that Emacs is running on.
 @c complete.el is obsolete since 24.1.
 @ignore
@@ -507,15 +522,24 @@ A colon-separated list of directories.  Used by the @code{complete} package
 to search for files.
 @end ignore
 @item INFOPATH
+@vindex INFOPATH, environment variable
 A colon-separated list of directories in which to search for Info files.
 @item LC_ALL
+@vindex LC_ALL, environment variable
 @itemx LC_COLLATE
+@vindex LC_COLLATE, environment variable
 @itemx LC_CTYPE
+@vindex LC_CTYPE, environment variable
 @itemx LC_MESSAGES
+@vindex LC_MESSAGES, environment variable
 @itemx LC_MONETARY
+@vindex LC_MONETARY, environment variable
 @itemx LC_NUMERIC
+@vindex LC_NUMERIC, environment variable
 @itemx LC_TIME
+@vindex LC_TIME, environment variable
 @itemx LANG
+@vindex LANG, environment variable
 The user's preferred locale.  The locale has six categories, specified
 by the environment variables @env{LC_COLLATE} for sorting,
 @env{LC_CTYPE} for character encoding, @env{LC_MESSAGES} for system
@@ -537,73 +561,92 @@ matched against entries in @code{locale-language-names},
 @code{locale-preferred-coding-systems}, to select a default language
 environment and coding system.  @xref{Language Environments}.
 @item LOGNAME
+@vindex LOGNAME, environment variable
 The user's login name.  See also @env{USER}.
 @item MAIL
+@vindex MAIL, environment variable
 The name of your system mail inbox.
 @ifnottex
 @item MH
+@vindex MH, environment variable
 Name of setup file for the mh system.  @xref{Top,,MH-E,mh-e, The Emacs
 Interface to MH}.
 @end ifnottex
 @item NAME
+@vindex NAME, environment variable
 Your real-world name.  This is used to initialize the variable
 @code{user-full-name} (@pxref{Mail Headers}).
 @item NNTPSERVER
+@vindex NNTPSERVER, environment variable
 The name of the news server.  Used by the mh and Gnus packages.
 @item ORGANIZATION
+@vindex ORGANIZATION, environment variable
 The name of the organization to which you belong.  Used for setting the
-`Organization:' header in your posts from the Gnus package.
+``Organization:'' header in your posts from the Gnus package.
 @item PATH
+@vindex PATH, environment variable
 A colon-separated list of directories containing executable files.
 This is used to initialize the variable @code{exec-path}
 (@pxref{Shell}).
 @item PWD
+@vindex PWD, environment variable
 If set, this should be the default directory when Emacs was started.
 @item REPLYTO
+@vindex REPLYTO, environment variable
 If set, this specifies an initial value for the variable
 @code{mail-default-reply-to} (@pxref{Mail Headers}).
 @item SAVEDIR
+@vindex SAVEDIR, environment variable
 The name of a directory in which news articles are saved by default.
 Used by the Gnus package.
 @item SHELL
+@vindex SHELL, environment variable
 The name of an interpreter used to parse and execute programs run from
 inside Emacs.
 @item SMTPSERVER
+@vindex SMTPSERVER, environment variable
 The name of the outgoing mail server.  This is used to initialize the
 variable @code{smtpmail-smtp-server} (@pxref{Mail Sending}).
 @cindex background mode, on @command{xterm}
 @item TERM
+@vindex TERM, environment variable
 The type of the terminal that Emacs is using.  This variable must be
 set unless Emacs is run in batch mode.  On MS-DOS, it defaults to
 @samp{internal}, which specifies a built-in terminal emulation that
 handles the machine's own display.
 @item TERMCAP
+@vindex TERMCAP, environment variable
 The name of the termcap library file describing how to program the
 terminal specified by @env{TERM}.  This defaults to
 @file{/etc/termcap}.
 @item TMPDIR
+@vindex TMPDIR, environment variable
 @itemx TMP
+@vindex TMP, environment variable
 @itemx TEMP
+@vindex TEMP, environment variable
 These environment variables are used to initialize the variable
 @code{temporary-file-directory}, which specifies a directory in which
 to put temporary files (@pxref{Backup}).  Emacs tries to use
 @env{TMPDIR} first.  If that is unset, Emacs normally falls back on
 @file{/tmp}, but on MS-Windows and MS-DOS it instead falls back on
 @env{TMP}, then @env{TEMP}, and finally @file{c:/temp}.
-
 @item TZ
+@vindex TZ, environment variable
 This specifies the current time zone and possibly also daylight
 saving time information.  On MS-DOS, if @env{TZ} is not set in the
 environment when Emacs starts, Emacs defines a default value as
 appropriate for the country code returned by DOS@.  On MS-Windows, Emacs
 does not use @env{TZ} at all.
 @item USER
+@vindex USER, environment variable
 The user's login name.  See also @env{LOGNAME}.  On MS-DOS, this
 defaults to @samp{root}.
 @item VERSION_CONTROL
+@vindex VERSION_CONTROL, environment variable
 Used to initialize the @code{version-control} variable (@pxref{Backup
 Names}).
-@end vtable
+@end table
 
 @node Misc Variables
 @appendixsubsec Miscellaneous Variables

@@ -228,11 +228,9 @@ static Lisp_Object
 read_file_name (Lisp_Object default_filename, Lisp_Object mustmatch,
 		Lisp_Object initial, Lisp_Object predicate)
 {
-  struct gcpro gcpro1;
-  GCPRO1 (default_filename);
-  RETURN_UNGCPRO (CALLN (Ffuncall, intern ("read-file-name"),
-			 callint_message, Qnil, default_filename,
-			 mustmatch, initial, predicate));
+  return CALLN (Ffuncall, intern ("read-file-name"),
+		callint_message, Qnil, default_filename,
+		mustmatch, initial, predicate);
 }
 
 /* BEWARE: Calling this directly from C would defeat the purpose!  */
@@ -298,7 +296,6 @@ invoke it.  If KEYS is omitted or nil, the return value of
   ptrdiff_t i, nargs;
   ptrdiff_t mark;
   bool arg_from_tty = 0;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   ptrdiff_t key_count;
   bool record_then_fail = 0;
 
@@ -340,9 +337,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
   /* Set SPECS to the interactive form, or barf if not interactive.  */
   {
     Lisp_Object form;
-    GCPRO2 (function, prefix_arg);
     form = Finteractive_form (function);
-    UNGCPRO;
     if (CONSP (form))
       specs = filter_specs = Fcar (XCDR (form));
     else
@@ -357,11 +352,9 @@ invoke it.  If KEYS is omitted or nil, the return value of
       uintmax_t events = num_input_events;
       input = specs;
       /* Compute the arg values using the user's expression.  */
-      GCPRO2 (input, filter_specs);
       specs = Feval (specs,
  		     CONSP (funval) && EQ (Qclosure, XCAR (funval))
 		     ? CAR_SAFE (XCDR (funval)) : Qnil);
-      UNGCPRO;
       if (events != num_input_events || !NILP (record_flag))
 	{
 	  /* We should record this command on the command history.  */
@@ -500,10 +493,6 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
   memclear (args, nargs * (2 * word_size + 1));
 
-  GCPRO5 (prefix_arg, function, *args, *visargs, up_event);
-  gcpro3.nvars = nargs;
-  gcpro4.nvars = nargs;
-
   if (!NILP (enable))
     specbind (Qenable_recursive_minibuffers, Qt);
 
@@ -512,7 +501,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
     {
       visargs[1] = make_string (tem + 1, strcspn (tem + 1, "\n"));
       if (strchr (SSDATA (visargs[1]), '%'))
-	callint_message = Fformat (i - 1, visargs + 1);
+	callint_message = Fformat_message (i - 1, visargs + 1);
       else
 	callint_message = visargs[1];
 
@@ -531,13 +520,13 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  args[i] = Fcurrent_buffer ();
 	  if (EQ (selected_window, minibuf_window))
 	    args[i] = Fother_buffer (args[i], Qnil, Qnil);
-	  args[i] = Fread_buffer (callint_message, args[i], Qt);
+	  args[i] = Fread_buffer (callint_message, args[i], Qt, Qnil);
 	  break;
 
 	case 'B':		/* Name of buffer, possibly nonexistent.  */
 	  args[i] = Fread_buffer (callint_message,
 				  Fother_buffer (Fcurrent_buffer (), Qnil, Qnil),
-				  Qnil);
+				  Qnil, Qnil);
 	  break;
 
         case 'c':		/* Character.  */
@@ -847,7 +836,6 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
   {
     Lisp_Object val = Ffuncall (nargs, args);
-    UNGCPRO;
     val = unbind_to (speccount, val);
     SAFE_FREE ();
     return val;
@@ -904,7 +892,6 @@ syms_of_callint (void)
   DEFSYM (Qhandle_shift_selection, "handle-shift-selection");
   DEFSYM (Qread_number, "read-number");
   DEFSYM (Qfuncall_interactively, "funcall-interactively");
-  DEFSYM (Qcommand_debug_status, "command-debug-status");
   DEFSYM (Qenable_recursive_minibuffers, "enable-recursive-minibuffers");
   DEFSYM (Qmouse_leave_buffer_hook, "mouse-leave-buffer-hook");
 

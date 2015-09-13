@@ -5,7 +5,7 @@
 ;; Author: Dave Love <fx@gnu.org>
 ;; Maintainer: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: languages
-;; Version: 1.3
+;; Version: 1.4
 
 ;; This file is part of GNU Emacs.
 
@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;; Provides support for editing GNU Cfengine files, including
+;; Provides support for editing GNU CFEngine files, including
 ;; font-locking, Imenu and indentation, but with no special keybindings.
 
 ;; By default, CFEngine 3.x syntax is used.
@@ -46,6 +46,14 @@
 
 ;; (add-hook 'cfengine3-mode-hook 'eldoc-mode)
 
+;; You may also find the command `cfengine3-reformat-json-string'
+;; useful, just bind it to a key you prefer. It will take the current
+;; string and reformat it as JSON. So if you're editing JSON inside
+;; the policy, it's a quick way to make it more legible without
+;; manually reindenting it.  For instance:
+
+;; (global-set-key [(control f4)] 'cfengine3-reformat-json-string)
+
 ;; This is not the same as the mode written by Rolf Ebert
 ;; <ebert@waporo.muc.de>, distributed with cfengine-2.0.5.  It does
 ;; better fontification and indentation, inter alia.
@@ -53,6 +61,7 @@
 ;;; Code:
 
 (autoload 'json-read "json")
+(autoload 'json-pretty-print "json")
 
 (defgroup cfengine ()
   "Editing CFEngine files."
@@ -80,7 +89,7 @@ will use a fallback syntax definition."
   :group 'cfengine
   :type '(choice file (const nil)))
 
-(defcustom cfengine-parameters-indent '(promise pname 0)
+(defcustom cfengine-parameters-indent '(promise pname 2)
   "Indentation of CFEngine3 promise parameters (hanging indent).
 
 For example, say you have this code:
@@ -101,15 +110,15 @@ You can also choose to indent the start of the word
 
 Finally, you can choose the amount of the indent.
 
-The default is to anchor at promise, indent parameter name, and offset 0:
+The default is to anchor at promise, indent parameter name, and offset 2:
 
 bundle agent rcfiles
 {
   files:
     any::
       \"/tmp/netrc\"
-      comment => \"my netrc\",
-      perms => mog(\"600\", \"tzz\", \"tzz\");
+        comment => \"my netrc\",
+        perms => mog(\"600\", \"tzz\", \"tzz\");
 }
 
 Here we anchor at beginning of line, indent arrow, and offset 10:
@@ -148,7 +157,7 @@ bundle agent rcfiles
   "Whether `cfengine-mode' should print debugging info.")
 
 (defvar cfengine-mode-syntax-cache nil
-  "Cache for `cfengine-mode' syntax trees obtained from 'cf-promises -s json'.")
+  "Cache for `cfengine-mode' syntax trees obtained from `cf-promises -s json'.")
 
 (defconst cfengine3-fallback-syntax
   '((functions
@@ -823,7 +832,9 @@ This includes those for cfservd as well as cfagent.")
                                             )
     "Regexp matching full defun declaration (excluding argument list).")
 
-  (defconst cfengine3-class-selector-regex "\\([[:alnum:]_().&|!:]+\\)::")
+  (defconst cfengine3-macro-regex "\\(@[a-zA-Z].+\\)")
+
+  (defconst cfengine3-class-selector-regex "\\([\"']?[[:alnum:]_().$&|!:]+[\"']?\\)::")
 
   (defconst cfengine3-category-regex "\\([[:alnum:]_]+\\):")
 
@@ -850,6 +861,14 @@ This includes those for cfservd as well as cfagent.")
 
 (defvar cfengine3-font-lock-keywords
   `(
+    ;; Macros
+    (,(concat "^" cfengine3-macro-regex)
+     1 font-lock-error-face)
+
+    ;; invalid macros
+    (,(concat "^[ \t]*" cfengine3-macro-regex)
+     1 font-lock-warning-face)
+
     ;; Defuns.  This happens early so they don't get caught by looser
     ;; patterns.
     (,(concat "\\_<" cfengine3-defuns-regex "\\_>"
@@ -1016,7 +1035,7 @@ Treats body/bundle blocks as defuns."
   t)
 
 (defun cfengine3-indent-line ()
-  "Indent a line in Cfengine 3 mode.
+  "Indent a line in CFEngine 3 mode.
 Intended as the value of `indent-line-function'."
   (let ((pos (- (point-max) (point)))
         parse)
@@ -1028,6 +1047,10 @@ Intended as the value of `indent-line-function'."
         (message "%S" parse))
 
       (cond
+       ;; Macros start at 0.  But make sure we're not inside a string.
+       ((and (not (nth 3 parse))
+             (looking-at (concat cfengine3-macro-regex)))
+        (indent-line-to 0))
        ;; Body/bundle blocks start at 0.
        ((looking-at (concat cfengine3-defuns-regex "\\_>"))
         (indent-line-to 0))
@@ -1102,6 +1125,19 @@ Intended as the value of `indent-line-function'."
     ;; position after the indentation.  Else stay at same point in text.
     (if (> (- (point-max) pos) (point))
         (goto-char (- (point-max) pos)))))
+
+(defun cfengine3-reformat-json-string ()
+  "Reformat the current string as JSON using `json-pretty-print'."
+  (interactive)
+  (let ((ppss (syntax-ppss)))
+    (when (nth 3 ppss)                  ;inside a string
+      (save-excursion
+        (goto-char (nth 8 ppss))
+        (forward-char 1)
+        (let ((start (point)))
+          (forward-sexp 1)
+          (json-pretty-print start
+                             (point)))))))
 
 ;; CFEngine 3.x grammar
 
@@ -1199,18 +1235,22 @@ Intended as the value of `indent-line-function'."
               "???")
             (propertize f 'face 'font-lock-function-name-face)
             (mapconcat (lambda (p)
-                         (let ((type (cdr (assq 'type p)))
+                         (let* ((type (cdr (assq 'type p)))
+                                (description (cdr (assq 'description p)))
+                                (desc-string (if (stringp description)
+                                                 (concat " /" description "/")
+                                               ""))
                                (range (cdr (assq 'range p))))
                            (cond
                             ((not (stringp type)) "???type???")
                             ((not (stringp range)) "???range???")
                             ;; options are lists of possible keywords
                             ((equal type "option")
-                             (propertize (concat "[" range "]")
+                             (propertize (concat "[" range "]" desc-string)
                                          'face
                                          'font-lock-keyword-face))
                             ;; anything else is a type name as a variable
-                            (t (propertize type
+                            (t (propertize (concat type desc-string)
                                            'face
                                            'font-lock-variable-name-face)))))
                        plist
@@ -1350,6 +1390,10 @@ to the action header."
                  (when buffer-file-name
                    (shell-quote-argument buffer-file-name)))))
 
+  ;; For emacs < 25.1 where `eldoc-documentation-function' defaults to
+  ;; nil.
+  (or eldoc-documentation-function
+      (setq-local eldoc-documentation-function #'ignore))
   (add-function :before-until (local 'eldoc-documentation-function)
                 #'cfengine3-documentation-function)
 

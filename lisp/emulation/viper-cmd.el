@@ -1751,8 +1751,8 @@ invokes the command before that, etc."
 
     (setq this-command 'viper-display-current-destructive-command)
 
-    (message " `.' runs  %s%s"
-	     (concat "`" (viper-array-to-string keys) "'")
+    (message " `.' runs  `%s'%s"
+	     (viper-array-to-string keys)
 	     (viper-abbreviate-string
 	      (if (featurep 'xemacs)
 		  (replace-in-string ; xemacs
@@ -1763,7 +1763,8 @@ invokes the command before that, etc."
 		text ; emacs
 		)
 	      max-text-len
-	      "  inserting  `" "'" "    ......."))
+	      (format-message "  inserting  `") (format-message "'")
+	      "    ......."))
     ))
 
 
@@ -3447,7 +3448,7 @@ controlled by the sign of prefix numeric value."
   (interactive)
   (setq viper-parse-sexp-ignore-comments
 	(not viper-parse-sexp-ignore-comments))
-  (princ (format
+  (princ (format-message
 	  "From now on, `%%' will %signore parentheses inside comment fields"
 	  (if viper-parse-sexp-ignore-comments "" "NOT "))))
 
@@ -3639,24 +3640,26 @@ the Emacs binding of `/'."
   (let (msg)
     (cond ((or (eq arg 1)
 	       (and (null arg)
-		    (y-or-n-p (format "Search style: '%s'.  Want '%s'? "
-				      (if viper-case-fold-search
-					  "case-insensitive" "case-sensitive")
-				      (if viper-case-fold-search
-					  "case-sensitive"
-					"case-insensitive")))))
+		    (y-or-n-p (format-message
+                               "Search style: `%s'.  Want `%s'? "
+                               (if viper-case-fold-search
+                                   "case-insensitive" "case-sensitive")
+                               (if viper-case-fold-search
+                                   "case-sensitive"
+                                 "case-insensitive")))))
 	   (setq viper-case-fold-search (null viper-case-fold-search))
 	   (if viper-case-fold-search
 	       (setq msg "Search becomes case-insensitive")
 	     (setq msg "Search becomes case-sensitive")))
 	  ((or (eq arg 2)
 	       (and (null arg)
-		    (y-or-n-p (format "Search style: '%s'.  Want '%s'? "
-				      (if viper-re-search
-					  "regexp-search" "vanilla-search")
-				      (if viper-re-search
-					  "vanilla-search"
-					"regexp-search")))))
+		    (y-or-n-p (format-message
+                               "Search style: `%s'.  Want `%s'? "
+                               (if viper-re-search
+                                   "regexp-search" "vanilla-search")
+                               (if viper-re-search
+                                   "vanilla-search"
+                                 "regexp-search")))))
 	   (setq viper-re-search (null viper-re-search))
 	   (if viper-re-search
 	       (setq msg "Search becomes regexp-style")
@@ -3986,7 +3989,7 @@ Null string will repeat previous search."
     (if (null buffer) (error "`%s': No such buffer" buffer-name))
     (if (or (not (buffer-modified-p buffer))
 	    (y-or-n-p
-	     (format
+	     (format-message
 	      "Buffer `%s' is modified, are you sure you want to kill it? "
 	      buffer-name)))
 	(kill-buffer buffer)
@@ -4339,7 +4342,7 @@ and regexp replace."
 	  (query-replace-regexp
 	   str
 	   (viper-read-string-with-history
-	    (format "Query replace regexp `%s' with: " str)
+	    (format-message "Query replace regexp `%s' with: " str)
 	    nil  ; no initial
 	    'viper-replace1-history
 	    (car viper-replace1-history) ; default
@@ -4347,7 +4350,7 @@ and regexp replace."
 	(query-replace
 	 str
 	 (viper-read-string-with-history
-	  (format "Query replace `%s' with: " str)
+	  (format-message "Query replace `%s' with: " str)
 	  nil  ; no initial
 	  'viper-replace1-history
 	  (car viper-replace1-history) ; default
@@ -4400,7 +4403,7 @@ and regexp replace."
 ;; etc.
 (defun viper-cycle-through-mark-ring ()
   "Visit previous locations on the mark ring.
-One can use `` and '' to temporarily jump 1 step back."
+One can use \\=`\\=` and \\='\\=' to temporarily jump 1 step back."
   (let* ((sv-pt (point)))
        ;; if repeated `m,' command, pop the previously saved mark.
        ;; Prev saved mark is actually prev saved point.  It is used if the
@@ -4533,7 +4536,7 @@ One can use `` and '' to temporarily jump 1 step back."
   (interactive)
   (if viper-cted
       (let ((p (point)) (c (current-column)) bol (indent t))
-	(if (looking-back "[0^]")
+	(if (looking-back "[0^]" (1- (point)))
 	    (progn
 	      (if (eq ?^ (preceding-char))
 		  (setq viper-preserve-indent t))
@@ -4545,7 +4548,7 @@ One can use `` and '' to temporarily jump 1 step back."
 	(delete-region (point) p)
 	(if indent
 	    (indent-to (- c viper-shift-width)))
-	(if (or (bolp) (looking-back "[^ \t]"))
+	(if (or (bolp) (looking-back "[^ \t]" (1- (point))))
 	    (setq viper-cted nil)))))
 
 ;; do smart indent
@@ -4636,12 +4639,12 @@ One can use `` and '' to temporarily jump 1 step back."
 					  (substring text 0 (- pos s))
 					  reg (substring text (- pos s)))))
 		     (princ
-		      (format
+		      (format-message
 		       "Textmarker `%c' is in buffer `%s' at line %d.\n"
 				     reg (buffer-name buf) line-no))
 		     (princ (format "Here is some text around %c:\n\n %s"
 				     reg text)))
-		 (princ (format viper-EmptyTextmarker reg))))
+		 (princ (format-message viper-EmptyTextmarker reg))))
 	     ))
 	  (t (error viper-InvalidTextmarker reg)))))
 
@@ -4782,10 +4785,10 @@ sensitive for VI-style look-and-feel."
 	  (setq repeated t))
 	(setq dont-change-unless t
 	      level-changed t)
-	(insert "
+	(insert (substitute-command-keys "
 Please specify your level of familiarity with the venomous VI PERil
 \(and the VI Plan for Emacs Rescue).
-You can change it at any time by typing `M-x viper-set-expert-level RET'
+You can change it at any time by typing `\\[viper-set-expert-level]'
 
  1 -- BEGINNER: Almost all Emacs features are suppressed.
        Feels almost like straight Vi.  File name completion and
@@ -4803,7 +4806,7 @@ You can change it at any time by typing `M-x viper-set-expert-level RET'
        viper-electric-mode, viper-want-ctl-h-help, viper-want-emacs-keys-in-vi,
        and viper-want-emacs-keys-in-insert.  Adjust these to your taste.
 
-Please, specify your level now: ")
+Please, specify your level now: "))
 
 	(setq viper-expert-level (- (viper-read-char-exclusive) ?0))
 	) ; end while

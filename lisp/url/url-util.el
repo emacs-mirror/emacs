@@ -285,7 +285,7 @@ Will not do anything if `url-show-status' is nil."
   "Build a query-string.
 
 Given a QUERY in the form:
-'((key1 val1)
+ ((key1 val1)
   (key2 val2)
   (key3 val1 val2)
   (key4)

@@ -78,13 +78,19 @@
 
 * Further information
 
-  The FAQ for the MS Windows port of Emacs is distributed with Emacs
-  (info manual "efaq-w32"), and also available at
+  The Emacs User manual describes Windows-specific issues in the
+  appendix named "Emacs and Microsoft Windows/MS-DOS".  You can read
+  it in Emacs by typing
 
-        http://www.gnu.org/software/emacs/manual/efaq-w32.html
+        C-h r g Microsoft Windows RET
 
-  There is also a mailing list for discussing issues related to this
-  port of Emacs.  For information about the list, see this Web page:
+  This appendix is also available (as part of the entire manual) at
+
+        http://www.gnu.org/software/emacs/manual/html_mono/emacs.html#Microsoft-Windows
+
+  In addition to the manual, there is a mailing list for discussing
+  issues related to the Windows port of Emacs.  For information about
+  the list, see this Web page:
 
 	http://mail.gnu.org/mailman/listinfo/help-emacs-windows
 

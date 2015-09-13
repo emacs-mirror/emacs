@@ -122,9 +122,9 @@ cookies  -- never accept HTTP cookies
 
 Samples:
 
- (setq url-privacy-level 'high)
- (setq url-privacy-level '(email lastloc))    ;; equivalent to 'high
- (setq url-privacy-level '(os))
+ (setq url-privacy-level \\='high)
+ (setq url-privacy-level \\='(email lastloc))    ;; equivalent to \\='high
+ (setq url-privacy-level \\='(os))
 
 ::NOTE::
 This variable controls several other variables and is _NOT_ automatically

@@ -83,12 +83,12 @@ the second with them pointing to the XEmacs manuals.
 
 @setfilename  ../../info/ccmode.info
 @settitle     CC Mode Manual
-@documentencoding UTF-8
+@include docstyle.texi
 @footnotestyle end
 
 @c The following four macros generate the filenames and titles of the
 @c main (X)Emacs manual and the Elisp/Lispref manual.  Leave the
-@c Texinfo variable `XEMACS' unset to generate a GNU Emacs version, set it
+@c Texinfo variable 'XEMACS' unset to generate a GNU Emacs version, set it
 @c to generate an XEmacs version, e.g., with
 @c "makeinfo -DXEMACS cc-mode.texi".
 @ifset XEMACS
@@ -1038,7 +1038,7 @@ Movement}.  They might be removed from a future release of @ccmode{}.
 Since there's a lot of normal text in comments and string literals,
 @ccmode{} provides features to edit these like in text mode.  The goal
 is to do it seamlessly, i.e., you can use auto fill mode, sentence and
-paragraph movement, paragraph filling, adaptive filling etc. wherever
+paragraph movement, paragraph filling, adaptive filling etc.@: wherever
 there's a piece of normal text without having to think much about it.
 @ccmode{} keeps the indentation, fixes suitable comment line prefixes,
 and so on.
@@ -1156,7 +1156,7 @@ When this is enabled (which it normally is), indentation commands such
 as @kbd{C-j} indent lines of code according to their syntactic
 structure.  Otherwise, a line is simply indented to the same level as
 the previous one and @kbd{@key{TAB}} adjusts the indentation in steps
-of `c-basic-offset'.
+of @code{c-basic-offset}.
 @end table
 
 Full details on how these minor modes work are at @ref{Electric Keys},
@@ -2045,7 +2045,7 @@ conflict).
 The value may also be an association list to specify different comment
 styles for different languages.  The symbol for the major mode is then
 looked up in the alist, and the value of that element is interpreted as
-above if found.  If it isn't found then the symbol `other' is looked up
+above if found.  If it isn't found then the symbol @code{other} is looked up
 and its value is used instead.
 
 The default value for @code{c-doc-comment-style} is
@@ -3299,7 +3299,7 @@ only the symbol @code{after}, then the brace hangs on the right side
 of the line, as in:
 
 @example
-// here, open braces always `hang'
+// here, open braces always 'hang'
 void spam( int i ) @{
     if( i == 7 ) @{
         dosomething(i);
@@ -3992,7 +3992,7 @@ Hitting @kbd{C-c C-s} on line 4 gives us:
 @cindex substatement block
 @noindent
 which tells us that this is a brace that @emph{opens} a substatement
-block. @footnote{A @dfn{substatement} is the line after a
+block.@footnote{A @dfn{substatement} is the line after a
 conditional statement, such as @code{if}, @code{else}, @code{while},
 @code{do}, @code{switch}, etc.  A @dfn{substatement
 block} is a brace block following one of these conditional statements.}
@@ -4765,10 +4765,10 @@ covered are illustrated by this C++ example:
  2: const
  3: @{
  4:     /* this line starts a multiline
- 5:      * comment.  This line should get `c' syntax */
+ 5:      * comment.  This line should get 'c' syntax */
  6:
  7:     char* a_multiline_string = "This line starts a multiline \
- 8: string.  This line should get `string' syntax.";
+ 8: string.  This line should get 'string' syntax.";
  9:
 10:   note:
 11:     @{
@@ -7140,7 +7140,7 @@ of XEmacs since 19.16.
 Due to release schedule skew, it is likely that all of these Emacsen
 have old versions of @ccmode{} and so should be upgraded.  Access to the
 @ccmode{} source code, as well as more detailed information on Emacsen
-compatibility, etc. are all available on the web site:
+compatibility, etc.@: are all available on the web site:
 
 @quotation
 @uref{http://cc-mode.sourceforge.net/}
@@ -7173,11 +7173,12 @@ configuration.  In that case, we'd appreciate it if you isolate the
 Emacs Lisp code that triggers the bug and include it in your report.
 
 @cindex bug report mailing list
-Bug reports should be sent to @email{bug-cc-mode@@gnu.org}.  You can
-also send other questions and suggestions (kudos? @t{;-)} to that
-address.  It's a mailing list which you can join or browse an archive
-of; see the web site at @uref{http://cc-mode.sourceforge.net/} for
-further details.
+Reporting a bug using @code{c-submit-bug-report} files it in
+the GNU Bug Tracker at @url{http://debbugs.gnu.org}, then sends it on
+to @email{bug-cc-mode@@gnu.org}.  You can also send reports, other
+questions, and suggestions (kudos?@: @t{;-)} to that address.  It's a
+mailing list which you can join or browse an archive of; see the web site at
+@uref{http://cc-mode.sourceforge.net/} for further details.
 
 @cindex announcement mailing list
 If you want to get announcements of new @ccmode{} releases, send the

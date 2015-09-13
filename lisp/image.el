@@ -357,7 +357,7 @@ Optional DATA-P non-nil means SOURCE is a string containing image data."
 
 (if (fboundp 'image-metadata)           ; eg not --without-x
     (define-obsolete-function-alias 'image-extension-data
-      'image-metadata' "24.1"))
+      'image-metadata "24.1"))
 
 (define-obsolete-variable-alias
     'image-library-alist

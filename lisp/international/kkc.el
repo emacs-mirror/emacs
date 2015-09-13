@@ -209,7 +209,7 @@ area while indicating the current selection by `<N>'."
 
 (define-error 'kkc-error nil)
 (defun kkc-error (&rest args)
-  (signal 'kkc-error (apply 'format args)))
+  (signal 'kkc-error (apply #'format-message args)))
 
 (defvar kkc-converting nil)
 

@@ -367,7 +367,8 @@
 ;;   BUFFER is nil.  If ASYNC is non-nil, run asynchronously.  If REV1
 ;;   and REV2 are non-nil, report differences from REV1 to REV2.  If
 ;;   REV1 is nil, use the working revision (as found in the
-;;   repository) as the older revision; if REV2 is nil, use the
+;;   repository) as the older revision if REV2 is nil as well;
+;;   otherwise, diff against an empty tree.  If REV2 is nil, use the
 ;;   current working-copy contents as the newer revision.  This
 ;;   function should pass the value of (vc-switches BACKEND 'diff) to
 ;;   the backend command.  It should return a status of either 0 (no
@@ -1422,8 +1423,12 @@ Argument BACKEND is the backend you are using."
 
 (defun vc-default-ignore-completion-table (backend file)
   "Return the list of ignored files under BACKEND."
-  (vc--read-lines
-   (vc-call-backend backend 'find-ignore-file file)))
+  (cl-delete-if
+   (lambda (str)
+     ;; Commented or empty lines.
+     (string-match-p "\\`\\(?:#\\|[ \t\r\n]*\\'\\)" str))
+   (vc--read-lines
+    (vc-call-backend backend 'find-ignore-file file))))
 
 (defun vc--read-lines (file)
   "Return a list of lines of FILE."
@@ -2224,8 +2229,10 @@ earlier revisions.  Show up to LIMIT entries (non-nil means unlimited)."
        (lambda (_bk _files-arg ret)
 	 (vc-print-log-setup-buttons working-revision
 				     is-start-revision limit ret))
-       (lambda (bk)
-	 (vc-call-backend bk 'show-log-entry working-revision))
+       ;; When it's nil, point really shouldn't move (bug#15322).
+       (when working-revision
+         (lambda (bk)
+           (vc-call-backend bk 'show-log-entry working-revision)))
        (lambda (_ignore-auto _noconfirm)
 	 (vc-print-log-internal backend files working-revision
                               is-start-revision limit)))))
@@ -2263,8 +2270,9 @@ earlier revisions.  Show up to LIMIT entries (non-nil means unlimited)."
      (let ((inhibit-read-only t))
        (funcall setup-buttons-func backend files retval)
        (shrink-window-if-larger-than-buffer)
-       (funcall goto-location-func backend)
-       (setq vc-sentinel-movepoint (point))
+       (when goto-location-func
+         (funcall goto-location-func backend)
+         (setq vc-sentinel-movepoint (point)))
        (set-buffer-modified-p nil)))))
 
 (defun vc-incoming-outgoing-internal (backend remote-location buffer-name type)
@@ -2273,7 +2281,7 @@ earlier revisions.  Show up to LIMIT entries (non-nil means unlimited)."
    (lambda (bk buf type-arg _files)
      (vc-call-backend bk type-arg buf remote-location))
    (lambda (_bk _files-arg _ret) nil)
-   (lambda (_bk) (goto-char (point-min)))
+   nil ;; Don't move point.
    (lambda (_ignore-auto _noconfirm)
      (vc-incoming-outgoing-internal backend remote-location buffer-name type))))
 
@@ -2328,16 +2336,15 @@ When called interactively with a prefix argument, prompt for LIMIT."
      (list (when (> vc-log-show-limit 0) vc-log-show-limit)))))
   (let ((backend (vc-deduce-backend))
 	(default-directory default-directory)
-	rootdir working-revision)
+	rootdir)
     (if backend
 	(setq rootdir (vc-call-backend backend 'root default-directory))
       (setq rootdir (read-directory-name "Directory for VC root-log: "))
       (setq backend (vc-responsible-backend rootdir))
       (unless backend
         (error "Directory is not version controlled")))
-    (setq working-revision (vc-working-revision rootdir)
-          default-directory rootdir)
-    (vc-print-log-internal backend (list rootdir) working-revision nil limit)))
+    (setq default-directory rootdir)
+    (vc-print-log-internal backend (list rootdir) nil nil limit)))
 
 ;;;###autoload
 (defun vc-log-incoming (&optional remote-location)
@@ -2481,6 +2488,22 @@ tip revision are merged into the working file."
 
 ;;;###autoload
 (defalias 'vc-update 'vc-pull)
+
+;;;###autoload
+(defun vc-push (&optional arg)
+  "Push the current branch.
+You must be visiting a version controlled file, or in a `vc-dir' buffer.
+On a distributed version control system, this runs a \"push\"
+operation on the current branch, prompting for the precise command
+if required.  Optional prefix ARG non-nil forces a prompt.
+On a non-distributed version control system, this signals an error."
+  (interactive "P")
+  (let* ((vc-fileset (vc-deduce-fileset t))
+	 (backend (car vc-fileset)))
+;;;	 (files (cadr vc-fileset)))
+    (if (vc-find-backend-function backend 'push)
+        (vc-call-backend backend 'push arg)
+      (user-error "VC push is unsupported for `%s'" backend))))
 
 (defun vc-version-backup-file (file &optional rev)
   "Return name of backup file for revision REV of FILE.

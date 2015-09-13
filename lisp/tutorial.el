@@ -134,21 +134,20 @@ options:
                            (eq map (symbol-value s))
                            ;; then save this value in mapsym
                            (setq mapsym s)))))
-            (insert "The default Emacs binding for the key "
-                    (key-description key)
-                    " is the command `")
-            (insert (format "%s" db))
-            (insert "'.  "
-                    "However, your customizations have "
+            (insert
+             (format
+              "The default Emacs binding for the key %s is the command `%s'.  "
+              (key-description key)
+              db))
+            (insert "However, your customizations have "
                     (if cb
-                        (format "rebound it to the command `%s'" cb)
+                        (format-message "rebound it to the command `%s'" cb)
                       "unbound it"))
             (insert ".")
             (when mapsym
               (insert "  (For the more advanced user:"
-                      " This binding is in the keymap `"
-                      (format "%s" mapsym)
-                      "'.)"))
+                      (format-message
+                       " This binding is in the keymap `%s'.)" mapsym)))
             (if (string= where "")
                 (unless (keymapp db)
                   (insert "\n\nYou can use M-x "
@@ -160,9 +159,7 @@ options:
                           ""
                         "the key")
                       where
-                      " to get the function `"
-                      (format "%s" db)
-                      "'.")))
+                      (format-message " to get the function `%s'." db))))
           (fill-region (point-min) (point)))))
       (help-print-return-message))))
 
@@ -454,7 +451,7 @@ where
 					       (lookup-key global-map
 							   [menu-bar]))))
 				 (stringp cwhere))
-			    (format "the `%s' menu" cwhere)
+			    (format-message "the `%s' menu" cwhere)
 			  "the menus"))))
 	    (setq where ""))
 	  (setq remark nil)

@@ -406,7 +406,7 @@ other files, enter /dev/null
 		  (with-output-to-temp-buffer ediff-msg-buffer
 		    (ediff-with-current-buffer standard-output
 		      (fundamental-mode))
-		    (princ (format "
+		    (princ (format-message "
 Ediff has inferred that
 	%s
 	%s
@@ -723,7 +723,7 @@ optional argument, then use it."
 	  (with-output-to-temp-buffer ediff-msg-buffer
 	    (ediff-with-current-buffer standard-output
 	      (fundamental-mode))
-	    (princ (format
+	    (princ (format-message
 		    "Patch program has failed due to a bad patch file,
 it couldn't apply all hunks, OR
 it couldn't create the backup for the file being patched.

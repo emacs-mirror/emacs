@@ -1,8 +1,7 @@
 \input texinfo
 @setfilename ../../info/url.info
 @settitle URL Programmer's Manual
-
-@documentencoding UTF-8
+@include docstyle.texi
 
 @iftex
 @c @finalout
@@ -1116,7 +1115,7 @@ This the @samp{nslookup} program.  It is @code{"nslookup"} by default.
 @cindex network connections, suppressing
 @cindex suppressing network connections
 @cindex bugs, HTML
-@cindex HTML `bugs'
+@cindex HTML ``bugs''
 In some circumstances it is desirable to suppress making network
 connections.  A typical case is when rendering HTML in a mail user
 agent, when external URLs should not be activated, particularly to

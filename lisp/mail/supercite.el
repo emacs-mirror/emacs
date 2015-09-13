@@ -886,10 +886,10 @@ Action can be one of: View, Modify, Add, or Delete."
 
 (defun sc-attribs-%@-addresses (from &optional delim)
   "Extract the author's email terminus from email address FROM.
-Match addresses of the style ``name%[stuff].'' when called with DELIM
-of \"%\" and addresses of the style ``[stuff]name@[stuff]'' when
+Match addresses of the style \"name%[stuff].\" when called with DELIM
+of \"%\" and addresses of the style \"[stuff]name@[stuff]\" when
 called with DELIM \"@\".  If DELIM is nil or not provided, matches
-addresses of the style ``name''."
+addresses of the style \"name\"."
   (and (string-match (concat "[-[:alnum:]_.]+" delim) from 0)
        (substring from
 		  (match-beginning 0)
@@ -897,7 +897,7 @@ addresses of the style ``name''."
 
 (defun sc-attribs-!-addresses (from)
   "Extract the author's email terminus from email address FROM.
-Match addresses of the style ``[stuff]![stuff]...!name[stuff].''"
+Match addresses of the style \"[stuff]![stuff]...!name[stuff].\""
   (let ((eos (length from))
 	(mstart (string-match "![-[:alnum:]_.]+\\([^-![:alnum:]_.]\\|$\\)"
 			      from 0))
@@ -907,7 +907,7 @@ Match addresses of the style ``[stuff]![stuff]...!name[stuff].''"
 
 (defun sc-attribs-<>-addresses (from)
   "Extract the author's email terminus from email address FROM.
-Match addresses of the style ``<name[stuff]>.''"
+Match addresses of the style \"<name[stuff]>.\""
   (and (string-match "<\\(.*\\)>" from)
        (match-string 1 from)))
 

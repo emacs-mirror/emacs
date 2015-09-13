@@ -304,17 +304,6 @@ be set in `.emacs' instead."
   :type 'boolean)
 
 (unless (featurep 'gnus-xmas)
-  (defalias 'gnus-make-overlay 'make-overlay)
-  (defalias 'gnus-copy-overlay 'copy-overlay)
-  (defalias 'gnus-delete-overlay 'delete-overlay)
-  (defalias 'gnus-overlay-get 'overlay-get)
-  (defalias 'gnus-overlay-put 'overlay-put)
-  (defalias 'gnus-move-overlay 'move-overlay)
-  (defalias 'gnus-overlay-buffer 'overlay-buffer)
-  (defalias 'gnus-overlay-start 'overlay-start)
-  (defalias 'gnus-overlay-end 'overlay-end)
-  (defalias 'gnus-overlays-at 'overlays-at)
-  (defalias 'gnus-overlays-in 'overlays-in)
   (defalias 'gnus-extent-detached-p 'ignore)
   (defalias 'gnus-extent-start-open 'ignore)
   (defalias 'gnus-mail-strip-quoted-names 'mail-strip-quoted-names)
@@ -1319,11 +1308,11 @@ news is to be fetched, the second is the address.
 For instance, if you want to get your news via \"flab.flab.edu\" using
 NNTP, you could say:
 
-\(setq gnus-select-method '(nntp \"flab.flab.edu\"))
+\(setq gnus-select-method \\='(nntp \"flab.flab.edu\"))
 
 If you want to use your local spool, say:
 
-\(setq gnus-select-method (list 'nnspool (system-name)))
+\(setq gnus-select-method (list \\='nnspool (system-name)))
 
 If you use this variable, you must set `gnus-nntp-server' to nil.
 
@@ -1373,7 +1362,7 @@ If you want to save your mail in one group and the news articles you
 write in another group, you could say something like:
 
  \(setq gnus-message-archive-group
-	'((if (message-news-p)
+	\\='((if (message-news-p)
 	      \"misc-news\"
 	    \"misc-mail\")))
 
@@ -1408,7 +1397,7 @@ This is a list where each element is a complete select method (see
 If, for instance, you want to read your mail with the nnml back end,
 you could set this variable:
 
-\(setq gnus-secondary-select-methods '((nnml \"\")))"
+\(setq gnus-secondary-select-methods \\='((nnml \"\")))"
   :group 'gnus-server
   :type '(repeat gnus-select-method))
 
@@ -2407,7 +2396,7 @@ less space and be faster as a result.
 This variable can also be a list of visual elements to switch on.  For
 instance, to switch off all visual things except menus, you can say:
 
-   (setq gnus-visual '(menu))
+   (setq gnus-visual \\='(menu))
 
 Valid elements include `summary-highlight', `group-highlight',
 `article-highlight', `mouse-face', `summary-menu', `group-menu',

@@ -4,10 +4,10 @@
 @include emacsver.texi
 @set VERSION @value{EMACSVER}
 @settitle Newsticker @value{VERSION}
+@include docstyle.texi
 @syncodeindex vr cp
 @syncodeindex fn cp
 @syncodeindex pg cp
-@documentencoding UTF-8
 @comment %**end of header
 
 @copying
@@ -123,7 +123,7 @@ You may select any number of feeds from this list of (sample) news feeds.
 @vindex newsticker-url-list
 @item newsticker-url-list
 All your personal news feeds are defined here.  Each feed is
-identified by its name and an URL.  You may set the start-time and the
+identified by its name and an URL@.  You may set the start-time and the
 retrieval interval for each feed as well as the retrieval command
 arguments in case that the default values do not fit a certain feed.
 
@@ -178,7 +178,7 @@ are kept until @code{newsticker-obsolete-item-max-age} is reached.
 
 @vindex newsticker-automatically-mark-items-as-old
 @item newsticker-automatically-mark-items-as-old
-If this is set to `t' then a ``new'' item becomes ``old'' as soon as
+If this is set to @code{t} then a ``new'' item becomes ``old'' as soon as
 it is retrieved a second time.
 
 @end table
@@ -590,8 +590,7 @@ Newsticker works with the standard RSS and Atom formats listed below
 @subheading RSS formats
 
 @itemize
-@item RSS 0.91 (see @uref{http://backend.userland.com/rss091} or
-@uref{http://my.netscape.com/publish/formats/rss-spec-0.91.html})
+@item RSS 0.91 (see @uref{http://backend.userland.com/rss091})
 @item RSS 0.92 (see @uref{http://backend.userland.com/rss092})
 @item RSS 1.0 (see @uref{http://purl.org/rss/1.0/spec})
 @item RSS 2.0 (see @uref{http://blogs.law.harvard.edu/tech/rss})

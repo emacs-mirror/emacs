@@ -1,7 +1,7 @@
 \input texinfo  @c -*-texinfo-*-
 @setfilename ../../info/ada-mode.info
 @settitle Ada Mode
-@documentencoding UTF-8
+@include docstyle.texi
 
 @copying
 Copyright @copyright{} 1999--2015 Free Software Foundation, Inc.

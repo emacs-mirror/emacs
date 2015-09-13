@@ -935,13 +935,14 @@ and their encoded form is inserted byte by byte."
 		     (mapconcat (function (lambda (c) (format "%x" c)))
 				internal " "))
 	       (if (yes-or-no-p
-		    (format
+		    (format-message
 		     "Insert char 0x%x's internal representation \"%s\"? "
 		     ch internal-hex))
 		   (setq encoded internal)
 		 (error
-		  "Can't encode `0x%x' with this buffer's coding system; try \\[hexl-insert-hex-string]"
-		  ch)))
+		  "Can't encode `0x%x' with this buffer's coding system; %s"
+		  ch
+		  (substitute-command-keys "try \\[hexl-insert-hex-string]"))))
 	     (while (> num 0)
 	       (mapc
 		(function (lambda (c) (hexl-insert-char c 1))) encoded)

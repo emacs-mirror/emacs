@@ -115,9 +115,9 @@ typedef struct _RTL_HEAP_PARAMETERS {
    to build only the first bootstrap-emacs.exe with the large size,
    and reset that to a lower value afterwards.  */
 #if defined _WIN64 || defined WIDE_EMACS_INT
-# define DUMPED_HEAP_SIZE (18*1024*1024)
+# define DUMPED_HEAP_SIZE (20*1024*1024)
 #else
-# define DUMPED_HEAP_SIZE (11*1024*1024)
+# define DUMPED_HEAP_SIZE (12*1024*1024)
 #endif
 
 static unsigned char dumped_data[DUMPED_HEAP_SIZE];
@@ -305,9 +305,10 @@ init_heap (void)
 #undef free
 
 /* FREEABLE_P checks if the block can be safely freed.  */
-#define FREEABLE_P(addr)                                        \
-    ((unsigned char *)(addr) < dumped_data                      \
-     || (unsigned char *)(addr) >= dumped_data + DUMPED_HEAP_SIZE)
+#define FREEABLE_P(addr)						\
+    ((unsigned char *)(addr) > 0					\
+     && ((unsigned char *)(addr) < dumped_data				\
+	 || (unsigned char *)(addr) >= dumped_data + DUMPED_HEAP_SIZE))
 
 void *
 malloc_after_dump (size_t size)
@@ -407,10 +408,10 @@ realloc_after_dump (void *ptr, size_t size)
       /* If the block lies in the dumped data, do not free it.  Only
          allocate a new one.  */
       p = HeapAlloc (heap, 0, size);
-      if (p)
-	CopyMemory (p, ptr, size);
-      else
+      if (!p)
 	errno = ENOMEM;
+      else if (ptr)
+	CopyMemory (p, ptr, size);
     }
   /* After dump, keep track of the "brk value" for sbrk(0).  */
   if (p)
@@ -449,7 +450,7 @@ realloc_before_dump (void *ptr, size_t size)
 	 of failing the call as below.  But this doesn't seem to be
 	 worth the added complexity, as loadup allocates only a very
 	 small number of large blocks, and never reallocates them.  */
-      if (p)
+      if (p && ptr)
 	{
 	  CopyMemory (p, ptr, size);
 	  free_before_dump (ptr);
@@ -473,6 +474,9 @@ free_after_dump (void *ptr)
 void
 free_before_dump (void *ptr)
 {
+  if (!ptr)
+    return;
+
   /* Before dumping.  */
   if (dumped_data < (unsigned char *)ptr
       && (unsigned char *)ptr < bc_limit)

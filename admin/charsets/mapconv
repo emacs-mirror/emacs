@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# Copyright (C) 2015 Free Software Foundation, Inc.
+
 # Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #   National Institute of Advanced Industrial Science and Technology (AIST)
 #   Registration Number H13PRO009
@@ -33,12 +35,19 @@
 #	GLIBC-1 GLIBC-2 GLIBC-2-7 CZYBORRA IANA UNICODE UNICODE2 YASUOKA
 #   $4: awk script
 
-FILE="admin/charsets/$1"
-BASE=`basename $1 .gz`
+## So that eg [A-F] as used by KANJI-DATABASE branch below works as expected.
+## Otherwise with LANG=en_US.utf8, CNS-6.map was generated with a
+## bogus entry.  By experiment, LC_COLLATE=C was not enough.
+export LC_ALL=C
+
+BASE=`expr "$1" : '.*/\(.*\)' '|' "$1"` # basename
+FILE="admin/charsets/mapfiles/$BASE"
+BASE=`expr "$BASE" : '\(.*\)\.gz$' '|' "$BASE"` # remove any .gz suffix
+AWK=${AWK:-awk}
 
 case "$3" in
     GLIBC*)
-	FILE="$BASE in localedate/charmaps of glibc";
+	FILE="$BASE in localedata/charmaps of glibc";
 	SOURCE="";;
     CZYBORRA)
 	BASE="$BASE.gz";
@@ -69,7 +78,7 @@ fi
 
 if [ -n "$4" ] ; then
     if [ -f "$4" ] ; then
-	AWKPROG="gawk -f $4"
+	AWKPROG="$AWK -f $4"
     else
 	echo "Awk program does not exist: $4"
 	exit 1
@@ -81,20 +90,20 @@ fi
 if [ "$3" = "GLIBC-1" ] ; then
     # Source format is:
     #   <UYYYY>	/xXX
-    zcat $1 | sed -n -e "$2 p" \
+    gunzip -c $1 | sed -n -e "${2}p" \
 	| sed -e 's,<U\([^>]*\)>[ 	]*/x\(..\).*,0x\2 0x\1,' \
 	| sort | ${AWKPROG}
 elif [ "$3" = "GLIBC-2" ] ; then
     # Source format is:
     #   <UYYYY>	/xXX/xZZ
-    zcat $1 | sed -n -e "$2 p" \
+    gunzip -c $1 | sed -n -e "${2}p" \
 	| sed -e 's,<U\([^>]*\)>[ 	]*/x\(..\)/x\(..\).*,0x\2\3 0x\1,' \
 	| sort | ${AWKPROG}
 elif [ "$3" = "GLIBC-2-7" ] ; then
     # Source format is:
     #   <UYYYY>	/xXX/xZZ
     # We must drop MSBs of XX and ZZ
-    zcat $1 | sed -n -e "$2 p" \
+    gunzip -c $1 | sed -n -e "${2}p" \
 	| sed -e 's/xa/x2/g' -e 's/xb/x3/g' -e 's/xc/x4/g' \
 	      -e 's/xd/x5/g' -e 's/xe/x6/g' -e 's/xf/x7/g' \
 	      -e 's,<U\([^>]*\)>[ 	]*/x\(..\)/x\(..\).*,0x\2\3 0x\1,' \
@@ -102,13 +111,13 @@ elif [ "$3" = "GLIBC-2-7" ] ; then
 elif [ "$3" = "CZYBORRA" ] ; then
     # Source format is:
     #   =XX	U+YYYY
-    sed -n -e "$2 p" < $1 \
+    sed -n -e "${2}p" < $1 \
 	| sed -e 's/=\(..\)[^U]*U+\([0-9A-F]*\).*/0x\1 0x\2/' \
 	| sort | ${AWKPROG}
 elif [ "$3" = "IANA" ] ; then
     # Source format is:
     #   0xXX	0xYYYY
-    sed -n -e "$2 p" < $1 \
+    sed -n -e "${2}p" < $1 \
 	| sed -e 's/\(0x[0-9A-Fa-f]*\)[^0]*\(0x[0-9A-Fa-f]*\).*/\1 \2/' \
 	| sort | ${AWKPROG}
 elif [ "$3" = "UNICODE" ] ; then
@@ -116,25 +125,25 @@ elif [ "$3" = "UNICODE" ] ; then
     #   YYYY	XX
     # We perform reverse sort to prefer the first one in the
     # duplicated mappings (e.g. 0x20->U+0020, 0x20->U+00A0).
-    sed -n -e "$2 p" < $1 \
+    sed -n -e "${2}p" < $1 \
 	| sed -e 's/\([0-9A-F]*\)[^0-9A-F]*\([0-9A-F]*\).*/0x\2 0x\1/' \
 	| sort -r
 elif [ "$3" = "UNICODE2" ] ; then
     # Source format is:
     #   0xXXXX	0xYYYY	# ...
-    sed -n -e "$2 p" < $1 \
+    sed -n -e "${2}p" < $1 \
 	| sed -e 's/\([0-9A-Fx]*\)[^0]*\([0-9A-Fx]*\).*/\1 \2/' \
 	| ${AWKPROG} | sort -n -k 4,4
 elif [ "$3" = "YASUOKA" ] ; then
     # Source format is:
     # YYYY	0-XXXX (XXXX is a Kuten code)
-    sed -n -e "$2 p" < $1 \
+    sed -n -e "${2}p" < $1 \
 	| sed -e 's/\([0-9A-F]*\)[^0]*0-\([0-9]*\).*/0x\2 0x\1/' \
 	| sort | ${AWKPROG}
 elif [ "$3" = "KANJI-DATABASE" ] ; then
     # Source format is:
     # C?-XXXX U+YYYYY .....
-    sed -n -e "$2 p" < $1 \
+    sed -n -e "${2}p" < $1 \
 	| sed -e 's/...\(....\) U+\([0-9A-F]*\).*/0x\1 0x\2/' \
 	| sort | ${AWKPROG}
 else

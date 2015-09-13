@@ -261,13 +261,19 @@ If @var{x} is finite, then @var{s} is a floating-point number between 0.5
 @math{x = s 2^e}.
 @end tex
 If @var{x} is zero or infinity, then @var{s} is the same as @var{x}.
-If @var{x} is a NaN, then @var{s} is also a NaN.
+If @var{x} is a NaN, then @var{s} is also a NaN@.
 If @var{x} is zero, then @var{e} is 0.
 @end defun
 
-@defun ldexp sig &optional exp
-This function returns a floating-point number corresponding to the
-significand @var{sig} and exponent @var{exp}.
+@defun ldexp s e
+Given a numeric significand @var{s} and an integer exponent @var{e},
+this function returns the floating point number
+@ifnottex
+@var{s} * 2**@var{e}.
+@end ifnottex
+@tex
+@math{s 2^e}.
+@end tex
 @end defun
 
 @defun copysign x1 x2

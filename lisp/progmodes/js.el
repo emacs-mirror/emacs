@@ -509,13 +509,10 @@ getting timeout messages."
   :type 'integer
   :group 'js)
 
-(defcustom js-indent-first-initialiser nil
-  "Specially indent the first variable declaration's initialiser
-in variable statements.
-
-Normally, the first declaration's initialiser is unindented, and
-subsequent declarations have their identifiers lined up against
-the first:
+(defcustom js-indent-first-init nil
+  "Non-nil means specially indent the first variable declaration's initializer.
+Normally, the first declaration's initializer is unindented, and
+subsequent declarations have their identifiers aligned with it:
 
   var o = {
       foo: 3
@@ -526,8 +523,8 @@ the first:
   },
       bar = 2;
 
-When t, always indent the first declaration's initialiser by an
-additional level:
+If this option has the value t, indent the first declaration's
+initializer by an additional level:
 
   var o = {
           foo: 3
@@ -538,8 +535,8 @@ additional level:
       },
       bar = 2;
 
-When `dynamic', if there is only one declaration, don't indent
-the first one's initialiser; otherwise, indent it.
+If this option has the value `dynamic', if there is only one declaration,
+don't indent the first one's initializer; otherwise, indent it.
 
   var o = {
       foo: 3
@@ -549,7 +546,8 @@ the first one's initialiser; otherwise, indent it.
           foo: 3
       },
       bar = 2;"
-  :type 'boolean
+  :version "25.1"
+  :type '(choice (const nil) (const t) (const dynamic))
   :safe 'symbolp
   :group 'js)
 
@@ -1904,14 +1902,14 @@ In particular, return the buffer position of the first `for' kwd."
 
 (defun js--maybe-goto-declaration-keyword-end (parse-status)
   "Helper function for `js--proper-indentation'.
-Depending on the value of `js-indent-first-initialiser', move
+Depending on the value of `js-indent-first-init', move
 point to the end of a variable declaration keyword so that
 indentation is aligned to that column."
   (cond
-   ((eq js-indent-first-initialiser t)
+   ((eq js-indent-first-init t)
     (when (looking-at js--declaration-keyword-re)
       (goto-char (1+ (match-end 0)))))
-   ((eq js-indent-first-initialiser 'dynamic)
+   ((eq js-indent-first-init 'dynamic)
     (let ((bracket (nth 1 parse-status))
           declaration-keyword-end
           at-closing-bracket-p
@@ -2004,8 +2002,9 @@ indentation is aligned to that column."
   (let* ((parse-status
           (save-excursion (syntax-ppss (point-at-bol))))
          (offset (- (point) (save-excursion (back-to-indentation) (point)))))
-    (indent-line-to (js--proper-indentation parse-status))
-    (when (> offset 0) (forward-char offset))))
+    (unless (nth 3 parse-status)
+      (indent-line-to (js--proper-indentation parse-status))
+      (when (> offset 0) (forward-char offset)))))
 
 ;;; Filling
 
@@ -2853,10 +2852,6 @@ with `js--js-encode-value'."
 (defsubst js--js-true (value)
   (not (js--js-not value)))
 
-;; The somewhat complex code layout confuses the byte-compiler into
-;; thinking this function "might not be defined at runtime".
-(declare-function js--optimize-arglist "js" (arglist))
-
 (eval-and-compile
   (defun js--optimize-arglist (arglist)
     "Convert immediate js< and js! references to deferred ones."
@@ -3502,7 +3497,7 @@ If one hasn't been set, or if it's stale, prompt for a new one."
 ;;; Main Function
 
 ;;;###autoload
-(define-derived-mode js-mode prog-mode "Javascript"
+(define-derived-mode js-mode prog-mode "JavaScript"
   "Major mode for editing JavaScript."
   :group 'js
   (setq-local indent-line-function 'js-indent-line)
@@ -3533,7 +3528,7 @@ If one hasn't been set, or if it's stale, prompt for a new one."
 
   ;; for filling, pretend we're cc-mode
   (setq c-comment-prefix-regexp "//+\\|\\**"
-        c-paragraph-start "$"
+        c-paragraph-start "\\(@[[:alpha:]]+\\>\\|$\\)"
         c-paragraph-separate "$"
         c-block-comment-prefix "* "
         c-line-comment-starter "//"
@@ -3565,9 +3560,10 @@ If one hasn't been set, or if it's stale, prompt for a new one."
   ;; the buffer containing the problem, JIT-lock will apply the
   ;; correct syntax to the regular expression literal and the problem
   ;; will mysteriously disappear.
-  ;; FIXME: We should actually do this fontification lazily by adding
+  ;; FIXME: We should instead do this fontification lazily by adding
   ;; calls to syntax-propertize wherever it's really needed.
-  (syntax-propertize (point-max)))
+  ;;(syntax-propertize (point-max))
+  )
 
 ;;;###autoload (defalias 'javascript-mode 'js-mode)
 

@@ -393,7 +393,7 @@ must return non-nil to indicate that the tag should be decorated by
 `NAME-highlight'.
 
 To put primary decorations on a tag `NAME-highlight' must use
-functions like `semantic-set-tag-face', `semantic-set-tag-intangible',
+functions like `semantic-set-tag-face', `semantic-set-tag-read-only',
 etc., found in the semantic-decorate library.
 
 To add other kind of decorations on a tag, `NAME-highlight' must use

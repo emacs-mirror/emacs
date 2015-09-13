@@ -1504,7 +1504,7 @@ nullable and y1 isn't, return a choice
 
 (defun rng-compile-error (&rest args)
   (signal 'rng-compile-error
-	  (list (apply 'format args))))
+	  (list (apply #'format-message args))))
 
 (define-error 'rng-compile-error "Incorrect schema" 'rng-error)
 

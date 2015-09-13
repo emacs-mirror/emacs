@@ -214,6 +214,8 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (defvar libgif-version)
 (defvar libjpeg-version)
 
+(defvar libgnutls-version)              ; gnutls.c
+
 ;;; Set default known names for external libraries
 (setq dynamic-library-alist
       (list
@@ -266,7 +268,9 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
        '(gdk-pixbuf "libgdk_pixbuf-2.0-0.dll")
        '(glib "libglib-2.0-0.dll")
        '(gobject "libgobject-2.0-0.dll")
-       '(gnutls "libgnutls-28.dll" "libgnutls-26.dll")
+       (if (>= libgnutls-version 30400)
+	   '(gnutls "libgnutls-30.dll")
+	 '(gnutls "libgnutls-28.dll" "libgnutls-26.dll"))
        '(libxml2 "libxml2-2.dll" "libxml2.dll")
        '(zlib "zlib1.dll" "libz-1.dll")))
 
@@ -286,7 +290,8 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (declare-function x-parse-geometry "frame.c" (string))
 (defvar x-command-line-resources)
 
-(defun w32-initialize-window-system (&optional _display)
+(cl-defmethod window-system-initialization (&context (window-system (eql w32))
+                                            &optional _display)
   "Initialize Emacs for W32 GUI frames."
   (cl-assert (not w32-initialized))
 
@@ -372,11 +377,11 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   (setq w32-initialized t))
 
 (add-to-list 'display-format-alist '("\\`w32\\'" . w32))
-(gui-method-define handle-args-function w32 #'x-handle-args)
-(gui-method-define frame-creation-function w32
-                   #'x-create-frame-with-faces)
-(gui-method-define window-system-initialization w32
-                   #'w32-initialize-window-system)
+(cl-defmethod handle-args-function (args &context (window-system (eql w32)))
+  (x-handle-args args))
+
+(cl-defmethod frame-creation-function (params &context (window-system (eql w32)))
+  (x-create-frame-with-faces params))
 
 ;;;; Selections
 
@@ -402,18 +407,41 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   (and (memq selection '(nil PRIMARY SECONDARY))
        (get 'x-selections (or selection 'PRIMARY))))
 
-(gui-method-define gui-set-selection w32 #'w32--set-selection)
-(gui-method-define gui-get-selection w32 #'w32--get-selection)
+(cl-defmethod gui-backend-set-selection (type value
+                                         &context (window-system (eql w32)))
+  (w32--set-selection type value))
 
-(gui-method-define gui-selection-owner-p w32 #'w32--selection-owner-p)
-(gui-method-define gui-selection-exists-p w32 #'w32-selection-exists-p)
+(cl-defmethod gui-backend-get-selection (type data-type
+                                         &context (window-system (eql w32)))
+  (w32--get-selection type data-type))
+
+(cl-defmethod gui-backend-selection-owner-p (selection
+                                             &context (window-system (eql w32)))
+  (w32--selection-owner-p selection))
+
+(cl-defmethod gui-backend-selection-exists-p (selection
+                                              &context (window-system (eql w32)))
+  (w32-selection-exists-p selection))
 
 (when (eq system-type 'windows-nt)
   ;; Make copy&pasting in w32's console interact with the system's clipboard!
-  (gui-method-define gui-set-selection nil #'w32--set-selection)
-  (gui-method-define gui-get-selection nil #'w32--get-selection)
-  (gui-method-define gui-selection-owner-p nil #'w32--selection-owner-p)
-  (gui-method-define gui-selection-exists-p nil #'w32-selection-exists-p))
+  ;; We could move those cl-defmethods outside of the `when' and use
+  ;; "&context (system-type (eql windows-nt))" instead!
+  (cl-defmethod gui-backend-set-selection (type value
+                                           &context (window-system (eql nil)))
+    (w32--set-selection type value))
+
+  (cl-defmethod gui-backend-get-selection (type data-type
+                                           &context (window-system (eql nil)))
+    (w32--get-selection type data-type))
+
+  (cl-defmethod gui-backend-selection-owner-p (selection
+                                               &context (window-system (eql nil)))
+    (w32--selection-owner-p selection))
+
+  (cl-defmethod gui-selection-exists-p (selection
+                                        &context (window-system (eql nil)))
+    (w32-selection-exists-p selection)))
 
 ;; The "Windows" keys on newer keyboards bring up the Start menu
 ;; whether you want it or not - make Emacs ignore these keystrokes

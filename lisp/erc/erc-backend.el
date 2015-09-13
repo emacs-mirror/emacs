@@ -652,7 +652,7 @@ EVENT is the message received from the closed connection process."
                          (run-at-time erc-server-reconnect-timeout nil
                                       #'erc-process-sentinel-2
                                       event buffer)
-                       (error (concat "`erc-server-reconnect-timeout`"
+                       (error (concat "`erc-server-reconnect-timeout'"
                                       " must be a number")))))))))))
 
 (defun erc-process-sentinel-1 (event buffer)
@@ -1082,7 +1082,7 @@ As an example:
 Would expand to:
 
   (prog2
-      (defvar erc-server-311-functions 'erc-server-311
+      (defvar erc-server-311-functions \\='erc-server-311
         \"Some non-generic variable documentation.
 
   Hook called upon receiving a 311 server response.
@@ -1100,12 +1100,12 @@ Would expand to:
   add things to `erc-server-311-functions' instead.\"
         (do-stuff-with-whois proc parsed))
 
-    (puthash \"311\" 'erc-server-311-functions erc-server-responses)
-    (puthash \"WHOIS\" 'erc-server-WHOIS-functions erc-server-responses)
-    (puthash \"WI\" 'erc-server-WI-functions erc-server-responses)
+    (puthash \"311\" \\='erc-server-311-functions erc-server-responses)
+    (puthash \"WHOIS\" \\='erc-server-WHOIS-functions erc-server-responses)
+    (puthash \"WI\" \\='erc-server-WI-functions erc-server-responses)
 
-    (defalias 'erc-server-WHOIS 'erc-server-311)
-    (defvar erc-server-WHOIS-functions 'erc-server-311
+    (defalias \\='erc-server-WHOIS \\='erc-server-311)
+    (defvar erc-server-WHOIS-functions \\='erc-server-311
       \"Some non-generic variable documentation.
 
   Hook called upon receiving a WHOIS server response.
@@ -1116,8 +1116,8 @@ Would expand to:
 
   See also `erc-server-311'.\")
 
-    (defalias 'erc-server-WI 'erc-server-311)
-    (defvar erc-server-WI-functions 'erc-server-311
+    (defalias \\='erc-server-WI \\='erc-server-311)
+    (defvar erc-server-WI-functions \\='erc-server-311
       \"Some non-generic variable documentation.
 
   Hook called upon receiving a WI server response.
@@ -1136,7 +1136,8 @@ Would expand to:
                         aliases))
   (let* ((hook-name (intern (format "erc-server-%s-functions" name)))
          (fn-name (intern (format "erc-server-%s" name)))
-         (hook-doc (format "%sHook called upon receiving a %%s server response.
+         (hook-doc (format-message "\
+%sHook called upon receiving a %%s server response.
 Each function is called with two arguments, the process associated
 with the response and the parsed response.  If the function returns
 non-nil, stop processing the hook.  Otherwise, continue.
@@ -1146,7 +1147,8 @@ See also `%s'."
                                (concat extra-var-doc "\n\n")
                              "")
                            fn-name))
-         (fn-doc (format "%sHandler for a %s server response.
+         (fn-doc (format-message "\
+%sHandler for a %s server response.
 PROC is the server process which returned the response.
 PARSED is the actual response as an `erc-response' struct.
 If you want to add responses don't modify this function, but rather

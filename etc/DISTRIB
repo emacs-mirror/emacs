@@ -20,7 +20,7 @@ copy and change it--those freedoms are what "free software" means.
 The precise conditions for copying and modification are stated in the
 document "GNU General Public License," a copy of which is required to
 be distributed with every copy of GNU Emacs.  It is usually in a file
-named `COPYING' in the same directory as this file.  These conditions
+named 'COPYING' in the same directory as this file.  These conditions
 are designed to make sure that everyone who has a copy of GNU Emacs
 (including modified versions) has the freedom to redistribute and
 change it.
@@ -32,12 +32,12 @@ online store at http://shop.fsf.org.
 
 Emacs has been run on GNU/Linux, FreeBSD, NetBSD, OpenBSD, and on many
 Unix systems, on a variety of types of cpu, as well as on MSDOS,
-Windows and MacOS.  See the file `etc/MACHINES' in the Emacs
+Windows and MacOS.  See the file 'etc/MACHINES' in the Emacs
 distribution for a full list of machines that GNU Emacs has been tested
 on, with machine-specific installation notes and warnings.
 
 GNU Emacs is distributed with no warranty (see the General Public
-License for full details, in the file `COPYING' in this directory (see
+License for full details, in the file 'COPYING' in this directory (see
 above)), and neither I nor the Free Software Foundation promises any
 kind of support or assistance to users.  The foundation keeps a list
 of people who are willing to offer support and assistance for hire.
@@ -73,7 +73,7 @@ you can contribute.
 Your donations will help to support the development of additional GNU
 software.  GNU/Linux systems (variants of GNU, based on the kernel
 Linux) have millions of users, but there is still much to be done.
-For more information on GNU, see the file `GNU' in this directory (see
+For more information on GNU, see the file 'GNU' in this directory (see
 above).
 
 			Richard M Stallman

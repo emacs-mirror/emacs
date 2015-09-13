@@ -19,7 +19,7 @@
 
 (defcustom simple-single-super-sunday nil
   "How great is this?
-Default changed to `nil'."
+Default changed to nil."
   :type 'boolean
   :group 'simple-single
   :package-version "1.4")

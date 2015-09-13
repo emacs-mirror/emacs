@@ -29,38 +29,52 @@ fi
 
 # Use a UTF-8 locale if available, so that the UTF-8 check works.
 # Use U+00A2 CENT SIGN to test whether the locale works.
-cent_sign_utf8_octal='\302\242'
-at_sign=`
-  printf "${cent_sign_utf8_octal}@" |
-  $awk '{print substr($0, 2)}' 2>/dev/null
-`
+cent_sign_utf8_format='\302\242\n'
+cent_sign=`printf "$cent_sign_utf8_format"`
+print_at_sign='BEGIN {print substr("'$cent_sign'@", 2)}'
+at_sign=`$awk "$print_at_sign" </dev/null 2>/dev/null`
 if test "$at_sign" != @; then
-  at_sign=`
-    printf "${cent_sign_utf8_octal}@" |
-    LC_ALL=en_US.UTF-8 $awk '{print substr($0, 2)}' 2>/dev/null
-  `
+  at_sign=`LC_ALL=en_US.UTF-8 $awk "$print_at_sign" </dev/null 2>/dev/null`
   if test "$at_sign" = @; then
-    LC_ALL=en_US.UTF-8; export LC_ALL
+    LC_ALL=en_US.UTF-8
+  else
+    LC_ALL=C
   fi
+  export LC_ALL
 fi
 
 # Check the log entry.
-exec $awk '
+exec $awk -v at_sign="$at_sign" -v cent_sign="$cent_sign" '
   BEGIN {
+    # These regular expressions assume traditional Unix unibyte behavior.
+    # They are needed for old or broken versions of awk, e.g.,
+    # mawk 1.3.3 (1996), or gawk on MSYS (2015), and/or for systems that
+    # cannot use UTF-8 as the codeset for the locale.
+    space = "[ \f\n\r\t\v]"
+    non_space = "[^ \f\n\r\t\v]"
+    # The non_print below rejects control characters and surrogates
+    # UTF-8 for: 0x01-0x1f 0x7f   0x80-0x9f  0xd800-0xdbff  0xdc00-0xdfff
+    non_print = "[\1-\37\177]|\302[\200-\237]|\355[\240-\277][\200-\277]"
+
+    # Prefer POSIX regular expressions if available, as they do a
+    # better job of checking.  Similarly, prefer POSIX negated
+    # expressions if UTF-8 also works.
     if (" " ~ /[[:space:]]/) {
       space = "[[:space:]]"
-      non_space = "[^[:space:]]"
-      non_print = "[^[:print:]]"
-    } else {
-      # mawk 1.3.3 does not support POSIX bracket expressions.
-      # Approximate them as best we can.
-      space = "[ \f\n\r\t\v]"
-      non_space = "[^ \f\n\r\t\v]"
-      non_print = "[\1-\37\177]"
+      if (at_sign == "@" && cent_sign ~ /^[[:print:]]$/) {
+        non_space = "[^[:space:]]"
+        non_print = "[^[:print:]]"
+      }
     }
   }
 
-  /^#/ { next }
+  /^#/ {
+    # Ignore every line after a scissors line.
+    if (/^# *---* *(>[8%]|[8%]<) *---* *$/) { exit }
+
+    # Ignore comment lines.
+    next
+  }
 
   !/^.*$/ {
     print "Invalid character (not UTF-8) in commit message"
@@ -120,6 +134,9 @@ exec $awk '
     if (nlines == 0) {
       print "Empty commit message"
       status = 1
+    }
+    if (status != 0) {
+      print "Commit aborted; please see the file 'CONTRIBUTE'"
     }
     exit status
   }

@@ -841,7 +841,7 @@ string_escape_byte8 (Lisp_Object string)
 	  {
 	    c = STRING_CHAR_ADVANCE (src);
 	    c = CHAR_TO_BYTE8 (c);
-	    dst += sprintf ((char *) dst, "\\%03o", c);
+	    dst += sprintf ((char *) dst, "\\%03o", c + 0u);
 	  }
 	else
 	  while (len--) *dst++ = *src++;
@@ -851,7 +851,7 @@ string_escape_byte8 (Lisp_Object string)
       {
 	c = *src++;
 	if (c >= 0x80)
-	  dst += sprintf ((char *) dst, "\\%03o", c);
+	  dst += sprintf ((char *) dst, "\\%03o", c + 0u);
 	else
 	  *dst++ = c;
       }
@@ -984,8 +984,7 @@ character is not ASCII nor 8-bit character, an error is signaled.  */)
 
 #ifdef emacs
 
-/* Return 'true' if C is an alphabetic character as defined by its
-   Unicode properties.  */
+/* Return true if C is an alphabetic character.  */
 bool
 alphabeticp (int c)
 {
@@ -1008,8 +1007,7 @@ alphabeticp (int c)
 	  || gen_cat == UNICODE_CATEGORY_Nl);
 }
 
-/* Return 'true' if C is an decimal-number character as defined by its
-   Unicode properties.  */
+/* Return true if C is a decimal-number character.  */
 bool
 decimalnump (int c)
 {
@@ -1020,6 +1018,39 @@ decimalnump (int c)
 
   /* See UTS #18.  */
   return gen_cat == UNICODE_CATEGORY_Nd;
+}
+
+/* Return true if C is a graphic character.  */
+bool
+graphicp (int c)
+{
+  Lisp_Object category = CHAR_TABLE_REF (Vunicode_category_table, c);
+  if (! INTEGERP (category))
+    return false;
+  EMACS_INT gen_cat = XINT (category);
+
+  /* See UTS #18.  */
+  return (!(gen_cat == UNICODE_CATEGORY_Zs /* space separator */
+	    || gen_cat == UNICODE_CATEGORY_Zl /* line separator */
+	    || gen_cat == UNICODE_CATEGORY_Zp /* paragraph separator */
+	    || gen_cat == UNICODE_CATEGORY_Cc /* control */
+	    || gen_cat == UNICODE_CATEGORY_Cs /* surrogate */
+	    || gen_cat == UNICODE_CATEGORY_Cn)); /* unassigned */
+}
+
+/* Return true if C is a printable character.  */
+bool
+printablep (int c)
+{
+  Lisp_Object category = CHAR_TABLE_REF (Vunicode_category_table, c);
+  if (! INTEGERP (category))
+    return false;
+  EMACS_INT gen_cat = XINT (category);
+
+  /* See UTS #18.  */
+  return (!(gen_cat == UNICODE_CATEGORY_Cc /* control */
+	    || gen_cat == UNICODE_CATEGORY_Cs /* surrogate */
+	    || gen_cat == UNICODE_CATEGORY_Cn)); /* unassigned */
 }
 
 void

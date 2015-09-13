@@ -787,15 +787,10 @@ also change the coding system for a running subshell by typing
 Coding}.
 
 @cindex @env{INSIDE_EMACS} environment variable
-@cindex @env{EMACS} environment variable
   Emacs sets the environment variable @env{INSIDE_EMACS} in the
 subshell to @samp{@var{version},comint}, where @var{version} is the
 Emacs version (e.g., @samp{24.1}).  Programs can check this variable
-to determine whether they are running inside an Emacs subshell.  (It
-also sets the @env{EMACS} environment variable to @code{t}, if that
-environment variable is not already defined.  However, this
-environment variable is deprecated; programs that use it should switch
-to using @env{INSIDE_EMACS} instead.)
+to determine whether they are running inside an Emacs subshell.
 
 @node Shell Mode
 @subsection Shell Mode
@@ -1426,7 +1421,7 @@ char mode.
 
 @table @kbd
 @item C-c C-c
-Send a literal @key{C-c} to the sub-shell.
+Send a literal @kbd{C-c} to the sub-shell.
 
 @item C-c @var{char}
 This is equivalent to @kbd{C-x @var{char}} in normal Emacs.  For
@@ -1680,6 +1675,7 @@ precedence.
 
 @cindex client frame
 @item -c
+@itemx --create-frame
 Create a new graphical @dfn{client frame}, instead of using an
 existing Emacs frame.  See below for the special behavior of @kbd{C-x
 C-c} in a client frame.  If Emacs cannot create a new graphical frame
@@ -2124,13 +2120,14 @@ to @code{sort-numeric-base}, but numbers beginning with @samp{0x} or
 
 @item M-x sort-columns
 Like @kbd{M-x sort-fields} except that the text within each line
-used for comparison comes from a fixed range of columns.  See below
-for an explanation.
+used for comparison comes from a fixed range of columns.  With a
+prefix argument, sort in reverse order.  See below for more details
+on this command.
 
 @findex reverse-region
 @item M-x reverse-region
 Reverse the order of the lines in the region.  This is useful for
-sorting into descending order by fields or columns, since those sort
+sorting into descending order by fields, since those sort
 commands do not have a feature for doing that.
 @end table
 
@@ -2692,7 +2689,7 @@ character.  Keep dissociwords out of your documentation, if you want
 it to be well userenced and properbose.
 
 @findex dunnet
-  @kbd{M-x dunnet} runs an text-based adventure game.
+  @kbd{M-x dunnet} runs a text-based adventure game.
 
 @findex gomoku
 @cindex Go Moku

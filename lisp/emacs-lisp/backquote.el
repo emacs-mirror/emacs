@@ -99,9 +99,9 @@ places where expressions are evaluated and inserted or spliced in.
 For example:
 
 b              => (ba bb bc)		; assume b has this value
-`(a b c)       => (a b c)		; backquote acts like quote
-`(a ,b c)      => (a (ba bb bc) c)	; insert the value of b
-`(a ,@b c)     => (a ba bb bc c)	; splice in the value of b
+\\=`(a b c)       => (a b c)		; backquote acts like quote
+\\=`(a ,b c)      => (a (ba bb bc) c)	; insert the value of b
+\\=`(a ,@b c)     => (a ba bb bc c)	; splice in the value of b
 
 Vectors work just like lists.  Nested backquotes are permitted."
   (cdr (backquote-process structure)))

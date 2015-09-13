@@ -1526,6 +1526,12 @@ struct glyph_string
       + (FRAME_LINE_HEIGHT ((F)) > FONT_HEIGHT ((FONT)))) / 2	\
    - (FONT_DESCENT (FRAME_FONT (F)) - FRAME_BASELINE_OFFSET (F)))
 
+/* A heuristic test for fonts that claim they need a preposterously
+   large vertical space.  The heuristics is in the factor of 3.  We
+   ignore the ascent and descent values reported by such fonts, and
+   instead go by the values reported for individual glyphs.  */
+#define FONT_TOO_HIGH(ft)  ((ft)->ascent + (ft)->descent > 3*(ft)->pixel_size)
+
 
 /***********************************************************************
 				Faces
@@ -2941,6 +2947,10 @@ struct image
   /* Pixmaps of the image.  */
   Pixmap pixmap, mask;
 
+#ifdef USE_CAIRO
+  void *cr_data;
+  void *cr_data2;
+#endif
 #ifdef HAVE_X_WINDOWS
   /* X images of the image, corresponding to the above Pixmaps.
      Non-NULL means it and its Pixmap counterpart may be out of sync
@@ -3235,6 +3245,9 @@ extern ptrdiff_t compute_display_string_end (ptrdiff_t,
 					     struct bidi_string_data *);
 extern void produce_stretch_glyph (struct it *);
 extern int merge_glyphless_glyph_face (struct it *);
+extern void forget_escape_and_glyphless_faces (void);
+
+extern void get_font_ascent_descent (struct font *, int *, int *);
 
 #ifdef HAVE_WINDOW_SYSTEM
 
@@ -3302,6 +3315,9 @@ bool update_window_fringes (struct window *, bool);
 void w32_init_fringe (struct redisplay_interface *);
 void w32_reset_fringes (void);
 #endif
+#ifdef USE_CAIRO
+void x_cr_init_fringe (struct redisplay_interface *);
+#endif
 
 extern unsigned row_hash (struct glyph_row *);
 
@@ -3358,7 +3374,6 @@ void unrequest_sigio (void);
 bool tabs_safe_p (int);
 void init_baud_rate (int);
 void init_sigio (int);
-void ignore_sigio (void);
 
 /* Defined in xfaces.c.  */
 

@@ -279,7 +279,7 @@ The minor mode viper-vi-diehard-minor-mode is in effect when
 viper-expert-level is 1 or 2 or when viper-want-emacs-keys-in-vi is t.
 The minor mode viper-insert-diehard-minor-mode is in effect when
 viper-expert-level is 1 or 2 or if viper-want-emacs-keys-in-insert is t.
-Use `M-x viper-set-expert-level' to change this.")
+Use `\\[viper-set-expert-level]' to change this.")
 
 ;; Max expert level supported by Viper.  This is NOT a user option.
 ;; It is here to make it hard for the user from resetting it.
@@ -463,7 +463,7 @@ color displays.  By default, the delimiters are used only on TTYs."
   :type 'boolean
   :group 'viper)
 
-(defcustom viper-read-buffer-function 'read-buffer
+(defcustom viper-read-buffer-function #'read-buffer
   "Function to use for prompting the user for a buffer name."
   :type 'symbol
   :group 'viper)
@@ -583,7 +583,7 @@ the Insert state."
 
 (defcustom viper-keep-point-on-repeat t
   "If t, don't move point when repeating previous command.
-This is useful for doing repeated changes with the '.' key.
+This is useful for doing repeated changes with the `.' key.
 The user can change this to nil, if she likes when the cursor moves
 to a new place after repeating previous Vi command."
   :type 'boolean

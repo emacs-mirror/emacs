@@ -248,10 +248,10 @@ The effect may be disabled by setting this variable to nil."
 Setting this variable only has effects in GNU Emacs versions above 21.3.
 
 Choices are:
-'before-modes - add to the beginning of `mode-line-modes',
-'after-modes  - add to the end of `mode-line-modes',
-t             - add to the end of `global-mode-string',
-nil           - don't add to mode line."
+`before-modes' - add to the beginning of `mode-line-modes',
+`after-modes'  - add to the end of `mode-line-modes',
+t              - add to the end of `global-mode-string',
+nil            - don't add to mode line."
   :group 'erc-track
   :type '(choice (const :tag "Just before mode information" before-modes)
 		 (const :tag "Just after mode information" after-modes)

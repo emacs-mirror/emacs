@@ -40,29 +40,21 @@ Original author: YAMAMOTO Mitsuharu
 
 static struct font_driver macfont_driver;
 
-static double mac_ctfont_get_advance_width_for_glyph (CTFontRef, CGGlyph);
-static CGRect mac_ctfont_get_bounding_rect_for_glyph (CTFontRef, CGGlyph);
-static CFArrayRef mac_ctfont_create_available_families (void);
-static Boolean mac_ctfont_equal_in_postscript_name (CTFontRef, CTFontRef);
-static CTLineRef mac_ctfont_create_line_with_string_and_font (CFStringRef,
-                                                              CTFontRef);
-static CFComparisonResult mac_font_family_compare (const void *,
-                                                   const void *, void *);
-static Boolean mac_ctfont_descriptor_supports_languages (CTFontDescriptorRef,
-                                                         CFArrayRef);
-static CFStringRef mac_ctfont_create_preferred_family_for_attributes (CFDictionaryRef);
-static CFIndex mac_ctfont_shape (CTFontRef, CFStringRef,
-                                 struct mac_glyph_layout *, CFIndex);
-static CFArrayRef
-mac_font_copy_default_descriptors_for_language (CFStringRef language);
-
-static CFStringRef
-mac_font_copy_default_name_for_charset_and_languages (CFCharacterSetRef charset,
-                                                      CFArrayRef languages);
-
+static double mac_font_get_advance_width_for_glyph (CTFontRef, CGGlyph);
+static CGRect mac_font_get_bounding_rect_for_glyph (CTFontRef, CGGlyph);
+static CFArrayRef mac_font_create_available_families (void);
+static Boolean mac_font_equal_in_postscript_name (CTFontRef, CTFontRef);
+static CTLineRef mac_font_create_line_with_string_and_font (CFStringRef,
+							    CTFontRef);
+static Boolean mac_font_descriptor_supports_languages (CTFontDescriptorRef,
+						       CFArrayRef);
+static CFStringRef mac_font_create_preferred_family_for_attributes (CFDictionaryRef);
+static CFIndex mac_font_shape (CTFontRef, CFStringRef,
+			       struct mac_glyph_layout *, CFIndex);
+static CFArrayRef mac_font_copy_default_descriptors_for_language (CFStringRef);
+static CFStringRef mac_font_copy_default_name_for_charset_and_languages (CFCharacterSetRef, CFArrayRef);
 #if USE_CT_GLYPH_INFO
-static CGGlyph mac_ctfont_get_glyph_for_cid (CTFontRef,
-                                             CTCharacterCollection,
+static CGGlyph mac_ctfont_get_glyph_for_cid (CTFontRef, CTCharacterCollection,
                                              CGFontIndex);
 #endif
 
@@ -73,7 +65,7 @@ struct macfont_metrics;
 struct macfont_info
 {
   struct font font;
-  FontRef macfont;
+  CTFontRef macfont;
   CGFontRef cgfont;
   ScreenFontRef screen_font;
   struct macfont_cache *cache;
@@ -112,23 +104,22 @@ static const CGAffineTransform synthetic_italic_atfm = {1, 0, 0.25, 1, 0, 0};
 static const CGFloat synthetic_bold_factor = 0.024;
 
 static Boolean cfnumber_get_font_symbolic_traits_value (CFNumberRef,
-                                                        FontSymbolicTraits *);
-static void macfont_store_descriptor_attributes (FontDescriptorRef,
+                                                        CTFontSymbolicTraits *);
+static void macfont_store_descriptor_attributes (CTFontDescriptorRef,
                                                  Lisp_Object);
-static Lisp_Object macfont_descriptor_entity (FontDescriptorRef,
-                                              Lisp_Object,
-                                              FontSymbolicTraits);
+static Lisp_Object macfont_descriptor_entity (CTFontDescriptorRef, Lisp_Object,
+                                              CTFontSymbolicTraits);
 static CFStringRef macfont_create_family_with_symbol (Lisp_Object);
 static int macfont_glyph_extents (struct font *, CGGlyph,
                                   struct font_metrics *, CGFloat *, int);
 static CFMutableDictionaryRef macfont_create_attributes_with_spec (Lisp_Object);
-static Boolean macfont_supports_charset_and_languages_p (FontDescriptorRef,
+static Boolean macfont_supports_charset_and_languages_p (CTFontDescriptorRef,
                                                          CFCharacterSetRef,
                                                          Lisp_Object,
                                                          CFArrayRef);
-static Boolean macfont_closest_traits_index_p (CFArrayRef, FontSymbolicTraits,
+static Boolean macfont_closest_traits_index_p (CFArrayRef, CTFontSymbolicTraits,
                                                CFIndex);
-static CFDataRef mac_font_copy_uvs_table (FontRef);
+static CFDataRef mac_font_copy_uvs_table (CTFontRef);
 static void mac_font_get_glyphs_for_variants (CFDataRef, UTF32Char,
                                               const UTF32Char [],
                                               CGGlyph [], CFIndex);
@@ -208,7 +199,7 @@ mac_screen_font_get_advance_width_for_glyph (ScreenFontRef font, CGGlyph glyph)
 }
 
 static CGGlyph
-mac_font_get_glyph_for_cid (FontRef font, CharacterCollection collection,
+mac_font_get_glyph_for_cid (CTFontRef font, CTCharacterCollection collection,
                             CGFontIndex cid)
 {
 #if USE_CT_GLYPH_INFO
@@ -755,7 +746,7 @@ macfont_store_utf32char_to_unichars (UTF32Char c, UniChar *unichars)
 
 static Boolean
 cfnumber_get_font_symbolic_traits_value (CFNumberRef number,
-                                         FontSymbolicTraits *sym_traits)
+                                         CTFontSymbolicTraits *sym_traits)
 {
   SInt64 sint64_value;
 
@@ -763,7 +754,7 @@ cfnumber_get_font_symbolic_traits_value (CFNumberRef number,
      OS X 10.6 when the value is greater than or equal to 1 << 31.  */
   if (CFNumberGetValue (number, kCFNumberSInt64Type, &sint64_value))
     {
-      *sym_traits = (FontSymbolicTraits) sint64_value;
+      *sym_traits = (CTFontSymbolicTraits) sint64_value;
 
       return true;
     }
@@ -772,7 +763,7 @@ cfnumber_get_font_symbolic_traits_value (CFNumberRef number,
 }
 
 static void
-macfont_store_descriptor_attributes (FontDescriptorRef desc,
+macfont_store_descriptor_attributes (CTFontDescriptorRef desc,
                                      Lisp_Object spec_or_entity)
 {
   CFStringRef str;
@@ -780,15 +771,14 @@ macfont_store_descriptor_attributes (FontDescriptorRef desc,
   CFNumberRef num;
   CGFloat floatval;
 
-  str = mac_font_descriptor_copy_attribute (desc,
-                                            MAC_FONT_FAMILY_NAME_ATTRIBUTE);
+  str = CTFontDescriptorCopyAttribute (desc, kCTFontFamilyNameAttribute);
   if (str)
     {
       ASET (spec_or_entity, FONT_FAMILY_INDEX,
             macfont_intern_prop_cfstring (str));
       CFRelease (str);
     }
-  dict = mac_font_descriptor_copy_attribute (desc, MAC_FONT_TRAITS_ATTRIBUTE);
+  dict = CTFontDescriptorCopyAttribute (desc, kCTFontTraitsAttribute);
   if (dict)
     {
       struct {
@@ -796,16 +786,16 @@ macfont_store_descriptor_attributes (FontDescriptorRef desc,
         CFStringRef trait;
         CGPoint points[6];
       } numeric_traits[] =
-          {{FONT_WEIGHT_INDEX, MAC_FONT_WEIGHT_TRAIT,
+          {{FONT_WEIGHT_INDEX, kCTFontWeightTrait,
             {{-0.4, 50},	/* light */
              {-0.24, 87.5},	/* (semi-light + normal) / 2 */
              {0, 100},		/* normal */
              {0.24, 140},	/* (semi-bold + normal) / 2 */
              {0.4, 200},	/* bold */
              {CGFLOAT_MAX, CGFLOAT_MAX}}},
-           {FONT_SLANT_INDEX, MAC_FONT_SLANT_TRAIT,
+           {FONT_SLANT_INDEX, kCTFontSlantTrait,
             {{0, 100}, {0.1, 200}, {CGFLOAT_MAX, CGFLOAT_MAX}}},
-           {FONT_WIDTH_INDEX, MAC_FONT_WIDTH_TRAIT,
+           {FONT_WIDTH_INDEX, kCTFontWidthTrait,
             {{0, 100}, {1, 200}, {CGFLOAT_MAX, CGFLOAT_MAX}}}};
       int i;
 
@@ -830,21 +820,21 @@ macfont_store_descriptor_attributes (FontDescriptorRef desc,
             }
         }
 
-      num = CFDictionaryGetValue (dict, MAC_FONT_SYMBOLIC_TRAIT);
+      num = CFDictionaryGetValue (dict, kCTFontSymbolicTrait);
       if (num)
         {
-          FontSymbolicTraits sym_traits;
+          CTFontSymbolicTraits sym_traits;
           int spacing;
 
           cfnumber_get_font_symbolic_traits_value (num, &sym_traits);
-          spacing = (sym_traits & MAC_FONT_TRAIT_MONO_SPACE
+          spacing = (sym_traits & kCTFontTraitMonoSpace
                      ? FONT_SPACING_MONO : FONT_SPACING_PROPORTIONAL);
           ASET (spec_or_entity, FONT_SPACING_INDEX, make_number (spacing));
         }
 
       CFRelease (dict);
     }
-  num = mac_font_descriptor_copy_attribute (desc, MAC_FONT_SIZE_ATTRIBUTE);
+  num = CTFontDescriptorCopyAttribute (desc, kCTFontSizeAttribute);
   if (num && CFNumberGetValue (num, kCFNumberCGFloatType, &floatval))
     ASET (spec_or_entity, FONT_SIZE_INDEX, make_number (floatval));
   else
@@ -854,12 +844,12 @@ macfont_store_descriptor_attributes (FontDescriptorRef desc,
 }
 
 static Lisp_Object
-macfont_descriptor_entity (FontDescriptorRef desc, Lisp_Object extra,
-                           FontSymbolicTraits synth_sym_traits)
+macfont_descriptor_entity (CTFontDescriptorRef desc, Lisp_Object extra,
+                           CTFontSymbolicTraits synth_sym_traits)
 {
   Lisp_Object entity;
   CFDictionaryRef dict;
-  FontSymbolicTraits sym_traits = 0;
+  CTFontSymbolicTraits sym_traits = 0;
   CFStringRef name;
 
   entity = font_make_entity ();
@@ -869,10 +859,10 @@ macfont_descriptor_entity (FontDescriptorRef desc, Lisp_Object extra,
 
   macfont_store_descriptor_attributes (desc, entity);
 
-  dict = mac_font_descriptor_copy_attribute (desc, MAC_FONT_TRAITS_ATTRIBUTE);
+  dict = CTFontDescriptorCopyAttribute (desc, kCTFontTraitsAttribute);
   if (dict)
     {
-      CFNumberRef num = CFDictionaryGetValue (dict, MAC_FONT_SYMBOLIC_TRAIT);
+      CFNumberRef num = CFDictionaryGetValue (dict, kCTFontSymbolicTrait);
 
       if (num)
         cfnumber_get_font_symbolic_traits_value (num, &sym_traits);
@@ -881,77 +871,199 @@ macfont_descriptor_entity (FontDescriptorRef desc, Lisp_Object extra,
   if (EQ (AREF (entity, FONT_SIZE_INDEX), make_number (0)))
     ASET (entity, FONT_AVGWIDTH_INDEX, make_number (0));
   ASET (entity, FONT_EXTRA_INDEX, Fcopy_sequence (extra));
-  name = mac_font_descriptor_copy_attribute (desc, MAC_FONT_NAME_ATTRIBUTE);
+  name = CTFontDescriptorCopyAttribute (desc, kCTFontNameAttribute);
   font_put_extra (entity, QCfont_entity,
                   make_save_ptr_int ((void *) name, sym_traits));
-  if (synth_sym_traits & MAC_FONT_TRAIT_ITALIC)
+  if (synth_sym_traits & kCTFontTraitItalic)
     FONT_SET_STYLE (entity, FONT_SLANT_INDEX,
                     make_number (FONT_SLANT_SYNTHETIC_ITALIC));
-  if (synth_sym_traits & MAC_FONT_TRAIT_BOLD)
+  if (synth_sym_traits & kCTFontTraitBold)
     FONT_SET_STYLE (entity, FONT_WEIGHT_INDEX,
                     make_number (FONT_WEIGHT_SYNTHETIC_BOLD));
-  if (synth_sym_traits & MAC_FONT_TRAIT_MONO_SPACE)
+  if (synth_sym_traits & kCTFontTraitMonoSpace)
     ASET (entity, FONT_SPACING_INDEX,
           make_number (FONT_SPACING_SYNTHETIC_MONO));
 
   return entity;
 }
 
+/* Cache for font family name symbols vs CFStrings.  A value of nil
+means the cache has been invalidated.  Otherwise the value is a Lisp
+hash table whose keys are symbols and the value for a key is either
+nil (no corresponding family name) or a Lisp save value wrapping the
+corresponding family name in CFString.  */
+
+static Lisp_Object macfont_family_cache;
+
+static void
+macfont_invalidate_family_cache (void)
+{
+  if (HASH_TABLE_P (macfont_family_cache))
+    {
+      struct Lisp_Hash_Table *h = XHASH_TABLE (macfont_family_cache);
+      ptrdiff_t i, size = HASH_TABLE_SIZE (h);
+
+      for (i = 0; i < size; ++i)
+	if (!NILP (HASH_HASH (h, i)))
+	  {
+	    Lisp_Object value = HASH_VALUE (h, i);
+
+	    if (SAVE_VALUEP (value))
+	      CFRelease (XSAVE_POINTER (value, 0));
+	  }
+      macfont_family_cache = Qnil;
+    }
+}
+
+static bool
+macfont_get_family_cache_if_present (Lisp_Object symbol, CFStringRef *string)
+{
+  if (HASH_TABLE_P (macfont_family_cache))
+    {
+      struct Lisp_Hash_Table *h = XHASH_TABLE (macfont_family_cache);
+      ptrdiff_t i = hash_lookup (h, symbol, NULL);
+
+      if (i >= 0)
+	{
+	  Lisp_Object value = HASH_VALUE (h, i);
+
+	  *string = SAVE_VALUEP (value) ? XSAVE_POINTER (value, 0) : NULL;
+
+	  return true;
+	}
+    }
+
+  return false;
+}
+
+static void
+macfont_set_family_cache (Lisp_Object symbol, CFStringRef string)
+{
+  struct Lisp_Hash_Table *h;
+  ptrdiff_t i;
+  EMACS_UINT hash;
+  Lisp_Object value;
+
+  if (!HASH_TABLE_P (macfont_family_cache))
+    {
+      Lisp_Object args[2];
+
+      args[0] = QCtest;
+      args[1] = Qeq;
+      macfont_family_cache = Fmake_hash_table (2, args);
+    }
+
+  h = XHASH_TABLE (macfont_family_cache);
+  i = hash_lookup (h, symbol, &hash);
+  value = string ? make_save_ptr ((void *) CFRetain (string)) : Qnil;
+  if (i >= 0)
+    {
+      Lisp_Object old_value = HASH_VALUE (h, i);
+
+      if (SAVE_VALUEP (old_value))
+	CFRelease (XSAVE_POINTER (old_value, 0));
+      set_hash_value_slot (h, i, value);
+    }
+  else
+    hash_put (h, symbol, value, hash);
+}
+
+/* Cache of all the available font family names except "LastResort"
+and those start with ".".  NULL means the cache has been invalidated.
+Otherwise, the value is CFArray of CFStrings and the elements are
+sorted in the canonical order (CTFontManagerCompareFontFamilyNames on
+OS X 10.6 and later).  */
+
+static CFArrayRef macfont_available_families_cache = NULL;
+
+static void
+macfont_invalidate_available_families_cache (void)
+{
+  if (macfont_available_families_cache)
+    {
+      CFRelease (macfont_available_families_cache);
+      macfont_available_families_cache = NULL;
+    }
+}
+
+static void
+macfont_handle_font_change_notification (CFNotificationCenterRef center,
+					 void *observer,
+					 CFStringRef name, const void *object,
+					 CFDictionaryRef userInfo)
+{
+  macfont_invalidate_family_cache ();
+  macfont_invalidate_available_families_cache ();
+}
+
+static void
+macfont_init_font_change_handler (void)
+{
+  static bool initialized = false;
+
+  if (initialized)
+    return;
+
+  initialized = true;
+  CFNotificationCenterAddObserver
+    (CFNotificationCenterGetLocalCenter (), NULL,
+     macfont_handle_font_change_notification,
+     kCTFontManagerRegisteredFontsChangedNotification,
+     NULL, CFNotificationSuspensionBehaviorCoalesce);
+}
+
+static CFArrayRef
+macfont_copy_available_families_cache (void)
+{
+  macfont_init_font_change_handler ();
+
+  if (macfont_available_families_cache == NULL)
+    macfont_available_families_cache = mac_font_create_available_families ();
+
+  return (macfont_available_families_cache
+	  ? CFRetain (macfont_available_families_cache) : NULL);
+}
+
 static CFStringRef
 macfont_create_family_with_symbol (Lisp_Object symbol)
 {
-  static CFArrayRef families = NULL;
   CFStringRef result = NULL, family_name;
-  int using_cache_p = 1;
-  CFComparatorFunction family_name_comparator;
+  CFDictionaryRef attributes = NULL;
+  CTFontDescriptorRef pat_desc = NULL;
+
+  if (macfont_get_family_cache_if_present (symbol, &result))
+    return result ? CFRetain (result) : NULL;
 
   family_name = cfstring_create_with_string_noencode (SYMBOL_NAME (symbol));
-  if (family_name == NULL)
-    return NULL;
-
+  if (family_name)
     {
-      family_name_comparator = CTFontManagerCompareFontFamilyNames;
+      attributes =
+	CFDictionaryCreate (NULL,
+			    (const void **) &kCTFontFamilyNameAttribute,
+			    (const void **) &family_name, 1,
+			    &kCFTypeDictionaryKeyCallBacks,
+			    &kCFTypeDictionaryValueCallBacks);
+      CFRelease (family_name);
     }
+  if (attributes)
+    {
+      pat_desc = CTFontDescriptorCreateWithAttributes (attributes);
+      CFRelease (attributes);
+    }
+  if (pat_desc)
+    {
+      CTFontDescriptorRef desc =
+	CTFontDescriptorCreateMatchingFontDescriptor (pat_desc, NULL);
 
-  if ((*family_name_comparator) (family_name, CFSTR ("LastResort"), NULL)
-      == kCFCompareEqualTo)
-    result = CFSTR ("LastResort");
-  else
-    while (1)
-      {
-        CFIndex i, count;
-
-        if (families == NULL)
-          {
-            families = mac_font_create_available_families ();
-            using_cache_p = 0;
-            if (families == NULL)
-              break;
-          }
-
-        count = CFArrayGetCount (families);
-        i = CFArrayBSearchValues (families, CFRangeMake (0, count),
-                                  (const void *) family_name,
-                                  family_name_comparator, NULL);
-        if (i < count)
-          {
-            CFStringRef name = CFArrayGetValueAtIndex (families, i);
-
-            if ((*family_name_comparator) (name, family_name, NULL)
-                == kCFCompareEqualTo)
-              result = CFRetain (name);
-          }
-
-        if (result || !using_cache_p)
-          break;
-        else
-          {
-            CFRelease (families);
-            families = NULL;
-          }
-      }
-
-  CFRelease (family_name);
+      if (desc)
+	{
+	  result =
+	    CTFontDescriptorCopyAttribute (desc, kCTFontFamilyNameAttribute);
+	  CFRelease (desc);
+	}
+      macfont_set_family_cache (symbol, result);
+      CFRelease (pat_desc);
+    }
 
   return result;
 }
@@ -1003,7 +1115,7 @@ macfont_glyph_extents (struct font *font, CGGlyph glyph,
                        int force_integral_p)
 {
   struct macfont_info *macfont_info = (struct macfont_info *) font;
-  FontRef macfont = macfont_info->macfont;
+  CTFontRef macfont = macfont_info->macfont;
   int row, col;
   struct macfont_metrics *cache;
   int width;
@@ -1073,10 +1185,9 @@ macfont_glyph_extents (struct font *font, CGGlyph glyph,
             }
           if (macfont_info->synthetic_bold_p && ! force_integral_p)
             {
-              CGFloat d =
-                - synthetic_bold_factor * mac_font_get_size (macfont) / 2;
+              CGFloat d = - synthetic_bold_factor * CTFontGetSize (macfont) / 2;
 
-                bounds = CGRectInset (bounds, d, d);
+	      bounds = CGRectInset (bounds, d, d);
             }
           switch (macfont_info->spacing)
             {
@@ -1179,8 +1290,8 @@ struct macfont_cache
     /* Character collection specifying the destination of the mapping
        provided by `table' above.  If `table' is obtained from the UVS
        subtable in the font cmap table, then the value of this member
-       should be MAC_CHARACTER_COLLECTION_IDENTITY_MAPPING.  */
-    CharacterCollection collection;
+       should be kCTCharacterCollectionIdentityMapping.  */
+    CTCharacterCollection collection;
   } uvs;
 };
 
@@ -1191,8 +1302,8 @@ static CFCharacterSetRef macfont_get_cf_charset (struct font *);
 static CFCharacterSetRef macfont_get_cf_charset_for_name (CFStringRef);
 static CGGlyph macfont_get_glyph_for_character (struct font *, UTF32Char);
 static CGGlyph macfont_get_glyph_for_cid (struct font *font,
-                                          CharacterCollection, CGFontIndex);
-static CFDataRef macfont_get_uvs_table (struct font *, CharacterCollection *);
+                                          CTCharacterCollection, CGFontIndex);
+static CFDataRef macfont_get_uvs_table (struct font *, CTCharacterCollection *);
 
 static struct macfont_cache *
 macfont_lookup_cache (CFStringRef key)
@@ -1212,7 +1323,7 @@ macfont_lookup_cache (CFStringRef key)
 
   if (cache == NULL)
     {
-      FontRef macfont = mac_font_create_with_name (key, 0);
+      CTFontRef macfont = CTFontCreateWithName (key, 0, NULL);
 
       if (macfont)
         {
@@ -1230,7 +1341,7 @@ macfont_lookup_cache (CFStringRef key)
                 CFCharacterSetCreateWithCharactersInRange (NULL, range);
             }
           if (cache->cf_charset == NULL)
-            cache->cf_charset = mac_font_copy_character_set (macfont);
+            cache->cf_charset = CTFontCopyCharacterSet (macfont);
           CFDictionaryAddValue (macfont_cache_dictionary, key,
                                 (const void *) cache);
           CFRelease (macfont);
@@ -1287,7 +1398,7 @@ static CGGlyph
 macfont_get_glyph_for_character (struct font *font, UTF32Char c)
 {
   struct macfont_info *macfont_info = (struct macfont_info *) font;
-  FontRef macfont = macfont_info->macfont;
+  CTFontRef macfont = macfont_info->macfont;
   struct macfont_cache *cache = macfont_info->cache;
 
   if (c < 0xD800 || (c > 0xDFFF && c < 0x10000))
@@ -1326,8 +1437,7 @@ macfont_get_glyph_for_character (struct font *font, UTF32Char c)
               if (nkeys_or_perm + 1 != ROW_PERM_OFFSET)
                 {
                   ch = c;
-                  if (!mac_font_get_glyphs_for_characters (macfont, &ch,
-                                                           &glyph, 1)
+                  if (!CTFontGetGlyphsForCharacters (macfont, &ch, &glyph, 1)
                       || glyph == 0)
                     glyph = kCGFontIndexInvalid;
 
@@ -1370,8 +1480,7 @@ macfont_get_glyph_for_character (struct font *font, UTF32Char c)
           glyphs = xmalloc (sizeof (CGGlyph) * 256);
           if (len > 0)
             {
-              mac_font_get_glyphs_for_characters (macfont, unichars,
-                                                  glyphs, len);
+              CTFontGetGlyphsForCharacters (macfont, unichars, glyphs, len);
               while (i > len)
                 {
                   int next = unichars[len - 1] % 256;
@@ -1427,8 +1536,7 @@ macfont_get_glyph_for_character (struct font *font, UTF32Char c)
           CGGlyph glyphs[2];
           CFIndex count = macfont_store_utf32char_to_unichars (c, unichars);
 
-          if (mac_font_get_glyphs_for_characters (macfont, unichars, glyphs,
-                                                  count))
+          if (CTFontGetGlyphsForCharacters (macfont, unichars, glyphs, count))
             glyph = glyphs[0];
           if (glyph == 0)
             glyph = kCGFontIndexInvalid;
@@ -1443,33 +1551,33 @@ macfont_get_glyph_for_character (struct font *font, UTF32Char c)
 }
 
 static CGGlyph
-macfont_get_glyph_for_cid (struct font *font, CharacterCollection collection,
+macfont_get_glyph_for_cid (struct font *font, CTCharacterCollection collection,
                            CGFontIndex cid)
 {
   struct macfont_info *macfont_info = (struct macfont_info *) font;
-  FontRef macfont = macfont_info->macfont;
+  CTFontRef macfont = macfont_info->macfont;
 
   /* Cache it? */
   return mac_font_get_glyph_for_cid (macfont, collection, cid);
 }
 
 static CFDataRef
-macfont_get_uvs_table (struct font *font, CharacterCollection *collection)
+macfont_get_uvs_table (struct font *font, CTCharacterCollection *collection)
 {
   struct macfont_info *macfont_info = (struct macfont_info *) font;
-  FontRef macfont = macfont_info->macfont;
+  CTFontRef macfont = macfont_info->macfont;
   struct macfont_cache *cache = macfont_info->cache;
   CFDataRef result = NULL;
 
   if (cache->uvs.table == NULL)
     {
       CFDataRef uvs_table = mac_font_copy_uvs_table (macfont);
-      CharacterCollection uvs_collection =
-        MAC_CHARACTER_COLLECTION_IDENTITY_MAPPING;
+      CTCharacterCollection uvs_collection =
+        kCTCharacterCollectionIdentityMapping;
 
       if (uvs_table == NULL
           && mac_font_get_glyph_for_cid (macfont,
-                                         MAC_CHARACTER_COLLECTION_ADOBE_JAPAN1,
+                                         kCTCharacterCollectionAdobeJapan1,
                                          6480) != kCGFontIndexInvalid)
         {
           /* If the glyph for U+4E55 is accessible via its CID 6480,
@@ -1486,7 +1594,7 @@ macfont_get_uvs_table (struct font *font, CharacterCollection *collection)
           if (mac_uvs_table_adobe_japan1)
             {
               uvs_table = CFRetain (mac_uvs_table_adobe_japan1);
-              uvs_collection = MAC_CHARACTER_COLLECTION_ADOBE_JAPAN1;
+              uvs_collection = kCTCharacterCollectionAdobeJapan1;
             }
         }
       if (uvs_table == NULL)
@@ -1729,16 +1837,16 @@ macfont_create_attributes_with_spec (Lisp_Object spec)
     CFStringRef trait;
     CGPoint points[6];
   } numeric_traits[] =
-      {{FONT_WEIGHT_INDEX, MAC_FONT_WEIGHT_TRAIT,
+      {{FONT_WEIGHT_INDEX, kCTFontWeightTrait,
         {{-0.4, 50},		/* light */
          {-0.24, 87.5},		/* (semi-light + normal) / 2 */
          {0, 100},		/* normal */
          {0.24, 140},		/* (semi-bold + normal) / 2 */
          {0.4, 200},		/* bold */
          {CGFLOAT_MAX, CGFLOAT_MAX}}},
-       {FONT_SLANT_INDEX, MAC_FONT_SLANT_TRAIT,
+       {FONT_SLANT_INDEX, kCTFontSlantTrait,
         {{0, 100}, {0.1, 200}, {CGFLOAT_MAX, CGFLOAT_MAX}}},
-       {FONT_WIDTH_INDEX, MAC_FONT_WIDTH_TRAIT,
+       {FONT_WIDTH_INDEX, kCTFontWidthTrait,
         {{0, 100}, {1, 200}, {CGFLOAT_MAX, CGFLOAT_MAX}}}};
 
   registry = AREF (spec, FONT_REGISTRY_INDEX);
@@ -1854,7 +1962,7 @@ macfont_create_attributes_with_spec (Lisp_Object spec)
 
       if (! family)
         goto err;
-      CFDictionaryAddValue (attributes, MAC_FONT_FAMILY_NAME_ATTRIBUTE,
+      CFDictionaryAddValue (attributes, kCTFontFamilyNameAttribute,
                             family);
       CFRelease (family);
     }
@@ -1895,16 +2003,16 @@ macfont_create_attributes_with_spec (Lisp_Object spec)
         }
     }
   if (CFDictionaryGetCount (traits))
-    CFDictionaryAddValue (attributes, MAC_FONT_TRAITS_ATTRIBUTE, traits);
+    CFDictionaryAddValue (attributes, kCTFontTraitsAttribute, traits);
 
   if (charset)
-    CFDictionaryAddValue (attributes, MAC_FONT_CHARACTER_SET_ATTRIBUTE,
+    CFDictionaryAddValue (attributes, kCTFontCharacterSetAttribute,
                           charset);
   if (charset_string)
     CFDictionaryAddValue (attributes, MAC_FONT_CHARACTER_SET_STRING_ATTRIBUTE,
                           charset_string);
   if (langarray)
-    CFDictionaryAddValue (attributes, MAC_FONT_LANGUAGES_ATTRIBUTE, langarray);
+    CFDictionaryAddValue (attributes, kCTFontLanguagesAttribute, langarray);
 
   goto finish;
 
@@ -1933,7 +2041,7 @@ macfont_create_attributes_with_spec (Lisp_Object spec)
 }
 
 static Boolean
-macfont_supports_charset_and_languages_p (FontDescriptorRef desc,
+macfont_supports_charset_and_languages_p (CTFontDescriptorRef desc,
                                           CFCharacterSetRef charset,
                                           Lisp_Object chars,
                                           CFArrayRef languages)
@@ -1943,8 +2051,7 @@ macfont_supports_charset_and_languages_p (FontDescriptorRef desc,
   if (charset || VECTORP (chars))
     {
       CFCharacterSetRef desc_charset =
-        mac_font_descriptor_copy_attribute (desc,
-                                            MAC_FONT_CHARACTER_SET_ATTRIBUTE);
+        CTFontDescriptorCopyAttribute (desc, kCTFontCharacterSetAttribute);
 
       if (desc_charset == NULL)
         result = false;
@@ -1974,20 +2081,20 @@ macfont_supports_charset_and_languages_p (FontDescriptorRef desc,
 }
 
 static int
-macfont_traits_distance (FontSymbolicTraits sym_traits1,
-                         FontSymbolicTraits sym_traits2)
+macfont_traits_distance (CTFontSymbolicTraits sym_traits1,
+                         CTFontSymbolicTraits sym_traits2)
 {
-  FontSymbolicTraits diff = (sym_traits1 ^ sym_traits2);
+  CTFontSymbolicTraits diff = (sym_traits1 ^ sym_traits2);
   int distance = 0;
 
   /* We prefer synthetic bold of italic to synthetic italic of bold
      when both bold and italic are available but bold-italic is not
      available.  */
-  if (diff & MAC_FONT_TRAIT_BOLD)
+  if (diff & kCTFontTraitBold)
     distance |= (1 << 0);
-  if (diff & MAC_FONT_TRAIT_ITALIC)
+  if (diff & kCTFontTraitItalic)
     distance |= (1 << 1);
-  if (diff & MAC_FONT_TRAIT_MONO_SPACE)
+  if (diff & kCTFontTraitMonoSpace)
     distance |= (1 << 2);
 
   return distance;
@@ -1995,21 +2102,21 @@ macfont_traits_distance (FontSymbolicTraits sym_traits1,
 
 static Boolean
 macfont_closest_traits_index_p (CFArrayRef traits_array,
-                                FontSymbolicTraits target,
+                                CTFontSymbolicTraits target,
                                 CFIndex index)
 {
   CFIndex i, count = CFArrayGetCount (traits_array);
-  FontSymbolicTraits traits;
+  CTFontSymbolicTraits traits;
   int my_distance;
 
-  traits = ((FontSymbolicTraits) (uintptr_t)
+  traits = ((CTFontSymbolicTraits) (uintptr_t)
             CFArrayGetValueAtIndex (traits_array, index));
   my_distance = macfont_traits_distance (target, traits);
 
   for (i = 0; i < count; i++)
     if (i != index)
       {
-        traits = ((FontSymbolicTraits) (uintptr_t)
+        traits = ((CTFontSymbolicTraits) (uintptr_t)
                   CFArrayGetValueAtIndex (traits_array, i));
         if (macfont_traits_distance (target, traits) < my_distance)
           return false;
@@ -2027,7 +2134,7 @@ macfont_list (struct frame *f, Lisp_Object spec)
   CFMutableDictionaryRef attributes = NULL, traits;
   Lisp_Object chars = Qnil;
   int spacing = -1;
-  FontSymbolicTraits synth_sym_traits = 0;
+  CTFontSymbolicTraits synth_sym_traits = 0;
   CFArrayRef families;
   CFIndex families_count;
   CFCharacterSetRef charset = NULL;
@@ -2047,28 +2154,28 @@ macfont_list (struct frame *f, Lisp_Object spec)
   if (! attributes)
     goto finish;
 
-  languages = CFDictionaryGetValue (attributes, MAC_FONT_LANGUAGES_ATTRIBUTE);
+  languages = CFDictionaryGetValue (attributes, kCTFontLanguagesAttribute);
 
   if (INTEGERP (AREF (spec, FONT_SPACING_INDEX)))
     spacing = XINT (AREF (spec, FONT_SPACING_INDEX));
 
   traits = ((CFMutableDictionaryRef)
-            CFDictionaryGetValue (attributes, MAC_FONT_TRAITS_ATTRIBUTE));
+            CFDictionaryGetValue (attributes, kCTFontTraitsAttribute));
 
   n = FONT_SLANT_NUMERIC (spec);
   if (n < 0 || n == FONT_SLANT_SYNTHETIC_ITALIC)
     {
-      synth_sym_traits |= MAC_FONT_TRAIT_ITALIC;
+      synth_sym_traits |= kCTFontTraitItalic;
       if (traits)
-        CFDictionaryRemoveValue (traits, MAC_FONT_SLANT_TRAIT);
+        CFDictionaryRemoveValue (traits, kCTFontSlantTrait);
     }
 
   n = FONT_WEIGHT_NUMERIC (spec);
   if (n < 0 || n == FONT_WEIGHT_SYNTHETIC_BOLD)
     {
-      synth_sym_traits |= MAC_FONT_TRAIT_BOLD;
+      synth_sym_traits |= kCTFontTraitBold;
       if (traits)
-        CFDictionaryRemoveValue (traits, MAC_FONT_WEIGHT_TRAIT);
+        CFDictionaryRemoveValue (traits, kCTFontWeightTrait);
     }
 
   if (languages
@@ -2079,7 +2186,7 @@ macfont_list (struct frame *f, Lisp_Object spec)
       if (CFStringHasPrefix (language, CFSTR ("ja"))
           || CFStringHasPrefix (language, CFSTR ("ko"))
           || CFStringHasPrefix (language, CFSTR ("zh")))
-        synth_sym_traits |= MAC_FONT_TRAIT_MONO_SPACE;
+        synth_sym_traits |= kCTFontTraitMonoSpace;
     }
 
   /* Create array of families.  */
@@ -2091,7 +2198,7 @@ macfont_list (struct frame *f, Lisp_Object spec)
       CFStringRef pref_family;
       CFIndex families_count, pref_family_index = -1;
 
-      families = mac_font_create_available_families ();
+      families = macfont_copy_available_families_cache ();
       if (families == NULL)
         goto err;
 
@@ -2131,12 +2238,11 @@ macfont_list (struct frame *f, Lisp_Object spec)
         }
     }
 
-  charset = CFDictionaryGetValue (attributes,
-                                  MAC_FONT_CHARACTER_SET_ATTRIBUTE);
+  charset = CFDictionaryGetValue (attributes, kCTFontCharacterSetAttribute);
   if (charset)
     {
       CFRetain (charset);
-      CFDictionaryRemoveValue (attributes, MAC_FONT_CHARACTER_SET_ATTRIBUTE);
+      CFDictionaryRemoveValue (attributes, kCTFontCharacterSetAttribute);
     }
   else
     {
@@ -2153,7 +2259,7 @@ macfont_list (struct frame *f, Lisp_Object spec)
   if (languages)
     {
       CFRetain (languages);
-      CFDictionaryRemoveValue (attributes, MAC_FONT_LANGUAGES_ATTRIBUTE);
+      CFDictionaryRemoveValue (attributes, kCTFontLanguagesAttribute);
     }
 
   val = Qnil;
@@ -2162,16 +2268,16 @@ macfont_list (struct frame *f, Lisp_Object spec)
   for (i = 0; i < families_count; i++)
     {
       CFStringRef family_name = CFArrayGetValueAtIndex (families, i);
-      FontDescriptorRef pat_desc;
+      CTFontDescriptorRef pat_desc;
       CFArrayRef descs;
       CFIndex descs_count;
       CFMutableArrayRef filtered_descs, traits_array;
       Lisp_Object entity;
       int j;
 
-      CFDictionarySetValue (attributes, MAC_FONT_FAMILY_NAME_ATTRIBUTE,
+      CFDictionarySetValue (attributes, kCTFontFamilyNameAttribute,
                             family_name);
-      pat_desc = mac_font_descriptor_create_with_attributes (attributes);
+      pat_desc = CTFontDescriptorCreateWithAttributes (attributes);
       if (! pat_desc)
         goto err;
 
@@ -2180,13 +2286,11 @@ macfont_list (struct frame *f, Lisp_Object spec)
          So we use CTFontDescriptorCreateMatchingFontDescriptor (no
          trailing "s") for such a font.  */
       if (!CFEqual (family_name, CFSTR ("LastResort")))
-        descs = mac_font_descriptor_create_matching_font_descriptors (pat_desc,
-                                                                      NULL);
+        descs = CTFontDescriptorCreateMatchingFontDescriptors (pat_desc, NULL);
       else
         {
-          FontDescriptorRef lr_desc =
-            mac_font_descriptor_create_matching_font_descriptor (pat_desc,
-                                                                 NULL);
+          CTFontDescriptorRef lr_desc =
+            CTFontDescriptorCreateMatchingFontDescriptor (pat_desc, NULL);
           if (lr_desc)
             {
               descs = CFArrayCreate (NULL, (const void **) &lr_desc, 1,
@@ -2198,7 +2302,7 @@ macfont_list (struct frame *f, Lisp_Object spec)
         }
       CFRelease (pat_desc);
       if (! descs)
-        goto err;
+        continue;
 
       descs_count = CFArrayGetCount (descs);
       if (descs_count == 0
@@ -2215,31 +2319,30 @@ macfont_list (struct frame *f, Lisp_Object spec)
       traits_array = CFArrayCreateMutable (NULL, descs_count, NULL);
       for (j = 0; j < descs_count; j++)
         {
-          FontDescriptorRef desc = CFArrayGetValueAtIndex (descs, j);
+          CTFontDescriptorRef desc = CFArrayGetValueAtIndex (descs, j);
           CFDictionaryRef dict;
           CFNumberRef num;
-          FontSymbolicTraits sym_traits;
+          CTFontSymbolicTraits sym_traits;
 
-          dict = mac_font_descriptor_copy_attribute (desc,
-                                                     MAC_FONT_TRAITS_ATTRIBUTE);
+          dict = CTFontDescriptorCopyAttribute (desc, kCTFontTraitsAttribute);
           if (dict == NULL)
             continue;
 
-          num = CFDictionaryGetValue (dict, MAC_FONT_SYMBOLIC_TRAIT);
+          num = CFDictionaryGetValue (dict, kCTFontSymbolicTrait);
           CFRelease (dict);
           if (num == NULL
               || !cfnumber_get_font_symbolic_traits_value (num, &sym_traits))
             continue;
 
           if (spacing >= 0
-              && !(synth_sym_traits & MAC_FONT_TRAIT_MONO_SPACE)
-              && (((sym_traits & MAC_FONT_TRAIT_MONO_SPACE) != 0)
+              && !(synth_sym_traits & kCTFontTraitMonoSpace)
+              && (((sym_traits & kCTFontTraitMonoSpace) != 0)
                   != (spacing >= FONT_SPACING_MONO)))
             continue;
 
           /* Don't use a color bitmap font unless its family is
              explicitly specified.  */
-          if ((sym_traits & MAC_FONT_TRAIT_COLOR_GLYPHS) && NILP (family))
+          if ((sym_traits & kCTFontTraitColorGlyphs) && NILP (family))
             continue;
 
           if (j > 0
@@ -2258,27 +2361,26 @@ macfont_list (struct frame *f, Lisp_Object spec)
 
       for (j = 0; j < descs_count; j++)
         {
-          FontDescriptorRef desc = CFArrayGetValueAtIndex (descs, j);
-          FontSymbolicTraits sym_traits =
-            ((FontSymbolicTraits) (uintptr_t)
+          CTFontDescriptorRef desc = CFArrayGetValueAtIndex (descs, j);
+          CTFontSymbolicTraits sym_traits =
+            ((CTFontSymbolicTraits) (uintptr_t)
              CFArrayGetValueAtIndex (traits_array, j));
-          FontSymbolicTraits mask_min, mask_max, imask, bmask, mmask;
+          CTFontSymbolicTraits mask_min, mask_max, imask, bmask, mmask;
 
           mask_min = ((synth_sym_traits ^ sym_traits)
-                      & (MAC_FONT_TRAIT_ITALIC | MAC_FONT_TRAIT_BOLD));
+                      & (kCTFontTraitItalic | kCTFontTraitBold));
           if (FONT_SLANT_NUMERIC (spec) < 0)
-            mask_min &= ~MAC_FONT_TRAIT_ITALIC;
+            mask_min &= ~kCTFontTraitItalic;
           if (FONT_WEIGHT_NUMERIC (spec) < 0)
-            mask_min &= ~MAC_FONT_TRAIT_BOLD;
+            mask_min &= ~kCTFontTraitBold;
 
           mask_max = (synth_sym_traits & ~sym_traits);
           /* Synthetic bold does not work for bitmap-only fonts on Mac
              OS X 10.6.  */
-          if ((mask_min ^ mask_max) & MAC_FONT_TRAIT_BOLD)
+          if ((mask_min ^ mask_max) & kCTFontTraitBold)
             {
               CFNumberRef format =
-                mac_font_descriptor_copy_attribute (desc,
-                                                    MAC_FONT_FORMAT_ATTRIBUTE);
+                CTFontDescriptorCopyAttribute (desc, kCTFontFormatAttribute);
 
               if (format)
                 {
@@ -2286,24 +2388,24 @@ macfont_list (struct frame *f, Lisp_Object spec)
 
                   if (CFNumberGetValue (format, kCFNumberSInt32Type,
                                         &format_val)
-                      && format_val == MAC_FONT_FORMAT_BITMAP)
-                    mask_max &= ~MAC_FONT_TRAIT_BOLD;
+                      && format_val == kCTFontFormatBitmap)
+                    mask_max &= ~kCTFontTraitBold;
                 }
             }
           if (spacing >= 0)
-            mask_min |= (mask_max & MAC_FONT_TRAIT_MONO_SPACE);
+            mask_min |= (mask_max & kCTFontTraitMonoSpace);
 
-          for (mmask = (mask_min & MAC_FONT_TRAIT_MONO_SPACE);
-               mmask <= (mask_max & MAC_FONT_TRAIT_MONO_SPACE);
-               mmask += MAC_FONT_TRAIT_MONO_SPACE)
-            for (bmask = (mask_min & MAC_FONT_TRAIT_BOLD);
-                 bmask <= (mask_max & MAC_FONT_TRAIT_BOLD);
-                 bmask += MAC_FONT_TRAIT_BOLD)
-              for (imask = (mask_min & MAC_FONT_TRAIT_ITALIC);
-                   imask <= (mask_max & MAC_FONT_TRAIT_ITALIC);
-                   imask += MAC_FONT_TRAIT_ITALIC)
+          for (mmask = (mask_min & kCTFontTraitMonoSpace);
+               mmask <= (mask_max & kCTFontTraitMonoSpace);
+               mmask += kCTFontTraitMonoSpace)
+            for (bmask = (mask_min & kCTFontTraitBold);
+                 bmask <= (mask_max & kCTFontTraitBold);
+                 bmask += kCTFontTraitBold)
+              for (imask = (mask_min & kCTFontTraitItalic);
+                   imask <= (mask_max & kCTFontTraitItalic);
+                   imask += kCTFontTraitItalic)
                 {
-                  FontSymbolicTraits synth = (imask | bmask | mmask);
+                  CTFontSymbolicTraits synth = (imask | bmask | mmask);
 
                   if (synth == 0
                       || macfont_closest_traits_index_p (traits_array,
@@ -2344,20 +2446,19 @@ macfont_match (struct frame * frame, Lisp_Object spec)
 {
   Lisp_Object entity = Qnil;
   CFMutableDictionaryRef attributes;
-  FontDescriptorRef pat_desc = NULL, desc = NULL;
+  CTFontDescriptorRef pat_desc = NULL, desc = NULL;
 
   block_input ();
 
   attributes = macfont_create_attributes_with_spec (spec);
   if (attributes)
     {
-      pat_desc = mac_font_descriptor_create_with_attributes (attributes);
+      pat_desc = CTFontDescriptorCreateWithAttributes (attributes);
       CFRelease (attributes);
     }
   if (pat_desc)
     {
-      desc = mac_font_descriptor_create_matching_font_descriptor (pat_desc,
-                                                                  NULL);
+      desc = CTFontDescriptorCreateMatchingFontDescriptor (pat_desc, NULL);
       CFRelease (pat_desc);
     }
   if (desc)
@@ -2380,7 +2481,7 @@ macfont_list_family (struct frame *frame)
 
   block_input ();
 
-  families = mac_font_create_available_families ();
+  families = macfont_copy_available_families_cache ();
   if (families)
     {
       CFIndex i, count = CFArrayGetCount (families);
@@ -2415,8 +2516,8 @@ macfont_open (struct frame * f, Lisp_Object entity, int pixel_size)
   struct macfont_info *macfont_info = NULL;
   struct font *font;
   int size;
-  FontRef macfont;
-  FontSymbolicTraits sym_traits;
+  CTFontRef macfont;
+  CTFontSymbolicTraits sym_traits;
   char name[256];
   int len, i, total_width;
   CGGlyph glyph;
@@ -2435,7 +2536,7 @@ macfont_open (struct frame * f, Lisp_Object entity, int pixel_size)
     size = pixel_size;
 
   block_input ();
-  macfont = mac_font_create_with_name (font_name, size);
+  macfont = CTFontCreateWithName (font_name, size, NULL);
   if (macfont)
     {
       int fontsize = (int) [((NSFont *) macfont) pointSize];
@@ -2456,7 +2557,7 @@ macfont_open (struct frame * f, Lisp_Object entity, int pixel_size)
 
   macfont_info = (struct macfont_info *) font;
   macfont_info->macfont = macfont;
-  macfont_info->cgfont = mac_font_copy_graphics_font (macfont);
+  macfont_info->cgfont = CTFontCopyGraphicsFont (macfont, NULL);
 
   val = assq_no_quit (QCdestination, AREF (entity, FONT_EXTRA_INDEX));
   if (CONSP (val) && EQ (XCDR (val), make_number (1)))
@@ -2472,13 +2573,13 @@ macfont_open (struct frame * f, Lisp_Object entity, int pixel_size)
   macfont_info->synthetic_bold_p = 0;
   macfont_info->spacing = MACFONT_SPACING_PROPORTIONAL;
   macfont_info->antialias = MACFONT_ANTIALIAS_DEFAULT;
-  if (!(sym_traits & MAC_FONT_TRAIT_ITALIC)
+  if (!(sym_traits & kCTFontTraitItalic)
       && FONT_SLANT_NUMERIC (entity) == FONT_SLANT_SYNTHETIC_ITALIC)
     macfont_info->synthetic_italic_p = 1;
-  if (!(sym_traits & MAC_FONT_TRAIT_BOLD)
+  if (!(sym_traits & kCTFontTraitBold)
       && FONT_WEIGHT_NUMERIC (entity) == FONT_WEIGHT_SYNTHETIC_BOLD)
     macfont_info->synthetic_bold_p = 1;
-  if (sym_traits & MAC_FONT_TRAIT_MONO_SPACE)
+  if (sym_traits & kCTFontTraitMonoSpace)
     macfont_info->spacing = MACFONT_SPACING_MONO;
   else if (INTEGERP (AREF (entity, FONT_SPACING_INDEX))
            && (XINT (AREF (entity, FONT_SPACING_INDEX))
@@ -2494,7 +2595,7 @@ macfont_open (struct frame * f, Lisp_Object entity, int pixel_size)
           NILP (XCDR (val)) ? MACFONT_ANTIALIAS_OFF : MACFONT_ANTIALIAS_ON;
     }
   macfont_info->color_bitmap_p = 0;
-  if (sym_traits & MAC_FONT_TRAIT_COLOR_GLYPHS)
+  if (sym_traits & kCTFontTraitColorGlyphs)
     macfont_info->color_bitmap_p = 1;
 
   glyph = macfont_get_glyph_for_character (font, ' ');
@@ -2523,12 +2624,12 @@ macfont_open (struct frame * f, Lisp_Object entity, int pixel_size)
     {
       CFStringRef family_name;
 
-      ascent = mac_font_get_ascent (macfont);
-      descent = mac_font_get_descent (macfont);
-      leading = mac_font_get_leading (macfont);
+      ascent = CTFontGetAscent (macfont);
+      descent = CTFontGetDescent (macfont);
+      leading = CTFontGetLeading (macfont);
       /* AppKit and WebKit do some adjustment to the heights of
          Courier, Helvetica, and Times.  */
-      family_name = mac_font_copy_family_name (macfont);
+      family_name = CTFontCopyFamilyName (macfont);
       if (family_name)
         {
           if (CFEqual (family_name, CFSTR ("Courier"))
@@ -2551,8 +2652,8 @@ macfont_open (struct frame * f, Lisp_Object entity, int pixel_size)
     font->descent = descent + leading + 0.5f;
   font->height = font->ascent + font->descent;
 
-  font->underline_position = - mac_font_get_underline_position (macfont) + 0.5f;
-  font->underline_thickness = mac_font_get_underline_thickness (macfont) + 0.5f;
+  font->underline_position = - CTFontGetUnderlinePosition (macfont) + 0.5f;
+  font->underline_thickness = CTFontGetUnderlineThickness (macfont) + 0.5f;
 
   unblock_input ();
 
@@ -2675,7 +2776,7 @@ macfont_draw (struct glyph_string *s, int from, int to, int x, int y,
   CGPoint text_position;
   CGGlyph *glyphs;
   CGPoint *positions;
-  CGFloat font_size = mac_font_get_size (macfont_info->macfont);
+  CGFloat font_size = CTFontGetSize (macfont_info->macfont);
   bool no_antialias_p =
     (NILP (ns_antialias_text)
      || macfont_info->antialias == MACFONT_ANTIALIAS_OFF
@@ -2790,7 +2891,7 @@ macfont_shape (Lisp_Object lgstring)
 {
   struct font *font = CHECK_FONT_GET_OBJECT (LGSTRING_FONT (lgstring));
   struct macfont_info *macfont_info = (struct macfont_info *) font;
-  FontRef macfont = macfont_info->macfont;
+  CTFontRef macfont = macfont_info->macfont;
   ptrdiff_t glyph_len, len, i, j;
   CFIndex nonbmp_len;
   UniChar *unichars;
@@ -2987,11 +3088,12 @@ struct non_default_uvs_table
    found or ill-formatted, then return NULL.  */
 
 static CFDataRef
-mac_font_copy_uvs_table (FontRef font)
+mac_font_copy_uvs_table (CTFontRef font)
 {
   CFDataRef cmap_table, uvs_table = NULL;
 
-  cmap_table = mac_font_copy_non_synthetic_table (font, cmapFontTableTag);
+  cmap_table = CTFontCopyTable (font, cmapFontTableTag,
+				kCTFontTableOptionNoOptions);
   if (cmap_table)
     {
       sfntCMapHeader *cmap = (sfntCMapHeader *) CFDataGetBytePtr (cmap_table);
@@ -3214,7 +3316,7 @@ static int
 macfont_variation_glyphs (struct font *font, int c, unsigned variations[256])
 {
   CFDataRef uvs_table;
-  CharacterCollection uvs_collection;
+  CTCharacterCollection uvs_collection;
   int i, n = 0;
 
   block_input ();
@@ -3234,7 +3336,7 @@ macfont_variation_glyphs (struct font *font, int c, unsigned variations[256])
         {
           CGGlyph glyph = glyphs[i];
 
-          if (uvs_collection != MAC_CHARACTER_COLLECTION_IDENTITY_MAPPING
+          if (uvs_collection != kCTCharacterCollectionIdentityMapping
               && glyph != kCGFontIndexInvalid)
             glyph = macfont_get_glyph_for_cid (font, uvs_collection, glyph);
           if (glyph == kCGFontIndexInvalid)
@@ -3272,8 +3374,8 @@ macfont_filter_properties (Lisp_Object font, Lisp_Object alist)
 }
 
 static Boolean
-mac_ctfont_descriptor_supports_languages (CTFontDescriptorRef descriptor,
-                                          CFArrayRef languages)
+mac_font_descriptor_supports_languages (CTFontDescriptorRef descriptor,
+					CFArrayRef languages)
 {
   Boolean result = true;
   CFArrayRef desc_languages =
@@ -3302,7 +3404,7 @@ mac_ctfont_descriptor_supports_languages (CTFontDescriptorRef descriptor,
 }
 
 static CFStringRef
-mac_ctfont_create_preferred_family_for_attributes (CFDictionaryRef attributes)
+mac_font_create_preferred_family_for_attributes (CFDictionaryRef attributes)
 {
   CFStringRef result = NULL;
   CFStringRef charset_string =
@@ -3320,7 +3422,7 @@ mac_ctfont_create_preferred_family_for_attributes (CFDictionaryRef attributes)
       CFTypeRef values[] = {NULL};
       CFIndex num_values = 0;
       CFArrayRef languages
-        = CFDictionaryGetValue (attributes, MAC_FONT_LANGUAGES_ATTRIBUTE);
+        = CFDictionaryGetValue (attributes, kCTFontLanguagesAttribute);
 
       if (languages && CFArrayGetCount (languages) > 0)
         {
@@ -3329,8 +3431,7 @@ mac_ctfont_create_preferred_family_for_attributes (CFDictionaryRef attributes)
           else
             {
               CFCharacterSetRef charset =
-                CFDictionaryGetValue (attributes,
-                                      MAC_FONT_CHARACTER_SET_ATTRIBUTE);
+                CFDictionaryGetValue (attributes, kCTFontCharacterSetAttribute);
 
               result = mac_font_copy_default_name_for_charset_and_languages (charset, languages);
             }
@@ -3376,8 +3477,8 @@ mac_ctfont_create_preferred_family_for_attributes (CFDictionaryRef attributes)
                     break;
                   if (i == 0)
                     font = font_in_run;
-                  else if (!mac_ctfont_equal_in_postscript_name (font,
-                                                                 font_in_run))
+                  else if (!mac_font_equal_in_postscript_name (font,
+							       font_in_run))
                     break;
                 }
               if (nruns > 0 && i == nruns)
@@ -3391,53 +3492,50 @@ mac_ctfont_create_preferred_family_for_attributes (CFDictionaryRef attributes)
 }
 
 static inline double
-mac_ctfont_get_advance_width_for_glyph (CTFontRef font, CGGlyph glyph)
+mac_font_get_advance_width_for_glyph (CTFontRef font, CGGlyph glyph)
 {
-  return CTFontGetAdvancesForGlyphs (font, kCTFontDefaultOrientation,
-                                     &glyph, NULL, 1);
+  return CTFontGetAdvancesForGlyphs (font, kCTFontOrientationDefault,
+				     &glyph, NULL, 1);
 }
 
 static inline CGRect
-mac_ctfont_get_bounding_rect_for_glyph (CTFontRef font, CGGlyph glyph)
+mac_font_get_bounding_rect_for_glyph (CTFontRef font, CGGlyph glyph)
 {
-  return CTFontGetBoundingRectsForGlyphs (font, kCTFontDefaultOrientation,
-                                          &glyph, NULL, 1);
+  return CTFontGetBoundingRectsForGlyphs (font, kCTFontOrientationDefault,
+					  &glyph, NULL, 1);
 }
 
 static CFArrayRef
-mac_ctfont_create_available_families (void)
+mac_font_create_available_families (void)
 {
   CFMutableArrayRef families = NULL;
+  CFArrayRef orig_families = CTFontManagerCopyAvailableFontFamilyNames ();
 
+  if (orig_families)
     {
-      CFArrayRef orig_families = CTFontManagerCopyAvailableFontFamilyNames ();
+      CFIndex i, count = CFArrayGetCount (orig_families);
 
-      if (orig_families)
-        {
-          CFIndex i, count = CFArrayGetCount (orig_families);
+      families = CFArrayCreateMutable (NULL, count, &kCFTypeArrayCallBacks);
+      if (families)
+	for (i = 0; i < count; i++)
+	  {
+	    CFStringRef family = CFArrayGetValueAtIndex (orig_families, i);
 
-          families = CFArrayCreateMutable (NULL, count, &kCFTypeArrayCallBacks);
-          if (families)
-            for (i = 0; i < count; i++)
-              {
-                CFStringRef family = CFArrayGetValueAtIndex (orig_families, i);
-
-                if (!CFStringHasPrefix (family, CFSTR ("."))
-                    && (CTFontManagerCompareFontFamilyNames (family,
-                                                             CFSTR ("LastResort"),
-                                                             NULL)
-                        != kCFCompareEqualTo))
-                  CFArrayAppendValue (families, family);
-              }
-          CFRelease (orig_families);
-        }
+	    if (!CFStringHasPrefix (family, CFSTR ("."))
+		&& (CTFontManagerCompareFontFamilyNames (family,
+							 CFSTR ("LastResort"),
+							 NULL)
+		    != kCFCompareEqualTo))
+	      CFArrayAppendValue (families, family);
+	  }
+      CFRelease (orig_families);
     }
 
-    return families;
+  return families;
 }
 
 static Boolean
-mac_ctfont_equal_in_postscript_name (CTFontRef font1, CTFontRef font2)
+mac_font_equal_in_postscript_name (CTFontRef font1, CTFontRef font2)
 {
   Boolean result;
   CFStringRef name1, name2;
@@ -3462,8 +3560,8 @@ mac_ctfont_equal_in_postscript_name (CTFontRef font1, CTFontRef font2)
 }
 
 static CTLineRef
-mac_ctfont_create_line_with_string_and_font (CFStringRef string,
-                                             CTFontRef macfont)
+mac_font_create_line_with_string_and_font (CFStringRef string,
+					   CTFontRef macfont)
 {
   CFStringRef keys[] = {kCTFontAttributeName, kCTKernAttributeName};
   CFTypeRef values[] = {NULL, NULL};
@@ -3512,7 +3610,7 @@ mac_ctfont_create_line_with_string_and_font (CFStringRef string,
             CFDictionaryGetValue (attributes, kCTFontAttributeName);
           if (font_in_run == NULL)
             break;
-          if (!mac_ctfont_equal_in_postscript_name (macfont, font_in_run))
+          if (!mac_font_equal_in_postscript_name (macfont, font_in_run))
             break;
         }
       if (i < nruns)
@@ -3526,11 +3624,11 @@ mac_ctfont_create_line_with_string_and_font (CFStringRef string,
 }
 
 static CFIndex
-mac_ctfont_shape (CTFontRef font, CFStringRef string,
-                  struct mac_glyph_layout *glyph_layouts, CFIndex glyph_len)
+mac_font_shape (CTFontRef font, CFStringRef string,
+		struct mac_glyph_layout *glyph_layouts, CFIndex glyph_len)
 {
   CFIndex used, result = 0;
-  CTLineRef ctline = mac_ctfont_create_line_with_string_and_font (string, font);
+  CTLineRef ctline = mac_font_create_line_with_string_and_font (string, font);
 
   if (ctline == NULL)
     return 0;
@@ -3737,7 +3835,7 @@ mac_ctfont_get_glyph_for_cid (CTFontRef font, CTCharacterCollection collection,
                 CFDictionaryGetValue (attributes, kCTFontAttributeName);
 
               if (font_in_run
-                  && mac_ctfont_equal_in_postscript_name (font_in_run, font))
+                  && mac_font_equal_in_postscript_name (font_in_run, font))
                 {
                   CTRunGetGlyphs (run, CFRangeMake (0, 1), &result);
                   if (result >= CTFontGetGlyphCount (font))
@@ -3763,7 +3861,7 @@ mac_font_copy_default_descriptors_for_language (CFStringRef language)
 #endif
     {
       CTFontRef user_font =
-        CTFontCreateUIFontForLanguage (kCTFontUserFontType, 0, language);
+	CTFontCreateUIFontForLanguage (kCTFontUIFontUser, 0, language);
 
       if (user_font)
         {
@@ -3807,7 +3905,7 @@ mac_font_copy_default_descriptors_for_language (CFStringRef language)
                       CFDictionaryRef attributes =
                         CFDictionaryCreate (NULL,
                                             ((const void **)
-                                             &MAC_FONT_NAME_ATTRIBUTE),
+                                             &kCTFontNameAttribute),
                                             ((const void **)
                                              &macfont_language_default_font_names[i].font_names[j]),
                                             1, &kCFTypeDictionaryKeyCallBacks,
@@ -3815,13 +3913,13 @@ mac_font_copy_default_descriptors_for_language (CFStringRef language)
 
                       if (attributes)
                         {
-                          FontDescriptorRef pat_desc =
-                            mac_font_descriptor_create_with_attributes (attributes);
+                          CTFontDescriptorRef pat_desc =
+                            CTFontDescriptorCreateWithAttributes (attributes);
 
                           if (pat_desc)
                             {
-                              FontDescriptorRef descriptor =
-                                mac_font_descriptor_create_matching_font_descriptor (pat_desc, NULL);
+                              CTFontDescriptorRef descriptor =
+                                CTFontDescriptorCreateMatchingFontDescriptor (pat_desc, NULL);
 
                               if (descriptor)
                                 {
@@ -3859,15 +3957,15 @@ mac_font_copy_default_name_for_charset_and_languages (CFCharacterSetRef charset,
 
       for (i = 0; i < count; i++)
         {
-          FontDescriptorRef descriptor =
+          CTFontDescriptorRef descriptor =
             CFArrayGetValueAtIndex (descriptors, i);
 
           if (macfont_supports_charset_and_languages_p (descriptor, charset,
                                                         Qnil, languages))
             {
               CFStringRef family =
-                mac_font_descriptor_copy_attribute (descriptor,
-                                                    MAC_FONT_FAMILY_NAME_ATTRIBUTE);
+                CTFontDescriptorCopyAttribute (descriptor,
+					       kCTFontFamilyNameAttribute);
               if (family)
                 {
                   if (!CFStringHasPrefix (family, CFSTR ("."))
@@ -3891,7 +3989,7 @@ void *
 macfont_get_nsctfont (struct font *font)
 {
   struct macfont_info *macfont_info = (struct macfont_info *) font;
-  FontRef macfont = macfont_info->macfont;
+  CTFontRef macfont = macfont_info->macfont;
 
   return (void *) macfont;
 }
@@ -3923,4 +4021,7 @@ syms_of_macfont (void)
 
   /* The boolean-valued font property key specifying the use of leading.  */
   DEFSYM (QCminspace, ":minspace");
+
+  macfont_family_cache = Qnil;
+  staticpro (&macfont_family_cache);
 }

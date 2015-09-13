@@ -179,11 +179,11 @@ Valid values are:
 		`delimit-columns-separator' and then followed by spaces.
 		For example, the result is: \"<ccc>:   <dddd>:  \"
 
-   'separator	align separators.  That is, `delimit-columns-after' is followed
+   `separator'	align separators.  That is, `delimit-columns-after' is followed
 		by spaces and then followed by `delimit-columns-separator'.
 		For example, the result is: \"<ccc>   :<dddd>  :\"
 
-   'padding	format column by filling with spaces before
+   `padding'	format column by filling with spaces before
 		`delimit-columns-after'.  That is, spaces are followed by
 		`delimit-columns-after' and then followed by
 		`delimit-columns-separator'.

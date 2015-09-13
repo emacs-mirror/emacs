@@ -243,6 +243,9 @@ enum event_kind
 
 };
 
+/* Bit width of an enum event_kind tag at the start of structs and unions.  */
+enum { EVENT_KIND_WIDTH = 16 };
+
 /* If a struct input_event has a kind which is SELECTION_REQUEST_EVENT
    or SELECTION_CLEAR_EVENT, then its contents are really described
    by `struct selection_input_event'; see xterm.h.  */
@@ -255,7 +258,7 @@ enum event_kind
 struct input_event
 {
   /* What kind of event was this?  */
-  ENUM_BF (event_kind) kind : 16;
+  ENUM_BF (event_kind) kind : EVENT_KIND_WIDTH;
 
   /* Used in scroll back click events.  */
   ENUM_BF (scroll_bar_part) part : 16;
@@ -379,6 +382,11 @@ struct terminal
      The only (eq) parts of this list that are visible from Lisp are
     the selection-values.  */
   Lisp_Object Vselection_alist;
+
+  /* If a char-table, this maps characters to terminal glyph codes.
+     If t, the mapping is not available.  If nil, it is not known
+     whether the mapping is available.  */
+  Lisp_Object glyph_code_table;
 
   /* All fields before `next_terminal' should be Lisp_Object and are traced
      by the GC.  All fields afterwards are ignored by the GC.  */
@@ -687,6 +695,7 @@ extern struct terminal *get_named_terminal (const char *);
 extern struct terminal *create_terminal (enum output_method,
 					 struct redisplay_interface *);
 extern void delete_terminal (struct terminal *);
+extern Lisp_Object terminal_glyph_code (struct terminal *, int);
 
 /* The initial terminal device, created by initial_term_init.  */
 extern struct terminal *initial_terminal;

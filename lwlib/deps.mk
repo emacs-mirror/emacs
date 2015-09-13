@@ -20,7 +20,7 @@
 
 ### Commentary:
 
-## This file is inserted in lwlib/Makefile if AUTO_DEPEND=no.
+## This file is included in lwlib/Makefile if AUTO_DEPEND=no.
 ## It defines static dependencies between the various source files.
 
 ### Code:

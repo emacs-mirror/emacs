@@ -475,7 +475,8 @@ happened."
                      (when (and (not (and unconditional
                                           (eq syntax ?\")))
                                 (setq skip-whitespace-info
-                                      (if (functionp electric-pair-skip-whitespace)
+                                      (if (and (not (eq electric-pair-skip-whitespace 'chomp))
+                                               (functionp electric-pair-skip-whitespace))
                                           (funcall electric-pair-skip-whitespace)
                                         electric-pair-skip-whitespace)))
                        (electric-pair--skip-whitespace))
@@ -498,7 +499,7 @@ happened."
                   (not (funcall electric-pair-inhibit-predicate
                                 last-command-event))))
          (save-excursion (electric-pair--insert pair)))))
-      (t
+      (_
        (when (and (if (functionp electric-pair-open-newline-between-pairs)
                       (funcall electric-pair-open-newline-between-pairs)
                     electric-pair-open-newline-between-pairs)
@@ -557,7 +558,8 @@ the mode if ARG is omitted or nil.
 
 Electric Pair mode is a global minor mode.  When enabled, typing
 an open parenthesis automatically inserts the corresponding
-closing parenthesis.  (Likewise for brackets, etc.)."
+closing parenthesis.  (Likewise for brackets, etc.). To toggle
+the mode in a single buffer, use `electric-pair-local-mode'."
   :global t :group 'electricity
   (if electric-pair-mode
       (progn
@@ -570,6 +572,19 @@ closing parenthesis.  (Likewise for brackets, etc.)."
                  #'electric-pair-post-self-insert-function)
     (remove-hook 'self-insert-uses-region-functions
                  #'electric-pair-will-use-region)))
+
+;;;###autoload
+(define-minor-mode electric-pair-local-mode
+  "Toggle `electric-pair-mode' only in this buffer."
+  :variable (buffer-local-value 'electric-pair-mode (current-buffer))
+  (cond
+   ((eq electric-pair-mode (default-value 'electric-pair-mode))
+    (kill-local-variable 'electric-pair-mode))
+   ((not (default-value 'electric-pair-mode))
+    ;; Locally enabled, but globally disabled.
+    (electric-pair-mode 1)		  ; Setup the hooks.
+    (setq-default electric-pair-mode nil) ; But keep it globally disabled.
+    )))
 
 (provide 'elec-pair)
 

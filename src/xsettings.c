@@ -537,10 +537,10 @@ parse_settings (unsigned char *prop,
               else
                 settings->seen &= ~SEEN_RGBA;
             }
-          else if (strcmp (name, "Xft/DPI") == 0)
+          else if (strcmp (name, "Xft/DPI") == 0 && ival != (CARD32) -1)
             {
               settings->seen |= SEEN_DPI;
-              settings->dpi = (double)ival/1024.0;
+              settings->dpi = ival / 1024.0;
             }
           else if (strcmp (name, "Xft/lcdfilter") == 0)
             {

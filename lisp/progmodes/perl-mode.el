@@ -204,10 +204,13 @@
   '((?\( . ?\)) (?\[ . ?\]) (?\{ . ?\}) (?\< . ?\>)))
 
 (eval-and-compile
+  (defconst perl--syntax-exp-intro-keywords
+    '("split" "if" "unless" "until" "while" "print"
+      "grep" "map" "not" "or" "and" "for" "foreach"))
+
   (defconst perl--syntax-exp-intro-regexp
     (concat "\\(?:\\(?:^\\|[^$@&%[:word:]]\\)"
-            (regexp-opt '("split" "if" "unless" "until" "while" "print"
-                          "grep" "map" "not" "or" "and" "for" "foreach"))
+            (regexp-opt perl--syntax-exp-intro-keywords)
             "\\|[-?:.,;|&+*=!~({[]\\|\\(^\\)\\)[ \t\n]*")))
 
 ;; FIXME: handle here-docs and regexps.
@@ -278,8 +281,13 @@
                       (forward-comment (- (point-max)))
                       (put-text-property (point) (match-end 2)
                                          'syntax-multiline t)
-                      (not (memq (char-before)
-                                 '(?? ?: ?. ?, ?\; ?= ?! ?~ ?\( ?\[)))))
+                      (not (or (and (eq ?w (char-syntax (preceding-char)))
+                                    (let ((end (point)))
+                                      (backward-sexp 1)
+                                      (member (buffer-substring (point) end)
+                                              perl--syntax-exp-intro-keywords)))
+                               (memq (char-before)
+                                     '(?? ?: ?. ?, ?\; ?= ?! ?~ ?\( ?\[))))))
                nil ;; A division sign instead of a regexp-match.
              (put-text-property (match-beginning 2) (match-end 2)
                                 'syntax-table (string-to-syntax "\""))
@@ -297,13 +305,19 @@
                                (looking-at-p "sub[ \t\n]"))
                ;; This is defining a function.
                nil
-             (put-text-property (match-beginning 3) (match-end 3)
-                                'syntax-table
-                                (if (assoc (char-after (match-beginning 3))
-                                           perl-quote-like-pairs)
-                                    (string-to-syntax "|")
-                                  (string-to-syntax "\"")))
-             (perl-syntax-propertize-special-constructs end)))))
+             (unless (nth 8 (save-excursion (syntax-ppss (match-beginning 1))))
+               ;; Don't add this syntax-table property if
+               ;; within a string, which would misbehave in cases such as
+               ;; $a = "foo y \"toto\" bar" where we'd end up changing the
+               ;; syntax of the backslash and hence de-escaping the embedded
+               ;; double quote.
+               (put-text-property (match-beginning 3) (match-end 3)
+                                  'syntax-table
+                                  (if (assoc (char-after (match-beginning 3))
+                                             perl-quote-like-pairs)
+                                      (string-to-syntax "|")
+                                    (string-to-syntax "\"")))
+               (perl-syntax-propertize-special-constructs end))))))
       ;; Here documents.
       ((concat
         "\\(?:"

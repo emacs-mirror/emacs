@@ -1,7 +1,8 @@
-\input texinfo
+\input texinfo  @c -*- coding: utf-8 -*-
 @c %**start of header
 @setfilename ../../info/org.info
 @settitle The Org Manual
+@include docstyle.texi
 
 @set VERSION 8.2.9
 
@@ -11,7 +12,6 @@
 @set MAINTAINER Carsten Dominik
 @set MAINTAINEREMAIL @email{carsten at orgmode dot org}
 @set MAINTAINERCONTACT @uref{mailto:carsten at orgmode dot org,contact the maintainer}
-@documentencoding UTF-8
 @c %**end of header
 @finalout
 
@@ -891,7 +891,7 @@ Recent Emacs distributions include a packaging system which lets you install
 Elisp libraries.  You can install Org with @kbd{M-x package-install RET org}.
 
 @noindent @b{Important}: you need to do this in a session where no @code{.org} file has
-been visited, i.e. where no Org built-in function have been loaded.
+been visited, i.e., where no Org built-in function have been loaded.
 Otherwise autoload Org functions will mess up the installation.
 
 Then, to make sure your Org configuration is taken into account, initialize
@@ -1053,7 +1053,7 @@ is not necessary.  In that case it is sufficient to start Emacs as
 shown below.
 
 @lisp
-;;; Minimal setup to load latest `org-mode'
+;;; Minimal setup to load latest 'org-mode'
 
 ;; activate debugging
 (setq debug-on-error t
@@ -2356,7 +2356,7 @@ Fields that are wider become clipped and end in the string @samp{=>}.
 Note that the full text is still in the buffer but is hidden.
 To see the full text, hold the mouse over the field---a tool-tip window
 will show the full content.  To edit such a field, use the command
-@kbd{C-c `} (that is @kbd{C-c} followed by the backquote).  This will
+@kbd{C-c `} (that is @kbd{C-c} followed by the grave accent).  This will
 open a new window with the full field.  Edit it and finish with @kbd{C-c
 C-c}.
 
@@ -2770,7 +2770,7 @@ It is also possible to write a formula in Emacs Lisp.  This can be useful
 for string manipulation and control structures, if Calc's functionality is
 not enough.
 
-If a formula starts with a single-quote followed by an opening parenthesis,
+If a formula starts with an apostrophe followed by an opening parenthesis,
 then it is evaluated as a Lisp form.  The evaluation should return either a
 string or a number.  Just as with @file{calc} formulas, you can specify modes
 and a printf format after a semicolon.
@@ -6330,7 +6330,8 @@ you stop working on that task, or when you mark the task done, the clock is
 stopped and the corresponding time interval is recorded.  It also computes
 the total time spent on each subtree@footnote{Clocking only works if all
 headings are indented with less than 30 stars.  This is a hardcoded
-limitation of `lmax' in `org-clock-sum'.} of a project.  And it remembers a
+limitation of @code{lmax} in @code{org-clock-sum}.} of a project.  And it
+remembers a
 history or tasks recently clocked, to that you can jump quickly between a
 number of tasks absorbing your time.
 
@@ -10312,14 +10313,14 @@ macro, they are removed again (depending on the variable
 @code{cdlatex-simplify-sub-super-scripts}).
 @item
 @kindex `
-Pressing the backquote @kbd{`} followed by a character inserts math
+Pressing the grave accent @kbd{`} followed by a character inserts math
 macros, also outside @LaTeX{} fragments.  If you wait more than 1.5 seconds
-after the backquote, a help window will pop up.
+after the grave accent, a help window will pop up.
 @item
 @kindex '
-Pressing the single-quote @kbd{'} followed by another character modifies
+Pressing the apostrophe @kbd{'} followed by another character modifies
 the symbol before point with an accent or a font.  If you wait more than
-1.5 seconds after the single-quote, a help window will pop up.  Character
+1.5 seconds after the apostrophe, a help window will pop up.  Character
 modification will work only inside @LaTeX{} fragments; outside the quote
 is normal.
 @end itemize
@@ -10444,7 +10445,7 @@ You can change the default state of this option by setting
 
 @item C-v
 Toggle visible-only export.  Only export the text that is currently
-visible, i.e. not hidden by outline visibility in the buffer.
+visible, i.e., not hidden by outline visibility in the buffer.
 
 @end table
 
@@ -12103,7 +12104,7 @@ Internet-style links for all other links.
 A link with no description and destined to a regular (un-itemized) outline
 heading is replaced with a cross-reference and section number of the heading.
 
-A @samp{\ref@{label@}}-style reference to an image, table etc. is replaced
+A @samp{\ref@{label@}}-style reference to an image, table etc.@: is replaced
 with a cross-reference and sequence number of the labeled entity.
 @xref{Labels and captions in ODT export}.
 
@@ -12192,7 +12193,7 @@ You can control the size and scale of the embedded images using the
 The exporter specifies the desired size of the image in the final document in
 units of centimeters.  In order to scale the embedded images, the exporter
 queries for pixel dimensions of the images using one of a) ImageMagick's
-@file{identify} program or b) Emacs `create-image' and `image-size'
+@file{identify} program or b) Emacs @code{create-image} and @code{image-size}
 APIs@footnote{Use of @file{ImageMagick} is only desirable.  However, if you
 routinely produce documents that have large images or you export your Org
 files that has images using a Emacs batch script, then the use of
@@ -13390,9 +13391,9 @@ the Org buffer and get them translated into @LaTeX{} without using the
 @lisp
 @group
 (defun my-latex-filter-nobreaks (text backend info)
-  "Ensure \" \" are properly handled in LaTeX export."
+  "Ensure \"_\" are properly handled in LaTeX export."
   (when (org-export-derived-backend-p backend 'latex)
-        (replace-regexp-in-string " " "~" text)))
+        (replace-regexp-in-string "_" "~" text)))
 
 (add-to-list 'org-export-filter-plain-text-functions
              'my-latex-filter-nobreaks)
@@ -13410,7 +13411,7 @@ from it (e.g., @code{beamer}).
 
 This is obviously the most powerful customization, since the changes happen
 at the parser level.  Indeed, some export back-ends are built as extensions
-of other ones (e.g. Markdown back-end an extension of HTML back-end).
+of other ones (e.g., Markdown back-end an extension of HTML back-end).
 
 Extending a back-end means that if an element type is not transcoded by the
 new back-end, it will be handled by the original one.  Hence you can extend
@@ -15730,7 +15731,7 @@ process.  For example, compare the following two blocks:
 : bye
 @end example
 
-In non-session mode, the `2' is not printed and does not appear.
+In non-session mode, the ``2'' is not printed and does not appear.
 
 @example
 #+BEGIN_SRC python :results output :session
@@ -15745,8 +15746,8 @@ In non-session mode, the `2' is not printed and does not appear.
 : bye
 @end example
 
-But in @code{:session} mode, the interactive interpreter receives input `2'
-and prints out its value, `2'.  (Indeed, the other print statements are
+But in @code{:session} mode, the interactive interpreter receives input ``2''
+and prints out its value, ``2''.  (Indeed, the other print statements are
 unnecessary here).
 
 @node Noweb reference syntax, Key bindings and useful functions, Results of evaluation, Working With Source Code
@@ -17814,8 +17815,8 @@ scheduled, and clocking, and any additional properties defined in the
 entry.  The return value is an alist.  Keys may occur multiple times
 if the property key was used several times.@*
 POM may also be @code{nil}, in which case the current entry is used.
-If WHICH is @code{nil} or `all', get all properties.  If WHICH is
-`special' or `standard', only get that subclass.
+If WHICH is @code{nil} or @code{all}, get all properties.  If WHICH is
+@code{special} or @code{standard}, only get that subclass.
 @end defun
 @vindex org-use-property-inheritance
 @findex org-insert-property-drawer
@@ -18486,7 +18487,7 @@ enabled source code highlighting in Gnus.
 Max-Planck-Institute for Neurology.  He also inspired the creation of a
 concept index for HTML export.
 @item
-@i{J@"urgen Vollmer} contributed code generating the table of contents
+@i{Jürgen Vollmer} contributed code generating the table of contents
 in HTML output.
 @item
 @i{Samuel Wales} has provided important feedback and bug reports.

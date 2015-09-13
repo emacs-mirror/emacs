@@ -200,7 +200,7 @@
    `(let* (,@(append varlist
                      '((modified (buffer-modified-p)) (buffer-undo-list t)
                        (inhibit-read-only t) (inhibit-point-motion-hooks t)
-                       before-change-functions after-change-functions
+                       (inhibit-modification-hooks t)
                        deactivate-mark buffer-file-name buffer-file-truename)))
      ,@body
      (when (and (not modified) (buffer-modified-p))
@@ -336,7 +336,7 @@ If nil, means information for all faces will be saved.")
 With arg, turn Fast Lock mode on if and only if arg is positive and the buffer
 is associated with a file.  Enable it automatically in your `~/.emacs' by:
 
- (setq font-lock-support-mode 'fast-lock-mode)
+ (setq font-lock-support-mode \\='fast-lock-mode)
 
 If Fast Lock mode is enabled, and the current buffer does not contain any text
 properties, any associated Font Lock cache is used if its timestamp matches the
@@ -538,7 +538,7 @@ If the same file has different cache file names when edited on different
 machines, e.g., on one machine the cache file name has the prefix `#home',
 perhaps due to automount, try putting in your `~/.emacs' something like:
 
- (setq directory-abbrev-alist (cons '(\"^/home/\" . \"/\") directory-abbrev-alist))
+ (setq directory-abbrev-alist (cons \\='(\"^/home/\" . \"/\") directory-abbrev-alist))
 
 Emacs automagically removes the common `/tmp_mnt' automount prefix by default.
 

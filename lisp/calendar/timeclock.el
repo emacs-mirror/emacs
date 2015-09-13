@@ -919,7 +919,7 @@ following format:
   (DEBT ENTRIES-BY-DAY ENTRIES-BY-PROJECT)
 
 DEBT is a floating point number representing the number of seconds
-\"owed\" before any work was done.  For a new file (one without a 'b'
+“owed” before any work was done.  For a new file (one without a `b'
 entry), this is always zero.
 
 The two entries lists have similar formats.  They are both alists,

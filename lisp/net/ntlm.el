@@ -3,8 +3,9 @@
 ;; Copyright (C) 2001, 2007-2015 Free Software Foundation, Inc.
 
 ;; Author: Taro Kawagishi <tarok@transpulse.org>
-;; Keywords: NTLM, SASL
-;; Version: 1.00
+;; Maintainer: Thomas Fitzsimmons <fitzsim@fitzsim.org>
+;; Keywords: NTLM, SASL, comm
+;; Version: 2.00
 ;; Created: February 2001
 
 ;; This file is part of GNU Emacs.
@@ -65,6 +66,27 @@
 ;;; Code:
 
 (require 'md4)
+(require 'hmac-md5)
+(require 'calc)
+
+(defgroup ntlm nil
+  "NTLM (NT LanManager) authentication."
+  :version "25.1"
+  :group 'comm)
+
+(defcustom ntlm-compatibility-level 5
+  "The NTLM compatibility level.
+Ordered from 0, the oldest, least-secure level through 5, the
+newest, most-secure level.  Newer servers may reject lower
+levels.  At levels 3 through 5, send LMv2 and NTLMv2 responses.
+At levels 0, 1 and 2, send LM and NTLM responses.
+
+In this implementation, levels 0, 1 and 2 are the same (old,
+insecure), and levels 3, 4 and 5 are the same (new, secure).  If
+NTLM authentication isn't working at level 5, try level 0.  The
+other levels are only present because other clients have six
+levels."
+  :type '(choice (const 0) (const 1) (const 2) (const 3) (const 4) (const 5)))
 
 ;;;
 ;;; NTLM authentication interface functions
@@ -112,6 +134,39 @@ is not given."
 	`(string-as-unibyte ,string)
       string)))
 
+(defun ntlm-compute-timestamp ()
+  "Compute an NTLMv2 timestamp.
+Return a unibyte string representing the number of tenths of a
+microsecond since January 1, 1601 as a 64-bit little-endian
+signed integer."
+  (let* ((s-to-tenths-of-us "mul(add(lsh($1,16),$2),10000000)")
+	 (us-to-tenths-of-us "mul($3,10)")
+	 (ps-to-tenths-of-us "idiv($4,100000)")
+	 (tenths-of-us-since-jan-1-1601
+	  (apply 'calc-eval (concat "add(add(add("
+				    s-to-tenths-of-us ","
+				    us-to-tenths-of-us "),"
+				    ps-to-tenths-of-us "),"
+				    ;; tenths of microseconds between
+				    ;; 1601-01-01 and 1970-01-01
+				    "116444736000000000)")
+		 ;; add trailing zeros to support old current-time formats
+		 'rawnum (append (current-time) '(0 0))))
+	 result-bytes)
+    (dotimes (byte 8)
+      (push (calc-eval "and($1,16#FF)" 'rawnum tenths-of-us-since-jan-1-1601)
+	    result-bytes)
+      (setq tenths-of-us-since-jan-1-1601
+	    (calc-eval "rsh($1,8,64)" 'rawnum tenths-of-us-since-jan-1-1601)))
+    (apply 'unibyte-string (nreverse result-bytes))))
+
+(defun ntlm-generate-nonce ()
+  "Generate a random nonce, not to be used more than once.
+Return a random eight byte unibyte string."
+  (unibyte-string
+   (random 256) (random 256) (random 256) (random 256)
+   (random 256) (random 256) (random 256) (random 256)))
+
 (defun ntlm-build-auth-response (challenge user password-hashes)
   "Return the response string to a challenge string CHALLENGE given by
 the NTLM based server for the user USER and the password hash list
@@ -128,9 +183,9 @@ by PASSWORD-HASHES.  PASSWORD-HASHES should be a return value of
 	 uDomain-len uDomain-offs
 	 ;; response struct and its fields
 	 lmRespData			;lmRespData, 24 bytes
-	 ntRespData			;ntRespData, 24 bytes
+	 ntRespData			;ntRespData, variable length
 	 domain				;ascii domain string
-	 lu ld off-lm off-nt off-d off-u off-w off-s)
+	 lu ld ln off-lm off-nt off-d off-u off-w off-s)
     ;; extract domain string from challenge string
     (setq uDomain-len (md4-unpack-int16 (substring uDomain 0 2)))
     (setq uDomain-offs (md4-unpack-int32 (substring uDomain 4 8)))
@@ -144,30 +199,63 @@ by PASSWORD-HASHES.  PASSWORD-HASHES should be a return value of
       (setq domain (substring user (1+ (match-beginning 0))))
       (setq user (substring user 0 (match-beginning 0))))
 
-    ;; check if "negotiate NTLM2 key" flag is set in type 2 message
-    (if (not (zerop (logand (aref flags 2) 8)))
-	(let (randomString
-	      sessionHash)
-	  ;; generate NTLM2 session response data
-	  (setq randomString (string-make-unibyte
-			      (concat
-			       (make-string 1 (random 256))
-			       (make-string 1 (random 256))
-			       (make-string 1 (random 256))
-			       (make-string 1 (random 256))
-			       (make-string 1 (random 256))
-			       (make-string 1 (random 256))
-			       (make-string 1 (random 256))
-			       (make-string 1 (random 256)))))
-	  (setq sessionHash (secure-hash 'md5
-					 (concat challengeData randomString)
-					 nil nil t))
-	  (setq sessionHash (substring sessionHash 0 8))
-
-	  (setq lmRespData (concat randomString (make-string 16 0)))
-	  (setq ntRespData (ntlm-smb-owf-encrypt
-			    (cadr password-hashes) sessionHash)))
-      (progn
+    (unless (and (integerp ntlm-compatibility-level)
+		 (>= ntlm-compatibility-level 0)
+		 (<= ntlm-compatibility-level 5))
+      (error "Invalid ntlm-compatibility-level value"))
+    (if (and (>= ntlm-compatibility-level 3)
+	     (<= ntlm-compatibility-level 5))
+	;; extract target information block, if it is present
+	(if (< (cdr uDomain-offs) 48)
+	    (error "Failed to find target information block")
+	  (let* ((targetInfo-len (md4-unpack-int16 (substring rchallenge
+							      40 42)))
+		 (targetInfo-offs (md4-unpack-int32 (substring rchallenge
+							       44 48)))
+		 (targetInfo (substring rchallenge
+					(cdr targetInfo-offs)
+					(+ (cdr targetInfo-offs)
+					   targetInfo-len)))
+		 (upcase-user (upcase (ntlm-ascii2unicode user (length user))))
+		 (ntlmv2-hash (hmac-md5 (concat upcase-user
+						(ntlm-ascii2unicode
+						 domain (length domain)))
+					(cadr password-hashes)))
+		 (nonce (ntlm-generate-nonce))
+		 (blob (concat (make-string 2 1)
+			       (make-string 2 0)	; blob signature
+			       (make-string 4 0)	; reserved value
+			       (ntlm-compute-timestamp) ; timestamp
+			       nonce			; client nonce
+			       (make-string 4 0)	; unknown
+			       targetInfo		; target info
+			       (make-string 4 0)))	; unknown
+		 ;; for reference: LMv2 interim calculation
+		 ;; (lm-interim (hmac-md5 (concat challengeData nonce)
+		 ;;                       ntlmv2-hash))
+		 (nt-interim (hmac-md5 (concat challengeData blob)
+				       ntlmv2-hash)))
+	    ;; for reference: LMv2 field, but match other clients that
+	    ;; send all zeros
+	    ;; (setq lmRespData (concat lm-interim nonce))
+	    (setq lmRespData (make-string 24 0))
+	    (setq ntRespData (concat nt-interim blob))))
+      ;; compatibility level is 2, 1 or 0
+      ;; level 2 should be treated specially but it's not clear how,
+      ;; so just treat it the same as levels 0 and 1
+      ;; check if "negotiate NTLM2 key" flag is set in type 2 message
+      (if (not (zerop (logand (aref flags 2) 8)))
+	  (let (randomString
+		sessionHash)
+	    ;; generate NTLM2 session response data
+	    (setq randomString (ntlm-generate-nonce))
+	    (setq sessionHash (secure-hash 'md5
+					   (concat challengeData randomString)
+					   nil nil t))
+	    (setq sessionHash (substring sessionHash 0 8))
+	    (setq lmRespData (concat randomString (make-string 16 0)))
+	    (setq ntRespData (ntlm-smb-owf-encrypt
+			      (cadr password-hashes) sessionHash)))
 	;; generate response data
 	(setq lmRespData
 	      (ntlm-smb-owf-encrypt (car password-hashes) challengeData))
@@ -177,12 +265,13 @@ by PASSWORD-HASHES.  PASSWORD-HASHES should be a return value of
     ;; get offsets to fields to pack the response struct in a string
     (setq lu (length user))
     (setq ld (length domain))
+    (setq ln (length ntRespData))
     (setq off-lm 64)			;offset to string 'lmResponse
     (setq off-nt (+ 64 24))		;offset to string 'ntResponse
-    (setq off-d (+ 64 48))		;offset to string 'uDomain
-    (setq off-u (+ 64 48 (* 2 ld)))	;offset to string 'uUser
-    (setq off-w (+ 64 48 (* 2 (+ ld lu)))) ;offset to string 'uWks
-    (setq off-s (+ 64 48 (* 2 (+ ld lu lu)))) ;offset to string 'sessionKey
+    (setq off-d (+ 64 24 ln))		;offset to string 'uDomain
+    (setq off-u (+ 64 24 ln (* 2 ld)))	;offset to string 'uUser
+    (setq off-w (+ 64 24 ln (* 2 (+ ld lu)))) ;offset to string 'uWks
+    (setq off-s (+ 64 24 ln (* 2 (+ ld lu lu)))) ;offset to string 'sessionKey
     ;; pack the response struct in a string
     (concat "NTLMSSP\0"			;response ident field, 8 bytes
 	    (md4-pack-int32 '(0 . 3))	;response msgType field, 4 bytes
@@ -194,9 +283,9 @@ by PASSWORD-HASHES.  PASSWORD-HASHES should be a return value of
 	    (md4-pack-int32 (cons 0 off-lm)) ;field offset
 
 	    ;; ntResponse field, 8 bytes
-	    ;;AddBytes(response,ntResponse,ntRespData,24);
-	    (md4-pack-int16 24)		;len field
-	    (md4-pack-int16 24)		;maxlen field
+	    ;;AddBytes(response,ntResponse,ntRespData,ln);
+	    (md4-pack-int16 ln)	;len field
+	    (md4-pack-int16 ln)	;maxlen field
 	    (md4-pack-int32 (cons 0 off-nt)) ;field offset
 
 	    ;; uDomain field, 8 bytes

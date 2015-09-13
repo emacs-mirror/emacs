@@ -173,15 +173,15 @@ See the documentation for `calendar-holidays' for details."
   '((holiday-bahai-new-year)
     (holiday-bahai-ridvan)      ; respects calendar-bahai-all-holidays-flag
     (holiday-fixed  5 23 "Declaration of the Báb")
-    (holiday-fixed  5 29 "Ascension of Bahá'u'lláh")
+    (holiday-fixed  5 29 "Ascension of Bahá’u’lláh")
     (holiday-fixed  7  9 "Martyrdom of the Báb")
     (holiday-fixed 10 20 "Birth of the Báb")
-    (holiday-fixed 11 12 "Birth of Bahá'u'lláh")
+    (holiday-fixed 11 12 "Birth of Bahá’u’lláh")
     (if calendar-bahai-all-holidays-flag
         (append
          (holiday-fixed 11 26 "Day of the Covenant")
-         (holiday-fixed 11 28 "Ascension of `Abdu'l-Bahá")))))
-  "Bahá'í holidays.
+         (holiday-fixed 11 28 "Ascension of `Abdu’l-Bahá")))))
+  "Bahá’í holidays.
 See the documentation for `calendar-holidays' for details."
   :type 'sexp
   :group 'holidays)
@@ -254,7 +254,7 @@ Several basic functions are provided for this purpose:
                                K>0, and MONTH's last day otherwise.
     (holiday-hebrew MONTH DAY STRING)  a fixed date on the Hebrew calendar
     (holiday-islamic MONTH DAY STRING) a fixed date on the Islamic calendar
-    (holiday-bahai MONTH DAY STRING)   a fixed date on the Bahá'í calendar
+    (holiday-bahai MONTH DAY STRING)   a fixed date on the Bahá’í calendar
     (holiday-julian MONTH DAY STRING)  a fixed date on the Julian calendar
     (holiday-sexp SEXP STRING) SEXP is a Gregorian-date-valued expression
                                in the variable `year'; if it evaluates to
@@ -267,9 +267,9 @@ For example, to add Bastille Day, celebrated in France on July 14, add
      (holiday-fixed 7 14 \"Bastille Day\")
 
 to the list.  To add Hurricane Supplication Day, celebrated in the Virgin
-Islands on the fourth Monday in August, add
+Islands on the fourth Monday in July, add
 
-     (holiday-float 8 1 4 \"Hurricane Supplication Day\")
+     (holiday-float 7 1 4 \"Hurricane Supplication Day\")
 
 to the list (the last Monday would be specified with `-1' instead of `4').
 To add the last day of Hanukkah to the list, use
@@ -282,11 +282,11 @@ To add the Islamic feast celebrating Mohammed's birthday, use
      (holiday-islamic 3 12 \"Mohammed's Birthday\")
 
 since the Islamic months are numbered from 1 starting with Muharram.
-To add an entry for the Bahá'í festival of Ridvan, use
+To add an entry for the Bahá’í festival of Ridvan, use
 
      (holiday-bahai 2 13 \"Festival of Ridvan\")
 
-since the Bahá'í months are numbered from 1 starting with Bahá.
+since the Bahá’í months are numbered from 1 starting with Bahá.
 To add Thomas Jefferson's birthday, April 2, 1743 (Julian), use
 
      (holiday-julian 4 2 \"Jefferson's Birthday\")
@@ -296,7 +296,7 @@ example, to include American presidential elections, which occur on the first
 Tuesday after the first Monday in November of years divisible by 4, add
 
      (holiday-sexp
-       '(if (zerop (% year 4))
+       \\='(if (zerop (% year 4))
            (calendar-gregorian-from-absolute
              (1+ (calendar-dayname-on-or-before
                    1 (+ 6 (calendar-absolute-from-gregorian
@@ -460,7 +460,7 @@ The optional LABEL is used to label the buffer created."
             (if holiday-islamic-holidays
                 (cons "Islamic" holiday-islamic-holidays))
             (if holiday-bahai-holidays
-                (cons "Bahá'í" holiday-bahai-holidays))
+                (cons "Bahá’í" holiday-bahai-holidays))
             (if holiday-oriental-holidays
                 (cons "Oriental" holiday-oriental-holidays))
             (if holiday-solar-holidays
@@ -791,8 +791,16 @@ is non-nil)."
 ;; Prior call to calendar-julian-from-absolute will autoload cal-julian.
 (declare-function calendar-julian-to-absolute "cal-julian" (date))
 
-(defun holiday-greek-orthodox-easter ()
-  "Date of Easter according to the rule of the Council of Nicaea."
+(defun holiday-greek-orthodox-easter (&optional n string)
+  "Date of Nth day after Easter (named STRING), if visible in calendar window.
+It is calculated according to the rule of the Council of Nicaea.
+Negative values of N are interpreted as days before Easter.
+STRING is used purely for display purposes.  The return value has
+the form ((MONTH DAY YEAR) STRING), where the date is that of the
+Nth day before or after Easter.
+
+For backwards compatibility, if this function is called with no
+arguments, it returns the date of Pascha (Greek Orthodox Easter)."
   (let* ((m displayed-month)
          (y displayed-year)
          (julian-year (progn
@@ -808,11 +816,10 @@ is non-nil)."
          (paschal-moon      ; day after full moon on or after March 21
           (- (calendar-julian-to-absolute (list 4 19 julian-year))
              shifted-epact))
-         (nicaean-easter           ; Sunday following the Paschal moon
-          (calendar-gregorian-from-absolute
-           (calendar-dayname-on-or-before 0 (+ paschal-moon 7)))))
-    (if (calendar-date-is-visible-p nicaean-easter)
-        (list (list nicaean-easter "Pascha (Greek Orthodox Easter)")))))
+	 (abs-easter (calendar-dayname-on-or-before 0 (+ paschal-moon 7)))
+	 (greg (calendar-gregorian-from-absolute (+ abs-easter (or n 0)))))
+    (if (calendar-date-is-visible-p greg)
+	(list (list greg (or string "Pascha (Greek Orthodox Easter)"))))))
 
 (provide 'holidays)
 

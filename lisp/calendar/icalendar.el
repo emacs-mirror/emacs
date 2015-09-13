@@ -39,7 +39,7 @@
 
 ;;; History:
 
-;;  0.07 onwards: see lisp/ChangeLog
+;;  0.07 onwards: see commit logs and ../ChangeLog*.
 
 ;;  0.06:  (2004-10-06)
 ;;  - Bugfixes regarding icalendar-import-format-*.
@@ -261,7 +261,7 @@ If non-nil all sexp diary entries are enumerated for
 `icalendar-export-sexp-enumeration-days' days instead of
 translating into an icalendar equivalent.  This affects the
 following sexp diary entries: `diary-anniversary',
-`diary-cyclic', `diary-date', `diary-float',`diary-block'.  All
+`diary-cyclic', `diary-date', `diary-float', `diary-block'.  All
 other sexp entries are enumerated in any case."
   :version "25.1"
   :type 'boolean
@@ -482,7 +482,7 @@ children."
     result))
 
 (defun icalendar--split-value (value-string)
-  "Split VALUE-STRING at ';='."
+  "Split VALUE-STRING at `;='."
   (let ((result '())
         param-name param-value)
     (when value-string
@@ -618,13 +618,7 @@ FIXME: multiple comma-separated values should be allowed!"
         (when (and (> (length isodatetimestring) 15)
                    ;; UTC specifier present
                    (char-equal ?Z (aref isodatetimestring 15)))
-          ;; if not UTC add current-time-zone offset
-          ;; current-time-zone should be called with actual UTC time
-          ;; (daylight saving at that time may differ to current one)
-          (setq second (+ (car (current-time-zone
-                                (encode-time second minute hour day month year
-                                             0)))
-                          second)))
+          (setq zone t))
         ;; shift if necessary
         (if day-shift
             (let ((mdy (calendar-gregorian-from-absolute
@@ -1124,10 +1118,10 @@ FExport diary data into iCalendar file: ")
            (setq found-error t)
            (save-current-buffer
              (set-buffer (get-buffer-create "*icalendar-errors*"))
-             (insert (format "Error in line %d -- %s: `%s'\n"
-                             (count-lines (point-min) (point))
-                             error-val
-                             entry-main))))))
+             (insert (format-message "Error in line %d -- %s: `%s'\n"
+                                     (count-lines (point-min) (point))
+                                     error-val
+                                     entry-main))))))
 
       ;; we're done, insert everything into the file
       (save-current-buffer
@@ -1635,8 +1629,8 @@ enumeration, given as a time value, in same format as returned by
                                  (icalendar--convert-ordinary-to-ical
                                   nonmarker (format "%4d/%02d/%02d %s" y m d see))))
                              (;TODO:
-                              (error (format "Unsupported Sexp-entry: %s"
-                                             entry-main))))))
+                              (error "Unsupported Sexp-entry: %s"
+                                     entry-main)))))
                     (number-sequence
                      0 (- icalendar-export-sexp-enumeration-days 1))))))
         (t
@@ -2479,8 +2473,8 @@ SUMMARY is not nil it must be a string that gives the summary of the
 entry.  In this case the user will be asked whether he wants to insert
 the entry."
   (when (or (not summary)
-            (y-or-n-p (format "Add appointment for `%s' to diary? "
-                              summary)))
+            (y-or-n-p (format-message "Add appointment for `%s' to diary? "
+                                      summary)))
     (when summary
       (setq non-marking
             (y-or-n-p (format "Make appointment non-marking? "))))
@@ -2506,8 +2500,8 @@ the entry."
 ;; ======================================================================
 (defun icalendar-import-format-sample (event)
   "Example function for formatting an iCalendar EVENT."
-  (format (concat "SUMMARY=`%s' DESCRIPTION=`%s' LOCATION=`%s' ORGANIZER=`%s' "
-                  "STATUS=`%s' URL=`%s' CLASS=`%s'")
+  (format (concat "SUMMARY='%s' DESCRIPTION='%s' LOCATION='%s' ORGANIZER='%s' "
+                  "STATUS='%s' URL='%s' CLASS='%s'")
           (or (icalendar--get-event-property event 'SUMMARY) "")
           (or (icalendar--get-event-property event 'DESCRIPTION) "")
           (or (icalendar--get-event-property event 'LOCATION) "")

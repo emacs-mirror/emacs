@@ -33,7 +33,7 @@
 ;;; User Variables:
 
 (defcustom eshell-stringify-t t
-  "If non-nil, the string representation of t is 't'.
+  "If non-nil, the string representation of t is \"t\".
 If nil, t will be represented only in the exit code of the function,
 and not printed as a string.  This causes Lisp functions to behave
 similarly to external commands, as far as successful result output."
@@ -88,7 +88,7 @@ specification of filenames (for example, in calling `find-file', or
 some other Lisp function that deals with files, not numbers), add the
 following in your init file:
 
-  (put 'find-file 'eshell-no-numeric-conversions t)
+  (put \\='find-file \\='eshell-no-numeric-conversions t)
 
 Any function with the property `eshell-no-numeric-conversions' set to
 a non-nil value, will be passed strings, not numbers, even when an

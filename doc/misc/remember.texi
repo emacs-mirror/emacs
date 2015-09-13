@@ -1,9 +1,9 @@
-\input texinfo @c -*-texinfo-*-
+\input texinfo  @c -*- mode: texinfo; coding: utf-8 -*-
 @c %**start of header
 @setfilename ../../info/remember.info
 @settitle Remember Manual
+@include docstyle.texi
 @syncodeindex fn cp
-@documentencoding UTF-8
 @c %**end of header
 
 @copying
@@ -115,8 +115,8 @@ Have you ever noticed that having a laptop to write on doesn't
 @emph{actually} increase the amount of quality material that you turn
 out, in the long run?  Perhaps it's because the time we save
 electronically in one way, we're losing electronically in another; the
-tool should never dominate one's focus.  As the mystic Faridu'd-Din
-`Attar wrote: ``Be occupied as little as possible with things of the
+tool should never dominate one's focus.  As the mystic Farīd ud-Dīn
+ʿAṭṭār wrote: ``Be occupied as little as possible with things of the
 outer world but much with things of the inner world; then right action
 will overcome inaction.''
 
@@ -270,7 +270,7 @@ that region, will be remembered.
 
 @defun remember-clipboard
 Remember the contents of the current clipboard.  This is most useful
-for remembering things from Netscape or other X Windows applications.
+for remembering things from a web browser or other X Windows applications.
 @end defun
 
 @defun remember-finalize
@@ -318,10 +318,10 @@ Save (if it is modified) and bury the current buffer.
 
 @item C-c C-c
 @itemx C-x C-s
-Remember the contents of the current buffer (`remember-finalize').
+Remember the contents of the current buffer (@code{remember-finalize}).
 
 @item C-c C-k
-Destroy the current @file{*Remember*} buffer (`remember-destroy').
+Destroy the current @file{*Remember*} buffer (@code{remember-destroy}).
 
 @end table
 

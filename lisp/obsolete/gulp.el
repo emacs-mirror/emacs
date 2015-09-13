@@ -70,7 +70,7 @@ please send them to me ASAP.
 Please don't send the whole file.  Instead, please send a patch made with
 `diff -c' that shows precisely the changes you would like me to install.
 Also please include itemized change log entries for your changes;
-please use lisp/ChangeLog as a guide for the style and for what kinds
+please use lisp/ChangeLog* as a guide for the style and for what kinds
 of information to include.
 
 Thanks.")

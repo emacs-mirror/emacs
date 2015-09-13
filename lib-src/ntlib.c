@@ -302,7 +302,7 @@ is_exec (const char * name)
 	 stricmp (p, ".cmd") == 0));
 }
 
-/* FIXME?  This is in config.nt now - is this still needed?  */
+/* FIXME?  This is in configure.ac now - is this still needed?  */
 #define IS_DIRECTORY_SEP(x) ((x) == '/' || (x) == '\\')
 
 /* We need this because nt/inc/sys/stat.h defines struct stat that is

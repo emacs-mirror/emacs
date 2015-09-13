@@ -164,7 +164,7 @@
 '/' or is empty)."
   (let ((val (widget-value widget)))
     (unless (string-match "^\\(\\|.*/\\)$" val)
-      (widget-put widget :error "Invalid directory entry: must end with '/'")
+      (widget-put widget :error "Invalid directory entry: must end with `/'")
       widget)))
 
 ;; help string for user options
@@ -2305,11 +2305,12 @@ Ignore byte-compiler warnings you might see."
 
 (defun vhdl-warning-when-idle (&rest args)
   "Wait until idle, then print out warning STRING and beep."
-  (if noninteractive
-      (vhdl-warning (apply 'format args) t)
-    (unless vhdl-warnings
-      (vhdl-run-when-idle .1 nil 'vhdl-print-warnings))
-    (push (apply 'format args) vhdl-warnings)))
+  (let ((message (apply #'format-message args)))
+    (if noninteractive
+        (vhdl-warning message t)
+      (unless vhdl-warnings
+        (vhdl-run-when-idle .1 nil 'vhdl-print-warnings))
+      (push message vhdl-warnings))))
 
 (defun vhdl-warning (string &optional nobeep)
   "Print out warning STRING and beep."
@@ -2486,37 +2487,18 @@ consistent searching."
 
 (defmacro vhdl-prepare-search-2 (&rest body)
   "Enable case insensitive search, switch to syntax table that includes '_',
-and remove `intangible' overlays, then execute BODY, and finally restore the
-old environment.  Used for consistent searching."
-  ;; FIXME: Why not just let-bind `inhibit-point-motion-hooks'?  --Stef
+arrange to ignore `intangible' overlays, then execute BODY, and finally restore
+the old environment.  Used for consistent searching."
   `(let ((case-fold-search t)		; case insensitive search
 	 (current-syntax-table (syntax-table))
-	 overlay-all-list overlay-intangible-list overlay)
+         (inhibit-point-motion-hooks t))
      ;; use extended syntax table
      (set-syntax-table vhdl-mode-ext-syntax-table)
-     ;; remove `intangible' overlays
-     (when (fboundp 'overlay-lists)
-       (setq overlay-all-list (overlay-lists))
-       (setq overlay-all-list
-	     (append (car overlay-all-list) (cdr overlay-all-list)))
-       (while overlay-all-list
-	 (setq overlay (car overlay-all-list))
-	 (when (memq 'intangible (overlay-properties overlay))
-	   (setq overlay-intangible-list
-		 (cons overlay overlay-intangible-list))
-	   (overlay-put overlay 'intangible nil))
-	 (setq overlay-all-list (cdr overlay-all-list))))
      ;; execute BODY safely
      (unwind-protect
          (progn ,@body)
        ;; restore syntax table
-       (set-syntax-table current-syntax-table)
-       ;; restore `intangible' overlays
-       (when (fboundp 'overlay-lists)
-         (while overlay-intangible-list
-           (overlay-put (car overlay-intangible-list) 'intangible t)
-           (setq overlay-intangible-list
-                 (cdr overlay-intangible-list)))))))
+       (set-syntax-table current-syntax-table))))
 
 (defmacro vhdl-visit-file (file-name issue-error &rest body)
   "Visit file FILE-NAME and execute BODY."
@@ -4379,7 +4361,7 @@ Usage:
       ;;;  -->  \" := \"      [[  -->  [        --CR  -->  comment-out code
       ..   -->  \" => \"      ]   -->  )        ---   -->  horizontal line
       ,,   -->  \" <= \"      ]]  -->  ]        ----  -->  display comment
-      ==   -->  \" == \"      ''  -->  \\\"
+      ==   -->  \" == \"      \\='\\='  -->  \\\"
 
 
   WORD COMPLETION:
@@ -4440,7 +4422,7 @@ Usage:
     according to option `vhdl-argument-list-indent'.
 
       If option `vhdl-indent-tabs-mode' is nil, spaces are used instead of
-    tabs.  `M-x tabify' and `M-x untabify' allow to convert spaces to tabs
+    tabs.  `\\[tabify]' and `\\[untabify]' allow to convert spaces to tabs
     and vice versa.
 
       Syntax-based indentation can be very slow in large files.  Option
@@ -4751,7 +4733,7 @@ Usage:
     `vhdl-highlight-translate-off' is non-nil.
 
       For documentation and customization of the used colors see
-    customization group `vhdl-highlight-faces' (`M-x customize-group').  For
+    customization group `vhdl-highlight-faces' (`\\[customize-group]').  For
     highlighting of matching parenthesis, see customization group
     `paren-showing'.  Automatic buffer highlighting is turned on/off by
     option `global-font-lock-mode' (`font-lock-auto-fontify' in XEmacs).
@@ -4811,14 +4793,14 @@ Usage:
     sessions using the \"Save Options\" menu entry.
 
       Options and their detailed descriptions can also be accessed by using
-    the \"Customize\" menu entry or the command `M-x customize-option' (`M-x
-    customize-group' for groups).  Some customizations only take effect
+    the \"Customize\" menu entry or the command `\\[customize-option]'
+    (`\\[customize-group]' for groups).  Some customizations only take effect
     after some action (read the NOTE in the option documentation).
     Customization can also be done globally (i.e. site-wide, read the
     INSTALL file).
 
       Not all options are described in this documentation, so go and see
-    what other useful user options there are (`M-x vhdl-customize' or menu)!
+    what other useful user options there are (`\\[vhdl-customize]' or menu)!
 
 
   FILE EXTENSIONS:
@@ -4826,7 +4808,7 @@ Usage:
     automatically recognized as VHDL source files.  To add an extension
     \".xxx\", add the following line to your Emacs start-up file (`.emacs'):
 
-      \(push '(\"\\\\.xxx\\\\'\" . vhdl-mode) auto-mode-alist)
+      \(push \\='(\"\\\\.xxx\\\\\\='\" . vhdl-mode) auto-mode-alist)
 
 
   HINTS:
@@ -4847,7 +4829,7 @@ Usage:
 Maintenance:
 ------------
 
-To submit a bug report, enter `M-x vhdl-submit-bug-report' within VHDL Mode.
+To submit a bug report, enter `\\[vhdl-submit-bug-report]' within VHDL Mode.
 Add a description of the problem and include a reproducible test case.
 
 Questions and enhancement requests can be sent to <reto@gnu.org>.
@@ -5732,7 +5714,7 @@ the offset is simply returned."
        (t nil)))))
 
 (defun vhdl-in-extended-identifier-p ()
-  "Determine if point is inside extended identifier (delimited by '\')."
+  "Determine if point is inside extended identifier (delimited by `\\')."
   (save-match-data
     (and (save-excursion (re-search-backward "\\\\" (vhdl-point 'bol) t))
 	 (save-excursion (re-search-forward "\\\\" (vhdl-point 'eol) t)))))
@@ -7402,11 +7384,11 @@ only-lines."
 		(- (nth 1 (current-time)) (aref vhdl-progress-info 2))))
     (let ((delta (- (aref vhdl-progress-info 1)
                     (aref vhdl-progress-info 0))))
-      (if (= 0 delta)
-          (message (concat string "... (100%s)") "%")
-        (message (concat string "... (%2d%s)")
-                 (/ (* 100 (- pos (aref vhdl-progress-info 0)))
-                    delta) "%")))
+      (message "%s... (%2d%%)" string
+	       (if (= 0 delta)
+		   100
+                 (floor (* 100.0 (- pos (aref vhdl-progress-info 0)))
+                        delta))))
     (aset vhdl-progress-info 2 (nth 1 (current-time)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -8289,7 +8271,7 @@ case fixing to a region.  Calls functions `vhdl-indent-buffer',
   (setq end (save-excursion (goto-char end) (point-marker)))
   (save-excursion ; remove DOS EOL characters in UNIX file
     (goto-char beg)
-    (while (search-forward "" nil t)
+    (while (search-forward "\r" nil t)
       (replace-match "" nil t)))
   (when (nth 0 vhdl-beautify-options) (vhdl-fixup-whitespace-region beg end t))
   (when (nth 1 vhdl-beautify-options) (vhdl-fix-statement-region beg end))
@@ -8753,14 +8735,15 @@ is omitted or nil."
 		  (let ((next-input (read-char)))
 		    (if (= next-input ?-) ; four dashes
 			(vhdl-comment-display t)
-		      (setq unread-command-events ; pushback the char
-			    (list (vhdl-character-to-event next-input))))))
-	      (setq unread-command-events ; pushback the char
-		    (list (vhdl-character-to-event next-input)))
+		      (push (vhdl-character-to-event next-input)
+                                        ; pushback the char
+                            unread-command-events))))
+              (push (vhdl-character-to-event next-input) ; pushback the char
+                    unread-command-events)
 	      (vhdl-comment-insert)))))
     (self-insert-command count)))
 
-(defun vhdl-electric-open-bracket (count) "'[' --> '(', '([' --> '['"
+(defun vhdl-electric-open-bracket (count) "`[' --> `(', `([' --> `['"
   (interactive "p")
   (if (and vhdl-stutter-mode (= count 1) (not (vhdl-in-literal)))
       (if (= (preceding-char) ?\()
@@ -8768,7 +8751,7 @@ is omitted or nil."
 	(insert-char ?\( 1))
     (self-insert-command count)))
 
-(defun vhdl-electric-close-bracket (count) "']' --> ')', ')]' --> ']'"
+(defun vhdl-electric-close-bracket (count) "`]' --> `)', `)]' --> `]'"
   (interactive "p")
   (if (and vhdl-stutter-mode (= count 1) (not (vhdl-in-literal)))
       (progn
@@ -8778,7 +8761,7 @@ is omitted or nil."
 	(blink-matching-open))
     (self-insert-command count)))
 
-(defun vhdl-electric-quote (count) "'' --> \""
+(defun vhdl-electric-quote (count) "\\='\\=' --> \""
   (interactive "p")
   (if (and vhdl-stutter-mode (= count 1) (not (vhdl-in-literal)))
       (if (= (preceding-char) vhdl-last-input-event)
@@ -8786,7 +8769,7 @@ is omitted or nil."
 	(insert-char ?\' 1))
     (self-insert-command count)))
 
-(defun vhdl-electric-semicolon (count) "';;' --> ' : ', ': ;' --> ' := '"
+(defun vhdl-electric-semicolon (count) "`;;' --> ` : ', `: ;' --> ` := '"
   (interactive "p")
   (if (and vhdl-stutter-mode (= count 1) (not (vhdl-in-literal)))
       (cond ((= (preceding-char) vhdl-last-input-event)
@@ -8800,7 +8783,7 @@ is omitted or nil."
 	    (t (insert-char ?\; 1)))
     (self-insert-command count)))
 
-(defun vhdl-electric-comma (count) "',,' --> ' <= '"
+(defun vhdl-electric-comma (count) "`,,' --> ` <= '"
   (interactive "p")
   (if (and vhdl-stutter-mode (= count 1) (not (vhdl-in-literal)))
       (cond ((= (preceding-char) vhdl-last-input-event)
@@ -8810,7 +8793,7 @@ is omitted or nil."
 	    (t (insert-char ?\, 1)))
     (self-insert-command count)))
 
-(defun vhdl-electric-period (count) "'..' --> ' => '"
+(defun vhdl-electric-period (count) "`..' --> ` => '"
   (interactive "p")
   (if (and vhdl-stutter-mode (= count 1) (not (vhdl-in-literal)))
       (cond ((= (preceding-char) vhdl-last-input-event)
@@ -8820,7 +8803,7 @@ is omitted or nil."
 	    (t (insert-char ?\. 1)))
     (self-insert-command count)))
 
-(defun vhdl-electric-equal (count) "'==' --> ' == '"
+(defun vhdl-electric-equal (count) "`==' --> ` == '"
   (interactive "p")
   (if (and vhdl-stutter-mode (= count 1) (not (vhdl-in-literal)))
       (cond ((= (preceding-char) vhdl-last-input-event)
@@ -10774,8 +10757,8 @@ If starting after end-comment-column, start a new line."
 	(setq code t))
       (unless code
 	(insert "--")) ; hardwire to 1 space or use vhdl-basic-offset?
-      (setq unread-command-events
-	    (list (vhdl-character-to-event next-input)))))) ; pushback the char
+      (push (vhdl-character-to-event next-input) ; pushback the char
+            unread-command-events))))
 
 (defun vhdl-comment-display (&optional line-exists)
   "Add 2 comment lines at the current indent, making a display comment."
@@ -11329,8 +11312,8 @@ but not if inside a comment or quote."
 	;; delete CR which is still in event queue
 	(if (fboundp 'enqueue-eval-event)
 	    (enqueue-eval-event 'delete-char -1)
-	  (setq unread-command-events	; push back a delete char
-		(list (vhdl-character-to-event ?\177))))))))
+	  (push (vhdl-character-to-event ?\177)	; push back a delete char
+                unread-command-events))))))
 
 (defun vhdl-template-alias-hook ()
   (vhdl-hooked-abbrev 'vhdl-template-alias))
@@ -13900,10 +13883,10 @@ hierarchy otherwise.")
       ;; do for all files
       (while file-list
 	(unless noninteractive
-	  (message "Scanning %s %s\"%s\"... (%2d%s)"
+	  (message "Scanning %s %s\"%s\"... (%2d%%)"
 		   (if is-directory "directory" "files")
 		   (or num-string "") name
-		   (/ (* 100 (- no-files (length file-list))) no-files) "%"))
+		   (floor (* 100.0 (- no-files (length file-list))) no-files)))
 	(let ((file-name (abbreviate-file-name (car file-list)))
 	      ent-list arch-list arch-ent-list conf-list
 	      pack-list pack-body-list inst-list inst-ent-list)

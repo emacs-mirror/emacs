@@ -52,8 +52,8 @@
   circumflex |    ^    | a^ -> â
     horn     |    +    | o+ -> ơ
  ------------+---------+----------
-    acute    |    '    | a' -> á
-    grave    |    `    | a` -> à
+    acute    |    \\='    | a\\=' -> á
+    grave    |    \\=`    | a\\=` -> à
   hook above |    ?    | a? -> ả
     tilde    |    ~    | a~ -> ã
    dot below |    .    | a. -> ạ

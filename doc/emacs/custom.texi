@@ -28,7 +28,7 @@ Reference Manual}.
                           to decide what to do; by setting variables,
                           you can control their functioning.
 * Key Bindings::        The keymaps say what command each key runs.
-                          By changing them, you can "redefine keys".
+                          By changing them, you can ``redefine keys''.
 * Init File::           How to write common customizations in the
                           initialization file.
 @end menu
@@ -778,7 +778,7 @@ fill-column's value is 70
 
 Automatically becomes buffer-local when set.
 This variable is safe as a file local variable if its value
-satisfies the predicate `integerp'.
+satisfies the predicate @code{integerp}.
 
 Documentation:
 Column beyond which automatic line-wrapping should happen.
@@ -2213,10 +2213,10 @@ require one and some contexts require the other.
 keys which send non-@acronym{ASCII} characters.
 
 @item True:
-@code{t} stands for `true'.
+@code{t} stands for ``true''.
 
 @item False:
-@code{nil} stands for `false'.
+@code{nil} stands for ``false''.
 
 @item Other Lisp objects:
 @cindex Lisp object syntax
@@ -2247,8 +2247,8 @@ line.
 (setq c-tab-always-indent nil)
 @end example
 
-Here we have a variable whose value is normally @code{t} for `true'
-and the alternative is @code{nil} for `false'.
+Here we have a variable whose value is normally @code{t} for ``true''
+and the alternative is @code{nil} for ``false''.
 
 @item
 Make searches case sensitive by default (in all buffers that do not
@@ -2440,9 +2440,7 @@ You can also simply disregard the errors that occur if the
 function is not defined.
 
 @example
-(condition case ()
-    (set-face-background 'region "grey75")
-  (error nil))
+(ignore-errors (set-face-background 'region "grey75"))
 @end example
 
 A @code{setq} on a variable which does not exist is generally

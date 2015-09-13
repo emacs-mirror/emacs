@@ -132,7 +132,7 @@ lib-src/rcs2log           # Copyright
 Cocoa/Emacs.base/Contents/Info.plist
 Cocoa/Emacs.base/Contents/Resources/English.lproj/InfoPlist.strings
 GNUstep/Emacs.base/Resources/Info-gnustep.plist
-   `set-copyright' in admin.el will do all the above.
+   'set-copyright' in admin.el will do all the above.
 
 aclocal.m4
 configure

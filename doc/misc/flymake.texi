@@ -4,8 +4,8 @@
 @set VERSION 0.3
 @set UPDATED April 2004
 @settitle GNU Flymake @value{VERSION}
+@include docstyle.texi
 @syncodeindex pg cp
-@documentencoding UTF-8
 @comment %**end of header
 
 @copying

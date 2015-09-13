@@ -337,7 +337,7 @@ Use the  `semantic-symref-hit-tags' method to get this list.")
   "List of buffers opened by `semantic-symref-result-get-tags'.")
 
 (defun semantic-symref-cleanup-recent-buffers-fcn ()
-  "Hook function to be used in 'post-command-hook' to cleanup buffers.
+  "Hook function to be used in `post-command-hook' to cleanup buffers.
 Buffers collected during symref can result in some files being
 opened multiple times for one operation.  This will keep buffers open
 until the next command is executed."
@@ -351,7 +351,7 @@ until the next command is executed."
   (setq semantic-symref-recently-opened-buffers nil)
   (remove-hook 'post-command-hook 'semantic-symref-cleanup-recent-buffers-fcn)
   )
-  
+
 (cl-defmethod semantic-symref-result-get-tags ((result semantic-symref-result)
 					    &optional open-buffers)
   "Get the list of tags from the symref result RESULT.
@@ -472,8 +472,12 @@ buffers that were opened."
     (goto-char (point-min))
     (forward-line (1- line))
 
-    ;; Search forward for the matching text
-    (when (re-search-forward (regexp-quote searchtxt)
+    ;; Search forward for the matching text.
+    ;; FIXME: This still fails if the regexp uses something specific
+    ;; to the extended syntax, like grouping.
+    (when (re-search-forward (if (memq searchtype '(regexp tagregexp))
+                                 searchtxt
+                               (regexp-quote searchtxt))
 			     (point-at-eol)
 			     t)
       (goto-char (match-beginning 0))
@@ -508,7 +512,7 @@ buffers that were opened."
    (searchtype :initarg :searchtype
 		:type symbol
 		:documentation "The type of search to do.
-Values could be `symbol, `regexp, 'tagname, or 'completion.")
+Values could be 'symbol, 'regexp, 'tagname, or 'completion.")
    (searchscope :initarg :searchscope
 		:type symbol
 		:documentation

@@ -1811,11 +1811,38 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 (defun archive-zip-summarize ()
   (goto-char (- (point-max) (- 22 18)))
   (search-backward-regexp "[P]K\005\006")
-  (let ((p (+ (point-min) (archive-l-e (+ (point) 16) 4)))
+  (let ((p (archive-l-e (+ (point) 16) 4))
         (maxlen 8)
 	(totalsize 0)
         files
-	visual)
+	visual
+        emacs-int-has-32bits)
+    (when (= p -1)
+      ;; If the offset of end-of-central-directory is -1, this is a
+      ;; Zip64 extended ZIP file format, and we need to glean the info
+      ;; from Zip64 records instead.
+      ;;
+      ;; First, find the Zip64 end-of-central-directory locator.
+      (search-backward "PK\006\007")
+      ;; Pay attention: the offset of Zip64 end-of-central-directory
+      ;; is a 64-bit field, so it could overflow the Emacs integer
+      ;; even on a 64-bit host, let alone 32-bit one.  But since we've
+      ;; already read the zip file into a buffer, and this is a byte
+      ;; offset into the file we've read, it must be short enough, so
+      ;; such an overflow can never happen, and we can safely read
+      ;; these 8 bytes into an Emacs integer.  Moreover, on host with
+      ;; 32-bit Emacs integer we can only read 4 bytes, since they are
+      ;; stored in little-endian byte order.
+      (setq emacs-int-has-32bits (<= most-positive-fixnum #x1fffffff))
+      (setq p (+ (point-min)
+                 (archive-l-e (+ (point) 8) (if emacs-int-has-32bits 4 8))))
+      (goto-char p)
+      ;; We should be at Zip64 end-of-central-directory record now.
+      (or (string= "PK\006\006" (buffer-substring p (+ p 4)))
+          (error "Unrecognized ZIP file format"))
+      ;; Offset to central directory:
+      (setq p (archive-l-e (+ p 48) (if emacs-int-has-32bits 4 8))))
+    (setq p (+ p (point-min)))
     (while (string= "PK\001\002" (buffer-substring p (+ p 4)))
       (let* ((creator (byte-after (+ p 5)))
 	     ;; (method  (archive-l-e (+ p 10) 2))

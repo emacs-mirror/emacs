@@ -325,10 +325,10 @@ operator you typically want to use it together with some other line-up
 settings, e.g. as follows \(the arglist-close setting is just a
 suggestion to get a consistent style):
 
-\(c-set-offset 'arglist-cont '(c-lineup-arglist-operators 0))
-\(c-set-offset 'arglist-cont-nonempty '(c-lineup-arglist-operators
+\(c-set-offset \\='arglist-cont \\='(c-lineup-arglist-operators 0))
+\(c-set-offset \\='arglist-cont-nonempty \\='(c-lineup-arglist-operators
                                         c-lineup-arglist))
-\(c-set-offset 'arglist-close '(c-lineup-arglist-close-under-paren))
+\(c-set-offset \\='arglist-close \\='(c-lineup-arglist-close-under-paren))
 
 Works with: arglist-cont, arglist-cont-nonempty."
   (save-excursion
@@ -1345,8 +1345,8 @@ For other semicolon contexts, no determination is made."
 
 (cc-provide 'cc-align)
 
-;;; Local Variables:
-;;; indent-tabs-mode: t
-;;; tab-width: 8
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: t
+;; tab-width: 8
+;; End:
 ;;; cc-align.el ends here

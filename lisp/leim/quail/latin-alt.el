@@ -48,8 +48,8 @@ special (so you can use that to enter a slash).
 
              | postfix | examples
  ------------+---------+----------
-  acute      |    '    | a' -> á
-  grave      |    `    | a` -> à
+  acute      |    \\='    | a\\=' -> á
+  grave      |    \\=`    | a\\=` -> à
   circumflex |    ^    | a^ -> â
   diaeresis  |    \"    | a\" -> ä
   tilde      |    ~    | a~ -> ã
@@ -62,7 +62,7 @@ It seems natural to use comma for cedillas, but that is
 inconvenient in practice because commas are needed very
 often after a letter.
 
-Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
+Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -209,20 +209,20 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  "latin-2-alt-postfix" "Latin-2" "2<" t
  "Latin-2 character input method with postfix modifiers
 This input method differs from `latin-2-postfix' in that
-comma and period are not special (use ` instead).
+comma and period are not special (use \\=` instead).
 
              | postfix | examples
  ------------+---------+----------
-  acute      |    '    | a' -> á
-  ogonek     |    `    | a` -> ą
+  acute      |    \\='    | a\\=' -> á
+  ogonek     |    \\=`    | a\\=` -> ą
   diaeresis  |    \"    | a\" -> ä
   circumflex |    ^    | a^ -> â
   breve      |    ~    | a~ -> ă
-  cedilla    |    `    | c` -> ç
+  cedilla    |    \\=`    | c\\=` -> ç
   caron      |    ~    | c~ -> č
   dbl. acute |    :    | o: -> ő
-  ring       |    `    | u` -> ů
-  dot        |    `    | z` -> ż
+  ring       |    \\=`    | u\\=` -> ů
+  dot        |    \\=`    | z\\=` -> ż
   stroke     |    /    | d/ -> đ
   others     |    /    | s/ -> ß
 
@@ -230,7 +230,7 @@ It seems natural to use period and comma for dots/rings and
 cedillas/ogoneks, but that is inconvenient in practice, because
 periods and commas are needed very often after a letter.
 
-Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
+Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -403,17 +403,17 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  "latin-3-alt-postfix" "Latin-3" "3<" t
  "Latin-3 character input method with postfix modifiers
 This input method differs from `latin-3-postfix' in that
-comma is not special (use ` instead), and period is not
+comma is not special (use \\=` instead), and period is not
 special (use slash instead).
 
              | postfix | examples
  ------------+---------+----------
-  acute      |    '    | a' -> á
-  grave      |    `    | a` -> à
+  acute      |    \\='    | a\\=' -> á
+  grave      |    \\=`    | a\\=` -> à
   circumflex |    ^    | a^ -> â
   diaeresis  |    \"    | a\" -> ä
   dot        |    /    | c/ -> ċ   i/ -> ı   I/ -> İ
-  cedilla    |    `    | c` -> ç
+  cedilla    |    \\=`    | c\\=` -> ç
   breve      |    ~    | g~ -> ğ
   tilde      |    ~    | n~ -> ñ
   stroke     |    /    | h/ -> ħ
@@ -423,7 +423,7 @@ It would be natural to use period and comma for dots and cedillas, but
 that would inconvenient in practice, because periods and commas are
 needed very often after a letter.
 
-Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
+Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -576,20 +576,20 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  "latin-4-alt-postfix" "Latin-4" "4<" t
  "Latin-4 characters input method with postfix modifiers
 This input method differs from `latin-4-postfix' in that
-comma is not special (use ` instead), and period is not
+comma is not special (use \\=` instead), and period is not
 special (use ~ instead).
 
              | postfix | examples
  ------------+---------+----------
-  acute      |    '    | a' -> á
+  acute      |    \\='    | a\\=' -> á
   circumflex |    ^    | a^ -> â
   diaeresis  |    \"    | a\" -> ä
-  ogonek     |    `    | a` -> ą
+  ogonek     |    \\=`    | a\\=` -> ą
   macron     |    -    | a- -> ā
   tilde      |    ~    | a~ -> ã
   caron      |    ~    | c~ -> č
   dot        |    ~    | e~ -> ė
-  cedilla    |    `    | k` -> ķ   g` -> ģ
+  cedilla    |    \\=`    | k\\=` -> ķ   g\\=` -> ģ
   stroke     |    /    | d/ -> đ
   nordic     |    /    | a/ -> å   e/ -> æ   o/ -> ø
   others     |    /    | s/ -> ß   n/ -> ŋ   k/ -> ĸ
@@ -598,7 +598,7 @@ It seems natural to use period and comma for dots and
 cedillas/ogoneks, but that is inconvenient in practice, because
 periods and commas are needed very often after a letter.
 
-Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
+Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -773,18 +773,18 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  "latin-5-alt-postfix" "Latin-5" "5<" t
  "Latin-5 characters input method with postfix modifiers
 This input method differs from `latin-5-postfix' in that
-comma is not special (use ` instead), and period is not
+comma is not special (use \\=` instead), and period is not
 special (use / instead).
 
              | postfix | examples
  ------------+---------+----------
-  acute      |    '    | a' -> á
-  grave      |    `    | a` -> à
+  acute      |    \\='    | a\\=' -> á
+  grave      |    \\=`    | a\\=` -> à
   circumflex |    ^    | a^ -> â
   diaeresis  |    \"    | a\" -> ä
   tilde      |    ~    | a~ -> ã
   breve      |    ~    | g~ -> ğ
-  cedilla    |    `    | c` -> ç
+  cedilla    |    \\=`    | c\\=` -> ç
   dot        |    /    | i/ -> ı   I/ -> İ
   nordic     |    /    | a/ -> å   e/ -> æ   o/ -> ø
   others     |    /    | s/ -> ß
@@ -793,7 +793,7 @@ It seems natural to use period and comma for dots and cedillas, but
 that is inconvenient in practice, because periods and commas are
 needed very often after a letter.
 
-Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
+Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -930,13 +930,13 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  "french-alt-postfix" "French" "FR<" t
  "French (Français) input method with postfix modifiers
 
-` pour grave, ' pour aigu, ^ pour circonflexe, et \" pour tréma.
-Par exemple: a` -> à   e' -> é.
+\\=` pour grave, \\=' pour aigu, ^ pour circonflexe, et \" pour tréma.
+Par exemple: a\\=` -> à   e\\=' -> é.
 
 Ç, «, et » sont produits par C/, <<, et >>.
 
 En doublant la frappe des diacritiques, ils s'isoleront de la lettre.
-Par exemple: e'' -> e'
+Par exemple: e\\='\\=' -> e\\='
 
 Œ est produit par O/."
  nil t nil nil nil nil nil nil nil nil t)
@@ -1011,15 +1011,15 @@ Par exemple: e'' -> e'
  "italian-alt-postfix" "Latin-1" "IT<" t
  "Italian (Italiano) input method with postfix modifiers
 
-a' -> á    A' -> Á    a` -> à    A` -> À    i^ -> î    << -> «
-e' -> é    E' -> É    e` -> è    E` -> È    I^ -> Î    >> -> »
-i' -> í    I' -> Í    i` -> ì    I` -> Ì               o_ -> º
-o' -> ó    O' -> Ó    o` -> ò    O` -> Ò               a_ -> ª
-u' -> ú    U' -> Ú    u` -> ù    U` -> Ù
+a\\=' -> á    A\\=' -> Á    a\\=` -> à    A\\=` -> À    i^ -> î    << -> «
+e\\=' -> é    E\\=' -> É    e\\=` -> è    E\\=` -> È    I^ -> Î    >> -> »
+i\\=' -> í    I\\=' -> Í    i\\=` -> ì    I\\=` -> Ì               o_ -> º
+o\\=' -> ó    O\\=' -> Ó    o\\=` -> ò    O\\=` -> Ò               a_ -> ª
+u\\=' -> ú    U\\=' -> Ú    u\\=` -> ù    U\\=` -> Ù
 
 This method is for purists who like accents the old way.
 
-Doubling the postfix separates the letter and postfix: e.g. a`` -> a`
+Doubling the postfix separates the letter and postfix: e.g. a\\=`\\=` -> a\\=`
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -1083,21 +1083,21 @@ Doubling the postfix separates the letter and postfix: e.g. a`` -> a`
  "turkish-alt-postfix" "Turkish" "TR«" t
  "Turkish (Türkçe) input method with postfix modifiers.
 This input method differs from `turkish-postfix' in that
-comma is not special (use ` instead).
+comma is not special (use \\=` instead).
 
 turkish-latin-3-alt-postfix is an obsolete alias for turkish-alt-postfix.
 
 Note for I, ı, İ, i.
 
 A^ -> Â
-C` -> Ç
+C\\=` -> Ç
 G^ -> Ğ
 I  -> I
 i  -> ı
 I/ -> İ
 i/ -> i
 O\" -> Ö
-S` -> Ş
+S\\=` -> Ş
 U\" -> Ü
 U^ -> Û
 
@@ -1160,8 +1160,8 @@ Caters for French and Turkish as well as Dutch.
  ------------+---------+----------
              | postfix |
  ------------+---------+----------
-  acute      |    '    | a' -> á
-  grave      |    `    | a` -> à
+  acute      |    \\='    | a\\=' -> á
+  grave      |    \\=`    | a\\=` -> à
   circumflex |    ^    | a^ -> â
   Turkish    | various | i/ -> ı  s, -> ş  g^ -> ğ   I/ -> İ
              |         |  S, -> Ş  G^ -> Ğ
@@ -1170,7 +1170,7 @@ Caters for French and Turkish as well as Dutch.
  ------------+---------+----------
   diaeresis  |    \"    | \"a -> ä
 
-Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
+Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -1180,61 +1180,61 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("ij" ?ĳ) ;; LATIN SMALL LIGATURE IJ
  ("IJ" ?Ĳ) ;; LATIN CAPITAL LIGATURE IJ
  ;; “Trema on the second letter of vowel pair.”  Yudit uses `:', not `"'.
- ("\"a" ?ä) ;; LATIN SMALL LETTER A WITH DIAERESIS 
- ("\"e" ?ë) ;; LATIN SMALL LETTER E WITH DIAERESIS 
- ("\"i" ?ï) ;; LATIN SMALL LETTER I WITH DIAERESIS 
- ("\"o" ?ö) ;; LATIN SMALL LETTER O WITH DIAERESIS 
- ("\"u" ?ü) ;; LATIN SMALL LETTER U WITH DIAERESIS 
- ("\"A" ?Ä) ;; LATIN CAPITAL LETTER A WITH DIAERESIS 
- ("\"E" ?Ë) ;; LATIN CAPITAL LETTER E WITH DIAERESIS 
- ("\"I" ?Ï) ;; LATIN CAPITAL LETTER I WITH DIAERESIS 
- ("\"O" ?Ö) ;; LATIN CAPITAL LETTER O WITH DIAERESIS 
- ("\"U" ?Ü) ;; LATIN CAPITAL LETTER U WITH DIAERESIS 
+ ("\"a" ?ä) ;; LATIN SMALL LETTER A WITH DIAERESIS
+ ("\"e" ?ë) ;; LATIN SMALL LETTER E WITH DIAERESIS
+ ("\"i" ?ï) ;; LATIN SMALL LETTER I WITH DIAERESIS
+ ("\"o" ?ö) ;; LATIN SMALL LETTER O WITH DIAERESIS
+ ("\"u" ?ü) ;; LATIN SMALL LETTER U WITH DIAERESIS
+ ("\"A" ?Ä) ;; LATIN CAPITAL LETTER A WITH DIAERESIS
+ ("\"E" ?Ë) ;; LATIN CAPITAL LETTER E WITH DIAERESIS
+ ("\"I" ?Ï) ;; LATIN CAPITAL LETTER I WITH DIAERESIS
+ ("\"O" ?Ö) ;; LATIN CAPITAL LETTER O WITH DIAERESIS
+ ("\"U" ?Ü) ;; LATIN CAPITAL LETTER U WITH DIAERESIS
  ;; “Acute, marking emphasis on long vowels”:
- ("a'" ?á) ;; LATIN SMALL LETTER A WITH ACUTE 
- ("e'" ?é) ;; LATIN SMALL LETTER E WITH ACUTE 
- ("i'" ?í) ;; LATIN SMALL LETTER I WITH ACUTE 
- ("o'" ?ó) ;; LATIN SMALL LETTER O WITH ACUTE 
- ("u'" ?ú) ;; LATIN SMALL LETTER U WITH ACUTE 
- ("A'" ?Á) ;; LATIN CAPITAL LETTER A WITH ACUTE 
- ("E'" ?É) ;; LATIN CAPITAL LETTER E WITH ACUTE 
- ("I'" ?Í) ;; LATIN CAPITAL LETTER I WITH ACUTE 
- ("O'" ?Ó) ;; LATIN CAPITAL LETTER O WITH ACUTE 
- ("U'" ?Ú) ;; LATIN CAPITAL LETTER U WITH ACUTE 
+ ("a'" ?á) ;; LATIN SMALL LETTER A WITH ACUTE
+ ("e'" ?é) ;; LATIN SMALL LETTER E WITH ACUTE
+ ("i'" ?í) ;; LATIN SMALL LETTER I WITH ACUTE
+ ("o'" ?ó) ;; LATIN SMALL LETTER O WITH ACUTE
+ ("u'" ?ú) ;; LATIN SMALL LETTER U WITH ACUTE
+ ("A'" ?Á) ;; LATIN CAPITAL LETTER A WITH ACUTE
+ ("E'" ?É) ;; LATIN CAPITAL LETTER E WITH ACUTE
+ ("I'" ?Í) ;; LATIN CAPITAL LETTER I WITH ACUTE
+ ("O'" ?Ó) ;; LATIN CAPITAL LETTER O WITH ACUTE
+ ("U'" ?Ú) ;; LATIN CAPITAL LETTER U WITH ACUTE
  ;; “Grave, marking emphasis on short vowels”:
  ("a`" ?à) ;; LATIN SMALL LETTER A WITH GRAVE
- ("e`" ?è) ;; LATIN SMALL LETTER E WITH GRAVE 
- ("i`" ?ì) ;; LATIN SMALL LETTER I WITH GRAVE 
- ("o`" ?ò) ;; LATIN SMALL LETTER O WITH GRAVE 
- ("u`" ?ù) ;; LATIN SMALL LETTER U WITH GRAVE 
- ("A`" ?À) ;; LATIN CAPITAL LETTER A WITH GRAVE 
- ("E`" ?È) ;; LATIN CAPITAL LETTER E WITH GRAVE 
- ("I`" ?Ì) ;; LATIN CAPITAL LETTER I WITH GRAVE 
- ("O`" ?Ò) ;; LATIN CAPITAL LETTER O WITH GRAVE 
+ ("e`" ?è) ;; LATIN SMALL LETTER E WITH GRAVE
+ ("i`" ?ì) ;; LATIN SMALL LETTER I WITH GRAVE
+ ("o`" ?ò) ;; LATIN SMALL LETTER O WITH GRAVE
+ ("u`" ?ù) ;; LATIN SMALL LETTER U WITH GRAVE
+ ("A`" ?À) ;; LATIN CAPITAL LETTER A WITH GRAVE
+ ("E`" ?È) ;; LATIN CAPITAL LETTER E WITH GRAVE
+ ("I`" ?Ì) ;; LATIN CAPITAL LETTER I WITH GRAVE
+ ("O`" ?Ò) ;; LATIN CAPITAL LETTER O WITH GRAVE
  ("U`" ?Ù) ;; LATIN CAPITAL LETTER U WITH GRAVE
  ;; “Cater for the use of many French words and use of the circumflex
  ;; in Frisian.”  Yudit used `;' for cedilla.
- ("c," ?ç) ;; LATIN SMALL LETTER C WITH CEDILLA 
- ("C," ?Ç) ;; LATIN CAPITAL LETTER C WITH CEDILLA 
- ("a^" ?â) ;; LATIN SMALL LETTER A WITH CIRCUMFLEX 
- ("e^" ?ê) ;; LATIN SMALL LETTER E WITH CIRCUMFLEX 
- ("i^" ?î) ;; LATIN SMALL LETTER I WITH CIRCUMFLEX 
- ("o^" ?ô) ;; LATIN SMALL LETTER O WITH CIRCUMFLEX 
- ("u^" ?û) ;; LATIN SMALL LETTER U WITH CIRCUMFLEX 
- ("A^" ?Â) ;; LATIN CAPITAL LETTER A WITH CIRCUMFLEX 
- ("E^" ?Ê) ;; LATIN CAPITAL LETTER E WITH CIRCUMFLEX 
- ("I^" ?Î) ;; LATIN CAPITAL LETTER I WITH CIRCUMFLEX 
- ("O^" ?Ô) ;; LATIN CAPITAL LETTER O WITH CIRCUMFLEX 
+ ("c," ?ç) ;; LATIN SMALL LETTER C WITH CEDILLA
+ ("C," ?Ç) ;; LATIN CAPITAL LETTER C WITH CEDILLA
+ ("a^" ?â) ;; LATIN SMALL LETTER A WITH CIRCUMFLEX
+ ("e^" ?ê) ;; LATIN SMALL LETTER E WITH CIRCUMFLEX
+ ("i^" ?î) ;; LATIN SMALL LETTER I WITH CIRCUMFLEX
+ ("o^" ?ô) ;; LATIN SMALL LETTER O WITH CIRCUMFLEX
+ ("u^" ?û) ;; LATIN SMALL LETTER U WITH CIRCUMFLEX
+ ("A^" ?Â) ;; LATIN CAPITAL LETTER A WITH CIRCUMFLEX
+ ("E^" ?Ê) ;; LATIN CAPITAL LETTER E WITH CIRCUMFLEX
+ ("I^" ?Î) ;; LATIN CAPITAL LETTER I WITH CIRCUMFLEX
+ ("O^" ?Ô) ;; LATIN CAPITAL LETTER O WITH CIRCUMFLEX
  ("U^" ?Û) ;; LATIN CAPITAL LETTER U WITH CIRCUMFLEX
  ;; “Follow the example of the Dutch POSIX locale, using ISO-8859-9 to
  ;; cater to the many Turks in Dutch society.”  Perhaps German methods
  ;; should do so too.  Follow turkish-alt-postfix here.
  ("i/" ?ı) ;; LATIN SMALL LETTER I WITH NO DOT
- ("s," ?ş) ;; LATIN SMALL LETTER S WITH CEDILLA 
- ("g^" ?ğ) ;; LATIN SMALL LETTER G WITH BREVE 
+ ("s," ?ş) ;; LATIN SMALL LETTER S WITH CEDILLA
+ ("g^" ?ğ) ;; LATIN SMALL LETTER G WITH BREVE
  ("I/" ?İ) ;; LATIN CAPITAL LETTER I WITH DOT ABOVE
- ("S," ?Ş) ;; LATIN CAPITAL LETTER S WITH CEDILLA 
- ("G^" ?Ğ) ;; LATIN CAPITAL LETTER G WITH BREVE 
+ ("S," ?Ş) ;; LATIN CAPITAL LETTER S WITH CEDILLA
+ ("G^" ?Ğ) ;; LATIN CAPITAL LETTER G WITH BREVE
  )
 
 ;; Originally from Yudit, discussed with Albertas Agejevas
@@ -1338,18 +1338,18 @@ of characters from a single Latin-N charset.
 
              | postfix | examples
  ------------+---------+----------
-  acute      |    '    | a' -> á
-  grave      |    `    | a` -> à
+  acute      |    \\='    | a\\=' -> á
+  grave      |    \\=`    | a\\=` -> à
   circumflex |    ^    | a^ -> â
   diaeresis  |    \"    | a\" -> ä
   tilde      |    ~    | a~ -> ã
-  cedilla    |    /`   | c/ -> ç   c` -> ç
-  ogonek     |    `    | a` -> ą
+  cedilla    |    /\\=`   | c/ -> ç   c\\=` -> ç
+  ogonek     |    \\=`    | a\\=` -> ą
   breve      |    ~    | a~ -> ă
   caron      |    ~    | c~ -> č
   dbl. acute |    :    | o: -> ő
-  ring       |    `    | u` -> ů
-  dot        |    `    | z` -> ż
+  ring       |    \\=`    | u\\=` -> ů
+  dot        |    \\=`    | z\\=` -> ż
   stroke     |    /    | d/ -> đ
   nordic     |    /    | d/ -> ð   t/ -> þ   a/ -> å   e/ -> æ   o/ -> ø
   others     |   /<>   | s/ -> ß   ?/ -> ¿   !/ -> ¡
@@ -1359,7 +1359,7 @@ It would be natural to use comma for cedillas, but that would be
 inconvenient in practice because commas are needed very often after a
 letter.
 
-Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
+Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
 " nil t nil nil nil nil nil nil nil nil t)
 
 ;; Fixme: ¦ § ¨ © ¬ ­ ® ¯ ° ± ² ³ ´ µ ¶ · ¸ ¹ ¼ ½ ¾ × ÷

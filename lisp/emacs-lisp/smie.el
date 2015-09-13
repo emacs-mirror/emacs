@@ -837,12 +837,12 @@ Possible return values:
 
 ;;; Miscellaneous commands using the precedence parser.
 
-(defun smie-backward-sexp-command (&optional n)
+(defun smie-backward-sexp-command (n)
   "Move backward through N logical elements."
   (interactive "^p")
   (smie-forward-sexp-command (- n)))
 
-(defun smie-forward-sexp-command (&optional n)
+(defun smie-forward-sexp-command (n)
   "Move forward through N logical elements."
   (interactive "^p")
   (let ((forw (> n 0))
@@ -1197,6 +1197,21 @@ Comments are treated as spaces."
     (save-excursion
       (forward-comment (- (point)))
       (<= (point) bol))))
+
+(defun smie-indent--current-column ()
+  "Like `current-column', but if there's a comment before us, use that."
+  ;; This is used, so that when we align elements, we don't get
+  ;;    toto = { /* foo, */ a,
+  ;;                        b }
+  ;; but
+  ;;    toto = { /* foo, */ a,
+  ;;             b }
+  (let ((pos (point))
+        (lbp (line-beginning-position)))
+    (save-excursion
+      (unless (and (forward-comment -1) (>= (point) lbp))
+        (goto-char pos))
+      (current-column))))
 
 ;; Dynamically scoped.
 (defvar smie--parent) (defvar smie--after) (defvar smie--token)
@@ -1577,7 +1592,9 @@ should not be computed on the basis of the following token."
               ;; So we use a heuristic here, which is that we only use virtual
               ;; if the parent is tightly linked to the child token (they're
               ;; part of the same BNF rule).
-              (if (car parent) (current-column) (smie-indent-virtual)))))))))))
+              (if (car parent)
+                  (smie-indent--current-column)
+                (smie-indent-virtual)))))))))))
 
 (defun smie-indent-comment ()
   "Compute indentation of a comment."
@@ -1707,12 +1724,12 @@ should not be computed on the basis of the following token."
         ;; There's a previous element, and it's not special (it's not
         ;; the function), so let's just align with that one.
         (goto-char (car positions))
-        (current-column))
+        (smie-indent--current-column))
        ((cdr positions)
         ;; We skipped some args plus the function and bumped into something.
         ;; Align with the first arg.
         (goto-char (cadr positions))
-        (current-column))
+        (smie-indent--current-column))
        (positions
         ;; We're the first arg.
         (goto-char (car positions))
@@ -1720,7 +1737,7 @@ should not be computed on the basis of the following token."
            ;; We used to use (smie-indent-virtual), but that
            ;; doesn't seem right since it might then indent args less than
            ;; the function itself.
-           (current-column)))))))
+           (smie-indent--current-column)))))))
 
 (defvar smie-indent-functions
   '(smie-indent-fixindent smie-indent-bob smie-indent-close

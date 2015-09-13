@@ -33,7 +33,7 @@ You now have both branches conveniently accessible, and you can do
 Fixing bugs
 ===========
 
-You edit the files in either branch, `M-x vc-dir', and check in your
+You edit the files in either branch, 'M-x vc-dir', and check in your
 changes.  Then you need to push the data to the main repository.  This
 will usually fail, since somebody else has pushed other changes in the
 meantime.  To fix this, say
@@ -44,6 +44,14 @@ which will update your repository, and then re-apply your changes on
 top of that.  Then say
 
 git push
+
+
+Sending patches
+===============
+
+If you lack push access or would like feedback before pushing a patch,
+you commit your change locally and then send a patch file as a bug report
+as described in ../../CONTRIBUTE.
 
 
 Backporting to emacs-24

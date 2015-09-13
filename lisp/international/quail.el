@@ -202,7 +202,7 @@ It is an alist of translations and corresponding keys."
 See also the documentation of `quail-define-package'."
   (nth 11 quail-current-package))
 (defsubst quail-overlay-plist ()
-  "Return property list of an overly used in the current Quail package."
+  "Return property list of an overlay used in the current Quail package."
   (nth 12 quail-current-package))
 (defsubst quail-update-translation-function ()
   "Return a function for updating translation in the current Quail package."
@@ -252,15 +252,16 @@ This activates input method defined by PACKAGE-NAME by running
 		(with-output-to-temp-buffer "*Help*"
 		  (princ "Quail package \"")
 		  (princ package-name)
-		  (princ "\" can't be activated\n  because library \"")
+		  (princ (substitute-command-keys
+			  "\" can't be activated\n  because library \""))
 		  (princ (car libraries))
-		  (princ "\" is not in `load-path'.
+		  (princ (substitute-command-keys "\" is not in `load-path'.
 
 The most common case is that you have not yet installed appropriate
 libraries in LEIM (Libraries of Emacs Input Method) which is
 distributed separately from Emacs.
 
-LEIM is available from the same ftp directory as Emacs."))
+LEIM is available from the same ftp directory as Emacs.")))
 		(error "Can't use the Quail package `%s'" package-name))
 	    (setq libraries (cdr libraries))))))
   (quail-select-package package-name)
@@ -625,7 +626,7 @@ While this input method is active, the variable
   "Standard keyboard layout of printable characters Quail assumes.
 See the documentation of `quail-keyboard-layout' for this format.
 This layout is almost the same as that of VT100,
- but the location of key \\ (backslash) is just right of key ' (single-quote),
+ but the location of key \\ (backslash) is just right of key \\=' (single-quote),
  not right of RETURN key.")
 
 (defconst quail-keyboard-layout-len 180)
@@ -793,9 +794,10 @@ you type is correctly handled."
 		 keyseq)))
 
 (defun quail-insert-kbd-layout (kbd-layout)
-"Insert the visual keyboard layout table according to KBD-LAYOUT.
+  "Insert the visual keyboard layout table according to KBD-LAYOUT.
 The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
   (let (done-list layout i ch)
+    (setq bidi-paragraph-direction 'left-to-right)
     ;; At first, convert KBD-LAYOUT to the same size vector that
     ;; contains translated character or string.
     (setq layout (string-to-vector kbd-layout)
@@ -1304,7 +1306,7 @@ The returned value is a Quail map specific to KEY."
 
 (define-error 'quail-error nil)
 (defun quail-error (&rest args)
-  (signal 'quail-error (apply 'format args)))
+  (signal 'quail-error (apply #'format-message args)))
 
 (defun quail-input-string-to-events (str)
   "Convert input string STR to a list of events.
@@ -1335,9 +1337,7 @@ If STR has `advice' text property, append the following special event:
 	  overriding-local-map)
       (list key)
     (quail-setup-overlays (quail-conversion-keymap))
-    (let ((modified-p (buffer-modified-p))
-	  (buffer-undo-list t)
-	  (inhibit-modification-hooks t))
+    (with-silent-modifications
       (unwind-protect
 	  (let ((input-string (if (quail-conversion-keymap)
 				  (quail-start-conversion key)
@@ -1349,7 +1349,6 @@ If STR has `advice' text property, append the following special event:
 		  (list (aref input-string 0))
 		(quail-input-string-to-events input-string))))
 	(quail-delete-overlays)
-	(set-buffer-modified-p modified-p)
 	;; Run this hook only when the current input method doesn't require
 	;; conversion.  When conversion is required, the conversion function
 	;; should run this hook at a proper timing.
@@ -1417,7 +1416,8 @@ Return the input string."
 	      ;; KEYSEQ is not defined in the translation keymap.
 	      ;; Let's return the event(s) to the caller.
 	      (setq unread-command-events
-		    (string-to-list (this-single-command-raw-keys)))
+		    (append (this-single-command-raw-keys)
+                            unread-command-events))
 	      (setq quail-translating nil))))
 	(quail-delete-region)
 	quail-current-str)
@@ -1493,7 +1493,8 @@ Return the input string."
 	      ;; KEYSEQ is not defined in the conversion keymap.
 	      ;; Let's return the event(s) to the caller.
 	      (setq unread-command-events
-		    (string-to-list (this-single-command-raw-keys)))
+		    (append (this-single-command-raw-keys)
+                            unread-command-events))
 	      (setq quail-converting nil))))
 	(setq quail-translating nil)
 	(if (overlay-start quail-conv-overlay)
@@ -2533,35 +2534,37 @@ package to describe."
       (let ((done-list nil))
 	;; Show keyboard layout if the current package requests it..
 	(when (quail-show-layout)
-	  (insert "
+	  (insert (substitute-command-keys "
 KEYBOARD LAYOUT
 ---------------
 This input method works by translating individual input characters.
-Assuming that your actual keyboard has the `")
+Assuming that your actual keyboard has the `"))
 	  (help-insert-xref-button
 	   quail-keyboard-layout-type
 	   'quail-keyboard-layout-button
 	   quail-keyboard-layout-type)
-	  (insert "' layout,
+	  (insert (substitute-command-keys "' layout,
 translation results in the following \"virtual\" keyboard layout
 \(the labels on the keys indicate what character will be produced
 by each key, with and without holding Shift):
-")
+"))
 	  (setq done-list
 		(quail-insert-kbd-layout quail-keyboard-layout))
-	  (insert "If your keyboard has a different layout, rearranged from
-`")
+	  (insert (substitute-command-keys "\
+If your keyboard has a different layout, rearranged from
+`"))
 	  (help-insert-xref-button
 	   "standard"
 	   'quail-keyboard-layout-button "standard")
-	  (insert "', the \"virtual\" keyboard you get with this input method
+	  (insert (substitute-command-keys "\
+', the \"virtual\" keyboard you get with this input method
 will be rearranged in the same way.
 
 You can set the variable `quail-keyboard-layout-type' to specify
 the physical layout of your keyboard; the tables shown in
 documentation of input methods including this one are based on the
 physical keyboard layout as specified with that variable.
-")
+"))
 	  (help-insert-xref-button
 	   "[customize keyboard layout]"
 	   'quail-keyboard-customize-button 'quail-keyboard-layout-type)

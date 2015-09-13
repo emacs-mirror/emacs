@@ -39,11 +39,12 @@ src/config.in
 Info.plist
 InfoPlist.strings
 Makefile
-!admin/charsets/Makefile
+makefile
 !etc/refcards/Makefile
 !test/automated/data/flymake/Makefile
 !test/indent/Makefile
-makefile
+!test/etags/Makefile
+!test/etags/make-src/Makefile
 /*.cache
 /confdefs.h
 /config.status
@@ -74,6 +75,7 @@ lib/unistd.h
 lib/warn-on-use.h
 src/buildobj.h
 src/globals.h
+src/lisp.mk
 
 # Lisp-level sources built by 'make'.
 *cus-load.el
@@ -123,6 +125,7 @@ deps/
 *.tmp
 
 # Time stamps.
+*.stamp
 stamp_BLD
 src/gl-stamp
 src/stamp-h.in
@@ -145,9 +148,14 @@ src/*.map
 # Tests.
 test/indent/*.new
 test/biditest.txt
+test/etags/srclist
+test/etags/regexfile
+test/etags/ETAGS
+test/etags/CTAGS
 
 # ctags, etags.
 TAGS
+!admin/notes/tags
 
 # GNU global.
 GPATH
@@ -183,11 +191,13 @@ src/emacs-[0-9]*
 src/temacs
 
 # Character-set info.
-admin/charsets/*.el
-admin/charsets/*.map
 admin/charsets/jisx2131-filter
 admin/unidata/unidata.txt
+etc/charsets/*.map
 lisp/international/charprop.el
+lisp/international/charscript.el
+lisp/international/cp51932.el
+lisp/international/eucjp-ms.el
 lisp/international/uni-*.el
 
 # Documentation.
@@ -199,7 +209,6 @@ lisp/international/uni-*.el
 *.dvi
 *.fn
 *.fns
-*.html
 *.info
 *.ky
 *.kys
@@ -214,9 +223,9 @@ lisp/international/uni-*.el
 *.pgs
 *.pj
 *.pjs
-*.ps
 *.sc
 *.scs
+*.t2d/
 *.tg
 *.tgs
 *.toc
@@ -224,12 +233,17 @@ lisp/international/uni-*.el
 *.tps
 *.vr
 *.vrs
+doc/*/*.html
+doc/*/*/*.html
+doc/*/*.ps
+doc/*/*/*.ps
 doc/emacs/emacsver.texi
 doc/man/emacs.1
 doc/misc/cc-mode.ss
 etc/DOC
 etc/refcards/emacsver.tex
-info/dir
+gnustmp*
+/info/
 
 # Version control and locks.
 *.orig
@@ -237,7 +251,10 @@ info/dir
 *~
 .#*
 \#*\#
+ChangeLog
 [0-9]*.patch
+[0-9]*.txt
+/vc-dwim-log-*
 
 # Built by 'make install'.
 etc/emacs.tmpdesktop

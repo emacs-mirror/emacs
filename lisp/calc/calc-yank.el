@@ -149,7 +149,7 @@ as well as set the contents of the Emacs register REGISTER to TEXT."
   "Return the CALCVAL portion of the contents of the Calc register REG,
 unless the TEXT portion doesn't match the contents of the Emacs register REG,
 in which case either return the contents of the Emacs register (if it is
-text) or `nil'."
+text) or nil."
   (let ((cval (cdr (assq reg calc-register-alist)))
         (val (cdr (assq reg register-alist))))
     (if (stringp val)
@@ -603,9 +603,9 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
     (insert (propertize
              (concat
               (or title title "Calc Edit Mode. ")
-              "Press `C-c C-c'"
+              (format-message "Press `C-c C-c'")
               (if allow-ret "" " or RET")
-              " to finish, `C-x k RET' to cancel.\n\n")
+              (format-message " to finish, `C-x k RET' to cancel.\n\n"))
              'font-lock-face 'italic 'read-only t 'rear-nonsticky t 'front-sticky t))
     (make-local-variable 'calc-edit-top)
     (setq calc-edit-top (point))))

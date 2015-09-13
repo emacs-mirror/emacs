@@ -62,7 +62,7 @@ specified with ldlibs.")
 	   "Libraries, such as \"m\" or \"Xt\" which this program depends on.
 The linker flag \"-l\" is automatically prepended.  Do not include a \"lib\"
 prefix, or a \".so\" suffix.
-Use the 'ldflags' slot to specify where in-project libraries might be.
+Use the `ldflags' slot to specify where in-project libraries might be.
 
 Note: Currently only used for Automake projects."
 	   )

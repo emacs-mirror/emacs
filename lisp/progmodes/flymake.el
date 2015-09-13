@@ -200,7 +200,7 @@ ignored.  Otherwise, it is printed using `message'.
 TEXT is a format control string, and the remaining arguments ARGS
 are the string substitutions (see the function `format')."
   (if (<= level flymake-log-level)
-      (let* ((msg (apply 'format text args)))
+      (let* ((msg (apply #'format-message text args)))
 	(message "%s" msg))))
 
 (defun flymake-ins-after (list pos val)
@@ -287,7 +287,7 @@ Return its file name if found, or nil if not found."
             nil)))))
 
 (defun flymake-fix-file-name (name)
-  "Replace all occurrences of '\' with '/'."
+  "Replace all occurrences of `\\' with `/'."
   (when name
     (setq name (expand-file-name name))
     (setq name (abbreviate-file-name name))
@@ -785,7 +785,7 @@ Perhaps use text from LINE-ERR-INFO-LIST to enhance highlighting."
 	(when (flymake-same-files real-file-name source-file-name)
 	  (setq line-err-info (flymake-ler-set-file line-err-info nil))
 	  (setq err-info-list (flymake-add-err-info err-info-list line-err-info))))
-      (flymake-log 3 "parsed '%s', %s line-err-info" (nth idx lines) (if line-err-info "got" "no"))
+      (flymake-log 3 "parsed `%s', %s line-err-info" (nth idx lines) (if line-err-info "got" "no"))
       (setq idx (1+ idx)))
     err-info-list))
 
@@ -1084,8 +1084,10 @@ For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
                      default-directory)
         process)
     (error
-     (let* ((err-str (format "Failed to launch syntax check process '%s' with args %s: %s"
-                             cmd args (error-message-string err)))
+     (let* ((err-str
+             (format-message
+              "Failed to launch syntax check process `%s' with args %s: %s"
+              cmd args (error-message-string err)))
             (source-file-name buffer-file-name)
             (cleanup-f        (flymake-get-cleanup-function source-file-name)))
        (flymake-log 0 err-str)

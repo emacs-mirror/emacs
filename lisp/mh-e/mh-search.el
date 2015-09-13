@@ -1160,7 +1160,7 @@ the file \"/home/user/Mail/.namazu/mknmzrc\" with the following
 contents:
 
      package conf;  # Don't remove this line!
-     $ADDRESS = 'user@localhost';
+     $ADDRESS = \\='user@localhost\\=';
      $ALLOW_FILE = \"[0-9]*\";
      $EXCLUDE_PATH = \"^/home/user/Mail/(mhe-index|spam)\";
 

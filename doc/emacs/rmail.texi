@@ -926,8 +926,7 @@ commas.
 @findex rmail-summary-by-recipients
   @kbd{C-M-r @var{rcpts} @key{RET}} (@code{rmail-summary-by-recipients})
 makes a partial summary mentioning only the messages that have one or
-more recipients matching the regular expression @var{rcpts}.  You can
-use commas to separate multiple regular expressions.  These are matched
+more recipients matching the regular expression @var{rcpts}.  This is matched
 against the @samp{To}, @samp{From}, and @samp{CC} headers (supply a prefix
 argument to exclude this header).
 
@@ -935,9 +934,8 @@ argument to exclude this header).
 @findex rmail-summary-by-topic
   @kbd{C-M-t @var{topic} @key{RET}} (@code{rmail-summary-by-topic})
 makes a partial summary mentioning only the messages whose subjects have
-a match for the regular expression @var{topic}.  You can use commas to
-separate multiple regular expressions.  With a prefix argument, the
-match is against the whole message, not just the subject.
+a match for the regular expression @var{topic}.  With a prefix argument,
+the match is against the whole message, not just the subject.
 
 @kindex C-M-s @r{(Rmail)}
 @findex rmail-summary-by-regexp
@@ -950,8 +948,7 @@ expression @var{regexp}.
 @findex rmail-summary-by-senders
   @kbd{C-M-f @var{senders} @key{RET}} (@code{rmail-summary-by-senders})
 makes a partial summary that mentions only the messages whose @samp{From}
-fields match the regular expression @var{senders}.  You can use commas to
-separate multiple regular expressions.
+fields match the regular expression @var{senders}.
 
   Note that there is only one summary buffer for any Rmail buffer;
 making any kind of summary discards any previous summary.
@@ -1004,10 +1001,10 @@ Here is a list of these commands:
 
 @table @kbd
 @item n
-Move to next line, skipping lines saying `deleted', and select its
+Move to next line, skipping lines saying ``deleted'', and select its
 message (@code{rmail-summary-next-msg}).
 @item p
-Move to previous line, skipping lines saying `deleted', and select
+Move to previous line, skipping lines saying ``deleted'', and select
 its message (@code{rmail-summary-previous-msg}).
 @item M-n
 Move to next line and select its message (@code{rmail-summary-next-all}).

@@ -58,7 +58,7 @@
 (defcustom mail-from-style 'default
   "Specifies how \"From:\" fields look.
 
-If `nil', they contain just the return address like:
+If nil, they contain just the return address like:
 	king@grassland.com
 If `parens', they look like:
 	king@grassland.com (Elvis Parsley)
@@ -525,31 +525,33 @@ This also saves the value of `send-mail-function' via Customize."
 	  ;; Query the user.
 	  (with-temp-buffer
 	    (rename-buffer "*Emacs Mail Setup Help*" t)
-	    (insert "\
+	    (insert (substitute-command-keys "\
  Emacs is about to send an email message, but it has not been
  configured for sending email.  To tell Emacs how to send email:
 
- - Type `"
+ - Type `")
 		    (propertize "mail client" 'face 'bold)
-		    "' to start your default email client and
-   pass it the message text.\n\n")
+		    (substitute-command-keys "\
+' to start your default email client and
+   pass it the message text.\n\n"))
 	    (and sendmail-program
 		 (executable-find sendmail-program)
-		 (insert "\
- - Type `"
+		 (insert (substitute-command-keys "\
+ - Type `")
 			 (propertize "transport" 'face 'bold)
-			 "' to invoke the system's mail transport agent
-   (the `"
+			 (substitute-command-keys "\
+' to invoke the system's mail transport agent
+   (the `")
 			 sendmail-program
-			 "' program).\n\n"))
-	    (insert "\
- - Type `"
+			 (substitute-command-keys "' program).\n\n")))
+	    (insert (substitute-command-keys "\
+ - Type `")
 		    (propertize "smtp" 'face 'bold)
-		    "' to send mail directly to an \"outgoing mail\" server.
+		    (substitute-command-keys "' to send mail directly to an \"outgoing mail\" server.
    (Emacs may prompt you for SMTP settings).
 
  Emacs will record your selection and will use it thereafter.
- To change it later, customize the option `send-mail-function'.\n")
+ To change it later, customize the option `send-mail-function'.\n"))
 	    (goto-char (point-min))
 	    (display-buffer (current-buffer))
 	    (let ((completion-ignore-case t))
@@ -907,6 +909,8 @@ the user from the mailer."
                 (concat "\\(?:[[:space:];,]\\|\\`\\)"
                         (regexp-opt mail-mailing-lists t)
                         "\\(?:[[:space:];,]\\|\\'\\)"))))
+        (mail-combine-fields "To")
+        (mail-combine-fields "CC")
 	;; If there are mailing lists defined
 	(when ml
 	  (save-excursion
@@ -1074,6 +1078,71 @@ This function does not perform RFC2047 encoding."
 		 (replace-match "\\1(\\3)" t)
 		 (goto-char fullname-start))))
 	   (insert ")\n")))))
+
+(defun mail-combine-fields (field)
+  "Offer to combine all FIELD fields in buffer into one FIELD field.
+If this finds multiple FIELD fields, it asks the user whether
+to combine them into one, and does so if the user says y."
+  (let ((search-pattern (format "^%s[ \t]*:" field))
+        first-to-end
+        query-asked
+        query-answer
+        (old-point (point))
+        (old-max (point-max)))
+    (save-excursion
+      (save-restriction
+        (goto-char (point-min))
+        (narrow-to-region (point-min) (mail-header-end))
+        ;; Find the first FIELD field and record where it ends.
+        (when (re-search-forward search-pattern nil t)
+          (forward-line 1)
+          (re-search-forward "^[^ \t]" nil t)
+          (beginning-of-line)
+          (setq first-to-end (point-marker))
+          (set-marker-insertion-type first-to-end t)
+          ;; Find each following FIELD field
+          ;; and combine it with the first FIELD field.
+          (while (re-search-forward search-pattern nil t)
+            ;; For the second FIELD field, ask user to
+            ;; approve combining them.
+            ;; But if the user refuse to combine them, signal error.
+            (unless query-asked
+              (save-restriction
+                ;; This is just so the screen doesn't change.
+                (narrow-to-region (point-min) old-max)
+                (goto-char old-point)
+                (setq query-asked t)
+                (if (y-or-n-p (format "Message contains multiple %s fields.  Combine? " field))
+                    (setq query-answer t))))
+            (when query-answer
+              (let ((this-to-start (line-beginning-position))
+                    this-to-end
+                    this-to)
+                (forward-line 1)
+                (re-search-forward "^[^ \t]" nil t)
+                (beginning-of-line)
+                (setq this-to-end (point))
+                ;; Get the text of this FIELD field.
+                (setq this-to (buffer-substring this-to-start this-to-end))
+                ;; Delete it.
+                (delete-region this-to-start this-to-end)
+                (save-excursion
+                  ;; Put a comma after the first FIELD field.
+                  (goto-char first-to-end)
+                  (forward-char -1)
+                  (insert ",")
+                  ;; Copy this one after it.
+                  (goto-char first-to-end)
+                  (save-excursion
+                    (insert this-to))
+                  ;; Replace the FIELD: with spaces.
+                  (looking-at search-pattern)
+                  ;; Try to preserve alignment of contents of the field
+                  (let ((prefix-length (length (match-string 0))))
+                    (replace-match " ")
+                    (dotimes (i (1- prefix-length))
+                      (insert " ")))))))
+          (set-marker first-to-end nil))))))
 
 (defun mail-encode-header (beg end)
   "Encode the mail header between BEG and END according to RFC2047.
@@ -1299,10 +1368,10 @@ external program defined by `sendmail-program'."
                   (error "Sending...failed to %s"
                          (buffer-substring (point-min) (point-max)))))))
       (kill-buffer tembuf)
-      (if (and (bufferp errbuf)
-               (not error))
-          (kill-buffer errbuf)
-        (switch-to-buffer-other-window errbuf)))))
+      (when (buffer-live-p errbuf)
+        (if error
+            (switch-to-buffer-other-window errbuf)
+          (kill-buffer errbuf))))))
 
 (autoload 'rmail-output-to-rmail-buffer "rmailout")
 
@@ -1500,9 +1569,10 @@ just append to the file, in Babyl format if necessary."
            (insert "\nMail-Followup-To: "))))
 
 (defun mail-position-on-field (field &optional soft)
-  "Move to the start of the contents of header field FIELD.
-If there is none, insert one, unless SOFT is non-nil.
-If there are multiple FIELD fields, this goes to the first."
+  "Move to the end of the contents of header field FIELD.
+If there is no such header, insert one, unless SOFT is non-nil.
+If there are multiple FIELD fields, this goes to the first.
+Returns non-nil if FIELD was originally present."
   (let (end
 	(case-fold-search t))
     (setq end (mail-header-end))

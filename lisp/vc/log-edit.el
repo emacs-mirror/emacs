@@ -167,7 +167,7 @@ can be obtained from `log-edit-files'."
 
 (defvar log-edit-changelog-full-paragraphs t
   "If non-nil, include full ChangeLog paragraphs in the log.
-This may be set in the ``local variables'' section of a ChangeLog, to
+This may be set in the \"local variables\" section of a ChangeLog, to
 indicate the policy for that ChangeLog.
 
 A ChangeLog paragraph is a bunch of log text containing no blank lines;
@@ -717,6 +717,9 @@ can thus take some time."
 
 (defvar log-edit-changelog-use-first nil)
 
+(defvar log-edit-rewrite-tiny-change t
+  "Non-nil means rewrite (tiny change).")
+
 (defvar log-edit-rewrite-fixes nil
   "Rule to rewrite bug numbers into Fixes: headers.
 The value should be of the form (REGEXP . REPLACEMENT)
@@ -761,7 +764,7 @@ regardless of user name or time."
 	     (log-edit-insert-changelog-entries (log-edit-files)))))
       (log-edit-set-common-indentation)
       ;; Add an Author: field if appropriate.
-      (when author (log-edit-add-field "Author" author))
+      (when author (log-edit-add-field "Author" (car author)))
       ;; Add a Fixes: field if applicable.
       (when (consp log-edit-rewrite-fixes)
 	(rfc822-goto-eoh)
@@ -782,7 +785,13 @@ regardless of user name or time."
 	       (goto-char start)
 	       (skip-chars-forward "^():")
 	       (skip-chars-forward ": ")
-	       (delete-region start (point))))))))
+	       (delete-region start (point)))))
+      ;; FIXME also add "Co-authored-by" when appropriate.
+      ;; Bzr accepts multiple --author arguments, others (?) don't.
+      (and log-edit-rewrite-tiny-change
+           (eq 'tiny (cdr author))
+           (goto-char (point-max))
+           (insert "\nCopyright-paperwork-exempt: yes\n")))))
 
 ;;;;
 ;;;; functions for getting commit message from ChangeLog a file...
@@ -863,24 +872,32 @@ Return non-nil if it is."
 		  (and (boundp 'user-mail-address) user-mail-address)))
 	(time (or (and (boundp 'add-log-time-format)
 		       (functionp add-log-time-format)
-		       (funcall add-log-time-format))
+		       (funcall add-log-time-format
+				nil add-log-time-zone-rule))
 		  (format-time-string "%Y-%m-%d"))))
     (if (null log-edit-changelog-use-first)
         (looking-at (regexp-quote (format "%s  %s  <%s>" time name mail)))
       ;; Check the author, to potentially add it as a "Author: " header.
+      ;; FIXME This accumulates multiple authors, but only when there
+      ;; are multiple ChangeLog files.  It should also check for
+      ;; multiple authors in each individual entry.
       (when (looking-at "[^ \t]")
         (when (and (boundp 'log-edit-author)
                    (not (looking-at (format ".+  .+  <%s>"
                                             (regexp-quote mail))))
-                   (looking-at ".+  \\(.+  <.+>\\)"))
+                   (looking-at ".+  \\(.+  <.+>\\) *\\((tiny change)\\)?"))
           (let ((author (replace-regexp-in-string "  " " "
                                                   (match-string 1))))
             (unless (and log-edit-author
-                         (string-match (regexp-quote author) log-edit-author))
-              (setq log-edit-author
-                    (if log-edit-author
-                        (concat log-edit-author ", " author)
-                      author)))))
+                         (string-match (regexp-quote author)
+                                       (car log-edit-author)))
+              (if (not log-edit-author)
+                  (setq log-edit-author
+                        (cons author (if (match-string 2) 'tiny)))
+                (setcar log-edit-author
+                        (concat (car log-edit-author) ", " author))
+                (and (match-string 2) (not (cdr log-edit-author))
+                     (setcdr log-edit-author 'tiny))))))
         t))))
 
 (defun log-edit-changelog-entries (file)
@@ -917,21 +934,8 @@ where LOGBUFFER is the name of the ChangeLog buffer, and each
             (log-edit-narrow-changelog)
             (goto-char (point-min))
 
-            ;; Search for the name of FILE relative to the ChangeLog.  If that
-            ;; doesn't occur anywhere, they're not using full relative
-            ;; filenames in the ChangeLog, so just look for FILE; we'll accept
-            ;; some false positives.
-            (let ((pattern (file-relative-name
-                            file (file-name-directory changelog-file-name))))
-              (if (or (string= pattern "")
-                      (not (save-excursion
-                             (search-forward pattern nil t))))
-                  (setq pattern (file-name-nondirectory file)))
-
-              (setq pattern (concat "\\(^\\|[^[:alnum:]]\\)"
-                                    (regexp-quote pattern)
-                                    "\\($\\|[^[:alnum:]]\\)"))
-
+            (let ((pattern (log-edit-changelog--pattern file
+                                                        changelog-file-name)))
               (let (texts
                     (pos (point)))
                 (while (and (not (eobp)) (re-search-forward pattern nil t))
@@ -946,6 +950,25 @@ where LOGBUFFER is the name of the ChangeLog buffer, and each
 
                 (cons (current-buffer) texts)))))))))
 
+(defun log-edit-changelog--pattern (file changelog-file-name)
+  (if (eq (aref file (1- (length file))) ?/)
+      ;; Match any files inside this directory.
+      (concat "^\t\\* " (unless (string= file "./") file))
+    ;; Search for the name of FILE relative to the ChangeLog.  If that
+    ;; doesn't occur anywhere, they're not using full relative
+    ;; filenames in the ChangeLog, so just look for FILE; we'll accept
+    ;; some false positives.
+    (let ((pattern (file-relative-name
+                    file (file-name-directory changelog-file-name))))
+      ;; FIXME: When can the above return an empty string?
+      (if (or (string= pattern "")
+              (not (save-excursion
+                     (search-forward pattern nil t))))
+          (setq pattern (file-name-nondirectory file)))
+      (setq pattern (concat "\\(^\\|[^[:alnum:]]\\)"
+                            (regexp-quote pattern)
+                            "\\($\\|[^[:alnum:]]\\)")))))
+
 (defun log-edit-changelog-insert-entries (buffer beg end &rest files)
   "Insert the text from BUFFER between BEG and END.
 Rename relative filenames in the ChangeLog entry as FILES."
@@ -957,6 +980,8 @@ Rename relative filenames in the ChangeLog entry as FILES."
     (setq bound (point-marker))
     (when log-name
       (dolist (f files)
+        ;; FIXME: f can be a directory, a (possibly indirect) parent
+        ;; of the ChangeLog file.
 	(save-excursion
 	  (goto-char opoint)
 	  (when (re-search-forward
@@ -992,6 +1017,9 @@ Rename relative filenames in the ChangeLog entry as FILES."
       (apply 'log-edit-changelog-insert-entries
 	     (append (car log-entry) (cdr log-entry)))
       (insert "\n"))
+    ;; No newline after the last entry.
+    (when log-entries
+      (delete-char -1))
     log-edit-author))
 
 (defun log-edit-toggle-header (header value)

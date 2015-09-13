@@ -2054,7 +2054,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
                 (if spam-use-dig
                     (let ((query-result (query-dig query-string)))
                       (when query-result
-                        (gnus-message 6 "(DIG): positive blackhole check '%s'"
+                        (gnus-message 6 "(DIG): positive blackhole check `%s'"
                                       query-result)
                         (push (list ip server query-result)
                               matches)))
@@ -2231,15 +2231,6 @@ Uses `gnus-newsgroup-name' if category is nil (for ham registration)."
 ;;}}}
 
 ;;{{{ spam-stat
-
-(eval-when-compile
-  (autoload 'spam-stat-buffer-change-to-non-spam "spam-stat")
-  (autoload 'spam-stat-buffer-change-to-spam "spam-stat")
-  (autoload 'spam-stat-buffer-is-non-spam "spam-stat")
-  (autoload 'spam-stat-buffer-is-spam "spam-stat")
-  (autoload 'spam-stat-load "spam-stat")
-  (autoload 'spam-stat-save "spam-stat")
-  (autoload 'spam-stat-split-fancy "spam-stat"))
 
 (require 'spam-stat)
 

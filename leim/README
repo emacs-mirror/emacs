@@ -12,13 +12,13 @@ CXTERM-DIC:
 This directory contains source dictionaries (TIT format) for Chinese
 input method distributed with cxterm (Chinese version xterm).  These
 dictionaries are automatically converted to Quail packages (Emacs Lisp
-source files) by `make'.
+source files) by 'make'.
 
 MISC-DIC:
 
 This directory contains various dictionaries for Chinese input
 methods.  These dictionaries are automatically converted to Quail
-packages (Emacs Lisp source files) by `make'.
+packages (Emacs Lisp source files) by 'make'.
 
 SKK-DIC:
 

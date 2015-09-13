@@ -114,7 +114,7 @@ Shorter values mean quicker response, but are more CPU intensive.")
 For instance, if \":\" is invalid as a file character in file names
 on your system, you could say something like:
 
-\(setq nnheader-file-name-translation-alist '((?: . ?_)))")
+\(setq nnheader-file-name-translation-alist \\='((?: . ?_)))")
 
 (defvar nnheader-directory-separator-character
   (string-to-char (substring (file-name-as-directory ".") -1))

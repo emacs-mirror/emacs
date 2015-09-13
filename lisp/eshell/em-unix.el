@@ -168,10 +168,10 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
 
 (defun eshell/info (&rest args)
   "Run the info command in-frame with the same behavior as command-line `info', ie:
-  'info'           => goes to top info window
-  'info arg1'      => IF arg1 is a file, then visits arg1
-  'info arg1'      => OTHERWISE goes to top info window and then menu item arg1
-  'info arg1 arg2' => does action for arg1 (either visit-file or menu-item) and then menu item arg2
+  `info'           => goes to top info window
+  `info arg1'      => IF arg1 is a file, then visits arg1
+  `info arg1'      => OTHERWISE goes to top info window and then menu item arg1
+  `info arg1 arg2' => does action for arg1 (either visit-file or menu-item) and then menu item arg2
   etc."
   (eval-and-compile (require 'info))
   (let ((file (cond
@@ -206,23 +206,23 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
 	       (not (file-symlink-p (car files))))
 	  (progn
 	    (if em-verbose
-		(eshell-printn (format "rm: removing directory `%s'"
-				       (car files))))
+		(eshell-printn (format-message "rm: removing directory `%s'"
+					       (car files))))
 	    (unless
 		(or em-preview
 		    (and em-interactive
 			 (not (y-or-n-p
-			       (format "rm: remove directory `%s'? "
-				       (car files))))))
+			       (format-message "rm: remove directory `%s'? "
+					       (car files))))))
 	      (eshell-funcalln 'delete-directory (car files) t t)))
 	(if em-verbose
-	    (eshell-printn (format "rm: removing file `%s'"
-				   (car files))))
+	    (eshell-printn (format-message "rm: removing file `%s'"
+					   (car files))))
 	(unless (or em-preview
 		    (and em-interactive
 			 (not (y-or-n-p
-			       (format "rm: remove `%s'? "
-				       (car files))))))
+			       (format-message "rm: remove `%s'? "
+					       (car files))))))
 	  (eshell-funcalln 'delete-file (car files) t))))
     (setq files (cdr files))))
 
@@ -260,28 +260,32 @@ Remove (unlink) the FILE(s).")
        (cond
 	((bufferp entry)
 	 (if em-verbose
-	     (eshell-printn (format "rm: removing buffer `%s'" entry)))
+	     (eshell-printn (format-message "rm: removing buffer `%s'" entry)))
 	 (unless (or em-preview
 		     (and em-interactive
-			  (not (y-or-n-p (format "rm: delete buffer `%s'? "
-						 entry)))))
+			  (not (y-or-n-p (format-message
+					  "rm: delete buffer `%s'? "
+					  entry)))))
 	   (eshell-funcalln 'kill-buffer entry)))
 	((eshell-processp entry)
 	 (if em-verbose
-	     (eshell-printn (format "rm: killing process `%s'" entry)))
+	     (eshell-printn (format-message "rm: killing process `%s'" entry)))
 	 (unless (or em-preview
 		     (and em-interactive
-			  (not (y-or-n-p (format "rm: kill process `%s'? "
-						 entry)))))
+			  (not (y-or-n-p (format-message
+					  "rm: kill process `%s'? "
+					  entry)))))
 	   (eshell-funcalln 'kill-process entry)))
 	((symbolp entry)
 	 (if em-verbose
-	     (eshell-printn (format "rm: uninterning symbol `%s'" entry)))
+	     (eshell-printn (format-message
+			     "rm: uninterning symbol `%s'" entry)))
 	 (unless
 	     (or em-preview
 		 (and em-interactive
-		      (not (y-or-n-p (format "rm: unintern symbol `%s'? "
-					     entry)))))
+		      (not (y-or-n-p (format-message
+				      "rm: unintern symbol `%s'? "
+				      entry)))))
 	   (eshell-funcalln 'unintern entry)))
 	((stringp entry)
 	 ;; -f should silently ignore missing files (bug#15373).
@@ -294,8 +298,8 @@ Remove (unlink) the FILE(s).")
 		   (if (or em-preview
 			   (not em-interactive)
 			   (y-or-n-p
-			    (format "rm: descend into directory `%s'? "
-				    entry)))
+			    (format-message "rm: descend into directory `%s'? "
+					    entry)))
 		     (eshell-remove-entries (list entry) t))
 		 (eshell-error (format "rm: %s: is a directory\n" entry)))
 	     (eshell-remove-entries (list entry) t))))))
@@ -369,8 +373,8 @@ Remove the DIRECTORY(ies), if they are empty.")
 	     (equal (nth 10 attr-target) (nth 10 attr))
 	     (nth 11 attr-target) (nth 11 attr)
 	     (equal (nth 11 attr-target) (nth 11 attr)))
-	(eshell-error (format "%s: `%s' and `%s' are the same file\n"
-			      command (car files) target)))
+	(eshell-error (format-message "%s: `%s' and `%s' are the same file\n"
+				      command (car files) target)))
        (t
 	(let ((source (car files))
 	      (target (if is-dir
@@ -579,7 +583,7 @@ Copy SOURCE to DEST, or multiple SOURCE(s) to DIRECTORY.")
 Create a link to the specified TARGET with optional LINK_NAME.  If there is
 more than one TARGET, the last argument must be a directory;  create links
 in DIRECTORY to each TARGET.  Create hard links by default, symbolic links
-with '--symbolic'.  When creating hard links, each TARGET must exist.")
+with `--symbolic'.  When creating hard links, each TARGET must exist.")
    (let ((no-dereference t))
      (eshell-mvcpln-template "ln" "linking"
 			     (if symbolic

@@ -83,11 +83,11 @@ communication with those Services."
 
 Possible settings are:.
 
-'autodetect  - Identify when the real Nickserv sends an identify request.
-'nick-change - Identify when you log in or change your nickname.
-'both        - Do the former if the network supports it, otherwise do the
-               latter.
-nil          - Disables automatic Nickserv identification.
+`autodetect'  - Identify when the real Nickserv sends an identify request.
+`nick-change' - Identify when you log in or change your nickname.
+`both'        - Do the former if the network supports it, otherwise do the
+                latter.
+nil           - Disables automatic Nickserv identification.
 
 You can also use M-x erc-nickserv-identify-mode to change modes."
   :group 'erc-services
@@ -172,7 +172,7 @@ You can also use M-x erc-nickserv-identify-mode to change modes."
 
 Example of use:
   (setq erc-nickserv-passwords
-        '((freenode ((\"nick-one\" . \"password\")
+        \\='((freenode ((\"nick-one\" . \"password\")
                      (\"nick-two\" . \"password\")))
           (DALnet ((\"nick\" . \"password\")))))"
   :group 'erc-services
@@ -447,4 +447,3 @@ When called interactively, read the password using `read-passwd'."
 ;; indent-tabs-mode: t
 ;; tab-width: 8
 ;; End:
-

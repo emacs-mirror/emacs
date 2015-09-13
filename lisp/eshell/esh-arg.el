@@ -89,7 +89,7 @@ yield the values intended."
 	  (goto-char (match-end 0))
 	  (eshell-finish-arg)))))
 
-   ;; backslash before a special character means escape it
+   ;; parse backslash and the character after
    'eshell-parse-backslash
 
    ;; text beginning with ' is a literally quoted
@@ -237,7 +237,7 @@ Point is left at the end of the arguments."
                    (let* ((here (point))
                           (arg (eshell-parse-argument)))
                      (if (= (point) here)
-                         (error "Failed to parse argument '%s'"
+                         (error "Failed to parse argument `%s'"
                                 (buffer-substring here (point-max))))
                      (and arg (nconc args (list arg)))))))
               (throw 'eshell-incomplete (if (listp delim)
@@ -305,34 +305,27 @@ If the character is itself a backslash, it needs no escaping."
 	  (string ?\\ char)))))
 
 (defun eshell-parse-backslash ()
-  "Parse a single backslash (\) character, which might mean escape.
-It only means escape if the character immediately following is a
-special character that is not itself a backslash."
+  "Parse a single backslash (\\) character and the character after.
+If the character after the backslash is special, always ignore
+the backslash and return the escaped character.
+
+Otherwise, if the backslash is not in quoted string, the
+backslash is ignored and the character after is returned.  If the
+backslash is in a quoted string, the backslash and the character
+after are both returned."
   (when (eq (char-after) ?\\)
-    (if (eshell-looking-at-backslash-return (point))
-	(throw 'eshell-incomplete ?\\)
-      (if (and (not (eq (char-after (1+ (point))) ?\\))
-	       (if eshell-current-quoted
-		   (memq (char-after (1+ (point)))
-			 eshell-special-chars-inside-quoting)
-		 (memq (char-after (1+ (point)))
-		       eshell-special-chars-outside-quoting)))
-	  (progn
-	    (forward-char 2)
-	    (list 'eshell-escape-arg
-		  (char-to-string (char-before))))
-	;; allow \\<RET> to mean a literal "\" character followed by a
-	;; normal return, rather than a backslash followed by a line
-	;; continuation (i.e., "\\ + \n" rather than "\ + \\n").  This
-	;; is necessary because backslashes in Eshell are not special
-	;; unless they either precede something special, or precede a
-	;; backslash that precedes something special.  (Mainly this is
-	;; done to make using backslash on Windows systems more
-	;; natural-feeling).
-	(if (eshell-looking-at-backslash-return (1+ (point)))
-	    (forward-char))
-	(forward-char)
-	"\\"))))
+    (when (eshell-looking-at-backslash-return (point))
+	(throw 'eshell-incomplete ?\\))
+    (forward-char 2) ; Move one char past the backslash.
+    ;; If the char is in a quote, backslash only has special meaning
+    ;; if it is escaping a special char.
+    (if eshell-current-quoted
+        (if (memq (char-before) eshell-special-chars-inside-quoting)
+            (list 'eshell-escape-arg (char-to-string (char-before)))
+          (concat "\\" (char-to-string (char-before))))
+      (if (memq (char-before) eshell-special-chars-outside-quoting)
+          (list 'eshell-escape-arg (char-to-string (char-before)))
+        (char-to-string (char-before))))))
 
 (defun eshell-parse-literal-quote ()
   "Parse a literally quoted string.  Nothing has special meaning!"
@@ -364,22 +357,31 @@ special character that is not itself a backslash."
 	  (goto-char (1+ end)))))))
 
 (defun eshell-parse-special-reference ()
-  "Parse a special syntax reference, of the form '#<type arg>'."
-  (if (and (not eshell-current-argument)
-	   (not eshell-current-quoted)
-	   (looking-at "#<\\(buffer\\|process\\)\\s-"))
-      (let ((here (point)))
-	(goto-char (match-end 0))
-	(let* ((buffer-p (string= (match-string 1) "buffer"))
-	       (end (eshell-find-delimiter ?\< ?\>)))
-	  (if (not end)
-	      (throw 'eshell-incomplete ?\<)
-	    (if (eshell-arg-delimiter (1+ end))
-		(prog1
-		    (list (if buffer-p 'get-buffer-create 'get-process)
-			  (buffer-substring-no-properties (point) end))
-		  (goto-char (1+ end)))
-	      (ignore (goto-char here))))))))
+  "Parse a special syntax reference, of the form `#<args>'.
+
+args           := `type' `whitespace' `arbitrary-args' | `arbitrary-args'
+type           := \"buffer\" or \"process\"
+arbitrary-args := any string of characters.
+
+If the form has no `type', the syntax is parsed as if `type' were
+\"buffer\"."
+  (when (and (not eshell-current-argument)
+             (not eshell-current-quoted)
+             (looking-at "#<\\(\\(buffer\\|process\\)\\s-\\)?"))
+    (let ((here (point)))
+      (goto-char (match-end 0)) ;; Go to the end of the match.
+      (let ((buffer-p (if (match-string 1)
+                          (string= (match-string 2) "buffer")
+                        t)) ;; buffer-p is non-nil by default.
+            (end (eshell-find-delimiter ?\< ?\>)))
+        (when (not end)
+          (throw 'eshell-incomplete ?\<))
+        (if (eshell-arg-delimiter (1+ end))
+            (prog1
+                (list (if buffer-p 'get-buffer-create 'get-process)
+                      (buffer-substring-no-properties (point) end))
+              (goto-char (1+ end)))
+          (ignore (goto-char here)))))))
 
 (defun eshell-parse-delimiter ()
   "Parse an argument delimiter, which is essentially a command operator."

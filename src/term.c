@@ -1862,9 +1862,11 @@ produce_glyphless_glyph (struct it *it, Lisp_Object acronym)
       else
 	{
 	  eassert (it->glyphless_method == GLYPHLESS_DISPLAY_HEX_CODE);
-	  len = (it->c < 0x10000 ? sprintf (buf, "\\u%04X", it->c)
-		 : it->c <= MAX_UNICODE_CHAR ? sprintf (buf, "\\U%06X", it->c)
-		 : sprintf (buf, "\\x%06X", it->c));
+	  len = sprintf (buf,
+			 (it->c < 0x10000 ? "\\u%04X"
+			  : it->c <= MAX_UNICODE_CHAR ? "\\U%06X"
+			  : "\\x%06X"),
+			 it->c + 0u);
 	}
       str = buf;
     }
@@ -4026,12 +4028,12 @@ init_tty (const char *name, const char *terminal_type, bool must_succeed)
                    "Terminal type %s is not defined",
                    "Terminal type %s is not defined.\n\
 If that is not the actual type of terminal you have,\n\
-use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
-`setenv TERM ...') to specify the correct type.  It may be necessary\n"
+use the Bourne shell command 'TERM=...; export TERM' (C-shell:\n\
+'setenv TERM ...') to specify the correct type.  It may be necessary\n"
 #ifdef TERMINFO
-"to do `unset TERMINFO' (C-shell: `unsetenv TERMINFO') as well.",
+"to do 'unset TERMINFO' (C-shell: 'unsetenv TERMINFO') as well.",
 #else
-"to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
+"to do 'unset TERMCAP' (C-shell: 'unsetenv TERMCAP') as well.",
 #endif
                    terminal_type);
     }
@@ -4305,12 +4307,12 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
                    "Terminal type \"%s\" is not powerful enough to run Emacs.\n\
 It lacks the ability to position the cursor.\n\
 If that is not the actual type of terminal you have,\n\
-use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
-`setenv TERM ...') to specify the correct type.  It may be necessary\n"
+use the Bourne shell command 'TERM=...; export TERM' (C-shell:\n\
+'setenv TERM ...') to specify the correct type.  It may be necessary\n"
 # ifdef TERMINFO
-"to do `unset TERMINFO' (C-shell: `unsetenv TERMINFO') as well.",
+"to do 'unset TERMINFO' (C-shell: 'unsetenv TERMINFO') as well.",
 # else /* TERMCAP */
-"to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
+"to do 'unset TERMCAP' (C-shell: 'unsetenv TERMCAP') as well.",
 # endif /* TERMINFO */
                    terminal_type);
     }

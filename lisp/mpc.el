@@ -217,7 +217,7 @@ defaults to 6600 and HOST defaults to localhost."
         (goto-char (point-max))
         (insert-before-markers          ;So it scrolls.
          (replace-regexp-in-string "\n" "\n	"
-                                   (apply 'format format args))
+                                   (apply #'format-message format args))
          "\n"))))
 
 (defun mpc--proc-filter (proc string)
@@ -253,6 +253,7 @@ defaults to 6600 and HOST defaults to localhost."
 
 (defun mpc--proc-connect (host)
   (let ((port 6600)
+        local
         pass)
 
     (when (string-match "\\`\\(?:\\(.*\\)@\\)?\\(.*?\\)\\(?::\\(.*\\)\\)?\\'"
@@ -267,6 +268,11 @@ defaults to 6600 and HOST defaults to localhost."
                 (if (string-match "[^[:digit:]]" v)
                     (string-to-number v)
                   v)))))
+    (when (file-name-absolute-p host)
+      ;; Expand file name because `file-name-absolute-p'
+      ;; considers paths beginning with "~" as absolute
+      (setq host (expand-file-name host))
+      (setq local t))
 
     (mpc--debug "Connecting to %s:%s..." host port)
     (with-current-buffer (get-buffer-create (format " *mpc-%s:%s*" host port))
@@ -279,7 +285,10 @@ defaults to 6600 and HOST defaults to localhost."
       (let* ((coding-system-for-read 'utf-8-unix)
              (coding-system-for-write 'utf-8-unix)
              (proc (condition-case err
-                       (open-network-stream "MPC" (current-buffer) host port)
+                       (make-network-process :name "MPC" :buffer (current-buffer)
+                                             :host (unless local host)
+                                             :service (if local host port)
+                                             :family (if local 'local))
                      (error (user-error (error-message-string err))))))
         (when (processp mpc-proc)
           ;; Inherit the properties of the previous connection.
@@ -903,8 +912,13 @@ If PLAYLIST is t or nil or missing, use the main playlist."
 (defun mpc-file-local-copy (file)
   ;; Try to set mpc-mpd-music-directory.
   (when (and (null mpc-mpd-music-directory)
-             (string-match "\\`localhost" mpc-host))
-    (let ((files '("~/.mpdconf" "/etc/mpd.conf"))
+             (or (string-match "\\`localhost" mpc-host)
+                 (file-name-absolute-p mpc-host)))
+    (let ((files `(,(let ((xdg (getenv "XDG_CONFIG_HOME")))
+                      (concat (if (and xdg (file-name-absolute-p xdg))
+                                  xdg "~/.config")
+                              "/mpd/mpd.conf"))
+                   "~/.mpdconf" "~/.mpd/mpd.conf" "/etc/mpd.conf"))
           file)
       (while (and files (not file))
         (if (file-exists-p (car files)) (setq file (car files)))
@@ -1643,7 +1657,7 @@ Return non-nil if a selection was deactivated."
         (when (equal (sort (copy-sequence active) #'string-lessp)
                      (sort (copy-sequence selection) #'string-lessp))
           (setq active 'all)))
-      
+
       ;; FIXME: This `mpc-sort' takes a lot of time.  Maybe we should
       ;; be more clever and presume the buffer is mostly sorted already.
       (mpc-sort (if (listp active) active))
@@ -1751,7 +1765,7 @@ A value of t means the main playlist.")
                      (completing-read "Rename playlist: "
                                       (mpc-cmd-list 'Playlist)
                                       nil 'require-match)))
-          (newname (read-string (format "Rename '%s' to: " oldname))))
+          (newname (read-string (format-message "Rename `%s' to: " oldname))))
      (if (zerop (length newname))
          (error "Aborted")
        (list oldname newname))))
@@ -2630,6 +2644,8 @@ This is used so that they can be compared with `eq', which is needed for
   (interactive
    (progn
      (if current-prefix-arg
+         ;; FIXME: We should provide some completion here, especially for the
+         ;; case where the user specifies a local socket/file name.
          (setq mpc-host (read-string "MPD host and port: " nil nil mpc-host)))
      nil))
   (let* ((song-buf (mpc-songs-buf))

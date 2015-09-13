@@ -1418,7 +1418,7 @@ Lisp_Object
 ns_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
 {
   id dialog;
-  Lisp_Object window, tem, title;
+  Lisp_Object tem, title;
   NSPoint p;
   BOOL isQ;
   NSAutoreleasePool *pool;
@@ -1506,7 +1506,11 @@ ns_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
   area.size.width = ICONSIZE;
   area.size.height= ICONSIZE;
   img = [[NSImage imageNamed: @"NSApplicationIcon"] copy];
+#ifdef NS_IMPL_COCOA
+#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_6
   [img setScalesWhenResized: YES];
+#endif
+#endif
   [img setSize: NSMakeSize (ICONSIZE, ICONSIZE)];
   imgView = [[NSImageView alloc] initWithFrame: area];
   [imgView setImage: img];

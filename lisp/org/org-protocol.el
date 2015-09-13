@@ -197,7 +197,7 @@ Possible properties are:
 Example:
 
    (setq org-protocol-project-alist
-       '((\"http://orgmode.org/worg/\"
+       \\='((\"http://orgmode.org/worg/\"
           :online-suffix \".php\"
           :working-suffix \".org\"
           :base-url \"http://orgmode.org/worg/\"
@@ -251,7 +251,7 @@ kill-client - If t, kill the client immediately, once the sub-protocol is
 Here is an example:
 
   (setq org-protocol-protocol-alist
-      '((\"my-protocol\"
+      \\='((\"my-protocol\"
          :protocol \"my-protocol\"
          :function my-protocol-handler-function)
         (\"your-protocol\"
@@ -303,7 +303,7 @@ part."
 
 (defun org-protocol-flatten-greedy (param-list &optional strip-path replacement)
   "Greedy handlers might receive a list like this from emacsclient:
- '((\"/dir/org-protocol:/greedy:/~/path1\" (23 . 12)) (\"/dir/param\")
+ ((\"/dir/org-protocol:/greedy:/~/path1\" (23 . 12)) (\"/dir/param\"))
 where \"/dir/\" is the absolute path to emacsclients working directory.  This
 function transforms it into a flat list using `org-protocol-flatten' and
 transforms the elements of that list as follows:
@@ -347,7 +347,7 @@ returned list."
 
 (defun org-protocol-flatten (l)
   "Greedy handlers might receive a list like this from emacsclient:
- '( (\"/dir/org-protocol:/greedy:/~/path1\" (23 . 12)) (\"/dir/param\")
+ ((\"/dir/org-protocol:/greedy:/~/path1\" (23 . 12)) (\"/dir/param\"))
 where \"/dir/\" is the absolute path to emacsclients working directory.
 This function transforms it into a flat list."
   (if (null l) ()
@@ -365,9 +365,9 @@ link's URL to the `kill-ring'.
 
 The location for a browser's bookmark has to look like this:
 
-  javascript:location.href='org-protocol://store-link://'+ \\
+  javascript:location.href=\\='org-protocol://store-link://\\='+ \\
         encodeURIComponent(location.href)
-        encodeURIComponent(document.title)+'/'+ \\
+        encodeURIComponent(document.title)+\\='/\\='+ \\
 
 Don't use `escape()'! Use `encodeURIComponent()' instead.  The title of the page
 could contain slashes and the location definitely will.
@@ -394,18 +394,18 @@ The sub-protocol used to reach this function is set in
 `org-protocol-protocol-alist'.
 
 This function detects an URL, title and optional text, separated
-by '/'.  The location for a browser's bookmark looks like this:
+by `/'.  The location for a browser's bookmark looks like this:
 
-  javascript:location.href='org-protocol://capture://'+ \\
-        encodeURIComponent(location.href)+'/' \\
-        encodeURIComponent(document.title)+'/'+ \\
+  javascript:location.href=\\='org-protocol://capture://\\='+ \\
+        encodeURIComponent(location.href)+\\='/\\=' \\
+        encodeURIComponent(document.title)+\\='/\\='+ \\
         encodeURIComponent(window.getSelection())
 
 By default, it uses the character `org-protocol-default-template-key',
 which should be associated with a template in `org-capture-templates'.
 But you may prepend the encoded URL with a character and a slash like so:
 
-  javascript:location.href='org-protocol://capture://b/'+ ...
+  javascript:location.href=\\='org-protocol://capture://b/\\='+ ...
 
 Now template ?b will be used."
   (if (and (boundp 'org-stored-links)
@@ -455,7 +455,7 @@ in `org-protocol-project-alist'.
 
 The location for a browser's bookmark should look like this:
 
-  javascript:location.href='org-protocol://open-source://'+ \\
+  javascript:location.href=\\='org-protocol://open-source://\\='+ \\
         encodeURIComponent(location.href)"
   ;; As we enter this function for a match on our protocol, the return value
   ;; defaults to nil.
@@ -561,7 +561,7 @@ as filename."
         (let ((fname  (expand-file-name (car var))))
           (setq fname (org-protocol-check-filename-for-protocol
 		       fname (member var flist)  client))
-          (if (eq fname t) ;; greedy? We need the `t' return value.
+          (if (eq fname t) ;; greedy? We need the t return value.
               (progn
                 (ad-set-arg 0 nil)
                 (throw 'greedy t))

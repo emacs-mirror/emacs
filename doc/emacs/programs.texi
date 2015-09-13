@@ -97,7 +97,6 @@ your favorite language, the mode might be implemented in a package not
 distributed with Emacs (@pxref{Packages}); or you can contribute one.
 
 @kindex DEL @r{(programming modes)}
-@findex c-electric-backspace
 @findex backward-delete-char-untabify
   In most programming languages, indentation should vary from line to
 line to illustrate the structure of the program.  Therefore, in most
@@ -383,7 +382,7 @@ the preceding lines; if the region is active, @key{TAB} indents each
 line within the region, not just the current line.
 
   The command @key{RET} (@code{newline}), which was documented in
-@ref{Inserting Text}, does the same as @key{C-j} followed by
+@ref{Inserting Text}, does the same as @kbd{C-j} followed by
 @key{TAB}: it inserts a new line, then adjusts the line's indentation.
 
   When indenting a line that starts within a parenthetical grouping,
@@ -559,7 +558,7 @@ predefined styles, including @code{gnu}, @code{k&r}, @code{bsd},
 styles are primarily intended for one language, but any of them can be
 used with any of the languages supported by these modes.  To find out
 what a style looks like, select it and reindent some code, e.g., by
-typing @key{C-M-q} at the start of a function definition.
+typing @kbd{C-M-q} at the start of a function definition.
 
 @kindex C-c . @r{(C mode)}
 @findex c-set-style
@@ -814,7 +813,8 @@ opening delimiter and closing delimiter are mismatched---such as in
 @code{blink-matching-paren} turns the feature on or off: @code{nil}
 disables it, but the default is @code{t} to enable it.  Set it to
 @code{jump} to make indication work by momentarily moving the cursor
-to the matching opening delimiter.
+to the matching opening delimiter.  Set it to @code{jump-offscreen} to
+make the cursor jump, even if the opening delimiter is off screen.
 
 @item
 @code{blink-matching-delay} says how many seconds to keep indicating
@@ -843,9 +843,9 @@ show-paren-mode}.
   Electric Pair mode, a global minor mode, provides a way to easily
 insert matching delimiters.  Whenever you insert an opening delimiter,
 the matching closing delimiter is automatically inserted as well,
-leaving point between the two. Conversely, when you insert a closing
+leaving point between the two.  Conversely, when you insert a closing
 delimiter over an existing one, no inserting takes places and that
-position is simply skipped over. These variables control additional
+position is simply skipped over.  These variables control additional
 features of Electric Pair mode:
 
 @itemize @bullet
@@ -870,7 +870,9 @@ mode to skip whitespace forward before deciding whether to skip over
 the closing delimiter.
 @end itemize
 
-To toggle Electric Pair mode, type @kbd{M-x electric-pair-mode}.
+To toggle Electric Pair mode, type @kbd{M-x electric-pair-mode}.  To
+toggle the mode in a single buffer, use @kbd{M-x
+electric-pair-local-mode}.
 
 @node Comments
 @section Manipulating Comments

@@ -351,7 +351,7 @@ Other parts are the same as a `hangul3-input-method-cho'."
     (aset hangul-queue i 0))
   (if (notzerop (apply '+ (append hangul-queue nil)))
       (hangul-insert-character hangul-queue)
-    (delete-backward-char 1)))
+    (delete-char -1)))
 
 (defun hangul-to-hanja-conversion ()
   "Convert the previous hangul character to the corresponding hanja character.
@@ -363,7 +363,7 @@ When a Korean input method is off, convert the following hangul character."
     (if (and (overlayp quail-overlay) (overlay-start quail-overlay))
         (progn
 	  (setq hanja-character (hangul-to-hanja-char (preceding-char)))
-	  (setq delete-func (lambda () (delete-backward-char 1))))
+	  (setq delete-func (lambda () (delete-char -1))))
       (setq hanja-character (hangul-to-hanja-char (following-char)))
       (setq delete-func (lambda () (delete-char 1))))
     (when hanja-character
@@ -410,7 +410,9 @@ When a Korean input method is off, convert the following hangul character."
 		      ((commandp cmd)
 		       (call-interactively cmd))
 		      (t
-		       (setq unread-command-events (listify-key-sequence seq))
+		       (setq unread-command-events
+                             (nconc (listify-key-sequence seq)
+                                    unread-command-events))
 		       (throw 'exit-input-loop nil))))))
 	(quail-delete-overlays)))))
 
@@ -454,7 +456,9 @@ When a Korean input method is off, convert the following hangul character."
 		      ((commandp cmd)
 		       (call-interactively cmd))
 		      (t
-		       (setq unread-command-events (listify-key-sequence seq))
+		       (setq unread-command-events
+                             (nconc (listify-key-sequence seq)
+                                    unread-command-events))
 		       (throw 'exit-input-loop nil))))))
 	(quail-delete-overlays)))))
 
@@ -499,7 +503,9 @@ When a Korean input method is off, convert the following hangul character."
 		      ((commandp cmd)
 		       (call-interactively cmd))
 		      (t
-		       (setq unread-command-events (listify-key-sequence seq))
+		       (setq unread-command-events
+                             (nconc (listify-key-sequence seq)
+                                    unread-command-events))
 		       (throw 'exit-input-loop nil))))))
 	(quail-delete-overlays)))))
 

@@ -428,27 +428,27 @@ Major differences between this mode and real vi :
   - Search patterns with line offset (e.g. /pat/+3 or /pat/z.) are
     not supported.
   - Ex commands are not implemented; try ':' to get some hints.
-  - No line undo (i.e. the 'U' command), but multi-undo is a standard feature.
+  - No line undo (i.e. the `U' command), but multi-undo is a standard feature.
 
 * Modifications
   - The stopping positions for some point motion commands (word boundary,
-    pattern search) are slightly different from standard 'vi'.
+    pattern search) are slightly different from standard `vi'.
     Also, no automatic wrap around at end of buffer for pattern searching.
   - Since changes are done in two steps (deletion then insertion), you need
     to undo twice to completely undo a change command.  But this is not needed
     for undoing a repeated change command.
-  - No need to set/unset 'magic', to search for a string with regular expr
+  - No need to set/unset `magic', to search for a string with regular expr
     in it just put a prefix arg for the search commands.  Replace cmds too.
   - ^R is bound to incremental backward search, so use ^L to redraw screen.
 
 * Extensions
   - Some standard (or modified) Emacs commands were integrated, such as
     incremental search, query replace, transpose objects, and keyboard macros.
-  - In command state, ^X links to the 'ctl-x-map', and ESC can be linked to
+  - In command state, ^X links to the `ctl-x-map', and ESC can be linked to
     esc-map or set undefined.  These can give you the full power of Emacs.
   - See vi-com-map for those keys that are extensions to standard vi, e.g.
     `vi-name-last-change-or-macro', `vi-verify-spelling', `vi-locate-def',
-    `vi-mark-region', and 'vi-quote-words'.  Some of them are quite handy.
+    `vi-mark-region', and `vi-quote-words'.  Some of them are quite handy.
   - Use \\[vi-switch-mode] to switch among different modes quickly.
 
 Syntax table and abbrevs while in vi mode remain as they were in Emacs."
@@ -520,7 +520,7 @@ set sw=n     M-x set-variable vi-shift-width n "
 (defun vi-goto-insert-state (repetition &optional prefix-code do-it-now-p)
   "Go into insert state, the text entered will be repeated if REPETITION > 1.
 If PREFIX-CODE is given, do it before insertion begins if DO-IT-NOW-P is T.
-In any case, the prefix-code will be done before each 'redo-insert'.
+In any case, the prefix-code will be done before each `redo-insert'.
 This function expects `overwrite-mode' being set properly beforehand."
   (if do-it-now-p (apply (car prefix-code) (cdr prefix-code)))
   (setq vi-ins-point (point))
@@ -832,7 +832,7 @@ Possible prefix-arg cases are nil, INTEGER, (nil . CHAR) or (INTEGER . CHAR)."
 
 (defun vi-goto-mark (mark-char &optional line-flag)
   "Go to marked position or line (if line-flag is given).
-Goto mark '@' means jump into and pop the top mark on the mark ring."
+Goto mark `@' means jump into and pop the top mark on the mark ring."
   (cond ((char-equal mark-char last-command-event)	; `` or ''
 	 (exchange-point-and-mark) (if line-flag (back-to-indentation)))
 	((char-equal mark-char ?@)	; jump and pop mark
@@ -1213,7 +1213,7 @@ SPECIAL FEATURE: char argument can be used to specify shift amount(1-9)."
 (defun vi-backward-blank-delimited-word (count)
   "Backward COUNT blank-delimited words."
   (interactive "p")
-  (if (re-search-backward "[ \t\n\`][^ \t\n\`]+" nil t count)
+  (if (re-search-backward "[ \t\n`][^ \t\n`]+" nil t count)
       (if (not (bobp)) (forward-char 1))))
 
 (defun vi-forward-blank-delimited-word (count)

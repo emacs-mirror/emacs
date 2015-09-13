@@ -492,10 +492,10 @@ It includes all faces in list FACES."
 			 '("" "c")))
 	doc)
     (when fn
-      (princ " in `")
+      (princ (substitute-command-keys " in `"))
       (help-insert-xref-button (file-name-nondirectory fn)
 			       'help-theme-def fn)
-      (princ "'"))
+      (princ (substitute-command-keys "'")))
     (princ ".\n")
     (if (custom-theme-p theme)
 	(progn
@@ -517,7 +517,7 @@ It includes all faces in list FACES."
 		 (setq doc (nth 2 sexp)))))))
     (princ "\n\nDocumentation:\n")
     (princ (if (stringp doc)
-	       doc
+	       (substitute-command-keys doc)
 	     "No documentation available.")))
   (princ "\n\nYou can ")
   (help-insert-xref-button "customize" 'help-theme-edit theme)
@@ -587,7 +587,7 @@ Theme files are named *-theme.el in `"))
 		 :follow-link 'mouse-face
 		 :action (lambda (_widget &rest _ignore)
 			   (describe-variable 'custom-theme-load-path)))
-  (widget-insert "'.\n\n")
+  (widget-insert (substitute-command-keys "'.\n\n"))
 
   ;; If the user has made customizations, display a warning and
   ;; provide buttons to disable or convert them.

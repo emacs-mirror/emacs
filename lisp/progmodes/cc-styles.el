@@ -663,8 +663,8 @@ DEFAULT-STYLE has the same format as `c-default-style'."
 
 (cc-provide 'cc-styles)
 
-;;; Local Variables:
-;;; indent-tabs-mode: t
-;;; tab-width: 8
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: t
+;; tab-width: 8
+;; End:
 ;;; cc-styles.el ends here

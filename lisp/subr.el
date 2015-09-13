@@ -295,7 +295,7 @@ In Emacs, the convention is that error messages start with a capital
 letter but *do not* end with a period.  Please follow this convention
 for the sake of consistency."
   (declare (advertised-calling-convention (string &rest args) "23.1"))
-  (signal 'error (list (apply 'format args))))
+  (signal 'error (list (apply #'format-message args))))
 
 (defun user-error (format &rest args)
   "Signal a pilot error, making error message by passing all args to `format'.
@@ -305,7 +305,7 @@ for the sake of consistency.
 This is just like `error' except that `user-error's are expected to be the
 result of an incorrect manipulation on the part of the user, rather than the
 result of an actual problem."
-  (signal 'user-error (list (apply #'format format args))))
+  (signal 'user-error (list (apply #'format-message format args))))
 
 (defun define-error (name message &optional parent)
   "Define NAME as a new error signal.
@@ -339,20 +339,41 @@ configuration."
 
 ;;;; List functions.
 
-(defsubst caar (x)
+;; Note: `internal--compiler-macro-cXXr' was copied from
+;; `cl--compiler-macro-cXXr' in cl-macs.el.  If you amend either one,
+;; you may want to amend the other, too.
+(defun internal--compiler-macro-cXXr (form x)
+  (let* ((head (car form))
+         (n (symbol-name (car form)))
+         (i (- (length n) 2)))
+    (if (not (string-match "c[ad]+r\\'" n))
+        (if (and (fboundp head) (symbolp (symbol-function head)))
+            (internal--compiler-macro-cXXr (cons (symbol-function head) (cdr form))
+                                     x)
+          (error "Compiler macro for cXXr applied to non-cXXr form"))
+      (while (> i (match-beginning 0))
+        (setq x (list (if (eq (aref n i) ?a) 'car 'cdr) x))
+        (setq i (1- i)))
+      x)))
+
+(defun caar (x)
   "Return the car of the car of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
   (car (car x)))
 
-(defsubst cadr (x)
+(defun cadr (x)
   "Return the car of the cdr of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
   (car (cdr x)))
 
-(defsubst cdar (x)
+(defun cdar (x)
   "Return the cdr of the car of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
   (cdr (car x)))
 
-(defsubst cddr (x)
+(defun cddr (x)
   "Return the cdr of the cdr of X."
+  (declare (compiler-macro internal--compiler-macro-cXXr))
   (cdr (cdr x)))
 
 (defun last (list &optional n)
@@ -396,10 +417,21 @@ If N is omitted or nil, remove the last element."
 Store the result in LIST and return it.  LIST must be a proper list.
 Of several `equal' occurrences of an element in LIST, the first
 one is kept."
-  (let ((tail list))
-    (while tail
-      (setcdr tail (delete (car tail) (cdr tail)))
-      (setq tail (cdr tail))))
+  (let ((l (length list)))
+    (if (> l 100)
+        (let ((hash (make-hash-table :test #'equal :size l))
+              (tail list) retail)
+          (puthash (car list) t hash)
+          (while (setq retail (cdr tail))
+            (let ((elt (car retail)))
+              (if (gethash elt hash)
+                  (setcdr tail (cdr retail))
+                (puthash elt t hash)
+                (setq tail retail)))))
+      (let ((tail list))
+        (while tail
+          (setcdr tail (delete (car tail) (cdr tail)))
+          (setq tail (cdr tail))))))
   list)
 
 ;; See http://lists.gnu.org/archive/html/emacs-devel/2013-05/msg00204.html
@@ -408,16 +440,16 @@ one is kept."
 First and last elements are considered consecutive if CIRCULAR is
 non-nil."
   (let ((tail list) last)
-    (while (consp tail)
+    (while (cdr tail)
       (if (equal (car tail) (cadr tail))
 	  (setcdr tail (cddr tail))
-	(setq last (car tail)
+	(setq last tail
 	      tail (cdr tail))))
     (if (and circular
-	     (cdr list)
-	     (equal last (car list)))
-	(nbutlast list)
-      list)))
+	     last
+	     (equal (car tail) (car list)))
+	(setcdr last nil)))
+  list)
 
 (defun number-sequence (from &optional to inc)
   "Return a sequence of numbers from FROM to TO (both inclusive) as a list.
@@ -910,7 +942,7 @@ in a cleaner way with command remapping, like this:
 	    (nconc (nreverse skipped) newdef)))
       ;; Look past a symbol that names a keymap.
       (setq inner-def
-	    (or (indirect-function defn t) defn))
+	    (or (indirect-function defn) defn))
       ;; For nested keymaps, we use `inner-def' rather than `defn' so as to
       ;; avoid autoloading a keymap.  This is mostly done to preserve the
       ;; original non-autoloading behavior of pre-map-keymap times.
@@ -1181,14 +1213,14 @@ and `event-end' functions."
   "Return the window row number in POSITION and character number in that row.
 
 Return nil if POSITION does not contain the actual position; in that case
-\`posn-col-row' can be used to get approximate values.
+`posn-col-row' can be used to get approximate values.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions.
 
 This function does not account for the width on display, like the
 number of visual columns taken by a TAB or image.  If you need
 the coordinates of POSITION in character units, you should use
-\`posn-col-row', not this function."
+`posn-col-row', not this function."
   (nth 6 position))
 
 (defsubst posn-timestamp (position)
@@ -1352,6 +1384,7 @@ is converted into a string by expressing it in decimal."
 (defalias 'send-region 'process-send-region)
 (defalias 'string= 'string-equal)
 (defalias 'string< 'string-lessp)
+(defalias 'string> 'string-greaterp)
 (defalias 'move-marker 'set-marker)
 (defalias 'rplaca 'setcar)
 (defalias 'rplacd 'setcdr)
@@ -1470,6 +1503,19 @@ All symbols are bound before the VALUEFORMs are evalled."
      ,@(mapcar (lambda (binder) `(setq ,@binder)) binders)
      ,@body))
 
+(defmacro let-when-compile (bindings &rest body)
+  "Like `let', but allow for compile time optimization.
+Use BINDINGS as in regular `let', but in BODY each usage should
+be wrapped in `eval-when-compile'.
+This will generate compile-time constants from BINDINGS."
+  (declare (indent 1) (debug let))
+  (cl-progv (mapcar #'car bindings)
+      (mapcar (lambda (x) (eval (cadr x))) bindings)
+    (macroexpand-all
+     (macroexp-progn
+      body)
+     macroexpand-all-environment)))
+
 (defmacro with-wrapper-hook (hook args &rest body)
   "Run BODY, using wrapper functions from HOOK with additional ARGS.
 HOOK is an abnormal hook.  Each hook function in HOOK \"wraps\"
@@ -1560,8 +1606,9 @@ can do the job."
           exp
         (let* ((sym (cadr list-var))
                (append (eval append))
-               (msg (format "`add-to-list' can't use lexical var `%s'; use `push' or `cl-pushnew'"
-                            sym))
+               (msg (format-message
+                     "`add-to-list' can't use lexical var `%s'; use `push' or `cl-pushnew'"
+                     sym))
                ;; Big ugly hack so we only output a warning during
                ;; byte-compilation, and so we can use
                ;; byte-compile-not-lexical-var-p to silence the warning
@@ -1712,7 +1759,7 @@ this instead of `run-hooks' when running their FOO-mode-hook."
 (defmacro delay-mode-hooks (&rest body)
   "Execute BODY, but delay any `run-mode-hooks'.
 These hooks will be executed by the first following call to
-`run-mode-hooks' that occurs outside any `delayed-mode-hooks' form.
+`run-mode-hooks' that occurs outside any `delay-mode-hooks' form.
 Only affects hooks run in the current buffer."
   (declare (debug t) (indent 0))
   `(progn
@@ -1901,6 +1948,30 @@ and the file name is displayed in the echo area."
 
 ;;;; Process stuff.
 
+(defun start-process (name buffer program &rest program-args)
+  "Start a program in a subprocess.  Return the process object for it.
+NAME is name for process.  It is modified if necessary to make it unique.
+BUFFER is the buffer (or buffer name) to associate with the process.
+
+Process output (both standard output and standard error streams) goes
+at end of BUFFER, unless you specify an output stream or filter
+function to handle the output.  BUFFER may also be nil, meaning that
+this process is not associated with any buffer.
+
+PROGRAM is the program file name.  It is searched for in `exec-path'
+\(which see).  If nil, just associate a pty with the buffer.  Remaining
+arguments are strings to give program as arguments.
+
+If you want to separate standard output from standard error, use
+`make-process' or invoke the command through a shell and redirect
+one of them using the shell syntax."
+  (unless (fboundp 'make-process)
+    (error "Emacs was compiled without subprocess support"))
+  (apply #'make-process
+	 (append (list :name name :buffer buffer)
+		 (if program
+		     (list :command (cons program program-args))))))
+
 (defun process-lines (program &rest args)
   "Execute PROGRAM with ARGS, returning its output as a list of lines.
 Signal an error if the program returns with a non-zero exit status."
@@ -1929,14 +2000,13 @@ process."
 
 ;; compatibility
 
-(make-obsolete
- 'process-kill-without-query
- "use `process-query-on-exit-flag' or `set-process-query-on-exit-flag'."
- "22.1")
 (defun process-kill-without-query (process &optional _flag)
   "Say no query needed if PROCESS is running when Emacs is exited.
 Optional second argument if non-nil says to require a query.
 Value is t if a query was formerly required."
+  (declare (obsolete
+            "use `process-query-on-exit-flag' or `set-process-query-on-exit-flag'."
+            "22.1"))
   (let ((old (process-query-on-exit-flag process)))
     (set-process-query-on-exit-flag process nil)
     old))
@@ -2207,7 +2277,18 @@ floating point support."
     t)
    ((input-pending-p t)
     nil)
-   ((<= seconds 0)
+   ((or (<= seconds 0)
+        ;; We are going to call read-event below, which will record
+        ;; the the next key as part of the macro, even if that key
+        ;; invokes kmacro-end-macro, so if we are recording a macro,
+        ;; the macro will recursively call itself.  In addition, when
+        ;; that key is removed from unread-command-events, it will be
+        ;; recorded the second time, so the macro will have each key
+        ;; doubled.  This used to happen if a macro was defined with
+        ;; Flyspell mode active (because Flyspell calls sit-for in its
+        ;; post-command-hook, see bug #21329.)  To avoid all that, we
+        ;; simply disable the wait when we are recording a macro.
+        defining-kbd-macro)
     (or nodisp (redisplay)))
    (t
     (or nodisp (redisplay))
@@ -2279,6 +2360,7 @@ is nil and `use-dialog-box' is non-nil."
 		  (t (setq temp-prompt (concat "Please answer y or n.  "
 					       prompt))))))))
      ((and (display-popup-menus-p)
+           last-input-event             ; not during startup
 	   (listp last-nonmenu-event)
 	   use-dialog-box)
       (setq prompt (funcall padded prompt t)
@@ -2469,7 +2551,8 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
 	    (or (eq event exit-char)
 		(eq event (event-convert-list exit-char))
 		(setq unread-command-events
-                      (append (this-single-command-raw-keys))))))
+                      (append (this-single-command-raw-keys)
+                              unread-command-events)))))
       (delete-overlay ol))))
 
 
@@ -2713,12 +2796,12 @@ Otherwise, return nil."
 (defun special-form-p (object)
   "Non-nil if and only if OBJECT is a special form."
   (if (and (symbolp object) (fboundp object))
-      (setq object (indirect-function object t)))
+      (setq object (indirect-function object)))
   (and (subrp object) (eq (cdr (subr-arity object)) 'unevalled)))
 
 (defun macrop (object)
   "Non-nil if and only if OBJECT is a macro."
-  (let ((def (indirect-function object t)))
+  (let ((def (indirect-function object)))
     (when (consp def)
       (or (eq 'macro (car def))
           (and (autoloadp def) (memq (nth 4 def) '(macro t)))))))
@@ -2770,17 +2853,18 @@ remove properties specified by `yank-excluded-properties'."
   (let ((inhibit-read-only t))
     (dolist (handler yank-handled-properties)
       (let ((prop (car handler))
-	    (fun  (cdr handler))
-	    (run-start start))
-	(while (< run-start end)
-	  (let ((value (get-text-property run-start prop))
-		(run-end (next-single-property-change
-			  run-start prop nil end)))
-	    (funcall fun value run-start run-end)
-	    (setq run-start run-end)))))
-    (if (eq yank-excluded-properties t)
-	(set-text-properties start end nil)
-      (remove-list-of-text-properties start end yank-excluded-properties))))
+            (fun  (cdr handler))
+            (run-start start))
+        (while (< run-start end)
+          (let ((value (get-text-property run-start prop))
+                (run-end (next-single-property-change
+                          run-start prop nil end)))
+            (funcall fun value run-start run-end)
+            (setq run-start run-end)))))
+    (with-silent-modifications
+      (if (eq yank-excluded-properties t)
+          (set-text-properties start end nil)
+        (remove-list-of-text-properties start end yank-excluded-properties)))))
 
 (defvar yank-undo-function)
 
@@ -3461,6 +3545,8 @@ LIMIT.
 
 As a general recommendation, try to avoid using `looking-back'
 wherever possible, since it is slow."
+  (declare
+   (advertised-calling-convention (regexp limit &optional greedy) "25.1"))
   (let ((start (point))
 	(pos
 	 (save-excursion
@@ -3684,7 +3770,8 @@ REP is either a string used as the NEWTEXT arg of `replace-match' or a
 function.  If it is a function, it is called with the actual text of each
 match, and its value is used as the replacement text.  When REP is called,
 the match data are the result of matching REGEXP against a substring
-of STRING.
+of STRING, the same substring that is the actual text of the match which
+is passed to REP as its argument.
 
 To replace only the first match (if any), make REGEXP match up to \\'
 and replace a sub-expression, e.g.
@@ -3762,6 +3849,13 @@ consisting of STR followed by an invisible left-to-right mark
   (if (string-match "\\cR" str)
       (concat str (propertize (string ?\x200e) 'invisible t))
     str))
+
+(defun string-greaterp (string1 string2)
+  "Return non-nil if STRING1 is greater than STRING2 in lexicographic order.
+Case is significant.
+Symbols are also allowed; their print names are used instead."
+  (string-lessp string2 string1))
+
 
 ;;;; Specifying things to do later.
 
@@ -3898,9 +3992,7 @@ This function is called directly from the C code."
       ;; discard the file name regexp
       (mapc #'funcall (cdr a-l-element))))
   ;; Complain when the user uses obsolete files.
-  (when (save-match-data
-          (and (string-match "/obsolete/\\([^/]*\\)\\'" abs-file)
-               (not (equal "loaddefs.el" (match-string 1 abs-file)))))
+  (when (string-match-p "/obsolete/\\([^/]*\\)\\'" abs-file)
     ;; Maybe we should just use display-warning?  This seems yucky...
     (let* ((file (file-name-nondirectory abs-file))
 	   (msg (format "Package %s is obsolete!"
@@ -3987,9 +4079,10 @@ that can be added."
 
 (defun remove-from-invisibility-spec (element)
   "Remove ELEMENT from `buffer-invisibility-spec'."
-  (if (consp buffer-invisibility-spec)
-      (setq buffer-invisibility-spec
-	    (delete element buffer-invisibility-spec))))
+  (setq buffer-invisibility-spec
+        (if (consp buffer-invisibility-spec)
+	    (delete element buffer-invisibility-spec)
+          (list t))))
 
 ;;;; Syntax tables.
 
@@ -4680,7 +4773,7 @@ Examples of version conversion:
 
 See documentation for `version-separator' and `version-regexp-alist'."
   (or (and (stringp ver) (> (length ver) 0))
-      (error "Invalid version string: '%s'" ver))
+      (error "Invalid version string: `%s'" ver))
   ;; Change .x.y to 0.x.y
   (if (and (>= (length ver) (length version-separator))
 	   (string-equal (substring ver 0 (length version-separator))
@@ -4712,9 +4805,9 @@ See documentation for `version-separator' and `version-regexp-alist'."
 		  ((string-match "^[-_+ ]?\\([a-zA-Z]\\)$" s)
 		   (push (- (aref (downcase (match-string 1 s)) 0) ?a -1)
 			 lst))
-		  (t (error "Invalid version syntax: '%s'" ver))))))
+		  (t (error "Invalid version syntax: `%s'" ver))))))
       (if (null lst)
-	  (error "Invalid version syntax: '%s'" ver)
+	  (error "Invalid version syntax: `%s'" ver)
 	(nreverse lst)))))
 
 

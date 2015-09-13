@@ -4,16 +4,15 @@ See the end of the file for license conditions.
 
 This directory contains the source files for the C component of GNU Emacs.
 Nothing in this directory is needed for using Emacs once it is built
-and installed, if the dumped Emacs (on Unix systems) is copied elsewhere.
+and installed, if the dumped Emacs is copied elsewhere.
 
 See the files ../README and then ../INSTALL for installation instructions.
 
-Under GNU and Unix systems, the file `Makefile.in' is used as a
-template by the script `../configure' to produce `Makefile'.  This
-is the file which actually controls the compilation of Emacs.
-All of this should work transparently to the user; you should only
-need to run `../configure', and then type `make'.
-
+The file 'Makefile.in' is used as a template by the script
+'../configure' to produce 'Makefile'.  This is the file which actually
+controls the compilation of Emacs C source files.  All of this should
+work transparently; you should only need to change to the parent
+directory, run './configure', and then run 'make'.
 
 This file is part of GNU Emacs.
 

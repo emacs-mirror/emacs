@@ -1538,7 +1538,7 @@ ns_get_color (const char *name, NSColor **col)
 {
   NSColor *new = nil;
   static char hex[20];
-  int scaling;
+  int scaling = 0;
   float r = -1.0, g, b;
   NSString *nsname = [NSString stringWithUTF8String: name];
 
@@ -2093,6 +2093,18 @@ ns_clear_frame_area (struct frame *f, int x, int y, int width, int height)
   return;
 }
 
+static void
+ns_copy_bits (struct frame *f, NSRect src, NSRect dest)
+{
+  if (FRAME_NS_VIEW (f))
+    {
+      ns_focus (f, &dest, 1);
+      [FRAME_NS_VIEW (f) scrollRect: src
+                                 by: NSMakeSize (dest.origin.x - src.origin.x,
+                                                 dest.origin.y - src.origin.y)];
+      ns_unfocus (f);
+    }
+}
 
 static void
 ns_scroll_run (struct window *w, struct run *run)
@@ -2145,11 +2157,8 @@ ns_scroll_run (struct window *w, struct run *run)
   {
     NSRect srcRect = NSMakeRect (x, from_y, width, height);
     NSRect dstRect = NSMakeRect (x, to_y, width, height);
-    NSPoint dstOrigin = NSMakePoint (x, to_y);
 
-    ns_focus (f, &dstRect, 1);
-    NSCopyBits (0, srcRect , dstOrigin);
-    ns_unfocus (f);
+    ns_copy_bits (f, srcRect , dstRect);
   }
 
   unblock_input ();
@@ -2205,13 +2214,10 @@ ns_shift_glyphs_for_insert (struct frame *f,
 {
   NSRect srcRect = NSMakeRect (x, y, width, height);
   NSRect dstRect = NSMakeRect (x+shift_by, y, width, height);
-  NSPoint dstOrigin = dstRect.origin;
 
   NSTRACE (ns_shift_glyphs_for_insert);
 
-  ns_focus (f, &dstRect, 1);
-  NSCopyBits (0, srcRect, dstOrigin);
-  ns_unfocus (f);
+  ns_copy_bits (f, srcRect, dstRect);
 }
 
 
@@ -2317,7 +2323,7 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
           for (i = 0; i < len; i++)
             cbits[i] = ~(bits[i] & 0xff);
           img = [[EmacsImage alloc] initFromXBM: cbits width: 8 height: p->h
-                                           flip: NO];
+                                             fg: 0 bg: 0];
           bimgs[p->which - 1] = img;
           xfree (cbits);
         }
@@ -2459,6 +2465,7 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
 
   switch (cursor_type)
     {
+    case DEFAULT_CURSOR:
     case NO_CURSOR:
       break;
     case FILLED_BOX_CURSOR:
@@ -2921,6 +2928,11 @@ ns_maybe_dumpglyphs_background (struct glyph_string *s, char force_p)
     {
       int box_line_width = max (s->face->box_line_width, 0);
       if (FONT_HEIGHT (s->font) < s->height - 2 * box_line_width
+	  /* When xdisp.c ignores FONT_HEIGHT, we cannot trust font
+	     dimensions, since the actual glyphs might be much
+	     smaller.  So in that case we always clear the rectangle
+	     with background color.  */
+	  || FONT_TOO_HIGH (s->font)
           || s->font_not_found_p || s->extends_to_end_of_line_p || force_p)
 	{
           struct face *face;
@@ -3188,6 +3200,96 @@ ns_dumpglyphs_stretch (struct glyph_string *s)
 
 
 static void
+ns_draw_composite_glyph_string_foreground (struct glyph_string *s)
+{
+  int i, j, x;
+  struct font *font = s->font;
+
+  /* If first glyph of S has a left box line, start drawing the text
+     of S to the right of that box line.  */
+  if (s->face && s->face->box != FACE_NO_BOX
+      && s->first_glyph->left_box_line_p)
+    x = s->x + eabs (s->face->box_line_width);
+  else
+    x = s->x;
+
+  /* S is a glyph string for a composition.  S->cmp_from is the index
+     of the first character drawn for glyphs of this composition.
+     S->cmp_from == 0 means we are drawing the very first character of
+     this composition.  */
+
+  /* Draw a rectangle for the composition if the font for the very
+     first character of the composition could not be loaded.  */
+  if (s->font_not_found_p)
+    {
+      if (s->cmp_from == 0)
+        {
+          NSRect r = NSMakeRect (s->x, s->y, s->width-1, s->height -1);
+          ns_draw_box (r, 1, FRAME_CURSOR_COLOR (s->f), 1, 1);
+        }
+    }
+  else if (! s->first_glyph->u.cmp.automatic)
+    {
+      int y = s->ybase;
+
+      for (i = 0, j = s->cmp_from; i < s->nchars; i++, j++)
+	/* TAB in a composition means display glyphs with padding
+	   space on the left or right.  */
+	if (COMPOSITION_GLYPH (s->cmp, j) != '\t')
+	  {
+	    int xx = x + s->cmp->offsets[j * 2];
+	    int yy = y - s->cmp->offsets[j * 2 + 1];
+
+	    font->driver->draw (s, j, j + 1, xx, yy, false);
+	    if (s->face->overstrike)
+	      font->driver->draw (s, j, j + 1, xx + 1, yy, false);
+	  }
+    }
+  else
+    {
+      Lisp_Object gstring = composition_gstring_from_id (s->cmp_id);
+      Lisp_Object glyph;
+      int y = s->ybase;
+      int width = 0;
+
+      for (i = j = s->cmp_from; i < s->cmp_to; i++)
+	{
+	  glyph = LGSTRING_GLYPH (gstring, i);
+	  if (NILP (LGLYPH_ADJUSTMENT (glyph)))
+	    width += LGLYPH_WIDTH (glyph);
+	  else
+	    {
+	      int xoff, yoff, wadjust;
+
+	      if (j < i)
+		{
+		  font->driver->draw (s, j, i, x, y, false);
+		  if (s->face->overstrike)
+		    font->driver->draw (s, j, i, x + 1, y, false);
+		  x += width;
+		}
+	      xoff = LGLYPH_XOFF (glyph);
+	      yoff = LGLYPH_YOFF (glyph);
+	      wadjust = LGLYPH_WADJUST (glyph);
+	      font->driver->draw (s, i, i + 1, x + xoff, y + yoff, false);
+	      if (s->face->overstrike)
+		font->driver->draw (s, i, i + 1, x + xoff + 1, y + yoff,
+				    false);
+	      x += wadjust;
+	      j = i + 1;
+	      width = 0;
+	    }
+	}
+      if (j < i)
+	{
+	  font->driver->draw (s, j, i, x, y, false);
+	  if (s->face->overstrike)
+	    font->driver->draw (s, j, i, x + 1, y, false);
+	}
+    }
+}
+
+static void
 ns_draw_glyph_string (struct glyph_string *s)
 /* --------------------------------------------------------------------------
       External (RIF): Main draw-text call.
@@ -3279,13 +3381,14 @@ ns_draw_glyph_string (struct glyph_string *s)
 
       {
         BOOL isComposite = s->first_glyph->type == COMPOSITE_GLYPH;
-        int end = isComposite ? s->cmp_to : s->nchars;
 
-        font->driver->draw
-          (s, s->cmp_from, end, s->x, s->ybase,
-           (flags == NS_DUMPGLYPH_NORMAL && !s->background_filled_p)
-           || flags == NS_DUMPGLYPH_MOUSEFACE);
-
+        if (isComposite)
+          ns_draw_composite_glyph_string_foreground (s);
+        else
+          font->driver->draw
+            (s, s->cmp_from, s->nchars, s->x, s->ybase,
+             (flags == NS_DUMPGLYPH_NORMAL && !s->background_filled_p)
+             || flags == NS_DUMPGLYPH_MOUSEFACE);
       }
 
       {
@@ -3866,7 +3969,6 @@ ns_set_horizontal_scroll_bar (struct window *window,
   EmacsScroller *bar;
   int top, height, left, width;
   int window_x, window_width;
-  int pixel_width = WINDOW_PIXEL_WIDTH (window);
   BOOL update_p = YES;
 
   /* optimization; display engine sends WAY too many of these.. */
@@ -4224,6 +4326,7 @@ ns_create_terminal (struct ns_display_info *dpyinfo)
   terminal->menu_show_hook = ns_menu_show;
   terminal->popup_dialog_hook = ns_popup_dialog;
   terminal->set_vertical_scroll_bar_hook = ns_set_vertical_scroll_bar;
+  terminal->set_horizontal_scroll_bar_hook = ns_set_horizontal_scroll_bar;
   terminal->condemn_scroll_bars_hook = ns_condemn_scroll_bars;
   terminal->redeem_scroll_bar_hook = ns_redeem_scroll_bar;
   terminal->judge_scroll_bars_hook = ns_judge_scroll_bars;
@@ -4508,7 +4611,7 @@ ns_term_shutdown (int sig)
 
 - (id)init
 {
-  if (self = [super init])
+  if ((self = [super init]))
     {
 #ifdef NS_IMPL_COCOA
       self->isFirst = YES;
@@ -4795,21 +4898,43 @@ ns_term_shutdown (int sig)
   EV_TRAILER ((id)nil);
 }
 
+static bool
+runAlertPanel(NSString *title,
+              NSString *msgFormat,
+              NSString *defaultButton,
+              NSString *alternateButton)
+{
+#if !defined (NS_IMPL_COCOA) || \
+  MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_9
+  return NSRunAlertPanel(title, msgFormat, defaultButton, alternateButton, nil)
+    == NSAlertDefaultReturn;
+#else
+  NSAlert *alert = [[NSAlert alloc] init];
+  [alert setAlertStyle: NSCriticalAlertStyle];
+  [alert setMessageText: msgFormat];
+  [alert addButtonWithTitle: defaultButton];
+  [alert addButtonWithTitle: alternateButton];
+  NSInteger ret = [alert runModal];
+  [alert release];
+  return ret == NSAlertFirstButtonReturn;
+#endif
+}
+
 
 - (NSApplicationTerminateReply)applicationShouldTerminate: (id)sender
 {
-  int ret;
+  bool ret;
 
   if (NILP (ns_confirm_quit)) //   || ns_shutdown_properly  --> TO DO
     return NSTerminateNow;
 
-    ret = NSRunAlertPanel(ns_app_name,
-                          @"Exit requested.  Would you like to Save Buffers and Exit, or Cancel the request?",
-                          @"Save Buffers and Exit", @"Cancel", nil);
+    ret = runAlertPanel(ns_app_name,
+                        @"Exit requested.  Would you like to Save Buffers and Exit, or Cancel the request?",
+                        @"Save Buffers and Exit", @"Cancel");
 
-    if (ret == NSAlertDefaultReturn)
+    if (ret)
         return NSTerminateNow;
-    else if (ret == NSAlertAlternateReturn)
+    else
         return NSTerminateCancel;
     return NSTerminateNow;  /* just in case */
 }
@@ -5153,9 +5278,6 @@ not_in_argv (NSString *arg)
   int code;
   unsigned fnKeysym = 0;
   static NSMutableArray *nsEvArray;
-#ifdef NS_IMPL_GNUSTEP
-  static BOOL firstTime = YES;
-#endif
   int left_is_none;
   unsigned int flags = [theEvent modifierFlags];
 
@@ -5384,18 +5506,6 @@ not_in_argv (NSString *arg)
     }
 
 
-#ifdef NS_IMPL_GNUSTEP
-  /* if we get here we should send the key for input manager processing */
-  /* Disable warning, there is nothing a user can do about it anyway, and
-     it does not seem to matter.  */
-#if 0
-  if (firstTime && [[NSInputManager currentInputManager]
-                     wantsToDelayTextChangeNotifications] == NO)
-    fprintf (stderr,
-          "Emacs: WARNING: TextInput mgr wants marked text to be permanent!\n");
-#endif
-  firstTime = NO;
-#endif
   if (NS_KEYLOG && !processingCompose)
     fprintf (stderr, "keyDown: Begin compose sequence.\n");
 
@@ -6160,8 +6270,10 @@ if (cols > 0 && rows > 0)
 
   [win setAcceptsMouseMovedEvents: YES];
   [win setDelegate: self];
+#if !defined (NS_IMPL_COCOA) || \
+  MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_9
   [win useOptimizedDrawing: YES];
-
+#endif
   sz.width = frame_resize_pixelwise ? 1 : FRAME_COLUMN_WIDTH (f);
   sz.height = frame_resize_pixelwise ? 1 : FRAME_LINE_HEIGHT (f);
   [win setResizeIncrements: sz];
@@ -6222,8 +6334,10 @@ if (cols > 0 && rows > 0)
   if ([col alphaComponent] != (EmacsCGFloat) 1.0)
     [win setOpaque: NO];
 
+#if !defined (NS_IMPL_COCOA) || \
+  MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_9
   [self allocateGState];
-
+#endif
   [NSApp registerServicesMenuSendTypes: ns_send_types
                            returnTypes: nil];
 
@@ -6278,7 +6392,7 @@ if (cols > 0 && rows > 0)
       }
   else if (next_maximized == FULLSCREEN_HEIGHT
       || (next_maximized == -1
-          && abs (defaultFrame.size.height - result.size.height)
+          && abs ((int)(defaultFrame.size.height - result.size.height))
           > FRAME_LINE_HEIGHT (emacsframe)))
     {
       /* first click */
@@ -6301,7 +6415,7 @@ if (cols > 0 && rows > 0)
     }
   else if (next_maximized == FULLSCREEN_MAXIMIZED
            || (next_maximized == -1
-               && abs (defaultFrame.size.width - result.size.width)
+               && abs ((int)(defaultFrame.size.width - result.size.width))
                > FRAME_COLUMN_WIDTH (emacsframe)))
     {
       result = defaultFrame;  /* second click */
@@ -6548,7 +6662,10 @@ if (cols > 0 && rows > 0)
       [fw setTitle:[w title]];
       [fw setDelegate:self];
       [fw setAcceptsMouseMovedEvents: YES];
+#if !defined (NS_IMPL_COCOA) || \
+  MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_9
       [fw useOptimizedDrawing: YES];
+#endif
       [fw setResizeIncrements: sz];
       [fw setBackgroundColor: col];
       if ([col alphaComponent] != (EmacsCGFloat) 1.0)
@@ -6791,7 +6908,7 @@ if (cols > 0 && rows > 0)
 /* NSDraggingDestination protocol methods.  Actually this is not really a
    protocol, but a category of Object.  O well...  */
 
--(NSUInteger) draggingEntered: (id <NSDraggingInfo>) sender
+-(NSDragOperation) draggingEntered: (id <NSDraggingInfo>) sender
 {
   NSTRACE (draggingEntered);
   return NSDragOperationGeneric;
@@ -7076,7 +7193,6 @@ if (cols > 0 && rows > 0)
      one screen, we want to constrain.  Other times not.  */
   NSArray *screens = [NSScreen screens];
   NSUInteger nr_screens = [screens count], nr_eff_screens = 0, i;
-  struct frame *f = ((EmacsView *)[self delegate])->emacsframe;
   NSTRACE (constrainFrameRect);
   NSTRACE_RECT ("input", frameRect);
 
@@ -7172,7 +7288,15 @@ if (cols > 0 && rows > 0)
 {
   /* TODO: if we want to allow variable widths, this is the place to do it,
            however neither GNUstep nor Cocoa support it very well */
-  return [NSScroller scrollerWidth];
+  CGFloat r;
+#if !defined (NS_IMPL_COCOA) || \
+  MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_7
+  r = [NSScroller scrollerWidth];
+#else
+  r = [NSScroller scrollerWidthForControlSize: NSRegularControlSize
+                                scrollerStyle: NSScrollerStyleLegacy];
+#endif
+  return r;
 }
 
 
@@ -7568,6 +7692,7 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 {
   struct font *font = XFONT_OBJECT (font_object);
   EmacsView *view = FRAME_NS_VIEW (f);
+  int font_ascent, font_descent;
 
   if (fontset < 0)
     fontset = fontset_from_font (font_object);
@@ -7582,7 +7707,8 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 
   FRAME_BASELINE_OFFSET (f) = font->baseline_offset;
   FRAME_COLUMN_WIDTH (f) = font->average_width;
-  FRAME_LINE_HEIGHT (f) = font->height;
+  get_font_ascent_descent (font, &font_ascent, &font_descent);
+  FRAME_LINE_HEIGHT (f) = font_ascent + font_descent;
 
   /* Compute the scroll bar width in character columns.  */
   if (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0)

@@ -405,7 +405,9 @@ to writing a completion function."
   "Generate list of applicable, visible commands."
   (let ((filename (pcomplete-arg)) glob-name)
     (if (file-name-directory filename)
-	(pcomplete-executables)
+        (if eshell-force-execution
+            (pcomplete-dirs-or-entries nil 'file-readable-p)
+          (pcomplete-executables))
       (if (and (> (length filename) 0)
 	       (eq (aref filename 0) eshell-explicit-command-char))
 	  (setq filename (substring filename 1)
@@ -416,6 +418,8 @@ to writing a completion function."
 		   (expand-file-name default-directory)))
 	     (path "") (comps-in-path ())
 	     (file "") (filepath "") (completions ()))
+        (if (eshell-under-windows-p)
+            (push "." paths))
 	;; Go thru each path in the search path, finding completions.
 	(while paths
 	  (setq path (file-name-as-directory
@@ -431,7 +435,9 @@ to writing a completion function."
 	    (if (and (not (member file completions)) ;
 		     (or (string-equal path cwd)
 			 (not (file-directory-p filepath)))
-		     (file-executable-p filepath))
+                     (if eshell-force-execution
+                         (file-readable-p filepath)
+                       (file-executable-p filepath)))
 		(setq completions (cons file completions)))
 	    (setq comps-in-path (cdr comps-in-path)))
 	  (setq paths (cdr paths)))

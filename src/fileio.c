@@ -867,11 +867,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 #endif /* not DOS_NT */
 	)
       {
-	struct gcpro gcpro1;
-
-	GCPRO1 (name);
 	default_directory = Fexpand_file_name (default_directory, Qnil);
-	UNGCPRO;
       }
   }
   multibyte = STRING_MULTIBYTE (name);
@@ -1793,7 +1789,6 @@ barf_or_query_if_file_exists (Lisp_Object absname, bool known_to_exist,
 {
   Lisp_Object tem, encoded_filename;
   struct stat statbuf;
-  struct gcpro gcpro1;
 
   encoded_filename = ENCODE_FILE (absname);
 
@@ -1810,14 +1805,12 @@ barf_or_query_if_file_exists (Lisp_Object absname, bool known_to_exist,
       if (! interactive)
 	xsignal2 (Qfile_already_exists,
 		  build_string ("File already exists"), absname);
-      GCPRO1 (absname);
-      tem = format2 ("File %s already exists; %s anyway? ",
-		     absname, build_string (querystring));
+      AUTO_STRING (format, "File %s already exists; %s anyway? ");
+      tem = CALLN (Fformat, format, absname, build_string (querystring));
       if (quick)
 	tem = call1 (intern ("y-or-n-p"), tem);
       else
 	tem = do_yes_or_no_p (tem);
-      UNGCPRO;
       if (NILP (tem))
 	xsignal2 (Qfile_already_exists,
 		  build_string ("File already exists"), absname);
@@ -1858,7 +1851,6 @@ permissions.  */)
    Lisp_Object preserve_permissions)
 {
   Lisp_Object handler;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object encoded_file, encoded_newname;
 #if HAVE_LIBSELINUX
@@ -1871,13 +1863,10 @@ permissions.  */)
   bool already_exists = false;
   mode_t new_mask;
   int ifd, ofd;
-  int n;
-  char buf[16 * 1024];
   struct stat st;
 #endif
 
   encoded_file = encoded_newname = Qnil;
-  GCPRO4 (file, newname, encoded_file, encoded_newname);
   CHECK_STRING (file);
   CHECK_STRING (newname);
 
@@ -1895,9 +1884,9 @@ permissions.  */)
   if (NILP (handler))
     handler = Ffind_file_name_handler (newname, Qcopy_file);
   if (!NILP (handler))
-    RETURN_UNGCPRO (call7 (handler, Qcopy_file, file, newname,
-			   ok_if_already_exists, keep_time, preserve_uid_gid,
-			   preserve_permissions));
+    return call7 (handler, Qcopy_file, file, newname,
+		  ok_if_already_exists, keep_time, preserve_uid_gid,
+		  preserve_permissions);
 
   encoded_file = ENCODE_FILE (file);
   encoded_newname = ENCODE_FILE (newname);
@@ -1974,6 +1963,8 @@ permissions.  */)
 
   record_unwind_protect_int (close_file_unwind, ofd);
 
+  off_t oldsize = 0, newsize = 0;
+
   if (already_exists)
     {
       struct stat out_st;
@@ -1982,15 +1973,31 @@ permissions.  */)
       if (st.st_dev == out_st.st_dev && st.st_ino == out_st.st_ino)
 	report_file_errno ("Input and output files are the same",
 			   list2 (file, newname), 0);
-      if (ftruncate (ofd, 0) != 0)
-	report_file_error ("Truncating output file", newname);
+      if (S_ISREG (out_st.st_mode))
+	oldsize = out_st.st_size;
     }
 
   immediate_quit = 1;
   QUIT;
-  while ((n = emacs_read (ifd, buf, sizeof buf)) > 0)
-    if (emacs_write_sig (ofd, buf, n) != n)
-      report_file_error ("Write error", newname);
+  while (true)
+    {
+      char buf[MAX_ALLOCA];
+      ptrdiff_t n = emacs_read (ifd, buf, sizeof buf);
+      if (n < 0)
+	report_file_error ("Read error", file);
+      if (n == 0)
+	break;
+      if (emacs_write_sig (ofd, buf, n) != n)
+	report_file_error ("Write error", newname);
+      newsize += n;
+    }
+
+  /* Truncate any existing output file after writing the data.  This
+     is more likely to work than truncation before writing, if the
+     file system is out of space or the user is over disk quota.  */
+  if (newsize < oldsize && ftruncate (ofd, newsize) != 0)
+    report_file_error ("Truncating output file", newname);
+
   immediate_quit = 0;
 
 #ifndef MSDOS
@@ -2079,7 +2086,6 @@ permissions.  */)
   /* Discard the unwind protects.  */
   specpdl_ptr = specpdl + count;
 
-  UNGCPRO;
   return Qnil;
 }
 
@@ -2149,15 +2155,12 @@ With a prefix argument, TRASH is nil.  */)
 {
   Lisp_Object handler;
   Lisp_Object encoded_file;
-  struct gcpro gcpro1;
 
-  GCPRO1 (filename);
   if (!NILP (Ffile_directory_p (filename))
       && NILP (Ffile_symlink_p (filename)))
     xsignal2 (Qfile_error,
 	      build_string ("Removing old name: is a directory"),
 	      filename);
-  UNGCPRO;
   filename = Fexpand_file_name (filename, Qnil);
 
   handler = Ffind_file_name_handler (filename, Qdelete_file);
@@ -2204,11 +2207,9 @@ This is what happens in interactive use with M-x.  */)
   (Lisp_Object file, Lisp_Object newname, Lisp_Object ok_if_already_exists)
 {
   Lisp_Object handler;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   Lisp_Object encoded_file, encoded_newname, symlink_target;
 
   symlink_target = encoded_file = encoded_newname = Qnil;
-  GCPRO5 (file, newname, encoded_file, encoded_newname, symlink_target);
   CHECK_STRING (file);
   CHECK_STRING (newname);
   file = Fexpand_file_name (file, Qnil);
@@ -2234,8 +2235,8 @@ This is what happens in interactive use with M-x.  */)
   if (NILP (handler))
     handler = Ffind_file_name_handler (newname, Qrename_file);
   if (!NILP (handler))
-    RETURN_UNGCPRO (call4 (handler, Qrename_file,
-			   file, newname, ok_if_already_exists));
+    return call4 (handler, Qrename_file,
+		  file, newname, ok_if_already_exists);
 
   encoded_file = ENCODE_FILE (file);
   encoded_newname = ENCODE_FILE (newname);
@@ -2281,7 +2282,7 @@ This is what happens in interactive use with M-x.  */)
       else
 	report_file_errno ("Renaming", list2 (file, newname), rename_errno);
     }
-  UNGCPRO;
+
   return Qnil;
 }
 
@@ -2296,9 +2297,7 @@ This is what happens in interactive use with M-x.  */)
 {
   Lisp_Object handler;
   Lisp_Object encoded_file, encoded_newname;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
-  GCPRO4 (file, newname, encoded_file, encoded_newname);
   encoded_file = encoded_newname = Qnil;
   CHECK_STRING (file);
   CHECK_STRING (newname);
@@ -2313,15 +2312,15 @@ This is what happens in interactive use with M-x.  */)
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (file, Qadd_name_to_file);
   if (!NILP (handler))
-    RETURN_UNGCPRO (call4 (handler, Qadd_name_to_file, file,
-			   newname, ok_if_already_exists));
+    return call4 (handler, Qadd_name_to_file, file,
+		  newname, ok_if_already_exists);
 
   /* If the new name has special constructs in it,
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (newname, Qadd_name_to_file);
   if (!NILP (handler))
-    RETURN_UNGCPRO (call4 (handler, Qadd_name_to_file, file,
-			   newname, ok_if_already_exists));
+    return call4 (handler, Qadd_name_to_file, file,
+		  newname, ok_if_already_exists);
 
   encoded_file = ENCODE_FILE (file);
   encoded_newname = ENCODE_FILE (newname);
@@ -2338,86 +2337,77 @@ This is what happens in interactive use with M-x.  */)
       report_file_errno ("Adding new name", list2 (file, newname), link_errno);
     }
 
-  UNGCPRO;
   return Qnil;
 }
 
 DEFUN ("make-symbolic-link", Fmake_symbolic_link, Smake_symbolic_link, 2, 3,
        "FMake symbolic link to file: \nGMake symbolic link to file %s: \np",
-       doc: /* Make a symbolic link to FILENAME, named LINKNAME.
+       doc: /* Make a symbolic link to TARGET, named LINKNAME.
 Both args must be strings.
 Signals a `file-already-exists' error if a file LINKNAME already exists
 unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.
 A number as third arg means request confirmation if LINKNAME already exists.
 This happens for interactive use with M-x.  */)
-  (Lisp_Object filename, Lisp_Object linkname, Lisp_Object ok_if_already_exists)
+  (Lisp_Object target, Lisp_Object linkname, Lisp_Object ok_if_already_exists)
 {
   Lisp_Object handler;
-  Lisp_Object encoded_filename, encoded_linkname;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+  Lisp_Object encoded_target, encoded_linkname;
 
-  GCPRO4 (filename, linkname, encoded_filename, encoded_linkname);
-  encoded_filename = encoded_linkname = Qnil;
-  CHECK_STRING (filename);
+  encoded_target = encoded_linkname = Qnil;
+  CHECK_STRING (target);
   CHECK_STRING (linkname);
   /* If the link target has a ~, we must expand it to get
      a truly valid file name.  Otherwise, do not expand;
      we want to permit links to relative file names.  */
-  if (SREF (filename, 0) == '~')
-    filename = Fexpand_file_name (filename, Qnil);
+  if (SREF (target, 0) == '~')
+    target = Fexpand_file_name (target, Qnil);
 
   if (!NILP (Ffile_directory_p (linkname)))
-    linkname = Fexpand_file_name (Ffile_name_nondirectory (filename), linkname);
+    linkname = Fexpand_file_name (Ffile_name_nondirectory (target), linkname);
   else
     linkname = Fexpand_file_name (linkname, Qnil);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (filename, Qmake_symbolic_link);
+  handler = Ffind_file_name_handler (target, Qmake_symbolic_link);
   if (!NILP (handler))
-    RETURN_UNGCPRO (call4 (handler, Qmake_symbolic_link, filename,
-			   linkname, ok_if_already_exists));
+    return call4 (handler, Qmake_symbolic_link, target,
+		  linkname, ok_if_already_exists);
 
   /* If the new link name has special constructs in it,
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (linkname, Qmake_symbolic_link);
   if (!NILP (handler))
-    RETURN_UNGCPRO (call4 (handler, Qmake_symbolic_link, filename,
-			   linkname, ok_if_already_exists));
+    return call4 (handler, Qmake_symbolic_link, target,
+		  linkname, ok_if_already_exists);
 
-  encoded_filename = ENCODE_FILE (filename);
+  encoded_target = ENCODE_FILE (target);
   encoded_linkname = ENCODE_FILE (linkname);
 
   if (NILP (ok_if_already_exists)
       || INTEGERP (ok_if_already_exists))
     barf_or_query_if_file_exists (linkname, false, "make it a link",
 				  INTEGERP (ok_if_already_exists), false);
-  if (symlink (SSDATA (encoded_filename), SSDATA (encoded_linkname)) < 0)
+  if (symlink (SSDATA (encoded_target), SSDATA (encoded_linkname)) < 0)
     {
       /* If we didn't complain already, silently delete existing file.  */
       int symlink_errno;
       if (errno == EEXIST)
 	{
 	  unlink (SSDATA (encoded_linkname));
-	  if (symlink (SSDATA (encoded_filename), SSDATA (encoded_linkname))
+	  if (symlink (SSDATA (encoded_target), SSDATA (encoded_linkname))
 	      >= 0)
-	    {
-	      UNGCPRO;
-	      return Qnil;
-	    }
+	    return Qnil;
 	}
       if (errno == ENOSYS)
-	{
-	  UNGCPRO;
-	  xsignal1 (Qfile_error,
-		    build_string ("Symbolic links are not supported"));
-	}
+	xsignal1 (Qfile_error,
+		  build_string ("Symbolic links are not supported"));
 
       symlink_errno = errno;
-      report_file_errno ("Making symbolic link", list2 (filename, linkname),
+      report_file_errno ("Making symbolic link", list2 (target, linkname),
 			 symlink_errno);
     }
-  UNGCPRO;
+
   return Qnil;
 }
 
@@ -2695,10 +2685,18 @@ bool
 file_accessible_directory_p (Lisp_Object file)
 {
 #ifdef DOS_NT
-  /* There's no need to test whether FILE is searchable, as the
-     searchable/executable bit is invented on DOS_NT platforms.  */
+# ifdef WINDOWSNT
+  /* We need a special-purpose test because (a) NTFS security data is
+     not reflected in Posix-style mode bits, and (b) the trick with
+     accessing "DIR/.", used below on Posix hosts, doesn't work on
+     Windows, because "DIR/." is normalized to just "DIR" before
+     hitting the disk.  */
+  return (SBYTES (file) == 0
+	  || w32_accessible_directory_p (SSDATA (file), SBYTES (file)));
+# else	/* MSDOS */
   return file_directory_p (SSDATA (file));
-#else
+# endif	 /* MSDOS */
+#else	 /* !DOS_NT */
   /* On POSIXish platforms, use just one system call; this avoids a
      race and is typically faster.  */
   const char *data = SSDATA (file);
@@ -2731,7 +2729,7 @@ file_accessible_directory_p (Lisp_Object file)
   SAFE_FREE ();
   errno = saved_errno;
   return ok;
-#endif
+#endif	/* !DOS_NT */
 }
 
 DEFUN ("file-regular-p", Ffile_regular_p, Sfile_regular_p, 1, 1, 0,
@@ -3165,16 +3163,13 @@ otherwise, if FILE2 does not exist, the answer is t.  */)
   Lisp_Object absname1, absname2;
   struct stat st1, st2;
   Lisp_Object handler;
-  struct gcpro gcpro1, gcpro2;
 
   CHECK_STRING (file1);
   CHECK_STRING (file2);
 
   absname1 = Qnil;
-  GCPRO2 (absname1, file2);
   absname1 = expand_and_dir_to_file (file1, BVAR (current_buffer, directory));
   absname2 = expand_and_dir_to_file (file2, BVAR (current_buffer, directory));
-  UNGCPRO;
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -3184,10 +3179,8 @@ otherwise, if FILE2 does not exist, the answer is t.  */)
   if (!NILP (handler))
     return call3 (handler, Qfile_newer_than_file_p, absname1, absname2);
 
-  GCPRO2 (absname1, absname2);
   absname1 = ENCODE_FILE (absname1);
   absname2 = ENCODE_FILE (absname2);
-  UNGCPRO;
 
   if (stat (SSDATA (absname1), &st1) < 0)
     return Qnil;
@@ -3390,7 +3383,6 @@ by calling `format-decode', which see.  */)
   off_t beg_offset, end_offset;
   int unprocessed;
   ptrdiff_t count = SPECPDL_INDEX ();
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   Lisp_Object handler, val, insval, orig_filename, old_undo;
   Lisp_Object p;
   ptrdiff_t total = 0;
@@ -3429,8 +3421,6 @@ by calling `format-decode', which see.  */)
   p = Qnil;
   orig_filename = Qnil;
   old_undo = Qnil;
-
-  GCPRO5 (filename, val, p, orig_filename, old_undo);
 
   CHECK_STRING (filename);
   filename = Fexpand_file_name (filename, Qnil);
@@ -3882,7 +3872,6 @@ by calling `format-decode', which see.  */)
       bool multibyte
 	= ! NILP (BVAR (current_buffer, enable_multibyte_characters));
       Lisp_Object conversion_buffer;
-      struct gcpro gcpro1;
 
       conversion_buffer = code_conversion_save (1, multibyte);
 
@@ -3895,7 +3884,6 @@ by calling `format-decode', which see.  */)
       inserted = 0;		/* Bytes put into CONVERSION_BUFFER so far.  */
       unprocessed = 0;		/* Bytes not processed in previous loop.  */
 
-      GCPRO1 (conversion_buffer);
       while (1)
 	{
 	  /* Read at most READ_BUF_SIZE bytes at a time, to allow
@@ -3919,7 +3907,7 @@ by calling `format-decode', which see.  */)
 	  if (coding.carryover_bytes > 0)
 	    memcpy (read_buf, coding.carryover, unprocessed);
 	}
-      UNGCPRO;
+
       if (this < 0)
 	report_file_error ("Read error", orig_filename);
       emacs_close (fd);
@@ -4165,7 +4153,7 @@ by calling `format-decode', which see.  */)
       Vdeactivate_mark = old_Vdeactivate_mark;
     }
   else
-    Vdeactivate_mark = Qt;
+    Fset (Qdeactivate_mark, Qt);
 
   emacs_close (fd);
   clear_unwind_protect (fd_index);
@@ -4491,7 +4479,7 @@ by calling `format-decode', which see.  */)
   if (NILP (val))
     val = list2 (orig_filename, make_number (inserted));
 
-  RETURN_UNGCPRO (unbind_to (count, val));
+  return unbind_to (count, val);
 }
 
 static Lisp_Object build_annotations (Lisp_Object, Lisp_Object);
@@ -4678,7 +4666,6 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
   bool visiting = (EQ (visit, Qt) || STRINGP (visit));
   bool quietly = !NILP (visit);
   bool file_locked = 0;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   struct buffer *given_buffer;
   struct coding_system coding;
 
@@ -4689,7 +4676,6 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
     validate_region (&start, &end);
 
   visit_file = Qnil;
-  GCPRO5 (start, filename, visit, visit_file, lockname);
 
   filename = Fexpand_file_name (filename, Qnil);
 
@@ -4725,7 +4711,7 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
 	  XSETFASTINT (BVAR (current_buffer, save_length), Z - BEG);
 	  bset_filename (current_buffer, visit_file);
 	}
-      UNGCPRO;
+
       return val;
     }
 
@@ -4765,10 +4751,6 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
       XSETFASTINT (end, ZV);
     }
 
-  UNGCPRO;
-
-  GCPRO5 (start, filename, annotations, visit_file, lockname);
-
   /* Decide the coding-system to encode the data with.
      We used to make this choice before calling build_annotations, but that
      leads to problems when a write-annotate-function takes care of
@@ -4805,7 +4787,6 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
 	  int open_errno = errno;
 	  if (file_locked)
 	    unlock_file (lockname);
-	  UNGCPRO;
 	  report_file_errno ("Opening output file", filename, open_errno);
 	}
 
@@ -4821,12 +4802,9 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
 	  int lseek_errno = errno;
 	  if (file_locked)
 	    unlock_file (lockname);
-	  UNGCPRO;
 	  report_file_errno ("Lseek error", filename, lseek_errno);
 	}
     }
-
-  UNGCPRO;
 
   immediate_quit = 1;
 
@@ -5026,7 +5004,6 @@ build_annotations (Lisp_Object start, Lisp_Object end)
 {
   Lisp_Object annotations;
   Lisp_Object p, res;
-  struct gcpro gcpro1, gcpro2;
   Lisp_Object original_buffer;
   int i;
   bool used_global = false;
@@ -5035,7 +5012,6 @@ build_annotations (Lisp_Object start, Lisp_Object end)
 
   annotations = Qnil;
   p = Vwrite_region_annotate_functions;
-  GCPRO2 (annotations, p);
   while (CONSP (p))
     {
       struct buffer *given_buffer = current_buffer;
@@ -5095,7 +5071,6 @@ build_annotations (Lisp_Object start, Lisp_Object end)
 	annotations = merge (annotations, res, Qcar_less_than_car);
     }
 
-  UNGCPRO;
   return annotations;
 }
 
@@ -5366,7 +5341,6 @@ auto_save_error (Lisp_Object error_val)
 {
   Lisp_Object msg;
   int i;
-  struct gcpro gcpro1;
 
   auto_save_error_occurred = 1;
 
@@ -5375,7 +5349,6 @@ auto_save_error (Lisp_Object error_val)
   AUTO_STRING (format, "Auto-saving %s: %s");
   msg = CALLN (Fformat, format, BVAR (current_buffer, name),
 	       Ferror_message_string (error_val));
-  GCPRO1 (msg);
 
   for (i = 0; i < 3; ++i)
     {
@@ -5386,7 +5359,6 @@ auto_save_error (Lisp_Object error_val)
       Fsleep_for (make_number (1), Qnil);
     }
 
-  UNGCPRO;
   return Qnil;
 }
 
@@ -5478,7 +5450,6 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
   bool orig_minibuffer_auto_raise = minibuffer_auto_raise;
   bool old_message_p = 0;
   struct auto_save_unwind auto_save_unwind;
-  struct gcpro gcpro1, gcpro2;
 
   if (max_specpdl_size < specpdl_size + 40)
     max_specpdl_size = specpdl_size + 40;
@@ -5497,9 +5468,6 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
   oquit = Vquit_flag;
   Vquit_flag = Qnil;
 
-  /* No GCPRO needed, because (when it matters) all Lisp_Object variables
-     point to non-strings reached from Vbuffer_alist.  */
-
   hook = intern ("auto-save-hook");
   safe_run_hooks (hook);
 
@@ -5515,14 +5483,11 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
       if (!NILP (Vrun_hooks))
 	{
 	  Lisp_Object dir;
-	  dir = Qnil;
-	  GCPRO2 (dir, listfile);
 	  dir = Ffile_name_directory (listfile);
 	  if (NILP (Ffile_directory_p (dir)))
 	    internal_condition_case_1 (do_auto_save_make_dir,
 				       dir, Qt,
 				       do_auto_save_eh);
-	  UNGCPRO;
 	}
 
       stream = emacs_fopen (SSDATA (listfile), "w");
@@ -5803,7 +5768,6 @@ syms_of_fileio (void)
   DEFSYM (Qcopy_file, "copy-file");
   DEFSYM (Qmake_directory_internal, "make-directory-internal");
   DEFSYM (Qmake_directory, "make-directory");
-  DEFSYM (Qdelete_directory_internal, "delete-directory-internal");
   DEFSYM (Qdelete_file, "delete-file");
   DEFSYM (Qrename_file, "rename-file");
   DEFSYM (Qadd_name_to_file, "add-name-to-file");
@@ -5851,7 +5815,7 @@ syms_of_fileio (void)
 If it is nil, `default-file-name-coding-system' (which see) is used.
 
 On MS-Windows, the value of this variable is largely ignored if
-\`w32-unicode-filenames' (which see) is non-nil.  Emacs on Windows
+`w32-unicode-filenames' (which see) is non-nil.  Emacs on Windows
 behaves as if file names were encoded in `utf-8'.  */);
   Vfile_name_coding_system = Qnil;
 
@@ -5866,7 +5830,7 @@ instead use `file-name-coding-system' to get a constant encoding
 of file names regardless of the current language environment.
 
 On MS-Windows, the value of this variable is largely ignored if
-\`w32-unicode-filenames' (which see) is non-nil.  Emacs on Windows
+`w32-unicode-filenames' (which see) is non-nil.  Emacs on Windows
 behaves as if file names were encoded in `utf-8'.  */);
   Vdefault_file_name_coding_system = Qnil;
 
@@ -5914,7 +5878,7 @@ the arguments that were passed to that primitive.  For example, if you
 do (file-exists-p FILENAME) and FILENAME is handled by HANDLER, then
 HANDLER is called like this:
 
-  (funcall HANDLER 'file-exists-p FILENAME)
+  (funcall HANDLER \\='file-exists-p FILENAME)
 
 Note that HANDLER must be able to handle all I/O primitives; if it has
 nothing special to do for a primitive, it should reinvoke the

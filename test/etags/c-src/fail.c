@@ -1,0 +1,1 @@
+void (*prt_call())();

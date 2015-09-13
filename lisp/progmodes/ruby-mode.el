@@ -287,7 +287,7 @@ Only has effect when `ruby-use-smie' is nil."
   :group 'ruby
   :safe 'booleanp)
 
-;; FIXME Woefully under documented.  What is the point of the last `t'?.
+;; FIXME Woefully under documented.  What is the point of the last t?.
 (defcustom ruby-deep-indent-paren '(?\( ?\[ ?\] t)
   "Deep indent lists in parenthesis when non-nil.
 The value t means continuous line.
@@ -1178,9 +1178,7 @@ delimiter."
           (setq in-string (match-end 0))
           (goto-char ruby-indent-point)))
        (t
-        (error (format "Bad string %s"
-                       (buffer-substring (point) pnt)
-                       ))))))
+        (error "Bad string %s" (buffer-substring (point) pnt))))))
   (list in-string nest depth pcol))
 
 (defun ruby-parse-region (start end)
@@ -1392,7 +1390,8 @@ by `end-of-defun'."
   (interactive "p")
   (ruby-forward-sexp)
   (let (case-fold-search)
-    (when (looking-back (concat "^\\s *" ruby-block-end-re))
+    (when (looking-back (concat "^\\s *" ruby-block-end-re)
+                        (line-beginning-position))
       (forward-line 1))))
 
 (defun ruby-beginning-of-indent ()
@@ -2072,10 +2071,10 @@ See `font-lock-syntax-table'.")
           "at_exit"
           "autoload"
           "autoload?"
+          "callcc"
           "catch"
           "eval"
           "exec"
-          "fork"
           "format"
           "lambda"
           "load"
@@ -2093,7 +2092,10 @@ See `font-lock-syntax-table'.")
           "sprintf"
           "syscall"
           "system"
+          "throw"
+          "trace_var"
           "trap"
+          "untrace_var"
           "warn"
           ;; keyword-like private methods on Module
           "alias_method"
@@ -2123,13 +2125,15 @@ See `font-lock-syntax-table'.")
           "__dir__"
           "__method__"
           "abort"
-          "at_exit"
           "binding"
           "block_given?"
           "caller"
           "exit"
           "exit!"
           "fail"
+          "fork"
+          "global_variables"
+          "local_variables"
           "private"
           "protected"
           "public"
@@ -2138,8 +2142,7 @@ See `font-lock-syntax-table'.")
           "readline"
           "readlines"
           "sleep"
-          "srand"
-          "throw")
+          "srand")
         'symbols))
      (1 font-lock-builtin-face))
     ;; Here-doc beginnings.

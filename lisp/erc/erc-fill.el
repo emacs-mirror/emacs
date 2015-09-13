@@ -101,7 +101,7 @@ function is called."
 
 (defcustom erc-fill-static-center 27
   "Column around which all statically filled messages will be
-centered.  This column denotes the point where the ' ' character
+centered.  This column denotes the point where the ` ' character
 between <nickname> and the entered text will be put, thus aligning
 nick names right and text left."
   :group 'erc-fill
@@ -195,4 +195,3 @@ You can put this on `erc-insert-modify-hook' and/or `erc-send-modify-hook'."
 ;; Local Variables:
 ;; indent-tabs-mode: nil
 ;; End:
-

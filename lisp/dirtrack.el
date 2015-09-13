@@ -51,7 +51,7 @@
 ;; which matches your prompt up to and including the pathname part.
 ;; The second is a number which tells which regular expression group to
 ;; match to extract only the pathname.  If you use a multi-line prompt,
-;; add 't' as a third element.  Note that some of the functions in
+;; add t as a third element.  Note that some of the functions in
 ;; 'comint.el' assume a single-line prompt (eg, comint-bol).
 ;;
 ;; Determining this information may take some experimentation.  Using
@@ -218,7 +218,7 @@ the mode if ARG is omitted or nil."
   (when dirtrack-debug-mode
     (with-current-buffer (get-buffer-create dirtrack-debug-buffer)
       (goto-char (point-max))
-      (insert msg1 msg2 "\n"))))
+      (insert (substitute-command-keys msg1) msg2 "\n"))))
 
 (declare-function shell-prefixed-directory-name "shell" (dir))
 (declare-function shell-process-cd "shell" (arg))

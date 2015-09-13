@@ -294,7 +294,6 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
   Lisp_Object tem;
   ptrdiff_t pdlcount = SPECPDL_INDEX ();
   EMACS_INT repeat = 1;
-  struct gcpro gcpro1, gcpro2;
   EMACS_INT success_count = 0;
 
   executing_kbd_macro_iterations = 0;
@@ -314,7 +313,6 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
 		      Vreal_this_command));
   record_unwind_protect (pop_kbd_macro, tem);
 
-  GCPRO2 (final, loopfunc);
   do
     {
       Vexecuting_kbd_macro = final;
@@ -344,7 +342,6 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
 
   Vreal_this_command = Vexecuting_kbd_macro;
 
-  UNGCPRO;
   return unbind_to (pdlcount, Qnil);
 }
 
@@ -358,8 +355,6 @@ init_macros (void)
 void
 syms_of_macros (void)
 {
-  DEFSYM (Qexecute_kbd_macro, "execute-kbd-macro");
-
   DEFVAR_LISP ("kbd-macro-termination-hook", Vkbd_macro_termination_hook,
                doc: /* Normal hook run whenever a keyboard macro terminates.
 This is run whether the macro ends normally or prematurely due to an error.  */);

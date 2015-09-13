@@ -77,7 +77,7 @@ If not on matching header, `mail-complete-function' gets called instead."
 ;;;###autoload
 (defcustom mail-complete-style 'angles
   "Specifies how \\[mail-complete] formats the full name when it completes.
-If `nil', they contain just the return address like:
+If nil, they contain just the return address like:
 	king@grassland.com
 If `parens', they look like:
 	king@grassland.com (Elvis Parsley)
@@ -119,11 +119,11 @@ completed.  `pattern' is nil when `mail-directory-requery' is nil.
 
 The value might look like this:
 
-  '(remote-shell-program \"HOST\" \"-nl\" \"USER\" \"COMMAND\")
+  (remote-shell-program \"HOST\" \"-nl\" \"USER\" \"COMMAND\")
 
 or like this:
 
-  '(remote-shell-program \"HOST\" \"-n\" \"COMMAND '^\" pattern \"'\")"
+  (remote-shell-program \"HOST\" \"-n\" \"COMMAND \\='^\" pattern \"\\='\")"
   :type 'sexp
   :group 'mailalias)
 (put 'mail-directory-process 'risky-local-variable t)
@@ -512,7 +512,7 @@ PREFIX is the string we want to complete."
 				     mail-aliases))
 				(if (consp mail-local-names)
 				    mail-local-names)
-				(or directory 
+				(or directory
 				    (when (consp mail-directory-names)
 				      mail-directory-names)))
 			(lambda (a b)

@@ -27,34 +27,19 @@
 ;;; Code:
 (eval-when-compile (require 'cl-lib))
 
-;; Dispatch tables for GUI methods.
-
-(defun gui-method--name (base)
-  (intern (format "%s-alist" base)))
-
-(defmacro gui-method (name &optional type)
-  (macroexp-let2 nil type (or type `window-system)
-    `(alist-get ,type ,(gui-method--name name)
-                (lambda (&rest _args)
-                  (error "No method %S for %S frame" ',name ,type)))))
-
-(defmacro gui-method-define (name type fun)
-  `(setf (gui-method ,name ',type) ,fun))
-
-(defmacro gui-method-declare (name &optional tty-fun doc)
-  (declare (doc-string 3) (indent 2))
-  `(defvar ,(gui-method--name name)
-     ,(if tty-fun `(list (cons nil ,tty-fun))) ,doc))
-
-(defmacro gui-call (name &rest args)
-  `(funcall (gui-method ,name) ,@args))
-
-(gui-method-declare frame-creation-function
-    #'tty-create-frame-with-faces
+(cl-defgeneric frame-creation-function (params)
   "Method for window-system dependent functions to create a new frame.
 The window system startup file should add its frame creation
 function to this method, which should take an alist of parameters
 as its argument.")
+
+(cl-defmethod frame-creation-function (params
+                                       &context (window-system (eql nil)))
+  ;; It's tempting to get rid of tty-create-frame-with-faces and turn it into
+  ;; this method (i.e. move this method to faces.el), but faces.el is loaded
+  ;; much earlier from loadup.el (before cl-generic and even before
+  ;; cl-preloaded), so we'd first have to reorder that part.
+  (tty-create-frame-with-faces params))
 
 (defvar window-system-default-frame-alist nil
   "Window-system dependent default frame parameters.
@@ -217,6 +202,7 @@ This function runs the hook `focus-out-hook'."
   "Non-nil means function `frame-notice-user-settings' wasn't run yet.")
 
 (declare-function tool-bar-mode "tool-bar" (&optional arg))
+(declare-function tool-bar-height "xdisp.c" (&optional frame pixelwise))
 
 (defalias 'tool-bar-lines-needed 'tool-bar-height)
 
@@ -686,7 +672,8 @@ the new frame according to its own rules."
 	 frame)
 
     (unless (get w 'window-system-initialized)
-      (funcall (gui-method window-system-initialization w) display)
+      (let ((window-system w))          ;Hack attack!
+        (window-system-initialization display))
       (setq x-display-name display)
       (put w 'window-system-initialized t))
 
@@ -703,8 +690,8 @@ the new frame according to its own rules."
 
 ;;     (setq frame-size-history '(1000))
 
-    (setq frame
-          (funcall (gui-method frame-creation-function w) params))
+    (setq frame (let ((window-system w)) ;Hack attack!
+                  (frame-creation-function params)))
     (normal-erase-is-backspace-setup-frame frame)
     ;; Inherit the original frame's parameters.
     (dolist (param frame-inherited-parameters)
@@ -1325,6 +1312,136 @@ live frame and defaults to the selected one."
       (setq vertical default-frame-scroll-bars))
     (cons vertical (and horizontal 'bottom))))
 
+(declare-function x-frame-geometry "xfns.c" (&optional frame))
+(declare-function w32-frame-geometry "w32fns.c" (&optional frame))
+(declare-function ns-frame-geometry "nsfns.m" (&optional frame))
+
+(defun frame-geometry (&optional frame)
+  "Return geometric attributes of FRAME.
+FRAME must be a live frame and defaults to the selected one.  The return
+value is an association list of the attributes listed below.  All height
+and width values are in pixels.
+
+`outer-position' is a cons of the outer left and top edges of FRAME
+  relative to the origin - the position (0, 0) - of FRAME's display.
+
+`outer-size' is a cons of the outer width and height of FRAME.  The
+  outer size includes the title bar and the external borders as well as
+  any menu and/or tool bar of frame.
+
+`external-border-size' is a cons of the horizontal and vertical width of
+  FRAME's external borders as supplied by the window manager.
+
+`title-bar-size' is a cons of the width and height of the title bar of
+  FRAME as supplied by the window manager.  If both of them are zero,
+  FRAME has no title bar.  If only the width is zero, Emacs was not
+  able to retrieve the width information.
+
+`menu-bar-external', if non-nil, means the menu bar is external (never
+  included in the inner edges of FRAME).
+
+`menu-bar-size' is a cons of the width and height of the menu bar of
+  FRAME.
+
+`tool-bar-external', if non-nil, means the tool bar is external (never
+  included in the inner edges of FRAME).
+
+`tool-bar-position' tells on which side the tool bar on FRAME is and can
+  be one of `left', `top', `right' or `bottom'.  If this is nil, FRAME
+  has no tool bar.
+
+`tool-bar-size' is a cons of the width and height of the tool bar of
+  FRAME.
+
+`internal-border-width' is the width of the internal border of
+  FRAME."
+  (let* ((frame (window-normalize-frame frame))
+	 (frame-type (framep-on-display frame)))
+    (cond
+     ((eq frame-type 'x)
+      (x-frame-geometry frame))
+     ((eq frame-type 'w32)
+      (w32-frame-geometry frame))
+     ((eq frame-type 'ns)
+      (ns-frame-geometry frame))
+     (t
+      (list
+       '(outer-position 0 . 0)
+       (cons 'outer-size (cons (frame-width frame) (frame-height frame)))
+       '(external-border-size 0 . 0)
+       '(title-bar-size 0 . 0)
+       '(menu-bar-external . nil)
+       (let ((menu-bar-lines (frame-parameter frame 'menu-bar-lines)))
+	 (cons 'menu-bar-size
+	       (if menu-bar-lines
+		   (cons (frame-width frame) 1)
+		 1 0)))
+       '(tool-bar-external . nil)
+       '(tool-bar-position . nil)
+       '(tool-bar-size 0 . 0)
+       (cons 'internal-border-width
+	     (frame-parameter frame 'internal-border-width)))))))
+
+(declare-function x-frame-edges "xfns.c" (&optional frame type))
+(declare-function w32-frame-edges "w32fns.c" (&optional frame type))
+(declare-function ns-frame-edges "nsfns.m" (&optional frame type))
+
+(defun frame-edges (&optional frame type)
+  "Return coordinates of FRAME's edges.
+FRAME must be a live frame and defaults to the selected one.  The
+list returned has the form (LEFT TOP RIGHT BOTTOM) where all
+values are in pixels relative to the origin - the position (0, 0)
+- of FRAME's display.  For terminal frames all values are
+relative to LEFT and TOP which are both zero.
+
+Optional argument TYPE specifies the type of the edges.  TYPE
+`outer-edges' means to return the outer edges of FRAME.  TYPE
+`native-edges' (or nil) means to return the native edges of
+FRAME.  TYPE `inner-edges' means to return the inner edges of
+FRAME."
+  (let* ((frame (window-normalize-frame frame))
+	 (frame-type (framep-on-display frame)))
+    (cond
+     ((eq frame-type 'x)
+      (x-frame-edges frame type))
+     ((eq frame-type 'w32)
+      (w32-frame-edges frame type))
+     ((eq frame-type 'ns)
+      (ns-frame-edges frame type))
+     (t
+      (list 0 0 (frame-width frame) (frame-height frame))))))
+
+(declare-function w32-mouse-absolute-pixel-position "w32fns.c")
+(declare-function x-mouse-absolute-pixel-position "xfns.c")
+
+(defun mouse-absolute-pixel-position ()
+  "Return absolute position of mouse cursor in pixels.
+The position is returned as a cons cell (X . Y) of the
+coordinates of the mouse cursor position in pixels relative to a
+position (0, 0) of the selected frame's terminal."
+  (let ((frame-type (framep-on-display)))
+    (cond
+     ((eq frame-type 'x)
+      (x-mouse-absolute-pixel-position))
+     ((eq frame-type 'w32)
+      (w32-mouse-absolute-pixel-position))
+     (t
+      (cons 0 0)))))
+
+(declare-function w32-set-mouse-absolute-pixel-position "w32fns.c" (x y))
+(declare-function x-set-mouse-absolute-pixel-position "xfns.c" (x y))
+
+(defun set-mouse-absolute-pixel-position (x y)
+  "Move mouse pointer to absolute pixel position (X, Y).
+The coordinates X and Y are interpreted in pixels relative to a
+position (0, 0) of the selected frame's terminal."
+  (let ((frame-type (framep-on-display)))
+    (cond
+     ((eq frame-type 'x)
+      (x-set-mouse-absolute-pixel-position x y))
+     ((eq frame-type 'w32)
+      (w32-set-mouse-absolute-pixel-position x y)))))
+
 (defun frame-monitor-attributes (&optional frame)
   "Return the attributes of the physical monitor dominating FRAME.
 If FRAME is omitted or nil, describe the currently selected frame.
@@ -1761,6 +1878,122 @@ left untouched.  FRAME nil or omitted means use the selected frame."
 (define-obsolete-variable-alias 'delete-frame-hook
     'delete-frame-functions "22.1")
 
+
+;;; Window dividers.
+(defgroup window-divider nil
+  "Window dividers."
+  :version "25.1"
+  :group 'frames
+  :group 'windows)
+
+(defcustom window-divider-default-places 'right-only
+  "Default positions of window dividers.
+Possible values are `bottom-only' (dividers on the bottom of each
+window only), `right-only' (dividers on the right of each window
+only), and t (dividers on the bottom and on the right of each
+window).  The default is `right-only'.
+
+The value takes effect if and only if dividers are enabled by
+`window-divider-mode'.
+
+To position dividers on frames individually, use the frame
+parameters `bottom-divider-width' and `right-divider-width'."
+  :type '(choice (const :tag "Bottom only" bottom-only)
+		 (const :tag "Right only" right-only)
+		 (const :tag "Bottom and right" t))
+  :initialize 'custom-initialize-default
+  :set (lambda (symbol value)
+	 (set-default symbol value)
+         (when window-divider-mode
+           (window-divider-mode-apply t)))
+  :version "25.1")
+
+(defun window-divider-width-valid-p (value)
+  "Return non-nil if VALUE is a positive number."
+  (and (numberp value) (> value 0)))
+
+(defcustom window-divider-default-bottom-width 6
+  "Default width of dividers on bottom of windows.
+The value must be a positive integer and takes effect when bottom
+dividers are displayed by `window-divider-mode'.
+
+To adjust bottom dividers for frames individually, use the frame
+parameter `bottom-divider-width'."
+  :type '(restricted-sexp
+          :tag "Default width of bottom dividers"
+          :match-alternatives (frame-window-divider-width-valid-p))
+  :initialize 'custom-initialize-default
+  :set (lambda (symbol value)
+	 (set-default symbol value)
+         (when window-divider-mode
+           (window-divider-mode-apply t)))
+  :version "25.1")
+
+(defcustom window-divider-default-right-width 6
+  "Default width of dividers on the right of windows.
+The value must be a positive integer and takes effect when right
+dividers are displayed by `window-divider-mode'.
+
+To adjust right dividers for frames individually, use the frame
+parameter `right-divider-width'."
+  :type '(restricted-sexp
+          :tag "Default width of right dividers"
+          :match-alternatives (frame-window-divider-width-valid-p))
+  :initialize 'custom-initialize-default
+  :set (lambda (symbol value)
+	 (set-default symbol value)
+         (when window-divider-mode
+	   (window-divider-mode-apply t)))
+  :version "25.1")
+
+(defun window-divider-mode-apply (enable)
+  "Apply window divider places and widths to all frames.
+If ENABLE is nil, apply default places and widths.  Else reset
+all divider widths to zero."
+  (let ((bottom (if (and enable
+                         (memq window-divider-default-places
+                               '(bottom-only t)))
+                    window-divider-default-bottom-width
+                  0))
+        (right (if (and enable
+                        (memq window-divider-default-places
+                              '(right-only t)))
+                   window-divider-default-right-width
+                 0)))
+    (modify-all-frames-parameters
+     (list (cons 'bottom-divider-width bottom)
+           (cons 'right-divider-width right)))
+    (setq default-frame-alist
+          (assq-delete-all
+           'bottom-divider-width default-frame-alist))
+    (setq default-frame-alist
+          (assq-delete-all
+           'right-divider-width default-frame-alist))
+    (when (> bottom 0)
+      (setq default-frame-alist
+            (cons
+             (cons 'bottom-divider-width bottom)
+             default-frame-alist)))
+    (when (> right 0)
+      (setq default-frame-alist
+            (cons
+             (cons 'right-divider-width right)
+             default-frame-alist)))))
+
+(define-minor-mode window-divider-mode
+  "Display dividers between windows (Window Divider mode).
+With a prefix argument ARG, enable Window Divider mode if ARG is
+positive, and disable it otherwise.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
+
+The option `window-divider-default-places' specifies on which
+side of a window dividers are displayed.  The options
+`window-divider-default-bottom-width' and
+`window-divider-default-right-width' specify their respective
+widths."
+  :group 'window-divider
+  :global t
+  (window-divider-mode-apply window-divider-mode))
 
 ;; Blinking cursor
 

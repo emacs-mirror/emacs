@@ -307,7 +307,7 @@ symbol `ask', query before flushing the queue file."
     (if (or (eq keep nil)
 	    (and (eq keep 'ask)
 		 (y-or-n-p
-		  (format
+		  (gnus-format-message
 		   "Flush requests from `%s'? " (current-buffer)))))
 	(progn
 	  (gnus-message 7 "Flushing request file `%s'"

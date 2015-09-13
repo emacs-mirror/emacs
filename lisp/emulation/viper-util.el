@@ -1301,7 +1301,7 @@ Usually contains ` ', linefeed, TAB or formfeed.")
     ))
 
 ;; SYMBOL is used because customize requires it, but it is ignored, unless it
-;; is `nil'.  If nil, use setq.
+;; is nil.  If nil, use setq.
 (defun viper-set-syntax-preference (&optional symbol value)
   "Set Viper syntax preference.
 If called interactively or if SYMBOL is nil, sets syntax preference in current

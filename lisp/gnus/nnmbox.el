@@ -106,7 +106,7 @@
 	     (> number nnmail-large-newsgroup)
 	     (zerop (% count 20))
 	     (nnheader-message 5 "nnmbox: Receiving headers... %d%%"
-			       (/ (* count 100) number))))
+			       (floor (* count 100.0) number))))
 
       (and (numberp nnmail-large-newsgroup)
 	   (> number nnmail-large-newsgroup)

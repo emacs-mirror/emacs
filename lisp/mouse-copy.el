@@ -154,7 +154,7 @@ If you have the bug (or the real fix :-), please let me know."
   "Drag out a secondary selection, then paste it at the current point.
 
 To test this function, evaluate:
-	(global-set-key [M-down-mouse-1] 'mouse-drag-secondary-pasting)
+	(global-set-key [M-down-mouse-1] \\='mouse-drag-secondary-pasting)
 put the point at one place, then click and drag over some other region."
   (interactive "e")
   ;; Work-around: We see and react to each part of a multi-click event
@@ -177,7 +177,7 @@ put the point at one place, then click and drag over some other region."
 	    (mouse-copy-work-around-drag-bug start-event last-input-event))
 	;; Remember what we do so we can undo it, if necessary.
 	(setq mouse-copy-last-paste-start (point))
-	(insert (x-get-selection 'SECONDARY))
+	(insert (gui-get-selection 'SECONDARY))
 	(setq mouse-copy-last-paste-end (point)))
     (setq mouse-copy-last-paste-start nil)))
 
@@ -216,7 +216,7 @@ by johnh@ficus.cs.ucla.edu."
   (if (mouse-drag-secondary start-event)
       (progn
 	(mouse-kill-preserving-secondary)
-	(insert (x-get-selection 'SECONDARY))))
+	(insert (gui-get-selection 'SECONDARY))))
 )
 
 (provide 'mouse-copy)

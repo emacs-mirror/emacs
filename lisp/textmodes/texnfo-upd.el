@@ -893,7 +893,7 @@ first update all existing menus in the buffer (incorporating
 descriptions from pre-existing menus) before it constructs the
 master menu.  If the argument is numeric (e.g., \"C-u 2\"),
 update all existing nodes as well, by calling
-\`texinfo-update-node' on the entire file.  Warning: do NOT
+`texinfo-update-node' on the entire file.  Warning: do NOT
 invoke with a numeric argument if your Texinfo file uses @node
 lines without the `Next', `Previous', `Up' pointers, as the
 result could be an invalid Texinfo file!
@@ -1407,7 +1407,7 @@ level in the Texinfo file; when looking for the `Previous' pointer,
 the section found will be at the same or higher hierarchical level in
 the Texinfo file; when looking for the `Up' pointer, the section found
 will be at some level higher in the Texinfo file.  The fourth argument
-\(one of 'next, 'previous, or 'up\) specifies whether to find the
+\(one of `next', `previous', or `up'\) specifies whether to find the
 `Next', `Previous', or `Up' pointer."
   (let ((case-fold-search t))
     (cond ((eq direction 'next)

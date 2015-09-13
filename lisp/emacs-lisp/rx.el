@@ -815,9 +815,9 @@ of all atomic regexps."
 
 (defun rx-greedy (form)
   "Parse and produce code from FORM.
-If FORM is '(minimal-match FORM1)', non-greedy versions of `*',
+If FORM is `(minimal-match FORM1)', non-greedy versions of `*',
 `+', and `?' operators will be used in FORM1.  If FORM is
-'(maximal-match FORM1)', greedy operators will be used."
+`(maximal-match FORM1)', greedy operators will be used."
   (rx-check form)
   (let ((rx-greedy-flag (eq (car form) 'maximal-match)))
     (rx-form (cadr form) rx-parent)))
@@ -965,20 +965,20 @@ CHAR
      matches space and tab only.
 
 `graphic', `graph'
-     matches graphic characters--everything except ASCII control chars,
-     space, and DEL.
+     matches graphic characters--everything except whitespace, ASCII
+     and non-ASCII control characters, surrogates, and codepoints
+     unassigned by Unicode.
 
 `printing', `print'
-     matches printing characters--everything except ASCII control chars
-     and DEL.
+     matches whitespace and graphic characters.
 
 `alphanumeric', `alnum'
-     matches letters and digits.  (But at present, for multibyte characters,
-     it matches anything that has word syntax.)
+     matches alphabetic characters and digits.  (For multibyte characters,
+     it matches according to Unicode character properties.)
 
 `letter', `alphabetic', `alpha'
-     matches letters.  (But at present, for multibyte characters,
-     it matches anything that has word syntax.)
+     matches alphabetic characters.  (For multibyte characters,
+     it matches according to Unicode character properties.)
 
 `ascii'
      matches ASCII (unibyte) characters.

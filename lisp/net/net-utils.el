@@ -326,6 +326,8 @@ This variable is only used if the variable
         (insert filtered-string)
         (set-marker (process-mark process) (point))))))
 
+(declare-function w32-get-console-output-codepage "w32proc.c" ())
+
 (defun net-utils-run-program (name header program args)
   "Run a network information program."
   (let ((buf (get-buffer-create (concat "*" name "*")))

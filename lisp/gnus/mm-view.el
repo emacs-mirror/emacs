@@ -629,6 +629,8 @@ If MODE is not set, try to find mode automatically."
     (replace-match "\n"))
   t)
 
+(autoload 'epg-decrypt-string "epg")
+
 (defun mm-view-pkcs7-decrypt (handle &optional from)
   (insert-buffer-substring (mm-handle-buffer handle))
   (goto-char (point-min))

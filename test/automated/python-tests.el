@@ -27,6 +27,7 @@
 ;; Dependencies for testing:
 (require 'electric)
 (require 'hideshow)
+(require 'tramp-sh)
 
 
 (defmacro python-tests-with-temp-buffer (contents &rest body)
@@ -267,10 +268,10 @@ foo = long_function_name(
    (should (eq (car (python-indent-context)) :no-indent))
    (should (= (python-indent-calculate-indentation) 0))
    (forward-line 1)
-   (should (eq (car (python-indent-context)) :after-line))
+   (should (eq (car (python-indent-context)) :no-indent))
    (should (= (python-indent-calculate-indentation) 0))
    (forward-line 1)
-   (should (eq (car (python-indent-context)) :after-line))
+   (should (eq (car (python-indent-context)) :no-indent))
    (should (= (python-indent-calculate-indentation) 0))))
 
 (ert-deftest python-indent-after-comment-1 ()
@@ -392,7 +393,7 @@ data = {
 }
 "
    (python-tests-look-at "data = {")
-   (should (eq (car (python-indent-context)) :after-line))
+   (should (eq (car (python-indent-context)) :no-indent))
    (should (= (python-indent-calculate-indentation) 0))
    (python-tests-look-at "'key':")
    (should (eq (car (python-indent-context)) :inside-paren-newline-start))
@@ -455,7 +456,7 @@ data = {'key': {
 }}
 "
    (python-tests-look-at "data = {")
-   (should (eq (car (python-indent-context)) :after-line))
+   (should (eq (car (python-indent-context)) :no-indent))
    (should (= (python-indent-calculate-indentation) 0))
    (python-tests-look-at "'objlist': [")
    (should (eq (car (python-indent-context)) :inside-paren-newline-start))
@@ -494,7 +495,7 @@ data = ('these',
         'tokens')
 "
    (python-tests-look-at "data = ('these',")
-   (should (eq (car (python-indent-context)) :after-line))
+   (should (eq (car (python-indent-context)) :no-indent))
    (should (= (python-indent-calculate-indentation) 0))
    (forward-line 1)
    (should (eq (car (python-indent-context)) :inside-paren))
@@ -514,7 +515,7 @@ data = [ [ 'these', 'are'],
          ['the', 'tokens' ] ]
 "
    (python-tests-look-at "data = [ [ 'these', 'are'],")
-   (should (eq (car (python-indent-context)) :after-line))
+   (should (eq (car (python-indent-context)) :no-indent))
    (should (= (python-indent-calculate-indentation) 0))
    (forward-line 1)
    (should (eq (car (python-indent-context)) :inside-paren))
@@ -530,7 +531,7 @@ while ((not some_condition) and
         with_some_arg)
 "
    (python-tests-look-at "while ((not some_condition) and")
-   (should (eq (car (python-indent-context)) :after-line))
+   (should (eq (car (python-indent-context)) :no-indent))
    (should (= (python-indent-calculate-indentation) 0))
    (forward-line 1)
    (should (eq (car (python-indent-context)) :inside-paren))
@@ -551,7 +552,7 @@ CHOICES = (('some', 'choice'),
            ('more', 'choices'))
 "
    (python-tests-look-at "CHOICES = (('some', 'choice'),")
-   (should (eq (car (python-indent-context)) :after-line))
+   (should (eq (car (python-indent-context)) :no-indent))
    (should (= (python-indent-calculate-indentation) 0))
    (forward-line 1)
    (should (eq (car (python-indent-context)) :inside-paren))
@@ -612,7 +613,7 @@ from foo.bar.baz import something, something_1 \\\\
     something_4, something_5
 "
    (python-tests-look-at "from foo.bar.baz import something, something_1")
-   (should (eq (car (python-indent-context)) :after-line))
+   (should (eq (car (python-indent-context)) :no-indent))
    (should (= (python-indent-calculate-indentation) 0))
    (python-tests-look-at "something_2 something_3,")
    (should (eq (car (python-indent-context)) :after-backslash-first-line))
@@ -639,7 +640,7 @@ objects = Thing.objects.all() \\\\
                        .values_list()
 "
    (python-tests-look-at "objects = Thing.objects.all()")
-   (should (eq (car (python-indent-context)) :after-line))
+   (should (eq (car (python-indent-context)) :no-indent))
    (should (= (python-indent-calculate-indentation) 0))
    (python-tests-look-at ".filter(")
    (should (eq (car (python-indent-context))
@@ -682,7 +683,7 @@ with open('/path/to/some/file/you/want/to/read') as file_1, \\\\
 "
    (python-tests-look-at
     "with open('/path/to/some/file/you/want/to/read') as file_1, \\\\")
-   (should (eq (car (python-indent-context)) :after-line))
+   (should (eq (car (python-indent-context)) :no-indent))
    (should (= (python-indent-calculate-indentation) 0))
    (python-tests-look-at
     "open('/path/to/some/file/being/written', 'w') as file_2")
@@ -703,7 +704,7 @@ super_awful_assignment = some_calculation() and \\\\
 "
    (python-tests-look-at
     "super_awful_assignment = some_calculation() and \\\\")
-   (should (eq (car (python-indent-context)) :after-line))
+   (should (eq (car (python-indent-context)) :no-indent))
    (should (= (python-indent-calculate-indentation) 0))
    (python-tests-look-at "another_calculation() and \\\\")
    (should (eq (car (python-indent-context))
@@ -992,7 +993,7 @@ lines
 '''
 "
    (python-tests-look-at "multiline = '''")
-   (should (eq (car (python-indent-context)) :after-line))
+   (should (eq (car (python-indent-context)) :no-indent))
    (should (= (python-indent-calculate-indentation) 0))
    (python-tests-look-at "bunch")
    (should (eq (car (python-indent-context)) :inside-string))
@@ -1014,7 +1015,7 @@ lines
 def fn(a, b, c=True):
     '''docstring
     bunch
-    of
+        of
     lines
     '''
 "
@@ -1022,16 +1023,17 @@ def fn(a, b, c=True):
    (should (eq (car (python-indent-context)) :after-block-start))
    (should (= (python-indent-calculate-indentation) 4))
    (python-tests-look-at "bunch")
-   (should (eq (car (python-indent-context)) :inside-string))
+   (should (eq (car (python-indent-context)) :inside-docstring))
    (should (= (python-indent-calculate-indentation) 4))
    (python-tests-look-at "of")
-   (should (eq (car (python-indent-context)) :inside-string))
-   (should (= (python-indent-calculate-indentation) 4))
+   (should (eq (car (python-indent-context)) :inside-docstring))
+   ;; Any indentation deeper than the base-indent must remain unmodified.
+   (should (= (python-indent-calculate-indentation) 8))
    (python-tests-look-at "lines")
-   (should (eq (car (python-indent-context)) :inside-string))
+   (should (eq (car (python-indent-context)) :inside-docstring))
    (should (= (python-indent-calculate-indentation) 4))
    (python-tests-look-at "'''")
-   (should (eq (car (python-indent-context)) :inside-string))
+   (should (eq (car (python-indent-context)) :inside-docstring))
    (should (= (python-indent-calculate-indentation) 4))))
 
 (ert-deftest python-indent-inside-string-3 ()
@@ -1189,21 +1191,33 @@ def f():
                       expected)))))
 
 (ert-deftest python-indent-region-5 ()
-  "Test region indentation leaves strings untouched (start delimiter)."
+  "Test region indentation for docstrings."
   (let ((contents "
 def f():
 '''
 this is
-a multiline
+        a multiline
 string
+'''
+    x = \\
+        '''
+this is an arbitrarily
+    indented multiline
+ string
 '''
 ")
         (expected "
 def f():
     '''
-this is
-a multiline
-string
+    this is
+        a multiline
+    string
+    '''
+    x = \\
+        '''
+this is an arbitrarily
+    indented multiline
+ string
 '''
 "))
     (python-tests-with-temp-buffer
@@ -1211,6 +1225,158 @@ string
      (python-indent-region (point-min) (point-max))
      (should (string= (buffer-substring-no-properties (point-min) (point-max))
                       expected)))))
+
+
+;;; Mark
+
+(ert-deftest python-mark-defun-1 ()
+  """Test `python-mark-defun' with point at defun symbol start."""
+  (python-tests-with-temp-buffer
+   "
+def foo(x):
+    return x
+
+class A:
+   pass
+
+class B:
+
+    def __init__(self):
+       self.b = 'b'
+
+    def fun(self):
+       return self.b
+
+class C:
+   '''docstring'''
+"
+   (let ((expected-mark-beginning-position
+          (progn
+            (python-tests-look-at "class A:")
+            (1- (point))))
+         (expected-mark-end-position-1
+          (save-excursion
+            (python-tests-look-at "pass")
+            (forward-line)
+            (point)))
+         (expected-mark-end-position-2
+          (save-excursion
+            (python-tests-look-at "return self.b")
+            (forward-line)
+            (point)))
+         (expected-mark-end-position-3
+          (save-excursion
+            (python-tests-look-at "'''docstring'''")
+            (forward-line)
+            (point))))
+     ;; Select class A only, with point at bol.
+     (python-mark-defun 1)
+     (should (= (point) expected-mark-beginning-position))
+     (should (= (marker-position (mark-marker))
+                expected-mark-end-position-1))
+     ;; expand to class B, start position should remain the same.
+     (python-mark-defun 1)
+     (should (= (point) expected-mark-beginning-position))
+     (should (= (marker-position (mark-marker))
+                expected-mark-end-position-2))
+     ;; expand to class C, start position should remain the same.
+     (python-mark-defun 1)
+     (should (= (point) expected-mark-beginning-position))
+     (should (= (marker-position (mark-marker))
+                expected-mark-end-position-3)))))
+
+(ert-deftest python-mark-defun-2 ()
+  """Test `python-mark-defun' with point at nested defun symbol start."""
+  (python-tests-with-temp-buffer
+   "
+def foo(x):
+    return x
+
+class A:
+   pass
+
+class B:
+
+    def __init__(self):
+       self.b = 'b'
+
+    def fun(self):
+       return self.b
+
+class C:
+   '''docstring'''
+"
+   (let ((expected-mark-beginning-position
+          (progn
+            (python-tests-look-at "def __init__(self):")
+            (1- (line-beginning-position))))
+         (expected-mark-end-position-1
+          (save-excursion
+            (python-tests-look-at "self.b = 'b'")
+            (forward-line)
+            (point)))
+         (expected-mark-end-position-2
+          (save-excursion
+            (python-tests-look-at "return self.b")
+            (forward-line)
+            (point)))
+         (expected-mark-end-position-3
+          (save-excursion
+            (python-tests-look-at "'''docstring'''")
+            (forward-line)
+            (point))))
+     ;; Select B.__init only, with point at its start.
+     (python-mark-defun 1)
+     (should (= (point) expected-mark-beginning-position))
+     (should (= (marker-position (mark-marker))
+                expected-mark-end-position-1))
+     ;; expand to B.fun, start position should remain the same.
+     (python-mark-defun 1)
+     (should (= (point) expected-mark-beginning-position))
+     (should (= (marker-position (mark-marker))
+                expected-mark-end-position-2))
+     ;; expand to class C, start position should remain the same.
+     (python-mark-defun 1)
+     (should (= (point) expected-mark-beginning-position))
+     (should (= (marker-position (mark-marker))
+                expected-mark-end-position-3)))))
+
+(ert-deftest python-mark-defun-3 ()
+  """Test `python-mark-defun' with point inside defun symbol."""
+  (python-tests-with-temp-buffer
+   "
+def foo(x):
+    return x
+
+class A:
+   pass
+
+class B:
+
+    def __init__(self):
+       self.b = 'b'
+
+    def fun(self):
+       return self.b
+
+class C:
+   '''docstring'''
+"
+   (let ((expected-mark-beginning-position
+          (progn
+            (python-tests-look-at "def fun(self):")
+            (python-tests-look-at "(self):")
+            (1- (line-beginning-position))))
+         (expected-mark-end-position
+          (save-excursion
+            (python-tests-look-at "return self.b")
+            (forward-line)
+            (point))))
+     ;; Should select B.fun, despite point is inside the defun symbol.
+     (python-mark-defun 1)
+     (should (= (point) expected-mark-beginning-position))
+     (should (= (marker-position (mark-marker))
+                expected-mark-end-position)))))
 
 
 ;;; Navigation
@@ -1985,19 +2151,36 @@ c()
    (should (save-excursion
              (beginning-of-line)
              (looking-at "c()")))
-   ;; Movement next to a paren should do what lisp does and
-   ;; unfortunately It can't change, because otherwise
-   ;; `blink-matching-open' breaks.
+   ;; The default behavior when next to a paren should do what lisp
+   ;; does and, otherwise `blink-matching-open' breaks.
    (python-nav-forward-sexp -1)
    (should (looking-at "()"))
    (should (save-excursion
              (beginning-of-line)
              (looking-at "c()")))
-   (python-nav-forward-sexp -1)
+   (end-of-line)
+   ;; Skipping parens should jump to `bolp'
+   (python-nav-forward-sexp -1 nil t)
    (should (looking-at "c()"))
+   (forward-line -1)
+   (end-of-line)
+   ;; b()
+   (python-nav-forward-sexp -1)
+   (should (looking-at "()"))
    (python-nav-forward-sexp -1)
    (should (looking-at "b()"))
+   (end-of-line)
+   (python-nav-forward-sexp -1 nil t)
+   (should (looking-at "b()"))
+   (forward-line -1)
+   (end-of-line)
+   ;; a()
    (python-nav-forward-sexp -1)
+   (should (looking-at "()"))
+   (python-nav-forward-sexp -1)
+   (should (looking-at "a()"))
+   (end-of-line)
+   (python-nav-forward-sexp -1 nil t)
    (should (looking-at "a()"))))
 
 (ert-deftest python-nav-forward-sexp-2 ()
@@ -2253,84 +2436,208 @@ Using `python-shell-interpreter' and
         (python-shell-interpreter-args "-B"))
     (should (string=
              (format "%s %s"
-                     python-shell-interpreter
+                     (shell-quote-argument python-shell-interpreter)
                      python-shell-interpreter-args)
              (python-shell-calculate-command)))))
+
+(ert-deftest python-shell-calculate-pythonpath-1 ()
+  "Test PYTHONPATH calculation."
+  (let ((process-environment '("PYTHONPATH=/path0"))
+        (python-shell-extra-pythonpaths '("/path1" "/path2")))
+    (should (string= (python-shell-calculate-pythonpath)
+                     (concat "/path1" path-separator
+                             "/path2" path-separator "/path0")))))
+
+(ert-deftest python-shell-calculate-pythonpath-2 ()
+  "Test existing paths are moved to front."
+  (let ((process-environment
+         (list (concat "PYTHONPATH=/path0" path-separator "/path1")))
+        (python-shell-extra-pythonpaths '("/path1" "/path2")))
+    (should (string= (python-shell-calculate-pythonpath)
+                     (concat "/path1" path-separator
+                             "/path2" path-separator "/path0")))))
 
 (ert-deftest python-shell-calculate-process-environment-1 ()
   "Test `python-shell-process-environment' modification."
   (let* ((python-shell-process-environment
           '("TESTVAR1=value1" "TESTVAR2=value2"))
-         (process-environment
-          (python-shell-calculate-process-environment)))
+         (process-environment (python-shell-calculate-process-environment)))
     (should (equal (getenv "TESTVAR1") "value1"))
     (should (equal (getenv "TESTVAR2") "value2"))))
 
 (ert-deftest python-shell-calculate-process-environment-2 ()
   "Test `python-shell-extra-pythonpaths' modification."
   (let* ((process-environment process-environment)
-         (original-pythonpath (setenv "PYTHONPATH" "path3"))
-         (paths '("path1" "path2"))
-         (python-shell-extra-pythonpaths paths)
-         (process-environment
-          (python-shell-calculate-process-environment)))
+         (original-pythonpath (setenv "PYTHONPATH" "/path0"))
+         (python-shell-extra-pythonpaths '("/path1" "/path2"))
+         (process-environment (python-shell-calculate-process-environment)))
     (should (equal (getenv "PYTHONPATH")
-                   (concat
-                    (mapconcat 'identity paths path-separator)
-                    path-separator original-pythonpath)))))
+                   (concat "/path1" path-separator
+                           "/path2" path-separator "/path0")))))
 
 (ert-deftest python-shell-calculate-process-environment-3 ()
   "Test `python-shell-virtualenv-root' modification."
-  (let* ((original-path (or (getenv "PATH") ""))
-         (python-shell-virtualenv-root
-          (directory-file-name user-emacs-directory))
+  (let* ((python-shell-virtualenv-root "/env")
          (process-environment
-          (python-shell-calculate-process-environment)))
+          (let (process-environment process-environment)
+            (setenv "PYTHONHOME" "/home")
+            (setenv "VIRTUAL_ENV")
+            (python-shell-calculate-process-environment))))
     (should (not (getenv "PYTHONHOME")))
-    (should (string= (getenv "VIRTUAL_ENV") python-shell-virtualenv-root))
-    (should (equal (getenv "PATH")
-                   (format "%s/bin%s%s"
-                           python-shell-virtualenv-root
-                           path-separator original-path)))))
+    (should (string= (getenv "VIRTUAL_ENV") "/env"))))
 
 (ert-deftest python-shell-calculate-process-environment-4 ()
-  "Test `python-shell-unbuffered' modification."
-  (setenv "PYTHONUNBUFFERED")
-  (let* ((process-environment
-          (python-shell-calculate-process-environment)))
-    ;; Defaults to t
-    (should python-shell-unbuffered)
+  "Test PYTHONUNBUFFERED when `python-shell-unbuffered' is non-nil."
+  (let* ((python-shell-unbuffered t)
+         (process-environment
+          (let ((process-environment process-environment))
+            (setenv "PYTHONUNBUFFERED")
+            (python-shell-calculate-process-environment))))
     (should (string= (getenv "PYTHONUNBUFFERED") "1"))))
 
 (ert-deftest python-shell-calculate-process-environment-5 ()
-  (setenv "PYTHONUNBUFFERED")
-  "Test `python-shell-unbuffered' modification."
+  "Test PYTHONUNBUFFERED when `python-shell-unbuffered' is nil."
   (let* ((python-shell-unbuffered nil)
          (process-environment
-          (python-shell-calculate-process-environment)))
+          (let ((process-environment process-environment))
+            (setenv "PYTHONUNBUFFERED")
+            (python-shell-calculate-process-environment))))
     (should (not (getenv "PYTHONUNBUFFERED")))))
+
+(ert-deftest python-shell-calculate-process-environment-6 ()
+  "Test PYTHONUNBUFFERED=1 when `python-shell-unbuffered' is nil."
+  (let* ((python-shell-unbuffered nil)
+         (process-environment
+          (let ((process-environment process-environment))
+            (setenv "PYTHONUNBUFFERED" "1")
+            (python-shell-calculate-process-environment))))
+    ;; User default settings must remain untouched:
+    (should (string= (getenv "PYTHONUNBUFFERED") "1"))))
+
+(ert-deftest python-shell-calculate-process-environment-7 ()
+  "Test no side-effects on `process-environment'."
+  (let* ((python-shell-process-environment
+          '("TESTVAR1=value1" "TESTVAR2=value2"))
+         (python-shell-virtualenv-root "/env")
+         (python-shell-unbuffered t)
+         (python-shell-extra-pythonpaths'("/path1" "/path2"))
+         (original-process-environment (copy-sequence process-environment)))
+    (python-shell-calculate-process-environment)
+    (should (equal process-environment original-process-environment))))
+
+(ert-deftest python-shell-calculate-process-environment-8 ()
+  "Test no side-effects on `tramp-remote-process-environment'."
+  (let* ((default-directory "/ssh::/example/dir/")
+         (python-shell-process-environment
+          '("TESTVAR1=value1" "TESTVAR2=value2"))
+         (python-shell-virtualenv-root "/env")
+         (python-shell-unbuffered t)
+         (python-shell-extra-pythonpaths'("/path1" "/path2"))
+         (original-process-environment
+          (copy-sequence tramp-remote-process-environment)))
+    (python-shell-calculate-process-environment)
+    (should (equal tramp-remote-process-environment original-process-environment))))
 
 (ert-deftest python-shell-calculate-exec-path-1 ()
   "Test `python-shell-exec-path' modification."
-  (let* ((original-exec-path exec-path)
-         (python-shell-exec-path '("path1" "path2"))
-         (exec-path (python-shell-calculate-exec-path)))
-    (should (equal
-             exec-path
-             (append python-shell-exec-path
-                     original-exec-path)))))
+  (let* ((exec-path '("/path0"))
+         (python-shell-exec-path '("/path1" "/path2"))
+         (new-exec-path (python-shell-calculate-exec-path)))
+    (should (equal new-exec-path '("/path1" "/path2" "/path0")))))
 
 (ert-deftest python-shell-calculate-exec-path-2 ()
-  "Test `python-shell-exec-path' modification."
-  (let* ((original-exec-path exec-path)
-         (python-shell-virtualenv-root
-          (directory-file-name (expand-file-name user-emacs-directory)))
-         (exec-path (python-shell-calculate-exec-path)))
-    (should (equal
-             exec-path
-             (append (cons
-                      (format "%s/bin" python-shell-virtualenv-root)
-                      original-exec-path))))))
+  "Test `python-shell-virtualenv-root' modification."
+  (let* ((exec-path '("/path0"))
+         (python-shell-virtualenv-root "/env")
+         (new-exec-path (python-shell-calculate-exec-path)))
+    (should (equal new-exec-path
+                   (list (expand-file-name "/env/bin") "/path0")))))
+
+(ert-deftest python-shell-calculate-exec-path-3 ()
+  "Test complete `python-shell-virtualenv-root' modification."
+  (let* ((exec-path '("/path0"))
+         (python-shell-exec-path '("/path1" "/path2"))
+         (python-shell-virtualenv-root "/env")
+         (new-exec-path (python-shell-calculate-exec-path)))
+    (should (equal new-exec-path
+                   (list (expand-file-name "/env/bin")
+                         "/path1" "/path2" "/path0")))))
+
+(ert-deftest python-shell-calculate-exec-path-4 ()
+  "Test complete `python-shell-virtualenv-root' with remote."
+  (let* ((default-directory "/ssh::/example/dir/")
+         (python-shell-remote-exec-path '("/path0"))
+         (python-shell-exec-path '("/path1" "/path2"))
+         (python-shell-virtualenv-root "/env")
+         (new-exec-path (python-shell-calculate-exec-path)))
+    (should (equal new-exec-path
+                   (list (expand-file-name "/env/bin")
+                         "/path1" "/path2" "/path0")))))
+
+(ert-deftest python-shell-calculate-exec-path-5 ()
+  "Test no side-effects on `exec-path'."
+  (let* ((exec-path '("/path0"))
+         (python-shell-exec-path '("/path1" "/path2"))
+         (python-shell-virtualenv-root "/env")
+         (original-exec-path (copy-sequence exec-path)))
+    (python-shell-calculate-exec-path)
+    (should (equal exec-path original-exec-path))))
+
+(ert-deftest python-shell-calculate-exec-path-6 ()
+  "Test no side-effects on `python-shell-remote-exec-path'."
+  (let* ((default-directory "/ssh::/example/dir/")
+         (python-shell-remote-exec-path '("/path0"))
+         (python-shell-exec-path '("/path1" "/path2"))
+         (python-shell-virtualenv-root "/env")
+         (original-exec-path (copy-sequence python-shell-remote-exec-path)))
+    (python-shell-calculate-exec-path)
+    (should (equal python-shell-remote-exec-path original-exec-path))))
+
+(ert-deftest python-shell-with-environment-1 ()
+  "Test environment with local `default-directory'."
+  (let* ((exec-path '("/path0"))
+         (python-shell-exec-path '("/path1" "/path2"))
+         (original-exec-path exec-path)
+         (python-shell-virtualenv-root "/env"))
+    (python-shell-with-environment
+     (should (equal exec-path
+                    (list (expand-file-name "/env/bin")
+                          "/path1" "/path2" "/path0")))
+      (should (not (getenv "PYTHONHOME")))
+      (should (string= (getenv "VIRTUAL_ENV") "/env")))
+    (should (equal exec-path original-exec-path))))
+
+(ert-deftest python-shell-with-environment-2 ()
+  "Test environment with remote `default-directory'."
+  (let* ((default-directory "/ssh::/example/dir/")
+         (python-shell-remote-exec-path '("/remote1" "/remote2"))
+         (python-shell-exec-path '("/path1" "/path2"))
+         (tramp-remote-process-environment '("EMACS=t"))
+         (original-process-environment (copy-sequence tramp-remote-process-environment))
+         (python-shell-virtualenv-root "/env"))
+    (python-shell-with-environment
+      (should (equal (python-shell-calculate-exec-path)
+                     (list (expand-file-name "/env/bin")
+                           "/path1" "/path2" "/remote1" "/remote2")))
+      (let ((process-environment (python-shell-calculate-process-environment)))
+        (should (not (getenv "PYTHONHOME")))
+        (should (string= (getenv "VIRTUAL_ENV") "/env"))
+        (should (equal tramp-remote-process-environment process-environment))))
+    (should (equal tramp-remote-process-environment original-process-environment))))
+
+(ert-deftest python-shell-with-environment-3 ()
+  "Test `python-shell-with-environment' is idempotent."
+  (let* ((python-shell-extra-pythonpaths '("/example/dir/"))
+         (python-shell-exec-path '("path1" "path2"))
+         (python-shell-virtualenv-root "/home/user/env")
+         (single-call
+          (python-shell-with-environment
+            (list exec-path process-environment)))
+         (nested-call
+          (python-shell-with-environment
+            (python-shell-with-environment
+              (list exec-path process-environment)))))
+    (should (equal single-call nested-call))))
 
 (ert-deftest python-shell-make-comint-1 ()
   "Check comint creation for global shell buffer."
@@ -2613,7 +2920,8 @@ and `python-shell-interpreter-args' in the new shell buffer."
                                    :type 'user-error)))
     (should
      (string= (cadr error-data)
-              "Invalid regexp \\( in `python-shell-prompt-input-regexps'"))))
+              (format-message
+               "Invalid regexp \\( in `python-shell-prompt-input-regexps'")))))
 
 (ert-deftest python-shell-prompt-validate-regexps-2 ()
   "Check `python-shell-prompt-output-regexps' are validated."
@@ -2622,7 +2930,8 @@ and `python-shell-interpreter-args' in the new shell buffer."
                                    :type 'user-error)))
     (should
      (string= (cadr error-data)
-              "Invalid regexp \\( in `python-shell-prompt-output-regexps'"))))
+              (format-message
+               "Invalid regexp \\( in `python-shell-prompt-output-regexps'")))))
 
 (ert-deftest python-shell-prompt-validate-regexps-3 ()
   "Check `python-shell-prompt-regexp' is validated."
@@ -2631,7 +2940,8 @@ and `python-shell-interpreter-args' in the new shell buffer."
                                    :type 'user-error)))
     (should
      (string= (cadr error-data)
-              "Invalid regexp \\( in `python-shell-prompt-regexp'"))))
+              (format-message
+               "Invalid regexp \\( in `python-shell-prompt-regexp'")))))
 
 (ert-deftest python-shell-prompt-validate-regexps-4 ()
   "Check `python-shell-prompt-block-regexp' is validated."
@@ -2640,7 +2950,8 @@ and `python-shell-interpreter-args' in the new shell buffer."
                                    :type 'user-error)))
     (should
      (string= (cadr error-data)
-              "Invalid regexp \\( in `python-shell-prompt-block-regexp'"))))
+              (format-message
+               "Invalid regexp \\( in `python-shell-prompt-block-regexp'")))))
 
 (ert-deftest python-shell-prompt-validate-regexps-5 ()
   "Check `python-shell-prompt-pdb-regexp' is validated."
@@ -2649,7 +2960,8 @@ and `python-shell-interpreter-args' in the new shell buffer."
                                    :type 'user-error)))
     (should
      (string= (cadr error-data)
-              "Invalid regexp \\( in `python-shell-prompt-pdb-regexp'"))))
+              (format-message
+               "Invalid regexp \\( in `python-shell-prompt-pdb-regexp'")))))
 
 (ert-deftest python-shell-prompt-validate-regexps-6 ()
   "Check `python-shell-prompt-output-regexp' is validated."
@@ -2658,7 +2970,8 @@ and `python-shell-interpreter-args' in the new shell buffer."
                                    :type 'user-error)))
     (should
      (string= (cadr error-data)
-              "Invalid regexp \\( in `python-shell-prompt-output-regexp'"))))
+              (format-message
+               "Invalid regexp \\( in `python-shell-prompt-output-regexp'")))))
 
 (ert-deftest python-shell-prompt-validate-regexps-7 ()
   "Check default regexps are valid."
@@ -2675,7 +2988,8 @@ and `python-shell-interpreter-args' in the new shell buffer."
                                    :type 'user-error)))
     (should
      (string= (cadr error-data)
-              "Invalid regexp \\( in `python-shell-prompt-output-regexp'"))))
+              (format-message
+               "Invalid regexp \\( in `python-shell-prompt-output-regexp'")))))
 
 (ert-deftest python-shell-prompt-set-calculated-regexps-2 ()
   "Check `python-shell-prompt-input-regexps' are set."
@@ -2981,6 +3295,61 @@ class Foo(models.Model):
     pass
 
 "))))
+
+(ert-deftest python-shell-buffer-substring-10 ()
+  "Check substring from partial block."
+  (python-tests-with-temp-buffer
+   "
+def foo():
+    print ('a')
+"
+   (should (string= (python-shell-buffer-substring
+                     (python-tests-look-at "print ('a')")
+                     (point-max))
+                    "if True:
+
+    print ('a')
+"))))
+
+(ert-deftest python-shell-buffer-substring-11 ()
+  "Check substring from partial block and point within indentation."
+  (python-tests-with-temp-buffer
+   "
+def foo():
+    print ('a')
+"
+   (should (string= (python-shell-buffer-substring
+                     (progn
+                       (python-tests-look-at "print ('a')")
+                       (backward-char 1)
+                       (point))
+                     (point-max))
+                    "if True:
+
+    print ('a')
+"))))
+
+(ert-deftest python-shell-buffer-substring-12 ()
+  "Check substring from partial block and point in whitespace."
+  (python-tests-with-temp-buffer
+   "
+def foo():
+
+        # Whitespace
+
+    print ('a')
+"
+   (should (string= (python-shell-buffer-substring
+                     (python-tests-look-at "# Whitespace")
+                     (point-max))
+                    "if True:
+
+
+        # Whitespace
+
+    print ('a')
+"))))
+
 
 
 ;;; Shell completion
@@ -4273,6 +4642,49 @@ def foo(a,
    (python-tests-look-at "c):")
    (should (not (python-info-block-continuation-line-p)))))
 
+(ert-deftest python-info-assignment-statement-p-1 ()
+  (python-tests-with-temp-buffer
+   "
+data = foo(), bar() \\\\
+       baz(), 4 \\\\
+       5, 6
+"
+   (python-tests-look-at "data = foo(), bar()")
+   (should (python-info-assignment-statement-p))
+   (should (python-info-assignment-statement-p t))
+   (python-tests-look-at "baz(), 4")
+   (should (python-info-assignment-statement-p))
+   (should (not (python-info-assignment-statement-p t)))
+   (python-tests-look-at "5, 6")
+   (should (python-info-assignment-statement-p))
+   (should (not (python-info-assignment-statement-p t)))))
+
+(ert-deftest python-info-assignment-statement-p-2 ()
+  (python-tests-with-temp-buffer
+   "
+data = (foo(), bar()
+        baz(), 4
+        5, 6)
+"
+   (python-tests-look-at "data = (foo(), bar()")
+   (should (python-info-assignment-statement-p))
+   (should (python-info-assignment-statement-p t))
+   (python-tests-look-at "baz(), 4")
+   (should (python-info-assignment-statement-p))
+   (should (not (python-info-assignment-statement-p t)))
+   (python-tests-look-at "5, 6)")
+   (should (python-info-assignment-statement-p))
+   (should (not (python-info-assignment-statement-p t)))))
+
+(ert-deftest python-info-assignment-statement-p-3 ()
+  (python-tests-with-temp-buffer
+   "
+data '=' 42
+"
+   (python-tests-look-at "data '=' 42")
+   (should (not (python-info-assignment-statement-p)))
+   (should (not (python-info-assignment-statement-p t)))))
+
 (ert-deftest python-info-assignment-continuation-line-p-1 ()
   (python-tests-with-temp-buffer
    "
@@ -4359,6 +4771,136 @@ foo = True  # another comment
    (should (not (python-info-current-line-empty-p)))
    (forward-line 1)
    (should (python-info-current-line-empty-p))))
+
+(ert-deftest python-info-docstring-p-1 ()
+  "Test module docstring detection."
+  (python-tests-with-temp-buffer
+   "# -*- coding: utf-8 -*-
+#!/usr/bin/python
+
+'''
+Module Docstring Django style.
+'''
+u'''Additional module docstring.'''
+'''Not a module docstring.'''
+"
+   (python-tests-look-at "Module Docstring Django style.")
+   (should (python-info-docstring-p))
+   (python-tests-look-at "u'''Additional module docstring.'''")
+   (should (python-info-docstring-p))
+   (python-tests-look-at "'''Not a module docstring.'''")
+   (should (not (python-info-docstring-p)))))
+
+(ert-deftest python-info-docstring-p-2 ()
+  "Test variable docstring detection."
+  (python-tests-with-temp-buffer
+   "
+variable = 42
+U'''Variable docstring.'''
+'''Additional variable docstring.'''
+'''Not a variable docstring.'''
+"
+   (python-tests-look-at "Variable docstring.")
+   (should (python-info-docstring-p))
+   (python-tests-look-at "u'''Additional variable docstring.'''")
+   (should (python-info-docstring-p))
+   (python-tests-look-at "'''Not a variable docstring.'''")
+   (should (not (python-info-docstring-p)))))
+
+(ert-deftest python-info-docstring-p-3 ()
+  "Test function docstring detection."
+  (python-tests-with-temp-buffer
+   "
+def func(a, b):
+    r'''
+    Function docstring.
+
+    onetwo style.
+    '''
+    R'''Additional function docstring.'''
+    '''Not a function docstring.'''
+    return a + b
+"
+   (python-tests-look-at "Function docstring.")
+   (should (python-info-docstring-p))
+   (python-tests-look-at "R'''Additional function docstring.'''")
+   (should (python-info-docstring-p))
+   (python-tests-look-at "'''Not a function docstring.'''")
+   (should (not (python-info-docstring-p)))))
+
+(ert-deftest python-info-docstring-p-4 ()
+  "Test class docstring detection."
+  (python-tests-with-temp-buffer
+   "
+class Class:
+    ur'''
+    Class docstring.
+
+    symmetric style.
+    '''
+    uR'''
+    Additional class docstring.
+    '''
+    '''Not a class docstring.'''
+    pass
+"
+   (python-tests-look-at "Class docstring.")
+   (should (python-info-docstring-p))
+   (python-tests-look-at "uR'''")  ;; Additional class docstring
+   (should (python-info-docstring-p))
+   (python-tests-look-at "'''Not a class docstring.'''")
+   (should (not (python-info-docstring-p)))))
+
+(ert-deftest python-info-docstring-p-5 ()
+  "Test class attribute docstring detection."
+  (python-tests-with-temp-buffer
+   "
+class Class:
+    attribute = 42
+    Ur'''
+    Class attribute docstring.
+
+    pep-257 style.
+
+    '''
+    UR'''
+    Additional class attribute docstring.
+    '''
+    '''Not a class attribute docstring.'''
+    pass
+"
+   (python-tests-look-at "Class attribute docstring.")
+   (should (python-info-docstring-p))
+   (python-tests-look-at "UR'''")  ;; Additional class attr docstring
+   (should (python-info-docstring-p))
+   (python-tests-look-at "'''Not a class attribute docstring.'''")
+   (should (not (python-info-docstring-p)))))
+
+(ert-deftest python-info-docstring-p-6 ()
+  "Test class method docstring detection."
+  (python-tests-with-temp-buffer
+   "
+class Class:
+
+    def __init__(self, a, b):
+        self.a = a
+        self.b = b
+
+    def __call__(self):
+        '''Method docstring.
+
+        pep-257-nn style.
+        '''
+        '''Additional method docstring.'''
+        '''Not a method docstring.'''
+        return self.a + self.b
+"
+   (python-tests-look-at "Method docstring.")
+   (should (python-info-docstring-p))
+   (python-tests-look-at "'''Additional method docstring.'''")
+   (should (python-info-docstring-p))
+   (python-tests-look-at "'''Not a method docstring.'''")
+   (should (not (python-info-docstring-p)))))
 
 (ert-deftest python-info-encoding-from-cookie-1 ()
   "Should detect it on first line."

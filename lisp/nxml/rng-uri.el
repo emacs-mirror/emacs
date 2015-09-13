@@ -125,7 +125,7 @@ Signal an error if URI is not a valid file URL."
 	  (t path))))
 
 (defun rng-uri-error (&rest args)
-  (signal 'rng-uri-error (list (apply 'format args))))
+  (signal 'rng-uri-error (list (apply #'format-message args))))
 
 (define-error 'rng-uri-error "Invalid URI")
 

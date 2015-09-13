@@ -58,10 +58,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Look in <sys/time.h> for a timeval structure.  */
 #define HAVE_TIMEVAL 1
 
-/* But our select implementation doesn't allow us to make non-blocking
-   connects.  So until that is fixed, this is necessary:  */
-#define BROKEN_NON_BLOCKING_CONNECT 1
-
 /* And the select implementation does 1-byte read-ahead waiting
    for received packets, so datagrams are broken too.  */
 #define BROKEN_DATAGRAM_SOCKETS 1
@@ -191,6 +187,20 @@ extern struct tm * sys_localtime (const time_t *);
 #undef HAVE__SETJMP
 #endif
 
+/* The following is needed for recovery from C stack overflows.  */
+#include <setjmp.h>
+typedef jmp_buf sigjmp_buf;
+#ifdef MINGW_W64
+/* Evidently, MinGW64's longjmp crashes when invoked from an exception
+   handler, see https://sourceforge.net/p/mingw-w64/mailman/message/32421953/.
+   This seems to be an unsolved problem in the MinGW64 runtime.  So we
+   use the GCC intrinsics instead.  FIXME.  */
+#define sigsetjmp(j,m) __builtin_setjmp(j)
+#else
+#define sigsetjmp(j,m) setjmp(j)
+#endif
+extern void w32_reset_stack_overflow_guard (void);
+
 #ifdef _MSC_VER
 #include <sys/timeb.h>
 #include <sys/stat.h>
@@ -309,18 +319,6 @@ int _getpid (void);
    array, and triggers an error message.  */
 #include <time.h>
 #define tzname    _tzname
-
-/* 'struct timespec' is used by time-related functions in lib/ and
-   elsewhere, but we don't use lib/time.h where the structure is
-   defined.  */
-/* MinGW64 defines 'struct timespec' and _TIMESPEC_DEFINED in sys/types.h.  */
-#ifndef _TIMESPEC_DEFINED
-struct timespec
-{
-  time_t	tv_sec;		/* seconds */
-  long int	tv_nsec;	/* nanoseconds */
-};
-#endif
 
 /* Required for functions in lib/time_r.c, since we don't use lib/time.h.  */
 extern struct tm *gmtime_r (time_t const * restrict, struct tm * restrict);

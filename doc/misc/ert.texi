@@ -2,7 +2,7 @@
 @c %**start of header
 @setfilename ../../info/ert.info
 @settitle Emacs Lisp Regression Testing
-@documentencoding UTF-8
+@include docstyle.texi
 @c %**end of header
 
 @dircategory Emacs misc features
@@ -822,7 +822,7 @@ functions.
 
 While fixtures are a useful syntactic simplification in other
 languages, this does not apply to Lisp, where higher-order functions
-and `unwind-protect' are available.  One way to implement and use a
+and @code{unwind-protect} are available.  One way to implement and use a
 fixture in ERT is
 
 @lisp
@@ -851,7 +851,7 @@ be added but would provide only a minor simplification.
 
 (If you are interested in such syntax, note that splitting set-up and
 tear-down into separate functions, like *Unit tools usually do, makes
-it impossible to establish dynamic `let' bindings as part of the
+it impossible to establish dynamic @code{let} bindings as part of the
 fixture.  So, blindly imitating the way fixtures are implemented in
 other languages would be counter-productive in Lisp.)
 
@@ -861,7 +861,7 @@ The most common use of this is to run just the tests for one
 particular module.  Since symbol prefixes are the usual way of
 separating module namespaces in Emacs Lisp, test selectors already
 solve this by allowing regexp matching on test names; e.g., the
-selector "^ert-" selects ERT's self-tests.
+selector @code{"^ert-"} selects ERT's self-tests.
 
 Other uses include grouping tests by their expected execution time,
 e.g., to run quick tests during interactive development and slow tests less

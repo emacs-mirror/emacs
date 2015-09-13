@@ -844,6 +844,10 @@ extern struct font_driver nsfont_driver;
 extern void syms_of_nsfont (void);
 extern void syms_of_macfont (void);
 #endif	/* HAVE_NS */
+#ifdef USE_CAIRO
+extern struct font_driver ftcrfont_driver;
+extern void syms_of_ftcrfont (void);
+#endif
 
 #ifndef FONT_DEBUG
 #define FONT_DEBUG

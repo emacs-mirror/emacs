@@ -100,10 +100,34 @@ Please send improvements and fixes to the maintainer."
   :group 'find-function
   :version "22.1")
 
+(defcustom find-feature-regexp
+  (concat ";;; Code:")
+  "The regexp used by `xref-find-definitions' when searching for a feature definition.
+Note it must contain a `%s' at the place where `format'
+should insert the feature name."
+  ;; We search for ";;; Code" rather than (feature '%s) because the
+  ;; former is near the start of the code, and the latter is very
+  ;; uninteresting. If the regexp is not found, just goes to
+  ;; (point-min), which is acceptable in this case.
+  :type 'regexp
+  :group 'xref
+  :version "25.0")
+
+(defcustom find-alias-regexp
+  "(defalias +'%s"
+  "The regexp used by `xref-find-definitions' to search for an alias definition.
+Note it must contain a `%s' at the place where `format'
+should insert the feature name."
+  :type 'regexp
+  :group 'xref
+  :version "25.0")
+
 (defvar find-function-regexp-alist
   '((nil . find-function-regexp)
     (defvar . find-variable-regexp)
-    (defface . find-face-regexp))
+    (defface . find-face-regexp)
+    (feature . find-feature-regexp)
+    (defalias . find-alias-regexp))
   "Alist mapping definition types into regexp variables.
 Each regexp variable's value should actually be a format string
 to be used to substitute the desired symbol name into the regexp.
@@ -189,12 +213,15 @@ defined in C.")
 (declare-function ad-get-advice-info "advice" (function))
 
 (defun find-function-advised-original (func)
-  "Return the original function symbol of an advised function FUNC.
-If FUNC is not the symbol of an advised function, just returns FUNC."
+  "Return the original function definition of an advised function FUNC.
+If FUNC is not a symbol, return it.  Else, if it's not advised,
+return the symbol's function definition."
   (or (and (symbolp func)
-	   (featurep 'advice)
-	   (let ((ofunc (cdr (assq 'origname (ad-get-advice-info func)))))
-	     (and (fboundp ofunc) ofunc)))
+           (featurep 'nadvice)
+           (let ((ofunc (advice--symbol-function func)))
+             (if (advice--p ofunc)
+                 (advice--cd*r ofunc)
+               ofunc)))
       func))
 
 (defun find-function-C-source (fun-or-var file type)
@@ -331,7 +358,7 @@ signal an error.
 If VERBOSE is non-nil, and FUNCTION is an alias, display a
 message about the whole chain of aliases."
   (let ((def (if (symbolp function)
-                 (symbol-function (find-function-advised-original function))))
+                 (find-function-advised-original function)))
         aliases)
     ;; FIXME for completeness, it might be nice to print something like:
     ;; foo (which is advised), which is an alias for bar (which is advised).
@@ -340,12 +367,13 @@ message about the whole chain of aliases."
           (not verbose)
           (setq aliases (if aliases
                             (concat aliases
-                                    (format ", which is an alias for `%s'"
-                                            (symbol-name def)))
-                          (format "`%s' is an alias for `%s'"
-                                  function (symbol-name def)))))
-      (setq function (symbol-function (find-function-advised-original function))
-            def (symbol-function (find-function-advised-original function))))
+                                    (format-message
+                                     ", which is an alias for `%s'"
+                                     (symbol-name def)))
+                          (format-message "`%s' is an alias for `%s'"
+                                          function (symbol-name def)))))
+      (setq function (find-function-advised-original function)
+            def (find-function-advised-original function)))
     (if aliases
         (message "%s" aliases))
     (cons function
@@ -547,11 +575,11 @@ See also `find-function-recenter-line' and `find-function-after-hook'."
   (interactive (find-function-read 'defface))
   (find-function-do-it face 'defface 'switch-to-buffer))
 
-;;;###autoload
-(defun find-function-on-key (key)
+(defun find-function-on-key-do-it (key find-fn)
   "Find the function that KEY invokes.  KEY is a string.
-Set mark before moving, if the buffer already existed."
-  (interactive "kFind function on key: ")
+Set mark before moving, if the buffer already existed.
+
+FIND-FN is the function to call to navigate to the function."
   (let (defn)
     (save-excursion
       (let* ((event (and (eventp key) (aref key 0))) ; Null event OK below.
@@ -572,7 +600,28 @@ Set mark before moving, if the buffer already existed."
 	  (message "%s is unbound" key-desc)
 	(if (consp defn)
 	    (message "%s runs %s" key-desc (prin1-to-string defn))
-	  (find-function-other-window defn))))))
+	  (funcall find-fn defn))))))
+
+;;;###autoload
+(defun find-function-on-key (key)
+  "Find the function that KEY invokes.  KEY is a string.
+Set mark before moving, if the buffer already existed."
+  (interactive "kFind function on key: ")
+  (find-function-on-key-do-it key #'find-function))
+
+;;;###autoload
+(defun find-function-on-key-other-window (key)
+  "Find, in the other window, the function that KEY invokes.
+See `find-function-on-key'."
+  (interactive "kFind function on key: ")
+  (find-function-on-key-do-it key #'find-function-other-window))
+
+;;;###autoload
+(defun find-function-on-key-other-frame (key)
+  "Find, in the other frame, the function that KEY invokes.
+See `find-function-on-key'."
+  (interactive "kFind function on key: ")
+  (find-function-on-key-do-it key #'find-function-other-frame))
 
 ;;;###autoload
 (defun find-function-at-point ()
@@ -597,6 +646,8 @@ Set mark before moving, if the buffer already existed."
   (define-key ctl-x-4-map "F" 'find-function-other-window)
   (define-key ctl-x-5-map "F" 'find-function-other-frame)
   (define-key ctl-x-map "K" 'find-function-on-key)
+  (define-key ctl-x-4-map "K" 'find-function-on-key-other-window)
+  (define-key ctl-x-5-map "K" 'find-function-on-key-other-frame)
   (define-key ctl-x-map "V" 'find-variable)
   (define-key ctl-x-4-map "V" 'find-variable-other-window)
   (define-key ctl-x-5-map "V" 'find-variable-other-frame))

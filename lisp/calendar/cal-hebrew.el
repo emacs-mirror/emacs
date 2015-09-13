@@ -611,7 +611,7 @@ is provided for use with `diary-nongregorian-listing-hook'."
   "Mark dates in calendar window that conform to Hebrew date MONTH/DAY/YEAR.
 A value of 0 in any position is a wildcard.  Optional argument COLOR is
 passed to `calendar-mark-visible-date' as MARK."
-  ;; FIXME not the same as the Bahai and Islamic cases, so can't use
+  ;; FIXME not the same as the Bahá’í and Islamic cases, so can't use
   ;; calendar-mark-1.
   (with-current-buffer calendar-buffer
     (if (and (not (zerop month)) (not (zerop day)))

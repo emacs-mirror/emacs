@@ -33,6 +33,14 @@
   :type 'boolean
   :group 'matching)
 
+(defcustom replace-character-fold nil
+  "Non-nil means `query-replace' should do character folding in matches.
+This means, for instance, that \\=' will match a large variety of
+unicode quotes."
+  :type 'boolean
+  :group 'matching
+  :version "25.1")
+
 (defcustom replace-lax-whitespace nil
   "Non-nil means `query-replace' matches a sequence of whitespace chars.
 When you enter a space or spaces in the strings to be replaced,
@@ -68,14 +76,12 @@ to the minibuffer that reads the string to replace, or invoke replacements
 from Isearch by using a key sequence like `C-s C-s M-%'." "24.3")
 
 (defcustom query-replace-from-to-separator
-  (propertize
-   (or (ignore-errors
-	 ;; Ignore errors when attempt to autoload char-displayable-p
-	 ;; fails while preparing to dump.
-	 (if (char-displayable-p ?\u2192) " \u2192 " " -> "))
-       " -> ")
-   'face 'minibuffer-prompt)
+  (propertize (if (char-displayable-p ?\u2192) " \u2192 " " -> ")
+              'face 'minibuffer-prompt)
   "String that separates FROM and TO in the history of replacement pairs."
+  ;; Avoids error when attempt to autoload char-displayable-p fails
+  ;; while preparing to dump, also stops customize-rogue listing this.
+  :initialize 'custom-initialize-delay
   :group 'matching
   :type 'sexp
   :version "25.1")
@@ -138,6 +144,16 @@ See `replace-regexp' and `query-replace-regexp-eval'.")
 (defun query-replace-descr (string)
   (mapconcat 'isearch-text-char-description string ""))
 
+(defun query-replace--split-string (string)
+  "Split string STRING at a character with property `separator'"
+  (let* ((length (length string))
+         (split-pos (text-property-any 0 length 'separator t string)))
+    (if (not split-pos)
+        (substring-no-properties string)
+      (cl-assert (not (text-property-any (1+ split-pos) length 'separator t string)))
+      (cons (substring-no-properties string 0 split-pos)
+            (substring-no-properties string (1+ split-pos) length)))))
+
 (defun query-replace-read-from (prompt regexp-flag)
   "Query and return the `from' argument of a query-replace operation.
 The return value can also be a pair (FROM . TO) indicating that the user
@@ -148,6 +164,8 @@ wants to replace FROM with TO."
     ;; unavailable while preparing to dump.
     (custom-reevaluate-setting 'query-replace-from-to-separator)
     (let* ((history-add-new-input nil)
+	   (text-property-default-nonsticky
+	    (cons '(separator . t) text-property-default-nonsticky))
 	   (separator
 	    (when query-replace-from-to-separator
 	      (propertize "\0"
@@ -176,32 +194,30 @@ wants to replace FROM with TO."
 		  (read-regexp prompt nil 'query-replace-from-to-history)
 		(read-from-minibuffer
 		 prompt nil nil nil 'query-replace-from-to-history
-		 (car (if regexp-flag regexp-search-ring search-ring)) t)))))
+		 (car (if regexp-flag regexp-search-ring search-ring)) t))))
+           (to))
       (if (and (zerop (length from)) query-replace-defaults)
 	  (cons (caar query-replace-defaults)
 		(query-replace-compile-replacement
 		 (cdar query-replace-defaults) regexp-flag))
-	(let* ((to (if (and (string-match separator from)
-			    (get-text-property (match-beginning 0) 'separator from))
-		       (substring-no-properties from (match-end 0))))
-	       (from (if to (substring-no-properties from 0 (match-beginning 0))
-		       (substring-no-properties from))))
-	  (add-to-history query-replace-from-history-variable from nil t)
-	  ;; Warn if user types \n or \t, but don't reject the input.
-	  (and regexp-flag
-	       (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\(\\\\[nt]\\)" from)
-	       (let ((match (match-string 3 from)))
-		 (cond
-		  ((string= match "\\n")
-		   (message "Note: `\\n' here doesn't match a newline; to do that, type C-q C-j instead"))
-		  ((string= match "\\t")
-		   (message "Note: `\\t' here doesn't match a tab; to do that, just type TAB")))
-		 (sit-for 2)))
-	  (if (not to)
-	      from
-	    (add-to-history query-replace-to-history-variable to nil t)
-	    (add-to-history 'query-replace-defaults (cons from to) nil t)
-	    (cons from (query-replace-compile-replacement to regexp-flag))))))))
+        (setq from (query-replace--split-string from))
+        (when (consp from) (setq to (cdr from) from (car from)))
+        (add-to-history query-replace-from-history-variable from nil t)
+        ;; Warn if user types \n or \t, but don't reject the input.
+        (and regexp-flag
+             (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\(\\\\[nt]\\)" from)
+             (let ((match (match-string 3 from)))
+               (cond
+                ((string= match "\\n")
+                 (message "Note: `\\n' here doesn't match a newline; to do that, type C-q C-j instead"))
+                ((string= match "\\t")
+                 (message "Note: `\\t' here doesn't match a tab; to do that, just type TAB")))
+               (sit-for 2)))
+        (if (not to)
+            from
+          (add-to-history query-replace-to-history-variable to nil t)
+          (add-to-history 'query-replace-defaults (cons from to) nil t)
+          (cons from (query-replace-compile-replacement to regexp-flag)))))))
 
 (defun query-replace-compile-replacement (to regexp-flag)
   "Maybe convert a regexp replacement TO to Lisp.
@@ -1369,7 +1385,7 @@ See also `multi-occur-in-matching-buffers'."
 	   (ido-ignore-item-temp-list bufs))
       (while (not (string-equal
 		   (setq buf (read-buffer
-			      (if (eq read-buffer-function 'ido-read-buffer)
+			      (if (eq read-buffer-function #'ido-read-buffer)
 				  "Next buffer to search (C-j to end): "
 				"Next buffer to search (RET to end): ")
 			      nil t))
@@ -1479,7 +1495,8 @@ See also `multi-occur'."
 		     ;; Don't display regexp if with remaining text
 		     ;; it is longer than window-width.
 		     (if (> (+ (length regexp) 42) (window-width))
-			 "" (format " for `%s'" (query-replace-descr regexp)))))
+			 "" (format-message
+                             " for `%s'" (query-replace-descr regexp)))))
 	  (setq occur-revert-arguments (list regexp nlines bufs))
           (if (= count 0)
               (kill-buffer occur-buf)
@@ -1996,7 +2013,10 @@ It is called with three arguments, as if it were
   ;; outside of this function because then another I-search
   ;; used after `recursive-edit' might override them.
   (let* ((isearch-regexp regexp-flag)
-	 (isearch-word delimited-flag)
+	 (isearch-word (or delimited-flag
+                           (and replace-character-fold
+                                (not regexp-flag)
+                                #'character-fold-to-regexp)))
 	 (isearch-lax-whitespace
 	  replace-lax-whitespace)
 	 (isearch-regexp-lax-whitespace
@@ -2061,7 +2081,13 @@ see the documentation of `replace-match' to find out how to simulate
 `case-replace'.
 
 This function returns nil if and only if there were no matches to
-make, or the user didn't cancel the call."
+make, or the user didn't cancel the call.
+
+REPLACEMENTS is either a string, a list of strings, or a cons cell
+containing a function and its first argument.  The function is
+called to generate each replacement like this:
+  (funcall (car replacements) (cdr replacements) replace-count)
+It must return a string."
   (or map (setq map query-replace-map))
   (and query-flag minibuffer-auto-raise
        (raise-frame (window-frame (minibuffer-window))))
@@ -2117,11 +2143,6 @@ make, or the user didn't cancel the call."
     (when (eq (lookup-key map (vector last-input-event)) 'automatic-all)
       (setq query-flag nil multi-buffer t))
 
-    ;; REPLACEMENTS is either a string, a list of strings, or a cons cell
-    ;; containing a function and its first argument.  The function is
-    ;; called to generate each replacement like this:
-    ;;   (funcall (car replacements) (cdr replacements) replace-count)
-    ;; It must return a string.
     (cond
      ((stringp replacements)
       (setq next-replacement replacements

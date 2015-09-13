@@ -22,6 +22,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
+#ifdef USE_CAIRO
+#include <math.h>
+#endif
 
 #include "lisp.h"
 #include "blockinput.h"
@@ -211,33 +214,16 @@ enum xembed_message
     XEMBED_ACTIVATE_ACCELERATOR   = 14
   };
 
+static void x_free_cr_resources (struct frame *);
 static bool x_alloc_nearest_color_1 (Display *, Colormap, XColor *);
-static void x_set_window_size_1 (struct frame *, bool, int, int);
 static void x_raise_frame (struct frame *);
 static void x_lower_frame (struct frame *);
-static const XColor *x_color_cells (Display *, int *);
 static int x_io_error_quitter (Display *);
 static struct terminal *x_create_terminal (struct x_display_info *);
-static void x_update_end (struct frame *);
-static void XTframe_up_to_date (struct frame *);
-static void x_clear_frame (struct frame *);
-static _Noreturn void x_ins_del_lines (struct frame *, int, int);
-static void frame_highlight (struct frame *);
-static void frame_unhighlight (struct frame *);
-static void x_new_focus_frame (struct x_display_info *, struct frame *);
-static void  x_focus_changed (int, int, struct x_display_info *,
-                              struct frame *, struct input_event *);
-static void XTframe_rehighlight (struct frame *);
 static void x_frame_rehighlight (struct x_display_info *);
-static void x_draw_hollow_cursor (struct window *, struct glyph_row *);
-static void x_draw_bar_cursor (struct window *, struct glyph_row *, int,
-                               enum text_cursor_kinds);
 
 static void x_clip_to_row (struct window *, struct glyph_row *,
 			   enum glyph_row_area, GC);
-static void x_flush (struct frame *f);
-static void x_update_begin (struct frame *);
-static void x_update_window_begin (struct window *);
 static struct scroll_bar *x_window_to_scroll_bar (Display *, Window, int);
 static void x_scroll_bar_report_motion (struct frame **, Lisp_Object *,
                                         enum scroll_bar_part *,
@@ -257,9 +243,6 @@ static int handle_one_xevent (struct x_display_info *,
 #if ! (defined USE_X_TOOLKIT || defined USE_MOTIF)
 static int x_dispatch_event (XEvent *, Display *);
 #endif
-/* Don't declare this _Noreturn because we want no
-   interference with debugging failing X calls.  */
-static void x_connection_closed (Display *, const char *);
 static void x_wm_set_window_state (struct frame *, int);
 static void x_wm_set_icon_pixmap (struct frame *, ptrdiff_t);
 static void x_initialize (void);
@@ -325,6 +308,573 @@ record_event (char *locus, int type)
 
 #endif
 
+#ifdef USE_CAIRO
+
+#define FRAME_CR_CONTEXT(f)	((f)->output_data.x->cr_context)
+#define FRAME_CR_SURFACE(f)	((f)->output_data.x->cr_surface)
+
+static struct x_gc_ext_data *
+x_gc_get_ext_data (struct frame *f, GC gc, int create_if_not_found_p)
+{
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
+  XEDataObject object;
+  XExtData **head, *ext_data;
+
+  object.gc = gc;
+  head = XEHeadOfExtensionList (object);
+  ext_data = XFindOnExtensionList (head, dpyinfo->ext_codes->extension);
+  if (ext_data == NULL)
+    {
+      if (!create_if_not_found_p)
+	return NULL;
+      else
+	{
+	  ext_data = xzalloc (sizeof (*ext_data));
+	  ext_data->number = dpyinfo->ext_codes->extension;
+	  ext_data->private_data = xzalloc (sizeof (struct x_gc_ext_data));
+	  XAddToExtensionList (head, ext_data);
+	}
+    }
+  return (struct x_gc_ext_data *) ext_data->private_data;
+}
+
+static void
+x_extension_initialize (struct x_display_info *dpyinfo)
+{
+  XExtCodes *ext_codes = XAddExtension (dpyinfo->display);
+
+  dpyinfo->ext_codes = ext_codes;
+}
+
+static void
+x_cr_destroy_surface (struct frame *f)
+{
+  if (FRAME_CR_SURFACE (f))
+    {
+      cairo_t *cr = FRAME_CR_CONTEXT (f);
+      cairo_surface_destroy (FRAME_CR_SURFACE (f));
+      FRAME_CR_SURFACE (f) = 0;
+      if (cr) cairo_destroy (cr);
+      FRAME_CR_CONTEXT (f) = NULL;
+    }
+}
+
+cairo_t *
+x_begin_cr_clip (struct frame *f, GC gc)
+{
+  cairo_t *cr = FRAME_CR_CONTEXT (f);
+
+  if (!cr)
+    {
+
+      if (! FRAME_CR_SURFACE (f))
+        {
+          cairo_surface_t *surface;
+          surface = cairo_xlib_surface_create (FRAME_X_DISPLAY (f),
+                                               FRAME_X_WINDOW (f),
+                                               FRAME_DISPLAY_INFO (f)->visual,
+                                               FRAME_PIXEL_WIDTH (f),
+                                               FRAME_PIXEL_HEIGHT (f));
+          cr = cairo_create (surface);
+          cairo_surface_destroy (surface);
+        }
+      else
+        cr = cairo_create (FRAME_CR_SURFACE (f));
+      FRAME_CR_CONTEXT (f) = cr;
+    }
+  cairo_save (cr);
+
+  if (gc)
+    {
+      struct x_gc_ext_data *gc_ext = x_gc_get_ext_data (f, gc, 0);
+
+      if (gc_ext && gc_ext->n_clip_rects)
+	{
+	  int i;
+
+	  for (i = 0; i < gc_ext->n_clip_rects; i++)
+	    cairo_rectangle (cr, gc_ext->clip_rects[i].x,
+			     gc_ext->clip_rects[i].y,
+			     gc_ext->clip_rects[i].width,
+			     gc_ext->clip_rects[i].height);
+	  cairo_clip (cr);
+	}
+    }
+
+  return cr;
+}
+
+void
+x_end_cr_clip (struct frame *f)
+{
+  cairo_restore (FRAME_CR_CONTEXT (f));
+}
+
+void
+x_set_cr_source_with_gc_foreground (struct frame *f, GC gc)
+{
+  XGCValues xgcv;
+  XColor color;
+
+  XGetGCValues (FRAME_X_DISPLAY (f), gc, GCForeground, &xgcv);
+  color.pixel = xgcv.foreground;
+  x_query_color (f, &color);
+  cairo_set_source_rgb (FRAME_CR_CONTEXT (f), color.red / 65535.0,
+			color.green / 65535.0, color.blue / 65535.0);
+}
+
+void
+x_set_cr_source_with_gc_background (struct frame *f, GC gc)
+{
+  XGCValues xgcv;
+  XColor color;
+
+  XGetGCValues (FRAME_X_DISPLAY (f), gc, GCBackground, &xgcv);
+  color.pixel = xgcv.background;
+  x_query_color (f, &color);
+  cairo_set_source_rgb (FRAME_CR_CONTEXT (f), color.red / 65535.0,
+			color.green / 65535.0, color.blue / 65535.0);
+}
+
+/* Fringe bitmaps.  */
+
+static int max_fringe_bmp = 0;
+static cairo_pattern_t **fringe_bmp = 0;
+
+static void
+x_cr_define_fringe_bitmap (int which, unsigned short *bits, int h, int wd)
+{
+  int i, stride;
+  cairo_surface_t *surface;
+  unsigned char *data;
+  cairo_pattern_t *pattern;
+
+  if (which >= max_fringe_bmp)
+    {
+      i = max_fringe_bmp;
+      max_fringe_bmp = which + 20;
+      fringe_bmp = (cairo_pattern_t **) xrealloc (fringe_bmp, max_fringe_bmp * sizeof (cairo_pattern_t *));
+      while (i < max_fringe_bmp)
+	fringe_bmp[i++] = 0;
+    }
+
+  block_input ();
+
+  surface = cairo_image_surface_create (CAIRO_FORMAT_A1, wd, h);
+  stride = cairo_image_surface_get_stride (surface);
+  data = cairo_image_surface_get_data (surface);
+
+  for (i = 0; i < h; i++)
+    {
+      *((unsigned short *) data) = bits[i];
+      data += stride;
+    }
+
+  cairo_surface_mark_dirty (surface);
+  pattern = cairo_pattern_create_for_surface (surface);
+  cairo_surface_destroy (surface);
+
+  unblock_input ();
+
+  fringe_bmp[which] = pattern;
+}
+
+static void
+x_cr_destroy_fringe_bitmap (int which)
+{
+  if (which >= max_fringe_bmp)
+    return;
+
+  if (fringe_bmp[which])
+    {
+      block_input ();
+      cairo_pattern_destroy (fringe_bmp[which]);
+      unblock_input ();
+    }
+  fringe_bmp[which] = 0;
+}
+
+static void
+x_cr_draw_image (struct frame *f, GC gc, cairo_pattern_t *image,
+		 int src_x, int src_y, int width, int height,
+		 int dest_x, int dest_y, bool overlay_p)
+{
+  cairo_t *cr;
+  cairo_matrix_t matrix;
+  cairo_surface_t *surface;
+  cairo_format_t format;
+
+  cr = x_begin_cr_clip (f, gc);
+  if (overlay_p)
+    cairo_rectangle (cr, dest_x, dest_y, width, height);
+  else
+    {
+      x_set_cr_source_with_gc_background (f, gc);
+      cairo_rectangle (cr, dest_x, dest_y, width, height);
+      cairo_fill_preserve (cr);
+    }
+  cairo_clip (cr);
+  cairo_matrix_init_translate (&matrix, src_x - dest_x, src_y - dest_y);
+  cairo_pattern_set_matrix (image, &matrix);
+  cairo_pattern_get_surface (image, &surface);
+  format = cairo_image_surface_get_format (surface);
+  if (format != CAIRO_FORMAT_A8 && format != CAIRO_FORMAT_A1)
+    {
+      cairo_set_source (cr, image);
+      cairo_fill (cr);
+    }
+  else
+    {
+      x_set_cr_source_with_gc_foreground (f, gc);
+      cairo_mask (cr, image);
+    }
+  x_end_cr_clip (f);
+}
+
+void
+x_cr_draw_frame (cairo_t *cr, struct frame *f)
+{
+  int width, height;
+
+  width = FRAME_PIXEL_WIDTH (f);
+  height = FRAME_PIXEL_HEIGHT (f);
+
+  x_free_cr_resources (f);
+  FRAME_CR_CONTEXT (f) = cr;
+  x_clear_area (f, 0, 0, width, height);
+  expose_frame (f, 0, 0, width, height);
+  FRAME_CR_CONTEXT (f) = NULL;
+}
+
+static cairo_status_t
+x_cr_accumulate_data (void *closure, const unsigned char *data,
+		      unsigned int length)
+{
+  Lisp_Object *acc = (Lisp_Object *) closure;
+
+  *acc = Fcons (make_unibyte_string ((char const *) data, length), *acc);
+
+  return CAIRO_STATUS_SUCCESS;
+}
+
+static void
+x_cr_destroy (Lisp_Object arg)
+{
+  cairo_t *cr = (cairo_t *) XSAVE_POINTER (arg, 0);
+
+  block_input ();
+  cairo_destroy (cr);
+  unblock_input ();
+}
+
+Lisp_Object
+x_cr_export_frames (Lisp_Object frames, cairo_surface_type_t surface_type)
+{
+  struct frame *f;
+  cairo_surface_t *surface;
+  cairo_t *cr;
+  int width, height;
+  void (*surface_set_size_func) (cairo_surface_t *, double, double) = NULL;
+  Lisp_Object acc = Qnil, args[2];
+  int count = SPECPDL_INDEX ();
+
+  Fredisplay (Qt);
+
+  f = XFRAME (XCAR (frames));
+  frames = XCDR (frames);
+  width = FRAME_PIXEL_WIDTH (f);
+  height = FRAME_PIXEL_HEIGHT (f);
+
+  block_input ();
+#ifdef CAIRO_HAS_PDF_SURFACE
+  if (surface_type == CAIRO_SURFACE_TYPE_PDF)
+    {
+      surface = cairo_pdf_surface_create_for_stream (x_cr_accumulate_data, &acc,
+						     width, height);
+      surface_set_size_func = cairo_pdf_surface_set_size;
+    }
+  else
+#endif
+#ifdef CAIRO_HAS_PNG_FUNCTIONS
+  if (surface_type == CAIRO_SURFACE_TYPE_IMAGE)
+    surface = cairo_image_surface_create (CAIRO_FORMAT_RGB24, width, height);
+  else
+#endif
+#ifdef CAIRO_HAS_PS_SURFACE
+  if (surface_type == CAIRO_SURFACE_TYPE_PS)
+    {
+      surface = cairo_ps_surface_create_for_stream (x_cr_accumulate_data, &acc,
+						    width, height);
+      surface_set_size_func = cairo_ps_surface_set_size;
+    }
+  else
+#endif
+#ifdef CAIRO_HAS_SVG_SURFACE
+  if (surface_type == CAIRO_SURFACE_TYPE_SVG)
+    surface = cairo_svg_surface_create_for_stream (x_cr_accumulate_data, &acc,
+						   width, height);
+  else
+#endif
+    abort ();
+
+  cr = cairo_create (surface);
+  cairo_surface_destroy (surface);
+  record_unwind_protect (x_cr_destroy, make_save_ptr (cr));
+  unblock_input ();
+
+  while (1)
+    {
+      QUIT;
+
+      block_input ();
+      x_free_cr_resources (f);
+      FRAME_CR_CONTEXT (f) = cr;
+      x_clear_area (f, 0, 0, width, height);
+      expose_frame (f, 0, 0, width, height);
+      FRAME_CR_CONTEXT (f) = NULL;
+      unblock_input ();
+
+      if (NILP (frames))
+	break;
+
+      block_input ();
+      cairo_surface_show_page (surface);
+      f = XFRAME (XCAR (frames));
+      frames = XCDR (frames);
+      width = FRAME_PIXEL_WIDTH (f);
+      height = FRAME_PIXEL_HEIGHT (f);
+      if (surface_set_size_func)
+	(*surface_set_size_func) (surface, width, height);
+      unblock_input ();
+    }
+
+#ifdef CAIRO_HAS_PNG_FUNCTIONS
+  if (surface_type == CAIRO_SURFACE_TYPE_IMAGE)
+    {
+      block_input ();
+      cairo_surface_flush (surface);
+      cairo_surface_write_to_png_stream (surface, x_cr_accumulate_data, &acc);
+      unblock_input ();
+    }
+#endif
+  unbind_to (count, Qnil);
+
+  args[0] = intern ("concat");
+  args[1] = Fnreverse (acc);
+  return Fapply (2, args);
+}
+
+#endif	/* USE_CAIRO */
+
+static void
+x_free_cr_resources (struct frame *f)
+{
+#ifdef USE_CAIRO
+  if (f == NULL)
+    {
+      Lisp_Object rest, frame;
+      FOR_EACH_FRAME (rest, frame)
+	if (FRAME_X_P (XFRAME (frame)))
+	  x_free_cr_resources (XFRAME (frame));
+    }
+  else
+    {
+      cairo_t *cr = FRAME_CR_CONTEXT (f);
+
+      if (cr)
+	{
+	  cairo_surface_t *surface = cairo_get_target (cr);
+
+	  if (cairo_surface_get_type (surface) == CAIRO_SURFACE_TYPE_XLIB)
+	    {
+	      cairo_destroy (cr);
+	      FRAME_CR_CONTEXT (f) = NULL;
+	    }
+	}
+    }
+#endif
+}
+
+static void
+x_set_clip_rectangles (struct frame *f, GC gc, XRectangle *rectangles, int n)
+{
+  XSetClipRectangles (FRAME_X_DISPLAY (f), gc, 0, 0, rectangles, n, Unsorted);
+#ifdef USE_CAIRO
+  eassert (n >= 0 && n <= MAX_CLIP_RECTS);
+
+  {
+    struct x_gc_ext_data *gc_ext = x_gc_get_ext_data (f, gc, 1);
+
+    gc_ext->n_clip_rects = n;
+    memcpy (gc_ext->clip_rects, rectangles, sizeof (XRectangle) * n);
+  }
+#endif
+}
+
+static void
+x_reset_clip_rectangles (struct frame *f, GC gc)
+{
+  XSetClipMask (FRAME_X_DISPLAY (f), gc, None);
+#ifdef USE_CAIRO
+  {
+    struct x_gc_ext_data *gc_ext = x_gc_get_ext_data (f, gc, 0);
+
+    if (gc_ext)
+      gc_ext->n_clip_rects = 0;
+  }
+#endif
+}
+
+static void
+x_fill_rectangle (struct frame *f, GC gc, int x, int y, int width, int height)
+{
+#ifdef USE_CAIRO
+  cairo_t *cr;
+
+  cr = x_begin_cr_clip (f, gc);
+  x_set_cr_source_with_gc_foreground (f, gc);
+  cairo_rectangle (cr, x, y, width, height);
+  cairo_fill (cr);
+  x_end_cr_clip (f);
+#else
+  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		  gc, x, y, width, height);
+#endif
+}
+
+static void
+x_draw_rectangle (struct frame *f, GC gc, int x, int y, int width, int height)
+{
+#ifdef USE_CAIRO
+  cairo_t *cr;
+
+  cr = x_begin_cr_clip (f, gc);
+  x_set_cr_source_with_gc_foreground (f, gc);
+  cairo_rectangle (cr, x + 0.5, y + 0.5, width, height);
+  cairo_set_line_width (cr, 1);
+  cairo_stroke (cr);
+  x_end_cr_clip (f);
+#else
+  XDrawRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		  gc, x, y, width, height);
+#endif
+}
+
+static void
+x_clear_window (struct frame *f)
+{
+#ifdef USE_CAIRO
+  cairo_t *cr;
+
+  cr = x_begin_cr_clip (f, NULL);
+  x_set_cr_source_with_gc_background (f, f->output_data.x->normal_gc);
+  cairo_paint (cr);
+  x_end_cr_clip (f);
+#else
+  XClearWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
+#endif
+}
+
+#ifdef USE_CAIRO
+static void
+x_fill_trapezoid_for_relief (struct frame *f, GC gc, int x, int y,
+			     int width, int height, int top_p)
+{
+  cairo_t *cr;
+
+  cr = x_begin_cr_clip (f, gc);
+  x_set_cr_source_with_gc_foreground (f, gc);
+  cairo_move_to (cr, top_p ? x : x + height, y);
+  cairo_line_to (cr, x, y + height);
+  cairo_line_to (cr, top_p ? x + width - height : x + width, y + height);
+  cairo_line_to (cr, x + width, y);
+  cairo_fill (cr);
+  x_end_cr_clip (f);
+}
+
+enum corners
+  {
+    CORNER_BOTTOM_RIGHT,	/* 0 -> pi/2 */
+    CORNER_BOTTOM_LEFT,		/* pi/2 -> pi */
+    CORNER_TOP_LEFT,		/* pi -> 3pi/2 */
+    CORNER_TOP_RIGHT,		/* 3pi/2 -> 2pi */
+    CORNER_LAST
+  };
+
+static void
+x_erase_corners_for_relief (struct frame *f, GC gc, int x, int y,
+			    int width, int height,
+			    double radius, double margin, int corners)
+{
+  cairo_t *cr;
+  int i;
+
+  cr = x_begin_cr_clip (f, gc);
+  x_set_cr_source_with_gc_background (f, gc);
+  for (i = 0; i < CORNER_LAST; i++)
+    if (corners & (1 << i))
+      {
+	double xm, ym, xc, yc;
+
+	if (i == CORNER_TOP_LEFT || i == CORNER_BOTTOM_LEFT)
+	  xm = x - margin, xc = xm + radius;
+	else
+	  xm = x + width + margin, xc = xm - radius;
+	if (i == CORNER_TOP_LEFT || i == CORNER_TOP_RIGHT)
+	  ym = y - margin, yc = ym + radius;
+	else
+	  ym = y + height + margin, yc = ym - radius;
+
+	cairo_move_to (cr, xm, ym);
+	cairo_arc (cr, xc, yc, radius, i * M_PI_2, (i + 1) * M_PI_2);
+      }
+  cairo_clip (cr);
+  cairo_rectangle (cr, x, y, width, height);
+  cairo_fill (cr);
+  x_end_cr_clip (f);
+}
+
+static void
+x_draw_horizontal_wave (struct frame *f, GC gc, int x, int y,
+			int width, int height, int wave_length)
+{
+  cairo_t *cr;
+  double dx = wave_length, dy = height - 1;
+  int xoffset, n;
+
+  cr = x_begin_cr_clip (f, gc);
+  x_set_cr_source_with_gc_foreground (f, gc);
+  cairo_rectangle (cr, x, y, width, height);
+  cairo_clip (cr);
+
+  if (x >= 0)
+    {
+      xoffset = x % (wave_length * 2);
+      if (xoffset == 0)
+	xoffset = wave_length * 2;
+    }
+  else
+    xoffset = x % (wave_length * 2) + wave_length * 2;
+  n = (width + xoffset) / wave_length + 1;
+  if (xoffset > wave_length)
+    {
+      xoffset -= wave_length;
+      --n;
+      y += height - 1;
+      dy = -dy;
+    }
+
+  cairo_move_to (cr, x - xoffset + 0.5, y + 0.5);
+  while (--n >= 0)
+    {
+      cairo_rel_line_to (cr, dx, dy);
+      dy = -dy;
+    }
+  cairo_set_line_width (cr, 1);
+  cairo_stroke (cr);
+  x_end_cr_clip (f);
+}
+#endif
 
 
 /* Return the struct x_display_info corresponding to DPY.  */
@@ -452,9 +1002,42 @@ x_set_frame_alpha (struct frame *f)
 static void
 x_update_begin (struct frame *f)
 {
-  /* Nothing to do.  */
-}
+#ifdef USE_CAIRO
+  if (! NILP (tip_frame) && XFRAME (tip_frame) == f
+      && ! FRAME_VISIBLE_P (f))
+    return;
 
+  if (! FRAME_CR_SURFACE (f))
+    {
+      int width, height;
+#ifdef USE_GTK
+      if (FRAME_GTK_WIDGET (f))
+        {
+          GdkWindow *w = gtk_widget_get_window (FRAME_GTK_WIDGET (f));
+          width = gdk_window_get_width (w);
+          height = gdk_window_get_height (w);
+        }
+      else
+#endif
+        {
+          width = FRAME_PIXEL_WIDTH (f);
+          height = FRAME_PIXEL_HEIGHT (f);
+          if (! FRAME_EXTERNAL_TOOL_BAR (f))
+            height += FRAME_TOOL_BAR_HEIGHT (f);
+          if (! FRAME_EXTERNAL_MENU_BAR (f))
+            height += FRAME_MENU_BAR_HEIGHT (f);
+        }
+
+      if (width > 0 && height > 0)
+        {
+          block_input();
+          FRAME_CR_SURFACE (f) = cairo_image_surface_create
+            (CAIRO_FORMAT_ARGB32, width, height);
+          unblock_input();
+        }
+    }
+#endif /* USE_CAIRO */
+}
 
 /* Start update of window W.  */
 
@@ -496,8 +1079,12 @@ x_draw_vertical_window_border (struct window *w, int x, int y0, int y1)
     XSetForeground (FRAME_X_DISPLAY (f), f->output_data.x->normal_gc,
 		    face->foreground);
 
+#ifdef USE_CAIRO
+  x_fill_rectangle (f, f->output_data.x->normal_gc, x, y0, 1, y1 - y0);
+#else
   XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 	     f->output_data.x->normal_gc, x, y0, x, y1);
+#endif
 }
 
 /* Draw a window divider from (x0,y0) to (x1,y1)  */
@@ -517,39 +1104,38 @@ x_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
 			      ? face_last->foreground
 			      : FRAME_FOREGROUND_PIXEL (f));
   Display *display = FRAME_X_DISPLAY (f);
-  Window window = FRAME_X_WINDOW (f);
 
   if (y1 - y0 > x1 - x0 && x1 - x0 > 2)
     /* Vertical.  */
     {
       XSetForeground (display, f->output_data.x->normal_gc, color_first);
-      XFillRectangle (display, window, f->output_data.x->normal_gc,
-		      x0, y0, 1, y1 - y0);
+      x_fill_rectangle (f, f->output_data.x->normal_gc,
+			x0, y0, 1, y1 - y0);
       XSetForeground (display, f->output_data.x->normal_gc, color);
-      XFillRectangle (display, window, f->output_data.x->normal_gc,
-		      x0 + 1, y0, x1 - x0 - 2, y1 - y0);
+      x_fill_rectangle (f, f->output_data.x->normal_gc,
+			x0 + 1, y0, x1 - x0 - 2, y1 - y0);
       XSetForeground (display, f->output_data.x->normal_gc, color_last);
-      XFillRectangle (display, window, f->output_data.x->normal_gc,
-		      x1 - 1, y0, 1, y1 - y0);
+      x_fill_rectangle (f, f->output_data.x->normal_gc,
+			x1 - 1, y0, 1, y1 - y0);
     }
   else if (x1 - x0 > y1 - y0 && y1 - y0 > 3)
     /* Horizontal.  */
     {
       XSetForeground (display, f->output_data.x->normal_gc, color_first);
-      XFillRectangle (display, window, f->output_data.x->normal_gc,
-		      x0, y0, x1 - x0, 1);
+      x_fill_rectangle (f, f->output_data.x->normal_gc,
+			x0, y0, x1 - x0, 1);
       XSetForeground (display, f->output_data.x->normal_gc, color);
-      XFillRectangle (display, window, f->output_data.x->normal_gc,
-		      x0, y0 + 1, x1 - x0, y1 - y0 - 2);
+      x_fill_rectangle (f, f->output_data.x->normal_gc,
+			x0, y0 + 1, x1 - x0, y1 - y0 - 2);
       XSetForeground (display, f->output_data.x->normal_gc, color_last);
-      XFillRectangle (display, window, f->output_data.x->normal_gc,
-		      x0, y1 - 1, x1 - x0, 1);
+      x_fill_rectangle (f, f->output_data.x->normal_gc,
+			x0, y1 - 1, x1 - x0, 1);
     }
   else
     {
       XSetForeground (display, f->output_data.x->normal_gc, color);
-      XFillRectangle (display, window, f->output_data.x->normal_gc,
-		      x0, y0, x1 - x0, y1 - y0);
+      x_fill_rectangle (f, f->output_data.x->normal_gc,
+			x0, y0, x1 - x0, y1 - y0);
     }
 }
 
@@ -612,6 +1198,43 @@ x_update_end (struct frame *f)
   /* Mouse highlight may be displayed again.  */
   MOUSE_HL_INFO (f)->mouse_face_defer = false;
 
+#ifdef USE_CAIRO
+  if (FRAME_CR_SURFACE (f))
+    {
+      cairo_t *cr = 0;
+      block_input();
+#if defined (USE_GTK) && defined (HAVE_GTK3)
+      if (FRAME_GTK_WIDGET (f))
+        {
+          GdkWindow *w = gtk_widget_get_window (FRAME_GTK_WIDGET (f));
+          cr = gdk_cairo_create (w);
+        }
+      else
+#endif
+        {
+          cairo_surface_t *surface;
+          int width = FRAME_PIXEL_WIDTH (f);
+          int height = FRAME_PIXEL_HEIGHT (f);
+          if (! FRAME_EXTERNAL_TOOL_BAR (f))
+            height += FRAME_TOOL_BAR_HEIGHT (f);
+          if (! FRAME_EXTERNAL_MENU_BAR (f))
+            height += FRAME_MENU_BAR_HEIGHT (f);
+          surface = cairo_xlib_surface_create (FRAME_X_DISPLAY (f),
+                                               FRAME_X_WINDOW (f),
+                                               FRAME_DISPLAY_INFO (f)->visual,
+                                               width,
+                                               height);
+          cr = cairo_create (surface);
+          cairo_surface_destroy (surface);
+        }
+
+      cairo_set_source_surface (cr, FRAME_CR_SURFACE (f), 0, 0);
+      cairo_paint (cr);
+      cairo_destroy (cr);
+      unblock_input ();
+    }
+#endif /* USE_CAIRO */
+
 #ifndef XFlush
   block_input ();
   XFlush (FRAME_X_DISPLAY (f));
@@ -638,18 +1261,16 @@ x_clear_under_internal_border (struct frame *f)
 {
   if (FRAME_INTERNAL_BORDER_WIDTH (f) > 0)
     {
-      Display *display = FRAME_X_DISPLAY (f);
-      Window window = FRAME_X_WINDOW (f);
       int border = FRAME_INTERNAL_BORDER_WIDTH (f);
       int width = FRAME_PIXEL_WIDTH (f);
       int height = FRAME_PIXEL_HEIGHT (f);
       int margin = FRAME_TOP_MARGIN_HEIGHT (f);
 
       block_input ();
-      x_clear_area (display, window, 0, 0, border, height);
-      x_clear_area (display, window, 0, margin, width, border);
-      x_clear_area (display, window, width - border, 0, border, height);
-      x_clear_area (display, window, 0, height - border, width, border);
+      x_clear_area (f, 0, 0, border, height);
+      x_clear_area (f, 0, margin, width, border);
+      x_clear_area (f, width - border, 0, border, height);
+      x_clear_area (f, 0, height - border, width, border);
       unblock_input ();
     }
 }
@@ -691,11 +1312,8 @@ x_after_update_window_line (struct window *w, struct glyph_row *desired_row)
 	int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
 
 	block_input ();
-	x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		      0, y, width, height);
-	x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		      FRAME_PIXEL_WIDTH (f) - width,
-		      y, width, height);
+	x_clear_area (f, 0, y, width, height);
+	x_clear_area (f, FRAME_PIXEL_WIDTH (f) - width, y, width, height);
 	unblock_input ();
       }
   }
@@ -725,13 +1343,29 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fring
       else
 	XSetForeground (display, face->gc, face->background);
 
-      XFillRectangle (display, window, face->gc,
-		      p->bx, p->by, p->nx, p->ny);
+      x_fill_rectangle (f, face->gc, p->bx, p->by, p->nx, p->ny);
 
       if (!face->stipple)
 	XSetForeground (display, face->gc, face->foreground);
     }
 
+#ifdef USE_CAIRO
+  if (p->which && p->which < max_fringe_bmp)
+    {
+      XGCValues gcv;
+
+      XGetGCValues (display, gc, GCForeground | GCBackground, &gcv);
+      XSetForeground (display, gc, (p->cursor_p
+				    ? (p->overlay_p ? face->background
+				       : f->output_data.x->cursor_pixel)
+				    : face->foreground));
+      XSetBackground (display, gc, face->background);
+      x_cr_draw_image (f, gc, fringe_bmp[p->which], 0, p->dh,
+		       p->wd, p->h, p->x, p->y, p->overlay_p);
+      XSetForeground (display, gc, gcv.foreground);
+      XSetBackground (display, gc, gcv.background);
+    }
+#else  /* not USE_CAIRO */
   if (p->which)
     {
       char *bits;
@@ -776,8 +1410,9 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fring
 	  XFreePixmap (display, clipmask);
 	}
     }
+#endif  /* not USE_CAIRO */
 
-  XSetClipMask (display, gc, None);
+  x_reset_clip_rectangles (f, gc);
 }
 
 /***********************************************************************
@@ -985,7 +1620,7 @@ x_set_glyph_string_clipping (struct glyph_string *s)
   int n = get_glyph_string_clip_rects (s, r, 2);
 
   if (n > 0)
-    XSetClipRectangles (s->display, s->gc, 0, 0, r, n, Unsorted);
+    x_set_clip_rectangles (s->f, s->gc, r, n);
   s->num_clips = n;
 }
 
@@ -1005,7 +1640,7 @@ x_set_glyph_string_clipping_exactly (struct glyph_string *src, struct glyph_stri
   r.height = src->height;
   dst->clip[0] = r;
   dst->num_clips = 1;
-  XSetClipRectangles (dst->display, dst->gc, 0, 0, &r, 1, Unsorted);
+  x_set_clip_rectangles (dst->f, dst->gc, &r, 1);
 }
 
 
@@ -1057,7 +1692,7 @@ x_clear_glyph_string_rect (struct glyph_string *s, int x, int y, int w, int h)
   XGCValues xgcv;
   XGetGCValues (s->display, s->gc, GCForeground | GCBackground, &xgcv);
   XSetForeground (s->display, s->gc, xgcv.background);
-  XFillRectangle (s->display, s->window, s->gc, x, y, w, h);
+  x_fill_rectangle (s->f, s->gc, x, y, w, h);
   XSetForeground (s->display, s->gc, xgcv.foreground);
 }
 
@@ -1081,7 +1716,7 @@ x_draw_glyph_string_background (struct glyph_string *s, bool force_p)
 	{
 	  /* Fill background with a stipple pattern.  */
 	  XSetFillStyle (s->display, s->gc, FillOpaqueStippled);
-	  XFillRectangle (s->display, s->window, s->gc, s->x,
+	  x_fill_rectangle (s->f, s->gc, s->x,
 			  s->y + box_line_width,
 			  s->background_width,
 			  s->height - 2 * box_line_width);
@@ -1089,6 +1724,11 @@ x_draw_glyph_string_background (struct glyph_string *s, bool force_p)
 	  s->background_filled_p = true;
 	}
       else if (FONT_HEIGHT (s->font) < s->height - 2 * box_line_width
+	       /* When xdisp.c ignores FONT_HEIGHT, we cannot trust
+		  font dimensions, since the actual glyphs might be
+		  much smaller.  So in that case we always clear the
+		  rectangle with background color.  */
+	       || FONT_TOO_HIGH (s->font)
 	       || s->font_not_found_p
 	       || s->extends_to_end_of_line_p
 	       || force_p)
@@ -1124,7 +1764,7 @@ x_draw_glyph_string_foreground (struct glyph_string *s)
       for (i = 0; i < s->nchars; ++i)
 	{
 	  struct glyph *g = s->first_glyph + i;
-	  XDrawRectangle (s->display, s->window,
+	  x_draw_rectangle (s->f,
 			  s->gc, x, s->y, g->pixel_width - 1,
 			  s->height - 1);
 	  x += g->pixel_width;
@@ -1176,7 +1816,7 @@ x_draw_composite_glyph_string_foreground (struct glyph_string *s)
   if (s->font_not_found_p)
     {
       if (s->cmp_from == 0)
-	XDrawRectangle (s->display, s->window, s->gc, x, s->y,
+	x_draw_rectangle (s->f, s->gc, x, s->y,
 			s->width - 1, s->height - 1);
     }
   else if (! s->first_glyph->u.cmp.automatic)
@@ -1285,7 +1925,7 @@ x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 	{
 	  sprintf (buf, "%0*X",
 		   glyph->u.glyphless.ch < 0x10000 ? 4 : 6,
-		   glyph->u.glyphless.ch);
+		   glyph->u.glyphless.ch + 0u);
 	  str = buf;
 	}
 
@@ -1310,7 +1950,7 @@ x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 				 false);
 	}
       if (glyph->u.glyphless.method != GLYPHLESS_DISPLAY_THIN_SPACE)
-	XDrawRectangle (s->display, s->window, s->gc,
+	x_draw_rectangle (s->f, s->gc,
 			x, s->ybase - glyph->ascent,
 			glyph->pixel_width - 1,
 			glyph->ascent + glyph->descent - 1);
@@ -1378,9 +2018,9 @@ x_alloc_lighter_color_for_widget (Widget widget, Display *display, Colormap cmap
 
 static XtConvertArgRec cvt_string_to_pixel_args[] =
   {
-    {XtWidgetBaseOffset, (XtPointer) XtOffset (Widget, core.screen),
+    {XtWidgetBaseOffset, (XtPointer) offsetof (WidgetRec, core.screen),
      sizeof (Screen *)},
-    {XtWidgetBaseOffset, (XtPointer) XtOffset (Widget, core.colormap),
+    {XtWidgetBaseOffset, (XtPointer) offsetof (WidgetRec, core.colormap),
      sizeof (Colormap)}
   };
 
@@ -1456,7 +2096,7 @@ cvt_string_to_pixel (Display *dpy, XrmValue *args, Cardinal *nargs,
       params[0] = color_name;
       XtAppWarningMsg (XtDisplayToApplicationContext (dpy),
 		       "badValue", "cvt_string_to_pixel",
-		       "XtToolkitError", "Invalid color `%s'",
+		       "XtToolkitError", "Invalid color '%s'",
 		       params, &nparams);
       return False;
     }
@@ -1882,6 +2522,79 @@ x_draw_relief_rect (struct frame *f,
 		    bool left_p, bool right_p,
 		    XRectangle *clip_rect)
 {
+#ifdef USE_CAIRO
+  GC top_left_gc, bottom_right_gc;
+  int corners = 0;
+
+  if (raised_p)
+    {
+      top_left_gc = f->output_data.x->white_relief.gc;
+      bottom_right_gc = f->output_data.x->black_relief.gc;
+    }
+  else
+    {
+      top_left_gc = f->output_data.x->black_relief.gc;
+      bottom_right_gc = f->output_data.x->white_relief.gc;
+    }
+
+  x_set_clip_rectangles (f, top_left_gc, clip_rect, 1);
+  x_set_clip_rectangles (f, bottom_right_gc, clip_rect, 1);
+
+  if (left_p)
+    {
+      x_fill_rectangle (f, top_left_gc, left_x, top_y,
+			width, bottom_y + 1 - top_y);
+      if (top_p)
+	corners |= 1 << CORNER_TOP_LEFT;
+      if (bot_p)
+	corners |= 1 << CORNER_BOTTOM_LEFT;
+    }
+  if (right_p)
+    {
+      x_fill_rectangle (f, bottom_right_gc, right_x + 1 - width, top_y,
+			width, bottom_y + 1 - top_y);
+      if (top_p)
+	corners |= 1 << CORNER_TOP_RIGHT;
+      if (bot_p)
+	corners |= 1 << CORNER_BOTTOM_RIGHT;
+    }
+  if (top_p)
+    {
+      if (!right_p)
+	x_fill_rectangle (f, top_left_gc, left_x, top_y,
+			  right_x + 1 - left_x, width);
+      else
+	x_fill_trapezoid_for_relief (f, top_left_gc, left_x, top_y,
+				     right_x + 1 - left_x, width, 1);
+    }
+  if (bot_p)
+    {
+      if (!left_p)
+	x_fill_rectangle (f, bottom_right_gc, left_x, bottom_y + 1 - width,
+			  right_x + 1 - left_x, width);
+      else
+	x_fill_trapezoid_for_relief (f, bottom_right_gc,
+				     left_x, bottom_y + 1 - width,
+				     right_x + 1 - left_x, width, 0);
+    }
+  if (left_p && width != 1)
+    x_fill_rectangle (f, bottom_right_gc, left_x, top_y,
+		      1, bottom_y + 1 - top_y);
+  if (top_p && width != 1)
+    x_fill_rectangle (f, bottom_right_gc, left_x, top_y,
+		      right_x + 1 - left_x, 1);
+  if (corners)
+    {
+      XSetBackground (FRAME_X_DISPLAY (f), top_left_gc,
+		      FRAME_BACKGROUND_PIXEL (f));
+      x_erase_corners_for_relief (f, top_left_gc, left_x, top_y,
+				  right_x - left_x + 1, bottom_y - top_y + 1,
+				  6, 1, corners);
+    }
+
+  x_reset_clip_rectangles (f, top_left_gc);
+  x_reset_clip_rectangles (f, bottom_right_gc);
+#else
   Display *dpy = FRAME_X_DISPLAY (f);
   Window window = FRAME_X_WINDOW (f);
   int i;
@@ -1970,7 +2683,9 @@ x_draw_relief_rect (struct frame *f,
 		   right_x - i, bottom_y + 1 - (i + 1) * bot_p);
     }
 
-  XSetClipMask (dpy, gc, None);
+  x_reset_clip_rectangles (f, gc);
+
+#endif
 }
 
 
@@ -1990,28 +2705,28 @@ x_draw_box_rect (struct glyph_string *s,
 
   XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
   XSetForeground (s->display, s->gc, s->face->box_color);
-  XSetClipRectangles (s->display, s->gc, 0, 0, clip_rect, 1, Unsorted);
+  x_set_clip_rectangles (s->f, s->gc, clip_rect, 1);
 
   /* Top.  */
-  XFillRectangle (s->display, s->window, s->gc,
+  x_fill_rectangle (s->f, s->gc,
 		  left_x, top_y, right_x - left_x + 1, width);
 
   /* Left.  */
   if (left_p)
-    XFillRectangle (s->display, s->window, s->gc,
+    x_fill_rectangle (s->f, s->gc,
 		    left_x, top_y, width, bottom_y - top_y + 1);
 
   /* Bottom.  */
-  XFillRectangle (s->display, s->window, s->gc,
+  x_fill_rectangle (s->f, s->gc,
 		  left_x, bottom_y - width + 1, right_x - left_x + 1, width);
 
   /* Right.  */
   if (right_p)
-    XFillRectangle (s->display, s->window, s->gc,
+    x_fill_rectangle (s->f, s->gc,
 		    right_x - width + 1, top_y, width, bottom_y - top_y + 1);
 
   XSetForeground (s->display, s->gc, xgcv.foreground);
-  XSetClipMask (s->display, s->gc, None);
+  x_reset_clip_rectangles (s->f, s->gc);
 }
 
 
@@ -2142,7 +2857,7 @@ x_draw_image_foreground (struct glyph_string *s)
 	  if (s->hl == DRAW_CURSOR)
 	    {
 	      int relief = eabs (s->img->relief);
-	      XDrawRectangle (s->display, s->window, s->gc,
+	      x_draw_rectangle (s->f, s->gc,
 			      x - relief, y - relief,
 			      s->slice.width + relief*2 - 1,
 			      s->slice.height + relief*2 - 1);
@@ -2151,7 +2866,7 @@ x_draw_image_foreground (struct glyph_string *s)
     }
   else
     /* Draw a rectangle if image could not be loaded.  */
-    XDrawRectangle (s->display, s->window, s->gc, x, y,
+    x_draw_rectangle (s->f, s->gc, x, y,
 		    s->slice.width - 1, s->slice.height - 1);
 }
 
@@ -2290,7 +3005,7 @@ x_draw_image_foreground_1 (struct glyph_string *s, Pixmap pixmap)
 	  if (s->hl == DRAW_CURSOR)
 	    {
 	      int r = eabs (s->img->relief);
-	      XDrawRectangle (s->display, s->window, s->gc, x - r, y - r,
+	      x_draw_rectangle (s->f, s->gc, x - r, y - r,
 			      s->slice.width + r*2 - 1,
 			      s->slice.height + r*2 - 1);
 	    }
@@ -2298,7 +3013,7 @@ x_draw_image_foreground_1 (struct glyph_string *s, Pixmap pixmap)
     }
   else
     /* Draw a rectangle if image could not be loaded.  */
-    XDrawRectangle (s->display, pixmap, s->gc, x, y,
+    x_draw_rectangle (s->f, s->gc, x, y,
 		    s->slice.width - 1, s->slice.height - 1);
 }
 
@@ -2313,7 +3028,7 @@ x_draw_glyph_string_bg_rect (struct glyph_string *s, int x, int y, int w, int h)
     {
       /* Fill background with a stipple pattern.  */
       XSetFillStyle (s->display, s->gc, FillOpaqueStippled);
-      XFillRectangle (s->display, s->window, s->gc, x, y, w, h);
+      x_fill_rectangle (s->f, s->gc, x, y, w, h);
       XSetFillStyle (s->display, s->gc, FillSolid);
     }
   else
@@ -2422,7 +3137,25 @@ x_draw_image_glyph_string (struct glyph_string *s)
     }
 
   /* Draw the foreground.  */
-  if (pixmap != None)
+#ifdef USE_CAIRO
+  if (s->img->cr_data)
+    {
+      cairo_t *cr = x_begin_cr_clip (s->f, s->gc);
+
+      int x = s->x + s->img->hmargin;
+      int y = s->y + s->img->vmargin;
+      int width = s->background_width;
+
+      cairo_set_source_surface (cr, s->img->cr_data,
+                                x - s->slice.x,
+                                y - s->slice.y);
+      cairo_rectangle (cr, x, y, width, height);
+      cairo_fill (cr);
+      x_end_cr_clip (s->f);
+    }
+  else
+#endif
+    if (pixmap != None)
     {
       x_draw_image_foreground_1 (s, pixmap);
       x_set_glyph_string_clipping (s);
@@ -2505,13 +3238,13 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
 	    gc = s->face->gc;
 
 	  get_glyph_string_clip_rect (s, &r);
-	  XSetClipRectangles (s->display, gc, 0, 0, &r, 1, Unsorted);
+	  x_set_clip_rectangles (s->f, gc, &r, 1);
 
 	  if (s->face->stipple)
 	    {
 	      /* Fill background with a stipple pattern.  */
 	      XSetFillStyle (s->display, gc, FillOpaqueStippled);
-	      XFillRectangle (s->display, s->window, gc, x, y, w, h);
+	      x_fill_rectangle (s->f, gc, x, y, w, h);
 	      XSetFillStyle (s->display, gc, FillSolid);
 	    }
 	  else
@@ -2519,11 +3252,11 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
 	      XGCValues xgcv;
 	      XGetGCValues (s->display, gc, GCForeground | GCBackground, &xgcv);
 	      XSetForeground (s->display, gc, xgcv.background);
-	      XFillRectangle (s->display, s->window, gc, x, y, w, h);
+	      x_fill_rectangle (s->f, gc, x, y, w, h);
 	      XSetForeground (s->display, gc, xgcv.foreground);
 	    }
 
-	  XSetClipMask (s->display, gc, None);
+	  x_reset_clip_rectangles (s->f, gc);
 	}
     }
   else if (!s->background_filled_p)
@@ -2560,6 +3293,10 @@ static void
 x_draw_underwave (struct glyph_string *s)
 {
   int wave_height = 3, wave_length = 2;
+#ifdef USE_CAIRO
+  x_draw_horizontal_wave (s->f, s->gc, s->x, s->ybase - wave_height + 3,
+			  s->width, wave_height, wave_length);
+#else  /* not USE_CAIRO */
   int dx, dy, x0, y0, width, x1, y1, x2, y2, xmax;
   bool odd;
   XRectangle wave_clip, string_clip, final_clip;
@@ -2609,6 +3346,7 @@ x_draw_underwave (struct glyph_string *s)
 
   /* Restore previous clipping rectangle(s) */
   XSetClipRectangles (s->display, s->gc, 0, 0, s->clip, s->num_clips, Unsorted);
+#endif	/* not USE_CAIRO */
 }
 
 
@@ -2778,14 +3516,14 @@ x_draw_glyph_string (struct glyph_string *s)
               s->underline_position = position;
               y = s->ybase + position;
               if (s->face->underline_defaulted_p)
-                XFillRectangle (s->display, s->window, s->gc,
+                x_fill_rectangle (s->f, s->gc,
                                 s->x, y, s->width, thickness);
               else
                 {
                   XGCValues xgcv;
                   XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
                   XSetForeground (s->display, s->gc, s->face->underline_color);
-                  XFillRectangle (s->display, s->window, s->gc,
+                  x_fill_rectangle (s->f, s->gc,
                                   s->x, y, s->width, thickness);
                   XSetForeground (s->display, s->gc, xgcv.foreground);
                 }
@@ -2797,14 +3535,14 @@ x_draw_glyph_string (struct glyph_string *s)
 	  unsigned long dy = 0, h = 1;
 
 	  if (s->face->overline_color_defaulted_p)
-	    XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
+	    x_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
 			    s->width, h);
 	  else
 	    {
 	      XGCValues xgcv;
 	      XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
 	      XSetForeground (s->display, s->gc, s->face->overline_color);
-	      XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
+	      x_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
 			      s->width, h);
 	      XSetForeground (s->display, s->gc, xgcv.foreground);
 	    }
@@ -2817,14 +3555,14 @@ x_draw_glyph_string (struct glyph_string *s)
 	  unsigned long dy = (s->height - h) / 2;
 
 	  if (s->face->strike_through_color_defaulted_p)
-	    XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
+	    x_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
 			    s->width, h);
 	  else
 	    {
 	      XGCValues xgcv;
 	      XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
 	      XSetForeground (s->display, s->gc, s->face->strike_through_color);
-	      XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
+	      x_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
 			      s->width, h);
 	      XSetForeground (s->display, s->gc, xgcv.foreground);
 	    }
@@ -2853,7 +3591,7 @@ x_draw_glyph_string (struct glyph_string *s)
 		  x_draw_glyph_string_foreground (prev);
 		else
 		  x_draw_composite_glyph_string_foreground (prev);
-		XSetClipMask (prev->display, prev->gc, None);
+		x_reset_clip_rectangles (prev->f, prev->gc);
 		prev->hl = save;
 		prev->num_clips = 0;
 	      }
@@ -2878,7 +3616,7 @@ x_draw_glyph_string (struct glyph_string *s)
 		  x_draw_glyph_string_foreground (next);
 		else
 		  x_draw_composite_glyph_string_foreground (next);
-		XSetClipMask (next->display, next->gc, None);
+		x_reset_clip_rectangles (next->f, next->gc);
 		next->hl = save;
 		next->num_clips = 0;
 		next->clip_head = s->next;
@@ -2887,7 +3625,7 @@ x_draw_glyph_string (struct glyph_string *s)
     }
 
   /* Reset clipping.  */
-  XSetClipMask (s->display, s->gc, None);
+  x_reset_clip_rectangles (s->f, s->gc);
   s->num_clips = 0;
 }
 
@@ -2896,6 +3634,9 @@ x_draw_glyph_string (struct glyph_string *s)
 static void
 x_shift_glyphs_for_insert (struct frame *f, int x, int y, int width, int height, int shift_by)
 {
+/* Never called on a GUI frame, see
+   http://lists.gnu.org/archive/html/emacs-devel/2015-05/msg00456.html
+*/
   XCopyArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), FRAME_X_WINDOW (f),
 	     f->output_data.x->normal_gc,
 	     x, y, width, height,
@@ -2915,11 +3656,32 @@ x_delete_glyphs (struct frame *f, register int n)
 /* Like XClearArea, but check that WIDTH and HEIGHT are reasonable.
    If they are <= 0, this is probably an error.  */
 
-void
-x_clear_area (Display *dpy, Window window, int x, int y, int width, int height)
+static void
+x_clear_area1 (Display *dpy, Window window,
+               int x, int y, int width, int height, int exposures)
 {
   eassert (width > 0 && height > 0);
-  XClearArea (dpy, window, x, y, width, height, False);
+  XClearArea (dpy, window, x, y, width, height, exposures);
+}
+
+
+void
+x_clear_area (struct frame *f, int x, int y, int width, int height)
+{
+#ifdef USE_CAIRO
+  cairo_t *cr;
+
+  eassert (width > 0 && height > 0);
+
+  cr = x_begin_cr_clip (f, NULL);
+  x_set_cr_source_with_gc_background (f, f->output_data.x->normal_gc);
+  cairo_rectangle (cr, x, y, width, height);
+  cairo_fill (cr);
+  x_end_cr_clip (f);
+#else
+  x_clear_area1 (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		 x, y, width, height, False);
+#endif
 }
 
 
@@ -2934,7 +3696,7 @@ x_clear_frame (struct frame *f)
 
   block_input ();
 
-  XClearWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
+  x_clear_window (f);
 
   /* We have to clear the scroll bars.  If we have changed colors or
      something like that, then they should be notified.  */
@@ -3240,12 +4002,16 @@ x_scroll_run (struct window *w, struct run *run)
   /* Cursor off.  Will be switched on again in x_update_window_end.  */
   x_clear_cursor (w);
 
+#ifdef USE_CAIRO
+  SET_FRAME_GARBAGED (f);
+#else
   XCopyArea (FRAME_X_DISPLAY (f),
 	     FRAME_X_WINDOW (f), FRAME_X_WINDOW (f),
 	     f->output_data.x->normal_gc,
 	     x, from_y,
 	     width, height,
 	     x, to_y);
+#endif
 
   unblock_input ();
 }
@@ -4154,7 +4920,7 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 	    dpyinfo->last_mouse_glyph_frame = f1;
 
 	    *bar_window = Qnil;
-	    *part = scroll_bar_above_handle;
+	    *part = 0;
 	    *fp = f1;
 	    XSETINT (*x, win_x);
 	    XSETINT (*y, win_y);
@@ -4248,7 +5014,7 @@ x_window_to_menu_bar (Window window)
 #ifdef USE_TOOLKIT_SCROLL_BARS
 
 static void x_send_scroll_bar_event (Lisp_Object, enum scroll_bar_part,
-				     int, int, bool);
+                                     int, int, bool);
 
 /* Lisp window being scrolled.  Set when starting to interact with
    a toolkit scroll bar, reset to nil when ending the interaction.  */
@@ -5505,8 +6271,7 @@ x_scroll_bar_create (struct window *w, int top, int left,
        for the case that a window has been split horizontally.  In
        this case, no clear_frame is generated to reduce flickering.  */
     if (width > 0 && window_box_height (w) > 0)
-      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		    left, top, width, window_box_height (w));
+      x_clear_area (f, left, top, width, window_box_height (w));
 
     window = XCreateWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			    /* Position and size of scroll bar.  */
@@ -5638,10 +6403,10 @@ x_scroll_bar_set_handle (struct scroll_bar *bar, int start, int end,
     /* Draw the empty space above the handle.  Note that we can't clear
        zero-height areas; that means "clear to end of window."  */
     if ((inside_width > 0) && (start > 0))
-      x_clear_area (FRAME_X_DISPLAY (f), w,
+      x_clear_area1 (FRAME_X_DISPLAY (f), w,
 		    VERTICAL_SCROLL_BAR_LEFT_BORDER,
 		    VERTICAL_SCROLL_BAR_TOP_BORDER,
-		    inside_width, start);
+		    inside_width, start, False);
 
     /* Change to proper foreground color if one is specified.  */
     if (f->output_data.x->scroll_bar_foreground_pixel != -1)
@@ -5663,10 +6428,10 @@ x_scroll_bar_set_handle (struct scroll_bar *bar, int start, int end,
     /* Draw the empty space below the handle.  Note that we can't
        clear zero-height areas; that means "clear to end of window." */
     if ((inside_width > 0) && (end < inside_height))
-      x_clear_area (FRAME_X_DISPLAY (f), w,
+      x_clear_area1 (FRAME_X_DISPLAY (f), w,
 		    VERTICAL_SCROLL_BAR_LEFT_BORDER,
 		    VERTICAL_SCROLL_BAR_TOP_BORDER + end,
-		    inside_width, inside_height - end);
+		    inside_width, inside_height - end, False);
   }
 
   unblock_input ();
@@ -5730,8 +6495,7 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
       if (width > 0 && height > 0)
 	{
 	  block_input ();
-	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			left, top, width, height);
+          x_clear_area (f, left, top, width, height);
 	  unblock_input ();
 	}
 
@@ -5763,8 +6527,7 @@ XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int positio
 	  /* Since toolkit scroll bars are smaller than the space reserved
 	     for them on the frame, we have to clear "under" them.  */
 	  if (width > 0 && height > 0)
-	    x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			  left, top, width, height);
+	    x_clear_area (f, left, top, width, height);
 #ifdef USE_GTK
           xg_update_scrollbar_pos (f, bar->x_window, top,
 				   left, width, max (height, 1));
@@ -5850,8 +6613,7 @@ XTset_horizontal_scroll_bar (struct window *w, int portion, int whole, int posit
 
 	  /* Clear also part between window_width and
 	     WINDOW_PIXEL_WIDTH.  */
-	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			left, top, pixel_width, height);
+	  x_clear_area (f, left, top, pixel_width, height);
 	  unblock_input ();
 	}
 
@@ -5882,7 +6644,7 @@ XTset_horizontal_scroll_bar (struct window *w, int portion, int whole, int posit
 	  /* Since toolkit scroll bars are smaller than the space reserved
 	     for them on the frame, we have to clear "under" them.  */
 	  if (width > 0 && height > 0)
-	    x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+	    x_clear_area (f,
 			  WINDOW_LEFT_EDGE_X (w), top,
 			  pixel_width - WINDOW_RIGHT_DIVIDER_WIDTH (w), height);
 #ifdef USE_GTK
@@ -5903,8 +6665,7 @@ XTset_horizontal_scroll_bar (struct window *w, int portion, int whole, int posit
 	int area_height = WINDOW_CONFIG_SCROLL_BAR_HEIGHT (w);
 	int rest = area_height - height;
 	if (rest > 0 && width > 0)
-	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			left, top, width, rest);
+	  x_clear_area (f, left, top, width, rest);
       }
 
       /* Move/size the scroll bar window.  */
@@ -6597,10 +7358,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		   const XEvent *event,
 		   int *finish, struct input_event *hold_quit)
 {
-  union {
-    struct input_event ie;
-    struct selection_input_event sie;
-  } inev;
+  union buffered_input_event inev;
   int count = 0;
   int do_help = 0;
   ptrdiff_t nbytes = 0;
@@ -6828,7 +7586,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       {
         const XSelectionClearEvent *eventp = &event->xselectionclear;
 
-        inev.ie.kind = SELECTION_CLEAR_EVENT;
+        inev.sie.kind = SELECTION_CLEAR_EVENT;
         SELECTION_EVENT_DPYINFO (&inev.sie) = dpyinfo;
         SELECTION_EVENT_SELECTION (&inev.sie) = eventp->selection;
         SELECTION_EVENT_TIME (&inev.sie) = eventp->time;
@@ -6844,7 +7602,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       {
 	const XSelectionRequestEvent *eventp = &event->xselectionrequest;
 
-	inev.ie.kind = SELECTION_REQUEST_EVENT;
+	inev.sie.kind = SELECTION_REQUEST_EVENT;
 	SELECTION_EVENT_DPYINFO (&inev.sie) = dpyinfo;
 	SELECTION_EVENT_REQUESTOR (&inev.sie) = eventp->requestor;
 	SELECTION_EVENT_SELECTION (&inev.sie) = eventp->selection;
@@ -6915,8 +7673,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #ifdef USE_GTK
 	      /* This seems to be needed for GTK 2.6 and later, see
 		 http://debbugs.gnu.org/cgi/bugreport.cgi?bug=15398.  */
-	      x_clear_area (event->xexpose.display,
-			    event->xexpose.window,
+	      x_clear_area (f,
 			    event->xexpose.x, event->xexpose.y,
 			    event->xexpose.width, event->xexpose.height);
 #endif
@@ -7010,11 +7767,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       goto OTHER;
 
     case MapNotify:
-      if (event->xmap.window == tip_window)
-        /* The tooltip has been drawn already.  Avoid
-           the SET_FRAME_GARBAGED below.  */
-        goto OTHER;
-
       /* We use x_top_window_to_frame because map events can
          come for sub-windows and they don't mean that the
          frame is visible.  */
@@ -7061,17 +7813,18 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
       f = any;
 
-#if ! defined (USE_GTK)
       /* If mouse-highlight is an integer, input clears out
 	 mouse highlighting.  */
       if (!hlinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
+#if ! defined (USE_GTK)
 	  && (f == 0
-	      || !EQ (f->tool_bar_window, hlinfo->mouse_face_window)))
+	      || !EQ (f->tool_bar_window, hlinfo->mouse_face_window))
+#endif
+	  )
         {
           clear_mouse_face (hlinfo);
           hlinfo->mouse_face_hidden = true;
         }
-#endif
 
 #if defined USE_MOTIF && defined USE_TOOLKIT_SCROLL_BARS
       if (f == 0)
@@ -7360,7 +8113,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 				? ASCII_KEYSTROKE_EVENT
 				: MULTIBYTE_CHAR_KEYSTROKE_EVENT);
 		inev.ie.code = ch;
-		kbd_buffer_store_event_hold (&inev.ie, hold_quit);
+		kbd_buffer_store_buffered_event (&inev, hold_quit);
 	      }
 
 	    count += nchars;
@@ -7530,6 +8283,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
     case ConfigureNotify:
       f = x_top_window_to_frame (dpyinfo, event->xconfigure.window);
+#ifdef USE_CAIRO
+      if (f) x_cr_destroy_surface (f);
+#endif
 #ifdef USE_GTK
       if (!f
           && (f = any)
@@ -7537,12 +8293,27 @@ handle_one_xevent (struct x_display_info *dpyinfo,
         {
           xg_frame_resized (f, event->xconfigure.width,
                             event->xconfigure.height);
+#ifdef USE_CAIRO
+          x_cr_destroy_surface (f);
+#endif
           f = 0;
         }
 #endif
       if (f)
         {
 	  x_net_wm_state (f, event->xconfigure.window);
+
+#ifdef USE_X_TOOLKIT
+          /* Tip frames are pure X window, set size for them.  */
+          if (! NILP (tip_frame) && XFRAME (tip_frame) == f)
+            {
+              if (FRAME_PIXEL_HEIGHT (f) != event->xconfigure.height
+                  || FRAME_PIXEL_WIDTH (f) != event->xconfigure.width)
+                SET_FRAME_GARBAGED (f);
+              FRAME_PIXEL_HEIGHT (f) = event->xconfigure.height;
+              FRAME_PIXEL_WIDTH (f) = event->xconfigure.width;
+            }
+#endif
 
 #ifndef USE_X_TOOLKIT
 #ifndef USE_GTK
@@ -7759,7 +8530,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
  done:
   if (inev.ie.kind != NO_EVENT)
     {
-      kbd_buffer_store_event_hold (&inev.ie, hold_quit);
+      kbd_buffer_store_buffered_event (&inev, hold_quit);
       count++;
     }
 
@@ -7946,7 +8717,7 @@ x_clip_to_row (struct window *w, struct glyph_row *row,
   clip_rect.width = window_width;
   clip_rect.height = row->visible_height;
 
-  XSetClipRectangles (FRAME_X_DISPLAY (f), gc, 0, 0, &clip_rect, 1, Unsorted);
+  x_set_clip_rectangles (f, gc, &clip_rect, 1);
 }
 
 
@@ -7995,8 +8766,8 @@ x_draw_hollow_cursor (struct window *w, struct glyph_row *row)
     }
   /* Set clipping, draw the rectangle, and reset clipping again.  */
   x_clip_to_row (w, row, TEXT_AREA, gc);
-  XDrawRectangle (dpy, FRAME_X_WINDOW (f), gc, x, y, wd, h - 1);
-  XSetClipMask (dpy, gc, None);
+  x_draw_rectangle (f, gc, x, y, wd, h - 1);
+  x_reset_clip_rectangles (f, gc);
 }
 
 
@@ -8074,7 +8845,7 @@ x_draw_bar_cursor (struct window *w, struct glyph_row *row, int width, enum text
 	  if ((cursor_glyph->resolved_level & 1) != 0)
 	    x += cursor_glyph->pixel_width - width;
 
-	  XFillRectangle (dpy, window, gc, x,
+	  x_fill_rectangle (f, gc, x,
 			  WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
 			  width, row->height);
 	}
@@ -8094,13 +8865,13 @@ x_draw_bar_cursor (struct window *w, struct glyph_row *row, int width, enum text
 	  if ((cursor_glyph->resolved_level & 1) != 0
 	      && cursor_glyph->pixel_width > w->phys_cursor_width - 1)
 	    x += cursor_glyph->pixel_width - w->phys_cursor_width + 1;
-	  XFillRectangle (dpy, window, gc, x,
-			  WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y +
-						   row->height - width),
-			  w->phys_cursor_width - 1, width);
+	  x_fill_rectangle (f, gc, x,
+			    WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y +
+                                                     row->height - width),
+                            w->phys_cursor_width - 1, width);
 	}
 
-      XSetClipMask (dpy, gc, None);
+      x_reset_clip_rectangles (f, gc);
     }
 }
 
@@ -8122,7 +8893,7 @@ x_define_frame_cursor (struct frame *f, Cursor cursor)
 static void
 x_clear_frame_area (struct frame *f, int x, int y, int width, int height)
 {
-  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), x, y, width, height);
+  x_clear_area (f, x, y, width, height);
 #ifdef USE_GTK
   /* Must queue a redraw, because scroll bars might have been cleared.  */
   if (FRAME_GTK_WIDGET (f))
@@ -8449,7 +9220,7 @@ static char *error_msg;
    the text of an error message that lead to the connection loss.  */
 
 static void
-x_connection_closed (Display *dpy, const char *error_message)
+x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
 {
   struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
   Lisp_Object frame, tail;
@@ -8468,6 +9239,7 @@ x_connection_closed (Display *dpy, const char *error_message)
       dpyinfo->reference_count++;
       dpyinfo->terminal->reference_count++;
     }
+  if (ioerror) dpyinfo->display = 0;
 
   /* First delete frames whose mini-buffers are on frames
      that are on the dead display.  */
@@ -8605,7 +9377,7 @@ x_error_quitter (Display *display, XErrorEvent *event)
   XGetErrorText (display, event->error_code, buf, sizeof (buf));
   sprintf (buf1, "X protocol error: %s on protocol request %d",
 	   buf, event->request_code);
-  x_connection_closed (display, buf1);
+  x_connection_closed (display, buf1, false);
 }
 
 
@@ -8618,9 +9390,9 @@ x_io_error_quitter (Display *display)
 {
   char buf[256];
 
-  snprintf (buf, sizeof buf, "Connection lost to X server `%s'",
+  snprintf (buf, sizeof buf, "Connection lost to X server '%s'",
 	    DisplayString (display));
-  x_connection_closed (display, buf);
+  x_connection_closed (display, buf, true);
   return 0;
 }
 
@@ -8635,7 +9407,7 @@ Lisp_Object
 x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 {
   struct font *font = XFONT_OBJECT (font_object);
-  int unit;
+  int unit, font_ascent, font_descent;
 
   if (fontset < 0)
     fontset = fontset_from_font (font_object);
@@ -8648,7 +9420,8 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
   FRAME_FONT (f) = font;
   FRAME_BASELINE_OFFSET (f) = font->baseline_offset;
   FRAME_COLUMN_WIDTH (f) = font->average_width;
-  FRAME_LINE_HEIGHT (f) = FONT_HEIGHT (font);
+  get_font_ascent_descent (font, &font_ascent, &font_descent);
+  FRAME_LINE_HEIGHT (f) = font_ascent + font_descent;
 
 #ifndef USE_X_TOOLKIT
   FRAME_MENU_BAR_HEIGHT (f) = FRAME_MENU_BAR_LINES (f) * FRAME_LINE_HEIGHT (f);
@@ -9009,8 +9782,8 @@ x_set_offset (struct frame *f, register int xoff, register int yoff, int change_
    Specification/Extended Window Manager Hints at
    http://freedesktop.org/wiki/Specifications/wm-spec.  */
 
-static bool
-wm_supports (struct frame *f, Atom want_atom)
+bool
+x_wm_supports (struct frame *f, Atom want_atom)
 {
   Atom actual_type;
   unsigned long actual_size, bytes_remaining;
@@ -9203,7 +9976,7 @@ static bool
 do_ewmh_fullscreen (struct frame *f)
 {
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
-  bool have_net_atom = wm_supports (f, dpyinfo->Xatom_net_wm_state);
+  bool have_net_atom = x_wm_supports (f, dpyinfo->Xatom_net_wm_state);
   int cur;
   bool dummy;
 
@@ -9212,7 +9985,7 @@ do_ewmh_fullscreen (struct frame *f)
   /* Some window managers don't say they support _NET_WM_STATE, but they do say
      they support _NET_WM_STATE_FULLSCREEN.  Try that also.  */
   if (!have_net_atom)
-    have_net_atom = wm_supports (f, dpyinfo->Xatom_net_wm_state_fullscreen);
+    have_net_atom = x_wm_supports (f, dpyinfo->Xatom_net_wm_state_fullscreen);
 
   if (have_net_atom && cur != f->want_fullscreen)
     {
@@ -9382,6 +10155,8 @@ x_handle_net_wm_state (struct frame *f, const XPropertyEvent *event)
 static void
 x_check_fullscreen (struct frame *f)
 {
+  Lisp_Object lval = Qnil;
+
   if (do_ewmh_fullscreen (f))
     return;
 
@@ -9400,21 +10175,30 @@ x_check_fullscreen (struct frame *f)
       switch (f->want_fullscreen)
         {
           /* No difference between these two when there is no WM */
-        case FULLSCREEN_BOTH:
         case FULLSCREEN_MAXIMIZED:
+          lval = Qmaximized;
+          width = x_display_pixel_width (dpyinfo);
+          height = x_display_pixel_height (dpyinfo);
+          break;
+        case FULLSCREEN_BOTH:
+          lval = Qfullboth;
           width = x_display_pixel_width (dpyinfo);
           height = x_display_pixel_height (dpyinfo);
           break;
         case FULLSCREEN_WIDTH:
+          lval = Qfullwidth;
           width = x_display_pixel_width (dpyinfo);
 	  height = height + FRAME_MENUBAR_HEIGHT (f);
 	  break;
         case FULLSCREEN_HEIGHT:
+          lval = Qfullheight;
           height = x_display_pixel_height (dpyinfo);
         }
 
       frame_size_history_add
 	(f, Qx_check_fullscreen, width, height, Qnil);
+
+      x_wm_set_size_hint (f, 0, false);
 
       XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		     width, height);
@@ -9428,6 +10212,10 @@ x_check_fullscreen (struct frame *f)
 	  x_sync (f);
 	}
     }
+
+  /* `x_net_wm_state' might have reset the fullscreen frame parameter,
+     restore it. */
+  store_frame_param (f, Qfullscreen, lval);
 }
 
 /* This function is called by x_set_offset to determine whether the window
@@ -9727,8 +10515,6 @@ x_set_window_size (struct frame *f, bool change_gravity,
   cancel_mouse_face (f);
 
   unblock_input ();
-
-  do_pending_window_change (false);
 }
 
 /* Move the mouse to position pixel PIX_X, PIX_Y relative to frame F.  */
@@ -9791,7 +10577,7 @@ x_ewmh_activate_frame (struct frame *f)
 
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
 
-  if (FRAME_VISIBLE_P (f) && wm_supports (f, dpyinfo->Xatom_net_active_window))
+  if (FRAME_VISIBLE_P (f) && x_wm_supports (f, dpyinfo->Xatom_net_active_window))
     {
       Lisp_Object frame;
       XSETFRAME (frame, f);
@@ -10235,6 +11021,7 @@ x_free_frame_resources (struct frame *f)
 	free_frame_xic (f);
 #endif
 
+      x_free_cr_resources (f);
 #ifdef USE_X_TOOLKIT
       if (f->output_data.x->widget)
 	{
@@ -10684,7 +11471,10 @@ get_bits_and_offset (unsigned long mask, int *bits, int *offset)
 bool
 x_display_ok (const char *display)
 {
+  /* XOpenDisplay fails if it gets a signal.  Block SIGIO which may arrive.  */
+  unrequest_sigio ();
   Display *dpy = XOpenDisplay (display);
+  request_sigio ();
   if (!dpy)
     return false;
   XCloseDisplay (dpy);
@@ -10864,7 +11654,9 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
         /* gtk_init does set_locale.  Fix locale before and after.  */
         fixup_locale ();
+        unrequest_sigio (); /* See comment in x_display_ok.  */
         gtk_init (&argc, &argv2);
+        request_sigio ();
         fixup_locale ();
 
         g_log_remove_handler ("GLib", id);
@@ -10914,10 +11706,12 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	argv[argc++] = xrm_option;
       }
     turn_on_atimers (false);
+    unrequest_sigio ();  /* See comment in x_display_ok.  */
     dpy = XtOpenDisplay (Xt_app_con, SSDATA (display_name),
 			 resource_name, EMACS_CLASS,
 			 emacs_options, XtNumber (emacs_options),
 			 &argc, argv);
+    request_sigio ();
     turn_on_atimers (true);
 
 #ifdef HAVE_X11XTR6
@@ -10928,7 +11722,9 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
 #else /* not USE_X_TOOLKIT */
   XSetLocaleModifiers ("");
+  unrequest_sigio ();  // See comment in x_display_ok.
   dpy = XOpenDisplay (SSDATA (display_name));
+  request_sigio ();
 #endif /* not USE_X_TOOLKIT */
 #endif /* not USE_GTK*/
 
@@ -10961,13 +11757,6 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	  {
 	    char *vendor = ServerVendor (dpy);
 
-	    /* Protect terminal from GC before removing it from the
-	       list of terminals.  */
-	    struct gcpro gcpro1;
-	    Lisp_Object gcpro_term;
-	    XSETTERMINAL (gcpro_term, terminal);
-	    GCPRO1 (gcpro_term);
-
 	    /* Temporarily hide the partially initialized terminal.  */
 	    terminal_list = terminal->next_terminal;
 	    unblock_input ();
@@ -10978,7 +11767,6 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	    block_input ();
 	    terminal->next_terminal = terminal_list;
  	    terminal_list = terminal;
-	    UNGCPRO;
 	  }
 
 	/* Don't let the initial kboard remain current longer than necessary.
@@ -11312,6 +12100,10 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     x_session_initialize (dpyinfo);
 #endif
 
+#ifdef USE_CAIRO
+  x_extension_initialize (dpyinfo);
+#endif
+
   unblock_input ();
 
   return dpyinfo;
@@ -11423,8 +12215,13 @@ static struct redisplay_interface x_redisplay_interface =
     x_get_glyph_overhangs,
     x_fix_overlapping_area,
     x_draw_fringe_bitmap,
+#ifdef USE_CAIRO
+    x_cr_define_fringe_bitmap,
+    x_cr_destroy_fringe_bitmap,
+#else
     0, /* define_fringe_bitmap */
     0, /* destroy_fringe_bitmap */
+#endif
     x_compute_glyph_string_overhangs,
     x_draw_glyph_string,
     x_define_frame_cursor,
@@ -11432,7 +12229,7 @@ static struct redisplay_interface x_redisplay_interface =
     x_draw_window_cursor,
     x_draw_vertical_window_border,
     x_draw_window_divider,
-    x_shift_glyphs_for_insert,
+    x_shift_glyphs_for_insert, /* Never called; see comment in function.  */
     x_show_hourglass,
     x_hide_hourglass
   };
@@ -11600,6 +12397,10 @@ x_initialize (void)
   xaw3d_arrow_scroll = False;
   xaw3d_pick_top = True;
 #endif
+#endif
+
+#ifdef USE_CAIRO
+  x_cr_init_fringe (&x_redisplay_interface);
 #endif
 
   /* Note that there is no real way portable across R3/R4 to get the

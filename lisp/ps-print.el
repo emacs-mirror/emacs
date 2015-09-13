@@ -809,7 +809,7 @@ Please send all bug fixes and enhancements to
 ;; on next page.  Visually, valid values are (the character `+' at right of
 ;; each column indicates that a line is printed):
 ;;
-;;		   `nil'        `follow'        `full'        `full-follow'
+;;		    nil         `follow'        `full'        `full-follow'
 ;; Current Page --------     -----------     ---------     ----------------
 ;;		1  XXXXX +   1  XXXXXXXX +   1  XXXXXX +   1  XXXXXXXXXXXXX +
 ;;		2  XXXXX +   2  XXXXXXXX +   2  XXXXXX +   2  XXXXXXXXXXXXX +
@@ -1953,7 +1953,7 @@ If you set option `ps-selected-pages', first the pages are
 filtered by option `ps-selected-pages' and then by `ps-even-or-odd-pages'.
 For example, if we have:
 
-   (setq ps-selected-pages '(1 4 (6 . 10) (12 . 16) 20))
+   (setq ps-selected-pages \\='(1 4 (6 . 10) (12 . 16) 20))
 
 Combining with `ps-even-or-odd-pages' and option `ps-n-up-printing', we have:
 
@@ -2117,7 +2117,7 @@ See also documentation for `ps-zebra-stripes' and `ps-zebra-stripe-height'."
 Visually, valid values are (the character `+' at right of each column indicates
 that a line is printed):
 
-		   `nil'        `follow'        `full'        `full-follow'
+		    nil         `follow'        `full'        `full-follow'
    Current Page --------     -----------     ---------     ----------------
 		1  XXXXX +   1  XXXXXXXX +   1  XXXXXX +   1  XXXXXXXXXXXXX +
 		2  XXXXX +   2  XXXXXXXX +   2  XXXXXX +   2  XXXXXXXXXXXXX +
@@ -2249,9 +2249,9 @@ X, Y, XSCALE, YSCALE and ROTATION may be a floating point number, an integer
 number or a string.  If it is a string, the string should contain PostScript
 programming that returns a float or integer value.
 
-For example, if you wish to print an EPS image on all pages do:
+For example, if you wish to print an EPS image on all pages use:
 
-   '((\"~/images/EPS-image.ps\"))"
+   ((\"~/images/EPS-image.ps\"))"
   :type '(repeat
 	  (list
 	   (file   :tag "EPS File")
@@ -2300,9 +2300,9 @@ X, Y, FONTSIZE, GRAY and ROTATION may be a floating point number, an integer
 number or a string.  If it is a string, the string should contain PostScript
 programming that returns a float or integer value.
 
-For example, if you wish to print text \"Preliminary\" on all pages do:
+For example, if you wish to print text \"Preliminary\" on all pages use:
 
-   '((\"Preliminary\"))"
+   ((\"Preliminary\"))"
   :type '(repeat
 	  (list
 	   (string :tag "Text")
@@ -4604,8 +4604,8 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 		       (setq prompt "File is unwritable"))
 		      ((file-exists-p res)
 		       (setq prompt "File exists")
-		       (not (y-or-n-p (format "File `%s' exists; overwrite? "
-					      res))))
+		       (not (y-or-n-p (format-message
+				       "File `%s' exists; overwrite? " res))))
 		      (t nil))
 	   (setq res (read-file-name
 		      (format "%s; save PostScript to file: " prompt)
@@ -5711,7 +5711,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	 (error "Invalid %s `%S'%s"
 		mess size
 		(if arg
-		    (format " for `%S'" arg)
+		    (format-message " for `%S'" arg)
 		  "")))
     siz))
 
@@ -6043,10 +6043,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	    (progn
 	      (setq ps-razchunk q-done)
 	      (message "Formatting...%3d%%"
-		       (if (< q-todo 100)
-			   (/ (* 100 q-done) q-todo)
-			 (/ q-done (/ q-todo 100)))
-		       ))))))
+		       (floor (* 100.0 q-done) q-todo)))))))
 
 (defvar ps-last-font nil)
 

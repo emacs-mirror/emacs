@@ -100,7 +100,7 @@ At present, this only affects the daily filofax calendar."
      (format "%d/%d" day days-remaining))
   "Lisp expression giving the date format to use in the LaTeX calendars.
 This should be an expression involving the variable `date'.  When
-this expression is called, `date' is a list of the form '(MONTH DAY YEAR)'.
+this expression is called, `date' is a list of the form `(MONTH DAY YEAR)'.
 
 The string resulting from evaluating this expression is placed at
 the bottom center of each date in monthly calendars, next to the
@@ -151,7 +151,7 @@ For example, to include extra packages:
   "List of functions called after any LaTeX calendar buffer is generated.
 You can use this to do post-processing on the buffer.  For example, to change
 characters with diacritical marks to their LaTeX equivalents, use
-    (add-hook 'cal-tex-hook
+    (add-hook \\='cal-tex-hook
               (lambda () (iso-iso2tex (point-min) (point-max))))"
   :type 'hook
   :group 'calendar-tex)
@@ -1602,7 +1602,7 @@ informative header, and run HOOK."
         (goto-char (point-min))
         (when (search-forward "documentclass" nil t)
           (forward-line 1)
-          ;; Eg for some Bahai holidays.
+          ;; E.g., for some Bahá’í holidays.
           ;; FIXME latin1 might not always be right.
           (insert "\\usepackage[latin1]{inputenc}\n"))))
   (latex-mode)

@@ -170,13 +170,13 @@ overall good/bad count summary inserted at the very end."
                          info-xref-good info-xref-bad info-xref-unavail))))
 
 (defun info-xref-output (fmt &rest args)
-  "Emit a `format'-ed message FMT+ARGS to the `info-xref-output-buffer'."
+  "Emit a `format-message'-ed message FMT+ARGS to the `info-xref-output-buffer'."
   (with-current-buffer info-xref-output-buffer
     (save-excursion
       (goto-char (point-max))
       (let ((inhibit-read-only t))
         (insert info-xref-output-heading
-                (apply 'format fmt args)
+                (apply #'format-message fmt args)
                 "\n")))
     (setq info-xref-output-heading "")
     ;; all this info-xref can be pretty slow, display now so the user sees

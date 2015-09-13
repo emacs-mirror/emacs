@@ -1373,7 +1373,7 @@ affects only files whose names match the expression."
   ;; Normalize empty filter RE to nil.
   (unless (> (length filter-re) 0) (setq filter-re nil))
   ;; Indicate progress
-  (message "Comparing '%s' and '%s' modulo '%s'" d1 d2 filter-re)
+  (message "Comparing `%s' and `%s' modulo `%s'" d1 d2 filter-re)
   (cond
    ;; D1 & D2 directories => recurse
    ((and (file-directory-p d1)

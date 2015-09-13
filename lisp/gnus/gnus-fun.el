@@ -265,7 +265,7 @@ colors of the displayed X-Faces."
 	  (article-narrow-to-head)
 	  (gnus-article-goto-header "from")
 	  (when (bobp)
-	    (insert "From: [no `from' set]\n")
+	    (insert "From: [no 'from' set]\n")
 	    (forward-char -17))
 	  (gnus-add-image
 	   'xface

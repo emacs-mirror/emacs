@@ -404,7 +404,9 @@ This calls `log-view-expanded-log-entry-function' to do the work."
 	      (unless (and pos (log-view-inside-comment-p pos))
 		(error "Broken markup in `log-view-toggle-entry-display'"))
 	      (delete-region pos
-			     (next-single-property-change pos 'log-view-comment))
+                             (or
+                              (next-single-property-change pos 'log-view-comment)
+                              (point-max)))
 	      (put-text-property beg (1+ beg) 'log-view-entry-expanded nil)
 	      (if (< opoint pos)
 		  (goto-char opoint)))
@@ -466,9 +468,13 @@ It assumes that a log entry starts with a line matching
 	  (goto-char (match-beginning 0))))
        ;; Don't advance past the end buttons inserted by
        ;; `vc-print-log-setup-buttons'.
-       ((looking-back "Show 2X entries    Show unlimited entries")
+       ((looking-back "Show 2X entries    Show unlimited entries"
+                      (line-beginning-position))
 	(setq looping nil)
-	(forward-line -1))))))
+	(forward-line -1))
+       ;; There are no buttons if we've turned on unlimited entries.
+       ((eobp)
+        (setq looping nil))))))
 
 (defun log-view-end-of-defun (&optional arg)
   "Move forward to the next Log View entry.
@@ -601,13 +607,12 @@ considered file(s)."
   (interactive
    (list (if (use-region-p) (region-beginning) (point))
          (if (use-region-p) (region-end) (point))))
-  (log-view-diff-common beg end t))
+  (when (eq (vc-call-backend log-view-vc-backend 'revision-granularity) 'file)
+    (error "The %s backend does not support changeset diffs" log-view-vc-backend))
+  (let ((default-directory (vc-root-dir)))
+    (log-view-diff-common beg end t)))
 
 (defun log-view-diff-common (beg end &optional whole-changeset)
-  (when (and whole-changeset
-             (eq (vc-call-backend log-view-vc-backend 'revision-granularity)
-                 'file))
-    (error "The %s backend does not support changeset diffs" log-view-vc-backend))
   (let ((to (log-view-current-tag beg))
         (fr (log-view-current-tag end)))
     (when (string-equal fr to)

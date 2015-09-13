@@ -364,15 +364,17 @@ origin of the code at point."
       (let ((secondclass (car (reverse (oref ctxt prefixtypes)))))
 	(cond
 	 ((and (semantic-tag-with-position-p secondclass)
-	       (y-or-n-p (format "Could not find `%s'.  Jump to %s? "
-				 first (semantic-tag-name secondclass))))
+	       (y-or-n-p (format-message
+			  "Could not find `%s'.  Jump to %s? "
+			  first (semantic-tag-name secondclass))))
 	  (semantic-ia--fast-jump-helper secondclass)
 	  )
 	 ;; If we missed out on the class of the second item, then
 	 ;; just visit SECOND.
 	 ((and (semantic-tag-p second)
-	       (y-or-n-p (format "Could not find `%s'.  Jump to %s? "
-				 first (semantic-tag-name second))))
+	       (y-or-n-p (format-message
+			  "Could not find `%s'.  Jump to %s? "
+			  first (semantic-tag-name second))))
 	  (semantic-ia--fast-jump-helper second)
 	  ))))
 

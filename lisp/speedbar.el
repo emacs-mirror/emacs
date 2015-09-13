@@ -203,7 +203,7 @@ the user is done with the current expansion list.")
     )
   "List of functions to periodically call stealthily.
 This list is of the form:
- '( (\"NAME\" FUNCTION ...)
+  ( (\"NAME\" FUNCTION ...)
     ...)
 where NAME is the name of the major display mode these functions are
 for, and the remaining elements FUNCTION are functions to call in order.
@@ -458,9 +458,9 @@ items is reached."
 (defcustom speedbar-directory-button-trim-method 'span
   "Indicates how the directory button will be displayed.
 Possible values are:
- 'span - span large directories over multiple lines.
- 'trim - trim large directories to only show the last few.
- nil   - no trimming."
+ `span' - span large directories over multiple lines.
+ `trim' - trim large directories to only show the last few.
+ nil    - no trimming."
   :group 'speedbar
   :type '(radio (const :tag "Span large directories over multiple lines."
 		       span)

@@ -236,7 +236,7 @@ we need to use `/d' or the drive is never changed.")
   "Associative list of project files with properties.
 It has the format: (project project ...)
 A project has the format: (project-file . project-plist)
-\(See 'apropos plist' for operations on property lists).
+\(See `apropos plist' for operations on property lists).
 See `ada-default-prj-properties' for the list of valid properties.
 The current project is retrieved with `ada-xref-current-project'.
 Properties are retrieved with `ada-xref-get-project-field', set with
@@ -286,7 +286,7 @@ On Windows systems, this will properly handle .exe extension as well."
 		    (ada-find-file-in-dir (concat exec-name ".exe") exec-path))))
     (if result
 	result
-      (error "'%s' not found in path" exec-name))))
+      (error "`%s' not found in path" exec-name))))
 
 (defun ada-initialize-runtime-library (cross-prefix)
   "Initialize the variables for the runtime library location.
@@ -667,7 +667,7 @@ the same base name as the Ada file, but extension given by
 `ada-prj-file-extension' (default .adp).  If not found, search for *.adp
 in the current directory; if several are found, and NO-USER-QUESTION
 is non-nil, prompt the user to select one.  If none are found, return
-'default.adp'."
+\"default.adp\"."
 
   (let (selected)
 
@@ -954,7 +954,7 @@ Return new value of PROJECT."
 	(append (mapcar 'directory-file-name compilation-search-path)
 		ada-search-directories))
 
-  ;; return 't', for decent display in message buffer when called interactively
+  ;; return t, for decent display in message buffer when called interactively
   t)
 
 (defun ada-find-references (&optional pos arg local-only)

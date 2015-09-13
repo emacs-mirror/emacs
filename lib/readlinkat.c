@@ -18,7 +18,10 @@
 
 #include <config.h>
 
+#include <errno.h>
 #include <unistd.h>
+#include <string.h>
+#include <sys/stat.h>
 
 #if HAVE_READLINKAT
 
@@ -27,6 +30,21 @@
 ssize_t
 rpl_readlinkat (int fd, char const *file, char *buf, size_t len)
 {
+# if READLINK_TRAILING_SLASH_BUG
+  size_t file_len = strlen (file);
+  if (file_len && file[file_len - 1] == '/')
+    {
+      /* Even if FILE without the slash is a symlink to a directory,
+         both lstat() and stat() must resolve the trailing slash to
+         the directory rather than the symlink.  We can therefore
+         safely use stat() to distinguish between EINVAL and
+         ENOTDIR/ENOENT, avoiding extra overhead of rpl_lstat().  */
+      struct stat st;
+      if (stat (file, &st) == 0)
+        errno = EINVAL;
+      return -1;
+    }
+# endif /* READLINK_TRAILING_SLASH_BUG */
   return readlinkat (fd, file, buf, len);
 }
 

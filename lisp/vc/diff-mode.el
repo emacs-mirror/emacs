@@ -821,7 +821,7 @@ If the OLD prefix arg is passed, tell the file NAME of the old file."
 	  (header-files
            ;; handle filenames with spaces;
            ;; cf. diff-font-lock-keywords / diff-file-header-face
-	   (if (looking-at "[-*][-*][-*] \\([^\t]+\\)\t.*\n[-+][-+][-+] \\([^\t]+\\)")
+	   (if (looking-at "[-*][-*][-*] \\([^\t\n]+\\).*\n[-+][-+][-+] \\([^\t\n]+\\)")
 	       (list (if old (match-string 1) (match-string 2))
 		     (if old (match-string 2) (match-string 1)))
 	     (forward-line 1) nil)))
@@ -2128,7 +2128,8 @@ fixed, visit it in a buffer."
 	(goto-char hunk-end))
       (if modified-buffers
 	  (message "Deleted trailing whitespace from %s."
-		   (mapconcat (lambda (buf) (concat "`" (buffer-name buf) "'"))
+		   (mapconcat (lambda (buf) (format-message
+					     "`%s'" (buffer-name buf)))
 			      modified-buffers ", "))
 	(message "No trailing whitespace to delete.")))))
 

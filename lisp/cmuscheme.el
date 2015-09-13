@@ -37,7 +37,7 @@
 ;;
 ;; NOTE: MIT Cscheme, when invoked with the -emacs flag, has a special user
 ;; interface that communicates process state back to the superior emacs by
-;; outputting special control sequences. The gnumacs package, xscheme.el, has
+;; outputting special control sequences. The Emacs package, xscheme.el, has
 ;; lots and lots of special purpose code to read these control sequences, and
 ;; so is very tightly integrated with the cscheme process. The cscheme
 ;; interrupt handler and debugger read single character commands in cbreak

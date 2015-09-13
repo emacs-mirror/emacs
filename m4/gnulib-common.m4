@@ -278,12 +278,12 @@ Amsterdam
       dnl but prefer ${host}-ar over ar (useful for cross-compiling).
       AC_CHECK_TOOL([AR], [ar], [ar])
       if test -z "$ARFLAGS"; then
-        ARFLAGS='cru'
+        ARFLAGS='cr'
       fi
     fi
   else
     if test -z "$ARFLAGS"; then
-      ARFLAGS='cru'
+      ARFLAGS='cr'
     fi
   fi
   AC_SUBST([AR])

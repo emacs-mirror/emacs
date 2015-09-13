@@ -61,7 +61,8 @@ enum {
   STATUS_READ_IN_PROGRESS,
   STATUS_READ_FAILED,
   STATUS_READ_SUCCEEDED,
-  STATUS_READ_ACKNOWLEDGED
+  STATUS_READ_ACKNOWLEDGED,
+  STATUS_CONNECT_FAILED
 };
 
 /* This structure is used for both pipes and sockets; for
@@ -96,6 +97,8 @@ typedef struct _child_process
   /* Status of subprocess/connection and of reading its output.  For
      values, see the enumeration above.  */
   volatile int        status;
+  /* Used to store errno value of failed async 'connect' calls.  */
+  volatile int        errcode;
   /* Holds a single character read by _sys_read_ahead, when a
      subprocess has some output ready.  */
   char                chr;
@@ -122,7 +125,8 @@ extern filedesc fd_info [ MAXDESC ];
 /* fd_info flag definitions */
 #define FILE_READ               0x0001
 #define FILE_WRITE              0x0002
-#define FILE_LISTEN		0x0004
+#define FILE_LISTEN             0x0004
+#define FILE_CONNECT            0x0008
 #define FILE_BINARY             0x0010
 #define FILE_LAST_CR            0x0020
 #define FILE_AT_EOF             0x0040
@@ -171,6 +175,7 @@ extern void init_timers (void);
 
 extern int _sys_read_ahead (int fd);
 extern int _sys_wait_accept (int fd);
+extern int _sys_wait_connect (int fd);
 
 extern HMODULE w32_delayed_load (Lisp_Object);
 
@@ -187,8 +192,10 @@ extern int  filename_from_ansi (const char *, char *);
 extern int  filename_to_ansi (const char *, char *);
 extern int  filename_from_utf16 (const wchar_t *, char *);
 extern int  filename_to_utf16 (const char *, wchar_t *);
+extern int  codepage_for_filenames (CPINFO *);
 extern Lisp_Object ansi_encode_filename (Lisp_Object);
 extern int  w32_copy_file (const char *, const char *, int, int, int);
+extern int  w32_accessible_directory_p (const char *, ptrdiff_t);
 
 extern BOOL init_winsock (int load_now);
 extern void srandom (int);
@@ -197,6 +204,7 @@ extern int random (void);
 extern int fchmod (int, mode_t);
 extern int sys_rename_replace (char const *, char const *, BOOL);
 extern int pipe2 (int *, int);
+extern void register_aux_fd (int);
 
 extern void set_process_dir (char *);
 extern int sys_spawnve (int, char *, char **, char **);

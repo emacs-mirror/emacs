@@ -545,8 +545,8 @@ slightly, to make sure a beginning of line in the first line is included.
 SEPARATOR specifies the field separator in the lines.  It can have the
 following values:
 
-'(4)     Use the comma as a field separator
-'(16)    Use a TAB as field separator
+(4)      Use the comma as a field separator
+(16)     Use a TAB as field separator
 integer  When a number, use that many spaces as field separator
 nil      When nil, the command tries to be smart and figure out the
          separator in the following way:
@@ -3404,7 +3404,7 @@ Parameters get priority."
     (if (eq org-table-use-standard-references t)
 	(org-table-fedit-toggle-ref-type))
     (org-goto-line startline)
-    (message "Edit formulas, finish with `C-c C-c' or `C-c ' '.  See menu for more commands.")))
+    (message "%s" "Edit formulas, finish with C-c C-c or C-c '.  See menu for more commands.")))
 
 (defun org-table-fedit-post-command ()
   (when (not (memq this-command '(lisp-complete-symbol)))

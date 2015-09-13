@@ -153,6 +153,7 @@
 	(cyrillic #x42F)
 	(armenian #x531)
 	(hebrew #x5D0)
+	(vai #xA500)
 	(arabic #x628)
 	(syriac #x710)
 	(thaana #x78C)
@@ -197,7 +198,7 @@
 	(phaistos-disc #x101D0)
 	(lycian #x10280)
 	(carian #x102A0)
-	(olt-italic #x10300)
+	(old-italic #x10300)
 	(ugaritic #x10380)
 	(old-permic #x10350)
 	(old-persian #x103A0)
@@ -302,6 +303,9 @@
 	(lepc . lepcha)
 	(limb . limbu)
 	(linb . linear_b)
+        (lisu . lisu)
+        (lyci . lycian)
+        (lydi . lydian)
 	(mlym . malayalam)
 	(mlm2 . malayalam)
 	(mand . mandaic)
@@ -311,6 +315,7 @@
 	(mero . meroitic)
 	(mong . mongolian)
 	(musc . musical-symbol)
+	(mym2 . burmese)
 	(mymr . burmese)
 	(nko\  . nko)
 	(ogam . ogham)
@@ -345,6 +350,7 @@
 	(taml . tamil)
 	(tml2 . tamil)
 	(telu . telugu)
+	(tel2 . telugu)
 	(thaa . thaana)
 	(thai . thai)
 	(tibt . tibetan)
@@ -470,19 +476,29 @@
 	    (nil . "TIS620*")
 	    (nil . "ISO8859-11"))
 
-     (devanagari ,(font-spec :registry "iso10646-1" :otf '(deva nil (rphf)))
+     (devanagari ,(font-spec :registry "iso10646-1" :otf '(dev2 nil (rphf)))
+                 ,(font-spec :registry "iso10646-1" :otf '(deva nil (rphf)))
 		 (nil . "iso10646.indian-1"))
-     (bengali ,(font-spec :registry "iso10646-1" :otf '(beng nil (rphf))))
-     (gurmukhi ,(font-spec :registry "iso10646-1" :otf '(guru nil (blwf))))
-     (gujarati ,(font-spec :registry "iso10646-1" :otf '(gujr nil (rphf))))
-     (oriya ,(font-spec :registry "iso10646-1" :otf '(orya nil (rphf))))
-     (tamil ,(font-spec :registry "iso10646-1" :otf '(taml nil (akhn))))
-     (telugu ,(font-spec :registry "iso10646-1" :otf '(telu nil (blwf))))
-     (kannada ,(font-spec :registry "iso10646-1" :otf '(knda nil (rphf))))
+     (bengali ,(font-spec :registry "iso10646-1" :otf '(bng2 nil (rphf)))
+              ,(font-spec :registry "iso10646-1" :otf '(beng nil (rphf))))
+     (gurmukhi ,(font-spec :registry "iso10646-1" :otf '(gur2 nil (blwf)))
+               ,(font-spec :registry "iso10646-1" :otf '(guru nil (blwf))))
+     (gujarati ,(font-spec :registry "iso10646-1" :otf '(gjr2 nil (rphf)))
+               ,(font-spec :registry "iso10646-1" :otf '(gujr nil (rphf))))
+     (oriya ,(font-spec :registry "iso10646-1" :otf '(ory2 nil (rphf)))
+            ,(font-spec :registry "iso10646-1" :otf '(orya nil (rphf))))
+     (tamil ,(font-spec :registry "iso10646-1" :otf '(tml2 nil (akhn)))
+            ,(font-spec :registry "iso10646-1" :otf '(taml nil (akhn))))
+     (telugu ,(font-spec :registry "iso10646-1" :otf '(tel2 nil (blwf)))
+             ,(font-spec :registry "iso10646-1" :otf '(telu nil (blwf))))
+     (kannada ,(font-spec :registry "iso10646-1" :otf '(knd2 nil (rphf)))
+              ,(font-spec :registry "iso10646-1" :otf '(knda nil (rphf))))
      (sinhala ,(font-spec :registry "iso10646-1" :otf '(sinh nil (akhn))))
-     (malayalam ,(font-spec :registry "iso10646-1" :otf '(mlym nil (akhn))))
+     (malayalam ,(font-spec :registry "iso10646-1" :otf '(mlm2 nil (akhn)))
+                ,(font-spec :registry "iso10646-1" :otf '(mlym nil (akhn))))
 
-     (burmese ,(font-spec :registry "iso10646-1" :otf '(mymr nil nil))
+     (burmese ,(font-spec :registry "iso10646-1" :otf '(mym2 nil nil))
+              ,(font-spec :registry "iso10646-1" :otf '(mymr nil nil))
 	      ,(font-spec :registry "iso10646-1" :script 'burmese))
 
      (lao ,(font-spec :registry "iso10646-1" :otf '(lao\  nil nil (mark)))
@@ -632,7 +648,7 @@
 		    phaistos-disc
 		    lycian
 		    carian
-		    olt-italic
+		    old-italic
 		    ugaritic
 		    old-persian
 		    deseret
@@ -691,6 +707,96 @@
      "fontset-default"
      (cons (car math-subgroup) (nth 1 math-subgroup))
      (font-spec :registry "iso10646-1" :script (nth 2 math-subgroup))))
+
+  ;; Special setup for various symbols and punctuation characters
+  ;; covered well by Symbola, excluding those covered well by popular
+  ;; Unicode fonts.  We exclude the latter because users don't like us
+  ;; invading on their font setups where they have good support from
+  ;; other fonts.
+  (dolist (symbol-subgroup
+           '((#x2000 . #x2012)	;; General Punctuation
+             (#x2015 . #x2017)
+             #x201F
+             (#x2023 . #x202F)
+             (#x2031 . #x2038)
+             (#x203B . #x206F)
+             (#x2070 . #x209F)	;; Superscripts and Subscripts
+             (#x20B6 . #x20CF)	;; Currency Symbols
+             (#x2100 . #x2121)	;; Letterlike Symbols
+             (#x2123 . #x214F)
+             (#x2150 . #x215A)	;; Number Forms
+             (#x215F . #x218F)
+             (#x2194 . #x21FF)	;; Arrows
+             (#x2200 . #x2211)	;; Mathematical Operators
+             (#x2213 . #x2247)
+             (#x2249 . #x225F)
+             (#x2261 . #x2263)
+             (#x2266 . #x22FF)
+             (#x2300 . #x2301)	;; Miscellaneous Technical
+             (#x2303 . #x230F)
+             (#x2311 . #x231F)
+             (#x2322 . #x23FF)
+             (#x2400 . #x243F)	;; Control Pictures
+             (#x2440 . #x245F)	;; Optical Char Recognition
+             (#x2460 . #x24FF)	;; Enclosed Alphanumerics
+             (#x25A0 . #x25FF)	;; Geometric Shapes
+             (#x2600 . #x265F)	;; Miscellaneous Symbols
+             (#x2661 . #x2662)
+             #x2664
+             (#x2667 . #x2669)
+             (#x266C . #x26FF)
+             (#x2700 . #x27bF)	;; Dingbats
+             (#x27C0 . #x27EF)	;; Misc Mathematical Symbols-A
+             (#x27F0 . #x27FF)	;; Supplemental Arrows-A
+             (#x2900 . #x297F)	;; Supplemental Arrows-B
+             (#x2980 . #x29FF)	;; Misc Mathematical Symbols-B
+             (#x2A00 . #x2AFF)	;; Suppl. Math Operators
+             (#x2B00 . #x2BFF)	;; Misc Symbols and Arrows
+             (#x2E00 . #x2E7F)	;; Supplemental Punctuation
+             (#x4DC0 . #x4DFF)	;; Yijing Hexagram Symbols
+             (#xFE10 . #xFE1F)	;; Vertical Forms
+             (#x10100 . #x1013F)	;; Aegean Numbers
+             (#x102E0 . #x102FF)	;; Coptic Epact Numbers
+             (#x1D000 . #x1D0FF)	;; Byzantine Musical Symbols
+             (#x1D200 . #x1D24F)	;; Ancient Greek Musical Notation
+             (#x1F0A0 . #x1F0FF)	;; Playing Cards
+             (#x1F100 . #x1F1FF)	;; Enclosed Alphanumeric Suppl
+             (#x1F300 . #x1F5FF)	;; Misc Symbols and Pictographs
+             (#x1F600 . #x1F64F)	;; Emoticons
+             (#x1F650 . #x1F67F)	;; Ornamental Dingbats
+             (#x1F680 . #x1F6FF)	;; Transport and Map Symbols
+             (#x1F700 . #x1F77F)	;; Alchemical Symbols
+             (#x1F780 . #x1F7FF)	;; Geometric Shapes Extended
+             (#x1F800 . #x1F8FF)))	;; Supplemental Arrows-C
+    (set-fontset-font "fontset-default" symbol-subgroup "Symbola" nil 'prepend))
+  ;; Box Drawing and Block Elements
+  (set-fontset-font "fontset-default" '(#x2500 . #x259F)
+                    "FreeMono" nil 'prepend)
+
+  ;; Since standard-fontset-spec on X uses fixed-medium font, which
+  ;; gets mapped to a iso8859-1 variant, we would like to prefer its
+  ;; iso10646-1 variant for symbols, where the coverage is known to be
+  ;; good.
+  (dolist (symbol-subgroup
+			 '((#x2000 . #x206F)   ;; General Punctuation
+			   (#x2070 . #x209F)   ;; Superscripts and Subscripts
+			   (#x20A0 . #x20CF)   ;; Currency Symbols
+			   (#x2150 . #x218F)   ;; Number Forms
+			   (#x2190 . #x21FF)   ;; Arrows
+			   (#x2200 . #x22FF)   ;; Mathematical Operators
+			   (#x2300 . #x23FF)   ;; Miscellaneous Technical
+			   (#x2400 . #x243F)   ;; Control Pictures
+			   (#x2440 . #x245F)   ;; Optical Char Recognition
+			   (#x2460 . #x24FF)   ;; Enclosed Alphanumerics
+                           (#x2500 . #x257F)   ;; Box Drawing
+                           (#x2580 . #x259F)   ;; Block Elements
+			   (#x25A0 . #x25FF)   ;; Geometric Shapes
+			   (#x2600 . #x2689)   ;; Miscellaneous Symbols
+			   (#x2700 . #x27bF)   ;; Dingbats
+			   (#x27F5 . #x27FF))) ;; Supplemental Arrows-A
+    (set-fontset-font "fontset-default" symbol-subgroup
+                      "-*-fixed-medium-*-*-*-*-*-*-*-*-*-iso10646-1"
+                      nil 'prepend))
 
   ;; Append CJK fonts for characters other than han, kana, cjk-misc.
   ;; Append fonts for scripts whose name is also a charset name.

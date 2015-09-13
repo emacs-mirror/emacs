@@ -95,7 +95,7 @@ print statement."
 
 (defsubst semantic-tag-class (tag)
   "Return the class of TAG.
-That is, the symbol 'variable, 'function, 'type, or other.
+This is a symbol like `variable', `function', or `type'.
 There is no limit to the symbols that may represent the class of a tag.
 Each parser generates tags with classes defined by it.
 
@@ -621,7 +621,7 @@ buffer, the originating buffer file name is kept in the `:filename'
 property of the copied tag.
 If KEEP-FILE is a string, and the originating buffer is NOT available,
 then KEEP-FILE is stored on the `:filename' property.
-This runs the tag hook `unlink-copy-hook`."
+This runs the tag hook `unlink-copy-hook'."
   ;; Right now, TAG is a list.
   (let ((copy (semantic-tag-clone tag name)))
 
@@ -958,7 +958,7 @@ Return nil if TAG is not of class 'alias."
   "Return a list of components for TAG.
 A Component is a part of TAG which itself may be a TAG.
 Examples include the elements of a structure in a
-tag of class `type, or the list of arguments to a
+tag of class 'type, or the list of arguments to a
 tag of class 'function."
   )
 

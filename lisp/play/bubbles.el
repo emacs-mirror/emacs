@@ -101,31 +101,31 @@ and a shift mode."
   :group 'bubbles)
 
 (defun bubbles-set-game-easy ()
-  "Set game theme to 'easy'."
+  "Set game theme to `easy'."
   (interactive)
   (setq bubbles-game-theme 'easy)
   (bubbles))
 
 (defun bubbles-set-game-medium ()
-  "Set game theme to 'medium'."
+  "Set game theme to `medium'."
   (interactive)
   (setq bubbles-game-theme 'medium)
   (bubbles))
 
 (defun bubbles-set-game-difficult ()
-  "Set game theme to 'difficult'."
+  "Set game theme to `difficult'."
   (interactive)
   (setq bubbles-game-theme 'difficult)
   (bubbles))
 
 (defun bubbles-set-game-hard ()
-  "Set game theme to 'hard'."
+  "Set game theme to `hard'."
   (interactive)
   (setq bubbles-game-theme 'hard)
   (bubbles))
 
 (defun bubbles-set-game-userdefined ()
-  "Set game theme to 'user-defined'."
+  "Set game theme to `user-defined'."
   (interactive)
   (setq bubbles-game-theme 'user-defined)
   (bubbles))

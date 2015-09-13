@@ -1,0 +1,70 @@
+<!--#set var="chiavi" value="
+     prima pagina principale, home page, assoli,
+     free software, open source, italia, italy, italiano" -->
+<!--#include virtual="/inc/h.shtml"-->
+<!--#include virtual="/inc/menu-generico.html"-->
+<!--#include virtual="/inc/content-begin.html"-->
+
+<H3>&nbsp;</H3>	<!-- un po' di spazio in cima -->
+
+<!--
+     La rubrica "in evidenza" va commentata se non c'è niente di serio
+     da mettere in evidenza
+ -->
+<H2>
+  In evidenza
+</H2>
+
+<ul>
+
+  <li>Assieme alla <A HREF="http://www.linux.it/">Italian Linux
+  Society</A> sollecitiamo una <A
+  HREF="/misc/raccoltafirme.shtml">raccolta di firme</A> per
+  sostenere il <a href="/altri/cortiana.shtml">disegno di legge</a> sul
+  software libero dal titolo "<i>Norme in materia di pluralismo
+  informatico sulla adozione e la diffusione del software libero e sulla
+  portabilità dei documenti informatici nella Pubblica
+  Amministrazione</i>" (XIV Legislatura Atto Senato n. 1188).<P>
+
+</ul>
+
+<H2>
+  Comunicati e iniziative
+</H2>
+
+<ul>
+
+  <p></p><li>
+    Combattiamo il "bollino SIAE".  Nel <A HREF="/news/">notiziario</A>
+    tutte le nostre iniziative in proposito.  Insieme al <a
+    href="http://www.lugroma.org">LUG Roma</a> abbiamo scritto il <A
+    HREF="/bollino/">Bollino-HOWTO</A>, istruzioni passo passo su come
+    ottenere l'esenzione dal bollilno SIAE per la distribuzione di
+    software libero a titolo oneroso o gratuito.  <A
+    HREF="/altri/semenzato-pieroni.shtml">Qui</A> il disegno di legge
+    Semenzato Pieroni sul diritto d'autore.  E non è finita.
+
+  <p></p><li>
+    <a href="/altri/adeos.shtml">Salutiamo</a> l'arrivo di ADEOS, kernel
+    real-time per Linux libero da brevetti
+
+  <p></p><li>
+    <a href="/news/news020315_01.shtml">Comunicato</a> stampa di FSF Europa
+    ed Assoli in appoggio al disegno di legge per l'uso del software libero
+    nella pubblica amministrazione
+
+  <p></p><li>
+    <a href="/docs/pirateria.shtml">Posizione dell'Associazione</a> sulle
+    attuali campagna anti-"pirateria"</a>
+
+</ul>
+
+<H2>
+  Ultime notizie dall'associazione
+</H2>
+<P>
+<!--#include virtual="/news/notizie.shtml"-->
+</P>
+
+<!--#include virtual="inc/content-end.html"-->
+<!--#include virtual="inc/f.shtml"-->

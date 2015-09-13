@@ -439,14 +439,13 @@ w32font_text_extents (struct font *font, unsigned *code,
   int total_width = 0;
   WORD *wcode;
   SIZE size;
+  bool first;
 
   struct w32font_info *w32_font = (struct w32font_info *) font;
 
   memset (metrics, 0, sizeof (struct font_metrics));
-  metrics->ascent = font->ascent;
-  metrics->descent = font->descent;
 
-  for (i = 0; i < nglyphs; i++)
+  for (i = 0, first = true; i < nglyphs; i++)
     {
       struct w32_metric_cache *char_metric;
       int block = *(code + i) / CACHE_BLOCKSIZE;
@@ -495,11 +494,24 @@ w32font_text_extents (struct font *font, unsigned *code,
 
       if (char_metric->status == W32METRIC_SUCCESS)
 	{
-	  metrics->lbearing = min (metrics->lbearing,
-				   metrics->width + char_metric->lbearing);
-	  metrics->rbearing = max (metrics->rbearing,
-				   metrics->width + char_metric->rbearing);
+	  if (first)
+	    {
+	      metrics->lbearing = char_metric->lbearing;
+	      metrics->rbearing = char_metric->rbearing;
+	      metrics->width    = 0;
+	      metrics->ascent   = char_metric->ascent;
+	      metrics->descent  = char_metric->descent;
+	      first = false;
+	    }
+	  if (metrics->lbearing > char_metric->lbearing)
+	    metrics->lbearing = char_metric->lbearing;
+	  if (metrics->rbearing < char_metric->rbearing)
+	    metrics->rbearing = char_metric->rbearing;
 	  metrics->width += char_metric->width;
+	  if (metrics->ascent < char_metric->ascent)
+	    metrics->ascent = char_metric->ascent;
+	  if (metrics->descent < char_metric->descent)
+	    metrics->descent = char_metric->descent;
 	}
       else
 	/* If we couldn't get metrics for a char,
@@ -574,6 +586,8 @@ w32font_text_extents (struct font *font, unsigned *code,
   metrics->width = total_width - w32_font->metrics.tmOverhang;
   metrics->lbearing = 0;
   metrics->rbearing = total_width;
+  metrics->ascent = font->ascent;
+  metrics->descent = font->descent;
 
   /* Restore state and release DC.  */
   SelectObject (dc, old_font);
@@ -636,12 +650,31 @@ w32font_draw (struct glyph_string *s, int from, int to,
       HBRUSH brush;
       RECT rect;
       struct font *font = s->font;
+      int ascent = font->ascent, descent = font->descent;
 
+      /* Font's global ascent and descent values might be
+	 preposterously large for some fonts.  We fix here the case
+	 when those fonts are used for display of glyphless
+	 characters, because drawing background with font dimensions
+	 in those cases makes the display illegible.  There's only one
+	 more call to the draw method with with_background set to
+	 true, and that's in x_draw_glyph_string_foreground, when
+	 drawing the cursor, where we have no such heuristics
+	 available.  FIXME.  */
+      if (s->first_glyph->type == GLYPHLESS_GLYPH
+	  && (s->first_glyph->u.glyphless.method == GLYPHLESS_DISPLAY_HEX_CODE
+	      || s->first_glyph->u.glyphless.method == GLYPHLESS_DISPLAY_ACRONYM))
+	{
+	  ascent =
+	    s->first_glyph->slice.glyphless.lower_yoff
+	    - s->first_glyph->slice.glyphless.upper_yoff;
+	  descent = 0;
+	}
       brush = CreateSolidBrush (s->gc->background);
       rect.left = x;
-      rect.top = y - font->ascent;
+      rect.top = y - ascent;
       rect.right = x + s->width;
-      rect.bottom = y + font->descent;
+      rect.bottom = y + descent;
       FillRect (s->hdc, &rect, brush);
       DeleteObject (brush);
     }
@@ -2127,9 +2160,18 @@ font_supported_scripts (FONTSIGNATURE * sig)
     supported = Fcons ((sym), supported)
 
   SUBRANGE (0, Qlatin);
-  /* The following count as latin too, ASCII should be present in these fonts,
-     so don't need to mark them separately.  */
   /* 1: Latin-1 supplement, 2: Latin Extended A, 3: Latin Extended B.  */
+  /* Most fonts that support Latin will have good coverage of the
+     Extended blocks, so in practice marking them below is not really
+     needed, or useful: if a font claims support for, say, Latin
+     Extended-B, but does not contain glyphs for some of the
+     characters in the range, the user will have to augment her
+     fontset to display those few characters.  But we mark these
+     subranges here anyway, for the marginal use cases where they
+     might make a difference.  */
+  SUBRANGE (1, Qlatin);
+  SUBRANGE (2, Qlatin);
+  SUBRANGE (3, Qlatin);
   SUBRANGE (4, Qphonetic);
   /* 5: Spacing and tone modifiers, 6: Combining Diacritical Marks.  */
   SUBRANGE (7, Qgreek);
@@ -2137,7 +2179,12 @@ font_supported_scripts (FONTSIGNATURE * sig)
   SUBRANGE (9, Qcyrillic);
   SUBRANGE (10, Qarmenian);
   SUBRANGE (11, Qhebrew);
-  /* 12: Vai.  */
+  /* Bit 12 is rather useless if the user has Hebrew fonts installed,
+     because apparently at some point in the past bit 12 was "Hebrew
+     Extended", and many Hebrew fonts still have this bit set.  The
+     only workaround is to customize fontsets to use fonts like Ebrima
+     or Quivira.  */
+  SUBRANGE (12, Qvai);
   SUBRANGE (13, Qarabic);
   SUBRANGE (14, Qnko);
   SUBRANGE (15, Qdevanagari);
@@ -2153,8 +2200,11 @@ font_supported_scripts (FONTSIGNATURE * sig)
   SUBRANGE (25, Qlao);
   SUBRANGE (26, Qgeorgian);
   SUBRANGE (27, Qbalinese);
-  /* 28: Hangul Jamo.  */
-  /* 29: Latin Extended, 30: Greek Extended, 31: Punctuation.  */
+  /* 28: Hangul Jamo -- covered by the default fontset.  */
+  /* 29: Latin Extended, 30: Greek Extended -- covered above.  */
+  /* 31: Supplemental Punctuation -- most probably be masked by
+     Courier New, so fontset customization is needed.  */
+  SUBRANGE (31, Qsymbol);
   /* 32-47: Symbols (defined below).  */
   SUBRANGE (48, Qcjk_misc);
   /* Match either 49: katakana or 50: hiragana for kana.  */
@@ -2169,6 +2219,9 @@ font_supported_scripts (FONTSIGNATURE * sig)
   SUBRANGE (59, Qhan); /* There are others, but this is the main one.  */
   SUBRANGE (59, Qideographic_description); /* Windows lumps this in.  */
   SUBRANGE (59, Qkanbun); /* And this.  */
+  /* These are covered well either by the default Courier New or by
+     CJK fonts that are set up specially in the default fontset.  So
+     marking them here wouldn't be useful.  */
   /* 60: Private use, 61: CJK strokes and compatibility.  */
   /* 62: Alphabetic Presentation, 63: Arabic Presentation A.  */
   /* 64: Combining half marks, 65: Vertical and CJK compatibility.  */
@@ -2197,31 +2250,54 @@ font_supported_scripts (FONTSIGNATURE * sig)
   SUBRANGE (87, Qdeseret);
   SUBRANGE (88, Qbyzantine_musical_symbol);
   SUBRANGE (88, Qmusical_symbol); /* Windows doesn't distinguish these.  */
-  SUBRANGE (89, Qmathematical);
+  SUBRANGE (89, Qmathematical_bold); /* See fontset.el:setup-default-fontset.  */
+  SUBRANGE (89, Qmathematical_italic);
+  SUBRANGE (89, Qmathematical_bold_italic);
+  SUBRANGE (89, Qmathematical_script);
+  SUBRANGE (89, Qmathematical_bold_script);
+  SUBRANGE (89, Qmathematical_fraktur);
+  SUBRANGE (89, Qmathematical_double_struck);
+  SUBRANGE (89, Qmathematical_bold_fraktur);
+  SUBRANGE (89, Qmathematical_sans_serif);
+  SUBRANGE (89, Qmathematical_sans_serif_bold);
+  SUBRANGE (89, Qmathematical_sans_serif_italic);
+  SUBRANGE (89, Qmathematical_sans_serif_bold_italic);
+  SUBRANGE (89, Qmathematical_monospace);
   /* 90: Private use, 91: Variation selectors, 92: Tags.  */
   SUBRANGE (93, Qlimbu);
   SUBRANGE (94, Qtai_le);
-  /* 95: New Tai Le */
-  SUBRANGE (90, Qbuginese);
+  SUBRANGE (95, Qtai_le);
+  SUBRANGE (96, Qbuginese);
   SUBRANGE (97, Qglagolitic);
   SUBRANGE (98, Qtifinagh);
   /* 99: Yijing Hexagrams.  */
+  SUBRANGE (99, Qhan);
   SUBRANGE (100, Qsyloti_nagri);
   SUBRANGE (101, Qlinear_b);
-  /* 102: Ancient Greek Numbers.  */
+  SUBRANGE (102, Qancient_greek_number);
   SUBRANGE (103, Qugaritic);
   SUBRANGE (104, Qold_persian);
   SUBRANGE (105, Qshavian);
   SUBRANGE (106, Qosmanya);
   SUBRANGE (107, Qcypriot);
   SUBRANGE (108, Qkharoshthi);
-  /* 109: Tai Xuan Jing.  */
+  SUBRANGE (109, Qtai_xuan_jing_symbol);
   SUBRANGE (110, Qcuneiform);
-  /* 111: Counting Rods, 112: Sundanese, 113: Lepcha, 114: Ol Chiki.  */
-  /* 115: Saurashtra, 116: Kayah Li, 117: Rejang.  */
+  SUBRANGE (111, Qcounting_rod_numeral);
+  SUBRANGE (112, Qsundanese);
+  SUBRANGE (113, Qlepcha);
+  SUBRANGE (114, Qol_chiki);
+  SUBRANGE (115, Qsaurashtra);
+  SUBRANGE (116, Qkayah_li);
+  SUBRANGE (117, Qrejang);
   SUBRANGE (118, Qcham);
-  /* 119: Ancient symbols, 120: Phaistos Disc.  */
-  /* 121: Carian, Lycian, Lydian, 122: Dominoes, Mahjong tiles.  */
+  SUBRANGE (119, Qancient_symbol);
+  SUBRANGE (120, Qphaistos_disc);
+  SUBRANGE (121, Qlycian);
+  SUBRANGE (121, Qcarian);
+  SUBRANGE (121, Qlydian);
+  SUBRANGE (122, Qdomino_tile);
+  SUBRANGE (122, Qmahjong_tile);
   /* 123-127: Reserved.  */
 
   /* There isn't really a main symbol range, so include symbol if any
@@ -2372,6 +2448,8 @@ compute_metrics (HDC dc, struct w32font_info *w32_font, unsigned int code,
       metrics->lbearing = gm.gmptGlyphOrigin.x;
       metrics->rbearing = gm.gmptGlyphOrigin.x + gm.gmBlackBoxX;
       metrics->width = gm.gmCellIncX;
+      metrics->ascent = gm.gmptGlyphOrigin.y;
+      metrics->descent = gm.gmBlackBoxY - gm.gmptGlyphOrigin.y;
       metrics->status = W32METRIC_SUCCESS;
     }
   else if (get_char_width_32_w (dc, code, code, &width) != 0)
@@ -2379,6 +2457,8 @@ compute_metrics (HDC dc, struct w32font_info *w32_font, unsigned int code,
       metrics->lbearing = 0;
       metrics->rbearing = width;
       metrics->width = width;
+      metrics->ascent = w32_font->font.ascent;
+      metrics->descent = w32_font->font.descent;
       metrics->status = W32METRIC_SUCCESS;
     }
   else
@@ -2530,6 +2610,7 @@ syms_of_w32font (void)
   DEFSYM (Qcyrillic, "cyrillic");
   DEFSYM (Qarmenian, "armenian");
   DEFSYM (Qhebrew, "hebrew");
+  DEFSYM (Qvai, "vai");
   DEFSYM (Qarabic, "arabic");
   DEFSYM (Qsyriac, "syriac");
   DEFSYM (Qnko, "nko");
@@ -2567,7 +2648,19 @@ syms_of_w32font (void)
   DEFSYM (Qyi, "yi");
   DEFSYM (Qbyzantine_musical_symbol, "byzantine-musical-symbol");
   DEFSYM (Qmusical_symbol, "musical-symbol");
-  DEFSYM (Qmathematical, "mathematical");
+  DEFSYM (Qmathematical_bold, "mathematical-bold");
+  DEFSYM (Qmathematical_italic, "mathematical-italic");
+  DEFSYM (Qmathematical_bold_italic, "mathematical-bold-italic");
+  DEFSYM (Qmathematical_script, "mathematical-script");
+  DEFSYM (Qmathematical_bold_script, "mathematical-bold-script");
+  DEFSYM (Qmathematical_fraktur, "mathematical-fraktur");
+  DEFSYM (Qmathematical_double_struck, "mathematical-double-struck");
+  DEFSYM (Qmathematical_bold_fraktur, "mathematical-bold-fraktur");
+  DEFSYM (Qmathematical_sans_serif, "mathematical-sans-serif");
+  DEFSYM (Qmathematical_sans_serif_bold, "mathematical-sans-serif-bold");
+  DEFSYM (Qmathematical_sans_serif_italic, "mathematical-sans-serif-italic");
+  DEFSYM (Qmathematical_sans_serif_bold_italic, "mathematical-sans-serif-bold-italic");
+  DEFSYM (Qmathematical_monospace, "mathematical-monospace");
   DEFSYM (Qcham, "cham");
   DEFSYM (Qphonetic, "phonetic");
   DEFSYM (Qbalinese, "balinese");
@@ -2594,6 +2687,22 @@ syms_of_w32font (void)
   DEFSYM (Qtai_le, "tai_le");
   DEFSYM (Qtifinagh, "tifinagh");
   DEFSYM (Qugaritic, "ugaritic");
+  DEFSYM (Qlycian, "lycian");
+  DEFSYM (Qcarian, "carian");
+  DEFSYM (Qlydian, "lydian");
+  DEFSYM (Qdomino_tile, "domino-tile");
+  DEFSYM (Qmahjong_tile, "mahjong-tile");
+  DEFSYM (Qtai_xuan_jing_symbol, "tai-xuan-jing-symbol");
+  DEFSYM (Qcounting_rod_numeral, "counting-rod-numeral");
+  DEFSYM (Qancient_symbol, "ancient-symbol");
+  DEFSYM (Qphaistos_disc, "phaistos-disc");
+  DEFSYM (Qancient_greek_number, "ancient-greek-number");
+  DEFSYM (Qsundanese, "sundanese");
+  DEFSYM (Qlepcha, "lepcha");
+  DEFSYM (Qol_chiki, "ol-chiki");
+  DEFSYM (Qsaurashtra, "saurashtra");
+  DEFSYM (Qkayah_li, "kayah-li");
+  DEFSYM (Qrejang, "rejang");
 
   /* W32 font encodings.  */
   DEFVAR_LISP ("w32-charset-info-alist",

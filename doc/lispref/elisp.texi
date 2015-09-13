@@ -18,6 +18,7 @@
 @ifclear volflag
 @settitle GNU Emacs Lisp Reference Manual
 @end ifclear
+@include docstyle.texi
 
 @c %**end of header
 
@@ -114,8 +115,6 @@ modify this GNU manual.  Buying copies from the FSF supports it in
 developing GNU and promoting software freedom.''
 @end quotation
 @end copying
-
-@documentencoding UTF-8
 
 @dircategory Emacs lisp
 @direntry
@@ -247,9 +246,9 @@ Appendices
 @end ignore
 
 @c Do NOT modify the following 3 lines!  They must have this form to
-@c be correctly identified by `texinfo-multiple-files-update'.  In
+@c be correctly identified by 'texinfo-multiple-files-update'.  In
 @c particular, the detailed menu header line MUST be identical to the
-@c value of `texinfo-master-menu-header'.  See texnfo-upd.el.
+@c value of 'texinfo-master-menu-header'.  See texnfo-upd.el.
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -454,7 +453,7 @@ Kinds of Forms
                               we find the real function via the symbol.
 * Function Forms::          Forms that call functions.
 * Macro Forms::             Forms that call macros.
-* Special Forms::           "Special forms" are idiosyncratic primitives,
+* Special Forms::           ``Special forms'' are idiosyncratic primitives,
                               most of them extremely important.
 * Autoloading::             Functions set up to load files
                               containing their real definitions.
@@ -486,7 +485,7 @@ Errors
 Variables
 
 * Global Variables::        Variable values that exist permanently, everywhere.
-* Constant Variables::      Certain "variables" have values that never change.
+* Constant Variables::      Certain ``variables'' have values that never change.
 * Local Variables::         Variable values that exist only temporarily.
 * Void Variables::          Symbols that lack values.
 * Defining Variables::      A definition says a symbol is used as a variable.
@@ -600,7 +599,7 @@ Loading
 * Repeated Loading::        Precautions about loading a file twice.
 * Named Features::          Loading a library if it isn't already loaded.
 * Where Defined::           Finding which file defined a certain symbol.
-* Unloading::               How to "unload" a library that was loaded.
+* Unloading::               How to ``unload'' a library that was loaded.
 * Hooks for Loading::       Providing code to be run when
                               particular libraries are loaded.
 
@@ -753,8 +752,8 @@ Defining Commands
 
 Input Events
 
-* Keyboard Events::         Ordinary characters--keys with symbols on them.
-* Function Keys::           Function keys--keys with names, not symbols.
+* Keyboard Events::         Ordinary characters -- keys with symbols on them.
+* Function Keys::           Function keys -- keys with names, not symbols.
 * Mouse Events::            Overview of mouse events.
 * Click Events::            Pushing and releasing a mouse button.
 * Drag Events::             Moving the mouse before releasing the button.
@@ -991,7 +990,7 @@ Buffers
                               is visited.
 * Buffer Modification::     A buffer is @dfn{modified} if it needs to be saved.
 * Modification Time::       Determining whether the visited file was changed
-                              "behind Emacs's back".
+                              ``behind Emacs's back''.
 * Read Only Buffers::       Modifying text is not allowed in a
                               read-only buffer.
 * Buffer List::             How to look at all the existing buffers.
@@ -1042,6 +1041,7 @@ Frames
 
 * Creating Frames::         Creating additional frames.
 * Multiple Terminals::      Displaying on several different devices.
+* Frame Geometry::          Geometric properties of frames.
 * Frame Parameters::        Controlling frame size, position, font, etc.
 * Terminal Parameters::     Parameters common for all frames on terminal.
 * Frame Titles::            Automatic updating of frame titles.
@@ -1065,12 +1065,18 @@ Frames
 * Resources::               Getting resource values from the server.
 * Display Feature Testing:: Determining the features of a terminal.
 
+Frame Geometry
+
+* Frame Layout::            Basic layout of frames.
+* Frame Font::              The default font of a frame and how to set it.
+* Size and Position::       Changing the size and position of a frame.
+* Implied Frame Resizing::  Implied resizing of frames and how to prevent it.
+
 Frame Parameters
 
 * Parameter Access::        How to change a frame's parameters.
 * Initial Parameters::      Specifying frame parameters when you make a frame.
 * Window Frame Parameters:: List of frame parameters for window systems.
-* Size and Position::       Changing the size and position of a frame.
 * Geometry::                Parsing geometry specifications.
 
 Window Frame Parameters
@@ -1111,8 +1117,8 @@ Markers
 * Marker Insertion Types::  Two ways a marker can relocate when you
                               insert where it points.
 * Moving Markers::          Moving the marker to a new buffer or position.
-* The Mark::                How "the mark" is implemented with a marker.
-* The Region::              How to access "the region".
+* The Mark::                How ``the mark'' is implemented with a marker.
+* The Region::              How to access ``the region''.
 
 Text
 
@@ -1146,7 +1152,7 @@ Text
 * Base 64::                 Conversion to or from base 64 encoding.
 * Checksum/Hash::           Computing cryptographic hashes.
 * Parsing HTML/XML::        Parsing HTML and XML.
-* Atomic Changes::          Installing several buffer changes "atomically".
+* Atomic Changes::          Installing several buffer changes ``atomically''.
 * Change Hooks::            Supplying functions to be run when text is changed.
 
 The Kill Ring

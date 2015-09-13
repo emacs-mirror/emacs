@@ -152,13 +152,16 @@ items `Turn Off' and `Help'."
       (setq menu
             (if menu
                 (mouse-menu-non-singleton menu)
-	      `(keymap
-                ,indicator
-                (turn-off menu-item "Turn Off minor mode" ,mm-fun)
-                (help menu-item "Help for minor mode"
-                      (lambda () (interactive)
-                        (describe-function ',mm-fun))))))
-      (popup-menu menu))))
+              (if (fboundp mm-fun)      ; bug#20201
+                  `(keymap
+                    ,indicator
+                    (turn-off menu-item "Turn Off minor mode" ,mm-fun)
+                    (help menu-item "Help for minor mode"
+                          (lambda () (interactive)
+                            (describe-function ',mm-fun)))))))
+      (if menu
+          (popup-menu menu)
+        (message "No menu available")))))
 
 (defun mouse-minor-mode-menu (event)
   "Show minor-mode menu for EVENT on minor modes area of the mode line."
@@ -335,9 +338,12 @@ This command must be bound to a mouse click."
 	  (first-line window-min-height)
 	  (last-line (- (window-height) window-min-height)))
       (if (< last-line first-line)
-	  (error "Window too short to split")
-	(split-window-vertically
-	 (min (max new-height first-line) last-line))))))
+	  (user-error "Window too short to split")
+        ;; Bind `window-combination-resize' to nil so we are sure to get
+        ;; the split right at the line clicked on.
+        (let (window-combination-resize)
+          (split-window-vertically
+           (min (max new-height first-line) last-line)))))))
 
 (defun mouse-split-window-horizontally (click)
   "Select Emacs window mouse is on, then split it horizontally in half.
@@ -351,9 +357,12 @@ This command must be bound to a mouse click."
 	  (first-col window-min-width)
 	  (last-col (- (window-width) window-min-width)))
       (if (< last-col first-col)
-	  (error "Window too narrow to split")
-	(split-window-horizontally
-	 (min (max new-width first-col) last-col))))))
+	  (user-error "Window too narrow to split")
+        ;; Bind `window-combination-resize' to nil so we are sure to get
+        ;; the split right at the column clicked on.
+	(let (window-combination-resize)
+          (split-window-horizontally
+           (min (max new-width first-col) last-col)))))))
 
 (defun mouse-drag-line (start-event line)
   "Drag a mode line, header line, or vertical line with the mouse.
@@ -465,8 +474,10 @@ must be one of the symbols `header', `mode', or `vertical'."
 		  (setq dragged t)
 		  (adjust-window-trailing-edge window growth nil t))
 		(setq last-position position))))))
-      ;; Start tracking.
-      (setq track-mouse t)
+      ;; Start tracking.  The special value 'dragging' signals the
+      ;; display engine to freeze the mouse pointer shape for as long
+      ;; as we drag.
+      (setq track-mouse 'dragging)
       ;; Loop reading events and sampling the position of the mouse.
       (setq exitfun
 	    (set-transient-map
@@ -486,9 +497,10 @@ must be one of the symbols `header', `mode', or `vertical'."
 		   `(menu-item "" ,(lambda () (interactive) (funcall exitfun))
 			       :filter ,(lambda (cmd) (if dragged cmd)))))
 	       ;; Some of the events will of course end up looked up
-	       ;; with a mode-line or header-line prefix ...
+	       ;; with a mode-line, header-line or vertical-line prefix ...
 	       (define-key map [mode-line] map)
 	       (define-key map [header-line] map)
+	       (define-key map [vertical-line] map)
 	       ;; ... and some maybe even with a right- or bottom-divider
 	       ;; prefix.
 	       (define-key map [right-divider] map)
@@ -1015,7 +1027,7 @@ This must be bound to a mouse click."
   (interactive "e")
   (mouse-minibuffer-check click)
   (select-window (posn-window (event-start click)))
-  ;; We don't use save-excursion because that preserves the mark too.
+  ;; FIXME: Use save-excursion
   (let ((point-save (point)))
     (unwind-protect
 	(progn (mouse-set-point click)
@@ -1099,12 +1111,12 @@ This does not delete the region; it acts like \\[kill-ring-save]."
     ;; Delete, but make the undo-list entry share with the kill ring.
     ;; First, delete just one char, so in case buffer is being modified
     ;; for the first time, the undo list records that fact.
-    (let (before-change-functions after-change-functions)
+    (let ((inhibit-modification-hooks t))
       (delete-region beg
 		     (+ beg (if (> end beg) 1 -1))))
     (let ((buffer-undo-list buffer-undo-list))
       ;; Undo that deletion--but don't change the undo list!
-      (let (before-change-functions after-change-functions)
+      (let ((inhibit-modification-hooks t))
 	(primitive-undo 1 buffer-undo-list))
       ;; Now delete the rest of the specified region,
       ;; but don't record it.
@@ -1801,6 +1813,8 @@ choose a font."
 (declare-function buffer-face-mode-invoke "face-remap"
                   (face arg &optional interactive))
 (declare-function font-face-attributes "font.c" (font &optional frame))
+(defvar w32-use-w32-font-dialog)
+(defvar w32-fixed-font-alist)
 
 (defun mouse-appearance-menu (event)
   "Show a menu for changing the default face in the current buffer."
@@ -1820,13 +1834,18 @@ choose a font."
 	(define-key mouse-appearance-menu-map [text-scale-increase]
 	  '(menu-item "Increase Buffer Text Size" text-scale-increase))
 	;; Font selector
-	(if (functionp 'x-select-font)
+	(if (and (functionp 'x-select-font)
+		 (or (not (boundp 'w32-use-w32-font-dialog))
+		     w32-use-w32-font-dialog))
 	    (define-key mouse-appearance-menu-map [x-select-font]
 	      '(menu-item "Change Buffer Font..." x-select-font))
 	  ;; If the select-font is unavailable, construct a menu.
 	  (let ((font-submenu (make-sparse-keymap "Change Text Font"))
-		(font-alist (cdr (append x-fixed-font-alist
-					 (list (generate-fontset-menu))))))
+		(font-alist (cdr (append
+				  (if (eq system-type 'windows-nt)
+				      w32-fixed-font-alist
+				    x-fixed-font-alist)
+				  (list (generate-fontset-menu))))))
 	    (dolist (family font-alist)
 	      (let* ((submenu-name (car family))
 		     (submenu-map (make-sparse-keymap submenu-name)))
@@ -1902,20 +1921,25 @@ choose a font."
 ;; vertical-line prevents Emacs from signaling an error when the mouse
 ;; button is released after dragging these lines, on non-toolkit
 ;; versions.
-(global-set-key [mode-line mouse-1] 'mouse-select-window)
-(global-set-key [mode-line drag-mouse-1] 'mouse-select-window)
-(global-set-key [mode-line down-mouse-1] 'mouse-drag-mode-line)
 (global-set-key [header-line down-mouse-1] 'mouse-drag-header-line)
 (global-set-key [header-line mouse-1] 'mouse-select-window)
+;; (global-set-key [mode-line drag-mouse-1] 'mouse-select-window)
+(global-set-key [mode-line down-mouse-1] 'mouse-drag-mode-line)
+(global-set-key [mode-line mouse-1] 'mouse-select-window)
 (global-set-key [mode-line mouse-2] 'mouse-delete-other-windows)
 (global-set-key [mode-line mouse-3] 'mouse-delete-window)
 (global-set-key [mode-line C-mouse-2] 'mouse-split-window-horizontally)
 (global-set-key [vertical-scroll-bar C-mouse-2] 'mouse-split-window-vertically)
-(global-set-key [vertical-line C-mouse-2] 'mouse-split-window-vertically)
+(global-set-key [horizontal-scroll-bar C-mouse-2] 'mouse-split-window-horizontally)
 (global-set-key [vertical-line down-mouse-1] 'mouse-drag-vertical-line)
-(global-set-key [right-divider down-mouse-1] 'mouse-drag-vertical-line)
-(global-set-key [bottom-divider down-mouse-1] 'mouse-drag-mode-line)
 (global-set-key [vertical-line mouse-1] 'mouse-select-window)
+(global-set-key [vertical-line C-mouse-2] 'mouse-split-window-vertically)
+(global-set-key [right-divider down-mouse-1] 'mouse-drag-vertical-line)
+(global-set-key [right-divider mouse-1] 'ignore)
+(global-set-key [right-divider C-mouse-2] 'mouse-split-window-vertically)
+(global-set-key [bottom-divider down-mouse-1] 'mouse-drag-mode-line)
+(global-set-key [bottom-divider mouse-1] 'ignore)
+(global-set-key [bottom-divider C-mouse-2] 'mouse-split-window-horizontally)
 
 (provide 'mouse)
 

@@ -34,7 +34,7 @@
 If optional argument HERE is non-nil, insert info at point."
   (interactive "P")
   (let ((version-string
-         (format "Version of \`texinfmt.el\': %s" texinfmt-version)))
+         (format-message "Version of `texinfmt.el': %s" texinfmt-version)))
     (if here
         (insert version-string)
       (if (called-interactively-p 'interactive)
@@ -330,25 +330,24 @@ converted to Info is stored in a temporary buffer."
           (let ((arg (texinfo-parse-arg-discard)))
             (insert " "
               texinfo-region-buffer-name
-              " buffer for:  `")
+              (format-message " buffer for:  `"))
             (insert (file-name-nondirectory (expand-file-name arg)))
-            (insert "',        -*-Text-*-\n")))
+            (insert (format-message "',        -*-Text-*-\n"))))
       ;; Else no `@setfilename' line
       (insert " "
               texinfo-region-buffer-name
               " buffer                       -*-Text-*-\n"))
-    (insert "produced by `texinfo-format-region'\n"
+    (insert (format-message "produced by `texinfo-format-region'\n")
             "from a region in: "
             (if (buffer-file-name input-buffer)
-                  (concat "`"
-                          (file-name-sans-versions
-                           (file-name-nondirectory
-                            (buffer-file-name input-buffer)))
-                          "'")
-                (concat "buffer `" (buffer-name input-buffer) "'"))
-              "\nusing `texinfmt.el' version "
-              texinfmt-version
-              ".\n\n")
+		(format-message "`%s'"
+			(file-name-sans-versions
+			 (file-name-nondirectory
+			  (buffer-file-name input-buffer))))
+	      (format-message "buffer `%s'" (buffer-name input-buffer)))
+            (format-message "\nusing `texinfmt.el' version ")
+            texinfmt-version
+            ".\n\n")
 
     ;; Now convert for real.
     (goto-char (point-min))
@@ -479,19 +478,18 @@ if large.  You can use `Info-split' to do this manually."
     ;; Insert info about how this file was made.
     (insert "Info file: "
             texinfo-format-filename ",    -*-Text-*-\n"
-            "produced by `texinfo-format-buffer'\n"
+            (format-message "produced by `texinfo-format-buffer'\n")
             ;; Date string removed so that regression testing is easier.
             ;; "on "
             ;; (insert (format-time-string "%e %b %Y")) " "
             "from file"
             (if (buffer-file-name input-buffer)
-                (concat " `"
+                (format-message " `%s'"
                         (file-name-sans-versions
                          (file-name-nondirectory
-                          (buffer-file-name input-buffer)))
-                        "'")
-              (concat "buffer `" (buffer-name input-buffer) "'"))
-            "\nusing `texinfmt.el' version "
+                          (buffer-file-name input-buffer))))
+              (format-message "buffer `%s'" (buffer-name input-buffer)))
+            (format-message "\nusing `texinfmt.el' version ")
             texinfmt-version
             ".\n\n")
     ;; Return data for indices.
@@ -1287,7 +1285,7 @@ Leave point after argument."
 (put 'uref 'texinfo-format 'texinfo-format-uref)
 (defun texinfo-format-uref ()
   "Format URL and optional URL-TITLE.
-Insert ` ... ' around URL if no URL-TITLE argument;
+Insert \\=` ... \\=' around URL if no URL-TITLE argument;
 otherwise, insert URL-TITLE followed by URL in parentheses."
   (let ((args (texinfo-format-parse-args)))
     (texinfo-discard-command)
@@ -2447,7 +2445,7 @@ Use only the FILENAME arg; for Info, ignore the other arguments to @image."
 ;; not lead to inserted ` ... ' in a table, but does elsewhere.
 (put 'option 'texinfo-format 'texinfo-format-option)
 (defun texinfo-format-option ()
-  "Insert ` ... ' around arg unless inside a table; in that case, no quotes."
+  "Insert \\=` ... \\=' around arg unless inside a table; in that case, no quotes."
   ;; `looking-at-backward' not available in v. 18.57, 20.2
   (if (not (search-backward ""    ; searched-for character is a control-H
                     (line-beginning-position)
@@ -2494,7 +2492,7 @@ Enclose the verbatim text, including the delimiters, in braces.  Print
 text exactly as written (but not the delimiters) in a fixed-width.
 
 For example, @verb\{|@|\} results in @ and
-@verb\{+@'e?`!`+} results in @'e?`!`."
+@verb\{+@\\='e?\\=`!\\=`+} results in @\\='e?\\=`!\\=`."
 
   (let ((delimiter (buffer-substring-no-properties
 		    (1+ texinfo-command-end) (+ 2 texinfo-command-end))))
@@ -3127,7 +3125,7 @@ Default is to leave paragraph indentation as is."
 ;; (put '\` 'texinfo-format 'texinfo-format-grave-accent)
 ;; (defun texinfo-format-grave-accent ()
 ;;   (texinfo-discard-command)
-;;   (insert "\`"))
+;;   (insert "`"))
 ;;
 ;; @'              ==>    '         acute accent
 ;; (put '\' 'texinfo-format 'texinfo-format-acute-accent)

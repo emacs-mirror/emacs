@@ -1,0 +1,519 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <meta name="Author" content="Chip Fleming">
+   <meta name="GENERATOR" content="Mozilla/4.7 [en] (Win95; U) [Netscape]">
+   <title>Tutorial on Convolutional Coding with Viterbi Decoding--Description of the Data Generation, Convolutional Encoding, Channel Mapping and AWGN, and Quantizing Algorithms</title>
+</head>
+<body>
+<a NAME="algorithms"></a><b><font face="Arial"><font size=+1>Description
+of the Algorithms&nbsp; (Part 1)</font></font></b>
+<p>&nbsp;The steps involved in simulating a communication channel using
+convolutional encoding and Viterbi decoding are as follows:
+<ul>
+<li>
+<a href="#genalgorithm">Generate the data</a> to be transmitted through
+the channel-result is binary data bits</li>
+
+<li>
+<a href="#conalgorithm">Convolutionally encode</a> the data-result is channel
+symbols</li>
+
+<li>
+<a href="#mapping">Map the one/zero channel symbols</a> onto an antipodal
+baseband signal, producing transmitted channel symbols</li>
+
+<li>
+<a href="#addnoise">Add noise</a> to the transmitted channel symbols-result
+is received channel symbols</li>
+
+<li>
+<a href="#quantizing">Quantize</a> the received channel levels-one bit
+quantization is called hard-decision, and two to n bit quantization is
+called soft-decision (n is usually three or four)</li>
+
+<li>
+<a href="algrthms2.html">Perform Viterbi decoding</a> on the quantized
+received channel symbols-result is again binary data bits</li>
+
+<li>
+Compare the decoded data bits to the transmitted data bits and count the
+number of errors.</li>
+</ul>
+<i>Many of you will notice that I left out the steps of modulating the
+channel symbols onto a transmitted carrier, and then demodulating the received
+carrier to recover the channel symbols. You're right, but we can accurately
+model the effects of AWGN even though we bypass those steps.</i>
+<p><a NAME="genalgorithm"></a><b><i><font face="Arial">Generating the Data</font></i></b>
+<p>Generating the data to be transmitted through the channel can be accomplished
+quite simply by using a random number generator. One that produces a uniform
+distribution of numbers on the interval 0 to a maximum value is provided
+in C: <tt>rand ()</tt>. Using this function, we can say that any value
+less than half of the maximum value is a zero; any value greater than or
+equal to half of the maximum value is a one.
+<p><a NAME="conalgorithm"></a><b><i><font face="Arial">Convolutionally
+Encoding the Data</font></i></b>
+<p>Convolutionally encoding the data is accomplished using a shift register
+and associated combinatorial logic that performs modulo-two addition. (A
+shift register is merely a chain of flip-flops wherein the output of the
+nth flip-flop is tied to the input of the (n+1)th flip-flop. Every time
+the active edge of the clock occurs, the input to the flip-flop is clocked
+through to the output, and thus the data are shifted over one stage.) The
+combinatorial logic is often in the form of cascaded exclusive-or gates.
+As a reminder, exclusive-or gates are two-input, one-output gates often
+represented by the logic symbol shown below,
+<center>
+<p><img SRC="figs/xor_gate.gif" ALT="exclusive-or gate symbol" height=64 width=93></center>
+
+<p>that implement the following truth-table:
+<br>&nbsp;
+<br>&nbsp;
+<center><table BORDER CELLPADDING=7 WIDTH="218" >
+<tr>
+<td VALIGN=TOP WIDTH="28%">
+<center><b><tt>Input A</tt></b></center>
+</td>
+
+<td VALIGN=TOP WIDTH="27%">
+<center><b><tt>Input B</tt></b></center>
+</td>
+
+<td VALIGN=TOP WIDTH="45%">
+<center><b><tt>Output</tt></b>
+<p><b><tt>(A xor B)</tt></b></center>
+</td>
+</tr>
+
+<tr>
+<td VALIGN=TOP WIDTH="28%">
+<center><tt>0</tt></center>
+</td>
+
+<td VALIGN=TOP WIDTH="27%">
+<center><tt>0</tt></center>
+</td>
+
+<td VALIGN=TOP WIDTH="45%">
+<center><tt>0</tt></center>
+</td>
+</tr>
+
+<tr>
+<td VALIGN=TOP WIDTH="28%">
+<center><tt>0</tt></center>
+</td>
+
+<td VALIGN=TOP WIDTH="27%">
+<center><tt>1</tt></center>
+</td>
+
+<td VALIGN=TOP WIDTH="45%">
+<center><tt>1</tt></center>
+</td>
+</tr>
+
+<tr>
+<td VALIGN=TOP WIDTH="28%">
+<center><tt>1</tt></center>
+</td>
+
+<td VALIGN=TOP WIDTH="27%">
+<center><tt>0</tt></center>
+</td>
+
+<td VALIGN=TOP WIDTH="45%">
+<center><tt>1</tt></center>
+</td>
+</tr>
+
+<tr>
+<td VALIGN=TOP WIDTH="28%">
+<center><tt>1</tt></center>
+</td>
+
+<td VALIGN=TOP WIDTH="27%">
+<center><tt>1</tt></center>
+</td>
+
+<td VALIGN=TOP WIDTH="45%">
+<center><tt>0</tt></center>
+</td>
+</tr>
+</table></center>
+
+<p>The exclusive-or gate performs modulo-two addition of its inputs. When
+you cascade q two-input exclusive-or gates, with the output of the first
+one feeding one of the inputs of the second one, the output of the second
+one feeding one of the inputs of the third one, etc., the output of the
+last one in the chain is the modulo-two sum of the q + 1 inputs.
+<p>Another way to illustrate the modulo-two adder, and the way that is
+most commonly used in textbooks, is as a circle with a + symbol inside,
+thus:
+<center>
+<p><img SRC="figs/ringsum.gif" ALT="modulo-two adder symbol" height=48 width=48></center>
+
+<p>Now that we have the two basic components of the convolutional encoder
+(flip-flops comprising the shift register and exclusive-or gates comprising
+the associated modulo-two adders) defined, let's look at a picture of a
+convolutional encoder for a rate 1/2, K = 3, m = 2 code:
+<br>&nbsp;
+<br>&nbsp;
+<br>
+<center>
+<p><img SRC="figs/ce_7_5_a.gif" ALT="rate 1/2 K = 3 (7, 5) convolutional encoder" height=232 width=600></center>
+
+<p>In this encoder, data bits are provided at a rate of k bits per second.
+Channel symbols are output at a rate of n = 2k symbols per second. The
+input bit is stable during the encoder cycle. The encoder cycle starts
+when an input clock edge occurs. When the input clock edge occurs, the
+output of the left-hand flip-flop is clocked into the right-hand flip-flop,
+the previous input bit is clocked into the left-hand flip-flop, and a new
+input bit becomes available. Then the outputs of the upper and lower modulo-two
+adders become stable. The output selector (SEL A/B block) cycles through
+two states-in the first state, it selects and outputs the output of the
+upper modulo-two adder; in the second state, it selects and outputs the
+output of the lower modulo-two adder.
+<p>The encoder shown above encodes the K = 3, (7, 5) convolutional code.
+The octal numbers 7 and 5 represent the code generator polynomials, which
+when read in binary (111<sub>2</sub> and 101<sub>2</sub>) correspond to
+the shift register connections to the upper and lower modulo-two adders,
+respectively. This code has been determined to be the "best" code for rate
+1/2, K = 3. It is the code I will use for the remaining discussion and
+examples, for reasons that will become readily apparent when we get into
+the Viterbi decoder algorithm.
+<p>Let's look at an example input data stream, and the corresponding output
+data stream:
+<p>Let the input sequence be 010111001010001<sub>2</sub>.
+<p>Assume that the outputs of both of the flip-flops in the shift register
+are initially cleared, i.e. their outputs are zeroes. The first clock cycle
+makes the first input bit, a zero, available to the encoder. The flip-flop
+outputs are both zeroes. The inputs to the modulo-two adders are all zeroes,
+so the output of the encoder is 00<sub>2</sub>.
+<p>The second clock cycle makes the second input bit available to the encoder.
+The left-hand flip-flop clocks in the previous bit, which was a zero, and
+the right-hand flip-flop clocks in the zero output by the left-hand flip-flop.
+The inputs to the top modulo-two adder are 100<sub>2</sub>, so the output
+is a one. The inputs to the bottom modulo-two adder are 10<sub>2</sub>,
+so the output is also a one. So the encoder outputs 11<sub>2</sub> for
+the channel symbols.
+<p>The third clock cycle makes the third input bit, a zero, available to
+the encoder. The left-hand flip-flop clocks in the previous bit, which
+was a one, and the right-hand flip-flop clocks in the zero from two bit-times
+ago. The inputs to the top modulo-two adder are 010<sub>2</sub>, so the
+output is a one. The inputs to the bottom modulo-two adder are 00<sub>2</sub>,
+so the output is zero. So the encoder outputs 10<sub>2</sub> for the channel
+symbols.
+<p>And so on. The timing diagram shown below illustrates the process:
+<br>&nbsp;
+<br>&nbsp;
+<br>
+<center>
+<p><img SRC="figs/ce_td.gif" ALT="timing diagram for rate 1/2 convolutional encoder" height=322 width=600></center>
+
+<p><br>
+<br>
+<br>
+<p>After all of the inputs have been presented to the encoder, the output
+sequence will be:
+<p>00 11 10 00 01 10 01 11 11 10 00 10 11 00 11<sub>2</sub>.
+<p>Notice that I have paired the encoder outputs-the first bit in each
+pair is the output of the upper modulo-two adder; the second bit in each
+pair is the output of the lower modulo-two adder.
+<p>You can see from the structure of the rate 1/2 K = 3 convolutional encoder
+and from the example given above that each input bit has an effect on three
+successive pairs of output symbols. That is an extremely important point
+and that is what gives the convolutional code its error-correcting power.
+The reason why will become evident when we get into the Viterbi decoder
+algorithm.
+<p>Now if we are only going to send the 15 data bits given above, in order
+for the last bit to affect three pairs of output symbols, we need to output
+two more pairs of symbols. This is accomplished in our example encoder
+by clocking the convolutional encoder flip-flops two ( = m) more times,
+while holding the input at zero. This is called "flushing" the encoder,
+and results in two more pairs of output symbols. The final binary output
+of the encoder is thus 00 11 10 00 01 10 01 11 11 10 00 10 11 00 11 10
+11<sub>2</sub>. If we don't perform the flushing operation, the last m
+bits of the message have less error-correction capability than the first
+through (m - 1)th bits had. This is a pretty important thing to remember
+if you're going to use this FEC technique in a burst-mode environment.
+So's the step of clearing the shift register at the beginning of each burst.
+The encoder must start in a known state and end in a known state for the
+decoder to be able to reconstruct the input data sequence properly.
+<p>Now, let's look at the encoder from another perspective. You can think
+of the encoder as a simple state machine. The example encoder has two bits
+of memory, so there are four possible states. Let's give the left-hand
+flip-flop a binary weight of 2<sup>1</sup>, and the right-hand flip-flop
+a binary weight of 2<sup>0</sup>. Initially, the encoder is in the all-zeroes
+state. If the first input bit is a zero, the encoder stays in the all zeroes
+state at the next clock edge. But if the input bit is a one, the encoder
+transitions to the 10<sub>2</sub> state at the next clock edge. Then, if
+the next input bit is zero, the encoder transitions to the 01<sub>2</sub>
+state, otherwise, it transitions to the 11<sub>2</sub> state. The following
+table gives the next state given the current state and the input, with
+the states given in binary:
+<br>&nbsp;
+<br>&nbsp;
+<center><table BORDER CELLSPACING=2 CELLPADDING=7 WIDTH="282" >
+<tr>
+<td VALIGN=TOP WIDTH="33%"><font face="Arial"><font size=-1>&nbsp;</font></font></td>
+
+<td VALIGN=TOP COLSPAN="2" WIDTH="67%">
+<center><a NAME="statetable"></a><b><font face="Arial"><font size=-1>Next
+State, if&nbsp;</font></font></b></center>
+</td>
+</tr>
+
+<tr>
+<td VALIGN=TOP WIDTH="33%">
+<center><b><font face="Arial"><font size=-1>Current State</font></font></b></center>
+</td>
+
+<td VALIGN=TOP WIDTH="33%">
+<center><b><font face="Arial"><font size=-1>Input = 0:</font></font></b></center>
+</td>
+
+<td VALIGN=TOP WIDTH="33%">
+<center><b><font face="Arial"><font size=-1>Input = 1:</font></font></b></center>
+</td>
+</tr>
+
+<tr>
+<td VALIGN=TOP WIDTH="33%">
+<center><font face="Arial"><font size=-1>00</font></font></center>
+</td>
+
+<td VALIGN=TOP WIDTH="33%">
+<center><font face="Arial"><font size=-1>00</font></font></center>
+</td>
+
+<td VALIGN=TOP WIDTH="33%">
+<center><font face="Arial"><font size=-1>10</font></font></center>
+</td>
+</tr>
+
+<tr>
+<td VALIGN=TOP WIDTH="33%">
+<center><font face="Arial"><font size=-1>01</font></font></center>
+</td>
+
+<td VALIGN=TOP WIDTH="33%">
+<center><font face="Arial"><font size=-1>00</font></font></center>
+</td>
+
+<td VALIGN=TOP WIDTH="33%">
+<center><font face="Arial"><font size=-1>10</font></font></center>
+</td>
+</tr>
+
+<tr>
+<td VALIGN=TOP WIDTH="33%">
+<center><font face="Arial"><font size=-1>10</font></font></center>
+</td>
+
+<td VALIGN=TOP WIDTH="33%">
+<center><font face="Arial"><font size=-1>01</font></font></center>
+</td>
+
+<td VALIGN=TOP WIDTH="33%">
+<center><font face="Arial"><font size=-1>11</font></font></center>
+</td>
+</tr>
+
+<tr>
+<td VALIGN=TOP WIDTH="33%">
+<center><font face="Arial"><font size=-1>11</font></font></center>
+</td>
+
+<td VALIGN=TOP WIDTH="33%">
+<center><font face="Arial"><font size=-1>01</font></font></center>
+</td>
+
+<td VALIGN=TOP WIDTH="33%">
+<center><font face="Arial"><font size=-1>11</font></font></center>
+</td>
+</tr>
+</table></center>
+
+<br>&nbsp;
+<p>The above table is often called a state transition table. We'll refer
+to it as the <tt>next state</tt> table.<tt> </tt>Now let us look at a table
+that lists the channel output symbols, given the current state and the
+input data, which we'll refer to as the <tt>output</tt> table:
+<br>&nbsp;
+<br>&nbsp;
+<center><table BORDER CELLSPACING=2 CELLPADDING=7 WIDTH="282" >
+<tr>
+<td VALIGN=TOP WIDTH="33%"></td>
+
+<td VALIGN=TOP COLSPAN="2" WIDTH="67%">
+<center><a NAME="outputtable"></a><b><font face="Arial"><font size=-1>Output
+Symbols, if</font></font></b></center>
+</td>
+</tr>
+
+<tr>
+<td VALIGN=TOP WIDTH="33%">
+<center><b><font face="Arial"><font size=-1>Current State</font></font></b></center>
+</td>
+
+<td VALIGN=TOP WIDTH="33%">
+<center><b><font face="Arial"><font size=-1>Input = 0:</font></font></b></center>
+</td>
+
+<td VALIGN=TOP WIDTH="33%">
+<center><b><font face="Arial"><font size=-1>Input = 1:</font></font></b></center>
+</td>
+</tr>
+
+<tr>
+<td VALIGN=TOP WIDTH="33%">
+<center><font face="Arial"><font size=-1>00</font></font></center>
+</td>
+
+<td VALIGN=TOP WIDTH="33%">
+<center><font face="Arial"><font size=-1>00</font></font></center>
+</td>
+
+<td VALIGN=TOP WIDTH="33%">
+<center><font face="Arial"><font size=-1>11</font></font></center>
+</td>
+</tr>
+
+<tr>
+<td VALIGN=TOP WIDTH="33%">
+<center><font face="Arial"><font size=-1>01</font></font></center>
+</td>
+
+<td VALIGN=TOP WIDTH="33%">
+<center><font face="Arial"><font size=-1>11</font></font></center>
+</td>
+
+<td VALIGN=TOP WIDTH="33%">
+<center><font face="Arial"><font size=-1>00</font></font></center>
+</td>
+</tr>
+
+<tr>
+<td VALIGN=TOP WIDTH="33%">
+<center><font face="Arial"><font size=-1>10</font></font></center>
+</td>
+
+<td VALIGN=TOP WIDTH="33%">
+<center><font face="Arial"><font size=-1>10</font></font></center>
+</td>
+
+<td VALIGN=TOP WIDTH="33%">
+<center><font face="Arial"><font size=-1>01</font></font></center>
+</td>
+</tr>
+
+<tr>
+<td VALIGN=TOP WIDTH="33%">
+<center><font face="Arial"><font size=-1>11</font></font></center>
+</td>
+
+<td VALIGN=TOP WIDTH="33%">
+<center><font face="Arial"><font size=-1>01</font></font></center>
+</td>
+
+<td VALIGN=TOP WIDTH="33%">
+<center><font face="Arial"><font size=-1>10</font></font></center>
+</td>
+</tr>
+</table></center>
+
+<br>&nbsp;
+<p>You should now see that with these two tables, you can completely describe
+the behavior of the example rate 1/2, K = 3 convolutional encoder. Note
+that both of these tables have 2<sup>(K - 1)</sup> rows, and 2<sup>k</sup>
+columns, where K is the constraint length and k is the number of bits input
+to the encoder for each cycle. These two tables will come in handy when
+we start discussing the Viterbi decoder algorithm.
+<p><a NAME="mapping"></a><b><i><font face="Arial">Mapping the Channel Symbols
+to Signal Levels</font></i></b>
+<p>Mapping the one/zero output of the convolutional encoder onto an antipodal
+baseband signaling scheme is simply a matter of translating zeroes to +1s
+and ones to -1s. This can be accomplished by performing the operation y
+= 1 - 2x on each convolutional encoder output symbol.
+<p><a NAME="addnoise"></a><b><i><font face="Arial">Adding Noise to the
+Transmitted Symbols</font></i></b>
+<p>Adding noise to the transmitted channel symbols produced by the convolutional
+encoder involves generating Gaussian random numbers, scaling the numbers
+according to the desired energy per symbol to noise density ratio, E<sub>s</sub>/N<sub>0</sub>,
+and adding the scaled Gaussian random numbers to the channel symbol values.
+<p>For the uncoded channel, E<sub>s</sub>/N<sub>0 </sub>= E<sub>b</sub>/N<sub>0</sub>,
+since there is one channel symbol per bit.&nbsp; However, for the coded
+channel, E<sub>s</sub>/N<sub>0 </sub>= E<sub>b</sub>/N<sub>0</sub> + 10log<sub>10</sub>(k/n).&nbsp;
+For example, for rate 1/2 coding, E<sub>s</sub>/N<sub>0 </sub>= E<sub>b</sub>/N<sub>0</sub>
++ 10log<sub>10</sub>(1/2) = E<sub>b</sub>/N<sub>0</sub> - 3.01 dB.&nbsp;
+Similarly, for rate 2/3 coding, E<sub>s</sub>/N<sub>0 </sub>= E<sub>b</sub>/N<sub>0</sub>
++ 10log<sub>10</sub>(2/3) = E<sub>b</sub>/N<sub>0</sub> - 1.76 dB.
+<p>The Gaussian random number generator is the only interesting part of
+this task. C only provides a uniform random number generator, <tt>rand()</tt>.
+In order to obtain Gaussian random numbers, we take advantage of relationships
+between uniform, Rayleigh, and Gaussian distributions:
+<p>Given a uniform random variable U, a Rayleigh random variable R can
+be obtained by:
+<p><img SRC="figs/eqn01.gif" ALT="equation for Rayleigh random deviate given uniform random deviate" height=30 width=297 align=ABSCENTER>
+<p>where&nbsp;<img SRC="figs/eqn02.gif" height=24 width=24 align=ABSCENTER>is
+the variance of the Rayleigh random variable, and given R and a second
+uniform random variable V, two Gaussian random variables G and H can be
+obtained by
+<p><i>G</i> = <i>R</i> cos <i>U</i> and <i>H</i> = <i>R</i> sin <i>V</i>.
+<p>In the AWGN channel, the signal is corrupted by additive noise, n(t),
+which has the power spectrum <i>No</i>/2 watts/Hz. The variance&nbsp;<img SRC="figs/eqn02.gif" ALT="variance" height=24 width=24 align=ABSBOTTOM>of
+this noise is equal to&nbsp;<img SRC="figs/eqn03.gif" ALT="noise density div by two" height=22 width=38 align=TEXTTOP>.
+If we set the energy per symbol <i>E<sub>s</sub></i> equal to 1, then&nbsp;<img SRC="figs/eqn04.gif" ALT="equation relating variance to SNR" height=28 width=110 align=ABSBOTTOM>.
+So&nbsp;<img SRC="figs/eqn05.gif" ALT="equation for AWGN st dev given SNR" height=28 width=139 align=ABSCENTER>.
+<p><a NAME="quantizing"></a><b><i><font face="Arial">Quantizing the Received
+Channel Symbols</font></i></b>
+<p>An ideal Viterbi decoder would work with infinite precision, or at least
+with floating-point numbers. In practical systems, we quantize the received
+channel symbols with one or a few bits of precision in order to reduce
+the complexity of the Viterbi decoder, not to mention the circuits that
+precede it. If the received channel symbols are quantized to one-bit precision
+(&lt; 0V = 1, <u>></u> 0V = 0), the result is called hard-decision data.
+If the received channel symbols are quantized with more than one bit of
+precision, the result is called soft-decision data. A Viterbi decoder with
+soft decision data inputs quantized to three or four bits of precision
+can perform about 2 dB better than one working with hard-decision inputs.
+The usual quantization precision is three bits. More bits provide little
+additional improvement.
+<p>The selection of the quantizing levels is an important design decision
+because it can have a significant effect on the performance of the link.
+The following is a very brief explanation of one way to set those levels.
+Let's assume our received signal levels in the absence of noise are -1V
+= 1, +1V = 0. With noise, our received signal has mean +/- 1 and standard
+deviation&nbsp;<img SRC="figs/eqn05.gif" ALT="equation for AWGN st dev given SNR" height=28 width=139 align=ABSCENTER>.
+Let's use a uniform, three-bit quantizer having the input/output relationship
+shown in the figure below, where D is a decision level that we will calculate
+shortly:
+<center>
+<p><img SRC="figs/quantize.gif" ALT="8-level quantizer function plot" height=342 width=384></center>
+
+<p>The decision level, D, can be calculated according to the formula&nbsp;<img SRC="figs/eqn06.gif" ALT="equation for quantizer decision level" height=28 width=228 align=ABSCENTER>,
+where E<sub>s</sub>/N<sub>0</sub> is the energy per symbol to noise density
+ratio<i>. (The above figure was redrawn from Figure 2 of Advanced Hardware
+Architecture's ANRS07-0795, "Soft Decision Thresholds and Effects on Viterbi
+Performance". See the </i><a href="fecbiblio.html">bibliography</a><i>&nbsp;
+for a link to their web pages.)</i>
+<p>Click <a href="algrthms2.html">here</a> to proceed to the description
+of the Viterbi decoding algorithm itself...
+<p>Or click on one of the links below to go to the beginning of that section:
+<p>&nbsp;<a href="tutorial.html">Introduction</a>
+<br>&nbsp;<a href="algrthms2.html">Description of the Algorithms&nbsp;
+(Part 2)</a>
+<br>&nbsp;<a href="examples.html">Simulation Source Code Examples</a>
+<br>&nbsp;<a href="simrslts.html">Example Simulation Results</a>
+<br>&nbsp;<a href="fecbiblio.html">Bibliography</a>
+<br>&nbsp;<a href="tutorial.html#specapps">About Spectrum Applications...</a>
+<br>&nbsp;
+<br>&nbsp;
+<br>
+<br>
+<center>
+<p><img SRC="figs/stripe.gif" height=6 width=600></center>
+
+</body>
+</html>

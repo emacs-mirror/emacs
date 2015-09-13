@@ -173,7 +173,7 @@ It can have the following values:
   first-line  indentation for the first line in a buffer or SUBROUTINE.
 CUR-INDENT is the indentation of the preceding command line.
 EXTRA-INDENT is the default change in indentation for this line
-\(a negative number for 'outdent).
+\(a negative number for “outdent”).
 LAST-POINT is the buffer position of the first significant word on the
 previous line or nil if the current line is the first line.
 THIS-POINT is the buffer position of the first significant word on the

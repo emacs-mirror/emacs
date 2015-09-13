@@ -22,71 +22,71 @@ in code we don't use often.  Please send bug reports to the mailing
 list bug-gnu-emacs@gnu.org.  If possible, use M-x report-emacs-bug.
 
 See the "Bugs" section of the Emacs manual for more information on how
-to report bugs.  (The file `BUGS' in this directory explains how you
+to report bugs.  (The file 'BUGS' in this directory explains how you
 can find and read that section using the Info files that come with
 Emacs.)  For a list of mailing lists related to Emacs, see
 <http://savannah.gnu.org/mail/?group=emacs>.  For the complete
 list of GNU mailing lists, see <http://lists.gnu.org/>.
 
-The `etc' subdirectory contains several other files, named in capital
+The 'etc' subdirectory contains several other files, named in capital
 letters, which you might consider looking at when installing GNU
 Emacs.
 
-The file `configure' is a shell script to acclimate Emacs to the
+The file 'configure' is a shell script to acclimate Emacs to the
 oddities of your processor and operating system.  It creates the file
-`Makefile' (a script for the `make' program), which automates the
+'Makefile' (a script for the 'make' program), which automates the
 process of building and installing Emacs.  See INSTALL for more
 detailed information.
 
-The file `configure.ac' is the input used by the autoconf program to
-construct the `configure' script.
+The file 'configure.ac' is the input used by the autoconf program to
+construct the 'configure' script.
 
-The shell script `autogen.sh' generates 'configure' and other files by
+The shell script 'autogen.sh' generates 'configure' and other files by
 running the GNU build tools autoconf and automake, which in turn use
 GNU m4 and Perl.  If you want to use it, you will need to install
 recent versions of these build tools.  This should be needed only if
-you edit files like `configure.ac' that specify Emacs's autobuild
+you edit files like 'configure.ac' that specify Emacs's autobuild
 procedure.
 
-The file `Makefile.in' is a template used by `configure' to create
-`Makefile'.
+The file 'Makefile.in' is a template used by 'configure' to create
+'Makefile'.
 
-The file `make-dist' is a shell script to build a distribution tar
+The file 'make-dist' is a shell script to build a distribution tar
 file from the current Emacs tree, containing only those files
 appropriate for distribution.  If you make extensive changes to Emacs,
 this script will help you distribute your version to others.
 
 There are several subdirectories:
 
-`src'       holds the C code for Emacs (the Emacs Lisp interpreter and
+'src'       holds the C code for Emacs (the Emacs Lisp interpreter and
             its primitives, the redisplay code, and some basic editing
             functions).
-`lisp'      holds the Emacs Lisp code for Emacs (most everything else).
-`leim'      holds the original source files for the generated files
+'lisp'      holds the Emacs Lisp code for Emacs (most everything else).
+'leim'      holds the original source files for the generated files
             in lisp/leim.  These form the library of Emacs input methods,
             required to type international characters that can't be
             directly produced by your keyboard.
-`lib'       holds source code for libraries used by Emacs and its utilities
-`lib-src'   holds the source code for some utility programs for use by or
+'lib'       holds source code for libraries used by Emacs and its utilities
+'lib-src'   holds the source code for some utility programs for use by or
             with Emacs, like movemail and etags.
-`etc'       holds miscellaneous architecture-independent data files Emacs
+'etc'       holds miscellaneous architecture-independent data files Emacs
             uses, like the tutorial text and tool bar images.
-            The contents of the `lisp', `leim', `info', and `doc'
+            The contents of the 'lisp', 'leim', 'info', and 'doc'
             subdirectories are architecture-independent too.
-`info'      holds the Info documentation tree for Emacs.
-`doc/emacs' holds the source code for the Emacs Manual.  If you modify the
-            manual sources, you will need the `makeinfo' program to produce
-            an updated manual.  `makeinfo' is part of the GNU Texinfo
+'info'      holds the Info documentation tree for Emacs.
+'doc/emacs' holds the source code for the Emacs Manual.  If you modify the
+            manual sources, you will need the 'makeinfo' program to produce
+            an updated manual.  'makeinfo' is part of the GNU Texinfo
             package; you need a suitably recent version of Texinfo.
-`doc/lispref'   holds the source code for the Emacs Lisp reference manual.
-`doc/lispintro' holds the source code for the Introduction to Programming
+'doc/lispref'   holds the source code for the Emacs Lisp reference manual.
+'doc/lispintro' holds the source code for the Introduction to Programming
                 in Emacs Lisp manual.
-`msdos'     holds configuration files for compiling Emacs under MS-DOS.
-`nextstep'  holds instructions and some other files for compiling the
+'msdos'     holds configuration files for compiling Emacs under MS-DOS.
+'nextstep'  holds instructions and some other files for compiling the
             Nextstep port of Emacs, for GNUstep and Mac OS X Cocoa.
-`nt'        holds various command files and documentation files that pertain
+'nt'        holds various command files and documentation files that pertain
             to building and running Emacs on Windows 9X/ME/NT/2000/XP.
-`test'      holds tests for various aspects of Emacs's functionality.
+'test'      holds tests for various aspects of Emacs's functionality.
 
    Building Emacs on non-Posix platforms requires tools that aren't part
 of the standard distribution of the OS.  The platform-specific README

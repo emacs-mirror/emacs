@@ -54,6 +54,7 @@ for doing so on MS-DOS).  Menus are supported on all text terminals.
 * Multiple Displays::   How one Emacs instance can talk to several displays.
 * Frame Parameters::    Changing the colors and other modes of frames.
 * Scroll Bars::         How to enable and disable scroll bars; how to use them.
+* Window Dividers::     Window separators that can be dragged with the mouse.
 * Drag and Drop::       Using drag and drop to open files and insert text.
 * Menu Bars::           Enabling and disabling the menu bar.
 * Tool Bars::           Enabling and disabling the tool bar.
@@ -411,8 +412,8 @@ Select a Dired buffer for directory @var{directory} in another frame.
 This runs @code{dired-other-frame}.  @xref{Dired}.
 @item C-x 5 m
 Start composing a mail message in another frame.  This runs
-@code{mail-other-frame}.  It is the other-frame variant of @kbd{C-x m}.
-@xref{Sending Mail}.
+@code{compose-mail-other-frame}.  It is the other-frame variant of
+@kbd{C-x m}.  @xref{Sending Mail}.
 @item C-x 5 .
 Find a tag in the current tag table in another frame.  This runs
 @code{find-tag-other-frame}, the multiple-frame variant of @kbd{M-.}.
@@ -443,7 +444,7 @@ error if there is only one frame.
 @item C-z
 @kindex C-z @r{(X windows)}
 @findex suspend-frame
-Minimize (or ``iconify) the selected Emacs frame
+Minimize (or ``iconify'') the selected Emacs frame
 (@code{suspend-frame}).  @xref{Exiting}.
 
 @item C-x 5 o
@@ -573,7 +574,7 @@ the following form:
 @end example
 
 @noindent
-Within this format, any of the elements in braces may be omitted.
+Within this format, any of the elements in brackets may be omitted.
 Here, @var{fontname} is the @dfn{family name} of the font, such as
 @samp{Monospace} or @samp{DejaVu Sans Mono}; @var{fontsize} is the
 @dfn{point size} of the font (one @dfn{printer's point} is about 1/72
@@ -703,7 +704,10 @@ The font width---normally @samp{normal}, @samp{condensed},
 other values.
 @item style
 An optional additional style name.  Usually it is empty---most XLFDs
-have two hyphens in a row at this point.
+have two hyphens in a row at this point.  The style name can also
+specify a two-letter ISO-639 language name, like @samp{ja} or
+@samp{ko}; some fonts that support CJK scripts have that spelled out
+in the style name part.
 @item pixels
 The font height, in pixels.
 @item height
@@ -955,7 +959,7 @@ bar width, change the @code{scroll-bar-width} frame parameter
 @cindex overscrolling
 If you're using Emacs on X (with GTK+ or Motif), you can customize the
 variable @code{scroll-bar-adjust-thumb-portion} to control
-@dfn{overscrolling} of the scroll bar, i.e. dragging the thumb down even
+@dfn{overscrolling} of the scroll bar, i.e., dragging the thumb down even
 when the end of the buffer is visible.  If its value is
 non-@code{nil}, the scroll bar can be dragged downwards even if the
 end of the buffer is shown; if @code{nil}, the thumb will be at the
@@ -997,6 +1001,35 @@ variable @code{horizontal-scroll-bar-mode}.
 or disable horizontal scroll bars (@pxref{Resources}).  To control the
 scroll bar height, change the @code{scroll-bar-height} frame parameter
 (@pxref{Frame Parameters,,, elisp, The Emacs Lisp Reference Manual}).
+
+@node Window Dividers
+@section Window Dividers
+@cindex Window Divider mode
+@cindex mode, Window Divider
+
+  On graphical displays, you can use @dfn{window dividers} in order to
+separate windows visually.  Window dividers are bars that can be dragged
+with the mouse, thus allowing to easily resize adjacent windows.
+
+@findex window-divider-mode
+  To toggle the display of window dividers, use the command @kbd{M-x
+window-divider-mode}.
+
+@vindex window-divider-default-places
+  To customize where dividers should appear, use the option
+@code{window-divider-default-places}.  Its value should be either
+@code{bottom-only} (to show dividers only on the bottom of windows),
+@code{right-only} (to show dividers only on the right of windows), or
+@code{t} (to show them on the bottom and on the right).
+
+@vindex window-divider-default-bottom-width
+@vindex window-divider-default-right-width
+  To adjust the width of window dividers displayed by this mode
+customize the options @code{window-divider-default-bottom-width} and
+@code{window-divider-default-right-width}.
+
+   For more details about window dividers see @ref{Window Dividers,,
+Window Dividers, elisp, The Emacs Lisp Reference Manual}.
 
 @node Drag and Drop
 @section Drag and Drop

@@ -135,9 +135,10 @@ automatically display the image in the buffer."
   (cond ((fboundp 'libxml-parse-html-region) 'rmail-mime-render-html-shr)
 	((executable-find "lynx") 'rmail-mime-render-html-lynx)
 	(t nil))
-  "Function to convert HTML to text.  Called with buffer containing HTML
-extracted from message in a temporary buffer.  Converts to text in current 
-buffer. If NIL, display HTML source."
+  "Function to convert HTML to text.
+Called with buffer containing HTML extracted from message in a
+temporary buffer.  Converts to text in current buffer.  If nil,
+display HTML source."
   :group 'rmail
   :version "25.1"
   :type '(choice function (const nil)))
@@ -705,6 +706,9 @@ HEADER is a header component of a MIME-entity object (see
 	      (insert-buffer-substring source-buffer))
 	    (rmail-mime-fix-inserted-faces start)))))))
 
+(declare-function libxml-parse-html-region "xml.c"
+		  (start end &optional base-url discard-comments))
+
 (defun rmail-mime-render-html-shr (source-buffer)
   (let ((dom (with-current-buffer source-buffer
 	       (libxml-parse-html-region (point-min) (point-max))))
@@ -732,12 +736,12 @@ HEADER is a header component of a MIME-entity object (see
 (defun rmail-mime-fix-inserted-faces (start)
   (while (< start (point))
     (let ((face (get-text-property start 'face))
-	  (next (next-single-property-change 
+	  (next (next-single-property-change
 		 start 'face (current-buffer) (point))))
       (if face				; anything to do?
 	  (put-text-property start next 'font-lock-face face))
       (setq start next))))
-    
+
 (defun rmail-mime-toggle-button (button)
   "Hide or show the body of the MIME-entity associated with BUTTON."
   (save-excursion

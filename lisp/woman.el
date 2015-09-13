@@ -161,7 +161,7 @@
 
 ;; The WoMan menu provides an option to make a contents menu for the
 ;; current man page (using imenu).  Alternatively, if you set the
-;; variable `woman-imenu' to `t' then WoMan will do it automatically
+;; variable `woman-imenu' to t then WoMan will do it automatically
 ;; for every man page.  The menu title is the value of the variable
 ;; `woman-imenu-title', which is "CONTENTS" by default.  By default,
 ;; the menu shows manual sections and subsections, but you can change
@@ -179,7 +179,7 @@
 ;; Howard Melman made (essentially) the following suggestions, which
 ;; are slightly different from the expression that I currently use.
 ;; You may prefer one of Howard's suggestions, which I think assume
-;; that `case-fold-search' is `t' (which it is by default):
+;; that `case-fold-search' is t (which it is by default):
 
 ;; (setq woman-imenu-generic-expression
 ;;       '((nil "^\\(   \\)?\\([A-Z][A-Z ]+[A-Z]\\)[ \t]*$" 2)))
@@ -217,7 +217,7 @@
 ;; This is modeled on the byte-compiler.  It logs all files formatted
 ;; by WoMan, and if WoMan finds anything that it cannot handle then it
 ;; writes a warning to this buffer.  If the variable `woman-show-log'
-;; is non-nil (by default it is `nil') then WoMan automatically
+;; is non-nil (by default it is nil) then WoMan automatically
 ;; displays this buffer.  Many WoMan warnings can be completely
 ;; ignored, because they are reporting the fact that WoMan has ignored
 ;; requests that it is correct to ignore.  In some future version this
@@ -228,8 +228,8 @@
 
 ;; Uninterpreted ?roff requests can optionally be left in the
 ;; formatted buffer to indicate precisely where they occur by
-;; resetting the variable `woman-ignore' to `nil' (by default it is
-;; `t').
+;; resetting the variable `woman-ignore' to nil (by default it is
+;; t).
 
 ;; Automatic initiation of woman decoding
 
@@ -278,7 +278,7 @@
 ;; CASE-DEPENDENCE OF FILENAMES.  By default, WoMan ignores case in
 ;; file pathnames only when it seems appropriate.  MS-Windows users
 ;; who want complete case independence should set the NTEmacs variable
-;; `w32-downcase-file-names' to `t' and use all lower case when
+;; `w32-downcase-file-names' to t and use all lower case when
 ;; setting WoMan file paths.
 
 ;; (1) INCOMPATIBLE CHANGE!  WoMan no longer uses a persistent topic
@@ -786,7 +786,7 @@ without interactive confirmation, if it exists as a topic."
 
 (defvar woman-file-regexp nil
   "Regexp used to select (possibly compressed) man source files, e.g.
-\"\\.\\([0-9lmnt]\\w*\\)\\(\\.\\(g?z\\|bz2\\|xz\\)\\)?\\'\".
+\"\\.\\([0-9lmnt]\\w*\\)\\(\\.\\(g?z\\|bz2\\|xz\\)\\)?\\\\='\".
 Built automatically from the customizable user options
 `woman-uncompressed-file-regexp' and `woman-file-compression-regexp'.")
 
@@ -816,7 +816,7 @@ becoming more common in the GNU world.  For example, the man pages
 in the ncurses package include `toe.1m', `form.3x', etc.
 
 Note: an optional compression regexp will be appended, so this regexp
-MUST NOT end with any kind of string terminator such as $ or \\'."
+MUST NOT end with any kind of string terminator such as $ or \\\\='."
   :type 'regexp
   :set 'set-woman-file-regexp
   :group 'woman-interface)
@@ -826,8 +826,8 @@ MUST NOT end with any kind of string terminator such as $ or \\'."
   "Do not change this unless you are sure you know what you are doing!
 Regexp used to match compressed man file extensions for which
 decompressors are available and handled by auto-compression mode,
-e.g. \"\\\\.\\\\(g?z\\\\|bz2\\\\|xz\\\\)\\\\'\" for `gzip', `bzip2', or `xz'.
-Should begin with \\. and end with \\' and MUST NOT be optional."
+e.g. \"\\\\.\\\\(g?z\\\\|bz2\\\\|xz\\\\)\\\\\\='\" for `gzip', `bzip2', or `xz'.
+Should begin with \\. and end with \\\\=' and MUST NOT be optional."
   ;; Should be compatible with car of
   ;; `jka-compr-file-name-handler-entry', but that is unduly
   ;; complicated, includes an inappropriate extension (.tgz) and is
@@ -1651,7 +1651,7 @@ Do not call directly!"
 	     (setq woman-frame (make-frame)))))
     (set-buffer (get-buffer-create bufname))
     (condition-case nil
-        (switch-to-buffer (current-buffer))
+        (display-buffer (current-buffer))
       (error (pop-to-buffer (current-buffer))))
     (buffer-disable-undo)
     (setq buffer-read-only nil)
@@ -2061,14 +2061,14 @@ alist in `woman-buffer-alist' and return nil."
   (if (zerop woman-buffer-number)
       (let ((buffer (get-buffer (cdr (car woman-buffer-alist)))))
 	(if buffer
-	    (switch-to-buffer buffer)
+	    (display-buffer buffer)
 	  ;; Delete alist element:
 	  (setq woman-buffer-alist (cdr woman-buffer-alist))
 	  nil))
     (let* ((prev-ptr (nthcdr (1- woman-buffer-number) woman-buffer-alist))
 	   (buffer (get-buffer (cdr (car (cdr prev-ptr))))))
       (if buffer
-	  (switch-to-buffer buffer)
+	  (display-buffer buffer)
 	;; Delete alist element:
 	(setcdr prev-ptr (cdr (cdr prev-ptr)))
 	(if (>= woman-buffer-number (length woman-buffer-alist))
@@ -3719,7 +3719,7 @@ expression in parentheses.  Leaves point after the value."
   "Find and return start of next control line.
 PAT, if non-nil, specifies an additional component of the control
 line regexp to search for, which is appended to the default
-regexp, \"\\(\\\\c\\)?\\n[.']\"."
+regexp, \"\\(\\\\c\\)?\\n[.\\=']\"."
   (let ((pattern (concat "\\(\\\\c\\)?\n[.']" pat))
         to)
     (save-excursion
@@ -3981,7 +3981,7 @@ Optional argument NUMERIC, if non-nil, means the argument is numeric."
     (goto-char from)))
 
 (defun woman-horizontal-line ()
-  "\\l'Nc' -- Draw a horizontal line of length N using character c, default _."
+  "\\l\\='Nc\\=' -- Draw a horizontal line of length N using character c, default _."
   (delete-char -1)
   (delete-char 1)
   (looking-at "\\(.\\)\\(.*\\)\\1")
@@ -4548,11 +4548,11 @@ Format paragraphs upto TO."
 
 (defun WoMan-log (format &rest args)
   "Log a message out of FORMAT control string and optional ARGS."
-  (WoMan-log-1 (apply 'format format args)))
+  (WoMan-log-1 (apply #'format-message format args)))
 
 (defun WoMan-warn (format &rest args)
   "Log a warning message out of FORMAT control string and optional ARGS."
-  (setq format (apply 'format format args))
+  (setq format (apply #'format-message format args))
   (WoMan-log-1 (concat "**  " format)))
 
 ;; request is not used dynamically by any callees.

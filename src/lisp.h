@@ -278,10 +278,7 @@ error !;
 #endif
 
 #ifndef alignas
-# define alignas(alignment) /* empty */
-# if USE_LSB_TAG
-#  error "USE_LSB_TAG requires alignas"
-# endif
+# error "alignas not defined"
 #endif
 
 #ifdef HAVE_STRUCT_ATTRIBUTE_ALIGNED
@@ -731,9 +728,7 @@ struct Lisp_Symbol
 
 /* Yield an integer that contains a symbol tag along with OFFSET.
    OFFSET should be the offset in bytes from 'lispsym' to the symbol.  */
-#define TAG_SYMOFFSET(offset)				    \
-  TAG_PTR (Lisp_Symbol,					    \
-	   ((uintptr_t) (offset) >> (USE_LSB_TAG ? 0 : GCTYPEBITS)))
+#define TAG_SYMOFFSET(offset) TAG_PTR (Lisp_Symbol, offset)
 
 /* XLI_BUILTIN_LISPSYM (iQwhatever) is equivalent to
    XLI (builtin_lisp_symbol (Qwhatever)),
@@ -899,8 +894,6 @@ INLINE struct Lisp_Symbol *
 XSYMBOL (Lisp_Object a)
 {
   uintptr_t i = (uintptr_t) XUNTAG (a, Lisp_Symbol);
-  if (! USE_LSB_TAG)
-    i <<= GCTYPEBITS;
   void *p = (char *) lispsym + i;
   return p;
 }
@@ -1143,10 +1136,6 @@ make_pointer_integer (void *p)
 LISP_MACRO_DEFUN_VOID (CHECK_TYPE,
 		       (int ok, Lisp_Object predicate, Lisp_Object x),
 		       (ok, predicate, x))
-
-/* Deprecated and will be removed soon.  */
-
-#define INTERNAL_FIELD(field) field ## _
 
 /* See the macros in intervals.h.  */
 
@@ -2747,7 +2736,7 @@ XFLOATINT (Lisp_Object n)
 INLINE void
 CHECK_NUMBER_OR_FLOAT (Lisp_Object x)
 {
-  CHECK_TYPE (FLOATP (x) || INTEGERP (x), Qnumberp, x);
+  CHECK_TYPE (NUMBERP (x), Qnumberp, x);
 }
 
 #define CHECK_NUMBER_OR_FLOAT_COERCE_MARKER(x)				\
@@ -2755,7 +2744,7 @@ CHECK_NUMBER_OR_FLOAT (Lisp_Object x)
     if (MARKERP (x))							\
       XSETFASTINT (x, marker_position (x));				\
     else								\
-      CHECK_TYPE (INTEGERP (x) || FLOATP (x), Qnumber_or_marker_p, x);	\
+      CHECK_TYPE (NUMBERP (x), Qnumber_or_marker_p, x);			\
   } while (false)
 
 /* Since we can't assign directly to the CAR or CDR fields of a cons
@@ -3042,9 +3031,6 @@ struct handler
 
   /* Most global vars are reset to their value via the specpdl mechanism,
      but a few others are handled by storing their value here.  */
-#if true /* GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS, but defined later.  */
-  struct gcpro *gcpro;
-#endif
   sys_jmp_buf jmp;
   EMACS_INT lisp_eval_depth;
   ptrdiff_t pdlcount;
@@ -3071,7 +3057,6 @@ struct handler
   (c)->pdlcount = SPECPDL_INDEX ();			\
   (c)->poll_suppress_count = poll_suppress_count;	\
   (c)->interrupt_input_blocked = interrupt_input_blocked;\
-  (c)->gcpro = gcprolist;				\
   (c)->byte_stack = byte_stack_list;			\
   handlerlist = (c);
 
@@ -3118,262 +3103,6 @@ extern void process_quit_flag (void);
 extern Lisp_Object Vascii_downcase_table;
 extern Lisp_Object Vascii_canon_table;
 
-/* Structure for recording stack slots that need marking.  */
-
-/* This is a chain of structures, each of which points at a Lisp_Object
-   variable whose value should be marked in garbage collection.
-   Normally every link of the chain is an automatic variable of a function,
-   and its `val' points to some argument or local variable of the function.
-   On exit to the function, the chain is set back to the value it had on entry.
-   This way, no link remains in the chain when the stack frame containing the
-   link disappears.
-
-   Every function that can call Feval must protect in this fashion all
-   Lisp_Object variables whose contents will be used again.  */
-
-extern struct gcpro *gcprolist;
-
-struct gcpro
-{
-  struct gcpro *next;
-
-  /* Address of first protected variable.  */
-  volatile Lisp_Object *var;
-
-  /* Number of consecutive protected variables.  */
-  ptrdiff_t nvars;
-
-#ifdef DEBUG_GCPRO
-  /* File name where this record is used.  */
-  const char *name;
-
-  /* Line number in this file.  */
-  int lineno;
-
-  /* Index in the local chain of records.  */
-  int idx;
-
-  /* Nesting level.  */
-  int level;
-#endif
-};
-
-/* Values of GC_MARK_STACK during compilation:
-
-   0	Use GCPRO as before
-   1	Do the real thing, make GCPROs and UNGCPRO no-ops.
-   2    Mark the stack, and check that everything GCPRO'd is
-	marked.
-   3	Mark using GCPRO's, mark stack last, and count how many
-	dead objects are kept alive.
-
-   Formerly, method 0 was used.  Currently, method 1 is used unless
-   otherwise specified by hand when building, e.g.,
-   "make CPPFLAGS='-DGC_MARK_STACK=GC_USE_GCPROS_AS_BEFORE'".
-   Methods 2 and 3 are present mainly to debug the transition from 0 to 1.  */
-
-#define GC_USE_GCPROS_AS_BEFORE		0
-#define GC_MAKE_GCPROS_NOOPS		1
-#define GC_MARK_STACK_CHECK_GCPROS	2
-#define GC_USE_GCPROS_CHECK_ZOMBIES	3
-
-#ifndef GC_MARK_STACK
-#define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
-#endif
-
-/* Whether we do the stack marking manually.  */
-#define BYTE_MARK_STACK !(GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS		\
-			  || GC_MARK_STACK == GC_MARK_STACK_CHECK_GCPROS)
-
-
-#if GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS
-
-/* Do something silly with gcproN vars just so gcc shuts up.  */
-/* You get warnings from MIPSPro...  */
-
-#define GCPRO1(varname) ((void) gcpro1)
-#define GCPRO2(varname1, varname2) ((void) gcpro2, (void) gcpro1)
-#define GCPRO3(varname1, varname2, varname3) \
-  ((void) gcpro3, (void) gcpro2, (void) gcpro1)
-#define GCPRO4(varname1, varname2, varname3, varname4) \
-  ((void) gcpro4, (void) gcpro3, (void) gcpro2, (void) gcpro1)
-#define GCPRO5(varname1, varname2, varname3, varname4, varname5) \
-  ((void) gcpro5, (void) gcpro4, (void) gcpro3, (void) gcpro2, (void) gcpro1)
-#define GCPRO6(varname1, varname2, varname3, varname4, varname5, varname6) \
-  ((void) gcpro6, (void) gcpro5, (void) gcpro4, (void) gcpro3, (void) gcpro2, \
-   (void) gcpro1)
-#define GCPRO7(a, b, c, d, e, f, g) (GCPRO6 (a, b, c, d, e, f), (void) gcpro7)
-#define UNGCPRO ((void) 0)
-
-#else /* GC_MARK_STACK != GC_MAKE_GCPROS_NOOPS */
-
-#ifndef DEBUG_GCPRO
-
-#define GCPRO1(a)							\
-  { gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
-    gcprolist = &gcpro1; }
-
-#define GCPRO2(a, b)							\
-  { gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
-    gcpro2.next = &gcpro1; gcpro2.var = &(b); gcpro2.nvars = 1;		\
-    gcprolist = &gcpro2; }
-
-#define GCPRO3(a, b, c)							\
-  { gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
-    gcpro2.next = &gcpro1; gcpro2.var = &(b); gcpro2.nvars = 1;		\
-    gcpro3.next = &gcpro2; gcpro3.var = &(c); gcpro3.nvars = 1;		\
-    gcprolist = &gcpro3; }
-
-#define GCPRO4(a, b, c, d)						\
-  { gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
-    gcpro2.next = &gcpro1; gcpro2.var = &(b); gcpro2.nvars = 1;		\
-    gcpro3.next = &gcpro2; gcpro3.var = &(c); gcpro3.nvars = 1;		\
-    gcpro4.next = &gcpro3; gcpro4.var = &(d); gcpro4.nvars = 1;		\
-    gcprolist = &gcpro4; }
-
-#define GCPRO5(a, b, c, d, e)						\
-  { gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
-    gcpro2.next = &gcpro1; gcpro2.var = &(b); gcpro2.nvars = 1;		\
-    gcpro3.next = &gcpro2; gcpro3.var = &(c); gcpro3.nvars = 1;		\
-    gcpro4.next = &gcpro3; gcpro4.var = &(d); gcpro4.nvars = 1;		\
-    gcpro5.next = &gcpro4; gcpro5.var = &(e); gcpro5.nvars = 1;		\
-    gcprolist = &gcpro5; }
-
-#define GCPRO6(a, b, c, d, e, f)					\
-  { gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
-    gcpro2.next = &gcpro1; gcpro2.var = &(b); gcpro2.nvars = 1;		\
-    gcpro3.next = &gcpro2; gcpro3.var = &(c); gcpro3.nvars = 1;		\
-    gcpro4.next = &gcpro3; gcpro4.var = &(d); gcpro4.nvars = 1;		\
-    gcpro5.next = &gcpro4; gcpro5.var = &(e); gcpro5.nvars = 1;		\
-    gcpro6.next = &gcpro5; gcpro6.var = &(f); gcpro6.nvars = 1;		\
-    gcprolist = &gcpro6; }
-
-#define GCPRO7(a, b, c, d, e, f, g)					\
-  { gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
-    gcpro2.next = &gcpro1; gcpro2.var = &(b); gcpro2.nvars = 1;		\
-    gcpro3.next = &gcpro2; gcpro3.var = &(c); gcpro3.nvars = 1;		\
-    gcpro4.next = &gcpro3; gcpro4.var = &(d); gcpro4.nvars = 1;		\
-    gcpro5.next = &gcpro4; gcpro5.var = &(e); gcpro5.nvars = 1;		\
-    gcpro6.next = &gcpro5; gcpro6.var = &(f); gcpro6.nvars = 1;		\
-    gcpro7.next = &gcpro6; gcpro7.var = &(g); gcpro7.nvars = 1;		\
-    gcprolist = &gcpro7; }
-
-#define UNGCPRO (gcprolist = gcpro1.next)
-
-#else /* !DEBUG_GCPRO */
-
-extern int gcpro_level;
-
-#define GCPRO1(a)							\
-  { gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
-    gcpro1.name = __FILE__; gcpro1.lineno = __LINE__; gcpro1.idx = 1;	\
-    gcpro1.level = gcpro_level++;					\
-    gcprolist = &gcpro1; }
-
-#define GCPRO2(a, b)							\
-  { gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
-    gcpro1.name = __FILE__; gcpro1.lineno = __LINE__; gcpro1.idx = 1;	\
-    gcpro1.level = gcpro_level;					   	\
-    gcpro2.next = &gcpro1; gcpro2.var = &(b); gcpro2.nvars = 1;		\
-    gcpro2.name = __FILE__; gcpro2.lineno = __LINE__; gcpro2.idx = 2;	\
-    gcpro2.level = gcpro_level++;					\
-    gcprolist = &gcpro2; }
-
-#define GCPRO3(a, b, c)							\
-  { gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
-    gcpro1.name = __FILE__; gcpro1.lineno = __LINE__; gcpro1.idx = 1;	\
-    gcpro1.level = gcpro_level;						\
-    gcpro2.next = &gcpro1; gcpro2.var = &(b); gcpro2.nvars = 1;		\
-    gcpro2.name = __FILE__; gcpro2.lineno = __LINE__; gcpro2.idx = 2;	\
-    gcpro3.next = &gcpro2; gcpro3.var = &(c); gcpro3.nvars = 1;		\
-    gcpro3.name = __FILE__; gcpro3.lineno = __LINE__; gcpro3.idx = 3;	\
-    gcpro3.level = gcpro_level++;					\
-    gcprolist = &gcpro3; }
-
-#define GCPRO4(a, b, c, d)						\
-  { gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
-    gcpro1.name = __FILE__; gcpro1.lineno = __LINE__; gcpro1.idx = 1;	\
-    gcpro1.level = gcpro_level;						\
-    gcpro2.next = &gcpro1; gcpro2.var = &(b); gcpro2.nvars = 1;		\
-    gcpro2.name = __FILE__; gcpro2.lineno = __LINE__; gcpro2.idx = 2;	\
-    gcpro3.next = &gcpro2; gcpro3.var = &(c); gcpro3.nvars = 1;		\
-    gcpro3.name = __FILE__; gcpro3.lineno = __LINE__; gcpro3.idx = 3;	\
-    gcpro4.next = &gcpro3; gcpro4.var = &(d); gcpro4.nvars = 1;		\
-    gcpro4.name = __FILE__; gcpro4.lineno = __LINE__; gcpro4.idx = 4;	\
-    gcpro4.level = gcpro_level++;					\
-    gcprolist = &gcpro4; }
-
-#define GCPRO5(a, b, c, d, e)						\
-  { gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
-    gcpro1.name = __FILE__; gcpro1.lineno = __LINE__; gcpro1.idx = 1;	\
-    gcpro1.level = gcpro_level;						\
-    gcpro2.next = &gcpro1; gcpro2.var = &(b); gcpro2.nvars = 1;		\
-    gcpro2.name = __FILE__; gcpro2.lineno = __LINE__; gcpro2.idx = 2;	\
-    gcpro3.next = &gcpro2; gcpro3.var = &(c); gcpro3.nvars = 1;		\
-    gcpro3.name = __FILE__; gcpro3.lineno = __LINE__; gcpro3.idx = 3;	\
-    gcpro4.next = &gcpro3; gcpro4.var = &(d); gcpro4.nvars = 1;		\
-    gcpro4.name = __FILE__; gcpro4.lineno = __LINE__; gcpro4.idx = 4;	\
-    gcpro5.next = &gcpro4; gcpro5.var = &(e); gcpro5.nvars = 1;		\
-    gcpro5.name = __FILE__; gcpro5.lineno = __LINE__; gcpro5.idx = 5;	\
-    gcpro5.level = gcpro_level++;					\
-    gcprolist = &gcpro5; }
-
-#define GCPRO6(a, b, c, d, e, f)					\
-  { gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
-    gcpro1.name = __FILE__; gcpro1.lineno = __LINE__; gcpro1.idx = 1;	\
-    gcpro1.level = gcpro_level;						\
-    gcpro2.next = &gcpro1; gcpro2.var = &(b); gcpro2.nvars = 1;		\
-    gcpro2.name = __FILE__; gcpro2.lineno = __LINE__; gcpro2.idx = 2;	\
-    gcpro3.next = &gcpro2; gcpro3.var = &(c); gcpro3.nvars = 1;		\
-    gcpro3.name = __FILE__; gcpro3.lineno = __LINE__; gcpro3.idx = 3;	\
-    gcpro4.next = &gcpro3; gcpro4.var = &(d); gcpro4.nvars = 1;		\
-    gcpro4.name = __FILE__; gcpro4.lineno = __LINE__; gcpro4.idx = 4;	\
-    gcpro5.next = &gcpro4; gcpro5.var = &(e); gcpro5.nvars = 1;		\
-    gcpro5.name = __FILE__; gcpro5.lineno = __LINE__; gcpro5.idx = 5;	\
-    gcpro6.next = &gcpro5; gcpro6.var = &(f); gcpro6.nvars = 1;		\
-    gcpro6.name = __FILE__; gcpro6.lineno = __LINE__; gcpro6.idx = 6;	\
-    gcpro6.level = gcpro_level++;					\
-    gcprolist = &gcpro6; }
-
-#define GCPRO7(a, b, c, d, e, f, g)					\
-  { gcpro1.next = gcprolist; gcpro1.var = &(a); gcpro1.nvars = 1;	\
-    gcpro1.name = __FILE__; gcpro1.lineno = __LINE__; gcpro1.idx = 1;	\
-    gcpro1.level = gcpro_level;						\
-    gcpro2.next = &gcpro1; gcpro2.var = &(b); gcpro2.nvars = 1;		\
-    gcpro2.name = __FILE__; gcpro2.lineno = __LINE__; gcpro2.idx = 2;	\
-    gcpro3.next = &gcpro2; gcpro3.var = &(c); gcpro3.nvars = 1;		\
-    gcpro3.name = __FILE__; gcpro3.lineno = __LINE__; gcpro3.idx = 3;	\
-    gcpro4.next = &gcpro3; gcpro4.var = &(d); gcpro4.nvars = 1;		\
-    gcpro4.name = __FILE__; gcpro4.lineno = __LINE__; gcpro4.idx = 4;	\
-    gcpro5.next = &gcpro4; gcpro5.var = &(e); gcpro5.nvars = 1;		\
-    gcpro5.name = __FILE__; gcpro5.lineno = __LINE__; gcpro5.idx = 5;	\
-    gcpro6.next = &gcpro5; gcpro6.var = &(f); gcpro6.nvars = 1;		\
-    gcpro6.name = __FILE__; gcpro6.lineno = __LINE__; gcpro6.idx = 6;	\
-    gcpro7.next = &gcpro6; gcpro7.var = &(g); gcpro7.nvars = 1;		\
-    gcpro7.name = __FILE__; gcpro7.lineno = __LINE__; gcpro7.idx = 7;	\
-    gcpro7.level = gcpro_level++;					\
-    gcprolist = &gcpro7; }
-
-#define UNGCPRO					\
-  (--gcpro_level != gcpro1.level		\
-   ? emacs_abort ()				\
-   : (void) (gcprolist = gcpro1.next))
-
-#endif /* DEBUG_GCPRO */
-#endif /* GC_MARK_STACK != GC_MAKE_GCPROS_NOOPS */
-
-
-/* Evaluate expr, UNGCPRO, and then return the value of expr.  */
-#define RETURN_UNGCPRO(expr)			\
-  do						\
-    {						\
-      Lisp_Object ret_ungc_val;			\
-      ret_ungc_val = (expr);			\
-      UNGCPRO;					\
-      return ret_ungc_val;			\
-    }						\
-  while (false)
-
 /* Call staticpro (&var) to protect static variable `var'.  */
 
 void staticpro (Lisp_Object *);
@@ -3678,7 +3407,8 @@ extern Lisp_Object sit_for (Lisp_Object, bool, int);
 /* Defined in xdisp.c.  */
 extern bool noninteractive_need_newline;
 extern Lisp_Object echo_area_buffer[2];
-extern void add_to_log (const char *, Lisp_Object, Lisp_Object);
+extern void add_to_log (char const *, ...);
+extern void vadd_to_log (char const *, va_list);
 extern void check_message_stack (void);
 extern void setup_echo_area_for_printing (bool);
 extern bool push_message (void);
@@ -3887,7 +3617,6 @@ extern void init_alloc (void);
 extern void syms_of_alloc (void);
 extern struct buffer * allocate_buffer (void);
 extern int valid_lisp_object_p (Lisp_Object);
-extern int relocatable_string_data_p (const char *);
 #ifdef GC_CHECK_CONS_LIST
 extern void check_cons_list (void);
 #else
@@ -3923,7 +3652,7 @@ extern Lisp_Object Vprin1_to_string_buffer;
 extern void debug_print (Lisp_Object) EXTERNALLY_VISIBLE;
 extern void temp_output_buffer_setup (const char *);
 extern int print_level;
-extern void write_string (const char *, int);
+extern void write_string (const char *);
 extern void print_error_message (Lisp_Object, Lisp_Object, const char *,
 				 Lisp_Object);
 extern Lisp_Object internal_with_output_to_temp_buffer
@@ -4040,6 +3769,7 @@ extern _Noreturn void verror (const char *, va_list)
   ATTRIBUTE_FORMAT_PRINTF (1, 0);
 extern void un_autoload (Lisp_Object);
 extern Lisp_Object call_debugger (Lisp_Object arg);
+extern void *near_C_stack_top (void);
 extern void init_eval_once (void);
 extern Lisp_Object safe_call (ptrdiff_t, Lisp_Object, ...);
 extern Lisp_Object safe_call1 (Lisp_Object, Lisp_Object);
@@ -4057,7 +3787,6 @@ extern bool let_shadows_global_binding_p (Lisp_Object symbol);
 
 /* Defined in editfns.c.  */
 extern void insert1 (Lisp_Object);
-extern Lisp_Object format2 (const char *, Lisp_Object, Lisp_Object);
 extern Lisp_Object save_excursion_save (void);
 extern Lisp_Object save_restriction_save (void);
 extern void save_excursion_restore (Lisp_Object);
@@ -4066,7 +3795,7 @@ extern _Noreturn void time_overflow (void);
 extern Lisp_Object make_buffer_string (ptrdiff_t, ptrdiff_t, bool);
 extern Lisp_Object make_buffer_string_both (ptrdiff_t, ptrdiff_t, ptrdiff_t,
 					    ptrdiff_t, bool);
-extern void init_editfns (void);
+extern void init_editfns (bool);
 extern void syms_of_editfns (void);
 
 /* Defined in buffer.c.  */
@@ -4310,6 +4039,18 @@ extern void set_initial_environment (void);
 extern void syms_of_callproc (void);
 
 /* Defined in doc.c.  */
+enum text_quoting_style
+  {
+    /* Use curved single quotes ‘like this’.  */
+    CURVE_QUOTING_STYLE,
+
+    /* Use grave accent and apostrophe  `like this'.  */
+    GRAVE_QUOTING_STYLE,
+
+    /* Use apostrophes 'like this'.  */
+    STRAIGHT_QUOTING_STYLE
+  };
+extern enum text_quoting_style text_quoting_style (void);
 extern Lisp_Object read_doc_string (Lisp_Object);
 extern Lisp_Object get_doc_string (Lisp_Object, bool, bool);
 extern void syms_of_doc (void);
@@ -4318,10 +4059,7 @@ extern int read_bytecode_char (bool);
 /* Defined in bytecode.c.  */
 extern void syms_of_bytecode (void);
 extern struct byte_stack *byte_stack_list;
-#if BYTE_MARK_STACK
-extern void mark_byte_stack (void);
-#endif
-extern void unmark_byte_stack (void);
+extern void relocate_byte_stack (void);
 extern Lisp_Object exec_byte_code (Lisp_Object, Lisp_Object, Lisp_Object,
 				   Lisp_Object, ptrdiff_t, Lisp_Object *);
 
@@ -4654,13 +4392,6 @@ lisp_word_count (ptrdiff_t nbytes)
 
 #ifndef USE_STACK_LISP_OBJECTS
 # define USE_STACK_LISP_OBJECTS true
-#endif
-
-/* USE_STACK_LISP_OBJECTS requires GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS.  */
-
-#if GC_MARK_STACK != GC_MAKE_GCPROS_NOOPS
-# undef USE_STACK_LISP_OBJECTS
-# define USE_STACK_LISP_OBJECTS false
 #endif
 
 #ifdef GC_CHECK_STRING_BYTES

@@ -254,25 +254,28 @@ malicious code.
 
 Note: This function recurses when a slot of :type of some object is
 identified, and needing more object creation."
-  (let ((objclass (nth 0 inputlist))
-	;; (objname (nth 1 inputlist))
-	(slots (nthcdr 2 inputlist))
-	(createslots nil))
-
-    ;; If OBJCLASS is an eieio autoload object, then we need to load it.
-    (eieio-class-un-autoload objclass)
+  (let* ((objclass (nth 0 inputlist))
+	 ;; (objname (nth 1 inputlist))
+	 (slots (nthcdr 2 inputlist))
+	 (createslots nil)
+	 (class
+	  (progn
+	    ;; If OBJCLASS is an eieio autoload object, then we need to
+	    ;; load it.
+	    (eieio-class-un-autoload objclass)
+	    (eieio--class-object objclass))))
 
     (while slots
-      (let ((name (car slots))
+      (let ((initarg (car slots))
 	    (value (car (cdr slots))))
 
 	;; Make sure that the value proposed for SLOT is valid.
 	;; In addition, strip out quotes, list functions, and update
 	;; object constructors as needed.
 	(setq value (eieio-persistent-validate/fix-slot-value
-		     (eieio--class-v objclass) name value))
+		     class (eieio--initarg-to-attribute class initarg) value))
 
-	(push name createslots)
+	(push initarg createslots)
 	(push value createslots)
 	)
 
@@ -290,16 +293,12 @@ constructor functions are considered valid.
 Second, any text properties will be stripped from strings."
   (cond ((consp proposed-value)
 	 ;; Lists with something in them need special treatment.
-	 (let ((slot-idx (eieio--slot-name-index class slot))
-	       (type nil)
-	       (classtype nil))
-	   (setq slot-idx (- slot-idx
-                             (eval-when-compile eieio--object-num-slots)))
-	   (setq type (aref (eieio--class-public-type class)
-			    slot-idx))
-
-	   (setq classtype (eieio-persistent-slot-type-is-class-p
-			    type))
+	 (let* ((slot-idx (- (eieio--slot-name-index class slot)
+                             (eval-when-compile
+                               (length (cl-struct-slot-info 'eieio--object)))))
+                (type (cl--slot-descriptor-type (aref (eieio--class-slots class)
+                                                      slot-idx)))
+                (classtype (eieio-persistent-slot-type-is-class-p type)))
 
 	   (cond ((eq (car proposed-value) 'quote)
 		  (car (cdr proposed-value)))
@@ -430,37 +429,28 @@ Optional argument COMMENT is a header line comment."
   "Save persistent object THIS to disk.
 Optional argument FILE overrides the file name specified in the object
 instance."
-  (save-excursion
-    (let ((b (set-buffer (get-buffer-create " *tmp object write*")))
-	  (default-directory (file-name-directory (oref this file)))
-	  (cfn (oref this file)))
-      (unwind-protect
-	  (save-excursion
-	    (erase-buffer)
-	    (let ((standard-output (current-buffer)))
-	      (oset this file
-		    (if file
-			(eieio-persistent-path-relative this file)
-		      (file-name-nondirectory cfn)))
-	      (object-write this (oref this file-header-line)))
-	    (let ((backup-inhibited (not (oref this do-backups)))
-		  (cs (car (find-coding-systems-region
-			    (point-min) (point-max)))))
-	      (unless (eq cs 'undecided)
-		(setq buffer-file-coding-system cs))
-	      ;; Old way - write file.  Leaves message behind.
-	      ;;(write-file cfn nil)
+  (when file (setq file (expand-file-name file)))
+  (with-temp-buffer
+    (let* ((cfn (or file (oref this file)))
+           (default-directory (file-name-directory cfn)))
+      (cl-letf ((standard-output (current-buffer))
+                ((oref this file)       ;FIXME: Why change it?
+                 (if file
+                     ;; FIXME: Makes a name relative to (oref this file),
+                     ;; whereas I think it should be relative to cfn.
+                     (eieio-persistent-path-relative this file)
+                   (file-name-nondirectory cfn))))
+        (object-write this (oref this file-header-line)))
+      (let ((backup-inhibited (not (oref this do-backups)))
+            (coding-system-for-write 'utf-8-emacs))
+        ;; Old way - write file.  Leaves message behind.
+        ;;(write-file cfn nil)
 
-	      ;; New way - Avoid the vast quantities of error checking
-	      ;; just so I can get at the special flags that disable
-	      ;; displaying random messages.
-	      (write-region (point-min) (point-max)
-			    cfn nil 1)
-	      ))
-	;; Restore :file, and kill the tmp buffer
-	(oset this file cfn)
-	(setq buffer-file-name nil)
-	(kill-buffer b)))))
+        ;; New way - Avoid the vast quantities of error checking
+        ;; just so I can get at the special flags that disable
+        ;; displaying random messages.
+        (write-region (point-min) (point-max) cfn nil 1)
+        ))))
 
 ;; Notes on the persistent object:
 ;; It should also set up some hooks to help it keep itself up to date.
@@ -499,6 +489,15 @@ All slots are unbound, except those initialized with PARAMS."
                                     "-" (int-to-string num)))
                         (concat nm "-1")))))
     nobj))
+
+(cl-defmethod make-instance ((class (subclass eieio-named)) &rest args)
+  (if (not (stringp (car args)))
+      (cl-call-next-method)
+    (funcall (if eieio-backward-compatibility #'ignore #'message)
+             "Obsolete: name passed without :object-name to %S constructor"
+             class)
+    (apply #'cl-call-next-method class :object-name args)))
+
 
 (provide 'eieio-base)
 

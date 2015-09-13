@@ -633,7 +633,7 @@ okay.  See `mode-line-format'.")
       ;; file-supersession should all be user-errors!
       `(beginning-of-line beginning-of-buffer end-of-line
 	end-of-buffer end-of-file buffer-read-only
-	file-supersession
+	file-supersession mark-inactive
         user-error ;; That's the main one!
         ))
 

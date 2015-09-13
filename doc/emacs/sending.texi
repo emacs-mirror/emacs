@@ -568,8 +568,8 @@ was yanked, but it checks the text that you yourself inserted (it
 looks for indentation or @code{mail-yank-prefix} to distinguish the
 cited lines from your input).  @xref{Spelling}.
 
-@vindex mail-mode-hook
-@vindex mail-setup-hook
+@vindex message-mode-hook
+@vindex message-setup-hook
   Turning on Message mode (which @kbd{C-x m} does automatically) runs
 the normal hooks @code{text-mode-hook} and @code{message-mode-hook}.
 Initializing a new outgoing message runs the normal hook

@@ -368,7 +368,7 @@ routine.")
          ;; Report the percentage complete.
          (setq opascal-progress-last-reported-point p)
          (message "%s %s ... %d%%"
-                  desc (buffer-name) (/ (* 100 p) (point-max))))))
+                  desc (buffer-name) (floor (* 100.0 p) (point-max))))))
 
 (defun opascal-next-line-start (&optional from-point)
   ;; Returns the first point of the next line.

@@ -225,7 +225,7 @@ to store your global macros in a more natural way."
   )
 
 (defcustom semantic-c-member-of-autocast 't
-  "Non-nil means classes with a '->' operator will cast to its return type.
+  "Non-nil means classes with a `->' operator will cast to its return type.
 
 For Examples:
 
@@ -498,12 +498,12 @@ code to parse."
 	 (parsedtokelist
 	  (condition-case nil
 	      ;; This is imperfect, so always assume on error.
-	      (hif-canonicalize)
+	      (hif-canonicalize hif-ifx-regexp)
 	    (error nil))))
 
     (let ((eval-form (condition-case err
 			 (eval parsedtokelist)
-		       (error 
+		       (error
 			(semantic-push-parser-warning
 			 (format "Hideif forms produced an error.  Assuming false.\n%S" err)
 			 (point) (1+ (point)))
@@ -1049,8 +1049,8 @@ now.
     return-list))
 
 (defun semantic-expand-c-extern-C (tag)
-  "Expand TAG containing an 'extern \"C\"' statement.
-This will return all members of TAG with 'extern \"C\"' added to
+  "Expand TAG containing an `extern \"C\"' statement.
+This will return all members of TAG with `extern \"C\"' added to
 the typemodifiers attribute."
     (when (eq (semantic-tag-class tag) 'extern)
       (let* ((mb (semantic-tag-get-attribute tag :members))
@@ -1065,7 +1065,7 @@ the typemodifiers attribute."
 (defun semantic-expand-c-complex-type (tag)
   "Check if TAG has a full :type with a name on its own.
 If so, extract it, and replace it with a reference to that type.
-Thus, 'struct A { int a; } B;' will create 2 toplevel tags, one
+Thus, `struct A { int a; } B;' will create 2 toplevel tags, one
 is type A, and the other variable B where the :type of B is just
 a type tag A that is a prototype, and the actual struct info of A
 is its own toplevel tag.  This function will return (cons A B)."
@@ -1656,7 +1656,7 @@ SPEC-LIST is the template specifier of the datatype instantiated."
 
 (defun semantic-c--template-name-1 (spec-list)
   "Return a string used to compute template class name.
-Based on SPEC-LIST, for ref<Foo,Bar> it will return 'Foo,Bar'."
+Based on SPEC-LIST, for ref<Foo,Bar> it will return `Foo,Bar'."
   (when (car spec-list)
     (let* ((endpart (semantic-c--template-name-1 (cdr spec-list)))
 	   (separator (and endpart ",")))
@@ -1665,7 +1665,7 @@ Based on SPEC-LIST, for ref<Foo,Bar> it will return 'Foo,Bar'."
 (defun semantic-c--template-name (type spec-list)
   "Return a template class name for TYPE based on SPEC-LIST.
 For a type `ref' with a template specifier of (Foo Bar) it will
-return 'ref<Foo,Bar>'."
+return `ref<Foo,Bar>'."
   (concat (semantic-tag-name type)
 	  "<" (semantic-c--template-name-1 (cdr spec-list)) ">"))
 
@@ -1693,7 +1693,7 @@ instantiated as specified in TYPE-DECLARATION."
 ;;; Patch here by "Raf" for instantiating templates.
 (defun semantic-c-dereference-member-of (type scope &optional type-declaration)
   "Dereference through the `->' operator of TYPE.
-Uses the return type of the '->' operator if it is contained in TYPE.
+Uses the return type of the `->' operator if it is contained in TYPE.
 SCOPE is the current local scope to perform searches in.
 TYPE-DECLARATION is passed through."
   (if semantic-c-member-of-autocast
@@ -1709,8 +1709,8 @@ TYPE-DECLARATION is passed through."
 ;; tests 5 and following.
 
 (defun semantic-c-dereference-namespace (type scope &optional type-declaration)
-  "Dereference namespace which might hold an 'alias' for TYPE.
-Such an alias can be created through 'using' statements in a
+  "Dereference namespace which might hold an `alias' for TYPE.
+Such an alias can be created through `using' statements in a
 namespace declaration.  This function checks the namespaces in
 SCOPE for such statements."
   (let ((scopetypes (oref scope scopetypes))
@@ -1826,7 +1826,7 @@ or nil if it cannot be found."
 (define-mode-local-override semantic-analyze-dereference-metatype
   c-mode (type scope &optional type-declaration)
   "Dereference TYPE as described in `semantic-analyze-dereference-metatype'.
-Handle typedef, template instantiation, and '->' operator."
+Handle typedef, template instantiation, and `->' operator."
   (let* ((dereferencer-list '(semantic-c-dereference-typedef
                               semantic-c-dereference-template
                               semantic-c-dereference-member-of
@@ -2176,7 +2176,8 @@ actually in their parent which is not accessible.")
 
       (princ "\n\nInclude Path Summary:\n")
       (when (and (boundp 'ede-object) ede-object)
-	(princ "\n  This file's project include is handled by:\n")
+	(princ (substitute-command-keys
+		"\n  This file's project include is handled by:\n"))
 	(let ((objs (if (listp ede-object)
 			ede-object
 		      (list ede-object))))
@@ -2194,14 +2195,16 @@ actually in their parent which is not accessible.")
 	)
 
       (when semantic-dependency-include-path
-	(princ "\n  This file's generic include path is:\n")
+	(princ (substitute-command-keys
+		"\n  This file's generic include path is:\n"))
 	(dolist (dir semantic-dependency-include-path)
 	  (princ "    ")
 	  (princ dir)
 	  (princ "\n")))
 
       (when semantic-dependency-system-include-path
-	(princ "\n  This file's system include path is:\n")
+	(princ (substitute-command-keys
+		"\n  This file's system include path is:\n"))
 	(dolist (dir semantic-dependency-system-include-path)
 	  (princ "    ")
 	  (princ dir)

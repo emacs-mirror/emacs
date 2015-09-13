@@ -37,7 +37,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 struct w32_metric_cache
 {
-  short lbearing, rbearing, width;
+  short lbearing, rbearing, width, ascent, descent;
   unsigned char status;
 };
 

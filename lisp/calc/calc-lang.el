@@ -94,7 +94,7 @@
   (interactive)
   (calc-wrapper
    (calc-set-language 'c)
-   (message "`C' language mode")))
+   (message "C language mode")))
 
 (put 'c 'math-oper-table
   '( ( "u!"    calcFunc-lnot -1 1000 )
@@ -1211,7 +1211,7 @@
   (interactive)
   (calc-wrapper
    (calc-set-language 'yacas)
-   (message "`Yacas' language mode")))
+   (message "Yacas language mode")))
 
 (put 'yacas 'math-vector-brackets "{}")
 
@@ -1427,7 +1427,7 @@
   (interactive)
   (calc-wrapper
    (calc-set-language 'maxima)
-   (message "`Maxima' language mode")))
+   (message "Maxima language mode")))
 
 (put 'maxima 'math-oper-table
      '(("+"    +               100  100)
@@ -1625,7 +1625,7 @@
   (interactive)
   (calc-wrapper
    (calc-set-language 'giac)
-   (message "`Giac' language mode")))
+   (message "Giac language mode")))
 
 (put 'giac 'math-oper-table
   '( ( "["    (math-read-giac-subscr) 250 -1 )
@@ -1817,7 +1817,7 @@ order to Calc's."
 (defun math-read-giac-subscr (x op)
   (let ((idx (math-read-expr-level 0)))
     (or (equal math-expr-data "]")
-	(throw 'syntax "Expected ']'"))
+	(throw 'syntax "Expected `]'"))
     (math-read-token)
     (list 'calcFunc-subscr x (calc-normalize (list '+ idx 1)))))
 
@@ -1954,7 +1954,7 @@ order to Calc's."
 	     (progn
 	       (math-read-token)
 	       (equal math-expr-data "]")))
-	(throw 'syntax "Expected ']]'"))
+	(throw 'syntax "Expected `]]'"))
     (math-read-token)
     (list 'calcFunc-subscr x idx)))
 
@@ -2432,7 +2432,8 @@ order to Calc's."
 	       (let ((y (math-read-big-rec h math-rb-v1 math-rb-h2
                                            math-rb-v2 baseline nil t)))
 		 (or (= (math-read-big-char math-read-big-h2 baseline) ?\:)
-		     (math-read-big-error math-read-big-h2 baseline "Expected `:'"))
+		     (math-read-big-error math-read-big-h2 baseline
+                                          "Expected `:'"))
 		 (setq p (list (nth 1 widest) p y
 			       (math-read-big-rec
                                 (1+ math-read-big-h2) math-rb-v1 math-rb-h2 math-rb-v2
@@ -2507,7 +2508,8 @@ order to Calc's."
     (while (> count 0)
       (if (>= h len)
 	  (if what
-	      (math-read-big-error nil v (format "Unmatched `%s'" what))
+	      (math-read-big-error nil v (format-message
+                                          "Unmatched `%s'" what))
 	    (setq count 0))
 	(if (memq (aref line h) '(?\( ?\[))
 	    (setq count (1+ count))

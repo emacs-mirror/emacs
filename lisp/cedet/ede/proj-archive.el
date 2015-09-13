@@ -55,7 +55,7 @@ Makefile.am generator, so use it to add this important bin program."
 (cl-defmethod ede-proj-makefile-garbage-patterns
   ((this ede-proj-target-makefile-archive))
   "Add archive name to the garbage patterns.
-This makes sure that the archive is removed with 'make clean'."
+This makes sure that the archive is removed with `make clean'."
   (let ((garb (cl-call-next-method)))
     (append garb (list (concat "lib" (ede-name this) ".a")))))
 

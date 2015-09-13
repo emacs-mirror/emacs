@@ -322,6 +322,7 @@
 ;;; Code:
 
 (defvar recentf-list)
+(require 'seq)
 
 ;;;; Options
 
@@ -377,7 +378,7 @@ use either \\[customize] or the function `ido-mode'."
   '("\\` ")
   "List of regexps or functions matching buffer names to ignore.
 For example, traditional behavior is not to list buffers whose names begin
-with a space, for which the regexp is `\\` '.  See the source file for
+with a space, for which the regexp is `\\\\=` '.  See the source file for
 example functions that filter buffer names."
   :type '(repeat (choice regexp function))
   :group 'ido)
@@ -386,7 +387,7 @@ example functions that filter buffer names."
   '("\\`CVS/" "\\`#" "\\`.#" "\\`\\.\\./" "\\`\\./")
   "List of regexps or functions matching file names to ignore.
 For example, traditional behavior is not to list files whose names begin
-with a #, for which the regexp is `\\`#'.  See the source file for
+with a #, for which the regexp is `\\\\=`#'.  See the source file for
 example functions that filter filenames."
   :type '(repeat (choice regexp function))
   :group 'ido)
@@ -940,7 +941,7 @@ This hook is run during minibuffer setup if Ido is active.
 It is intended for use in customizing Ido for interoperation
 with other packages.  For instance:
 
-  (add-hook 'ido-minibuffer-setup-hook
+  (add-hook \\='ido-minibuffer-setup-hook
 	    (lambda () (setq-local max-mini-window-height 3)))
 
 will constrain Emacs to a maximum minibuffer height of 3 lines when
@@ -1590,10 +1591,10 @@ enable the mode if ARG is omitted or nil."
   (when ido-everywhere
     (when (memq ido-mode '(both file))
       (put 'ido-everywhere 'file (cons read-file-name-function nil))
-      (setq read-file-name-function 'ido-read-file-name))
+      (setq read-file-name-function #'ido-read-file-name))
     (when (memq ido-mode '(both buffer))
       (put 'ido-everywhere 'buffer (cons read-buffer-function nil))
-      (setq read-buffer-function 'ido-read-buffer))))
+      (setq read-buffer-function #'ido-read-buffer))))
 
 (defvar ido-minor-mode-map-entry nil)
 
@@ -2274,7 +2275,8 @@ If cursor is not at the end of the user input, move to end of input."
 
        ((and (eq ido-create-new-buffer 'prompt)
 	     (null require-match)
-	     (not (y-or-n-p (format "No buffer matching `%s', create one? " buf))))
+	     (not (y-or-n-p (format-message
+			     "No buffer matching `%s', create one? " buf))))
 	nil)
 
        ;; buffer doesn't exist
@@ -2284,7 +2286,8 @@ If cursor is not at the end of the user input, move to end of input."
 
        ((and (eq ido-create-new-buffer 'prompt)
 	     (null require-match)
-	     (not (y-or-n-p (format "No buffer matching `%s', create one? " buf))))
+	     (not (y-or-n-p (format-message
+			     "No buffer matching `%s', create one? " buf))))
 	nil)
 
        ;; create a new buffer
@@ -3180,11 +3183,19 @@ for first matching file."
       (if (> i 0)
 	  (setq ido-cur-list (ido-chop ido-cur-list (nth i ido-matches)))))))
 
-(defun ido-restrict-to-matches ()
-  "Set current item list to the currently matched items."
-  (interactive)
+(defun ido-restrict-to-matches (&optional removep)
+  "Set current item list to the currently matched items.
+
+When argument REMOVEP is non-nil, the currently matched items are
+instead removed from the current item list."
+  (interactive "P")
   (when ido-matches
-    (setq ido-cur-list ido-matches
+    (setq ido-cur-list (if removep
+                           ;; An important feature is to preserve the
+                           ;; order of the elements.
+                           (seq-difference ido-cur-list ido-matches)
+                         ido-matches)
+          ido-matches ido-cur-list
 	  ido-text-init ""
 	  ido-rescan nil
 	  ido-exit 'keep)
@@ -3480,8 +3491,14 @@ This is to make them appear as if they were \"virtual buffers\"."
   ;; the file which the user might thought was still open.
   (unless recentf-mode (recentf-mode 1))
   (setq ido-virtual-buffers nil)
-  (let (name)
-    (dolist (head recentf-list)
+  (let ((bookmarks (and (boundp 'bookmark-alist)
+                        bookmark-alist))
+        name)
+    (dolist (head (append
+                   recentf-list
+                   (delq nil (mapcar (lambda (bookmark)
+                                       (cdr (assoc 'filename bookmark)))
+                                     bookmarks))))
       (setq name (file-name-nondirectory head))
       ;; In case HEAD is a directory with trailing /.  See bug#14552.
       (when (equal name "")
@@ -4776,7 +4793,7 @@ Modified from `icomplete-completions'."
 (put 'dired-do-rename 'ido 'ignore)
 
 ;;;###autoload
-(defun ido-read-buffer (prompt &optional default require-match)
+(defun ido-read-buffer (prompt &optional default require-match predicate)
   "Ido replacement for the built-in `read-buffer'.
 Return the name of a buffer selected.
 PROMPT is the prompt to give to the user.  DEFAULT if given is the default
@@ -4790,7 +4807,7 @@ If REQUIRE-MATCH is non-nil, an existing buffer must be selected."
     (if (eq ido-exit 'fallback)
 	(let ((read-buffer-function nil))
 	  (run-hook-with-args 'ido-before-fallback-functions 'read-buffer)
-	  (read-buffer prompt default require-match))
+	  (read-buffer prompt default require-match predicate))
       buf)))
 
 ;;;###autoload

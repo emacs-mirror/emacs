@@ -245,6 +245,7 @@ in this way."
   :type 'boolean
   :version "21.1")
 
+;; FIXME? This is not a minor mode; what's the point of this?  (See bug#20201)
 (or (assq 'server-buffer-clients minor-mode-alist)
     (push '(server-buffer-clients " Server") minor-mode-alist))
 
@@ -532,7 +533,8 @@ Creates the directory if necessary and makes sure:
 		  ((and w32 (zerop uid))	  ; on FAT32?
 		   (display-warning
 		    'server
-		    (format "Using `%s' to store Emacs-server authentication files.
+		    (format-message "\
+Using `%s' to store Emacs-server authentication files.
 Directories on FAT32 filesystems are NOT secure against tampering.
 See variable `server-auth-dir' for details."
 			    (file-name-as-directory dir))
@@ -573,7 +575,7 @@ If the key is not valid, signal an error."
   (if server-auth-key
     (if (string-match-p "^[!-~]\\{64\\}$" server-auth-key)
         server-auth-key
-      (error "The key '%s' is invalid" server-auth-key))
+      (error "The key `%s' is invalid" server-auth-key))
     (server-generate-key)))
 
 ;;;###autoload
@@ -623,8 +625,9 @@ To force-start a server, do \\[server-force-delete] and then
 	 (concat "Unable to start the Emacs server.\n"
 		 (format "There is an existing Emacs server, named %S.\n"
 			 server-name)
-		 "To start the server in this Emacs process, stop the existing
-server or call `M-x server-force-delete' to forcibly disconnect it.")
+		 (substitute-command-keys
+                  "To start the server in this Emacs process, stop the existing
+server or call `\\[server-force-delete]' to forcibly disconnect it."))
 	 :warning)
 	(setq leave-dead t))
       ;; If this Emacs already had a server, clear out associated status.
@@ -650,8 +653,8 @@ server or call `M-x server-force-delete' to forcibly disconnect it.")
 		       :name server-name
 		       :server t
 		       :noquery t
-		       :sentinel 'server-sentinel
-		       :filter 'server-process-filter
+		       :sentinel #'server-sentinel
+		       :filter #'server-process-filter
 		       ;; We must receive file names without being decoded.
 		       ;; Those are decoded by server-process-filter according
 		       ;; to file-name-coding-system.  Also don't get
@@ -839,9 +842,6 @@ This handles splitting the command if it would be bigger than
          (w (or (cdr (assq 'window-system parameters))
                 (window-system-for-display display))))
 
-    (unless (assq w window-system-initialization-alist)
-      (setq w nil))
-
     ;; Special case for ns.  This is because DISPLAY may not be set at all
     ;; which in the ns case isn't an error.  The variable display then becomes
     ;; the fully qualified hostname, which make-frame-on-display below
@@ -849,7 +849,12 @@ This handles splitting the command if it would be bigger than
     ;; It may also be a valid X display, but if Emacs is compiled for ns, it
     ;; can not make X frames.
     (if (featurep 'ns-win)
-	(setq w 'ns display "ns"))
+	(setq w 'ns display "ns")
+      ;; FIXME! Not sure what this was for, and not sure how it should work
+      ;; in the cl-defmethod new world!
+      ;;(unless (assq w window-system-initialization-alist)
+      ;;  (setq w nil))
+      )
 
     (cond (w
            ;; Flag frame as client-created, but use a dummy client.
@@ -1164,10 +1169,17 @@ The following commands are accepted by the client:
                  (let ((file (pop args-left)))
                    (if coding-system
                        (setq file (decode-coding-string file coding-system)))
+                   ;; Allow Cygwin's emacsclient to be used as a file
+                   ;; handler on MS-Windows, in which case FILENAME
+                   ;; might start with a drive letter.
+                   (when (and (eq system-type 'cygwin)
+                              (string-match "\\`[A-Za-z]:" file))
+                     (setq file (cygwin-convert-file-name-from-windows file)))
                    (setq file (expand-file-name file dir))
                    (push (cons file filepos) files)
                    (server-log (format "New file: %s %s"
-                                       file (or filepos "")) proc))
+                                       file (or filepos ""))
+                               proc))
                  (setq filepos nil))
 
                 ;; -eval EXPR:  Evaluate a Lisp expression.
@@ -1637,7 +1649,7 @@ only these files will be asked to be saved."
   "Contact the Emacs server named SERVER and evaluate FORM there.
 Returns the result of the evaluation, or signals an error if it
 cannot contact the specified server.  For example:
-  (server-eval-at \"server\" '(emacs-pid))
+  (server-eval-at \"server\" \\='(emacs-pid))
 returns the process ID of the Emacs instance running \"server\"."
   (let* ((server-dir (if server-use-tcp server-auth-dir server-socket-dir))
 	 (server-file (expand-file-name server server-dir))

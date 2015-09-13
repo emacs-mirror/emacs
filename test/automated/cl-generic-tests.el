@@ -26,15 +26,18 @@
 (eval-when-compile (require 'ert)) ;Don't indirectly require cl-lib at run-time.
 (require 'cl-generic)
 
+(fmakunbound 'cl--generic-1)
 (cl-defgeneric cl--generic-1 (x y))
 (cl-defgeneric (setf cl--generic-1) (v y z) "My generic doc.")
 
 (ert-deftest cl-generic-test-00 ()
+  (fmakunbound 'cl--generic-1)
   (cl-defgeneric cl--generic-1 (x y))
   (cl-defmethod cl--generic-1 ((x t) y) (cons x y))
   (should (equal (cl--generic-1 'a 'b) '(a . b))))
 
 (ert-deftest cl-generic-test-01-eql ()
+  (fmakunbound 'cl--generic-1)
   (cl-defgeneric cl--generic-1 (x y))
   (cl-defmethod cl--generic-1 ((x t) y) (cons x y))
   (cl-defmethod cl--generic-1 ((_x (eql 4)) _y)
@@ -54,6 +57,7 @@
 (cl-defstruct (cl-generic-struct-child2 (:include cl-generic-struct-parent)) e)
 
 (ert-deftest cl-generic-test-02-struct ()
+  (fmakunbound 'cl--generic-1)
   (cl-defgeneric cl--generic-1 (x y) "My doc.")
   (cl-defmethod cl--generic-1 ((x t) y) "Doc 1." (cons x y))
   (cl-defmethod cl--generic-1 ((_x cl-generic-struct-parent) y)
@@ -91,6 +95,7 @@
     (should (equal x '(3 2 1)))))
 
 (ert-deftest cl-generic-test-04-overlapping-tagcodes ()
+  (fmakunbound 'cl--generic-1)
   (cl-defgeneric cl--generic-1 (x y) "My doc.")
   (cl-defmethod cl--generic-1 ((y t) z) (list y z))
   (cl-defmethod cl--generic-1 ((_y (eql 4)) _z)
@@ -104,6 +109,7 @@
   (should (equal (cl--generic-1 4 'b) '("four" "integer" "number" 4 b))))
 
 (ert-deftest cl-generic-test-05-alias ()
+  (fmakunbound 'cl--generic-1)
   (cl-defgeneric cl--generic-1 (x y) "My doc.")
   (defalias 'cl--generic-2 #'cl--generic-1)
   (cl-defmethod cl--generic-1 ((y t) z) (list y z))
@@ -112,6 +118,7 @@
   (should (equal (cl--generic-1 4 'b) '("four" 4 b))))
 
 (ert-deftest cl-generic-test-06-multiple-dispatch ()
+  (fmakunbound 'cl--generic-1)
   (cl-defgeneric cl--generic-1 (x y) "My doc.")
   (cl-defmethod cl--generic-1 (x y) (list x y))
   (cl-defmethod cl--generic-1 (_x (_y integer))
@@ -123,6 +130,7 @@
   (should (equal (cl--generic-1 1 2) '("x&y-int" "x-int" "y-int" 1 2))))
 
 (ert-deftest cl-generic-test-07-apo ()
+  (fmakunbound 'cl--generic-1)
   (cl-defgeneric cl--generic-1 (x y)
     (:documentation "My doc.") (:argument-precedence-order y x))
   (cl-defmethod cl--generic-1 (x y) (list x y))
@@ -136,6 +144,7 @@
 
 (ert-deftest cl-generic-test-08-after/before ()
   (let ((log ()))
+    (fmakunbound 'cl--generic-1)
     (cl-defgeneric cl--generic-1 (x y))
     (cl-defmethod cl--generic-1 ((_x t) y) (cons y log))
     (cl-defmethod cl--generic-1 ((_x (eql 4)) _y)
@@ -150,6 +159,7 @@
 (defun cl--generic-test-advice (&rest args) (cons "advice" (apply args)))
 
 (ert-deftest cl-generic-test-09-advice ()
+  (fmakunbound 'cl--generic-1)
   (cl-defgeneric cl--generic-1 (x y) "My doc.")
   (cl-defmethod cl--generic-1 (x y) (list x y))
   (advice-add 'cl--generic-1 :around #'cl--generic-test-advice)
@@ -161,6 +171,7 @@
   (should (equal (cl--generic-1 4 5) '("integer" 4 5))))
 
 (ert-deftest cl-generic-test-10-weird ()
+  (fmakunbound 'cl--generic-1)
   (cl-defgeneric cl--generic-1 (x &rest r) "My doc.")
   (cl-defmethod cl--generic-1 (x &rest r) (cons x r))
   ;; This kind of definition is not valid according to CLHS, but it does show
@@ -172,12 +183,41 @@
   (should (equal (cl--generic-1 1 2) '("integer" 2 1))))
 
 (ert-deftest cl-generic-test-11-next-method-p ()
+  (fmakunbound 'cl--generic-1)
   (cl-defgeneric cl--generic-1 (x y))
   (cl-defmethod cl--generic-1 ((x t) y)
     (list x y (cl-next-method-p)))
   (cl-defmethod cl--generic-1 ((_x (eql 4)) _y)
     (cl-list* "quatre" (cl-next-method-p) (cl-call-next-method)))
   (should (equal (cl--generic-1 4 5) '("quatre" t 4 5 nil))))
+
+(ert-deftest cl-generic-test-12-context ()
+  (fmakunbound 'cl--generic-1)
+  (cl-defgeneric cl--generic-1 ())
+  (cl-defmethod cl--generic-1 (&context (overwrite-mode (eql t)))
+    (list 'is-t (cl-call-next-method)))
+  (cl-defmethod cl--generic-1 (&context (overwrite-mode (eql nil)))
+    (list 'is-nil (cl-call-next-method)))
+  (cl-defmethod cl--generic-1 () 'any)
+  (should (equal (list (let ((overwrite-mode t))   (cl--generic-1))
+                       (let ((overwrite-mode nil)) (cl--generic-1))
+                       (let ((overwrite-mode 1))   (cl--generic-1)))
+                 '((is-t any) (is-nil any) any))))
+
+(ert-deftest cl-generic-test-13-head ()
+  (fmakunbound 'cl--generic-1)
+  (cl-defgeneric cl--generic-1 (x y))
+  (cl-defmethod cl--generic-1 ((x t) y) (cons x y))
+  (cl-defmethod cl--generic-1 ((_x (head 4)) _y)
+    (cons "quatre" (cl-call-next-method)))
+  (cl-defmethod cl--generic-1 ((_x (head 5)) _y)
+    (cons "cinq" (cl-call-next-method)))
+  (cl-defmethod cl--generic-1 ((_x (head 6)) y)
+    (cons "six" (cl-call-next-method 'a y)))
+  (should (equal (cl--generic-1 'a nil) '(a)))
+  (should (equal (cl--generic-1 '(4) nil) '("quatre" (4))))
+  (should (equal (cl--generic-1 '(5) nil) '("cinq" (5))))
+  (should (equal (cl--generic-1 '(6) nil) '("six" a))))
 
 (provide 'cl-generic-tests)
 ;;; cl-generic-tests.el ends here

@@ -2065,7 +2065,7 @@ a GDB/MI reply message."
 (defun gdbmi-bnf-gdb-prompt ()
   "Implementation of the following GDB/MI output grammar rule:
   gdb-prompt ==>
-       '(gdb)' nl
+       `(gdb)' nl
 
   nl ==>
        CR | CR-LF"
@@ -2085,7 +2085,7 @@ a GDB/MI reply message."
   "Implementation of the following GDB/MI output grammar rule:
 
   result-record ==>
-       [ token ] '^' result-class ( ',' result )* nl
+       [ token ] `^' result-class ( `,' result )* nl
 
   token ==>
        any sequence of digits."
@@ -2110,16 +2110,16 @@ a GDB/MI reply message."
        exec-async-output | status-async-output | notify-async-output
 
   exec-async-output ==>
-       [ token ] '*' async-output
+       [ token ] `*' async-output
 
   status-async-output ==>
-       [ token ] '+' async-output
+       [ token ] `+' async-output
 
   notify-async-output ==>
-       [ token ] '=' async-output
+       [ token ] `=' async-output
 
   async-output ==>
-       async-class ( ',' result )* nl"
+       async-class ( `,' result )* nl"
 
   (gdbmi-bnf-result-and-async-record-impl))
 
@@ -2130,13 +2130,13 @@ a GDB/MI reply message."
        console-stream-output | target-stream-output | log-stream-output
 
   console-stream-output ==>
-       '~' c-string
+       `~' c-string
 
   target-stream-output ==>
-       '@' c-string
+       `@' c-string
 
   log-stream-output ==>
-       '&' c-string"
+       `&' c-string"
   (when (< gdbmi-bnf-offset (length gud-marker-acc))
     (if (and (member (aref gud-marker-acc gdbmi-bnf-offset) '(?~ ?@ ?&))
              (string-match (concat "\\([~@&]\\)\\(" gdb--string-regexp "\\)\n")
@@ -2195,10 +2195,10 @@ value when the message is complete.
 
 Implement the following GDB/MI output grammar rule:
   result-class ==>
-       'done' | 'running' | 'connected' | 'error' | 'exit'
+       `done' | `running' | `connected' | `error' | `exit'
 
   async-class ==>
-       'stopped' | others (where others will be added depending on the needs
+       `stopped' | others (where others will be added depending on the needs
                            --this is still in development).")
 
 (defun gdbmi-bnf-result-and-async-record-impl ()
@@ -2376,9 +2376,9 @@ Sets `gdb-thread-number' to new id."
   (let* ((result (gdb-json-string output-field))
          (thread-id (bindat-get-field result 'id)))
     (gdb-setq-thread-number thread-id)
-    ;; Typing `thread N` in GUD buffer makes GDB emit `^done` followed
-    ;; by `=thread-selected` notification. `^done` causes `gdb-update`
-    ;; as usually. Things happen to fast and second call (from
+    ;; Typing `thread N' in GUD buffer makes GDB emit `^done' followed
+    ;; by `=thread-selected' notification. `^done' causes `gdb-update'
+    ;; as usually. Things happen too fast and second call (from
     ;; gdb-thread-selected handler) gets cut off by our beloved
     ;; pending triggers.
     ;; Solution is `gdb-wait-for-pending' macro: it guarantees that its
@@ -4038,6 +4038,8 @@ member."
       (let ((name (bindat-get-field local 'name))
             (value (bindat-get-field local 'value))
             (type (bindat-get-field local 'type)))
+        (when (not value)
+          (setq value "<complex data type>"))
         (if (or (not value)
                 (string-match "\\0x" value))
             (add-text-properties 0 (length name)

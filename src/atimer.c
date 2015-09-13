@@ -492,9 +492,9 @@ debug_timer_callback (struct atimer *t)
     {
 #ifdef HAVE_SETITIMER
       struct timespec delta = timespec_sub (now, r->expected);
-      /* Too late if later than expected + 0.01s.  FIXME:
+      /* Too late if later than expected + 0.02s.  FIXME:
 	 this should depend from system clock resolution.  */
-      if (timespec_cmp (delta, make_timespec (0, 10000000)) > 0)
+      if (timespec_cmp (delta, make_timespec (0, 20000000)) > 0)
 	r->intime = 0;
       else
 #endif /* HAVE_SETITIMER */
@@ -523,8 +523,26 @@ Return t if all self-tests are passed, nil otherwise.  */)
 			    debug_timer_callback, results[i]);
     }
 
+#ifdef HAVE_TIMERFD
   /* Wait for 1s but process timers.  */
   wait_reading_process_output (1, 0, 0, false, Qnil, NULL, 0);
+#else
+  /* If timerfd is not supported, wait_reading_process_output won't
+     pay attention to timers that expired, and the callbacks won't be
+     called.  So we need to run the expired timers' callbacks by
+     hand.  */
+  /* Wait 1.2 sec for the timers to expire.  */
+  struct timespec tend =
+    timespec_add (current_timespec (), make_timespec (1, 200000000));
+
+  while (timespec_cmp (current_timespec (), tend) < 0)
+    {
+      /* Wait for 5 msec between iterations.  */
+      wait_reading_process_output (0, 5000000, 0, false, Qnil, NULL, 0);
+      if (pending_signals)
+	do_pending_atimers ();
+    }
+#endif
   /* Shut up the compiler by "using" this variable.  */
   (void) timer;
 

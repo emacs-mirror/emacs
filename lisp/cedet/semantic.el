@@ -769,8 +769,8 @@ This function returns semantic tags without overlays."
 	       (eq semantic-working-type 'percent)
 	       (progress-reporter-update
 		semantic--progress-reporter
-		(/ (* 100 (semantic-lex-token-start (car stream)))
-		   (point-max))))))
+		(floor (* 100.0 (semantic-lex-token-start (car stream)))
+		       (point-max))))))
     result))
 
 ;;; Parsing Warnings:

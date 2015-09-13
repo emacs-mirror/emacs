@@ -1294,7 +1294,7 @@ buffer."
   (let (rev1 rev2)
     (setq rev1
 	  (read-string
-	   (format
+	   (format-message
 	    "Version 1 to merge (default %s's working version): "
 	    (if (stringp file)
 		(file-name-nondirectory file) "current buffer")))
@@ -1326,7 +1326,7 @@ buffer."
   (let (rev1 rev2 ancestor-rev)
     (setq rev1
 	  (read-string
-	   (format
+	   (format-message
 	    "Version 1 to merge (default %s's working version): "
 	    (if (stringp file)
 		(file-name-nondirectory file) "current buffer")))
@@ -1338,7 +1338,7 @@ buffer."
 		(file-name-nondirectory file) "current buffer")))
 	  ancestor-rev
 	  (read-string
-	   (format
+	   (format-message
 	    "Ancestor version (default %s's base revision): "
 	    (if (stringp file)
 		(file-name-nondirectory file) "current buffer"))))

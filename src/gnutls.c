@@ -1181,7 +1181,7 @@ gnutls_certificate_set_verify_flags.
 instead.
 
 :verify-error is a list of symbols to express verification checks or
-`t' to do all checks.  Currently it can contain `:trustfiles' and
+t to do all checks.  Currently it can contain `:trustfiles' and
 `:hostname' to verify the certificate or the hostname respectively.
 
 :min-prime-bits is the minimum accepted number of bits the client will
@@ -1512,7 +1512,7 @@ one trustfile (usually a CA bundle).  */)
           || !NILP (Fmember (QCgnutls_bootprop_trustfiles, verify_error)))
         {
 	  emacs_gnutls_deinit (proc);
-	  error ("Certificate validation failed %s, verification code %d",
+	  error ("Certificate validation failed %s, verification code %x",
 		 c_hostname, peer_verification);
         }
       else
@@ -1645,10 +1645,19 @@ DEFUN ("gnutls-available-p", Fgnutls_available_p, Sgnutls_available_p, 0, 0, 0,
 void
 syms_of_gnutls (void)
 {
+  DEFSYM (Qlibgnutls_version, "libgnutls-version");
+  Fset (Qlibgnutls_version,
+#ifdef HAVE_GNUTLS
+	make_number (GNUTLS_VERSION_MAJOR * 10000
+		     + GNUTLS_VERSION_MINOR * 100
+		     + GNUTLS_VERSION_PATCH)
+#else
+	make_number (-1)
+#endif
+        );
 #ifdef HAVE_GNUTLS
   gnutls_global_initialized = 0;
 
-  DEFSYM (Qgnutls_dll, "gnutls");
   DEFSYM (Qgnutls_code, "gnutls-code");
   DEFSYM (Qgnutls_anon, "gnutls-anon");
   DEFSYM (Qgnutls_x509pki, "gnutls-x509pki");
@@ -1659,7 +1668,6 @@ syms_of_gnutls (void)
   DEFSYM (QCgnutls_bootprop_trustfiles, ":trustfiles");
   DEFSYM (QCgnutls_bootprop_keylist, ":keylist");
   DEFSYM (QCgnutls_bootprop_crlfiles, ":crlfiles");
-  DEFSYM (QCgnutls_bootprop_callbacks, ":callbacks");
   DEFSYM (QCgnutls_bootprop_min_prime_bits, ":min-prime-bits");
   DEFSYM (QCgnutls_bootprop_loglevel, ":loglevel");
   DEFSYM (QCgnutls_bootprop_verify_flags, ":verify-flags");

@@ -54,7 +54,7 @@ the middle is discarded, and just the beginning and end are displayed."
 The value affects the behavior of operations on any window
 previously showing the debugger buffer.
 
-`nil' means that if its window is not deleted when exiting the
+nil means that if its window is not deleted when exiting the
   debugger, invoking `switch-to-prev-buffer' will usually show
   the debugger buffer again.
 
@@ -106,10 +106,10 @@ This is to optimize `debugger-make-xrefs'.")
   "Non-nil if we expect to get back in the debugger soon.")
 
 (defvar inhibit-debug-on-entry nil
-  "Non-nil means that debug-on-entry is disabled.")
+  "Non-nil means that `debug-on-entry' is disabled.")
 
 (defvar debugger-jumping-flag nil
-  "Non-nil means that debug-on-entry is disabled.
+  "Non-nil means that `debug-on-entry' is disabled.
 This variable is used by `debugger-jump', `debugger-step-through',
 and `debugger-reenable' to temporarily disable debug-on-entry.")
 
@@ -165,7 +165,6 @@ first will be printed into the backtrace buffer."
       ;; Don't let these magic variables affect the debugger itself.
       (let ((last-command nil) this-command track-mouse
 	    (inhibit-trace t)
-	    (inhibit-debug-on-entry t)
 	    unread-command-events
 	    unread-post-input-method-events
 	    last-input-event last-command-event last-nonmenu-event
@@ -193,8 +192,10 @@ first will be printed into the backtrace buffer."
 	       debugger-buffer
 	       `((display-buffer-reuse-window
 		  display-buffer-in-previous-window)
-		  . (,(when debugger-previous-window
-			`(previous-window . ,debugger-previous-window)))))
+		 . (,(when (and (window-live-p debugger-previous-window)
+				(frame-visible-p
+				 (window-frame debugger-previous-window)))
+		       `(previous-window . ,debugger-previous-window)))))
 	      (setq debugger-window (selected-window))
 	      (if (eq debugger-previous-window debugger-window)
 		  (when debugger-jumping-flag
@@ -730,14 +731,11 @@ Complete list of commands:
 	     (buffer-substring (line-beginning-position 0)
 			       (line-end-position 0)))))
 
-(declare-function help-xref-interned "help-mode" (symbol))
-
 (defun debug-help-follow (&optional pos)
   "Follow cross-reference at POS, defaulting to point.
 
 For the cross-reference format, see `help-make-xrefs'."
   (interactive "d")
-  (require 'help-mode)
   ;; Ideally we'd just do (call-interactively 'help-follow) except that this
   ;; assumes we're already in a *Help* buffer and reuses it, so it ends up
   ;; incorrectly "reusing" the *Backtrace* buffer to show the help info.
@@ -753,7 +751,7 @@ For the cross-reference format, see `help-make-xrefs'."
 				(progn (skip-syntax-forward "w_")
 				       (point)))))))
       (when (or (boundp sym) (fboundp sym) (facep sym))
-        (help-xref-interned sym)))))
+        (describe-symbol sym)))))
 
 ;; When you change this, you may also need to change the number of
 ;; frames that the debugger skips.
@@ -763,7 +761,8 @@ A call to this function is inserted by `debug-on-entry' to cause
 functions to break on entry."
   (if (or inhibit-debug-on-entry debugger-jumping-flag)
       nil
-    (funcall debugger 'debug)))
+    (let ((inhibit-debug-on-entry t))
+      (funcall debugger 'debug))))
 
 ;;;###autoload
 (defun debug-on-entry (function)

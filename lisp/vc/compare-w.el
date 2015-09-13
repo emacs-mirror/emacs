@@ -88,7 +88,7 @@ regexp containing some field separator or a newline, depending on
 the nature of the difference units separator.  The variable can
 be made buffer-local.
 
-If the value of this variable is `nil' (option \"No sync\"), then
+If the value of this variable is nil (option \"No sync\"), then
 no synchronization is performed, and the function `ding' is called
 to beep or flash the screen when points are mismatched."
   :type '(choice function regexp (const :tag "No sync" nil))
@@ -150,7 +150,8 @@ out all highlighting later with the command `compare-windows-dehighlight'."
 (defvar compare-windows-overlays2 nil)
 (defvar compare-windows-sync-point nil)
 
-(defcustom compare-windows-get-window-function 'compare-windows-get-recent-window
+(defcustom compare-windows-get-window-function
+  'compare-windows-get-recent-window
   "Function that provides the window to compare with."
   :type '(choice
 	  (function-item :tag "Most recently used window"
@@ -159,7 +160,7 @@ out all highlighting later with the command `compare-windows-dehighlight'."
 			 compare-windows-get-next-window)
 	  (function :tag "Your function"))
   :group 'compare-windows
-  :version "25.0")
+  :version "25.1")
 
 (defun compare-windows-get-recent-window ()
   "Return the most recently used window.

@@ -75,7 +75,7 @@ are given in the following order:
 Je/sli czytasz ten tekst, to albo przegl/adasz plik /xr/od/lowy
 biblioteki `ogonek.el', albo wywo/la/le/s polecenie `ogonek-jak'.
 W drugim przypadku mo/zesz usun/a/c tekst z ekranu, stosuj/ac
-polecenie `M-x kill-buffer'.
+polecenie `\\[kill-buffer]'.
 
 Niniejsza biblioteka dostarcza funkcji do zmiany kodowania polskich
 znak/ow diakrytycznych. Funkcje te mo/zna pogrupowa/c nast/epuj/aco.
@@ -133,10 +133,10 @@ znak/ow diakrytycznych. Funkcje te mo/zna pogrupowa/c nast/epuj/aco.
  `~/.emacs' za/z/ada/c wczytania wybranych funkcji, na dodatek dopiero
  w chwili ich rzeczywistego u/zycia:
 
-   (autoload 'ogonek-jak \"ogonek\")
-   (autoload 'ogonek-recode-region \"ogonek\")
-   (autoload 'ogonek-prefixify-region \"ogonek\")
-   (autoload 'ogonek-deprefixify-region \"ogonek\")
+   (autoload \\='ogonek-jak \"ogonek\")
+   (autoload \\='ogonek-recode-region \"ogonek\")
+   (autoload \\='ogonek-prefixify-region \"ogonek\")
+   (autoload \\='ogonek-deprefixify-region \"ogonek\")
 
  Cz/esto wyst/epuj/ace kombinacje wywo/la/n funkcji mo/zna dla wygody
  skr/oci/c i przypisa/c klawiszom. Oto praktyczne przyk/lady:
@@ -144,17 +144,17 @@ znak/ow diakrytycznych. Funkcje te mo/zna pogrupowa/c nast/epuj/aco.
    (defun deprefixify-iso8859-2-region (start end)
      (interactive \"*r\")
      (ogonek-deprefixify-region start end ?/ \"iso8859-2\"))
-   (global-set-key \"\\C-cd\" 'deprefixify-iso8859-2-region) ; ctrl-c d
+   (global-set-key \"\\C-cd\" \\='deprefixify-iso8859-2-region) ; ctrl-c d
 
    (defun mazovia-to-iso8859-2 (start end)
      (interactive \"*r\")
      (ogonek-recode-region start end \"mazovia\" \"iso8859-2\"))
-   (global-set-key \"\\C-cr\" 'mazovia-to-iso8859-2) ; ctrl-c r
+   (global-set-key \"\\C-cr\" \\='mazovia-to-iso8859-2) ; ctrl-c r
 
    (defun prefixify-iso8859-2-region (start end)
      (interactive \"*r\")
      (ogonek-prefixify-region start end \"iso8859-2\" ?/))
-   (global-set-key \"\\C-cp\" 'prefixify-iso8859-2-region) ; ctrl-c p
+   (global-set-key \"\\C-cp\" \\='prefixify-iso8859-2-region) ; ctrl-c p
 
  Ka/zd/a operacj/e przekodowania mo/zna w ca/lo/sci odwo/la/c
  przez wykonanie polecenia `undo'.")
@@ -163,7 +163,7 @@ znak/ow diakrytycznych. Funkcje te mo/zna pogrupowa/c nast/epuj/aco.
   "Display `ogonek-informacja' in an auxiliary *ogonek-jak* buffer."
   (interactive)
   (set-buffer  (get-buffer-create " *ogonek-jak*"))
-  (insert ogonek-informacja)
+  (insert (substitute-command-keys ogonek-informacja))
   (switch-to-buffer " *ogonek-jak*")
   (goto-char (point-min)))
 
@@ -174,7 +174,7 @@ znak/ow diakrytycznych. Funkcje te mo/zna pogrupowa/c nast/epuj/aco.
 
 If you read this text then you are either looking at the library's
 source text or you have called the `ogonek-how' command. In the
-latter case you may remove this text using `M-x kill-buffer'.
+latter case you may remove this text using `\\[kill-buffer]'.
 
 The library provides functions for changing the encoding of Polish
 diacritic characters, the ones with an `ogonek' below or above them.
@@ -233,10 +233,10 @@ The functions come in the following groups.
  to autoload the needed functions, for example by adding the
  following lines to your init file:
 
-   (autoload 'ogonek-how \"ogonek\")
-   (autoload 'ogonek-recode-region \"ogonek\")
-   (autoload 'ogonek-prefixify-region \"ogonek\")
-   (autoload 'ogonek-deprefixify-region \"ogonek\")
+   (autoload \\='ogonek-how \"ogonek\")
+   (autoload \\='ogonek-recode-region \"ogonek\")
+   (autoload \\='ogonek-prefixify-region \"ogonek\")
+   (autoload \\='ogonek-deprefixify-region \"ogonek\")
 
  The most frequent function calls can be abbreviated and assigned to
  keyboard keys. Here are a few practical examples:
@@ -244,17 +244,17 @@ The functions come in the following groups.
    (defun deprefixify-iso8859-2-region (start end)
      (interactive \"*r\")
      (ogonek-deprefixify-region start end ?/ \"iso8859-2\"))
-   (global-set-key \"\\C-cd\" 'deprefixify-iso8859-2-region) ; ctrl-c d
+   (global-set-key \"\\C-cd\" \\='deprefixify-iso8859-2-region) ; ctrl-c d
 
    (defun mazovia-to-iso8859-2 (start end)
      (interactive \"*r\")
      (ogonek-recode-region start end \"mazovia\" \"iso8859-2\"))
-   (global-set-key \"\\C-cr\" 'mazovia-to-iso8859-2) ; ctrl-c r
+   (global-set-key \"\\C-cr\" \\='mazovia-to-iso8859-2) ; ctrl-c r
 
    (defun prefixify-iso8859-2-region (start end)
      (interactive \"*r\")
      (ogonek-prefixify-region start end \"iso8859-2\" ?/))
-   (global-set-key \"\\C-cp\" 'prefixify-iso8859-2-region) ; ctrl-c p
+   (global-set-key \"\\C-cp\" \\='prefixify-iso8859-2-region) ; ctrl-c p
 
  Each recoding operation can be called off using the `undo' command.")
 
@@ -262,7 +262,7 @@ The functions come in the following groups.
   "Display `ogonek-information' in an auxiliary *recode-how* buffer."
   (interactive "*")
   (set-buffer  (get-buffer-create " *ogonek-how*"))
-  (insert ogonek-information)
+  (insert (substitute-command-keys ogonek-information))
   (switch-to-buffer " *ogonek-how*")
   (goto-char (point-min)))
 

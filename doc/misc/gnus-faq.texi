@@ -5,7 +5,7 @@
 @c
 @c @setfilename gnus-faq.info
 @c @settitle Frequently Asked Questions
-@c @documentencoding UTF-8
+@c @include docstyle.texi
 @c %**end of header
 @c
 
@@ -892,11 +892,11 @@ more readable?
 
 @subsubheading Answer
 
-Gnus offers you several functions to "wash" incoming mail, you can
+Gnus offers you several functions to ``wash'' incoming mail, you can
 find them if you browse through the menu, item
-Article->Washing. The most interesting ones are probably "Wrap
-long lines" (@samp{W w}), "Decode ROT13"
-(@samp{W r}) and "Outlook Deuglify" which repairs
+Article->Washing. The most interesting ones are probably ``Wrap
+long lines'' (@samp{W w}), ``Decode ROT13''
+(@samp{W r}) and ``Outlook Deuglify'' which repairs
 the dumb quoting used by many users of Microsoft products
 (@samp{W Y f} gives you full deuglify.
 See @samp{W Y C-h} or have a look at the menus for
@@ -1016,8 +1016,8 @@ mail groups. Is this a bug?
 
 No, that's a matter of design of Gnus, fixing this would
 mean reimplementation of major parts of Gnus'
-back ends. Gnus thinks "highest-article-number @minus{}
-lowest-article-number = total-number-of-articles". This
+back ends. Gnus thinks ``highest-article-number @minus{}
+lowest-article-number = total-number-of-articles''. This
 works OK for Usenet groups, but if you delete and move
 many messages in mail groups, this fails. To cure the
 symptom, enter the group via @samp{C-u RET}
@@ -1085,8 +1085,8 @@ You've got to play around with the variable
 gnus-summary-line-format. Its value is a string of
 symbols which stand for things like author, date, subject
 etc. A list of the available specifiers can be found in the
-manual node "Summary Buffer Lines" and the often forgotten
-node "Formatting Variables" and its sub-nodes. There
+manual node ``Summary Buffer Lines'' and the often forgotten
+node ``Formatting Variables'' and its sub-nodes. There
 you'll find useful things like positioning the cursor and
 tabulators which allow you a summary in table form, but
 sadly hard tabulators are broken in 5.8.8.
@@ -1112,7 +1112,7 @@ resulting in:
 :O  \->  ...                                      | 115 |Raymond Scholz       | 1:24
 :O    \->  ...                                    |  19 |Lars Magne Ingebrigt |15:33
 :O     Slow mailing list                          |  13 |Lars Magne Ingebrigt |Sat 23:49
-:O     Re: `@@' mark not documented                |  13 |Lars Magne Ingebrigt |Sat 23:50
+:O     Re: '@@' mark not documented                |  13 |Lars Magne Ingebrigt |Sat 23:50
 :R  >  Re: Gnus still doesn't count messages prope|  23 |Lars Magne Ingebrigt |Sat 23:57
 :O  \->  ...                                      |  18 |Kai Grossjohann      | 0:35
 :O    \->  ...                                    |  13 |Lars Magne Ingebrigt | 0:56
@@ -1501,7 +1501,7 @@ entries. Say @samp{c} to create a new
 entry, @samp{b} to search your BBDB and
 @samp{C-o} to add a new field to an
 entry. If you want to add a sender to the BBDB you can
-also just hit `:' on the posting in the summary buffer and
+also just hit @kbd{:} on the posting in the summary buffer and
 you are done. When you now compose a new mail,
 hit @samp{TAB} to cycle through know
 recipients.

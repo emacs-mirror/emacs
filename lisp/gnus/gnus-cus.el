@@ -272,7 +272,7 @@ DOC is a documentation string for the parameter.")
                (repeat (list (string :format "%v" :tag "File name"))))
        "Which score files to use when using score to select articles to fetch.
 
-    `nil'
+    nil
          All articles will be scored to zero (0).
 
     `file'

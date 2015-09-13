@@ -1,4 +1,4 @@
-;;; patcomp.el --- used by patch files to update Emacs releases -*- no-byte-compile: t -*-
+;;; patcomp.el --- used by patch files to update Emacs releases
 
 ;; This file is part of GNU Emacs.
 

@@ -725,6 +725,8 @@ extern BOOL parse_button (int, int, int *, int *);
 extern void w32_sys_ring_bell (struct frame *f);
 extern void x_delete_display (struct w32_display_info *dpyinfo);
 
+extern void x_query_color (struct frame *, XColor *);
+
 extern volatile int notification_buffer_in_use;
 extern BYTE file_notifications[16384];
 extern DWORD notifications_size;

@@ -222,7 +222,7 @@ expression point is on."
            (memq eldoc-timer timer-idle-list)) ;FIXME: Why?
       (setq eldoc-timer
             (run-with-idle-timer
-	     eldoc-idle-delay t
+	     eldoc-idle-delay nil
 	     (lambda ()
                (when (or eldoc-mode
                          (and global-eldoc-mode
@@ -261,7 +261,7 @@ Otherwise work like `message'."
 			mode-line-format)))
           (setq eldoc-mode-line-string
                 (when (stringp format-string)
-                  (apply 'format format-string args)))
+                  (apply #'format-message format-string args)))
           (force-mode-line-update)))
     (apply 'message format-string args)))
 
@@ -274,7 +274,7 @@ Otherwise work like `message'."
 		;; eldoc-last-message so eq test above might succeed on
 		;; subsequent calls.
 		((null (cdr args)) (car args))
-		(t (apply 'format args))))
+		(t (apply #'format-message args))))
     ;; In emacs 19.29 and later, and XEmacs 19.13 and later, all messages
     ;; are recorded in a log.  Do not put eldoc messages in that log since
     ;; they are Legion.
@@ -337,8 +337,8 @@ and the face `eldoc-highlight-function-argument', if they are to have any
 effect.
 
 Major modes should modify this variable using `add-function', for example:
-  (add-function :before-until (local 'eldoc-documentation-function)
-                #'foo-mode-eldoc-function)
+  (add-function :before-until (local \\='eldoc-documentation-function)
+                #\\='foo-mode-eldoc-function)
 so that the global documentation function (i.e. the default value of the
 variable) is taken into account if the major mode specific function does not
 return any documentation.")
@@ -354,7 +354,32 @@ return any documentation.")
                nil))
 	 (eldoc-message (funcall eldoc-documentation-function)))))
 
-
+;; If the entire line cannot fit in the echo area, the symbol name may be
+;; truncated or eliminated entirely from the output to make room for the
+;; description.
+(defun eldoc-docstring-format-sym-doc (prefix doc &optional face)
+  (when (symbolp prefix)
+    (setq prefix (concat (propertize (symbol-name prefix) 'face face) ": ")))
+  (let* ((ea-multi eldoc-echo-area-use-multiline-p)
+         ;; Subtract 1 from window width since emacs will not write
+         ;; any chars to the last column, or in later versions, will
+         ;; cause a wraparound and resize of the echo area.
+         (ea-width (1- (window-width (minibuffer-window))))
+         (strip (- (+ (length prefix) (length doc)) ea-width)))
+    (cond ((or (<= strip 0)
+               (eq ea-multi t)
+               (and ea-multi (> (length doc) ea-width)))
+           (concat prefix doc))
+          ((> (length doc) ea-width)
+           (substring (format "%s" doc) 0 ea-width))
+          ((>= strip (string-match-p ":? *\\'" prefix))
+           doc)
+          (t
+           ;; Show the end of the partial symbol name, rather
+           ;; than the beginning, since the former is more likely
+           ;; to be unique given package namespace conventions.
+           (concat (substring prefix strip) doc)))))
+
 ;; When point is in a sexp, the function args are not reprinted in the echo
 ;; area after every possible interactive command because some of them print
 ;; their own messages in the echo area; the eldoc functions would instantly

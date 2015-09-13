@@ -502,7 +502,7 @@ ALIST is of the form ((key . func) (key . func) ...)
 Normally, this would be called from a hook to a major mode or
 on a per buffer basis.
 Usage:
-      (viper-add-local-keys state '((key-str . func) (key-str . func)...))   "
+      (viper-add-local-keys state \\='((key-str . func) (key-str . func)...))   "
 
   (let (map)
     (cond ((eq state 'vi-state)

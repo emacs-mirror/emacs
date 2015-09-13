@@ -732,9 +732,11 @@ composition_gstring_width (Lisp_Object gstring, ptrdiff_t from, ptrdiff_t to,
       if (FONT_OBJECT_P (font_object))
 	{
 	  struct font *font = XFONT_OBJECT (font_object);
+	  int font_ascent, font_descent;
 
-	  metrics->ascent = font->ascent;
-	  metrics->descent = font->descent;
+	  get_font_ascent_descent (font, &font_ascent, &font_descent);
+	  metrics->ascent = font_ascent;
+	  metrics->descent = font_descent;
 	}
       else
 	{
@@ -925,7 +927,7 @@ char_composable_p (int c)
 {
   Lisp_Object val;
   return (c > ' '
-	  && (c == 0x200C || c == 0x200D
+	  && (c == ZERO_WIDTH_NON_JOINER || c == ZERO_WIDTH_JOINER
 	      || (val = CHAR_TABLE_REF (Vunicode_category_table, c),
 		  (INTEGERP (val) && (XINT (val) <= UNICODE_CATEGORY_So)))));
 }
@@ -1930,7 +1932,6 @@ The default value is the function `compose-chars-after'.  */);
   Vcompose_chars_after_function = intern_c_string ("compose-chars-after");
 
   DEFSYM (Qauto_composed, "auto-composed");
-  DEFSYM (Qauto_composition_function, "auto-composition-function");
 
   DEFVAR_LISP ("auto-composition-mode", Vauto_composition_mode,
 	       doc: /* Non-nil if Auto-Composition mode is enabled.

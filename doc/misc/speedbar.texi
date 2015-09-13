@@ -1,7 +1,7 @@
 \input texinfo   @c -*-texinfo-*-
 @setfilename ../../info/speedbar.info
 @settitle Speedbar: File/Tag summarizing utility
-@documentencoding UTF-8
+@include docstyle.texi
 @syncodeindex fn cp
 
 @copying
@@ -43,16 +43,16 @@ modify this GNU manual.''
 
 Speedbar is a program for Emacs which can be used to summarize
 information related to the current buffer.  Its original inspiration
-is the `explorer' often used in modern development environments, office
+is the ``explorer'' often used in modern development environments, office
 packages, and web browsers.
 
 Speedbar displays a narrow frame in which a tree view is shown.  This
 tree view defaults to containing a list of files and directories.  Files
-can be `expanded' to list tags inside. Directories can be expanded to
+can be ``expanded'' to list tags inside. Directories can be expanded to
 list the files within itself.  Each file or tag can be jumped to
 immediately.
 
-Speedbar expands upon `explorer' windows by maintaining context with the
+Speedbar expands upon ``explorer'' windows by maintaining context with the
 user.  For example, when using the file view, the current buffer's file
 is highlighted.  Speedbar also mimics the explorer windows by providing
 multiple display modes.  These modes come in two flavors.  Major display
@@ -61,8 +61,8 @@ only when a buffer of the applicable type is shown.  This allows
 authors of other packages to provide speedbar summaries customized to
 the needs of that mode.
 
-Throughout this manual, activities are defined as `clicking on', or
-`expanding' items.  Clicking means using @kbd{Mouse-2} on a
+Throughout this manual, activities are defined as ``clicking on'', or
+``expanding'' items.  Clicking means using @kbd{Mouse-2} on a
 button.  Expanding refers to clicking on an expansion button to display
 an expanded summary of the entry the expansion button is
 on.  @xref{Basic Navigation}.
@@ -231,9 +231,9 @@ Groups summarize information in a single line, and provide a high level
 view of more complex systems, like a directory tree, or manual chapters.
 
 Groups appear at different indentation levels, and are prefixed with a
-@samp{+} in some sort of `box'.  The group name will summarize the
+@samp{+} in some sort of ``box''.  The group name will summarize the
 information within it, and the expansion box will display that
-information inline.  In File mode, directories and files are `groups'
+information inline.  In File mode, directories and files are ``groups''
 where the @samp{+} is surrounded by brackets like this:
 
 @example
@@ -246,7 +246,7 @@ In this example, we see both open and closed directories, in addition to
 a file.  The directories have a box consisting of angle brackets, and a
 file uses square brackets.
 
-In all modes, a group can be `edited' by pressing @kbd{RET}, meaning a
+In all modes, a group can be ``edited'' by pressing @kbd{RET}, meaning a
 file will be opened, or a directory explicitly opened in speedbar.  A
 group can be expanded or contracted using @kbd{+} or
 @kbd{-}.  @xref{Basic Key Bindings}.
@@ -292,7 +292,7 @@ Unadorned text will generally be colorless, and not clickable.
 Each type of Group, item indicator, and label is given a different
 color.  The colors chosen are dependent on whether the background color
 is light or dark.
-Of important note is that the `current item', which may be a buffer or
+Of important note is that the ``current item'', which may be a buffer or
 file name, is highlighted red, and underlined.
 
 Colors can be customized from the group @code{speedbar-faces}.  Some
@@ -1128,7 +1128,7 @@ The conventions allow almost anything to be inserted, but several helper
 functions are provided to make it easy to create the standardized
 buttons.
 
-To understand the built in functions, each `button' in speedbar consists
+To understand the built in functions, each ``button'' in speedbar consists
 of four important pieces of data.  The text to be displayed, token
 data to be associated with the text, a function to call, and some face to
 display it in.

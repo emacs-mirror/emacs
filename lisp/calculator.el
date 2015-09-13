@@ -191,7 +191,7 @@ Each element in this list is a list of a character and a number that
 will be stored in that character's register.
 
 For example, use this to define the golden ratio number:
-  (setq calculator-user-registers '((?g .  1.61803398875)))
+  (setq calculator-user-registers \\='((?g .  1.61803398875)))
 before you load calculator."
   :type  '(repeat (cons character number))
   :set   (lambda (_ val)
@@ -214,7 +214,7 @@ Examples:
   t as a prefix key:
 
   (setq calculator-user-operators
-        '((\"tf\" cl-to-fr (+ 32 (/ (* X 9) 5)) 1)
+        \\='((\"tf\" cl-to-fr (+ 32 (/ (* X 9) 5)) 1)
           (\"tc\" fr-to-cl (/ (* (- X 32) 5) 9) 1)
           (\"tp\" kg-to-lb (/ X 0.453592)       1)
           (\"tk\" lb-to-kg (* X 0.453592)       1)
@@ -226,8 +226,8 @@ Examples:
   version of `X' and `F' for a recursive call.  Here is a [very
   inefficient] Fibonacci number calculation:
 
-  (add-to-list 'calculator-user-operators
-               '(\"F\" fib
+  (add-to-list \\='calculator-user-operators
+               \\='(\"F\" fib
                  (if (<= TX 1) 1 (+ (F (- TX 1)) (F (- TX 2))))))
 
   Note that this will be either postfix or prefix, according to
@@ -311,7 +311,7 @@ user-defined operators, use `calculator-user-operators' instead.")
    9 (highest) (optional, defaults to 1);
 
 It it possible have a unary prefix version of a binary operator if it
-comes later in this list.  If the list begins with the symbol 'nobind,
+comes later in this list.  If the list begins with the symbol `nobind',
 then no key binding will take place -- this is only useful for
 predefined keys.
 
@@ -1203,10 +1203,10 @@ arguments."
     ;; f is an expression
     (let ((TX (and X (calculator-truncate X)))
           (TY (and Y (calculator-truncate Y)))
-          (DX (if (and X calculator-deg) (/ (* X pi) 180) X))
+          (DX (if (and X calculator-deg) (degrees-to-radians X) X))
           (L  calculator-saved-list)
           (fF `(calculator-funcall ',f x y))
-          (fD `(if calculator-deg (/ (* x 180) float-pi) x)))
+          (fD `(if calculator-deg (* radians-to-degrees x) x)))
       (eval `(cl-flet ((F (&optional x y) ,fF) (D (x) ,fD))
                (let ((X ,X) (Y ,Y) (DX ,DX) (TX ,TX) (TY ,TY) (L ',L))
                  ,f))
@@ -1551,7 +1551,7 @@ Used by `calculator-paste' and `get-register'."
   + - * / \\(div) %(rem) _(-X,postfix) ;(1/X,postfix) ^(exp) L(og)
   Q(sqrt) !(fact) S(in) C(os) T(an) |(or) #(xor) &(and) ~(not)
 * >/< repeats last binary operation with its 2nd (1st) arg as postfix op
-* I inverses next trig function        * '/\"/{} - display/display args
+* I inverses next trig function        * \\='/\"/{} - display/display args
 * D         - switch to all-decimal, or toggle deg/rad mode
 * B/O/H/X   - binary/octal/hex mode for i/o (X is a shortcut for H)
 * i/o       - prefix for d/b/o/x - set only input/output modes

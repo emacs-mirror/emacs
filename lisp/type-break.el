@@ -45,7 +45,7 @@
 
 ;; If you find echo area messages annoying and would prefer to see messages
 ;; in the mode line instead, do M-x type-break-mode-line-message-mode
-;; or set the variable of the same name to `t'.
+;; or set the variable of the same name to t.
 
 ;; This program can truly cons up a storm because of all the calls to
 ;; `current-time' (which always returns fresh conses).  I'm dismayed by
@@ -803,8 +803,9 @@ this or ask the user to start one right now."
    (type-break-mode-line-message-mode)
    (t
     (beep t)
-    (message "%sYou should take a typing break now.  Do `M-x type-break'."
-             (type-break-time-stamp))
+    (message "%sYou should take a typing break now.  Do `%s'."
+             (type-break-time-stamp)
+             (substitute-command-keys "\\[type-break]"))
     (sit-for 1)
     (beep t)
     ;; return nil so query caller knows to reset reminder, as if user

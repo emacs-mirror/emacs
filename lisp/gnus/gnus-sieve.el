@@ -139,7 +139,7 @@ Return nil if no rule could be guessed."
   "Convert an elisp string list to a Sieve string list.
 
 For example:
-\(gnus-sieve-string-list '(\"to\" \"cc\"))
+\(gnus-sieve-string-list \\='(\"to\" \"cc\"))
   => \"[\\\"to\\\", \\\"cc\\\"]\"
 "
   (concat "[\"" (mapconcat 'identity list "\", \"") "\"]"))
@@ -148,7 +148,7 @@ For example:
   "Convert an elisp test list to a Sieve test list.
 
 For example:
-\(gnus-sieve-test-list '((address \"sender\" \"boss@company.com\") (size :over 4K)))
+\(gnus-sieve-test-list \\='((address \"sender\" \"boss@company.com\") (size :over 4K)))
   => \"(address \\\"sender\\\" \\\"boss@company.com\\\", size :over 4K)\""
   (concat "(" (mapconcat 'gnus-sieve-test list ", ") ")"))
 
@@ -157,13 +157,13 @@ For example:
   "Convert an elisp test token to a Sieve test token.
 
 For example:
-\(gnus-sieve-test-token 'address)
+\(gnus-sieve-test-token \\='address)
   => \"address\"
 
 \(gnus-sieve-test-token \"sender\")
   => \"\\\"sender\\\"\"
 
-\(gnus-sieve-test-token '(\"to\" \"cc\"))
+\(gnus-sieve-test-token \\='(\"to\" \"cc\"))
   => \"[\\\"to\\\", \\\"cc\\\"]\""
   (cond
    ((symbolp token)            ;; Keyword
@@ -184,10 +184,10 @@ For example:
   "Convert an elisp test to a Sieve test.
 
 For example:
-\(gnus-sieve-test '(address \"sender\" \"sieve-admin@extundo.com\"))
+\(gnus-sieve-test \\='(address \"sender\" \"sieve-admin@extundo.com\"))
   => \"address \\\"sender\\\" \\\"sieve-admin@extundo.com\\\"\"
 
-\(gnus-sieve-test '(anyof ((header :contains (\"to\" \"cc\") \"my@address.com\")
+\(gnus-sieve-test \\='(anyof ((header :contains (\"to\" \"cc\") \"my@address.com\")
 			  (size :over 100K))))
   => \"anyof (header :contains [\\\"to\\\", \\\"cc\\\"] \\\"my@address.com\\\",
 	     size :over 100K)\""

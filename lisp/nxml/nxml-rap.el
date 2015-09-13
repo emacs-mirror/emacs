@@ -128,7 +128,7 @@ Return nil if the character at POS is not inside."
 The change happened between START and END.
 Return position after which lexical state is unchanged.
 END must be > `nxml-prolog-end'.  START must be outside
-any 'inside' regions and at the beginning of a token."
+any “inside” regions and at the beginning of a token."
   (if (>= start nxml-scan-end)
       nxml-scan-end
     (let ((inside-remove-start start)
@@ -234,10 +234,10 @@ Sets variables like `nxml-token-after'."
     xmltok-type))
 
 (defun nxml-move-tag-backwards (bound)
-  "Move point backwards outside any 'inside' regions or tags.
+  "Move point backwards outside any “inside” regions or tags.
 Point will not move past `nxml-prolog-end'.
-Point will either be at BOUND or a '<' character starting a tag
-outside any 'inside' regions.
+Point will either be at BOUND or a `<' character starting a tag
+outside any “inside” regions.
 As a precondition, point must be >= BOUND."
   (nxml-move-outside-backwards)
   (when (not (equal (char-after) ?<))

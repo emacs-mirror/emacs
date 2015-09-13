@@ -1353,8 +1353,8 @@ show window is toggled off."
 This option is consulted when a prefix argument is used with
 \\[mh-sort-folder]. Normally default arguments to \"sortm\" are
 specified in the MH profile. This option may be used to provide
-an alternate view. For example, \"'(\"-nolimit\" \"-textfield\"
-\"subject\")\" is a useful setting."
+an alternate view. For example, (\"-nolimit\" \"-textfield\"
+\"subject\") is a useful setting."
   :type '(repeat string)
   :group 'mh-folder
   :package-version '(MH-E . "8.0"))
@@ -1657,7 +1657,7 @@ using the Emacs 22 command \"emacsclient\" as follows:
         origMode
         polltime 10
         headertime 0
-        command emacsclient --eval '(mh-inc-spool-mh-e)'
+        command emacsclient --eval \\='(mh-inc-spool-mh-e)\\='
 
 In XEmacs, the command \"gnuclient\" is used in a similar
 fashion."

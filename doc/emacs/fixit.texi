@@ -78,6 +78,7 @@ the undo command.
 previous undo commands, use @kbd{M-x undo-only}.  This is like
 @code{undo}, but will not redo changes you have just undone.
 
+@c What about @kbd{M-x revert-buffer}? --xfq
   If you notice that a buffer has been modified accidentally, the
 easiest way to recover is to type @kbd{C-/} repeatedly until the stars
 disappear from the front of the mode line (@pxref{Mode Line}).
@@ -403,10 +404,17 @@ mode in the current buffer.  To enable Flyspell mode in all text mode
 buffers, add @code{flyspell-mode} to @code{text-mode-hook}.
 @xref{Hooks}.
 
+@findex flyspell-correct-word
+@findex flyspell-auto-correct-word
+@findex flyspell-correct-word-before-point
   When Flyspell mode highlights a word as misspelled, you can click on
-it with @kbd{Mouse-2} to display a menu of possible corrections and
-actions.  You can also correct the word by editing it manually in any
-way you like.
+it with @kbd{Mouse-2} (@code{flyspell-correct-word}) to display a menu
+of possible corrections and actions.  In addition, @kbd{C-.} or
+@kbd{@key{ESC}-@key{TAB}} (@code{flyspell-auto-correct-word}) will
+propose various successive corrections for the word at point, and
+@kbd{C-c $} (@code{flyspell-correct-word-before-point}) will pop up a
+menu of possible corrections.  Of course, you can always correct the
+misspelled word by editing it manually in any way you like.
 
 @findex flyspell-prog-mode
   Flyspell Prog mode works just like ordinary Flyspell mode, except

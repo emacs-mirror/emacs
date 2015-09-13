@@ -28,9 +28,10 @@
 
 ;;; Code:
 
+(require 'cl-generic)
 (require 'lisp-mode)
+(eval-when-compile (require 'cl-lib))
 
-(defvar emacs-lisp-mode-abbrev-table nil)
 (define-abbrev-table 'emacs-lisp-mode-abbrev-table ()
   "Abbrev table for Emacs Lisp mode.
 It has `lisp-mode-abbrev-table' as its parent."
@@ -229,15 +230,39 @@ Blank lines separate paragraphs.  Semicolons start comments.
   :group 'lisp
   (defvar xref-find-function)
   (defvar xref-identifier-completion-table-function)
+  (defvar project-search-path-function)
   (lisp-mode-variables nil nil 'elisp)
+  (add-hook 'after-load-functions #'elisp--font-lock-flush-elisp-buffers)
+  (setq-local electric-pair-text-pairs
+              (append '((?\` . ?\') (?‘ . ?’)) electric-pair-text-pairs))
+  (setq-local electric-quote-string t)
   (setq imenu-case-fold-search nil)
   (add-function :before-until (local 'eldoc-documentation-function)
                 #'elisp-eldoc-documentation-function)
   (setq-local xref-find-function #'elisp-xref-find)
   (setq-local xref-identifier-completion-table-function
               #'elisp--xref-identifier-completion-table)
+  (setq-local project-search-path-function #'elisp-search-path)
   (add-hook 'completion-at-point-functions
             #'elisp-completion-at-point nil 'local))
+
+;; Font-locking support.
+
+(defun elisp--font-lock-flush-elisp-buffers (&optional file)
+  ;; FIXME: Aren't we only ever called from after-load-functions?
+  ;; Don't flush during load unless called from after-load-functions.
+  ;; In that case, FILE is non-nil.  It's somehow strange that
+  ;; load-in-progress is t when an after-load-function is called since
+  ;; that should run *after* the load...
+  (when (or (not load-in-progress) file)
+    ;; FIXME: If the loaded file did not define any macros, there shouldn't
+    ;; be any need to font-lock-flush all the Elisp buffers.
+    (dolist (buf (buffer-list))
+      (with-current-buffer buf
+	(when (derived-mode-p 'emacs-lisp-mode)
+          ;; So as to take into account new macros that may have been defined
+          ;; by the just-loaded file.
+	  (font-lock-flush))))))
 
 ;;; Completion at point for Elisp
 
@@ -374,7 +399,7 @@ It can be quoted, or be inside a quoted form."
                ((or (eq (char-after) ?\[)
                     (progn
                       (skip-chars-backward " ")
-                      (memq (char-before) '(?' ?`))))
+                      (memq (char-before) '(?' ?` ?‘))))
                 (setq res t))
                ((eq (char-before) ?,)
                 (setq nesting nil))))
@@ -417,6 +442,7 @@ It can be quoted, or be inside a quoted form."
          (string-match ".*$" doc)
          (match-string 0 doc))))
 
+;; can't (require 'find-func) in a preloaded file
 (declare-function find-library-name "find-func" (library))
 (declare-function find-function-library "find-func" (function &optional l-o v))
 
@@ -439,7 +465,7 @@ It can be quoted, or be inside a quoted form."
 	   (beg (condition-case nil
 		    (save-excursion
 		      (backward-sexp 1)
-		      (skip-syntax-forward "'")
+		      (skip-chars-forward "`',‘#")
 		      (point))
 		  (scan-error pos)))
 	   (end
@@ -450,16 +476,17 @@ It can be quoted, or be inside a quoted form."
 		  (save-excursion
 		    (goto-char beg)
 		    (forward-sexp 1)
-                    (skip-chars-backward "'")
+                    (skip-chars-backward "'’")
 		    (when (>= (point) pos)
 		      (point)))
 		(scan-error pos))))
            ;; t if in function position.
-           (funpos (eq (char-before beg) ?\()))
+           (funpos (eq (char-before beg) ?\())
+           (quoted (elisp--form-quoted-p beg)))
       (when (and end (or (not (nth 8 (syntax-ppss)))
-                         (eq (char-before beg) ?`)))
+                         (memq (char-before beg) '(?` ?‘))))
         (let ((table-etc
-               (if (not funpos)
+               (if (or (not funpos) quoted)
                    ;; FIXME: We could look at the first element of the list and
                    ;; use it to provide a more specific completion table in some
                    ;; cases.  E.g. filter out keywords that are not understood by
@@ -471,7 +498,7 @@ It can be quoted, or be inside a quoted form."
                            :company-doc-buffer #'elisp--company-doc-buffer
                            :company-docsig #'elisp--company-doc-string
                            :company-location #'elisp--company-location))
-                    ((elisp--form-quoted-p beg)
+                    (quoted
                      (list nil obarray
                            ;; Don't include all symbols (bug#16646).
                            :predicate (lambda (sym)
@@ -523,10 +550,11 @@ It can be quoted, or be inside a quoted form."
                                         (< (point) beg)))))
                         (list t obarray
                               :predicate (lambda (sym) (get sym 'error-conditions))))
-                       ((and ?\(
+                       ((and (or ?\( `let `let*)
                              (guard (save-excursion
                                       (goto-char (1- beg))
-                                      (up-list -1)
+                                      (when (eq parent ?\()
+                                        (up-list -1))
                                       (forward-symbol -1)
                                       (looking-at "\\_<let\\*?\\_>"))))
                         (list t obarray
@@ -556,56 +584,226 @@ It can be quoted, or be inside a quoted form."
 
 ;;; Xref backend
 
-(declare-function xref-make-elisp-location "xref" (symbol type file))
 (declare-function xref-make-bogus-location "xref" (message))
-(declare-function xref-make "xref" (description location))
+(declare-function xref-make "xref" (summary location))
+(declare-function xref-collect-references "xref" (symbol dir))
 
 (defun elisp-xref-find (action id)
   (require 'find-func)
+  ;; FIXME: use information in source near point to filter results:
+  ;; (dvc-log-edit ...) - exclude 'feature
+  ;; (require 'dvc-log-edit) - only 'feature
+  ;; Semantic may provide additional information
   (pcase action
     (`definitions
       (let ((sym (intern-soft id)))
         (when sym
           (elisp--xref-find-definitions sym))))
+    (`references
+     (elisp--xref-find-references id))
     (`apropos
      (elisp--xref-find-apropos id))))
 
-(defun elisp--xref-identifier-location (type sym)
-  (let ((file
-         (pcase type
-           (`defun (when (fboundp sym)
-                     (let ((fun-lib
-                            (find-function-library sym)))
-                       (setq sym (car fun-lib))
-                       (cdr fun-lib))))
-           (`defvar (when (boundp sym)
-                      (or (symbol-file sym 'defvar)
-                          (help-C-file-name sym 'var))))
-           (`feature (when (featurep sym)
-                       (ignore-errors
-                         (find-library-name (symbol-name sym)))))
-           (`defface (when (facep sym)
-                       (symbol-file sym 'defface))))))
-    (when file
-      (when (string-match-p "\\.elc\\'" file)
-        (setq file (substring file 0 -1)))
-      (xref-make-elisp-location sym type file))))
+;; WORKAROUND: This is nominally a constant, but the text properties
+;; are not preserved thru dump if use defconst.  See bug#21237.
+(defvar elisp--xref-format
+  (let ((str "(%s %s)"))
+    (put-text-property 1 3 'face 'font-lock-keyword-face str)
+    (put-text-property 4 6 'face 'font-lock-function-name-face str)
+    str))
 
+;; WORKAROUND: This is nominally a constant, but the text properties
+;; are not preserved thru dump if use defconst.  See bug#21237.
+(defvar elisp--xref-format-extra
+  (let ((str "(%s %s %s)"))
+    (put-text-property 1 3 'face 'font-lock-keyword-face str)
+    (put-text-property 4 6 'face 'font-lock-function-name-face str)
+    str))
+
+(defvar find-feature-regexp);; in find-func.el
+
+(defun elisp--xref-make-xref (type symbol file &optional summary)
+  "Return an xref for TYPE SYMBOL in FILE.
+TYPE must be a type in `find-function-regexp-alist' (use nil for
+'defun).  If SUMMARY is non-nil, use it for the summary;
+otherwise build the summary from TYPE and SYMBOL."
+  (xref-make (or summary
+		 (format elisp--xref-format (or type 'defun) symbol))
+	     (xref-make-elisp-location symbol type file)))
+
+(defvar elisp-xref-find-def-functions nil
+  "List of functions to be run from `elisp--xref-find-definitions' to add additional xrefs.
+Called with one arg; the symbol whose definition is desired.
+Each function should return a list of xrefs, or nil; the first
+non-nil result supercedes the xrefs produced by
+`elisp--xref-find-definitions'.")
+
+;; FIXME: name should be singular; match xref-find-definition
 (defun elisp--xref-find-definitions (symbol)
-  (save-excursion
-    (let (lst)
-      (dolist (type '(feature defface defvar defun))
-        (let ((loc
-               (condition-case err
-                   (elisp--xref-identifier-location type symbol)
-                 (error
-                  (xref-make-bogus-location (error-message-string err))))))
-          (when loc
-            (push
-             (xref-make (format "(%s %s)" type symbol)
-                        loc)
-             lst))))
-      lst)))
+  ;; The file name is not known when `symbol' is defined via interactive eval.
+  (let (xrefs)
+
+    (let ((temp elisp-xref-find-def-functions))
+      (while (and (null xrefs)
+                  temp)
+        (setq xrefs (append xrefs (funcall (pop temp) symbol)))))
+
+    (unless xrefs
+      ;; alphabetical by result type symbol
+
+      ;; FIXME: advised function; list of advice functions
+
+      ;; Coding system symbols do not appear in ‘load-history’,
+      ;; so we can’t get a location for them.
+
+      (when (and (symbolp symbol)
+                 (symbol-function symbol)
+                 (symbolp (symbol-function symbol)))
+        ;; aliased function
+        (let* ((alias-symbol symbol)
+               (alias-file (symbol-file alias-symbol))
+               (real-symbol  (symbol-function symbol))
+               (real-file (find-lisp-object-file-name real-symbol 'defun)))
+
+          (when real-file
+            (push (elisp--xref-make-xref nil real-symbol real-file) xrefs))
+
+          (when alias-file
+            (push (elisp--xref-make-xref 'defalias alias-symbol alias-file) xrefs))))
+
+      (when (facep symbol)
+        (let ((file (find-lisp-object-file-name symbol 'defface)))
+          (when file
+            (push (elisp--xref-make-xref 'defface symbol file) xrefs))))
+
+      (when (fboundp symbol)
+        (let ((file (find-lisp-object-file-name symbol (symbol-function symbol)))
+              generic doc)
+          (when file
+            (cond
+             ((eq file 'C-source)
+              ;; First call to find-lisp-object-file-name for an object
+              ;; defined in C; the doc strings from the C source have
+              ;; not been loaded yet.  Second call will return "src/*.c"
+              ;; in file; handled by 't' case below.
+              (push (elisp--xref-make-xref nil symbol (help-C-file-name (symbol-function symbol) 'subr)) xrefs))
+
+             ((and (setq doc (documentation symbol t))
+                   ;; This doc string is defined in cl-macs.el cl-defstruct
+                   (string-match "Constructor for objects of type `\\(.*\\)'" doc))
+              ;; `symbol' is a name for the default constructor created by
+              ;; cl-defstruct, so return the location of the cl-defstruct.
+              (let* ((type-name (match-string 1 doc))
+                     (type-symbol (intern type-name))
+                     (file (find-lisp-object-file-name type-symbol 'define-type))
+                     (summary (format elisp--xref-format-extra
+                                      'cl-defstruct
+                                      (concat "(" type-name)
+                                      (concat "(:constructor " (symbol-name symbol) "))"))))
+                (push (elisp--xref-make-xref 'define-type type-symbol file summary) xrefs)
+                ))
+
+             ((setq generic (cl--generic symbol))
+              ;; FIXME: move this to elisp-xref-find-def-functions, in cl-generic.el
+
+              ;; A generic function. If there is a default method, it
+              ;; will appear in the method table, with no
+              ;; specializers.
+              ;;
+              ;; If the default method is declared by the cl-defgeneric
+              ;; declaration, it will have the same location as the
+              ;; cl-defgeneric, so we want to exclude it from the
+              ;; result. In this case, it will have a null doc
+              ;; string. User declarations of default methods may also
+              ;; have null doc strings, but we hope that is
+              ;; rare. Perhaps this heuristic will discourage that.
+              (dolist (method (cl--generic-method-table generic))
+                (let* ((info (cl--generic-method-info method));; qual-string combined-args doconly
+                       (specializers (cl--generic-method-specializers method))
+                       (met-name (cons symbol specializers))
+                       (file (find-lisp-object-file-name met-name 'cl-defmethod)))
+                  (when (and file
+                             (or specializers   ;; default method has null specializers
+                                 (nth 2 info))) ;; assuming only co-located default has null doc string
+                    (if specializers
+                        (let ((summary (format elisp--xref-format-extra 'cl-defmethod symbol (nth 1 info))))
+                          (push (elisp--xref-make-xref 'cl-defmethod met-name file summary) xrefs))
+
+                      (let ((summary (format elisp--xref-format-extra 'cl-defmethod symbol "()")))
+                        (push (elisp--xref-make-xref 'cl-defmethod met-name file summary) xrefs))))
+                  ))
+
+              (if (and (setq doc (documentation symbol t))
+                       ;; This doc string is created somewhere in
+                       ;; cl--generic-make-function for an implicit
+                       ;; defgeneric.
+                       (string-match "\n\n(fn ARG &rest ARGS)" doc))
+                  ;; This symbol is an implicitly defined defgeneric, so
+                  ;; don't return it.
+                  nil
+                (push (elisp--xref-make-xref 'cl-defgeneric symbol file) xrefs))
+              )
+
+             (t
+              (push (elisp--xref-make-xref nil symbol file) xrefs))
+             ))))
+
+      (when (boundp symbol)
+        ;; A variable
+        (let ((file (find-lisp-object-file-name symbol 'defvar)))
+          (when file
+            (cond
+             ((eq file 'C-source)
+              ;; The doc strings from the C source have not been loaded
+              ;; yet; help-C-file-name does that.  Second call will
+              ;; return "src/*.c" in file; handled below.
+              (push (elisp--xref-make-xref 'defvar symbol (help-C-file-name symbol 'var)) xrefs))
+
+             ((string= "src/" (substring file 0 4))
+              ;; The variable is defined in a C source file; don't check
+              ;; for define-minor-mode.
+              (push (elisp--xref-make-xref 'defvar symbol file) xrefs))
+
+             ((memq symbol minor-mode-list)
+              ;; The symbol is a minor mode. These should be defined by
+              ;; "define-minor-mode", which means the variable and the
+              ;; function are declared in the same place. So we return only
+              ;; the function, arbitrarily.
+              ;;
+              ;; There is an exception, when the variable is defined in C
+              ;; code, as for abbrev-mode.
+              ;;
+              ;; IMPROVEME: If the user is searching for the identifier at
+              ;; point, we can determine whether it is a variable or
+              ;; function by looking at the source code near point.
+              ;;
+              ;; IMPROVEME: The user may actually be asking "do any
+              ;; variables by this name exist"; we need a way to specify
+              ;; that.
+              nil)
+
+             (t
+              (push (elisp--xref-make-xref 'defvar symbol file) xrefs))
+
+             ))))
+
+      (when (featurep symbol)
+        (let ((file (ignore-errors
+                      (find-library-name (symbol-name symbol)))))
+          (when file
+            (push (elisp--xref-make-xref 'feature symbol file) xrefs))))
+      );; 'unless xrefs'
+
+    xrefs))
+
+(declare-function project-search-path "project")
+(declare-function project-current "project")
+
+(defun elisp--xref-find-references (symbol)
+  (cl-mapcan
+   (lambda (dir)
+     (xref-collect-references symbol dir))
+   (project-search-path (project-current))))
 
 (defun elisp--xref-find-apropos (regexp)
   (apply #'nconc
@@ -626,6 +824,25 @@ It can be quoted, or be inside a quoted form."
 
 (defun elisp--xref-identifier-completion-table ()
   elisp--xref-identifier-completion-table)
+
+(cl-defstruct (xref-elisp-location
+               (:constructor xref-make-elisp-location (symbol type file)))
+  "Location of an Emacs Lisp symbol definition."
+  symbol type file)
+
+(cl-defmethod xref-location-marker ((l xref-elisp-location))
+  (pcase-let (((cl-struct xref-elisp-location symbol type file) l))
+    (let ((buffer-point (find-function-search-for-symbol symbol type file)))
+      (with-current-buffer (car buffer-point)
+        (goto-char (or (cdr buffer-point) (point-min)))
+        (point-marker)))))
+
+(cl-defmethod xref-location-group ((l xref-elisp-location))
+  (xref-elisp-location-file l))
+
+(defun elisp-search-path ()
+  (defvar package-user-dir)
+  (cons package-user-dir load-path))
 
 ;;; Elisp Interaction mode
 
@@ -711,6 +928,7 @@ Semicolons start comments.
             (goto-char end)))))))
 
 (defun elisp-byte-code-syntax-propertize (start end)
+  (goto-char start)
   (elisp--byte-code-comment end (point))
   (funcall
    (syntax-propertize-rules
@@ -832,15 +1050,17 @@ If CHAR is not a character, return nil."
 (defun elisp--preceding-sexp ()
   "Return sexp before the point."
   (let ((opoint (point))
-	ignore-quotes
+	(left-quote ?‘)
 	expr)
     (save-excursion
       (with-syntax-table emacs-lisp-mode-syntax-table
-	;; If this sexp appears to be enclosed in `...'
+	;; If this sexp appears to be enclosed in `...' or ‘...’
 	;; then ignore the surrounding quotes.
-	(setq ignore-quotes
-	      (or (eq (following-char) ?\')
-		  (eq (preceding-char) ?\')))
+	(cond ((eq (preceding-char) ?’)
+	       (progn (forward-char -1) (setq opoint (point))))
+	      ((or (eq (following-char) ?\')
+		   (eq (preceding-char) ?\'))
+	       (setq left-quote ?\`)))
 	(forward-sexp -1)
 	;; If we were after `?\e' (or similar case),
 	;; use the whole thing, not just the `e'.
@@ -864,7 +1084,7 @@ If CHAR is not a character, return nil."
 	      (forward-sexp -1))))
 
 	(save-restriction
-	  (if (and ignore-quotes (eq (following-char) ?`))
+	  (if (eq (following-char) left-quote)
               ;; vladimir@cs.ualberta.ca 30-Jul-1997: Skip ` in `variable' so
               ;; that the value is returned, not the name.
 	      (forward-char))
@@ -1103,7 +1323,7 @@ which see."
   0 - contains the last symbol read from the buffer.
   1 - contains the string last displayed in the echo area for variables,
       or argument string for functions.
-  2 - 'function if function args, 'variable if variable documentation.")
+  2 - `function' if function args, `variable' if variable documentation.")
 
 (defun elisp-eldoc-documentation-function ()
   "`eldoc-documentation-function' (which see) for Emacs Lisp."
@@ -1112,13 +1332,13 @@ which see."
     (cond ((null current-fnsym)
 	   nil)
 	  ((eq current-symbol (car current-fnsym))
-	   (or (apply #'elisp--get-fnsym-args-string current-fnsym)
-	       (elisp--get-var-docstring current-symbol)))
+	   (or (apply #'elisp-get-fnsym-args-string current-fnsym)
+	       (elisp-get-var-docstring current-symbol)))
 	  (t
-	   (or (elisp--get-var-docstring current-symbol)
-	       (apply #'elisp--get-fnsym-args-string current-fnsym))))))
+	   (or (elisp-get-var-docstring current-symbol)
+	       (apply #'elisp-get-fnsym-args-string current-fnsym))))))
 
-(defun elisp--get-fnsym-args-string (sym &optional index)
+(defun elisp-get-fnsym-args-string (sym &optional index prefix)
   "Return a string containing the parameter list of the function SYM.
 If SYM is a subr and no arglist is obtainable from the docstring
 or elsewhere, return a 1-line docstring."
@@ -1135,20 +1355,29 @@ or elsewhere, return a 1-line docstring."
 		  (args
 		   (cond
 		    ((listp advertised) advertised)
-		    ((setq doc (help-split-fundoc (documentation sym t) sym))
+		    ((setq doc (help-split-fundoc
+				(condition-case nil (documentation sym t)
+				  (invalid-function nil))
+				sym))
 		     (car doc))
 		    (t (help-function-arglist sym)))))
              ;; Stringify, and store before highlighting, downcasing, etc.
-             ;; FIXME should truncate before storing.
-	     (elisp--last-data-store sym (elisp--function-argstring args)
+	     (elisp--last-data-store sym (elisp-function-argstring args)
                                     'function))))))
     ;; Highlight, truncate.
     (if argstring
-	(elisp--highlight-function-argument sym argstring index))))
+	(elisp--highlight-function-argument
+         sym argstring index
+         (or prefix
+             (concat (propertize (symbol-name sym) 'face
+                                 (if (functionp sym)
+                                     'font-lock-function-name-face
+                                   'font-lock-keyword-face))
+                     ": "))))))
 
-(defun elisp--highlight-function-argument (sym args index)
+(defun elisp--highlight-function-argument (sym args index prefix)
   "Highlight argument INDEX in ARGS list for function SYM.
-In the absence of INDEX, just call `elisp--docstring-format-sym-doc'."
+In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
   ;; FIXME: This should probably work on the list representation of `args'
   ;; rather than its string representation.
   ;; FIXME: This function is much too long, we need to split it up!
@@ -1233,9 +1462,9 @@ In the absence of INDEX, just call `elisp--docstring-format-sym-doc'."
                     ((string= argument "&allow-other-keys")) ; Skip.
                     ;; Back to index 0 in ARG1 ARG2 ARG2 ARG3 etc...
                     ;; like in `setq'.
-		    ((or (and (string-match-p "\\.\\.\\.$" argument)
+		    ((or (and (string-match-p "\\.\\.\\.\\'" argument)
                               (string= argument (car (last args-lst))))
-                         (and (string-match-p "\\.\\.\\.$"
+                         (and (string-match-p "\\.\\.\\.\\'"
                                               (substring args 1 (1- (length args))))
                               (= (length (remove "..." args-lst)) 2)
                               (> index 1) (eq (logand index 1) 1)))
@@ -1250,14 +1479,12 @@ In the absence of INDEX, just call `elisp--docstring-format-sym-doc'."
       (when start
 	(setq doc (copy-sequence args))
 	(add-text-properties start end (list 'face argument-face) doc))
-      (setq doc (elisp--docstring-format-sym-doc
-		 sym doc (if (functionp sym) 'font-lock-function-name-face
-                           'font-lock-keyword-face)))
+      (setq doc (eldoc-docstring-format-sym-doc prefix doc))
       doc)))
 
 ;; Return a string containing a brief (one-line) documentation string for
 ;; the variable.
-(defun elisp--get-var-docstring (sym)
+(defun elisp-get-var-docstring (sym)
   (cond ((not sym) nil)
         ((and (eq sym (aref elisp--eldoc-last-data 0))
               (eq 'variable (aref elisp--eldoc-last-data 2)))
@@ -1265,7 +1492,7 @@ In the absence of INDEX, just call `elisp--docstring-format-sym-doc'."
         (t
          (let ((doc (documentation-property sym 'variable-documentation t)))
            (when doc
-             (let ((doc (elisp--docstring-format-sym-doc
+             (let ((doc (eldoc-docstring-format-sym-doc
                          sym (elisp--docstring-first-line doc)
                          'font-lock-variable-name-face)))
                (elisp--last-data-store sym doc 'variable)))))))
@@ -1289,36 +1516,6 @@ In the absence of INDEX, just call `elisp--docstring-format-sym-doc'."
                    (substring doc start (match-beginning 0)))
                   ((zerop start) doc)
                   (t (substring doc start))))))))
-
-(defvar eldoc-echo-area-use-multiline-p)
-
-;; If the entire line cannot fit in the echo area, the symbol name may be
-;; truncated or eliminated entirely from the output to make room for the
-;; description.
-(defun elisp--docstring-format-sym-doc (sym doc face)
-  (save-match-data
-    (let* ((name (symbol-name sym))
-           (ea-multi eldoc-echo-area-use-multiline-p)
-           ;; Subtract 1 from window width since emacs will not write
-           ;; any chars to the last column, or in later versions, will
-           ;; cause a wraparound and resize of the echo area.
-           (ea-width (1- (window-width (minibuffer-window))))
-           (strip (- (+ (length name) (length ": ") (length doc)) ea-width)))
-      (cond ((or (<= strip 0)
-                 (eq ea-multi t)
-                 (and ea-multi (> (length doc) ea-width)))
-             (format "%s: %s" (propertize name 'face face) doc))
-            ((> (length doc) ea-width)
-             (substring (format "%s" doc) 0 ea-width))
-            ((>= strip (length name))
-             (format "%s" doc))
-            (t
-             ;; Show the end of the partial symbol name, rather
-             ;; than the beginning, since the former is more likely
-             ;; to be unique given package namespace conventions.
-             (setq name (substring name strip))
-             (format "%s: %s" (propertize name 'face face) doc))))))
-
 
 ;; Return a list of current function name and argument index.
 (defun elisp--fnsym-in-current-sexp ()
@@ -1363,12 +1560,12 @@ In the absence of INDEX, just call `elisp--docstring-format-sym-doc'."
          (memq (char-syntax c) '(?w ?_))
          (intern-soft (current-word)))))
 
-(defun elisp--function-argstring (arglist)
+(defun elisp-function-argstring (arglist)
   "Return ARGLIST as a string enclosed by ().
 ARGLIST is either a string, or a list of strings or symbols."
   (let ((str (cond ((stringp arglist) arglist)
                    ((not (listp arglist)) nil)
-                   (t (format "%S" (help-make-usage 'toto arglist))))))
+                   (t (help--make-usage-docstring 'toto arglist)))))
     (if (and str (string-match "\\`([^ )]+ ?" str))
         (replace-match "(" t t str)
       str)))

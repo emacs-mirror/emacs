@@ -731,35 +731,35 @@ Strip out duplicates, and recurse on variables."
   (oset this :source (makefile-macro-file-list "EXTRA_DIST")))
 
 (cl-defmethod project-am-macro ((this project-am-objectcode))
-  "Return the default macro to 'edit' for this object type."
+  "Return the default macro to `edit' for this object type."
   (concat (subst-char-in-string ?- ?_ (oref this :name)) "_SOURCES"))
 
 (cl-defmethod project-am-macro ((this project-am-header-noinst))
-  "Return the default macro to 'edit' for this object."
+  "Return the default macro to `edit' for this object."
   "noinst_HEADERS")
 
 (cl-defmethod project-am-macro ((this project-am-header-inst))
-  "Return the default macro to 'edit' for this object."
+  "Return the default macro to `edit' for this object."
   "include_HEADERS")
 
 (cl-defmethod project-am-macro ((this project-am-header-pkg))
-  "Return the default macro to 'edit' for this object."
+  "Return the default macro to `edit' for this object."
   "pkginclude_HEADERS")
 
 (cl-defmethod project-am-macro ((this project-am-header-chk))
-  "Return the default macro to 'edit' for this object."
+  "Return the default macro to `edit' for this object."
   "check_HEADERS")
 
 (cl-defmethod project-am-macro ((this project-am-texinfo))
-  "Return the default macro to 'edit' for this object type."
+  "Return the default macro to `edit' for this object type."
   (concat (file-name-sans-extension (oref this :name)) "_TEXINFOS"))
 
 (cl-defmethod project-am-macro ((this project-am-man))
-  "Return the default macro to 'edit' for this object type."
+  "Return the default macro to `edit' for this object type."
   (oref this :name))
 
 (cl-defmethod project-am-macro ((this project-am-lisp))
-  "Return the default macro to 'edit' for this object."
+  "Return the default macro to `edit' for this object."
   "lisp_LISP")
 
 (defun project-am-buffer-object (amf buffer)

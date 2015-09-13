@@ -231,10 +231,17 @@ See `delete-selection-helper'."
     (delete-selection-helper (and (symbolp this-command)
                                   (get this-command 'delete-selection)))))
 
-(put 'self-insert-command 'delete-selection
-     (lambda ()
-       (not (run-hook-with-args-until-success
-             'self-insert-uses-region-functions))))
+(defun delete-selection-uses-region-p ()
+  "Return t when the current command will be using the region
+rather than having `delete-selection' delete it, nil otherwise.
+
+This function is intended for use as the value of the
+`delete-selection' property of a command, and shouldn't be used
+for anything else."
+  (not (run-hook-with-args-until-success
+        'self-insert-uses-region-functions)))
+
+(put 'self-insert-command 'delete-selection 'delete-selection-uses-region-p)
 
 (put 'insert-char 'delete-selection t)
 (put 'quoted-insert 'delete-selection t)

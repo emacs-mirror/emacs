@@ -523,7 +523,8 @@ apply the face `mm-uu-extract'."
 	(when (and mml2015-use (null (mml2015-clear-verify-function)))
 	  (mm-set-handle-multipart-parameter
 	   mm-security-handle 'gnus-details
-	   (format "Clear verification not supported by `%s'.\n" mml2015-use)))
+	   (gnus-format-message
+	    "Clear verification not supported by `%s'.\n" mml2015-use)))
 	(mml2015-extract-cleartext-signature))
       (list (mm-make-handle buf mm-uu-text-plain-type)))))
 

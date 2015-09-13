@@ -142,7 +142,7 @@ Abstract tables do not have file names associated with them."
   nil)
 
 (cl-defmethod semanticdb-dirty-p ((obj semanticdb-abstract-table))
-  "Return non-nil if OBJ is 'dirty'."
+  "Return non-nil if OBJ is dirty."
   nil)
 
 (cl-defmethod semanticdb-set-dirty ((obj semanticdb-abstract-table))
@@ -313,7 +313,7 @@ If OBJ's file is not loaded, read it in first."
 		    (oref (oref obj parent-db) reference-directory)))
 
 (cl-defmethod semanticdb-dirty-p ((obj semanticdb-table))
-  "Return non-nil if OBJ is 'dirty'."
+  "Return non-nil if OBJ is dirty."
   (oref obj dirty))
 
 (cl-defmethod semanticdb-set-dirty ((obj semanticdb-table))
@@ -369,7 +369,7 @@ Abstract tables do not have file names associated with them."
   nil)
 
 (cl-defmethod semanticdb-dirty-p ((DB semanticdb-project-database))
-  "Return non-nil if DB is 'dirty'.
+  "Return non-nil if DB is dirty.
 A database is dirty if the state of the database changed in a way
 where it may need to resynchronize with some persistent storage."
   (let ((dirty nil)
@@ -723,6 +723,7 @@ form."
   "Save all semantic tag databases from idle time.
 Exit the save between databases if there is user input."
   (semantic-safe "Auto-DB Save: %S"
+    ;; FIXME: Use `while-no-input'?
     (semantic-exit-on-input 'semanticdb-idle-save
       (mapc (lambda (db)
 	      (semantic-throw-on-input 'semanticdb-idle-save)

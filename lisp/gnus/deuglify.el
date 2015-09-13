@@ -78,7 +78,7 @@
 ;; `gnus-outlook-deuglify-unwrap-stop-chars'.  Setting this to ".?!"
 ;; inhibits unwrapping if the cited line ends with a full stop,
 ;; question mark or exclamation mark.  Note that this variable
-;; defaults to `nil', triggering a few false positives but generally
+;; defaults to nil, triggering a few false positives but generally
 ;; giving you better results.
 ;;
 ;; Unwrapping works on every level of citation.  Thus you will be able
@@ -110,7 +110,7 @@
 ;; > Bye, John
 ;;
 ;; Repairing the attribution line will be done by function
-;; `gnus-article-outlook-repair-attribution which calls other function that
+;; `gnus-article-outlook-repair-attribution' which calls other function that
 ;; try to recognize and repair broken attribution lines.  See variable
 ;; `gnus-outlook-deuglify-attrib-cut-regexp' for stuff that should be
 ;; cut off from the beginning of an attribution line and variable
@@ -121,7 +121,7 @@
 ;; Rearranging the article so that the cited text appears above the
 ;; new text will be done by function
 ;; `gnus-article-outlook-rearrange-citation'.  This function calls
-;; `gnus-article-outlook-repair-attribution to find and repair an attribution
+;; `gnus-article-outlook-repair-attribution' to find and repair an attribution
 ;; line.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -177,18 +177,18 @@
 ;; As I said before there may (or will) be a few false positives on
 ;; unwrapping cited lines with `gnus-article-outlook-unwrap-lines'.
 ;;
-;; `gnus-article-outlook-repair-attribution will only fix the first
+;; `gnus-article-outlook-repair-attribution' will only fix the first
 ;; attribution line found in the article.  Furthermore it fixed to
 ;; certain kinds of attributions.  And there may be horribly many
 ;; false positives, vanishing lines and so on -- so don't trust your
 ;; eyes.  Again I recommend manual invocation.
 ;;
 ;; `gnus-article-outlook-rearrange-citation' carries all the limitations of
-;; `gnus-article-outlook-repair-attribution.
+;; `gnus-article-outlook-repair-attribution'.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;; See ChangeLog for other changes.
+;; See commit log for other changes.
 ;;
 ;; Revision 1.5  2002/01/27 14:39:17  rscholz
 ;; * New variable `gnus-outlook-deuglify-no-wrap-chars' to inhibit

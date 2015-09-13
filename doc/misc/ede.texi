@@ -1,7 +1,7 @@
 \input texinfo
 @setfilename ../../info/ede.info
 @settitle Emacs Development Environment
-@documentencoding UTF-8
+@include docstyle.texi
 
 @copying
 This file describes EDE, the Emacs Development Environment.
@@ -868,7 +868,7 @@ It would look like this:
 
 (defun MY-ROOT-FCN ()
   "Return the root fcn for `default-directory'"
-  ;; You might be able to use `ede-cpp-root-project-root'
+  ;; You might be able to use 'ede-cpp-root-project-root'
   ;; and not write this at all.
   )
 
@@ -1856,7 +1856,7 @@ Preprocessor symbols will be used while parsing your files.
 These macros might be passed in through the command line compiler, or
 are critical symbols derived from header files.  Providing header files
 macro values through this slot improves accuracy and performance.
-Use `:spp-files' to use these files directly.
+Use @code{:spp-files} to use these files directly.
 
 @item :spp-files
 Type: @code{list} @*
@@ -2799,7 +2799,7 @@ Default Value: @code{t}
 
 Non @code{nil} means the rule created is part of the all target.
 Setting this to @code{nil} creates the rule to build this item, but does not
-include it in the ALL`all:' rule.
+include it in the @code{all:} rule.
 
 @item :configuration-variables
 Type: @code{list} @*
@@ -3457,7 +3457,7 @@ Return the variable name for @var{THIS}'s sources.
 
 @deffn Method ede-proj-makefile-insert-dist-dependencies :AFTER this
 Insert any symbols that the DIST rule should depend on.
-Texinfo files want to insert generated `.info' files.
+Texinfo files want to insert generated @file{.info} files.
 Argument @var{THIS} is the target which needs to insert an info file.
 @end deffn
 
@@ -3473,7 +3473,7 @@ files in the project.
 
 @deffn Method ede-proj-makefile-insert-dist-filepatterns :AFTER this
 Insert any symbols that the DIST rule should depend on.
-Texinfo files want to insert generated `.info' files.
+Texinfo files want to insert generated @file{.info} files.
 Argument @var{THIS} is the target which needs to insert an info file.
 @end deffn
 

@@ -106,7 +106,7 @@ included.")
 	  (and large
 	       (zerop (% count 20))
 	       (nnheader-message 5 "nneething: Receiving headers... %d%%"
-				 (/ (* count 100) number))))
+				 (floor (* count 100.0) number))))
 
 	(when large
 	  (nnheader-message 5 "nneething: Receiving headers...done"))

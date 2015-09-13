@@ -466,7 +466,7 @@ While this input method is active, the variable
 	  (list key)
 	(delete-region start (point))
 	(if key
-	    (setq unread-command-events (list key)))
+	    (push key unread-command-events))
 	(if (stringp output)
 	    (string-to-list output)
 	  (list output))))))
@@ -576,7 +576,7 @@ used."
 (provide 'robin)
 
 ;; Local Variables:
-;; coding: utf-8-emacs
+;; coding: utf-8
 ;; End:
 
 ;;; robin.el ends here

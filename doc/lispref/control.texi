@@ -372,7 +372,7 @@ More specifically, a Q-pattern can take the following forms:
 @table @code
 @item (@var{qpattern1} . @var{qpattern2})
 This pattern matches any cons cell whose @code{car} matches @var{qpattern1} and
-whose @code{cdr} matches @var{pattern2}.
+whose @code{cdr} matches @var{qpattern2}.
 @item [@var{qpattern1} @var{qpattern2} @dots{} @var{qpatternm}]
 This pattern matches a vector of length @var{M} whose 0..(@var{M}-1)th
 elements match @var{qpattern1}, @var{qpattern2} @dots{} @var{qpatternm},
@@ -990,7 +990,7 @@ should not end with any sort of punctuation.
 
 @defun error format-string &rest args
 This function signals an error with an error message constructed by
-applying @code{format} (@pxref{Formatting Strings}) to
+applying @code{format-message} (@pxref{Formatting Strings}) to
 @var{format-string} and @var{args}.
 
 These examples show typical uses of @code{error}:
@@ -1009,7 +1009,7 @@ These examples show typical uses of @code{error}:
 
 @code{error} works by calling @code{signal} with two arguments: the
 error symbol @code{error}, and a list containing the string returned by
-@code{format}.
+@code{format-message}.
 
 @strong{Warning:} If you want to use your own string as an error message
 verbatim, don't just write @code{(error @var{string})}.  If @var{string}
@@ -1025,7 +1025,7 @@ the circumstances of the error.
 
 The argument @var{error-symbol} must be an @dfn{error symbol}---a symbol
 defined with @code{define-error}.  This is how Emacs Lisp classifies different
-sorts of errors. @xref{Error Symbols}, for a description of error symbols,
+sorts of errors.  @xref{Error Symbols}, for a description of error symbols,
 error conditions and condition names.
 
 If the error is not handled, the two arguments are used in printing

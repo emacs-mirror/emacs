@@ -842,8 +842,11 @@ whose annotation is being edited.")
   "Return default annotation text for BOOKMARK-NAME.
 The default annotation text is simply some text explaining how to use
 annotations."
-  (concat "#  Type the annotation for bookmark '" bookmark-name "' here.\n"
-	  "#  All lines which start with a '#' will be deleted.\n"
+  (concat (format-message
+           "#  Type the annotation for bookmark `%s' here.\n"
+           bookmark-name)
+	  (format-message
+           "#  All lines which start with a `#' will be deleted.\n")
 	  "#  Type C-c C-c when done.\n#\n"
 	  "#  Author: " (user-full-name) " <" (user-login-name) "@"
 	  (system-name) ">\n"
@@ -1540,7 +1543,7 @@ deletion, or > if it is flagged for displaying."
   (let ((inhibit-read-only t))
     (erase-buffer)
     (if (not bookmark-bmenu-use-header-line)
-      (insert "% Bookmark\n- --------\n"))    
+      (insert "% Bookmark\n- --------\n"))
     (add-text-properties (point-min) (point)
 			 '(font-lock-face bookmark-menu-heading))
     (dolist (full-record (bookmark-maybe-sort-alist))
@@ -1581,9 +1584,9 @@ deletion, or > if it is flagged for displaying."
 (defun bookmark-bmenu-set-header ()
   "Sets the immutable header line."
   (let ((header (concat "%% " "Bookmark")))
-    (when bookmark-bmenu-toggle-filenames 
-      (setq header (concat header 
-			   (make-string (- bookmark-bmenu-file-column 
+    (when bookmark-bmenu-toggle-filenames
+      (setq header (concat header
+			   (make-string (- bookmark-bmenu-file-column
 					   (- (length header) 3))  ?\s)
 			   "File")))
     (let ((pos 0))
@@ -1756,7 +1759,7 @@ if an annotation exists."
   (save-selected-window
     (pop-to-buffer (get-buffer-create "*Bookmark Annotation*") t)
     (delete-region (point-min) (point-max))
-    (dolist (full-record bookmark-alist)
+    (dolist (full-record (bookmark-maybe-sort-alist))
       (let* ((name (bookmark-name-from-full-record full-record))
              (ann  (bookmark-get-annotation full-record)))
         (insert (concat name ":\n"))
@@ -2064,7 +2067,8 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
 (defun bookmark-bmenu-goto-bookmark (name)
   "Move point to bookmark with name NAME."
   (goto-char (point-min))
-  (while (not (equal name (bookmark-bmenu-bookmark)))
+  (while (not (or (equal name (bookmark-bmenu-bookmark))
+                  (eobp)))
     (forward-line 1))
   (forward-line 0))
 

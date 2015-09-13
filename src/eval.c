@@ -33,11 +33,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 struct handler *handlerlist;
 
-#ifdef DEBUG_GCPRO
-/* Count levels of GCPRO to detect failure to UNGCPRO.  */
-int gcpro_level;
-#endif
-
 /* Non-nil means record all fset's and provide's, to be undone
    if the file being autoloaded is not fully loaded.
    They are recorded by being consed onto the front of Vautoload_queue:
@@ -200,6 +195,12 @@ backtrace_next (union specbinding *pdl)
   return pdl;
 }
 
+/* Return a pointer to somewhere near the top of the C stack.  */
+void *
+near_C_stack_top (void)
+{
+  return backtrace_args (backtrace_top ());
+}
 
 void
 init_eval_once (void)
@@ -210,7 +211,7 @@ init_eval_once (void)
   specpdl = specpdl_ptr = pdlvec + 1;
   /* Don't forget to update docs (lispref node "Local Variables").  */
   max_specpdl_size = 1300; /* 1000 is not enough for CEDET's c-by.el.  */
-  max_lisp_eval_depth = 600;
+  max_lisp_eval_depth = 800;
 
   Vrun_hooks = Qnil;
 }
@@ -220,6 +221,7 @@ static struct handler handlerlist_sentinel;
 void
 init_eval (void)
 {
+  byte_stack_list = 0;
   specpdl_ptr = specpdl;
   { /* Put a dummy catcher at top-level so that handlerlist is never NULL.
        This is important since handlerlist->nextfree holds the freelist
@@ -234,9 +236,6 @@ init_eval (void)
   Vquit_flag = Qnil;
   debug_on_next_call = 0;
   lisp_eval_depth = 0;
-#ifdef DEBUG_GCPRO
-  gcpro_level = 0;
-#endif
   /* This is less than the initial value of num_nonmacro_input_events.  */
   when_entered_debugger = -1;
 }
@@ -336,10 +335,7 @@ If all args return nil, return nil.
 usage: (or CONDITIONS...)  */)
   (Lisp_Object args)
 {
-  register Lisp_Object val = Qnil;
-  struct gcpro gcpro1;
-
-  GCPRO1 (args);
+  Lisp_Object val = Qnil;
 
   while (CONSP (args))
     {
@@ -349,7 +345,6 @@ usage: (or CONDITIONS...)  */)
       args = XCDR (args);
     }
 
-  UNGCPRO;
   return val;
 }
 
@@ -360,10 +355,7 @@ If no arg yields nil, return the last arg's value.
 usage: (and CONDITIONS...)  */)
   (Lisp_Object args)
 {
-  register Lisp_Object val = Qt;
-  struct gcpro gcpro1;
-
-  GCPRO1 (args);
+  Lisp_Object val = Qt;
 
   while (CONSP (args))
     {
@@ -373,7 +365,6 @@ usage: (and CONDITIONS...)  */)
       args = XCDR (args);
     }
 
-  UNGCPRO;
   return val;
 }
 
@@ -386,11 +377,8 @@ usage: (if COND THEN ELSE...)  */)
   (Lisp_Object args)
 {
   Lisp_Object cond;
-  struct gcpro gcpro1;
 
-  GCPRO1 (args);
   cond = eval_sub (XCAR (args));
-  UNGCPRO;
 
   if (!NILP (cond))
     return eval_sub (Fcar (XCDR (args)));
@@ -410,9 +398,7 @@ usage: (cond CLAUSES...)  */)
   (Lisp_Object args)
 {
   Lisp_Object val = args;
-  struct gcpro gcpro1;
 
-  GCPRO1 (args);
   while (CONSP (args))
     {
       Lisp_Object clause = XCAR (args);
@@ -425,7 +411,6 @@ usage: (cond CLAUSES...)  */)
 	}
       args = XCDR (args);
     }
-  UNGCPRO;
 
   return val;
 }
@@ -436,9 +421,6 @@ usage: (progn BODY...)  */)
   (Lisp_Object body)
 {
   Lisp_Object val = Qnil;
-  struct gcpro gcpro1;
-
-  GCPRO1 (body);
 
   while (CONSP (body))
     {
@@ -446,7 +428,6 @@ usage: (progn BODY...)  */)
       body = XCDR (body);
     }
 
-  UNGCPRO;
   return val;
 }
 
@@ -468,17 +449,14 @@ usage: (prog1 FIRST BODY...)  */)
 {
   Lisp_Object val;
   Lisp_Object args_left;
-  struct gcpro gcpro1, gcpro2;
 
   args_left = args;
   val = args;
-  GCPRO2 (args, val);
 
   val = eval_sub (XCAR (args_left));
   while (CONSP (args_left = XCDR (args_left)))
     eval_sub (XCAR (args_left));
 
-  UNGCPRO;
   return val;
 }
 
@@ -489,11 +467,7 @@ remaining args, whose values are discarded.
 usage: (prog2 FORM1 FORM2 BODY...)  */)
   (Lisp_Object args)
 {
-  struct gcpro gcpro1;
-
-  GCPRO1 (args);
   eval_sub (XCAR (args));
-  UNGCPRO;
   return Fprog1 (XCDR (args));
 }
 
@@ -514,8 +488,6 @@ usage: (setq [SYM VAL]...)  */)
   if (CONSP (args))
     {
       Lisp_Object args_left = args;
-      struct gcpro gcpro1;
-      GCPRO1 (args);
 
       do
 	{
@@ -535,8 +507,6 @@ usage: (setq [SYM VAL]...)  */)
 	  args_left = Fcdr (XCDR (args_left));
 	}
       while (CONSP (args_left));
-
-      UNGCPRO;
     }
 
   return val;
@@ -547,7 +517,7 @@ DEFUN ("quote", Fquote, Squote, 1, UNEVALLED, 0,
 Warning: `quote' does not construct its return value, but just returns
 the value that was pre-constructed by the Lisp reader (see info node
 `(elisp)Printed Representation').
-This means that '(a . b) is not identical to (cons 'a 'b): the former
+This means that \\='(a . b) is not identical to (cons \\='a \\='b): the former
 does not cons.  Quoting should be reserved for constants that will
 never be modified by side-effects, unless you like self-modifying code.
 See the common pitfall in info node `(elisp)Rearrangement' for an example
@@ -846,9 +816,6 @@ usage: (let* VARLIST BODY...)  */)
 {
   Lisp_Object varlist, var, val, elt, lexenv;
   ptrdiff_t count = SPECPDL_INDEX ();
-  struct gcpro gcpro1, gcpro2, gcpro3;
-
-  GCPRO3 (args, elt, varlist);
 
   lexenv = Vinternal_interpreter_environment;
 
@@ -892,7 +859,7 @@ usage: (let* VARLIST BODY...)  */)
 
       varlist = XCDR (varlist);
     }
-  UNGCPRO;
+
   val = Fprogn (XCDR (args));
   return unbind_to (count, val);
 }
@@ -907,10 +874,9 @@ usage: (let VARLIST BODY...)  */)
   (Lisp_Object args)
 {
   Lisp_Object *temps, tem, lexenv;
-  register Lisp_Object elt, varlist;
+  Lisp_Object elt, varlist;
   ptrdiff_t count = SPECPDL_INDEX ();
   ptrdiff_t argnum;
-  struct gcpro gcpro1, gcpro2;
   USE_SAFE_ALLOCA;
 
   varlist = XCAR (args);
@@ -920,9 +886,6 @@ usage: (let VARLIST BODY...)  */)
   SAFE_ALLOCA_LISP (temps, XFASTINT (elt));
 
   /* Compute the values and store them in `temps'.  */
-
-  GCPRO2 (args, *temps);
-  gcpro2.nvars = 0;
 
   for (argnum = 0; CONSP (varlist); varlist = XCDR (varlist))
     {
@@ -934,9 +897,7 @@ usage: (let VARLIST BODY...)  */)
 	signal_error ("`let' bindings can have only one value-form", elt);
       else
 	temps [argnum++] = eval_sub (Fcar (Fcdr (elt)));
-      gcpro2.nvars = argnum;
     }
-  UNGCPRO;
 
   lexenv = Vinternal_interpreter_environment;
 
@@ -976,9 +937,6 @@ usage: (while TEST BODY...)  */)
   (Lisp_Object args)
 {
   Lisp_Object test, body;
-  struct gcpro gcpro1, gcpro2;
-
-  GCPRO2 (test, body);
 
   test = XCAR (args);
   body = XCDR (args);
@@ -988,7 +946,6 @@ usage: (while TEST BODY...)  */)
       Fprogn (body);
     }
 
-  UNGCPRO;
   return Qnil;
 }
 
@@ -1035,10 +992,7 @@ definitions to shadow the loaded ones for use in file byte-compilation.  */)
 	{
 	  /* SYM is not mentioned in ENVIRONMENT.
 	     Look at its function definition.  */
-	  struct gcpro gcpro1;
-	  GCPRO1 (form);
 	  def = Fautoload_do_load (def, sym, Qmacro);
-	  UNGCPRO;
 	  if (!CONSP (def))
 	    /* Not defined or definition not suitable.  */
 	    break;
@@ -1074,12 +1028,7 @@ If a throw happens, it specifies the value to return from `catch'.
 usage: (catch TAG BODY...)  */)
   (Lisp_Object args)
 {
-  register Lisp_Object tag;
-  struct gcpro gcpro1;
-
-  GCPRO1 (args);
-  tag = eval_sub (XCAR (args));
-  UNGCPRO;
+  Lisp_Object tag = eval_sub (XCAR (args));
   return internal_catch (tag, Fprogn, XCDR (args));
 }
 
@@ -1164,10 +1113,6 @@ unwind_to_catch (struct handler *catch, Lisp_Object value)
   eassert (handlerlist == catch);
 
   byte_stack_list = catch->byte_stack;
-  gcprolist = catch->gcpro;
-#ifdef DEBUG_GCPRO
-  gcpro_level = gcprolist ? gcprolist->level + 1 : 0;
-#endif
   lisp_eval_depth = catch->lisp_eval_depth;
 
   sys_longjmp (catch->jmp, 1);
@@ -1924,7 +1869,6 @@ it defines a macro.  */)
   (Lisp_Object fundef, Lisp_Object funname, Lisp_Object macro_only)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
-  struct gcpro gcpro1, gcpro2, gcpro3;
 
   if (!CONSP (fundef) || !EQ (Qautoload, XCAR (fundef)))
     return fundef;
@@ -1943,7 +1887,6 @@ it defines a macro.  */)
 	   SDATA (SYMBOL_NAME (funname)));
 
   CHECK_SYMBOL (funname);
-  GCPRO3 (funname, fundef, macro_only);
 
   /* Preserve the match data.  */
   record_unwind_save_match_data ();
@@ -1965,8 +1908,6 @@ it defines a macro.  */)
   /* Once loading finishes, don't undo it.  */
   Vautoload_queue = Qt;
   unbind_to (count, Qnil);
-
-  UNGCPRO;
 
   if (NILP (funname))
     return Qnil;
@@ -2055,7 +1996,6 @@ eval_sub (Lisp_Object form)
 {
   Lisp_Object fun, val, original_fun, original_args;
   Lisp_Object funcar;
-  struct gcpro gcpro1, gcpro2, gcpro3;
   ptrdiff_t count;
 
   if (SYMBOLP (form))
@@ -2078,9 +2018,7 @@ eval_sub (Lisp_Object form)
 
   QUIT;
 
-  GCPRO1 (form);
   maybe_gc ();
-  UNGCPRO;
 
   if (++lisp_eval_depth > max_lisp_eval_depth)
     {
@@ -2138,37 +2076,25 @@ eval_sub (Lisp_Object form)
 
 	  SAFE_ALLOCA_LISP (vals, XINT (numargs));
 
-	  GCPRO3 (args_left, fun, fun);
-	  gcpro3.var = vals;
-	  gcpro3.nvars = 0;
-
 	  while (!NILP (args_left))
 	    {
 	      vals[argnum++] = eval_sub (Fcar (args_left));
 	      args_left = Fcdr (args_left);
-	      gcpro3.nvars = argnum;
 	    }
 
 	  set_backtrace_args (specpdl + count, vals, XINT (numargs));
 
 	  val = (XSUBR (fun)->function.aMANY) (XINT (numargs), vals);
-	  UNGCPRO;
 	  SAFE_FREE ();
 	}
       else
 	{
-	  GCPRO3 (args_left, fun, fun);
-	  gcpro3.var = argvals;
-	  gcpro3.nvars = 0;
-
 	  maxargs = XSUBR (fun)->max_args;
-	  for (i = 0; i < maxargs; args_left = Fcdr (args_left))
+	  for (i = 0; i < maxargs; i++)
 	    {
 	      argvals[i] = eval_sub (Fcar (args_left));
-	      gcpro3.nvars = ++i;
+	      args_left = Fcdr (args_left);
 	    }
-
-	  UNGCPRO;
 
 	  set_backtrace_args (specpdl + count, argvals, XINT (numargs));
 
@@ -2270,7 +2196,7 @@ eval_sub (Lisp_Object form)
 DEFUN ("apply", Fapply, Sapply, 1, MANY, 0,
        doc: /* Call FUNCTION with our remaining args, using our last arg as list of args.
 Then return the value FUNCTION returns.
-Thus, (apply '+ 1 2 '(3 4)) returns 10.
+Thus, (apply \\='+ 1 2 \\='(3 4)) returns 10.
 usage: (apply FUNCTION &rest ARGUMENTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
@@ -2333,7 +2259,6 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
       spread_arg = XCDR (spread_arg);
     }
 
-  /* Ffuncall gcpro's all of its args.  */
   retval = Ffuncall (funcall_nargs, funcall_args);
 
   SAFE_FREE ();
@@ -2462,16 +2387,13 @@ usage: (run-hook-wrapped HOOK WRAP-FUNCTION &rest ARGS)  */)
 /* ARGS[0] should be a hook symbol.
    Call each of the functions in the hook value, passing each of them
    as arguments all the rest of ARGS (all NARGS - 1 elements).
-   FUNCALL specifies how to call each function on the hook.
-   The caller (or its caller, etc) must gcpro all of ARGS,
-   except that it isn't necessary to gcpro ARGS[0].  */
+   FUNCALL specifies how to call each function on the hook.  */
 
 Lisp_Object
 run_hook_with_args (ptrdiff_t nargs, Lisp_Object *args,
 		    Lisp_Object (*funcall) (ptrdiff_t nargs, Lisp_Object *args))
 {
   Lisp_Object sym, val, ret = Qnil;
-  struct gcpro gcpro1, gcpro2, gcpro3;
 
   /* If we are dying or still initializing,
      don't do anything--it would probably crash if we tried.  */
@@ -2491,7 +2413,6 @@ run_hook_with_args (ptrdiff_t nargs, Lisp_Object *args,
   else
     {
       Lisp_Object global_vals = Qnil;
-      GCPRO3 (sym, val, global_vals);
 
       for (;
 	   CONSP (val) && NILP (ret);
@@ -2530,7 +2451,6 @@ run_hook_with_args (ptrdiff_t nargs, Lisp_Object *args,
 	    }
 	}
 
-      UNGCPRO;
       return ret;
     }
 }
@@ -2625,8 +2545,6 @@ call7 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3,
   return CALLN (Ffuncall, fn, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
 }
 
-/* The caller should GCPRO all the elements of ARGS.  */
-
 DEFUN ("functionp", Ffunctionp, Sfunctionp, 1, 1, 0,
        doc: /* Non-nil if OBJECT is a function.  */)
      (Lisp_Object object)
@@ -2639,7 +2557,7 @@ DEFUN ("functionp", Ffunctionp, Sfunctionp, 1, 1, 0,
 DEFUN ("funcall", Ffuncall, Sfuncall, 1, MANY, 0,
        doc: /* Call first argument as a function, passing remaining arguments to it.
 Return the value that function returns.
-Thus, (funcall 'cons 'x 'y) returns (x . y).
+Thus, (funcall \\='cons \\='x \\='y) returns (x . y).
 usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
@@ -2661,10 +2579,8 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 	error ("Lisp nesting exceeds `max-lisp-eval-depth'");
     }
 
-  /* This also GCPROs them.  */
   count = record_in_backtrace (args[0], &args[1], nargs - 1);
 
-  /* Call GC after setting up the backtrace, so the latter GCPROs the args.  */
   maybe_gc ();
 
   if (debug_on_next_call)
@@ -2800,27 +2716,20 @@ apply_lambda (Lisp_Object fun, Lisp_Object args, ptrdiff_t count)
   Lisp_Object args_left;
   ptrdiff_t i;
   EMACS_INT numargs;
-  register Lisp_Object *arg_vector;
-  struct gcpro gcpro1, gcpro2, gcpro3;
-  register Lisp_Object tem;
+  Lisp_Object *arg_vector;
+  Lisp_Object tem;
   USE_SAFE_ALLOCA;
 
   numargs = XFASTINT (Flength (args));
   SAFE_ALLOCA_LISP (arg_vector, numargs);
   args_left = args;
 
-  GCPRO3 (*arg_vector, args_left, fun);
-  gcpro1.nvars = 0;
-
   for (i = 0; i < numargs; )
     {
       tem = Fcar (args_left), args_left = Fcdr (args_left);
       tem = eval_sub (tem);
       arg_vector[i++] = tem;
-      gcpro1.nvars = i;
     }
-
-  UNGCPRO;
 
   set_backtrace_args (specpdl + count, arg_vector, i);
   tem = funcall_lambda (fun, numargs, arg_vector);
@@ -3188,9 +3097,7 @@ Lisp_Object
 unbind_to (ptrdiff_t count, Lisp_Object value)
 {
   Lisp_Object quitf = Vquit_flag;
-  struct gcpro gcpro1, gcpro2;
 
-  GCPRO2 (value, quitf);
   Vquit_flag = Qnil;
 
   while (specpdl_ptr != specpdl + count)
@@ -3257,7 +3164,6 @@ unbind_to (ptrdiff_t count, Lisp_Object value)
   if (NILP (Vquit_flag) && !NILP (quitf))
     Vquit_flag = quitf;
 
-  UNGCPRO;
   return value;
 }
 
@@ -3305,27 +3211,27 @@ Output stream used is value of `standard-output'.  */)
 
   while (backtrace_p (pdl))
     {
-      write_string (backtrace_debug_on_exit (pdl) ? "* " : "  ", 2);
+      write_string (backtrace_debug_on_exit (pdl) ? "* " : "  ");
       if (backtrace_nargs (pdl) == UNEVALLED)
 	{
 	  Fprin1 (Fcons (backtrace_function (pdl), *backtrace_args (pdl)),
 		  Qnil);
-	  write_string ("\n", -1);
+	  write_string ("\n");
 	}
       else
 	{
 	  tem = backtrace_function (pdl);
 	  Fprin1 (tem, Qnil);	/* This can QUIT.  */
-	  write_string ("(", -1);
+	  write_string ("(");
 	  {
 	    ptrdiff_t i;
 	    for (i = 0; i < backtrace_nargs (pdl); i++)
 	      {
-		if (i) write_string (" ", -1);
+		if (i) write_string (" ");
 		Fprin1 (backtrace_args (pdl)[i], Qnil);
 	      }
 	  }
-	  write_string (")\n", -1);
+	  write_string (")\n");
 	}
       pdl = backtrace_next (pdl);
     }
@@ -3670,7 +3576,6 @@ before making `inhibit-quit' nil.  */);
   DEFSYM (Qautoload, "autoload");
   DEFSYM (Qinhibit_debugger, "inhibit-debugger");
   DEFSYM (Qmacro, "macro");
-  DEFSYM (Qdeclare, "declare");
 
   /* Note that the process handling also uses Qexit, but we don't want
      to staticpro it twice, so we just do it here.  */

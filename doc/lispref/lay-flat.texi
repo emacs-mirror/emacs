@@ -6,8 +6,8 @@
 @comment %**start of header
 @setfilename inner-covers.info
 @settitle Inner Covers
+@include docstyle.texi
 @smallbook
-@documentencoding UTF-8
 @comment %**end of header
 
 @headings off

@@ -35,7 +35,6 @@
 (require 'srecode/args)
 (require 'srecode/filters)
 
-(defvar srecode-template-inserter-point)
 (declare-function srecode-overlaid-activate "srecode/fields")
 (declare-function srecode-template-inserted-region "srecode/fields")
 
@@ -46,9 +45,9 @@
 Only the ASK style inserter will query the user for a value.
 Dictionary value references that ask begin with the ? character.
 Possible values are:
-  'ask   - Prompt in the minibuffer as the value is inserted.
-  'field - Use the dictionary macro name as the inserted value,
-           and place a field there.  Matched fields change together.
+  `ask'   - Prompt in the minibuffer as the value is inserted.
+  `field' - Use the dictionary macro name as the inserted value,
+            and place a field there.  Matched fields change together.
 
 NOTE: The field feature does not yet work with XEmacs."
   :group 'srecode
@@ -145,7 +144,7 @@ has set everything up already."
 	       )
       (set-buffer standard-output)
       (setq end-mark (point-marker))
-      (goto-char  (oref srecode-template-inserter-point point)))
+      (goto-char  (oref-default 'srecode-template-inserter-point point)))
     (oset-default 'srecode-template-inserter-point point eieio-unbound)
 
     ;; Return the end-mark.
@@ -217,7 +216,7 @@ insertions."
     (data-debug-insert-thing dictionary "" "> ")
     ;; Show the error message.
     (insert (propertize "Error" 'face '(:weight bold)) "\n")
-    (insert (apply #'format format args))
+    (insert (apply #'format-message format args))
     (pop-to-buffer (current-buffer))))
 
 (defun srecode-insert-report-error (dictionary format &rest args)
@@ -264,13 +263,12 @@ Optional argument TEMP is the template that is getting its arguments resolved."
   "Push the srecoder template ST onto the active stack."
   (oset st active (cons st (oref st active))))
 
-(cl-defmethod srecode-pop ((st (subclass srecode-template)))
-  "Pop the srecoder template ST onto the active stack.
-ST can be a class, or an object."
+(cl-defmethod srecode-pop ((st srecode-template))
+  "Pop the srecoder template ST onto the active stack."
   (oset st active (cdr (oref st active))))
 
-(cl-defmethod srecode-peek ((st (subclass srecode-template)))
-  "Fetch the topmost active template record.  ST can be a class."
+(cl-defmethod srecode-peek ((st srecode-template))
+  "Fetch the topmost active template record."
   (car (oref st active)))
 
 (cl-defmethod srecode-insert-method ((st srecode-template) dictionary)
@@ -363,7 +361,7 @@ occur in your template.")
 	    ((stringp i)
 	     (princ i))))))
 
-(cl-defmethod srecode-dump ((ins srecode-template-inserter-newline) indent)
+(cl-defmethod srecode-dump ((ins srecode-template-inserter-newline) _indent)
   "Dump the state of the SRecode template inserter INS."
   (cl-call-next-method)
   (when (oref ins hard)
@@ -379,9 +377,9 @@ Can't be blank, or it might be used by regular variable insertion.")
     (where :initform 'begin
 	   :initarg :where
 	   :documentation
-	   "This should be 'begin or 'end, indicating where to insert a CR.
-When set to 'begin, it will insert a CR if we are not at 'bol'.
-When set to 'end it will insert a CR if we are not at 'eol'.")
+	   "This should be `begin' or `end', indicating where to insert a CR.
+When `begin', insert a CR if not at 'bol'.
+When `end', insert a CR if not at 'eol'.")
     ;; @TODO - Add slot and control for the number of blank
     ;;         lines before and after point.
    )
@@ -425,8 +423,8 @@ Specify the :blank argument to enable this inserter.")
    )
   "Allow comments within template coding.  This inserts nothing.")
 
-(cl-defmethod srecode-inserter-prin-example ((ins (subclass srecode-template-inserter-comment))
-						  escape-start escape-end)
+(cl-defmethod srecode-inserter-prin-example ((_ins (subclass srecode-template-inserter-comment))
+                                             escape-start escape-end)
   "Insert an example using inserter INS.
 Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
   (princ "   ")
@@ -436,8 +434,8 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
   (terpri)
   )
 
-(cl-defmethod srecode-insert-method ((sti srecode-template-inserter-comment)
-				  dictionary)
+(cl-defmethod srecode-insert-method ((_sti srecode-template-inserter-comment)
+                                     _dictionary)
   "Don't insert anything for comment macros in STI."
   nil)
 
@@ -491,7 +489,7 @@ If SECONDNAME is nil, return VALUE."
 	(setq val (srecode-insert-variable-secondname-handler
 		   sti dictionary val fcnpart)))
        ;; Compound data value
-       ((srecode-dictionary-compound-value-child-p val)
+       ((cl-typep val 'srecode-dictionary-compound-value)
 	;; Force FCN to be a symbol
 	(when fcnpart (setq fcnpart (read fcnpart)))
 	;; Convert compound value to a string with the fcn.
@@ -502,7 +500,7 @@ If SECONDNAME is nil, return VALUE."
 	  (setq do-princ nil)))
 
        ;; Dictionaries... not allowed in this style
-       ((srecode-dictionary-child-p val)
+       ((cl-typep val 'srecode-dictionary)
 	(srecode-insert-report-error
 	 dictionary
 	 "Macro %s cannot insert a dictionary - use section macros instead"
@@ -661,7 +659,7 @@ Use DICTIONARY to resolve values."
     ;; across multiple locations.
     compound-value))
 
-(cl-defmethod srecode-dump ((ins srecode-template-inserter-ask) indent)
+(cl-defmethod srecode-dump ((ins srecode-template-inserter-ask) _indent)
   "Dump the state of the SRecode template inserter INS."
   (cl-call-next-method)
   (princ " : \"")
@@ -682,7 +680,7 @@ to 10 characters, with spaces added to the left.  Use `right' for adding
 spaces to the right.")
 
 (cl-defmethod srecode-insert-variable-secondname-handler
-  ((sti srecode-template-inserter-width) dictionary value width)
+  ((_sti srecode-template-inserter-width) dictionary value width)
   "For VALUE handle WIDTH behaviors for this variable inserter.
 Return the result as a string.
 By default, treat as a function name."
@@ -714,8 +712,8 @@ By default, treat as a function name."
 	    (concat padchars value)
 	  (concat value padchars))))))
 
-(cl-defmethod srecode-inserter-prin-example ((ins (subclass srecode-template-inserter-width))
-						  escape-start escape-end)
+(cl-defmethod srecode-inserter-prin-example ((_ins (subclass srecode-template-inserter-width))
+                                             escape-start escape-end)
   "Insert an example using inserter INS.
 Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
   (princ "   ")
@@ -750,8 +748,8 @@ The cursor is placed at the ^ macro after insertion.
 Some inserter macros, such as `srecode-template-inserter-include-wrap'
 will place text at the ^ macro from the included macro.")
 
-(cl-defmethod srecode-inserter-prin-example ((ins (subclass srecode-template-inserter-point))
-						  escape-start escape-end)
+(cl-defmethod srecode-inserter-prin-example ((_ins (subclass srecode-template-inserter-point))
+                                             escape-start escape-end)
   "Insert an example using inserter INS.
 Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
   (princ "   ")
@@ -764,7 +762,7 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
 (cl-defmethod srecode-insert-method ((sti srecode-template-inserter-point)
 				  dictionary)
   "Insert the STI inserter.
-Save point in the class allocated 'point' slot.
+Save point in the class allocated `point' slot.
 If `srecode-template-inserter-point-override' non-nil then this
 generalized marker will do something else.  See
 `srecode-template-inserter-include-wrap' as an example."
@@ -787,8 +785,8 @@ generalized marker will do something else.  See
   "Wrap a section of a template under the control of a macro."
   :abstract t)
 
-(cl-defmethod srecode-inserter-prin-example ((ins (subclass srecode-template-inserter-subtemplate))
-						  escape-start escape-end)
+(cl-defmethod srecode-inserter-prin-example ((_ins (subclass srecode-template-inserter-subtemplate))
+                                             escape-start escape-end)
   "Insert an example using inserter INS.
 Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
   (cl-call-next-method)
@@ -805,7 +803,7 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
 				       dict slot)
   "Insert a subtemplate for the inserter STI with dictionary DICT."
   ;; Make sure that only dictionaries are used.
-  (unless (srecode-dictionary-child-p dict)
+  (unless (cl-typep dict 'srecode-dictionary)
     (srecode-insert-report-error
      dict
      "Only section dictionaries allowed for `%s'"
@@ -889,8 +887,8 @@ Return the remains of INPUT."
   "All template segments between the section-start and section-end
 are treated specially.")
 
-(cl-defmethod srecode-insert-method ((sti srecode-template-inserter-section-end)
-				  dictionary)
+(cl-defmethod srecode-insert-method ((_sti srecode-template-inserter-section-end)
+				  _dictionary)
   "Insert the STI inserter."
   )
 
@@ -912,7 +910,7 @@ are treated specially.")
 The included template will have additional dictionary entries from the subdictionary
 stored specified by this macro.")
 
-(cl-defmethod srecode-inserter-prin-example ((ins (subclass srecode-template-inserter-include))
+(cl-defmethod srecode-inserter-prin-example ((_ins (subclass srecode-template-inserter-include))
 						  escape-start escape-end)
   "Insert an example using inserter INS.
 Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
@@ -1017,7 +1015,7 @@ stored specified by this macro.  If the included macro includes a ^ macro,
 then the text between this macro and the end macro will be inserted at
 the ^ macro.")
 
-(cl-defmethod srecode-inserter-prin-example ((ins (subclass srecode-template-inserter-include-wrap))
+(cl-defmethod srecode-inserter-prin-example ((_ins (subclass srecode-template-inserter-include-wrap))
 						  escape-start escape-end)
   "Insert an example using inserter INS.
 Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."

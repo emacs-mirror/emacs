@@ -154,6 +154,7 @@
 (declare-function math-parse-date "calc-forms" (math-pd-str))
 (declare-function math-lessp "calc-ext" (a b))
 (declare-function math-compare "calc-ext" (a b))
+(declare-function math-zerop "calc-misc" (a))
 (declare-function calc-embedded-finish-command "calc-embed" ())
 (declare-function calc-embedded-select-buffer "calc-embed" ())
 (declare-function calc-embedded-mode-line-change "calc-embed" ())
@@ -735,7 +736,7 @@ If hms, angles are in degrees-minutes-seconds.")
 
 (defcalcmodevar calc-algebraic-mode nil
   "If non-nil, numeric entry accepts whole algebraic expressions.
-If nil, algebraic expressions must be preceded by \"'\".")
+If nil, algebraic expressions must be preceded by \"\\='\".")
 
 (defcalcmodevar calc-incomplete-algebraic-mode nil
   "Like calc-algebraic-mode except only affects ( and [ keys.")
@@ -988,11 +989,11 @@ Used by `calc-user-invocation'.")
 (defvar calc-last-kill nil
   "The last number killed in calc-mode.")
 (defvar calc-dollar-values nil
-  "Values to be used for '$'.")
+  "Values to be used for `$'.")
 (defvar calc-dollar-used nil
-  "The highest order of '$' that occurred.")
+  "The highest order of `$' that occurred.")
 (defvar calc-hashes-used nil
-  "The highest order of '#' that occurred.")
+  "The highest order of `#' that occurred.")
 (defvar calc-quick-prev-results nil
   "Previous results from Quick Calc.")
 (defvar calc-said-hello nil
@@ -1310,7 +1311,7 @@ This is an RPN calculator featuring arbitrary-precision integer, rational,
 floating-point, complex, matrix, and symbolic arithmetic.
 
 RPN calculation:  2 RET 3 +    produces 5.
-Algebraic style:  ' 2+3 RET    produces 5.
+Algebraic style:  \\=' 2+3 RET    produces 5.
 
 Basic operators are +, -, *, /, ^, & (reciprocal), % (modulo), n (change-sign).
 
@@ -1329,7 +1330,7 @@ Notations:  3.14e6     3.14 * 10^6
             [1 .. 4)   semi-open interval, 1 <= x < 4
             2 +/- 3    (p key) number with mean 2, standard deviation 3
             2 mod 3    (M key) number 2 computed modulo 3
-	    <1 jan 91> Date form (enter using ' key)
+	    <1 jan 91> Date form (enter using \\=' key)
 
 
 \\{calc-mode-map}
@@ -2033,7 +2034,7 @@ See calc-keypad for details."
 ;; (YEAR MONTH DAY math-date-from-gregorian-dt(YEAR MONTH DAY)) for speed.
 (defcustom calc-gregorian-switch nil
   "The first day the Gregorian calendar is used by Calc's date forms.
-This is `nil' (the default) if the Gregorian calendar is the only one used.
+This is nil (the default) if the Gregorian calendar is the only one used.
 Otherwise, it should be a list `(YEAR MONTH DAY)' when Calc begins to use
 the Gregorian calendar; Calc will use the Julian calendar for earlier dates.
 The dates in which different regions of the world began to use the
@@ -2302,7 +2303,7 @@ the United States."
                   (calc-delete-selection 1)
                 (calc-pop-stack nn))))))
     (if calc-context-sensitive-enter (calc-cursor-stack-index (1- num)))))
-    
+
 
 
 

@@ -69,6 +69,7 @@ for editing such pictures.
 * Sentences::           Moving over and killing sentences.
 * Paragraphs::          Moving over paragraphs.
 * Pages::               Moving over pages.
+* Quotation Marks::     Inserting quotation marks.
 * Filling::             Filling or justifying text.
 * Case::                Changing the case of text.
 * Text Mode::           The major modes for editing text files.
@@ -77,7 +78,7 @@ for editing such pictures.
 * TeX Mode::            Editing TeX and LaTeX files.
 * HTML Mode::           Editing HTML and SGML files.
 * Nroff Mode::          Editing input to the nroff formatter.
-* Enriched Text::       Editing text "enriched" with fonts, colors, etc.
+* Enriched Text::       Editing text ``enriched'' with fonts, colors, etc.
 * Text Based Tables::   Commands for editing text-based tables.
 * Two-Column::          Splitting text columns into separate windows.
 @end menu
@@ -403,6 +404,48 @@ value is a regular expression that matches the beginning of a line
 that separates pages (@pxref{Regexps}).  The normal value of this
 variable is @code{"^\f"}, which matches a formfeed character at the
 beginning of a line.
+
+@node Quotation Marks
+@section Quotation Marks
+@cindex Quotation marks
+@cindex Electric Quote mode
+@cindex mode, Electric Quote
+@cindex curly quotes
+@cindex curved quotes
+@findex electric-quote-mode
+  One common way to quote is the typewriter convention, which quotes
+using straight apostrophes @t{'like this'} or double-quotes @t{"like
+this"}.  Another common way is the curved quote convention, which uses
+left and right single or double quotation marks @t{‘like this’} or
+@t{“like this”}.  Typewriter quotes are simple and portable; curved
+quotes are less ambiguous and typically look nicer.
+
+  Electric Quote mode makes it easier to type curved quotes.  As you
+type characters it optionally converts @t{`} to @t{‘}, @t{'} to @t{’},
+@t{``} to @t{“}, and @t{''} to @t{”}.  These conversions are
+suppressed in buffers whose coding systems cannot represent curved
+quote characters.
+
+@vindex electric-quote-paragraph
+@vindex electric-quote-comment
+@vindex electric-quote-string
+  You can customize the behavior of Electric Quote mode by customizing
+variables that control where it is active.  It is active in text
+paragraphs if @code{electric-quote-paragraph} is non-@code{nil}, in
+programming-language comments if @code{electric-quote-comment} is
+non-@code{nil}, and in programming-language strings if
+@code{electric-quote-string} is non-@code{nil}.  The default is
+@code{nil} for @code{electric-quote-string} and @code{t} for the other
+variables.
+
+  Electric Quote mode is disabled by default.  To toggle it, type
+@kbd{M-x electric-quote-mode}.  To toggle it in a single buffer, use
+@kbd{M-x electric-quote-local-mode}.  To suppress it for a single use,
+type @kbd{C-q `} or @kbd{C-q '} instead of @kbd{`} or @kbd{'}.  To
+insert a curved quote even when Electric Quote is disabled or
+inactive, you can type @kbd{C-x 8 [} for @t{‘}, @kbd{C-x 8 ]} for
+@t{’}, @kbd{C-x 8 @{} for @t{“}, and @kbd{C-x 8 @}} for @t{”}.
+@xref{Inserting Text}.
 
 @node Filling
 @section Filling Text
@@ -1293,7 +1336,7 @@ executed.
 
 @kindex S-TAB @r{(Org Mode)}
 @findex org-shifttab
-  Typing @key{S-TAB} (@code{org-shifttab}) anywhere in an Org mode
+  Typing @kbd{S-@key{TAB}} (@code{org-shifttab}) anywhere in an Org mode
 buffer cycles the visibility of the entire outline structure, between
 (i) showing only top-level heading lines, (ii) showing all heading
 lines but no body lines, and (iii) showing everything.
@@ -2029,7 +2072,7 @@ serves as an example of the features of Enriched mode.
 * Enriched Indentation::    Changing the left and right margins.
 * Enriched Justification::  Centering, setting text flush with the
                               left or right margin, etc.
-* Enriched Properties::     The "special" text properties submenu.
+* Enriched Properties::     The ``special'' text properties submenu.
 @end menu
 
 @node Enriched Mode

@@ -119,8 +119,8 @@ magic_db (const char *string, ptrdiff_t string_len, const char *class,
   while (p < string + string_len)
     {
       /* The chunk we're about to stick on the end of result.  */
-      const char *next = NULL;
-      ptrdiff_t next_len;
+      const char *next = p;
+      ptrdiff_t next_len = 1;
 
       if (*p == '%')
 	{
@@ -137,10 +137,13 @@ magic_db (const char *string, ptrdiff_t string_len, const char *class,
 		break;
 
 	      case 'C':
-		next = (x_customization_string
-			? x_customization_string
-			: "");
-		next_len = strlen (next);
+		if (x_customization_string)
+		  {
+		    next = x_customization_string;
+		    next_len = strlen (next);
+		  }
+		else
+		  next_len = 0;
 		break;
 
 	      case 'N':
@@ -176,8 +179,6 @@ magic_db (const char *string, ptrdiff_t string_len, const char *class,
 		return NULL;
 	      }
 	}
-      else
-	next = p, next_len = 1;
 
       /* Do we have room for this component followed by a '\0'?  */
       if (path_size - path_len <= next_len)

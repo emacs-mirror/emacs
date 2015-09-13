@@ -178,8 +178,8 @@ koppa		&		%
 mark		key
 ------------------------
 ypogegrammeni	J
-psili		'  or  v
-dasia		`  or  V
+psili		\\='  or  v
+dasia		\\=`  or  V
 oxia		/
 varia		?
 perispomeni	\\  or  ^
@@ -461,9 +461,9 @@ mark		key
 ypogegrammeni	|
 psili		>
 dasia		<
-oxia		'
-koronis         ''
-varia		`
+oxia		\\='
+koronis		\\='\\='
+varia		\\=`
 perispomeni	~
 dialytika	\"
 ano teleia	;

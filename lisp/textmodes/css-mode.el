@@ -3,6 +3,7 @@
 ;; Copyright (C) 2006-2015 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
+;; Maintainer: Simen Heggestøyl <simenheg@gmail.com>
 ;; Keywords: hypermedia
 
 ;; This file is part of GNU Emacs.
@@ -28,7 +29,7 @@
 
 ;; - electric ; and }
 ;; - filling code with auto-fill-mode
-;; - completion
+;; - attribute value completion
 ;; - fix font-lock errors with multi-line selectors
 
 ;;; Code:
@@ -37,96 +38,20 @@
   "Cascading Style Sheets (CSS) editing mode."
   :group 'languages)
 
+(defconst css-pseudo-class-ids
+  '("active" "checked" "disabled" "empty" "enabled" "first"
+    "first-child" "first-of-type" "focus" "hover" "indeterminate" "lang"
+    "last-child" "last-of-type" "left" "link" "not" "nth-child"
+    "nth-last-child" "nth-last-of-type" "nth-of-type" "only-child"
+    "only-of-type" "right" "root" "target" "visited")
+  "Identifiers for pseudo-classes.")
 
-(defun css-extract-keyword-list (res)
-  (with-temp-buffer
-    (url-insert-file-contents "http://www.w3.org/TR/REC-CSS2/css2.txt")
-    (goto-char (point-max))
-    (search-backward "Appendix H. Index")
-    (forward-line)
-    (delete-region (point-min) (point))
-    (let ((result nil)
-          keys)
-      (dolist (re res)
-        (goto-char (point-min))
-        (setq keys nil)
-        (while (re-search-forward (cdr re) nil t)
-          (push (match-string 1) keys))
-        (push (cons (car re) (sort keys 'string-lessp)) result))
-      (nreverse result))))
-
-(defun css-extract-parse-val-grammar (string env)
-  (let ((start 0)
-        (elems ())
-        name)
-    (while (string-match
-            (concat "\\(?:"
-                    (concat "<a [^>]+><span [^>]+>\\(?:"
-                            "&lt;\\([^&]+\\)&gt;\\|'\\([^']+\\)'"
-                            "\\)</span></a>")
-                    "\\|" "\\(\\[\\)"
-                    "\\|" "\\(]\\)"
-                    "\\|" "\\(||\\)"
-                    "\\|" "\\(|\\)"
-                    "\\|" "\\([*+?]\\)"
-                    "\\|" "\\({[^}]+}\\)"
-                    "\\|" "\\(\\w+\\(?:-\\w+\\)*\\)"
-                    "\\)[ \t\n]*")
-            string start)
-      ;; (assert (eq start (match-beginning 0)))
-      (setq start (match-end 0))
-      (cond
-       ;; Reference to a type of value.
-       ((setq name (match-string-no-properties 1 string))
-        (push (intern name) elems))
-       ;; Reference to another property's values.
-       ((setq name (match-string-no-properties 2 string))
-        (setq elems (delete-dups (append (cdr (assoc name env)) elems))))
-       ;; A literal
-       ((setq name (match-string-no-properties 9 string))
-        (push name elems))
-       ;; We just ignore the rest.  I.e. we ignore the structure because
-       ;; it's too difficult to exploit anyway (it would allow us to only
-       ;; complete top/center/bottom after one of left/center/right and
-       ;; vice-versa).
-       (t nil)))
-    elems))
-
-
-(defun css-extract-props-and-vals ()
-  (with-temp-buffer
-    (url-insert-file-contents "http://www.w3.org/TR/CSS21/propidx.html")
-    (goto-char (point-min))
-    (let ((props ()))
-      (while (re-search-forward "#propdef-\\([^\"]+\\)\"><span class=\"propinst-\\1 xref\">'\\1'</span></a>" nil t)
-        (let ((prop (match-string-no-properties 1)))
-          (save-excursion
-            (goto-char (match-end 0))
-            (search-forward "<td>")
-            (let ((vals-string (buffer-substring (point)
-                                                 (progn
-                                                   (re-search-forward "[ \t\n]+|[ \t\n]+<a href=\"cascade.html#value-def-inherit\" class=\"noxref\"><span class=\"value-inst-inherit\">inherit</span></a>")
-                                                   (match-beginning 0)))))
-              ;;
-              (push (cons prop (css-extract-parse-val-grammar vals-string props))
-                    props)))))
-      props)))
-
-;; Extraction was done with:
-;; (css-extract-keyword-list
-;;  '((pseudo . "^ +\\* :\\([^ \n,]+\\)")
-;;    (at . "^ +\\* @\\([^ \n,]+\\)")
-;;    (descriptor . "^ +\\* '\\([^ '\n]+\\)' (descriptor)")
-;;    (media . "^ +\\* '\\([^ '\n]+\\)' media group")
-;;    (property . "^ +\\* '\\([^ '\n]+\\)',")))
-
-(defconst css-pseudo-ids
-  '("active" "after" "before" "first" "first-child" "first-letter" "first-line"
-    "focus" "hover" "lang" "left" "link" "right" "visited")
-  "Identifiers for pseudo-elements and pseudo-classes.")
+(defconst css-pseudo-element-ids
+  '("after" "before" "first-letter" "first-line")
+  "Identifiers for pseudo-elements.")
 
 (defconst css-at-ids
-  '("charset" "font-face" "import" "media" "page")
+  '("charset" "font-face" "import" "media" "namespace" "page")
   "Identifiers that appear in the form @foo.")
 
 (defconst css-descriptor-ids
@@ -142,36 +67,103 @@
   "Identifiers for types of media.")
 
 (defconst css-property-ids
-  '("azimuth" "background" "background-attachment" "background-color"
-    "background-image" "background-position" "background-repeat" "block"
-    "border" "border-bottom" "border-bottom-color" "border-bottom-style"
-    "border-bottom-width" "border-collapse" "border-color" "border-left"
-    "border-left-color" "border-left-style" "border-left-width" "border-right"
+  '(;; CSS 2.1 properties (http://www.w3.org/TR/CSS21/propidx.html).
+    ;;
+    ;; Properties duplicated by any of the CSS3 modules below have
+    ;; been removed.
+    "azimuth" "border-collapse" "border-spacing" "bottom"
+    "caption-side" "clear" "clip" "content" "counter-increment"
+    "counter-reset" "cue" "cue-after" "cue-before" "direction" "display"
+    "elevation" "empty-cells" "float" "height" "left" "line-height"
+    "list-style" "list-style-image" "list-style-position"
+    "list-style-type" "margin" "margin-bottom" "margin-left"
+    "margin-right" "margin-top" "max-height" "max-width" "min-height"
+    "min-width" "orphans" "overflow" "padding" "padding-bottom"
+    "padding-left" "padding-right" "padding-top" "page-break-after"
+    "page-break-before" "page-break-inside" "pause" "pause-after"
+    "pause-before" "pitch" "pitch-range" "play-during" "position"
+    "quotes" "richness" "right" "speak" "speak-header" "speak-numeral"
+    "speak-punctuation" "speech-rate" "stress" "table-layout" "top"
+    "unicode-bidi" "vertical-align" "visibility" "voice-family" "volume"
+    "widows" "width" "z-index"
+
+    ;; CSS Animations
+    ;; (http://www.w3.org/TR/css3-animations/#property-index)
+    "animation" "animation-delay" "animation-direction"
+    "animation-duration" "animation-fill-mode"
+    "animation-iteration-count" "animation-name"
+    "animation-play-state" "animation-timing-function"
+
+    ;; CSS Backgrounds and Borders Module Level 3
+    ;; (http://www.w3.org/TR/css3-background/#property-index)
+    "background" "background-attachment" "background-clip"
+    "background-color" "background-image" "background-origin"
+    "background-position" "background-repeat" "background-size"
+    "border" "border-bottom" "border-bottom-color"
+    "border-bottom-left-radius" "border-bottom-right-radius"
+    "border-bottom-style" "border-bottom-width" "border-color"
+    "border-image" "border-image-outset" "border-image-repeat"
+    "border-image-slice" "border-image-source" "border-image-width"
+    "border-left" "border-left-color" "border-left-style"
+    "border-left-width" "border-radius" "border-right"
     "border-right-color" "border-right-style" "border-right-width"
-    "border-spacing" "border-style" "border-top" "border-top-color"
-    "border-top-style" "border-top-width" "border-width" "bottom"
-    "caption-side" "clear" "clip" "color" "compact" "content"
-    "counter-increment" "counter-reset" "cue" "cue-after" "cue-before"
-    "cursor" "dashed" "direction" "display" "dotted" "double" "elevation"
-    "empty-cells" "float" "font" "font-family" "font-size" "font-size-adjust"
-    "font-stretch" "font-style" "font-variant" "font-weight" "groove" "height"
-    "hidden" "inline" "inline-table" "inset" "left" "letter-spacing"
-    "line-height" "list-item" "list-style" "list-style-image"
-    "list-style-position" "list-style-type" "margin" "margin-bottom"
-    "margin-left" "margin-right" "margin-top" "marker-offset" "marks"
-    "max-height" "max-width" "min-height" "min-width" "orphans" "outline"
-    "outline-color" "outline-style" "outline-width" "outset" "overflow"
-    "padding" "padding-bottom" "padding-left" "padding-right" "padding-top"
-    "page" "page-break-after" "page-break-before" "page-break-inside" "pause"
-    "pause-after" "pause-before" "pitch" "pitch-range" "play-during" "position"
-    "quotes" "richness" "ridge" "right" "run-in" "size" "solid" "speak"
-    "speak-header" "speak-numeral" "speak-punctuation" "speech-rate" "stress"
-    "table" "table-caption" "table-cell" "table-column" "table-column-group"
-    "table-footer-group" "table-header-group" "table-layout" "table-row"
-    "table-row-group" "text-align" "text-decoration" "text-indent"
-    "text-shadow" "text-transform" "top" "unicode-bidi" "vertical-align"
-    "visibility" "voice-family" "volume" "white-space" "widows" "width"
-    "word-spacing" "z-index")
+    "border-style" "border-top" "border-top-color"
+    "border-top-left-radius" "border-top-right-radius"
+    "border-top-style" "border-top-width" "border-width" "box-shadow"
+
+    ;; CSS Basic User Interface Module Level 3 (CSS3 UI)
+    ;; (http://www.w3.org/TR/css3-ui/#property-index)
+    "box-sizing" "caret-color" "cursor" "nav-down" "nav-left"
+    "nav-right" "nav-up" "outline" "outline-color" "outline-offset"
+    "outline-style" "outline-width" "resize" "text-overflow"
+
+    ;; CSS Color Module Level 3
+    ;; (http://www.w3.org/TR/css3-color/#property)
+    "color" "opacity"
+
+    ;; CSS Flexible Box Layout Module Level 1
+    ;; (http://www.w3.org/TR/css-flexbox-1/#property-index)
+    "align-content" "align-items" "align-self" "flex" "flex-basis"
+    "flex-direction" "flex-flow" "flex-grow" "flex-shrink" "flex-wrap"
+    "justify-content" "order"
+
+    ;; CSS Fonts Module Level 3
+    ;; (http://www.w3.org/TR/css3-fonts/#property-index)
+    "font" "font-family" "font-feature-settings" "font-kerning"
+    "font-language-override" "font-size" "font-size-adjust"
+    "font-stretch" "font-style" "font-synthesis" "font-variant"
+    "font-variant-alternates" "font-variant-caps"
+    "font-variant-east-asian" "font-variant-ligatures"
+    "font-variant-numeric" "font-variant-position" "font-weight"
+
+    ;; CSS Text Decoration Module Level 3
+    ;; (http://dev.w3.org/csswg/css-text-decor-3/#property-index)
+    "text-decoration" "text-decoration-color" "text-decoration-line"
+    "text-decoration-skip" "text-decoration-style" "text-emphasis"
+    "text-emphasis-color" "text-emphasis-position" "text-emphasis-style"
+    "text-shadow" "text-underline-position"
+
+    ;; CSS Text Module Level 3
+    ;; (http://www.w3.org/TR/css3-text/#property-index)
+    "hanging-punctuation" "hyphens" "letter-spacing" "line-break"
+    "overflow-wrap" "tab-size" "text-align" "text-align-last"
+    "text-indent" "text-justify" "text-transform" "white-space"
+    "word-break" "word-spacing" "word-wrap"
+
+    ;; CSS Transforms Module Level 1
+    ;; (http://www.w3.org/TR/css3-2d-transforms/#property-index)
+    "backface-visibility" "perspective" "perspective-origin"
+    "transform" "transform-origin" "transform-style"
+
+    ;; CSS Transitions
+    ;; (http://www.w3.org/TR/css3-transitions/#property-index)
+    "transition" "transition-delay" "transition-duration"
+    "transition-property" "transition-timing-function"
+
+    ;; Filter Effects Module Level 1
+    ;; (http://www.w3.org/TR/filter-effects/#property-index)
+    "color-interpolation-filters" "filter" "flood-color"
+    "flood-opacity" "lighting-color")
   "Identifiers for properties.")
 
 (defcustom css-electric-keys '(?\} ?\;) ;; '()
@@ -205,6 +197,16 @@
     ;; Distinction between words and symbols.
     (modify-syntax-entry ?- "_" st)
     st))
+
+(eval-and-compile
+  (defconst css--uri-re
+    (concat
+     "url\\((\\)[[:space:]]*\\(?:\\\\.\\|[^()[:space:]\n'\"]\\)+"
+     "[[:space:]]*\\()\\)")))
+
+(defconst css-syntax-propertize-function
+  (syntax-propertize-rules
+   (css--uri-re (1 "|") (2 "|"))))
 
 (defconst css-escapes-re
   "\\\\\\(?:[^\000-\037\177]\\|[0-9a-fA-F]+[ \n\t\r\f]?\\)")
@@ -258,7 +260,11 @@
          (concat "\\(?:" scss--hash-re
                  "\\|[^@/:{} \t\n#]\\)"
                  "[^:{}#]*\\(?:" scss--hash-re "[^:{}#]*\\)*"))
-       "\\(?::" (regexp-opt css-pseudo-ids t)
+       ;; Even though pseudo-elements should be prefixed by ::, a
+       ;; single colon is accepted for backward compatibility.
+       "\\(?:\\(:" (regexp-opt (append css-pseudo-class-ids
+                                       css-pseudo-element-ids) t)
+       "\\|\\::" (regexp-opt css-pseudo-element-ids t) "\\)"
        "\\(?:([^\)]+)\\)?"
        (if (not sassy)
            "[^:{}\n]*"
@@ -282,7 +288,13 @@
               "\\(?:\\(" css-proprietary-nmstart-re "\\)\\|"
               css-nmstart-re "\\)" css-nmchar-re "*"
               "\\)\\s-*:")
-     (1 (if (match-end 2) 'css-proprietary-property 'css-property)))))
+     (1 (if (match-end 2) 'css-proprietary-property 'css-property)))
+    ;; Make sure the parens in a url(...) expression receive the
+    ;; default face. This is done because the parens may sometimes
+    ;; receive generic string delimiter syntax (see
+    ;; `css-syntax-propertize-function').
+    (,css--uri-re
+     (1 'default t) (2 'default t))))
 
 (defvar css-font-lock-keywords (css--font-lock-keywords))
 
@@ -331,30 +343,83 @@
     (`(:elem . basic) css-indent-offset)
     (`(:elem . arg) 0)
     (`(:list-intro . ,(or `";" `"")) t) ;"" stands for BOB (bug#15467).
+    (`(:before . "{")
+     (when (or (smie-rule-hanging-p) (smie-rule-bolp))
+       (smie-backward-sexp ";")
+       (smie-indent-virtual)))
     (`(:before . ,(or "{" "("))
      (if (smie-rule-hanging-p) (smie-rule-parent 0)))))
 
+;;; Completion
+
+(defun css--complete-property ()
+  "Complete property at point."
+  (save-excursion
+    (let ((pos (point)))
+      (skip-chars-backward "-[:alnum:]")
+      (let ((start (point)))
+        (skip-chars-backward " \t\r\n")
+        (when (memq (char-before) '(?\{ ?\;))
+          (list start pos css-property-ids))))))
+
+(defun css--complete-pseudo-element-or-class ()
+  "Complete pseudo-element or pseudo-class at point."
+  (save-excursion
+    (let ((pos (point)))
+      (skip-chars-backward "-[:alnum:]")
+      (when (eq (char-before) ?\:)
+        (list (point) pos
+              (if (eq (char-before (- (point) 1)) ?\:)
+                  css-pseudo-element-ids
+                css-pseudo-class-ids))))))
+
+(defun css--complete-at-rule ()
+  "Complete at-rule (statement beginning with `@') at point."
+  (save-excursion
+    (let ((pos (point)))
+      (skip-chars-backward "-[:alnum:]")
+      (when (eq (char-before) ?\@)
+        (list (point) pos css-at-ids)))))
+
+(defun css-completion-at-point ()
+  "Complete current symbol at point.
+Currently supports completion of CSS properties, pseudo-elements,
+pseudo-classes, and at-rules."
+  (or (css--complete-property)
+      (css--complete-pseudo-element-or-class)
+      (css--complete-at-rule)))
+
 ;;;###autoload
-(define-derived-mode css-mode fundamental-mode "CSS"
+(define-derived-mode css-mode prog-mode "CSS"
   "Major mode to edit Cascading Style Sheets."
   (setq-local font-lock-defaults css-font-lock-defaults)
   (setq-local comment-start "/*")
   (setq-local comment-start-skip "/\\*+[ \t]*")
   (setq-local comment-end "*/")
   (setq-local comment-end-skip "[ \t]*\\*+/")
-  (setq-local parse-sexp-ignore-comments t)
-  (setq-local fill-paragraph-function 'css-fill-paragraph)
+  (setq-local syntax-propertize-function
+              css-syntax-propertize-function)
+  (setq-local fill-paragraph-function #'css-fill-paragraph)
+  (setq-local adaptive-fill-function #'css-adaptive-fill)
   (setq-local add-log-current-defun-function #'css-current-defun-name)
   (smie-setup css-smie-grammar #'css-smie-rules
               :forward-token #'css-smie--forward-token
               :backward-token #'css-smie--backward-token)
   (setq-local electric-indent-chars
-              (append css-electric-keys electric-indent-chars)))
+              (append css-electric-keys electric-indent-chars))
+  (add-hook 'completion-at-point-functions
+            #'css-completion-at-point nil 'local))
 
 (defvar comment-continue)
 
 (defun css-fill-paragraph (&optional justify)
   (save-excursion
+    ;; Fill succeeding comment when invoked right before a multi-line
+    ;; comment.
+    (when (save-excursion
+            (beginning-of-line)
+            (comment-search-forward (point-at-eol) t))
+      (goto-char (match-end 0)))
     (let ((ppss (syntax-ppss))
           (eol (line-end-position)))
       (cond
@@ -374,8 +439,11 @@
                 (paragraph-separate
                  (if (and comment-continue
                           (string-match "[^ \t]" comment-continue))
-                     (concat "\\(?:[ \t]*" (regexp-quote comment-continue)
-                             "\\)?\\(?:" paragraph-separate "\\)")
+                     (concat "\\(?:[ \t]*\\(?:"
+                             (regexp-quote comment-continue) "\\|"
+                             comment-start-skip "\\|"
+                             comment-end-skip "\\)\\)?"
+                             "\\(?:" paragraph-separate "\\)")
                    paragraph-separate))
                 (paragraph-start
                  (if (and comment-continue
@@ -428,6 +496,12 @@
             ;; Don't use the default filling code.
             t)))))))
 
+(defun css-adaptive-fill ()
+  (when (looking-at "[ \t]*/\\*[ \t]*")
+    (let ((str (match-string 0)))
+      (and (string-match "/\\*" str)
+           (replace-match " *" t t str)))))
+
 (defun css-current-defun-name ()
   "Return the name of the CSS section at point, or nil."
   (save-excursion
@@ -464,6 +538,7 @@
   "Major mode to edit \"Sassy CSS\" files."
   (setq-local comment-start "// ")
   (setq-local comment-end "")
+  (setq-local comment-continue " *")
   (setq-local comment-start-skip "/[*/]+[ \t]*")
   (setq-local comment-end-skip "[ \t]*\\(?:\n\\|\\*+/\\)")
   (setq-local font-lock-defaults '(scss-font-lock-keywords nil t)))

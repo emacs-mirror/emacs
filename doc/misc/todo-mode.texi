@@ -2,10 +2,10 @@
 @c %**start of header
 @setfilename ../../info/todo-mode.info
 @settitle Todo Mode User Manual
+@include docstyle.texi
 @syncodeindex fn cp
 @syncodeindex vr cp
 @syncodeindex ky cp
-@documentencoding UTF-8
 @c %**end of header
 
 @copying
@@ -702,13 +702,13 @@ prompt, after typing @kbd{i} to invoke @code{todo-insert-item}, looks
 like this:
 
 @example
-Press a key (so far `i'):  @{ i=>default p=>copy @} @{ y=>diary k=>nonmarking @} @{ c=>calendar d=>date n=>dayname @} t=>time @{ h=>here r=>region @}
+Press a key (so far @kbd{i}):  @{ i=>default p=>copy @} @{ y=>diary k=>nonmarking @} @{ c=>calendar d=>date n=>dayname @} t=>time @{ h=>here r=>region @}
 @end example
 
 @noindent If you now type @kbd{y}, the prompt changes to this:
 
 @example
-Press a key (so far `i y'):  y=>diary:GO! @{ c=>calendar d=>date n=>dayname @} t=>time @{ h=>here r=>region @}
+Press a key (so far @kbd{i y}):  y=>diary:GO! @{ c=>calendar d=>date n=>dayname @} t=>time @{ h=>here r=>region @}
 @end example
 
 @noindent Notice that the pair @samp{k=>nonmarking} is now absent, since it
@@ -892,7 +892,7 @@ is on a done item, this displays the following prompt in the echo
 area:
 
 @example
-Press a key (so far `e'): c=>add/edit comment d=>delete comment
+Press a key (so far @kbd{e}): c=>add/edit comment d=>delete comment
 @end example
 
 @noindent
@@ -903,7 +903,7 @@ echo area, and you can continue or complete the invocation only by
 typing one of the listed keys:
 
 @example
-Press a key (so far `e'): e=>edit h=>header m=>multiline y=>diary k=>nonmarking d=>date t=>time
+Press a key (so far @kbd{e}): e=>edit h=>header m=>multiline y=>diary k=>nonmarking d=>date t=>time
 @end example
 
 As noted above, passing the @samp{date} parameter does not complete
@@ -912,7 +912,7 @@ following prompt, and typing any of these keys does complete the
 invocation:
 
 @example
-Press a key (so far `e d'): f=>full c=>calendar a=>today n=>dayname y=>year m=>month d=>daynum
+Press a key (so far @kbd{e d}): f=>full c=>calendar a=>today n=>dayname y=>year m=>month d=>daynum
 @end example
 
 In addition to the item-level invocations @kbd{e y}, to change the
@@ -1421,7 +1421,7 @@ Advance point to the next button.
 Put point on the previous button.
 @end table
 
-These commands are cyclic, e.g. when point is on the last button,
+These commands are cyclic, e.g., when point is on the last button,
 pressing @kbd{n} moves it to the first button.
 
 Typing @kbd{q} exits Todo Categories mode, killing the buffer and returning
@@ -1787,7 +1787,7 @@ current file:
 @item F h
 @itemx h
 Hide the item headers if visible, or show them if they are hidden.
-With done items, only the done header (i.e. the done tag and date-time
+With done items, only the done header (i.e., the done tag and date-time
 string inserted when the item was marked done) is hidden, the original
 date-time string is not. With filtered items, the category (or
 category-file) tag is not hidden.

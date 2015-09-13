@@ -268,8 +268,8 @@ Buffer B."
     (setq ediff-default-variant
 	  (intern
 	   (completing-read
-	    (format "Current merge default is `%S'.  New default: "
-		    ediff-default-variant)
+	    (format-message "Current merge default is `%S'.  New default: "
+			    ediff-default-variant)
 	    actual-alist nil 'must-match)))
     (ediff-do-merge ediff-current-difference 'remerge)
     (ediff-recenter)

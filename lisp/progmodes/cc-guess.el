@@ -91,7 +91,7 @@ The offset of a line included in the indent information returned by
 (defcustom c-guess-region-max 50000
   "The maximum region size for examining indent information with `c-guess'.
 It takes a long time to examine indent information from a large region;
-this option helps you limit that time. `nil' means no limit."
+this option helps you limit that time. nil means no limit."
   :version "24.1"
   :type 'integer
   :group 'c)
@@ -465,7 +465,7 @@ the absolute file name of the file if STYLE-NAME is nil."
 (defun c-guess-dump-guessed-style (&optional printer)
   "Show the guessed style.
 `pp' is used to print the style but if PRINTER is given,
-PRINTER is used instead. If PRINTER is not `nil', it
+PRINTER is used instead. If PRINTER is not nil, it
 is called with one argument, the guessed style."
   (interactive)
   (let ((style (c-guess-make-style c-guess-guessed-basic-offset
@@ -573,8 +573,8 @@ WITH-NAME is asked to the user."
 
 (cc-provide 'cc-guess)
 
-;;; Local Variables:
-;;; indent-tabs-mode: t
-;;; tab-width: 8
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: t
+;; tab-width: 8
+;; End:
 ;;; cc-guess.el ends here

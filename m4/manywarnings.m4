@@ -108,12 +108,13 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
     -Waddress \
     -Waggressive-loop-optimizations \
     -Wall \
-    -Warray-bounds \
     -Wattributes \
     -Wbad-function-cast \
+    -Wbool-compare \
     -Wbuiltin-macro-redefined \
     -Wcast-align \
     -Wchar-subscripts \
+    -Wchkp \
     -Wclobbered \
     -Wcomment \
     -Wcomments \
@@ -122,7 +123,10 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
     -Wdate-time \
     -Wdeprecated \
     -Wdeprecated-declarations \
+    -Wdesignated-init \
     -Wdisabled-optimization \
+    -Wdiscarded-array-qualifiers \
+    -Wdiscarded-qualifiers \
     -Wdiv-by-zero \
     -Wdouble-promotion \
     -Wempty-body \
@@ -133,6 +137,7 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
     -Wformat-extra-args \
     -Wformat-nonliteral \
     -Wformat-security \
+    -Wformat-signedness \
     -Wformat-y2k \
     -Wformat-zero-length \
     -Wfree-nonheap-object \
@@ -140,15 +145,19 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
     -Wimplicit \
     -Wimplicit-function-declaration \
     -Wimplicit-int \
+    -Wincompatible-pointer-types \
     -Winit-self \
     -Winline \
+    -Wint-conversion \
     -Wint-to-pointer-cast \
     -Winvalid-memory-model \
     -Winvalid-pch \
     -Wjump-misses-init \
+    -Wlogical-not-parentheses \
     -Wlogical-op \
     -Wmain \
     -Wmaybe-uninitialized \
+    -Wmemset-transposed-args \
     -Wmissing-braces \
     -Wmissing-declarations \
     -Wmissing-field-initializers \
@@ -159,6 +168,7 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
     -Wnarrowing \
     -Wnested-externs \
     -Wnonnull \
+    -Wodr \
     -Wold-style-declaration \
     -Wold-style-definition \
     -Wopenmp-simd \
@@ -176,6 +186,9 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
     -Wreturn-type \
     -Wsequence-point \
     -Wshadow \
+    -Wshift-count-negative \
+    -Wshift-count-overflow \
+    -Wsizeof-array-argument \
     -Wsizeof-pointer-memaccess \
     -Wstack-protector \
     -Wstrict-aliasing \
@@ -185,7 +198,10 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
     -Wsuggest-attribute=format \
     -Wsuggest-attribute=noreturn \
     -Wsuggest-attribute=pure \
+    -Wsuggest-final-methods \
+    -Wsuggest-final-types \
     -Wswitch \
+    -Wswitch-bool \
     -Wswitch-default \
     -Wsync-nand \
     -Wsystem-headers \
@@ -217,8 +233,9 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC],
     gl_manywarn_set="$gl_manywarn_set $gl_manywarn_item"
   done
 
-  # gcc --help=warnings outputs an unusual form for this option; list
-  # it here so that the above 'comm' command doesn't report a false match.
+  # gcc --help=warnings outputs an unusual form for these options; list
+  # them here so that the above 'comm' command doesn't report a false match.
+  gl_manywarn_set="$gl_manywarn_set -Warray-bounds=2"
   gl_manywarn_set="$gl_manywarn_set -Wnormalized=nfc"
 
   # These are needed for older GCC versions.

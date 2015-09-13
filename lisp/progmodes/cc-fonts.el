@@ -539,28 +539,29 @@ stuff.  Used on level 1 and higher."
 		  (let* ((re (c-make-keywords-re nil
 			       (c-lang-const c-cpp-include-directives)))
 			 (re-depth (regexp-opt-depth re)))
-		    `((,(concat noncontinued-line-end
-				(c-lang-const c-opt-cpp-prefix)
-				re
-				(c-lang-const c-syntactic-ws)
-				"\\(<[^>\n\r]*>?\\)")
-		       (,(+ ncle-depth re-depth sws-depth 1)
-			font-lock-string-face)
-
-		       ;; Use an anchored matcher to put paren syntax
-		       ;; on the brackets.
-		       (,(byte-compile
-			  `(lambda (limit)
-			     (let ((beg (match-beginning
-					 ,(+ ncle-depth re-depth sws-depth 1)))
-				   (end (1- (match-end ,(+ ncle-depth re-depth
-							   sws-depth 1)))))
-			       (if (eq (char-after end) ?>)
-				   (progn
-				     (c-mark-<-as-paren beg)
-				     (c-mark->-as-paren end))
-				 (c-unmark-<->-as-paren beg)))
-			     nil)))))))
+		    ;; We used to use a font-lock "anchored matcher" here for
+		    ;; the paren syntax.  This failed when the ">" was at EOL,
+		    ;; since `font-lock-fontify-anchored-keywords' terminated
+		    ;; its loop at EOL without executing our lambda form at
+		    ;; all.
+		    `((,(c-make-font-lock-search-function
+			 (concat noncontinued-line-end
+				 (c-lang-const c-opt-cpp-prefix)
+				 re
+				 (c-lang-const c-syntactic-ws)
+				 "\\(<[^>\n\r]*>?\\)")
+			 `(,(+ ncle-depth re-depth sws-depth 1)
+			   font-lock-string-face t)
+			 `((let ((beg (match-beginning
+				       ,(+ ncle-depth re-depth sws-depth 1)))
+				 (end (1- (match-end ,(+ ncle-depth re-depth
+							 sws-depth 1)))))
+			     (if (eq (char-after end) ?>)
+				 (progn
+				   (c-mark-<-as-paren beg)
+				   (c-mark->-as-paren end))
+			       (c-unmark-<->-as-paren beg)))
+			   nil))))))
 
 	      ;; #define.
 	      ,@(when (c-lang-const c-opt-cpp-macro-define)
@@ -1139,6 +1140,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 			     (looking-at "{"))
 			(c-safe (c-forward-sexp) t) ; over { .... }
 		      t)
+		    (< (point) limit)
 		    ;; FIXME: Should look for c-decl-end markers here;
 		    ;; we might go far into the following declarations
 		    ;; in e.g. ObjC mode (see e.g. methods-4.m).
@@ -1771,8 +1773,8 @@ on level 2 only and so aren't combined with `c-complex-decl-matchers'."
 ;; 		       "\\|"
 ;; 		       (c-lang-const c-symbol-key)
 ;; 		       "\\)")
-;; 	       `((c-font-lock-declarators limit t nil) ; That `nil' says use `font-lock-variable-name-face';
-;; 					; `t' would mean `font-lock-function-name-face'.
+;; 	       `((c-font-lock-declarators limit t nil) ; That nil says use `font-lock-variable-name-face';
+;; 					; t would mean `font-lock-function-name-face'.
 ;; 		 (progn
 ;; 		   (c-put-char-property (match-beginning 0) 'c-type
 ;; 					'c-decl-id-start)
@@ -1956,19 +1958,18 @@ higher."
 	      (cdr-safe (or (assq c-buffer-is-cc-mode c-doc-comment-style)
 			    (assq 'other c-doc-comment-style)))
 	    c-doc-comment-style))
-	 (list (nconc (apply 'nconc
-			     (mapcar
-			      (lambda (doc-style)
-				(let ((sym (intern
-					    (concat (symbol-name doc-style)
-						    "-font-lock-keywords"))))
-				  (cond ((fboundp sym)
-					 (funcall sym))
-					((boundp sym)
-					 (append (eval sym) nil)))))
-			      (if (listp doc-keywords)
-				  doc-keywords
-				(list doc-keywords))))
+	 (list (nconc (c--mapcan
+		       (lambda (doc-style)
+			 (let ((sym (intern
+				     (concat (symbol-name doc-style)
+					     "-font-lock-keywords"))))
+			   (cond ((fboundp sym)
+				  (funcall sym))
+				 ((boundp sym)
+				  (append (eval sym) nil)))))
+		       (if (listp doc-keywords)
+			   doc-keywords
+			 (list doc-keywords)))
 		      base-list)))
 
     ;; Kludge: If `c-font-lock-complex-decl-prepare' is on the list we
@@ -2703,8 +2704,8 @@ need for `pike-font-lock-extra-types'.")
 ;; 2006-07-10:  awk-font-lock-keywords has been moved back to cc-awk.el.
 (cc-provide 'cc-fonts)
 
-;;; Local Variables:
-;;; indent-tabs-mode: t
-;;; tab-width: 8
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: t
+;; tab-width: 8
+;; End:
 ;;; cc-fonts.el ends here

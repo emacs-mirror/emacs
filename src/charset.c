@@ -555,7 +555,7 @@ load_charset_map_from_vector (struct charset *charset, Lisp_Object vec, int cont
 
   if (len % 2 == 1)
     {
-      add_to_log ("Failure in loading charset map: %V", vec, Qnil);
+      add_to_log ("Failure in loading charset map: %V", vec);
       return;
     }
 
@@ -2338,10 +2338,6 @@ syms_of_charset (void)
   DEFSYM (Qemacs, "emacs");
   DEFSYM (Qeight_bit, "eight-bit");
   DEFSYM (Qiso_8859_1, "iso-8859-1");
-
-  /* Value of charset attribute `charset-iso-plane'.  */
-  DEFSYM (Qgl, "gl");
-  DEFSYM (Qgr, "gr");
 
   staticpro (&Vcharset_ordered_list);
   Vcharset_ordered_list = Qnil;

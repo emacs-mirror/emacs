@@ -83,9 +83,8 @@ extern struct timeval make_timeval (struct timespec) ATTRIBUTE_CONST;
 extern void set_waiting_for_input (struct timespec *);
 
 /* When lisp.h is not included Lisp_Object is not defined (this can
-   happen when this files is used outside the src directory).
-   Use GCPRO1 to determine if lisp.h was included.  */
-#ifdef GCPRO1
+   happen when this files is used outside the src directory).  */
+#ifdef EMACS_LISP_H
 
 /* Emacs uses the integer list (HI LO US PS) to represent the time
    (HI << LO_TIME_BITS) + LO + US / 1e6 + PS / 1e12.  */
@@ -104,22 +103,6 @@ extern int decode_time_components (Lisp_Object, Lisp_Object, Lisp_Object,
 				   Lisp_Object, struct lisp_time *, double *);
 extern struct timespec lisp_to_timespec (struct lisp_time);
 extern struct timespec lisp_time_argument (Lisp_Object);
-#endif
-
-#ifndef HAVE_TZALLOC
-# undef mktime_z
-# undef timezone_t
-# undef tzalloc
-# undef tzfree
-# define mktime_z emacs_mktime_z
-# define timezone_t emacs_timezone_t
-# define tzalloc emacs_tzalloc
-# define tzfree emacs_tzfree
-typedef char const *timezone_t;
-INLINE timezone_t tzalloc (char const *name) { return name; }
-INLINE void tzfree (timezone_t tz) { }
-/* Defined in editfns.c.  */
-extern time_t mktime_z (timezone_t, struct tm *);
 #endif
 
 INLINE_HEADER_END

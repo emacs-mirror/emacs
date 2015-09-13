@@ -174,7 +174,7 @@ there.")
 	    (and do-message
 		 (zerop (% (incf count) 20))
 		 (nnheader-message 5 "nnspool: Receiving headers... %d%%"
-				   (/ (* count 100) number))))
+				   (floor (* count 100.0) number))))
 
 	  (when do-message
 	    (nnheader-message 5 "nnspool: Receiving headers...done"))

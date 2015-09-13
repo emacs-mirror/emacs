@@ -138,7 +138,7 @@ instructs the scrolling commands not to fontify (@pxref{Font Lock})
 any unfontified text they scroll over, instead to assume it has the
 default face.  This can cause Emacs to scroll to somewhat wrong buffer
 positions when the faces in use are not all the same size, even with
-single (i.e. without auto-repeat) scrolling operations.
+single (i.e., without auto-repeat) scrolling operations.
 
 @vindex scroll-up
 @vindex scroll-down
@@ -441,7 +441,7 @@ it.  @xref{Disabling}.
 screenfuls.  It provides commands for scrolling through the buffer
 conveniently but not for changing it.  Apart from the usual Emacs
 cursor motion commands, you can type @key{SPC} to scroll forward one
-windowful, @key{S-@key{SPC}} or @key{DEL} to scroll backward, and @kbd{s} to
+windowful, @kbd{S-@key{SPC}} or @key{DEL} to scroll backward, and @kbd{s} to
 start an incremental search.
 
 @kindex q @r{(View mode)}
@@ -699,8 +699,9 @@ terminals.
 This face is used for the prompt strings displayed in the minibuffer.
 By default, Emacs automatically adds this face to the value of
 @code{minibuffer-prompt-properties}, which is a list of text
-properties used to display the prompt text.  (This variable takes
-effect when you enter the minibuffer.)
+properties (@pxref{Text Properties,,, elisp, the Emacs Lisp Reference
+Manual}) used to display the prompt text.  (This variable takes effect
+when you enter the minibuffer.)
 @item fringe
 @cindex @code{fringe} face
 The face for the fringes to the left and right of windows on graphic
@@ -1079,10 +1080,11 @@ end''.  If the line's direction is right-to-left (@pxref{Bidirectional
 Editing}), the meanings of the curving arrows in the fringes are
 swapped.
 
-  The fringes indicate line truncation with short horizontal arrows
-meaning ``there's more text on this line which is scrolled
-horizontally out of view''.  Clicking the mouse on one of the arrows
-scrolls the display horizontally in the direction of the arrow.
+  The fringes indicate line truncation (@pxref{Line Truncation}) with
+short horizontal arrows meaning ``there's more text on this line which
+is scrolled horizontally out of view''.  Clicking the mouse on one of
+the arrows scrolls the display horizontally in the direction of the
+arrow.
 
   The fringes can also indicate other things, such as buffer
 boundaries (@pxref{Displaying Boundaries}), and where a program you
@@ -1110,13 +1112,14 @@ how the buffer boundaries and window scrolling is indicated in the
 fringes.  If the value is @code{left} or @code{right}, both angle and
 arrow bitmaps are displayed in the left or right fringe, respectively.
 
-  If value is an alist, each element @code{(@var{indicator} .
-@var{position})} specifies the position of one of the indicators.
-The @var{indicator} must be one of @code{top}, @code{bottom},
-@code{up}, @code{down}, or @code{t} which specifies the default
-position for the indicators not present in the alist.
-The @var{position} is one of @code{left}, @code{right}, or @code{nil}
-which specifies not to show this indicator.
+  If value is an alist (@pxref{Association Lists,,, elisp, the Emacs
+Lisp Reference Manual}), each element @code{(@var{indicator} .
+@var{position})} specifies the position of one of the indicators.  The
+@var{indicator} must be one of @code{top}, @code{bottom}, @code{up},
+@code{down}, or @code{t} which specifies the default position for the
+indicators not present in the alist.  The @var{position} is one of
+@code{left}, @code{right}, or @code{nil} which specifies not to show
+this indicator.
 
   For example, @code{((top . left) (t . right))} places the top angle
 bitmap in left fringe, the bottom angle bitmap in right fringe, and
@@ -1201,7 +1204,7 @@ Highlight space and non-breaking space characters.
 
 @item lines
 @vindex whitespace-line-column
-Highlight lines longer than 80 lines.  To change the column limit,
+Highlight lines longer than 80 columns.  To change the column limit,
 customize the variable @code{whitespace-line-column}.
 
 @item newline
@@ -1476,6 +1479,15 @@ displayed as question signs.  You can control the display method by
 customizing the variable @code{glyphless-char-display-control}.
 @xref{Glyphless Chars,, Glyphless Character Display, elisp, The Emacs
 Lisp Reference Manual}, for details.
+
+@cindex curly quotes
+@cindex curved quotes
+@cindex escape-glyph face
+  If the curved quotes @samp{‘}, @samp{’}, @samp{“}, and @samp{”} are
+known to look just like @acronym{ASCII} characters, they are shown
+with the @code{escape-glyph} face.  Curved quotes that cannot be
+displayed are shown as their @acronym{ASCII} approximations @samp{`},
+@samp{'}, and @samp{"} with the @code{escape-glyph} face.
 
 @node Cursor Display
 @section Displaying the Cursor

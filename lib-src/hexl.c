@@ -216,7 +216,7 @@ main (int argc, char **argv)
 		  else
 		    {
 		      if (!i)
-			printf ("%08lx: ", address);
+			printf ("%08lx: ", address + 0ul);
 
 		      if (iso_flag)
 			string[i+1] =
@@ -224,7 +224,7 @@ main (int argc, char **argv)
 		      else
 			string[i+1] = (c < 0x20 || c >= 0x7F) ? '.' : c;
 
-		      printf ("%02x", c);
+		      printf ("%02x", c + 0u);
 		    }
 
 		  if ((i&group_by) == group_by)

@@ -892,7 +892,6 @@ insert_from_string_1 (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 		      ptrdiff_t nchars, ptrdiff_t nbytes,
 		      bool inherit, bool before_markers)
 {
-  struct gcpro gcpro1;
   ptrdiff_t outgoing_nbytes = nbytes;
   INTERVAL intervals;
 
@@ -906,7 +905,6 @@ insert_from_string_1 (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
       = count_size_as_multibyte (SDATA (string) + pos_byte,
 				 nbytes);
 
-  GCPRO1 (string);
   /* Do this before moving and increasing the gap,
      because the before-change hooks might move the gap
      or make it smaller.  */
@@ -916,7 +914,6 @@ insert_from_string_1 (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
     move_gap_both (PT, PT_BYTE);
   if (GAP_SIZE < outgoing_nbytes)
     make_gap (outgoing_nbytes - GAP_SIZE);
-  UNGCPRO;
 
   /* Copy the string text into the buffer, perhaps converting
      between single-byte and multibyte.  */
@@ -1278,14 +1275,12 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
   ptrdiff_t insbytes = SBYTES (new);
   ptrdiff_t from_byte, to_byte;
   ptrdiff_t nbytes_del, nchars_del;
-  struct gcpro gcpro1;
   INTERVAL intervals;
   ptrdiff_t outgoing_insbytes = insbytes;
   Lisp_Object deletion;
 
   check_markers ();
 
-  GCPRO1 (new);
   deletion = Qnil;
 
   if (prepare)
@@ -1294,8 +1289,6 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
       prepare_to_modify_buffer (from, to, &from);
       to = from + range_length;
     }
-
-  UNGCPRO;
 
   /* Make args be valid.  */
   if (from < BEGV)
@@ -1320,8 +1313,6 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
   else if (! STRING_MULTIBYTE (new))
     outgoing_insbytes
       = count_size_as_multibyte (SDATA (new), insbytes);
-
-  GCPRO1 (new);
 
   /* Make sure the gap is somewhere in or next to what we are deleting.  */
   if (from > GPT)
@@ -1424,7 +1415,6 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
 
   MODIFF++;
   CHARS_MODIFF = MODIFF;
-  UNGCPRO;
 
   signal_after_change (from, nchars_del, GPT - from);
   update_compositions (from, GPT, CHECK_BORDER);
@@ -1561,7 +1551,6 @@ del_range_1 (ptrdiff_t from, ptrdiff_t to, bool prepare, bool ret_string)
 {
   ptrdiff_t from_byte, to_byte;
   Lisp_Object deletion;
-  struct gcpro gcpro1;
 
   /* Make args be valid */
   if (from < BEGV)
@@ -1583,10 +1572,8 @@ del_range_1 (ptrdiff_t from, ptrdiff_t to, bool prepare, bool ret_string)
   to_byte = CHAR_TO_BYTE (to);
 
   deletion = del_range_2 (from, from_byte, to, to_byte, ret_string);
-  GCPRO1 (deletion);
   signal_after_change (from, to - from, 0);
   update_compositions (from, from, CHECK_HEAD);
-  UNGCPRO;
   return deletion;
 }
 
@@ -1806,13 +1793,10 @@ prepare_to_modify_buffer_1 (ptrdiff_t start, ptrdiff_t end,
       if (preserve_ptr)
 	{
 	  Lisp_Object preserve_marker;
-	  struct gcpro gcpro1;
 	  preserve_marker = Fcopy_marker (make_number (*preserve_ptr), Qnil);
-	  GCPRO1 (preserve_marker);
 	  verify_interval_modification (current_buffer, start, end);
 	  *preserve_ptr = marker_position (preserve_marker);
 	  unchain_marker (XMARKER (preserve_marker));
-	  UNGCPRO;
 	}
       else
 	verify_interval_modification (current_buffer, start, end);
@@ -1846,7 +1830,7 @@ prepare_to_modify_buffer_1 (ptrdiff_t start, ptrdiff_t end,
       = call1 (Fsymbol_value (Qregion_extract_function), Qnil);
 
   signal_before_change (start, end, preserve_ptr);
-  Vdeactivate_mark = Qt;
+  Fset (Qdeactivate_mark, Qt);
 }
 
 /* Like above, but called when we know that the buffer text
@@ -1970,7 +1954,6 @@ signal_before_change (ptrdiff_t start_int, ptrdiff_t end_int,
   Lisp_Object start, end;
   Lisp_Object start_marker, end_marker;
   Lisp_Object preserve_marker;
-  struct gcpro gcpro1, gcpro2, gcpro3;
   ptrdiff_t count = SPECPDL_INDEX ();
   struct rvoe_arg rvoe_arg;
 
@@ -1979,7 +1962,6 @@ signal_before_change (ptrdiff_t start_int, ptrdiff_t end_int,
   preserve_marker = Qnil;
   start_marker = Qnil;
   end_marker = Qnil;
-  GCPRO3 (preserve_marker, start_marker, end_marker);
 
   specbind (Qinhibit_modification_hooks, Qt);
 
@@ -2025,7 +2007,6 @@ signal_before_change (ptrdiff_t start_int, ptrdiff_t end_int,
   if (! NILP (end_marker))
     free_marker (end_marker);
   RESTORE_VALUE;
-  UNGCPRO;
 
   unbind_to (count, Qnil);
 }

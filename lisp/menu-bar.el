@@ -474,13 +474,15 @@
                   :enable (and (cdr yank-menu) (not buffer-read-only))
                   :help "Choose a string from the kill ring and paste it"))
     (bindings--define-key menu [paste]
-      '(menu-item "Paste" yank
-                  :enable (and (or
-                                (gui-call gui-selection-exists-p 'CLIPBOARD)
-                                (if (featurep 'ns) ; like paste-from-menu
-                                    (cdr yank-menu)
-                                  kill-ring))
-                               (not buffer-read-only))
+      `(menu-item "Paste" yank
+                  :enable (funcall
+                           ',(lambda ()
+                               (and (or
+                                     (gui-backend-selection-exists-p 'CLIPBOARD)
+                                     (if (featurep 'ns) ; like paste-from-menu
+                                         (cdr yank-menu)
+                                       kill-ring))
+                                    (not buffer-read-only))))
                   :help "Paste (yank) text most recently cut/copied"))
     (bindings--define-key menu [copy]
       ;; ns-win.el said: Substitute a Copy function that works better
@@ -523,9 +525,12 @@
      '(and mark-active (not buffer-read-only)))
 (put 'clipboard-kill-ring-save 'menu-enable 'mark-active)
 (put 'clipboard-yank 'menu-enable
-     '(and (or (gui-call gui-selection-exists-p 'PRIMARY)
-	       (gui-call gui-selection-exists-p 'CLIPBOARD))
- 	   (not buffer-read-only)))
+     `(funcall ',(lambda ()
+                   (and (or (gui-backend-selection-exists-p 'PRIMARY)
+                            (gui-backend-selection-exists-p 'CLIPBOARD))
+                        (not buffer-read-only)))))
+
+(defvar gui-select-enable-clipboard)
 
 (defun clipboard-yank ()
   "Insert the clipboard contents, or the last stretch of killed text."
@@ -647,7 +652,9 @@ by \"Save Options\" in Custom buffers.")
 ;; Function for setting/saving default font.
 
 (defun menu-set-font ()
-  "Interactively select a font and make it the default on all existing frames."
+  "Interactively select a font and make it the default on all frames.
+
+The selected font will be the default on both the existing and future frames."
   (interactive)
   (set-frame-font (if (fboundp 'x-select-font)
 		      (x-select-font)
@@ -678,7 +685,7 @@ by \"Save Options\" in Custom buffers.")
     (dolist (elt '(scroll-bar-mode
 		   debug-on-quit debug-on-error
 		   ;; Somehow this works, when tool-bar and menu-bar don't.
-		   tooltip-mode
+		   tooltip-mode window-divider-mode
 		   save-place uniquify-buffer-name-style fringe-mode
 		   indicate-empty-lines indicate-buffer-boundaries
 		   case-fold-search font-use-system-font
@@ -705,6 +712,95 @@ by \"Save Options\" in Custom buffers.")
 ;;; Assemble all the top-level items of the "Options" menu
 
 ;; The "Show/Hide" submenu of menu "Options"
+
+(defun menu-bar-window-divider-customize ()
+  "Show customization buffer for `window-divider' group."
+  (interactive)
+  (customize-group 'window-divider))
+
+(defun menu-bar-bottom-and-right-window-divider ()
+  "Display dividers on the bottom and right of each window."
+  (interactive)
+  (customize-set-variable 'window-divider-default-places t)
+  (window-divider-mode 1))
+
+(defun menu-bar-right-window-divider ()
+  "Display dividers only on the right of each window."
+  (interactive)
+  (customize-set-variable 'window-divider-default-places 'right-only)
+  (window-divider-mode 1))
+
+(defun menu-bar-bottom-window-divider ()
+  "Display dividers only at the bottom of each window."
+  (interactive)
+  (customize-set-variable 'window-divider-default-places 'bottom-only)
+  (window-divider-mode 1))
+
+(defun menu-bar-no-window-divider ()
+  "Do not display window dividers."
+  (interactive)
+  (window-divider-mode -1))
+
+;; For the radio buttons below we check whether the respective dividers
+;; are displayed on the selected frame.  This is not fully congruent
+;; with `window-divider-mode' but makes the menu entries work also when
+;; dividers are displayed by manipulating frame parameters directly.
+(defvar menu-bar-showhide-window-divider-menu
+  (let ((menu (make-sparse-keymap "Window Divider")))
+    (bindings--define-key menu [customize]
+      '(menu-item "Customize" menu-bar-window-divider-customize
+                  :help "Customize window dividers"
+                  :visible (memq (window-system) '(x w32))))
+
+    (bindings--define-key menu [bottom-and-right]
+      '(menu-item "Bottom and Right"
+                  menu-bar-bottom-and-right-window-divider
+                  :help "Display window divider on the bottom and right of each window"
+                  :visible (memq (window-system) '(x w32))
+                  :button (:radio
+			   . (and (window-divider-width-valid-p
+				   (cdr (assq 'bottom-divider-width
+					      (frame-parameters))))
+				  (window-divider-width-valid-p
+				   (cdr (assq 'right-divider-width
+					      (frame-parameters))))))))
+    (bindings--define-key menu [right-only]
+      '(menu-item "Right Only"
+                  menu-bar-right-window-divider
+                  :help "Display window divider on the right of each window only"
+                  :visible (memq (window-system) '(x w32))
+                  :button (:radio
+			   . (and (not (window-divider-width-valid-p
+					(cdr (assq 'bottom-divider-width
+						   (frame-parameters)))))
+				  (window-divider-width-valid-p
+				   (cdr (assq 'right-divider-width
+						     (frame-parameters))))))))
+    (bindings--define-key menu [bottom-only]
+      '(menu-item "Bottom Only"
+                  menu-bar-bottom-window-divider
+                  :help "Display window divider on the bottom of each window only"
+                  :visible (memq (window-system) '(x w32))
+                  :button (:radio
+			   . (and (window-divider-width-valid-p
+				   (cdr (assq 'bottom-divider-width
+					      (frame-parameters))))
+				  (not (window-divider-width-valid-p
+					(cdr (assq 'right-divider-width
+						   (frame-parameters)))))))))
+    (bindings--define-key menu [no-divider]
+      '(menu-item "None"
+                  menu-bar-no-window-divider
+                  :help "Do not display window dividers"
+                  :visible (memq (window-system) '(x w32))
+                  :button (:radio
+			   . (and (not (window-divider-width-valid-p
+					(cdr (assq 'bottom-divider-width
+						   (frame-parameters)))))
+				  (not (window-divider-width-valid-p
+					(cdr (assq 'right-divider-width
+						   (frame-parameters)))))))))
+    menu))
 
 (defun menu-bar-showhide-fringe-ind-customize ()
   "Show customization buffer for `indicate-buffer-boundaries'."
@@ -1066,6 +1162,10 @@ mail status in mode line"))
                                   (frame-live-p (symbol-value 'speedbar-frame))
                                   (frame-visible-p
                                    (symbol-value 'speedbar-frame))))))
+
+    (bindings--define-key menu [showhide-window-divider]
+      `(menu-item "Window Divider" ,menu-bar-showhide-window-divider-menu
+                  :visible (memq (window-system) '(x w32))))
 
     (bindings--define-key menu [showhide-fringe]
       `(menu-item "Fringe" ,menu-bar-showhide-fringe-menu
@@ -1949,20 +2049,20 @@ It must accept a buffer as its only required argument.")
        (let ((buffers (buffer-list))
 	     (frames (frame-list))
 	     buffers-menu)
-	 ;; If requested, list only the N most recently selected buffers.
-	 (if (and (integerp buffers-menu-max-size)
-		  (> buffers-menu-max-size 1))
-	     (if (> (length buffers) buffers-menu-max-size)
-		 (setcdr (nthcdr buffers-menu-max-size buffers) nil)))
 
 	 ;; Make the menu of buffers proper.
 	 (setq buffers-menu
-	       (let (alist)
+               (let ((i 0)
+                     (limit (if (and (integerp buffers-menu-max-size)
+                                     (> buffers-menu-max-size 1))
+                                buffers-menu-max-size most-positive-fixnum))
+                     alist)
 		 ;; Put into each element of buffer-list
 		 ;; the name for actual display,
 		 ;; perhaps truncated in the middle.
-		 (dolist (buf buffers)
-		   (let ((name (buffer-name buf)))
+                 (while buffers
+                   (let* ((buf (pop buffers))
+                          (name (buffer-name buf)))
                      (unless (eq ?\s (aref name 0))
                        (push (menu-bar-update-buffers-1
                               (cons buf
@@ -1976,7 +2076,11 @@ It must accept a buffer as its only required argument.")
 					  name (- (/ buffers-menu-buffer-name-length 2))))
 				      name)
                                     ))
-                             alist))))
+                             alist)
+                       ;; If requested, list only the N most recently
+                       ;; selected buffers.
+                       (when (= limit (setq i (1+ i)))
+                         (setq buffers nil)))))
 		 (list (menu-bar-buffer-vector alist))))
 
 	 ;; Make a Frames menu if we have more than one frame.
@@ -2249,7 +2353,7 @@ If nil, the current mouse position is used."
     ;; Event.
     ((pred eventp)
      (popup-menu-normalize-position (event-end position)))
-    (t position)))
+    (_ position)))
 
 (defcustom tty-menu-open-use-tmm nil
   "If non-nil, \\[menu-bar-open] on a TTY will invoke `tmm-menubar'.
@@ -2274,7 +2378,7 @@ This function decides which method to use to access the menu
 depending on FRAME's terminal device.  On X displays, it calls
 `x-menu-bar-open'; on Windows, `w32-menu-bar-open'; otherwise it
 calls either `popup-menu' or `tmm-menubar' depending on whether
-\`tty-menu-open-use-tmm' is nil or not.
+`tty-menu-open-use-tmm' is nil or not.
 
 If FRAME is nil or not given, use the selected frame."
   (interactive)

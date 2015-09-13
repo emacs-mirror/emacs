@@ -120,7 +120,8 @@ Argument BINDINGS is a list of tuples whose car is a symbol to be
 bound and (optionally) used in THEN, and its cadr is a sexp to be
 evalled to set symbol's value.  In the special case you only want
 to bind a single value, BINDINGS can just be a plain tuple."
-  (declare (indent 2) (debug ((&rest (symbolp form)) form body)))
+  (declare (indent 2)
+           (debug ([&or (&rest (symbolp form)) (symbolp form)] form body)))
   (when (and (<= (length bindings) 2)
              (not (listp (car bindings))))
     ;; Adjust the single binding case
@@ -138,6 +139,10 @@ evalled to set symbol's value.  In the special case you only want
 to bind a single value, BINDINGS can just be a plain tuple."
   (declare (indent 1) (debug if-let))
   (list 'if-let bindings (macroexp-progn body)))
+
+(defsubst hash-table-empty-p (hash-table)
+  "Check whether HASH-TABLE is empty (has 0 elements)."
+  (zerop (hash-table-count hash-table)))
 
 (defsubst hash-table-keys (hash-table)
   "Return a list of keys in HASH-TABLE."

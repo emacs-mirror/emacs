@@ -41,7 +41,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 static void
 bset_category_table (struct buffer *b, Lisp_Object val)
 {
-  b->INTERNAL_FIELD (category_table) = val;
+  b->category_table_ = val;
 }
 
 /* The version number of the latest category table.  Each category
@@ -491,7 +491,7 @@ between C1 and C2.
 
 For instance, to tell that there's a word boundary between Hiragana
 and Katakana (both are in the same script `kana'),
-the element `(?H . ?K) should be in this list.  */);
+the element `(?H . ?K)' should be in this list.  */);
 
   Vword_combining_categories = Qnil;
 

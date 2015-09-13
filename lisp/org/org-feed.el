@@ -690,7 +690,8 @@ formatted as a string, not the original XML data."
 				  (xml-node-children content)))))
 	 (t
 	  (setq entry (plist-put entry :description
-				 (format "Unknown '%s' content." type)))))))
+				 (format-message
+                                  "Unknown `%s' content." type)))))))
     entry))
 
 (provide 'org-feed)

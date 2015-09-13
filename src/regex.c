@@ -313,12 +313,12 @@ enum syntaxcode { Swhitespace = 0, Sword = 1, Ssymbol = 2 };
 /* The rest must handle multibyte characters.  */
 
 # define ISGRAPH(c) (SINGLE_BYTE_CHAR_P (c)				\
-		    ? (c) > ' ' && !((c) >= 0177 && (c) <= 0237)	\
-		    : 1)
+		     ? (c) > ' ' && !((c) >= 0177 && (c) <= 0240)	\
+		     : graphicp (c))
 
 # define ISPRINT(c) (SINGLE_BYTE_CHAR_P (c)				\
 		    ? (c) >= ' ' && !((c) >= 0177 && (c) <= 0237)	\
-		    : 1)
+		     : printablep (c))
 
 # define ISALNUM(c) (IS_REAL_ASCII (c)			\
 		    ? (((c) >= 'a' && (c) <= 'z')	\
@@ -1544,9 +1544,9 @@ do {									\
   DEBUG_PRINT ("  Push frame index: %zd\n", fail_stack.frame);		\
   PUSH_FAILURE_INT (fail_stack.frame);					\
   									\
-  DEBUG_PRINT ("  Push string %p: `", string_place);			\
+  DEBUG_PRINT ("  Push string %p: \"", string_place);			\
   DEBUG_PRINT_DOUBLE_STRING (string_place, string1, size1, string2, size2);\
-  DEBUG_PRINT ("'\n");							\
+  DEBUG_PRINT ("\"\n");							\
   PUSH_FAILURE_POINTER (string_place);					\
   									\
   DEBUG_PRINT ("  Push pattern %p: ", pattern);				\
@@ -1598,9 +1598,9 @@ do {									\
      on_failure_keep_string_jump opcode, and we want to throw away the	\
      saved NULL, thus retaining our current position in the string.  */	\
   str = POP_FAILURE_POINTER ();						\
-  DEBUG_PRINT ("  Popping string %p: `", str);				\
+  DEBUG_PRINT ("  Popping string %p: \"", str);				\
   DEBUG_PRINT_DOUBLE_STRING (str, string1, size1, string2, size2);	\
-  DEBUG_PRINT ("'\n");							\
+  DEBUG_PRINT ("\"\n");							\
 									\
   fail_stack.frame = POP_FAILURE_INT ();				\
   DEBUG_PRINT ("  Popping  frame index: %zd\n", fail_stack.frame);	\
@@ -1865,7 +1865,8 @@ struct range_table_work_area
 #define RANGE_TABLE_WORK_ELT(work_area, i) ((work_area).table[i])
 
 /* Bits used to implement the multibyte-part of the various character classes
-   such as [:alnum:] in a charset's range table.  */
+   such as [:alnum:] in a charset's range table.  The code currently assumes
+   that only the low 16 bits are used.  */
 #define BIT_WORD	0x1
 #define BIT_LOWER	0x2
 #define BIT_PUNCT	0x4
@@ -1874,6 +1875,8 @@ struct range_table_work_area
 #define BIT_MULTIBYTE	0x20
 #define BIT_ALPHA	0x40
 #define BIT_ALNUM	0x80
+#define BIT_GRAPH	0x100
+#define BIT_PRINT	0x200
 
 
 /* Set the bit for character C in a list.  */
@@ -2072,7 +2075,7 @@ re_wctype_to_bit (re_wctype_t cc)
 {
   switch (cc)
     {
-    case RECC_NONASCII: case RECC_PRINT: case RECC_GRAPH:
+    case RECC_NONASCII:
     case RECC_MULTIBYTE: return BIT_MULTIBYTE;
     case RECC_ALPHA: return BIT_ALPHA;
     case RECC_ALNUM: return BIT_ALNUM;
@@ -2081,6 +2084,8 @@ re_wctype_to_bit (re_wctype_t cc)
     case RECC_UPPER: return BIT_UPPER;
     case RECC_PUNCT: return BIT_PUNCT;
     case RECC_SPACE: return BIT_SPACE;
+    case RECC_GRAPH: return BIT_GRAPH;
+    case RECC_PRINT: return BIT_PRINT;
     case RECC_ASCII: case RECC_DIGIT: case RECC_XDIGIT: case RECC_CNTRL:
     case RECC_BLANK: case RECC_UNIBYTE: case RECC_ERROR: return 0;
     default:
@@ -5122,9 +5127,9 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const_re_char *string1,
 
   DEBUG_PRINT ("The compiled pattern is: ");
   DEBUG_PRINT_COMPILED_PATTERN (bufp, p, pend);
-  DEBUG_PRINT ("The string to match is: `");
+  DEBUG_PRINT ("The string to match is: \"");
   DEBUG_PRINT_DOUBLE_STRING (d, string1, size1, string2, size2);
-  DEBUG_PRINT ("'\n");
+  DEBUG_PRINT ("\"\n");
 
   /* This loops over pattern commands.  It exits by returning from the
      function if the match is complete, or it drops through if the match
@@ -5430,7 +5435,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const_re_char *string1,
 		    && buf_ch == '\000'))
 	      goto fail;
 
-	    DEBUG_PRINT ("  Matched `%d'.\n", *d);
+	    DEBUG_PRINT ("  Matched \"%d\".\n", *d);
 	    d += buf_charlen;
 	  }
 	  break;
@@ -5519,7 +5524,9 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const_re_char *string1,
 		    | (class_bits & BIT_UPPER && ISUPPER (c))
 		    | (class_bits & BIT_WORD  && ISWORD  (c))
 		    | (class_bits & BIT_ALPHA && ISALPHA (c))
-		    | (class_bits & BIT_ALNUM && ISALNUM (c)))
+		    | (class_bits & BIT_ALNUM && ISALNUM (c))
+		    | (class_bits & BIT_GRAPH && ISGRAPH (c))
+		    | (class_bits & BIT_PRINT && ISPRINT (c)))
 		  not = !not;
 		else
 		  CHARSET_LOOKUP_RANGE_TABLE_RAW (not, c, range_table, count);

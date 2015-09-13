@@ -171,6 +171,12 @@ Another is that undo information is not kept."
   (let ((camefrom (current-buffer))
 	(olddir default-directory))
     (set-buffer (get-buffer-create buf))
+    (let ((oldproc (get-buffer-process (current-buffer))))
+      ;; If we wanted to wait for oldproc to finish before doing
+      ;; something, we'd have used vc-eval-after.
+      ;; Use `delete-process' rather than `kill-process' because we don't
+      ;; want any of its output to appear from now on.
+      (when oldproc (delete-process oldproc)))
     (kill-all-local-variables)
     (set (make-local-variable 'vc-parent-buffer) camefrom)
     (set (make-local-variable 'vc-parent-buffer-name)
@@ -302,12 +308,6 @@ case, and the process object in the asynchronous case."
 		  (eq buffer (current-buffer)))
 	(vc-setup-buffer buffer))
       ;; If there's some previous async process still running, just kill it.
-      (let ((oldproc (get-buffer-process (current-buffer))))
-        ;; If we wanted to wait for oldproc to finish before doing
-        ;; something, we'd have used vc-eval-after.
-        ;; Use `delete-process' rather than `kill-process' because we don't
-        ;; want any of its output to appear from now on.
-        (when oldproc (delete-process oldproc)))
       (let ((squeezed (remq nil flags))
 	    (inhibit-read-only t)
 	    (status 0))
@@ -604,11 +604,24 @@ NOT-URGENT means it is ok to continue if the user says not to save."
 	    (or (log-edit-empty-buffer-p)
 		(and (local-variable-p 'vc-log-fileset)
 		     (not (equal vc-log-fileset fileset))))
-	    `((log-edit-listfun . (lambda ()
-                                    ;; FIXME: Should expand the list
-                                    ;; for directories.
-                                    (mapcar 'file-relative-name
-                                            ',fileset)))
+	    `((log-edit-listfun
+               . (lambda ()
+                   ;; FIXME: When fileset includes directories, and
+                   ;; there are relevant ChangeLog files inside their
+                   ;; children, we don't find them.  Either handle it
+                   ;; in `log-edit-insert-changelog-entries' by
+                   ;; walking down the file trees, or somehow pass
+                   ;; `fileset-only-files' from `vc-next-action'
+                   ;; through to this function.
+                   (let ((root (vc-root-dir)))
+                     ;; Returns paths relative to the root, so that
+                     ;; `log-edit-changelog-insert-entries'
+                     ;; substitutes them in correctly later, even when
+                     ;; `vc-checkin' was called from a file buffer, or
+                     ;; a non-root VC-Dir buffer.
+                     (mapcar
+                      (lambda (file) (file-relative-name file root))
+                      ',fileset))))
 	      (log-edit-diff-function . vc-diff)
 	      (log-edit-vc-backend . ,backend)
 	      (vc-log-fileset . ,fileset))

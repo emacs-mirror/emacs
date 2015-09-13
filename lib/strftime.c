@@ -30,6 +30,7 @@
 # else
 #  include "strftime.h"
 # endif
+# include "time-internal.h"
 #endif
 
 #include <ctype.h>
@@ -121,21 +122,10 @@ extern char *tzname[];
 
 
 #ifdef _LIBC
+# define mktime_z(tz, tm) mktime (tm)
 # define tzname __tzname
 # define tzset __tzset
 #endif
-
-#if !HAVE_TM_GMTOFF
-/* Portable standalone applications should supply a "time.h" that
-   declares a POSIX-compliant localtime_r, for the benefit of older
-   implementations that lack localtime_r or have a nonstandard one.
-   See the gnulib time_r module for one way to implement this.  */
-# undef __gmtime_r
-# undef __localtime_r
-# define __gmtime_r gmtime_r
-# define __localtime_r localtime_r
-#endif
-
 
 #ifndef FPRINTFTIME
 # define FPRINTFTIME 0
@@ -385,12 +375,7 @@ iso_week_days (int yday, int wday)
 
 /* When compiling this file, GNU applications can #define my_strftime
    to a symbol (typically nstrftime) to get an extended strftime with
-   extra arguments UT and NS.  Emacs is a special case for now, but
-   this Emacs-specific code can be removed once Emacs's config.h
-   defines my_strftime.  */
-#if defined emacs && !defined my_strftime
-# define my_strftime nstrftime
-#endif
+   extra arguments TZ and NS.  */
 
 #if FPRINTFTIME
 # undef my_strftime
@@ -398,8 +383,9 @@ iso_week_days (int yday, int wday)
 #endif
 
 #ifdef my_strftime
-# define extra_args , ut, ns
-# define extra_args_spec , int ut, int ns
+# undef HAVE_TZSET
+# define extra_args , tz, ns
+# define extra_args_spec , timezone_t tz, int ns
 #else
 # if defined COMPILE_WIDE
 #  define my_strftime wcsftime
@@ -411,7 +397,7 @@ iso_week_days (int yday, int wday)
 # define extra_args
 # define extra_args_spec
 /* We don't have this information in general.  */
-# define ut 0
+# define tz 1
 # define ns 0
 #endif
 
@@ -455,6 +441,9 @@ strftime_case_ (bool upcase, STREAM_OR_CHAR_T *s,
 # define am_len STRLEN (a_month)
 # define ap_len STRLEN (ampm)
 #endif
+#if HAVE_TZNAME
+  char **tzname_vec = tzname;
+#endif
   const char *zone;
   size_t i = 0;
   STREAM_OR_CHAR_T *p = s;
@@ -483,20 +472,29 @@ strftime_case_ (bool upcase, STREAM_OR_CHAR_T *s,
   zone = (const char *) tp->tm_zone;
 #endif
 #if HAVE_TZNAME
-  if (ut)
+  if (!tz)
     {
       if (! (zone && *zone))
         zone = "GMT";
     }
   else
     {
+# if !HAVE_TM_ZONE
+      /* Infer the zone name from *TZ instead of from TZNAME.  */
+      tzname_vec = tz->tzname_copy;
+# endif
       /* POSIX.1 requires that local time zone information be used as
          though strftime called tzset.  */
 # if HAVE_TZSET
       tzset ();
 # endif
     }
+  /* The tzset() call might have changed the value.  */
+  if (!(zone && *zone) && tp->tm_isdst >= 0)
+    zone = tzname_vec[tp->tm_isdst != 0];
 #endif
+  if (! zone)
+    zone = "";
 
   if (hour12 > 12)
     hour12 -= 12;
@@ -1144,7 +1142,7 @@ strftime_case_ (bool upcase, STREAM_OR_CHAR_T *s,
             time_t t;
 
             ltm = *tp;
-            t = mktime (&ltm);
+            t = mktime_z (tz, &ltm);
 
             /* Generate string value for T using time_t arithmetic;
                this works even if sizeof (long) < sizeof (time_t).  */
@@ -1319,14 +1317,6 @@ strftime_case_ (bool upcase, STREAM_OR_CHAR_T *s,
               to_lowcase = true;
             }
 
-#if HAVE_TZNAME
-          /* The tzset() call might have changed the value.  */
-          if (!(zone && *zone) && tp->tm_isdst >= 0)
-            zone = tzname[tp->tm_isdst != 0];
-#endif
-          if (! zone)
-            zone = "";
-
 #ifdef COMPILE_WIDE
           {
             /* The zone string is always given in multibyte form.  We have
@@ -1366,7 +1356,7 @@ strftime_case_ (bool upcase, STREAM_OR_CHAR_T *s,
 #if HAVE_TM_GMTOFF
             diff = tp->tm_gmtoff;
 #else
-            if (ut)
+            if (!tz)
               diff = 0;
             else
               {
@@ -1375,7 +1365,7 @@ strftime_case_ (bool upcase, STREAM_OR_CHAR_T *s,
                 time_t lt;
 
                 ltm = *tp;
-                lt = mktime (&ltm);
+                lt = mktime_z (tz, &ltm);
 
                 if (lt == (time_t) -1)
                   {
@@ -1384,7 +1374,7 @@ strftime_case_ (bool upcase, STREAM_OR_CHAR_T *s,
                        occurred.  */
                     struct tm tm;
 
-                    if (! __localtime_r (&lt, &tm)
+                    if (! localtime_rz (tz, &lt, &tm)
                         || ((ltm.tm_sec ^ tm.tm_sec)
                             | (ltm.tm_min ^ tm.tm_min)
                             | (ltm.tm_hour ^ tm.tm_hour)
@@ -1394,7 +1384,7 @@ strftime_case_ (bool upcase, STREAM_OR_CHAR_T *s,
                       break;
                   }
 
-                if (! __gmtime_r (&lt, &gtm))
+                if (! localtime_rz (0, &lt, &gtm))
                   break;
 
                 diff = tm_diff (&ltm, &gtm);
@@ -1472,16 +1462,4 @@ my_strftime (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 
 #if defined _LIBC && ! FPRINTFTIME
 libc_hidden_def (my_strftime)
-#endif
-
-
-#if defined emacs && ! FPRINTFTIME
-/* For Emacs we have a separate interface which corresponds to the normal
-   strftime function plus the ut argument, but without the ns argument.  */
-size_t
-emacs_strftimeu (char *s, size_t maxsize, const char *format,
-                 const struct tm *tp, int ut)
-{
-  return my_strftime (s, maxsize, format, tp, ut, 0);
-}
 #endif

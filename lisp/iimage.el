@@ -71,7 +71,7 @@ NUM specifies which parenthesized expression in the regexp.
 
 Examples of image filename patterns to match:
     file://foo.png
-    `file://foo.png'
+    \\=`file://foo.png\\='
     \\[\\[foo.gif]]
     <foo.png>
      foo.JPG

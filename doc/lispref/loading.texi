@@ -40,7 +40,7 @@ For on-demand loading of external libraries, @pxref{Dynamic Libraries}.
 * Repeated Loading::        Precautions about loading a file twice.
 * Named Features::          Loading a library if it isn't already loaded.
 * Where Defined::           Finding which file defined a certain symbol.
-* Unloading::               How to "unload" a library that was loaded.
+* Unloading::               How to ``unload'' a library that was loaded.
 * Hooks for Loading::       Providing code to be run when
                               particular libraries are loaded.
 @end menu
@@ -76,7 +76,7 @@ If Auto Compression mode is enabled, as it is by default, then if
 of the file before trying other file names.  It decompresses and loads
 it if it exists.  It looks for compressed versions by appending each
 of the suffixes in @code{jka-compr-load-suffixes} to the file name.
-The value of this variable must be a list of strings. Its standard
+The value of this variable must be a list of strings.  Its standard
 value is @code{(".gz")}.
 
 If the optional argument @var{nosuffix} is non-@code{nil}, then
@@ -95,7 +95,7 @@ suffix), unless it contains an explicit directory name.
 
 If the option @code{load-prefer-newer} is non-@code{nil}, then when
 searching suffixes, @code{load} selects whichever version of a file
-(@samp{.elc}, @samp{.el}, etc.) has been modified most recently.
+(@samp{.elc}, @samp{.el}, etc.)@: has been modified most recently.
 
 If @var{filename} is a relative file name, such as @file{foo} or
 @file{baz/foo.bar}, @code{load} searches for the file using the variable

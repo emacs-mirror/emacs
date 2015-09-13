@@ -193,12 +193,8 @@ Optional argument IGNORE is an extraneous parameter."
   (let* ((chil nil)
 	 (obj (widget-get widget :value))
 	 (master-group (widget-get widget :eieio-group))
-	 (cv (eieio--object-class-object obj))
-	 (slots (eieio--class-public-a cv))
-	 (flabel (eieio--class-public-custom-label cv))
-	 (fgroup (eieio--class-public-custom-group cv))
-	 (fdoc (eieio--class-public-doc cv))
-	 (fcust (eieio--class-public-custom cv)))
+	 (cv (eieio--object-class obj))
+	 (slots (eieio--class-slots cv)))
     ;; First line describes the object, but may not editable.
     (if (widget-get widget :eieio-show-name)
 	(setq chil (cons (widget-create-child-and-convert
@@ -208,7 +204,7 @@ Optional argument IGNORE is an extraneous parameter."
 			 chil)))
     ;; Display information about the group being shown
     (when master-group
-      (let ((groups (eieio--class-option (eieio--object-class-object obj)
+      (let ((groups (eieio--class-option (eieio--object-class obj)
                                          :custom-groups)))
 	(widget-insert "Groups:")
 	(while groups
@@ -225,63 +221,60 @@ Optional argument IGNORE is an extraneous parameter."
 	  (setq groups (cdr groups)))
 	(widget-insert "\n\n")))
     ;; Loop over all the slots, creating child widgets.
-    (while slots
-      ;; Output this slot if it has a customize flag associated with it.
-      (when (and (car fcust)
-		 (or (not master-group) (member master-group (car fgroup)))
-		 (slot-boundp obj (car slots)))
-	;; In this case, this slot has a custom type.  Create its
-	;; children widgets.
-	(let ((type (eieio-filter-slot-type widget (car fcust)))
-	      (stuff nil))
-	  ;; This next bit is an evil hack to get some EDE functions
-	  ;; working the way I like.
-	  (if (and (listp type)
-		   (setq stuff (member :slotofchoices type)))
-	      (let ((choices (eieio-oref obj (car (cdr stuff))))
-		    (newtype nil))
-		(while (not (eq (car type) :slotofchoices))
-		  (setq newtype (cons (car type) newtype)
-			type (cdr type)))
-		(while choices
-		  (setq newtype (cons (list 'const (car choices))
-				      newtype)
-			choices (cdr choices)))
-		(setq type (nreverse newtype))))
-	  (setq chil (cons (widget-create-child-and-convert
-			    widget 'object-slot
-			    :childtype type
-			    :sample-face 'eieio-custom-slot-tag-face
-			    :tag
-			    (concat
-			     (make-string
-			      (or (widget-get widget :indent) 0)
-			      ? )
-			     (if (car flabel)
-				 (car flabel)
-			       (let ((s (symbol-name
-					 (or
-					  (eieio--class-slot-initarg
-					   (eieio--object-class-object obj)
-					   (car slots))
-					  (car slots)))))
-				 (capitalize
-				  (if (string-match "^:" s)
-				      (substring s (match-end 0))
-				    s)))))
-			    :value (slot-value obj (car slots))
-			    :doc  (if (car fdoc) (car fdoc)
-				    "Slot not Documented.")
-			    :eieio-custom-visibility 'visible
-			    )
-			   chil))
-	  )
-	)
-      (setq slots (cdr slots)
-	    fdoc (cdr fdoc)
-	    fcust (cdr fcust)
-	    flabel (cdr flabel)
-	    fgroup (cdr fgroup)))
+    (dotimes (i (length slots))
+      (let* ((slot (aref slots i))
+             (sname (eieio-slot-descriptor-name slot))
+             (props (cl--slot-descriptor-props slot)))
+        ;; Output this slot if it has a customize flag associated with it.
+        (when (and (alist-get :custom props)
+                   (or (not master-group)
+                       (member master-group (alist-get :group props)))
+                   (slot-boundp obj (cl--slot-descriptor-name slot)))
+          ;; In this case, this slot has a custom type.  Create its
+          ;; children widgets.
+          (let ((type (eieio-filter-slot-type widget (alist-get :custom props)))
+                (stuff nil))
+            ;; This next bit is an evil hack to get some EDE functions
+            ;; working the way I like.
+            (if (and (listp type)
+                     (setq stuff (member :slotofchoices type)))
+                (let ((choices (eieio-oref obj (car (cdr stuff))))
+                      (newtype nil))
+                  (while (not (eq (car type) :slotofchoices))
+                    (setq newtype (cons (car type) newtype)
+                          type (cdr type)))
+                  (while choices
+                    (setq newtype (cons (list 'const (car choices))
+                                        newtype)
+                          choices (cdr choices)))
+                  (setq type (nreverse newtype))))
+            (setq chil (cons (widget-create-child-and-convert
+                              widget 'object-slot
+                              :childtype type
+                              :sample-face 'eieio-custom-slot-tag-face
+                              :tag
+                              (concat
+                               (make-string
+                                (or (widget-get widget :indent) 0)
+                                ?\s)
+                               (or (alist-get :label props)
+                                   (let ((s (symbol-name
+                                             (or
+                                              (eieio--class-slot-initarg
+                                               (eieio--object-class obj)
+					       sname)
+					      sname))))
+                                     (capitalize
+                                      (if (string-match "^:" s)
+                                          (substring s (match-end 0))
+                                        s)))))
+                              :value (slot-value obj sname)
+                              :doc  (or (alist-get :documentation props)
+                                        "Slot not Documented.")
+                              :eieio-custom-visibility 'visible
+                              )
+                             chil))
+            ))))
     (widget-put widget :children (nreverse chil))
     ))
 
@@ -289,34 +282,40 @@ Optional argument IGNORE is an extraneous parameter."
   "Get the value of WIDGET."
   (let* ((obj (widget-get widget :value))
 	 (master-group eieio-cog)
-	 (cv (eieio--object-class-object obj))
-	 (fgroup (eieio--class-public-custom-group cv))
 	 (wids (widget-get widget :children))
 	 (name (if (widget-get widget :eieio-show-name)
 		   (car (widget-apply (car wids) :value-inline))
 		 nil))
 	 (chil (if (widget-get widget :eieio-show-name)
 		   (nthcdr 1 wids) wids))
-	 (cv (eieio--object-class-object obj))
-	 (slots (eieio--class-public-a cv))
-	 (fcust (eieio--class-public-custom cv)))
+	 (cv (eieio--object-class obj))
+         (i 0)
+	 (slots (eieio--class-slots cv)))
     ;; If there are any prefix widgets, clear them.
     ;; -- None yet
     ;; Create a batch of initargs for each slot.
-    (while (and slots chil)
-      (if (and (car fcust)
-	       (or eieio-custom-ignore-eieio-co
-		   (not master-group) (member master-group (car fgroup)))
-	       (slot-boundp obj (car slots)))
-	  (progn
-	    ;; Only customized slots have widgets
-	    (let ((eieio-custom-ignore-eieio-co t))
-	      (eieio-oset obj (car slots)
-			  (car (widget-apply (car chil) :value-inline))))
-	    (setq chil (cdr chil))))
-      (setq slots (cdr slots)
-	    fgroup (cdr fgroup)
-	    fcust (cdr fcust)))
+    (while (and (< i (length slots)) chil)
+      (let* ((slot (aref slots i))
+             (props (cl--slot-descriptor-props slot))
+             (cust (alist-get :custom props)))
+	;;
+	;; Shouldn't I be incremented unconditionally?  Or
+	;; better shouldn't we simply mapc on the slots vector
+	;; avoiding use of this integer variable?  PLN Sat May
+	;; 2 07:35:45 2015
+	;;
+	(setq i (+ i 1))
+        (if (and cust
+                 (or eieio-custom-ignore-eieio-co
+                     (not master-group)
+                     (member master-group (alist-get :group props)))
+	       (slot-boundp obj (cl--slot-descriptor-name slot)))
+            (progn
+              ;; Only customized slots have widgets
+              (let ((eieio-custom-ignore-eieio-co t))
+                (eieio-oset obj (cl--slot-descriptor-name slot)
+                            (car (widget-apply (car chil) :value-inline))))
+              (setq chil (cdr chil))))))
     ;; Set any name updates on it.
     (if name (eieio-object-set-name-string obj name))
     ;; This is the same object we had before.
@@ -452,7 +451,7 @@ Must return the created widget."
 	    (vector (concat "Group " (symbol-name group))
 		    (list 'customize-object obj (list 'quote group))
 		    t))
-	  (eieio--class-option (eieio--object-class-object obj) :custom-groups)))
+	  (eieio--class-option (eieio--object-class obj) :custom-groups)))
 
 (defvar eieio-read-custom-group-history nil
   "History for the custom group reader.")
@@ -460,7 +459,7 @@ Must return the created widget."
 (cl-defmethod eieio-read-customization-group ((obj eieio-default-superclass))
   "Do a completing read on the name of a customization group in OBJ.
 Return the symbol for the group, or nil"
-  (let ((g (eieio--class-option (eieio--object-class-object obj)
+  (let ((g (eieio--class-option (eieio--object-class obj)
                                 :custom-groups)))
     (if (= (length g) 1)
 	(car g)

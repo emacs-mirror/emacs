@@ -61,6 +61,7 @@
 (cc-bytecomp-defun c-backward-token-1)
 (cc-bytecomp-defun c-beginning-of-statement-1)
 (cc-bytecomp-defun c-backward-sws)
+(cc-bytecomp-defun c-forward-sws)
 
 (defvar awk-mode-syntax-table
   (let ((st (make-syntax-table)))
@@ -1146,8 +1147,8 @@ comment at the start of cc-engine.el for more info."
 
 (cc-provide 'cc-awk)			; Changed from 'awk-mode, ACM 2002/5/21
 
-;;; Local Variables:
-;;; indent-tabs-mode: t
-;;; tab-width: 8
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: t
+;; tab-width: 8
+;; End:
 ;;; awk-mode.el ends here

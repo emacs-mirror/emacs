@@ -5030,8 +5030,7 @@
 	* mouse.el (mouse-yank-primarY): Look for frame-type w32, not
 	system-type windows-nt.
 
-	* server.el (server-create-window-system-frame): Look for window
-	type.
+	* server.el (server-create-window-system-frame): Look for window type.
 	(server-proces-filter): Only force a window system when windows-nt
 	_and_ w32.  Explain why.
 
@@ -6751,7 +6750,7 @@
 2012-09-09  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-engine.el (c-state-cache-init):
-	Initialise c-state-semi-nonlit-pos-cache\(-limit\)? properly.
+	Initialize c-state-semi-nonlit-pos-cache\(-limit\)? properly.
 	(c-record-parse-state-state):
 	Record c-state-semi-nonlit-pos-cache\(-limit\)?.
 
@@ -15547,7 +15546,7 @@
 	c-set-fl-decl-start.
 
 	* progmodes/cc-mode.el (c-common-init, c-after-change):
-	Changes due to pluralisation of c-before-font-lock-functions.
+	Changes due to pluralization of c-before-font-lock-functions.
 	(c-set-fl-decl-start): New function, extracted from
 	c-font-lock-enclosing-decls and enhanced.
 
@@ -15662,7 +15661,7 @@
 	(c-nonlabel-token-key): Allow string literals for AWK.
 	Refactor for the other modes.
 
-	Large brace-block initialisation makes CC Mode slow: Fix.
+	Large brace-block initialization makes CC Mode slow: Fix.
 	Tidy up and accelerate c-in-literal, etc. by using the c-parse-state
 	routines.  Limit backward searching in c-font-lock-enclosing.decl.
 

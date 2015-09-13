@@ -24,36 +24,21 @@
 
 ;;; Code:
 
+(require 'term/xterm)
+
 (defvar rxvt-function-map
   (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map xterm-rxvt-function-map)
 
     ;; Set up input-decode-map entries that termcap and terminfo don't know.
-    (define-key map "\e[A" [up])
-    (define-key map "\e[B" [down])
-    (define-key map "\e[C" [right])
-    (define-key map "\e[D" [left])
-    (define-key map "\e[2~" [insert])
-    (define-key map "\e[3~" [delete])
-    (define-key map "\e[4~" [select])
-    (define-key map "\e[5~" [prior])
-    (define-key map "\e[6~" [next])
     (define-key map "\e[7~" [home])
     (define-key map "\e[8~" [end])
-    (define-key map "\e[11~" [f1])
-    (define-key map "\e[12~" [f2])
-    (define-key map "\e[13~" [f3])
-    (define-key map "\e[14~" [f4])
-    (define-key map "\e[15~" [f5])
-    (define-key map "\e[17~" [f6])
-    (define-key map "\e[18~" [f7])
-    (define-key map "\e[19~" [f8])
-    (define-key map "\e[20~" [f9])
-    (define-key map "\e[21~" [f10])
     ;; The strings emitted by f11 and f12 are the same as the strings
     ;; emitted by S-f1 and S-f2, so don't define f11 and f12.
     ;; (define-key rxvt-function-map "\e[23~" [f11])
     ;; (define-key rxvt-function-map "\e[24~" [f12])
-    (define-key map "\e[29~" [print])
+    (define-key map "\e[23~" [S-f1])
+    (define-key map "\e[24~" [S-f2])
 
     (define-key map "\e[11^" [C-f1])
     (define-key map "\e[12^" [C-f2])
@@ -66,8 +51,6 @@
     (define-key map "\e[20^" [C-f9])
     (define-key map "\e[21^" [C-f10])
 
-    (define-key map "\e[23~" [S-f1])
-    (define-key map "\e[24~" [S-f2])
     (define-key map "\e[25~" [S-f3])
     (define-key map "\e[26~" [S-f4])
     (define-key map "\e[28~" [S-f5])
@@ -99,7 +82,6 @@
     (define-key map "\eOa" [C-up])
     (define-key map "\eOb" [C-down])
 
-    (define-key map "\e[2;2~" [S-insert])
     (define-key map "\e[3$" [S-delete])
     (define-key map "\e[5$" [S-prior])
     (define-key map "\e[6$" [S-next])
@@ -157,26 +139,6 @@
     map)
   "Keymap of possible alternative meanings for some keys.")
 
-(defun terminal-init-rxvt ()
-  "Terminal initialization function for rxvt."
-
-  (let ((map (copy-keymap rxvt-alternatives-map)))
-    (set-keymap-parent map (keymap-parent local-function-key-map))
-    (set-keymap-parent local-function-key-map map))
-
-  ;; Use inheritance to let the main keymap override those defaults.
-  ;; This way we don't override terminfo-derived settings or settings
-  ;; made in the init file.
-  (let ((m (copy-keymap rxvt-function-map)))
-    (set-keymap-parent m (keymap-parent input-decode-map))
-    (set-keymap-parent input-decode-map m))
-
-  ;; Initialize colors and background mode.
-  (rxvt-register-default-colors)
-  (rxvt-set-background-mode)
-  ;; This recomputes all the default faces given the colors we've just set up.
-  (tty-set-up-initial-frame-faces))
-
 ;; Set up colors, for those versions of rxvt that support it.
 (defvar rxvt-standard-colors
   ;; The names of the colors in the comments taken from the rxvt.1 man
@@ -199,93 +161,17 @@
     ("brightwhite"   15 (255 255 255)))	; white
   "Names of 16 standard rxvt colors, their numbers, and RGB values.")
 
-(defun rxvt-rgb-convert-to-16bit (prim)
-  "Convert an 8-bit primary color value PRIM to a corresponding 16-bit value."
-  (logior prim (lsh prim 8)))
+(defun terminal-init-rxvt ()
+  "Terminal initialization function for rxvt."
 
-(defun rxvt-register-default-colors ()
-  "Register the default set of colors for rxvt or compatible emulator.
+  (xterm--push-map rxvt-alternatives-map local-function-key-map)
+  (xterm--push-map rxvt-function-map input-decode-map)
 
-This function registers the number of colors returned by `display-color-cells'
-for the currently selected frame."
-  (let* ((ncolors (display-color-cells))
-	 (colors rxvt-standard-colors)
-	 (color (car colors)))
-    (if (> ncolors 0)
-	;; Clear the 8 default tty colors registered by startup.el
-	(tty-color-clear))
-    ;; Only register as many colors as are supported by the display.
-    (while (and (> ncolors 0) colors)
-      (tty-color-define (car color) (cadr color)
-			(mapcar 'rxvt-rgb-convert-to-16bit
-				(car (cddr color))))
-      (setq colors (cdr colors)
-	    color (car colors)
-	    ncolors (1- ncolors)))
-    (when (> ncolors 0)
-      (cond
-       ((= ncolors 240)			; 256-color rxvt
-	;; 216 non-gray colors first
-	(let ((r 0) (g 0) (b 0))
-	  (while (> ncolors 24)
-	    ;; This and other formulas taken from 256colres.pl and
-	    ;; 88colres.pl in the xterm distribution.
-	    (tty-color-define (format "color-%d" (- 256 ncolors))
-			      (- 256 ncolors)
-			      (mapcar 'rxvt-rgb-convert-to-16bit
-				      (list (if (zerop r) 0 (+ (* r 40) 55))
-					    (if (zerop g) 0 (+ (* g 40) 55))
-					    (if (zerop b) 0 (+ (* b 40) 55)))))
-	    (setq b (1+ b))
-	    (if (> b 5)
-		(setq g (1+ g)
-		      b 0))
-	    (if (> g 5)
-		(setq r (1+ r)
-		      g 0))
-	    (setq ncolors (1- ncolors))))
-	;; Now the 24 gray colors
-	(while (> ncolors 0)
-	  (setq color (rxvt-rgb-convert-to-16bit (+ 8 (* (- 24 ncolors) 10))))
-	  (tty-color-define (format "color-%d" (- 256 ncolors))
-			    (- 256 ncolors)
-			    (list color color color))
-	  (setq ncolors (1- ncolors))))
-
-       ((= ncolors 72) ; rxvt-unicode
-	;; 64 non-gray colors
-	(let ((levels '(0 139 205 255))
-	      (r 0) (g 0) (b 0))
-	  (while (> ncolors 8)
-	    (tty-color-define (format "color-%d" (- 88 ncolors))
-			      (- 88 ncolors)
-			      (mapcar 'rxvt-rgb-convert-to-16bit
-				      (list (nth r levels)
-					    (nth g levels)
-					    (nth b levels))))
-	    (setq b (1+ b))
-	    (if (> b 3)
-		(setq g (1+ g)
-		      b 0))
-	    (if (> g 3)
-		(setq r (1+ r)
-		      g 0))
-	    (setq ncolors (1- ncolors))))
-	;; Now the 8 gray colors
-	(while (> ncolors 0)
-	  (setq color (rxvt-rgb-convert-to-16bit
-		       (floor
-			(if (= ncolors 8)
-			    46.36363636
-			  (+ (* (- 8 ncolors) 23.18181818) 69.54545454)))))
-	  (tty-color-define (format "color-%d" (- 88 ncolors))
-			    (- 88 ncolors)
-			    (list color color color))
-	  (setq ncolors (1- ncolors))))
-       (t (error "Unsupported number of rxvt colors (%d)" (+ 16 ncolors)))))
-    ;; Modifying color mappings means realized faces don't use the
-    ;; right colors, so clear them.
-    (clear-face-cache)))
+  ;; Initialize colors and background mode.
+  (xterm-register-default-colors rxvt-standard-colors)
+  (rxvt-set-background-mode)
+  ;; This recomputes all the default faces given the colors we've just set up.
+  (tty-set-up-initial-frame-faces))
 
 ;; rxvt puts the default colors into an environment variable
 ;; COLORFGBG.  We use this to set the background mode in a more

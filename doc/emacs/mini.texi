@@ -622,7 +622,7 @@ typed @kbd{M-p}), Emacs tries fetching from a list of default
 arguments: values that you are likely to enter.  You can think of this
 as moving through the ``future history'' list.
 
-  If you edit the text inserted by the @kbd{M-p} or @key{M-n}
+  If you edit the text inserted by the @kbd{M-p} or @kbd{M-n}
 minibuffer history commands, this does not change its entry in the
 history list.  However, the edited argument does go at the end of the
 history list when you submit it.

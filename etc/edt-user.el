@@ -160,7 +160,7 @@ G-C-\\: Split Window
   G-%: Go to Percentage
   G- : Undo  (GOLD Spacebar)
   G-=: Go to Line
-  G-`: What line
+  G-\\=`: What line
   G-/: Query-Replace"
 
   (interactive)

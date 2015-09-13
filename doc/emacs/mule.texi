@@ -1,3 +1,4 @@
+@c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
 @c Copyright (C) 1997, 1999-2015 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
@@ -135,8 +136,11 @@ displayed on your terminal, they appear as @samp{?} or as hollow boxes
   Keyboards, even in the countries where these character sets are
 used, generally don't have keys for all the characters in them.  You
 can insert characters that your keyboard does not support, using
-@kbd{C-q} (@code{quoted-insert}) or @kbd{C-x 8 @key{RET}}
-(@code{insert-char}).  @xref{Inserting Text}.  Emacs also supports
+@kbd{C-x 8 @key{RET}} (@code{insert-char}).  @xref{Inserting Text}.
+Shorthands are available for some common characters; for example, you
+can insert a left single quotation mark @t{‘} by typing @kbd{C-x 8
+[}, or in Electric Quote mode often by simply typing @kbd{`}.
+@xref{Quotation Marks}.  Emacs also supports
 various @dfn{input methods}, typically one for each script or
 language, which make it easier to type characters in the script.
 @xref{Input Methods}.
@@ -214,7 +218,7 @@ faces used to display the character, and any overlays containing it
 
 @smallexample
              position: 1 of 1 (0%), column: 0
-            character: @^e (displayed as @^e) (codepoint 234, #o352, #xea)
+            character: ê (displayed as ê) (codepoint 234, #o352, #xea)
     preferred charset: unicode (Unicode (ISO10646))
 code point in charset: 0xEA
                script: latin
@@ -266,7 +270,7 @@ for more information about the language environment @var{lang-env}.
 Supported language environments include:
 
 @c @cindex entries below are split between portions of the list to
-@c make them more accurate, i.e. land on the line that mentions the
+@c make them more accurate, i.e., land on the line that mentions the
 @c language.  However, makeinfo 4.x doesn't fill inside @quotation
 @c lines that follow a @cindex entry and whose text has no whitespace.
 @c To work around, we group the language environments together, so
@@ -535,6 +539,8 @@ searching for what you have already entered.
   To find out how to input the character after point using the current
 input method, type @kbd{C-u C-x =}.  @xref{Position Info}.
 
+@c TODO: document complex-only/default/t of
+@c @code{input-method-verbose-flag}
 @vindex input-method-verbose-flag
 @vindex input-method-highlight-flag
   The variables @code{input-method-highlight-flag} and
@@ -1163,7 +1169,9 @@ current language environment.
 to use when encoding and decoding system strings such as system error
 messages and @code{format-time-string} formats and time stamps.  That
 coding system is also used for decoding non-@acronym{ASCII} keyboard
-input on the X Window System.  You should choose a coding system that is compatible
+input on the X Window System and for encoding text sent to the
+standard output and error streams when in batch mode.  You should
+choose a coding system that is compatible
 with the underlying system's text representation, which is normally
 specified by one of the environment variables @env{LC_ALL},
 @env{LC_CTYPE}, and @env{LANG}.  (The first one, in the order
@@ -1554,6 +1562,20 @@ used.  Some examples are:
 
 @end example
 
+@cindex ignore font
+@cindex fonts, how to ignore
+@vindex face-ignored-fonts
+  Some fonts installed on your system might be broken, or produce
+unpleasant results for characters for which they are used, and you may
+wish to instruct Emacs to completely ignore them while searching for a
+suitable font required to display a character.  You can do that by
+adding the offending fonts to the value of @code{face-ignored-fonts}
+variable, which is a list.  Here's an example to put in your
+@file{~/.emacs}:
+
+@example
+(add-to-list 'face-ignored-fonts "Some Bad Font")
+@end example
 
 @node Undisplayable Characters
 @section Undisplayable Characters
@@ -1659,8 +1681,8 @@ characters present directly on the keyboard or using @key{Compose} or
 @cindex compose character
 @cindex dead character
 @item
-For Latin-1 only, you can use the key @kbd{C-x 8} as a ``compose
-character'' prefix for entry of non-@acronym{ASCII} Latin-1 printing
+You can use the key @kbd{C-x 8} as a ``compose character'' prefix for
+entry of non-@acronym{ASCII} Latin-1 and a few other printing
 characters.  @kbd{C-x 8} is good for insertion (in the minibuffer as
 well as other buffers), for searching, and in any other context where
 a key sequence is allowed.
@@ -1713,9 +1735,13 @@ internal representation within Emacs.
 @findex list-character-sets
   @kbd{M-x list-character-sets} displays a list of all supported
 charsets.  The list gives the names of charsets and additional
-information to identity each charset; see the
-@url{http://www.itscj.ipsj.or.jp/ISO-IR/, International Register of
-Coded Character Sets} for more details.  In this list,
+information to identity each charset; for more details, see the
+@url{https://www.itscj.ipsj.or.jp/itscj_english/iso-ir/ISO-IR.pdf,
+ISO International Register of Coded Character Sets to be Used with
+Escape Sequences (ISO-IR)} maintained by
+the @url{https://www.itscj.ipsj.or.jp/itscj_english/,
+Information Processing Society of Japan/Information Technology
+Standards Commission of Japan (IPSJ/ITSCJ)}.  In this list,
 charsets are divided into two categories: @dfn{normal charsets} are
 listed first, followed by @dfn{supplementary charsets}.  A
 supplementary charset is one that is used to define another charset

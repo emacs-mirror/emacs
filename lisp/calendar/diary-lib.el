@@ -104,9 +104,9 @@ are: `string', `symbol', `int', `tnil', `stringtnil.'"
                        (choice (const string :tag "A string")
                                (const symbol :tag "A symbol")
                                (const int :tag "An integer")
-                               (const tnil :tag "`t' or `nil'")
+                               (const tnil :tag "t or nil")
                                (const stringtnil
-                                      :tag "A string, `t', or `nil'"))))
+                                      :tag "A string, t, or nil"))))
   :group 'diary)
 
 (defcustom diary-glob-file-regexp-prefix "^\\#"
@@ -185,9 +185,9 @@ diary buffer to be displayed with diary entries from various
 included files, each day's entries sorted into lexicographic
 order, add the following to your init file:
 
-     (setq diary-display-function 'diary-fancy-display)
-     (add-hook 'diary-list-entries-hook 'diary-include-other-diary-files)
-     (add-hook 'diary-list-entries-hook 'diary-sort-entries t)
+     (setq diary-display-function \\='diary-fancy-display)
+     (add-hook \\='diary-list-entries-hook \\='diary-include-other-diary-files)
+     (add-hook \\='diary-list-entries-hook \\='diary-sort-entries t)
 
 Note how the sort function is placed last, so that it can sort
 the entries included from other files.
@@ -300,7 +300,7 @@ expressions that can involve the keywords `days' (a number), `date'
 
 (defcustom diary-abbreviated-year-flag t
   "Interpret a two-digit year DD in a diary entry as either 19DD or 20DD.
-This applies to the Gregorian, Hebrew, Islamic, and Bahá'í calendars.
+This applies to the Gregorian, Hebrew, Islamic, and Bahá’í calendars.
 When the current century is added to a two-digit year, if the result
 is more than 50 years in the future, the previous century is assumed.
 If the result is more than 50 years in the past, the next century is assumed.
@@ -910,10 +910,12 @@ This is recursive; that is, included files may include other files."
                                 (diary-list-entries original-date number t)))))
             (display-warning
              :error
-             (format "Can't read included diary file %s\n" diary-file)))
+             (format-message "Can't read included diary file %s\n"
+			     diary-file)))
         (display-warning
          :error
-         (format "Can't find included diary file %s\n" diary-file)))))
+         (format-message "Can't find included diary file %s\n"
+			 diary-file)))))
   (goto-char (point-min)))
 
 (defun diary-include-other-diary-files ()
@@ -1197,7 +1199,7 @@ ensure that all relevant variables are set.
 "
   (interactive "P")
   (if (string-equal diary-mail-addr "")
-      (error "You must set `diary-mail-addr' to use this command")
+      (user-error "You must set `diary-mail-addr' to use this command")
     (let ((diary-display-function 'diary-fancy-display))
       (diary-list-entries (calendar-current-date) (or ndays diary-mail-days)))
     (compose-mail diary-mail-addr
@@ -1529,7 +1531,7 @@ passed to `calendar-mark-visible-date' as MARK."
         (calendar-mark-month m y month day year color)
         (calendar-increment-month m y 1)))))
 
-;; Bahai, Hebrew, Islamic.
+;; Bahá’í, Hebrew, Islamic.
 (defun calendar-mark-complex (month day year fromabs &optional color)
   "Mark dates in the calendar conforming to MONTH DAY YEAR of some system.
 The function FROMABS converts absolute dates to the appropriate date system.
@@ -1559,7 +1561,7 @@ Optional argument COLOR is passed to `calendar-mark-visible-date' as MARK."
            (calendar-mark-visible-date
             (calendar-gregorian-from-absolute date) color)))))
 
-;; Bahai, Islamic.
+;; Bahá’í, Islamic.
 (defun calendar-mark-1 (month day year fromabs toabs &optional color)
   "Mark dates in the calendar conforming to MONTH DAY YEAR of some system.
 The function FROMABS converts absolute dates to the appropriate date system.
@@ -1657,8 +1659,8 @@ on a weekend:
       &%%(let ((dayname (calendar-day-of-week date))
                (day (calendar-extract-day date)))
            (or
-             (and (= day 21) (memq dayname '(1 2 3 4 5)))
-             (and (memq day '(19 20)) (= dayname 5)))
+             (and (= day 21) (memq dayname \\='(1 2 3 4 5)))
+             (and (memq day \\='(19 20)) (= dayname 5)))
          ) UIUC pay checks deposited
 
 A number of built-in functions are available for this type of
@@ -1671,7 +1673,7 @@ DAY MONTH YEAR in the European style).
 
   %%(diary-date MONTH DAY YEAR &optional MARK) text
     Entry applies if date is MONTH, DAY, YEAR.  DAY, MONTH, and YEAR can
-    be a list of integers, `t' (meaning all values), or an integer.
+    be a list of integers, t (meaning all values), or an integer.
 
   %%(diary-float MONTH DAYNAME N &optional DAY MARK) text
     Entry will appear on the Nth DAYNAME after/before MONTH DAY.
@@ -1679,7 +1681,7 @@ DAY MONTH YEAR in the European style).
     If N>0, use the Nth DAYNAME after MONTH DAY.
     If N<0, use the Nth DAYNAME before MONTH DAY.
     DAY defaults to 1 if N>0, and MONTH's last day otherwise.
-    MONTH can be a list of months, a single month, or `t' to
+    MONTH can be a list of months, a single month, or t to
     specify all months.
 
   %%(diary-block M1 D1 Y1 M2 D2 Y2 &optional MARK) text
@@ -1814,7 +1816,7 @@ form used internally by the calendar and diary."
 (defun diary-date (month day year &optional mark)
   "Specific date(s) diary entry.
 Entry applies if date is MONTH, DAY, YEAR.  Each parameter can be a
-list of integers, `t' (meaning all values), or an integer.  The order
+list of integers, t (meaning all values), or an integer.  The order
 of the input parameters changes according to `calendar-date-style'
 \(e.g. to DAY MONTH YEAR in the European style).
 
@@ -1863,7 +1865,7 @@ DAYNAME=0 means Sunday, DAYNAME=1 means Monday, and so on.
 If N>0, use the Nth DAYNAME after MONTH DAY.
 If N<0, use the Nth DAYNAME before MONTH DAY.
 DAY defaults to 1 if N>0, and MONTH's last day otherwise.
-MONTH can be a list of months, an integer, or `t' (meaning all months).
+MONTH can be a list of months, an integer, or t (meaning all months).
 Optional MARK specifies a face or single-character string to use when
 highlighting the day in the calendar."
   ;; This is messy because the diary entry may apply, but the date on which it
@@ -1969,7 +1971,7 @@ and %s by the ordinal ending of that number (that is, `st', `nd',
 An optional parameter MARK specifies a face or single-character
 string to use when highlighting the day in the calendar."
   (or (> n 0)
-      (error "Day count must be positive"))
+      (user-error "Day count must be positive"))
   (let* ((diff (- (calendar-absolute-from-gregorian date)
                   (calendar-absolute-from-gregorian
                    (diary-make-date month day year))))

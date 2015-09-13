@@ -251,6 +251,45 @@ static unsigned char x_bits[] = {0xff, 0x81, 0xbd, 0xa5, 0xa5, 0xbd, 0x81, 0xff 
 	  (str "ABC"))
       (put-text-property 1 2 'invisible 'test-redisplay--ellipsis-invis str)
       (overlay-put ov 'display str)))
+  ;; Overlay string over invisible text and non-default face.
+  (insert "\n  Expected: ..." (propertize "ABC" 'face 'highlight) "XYZ")
+  (insert "\n    Result: ")
+  (insert (propertize "foo" 'invisible 'test-redisplay--ellipsis-invis))
+  (let ((ov (make-overlay (point) (point))))
+    (overlay-put ov 'invisible t)
+    (overlay-put ov 'window (selected-window))
+    (overlay-put ov 'after-string
+                 (propertize "ABC" 'face 'highlight)))
+  (insert "XYZ\n")
+  ;; Overlay strings with partial `invisibility' property and with a
+  ;; display property on the before-string.
+  (insert "\n  Expected: ..."
+          (propertize "DEF" 'display '(image :type xpm :file "close.xpm"))
+          (propertize "ABC" 'face 'highlight) "XYZ")
+  (insert "\n    Result: ")
+  (insert (propertize "foo" 'invisible 'test-redisplay--ellipsis-invis))
+  (let ((ov (make-overlay (point) (point))))
+    (overlay-put ov 'invisible t)
+    (overlay-put ov 'window (selected-window))
+    (overlay-put ov 'after-string
+                 (propertize "ABC" 'face 'highlight))
+    (overlay-put ov 'before-string
+                 (propertize "DEF"
+                             'display '(image :type xpm :file "close.xpm"))))
+  (insert "XYZ\n")
+
+  ;; Overlay string with 2 adjacent and different invisible
+  ;; properties.  This caused an infloop before Emacs 25.
+  (insert "\n  Expected: ABC")
+  (insert "\n    Result: ")
+  (let ((opoint (point)))
+    (insert "ABC\n")
+    (let ((ov (make-overlay (1+ opoint) (+ 2 opoint)))
+          (str (concat (propertize "X"
+                                   'invisible 'test-redisplay--simple-invis)
+                       (propertize "Y"
+                                   'invisible 'test-redisplay--simple-invis2))))
+      (overlay-put ov 'after-string str)))
 
   (insert "\n"))
 
@@ -264,6 +303,7 @@ static unsigned char x_bits[] = {0xff, 0x81, 0xbd, 0xa5, 0xa5, 0xbd, 0x81, 0xff 
     (erase-buffer)
     (setq buffer-invisibility-spec
 	  '(test-redisplay--simple-invis
+            test-redisplay--simple-invis2
 	    (test-redisplay--ellipsis-invis . t)))
     (test-redisplay-1)
     (test-redisplay-2)

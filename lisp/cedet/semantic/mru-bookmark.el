@@ -207,7 +207,7 @@ The resulting bookmark is then sorted within the ring."
       )))
 
 (defun semantic-mrub-cache-flush-fcn ()
-  "Function called in the `semantic-before-toplevel-cache-flush-hook`.
+  "Function called in the `semantic-before-toplevel-cache-flush-hook'.
 Cause tags in the ring to become unlinked."
   (let* ((ring (oref semantic-mru-bookmark-ring ring))
 	 (len (ring-length ring))

@@ -1,0 +1,321 @@
+### @configure_input@
+
+# Copyright (C) 2015 Free Software Foundation, Inc.
+
+# Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+#   National Institute of Advanced Industrial Science and Technology (AIST)
+#   Registration Number H13PRO009
+#
+# This file is part of GNU Emacs.
+
+# GNU Emacs is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# GNU Emacs is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+### Commentary:
+
+# Generate charset maps in etc/charsets.
+
+SHELL = @SHELL@
+
+AWK = @AWK@
+
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+
+charsetdir = ${top_srcdir}/etc/charsets
+lispintdir = ${top_srcdir}/lisp/international
+mapfiledir = ${srcdir}/mapfiles
+
+GLIBC_CHARMAPS = ${srcdir}/glibc
+
+AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
+AM_V_GEN = $(am__v_GEN_@AM_V@)
+am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
+am__v_GEN_0 = @echo "  GEN     " $@;
+am__v_GEN_1 =
+
+AM_V_at = $(am__v_at_@AM_V@)
+am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
+am__v_at_0 = @
+am__v_at_1 =
+
+# Note: We can not prepend "ISO-" to these map files because of file
+# name limits on DOS.
+ISO8859 = \
+	8859-2.map 8859-3.map 8859-4.map 8859-5.map 8859-6.map 8859-7.map \
+	8859-8.map 8859-9.map 8859-10.map 8859-11.map 8859-13.map 8859-14.map \
+	8859-15.map 8859-16.map
+
+IBM = \
+	IBM037.map IBM038.map \
+	IBM256.map IBM273.map IBM274.map IBM275.map IBM277.map IBM278.map \
+	IBM280.map IBM281.map IBM284.map IBM285.map IBM290.map IBM297.map \
+	IBM420.map IBM423.map IBM424.map IBM437.map IBM500.map IBM850.map \
+	IBM851.map IBM852.map IBM855.map IBM856.map IBM857.map IBM860.map \
+	IBM861.map IBM862.map IBM863.map IBM864.map IBM865.map IBM866.map \
+	IBM868.map IBM869.map IBM870.map IBM871.map IBM874.map IBM875.map \
+	IBM880.map IBM891.map IBM903.map IBM904.map IBM905.map IBM918.map \
+	IBM1004.map IBM1026.map IBM1047.map
+
+CODEPAGE = \
+	CP737.map CP775.map CP1125.map\
+	CP1250.map CP1251.map CP1252.map CP1253.map CP1254.map \
+	CP1255.map CP1256.map CP1257.map CP1258.map \
+	CP10007.map \
+	CP720.map CP858.map
+
+CJK =   GB2312.map GBK.map GB180302.map GB180304.map \
+	BIG5.map BIG5-HKSCS.map\
+	CNS-1.map CNS-2.map CNS-3.map CNS-4.map CNS-5.map CNS-6.map CNS-7.map \
+	CNS-F.map \
+	JISX0201.map JISX0208.map JISX0212.map JISX2131.map JISX2132.map \
+	JISC6226.map CP932-2BYTE.map JISX213A.map\
+	KSC5601.map KSC5636.map JOHAB.map
+
+MISC =  KOI-8.map KOI8-R.map KOI8-U.map KOI8-T.map ALTERNATIVNYJ.map \
+	MIK.map PTCP154.map \
+	TIS-620.map VISCII.map VSCII.map VSCII-2.map\
+	KA-PS.map KA-ACADEMY.map \
+	HP-ROMAN8.map NEXTSTEP.map MACINTOSH.map EBCDICUK.map EBCDICUS.map \
+	stdenc.map symbol.map \
+	CP949-2BYTE.map \
+	BIG5-1.map BIG5-2.map
+
+# Emacs-mule charsets.
+MULE =	MULE-ethiopic.map MULE-ipa.map MULE-is13194.map \
+	MULE-sisheng.map MULE-tibetan.map \
+	MULE-lviscii.map MULE-uviscii.map
+
+SED_SCRIPT = jisx2131-filter
+
+TRANS_TABLE = cp51932.el eucjp-ms.el
+TRANS_TABLE := $(addprefix ${lispintdir}/,${TRANS_TABLE})
+
+CHARSETS = ${ISO8859} ${IBM} ${CODEPAGE} ${CJK} ${MISC} ${MULE}
+CHARSETS := $(addprefix ${charsetdir}/,${CHARSETS})
+
+.PHONY: all
+
+all: ${srcdir}/charsets.stamp
+
+${srcdir}/charsets.stamp: ${CHARSETS} ${TRANS_TABLE}
+	${AM_V_GEN}echo timestamp > $@
+
+## Rules for each charset.
+
+mapconv = ${srcdir}/mapconv
+run_mapconv = AWK=${AWK} ${srcdir}/mapconv
+big5 = ${srcdir}/big5.awk
+compact = ${srcdir}/compact.awk
+cp51932 = ${srcdir}/cp51932.awk
+cp932 = ${srcdir}/cp932.awk
+eucjp_ms = ${srcdir}/eucjp-ms.awk
+gb180302 = ${srcdir}/gb180302.awk
+gb180304 = ${srcdir}/gb180304.awk
+kuten = ${srcdir}/kuten.awk
+
+## Short aliases, eg VSCII.map = ${charsetdir}/VSCII.map
+define map_template
+ .PHONY: $(notdir ${1})
+ $(notdir ${1}): ${1}
+endef
+
+$(foreach mfile,${CHARSETS} ${TRANS_TABLE},$(eval $(call map_template,$(mfile))))
+
+${charsetdir}/VSCII.map: ${GLIBC_CHARMAPS}/TCVN5712-1.gz ${mapconv} ${compact}
+	${AM_V_GEN}${run_mapconv} $< '/^<.*[ 	]\/x[0-9a-f].[ 	]/' GLIBC-1 ${compact} > $@
+
+${charsetdir}/VSCII-2.map: ${GLIBC_CHARMAPS}/TCVN5712-1.gz ${mapconv} ${compact}
+	${AM_V_GEN}${run_mapconv} $< '/^<.*[ 	]\/x[2-7a-f].[ 	]/' GLIBC-1 ${compact} \
+	  | sed 's/0x20-0x7F.*/0x00-0x7F 0x0000/' > $@
+
+${charsetdir}/ALTERNATIVNYJ.map: ${charsetdir}/IBM866.map
+	${AM_V_GEN}(echo "# Modified from $(notdir $<) according to the chart at" && \
+	  echo "# http://www.cyrillic.com/ref/cyrillic/koi-8alt.html," && \
+	  echo "# with guesses for the Unicodes of the glyphs." && \
+	  sed -e '1 d' \
+	     -e '/0xF2/ s/ .*/ 0x2019/' \
+	     -e '/0xF3/ s/ .*/ 0x2018/' \
+	     -e '/0xF4/ s/ .*/ 0x0301/' \
+	     -e '/0xF5/ s/ .*/ 0x0300/' \
+	     -e '/0xF6/ s/ .*/ 0x203A/' \
+	     -e '/0xF7/ s/ .*/ 0x2039/' \
+	     -e '/0xF8/ s/ .*/ 0x2191/' \
+	     -e '/0xF9/ s/ .*/ 0x2193/' \
+	     -e '/0xFA/ s/ .*/ 0x00B1/' \
+	     -e '/0xFB/ s/ .*/ 0x00F7/' < $< ) > $@
+
+${charsetdir}/MIK.map: ${mapfiledir}/bulgarian-mik.txt ${mapconv} ${compact}
+	${AM_V_GEN}${run_mapconv} $< '1,$$' CZYBORRA ${compact} > $@
+
+${charsetdir}/PTCP154.map: ${mapfiledir}/PTCP154 ${mapconv} ${compact}
+	${AM_V_GEN}${run_mapconv} $< '/^0x/' IANA ${compact} > $@
+
+${charsetdir}/stdenc.map: ${mapfiledir}/stdenc.txt ${mapconv} ${compact}
+	${AM_V_GEN}${run_mapconv} $< '/^[0-9A-Fa-f]/' UNICODE ${compact} > $@
+
+${charsetdir}/symbol.map: ${mapfiledir}/symbol.txt ${mapconv} ${compact}
+	${AM_V_GEN}${run_mapconv} $< '/^[0-9A-Fa-f]/' UNICODE ${compact} > $@
+
+${charsetdir}/CP720.map: ${mapfiledir}/CP720.map
+	${AM_V_GEN}cp $< $@
+
+${charsetdir}/CP858.map: ${mapfiledir}/CP858.map
+	${AM_V_GEN}cp $< $@
+
+${charsetdir}/CP949-2BYTE.map: ${GLIBC_CHARMAPS}/CP949.gz ${mapconv} ${compact}
+	${AM_V_GEN}${run_mapconv} $< '/^<.*[ 	]\/x[89a-f]/' GLIBC-2 ${compact} > $@
+
+${charsetdir}/GB2312.map: ${GLIBC_CHARMAPS}/GB2312.gz ${mapconv} ${compact}
+	${AM_V_GEN}${run_mapconv} $< '/^<.*[ 	]\/x[a-f]/' GLIBC-2-7 ${compact} > $@
+
+${charsetdir}/GBK.map: ${GLIBC_CHARMAPS}/GBK.gz ${mapconv} ${compact}
+	${AM_V_GEN}${run_mapconv} $< '/^<.*[ 	]\/x[89a-f]/' GLIBC-2 ${compact} > $@
+
+${charsetdir}/GB180302.map: ${GLIBC_CHARMAPS}/GB18030.gz ${mapconv} ${gb180302}
+	${AM_V_GEN}${run_mapconv} $< '/^<.*[ 	]\/x..\/x..[ 	]/' GLIBC-2 ${gb180302} > $@
+
+${charsetdir}/GB180304.map: ${charsetdir}/GB180302.map ${gb180304}
+	${AM_V_GEN}$(AWK) -f ${gb180304} < $< > $@
+
+${charsetdir}/JISX0201.map: ${GLIBC_CHARMAPS}/JIS_X0201.gz ${mapconv} ${compact}
+	${AM_V_GEN}(${mapconv} $< '/^<.*[ 	]\/x[0-9]/' GLIBC-1 ${compact} && \
+	  echo "# Generated by hand" && \
+	  echo "0xA1-0xDF 0xFF61" ) > $@
+
+${charsetdir}/JISX0208.map: ${GLIBC_CHARMAPS}/EUC-JP.gz ${mapconv}
+	${AM_V_GEN}${run_mapconv} $< '/^<.*[ 	]\/x[a-f]/' GLIBC-2-7 \
+	  | sed 's/0x2015/0x2014/' > $@
+
+${charsetdir}/JISX0212.map: ${GLIBC_CHARMAPS}/EUC-JP.gz ${mapconv} ${compact}
+	${AM_V_GEN}${run_mapconv} $< '/^<.*[ 	]\/x8f/ s,/x8f,,' GLIBC-2-7 ${compact} > $@
+
+jisx2131-filter: ${mapfiledir}/JISX213A.map
+	${AM_V_at}sed -n -e '/^#/d' -e 's,.*0x\([0-9A-Z]*\)$$,/0x0*\1$$/d,p' < $< > $@
+
+${charsetdir}/JISX2131.map: ${GLIBC_CHARMAPS}/EUC-JISX0213.gz ${mapconv} jisx2131-filter
+	${AM_V_GEN}${run_mapconv} $< '/^<.*[ 	]\/x[a-f]/' GLIBC-2-7 \
+	  | sed -f jisx2131-filter \
+	  | sed -e 's/0x2015/0x2014/' -e 's/0x2299/0x29BF/' > $@
+
+${charsetdir}/JISX2132.map: ${GLIBC_CHARMAPS}/EUC-JISX0213.gz ${mapconv}
+	${AM_V_GEN}${run_mapconv} $< '/^<.*[ 	]\/x8f/ s,/x8f,,' GLIBC-2-7 > $@
+
+${charsetdir}/JISX213A.map: ${mapfiledir}/JISX213A.map
+	${AM_V_GEN}cp $< $@
+
+${charsetdir}/CP932-2BYTE.map: ${mapfiledir}/CP932.TXT ${mapconv} ${cp932}
+	${AM_V_GEN}${run_mapconv} $< '/^0x[89A-F][0-9A-F][0-9A-F]/' UNICODE2 ${cp932} > $@
+
+${lispintdir}/cp51932.el: ${charsetdir}/CP932-2BYTE.map ${cp51932}
+	${AM_V_GEN}$(AWK) -f ${cp51932} < $< > $@
+
+${lispintdir}/eucjp-ms.el: ${GLIBC_CHARMAPS}/EUC-JP-MS.gz ${eucjp_ms}
+	${AM_V_GEN}gunzip -c $< | $(AWK) -f ${eucjp_ms} > $@
+
+# As Uni2JIS doesn't contain mappings of characters added to Unicode
+# recently, we add them manually here (including one correction for
+# U+005C vs U+FF3C).  These changes are based on bogytech's blog at
+# http://bogytech.blogspot.jp/search/label/emacs.
+${charsetdir}/JISC6226.map: ${mapfiledir}/Uni2JIS ${mapconv} ${kuten}
+	${AM_V_GEN}(${run_mapconv} $< '/^[^#].*0-/' YASUOKA ${kuten} \
+	  | sed -e '/0x2140/s/005C/FF3C/' && \
+	  echo '0x3442 0x3D4E' && echo '0x374E 0x25874' && \
+	  echo '0x3764 0x28EF6' && echo '0x513D 0x2F80F' && \
+	  echo '0x7045 0x9724' ) > $@
+
+${charsetdir}/KSC5601.map: ${GLIBC_CHARMAPS}/EUC-KR.gz ${mapconv} ${compact}
+	${AM_V_GEN}${run_mapconv} $< '/^<.*[ 	]\/x[a-f]/' GLIBC-2-7 ${compact} > $@
+
+${charsetdir}/BIG5.map: ${GLIBC_CHARMAPS}/BIG5.gz ${mapconv} ${compact}
+	${AM_V_GEN}${run_mapconv} $< '/^<.*[ 	]\/x[a-f]/' GLIBC-2 > $@
+
+${charsetdir}/BIG5-1.map: ${charsetdir}/BIG5.map ${mapconv} ${big5}
+	${AM_V_GEN}(echo "# Generated from $(notdir $<)" && \
+	  sed -n -e '/0xa140/,/0xc8fe/p' < $< | $(AWK) -f ${big5} ) > $@
+
+${charsetdir}/BIG5-2.map: ${charsetdir}/BIG5.map ${mapconv} ${big5}
+	${AM_V_GEN}(echo "# Generated from $(notdir $<)" && \
+	  sed -n -e '/0xc940/,$$ p' < $< | $(AWK) -f ${big5} ) > $@
+
+${charsetdir}/BIG5-HKSCS.map: ${GLIBC_CHARMAPS}/BIG5-HKSCS.gz ${mapconv} ${compact}
+	${AM_V_GEN}${run_mapconv} $< '/^<.*[ 	]\/x[89a-f].\//' GLIBC-2 ${compact} > $@
+
+${charsetdir}/JOHAB.map: ${GLIBC_CHARMAPS}/JOHAB.gz ${mapconv} ${compact}
+	${AM_V_GEN}${run_mapconv} $< '/^<.*[ 	]\/x[89a-f]/' GLIBC-2 ${compact} > $@
+
+${charsetdir}/CNS-1.map: ${GLIBC_CHARMAPS}/EUC-TW.gz ${mapconv} ${compact}
+	${AM_V_GEN}${run_mapconv} $< '/^<.*[ 	]\/x[a-f]/' GLIBC-2-7 ${compact} > $@
+
+# ${charsetdir}/CNS-1.map: ${mapfiledir}/cns2ucsdkw.txt ${mapconv} ${compact}
+# 	${AM_V_GEN}${run_mapconv} $< '/^C1/' KANJI-DATABASE ${compact} > $@
+
+${charsetdir}/CNS-2.map: ${mapfiledir}/cns2ucsdkw.txt ${mapconv} ${compact}
+	${AM_V_GEN}${run_mapconv} $< '/^C2/' KANJI-DATABASE ${compact} > $@
+
+${charsetdir}/CNS-3.map: ${mapfiledir}/cns2ucsdkw.txt ${mapconv} ${compact}
+	${AM_V_GEN}${run_mapconv} $< '/^C3/' KANJI-DATABASE ${compact} > $@
+
+${charsetdir}/CNS-4.map: ${mapfiledir}/cns2ucsdkw.txt ${mapconv} ${compact}
+	${AM_V_GEN}${run_mapconv} $< '/^C4/' KANJI-DATABASE ${compact} > $@
+
+${charsetdir}/CNS-5.map: ${mapfiledir}/cns2ucsdkw.txt ${mapconv} ${compact}
+	${AM_V_GEN}${run_mapconv} $< '/^C5/' KANJI-DATABASE ${compact} > $@
+
+${charsetdir}/CNS-6.map: ${mapfiledir}/cns2ucsdkw.txt ${mapconv} ${compact}
+	${AM_V_GEN}${run_mapconv} $< '/^C6/' KANJI-DATABASE ${compact} > $@
+
+${charsetdir}/CNS-7.map: ${mapfiledir}/cns2ucsdkw.txt ${mapconv} ${compact}
+	${AM_V_GEN}${run_mapconv} $< '/^C7/' KANJI-DATABASE ${compact} > $@
+
+${charsetdir}/CNS-F.map: ${GLIBC_CHARMAPS}/EUC-TW.gz ${mapconv} ${compact}
+	${AM_V_GEN}${run_mapconv} $< '/^<.*\/x8e\/xaf/ s,/x8e/xaf,,' GLIBC-2-7 ${compact} > $@
+
+# General target to produce map files for mule charsets.
+${charsetdir}/MULE-%.map: ${mapfiledir}/MULE-%.map
+	${AM_V_GEN}cp $< $@
+
+# General target to produce map files for ISO-8859, GEORGIAN, and
+# EBCDIC charsets.  We can not use the original file name because of
+# file name limit on DOS.  "KA" is ISO 639 language code for Georgian.
+
+${charsetdir}/8859-%.map: ${GLIBC_CHARMAPS}/ISO-8859-%.gz ${mapconv} ${compact}
+	${AM_V_GEN}${run_mapconv} $< '/^<.*[ 	]\/x/' GLIBC-1 ${compact} > $@
+
+${charsetdir}/KA-%.map: ${GLIBC_CHARMAPS}/GEORGIAN-%.gz ${mapconv} ${compact}
+	${AM_V_GEN}${run_mapconv} $< '/^<.*[ 	]\/x/' GLIBC-1 ${compact} > $@
+
+${charsetdir}/EBCDIC%.map: ${GLIBC_CHARMAPS}/EBCDIC-%.gz ${mapconv} ${compact}
+	${AM_V_GEN}${run_mapconv} $< '/^<.*[ 	]\/x/' GLIBC-1 ${compact} > $@
+
+# General target to produce map files for single-byte charsets.
+
+${charsetdir}/%.map: ${GLIBC_CHARMAPS}/%.gz ${mapconv} ${compact}
+	${AM_V_GEN}${run_mapconv} $< '/^<.*[ 	]\/x/' GLIBC-1 ${compact} > $@
+
+
+.PHONY: clean bootstrap-clean distclean maintainer-clean extraclean
+
+clean:
+	rm -f ${SED_SCRIPT}
+
+bootstrap-clean: clean
+
+distclean: clean
+	rm -f Makefile
+
+maintainer-clean: distclean
+
+## Do not remove these files, even in a bootstrap.  They rarely change.
+extraclean:
+	rm -f ${CHARSETS} ${TRANS_TABLE} ${srcdir}/charsets.stamp

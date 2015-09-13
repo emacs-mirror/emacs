@@ -187,7 +187,7 @@ of face attribute/value pairs, like in a `face' text property.
 
 If SPECS is empty, call `face-remap-reset-base' to use the normal
 definition of FACE as the base remapping; note that this is
-different from SPECS containing a single value `nil', which means
+different from SPECS containing a single value nil, which means
 not to inherit from the global definition of FACE at all."
   (while (and (consp specs) (not (null (car specs))) (null (cdr specs)))
     (setq specs (car specs)))
@@ -330,7 +330,7 @@ a top-level keymap, `text-scale-increase' or
               ((or ?+ ?=) inc)
               (?- (- inc))
               (?0 0)
-              (t inc))))
+              (_ inc))))
       (text-scale-increase step)
       ;; (unless (zerop step)
       (message "Use +,-,0 for further adjustment")

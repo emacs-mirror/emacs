@@ -83,8 +83,8 @@
 ;; tab     completion-at-point		Complete filename/command/history
 ;; m-?     comint-dynamic-list-filename-completions
 ;;					List completions in help buffer
-;; m-c-f   shell-forward-command	Forward a shell command
-;; m-c-b   shell-backward-command	Backward a shell command
+;; c-c c-f shell-forward-command	Forward a shell command
+;; c-c c-b shell-backward-command	Backward a shell command
 ;; 	   dirs				Resync the buffer's dir stack
 ;; 	   shell-dirtrack-mode		Turn dir tracking on/off
 ;;         comint-strip-ctrl-m		Remove trailing ^Ms from output
@@ -1092,10 +1092,12 @@ Copy Shell environment variable to Emacs: ")))
   "Move forward across ARG shell command(s).  Does not cross lines.
 See `shell-command-regexp'."
   (interactive "p")
-  (let ((limit (line-end-position)))
-    (if (re-search-forward (concat shell-command-regexp "\\([;&|][\t ]*\\)+")
-			   limit 'move arg)
-	(skip-syntax-backward " "))))
+  (let ((limit (line-end-position))
+	(pt (point)))
+    (re-search-forward (concat shell-command-regexp "\\([;&|][\t ]*\\)+")
+		       limit 'move arg)
+    (and (/= pt (point))
+	 (skip-syntax-backward " " pt))))
 
 
 (defun shell-backward-command (&optional arg)
@@ -1106,10 +1108,13 @@ See `shell-command-regexp'."
     (when (> limit (point))
       (setq limit (line-beginning-position)))
     (skip-syntax-backward " " limit)
-    (if (re-search-backward
-	 (format "[;&|]+[\t ]*\\(%s\\)" shell-command-regexp) limit 'move arg)
-	(progn (goto-char (match-beginning 1))
-	       (skip-chars-forward ";&|")))))
+    (let ((pt (point)))
+      (if (re-search-backward
+	   (format "[;&|]+[\t ]*\\(%s\\)" shell-command-regexp) limit 'move arg)
+	  (progn (goto-char (match-beginning 1))
+		 (skip-chars-forward ";&|")))
+      (and (/= pt (point))
+	   (skip-syntax-forward " " pt)))))
 
 (defun shell-dynamic-complete-command ()
   "Dynamically complete the command at point.

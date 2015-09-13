@@ -731,7 +731,7 @@ You can automatically rotate colors when the buffer is saved by adding
 this function to `write-file-functions' as a buffer-local value.  To do
 this, eval the following in the buffer to be saved:
 
-  (add-hook 'write-file-functions 'highlight-changes-rotate-faces nil t)"
+  (add-hook \\='write-file-functions \\='highlight-changes-rotate-faces nil t)"
   (interactive)
   (when (and highlight-changes-mode highlight-changes-visible-mode)
     (let ((modified (buffer-modified-p))

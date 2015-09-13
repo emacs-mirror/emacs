@@ -618,7 +618,7 @@ fset_desired_tool_bar_string (struct frame *f, Lisp_Object val)
 }
 #endif /* HAVE_WINDOW_SYSTEM && !USE_GTK && !HAVE_NS */
 
-#define NUMVAL(X) ((INTEGERP (X) || FLOATP (X)) ? XFLOATINT (X) : -1)
+#define NUMVAL(X) (NUMBERP (X) ? XFLOATINT (X) : -1)
 
 INLINE double
 default_pixels_per_inch_x (void)
@@ -1411,7 +1411,6 @@ extern void x_sync (struct frame *);
 #endif /* HAVE_X_WINDOWS */
 
 extern void x_query_colors (struct frame *f, XColor *, int);
-extern void x_query_color (struct frame *f, XColor *);
 extern void x_focus_frame (struct frame *);
 
 #ifndef HAVE_NS
@@ -1425,7 +1424,7 @@ x_set_bitmap_icon (struct frame *f)
 {
   Lisp_Object obj = assq_no_quit (Qicon_type, f->param_alist);
 
-  if (CONSP (obj))
+  if (CONSP (obj) && !NILP (XCDR (obj)))
     x_bitmap_icon (f, XCDR (obj));
 }
 

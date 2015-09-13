@@ -270,7 +270,7 @@ The elements in ELEMENTS can be of several types:
  - nil: It is ignored.
  - Anything else: It is evaluated and the result is treated as an
    element to be inserted.  One additional tag is useful for these
-   cases.  If an expression returns a list '(l foo bar), the elements
+   cases.  If an expression returns a list (l foo bar), the elements
    after `l' will be inserted according to the usual rules.  This makes
    it possible to return several elements from one expression."
   (let* ((template-name (intern (concat "tempo-template-"

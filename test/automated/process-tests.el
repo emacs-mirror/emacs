@@ -72,4 +72,74 @@
               (should (string= (buffer-string) "arg1 = \"x &y\", arg2 = \n"))))
         (when batfile (delete-file batfile))))))
 
+(ert-deftest process-test-stderr-buffer ()
+  (skip-unless (executable-find "bash"))
+  (let* ((stdout-buffer (generate-new-buffer "*stdout*"))
+	 (stderr-buffer (generate-new-buffer "*stderr*"))
+	 (proc (make-process :name "test"
+			     :command (list "bash" "-c"
+					    (concat "echo hello stdout!; "
+						    "echo hello stderr! >&2; "
+						    "exit 20"))
+			     :buffer stdout-buffer
+			     :stderr stderr-buffer))
+	 (sentinel-called nil)
+	 (start-time (float-time)))
+    (set-process-sentinel proc (lambda (proc msg)
+				 (setq sentinel-called t)))
+    (while (not (or sentinel-called
+		    (> (- (float-time) start-time)
+		       process-test-sentinel-wait-timeout)))
+      (accept-process-output))
+    (cl-assert (eq (process-status proc) 'exit))
+    (cl-assert (= (process-exit-status proc) 20))
+    (should (with-current-buffer stdout-buffer
+	      (goto-char (point-min))
+	      (looking-at "hello stdout!")))
+    (should (with-current-buffer stderr-buffer
+	      (goto-char (point-min))
+	      (looking-at "hello stderr!")))))
+
+(ert-deftest process-test-stderr-filter ()
+  (skip-unless (executable-find "bash"))
+  (let* ((sentinel-called nil)
+	 (stderr-sentinel-called nil)
+	 (stdout-output nil)
+	 (stderr-output nil)
+	 (stdout-buffer (generate-new-buffer "*stdout*"))
+	 (stderr-buffer (generate-new-buffer "*stderr*"))
+	 (stderr-proc (make-pipe-process :name "stderr"
+					 :buffer stderr-buffer))
+	 (proc (make-process :name "test" :buffer stdout-buffer
+			     :command (list "bash" "-c"
+					    (concat "echo hello stdout!; "
+						    "echo hello stderr! >&2; "
+						    "exit 20"))
+			     :stderr stderr-proc))
+	 (start-time (float-time)))
+    (set-process-filter proc (lambda (proc input)
+			       (push input stdout-output)))
+    (set-process-sentinel proc (lambda (proc msg)
+				 (setq sentinel-called t)))
+    (set-process-filter stderr-proc (lambda (proc input)
+				      (push input stderr-output)))
+    (set-process-sentinel stderr-proc (lambda (proc input)
+					(setq stderr-sentinel-called t)))
+    (while (not (or sentinel-called
+		    (> (- (float-time) start-time)
+		       process-test-sentinel-wait-timeout)))
+      (accept-process-output))
+    (cl-assert (eq (process-status proc) 'exit))
+    (cl-assert (= (process-exit-status proc) 20))
+    (should sentinel-called)
+    (should (equal 1 (with-current-buffer stdout-buffer
+		       (point-max))))
+    (should (equal "hello stdout!\n"
+		   (mapconcat #'identity (nreverse stdout-output) "")))
+    (should stderr-sentinel-called)
+    (should (equal 1 (with-current-buffer stderr-buffer
+		       (point-max))))
+    (should (equal "hello stderr!\n"
+		   (mapconcat #'identity (nreverse stderr-output) "")))))
+
 (provide 'process-tests)

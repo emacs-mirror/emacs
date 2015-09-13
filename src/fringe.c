@@ -1405,6 +1405,21 @@ init_fringe_bitmap (int which, struct fringe_bitmap *fb, int once_p)
       unsigned short *bits = fb->bits;
       int j;
 
+#ifdef USE_CAIRO
+      for (j = 0; j < fb->height; j++)
+	{
+	  unsigned short b = *bits;
+#ifdef WORDS_BIGENDIAN
+	  *bits++ = (b << (16 - fb->width));
+#else
+	  b = (unsigned short)((swap_nibble[b & 0xf] << 12)
+			       | (swap_nibble[(b>>4) & 0xf] << 8)
+			       | (swap_nibble[(b>>8) & 0xf] << 4)
+			       | (swap_nibble[(b>>12) & 0xf]));
+	  *bits++ = (b >> (16 - fb->width));
+#endif
+	}
+#else  /* not USE_CAIRO */
       if (fb->width <= 8)
 	{
 	  unsigned char *cbits = (unsigned char *)fb->bits;
@@ -1433,6 +1448,7 @@ init_fringe_bitmap (int which, struct fringe_bitmap *fb, int once_p)
 	      *bits++ = b;
 	    }
 	}
+#endif /* not USE_CAIRO */
 #endif /* HAVE_X_WINDOWS */
 
     }
@@ -1731,10 +1747,14 @@ init_fringe (void)
   fringe_faces = xzalloc (max_fringe_bitmaps * sizeof *fringe_faces);
 }
 
-#ifdef HAVE_NTGUI
+#if defined (HAVE_NTGUI) || defined (USE_CAIRO)
 
 void
+#ifdef HAVE_NTGUI
 w32_init_fringe (struct redisplay_interface *rif)
+#else
+x_cr_init_fringe (struct redisplay_interface *rif)
+#endif
 {
   int bt;
 
@@ -1747,7 +1767,9 @@ w32_init_fringe (struct redisplay_interface *rif)
       rif->define_fringe_bitmap (bt, fb->bits, fb->height, fb->width);
     }
 }
+#endif
 
+#ifdef HAVE_NTGUI
 void
 w32_reset_fringes (void)
 {

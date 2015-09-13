@@ -477,7 +477,7 @@
 (defun custom-split-regexp-maybe (regexp)
   "If REGEXP is a string, split it to a list at `\\|'.
 You can get the original back from the result with:
-  (mapconcat 'identity result \"\\|\")
+  (mapconcat \\='identity result \"\\|\")
 
 IF REGEXP is not a string, return it unchanged."
   (if (stringp regexp)
@@ -633,7 +633,7 @@ if that fails, the doc string with `custom-guess-doc-alist'."
 	(setq found (nth 1 current)
 	      names nil)))
     (unless found
-      (let ((doc (documentation-property symbol 'variable-documentation))
+      (let ((doc (documentation-property symbol 'variable-documentation t))
 	    (docs custom-guess-doc-alist))
 	(when doc
 	  (while docs
@@ -1189,8 +1189,8 @@ and `defface'.
 
 For example, the MH-E package updates this alist as follows:
 
-     (add-to-list 'customize-package-emacs-version-alist
-                  '(MH-E (\"6.0\" . \"22.1\") (\"6.1\" . \"22.1\")
+     (add-to-list \\='customize-package-emacs-version-alist
+                  \\='(MH-E (\"6.0\" . \"22.1\") (\"6.1\" . \"22.1\")
                          (\"7.0\" . \"22.1\") (\"7.1\" . \"22.1\")
                          (\"7.2\" . \"22.1\") (\"7.3\" . \"22.1\")
                          (\"7.4\" . \"22.1\") (\"8.0\" . \"22.1\")))
@@ -1599,7 +1599,7 @@ This button will have a menu with all three reset operations."
 
 (defcustom custom-raised-buttons (not (equal (face-valid-attribute-values :box)
 					     '(("unspecified" . unspecified))))
-  "If non-nil, indicate active buttons in a `raised-button' style.
+  "If non-nil, indicate active buttons in a raised-button style.
 Otherwise use brackets."
   :type 'boolean
   :version "21.1"
@@ -1709,7 +1709,7 @@ Operate on all settings in this buffer:\n"))
 	    (mapcar (lambda (entry)
 		      (prog2
 			  (message "Creating customization items ...%2d%%"
-				   (/ (* 100.0 count) length))
+				   (floor (* 100.0 count) length))
 			  (widget-create (nth 1 entry)
 					 :tag (custom-unlispify-tag-name
 					       (nth 0 entry))
@@ -1748,7 +1748,7 @@ Operate on all settings in this buffer:\n"))
 on a button to invoke its action.
 Invoke [+] to expand a group, and [-] to collapse an expanded group.\n"
 			 (if custom-raised-buttons
-			     "`Raised' text indicates"
+			     "Raised text indicates"
 			   "Square brackets indicate")))
 
 
@@ -1965,7 +1965,7 @@ Each entry is of the form (STATE MAGIC FACE ITEM-DESC [ GROUP-DESC ]), where
 
 STATE is one of the following symbols:
 
-`nil'
+nil
    For internal use, should never occur.
 `unknown'
    For internal use, should never occur.
@@ -2457,7 +2457,7 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
   "Return documentation of VARIABLE for use in Custom buffer.
 Normally just return the docstring.  But if VARIABLE automatically
 becomes buffer local when set, append a message to that effect."
-  (format "%s%s" (documentation-property variable 'variable-documentation)
+  (format "%s%s" (documentation-property variable 'variable-documentation t)
 	  (if (and (local-variable-if-set-p variable)
 		   (or (not (local-variable-p variable))
 		       (with-temp-buffer
@@ -3115,7 +3115,7 @@ face attributes (as specified by a `default' defface entry)."
 		    widget
 		    (widget-get widget :default-face-attributes)))
 	 entry)
-    (unless (looking-back "^ *")
+    (unless (looking-back "^ *" (line-beginning-position))
       (insert ?\n))
     (insert-char ?\s (widget-get widget :extra-offset))
     (if (or alist defaults show-all)
@@ -3990,12 +3990,12 @@ If GROUPS-ONLY is non-nil, return only those members that are groups."
 	 ;; (indent (widget-get widget :indent))
 	 (prefix (widget-get widget :custom-prefix))
 	 (buttons (widget-get widget :buttons))
-	 (tag (widget-get widget :tag))
+	 (tag (substitute-command-keys (widget-get widget :tag)))
 	 (symbol (widget-value widget))
 	 (members (custom-group-members symbol
 					(and (eq custom-buffer-style 'tree)
 					     custom-browse-only-groups)))
-	 (doc (widget-docstring widget)))
+	 (doc (substitute-command-keys (widget-docstring widget))))
     (cond ((and (eq custom-buffer-style 'tree)
 		(eq state 'hidden)
 		(or members (custom-unloaded-widget-p widget)))
@@ -4377,7 +4377,8 @@ if only the first line of the docstring is shown."))
 
 (defun custom-file (&optional no-error)
   "Return the file name for saving customizations."
-  (if (null user-init-file)
+  (if (or (null user-init-file)
+          (and (null custom-file) init-file-had-error))
       ;; Started with -q, i.e. the file containing Custom settings
       ;; hasn't been read.  Saving settings there won't make much
       ;; sense.
@@ -4406,7 +4407,9 @@ if only the first line of the docstring is shown."))
 	 old-buffer-name)
 
     (with-current-buffer (let ((find-file-visit-truename t))
-			   (or old-buffer (find-file-noselect filename)))
+			   (or old-buffer
+                               (let ((delay-mode-hooks t))
+                                 (find-file-noselect filename))))
       ;; We'll save using file-precious-flag, so avoid destroying
       ;; symlinks.  (If we're not already visiting the buffer, this is
       ;; handled by find-file-visit-truename, above.)
@@ -4415,7 +4418,7 @@ if only the first line of the docstring is shown."))
 	(set-visited-file-name (file-chase-links filename)))
 
       (unless (eq major-mode 'emacs-lisp-mode)
-	(emacs-lisp-mode))
+        (delay-mode-hooks (emacs-lisp-mode)))
       (let ((inhibit-read-only t)
 	    (print-length nil)
 	    (print-level nil))

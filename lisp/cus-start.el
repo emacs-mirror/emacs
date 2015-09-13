@@ -1,4 +1,4 @@
-;;; cus-start.el --- define customization properties of builtins
+;;; cus-start.el --- define customization properties of builtins  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1997, 1999-2015 Free Software Foundation, Inc.
 
@@ -33,6 +33,14 @@
 
 ;;; Code:
 
+(defun minibuffer-prompt-properties--setter (symbol value)
+  (set-default symbol value)
+  (if (memq 'cursor-intangible value)
+      (add-hook 'minibuffer-setup-hook 'cursor-intangible-mode)
+    ;; Removing it is a bit trickier since it could have been added by someone
+    ;; else as well, so let's just not bother.
+    ))
+
 ;; Elements of this list have the form:
 ;; SYMBOL GROUP TYPE VERSION REST...
 ;; SYMBOL is the name of the variable.
@@ -46,7 +54,23 @@
 ;; :risky - risky-local-variable property
 ;; :safe - safe-local-variable property
 ;; :tag - custom-tag property
-(let ((all '(;; alloc.c
+(let (standard native-p prop propval
+      ;; This function turns a value
+      ;; into an expression which produces that value.
+      (quoter (lambda (sexp)
+                ;; FIXME: We'd like to use macroexp-quote here, but cus-start
+                ;; is loaded too early in loadup.el for that.
+		(if (or (memq sexp '(t nil))
+			(keywordp sexp)
+			(and (listp sexp)
+			     (memq (car sexp) '(lambda)))
+			(stringp sexp)
+			(numberp sexp))
+		    sexp
+		  (list 'quote sexp)))))
+  (pcase-dolist
+      (`(,symbol ,group ,type ,version . ,rest)
+           '(;; alloc.c
 	     (gc-cons-threshold alloc integer)
 	     (gc-cons-percentage alloc float)
 	     (garbage-collection-messages alloc boolean)
@@ -145,13 +169,19 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (shell-file-name execute file)
 	     (exec-path execute
 			(repeat (choice (const :tag "default directory" nil)
-					(directory :format "%v"))))
+					(directory :format "%v")))
+                        nil
+                        :standard
+                        (mapcar 'directory-file-name
+                                (append (parse-colon-path (getenv "PATH"))
+                                        (list exec-directory))))
 	     (exec-suffixes execute (repeat string))
 	     ;; charset.c
 	     (charset-map-path installation
 			       (repeat (directory :format "%v")))
 	     ;; coding.c
 	     (inhibit-eol-conversion mule boolean)
+	     (enable-character-translation mule boolean)
 	     (eol-mnemonic-undecided mule string)
 	     ;; startup.el fiddles with the values.  IMO, would be
 	     ;; simpler to just use #ifdefs in coding.c.
@@ -190,7 +220,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (visible-bell display boolean)
 	     (no-redraw-on-reenter display boolean)
 
-	     ;; dosfns.c
+             ;; dosfns.c
 	     (dos-display-scancodes display boolean)
 	     (dos-hyper-key keyboard integer)
 	     (dos-super-key keyboard integer)
@@ -269,10 +299,10 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (make-pointer-invisible mouse boolean "23.2")
 	     (menu-bar-mode frames boolean nil
 			    ;; FIXME?
-;			    :initialize custom-initialize-default
+                            ;; :initialize custom-initialize-default
 			    :set custom-set-minor-mode)
 	     (tool-bar-mode (frames mouse) boolean nil
-;			    :initialize custom-initialize-default
+                            ;; :initialize custom-initialize-default
 			    :set custom-set-minor-mode)
 	     (frame-resize-pixelwise frames boolean "24.4")
 	     (frame-inhibit-implied-resize frames
@@ -342,19 +372,19 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 				 :doc "Prevent point from ever entering prompt"
 				 :format "%t%n%h"
 				 :inline t
-				 (point-entered minibuffer-avoid-prompt)))
+				 (cursor-intangible t)))
 	       (repeat :inline t
 		       :tag "Other Properties"
 		       (list :inline t
 			     :format "%v"
 			     (symbol :tag "Property")
 			     (sexp :tag "Value"))))
-	      "21.1")
+	      "21.1"
+              :set minibuffer-prompt-properties--setter)
 	     (minibuffer-auto-raise minibuffer boolean)
 	     ;; options property set at end
 	     (read-buffer-function minibuffer
 				   (choice (const nil)
-					   (function-item iswitchb-read-buffer)
 					   function))
 	     ;; msdos.c
 	     (dos-unsupported-char-glyph display integer)
@@ -409,6 +439,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 		      (const super)) "23.1")
 	     (ns-antialias-text ns boolean "23.1")
 	     (ns-auto-hide-menu-bar ns boolean "24.1")
+             (ns-confirm-quit ns boolean "25.1")
 	     (ns-use-native-fullscreen ns boolean "24.4")
              (ns-use-fullscreen-animation ns boolean "25.1")
              (ns-use-srgb-colorspace ns boolean "24.4")
@@ -550,27 +581,7 @@ since it could result in memory overflow and make Emacs crash."
 	     (x-select-enable-clipboard-manager killing boolean "24.1")
 	     ;; xsettings.c
 	     (font-use-system-font font-selection boolean "23.2")))
-      this symbol group type standard version native-p rest prop propval
-      ;; This function turns a value
-      ;; into an expression which produces that value.
-      (quoter (lambda (sexp)
-		(if (or (memq sexp '(t nil))
-			(keywordp sexp)
-			(and (listp sexp)
-			     (memq (car sexp) '(lambda)))
-			(stringp sexp)
-			(numberp sexp))
-		    sexp
-		  (list 'quote sexp)))))
-  (while all
-    (setq this (car all)
-	  all (cdr all)
-	  symbol (nth 0 this)
-	  group (nth 1 this)
-	  type (nth 2 this)
-	  version (nth 3 this)
-	  rest (nthcdr 4 this)
-	  ;; If we did not specify any standard value expression above,
+    (setq ;; If we did not specify any standard value expression above,
 	  ;; use the current value as the standard value.
 	  standard (if (setq prop (memq :standard rest))
 		       (cadr prop)
@@ -628,7 +639,11 @@ since it could result in memory overflow and make Emacs crash."
 	  (put symbol 'custom-set (cadr prop)))
       ;; Note this is the _only_ initialize property we handle.
       (if (eq (cadr (memq :initialize rest)) 'custom-initialize-delay)
-	  (push symbol custom-delayed-init-variables))
+          ;; These vars are defined early and should hence be initialized
+          ;; early, even if this file happens to be loaded late.  so add them
+          ;; to the end of custom-delayed-init-variables.  Otherwise,
+          ;; auto-save-file-name-transforms will appear in M-x customize-rogue.
+	  (add-to-list 'custom-delayed-init-variables symbol 'append))
       ;; If this is NOT while dumping Emacs, set up the rest of the
       ;; customization info.  This is the stuff that is not needed
       ;; until someone does M-x customize etc.
@@ -649,7 +664,6 @@ since it could result in memory overflow and make Emacs crash."
 		((eq prop :tag)
 		 (put symbol 'custom-tag propval))))))))
 
-(custom-add-to-group 'iswitchb 'read-buffer-function 'custom-variable)
 (custom-add-to-group 'font-lock 'open-paren-in-column-0-is-defun-start
 		     'custom-variable)
 

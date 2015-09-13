@@ -7833,9 +7833,7 @@ static void
 code_conversion_restore (Lisp_Object arg)
 {
   Lisp_Object current, workbuf;
-  struct gcpro gcpro1;
 
-  GCPRO1 (arg);
   current = XCAR (arg);
   workbuf = XCDR (arg);
   if (! NILP (workbuf))
@@ -7846,7 +7844,6 @@ code_conversion_restore (Lisp_Object arg)
 	Fkill_buffer (workbuf);
     }
   set_buffer_internal (XBUFFER (current));
-  UNGCPRO;
 }
 
 Lisp_Object
@@ -8118,16 +8115,12 @@ decode_coding_object (struct coding_system *coding,
 
   if (! NILP (CODING_ATTR_POST_READ (attrs)))
     {
-      struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
       ptrdiff_t prev_Z = Z, prev_Z_BYTE = Z_BYTE;
       Lisp_Object val;
 
       TEMP_SET_PT_BOTH (coding->dst_pos, coding->dst_pos_byte);
-      GCPRO5 (coding->src_object, coding->dst_object, src_object, dst_object,
-	      old_deactivate_mark);
       val = safe_call1 (CODING_ATTR_POST_READ (attrs),
 			make_number (coding->produced_char));
-      UNGCPRO;
       CHECK_NATNUM (val);
       coding->produced_char += Z - prev_Z;
       coding->produced += Z_BYTE - prev_Z_BYTE;
@@ -8255,15 +8248,8 @@ encode_coding_object (struct coding_system *coding,
 	  set_buffer_internal (XBUFFER (coding->src_object));
 	}
 
-      {
-	struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
-
-	GCPRO5 (coding->src_object, coding->dst_object, src_object, dst_object,
-		old_deactivate_mark);
-	safe_call2 (CODING_ATTR_PRE_WRITE (attrs),
-		    make_number (BEG), make_number (Z));
-	UNGCPRO;
-      }
+      safe_call2 (CODING_ATTR_PRE_WRITE (attrs),
+		  make_number (BEG), make_number (Z));
       if (XBUFFER (coding->src_object) != current_buffer)
 	kill_src_buffer = 1;
       coding->src_object = Fcurrent_buffer ();
@@ -8301,7 +8287,11 @@ encode_coding_object (struct coding_system *coding,
 	}
     }
   else
-    code_conversion_save (0, 0);
+    {
+      code_conversion_save (0, 0);
+      coding->src_pos = from;
+      coding->src_pos_byte = from_byte;
+    }
 
   if (BUFFERP (dst_object))
     {
@@ -10828,18 +10818,11 @@ syms_of_coding (void)
   /* Target SERVICE is the fourth argument.  */
   Fput (Qopen_network_stream, Qtarget_idx, make_number (3));
 
-  DEFSYM (Qcoding_system, "coding-system");
-  DEFSYM (Qcoding_aliases, "coding-aliases");
-
-  DEFSYM (Qeol_type, "eol-type");
   DEFSYM (Qunix, "unix");
   DEFSYM (Qdos, "dos");
   DEFSYM (Qmac, "mac");
 
   DEFSYM (Qbuffer_file_coding_system, "buffer-file-coding-system");
-  DEFSYM (Qpost_read_conversion, "post-read-conversion");
-  DEFSYM (Qpre_write_conversion, "pre-write-conversion");
-  DEFSYM (Qdefault_char, "default-char");
   DEFSYM (Qundecided, "undecided");
   DEFSYM (Qno_conversion, "no-conversion");
   DEFSYM (Qraw_text, "raw-text");
@@ -10873,10 +10856,6 @@ syms_of_coding (void)
   DEFSYM (Qtranslation_table, "translation-table");
   Fput (Qtranslation_table, Qchar_table_extra_slots, make_number (2));
   DEFSYM (Qtranslation_table_id, "translation-table-id");
-  DEFSYM (Qtranslation_table_for_decode, "translation-table-for-decode");
-  DEFSYM (Qtranslation_table_for_encode, "translation-table-for-encode");
-
-  DEFSYM (Qvalid_codes, "valid-codes");
 
   /* Coding system emacs-mule and raw-text are for converting only
      end-of-line format.  */
@@ -11064,7 +11043,7 @@ conversion.  */);
 
   DEFVAR_BOOL ("inhibit-eol-conversion", inhibit_eol_conversion,
 	       doc: /*
-*Non-nil means always inhibit code conversion of end-of-line format.
+Non-nil means always inhibit code conversion of end-of-line format.
 See info node `Coding Systems' and info node `Text and Binary' concerning
 such conversion.  */);
   inhibit_eol_conversion = 0;
@@ -11132,33 +11111,34 @@ See also the function `find-operation-coding-system'.  */);
 
   DEFVAR_LISP ("locale-coding-system", Vlocale_coding_system,
 	       doc: /* Coding system to use with system messages.
-Also used for decoding keyboard input on X Window system.  */);
+Also used for decoding keyboard input on X Window system, and for
+encoding standard output and error streams.  */);
   Vlocale_coding_system = Qnil;
 
   /* The eol mnemonics are reset in startup.el system-dependently.  */
   DEFVAR_LISP ("eol-mnemonic-unix", eol_mnemonic_unix,
 	       doc: /*
-*String displayed in mode line for UNIX-like (LF) end-of-line format.  */);
+String displayed in mode line for UNIX-like (LF) end-of-line format.  */);
   eol_mnemonic_unix = build_pure_c_string (":");
 
   DEFVAR_LISP ("eol-mnemonic-dos", eol_mnemonic_dos,
 	       doc: /*
-*String displayed in mode line for DOS-like (CRLF) end-of-line format.  */);
+String displayed in mode line for DOS-like (CRLF) end-of-line format.  */);
   eol_mnemonic_dos = build_pure_c_string ("\\");
 
   DEFVAR_LISP ("eol-mnemonic-mac", eol_mnemonic_mac,
 	       doc: /*
-*String displayed in mode line for MAC-like (CR) end-of-line format.  */);
+String displayed in mode line for MAC-like (CR) end-of-line format.  */);
   eol_mnemonic_mac = build_pure_c_string ("/");
 
   DEFVAR_LISP ("eol-mnemonic-undecided", eol_mnemonic_undecided,
 	       doc: /*
-*String displayed in mode line when end-of-line format is not yet determined.  */);
+String displayed in mode line when end-of-line format is not yet determined.  */);
   eol_mnemonic_undecided = build_pure_c_string (":");
 
   DEFVAR_LISP ("enable-character-translation", Venable_character_translation,
 	       doc: /*
-*Non-nil enables character translation while encoding and decoding.  */);
+Non-nil enables character translation while encoding and decoding.  */);
   Venable_character_translation = Qt;
 
   DEFVAR_LISP ("standard-translation-table-for-decode",

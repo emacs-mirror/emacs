@@ -303,7 +303,7 @@ when you hit the end of the current node."
   "If non-nil, hide the tag and section reference in *note and * menu items.
 If value is non-nil but not `hide', also replaces the \"*note\" with \"see\".
 If value is non-nil but not t or `hide', the reference section is still shown.
-`nil' completely disables this feature.  If this is non-nil, you might
+nil completely disables this feature.  If this is non-nil, you might
 want to set `Info-refill-paragraphs'."
   :version "22.1"
   :type '(choice (const :tag "No hiding" nil)
@@ -632,7 +632,7 @@ Do the right thing if the file has been compressed or zipped."
 				       default-directory)))
 	    (or (consp decoder)
 		(setq decoder (list decoder)))
-	    (apply 'call-process-region (point-min) (point-max)
+	    (apply #'call-process-region (point-min) (point-max)
 		   (car decoder) t t nil (cdr decoder))))
       (let ((inhibit-null-byte-detection t)) ; Index nodes include null bytes
 	(insert-file-contents fullname visit)))
@@ -1009,7 +1009,7 @@ REGEXP is a regular expression matching nodes or references.  Its first
 group should match `Node:' or `Ref:'.
 CASE-FOLD t means search for a case-insensitive match.
 If a match was found, value is a list (FOUND-ANCHOR POS MODE), where
-FOUND-ANCHOR is non-nil if a `Ref:' was matched, POS is the position
+FOUND-ANCHOR is non-nil if a `Ref:' was matched, POS is the file position
 where the match was found, and MODE is `major-mode' of the buffer in
 which the match was found."
   (let ((case-fold-search case-fold))
@@ -1020,7 +1020,7 @@ which the match was found."
       (beginning-of-line)
       (when (re-search-forward regexp nil t)
 	(list (string-equal "Ref:" (match-string 1))
-	      (+ (point-min) (read (current-buffer)))
+              (read (current-buffer))
 	      major-mode)))))
 
 (defun Info-find-in-tag-table (marker regexp &optional strict-case)
@@ -1029,7 +1029,7 @@ MARKER specifies the buffer and position to start searching at.
 REGEXP is a regular expression matching nodes or references.  Its first
 group should match `Node:' or `Ref:'.
 If a match was found, value is a list (FOUND-ANCHOR POS MODE), where
-FOUND-ANCHOR is non-nil if a `Ref:' was matched, POS is the position
+FOUND-ANCHOR is non-nil if a `Ref:' was matched, POS is the file position
 where the match was found, and MODE is `major-mode' of the buffer in
 which the match was found.
 This function tries to find a case-sensitive match first, then a
@@ -1115,6 +1115,10 @@ is non-nil)."
 		  Info-current-file-completions nil
 		  buffer-file-name nil)
 	    (erase-buffer)
+            ;; Erase any memory of the previous coding-system, so that
+            ;; info-insert-file-contents sets the buffer's encoding to
+            ;; what the Info file specifies.
+            (set-buffer-file-coding-system 'undecided t)
 	    (info-insert-file-contents filename nil)
 	    (setq default-directory (file-name-directory filename))
 	    (set-buffer-modified-p nil)
@@ -1187,15 +1191,18 @@ is non-nil)."
 
 		  (when found
 		    ;; FOUND is (ANCHOR POS MODE).
-		    (setq guesspos (nth 1 found))
+		    (let ((filepos (nth 1 found))) ;File position in bytes.
 
-		    ;; If this is an indirect file, determine which
-		    ;; file really holds this node and read it in.
-		    (unless (eq (nth 2 found) 'Info-mode)
-		      ;; Note that the current buffer must be the
-		      ;; *info* buffer on entry to
-		      ;; Info-read-subfile.  Thus the hackery above.
-		      (setq guesspos (Info-read-subfile guesspos)))
+                      ;; If this is an indirect file, determine which
+                      ;; file really holds this node and read it in.
+                      (unless (eq (nth 2 found) 'Info-mode)
+                        ;; Note that the current buffer must be the
+                        ;; *info* buffer on entry to
+                        ;; Info-read-subfile.  Thus the hackery above.
+                        (setq filepos (Info-read-subfile filepos)))
+
+                      (setq guesspos
+                            (filepos-to-bufferpos filepos 'approximate)))
 
 		    ;; Handle anchor
 		    (when (nth 0 found)
@@ -1203,13 +1210,24 @@ is non-nil)."
 		      (throw 'foo t)))))
 
 	      ;; Else we may have a node, which we search for:
-	      (goto-char (max (point-min)
-			      (- (byte-to-position guesspos) 1000)))
+	      (goto-char (max (point-min) (- guesspos 1000)))
 
 	      ;; Now search from our advised position (or from beg of
 	      ;; buffer) to find the actual node.  First, check
 	      ;; whether the node is right where we are, in case the
 	      ;; buffer begins with a node.
+	      (let ((pos (Info-find-node-in-buffer regexp strict-case)))
+		(when pos
+		  (goto-char pos)
+		  (throw 'foo t)))
+
+              ;; If the Texinfo source had an @ifnottex block of text
+              ;; before the Top node, makeinfo 5.0 and 5.1 mistakenly
+              ;; omitted that block's size from the starting position
+              ;; of the 1st subfile, which makes GUESSPOS overshoot
+              ;; the correct position by the length of that text.  So
+              ;; we try again with a larger slop.
+              (goto-char (max (point-min) (- guesspos 10000)))
 	      (let ((pos (Info-find-node-in-buffer regexp strict-case)))
 		(when pos
 		  (goto-char pos)
@@ -1422,10 +1440,10 @@ is non-nil)."
 	    (insert "\^_\nFile: dir\tNode: " nodename "\n\n* Menu:\n\n"))
 	  ;; Merge the text from the other buffer's menu
 	  ;; into the menu in the like-named node in the main buffer.
-	  (apply 'insert-buffer-substring (cdr node))))
+	  (apply #'insert-buffer-substring (cdr node))))
       (Info-dir-remove-duplicates)
       ;; Kill all the buffers we just made, including the special one excised.
-      (mapc 'kill-buffer (cons buffer buffers))
+      (mapc #'kill-buffer (cons buffer buffers))
       (goto-char (point-min))
       (if problems
 	  (message "Composing main Info directory...problems encountered, see `*Messages*'")
@@ -1506,7 +1524,7 @@ is non-nil)."
 ;; Note that on entry to this function the current-buffer must be the
 ;; *info* buffer; not the info tags buffer.
 (defun Info-read-subfile (nodepos)
-  ;; NODEPOS is either a position (in the Info file as a whole,
+  ;; NODEPOS is either a position in bytes (in the Info file as a whole,
   ;; not relative to a subfile) or the name of a subfile.
   (let (lastfilepos
 	lastfilename)
@@ -1523,7 +1541,7 @@ is non-nil)."
 			thisfilepos thisfilename)
 		    (search-forward ": ")
 		    (setq thisfilename  (buffer-substring beg (- (point) 2)))
-		    (setq thisfilepos (+ (point-min) (read (current-buffer))))
+		    (setq thisfilepos (read (current-buffer)))
 		    ;; read in version 19 stops at the end of number.
 		    ;; Advance to the next line.
 		    (forward-line 1)
@@ -1551,10 +1569,13 @@ is non-nil)."
     (if (looking-at "\^_")
 	(forward-char 1)
       (search-forward "\n\^_"))
-    ;; Don't add the length of the skipped summary segment to
-    ;; the value returned to `Info-find-node-2'.  (Bug#14125)
     (if (numberp nodepos)
-	(+ (- nodepos lastfilepos) (point-min)))))
+        ;; Our caller ('Info-find-node-2') wants the (zero-based) byte
+        ;; offset corresponding to NODEPOS, from the beginning of the
+        ;; subfile.  This is especially important if NODEPOS is for an
+        ;; anchor reference, because for those the position is all we
+        ;; have.
+	(+ (- nodepos lastfilepos) (bufferpos-to-filepos (point) 'exact)))))
 
 (defun Info-unescape-quotes (value)
   "Unescape double quotes and backslashes in VALUE."
@@ -1810,10 +1831,10 @@ See `completing-read' for a description of arguments and usage."
    ((string-match "\\`([^)]*\\'" string)
     (completion-table-with-context
      "("
-     (apply-partially 'completion-table-with-terminator ")"
-                      (apply-partially 'Info-read-node-name-2
+     (apply-partially #'completion-table-with-terminator ")"
+                      (apply-partially #'Info-read-node-name-2
                                        Info-directory-list
-                                       (mapcar 'car Info-suffix-list)))
+                                       (mapcar #'car Info-suffix-list)))
      (substring string 1)
      predicate
      code))
@@ -1827,12 +1848,11 @@ See `completing-read' for a description of arguments and usage."
 	  t
 	(completion-table-with-context
 	 file0
-	 (apply-partially
-	  (lambda (string pred action)
-	    (complete-with-action
-	     action
-	     (Info-build-node-completions (Info-find-file file1))
-	     string pred)))
+         (lambda (string pred action)
+           (complete-with-action
+            action
+            (Info-build-node-completions (Info-find-file file1))
+            string pred))
 	 nodename predicate code))))
    ;; Otherwise use Info-read-node-completion-table.
    (t (complete-with-action
@@ -2014,10 +2034,9 @@ If DIRECTION is `backward', search in the reverse direction."
 		        (re-search-backward "\\(^.*\\): [0-9]+$")
 		      (re-search-forward "\\(^.*\\): [0-9]+$"))
 		    (goto-char (+ (match-end 1) 2))
-		    (setq list (cons (cons (+ (point-min)
-					      (read (current-buffer)))
-					   (match-string-no-properties 1))
-				     list))
+		    (push (cons (read (current-buffer))
+                                (match-string-no-properties 1))
+                          list)
 		    (goto-char (if backward
                                    (1- (match-beginning 0))
                                  (1+ (match-end 0)))))
@@ -2577,7 +2596,9 @@ new buffer."
     (save-excursion
       ;; Move point to the beginning of reference if point is on reference
       (or (looking-at "\\*note[ \n\t]+")
-          (and (looking-back "\\*note[ \n\t]+")
+          (and (looking-back "\\*note[ \n\t]+"
+                             (save-excursion (skip-chars-backward " \n\t")
+                                             (line-beginning-position)))
                (goto-char (match-beginning 0)))
           (if (and (save-excursion
                      (goto-char (+ (point) 5)) ; skip a possible *note
@@ -2748,7 +2769,8 @@ new buffer."
 	      (end-of-line)
 	      (if (re-search-backward (concat "\n\\* +\\("
 					      Info-menu-entry-name-re
-					      "\\):") beg t)
+					      "\\):")
+                                      beg t)
 		  (setq default (match-string-no-properties 1))))))
      (let ((item nil))
        (while (null item)
@@ -2758,7 +2780,8 @@ new buffer."
 					   (format "Menu item (default %s): "
 						   default)
 					 "Menu item: ")
-				       'Info-complete-menu-item nil t)))
+				       #'Info-complete-menu-item nil t nil nil
+                                       default)))
 	 ;; we rely on the fact that completing-read accepts an input
 	 ;; of "" even when the require-match argument is true and ""
 	 ;; is not a valid possibility
@@ -3358,11 +3381,11 @@ Give an empty topic name to go to the Index node itself."
 	   (car (car Info-index-alternatives))
 	   (nth 2 (car Info-index-alternatives))
 	   (if (cdr Info-index-alternatives)
-	       (format "(%s total; use `%s' for next)"
-		       (length Info-index-alternatives)
-		       (key-description (where-is-internal
-					 'Info-index-next overriding-local-map
-					 t)))
+	       (format-message
+		"(%s total; use `%s' for next)"
+		(length Info-index-alternatives)
+		(key-description (where-is-internal
+				  'Info-index-next overriding-local-map t)))
 	     "(Only match)")))
 
 (defun Info-find-index-name (name)
@@ -3375,10 +3398,10 @@ Give an empty topic name to go to the Index node itself."
 	    (re-search-forward (format
                                 "[a-zA-Z]+: [a-zA-Z0-9_ *&]+ %s\\( \\|$\\)"
                                 (regexp-quote name)) nil t)
-	    (search-forward (format "`%s'" name) nil t)
+	    (search-forward (format "['`‘]%s['’]" name) nil t)
 	    (and (string-match "\\`.*\\( (.*)\\)\\'" name)
 		 (search-forward
-		  (format "`%s'" (substring name 0 (match-beginning 1)))
+		  (format "['`‘]%s['’]" (substring name 0 (match-beginning 1)))
 		  nil t))
 	    (search-forward name nil t)
 	    ;; Try again without the " <1>" makeinfo can append
@@ -3403,7 +3426,7 @@ MATCHES is a list of index matches found by `Info-index'.")
 (defun Info-virtual-index-find-node (filename nodename &optional _no-going-back)
   "Index-specific implementation of `Info-find-node-2'."
   ;; Generate Index-like menu of matches
-  (if (string-match "^\\*Index for `\\(.+\\)'\\*$" nodename)
+  (if (string-match "^\\*Index for ‘\\(.+\\)’\\*$" nodename)
       ;; Generate Index-like menu of matches
       (let* ((topic (match-string 1 nodename))
 	     (matches (cdr (assoc (cons (or filename Info-current-file) topic)
@@ -3412,7 +3435,7 @@ MATCHES is a list of index matches found by `Info-index'.")
 			(or filename Info-current-file) nodename))
 	(insert "Info Virtual Index\n")
 	(insert "******************\n\n")
-	(insert "Index entries that match `" topic "':\n\n")
+	(insert "Index entries that match ‘" topic "’:\n\n")
 	(insert "\0\b[index\0\b]\n")
 	(if (null matches)
 	    (insert "No matches found.\n")
@@ -3431,13 +3454,13 @@ MATCHES is a list of index matches found by `Info-index'.")
       (insert "Info Virtual Index\n")
       (insert "******************\n\n")
       (insert "This is a list of search results produced by\n"
-	      "`Info-virtual-index' for the current manual.\n\n")
+	      "‘Info-virtual-index’ for the current manual.\n\n")
       (insert "* Menu:\n\n")
       (dolist (nodeinfo nodes)
 	(when (equal (car (nth 0 nodeinfo)) (or filename Info-current-file))
 	  (insert
 	   (format "* %-20s %s.\n"
-		   (format "*Index for `%s'*::" (cdr (nth 0 nodeinfo)))
+		   (format "*Index for ‘%s’*::" (cdr (nth 0 nodeinfo)))
 		   (cdr (nth 0 nodeinfo)))))))))
 
 (defun Info-virtual-index (topic)
@@ -3472,7 +3495,8 @@ search results."
 	(setq Info-history-list ohist-list)
 	(Info-goto-node orignode)
 	(message "")))
-    (Info-find-node Info-current-file (format "*Index for `%s'*" topic))))
+    (Info-find-node Info-current-file
+                    (format "*Index for ‘%s’*" topic))))
 
 (add-to-list 'Info-virtual-files
 	     '("\\`\\*Apropos\\*\\'"
@@ -3494,7 +3518,7 @@ MATCHES is a list of index matches found by `Info-apropos-matches'.")
 
 (defun Info-apropos-toc-nodes (filename)
   "Apropos-specific implementation of `Info-toc-nodes'."
-  (let ((nodes (mapcar 'car (reverse Info-apropos-nodes))))
+  (let ((nodes (mapcar #'car (reverse Info-apropos-nodes))))
     `(,filename
       ("Top" nil nil ,nodes)
       ,@(mapcar (lambda (node) `(,node "Top" nil nil)) nodes))))
@@ -3512,7 +3536,7 @@ MATCHES is a list of index matches found by `Info-apropos-matches'.")
 			Info-apropos-file nodename))
 	(insert "Apropos Index\n")
 	(insert "*************\n\n")
-	(insert "This is a list of search results produced by `info-apropos'.\n\n")
+	(insert "This is a list of search results produced by ‘info-apropos’.\n\n")
 	(insert "* Menu:\n\n")
 	(dolist (nodeinfo nodes)
 	  (insert (format "* %-20s %s.\n"
@@ -3526,7 +3550,7 @@ MATCHES is a list of index matches found by `Info-apropos-matches'.")
 			Info-apropos-file nodename))
 	(insert "Apropos Index\n")
 	(insert "*************\n\n")
-	(insert "Index entries that match `" (nth 1 nodeinfo) "':\n\n")
+	(insert "Index entries that match ‘" (nth 1 nodeinfo) "’:\n\n")
 	(insert "\0\b[index\0\b]\n")
 	(if (eq matches t)
 	    (insert "No matches found.\n")
@@ -3611,7 +3635,7 @@ Build a menu of the possible matches."
 	(setq nodes (cdr nodes)))
       (if nodes
 	  (Info-find-node Info-apropos-file (car (car nodes)))
-	(setq nodename (format "Index for `%s'" string))
+	(setq nodename (format "Index for ‘%s’" string))
 	(push (list nodename string (Info-apropos-matches string))
 	      Info-apropos-nodes)
 	(Info-find-node Info-apropos-file nodename)))))
@@ -3639,7 +3663,7 @@ Build a menu of the possible matches."
 (defun info--prettify-description (desc)
   (if (stringp desc)
       (with-temp-buffer
-	(insert desc)
+	(insert (substitute-command-keys desc))
 	(if (equal ?. (char-before))
 	    (delete-char -1))
 	(goto-char (point-min))
@@ -3704,16 +3728,16 @@ Build a menu of the possible matches."
     (insert "Finder Packages\n")
     (insert "***************\n\n")
     (insert
-     "The following packages match the keyword `" nodename "':\n\n")
+     "The following packages match the keyword ‘" nodename "’:\n\n")
     (insert "* Menu:\n\n")
     (let ((keywords
-	   (mapcar 'intern (if (string-match-p "," nodename)
+	   (mapcar #'intern (if (string-match-p "," nodename)
 			       (split-string nodename ",[ \t\n]*" t)
 			     (list nodename))))
 	  hits desc)
       (dolist (keyword keywords)
 	(push (copy-tree (gethash keyword finder-keywords-hash)) hits))
-      (setq hits (delete-dups (apply 'append hits))
+      (setq hits (delete-dups (apply #'append hits))
 	    ;; Not a meaningful package.
 	    hits (delete 'emacs hits)
 	    hits (sort hits (lambda (a b) (string< (symbol-name a)
@@ -3731,7 +3755,7 @@ Build a menu of the possible matches."
     (insert "Package Description\n")
     (insert "*******************\n\n")
     (insert
-     "Description of the package `" nodename "':\n\n")
+     "Description of the package ‘" nodename "’:\n\n")
     ;; This assumes that a file named package.el exists,
     ;; which is not always true.  E.g. for the nxml package,
     ;; there is no "nxml.el" (it's nxml-mode.el).
@@ -3739,7 +3763,7 @@ Build a menu of the possible matches."
     ;; I think nxml is the only exception - maybe it should be just be renamed.
     (let ((str (ignore-errors (lm-commentary (find-library-name nodename)))))
       (if (null str)
-	  (insert "Can't find package description.\n\n")
+	  (insert "Can’t find package description.\n\n")
 	(insert
 	 (with-temp-buffer
 	   (insert str)
@@ -3764,8 +3788,8 @@ with a list of packages that contain all specified keywords."
      (list
       (completing-read-multiple
        "Keywords (separated by comma): "
-       (mapcar 'symbol-name (mapcar 'car (append finder-known-keywords
-						 (finder-unknown-keywords))))
+       (mapcar #'symbol-name (mapcar #'car (append finder-known-keywords
+                                                   (finder-unknown-keywords))))
        nil t))))
   (require 'finder)
   (if keywords
@@ -3802,7 +3826,7 @@ with a list of packages that contain all specified keywords."
 		    (message (if flag "Type Space to see more"
 			       "Type Space to return to Info"))
 		    (if (not (eq ?\s (setq ch (read-event))))
-			(progn (setq unread-command-events (list ch)) nil)
+			(progn (push ch unread-command-events) nil)
 		      flag))
 	(scroll-up)))
     (bury-buffer "*Help*")))
@@ -3814,7 +3838,7 @@ START is a regular expression which will match the
     beginning of the tokens delimited string.
 ALL is a regular expression with a single
     parenthesized subpattern which is the token to be
-    returned.  E.g. '{\(.*\)}' would return any string
+    returned.  E.g. `{\(.*\)}' would return any string
     enclosed in braces around POS.
 ERRORSTRING optional fourth argument, controls action on no match:
     nil: return nil
@@ -3891,7 +3915,7 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
   (let (node)
     (cond
      ((setq node (Info-get-token (point) "[hf]t?tps?://"
-				 "\\([hf]t?tps?://[^ \t\n\"`({<>})']+\\)"))
+				 "\\([hf]t?tps?://[^ \t\n\"`‘({<>})’']+\\)"))
       (browse-url node)
       (setq node t))
      ((setq node (Info-get-token (point) "\\*note[ \n\t]+"
@@ -4696,28 +4720,28 @@ first line or header line, and for breadcrumb links.")
       ;; Fontify titles
       (goto-char (point-min))
       (when (and font-lock-mode not-fontified-p)
-        (while (and (re-search-forward "\n\\([^ \t\n].+\\)\n\\(\\*\\*+\\|==+\\|--+\\|\\.\\.+\\)$"
-                                       nil t)
-                    ;; Only consider it as an underlined title if the ASCII
-                    ;; underline has the same size as the text.  A typical
-                    ;; counter example is when a continuation "..." is alone
-                    ;; on a line.
-                    (= (string-width (match-string 1))
-                       (string-width (match-string 2))))
-          (let* ((c (preceding-char))
-                 (face
-                  (cond ((= c ?*) 'info-title-1)
-                        ((= c ?=) 'info-title-2)
-                        ((= c ?-) 'info-title-3)
-                        (t        'info-title-4))))
-            (put-text-property (match-beginning 1) (match-end 1)
-                               'font-lock-face face))
-          ;; This is a serious problem for trying to handle multiple
-          ;; frame types at once.  We want this text to be invisible
-          ;; on frames that can display the font above.
-          (when (memq (framep (selected-frame)) '(x pc w32 ns))
-            (add-text-properties (1- (match-beginning 2)) (match-end 2)
-                                 '(invisible t front-sticky nil rear-nonsticky t)))))
+        (while (re-search-forward "\n\\([^ \t\n].+\\)\n\\(\\*\\*+\\|==+\\|--+\\|\\.\\.+\\)$"
+                                  nil t)
+          ;; Only consider it as an underlined title if the ASCII
+          ;; underline has the same size as the text.  A typical
+          ;; counter example is when a continuation "..." is alone
+          ;; on a line.
+          (when (= (string-width (match-string 1))
+                   (string-width (match-string 2)))
+            (let* ((c (preceding-char))
+                   (face
+                    (cond ((= c ?*) 'info-title-1)
+                          ((= c ?=) 'info-title-2)
+                          ((= c ?-) 'info-title-3)
+                          (t        'info-title-4))))
+              (put-text-property (match-beginning 1) (match-end 1)
+                                 'font-lock-face face))
+            ;; This is a serious problem for trying to handle multiple
+            ;; frame types at once.  We want this text to be invisible
+            ;; on frames that can display the font above.
+            (when (memq (framep (selected-frame)) '(x pc w32 ns))
+              (add-text-properties (1- (match-beginning 2)) (match-end 2)
+                                   '(invisible t front-sticky nil rear-nonsticky t))))))
 
       ;; Fontify cross references
       (goto-char (point-min))
@@ -4738,9 +4762,11 @@ first line or header line, and for breadcrumb links.")
 		    ;; an end of sentence
 		    (skip-syntax-backward " ("))
                   (setq other-tag
-			(cond ((save-match-data (looking-back "\\<see"))
+			(cond ((save-match-data (looking-back "\\<see"
+                                                              (- (point) 3)))
 			       "")
-			      ((save-match-data (looking-back "\\<in"))
+			      ((save-match-data (looking-back "\\<in"
+                                                              (- (point) 2)))
 			       "")
 			      ((memq (char-before) '(nil ?\. ?! ??))
                                "See ")
@@ -4974,7 +5000,7 @@ first line or header line, and for breadcrumb links.")
       ;; Fontify http and ftp references
       (goto-char (point-min))
       (when not-fontified-p
-        (while (re-search-forward "\\(https?\\|ftp\\)://[^ \t\n\"`({<>})']+"
+        (while (re-search-forward "\\(https?\\|ftp\\)://[^ \t\n\"`‘({<>})’']+"
                                   nil t)
           (add-text-properties (match-beginning 0) (match-end 0)
                                '(font-lock-face info-xref
@@ -5318,9 +5344,9 @@ completion alternatives to currently visited manuals."
 			 (when (not visited-only)
 			   (all-completions
 			    ""
-			    (apply-partially 'Info-read-node-name-2
+			    (apply-partially #'Info-read-node-name-2
 					     Info-directory-list
-					     (mapcar 'car Info-suffix-list))))))))
+					     (mapcar #'car Info-suffix-list))))))))
 
 (provide 'info)
 

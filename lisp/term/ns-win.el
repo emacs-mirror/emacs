@@ -717,10 +717,6 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 ;;;; Pasteboard support.
 
-(declare-function ns-get-selection-internal "nsselect.m" (buffer))
-
-(define-obsolete-function-alias 'ns-get-cut-buffer-internal
-  'ns-get-selection-internal "24.1")
 (define-obsolete-function-alias 'ns-store-cut-buffer-internal
   'gui-set-selection "24.1")
 
@@ -732,7 +728,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 (defun ns-paste-secondary ()
   (interactive)
-  (insert (ns-get-selection-internal 'SECONDARY)))
+  (insert (gui-get-selection 'SECONDARY)))
 
 
 ;;;; Scrollbar handling.
@@ -852,7 +848,8 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 ;; Do the actual Nextstep Windows setup here; the above code just
 ;; defines functions and variables that we use now.
-(defun ns-initialize-window-system (&optional _display)
+(cl-defmethod window-system-initialization (&context (window-system (eql ns))
+                                            &optional _display)
   "Initialize Emacs for Nextstep (Cocoa / GNUstep) windowing."
   (cl-assert (not ns-initialized))
 
@@ -925,18 +922,34 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 ;; Any display name is OK.
 (add-to-list 'display-format-alist '(".*" . ns))
-(gui-method-define handle-args-function ns #'x-handle-args)
-(gui-method-define frame-creation-function ns #'x-create-frame-with-faces)
-(gui-method-define window-system-initialization ns
-                   #'ns-initialize-window-system)
+(cl-defmethod handle-args-function (args &context (window-system (eql ns)))
+  (x-handle-args args))
 
-(gui-method-define gui-set-selection ns
-                   (lambda (selection value)
-                     (if value (ns-own-selection-internal selection value)
-                       (ns-disown-selection-internal selection))))
-(gui-method-define gui-selection-owner-p ns #'ns-selection-owner-p)
-(gui-method-define gui-selection-exists-p ns #'ns-selection-exists-p)
-(gui-method-define gui-get-selection ns #'ns-get-selection)
+(cl-defmethod frame-creation-function (params &context (window-system (eql ns)))
+  (x-create-frame-with-faces params))
+
+(declare-function ns-own-selection-internal "nsselect.m" (selection value))
+(declare-function ns-disown-selection-internal "nsselect.m" (selection))
+(declare-function ns-selection-owner-p "nsselect.m" (&optional selection))
+(declare-function ns-selection-exists-p "nsselect.m" (&optional selection))
+(declare-function ns-get-selection "nsselect.m" (selection-symbol target-type))
+
+(cl-defmethod gui-backend-set-selection (selection value
+                                         &context (window-system (eql ns)))
+  (if value (ns-own-selection-internal selection value)
+    (ns-disown-selection-internal selection)))
+
+(cl-defmethod gui-backend-selection-owner-p (selection
+                                             &context (window-system (eql ns)))
+  (ns-selection-owner-p selection))
+
+(cl-defmethod gui-backend-selection-exists-p (selection
+                                              &context (window-system (eql ns)))
+  (ns-selection-exists-p selection))
+
+(cl-defmethod gui-backend-get-selection (selection-symbol target-type
+                                         &context (window-system (eql ns)))
+  (ns-get-selection selection-symbol target-type))
 
 (provide 'ns-win)
 

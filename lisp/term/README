@@ -7,22 +7,22 @@ terminal types.
 
    When Emacs opens a new terminal, it checks the TERM environment variable
 to see what type of terminal the user is running on.  (If there is an entry
-for TERM in the `term-file-aliases' variable, Emacs uses the associated value
+for TERM in the 'term-file-aliases' variable, Emacs uses the associated value
 in place of TERM in the following.)  Emacs searches for an elisp file named
 "term/${TERM}.el", and if one exists, loads it.  If Emacs finds no
 suitable file, then it strips the last hyphen and what follows it from TERM,
 and tries again.  If that still doesn't yield a file, then the previous hyphen
 is stripped, and so on until all hyphens are gone.  For example, if the
-terminal type is `aaa-48-foo', Emacs will try first `term/aaa-48-foo.el', then
-`term/aaa-48.el' and finally `term/aaa.el'.  Emacs stops searching at the
+terminal type is 'aaa-48-foo', Emacs will try first 'term/aaa-48-foo.el', then
+'term/aaa-48.el' and finally 'term/aaa.el'.  Emacs stops searching at the
 first file found, and will not load more than one file for any terminal.  Note
 that it is not an error if Emacs is unable to find a terminal initialization
 file; in that case, it will simply proceed with the next step without loading
 any files.
 
    Once the file has been loaded (or the search failed), Emacs tries to call a
-function named `terminal-init-TERMINALNAME' (eg `terminal-init-aaa-48' for the
-`aaa-48' terminal) in order to initialize the terminal.  Once again, if the
+function named 'terminal-init-TERMINALNAME' (eg 'terminal-init-aaa-48' for the
+'aaa-48' terminal) in order to initialize the terminal.  Once again, if the
 function is not found, Emacs strips the last component of the name and tries
 again using the shorter name.  This search is independent of the previous file
 search, so that you can have terminal initialization functions for a family of
@@ -40,7 +40,7 @@ declaration.  Simply loading the file should not have any side effect.
 given terminal, when the first frame is created on it.  The function is not
 called for subsequent frames on the same terminal.  Therefore, terminal-init-*
 functions should only modify terminal-local variables (such as
-`local-function-key-map') and terminal parameters.  For example, it is not
+'local-function-key-map') and terminal parameters.  For example, it is not
 correct to modify frame parameters, since the modifications will only be
 applied for the first frame opened on the terminal.
 
@@ -51,7 +51,7 @@ mind.
    First, about keycap names.  Your terminal package can create any keycap
 cookies it likes, but there are good reasons to stick to the set recognized by
 the X-windows code whenever possible.  The key symbols recognized by Emacs
-are listed in src/term.c; look for the string `keys' in that file.
+are listed in src/term.c; look for the string 'keys' in that file.
 
    For one thing, it means that you'll have the same Emacs key bindings on in
 terminal mode as on an X console.  If there are differences, you can bet
@@ -61,7 +61,7 @@ they'll frustrate you after you've forgotten about them.
 about.  It tries to bind many of them to useful things at startup, before your
 .emacs is read (so you can override them).  In some ways, the X keysym standard
 is a admittedly poor one; it's incomplete, and not well matched to the set of
-`virtual keys' that UNIX terminfo(3) provides.  But, trust us, the alternatives
+'virtual keys' that UNIX terminfo(3) provides.  But, trust us, the alternatives
 were worse.
 
    This doesn't mean that if your terminal has a "Cokebottle" key you shouldn't
@@ -70,7 +70,7 @@ that set, try to pattern them on the standard terminfo variable names for
 clarity; also, for a fighting chance that your binding may be useful to someone
 else someday.
 
-   For example, if your terminal has a `find' key, observe that terminfo
+   For example, if your terminal has a 'find' key, observe that terminfo
 supports a key_find capability and call your cookie [find].
 
 Here is a complete list, with corresponding X keysyms.
@@ -184,14 +184,14 @@ key_f36		FQ			function key 36
 key_f64		k1			function key 64
 
 (1) The terminfo documentation says this may be the 'insert character' or
-    `enter insert mode' key.  Accordingly, key_ic is mapped to the `insertchar'
-    keysym if there is also a key_dc key; otherwise it's mapped to `insert'.
-    The presumption is that keyboards with `insert character' keys usually
-    have `delete character' keys paired with them.
+    'enter insert mode' key.  Accordingly, key_ic is mapped to the 'insertchar'
+    keysym if there is also a key_dc key; otherwise it's mapped to 'insert'.
+    The presumption is that keyboards with 'insert character' keys usually
+    have 'delete character' keys paired with them.
 
 (2) If there is no key_next key but there is a key_npage key, key_npage
-    will be bound to the `next' keysym.  If there is no key_previous key but
-    there is a key_ppage key, key_ppage will be bound to the `previous' keysym.
+    will be bound to the 'next' keysym.  If there is no key_previous key but
+    there is a key_ppage key, key_ppage will be bound to the 'previous' keysym.
 
 (3) Sorry, these are not exact but they're the best we can do.
 
@@ -242,7 +242,7 @@ the setup code to bind anything else.
 
    If your terminal's arrow key sequences are so funky that they conflict with
 normal Emacs key bindings, the package should set up a function called
-(enable-foo-arrow-keys), where `foo' becomes the terminal name, and leave
+(enable-foo-arrow-keys), where 'foo' becomes the terminal name, and leave
 it up to the user's .emacs file whether to call it.
 
    Before writing a terminal-support package, it's a good idea to read the

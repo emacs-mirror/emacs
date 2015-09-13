@@ -921,7 +921,7 @@ See `sh-feature'.")
      (:foreground "magenta"))
     (t
      (:weight bold)))
-  "Face to show quoted execs like `blabla`."
+  "Face to show quoted execs like \\=`blabla\\=`."
   :group 'sh-indentation)
 (define-obsolete-face-alias 'sh-heredoc-face 'sh-heredoc "22.1")
 (defvar sh-heredoc-face 'sh-heredoc)
@@ -987,7 +987,7 @@ See `sh-feature'.")
     "\\(?:\\(?:.*[^\\\n]\\)?\\(?:\\\\\\\\\\)*\\\\\n\\)*.*")
 
   (defconst sh-here-doc-open-re
-    (concat "<<-?\\s-*\\\\?\\(\\(?:['\"][^'\"]+['\"]\\|\\sw\\|[-/~._]\\)+\\)"
+    (concat "[^<]<<-?\\s-*\\\\?\\(\\(?:['\"][^'\"]+['\"]\\|\\sw\\|[-/~._]\\)+\\)"
             sh-escaped-line-re "\\(\n\\)")))
 
 (defun sh--inside-noncommand-expression (pos)
@@ -1064,7 +1064,16 @@ subshells can nest."
         (pcase (char-after)
           (?\' (pcase state
                  (`double-quote nil)
-                 (_ (forward-char 1) (skip-chars-forward "^'" limit))))
+                 (_ (forward-char 1)
+                    ;; FIXME: mark skipped double quotes as punctuation syntax.
+                    (let ((spos (point)))
+                      (skip-chars-forward "^'" limit)
+                      (save-excursion
+                        (let ((epos (point)))
+                          (goto-char spos)
+                          (while (search-forward "\"" epos t)
+                            (put-text-property (point) (1- (point))
+                                            'syntax-table '(1)))))))))
           (?\\ (forward-char 1))
           (?\" (pcase state
                  (`double-quote (setq state (pop states)))
@@ -1666,7 +1675,7 @@ with your script for an edit-interpret-debug cycle."
          ((string-match "[.]sh\\>"     buffer-file-name) "sh")
          ((string-match "[.]bash\\>"   buffer-file-name) "bash")
          ((string-match "[.]ksh\\>"    buffer-file-name) "ksh")
-         ((string-match "[.]csh\\>"    buffer-file-name) "csh")
+         ((string-match "[.]t?csh\\(rc\\)?\\>" buffer-file-name) "csh")
 	 ((equal (file-name-nondirectory buffer-file-name) ".profile") "sh")
          (t sh-shell-file))
    nil nil)
@@ -4344,7 +4353,7 @@ The document is bounded by `sh-here-document-word'."
   (or arg (sh--maybe-here-document)))
 
 (defun sh--maybe-here-document ()
-  (or (not (looking-back "[^<]<<"))
+  (or (not (looking-back "[^<]<<" (line-beginning-position)))
       (save-excursion
 	(backward-char 2)
         (or (sh-quoted-p)

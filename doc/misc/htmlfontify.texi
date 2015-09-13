@@ -2,8 +2,8 @@
 @comment %**start of header
 @setfilename ../../info/htmlfontify.info
 @settitle Htmlfontify User Manual
+@include docstyle.texi
 @exampleindent 2
-@documentencoding UTF-8
 @comment %**end of header
 
 @copying
@@ -839,8 +839,8 @@ See @ref{hfy-display-class} for details of valid values for @var{class}.
 (hfy-face-at P)
 @end lisp
 
-Find face in effect at point P.  If overlays are to be considered
-(see @ref{hfy-optimisations}) then this may return a @code{defface} style
+Find face in effect at point P@.  If overlays are to be considered
+(see @ref{hfy-optimizations}) then this may return a @code{defface} style
 list of face properties instead of a face symbol.
 
 @item hfy-bgcol
@@ -950,7 +950,7 @@ Is @var{srcdir}/@var{file} text?  Uses @ref{hfy-istext-command} to determine thi
 (hfy-opt @var{symbol})
 @end lisp
 
-Is @ref{hfy-optimisations} member @var{symbol} set or not?
+Is @ref{hfy-optimizations} member @var{symbol} set or not?
 
 @item hfy-dirname
 @findex hfy-dirname
@@ -1395,9 +1395,9 @@ for the more complex shell interactions needed by Htmlfontify.
 Currently this is only required/used when using GNU etags, see
 @ref{hfy-etags-cmd-alist} for details.
 
-@item hfy-optimisations
-@vindex hfy-optimisations
-@anchor{hfy-optimisations}
+@item hfy-optimizations
+@vindex hfy-optimizations
+@anchor{hfy-optimizations}
 
 Optimizations to turn on.  So far, the following have been implemented:
 
@@ -1418,7 +1418,7 @@ Add @samp{<div class="default"> </div>} tags around the fontified body.
 a page with different colors than the fontified code.)
 
 @item keep-overlays
-Preserve overlay highlighting (c.f. @code{ediff} or @code{goo-font-lock})
+Preserve overlay highlighting (cf.@: @code{ediff} or @code{goo-font-lock})
 as well as basic faces.  Can result in extremely verbose highlighting
 if there are many overlays (as is the case with @code{goo-font-lock}).
 

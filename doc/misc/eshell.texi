@@ -2,9 +2,9 @@
 @c %**start of header
 @setfilename ../../info/eshell.info
 @settitle Eshell: The Emacs Shell
+@include docstyle.texi
 @defindex cm
 @synindex vr fn
-@documentencoding UTF-8
 @c %**end of header
 
 @copying
@@ -250,7 +250,7 @@ need to use a function that takes some other data type, you will need to
 call it in an Elisp expression (which can also be used with
 @ref{Expansion, expansions}).  As with other shells, you can
 escape special characters and spaces with the backslash (@code{\}) and
-the single (@code{''}) and double (@code{""}) quotes.
+apostrophes (@code{''}) and double quotes (@code{""}).
 
 @node Built-ins
 
@@ -297,6 +297,12 @@ with no arguments, prints the current paths in this variable.
 @cmindex alias
 Define an alias (@pxref{Aliases}).  This does not add it to the aliases
 file.
+
+@item clear
+@cmindex clear
+Scrolls the contents of the eshell window out of sight, leaving a blank window.
+If provided with an optional non-nil argument, the scrollback contents are
+cleared instead.
 
 @item date
 @cmindex date
@@ -649,10 +655,20 @@ Programs that need a terminal to display output properly are referred
 to in this manual as ``visual commands,'' because they are not simply
 line-oriented.  You must tell Eshell which commands are visual, by
 adding them to @code{eshell-visual-commands}; for commands that are
-visual for only certain @emph{sub}-commands -- e.g. @samp{git log} but
+visual for only certain @emph{sub}-commands -- e.g., @samp{git log} but
 not @samp{git status} -- use @code{eshell-visual-subcommands}; and for
 commands that are visual only when passed certain options, use
 @code{eshell-visual-options}.
+
+Caution: Some tools such as Git use the pager @samp{less} by default
+to paginate their output but call it with its @samp{-F} option.  This
+option causes @samp{less} to echo the output instead of paginating it
+if the output is less than one page long.  This causes undesirable
+behavior if, e.g., @samp{git diff}, is defined as a visual subcommand.
+It'll work if the output is big enough and fail if it is less than one
+page long.  If that occurs to you, search for configuration options
+for calling @samp{less} without the @samp{-F} option.  For Git, you
+can do that using @samp{git config --global core.pager 'less -+F'}.
 
 @section Redirection
 Redirection is mostly the same in Eshell as it is in other command
@@ -1136,7 +1152,7 @@ auto-revert mode in that buffer at frequent intervals---and a
 
 @item Make @command{dgrep} load @code{dired}, mark everything, then invoke @code{dired-do-search}
 
-@item Write mesh.c
+@item Write @file{mesh.c}
 
 This would run Emacs with the appropriate arguments to invoke Eshell
 only.  That way, it could be listed as a login shell.
@@ -1145,7 +1161,8 @@ only.  That way, it could be listed as a login shell.
 
 @item Auto-detect when a command is visual, by checking @code{TERMCAP} usage
 
-@item The first keypress after @kbd{M-x watson} triggers `eshell-send-input'
+@item The first keypress after @kbd{M-x watson} triggers
+@code{eshell-send-input}
 
 @item Make @kbd{/} electric
 

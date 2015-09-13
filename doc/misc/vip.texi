@@ -1,8 +1,7 @@
 \input texinfo
 @setfilename ../../info/vip.info
 @settitle VIP
-
-@documentencoding UTF-8
+@include docstyle.texi
 
 @copying
 Copyright @copyright{} 1987, 2001--2015 Free Software Foundation, Inc.
@@ -436,7 +435,7 @@ Jump to mark (and pop mark off the mark ring).
 
 @cindex region
 
-Vi operators like @kbd{d}, @kbd{c} etc. are usually used in combination
+Vi operators like @kbd{d}, @kbd{c} etc.@: are usually used in combination
 with motion commands.  It is now possible to use current region as the
 argument to these operators.  (A @dfn{region} is a part of buffer
 delimited by point and mark.)  The key @kbd{r} is used for this purpose.
@@ -1023,14 +1022,14 @@ Jump to mark (and pop mark off the mark ring).
 Emacs uses the @dfn{mark ring} to store marked positions.  The commands
 @kbd{m <}, @kbd{m >} and @kbd{m .}@: not only set mark but also add it as the
 latest element of the mark ring (replacing the oldest one).  By repeating
-the command `@kbd{m ,}' you can visit older and older marked positions.  You
+the command @kbd{m ,} you can visit older and older marked positions.  You
 will eventually be in a loop as the mark ring is a ring.
 
 @node Motion Commands
 @section Motion Commands
 
 Commands for moving around in the current buffer are collected here.  These
-commands are used as an `argument' for the delete, change and yank commands
+commands are used as an ``argument'' for the delete, change and yank commands
 to be described in the next section.
 
 @table @kbd
@@ -1113,7 +1112,7 @@ considered as a sequence of non-white characters (@code{vip-end-of-Word}).
 @end table
 @noindent
 @cindex syntax table
-Here the meaning of the word `word' for the @kbd{w}, @kbd{b} and @kbd{e}
+Here the meaning of the word ``word'' for the @kbd{w}, @kbd{b} and @kbd{e}
 commands is determined by the @dfn{syntax table} effective in the current
 buffer.  Each major mode has its syntax mode, and therefore the meaning of
 a word also changes as the major mode changes.  See GNU Emacs Manual for
@@ -1380,7 +1379,7 @@ Delete a character before point.  Given @var{n}, delete @var{n} characters
 @cindex yank
 
 Yank commands @dfn{yank} a text of buffer into a (usually anonymous) register.
-Here the word `yank' is used in Vi's sense.  Thus yank commands do not
+Here the word ``yank'' is used in Vi's sense.  Thus yank commands do not
 alter the content of the buffer, and useful only in combination with
 commands that put back the yanked text into the buffer.
 

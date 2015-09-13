@@ -749,7 +749,7 @@ The new mode has its own abbrev table, kept in the variable
 @item
 The new mode has its own mode hook, @code{@var{variant}-hook}.  It
 runs this hook, after running the hooks of its ancestor modes, with
-@code{run-mode-hooks}, as the last thing it does. @xref{Mode Hooks}.
+@code{run-mode-hooks}, as the last thing it does.  @xref{Mode Hooks}.
 @end itemize
 
 In addition, you can specify how to override other aspects of
@@ -958,9 +958,9 @@ Menu,,, emacs, The GNU Emacs Manual}).
 way, specifying @code{tabulated-list-mode} as the second argument
 (@pxref{Derived Modes}).  The body of the @code{define-derived-mode}
 form should specify the format of the tabulated data, by assigning
-values to the variables documented below; then, it should call the
-function @code{tabulated-list-init-header} to initialize the header
-line.
+values to the variables documented below; optionally, it can then call
+the function @code{tabulated-list-init-header}, which will populate a
+header with the names of the columns.
 
   The derived mode should also define a @dfn{listing command}.  This,
 not the mode command, is what the user calls (e.g., @kbd{M-x
@@ -1055,7 +1055,7 @@ the above variables (in particular, only after setting
 @code{tabulated-list-format}).
 @end defun
 
-@defun tabulated-list-print &optional remember-pos
+@defun tabulated-list-print &optional remember-pos update
 This function populates the current buffer with entries.  It should be
 called by the listing command.  It erases the buffer, sorts the entries
 specified by @code{tabulated-list-entries} according to
@@ -1065,6 +1065,13 @@ specified by @code{tabulated-list-entries} according to
 If the optional argument @var{remember-pos} is non-@code{nil}, this
 function looks for the @var{id} element on the current line, if any, and
 tries to move to that entry after all the entries are (re)inserted.
+
+If the optional argument @var{update} is non-@code{nil}, this function
+will only erase or add entries that have changed since the last print.
+This is several times faster if most entries haven't changed since the
+last time this function was called.  The only difference in outcome is
+that tags placed via @code{tabulated-list-put-tag} will not be removed
+from entries that haven't changed (normally all tags are removed).
 @end defun
 
 @node Generic Modes
@@ -1122,7 +1129,7 @@ the conventions listed above:
   (let ((st (make-syntax-table)))
     (modify-syntax-entry ?\" ".   " st)
     (modify-syntax-entry ?\\ ".   " st)
-    ;; Add `p' so M-c on `hello' leads to `Hello', not `hello'.
+    ;; Add 'p' so M-c on 'hello' leads to 'Hello', not 'hello'.
     (modify-syntax-entry ?' "w p" st)
     st)
   "Syntax table used while in `text-mode'.")
@@ -3425,7 +3432,7 @@ provided grammar is precise enough, @code{transpose-sexps} can correctly
 transpose the two arguments of a @code{+} operator, taking into account
 the precedence rules of the language.
 
-Calling `smie-setup' is also sufficient to make TAB indentation work in
+Calling @code{smie-setup} is also sufficient to make TAB indentation work in
 the expected way, extends @code{blink-matching-paren} to apply to
 elements like @code{begin...end}, and provides some commands that you
 can bind in the major mode keymap.
@@ -3874,7 +3881,7 @@ of instructions (enclosed in a @code{@{...@}} or @code{begin...end}
 block).
 
 @var{method} should be the method name that was passed to
-`smie-rules-function'.
+@code{smie-rules-function}.
 @end defun
 
 @node SMIE Indentation Example

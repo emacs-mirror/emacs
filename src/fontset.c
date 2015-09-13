@@ -66,16 +66,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    A fontset object is implemented by a char-table whose default value
    and parent are always nil.
 
-   An element of a base fontset is a vector of FONT-DEFs which itself
-   is a vector [ FONT-SPEC ENCODING REPERTORY ].
+   An element of a base fontset is a vector of FONT-DEFs which themselves
+   are vectors of the form [ FONT-SPEC ENCODING REPERTORY ].
 
    An element of a realized fontset is nil, t, 0, or a vector of this
    form:
 
-	[ CHARSET-ORDERED-LIST-TICK PREFERRED-RFONT-DEF
-	  RFONT-DEF0 RFONT-DEF1 ... ]
+	[ PREFERRED-RFONT-DEF RFONT-DEF0 RFONT-DEF1 ... ]
 
-   RFONT-DEFn (i.e. Realized FONT-DEF) has this form:
+   Each RFONT-DEFn (i.e. Realized FONT-DEF) has this form:
 
 	[ FACE-ID FONT-DEF FONT-OBJECT SORTING-SCORE ]
 
@@ -370,14 +369,12 @@ fontset_compare_rfontdef (const void *val1, const void *val2)
 	  - RFONT_DEF_SCORE (*(Lisp_Object *) val2));
 }
 
-/* Update FONT-GROUP which has this form:
-	[ CHARSET-ORDERED-LIST-TICK PREFERRED-RFONT-DEF
-	  RFONT-DEF0 RFONT-DEF1 ... ]
+/* Update a cons cell which has this form:
+	(CHARSET-ORDERED-LIST-TICK . FONT-GROUP)
+   where FONT-GROUP is of the form
+	[ PREFERRED-RFONT-DEF RFONT-DEF0 RFONT-DEF1 ... ]
    Reorder RFONT-DEFs according to the current language, and update
-   CHARSET-ORDERED-LIST-TICK.
-
-   If PREFERRED_FAMILY is not nil, that family has the higher priority
-   if the encoding charsets or languages in font-specs are the same.  */
+   CHARSET-ORDERED-LIST-TICK.  */
 
 static void
 reorder_font_vector (Lisp_Object font_group, struct font *font)
@@ -892,18 +889,46 @@ face_for_char (struct frame *f, struct face *face, int c,
   if (ASCII_CHAR_P (c) || CHAR_BYTE8_P (c))
     return face->ascii_face->id;
 
-#ifdef HAVE_NS
-  if (face->font)
+  if (c > 0 && EQ (CHAR_TABLE_REF (Vchar_script_table, c), Qsymbol))
     {
-      /* Fonts often have characters in other scripts, like symbol, even if they
-         don't match script: symbol.  So check if the character is present
-         in the current face first.  Only enable for NS for now, but should
-         perhaps be general?  */
+      /* Fonts often have characters for punctuation and other
+         symbols, even if they don't match the 'symbol' script.  So
+         check if the character is present in the current ASCII face
+         first, and if so, use the same font as used by that face.
+         This avoids unnecessarily switching to another font when the
+         frame's default font will do.  We only do this for symbols so
+         that users could still setup fontsets to force Emacs to use
+         specific fonts for characters from other scripts, because
+         choice of fonts is frequently affected by cultural
+         preferences and font features, not by font coverage.
+         However, these considerations are unlikely to be relevant to
+         punctuation and other symbols, since the latter generally
+         aren't specific to any culture, and don't require
+         sophisticated OTF features.  */
       Lisp_Object font_object;
-      XSETFONT (font_object, face->font);
-      if (font_has_char (f, font_object, c)) return face->id;
-    }
+
+      if (face->ascii_face->font)
+	{
+	  XSETFONT (font_object, face->ascii_face->font);
+	  if (font_has_char (f, font_object, c))
+	    return face->ascii_face->id;
+	}
+
+#if 0
+      /* Try the current face.  Disabled because it can cause
+	 counter-intuitive results, whereby the font used for some
+	 character depends on the characters that precede it on
+	 display.  See the discussion of bug #15138.  Note that the
+	 original bug reported in #15138 was in a situation where face
+	 == face->ascii_face, so the above code solves that situation
+	 without risking the undesirable consequences.  */
+      if (face->font)
+	{
+	  XSETFONT (font_object, face->font);
+	  if (font_has_char (f, font_object, c)) return face->id;
+	}
 #endif
+    }
 
   fontset = FONTSET_FROM_ID (face->fontset);
   eassert (!BASE_FONTSET_P (fontset));
@@ -1074,7 +1099,7 @@ fontset_pattern_regexp (Lisp_Object pattern)
 	 expression matching.  */
       ptrdiff_t regexsize = (SBYTES (pattern)
 			     + (ndashes < 14 ? 2 : 5) * nstars
-			     + 2 * nescs + 1);
+			     + 2 * nescs + 3);
       USE_SAFE_ALLOCA;
       p1 = regex = SAFE_ALLOCA (regexsize);
 
@@ -1383,9 +1408,11 @@ Modify fontset NAME to use FONT-SPEC for TARGET characters.
 NAME is a fontset name string, nil for the fontset of FRAME, or t for
 the default fontset.
 
-TARGET may be a cons; (FROM . TO), where FROM and TO are characters.
-In that case, use FONT-SPEC for all characters in the range FROM and
-TO (inclusive).
+TARGET may be a single character to use FONT-SPEC for.
+
+Target may be a cons (FROM . TO), where FROM and TO are characters.
+In that case, use FONT-SPEC for all characters in the range FROM
+and TO (inclusive).
 
 TARGET may be a script name symbol.  In that case, use FONT-SPEC for
 all characters that belong to the script.
@@ -1760,100 +1787,6 @@ update_auto_fontset_alist (Lisp_Object font_object, Lisp_Object fontset)
 }
 
 
-/* Return a cons (FONT-OBJECT . GLYPH-CODE).
-   FONT-OBJECT is the font for the character at POSITION in the current
-   buffer.  This is computed from all the text properties and overlays
-   that apply to POSITION.  POSITION may be nil, in which case,
-   FONT-SPEC is the font for displaying the character CH with the
-   default face.
-
-   GLYPH-CODE is the glyph code in the font to use for the character.
-
-   If the 2nd optional arg CH is non-nil, it is a character to check
-   the font instead of the character at POSITION.
-
-   It returns nil in the following cases:
-
-   (1) The window system doesn't have a font for the character (thus
-   it is displayed by an empty box).
-
-   (2) The character code is invalid.
-
-   (3) If POSITION is not nil, and the current buffer is not displayed
-   in any window.
-
-   In addition, the returned font name may not take into account of
-   such redisplay engine hooks as what used in jit-lock-mode if
-   POSITION is currently not visible.  */
-
-
-DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
-       doc: /* For internal use only.  */)
-  (Lisp_Object position, Lisp_Object ch)
-{
-  ptrdiff_t pos, pos_byte, dummy;
-  int face_id;
-  int c;
-  struct frame *f;
-  struct face *face;
-
-  if (NILP (position))
-    {
-      CHECK_CHARACTER (ch);
-      c = XINT (ch);
-      f = XFRAME (selected_frame);
-      face_id = lookup_basic_face (f, DEFAULT_FACE_ID);
-      pos = -1;
-    }
-  else
-    {
-      Lisp_Object window;
-      struct window *w;
-
-      CHECK_NUMBER_COERCE_MARKER (position);
-      if (! (BEGV <= XINT (position) && XINT (position) < ZV))
-	args_out_of_range_3 (position, make_number (BEGV), make_number (ZV));
-      pos = XINT (position);
-      pos_byte = CHAR_TO_BYTE (pos);
-      if (NILP (ch))
-	c = FETCH_CHAR (pos_byte);
-      else
-	{
-	  CHECK_NATNUM (ch);
-	  c = XINT (ch);
-	}
-      window = Fget_buffer_window (Fcurrent_buffer (), Qnil);
-      if (NILP (window))
-	return Qnil;
-      w = XWINDOW (window);
-      f = XFRAME (w->frame);
-      face_id = face_at_buffer_position (w, pos, &dummy,
-					 pos + 100, false, -1);
-    }
-  if (! CHAR_VALID_P (c))
-    return Qnil;
-  if (!FRAME_WINDOW_P (f))
-    return Qnil;
-  /* We need the basic faces to be valid below, so recompute them if
-     some code just happened to clear the face cache.  */
-  if (FRAME_FACE_CACHE (f)->used == 0)
-    recompute_basic_faces (f);
-  face_id = FACE_FOR_CHAR (f, FACE_FROM_ID (f, face_id), c, pos, Qnil);
-  face = FACE_FROM_ID (f, face_id);
-  if (face->font)
-    {
-      unsigned code = face->font->driver->encode_char (face->font, c);
-      Lisp_Object font_object;
-
-      if (code == FONT_INVALID_CODE)
-	return Qnil;
-      XSETFONT (font_object, face->font);
-      return Fcons (font_object, INTEGER_TO_CONS (code));
-    }
-  return Qnil;
-}
-
-
 DEFUN ("fontset-info", Ffontset_info, Sfontset_info, 1, 2, 0,
        doc: /* Return information about a fontset FONTSET on frame FRAME.
 
@@ -1955,7 +1888,7 @@ format is the same as above.  */)
 		  for (j = 0; j < ASIZE (val); j++)
 		    {
 		      elt = AREF (val, j);
-		      if (FONT_OBJECT_P (RFONT_DEF_OBJECT (elt)))
+		      if (!NILP (elt) && FONT_OBJECT_P (RFONT_DEF_OBJECT (elt)))
 			{
 			  Lisp_Object font_object = RFONT_DEF_OBJECT (elt);
 			  Lisp_Object slot, name;
@@ -2143,7 +2076,6 @@ syms_of_fontset (void)
   DEFSYM (Qfontset_info, "fontset-info");
   Fput (Qfontset_info, Qchar_table_extra_slots, make_number (1));
 
-  DEFSYM (Qprepend, "prepend");
   DEFSYM (Qappend, "append");
   DEFSYM (Qlatin, "latin");
 
@@ -2221,7 +2153,6 @@ at the vertical center of lines.  */);
   defsubr (&Squery_fontset);
   defsubr (&Snew_fontset);
   defsubr (&Sset_fontset_font);
-  defsubr (&Sinternal_char_font);
   defsubr (&Sfontset_info);
   defsubr (&Sfontset_font);
   defsubr (&Sfontset_list);

@@ -31,6 +31,9 @@
 
 ;;; Code:
 
+(declare-function data-debug/eieio-insert-slots "eieio-datadebug"
+                  (obj eieio-default-superclass))
+
 (defun data-debug-insert-object-slots (object prefix)
   "Insert all the slots of OBJECT.
 PREFIX specifies what to insert at the start of each line."
@@ -54,16 +57,17 @@ PREFIX specifies what to insert at the start of each line."
   "Insert a button representing OBJECT.
 PREFIX is the text that precedes the button.
 PREBUTTONTEXT is some text between PREFIX and the object button."
-  (let ((start (point))
-	(end nil)
-	(str (object-print object))
-	(tip (format "Object %s\nClass: %S\nParent(s): %S\n%d slots"
-		     (eieio-object-name-string object)
-		     (eieio-object-class object)
-		     (eieio-class-parents (eieio-object-class object))
-		     (length (object-slots object))
-		     ))
-	)
+  (let* ((start (point))
+         (end nil)
+         (str (object-print object))
+         (class (eieio-object-class object))
+         (tip (format "Object %s\nClass: %S\nParent(s): %S\n%d slots"
+                      (eieio-object-name-string object)
+                      class
+                      (eieio-class-parents class)
+                      (length (eieio-class-slots class))
+                      ))
+         )
     (insert prefix prebuttontext str)
     (setq end (point))
     (put-text-property (- end (length str)) end 'face 'font-lock-keyword-face)
@@ -80,41 +84,31 @@ PREBUTTONTEXT is some text between PREFIX and the object button."
 ;; Each object should have an opportunity to show stuff about itself.
 
 (cl-defmethod data-debug/eieio-insert-slots ((obj eieio-default-superclass)
-					  prefix)
+                                             prefix)
   "Insert the slots of OBJ into the current DDEBUG buffer."
   (let ((inhibit-read-only t))
     (data-debug-insert-thing (eieio-object-name-string obj)
 			     prefix
 			     "Name: ")
-    (let* ((cl (eieio-object-class obj))
-	   (cv (eieio--class-v cl)))
-      (data-debug-insert-thing (eieio--class-constructor cl)
+    (let* ((cv (eieio--object-class obj)))
+      (data-debug-insert-thing (eieio--class-name cv)
 			       prefix
 			       "Class: ")
       ;; Loop over all the public slots
-      (let ((publa (eieio--class-public-a cv))
-	    )
-	(while publa
-	  (if (slot-boundp obj (car publa))
-	      (let* ((i (eieio--class-slot-initarg (eieio--class-v cl)
-                                                   (car publa)))
-		     (v (eieio-oref obj (car publa))))
-		(data-debug-insert-thing
-		 v prefix (concat
-			   (if i (symbol-name i)
-			     (symbol-name (car publa)))
-			   " ")))
-	    ;; Unbound case
-	    (let ((i (eieio--class-slot-initarg (eieio--class-v cl)
-                                                (car publa))))
-	      (data-debug-insert-custom
-	       "#unbound" prefix
-	       (concat (if i (symbol-name i)
-			 (symbol-name (car publa)))
-		       " ")
-	       'font-lock-keyword-face))
-	    )
-	  (setq publa (cdr publa)))))))
+      (let ((slots (eieio--class-slots cv)))
+	(dotimes (i (length slots))
+          (let* ((slot (aref slots i))
+                 (sname (cl--slot-descriptor-name slot))
+                 (i (eieio--class-slot-initarg cv sname))
+                 (sstr (concat (symbol-name (or i sname)) " ")))
+            (if (slot-boundp obj sname)
+                (let* ((v (eieio-oref obj sname)))
+                  (data-debug-insert-thing v prefix sstr))
+              ;; Unbound case
+              (data-debug-insert-custom
+               "#unbound" prefix sstr
+               'font-lock-keyword-face)
+              )))))))
 
 ;;; Augment the Data debug thing display list.
 (data-debug-add-specialized-thing (lambda (thing) (eieio-object-p thing))

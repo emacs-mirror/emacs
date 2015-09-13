@@ -2097,7 +2097,7 @@ ARG is a prefix argument.  If nil, copy the current difference region."
 
     (if this-buf-n-th-diff-saved
 	(if (yes-or-no-p
-	     (format
+	     (format-message
 	      "You've previously copied diff region %d to buffer %S.  Confirm? "
 	      (1+ n) buf-type))
 	    t
@@ -2318,6 +2318,7 @@ the number seen by the user."
 			      (narrow-to-region
 			       (ediff-get-diff-posn 'B 'beg n ctl-buf)
 			       (ediff-get-diff-posn 'B 'end n ctl-buf))
+			      (goto-char (point-min))
 			      (re-search-forward regex-B nil t))))
 	     (reg-C-match (if ediff-3way-comparison-job
 			      (ediff-with-current-buffer ediff-buffer-C
@@ -2325,6 +2326,7 @@ the number seen by the user."
 				  (narrow-to-region
 				   (ediff-get-diff-posn 'C 'beg n ctl-buf)
 				   (ediff-get-diff-posn 'C 'end n ctl-buf))
+                                  (goto-char (point-min))
 				  (re-search-forward regex-C nil t))))))
 	(not (eval (if ediff-3way-comparison-job
 		       (list ediff-focus-regexp-connective
@@ -2856,13 +2858,14 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 	   (B-line (ediff-with-current-buffer ediff-buffer-B
 		     (1+ (count-lines (point-min) (point)))))
 	   C-line)
-      (princ (format "\Buffer A's point is on line %d\n" A-line))
-      (princ (format "Buffer B's point is on line %d\n" B-line))
+      (princ (format-message "Buffer A's point is on line %d\n" A-line))
+      (princ (format-message "Buffer B's point is on line %d\n" B-line))
       (if ediff-3way-job
 	  (progn
 	    (setq C-line (ediff-with-current-buffer ediff-buffer-C
 			   (1+ (count-lines (point-min) (point)))))
-	    (princ (format "Buffer C's point is on line %d\n" C-line)))))
+	    (princ (format-message
+		    "Buffer C's point is on line %d\n" C-line)))))
 
     (princ (format "\nCurrent difference number = %S\n"
 		   (cond ((< ediff-current-difference 0) 'start)
@@ -2888,7 +2891,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 	   (princ
 	    "\nIgnoring regions that match")
 	   (princ
-	    (format
+	    (format-message
 	     "\n\t regexp `%s' in buffer A  %S\n\t regexp `%s' in buffer B\n"
 	     ediff-regexp-hide-A ediff-hide-regexp-connective
 	     ediff-regexp-hide-B)))
@@ -2897,15 +2900,16 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 	   (princ
 	    "\nFocusing on regions that match")
 	   (princ
-	    (format
+	    (format-message
 	     "\n\t regexp `%s' in buffer A  %S\n\t regexp `%s' in buffer B\n"
 	     ediff-regexp-focus-A ediff-focus-regexp-connective
 	     ediff-regexp-focus-B)))
 	  (t (princ "\nSelective browsing via a user-defined method.\n")))
 
     (princ
-     (format "\nBugs/suggestions: type `%s' while in Ediff Control Panel."
-	     (substitute-command-keys "\\[ediff-submit-report]")))
+     (format-message
+      "\nBugs/suggestions: type `%s' while in Ediff Control Panel."
+      (substitute-command-keys "\\[ediff-submit-report]")))
     ) ; with output
   (if (frame-live-p ediff-control-frame)
       (ediff-reset-mouse ediff-control-frame))
@@ -3986,7 +3990,7 @@ and mail it to the address above.
 Please read this first:
 ----------------------
 
-Some ``bugs'' may actually be no bugs at all.  For instance, if you are
+Some \"bugs\" may actually be no bugs at all.  For instance, if you are
 reporting that certain difference regions are not matched as you think they
 should, this is most likely due to the way Unix diff program decides what
 constitutes a difference region.  Ediff is an Emacs interface to diff, and

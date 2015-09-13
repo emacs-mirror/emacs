@@ -196,7 +196,7 @@ Here's an example of using @code{shell-quote-argument} to construct
 a shell command:
 
 @example
-(concat "diff -c "
+(concat "diff -u "
         (shell-quote-argument oldfile)
         " "
         (shell-quote-argument newfile))
@@ -691,6 +691,113 @@ To determine whether a given subprocess actually got a pipe or a pty,
 use the function @code{process-tty-name} (@pxref{Process
 Information}).
 @end defvar
+
+@defun make-process &rest args
+This function is like @code{start-process}, but takes keyword arguments.
+
+The arguments @var{args} are a list of keyword/argument pairs.
+Omitting a keyword is always equivalent to specifying it with value
+@code{nil}.  Here are the meaningful keywords:
+
+@table @asis
+@item :name @var{name}
+Use the string @var{name} as the process name.  It is modified if
+necessary to make it unique.
+
+@item :buffer @var{buffer}
+Use @var{buffer} as the process buffer.
+
+@item :command @var{command}
+Use @var{command} as the command line of the process.  @var{command}
+is a list starting with the program's executable file name, followed
+by strings to give to program as arguments.
+
+@item :coding @var{coding}
+If @var{coding} is a symbol, it specifies the coding system to be
+used for both reading and writing of data from and to the
+connection.  If @var{coding} is a cons cell
+@w{@code{(@var{decoding} . @var{encoding})}}, then @var{decoding}
+will be used for reading and @var{encoding} for writing.
+
+If @var{coding} is @code{nil}, the default rules for finding the
+coding system will apply.  @xref{Default Coding Systems}.
+
+@item :connection-type @var{TYPE}
+Initialize the type of device used to communicate with the subprocess.
+Possible values are @code{pty} to use a pty, @code{pipe} to use a
+pipe, or @code{nil} to use the default derived from the value of
+the @code{process-connection-type} variable.
+
+@item :noquery @var{query-flag}
+Initialize the process query flag to @var{query-flag}.
+@xref{Query Before Exit}.
+
+@item :stop @var{stopped}
+If @var{stopped} is non-@code{nil}, start the process in the
+``stopped'' state.
+
+@item :filter @var{filter}
+Initialize the process filter to @var{filter}.
+
+@item :sentinel @var{sentinel}
+Initialize the process sentinel to @var{sentinel}.
+
+@item :stderr @var{stderr}
+Associate @var{stderr} with the standard error of the process.
+@var{stderr} is either a buffer or a pipe process created with
+@code{make-pipe-process}.
+@end table
+
+The original argument list, modified with the actual connection
+information, is available via the @code{process-contact} function.
+@end defun
+
+@defun make-pipe-process &rest args
+This function creates a bidirectional pipe which can be attached to a
+child process (currently only useful with the @code{:stderr} keyword
+of @code{make-process}).
+
+The arguments @var{args} are a list of keyword/argument pairs.
+Omitting a keyword is always equivalent to specifying it with value
+@code{nil}, except for @code{:coding}.
+Here are the meaningful keywords:
+
+@table @asis
+@item :name @var{name}
+Use the string @var{name} as the process name.  It is modified if
+necessary to make it unique.
+
+@item :buffer @var{buffer}
+Use @var{buffer} as the process buffer.
+
+@item :coding @var{coding}
+If @var{coding} is a symbol, it specifies the coding system to be
+used for both reading and writing of data from and to the
+connection.  If @var{coding} is a cons cell
+@w{@code{(@var{decoding} . @var{encoding})}}, then @var{decoding}
+will be used for reading and @var{encoding} for writing.
+
+If @var{coding} is @code{nil}, the default rules for finding the
+coding system will apply.  @xref{Default Coding Systems}.
+
+@item :noquery @var{query-flag}
+Initialize the process query flag to @var{query-flag}.
+@xref{Query Before Exit}.
+
+@item :stop @var{stopped}
+If @var{stopped} is non-@code{nil}, start the process in the
+``stopped'' state.
+
+@item :filter @var{filter}
+Initialize the process filter to @var{filter}.
+
+@item :sentinel @var{sentinel}
+Initialize the process sentinel to @var{sentinel}.
+@end table
+
+The original argument list, modified with the actual connection
+information, is available via the @code{process-contact} function.
+@end defun
 
 @node Deleting Processes
 @section Deleting Processes
@@ -1613,13 +1720,13 @@ sentinel, the eventual call to the sentinel will use the new one.
 @group
 (defun msg-me (process event)
    (princ
-     (format "Process: %s had the event `%s'" process event)))
+     (format "Process: %s had the event '%s'" process event)))
 (set-process-sentinel (get-process "shell") 'msg-me)
      @result{} msg-me
 @end group
 @group
 (kill-process (get-process "shell"))
-     @print{} Process: #<process shell> had the event `killed'
+     @print{} Process: #<process shell> had the event 'killed'
      @result{} #<process shell>
 @end group
 @end smallexample

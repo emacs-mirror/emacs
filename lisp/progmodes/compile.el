@@ -1,4 +1,4 @@
-;;; compile.el --- run compiler as inferior of Emacs, parse error messages
+;;; compile.el --- run compiler as inferior of Emacs, parse error messages  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1985-1987, 1993-1999, 2001-2015 Free Software
 ;; Foundation, Inc.
@@ -216,7 +216,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
     ;; due to matching filenames via \\(.*?\\).  This might be faster.
     (maven
      ;; Maven is a popular free software build tool for Java.
-     "\\([^ \n]\\(?:[^\n :]\\| [^-/\n]\\|:[^ \n]\\)*?\\):\\[\\([0-9]+\\),\\([0-9]+\\)\\] " 1 2 3)
+     "\\(\\[WARNING\\] *\\)?\\([^ \n]\\(?:[^\n :]\\| [^-/\n]\\|:[^ \n]\\)*?\\):\\[\\([0-9]+\\),\\([0-9]+\\)\\] " 2 3 4 (1))
 
     (jikes-line
      "^ *\\([0-9]+\\)\\.[ \t]+.*\n +\\(<-*>\n\\*\\*\\* \\(?:Error\\|Warnin\\(g\\)\\)\\)"
@@ -255,7 +255,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      ;; can be composed of any non-newline char, but it also rules out some
      ;; valid but unlikely cases, such as a trailing space or a space
      ;; followed by a -, or a colon followed by a space.
-     ;; 
+     ;;
      ;; The "in \\|from " exception was added to handle messages from Ruby.
      ,(rx
        bol
@@ -650,11 +650,11 @@ The value nil as an element means to try the default directory."
 Sometimes it is useful for files to supply local values for this variable.
 You might also use mode hooks to specify it in certain modes, like this:
 
-    (add-hook 'c-mode-hook
+    (add-hook \\='c-mode-hook
        (lambda ()
 	 (unless (or (file-exists-p \"makefile\")
 		     (file-exists-p \"Makefile\"))
-	   (set (make-local-variable 'compile-command)
+	   (set (make-local-variable \\='compile-command)
 		(concat \"make -k \"
 			(if buffer-file-name
 			  (shell-quote-argument
@@ -1109,7 +1109,9 @@ If SCREEN is non-nil, columns are screen columns, otherwise, they are
 just char-counts."
   (setq col (- col compilation-first-column))
   (if screen
-      (move-to-column (max col 0))
+      ;; Presumably, the compilation tool doesn't know about our current
+      ;; `tab-width' setting, so it probably assumed 8-wide TABs (bug#21038).
+      (let ((tab-width 8)) (move-to-column (max col 0)))
     (goto-char (min (+ (line-beginning-position) col) (line-end-position)))))
 
 (defun compilation-internal-error-properties (file line end-line col end-col type fmts)
@@ -1461,9 +1463,9 @@ Additionally, with universal prefix arg, compilation buffer will be in
 comint mode, i.e. interactive.
 
 To run more than one compilation at once, start one then rename
-the \`*compilation*' buffer to some other name with
+the `*compilation*' buffer to some other name with
 \\[rename-buffer].  Then _switch buffers_ and start the new compilation.
-It will create a new \`*compilation*' buffer.
+It will create a new `*compilation*' buffer.
 
 On most systems, termination of the main compilation process
 kills its subprocesses.
@@ -1666,11 +1668,7 @@ Returns the compilation buffer created."
 		(list "TERM=emacs"
 		      (format "TERMCAP=emacs:co#%d:tc=unknown:"
 			      (window-width))))
-	      ;; Set the EMACS variable, but
-	      ;; don't override users' setting of $EMACS.
-	      (unless (getenv "EMACS")
-		(list "EMACS=t"))
-	      (list "INSIDE_EMACS=t")
+	      (list (format "INSIDE_EMACS=%s,compile" emacs-version))
 	      (copy-sequence process-environment))))
 	(set (make-local-variable 'compilation-arguments)
 	     (list command mode name-function highlight-regexp))
@@ -2525,9 +2523,9 @@ displays at the top of the window; there is no arrow."
 			     (- 1 compilation-context-lines))
 			    (point)))
     ;; If there is no left fringe.
-    (if (equal (car (window-fringes)) 0)
-	(set-window-start w (save-excursion
-			      (goto-char mk)
+    (when (equal (car (window-fringes w)) 0)
+      (set-window-start w (save-excursion
+                            (goto-char mk)
 			    (beginning-of-line 1)
 			    (point)))))
     (set-window-point w mk))

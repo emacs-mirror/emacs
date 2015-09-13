@@ -46,8 +46,6 @@
 
 ;;; Code:
 
-(require 'help-fns)
-
 (defgroup elint nil
   "Linting for Emacs Lisp."
   :prefix "elint-"
@@ -251,9 +249,9 @@ This environment can be passed to `macroexpand'."
     (elint-set-mode-line t)
     (with-current-buffer elint-log-buffer
       (unless (string-equal default-directory dir)
-	(elint-log-message (format "\nLeaving directory `%s'"
-				   default-directory) t)
-	(elint-log-message (format "Entering directory `%s'" dir) t)
+	(elint-log-message (format-message "\nLeaving directory `%s'"
+                                           default-directory) t)
+	(elint-log-message (format-message "Entering directory `%s'" dir) t)
 	(setq default-directory dir))))
   (let ((str (format "Linting file %s" file)))
     (message "%s..." str)
@@ -374,9 +372,9 @@ Returns the forms."
 	(let ((elint-current-pos (point)))
 	  ;; non-list check could be here too. errors may be out of seq.
 	  ;; quoted check cannot be elsewhere, since quotes skipped.
-	  (if (looking-back "'")
+	  (if (looking-back "'" (1- (point)))
 	      ;; Eg cust-print.el uses ' as a comment syntax.
-	      (elint-warning "Skipping quoted form `'%.20s...'"
+	      (elint-warning "Skipping quoted form `%c%.20s...'" ?\'
 			   (read (current-buffer)))
 	    (condition-case nil
 		(setq tops (cons
@@ -385,7 +383,7 @@ Returns the forms."
 			    tops))
 	      (end-of-file
 	       (goto-char elint-current-pos)
-	       (error "Missing ')' in top form: %s"
+	       (error "Missing `)' in top form: %s"
 		      (buffer-substring elint-current-pos
 					(line-end-position))))))))
       (nreverse tops))))
@@ -984,7 +982,7 @@ Does basic handling of `featurep' tests."
 						    (line-beginning-position))))
 			       0)	; unknown position
 			     type
-			     (apply 'format string args))))
+			     (apply #'format-message string args))))
 
 (defun elint-error (string &rest args)
   "Report a linting error.

@@ -501,7 +501,7 @@ invoking `ispell-change-dictionary'.
 
 Consider using the `ispell-parser' to check your text.  For instance
 consider adding:
-\(add-hook 'tex-mode-hook (function (lambda () (setq ispell-parser 'tex))))
+\(add-hook \\='tex-mode-hook (function (lambda () (setq ispell-parser \\='tex))))
 in your init file.
 
 \\[flyspell-region] checks all words inside a region.
@@ -1119,7 +1119,8 @@ misspelling and skips redundant spell-checking step."
 		   (let* ((bound
 			   (- start
 			      (- end start)
-			      (- (skip-chars-backward " \t\n\f"))))
+			      (- (save-excursion
+                                   (skip-chars-backward " \t\n\f")))))
 			  (p (when (>= bound (point-min))
 			       (flyspell-word-search-backward word bound t))))
 		     (and p (/= p start)))))
@@ -1349,7 +1350,7 @@ that may be included as part of a word (see `ispell-dictionary-alist')."
 	(if (and flyspell-issue-message-flag (= count 100))
 	    (progn
 	      (message "Spell Checking...%d%%"
-		       (* 100 (/ (float (- (point) beg)) (- end beg))))
+		       (floor (* 100.0 (- (point) beg)) (- end beg)))
 	      (setq count 0))
 	  (setq count (+ 1 count)))
 	(flyspell-word)
@@ -1402,7 +1403,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 	  ;; be unnecessary too. -- rms.
 	  (if flyspell-issue-message-flag
 	      (message "Spell Checking...%d%% [%s]"
-		       (* 100 (/ (float (point)) (point-max)))
+		       (floor (* 100.0 (point)) (point-max))
 		       word))
 	  (with-current-buffer flyspell-large-region-buffer
 	    (goto-char buffer-scan-pos)
@@ -1827,11 +1828,12 @@ as returned by `ispell-parse-output'."
 ;;*    flyspell-check-previous-highlighted-word ...                     */
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-check-previous-highlighted-word (&optional arg)
-  "Correct the closer misspelled word.
-This function scans a mis-spelled word before the cursor. If it finds one
-it proposes replacement for that word. With prefix arg, count that many
-misspelled words backwards."
-  (interactive)
+  "Correct the closest previous word that is highlighted as misspelled.
+This function scans for a word which starts before point that has been
+highlighted by Flyspell as misspelled.  If it finds one, it proposes
+a replacement for that word.  With prefix arg N, check the Nth word
+before point that's highlighted as misspelled."
+  (interactive "P")
   (let ((pos1 (point))
 	(pos  (point))
 	(arg  (if (or (not (numberp arg)) (< arg 1)) 1 arg))
@@ -1842,7 +1844,7 @@ misspelled words backwards."
 	    (setq pos1 pos)
 	    (if (> pos (point-min))
 		(progn
-		  (setq ovs (overlays-at (1- pos)))
+		  (setq ovs (overlays-at pos))
 		  (while (consp ovs)
 		    (setq ov (car ovs))
 		    (setq ovs (cdr ovs))
@@ -2087,8 +2089,6 @@ If EVENT is non-nil, it is the mouse event that invoked this operation;
 that controls where to put the menu.
 If OPOINT is non-nil, restore point there after adjusting it for replacement."
   (interactive)
-  (unless (mouse-position)
-    (error "Pop-up menus do not work on this terminal"))
   ;; use the correct dictionary
   (flyspell-accept-buffer-local-defs)
   (or opoint (setq opoint (point)))
@@ -2203,9 +2203,8 @@ If OPOINT is non-nil, restore point there after adjusting it for replacement."
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-emacs-popup (event poss word)
   "The Emacs popup menu."
-  (unless window-system
-    (error "This command requires pop-up dialogs"))
-  (if (not event)
+  (if (and (not event)
+           (display-mouse-p))
       (let* ((mouse-pos  (mouse-position))
 	     (mouse-pos  (if (nth 1 mouse-pos)
 			     mouse-pos
@@ -2327,7 +2326,7 @@ If the text between BEG and END is equal to a correction suggested by
 Ispell, after transposing two adjacent characters, correct the text,
 and return t.
 
-The third arg POSS is either the symbol 'doublon' or a list of
+The third arg POSS is either the symbol `doublon' or a list of
 possible corrections as returned by `ispell-parse-output'.
 
 This function is meant to be added to `flyspell-incorrect-hook'."
@@ -2357,7 +2356,7 @@ If the text between BEG and END is equal to a correction suggested by
 Ispell, after removing a pair of doubled characters, correct the text,
 and return t.
 
-The third arg POSS is either the symbol 'doublon' or a list of
+The third arg POSS is either the symbol `doublon' or a list of
 possible corrections as returned by `ispell-parse-output'.
 
 This function is meant to be added to `flyspell-incorrect-hook'."

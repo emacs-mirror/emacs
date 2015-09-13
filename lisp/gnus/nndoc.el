@@ -199,7 +199,7 @@ from the document.")
 ;; lines in the body.  For MIME dissections only, ARTICLE-INSERT [5] and
 ;; SUMMARY-INSERT [6] give headers to insert for full article or summary line
 ;; generation, respectively.  Other headers usually follow directly from the
-;; buffer.  Value `nil' means no insert.
+;; buffer.  Value nil means no insert.
 (defvoo nndoc-dissection-alist nil)
 (defvoo nndoc-prepare-body-function nil)
 (defvoo nndoc-generate-head-function nil)

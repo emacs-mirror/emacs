@@ -3,7 +3,7 @@
 @set TITLE Enhanced Implementation of Emacs Interpreted Objects
 @set AUTHOR Eric M. Ludlam
 @settitle @value{TITLE}
-@documentencoding UTF-8
+@include docstyle.texi
 
 @c *************************************************************************
 @c @ Header
@@ -140,13 +140,13 @@ constructor.  The constructor is a function with the same name as your
 class which returns a new instance of that class.  Here is an example:
 
 @example
-(setq rec (record "Eric" :name "Eric" :birthday "June" :phone "555-5555"))
+(setq rec (record :name "Eric" :birthday "June" :phone "555-5555"))
 @end example
 
 @noindent
-The first argument is the name given to this instance.  Each instance
-is given a name, so different instances can be easily distinguished
-when debugging.
+For backward compatibility reasons, the first argument can be a string (a name
+given to this instance).  Each instance used to be given a name, so different
+instances could be easily distinguished when debugging.
 
 It can be a bit repetitive to also have a :name slot.  To avoid doing
 this, it is sometimes handy to use the base class @code{eieio-named}.
@@ -178,7 +178,7 @@ error.  @ref{Signals}.
 
 First off, please note that this manual cannot serve as a complete
 introduction to object oriented programming and generic functions in
-LISP.  Although EIEIO is not a complete implementation of the Common
+LISP@.  Although EIEIO is not a complete implementation of the Common
 Lisp Object System (CLOS) and also differs from it in several aspects,
 it follows the same basic concepts.  Therefore, it is highly
 recommended to learn those from a textbook or tutorial first,
@@ -233,7 +233,7 @@ first argument, and this one must be an @eieio{} type.
 @item Support for metaclasses
 There is just one default metaclass, @code{eieio-default-superclass},
 and you cannot define your own.  The @code{:metaclass} tag in
-@code{defclass} is ignored.  Also, functions like `find-class', which
+@code{defclass} is ignored.  Also, functions like @code{find-class}, which
 should return instances of the metaclass, behave differently in
 @eieio{} in that they return symbols or plain structures instead.
 
@@ -244,7 +244,7 @@ EIEIO does not support it.
 This CLOS method tag is non-functional.
 
 @item :default-initargs in @code{defclass}
-Each slot has an @code{:initarg} tag, so this is not really necessary.
+Each slot can have an @code{:initform} tag, so this is not really necessary.
 
 @item Mock object initializers
 Each class contains a mock object used for fast initialization of
@@ -266,10 +266,9 @@ To create a new class, use the @code{defclass} macro:
 @defmac defclass class-name superclass-list slot-list &rest options-and-doc
 
 Create a new class named @var{class-name}.  The class is represented
-by a self-referential symbol with the name @var{class-name}.  @eieio{}
-stores the structure of the class as a symbol property of
-@var{class-name} (@pxref{Symbol Components,,,elisp,GNU Emacs Lisp
-Reference Manual}).
+by a symbol with the name @var{class-name}.  @eieio{} stores the structure of
+the class as a symbol property of @var{class-name} (@pxref{Symbol
+Components,,,elisp,GNU Emacs Lisp Reference Manual}).
 
 The @var{class-name} symbol's variable documentation string is a
 modified version of the doc string found in @var{options-and-doc}.
@@ -292,17 +291,12 @@ or @code{:protection}.
 @end defmac
 
 @noindent
-Whenever defclass is used to create a new class, two predicates are
-created for it, named @code{@var{CLASS-NAME}-p} and
-@code{@var{CLASS-NAME}-child-p}:
+Whenever defclass is used to create a new class, a predicate is
+created for it, named @code{@var{CLASS-NAME}-p}:
 
 @defun CLASS-NAME-p object
-Return @code{t} if @var{OBJECT} is of the class @var{CLASS-NAME}.
-@end defun
-
-@defun CLASS-NAME-child-p object
-Return @code{t} if @var{OBJECT} is of the class @var{CLASS-NAME},
-or is of a subclass of @var{CLASS-NAME}.
+Return non-@code{nil} if and only if @var{OBJECT} is of the class
+@var{CLASS-NAME}.
 @end defun
 
 @defvar eieio-error-unsupported-class-tags
@@ -418,7 +412,7 @@ Valid tags are:
 @table @code
 @item :initarg
 A symbol that can be used in the argument list of the constructor to
-specify a value for the new instance being created.
+specify a value for this slot of the new instance being created.
 
 A good symbol to use for initarg is one that starts with a colon @code{:}.
 
@@ -428,13 +422,13 @@ The slot specified like this:
 @end example
 could then be initialized to the number 1 like this:
 @example
-  (myobject "name" :myslot 1)
+  (myobject :myslot 1)
 @end example
 
 @xref{Making New Objects}.
 
 @item :initform
-A expression used as the default value for this slot.
+An expression used as the default value for this slot.
 
 If @code{:initform} is left out, that slot defaults to being unbound.
 It is an error to reference an unbound slot, so if you need
@@ -445,19 +439,13 @@ Use @code{slot-boundp} to test if a slot is unbound
 (@pxref{Predicates}).  Use @code{slot-makeunbound} to set a slot to
 being unbound after giving it a value (@pxref{Accessing Slots}).
 
-The value passed to initform is automatically quoted.  Thus,
+The value passed to initform used to be automatically quoted.  Thus,
 @example
 :initform (1 2 3)
 @end example
-appears as the specified list in the default object.
-A symbol that is a function like this:
-@example
-:initform +
-@end example
-will set the initial value as that symbol.
-
-After a class has been created with @code{defclass}, you can change
-that default value with @code{oset-default}.  @ref{Accessing Slots}.
+will use the list as a value.  This is incompatible with CLOS (which would
+signal an error since 1 is not a valid function) and will likely change in the
+future, so better quote your initforms if they're just values.
 
 @item :type
 An unquoted type specifier used to validate data set into this slot.
@@ -669,7 +657,7 @@ can do any valid Lispy thing you want with it, such as
 Example of creating an object from a class:
 
 @example
-(record "test" :value 3 :reference nil)
+(record :value 3 :reference nil)
 @end example
 
 @end defun
@@ -692,15 +680,6 @@ for each slot.  For example:
   (make-instance @code{'foo} @code{:slot1} value1 @code{:slotN} valueN)
 @end example
 
-Compatibility note:
-
-If the first element of @var{initargs} is a string, it is used as the
-name of the class.
-
-In @eieio{}, the class' constructor requires a name for use when printing.
-@dfn{make-instance} in CLOS doesn't use names the way Emacs does, so the
-class is used as the name slot instead when @var{initargs} doesn't start with
-a string.
 @end defun
 
 @node Accessing Slots
@@ -717,13 +696,8 @@ This macro sets the value behind @var{slot} to @var{value} in
 @end defmac
 
 @defmac oset-default class slot value
-This macro sets the @code{:initform} for @var{slot} in @var{class} to
+This macro sets the value for the class-allocated @var{slot} in @var{class} to
 @var{value}.
-
-This allows the user to set both public and private defaults after the
-class has been constructed, and provides a way to configure the
-default behavior of packages built with classes (the same way
-@code{setq-default} does for buffer-local variables).
 
 For example, if a user wanted all @code{data-objects} (@pxref{Building
 Classes}) to inform a special object of his own devising when they
@@ -737,16 +711,12 @@ changed, this can be arranged by simply executing this bit of code:
 @defmac oref obj slot
 @anchor{oref}
 Retrieve the value stored in @var{obj} in the slot named by @var{slot}.
-Slot is the name of the slot when created by @dfn{defclass} or the label
-created by the @code{:initarg} tag.
+Slot is the name of the slot when created by @dfn{defclass}.
 @end defmac
 
-@defmac oref-default obj slot
+@defmac oref-default class slot
 @anchor{oref-default}
-Gets the default value of @var{obj} (maybe a class) for @var{slot}.
-The default value is the value installed in a class with the @code{:initform}
-tag.  @var{slot} can be the slot name, or the tag specified by the @code{:initarg}
-tag in the @dfn{defclass} call.
+Get the value of the class-allocated @var{slot} from @var{class}.
 @end defmac
 
 The following accessors are defined by CLOS to reference or modify
@@ -812,7 +782,7 @@ Where each @var{var} is the local variable given to the associated
 variable name of the same name as the slot.
 
 @example
-(defclass myclass () (x :initarg 1))
+(defclass myclass () (x :initform 1))
 (setq mc (make-instance 'myclass))
 (with-slots (x) mc x)                      => 1
 (with-slots ((something x)) mc something)  => 1
@@ -986,15 +956,14 @@ allows the first argument to be cast.
 @section Static Methods
 
 Static methods do not depend on an object instance, but instead
-operate on an object's class.  You can create a static method by using
+operate on a class.  You can create a static method by using
 the @code{:static} key with @code{defmethod}.
 
-Do not treat the first argument of a @code{:static} method as an
-object unless you test it first.  Use the functions
-@code{oref-default} or @code{oset-default} which will work on a class,
-or on the class of an object.
+The first argument of a @code{:static} method will be a class rather than an
+object.  Use the functions @code{oref-default} or @code{oset-default} which
+will work on a class.
 
-A Class' @code{constructor} method is defined as a @code{:static}
+A class's @code{make-instance} method is defined as a @code{:static}
 method.
 
 @b{Note:} The @code{:static} keyword is unique to @eieio{}.
@@ -1085,13 +1054,6 @@ For example:
 Will fetch the documentation string for @code{eieio-default-superclass}.
 @end defun
 
-@defun class-constructor class
-Return a symbol used as a constructor for @var{class}.  The
-constructor is a function used to create new instances of
-@var{CLASS}.  This function provides a way to make an object of a class
-without knowing what it is.  This is not a part of CLOS.
-@end defun
-
 @defun eieio-object-name obj
 Return a string of the form @samp{#<object-class myobjname>} for @var{obj}.
 This should look like Lisp symbols from other parts of Emacs such as
@@ -1103,11 +1065,6 @@ information into the symbol.
 
 @defun eieio-object-class obj
 Returns the class symbol from @var{obj}.
-@end defun
-
-@defun eieio--object-class obj
-Same as @code{eieio-object-class} except this is a macro, and no
-type-checking is performed.
 @end defun
 
 @defun eieio-object-class-name obj
@@ -1267,7 +1224,7 @@ Return the list of public slots for @var{obj}.
 @end defun
 
 @defun class-slot-initarg class slot
-For the given @var{class} return the :initarg associated with
+For the given @var{class} return an :initarg associated with
 @var{slot}.  Not all slots have initargs, so the return value can be
 @code{nil}.
 @end defun
@@ -1612,7 +1569,7 @@ is a list of name/value pairs.  These are actually just passed to
 Sets slots of @var{obj} with @var{slots} which is a list of name/value
 pairs.
 
-This is called from the default @code{constructor}.
+This is called from the default constructor.
 @end defun
 
 @node Basic Methods

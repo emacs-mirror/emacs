@@ -7,19 +7,22 @@ http://www.gnu.org/software/emacs/manual/html_node/emacs/Contributing.html
 * Information for Emacs Developers.
 
 An "Emacs Developer" is someone who contributes a lot of code or
-documentation to the Emacs repository. Generally, they have write
+documentation to the Emacs repository.  Generally, they have write
 access to the Emacs git repository on Savannah
 https://savannah.gnu.org/git/?group=emacs.
 
 ** Write access to the Emacs repository.
 
 Once you become a frequent contributor to Emacs, we can consider
-giving you write access to the version-control repository. Request
-access on the emacs-devel@gnu.org mailing list.
+giving you write access to the version-control repository.  Request
+access on the emacs-devel@gnu.org mailing list.  Also, be sure to
+subscribe to the emacs-devel@gnu.org mailing list and include the
+"emacs-announce" topic, so that you get the announcements about
+feature freeze and other important events.
 
 ** Using the Emacs repository
 
-Emacs uses git for the source code repository.
+Emacs uses Git for the source code repository.
 
 See http://www.emacswiki.org/emacs/GitQuickStartForEmacsDevs to get
 started, and http://www.emacswiki.org/emacs/GitForEmacsDevs for more
@@ -27,44 +30,87 @@ advanced information.
 
 Alternately, see admin/notes/git-workflow.
 
-If committing changes written by someone else, make the ChangeLog
-entry in their name, not yours. git distinguishes between the author
+If committing changes written by someone else, make the commit in
+their name, not yours.  Git distinguishes between the author
 and the committer; use the --author option on the commit command to
 specify the actual author; the committer defaults to you.
 
-** commit messages
+** Commit messages
 
-When using git, commit messages should use ChangeLog format, with the
-following modifications:
+Emacs development no longer stores descriptions of new changes in
+ChangeLog files.  Instead, a single ChangeLog file is generated from
+the commit messages when a release is prepared.  So changes you commit
+should not touch any of the ChangeLog files in the repository, but
+instead should contain the log entries in the commit message.  Here is
+an example of a commit message (indented):
 
-- Add a single short line explaining the change, then an empty line,
-  then unindented ChangeLog entries.
+	Deactivate shifted region
 
-  You can use various Emacs functions to ease this process; see (info
-  "(emacs)Change Log Commands") or
-  http://www.gnu.org/software/emacs/manual/html_node/emacs/Change-Log-Commands.html.
+	Do not silently extend a region that is not highlighted;
+	this can happen after a shift (Bug#19003).
+	* doc/emacs/mark.texi (Shift Selection): Document the change.
+	* lisp/window.el (handle-select-window):
+	* src/frame.c (Fhandle_switch_frame, Fselected_frame):
+	Deactivate the mark.
 
-- The summary line is limited to 72 characters (enforced by a commit
-  hook). If you have trouble making that a good summary, add a
-  paragraph below it, before the individual file descriptions.
+Below are some rules and recommendations for formatting commit
+messages:
+
+- Start with a single unindented summary line explaining the change;
+  do not end this line with a period.  If that line starts with a
+  semi-colon and a space "; ", the log message will be ignored when
+  generating the ChangeLog file.  Use this for minor commits that do
+  not need separate ChangeLog entries, such as changes in etc/NEWS.
+
+- After the summary line, there should be an empty line, then
+  unindented ChangeLog entries.
+
+- Limit lines in commit messages to 78 characters, unless they consist
+  of a single word of at most 140 characters; this is enforced by a
+  commit hook.  It's nicer to limit the summary line to 50 characters;
+  this isn't enforced.  If the change can't be summarized so briefly,
+  add a paragraph after the empty line and before the individual file
+  descriptions.
 
 - If only a single file is changed, the summary line can be the normal
   file first line (starting with the asterisk).  Then there is no
   individual files section.
 
+- If the commit has more than one author, the commit message should
+  contain separate lines to mention the other authors, like the
+  following:
+
+	Co-authored-by: Joe Schmoe <j.schmoe@example.org>
+
+- If the commit is a tiny change that is exempt from copyright paperwork,
+  the commit message should contain a separate line like the following:
+
+	Copyright-paperwork-exempt: yes
+
+- The commit message should contain "Bug#NNNNN" if it is related to
+  bug number NNNNN in the debbugs database.  This string is often
+  parenthesized, as in "(Bug#19003)".
+
+- Commit messages should contain only printable UTF-8 characters.
+
+- Commit messages should not contain the "Signed-off-by:" lines that
+  are used in some other projects.
+
+- Any lines of the commit message that start with "; " are omitted
+  from the generated ChangeLog.
+
 - Explaining the rationale for a design choice is best done in comments
-  in the source code. However, sometimes it is useful to describe just
+  in the source code.  However, sometimes it is useful to describe just
   the rationale for a change; that can be done in the commit message
   between the summary line and the file entries.
 
-** ChangeLog notes
-
 - Emacs generally follows the GNU coding standards when it comes to
   ChangeLogs:
-  http://www.gnu.org/prep/standards/html_node/Change-Logs.html .  One
-  exception is that we still sometimes quote `like-this' (as the
-  standards used to recommend) rather than 'like-this' (as they do
-  now), because `...' is so widely used elsewhere in Emacs.
+  http://www.gnu.org/prep/standards/html_node/Change-Logs.html or
+  "(info (standards)Change Logs").  One exception is that we still
+  sometimes quote `like-this' (as the standards used to recommend)
+  rather than 'like-this' (as they do now), because `...' is so widely
+  used elsewhere in Emacs.
 
 - Some of the rules in the GNU coding standards section 5.2
   "Commenting Your Work" also apply to ChangeLog entries: they must be
@@ -72,48 +118,58 @@ following modifications:
   ending with a period (except the summary line should not end in a
   period).
 
-  It is tempting to relax this rule for commit messages, since they
-  are somewhat transient.  However, they are preserved indefinitely,
-  and have a reasonable chance of being read in the future, so it's
-  better that they have good presentation.
-
-- There are multiple ChangeLogs in the emacs source; roughly one per
-  high-level directory. The ChangeLog entry for a commit belongs in the
-  lowest ChangeLog that is higher than or at the same level as any file
-  changed by the commit.
+  They are preserved indefinitely, and have a reasonable chance of
+  being read in the future, so it's better that they have good
+  presentation.
 
 - Use the present tense; describe "what the change does", not "what
   the change did".
 
 - Preferred form for several entries with the same content:
 
-   * help.el (view-lossage):
-   * kmacro.el (kmacro-edit-lossage):
-   * edmacro.el (edit-kbd-macro): Fix docstring, lossage is now 300 keys.
+	* lisp/help.el (view-lossage):
+	* lisp/kmacro.el (kmacro-edit-lossage):
+	* lisp/edmacro.el (edit-kbd-macro): Fix docstring, lossage is now 300.
 
   (Rather than anything involving "ditto" and suchlike.)
 
-- If the commit fixes a bug, add a separate line
-
-  Fixes: bug#NNNN
-
-  where NNNN is the bug number.
-
-- In ChangeLog entries, there is no standard or recommended way to
-  identify revisions.
+- There is no standard or recommended way to identify revisions in
+  ChangeLog entries.  Using Git SHA1 values limits the usability of
+  the references to Git, and will become much less useful if Emacs
+  switches to a different VCS.  So we recommend against that.
 
   One way to identify revisions is by quoting their summary line.
   Another is with an action stamp - an RFC3339 date followed by !
   followed by the committer's email - for example,
-  "2014-01-16T05:43:35Z!esr@thyrsus.com". Often, "my previous commit"
+  "2014-01-16T05:43:35Z!esr@thyrsus.com".  Often, "my previous commit"
   will suffice.
 
-- There is no need to make separate ChangeLog entries for files such
-  as NEWS, MAINTAINERS, and FOR-RELEASE, or to indicate regeneration
-  of files such as 'configure'.  "There is no need" means you don't
-  have to, but you can if you want to.
+- There is no need to mention files such as NEWS, MAINTAINERS, and
+  FOR-RELEASE, or to indicate regeneration of files such as
+  'configure', in the ChangeLog entry.  "There is no need" means you
+  don't have to, but you can if you want to.
 
-** branches
+** Generating ChangeLog entries
+
+- You can use various Emacs functions to ease the process of writing
+  ChangeLog entries; see (info "(emacs)Change Log Commands") or
+  http://www.gnu.org/software/emacs/manual/html_node/emacs/Change-Log-Commands.html.
+
+- If you use Emacs VC, one way to format ChangeLog entries is to create
+  a top-level ChangeLog file manually, and update it with 'C-x 4 a' as
+  usual.  Do not register the ChangeLog file under git; instead, use
+  'C-c C-a' to insert its contents into into your *vc-log* buffer.
+  Or if 'log-edit-hook' includes 'log-edit-insert-changelog' (which it
+  does by default), they will be filled in for you automatically.
+
+- Alternatively, you can use the vc-dwim command to maintain commit
+  messages.  When you create a source directory, run the shell command
+  'git-changelog-symlink-init' to create a symbolic link from
+  ChangeLog to .git/c/ChangeLog.  Edit this ChangeLog via its symlink
+  with Emacs commands like 'C-x 4 a', and commit the change using the
+  shell command 'vc-dwim --commit'.  Type 'vc-dwim --help' for more.
+
+** Branches
 
 Development normally takes places on the trunk.
 Sometimes specialized features are developed on separate branches
@@ -124,9 +180,9 @@ Development is discussed on the emacs-devel mailing list.
 Sometime before the release of a new major version of Emacs a "feature
 freeze" is imposed on the trunk, to prepare for creating a release
 branch.  No new features may be added to the trunk after this point,
-until the release branch is created. Announcements about the freeze
-(and other important events) are made on the info-gnu-emacs mailing
-list, and not anywhere else.
+until the release branch is created.  Announcements about the freeze
+(and other important events) are made on the emacs-devel mailing
+list under the "emacs-announce" topic, and not anywhere else.
 
 The trunk branch is named "master" in git; release branches are named
 "emacs-nn" where "nn" is the major version.
@@ -145,13 +201,13 @@ then exclude that commit from the merge to trunk.
 
 ** Other process information
 
-See all the files in admin/notes/* . In particular, see
+See all the files in admin/notes/* .  In particular, see
 admin/notes/newfile, see admin/notes/repo.
 
 *** git vs rename
 
-git does not explicitly represent a file renaming; it uses a percent
-changed heuristic to deduce that a file was renamed. So if you are
+Git does not explicitly represent a file renaming; it uses a percent
+changed heuristic to deduce that a file was renamed.  So if you are
 planning to make extensive changes to a file after renaming it (or
 moving it to another directory), you should:
 
@@ -162,7 +218,7 @@ moving it to another directory), you should:
 - make other changes
 
 - merge the feature branch to trunk, _not_ squashing the commits into
-  one. The commit message on this merge should summarize the renames
+  one.  The commit message on this merge should summarize the renames
   and all the changes.
 
 ** Emacs Mailing lists.
@@ -176,6 +232,12 @@ to the tracker at http://debbugs.gnu.org .
 You can subscribe to the mailing lists, or see the list archives,
 by following links from http://savannah.gnu.org/mail/?group=emacs .
 
+To email a patch you can use a shell command like 'git format-patch -1'
+to create a file, and then attach the file to your email.  This nicely
+packages the patch's commit message and changes.  To send just one
+such patch without additional remarks, you can use a command like
+'git send-email --to=bug-gnu-emacs@gnu.org 0001-DESCRIPTION.patch'.
+
 ** Document your changes.
 
 Any change that matters to end-users should have an entry in etc/NEWS.
@@ -185,13 +247,35 @@ Doc-strings should be updated together with the code.
 Think about whether your change requires updating the manuals.  If you
 know it does not, mark the NEWS entry with "---".  If you know
 that *all* the necessary documentation updates have been made, mark
-the entry with "+++". Otherwise do not mark it.
+the entry with "+++".  Otherwise do not mark it.
+
+Please see (info "(elisp)Documentation Tips") or
+https://www.gnu.org/software/emacs/manual/html_node/elisp/Documentation-Tips.html
+for more specific tips on Emacs's doc style.  Use 'checkdoc' to check
+for documentation errors before submitting a patch.
+
+** Test your changes.
+
+Please test your changes before committing them or sending them to the
+list.
+
+Emacs uses ERT, Emacs Lisp Regression Testing, for testing.  See (info
+"(ert)") or https://www.gnu.org/software/emacs/manual/html_node/ert/
+for more information on writing and running tests.
+
+To run tests on the entire Emacs tree, run "make check" from the
+top-level directory.  Most tests are in the directory
+"test/automated".  From the "test/automated" directory, run "make
+<filename>" to run the tests for <filename>.el(c).  See
+"test/automated/Makefile" for more information.
 
 ** Understanding Emacs Internals.
 
 The best way to understand Emacs Internals is to read the code,
 but the nodes "Tips" and "GNU Emacs Internals" in the Appendix
-of the Emacs Lisp Reference Manual may also help.
+of the Emacs Lisp Reference Manual may also help.  Some source files,
+such as xdisp.c, have large commentaries describing the design and
+implementation in more detail.
 
 The file etc/DEBUG describes how to debug Emacs bugs.
 

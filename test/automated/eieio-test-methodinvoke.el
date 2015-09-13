@@ -184,9 +184,9 @@
   (if (next-method-p) (call-next-method))
   )
 
-(defmethod make-instance :STATIC ((p C) &rest args)
+(cl-defmethod make-instance ((p (subclass C)) &rest args)
   (eieio-test-method-store :STATIC 'C)
-  (call-next-method)
+  (cl-call-next-method)
   )
 
 (ert-deftest eieio-test-method-order-list-6 ()

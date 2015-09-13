@@ -628,39 +628,38 @@ The symbols in the list are local variables in
                              t)
       (match-string 0))))
 
+(defun semantic-grammar--template-expand (template env)
+  (mapconcat (lambda (S)
+               (if (stringp S) S
+                 (let ((x (assq S env)))
+                   (cond
+                    (x (cdr x))
+                    ((symbolp S) (symbol-value S))))))
+             template ""))
+
 (defun semantic-grammar-header ()
   "Return text of a generated standard header."
-  (let ((file (semantic-grammar-buffer-file
+  (semantic-grammar--template-expand
+   semantic-grammar-header-template
+   `((file . ,(semantic-grammar-buffer-file
                semantic--grammar-output-buffer))
-        (gram (semantic-grammar-buffer-file))
-        (date (format-time-string "%Y-%m-%d %T%z"))
-        (vcid (concat "$" "Id" "$")) ;; Avoid expansion
-        ;; Try to get the copyright from the input grammar, or
-        ;; generate a new one if not found.
-        (copy (or (semantic-grammar-copyright-line)
+     (gram . ,(semantic-grammar-buffer-file))
+     (date . ,(format-time-string "%Y-%m-%d %T%z"))
+     (vcid . ,(concat "$" "Id" "$")) ;; Avoid expansion
+     ;; Try to get the copyright from the input grammar, or
+     ;; generate a new one if not found.
+     (copy . ,(or (semantic-grammar-copyright-line)
                   (concat (format-time-string ";; Copyright (C) %Y ")
-                          user-full-name)))
-	(out ""))
-    (dolist (S semantic-grammar-header-template)
-      (cond ((stringp S)
-	     (setq out (concat out S)))
-	    ((symbolp S)
-	     (setq out (concat out (symbol-value S))))))
-    out))
+                          user-full-name))))))
 
 (defun semantic-grammar-footer ()
   "Return text of a generated standard footer."
-  (let* ((file (semantic-grammar-buffer-file
-                semantic--grammar-output-buffer))
-         (libr (or semantic--grammar-provide
-		   semantic--grammar-package))
-	 (out ""))
-    (dolist (S semantic-grammar-footer-template)
-      (cond ((stringp S)
-	     (setq out (concat out S)))
-	    ((symbolp S)
-	     (setq out (concat out (symbol-value S))))))
-    out))
+  (semantic-grammar--template-expand
+   semantic-grammar-footer-template
+   `((file . ,(semantic-grammar-buffer-file
+               semantic--grammar-output-buffer))
+     (libr . ,(or semantic--grammar-provide
+                  semantic--grammar-package)))))
 
 (defun semantic-grammar-token-data ()
   "Return the string value of the table of lexical tokens."
@@ -714,7 +713,7 @@ Block definitions are read from the current table of lexical types."
         (let* ((blocks       (cdr (semantic-lex-type-value "block" t)))
                (open-delims  (cdr (semantic-lex-type-value "open-paren" t)))
                (close-delims (cdr (semantic-lex-type-value "close-paren" t)))
-               olist clist block-spec delim-spec open-spec close-spec)
+               olist clist delim-spec open-spec close-spec)
           (dolist (block-spec blocks)
             (setq delim-spec (semantic-grammar--lex-delim-spec block-spec)
                   open-spec  (assq (car  delim-spec) open-delims)
@@ -818,7 +817,7 @@ Block definitions are read from the current table of lexical types."
 
 ;;; Generation of the grammar support file.
 ;;
-(defcustom semantic-grammar-file-regexp "\\.[wb]y$"
+(defcustom semantic-grammar-file-regexp "\\.[wb]y\\'"
   "Regexp which matches grammar source files."
   :group 'semantic
   :type 'regexp)
@@ -1073,7 +1072,7 @@ See also the variable `semantic-grammar-file-regexp'."
 (defvar semantic--grammar-macros-regexp-2 nil)
 (make-variable-buffer-local 'semantic--grammar-macros-regexp-2)
 
-(defun semantic--grammar-clear-macros-regexp-2 (&rest ignore)
+(defun semantic--grammar-clear-macros-regexp-2 (&rest _)
   "Clear the cached regexp that match macros local in this grammar.
 IGNORE arguments.
 Added to `before-change-functions' hooks to be run before each text
@@ -1659,21 +1658,17 @@ Select the buffer containing the tag's definition, and move point there."
     )
   "Association of syntax elements, and the corresponding help.")
 
-(declare-function eldoc-function-argstring "eldoc")
-(declare-function eldoc-docstring-format-sym-doc "eldoc")
-(declare-function eldoc-last-data-store "eldoc")
-(declare-function eldoc-get-fnsym-args-string "eldoc")
-(declare-function eldoc-get-var-docstring "eldoc")
-
 (defvar semantic-grammar-eldoc-last-data (cons nil nil))
 
 (defun semantic-grammar-eldoc-get-macro-docstring (macro expander)
   "Return a one-line docstring for the given grammar MACRO.
 EXPANDER is the name of the function that expands MACRO."
   (require 'eldoc)
-  (if (eq expander (car semantic-grammar-eldoc-last-data))
-      (cdr semantic-grammar-eldoc-last-data)
-    (let ((doc (help-split-fundoc (documentation expander t) expander)))
+  (cond
+   ((eq expander (car semantic-grammar-eldoc-last-data))
+    (cdr semantic-grammar-eldoc-last-data))
+   ((fboundp 'eldoc-function-argstring) ;; Emacs<25
+    (let* ((doc (help-split-fundoc (documentation expander t) expander)))
       (cond
        (doc
         (setq doc (car doc))
@@ -1686,7 +1681,16 @@ EXPANDER is the name of the function that expands MACRO."
 	      (eldoc-docstring-format-sym-doc
 	       macro (format "==> %s %s" expander doc) 'default))
         (setq semantic-grammar-eldoc-last-data (cons expander doc)))
-      doc)))
+      doc))
+   ((fboundp 'elisp-get-fnsym-args-string) ;; Emacs≥25
+    (elisp-get-fnsym-args-string
+     expander nil
+     (concat (propertize (symbol-name macro)
+                         'face 'font-lock-keyword-face)
+             " ==> "
+             (propertize (symbol-name macro)
+                         'face 'font-lock-function-name-face)
+             ": ")))))
 
 (define-mode-local-override semantic-idle-summary-current-symbol-info
   semantic-grammar-mode ()
@@ -1717,10 +1721,14 @@ Otherwise return nil."
         (setq val (semantic-grammar-eldoc-get-macro-docstring elt val)))
        ;; Function
        ((and elt (fboundp elt))
-        (setq val (eldoc-get-fnsym-args-string elt)))
+        (setq val (if (fboundp 'eldoc-get-fnsym-args-string)
+                      (eldoc-get-fnsym-args-string elt)
+                    (elisp-get-fnsym-args-string elt))))
        ;; Variable
        ((and elt (boundp elt))
-        (setq val (eldoc-get-var-docstring elt)))
+        (setq val (if (fboundp 'eldoc-get-var-docstring)
+                      (eldoc-get-var-docstring elt)
+                    (elisp-get-var-docstring elt))))
        (t nil)))
     (or val (semantic-idle-summary-current-symbol-info-default))))
 

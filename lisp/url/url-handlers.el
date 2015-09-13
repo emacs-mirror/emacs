@@ -1,4 +1,4 @@
-;;; url-handlers.el --- file-name-handler stuff for URL loading
+;;; url-handlers.el --- file-name-handler stuff for URL loading  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1996-1999, 2004-2015 Free Software Foundation, Inc.
 
@@ -228,7 +228,7 @@ the arguments that would have been passed to OPERATION."
       ;; a local process.
       nil)))
 
-(defun url-handler-file-remote-p (filename &optional identification connected)
+(defun url-handler-file-remote-p (filename &optional identification _connected)
   (let ((url (url-generic-parse-url filename)))
     (if (and (url-type url) (not (equal (url-type url) "file")))
 	;; Maybe we can find a suitable check for CONNECTED.  For now,
@@ -250,7 +250,7 @@ the arguments that would have been passed to OPERATION."
 ;; The actual implementation
 ;;;###autoload
 (defun url-copy-file (url newname &optional ok-if-already-exists
-			  keep-time preserve-uid-gid)
+			  _keep-time _preserve-uid-gid)
   "Copy URL to NEWNAME.  Both args must be strings.
 Signals a `file-already-exists' error if file NEWNAME already exists,
 unless a third argument OK-IF-ALREADY-EXISTS is supplied and non-nil.
@@ -334,19 +334,24 @@ They count bytes from the beginning of the body."
         (unless (cadr size-and-charset)
           ;; If the headers don't specify any particular charset, use the
           ;; usual heuristic/rules that we apply to files.
-          (decode-coding-inserted-region start (point) url visit beg end replace))
-        (list url (car size-and-charset))))))
+          (decode-coding-inserted-region start (point) url
+                                         visit beg end replace))
+        (let ((inserted (car size-and-charset)))
+          (when (fboundp 'after-insert-file-set-coding)
+            (let ((insval (after-insert-file-set-coding inserted visit)))
+              (if insval (setq inserted insval))))
+          (list url inserted))))))
 
 (put 'insert-file-contents 'url-file-handlers 'url-insert-file-contents)
 
-(defun url-file-name-completion (url directory &optional predicate)
+(defun url-file-name-completion (url _directory &optional _predicate)
   ;; Even if it's not implemented, it's not an error to ask for completion,
   ;; in case it's available (bug#14806).
   ;; (error "Unimplemented")
   url)
 (put 'file-name-completion 'url-file-handlers 'url-file-name-completion)
 
-(defun url-file-name-all-completions (file directory)
+(defun url-file-name-all-completions (_file _directory)
   ;; Even if it's not implemented, it's not an error to ask for completion,
   ;; in case it's available (bug#14806).
   ;; (error "Unimplemented")

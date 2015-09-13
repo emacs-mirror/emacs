@@ -62,11 +62,11 @@ narrowing in effect.  This way you will be certain that none of
 the remaining prompts will be accidentally messed up.  You may
 wish to put something like the following in your init file:
 
-\(add-hook 'ielm-mode-hook
+\(add-hook \\='ielm-mode-hook
           (lambda ()
-             (define-key ielm-map \"\\C-w\" 'comint-kill-region)
+             (define-key ielm-map \"\\C-w\" \\='comint-kill-region)
              (define-key ielm-map [C-S-backspace]
-               'comint-kill-whole-line)))
+               \\='comint-kill-whole-line)))
 
 If you set `comint-prompt-read-only' to t, you might wish to use
 `comint-mode-hook' and `comint-mode-map' instead of
@@ -511,7 +511,7 @@ evaluations respectively.  If the working buffer is another IELM
 buffer, then the values in the working buffer are used.  The variables
 `*1', `*2' and `*3', yield the process buffer values.
 
-If, at the start of evaluation, `standard-output' is `t' (the
+If, at the start of evaluation, `standard-output' is t (the
 default), `standard-output' is set to a special function that
 causes output to be directed to the ielm buffer.
 `standard-output' is restored after evaluation unless explicitly
@@ -615,7 +615,7 @@ See `inferior-emacs-lisp-mode' for details."
       (with-current-buffer (get-buffer-create "*ielm*")
         (unless (zerop (buffer-size)) (setq old-point (point)))
         (inferior-emacs-lisp-mode)))
-    (switch-to-buffer "*ielm*")
+    (pop-to-buffer-same-window "*ielm*")
     (when old-point (push-mark old-point))))
 
 (provide 'ielm)

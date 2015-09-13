@@ -338,7 +338,7 @@ numbered and unnumbered sections), list them set by set and sorted by level
 within each set.  For example in texinfo mode:
 
      (setq outline-heading-alist
-      '((\"@chapter\" . 2) (\"@section\" . 3) (\"@subsection\" . 4)
+      \\='((\"@chapter\" . 2) (\"@section\" . 3) (\"@subsection\" . 4)
            (\"@subsubsection\" . 5)
         (\"@unnumbered\" . 2) (\"@unnumberedsec\" . 3)
            (\"@unnumberedsubsec\" . 4)  (\"@unnumberedsubsubsec\" . 5)
@@ -449,8 +449,8 @@ Otherwise, it will be one level below."
           ;; Why bother checking that it is indeed higher/lower level ?
           new-head
         ;; Didn't work, so ask what to do.
-        (read-string (format "%s heading for `%s': "
-                             (if up "Parent" "Demoted") head)
+        (read-string (format-message "%s heading for `%s': "
+				     (if up "Parent" "Demoted") head)
                      head nil nil t)))))
 
 (defun outline-promote (&optional which)

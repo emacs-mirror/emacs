@@ -2,7 +2,7 @@
 @c %**start of header
 @setfilename ../../info/efaq.info
 @settitle GNU Emacs FAQ
-@documentencoding UTF-8
+@include docstyle.texi
 @c %**end of header
 
 @include emacsver.texi
@@ -2674,8 +2674,16 @@ variable in the environment.
 @cindex Maximize frame
 @cindex Fullscreen mode
 
-Use the function @code{w32-send-sys-command}.  For example, you can
-put the following in your @file{.emacs} file:
+Beginning with Emacs 24.4 either run Emacs with the @samp{--maximized}
+command-line option or put the following form in your @file{.emacs}
+file:
+
+@lisp
+(add-hook 'emacs-startup-hook 'toggle-frame-maximized)
+@end lisp
+
+With older versions use the function @code{w32-send-sys-command}.  For
+example, you can put the following in your @file{.emacs} file:
 
 @lisp
 (add-hook 'emacs-startup-hook
@@ -3662,7 +3670,7 @@ for deleting the previous character outside of Emacs.  On many Unix
 systems, this command will remap @key{DEL}:
 
 @example
-stty erase `^?'
+stty erase '^?'
 @end example
 
 @item
@@ -3758,8 +3766,8 @@ You can swap two keys (or key sequences) by using the
 into @key{DEL} and @key{DEL} to @kbd{C-h}, use
 
 @lisp
-(keyboard-translate ?\C-h ?\C-?)  ; translate `C-h' to DEL
-(keyboard-translate ?\C-? ?\C-h)  ; translate DEL to `C-h'.
+(keyboard-translate ?\C-h ?\C-?)  ; translate 'C-h' to DEL
+(keyboard-translate ?\C-? ?\C-h)  ; translate DEL to 'C-h'.
 @end lisp
 
 @noindent

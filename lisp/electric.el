@@ -413,6 +413,111 @@ The variable `electric-layout-rules' says when and how to insert newlines."
          (remove-hook 'post-self-insert-hook
                       #'electric-layout-post-self-insert-function))))
 
+;;; Electric quoting.
+
+(defcustom electric-quote-comment t
+  "Non-nil means to use electric quoting in program comments."
+  :type 'boolean :safe 'booleanp :group 'electricity)
+
+(defcustom electric-quote-string nil
+  "Non-nil means to use electric quoting in program strings."
+  :type 'boolean :safe 'booleanp :group 'electricity)
+
+(defcustom electric-quote-paragraph t
+  "Non-nil means to use electric quoting in text paragraphs."
+  :type 'boolean :safe 'booleanp :group 'electricity)
+
+(defun electric--insertable-p (string)
+  (or (not buffer-file-coding-system)
+      (eq (coding-system-base buffer-file-coding-system) 'undecided)
+      (not (unencodable-char-position nil nil buffer-file-coding-system
+                                      nil string))))
+
+(defun electric-quote-post-self-insert-function ()
+  "Function that `electric-quote-mode' adds to `post-self-insert-hook'.
+This requotes when a quoting key is typed."
+  (when (and electric-quote-mode
+             (memq last-command-event '(?\' ?\`)))
+    (let ((start
+           (if (and comment-start comment-use-syntax)
+               (when (or electric-quote-comment electric-quote-string)
+                 (let ((syntax (syntax-ppss)))
+                   (and (or (and electric-quote-comment (nth 4 syntax))
+                            (and electric-quote-string (nth 3 syntax)))
+                        (nth 8 syntax))))
+             (and electric-quote-paragraph
+                  (derived-mode-p 'text-mode)
+                  (or (eq last-command-event ?\`)
+                      (save-excursion (backward-paragraph) (point)))))))
+      (when start
+        (save-excursion
+          (if (eq last-command-event ?\`)
+              (cond ((and (electric--insertable-p "“")
+                          (search-backward "‘`" (- (point) 2) t))
+                     (replace-match "“")
+                     (when (and electric-pair-mode
+                                (eq (cdr-safe
+                                     (assq ?‘ electric-pair-text-pairs))
+                                    (char-after)))
+                       (delete-char 1))
+                     (setq last-command-event ?“))
+                    ((and (electric--insertable-p "‘")
+                          (search-backward "`" (1- (point)) t))
+                     (replace-match "‘")
+                     (setq last-command-event ?‘)))
+            (cond ((and (electric--insertable-p "”")
+                        (search-backward "’'" (- (point) 2) t))
+                   (replace-match "”")
+                   (setq last-command-event ?”))
+                  ((and (electric--insertable-p "’")
+                        (search-backward "'" (1- (point)) t))
+                   (replace-match "’")
+                   (setq last-command-event ?’)))))))))
+
+(put 'electric-quote-post-self-insert-function 'priority 10)
+
+;;;###autoload
+(define-minor-mode electric-quote-mode
+  "Toggle on-the-fly requoting (Electric Quote mode).
+With a prefix argument ARG, enable Electric Quote mode if
+ARG is positive, and disable it otherwise.  If called from Lisp,
+enable the mode if ARG is omitted or nil.
+
+When enabled, as you type this replaces \\=` with \\=‘, \\=' with \\=’,
+\\=`\\=` with “, and \\='\\=' with ”.  This occurs only in comments, strings,
+and text paragraphs, and these are selectively controlled with
+`electric-quote-comment', `electric-quote-string', and
+`electric-quote-paragraph'.
+
+This is a global minor mode.  To toggle the mode in a single buffer,
+use `electric-quote-local-mode'."
+  :global t :group 'electricity
+  :initialize 'custom-initialize-delay
+  :init-value nil
+  (if (not electric-quote-mode)
+      (unless (catch 'found
+                (dolist (buf (buffer-list))
+                  (with-current-buffer buf
+                    (if electric-quote-mode (throw 'found t)))))
+        (remove-hook 'post-self-insert-hook
+                     #'electric-quote-post-self-insert-function))
+    (add-hook 'post-self-insert-hook
+              #'electric-quote-post-self-insert-function)
+    (electric--sort-post-self-insertion-hook)))
+
+;;;###autoload
+(define-minor-mode electric-quote-local-mode
+  "Toggle `electric-quote-mode' only in this buffer."
+  :variable (buffer-local-value 'electric-quote-mode (current-buffer))
+  (cond
+   ((eq electric-quote-mode (default-value 'electric-quote-mode))
+    (kill-local-variable 'electric-quote-mode))
+   ((not (default-value 'electric-quote-mode))
+    ;; Locally enabled, but globally disabled.
+    (electric-quote-mode 1)                ; Setup the hooks.
+    (setq-default electric-quote-mode nil) ; But keep it globally disabled.
+    )))
+
 (provide 'electric)
 
 ;;; electric.el ends here

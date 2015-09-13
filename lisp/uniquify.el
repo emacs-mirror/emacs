@@ -116,20 +116,11 @@ you can set, browse the `uniquify' custom group."
 		(const post-forward-angle-brackets)
 		(const :tag "numeric suffixes" nil))
   :version "24.4"
-  :require 'uniquify
-  :group 'uniquify)
+  :require 'uniquify)
 
 (defcustom uniquify-after-kill-buffer-p t
   "If non-nil, rerationalize buffer names after a buffer has been killed."
-  :type 'boolean
-  :group 'uniquify)
-
-(defcustom uniquify-ask-about-buffer-names-p nil
-  "If non-nil, permit user to choose names for buffers with same base file.
-If the user chooses to name a buffer, uniquification is preempted and no
-other buffer names are changed."
-  :type 'boolean
-  :group 'uniquify)
+  :type 'boolean)
 
 ;; The default value matches certain Gnus buffers.
 (defcustom uniquify-ignore-buffers-re nil
@@ -137,13 +128,11 @@ other buffer names are changed."
 For instance, set this to \"^draft-[0-9]+$\" to avoid having uniquify rename
 draft buffers even if `uniquify-after-kill-buffer-p' is non-nil and the
 visited file name isn't the same as that of the buffer."
-  :type '(choice (const :tag "Uniquify all buffers" nil) regexp)
-  :group 'uniquify)
+  :type '(choice (const :tag "Uniquify all buffers" nil) regexp))
 
 (defcustom uniquify-min-dir-content 0
   "Minimum number of directory name components included in buffer name."
-  :type 'integer
-  :group 'uniquify)
+  :type 'integer)
 
 (defcustom uniquify-separator nil
   "String separator for buffer name components.
@@ -151,16 +140,14 @@ When `uniquify-buffer-name-style' is `post-forward', separates
 base file name from directory part in buffer names (default \"|\").
 When `uniquify-buffer-name-style' is `reverse', separates all
 file name components (default \"\\\")."
-  :type '(choice (const nil) string)
-  :group 'uniquify)
+  :type '(choice (const nil) string))
 
 (defcustom uniquify-trailing-separator-p nil
   "If non-nil, add a file name separator to dired buffer names.
 If `uniquify-buffer-name-style' is `forward', add the separator at the end;
 if it is `reverse', add the separator at the beginning; otherwise, this
 variable is ignored."
-  :type 'boolean
-  :group 'uniquify)
+  :type 'boolean)
 
 (defcustom uniquify-strip-common-suffix
   ;; Using it when uniquify-min-dir-content>0 doesn't make much sense.
@@ -169,8 +156,7 @@ variable is ignored."
 E.g. if you open /a1/b/c/d and /a2/b/c/d, the buffer names will say
 \"d|a1\" and \"d|a2\" instead of \"d|a1/b/c\" and \"d|a2/b/c\".
 This can be handy when you have deep parallel hierarchies."
-  :type 'boolean
-  :group 'uniquify)
+  :type 'boolean)
 
 (defvar uniquify-list-buffers-directory-modes '(dired-mode cvs-mode vc-dir-mode)
   "List of modes for which uniquify should obey `list-buffers-directory'.

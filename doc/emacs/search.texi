@@ -24,7 +24,7 @@ thing, but search for patterns instead of fixed strings.
 * Symbol Search::             Search for a source code symbol.
 * Regexp Search::             Search for match for a regexp.
 * Regexps::                   Syntax of regular expressions.
-* Regexp Backslash::          Regular expression constructs starting with `\'.
+* Regexp Backslash::          Regular expression constructs starting with '\'.
 * Regexp Example::            A complex regular expression explained.
 * Search Case::               To ignore case while searching, or not.
 * Replace::                   Search, and replace some or all matches.
@@ -80,10 +80,10 @@ past the end of the next occurrence of those characters in the buffer.
 
   For instance, if you type @kbd{C-s} and then @kbd{F}, that puts the
 cursor after the first @samp{F} that occurs in the buffer after the
-starting point.  Then if you then type @kbd{O}, the cursor moves to
-just after the first @samp{FO}; the @samp{F} in that @samp{FO} might
-not be the first @samp{F} previously found.  After another @kbd{O},
-the cursor moves to just after the first @samp{FOO}.
+starting point.  If you then type @kbd{O}, the cursor moves to just
+after the first @samp{FO}; the @samp{F} in that @samp{FO} might not be
+the first @samp{F} previously found.  After another @kbd{O}, the
+cursor moves to just after the first @samp{FOO}.
 
 @cindex faces for highlighting search matches
 @cindex isearch face
@@ -227,11 +227,11 @@ special effects.
   By default, incremental search performs @dfn{lax space matching}:
 each space, or sequence of spaces, matches any sequence of one or more
 spaces in the text.  Hence, @samp{foo bar} matches @samp{foo bar},
-@samp{foo  bar}, @samp{foo   bar}, and so on (but not @samp{foobar}).
-More precisely, Emacs matches each sequence of space characters in the
-search string to a regular expression specified by the variable
-@code{search-whitespace-regexp}.  For example, to make spaces match
-sequences of newlines as well as spaces, set it to
+@samp{foo@w{  }bar}, @samp{foo@w{   }bar}, and so on (but not
+@samp{foobar}).  More precisely, Emacs matches each sequence of space
+characters in the search string to a regular expression specified by
+the variable @code{search-whitespace-regexp}.  For example, to make
+spaces match sequences of newlines as well as spaces, set it to
 @samp{"[[:space:]\n]+"}.
 
   To toggle lax space matching, type @kbd{M-s @key{SPC}}
@@ -511,8 +511,8 @@ the search string must exactly match a whole word.  In an incremental
 word search, the matching is more lax: while you are typing the search
 string, its first and last words need not match whole words.  This is
 so that the matching can proceed incrementally as you type.  This
-additional laxity does not apply to the lazy highlight, which always
-matches whole words.
+additional laxity does not apply to the lazy highlight
+(@pxref{Incremental Search}), which always matches whole words.
 
 @node Symbol Search
 @section Symbol Search
@@ -898,10 +898,10 @@ a conflict, you can use a ``shy'' group.
 @item \(?: @dots{} \)
 @cindex shy group, in regexp
 specifies a ``shy'' group that does not record the matched substring;
-you can't refer back to it with @samp{\@var{d}}.  This is useful
-in mechanically combining regular expressions, so that you
-can add groups for syntactic purposes without interfering with
-the numbering of the groups that are meant to be referred to.
+you can't refer back to it with @samp{\@var{d}} (see below).  This is
+useful in mechanically combining regular expressions, so that you can
+add groups for syntactic purposes without interfering with the
+numbering of the groups that are meant to be referred to.
 
 @item \@var{d}
 @cindex back reference, in regexp
@@ -1342,13 +1342,13 @@ to replace all remaining occurrences without asking again.
 to replace all remaining occurrences in all remaining buffers in
 multi-buffer replacements (like the Dired @key{Q} command that performs
 query replace on selected files).  It answers this question and all
-subsequent questions in the series with "yes", without further
+subsequent questions in the series with ``yes'', without further
 user interaction.
 
 @item N @r{(Upper-case)}
 to skip to the next buffer in multi-buffer replacements without
 replacing remaining occurrences in the current buffer.  It answers
-this question "no", gives up on the questions for the current buffer,
+this question ``no'', gives up on the questions for the current buffer,
 and continues to the next buffer in the sequence.
 
 @item ^

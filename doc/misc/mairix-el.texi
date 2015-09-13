@@ -2,8 +2,7 @@
 
 @setfilename ../../info/mairix-el.info
 @settitle Emacs Interface for Mairix
-
-@documentencoding UTF-8
+@include docstyle.texi
 
 @copying
 Copyright @copyright{} 2008--2015 Free Software Foundation, Inc.
@@ -140,7 +139,7 @@ not tested (yet).
 
 You should make sure that you don't accidentally index the search
 results produced by mairix.  This can be done by pointing
-`mairix-file-path' to a directory which is surely not indexed by mairix.
+@code{mairix-file-path} to a directory which is surely not indexed by mairix.
 Another possibility is to use something like
 
 @example
@@ -222,12 +221,12 @@ Here's a description of the available interactive functions:
 @vindex mairix-search-options
 Call mairix with a search query.  You will also be asked if you want to
 include whole threads.  The results are saved by mairix in the default
-mail file, which is set through the variable `mairix-search-file', which
-again is prefixed by `mairix-file-path'.  The results will then be
+mail file, which is set through the variable @code{mairix-search-file}, which
+again is prefixed by @code{mairix-file-path}.  The results will then be
 displayed with the chosen mail program.  The command used to call mairix
-is specified by the variable `mairix-command', together with the options
-`mairix-search-options'.  The latter has the default ``-F'' for making
-searching faster.
+is specified by the variable @code{mairix-command}, together with the options
+@code{mairix-search-options}.  The latter has the default @option{-F}
+for making searching faster.
 
 @item mairix-widget-search
 @kindex M-x mairix-widget-search
@@ -239,7 +238,7 @@ how it works.  You can then directly call mairix with the search term or
 save it for future use.  Since mairix allows almost arbitrary
 combinations of search commands (like ``tc'' for ``to or cc''), you
 might want to include some other fields.  This can be easily done by
-modifying `mairix-widget-fields-list'.
+modifying @code{mairix-widget-fields-list}.
 
 @item mairix-widget-search-based-on-article
 @kindex M-x mairix-widget-search-based-on-article
@@ -270,7 +269,7 @@ for the search and will then be asked if you want to save your saved
 searches in your @file{.emacs}.  If you answer with yes, the variable
 @code{mairix-saved-searches} will be saved in the customize section of
 your @file{.emacs}.  You can also do this later by using
-`mairix-edit-saved-searches'.
+@code{mairix-edit-saved-searches}.
 
 @item mairix-use-saved-search
 @kindex M-x mairix-use-saved-search
@@ -303,10 +302,11 @@ maybe you like it.
 @vindex mairix-update-options
 @vindex mairix-synchronous-update
 Call mairix to update the database.  Mairix will be called with the
-options `mairix-update-options'; the default is ``-F'' and ``-Q'' to
+options @code{mairix-update-options}; the default is @option{-F} and
+@option{-Q} to
 make updates as fast as possible.  Note that by using these options,
 absolutely no integrity checking is done.  If your database somehow gets
-corrupted, simply delete it and update.  If `mairix-synchronous-update'
+corrupted, simply delete it and update.  If @code{mairix-synchronous-update}
 is @code{nil} (the default), mairix will be called in a subprocess so Emacs
 will still be usable while the update is done.
 

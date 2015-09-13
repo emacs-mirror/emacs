@@ -687,7 +687,7 @@ for use at QPOS."
 The text is displayed for `minibuffer-message-timeout' seconds,
 or until the next input event arrives, whichever comes first.
 Enclose MESSAGE in [...] if this is not yet the case.
-If ARGS are provided, then pass MESSAGE through `format'."
+If ARGS are provided, then pass MESSAGE through `format-message'."
   (if (not (minibufferp (current-buffer)))
       (progn
         (if args
@@ -702,7 +702,7 @@ If ARGS are provided, then pass MESSAGE through `format'."
                       ;; Make sure we can put-text-property.
                       (copy-sequence message)
                     (concat " [" message "]")))
-    (when args (setq message (apply 'format message args)))
+    (when args (setq message (apply #'format-message message args)))
     (let ((ol (make-overlay (point-max) (point-max) nil t t))
           ;; A quit during sit-for normally only interrupts the sit-for,
           ;; but since minibuffer-message is used at the end of a command,
@@ -1241,16 +1241,12 @@ scroll the window of possible completions."
 (defun minibuffer-force-complete-and-exit ()
   "Complete the minibuffer with first of the matches and exit."
   (interactive)
-  (if (and (eq (minibuffer-prompt-end) (point-max))
-           minibuffer-default)
-      ;; Use the provided default if there's one (bug#17545).
-      (minibuffer-complete-and-exit)
-    (minibuffer-force-complete)
-    (completion--complete-and-exit
-     (minibuffer-prompt-end) (point-max) #'exit-minibuffer
-     ;; If the previous completion completed to an element which fails
-     ;; test-completion, then we shouldn't exit, but that should be rare.
-     (lambda () (minibuffer-message "Incomplete")))))
+  (minibuffer-force-complete)
+  (completion--complete-and-exit
+   (minibuffer-prompt-end) (point-max) #'exit-minibuffer
+   ;; If the previous completion completed to an element which fails
+   ;; test-completion, then we shouldn't exit, but that should be rare.
+   (lambda () (minibuffer-message "Incomplete"))))
 
 (defun minibuffer-force-complete (&optional start end)
   "Complete the minibuffer to an exact match.
@@ -2049,7 +2045,7 @@ This respects the wrapper hook `completion-in-region-functions'."
 
 (defvar completion-at-point-functions '(tags-completion-at-point-function)
   "Special hook to find the completion table for the thing at point.
-Each function on this hook is called in turns without any argument and should
+Each function on this hook is called in turn without any argument and should
 return either nil to mean that it is not applicable at point,
 or a function of no argument to perform completion (discouraged),
 or a list of the form (START END COLLECTION . PROPS) where
@@ -2576,7 +2572,7 @@ and `read-file-name-function'."
 (defun read-file-name-default (prompt &optional dir default-filename mustmatch initial predicate)
   "Default method for reading file names.
 See `read-file-name' for the meaning of the arguments."
-  (unless dir (setq dir default-directory))
+  (unless dir (setq dir (or default-directory "~/")))
   (unless (file-name-absolute-p dir) (setq dir (expand-file-name dir)))
   (unless default-filename
     (setq default-filename (if initial (expand-file-name initial dir)

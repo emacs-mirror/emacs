@@ -60,7 +60,7 @@ be preserved if the buffer is lost due to a system error or user error.
 
 @item Autoloading
 Emacs can automatically load Lisp libraries when a Lisp program requests a
-function from those libraries.  This is called `autoloading'.
+function from those libraries.  This is called ``autoloading''.
 @xref{Lisp Libraries}.
 
 @item Backtrace
@@ -100,7 +100,7 @@ A base buffer is a buffer whose text is shared by an indirect buffer
 Some human languages, such as English, are written from left to right.
 Others, such as Arabic, are written from right to left.  Emacs
 supports both of these forms, as well as any mixture of them---this
-is `bidirectional text'.  @xref{Bidirectional Editing}.
+is ``bidirectional text''.  @xref{Bidirectional Editing}.
 
 @item Bind
 To bind a key sequence means to give it a binding (q.v.).
@@ -135,7 +135,7 @@ X}).  Borders are not the same as fringes (q.v.).
 @item Buffer
 The buffer is the basic editing unit; one buffer corresponds to one text
 being edited.  You normally have several buffers, but at any time you are
-editing only one, the `current buffer', though several can be visible
+editing only one, the ``current buffer'', though several can be visible
 when you are using multiple windows or frames (q.v.).  Most buffers
 are visiting (q.v.@:) some file.  @xref{Buffers}.
 
@@ -265,7 +265,7 @@ normally (but see @ref{Glossary---Truncation}) takes up more than one
 screen line when displayed.  We say that the text line is continued, and all
 screen lines used for it after the first are called continuation
 lines.  @xref{Continuation Lines}.  A related Emacs feature is
-`filling' (q.v.).
+``filling'' (q.v.).
 
 @item Control Character
 A control character is a character that you type by holding down the
@@ -310,8 +310,8 @@ between defuns, the current defun is the one that follows point.
 The cursor is the rectangle on the screen which indicates the position
 (called point; q.v.@:) at which insertion and deletion takes place.
 The cursor is on or under the character that follows point.  Often
-people speak of `the cursor' when, strictly speaking, they mean
-`point'.  @xref{Point,Cursor}.
+people speak of ``the cursor'' when, strictly speaking, they mean
+``point''.  @xref{Point,Cursor}.
 
 @item Customization
 Customization is making minor changes in the way Emacs works, to
@@ -351,7 +351,7 @@ it is interpreted relative to the current buffer's default directory.
 
 @item Defun
 A defun is a major definition at the top level in a program.  The name
-`defun' comes from Lisp, where most such definitions use the construct
+``defun'' comes from Lisp, where most such definitions use the construct
 @code{defun}.  @xref{Defuns}.
 
 @item @key{DEL}
@@ -405,7 +405,7 @@ confirmation.  The usual reason for disabling a command is that it is
 confusing for beginning users.  @xref{Disabling}.
 
 @item Down Event
-Short for `button down event' (q.v.).
+Short for ``button down event'' (q.v.).
 
 @item Drag Event
 A drag event is the kind of input event (q.v.@:) generated when you
@@ -598,7 +598,7 @@ correspond to any character.  @xref{Function Keys}.
 @item Global
 Global means ``independent of the current environment; in effect
 throughout Emacs''.  It is the opposite of local (q.v.).  Particular
-examples of the use of `global' appear below.
+examples of the use of ``global'' appear below.
 
 @item Global Abbrev
 A global definition of an abbrev (q.v.@:) is effective in all major
@@ -824,8 +824,8 @@ lists.  @xref{Moving by Parens}.
 @item Local
 Local means ``in effect only in a particular context''; the relevant
 kind of context is a particular function execution, a particular
-buffer, or a particular major mode.  It is the opposite of `global'
-(q.v.).  Specific uses of `local' in Emacs terminology appear below.
+buffer, or a particular major mode.  It is the opposite of ``global''
+(q.v.).  Specific uses of ``local'' in Emacs terminology appear below.
 
 @item Local Abbrev
 A local abbrev definition is effective only if a particular major mode
@@ -848,7 +848,7 @@ one of the modifier keys that can accompany any character.
 
 @item @kbd{M-C-}
 @kbd{M-C-} in the name of a character is an abbreviation for
-Control-Meta; it means the same thing as `@kbd{C-M-}' (q.v.).
+Control-Meta; it means the same thing as @kbd{C-M-} (q.v.).
 
 @item @kbd{M-x}
 @kbd{M-x} is the key sequence that is used to call an Emacs command by
@@ -1121,7 +1121,7 @@ Many commands operate on the text of the region.  @xref{Mark,Region}.
 @item Register
 Registers are named slots in which text, buffer positions, or
 rectangles can be saved for later use.  @xref{Registers}.  A related
-Emacs feature is `bookmarks' (q.v.).
+Emacs feature is ``bookmarks'' (q.v.).
 
 @anchor{Glossary---Regular Expression}
 @item Regular Expression
@@ -1233,15 +1233,15 @@ Emacs has commands for moving by or killing by sentences.
 
 @anchor{Glossary---Server}
 @item Server
-Within Emacs, you can start a `server' process, which listens for
-connections from `clients'.  This offers a faster alternative to
+Within Emacs, you can start a ``server'' process, which listens for
+connections from ``clients''.  This offers a faster alternative to
 starting several Emacs instances.  @xref{Emacs Server}, and
 @ref{Glossary---Daemon}.
 
 @c This is only covered in the lispref, not the user manual.
 @ignore
 @item Session Manager
-Some window systems (q.v.@:) provide a tool called a `session manager'.
+Some window systems (q.v.@:) provide a tool called a ``session manager''.
 This offers the ability to save your windows when you log off,
 and restore them after you log in again.
 @end ignore
@@ -1250,7 +1250,7 @@ and restore them after you log in again.
 A sexp (short for ``s-expression'') is the basic syntactic unit of
 Lisp in its textual form: either a list, or Lisp atom.  Sexps are also
 the balanced expressions (q.v.@:) of the Lisp language; this is why
-the commands for editing balanced expressions have `sexp' in their
+the commands for editing balanced expressions have @samp{sexp} in their
 name.  @xref{Expressions,Sexps}.
 
 @item Simultaneous Editing
@@ -1327,7 +1327,7 @@ Emacs does not make a termscript file unless you tell it to.
 @xref{Bugs}.
 
 @item Text
-`Text' has two meanings (@pxref{Text}):
+``Text'' has two meanings (@pxref{Text}):
 
 @itemize @bullet
 @item
@@ -1420,7 +1420,7 @@ that you can customize Emacs by setting it to a new value.
 @item Variable
 A variable is an object in Lisp that can store an arbitrary value.
 Emacs uses some variables for internal purposes, and has others (known
-as `user options'; q.v.@:) just so that you can set their values to
+as ``user options''; q.v.@:) just so that you can set their values to
 control the behavior of Emacs.  The variables used in Emacs that you
 are likely to be interested in are listed in the Variables Index in
 this manual (@pxref{Variable Index}).  @xref{Variables}, for
@@ -1448,7 +1448,7 @@ Emacs divides a frame (q.v.@:) into one or more windows, each of which
 can display the contents of one buffer (q.v.@:) at any time.
 @xref{Screen}, for basic information on how Emacs uses the screen.
 @xref{Windows}, for commands to control the use of windows.  Some
-other editors use the term ``window'' for what we call a `frame'
+other editors use the term ``window'' for what we call a ``frame''
 (q.v.@:) in Emacs.
 
 @item Window System

@@ -401,7 +401,13 @@ w32_draw_rectangle (HDC hdc, XGCValues *gc, int x, int y,
   oldhb = SelectObject (hdc, hb);
   oldhp = SelectObject (hdc, hp);
 
-  Rectangle (hdc, x, y, x + width, y + height);
+  /* We enlarge WIDTH and HEIGHT by 1 to be bug-compatible to the
+     brain-dead design of XDrawRectangle, which draws a rectangle that
+     is 1 pixel wider and higher than its arguments WIDTH and HEIGHT.
+     This allows us to keep the code that calls this function similar
+     to the corresponding code in xterm.c.  For the details, see
+     http://lists.gnu.org/archives/html/emacs-devel/2014-10/msg00546.html.  */
+  Rectangle (hdc, x, y, x + width + 1, y + height + 1);
 
   SelectObject (hdc, oldhb);
   SelectObject (hdc, oldhp);
@@ -1212,7 +1218,12 @@ x_draw_glyph_string_background (struct glyph_string *s, bool force_p)
 	}
       else
 #endif
-        if (FONT_HEIGHT (s->font) < s->height - 2 * box_line_width
+           if (FONT_HEIGHT (s->font) < s->height - 2 * box_line_width
+	       /* When xdisp.c ignores FONT_HEIGHT, we cannot trust
+		  font dimensions, since the actual glyphs might be
+		  much smaller.  So in that case we always clear the
+		  rectangle with background color.  */
+	       || FONT_TOO_HIGH (s->font)
 	       || s->font_not_found_p
 	       || s->extends_to_end_of_line_p
 	       || force_p)
@@ -1410,7 +1421,7 @@ x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 
       if (glyph->u.glyphless.method == GLYPHLESS_DISPLAY_ACRONYM)
 	{
-	  if (len > 1
+	  if (len > 0
 	      && CHAR_TABLE_P (Vglyphless_char_display)
 	      && (CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (Vglyphless_char_display))
 		  >= 1))
@@ -5821,7 +5832,7 @@ Lisp_Object
 x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 {
   struct font *font = XFONT_OBJECT (font_object);
-  int unit;
+  int unit, font_ascent, font_descent;
 
   if (fontset < 0)
     fontset = fontset_from_font (font_object);
@@ -5834,7 +5845,8 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
   FRAME_FONT (f) = font;
   FRAME_BASELINE_OFFSET (f) = font->baseline_offset;
   FRAME_COLUMN_WIDTH (f) = unit = font->average_width;
-  FRAME_LINE_HEIGHT (f) = font->height;
+  get_font_ascent_descent (font, &font_ascent, &font_descent);
+  FRAME_LINE_HEIGHT (f) = font_ascent + font_descent;
 
   /* Compute number of scrollbar columns.  */
   unit = FRAME_COLUMN_WIDTH (f);
@@ -6190,8 +6202,6 @@ x_set_window_size (struct frame *f, bool change_gravity,
     }
 
   unblock_input ();
-
-  do_pending_window_change (0);
 }
 
 /* Mouse warping.  */
@@ -6578,7 +6588,10 @@ w32_hide_hourglass (struct frame *f)
   struct w32_output *w32 = FRAME_X_OUTPUT (f);
 
   w32->hourglass_p = 0;
-  SetCursor (w32->current_cursor);
+  if (f->pointer_invisible)
+    SetCursor (NULL);
+  else
+    SetCursor (w32->current_cursor);
 }
 
 /* FIXME: old code did that, but I don't know why.  Anyway,
@@ -6588,6 +6601,21 @@ void
 w32_arrow_cursor (void)
 {
   SetCursor (w32_load_cursor (IDC_ARROW));
+}
+
+static void
+w32_toggle_invisible_pointer (struct frame *f, bool invisible)
+{
+  block_input ();
+
+  if (f->pointer_invisible != invisible)
+    {
+      f->pointer_invisible = invisible;
+      w32_define_cursor (FRAME_W32_WINDOW (f),
+			 f->output_data.w32->current_cursor);
+    }
+
+  unblock_input ();
 }
 
 /***********************************************************************
@@ -6729,6 +6757,7 @@ w32_create_terminal (struct w32_display_info *dpyinfo)
   terminal->ins_del_lines_hook = x_ins_del_lines;
   terminal->delete_glyphs_hook = x_delete_glyphs;
   terminal->ring_bell_hook = w32_ring_bell;
+  terminal->toggle_invisible_pointer_hook = w32_toggle_invisible_pointer;
   terminal->update_begin_hook = x_update_begin;
   terminal->update_end_hook = x_update_end;
   terminal->read_socket_hook = w32_read_socket;

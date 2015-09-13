@@ -300,7 +300,8 @@ places where they originally did not directly appear."
 			 (prog1 binder (setq binder (list binder)))
                        (when (cddr binder)
                          (byte-compile-log-warning
-                          (format "Malformed `%S' binding: %S" letsym binder)))
+                          (format-message "Malformed `%S' binding: %S"
+                                          letsym binder)))
 		       (setq value (cadr binder))
 		       (car binder)))
 		(new-val
@@ -545,7 +546,7 @@ FORM is the parent form that binds this var."
     (`((,(and var (guard (eq ?_ (aref (symbol-name var) 0)))) . ,_)
        ,_ ,_ ,_ ,_)
      (byte-compile-log-warning
-      (format "%s `%S' not left unused" varkind var))))
+      (format-message "%s `%S' not left unused" varkind var))))
   (pcase vardata
     (`((,var . ,_) nil ,_ ,_ nil)
      ;; FIXME: This gives warnings in the wrong order, with imprecise line
@@ -557,8 +558,8 @@ FORM is the parent form that binds this var."
               (eq ?_ (aref (symbol-name var) 0))
 	      ;; As a special exception, ignore "ignore".
 	      (eq var 'ignored))
-       (byte-compile-log-warning (format "Unused lexical %s `%S'"
-                                         varkind var))))
+       (byte-compile-log-warning (format-message "Unused lexical %s `%S'"
+                                                 varkind var))))
     ;; If it's unused, there's no point converting it into a cons-cell, even if
     ;; it's captured and mutated.
     (`(,binder ,_ t t ,_)
@@ -678,7 +679,7 @@ and updates the data stored in ENV."
 
     ;; ((and `(quote ,v . ,_) (guard (assq v env)))
     ;;  (byte-compile-log-warning
-    ;;   (format "Possible confusion variable/symbol for `%S'" v)))
+    ;;   (format-message "Possible confusion variable/symbol for `%S'" v)))
 
     (`(quote . ,_) nil)                 ; quote form
     (`(function . ,_) nil)              ; same as quote

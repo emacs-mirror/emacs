@@ -377,7 +377,7 @@ Example:
 
 \(dbus-call-method-asynchronously
   :system \"org.freedesktop.Hal\" \"/org/freedesktop/Hal/devices/computer\"
-  \"org.freedesktop.Hal.Device\" \"GetPropertyString\" 'message
+  \"org.freedesktop.Hal.Device\" \"GetPropertyString\" \\='message
   \"system.kernel.machine\")
 
   => \(:serial :system 2)
@@ -654,7 +654,7 @@ Example:
 
 \(dbus-register-signal
   :system \"org.freedesktop.Hal\" \"/org/freedesktop/Hal/Manager\"
-  \"org.freedesktop.Hal.Manager\" \"DeviceAdded\" 'my-signal-handler)
+  \"org.freedesktop.Hal.Manager\" \"DeviceAdded\" \\='my-signal-handler)
 
   => \(\(:signal :system \"org.freedesktop.Hal.Manager\" \"DeviceAdded\")
       \(\"org.freedesktop.Hal\" \"/org/freedesktop/Hal/Manager\" my-signal-handler))
@@ -813,7 +813,7 @@ discovering the still incomplete interface."
   "Unregister OBJECT from D-Bus.
 OBJECT must be the result of a preceding `dbus-register-method',
 `dbus-register-property' or `dbus-register-signal' call.  It
-returns `t' if OBJECT has been unregistered, `nil' otherwise.
+returns t if OBJECT has been unregistered, nil otherwise.
 
 When OBJECT identifies the last method or property, which is
 registered for the respective service, Emacs releases its
@@ -869,7 +869,7 @@ association to the service from D-Bus."
 				;; Service.
 				(string-equal service (cadr e))
 				;; Non-empty object path.
-				(cl-caddr e)
+				(nth 2 e)
 				(throw :found t)))))
 			 dbus-registered-objects-table)
 			nil))))
@@ -1092,7 +1092,7 @@ well formed."
 (defun dbus-list-activatable-names (&optional bus)
   "Return the D-Bus service names which can be activated as list.
 If BUS is left nil, `:system' is assumed.  The result is a list
-of strings, which is `nil' when there are no activatable service
+of strings, which is nil when there are no activatable service
 names at all."
   (dbus-ignore-errors
     (dbus-call-method
@@ -1101,7 +1101,7 @@ names at all."
 
 (defun dbus-list-names (bus)
   "Return the service names registered at D-Bus BUS.
-The result is a list of strings, which is `nil' when there are no
+The result is a list of strings, which is nil when there are no
 registered service names at all.  Well known names are strings
 like \"org.freedesktop.DBus\".  Names starting with \":\" are
 unique names for services."
@@ -1119,7 +1119,7 @@ A service has a known name if it doesn't start with \":\"."
 
 (defun dbus-list-queued-owners (bus service)
   "Return the unique names registered at D-Bus BUS and queued for SERVICE.
-The result is a list of strings, or `nil' when there are no
+The result is a list of strings, or nil when there are no
 queued name owners service names at all."
   (dbus-ignore-errors
     (dbus-call-method
@@ -1128,7 +1128,7 @@ queued name owners service names at all."
 
 (defun dbus-get-name-owner (bus service)
   "Return the name owner of SERVICE registered at D-Bus BUS.
-The result is either a string, or `nil' if there is no name owner."
+The result is either a string, or nil if there is no name owner."
   (dbus-ignore-errors
     (dbus-call-method
      bus dbus-service-dbus dbus-path-dbus
@@ -1145,7 +1145,7 @@ apply
 
   \(member service \(dbus-list-known-names bus))"
   ;; "Ping" raises a D-Bus error if SERVICE does not exist.
-  ;; Otherwise, it returns silently with `nil'.
+  ;; Otherwise, it returns silently with nil.
   (condition-case nil
       (not
        (if (natnump timeout)
@@ -1335,7 +1335,7 @@ object can contain \"annotation\" children."
 (defun dbus-introspect-get-annotation-names
   (bus service path interface &optional name)
   "Return all annotation names as list of strings.
-If NAME is `nil', the annotations are children of INTERFACE,
+If NAME is nil, the annotations are children of INTERFACE,
 otherwise NAME must be a \"method\", \"signal\", or \"property\"
 object, where the annotations belong to."
   (let ((object
@@ -1352,7 +1352,7 @@ object, where the annotations belong to."
 (defun dbus-introspect-get-annotation
   (bus service path interface name annotation)
   "Return ANNOTATION as XML object.
-If NAME is `nil', ANNOTATION is a child of INTERFACE, otherwise
+If NAME is nil, ANNOTATION is a child of INTERFACE, otherwise
 NAME must be the name of a \"method\", \"signal\", or
 \"property\" object, where the ANNOTATION belongs to."
   (let ((elt (xml-get-children
@@ -1376,7 +1376,7 @@ NAME must be the name of a \"method\", \"signal\", or
   "Return a list of all argument names as list of strings.
 NAME must be a \"method\" or \"signal\" object.
 
-Argument names are optional, the function can return `nil'
+Argument names are optional, the function can return nil
 therefore, even if the method or signal has arguments."
   (let ((object
 	 (or (dbus-introspect-get-method bus service path interface name)
@@ -1404,9 +1404,9 @@ element of the list returned by `dbus-introspect-get-argument-names'."
   (bus service path interface name &optional direction)
   "Return signature of a `method' or `signal', represented by NAME, as string.
 If NAME is a `method', DIRECTION can be either \"in\" or \"out\".
-If DIRECTION is `nil', \"in\" is assumed.
+If DIRECTION is nil, \"in\" is assumed.
 
-If NAME is a `signal', and DIRECTION is non-`nil', DIRECTION must
+If NAME is a `signal', and DIRECTION is non-nil, DIRECTION must
 be \"out\"."
   ;; For methods, we use "in" as default direction.
   (let ((object (or (dbus-introspect-get-method
@@ -1440,7 +1440,7 @@ be \"out\"."
 (defun dbus-get-property (bus service path interface property)
   "Return the value of PROPERTY of INTERFACE.
 It will be checked at BUS, SERVICE, PATH.  The result can be any
-valid D-Bus value, or `nil' if there is no PROPERTY."
+valid D-Bus value, or nil if there is no PROPERTY."
   (dbus-ignore-errors
    ;; "Get" returns a variant, so we must use the `car'.
    (car
@@ -1451,7 +1451,7 @@ valid D-Bus value, or `nil' if there is no PROPERTY."
 (defun dbus-set-property (bus service path interface property value)
   "Set value of PROPERTY of INTERFACE to VALUE.
 It will be checked at BUS, SERVICE, PATH.  When the value has
-been set successful, the result is VALUE.  Otherwise, `nil' is
+been set successful, the result is VALUE.  Otherwise, nil is
 returned."
   (dbus-ignore-errors
    ;; "Set" requires a variant.
@@ -1465,7 +1465,7 @@ returned."
   "Return all properties of INTERFACE at BUS, SERVICE, PATH.
 The result is a list of entries.  Every entry is a cons of the
 name of the property, and its value.  If there are no properties,
-`nil' is returned."
+nil is returned."
   (dbus-ignore-errors
     ;; "GetAll" returns "a{sv}".
     (let (result)

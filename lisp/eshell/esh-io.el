@@ -31,6 +31,18 @@
 ;; consistent with most shells.  Therefore, only unique features are
 ;; mentioned here.
 ;;
+;;;_* Redirect to a Buffer or Process
+;;
+;; Buffers and processes can be named with '#<buffer buffer-name>' and
+;; '#<process process-name>', respectively. As a shorthand,
+;; '#<buffer-name>' without the explicit "buffer" arg is equivalent to
+;; '#<buffer buffer-name>'.
+;;
+;;   echo hello > #<buffer *scratch*> # Overwrite '*scratch*' with 'hello'.
+;;   echo hello > #<*scratch*>        # Same as the command above.
+;;
+;;   echo hello > #<process shell> # Pipe "hello" into the shell process.
+;;
 ;;;_* Insertion
 ;;
 ;; To insert at the location of point in a buffer, use '>>>':
@@ -96,19 +108,6 @@ other buffers) ."
 (defcustom eshell-error-handle 2
   "The index of the standard error handle."
   :type 'integer
-  :group 'eshell-io)
-
-(defcustom eshell-buffer-shorthand nil
-  "If non-nil, a symbol name can be used for a buffer in redirection.
-If nil, redirecting to a buffer requires buffer name syntax.  If this
-variable is set, redirection directly to Lisp symbols will be
-impossible.
-
-Example:
-
-  echo hello > '*scratch*  ; works if `eshell-buffer-shorthand' is t
-  echo hello > #<buffer *scratch*>  ; always works"
-  :type 'boolean
   :group 'eshell-io)
 
 (defcustom eshell-print-queue-size 5
@@ -183,7 +182,7 @@ not be added to this variable."
                 #'eshell--apply-redirections))
 
 (defun eshell-parse-redirection ()
-  "Parse an output redirection, such as '2>'."
+  "Parse an output redirection, such as `2>'."
   (if (and (not eshell-current-quoted)
 	   (looking-at "\\([0-9]\\)?\\(<\\|>+\\)&?\\([0-9]\\)?\\s-*"))
       (if eshell-current-argument
@@ -355,21 +354,14 @@ it defaults to `insert'."
 		   (goto-char (point-max))))
 	    (point-marker))))))
 
-   ((or (bufferp target)
-	(and (boundp 'eshell-buffer-shorthand)
-	     (symbol-value 'eshell-buffer-shorthand)
-	     (symbolp target)
-	     (not (memq target '(t nil)))))
-    (let ((buf (if (bufferp target)
-		   target
-		 (get-buffer-create
-		  (symbol-name target)))))
-      (with-current-buffer buf
-	(cond ((eq mode 'overwrite)
-	       (erase-buffer))
-	      ((eq mode 'append)
-	       (goto-char (point-max))))
-	(point-marker))))
+
+   ((bufferp target)
+    (with-current-buffer target
+      (cond ((eq mode 'overwrite)
+             (erase-buffer))
+            ((eq mode 'append)
+             (goto-char (point-max))))
+      (point-marker)))
 
    ((functionp target) nil)
 

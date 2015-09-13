@@ -1,4 +1,4 @@
-;;; sgml-mode.el --- SGML- and HTML-editing modes -*- coding: utf-8 -*-
+;;; sgml-mode.el --- SGML- and HTML-editing modes -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1992, 1995-1996, 1998, 2001-2015 Free Software
 ;; Foundation, Inc.
@@ -46,6 +46,25 @@
   :type 'integer
   :group 'sgml)
 
+(defcustom sgml-attribute-offset 0
+  "Specifies a delta for attribute indentation in `sgml-indent-line'.
+
+When 0, attribute indentation looks like this:
+
+  <element
+    attribute=\"value\">
+  </element>
+
+When 2, attribute indentation looks like this:
+
+  <element
+      attribute=\"value\">
+  </element>"
+  :version "25.1"
+  :type 'integer
+  :safe 'integerp
+  :group 'sgml)
+
 (defcustom sgml-xml-mode nil
   "When non-nil, tag insertion functions will be XML-compliant.
 It is set to be buffer-local when the file has
@@ -87,10 +106,10 @@ This list is used when first loading the `sgml-mode' library.
 The supported characters and potential disadvantages are:
 
   ?\\\"	Makes \" in text start a string.
-  ?'	Makes ' in text start a string.
+  ?\\='	Makes \\=' in text start a string.
   ?-	Makes -- in text start a comment.
 
-When only one of ?\\\" or ?' are included, \"'\" or '\"', as can be found in
+When only one of ?\\\" or ?\\=' are included, \"\\='\" or \\='\"\\=', as can be found in
 DTDs, start a string.  To partially avoid this problem this also makes these
 self insert as named entities depending on `sgml-quick-keys'.
 
@@ -423,7 +442,7 @@ an optional alist of possible values."
 	(comment-style 'plain))
     (comment-indent-new-line soft)))
 
-(defun sgml-mode-facemenu-add-face-function (face end)
+(defun sgml-mode-facemenu-add-face-function (face _end)
   (let ((tag-face (cdr (assq face sgml-face-tag-alist))))
     (cond (tag-face
 	   (setq tag-face (funcall skeleton-transformation-function tag-face))
@@ -463,14 +482,14 @@ This function is designed for use in `fill-nobreak-predicate'.
 (define-derived-mode sgml-mode text-mode '(sgml-xml-mode "XML" "SGML")
   "Major mode for editing SGML documents.
 Makes > match <.
-Keys <, &, SPC within <>, \", / and ' can be electric depending on
+Keys <, &, SPC within <>, \", / and \\=' can be electric depending on
 `sgml-quick-keys'.
 
 An argument of N to a tag-inserting command means to wrap it around
 the next N words.  In Transient Mark mode, when the mark is active,
 N defaults to -1, which means to wrap it around the current region.
 
-If you like upcased tags, put (setq sgml-transformation-function 'upcase)
+If you like upcased tags, put (setq sgml-transformation-function \\='upcase)
 in your init file.
 
 Use \\[sgml-validate] to validate your document with an SGML parser.
@@ -740,9 +759,10 @@ If QUIET, do not print a message when there are no attributes for TAG."
 	    (insert ?\s)
 	    (insert (funcall skeleton-transformation-function
 			     (setq attribute
-				   (skeleton-read '(completing-read
-						    "Attribute: "
-						    alist)))))
+				   (skeleton-read (lambda ()
+                                                    (completing-read
+                                                     "Attribute: "
+                                                     alist))))))
 	    (if (string= "" attribute)
 		(setq i 0)
 	      (sgml-value (assoc (downcase attribute) alist))
@@ -825,7 +845,7 @@ Return non-nil if we skipped over matched tags."
 (defvar sgml-electric-tag-pair-overlays nil)
 (defvar sgml-electric-tag-pair-timer nil)
 
-(defun sgml-electric-tag-pair-before-change-function (beg end)
+(defun sgml-electric-tag-pair-before-change-function (_beg end)
   (condition-case err
   (save-excursion
     (goto-char end)
@@ -993,7 +1013,7 @@ With prefix argument ARG, repeat this ARG times."
 (or (get 'sgml-tag 'invisible)
     (setplist 'sgml-tag
 	      (append '(invisible t
-			point-entered sgml-point-entered
+                        cursor-sensor-functions (sgml-cursor-sensor)
 			rear-nonsticky t
 			read-only t)
 		      (symbol-plist 'sgml-tag))))
@@ -1001,63 +1021,59 @@ With prefix argument ARG, repeat this ARG times."
 (defun sgml-tags-invisible (arg)
   "Toggle visibility of existing tags."
   (interactive "P")
-  (let ((modified (buffer-modified-p))
-	(inhibit-read-only t)
-	(inhibit-modification-hooks t)
-	;; Avoid spurious the `file-locked' checks.
-	(buffer-file-name nil)
-	;; This is needed in case font lock gets called,
-	;; since it moves point and might call sgml-point-entered.
-	;; How could it get called?  -stef
-	(inhibit-point-motion-hooks t)
+  (let ((inhibit-read-only t)
 	string)
-    (unwind-protect
-	(save-excursion
-	  (goto-char (point-min))
-	  (if (setq-local sgml-tags-invisible
-			  (if arg
-			      (>= (prefix-numeric-value arg) 0)
-			    (not sgml-tags-invisible)))
-	      (while (re-search-forward sgml-tag-name-re nil t)
-		(setq string
-		      (cdr (assq (intern-soft (downcase (match-string 1)))
-				 sgml-display-text)))
-		(goto-char (match-beginning 0))
-		(and (stringp string)
-		     (not (overlays-at (point)))
-		     (let ((ol (make-overlay (point) (match-beginning 1))))
-		       (overlay-put ol 'before-string string)
-		       (overlay-put ol 'sgml-tag t)))
-		(put-text-property (point)
-				   (progn (forward-list) (point))
-				   'category 'sgml-tag))
-	    (let ((pos (point-min)))
-	      (while (< (setq pos (next-overlay-change pos)) (point-max))
-		(dolist (ol (overlays-at pos))
-		  (if (overlay-get ol 'sgml-tag)
-		      (delete-overlay ol)))))
-	    (remove-text-properties (point-min) (point-max) '(category nil))))
-      (restore-buffer-modified-p modified))
+    (with-silent-modifications
+      (save-excursion
+        (goto-char (point-min))
+        (if (setq-local sgml-tags-invisible
+                        (if arg
+                            (>= (prefix-numeric-value arg) 0)
+                          (not sgml-tags-invisible)))
+            (while (re-search-forward sgml-tag-name-re nil t)
+              (setq string
+                    (cdr (assq (intern-soft (downcase (match-string 1)))
+                               sgml-display-text)))
+              (goto-char (match-beginning 0))
+              (and (stringp string)
+                   (not (overlays-at (point)))
+                   (let ((ol (make-overlay (point) (match-beginning 1))))
+                     (overlay-put ol 'before-string string)
+                     (overlay-put ol 'sgml-tag t)))
+              (put-text-property (point)
+                                 (progn (forward-list) (point))
+                                 'category 'sgml-tag))
+          (let ((pos (point-min)))
+            (while (< (setq pos (next-overlay-change pos)) (point-max))
+              (dolist (ol (overlays-at pos))
+                (if (overlay-get ol 'sgml-tag)
+                    (delete-overlay ol)))))
+          (remove-text-properties (point-min) (point-max) '(category nil)))))
+    (cursor-sensor-mode (if sgml-tags-invisible 1 -1))
     (run-hooks 'sgml-tags-invisible-hook)
     (message "")))
 
-(defun sgml-point-entered (x y)
-  ;; Show preceding or following hidden tag, depending of cursor direction.
-  (let ((inhibit-point-motion-hooks t))
-    (save-excursion
-      (condition-case nil
-	  (message "Invisible tag: %s"
-		   ;; Strip properties, otherwise, the text is invisible.
-		   (buffer-substring-no-properties
-		    (point)
-		    (if (or (and (> x y)
-				 (not (eq (following-char) ?<)))
-			    (and (< x y)
-				 (eq (preceding-char) ?>)))
-			(backward-list)
-		      (forward-list))))
-	(error nil)))))
-
+(defun sgml-cursor-sensor (window x dir)
+  ;; Show preceding or following hidden tag, depending of cursor direction (and
+  ;; `dir' is not the direction in this sense).
+  (when (eq dir 'entered)
+    (ignore-errors
+      (let* ((y (window-point window))
+             (otherend
+              (save-excursion
+                (goto-char y)
+                (cond
+                 ((and (eq (char-before) ?>)
+                       (or (not (eq (char-after) ?<))
+                           (> x y)))
+                  (backward-sexp))
+                 ((eq (char-after y) ?<)
+                  (forward-sexp)))
+                (point))))
+        (message "Invisible tag: %s"
+                 ;; Strip properties, otherwise, the text is invisible.
+                 (buffer-substring-no-properties
+                  y otherend))))))
 
 
 (defun sgml-validate (command)
@@ -1139,7 +1155,7 @@ If nil, start from a preceding tag at indentation."
        ((and state (> (nth 0 state) 0)) (cons 'tag (nth 1 state)))
        (t (cons 'text text-start))))))
 
-(defun sgml-beginning-of-tag (&optional top-level)
+(defun sgml-beginning-of-tag (&optional only-immediate)
   "Skip to beginning of tag and return its name.
 If this can't be done, return nil."
   (let ((context (sgml-lexical-context)))
@@ -1148,7 +1164,7 @@ If this can't be done, return nil."
 	  (goto-char (cdr context))
 	  (when (looking-at sgml-tag-name-re)
 	    (match-string-no-properties 1)))
-      (if top-level nil
+      (if only-immediate nil
 	(when (not (eq (car context) 'text))
 	  (goto-char (cdr context))
 	  (sgml-beginning-of-tag t))))))
@@ -1162,13 +1178,16 @@ See `sgml-tag-alist' for info about attribute rules."
     (if (and (eq (car alist) t) (not sgml-xml-mode))
 	(when (cdr alist)
 	  (insert "=\"")
-	  (setq alist (skeleton-read '(completing-read "Value: " (cdr alist))))
+	  (setq alist (skeleton-read (lambda ()
+                                       (completing-read
+                                        "Value: " (cdr alist)))))
 	  (if (string< "" alist)
 	      (insert alist ?\")
 	    (delete-char -2)))
       (insert "=\"")
       (if (cdr alist)
-          (insert (skeleton-read '(completing-read "Value: " alist)))
+          (insert (skeleton-read (lambda ()
+                                   (completing-read "Value: " alist))))
         (when (null alist)
           (insert (skeleton-read '(read-string "Value: ")))))
       (insert ?\"))))
@@ -1510,13 +1529,13 @@ LCON is the lexical context, if any."
     (`pi nil)
 
     (`tag
-     (goto-char (1+ (cdr lcon)))
+     (goto-char (+ (cdr lcon) sgml-attribute-offset))
      (skip-chars-forward "^ \t\n")	;Skip tag name.
      (skip-chars-forward " \t")
      (if (not (eolp))
 	 (current-column)
        ;; This is the first attribute: indent.
-       (goto-char (1+ (cdr lcon)))
+       (goto-char (+ (cdr lcon) sgml-attribute-offset))
        (+ (current-column) sgml-basic-offset)))
 
     (`text
@@ -1562,6 +1581,19 @@ LCON is the lexical context, if any."
 	      (skip-chars-forward " \t\n")
 	      (< (point) here) (sgml-at-indentation-p))
 	 (current-column))
+	;; ;; If the parsing failed, try to recover.
+	;; ((and (null context) (bobp)
+	;; 	(not (eq (char-after here) ?<)))
+	;;  (goto-char here)
+	;;  (if (and (looking-at "--[ \t\n]*>")
+	;; 	    (re-search-backward "<!--" nil t))
+	;;      ;; No wonder parsing failed: we're in a comment.
+	;;      (sgml-calculate-indent (prog2 (goto-char (match-end 0))
+	;; 				  (sgml-lexical-context)
+	;; 				(goto-char here)))
+	;;    ;; We have no clue what's going on, let's be honest about it.
+	;;    nil))
+	;; Otherwise, just follow the rules.
 	(t
 	 (goto-char there)
 	 (+ (current-column)
@@ -1800,6 +1832,8 @@ This takes effect when first loading the library.")
       ("array" (nil \n
 		    ("Item: " "<item>" str (if sgml-xml-mode "</item>") \n))
        "align")
+      ("article" \n)
+      ("aside" \n)
       ("au")
       ("b")
       ("big")
@@ -1825,7 +1859,10 @@ This takes effect when first loading the library.")
              "<dd>" (if sgml-xml-mode "</dd>") \n))
       ("em")
       ("fn" "id" "fn")  ;; Footnotes were deprecated in HTML 3.2
+      ("footer" \n)
       ("head" \n)
+      ("header" \n)
+      ("hgroup" \n)
       ("html" (\n
 	       "<head>\n"
 	       "<title>" (setq str (read-input "Title: ")) "</title>\n"
@@ -1843,6 +1880,7 @@ This takes effect when first loading the library.")
       ("lang")
       ("li" ,(not sgml-xml-mode))
       ("math" \n)
+      ("nav" \n)
       ("nobr")
       ("option" t ("value") ("label") ("selected" t))
       ("over" t)
@@ -1852,6 +1890,7 @@ This takes effect when first loading the library.")
       ("rev")
       ("s")
       ("samp")
+      ("section" \n)
       ("small")
       ("span" nil
 	("class"
@@ -1882,6 +1921,8 @@ This takes effect when first loading the library.")
     ("acronym" . "Acronym")
     ("address" . "Formatted mail address")
     ("array" . "Math array")
+    ("article" . "An independent part of document or site")
+    ("aside" . "Secondary content related to surrounding content (e.g. page or article)")
     ("au" . "Author")
     ("b" . "Bold face")
     ("base" . "Base address for URLs")
@@ -1911,6 +1952,7 @@ This takes effect when first loading the library.")
     ("figt" . "Figure text")
     ("fn" . "Footnote")  ;; No one supports special footnote rendering.
     ("font" . "Font size")
+    ("footer" . "Footer of a section")
     ("form" . "Form with input fields")
     ("group" . "Document grouping")
     ("h1" . "Most important section headline")
@@ -1920,6 +1962,8 @@ This takes effect when first loading the library.")
     ("h5" . "Unimportant section headline")
     ("h6" . "Least important section headline")
     ("head" . "Document header")
+    ("header" . "Header of a section")
+    ("hgroup" . "Group of headings - h1-h6 elements")
     ("hr" . "Horizontal rule")
     ("html" . "HTML Document")
     ("i" . "Italic face")
@@ -1932,8 +1976,9 @@ This takes effect when first loading the library.")
     ("li" . "List item")
     ("link" . "Link relationship")
     ("math" . "Math formula")
-    ("menu" . "Menu list (obsolete)")
+    ("menu" . "List of commands")
     ("mh" . "Form mail header")
+    ("nav" . "Group of navigational links")
     ("nextid" . "Allocate new id")
     ("nobr" . "Text without line break")
     ("ol" . "Ordered list")
@@ -1947,6 +1992,7 @@ This takes effect when first loading the library.")
     ("rev" . "Reverse video")
     ("s" . "Strikeout")
     ("samp" . "Sample text")
+    ("section" . "Section of a document")
     ("select" . "Selection list")
     ("small" . "Font size")
     ("sp" . "Nobreak space")
@@ -2020,7 +2066,7 @@ Images in many formats can be inlined with <img src=\"URL\">.
 If you mainly create your own documents, `sgml-specials' might be
 interesting.  But note that some HTML 2 browsers can't handle `&apos;'.
 To work around that, do:
-   (eval-after-load \"sgml-mode\" '(aset sgml-char-names ?' nil))
+   (eval-after-load \"sgml-mode\" \\='(aset sgml-char-names ?\\=' nil))
 
 \\{html-mode-map}"
   (setq-local sgml-display-text html-display-text)
@@ -2213,6 +2259,33 @@ HTML Autoview mode is a buffer-local minor mode for use with
                                         (if sgml-xml-mode "<br />" "<br>"))
 			     "")))
    \n))
+
+(define-skeleton html-navigational-links
+  "Group of navigational links."
+  nil
+  "<nav>" \n
+  "<ul>" \n
+  "<li><a href=\"" (skeleton-read "URL: " "#") "\">"
+  (skeleton-read "Title: ") "</a>"
+  (if sgml-xml-mode (if sgml-xml-mode "</li>")) \n
+  "</ul>" \n
+  "</nav>")
+
+(define-skeleton html-html5-template
+  "Initial HTML5 template"
+  nil
+  "<!DOCTYPE html>" \n
+  "<html lang=\"en\">" \n
+  "<head>" \n
+  "<meta charset=\"utf-8\">" \n
+  "<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">" \n
+  "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">" \n
+  "<title>" (skeleton-read "Page Title: ") "</title>" \n
+  "</head>" \n
+  "<body>" \n
+  "<div id=\"app\"></div>" \n
+  "</body>" \n
+  "</html>")
 
 (provide 'sgml-mode)
 

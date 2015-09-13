@@ -5,8 +5,7 @@
 @comment @setfilename viper
 @comment @setfilename viper.info
 @setfilename ../../info/viper.info
-
-@documentencoding UTF-8
+@include docstyle.texi
 
 @copying
 Copyright @copyright{} 1995--1997, 2001--2015 Free Software Foundation, Inc.
@@ -655,11 +654,12 @@ alone as a default is meaningless, since this command requires a file
 argument.
 @end table
 @noindent
-As in Vi, Viper's destructive commands can be re-executed by typing `@kbd{.}'.
+As in Vi, Viper's destructive commands can be re-executed by typing
+a period (@kbd{.}).
 However, in addition, Viper keeps track of the history of such commands.  This
 history can be perused by typing @kbd{C-c M-p} and @kbd{C-c M-n}.
 Having found the appropriate command, it can be then executed by typing
-`@kbd{.}'.
+a period.
 @xref{Improvements over Vi}, for more information.
 
 @node Insert State
@@ -877,7 +877,8 @@ want to change this.
 @noindent
 Currently undisplayed files can be listed using the @kbd{:ar} command.  The
 command @kbd{:n} can be given counts from the @kbd{:ar} list to switch to
-other files. For example, use `:n3' to move to the third file in that list.
+other files.  For example, use @samp{:n3} to move to the third file in
+that list.
 
 @node Unimplemented Features
 @section Unimplemented Features
@@ -1224,7 +1225,7 @@ Facilities like this make Vi's @kbd{:ab} command obsolete.
 @cindex Ex style motion
 @cindex line editor motion
 
-Viper can be set free from the line--limited movements in Vi, such as @kbd{l}
+Viper can be set free from the line-limited movements in Vi, such as @kbd{l}
 refusing to move beyond the line, @key{ESC} moving one character back,
 etc.  These derive from Ex, which is a line editor.  If your
 Viper customization file contains
@@ -1457,8 +1458,8 @@ In Vi state, these commands let the user peruse the history of Vi-style
 destructive commands, such as @kbd{dw}, @kbd{J}, @kbd{a}, etc.
 By repeatedly typing @kbd{C-c M-p} or @kbd{C-c M-n} you will cycle Viper
 through the recent history of Vi commands, displaying the commands one by
-one.  Once
-an appropriate command is found, it can be executed by typing `@kbd{.}'.
+one.  Once an appropriate command is found, it can be executed by
+typing a period.
 
 Since typing @kbd{C-c M-p} is tedious, it is more convenient to bind an
 appropriate function to a function key on the keyboard and use that key.
@@ -1626,7 +1627,7 @@ values.  The corresponding :se command is also indicated.  (The symbols
 Viper supports both the abbreviated Vi variable names and their full
 names.  Variable completion is done on full names only.  @key{TAB} and
 @key{SPC} complete
-variable names.  Typing `=' will complete the name and then will prompt for
+variable names.  Typing @kbd{=} will complete the name and then will prompt for
 a value, if applicable.  For instance, @kbd{:se au @key{SPC}} will complete the
 command to @kbd{:set autoindent}; @kbd{:se ta @key{SPC}} will complete the command
 and prompt further like this: @kbd{:set tabstop = }.
@@ -1800,8 +1801,8 @@ unless you are a novice, as this precludes the use
 of language-specific features provided by the major modes.
 @item viper-keep-point-on-repeat t
 If not @code{nil}, point is not moved when the user repeats the previous
-command by typing `.'  This is very useful for doing repeated changes with
-the @kbd{.} key.
+command by typing a period.  This is very useful for doing repeated
+changes with the @kbd{.} key.
 @item viper-repeat-from-history-key 'f12
 Prefix key used to invoke the macros @kbd{f12 1} and @kbd{f12 2} that repeat
 the second-last and the third-last destructive command.
@@ -1960,7 +1961,7 @@ can include a line like this in your Viper customization file:
 
 Viper lets you define hot keys, i.e., you can associate keyboard keys
 such as F1, Help, PgDn, etc., with Emacs Lisp functions (that may already
-exist or that you will write).  Each key has a "preferred form" in
+exist or that you will write).  Each key has a ``preferred form'' in
 Emacs.  For instance, the Up key's preferred form is [up], the Help key's
 preferred form is [help], and the Undo key has the preferred form [f14].
 You can find out the preferred form of a key by typing @kbd{M-x
@@ -2375,23 +2376,24 @@ shown above, and then setting it in the desired major modes as follows:
 @end example
 
 @item Vi-isms in Emacs state
-Some people find it useful to use the Vi-style search key, `/', to invoke
+Some people find it useful to use the Vi-style search key, @kbd{/}, to invoke
 search in modes which Viper leaves in emacs-state.  These modes are:
 @code{dired-mode}, @code{mh-folder-mode},
 @code{Info-mode}, and @code{Buffer-menu-mode}
-(more may be added in the future).  So, in the above modes, Viper binds `/'
+(more may be added in the future).  So, in the above modes, Viper binds @kbd{/}
 so that it will behave Vi-style.  Furthermore, in those major modes, Viper
-binds `:' to invoke ex-style commands, like in vi-state.  And, as described
-above, `//' and `///' get bound to Vi-style macros that toggle
+binds @kbd{:} to invoke ex-style commands, like in vi-state.  And, as described
+above, @kbd{//} and @kbd{///} get bound to Vi-style macros that toggle
 case-insensitivity and regexp-search.
 
 If you don't like these features---which I don't really understand---you
-can unbind `/' and `:' in @code{viper-dired-modifier-map} (for Dired) or in
-@code{viper-slash-and-colon-map}, for other modes.
+can unbind @kbd{/} and @kbd{:} in @code{viper-dired-modifier-map} (for
+Dired) or in @code{viper-slash-and-colon-map}, for other modes.
 @vindex @code{viper-slash-and-colon-map}
 @vindex @code{viper-dired-modifier-map}
 
-To unbind the macros `//' and `///' for a major mode where you feel they
+To unbind the macros @kbd{//} and @kbd{///} for a major mode where you
+feel they
 are undesirable, execute @code{viper-set-emacs-state-searchstyle-macros} with a
 non-@code{nil} argument.  This can be done either interactively, by supplying a
 prefix argument, or by placing
@@ -2419,16 +2421,17 @@ Change your user level interactively.
 Viper supports Emacs-style file completion when it prompts the user for a
 file name.  However, in many cases, the same directory may contain files
 with identical prefix but different suffixes, e.g., prog.c, prog.o,
-paper.tex, paper.dvi.  In such cases, completion will stop at the `.'.
+paper.tex, paper.dvi.  In such cases, completion will stop at the period.
 If the above variable is a list of strings representing suffixes, Viper will
 try these suffixes
 in the order listed and will check if the corresponding file exists.
 
-For instance, if completion stopped at `paper.'@: and the user typed
-@key{RET},
-then Viper will check if the files `paper.', `paper.tex', `paper.c', etc., exist.
+For instance, if completion stopped at @samp{paper.} and the user
+typed @key{RET}, then Viper will check if the files @file{paper.},
+@file{paper.tex}, @file{paper.c}, etc., exist.
 It will take the first such file.  If no file exists, Viper will give a chance
-to complete the file name by typing the appropriate suffix.  If `paper.'@: was
+to complete the file name by typing the appropriate suffix.
+If @file{paper.} was
 the intended file name, hitting return will accept it.
 
 To turn this feature off, set the above variable to @code{nil}.
@@ -2473,9 +2476,9 @@ major modes.
 Viper keeps track of the recent history of destructive
 commands, such as @kbd{dw}, @kbd{i}, etc.
 In Vi state,
-the most recent command can be re-executed by hitting `@kbd{.}', as in Vi.
+the most recent command can be re-executed by hitting a period, as in Vi.
 However, repeated typing @kbd{C-c M-p} will cause Viper to show the
-previous destructive commands in the minibuffer.  Subsequent hitting `@kbd{.}'
+previous destructive commands in the minibuffer.  Subsequent hitting period
 will execute the command that was displayed last.
 The key @kbd{C-c M-n} will cycle through the command history in the
 opposite direction.
@@ -2598,8 +2601,8 @@ your Viper customization file:
 This would bind mouse search to the action invoked by pressing the
 Meta key and clicking mouse button 1.  The allowed values of
 @code{viper-mouse-search-key} are lists that contain a mouse-button number
-(1,2, or 3) and any combination of the words `control', `meta', and
-`shift'.
+(1,2, or 3) and any combination of the words ``control'', ``meta'', and
+``shift''.
 
 If the requested mouse action (e.g., (meta 1)) is already taken for other
 purposes then you have to confirm your intention by placing the following
@@ -2616,9 +2619,9 @@ The region that is chosen as a pattern to search for is determined as
 follows.  If search is invoked via a single click, Viper chooses the region
 that lies between the beginning of the ``word'' under the pointer (``word''
 is understood in Vi sense) and the end of that word.  The only difference
-with Vi's words is that in Lisp major modes `-' is considered an
+with Vi's words is that in Lisp major modes @samp{-} is considered an
 alphanumeric symbol.  This is done for the convenience of working with Lisp
-symbols, which often have an `-' in them.  Also, if you click on a
+symbols, which often have an @samp{-} in them.  Also, if you click on a
 non-alphanumeric character that is not a word separator (in Vi sense) then
 this character will also be considered alphanumeric, provided that it is
 adjacent (from either side) to an alphanumeric character.  This useful
@@ -3164,7 +3167,8 @@ By default, Viper syntax preference is @code{reformed-vi}, which means that
 Viper considers only those symbols to be part of a word that are specified
 as word-symbols by the current Emacs syntax table (which may be different
 for different major modes) plus the underscore symbol @kbd{_}, minus the
-symbols that are not considered words in Vi (e.g., `,',;, etc.), but may be
+symbols that are not considered words in Vi (e.g., @samp{,}, @samp{;},
+etc.), but may be
 considered as word-symbols by various Emacs major modes.  Reformed-Vi works
 very close to Vi, and it also recognizes words in other
 alphabets.  Therefore, this is the most appropriate mode for editing text
@@ -3546,7 +3550,7 @@ the direction
 of older commands, while hitting @kbd{C-c M-n} does so in reverse
 order.  Each command in the history is displayed in the minibuffer.  The
 displayed command can
-then be executed by typing `@kbd{.}'.
+then be executed by typing a period.
 
 Since typing the above sequences of keys may be tedious, the
 functions doing the perusing can be bound to unused keyboard keys in the
@@ -4261,7 +4265,7 @@ character on the previous line.
 This setting affects the current buffer only.
 @item autoindent-global
 @itemx ai-global
-Same as `autoindent', but affects all buffers.
+Same as @code{autoindent}, but affects all buffers.
 @item noautoindent
 @itemx noai
 Cancel autoindent.
@@ -4320,7 +4324,7 @@ their normal length (default 8 positions).
 This setting affects the current buffer only.
 @item tabstop-global
 @itemx ts-g
-Same as `tabstop', but affects all buffers.
+Same as @code{tabstop}, but affects all buffers.
 @item wrapmargin=<count>
 @itemx wm=<count>
 @cindex auto fill

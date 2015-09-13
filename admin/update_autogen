@@ -69,6 +69,7 @@ Options:
     commit them (caution).
 -q: be quiet; only give error messages, not status messages.
 -A: only update autotools files, copying into specified dir.
+-H: also update ChangeLog.${changelog_n}
 -I: also update info/dir.
 -L: also update ldefs-boot.el.
 -C: start from a clean state.  Slower, but more correct.
@@ -87,10 +88,13 @@ autogendir=                     # was "autogen"
 ldefs_flag=1
 lboot_flag=
 info_flag=
+changelog_flag=
 
 ## Parameters.
 ldefs_in=lisp/loaddefs.el
 ldefs_out=lisp/ldefs-boot.el
+changelog_n=$(sed -n 's/CHANGELOG_HISTORY_INDEX_MAX *= *//p' Makefile.in)
+changelog_files="ChangeLog.$changelog_n"
 sources="configure.ac lib/Makefile.am"
 ## Files to copy into autogendir.
 ## Everything:
@@ -113,7 +117,7 @@ tempfile=/tmp/$PN.$$
 trap "rm -f $tempfile 2> /dev/null" EXIT
 
 
-while getopts ":hcfqA:CIL" option ; do
+while getopts ":hcfqA:HCIL" option ; do
     case $option in
         (h) usage ;;
 
@@ -128,6 +132,8 @@ while getopts ":hcfqA:CIL" option ; do
             ;;
 
         (C) clean=1 ;;
+
+        (H) changelog_flag=1 ;;
 
         (I) info_flag=1 ;;
 
@@ -228,7 +234,7 @@ commit ()
 
     echo "Committing..."
 
-    $vcs commit -m "# Auto-commit of $type files." "$@" || return $?
+    $vcs commit -m "; Auto-commit of $type files." "$@" || return $?
 
     [ "$vcs" = "git" ] && {
         $vcs push || return $?
@@ -380,6 +386,14 @@ modified=$(status $genfiles $ldefs_out) || die
 
 
 commit "loaddefs" $modified || die "commit error"
+
+
+## Less important than the other stuff, so do it last.
+[ ! "$changelog_flag" ] || {
+    make change-history-nocommit || die "make change-history error"
+    modified=$(status $changelog_files) || die
+    commit "ChangeLog" $modified || die "commit error"
+}
 
 
 exit 0

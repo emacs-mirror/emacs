@@ -967,7 +967,7 @@ is a list of CCL-BLOCKs."
   (let ((len (length ccl-code))
 	(buffer-mag (aref ccl-code 0)))
     (cond ((= buffer-mag 0)
-	   (insert "Don't output anything.\n"))
+	   (insert (substitute-command-keys "Don't output anything.\n")))
 	  ((= buffer-mag 1)
 	   (insert "Out-buffer must be as large as in-buffer.\n"))
 	  (t
@@ -1127,7 +1127,7 @@ is a list of CCL-BLOCKs."
 
 (defun ccl-dump-call (ignore cc)
   (let ((subroutine (car (ccl-get-next-code))))
-    (insert (format "call subroutine `%s'\n" subroutine))))
+    (insert (format-message "call subroutine `%s'\n" subroutine))))
 
 (defun ccl-dump-write-const-string (rrr cc)
   (if (= rrr 0)

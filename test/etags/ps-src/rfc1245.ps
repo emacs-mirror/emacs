@@ -1,0 +1,2085 @@
+%!
+%%BoundingBox: (atend)
+%%Pages: (atend)
+%%DocumentFonts: (atend)
+%%EndComments
+%
+% FrameMaker PostScript Prolog 2.0, for use with FrameMaker 2.0
+% Copyright (c) 1986,87,89 by Frame Technology, Inc.  All rights reserved.
+%
+% Known Problems:
+%	Due to bugs in Transcript, the 'PS-Adobe-' is omitted from line 1
+/FMversion (2.0) def 
+% Set up Color vs. Black-and-White
+	/FMPrintInColor systemdict /colorimage known def
+% Uncomment this line to force b&w on color printer
+%   /FMPrintInColor false def
+/FrameDict 190 dict def 
+systemdict /errordict known not {/errordict 10 dict def
+		errordict /rangecheck {stop} put} if
+% The readline in 23.0 doesn't recognize cr's as nl's on AppleTalk
+FrameDict /tmprangecheck errordict /rangecheck get put 
+errordict /rangecheck {FrameDict /bug true put} put 
+FrameDict /bug false put 
+mark 
+% Some PS machines read past the CR, so keep the following 3 lines together!
+currentfile 5 string readline
+00
+0000000000
+cleartomark 
+errordict /rangecheck FrameDict /tmprangecheck get put 
+FrameDict /bug get { 
+	/readline {
+		/gstring exch def
+		/gfile exch def
+		/gindex 0 def
+		{
+			gfile read pop 
+			dup 10 eq {exit} if 
+			dup 13 eq {exit} if 
+			gstring exch gindex exch put 
+			/gindex gindex 1 add def 
+		} loop
+		pop 
+		gstring 0 gindex getinterval true 
+		} def
+	} if
+/FMVERSION {
+	FMversion ne {
+		/Times-Roman findfont 18 scalefont setfont
+		100 100 moveto
+		(FrameMaker version does not match postscript_prolog!)
+		dup =
+		show showpage
+		} if
+	} def 
+/FMLOCAL {
+	FrameDict begin
+	0 def 
+	end 
+	} def 
+	/gstring FMLOCAL
+	/gfile FMLOCAL
+	/gindex FMLOCAL
+	/orgxfer FMLOCAL
+	/orgproc FMLOCAL
+	/organgle FMLOCAL
+	/orgfreq FMLOCAL
+	/yscale FMLOCAL
+	/xscale FMLOCAL
+	/manualfeed FMLOCAL
+	/paperheight FMLOCAL
+	/paperwidth FMLOCAL
+/FMDOCUMENT { 
+	array /FMfonts exch def 
+	/#copies exch def
+	FrameDict begin
+	0 ne dup {setmanualfeed} if
+	/manualfeed exch def
+	/paperheight exch def
+	/paperwidth exch def
+	setpapername
+	manualfeed {true} {papersize} ifelse 
+	{manualpapersize} {false} ifelse 
+	{desperatepapersize} if
+	/yscale exch def
+	/xscale exch def
+	currenttransfer cvlit /orgxfer exch def
+	currentscreen cvlit /orgproc exch def
+	/organgle exch def /orgfreq exch def
+	end 
+	} def 
+	/pagesave FMLOCAL
+	/orgmatrix FMLOCAL
+	/landscape FMLOCAL
+/FMBEGINPAGE { 
+	FrameDict begin 
+	/pagesave save def
+	3.86 setmiterlimit
+	/landscape exch 0 ne def
+	landscape { 
+		90 rotate 0 exch neg translate pop 
+		}
+		{pop pop}
+		ifelse
+	xscale yscale scale
+	/orgmatrix matrix def
+	gsave 
+	} def 
+/FMENDPAGE {
+	grestore 
+	pagesave restore
+	end 
+	showpage
+	} def 
+/FMDEFINEFONT { 
+	FrameDict begin
+	findfont 
+	ReEncode 
+	2 index exch 
+	definefont exch 
+	scalefont 
+	FMfonts 3 1 roll 
+	put
+	end 
+	} bind def
+/FMNORMALIZEGRAPHICS { 
+	newpath
+	0.0 0.0 moveto
+	1 setlinewidth
+	0 setlinecap
+	0 0 0 sethsbcolor
+	0 setgray 
+	} bind def
+	/fx FMLOCAL
+	/fy FMLOCAL
+	/fh FMLOCAL
+	/fw FMLOCAL
+	/llx FMLOCAL
+	/lly FMLOCAL
+	/urx FMLOCAL
+	/ury FMLOCAL
+/FMBEGINEPSF { 
+	end 
+	/FMEPSF save def 
+	/showpage {} def 
+	FMNORMALIZEGRAPHICS 
+	[/fy /fx /fh /fw /ury /urx /lly /llx] {exch def} forall 
+	fx fy translate 
+	rotate
+	fw urx llx sub div fh ury lly sub div scale 
+	llx neg lly neg translate 
+	} bind def
+/FMENDEPSF {
+	FMEPSF restore
+	FrameDict begin 
+	} bind def
+FrameDict begin 
+/setmanualfeed {
+%%BeginFeature *ManualFeed True
+	 statusdict /manualfeed true put
+%%EndFeature
+	} def
+/max {2 copy lt {exch} if pop} bind def
+/min {2 copy gt {exch} if pop} bind def
+/inch {72 mul} def
+/pagedimen { 
+	paperheight sub abs 16 lt exch 
+	paperwidth sub abs 16 lt and
+	{/papername exch def} {pop} ifelse
+	} def
+	/papersizedict FMLOCAL
+/setpapername { 
+	/papersizedict 14 dict def 
+	papersizedict begin
+	/papername /unknown def 
+		/Letter 8.5 inch 11.0 inch pagedimen
+		/LetterSmall 7.68 inch 10.16 inch pagedimen
+		/Tabloid 11.0 inch 17.0 inch pagedimen
+		/Ledger 17.0 inch 11.0 inch pagedimen
+		/Legal 8.5 inch 14.0 inch pagedimen
+		/Statement 5.5 inch 8.5 inch pagedimen
+		/Executive 7.5 inch 10.0 inch pagedimen
+		/A3 11.69 inch 16.5 inch pagedimen
+		/A4 8.26 inch 11.69 inch pagedimen
+		/A4Small 7.47 inch 10.85 inch pagedimen
+		/B4 10.125 inch 14.33 inch pagedimen
+		/B5 7.16 inch 10.125 inch pagedimen
+	end
+	} def
+/papersize {
+	papersizedict begin
+		/Letter {lettertray} def
+		/LetterSmall {lettertray lettersmall} def
+		/Tabloid {11x17tray} def
+		/Ledger {ledgertray} def
+		/Legal {legaltray} def
+		/Statement {statementtray} def
+		/Executive {executivetray} def
+		/A3 {a3tray} def
+		/A4 {a4tray} def
+		/A4Small {a4tray a4small} def
+		/B4 {b4tray} def
+		/B5 {b5tray} def
+		/unknown {unknown} def
+	papersizedict dup papername known {papername} {/unknown} ifelse get
+	end
+	/FMdicttop countdictstack 1 add def
+	statusdict begin stopped end 
+	countdictstack -1 FMdicttop {pop end} for
+	} def
+/manualpapersize {
+	papersizedict begin
+		/Letter {letter} def
+		/LetterSmall {lettersmall} def
+		/Tabloid {11x17} def
+		/Ledger {ledger} def
+		/Legal {legal} def
+		/Statement {statement} def
+		/Executive {executive} def
+		/A3 {a3} def
+		/A4 {a4} def
+		/A4Small {a4small} def
+		/B4 {b4} def
+		/B5 {b5} def
+		/unknown {unknown} def
+	papersizedict dup papername known {papername} {/unknown} ifelse get
+	end
+	stopped 
+	} def
+/desperatepapersize {
+	statusdict /setpageparams known
+		{
+		paperwidth paperheight 0 1 
+		statusdict begin
+		{setpageparams} stopped pop 
+		end
+		} if
+	} def
+/savematrix {
+	orgmatrix currentmatrix pop
+	} bind def
+/restorematrix {
+	orgmatrix setmatrix
+	} bind def
+/dmatrix matrix def
+/dpi    72 0 dmatrix defaultmatrix dtransform
+    dup mul exch   dup mul add   sqrt def
+/freq dpi 18.75 div 8 div round dup 0 eq {pop 1} if 8 mul dpi exch div def
+/sangle 1 0 dmatrix defaultmatrix dtransform exch atan def
+/DiacriticEncoding [
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
+/.notdef /.notdef /.notdef /.notdef /space /exclam /quotedbl
+/numbersign /dollar /percent /ampersand /quotesingle /parenleft
+/parenright /asterisk /plus /comma /hyphen /period /slash /zero /one
+/two /three /four /five /six /seven /eight /nine /colon /semicolon
+/less /equal /greater /question /at /A /B /C /D /E /F /G /H /I /J /K
+/L /M /N /O /P /Q /R /S /T /U /V /W /X /Y /Z /bracketleft /backslash
+/bracketright /asciicircum /underscore /grave /a /b /c /d /e /f /g /h
+/i /j /k /l /m /n /o /p /q /r /s /t /u /v /w /x /y /z /braceleft /bar
+/braceright /asciitilde /.notdef /Adieresis /Aring /Ccedilla /Eacute
+/Ntilde /Odieresis /Udieresis /aacute /agrave /acircumflex /adieresis
+/atilde /aring /ccedilla /eacute /egrave /ecircumflex /edieresis
+/iacute /igrave /icircumflex /idieresis /ntilde /oacute /ograve
+/ocircumflex /odieresis /otilde /uacute /ugrave /ucircumflex
+/udieresis /dagger /.notdef /cent /sterling /section /bullet
+/paragraph /germandbls /registered /copyright /trademark /acute
+/dieresis /.notdef /AE /Oslash /.notdef /.notdef /.notdef /.notdef
+/yen /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
+/ordfeminine /ordmasculine /.notdef /ae /oslash /questiondown
+/exclamdown /logicalnot /.notdef /florin /.notdef /.notdef
+/guillemotleft /guillemotright /ellipsis /.notdef /Agrave /Atilde
+/Otilde /OE /oe /endash /emdash /quotedblleft /quotedblright
+/quoteleft /quoteright /.notdef /.notdef /ydieresis /Ydieresis
+/fraction /currency /guilsinglleft /guilsinglright /fi /fl /daggerdbl
+/periodcentered /quotesinglbase /quotedblbase /perthousand
+/Acircumflex /Ecircumflex /Aacute /Edieresis /Egrave /Iacute
+/Icircumflex /Idieresis /Igrave /Oacute /Ocircumflex /.notdef /Ograve
+/Uacute /Ucircumflex /Ugrave /dotlessi /circumflex /tilde /macron
+/breve /dotaccent /ring /cedilla /hungarumlaut /ogonek /caron
+] def
+/ReEncode { 
+	dup 
+	length 
+	dict begin 
+	{
+	1 index /FID ne 
+		{def} 
+		{pop pop} ifelse 
+	} forall
+	Encoding StandardEncoding eq 
+	{
+		/Encoding DiacriticEncoding def
+	}if
+	currentdict 
+	end 
+	} bind def
+/graymode true def
+	/bwidth FMLOCAL
+	/bpside FMLOCAL
+	/bstring FMLOCAL
+	/onbits FMLOCAL
+	/offbits FMLOCAL
+	/xindex FMLOCAL
+	/yindex FMLOCAL
+	/x FMLOCAL
+	/y FMLOCAL
+/setpattern {
+	 /bwidth  exch def
+	 /bpside  exch def
+	 /bstring exch def
+	 /onbits 0 def  /offbits 0 def
+	 freq sangle landscape {90 add} if 
+		{/y exch def
+		 /x exch def
+		 /xindex x 1 add 2 div bpside mul cvi def
+		 /yindex y 1 add 2 div bpside mul cvi def
+		 bstring yindex bwidth mul xindex 8 idiv add get
+		 1 7 xindex 8 mod sub bitshift and 0 ne
+		 {/onbits  onbits  1 add def 1}
+		 {/offbits offbits 1 add def 0}
+		 ifelse
+		}
+		setscreen
+	 {} settransfer
+	 offbits offbits onbits add div FMsetgray
+	/graymode false def
+	} bind def
+/grayness {
+	FMsetgray
+	graymode not {
+		/graymode true def
+		orgxfer cvx settransfer
+		orgfreq organgle orgproc cvx setscreen
+		} if
+	} bind def
+	/HUE FMLOCAL
+	/SAT FMLOCAL
+	/BRIGHT FMLOCAL
+	/Colors FMLOCAL
+FMPrintInColor 
+	
+	{
+	/HUE 0 def
+	/SAT 0 def
+	/BRIGHT 0 def
+	% array of arrays Hue and Sat values for the separations [HUE BRIGHT]
+	/Colors   
+	[[0    0  ]    % black
+	 [0    0  ]    % white
+	 [0.00 1.0]    % red
+	 [0.37 1.0]    % green
+	 [0.60 1.0]    % blue
+	 [0.50 1.0]    % cyan
+	 [0.83 1.0]    % magenta
+	 [0.16 1.0]    % comment / yellow
+	 ] def
+      
+	/BEGINBITMAPCOLOR { 
+		BITMAPCOLOR} def
+	/BEGINBITMAPCOLORc { 
+		BITMAPCOLORc} def
+	/K { 
+		Colors exch get dup
+		0 get /HUE exch store 
+		1 get /BRIGHT exch store
+		  HUE 0 eq BRIGHT 0 eq and
+			{1.0 SAT sub setgray}
+			{HUE SAT BRIGHT sethsbcolor} 
+		  ifelse
+		} def
+	/FMsetgray { 
+		/SAT exch 1.0 exch sub store 
+		  HUE 0 eq BRIGHT 0 eq and
+			{1.0 SAT sub setgray}
+			{HUE SAT BRIGHT sethsbcolor} 
+		  ifelse
+		} bind def
+	}
+	
+	{
+	/BEGINBITMAPCOLOR { 
+		BITMAPGRAY} def
+	/BEGINBITMAPCOLORc { 
+		BITMAPGRAYc} def
+	/FMsetgray {setgray} bind def
+	/K { 
+		pop
+		} def
+	}
+ifelse
+/normalize {
+	transform round exch round exch itransform
+	} bind def
+/dnormalize {
+	dtransform round exch round exch idtransform
+	} bind def
+/lnormalize { 
+	0 dtransform exch cvi 2 idiv 2 mul 1 add exch idtransform pop
+	} bind def
+/H { 
+	lnormalize setlinewidth
+	} bind def
+/Z {
+	setlinecap
+	} bind def
+/X { 
+	fillprocs exch get exec
+	} bind def
+/V { 
+	gsave eofill grestore
+	} bind def
+/N { 
+	stroke
+	} bind def
+/M {newpath moveto} bind def
+/E {lineto} bind def
+/D {curveto} bind def
+/O {closepath} bind def
+	/n FMLOCAL
+/L { 
+ 	/n exch def
+	newpath
+	normalize
+	moveto 
+	2 1 n {pop normalize lineto} for
+	} bind def
+/Y { 
+	L 
+	closepath
+	} bind def
+	/x1 FMLOCAL
+	/x2 FMLOCAL
+	/y1 FMLOCAL
+	/y2 FMLOCAL
+	/rad FMLOCAL
+/R { 
+	/y2 exch def
+	/x2 exch def
+	/y1 exch def
+	/x1 exch def
+	x1 y1
+	x2 y1
+	x2 y2
+	x1 y2
+	4 Y 
+	} bind def
+/RR { 
+	/rad exch def
+	normalize
+	/y2 exch def
+	/x2 exch def
+	normalize
+	/y1 exch def
+	/x1 exch def
+	newpath
+	x1 y1 rad add moveto
+	x1 y2 x2 y2 rad arcto
+	x2 y2 x2 y1 rad arcto
+	x2 y1 x1 y1 rad arcto
+	x1 y1 x1 y2 rad arcto
+	closepath
+	16 {pop} repeat
+	} bind def
+/C { 
+	grestore
+	gsave
+	R 
+	clip
+	} bind def
+/U { 
+	grestore
+	gsave
+	} bind def
+/F { 
+	FMfonts exch get
+	setfont
+	} bind def
+/T { 
+	moveto show
+	} bind def
+/RF { 
+	rotate
+	0 ne {-1 1 scale} if
+	} bind def
+/TF { 
+	gsave
+	moveto 
+	RF
+	show
+	grestore
+	} bind def
+/P { 
+	moveto
+	0 32 3 2 roll widthshow
+	} bind def
+/PF { 
+	gsave
+	moveto 
+	RF
+	0 32 3 2 roll widthshow
+	grestore
+	} bind def
+/S { 
+	moveto
+	0 exch ashow
+	} bind def
+/SF { 
+	gsave
+	moveto
+	RF
+	0 exch ashow
+	grestore
+	} bind def
+/B { 
+	moveto
+	0 32 4 2 roll 0 exch awidthshow
+	} bind def
+/BF { 
+	gsave
+	moveto
+	RF
+	0 32 4 2 roll 0 exch awidthshow
+	grestore
+	} bind def
+	/x FMLOCAL
+	/y FMLOCAL
+	/dx FMLOCAL
+	/dy FMLOCAL
+	/dl FMLOCAL
+	/t FMLOCAL
+	/t2 FMLOCAL
+	/Cos FMLOCAL
+	/Sin FMLOCAL
+	/r FMLOCAL
+/W { 
+	dnormalize
+	/dy exch def
+	/dx exch def
+	normalize
+	/y  exch def
+	/x  exch def
+	/dl dx dx mul dy dy mul add sqrt def
+	dl 0.0 gt {
+		/t currentlinewidth def
+		savematrix
+		/Cos dx dl div def
+		/Sin dy dl div def
+		/r [Cos Sin Sin neg Cos 0.0 0.0] def
+		/t2 t 2.5 mul 3.5 max def
+		newpath
+		x y translate
+		r concat
+		0.0 0.0 moveto
+		dl t 2.7 mul sub 0.0 rlineto
+		stroke
+		restorematrix
+		x dx add y dy add translate
+		r concat
+		t 0.67 mul setlinewidth
+		t 1.61 mul neg  0.0 translate
+		0.0 0.0 moveto
+		t2 1.7 mul neg  t2 2.0 div     moveto
+		0.0 0.0 lineto
+		t2 1.7 mul neg  t2 2.0 div neg lineto
+		stroke
+		t setlinewidth
+		restorematrix
+		} if
+	} bind def
+/G { 
+	gsave
+	newpath
+	normalize translate 0.0 0.0 moveto 
+	dnormalize scale 
+	0.0 0.0 1.0 5 3 roll arc 
+	closepath fill
+	grestore
+	} bind def
+/A { 
+	gsave
+	savematrix
+	newpath
+	2 index 2 div add exch 3 index 2 div sub exch 
+	normalize 2 index 2 div sub exch 3 index 2 div add exch 
+	translate 
+	scale 
+	0.0 0.0 1.0 5 3 roll arc 
+	restorematrix
+	stroke
+	grestore
+	} bind def
+	/x FMLOCAL
+	/y FMLOCAL
+	/w FMLOCAL
+	/h FMLOCAL
+	/xx FMLOCAL
+	/yy FMLOCAL
+	/ww FMLOCAL
+	/hh FMLOCAL
+	/FMsaveobject FMLOCAL
+	/FMoptop FMLOCAL
+	/FMdicttop FMLOCAL
+/BEGINPRINTCODE { 
+	/FMdicttop countdictstack 1 add def 
+	/FMoptop count 4 sub def 
+	/FMsaveobject save def
+	userdict begin 
+	/showpage {} def 
+	FMNORMALIZEGRAPHICS 
+	3 index neg 3 index neg translate
+	} bind def
+/ENDPRINTCODE {
+	count -1 FMoptop {pop pop} for 
+	countdictstack -1 FMdicttop {pop end} for 
+	FMsaveobject restore 
+	} bind def
+/gn { 
+	0 
+	{	46 mul 
+		cf read pop 
+		32 sub 
+		dup 46 lt {exit} if 
+		46 sub add 
+		} loop
+	add 
+	} bind def
+	/str FMLOCAL
+/cfs { 
+	/str sl string def 
+	0 1 sl 1 sub {str exch val put} for 
+	str def 
+	} bind def
+/ic [ 
+	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0223
+	0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0223
+	0
+	{0 hx} {1 hx} {2 hx} {3 hx} {4 hx} {5 hx} {6 hx} {7 hx} {8 hx} {9 hx}
+	{10 hx} {11 hx} {12 hx} {13 hx} {14 hx} {15 hx} {16 hx} {17 hx} {18 hx}
+	{19 hx} {gn hx} {0} {1} {2} {3} {4} {5} {6} {7} {8} {9} {10} {11} {12}
+	{13} {14} {15} {16} {17} {18} {19} {gn} {0 wh} {1 wh} {2 wh} {3 wh}
+	{4 wh} {5 wh} {6 wh} {7 wh} {8 wh} {9 wh} {10 wh} {11 wh} {12 wh}
+	{13 wh} {14 wh} {gn wh} {0 bl} {1 bl} {2 bl} {3 bl} {4 bl} {5 bl} {6 bl}
+	{7 bl} {8 bl} {9 bl} {10 bl} {11 bl} {12 bl} {13 bl} {14 bl} {gn bl}
+	{0 fl} {1 fl} {2 fl} {3 fl} {4 fl} {5 fl} {6 fl} {7 fl} {8 fl} {9 fl}
+	{10 fl} {11 fl} {12 fl} {13 fl} {14 fl} {gn fl}
+	] def
+	/sl FMLOCAL
+	/val FMLOCAL
+	/ws FMLOCAL
+	/im FMLOCAL
+	/bs FMLOCAL
+	/cs FMLOCAL
+	/len FMLOCAL
+	/pos FMLOCAL
+/ms { 
+	/sl exch def 
+	/val 255 def 
+	/ws cfs 
+	/im cfs 
+	/val 0 def 
+	/bs cfs 
+	/cs cfs 
+	} bind def
+400 ms 
+/ip { 
+	is 
+	0 
+	cf cs readline pop 
+	{	ic exch get exec 
+		add 
+		} forall 
+	pop 
+	
+	} bind def
+/wh { 
+	/len exch def 
+	/pos exch def 
+	ws 0 len getinterval im pos len getinterval copy pop
+	pos len 
+	} bind def
+/bl { 
+	/len exch def 
+	/pos exch def 
+	bs 0 len getinterval im pos len getinterval copy pop
+	pos len 
+	} bind def
+/s1 1 string def
+/fl { 
+	/len exch def 
+	/pos exch def 
+	/val cf s1 readhexstring pop 0 get def
+	pos 1 pos len add 1 sub {im exch val put} for
+	pos len 
+	} bind def
+/hx { 
+	3 copy getinterval 
+	cf exch readhexstring pop pop 
+	} bind def
+	/h FMLOCAL
+	/w FMLOCAL
+	/d FMLOCAL
+	/lb FMLOCAL
+	/bitmapsave FMLOCAL
+	/is FMLOCAL
+	/cf FMLOCAL
+/wbytes { 
+	dup 
+	8 eq {pop} {1 eq {7 add 8 idiv} {3 add 4 idiv} ifelse} ifelse
+	} bind def
+/BEGINBITMAPBWc { 
+	1 {} COMMONBITMAPc
+	} bind def
+/BEGINBITMAPGRAYc { 
+	8 {} COMMONBITMAPc
+	} bind def
+/BEGINBITMAP2BITc { 
+	2 {} COMMONBITMAPc
+	} bind def
+/COMMONBITMAPc { 
+	/r exch def
+	/d exch def
+	gsave
+	translate rotate scale /h exch def /w exch def
+	/lb w d wbytes def 
+	sl lb lt {lb ms} if 
+	/bitmapsave save def 
+	r                    
+	/is im 0 lb getinterval def 
+	ws 0 lb getinterval is copy pop 
+	/cf currentfile def 
+	w h d [w 0 0 h neg 0 h] 
+	{ip} image 
+	bitmapsave restore 
+	grestore
+	} bind def
+/BEGINBITMAPBW { 
+	1 {} COMMONBITMAP
+	} bind def
+/BEGINBITMAPGRAY { 
+	8 {} COMMONBITMAP
+	} bind def
+/BEGINBITMAP2BIT { 
+	2 {} COMMONBITMAP
+	} bind def
+/COMMONBITMAP { 
+	/r exch def
+	/d exch def
+	gsave
+	translate rotate scale /h exch def /w exch def
+	/bitmapsave save def 
+	r                    
+	/is w d wbytes string def
+	/cf currentfile def 
+	w h d [w 0 0 h neg 0 h] 
+	{cf is readhexstring pop} image
+	bitmapsave restore 
+	grestore
+	} bind def
+	/proc1 FMLOCAL
+	/proc2 FMLOCAL
+	/newproc FMLOCAL
+/Fmcc {
+    /proc2 exch cvlit def
+    /proc1 exch cvlit def
+    /newproc proc1 length proc2 length add array def
+    newproc 0 proc1 putinterval
+    newproc proc1 length proc2 putinterval
+    newproc cvx
+} bind def
+/ngrayt 256 array def
+/nredt 256 array def
+/nbluet 256 array def
+/ngreent 256 array def
+	/gryt FMLOCAL
+	/blut FMLOCAL
+	/grnt FMLOCAL
+	/redt FMLOCAL
+	/indx FMLOCAL
+	/cynu FMLOCAL
+	/magu FMLOCAL
+	/yelu FMLOCAL
+	/k FMLOCAL
+	/u FMLOCAL
+/colorsetup {
+	currentcolortransfer
+	/gryt exch def
+	/blut exch def
+	/grnt exch def
+	/redt exch def
+	0 1 255 {
+		/indx exch def
+		/cynu 1 red indx get 255 div sub def
+		/magu 1 green indx get 255 div sub def
+		/yelu 1 blue indx get 255 div sub def
+		/k cynu magu min yelu min def
+		/u k currentundercolorremoval exec def
+		nredt indx 1 0 cynu u sub max sub redt exec put
+		ngreent indx 1 0 magu u sub max sub grnt exec put
+		nbluet indx 1 0 yelu u sub max sub blut exec put
+		ngrayt indx 1 k currentblackgeneration exec sub gryt exec put
+	} for
+	{255 mul cvi nredt exch get}
+	{255 mul cvi ngreent exch get}
+	{255 mul cvi nbluet exch get}
+	{255 mul cvi ngrayt exch get}
+	setcolortransfer
+	{pop 0} setundercolorremoval
+	{} setblackgeneration
+	} bind def
+	/tran FMLOCAL
+/fakecolorsetup {
+	/tran 256 string def
+	0 1 255 {/indx exch def 
+		tran indx
+		red indx get 77 mul
+		green indx get 151 mul
+		blue indx get 28 mul
+		add add 256 idiv put} for
+	currenttransfer
+	{255 mul cvi tran exch get 255.0 div}
+	exch Fmcc settransfer
+} bind def
+/BITMAPCOLOR { 
+	/d 8 def
+	gsave
+	translate rotate scale /h exch def /w exch def
+	/bitmapsave save def 
+	colorsetup
+	/is w d wbytes string def
+	/cf currentfile def 
+	w h d [w 0 0 h neg 0 h] 
+	{cf is readhexstring pop} {is} {is} true 3 colorimage 
+	bitmapsave restore 
+	grestore
+	} bind def
+/BITMAPCOLORc { 
+	/d 8 def
+	gsave
+	translate rotate scale /h exch def /w exch def
+	/lb w d wbytes def 
+	sl lb lt {lb ms} if 
+	/bitmapsave save def 
+	colorsetup
+	/is im 0 lb getinterval def 
+	ws 0 lb getinterval is copy pop 
+	/cf currentfile def 
+	w h d [w 0 0 h neg 0 h] 
+	{ip} {is} {is} true 3 colorimage
+	bitmapsave restore 
+	grestore
+	} bind def
+/BITMAPGRAY { 
+	8 {fakecolorsetup} COMMONBITMAP
+	} bind def
+/BITMAPGRAYc { 
+	8 {fakecolorsetup} COMMONBITMAPc
+	} bind def
+/ENDBITMAP {
+	} bind def
+end 
+%%EndProlog
+%%BeginSetup
+(2.0) FMVERSION
+1 1 612 792 0 1 7 FMDOCUMENT
+/fillprocs 32 array def
+fillprocs 0 { 0.000000 grayness } put
+fillprocs 1 { 0.100000 grayness } put
+fillprocs 2 { 0.300000 grayness } put
+fillprocs 3 { 0.500000 grayness } put
+fillprocs 4 { 0.700000 grayness } put
+fillprocs 5 { 0.900000 grayness } put
+fillprocs 6 { 0.970000 grayness } put
+fillprocs 7 { 1.000000 grayness } put
+fillprocs 8 {<0f87c3e1f0783c1e> 8 1 setpattern } put
+fillprocs 9 {<0f1e3c78f0e1c387> 8 1 setpattern } put
+fillprocs 10 {<cccccccccccccccc> 8 1 setpattern } put
+fillprocs 11 {<ffff0000ffff0000> 8 1 setpattern } put
+fillprocs 12 {<8142241818244281> 8 1 setpattern } put
+fillprocs 13 {<8040201008040201> 8 1 setpattern } put
+fillprocs 14 {<03060c183060c081> 8 1 setpattern } put
+fillprocs 15 {} put
+fillprocs 16 { 1.000000 grayness } put
+fillprocs 17 { 0.900000 grayness } put
+fillprocs 18 { 0.700000 grayness } put
+fillprocs 19 { 0.500000 grayness } put
+fillprocs 20 { 0.300000 grayness } put
+fillprocs 21 { 0.100000 grayness } put
+fillprocs 22 { 0.030000 grayness } put
+fillprocs 23 { 0.000000 grayness } put
+fillprocs 24 {<f0783c1e0f87c3e1> 8 1 setpattern } put
+fillprocs 25 {<f0e1c3870f1e3c78> 8 1 setpattern } put
+fillprocs 26 {<3333333333333333> 8 1 setpattern } put
+fillprocs 27 {<0000ffff0000ffff> 8 1 setpattern } put
+fillprocs 28 {<7ebddbe7e7dbbd7e> 8 1 setpattern } put
+fillprocs 29 {<7fbfdfeff7fbfdfe> 8 1 setpattern } put
+fillprocs 30 {<fcf9f3e7cf9f3f7e> 8 1 setpattern } put
+fillprocs 31 {} put
+%%EndSetup
+0 12 /Times-Roman FMDEFINEFONT
+1 24 /Times-Roman FMDEFINEFONT
+2 16 /Times-Bold FMDEFINEFONT
+%%Page: "1" 1
+%%BeginPaperSize: Letter
+%%EndPaperSize
+612 792 0 FMBEGINPAGE
+72 675 540 720 R
+7 X
+0 K
+V
+0 F
+0 X
+(Network Working Group) 72 712 T
+(J. Moy, Editor) 470.7 712 T
+(Request for Comments: 1245) 72 698 T
+(Proteon, Inc.) 478.38 698 T
+(July 1991) 493.02 684 T
+72 72 540 83.95 R
+7 X
+V
+0 X
+([Moy]) 72 75.95 T
+([Page 1]) 499.7 75.95 T
+72 117 540 603 R
+7 X
+V
+1 F
+0 X
+(OSPF protocol analysis) 192.72 587 T
+2 F
+(Status of this Memo) 72 514.33 T
+0 F
+-0.23 (This memo provides information for the Internet community) 72 487 P
+-0.23 (. It does not specify any Internet stan-) 360.42 487 P
+(dard. Distribution of this memo is unlimited.) 72 473 T
+2 F
+(Abstract) 72 447 T
+0 F
+-0.11 (This is the \336rst of two reports on the OSPF protocol. These reports are required by the IAB/IESG ) 72 421 P
+(in order for an Internet routing protocol to advance to Draft Standard Status. OSPF is a TCP/IP ) 72 407 T
+-0.28 (routing protocol, designed to be used internal to an Autonomous System \050in other words, OSPF is ) 72 393 P
+(an Interior Gateway Protocol\051.) 72 379 T
+-0.09 (V) 72 353 P
+-0.09 (ersion 1 of the OSPF protocol was published in RFC 1) 79.33 353 P
+-0.09 (131. Since then OSPF version 2 has been ) 339.85 353 P
+-0.22 (developed. V) 72 339 P
+-0.22 (ersion 2 has been documented in RFC 1247. The changes between version 1 and ver-) 134.4 339 P
+-0 (sion 2 of the OSPF protocol are explained in Appendix F of RFC 1247. It is OSPF V) 72 325 P
+-0 (ersion 2 that ) 477.72 325 P
+(is the subject of this report.) 72 311 T
+(This report attempts to summarize the key features of OSPF V2. It also attempts to analyze how ) 72 285 T
+(the protocol will perform and scale in the Internet.) 72 271 T
+(Please send comments to ospf@trantor) 72 245 T
+(.umd.edu.) 258.27 245 T
+FMENDPAGE
+%%EndPage: "1" 2
+1 10 /Times-Roman FMDEFINEFONT
+%%Page: "2" 2
+612 792 0 FMBEGINPAGE
+72 702 540 720 R
+7 X
+0 K
+V
+0 F
+0 X
+(RFC 1245) 72 712 T
+(OSPF protocol analysis) 249.36 712 T
+(July 1991) 493.02 712 T
+72 69.05 540 81 R
+7 X
+V
+0 X
+([Moy]) 72 73 T
+([Page 2]) 499.7 73 T
+72 108 540 684 R
+7 X
+V
+2 F
+0 X
+(T) 72 673.33 T
+(able of Contents) 81.19 673.33 T
+0 F
+(1.0) 72 650 T
+(Introduction) 108 650 T
+(..............................................................................................................) 167.91 650 T
+(3) 498 650 T
+1 F
+(1.1) 108 635.33 T
+(Acknowledgments) 144 635.33 T
+(...............................................................................................................) 219.88 635.33 T
+(3) 499 635.33 T
+0 F
+(2.0) 72 616 T
+(Key features of the OSPF protocol) 108 616 T
+(..........................................................................) 275.85 616 T
+(4) 498 616 T
+(3.0) 72 596 T
+(Cost of the protocol) 108 596 T
+(..................................................................................................) 203.89 596 T
+(7) 498 596 T
+1 F
+(3.1) 108 581.33 T
+( Operational data) 144 581.33 T
+(.................................................................................................................) 214.88 581.33 T
+(7) 499 581.33 T
+(3.2) 108 567.33 T
+(Link bandwidth) 144 567.33 T
+(...................................................................................................................) 209.88 567.33 T
+(9) 499 567.33 T
+(3.3) 108 553.33 T
+(Router memory) 144 553.33 T
+(....................................................................................................................) 207.39 553.33 T
+(9) 499 553.33 T
+(3.4) 108 539.33 T
+(Router CPU) 144 539.33 T
+(.......................................................................................................................) 194.89 539.33 T
+(10) 494.01 539.33 T
+(3.5) 108 525.33 T
+(Role of Designated Router) 144 525.33 T
+(................................................................................................) 252.36 525.33 T
+(1) 494.38 525.33 T
+(1) 499 525.33 T
+(3.6) 108 511.33 T
+(Summary) 144 511.33 T
+(...........................................................................................................................) 184.9 511.33 T
+(1) 494.38 511.33 T
+(1) 499 511.33 T
+0 F
+(4.0) 72 492 T
+(Suitable environments) 108 492 T
+(............................................................................................) 215.88 492 T
+(13) 492.01 492 T
+(5.0) 72 472 T
+(Unsuitable environments) 108 472 T
+(.......................................................................................) 230.87 472 T
+(13) 492.01 472 T
+(6.0) 72 452 T
+(Reference Documents) 108 452 T
+(............................................................................................) 215.88 452 T
+(14) 492.01 452 T
+FMENDPAGE
+%%EndPage: "2" 3
+3 14 /Times-Bold FMDEFINEFONT
+%%Page: "3" 3
+612 792 0 FMBEGINPAGE
+72 702 540 720 R
+7 X
+0 K
+V
+0 F
+0 X
+(RFC 1245) 72 712 T
+(OSPF protocol analysis) 249.36 712 T
+(July 1991) 493.02 712 T
+72 69.05 540 81 R
+7 X
+V
+0 X
+([Moy]) 72 73 T
+([Page 3]) 499.7 73 T
+72 108 540 684 R
+7 X
+V
+2 F
+0 X
+(1.0  Intr) 72 673.33 T
+(oduction) 127.23 673.33 T
+0 F
+-0.02 (This document addresses, for OSPF V2, the requirements set forth by the IAB/IESG for an Inter-) 72 646 P
+-0.19 (net routing protocol to advance to Draft Standard state. This requirements are brie\337y summarized ) 72 632 P
+(below) 72 618 T
+(. The remaining sections of this report document how OSPF V2 satis\336es these require-) 100.53 618 T
+(ments:) 72 604 T
+(\245) 72 584 T
+(What are the key features and algorithms of the protocol?) 85.54 584 T
+(\245) 72 564 T
+(How much link bandwidth, router memory and router CPU cycles does the protocol consume ) 85.54 564 T
+(under normal conditions?) 85.54 550 T
+(\245) 72 530 T
+(For these metrics, how does the usage scale as the routing environment grows? This should ) 85.54 530 T
+(include topologies at least an order of magnitude lar) 85.54 516 T
+(ger than the current environment.) 335.14 516 T
+(\245) 72 496 T
+(What are the limits of the protocol for these metrics? \050i.e., when will the routing protocol ) 85.54 496 T
+(break?\051 ) 85.54 482 T
+(\245) 72 462 T
+(For what environments is the protocol well suited, and for what is it not suitable? ) 85.54 462 T
+3 F
+(1.1  Acknowledgments) 72 428.67 T
+0 F
+-0.03 (The OSPF protocol has been developed by the OSPF W) 72 402 P
+-0.03 (orking Group of the Internet Engineering ) 339.64 402 P
+(T) 72 388 T
+(ask Force. ) 78.49 388 T
+FMENDPAGE
+%%EndPage: "3" 4
+4 12 /Times-Bold FMDEFINEFONT
+%%Page: "4" 4
+612 792 0 FMBEGINPAGE
+72 702 540 720 R
+7 X
+0 K
+V
+0 F
+0 X
+(RFC 1245) 72 712 T
+(OSPF protocol analysis) 249.36 712 T
+(July 1991) 493.02 712 T
+72 69.05 540 81 R
+7 X
+V
+0 X
+([Moy]) 72 73 T
+([Page 4]) 499.7 73 T
+72 108 540 684 R
+7 X
+V
+2 F
+0 X
+(2.0  Key featur) 72 673.33 T
+(es of the OSPF pr) 172.97 673.33 T
+(otocol) 293.49 673.33 T
+0 F
+(This section summarizes the key features of the OSPF protocol. OSPF is an) 72 646 T
+4 F
+( Internal gateway ) 434.78 646 T
+-0.2 (pr) 72 632 P
+-0.2 (otocol) 83.78 632 P
+0 F
+-0.2 (; it is designed to be used internal to a single Autonomous System. OSPF uses) 114.42 632 P
+4 F
+-0.2 ( link-state ) 486.43 632 P
+-0.36 (or SPF-based) 72 618 P
+0 F
+-0.36 ( technology \050as compared to the distance-vector or Bellman-Ford technology found ) 140.6 618 P
+-0.48 (in routing protocols such as RIP\051. Individual ) 72 604 P
+4 F
+-0.48 (link state advertisements \050LSAs\051) 285.2 604 P
+0 F
+-0.48 ( describe pieces of ) 449.99 604 P
+-0.13 (the OSPF routing domain \050Autonomous System\051. These LSAs are \337ooded throughout the routing ) 72 590 P
+(domain, forming the ) 72 576 T
+4 F
+(link state database) 173.27 576 T
+0 F
+(. Each router has an identical link state database; syn-) 268.56 576 T
+(chronization of link state databases is maintained via a ) 72 562 T
+4 F
+(r) 336.81 562 T
+(eliable \337ooding algorithm) 341.92 562 T
+0 F
+(. From this ) 473.2 562 T
+(link state database, each router builds a routing table by calculating a shortest-path tree, with the ) 72 548 T
+(root of the tree being the calculating router itself. This calculation is commonly referred to as the ) 72 534 T
+4 F
+(Dijkstra pr) 72 520 T
+(ocedur) 129.41 520 T
+(e) 164.51 520 T
+0 F
+(.) 169.83 520 T
+(Link state advertisements are small. Each advertisement describes a small pieces of the OSPF ) 72 494 T
+(routing domain, namely either: the neighborhood of a single router) 72 480 T
+(, the neighborhood of a single ) 391.97 480 T
+(transit network, a single inter) 72 466 T
+(-area route \050see below\051 or a single external route.) 212 466 T
+(The other key features of the OSPF protocol are:) 72 440 T
+(\245) 72 420 T
+4 F
+-0.31 (Adjacency bringup) 85.54 420 P
+0 F
+-0.31 (. ) 183.51 420 P
+4 F
+-0.31 (Certain pairs of OSPF r) 189.2 420 P
+-0.31 (outers become \322adjacent\323) 311.01 420 P
+0 F
+-0.31 (. As an adjacency is ) 442.96 420 P
+(formed, the two routers synchronize their link state databases by ) 85.54 406 T
+4 F
+(exchanging database sum-) 397.64 406 T
+(maries) 85.54 392 T
+0 F
+( in the form of OSPF Database Exchange packets. Adjacent routers then maintain syn-) 120.17 392 T
+(chronization of their link state databases through the ) 85.54 378 T
+4 F
+(r) 340.02 378 T
+(eliable \337ooding algorithm) 345.13 378 T
+0 F
+(. Routers ) 476.41 378 T
+-0.27 (connected by serial lines always become adjacent. On multi-access networks \050e.g., ethernets or ) 85.54 364 P
+(X.25 PDNs\051, all routers attached to the network become adjacent to both the Designated ) 85.54 350 T
+(Router and the Backup Designated router) 85.54 336 T
+(.) 283.73 336 T
+(\245) 72 316 T
+4 F
+-0.02 (Designated r) 85.54 316 P
+-0.02 (outer) 150.26 316 P
+-0.02 (.) 176.46 316 P
+0 F
+-0.02 ( A Designated Router is elected on all multi-access networks \050e.g., ether-) 179.46 316 P
+(nets or X.25 PDNs\051. The network\325) 85.54 302 T
+(s Designated Router ) 250.42 302 T
+4 F
+(originates the network LSA) 350.69 302 T
+0 F
+( describ-) 492.27 302 T
+(ing the network\325) 85.54 288 T
+(s local environment. It also plays a ) 164.15 288 T
+4 F
+(special r) 334.04 288 T
+(ole in the \337ooding algorithm) 376.8 288 T
+0 F
+(, ) 521.4 288 T
+(since all routers on the network are synchronizing their link state databases by sending and ) 85.54 274 T
+(receiving LSAs to/from the Designated Router during the \337ooding process.) 85.54 260 T
+(\245) 72 240 T
+4 F
+-0.46 (Backup Designated Router) 85.54 240 P
+0 F
+-0.46 (. A Backup Designated Router is elected on multi-access networks ) 221.87 240 P
+(to speed/ease the transition of Designated Routers when the current Designated Router disap-) 85.54 226 T
+(pears. In that event, the Backup DR takes over) 85.54 212 T
+(, and does not need to go through the adjacency ) 308.22 212 T
+-0.13 (bringup process on the LAN \050since it already had done this in its Backup capacity\051. Also, even ) 85.54 198 P
+(before the disappearance of the Designated Router is noticed, the Backup DR will enable the ) 85.54 184 T
+(reliable \337ooding algorithm to proceed in the DR\325) 85.54 170 T
+(s absence.) 320.39 170 T
+FMENDPAGE
+%%EndPage: "4" 5
+%%Page: "5" 5
+612 792 0 FMBEGINPAGE
+72 702 540 720 R
+7 X
+0 K
+V
+0 F
+0 X
+(RFC 1245) 72 712 T
+(OSPF protocol analysis) 249.36 712 T
+(July 1991) 493.02 712 T
+72 69.05 540 81 R
+7 X
+V
+0 X
+([Moy]) 72 73 T
+([Page 5]) 499.7 73 T
+72 108 540 684 R
+7 X
+V
+0 X
+(\245) 72 676 T
+4 F
+(Non-br) 85.54 676 T
+(oadcast multi-access network support.) 122.63 676 T
+0 F
+( OSPF treats these networks \050e.g., X.25 ) 318.51 676 T
+-0.01 (PDNs\051 pretty much as if they were LANs \050i.e., a DR is elected, and a network LSA is gener-) 85.54 662 P
+-0.29 (ated\051. Additional con\336guration information is needed however for routers attached to these net-) 85.54 648 P
+(work to initially \336nd each other) 85.54 634 T
+(.) 236.45 634 T
+(\245) 72 614 T
+4 F
+(OSPF ar) 85.54 614 T
+(eas) 130.29 614 T
+0 F
+(. OSPF allows the Autonomous Systems to be broken up into regions call areas. ) 146.28 614 T
+(This is useful for several reasons. First, it provides an extra level of ) 85.54 600 T
+4 F
+(r) 411.64 600 T
+(outing pr) 416.75 600 T
+(otection) 464.18 600 T
+0 F
+(: rout-) 504.81 600 T
+-0.29 (ing within an area is protected from all information external to the area. Second, by splitting an ) 85.54 586 P
+-0.3 (Autonomous System into areas the ) 85.54 572 P
+4 F
+-0.3 (cost of the Dijkstra pr) 254.27 572 P
+-0.3 (ocedur) 365.44 572 P
+-0.3 (e ) 400.53 572 P
+0 F
+-0.3 (\050in terms of CPU cycles\051 is ) 408.55 572 P
+(reduced.) 85.54 558 T
+(\245) 72 538 T
+4 F
+(Flexible import of external r) 85.54 538 T
+(outing information.) 230.55 538 T
+0 F
+( In OSPF) 330.5 538 T
+(, ) 374.19 538 T
+4 F
+(each external r) 380.19 538 T
+(oute) 456.58 538 T
+0 F
+( is imported ) 478.56 538 T
+(into the Autonomous System in ) 85.54 524 T
+4 F
+(a separate LSA) 240.47 524 T
+0 F
+(. This reduces the amount of \337ooding traf) 319.08 524 T
+(\336c ) 518.07 524 T
+(\050since external routes change often, and you want to only \337ood the changes\051. It also enables ) 85.54 510 T
+4 F
+-0.43 (partial r) 85.54 496 P
+-0.43 (outing table updates) 127.86 496 P
+0 F
+-0.43 ( when only a single external route changes. OSPF external LSAs ) 230.96 496 P
+(also provide the following features. A ) 85.54 482 T
+4 F
+(forwarding addr) 270.4 482 T
+(ess) 355.81 482 T
+0 F
+( can be included in the external ) 370.46 482 T
+(LSA, eliminating extra-hops at the edge of the Autonomous System. There are two levels of ) 85.54 468 T
+(external metrics that can be speci\336ed, ) 85.54 454 T
+4 F
+(type 1) 269.06 454 T
+0 F
+( and ) 300.04 454 T
+4 F
+(type 2) 323.35 454 T
+0 F
+(. Also, external routes can be tagged ) 354.33 454 T
+(with a 32-bit number \050the ) 85.54 440 T
+4 F
+(external r) 211.12 440 T
+(oute tag) 261.19 440 T
+0 F
+(; commonly used as an AS number of the route\325) 302.16 440 T
+(s ) 531.68 440 T
+(origin\051, simplifying external route management in a transit Autonomous System.) 85.54 426 T
+(\245) 72 406 T
+4 F
+(Four level r) 85.54 406 T
+(outing hierar) 145.27 406 T
+(chy) 212.69 406 T
+0 F
+(. OSPF has a four level routing hierarchy) 229.9 406 T
+(, or trust model: ) 426.32 406 T
+4 F
+(intra-) 505.94 406 T
+(ar) 85.54 392 T
+(ea) 96.64 392 T
+0 F
+(, ) 107.96 392 T
+4 F
+(inter) 113.96 392 T
+(-ar) 138.16 392 T
+(ea) 153.26 392 T
+0 F
+(, ) 164.59 392 T
+4 F
+(external type 1) 170.58 392 T
+0 F
+( and ) 246.52 392 T
+4 F
+(external type 2) 269.84 392 T
+0 F
+( routes. This enables multiple levels of ) 345.78 392 T
+(routing protection, and simpli\336es routing management in an Autonomous System.) 85.54 378 T
+(\245) 72 358 T
+4 F
+(V) 85.54 358 T
+(irtual links) 93.75 358 T
+0 F
+(. By allowing the con\336guration of virtual links, OSPF ) 150.07 358 T
+4 F
+(r) 410.94 358 T
+(emoves topological ) 416.05 358 T
+(r) 85.54 344 T
+(estrictions) 90.64 344 T
+0 F
+( on area layout in an Autonomous System.) 143.27 344 T
+(\245) 72 324 T
+4 F
+-0.32 (Authentication of r) 85.54 324 P
+-0.32 (outing pr) 182.62 324 P
+-0.32 (otocol exchanges) 229.74 324 P
+0 F
+-0.32 (. Every time an OSPF router receives a routing ) 315.03 324 P
+(protocol packet, it authenticates the packet before processing it further) 85.54 310 T
+(.) 422.61 310 T
+(\245) 72 290 T
+4 F
+-0.03 (Flexible r) 85.54 290 P
+-0.03 (outing metric.) 134.26 290 P
+0 F
+-0.03 ( In OSPF) 206.18 290 P
+-0.03 (, metric are assigned to outbound router interfaces. The cost ) 249.82 290 P
+(of a path is then the sum of the path\325) 85.54 276 T
+(s component interfaces. The routing metric itself can be ) 260.42 276 T
+(assigned by the system administrator to indicate any combination of network characteristics ) 85.54 262 T
+(\050e.g., delay) 85.54 248 T
+(, bandwidth, dollar cost, etc.\051.) 138.04 248 T
+(\245) 72 228 T
+4 F
+-0.09 (Equal-cost multipath.) 85.54 228 P
+0 F
+-0.09 ( When multiple best cost routes to a destination exist, OSPF \336nds them ) 196.73 228 P
+(and they can be then used to load share traf) 85.54 214 T
+(\336c to the destination.) 292.82 214 T
+(\245) 72 194 T
+4 F
+(T) 85.54 194 T
+(OS-based r) 93.32 194 T
+(outing.) 150.74 194 T
+0 F
+( Separate sets of routes can be calculated for each IP type of service. For ) 186.4 194 T
+(example, low delay traf) 85.54 180 T
+(\336c could be routed on one path, while high bandwidth traf) 198.56 180 T
+(\336c is routed ) 477.16 180 T
+-0.39 (on another) 85.54 166 P
+-0.39 (. This is done by \050optionally\051 assigning, to each outgoing router interface, one metric ) 135.44 166 P
+(for each IP T) 85.54 152 T
+(OS.) 148.26 152 T
+(\245) 72 132 T
+4 F
+(V) 85.54 132 T
+(ariable-length subnet support.) 93.09 132 T
+0 F
+( OSPF includes support for variable-length subnet masks by ) 248.02 132 T
+(carrying a network mask with each advertised destination.) 85.54 118 T
+FMENDPAGE
+%%EndPage: "5" 6
+%%Page: "6" 6
+612 792 0 FMBEGINPAGE
+72 702 540 720 R
+7 X
+0 K
+V
+0 F
+0 X
+(RFC 1245) 72 712 T
+(OSPF protocol analysis) 249.36 712 T
+(July 1991) 493.02 712 T
+72 69.05 540 81 R
+7 X
+V
+0 X
+([Moy]) 72 73 T
+([Page 6]) 499.7 73 T
+72 108 540 684 R
+7 X
+V
+0 X
+(\245) 72 676 T
+4 F
+-0.08 (Stub ar) 85.54 676 P
+-0.08 (ea support. ) 123.56 676 P
+0 F
+-0.08 (T) 183.69 676 P
+-0.08 (o support routers having insuf) 190.18 676 P
+-0.08 (\336cient memory) 333.53 676 P
+-0.08 (, areas can be con\336gured as ) 405.63 676 P
+(stubs. External LSAs \050often making up the bulk of the Autonomous System\051 are not \337ooded ) 85.54 662 T
+(into/throughout stub areas. Routing to external destinations in stub areas is based solely on ) 85.54 648 T
+(default.) 85.54 634 T
+FMENDPAGE
+%%EndPage: "6" 7
+%%Page: "7" 7
+612 792 0 FMBEGINPAGE
+72 702 540 720 R
+7 X
+0 K
+V
+0 F
+0 X
+(RFC 1245) 72 712 T
+(OSPF protocol analysis) 249.36 712 T
+(July 1991) 493.02 712 T
+72 69.05 540 81 R
+7 X
+V
+0 X
+([Moy]) 72 73 T
+([Page 7]) 499.7 73 T
+72 108 540 684 R
+7 X
+V
+2 F
+0 X
+(3.0  Cost of the pr) 72 673.33 T
+(otocol) 193.4 673.33 T
+0 F
+-0.1 (This section attempts to analyze how the OSPF protocol will perform and scale in the Internet. In ) 72 646 P
+(this analysis, we will concentrate on the following four areas:) 72 632 T
+(\245) 72 612 T
+4 F
+(Link bandwidth) 85.54 612 T
+0 F
+(. In OSPF) 168.53 612 T
+(, a reliable \337ooding mechanism is used to ensure that router link ) 215.22 612 T
+(state databases are remained synchronized. Individual components of the link state databases ) 85.54 598 T
+-0.17 (\050the LSAs\051 are refreshed infrequently \050every 30 minutes\051, at least in the absence of topological ) 85.54 584 P
+(changes. Still, as the size of the database increases, the amount of link bandwidth used by the ) 85.54 570 T
+(\337ooding procedure also increases.) 85.54 556 T
+(\245) 72 536 T
+4 F
+-0.03 (Router memory) 85.54 536 P
+0 F
+-0.03 (. The size of an OSPF link state database can get quite lar) 166.32 536 P
+-0.03 (ge, especially in the ) 441.86 536 P
+(presence of many external LSAs. This imposes requirements on the amount of router memory ) 85.54 522 T
+(available.) 85.54 508 T
+(\245) 72 488 T
+4 F
+(CPU usage) 85.54 488 T
+0 F
+(. In OSPF) 141.83 488 T
+(, this is dominated by the length of time it takes to run the shortest path ) 188.52 488 T
+(calculation \050Dijkstra procedure\051. This is a function of the number of routers in the OSPF sys-) 85.54 474 T
+(tem.) 85.54 460 T
+(\245) 72 440 T
+4 F
+(Role of the Designated Router) 85.54 440 T
+(.) 238.32 440 T
+0 F
+( The Designated router receives and sends more packets on a ) 241.32 440 T
+-0.46 (multi-access networks than the other routers connected to the network. Also, there is some time ) 85.54 426 P
+(involved in cutting over to a new Designated Router after the old one fails \050especially when ) 85.54 412 T
+(both the Backup Designated Router and the Designated Router fail at the same time\051. For this ) 85.54 398 T
+-0.27 (reason, it is possible that you may want to limit the number of routers connected to a single net-) 85.54 384 P
+(work.) 85.54 370 T
+(The remaining section will analyze these areas, estimating how much resources the OSPF proto-) 72 344 T
+-0.05 (col will consume, both now and in the future. T) 72 330 P
+-0.05 (o aid in this analysis, the next section will present ) 298.93 330 P
+(some data that have been collected in actual OSPF \336eld deployments.) 72 316 T
+3 F
+(3.1   Operational data) 72 282.67 T
+0 F
+-0.44 (The OSPF protocol has been deployed in a number of places in the Internet. For a summary of this ) 72 256 P
+(deployment, see [1]. Some statistics have been gathered from this operational experience, via ) 72 242 T
+-0.03 (local network management facilities. Some of these statistics are presented in the following table:) 72 228 P
+FMENDPAGE
+%%EndPage: "7" 8
+5 10 /Times-Bold FMDEFINEFONT
+%%Page: "8" 8
+612 792 0 FMBEGINPAGE
+72 702 540 720 R
+7 X
+0 K
+V
+0 F
+0 X
+(RFC 1245) 72 712 T
+(OSPF protocol analysis) 249.36 712 T
+(July 1991) 493.02 712 T
+72 69.05 540 81 R
+7 X
+V
+0 X
+([Moy]) 72 73 T
+([Page 8]) 499.7 73 T
+72 108 540 684 R
+7 X
+V
+72 666.01 540 674 C
+72 671.98 540 671.98 2 L
+0.5 H
+0 Z
+0 X
+0 K
+N
+0 0 612 792 C
+5 F
+0 X
+0 K
+(T) 72 677.33 T
+(ABLE 1. Pertinent operational statistics) 77.93 677.33 T
+(Statistic) 72 655.34 T
+(BARRNet) 216 655.34 T
+(NSI) 324 655.34 T
+(OARnet) 432 655.34 T
+1 F
+(Data gathering \050duration\051) 72 638.34 T
+(99 hours) 216 638.34 T
+(277 hours) 324 638.34 T
+(28 hours) 432 638.34 T
+(Dijkstra frequency) 72 622.34 T
+(50 minutes) 216 622.34 T
+(25 minutes) 324 622.34 T
+(13 minutes) 432 622.34 T
+(External incremental frequency) 72 606.34 T
+(1.2 minutes) 216 606.34 T
+(.98 minutes) 324 606.34 T
+(not gathered) 432 606.34 T
+(Database turnover) 72 590.34 T
+(29.7 minutes) 216 590.34 T
+(30.9 minutes) 324 590.34 T
+(28.2 minutes) 432 590.34 T
+(LSAs per packet) 72 574.34 T
+(3.38) 216 574.34 T
+(3.16) 324 574.34 T
+(2.99) 432 574.34 T
+(Flooding retransmits) 72 558.34 T
+(1.3%) 216 558.34 T
+(1.4%) 324 558.34 T
+(.7%) 432 558.34 T
+0 F
+(The \336rst line in the above table show the length of time that statistics were gathered on the three ) 72 533.01 T
+(networks. A brief description of the other statistics follows:) 72 519.01 T
+(\245) 72 499.01 T
+4 F
+(Dijkstra fr) 85.54 499.01 T
+(equency) 140.27 499.01 T
+(. ) 181.59 499.01 T
+0 F
+(In OSPF) 187.59 499.01 T
+(, the Dijkstra calculation involves only those routers and transit ) 228.28 499.01 T
+-0.14 (networks belonging to the AS. The Dijkstra is run only when something in the system changes ) 85.54 485.01 P
+(\050like a serial line between two routers goes down\051. Note that in these operational systems, the ) 85.54 471.01 T
+(Dijkstra process runs only infrequently \050the most frequent being every 13 minutes\051.) 85.54 457.01 T
+(\245) 72 437.01 T
+4 F
+(External incr) 85.54 437.01 T
+(emental fr) 153.61 437.01 T
+(equency) 206.35 437.01 T
+0 F
+(. In OSPF) 247.54 437.01 T
+(, when an external route changes only its entry in ) 294.23 437.01 T
+-0.13 (the routing table is recalculated. These are called external incremental updates. Note that these ) 85.54 423.01 P
+(happen much more frequently than the Dijkstra procedure. \050in other words, incremental ) 85.54 409.01 T
+(updates are saving quite a bit of processor time\051.) 85.54 395.01 T
+(\245) 72 375.01 T
+4 F
+-0.45 (Database turnover) 85.54 375.01 P
+-0.45 (.) 179.58 375.01 P
+0 F
+-0.45 ( In OSPF) 182.58 375.01 P
+-0.45 (, link state advertisements are refreshed at a minimum of every 30 ) 225.36 375.01 P
+(minutes. New advertisement instances are sent out more frequently when some part of the ) 85.54 361.01 T
+-0.2 (topology changes. The table shows that, even taking topological changes into account, on aver-) 85.54 347.01 P
+(age an advertisement is updated close to only every 30 minutes. This statistic will be used in ) 85.54 333.01 T
+(the link bandwidth calculations below) 85.54 319.01 T
+(. Note that NSI actually shows advertisements updated ) 267.31 319.01 T
+(every 30.7 \050> 30\051 minutes. This probably means that at one time earlier in the measurement ) 85.54 305.01 T
+(period, NSI had a smaller link state database that it did at the end.) 85.54 291.01 T
+(\245) 72 271.01 T
+4 F
+-0.39 (LSAs per packet.) 85.54 271.01 P
+0 F
+-0.39 ( In OSPF) 173.04 271.01 P
+-0.39 (, multiple LSAs can be included in either Link State Update or Link ) 215.95 271.01 P
+-0.35 (State Acknowledgment packets.The table shows that, on average, around 3 LSAs are carried in ) 85.54 257.01 P
+(a single packet. This statistic is used when calculating the header overhead in the link band-) 85.54 243.01 T
+(width calculation below) 85.54 229.01 T
+(. This statistic was derived by diving the number of LSAs \337ooded by ) 200.01 229.01 T
+(the number of \050non-hello\051 multicasts sent.) 85.54 215.01 T
+(\245) 72 195.01 T
+4 F
+(Flooding r) 85.54 195.01 T
+(etransmits.) 138.97 195.01 T
+0 F
+( This counts both retransmission of LS Update packets and Link State ) 195.92 195.01 T
+(Acknowledgment packets, as a percentage of the original multicast \337ooded packets. The table ) 85.54 181.01 T
+(shows that \337ooding is working well, and that retransmits can be ignored in the link bandwidth ) 85.54 167.01 T
+(calculation below) 85.54 153.01 T
+(.) 169.69 153.01 T
+FMENDPAGE
+%%EndPage: "8" 9
+%%Page: "9" 9
+612 792 0 FMBEGINPAGE
+72 702 540 720 R
+7 X
+0 K
+V
+0 F
+0 X
+(RFC 1245) 72 712 T
+(OSPF protocol analysis) 249.36 712 T
+(July 1991) 493.02 712 T
+72 69.05 540 81 R
+7 X
+V
+0 X
+([Moy]) 72 73 T
+([Page 9]) 499.7 73 T
+72 108 540 684 R
+7 X
+V
+3 F
+0 X
+(3.2  Link bandwidth) 72 674.67 T
+0 F
+-0.02 (In this section we attempt to calculate how much link bandwidth is consumed by the OSPF \337ood-) 72 648 P
+(ing process. The amount of link bandwidth consumed increases linearly with the number of ) 72 634 T
+(advertisements present in the OSPF database.W) 72 620 T
+(e assume that the majority of advertisements in ) 300.88 620 T
+(the database will be AS external LSAs \050operationally this is true, see [1]\051.) 72 606 T
+(From the statistics presented in Section 3.1, any particular advertisement is \337ooded \050on average\051 ) 72 580 T
+(every 30 minutes. In addition, three advertisements \336t in a single packet. \050This packet could be ) 72 566 T
+(either a Link State Update packet or a Link State Acknowledgment packet; in this analysis we ) 72 552 T
+(select the Link State Update packet, which is the lar) 72 538 T
+(ger\051. An AS external LSA is 36 bytes long. ) 320.93 538 T
+(Adding one third of a packet header \050IP header plus OSPF Update packet\051 yields 52 bytes. T) 72 524 T
+(rans-) 515.59 524 T
+(mitting this amount of data every 30 minutes gives an average rate of 23/100 bits/second.) 72 510 T
+-0.05 (If you want to limit your routing traf) 72 484 P
+-0.05 (\336c to 5% of the link\325) 247.03 484 P
+-0.05 (s total bandwidth, you get the following ) 345.75 484 P
+(maximums for database size:) 72 470 T
+72 434.01 540 442 C
+72 439.98 540 439.98 2 L
+0.5 H
+0 Z
+0 X
+0 K
+N
+0 0 612 792 C
+5 F
+0 X
+0 K
+(T) 72 445.33 T
+(ABLE 2. Database size as a function of link speed \0505% utilization\051) 77.93 445.33 T
+(Speed) 180 423.34 T
+(# external advertisements) 288 423.34 T
+1 F
+(9.6 Kb) 180 406.34 T
+(2087) 288 406.34 T
+(56 Kb) 180 390.34 T
+(12,174) 288 390.34 T
+0 F
+-0.46 (Higher line speeds have not been included, because other factors will then limit database size \050like ) 72 365.01 P
+-0.12 (router memory\051 before line speed becomes a factor) 72 351.01 P
+-0.12 (. Note that in the above calculation, the size of ) 315.32 351.01 P
+-0.06 (the data link header was not taken into account. Also, note that while the OSPF database is likely ) 72 337.01 P
+(to be mostly external LSAs, other LSAs have a size also. As a ballpark estimate, router links and ) 72 323.01 T
+-0.01 (network links are generally three times as lar) 72 309.01 P
+-0.01 (ge as an AS external link, with summary link adver-) 287.18 309.01 P
+(tisements being the same size as external link LSAs.) 72 295.01 T
+(OSPF consumes considerably less link bandwidth than RIP) 72 269.01 T
+(. This has been shown experimentally ) 355.51 269.01 T
+(in the NSI network. See Jef) 72 255.01 T
+(frey Bur) 203.69 255.01 T
+(gan\325) 243.77 255.01 T
+(s \322NASA Sciences Internet\323 report in [3].) 264.42 255.01 T
+3 F
+(3.3  Router memory) 72 221.67 T
+0 F
+-0.1 (Memory requirements in OSPF are dominated by the size of the link state database. As in the pre-) 72 195.01 P
+(vious section, it is probably safe to assume that most of the advertisements in the database are ) 72 181.01 T
+(external LSAs. While an external LSA is 36 bytes long, it is generally stored by an OSPF imple-) 72 167.01 T
+-0.34 (mentation together with some support data. So a good estimate of router memory consumed by an ) 72 153.01 P
+(external LSA is probably 64 bytes. So a database having 10,000 external LSAs will consume ) 72 139.01 T
+(640K bytes of router memory) 72 125.01 T
+(. OSPF de\336nitely requires more memory than RIP) 213.79 125.01 T
+(.) 452.98 125.01 T
+FMENDPAGE
+%%EndPage: "9" 10
+%%Page: "10" 10
+612 792 0 FMBEGINPAGE
+72 702 540 720 R
+7 X
+0 K
+V
+0 F
+0 X
+(RFC 1245) 72 712 T
+(OSPF protocol analysis) 249.36 712 T
+(July 1991) 493.02 712 T
+72 69.05 540 81 R
+7 X
+V
+0 X
+([Moy]) 72 73 T
+([Page 10]) 493.7 73 T
+72 108 540 684 R
+7 X
+V
+0 X
+-0.35 (Using the Proteon P4200 implementation as an example, the P4200 has 2Mbytes of memory) 72 676 P
+-0.35 (. This ) 510.38 676 P
+-0.02 (is shared between instruction, data and packet buf) 72 662 P
+-0.02 (fer memory) 310.78 662 P
+-0.02 (. The P4200 has enough memory to ) 366.26 662 P
+(store 10, 000 external LSAs, and still have enough packet buf) 72 648 T
+(fer memory available to run a rea-) 367.58 648 T
+(sonable number of interfaces.) 72 634 T
+(Also, note that while the OSPF database is likely to be mostly external LSAs, other LSAs have a ) 72 608 T
+-0.06 (size also. As a ballpark estimate, router links and network links consume generally three times as ) 72 594 P
+(much memory as an AS external link, with summary link advertisements being the same size as ) 72 580 T
+(external link LSAs.) 72 566 T
+3 F
+(3.4  Router CPU) 72 532.67 T
+0 F
+(Assume that, as the size of the OSPF routing domain grows, the number of interfaces per router ) 72 506 T
+(stays bounded. Then the Dijkstra calculation is of order \050n * log \050n\051\051, where n is the number of ) 72 492 T
+(routers in the routing domain. \050This is the complexity of the Dijkstra algorithm in a sparse net-) 72 478 T
+(work\051. Of course, it is implementation speci\336c as to how expensive the Dijkstra really is.) 72 464 T
+(W) 72 438 T
+(e have no experimental numbers for the cost of the Dijkstra calculation in a real OSPF imple-) 82.36 438 T
+(mentation. However) 72 424 T
+(, Steve Deering presented results for the Dijkstra calculation in the \322MOSPF ) 169.45 424 T
+(meeting report\323 in [3]. Steve\325) 72 410 T
+(s calculation was done on a DEC 5000 \05010 mips processor\051, using ) 212.9 410 T
+(the Stanford internet as a model. His graphs are based on numbers of networks, not number of ) 72 396 T
+(routers. However) 72 382 T
+(, if we extrapolate that the ratio of routers to networks remains the same, the ) 154.78 382 T
+(time to run Dijkstra for 200 routers in Steve\325) 72 368 T
+(s implementation was around 15 milliseconds.) 285.87 368 T
+-0.46 (This seems a reasonable cost, particularly when you notice that the Dijkstra calculation is run very ) 72 342 P
+(infrequently in operational deployments. In the three networks presented in Section 3.1, Dijkstra ) 72 328 T
+-0.35 (was run on average only every 13 to 50 minutes. Since the Dijkstra is run so infrequently) 72 314 P
+-0.35 (, it seems ) 493.06 314 P
+-0.02 (likely that OSPF overall consumes less CPU than RIP \050because of RIP\325) 72 300 P
+-0.02 (s frequent updates, requir-) 413.95 300 P
+(ing routing table lookups\051.) 72 286 T
+(As another example, the routing algorithm in MILNET is SPF-based. MILNET\325) 72 260 T
+(s current size is ) 456.42 260 T
+-0.02 (230 nodes, and the routing calculation still consumes less than 5% of the MILNET switches\325 pro-) 72 246 P
+(cessor bandwidth [4]. Because the routing algorithm in the MILNET adapts to network load, it ) 72 232 T
+(runs the Dijkstra process quite frequently \050on the order of seconds as compared to OSPF\325) 72 218 T
+(s min-) 499.7 218 T
+(utes\051. However) 72 204 T
+(, it should be noted that the routing algorithm in MILNET incrementally updates ) 144.79 204 T
+(the SPF-tree, while OSPF rebuilds it from scratch at each Dijkstra calculation) 72 190 T
+(OSPF\325) 72 164 T
+(s Area capability provides a way to reduce Dijkstra overhead, if it becomes a burden. The ) 104 164 T
+-0 (routing domain can be split into areas. The extent of the Dijkstra calculation \050and its complexity\051 ) 72 150 P
+(is limited to a single area at a time.) 72 136 T
+FMENDPAGE
+%%EndPage: "10" 11
+%%Page: "11" 11
+612 792 0 FMBEGINPAGE
+72 702 540 720 R
+7 X
+0 K
+V
+0 F
+0 X
+(RFC 1245) 72 712 T
+(OSPF protocol analysis) 249.36 712 T
+(July 1991) 493.02 712 T
+72 69.05 540 81 R
+7 X
+V
+0 X
+([Moy]) 72 73 T
+([Page 11]) 493.7 73 T
+72 108 540 684 R
+7 X
+V
+3 F
+0 X
+(3.5  Role of Designated Router) 72 674.67 T
+0 F
+(This section explores the number of routers that can be attached to a single network. As the num-) 72 648 T
+-0.36 (ber of routers attached to a network grows, so does the amount of OSPF routing traf) 72 634 P
+-0.36 (\336c seen on the ) 469.48 634 P
+(network. Some of this is Hello traf) 72 620 T
+(\336c, which is generally multicast by each router every 10 sec-) 238.01 620 T
+-0.07 (onds. This burden is borne by all routers attached to the network. However) 72 606 P
+-0.07 (, because of its special ) 429.77 606 P
+-0.08 (role in the \337ooding process, the Designated router ends up sending more Link State Updates than ) 72 592 P
+(the other routers on the network. Also, the Designated Router receives Link State Acknowledg-) 72 578 T
+-0.15 (ments from all attached routers, while the other routers just receive them from the DR. \050Although ) 72 564 P
+(it is important to note that the rate of Link State Acknowledgments will generally be limited to ) 72 550 T
+(one per second from each router) 72 536 T
+(, because acknowledgments are generally delayed.\051) 226.38 536 T
+-0.22 (So, if the amount of protocol traf) 72 510 P
+-0.22 (\336c on the LAN becomes a limiting factor) 228.71 510 P
+-0.22 (, the limit is likely to be ) 424.24 510 P
+(detected in the Designated Router \336rst. However) 72 496 T
+(, such a limit is not expected to be reached in ) 305.68 496 T
+(practice. The amount of routing protocol traf) 72 482 T
+(\336c generated by OSPF has been shown to be small ) 286.62 482 T
+-0.11 (\050see Section 3.2\051. Also, if need be OSPF\325) 72 468 P
+-0.11 (s hello timers can be con\336gured to reduce the amount of ) 268.43 468 P
+(protocol traf) 72 454 T
+(\336c on the network. Note that more than 50 routers have been simulated attached to a ) 131.4 454 T
+(single LAN \050see [1]\051. Also, in interoperability testing 13 routers have been attached to a single ) 72 440 T
+(ethernet with no problems encountered.) 72 426 T
+-0.02 (Another factor in the number of routers attached to a single network is the cutover time when the ) 72 400 P
+-0.17 (Designated Router fails. OSPF has a Backup Designated Router so that the cutover does not have ) 72 386 P
+-0.31 (to wait for the new DR to synchronize \050the adjacency bring-up process mentioned earlier\051 with all ) 72 372 P
+-0.43 (the other routers on the LAN; as a Backup DR it had already synchronized. However) 72 358 P
+-0.43 (, in those rare ) 473.46 358 P
+-0.33 (cases when both DR and Backup DR crash at the same time, the new DR will have to synchronize ) 72 344 P
+(\050via the adjacency bring-up process\051 with all other routers before becoming functional. Field ) 72 330 T
+-0.44 (experience show that this synchronization process takes place in a timely fashion \050see the OARnet ) 72 316 P
+(report in [1]\051. However) 72 302 T
+(, this may be an issue in systems that have many routers attached to a sin-) 183.42 302 T
+(gle network.) 72 288 T
+-0.15 (In the unlikely event that the number of routers attached to a LAN becomes a problem, either due ) 72 262 P
+(to the amount of routing protocol traf) 72 248 T
+(\336c or the cutover time, the LAN can be split into separate ) 251 248 T
+(pieces \050similar to splitting up the AS into separate areas\051.) 72 234 T
+3 F
+(3.6  Summary) 72 200.67 T
+0 F
+(In summary) 72 174 T
+(, it seems like the most likely limitation to the size of an OSPF system is available ) 128.85 174 T
+-0.4 (router memory) 72 160 P
+-0.4 (. W) 142.43 160 P
+-0.4 (e have given as 10,000 as the number of external LSAs that can be supported by ) 158.39 160 P
+(the memory available in one con\336guration of a particular implementation \050the Proteon P4200\051. ) 72 146 T
+-0.09 (Other implementations may vary; nowadays routers are being built with more and more memory) 72 132 P
+-0.09 (. ) 534.09 132 P
+FMENDPAGE
+%%EndPage: "11" 12
+%%Page: "12" 12
+612 792 0 FMBEGINPAGE
+72 702 540 720 R
+7 X
+0 K
+V
+0 F
+0 X
+(RFC 1245) 72 712 T
+(OSPF protocol analysis) 249.36 712 T
+(July 1991) 493.02 712 T
+72 69.05 540 81 R
+7 X
+V
+0 X
+([Moy]) 72 73 T
+([Page 12]) 493.7 73 T
+72 108 540 684 R
+7 X
+V
+0 X
+(Note that 10,000 routes is considerably lar) 72 676 T
+(ger than the lar) 275.31 676 T
+(gest \336eld implementation \050BARRNet; ) 347.37 676 T
+(which at 1816 external LSAs is still very lar) 72 662 T
+(ge\051.) 283.65 662 T
+(Note that there may be ways to reduce database size in a routing domain. First, the domain can ) 72 636 T
+-0.19 (make use of default routing, reducing the number of external routes that need to be imported. Sec-) 72 622 P
+(ondly) 72 608 T
+(, an EGP can be used that will transport its own information through the AS instead of rely-) 98.54 608 T
+-0.21 (ing on the IGP \050OSPF in this case\051 to do transfer the information for it \050the EGP\051. Thirdly) 72 594 P
+-0.21 (, routers ) 498.11 594 P
+(having insuf) 72 580 T
+(\336cient memory may be able to be assigned to stub areas \050whose databases are drasti-) 131.41 580 T
+(cally smaller\051. Lastly) 72 566 T
+(, if the Internet went away from a \337at address space the amount of external ) 172.82 566 T
+(information imported into an OSPF domain could be reduced drastically) 72 552 T
+(.) 418.67 552 T
+(While not as likely) 72 526 T
+(, there could be other issues that would limit the size of an OSPF routing ) 162.17 526 T
+(domain. If there are slow lines \050like 9600 baud\051, the size of the database will be limited \050see Sec-) 72 512 T
+(tion 3.2\051. Dijkstra may get to be expensive when there are hundreds of routers in the OSPF ) 72 498 T
+(domain; although at this point the domain can be split into areas. Finally) 72 484 T
+(, when there are many ) 418.69 484 T
+(routers attached to a single network, there may be undue burden imposed upon the Designated ) 72 470 T
+(Router; although at that point a LAN can be split into separate LANs.) 72 456 T
+FMENDPAGE
+%%EndPage: "12" 13
+%%Page: "13" 13
+612 792 0 FMBEGINPAGE
+72 702 540 720 R
+7 X
+0 K
+V
+0 F
+0 X
+(RFC 1245) 72 712 T
+(OSPF protocol analysis) 249.36 712 T
+(July 1991) 493.02 712 T
+72 69.05 540 81 R
+7 X
+V
+0 X
+([Moy]) 72 73 T
+([Page 13]) 493.7 73 T
+72 108 540 684 R
+7 X
+V
+2 F
+0 X
+(4.0  Suitable envir) 72 673.33 T
+(onments) 195.21 673.33 T
+0 F
+-0.14 (Suitable environments for the OSPF protocol range from lar) 72 646 P
+-0.14 (ge to small. OSPF is particular suited ) 359.11 646 P
+(for transit Autonomous Systems for the following reasons. OSPF can accommodate a lar) 72 632 T
+(ge num-) 497.84 632 T
+(ber of external routes. In OSPF the import of external information is very \337exible, having provi-) 72 618 T
+-0.39 (sions for a forwarding address, two levels of external metrics, and the ability to tag external routes ) 72 604 P
+-0.29 (with their AS number for easy management. Also OSPF\325) 72 590 P
+-0.29 (s ability to do partial updates when exter-) 343.17 590 P
+(nal information changes is very useful on these networks.) 72 576 T
+(OSPF is also suited for smaller) 72 550 T
+(, either stand alone or stub Autonomous Systems, because of its ) 220.44 550 T
+(wide array of features: fast conver) 72 536 T
+(gence, equal-cost-multipath, T) 235.96 536 T
+(OS routing, areas, etc.) 382.3 536 T
+2 F
+(5.0  Unsuitable envir) 72 469.33 T
+(onments) 212.98 469.33 T
+0 F
+-0.22 (OSPF has a very limited ability to express policy) 72 442 P
+-0.22 (. Basically) 304.62 442 P
+-0.22 (, its only policy mechanisms are in the ) 354.25 442 P
+(establishment of a four level routing hierarchy: intra-area, inter) 72 428 T
+(-area, type 1 and type 2 external ) 374.52 428 T
+(routes. A system wanting more sophisticated policies would have to be split up into separate ) 72 414 T
+(ASes, running a policy-based EGP between them.) 72 400 T
+FMENDPAGE
+%%EndPage: "13" 14
+%%Page: "14" 14
+612 792 0 FMBEGINPAGE
+72 702 540 720 R
+7 X
+0 K
+V
+0 F
+0 X
+(RFC 1245) 72 712 T
+(OSPF protocol analysis) 249.36 712 T
+(July 1991) 493.02 712 T
+72 69.05 540 81 R
+7 X
+V
+0 X
+([Moy]) 72 73 T
+([Page 14]) 493.7 73 T
+72 108 540 684 R
+7 X
+V
+2 F
+0 X
+(6.0  Refer) 72 673.33 T
+(ence Documents) 137.87 673.33 T
+0 F
+(The following documents have been referenced by this report:) 72 646 T
+([1]) 72 626 T
+(Moy) 108 626 T
+(, J., \322Experience with the OSPF protocol\323, RFC 1246, July 1991.) 129.88 626 T
+([2]) 72 608 T
+(Moy) 108 608 T
+(, J., \322OSPF V) 129.88 608 T
+(ersion 2\323, RFC 1247, July 1991.) 193.85 608 T
+([3]) 72 590 T
+(Corporation for National Research Initiatives, \322Proceedings of the Eighteenth Internet ) 108 590 T
+(Engineering T) 108 576 T
+(ask Force\323, University of British Columbia, July 30-August 3, 1990.) 176.11 576 T
+FMENDPAGE
+%%EndPage: "14" 15
+%%Page: "15" 15
+612 792 0 FMBEGINPAGE
+72 702 540 720 R
+7 X
+0 K
+V
+0 F
+0 X
+(RFC 1245) 72 712 T
+(OSPF protocol analysis) 249.36 712 T
+(July 1991) 493.02 712 T
+72 69.05 540 81 R
+7 X
+V
+0 X
+([Moy]) 72 73 T
+([Page 15]) 493.7 73 T
+72 108 540 684 R
+7 X
+V
+2 F
+0 X
+(Security Considerations) 72 673.33 T
+0 F
+(Security issues are not discussed in this memo.) 72 646 T
+2 F
+(Author) 72 617.33 T
+(\325) 122.04 617.33 T
+(s Addr) 126.77 617.33 T
+(ess) 173.13 617.33 T
+0 F
+(John Moy) 72 590 T
+(Proteon Inc.) 72 576 T
+(2 T) 72 562 T
+(echnology Drive) 87.48 562 T
+(W) 72 548 T
+(estborough, MA 01581) 82.36 548 T
+(Phone: \050508\051 898-2800) 72 522 T
+(Email: jmoy@proteon.com) 72 508 T
+FMENDPAGE
+%%EndPage: "15" 16
+%%Trailer
+%%BoundingBox: 0 0 612 792
+%%Pages: 15 1
+%%DocumentFonts: Times-Roman
+%%+ Times-Bold

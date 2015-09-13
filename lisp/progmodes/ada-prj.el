@@ -309,13 +309,13 @@ where the compilation is done.")
 "If you want to remotely compile, debug and
 run your application, specify the name of a
 remote machine here. This capability requires
-the 'rsh' protocol on the remote machine.")
+the `rsh' protocol on the remote machine.")
     (ada-prj-field 'cross_prefix "Prefix used in for the cross tool chain"
 "When working on multiple cross targets, it is
 most convenient to specify the prefix of the
 tool chain here. For instance, on PowerPc
-vxworks, you would enter 'powerpc-wrs-vxworks-'.
-To use JGNAT, enter 'j'.")
+vxworks, you would enter `powerpc-wrs-vxworks-'.
+To use JGNAT, enter `j'.")
     )
 
 

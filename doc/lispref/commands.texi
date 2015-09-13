@@ -132,7 +132,7 @@ byte compiler to warn if the command is called from Lisp.  The output
 of @code{describe-function} will include similar information.
 The value of the property can be: a string, which the byte-compiler
 will use directly in its warning (it should end with a period, and not
-start with a capital, e.g. ``use @dots{} instead.''); @code{t}; any
+start with a capital, e.g., ``use @dots{} instead.''); @code{t}; any
 other symbol, which should be an alternative function to use in Lisp
 code.
 
@@ -211,7 +211,7 @@ argument.
 
 The prompt string can use @samp{%} to include previous argument values
 (starting with the first argument) in the prompt.  This is done using
-@code{format} (@pxref{Formatting Strings}).  For example, here is how
+@code{format-message} (@pxref{Formatting Strings}).  For example, here is how
 you could read the name of an existing buffer followed by a new name to
 give to that buffer:
 
@@ -1043,8 +1043,8 @@ the current Emacs session.  If a symbol has not yet been so used,
 @end defun
 
 @menu
-* Keyboard Events::             Ordinary characters--keys with symbols on them.
-* Function Keys::               Function keys--keys with names, not symbols.
+* Keyboard Events::             Ordinary characters -- keys with symbols on them.
+* Function Keys::               Function keys -- keys with names, not symbols.
 * Mouse Events::                Overview of mouse events.
 * Click Events::                Pushing and releasing a mouse button.
 * Drag Events::                 Moving the mouse before releasing the button.
@@ -1462,7 +1462,7 @@ the symbols @code{handle} (the scroll bar handle), @code{above-handle}
 (the area above the handle), @code{below-handle} (the area below the
 handle), @code{up} (the up arrow at one end of the scroll bar), or
 @code{down} (the down arrow at one end of the scroll bar).
-@c The `top', `bottom', and `end-scroll' codes don't seem to be used.
+@c The 'top', 'bottom', and 'end-scroll' codes don't seem to be used.
 @end table
 
 
@@ -1720,7 +1720,7 @@ occurred.
 
 @vindex mouse-wheel-up-event
 @vindex mouse-wheel-down-event
-This kind of event is generated only on some kinds of systems. On some
+This kind of event is generated only on some kinds of systems.  On some
 systems, @code{mouse-4} and @code{mouse-5} are used instead.  For
 portable code, use the variables @code{mouse-wheel-up-event} and
 @code{mouse-wheel-down-event} defined in @file{mwheel.el} to determine
@@ -1856,7 +1856,7 @@ into another window.  That produces a pair of events like these:
 @end smallexample
 
 The frame with input focus might not take up the entire screen, and
-the user might move the mouse outside the scope of the frame. Inside
+the user might move the mouse outside the scope of the frame.  Inside
 the @code{track-mouse} special form, that produces an event like this:
 
 @smallexample
@@ -2085,7 +2085,13 @@ Return the actual row and column in @var{position}, as a cons cell
 @code{(@var{col} . @var{row})}.  The values are the actual row and
 column numbers in the window given by @var{position}.  @xref{Click
 Events}, for details.  The function returns @code{nil} if
-@var{position} does not include actual position values.
+@var{position} does not include actual position values; in that case
+@code{posn-col-row} can be used to get approximate values.
+
+Note that this function doesn't account for the visual width of
+characters on display, like the number of visual columns taken by a
+tab character or an image.  If you need the coordinates in canonical
+character units, use @code{posn-col-row} instead.
 @end defun
 
 @defun posn-string position
@@ -2107,8 +2113,9 @@ Return the image or string object in @var{position}, either
 @defun posn-object-x-y position
 Return the pixel-based x and y coordinates relative to the upper left
 corner of the object in @var{position} as a cons cell @code{(@var{dx}
-. @var{dy})}.  If the @var{position} is a buffer position, return the
-relative position in the character at that position.
+. @var{dy})}.  If the @var{position} is on buffer text, return the
+relative position of the buffer-text character closest to that
+position.
 @end defun
 
 @defun posn-object-width-height position
@@ -2811,7 +2818,7 @@ most recently unread will be reread first.
 Events read from this list are not normally added to the current
 command's key sequence (as returned by, e.g., @code{this-command-keys}),
 as the events will already have been added once as they were read for
-the first time.  An element of the form @code{(@code{t} . @var{event})}
+the first time.  An element of the form @w{@code{(t . @var{event})}}
 forces @var{event} to be added to the current command's key sequence.
 @end defvar
 

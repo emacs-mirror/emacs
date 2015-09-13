@@ -31,8 +31,8 @@
 
 (defvar ede-pconf-create-file-query 'ask
   "Controls if queries are made while creating project files.
-A value of 'ask means to always ask the user before creating
-a file, such as AUTHORS.  A value of 'never means don't ask, and
+A value of `ask' means to always ask the user before creating
+a file, such as AUTHORS.  A value of `never' means don't ask, and
 don't do it.  A value of nil means to just do it.")
 
 ;;; Code:

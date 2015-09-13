@@ -331,8 +331,11 @@ which more-or-less shadow%s %s's corresponding table%s."
 			"\n\nThis mode "
 		      (concat
 		       "\n\nIn addition to any hooks its parent mode "
-		       (if (string-match (regexp-quote (format "`%s'" parent))
-					 docstring) nil
+		       (if (string-match (format "[`‘]%s['’]"
+                                                 (regexp-quote
+						  (symbol-name parent)))
+					 docstring)
+                           nil
 			 (format "`%s' " parent))
 		       "might have run,\nthis mode "))
 		    (format "runs the hook `%s'" hook)

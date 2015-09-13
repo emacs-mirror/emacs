@@ -462,7 +462,8 @@ ARG is used as the prefix value for the executed command.  If
 EVENTS is a list of events, which become the beginning of the command."
   (interactive "P")
   (let (com key (old-map (current-local-map)))
-    (if events (setq unread-command-events events))
+    (if events (setq unread-command-events
+                     (append events unread-command-events)))
     (setq prefix-arg arg)
     (use-local-map vip-emacs-local-map)
     (unwind-protect
@@ -518,7 +519,7 @@ obtained so far, and COM is the command part obtained so far."
   (while (= char ?U)
     (vip-describe-arg prefix-arg)
     (setq char (read-char)))
-  (setq unread-command-events (list char)))
+  (push char unread-command-events))
 
 (defun vip-prefix-arg-com (char value com)
   "Vi operator as prefix argument."
@@ -572,7 +573,7 @@ obtained so far, and COM is the command part obtained so far."
 	(while (= char ?U)
 	  (vip-describe-arg prefix-arg)
 	  (setq char (read-char)))
-	(setq unread-command-events (list char)))
+	(push char unread-command-events))
     ;; as com is non-nil, this means that we have a command to execute
     (if (or (= (car com) ?r) (= (car com) ?R))
 	;; execute appropriate region command.

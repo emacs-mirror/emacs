@@ -4,7 +4,7 @@
 @c setfilename emacs-lisp-intro.info
 @c sethtmlfilename emacs-lisp-intro.html
 @settitle Programming in Emacs Lisp
-@documentencoding UTF-8
+@include docstyle.texi
 @syncodeindex vr cp
 @syncodeindex fn cp
 @finalout
@@ -30,7 +30,7 @@
 @c              @set largebook
 
 @c (Note: if you edit the book so as to change the length of the
-@c table of contents, you may have to change the value of `pageno' below.)
+@c table of contents, you may have to change the value of 'pageno' below.)
 
 @c <<<< For hard copy printing, this file is now
 @c      set for smallbook, which works for all sizes
@@ -157,7 +157,7 @@ supports it in developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@c half title; two lines here, so do not use `shorttitlepage'
+@c half title; two lines here, so do not use 'shorttitlepage'
 @tex
 {\begingroup%
     \hbox{}\vskip 1.5in \chaprm \centerline{An Introduction to}%
@@ -352,7 +352,7 @@ How To Write Function Definitions
 * if::                           What if?
 * else::                         If--then--else expressions.
 * Truth & Falsehood::            What Lisp considers false and true.
-* save-excursion::               Keeping track of point, mark, and buffer.
+* save-excursion::               Keeping track of point and buffer.
 * Review::
 * defun Exercises::
 
@@ -387,7 +387,7 @@ Truth and Falsehood in Emacs Lisp
 * Point and mark::              A review of various locations.
 * Template for save-excursion::
 
-A Few Buffer--Related Functions
+A Few Buffer-Related Functions
 
 * Finding More::                How to find more information.
 * simplified-beginning-of-buffer::  Shows @code{goto-char},
@@ -808,7 +808,7 @@ In addition, I have written several programs as extended examples.
 Although these are examples, the programs are real.  I use them.
 Other people use them.  You may use them.  Beyond the fragments of
 programs used for illustrations, there is very little in here that is
-`just for teaching purposes'; what you see is used.  This is a great
+``just for teaching purposes''; what you see is used.  This is a great
 advantage of Emacs Lisp: it is easy to learn to use it for work.
 @end ignore
 
@@ -854,8 +854,8 @@ information so you won't be surprised later when the additional
 information is formally introduced.)
 
 When you read this text, you are not expected to learn everything the
-first time.  Frequently, you need only make, as it were, a `nodding
-acquaintance' with some of the items mentioned.  My hope is that I have
+first time.  Frequently, you need only make, as it were, a ``nodding
+acquaintance'' with some of the items mentioned.  My hope is that I have
 structured the text and given you enough hints that you will be alert to
 what is important, and concentrate on it.
 
@@ -928,7 +928,7 @@ along with the key that is labeled @key{ALT} and, at the same time,
 press the @key{\} key.
 
 In addition to typing a lone keychord, you can prefix what you type
-with @kbd{C-u}, which is called the `universal argument'.  The
+with @kbd{C-u}, which is called the ``universal argument''.  The
 @kbd{C-u} keychord passes an argument to the subsequent command.
 Thus, to indent a region of plain text by 6 spaces, mark the region,
 and then type @w{@kbd{C-u 6 M-C-\}}.  (If you do not specify a number,
@@ -1000,7 +1000,7 @@ bob@@gnu.org
 
 To the untutored eye, Lisp is a strange programming language.  In Lisp
 code there are parentheses everywhere.  Some people even claim that
-the name stands for `Lots of Isolated Silly Parentheses'.  But the
+the name stands for ``Lots of Isolated Silly Parentheses''.  But the
 claim is unwarranted.  Lisp stands for LISt Processing, and the
 programming language handles @emph{lists} (and lists of lists) by
 putting them between parentheses.  The parentheses mark the boundaries
@@ -1090,7 +1090,7 @@ list is made up of the words @samp{a}, @samp{list}, @samp{inside},
 
 In Lisp, what we have been calling words are called @dfn{atoms}.  This
 term comes from the historical meaning of the word atom, which means
-`indivisible'.  As far as Lisp is concerned, the words we have been
+``indivisible''.  As far as Lisp is concerned, the words we have been
 using in the lists cannot be divided into any smaller parts and still
 mean the same thing as part of a program; likewise with numbers and
 single character symbols like @samp{+}.  On the other hand, unlike an
@@ -1159,7 +1159,7 @@ paragraphs---is also an atom.  Here is an example:
 @noindent
 In Lisp, all of the quoted text including the punctuation mark and the
 blank spaces is a single atom.  This kind of atom is called a
-@dfn{string} (for `string of characters') and is the sort of thing that
+@dfn{string} (for ``string of characters'') and is the sort of thing that
 is used for messages that a computer can print for a human to read.
 Strings are a different kind of atom than numbers or symbols and are
 used differently.
@@ -1240,6 +1240,10 @@ command to do something.  (Usually, of course, it is the last of these
 three things that you really want!)
 
 @c use code for the single apostrophe, not samp.
+@findex quote
+@cindex @code{'} for quoting
+@cindex quoting using apostrophe
+@cindex apostrophe for quoting
 The single apostrophe, @code{'}, that I put in front of some of the
 example lists in preceding sections is called a @dfn{quote}; when it
 precedes a list, it tells Lisp to do nothing with the list, other than
@@ -1303,7 +1307,7 @@ signposts to a traveler in a strange country; deciphering them can be
 hard, but once understood, they can point the way.
 
 The error message is generated by a built-in GNU Emacs debugger.  We
-will `enter the debugger'.  You get out of the debugger by typing @code{q}.
+will ``enter the debugger''.  You get out of the debugger by typing @code{q}.
 
 What we will do is evaluate a list that is not quoted and does not
 have a meaningful command as its first element.  Here is a list almost
@@ -1365,9 +1369,9 @@ Based on what we already know, we can almost read this error message.
 You read the @file{*Backtrace*} buffer from the bottom up; it tells
 you what Emacs did.  When you typed @kbd{C-x C-e}, you made an
 interactive call to the command @code{eval-last-sexp}.  @code{eval} is
-an abbreviation for `evaluate' and @code{sexp} is an abbreviation for
-`symbolic expression'.  The command means `evaluate last symbolic
-expression', which is the expression just before your cursor.
+an abbreviation for ``evaluate'' and @code{sexp} is an abbreviation for
+``symbolic expression''.  The command means ``evaluate last symbolic
+expression'', which is the expression just before your cursor.
 
 Each line above tells you what the Lisp interpreter evaluated next.
 The most recent action is at the top.  The buffer is called the
@@ -1401,7 +1405,7 @@ definition of any set of instructions for the computer to carry out.
 The slightly odd word, @samp{void-function}, is designed to cover the
 way Emacs Lisp is implemented, which is that when a symbol does not
 have a function definition attached to it, the place that should
-contain the instructions is `void'.
+contain the instructions is ``void''.
 
 On the other hand, since we were able to add 2 plus 2 successfully, by
 evaluating @code{(+ 2 2)}, we can infer that the symbol @code{+} must
@@ -1570,9 +1574,9 @@ compilation.
 
 When the Lisp interpreter works on an expression, the term for the
 activity is called @dfn{evaluation}.  We say that the interpreter
-`evaluates the expression'.  I've used this term several times before.
-The word comes from its use in everyday language, `to ascertain the
-value or amount of; to appraise', according to @cite{Webster's New
+``evaluates the expression''.  I've used this term several times before.
+The word comes from its use in everyday language, ``to ascertain the
+value or amount of; to appraise'', according to @cite{Webster's New
 Collegiate Dictionary}.
 
 @menu
@@ -1592,7 +1596,7 @@ instructions it found in the function definition, or perhaps it will
 give up on that function and produce an error message.  (The interpreter
 may also find itself tossed, so to speak, to a different function or it
 may attempt to repeat continually what it is doing for ever and ever in
-what is called an `infinite loop'.  These actions are less common; and
+what is called an ``infinite loop''.  These actions are less common; and
 we can ignore them.)  Most frequently, the interpreter returns a value.
 
 @cindex @samp{side effect} defined
@@ -1637,9 +1641,9 @@ evaluate, the interpreter prints that value in the echo area.
 
 Now it is easy to understand the name of the command invoked by the
 keystrokes @kbd{C-x C-e}: the name is @code{eval-last-sexp}.  The
-letters @code{sexp} are an abbreviation for `symbolic expression', and
-@code{eval} is an abbreviation for `evaluate'.  The command means
-`evaluate last symbolic expression'.
+letters @code{sexp} are an abbreviation for ``symbolic expression'', and
+@code{eval} is an abbreviation for ``evaluate''.  The command means
+``evaluate last symbolic expression''.
 
 As an experiment, you can try evaluating the expression by putting the
 cursor at the beginning of the next line immediately following the
@@ -1838,7 +1842,7 @@ typing @kbd{q} in the @file{*Backtrace*} buffer.)
 This backtrace is different from the very first error message we saw,
 which said, @samp{Debugger entered--Lisp error: (void-function this)}.
 In this case, the function does not have a value as a variable; while
-in the other error message, the function (the word `this') did not
+in the other error message, the function (the word @samp{this}) did not
 have a definition.
 
 In this experiment with the @code{+}, what we did was cause the Lisp
@@ -1887,22 +1891,22 @@ The numbers added by @code{+} are called the @dfn{arguments} of the
 function @code{+}.  These numbers are the information that is given to
 or @dfn{passed} to the function.
 
-The word `argument' comes from the way it is used in mathematics and
+The word ``argument'' comes from the way it is used in mathematics and
 does not refer to a disputation between two people; instead it refers to
 the information presented to the function, in this case, to the
 @code{+}.  In Lisp, the arguments to a function are the atoms or lists
 that follow the function.  The values returned by the evaluation of
 these atoms or lists are passed to the function.  Different functions
 require different numbers of arguments; some functions require none at
-all.@footnote{It is curious to track the path by which the word `argument'
+all.@footnote{It is curious to track the path by which the word ``argument''
 came to have two different meanings, one in mathematics and the other in
 everyday English.  According to the @cite{Oxford English Dictionary},
 the word derives from the Latin for @samp{to make clear, prove}; thus it
-came to mean, by one thread of derivation, `the evidence offered as
-proof', which is to say, `the information offered', which led to its
+came to mean, by one thread of derivation, ``the evidence offered as
+proof'', which is to say, ``the information offered'', which led to its
 meaning in Lisp.  But in the other thread of derivation, it came to mean
-`to assert in a manner against which others may make counter
-assertions', which led to the meaning of the word as a disputation.
+``to assert in a manner against which others may make counter
+assertions'', which led to the meaning of the word as a disputation.
 (Note here that the English word has two different definitions attached
 to it at the same time.  By contrast, in Emacs Lisp, a symbol cannot
 have two different function definitions at the same time.)}
@@ -1947,10 +1951,12 @@ The value produced by evaluating this expression is @code{"abcdef"}.
 A function such as @code{substring} uses both a string and numbers as
 arguments.  The function returns a part of the string, a substring of
 the first argument.  This function takes three arguments.  Its first
-argument is the string of characters, the second and third arguments are
-numbers that indicate the beginning and end of the substring.  The
-numbers are a count of the number of characters (including spaces and
-punctuation) from the beginning of the string.
+argument is the string of characters, the second and third arguments
+are numbers that indicate the beginning (inclusive) and end
+(exclusive) of the substring.  The numbers are a count of the number
+of characters (including spaces and punctuation) from the beginning of
+the string. Note that the characters in a string are numbered from
+zero, not one.
 
 @need 800
 For example, if you evaluate the following:
@@ -1967,7 +1973,7 @@ Note that the string passed to @code{substring} is a single atom even
 though it is made up of several words separated by spaces.  Lisp counts
 everything between the two quotation marks as part of the string,
 including the spaces.  You can think of the @code{substring} function as
-a kind of `atom smasher' since it takes an otherwise indivisible atom
+a kind of ``atom smasher'' since it takes an otherwise indivisible atom
 and extracts a part.  However, @code{substring} is only able to extract
 a substring from an argument that is a string, not from another type of
 atom such as a number or symbol.
@@ -2022,7 +2028,7 @@ Some functions, such as @code{concat}, @code{+} or @code{*}, take any
 number of arguments.  (The @code{*} is the symbol for multiplication.)
 This can be seen by evaluating each of the following expressions in
 the usual way.  What you will see in the echo area is printed in this
-text after @samp{@result{}}, which you may read as `evaluates to'.
+text after @samp{@result{}}, which you may read as ``evaluates to''.
 
 @need 1250
 In the first set, the functions have no arguments:
@@ -2123,7 +2129,7 @@ numeric value of marker positions as numbers.
 
 The @samp{p} of @code{number-or-marker-p} is the embodiment of a
 practice started in the early days of Lisp programming.  The @samp{p}
-stands for `predicate'.  In the jargon used by the early Lisp
+stands for ``predicate''.  In the jargon used by the early Lisp
 researchers, a predicate refers to a function to determine whether some
 property is true or false.  So the @samp{p} tells us that
 @code{number-or-marker-p} is the name of a function that determines
@@ -2390,11 +2396,11 @@ to the symbol @code{herbivores}:
 not have fit on a page; and humans find it easier to read nicely
 formatted lists.)
 
-Although I have been using the term `assign', there is another way of
+Although I have been using the term ``assign'', there is another way of
 thinking about the workings of @code{set} and @code{setq}; and that is to
 say that @code{set} and @code{setq} make the symbol @emph{point} to the
 list.  This latter way of thinking is very common and in forthcoming
-chapters we shall come upon at least one symbol that has `pointer' as
+chapters we shall come upon at least one symbol that has ``pointer'' as
 part of its name.  The name is chosen because the symbol has a value,
 specifically a list, attached to it; or, expressed another way,
 the symbol is set to ``point'' to the list.
@@ -2639,9 +2645,9 @@ The former is the name of the buffer and the latter is the name of the
 file.  In Info, the buffer name is @file{"*info*"}.  Info does not
 point to any file, so the result of evaluating
 @code{(buffer-file-name)} is @file{nil}.  The symbol @code{nil} is
-from the Latin word for `nothing'; in this case, it means that the
+from the Latin word for ``nothing''; in this case, it means that the
 buffer is not associated with any file.  (In Lisp, @code{nil} is also
-used to mean `false' and is a synonym for the empty list, @code{()}.)
+used to mean ``false'' and is a synonym for the empty list, @code{()}.)
 
 When I am writing, the name of my buffer is
 @file{"introduction.texinfo"}.  The name of the file to which it
@@ -2661,7 +2667,7 @@ computer programs, however, it is important to keep the distinction in mind,
 since the computer is not as smart as a person.
 
 @cindex Buffer, history of word
-The word `buffer', by the way, comes from the meaning of the word as a
+The word ``buffer'', by the way, comes from the meaning of the word as a
 cushion that deadens the force of a collision.  In early computers, a
 buffer cushioned the interaction between files and the computer's
 central processing unit.  The drums or tapes that held a file and the
@@ -2838,10 +2844,10 @@ following more complex expression:
 @c noindent
 In this case, the first argument to @code{other-buffer} tells it which
 buffer to skip---the current one---and the second argument tells
-@code{other-buffer} it is OK to switch to a visible buffer.
-In regular use, @code{switch-to-buffer} takes you to an invisible
-window since you would most likely use @kbd{C-x o} (@code{other-window})
-to go to another visible buffer.}
+@code{other-buffer} it is OK to switch to a visible buffer.  In
+regular use, @code{switch-to-buffer} takes you to a buffer not visible
+in windows since you would most likely use @kbd{C-x o}
+(@code{other-window}) to go to another visible buffer.}
 
 In the programming examples in later sections of this document, you will
 see the function @code{set-buffer} more often than
@@ -2864,7 +2870,7 @@ there until the command finishes running).
 Also, we have just introduced another jargon term, the word @dfn{call}.
 When you evaluate a list in which the first symbol is a function, you
 are calling that function.  The use of the term comes from the notion of
-the function as an entity that can do something for you if you `call'
+the function as an entity that can do something for you if you ``call''
 it---just as a plumber is an entity who can fix a leak if you call him
 or her.
 
@@ -2907,7 +2913,7 @@ the following expression in the usual way:
 @end smallexample
 
 @noindent
-As I write this, the value of @code{point} is 65724.  The @code{point}
+As I write this, the value of point is 65724.  The @code{point}
 function is frequently used in some of the examples later in this
 book.
 
@@ -2966,7 +2972,7 @@ symbol refers to it.)
 * if::                           What if?
 * else::                         If--then--else expressions.
 * Truth & Falsehood::            What Lisp considers false and true.
-* save-excursion::               Keeping track of point, mark, and buffer.
+* save-excursion::               Keeping track of point and buffer.
 * Review::
 * defun Exercises::
 @end menu
@@ -3082,9 +3088,9 @@ function.
 
 Instead of choosing the word @code{number} for the name of the argument,
 I could have picked any other name.  For example, I could have chosen
-the word @code{multiplicand}.  I picked the word `number' because it
+the word @code{multiplicand}.  I picked the word ``number'' because it
 tells what kind of value is intended for this slot; but I could just as
-well have chosen the word `multiplicand' to indicate the role that the
+well have chosen the word ``multiplicand'' to indicate the role that the
 value placed in this slot will play in the workings of the function.  I
 could have called it @code{foogle}, but that would have been a bad
 choice because it would not tell humans what it means.  The choice of
@@ -3096,16 +3102,16 @@ list, even the name of a symbol used in some other function: the name
 you use in an argument list is private to that particular definition.
 In that definition, the name refers to a different entity than any use
 of the same name outside the function definition.  Suppose you have a
-nick-name `Shorty' in your family; when your family members refer to
-`Shorty', they mean you.  But outside your family, in a movie, for
-example, the name `Shorty' refers to someone else.  Because a name in an
+nick-name ``Shorty'' in your family; when your family members refer to
+``Shorty'', they mean you.  But outside your family, in a movie, for
+example, the name ``Shorty'' refers to someone else.  Because a name in an
 argument list is private to the function definition, you can change the
 value of such a symbol inside the body of a function without changing
 its value outside the function.  The effect is similar to that produced
 by a @code{let} expression.  (@xref{let, , @code{let}}.)
 
 @ignore
-Note also that we discuss the word `number' in two different ways: as a
+Note also that we discuss the word ``number'' in two different ways: as a
 symbol that appears in the code, and as the name of something that will
 be replaced by a something else during the evaluation of the function.
 In the first case, @code{number} is a symbol, not a number; it happens
@@ -3161,7 +3167,7 @@ definition begins.
 If you evaluate this example, you are likely to get an error message.
 (Go ahead, try it!)  This is because we have written the function
 definition, but not yet told the computer about the definition---we have
-not yet installed (or `loaded') the function definition in Emacs.
+not yet installed (or ``loaded'') the function definition in Emacs.
 Installing a function is the process that tells the Lisp interpreter the
 definition of the function.  Installation is described in the next
 section.
@@ -3225,6 +3231,7 @@ function, @code{multiply-by-seven}.  When you do this, a
 @smallexample
 @group
 multiply-by-seven is a Lisp function.
+
 (multiply-by-seven NUMBER)
 
 Multiply NUMBER by seven.
@@ -3453,7 +3460,7 @@ is
 
 The first part of the argument to @code{interactive} is @samp{p}, with
 which you are already familiar.  This argument tells Emacs to
-interpret a `prefix', as a number to be passed to the function.  You
+interpret a ``prefix'', as a number to be passed to the function.  You
 can specify a prefix either by typing @kbd{C-u} followed by a number
 or by typing @key{META} followed by a number.  The prefix is the
 number of specified characters.  Thus, if your prefix is three and the
@@ -3567,8 +3574,8 @@ variable of the same name that is not part of the function.
 
 To understand why the @code{let} special form is necessary, consider
 the situation in which you own a home that you generally refer to as
-`the house', as in the sentence, ``The house needs painting.''  If you
-are visiting a friend and your host refers to `the house', he is
+``the house'', as in the sentence, ``The house needs painting.''  If you
+are visiting a friend and your host refers to ``the house'', he is
 likely to be referring to @emph{his} house, not yours, that is, to a
 different house.
 
@@ -3596,7 +3603,7 @@ and the two are not intended to refer to the same value.  The
 The @code{let} special form prevents confusion.  @code{let} creates a
 name for a @dfn{local variable} that overshadows any use of the same
 name outside the @code{let} expression.  This is like understanding
-that whenever your host refers to `the house', he means his house, not
+that whenever your host refers to ``the house'', he means his house, not
 yours.  (Symbols used in argument lists work the same way.
 @xref{defun, , The @code{defun} Macro}.)
 
@@ -3616,14 +3623,14 @@ in Emacs Lisp, scoping is dynamic, not lexical.''
 @code{let} can create more than one variable at once.  Also,
 @code{let} gives each variable it creates an initial value, either a
 value specified by you, or @code{nil}.  (In the jargon, this is called
-`binding the variable to the value'.)  After @code{let} has created
+``binding the variable to the value''.)  After @code{let} has created
 and bound the variables, it executes the code in the body of the
 @code{let}, and returns the value of the last expression in the body,
-as the value of the whole @code{let} expression.  (`Execute' is a jargon
+as the value of the whole @code{let} expression.  (``Execute'' is a jargon
 term that means to evaluate a list; it comes from the use of the word
-meaning `to give practical effect to' (@cite{Oxford English
+meaning ``to give practical effect to'' (@cite{Oxford English
 Dictionary}).  Since you evaluate an expression to perform an action,
-`execute' has evolved as a synonym to `evaluate'.)
+``execute'' has evolved as a synonym to ``evaluate''.)
 
 @node Parts of let Expression
 @subsection The Parts of a @code{let} Expression
@@ -3684,26 +3691,26 @@ to the two variables @code{zebra} and @code{tiger}.  The body of the
 
 @smallexample
 @group
-(let ((zebra 'stripes)
-      (tiger 'fierce))
+(let ((zebra "stripes")
+      (tiger "fierce"))
   (message "One kind of animal has %s and another is %s."
            zebra tiger))
 @end group
 @end smallexample
 
-Here, the varlist is @code{((zebra 'stripes) (tiger 'fierce))}.
+Here, the varlist is @code{((zebra "stripes") (tiger "fierce"))}.
 
 The two variables are @code{zebra} and @code{tiger}.  Each variable is
 the first element of a two-element list and each value is the second
 element of its two-element list.  In the varlist, Emacs binds the
-variable @code{zebra} to the value @code{stripes}@footnote{According
+variable @code{zebra} to the value @code{"stripes"}@footnote{According
 to Jared Diamond in @cite{Guns, Germs, and Steel}, ``@dots{} zebras
 become impossibly dangerous as they grow older'' but the claim here is
 that they do not become fierce like a tiger.  (1997, W. W. Norton and
 Co., ISBN 0-393-03894-2, page 171)}, and binds the
-variable @code{tiger} to the value @code{fierce}.  In this example,
-both values are symbols preceded by a quote.  The values could just as
-well have been another list or a string.  The body of the @code{let}
+variable @code{tiger} to the value @code{"fierce"}.  In this example,
+both values are strings.  The values could just as well have been
+another list or a symbol.  The body of the @code{let}
 follows after the list holding the variables.  In this example, the
 body is a list that uses the @code{message} function to print a string
 in the echo area.
@@ -3800,7 +3807,7 @@ such as, ``if it is warm and sunny, then go to the beach!''
 
 @cindex @samp{if-part} defined
 @cindex @samp{then-part} defined
-An @code{if} expression written in Lisp does not use the word `then';
+An @code{if} expression written in Lisp does not use the word ``then'';
 the test and the action are the second and third elements of the list
 whose first element is @code{if}.  Nonetheless, the test part of an
 @code{if} expression is often called the @dfn{if-part} and the second
@@ -3848,17 +3855,17 @@ of time, we would not need to run the test!)
 For example, the value may be bound to an argument of a function
 definition.  In the following function definition, the character of the
 animal is a value that is passed to the function.  If the value bound to
-@code{characteristic} is @code{fierce}, then the message, @samp{It's a
+@code{characteristic} is @code{"fierce"}, then the message, @samp{It is a
 tiger!} will be printed; otherwise, @code{nil} will be returned.
 
 @smallexample
 @group
 (defun type-of-animal (characteristic)
   "Print message in echo area depending on CHARACTERISTIC.
-If the CHARACTERISTIC is the symbol `fierce',
+If the CHARACTERISTIC is the string \"fierce\",
 then warn of a tiger."
-  (if (equal characteristic 'fierce)
-      (message "It's a tiger!")))
+  (if (equal characteristic "fierce")
+      (message "It is a tiger!")))
 @end group
 @end smallexample
 
@@ -3870,18 +3877,18 @@ can evaluate the following two expressions to see the results:
 
 @smallexample
 @group
-(type-of-animal 'fierce)
+(type-of-animal "fierce")
 
-(type-of-animal 'zebra)
+(type-of-animal "striped")
 
 @end group
 @end smallexample
 
 @c Following sentences rewritten to prevent overfull hbox.
 @noindent
-When you evaluate @code{(type-of-animal 'fierce)}, you will see the
-following message printed in the echo area: @code{"It's a tiger!"}; and
-when you evaluate @code{(type-of-animal 'zebra)} you will see @code{nil}
+When you evaluate @code{(type-of-animal "fierce")}, you will see the
+following message printed in the echo area: @code{"It is a tiger!"}; and
+when you evaluate @code{(type-of-animal "striped")} you will see @code{nil}
 printed in the echo area.
 
 @node type-of-animal in detail
@@ -3911,7 +3918,7 @@ The parts of the function that match this template look like this:
 @group
 (defun type-of-animal (characteristic)
   "Print message in echo area depending on CHARACTERISTIC.
-If the CHARACTERISTIC is the symbol `fierce',
+If the CHARACTERISTIC is the string \"fierce\",
 then warn of a tiger."
   @var{body: the} @code{if} @var{expression})
 @end group
@@ -3940,8 +3947,8 @@ looks like this:
 
 @smallexample
 @group
-(if (equal characteristic 'fierce)
-    (message "It's a tiger!")))
+(if (equal characteristic "fierce")
+    (message "It is a tiger!")))
 @end group
 @end smallexample
 
@@ -3949,26 +3956,26 @@ looks like this:
 Here, the true-or-false-test is the expression:
 
 @smallexample
-(equal characteristic 'fierce)
+(equal characteristic "fierce")
 @end smallexample
 
 @noindent
 In Lisp, @code{equal} is a function that determines whether its first
 argument is equal to its second argument.  The second argument is the
-quoted symbol @code{'fierce} and the first argument is the value of the
+string @code{"fierce"} and the first argument is the value of the
 symbol @code{characteristic}---in other words, the argument passed to
 this function.
 
 In the first exercise of @code{type-of-animal}, the argument
-@code{fierce} is passed to @code{type-of-animal}.  Since @code{fierce}
-is equal to @code{fierce}, the expression, @code{(equal characteristic
-'fierce)}, returns a value of true.  When this happens, the @code{if}
+@code{"fierce"} is passed to @code{type-of-animal}.  Since @code{"fierce"}
+is equal to @code{"fierce"}, the expression, @code{(equal characteristic
+"fierce")}, returns a value of true.  When this happens, the @code{if}
 evaluates the second argument or then-part of the @code{if}:
-@code{(message "It's tiger!")}.
+@code{(message "It is a tiger!")}.
 
 On the other hand, in the second exercise of @code{type-of-animal}, the
-argument @code{zebra} is passed to @code{type-of-animal}.  @code{zebra}
-is not equal to @code{fierce}, so the then-part is not evaluated and
+argument @code{"striped"} is passed to @code{type-of-animal}.  @code{"striped"}
+is not equal to @code{"fierce"}, so the then-part is not evaluated and
 @code{nil} is returned by the @code{if} expression.
 
 @node else
@@ -4027,34 +4034,33 @@ arguments to the function.
 @group
 (defun type-of-animal (characteristic)  ; @r{Second version.}
   "Print message in echo area depending on CHARACTERISTIC.
-If the CHARACTERISTIC is the symbol `fierce',
-then warn of a tiger;
-else say it's not fierce."
-  (if (equal characteristic 'fierce)
-      (message "It's a tiger!")
-    (message "It's not fierce!")))
+If the CHARACTERISTIC is the string \"fierce\",
+then warn of a tiger; else say it is not fierce."
+  (if (equal characteristic "fierce")
+      (message "It is a tiger!")
+    (message "It is not fierce!")))
 @end group
 @end smallexample
 @sp 1
 
 @smallexample
 @group
-(type-of-animal 'fierce)
+(type-of-animal "fierce")
 
-(type-of-animal 'zebra)
+(type-of-animal "striped")
 
 @end group
 @end smallexample
 
 @c Following sentence rewritten to prevent overfull hbox.
 @noindent
-When you evaluate @code{(type-of-animal 'fierce)}, you will see the
-following message printed in the echo area: @code{"It's a tiger!"}; but
-when you evaluate @code{(type-of-animal 'zebra)}, you will see
-@code{"It's not fierce!"}.
+When you evaluate @code{(type-of-animal "fierce")}, you will see the
+following message printed in the echo area: @code{"It is a tiger!"}; but
+when you evaluate @code{(type-of-animal "striped")}, you will see
+@code{"It is not fierce!"}.
 
-(Of course, if the @var{characteristic} were @code{ferocious}, the
-message @code{"It's not fierce!"} would be printed; and it would be
+(Of course, if the @var{characteristic} were @code{"ferocious"}, the
+message @code{"It is not fierce!"} would be printed; and it would be
 misleading!  When you write code, you need to take into account the
 possibility that some such argument will be tested by the @code{if}
 and write your program accordingly.)
@@ -4066,10 +4072,10 @@ and write your program accordingly.)
 @findex nil
 
 There is an important aspect to the truth test in an @code{if}
-expression.  So far, we have spoken of `true' and `false' as values of
+expression.  So far, we have spoken of ``true'' and ``false'' as values of
 predicates as if they were new kinds of Emacs Lisp objects.  In fact,
-`false' is just our old friend @code{nil}.  Anything else---anything
-at all---is `true'.
+``false'' is just our old friend @code{nil}.  Anything else---anything
+at all---is ``true''.
 
 The expression that tests for truth is interpreted as @dfn{true}
 if the result of evaluating it is a value that is not @code{nil}.  In
@@ -4150,8 +4156,8 @@ On the other hand, this function returns @code{nil} if the test is false.
 @section @code{save-excursion}
 @findex save-excursion
 @cindex Region, what it is
-@cindex Preserving point, mark, and buffer
-@cindex Point, mark, buffer preservation
+@cindex Preserving point and buffer
+@cindex Point and buffer preservation
 @findex point
 @findex mark
 
@@ -4159,11 +4165,11 @@ The @code{save-excursion} function is the third and final special form
 that we will discuss in this chapter.
 
 In Emacs Lisp programs used for editing, the @code{save-excursion}
-function is very common.  It saves the location of point and mark,
-executes the body of the function, and then restores point and mark to
-their previous positions if their locations were changed.  Its primary
+function is very common.  It saves the location of point,
+executes the body of the function, and then restores point to
+its previous position if its location was changed.  Its primary
 purpose is to keep the user from being surprised and disturbed by
-unexpected movement of point or mark.
+unexpected movement of point.
 
 @menu
 * Point and mark::              A review of various locations.
@@ -4200,8 +4206,8 @@ region}.  Numerous commands work on the region, including
 @code{center-region}, @code{count-lines-region}, @code{kill-region}, and
 @code{print-region}.
 
-The @code{save-excursion} special form saves the locations of point and
-mark and restores those positions after the code within the body of the
+The @code{save-excursion} special form saves the location of point and
+restores this position after the code within the body of the
 special form is evaluated by the Lisp interpreter.  Thus, if point were
 in the beginning of a piece of text and some code moved point to the end
 of the buffer, the @code{save-excursion} would put point back to where
@@ -4212,16 +4218,16 @@ In Emacs, a function frequently moves point as part of its internal
 workings even though a user would not expect this.  For example,
 @code{count-lines-region} moves point.  To prevent the user from being
 bothered by jumps that are both unexpected and (from the user's point of
-view) unnecessary, @code{save-excursion} is often used to keep point and
-mark in the location expected by the user.  The use of
+view) unnecessary, @code{save-excursion} is often used to keep point in
+the location expected by the user.  The use of
 @code{save-excursion} is good housekeeping.
 
 To make sure the house stays clean, @code{save-excursion} restores the
-values of point and mark even if something goes wrong in the code inside
+value of point even if something goes wrong in the code inside
 of it (or, to be more precise and to use the proper jargon, ``in case of
 abnormal exit'').  This feature is very helpful.
 
-In addition to recording the values of point and mark,
+In addition to recording the value of point,
 @code{save-excursion} keeps track of the current buffer, and restores
 it, too.  This means you can write code that will change the buffer and
 have @code{save-excursion} switch you back to the original buffer.
@@ -4248,7 +4254,7 @@ one expression in the body, the value of the last one will be returned
 as the value of the @code{save-excursion} function.  The other
 expressions in the body are evaluated only for their side effects; and
 @code{save-excursion} itself is used only for its side effect (which
-is restoring the positions of point and mark).
+is restoring the position of point).
 
 @need 1250
 In more detail, the template for a @code{save-excursion} expression
@@ -4351,7 +4357,7 @@ The name of an existing buffer.
 The name of an existing file.
 
 @item p
-The numeric prefix argument.  (Note that this `p' is lower case.)
+The numeric prefix argument.  (Note that this @code{p} is lower case.)
 
 @item r
 Point and the mark, as two numeric arguments, smallest first.  This
@@ -4386,9 +4392,9 @@ For example,
 @end smallexample
 
 @item save-excursion
-Record the values of point and mark and the current buffer before
-evaluating the body of this special form.  Restore the values of point
-and mark and buffer afterward.
+Record the values of point and the current buffer before
+evaluating the body of this special form.  Restore the value of point and
+buffer afterward.
 
 @need 1250
 For example,
@@ -4443,7 +4449,7 @@ markers, are equal.
 @item equal
 @itemx eq
 Test whether two objects are the same.  @code{equal} uses one meaning
-of the word `same' and @code{eq} uses another:  @code{equal} returns
+of the word ``same'' and @code{eq} uses another:  @code{equal} returns
 true if the two objects have a similar structure and contents, such as
 two copies of the same book.  On the other hand, @code{eq}, returns
 true if both arguments are actually the same object.
@@ -4472,7 +4478,7 @@ shorter, alternative name is @code{string=}.  There are no string test
 functions that correspond to @var{>}, @code{>=}, or @code{<=}.
 
 @item message
-Print a message in the echo area. The first argument is a string that
+Print a message in the echo area.  The first argument is a string that
 can contain @samp{%s}, @samp{%d}, or @samp{%c} to print the value of
 arguments that follow the string.  The argument used by @samp{%s} must
 be a string or a symbol; the argument used by @samp{%d} must be a
@@ -4547,7 +4553,7 @@ and if so, prints an appropriate message.
 @end itemize
 
 @node Buffer Walk Through
-@chapter A Few Buffer--Related Functions
+@chapter A Few Buffer-Related Functions
 
 In this chapter we study in detail several of the functions used in GNU
 Emacs.  This is called a ``walk-through''.  These functions are used as
@@ -4588,7 +4594,7 @@ function definition.
 
 Put point into the name of the file that contains the function and
 press the @key{RET} key.  In this case, @key{RET} means
-@code{push-button} rather than `return' or `enter'.  Emacs will take
+@code{push-button} rather than ``return'' or ``enter''.  Emacs will take
 you directly to the function definition.
 
 @ignore
@@ -4596,7 +4602,7 @@ Not In version 22
 
 If you move point over the file name and press
 the @key{RET} key, which in this case means @code{help-follow} rather
-than `return' or `enter', Emacs will take you directly to the function
+than ``return'' or ``enter'', Emacs will take you directly to the function
 definition.
 @end ignore
 
@@ -4606,7 +4612,7 @@ file, you can use the @code{find-tag} function to jump to it.
 Lisp, and C, and it works with non-programming text as well.  For
 example, @code{find-tag} will jump to the various nodes in the
 Texinfo source file of this document.
-The @code{find-tag} function depends on `tags tables' that record
+The @code{find-tag} function depends on ``tags tables'' that record
 the locations of the functions, variables, and other items to which
 @code{find-tag} jumps.
 
@@ -4624,7 +4630,7 @@ screen.  To switch back to your current buffer, type @kbd{C-x b
 @cindex TAGS table, specifying
 @findex find-tag
 Depending on how the initial default values of your copy of Emacs are
-set, you may also need to specify the location of your `tags table',
+set, you may also need to specify the location of your ``tags table'',
 which is a file called @file{TAGS}.  For example, if you are
 interested in Emacs sources, the tags table you will most likely want,
 if it has already been created for you, will be in a subdirectory of
@@ -4650,7 +4656,7 @@ After you become more familiar with Emacs Lisp, you will find that you will
 frequently use @code{find-tag} to navigate your way around source code;
 and you will create your own @file{TAGS} tables.
 
-@cindex Library, as term for `file'
+@cindex Library, as term for ``file''
 Incidentally, the files that contain Lisp code are conventionally
 called @dfn{libraries}.  The metaphor is derived from that of a
 specialized library, such as a law library or an engineering library,
@@ -4916,7 +4922,7 @@ The expression works nearly the same as before.  It sets a mark at the
 highest numbered place in the buffer that it can.  However, in this
 version, @code{push-mark} has two additional arguments.  The second
 argument to @code{push-mark} is @code{nil}.  This tells the function
-it @emph{should} display a message that says `Mark set' when it pushes
+it @emph{should} display a message that says ``Mark set'' when it pushes
 the mark.  The third argument is @code{t}.  This tells
 @code{push-mark} to activate the mark when Transient Mark mode is
 turned on.  Transient Mark mode highlights the currently active
@@ -4931,6 +4937,8 @@ result of this, point is placed at the beginning of the buffer and mark
 is set at the end of the buffer.  The whole buffer is, therefore, the
 region.
 
+@c FIXME: the definition of append-to-buffer has been changed (in
+@c 2010-03-30).
 @node append-to-buffer
 @section The Definition of @code{append-to-buffer}
 @findex append-to-buffer
@@ -5201,8 +5209,8 @@ of the two-element list, @code{(oldbuf (current-buffer))}.
 The body of the @code{let} expression in @code{append-to-buffer}
 consists of a @code{save-excursion} expression.
 
-The @code{save-excursion} function saves the locations of point and
-mark, and restores them to those positions after the expressions in the
+The @code{save-excursion} function saves the location of point, and restores it
+to that position after the expressions in the
 body of the @code{save-excursion} complete execution.  In addition,
 @code{save-excursion} keeps track of the original buffer, and
 restores it.  This is how @code{save-excursion} is used in
@@ -5390,7 +5398,7 @@ Conventionally bound to @kbd{M-.} (that's a period following the
 @key{META} key).
 
 @item save-excursion
-Save the location of point and mark and restore their values after the
+Save the location of point and restore its value after the
 arguments to @code{save-excursion} have been evaluated.  Also, remember
 the current buffer and return to it.
 
@@ -5522,7 +5530,7 @@ the buffer you are in (and you have not seen the computer shift its
 attention, so you don't know that that buffer is now called
 @code{oldbuf}).
 
-Incidentally, this is what is meant by `replacement'.  To replace text,
+Incidentally, this is what is meant by ``replacement''.  To replace text,
 Emacs erases the previous text and then inserts new text.
 
 @need 1250
@@ -5896,7 +5904,7 @@ the value of point, which will be at the end of the inserted text, is
 recorded in the variable @code{newmark}.
 
 After the body of the outer @code{save-excursion} is evaluated, point
-and mark are relocated to their original places.
+is relocated to its original place.
 
 However, it is convenient to locate a mark at the end of the newly
 inserted text and locate point at its beginning.  The @code{newmark}
@@ -6135,7 +6143,7 @@ size of the buffer.  The reason for this is that the old version 18
 Emacs used numbers that are no bigger than eight million or so and in
 the computation that followed, the programmer feared that Emacs might
 try to use over-large numbers if the buffer were large.  The term
-`overflow', mentioned in the comment, means numbers that are over
+``overflow'', mentioned in the comment, means numbers that are over
 large.  More recent versions of Emacs use larger numbers, but this
 code has not been touched, if only because people now look at buffers
 that are far, far larger than ever before.
@@ -6155,7 +6163,7 @@ was that function called several times, it gave the size of the whole
 buffer, not the accessible part.  The computation makes much more
 sense when it handles just the accessible part.  (@xref{Narrowing &
 Widening, , Narrowing and Widening}, for more information on focusing
-attention to an `accessible' part.)
+attention to an ``accessible'' part.)
 
 @need 800
 The line looks like this:
@@ -6403,7 +6411,7 @@ tenths of the way through the buffer, which is a nicety that is,
 perhaps, not necessary, but which, if it did not occur, would be sure
 to draw complaints.  (The @code{(not (consp arg))} portion is so that
 if you specify the command with a @kbd{C-u}, but without a number,
-that is to say, if the `raw prefix argument' is simply a cons cell,
+that is to say, if the ``raw prefix argument'' is simply a cons cell,
 the command does not put you at the beginning of the second line.)
 
 @node Second Buffer Related Review
@@ -6432,7 +6440,7 @@ is optional; this means that the function can be evaluated without the
 argument, if desired.
 
 @item prefix-numeric-value
-Convert the `raw prefix argument' produced by @code{(interactive
+Convert the ``raw prefix argument'' produced by @code{(interactive
 "P")} to a numeric value.
 
 @item forward-line
@@ -6685,8 +6693,8 @@ restored just before the completion of the function by the
 @code{save-restriction} special form.
 
 The call to @code{widen} is followed by @code{save-excursion}, which
-saves the location of the cursor (i.e., of point) and of the mark, and
-restores them after the code in the body of the @code{save-excursion}
+saves the location of the cursor (i.e., of point), and
+restores it after the code in the body of the @code{save-excursion}
 uses the @code{beginning-of-line} function to move point.
 
 (Note that the @code{(widen)} expression comes between the
@@ -6757,8 +6765,8 @@ it, and @code{count-lines} counts only the lines @emph{before} the
 current line.
 
 After @code{count-lines} has done its job, and the message has been
-printed in the echo area, the @code{save-excursion} restores point and
-mark to their original positions; and @code{save-restriction} restores
+printed in the echo area, the @code{save-excursion} restores point to
+its original position; and @code{save-restriction} restores
 the original narrowing, if any.
 
 @node narrow Exercise
@@ -6814,11 +6822,11 @@ namely, @code{setcdr} and @code{nthcdr}.  (@xref{copy-region-as-kill}.)
 @end ifnottex
 
 The name of the @code{cons} function is not unreasonable: it is an
-abbreviation of the word `construct'.  The origins of the names for
+abbreviation of the word ``construct''.  The origins of the names for
 @code{car} and @code{cdr}, on the other hand, are esoteric: @code{car}
-is an acronym from the phrase `Contents of the Address part of the
-Register'; and @code{cdr} (pronounced `could-er') is an acronym from
-the phrase `Contents of the Decrement part of the Register'.  These
+is an acronym from the phrase ``Contents of the Address part of the
+Register''; and @code{cdr} (pronounced ``could-er'') is an acronym from
+the phrase ``Contents of the Decrement part of the Register''.  These
 phrases refer to specific pieces of hardware on the very early
 computer on which the original Lisp was developed.  Besides being
 obsolete, the phrases have been completely irrelevant for more than 25
@@ -6853,7 +6861,7 @@ Clearly, a more reasonable name for the @code{car} function would be
 @code{car} does not remove the first item from the list; it only reports
 what it is.  After @code{car} has been applied to a list, the list is
 still the same as it was.  In the jargon, @code{car} is
-`non-destructive'.  This feature turns out to be important.
+``non-destructive''.  This feature turns out to be important.
 
 The @sc{cdr} of a list is the rest of the list, that is, the
 @code{cdr} function returns the part of the list that follows the
@@ -6975,8 +6983,8 @@ appear in the echo area.  @code{cons} causes the creation of a new
 list in which the element is followed by the elements of the original
 list.
 
-We often say that `@code{cons} puts a new element at the beginning of
-a list; it attaches or pushes elements onto the list', but this
+We often say that ``@code{cons} puts a new element at the beginning of
+a list; it attaches or pushes elements onto the list'', but this
 phrasing can be misleading, since @code{cons} does not change an
 existing list, but creates a new one.
 
@@ -7001,7 +7009,7 @@ need to provide at least an empty list at the beginning.  Here is a
 series of @code{cons} expressions that build up a list of flowers.  If
 you are reading this in Info in GNU Emacs, you can evaluate each of
 the expressions in the usual way; the value is printed in this text
-after @samp{@result{}}, which you may read as `evaluates to'.
+after @samp{@result{}}, which you may read as ``evaluates to''.
 
 @smallexample
 @group
@@ -7114,7 +7122,7 @@ In an earlier version:
     This is written with a special notation, @samp{#<subr},
     that indicates that the function @code{length} is one of the primitive
     functions written in C rather than in Emacs Lisp.  (@samp{subr} is an
-    abbreviation for `subroutine'.)  @xref{What Is a Function, , What Is a
+    abbreviation for ``subroutine''.)  @xref{What Is a Function, , What Is a
     Function?, elisp , The GNU Emacs Lisp Reference Manual}, for more
     about subroutines.
 @end ignore
@@ -7273,9 +7281,9 @@ This can be very convenient.
 
 Note that the elements are numbered from zero, not one.  That is to
 say, the first element of a list, its @sc{car} is the zeroth element.
-This is called `zero-based' counting and often bothers people who
+This is called ``zero-based'' counting and often bothers people who
 are accustomed to the first element in a list being number one, which
-is `one-based'.
+is ``one-based''.
 
 @need 1250
 For example:
@@ -7446,17 +7454,17 @@ fish.  Replace the rest of that list with a list of other fish.
 @cindex Erasing text
 @cindex Deleting text
 
-Whenever you cut or clip text out of a buffer with a `kill' command in
+Whenever you cut or clip text out of a buffer with a ``kill'' command in
 GNU Emacs, it is stored in a list and you can bring it back with a
-`yank' command.
+``yank'' command.
 
-(The use of the word `kill' in Emacs for processes which specifically
+(The use of the word ``kill'' in Emacs for processes which specifically
 @emph{do not} destroy the values of the entities is an unfortunate
-historical accident.  A much more appropriate word would be `clip' since
+historical accident.  A much more appropriate word would be ``clip'' since
 that is what the kill commands do; they clip text out of a buffer and
 put it into storage from which it can be brought back.  I have often
-been tempted to replace globally all occurrences of `kill' in the Emacs
-sources with `clip' and all occurrences of `killed' with `clipped'.)
+been tempted to replace globally all occurrences of ``kill'' in the Emacs
+sources with ``clip'' and all occurrences of ``killed'' with ``clipped''.)
 
 @menu
 * Storing Text::                Text is stored in a list.
@@ -7485,7 +7493,7 @@ look like this:
 @need 1200
 @noindent
 The function @code{cons} can be used to create a new list from a piece
-of text (an `atom', to use the jargon) and an existing list, like
+of text (an ``atom'', to use the jargon) and an existing list, like
 this:
 
 @smallexample
@@ -7529,7 +7537,7 @@ than nothing at all.
 The list that holds the pieces of text is called the @dfn{kill ring}.
 This chapter leads up to a description of the kill ring and how it is
 used by first tracing how the @code{zap-to-char} function works.  This
-function uses (or `calls') a function that invokes a function that
+function uses (or ``calls'') a function that invokes a function that
 manipulates the kill ring.  Thus, before reaching the mountains, we
 climb the foothills.
 
@@ -7610,7 +7618,20 @@ Goes backward if ARG is negative; error if CHAR not found."
 @end smallexample
 
 The documentation is thorough.  You do need to know the jargon meaning
-of the word `kill'.
+of the word ``kill''.
+
+@cindex curved quotes
+@cindex curly quotes
+The version 22 documentation string for @code{zap-to-char} uses ASCII
+grave accent and apostrophe to quote a symbol, so it appears as
+@t{`case-fold-search'}.  This quoting style was inspired by 1970s-era
+displays in which grave accent and apostrophe were often mirror images
+suitable for use as quotes.  On most modern displays this is no longer
+true, and when these two ASCII characters appear in documentation
+strings or diagnostic message formats, Emacs typically transliterates
+them to curved single quotes, so that the abovequoted symbol appears
+as @t{‘case-fold-search’}.  Source-code strings can also simply use
+curved quotes directly.
 
 @node zap-to-char interactive
 @subsection The @code{interactive} Expression
@@ -7627,7 +7648,7 @@ The part within quotation marks, @code{"p\ncZap to char:@: "}, specifies
 two different things.  First, and most simply, is the @samp{p}.
 This part is separated from the next part by a newline, @samp{\n}.
 The @samp{p} means that the first argument to the function will be
-passed the value of a `processed prefix'.  The prefix argument is
+passed the value of a ``processed prefix''.  The prefix argument is
 passed by typing @kbd{C-u} and a number, or @kbd{M-} and a number.  If
 the function is called interactively without a prefix, 1 is passed to
 this argument.
@@ -7698,7 +7719,7 @@ function @code{char-to-string} to ensure that the computer treats that
 character as a string.)  If the search is backwards,
 @code{search-forward} leaves point just before the first character in
 the target.  Also, @code{search-forward} returns @code{t} for true.
-(Moving point is therefore a `side effect'.)
+(Moving point is therefore a ``side effect''.)
 
 @need 1250
 In @code{zap-to-char}, the @code{search-forward} function looks like this:
@@ -7928,13 +7949,13 @@ The command \\[yank] can retrieve it from there. @dots{} "
   ;; @bullet{} Since order matters, pass point first.
   (interactive (list (point) (mark)))
   ;; @bullet{} And tell us if we cannot cut the text.
-  ;; `unless' is an `if' without a then-part.
+  ;; 'unless' is an 'if' without a then-part.
   (unless (and beg end)
     (error "The mark is not set now, so there is no region"))
 @end group
 
 @group
-  ;; @bullet{} `condition-case' takes three arguments.
+  ;; @bullet{} 'condition-case' takes three arguments.
   ;;    If the first argument is nil, as it is here,
   ;;    information about the error signal is not
   ;;    stored for use by another function.
@@ -7942,33 +7963,33 @@ The command \\[yank] can retrieve it from there. @dots{} "
 @end group
 
 @group
-      ;; @bullet{} The second argument to `condition-case' tells the
+      ;; @bullet{} The second argument to 'condition-case' tells the
       ;;    Lisp interpreter what to do when all goes well.
 @end group
 
 @group
-      ;;    It starts with a `let' function that extracts the string
+      ;;    It starts with a 'let' function that extracts the string
       ;;    and tests whether it exists.  If so (that is what the
-      ;;    `when' checks), it calls an `if' function that determines
+      ;;    'when' checks), it calls an 'if' function that determines
       ;;    whether the previous command was another call to
-      ;;    `kill-region'; if it was, then the new text is appended to
+      ;;    'kill-region'; if it was, then the new text is appended to
       ;;    the previous text; if not, then a different function,
-      ;;    `kill-new', is called.
+      ;;    'kill-new', is called.
 @end group
 
 @group
-      ;;    The `kill-append' function concatenates the new string and
-      ;;    the old.  The `kill-new' function inserts text into a new
+      ;;    The 'kill-append' function concatenates the new string and
+      ;;    the old.  The 'kill-new' function inserts text into a new
       ;;    item in the kill ring.
 @end group
 
 @group
-      ;;    `when' is an `if' without an else-part.  The second `when'
+      ;;    'when' is an 'if' without an else-part.  The second 'when'
       ;;    again checks whether the current string exists; in
       ;;    addition, it checks whether the previous command was
-      ;;    another call to `kill-region'.  If one or the other
+      ;;    another call to 'kill-region'.  If one or the other
       ;;    condition is true, then it sets the current command to
-      ;;    be `kill-region'.
+      ;;    be 'kill-region'.
 @end group
 @group
       (let ((string (filter-buffer-substring beg end t)))
@@ -7977,10 +7998,10 @@ The command \\[yank] can retrieve it from there. @dots{} "
           (if (eq last-command 'kill-region)
 @end group
 @group
-              ;;    @minus{} `yank-handler' is an optional argument to
-              ;;    `kill-region' that tells the `kill-append' and
-              ;;    `kill-new' functions how deal with properties
-              ;;    added to the text, such as `bold' or `italics'.
+              ;;    @minus{} 'yank-handler' is an optional argument to
+              ;;    'kill-region' that tells the 'kill-append' and
+              ;;    'kill-new' functions how deal with properties
+              ;;    added to the text, such as 'bold' or 'italics'.
               (kill-append string (< end beg) yank-handler)
             (kill-new string nil yank-handler)))
         (when (or string (eq last-command 'kill-region))
@@ -7989,7 +8010,7 @@ The command \\[yank] can retrieve it from there. @dots{} "
 @end group
 
 @group
-    ;;  @bullet{} The third argument to `condition-case' tells the interpreter
+    ;;  @bullet{} The third argument to 'condition-case' tells the interpreter
     ;;    what to do with an error.
 @end group
 @group
@@ -8032,7 +8053,7 @@ The text is deleted but saved in the kill ring."
 @end group
 
 @group
-  ;; 1. `condition-case' takes three arguments.
+  ;; 1. 'condition-case' takes three arguments.
   ;;    If the first argument is nil, as it is here,
   ;;    information about the error signal is not
   ;;    stored for use by another function.
@@ -8040,25 +8061,25 @@ The text is deleted but saved in the kill ring."
 @end group
 
 @group
-      ;; 2. The second argument to `condition-case'
+      ;; 2. The second argument to 'condition-case'
       ;;    tells the Lisp interpreter what to do when all goes well.
 @end group
 
 @group
-      ;;    The `delete-and-extract-region' function usually does the
+      ;;    The 'delete-and-extract-region' function usually does the
       ;;    work.  If the beginning and ending of the region are both
-      ;;    the same, then the variable `string' will be empty, or nil
+      ;;    the same, then the variable 'string' will be empty, or nil
       (let ((string (delete-and-extract-region beg end)))
 @end group
 
 @group
-        ;; `when' is an `if' clause that cannot take an `else-part'.
-        ;; Emacs normally sets the value of `last-command' to the
+        ;; 'when' is an 'if' clause that cannot take an 'else-part'.
+        ;; Emacs normally sets the value of 'last-command' to the
         ;; previous command.
 @end group
 @group
-        ;; `kill-append' concatenates the new string and the old.
-        ;; `kill-new' inserts text into a new item in the kill ring.
+        ;; 'kill-append' concatenates the new string and the old.
+        ;; 'kill-new' inserts text into a new item in the kill ring.
         (when string
           (if (eq last-command 'kill-region)
               ;; if true, prepend string
@@ -8068,7 +8089,7 @@ The text is deleted but saved in the kill ring."
 @end group
 
 @group
-    ;; 3. The third argument to `condition-case' tells the interpreter
+    ;; 3. The third argument to 'condition-case' tells the interpreter
     ;;    what to do with an error.
 @end group
 @group
@@ -8136,7 +8157,7 @@ However, if an error occurs, among its other actions, the function
 generating the error signal will define one or more error condition
 names.
 
-An error handler is the third argument to @code{condition case}.
+An error handler is the third argument to @code{condition-case}.
 An error handler has two parts, a @var{condition-name} and a
 @var{body}.  If the @var{condition-name} part of an error handler
 matches a condition name generated by an error, then the @var{body}
@@ -8198,7 +8219,7 @@ Technically speaking, @code{when} is a Lisp macro.  A Lisp macro
 enables you to define new control constructs and other language
 features.  It tells the interpreter how to compute another Lisp
 expression which will in turn compute the value.  In this case, the
-`other expression' is an @code{if} expression.
+``other expression'' is an @code{if} expression.
 
 The @code{kill-region} function definition also has an @code{unless}
 macro; it is the converse of @code{when}.  The @code{unless} macro is
@@ -8232,7 +8253,7 @@ The then-part is evaluated if the previous command was another call to
 
 @code{yank-handler} is an optional argument to @code{kill-region} that
 tells the @code{kill-append} and @code{kill-new} functions how deal
-with properties added to the text, such as `bold' or `italics'.
+with properties added to the text, such as ``bold'' or ``italics''.
 
 @code{last-command} is a variable that comes with Emacs that we have
 not seen before.  Normally, whenever a function is executed, Emacs
@@ -8320,7 +8341,7 @@ document from the beginning, understanding these parts of a function is
 almost becoming routine.
 
 The documentation is somewhat confusing unless you remember that the
-word `kill' has a meaning different from usual.  The `Transient Mark'
+word ``kill'' has a meaning different from usual.  The ``Transient Mark''
 and @code{interprogram-cut-function} comments explain certain
 side-effects.
 
@@ -8472,8 +8493,8 @@ a moment.
 
 (Also, the function provides an optional argument called
 @code{yank-handler}; when invoked, this argument tells the function
-how to deal with properties added to the text, such as `bold' or
-`italics'.)
+how to deal with properties added to the text, such as ``bold'' or
+``italics''.)
 
 @c !!! bug in GNU Emacs 22 version of  kill-append ?
 It has a @code{let*} function to set the value of the first element of
@@ -8565,20 +8586,8 @@ function which in turn uses the @code{setcar} function.
 @unnumberedsubsubsec The @code{kill-new} function
 @findex kill-new
 
-@c in GNU Emacs 22, additional documentation to kill-new:
-@ignore
-Optional third arguments YANK-HANDLER controls how the STRING is later
-inserted into a buffer; see `insert-for-yank' for details.
-When a yank handler is specified, STRING must be non-empty (the yank
-handler, if non-nil, is stored as a `yank-handler' text property on STRING).
-
-When the yank handler has a non-nil PARAM element, the original STRING
-argument is not used by `insert-for-yank'.  However, since Lisp code
-may access and use elements from the kill ring directly, the STRING
-argument should still be a \"useful\" string for such uses."
-@end ignore
 @need 1200
-The @code{kill-new} function looks like this:
+In version 22 the @code{kill-new} function looks like this:
 
 @smallexample
 @group
@@ -8643,7 +8652,7 @@ As usual, we can look at this function in parts.
 
 The function definition has an optional @code{yank-handler} argument,
 which when invoked tells the function how to deal with properties
-added to the text, such as `bold' or `italics'.  We will skip that.
+added to the text, such as ``bold'' or ``italics''.  We will skip that.
 
 @need 1200
 The first line of the documentation makes sense:
@@ -8887,7 +8896,7 @@ It starts with an @code{if} expression
 In this case, the expression tests first to see whether
 @code{menu-bar-update-yank-menu} exists as a function, and if so,
 calls it.  The @code{fboundp} function returns true if the symbol it
-is testing has a function definition that `is not void'.  If the
+is testing has a function definition that ``is not void''.  If the
 symbol's function definition were void, we would receive an error
 message, as we did when we created errors intentionally (@pxref{Making
 Errors, , Generate an Error Message}).
@@ -8914,7 +8923,7 @@ The expression determines whether the second argument to
 @end ignore
 
 @code{menu-bar-update-yank-menu} is one of the functions that make it
-possible to use the `Select and Paste' menu in the Edit item of a menu
+possible to use the ``Select and Paste'' menu in the Edit item of a menu
 bar; using a mouse, you can look at the various pieces of text you
 have saved and select one piece to paste.
 
@@ -8950,7 +8959,7 @@ an existing element or as a new element, leads us to the code for
 bringing back text that has been cut out of the buffer---the yank
 commands.  However, before discussing the yank commands, it is better
 to learn how lists are implemented in a computer.  This will make
-clear such mysteries as the use of the term `pointer'.  But before
+clear such mysteries as the use of the term ``pointer''.  But before
 that, we will digress into C.
 
 @ignore
@@ -8961,7 +8970,7 @@ expression is true, @code{kill-append} prepends the string to the just
 previously clipped text.  For a detailed discussion, see
 @ref{kill-append function, , The @code{kill-append} function}.)
 
-If you then yank back the text, i.e., `paste' it, you get both
+If you then yank back the text, i.e., ``paste'' it, you get both
 pieces of text at once.  That way, if you delete two words in a row,
 and then yank them back, you get both words, in their proper order,
 with one yank.  (The @w{@code{(< end beg))}} expression makes sure the
@@ -9067,7 +9076,7 @@ The sixth part is nearly like the argument that follows the
 @code{interactive} declaration in a function written in Lisp: a letter
 followed, perhaps, by a prompt.  The only difference from the Lisp is
 when the macro is called with no arguments.  Then you write a @code{0}
-(which is a `null string'), as in this macro.
+(which is a ``null string''), as in this macro.
 
 If you were to specify arguments, you would place them between
 quotation marks.  The C macro for @code{goto-char} includes
@@ -9084,8 +9093,8 @@ these comments and uses them to make the ``real'' documentation.)
 
 @need 1200
 In a C macro, the formal parameters come next, with a statement of
-what kind of object they are, followed by what might be called the `body'
-of the macro.  For @code{delete-and-extract-region} the `body'
+what kind of object they are, followed by what might be called the ``body''
+of the macro.  For @code{delete-and-extract-region} the ``body''
 consists of the following four lines:
 
 @smallexample
@@ -9111,13 +9120,13 @@ passed to @code{del_range}.  These are @w{@code{XINT (start)}} and
 As far as the C language is concerned, @code{start} and @code{end} are
 two integers that mark the beginning and end of the region to be
 deleted@footnote{More precisely, and requiring more expert knowledge
-to understand, the two integers are of type `Lisp_Object', which can
+to understand, the two integers are of type @code{Lisp_Object}, which can
 also be a C union instead of an integer type.}.
 
 In early versions of Emacs, these two numbers were thirty-two bits
 long, but the code is slowly being generalized to handle other
 lengths.  Three of the available bits are used to specify the type of
-information; the remaining bits are used as `content'.
+information; the remaining bits are used as ``content''.
 
 @samp{XINT} is a C macro that extracts the relevant number from the
 longer collection of bits; the three other bits are discarded.
@@ -9326,7 +9335,7 @@ For example:
 its remaining arguments to its first argument.
 
 @item nthcdr
-Return the result of taking @sc{cdr} `n' times on a list.
+Return the result of taking @sc{cdr} @var{n} times on a list.
 @iftex
 The
 @tex
@@ -9334,7 +9343,7 @@ $n^{th}$
 @end tex
 @code{cdr}.
 @end iftex
-The `rest of the rest', as it were.
+The ``rest of the rest'', as it were.
 
 @need 1250
 For example:
@@ -9643,7 +9652,7 @@ address-boxes for the list.)
 
 If a symbol is set to the @sc{cdr} of a list, the list itself is not
 changed; the symbol simply has an address further down the list.  (In
-the jargon, @sc{car} and @sc{cdr} are `non-destructive'.)  Thus,
+the jargon, @sc{car} and @sc{cdr} are ``non-destructive''.)  Thus,
 evaluation of the following expression
 
 @smallexample
@@ -9813,7 +9822,7 @@ and in one of its drawers you found a map giving you directions to
 where the buried treasure lies.
 
 (In addition to its name, symbol definition, and variable value, a
-symbol has a `drawer' for a @dfn{property list} which can be used to
+symbol has a ``drawer'' for a @dfn{property list} which can be used to
 record other information.  Property lists are not discussed here; see
 @ref{Property Lists, , Property Lists, elisp, The GNU Emacs Lisp
 Reference Manual}.)
@@ -9907,8 +9916,8 @@ What does the @code{more-flowers} list now contain?
 @cindex Retrieving text
 @cindex Pasting text
 
-Whenever you cut text out of a buffer with a `kill' command in GNU Emacs,
-you can bring it back with a `yank' command.  The text that is cut out of
+Whenever you cut text out of a buffer with a ``kill'' command in GNU Emacs,
+you can bring it back with a ``yank'' command.  The text that is cut out of
 the buffer is put in the kill ring and the yank commands insert the
 appropriate contents of the kill ring back into a buffer (not necessarily
 the original buffer).
@@ -9920,7 +9929,7 @@ the second element.  Successive @kbd{M-y} commands replace the second
 element with the third, fourth, or fifth element, and so on.  When the
 last element in the kill ring is reached, it is replaced by the first
 element and the cycle is repeated.  (Thus the kill ring is called a
-`ring' rather than just a `list'.  However, the actual data structure
+``ring'' rather than just a ``list''.  However, the actual data structure
 that holds the text is a list.
 @xref{Kill Ring, , Handling the Kill Ring}, for the details of how the
 list is handled as a ring.)
@@ -10064,7 +10073,7 @@ These two ways of talking about the same thing sound confusing at first but
 make sense on reflection.  The kill ring is generally thought of as the
 complete structure of data that holds the information of what has recently
 been cut out of the Emacs buffers.  The @code{kill-ring-yank-pointer}
-on the other hand, serves to indicate---that is, to `point to'---that part
+on the other hand, serves to indicate---that is, to ``point to''---that part
 of the kill ring of which the first element (the @sc{car}) will be
 inserted.
 
@@ -10148,7 +10157,7 @@ their kin; but you can use recursion, which provides a very powerful
 way to think about and then to solve problems@footnote{You can write
 recursive functions to be frugal or wasteful of mental or computer
 resources; as it happens, methods that people find easy---that are
-frugal of `mental resources'---sometimes use considerable computer
+frugal of ``mental resources''---sometimes use considerable computer
 resources.  Emacs was designed to run on machines that we now consider
 limited and its default settings are conservative.  You may want to
 increase the values of @code{max-specpdl-size} and
@@ -10211,7 +10220,7 @@ evaluated.  This process is called a loop since the Lisp interpreter
 repeats the same thing again and again, like an airplane doing a loop.
 When the result of evaluating the true-or-false-test is false, the
 Lisp interpreter does not evaluate the rest of the @code{while}
-expression and `exits the loop'.
+expression and ``exits the loop''.
 
 Clearly, if the value returned by evaluating the first argument to
 @code{while} is always true, the body following will be evaluated
@@ -10372,7 +10381,7 @@ expression, @code{(print-elements-of-list animals)}, by typing
 to be printed in the @file{*scratch*} buffer instead of being printed
 in the echo area.  (Otherwise you will see something like this in your
 echo area: @code{^Jgazelle^J^Jgiraffe^J^Jlion^J^Jtiger^Jnil}, in which
-each @samp{^J} stands for a `newline'.)
+each @samp{^J} stands for a ``newline''.)
 
 @need 1500
 In a recent instance of GNU Emacs, you can evaluate these expressions
@@ -10941,8 +10950,8 @@ provide for looping.  Sometimes these are quicker to write than the
 equivalent @code{while} loop.  Both are Lisp macros.  (@xref{Macros, ,
 Macros, elisp, The GNU Emacs Lisp Reference Manual}. )
 
-@code{dolist} works like a @code{while} loop that `@sc{cdr}s down a
-list':  @code{dolist} automatically shortens the list each time it
+@code{dolist} works like a @code{while} loop that ``@sc{cdr}s down a
+list'':  @code{dolist} automatically shortens the list each time it
 loops---takes the @sc{cdr} of the list---and binds the @sc{car} of
 each shorter version of the list to the first of its arguments.
 
@@ -11043,7 +11052,7 @@ of the work you have to do when writing a @code{while} expression.
 
 Like a @code{while} loop, a @code{dolist} loops.  What is different is
 that it automatically shortens the list each time it loops---it
-`@sc{cdr}s down the list' on its own---and it automatically binds
+``@sc{cdr}s down the list'' on its own---and it automatically binds
 the @sc{car} of each shorter version of the list to the first of its
 arguments.
 
@@ -11098,7 +11107,7 @@ up the number of pebbles in a triangle.
 @smallexample
 @group
 (defun triangle-using-dotimes (number-of-rows)
-  "Using dotimes, add up the number of pebbles in a triangle."
+  "Using `dotimes', add up the number of pebbles in a triangle."
 (let ((total 0))  ; otherwise a total is a void variable
   (dotimes (number number-of-rows total)
     (setq total (+ total (1+ number))))))
@@ -11116,10 +11125,10 @@ call a program that runs exactly like itself, but with slightly
 different arguments.  The code runs exactly the same because it has
 the same name.  However, even though the program has the same name, it
 is not the same entity.  It is different.  In the jargon, it is a
-different `instance'.
+different ``instance''.
 
-Eventually, if the program is written correctly, the `slightly
-different arguments' will become sufficiently different from the first
+Eventually, if the program is written correctly, the ``slightly
+different arguments'' will become sufficiently different from the first
 arguments that the final instance will stop.
 
 @menu
@@ -11159,10 +11168,10 @@ install a function definition, that is, when you evaluate a
 @code{defun} macro, you install the necessary equipment to build
 robots.  It is as if you were in a factory, setting up an assembly
 line.  Robots with the same name are built according to the same
-blueprints.  So they have, as it were, the same `model number', but a
-different `serial number'.
+blueprints.  So they have, as it were, the same ``model number'', but a
+different ``serial number''.
 
-We often say that a recursive function `calls itself'.  What we mean
+We often say that a recursive function ``calls itself''.  What we mean
 is that the instructions in a recursive function cause the Lisp
 interpreter to run a different function that has the same name and
 does the same job as the first, but with different arguments.
@@ -11273,7 +11282,7 @@ Uses recursion."
 The @code{print-elements-recursively} function first tests whether
 there is any content in the list; if there is, the function prints the
 first element of the list, the @sc{car} of the list.  Then the
-function `invokes itself', but gives itself as its argument, not the
+function ``invokes itself'', but gives itself as its argument, not the
 whole list, but the second and subsequent elements of the list, the
 @sc{cdr} of the list.
 
@@ -11289,16 +11298,16 @@ a different individual from the first, but is the same model.
 When the second evaluation occurs, the @code{when} expression is
 evaluated and if true, prints the first element of the list it
 receives as its argument (which is the second element of the original
-list).  Then the function `calls itself' with the @sc{cdr} of the list
+list).  Then the function ``calls itself'' with the @sc{cdr} of the list
 it is invoked with, which (the second time around) is the @sc{cdr} of
 the @sc{cdr} of the original list.
 
-Note that although we say that the function `calls itself', what we
+Note that although we say that the function ``calls itself'', what we
 mean is that the Lisp interpreter assembles and instructs a new
 instance of the program.  The new instance is a clone of the first,
 but is a separate individual.
 
-Each time the function `invokes itself', it invokes itself on a
+Each time the function ``invokes itself'', it invokes itself on a
 shorter version of the original list.  It creates a new instance that
 works on a shorter list.
 
@@ -11716,7 +11725,7 @@ the @code{accumulate} recursive pattern, an action is performed on
 every element of a list and the result of that action is accumulated
 with the results of performing the action on the other elements.
 
-This is very like the `every' pattern using @code{cons}, except that
+This is very like the ``every'' pattern using @code{cons}, except that
 @code{cons} is not used, but some other combiner.
 
 @need 1500
@@ -11767,7 +11776,7 @@ In the @code{keep} recursive pattern, each element of a list is tested;
 the element is acted on and the results are kept only if the element
 meets a criterion.
 
-Again, this is very like the `every' pattern, except the element is
+Again, this is very like the ``every'' pattern, except the element is
 skipped unless it meets a criterion.
 
 @need 1500
@@ -11868,7 +11877,7 @@ think of it as a little robot---cannot complete its job.  It must hand
 off the calculation for @code{(triangle-recursively 6)} to a second
 instance of the program, to a second robot.  This second individual is
 completely different from the first one; it is, in the jargon, a
-`different instantiation'.  Or, put another way, it is a different
+``different instantiation''.  Or, put another way, it is a different
 robot.  It is the same model as the first; it calculates triangle
 numbers recursively; but it has a different serial number.
 
@@ -11917,12 +11926,12 @@ more steps.
 The solution to the problem of deferred operations is to write in a
 manner that does not defer operations@footnote{The phrase @dfn{tail
 recursive} is used to describe such a process, one that uses
-`constant space'.}.  This requires
+``constant space''.}.  This requires
 writing to a different pattern, often one that involves writing two
-function definitions, an `initialization' function and a `helper'
+function definitions, an ``initialization'' function and a ``helper''
 function.
 
-The `initialization' function sets up the job; the `helper' function
+The ``initialization'' function sets up the job; the ``helper'' function
 does the work.
 
 @need 1200
@@ -11943,7 +11952,7 @@ duo that uses recursion."
 @group
 (defun triangle-recursive-helper (sum counter number)
   "Return SUM, using COUNTER, through NUMBER inclusive.
-This is the `helper' component of a two function duo
+This is the “helper” component of a two function duo
 that uses recursion."
   (if (> counter number)
       sum
@@ -11964,21 +11973,21 @@ Install both function definitions by evaluating them, then call
 @end group
 @end smallexample
 
-The `initialization' function calls the first instance of the `helper'
+The ``initialization'' function calls the first instance of the ``helper''
 function with three arguments: zero, zero, and a number which is the
 number of rows in the triangle.
 
-The first two arguments passed to the `helper' function are
+The first two arguments passed to the ``helper'' function are
 initialization values.  These values are changed when
 @code{triangle-recursive-helper} invokes new instances.@footnote{The
 jargon is mildly confusing:  @code{triangle-recursive-helper} uses a
 process that is iterative in a procedure that is recursive.  The
 process is called iterative because the computer need only record the
 three values, @code{sum}, @code{counter}, and @code{number}; the
-procedure is recursive because the function `calls itself'.  On the
+procedure is recursive because the function ``calls itself''.  On the
 other hand, both the process and the procedure used by
 @code{triangle-recursively} are called recursive.  The word
-`recursive' has different meanings in the two contexts.}
+``recursive'' has different meanings in the two contexts.}
 
 Let's see what happens when we have a triangle that has one row.  (This
 triangle will have one pebble in it!)
@@ -12114,7 +12123,7 @@ Internet, see
 @uref{http://www.gnu.org/software/texinfo/manual/texinfo/}
 @end ifhtml
 @iftex
-``Indicating Definitions, Commands, etc.'' in @cite{Texinfo, The GNU
+``Indicating Definitions, Commands, etc.''@: in @cite{Texinfo, The GNU
 Documentation Format}.
 @end iftex
 @end itemize
@@ -12131,8 +12140,8 @@ Documentation Format}.
 Regular expression searches are used extensively in GNU Emacs.  The
 two functions, @code{forward-sentence} and @code{forward-paragraph},
 illustrate these searches well.  They use regular expressions to find
-where to move point.  The phrase `regular expression' is often written
-as `regexp'.
+where to move point.  The phrase ``regular expression'' is often written
+as ``regexp''.
 
 Regular expression searches are described in @ref{Regexp Search, ,
 Regular Expression Search, emacs, The GNU Emacs Manual}, as well as in
@@ -12329,7 +12338,7 @@ search is successful, it leaves point immediately after the last
 character in the target.  If the search is backwards, it leaves point
 just before the first character in the target.  You may tell
 @code{re-search-forward} to return @code{t} for true.  (Moving point
-is therefore a `side effect'.)
+is therefore a ``side effect''.)
 
 Like @code{search-forward}, the @code{re-search-forward} function takes
 four arguments:
@@ -12419,8 +12428,8 @@ Here is the code for @code{forward-sentence}:
 @smallexample
 @group
 (defun forward-sentence (&optional arg)
-  "Move forward to next `sentence-end'.  With argument, repeat.
-With negative argument, move backward repeatedly to `sentence-beginning'.
+  "Move forward to next end of sentence.  With argument, repeat.
+With negative argument, move backward repeatedly to start of sentence.
 
 The variable `sentence-end' is a regular expression that matches ends of
 sentences.  Also, every paragraph boundary terminates sentences as well."
@@ -12631,7 +12640,7 @@ evaluates its then-part; otherwise, the Emacs Lisp interpreter
 evaluates the else-part.  The true-or-false-test of the @code{if}
 expression is the regular expression search.
 
-It may seem odd to have what looks like the `real work' of
+It may seem odd to have what looks like the ``real work'' of
 the @code{forward-sentence} function buried here, but this is a common
 way this kind of operation is carried out in Lisp.
 
@@ -12913,6 +12922,7 @@ The next line of the @code{forward-paragraph} function begins a
 @code{let*} expression.  This is a different than @code{let}.  The
 symbol is @code{let*} not @code{let}.
 
+@findex let*
 The @code{let*} special form is like @code{let} except that Emacs sets
 each variable in sequence, one after another, and variables in the
 latter part of the varlist can make use of the values to which Emacs
@@ -13362,7 +13372,7 @@ of which I load 12---you can create a @file{TAGS} file for the Emacs
 Lisp files in that directory.
 
 @need 1250
-The @code{etags} program takes all the usual shell `wildcards'.  For
+The @code{etags} program takes all the usual shell ``wildcards''.  For
 example, if you have two directories for which you want a single
 @file{TAGS} file, type @w{@code{etags *.el ../elisp/*.el}}, where
 @file{../elisp/} is the second directory:
@@ -13401,7 +13411,7 @@ program to attempt to find it.
 Type @w{@kbd{M-x locate @key{RET} TAGS @key{RET}}} and Emacs will list
 for you the full path names of all your @file{TAGS} files.  On my
 system, this command lists 34 @file{TAGS} files.  On the other hand, a
-`plain vanilla' system I recently installed did not contain any
+``plain vanilla'' system I recently installed did not contain any
 @file{TAGS} files.
 
 If the tags table you want has been created, you can use the @code{M-x
@@ -13417,7 +13427,7 @@ visit-tags-table}.
 The GNU Emacs sources come with a @file{Makefile} that contains a
 sophisticated @code{etags} command that creates, collects, and merges
 tags tables from all over the Emacs sources and puts the information
-into one @file{TAGS} file in the @file{src/} directory. (The
+into one @file{TAGS} file in the @file{src/} directory.  (The
 @file{src/} directory is below the top level of your Emacs directory.)
 
 @need 1250
@@ -13504,9 +13514,9 @@ For example:
 @smallexample
 @group
 (let* ((foo 7)
-      (bar (* 3 foo)))
+       (bar (* 3 foo)))
   (message "`bar' is %d." bar))
-     @result{} `bar' is 21.
+     @result{} ‘bar’ is 21.
 @end group
 @end smallexample
 
@@ -13535,7 +13545,7 @@ Write a function to search for a regular expression that matches two
 or more blank lines in sequence.
 
 @item
-Write a function to search for duplicated words, such as `the the'.
+Write a function to search for duplicated words, such as ``the the''.
 @xref{Regexps, , Syntax of Regular Expressions, emacs, The GNU Emacs
 Manual}, for information on how to write a regexp (a regular
 expression) to match a string that is composed of two identical
@@ -13670,7 +13680,7 @@ forward, and false when point is at the end of the region.
 
 We could use @code{(forward-word 1)} as the expression for moving point
 forward word by word, but it is easier to see what Emacs identifies as a
-`word' if we use a regular expression search.
+``word'' if we use a regular expression search.
 
 A regular expression search that finds the pattern for which it is
 searching leaves point after the last character matched.  This means
@@ -13714,7 +13724,7 @@ single backslash has special meaning to the Emacs Lisp interpreter.
 It indicates that the following character is interpreted differently
 than usual.  For example, the two characters, @samp{\n}, stand for
 @samp{newline}, rather than for a backslash followed by @samp{n}.  Two
-backslashes in a row stand for an ordinary, `unspecial' backslash, so
+backslashes in a row stand for an ordinary, ``unspecial'' backslash, so
 Emacs Lisp interpreter ends of seeing a single backslash followed by a
 letter.  So it discovers the letter is special.)
 
@@ -13937,7 +13947,7 @@ What happens is this: the search is limited to the region, and fails
 as you expect because there are no word-constituent characters in the
 region.  Since it fails, we receive an error message.  But we do not
 want to receive an error message in this case; we want to receive the
-message that "The region does NOT have any words."
+message ``The region does NOT have any words.''
 
 The solution to this problem is to provide @code{re-search-forward}
 with a third argument of @code{t}, which causes the function to return
@@ -14106,8 +14116,8 @@ the region, as returned by the recursive call; and then the
 user.
 
 Often, one thinks of the binding within a @code{let} expression as
-somehow secondary to the `primary' work of a function.  But in this
-case, what you might consider the `primary' job of the function,
+somehow secondary to the ``primary'' work of a function.  But in this
+case, what you might consider the ``primary'' job of the function,
 counting words, is done within the @code{let} expression.
 
 @need 1250
@@ -14148,8 +14158,8 @@ Using @code{let}, the function definition looks like this:
 
 Next, we need to write the recursive counting function.
 
-A recursive function has at least three parts: the `do-again-test', the
-`next-step-expression', and the recursive call.
+A recursive function has at least three parts: the ``do-again-test'', the
+``next-step-expression'', and the recursive call.
 
 The do-again-test determines whether the function will or will not be
 called again.  Since we are counting words in a region and can use a
@@ -14173,7 +14183,7 @@ the expression that moves point forward, word by word.
 
 The third part of a recursive function is the recursive call.
 
-Somewhere, also, we also need a part that does the `work' of the
+Somewhere, also, we also need a part that does the ``work'' of the
 function, a part that does the counting.  A vital part!
 
 @need 1250
@@ -14499,9 +14509,9 @@ be difficult.
 
 When we first start thinking about how to count the words in a
 function definition, the first question is (or ought to be) what are
-we going to count?  When we speak of `words' with respect to a Lisp
+we going to count?  When we speak of ``words'' with respect to a Lisp
 function definition, we are actually speaking, in large part, of
-`symbols'.  For example, the following @code{multiply-by-seven}
+``symbols''.  For example, the following @code{multiply-by-seven}
 function contains the five symbols @code{defun},
 @code{multiply-by-seven}, @code{number}, @code{*}, and @code{7}.  In
 addition, in the documentation string, it contains the four words
@@ -14543,8 +14553,8 @@ regexp is:
 @noindent
 This regular expression is a pattern defining one or more word
 constituent characters possibly followed by one or more characters
-that are not word constituents.  What is meant by `word constituent
-characters' brings us to the issue of syntax, which is worth a section
+that are not word constituents.  What is meant by ``word constituent
+characters'' brings us to the issue of syntax, which is worth a section
 of its own.
 
 @node Syntax
@@ -14562,9 +14572,9 @@ character.  (For more information, @pxref{Syntax Tables, , Syntax
 Tables, elisp, The GNU Emacs Lisp Reference Manual}.)
 
 Syntax tables specify which characters belong to which categories.
-Usually, a hyphen is not specified as a `word constituent character'.
-Instead, it is specified as being in the `class of characters that are
-part of symbol names but not words.'  This means that the
+Usually, a hyphen is not specified as a ``word constituent character''.
+Instead, it is specified as being in the ``class of characters that are
+part of symbol names but not words.''  This means that the
 @code{@value{COUNT-WORDS}} function treats it in the same way it treats
 an interword white space, which is why @code{@value{COUNT-WORDS}}
 counts @samp{multiply-by-seven} as three words.
@@ -14967,7 +14977,7 @@ The task is easy: use @code{find-file-noselect} and @code{set-buffer}.
 @section @code{lengths-list-file} in Detail
 
 The core of the @code{lengths-list-file} function is a @code{while}
-loop containing a function to move point forward `defun by defun' and
+loop containing a function to move point forward ``defun by defun'' and
 a function to count the number of words and symbols in each defun.
 This core must be surrounded by functions that do various other tasks,
 including finding the file, and ensuring that point starts out at the
@@ -15033,14 +15043,14 @@ Next comes a call to widen the buffer if it is narrowed.  This
 function is usually not needed---Emacs creates a fresh buffer if none
 already exists; but if a buffer visiting the file already exists Emacs
 returns that one.  In this case, the buffer may be narrowed and must
-be widened.  If we wanted to be fully `user-friendly', we would
+be widened.  If we wanted to be fully ``user-friendly'', we would
 arrange to save the restriction and the location of point, but we
 won't.
 
 The @code{(goto-char (point-min))} expression moves point to the
 beginning of the buffer.
 
-Then comes a @code{while} loop in which the `work' of the function is
+Then comes a @code{while} loop in which the ``work'' of the function is
 carried out.  In the loop, Emacs determines the length of each
 definition and constructs a lengths' list containing the information.
 
@@ -15261,11 +15271,11 @@ Besides a @code{while} loop, you can work on each of a list of files
 with recursion.  A recursive version of @code{lengths-list-many-files}
 is short and simple.
 
-The recursive function has the usual parts: the `do-again-test', the
-`next-step-expression', and the recursive call.  The `do-again-test'
+The recursive function has the usual parts: the ``do-again-test'', the
+``next-step-expression'', and the recursive call.  The ``do-again-test''
 determines whether the function should call itself again, which it
 will do if the @code{list-of-files} contains any remaining elements;
-the `next-step-expression' resets the @code{list-of-files} to the
+the ``next-step-expression'' resets the @code{list-of-files} to the
 @sc{cdr} of itself, so eventually the list will be empty; and the
 recursive call calls itself on the shorter list.  The complete
 function is shorter than this description!
@@ -15366,7 +15376,7 @@ numbers.
 @end ifnottex
 
 Based on what we have done before, we can readily foresee that it
-should not be too hard to write a function that `@sc{cdr}s' down the
+should not be too hard to write a function that ``@sc{cdr}s'' down the
 lengths' list, looks at each element, determines which length range it
 is in, and increments a counter for that range.
 
@@ -15505,7 +15515,7 @@ as a list that looks like this (but with more elements):
 The @code{directory-files-and-attributes} function returns a list of
 lists.  Each of the lists within the main list consists of 13
 elements.  The first element is a string that contains the name of the
-file---which, in GNU/Linux, may be a `directory file', that is to
+file---which, in GNU/Linux, may be a ``directory file'', that is to
 say, a file with the special attributes of a directory.  The second
 element of the list is @code{t} for a directory, a string
 for symbolic link (the string is the name linked to), or @code{nil}.
@@ -15604,7 +15614,7 @@ Let's write a function definition to do these tasks.  We will use a
 @code{while} loop to move from one filename to another within a
 directory, checking what needs to be done; and we will use a recursive
 call to repeat the actions on each sub-directory.  The recursive
-pattern is `accumulate'
+pattern is ``accumulate''
 (@pxref{Accumulate}),
 using @code{append} as the combiner.
 
@@ -15640,7 +15650,7 @@ Here is the function:
 @end group
 @group
       (cond
-       ;; check to see whether filename ends in `.el'
+       ;; check to see whether filename ends in '.el'
        ;; and if so, append its name to a list.
        ((equal ".el" (substring (car (car current-directory-list)) -3))
         (setq el-files-list
@@ -16062,7 +16072,7 @@ the function to label the axes automatically.
 
 Since Emacs is designed to be flexible and work with all kinds of
 terminals, including character-only terminals, the graph will need to
-be made from one of the `typewriter' symbols.  An asterisk will do; as
+be made from one of the ``typewriter'' symbols.  An asterisk will do; as
 we enhance the graph-printing function, we can make the choice of
 symbol a user option.
 
@@ -16092,7 +16102,7 @@ a regular expression, including functions that are not interactive.
 
 What we want to look for is some command that prints or inserts
 columns.  Very likely, the name of the function will contain either
-the word `print' or the word `insert' or the word `column'.
+the word ``print'' or the word ``insert'' or the word ``column''.
 Therefore, we can simply type @kbd{M-x apropos RET
 print\|insert\|column RET} and look at the result.  On my system, this
 command once too takes quite some time, and then produced a list of 79
@@ -16229,7 +16239,7 @@ Wrong type of argument:  number-or-marker-p, (3 4 6 5 7 3)
 
 @findex apply
 We need a function that passes a list of arguments to a function.
-This function is @code{apply}.  This function `applies' its first
+This function is @code{apply}.  This function ``applies'' its first
 argument (a function) to its remaining arguments, the last of which
 may be a list.
 
@@ -16247,7 +16257,7 @@ returns 8.
 without a book such as this.  It is possible to discover other
 functions, like @code{search-forward} or @code{insert-rectangle}, by
 guessing at a part of their names and then using @code{apropos}.  Even
-though its base in metaphor is clear---`apply' its first argument to
+though its base in metaphor is clear---``apply'' its first argument to
 the rest---I doubt a novice would come up with that particular word
 when using @code{apropos} or other aid.  Of course, I could be wrong;
 after all, the function was first named by someone who had to invent
@@ -16335,7 +16345,7 @@ returns
 
 As written, @code{column-of-graph} contains a major flaw: the symbols
 used for the blank and for the marked entries in the column are
-`hard-coded' as a space and asterisk.  This is fine for a prototype,
+``hard-coded'' as a space and asterisk.  This is fine for a prototype,
 but you, or another user, may wish to use other symbols.  For example,
 in testing the graph function, you many want to use a period in place
 of the space, to make sure the point is being repositioned properly
@@ -16414,7 +16424,7 @@ is no more than a bar graph in which the part of each bar that is
 below the top is blank.  To construct a column for a line graph, the
 function first constructs a list of blanks that is one shorter than
 the value, then it uses @code{cons} to attach a graph symbol to the
-list; then it uses @code{cons} again to attach the `top blanks' to
+list; then it uses @code{cons} again to attach the ``top blanks'' to
 the list.
 
 It is easy to see how to write such a function, but since we don't
@@ -16530,7 +16540,7 @@ The one unexpected expression in this function is the
 @w{@code{(sit-for 0)}} expression in the @code{while} loop.  This
 expression makes the graph printing operation more interesting to
 watch than it would be otherwise.  The expression causes Emacs to
-`sit' or do nothing for a zero length of time and then redraw the
+``sit'' or do nothing for a zero length of time and then redraw the
 screen.  Placed here, it causes Emacs to redraw the screen column by
 column.  Without it, Emacs would not redraw the screen until the
 function exits.
@@ -16592,14 +16602,14 @@ Emacs will print a graph like this:
 @findex recursive-graph-body-print
 
 The @code{graph-body-print} function may also be written recursively.
-The recursive solution is divided into two parts: an outside `wrapper'
+The recursive solution is divided into two parts: an outside ``wrapper''
 that uses a @code{let} expression to determine the values of several
 variables that need only be found once, such as the maximum height of
 the graph, and an inside function that is called recursively to print
 the graph.
 
 @need 1250
-The `wrapper' is uncomplicated:
+The ``wrapper'' is uncomplicated:
 
 @smallexample
 @group
@@ -16617,13 +16627,13 @@ The numbers-list consists of the Y-axis values."
 @end smallexample
 
 The recursive function is a little more difficult.  It has four parts:
-the `do-again-test', the printing code, the recursive call, and the
-`next-step-expression'.  The `do-again-test' is a @code{when}
+the ``do-again-test'', the printing code, the recursive call, and the
+``next-step-expression''.  The ``do-again-test'' is a @code{when}
 expression that determines whether the @code{numbers-list} contains
 any remaining elements; if it does, the function prints one column of
 the graph using the printing code and calls itself again.  The
 function calls itself again according to the value produced by the
-`next-step-expression' which causes the call to act on a shorter
+``next-step-expression'' which causes the call to act on a shorter
 version of the @code{numbers-list}.
 
 @smallexample
@@ -16699,8 +16709,8 @@ Write a line graph version of the graph printing functions.
 @cindex Initialization file
 
 ``You don't have to like Emacs to like it''---this seemingly
-paradoxical statement is the secret of GNU Emacs.  The plain, `out of
-the box' Emacs is a generic tool.  Most people who use it, customize
+paradoxical statement is the secret of GNU Emacs.  The plain, ``out of
+the box'' Emacs is a generic tool.  Most people who use it, customize
 it to suit themselves.
 
 GNU Emacs is mostly written in Emacs Lisp; this means that by writing
@@ -16738,7 +16748,7 @@ person hopes to do with an unadorned file?  Fundamental mode is the
 right default for such a file, just as C mode is the right default for
 editing C code.  (Enough programming languages have syntaxes
 that enable them to share or nearly share features, so C mode is
-now provided by CC mode, the `C Collection'.)
+now provided by CC mode, the ``C Collection''.)
 
 But when you do know who is going to use Emacs---you,
 yourself---then it makes sense to customize Emacs.
@@ -16783,8 +16793,8 @@ have the same form as your @file{.emacs} file, but are loaded by
 everyone.
 
 Two site-wide initialization files, @file{site-load.el} and
-@file{site-init.el}, are loaded into Emacs and then `dumped' if a
-`dumped' version of Emacs is created, as is most common.  (Dumped
+@file{site-init.el}, are loaded into Emacs and then ``dumped'' if a
+``dumped'' version of Emacs is created, as is most common.  (Dumped
 copies of Emacs load more quickly.  However, once a file is loaded and
 dumped, a change to it does not lead to a change in Emacs unless you
 load it yourself or re-dump Emacs.  @xref{Building Emacs, , Building
@@ -16896,7 +16906,7 @@ M-x customize
 @end smallexample
 
 @noindent
-and find that the group for editing files of data is called `data'.
+and find that the group for editing files of data is called ``data''.
 Enter that group.  Text Mode Hook is the first member.  You can click
 on its various options, such as @code{turn-on-auto-fill}, to set the
 values.  After you click on the button to
@@ -17056,7 +17066,7 @@ Just remember: type @kbd{C-h} two times for help.
 @end smallexample
 
 @noindent
-`Mode help', as I call this, is very helpful.  Usually, it tells you
+``Mode help'', as I call this, is very helpful.  Usually, it tells you
 all you need to know.
 
 Of course, you don't need to include comments like these in your
@@ -17067,7 +17077,7 @@ remember to look here to remind myself.
 @node Text and Auto-fill
 @section Text and Auto Fill Mode
 
-Now we come to the part that `turns on' Text mode and
+Now we come to the part that ``turns on'' Text mode and
 Auto Fill mode.
 
 @smallexample
@@ -17152,7 +17162,7 @@ In this line, the @code{add-hook} command adds
 @code{turn-on-auto-fill} is the name of a program, that, you guessed
 it!, turns on Auto Fill mode.
 
-Every time Emacs turns on Text mode, Emacs runs the commands `hooked'
+Every time Emacs turns on Text mode, Emacs runs the commands ``hooked''
 onto Text mode.  So every time Emacs turns on Text mode, Emacs also
 turns on Auto Fill mode.
 
@@ -17189,15 +17199,15 @@ fill commands to insert two spaces after a colon:
 @node Mail Aliases
 @section Mail Aliases
 
-Here is a @code{setq} that `turns on' mail aliases, along with more
+Here is a @code{setq} that ``turns on'' mail aliases, along with more
 reminders.
 
 @smallexample
 @group
 ;;; Mail mode
-; To enter mail mode, type `C-x m'
+; To enter mail mode, type 'C-x m'
 ; To enter RMAIL (for reading mail),
-; type `M-x rmail'
+; type 'M-x rmail'
 (setq mail-aliases t)
 @end group
 @end smallexample
@@ -17209,7 +17219,7 @@ This @code{setq} command sets the value of the variable
 says, in effect, ``Yes, use mail aliases.''
 
 Mail aliases are convenient short names for long email addresses or
-for lists of email addresses.  The file where you keep your `aliases'
+for lists of email addresses.  The file where you keep your ``aliases''
 is @file{~/.mailrc}.  You write an alias like this:
 
 @smallexample
@@ -17247,7 +17257,7 @@ command sets values only in buffers that do not have their own local
 values for the variable.
 
 @ifinfo
-@xref{Just Spaces, , Tabs vs. Spaces, emacs, The GNU Emacs Manual}.
+@xref{Just Spaces, , Tabs vs.@: Spaces, emacs, The GNU Emacs Manual}.
 
 @xref{File Variables, , Local Variables in Files, emacs, The GNU Emacs
 Manual}.
@@ -17284,9 +17294,9 @@ This also shows how to set a key globally, for all modes.
 @findex global-set-key
 The command is @code{global-set-key}.  It is followed by the
 keybinding.  In a @file{.emacs} file, the keybinding is written as
-shown: @code{\C-c} stands for `control-c', which means `press the
-control key and the @key{c} key at the same time'.  The @code{w} means
-`press the @key{w} key'.  The keybinding is surrounded by double
+shown: @code{\C-c} stands for ``control-c'', which means ``press the
+control key and the @key{c} key at the same time''.  The @code{w} means
+``press the @key{w} key''.  The keybinding is surrounded by double
 quotation marks.  In documentation, you would write this as
 @w{@kbd{C-c w}}.  (If you were binding a @key{META} key, such as
 @kbd{M-c}, rather than a @key{CTRL} key, you would write
@@ -17307,19 +17317,19 @@ adapt what is there.
 As for the keybinding itself: @kbd{C-c w}.  This combines the prefix
 key, @kbd{C-c}, with a single character, in this case, @kbd{w}.  This
 set of keys, @kbd{C-c} followed by a single character, is strictly
-reserved for individuals' own use.  (I call these `own' keys, since
+reserved for individuals' own use.  (I call these ``own'' keys, since
 these are for my own use.)  You should always be able to create such a
 keybinding for your own use without stomping on someone else's
 keybinding.  If you ever write an extension to Emacs, please avoid
 taking any of these keys for public use.  Create a key like @kbd{C-c
-C-w} instead.  Otherwise, we will run out of `own' keys.
+C-w} instead.  Otherwise, we will run out of ``own'' keys.
 
 @need 1250
 Here is another keybinding, with a comment:
 
 @smallexample
 @group
-;;; Keybinding for `occur'
+;;; Keybinding for 'occur'
 ; I use occur a lot, so let's bind it to a key:
 (global-set-key "\C-co" 'occur)
 @end group
@@ -17340,7 +17350,7 @@ work:
 
 @smallexample
 @group
-;;; Unbind `C-x f'
+;;; Unbind 'C-x f'
 (global-unset-key "\C-xf")
 @end group
 @end smallexample
@@ -17358,7 +17368,7 @@ The following rebinds an existing key:
 
 @smallexample
 @group
-;;; Rebind `C-x C-b' for `buffer-menu'
+;;; Rebind 'C-x C-b' for 'buffer-menu'
 (global-set-key "\C-x\C-b" 'buffer-menu)
 @end group
 @end smallexample
@@ -17511,8 +17521,13 @@ Incidentally, @code{load-library} is an interactive interface to the
 @smallexample
 @group
 (defun load-library (library)
-  "Load the library named LIBRARY.
-This is an interface to the function `load'."
+  "Load the Emacs Lisp library named LIBRARY.
+This is an interface to the function `load'.  LIBRARY is searched
+for in `load-path', both with and without `load-suffixes' (as
+well as `load-file-rep-suffixes').
+
+See Info node `(emacs)Lisp Libraries' for more details.
+See `load-file' for a different interface to `load'."
   (interactive
    (list (completing-read "Load library: "
                           (apply-partially 'locate-file-completion-table
@@ -17523,7 +17538,7 @@ This is an interface to the function `load'."
 @end smallexample
 
 The name of the function, @code{load-library}, comes from the use of
-`library' as a conventional synonym for `file'.  The source for the
+``library'' as a conventional synonym for ``file''.  The source for the
 @code{load-library} command is in the @file{files.el} library.
 
 Another interactive command that does a slightly different job is
@@ -17550,13 +17565,13 @@ first use such a function, while its containing file is evaluated.
 Rarely used functions are frequently autoloaded.  The
 @file{loaddefs.el} library contains thousands of autoloaded functions,
 from @code{5x5} to @code{zone}.  Of course, you may
-come to use a `rare' function frequently.  When you do, you should
+come to use a ``rare'' function frequently.  When you do, you should
 load that function's file with a @code{load} expression in your
 @file{.emacs} file.
 
 In my @file{.emacs} file, I load 14 libraries that contain functions
 that would otherwise be autoloaded.  (Actually, it would have been
-better to include these files in my `dumped' Emacs, but I forgot.
+better to include these files in my ``dumped'' Emacs, but I forgot.
 @xref{Building Emacs, , Building Emacs, elisp, The GNU Emacs Lisp
 Reference Manual}, and the @file{INSTALL} file for more about
 dumping.)
@@ -17683,7 +17698,7 @@ emacs -Q -D
 @group
 (when (>= emacs-major-version 21)
   (blink-cursor-mode 0)
-  ;; Insert newline when you press `C-n' (next-line)
+  ;; Insert newline when you press 'C-n' (next-line)
   ;; at the end of the buffer
   (setq next-line-add-newlines t)
 @end group
@@ -17804,9 +17819,9 @@ Set the shape and color of the mouse cursor:
 @smallexample
 @group
 ; Cursor shapes are defined in
-; `/usr/include/X11/cursorfont.h';
-; for example, the `target' cursor is number 128;
-; the `top_left_arrow' cursor is number 132.
+; '/usr/include/X11/cursorfont.h';
+; for example, the 'target' cursor is number 128;
+; the 'top_left_arrow' cursor is number 132.
 @end group
 
 @group
@@ -17857,10 +17872,10 @@ problem recently.)
 
 @smallexample
 @group
-;; Translate `C-h' to <DEL>.
+;; Translate 'C-h' to <DEL>.
 ; (keyboard-translate ?\C-h ?\C-?)
 
-;; Translate <DEL> to `C-h'.
+;; Translate <DEL> to 'C-h'.
 (keyboard-translate ?\C-? ?\C-h)
 @end group
 @end smallexample
@@ -17878,7 +17893,7 @@ problem recently.)
 or start GNU Emacs with the command @code{emacs -nbc}.
 
 @need 1250
-@item When using `grep'@*
+@item When using @command{grep}@*
 @samp{-i}@w{  }   Ignore case distinctions@*
 @samp{-n}@w{  }   Prefix each line of output with line number@*
 @samp{-H}@w{  }   Print the filename for each match.@*
@@ -17917,7 +17932,7 @@ This avoids problems with symbolic links.
 @end group
 @end smallexample
 
-If you want to write with Chinese `GB' characters, set this instead:
+If you want to write with Chinese ``GB'' characters, set this instead:
 
 @smallexample
 @group
@@ -17960,7 +17975,7 @@ Lock} key is at the far left of the home row:
 
 @smallexample
 @group
-# Bind the key labeled `Caps Lock' to `Control'
+# Bind the key labeled 'Caps Lock' to 'Control'
 # (Such a broken user interface suggests that keyboard manufacturers
 # think that computers are typewriters from 1885.)
 
@@ -18097,7 +18112,7 @@ beginning @code{(#("%12b" 0 4 @dots{}}.
 The @code{#(} begins the list.
 
 The @samp{"%12b"} displays the current buffer name, using the
-@code{buffer-name} function with which we are familiar; the `12'
+@code{buffer-name} function with which we are familiar; the @samp{12}
 specifies the maximum number of characters that will be displayed.
 When a name has fewer characters, whitespace is added to fill out to
 this number.  (Buffer names can and often should be longer than 12
@@ -18107,7 +18122,7 @@ window.)
 @code{:eval} says to evaluate the following form and use the result as
 a string to display.  In this case, the expression displays the first
 component of the full system name.  The end of the first component is
-a @samp{.} (`period'), so I use the @code{string-match} function to
+a @samp{.} (``period''), so I use the @code{string-match} function to
 tell me the length of the first component.  The substring from the
 zeroth character to that length is the name of the machine.
 
@@ -18122,10 +18137,10 @@ This is the expression:
 @end smallexample
 
 @samp{%[} and @samp{%]} cause a pair of square brackets
-to appear for each recursive editing level.  @samp{%n} says `Narrow'
+to appear for each recursive editing level.  @samp{%n} says ``Narrow''
 when narrowing is in effect.  @samp{%P} tells you the percentage of
-the buffer that is above the bottom of the window, or `Top', `Bottom',
-or `All'.  (A lower case @samp{p} tell you the percentage above the
+the buffer that is above the bottom of the window, or ``Top'', ``Bottom'',
+or ``All''.  (A lower case @samp{p} tell you the percentage above the
 @emph{top} of the window.)  @samp{%-} inserts enough dashes to fill
 out the line.
 
@@ -18133,7 +18148,7 @@ Remember, ``You don't have to like Emacs to like it''---your own
 Emacs can have different colors, different commands, and different
 keys than a default Emacs.
 
-On the other hand, if you want to bring up a plain `out of the box'
+On the other hand, if you want to bring up a plain ``out of the box''
 Emacs, with no customization, type:
 
 @smallexample
@@ -18234,9 +18249,9 @@ Debugger entered--Lisp error: (void-function 1=)
 long lines.  As usual, you can quit the debugger by typing @kbd{q} in
 the @file{*Backtrace*} buffer.)
 
-In practice, for a bug as simple as this, the `Lisp error' line will
+In practice, for a bug as simple as this, the ``Lisp error'' line will
 tell you what you need to know to correct the definition.  The
-function @code{1=} is `void'.
+function @code{1=} is ``void''.
 
 @ignore
 @need 800
@@ -18532,7 +18547,7 @@ beginning of the @code{if} line of the function.  Also, you will see
 an arrowhead at the left hand side of that line.  The arrowhead marks
 the line where the function is executing.  (In the following examples,
 we show the arrowhead with @samp{=>}; in a windowing system, you may
-see the arrowhead as a solid triangle in the window `fringe'.)
+see the arrowhead as a solid triangle in the window ``fringe''.)
 
 @smallexample
 =>@point{}(if (= number 1)
@@ -18567,7 +18582,7 @@ Result: 3 (#o3, #x3, ?\C-c)
 
 @noindent
 This means the value of @code{number} is 3, which is octal three,
-hexadecimal three, and @sc{ascii} `control-c' (the third letter of the
+hexadecimal three, and @sc{ascii} ``control-c'' (the third letter of the
 alphabet, in case you need to know this information).
 
 You can continue moving through the code until you reach the line with
@@ -18614,7 +18629,7 @@ Lisp Reference Manual}.
 Install the @code{@value{COUNT-WORDS}} function and then cause it to
 enter the built-in debugger when you call it.  Run the command on a
 region containing two words.  You will need to press @kbd{d} a
-remarkable number of times.  On your system, is a `hook' called after
+remarkable number of times.  On your system, is a ``hook'' called after
 the command finishes?  (For information on hooks, see @ref{Command
 Overview, , Command Loop Overview, elisp, The GNU Emacs Lisp Reference
 Manual}.)
@@ -18735,7 +18750,7 @@ customize the @code{interactive} expression without using the standard
 character codes; and it shows how to create a temporary buffer.
 
 (The @code{indent-to} function is written in C rather than Emacs Lisp;
-it is a `built-in' function.  @code{help-follow} takes you to its
+it is a ``built-in'' function.  @code{help-follow} takes you to its
 source as does @code{find-tag}, when properly set up.)
 
 You can look at a function's source using @code{find-tag}, which is
@@ -18803,7 +18818,7 @@ The GNU Emacs Lisp Reference Manual}.)
 
 You might try searching just for duplicated word-constituent
 characters but that does not work since the pattern detects doubles
-such as the two occurrences of `th' in `with the'.
+such as the two occurrences of ``th'' in ``with the''.
 
 Another possible regexp searches for word-constituent characters
 followed by non-word-constituent characters, reduplicated.  Here,
@@ -18850,7 +18865,7 @@ Here is the @code{the-the} function, as I include it in my
 @end group
 
 @group
-;; Bind `the-the' to  C-c \
+;; Bind 'the-the' to  C-c \
 (global-set-key "\C-c\\" 'the-the)
 @end group
 @end smallexample
@@ -18996,13 +19011,21 @@ The @code{current-kill} function is used by @code{yank} and by
 @group
 (defun current-kill (n &optional do-not-move)
   "Rotate the yanking point by N places, and then return that kill.
-If N is zero, `interprogram-paste-function' is set, and calling it
-returns a string, then that string is added to the front of the
-kill ring and returned as the latest kill.
+If N is zero and `interprogram-paste-function' is set to a
+function that returns a string or a list of strings, and if that
+function doesn't return nil, then that string (or list) is added
+to the front of the kill ring and the string (or first string in
+the list) is returned as the latest kill.
 @end group
 @group
-If optional arg DO-NOT-MOVE is non-nil, then don't actually move the
-yanking point; just return the Nth kill forward."
+If N is not zero, and if `yank-pop-change-selection' is
+non-nil, use `interprogram-cut-function' to transfer the
+kill at the new yank point into the window system selection.
+@end group
+@group
+If optional arg DO-NOT-MOVE is non-nil, then don't actually
+move the yanking point; just return the Nth kill forward."
+
   (let ((interprogram-paste (and (= n 0)
                                  interprogram-paste-function
                                  (funcall interprogram-paste-function))))
@@ -19014,8 +19037,10 @@ yanking point; just return the Nth kill forward."
           ;; text to the kill ring, so Emacs doesn't try to own the
           ;; selection, with identical text.
           (let ((interprogram-cut-function nil))
-            (kill-new interprogram-paste))
-          interprogram-paste)
+            (if (listp interprogram-paste)
+              (mapc 'kill-new (nreverse interprogram-paste))
+              (kill-new interprogram-paste)))
+          (car kill-ring))
 @end group
 @group
       (or kill-ring (error "Kill ring is empty"))
@@ -19023,8 +19048,12 @@ yanking point; just return the Nth kill forward."
              (nthcdr (mod (- n (length kill-ring-yank-pointer))
                           (length kill-ring))
                      kill-ring)))
-        (or do-not-move
-            (setq kill-ring-yank-pointer ARGth-kill-element))
+        (unless do-not-move
+          (setq kill-ring-yank-pointer ARGth-kill-element)
+          (when (and yank-pop-change-selection
+                     (> n 0)
+                     interprogram-cut-function)
+            (funcall interprogram-cut-function (car ARGth-kill-element))))
         (car ARGth-kill-element)))))
 @end group
 @end smallexample
@@ -19091,7 +19120,7 @@ The @code{if} expression has two parts, one if there exists
 @code{interprogram-paste} and one if not.
 
 @need 2000
-Let us consider the `if not' or else-part of the @code{current-kill}
+Let us consider the ``if not'' or else-part of the @code{current-kill}
 function.  (The then-part uses the @code{kill-new} function, which
 we have already described.  @xref{kill-new function, , The
 @code{kill-new} function}.)
@@ -19155,14 +19184,14 @@ list even if the @code{do-not-move} argument is true.
 
 @ifnottex
 @node Digression concerning error
-@unnumberedsubsubsec Digression about the word `error'
+@unnumberedsubsubsec Digression about the word ``error''
 @end ifnottex
 
 In my opinion, it is slightly misleading, at least to humans, to use
-the term `error' as the name of the @code{error} function.  A better
-term would be `cancel'.  Strictly speaking, of course, you cannot
+the term ``error'' as the name of the @code{error} function.  A better
+term would be ``cancel''.  Strictly speaking, of course, you cannot
 point to, much less rotate a pointer to a list that has no length, so
-from the point of view of the computer, the word `error' is correct.
+from the point of view of the computer, the word ``error'' is correct.
 But a human expects to attempt this sort of thing, if only to find out
 whether the kill ring is full or empty.  This is an act of
 exploration.
@@ -19172,8 +19201,8 @@ not necessarily an error, and therefore should not be labeled as one,
 even in the bowels of a computer.  As it is, the code in Emacs implies
 that a human who is acting virtuously, by exploring his or her
 environment, is making an error.  This is bad.  Even though the computer
-takes the same steps as it does when there is an `error', a term such as
-`cancel' would have a clearer connotation.
+takes the same steps as it does when there is an ``error'', a term such as
+``cancel'' would have a clearer connotation.
 
 @ifnottex
 @node Determining the Element
@@ -19335,15 +19364,15 @@ The code looks like this:
   "Reinsert (\"paste\") the last stretch of killed text.
 More precisely, reinsert the stretch of killed text most recently
 killed OR yanked.  Put point at end, and set mark at beginning.
-With just \\[universal-argument] as argument, same but put point at
-beginning (and mark at end).  With argument N, reinsert the Nth most
-recently killed stretch of killed text.
+With just \\[universal-argument] as argument, same but put point at beginning (and mark at end).
+With argument N, reinsert the Nth most recently killed stretch of killed
+text.
 
 When this command inserts killed text into the buffer, it honors
 `yank-excluded-properties' and `yank-handler' as described in the
 doc string for `insert-for-yank-1', which see.
 
-See also the command \\[yank-pop]."
+See also the command `yank-pop' (\\[yank-pop])."
 @end group
 @group
   (interactive "*P")
@@ -19359,8 +19388,7 @@ See also the command \\[yank-pop]."
                                   ((eq arg '-) -2)
                                   (t (1- arg)))))
   (if (consp arg)
-      ;; This is like exchange-point-and-mark,
-      ;;     but doesn't activate the mark.
+      ;; This is like exchange-point-and-mark, but doesn't activate the mark.
       ;; It is cleaner to avoid activation, even though the command
       ;; loop would deactivate the mark because we inserted text.
       (goto-char (prog1 (mark t)
@@ -19789,9 +19817,9 @@ For example, if you evaluate the following, the result is 15:
 (* (1+ (/ 12 5)) 5)
 @end smallexample
 
-All through this discussion, we have been using `five' as the value
+All through this discussion, we have been using ``five'' as the value
 for spacing labels on the Y axis; but we may want to use some other
-value.  For generality, we should replace `five' with a variable to
+value.  For generality, we should replace ``five'' with a variable to
 which we can assign a value.  The best name I can think of for this
 variable is @code{Y-axis-label-spacing}.
 
@@ -20016,7 +20044,7 @@ the @code{print-Y-axis} function, which inserts the list as a column.
 Height must be the maximum height of the graph.
 Full width is the width of the highest label element."
 ;; Value of height and full-Y-label-width
-;; are passed by `print-graph'.
+;; are passed by print-graph.
 @end group
 @group
   (let ((start (point)))
@@ -20706,9 +20734,9 @@ The graph looks like this:
 @end smallexample
 
 @noindent
-(A question: is the `2' on the bottom of the vertical axis a bug or a
-feature?  If you think it is a bug, and should be a `1' instead, (or
-even a `0'), you can modify the sources.)
+(A question: is the @samp{2} on the bottom of the vertical axis a bug or a
+feature?  If you think it is a bug, and should be a @samp{1} instead, (or
+even a @samp{0}), you can modify the sources.)
 
 @node Graphing words in defuns
 @appendixsubsec Graphing Numbers of Words and Symbols
@@ -20816,8 +20844,8 @@ Thus,
 @end smallexample
 
 @noindent
-is a function definition that says `return the value resulting from
-dividing whatever is passed to me as @code{arg} by 50'.
+is a function definition that says ``return the value resulting from
+dividing whatever is passed to me as @code{arg} by 50''.
 
 @need 1200
 Earlier, for example, we had a function @code{multiply-by-seven}; it
@@ -20958,7 +20986,7 @@ element of its second argument, in turn.  The second argument must be
 a sequence.
 
 The @samp{map} part of the name comes from the mathematical phrase,
-`mapping over a domain', meaning to apply a function to each of the
+``mapping over a domain'', meaning to apply a function to each of the
 elements in a domain.  The mathematical phrase is based on the
 metaphor of a surveyor walking, one step at a time, over an area he is
 mapping.  And @samp{car}, of course, comes from the Lisp notion of the
@@ -21038,7 +21066,7 @@ that none had that many words or symbols.)
 @cindex Bug, most insidious type
 @cindex Insidious type of bug
 
-I said `almost ready to print'!  Of course, there is a bug in the
+I said ``almost ready to print''!  Of course, there is a bug in the
 @code{print-graph} function @dots{}  It has a @code{vertical-step}
 option, but not a @code{horizontal-step} option.  The
 @code{top-of-range} scale goes from 10 to 300 by tens.  But the
@@ -21141,7 +21169,7 @@ each column."
 @end group
 @group
 ;; Value of symbol-width and full-Y-label-width
-;; are passed by `print-graph'.
+;; are passed by print-graph.
   (let* ((leading-spaces
           (make-string full-Y-label-width ? ))
        ;; symbol-width @r{is provided by} graph-body-print
@@ -21469,7 +21497,7 @@ Optionally, print according to VERTICAL-STEP."
 @end group
 @group
 ;; Value of height and full-Y-label-width
-;; are passed by `print-graph'.
+;; are passed by 'print-graph'.
   (let ((start (point)))
     (insert-rectangle
      (Y-axis-column height full-Y-label-width vertical-step))
@@ -21634,7 +21662,7 @@ each column."
 @end group
 @group
 ;; Value of symbol-width and full-Y-label-width
-;; are passed by `print-graph'.
+;; are passed by 'print-graph'.
   (let* ((leading-spaces
           (make-string full-Y-label-width ? ))
        ;; symbol-width @r{is provided by} graph-body-print
@@ -21872,7 +21900,7 @@ users think that a proprietary manual is good enough---so they don't
 see the need to write a free manual.  They do not see that the free
 operating system has a gap that needs filling.
 
-Why do users think that proprietary manuals are good enough? Some have
+Why do users think that proprietary manuals are good enough?  Some have
 not considered the issue.  I hope this article will do something to
 change that.
 

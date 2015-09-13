@@ -770,7 +770,6 @@ the cell contents dynamically."
   :type 'integer
   :group 'table)
 
-;;;###autoload
 (defcustom table-cell-map-hook nil
   "Normal hooks run when finishing construction of `table-cell-map'.
 User can modify `table-cell-map' by adding custom functions here."
@@ -794,19 +793,16 @@ simply by any key input."
   :type 'boolean
   :group 'table)
 
-;;;###autoload
 (defcustom table-load-hook nil
   "List of functions to be called after the table is first loaded."
   :type 'hook
   :group 'table-hooks)
 
-;;;###autoload
 (defcustom table-point-entered-cell-hook nil
   "List of functions to be called after point entered a table cell."
   :type 'hook
   :group 'table-hooks)
 
-;;;###autoload
 (defcustom table-point-left-cell-hook nil
   "List of functions to be called after point left a table cell."
   :type 'hook
@@ -865,8 +861,6 @@ time.")
   "Cache point coordinate based from the cell origin.")
 (defvar table-cell-cache-mark-coordinate nil
   "Cache mark coordinate based from the cell origin.")
-(defvar table-cell-entered-state nil
-  "Records the state whether currently in a cell or nor.")
 (defvar table-update-timer nil
   "Timer id for deferred cell update.")
 (defvar table-widen-timer nil
@@ -1216,14 +1210,14 @@ This is always set to nil at the entry to `table-with-cache-buffer' before execu
 ;; does not cause a problem in the old implementation.  Sigh...
 (when (featurep 'xemacs)
   (defun table--tweak-menu-for-xemacs (menu)
-     (cond
-      ((listp menu)
-       (mapcar #'table--tweak-menu-for-xemacs menu))
-      ((vectorp menu)
-       (let ((len (length menu)))
-	 (dotimes (i len)
-	   ;; replace :help with something harmless.
-	   (if (eq (aref menu i) :help) (aset menu i :included)))))))
+    (cond
+     ((listp menu)
+      (mapcar #'table--tweak-menu-for-xemacs menu))
+     ((vectorp menu)
+      (let ((len (length menu)))
+        (dotimes (i len)
+          ;; replace :help with something harmless.
+          (if (eq (aref menu i) :help) (aset menu i :included)))))))
   (mapcar #'table--tweak-menu-for-xemacs
           (list table-global-menu table-cell-menu))
   (defvar mark-active t))
@@ -1899,7 +1893,9 @@ all the table specific features."
 	    (while (and (re-search-forward border3 (point-max) t)
 			(not (and (input-pending-p)
 				  table-abort-recognition-when-input-pending)))
-	      (message "Recognizing tables...(%d%%)" (/ (* 100 (match-beginning 0)) (- (point-max) (point-min))))
+	      (message "Recognizing tables...(%d%%)"
+		       (floor (* 100.0 (match-beginning 0))
+			      (- (point-max) (point-min))))
 	      (let ((beg (match-beginning 0))
 		    end)
 		(if (re-search-forward non-border (point-max) t)
@@ -2810,8 +2806,8 @@ ORIENTATION is a symbol either horizontally or vertically."
 ;;;###autoload
 (defun table-justify (what justify)
   "Justify contents of a cell, a row of cells or a column of cells.
-WHAT is a symbol 'cell, 'row or 'column.  JUSTIFY is a symbol 'left,
-'center, 'right, 'top, 'middle, 'bottom or 'none."
+WHAT is a symbol `cell', `row' or `column'.  JUSTIFY is a symbol
+`left', `center', `right', `top', `middle', `bottom' or `none'."
   (interactive
    (list (let* ((_ (barf-if-buffer-read-only))
 		(completion-ignore-case t)
@@ -2826,8 +2822,8 @@ WHAT is a symbol 'cell, 'row or 'column.  JUSTIFY is a symbol 'left,
 ;;;###autoload
 (defun table-justify-cell (justify &optional paragraph)
   "Justify cell contents.
-JUSTIFY is a symbol 'left, 'center or 'right for horizontal, or 'top,
-'middle, 'bottom or 'none for vertical.  When optional PARAGRAPH is
+JUSTIFY is a symbol `left', `center' or `right' for horizontal, or `top',
+`middle', `bottom' or `none' for vertical.  When optional PARAGRAPH is
 non-nil the justify operation is limited to the current paragraph,
 otherwise the entire cell contents is justified."
   (interactive
@@ -2839,8 +2835,8 @@ otherwise the entire cell contents is justified."
 ;;;###autoload
 (defun table-justify-row (justify)
   "Justify cells of a row.
-JUSTIFY is a symbol 'left, 'center or 'right for horizontal, or top,
-'middle, 'bottom or 'none for vertical."
+JUSTIFY is a symbol `left', `center' or `right' for horizontal,
+or `top', `middle', `bottom' or `none' for vertical."
   (interactive
    (list (table--query-justification)))
   (let((cell-list (table--horizontal-cell-list nil nil 'top)))
@@ -2856,8 +2852,8 @@ JUSTIFY is a symbol 'left, 'center or 'right for horizontal, or top,
 ;;;###autoload
 (defun table-justify-column (justify)
   "Justify cells of a column.
-JUSTIFY is a symbol 'left, 'center or 'right for horizontal, or top,
-'middle, 'bottom or 'none for vertical."
+JUSTIFY is a symbol `left', `center' or `right' for horizontal,
+or `top', `middle', `bottom' or `none' for vertical."
   (interactive
    (list (table--query-justification)))
   (let((cell-list (table--vertical-cell-list nil nil 'left)))
@@ -3345,25 +3341,25 @@ INTERVAL is the number of cells to travel between sequence element
 insertion which is normally 1.  When zero or less is given for
 INTERVAL it is interpreted as number of cells per row so that sequence
 is placed straight down vertically as long as the table's cell
-structure is uniform.  JUSTIFY is one of the symbol 'left, 'center or
-'right, that specifies justification of the inserted string.
+structure is uniform.  JUSTIFY is a symbol `left', `center' or
+`right' that specifies justification of the inserted string.
 
 Example:
 
   (progn
     (table-insert 16 3 5 1)
     (table-forward-cell 15)
-    (table-insert-sequence \"D0\" -16 1 1 'center)
+    (table-insert-sequence \"D0\" -16 1 1 \\='center)
     (table-forward-cell 16)
-    (table-insert-sequence \"A[0]\" -16 1 1 'center)
+    (table-insert-sequence \"A[0]\" -16 1 1 \\='center)
     (table-forward-cell 1)
-    (table-insert-sequence \"-\" 16 0 1 'center))
+    (table-insert-sequence \"-\" 16 0 1 \\='center))
 
   (progn
     (table-insert 16 8 5 1)
-    (table-insert-sequence \"@\" 0 1 2 'right)
+    (table-insert-sequence \"@\" 0 1 2 \\='right)
     (table-forward-cell 1)
-    (table-insert-sequence \"64\" 0 1 2 'left))"
+    (table-insert-sequence \"64\" 0 1 2 \\='left))"
   (interactive
    (progn
      (barf-if-buffer-read-only)
@@ -4465,8 +4461,8 @@ looking at the appearance of the CELL contents."
 
 (defun table--justify-cell-contents (justify &optional paragraph)
   "Justify the current cell contents.
-JUSTIFY is a symbol 'left, 'center or 'right for horizontal, or 'top,
-'middle, 'bottom or 'none for vertical.  When PARAGRAPH is non-nil the
+JUSTIFY is a symbol `left', `center' or `right' for horizontal, or `top',
+`middle', `bottom' or `none' for vertical.  When PARAGRAPH is non-nil the
 justify operation is limited to the current paragraph."
   (table-with-cache-buffer
     (let ((beg (point-min))
@@ -5187,8 +5183,8 @@ and the right cell border character."
 
 (defun table--put-cell-point-entered/left-property (beg end &optional object)
   "Put point-entered/left property."
-  (put-text-property beg end 'point-entered 'table--point-entered-cell-function object)
-  (put-text-property beg end 'point-left 'table--point-left-cell-function object))
+  (put-text-property beg end 'cursor-sensor-functions
+                     '(table--point-entered/left-cell-function) object))
 
 (defun table--remove-cell-properties (beg end &optional object)
   "Remove all cell properties.
@@ -5204,8 +5200,7 @@ instead of the current buffer and returns the OBJECT."
 				   'table-valign nil
 				   'face nil
 				   'rear-nonsticky nil
-				   'point-entered nil
-				   'point-left nil
+				   'cursor-sensor-functions nil
 				   'keymap nil)
 				  object))
       (setq beg next)))
@@ -5247,28 +5242,20 @@ instead of the current buffer and returns the OBJECT."
   "Put cell's vertical alignment property."
   (table--put-property cell 'table-valign valign))
 
-(defun table--point-entered-cell-function (&optional _old-point _new-point)
+(defun table--point-entered/left-cell-function (_window _oldpos dir)
   "Point has entered a cell.
 Refresh the menu bar."
   ;; Avoid calling point-motion-hooks recursively.
   (let ((inhibit-point-motion-hooks t))
-    (unless table-cell-entered-state
-      (setq table-cell-entered-state t)
-      (setq table-mode-indicator t)
-      (force-mode-line-update)
-      (table--warn-incompatibility)
-      (run-hooks 'table-point-entered-cell-hook))))
-
-(defun table--point-left-cell-function (&optional _old-point _new-point)
-  "Point has left a cell.
-Refresh the menu bar."
-  ;; Avoid calling point-motion-hooks recursively.
-  (let ((inhibit-point-motion-hooks t))
-    (when table-cell-entered-state
-      (setq table-cell-entered-state nil)
+    (force-mode-line-update)
+    (pcase dir
+     ('left
       (setq table-mode-indicator nil)
-      (force-mode-line-update)
-      (run-hooks 'table-point-left-cell-hook))))
+      (run-hooks 'table-point-left-cell-hook))
+     ('entered
+      (setq table-mode-indicator t)
+      (table--warn-incompatibility)
+      (run-hooks 'table-point-entered-cell-hook)))))
 
 (defun table--warn-incompatibility ()
   "If called from interactive operation warn the know incompatibilities.

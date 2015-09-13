@@ -5,10 +5,10 @@
 @comment %**start of header
 @setfilename info.info
 @settitle Info
+@include docstyle.texi
 @syncodeindex fn cp
 @syncodeindex vr cp
 @syncodeindex ky cp
-@documentencoding UTF-8
 @comment %**end of header
 
 @copying
@@ -67,8 +67,8 @@ type the command @kbd{h} now.  It brings you to a programmed
 instruction sequence.
 
 To read about advanced Info commands, type @kbd{n} twice.  This
-brings you to @cite{Advanced Info Commands}, skipping over the `Getting
-Started' chapter.
+brings you to @cite{Advanced Info Commands}, skipping over the ``Getting
+Started'' chapter.
 
 Type @kbd{H} to see a summary of all available commands.
 @end ifinfo

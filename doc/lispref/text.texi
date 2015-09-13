@@ -58,7 +58,7 @@ the character after point.
 * Base 64::          Conversion to or from base 64 encoding.
 * Checksum/Hash::    Computing cryptographic hashes.
 * Parsing HTML/XML:: Parsing HTML and XML.
-* Atomic Changes::   Installing several buffer changes "atomically".
+* Atomic Changes::   Installing several buffer changes ``atomically''.
 * Change Hooks::     Supplying functions to be run when text is changed.
 @end menu
 
@@ -512,7 +512,7 @@ non-@code{nil} and the character inserted is in the table
 @c Cross refs reworded to prevent overfull hbox.  --rjc 15mar92
 This command performs abbrev expansion if Abbrev mode is enabled and
 the inserted character does not have word-constituent
-syntax. (@xref{Abbrevs}, and @ref{Syntax Class Table}.)  It is also
+syntax.  (@xref{Abbrevs}, and @ref{Syntax Class Table}.)  It is also
 responsible for calling @code{blink-paren-function} when the inserted
 character has close parenthesis syntax (@pxref{Blinking}).
 
@@ -811,7 +811,7 @@ Delete trailing whitespace in the region defined by @var{start} and
 This command deletes whitespace characters after the last
 non-whitespace character in each line in the region.
 
-If this command acts on the entire buffer (i.e. if called
+If this command acts on the entire buffer (i.e., if called
 interactively with the mark inactive, or called from Lisp with
 @var{end} @code{nil}), it also deletes all trailing lines at the end of the
 buffer if the variable @code{delete-trailing-lines} is non-@code{nil}.
@@ -2720,7 +2720,7 @@ text properties are considered, since strings never have overlays.
 @defun get-pos-property position prop &optional object
 This function is like @code{get-char-property}, except that it pays
 attention to properties' stickiness and overlays' advancement settings
-instead of the property of the character at (i.e. right after)
+instead of the property of the character at (i.e., right after)
 @var{position}.
 @end defun
 
@@ -3472,8 +3472,10 @@ function called to display help strings.  These may be @code{help-echo}
 properties, menu help strings (@pxref{Simple Menu Items},
 @pxref{Extended Menu Items}), or tool bar help strings (@pxref{Tool
 Bar}).  The specified function is called with one argument, the help
-string to display.  Tooltip mode (@pxref{Tooltips,,, emacs, The GNU Emacs
-Manual}) provides an example.
+string to display, which is passed through
+@code{substitute-command-keys} before being given to the function; see
+@ref{Keys in Documentation}.  Tooltip mode (@pxref{Tooltips,,, emacs,
+The GNU Emacs Manual}) provides an example.
 @end defvar
 
 @node Format Properties
@@ -3509,10 +3511,12 @@ of the text.
 @cindex sticky text properties
 @cindex inheritance, text property
 
-  Self-inserting characters normally take on the same properties as the
-preceding character.  This is called @dfn{inheritance} of properties.
+  Self-inserting characters, the ones that get inserted into a buffer
+when the user types them (@pxref{Commands for Insertion}), normally
+take on the same properties as the preceding character.  This is
+called @dfn{inheritance} of properties.
 
-  A Lisp program can do insertion with inheritance or without,
+  By contrast, a Lisp program can do insertion with inheritance or without,
 depending on the choice of insertion primitive.  The ordinary text
 insertion functions, such as @code{insert}, do not inherit any
 properties.  They insert text with precisely the properties of the

@@ -36,7 +36,7 @@
 
 (defcustom cedet-global-gtags-command "gtags"
   "Command name for the GNU Global gtags executable.
-GTAGS is used to create the tags table queried by the 'global' command."
+GTAGS is used to create the tags table queried by the `global' command."
   :type 'string
   :group 'cedet)
 

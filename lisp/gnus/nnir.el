@@ -281,16 +281,6 @@ is `(valuefunc member)'."
 
 (require 'gnus-sum)
 
-(eval-when-compile
-  (autoload 'nnimap-buffer "nnimap")
-  (autoload 'nnimap-command "nnimap")
-  (autoload 'nnimap-change-group "nnimap")
-  (autoload 'nnimap-make-thread-query "nnimap")
-  (autoload 'gnus-registry-action "gnus-registry")
-  (autoload 'gnus-registry-get-id-key "gnus-registry")
-  (autoload 'gnus-group-topic-name "gnus-topic"))
-
-
 (nnoo-declare nnir)
 (nnoo-define-basics nnir)
 
@@ -360,10 +350,10 @@ result, `gnus-retrieve-headers' will be called instead."
 (defcustom nnir-swish++-additional-switches '()
   "*A list of strings, to be given as additional arguments to swish++.
 
-Note that this should be a list.  Ie, do NOT use the following:
+Note that this should be a list.  I.e., do NOT use the following:
     (setq nnir-swish++-additional-switches \"-i -w\") ; wrong
 Instead, use this:
-    (setq nnir-swish++-additional-switches '(\"-i\" \"-w\"))"
+    (setq nnir-swish++-additional-switches \\='(\"-i\" \"-w\"))"
   :type '(repeat (string))
   :group 'nnir)
 
@@ -409,10 +399,10 @@ This cannot be a server parameter."
 (defcustom nnir-swish-e-additional-switches '()
   "*A list of strings, to be given as additional arguments to swish-e.
 
-Note that this should be a list.  Ie, do NOT use the following:
+Note that this should be a list.  I.e., do NOT use the following:
     (setq nnir-swish-e-additional-switches \"-i -w\") ; wrong
 Instead, use this:
-    (setq nnir-swish-e-additional-switches '(\"-i\" \"-w\"))
+    (setq nnir-swish-e-additional-switches \\='(\"-i\" \"-w\"))
 
 This could be a server parameter."
   :type '(repeat (string))
@@ -439,10 +429,10 @@ This could be a server parameter."
 
 (defcustom nnir-hyrex-additional-switches '()
   "*A list of strings, to be given as additional arguments for nnir-search.
-Note that this should be a list. Ie, do NOT use the following:
+Note that this should be a list. I.e., do NOT use the following:
     (setq nnir-hyrex-additional-switches \"-ddl ddl.xml -c nnir\") ; wrong !
 Instead, use this:
-    (setq nnir-hyrex-additional-switches '(\"-ddl\" \"ddl.xml\" \"-c\" \"nnir\"))"
+    (setq nnir-hyrex-additional-switches \\='(\"-ddl\" \"ddl.xml\" \"-c\" \"nnir\"))"
   :type '(repeat (string))
   :group 'nnir)
 
@@ -481,10 +471,10 @@ arrive at the correct group name, \"mail.misc\"."
 The switches `-q', `-a', and `-s' are always used, very few other switches
 make any sense in this context.
 
-Note that this should be a list.  Ie, do NOT use the following:
+Note that this should be a list.  I.e., do NOT use the following:
     (setq nnir-namazu-additional-switches \"-i -w\") ; wrong
 Instead, use this:
-    (setq nnir-namazu-additional-switches '(\"-i\" \"-w\"))"
+    (setq nnir-namazu-additional-switches \\='(\"-i\" \"-w\"))"
   :type '(repeat (string))
   :group 'nnir)
 
@@ -510,10 +500,10 @@ arrive at the correct group name, \"mail.misc\"."
 (defcustom nnir-notmuch-additional-switches '()
   "*A list of strings, to be given as additional arguments to notmuch.
 
-Note that this should be a list.  Ie, do NOT use the following:
+Note that this should be a list.  I.e., do NOT use the following:
     (setq nnir-notmuch-additional-switches \"-i -w\") ; wrong
 Instead, use this:
-    (setq nnir-notmuch-additional-switches '(\"-i\" \"-w\"))"
+    (setq nnir-notmuch-additional-switches \\='(\"-i\" \"-w\"))"
   :version "24.1"
   :type '(repeat (string))
   :group 'nnir)
@@ -585,6 +575,8 @@ Add an entry here when adding a new search engine.")
 				  nnir-engines)))))
 
 ;; Gnus glue.
+
+(declare-function gnus-group-topic-name "gnus-topic" ())
 
 (defun gnus-group-make-nnir-group (nnir-extra-parms &optional specs)
   "Create an nnir group.  Prompt for a search query and determine
@@ -947,6 +939,10 @@ ready to be added to the list of search results."
 	    (string-to-number score)))))
 
 ;;; Search Engine Interfaces:
+
+(autoload 'nnimap-change-group "nnimap")
+(declare-function nnimap-buffer "nnimap" ())
+(declare-function nnimap-command "nnimap" (&rest args))
 
 ;; imap interface
 (defun nnir-run-imap (query srv &optional groups)
@@ -1774,6 +1770,9 @@ environment unless `not-global' is non-nil."
   (let ((backend (car (gnus-server-to-method server))))
     (nnoo-current-server-p (or backend 'nnir) server)))
 
+(autoload 'nnimap-make-thread-query "nnimap")
+(declare-function gnus-registry-get-id-key "gnus-registry" (id key))
+
 (defun nnir-search-thread (header)
   "Make an nnir group based on the thread containing the article
 header. The current server will be searched. If the registry is
@@ -1840,6 +1839,10 @@ article came from is also searched."
 		    groups))
 	    (forward-line)))))
     groups))
+
+;; Behind gnus-registry-enabled test.
+(declare-function gnus-registry-action "gnus-registry"
+                  (action data-header from &optional to method))
 
 (defun nnir-registry-action (action data-header from &optional to method)
   "Call `gnus-registry-action' with the original article group."

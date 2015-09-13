@@ -197,7 +197,7 @@ Return list with entries."
              "[" default "]: ")
             (if reftex-mode
                 (if (fboundp 'LaTeX-bibitem-list)
-                    (LaTeX-bibitem-list)
+                    (or (LaTeX-bibitem-list) '(""))
                   (cdr (assoc 'bibview-cache
                               (symbol-value reftex-docstruct-symbol))))
               nil)
@@ -228,11 +228,11 @@ Return list with entries."
               (message "No such BibTeX file %s (ignored)" buffer)
             (message "Scanning bibliography database %s" buffer1)
 	    (unless (verify-visited-file-modtime buffer1)
-		 (when (y-or-n-p
-			(format "File %s changed on disk.  Reread from disk? "
-				(file-name-nondirectory
-				 (buffer-file-name buffer1))))
-		   (with-current-buffer buffer1 (revert-buffer t t)))))
+              (when (y-or-n-p
+                     (format "File %s changed on disk.  Reread from disk? "
+                             (file-name-nondirectory
+                              (buffer-file-name buffer1))))
+                (with-current-buffer buffer1 (revert-buffer t t)))))
 
           (set-buffer buffer1)
           (reftex-with-special-syntax-for-bib
@@ -543,7 +543,14 @@ If FORMAT is non-nil `format' entry accordingly."
        (extra
         (cond
          ((equal type "article")
-          (concat (reftex-get-bib-field "journal" entry) " "
+          (concat (let ((jt (reftex-get-bib-field "journal" entry)))
+                    ;; biblatex prefers the alternative journaltitle
+                    ;; field, so check if that exists in case journal
+                    ;; is empty.
+                    (if (zerop (length jt))
+                        (reftex-get-bib-field "journaltitle" entry)
+                      jt))
+                  " "
                   (reftex-get-bib-field "volume" entry) ", "
                   (reftex-get-bib-field "pages" entry)))
          ((equal type "book")

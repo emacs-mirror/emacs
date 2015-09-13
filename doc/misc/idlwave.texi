@@ -2,6 +2,7 @@
 @c %**start of header
 @setfilename ../../info/idlwave.info
 @settitle IDLWAVE User Manual
+@include docstyle.texi
 @synindex ky cp
 @syncodeindex vr cp
 @syncodeindex fn cp
@@ -12,7 +13,6 @@
 @set DATE April, 2007
 @set AUTHOR J.D. Smith & Carsten Dominik
 @set MAINTAINER J.D. Smith
-@documentencoding UTF-8
 @c %**end of header
 @finalout
 
@@ -129,7 +129,7 @@ Completion
 Actions
 
 * Block Boundary Check::        Is the END statement correct?
-* Padding Operators::           Enforcing space around `=' etc
+* Padding Operators::           Enforcing space around @samp{=} etc
 * Case Changes::                Enforcing upper case keywords
 
 The IDLWAVE Shell
@@ -501,7 +501,7 @@ plot_wday,1,1
 @noindent and press @key{RET}.  This fails with an error message telling
 you the @code{YT} keyword to plot is ambiguous.  What are the allowed
 keywords again?  Go back to the source window and put the cursor into
-the `plot' line and press @kbd{C-c ?}.  This shows the routine info
+the ``plot'' line and press @kbd{C-c ?}.  This shows the routine info
 window for the plot routine, which contains a list of keywords, along
 with the argument list.  Oh, we wanted @code{YTITLE}.  Fix that up.
 Recompile with @kbd{C-c C-d C-c}. Jump back into the shell with
@@ -608,7 +608,7 @@ Group}. Here you'll be presented with all the various variables grouped
 into categories.  You can navigate the hierarchy (e.g., @samp{IDLWAVE
 Code Formatting->Idlwave Abbrev And Indent Action->Idlwave Expand
 Generic End} to turn on @code{END} expansion), read about the variables,
-change them, and `Save for Future Sessions'.  Few of these variables
+change them, and ``Save for Future Sessions''.  Few of these variables
 need customization, but you can exercise considerable control over
 IDLWAVE's functionality with them.
 
@@ -705,7 +705,7 @@ library:
     a=readf@key{M-@key{TAB}}
 @end example
 
-expands to `readfits('.  Then try
+expands to ``readfits(''.  Then try
 
 @example
     a=readfits(@key{C-c ?}
@@ -1010,7 +1010,7 @@ Non-@code{nil} means use last match on line for
 @cindex Highlighting of syntax
 @cindex Font lock
 
-Highlighting of keywords, comments, strings etc. can be accomplished
+Highlighting of keywords, comments, strings etc.@: can be accomplished
 with @code{font-lock}.  If you are using @code{global-font-lock-mode}
 (in Emacs), or have @code{font-lock} turned on in any other buffer in
 XEmacs, it should also automatically work in IDLWAVE buffers.  If you'd
@@ -1599,7 +1599,7 @@ completed keywords.
 
 @defopt idlwave-function-completion-adds-paren (@code{t})
 Non-@code{nil} means completion automatically adds @samp{(} after
-completed function.  A value of `2' means also add the closing
+completed function.  A value of 2 means also add the closing
 parenthesis and position the cursor between the two.
 @end defopt
 
@@ -2121,7 +2121,7 @@ settings are described below and set separately.
 
 @menu
 * Block Boundary Check::        Is the END statement correct?
-* Padding Operators::           Enforcing space around `=' etc
+* Padding Operators::           Enforcing space around @samp{=} etc
 * Case Changes::                Enforcing upper case keywords
 @end menu
 
@@ -2490,7 +2490,7 @@ The frame parameters for a dedicated idlwave-shell frame.
 @end defopt
 
 @defopt idlwave-shell-raise-frame (@code{t})
-Non-@code{nil} means `idlwave-shell' raises the frame showing the shell
+Non-@code{nil} means @code{idlwave-shell} raises the frame showing the shell
 window.
 @end defopt
 
@@ -3111,7 +3111,7 @@ window, but is useful for immediate stepping, etc.
 @kindex C-c C-d C-p
 Do you find yourself repeatedly typing, e.g., @code{print,n_elements(x)},
 and similar statements to remind yourself of the
-type/size/structure/value/etc. of variables and expressions in your code
+type/size/structure/value/etc.@: of variables and expressions in your code
 or at the command line?  IDLWAVE has a suite of special commands to
 automate these types of variable or expression examinations.  They work
 by sending statements to the shell formatted to include the indicated
@@ -3800,31 +3800,25 @@ available, it is the preferred choice, and the default.  The variable
 whether this help browser is used.  If you use the IDL Assistant, the
 tips here are not relevant.
 
-Since IDLWAVE runs on a many different system types, a single browser
-configuration is not possible, but choices abound.  On many systems,
-the default browser configured in @code{browse-url-browser-function},
-and hence inherited by default by
-@code{idlwave-help-browser-function}, is Netscape.  Unfortunately, the
-HTML manuals decompiled from the original source contain formatting
-structures which Netscape 4.x does not handle well, though they are
-still readable.  A much better choice is Mozilla, or one of the
-Mozilla-derived browsers such as
-@uref{http://galeon.sourceforge.net/,Galeon} (GNU/Linux),
-@uref{http://www.mozilla.org/projects/camino/,Camino} (MacOSX), or
-@uref{http://www.mozilla.org/projects/firebird/,Firebird} (all
-platforms).  Newer versions of Emacs provide a browser-function choice
-@code{browse-url-gnome-moz} which uses the Gnome-configured browser.
+Since IDLWAVE runs on many different system types, a single browser
+configuration is not possible, but choices abound.  The default
+@code{idlwave-help-browser-function} inherits the browser configured
+in @code{browse-url-browser-function}.
 
 Note that the HTML files decompiled from the help sources contain
 specific references to the @samp{Symbol} font, which by default is not
 permitted in normal encodings (it's invalid, technically).  Though it
 only impacts a few symbols, you can trick Mozilla-based browsers into
 recognizing @samp{Symbol} by following the directions
+@c This page is 11 years old.  Is it still relevant?
 @uref{http://hutchinson.belmont.ma.us/tth/Xfonts.html, here}.  With
 this fix in place, HTML help pages look almost identical to their PDF
 equivalents (yet can be bookmarked, browsed as history, searched,
 etc.).
 
+@c Not updated in over a decade.
+@c Maybe you want to recommend eww these days.
+@ignore
 @noindent Individual platform recommendations:
 
 @itemize @bullet
@@ -3861,6 +3855,7 @@ following, to get consistent behavior with the @kbd{q} key:
 Note that you can open the file in an external browser from within
 @code{w3m} using @kbd{M}.
 @end itemize
+@end ignore
 
 @node Configuration Examples
 @appendix Configuration Examples
@@ -3948,7 +3943,7 @@ user is King!
       w3m-use-header-line nil
       w3m-use-toolbar nil)
 
-;; Close my help window or frame when w3m closes with `q'
+;; Close my help window or frame when w3m closes with 'q'.
 (defadvice w3m-close-window (after idlwave-close activate)
   (if (boundp 'idlwave-help-frame)
       (idlwave-help-quit)))
@@ -3974,11 +3969,11 @@ user is King!
     (idlwave-action-and-binding "," '(idlwave-surround nil 1))
     (idlwave-action-and-binding "&" '(idlwave-surround 1 1))
 
-    ;; Pad only after `->', remove any space before the arrow
+    ;; Pad only after '->', remove any space before the arrow
     (idlwave-action-and-binding "->"  '(idlwave-surround 0 -1 nil 2))
 
     ;; Set some personal bindings
-    ;; (In this case, makes `,' have the normal self-insert behavior.)
+    ;; (In this case, makes ',' have the normal self-insert behavior.)
     (local-set-key "," 'self-insert-command)
     (local-set-key [f5] 'idlwave-shell-break-here)
     (local-set-key [f6] 'idlwave-shell-clear-current-bp)

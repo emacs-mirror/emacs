@@ -213,7 +213,7 @@ For example, suppose `load-path' is set to
 
 and that each of these directories contains a file called XXX.el.  Then
 XXX.el in the site-lisp directory is referred to by all of:
-\(require 'XXX), (autoload .... \"XXX\"), (load-library \"XXX\") etc.
+\(require \\='XXX), (autoload .... \"XXX\"), (load-library \"XXX\") etc.
 
 The first XXX.el file prevents Emacs from seeing the second (unless
 the second is loaded explicitly via `load-file').

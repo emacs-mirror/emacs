@@ -458,7 +458,7 @@ These special properties include `invisible', `intangible' and `read-only'."
 
 (defcustom list-colors-sort nil
   "Color sort order for `list-colors-display'.
-`nil' means default implementation-dependent order (defined in `x-colors').
+nil means default implementation-dependent order (defined in `x-colors').
 `name' sorts by color name.
 `rgb' sorts by red, green, blue components.
 `(rgb-dist . COLOR)' sorts by the RGB distance to the specified color.

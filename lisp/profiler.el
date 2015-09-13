@@ -56,7 +56,7 @@
 	 (format "%s" object))))
 
 (defun profiler-format-percent (number divisor)
-  (concat (number-to-string (/ (* number 100) divisor)) "%"))
+  (format "%d%%" (floor (* 100.0 number) divisor)))
 
 (defun profiler-format-number (number)
   "Format NUMBER in human readable string."

@@ -171,7 +171,7 @@ is the symbol being selected.
 
 Example value:
 
-  '((\"Emacs Lisp\" Info-goto-emacs-command-node obarray)
+   ((\"Emacs Lisp\" Info-goto-emacs-command-node obarray)
     (\"Common Lisp\" common-lisp-hyperspec common-lisp-hyperspec-obarray)
     (\"SCWM\" scwm-documentation scwm-obarray))"
   :group 'etags
@@ -204,7 +204,7 @@ nil means it has not yet been computed;
 use function `tags-table-files' to do so.")
 
 (defvar tags-completion-table nil
-  "Obarray of tag names defined in current tags table.")
+  "List of tag names defined in current tags table.")
 
 (defvar tags-included-tables nil
   "List of tags tables included by the current tags table.")
@@ -759,23 +759,19 @@ tags table and its (recursively) included tags tables."
   (or tags-completion-table
       ;; No cached value for this buffer.
       (condition-case ()
-	  (let (current-table combined-table)
+	  (let (tables cont)
 	    (message "Making tags completion table for %s..." buffer-file-name)
 	    (save-excursion
 	      ;; Iterate over the current list of tags tables.
-	      (while (visit-tags-table-buffer (and combined-table t))
+	      (while (visit-tags-table-buffer cont)
 		;; Find possible completions in this table.
-		(setq current-table (funcall tags-completion-table-function))
-		;; Merge this buffer's completions into the combined table.
-		(if combined-table
-		    (mapatoms
-		     (lambda (sym) (intern (symbol-name sym) combined-table))
-		     current-table)
-		  (setq combined-table current-table))))
+                (push (funcall tags-completion-table-function) tables)
+                (setq cont t)))
 	    (message "Making tags completion table for %s...done"
 		     buffer-file-name)
 	    ;; Cache the result in a buffer-local variable.
-	    (setq tags-completion-table combined-table))
+	    (setq tags-completion-table
+                  (nreverse (delete-dups (apply #'nconc tables)))))
 	(quit (message "Tags completion table construction aborted.")
 	      (setq tags-completion-table nil)))))
 
@@ -805,15 +801,16 @@ If no tags table is loaded, do nothing and return nil."
 				    case-fold-search))
 	  (pattern (funcall (or find-tag-default-function
 				(get major-mode 'find-tag-default-function)
-				'find-tag-default)))
+				#'find-tag-default)))
 	  beg)
       (when pattern
 	(save-excursion
           (forward-char (1- (length pattern)))
-          (search-backward pattern)
-          (setq beg (point))
-          (forward-char (length pattern))
-          (list beg (point) (tags-lazy-completion-table) :exclusive 'no))))))
+          ;; The find-tag function might be overly optimistic.
+          (when (search-backward pattern nil t)
+            (setq beg (point))
+            (forward-char (length pattern))
+            (list beg (point) (tags-lazy-completion-table) :exclusive 'no)))))))
 
 (defun find-tag-tag (string)
   "Read a tag name, with defaulting and completion."
@@ -947,6 +944,7 @@ onto a ring and may be popped back to with \\[pop-tag-mark].
 Contrast this with the ring of marks gone to by the command.
 
 See documentation of variable `tags-file-name'."
+  (declare (obsolete xref-find-definitions "25.1"))
   (interactive (find-tag-interactive "Find tag: "))
   (let* ((buf (find-tag-noselect tagname next-p regexp-p))
 	 (pos (with-current-buffer buf (point))))
@@ -1254,7 +1252,7 @@ buffer-local values of tags table format variables."
 
 
 (defun etags-tags-completion-table () ; Doc string?
-  (let ((table (make-vector 511 0))
+  (let (table
 	(progress-reporter
 	 (make-progress-reporter
 	  (format "Making tags completion table for %s..." buffer-file-name)
@@ -1270,11 +1268,11 @@ buffer-local values of tags table format variables."
       ;;   \6 is the line to start searching at;
       ;;   \7 is the char to start searching at.
       (while (re-search-forward
-	      "^\\(\\([^\177]+[^-a-zA-Z0-9_+*$:\177]+\\)?\
+	      "^\\(\\([^\177]*[^-a-zA-Z0-9_+*$:\177]+\\)?\
 \\([-a-zA-Z0-9_+*$?:]+\\)[^-a-zA-Z0-9_+*$?:\177]*\\)\177\
 \\(\\([^\n\001]+\\)\001\\)?\\([0-9]+\\)?,\\([0-9]+\\)?\n"
 	      nil t)
-	(intern	(prog1 (if (match-beginning 5)
+	(push	(prog1 (if (match-beginning 5)
 			   ;; There is an explicit tag name.
 			   (buffer-substring (match-beginning 5) (match-end 5))
 			 ;; No explicit tag name.  Best guess.
@@ -1353,9 +1351,16 @@ hits the start of file."
 	    pat (concat (if (eq selective-display t)
 			    "\\(^\\|\^m\\)" "^")
 			(regexp-quote (car tag-info))))
-      ;; The character position in the tags table is 0-origin.
+      ;; The character position in the tags table is 0-origin and counts CRs.
       ;; Convert it to a 1-origin Emacs character position.
-      (if startpos (setq startpos (1+ startpos)))
+      (when startpos
+        (setq startpos (1+ startpos))
+        (when (and line
+                   (eq 1 (coding-system-eol-type buffer-file-coding-system)))
+          ;; Act as if CRs were elided from all preceding lines.
+          ;; Although this doesn't always give exactly the correct position,
+          ;; it does typically improve the guess.
+          (setq startpos (- startpos (1- line)))))
       ;; If no char pos was given, try the given line number.
       (or startpos
 	  (if line
@@ -1454,7 +1459,7 @@ hits the start of file."
         (when (symbolp symbs)
           (if (boundp symbs)
 	      (setq symbs (symbol-value symbs))
-	    (insert "symbol `" (symbol-name symbs) "' has no value\n")
+	    (insert (format-message "symbol `%s' has no value\n" symbs))
 	    (setq symbs nil)))
         (if (vectorp symbs)
 	    (mapatoms ins-symb symbs)
@@ -1464,13 +1469,13 @@ hits the start of file."
 
 (defun etags-tags-apropos (string) ; Doc string?
   (when tags-apropos-verbose
-    (princ "Tags in file `")
+    (princ (substitute-command-keys "Tags in file `"))
     (tags-with-face 'highlight (princ buffer-file-name))
-    (princ "':\n\n"))
+    (princ (substitute-command-keys "':\n\n")))
   (goto-char (point-min))
   (let ((progress-reporter (make-progress-reporter
-			    (format "Making tags apropos buffer for `%s'..."
-				    string)
+			    (format-message
+			     "Making tags apropos buffer for `%s'..." string)
 			    (point-min) (point-max))))
     (while (re-search-forward string nil t)
       (progress-reporter-update progress-reporter (point))
@@ -1623,7 +1628,8 @@ Point should be just after a string that matches TAG."
   ;; Look at the comment of the make_tag function in lib-src/etags.c for
   ;; a textual description of the four rules.
   (and (string-match "^[^ \t()=,;]+$" tag) ;rule #1
-       (looking-at "[ \t()=,;]?\177")	;rules #2 and #4
+       ;; Rules #2 and #4, and a check that there's no explicit name.
+       (looking-at "[ \t()=,;]?\177\\(?:[0-9]+\\)?,\\(?:[0-9]+\\)?$")
        (save-excursion
 	 (backward-char (1+ (length tag)))
 	 (looking-at "[\n \t()=,;]"))))	;rule #3
@@ -1748,7 +1754,7 @@ if the file was newly read in, the value is the filename."
 	 (with-current-buffer buffer
 	   (revert-buffer t t)))
     (if (not (and new novisit))
-	(find-file next novisit)
+	(find-file next)
       ;; Like find-file, but avoids random warning messages.
       (switch-to-buffer (get-buffer-create " *next-file*"))
       (kill-all-local-variables)
@@ -1766,7 +1772,7 @@ if the file was newly read in, the value is the filename."
 	        "No \\[tags-search] or \\[tags-query-replace] in progress"))
   "Form for `tags-loop-continue' to eval to scan one file.
 If it returns non-nil, this file needs processing by evalling
-\`tags-loop-operate'.  Otherwise, move on to the next file.")
+`tags-loop-operate'.  Otherwise, move on to the next file.")
 
 (defun tags-loop-eval (form)
   "Evaluate FORM and return its result.
@@ -1840,7 +1846,9 @@ nil, we exit; otherwise we scan the next file."
 
 	  ;; Now operate on the file.
 	  ;; If value is non-nil, continue to scan the next file.
-	  (tags-loop-eval tags-loop-operate))
+          (save-restriction
+            (widen)
+            (tags-loop-eval tags-loop-operate)))
       (setq file-finished t))
     (and messaged
 	 (null tags-loop-operate)
@@ -1912,9 +1920,9 @@ directory specification."
 				      'tags-complete-tags-table-file
 				      nil t nil)))
   (with-output-to-temp-buffer "*Tags List*"
-    (princ "Tags in file `")
+    (princ (substitute-command-keys "Tags in file `"))
     (tags-with-face 'highlight (princ file))
-    (princ "':\n\n")
+    (princ (substitute-command-keys "':\n\n"))
     (save-excursion
       (let ((first-time t)
 	    (gotany nil))
@@ -1936,9 +1944,10 @@ directory specification."
   (declare (obsolete xref-find-apropos "25.1"))
   (interactive "sTags apropos (regexp): ")
   (with-output-to-temp-buffer "*Tags List*"
-    (princ "Click mouse-2 to follow tags.\n\nTags matching regexp `")
+    (princ (substitute-command-keys
+	    "Click mouse-2 to follow tags.\n\nTags matching regexp `"))
     (tags-with-face 'highlight (princ regexp))
-    (princ "':\n\n")
+    (princ (substitute-command-keys "':\n\n"))
     (save-excursion
       (let ((first-time t))
 	(while (visit-tags-table-buffer (not first-time))
@@ -2073,11 +2082,23 @@ for \\[find-tag] (which see)."
 ;; we hit the limit rarely.
 (defconst etags--xref-limit 1000)
 
+(defvar etags-xref-find-definitions-tag-order '(tag-exact-match-p
+                                                tag-implicit-name-match-p)
+  "Tag order used in `etags-xref-find' to look for definitions.")
+
 ;;;###autoload
 (defun etags-xref-find (action id)
   (pcase action
     (`definitions (etags--xref-find-definitions id))
+    (`references  (etags--xref-find-references id))
     (`apropos (etags--xref-find-definitions id t))))
+
+(defun etags--xref-find-references (symbol)
+  ;; TODO: Merge together with the Elisp impl.
+  (cl-mapcan
+   (lambda (dir)
+     (xref-collect-references symbol dir))
+   (project-search-path (project-current))))
 
 (defun etags--xref-find-definitions (pattern &optional regexp?)
   ;; This emulates the behaviour of `find-tag-in-order' but instead of
@@ -2094,7 +2115,7 @@ for \\[find-tag] (which see)."
       (while (visit-tags-table-buffer (not first-time))
         (setq first-time nil)
         (dolist (order-fun (cond (regexp? find-tag-regexp-tag-order)
-                                 (t find-tag-tag-order)))
+                                 (t etags-xref-find-definitions-tag-order)))
           (goto-char (point-min))
           (while (and (funcall search-fun pattern nil t)
                       (< (hash-table-count marks) etags--xref-limit))
@@ -2128,6 +2149,13 @@ for \\[find-tag] (which see)."
       (with-current-buffer buffer
         (etags-goto-tag-location tag-info)
         (point-marker)))))
+
+(cl-defmethod xref-location-line ((l xref-etags-location))
+  (with-slots (tag-info) l
+    (nth 1 tag-info)))
+
+(defun etags-search-path ()
+  (mapcar #'file-name-directory tags-table-list))
 
 
 (provide 'etags)

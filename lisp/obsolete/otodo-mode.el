@@ -648,7 +648,7 @@ If point is on an empty line, insert the entry there."
     (forward-line (1- todo-previous-line))
     (let ((item (todo-item-string-start)))
       (setq todo-previous-answer
-            (y-or-n-p (concat "More important than '" item "'? ")))))
+            (y-or-n-p (format-message "More important than `%s'? " item)))))
   todo-previous-answer)
 (defalias 'todo-ask-p 'todo-more-important-p)
 
@@ -734,7 +734,7 @@ If point is on an empty line, insert the entry there."
 Number of entries for each category is given by NOF-PRIORITIES which
 defaults to `todo-show-priorities'.
 
-If CATEGORY-PR-PAGE is non-nil, a page separator \'^L\' is inserted
+If CATEGORY-PR-PAGE is non-nil, a page separator `^L' is inserted
 between each category.
 INTERACTIVE should be non-nil if this function is called interactively."
 

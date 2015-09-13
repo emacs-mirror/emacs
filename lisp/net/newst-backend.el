@@ -235,7 +235,7 @@ which apply for this feed only, overriding the value of
   'intern
   "Method for retrieving news from the web, either `intern' or `extern'.
 Default value `intern' uses Emacs' built-in asynchronous download
-capabilities ('url-retrieve').  If set to `extern' the external
+capabilities (`url-retrieve').  If set to `extern' the external
 program wget is used, see `newsticker-wget-name'."
   :type '(choice :tag "Method"
                  (const :tag "Intern" intern)
@@ -332,9 +332,9 @@ deleted at the next retrieval."
 This is an alist of the form (FEED-NAME PATTERN-LIST).  I.e. each
 element consists of a FEED-NAME a PATTERN-LIST.  Each element of
 the pattern-list has the form (AGE TITLE-OR-DESCRIPTION REGEXP).
-AGE must be one of the symbols 'old or 'immortal.
-TITLE-OR-DESCRIPTION must be on of the symbols 'title,
-'description, or 'all.  REGEXP is a regular expression, i.e. a
+AGE must be one of the symbols `old' or `immortal'.
+TITLE-OR-DESCRIPTION must be one of the symbols `title',
+`description', or `all'.  REGEXP is a regular expression, i.e., a
 string.
 
 This filter is checked after a new headline has been retrieved.
@@ -343,8 +343,8 @@ pattern-list is checked: The new headline will be marked as AGE
 if REGEXP matches the headline's TITLE-OR-DESCRIPTION.
 
 If, for example, `newsticker-auto-mark-filter-list' looks like
- \((slashdot ('old 'title \"^Forget me!$\") ('immortal 'title \"Read me\")
-  \('immortal 'all \"important\"))))
+ \((slashdot (\\='old \\='title \"^Forget me!$\") (\\='immortal \\='title \"Read me\")
+  \(\\='immortal \\='all \"important\"))))
 
 then all articles from slashdot are marked as old if they have
 the title \"Forget me!\".  All articles with a title containing
@@ -846,7 +846,7 @@ Argument BUFFER is the buffer of the retrieval process."
                newsticker--cache
                name-symbol
                newsticker--error-headline
-               (format
+               (format-message
                 (concat "%s: Newsticker could not retrieve news from %s.\n"
                         "Return status: `%s'\n"
                         "Command was `%s'")

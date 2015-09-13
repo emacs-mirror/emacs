@@ -177,7 +177,7 @@ contain wildcard characters:
   PATTERN is case-insensitive.
 
 The return value is a list of strings, suitable as arguments to
-\`set-face-font'.
+`set-face-font'.
 
 Fonts Emacs can't use may or may not be excluded
 even if they match PATTERN and FACE.
@@ -218,8 +218,10 @@ the operating system.")
 ;; From lisp/term/w32-win.el
 ;
 ;;;; Selections
-;
-(defun w16-get-selection-value (_selection-symbol _target-type)
+
+;; gui-get-selection is used in select.el
+(cl-defmethod gui-backend-get-selection (_selection-symbol _target-type
+                                         &context (window-system (eql pc)))
   "Return the value of the current selection.
 Consult the selection.  Treat empty strings as if they were unset."
   ;; Don't die if x-get-selection signals an error.
@@ -228,8 +230,13 @@ Consult the selection.  Treat empty strings as if they were unset."
 
 (declare-function w16-selection-exists-p "w16select.c")
 ;; gui-selection-owner-p is used in simple.el.
-(gui-method-define gui-selection-exists-p pc #'w16-selection-exists-p)
-(gui-method-define gui-selection-owner-p pc #'w16-selection-owner-p)
+(cl-defmethod gui-backend-selection-exists-p (selection
+                                              &context (window-system (eql pc)))
+  (w16-selection-exists-p selection))
+
+(cl-defmethod gui-backend-selection-owner-p (selection
+                                             &context (window-system (eql pc)))
+  (w16-selection-owner-p selection))
 
 (defun w16-selection-owner-p (_selection)
   ;; FIXME: Other systems don't obey select-enable-clipboard here.
@@ -250,19 +257,16 @@ Consult the selection.  Treat empty strings as if they were unset."
 ;; gui-set-selection is used in gui-set-selection.
 (declare-function w16-set-clipboard-data "w16select.c"
 		  (string &optional ignored))
-(gui-method-define gui-set-selection pc
-                   (lambda (selection value)
-                     (if (not value)
-                         (if (w16-selection-owner-p selection)
-                             t)
-                       ;; FIXME: Other systems don't obey
-                       ;; gui-select-enable-clipboard here.
-                       (with-demoted-errors "w16-set-clipboard-data: %S"
-                         (w16-set-clipboard-data value))
-                       value)))
-
-;; gui-get-selection is used in select.el
-(gui-method-define gui-get-selection pc #'w16-get-selection-value)
+(cl-defmethod gui-backend-set-selection (selection value
+                                         &context (window-system (eql pc)))
+  (if (not value)
+      (if (w16-selection-owner-p selection)
+          t)
+    ;; FIXME: Other systems don't obey
+    ;; gui-select-enable-clipboard here.
+    (with-demoted-errors "w16-set-clipboard-data: %S"
+      (w16-set-clipboard-data value))
+    value))
 
 ;; From src/fontset.c:
 (fset 'query-fontset 'ignore)
@@ -310,15 +314,15 @@ This is used by `msdos-show-help'.")
 
 ;; Initialization.
 ;; ---------------------------------------------------------------------------
-;; This function is run, by faces.el:tty-create-frame-with-faces, only
-;; for the initial frame (on each terminal, but we have only one).
+;; This function is run, by the tty method of `frame-creation-function'
+;; (in faces.el), only for the initial frame (on each terminal, but we have
+;; only one).
 ;; This works by setting the `terminal-initted' terminal parameter to
-;; this function, the first time `tty-create-frame-with-faces' is
-;; called on that terminal.  `tty-create-frame-with-faces' is called
-;; directly from startup.el and also by `make-frame' through
-;; `frame-creation-function-alist'.  `make-frame' will call this
-;; function if `msdos-create-frame-with-faces' (see below) is not
-;; found in `frame-creation-function-alist', which means something is
+;; this function, the first time `frame-creation-function' is
+;; called on that terminal.  `frame-creation-function' is called
+;; directly from startup.el and also by `make-frame'.
+;; `make-frame' should call our own `frame-creation-function' method instead
+;; (see below) so if terminal-init-internal is called it means something is
 ;; _very_ wrong, because "internal" terminal emulator should not be
 ;; turned on if our window-system is not `pc'.  Therefore, the only
 ;; Right Thing for us to do here is scream bloody murder.
@@ -328,7 +332,9 @@ Errors out because it is not supposed to be called, ever."
   (error "terminal-init-internal called for window-system `%s'"
 	 (window-system)))
 
-(defun msdos-initialize-window-system (&optional _display)
+;; window-system-initialization is called by startup.el:command-line.
+(cl-defmethod window-system-initialization (&context (window-system (eql pc))
+                                            &optional _display)
   "Initialization function for the `pc' \"window system\"."
   (or (eq (window-system) 'pc)
       (error
@@ -370,17 +376,14 @@ Errors out because it is not supposed to be called, ever."
   (menu-bar-enable-clipboard)
   (run-hooks 'terminal-init-msdos-hook))
 
-;; frame-creation-function-alist is examined by frame.el:make-frame.
-(gui-method-define frame-creation-function
-                   pc #'msdos-create-frame-with-faces)
-;; window-system-initialization-alist is examined by startup.el:command-line.
-(gui-method-define window-system-initialization
-                   pc #'msdos-initialize-window-system)
+;; frame-creation-function is called by frame.el:make-frame.
+(cl-defmethod frame-creation-function (params &context (window-system (eql pc)))
+  (msdos-create-frame-with-faces params))
+
 ;; We don't need anything beyond tty-handle-args for handling
 ;; command-line argument; see startup.el.
-(gui-method-define handle-args-function pc #'tty-handle-args)
-
-
+(cl-defmethod handle-args-function (args &context (window-system (eql pc)))
+  (tty-handle-args args))
 
 ;; ---------------------------------------------------------------------------
 

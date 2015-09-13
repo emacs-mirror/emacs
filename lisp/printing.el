@@ -1746,14 +1746,14 @@ Examples:
 
 * On GNU or Unix system:
 
-   '((unix      \".\" \"~/bin\" ghostview mpage PATH)
+    ((unix      \".\" \"~/bin\" ghostview mpage PATH)
      (ghostview \"$HOME/bin/gsview-dir\")
      (mpage     \"$HOME/bin/mpage-dir\")
      )
 
 * On Windows system:
 
-   '((windows   \"c:/applications/executables\" PATH ghostview mpage)
+    ((windows   \"c:/applications/executables\" PATH ghostview mpage)
      (ghostview \"c:/gs/gsview-dir\")
      (mpage     \"c:/mpage-dir\")
      )"
@@ -1810,8 +1810,8 @@ Where:
 SYMBOL		It's a symbol to identify a text printer.  It's for
 		setting option `pr-txt-name' and for menu selection.
 		Examples:
-			'prt_06a
-			'my_printer
+			prt_06a
+			my_printer
 
 COMMAND		Name of the program for printing a text file.  On MS-DOS and
 		MS-Windows systems, if the value is an empty string, then Emacs
@@ -1838,7 +1838,7 @@ SWITCHES	List of sexp's to pass as extra options for text printer
 		instead of including an explicit switch on this list.
 		Example:
 		   . for lpr
-			'(\"-#3\" \"-l\")
+			(\"-#3\" \"-l\")
 			nil
 
 NAME		A string that specifies a text printer name.
@@ -1869,13 +1869,13 @@ Examples:
 
 * On GNU or Unix system:
 
-   '((prt_06a \"lpr\" nil \"prt_06a\")
+    ((prt_06a \"lpr\" nil \"prt_06a\")
      (prt_07c nil   nil \"prt_07c\")
      )
 
 * On Windows system:
 
-   '((prt_06a  \"print\"     nil \"/D:\\\\\\\\printers\\\\prt_06a\")
+    ((prt_06a  \"print\"     nil \"/D:\\\\\\\\printers\\\\prt_06a\")
      (prt_07c  nil         nil \"/D:\\\\\\\\printers\\\\prt_07c\")
      (PRN      \"\"          nil \"PRN\")
      (standard \"redpr.exe\" nil \"\")
@@ -1961,8 +1961,8 @@ Where:
 SYMBOL		It's a symbol to identify a PostScript printer.  It's for
 		setting option `pr-ps-name' and for menu selection.
 		Examples:
-			'prt_06a
-			'my_printer
+			prt_06a
+			my_printer
 
 COMMAND		Name of the program for printing a PostScript file.  On MS-DOS
 		and MS-Windows systems, if the value is an empty string then
@@ -1991,11 +1991,11 @@ SWITCHES	List of sexp's to pass as extra options for PostScript printer
 		instead of including an explicit switch on this list.
 		Example:
 		   . for lpr
-			'(\"-#3\" \"-l\")
+			(\"-#3\" \"-l\")
 			nil
 
 		   . for gsprint.exe
-			'(\"-all\" \"-twoup\")
+			(\"-all\" \"-twoup\")
 
 PRINTER-SWITCH	A string that specifies PostScript printer name switch.  If
 		it's necessary to have a space between PRINTER-SWITCH and NAME,
@@ -2057,9 +2057,9 @@ DEFAULT		It's a way to set default values when this entry is selected.
 		which the current setting inherits the context.  Take care with
 		circular inheritance.
 		Examples:
-			'(ps-landscape-mode . nil)
-			'(ps-spool-duplex . t)
-			'(pr-gs-device . (my-gs-device t))
+			(ps-landscape-mode . nil)
+			(ps-spool-duplex . t)
+			(pr-gs-device . (my-gs-device t))
 
 This variable should be modified by customization engine.  If this variable is
 modified by other means (for example, a lisp function), use `pr-update-menus'
@@ -2069,14 +2069,14 @@ Examples:
 
 * On GNU or Unix system:
 
-   '((lps_06b \"lpr\" nil \"-P\" \"lps_06b\")
+    ((lps_06b \"lpr\" nil \"-P\" \"lps_06b\")
      (lps_07c \"lpr\" nil nil  \"lps_07c\")
      (lps_08c nil   nil nil  \"lps_08c\")
      )
 
 * On Windows system:
 
-   '((lps_06a  \"print\"     nil \"/D:\" \"\\\\\\\\printers\\\\lps_06a\")
+    ((lps_06a  \"print\"     nil \"/D:\" \"\\\\\\\\printers\\\\lps_06a\")
      (lps_06b  \"print\"     nil nil   \"\\\\\\\\printers\\\\lps_06b\")
      (lps_07c  \"print\"     nil \"\"    \"/D:\\\\\\\\printers\\\\lps_07c\")
      (lps_08c  nil         nil nil   \"\\\\\\\\printers\\\\lps_08c\")
@@ -2102,7 +2102,7 @@ Also the gsprint utility comes together with gsview distribution.
 As an example of gsprint declaration:
 
    (setq pr-ps-printer-alist
-	 '((A \"gsprint\" (\"-all\" \"-twoup\") \"-printer \" \"lps_015\")
+	 \\='((A \"gsprint\" (\"-all\" \"-twoup\") \"-printer \" \"lps_015\")
 	   (B \"gsprint\" (\"-all\" \"-twoup\") nil \"-printer lps_015\")
 	   ;; some other printer declaration
 	   ))
@@ -2594,9 +2594,9 @@ DEFAULT		It's a way to set default values when this entry is selected.
 		which the current setting inherits the context.  Take care with
 		circular inheritance.
 		Examples:
-			'(ps-landscape-mode . nil)
-			'(ps-spool-duplex . t)
-			'(pr-gs-device . (my-gs-device t))"
+			(ps-landscape-mode . nil)
+			(ps-spool-duplex . t)
+			(pr-gs-device . (my-gs-device t))"
   :type '(repeat
 	  (list
 	   :tag ""
@@ -2690,8 +2690,8 @@ Where:
 SYMBOL		It's a symbol to identify a PostScript utility.  It's for
 		`pr-ps-utility' variable setting and for menu selection.
 		Examples:
-			'mpage
-			'psnup
+			mpage
+			psnup
 
 UTILITY		Name of utility for processing a PostScript file.
 		See also `pr-path-alist'.
@@ -2708,7 +2708,7 @@ MUST-SWITCHES	List of sexp's to pass as options to the PostScript utility
 		program and must be placed before any other switches.
 		Example:
 		    . for psnup:
-			'(\"-q\")
+			(\"-q\")
 
 PAPERSIZE	It's a format string to specify paper size switch.
 		Example:
@@ -2752,7 +2752,7 @@ SWITCHES	List of sexp's to pass as extra options to the PostScript utility
 		program.
 		Example:
 		    . for psnup
-			'(\"-q\")
+			(\"-q\")
 			nil
 
 DEFAULT		It's a way to set default values when this entry is selected.
@@ -2772,9 +2772,9 @@ DEFAULT		It's a way to set default values when this entry is selected.
 		which the current setting inherits the context.  Take care with
 		circular inheritance.
 		Examples:
-			'(pr-file-landscape . nil)
-			'(pr-file-duplex . t)
-			'(pr-gs-device . (my-gs-device t))
+			(pr-file-landscape . nil)
+			(pr-file-duplex . t)
+			(pr-gs-device . (my-gs-device t))
 
 This variable should be modified by customization engine.  If this variable is
 modified by other means (for example, a lisp function), use `pr-update-menus'
@@ -2787,14 +2787,14 @@ Examples:
 
 * On GNU or Unix system:
 
-   '((mpage \"mpage\" nil    \"-b%s\" \"-%d\" \"-l\" \"-t\" \"-T\" \">\" nil)
+    ((mpage \"mpage\" nil    \"-b%s\" \"-%d\" \"-l\" \"-t\" \"-T\" \">\" nil)
      (psnup \"psnup\" (\"-q\") \"-P%s\" \"-%d\" \"-l\" nil  nil  \" \" nil
 	    (pr-file-duplex . nil) (pr-file-tumble . nil))
      )
 
 * On Windows system:
 
-   '((psnup \"c:/psutils/psnup\" (\"-q\") \"-P%s\" \"-%d\" \"-l\" nil nil \" \"
+    ((psnup \"c:/psutils/psnup\" (\"-q\") \"-P%s\" \"-%d\" \"-l\" nil nil \" \"
 	    nil (pr-file-duplex . nil) (pr-file-tumble . nil))
      )
 
@@ -5542,8 +5542,8 @@ If menu binding was not done, calls `pr-menu-bind'."
 		 ((file-exists-p res)
 		  (ding)
 		  (setq prompt "exists")
-		  (not (y-or-n-p (format "File `%s' exists; overwrite? "
-					 res))))
+		  (not (y-or-n-p (format-message
+				  "File `%s' exists; overwrite? " res))))
 		 (t nil))
       (setq res (read-file-name
 		 (format "File %s; PostScript file: " prompt)
@@ -6540,8 +6540,8 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 	((or (not (file-exists-p pr-i-out-file))
 	     pr-i-answer-yes
 	     (setq pr-i-answer-yes
-		   (y-or-n-p (format "File `%s' exists; overwrite? "
-				     pr-i-out-file))))
+		   (y-or-n-p (format-message "File `%s' exists; overwrite? "
+					     pr-i-out-file))))
 	 pr-i-out-file)
 	(t
 	 (error "File already exists"))))

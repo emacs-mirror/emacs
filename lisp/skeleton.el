@@ -277,7 +277,8 @@ When done with skeleton, but before going back to `_'-point call
 (defun skeleton-read (prompt &optional initial-input recursive)
   "Function for reading a string from the minibuffer within skeletons.
 
-PROMPT must be a string or a form that evaluates to a string.
+PROMPT must be a string or a function that evaluates to a string.
+It may also be a form that evaluates to a string (deprecated).
 It may contain a `%s' which will be replaced by `skeleton-subprompt'.
 If non-nil second arg INITIAL-INPUT or variable `input' is a string or
 cons with index to insert before reading.  If third arg RECURSIVE is non-nil
@@ -306,12 +307,14 @@ automatically, and you are prompted to fill in the variable parts.")))
 	;; before point.
         (save-excursion (insert "\n")))
     (unwind-protect
-	(setq prompt (if (stringp prompt)
-			 (read-string (format prompt skeleton-subprompt)
-				      (setq initial-input
-					    (or initial-input
-						(symbol-value 'input))))
-		       (eval prompt)))
+	(setq prompt (cond ((stringp prompt)
+                            (read-string (format prompt skeleton-subprompt)
+                                         (setq initial-input
+                                               (or initial-input
+                                                   (symbol-value 'input)))))
+                           ((functionp prompt)
+                            (funcall prompt))
+                           (t (eval prompt))))
       (or eolp
 	  (delete-char 1))))
   (if (and recursive
@@ -481,7 +484,7 @@ This allows for context-sensitive checking whether pairing is appropriate.")
 Each alist element, which looks like (ELEMENT ...), is passed to
 `skeleton-insert' with no interactor.  Variable `str' does nothing.
 
-Elements might be (?` ?` _ \"''\"), (?\\( ?  _ \" )\") or (?{ \\n > _ \\n ?} >).")
+Elements might be (?\\=` ?\\=` _ \"\\='\\='\"), (?\\( ?  _ \" )\") or (?{ \\n > _ \\n ?} >).")
 
 (defvar skeleton-pair-default-alist '((?( _ ?)) (?\))
 				      (?[ _ ?]) (?\])
@@ -502,8 +505,9 @@ Pairing is also prohibited if we are right after a quoting character
 such as backslash.
 
 If a match is found in `skeleton-pair-alist', that is inserted, else
-the defaults are used.  These are (), [], {}, <> and `' for the
-symmetrical ones, and the same character twice for the others."
+the defaults are used.  These are (), [], {}, <> and (grave
+accent, apostrophe) for the paired ones, and the same character
+twice for the others."
   (interactive "*P")
   (if (or arg (not skeleton-pair))
       (self-insert-command (prefix-numeric-value arg))

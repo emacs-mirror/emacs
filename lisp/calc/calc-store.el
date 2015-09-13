@@ -442,7 +442,8 @@
 	 (setq calc-last-edited-variable var)
 	 (calc-edit-mode (list 'calc-finish-stack-edit (list 'quote var))
 			 t
-			 (concat "Editing variable `" (calc-var-name var) "'. "))
+			 (format-message
+                          "Editing variable `%s'" (calc-var-name var)))
 	 (and value
 	      (insert (math-format-nice-expr value (frame-width)) "\n")))))
   (calc-show-edit-buffer))
@@ -609,7 +610,8 @@
 
 (defun calc-insert-permanent-variable (var)
   (goto-char (point-min))
-  (if (search-forward (concat "(setq " (symbol-name var) " '") nil t)
+  (if (let (case-fold-search)
+        (search-forward (concat "(setq " (symbol-name var) " '") nil t))
       (progn
 	(setq calc-pv-pos (point-marker))
 	(forward-line -1)

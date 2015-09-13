@@ -57,7 +57,7 @@
   :group 'cpp)
 
 (define-widget 'cpp-face 'lazy
-  "Either a face or the special symbol 'invisible'."
+  "Either a face or the special symbol `invisible'."
   :type '(choice (const invisible) (face)))
 
 (defcustom cpp-known-face 'invisible
@@ -234,7 +234,8 @@ A prefix arg suppresses display of that buffer."
       (cpp-progress-message "Parsing...")
       (while (re-search-forward cpp-parse-regexp nil t)
 	(cpp-progress-message "Parsing...%d%%"
-			  (/ (* 100 (- (point) (point-min))) (buffer-size)))
+			      (floor (* 100.0 (- (point) (point-min)))
+				     (buffer-size)))
 	(let ((match (buffer-substring (match-beginning 0) (match-end 0))))
 	  (cond ((or (string-equal match "'")
 		     (string-equal match "\""))
@@ -493,9 +494,10 @@ You can also use the keyboard accelerators indicated like this: [K]ey."
     (set-buffer buffer)
     (setq cpp-edit-symbols symbols)
     (erase-buffer)
-    (insert "CPP Display Information for `")
+    (insert (substitute-command-keys "CPP Display Information for `"))
     (cpp-make-button (buffer-name cpp-edit-buffer) 'cpp-edit-home)
-    (insert "'\n\nClick mouse-2 on item you want to change or use\n"
+    (insert (substitute-command-keys
+	     "'\n\nClick mouse-2 on item you want to change or use\n")
 	    "or switch to this buffer and type the keyboard equivalents.\n"
 	    "Keyboard equivalents are indicated with brackets like [T]his.\n\n")
     (cpp-make-button "[H]ome (display the C file)" 'cpp-edit-home)

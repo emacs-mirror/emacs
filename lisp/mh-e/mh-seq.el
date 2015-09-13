@@ -390,7 +390,7 @@ then a non-empty sequence is read."
   "Read and return a sequence name.
 Prompt with PROMPT, raise an error if the sequence is empty and
 the NOT-EMPTY flag is non-nil, and supply an optional DEFAULT
-sequence. A reply of '%' defaults to the first sequence
+sequence. A reply of `%' defaults to the first sequence
 containing the current message."
   (let* ((input (completing-read (format "%s sequence%s: " prompt
                                          (if default
@@ -766,7 +766,7 @@ completion is over."
   "Parse LINE to generate folder name, unseen messages and total messages.
 If CURRENT-FOLDER is non-nil then it contains the current folder
 name and it is used to avoid problems in corner cases involving
-folders whose names end with a '+' character."
+folders whose names end with a `+' character."
   (with-temp-buffer
     (insert line)
     (goto-char (point-max))

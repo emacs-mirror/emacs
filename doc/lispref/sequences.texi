@@ -413,7 +413,7 @@ but their relative order is also preserved:
          (9 . "aaa") (9 . "zzz") (9 . "ppp") (9 . "fff")]
 @end group
 @end example
-                
+
 @xref{Sorting}, for more functions that perform sorting.
 See @code{documentation} in @ref{Accessing Documentation}, for a
 useful example of @code{sort}.
@@ -557,17 +557,44 @@ calling @var{function}.
 @end example
 @end defun
 
-@defun seq-some-p predicate sequence
-  This function returns the first member of sequence for which @var{predicate}
-returns non-@code{nil}.
+@defun seq-some predicate sequence
+  This function returns non-@code{nil} if @var{predicate} returns
+non-@code{nil} for any element of @var{sequence}.  If so, the returned
+value is the value returned by @var{predicate}.
 
 @example
 @group
-(seq-some-p #'numberp ["abc" 1 nil])
+(seq-some #'numberp ["abc" 1 nil])
+@result{} t
+@end group
+@group
+(seq-some #'numberp ["abc" "def"])
+@result{} nil
+@end group
+@group
+(seq-some #'null ["abc" 1 nil])
+@result{} t
+@end group
+@end example
+@end defun
+
+@defun seq-find predicate sequence &optional sentinel
+  This function returns the first element for which @var{predicate}
+returns non-@code{nil} in @var{sequence}.  If no element matches
+@var{predicate}, @var{sentinel} is returned if non-@code{nil},
+@code{nil} otherwise.
+
+Note that this function has an ambiguity if the found element is
+@code{nil}, and if no @var{sentinel} is specified, as it cannot be
+known if an element was found or not.
+
+@example
+@group
+(seq-find #'numberp ["abc" 1 nil])
 @result{} 1
 @end group
 @group
-(seq-some-p #'numberp ["abc" "def"])
+(seq-find #'numberp ["abc" "def"])
 @result{} nil
 @end group
 @end example
@@ -583,7 +610,7 @@ to every element of @var{sequence} returns non-@code{nil}.
 @result{} t
 @end group
 @group
-(seq-some-p #'numberp [2 4 "6"])
+(seq-some #'numberp [2 4 "6"])
 @result{} nil
 @end group
 @end example
@@ -621,18 +648,18 @@ according to @var{function}, a function of two arguments that returns
 non-@code{nil} if the first argument should sort before the second.
 @end defun
 
-@defun seq-contains-p sequence elt &optional function
+@defun seq-contains sequence elt &optional function
   This function returns the first element in @var{sequence} that is equal to
 @var{elt}.  If the optional argument @var{function} is non-@code{nil},
 it is a function of two arguments to use instead of the default @code{equal}.
 
 @example
 @group
-(seq-contains-p '(symbol1 symbol2) 'symbol1)
+(seq-contains '(symbol1 symbol2) 'symbol1)
 @result{} symbol1
 @end group
 @group
-(seq-contains-p '(symbol1 symbol2) 'symbol3)
+(seq-contains '(symbol1 symbol2) 'symbol3)
 @result{} nil
 @end group
 @end example
@@ -723,6 +750,35 @@ contain less elements than @var{n}.  @var{n} must be an integer.  If
 @end example
 @end defun
 
+@defun seq-intersection sequence1 sequence2 &optional function
+  This function returns a list of the elements that appear both in
+@var{sequence1} and @var{sequence2}.  If the optional argument
+@var{function} is non-@code{nil}, it is a function of two arguments to
+use to compare elements instead of the default @code{equal}.
+
+@example
+@group
+(seq-intersection [2 3 4 5] [1 3 5 6 7])
+@result{} (3 5)
+@end group
+@end example
+@end defun
+
+
+@defun seq-difference sequence1 sequence2 &optional function
+  This function returns a list of the elements that appear in
+@var{sequence1} but not in @var{sequence2}.  If the optional argument
+@var{function} is non-@code{nil}, it is a function of two arguments to
+use to compare elements instead of the default @code{equal}.
+
+@example
+@group
+(seq-difference '(2 3 4 5) [1 3 5 6 7])
+@result{} (2 4)
+@end group
+@end example
+@end defun
+
 @defun seq-group-by function sequence
   This function separates the elements of @var{sequence} into an alist
 whose keys are the result of applying @var{function} to each element
@@ -761,13 +817,81 @@ of type @var{type}.  @var{type} can be one of the following symbols:
 @end example
 @end defun
 
+@defun seq-min sequence
+  This function returns the smallest element of
+@var{sequence}. @var{sequence} must be a sequence of numbers or
+markers.
 
-@defmac seq-doseq (var sequence [result]) body@dots{}
+@example
+@group
+(seq-min [3 1 2])
+@result{} 1
+@end group
+@group
+(seq-min "Hello")
+@result{} 72
+@end group
+@end example
+@end defun
+
+@defun seq-max sequence
+  This function returns the largest element of
+@var{sequence}. @var{sequence} must be a sequence of numbers or
+markers.
+
+@example
+@group
+(seq-max [1 3 2])
+@result{} 3
+@end group
+@group
+(seq-max "Hello")
+@result{} 111
+@end group
+@end example
+@end defun
+
+@defmac seq-doseq (var sequence) body@dots{}
 @cindex sequence iteration
   This macro is like @code{dolist}, except that @var{sequence} can be a list,
 vector or string (@pxref{Iteration} for more information about the
 @code{dolist} macro).  This is primarily useful for side-effects.
 @end defmac
+
+@defmac seq-let arguments sequence body@dots{}
+@cindex sequence destructuring
+  This macro binds the variables defined in @var{arguments} to the
+elements of the sequence @var{sequence}.  @var{arguments} can itself
+include sequences allowing for nested destructuring.
+
+The @var{arguments} sequence can also include the @code{&rest} marker
+followed by a variable name to be bound to the rest of
+@code{sequence}.
+
+@example
+@group
+(seq-let [first second] [1 2 3 4]
+  (list first second))
+@result{} (1 2)
+@end group
+@group
+(seq-let (_ a _ b) '(1 2 3 4)
+  (list a b))
+@result{} (2 4)
+@end group
+@group
+(seq-let [a [b [c]]] [1 [2 [3]]]
+  (list a b c))
+@result{} (1 2 3)
+@end group
+@group
+(seq-let [a b &rest others] [1 2 3 4]
+  others)
+@end group
+@result{} [3 4]
+@end example
+@end defmac
+
 
 @node Arrays
 @section Arrays

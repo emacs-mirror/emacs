@@ -37,6 +37,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif	/* HAVE_LIBOTF */
 
 extern FcCharSet *ftfont_get_fc_charset (Lisp_Object);
+extern Lisp_Object ftfont_open2 (struct frame *f,
+                                 Lisp_Object entity,
+                                 int pixel_size,
+                                 Lisp_Object font_object);
+extern size_t ftfont_info_size;
 
 #endif	/* EMACS_FTFONT_H */
 

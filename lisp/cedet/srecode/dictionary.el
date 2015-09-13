@@ -195,8 +195,8 @@ associated with a buffer or parent."
 	      initfrombuff t)))
 
       ;; Create the new dictionary object.
-      (let ((dict (srecode-dictionary
-		   major-mode
+      (let ((dict (make-instance
+                   'srecode-dictionary
 		   :buffer   buffer
 		   :parent   parent
 		   :namehash (make-hash-table :test 'equal
@@ -417,7 +417,7 @@ searched for NAME if it is not found in DICT.  This recursive
 lookup can be disabled by the optional argument NON-RECURSIVE.
 
 This function derives values for some special NAMEs, such as
-'FIRST' and 'LAST'."
+`FIRST' and `LAST'."
   (if (not (slot-boundp dict 'namehash))
       nil
     ;; Get the value of this name from the dictionary or its parent

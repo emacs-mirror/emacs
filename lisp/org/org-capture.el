@@ -201,7 +201,7 @@ properties are:
 
  :clock-resume       Start the interrupted clock when finishing the capture.
                      Note that :clock-keep has precedence over :clock-resume.
-                     When setting both to `t', the current clock will run and
+                     When setting both to t, the current clock will run and
                      the previous one will not be resumed.
 
  :unnarrowed         Do not narrow the target buffer, simply show the
@@ -434,7 +434,8 @@ Turning on this mode runs the normal hook `org-capture-mode-hook'."
   nil " Rem" org-capture-mode-map
   (org-set-local
    'header-line-format
-   "Capture buffer.  Finish `C-c C-c', refile `C-c C-w', abort `C-c C-k'."))
+   (substitute-command-keys
+    "Capture buffer.  Finish `C-c C-c', refile `C-c C-w', abort `C-c C-k'.")))
 (define-key org-capture-mode-map "\C-c\C-c" 'org-capture-finalize)
 (define-key org-capture-mode-map "\C-c\C-k" 'org-capture-kill)
 (define-key org-capture-mode-map "\C-c\C-w" 'org-capture-refile)
@@ -459,7 +460,7 @@ For example, if you have a capture template \"c\" and you want
 this template to be accessible only from `message-mode' buffers,
 use this:
 
-   '((\"c\" ((in-mode . \"message-mode\"))))
+   ((\"c\" ((in-mode . \"message-mode\"))))
 
 Here are the available contexts definitions:
 
@@ -477,7 +478,7 @@ accessible if there is at least one valid check.
 You can also bind a key to another agenda custom command
 depending on contextual rules.
 
-    '((\"c\" \"d\" ((in-mode . \"message-mode\"))))
+   ((\"c\" \"d\" ((in-mode . \"message-mode\"))))
 
 Here it means: in `message-mode buffers', use \"c\" as the
 key for the capture template otherwise associated with \"d\".
@@ -1600,7 +1601,7 @@ The template may still contain \"%?\" for cursor positioning."
 	    (delete-region start end)
 	    (condition-case error
 		(insert-file-contents filename)
-	      (error (insert (format "%%![Couldn't insert %s: %s]"
+	      (error (insert (format "%%![Could not insert %s: %s]"
 				     filename error)))))))
       ;; %() embedded elisp
       (org-capture-expand-embedded-elisp)

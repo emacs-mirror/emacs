@@ -3,7 +3,7 @@
 @comment %**start of header (This is for running Texinfo on a region.)
 @setfilename ../../info/sc.info
 @settitle Supercite User's Manual
-@documentencoding UTF-8
+@include docstyle.texi
 @iftex
 @finalout
 @end iftex
@@ -1790,7 +1790,7 @@ a mail message to the Supercite mailing list:
         Martin>    tends to be a "full blown" version rather than to be
         Martin>    stripped down.
 
-        Martin> 2: `point' is at the start of the header, `mark' at the
+        Martin> 2: 'point' is at the start of the header, 'mark' at the
         Martin>    end of the message body.
 
         Martin> 3: (run-hooks 'mail-yank-hooks)

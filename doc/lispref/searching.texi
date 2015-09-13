@@ -558,8 +558,11 @@ This matches any @acronym{ASCII} control character.
 This matches @samp{0} through @samp{9}.  Thus, @samp{[-+[:digit:]]}
 matches any digit, as well as @samp{+} and @samp{-}.
 @item [:graph:]
-This matches graphic characters---everything except @acronym{ASCII} control
-characters, space, and the delete character.
+This matches graphic characters---everything except whitespace,
+@acronym{ASCII} and non-@acronym{ASCII} control characters,
+surrogates, and codepoints unassigned by Unicode, as indicated by the
+Unicode @samp{general-category} property (@pxref{Character
+Properties}).
 @item [:lower:]
 This matches any lower-case letter, as determined by the current case
 table (@pxref{Case Tables}).  If @code{case-fold-search} is
@@ -569,8 +572,8 @@ This matches any multibyte character (@pxref{Text Representations}).
 @item [:nonascii:]
 This matches any non-@acronym{ASCII} character.
 @item [:print:]
-This matches printing characters---everything except @acronym{ASCII} control
-characters and the delete character.
+This matches any printing character---either whitespace, or a graphic
+character matched by @samp{[:graph:]}.
 @item [:punct:]
 This matches any punctuation character.  (At present, for multibyte
 characters, it matches anything that has non-word syntax.)
@@ -1099,7 +1102,7 @@ For example,
 The index of the first character of the
 string is 0, the index of the second character is 1, and so on.
 
-After this function returns, the index of the first character beyond
+If this function finds a match, the index of the first character beyond
 the match is available as @code{(match-end 0)}.  @xref{Match Data}.
 
 @example
@@ -1422,8 +1425,9 @@ has no text properties.
 @end defun
 
 @defun match-beginning count
-This function returns the position of the start of the text matched by the
-last regular expression searched for, or a subexpression of it.
+If the last regular expression search found a match, this function
+returns the position of the start of the matching text or of a
+subexpression of it.
 
 If @var{count} is zero, then the value is the position of the start of
 the entire match.  Otherwise, @var{count} specifies a subexpression in

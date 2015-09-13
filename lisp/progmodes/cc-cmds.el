@@ -1317,6 +1317,9 @@ keyword on the line, the keyword is not inserted inside a literal, and
   (autoload 'c-subword-mode "cc-subword"
     "Mode enabling subword movement and editing keys." t)))
 
+(declare-function c-forward-subword "ext:cc-subword" (&optional arg))
+(declare-function c-backward-subword "ext:cc-subword" (&optional arg))
+
 ;; "nomenclature" functions + c-scope-operator.
 (defun c-forward-into-nomenclature (&optional arg)
   "Compatibility alias for `c-forward-subword'."
@@ -1806,7 +1809,7 @@ with a brace block."
   (c-save-buffer-state
       (beginning-of-defun-function end-of-defun-function
        where pos name-end case-fold-search)
- 
+
     (save-restriction
       (widen)
       (save-excursion
@@ -2850,19 +2853,28 @@ sentence motion in or near comments and multiline strings."
 
 ;; set up electric character functions to work with pending-del,
 ;; (a.k.a. delsel) mode.  All symbols get the t value except
-;; the functions which delete, which gets 'supersede.
+;; the functions which delete, which gets 'supersede, and (from Emacs
+;; 25) `c-electric-brace' and `c-electric-paren' get special handling
+;; so as to work gracefully with `electric-pair-mode'.
 (mapc
  (function
   (lambda (sym)
     (put sym 'delete-selection t)	; for delsel (Emacs)
     (put sym 'pending-delete t)))	; for pending-del (XEmacs)
  '(c-electric-pound
-   c-electric-brace
    c-electric-slash
    c-electric-star
    c-electric-semi&comma
    c-electric-lt-gt
-   c-electric-colon
+   c-electric-colon))
+(mapc
+ (function
+  (lambda (sym)
+    (put sym 'delete-selection (if (fboundp 'delete-selection-uses-region-p)
+				   'delete-selection-uses-region-p
+				 t))
+    (put sym 'pending-delete t)))
+ '(c-electric-brace
    c-electric-paren))
 (put 'c-electric-delete    'delete-selection 'supersede) ; delsel
 (put 'c-electric-delete    'pending-delete   'supersede) ; pending-del
@@ -3409,7 +3421,7 @@ Otherwise reindent just the current line."
       (if (< c-progress-interval (- now lastsecs))
 	  (progn
 	    (message "Indenting region... (%d%% complete)"
-		     (/ (* 100 (- (point) start)) (- end start)))
+		     (floor (* 100.0 (- (point) start)) (- end start)))
 	    (aset c-progress-info 2 now)))
       )))
 
@@ -4757,8 +4769,8 @@ normally bound to C-o.  See `c-context-line-break' for the details."
 
 (cc-provide 'cc-cmds)
 
-;;; Local Variables:
-;;; indent-tabs-mode: t
-;;; tab-width: 8
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: t
+;; tab-width: 8
+;; End:
 ;;; cc-cmds.el ends here

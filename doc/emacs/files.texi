@@ -340,7 +340,7 @@ that was visited in the buffer.
 * Customize Save::      Customizing the saving of files.
 * Interlocking::        How Emacs protects against simultaneous editing
                           of one file by two users.
-* Shadowing: File Shadowing.  Copying files to "shadows" automatically.
+* Shadowing: File Shadowing.  Copying files to ``shadows'' automatically.
 * Time Stamps::         Emacs can update time stamps on saved files.
 @end menu
 
@@ -429,7 +429,7 @@ by mistake.  One thing you can do is type @kbd{M-~}
 (@code{not-modified}), which clears out the indication that the buffer
 is modified.  If you do this, none of the save commands will believe
 that the buffer needs to be saved.  (@samp{~} is often used as a
-mathematical symbol for `not'; thus @kbd{M-~} is `not', metafied.)
+mathematical symbol for ``not''; thus @kbd{M-~} is ``not'', metafied.)
 Alternatively, you can cancel all the changes made since the file was
 visited or saved, by reading the text from the file again.  This is
 called @dfn{reverting}.  @xref{Reverting}.  (You could also undo all
@@ -1272,7 +1272,7 @@ minibuffer, and displays the differences between the two files in a
 buffer named @file{*diff*}.  This works by running the @command{diff}
 program, using options taken from the variable @code{diff-switches}.
 The value of @code{diff-switches} should be a string; the default is
-@code{"-c"} to specify a context diff.
+@code{"-u"} to specify a unified context diff.
 @c Note that the actual name of the info file is diffutils.info,
 @c but it adds a dir entry for diff too.
 @c On older systems, only "info diff" works, not "info diffutils".
@@ -1368,7 +1368,7 @@ remains ``correct''.  To disable automatic line number correction,
 change the variable @code{diff-update-on-the-fly} to @code{nil}.
 
   Diff mode treats each hunk as an ``error message'', similar to
-Compilation mode.  Thus, you can use commands such as @kbd{C-x '} to
+Compilation mode.  Thus, you can use commands such as @kbd{C-x `} to
 visit the corresponding source locations.  @xref{Compilation Mode}.
 
   In addition, Diff mode provides the following commands to navigate,
@@ -1476,9 +1476,9 @@ unified format to context format.  When the mark is active, convert
 only the text within the region.
 
 @item C-c C-w
-@findex diff-refine-hunk
-Refine the current hunk so that it disregards changes in whitespace
-(@code{diff-refine-hunk}).
+@findex diff-ignore-whitespace-hunk
+Re-diff the current hunk, disregarding changes in whitespace
+(@code{diff-ignore-whitespace-hunk}).
 
 @item C-x 4 A
 @findex diff-add-change-log-entries-other-window
@@ -1745,7 +1745,8 @@ owner, are supported only for some of the archive formats.
 and repack archives.  However, you don't need these programs to look
 at the archive table of contents, only to extract or manipulate the
 subfiles in the archive.  Details of the program names and their
-options can be set in the @samp{Archive} Customize group.
+options can be set in the @samp{Archive} Customize group
+(@pxref{Customization Groups}).
 
 @node Remote Files
 @section Remote Files
@@ -1945,6 +1946,7 @@ opened files.  @kbd{M-x recentf-save-list} saves the current
 @code{recent-file-list} to a file, and @kbd{M-x recentf-edit-list}
 edits it.
 
+@c FIXME partial-completion-mode (complete.el) is obsolete.
   The @kbd{M-x ffap} command generalizes @code{find-file} with more
 powerful heuristic defaults (@pxref{FFAP}), often based on the text at
 point.  Partial Completion mode offers other features extending
@@ -1986,8 +1988,8 @@ non-@code{nil}.  With @kbd{f} (@code{image-next-frame}) and @kbd{b}
 (@code{image-previous-frame}) you can step through the individual
 frames.  Both commands accept a numeric prefix to step through several
 frames at once.  You can go to a specific frame with @kbd{F}
-(@code{image-goto-frame}).  Typing @kbd{a +}
-(@code{image-increase-speed}) increases the speed of the animation,
+(@code{image-goto-frame}).  Frames are indexed from 1.  Typing @kbd{a
++} (@code{image-increase-speed}) increases the speed of the animation,
 @kbd{a -} (@code{image-decrease-speed}) decreases it, and @kbd{a r}
 (@code{image-reverse-speed}) reverses it.  The command @kbd{a 0}
 (@code{image-reset-speed}) resets the speed to the original value.

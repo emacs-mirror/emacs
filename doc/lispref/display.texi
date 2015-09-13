@@ -247,7 +247,7 @@ messages in the echo area.
 @defun message format-string &rest arguments
 This function displays a message in the echo area.
 @var{format-string} is a format string, and @var{arguments} are the
-objects for its format specifications, like in the @code{format}
+objects for its format specifications, like in the @code{format-message}
 function (@pxref{Formatting Strings}).  The resulting formatted string
 is displayed in the echo area; if it contains @code{face} text
 properties, it is displayed with the specified faces (@pxref{Faces}).
@@ -256,6 +256,9 @@ text properties (@pxref{Logging Messages}).
 
 In batch mode, the message is printed to the standard error stream,
 followed by a newline.
+
+When @code{inhibit-message} is non-@code{nil}, no message will be displayed
+in the echo area, it will only be logged to @samp{*Messages*}.
 
 If @var{format-string} is @code{nil} or the empty string,
 @code{message} clears the echo area; if the echo area has been
@@ -281,6 +284,11 @@ Minibuffer depth is 0.
 To automatically display a message in the echo area or in a pop-buffer,
 depending on its size, use @code{display-message-or-buffer} (see below).
 @end defun
+
+@defvar inhibit-message
+When this variable is non-@code{nil}, @code{message} and related functions
+will not use the Echo Area to display messages.
+@end defvar
 
 @defmac with-temp-message message &rest body
 This construct displays a message in the echo area temporarily, during
@@ -367,7 +375,7 @@ reporting very fast.
 When this progress reporter is subsequently used, it will display
 @var{message} in the echo area, followed by progress percentage.
 @var{message} is treated as a simple string.  If you need it to depend
-on a filename, for instance, use @code{format} before calling this
+on a filename, for instance, use @code{format-message} before calling this
 function.
 
 The arguments @var{min-value} and @var{max-value} should be numbers
@@ -624,13 +632,13 @@ for logging the warning.  By default, it is @file{*Warnings*}.
 @end defun
 
 @defun lwarn type level message &rest args
-This function reports a warning using the value of @code{(format
+This function reports a warning using the value of @code{(format-message
 @var{message} @var{args}...)} as the message in the @file{*Warnings*}
 buffer.  In other respects it is equivalent to @code{display-warning}.
 @end defun
 
 @defun warn message &rest args
-This function reports a warning using the value of @code{(format
+This function reports a warning using the value of @code{(format-message
 @var{message} @var{args}...)} as the message, @code{(emacs)} as the
 type, and @code{:warning} as the severity level.  It exists for
 compatibility only; we recommend not using it, because you should
@@ -1310,6 +1318,7 @@ beginning and end.  It also has properties that you can examine and set;
 these affect the display of the text within the overlay.
 
 @cindex scalability of overlays
+@cindex overlays, scalability
 The visual effect of an overlay is the same as of the corresponding
 text property (@pxref{Text Properties}).  However, due to a different
 implementation, overlays generally don't scale well (many operations
@@ -1350,6 +1359,15 @@ This function creates and returns an overlay that belongs to
 and @var{end} must specify buffer positions; they may be integers or
 markers.  If @var{buffer} is omitted, the overlay is created in the
 current buffer.
+
+@cindex empty overlay
+@cindex overlay, empty
+An overlay whose @var{start} and @var{end} specify the same buffer
+position is known as @dfn{empty}.  A non-empty overlay can become
+empty if the text between its @var{start} and @var{end} is deleted.
+When that happens, the overlay is by default not deleted, but you can
+cause it to be deleted by giving it the @samp{evaporate} property
+(@pxref{Overlay Properties, evaporate property}).
 
 The arguments @var{front-advance} and @var{rear-advance} specify the
 marker insertion type for the start of the overlay and for the end of
@@ -1720,8 +1738,11 @@ line at display-time.  @xref{Truncation}.
 @kindex evaporate @r{(overlay property)}
 If this property is non-@code{nil}, the overlay is deleted automatically
 if it becomes empty (i.e., if its length becomes zero).  If you give
-an empty overlay a non-@code{nil} @code{evaporate} property, that deletes
-it immediately.
+an empty overlay (@pxref{Managing Overlays, empty overlay}) a
+non-@code{nil} @code{evaporate} property, that deletes it immediately.
+Note that, unless an overlay has this property, it will not be deleted
+when the text between its starting and ending positions is deleted
+from the buffer.
 
 @item keymap
 @cindex keymap of character (and overlays)
@@ -1777,10 +1798,10 @@ overlays that specify property @var{prop} for the character at point:
 This function returns a list of the overlays that overlap the region
 @var{beg} through @var{end}.  ``Overlap'' means that at least one
 character is contained within the overlay and also contained within the
-specified region; however, empty overlays are included in the result if
-they are located at @var{beg}, strictly between @var{beg} and @var{end},
-or at @var{end} when @var{end} denotes the position at the end of the
-buffer.
+specified region; however, empty overlays (@pxref{Managing Overlays,
+empty overlay}) are included in the result if they are located at
+@var{beg}, strictly between @var{beg} and @var{end}, or at @var{end}
+when @var{end} denotes the position at the end of the buffer.
 @end defun
 
 @defun next-overlay-change pos
@@ -1876,9 +1897,9 @@ to or less than the display width of @var{ellipsis}.  If
 
 The following function returns the size in pixels of text as if it were
 displayed in a given window.  This function is used by
-@code{fit-window-to-buffer} (@pxref{Resizing Windows}) and
-@code{fit-frame-to-buffer} (@pxref{Size and Position}) to make a window
-exactly as large as the text it contains.
+@code{fit-window-to-buffer} and @code{fit-frame-to-buffer}
+(@pxref{Resizing Windows}) to make a window exactly as large as the text
+it contains.
 
 @defun window-text-pixel-size &optional window from to x-limit y-limit mode-and-header-line
 This function returns the size of the text of @var{window}'s buffer in
@@ -1931,12 +1952,12 @@ height of both, if present, in the return value.
 contents of the line, plus optional additional vertical line spacing
 above or below the display line.
 
-  The height of the line contents is the maximum height of any
-character or image on that display line, including the final newline
-if there is one.  (A display line that is continued doesn't include a
-final newline.)  That is the default line height, if you do nothing to
-specify a greater height.  (In the most common case, this equals the
-height of the default frame font.)
+  The height of the line contents is the maximum height of any character
+or image on that display line, including the final newline if there is
+one.  (A display line that is continued doesn't include a final
+newline.)  That is the default line height, if you do nothing to specify
+a greater height.  (In the most common case, this equals the height of
+the corresponding frame's default font, see @ref{Frame Font}.)
 
   There are several ways to explicitly specify a larger line height,
 either by specifying an absolute height for the display line, or by
@@ -2154,7 +2175,7 @@ stipple patterns.
 Alternative foreground color, a string.  This is like @code{:foreground}
 but the color is only used as a foreground when the background color is
 near to the foreground that would have been used.  This is useful for
-example when marking text (i.e. the region face).  If the text has a foreground
+example when marking text (i.e., the region face).  If the text has a foreground
 that is visible with the region face, that foreground is used.
 If the foreground is near the region face background,
 @code{:distant-foreground} is used instead so the text is readable.
@@ -2790,7 +2811,7 @@ then the new definition of the @code{mode-line} face inherits from the
 functions instead of setting @code{face-remapping-alist} directly, to
 avoid trampling on remappings applied elsewhere.  These functions are
 intended for buffer-local remappings, so they all make
-@code{face-remapping-alist} buffer-local as a side-effect. They manage
+@code{face-remapping-alist} buffer-local as a side-effect.  They manage
 @code{face-remapping-alist} entries of the form
 
 @example
@@ -2820,11 +2841,11 @@ pass this object as an argument to @code{face-remap-remove-relative}
 if you need to remove the remapping later.
 
 @example
-;; Remap the `escape-glyph' face into a combination
-;; of the `highlight' and `italic' faces:
+;; Remap the 'escape-glyph' face into a combination
+;; of the 'highlight' and 'italic' faces:
 (face-remap-add-relative 'escape-glyph 'highlight 'italic)
 
-;; Increase the size of the `default' face by 50%:
+;; Increase the size of the 'default' face by 50%:
 (face-remap-add-relative 'default :height 1.5)
 @end example
 @end defun
@@ -3263,7 +3284,7 @@ field.
 
 @defun set-fontset-font name character font-spec &optional frame add
 This function modifies the existing fontset @var{name} to use the font
-matching with @var{font-spec} for the character @var{character}.
+matching with @var{font-spec} for the specified @var{character}.
 
 If @var{name} is @code{nil}, this function modifies the fontset of the
 selected frame or that of @var{frame} if @var{frame} is not
@@ -3272,10 +3293,10 @@ selected frame or that of @var{frame} if @var{frame} is not
 If @var{name} is @code{t}, this function modifies the default
 fontset, whose short name is @samp{fontset-default}.
 
-@var{character} may be a cons; @code{(@var{from} . @var{to})}, where
-@var{from} and @var{to} are character codepoints.  In that case, use
-@var{font-spec} for all characters in the range @var{from} and @var{to}
-(inclusive).
+In addition to specifying a single codepoint, @var{character} may be a
+cons @code{(@var{from} . @var{to})}, where @var{from} and @var{to} are
+character codepoints.  In that case, use @var{font-spec} for all the
+characters in the range @var{from} and @var{to} (inclusive).
 
 @var{character} may be a charset.  In that case, use
 @var{font-spec} for all character in the charsets.
@@ -3283,12 +3304,21 @@ fontset, whose short name is @samp{fontset-default}.
 @var{character} may be a script name.  In that case, use
 @var{font-spec} for all character in the charsets.
 
+@var{font-spec} may be a font-spec object created by the function
+@code{font-spec} (@pxref{Low-Level Font}).
+
 @var{font-spec} may be a cons; @code{(@var{family} . @var{registry})},
 where @var{family} is a family name of a font (possibly including a
 foundry name at the head), @var{registry} is a registry name of a font
 (possibly including an encoding name at the tail).
 
 @var{font-spec} may be a font name string.
+
+@var{font-spec} may be @code{nil}, which explicitly specifies that
+there's no font for the specified @var{character}.  This is useful,
+for example, to avoid expensive system-wide search for fonts for
+characters that have no glyphs, like those from the Unicode Private
+Use Area (PUA).
 
 The optional argument @var{add}, if non-@code{nil}, specifies how to
 add @var{font-spec} to the font specifications previously set.  If it
@@ -3388,6 +3418,15 @@ The charset registry and encoding of the font, such as
 
 @item :script
 The script that the font must support (a symbol).
+
+@item :lang
+The language that the font should support.  The value should be a
+symbol whose name is a two-letter ISO-639 language name.  On X, the
+value is matched against the ``Additional Style'' field of the XLFD
+name of a font, if it is non-empty.  On MS-Windows, fonts matching the
+spec are required to support codepages needed for the language.
+Currently, only a small set of CJK languages is supported with this
+property: @samp{ja}, @samp{ko}, and @samp{zh}.
 
 @item :otf
 @cindex OpenType font
@@ -4557,7 +4596,7 @@ not affect the amount of raising or lowering, which is based on the
 faces used for the text.
 @end table
 
-@c We put all the `@code{(when ...)}' on one line to encourage
+@c We put all the '@code{(when ...)}' on one line to encourage
 @c makeinfo's end-of-sentence heuristics to DTRT.  Previously, the dot
 @c was at eol; the info file ended up w/ two spaces rendered after it.
   You can make any display specification conditional.  To do that,
@@ -5367,12 +5406,11 @@ This removes only images that were put into @var{buffer} the way
 @cindex size of image
 This function returns the size of an image as a pair
 @w{@code{(@var{width} . @var{height})}}.  @var{spec} is an image
-specification.  @var{pixels} non-@code{nil} means return sizes
-measured in pixels, otherwise return sizes measured in canonical
-character units (fractions of the width/height of the frame's default
-font).  @var{frame} is the frame on which the image will be displayed.
-@var{frame} null or omitted means use the selected frame (@pxref{Input
-Focus}).
+specification.  @var{pixels} non-@code{nil} means return sizes measured
+in pixels, otherwise return sizes measured in the default character size
+of @var{frame} (@pxref{Frame Font}).  @var{frame} is the frame on which
+the image will be displayed.  @var{frame} null or omitted means use the
+selected frame (@pxref{Input Focus}).
 @end defun
 
 @defvar max-image-size
@@ -5628,7 +5666,7 @@ so that it's easy to define special-purpose types of buttons for
 specific tasks.
 
 @defun define-button-type name &rest properties
-Define a `button type' called @var{name} (a symbol).
+Define a ``button type'' called @var{name} (a symbol).
 The remaining arguments
 form a sequence of @var{property value} pairs, specifying default
 property values for buttons with this type (a button's type may be set
@@ -5781,7 +5819,7 @@ Return @code{t} if button-type @var{type} is a subtype of @var{supertype}.
 These are commands and functions for locating and operating on
 buttons in an Emacs buffer.
 
-@code{push-button} is the command that a user uses to actually `push'
+@code{push-button} is the command that a user uses to actually ``push''
 a button, and is bound by default in the button itself to @key{RET}
 and to @key{mouse-2} using a local keymap in the button's overlay or
 text properties.  Commands that are useful outside the buttons itself,
@@ -6492,8 +6530,11 @@ no buffer display table.
 @defvar standard-display-table
 The value of this variable is the standard display table, which is
 used when Emacs is displaying a buffer in a window with neither a
-window display table nor a buffer display table defined.  Its default
-is @code{nil}.
+window display table nor a buffer display table defined, or when Emacs
+is outputting text to the standard output or error streams.  Although its
+default is typically @code{nil}, in an interactive session if the
+terminal cannot display curved quotes, its default maps curved quotes
+to ASCII approximations.  @xref{Keys in Documentation}.
 @end defvar
 
 The @file{disp-table} library defines several functions for changing
@@ -6593,7 +6634,8 @@ Display a box containing the Unicode codepoint of the character, in
 hexadecimal notation.
 
 @item an @acronym{ASCII} string
-Display a box containing that string.
+Display a box containing that string.  The string should contain at
+most 6 @acronym{ASCII} characters.
 
 @item a cons cell @code{(@var{graphical} . @var{text})}
 Display with @var{graphical} on graphical displays, and with
@@ -6604,7 +6646,8 @@ must be one of the display methods described above.
 @noindent
 The @code{thin-space}, @code{empty-box}, @code{hex-code}, and
 @acronym{ASCII} string display methods are drawn with the
-@code{glyphless-char} face.
+@code{glyphless-char} face.  On text terminals, a box is emulated by
+square brackets, @samp{[]}.
 
 The char-table has one extra slot, which determines how to display any
 character that cannot be displayed with any available font, or cannot
@@ -6643,7 +6686,7 @@ Non-@acronym{ASCII}, non-printing characters @code{U+0080} to
 @samp{\230}).
 
 @item format-control
-Characters of Unicode General Category `Cf', such as @samp{U+200E}
+Characters of Unicode General Category ``Cf'', such as @samp{U+200E}
 (Left-to-Right Mark), but excluding characters that have graphic
 images, such as @samp{U+00AD} (Soft Hyphen).
 
@@ -6652,9 +6695,9 @@ Characters for there is no suitable font, or which cannot be encoded
 by the terminal's coding system.
 @end table
 
-@c FIXME: this can also be `acronym', but that's not currently
+@c FIXME: this can also be 'acronym', but that's not currently
 @c completely implemented; it applies only to the format-control
-@c group, and only works if the acronym is in `char-acronym-table'.
+@c group, and only works if the acronym is in 'char-acronym-table'.
 The @var{method} symbol should be one of @code{zero-width},
 @code{thin-space}, @code{empty-box}, or @code{hex-code}.  These have
 the same meanings as in @code{glyphless-char-display}, above.

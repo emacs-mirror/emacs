@@ -184,11 +184,11 @@ narrowing in effect.  This way you will be certain that none of
 the remaining prompts will be accidentally messed up.  You may
 wish to put something like the following in your init file:
 
-\(add-hook 'comint-mode-hook
+\(add-hook \\='comint-mode-hook
 	  (lambda ()
-	    (define-key comint-mode-map [remap kill-region] 'comint-kill-region)
+	    (define-key comint-mode-map [remap kill-region] \\='comint-kill-region)
 	    (define-key comint-mode-map [remap kill-whole-line]
-	      'comint-kill-whole-line)))
+	      \\='comint-kill-whole-line)))
 
 If you sometimes use comint-mode on text-only terminals or with `emacs -nw',
 you might wish to use another binding for `comint-kill-whole-line'."
@@ -816,8 +816,6 @@ series of processes in the same Comint buffer.  The hook
 		    (format "COLUMNS=%d" (window-width)))
 	    (list "TERM=emacs"
 		  (format "TERMCAP=emacs:co#%d:tc=unknown:" (window-width))))
-	  (unless (getenv "EMACS")
-	    (list "EMACS=t"))
 	  (list (format "INSIDE_EMACS=%s,comint" emacs-version))
 	  process-environment))
 	(default-directory
@@ -1053,7 +1051,7 @@ See also `comint-read-input-ring'."
       (let ((ch (read-event)))
 	(if (eq ch ?\s)
 	    (set-window-configuration conf)
-	  (setq unread-command-events (list ch)))))))
+	  (push ch unread-command-events))))))
 
 
 (defun comint-regexp-arg (prompt)
@@ -1930,10 +1928,10 @@ the start, the cdr to the end of the last prompt recognized.")
 Freezes the `font-lock-face' text property in place."
   (when comint-last-prompt
     (with-silent-modifications
-      (add-text-properties
+      (font-lock-prepend-text-property
        (car comint-last-prompt)
        (cdr comint-last-prompt)
-       '(font-lock-face comint-highlight-prompt)))
+       'font-lock-face 'comint-highlight-prompt))
     ;; Reset comint-last-prompt so later on comint-output-filter does
     ;; not remove the font-lock-face text property of the previous
     ;; (this) prompt.
@@ -2084,14 +2082,19 @@ Make backspaces delete the previous character."
 		  (add-text-properties prompt-start (point)
 				       '(read-only t front-sticky (read-only)))))
 	      (when comint-last-prompt
-		(remove-text-properties (car comint-last-prompt)
-					(cdr comint-last-prompt)
-					'(font-lock-face)))
+		;; There might be some keywords here waiting for
+		;; fontification, so no `with-silent-modifications'.
+		(font-lock--remove-face-from-text-property
+		 (car comint-last-prompt)
+		 (cdr comint-last-prompt)
+		 'font-lock-face
+		 'comint-highlight-prompt))
 	      (setq comint-last-prompt
 		    (cons (copy-marker prompt-start) (point-marker)))
-	      (add-text-properties prompt-start (point)
-				   '(rear-nonsticky t
-				     font-lock-face comint-highlight-prompt)))
+	      (font-lock-prepend-text-property prompt-start (point)
+					       'font-lock-face
+					       'comint-highlight-prompt)
+	      (add-text-properties prompt-start (point) '(rear-nonsticky t)))
 	    (goto-char saved-point)))))))
 
 (defun comint-preinput-scroll-to-bottom ()
@@ -2847,7 +2850,7 @@ then the filename reader will only accept a file that exists.
 
 A typical use:
  (interactive (comint-get-source \"Compile file: \" prev-lisp-dir/file
-                                 '(lisp-mode) t))"
+                                 \\='(lisp-mode) t))"
   (let* ((def (comint-source-default prev-dir/file source-modes))
 	 (stringfile (comint-extract-string))
 	 (sfile-p (and stringfile
@@ -3362,7 +3365,8 @@ the completions."
 	    (set-window-configuration comint-dynamic-list-completions-config))
 	(if (eq first ?\s)
 	    (set-window-configuration comint-dynamic-list-completions-config)
-	  (setq unread-command-events (listify-key-sequence key)))))))
+	  (setq unread-command-events
+                (nconc (listify-key-sequence key) unread-command-events)))))))
 
 (defun comint-get-next-from-history ()
   "After fetching a line from input history, this fetches the following line.

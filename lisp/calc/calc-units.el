@@ -422,7 +422,7 @@ If EXPR is nil, return nil."
   "Put the units in EXPR in the default units table.
 If COMP or STD is non-nil, put that in the units table instead."
   (let* ((new-units (or comp std (math-get-units expr)))
-         (standard-units (math-get-standard-units 
+         (standard-units (math-get-standard-units
                           (cond
                            (comp (math-simplify-units expr))
                            (std expr)
@@ -457,9 +457,9 @@ If COMP or STD is non-nil, put that in the units table instead."
                                 (eq (math-get-standard-units expr) 1))))
        (let ((uold (or old-units
 		       (progn
-			 (setq uoldname 
+			 (setq uoldname
                                (if unitscancel
-                                   (read-string 
+                                   (read-string
                                     "(The expression is unitless when simplified) Old Units: ")
                                  (read-string "Old units: ")))
 			 (if (equal uoldname "")
@@ -1621,11 +1621,14 @@ If COMP or STD is non-nil, put that in the units table instead."
               (insert "   " (nth 2 u) "\n")
               (while (eq (car (car (setq uptr (cdr uptr)))) 0)))
             (insert "\n\n")
-            (insert "(**) When in TeX or LaTeX display mode, the TeX specific unit\n"
-                     "names will not use the `tex' prefix; the unit name for a\n"
-                     "TeX point will be `pt' instead of `texpt', for example.\n"
-                     "To avoid conflicts, the unit names for pint and parsec will\n"
-                     "be `pint' and `parsec' instead of `pt' and `pc'."))
+            (insert
+             (format-message
+              (concat
+               "(**) When in TeX or LaTeX display mode, the TeX specific unit\n"
+               "names will not use the `tex' prefix; the unit name for a\n"
+               "TeX point will be `pt' instead of `texpt', for example.\n"
+               "To avoid conflicts, the unit names for pint and parsec will\n"
+               "be `pint' and `parsec' instead of `pt' and `pc'."))))
 	  (view-mode)
 	  (message "Formatting units table...done"))
 	(setq math-units-table-buffer-valid t)

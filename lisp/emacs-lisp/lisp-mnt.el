@@ -265,16 +265,17 @@ a section."
 
 (defun lm-header (header)
   "Return the contents of the header named HEADER."
-  (goto-char (point-min))
-  (let ((case-fold-search t))
-    (when (and (re-search-forward (lm-get-header-re header) (lm-code-mark) t)
-	       ;;   RCS ident likes format "$identifier: data$"
-	       (looking-at
-		(if (save-excursion
-		      (skip-chars-backward "^$" (match-beginning 0))
-		      (= (point) (match-beginning 0)))
-		    "[^\n]+" "[^$\n]+")))
-      (match-string-no-properties 0))))
+  (save-excursion
+    (goto-char (point-min))
+    (let ((case-fold-search t))
+      (when (and (re-search-forward (lm-get-header-re header) (lm-code-mark) t)
+                 ;;   RCS ident likes format "$identifier: data$"
+                 (looking-at
+                  (if (save-excursion
+                        (skip-chars-backward "^$" (match-beginning 0))
+                        (= (point) (match-beginning 0)))
+                      "[^\n]+" "[^$\n]+")))
+        (match-string-no-properties 0)))))
 
 (defun lm-header-multiline (header)
   "Return the contents of the header named HEADER, with continuation lines.
@@ -436,8 +437,10 @@ This can be found in an RCS or SCCS header."
 	   ;; Look for an SCCS header
 	   ((re-search-forward
 	     (concat
-	      (regexp-quote "@(#)")
-	      (regexp-quote (file-name-nondirectory (buffer-file-name)))
+	      "@(#)"
+              (if buffer-file-name
+                  (regexp-quote (file-name-nondirectory buffer-file-name))
+                "[^\t\n]+")
 	      "\t\\([012345679.]*\\)")
 	     header-max t)
 	    (match-string-no-properties 1)))))))
@@ -549,11 +552,11 @@ copyright notice is allowed."
 	       ((not (lm-keywords-finder-p))
 		"`Keywords:' has no valid finder keywords (see `finder-known-keywords')")
 	       ((not (lm-commentary-mark))
-		"Can't find a 'Commentary' section marker")
+		"Can't find a `Commentary' section marker")
 	       ((not (lm-history-mark))
-		"Can't find a 'History' section marker")
+		"Can't find a `History' section marker")
 	       ((not (lm-code-mark))
-		"Can't find a 'Code' section marker")
+		"Can't find a `Code' section marker")
 	       ((progn
 		  (goto-char (point-max))
 		  (not

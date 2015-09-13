@@ -50,7 +50,7 @@ Adds the following:
 (defun srecode-semantic-handle-:el-custom (dict)
   "Add macros into the dictionary DICT based on the current Emacs Lisp file.
 Adds the following:
-  GROUP - The 'defgroup' name we guess you want for variables.
+  GROUP - The `defgroup' name we guess you want for variables.
   FACEGROUP - The `defgroup' name you might want for faces."
   (require 'semantic/db-find)
   (let ((groups (semanticdb-strip-find-results

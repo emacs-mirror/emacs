@@ -339,7 +339,7 @@ Argument MENU-DEF is the menu definition to use."
 	  (progn
 	    (while (and class (slot-exists-p class 'menu))
 	      ;;(message "Looking at class %S" class)
-	      (setq menu (append menu (oref class menu))
+	      (setq menu (append menu (oref-default class menu))
 		    class (eieio-class-parent class))
 	      (if (listp class) (setq class (car class))))
 	    (append
@@ -512,7 +512,7 @@ Sets buffer local variables for EDE."
 	(when projdetect
 	  ;; No project was loaded, but we have a project description
 	  ;; object.  This means that we try to load it.
-	  ;; 
+	  ;;
 	  ;; Before loading, we need to check if it is a safe
 	  ;; project to load before requesting it to be loaded.
 
@@ -728,9 +728,10 @@ Return nil if DIR should not be in `ede-project-directories'."
       (when (listp ede-project-directories)
 	(or (member dir ede-project-directories)
 	    (when (funcall ede-check-project-query-fcn
-			   (format "`%s' is not listed in `ede-project-directories'.
+			   (format-message
+			    "`%s' is not listed in `ede-project-directories'.
 Add it to the list of allowed project directories? "
-				   dir))
+			    dir))
 	      (push dir ede-project-directories)
 	      ;; If possible, save `ede-project-directories'.
 	      (if (or custom-file user-init-file)
@@ -763,7 +764,7 @@ Optional argument NAME is the name to give this project."
 			       (if cs
 				   (error "No valid interactive sub project types for %s"
 					  cs)
-				 (error "EDE error: Can't fin project types to create")))
+				 (error "EDE error: Can't find project types to create")))
 			     r)
 			   )
 			  nil t)))
@@ -799,7 +800,7 @@ Optional argument NAME is the name to give this project."
 					      "Unknown file name specifier %S"
 					      pf)))
 				:targets nil)
-		 
+
 		 ))
 	 (inits (oref obj initializers)))
     ;; Force the name to match for new objects.
@@ -1516,6 +1517,22 @@ It does not apply the value to buffers."
 (cl-defmethod ede-commit-local-variables ((proj ede-project))
   "Commit change to local variables in PROJ."
   nil)
+
+;;; Integration with project.el
+
+(defun project-try-ede (dir)
+  (let ((project-dir
+         (locate-dominating-file
+          dir
+          (lambda (dir)
+            (ede-directory-get-open-project dir 'ROOT)))))
+    (when project-dir
+      (ede-directory-get-open-project project-dir 'ROOT))))
+
+(cl-defmethod project-roots ((project ede-project))
+  (list (ede-project-root-directory project)))
+
+(add-hook 'project-find-functions #'project-try-ede)
 
 (provide 'ede)
 

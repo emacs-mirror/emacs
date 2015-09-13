@@ -259,7 +259,7 @@ These are mostly programming and documentation modes.  But you may add other
 modes that you want whitespaces checked in by adding something like the
 following to your `.emacs':
 
-\(setq whitespace-modes (cons 'my-mode (cons 'my-other-mode
+\(setq whitespace-modes (cons \\='my-mode (cons \\='my-other-mode
 					    whitespace-modes))\)
 
 Or, alternately, you can use the Emacs `customize' command to set this."

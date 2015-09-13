@@ -397,7 +397,7 @@ lexical closures as in Common Lisp.
 	  (macroexpand-all
            `(cl-symbol-macrolet
                 ,(mapcar (lambda (x)
-                           `(,(car x) (symbol-value ,(cl-caddr x))))
+                           `(,(car x) (symbol-value ,(nth 2 x))))
                          vars)
               ,@body)
 	   (cons (cons 'function #'cl--function-convert)
@@ -410,20 +410,20 @@ lexical closures as in Common Lisp.
         ;; dynamic scoping, since with lexical scoping we'd need
         ;; (let ((foo <val>)) ...foo...).
 	`(progn
-           ,@(mapcar (lambda (x) `(defvar ,(cl-caddr x))) vars)
-           (let ,(mapcar (lambda (x) (list (cl-caddr x) (cadr x))) vars)
+           ,@(mapcar (lambda (x) `(defvar ,(nth 2 x))) vars)
+           (let ,(mapcar (lambda (x) (list (nth 2 x) (nth 1 x))) vars)
            ,(cl-sublis (mapcar (lambda (x)
-                              (cons (cl-caddr x)
-                                    `',(cl-caddr x)))
+                              (cons (nth 2 x)
+                                    `',(nth 2 x)))
                             vars)
                     ebody)))
       `(let ,(mapcar (lambda (x)
-                       (list (cl-caddr x)
+                       (list (nth 2 x)
                              `(make-symbol ,(format "--%s--" (car x)))))
                      vars)
          (setf ,@(apply #'append
                         (mapcar (lambda (x)
-                                  (list `(symbol-value ,(cl-caddr x)) (cadr x)))
+                                  (list `(symbol-value ,(nth 2 x)) (nth 1 x)))
                                 vars)))
          ,ebody))))
 
@@ -568,7 +568,7 @@ may be bound to temporary variables which are introduced
 automatically to preserve proper execution order of the arguments.
 For example:
 
-  (defsetf nth (n x) (v) `(setcar (nthcdr ,n ,x) ,v))
+  (defsetf nth (n x) (v) \\=`(setcar (nthcdr ,n ,x) ,v))
 
 You can replace this form with `gv-define-setter'.
 
@@ -626,6 +626,8 @@ You can replace this form with `gv-define-setter'.
 ;;     ...the rest, and build the 5-tuple))
 (make-obsolete 'get-setf-method 'gv-letplace "24.3")
 
+(declare-function cl--arglist-args "cl-macs" (args))
+
 (defmacro define-modify-macro (name arglist func &optional doc)
   "Define a `setf'-like modify macro.
 If NAME is called, it combines its PLACE argument with the other
@@ -639,6 +641,7 @@ You can replace this macro with `gv-letplace'."
                      symbolp &optional stringp)))
   (if (memq '&key arglist)
       (error "&key not allowed in define-modify-macro"))
+  (require 'cl-macs)                    ;For cl--arglist-args.
   (let ((place (make-symbol "--cl-place--")))
     `(cl-defmacro ,name (,place ,@arglist)
        ,doc

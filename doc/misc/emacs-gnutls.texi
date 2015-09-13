@@ -4,7 +4,7 @@
 
 @setfilename ../../info/emacs-gnutls.info
 @settitle Emacs GnuTLS Integration @value{VERSION}
-@documentencoding UTF-8
+@include docstyle.texi
 
 @copying
 This file describes the Emacs GnuTLS integration.

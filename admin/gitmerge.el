@@ -314,7 +314,11 @@ Returns non-nil if conflicts remain."
 SKIP denotes whether those commits are actually skipped.  If END
 is nil, only the single commit BEG is merged."
   (with-temp-buffer
-    (insert "Merge from " branch "\n\n"
+    ;; We do not insert "; " for non-skipped messages,
+    ;; because the date of those entries is helpful in figuring out
+    ;; when things got merged, since git does not track that.
+    (insert (if skip "; " "")
+	    "Merge from " branch "\n\n"
 	    (if skip
 		(concat "The following commit"
 			(if end "s were " " was ")

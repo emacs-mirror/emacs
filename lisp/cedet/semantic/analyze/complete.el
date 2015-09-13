@@ -112,9 +112,9 @@ in a buffer."
 Argument CONTEXT is an object specifying the locally derived context.
 The optional argument FLAGS changes which return options are returned.
 FLAGS can be any number of:
-  'no-tc         - do not apply data-type constraint.
-  'no-longprefix - ignore long multi-symbol prefixes.
-  'no-unique     - do not apply unique by name filtering."
+  `no-tc'         - do not apply data-type constraint.
+  `no-longprefix' - ignore long multi-symbol prefixes.
+  `no-unique'     - do not apply unique by name filtering."
   (let* ((a context)
 	 (desired-type (semantic-analyze-type-constraint a))
 	 (desired-class (oref a prefixclass))

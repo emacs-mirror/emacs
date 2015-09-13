@@ -1057,7 +1057,7 @@ If the current Calc language does not use placeholders, return nil."
 (defun math-read-if (cond op)
   (let ((then (math-read-expr-level 0)))
     (or (equal math-expr-data ":")
-	(throw 'syntax "Expected ':'"))
+	(throw 'syntax "Expected `:'"))
     (math-read-token)
     (list 'calcFunc-if cond then (math-read-expr-level (nth 3 op)))))
 
@@ -1177,7 +1177,7 @@ If the current Calc language does not use placeholders, return nil."
                          (setq el (cdr el))))
 		     (if (equal math-expr-data "]")
 			 (math-read-token)
-		       (throw 'syntax "Expected ']'")))
+		       (throw 'syntax "Expected `]'")))
 		   val)))))
 	  ((eq math-exp-token 'dollar)
 	   (let ((abs (if (> math-expr-data 0) math-expr-data (- math-expr-data))))

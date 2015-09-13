@@ -23,6 +23,7 @@ srcdir = @srcdir@
 top_srcdir = @top_srcdir@
 lisp = $(srcdir)
 VPATH = $(srcdir)
+EXEEXT = @EXEEXT@
 
 # Empty for all systems except MinGW, where xargs needs an explicit
 # limitation.
@@ -40,6 +41,11 @@ AM_V_GEN = $(am__v_GEN_@AM_V@)
 am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
 am__v_GEN_0 = @echo "  GEN     " $@;
 am__v_GEN_1 =
+
+AM_V_at = $(am__v_at_@AM_V@)
+am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
+am__v_at_0 = @
+am__v_at_1 =
 
 # You can specify a different executable on the make command line,
 # e.g. "make EMACS=../src/emacs ...".
@@ -115,36 +121,18 @@ unexport EMACSDATA EMACSDOC EMACSPATH
 # Prevent any setting of EMACSLOADPATH in user environment causing problems.
 emacs = EMACSLOADPATH= '$(EMACS)' $(EMACSOPT)
 
-# Common command to find subdirectories
-setwins=for file in `find . -type d -print`; do \
-	   case $$file in */.* ) ;; \
-		*) wins="$$wins$${wins:+ }$$file" ;; \
-	   esac; \
-	done
-
-# Find all subdirectories except `obsolete' and `term'.
-setwins_almost=for file in `find ${srcdir} -type d -print`; do \
-	   case $$file in ${srcdir}*/obsolete | ${srcdir}*/term ) ;; \
-	     *) wins="$$wins$${wins:+ }$$file" ;; \
-	   esac; \
-        done
-
-# Find all subdirectories except `obsolete', `term', and `leim' (and subdirs).
-# We don't want the leim files listed as packages, especially
-# since many share basenames with files in language/.
-setwins_finder=for file in `find ${srcdir} -type d -print`; do \
-	   case $$file in ${srcdir}*/obsolete | ${srcdir}*/term | ${srcdir}*/leim* ) ;; \
-	     *) wins="$$wins$${wins:+ }$$file" ;; \
-	   esac; \
-        done
-
-# Find all subdirectories in which we might want to create subdirs.el.
-setwins_for_subdirs=for file in `find ${srcdir} -type d -print`; do \
-	   case $$file in \
-	     ${srcdir}*/cedet* | ${srcdir}*/leim* ) ;; \
-	     *) wins="$$wins$${wins:+ }$$file" ;; \
-	   esac; \
-        done
+## Subdirectories, relative to builddir.
+SUBDIRS = $(sort $(shell find ${srcdir} -type d -print))
+## Subdirectories, relative to srcdir.
+SUBDIRS_REL = $(patsubst ${srcdir}%,.%,${SUBDIRS})
+## All subdirectories except 'obsolete' and 'term'.
+SUBDIRS_ALMOST = $(filter-out ${srcdir}/obsolete ${srcdir}/term,${SUBDIRS})
+## All subdirectories except 'obsolete', 'term', and 'leim' (and subdirs).
+## We don't want the leim files listed as packages, especially
+## since many share basenames with files in language/.
+SUBDIRS_FINDER = $(filter-out ${srcdir}/leim%,${SUBDIRS_ALMOST})
+## All subdirectories in which we might want to create subdirs.el.
+SUBDIRS_SUBDIRS = $(filter-out ${srcdir}/cedet% ${srcdir}/leim%,${SUBDIRS})
 
 # cus-load and finder-inf are not explicitly requested by anything, so
 # we add them here to make sure they get built.
@@ -170,21 +158,17 @@ PHONY_EXTRAS =
 custom-deps:
 	$(AM_V_at)$(MAKE) PHONY_EXTRAS=$(lisp)/cus-load.el $(lisp)/cus-load.el
 $(lisp)/cus-load.el:
-	$(AM_V_GEN)$(setwins_almost); \
-	echo Directories: $$wins; \
-	$(emacs) -l cus-dep \
+	$(AM_V_GEN)$(emacs) -l cus-dep \
 	  --eval '(setq generated-custom-dependencies-file (unmsys--file-name "$(srcdir)/cus-load.el"))' \
-	  -f custom-make-dependencies $$wins
+	  -f custom-make-dependencies ${SUBDIRS_ALMOST}
 
 finder-data:
 	$(AM_V_at)$(MAKE) PHONY_EXTRAS=$(lisp)/finder-inf.el \
 	  $(lisp)/finder-inf.el
 $(lisp)/finder-inf.el:
-	$(AM_V_GEN)$(setwins_finder); \
-	echo Directories: $$wins; \
-	$(emacs) -l finder \
+	$(AM_V_GEN)$(emacs) -l finder \
 	  --eval '(setq generated-finder-keywords-file (unmsys--file-name "$(srcdir)/finder-inf.el"))' \
-	  -f finder-compile-keywords-make-dist $$wins
+	  -f finder-compile-keywords-make-dist ${SUBDIRS_FINDER}
 
 # Use expand-file-name rather than $abs_scrdir so that Emacs does not
 # get confused when it compares file-names for equality.
@@ -194,21 +178,19 @@ $(lisp)/finder-inf.el:
 # and make this depend on leim.
 autoloads .PHONY: $(lisp)/loaddefs.el
 $(lisp)/loaddefs.el: $(LOADDEFS)
-	$(AM_V_GEN)$(setwins_almost); \
-	echo Directories: $$wins; \
-	$(emacs) -l autoload \
+	@echo Directories for loaddefs: ${SUBDIRS_ALMOST}
+	$(AM_V_GEN)$(emacs) -l autoload \
 	    --eval '(setq autoload-ensure-writable t)' \
 	    --eval '(setq autoload-builtin-package-versions t)' \
 	    --eval '(setq generated-autoload-file (expand-file-name (unmsys--file-name "$@")))' \
-	    -f batch-update-autoloads $$wins
+	    -f batch-update-autoloads ${SUBDIRS_ALMOST}
 
 # This is required by the bootstrap-emacs target in ../src/Makefile, so
 # we know that if we have an emacs executable, we also have a subdirs.el.
 $(lisp)/subdirs.el:
 	$(AM_V_GEN)$(MAKE) update-subdirs
 update-subdirs:
-	$(AM_V_at)$(setwins_for_subdirs); \
-	for file in $$wins; do \
+	$(AM_V_at)for file in ${SUBDIRS_SUBDIRS}; do \
 	   $(srcdir)/../build-aux/update-subdirs $$file; \
 	done;
 
@@ -307,8 +289,8 @@ compile-targets: $(TARGETS)
 # Compile all the Elisp files that need it.  Beware: it approximates
 # `no-byte-compile', so watch out for false-positives!
 compile-main: leim semantic compile-clean
-	@(cd $(lisp) && $(setwins); \
-	els=`echo "$$wins " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.el |g'`; \
+	@(cd $(lisp) && \
+	els=`echo "${SUBDIRS_REL} " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.el |g'`; \
 	for el in $$els; do \
 	  test -f $$el || continue; \
 	  test ! -f $${el}c && GREP_OPTIONS= grep '^;.*no-byte-compile: t' $$el > /dev/null && continue; \
@@ -321,8 +303,8 @@ compile-main: leim semantic compile-clean
 .PHONY: compile-clean
 # Erase left-over .elc files that do not have a corresponding .el file.
 compile-clean:
-	@cd $(lisp) && $(setwins); \
-	elcs=`echo "$$wins " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.elc |g'`; \
+	@cd $(lisp) && \
+	elcs=`echo "${SUBDIRS_REL} " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.elc |g'`; \
 	for el in `echo $$elcs | sed -e 's/\.elc/\.el/g'`; do \
 	  if test -f "$$el" || test ! -f "$${el}c"; then :; else \
 	    echo rm "$${el}c"; \
@@ -387,20 +369,8 @@ compile-one-process: $(LOADDEFS) compile-first
 # Update MH-E internal autoloads. These are not to be confused with
 # the autoloads for the MH-E entry points, which are already in loaddefs.el.
 MH_E_DIR = $(lisp)/mh-e
-## MH_E_SRC avoids a circular dependency warning for mh-loaddefs.el.
-MH_E_SRC = $(MH_E_DIR)/mh-acros.el $(MH_E_DIR)/mh-alias.el    \
-	$(MH_E_DIR)/mh-buffers.el  $(MH_E_DIR)/mh-compat.el   \
-	$(MH_E_DIR)/mh-comp.el     $(MH_E_DIR)/mh-e.el        \
-	$(MH_E_DIR)/mh-folder.el   $(MH_E_DIR)/mh-funcs.el    \
-	$(MH_E_DIR)/mh-gnus.el     $(MH_E_DIR)/mh-identity.el \
-	$(MH_E_DIR)/mh-inc.el      $(MH_E_DIR)/mh-junk.el     \
-	$(MH_E_DIR)/mh-letter.el   $(MH_E_DIR)/mh-limit.el    \
-	$(MH_E_DIR)/mh-mime.el     $(MH_E_DIR)/mh-print.el    \
-	$(MH_E_DIR)/mh-scan.el     $(MH_E_DIR)/mh-search.el   \
-	$(MH_E_DIR)/mh-seq.el      $(MH_E_DIR)/mh-show.el     \
-	$(MH_E_DIR)/mh-speed.el    $(MH_E_DIR)/mh-thread.el   \
-	$(MH_E_DIR)/mh-tool-bar.el $(MH_E_DIR)/mh-utils.el    \
-	$(MH_E_DIR)/mh-xface.el
+MH_E_SRC = $(sort $(wildcard ${MH_E_DIR}/mh*.el))
+MH_E_SRC := $(filter-out ${MH_E_DIR}/mh-loaddefs.el,${MH_E_SRC})
 
 .PHONY: mh-autoloads
 mh-autoloads: $(MH_E_DIR)/mh-loaddefs.el
@@ -414,12 +384,8 @@ $(MH_E_DIR)/mh-loaddefs.el: $(MH_E_SRC)
 # an own subdirectory. OTOH, it does not hurt to keep them in
 # lisp/net.
 TRAMP_DIR = $(lisp)/net
-TRAMP_SRC = $(TRAMP_DIR)/tramp.el    $(TRAMP_DIR)/tramp-adb.el	\
-	$(TRAMP_DIR)/tramp-cache.el  $(TRAMP_DIR)/tramp-cmds.el	\
-	$(TRAMP_DIR)/tramp-compat.el $(TRAMP_DIR)/tramp-ftp.el	\
-	$(TRAMP_DIR)/tramp-gvfs.el   $(TRAMP_DIR)/tramp-gw.el	\
-	$(TRAMP_DIR)/tramp-sh.el     $(TRAMP_DIR)/tramp-smb.el	\
-	$(TRAMP_DIR)/tramp-uu.el     $(TRAMP_DIR)/trampver.el
+TRAMP_SRC = $(sort $(wildcard ${TRAMP_DIR}/tramp*.el))
+TRAMP_SRC := $(filter-out ${TRAMP_DIR}/tramp-loaddefs.el,${TRAMP_SRC})
 
 $(TRAMP_DIR)/tramp-loaddefs.el: $(TRAMP_SRC)
 	$(AM_V_GEN)$(emacs) -l autoload \
@@ -429,18 +395,9 @@ $(TRAMP_DIR)/tramp-loaddefs.el: $(TRAMP_SRC)
 
 CAL_DIR = $(lisp)/calendar
 ## Those files that may contain internal calendar autoload cookies.
-## Avoids circular dependency warning for *-loaddefs.el.
-CAL_SRC = $(CAL_DIR)/cal-bahai.el $(CAL_DIR)/cal-china.el  \
-	$(CAL_DIR)/cal-coptic.el  $(CAL_DIR)/cal-dst.el    \
-	$(CAL_DIR)/cal-french.el  $(CAL_DIR)/cal-hebrew.el \
-	$(CAL_DIR)/cal-html.el    $(CAL_DIR)/cal-islam.el  \
-	$(CAL_DIR)/cal-iso.el     $(CAL_DIR)/cal-julian.el \
-	$(CAL_DIR)/cal-mayan.el   $(CAL_DIR)/cal-menu.el   \
-	$(CAL_DIR)/cal-move.el    $(CAL_DIR)/cal-persia.el \
-	$(CAL_DIR)/cal-tex.el     $(CAL_DIR)/cal-x.el      \
-	$(CAL_DIR)/calendar.el    $(CAL_DIR)/diary-lib.el  \
-	$(CAL_DIR)/holidays.el    $(CAL_DIR)/lunar.el      \
-	$(CAL_DIR)/solar.el
+CAL_SRC = $(addprefix ${CAL_DIR}/,diary-lib.el holidays.el lunar.el solar.el)
+CAL_SRC := $(sort ${CAL_SRC} $(wildcard ${CAL_DIR}/cal*.el))
+CAL_SRC := $(filter-out ${CAL_DIR}/cal-loaddefs.el,${CAL_SRC})
 
 $(CAL_DIR)/cal-loaddefs.el: $(CAL_SRC)
 	$(AM_V_GEN)$(emacs) -l autoload \
@@ -476,10 +433,11 @@ maintainer-clean: distclean bootstrap-clean
 check-declare:
 	$(emacs) -l check-declare --eval '(check-declare-directory "$(lisp)")'
 
+## This finds a lot of duplicates between foo.el and obsolete/foo.el.
 check-defun-dups:
 	sed -n -e '/^(defun /s/\(.\)(.*/\1/p' \
-	        $$(find . -name '*.el' -print | grep -v 'loaddefs\.el') \
-	    | sort | uniq -d
+	  $$(find . -name '*.el' -print | \
+	  grep -Ev '(loaddefs|ldefs-boot)\.el') | sort | uniq -d
 
 # Dependencies
 

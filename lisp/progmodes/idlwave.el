@@ -293,7 +293,7 @@ extends to the end of the match for the regular expression."
 (defcustom idlwave-auto-fill-split-string t
   "If non-nil then auto fill will split strings with the IDL `+' operator.
 When the line end falls within a string, string concatenation with the
-'+' operator will be used to distribute a long string over lines.
+`+' operator will be used to distribute a long string over lines.
 If nil and a string is split then a terminal beep and warning are issued.
 
 This variable is ignored when `idlwave-fill-comment-line-only' is
@@ -376,7 +376,7 @@ The following values are allowed:
 
 nil       Don't scan any buffers.
 t         Scan all `idlwave-mode' buffers in the current editing session.
-current   Scan only the current buffer, but no other buffers."
+`current' Scan only the current buffer, but no other buffers."
   :group 'idlwave-routine-info
   :type '(choice
 	  (const :tag "No buffer" nil)
@@ -742,8 +742,8 @@ The actions that can be performed are listed in `idlwave-indent-action-table'."
 
 (defcustom idlwave-abbrev-start-char "\\"
   "A single character string used to start abbreviations in abbrev mode.
-Possible characters to chose from: ~`\%
-or even '?'.  '.' is not a good choice because it can make structure
+Possible characters to choose from: ~\\=`\%
+or even `?'.  `.' is not a good choice because it can make structure
 field names act like abbrevs in certain circumstances.
 
 Changes to this in `idlwave-mode-hook' will have no effect.  Instead a user
@@ -768,8 +768,8 @@ Also see help for `idlwave-surround'."
   :type 'boolean)
 
 (defcustom idlwave-pad-keyword t
-  "Non-nil means pad '=' in keywords (routine calls or defs) like assignment.
-Whenever `idlwave-surround' is non-nil then this affects how '=' is
+  "Non-nil means pad `=' in keywords (routine calls or defs) like assignment.
+Whenever `idlwave-surround' is non-nil then this affects how `=' is
 padded for keywords and for variables.  If t, pad the same as for
 assignments.  If nil then spaces are removed.  With any other value,
 spaces are left unchanged."
@@ -1571,11 +1571,11 @@ Otherwise, if SELECT is non-nil then only an action is created.
 
 Some examples:
 No spaces before and 1 after a comma
-   (idlwave-action-and-binding \",\"  '(idlwave-surround 0 1))
+   (idlwave-action-and-binding \",\"  \\='(idlwave-surround 0 1))
 A minimum of 1 space before and after `=' (see `idlwave-expand-equal').
-   (idlwave-action-and-binding \"=\"  '(idlwave-expand-equal -1 -1))
+   (idlwave-action-and-binding \"=\"  \\='(idlwave-expand-equal -1 -1))
 Capitalize system variables - action only
-   (idlwave-action-and-binding idlwave-sysvar '(capitalize-word 1) t)"
+   (idlwave-action-and-binding idlwave-sysvar \\='(capitalize-word 1) t)"
   (if (not (equal select 'noaction))
       ;; Add action
       (let* ((table (if select 'idlwave-indent-action-table
@@ -1837,7 +1837,7 @@ The main features of this mode are
 5. Code Templates and Abbreviations
    --------------------------------
    Many Abbreviations are predefined to expand to code fragments and templates.
-   The abbreviations start generally with a `\\`.  Some examples:
+   The abbreviations start generally with a `\\'.  Some examples:
 
    \\pr        PROCEDURE template
    \\fu        FUNCTION template
@@ -2047,7 +2047,7 @@ If optional argument RESERVED is non-nil then the expansion
 consists of reserved words, which will be capitalized if
 `idlwave-reserved-word-upcase' is non-nil.
 Otherwise, the abbrev will be capitalized if `idlwave-abbrev-change-case'
-is non-nil, unless its value is \`down in which case the abbrev will be
+is non-nil, unless its value is `down' in which case the abbrev will be
 made into all lowercase.
 Returns non-nil if abbrev is left expanded."
   (if (idlwave-quoted)
@@ -4881,7 +4881,7 @@ Cache to disk for quick recovery."
 	      props (car (cdr elem)))
 	(if (= (mod elem-cnt msg-cnt) 0)
 	    (message "Converting XML routine info...%2d%%"
-		     (/ (* elem-cnt 100) nelem)))
+		     (floor (* elem-cnt 100.0) nelem)))
 	(cond
 	 ((eq type 'ROUTINE)
 	  (if (setq alias (assq 'alias_to props))
@@ -5833,15 +5833,15 @@ to override IDLWAVE's idea of what should be completed at point.
 Possible values are:
 
 0  <=>  query for the completion type
-1  <=>  'procedure
-2  <=>  'procedure-keyword
-3  <=>  'function
-4  <=>  'function-keyword
-5  <=>  'procedure-method
-6  <=>  'procedure-method-keyword
-7  <=>  'function-method
-8  <=>  'function-method-keyword
-9  <=>  'class
+1  <=>  `procedure'
+2  <=>  `procedure-keyword'
+3  <=>  `function'
+4  <=>  `function-keyword'
+5  <=>  `procedure-method'
+6  <=>  `procedure-method-keyword'
+7  <=>  `function-method'
+8  <=>  `function-method-keyword'
+9  <=>  `class'
 
 As a special case, the universal argument C-u forces completion of
 function names in places where the default would be a keyword.
@@ -8162,7 +8162,7 @@ demand _EXTRA in the keyword list."
 			       class
 			       (idlwave-routines)) 'do-link))))))
 
-    ;; If the class is `t', combine all keywords of all methods NAME
+    ;; If the class is t, combine all keywords of all methods NAME
     (when (eq class t)
       (mapc (lambda (entry)
 	      (and
@@ -8694,7 +8694,7 @@ can be used to detect possible name clashes during this process."
       (erase-buffer)
       (while (setq routine (pop routines))
 	(if (= (mod (setq n (1+ n)) step) 0)
-	    (message "Compiling list...(%2d%%)" (/ (* n 100) nroutines)))
+	    (message "Compiling list...(%2d%%)" (floor (* n 100.0) nroutines)))
 
 	;; Get a list of all twins
 	(setq twins (idlwave-routine-twins routine (or lroutines routines)))

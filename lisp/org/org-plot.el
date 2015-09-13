@@ -94,7 +94,7 @@ Return value is the point at the beginning of the table."
   (goto-char (org-table-begin)))
 
 (defun org-plot/collect-options (&optional params)
-  "Collect options from an org-plot '#+Plot:' line.
+  "Collect options from an org-plot `#+Plot:' line.
 Accepts an optional property list PARAMS, to which the options
 will be added.  Returns the resulting property list."
   (interactive)

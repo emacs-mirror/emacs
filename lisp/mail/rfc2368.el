@@ -66,16 +66,16 @@
 
 ;; describes 'mailto:'
 (defconst rfc2368-mailto-scheme-index 1
-  "Describes the 'mailto:' portion of the url.")
+  "Describes the `mailto:' portion of the url.")
 ;; i'm going to call this part the 'prequery'
 (defconst rfc2368-mailto-prequery-index 2
-  "Describes the portion of the url between 'mailto:' and '?'.")
+  "Describes the portion of the url between `mailto:' and `?'.")
 ;; i'm going to call this part the 'query'
 (defconst rfc2368-mailto-query-index 4
-  "Describes the portion of the url after '?'.")
+  "Describes the portion of the url after `?'.")
 
 (defun rfc2368-unhexify-string (string)
-  "Unhexify STRING -- e.g. 'hello%20there' -> 'hello there'."
+  "Unhexify STRING -- e.g. `hello%20there' -> `hello there'."
   (replace-regexp-in-string "%[[:xdigit:]]\\{2\\}"
 			    (lambda (match)
 			      (string (string-to-number (substring match 1)
@@ -85,7 +85,7 @@
 (defun rfc2368-parse-mailto-url (mailto-url)
   "Parse MAILTO-URL, and return an alist of header-name, header-value pairs.
 MAILTO-URL should be a RFC 2368 (mailto) compliant url.  A cons cell w/ a
-key of 'Body' is a special case and is considered a header for this purpose.
+key of `Body' is a special case and is considered a header for this purpose.
 The returned alist is intended for use w/ the `compose-mail' interface.
 Note: make sure MAILTO-URL has been 'unhtmlized' (e.g. &amp; -> &), before
 calling this function."

@@ -346,7 +346,8 @@ no text on the right side of the rectangle."
 (defun delete-whitespace-rectangle-line (startcol _endcol fill)
   (when (= (move-to-column startcol (if fill t 'coerce)) startcol)
     (unless (= (point) (point-at-eol))
-      (delete-region (point) (progn (skip-syntax-forward " ") (point))))))
+      (delete-region (point) (progn (skip-syntax-forward " " (point-at-eol))
+				    (point))))))
 
 ;;;###autoload
 (defalias 'close-rectangle 'delete-whitespace-rectangle) ;; Old name

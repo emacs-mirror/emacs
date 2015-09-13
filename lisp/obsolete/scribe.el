@@ -50,7 +50,7 @@
   :group 'scribe)
 
 (defcustom scribe-electric-quote nil
-  "Non-nil makes insert of double quote use `` or '' depending on context."
+  "Non-nil makes insert of double quote use \\=`\\=` or \\='\\=' depending on context."
   :type 'boolean
   :group 'scribe)
 
@@ -124,7 +124,7 @@ Interesting variables:
   Non-nil makes Scribe mode use a different style of paragraph separation.
 
 `scribe-electric-quote'
-  Non-nil makes insert of double quote use `` or '' depending on context.
+  Non-nil makes insert of double quote use \\=`\\=` or \\='\\=' depending on context.
 
 `scribe-electric-parenthesis'
   Non-nil makes an open-parenthesis char (one of `([<{')
@@ -265,8 +265,8 @@ to skip backward."
   (forward-char -1))
 
 (defun scribe-insert-quote (count)
-  "Insert ``, '' or \" according to preceding character.
-If `scribe-electric-quote' is non-nil, insert ``, '' or \" according
+  "Insert \\=`\\=`, \\='\\=' or \" according to preceding character.
+If `scribe-electric-quote' is non-nil, insert \\=`\\=`, \\='\\=' or \" according
 to preceding character.  With numeric arg N, always insert N \" characters.
 Else just insert \"."
   (interactive "P")

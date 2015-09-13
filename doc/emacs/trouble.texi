@@ -146,7 +146,7 @@ Emacs.
 
 @menu
 * DEL Does Not Delete::   What to do if @key{DEL} doesn't delete.
-* Stuck Recursive::       `[...]' in mode line around the parentheses.
+* Stuck Recursive::       '[...]' in mode line around the parentheses.
 * Screen Garbled::        Garbage on the screen.
 * Text Garbled::          Garbage in the text.
 * Memory Full::           How to cope when you run out of memory.
@@ -342,7 +342,7 @@ Here, @var{backtrace} is the name of a text file containing a copy of
 the backtrace, @var{bindir} is the name of the directory that
 contains the Emacs executable, and @var{emacs-binary} is the name of
 the Emacs executable file, normally @file{emacs} on GNU and Unix
-systems and @file{emacs.exe} on MS-Windows and MS-DOS.  Omit the
+systems and @file{emacs.exe} on MS-Windows and MS-DOS@.  Omit the
 @option{-p} option if your version of @command{addr2line} is too old
 to have it.
 
@@ -485,10 +485,6 @@ The @file{etc/PROBLEMS} file; type @kbd{C-h C-p} to read it.  This
 file contains a list of particularly well-known issues that have been
 encountered in compiling, installing and running Emacs.  Often, there
 are suggestions for workarounds and solutions.
-
-@item
-Some additional user-level problems can be found in @ref{Bugs and
-problems, , Bugs and problems, efaq, GNU Emacs FAQ}.
 
 @cindex bug tracker
 @item
@@ -743,7 +739,7 @@ unmodified Emacs.  But if you've made modifications and you don't tell
 us, you are sending us on a wild goose chase.)
 
 Be precise about these changes.  A description in English is not
-enough---send a context diff for them.
+enough---send a unified context diff for them.
 
 Adding files of your own, or porting to another machine, is a
 modification of the source.
@@ -1131,18 +1127,17 @@ is important.
 @item
 The patch itself.
 
-Use @samp{diff -c} to make your diffs.  Diffs without context are hard
+Use @samp{diff -u} to make your diffs.  Diffs without context are hard
 to install reliably.  More than that, they are hard to study; we must
-always study a patch to decide whether we want to install it.  Unidiff
-format is better than contextless diffs, but not as easy to read as
-@samp{-c} format.
+always study a patch to decide whether we want to install it.  Context
+format is better than contextless diffs, but we prefer we unified format.
 
-If you have GNU diff, use @samp{diff -c -F'^[_a-zA-Z0-9$]+ *('} when
+If you have GNU diff, use @samp{diff -u -F'^[_a-zA-Z0-9$]\+ *('} when
 making diffs of C code.  This shows the name of the function that each
 change occurs in.
 
 If you are using the Emacs repository, make sure your copy is
-up-to-date (e.g. with @code{git pull}).  You can commit your changes
+up-to-date (e.g., with @code{git pull}).  You can commit your changes
 to a private branch and generate a patch from the master version by
 using @code{git format-patch master}. Or you can leave your changes
 uncommitted and use @code{git diff}.
@@ -1171,9 +1166,9 @@ feel that the purpose needs explaining, it probably does---but put the
 explanation in comments in the code.  It will be more useful there.
 
 Please look at the change log entries of recent commits to see what
-sorts of information to put in, and to learn the style that we use. Note that,
+sorts of information to put in, and to learn the style that we use.  Note that,
 unlike some other projects, we do require change logs for
-documentation, i.e. Texinfo files.
+documentation, i.e., Texinfo files.
 @xref{Change Log},
 @ifset WWW_GNU_ORG
 see
@@ -1280,7 +1275,7 @@ See the Emacs project page
 It is important to write your patch based on the current working
 version.  If you start from an older version, your patch may be
 outdated (so that maintainers will have a hard time applying it), or
-changes in Emacs may have made your patch unnecessary. After you have
+changes in Emacs may have made your patch unnecessary.  After you have
 downloaded the repository source, you should read the file
 @file{INSTALL.REPO} for build instructions (they differ to some extent
 from a normal build).
@@ -1350,16 +1345,16 @@ Emacs has additional style and coding conventions:
 @item
 @ifset WWW_GNU_ORG
 @ifhtml
-the "Tips" Appendix in the Emacs Lisp Reference
+the ``Tips'' Appendix in the Emacs Lisp Reference
 @url{http://www.gnu.org/software/emacs/manual/html_node/elisp/Tips.html}.
 @end ifhtml
 @ifnothtml
-@xref{Tips, "Tips" Appendix in the Emacs Lisp Reference, Tips
+@xref{Tips, ``Tips'' Appendix in the Emacs Lisp Reference, Tips
 Appendix, elisp, Emacs Lisp Reference}.
 @end ifnothtml
 @end ifset
 @ifclear WWW_GNU_ORG
-@xref{Tips, "Tips" Appendix in the Emacs Lisp Reference, Tips
+@xref{Tips, ``Tips'' Appendix in the Emacs Lisp Reference, Tips
 Appendix, elisp, Emacs Lisp Reference}.
 @end ifclear
 
@@ -1389,7 +1384,7 @@ user freedom and to defend the rights of all free software users.
 For general information, see the website @url{http://www.fsf.org/}.
 
 Generally speaking, for non-trivial contributions to GNU Emacs we
-require that the copyright be assigned to the FSF.  For the reasons
+require that the copyright be assigned to the FSF@.  For the reasons
 behind this, see @url{http://www.gnu.org/licenses/why-assign.html}.
 
 Copyright assignment is a simple process.  Residents of some countries
@@ -1403,12 +1398,12 @@ See gnu-misc-discuss instead.)
 
 A copyright disclaimer is also a possibility, but we prefer an assignment.
 Note that the disclaimer, like an assignment, involves you sending
-signed paperwork to the FSF (simply saying "this is in the public domain"
+signed paperwork to the FSF (simply saying ``this is in the public domain''
 is not enough).  Also, a disclaimer cannot be applied to future work, it
 has to be repeated each time you want to send something new.
 
 We can accept small changes (roughly, fewer than 15 lines) without
-an assignment.  This is a cumulative limit (e.g. three separate 5 line
+an assignment.  This is a cumulative limit (e.g., three separate 5 line
 patches) over all your contributions.
 
 @node Service

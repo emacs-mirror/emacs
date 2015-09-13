@@ -494,8 +494,8 @@ non-nil means return old filename."
                                        overwrite))
                 (error
                  (setq errors (1+ errors))
-                 (dired-log (concat "Rename `" file-ori "' to `"
-                                    file-new "' failed:\n%s\n")
+                 (dired-log "Rename `%s' to `%s' failed:\n%s\n"
+                            file-ori file-new
                             err)))))))))
     errors))
 
@@ -651,8 +651,8 @@ If OLD, return the old target.  If MOVE, move point before it."
                (substitute-in-file-name link-to-new) link-from))
           (error
            (setq errors (1+ errors))
-           (dired-log (concat "Link `" link-from "' to `"
-                              link-to-new "' failed:\n%s\n")
+           (dired-log "Link `%s' to `%s' failed:\n%s\n"
+                      link-from link-to-new
                       err)))))
     (cons changes errors)))
 
@@ -837,11 +837,11 @@ Like original function but it skips read-only words."
               (unless (equal 0 (process-file dired-chmod-program
 					     nil nil nil perm-tmp filename))
                 (setq errors (1+ errors))
-                (dired-log (concat dired-chmod-program " " perm-tmp
-                                   " `" filename "' failed\n\n"))))
+                (dired-log "%s %s `%s' failed\n\n"
+                           dired-chmod-program perm-tmp filename)))
           (setq errors (1+ errors))
-          (dired-log (concat "Cannot parse permission `" perms-new
-                             "' for file `" filename "'\n\n"))))
+          (dired-log "Cannot parse permission `%s' for file `%s'\n\n"
+                     perms-new filename)))
       (goto-char (next-single-property-change (1+ (point)) prop-wanted
 					      nil (point-max))))
     (cons changes errors)))

@@ -79,10 +79,13 @@
 (defmacro rtree-range (node)
   `(car ,node))
 
-(defsubst rtree-normalise-range (range)
+(defsubst rtree-normalize-range (range)
   (when (numberp range)
     (setq range (cons range range)))
   range)
+
+(define-obsolete-function-alias 'rtree-normalise-range
+  'rtree-normalize-range "25.1")
 
 (defun rtree-make (range)
   "Make an rtree from RANGE."
@@ -96,7 +99,7 @@
 	(node (rtree-make-node)))
     (when (> mid 0)
       (rtree-set-left node (rtree-make-1 range mid)))
-    (rtree-set-range node (rtree-normalise-range (cadr range)))
+    (rtree-set-range node (rtree-normalize-range (cadr range)))
     (setcdr range (cddr range))
     (when (> (- length mid 1) 0)
       (rtree-set-right node (rtree-make-1 range (- length mid 1))))

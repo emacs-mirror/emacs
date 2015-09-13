@@ -82,12 +82,15 @@ encryption is used."
 		passphrase))))
     (epa-passphrase-callback-function context key-id file)))
 
+(defvar epa-inhibit nil
+  "Non-nil means don't try to decrypt .gpg files when operating on them.")
+
 ;;;###autoload
 (defun epa-file-handler (operation &rest args)
   (save-match-data
     (let ((op (get operation 'epa-file)))
-      (if op
-  	  (apply op args)
+      (if (and op (not epa-inhibit))
+          (apply op args)
   	(epa-file-run-real-handler operation args)))))
 
 (defun epa-file-run-real-handler (operation args)

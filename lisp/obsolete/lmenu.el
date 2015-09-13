@@ -160,9 +160,9 @@ The syntax, more precisely:
    active-p	:=  <t, nil, or a form to evaluate to decide whether this
 		    button should be selectable>
    name		:=  <string>
-   partition	:=  'nil'
-   button	:=  '['  name callback active-p ']'
-   dialog	:=  '(' name [ button ]+ [ partition [ button ]+ ] ')'"
+   partition	:=  `nil'
+   button	:=  `['  name callback active-p `]'
+   dialog	:=  `(' name [ button ]+ [ partition [ button ]+ ] `)'"
   (let ((name (car data))
 	(tail (cdr data))
 	converted

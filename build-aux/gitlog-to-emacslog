@@ -1,0 +1,129 @@
+#!/bin/sh
+
+# Convert git log output to ChangeLog format for GNU Emacs.
+
+# Copyright (C) 2014-2015 Free Software Foundation, Inc.
+
+# Author: Paul Eggert
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+LC_ALL=C
+export LC_ALL
+
+# The newest revision that should not appear in the generated ChangeLog.
+gen_origin=
+
+force=
+output=ChangeLog
+nmax=2
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+      -g|--gen-origin) gen_origin="$2" ; shift ;;
+      -f|--force) force=1 ;;
+      -n|--nmax) nmax="$2"; shift ;;
+      -o|--output) output="$2" ; shift ;;
+      *) echo "Unrecognized argument: $1" >&2; exit 1 ;;
+  esac
+  shift
+done
+
+if [ ! -f ChangeLog.$nmax ]; then
+    echo "Can't find ChangeLog.$nmax" >&2
+    echo "Must be run from the top source directory" >&2
+    exit 1
+fi
+
+# If not specified in the command line, get gen_origin from the existing
+# ChangeLog file.
+[ "$gen_origin" ] || {
+    gen_origin_line=`
+      grep -E '^commit [0-9a-f]+ [(]inclusive[)]' ChangeLog.$nmax
+    ` || {
+	echo "ChangeLog.$nmax lacks a 'commit ... (inclusive)' line" >&2
+	exit 1
+    }
+    set $gen_origin_line
+    gen_origin=$2
+}
+
+# Get the new value for gen_origin from the latest version in the repository.
+new_origin=`git log --pretty=format:%H 'HEAD^!'` || exit
+
+if [ -f "$output" ]; then
+    [ ! "$force" ] && echo "$output exists" >&2 && exit 1
+    rm -f "$output" || exit 1
+fi
+
+# If this is not a Git repository, just generate an empty ChangeLog.
+test -d .git || {
+  >"$output"
+  exit
+}
+
+# Use Gnulib's packaged ChangeLog generator.
+# Maybe we should skip all "Merge branch 'master'" messages.
+# See eg the cairo-related ones.
+./build-aux/gitlog-to-changelog \
+    --ignore-matching="^; |^Merge branch 'master' of git\.(savannah|sv)\.gnu\.org:/srv/git/emacs$|^Merge remote-tracking branch '.*'$" \
+  --ignore-line='^; ' --format='%B' \
+  "$gen_origin..$new_origin" >"ChangeLog.tmp" || exit
+
+if test -s "ChangeLog.tmp"; then
+
+  # Fix up bug references.
+  # This would be better as eg a --transform option to gitlog-to-changelog,
+  # but... effort.  FIXME does not handle rare cases like:
+  # Fixes: debbugs:19434 debbugs:19519
+  sed 's/	Fixes: \(debbugs:\|bug#\)\([0-9][0-9]*\)/	(Bug#\2)/' \
+      "ChangeLog.tmp" > "ChangeLog.tmp2"
+  mv "ChangeLog.tmp2" "ChangeLog.tmp"
+
+  # Find the years covered by the generated ChangeLog, so that
+  # a proper copyright notice can be output.
+  years=`
+    sed -n 's/^\([0-9][0-9]*\).*/\1/p' "ChangeLog.tmp" |
+    sort -nu
+  `
+  start_year=
+  end_year=
+  for year in $years; do
+    : ${start_year:=$year}
+    end_year=$year
+  done
+
+  if test "$start_year" = "$end_year"; then
+    year_range=$start_year
+  else
+    year_range=$start_year-$end_year
+  fi
+
+  # Update gen_origin and append a proper copyright notice.
+  sed -n '
+    1i\
+
+    /^This file records repository revisions/p
+    s/^commit [0-9a-f]* (exclusive)/commit '"$gen_origin"' (exclusive)/p
+    s/^commit [0-9a-f]* (inclusive)/commit '"$new_origin"' (inclusive)/p
+    /^See ChangeLog.[0-9]* for earlier/,${
+       s/ChangeLog\.[0-9]*/ChangeLog.'$nmax'/
+       s/\(Copyright[ (C)]*\)[0-9]*-[0-9]*/\1'"$year_range"'/
+       p
+    }
+  ' <ChangeLog.$nmax >>"ChangeLog.tmp" || exit
+fi
+
+# Install the generated ChangeLog.
+test "$output" = "ChangeLog.tmp" || mv "ChangeLog.tmp" "$output"

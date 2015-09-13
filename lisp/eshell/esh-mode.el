@@ -206,7 +206,7 @@ This is used by `eshell-watch-for-password-prompt'."
 
 ;; Internal Variables:
 
-;; these are only set to `nil' initially for the sake of the
+;; these are only set to nil initially for the sake of the
 ;; byte-compiler, when compiling other files which `require' this one
 (defvar eshell-mode nil)
 (defvar eshell-mode-map nil)
@@ -344,7 +344,6 @@ and the hook `eshell-exit-hook'."
 
   (setq local-abbrev-table eshell-mode-abbrev-table)
 
-  (set (make-local-variable 'dired-directory) default-directory)
   (set (make-local-variable 'list-buffers-directory)
        (expand-file-name default-directory))
 
@@ -628,10 +627,11 @@ newline."
   (let ((proc-running-p (and (eshell-interactive-process)
 			     (not queue-p)))
 	(inhibit-point-motion-hooks t)
-	after-change-functions)
+	(inhibit-modification-hooks t))
     (unless (and proc-running-p
 		 (not (eq (process-status
-			   (eshell-interactive-process)) 'run)))
+			   (eshell-interactive-process))
+                          'run)))
       (if (or proc-running-p
 	      (>= (point) eshell-last-output-end))
 	  (goto-char (point-max))
@@ -698,7 +698,7 @@ This is done after all necessary filtering has been done."
   (let ((oprocbuf (if process (process-buffer process)
 		    (current-buffer)))
 	(inhibit-point-motion-hooks t)
-	after-change-functions)
+	(inhibit-modification-hooks t))
     (let ((functions eshell-preoutput-filter-functions))
       (while (and functions string)
 	(setq string (funcall (car functions) string))
@@ -870,6 +870,21 @@ When run interactively, widen the buffer first."
       (widen))
   (goto-char (point-max))
   (recenter -1))
+
+(defun eshell/clear (&optional scrollback)
+  "Scroll contents of eshell window out of sight, leaving a blank window.
+If SCROLLBACK is non-nil, clear the scrollback contents."
+  (interactive)
+  (if scrollback
+      (eshell/clear-scrollback)
+    (let ((number-newlines (count-lines (window-start) (point))))
+      (insert (make-string number-newlines ?\n))
+      (eshell-send-input))))
+
+(defun eshell/clear-scrollback ()
+  "Clear the scrollback content of the eshell window."
+  (let ((inhibit-read-only t))
+    (erase-buffer)))
 
 (defun eshell-get-old-input (&optional use-current-region)
   "Return the command input on the current line."

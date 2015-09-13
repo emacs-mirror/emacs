@@ -204,7 +204,7 @@ for Korean Hanja.
 
 @item
 Andrew Choi and Yamamoto Mitsuharu wrote the Carbon support, used
-prior to Emacs 23 for Mac OS.  Yamamoto Mitsuharu continued to
+prior to Emacs 23 for Mac OS@.  Yamamoto Mitsuharu continued to
 contribute to Mac OS support in the newer Nextstep port; and also
 improved support for multi-monitor displays.
 
@@ -1201,7 +1201,7 @@ Ken Stevens wrote @file{ispell.el}, a spell-checker interface.
 
 @item
 Kim F. Storm made many improvements to the Emacs display engine,
-process support, and networking support. He also wrote
+process support, and networking support.  He also wrote
 @file{bindat.el}, a package for encoding and decoding binary data;
 CUA mode, which allows Emacs to emulate the standard CUA key
 bindings; @file{ido.el}, a package for selecting buffers and files

@@ -152,7 +152,7 @@ This variable can have 3 values:
 nil        Arrows just move the cursor
 t          Arrows force the cursor back to the current command line and
            walk the history
-'cmdline   When the cursor is in the current command line, arrows walk the
+`cmdline'  When the cursor is in the current command line, arrows walk the
            history.  Everywhere else in the buffer, arrows move the cursor."
   :group 'idlwave-shell-general-setup
   :type '(choice
@@ -229,7 +229,7 @@ to set this option to nil."
 
 (defcustom idlwave-shell-file-name-chars "~/A-Za-z0-9+:_.$#%={}\\- "
   "The characters allowed in file names, as a string.
-Used for file name completion.  Must not contain `'', `,' and `\"'
+Used for file name completion.  Must not contain `\\='', `,' and `\"'
 because these are used as separators by IDL."
   :group 'idlwave-shell-general-setup
   :type 'string)
@@ -379,15 +379,15 @@ This mechanism is useful for correct interaction with the IDL function
 GET_KBRD, because in normal operation IDLWAVE only sends \\n terminated
 strings.  Here is some example code which makes use of the default spells.
 
-  print,'<chars>'               ; Make IDLWAVE switch to character mode
+  print,\\='<chars>\\='               ; Make IDLWAVE switch to character mode
   REPEAT BEGIN
       A = GET_KBRD(1)
       PRINT, BYTE(A)
-  ENDREP UNTIL A EQ 'q'
-  print,'</chars>'              ; Make IDLWAVE switch back to line mode
+  ENDREP UNTIL A EQ \\='q\\='
+  print,\\='</chars>\\='              ; Make IDLWAVE switch back to line mode
 
-  print,'Quit the program, y or n?'
-  print,'<onechar>'             ; Ask IDLWAVE to send one character
+  print,\\='Quit the program, y or n?\\='
+  print,\\='<onechar>\\='             ; Ask IDLWAVE to send one character
   answer = GET_KBRD(1)
 
 Since the IDLWAVE shell defines the system variable `!IDLWAVE_VERSION',
@@ -403,11 +403,11 @@ idlwave_char_input,/off          ; End the loop to send characters
 
 pro idlwave_char_input,on=on,off=off
   ;; Test if we are running under Emacs
-  defsysv,'!idlwave_version',exists=running_emacs
+  defsysv,\\='!idlwave_version\\=',exists=running_emacs
   if running_emacs then begin
-      if keyword_set(on) then         print,'<chars>' $
-        else if keyword_set(off) then print,'</chars>' $
-        else                          print,'<onechar>'
+      if keyword_set(on) then         print,\\='<chars>\\=' $
+        else if keyword_set(off) then print,\\='</chars>\\=' $
+        else                          print,\\='<onechar>\\='
   endif
 end"
   :group 'idlwave-shell-command-setup
@@ -439,15 +439,13 @@ Value decides about the method which is used to mark the line.  Valid values
 are:
 
 nil       Do not mark the line
-'arrow    Use the overlay arrow
-'face     Use `idlwave-shell-stop-line-face' to highlight the line.
+`arrow'   Use the overlay arrow
+`face'    Use `idlwave-shell-stop-line-face' to highlight the line.
 t         Use what IDLWAVE thinks is best.  Will be a face where possible,
           otherwise the overlay arrow.
 The overlay-arrow has the disadvantage to hide the first chars of a line.
 Since many people do not have the main block of IDL programs indented,
-a face highlighting may be better.
-In Emacs 21, the overlay arrow is displayed in a special area and never
-hides any code, so setting this to 'arrow on Emacs 21 sounds like a good idea."
+a face highlighting may be better."
   :group 'idlwave-shell-highlighting-and-faces
   :type '(choice
 	  (const :tag "No marking" nil)
@@ -494,10 +492,10 @@ where IDL is stopped, when in Electric Debug Mode."
   "Non-nil means, mark breakpoints in the source files.
 Valid values are:
 nil        Do not mark breakpoints.
-'face      Highlight line with `idlwave-shell-breakpoint-face'.
-'glyph     Red dot at the beginning of line.  If the display does not
-           support glyphs, will use 'face instead.
-t          Glyph when possible, otherwise face (same effect as 'glyph)."
+`face'     Highlight line with `idlwave-shell-breakpoint-face'.
+`glyph'    Red dot at the beginning of line.  If the display does not
+           support glyphs, will use `face' instead.
+t          Glyph when possible, otherwise face (same effect as `glyph')."
   :group 'idlwave-shell-highlighting-and-faces
   :type '(choice
 	  (const :tag "No marking" nil)
@@ -1445,12 +1443,8 @@ Otherwise just move the line.  Move down unless UP is non-nil."
   (interactive "p")
   (idlwave-shell-move-or-history nil arg))
 
-;; Newer versions of comint.el changed the name of comint-filter to
-;; comint-output-filter.
-(defalias 'idlwave-shell-comint-filter
-  (if (fboundp 'comint-output-filter)
-      #'comint-output-filter
-    #'comint-filter))
+(define-obsolete-function-alias 'idlwave-shell-comint-filter
+  'comint-output-filter "25.1")
 
 (defun idlwave-shell-is-running ()
   "Return t if the shell process is running."
@@ -1496,7 +1490,7 @@ and then calls `idlwave-shell-send-command' for any pending commands."
 		     (get-buffer-create idlwave-shell-hidden-output-buffer))
 		    (goto-char (point-max))
 		    (insert string))
-		(idlwave-shell-comint-filter proc string))
+		(comint-output-filter proc string))
 	      ;; Watch for magic - need to accumulate the current line
 	      ;; since it may not be sent all at once.
 	      (if (string-match "\n" string)
@@ -1552,7 +1546,7 @@ and then calls `idlwave-shell-send-command' for any pending commands."
 		  (if idlwave-shell-hide-output
 		      (if (and idlwave-shell-show-if-error
 			       (eq idlwave-shell-current-state 'error))
-			  (idlwave-shell-comint-filter proc full-output)
+			  (comint-output-filter proc full-output)
 			;; If it's only *mostly* hidden, filter % lines,
 			;; and show anything that remains
 			(if (eq idlwave-shell-hide-output 'mostly)
@@ -1560,7 +1554,7 @@ and then calls `idlwave-shell-send-command' for any pending commands."
 				   (idlwave-shell-filter-hidden-output
 				    full-output)))
 			      (if filtered
-				  (idlwave-shell-comint-filter
+				  (comint-output-filter
 				   proc filtered))))))
 
 		  ;; Call the post-command hook
@@ -2642,7 +2636,7 @@ If ENABLE is non-nil, enable them instead."
 (defun idlwave-shell-break-in ()
   "Look for a module name near point and set a break point for it.
 The command looks for an identifier near point and sets a breakpoint
-for the first line of the corresponding module.  If MODULE is `t', set
+for the first line of the corresponding module.  If MODULE is t, set
 in the current routine."
   (interactive)
   (let* ((module (idlwave-fix-module-if-obj_new (idlwave-what-module)))
@@ -3915,7 +3909,7 @@ Elements of the alist have the form:
 
 (defun idlwave-shell-module-source-query (module &optional type)
   "Determine the source file for a given module.
-Query as a function if TYPE set to something beside 'pro."
+Query as a function if TYPE set to something beside `pro'."
   (if module
       (idlwave-shell-send-command
        (format "print,(routine_info('%s',/SOURCE%s)).PATH" module

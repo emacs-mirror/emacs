@@ -307,12 +307,12 @@ Use ALT-TEXT for the image string."
 	  (gnus-article-add-button start end
 				   'browse-url (mm-url-decode-entities-string url)
 				   url)
-	  (let ((overlay (gnus-make-overlay start end)))
-	    (gnus-overlay-put overlay 'evaporate t)
-	    (gnus-overlay-put overlay 'gnus-button-url url)
+	  (let ((overlay (make-overlay start end)))
+	    (overlay-put overlay 'evaporate t)
+	    (overlay-put overlay 'gnus-button-url url)
 	    (gnus-put-text-property start end 'gnus-string url)
 	    (when gnus-article-mouse-face
-	      (gnus-overlay-put overlay 'mouse-face gnus-article-mouse-face)))))
+	      (overlay-put overlay 'mouse-face gnus-article-mouse-face)))))
        ;; The upper-case IMG_ALT is apparently just an artifact that
        ;; should be deleted.
        ((equal tag "IMG_ALT")
@@ -320,19 +320,19 @@ Use ALT-TEXT for the image string."
        ;; w3m does not normalize the case
        ((or (equal tag "b")
             (equal tag "B"))
-        (gnus-overlay-put (gnus-make-overlay start end) 'face 'gnus-emphasis-bold))
+        (overlay-put (make-overlay start end) 'face 'gnus-emphasis-bold))
        ((or (equal tag "u")
             (equal tag "U"))
-        (gnus-overlay-put (gnus-make-overlay start end) 'face 'gnus-emphasis-underline))
+        (overlay-put (make-overlay start end) 'face 'gnus-emphasis-underline))
        ((or (equal tag "i")
             (equal tag "I"))
-        (gnus-overlay-put (gnus-make-overlay start end) 'face 'gnus-emphasis-italic))
+        (overlay-put (make-overlay start end) 'face 'gnus-emphasis-italic))
        ((or (equal tag "s")
             (equal tag "S"))
-        (gnus-overlay-put (gnus-make-overlay start end) 'face 'gnus-emphasis-strikethru))
+        (overlay-put (make-overlay start end) 'face 'gnus-emphasis-strikethru))
        ((or (equal tag "ins")
             (equal tag "INS"))
-        (gnus-overlay-put (gnus-make-overlay start end) 'face 'gnus-emphasis-underline))
+        (overlay-put (make-overlay start end) 'face 'gnus-emphasis-underline))
        ;; Handle different UL types
        ((equal tag "_SYMBOL")
         (when (string-match "TYPE=\\(.+\\)" parameters)

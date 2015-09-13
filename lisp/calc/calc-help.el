@@ -239,7 +239,7 @@ C-w  Describe how there is no warranty for Calc."
 		      (setq prompts (substring prompts 0 (match-beginning 0))))
 		  (if (string-match "\\` +" prompts)
 		      (setq prompts (substring prompts (match-end 0))))
-		  (setq msg (format
+		  (setq msg (format-message
 			     "%s:  %s%s`%s'%s%s %s%s"
 			     (if (string-match
 				  "\\`\\(calc-[-a-zA-Z0-9]+\\) *\\(.*\\)\\'"
@@ -364,23 +364,21 @@ C-w  Describe how there is no warranty for Calc."
 	  (error "Can't find `%s' in %s" thing where)))
     (let (Info-history)
       (Info-goto-node (buffer-substring (match-beginning 1) (match-end 1))))
-    (or (let ((case-fold-search nil))
-	  (or (re-search-forward (format "\\[`%s'\\]\\|(`%s')\\|\\<The[ \n]`%s'"
-                                         (or target (regexp-quote thing))
-                                         (or target (regexp-quote thing))
-                                         (or target (regexp-quote thing))) nil t)
-	      (and not-quoted
-		   (let ((case-fold-search t))
-		     (search-forward (or target thing) nil t)))
-	      (search-forward (format "`%s'" (or target thing)) nil t)
-	      (search-forward (or target thing) nil t)))
-	(let ((case-fold-search t))
-	  (or (re-search-forward (format "\\[`%s'\\]\\|(`%s')\\|\\<The[ \n]`%s'"
-                                         (or target (regexp-quote thing))
-                                         (or target (regexp-quote thing))
-                                         (or target (regexp-quote thing))) nil t)
-	      (search-forward (format "`%s'" (or target thing)) nil t)
-	      (search-forward (or target thing) nil t))))
+    (let* ((string-target (or target thing))
+           (quoted (format "['`‘]%s['’]" (regexp-quote string-target)))
+           (bracketed (format "\\[%s\\]\\|(%s)\\|\\<The[ \n]%s"
+                              quoted quoted quoted)))
+      (or (let ((case-fold-search nil))
+            (or (re-search-forward bracketed nil t)
+                (and not-quoted
+                     (let ((case-fold-search t))
+                       (search-forward string-target nil t)))
+                (re-search-forward quoted nil t)
+                (search-forward string-target nil t)))
+          (let ((case-fold-search t))
+            (or (re-search-forward bracketed nil t)
+                (re-search-forward quoted nil t)
+                (search-forward string-target nil t)))))
     (beginning-of-line)
     (message "Found `%s' in %s" thing where)))
 
@@ -402,11 +400,14 @@ C-w  Describe how there is no warranty for Calc."
     (princ "GNU Emacs Calculator.\n")
     (princ "  By Dave Gillespie.\n")
     (princ (format "  %s\n\n" emacs-copyright))
-    (princ "Type `h s' for a more detailed summary.\n")
-    (princ "Or type `h i' to read the full Calc manual on-line.\n\n")
+    (princ (format-message "Type `h s' for a more detailed summary.\n"))
+    (princ (format-message
+            "Or type `h i' to read the full Calc manual on-line.\n\n"))
     (princ "Basic keys:\n")
     (let* ((calc-full-help-flag t))
-      (mapc (function (lambda (x) (princ (format "  %s\n" x))))
+      (mapc (function (lambda (x) (princ (format
+                                          "  %s\n"
+                                          (substitute-command-keys x)))))
 	    (nreverse (cdr (reverse (cdr (calc-help))))))
       (mapc (function (lambda (prefix)
 			(let ((msgs (condition-case err
@@ -415,9 +416,10 @@ C-w  Describe how there is no warranty for Calc."
 			  (if (car msgs)
 			      (princ
 			       (if (eq (nth 2 msgs) ?v)
-				   "\n`v' or `V' prefix (vector/matrix) keys: \n"
+                                   (format-message
+                                    "\n`v' or `V' prefix (vector/matrix) keys: \n")
 				 (if (nth 2 msgs)
-				     (format
+				     (format-message
 				      "\n`%c' prefix (%s) keys:\n"
 				      (nth 2 msgs)
 				      (or (cdr (assq (nth 2 msgs)
@@ -425,8 +427,11 @@ C-w  Describe how there is no warranty for Calc."
 					  (nth 1 msgs)))
 				   (format "\n%s-modified keys:\n"
 					   (capitalize (nth 1 msgs)))))))
-			  (mapcar (function (lambda (x)
-				    (princ (format "  %s\n" x))))
+			  (mapcar (function
+                                   (lambda (x)
+                                     (princ (format
+                                             "  %s\n"
+                                             (substitute-command-keys x)))))
 				  (car msgs)))))
 	    '(calc-inverse-prefix-help
 	      calc-hyperbolic-prefix-help
@@ -541,7 +546,7 @@ C-w  Describe how there is no warranty for Calc."
    '("Select, Additional, Once; eVal, Formula; Rewrite"
      "More, Less, 1-9, Next, Previous"
      "Unselect, Clear; Display; Enable; Breakable"
-     "' (replace), ` (edit), +, -, *, /, RET (grab), DEL"
+     "\\=' (replace), \\=` (edit), +, -, *, /, RET (grab), DEL"
      "SHIFT + swap: Left, Right; maybe: Select, Once"
      "SHIFT + Commute, Merge, Distrib, jump-Eqn, Isolate"
      "SHIFT + Negate, & (invert); Unpack")

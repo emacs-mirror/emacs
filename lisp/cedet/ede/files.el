@@ -41,7 +41,7 @@
 (declare-function ede-locate-flush-hash "ede/locate")
 
 (defvar ede--disable-inode nil
-  "Set to 't' to simulate systems w/out inode support.")
+  "Set to t to simulate systems w/out inode support.")
 
 ;;; Code:
 ;;;###autoload

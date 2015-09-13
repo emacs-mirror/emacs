@@ -97,11 +97,11 @@ regard to completeness.
 
  * iso-2022 charsets get unified on i/o.
 
-	With the change on 2003-01-06, decoding routines put `charset'
-	property to decoded text, and iso-2022 encoder pay attention
+	With the change on 2003-01-06, decoding routines put the 'charset'
+	property onto decoded text, and iso-2022 encoder pay attention
 	to it.  Thus, for instance, reading and writing by
 	iso-2022-7bit preserve the original designation sequences.
-	The property name `preferred-charset' may be better?
+	The property name 'preferred-charset' may be better?
 
 	We may have to utilize this property to decide a font.
 
@@ -167,8 +167,8 @@ nontrivial changes to the build process.
 	leim/CXTERM-DIC/QJ.tit
 	leim/CXTERM-DIC/SW.tit
 	leim/CXTERM-DIC/TONEPY.tit
-	leim/MISC-DIC/pinyin.map
 	leim/MISC-DIC/CTLau.html
+	leim/MISC-DIC/pinyin.map
 	leim/MISC-DIC/ziranma.cin
 
  * cp850
@@ -226,7 +226,6 @@ nontrivial changes to the build process.
 	lisp/leim/quail/japanese.el
 	lisp/leim/quail/py-punct.el
 	lisp/leim/quail/pypunct-b5.el
-	lisp/term/x-win.el
 
      This file contains just Chinese characters, and has same problem.
      Also, it contains characters that cannot be encoded in UTF-8.
@@ -237,11 +236,32 @@ nontrivial changes to the build process.
 
      These files contain characters that cannot be encoded in UTF-8.
 
-	lisp/language/tibetan.el
-	lisp/language/tibet-util.el
+	lisp/language/ethio-util.el
+	lisp/language/ethiopic.el
 	lisp/language/ind-util.el
+	lisp/language/tibet-util.el
+	lisp/language/tibetan.el
 	lisp/leim/quail/ethiopic.el
 	lisp/leim/quail/tibetan.el
+
+ * binary files
+
+     These files contain binary data, and are not text files.
+     Some of the entries in this list are patterns, and stand for any
+     files with the listed extension.
+
+	*.gz
+	*.icns
+	*.ico
+	*.pbm
+	*.pdf
+	*.png
+	*.sig
+	etc/e/eterm-color
+	etc/package-keyring.gpg
+	msdos/emacs.pif
+	nextstep/GNUstep/Emacs.base/Resources/emacs.tiff
+	nt/icons/hand.cur
 
 
 This file is part of GNU Emacs.

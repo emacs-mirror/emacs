@@ -241,7 +241,7 @@ ignored in this case."
   (or window (selected-window)))
 
 (defun org-number-sequence (from &optional to inc)
-  "Call `number-sequence or emulate it."
+  "Call `number-sequence' or emulate it."
   (if (fboundp 'number-sequence)
       (number-sequence from to inc)
     (if (or (not to) (= from to))
@@ -417,6 +417,10 @@ Pass BUFFER to the XEmacs version of `move-to-column'."
 ;; `user-error' is only available from 24.2.50 on
 (unless (fboundp 'user-error)
   (defalias 'user-error 'error))
+
+;; ‘format-message’ is available only from 25 on
+(unless (fboundp 'format-message)
+  (defalias 'format-message 'format))
 
 (defmacro org-no-popups (&rest body)
   "Suppress popup windows.

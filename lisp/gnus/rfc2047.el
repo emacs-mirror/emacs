@@ -1136,7 +1136,7 @@ other than `\"' and `\\' in quoted strings."
 	  ;; `decode-coding-string' in Emacs offers a third optional
 	  ;; arg NOCOPY to avoid consing a new string if the decoding
 	  ;; is "trivial".  Unfortunately it currently doesn't
-	  ;; consider anything else than a `nil' coding system
+	  ;; consider anything else than a nil coding system
 	  ;; trivial.
 	  ;; `rfc2047-decode-string' is called multiple times for each
 	  ;; article during summary buffer generation, and we really

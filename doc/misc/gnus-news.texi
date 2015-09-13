@@ -13,8 +13,8 @@
 @c    carry prominent notices stating who last changed them.
 
 @c This file contains a list of news features Gnus.  It is supposed to be
-@c included in `gnus.texi'.  `GNUS-NEWS' is automatically generated from
-@c this file (see `gnus-news.el').
+@c included in 'gnus.texi'.  'GNUS-NEWS' is automatically generated from
+@c this file (see 'gnus-news.el').
 
 @itemize @bullet
 

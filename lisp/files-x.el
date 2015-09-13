@@ -247,7 +247,14 @@ then this function adds the first line containing the string
 `Local Variables:' and the last line containing the string `End:'."
   (interactive
    (let ((variable (read-file-local-variable "Add file-local variable")))
+     ;; Error before reading value.
+     (if (equal variable 'lexical-binding)
+	 (user-error "The `%s' variable must be set at the start of the file"
+		     variable))
      (list variable (read-file-local-variable-value variable) t)))
+  (if (equal variable 'lexical-binding)
+      (user-error "The `%s' variable must be set at the start of the file"
+                  variable))
   (modify-file-local-variable variable value 'add-or-replace interactive))
 
 ;;;###autoload

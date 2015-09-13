@@ -346,7 +346,7 @@ If SUNRISE-FLAG is non-nil, only calculate longitude and inclination."
                                    (solar-cosine-degrees (* 2 l)))
                                 (* -0.5 y y  (solar-sin-degrees (* 4 l)))
                                 (* -1.25 ecc ecc (solar-sin-degrees (* 2 m)))))
-                       3.1415926535))))
+                       float-pi))))
     (list app i time-eq nut)))
 
 (defun solar-ephemeris-correction (year)

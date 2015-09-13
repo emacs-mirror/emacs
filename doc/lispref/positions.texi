@@ -350,10 +350,11 @@ would move to.
 @deffn Command forward-line &optional count
 @cindex beginning of line
 This function moves point forward @var{count} lines, to the beginning of
-the line.  If @var{count} is negative, it moves point
-@minus{}@var{count} lines backward, to the beginning of a line.  If
-@var{count} is zero, it moves point to the beginning of the current
-line.  If @var{count} is @code{nil}, that means 1.
+the line following that.  If @var{count} is negative, it moves point
+@minus{}@var{count} lines backward, to the beginning of a line
+preceding that.  If @var{count} is zero, it moves point to the
+beginning of the current line.  If @var{count} is @code{nil}, that
+means 1.
 
 If @code{forward-line} encounters the beginning or end of the buffer (or
 of the accessible portion) before finding that many lines, it sets point
@@ -362,7 +363,11 @@ there.  No error is signaled.
 @code{forward-line} returns the difference between @var{count} and the
 number of lines actually moved.  If you attempt to move down five lines
 from the beginning of a buffer that has only three lines, point stops at
-the end of the last line, and the value will be 2.
+the end of the last line, and the value will be 2.  As an explicit
+exception, if the last accessible line is non-empty, but has no
+newline (e.g., if the buffer ends without a newline), the function
+sets point to the end of that line, and the value returned by the
+function counts that line as one line successfully moved.
 
 In an interactive call, @var{count} is the numeric prefix argument.
 @end deffn
@@ -664,7 +669,7 @@ quotes are ignored.)
 This function moves forward out of @var{arg} (default 1) levels of
 parentheses.  A negative argument means move backward but still to a
 less deep spot.  If @var{escape-strings} is non-@code{nil} (as it is
-interactively), move out of enclosing strings as well. If
+interactively), move out of enclosing strings as well.  If
 @var{no-syntax-crossing} is non-@code{nil} (as it is interactively), prefer
 to break out of any enclosing string instead of moving to the start of
 a list broken across multiple strings.  On error, location of point is
@@ -825,8 +830,8 @@ is zero or less.
   It is often useful to move point ``temporarily'' within a localized
 portion of the program.  This is called an @dfn{excursion}, and it is
 done with the @code{save-excursion} special form.  This construct
-remembers the initial identity of the current buffer, and its values
-of point and the mark, and restores them after the excursion
+remembers the initial identity of the current buffer, and its value
+of point, and restores them after the excursion
 completes.  It is the standard way to move point within one part of a
 program and avoid affecting the rest of the program, and is used
 thousands of times in the Lisp sources of Emacs.
@@ -838,21 +843,20 @@ window configurations, see the forms described in @ref{Window
 Configurations} and in @ref{Frame Configurations}. @c frameset?
 
 @defspec save-excursion body@dots{}
-@cindex mark excursion
 @cindex point excursion
 This special form saves the identity of the current buffer and the
-values of point and the mark in it, evaluates @var{body}, and finally
-restores the buffer and its saved values of point and the mark.  All
-three saved values are restored even in case of an abnormal exit via
+value of point in it, evaluates @var{body}, and finally
+restores the buffer and its saved value of point.  Both saved values are
+restored even in case of an abnormal exit via
 @code{throw} or error (@pxref{Nonlocal Exits}).
 
 The value returned by @code{save-excursion} is the result of the last
 form in @var{body}, or @code{nil} if no body forms were given.
 @end defspec
 
-  Because @code{save-excursion} only saves point and mark for the
+  Because @code{save-excursion} only saves point for the
 buffer that was current at the start of the excursion, any changes
-made to point and/or mark in other buffers, during the excursion, will
+made to point in other buffers, during the excursion, will
 remain in effect afterward.  This frequently leads to unintended
 consequences, so the byte compiler warns if you call @code{set-buffer}
 during an excursion:
@@ -888,10 +892,13 @@ type @code{nil}.  @xref{Marker Insertion Types}.  Therefore, when the
 saved point value is restored, it normally comes before the inserted
 text.
 
-  Although @code{save-excursion} saves the location of the mark, it does
-not prevent functions which modify the buffer from setting
-@code{deactivate-mark}, and thus causing the deactivation of the mark
-after the command finishes.  @xref{The Mark}.
+@defmac save-mark-and-excursion body@dots{}
+@cindex mark excursion
+@cindex point excursion
+This macro is like @code{save-excursion}, but also saves and restores
+the mark location and @code{mark-active}.  This macro does what
+@code{save-excursion} did before Emacs 25.1.
+@end defmac
 
 @node Narrowing
 @section Narrowing
@@ -980,7 +987,7 @@ restores the restrictions on the original buffer (the buffer whose
 restrictions it saved from), but it does not restore the identity of the
 current buffer.
 
-@code{save-restriction} does @emph{not} restore point and the mark; use
+@code{save-restriction} does @emph{not} restore point; use
 @code{save-excursion} for that.  If you use both @code{save-restriction}
 and @code{save-excursion} together, @code{save-excursion} should come
 first (on the outside).  Otherwise, the old point value would be

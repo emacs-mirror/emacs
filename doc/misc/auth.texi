@@ -6,7 +6,7 @@
 
 @setfilename ../../info/auth.info
 @settitle Emacs auth-source Library @value{VERSION}
-@documentencoding UTF-8
+@include docstyle.texi
 
 @copying
 This file describes the Emacs auth-source library.
@@ -110,11 +110,11 @@ The @code{user} is the user name.  It's known as @var{:user} in
 You can use spaces inside a password or other token by surrounding the
 token with either single or double quotes.
 
-You can use single quotes inside a password or other token by
-surrounding it with double quotes, e.g. @code{"he'llo"}. Similarly you
+You can use apostrophes inside a password or other token by
+surrounding it with double quotes, e.g., @code{"he'llo"}. Similarly you
 can use double quotes inside a password or other token by surrounding
-it with single quotes, e.g. @code{'he"llo'}. You can't mix both (so a
-password or other token can't have both single and double quotes).
+it with apostrophes, e.g., @code{'he"llo'}. You can't mix both (so a
+password or other token can't have both apostrophes and double quotes).
 
 All this is optional. You could just say (but we don't recommend it,
 we're just showing that it's possible)

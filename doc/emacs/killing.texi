@@ -105,9 +105,9 @@ indentation following it (@code{delete-indentation}).
 (@code{delete-backward-char}), @key{delete}
 (@code{delete-forward-char}), and @kbd{C-d} (@code{delete-char}).
 @xref{Erasing}.  With a numeric argument, they delete the specified
-number of characters.  If the numeric argument is omitted or one, they
-delete all the text in the region if it is active (@pxref{Using
-Region}).
+number of characters.  If the numeric argument is omitted or one,
+@key{DEL} and @key{delete} delete all the text in the region if it is
+active (@pxref{Using Region}).
 
 @kindex M-\
 @findex delete-horizontal-space
@@ -848,7 +848,7 @@ shifting the original text to the right.
   The command @kbd{C-x @key{SPC}} (@code{rectangle-mark-mode}) toggles
 whether the region-rectangle or the standard region is highlighted
 (first activating the region if necessary).  When this mode is enabled,
-commands that resize the region (@kbd{C-f}, @kbd{C-n} etc.) do
+commands that resize the region (@kbd{C-f}, @kbd{C-n} etc.)@: do
 so in a rectangular fashion, and killing and yanking operate on the
 rectangle.  @xref{Killing}.  The mode persists only as long as the
 region is active.

@@ -2,6 +2,7 @@
 
 @setfilename ../../info/emacs.info
 @settitle GNU Emacs Manual
+@include docstyle.texi
 
 @c The edition number appears in more than one place in this file
 @c I don't really know what it means...
@@ -43,8 +44,6 @@ modify this GNU manual.  Buying copies from the FSF supports it in
 developing GNU and promoting software freedom.''
 @end quotation
 @end copying
-
-@documentencoding UTF-8
 
 @dircategory Emacs
 @direntry
@@ -94,7 +93,7 @@ developing GNU and promoting software freedom.''
 Published by the Free Software Foundation @*
 51 Franklin Street, Fifth Floor @*
 Boston, MA 02110-1301 USA @*
-ISBN 978-0-9831592-4-7
+ISBN 978-0-9831592-5-4
 
 @sp 2
 Cover art by Etienne Suvasa; cover design by Matt Lee.
@@ -115,7 +114,7 @@ display editor.  This manual describes how to edit with Emacs and
 some of the ways to customize it; it corresponds to GNU Emacs version
 @value{EMACSVER}.
 
-@c See `manual-html-mono' and `manual-html-node' in admin/admin.el.
+@c See 'manual-html-mono' and 'manual-html-node' in admin/admin.el.
 @ifset WWW_GNU_ORG
 @html
 The homepage for GNU Emacs is at
@@ -161,7 +160,7 @@ Fundamental Editing Commands
 * Help::                Commands for asking Emacs about its commands.
 
 Important Text-Changing Commands
-* Mark::                The mark: how to delimit a "region" of text.
+* Mark::                The mark: how to delimit a ``region'' of text.
 * Killing::             Killing (cutting) and yanking (copying) text.
 * Registers::           Saving a text string or a location in the buffer.
 * Display::             Controlling what text is displayed.
@@ -173,7 +172,7 @@ Major Structures of Emacs
 * Files::               All about handling files.
 * Buffers::             Multiple buffers; editing several files at once.
 * Windows::             Viewing multiple pieces of text in one frame.
-* Frames::              Using multiple "windows" on your display.
+* Frames::              Using multiple ``windows'' on your display.
 * International::       Using non-@acronym{ASCII} character sets.
 
 Advanced Features
@@ -201,7 +200,7 @@ Advanced Features
 @end ifnottex
 * Editing Binary Files::  Editing binary files with Hexl mode.
 * Saving Emacs Sessions:: Saving Emacs state from one session to the next.
-* Recursive Edit::      Performing edits while "within another command".
+* Recursive Edit::      Performing edits while ``within another command''.
 * Hyperlinking::        Following links in buffers.
 * Amusements::          Various games and hacks.
 * Packages::            Installing additional features.
@@ -239,9 +238,9 @@ Indexes (each index contains a large menu)
 * Concept Index::       An item for each concept.
 
 @c Do NOT modify the following 3 lines!  They must have this form to
-@c be correctly identified by `texinfo-multiple-files-update'.  In
+@c be correctly identified by 'texinfo-multiple-files-update'.  In
 @c particular, the detailed menu header line MUST be identical to the
-@c value of `texinfo-master-menu-header'.  See texnfo-upd.el.
+@c value of 'texinfo-master-menu-header'.  See texnfo-upd.el.
 
 @detailmenu
  --- The Detailed Node Listing ---
@@ -302,7 +301,7 @@ Help
 * Language Help::       Help relating to international language support.
 * Misc Help::           Other help commands.
 * Help Files::          Commands to display auxiliary help files.
-* Help Echo::           Help on active text and tooltips ("balloon help").
+* Help Echo::           Help on active text and tooltips (``balloon help'').
 
 The Mark and the Region
 
@@ -338,7 +337,7 @@ Yanking
 * Earlier Kills::       Yanking something killed some time ago.
 * Appending Kills::     Several kills in a row all yank together.
 
-"Cut and Paste" Operations on Graphical Displays
+``Cut and Paste'' Operations on Graphical Displays
 
 * Clipboard::           How Emacs uses the system clipboard.
 * Primary Selection::   The temporarily selected text selection.
@@ -391,7 +390,7 @@ Searching and Replacement
 * Symbol Search::          Search for a source code symbol.
 * Regexp Search::          Search for match for a regexp.
 * Regexps::                Syntax of regular expressions.
-* Regexp Backslash::       Regular expression constructs starting with `\'.
+* Regexp Backslash::       Regular expression constructs starting with '\'.
 * Regexp Example::         A complex regular expression explained.
 * Search Case::            To ignore case while searching, or not.
 * Replace::                Search, and replace some or all matches.
@@ -465,7 +464,7 @@ Saving Files
 * Customize Save::      Customizing the saving of files.
 * Interlocking::        How Emacs protects against simultaneous editing
                           of one file by two users.
-* File Shadowing::      Copying files to "shadows" automatically.
+* File Shadowing::      Copying files to ``shadows'' automatically.
 * Time Stamps::         Emacs can update time stamps on saved files.
 
 Backup Files
@@ -598,7 +597,7 @@ Commands for Human Languages
 * TeX Mode::            Editing TeX and LaTeX files.
 * HTML Mode::           Editing HTML and SGML files.
 * Nroff Mode::          Editing input to the nroff formatter.
-* Enriched Text::       Editing text "enriched" with fonts, colors, etc.
+* Enriched Text::       Editing text ``enriched'' with fonts, colors, etc.
 * Text Based Tables::   Commands for editing text-based tables.
 * Two-Column::          Splitting text columns into separate windows.
 
@@ -639,7 +638,7 @@ Enriched Text
 * Enriched Indentation::    Changing the left and right margins.
 * Enriched Justification::  Centering, setting text flush with the
                               left or right margin, etc.
-* Enriched Properties::     The "special" text properties submenu.
+* Enriched Properties::     The ``special'' text properties submenu.
 
 @c The automatic texinfo menu update inserts some duplicate items here
 @c (faces, colors, indentation, justification, properties), because
@@ -832,7 +831,7 @@ VC Directory Mode
 Version Control Branches
 
 * Switching Branches::    How to get to another existing branch.
-* VC Pull::               Updating the contents of a branch.
+* Pulling / Pushing::     Receiving/sending changes from/to elsewhere.
 * Merging::               Transferring changes between branches.
 * Creating Branches::     How to start a new branch.
 
@@ -896,7 +895,7 @@ Editing Pictures
 
 * Basic Picture::         Basic concepts and simple commands of Picture Mode.
 * Insert in Picture::     Controlling direction of cursor motion
-                            after "self-inserting" characters.
+                            after ``self-inserting'' characters.
 * Tabs in Picture::       Various features for tab stops and indentation.
 * Rectangles in Picture:: Clearing and superimposing rectangles.
 @end ifnottex
@@ -962,8 +961,8 @@ Conversion To and From Other Calendars
 
 The Diary
 
-* Displaying the Diary::   Viewing diary entries and associated calendar dates.
 * Format of Diary File::   Entering events in your diary.
+* Displaying the Diary::   Viewing diary entries and associated calendar dates.
 * Date Formats::           Various ways you can specify dates.
 * Adding to Diary::        Commands to create diary entries.
 * Special Diary Entries::  Anniversaries, blocks of dates, cyclic entries, etc.
@@ -1093,7 +1092,7 @@ Customization
                           to decide what to do; by setting variables,
                           you can control their functioning.
 * Key Bindings::        The keymaps say what command each key runs.
-                          By changing them, you can "redefine" keys.
+                          By changing them, you can ``redefine'' keys.
 * Init File::           How to write common customizations in the
                           initialization file.
 
@@ -1149,7 +1148,7 @@ The Emacs Initialization File
 Dealing with Emacs Trouble
 
 * DEL Does Not Delete:: What to do if @key{DEL} doesn't delete.
-* Stuck Recursive::     `[...]' in mode line around the parentheses.
+* Stuck Recursive::     '[...]' in mode line around the parentheses.
 * Screen Garbled::      Garbage on the screen.
 * Text Garbled::        Garbage in the text.
 * Memory Full::         How to cope when you run out of memory.

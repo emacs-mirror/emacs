@@ -452,7 +452,7 @@ This is like `describe-bindings', but displays only Isearch keys."
     (define-key map "\M-\C-s" 'isearch-repeat-forward)
     (define-key map "\M-\C-r" 'isearch-repeat-backward)
     (define-key map "\177" 'isearch-delete-char)
-    (define-key map [backspace] 'isearch-delete-char)
+    (define-key map [backspace] 'undefined) ;bug#20466.
     (define-key map "\C-g" 'isearch-abort)
 
     ;; This assumes \e is the meta-prefix-char.
@@ -519,6 +519,7 @@ This is like `describe-bindings', but displays only Isearch keys."
     (define-key map "\M-sw" 'isearch-toggle-word)
     (define-key map "\M-s_" 'isearch-toggle-symbol)
     (define-key map "\M-s " 'isearch-toggle-lax-whitespace)
+    (define-key map "\M-s'" #'isearch-toggle-character-fold)
 
     (define-key map [?\M-%] 'isearch-query-replace)
     (define-key map [?\C-\M-%] 'isearch-query-replace-regexp)
@@ -578,7 +579,7 @@ variable by the command `isearch-toggle-lax-whitespace'.")
   "Stack of search status elements.
 Each element is an `isearch--state' struct where the slots are
  [STRING MESSAGE POINT SUCCESS FORWARD OTHER-END WORD
-  INVALID-REGEXP WRAPPED BARRIER WITHIN-BRACKETS CASE-FOLD-SEARCH]")
+  ERROR WRAPPED BARRIER CASE-FOLD-SEARCH]")
 
 (defvar isearch-string "")  ; The current search string.
 (defvar isearch-message "") ; text-char-description version of isearch-string
@@ -657,8 +658,7 @@ Each element is an `isearch--state' struct where the slots are
     (nconc minor-mode-alist
 	   (list '(isearch-mode isearch-mode))))
 
-(defvar isearch-mode nil) ;; Name of the minor mode, if non-nil.
-(make-variable-buffer-local 'isearch-mode)
+(defvar-local isearch-mode nil) ;; Name of the minor mode, if non-nil.
 
 (define-key global-map "\C-s" 'isearch-forward)
 (define-key esc-map "\C-s" 'isearch-forward-regexp)
@@ -710,6 +710,7 @@ Type \\[isearch-toggle-invisible] to toggle search in invisible text.
 Type \\[isearch-toggle-regexp] to toggle regular-expression mode.
 Type \\[isearch-toggle-word] to toggle word mode.
 Type \\[isearch-toggle-symbol] to toggle symbol mode.
+Type \\[isearch-toggle-character-fold] to toggle character folding.
 
 Type \\[isearch-toggle-lax-whitespace] to toggle whitespace matching.
 In incremental searches, a space or spaces normally matches any whitespace
@@ -826,6 +827,7 @@ See the command `isearch-forward-symbol' for more information."
       (isearch-update)))))
 
 
+(defvar cursor-sensor-inhibit)
 ;; isearch-mode only sets up incremental search for the minor mode.
 ;; All the work is done by the isearch-mode commands.
 
@@ -834,6 +836,9 @@ See the command `isearch-forward-symbol' for more information."
 ;;			     isearch-forward-regexp isearch-backward-regexp)
 ;;  "List of commands for which isearch-mode does not recursive-edit.")
 
+(autoload 'character-fold-to-regexp "character-fold")
+(put 'character-fold-to-regexp 'isearch-message-prefix "char-fold ")
+(defvar character-fold-search)
 
 (defun isearch-mode (forward &optional regexp op-fun recursive-edit word)
   "Start Isearch minor mode.
@@ -858,7 +863,9 @@ convert the search string to a regexp used by regexp search functions."
   ;; Initialize global vars.
   (setq isearch-forward forward
 	isearch-regexp regexp
-	isearch-word word
+	isearch-word (or word (and character-fold-search
+                                   (not regexp)
+                                   'character-fold-to-regexp))
 	isearch-op-fun op-fun
 	isearch-last-case-fold-search isearch-case-fold-search
 	isearch-case-fold-search case-fold-search
@@ -943,10 +950,23 @@ convert the search string to a regexp used by regexp search functions."
 
 
 ;; Some high level utilities.  Others below.
+(defvar isearch--current-buffer nil)
 
 (defun isearch-update ()
   "This is called after every isearch command to update the display.
 The last thing it does is to run `isearch-update-post-hook'."
+  (unless (eq (current-buffer) isearch--current-buffer)
+    (when isearch--current-buffer
+      (with-current-buffer isearch--current-buffer
+        (setq cursor-sensor-inhibit (delq 'isearch cursor-sensor-inhibit))))
+    (setq isearch--current-buffer (current-buffer))
+    (make-local-variable 'cursor-sensor-inhibit)
+    (unless (boundp 'cursor-sensor-inhibit)
+      (setq cursor-sensor-inhibit nil))
+    ;; Suspend things like cursor-intangible during Isearch so we can search
+    ;; even within intangible text.
+    (push 'isearch cursor-sensor-inhibit))
+
   (if (and (null unread-command-events)
 	   (null executing-kbd-macro))
       (progn
@@ -1020,6 +1040,9 @@ NOPUSH is t and EDIT is t."
   (remove-hook 'mouse-leave-buffer-hook 'isearch-done)
   (remove-hook 'kbd-macro-termination-hook 'isearch-done)
   (setq isearch-lazy-highlight-start nil)
+  (with-current-buffer isearch--current-buffer
+    (setq isearch--current-buffer nil)
+    (setq cursor-sensor-inhibit (delq 'isearch cursor-sensor-inhibit)))
 
   ;; Called by all commands that terminate isearch-mode.
   ;; If NOPUSH is non-nil, we don't push the string on the search ring.
@@ -1162,8 +1185,8 @@ nonincremental search instead via `isearch-edit-string'."
   (if (and search-nonincremental-instead
 	   (= 0 (length isearch-string)))
       (let ((isearch-nonincremental t))
-	(isearch-edit-string)))
-  (isearch-done)
+	(isearch-edit-string)) ;; this calls isearch-done as well
+    (isearch-done))
   (isearch-clean-overlays))
 
 (defun isearch-fail-pos (&optional msg)
@@ -1478,7 +1501,7 @@ Use `isearch-exit' to quit without signaling."
   "Toggle word searching on or off."
   ;; The status stack is left unchanged.
   (interactive)
-  (setq isearch-word (not isearch-word))
+  (setq isearch-word (if (eq isearch-word t) nil t))
   (if isearch-word (setq isearch-regexp nil))
   (setq isearch-success t isearch-adjusted t)
   (isearch-update))
@@ -1488,6 +1511,15 @@ Use `isearch-exit' to quit without signaling."
   (interactive)
   (setq isearch-word (unless (eq isearch-word 'isearch-symbol-regexp)
 		       'isearch-symbol-regexp))
+  (if isearch-word (setq isearch-regexp nil))
+  (setq isearch-success t isearch-adjusted t)
+  (isearch-update))
+
+(defun isearch-toggle-character-fold ()
+  "Toggle character folding in searching on or off."
+  (interactive)
+  (setq isearch-word (unless (eq isearch-word #'character-fold-to-regexp)
+                       #'character-fold-to-regexp))
   (if isearch-word (setq isearch-regexp nil))
   (setq isearch-success t isearch-adjusted t)
   (isearch-update))
@@ -1735,16 +1767,8 @@ replacements from Isearch is `M-s w ... M-%'."
      (query-replace-read-to
       isearch-string
       (concat "Query replace"
-	      (if (or delimited isearch-word)
-		  (let* ((symbol (or delimited isearch-word))
-			 (string (and symbol (symbolp symbol)
-				      (get symbol 'isearch-message-prefix))))
-		    (if (stringp string)
-			;; Move space from the end to the beginning.
-			(replace-regexp-in-string "\\(.*\\) \\'" " \\1" string)
-		      " word"))
-		"")
-	      (if isearch-regexp " regexp" "")
+              (isearch--describe-word-mode (or delimited isearch-word) t)
+              (if isearch-regexp " regexp" "")
 	      (if backward " backward" "")
 	      (if (and transient-mark-mode mark-active) " in region" ""))
       isearch-regexp)
@@ -1917,8 +1941,8 @@ If search string is empty, just beep."
 (defun isearch-yank-x-selection ()
   "Pull current X selection into search string."
   (interactive)
-  (isearch-yank-string (x-get-selection))
-  ;; If `x-get-selection' returned the text from the active region,
+  (isearch-yank-string (gui-get-selection))
+  ;; If `gui-get-selection' returned the text from the active region,
   ;; then it "used" the mark which we should hence deactivate.
   (when select-active-regions (deactivate-mark)))
 
@@ -2490,6 +2514,21 @@ If there is no completion possible, say so and continue searching."
 	     (isearch-message-suffix c-q-hack)))
     (if c-q-hack m (let ((message-log-max nil)) (message "%s" m)))))
 
+(defun isearch--describe-word-mode (word-mode &optional space-before)
+  "Make a string for describing WORD-MODE.
+If SPACE-BEFORE is non-nil,  put a space before, instead of after,
+the word mode."
+  (let ((description
+         (cond ((and (symbolp word-mode)
+                     (get word-mode 'isearch-message-prefix))
+                (get word-mode 'isearch-message-prefix))
+               (word-mode "word ")
+               (t ""))))
+    (if space-before
+        ;; Move space from the end to the beginning.
+        (replace-regexp-in-string "\\(.*\\) \\'" " \\1" description)
+      description)))
+
 (defun isearch-message-prefix (&optional ellipsis nonincremental)
   ;; If about to search, and previous search regexp was invalid,
   ;; check that it still is.  If it is valid now,
@@ -2516,13 +2555,9 @@ If there is no completion possible, say so and continue searching."
                         (let ((np (cdr (assq 'isearch-message-prefix props))))
                           (if np (setq prefix (concat np prefix)))))
                       isearch-filter-predicate)
-		     prefix)
-		   (if isearch-word
-		       (or (and (symbolp isearch-word)
-				(get isearch-word 'isearch-message-prefix))
-			   "word ")
-		     "")
-		   (if isearch-regexp "regexp " "")
+                     prefix)
+                   (isearch--describe-word-mode isearch-word)
+                   (if isearch-regexp "regexp " "")
 		   (cond
 		    (multi-isearch-file-list "multi-file ")
 		    (multi-isearch-buffer-list "multi-buffer ")
@@ -2717,17 +2752,12 @@ update the match data, and return point."
       ;; isearch in their own way, they should set the
       ;; `isearch-open-invisible-temporary' to a function doing this.
       (funcall  (overlay-get ov 'isearch-open-invisible-temporary)  ov nil)
-    ;; Store the values for the `invisible' and `intangible'
-    ;; properties, and then set them to nil. This way the text hidden
-    ;; by this overlay becomes visible.
+    ;; Store the values for the `invisible' property, and then set it to nil.
+    ;; This way the text hidden by this overlay becomes visible.
 
-    ;; Do we really need to set the `intangible' property to t? Can we
-    ;; have the point inside an overlay with an `intangible' property?
     ;; In 19.34 this does not exist so I cannot test it.
     (overlay-put ov 'isearch-invisible (overlay-get ov 'invisible))
-    (overlay-put ov 'isearch-intangible (overlay-get ov 'intangible))
-    (overlay-put ov 'invisible nil)
-    (overlay-put ov 'intangible nil)))
+    (overlay-put ov 'invisible nil)))
 
 
 ;; This is called at the end of isearch.  It will open the overlays
@@ -2741,12 +2771,9 @@ update the match data, and return point."
 	;; this function, not by us tweaking the overlay properties.
 	(fct-temp (overlay-get ov 'isearch-open-invisible-temporary)))
     (when (or inside-overlay (not fct-temp))
-      ;; restore the values for the `invisible' and `intangible'
-      ;; properties
+      ;; restore the values for the `invisible' properties.
       (overlay-put ov 'invisible (overlay-get ov 'isearch-invisible))
-      (overlay-put ov 'intangible (overlay-get ov 'isearch-intangible))
-      (overlay-put ov 'isearch-invisible nil)
-      (overlay-put ov 'isearch-intangible nil))
+      (overlay-put ov 'isearch-invisible nil))
     (if inside-overlay
 	(funcall (overlay-get ov 'isearch-open-invisible)  ov)
       (if fct-temp
@@ -2784,9 +2811,7 @@ update the match data, and return point."
 	      ;; properties.
 	      (funcall fct-temp ov t)
 	    (overlay-put ov 'invisible (overlay-get ov 'isearch-invisible))
-	    (overlay-put ov 'intangible (overlay-get ov 'isearch-intangible))
-	    (overlay-put ov 'isearch-invisible nil)
-	    (overlay-put ov 'isearch-intangible nil)))))))
+	    (overlay-put ov 'isearch-invisible nil)))))))
 
 
 (defun isearch-range-invisible (beg end)

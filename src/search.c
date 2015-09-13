@@ -2754,7 +2754,9 @@ SUBEXP, a number, specifies which parenthesized expression in the last
   regexp.
 Value is nil if SUBEXPth pair didn't match, or there were less than
   SUBEXP pairs.
-Zero means the entire text matched by the whole regexp or whole string.  */)
+Zero means the entire text matched by the whole regexp or whole string.
+
+Return value is undefined if the last search failed.  */)
   (Lisp_Object subexp)
 {
   return match_limit (subexp, 1);
@@ -2766,14 +2768,16 @@ SUBEXP, a number, specifies which parenthesized expression in the last
   regexp.
 Value is nil if SUBEXPth pair didn't match, or there were less than
   SUBEXP pairs.
-Zero means the entire text matched by the whole regexp or whole string.  */)
+Zero means the entire text matched by the whole regexp or whole string.
+
+Return value is undefined if the last search failed.  */)
   (Lisp_Object subexp)
 {
   return match_limit (subexp, 0);
 }
 
 DEFUN ("match-data", Fmatch_data, Smatch_data, 0, 3, 0,
-       doc: /* Return a list containing all info on what the last search matched.
+       doc: /* Return a list describing what the last search matched.
 Element 2N is `(match-beginning N)'; element 2N + 1 is `(match-end N)'.
 All the elements are markers or nil (nil if the Nth pair didn't match)
 if the last match was on a buffer; integers or nil if a string was matched.

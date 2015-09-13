@@ -71,6 +71,7 @@
 
 (defun isearch-with-keyboard-coding ()
   (interactive)
+  ;; FIXME: What does this after-change-functions binding do here?
   (let ((after-change-functions '(isearch-exit-recursive-edit)))
     (recursive-edit))
   (exit-minibuffer))

@@ -1,4 +1,4 @@
-;;; keyswap.el --- swap BS and DEL keys -*- no-byte-compile: t -*-
+;;; keyswap.el --- swap BS and DEL keys
 
 ;; Copyright (C) 1992, 2001-2015 Free Software Foundation, Inc.
 

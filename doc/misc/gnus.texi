@@ -4,11 +4,10 @@
 
 @setfilename ../../info/gnus.info
 @settitle Gnus Manual
+@include docstyle.texi
 @syncodeindex fn cp
 @syncodeindex vr cp
 @syncodeindex pg cp
-
-@documentencoding UTF-8
 
 @copying
 Copyright @copyright{} 1995--2015 Free Software Foundation, Inc.
@@ -9083,7 +9082,7 @@ CRs into LF (this takes care of Mac line endings)
 Treat quoted-printable (@code{gnus-article-de-quoted-unreadable}).
 Quoted-Printable is one common @acronym{MIME} encoding employed when
 sending non-@acronym{ASCII} (i.e., 8-bit) articles.  It typically
-makes strings like @samp{d@'ej@`a vu} look like @samp{d=E9j=E0 vu},
+makes strings like @samp{déjà vu} look like @samp{d=E9j=E0 vu},
 which doesn't look very readable to me.  Note that this is usually
 done automatically by Gnus if the message in question has a
 @code{Content-Transfer-Encoding} header that says that this encoding
@@ -11482,7 +11481,7 @@ who wrote the article, the date it was written and the subject of the
 article.  That's well and nice, but there's also lots of information
 most people do not want to see---what systems the article has passed
 through before reaching you, the @code{Message-ID}, the
-@code{References}, etc. ad nauseam---and you'll probably want to get rid
+@code{References}, etc.@: ad nauseam---and you'll probably want to get rid
 of some of those lines.  If you want to keep all those lines in the
 article buffer, you can set @code{gnus-show-all-headers} to @code{t}.
 
@@ -11913,8 +11912,8 @@ controlling variable is a predicate list, as described above.
 
 @ifinfo
 @c Avoid sort of redundant entries in the same section for the printed
-@c manual, but add them in info to allow `i gnus-treat-foo-bar RET' or
-@c `i foo-bar'.
+@c manual, but add them in info to allow 'i gnus-treat-foo-bar RET' or
+@c 'i foo-bar'.
 @vindex gnus-treat-buttonize
 @vindex gnus-treat-buttonize-head
 @vindex gnus-treat-capitalize-sentences
@@ -12566,7 +12565,7 @@ Gnus provides a few different methods for storing the mail and news you
 send.  The default method is to use the @dfn{archive virtual server} to
 store the messages.  If you want to disable this completely, the
 @code{gnus-message-archive-group} variable should be @code{nil}.  The
-default is "sent.%Y-%m", which gives you one archive group per month.
+default is @code{"sent.%Y-%m"}, which gives you one archive group per month.
 
 For archiving interesting messages in a group you read, see the
 @kbd{B c} (@code{gnus-summary-copy-article}) command (@pxref{Mail
@@ -14253,6 +14252,10 @@ If you need to tunnel via other systems to connect to the server, you
 can use this option, and customize @code{nnimap-shell-program} to be
 what you need.
 
+@item plain
+Non-encrypted and unsafe straight socket connection.
+@acronym{STARTTLS} will not be used even if it is available.
+
 @end table
 
 @item nnimap-authenticator
@@ -14987,7 +14990,7 @@ this means @samp{gssapi}, @samp{kerberos4}, @samp{digest-md5},
 @samp{cram-md5}, @samp{anonymous} or the default @samp{login}.
 
 @item :program
-When using the `shell' :stream, the contents of this variable is
+When using the @samp{shell} :stream, the contents of this variable is
 mapped into the @code{imap-shell-program} variable.  This should be a
 @code{format}-like string (or list of strings).  Here's an example:
 
@@ -15015,7 +15018,8 @@ corresponding keywords.
 
 @item :mailbox
 The name of the mailbox to get mail from.  The default is @samp{INBOX}
-which normally is the mailbox which receives incoming mail.
+which normally is the mailbox which receives incoming mail. Instead of
+a single mailbox, this can be a list of mailboxes to fetch mail from.
 
 @item :predicate
 The predicate used to find articles to fetch.  The default, @samp{UNSEEN
@@ -16968,7 +16972,7 @@ group as read.
 
 If the search engine changes its output substantially, @code{nnweb}
 won't be able to parse it and will fail.  One could hardly fault the Web
-providers if they were to do this---their @emph{raison d'@^etre} is to
+providers if they were to do this---their @emph{raison d'être} is to
 make money off of advertisements, not to provide services to the
 community.  Since @code{nnweb} washes the ads off all the articles, one
 might think that the providers might be somewhat miffed.  We'll see.
@@ -17768,7 +17772,7 @@ So you send a ``reminder'' message (actually, a diary one) to yourself.
 @item
 You forget all about it and keep on getting and reading new mail, as usual.
 @item
-From time to time, as you type `g' in the group buffer and as the date
+From time to time, as you type @kbd{g} in the group buffer and as the date
 is getting closer, the message will pop up again to remind you of your
 appointment, just as if it were new and unread.
 @item
@@ -19648,7 +19652,7 @@ Immediately scoring.
 @end table
 
 @item
-If you are scoring on `e' (extra) headers, you will then be prompted for
+If you are scoring on @samp{e} (extra) headers, you will then be prompted for
 the header name on which you wish to score.  This must be a header named
 in gnus-extra-headers, and @samp{TAB} completion is available.
 
@@ -21354,8 +21358,8 @@ variable.
 
 To work correctly the @code{nnir-namazu-remove-prefix} variable must
 also be correct.  This is the prefix to remove from each file name
-returned by Namazu in order to get a proper group name (albeit with `/'
-instead of `.').
+returned by Namazu in order to get a proper group name (albeit with @samp{/}
+instead of @samp{.}).
 
 For example, suppose that Namazu returns file names such as
 @samp{/home/john/Mail/mail/misc/42}.  For this example, use the
@@ -21368,18 +21372,20 @@ correct group name @samp{mail.misc}.
 Extra switches may be passed to the namazu search command by setting the
 variable @code{nnir-namazu-additional-switches}.  It is particularly
 important not to pass any any switches to namazu that will change the
-output format.  Good switches to use include `--sort', `--ascending',
-`--early' and `--late'.  Refer to the Namazu documentation for further
+output format.  Good switches to use include @option{--sort},
+@option{--ascending}, @option{--early} and @option{--late}.
+Refer to the Namazu documentation for further
 information on valid switches.
 
-Mail must first be indexed  with the `mknmz' program.  Read the documentation
-for namazu to create a configuration file.  Here is an example:
+Mail must first be indexed with the @command{mknmz} program.  Read the
+documentation for namazu to create a configuration file.  Here is an
+example:
 
 @cartouche
 @example
  package conf;  # Don't remove this line!
 
- # Paths which will not be indexed. Don't use `^' or `$' anchors.
+ # Paths which will not be indexed. Don't use '^' or '$' anchors.
  $EXCLUDE_PATH = "spam|sent";
 
  # Header fields which should be searchable. case-insensitive
@@ -21451,7 +21457,7 @@ when searching all groups on a server.
 
 @item nnir-summary-line-format
 The format specification to be used for lines in an nnir summary buffer.
-All the items from `gnus-summary-line-format' are available, along with
+All the items from @code{gnus-summary-line-format} are available, along with
 three items unique to nnir summary buffers:
 
 @example
@@ -21465,7 +21471,7 @@ If @code{nil} (the default) this will use @code{gnus-summary-line-format}.
 @item nnir-retrieve-headers-override-function
 If non-@code{nil}, a function that retrieves article headers rather than using
 the gnus built-in function.  This function takes an article list and
-group as arguments and populates the `nntp-server-buffer' with the
+group as arguments and populates the @code{nntp-server-buffer} with the
 retrieved headers.  It should then return either 'nov or 'headers
 indicating the retrieved header format.  Failure to retrieve headers
 should return @code{nil}.
@@ -25905,7 +25911,7 @@ Store custom flags and keywords
 The registry can store custom flags and keywords for a message.  For
 instance, you can mark a message ``To-Do'' this way and the flag will
 persist whether the message is in the nnimap, nnml, nnmaildir,
-etc. backends.
+etc.@: backends.
 
 @item
 Store arbitrary data
@@ -25988,7 +25994,7 @@ registry will be pruned back to less than
 @code{gnus-registry-max-entries}.  This option controls exactly how
 much less: the target is calculated as the maximum number of entries
 minus the maximum number times this factor.  The default is 0.1:
-i.e. if your registry is limited to 50000 entries, pruning will try to
+i.e., if your registry is limited to 50000 entries, pruning will try to
 cut back to 45000 entries.  Entries with keys marked as precious will
 not be pruned.
 @end defvar
@@ -26124,10 +26130,10 @@ their @code{:char} property, or showing the marks as full strings.
 
 @lisp
 ;; show the marks as single characters (see the :char property in
-;; `gnus-registry-marks'):
+;; 'gnus-registry-marks'):
 ;; (defalias 'gnus-user-format-function-M 'gnus-registry-article-marks-to-chars)
 
-;; show the marks by name (see `gnus-registry-marks'):
+;; show the marks by name (see 'gnus-registry-marks'):
 ;; (defalias 'gnus-user-format-function-M 'gnus-registry-article-marks-to-names)
 @end lisp
 
@@ -26813,7 +26819,7 @@ David Moore---rewrite of @file{nnvirtual.el} and many other things.
 Kevin Davidson---came up with the name @dfn{ding}, so blame him.
 
 @item
-Fran@,{c}ois Pinard---many, many interesting and thorough bug reports, as
+François Pinard---many, many interesting and thorough bug reports, as
 well as autoconf support.
 
 @end itemize
@@ -26921,7 +26927,7 @@ Gunnar Horrigmo,
 Richard Hoskins,
 Brad Howes,
 Miguel de Icaza,
-Fran@,{c}ois Felix Ingrand,
+François Felix Ingrand,
 Tatsuya Ichikawa, @c Ichikawa
 Ishikawa Ichiro, @c Ishikawa
 Lee Iverson,
@@ -27817,7 +27823,7 @@ As a result of the following change, the @file{~/News/overview/}
 directory is not used any more.  You can safely delete the entire
 hierarchy.
 
-@c FIXME: `gnus-load' is mentioned in README, which is not included in
+@c FIXME: 'gnus-load' is mentioned in README, which is not included in
 @c the repository.  We should find a better place for this item.
 @item
 @code{(require 'gnus-load)}

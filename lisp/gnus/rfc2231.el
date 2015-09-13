@@ -209,10 +209,10 @@ must never cause a Lisp error."
 (defun rfc2231-decode-encoded-string (string)
   "Decode an RFC2231-encoded string.
 These look like:
- \"us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A\",
- \"us-ascii''This%20is%20%2A%2A%2Afun%2A%2A%2A\",
- \"'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A\",
- \"''This%20is%20%2A%2A%2Afun%2A%2A%2A\", or
+ \"us-ascii\\='en-us\\='This%20is%20%2A%2A%2Afun%2A%2A%2A\",
+ \"us-ascii\\='\\='This%20is%20%2A%2A%2Afun%2A%2A%2A\",
+ \"\\='en-us\\='This%20is%20%2A%2A%2Afun%2A%2A%2A\",
+ \"\\='\\='This%20is%20%2A%2A%2Afun%2A%2A%2A\", or
  \"This is ***fun***\"."
   (string-match "\\`\\(?:\\([^']+\\)?'\\([^']+\\)?'\\)?\\(.+\\)" string)
   (let ((coding-system (mm-charset-to-coding-system

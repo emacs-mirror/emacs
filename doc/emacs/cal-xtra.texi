@@ -194,14 +194,14 @@ can do this as follows:
 
   Many holidays occur on a specific day of the week, at a specific time
 of month.  Here is a holiday form describing Hurricane Supplication Day,
-celebrated in the Virgin Islands on the fourth Monday in August:
+celebrated in the Virgin Islands on the fourth Monday in July:
 
 @smallexample
-(holiday-float 8 1 4 "Hurricane Supplication Day")
+(holiday-float 7 1 4 "Hurricane Supplication Day")
 @end smallexample
 
 @noindent
-Here the 8 specifies August, the 1 specifies Monday (Sunday is 0,
+Here the 7 specifies July, the 1 specifies Monday (Sunday is 0,
 Tuesday is 2, and so on), and the 4 specifies the fourth occurrence in
 the month (1 specifies the first occurrence, 2 the second occurrence,
 @minus{}1 the last occurrence, @minus{}2 the second-to-last occurrence, and

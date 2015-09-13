@@ -4,6 +4,7 @@
 @set TITLE  Wisent Parser Development
 @set AUTHOR Eric M. Ludlam, David Ponce, and Richard Y. Kim
 @settitle @value{TITLE}
+@include docstyle.texi
 
 @c *************************************************************************
 @c @ Header
@@ -20,7 +21,6 @@
 @c @footnotestyle separate
 @c @paragraphindent 2
 @c @@smallbook
-@documentencoding UTF-8
 @c %**end of header
 
 @copying

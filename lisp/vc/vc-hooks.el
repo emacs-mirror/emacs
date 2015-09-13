@@ -380,14 +380,14 @@ If the argument is a list, the files must all have the same back end."
 If FILES are not registered, this function always returns nil.
 For registered files, the possible values are:
 
-  'implicit   FILES are always writable, and checked out `implicitly'
+  `implicit'   FILES are always writable, and checked out `implicitly'
               when the user saves the first changes to the file.
 
-  'locking    FILES are read-only if up-to-date; user must type
+  `locking'   FILES are read-only if up-to-date; user must type
               \\[vc-next-action] before editing.  Strict locking
               is assumed.
 
-  'announce   FILES are read-only if up-to-date; user must type
+  `announce'  FILES are read-only if up-to-date; user must type
               \\[vc-next-action] before editing.  But other users
               may be editing at the same time."
   (vc-call-backend backend 'checkout-model files))
@@ -416,10 +416,10 @@ For registered files, the possible values are:
 A return of nil from this function means we have no information on the
 status of this file.  Otherwise, the value returned is one of:
 
-  'up-to-date        The working file is unmodified with respect to the
+  `up-to-date'       The working file is unmodified with respect to the
                      latest version on the current branch, and not locked.
 
-  'edited            The working file has been edited by the user.  If
+  `edited'           The working file has been edited by the user.  If
                      locking is used for the file, this state means that
                      the current version is locked by the calling user.
                      This status should *not* be reported for files
@@ -429,44 +429,44 @@ status of this file.  Otherwise, the value returned is one of:
   USER               The current version of the working file is locked by
                      some other USER (a string).
 
-  'needs-update      The file has not been edited by the user, but there is
+  `needs-update'     The file has not been edited by the user, but there is
                      a more recent version on the current branch stored
                      in the repository.
 
-  'needs-merge       The file has been edited by the user, and there is also
+  `needs-merge'      The file has been edited by the user, and there is also
                      a more recent version on the current branch stored in
                      the repository.  This state can only occur if locking
                      is not used for the file.
 
-  'unlocked-changes  The working version of the file is not locked,
+  `unlocked-changes' The working version of the file is not locked,
                      but the working file has been changed with respect
                      to that version.  This state can only occur for files
                      with locking; it represents an erroneous condition that
                      should be resolved by the user (vc-next-action will
                      prompt the user to do it).
 
-  'added             Scheduled to go into the repository on the next commit.
+  `added'            Scheduled to go into the repository on the next commit.
                      Often represented by vc-working-revision = \"0\" in VCSes
                      with monotonic IDs like Subversion and Mercurial.
 
-  'removed           Scheduled to be deleted from the repository on next commit.
+  `removed'          Scheduled to be deleted from the repository on next commit.
 
-  'conflict          The file contains conflicts as the result of a merge.
+  `conflict'         The file contains conflicts as the result of a merge.
                      For now the conflicts are text conflicts.  In the
                      future this might be extended to deal with metadata
                      conflicts too.
 
-  'missing           The file is not present in the file system, but the VC
+  `missing'          The file is not present in the file system, but the VC
                      system still tracks it.
 
-  'ignored           The file showed up in a dir-status listing with a flag
+  `ignored'          The file showed up in a dir-status listing with a flag
                      indicating the version-control system is ignoring it,
                      Note: This property is not set reliably (some VCSes
                      don't have useful directory-status commands) so assume
                      that any file with vc-state nil might be ignorable
                      without VC knowing it.
 
-  'unregistered      The file is not under version control."
+  `unregistered'     The file is not under version control."
 
   ;; Note: in Emacs 22 and older, return of nil meant the file was
   ;; unregistered.  This is potentially a source of
@@ -790,8 +790,9 @@ current, and kill the buffer that visits the link."
 (defun vc-default-find-file-hook (_backend)
   nil)
 
-(defun vc-find-file-hook ()
-  "Function for `find-file-hook' activating VC mode if appropriate."
+(defun vc-refresh-state ()
+  "Activate or deactivate VC mode as appropriate."
+  (interactive)
   ;; Recompute whether file is version controlled,
   ;; if user has killed the buffer and revisited.
   (when vc-mode
@@ -838,18 +839,19 @@ current, and kill the buffer that visits the link."
 
 		 (vc-follow-link)
 		 (message "Followed link to %s" buffer-file-name)
-		 (vc-find-file-hook))
+		 (vc-refresh-state))
 		(t
 		 (if (yes-or-no-p (format
 				   "Symbolic link to %s-controlled source file; follow link? " link-type))
 		     (progn (vc-follow-link)
 			    (message "Followed link to %s" buffer-file-name)
-			    (vc-find-file-hook))
+			    (vc-refresh-state))
 		   (message
 		    "Warning: editing through the link bypasses version control")
 		   )))))))))
 
-(add-hook 'find-file-hook 'vc-find-file-hook)
+(add-hook 'find-file-hook #'vc-refresh-state)
+(define-obsolete-function-alias 'vc-find-file-hook 'vc-refresh-state "25.1")
 
 (defun vc-kill-buffer-hook ()
   "Discard VC info about a file when we kill its buffer."
@@ -883,6 +885,8 @@ current, and kill the buffer that visits the link."
     (define-key map "u" 'vc-revert)
     (define-key map "v" 'vc-next-action)
     (define-key map "+" 'vc-update)
+    ;; I'd prefer some kind of symmetry with vc-update:
+    (define-key map "P" 'vc-push)
     (define-key map "=" 'vc-diff)
     (define-key map "D" 'vc-root-diff)
     (define-key map "~" 'vc-revision-other-window)
@@ -940,6 +944,10 @@ current, and kill the buffer that visits the link."
     (bindings--define-key map [vc-revert]
       '(menu-item "Revert to Base Version" vc-revert
 		  :help "Revert working copies of the selected file set to their repository contents"))
+    ;; TODO Only :enable if (vc-find-backend-function backend 'push)
+    (bindings--define-key map [vc-push]
+      '(menu-item "Push Changes" vc-push
+		  :help "Push the current branch's changes"))
     (bindings--define-key map [vc-update]
       '(menu-item "Update to Latest Version" vc-update
 		  :help "Update the current fileset's files to their tip revisions"))

@@ -188,7 +188,7 @@ basic editing operations under Bazaar.
 @cindex src
 @item
 SRC (src) is RCS, reloaded - a specialized version-control system
-designed for single-file projects worked on by only one person. It
+designed for single-file projects worked on by only one person.  It
 allows multiple files with independent version-control histories to
 exist in one directory, and is thus particularly well suited for
 maintaining small documents, scripts, and dotfiles.  While it uses RCS
@@ -491,10 +491,10 @@ commit.  @xref{Log Buffer}.
 If committing to a shared repository, the commit may fail if the
 repository that has been changed since your last update.  In that
 case, you must perform an update before trying again.  On a
-decentralized version control system, use @kbd{C-x v +} (@pxref{VC
-Pull}) or @kbd{C-x v m} (@pxref{Merging}).  On a centralized version
-control system, type @kbd{C-x v v} again to merge in the repository
-changes.
+decentralized version control system, use @kbd{C-x v +}
+(@pxref{Pulling / Pushing}) or @kbd{C-x v m} (@pxref{Merging}).
+On a centralized version control system, type @kbd{C-x v v} again to
+merge in the repository changes.
 
 @item
 Finally, if you are using a centralized version control system, check
@@ -942,7 +942,7 @@ revision at point.  A second @key{RET} hides it again.
 (@code{vc-log-incoming}) command displays a log buffer showing the
 changes that will be applied, the next time you run the version
 control system's ``pull'' command to get new revisions from another
-repository (@pxref{VC Pull}).  This other repository is the default
+repository (@pxref{Pulling / Pushing}).  This other repository is the default
 one from which changes are pulled, as defined by the version control
 system; with a prefix argument, @code{vc-log-incoming} prompts for a
 specific repository.  Similarly, @kbd{C-x v O}
@@ -1305,7 +1305,7 @@ different branches.
 
 @menu
 * Switching Branches::    How to get to another existing branch.
-* VC Pull::               Updating the contents of a branch.
+* Pulling / Pushing::     Receiving/sending changes from/to elsewhere.
 * Merging::               Transferring changes between branches.
 * Creating Branches::     How to start a new branch.
 @end menu
@@ -1349,8 +1349,8 @@ unlocks (write-protects) the working tree.
 branch until you switch away; for instance, any VC filesets that you
 commit will be committed to that specific branch.
 
-@node VC Pull
-@subsubsection Pulling Changes into a Branch
+@node Pulling / Pushing
+@subsubsection Pulling/Pushing Changes into/from a Branch
 
 @table @kbd
 @item C-x v +
@@ -1359,6 +1359,11 @@ by ``pulling in'' changes from another location.
 
 On a centralized version control system, update the current VC
 fileset.
+
+@item C-x v P
+On a decentralized version control system, ``push'' changes from the
+current branch to another location.  This concept does not exist
+for centralized version control systems.
 @end table
 
 @kindex C-x v +
@@ -1387,6 +1392,21 @@ Log}.
 
   On a centralized version control system like CVS, @kbd{C-x v +}
 updates the current VC fileset from the repository.
+
+@kindex C-x v P
+@findex vc-push
+  On a decentralized version control system, the command @kbd{C-x v P}
+(@code{vc-push}) sends changes from your current branch to another location.
+With a prefix argument, the command prompts for the exact
+version control command to use, which lets you specify where to push
+changes.  Otherwise, it pushes to a default location determined
+by the version control system.
+
+  Prior to pushing, you can use @kbd{C-x v O} (@code{vc-log-outgoing})
+to view a log buffer of the changes to be sent.  @xref{VC Change Log}.
+
+This command is currently supported only by Bazaar, Git, and Mercurial.
+It signals an error for centralized version control systems.
 
 @node Merging
 @subsubsection Merging Branches
@@ -1570,7 +1590,7 @@ dated in May 1993, with two items and one item respectively.
 @smallexample
 1993-05-25  Richard Stallman  <rms@@gnu.org>
 
-        * man.el: Rename symbols `man-*' to `Man-*'.
+        * man.el: Rename symbols 'man-*' to 'Man-*'.
         (manual-entry): Make prompt string clearer.
 
         * simple.el (blink-matching-paren-distance):

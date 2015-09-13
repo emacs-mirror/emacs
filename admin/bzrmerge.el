@@ -140,11 +140,11 @@ are both lists of revnos, in oldest-first order."
                     (setq str (substring str (match-end 0))))
                   (when (string-match "[.!;, ]+\\'" str)
                     (setq str (substring str 0 (match-beginning 0))))
-                  (let ((help-form "\
+                  (let ((help-form (substitute-command-keys "\
 Type `y' to skip this revision,
 `N' to include it and go on to the next revision,
 `n' to not skip, but continue to search this log entry for skip regexps,
-`q' to quit merging."))
+`q' to quit merging.")))
                     (pcase (save-excursion
                             (read-char-choice
                              (format "%s: Skip (y/n/N/q/%s)? " str

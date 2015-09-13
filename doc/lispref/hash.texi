@@ -149,14 +149,6 @@ of the nominal size.  The default for @var{threshold} is 0.8.
 @end table
 @end defun
 
-@defun makehash &optional test
-This is equivalent to @code{make-hash-table}, but with a different style
-argument list.  The argument @var{test} specifies the method
-of key lookup.
-
-This function is obsolete. Use @code{make-hash-table} instead.
-@end defun
-
 You can also create a new hash table using the printed representation
 for hash tables.  The Lisp reader can read this printed
 representation, provided each element in the specified hash table has

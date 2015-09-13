@@ -206,6 +206,13 @@ extern void _DebPrint (const char *fmt, ...);
 #define RE_TRANSLATE_P(TBL) (!EQ (TBL, make_number (0)))
 #endif
 
+/* Tell time_rz.c to use Emacs's getter and setter for TZ.
+   Only Emacs uses time_rz so this is OK.  */
+#define getenv_TZ emacs_getenv_TZ
+#define setenv_TZ emacs_setenv_TZ
+extern char *emacs_getenv_TZ (void);
+extern int emacs_setenv_TZ (char const *);
+
 #include <string.h>
 #include <stdlib.h>
 

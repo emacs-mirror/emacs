@@ -1,4 +1,4 @@
-@c -*-texinfo-*-
+@c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2015 Free Software
 @c Foundation, Inc.
@@ -375,13 +375,7 @@ that, Emacs signals an error.
 codes.  A hexadecimal escape sequence consists of a backslash,
 @samp{x}, and the hexadecimal character code.  Thus, @samp{?\x41} is
 the character @kbd{A}, @samp{?\x1} is the character @kbd{C-a}, and
-@code{?\xe0} is the character
-@iftex
-@samp{@`a}.
-@end iftex
-@ifnottex
-@samp{a} with grave accent.
-@end ifnottex
+@code{?\xe0} is the character @kbd{à} (@kbd{a} with grave accent).
 You can use any number of hex digits, so you can represent any
 character code in this way.
 
@@ -595,8 +589,8 @@ FOO                 ; @r{A symbol named @samp{FOO}, different from @samp{foo}.}
 
 @cindex @samp{##} read syntax
 @ifinfo
-@c This uses ``colon'' instead of a literal `:' because Info cannot
-@c cope with a `:' in a menu
+@c This uses "colon" instead of a literal ':' because Info cannot
+@c cope with a ':' in a menu.
 @cindex @samp{#@var{colon}} read syntax
 @end ifinfo
 @ifnotinfo
@@ -999,7 +993,7 @@ of a string returns the same string.
   The read syntax for a string is a double-quote, an arbitrary number
 of characters, and another double-quote, @code{"like this"}.  To
 include a double-quote in a string, precede it with a backslash; thus,
-@code{"\""} is a string containing just a single double-quote
+@code{"\""} is a string containing just one double-quote
 character.  Likewise, you can include a backslash by preceding it with
 another backslash, like this: @code{"this \\ is a single embedded
 backslash"}.
@@ -2135,12 +2129,12 @@ that for two strings to be equal, they have the same text properties.
 
 @example
 @group
-(equal "asdf" (propertize "asdf" '(asdf t)))
+(equal "asdf" (propertize "asdf" 'asdf t))
      @result{} t
 @end group
 @group
 (equal-including-properties "asdf"
-                            (propertize "asdf" '(asdf t)))
+                            (propertize "asdf" 'asdf t))
      @result{} nil
 @end group
 @end example

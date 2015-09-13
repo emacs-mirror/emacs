@@ -230,11 +230,11 @@ Its name is defined in constant `wisent-log-buffer-name'."
 
 (defsubst wisent-log (&rest args)
   "Insert text into the log buffer.
-`format' is applied to ARGS and the result string is inserted into the
+`format-message' is applied to ARGS and the result string is inserted into the
 log buffer returned by the function `wisent-log-buffer'."
   (and wisent-new-log-flag (wisent-new-log))
   (with-current-buffer (wisent-log-buffer)
-    (insert (apply 'format args))))
+    (insert (apply #'format-message args))))
 
 (defconst wisent-log-file "wisent.output"
   "The log file.
@@ -2892,7 +2892,7 @@ Also warn if X is a $N or $regionN symbol with N < 1 or N > M."
   "Parse BODY of semantic action.
 N is the maximum number of $N variables that can be referenced in
 BODY.  Warn on references out of permitted range.
-Optional argument FOUND is the accumulated list of '$N' references
+Optional argument FOUND is the accumulated list of $N references
 encountered so far.
 Return a cons (FOUND . XBODY), where FOUND is the list of $N
 references found in BODY, and XBODY is BODY expression with

@@ -52,7 +52,8 @@ Type 0 is the cons cell (HIGH . LOW), type 1 is the list (HIGH
 LOW), type 2 is the list (HIGH LOW MICRO), and type 3 is the
 list (HIGH LOW MICRO PICO)."
   (declare (indent 1)
-	   (debug ((&rest (symbolp symbolp symbolp &or [symbolp form] form))
+	   (debug ((&rest (symbolp symbolp symbolp
+                           &or [symbolp symbolp form] [symbolp form] form))
 		   body)))
   (if varlist
       (let* ((elt (pop varlist))
@@ -178,7 +179,7 @@ If DATE lacks timezone information, GMT is assumed."
       (defun time-to-seconds (&optional time)
         "Convert optional value TIME to a floating point number.
 TIME defaults to the current time."
-        (with-decoded-time-value ((high low micro pico type
+        (with-decoded-time-value ((high low micro pico _type
 				   (or time (current-time))))
           (+ (* high 65536.0)
              low
@@ -261,8 +262,8 @@ Return the difference in the format of a time value."
 
     (defun time-less-p (t1 t2)
       "Return non-nil if time value T1 is earlier than time value T2."
-      (with-decoded-time-value ((high1 low1 micro1 pico1 type1 t1)
-				(high2 low2 micro2 pico2 type2 t2))
+      (with-decoded-time-value ((high1 low1 micro1 pico1 _type1 t1)
+				(high2 low2 micro2 pico2 _type2 t2))
 	(or (< high1 high2)
 	    (and (= high1 high2)
 		 (or (< low1 low2)

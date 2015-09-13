@@ -276,7 +276,6 @@ single_keymap_panes (Lisp_Object keymap, Lisp_Object pane_name,
 		     Lisp_Object prefix, int maxdepth)
 {
   struct skp skp;
-  struct gcpro gcpro1;
 
   skp.pending_maps = Qnil;
   skp.maxdepth = maxdepth;
@@ -296,9 +295,7 @@ single_keymap_panes (Lisp_Object keymap, Lisp_Object pane_name,
       skp.notbuttons = menu_items_used;
     }
 
-  GCPRO1 (skp.pending_maps);
   map_keymap_canonical (keymap, single_menu_item, Qnil, &skp);
-  UNGCPRO;
 
   /* Process now any submenus which want to be panes at this level.  */
   while (CONSP (skp.pending_maps))
@@ -325,14 +322,11 @@ static void
 single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *skp_v)
 {
   Lisp_Object map, item_string, enabled;
-  struct gcpro gcpro1, gcpro2;
   bool res;
   struct skp *skp = skp_v;
 
   /* Parse the menu item and leave the result in item_properties.  */
-  GCPRO2 (key, item);
   res = parse_menu_item (item, 0);
-  UNGCPRO;
   if (!res)
     return;			/* Not a menu item.  */
 
@@ -1177,7 +1171,6 @@ no quit occurs and `x-popup-menu' returns nil.  */)
   Lisp_Object x, y, window;
   int menuflags = 0;
   ptrdiff_t specpdl_count = SPECPDL_INDEX ();
-  struct gcpro gcpro1;
 
   if (NILP (position))
     /* This is an obsolete call, which wants us to precompute the
@@ -1329,7 +1322,6 @@ no quit occurs and `x-popup-menu' returns nil.  */)
   record_unwind_protect_void (unuse_menu_items);
 
   title = Qnil;
-  GCPRO1 (title);
 
   /* Decode the menu items from what was specified.  */
 
@@ -1422,7 +1414,6 @@ no quit occurs and `x-popup-menu' returns nil.  */)
     {
       discard_menu_items ();
       FRAME_DISPLAY_INFO (f)->grabbed = 0;
-      UNGCPRO;
       return Qnil;
     }
 #endif
@@ -1448,8 +1439,6 @@ no quit occurs and `x-popup-menu' returns nil.  */)
   if (FRAME_W32_P (f))
     FRAME_DISPLAY_INFO (f)->grabbed = 0;
 #endif
-
-  UNGCPRO;
 
   if (error_name) error ("%s", error_name);
   return selection;

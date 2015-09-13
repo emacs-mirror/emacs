@@ -137,7 +137,7 @@ the external program knows about the root certificates you
 consider trustworthy, e.g.:
 
 \(setq tls-program
-      '(\"gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt -p %p %h\"
+      \\='(\"gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt -p %p %h\"
 	\"gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt -p %p %h --protocols ssl3\"
 	\"openssl s_client -connect %h:%p -CAfile /etc/ssl/certs/ca-certificates.crt -no_ssl2 -ign_eof\"))"
   :type '(choice (const :tag "Always" t)
@@ -173,6 +173,11 @@ Used by `tls-certificate-information'."
   :version "22.1"
   :type 'string
   :group 'tls)
+
+(defalias 'tls-format-message
+  (if (fboundp 'format-message) 'format-message
+    ;; for Emacs < 25, and XEmacs, don't worry about quote translation.
+    'format))
 
 (defun tls-certificate-information (der)
   "Parse X.509 certificate in DER format into an assoc list."
@@ -275,8 +280,8 @@ Fourth arg PORT is an integer specifying a port to connect to."
 			     (message "The certificate presented by `%s' is \
 NOT trusted." host))
 			(not (yes-or-no-p
-			      (format "The certificate presented by `%s' is \
-NOT trusted. Accept anyway? " host)))))
+			      (tls-format-message "\
+The certificate presented by `%s' is NOT trusted. Accept anyway? " host)))))
 		  (and tls-hostmismatch
 		       (save-excursion
 			 (goto-char (point-min))

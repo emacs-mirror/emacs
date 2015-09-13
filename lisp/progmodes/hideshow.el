@@ -323,13 +323,13 @@ Hideshow puts a unique overlay on each range of text to be hidden
 in the buffer.  Here is a simple example of how to use this variable:
 
   (defun display-code-line-counts (ov)
-    (when (eq 'code (overlay-get ov 'hs))
-      (overlay-put ov 'display
+    (when (eq \\='code (overlay-get ov \\='hs))
+      (overlay-put ov \\='display
                    (format \"... / %d\"
                            (count-lines (overlay-start ov)
                                         (overlay-end ov))))))
 
-  (setq hs-set-up-overlay 'display-code-line-counts)
+  (setq hs-set-up-overlay \\='display-code-line-counts)
 
 This example shows how to get information from the overlay as well
 as how to set its `display' property.  See `hs-make-overlay' and

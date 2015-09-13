@@ -67,7 +67,7 @@ Insertion is possible when something appropriate is found in
 `auto-insert-alist'.  When the insertion is marked as unmodified, you can
 save it with  \\[write-file] RET.
 This variable is used when the function `auto-insert' is called, e.g.
-when you do (add-hook 'find-file-hook 'auto-insert).
+when you do (add-hook \\='find-file-hook \\='auto-insert).
 With \\[auto-insert], this is always treated as if it were t."
   :type '(choice (const :tag "Insert if possible" t)
                  (const :tag "Do nothing" nil)

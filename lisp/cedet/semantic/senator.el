@@ -507,7 +507,7 @@ filters in `senator-search-tag-filter-functions' remain active."
 (define-overloadable-function semantic-up-reference (tag)
   "Return a tag that is referred to by TAG.
 A \"reference\" could be any interesting feature of TAG.
-In C++, a function may have a 'parent' which is non-local.
+In C++, a function may have a `parent' which is non-local.
 If that parent which is only a reference in the function tag
 is found, we can jump to it.
 Some tags such as includes have other reference features.")
@@ -516,7 +516,7 @@ Some tags such as includes have other reference features.")
 (defun senator-go-to-up-reference (&optional tag)
   "Move up one reference from the current TAG.
 A \"reference\" could be any interesting feature of TAG.
-In C++, a function may have a 'parent' which is non-local.
+In C++, a function may have a `parent' which is non-local.
 If that parent which is only a reference in the function tag
 is found, we can jump to it.
 Some tags such as includes have other reference features."

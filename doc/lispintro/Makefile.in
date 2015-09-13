@@ -24,7 +24,7 @@ srcdir = @srcdir@
 buildinfodir = $(srcdir)/../../info
 # Directory with the (customized) texinfo.tex file.
 texinfodir = $(srcdir)/../misc
-# Directory with emacsver.texi.
+# Directory with docstyle.texi and emacsver.texi.
 emacsdir =  $(srcdir)/../emacs
 
 prefix = @prefix@
@@ -73,7 +73,7 @@ PDF_TARGETS = emacs-lisp-intro.pdf
 PS_TARGETS = emacs-lisp-intro.ps
 
 srcs = ${srcdir}/emacs-lisp-intro.texi ${srcdir}/doclicense.texi \
-  ${emacsdir}/emacsver.texi
+  ${emacsdir}/docstyle.texi ${emacsdir}/emacsver.texi
 
 ## Disable implicit rules.
 %.texi: ;

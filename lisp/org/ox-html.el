@@ -711,7 +711,7 @@ t              Synonym for `mathjax'."
 When `org-mode' is exporting an `org-mode' file to HTML, links to
 non-html files are directly put into a href tag in HTML.
 However, links to other Org-mode files (recognized by the
-extension `.org.) should become links to the corresponding html
+extension `.org') should become links to the corresponding html
 file, assuming that the linked `org-mode' file will also be
 converted to HTML.
 When nil, the links still point to the plain `.org' file."
@@ -833,7 +833,7 @@ you can reuse them:
 For example:
 
 \(setq org-html-table-row-tags
-      (cons '(cond (top-row-p \"<tr class=\\\"tr-top\\\">\")
+      (cons \\='(cond (top-row-p \"<tr class=\\\"tr-top\\\">\")
                    (bottom-row-p \"<tr class=\\\"tr-bottom\\\">\")
                    (t (if (= (mod row-number 2) 1)
 			  \"<tr class=\\\"tr-odd\\\">\"

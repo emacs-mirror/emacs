@@ -537,7 +537,7 @@ column to indent to; if it is nil, use one of the three methods above."
   ;; In most cases, reindenting modifies the buffer, but it may also
   ;; leave it unmodified, in which case we have to deactivate the mark
   ;; by hand.
-  (deactivate-mark))
+  (setq deactivate-mark t))
 
 (defun indent-relative-maybe ()
   "Indent a new line like previous nonblank line.

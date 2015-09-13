@@ -192,7 +192,7 @@
   ;; (if (aref byte-code-vector 0)
   ;;     (error "The old version of the disassembler is loaded.  Reload new-bytecomp as well"))
   (byte-compile-log-1
-   (apply 'format format
+   (apply #'format-message format
      (let (c a)
        (mapcar (lambda (arg)
 		  (if (not (consp arg))
@@ -292,7 +292,7 @@
               (format "Inlining closure %S failed" name))
              form))))
 
-      (t ;; Give up on inlining.
+      (_ ;; Give up on inlining.
        form))))
 
 ;; ((lambda ...) ...)
@@ -566,7 +566,7 @@
 	       (cons fn args)))))))
 
 (defun byte-optimize-all-constp (list)
-  "Non-nil if all elements of LIST satisfy `macroexp-const-p"
+  "Non-nil if all elements of LIST satisfy `macroexp-const-p'."
   (let ((constant t))
     (while (and list constant)
       (unless (macroexp-const-p (car list))
@@ -1225,7 +1225,7 @@
 	 window-left-child window-left-column window-margins window-minibuffer-p
 	 window-next-buffers window-next-sibling window-new-normal
 	 window-new-total window-normal-size window-parameter window-parameters
-	 window-parent window-pixel-edges window-point window-prev-buffers 
+	 window-parent window-pixel-edges window-point window-prev-buffers
 	 window-prev-sibling window-redisplay-end-trigger window-scroll-bars
 	 window-start window-text-height window-top-child window-top-line
 	 window-total-height window-total-width window-use-time window-vscroll

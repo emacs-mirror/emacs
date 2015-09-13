@@ -228,7 +228,7 @@ This function is controlled by the settings of reftex-insert-label-flags."
                                  (symbol-value reftex-docstruct-symbol)))
               (ding)
               (if (y-or-n-p
-                   (format "Label '%s' exists. Use anyway? " label))
+`                  (format-message "Label `%s' exists. Use anyway? " label))
                   (setq valid t)))
 
              ;; Label is ok
@@ -857,7 +857,8 @@ Optional prefix argument OTHER-WINDOW goes to the label in another window."
          (docstruct (symbol-value reftex-docstruct-symbol))
 	 ;; If point is inside a \ref{} or \pageref{}, use that as
 	 ;; default value.
-	 (default (when (looking-back "\\\\\\(?:page\\)?ref{[-a-zA-Z0-9_*.:]*")
+	 (default (when (looking-back "\\\\\\(?:page\\)?ref{[-a-zA-Z0-9_*.:]*"
+                                      (line-beginning-position))
 		    (reftex-this-word "-a-zA-Z0-9_*.:")))
          (label (completing-read (if default
 				     (format "Label (default %s): " default)

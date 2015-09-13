@@ -89,7 +89,7 @@ Default nil means to write characters above \\177 in octal notation."
   "Edit a keyboard macro.
 At the prompt, type any key sequence which is bound to a keyboard macro.
 Or, type `C-x e' or RET to edit the last keyboard macro, `C-h l' to edit
-the last 300 keystrokes as a keyboard macro, or `M-x' to edit a macro by
+the last 300 keystrokes as a keyboard macro, or `\\[execute-extended-command]' to edit a macro by
 its command name.
 With a prefix argument, format the macro in a more concise way."
   (interactive "kKeyboard macro to edit (C-x e, M-x, C-h l, or keys): \nP")

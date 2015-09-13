@@ -1,7 +1,7 @@
 \input texinfo    @c -*-texinfo-*-
 @setfilename ../../info/cl.info
 @settitle Common Lisp Extensions
-@documentencoding UTF-8
+@include docstyle.texi
 @include emacsver.texi
 
 @copying
@@ -570,20 +570,20 @@ When @file{foo.el} is compiled, these variables will be set during
 the compilation itself:
 
 @example
-foo1  foo3  foo5  foo7      ; `compile'
+foo1  foo3  foo5  foo7      ; 'compile'
 @end example
 
 When @file{foo.elc} is loaded, these variables will be set:
 
 @example
-foo2  foo3  foo6  foo7      ; `load'
+foo2  foo3  foo6  foo7      ; 'load'
 @end example
 
 And if @file{foo.el} is loaded uncompiled, these variables will
 be set:
 
 @example
-foo4  foo5  foo6  foo7      ; `eval'
+foo4  foo5  foo6  foo7      ; 'eval'
 @end example
 
 If these seven @code{cl-eval-when}s had been, say, inside a @code{defun},
@@ -978,7 +978,7 @@ a
 The generalized variable @code{buffer-substring}, listed above,
 also works in this way by replacing a portion of the current buffer.
 
-@c FIXME?  Also `eq'? (see cl-lib.el)
+@c FIXME?  Also 'eq'? (see cl-lib.el)
 
 @c Currently commented out in cl.el.
 @ignore
@@ -2877,14 +2877,8 @@ their names will not conflict with ``real'' variables in the user's
 code.
 
 (Internally, the variable @code{cl--gensym-counter} holds the counter
-used to generate names.  It is incremented after each use.  In Common
-Lisp this is initialized with 0, but this package initializes it with
-a random time-dependent value to avoid trouble when two files that
-each used @code{cl-gensym} in their compilation are loaded together.
-Uninterned symbols become interned when the compiler writes them out
-to a file and the Emacs loader loads them, so their names have to be
-treated a bit more carefully than in Common Lisp where uninterned
-symbols remain uninterned after loading.)
+used to generate names.  It is initialized with zero and incremented
+after each use.)
 @end defun
 
 @defun cl-gentemp &optional x
@@ -4543,10 +4537,7 @@ example, local @code{special} declarations, which are purely
 advisory in Emacs Lisp, do not rigorously obey the scoping rules
 set down in Steele's book.
 
-The variable @code{cl--gensym-counter} starts out with a pseudo-random
-value rather than with zero.  This is to cope with the fact that
-generated symbols become interned when they are written to and
-loaded back from a file.
+The variable @code{cl--gensym-counter} starts out with zero.
 
 The @code{cl-defstruct} facility is compatible, except that structures
 are of type @code{:type vector :named} by default rather than some

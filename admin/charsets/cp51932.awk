@@ -31,7 +31,7 @@
 # already been mapped to 1 or 3.
 
 BEGIN {
-  print ";;; cp51932.el -- translation table for CP51932. -*- no-byte-compile: t -*-";
+  print ";;; cp51932.el -- translation table for CP51932";
   print ";;; Automatically generated from CP932-2BYTE.map";
   print "(let ((map";
   printf "       '(;JISEXT<->UNICODE";
@@ -52,4 +52,6 @@ END {
   print "	      (setcar x (cdr x)) (setcdr x tmp)))";
   print "	map)";
   print "  (define-translation-table 'cp51932-encode map))";
+  print "";
+  print "(provide 'cp51932)";
 }

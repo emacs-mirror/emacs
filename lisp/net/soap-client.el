@@ -51,7 +51,8 @@
 
 (defsubst soap-warning (message &rest args)
   "Display a warning MESSAGE with ARGS, using the 'soap-client warning type."
-  (display-warning 'soap-client (apply 'format message args) :warning))
+  (display-warning 'soap-client (apply #'format-message message args)
+                   :warning))
 
 (defgroup soap-client nil
   "Access SOAP web services from Emacs."
@@ -488,9 +489,9 @@ structure predicate for the type of element you want to retrieve.
 For example, to retrieve a message named \"foo\" when other
 elements named \"foo\" exist in the WSDL you could use:
 
-  (soap-wsdl-get \"foo\" WSDL 'soap-message-p)
+  (soap-wsdl-get \"foo\" WSDL \\='soap-message-p)
 
-If USE-LOCAL-ALIAS-TABLE is not nil, `soap-local-xmlns` will be
+If USE-LOCAL-ALIAS-TABLE is not nil, `soap-local-xmlns' will be
 used to resolve the namespace alias."
   (let ((alias-table (soap-wsdl-alias-table wsdl))
         namespace element-name element)
@@ -1818,9 +1819,9 @@ operations in a WSDL document."
 (provide 'soap-client)
 
 
-;;; Local Variables:
-;;; eval: (outline-minor-mode 1)
-;;; outline-regexp: ";;;;+"
-;;; End:
+;; Local Variables:
+;; eval: (outline-minor-mode 1)
+;; outline-regexp: ";;;;+"
+;; End:
 
 ;;; soap-client.el ends here

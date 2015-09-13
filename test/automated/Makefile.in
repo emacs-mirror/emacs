@@ -52,9 +52,15 @@ unexport EMACSDATA EMACSDOC EMACSPATH GREP_OPTIONS
 ## To run tests under a debugger, set this to eg: "gdb --args".
 GDB =
 
+# The locale to run tests under.  Tests should work if this is set to
+# any supported locale.  Use the C locale by default, as it should be
+# supported everywhere.
+TEST_LOCALE = C
+
 # The actual Emacs command run in the targets below.
 # Prevent any setting of EMACSLOADPATH in user environment causing problems.
-emacs = EMACSLOADPATH= LC_ALL=C EMACS_TEST_DIRECTORY=$(srcdir) $(GDB) "$(EMACS)" $(EMACSOPT)
+emacs = EMACSLOADPATH= LC_ALL=$(TEST_LOCALE) EMACS_TEST_DIRECTORY=$(srcdir) \
+ $(GDB) "$(EMACS)" $(EMACSOPT)
 
 .PHONY: all check
 
@@ -93,7 +99,7 @@ WRITE_LOG = > $@ 2>&1 || { stat=ERROR; cat $@; }; echo $$stat: $@
 	$(emacs) -l ert -l $$loadfile \
 	  -f ert-run-tests-batch-and-exit ${WRITE_LOG}
 
-ELFILES = $(wildcard ${srcdir}/*.el)
+ELFILES = $(sort $(wildcard ${srcdir}/*.el))
 LOGFILES = $(patsubst %.el,%.log,$(notdir ${ELFILES}))
 TESTS = ${LOGFILES:.log=}
 

@@ -597,9 +597,9 @@
 	 ",")
 	((equal name "#")
 	 (search-backward "#")
-	 (error "Token '#' is reserved"))
+	 (error "Token `#' is reserved"))
 	((and unquoted (string-match "#" name))
-	 (error "Tokens containing '#' must be quoted"))
+	 (error "Tokens containing `#' must be quoted"))
 	((not (string-match "[^ ]" name))
 	 (search-backward "\"" nil t)
 	 (error "Blank tokens are not allowed"))
@@ -610,7 +610,7 @@
 	(quoted nil))
     (while (progn
 	     (skip-chars-forward "\n\t ")
-	     (if (eobp) (error "Expected '%s'" eterm))
+	     (if (eobp) (error "Expected `%s'" eterm))
 	     (not (looking-at term)))
       (cond ((looking-at "%%")
 	     (end-of-line))
@@ -618,7 +618,7 @@
 	     (forward-char 2)
 	     (let ((p (calc-read-parse-table-part "}" "}")))
 	       (or (looking-at "[+*?]")
-		   (error "Expected '+', '*', or '?'"))
+		   (error "Expected `+', `*', or `?'"))
 	       (let ((sym (intern (buffer-substring (point) (1+ (point))))))
 		 (forward-char 1)
 		 (looking-at "[^\n\t ]*")
@@ -650,7 +650,7 @@
 					      (match-end 1)))))))
 	     (goto-char (match-end 0)))
 	    ((looking-at ":=[\n\t ]")
-	     (error "Misplaced ':='"))
+	     (error "Misplaced `:='"))
 	    (t
 	     (looking-at "[^\n\t ]*")
 	     (let ((end (match-end 0)))
@@ -1441,7 +1441,7 @@ Redefine the corresponding command."
 	   (let ((calc-kbd-push-level 0))
 	     (execute-kbd-macro (substring body 0 -2))))
        (let ((calc-kbd-push-level (1+ calc-kbd-push-level)))
-	 (message "Saving modes; type Z' to restore")
+	 (message "%s" "Saving modes; type Z' to restore")
 	 (recursive-edit))))))
 
 (defun calc-kbd-pop ()
@@ -1450,7 +1450,7 @@ Redefine the corresponding command."
       (progn
 	(message "Mode settings restored")
 	(exit-recursive-edit))
-    (error "Unbalanced Z' in keyboard macro")))
+    (error "%s" "Unbalanced Z' in keyboard macro")))
 
 
 ;; (defun calc-kbd-report (msg)

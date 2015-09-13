@@ -1,0 +1,3566 @@
+2015-03-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (BROKEN_NON_BLOCKING_CONNECT): Don't define.
+	(Bug#20159)
+
+2015-03-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Add some more installation instructions for mingw-get
+	users.  (Bug#19989)
+
+2015-03-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* cmdproxy.c (get_next_token): Don't make backslashes disappear
+	without a trace when they are not followed by a quote.
+	(search_dir): Support searching programs whose file name already
+	has an arbitrary extension.  (Bug#19817)
+	(main): When passing a command line to the shell, use cmd.exe
+	rules for quoting command-line tail.
+
+2015-02-27  Mark Laws  <mdl@60hz.org>
+
+	Support daemon mode on MS-Windows (bug#19688)
+	* inc/ms-w32.h (W32_DAEMON_EVENT): New macro.
+
+2015-01-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (AM_V_CC, am__v_CC_, am__v_CC_0, am__v_CC_1)
+	(AM_V_CCLD, am__v_CCLD_, am__v_CCLD_0, am__v_CCLD_1, AM_V_RC)
+	(am__v_RC_, am__v_RC_0, am__v_RC_1): New macros.
+	(addpm${EXEEXT}, ddeclient${EXEEXT}, cmdproxy${EXEEXT})
+	(runemacs${EXEEXT}): Use $(AM_V_CCLD).
+	(emacs.res, ../src/emacs.res): Use $(AM_V_RC).
+
+2014-12-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* gnulib.mk (stpcpy, string): Sync with the latest change in
+	lib/gnulib.mk.
+
+2014-12-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* gnulib.mk (stddef.h): Sync with the latest change in lib/gnulib.mk.
+
+2014-11-27  Oscar Fuentes  <ofv@wanadoo.es>
+
+	* inc/ms-w32.h: Define MINGW_W64.
+	* nt/addpm.c, nt/addsection.c, nt/preprep.c: Use it.
+
+2014-11-24  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (../src/emacs.res): New target.
+
+2014-11-22  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.rc.in, emacsclient.rc.in: Rename from emacs.rc, emacsclient.rc.
+	Let configure generate the real files, and set the version numbers.
+	* Makefile.in (distclean): Delete *.rc.
+	(emacs.res): Update deps for nt/emacsclient.rc now being in the
+	build directory, not the source directory.
+
+	* Makefile.in (emacs.res): Add dependency on icons/hand.cur.
+
+2014-11-18  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (addpm${EXEEXT}, ddeclient${EXEEXT})
+	(cmdproxy${EXEEXT}, runemacs${EXEEXT}, emacs.res):
+	Use automatic variables.
+
+2014-10-26  Dani Moncayo <dmoncayo@gmail.com>
+
+	* README.W32 (Preliminaries): Don't assume that this file is at
+	the top level.
+	(Setting up Emacs): Minor rewording to be more accurate.
+
+2014-10-25  Eric S. Raymond  <esr@thyrsus.com>
+
+	* Neutralize language specific to a repository type.
+
+2014-10-22  Noam Postavsky  <npostavs@users.sourceforget.net>
+
+	* nt/cmdproxy.c (batch_file_p): New function.
+	(spawn): If calling a quoted batch file pass NULL for progname.
+	(Bug#18745)
+
+2014-10-20  Glenn Morris  <rgm@gnu.org>
+
+	* Merge in all changes up to 24.4 release.
+
+2014-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (VERSION): Bump version to 25.0.50.
+
+	* emacsclient.rc: Bump version to 25.0.50.
+
+	* emacs.rc: Bump version to 25.0.50.
+
+	* config.nt (VERSION): Bump version to 25.0.50.
+
+2014-09-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* gnulib.mk: Synchronize with lib/gnulib.mk.
+
+2014-06-15  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (LDFLAGS): Explicitly set via configure.
+
+2014-06-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (CPPFLAGS): Define.
+
+2014-06-15  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (bootstrap-clean): New.
+
+2014-06-05  Dmitry Antipov  <dmantipov@yandex.ru>
+
+	* inc/ms-w32.h (POLL_FOR_INPUT): Define with HAVE_WINDOW_SYSTEM.
+
+2014-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (DONT_INSTALL): Now empty.
+	(addsection${EXEEXT}): Remove target.
+	* addsection.c: Remove file.
+
+2014-05-27  Fabrice Popineau  <fabrice.popineau@gmail.com>
+
+	* inc/ms-w32.h: Switch to the system heap allocation scheme
+	instead of GNU malloc and ralloc.
+
+	* inc/sys/mman.h: New file.
+
+	* INSTALL: Update for the new build requirements.
+
+2014-05-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume C99 or later (Bug#17487).
+	* gnulib.mk: Remove stdarg and stdbool modules.
+
+2014-05-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't require pkg-config when building from repository.
+	* INSTALL: Remove no-longer-needed notes about pkg-config.
+
+2014-05-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Update to the effect that pkg-config is now required
+	for building from the repository.
+
+2014-04-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* cmdproxy.c (make_absolute): Don't copy more characters from PATH
+	than a single directory name can hold.  (Bug#17334)
+
+2014-04-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (lseek): Define only if not already a macro.
+	Suggested by Fabrice Popineau <fabrice.popineau@gmail.com>.
+
+2014-04-11  Ken Brown  <kbrown@cornell.edu>
+
+	* emacs.rc: Revert last change.
+
+2014-04-07  Ken Brown  <kbrown@cornell.edu>
+
+	* emacs.rc: Don't use manifest on Cygwin.  (Bug#17176)
+
+2014-02-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* Makefile.in (install): Create destination directory before copying
+	README.W32, and use ${datadir} to refer to the file (bug#16772).
+
+2014-02-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* Makefile.in (datarootdir, datadir, INSTALL_DATA): Declare.
+	(install): Copy README.W32 to $(datadir)/emacs/$(version).
+	(uninstall): Remove README.W32.  (Bug#14757)
+
+2014-02-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Update for Emacs 24.4.
+
+	* README: Update for Emacs 24.4.
+
+	* README.W32: Update and improve instructions.  (Bug#14762)
+
+2014-02-08  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* README.W32: Say what GnuTLS and libxml2 does (bug#14762).
+
+2014-01-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* runemacs.c (ensure_unicows_dll): Don't tell in the message box
+	that "emacs -nw" can do without UNICOWS.DLL on Windows 9X.  See
+	w32.c:maybe_load_unicows_dll and its callers for the reason.
+
+2014-01-11  Claudio Bley  <claudio.bley@googlemail.com>
+
+	* inc/sys/stat.h (_WSTAT_DEFINED): Define, to avoid compilation
+	failures when wchar.h is included.
+
+2014-01-11  Fabrice Popineau  <fabrice.popineau@supelec.fr>
+
+	* inc/ms-w32.h (pthread_sigmask): Undefine if defined, for MinGW64.
+
+2013-12-31  Fabrice Popineau  <fabrice.popineau@supelec.fr>
+
+	* inc/ms-w32.h (sys_kill): Fix prototype.
+
+2013-12-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (umask) [emacs]: Redirect to sys_umask.  (Bug#16299)
+
+2013-12-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* README.W32:
+	* INSTALL: Update instructions for downloading and using image
+	libraries in general, and librsvg in particular.
+
+2013-12-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-x64.manifest:
+	* emacs-x86.manifest: Declare that we target Windows 8.1 as well
+	as earlier versions.  This is so GetVersion and GetVersionEx APIs
+	used for bug reporting and other purposes return accurate version
+	number on Windows 8.1.  See the discussion on MSDN
+	http://msdn.microsoft.com/en-us/library/windows/desktop/dn302074.aspx
+	for more details.
+
+2013-12-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (MAX_UTF8_PATH): New macro.
+	(opendir, closedir, readdir, seekdir): Redirect to replacement
+	functions.
+	* inc/dirent.h: Make d_name[] be MAXNAMELEN*4 characters long.
+
+2013-11-27  Glenn Morris  <rgm@gnu.org>
+
+	* README.W32:
+	* addpm.c (env_vars):
+	* epaths.nt (PATH_LOADSEARCH, PATH_DUMPLOADSEARCH):
+	* paths.h (PATH_LOADSEARCH): No more leim directory.
+
+2013-11-26  Glenn Morris  <rgm@gnu.org>
+
+	* epaths.nt (PATH_DUMPLOADSEARCH): Add leim/.
+
+2013-11-12  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* msysconfig.sh: Remove.
+	* INSTALL: Update for this.
+
+2013-11-09  Glenn Morris  <rgm@gnu.org>
+
+	* mingw-cfg.site: No need for this to be executable.
+
+2013-10-24  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in ($(DESTDIR)${archlibdir}):
+	Avoid non-portable "`\" nesting.
+
+	* Makefile.in (abs_top_srcdir): New, set by configure.
+
+2013-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in ($(DESTDIR)${archlibdir}, install, uninstall):
+	Quote entities that might contain whitespace.
+
+2013-10-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/mingw_time.h: New file.
+
+	* inc/ms-w32.h: Include mingw_time.h instead of doing its job.
+
+2013-10-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/dirent.h (struct dirent) [__MINGW_MAJOR_VERSION >= 4]: Make
+	the layout of 'struct dirent' be compatible with MinGW32 runtime
+	versions 4.0 and later.
+
+	* inc/ms-w32.h (__MINGW_MAJOR_VERSION, __MINGW_MINOR_VERSION)
+	(__MINGW_PATCHLEVEL) [!__MINGW64_VERSION_MAJOR]: Define, if not
+	defined, but not for MinGW64.
+	(_USE_32BIT_TIME_T) [__MINGW64_VERSION_MAJOR]: Define, to force
+	use of 32-bit time_t type.
+
+2013-10-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve support for popcount and counting trailing zeros (Bug#15550).
+	* gnulib.mk: Merge changes from ../lib/gnulib.mk.
+
+2013-10-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* gnulib.mk: Create <byteswap.h> from <byteswap.in.h>.
+
+2013-09-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* mingw-cfg.site (gl_cv_sys_struct_timeval_tv_sec): Set to "yes"
+	to avoid gnulib replacement of 'struct timeval' and the resulting
+	compilation of lib/gettimeofday.c with incompatible version of
+	gettimeofday.  Related discussions on emacs-devel:
+	http://lists.gnu.org/archive/html/emacs-devel/2013-09/msg00286.html
+	http://lists.gnu.org/archive/html/emacs-devel/2013-09/msg00361.html
+
+2013-08-31  Glenn Morris  <rgm@gnu.org>
+
+	* INSTALL: Rename from INSTALL.MSYS.
+	* INSTALL.OLD: Rename from INSTALL.
+	* configure.bat: Update for INSTALL name changes.
+
+2013-08-25  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* configure.bat: Rather than disabling, make configure.bat produce
+	some warning that building with configure.bat is deprecated and
+	ask for confirmation to continue.
+
+2013-08-25  Glenn Morris  <rgm@gnu.org>
+
+	* INSTALL: Refer to INSTALL.MSYS.
+	* configure.bat: Disable it.
+
+2013-08-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* mingw-cfg.site (ac_cv_func_mkostemp): New var with value of "yes".
+
+	* inc/ms-w32.h (mkostemp): Declare prototype.
+	(mktemp): Don't redirect to sys_mktemp.
+
+	* config.nt (HAVE_MKOSTEMP): Define to 1.  (Bug#15015)
+
+2013-07-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/socket.h (F_SETFD, O_CLOEXEC, F_DUPFD_CLOEXEC)
+	(FD_CLOEXEC): New macros.
+
+2013-07-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Make file descriptors close-on-exec when possible (Bug#14803).
+	* gnulib.mk: Remove empty gl_GNULIB_ENABLED_verify section;
+	otherwise, gnulib-tool complains given close-on-exec changes.
+	* inc/ms-w32.h (pipe): Remove.
+	* mingw-cfg.site (ac_cv_func_fcntl, gl_cv_func_fcntl_f_dupfd_cloexec)
+	(gl_cv_func_fcntl_f_dupfd_works, ac_cv_func_pipe2): New vars.
+
+2013-06-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.bat: Add warning to the help text about using the
+	MSYS/MinGW building procedure.
+
+2013-06-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL.MSYS: mingw-get is not a GUI program (yet).
+	msys-automake is not suitable for MinGW builds.  Mention the
+	--enable-locallisppath switch to msysconfig.sh.  Suggested by
+	Óscar Fuentes <ofv@wanadoo.es>.
+
+2013-06-07  Richard Copley  <rcopley@gmail.com>  (tiny change)
+
+	* epaths.nt (PATH_SITELOADSEARCH): Fix commentary.
+
+2013-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt: Add HAVE_GFILENOTIFY, HAVE_W32NOTIFY and USE_FILE_NOTIFY.
+
+2013-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/time.h (struct timeval): Remove the _W64 guards.
+
+2013-06-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/time.h [!_TIMEZONE_DEFINED]: Define _TIMEZONE_DEFINED to
+	avoid multiple definition errors on MinGW64.
+
+2013-05-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/time.h (gettimeofday): Use '__restrict' instead of
+	'restrict', which is a C99 extension.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2013-05/msg00588.html
+	and the following discussion for the problem this caused in the
+	old nt/configure.bat build.
+
+2013-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (emacs.res): Include srcdir when preprocessing
+	resources, for out-of-tree builds.
+	(mostlyclean): Remove *.res files.
+
+2013-05-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* runemacs.c (WinMain): Support invocation of un-installed
+	nt/runemacs.exe, by looking for src/emacs.exe.
+
+2013-05-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/stdint.h (SIZE_MAX) [!__GNUC__]: Define.  (Bug#14409)
+
+	* msysconfig.sh: New file.
+
+	* mingw-cfg.site: New file.
+
+	* makefile.w32-in (LOCAL_FLAGS): Add -DOLD_PATHS=1.
+
+	* inc/unistd.h: Include pwd.h and sys/types.h.
+
+	* inc/sys/time.h (_TIMEVAL_DEFINED, timerisset, timercmp)
+	(timerclear): Define.
+	(gettimeofday): Adjust signature to be Posix compatible, by using
+	the 'restrict' keyword.
+
+	* inc/sys/stat.h (UTIME_NOW, UTIME_OMIT): Define.
+	(struct _stat, struct _stati64): Define.
+
+	* inc/sys/socket.h (timeval): Define only for MSVC.
+	(FD_SET, FD_CLR, FD_ISSET, fd_set): Redefine only if
+	EMACS_CONFIG_H is defined.
+	(timeval): Undefine only for MSVC.
+
+	* inc/ms-w32.h (HAVE___BUILTIN_UNWIND_INIT, restrict)
+	(HAVE_WINDOW_SYSTEM, HAVE_MENUS, EMACS_CONFIGURATION)
+	(EMACS_CONFIG_OPTIONS, HAVE_LONG_LONG_INT)
+	(HAVE_UNSIGNED_LONG_LONG_INT): Define only if not already defined.
+	(fileno): Move definition after including stdio.h.
+	(sigset_t): Guard typedef by _W64.
+
+	* gnulib.mk: New file.
+
+	* epaths.nt: New file.
+
+	* addpm.c [!OLD_PATHS]: Include src/epaths.h, instead of having a
+	copy of the file names there.
+	<env_vars> [!OLD_PATHS]: Use macros from epaths.h instead of
+	literal strings.
+
+	* Makefile.in: New file.
+
+	* INSTALL.MSYS: New file.
+
+	* INSTALL: Mention INSTALL.MSYS.
+
+2013-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* makefile.w32-in (clean, top-distclean): DOC-X doesn't exist any more.
+
+2013-05-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_ACLSORT, HAVE_ACLV_H, HAVE_ACLX_GET, HAVE_ACL_COPY_EXT_NATIVE)
+	(HAVE_ACL_CREATE_ENTRY_NP, HAVE_ACL_DELETE_DEF_FILE)
+	(HAVE_ACL_DELETE_FD_NP, HAVE_ACL_DELETE_FILE_NP, HAVE_ACL_ENTRIES)
+	(HAVE_ACL_EXTENDED_FILE, HAVE_ACL_FIRST_ENTRY, HAVE_ACL_FREE)
+	(HAVE_ACL_FREE_TEXT, HAVE_ACL_FROM_MODE, HAVE_ACL_FROM_TEXT)
+	(HAVE_ACL_GET_FD, HAVE_ACL_GET_FILE, HAVE_ACL_LIBACL_H, HAVE_ACL_SET_FD)
+	(HAVE_ACL_TO_SHORT_TEXT, HAVE_ACL_TRIVIAL, HAVE_ACL_TYPE_EXTENDED)
+	(HAVE_FACL, HAVE_GETACL, HAVE_STATACL, HAVE_SYS_ACL_H, HAVE_XINERAMA)
+	(HAVE_XRANDR, HAVE_XRRGETOUTPUTPRIMARY)
+	(HAVE_XRRGETSCREENRESOURCESCURRENT, USE_ACL): New macros.
+
+2013-05-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use Gnulib ACL implementation, for benefit of Solaris etc.  (Bug#14295)
+	* config.nt (HAVE_ACL_SET_FILE): Rename from HAVE_POSIX_ACL.
+	* inc/ms-w32.h (EOPNOTSUPP): New macro.
+
+2013-04-09  Ken Brown  <kbrown@cornell.edu>
+
+	* emacs.rc: Use 64-bit manifest for 64-bit Cygwin build.
+	(Bug#12993)
+
+2013-04-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* README: A better documentation of ddeclient.exe.
+
+	* README.W32: A better documentation of ddeclient.exe.
+
+	* paths.h (PATH_EXEC): Add nt/oo-spd/i386 and nt/oo/i386
+	subdirectories.
+
+2013-03-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (TERM_HEADER): Remove definition.
+
+	* config.nt (TERM_HEADER): Move the definition to "w32term.h" from
+	ms-w32.h.
+
+2013-03-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (copysign) [_MSC_VER]: Redirect to _copysign.
+
+	* config.nt (HAVE_COPYSIGN): Define.
+
+2013-03-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_XKBGETKEYBOARD): Remove.
+	(HAVE_XKB): New macro.
+
+2013-03-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (all-other-dirs-nmake, all-other-dirs-gmake)
+	(bootstrap, bootstrap-nmake, bootstrap-gmake, install-addpm):
+	Depend on .exe files.
+
+	* inc/ms-w32.h (sys_localtime) [_W64]: Provide a prototype, to
+	avoid MinGW64 compiler warnings in editfns.c.
+
+	Fix rules for parallel builds.
+	* makefile.w32-in (ALL): Depend on *.exe files, not on phony names
+	without the .exe suffix.
+	(addpm, ddeclient, cmdproxy, addsection, preprep): Remove phony
+	targets.
+	(.PHONY): Remove.
+
+	* addpm.c (_WIN32_IE) [_W64]: Move after inclusion of standard
+	headers, since that's where _W64 is declared by MinGW64.
+
+2013-03-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (USE_NO_MINGW_SETJMP_TWO_ARGS): Don't define.
+	(HAVE__SETJMP) [_W64]: Undefine for MinGW64.
+
+	* addsection.c (_ANONYMOUS_UNION, _ANONYMOUS_STRUCT): Do not
+	define for MinGW64.
+
+	* preprep.c (_ANONYMOUS_UNION, _ANONYMOUS_STRUCT): Do not define
+	for MinGW64.
+
+	Fix more incompatibilities between MinGW.org and MinGW64 headers
+	reported by Óscar Fuentes in
+	http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00733.html
+	http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00699.html
+	and in
+	http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00707.html.
+	* inc/ms-w32.h (USE_NO_MINGW_SETJMP_TWO_ARGS) [_W64]: Define to 1.
+	For MinGW64, include sys/types.h and time.h.
+	(_WIN32_WINNT) [!_W64]: Don't define for MinGW64.
+
+	* inc/sys/stat.h (chmod): Remove _CRTIMP from prototype.
+
+	* inc/sys/time.h (struct timeval) [!_W64]: Guard definition with
+	_W64.
+	(struct timezone) [!_TIMEZONE_DEFINED]: Guard definition with
+	_TIMEZONE_DEFINED.
+
+	* addpm.c (_WIN32_IE) [_W64]: For MinGW64, don't define to 0x400.
+
+	* inc/sys/stat.h: Remove _CRTIMP from prototypes of fstat, stat,
+	lstat, and fstatat.
+
+2013-03-25  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix incompatibilities between MinGW.org and MinGW64 headers
+	reported by Óscar Fuentes in
+	http://lists.gnu.org/archive/html/emacs-devel/2013-03/msg00611.html.
+	* inc/ms-w32.h (struct timespec): Don't define if
+	_TIMESPEC_DEFINED is already defined.
+	(sigset_t) [!_POSIX]: Typedef for MinGW64.
+	(_WIN32_WINNT, WIN32_LEAN_AND_MEAN): Move definitions before
+	including the first system header, to avoid redefinition if some
+	system header defines a default value.
+
+	* inc/sys/time.h (struct itimerval): Don't define if
+	_TIMESPEC_DEFINED is already defined.
+
+2013-03-16  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix the MSVC build.  (Bug#13939)
+	* inc/stdint.h (UINTPTR_MAX): Define.
+
+	* nmake.defs (libc): Fix syntax of !if conditional.
+
+2013-03-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(BSD_SYSTEM, BSD_SYSTEM_AHB, HAVE_ALARM, HAVE__PUTENV): Remove.
+	(HAVE_DECL_ALARM, HAVE_DECL_FDATASYNC, HAVE_DECL__PUTENV)
+	(HAVE_FDATASYNC): New macros.
+
+2013-03-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	File synchronization fixes (Bug#13944).
+	* inc/ms-w32.h (fdatasync): New macro, suggested by Eli Zaretskii.
+
+2013-03-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	FILE's lock is now always .#FILE and may be a regular file (Bug#13807).
+	* inc/unistd.h (O_NOFOLLOW): New macro.
+
+2013-03-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(DATA_START, ORDINARY_LINK): Remove.
+	(HAVE_DATA_START, HAVE__PUTENV): New macros.
+
+2013-02-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (BOOT_TIME_FILE): Define.
+
+	* config.nt (CLASH_DETECTION): Define to 1.
+
+2013-02-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (__STDC__): Fiddle with value only for MSVC.
+	(Bug#9066)
+	(chown, logb): Remove, unused.
+
+2013-02-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(GC_MARK_STACK): Remove.
+	(GNULIB_FDOPENDIR, HAVE_DECL_FDOPENDIR, HAVE_DECL_MEMRCHR)
+	(HAVE_DIRENT_H, HAVE_FDOPENDIR, HAVE_FSTATAT, HAVE_MEMRCHR)
+	(HAVE_WORKING_FSTATAT_ZERO_FLAG, _NETBSD_SOURCE): New macros.
+
+2013-02-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h: Add prototype for memrchr.
+
+2013-02-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use fdopendir, fstatat and readlinkat, for efficiency (Bug#13539).
+	* inc/sys/stat.h (fstatat):
+	* inc/unistd.h (readlinkat): New decls.
+
+2013-01-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/dirent.h (opendir): Update prototype.
+
+2013-01-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/unistd.h (O_IGNORE_CTTY): Define, as it is unconditionally
+	used in term.c.  (Bug#13387)
+
+2013-01-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_GTK_HANDLE_BOX_NEW, HAVE_GTK_TEAROFF_MENU_ITEM_NEW): New macros.
+
+2012-12-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/stat.h (S_ISMPX): Define to zero, to accommodate changes
+	in lib/filemode.c that broke the MS-Windows build.
+	Suggested by Andy Moreton <andrewjmoreton@gmail.com>.
+
+2012-12-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(BSD4_2): Remove.
+
+2012-12-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/acl.h: New file.
+
+	* inc/ms-w32.h (ENOTSUP): Define if undefined.
+
+	* config.nt (HAVE_POSIX_ACL): Define.
+
+2012-12-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (sys_unlink): Provide prototype.
+
+2012-12-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/stat.h: Declare w32_stat_get_owner_group.
+
+2012-12-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_INOTIFY, HAVE_SYS_INOTIFY_H): New macros.
+
+2012-12-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_DECL_UNSETENV, HAVE_SIG2STR, VOID_UNSETENV): New macros.
+	(ULIMIT_BREAK_VALUE): Remove.
+
+2012-12-10  Daniel Colascione  <dancol@dancol.org>
+
+	* emacs.rc: Use forward slashes in relative paths in order to
+	avoid complaints from Cygwin.  (Forward slashes work perfectly
+	well in the NT build.)
+
+2012-12-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/unistd.h (unsetenv): Provide a prototype.
+
+2012-12-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (putenv): Redirect to sys_putenv.
+	(sys_putenv): Add prototype.
+
+	* config.nt (HAVE_UNSETENV): Define to 1.
+
+2012-12-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+
+2012-11-24  Ken Brown  <kbrown@cornell.edu>
+
+	* config.nt (HAVE_MOUSE): Remove.
+
+2012-11-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(BROKEN_GETWD, HAVE_CLOSEDIR, HAVE_DIRENT_H, HAVE_FCNTL_H, HAVE_GETWD):
+	Remove.
+
+2012-11-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* gmake.defs (SWITCHCHAR): Define to // under MSYS, / otherwise.
+	(Bug#12955)
+
+	* nmake.defs (SWITCHCHAR): Define to /.
+
+2012-11-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for dirent.h (Bug#12958).
+	* inc/dirent.h: Rename from ../src/ndir.h, with these changes:
+	(struct dirent): Rename from struct direct.  All uses changed.
+	* inc/sys/dir.h: Remove.
+
+2012-11-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for unistd.h (Bug#12945).
+	* config.nt (HAVE_GETCWD): Remove.
+
+2012-11-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* nmake.defs: Use !if, not !ifdef.  For the details, see
+	http://lists.gnu.org/archive/html/help-emacs-windows/2012-11/msg00027.html
+
+	* inc/stdint.h (INTPTR_MIN)
+	(PTRDIFF_MIN) [!__GNUC__]: Define for MSVC.
+
+2012-11-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/unistd.h: Don't include fcntl.h and don't define O_RDWR.
+
+2012-11-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_FPATHCONF): Remove.
+
+2012-11-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume POSIX 1003.1-1988 or later for fcntl.h (Bug#12881).
+	* inc/sys/socket.h (O_NONBLOCK): Rename from O_NDELAY, since the
+	POSIX name for this flag is O_NONBLOCK.  All uses changed.
+	* inc/unistd.h (O_RDWR, O_NOCTTY): New macros.  Like AT_FDCWD etc.
+	these really should be moved to a replacement <fcntl.h> if and
+	when that gets implemented.  In the meantime, include <fcntl.h>
+	to make sure we don't override its definitions.
+
+2012-11-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/wait.h: New file, with prototype of waitpid and
+	definitions of macros it needs.
+
+	* inc/ms-w32.h (wait): Don't define, 'wait' is not used anymore.
+	(sys_wait): Remove prototype.
+
+	* config.nt (HAVE_SYS_WAIT_H): Define to 1.
+
+2012-11-17  Dani Moncayo  <dmoncayo@gmail.com>
+
+	* zipdist.bat (ZIP_CHECK): Remove unused label.  When invoking 7z
+	to check if it's installed, redirect standard output and standard
+	error to the null device.
+	(ZIP_DIST): Don't build the "barebin" distribution.
+
+2012-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(GETGROUPS_T, GETGROUPS_ZERO_BUG, GNULIB_FACCESSAT, HAVE_ACCESS)
+	(HAVE_EACCESS, HAVE_FACCESSAT, HAVE_GETGROUPS, HAVE_LIBGEN_H):
+	New macros.
+
+2012-11-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/unistd.h (faccessat): Add prototype.
+	(AT_FDCWD, AT_EACCESS, AT_SYMLINK_NOFOLLOW): New macros; the first
+	2 moved from ms-w32.h.
+
+	* inc/ms-w32.h (AT_FDCWD, AT_EACCESS, faccessat): Remove macros.
+
+2012-11-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use faccessat, not access, when checking file permissions (Bug#12632).
+	* inc/ms-w32.h (AT_FDCWD, AT_EACCESS): New symbols.
+	(access): Remove.
+	(faccessat): New macro.
+
+2012-11-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/unistd.h (tcgetpgrp, setsid): Provide prototypes.
+
+2012-11-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(DISPNEW_NEEDS_STDIO_EXT, GETPGRP_VOID, HAVE_SETPGID, HAVE_SETSID)
+	(PENDING_OUTPUT_COUNT, SETPGRP_RELEASES_CTTY): Remove.
+
+2012-11-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(GNULIB_CLOSE_STREAM, HAVE_DECL___FPENDING): New macros.
+
+2012-11-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (PENDING_OUTPUT_N_BYTES): Define.
+
+2012-11-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/unistd.h (setpgid, getpgrp): Provide prototypes.  (Bug#12776)
+
+	* config.nt (GETPGRP_VOID): Define to 1.
+
+2012-10-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+
+2012-10-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/pwd.h (getuid, geteuid): Add prototypes.
+
+	* inc/ms-w32.h (sys_wait, _getpid, gmtgime_r, localtime_r)
+	(signal_handler, sys_signal, sigemptyset, sigfillset, sigprocmask)
+	(pthread_sigmask, sigismember, setpgrp, sigaction, alarm)
+	(sys_kill, getpagesize): Add prototypes for emulated functions.
+
+	* inc/grp.h (getgid, getegid): Add prototypes.
+
+	* gmake.defs (DEBUG_CFLAGS) [NOOPT]: Add -std=gnu99.
+
+	* configure.bat (chkapiN): Avoid compiler warning in junk.c when
+	compiling with -std=gnu99.
+
+	* config.nt (CHECK_LISP_OBJECT_TYPE): Don't undef, so that it
+	could be used via --cflags switch to configure.bat.
+
+2012-10-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_NTGUI): New macro.
+
+2012-10-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* preprep.c (RVA_TO_PTR): Cast the result to 'void *', to avoid
+	compiler warnings when using the value.
+
+2012-10-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* preprep.c (RVA_TO_PTR): Use 'unsigned char *' instead of
+	'void *', for pointer arithmetic.
+	(OFFSET_TO_RVA, RVA_TO_OFFSET, RVA_TO_SECTION_OFFSET): Enclose all
+	macro arguments in parentheses.
+
+2012-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(TRES)): Use $(EMACS_MANIFEST).
+
+2012-09-30  Fabrice Popineau  <fabrice.popineau@supelec.fr>
+
+	* inc/sys/socket.h: Don't map Winsock error codes to standard ones
+	that are already defined.
+
+	* inc/ms-w32.h (EMACS_INT, EMACS_UINT, EMACS_INT_MAX, PRIuMAX)
+	(pI, _INTPTR) [_MSC_VER]: Fix definitions for MSVC.
+	[_MSC_VER]: Add pragmas to suppress some MSVC warnings.
+
+	* preprep.c (pfnCheckSumMappedFile, rva_to_section)
+	(offset_to_section, relocate_offset, OFFSET_TO_RVA)
+	(RVA_TO_OFFSET, RVA_TO_SECTION_OFFSET, PTR_TO_RVA)
+	(OFFSET_TO_PTR, ROUND_UP, ROUND_DOWN)
+	(copy_executable_and_move_sections, ADJUST_IMPORT_RVA, main):
+	Use DWORD_PTR instead of DWORD for compatibility with x64.
+
+	* nmake.defs: Support AMD64.
+	(EMACS_HEAPSIZE, EMACS_PURESIZE, EMACS_MANIFEST): New macros.
+
+	* gmake.defs (EMACS_HEAPSIZE, EMACS_PURESIZE, EMACS_MANIFEST):
+	New macros.
+
+	* addsection.c (pfnCheckSumMappedFile, rva_to_section)
+	(offset_to_section, relocate_offset, OFFSET_TO_RVA)
+	(RVA_TO_OFFSET, RVA_TO_SECTION_OFFSET, PTR_TO_RVA)
+	(OFFSET_TO_PTR, ROUND_UP, ROUND_DOWN)
+	(copy_executable_and_add_section, main): Use DWORD_PTR instead of
+	DWORD, for compatibility with x64.
+
+	* emacs-x64.manifest: New file.
+
+	* emacs-x86.manifest: Renamed from emacs.manifest.
+
+2012-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/time.h (ITIMER_REAL, ITIMER_PROF): Define.
+	(struct itimerval): Define.
+	(getitimer, setitimer): Add prototypes.
+
+	* inc/ms-w32.h <sigset_t> [_MSVC_VER]: Make the typedef consistent
+	with MinGW.
+	(SA_RESTART, SIGPROF): Define.
+
+	* config.nt (HAVE_SETITIMER): Define to 1.
+
+2012-09-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+
+2012-09-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_TIMER_SETTIME): New macro.
+
+2012-09-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (emacs_raise): Redefine to invoke emacs_abort.
+
+2012-09-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify and avoid signal-handling races (Bug#12471).
+	* inc/ms-w32.h (emacs_raise): New macro.
+
+2012-09-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat: Include stddef.h before gif_lib.h, to have size_t
+	defined, as needed by giflib-5.0.0.  (Bug#12464)
+
+2012-09-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(BROKEN_SA_RESTART, SYNC_INPUT): Remove.
+
+2012-09-17  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt (COPYRIGHT): New.
+
+2012-09-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port _setjmp fix to POSIXish hosts as well as Microsoft.
+	* config.nt: Attempt to sync with autogen/config.in.
+	(HAVE_SIGSETJMP, HAVE__SETJMP): New macros.
+	(_longjmp, _setjmp): Remove.
+
+2012-09-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(BROKEN_FIONREAD, BROKEN_SIGAIO, BROKEN_SIGIO, BROKEN_SIGPOLL)
+	(BROKEN_SIGPTY, HAVE_CBRT, HAVE_LOGB, NO_TERMIO): Remove.
+	(USABLE_FIONREAD, USABLE_SIGIO): New macros.
+
+2012-09-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(FLOAT_CHECK_DOMAIN, HAVE_FMOD, HAVE_FREXP)
+	(HAVE_INVERSE_HYPERBOLIC, NO_MATHERR): Remove.
+
+2012-09-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat <use_extensions>: Don't leave it set in the
+	environment when the script exits.
+
+2012-09-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(NO_ABORT, SIGNAL_H_AHB): Remove.
+
+2012-09-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/ms-w32.h (struct sigaction): Declare sa_handler __cdecl.
+
+2012-09-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+
+2012-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Simplify redefinition of 'abort' (Bug#12316).
+	* inc/ms-w32.h (w32_abort) [HAVE_NTGUI]: Remove.
+
+2012-09-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_EXECINFO_H, TERM_HEADER): New macros.
+
+2012-09-01  Daniel Colascione  <dancol@dancol.org>
+
+	* inc/ms-w32.h (TERM_HEADER): Add for refactoring.
+
+2012-08-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+
+2012-08-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_POSIX_OPENPT): New macro.
+
+2012-08-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(_GL_INLINE_HEADER_BEGIN): Update.
+
+2012-08-10  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt (DIRECTORY_SEP): Move here from src/lisp.h.
+
+2012-08-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(BROKEN_GETWD, DISPNEW_NEEDS_STDIO_EXT): New macros.
+	(PENDING_OUTPUT_COUNT): Move definition to inc/ms-w32.h.
+
+	* inc/ms-w32.h (PENDING_OUTPUT_COUNT): Define.
+
+2012-08-06  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt (GNU_LIBRARY_PENDING_OUTPUT_COUNT): Remove.
+	(PENDING_OUTPUT_COUNT): Define it as dispnew.c used to.
+
+2012-08-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* paths.h (PATH_LOADSEARCH, PATH_SITELOADSEARCH, PATH_EXEC)
+	(PATH_DATA, PATH_DOC): Replace dummy directory names with
+	directories relative to %emacs_dir%.
+	(PATH_EXEC): Add lib-src/oo-spd/i386 and lib-src/oo/i386, to cater
+	to the use case of running un-installed Emacs.
+
+2012-08-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(DOS_NT, MSDOS): New macros.
+	(WRETCODE, wait3): Remove.
+
+	* inc/ms-w32.h (DOS_NT): Remove; defined in config.nt.
+
+2012-08-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/stat.h (S_IFLNK): Define.
+	(S_ISLNK): A non-trivial definition.
+	(lstat): Prototype instead of a macro that redirects to 'stat'.
+
+2012-08-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use C99-style 'extern inline' if available.
+	* config.nt: Sync with autogen/config.in.
+	(_GL_INLINE, _GL_EXTERN_INLINE, _GL_INLINE_HEADER_BEGIN)
+	(_GL_INLINE_HEADER_END): New macros.
+
+2012-08-02  Glenn Morris  <rgm@gnu.org>
+
+	* inc/ms-w32.h: Move here from ../src/s.
+	* config.nt (config_opsysfile): Change to <ms-w32.h>.
+
+2012-08-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(DEVICE_SEP, FLOAT_CHECK_DOMAIN, HAVE_INVERSE_HYPERBOLIC)
+	(INTERNAL_TERMINAL, IS_ANY_SEP, IS_DEVICE_SEP, IS_DIRECTORY_SEP):
+	New macros.
+
+2012-08-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	Remove code moved to conf_post.h and include <conf_post.h>
+	(NULL_DEVICE, SEPCHAR, SIGNAL_H_AHB, TIOCSIGSEND, USER_FULL_NAME)
+	(USG5_4, WRETCODE, _longjmp, _setjmp, wait3): New macros.
+
+2012-07-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(HAVE_ENVIRON_DECL): New macro.
+
+2012-07-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/stdalign.h (_Alignas, alignas): Define.
+
+2012-07-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use Gnulib stdalign module (Bug#9772, Bug#9960).
+	* config.nt (HAVE_ATTRIBUTE_ALIGNED): Remove.
+
+2012-07-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(GC_MARK_SECONDARY_STACK, GC_MARK_STACK, GC_SETJMP_WORKS)
+	(SETUP_SLAVE_PTY): New macros.
+
+2012-07-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(BROKEN_FIONREAD, BROKEN_GET_CURRENT_DIR_NAME)
+	(BROKEN_PTY_READ_AFTER_EAGAIN, BROKEN_SIGAIO, BROKEN_SIGPOLL)
+	(BROKEN_SIGPTY, BSD4_2, BSD_SYSTEM, BSD_SYSTEM_AHB, CYGWIN, DARWIN_OS)
+	(FIRST_PTY_LETTER, GNU_LINUX, G_SLICE_ALWAYS_MALLOC, HAVE_PTYS)
+	(HAVE_SOCKETS, HPUX, INTERRUPT_INPUT, IRIX6_5, NARROWPROTO, NO_ABORT)
+	(NO_EDITRES, NSIG_MINIMUM, PREFER_VSUSP, PTY_ITERATION)
+	(PTY_NAME_SPRINTF, PTY_OPEN, PTY_TTY_NAME_SPRINTF, RUN_TIME_REMAP)
+	(SETPGRP_RELEASES_CTTY, SOLARIS2, TAB3, TABDLY, ULIMIT_BREAK_VALUE)
+	(UNIX98_PTYS, USG, USG5, XOS_NEEDS_TIME_H, _AIX): New macros.
+	(HAVE_ATTRIBUTE_ALIGNED, HAVE_C99_STRTOLD, HAVE___BUILTIN_UNWIND_INIT):
+	Set in src/s/ms-w32.h, not here.
+
+2012-07-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+	(CLASH_DETECTION, DEFAULT_SOUND_DEVICE, DONT_REOPEN_PTY)
+	(GNU_LIBRARY_PENDING_OUTPUT_COUNT, SIGNALS_VIA_CHARACTERS): New macros.
+	(HAVE_MKDIR, HAVE_RENAME, HAVE_RMDIR, HAVE_STRERROR): Remove.
+
+2012-07-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+
+2012-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* config.nt (ATTRIBUTE_CONST): Add, to sync with configure.ac.
+
+2012-07-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt: Sync with autogen/config.in.
+
+2012-07-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt (HAVE_STRCASECMP, HAVE_STRNCASECMP): Remove.
+
+2012-07-06  Juanma Barranquero  <lekktu@gmail.com>
+	    Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt: Complete rework to bring it in sync with autogen/config.in.
+	All Windows-specific code moved to src/s/ms-w32.h.
+
+2012-07-04  Juanma Barranquero  <lekktu@gmail.com>
+	    Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat (enablechecking): Enable checks through src/config.h,
+	not the compiler's command line.
+
+	* nmake.defs (CHECKING_CFLAGS): Remove.
+	(CFLAGS, ESC_CFLAGS): Do not include $(CHECKING_CFLAGS).
+
+	* gmake.defs (DEBUG_CFLAGS): Add -fno-crossjumping.
+	(CHECKING_CFLAGS): Remove.
+	(CFLAGS, ESC_CFLAGS): Do not include $(CHECKING_CFLAGS).
+
+2012-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt (LISP_FLOAT_TYPE, HAVE_XFREE386, USE_TEXT_PROPERTIES)
+	(GSSAPI, HAVE_LIBINTL, HAVE_LIBGSSAPI_KRB5, HAVE_LIBGSSAPI)
+	(HAVE_GSSAPI_H, HAVE_LIBXBD, HAVE_MEMCPY, HAVE_MEMMOVE, HAVE_MEMSET)
+	(HAVE_MEMCMP): Remove, obsolete.
+
+2012-06-30  Glenn Morris  <rgm@gnu.org>
+
+	* paths.h (PATH_SITELOADSEARCH): New.
+
+2012-06-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* nmake.defs (CHECKING_CFLAGS):
+	* gmake.defs (CHECKING_CFLAGS): Remove XASSERTS.
+
+2012-06-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (_Noreturn): Don't reference __SUNPRO_C.
+
+2012-06-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Switch from NO_RETURN to C11's _Noreturn (Bug#11750).
+	* config.nt (_Noreturn): New macro.
+	(NO_RETURN): Remove.  All uses replaced with _Noreturn.
+	(w32_abort) [HAVE_NTGUI]: Use _Noreturn rather than NO_RETURN.
+
+2012-06-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/time.h (struct timespec): Don't define it here, it is
+	now defined in src/s/ms-w32.h.
+
+2012-06-23  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix the MS-Windows build broken by 2012-06-22T21:17:42Z!eggert@cs.ucla.edu.
+	* inc/sys/time.h (struct timespec): Define.
+
+2012-06-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (install-addpm): New target.
+	(dist): Depend on it.
+	(install-shortcuts): Depend on install-addpm instead of copying
+	addpm.exe as part of the recipe.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2012-06/msg00171.html
+	for the related problem and discussions.
+
+2012-06-11  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt (SYSTEM_TYPE): Define it.
+
+2012-05-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat (genmakefiles): Move the redirection away from the
+	end of the command, to avoid excess whitespace at the end of Make
+	variables created at configure time, and also avoid things like
+	"FOO1>>config.settings", where "1" gets interpreted as the file
+	descriptor and eaten up.  This fixes breakage introduced by the
+	last change, without reintroducing the bug fixed by that change.
+
+2012-05-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* nmake.defs (MWINDOWS): Define as
+	"-subsystem:windows -entry:mainCRTStartup".  Suggested by Fabrice
+	Popineau <fabrice.popineau@supelec.fr>.  (Bug#11405)
+
+	* gmake.defs (MWINDOWS): Define as "-mwindows".
+
+2012-05-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (HAVE_SYSINFO): Remove; unused.
+
+2012-05-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/stdalign.h: New file.
+
+	* configure.bat: Ensure a space between %var% expansion and
+	redirection symbol '>', which breaks when %var% ends in a digit,
+	such as 1.
+
+2012-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove src/m/*.
+	* config.nt: Do not include "m/intel386.h"; file was removed.
+	(BITS_PER_CHAR, BITS_PER_SHORT, BITS_PER_INT, BITS_PER_LONG):
+	Move to src/lisp.h.
+	(EMACS_INT_MAX): New macro.
+
+2012-05-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* config.nt (HAVE_GETDOMAINNAME, HAVE_XSETWMPROTOCOLS)
+	(HAVE_GETSOCKOPT, HAVE_SETSOCKOPT): Remove; not needed.
+
+	* config.nt (HAVE_FTIME): Remove undef; not needed.
+
+2012-05-01  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt (HAVE_LIBNCURSES): Remove undef; not needed.
+
+2012-04-14  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
+
+	* makefile.w32-in: Fix typo (Bug#10261).
+
+2012-04-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (emacs, misc, lispref, lispintro): New targets,
+	each runs makeinfo in its own subdirectory of 'doc'.
+	(info-gmake): Depend on these new targets.
+
+2012-04-07  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt, makefile.w32-in, emacs.rc, emacsclient.rc:
+	Bump version to 24.1.50.
+
+2012-04-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat: Support building with libxml2.
+
+	* INSTALL:
+	* README.W32: Add information about libxml2.
+
+2012-04-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in: Convert to Unix EOL format.
+	(all): Don't depend on stamp_BLD and on maybe-bootstrap.
+	(all-other-dirs-$(MAKETYPE)): Depend on maybe-bootstrap.
+	(bootstrap-gmake): Invoke the "clean" and build targets in 2
+	separate commands, so they run in that order even under "make -j".
+
+2012-03-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt: Discourage from defining HAVE_GETCWD.
+
+2012-03-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (install-bin): Don't copy addpm.exe here.  Use
+	$(DIRNAME)_same-dir.tst instead of same-dir.tst, to avoid stepping
+	on other (parallel) Make job's toes.
+	(install-other-dirs-nmake, install-other-dirs-gmake): Depend on `all'.
+	(install-shortcuts): Depend on $(INSTALL_DIR)/bin.  Copy addpm.exe
+	here.
+	(maybe-copy-distfiles-CMD, maybe-copy-distfiles-SH, dist):
+	Depend on create-tmp-dist-dir.
+
+	* nmake.defs (DIRNAME): New variable.
+	(IFNOTSAMEDIR): Use $(DIRNAME)_same-dir.tst instead of
+	same-dir.tst.
+
+	* gmake.defs (DIRNAME): New variable.
+	(IFNOTSAMEDIR): Use $(DIRNAME)_same-dir.tst instead of
+	same-dir.tst, to avoid conflicts between several (parallel) Make
+	jobs.
+
+2012-02-24  Eli Zaretskii  <eliz@gnu.org>
+
+	Prevent endless re-spawning of cmdproxy.exe when some of its
+	parent directories have access limitations.
+
+	* cmdproxy.c (main): Bypass conversion of the file name in argv[0]
+	and our own module name to short 8+3 aliases, if the original file
+	names compare equal.  If GetShortPathName fails, compare the base
+	names of the two file names, and only re-spawn the command line if
+	the base-name comparison also fails.  (Bug#10674)
+
+2012-02-23  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
+
+	* makefile.w32-in (maybe-copy-distfiles-SH): Fix typo.
+
+2012-02-06  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* README.W32: Removed specific version information for libXpm
+	included in the binary distribution for maintenance purposes.
+
+2012-02-05  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* README.W32: Clarification for inclusion in source tarball (bug#9750).
+
+	* gmake.defs (PRAGMA_SYSTEM_HEADER): Add for GCC.
+
+	* nmake.defs (PRAGMA_SYSTEM_HEADER): Add, but ignore with MSVC.
+
+	* makefile.w32-in (maybe-copy-distfiles)
+	(maybe-copy-distfiles-CMD, maybe-copy-distfiles-SH)
+	(create-tmp-dist-dir): Add to make --distfiles optional.
+	(dist): Use create-tmp-dist-dir and maybe-copy-distfiles (bug#10261).
+
+2012-02-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/stat.h (_STAT_DEFINED): Define, to prevent redefinitions
+	by other headers.
+
+2011-11-27  Fabrice Popineau  <fabrice.popineau@supelec.fr>  (tiny change)
+
+	* inc/stdint.h (uint32_t, uint64_t) [_WIN64]: New typedefs.
+	(UINT64_MAX) [_WIN64]: Fix definition.
+	(uintmax_t, intmax_t): Fix definitions.
+
+	* inc/inttypes.h (strtoumax, strtoimax) [!__MINGW32__]:
+	Provide correct definitions.
+
+	* config.nt (HAVE_DECL_STRTOLL): Define.
+	(va_copy) [_WIN64]: Provide a better definition.
+
+2011-11-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.bat: Fix typos.
+
+2011-11-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Elaborate on debugging fatal errors.
+
+2011-11-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* README.W32: Update the GTK Windows download URL for libpng.
+
+2011-11-13  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* inc/stdint.h (UINT64_MAX, UINT32_MAX): Fix values.
+
+2011-11-05  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* inc/stdint.h (UINT64_MAX, UINT64_MIN, INT64_MIN, UINTMAX_MAX)
+	(UINTMAX_MIN, INTMAX_MAX, INTMAX_MIN, UINT32_MIN, UINT32_MAX)
+	(INT32_MIN, UINTMAX_MAX, UINTMAX_MIN, INTMAX_MAX, INTMAX_MIN)
+	(intmax_t, INT64_MAX): Add for MSVC.
+
+	* config.nt (mode_t) [!__GNUC__]: Define mode_t for MSVC.
+
+2011-11-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (inline) [!__GNUC__]: Define to __inline for MSVC.
+
+	Support MSVC build with newer versions of Visual Studio.
+	* makefile.w32-in (clean-other-dirs-nmake)
+	(distclean-other-dirs-nmake, maintainer-clean-other-dirs-nmake):
+	Update for current structure of doc/ subdirectories.
+
+	* gmake.defs (OBJ0_c, OBJ1_c, OBJ2_c): New variables.
+
+	* INSTALL: Update for newer versions of MSVC.
+
+2011-11-05  Fabrice Popineau  <fabrice.popineau@supelec.fr>  (tiny change)
+
+	Support MSVC build with newer versions of Visual Studio.
+	* nmake.defs (USE_CRT_DLL): Define to 1.
+	(libc, EMACS_EXTRA_C_FLAGS, SYS_LDFLAGS, ARCH_CFLAGS): Update values.
+	(D): New variable.
+
+2011-11-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* runemacs.c (ensure_unicows_dll): New function, tries to load
+	UNICOWS.DLL on Windows 9X.
+	(WinMain): If ensure_unicows_dll fails to find UNICOWS.DLL,
+	display a dialog to the effect that Emacs cannot be started.
+	(Bug#8562)
+
+2011-10-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* README.W32: Mention UNICOWS.DLL as prerequisite for running
+	Emacs on Windows 9X.
+
+2011-10-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (dist): Don't put the top-level INSTALL into the
+	distribution.  (Bug#9861)
+
+2011-10-25  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* INSTALL: Update URL for GTK download page.
+
+2011-10-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (HAVE_TZNAME, HAVE_DECL_TZNAME): Define.
+	(Bug#9794) (Bug#641)
+
+2011-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* config.nt (HAVE_SNPRINTF): New macro.
+
+2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume freestanding C89 headers, string.h, stdlib.h.
+	* config.nt (HAVE_LIMITS_H, HAVE_STRING_H, HAVE_STDLIB_H)
+	(STDC_HEADERS): Remove.
+	Iinclude string.h, stdlib.h unconditionally.
+
+2011-06-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/stdint.h (INT32_MAX, INT64_MAX, INTPTR_MAX, PTRDIFF_MAX)
+	[!__GNUC__]: New macros.
+
+2011-05-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use 'inline', not 'INLINE'.
+	* config.nt (INLINE): Remove.
+
+2011-05-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* README.W32: Add information about GnuTLS libraries.
+
+2011-05-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt [_MSC_VER] (va_copy): Replacement for the MS compiler.
+
+2011-05-07  Ben Key  <bkey76@gmail.com>
+
+	* configure.bat: Renamed the fusercflags variable to escusercflags
+	so that the variable name better matches its purpose, to be
+	identical to usercflags with the exception that all quotes are
+	escaped by the \ character.
+
+	Renamed the fuserldflags variable to escuserldflags so that the
+	variable name better matches its purpose, to be identical to
+	userldflags with the exception that all quotes are escaped by
+	the \ character.
+
+	A new ESC_USER_CFLAGS variable is written to config.settings.
+	This variable has the same value as the escusercflags variable.
+
+	* gmake.defs, nmake.defs: Added the variable ESC_CFLAGS.
+	This variable is identical to the CFLAGS variable except that it
+	includes the new ESC_USER_CFLAGS variable instead of USER_CFLAGS.
+
+	These changes, along with some changes to src/makefile.w32-in,
+	are required to extend my earlier fix to add support for
+	--cflags and --ldflags options that include quotes so that it
+	works whether make uses cmd or sh as the shell.
+
+2011-05-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/inttypes.h [!__MINGW32__]: Include stdint.h.  Move the
+	definition of uintmax_t from here...
+	* inc/stdint.h (uintmax_t): ...to here.
+	(intptr_t) [!__GNUC__]: New typedef.
+
+2011-05-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* config.nt: Prepare to configure 64-bit integers for older compilers.
+	However, temporarily disable this change unless the temporary
+	symbol WIDE_EMACS_INT is defined.
+	(EMACS_INT, BITS_PER_EMACS_INT, pI): Define these if __int64 and
+	"%I64d" work but long long and "%lld" do not.
+
+2011-05-05  Ben Key  <bkey76@gmail.com>
+
+	* configure.bat: Added support for --cflags and --ldflags
+	options that include quotes as long as command extensions are
+	enabled.  Specifically when -I, -L, and similar flags are used
+	to specify supplementary include and library directories a
+	directory name that includes spaces may now be used if it is
+	enclosed in quotes.
+
+	* INSTALL: Documented the change to configure.bat.
+
+2011-05-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* INSTALL: Clarify GnuTLS support.
+
+2011-04-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (HAVE_LONG_LONG_INT, HAVE_UNSIGNED_LONG_LONG_INT):
+	Define to 1 for MinGW of MSVC versions >= 1400.
+
+2011-04-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* gmake.defs (ARCH): Fix error message in case of unknown architecture.
+
+2011-04-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/inttypes.h: New file.
+
+	* config.nt (HAVE_DECL_STRTOULL, HAVE_DECL_STRTOUMAX)
+	(HAVE_STRTOULL, HAVE_STRTOUMAX): New macros.
+
+2011-04-27  Daniel Colascione  <dan.colascione@gmail.com>
+
+	* cmdproxy.c (try_dequote_cmdline): Notice variable substitutions
+	inside quotation marks and bail out.
+
+2011-04-26  Daniel Colascione  <dan.colascione@gmail.com>
+
+	* cmdproxy.c (try_dequote_cmdline): New function.
+	(main): Use it.
+
+2011-04-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* configure.bat: New options --without-gnutls and --lib, new build
+	variable USER_LIBS, automatically detect GnuTLS.  Copies the PNG
+	library setup with trivial modifications.
+	* INSTALL: Add instructions for GnuTLS support.
+	* gmake.defs: Prefix USER_LIBS with -l.
+
+2011-04-15  Ben Key  <bkey76@gmail.com>
+
+	* configure.bat: Modified the code that parses the --cflags and
+	--ldflags options to support parameters that include the =
+	character as long as they are enclosed in quotes.
+	This functionality depends on command extensions.  Configure.bat now
+	attempts to enable command extensions and displays a warning
+	message if they could not be enabled.  If configure.bat could
+	not enable command extensions the old parsing code is used that
+	does not support parameters that include the = character.
+
+	* INSTALL: Updated the file to describe the new functionality
+	using text provided by Eli Zaretskii.
+
+2011-04-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (NO_INLINE, ATTRIBUTE_FORMAT)
+	(ATTRIBUTE_FORMAT_PRINTF): Define, as followup to 2011-04-06T05:19:39Z!eggert@cs.ucla.edu
+	on the trunk on 2011-04-06.
+
+2011-03-27  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt: Remove RETSIGTYPE, SIGTYPE (identical to void).
+
+2011-03-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* addpm.c (main): Remove unused variable `retval'.
+
+	* preprep.c (main): Remove unused variable `ptr'.
+
+2011-03-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cmdproxy.c: Include <ctype.h>.
+	(make_absolute): Remove unused variable `i'.
+
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
+2011-02-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/unistd.h (readlink, symlink): Declare prototypes.
+
+2011-02-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (nlink_t): Define.
+
+2011-02-21  Christoph Scholtes  <cschol2112@gmail.com>
+
+	* inc/stdint.h: New file, to support compilation with tool chains
+	that do not have stdint.h (e.g. MSVC).
+
+2011-02-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/stat.h (S_ISUID, S_ISGID, S_ISVTX, S_IRGRP, S_IROTH)
+	(S_IWGRP, S_IWOTH, S_IXGRP, S_IXOTH, S_ISSOCK, S_ISLNK, S_ISCTG)
+	(S_ISDOOR, S_ISMPB, S_ISMPC, S_ISNWK, S_ISPORT, S_ISWHT)
+	(S_TYPEISMQ, S_TYPEISSEM, S_TYPEISSHM, S_TYPEISTMO): Define.
+	(lstat): Define to stat.
+
+2011-02-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (bootstrap-nmake, bootstrap-gmake): Make the
+	"make-docfile" target in lib-src, before bootstrapping the src
+	directory.  Needed since building in src needs to run make-docfile
+	to produce globals.h.
+
+2011-02-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (inline) [__GNUC__]: Define (for gnulib).
+
+2011-01-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (VERSION): Uncomment definition.
+	(restrict): Define.
+
+	* inc/stdbool.h: New file.
+
+2011-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (all-other-dirs-nmake, all-other-dirs-gmake)
+	(bootstrap-nmake, bootstrap-gmake, bootstrap-clean-nmake)
+	(bootstrap-clean-gmake, clean-other-dirs-nmake)
+	(clean-other-dirs-gmake, cleanall-other-dirs-nmake)
+	(cleanall-other-dirs-gmake, distclean-other-dirs-nmake)
+	(distclean-other-dirs-gmake, maintainer-clean-other-dirs-nmake)
+	(maintainer-clean-other-dirs-gmake): Recurse into ../lib as well.
+	(bootstrap-nmake, bootstrap-gmake): Fix the bootstrap.
+
+	* configure.bat: Create lib/makefile.
+
+	* config.nt (HAVE_MKTIME, BROKEN_MKTIME): Remove.
+	(HAVE_ATTRIBUTE_ALIGNED, HAVE_C99_STRTOLD, HAVE_DECL_GETENV)
+	(HAVE_DECL_LOCALTIME_R, HAVE_WCHAR_T, PACKAGE, VERSION, inline)
+	(_GL_UNUSED, _UNUSED_PARAMETER_): Add definitions, for gnulib.
+
+2011-01-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (HAVE___BUILTIN_UNWIND_INIT) [GCC >= 2.8]: Define.
+
+2011-01-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat (end): Unset environment variables used by this
+	batch file.
+
+	* INSTALL: Update the information about PNG support libraries.
+	(Bug#7716)
+
+	* README.W32: Update the information about PNG support libraries.
+
+2010-11-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (EXTERNALLY_VISIBLE): Define.
+
+2010-10-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* INSTALL: Refer to `dynamic-library-alist'.
+
+2010-10-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* INSTALL: Add note about problematic characters passed to configure.
+
+2010-10-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (frc, TAGS, TAGS-gmake, TAGS-nmake): New targets.
+	emacs-src.tags: New file.
+
+	* gmake.defs: Add a comment with a single quote to fix
+	fontification.  (Bug#7102)
+
+2010-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat: Fix the condition for copying paths.h into
+	../src/epaths.h.
+
+2010-09-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* addpm.c (entry, add_registry, main):
+	* addsection.c (file_data, open_input_file, open_output_file)
+	(find_section, PTR_TO_OFFSET, copy_executable_and_add_section)
+	(COPY_CHUNK):
+	* cmdproxy.c (vfprintf, fprintf, printf, fail, warn, skip_space)
+	(skip_nonspace, get_next_token, search_dir, make_absolute)
+	(spawn, main):
+	* preprep.c (file_data, open_input_file, open_output_file)
+	(open_inout_file, find_section, PTR_TO_OFFSET, COPY_CHUNK, main):
+	Use const char*.
+
+	* cmdproxy.c (stdin): Don't define, not used.
+	(main): Don't assign remlen after last use.
+
+2010-09-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.bat: Err out when the argument of --cflags contains
+	invalid characters (check implemented only for GCC).  (Bug#6820)
+
+2010-08-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* addpm.c (add_registry): Create App Paths of type REG_EXPAND_SZ.
+
+2010-08-12  Jason Rumney  <jasonr@gnu.org>
+
+	* addpm.c (add_registry): Set path for runemacs.exe to use.
+
+2010-08-08  Óscar Fuentes  <ofv@wanadoo.es>
+
+	* cmdproxy.c (main): Use _snprintf instead of wsprintf,
+	which has a 1024 char limit on Windows (bug#6647).
+
+2010-08-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt (TIME_WITH_SYS_TIME): Remove #undef, unused (bug#6754).
+	Suggested by Dan Nicolaescu <dann@ics.uci.edu>.
+
+2010-07-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.nt: Remove code referring to NO_REMAP, unused.
+
+2010-07-25  Christoph Scholtes  <cschol2112@gmail.com>
+
+	Build binary distros on Windows using emacs-VERSION as root dir name.
+
+	* makefile.w32-in: Copy README.W32 to installation directory
+	during `make install'.  Remove README.W32 with `distclean' (in
+	case Emacs was installed in place).  Use temporary directory to
+	create distribution zip files in `dist' target.
+	* zipdist.bat: Simplify code using temporary directory.
+
+2010-07-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* runemacs.c (set_user_model_id): Fix prototype.
+
+2010-07-24  Christoph Scholtes  <cschol2112@gmail.com>
+
+	New make target for Windows platform: make dist (bug#6602)
+
+	* INSTALL: Document new dist target and add section about
+	creating binary distributions.
+	* README.W32: Relocate from admin/nt/ directory.
+	* configure.bat: New parameter `--distfiles'.
+	* makefile.w32-in: Add version number, new target `dist'.
+	Add new target `install-shortcuts'.
+	* zipdist.bat: New file; create zipped binary distribution,
+	replaces admin/nt/makedist.bat.
+
+2010-07-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* INSTALL: Add note about backslashes in Windows paths.
+	Fix typos.  Simplify references to Windows versions.
+
+2010-07-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* addpm.c (add_registry, main):
+	* cmdproxy.c (get_env_size):
+	* ddeclient.c (main):
+	* runemacs.c (set_user_model_id):
+	Convert definitions to standard C.
+
+2010-07-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gmake.defs (CHECKING_CFLAGS) [ENABLECHECKS]: Add -fno-crossjumping.
+
+2010-07-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.bat: New option --enable-checking.
+	* gmake.defs, nmake.defs (CHECKING_CFLAGS): New define.
+	(CFLAGS): Include it.
+
+2010-07-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.nt (volatile): Remove definition.
+
+2010-07-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* config.nt (HAVE_BCOPY, HAVE_BCMP): Remove undefs.
+	(HAVE_MEMCPY, HAVE_MEMMOVE, HAVE_MEMSET, HAVE_MEMCMP): Add undefs.
+
+2010-07-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt (__P): Remove.
+
+2010-06-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.nt: Remove code depending on BSTRING.
+
+2010-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt: Remove NOT_C_CODE tests, it is always true now.
+
+2010-05-13  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt (LD_SWITCH_X_SITE, C_SWITCH_X_SITE): Remove undefs.
+
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
+
+2010-05-04  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt (LD_SWITCH_X_SITE_AUX): Remove.
+
+2010-04-20  Lewis Perin  <perin@panix.com>  (tiny change)
+
+	* emacs.manifest: Add trustInfo section to Windows manifest.
+
+2010-03-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 23.2.
+
+2010-01-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* emacsclient.rc: Fix format of "LegalCopyright" value.
+
+2009-12-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* INSTALL: Remove obsolete notes about line endings, and fix some typos.
+
+2009-12-27  Karl Fogel  <kfogel@red-bean.com>
+
+	* INSTALL: Update for CVS->Bazaar switchover.
+
+2009-09-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.bat: Add #define PROFILING to config.h.
+
+2009-07-03  Jason Rumney  <jasonr@gnu.org>
+
+	* runemacs.c (set_user_model_id): Use standard types.
+
+2009-06-30  Jason Rumney  <jasonr@gnu.org>
+
+	* runemacs.c (set_user_model_id): New function.
+	(WinMain): Use it.
+
+2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 23.1.
+
+2009-03-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/stat.h (struct stat): Change the types of st_uid and
+	st_gid to unsigned.
+
+	* inc/pwd.h (struct passwd): Change the types of pw_uid and pw_gid
+	to unsigned.
+	(getpwuid): Argument is now unsigned.
+	uid_t is now unsigned.
+
+2009-02-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* INSTALL: Add comment about TCC; fix typos.
+
+2009-01-26  Jason Rumney  <jasonr@gnu.org>
+
+	* emacsclient.rc, emacs.rc: Swap name and description.
+	Remove Windows versions.
+
+2009-01-15  Jason Rumney  <jasonr@gnu.org>
+
+	* nmake.defs, gmake.defs (UUID): New library for COM/OLE lookups.
+
+	* makefile.w32-in ($(BLD)/addpm.exe): Link with SHELL and OLE libs.
+
+	* addpm.c (main): Try using COM to create start menu shortcuts
+	before resorting to DDE (Bug#202)
+	Remove second command-line argument.
+
+2009-01-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.bat: Untabify help message.
+
+2009-01-03  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat: New option --with-svg.
+
+	* INSTALL: Document experimental SVG support.
+
+2008-12-25  Jason Rumney  <jasonr@gnu.org>
+
+	* config.nt (PTR): Remove.
+
+2008-12-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.nt (LISTPROC, PROCATTR): Remove.
+
+2008-08-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (LISTPROC, PROCATTR): New macros.
+
+2008-07-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.nt (MULTI_KBOARD): Remove.
+
+2008-07-23  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat: New option --profile.
+	* gmake.defs: Set cflags and ldflags for profiling when specified.
+
+2008-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.nt (C_SWITCH_SITE, LD_SWITCH_SITE): Do not undefine.
+
+2008-07-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.nt (HAVE_FACES): Remove, unused.
+
+2008-06-26  Juanma Barranquero  <lekktu@gmail.com>
+	    Eli Zaretskii  <eliz@gnu.org>
+
+	* nmake.defs (FONT_CFLAGS):
+	* gmake.defs (FONT_CFLAGS): Remove.
+	(EMACS_EXTRA_C_FLAGS): Don't include FONT_CFLAGS.
+	(CFLAGS): Don't include WIN32_LEAN_AND_MEAN, _WIN32_WINNT, -D$(ARCH)
+	and _CRTAPI1.
+	(ARCH_FLAGS): Don't include _X86_.
+
+	* config.nt (_WIN32_WINNT, WIN32_LEAN_AND_MEAN): Define.
+
+2008-06-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.nt: Remove reference to UNEXEC_SRC.
+
+2008-06-23  Juanma Barranquero  <lekktu@gmail.com>
+	    Eli Zaretskii  <eliz@gnu.org>
+
+	* gmake.defs (DEBUG_FLAG, DEBUG_LINK) [!NODEBUG]:
+	Don't hardcode -gstabs+, use DEBUG_INFO.
+
+	* configure.bat (gccdebug): Check for DWARF-2 support in GCC.
+	Default to stabs if the compiler does not support DWARF-2.
+	(genmakefiles): Write new variable DEBUG_INFO to config.settings.
+
+2008-05-14  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat: Remove code dealing with --disable-font-backend.
+
+2008-05-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/stat.h (struct stat): Move st_dev after st_ino, for
+	better alignment.  Make st_size 64-bit wide.  Add new members
+	st_uname and st_gname.
+
+	* inc/grp.h (struct group): Add gr_gid member.
+
+2008-04-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (ALL): Move $(CLIENTRES) from here...
+	(all): ...to here.  $(ALL) is a prerequisite of .PHONY, so having
+	a real file there is not a good idea.
+
+2008-04-23  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (CLIENTRES): New variable and build target.
+	(all): Depend on it.
+	($(TRES)): Use $(TRES) in rule.
+
+2008-04-21  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat (success): Print "make" rather than "gmake", as that
+	is what MinGW uses.
+
+2008-04-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/stat.h (__MINGW_NOTHROW): If not defined, define to nothing.
+	Add copyright notice.
+
+2008-04-10  Jason Rumney  <jasonr@gnu.org>
+
+	* emacsclient.rc: New file.
+
+	* INSTALL: Document make targets.
+
+2008-04-09  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (clean-other-dirs-nmake): Don't clean lisp dir.
+	(clean-other-dirs-gmake): Likewise.  Clean doc dirs.
+	(top-distclean, distclean, distclean-other-dirs-nmake)
+	(distclean-other-dirs-gmake, maintainer-clean-other-dirs-nmake)
+	(maintainer-clean-other-dirs-gmake, maintainer-clean): New targets.
+
+2008-04-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/stat.h: New file.
+
+	* configure.bat: Add check for usp10.h.
+
+2008-04-04  Jason Rumney  <jasonr@gnu.org>
+
+	* INSTALL: Update Windows API requirements.
+
+2008-04-03  Jason Rumney  <jasonr@gnu.org>
+
+	* gmake.defs, nmake.defs (UNISCRIBE): New variable.
+
+2008-03-13  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.rc: Set version to 23.0.60.
+
+2008-03-04  Jason Rumney  <jasonr@gnu.org>
+
+	* gmake.defs, nmake.defs (FONT_CFLAGS): New optional compiler flag.
+	(EMACS_EXTRA_C_FLAGS): Include it.
+	* configure.bat (usefontbackend): Default to Y.
+	(--enable-font-backend): Replace with --disable-font-backend.
+	(:withfont): Replace with :withoutfont.
+
+2008-03-03  Kentaro Ohkouchi  <nanasess@fsm.ne.jp>
+
+	* icons/emacs.ico: Full alpha for 32x32 full color.
+	Add 32x32 and 16x16 256 color versions.
+
+2008-03-03  Andrew Zhilin  <andrew_zhilin@yahoo.com>
+
+	* icons/emacs22.ico: New file (the old emacs.ico under a new name).
+
+2008-03-02  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in ($(TRES)): Depend on icon and manifest.
+
+2008-03-02  Kentaro Ohkouchi  <nanasess@fsm.ne.jp>
+
+	* icons/README: Update.
+
+	* icons/emacs.ico: New icon.
+
+2008-02-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* addpm.c: Include malloc.h.
+	(add_registry): Cast return value of alloca.
+
+2008-02-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.nt (SHORTNAMES): Remove reference to obsolete variable.
+
+2008-02-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat (checkgcc): Move "del junk.o" to here, and make it
+	conditional on existence of junk.o.  If %nocygwin% is already set
+	to Y, skip to chkapiN instead of chkapi.
+	(chkapi): Move "rm -f junk.c junk.o" to here.
+	(chkapiN): New label.
+
+2008-02-11  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in: Remove unidata-gen related rules.
+
+2008-02-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat (dontCopy): Do not rename admin/unidata/Makefile.
+
+2008-02-11  Jason Rumney  <jasonr@gnu.org>
+
+	* addpm.c (add_registry): Add an App Paths registry key.
+	Look for GTK and add it to the DLL search path for Emacs if found.
+
+2008-02-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.bat: In help, use generic names for the image libraries.
+
+2008-02-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .cvsignore: Don't ignore .arch-inventory.
+
+2008-02-03  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat: Make gcc the default compiler.
+
+2008-02-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (unidatagen-SH, unidatagen-clean-SH):
+	Ignore return status.
+
+	* configure.bat (dontCopy): Rename admin/unidata/Makefile to keep
+	it out of the way of Windows generated file.
+	Generate admin/unidata/makefile.
+
+	* makefile.w32-in (unidatagen-nmake, unidatagen-clean-nmake)
+	(unidatagen-CMD, unidatagen-clean-CMD, unidatagen-SH)
+	(unidatagen-clean-SH): New targets.
+	(bootstrap-nmake): Invoke unidatagen-nmake.
+	(bootstrap-gmake): Invoke unidatagen-$(SHELLTYPE).
+
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat (withfont): Set sep1 after modifying usercflags.
+
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat: Rename --with-font-backend to --enable-font-backend
+	for consistency with other platforms.
+
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat: Add --with-font-backend option.
+
+2008-01-20  Jason Rumney  <jasonr@gnu.org>
+
+	* gmake.defs (CYGWIN) [USING_SH]: Disable mapping of file
+	permissions to NTFS ACLs.
+
+2007-11-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* config.nt: Remove HAVE_X11R5.
+
+2007-10-22  Jason Rumney  <jasonr@gnu.org>
+
+	* config.nt (HAVE_STRINGS_H, HAVE_STDLIB_H): Undefine.
+	(strings.h, stdlib.h): Conditionally include.
+	(w32_abort): Declare here.
+	(abort): Redefine to w32_abort (moved from src/s/ms-w32.h).
+
+2007-10-20  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (info-nmake): Change into correct directories.
+
+2007-10-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat (docflags, doldflags): New variables.
+	(genmakefiles): Use them to work around problems with whitespace
+	in arguments of the `if' command.
+
+2007-10-18  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (install): Install COPYING in top-level and bin dirs.
+
+2007-09-27  Jason Rumney  <jasonr@gnu.org>
+
+	* gmake.defs (COMCTL32): New system library.
+
+	* nmake.defs (COMCTL32): New system library.
+
+2007-09-06  Glenn Morris  <rgm@gnu.org>
+
+	* configure.bat:
+	* makefile.w32-in (info-nmake, info-gmake, clean-other-dirs-nmake):
+	Change from ../man to ../doc/emacs and ../doc/misc; and from
+	../lispref, ../lispintro to ../doc/lispref, ../doc/lispintro.
+
+2007-08-29  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.rc: Increase version to 23.0.50.
+
+2007-08-14  Dhruva Krishnamurthy  <dhruvakm@gmail.com>  (tiny change)
+
+	* makefile.w32-in (bootstrap-nmake): Change directories once more.
+
+2007-07-25  Glenn Morris  <rgm@gnu.org>
+
+	* Relicense all FSF files to GPLv3 or later.
+
+	* COPYING: Switch to GPLv3.
+
+2007-07-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (bootstrap, bootstrap-nmake, bootstrap-gmake):
+	Depend on cmdproxy.
+	(cleanall): Don't delete *~.
+
+2007-07-15  Jason Rumney  <jasonr@gnu.org>
+
+	* inc/sys/socket.h (uint16_t): Define if C99 does not appear to
+	be fully supported.
+
+2007-07-14  Jason Rumney  <jasonr@gnu.org>
+
+	* inc/sys/socket.h: Include winsock2.h and ws2tcpip.h instead
+	of winsock.h.
+
+2007-07-11  Jason Rumney  <jasonr@gnu.org>
+
+	* gmake.defs (OLE32): New library to link.
+
+	* nmake.defs (OLE32): Likewise.
+
+2007-06-25  Jason Rumney  <jasonr@gnu.org>
+
+	* cmdproxy.c (main): Set console codepages to "ANSI".
+
+2007-06-20  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat: Complain if image libraries are missing.
+
+2007-06-15  Jason Rumney  <jasonr@gnu.org>
+
+	* emacs.manifest: New file.
+
+	* emacs.rc: Use it.
+
+2007-06-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 22.1 released.
+
+2007-05-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Add information about where to find GDB, and warn
+	against --no-debug option to configure.bat.
+
+2007-05-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Fix URL of EmacsW32 site where building with image
+	support is described.
+
+2007-04-26  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.rc: Increase version to 22.1.50.
+
+2007-03-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Mention the VCVARS32.BAT batch file for VS.NET users.
+
+2007-03-09  Richard Stallman  <rms@gnu.org>
+
+	* INSTALL: Say explicitly this is not for Cygwin.
+
+2007-03-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Add URL of another site with detailed build instructions.
+
+2007-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* icons/gnu2a32.ico, icons/gnu2a32t.ico, icons/gnu2b48.ico:
+	* icons/gnu2b48t.ico, icons/gnu3b32.ico, icons/gnu3b32t.ico:
+	* icons/gnu4g48.ico, icons/gnu4g48t.ico, icons/gnu5w32.ico:
+	* icons/gnu5w32t.ico, icons/gnu6w48.ico, icons/gnu6w48t.ico:
+	* icons/gnu7.ico, icons/gnu8.ico, icons/gnu9.ico:
+	Restore all but two of icons deleted in previous change.
+
+2007-02-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* icons/README: New file.
+
+	* icons/gnu2a32t.ico, icons/gnu3b32t.ico, icons/gnu5w32t.ico:
+	* icons/gnu8.ico, icons/emacs21.ico, icons/gnu2b48.ico:
+	* icons/gnu4g48.ico, icons/gnu6w48.ico, icons/gnu9.ico:
+	* icons/gnu2b48t.ico, icons/gnu4g48t.ico:
+	* icons/gnu6w48t.ico, icons/gnu2a32.ico, icons/gnu3b32.ico:
+	* icons/gnu5w32.ico, icons/gnu7.ico, icons/sink.ico:
+	Unused icons deleted.
+
+2007-01-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.bat: Update ../site-lisp/subdirs.el when needed.
+
+2007-01-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subdirs.el: Add "no-byte-compile: t" local variable.
+
+2007-01-10  Jason Rumney  <jasonr@gnu.org>
+
+	* README: Update URLs and advice about reporting bugs.
+
+2006-12-29  Jason Rumney  <jasonr@gnu.org>
+
+	* nmake.defs (TEMACS_EXTRA_LINK): Remove duplicated flags from
+	DEBUG_LINK.
+	(DEBUG_LINK): Remove -debugtype:both.
+
+2006-12-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Update table of supported Make ports.  Show "make -j"
+	command that is known to work.
+
+	* configure.bat: Update table of supported Make ports.
+
+2006-12-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(TRES)): Don't use $<, as nmake supports it
+	only in implicit rules.  Use literal "emacs.rc" instead.
+
+2006-12-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* gmake.defs: Export XMFLAGS.
+
+	* makefile.w32-in (all-other-dirs-nmake, recompile-nmake):
+	Don't use $(XMFLAGS) for nmake, as it doesn't support parallelism.
+
+2006-12-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Explain how to invoke GNU Make for parallel builds.
+
+	* makefile.w32-in (bootstrap-gmake): Pass XMFLAGS="$(XMFLAGS)"
+	command-line argument to sub-Make in src, since src/makefile.w32-in
+	invokes Make recursively during bootstrap.
+	(clean): Delete stamp_BLD.
+	(bootstrap): Make `all' explicitly in a recursive Make.
+
+	* gmake.defs (stamp_BLD): Rename from $(BLD).  Create a file
+	stamp_BLD after creating the $(BLD) directory.
+
+	* nmake.defs (stamp_BLD): Rename from $(BLD).  Create a file
+	stamp_BLD after creating the $(BLD) directory.
+
+	* makefile.w32-in (addpm, ddeclient, cmdproxy, addsection)
+	(preprep, $(TRES), runemacs)
+	($(BLD)/addpm.$(O), $(BLD)/ddeclient.$(O), $(BLD)/runemacs.$(O))
+	($(BLD)/cmdproxy.$(O), (BLD)/addsection.$(O), $(BLD)/preprep.$(O)):
+	Depend on stamp_BLD instead of on $(BLD).
+	(XMFLAGS): New macro.
+	(all-other-dirs-nmake, all-other-dirs-gmake, recompile-nmake)
+	(recompile-gmake, bootstrap-gmake, bootstrap-clean-gmake)
+	(install-other-dirs-gmake, info-gmake, clean-other-dirs-gmake)
+	(cleanall-other-dirs-gmake): Pass $(XMFLAGS) to sub-Make.
+
+2006-12-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(TRES)): Depend on $(BLD).  Use $< instead of
+	$(ALL_DEPS).
+	($(BLD)/addpm.$(O), $(BLD)/ddeclient.$(O), $(BLD)/runemacs.$(O)
+	($(BLD)/cmdproxy.$(O), $(BLD)/addsection.$(O), $(BLD)/preprep.$(O)):
+	New dependency on $(BLD).
+	(all-other-dirs-nmake, all-other-dirs-gmake, bootstrap-nmake)
+	(bootstrap-gmake): Depend on addsection.
+
+2006-10-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* runemacs.c (WinMain): Process all recognized arguments, not just
+	the first one.  Remove unused variable sec_desc.
+
+2006-09-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (HAVE_LANGINFO_CODESET): Define.
+
+	* inc/langinfo.h: New file.
+
+	* inc/nl_types.h: New file.
+
+2006-09-15  Jay Belanger  <belanger@truman.edu>
+
+	* COPYING: Replace "Library Public License" by "Lesser Public
+	License" throughout.
+
+2006-07-27  Jason Rumney  <jasonr@gnu.org>
+
+	* INSTALL: Add notes about Cygwin make to impatient section.
+
+2006-06-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Add Make 3.81 to the list of Make & shell combinations
+	known to work.
+
+2006-03-12  Jason Rumney  <jasonr@gnu.org>
+
+	* addpm.c (add_registry): Don't change the registry unless keys
+	already exist from a previous version.
+
+	* makefile.w32-in (install): Use -q when invoking addpm.
+
+	* addpm.c (main): Accept -q as alternative for /q.
+
+2006-03-11  Jason Rumney  <jasonr@gnu.org>
+
+	* runemacs.c (WinMain): Set screen buffer to 80x25.
+
+2005-12-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* gmake.defs (TEMACS_EXTRA_LINK): Remove redundant -g.
+	(DEBUG_FLAG, DEBUG_LINK): Upgrade to "-gstabs+ -g3".
+
+2005-12-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Add explanation of how to debug with GDB starting from
+	the Emacs Abort dialog.
+
+2005-11-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs.rc: Use new icons.
+
+2005-11-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs21.ico: Renamed from emacs.ico.
+	* emacs.ico: New icons from Andrew Zhilin
+	<andrew_zhilin@yahoo.com>.
+
+2005-09-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (HAVE_GET_CURRENT_DIR_NAME): Undefine.
+
+2005-08-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .cvsignore: Add `obj' and `oo' for in-place installations.
+
+2005-07-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (HAVE_GETOPT_H, HAVE_GETOPT_LONG_ONLY): Undefine.
+
+2005-07-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.bat: Don't create lisp/Makefile.unix.
+
+2005-07-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .cvsignore: Add `makefile' and `config.log'.
+
+2005-07-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge gnulib getopt implementation into Emacs.
+
+	* inc/gettext.h: Remove; no longer needed now that
+	lib-src/gettext.h exists.
+
+2005-07-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat: Finish config.log with a line that indicates that
+	the configure step was successful.
+
+2005-07-04  Lute Kamstra  <lute@gnu.org>
+
+	Update FSF's address in GPL notices.
+
+2005-06-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat: If their fc.exe returns a meaningful exit status,
+	don't overwrite src/config.h and src/epaths.h with identical
+	copies.
+
+	* INSTALL: Warn about using "cvs up -kb" if one intends to commit
+	changes.  Add a pointer to another site with detailed configure
+	and build instructions.  Suggest to look at config.log when
+	configure fails.  Add MinGW Make 3.80 to the list of successful
+	combinations.
+
+	* gmake.defs (ARCH_CFLAGS): Use $(MCPU_FLAG) instead of a literal
+	"-mcpu=i686".
+
+	* configure.bat: Update copyright years.
+	Delete config.log before doing anything else.
+	Write additional diagnostics to config.log in case of failures to
+	compile test programs, including the failed test program itself.
+	Add a test for support of -mtune=pentium4 switch to GCC; if it is
+	supported, set up MCPU_FLAG variable on the various Makefiles to
+	use that switch during compilations.  (This avoids GCC warning
+	about -mcpu being deprecated.)
+
+2005-06-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* addsection.c (copy_executable_and_add_section): Pass non-zero
+	`verbose' arg to COPY_CHUNK only if DEBUG_DUMP is defined in the
+	environment.  Print section names with %.8s.
+	(COPY_CHUNK): New 4th arg `verbose'; print diagnostic messages
+	only if non-zero.  All callers changed.
+
+2005-06-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/sys/socket.h: Change arg 4 of sys_setsockopt to
+	`const void *', for consistency with POSIX.
+
+2005-06-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/pwd.h (getpwnam, getpwuid): Add prototypes.
+
+2005-05-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* INSTALL: Add more pointers to ports of Unix tools to Windows,
+	and to the Emacs Wiki (which contains building instructions for
+	Windows).  Reword image library instructions and remove obsolete
+	incompatibility information.
+
+2005-04-23  David Hunter  <hunterd42@comcast.net>  (tiny change)
+
+	* config.nt (HAVE_PWD_H): Undef.
+
+2004-06-07  Juanma Barranquero  <lektu@terra.es>
+
+	* INSTALL: Clarify paragraph about compatibility between image
+	libraries and builds of Emacs with several compilers.
+
+2004-06-06  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (bootstrap-nmake): When nmake'ing bootstrap on
+	the lisp/ directory, set SHELL to $(SHELLTYPE); this avoids
+	calling non-existent cmdproxy.exe on bootstrapping after a
+	previous install followed by realclean.
+
+	* nmake.defs: Add quote in comment to resync font-locking.
+
+2004-06-04  Juanma Barranquero  <lektu@terra.es>
+
+	* INSTALL: Reword the section on image support.  Add reference to
+	GnuWin32.  Mention problems when mixing binaries from different
+	compilers.
+
+2004-05-06  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat: Use -mno-cygwin to check for image libraries
+	when needed.
+
+2004-05-03  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.nt, ebuild.bat, install.bat, fast-install.bat:
+	* makefile.def: Remove.
+
+	* nmake.defs (SYS_LDFLAGS): Add -nologo.
+
+	* makefile.w32-in (info-gmake, info-nmake): New targets.
+	(info): Use them.
+
+2004-04-23  Juanma Barranquero  <lektu@terra.es>
+
+	* nmake.defs:
+	* gmake.defs:
+	* makefile.w32-in:
+	* makefile.def:
+	* makefile.nt: Add "-*- makefile -*-" mode tag.
+
+2004-04-10  Benjamin Riefenstahl  <Benjamin.Riefenstahl@epost.de>
+
+	* runemacs.c (WinMain): Let Emacs environment default to parent.
+
+2004-03-11  Jason Rumney  <jasonr@gnu.org>
+
+	* paths.h: Remove PATH_LOCK, add PATH_BITMAPS.
+
+2004-03-10  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (install): Don't try to copy
+	../lib-src/fns-*.el, as it isn't used anymore.
+
+2004-01-28  Peter Runestig  <peter@runestig.com>
+
+	* gmake.defs, nmake.defs: Add linking to ``winspool.lib''.
+
+2003-12-24  Miles Bader  <miles@gnu.ai.mit.edu>
+
+	* .cvsignore: Add `.arch-inventory'.
+
+2003-11-22  Lars Hansen  <larsh@math.ku.dk>
+
+	* inc/grp.h: New file.
+
+2003-09-03  Peter Runestig  <peter@runestig.com>
+
+	* configure.bat: Create ``makefile'' in directories man, lispref
+	and lispintro.
+
+	* makefile.w32-in (force-info, info): New targets.
+
+	* envadd.bat: New file.
+
+	* multi-install-info.bat: New file.
+
+2003-06-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* config.nt (my_strftime): New define.
+
+2003-02-01  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat: Automatically detect libXpm.
+	Suppress compiler output when testing for image libraries.
+	Give names of un-found libraries in messages.
+
+2003-01-31  Juanma Barranquero  <lektu@terra.es>
+
+	* configure.bat: Automatically detect giflib and tifflib.
+
+2003-01-29  Jason Rumney  <jasonr@gnu.org>
+
+	* gmake.defs (CURDIR): Disable cygpath kludge.
+
+2003-01-29  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>
+
+	* configure.bat: Avoid endless loop when configuring without image
+	support.
+
+2003-01-26  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat: Automatically detect jpeglib.
+
+2003-01-25  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat: Automatically detect libpng.
+
+2003-01-21  Jason Rumney  <jasonr@gnu.org>
+
+	* icons/hand.cur: New file.
+
+2003-01-21  David Ponce  <david@dponce.com>
+
+	* emacs.rc (2000-10-19T07:24:01Z!eliz@gnu.org): Declare hand cursor resource.
+
+2003-01-15  Andrew Innes  <andrewi@gnu.org>
+
+	* gmake.defs (CURDIR): Convert to native Windows format (with
+	forward slashes), to support building with Cygwin builds of make.
+
+2002-11-17  Ben Key  <BKey1@tampabay.rr.com>
+
+	* nmake.defs:
+	* gmake.defs: Made changes so that Emacs would link with
+	WinMM.lib.  This change was required for my addition of a Windows
+	compatible implementation of play-sound-internal.
+
+2002-09-03  Peter Runestig  <peter@runestig.com>  (tiny change)
+
+	* emacs.rc: Version updated to 21.3.50.
+
+2002-06-13  Jason Rumney  <jasonr@gnu.org>
+
+	* addpm.c (env_vars): Remove EMACSLOCKDIR.
+
+	* makefile.w32-in (maybe-bootstrap, doit, maybe-bootstrap-CMD)
+	(maybe-bootstrap-SH): New targets.
+	(all): Depend on maybe-bootstrap.
+
+2002-05-03  Jason Rumney  <jasonr@gnu.org>
+
+	* inc/sys/socket.h (F_SETFL, O_NDELAY): Define.
+	(sys_getpeername, fcntl): Declare as wrappers.
+
+2002-04-10  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (bootstrap-nmake, bootstrap-gmake): Make DOC
+	after compiling .el files.
+
+2002-03-20  Jason Rumney  <jasonr@gnu.org>
+
+	* inc/sys/socket.h (sys_setsockopt, sys_listen, sys_getsockname)
+	(sys_accept, sys_recvfrom, sys_sendto): Declare as wrappers.
+
+2002-03-19  Kim F. Storm  <storm@cua.dk>
+
+	* config.nt (HAVE_SENDTO, HAVE_RECVFROM, HAVE_GETSOCKOPT)
+	(HAVE_SETSOCKOPT, HAVE_GETSOCKNAME, HAVE_GETPEERNAME): Define.
+	(HAVE_SYS_UN_H): Undef.
+	From David Ponce <dponce@voila.fr>.
+
+2002-03-13  Jason Rumney  <jasonr@gnu.org>
+
+	* config.nt (STRFTIME_NO_POSIX2): Define.
+
+2002-02-18  Jason Rumney  <jasonr@gnu.org>
+
+	* emacs.rc: Define VS_VERSION_INFO if not already.
+	Update version info.
+
+2002-01-04  Andrew Innes  <andrewi@gnu.org>
+
+	* gmake.defs (CFLAGS): Define _WIN32_WINNT as 0x0400, in order to
+	pick up relevant bits of the Windows API definitions.
+
+	* nmake.defs (CFLAGS): Define _WIN32_WINNT as 0x0400, in order to
+	pick up relevant bits of the Windows API definitions.
+
+2001-12-14  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in (bootstrap): Build addsection program before
+	bootstrap (required for post-processing temacs.exe).
+
+2001-12-08  Pavel Janík  <Pavel@Janik.cz>
+
+	* COPYING: New file.
+
+2001-12-03  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in (bootstrap-nmake)
+	(bootstrap-gmake): Extend bootstrap process to first do
+	bootstrap-clean in lisp dir and rebuild the DOC file.
+	(bootstrap): Do a "normal" make after the bootstrap work.
+
+2001-11-20  Jason Rumney  <jasonr@gnu.org>
+
+	* INSTALL: Update table of versions of make that are suitable
+	for building Emacs, based on recent feedback.
+
+	* TODO, _emacs, emacs.bat.in, debug.bat.in: Remove.
+
+2001-11-19  Andrew Innes  <andrewi@gnu.org>
+
+	* ftime-nostartup.bat: New file.
+
+	* ftime.bat: Don't include libc.lib for profiling - the profiler
+	corrupts part of memcpy.
+
+2001-11-17  Jason Rumney  <jasonr@gnu.org>
+
+	* nmake.defs (SYS_LDFLAGS): Add setargv.obj for wildcard
+	expansion.  From Juanma Barranquero <lektu@terra.es>.
+
+2001-10-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* (Version 21.1 released.)
+
+2001-10-12  Andrew Innes  <andrewi@gnu.org>
+
+	* inc/pwd.h (uid_t, gid_t): New typedefs.
+
+2001-10-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* Branch for 21.1.
+
+2001-09-08  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* README: Update the address of the mailing list and subscription
+	instructions.  From Geoff Voelker <voelker@cs.ucsd.edu>.
+
+2001-09-06  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* INSTALL: Suggest to avoid using WinZip.
+
+	* configure.bat: Make sure ../site-lisp exists; create if necessary.
+
+2001-09-05  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* INSTALL: Mention that "make install" can be "nmake install".
+
+2001-09-04  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* makefile.w32-in ($(INSTALL_DIR)/bin): Depend on $(INSTALL_DIR),
+	since some versions of `mkdir' don't automatically create parent
+	directories.  From Bruno Grossniklaus <bruno.grossniklaus@ubs.com>.
+
+2001-08-31  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* subdirs.el: New file.
+
+	* configure.bat: Copy subdirs.el to the site-lisp directory.
+
+	* makefile.w32-in (install): Copy subdirs.el to the installation
+	directory.
+
+2001-06-20  Jason Rumney  <jasonr@gnu.org>
+
+	* runemacs.c (WinMain): Add quotes around command in case of spaces.
+
+2001-06-01  Andrew Innes  <andrewi@gnu.org>
+
+	* gmake.defs (sh_output): Don't use $(warning ...) to output
+	messages, since that is not supported by GNU make 3.77.
+
+2001-05-24  Jason Rumney  <jasonr@gnu.org>
+
+	* INSTALL: Clarify that building with MSVC requires nmake.
+
+2001-05-17  Andrew Innes  <andrewi@gnu.org>
+
+	* gmake.defs (NEW_CYGWIN): Output message about spurious error
+	message that is to be ignored.
+
+2001-05-13  Andrew Innes  <andrewi@gnu.org>
+
+	* TODO: Remove file, since it is completely out of date.
+
+	* README: Add copyright notice.
+
+	* INSTALL: Add copyright notice.
+
+2001-04-18  Andrew Innes  <andrewi@gnu.org>
+
+	* nmake.defs (EMACSLOADPATH): Ensure EMACSLOADPATH is defined in
+	the environment.
+
+	* gmake.defs (SETLOADPATH): Remove definition.
+	(EMACSLOADPATH): Ensure EMACSLOADPATH is defined in the
+	environment.
+
+2001-03-26  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* configure.bat: Make the checkw32api* labels be distinct in the
+	first 8 characters.
+
+2001-03-17  Andrew Innes  <andrewi@gnu.org>
+
+	* cmdproxy.c (get_next_token): Fix indefinite loop bug scanning
+	escaped quotes.
+
+	* gmake.defs (DEBUG_LINK): New macro.
+	(LINK_FLAGS): Use it.
+
+	* nmake.defs (DEBUG_LINK): New macro.
+	(LINK_FLAGS): Use it.
+
+2001-03-06  Andrew Innes  <andrewi@gnu.org>
+
+	* INSTALL: Add --ldflags to configure line for building with
+	recent versions of Cygwin GCC.
+
+2001-03-05  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* configure.bat: Use correct options when compiling a test program
+	with Cygwin.  From David Ponce <dponce@voila.fr>.
+
+2001-02-24  Andrew Innes  <andrewi@gnu.org>
+
+	* _emacs: Remove obsolete file.
+
+	* emacs.bat.in: Remove obsolete file.
+
+	* debug.bat.in: Remove obsolete file.
+
+	* inc/sys/socket.h: Add copyright notice.
+
+	* paths.h: Add copyright notice.
+
+	* makefile.nt: Update copyright notice.
+
+	* makefile.def: Update copyright notice.
+
+	* configure.bat: Update copyright notice.
+
+	* nmake.defs: Add copyright notice.
+
+	* gmake.defs: Add copyright notice.
+
+	* makefile.w32-in: Add copyright notice.
+
+2001-02-05  Andrew Innes  <andrewi@gnu.org>
+
+	* nmake.defs (THISDIR): New definition.
+
+	* gmake.defs (THISDIR): New definition.
+
+2001-02-03  Andrew Innes  <andrewi@gnu.org>
+
+	* configure.bat: Leave a space before >> only when there is a
+	preceding digit.  Add a comment about the importance of this.
+
+	* README: Replace outdated information.
+
+	* INSTALL (Trouble-shooting): Add note about need to specify extra
+	compiler flags with recent Cygwin ports of gcc.
+
+2001-02-01  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* configure.bat: Use "rm -f" instead of "del /f", as the latter
+	is not supported by Windows 9X's COMMAND.COM.
+
+2001-01-31  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* configure.bat: Make sure redirection is preceded by a blank, to
+	avoid problems with "1>>foo" when CMD.EXE is the shell, which eats
+	up the "1" part.  From Rob Giardina <rob@criticalpointsoftware.com>.
+
+2001-01-30  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* INSTALL: Copy the table of tested combinations of development
+	tools from configure.bat.  Add suggestion to install Bash on
+	Windows 9X.
+
+	* configure.bat: Don't copy lisp/Makefile, it doesn't exist; copy
+	lisp/Makefile.in instead.  Use "rm -f" where more than one file
+	needs to be deleted, since command.com in Windows 9X doesn't grok
+	more than one argument.
+
+2001-01-24  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in (cleanall-other-dirs-nmake)
+	(cleanall-other-dirs-gmake): New targets.
+	(cleanall): Invoke them.
+
+2001-01-19  Andrew Innes  <andrewi@gnu.org>
+
+	* addpm.c (env_vars): Add a version-independent site-lisp
+	directory to EMACSLOADPATH, after the version dependent one.
+
+2001-01-06  Andrew Innes  <andrewi@gnu.org>
+
+	* README: Update info about compilers.
+
+	* makefile.w32-in: Use $(MAKETYPE) instead of $(SHELLTYPE) to
+	select correct rule for invoking make in another directory.
+	Amend rules accordingly.
+	(clean): Delete $(COMPILER_TEMP_FILES) instead of *.pdb.
+
+	* nmake.defs (EMACS_ICON_PATH): Delete definition.
+	(COMPILER_TEMP_FILES): New definition.
+	(MAKETYPE): New definition.
+
+	* gmake.defs (EMACS_ICON_PATH): Delete definition.
+	(COMPILER_TEMP_FILES): New definition.
+	(MAKETYPE): New definition.
+
+	* makefile.def (EMACS_ICON_PATH): Delete definition.
+
+	* configure.bat: Be careful not to add trailing spaces when
+	outputting to config.settings.
+
+2001-01-02  Andrew Innes  <andrewi@gnu.org>
+
+	* config.nt (RE_TRANSLATE): Use CHAR_TABLE_TRANSLATE macro rather
+	than the function.
+
+2000-12-17  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in (install): Copy directories to the correct
+	places.
+	(real_install): Remove obsolete target.
+
+2000-12-06  Andrew Innes  <andrewi@gnu.org>
+
+	* nmake.defs (CURDIR): New define.
+	(INSTALL_DIR): Use it.
+
+	* gmake.defs (NEW_CYGWIN): New define.
+	(DQUOTE) [NEW_CYGWIN]: Cygnus changed the quoting rules since b20,
+	so we need to adjust how we escape embedded quotes.
+	(SETLOADPATH): Set EMACSLOADPATH to an absolute directory,
+	relative to $(CURDIR).
+
+2000-11-25  Jason Rumney  <jasonr@gnu.org>
+
+	* config.nt (GC_MARK_STACK, GC_SETJMP_WORKS): Define.
+
+2000-10-17  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in (recompile): New target to recompile lisp
+	directory.
+	(recompile-CMD, recompile-SH): New support targets.
+
+2000-09-24  Jason Rumney  <jasonr@gnu.org>
+
+	* config.nt (NO_RETURN): Define it.
+
+2000-09-17  Andrew Innes  <andrewi@gnu.org>
+
+	* gmake.defs: Revert to Unix line endings.
+
+	* nmake.defs: Revert to Unix line endings.
+
+2000-09-16  Andrew Innes  <andrewi@gnu.org>
+
+	* gmake.defs (SETLOADPATH): Change definition to work from any
+	subdirectory.
+
+2000-09-14  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in: Revert to Unix line endings.
+
+2000-09-14  Andrew Innes  <andrewi@gnu.org>
+
+	* INSTALL: Add note about expected error messages when configure
+	is run.
+
+	* configure.bat: Simplify the generation of makefiles (don't need
+	to generate various top-level targets that invoke make in other
+	directories).
+
+	* gmake.defs (SHELLTYPE): New define.
+	(SETLOADPATH): New define.
+
+	* nmake.defs (SHELLTYPE): New define.
+
+	* makefile.w32-in: Standardize indentation somewhat.
+	Add bootstrap support.
+	Pass $(MFLAGS) when invoking make recursively.
+	Add shell-specific variants of top-level targets that invoke make
+	recursively in other directories, and add necessary computed
+	dependencies.
+
+2000-09-03  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in: Change to DOS line endings.
+
+	* configure.bat: Change to DOS line endings.
+
+	* addsection.c (_ANONYMOUS_UNION) [__GNUC__]: New define.
+	(_ANONYMOUS_STRUCT) [__GNUC__]: New define.
+
+	* preprep.c (_ANONYMOUS_UNION) [__GNUC__]: New define.
+	(_ANONYMOUS_STRUCT) [__GNUC__]: New define.
+
+	* gmake.defs (CFLAGS): No need for -D_ANONYMOUS_UNION
+	-D_ANONYMOUS_STRUCT on compile line.
+	(EMACS_EXTRA_C_FLAGS): No need for -DORDINARY_LINK.
+	(ARCH_CFLAGS): Change optimization flags to -O2.
+	(FOREACH, FORVAR, FORDO, ENDFOR): New definitions.
+	(ARGQUOTE, DQUOTE): New defines.
+
+	* nmake.defs (CFLAGS): No need for -D_ANONYMOUS_UNION
+	-D_ANONYMOUS_STRUCT on compile line.
+	(FOREACH, FORVAR, FORDO, ENDFOR): New definitions.
+	(ARGQUOTE, DQUOTE): New defines.
+
+2000-08-22  Andrew Innes  <andrewi@gnu.org>
+
+	* configure.bat: New file.
+
+	* gmake.defs: New file.
+
+	* nmake.defs: New file.
+
+	* makefile.w32-in: New file.
+
+	* INSTALL: Rewrite to match new configure process.
+
+	* config.nt [WINDOWSNT]: Don't declare getenv.
+	(EMACS_CONFIG_OPTIONS): Define according to compiler being used.
+
+	* addpm.c (main): Accept /q to mean install based on addpm's
+	location without asking.  Remove reference to emacs.bat which is
+	now obsolete.
+
+	* addsection.c (PTR_TO_OFFSET): Cast ptr to unsigned char*.
+
+	* paths.h: Use forward slash as directory separator in all path
+	definitions.
+	(PATH_DUMPLOADSEARCH): Revert to definition used on Unix.
+
+	* preprep.c (PTR_TO_OFFSET): Cast ptr to unsigned char *.
+
+	* runemacs.c: Remove WIN32 define.
+
+	* inc/sys/file.h (F_OK, X_OK, W_OK, R_OK, D_OK): Define if D_OK is
+	not defined.
+
+	* inc/sys/socket.h (_WINSOCK_H): Undefine if defined.
+	(fd_set): Define to new name, after including winsock.h, so we can
+	provide our own implementation.
+
+2000-07-05  Andrew Innes  <andrewi@gnu.org>
+
+	* ebuild.bat: Add support for specifying make arguments.
+
+	* makefile.nt: Add support for `bootstrap' and related targets.
+
+2000-06-11  Jason Rumney  <jasonr@gnu.org>
+
+	* config.nt: Define POINTER_TYPE, PTR, PROTOTYPES and __P.
+
+2000-02-06  Andrew Innes  <andrewi@gnu.org>
+
+	* inc/sys/time.h: Add inclusion protection.
+
+	* makefile.def (SYS_LDFLAGS): Add -nologo.
+
+1999-11-22  Andrew Innes  <andrewi@gnu.org>
+
+	* install.bat: Pass on command line arguments to make.
+
+	* makefile.nt (fast_install): Bring commands up-to-date, and fix typo.
+
+1999-11-21  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.nt (all): Build leim if present.
+	(install): Install leim if present.
+	(clean): Clean leim if present.
+
+	* addpm.c (env_vars): Include leim in default EMACSLOADPATH
+	definition.
+
+	* emacs.bat.in (EMACSLOADPATH): Include leim.
+
+1999-07-12  Richard Stallman  <rms@gnu.org>
+
+	* Version 20.4 released.
+
+1999-06-16  Andrew Innes  <andrewi@gnu.org>
+
+	* emacs.rc: Use an icon with a transparent background, to be in
+	keeping with other applications.
+
+1999-06-03  Andrew Innes  <andrewi@gnu.org>
+
+	* preprep.c: Fix typo.
+
+1999-05-02  Andrew Innes  <andrewi@gnu.org>
+
+	* config.h: Remove obsolete file.
+
+	* preprep.c (copy_executable_and_move_sections): Ifdef out a
+	couple of unused switch cases that aren't defined on all
+	platforms.
+
+	* ftime.bat: Add another variation of the profile command, which
+	only profiles extended commands.
+
+1999-03-31  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* cmdproxy.c (main): Fix parens.
+
+1999-03-25  Andrew Innes  <andrewi@gnu.org>
+
+	* cmdproxy.c (main): Call GetShortPathName to normalize program
+	names for comparison.
+
+1999-03-05  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* makefile.def: Compile multiple .c files when possible.
+	Use BLD instead of assuming i386.
+	* makefile.nt: Remove common multiple file compilation commands.
+
+1999-03-04  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* cmdproxy.c (main): Add missing parens.
+
+1999-02-20  Andrew Innes  <andrewi@gnu.org>
+
+	* preprep.c: New program to allow dumped image to be profiled.
+
+	* makefile.nt (preprep): New target.
+	(ALL): Build it.
+
+	* makefile.def (ARCH_CFLAGS): Set struct packing to 8.
+
+	* ftime.bat: Invoke preprep to prepare dumped image for profiling.
+	Change prep options to profile libc functions and skip the startup
+	code.
+
+1999-02-15  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* makefile.nt: Create installation directory as first step.
+
+1999-01-31  Andrew Innes  <andrewi@gnu.org>
+
+	* addsection.c (ROUND_UP_DST_AND_ZERO): Rename from
+	ROUND_UP_DST.  Zeroes the alignment slop.
+	(copy_executable_and_add_section): Update the
+	SizeOfHeaders field properly.
+
+1999-01-27  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.nt: Do make version comparison as strings.
+
+1999-01-26  Andrew Innes  <andrewi@harlequin.co.uk>
+
+	* runemacs.c (WinMain): Pass explicit environment block to
+	CreateProcess, to work around a bug in Windows 95/98.
+
+1999-01-22  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* icons: New directory with Davenport's icons.
+	* icons/sink.ico: Renamed from emacs.ico.
+
+	* makefile.nt (install, fast_install): Install Windows icons
+	into etc/icons.
+
+	* emacs.rc (ICON): Use icons/gnu2a32.ico as the default icon.
+
+1999-01-17  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.nt (ALL): List top-level targets.
+	(addsection): New top-level target.
+	(install): Copy fns-*.el to bin directory.
+
+	* addsection.c: New program to add static heap section to
+	temacs.exe after linking, in support of new unexec method.
+
+1998-12-28  Andrew Innes  <andrewi@delysid.gnu.org>
+
+	* cmdproxy.c (spawn): Pass directory for child as parameter.
+	(main): Save startup directory to give to spawn, then change
+	directory to location of .exe in order not to prevent startup
+	directory from being deleted.
+
+1998-12-08  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* makefile.nt: Do string comparison of _NMAKE_VER.
+
+1998-12-02  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* config.nt (LOCALTIME_CACHE): Define.
+
+1998-11-13  Andrew Innes  <andrewi@delysid.gnu.org>
+
+	* install.bat: Convert to DOS format.
+
+1998-11-10  Andrew Innes  <andrewi@harlequin.co.uk>
+
+	* cmdproxy.c (main): Set environment size only when running
+	command.com.
+
+1998-11-03  Theodore Jump  <tjump@tertius.com>
+
+	* makefile.def (SYS_LDFLAGS): Use swapfile when running from cd or net.
+	(DEL_TREE): Use rd instead of rmdir.
+	(ARCH_CFLAGS): Optimize for P6.  Align structures on 8-byte boundaries.
+	* makefile.nt: Compile multiple source files when possible.
+
+1998-10-05  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* cmdproxy.c (main): Treat command line options as case-insensitive.
+
+1998-08-19  Richard Stallman  <rms@psilocin.ai.mit.edu>
+
+	* Version 20.3 released.
+
+1998-07-20  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* addpm.c (main): Explicitly check result of message box for OK.
+
+1998-06-05  Andrew Innes  <andrewi@harlequin.co.uk>
+
+	* inc/sys/file.h (D_OK): Define new macro.
+
+1998-06-01  Andrew Innes  <andrewi@mescaline.gnu.org>
+
+	* makefile.def (CFLAGS): Do not define HAVE_NTGUI.
+
+1998-05-30  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* emacs.rc (VS_VERSION_INFO): Define.
+
+1998-04-23  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* makefile.nt (emacs.bat, debug.bat): Create them in the
+	installation directory.
+
+1998-04-23  Andrew Innes  <andrewi@harlequin.co.uk>
+
+	* ddeclient.c: New file.  (Support program for performing limited
+	interprocess communication on Windows.)
+
+	* makefile.nt: Build ddeclient.
+
+	* cmdproxy.c (main): Only set environment size for real shell, and
+	provide extra directory argument, when running on Windows 95.
+
+1998-04-17  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* cmdproxy.c (fail): Exit with a negative return value.
+	(spawn): Return subprocess return code as an argument.
+	Explicitly copy environment block.
+	(main): Update to use return value argument with spawn.
+	Retry if spawn failed when a subshell was not tried.
+
+	* config.nt: Include new macros from src/config.in.
+	(GNU_MALLOC, REL_ALLOC): Define.
+	(RE_TRANSLATE_TYPE): Use Lisp_Object as type.
+	(RE_TRANSLATE): Use char_table_translate.
+
+	* makefile.def (CP_DIR): Preserve attributes.
+
+	* makefile.nt (clean): Delete patch generated files, optimized
+	build directory.
+
+1997-10-01  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* addpm.c (env_vars): Fix misplaced % in SHELL entry.
+
+1997-09-19  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Version 20.2 released.
+
+1997-09-15  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Version 20.1 released.
+
+1997-09-11  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* debug.bat.in: New file.
+	* makefile.nt (debug.bat): New target.
+
+1997-09-02  Andrew Innes  <andrewi@harlequin.co.uk>
+
+	* addpm.c (env_vars): Put site-lisp before lisp in EMACSLOADPATH.
+	Quote group name.  Allow different icons to be specified.
+
+	* cmdproxy.c (get_env_size): New function.
+	(spawn): Explicitly pass in environment when creating subprocess.
+	(main): Cleanup error messages.
+	Specify dynamically sized environment block for real shell.
+	Pass on unhandled switches to real shell.
+	Quote program name.
+
+	* makefile.def (CFLAGS_COMMON): Place pdb file in object build
+	directory.
+	(CFLAGS) [!MSVCNT11]: Define _CRTAPI1.
+
+	* runemacs.c (WinMain): Allow Emacs process to be started with
+	high or low priority.
+
+	* emacs.bat.in: Remove OS dependent operations.
+
+1997-09-02  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* addpm.c (env_vars): No longer set INFOPATH.
+
+	* cmdproxy.c (get_next_token): Null terminate token returned.
+
+	* emacs.bat.in (INFOPATH): No longer set INFOPATH.
+
+1997-08-10  Andrew Innes  <andrewi@harlequin.co.uk>
+
+	* addpm.c (env_vars): Set SHELL to cmdproxy.
+	(main): Initialize idDde to 0.
+	Determine emacs_path from module file name.
+	Prompt for install.
+
+	* makefile.def (MSVCNT11): Conditionally define it.
+	(BASE_LIBS): Do not use oldnames.lib.
+	(SYS_LDFLAGS): Use pdb files.
+	(CFLAGS_COMMON) [!spd]: Define EMACSDEBUG.
+	(ARCH_CFLAGS) [i386 && spd]: Use space optimizations.
+	(ARCH_CFLAGS) [alpha && spd]: Use optimizations.
+
+	* makefile.nt (ALL): Build cmdproxy.
+	(cmdproxy): New target.
+	(install): Install cmdproxy.
+
+	* ftime.bat, debug.bat, cmdproxy.c: New files.
+
+1997-07-10  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* inc/sys/socket.h (shutdown): Define.
+	(sys_shutdown): Export.
+
+1997-07-08  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* config.nt (RE_TRANSLATE): Copy definition from config.in.
+
+1997-07-01  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* config.nt: Update file comments.
+	Update undefs added/removed in src/config.in.
+
+1997-06-19  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* makefile.def, emacs.bat.in: Use windows95 and windowsnt instead
+	of win95 and winnt, respectively.
+
+1997-01-04  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* makefile.nt (real_install): Create site-lisp in installation dir.
+	* addpm.c (env_vars): Add site-lisp to EMACSLOADPATH.
+	* emacs.bat.in: Add site-lisp to EMACSLOADPATH.
+
+1996-08-11  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Version 19.33 released.
+
+1996-08-09  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* runemacs.c (WinMain): Put a space between the binary and its args.
+
+1996-07-31  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Version 19.32 released.
+
+1996-07-16  Andrew Innes  <andrewi@harlequin.co.uk>
+
+	* makefile.nt (clean): Use OBJDIR macro.
+
+1996-06-03  Kim F. Storm  <kfs@olicom.dk>
+
+	* runemacs.c (CHOOSE_NEWEST_EXE): New parameter macro.
+	Not defined by default.
+	(WinMain): Add conditional testing CHOOSE_NEWEST_EXE.
+	(WinMain): Convert backslashes to slashes in env var values.
+
+	* addpm.c (env_vars): Use slashes, not backslashes.
+
+1996-05-25  Karl Heuer  <kwzh@gnu.ai.mit.edu>
+
+	* Version 19.31 released.
+
+1996-05-13  Andrew Innes  <andrewi@harlequin.co.uk>
+
+	* install.bat: Set BUILD_TYPE and INSTALL_DIR before calling make;
+	undo settings afterwards.
+
+1996-05-08  Andrew Innes  <andrewi@harlequin.co.uk>
+
+	* addpm.c (env_vars): Set SHELL registry entry to value of COMSPEC
+	environment variable.
+
+1996-05-03  Andrew Innes  <andrewi@harlequin.co.uk>
+
+	* install.bat: Allow for optimized build.
+	* makefile.def [BUILD_TYPE]: Build optimized version in its own dir.
+	(ARCH_CFLAGS) [BUILD_TYPE == spd]: Build optimized version.
+
+1996-05-03  Andrew Innes  <andrewi@harlequin.co.uk>
+
+	* addpm.c (REG_ROOT): Don't use a trailing backslash.
+	(env_vars): Rename field emacs_path to emacs_dir.
+	(main): Add link to runemacs instead of emacs.
+
+	* install.bat: Check if INSTALL_DIR is passed as an argument.
+
+	* makefile.def (CONFIG_H) [WIN95]: Use config.nt.
+
+	* makefile.nt: Build and install runemacs.exe.
+
+	* runemacs.c: New file.
+
+	* config.w95: File removed.
+
+	* inc/netdb.h, inc/unistd.h, inc/arpa/inet.h, inc/netinet/in.h,
+	inc/sys/socket.h, inc/sys/time.h: New header files.
+
+	* inc/sys/file.h (F_OK, X_OK, W_OK, R_OK): New macros.
+
+1996-03-27  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* makefile.def (DEL): Defined.
+	(DEL_TREE) [win95]: Defined.
+	(SYS_LDFLAGS): Set executable versions to 3.10.
+
+	* makefile.nt: Change uses of del to $(DEL).
+
+1996-01-17  Erik Naggum  <erik@naggum.no>
+
+	* All files: Update FSF's address in comment preamble.
+
+1996-01-03  George V. Reilly  <georger@microcrafts.com>
+
+	* emacs.ico: Now the proverbial kitchen sink icon.
+
+1995-11-24  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
+
+	* Version 19.30 released.
+
+1995-11-22  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* makefile.def (CP_DIR): Use platform independent switches for xcopy.
+
+	* makefile.nt (install, fast_install, real_install, clean):
+	Don't use switches to del not supported by Windows 95.
+
+1995-11-07  Kevin Gallo  <kgallo@microsoft.com>
+
+	* makefile.nt (addpm.exe): Link with $(ADVAPI32).
+	(install, fast_install): Change same-dir test to create test file in
+	installation tree and thereby support read-only shares.
+	(clean): Remove .pdb files.
+
+	* makefile.def (NTGUI): New macro.
+	[NTGUI] (CFLAGS): Define HAVE_NTGUI.
+
+	* config.nt, config.w95: Update to latest src/config.in.
+
+	* addpm.c (env_vars): New variable.
+	(add_registry): New procedure.
+	(main): Use values of configuration environment variables from
+	the registry if defined, the process environment otherwise.
+
+1995-06-19  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
+
+	* Version 19.29 released.
+
+	* makefile.nt (addpm.exe): Change WinMainCRTStartup to mainCRTStartup.
+
+1995-06-13  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* makefile.nt: Define .c to .obj suffix rule.
+	(addpm.obj): Compile directly, use CFLAGS.
+	(addpm.exe): Link from addpm.obj.
+
+	* makefile.def (MSVCNT11): Defined.
+	(BASE_LIBS) [MSVCNT11]: Use oldnames.lib.
+	(CFLAGS_COMMON): Defined.
+	(CFLAGS) [MSVCNT11]: Define _CRTAPI1 to _cdecl.
+
+1995-06-09  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* emacs.bat.in: Renamed from emacs.bat.
+	(emacs_dir): Rename from emacs_path.
+	Definition removed.
+
+	* addpm.c: New file.
+	* makefile.nt (ALL, addpm, addpm.exe, addpm.obj): Defined.
+	(all): Depend upon $(BLD) and $(ALL).
+	(install): Depend upon emacs.bat.
+	Create program item for Emacs.
+	(clean): Delete obj.
+	(emacs.bat): Defined.
+	* makefile.def (EMACS_ICON_PATH, ADDPM): Defined.
+
+1995-05-27  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* ebuild.bat, emacs.bat, fast-install.bat, install.bat:
+	Add carriage returns; necessary for batch files on Windows 95.
+
+1995-05-25  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* config.w95: Created.
+	* config.h: Changed to config.nt.
+
+	* makefile.nt (SUBDIRS): Commented out.
+	(all, install, clean): Expand for-loops.
+	(BUILD_CMD, INSTALL_CMD, CLEAN_CMD): Defined.
+
+	* makefile.def (SYS_LIB_DIR, SYS_INC_DIR): Undefined.
+	(ARCH): New definition.
+	(CPU, CONFIG_H, OS_TYPE): Defined.
+	(INCLUDE, LIB): Checked if valid.
+	(ntwin32.mak): Included.
+	(AR, CC, LINK): New definition.
+	(ADVAPI32, libc, BASE_LIBS): Defined.
+	(SYS_LDFLAGS): New definition.
+	Update comments and preprocessor conditionals.
+
+	* emacs.bat (SHELL): Conditionally defined.
+	(HOME): Conditionally defined.
+	(emacs_path, HOME): Update comments.
+	Turn off all echo.
+
+1995-05-09  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* _emacs, config.h, ebuild.bat, emacs.bat, emacs.rc:
+	* fast-install.bat, install.bat, makefile.def, makefile.nt, paths.h:
+	* inc/pwd.h, inc/sys/dir.h, inc/sys/file.h, inc/sys/ioctl.h:
+	* inc/sys/param.h: Removed carriage-returns.
+
+1995-05-06  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* makefile.def (CVTRES): Defined.
+
+	* emacs.ico, emacs.rc: New files by Kevin Gallo.
+
+1995-04-10  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* src/config.h, src/paths.h: Moved to parent dir, src/ removed.
+
+1995-04-09  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* makefile.def (INSTALL_DIR): Change to generic directory.
+
+	* emacs.bat: Added arguments when emacs.exe invoked.
+
+	* ebuild.cmd, emacs.cmd, install.cmd: Changed extension to .bat.
+
+1994-12-13  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* makefile.def (CC): In configuration section.
+	(COMPAT_LIB): Defined.
+
+1994-11-01  Geoff Voelker  <voelker@cs.washington.edu>
+
+	* src/paths.h: New file.
+
+	* src/config.h: New file.
+
+	* inc/pwd.h: New file.
+
+	* inc/sys/dir.h: New file.
+
+	* inc/sys/file.h: New file.
+
+	* inc/sys/ioctl.h: New file.
+
+	* inc/sys/param.h: New file.
+
+	* todo: New file.
+
+	* README: New file.
+
+	* makefile.nt: New file.
+
+	* makefile.def: New file.
+
+	* install.cmd: New file.
+
+	* INSTALL: New file.
+
+	* fast-install.cmd: New file.
+
+	* emacs.cmd: New file.
+
+	* ebuild.cmd: New file.
+
+	* _emacs: New file.
+
+;; Local Variables:
+;; coding: utf-8
+;; add-log-time-zone-rule: t
+;; End:
+
+  Copyright (C) 1995-1999, 2001-2015 Free Software Foundation, Inc.
+
+  This file is part of GNU Emacs.
+
+  GNU Emacs is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  GNU Emacs is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.

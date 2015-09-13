@@ -116,7 +116,7 @@ with the ``all other types'' which are self-evaluating forms.
                               we find the real function via the symbol.
 * Function Forms::          Forms that call functions.
 * Macro Forms::             Forms that call macros.
-* Special Forms::           "Special forms" are idiosyncratic primitives,
+* Special Forms::           ``Special forms'' are idiosyncratic primitives,
                               most of them extremely important.
 * Autoloading::             Functions set up to load files
                               containing their real definitions.

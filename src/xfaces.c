@@ -797,7 +797,7 @@ load_pixmap (struct frame *f, Lisp_Object name)
 
   if (bitmap_id < 0)
     {
-      add_to_log ("Invalid or undefined bitmap `%s'", name, Qnil);
+      add_to_log ("Invalid or undefined bitmap `%s'", name);
       bitmap_id = 0;
     }
   else
@@ -1099,7 +1099,7 @@ load_color2 (struct frame *f, struct face *face, Lisp_Object name,
      to the values in an existing cell. */
   if (!defined_color (f, SSDATA (name), color, true))
     {
-      add_to_log ("Unable to load color \"%s\"", name, Qnil);
+      add_to_log ("Unable to load color \"%s\"", name);
 
       switch (target_index)
 	{
@@ -1669,8 +1669,7 @@ check_lface_attrs (Lisp_Object attrs[LFACE_VECTOR_SIZE])
 	   || SYMBOLP (attrs[LFACE_SWIDTH_INDEX]));
   eassert (UNSPECIFIEDP (attrs[LFACE_HEIGHT_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_HEIGHT_INDEX])
-	   || INTEGERP (attrs[LFACE_HEIGHT_INDEX])
-	   || FLOATP (attrs[LFACE_HEIGHT_INDEX])
+	   || NUMBERP (attrs[LFACE_HEIGHT_INDEX])
 	   || FUNCTIONP (attrs[LFACE_HEIGHT_INDEX]));
   eassert (UNSPECIFIEDP (attrs[LFACE_WEIGHT_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_WEIGHT_INDEX])
@@ -1822,7 +1821,7 @@ resolve_face_name (Lisp_Object face_name, bool signal_p)
   Lisp_Object tortoise, hare;
 
   if (STRINGP (face_name))
-    face_name = intern (SSDATA (face_name));
+    face_name = Fintern (face_name, Qnil);
 
   if (NILP (face_name) || !SYMBOLP (face_name))
     return face_name;
@@ -2177,17 +2176,12 @@ merge_named_face (struct frame *f, Lisp_Object face_name, Lisp_Object *to,
 			      face_name, NAMED_MERGE_POINT_NORMAL,
 			      &named_merge_points))
     {
-      struct gcpro gcpro1;
       Lisp_Object from[LFACE_VECTOR_SIZE];
       bool ok = get_lface_attributes (f, face_name, from, false,
 				      named_merge_points);
 
       if (ok)
-	{
-	  GCPRO1 (named_merge_point.face_name);
-	  merge_face_vectors (f, from, to, named_merge_points);
-	  UNGCPRO;
-	}
+	merge_face_vectors (f, from, to, named_merge_points);
 
       return ok;
     }
@@ -2247,7 +2241,7 @@ merge_face_ref (struct frame *f, Lisp_Object face_ref, Lisp_Object *to,
 	  else
 	    {
 	      if (err_msgs)
-		add_to_log ("Invalid face color", color_name, Qnil);
+		add_to_log ("Invalid face color %S", color_name);
 	      ok = false;
 	    }
 	}
@@ -2452,7 +2446,7 @@ merge_face_ref (struct frame *f, Lisp_Object face_ref, Lisp_Object *to,
       /* FACE_REF ought to be a face name.  */
       ok = merge_named_face (f, face_ref, to, named_merge_points);
       if (!ok && err_msgs)
-	add_to_log ("Invalid face reference: %s", face_ref, Qnil);
+	add_to_log ("Invalid face reference: %s", face_ref);
     }
 
   return ok;
@@ -4178,6 +4172,8 @@ free_realized_faces (struct face_cache *c)
 	  c->faces_by_id[i] = NULL;
 	}
 
+      /* Forget the escape-glyph and glyphless-char faces.  */
+      forget_escape_and_glyphless_faces ();
       c->used = 0;
       size = FACE_CACHE_BUCKETS_SIZE * sizeof *c->buckets;
       memset (c->buckets, 0, size);
@@ -4189,7 +4185,7 @@ free_realized_faces (struct face_cache *c)
       if (WINDOWP (f->root_window))
 	{
 	  clear_current_matrices (f);
-	  windows_or_buffers_changed = 58;
+	  fset_redisplay (f);
 	}
 
       unblock_input ();
@@ -4209,6 +4205,7 @@ free_all_realized_faces (Lisp_Object frame)
       Lisp_Object rest;
       FOR_EACH_FRAME (rest, frame)
 	free_realized_faces (FRAME_FACE_CACHE (XFRAME (frame)));
+      windows_or_buffers_changed = 58;
     }
   else
     free_realized_faces (FRAME_FACE_CACHE (XFRAME (frame)));
@@ -6378,7 +6375,6 @@ syms_of_xfaces (void)
   /* Names of basic faces.  */
   DEFSYM (Qdefault, "default");
   DEFSYM (Qtool_bar, "tool-bar");
-  DEFSYM (Qregion, "region");
   DEFSYM (Qfringe, "fringe");
   DEFSYM (Qheader_line, "header-line");
   DEFSYM (Qscroll_bar, "scroll-bar");
@@ -6399,13 +6395,6 @@ syms_of_xfaces (void)
 
   /* The name of the function used to compute colors on TTYs.  */
   DEFSYM (Qtty_color_alist, "tty-color-alist");
-
-  /* Allowed scalable fonts.  A value of nil means don't allow any
-     scalable fonts.  A value of t means allow the use of any scalable
-     font.  Otherwise, value must be a list of regular expressions.  A
-     font may be scaled if its name matches a regular expression in the
-     list.  */
-  DEFSYM (Qscalable_fonts_allowed, "scalable-fonts-allowed");
 
   Vparam_value_alist = list1 (Fcons (Qnil, Qnil));
   staticpro (&Vparam_value_alist);
@@ -6519,8 +6508,8 @@ If this variable is made buffer-local, the face remapping takes effect
 only in that buffer.  For instance, the mode my-mode could define a
 face `my-mode-default', and then in the mode setup function, do:
 
-   (set (make-local-variable 'face-remapping-alist)
-	'((default my-mode-default)))).
+   (set (make-local-variable \\='face-remapping-alist)
+	\\='((default my-mode-default)))).
 
 Because Emacs normally only redraws screen areas when the underlying
 buffer contents change, you may need to call `redraw-display' after
