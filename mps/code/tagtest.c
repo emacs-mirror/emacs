@@ -114,34 +114,56 @@ static mps_addr_t skip(mps_addr_t addr)
 }
 
 
-/* alloc_list -- Allocate a linked list with 'count' entries. The
- * attribute prevents the compiler from inlining this function into
- * test, which might leave untagged temporaries on the stack,
- * confusing the test logic.
- */
-
-ATTRIBUTE_NOINLINE
-static mps_word_t alloc_list(mps_arena_t arena, mps_ap_t ap, size_t count)
+static void collect(mps_arena_t arena, size_t expected)
 {
-  mps_word_t nil = TAGGED(NULL, cons);
-  mps_word_t p = nil;
-  size_t i;
-  for (i = 0; i < count; ++i) {
-    mps_addr_t addr;
-    p = make_cons(ap, TAGGED(i << tag_bits, imm), p);
-    Insist(TAG(p) == tag_cons);
-    addr = (mps_addr_t)p;
-    die(mps_finalize(arena, &addr), "finalize");
+  size_t finalized = 0;
+  mps_arena_collect(arena);
+  while (mps_message_poll(arena)) {
+    mps_message_t message;
+    mps_addr_t objaddr;
+    cdie(mps_message_get(&message, arena, mps_message_type_finalization()),
+         "message_get");
+    mps_message_finalization_ref(&objaddr, arena, message);
+    Insist(TAG(objaddr) == tag_cons);
+    mps_message_discard(arena, message);
+    ++ finalized;
   }
-  return p;
+  printf("tag_cons=%lu finalized=%lu expected=%lu\n",
+         (unsigned long)tag_cons, (unsigned long)finalized, (unsigned long)expected);
+  Insist(finalized == expected);
 }
 
 
-/* test -- Run the test case in the specified mode. The attribute
- * prevents the compiler from inlining this function into main, which
- * might end up with stack slots like 'p' being above 'marker' and so
- * not scanned.
+/* alloc_recursively -- Allocate 'count' objects and remember pointers
+ * to those objects on the stack.
  */
+
+static void alloc_recursively(mps_arena_t arena, mps_ap_t ap,
+                              size_t expected, size_t count)
+{
+  mps_word_t p, r;
+  mps_word_t q = TAGGED(count << tag_bits, imm);
+  mps_addr_t addr;
+  p = make_cons(ap, q, q);
+  Insist(TAG(p) == tag_cons);
+  r = TAGGED(p, imm);
+  UNTAGGED(p, cons)->cdr = r;
+  addr = (mps_addr_t)p;
+  die(mps_finalize(arena, &addr), "finalize");
+  if (count > 1) {
+    alloc_recursively(arena, ap, expected, count - 1);
+  } else {
+    collect(arena, expected);
+  }
+  if (expected == 0) {
+    Insist(TAG(p) == tag_cons);
+    Insist(UNTAGGED(p, cons)->car == q);
+    Insist(UNTAGGED(p, cons)->cdr == r);
+  }
+}
+
+
+/* test -- Run the test case in the specified mode. */
 
 enum {
   MODE_DEFAULT,                 /* Use default scanner (tagged with 0). */
@@ -150,7 +172,6 @@ enum {
   MODE_LIMIT
 };
 
-ATTRIBUTE_NOINLINE
 static void test(int mode, void *marker)
 {
   mps_arena_t arena;
@@ -159,9 +180,6 @@ static void test(int mode, void *marker)
   mps_fmt_t fmt;
   mps_pool_t pool;
   mps_ap_t ap;
-  mps_word_t p;
-  size_t i;
-  size_t finalized = 0;
   size_t expected = 0;
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), mps_args_none), "arena");
@@ -169,6 +187,9 @@ static void test(int mode, void *marker)
   die(mps_thread_reg(&thread, arena), "thread");
 
   switch (mode) {
+  default:
+    Insist(0);
+    /* fall through */
   case MODE_DEFAULT:
     /* Default stack scanner only recognizes words tagged with 0. */
     die(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
@@ -186,9 +207,6 @@ static void test(int mode, void *marker)
     die(mps_root_create_stack(&root, arena, mps_rank_ambig(), 0, thread,
                               TAG_MASK, tag_invalid, marker), "root");
     expected = OBJCOUNT;
-    break;
-  default:
-    Insist(0);
     break;
   }
 
@@ -210,27 +228,7 @@ static void test(int mode, void *marker)
 
   die(mps_ap_create_k(&ap, pool, mps_args_none), "ap");
 
-  p = alloc_list(arena, ap, OBJCOUNT);
-  printf("tag_cons=%lu &p=%p expected=%lu\n",
-         (unsigned long)tag_cons, (void*)&p, (unsigned long)expected);
-
-  mps_arena_collect(arena);
-  while (mps_message_poll(arena)) {
-    mps_message_t message;
-    mps_addr_t objaddr;
-    cdie(mps_message_get(&message, arena, mps_message_type_finalization()),
-         "message_get");
-    mps_message_finalization_ref(&objaddr, arena, message);
-    Insist(TAG(objaddr) == tag_cons);
-    mps_message_discard(arena, message);
-    ++ finalized;
-  }
-
-  Insist(finalized == expected);
-  for (i = 0; i < OBJCOUNT - expected; ++i) {
-    Insist(TAG(p) == tag_cons);
-    p = UNTAGGED(p, cons)->cdr;
-  }
+  alloc_recursively(arena, ap, expected, OBJCOUNT);
 
   mps_arena_park(arena);
   mps_ap_destroy(ap);
