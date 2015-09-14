@@ -598,10 +598,10 @@ int main(int argc, char *argv[])
                             marker, (size_t)0),
         "root_create_reg");
   } else {
-    die(mps_root_create_reg_masked(&reg_root, arena,
-                                   mps_rank_ambig(), (mps_rm_t)0,
-                                   thread, 0, 0, marker),
-        "root_create_reg_masked");
+    die(mps_root_create_stack(&reg_root, arena,
+                              mps_rank_ambig(), (mps_rm_t)0,
+                              thread, 0, 0, marker),
+        "root_create_stack");
   }
 
   mps_tramp(&r, test, arena, 0);
