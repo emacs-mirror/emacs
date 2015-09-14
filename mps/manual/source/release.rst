@@ -17,9 +17,10 @@ New features
    specifying the minimum size of the memory segments that the pool
    requests from the :term:`arena`.
 
-#. New function :c:func:`mps_root_create_reg_masked` applies a mask
-   and pattern test to all words in registers and on the stack when
-   scanning them. This supports tagged references in these locations.
+#. New function :c:func:`mps_root_create_stack` applies a mask and
+   pattern test to all words in the :term:`control stack` and
+   :term:`registers` of a :term:`thread` when scanning them. This
+   supports :term:`tagged references` in these locations.
 
 
 Interface changes
@@ -34,6 +35,9 @@ Interface changes
    :c:func:`mps_mvt_free_size` and :c:func:`mps_mvt_size` are now
    deprecated in favour of the generic functions
    :c:func:`mps_pool_free_size` and :c:func:`mps_pool_total_size`.
+
+#. The function :c:func:`mps_root_create_reg` is deprecated in favour
+   of :c:func:`mps_root_create_stack`.
 
 
 Other changes

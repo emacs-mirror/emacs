@@ -181,9 +181,9 @@ Memory Management Glossary: T
             Threads are represented by values of type
             :c:type:`mps_thr_t`, created by calling
             :c:func:`mps_thread_reg`. In order for the MPS to find
-            references on the control of the thread, the thread must
-            be also be registered as a root by calling
-            :c:func:`mps_root_create_reg`. See :ref:`topic-thread`.
+            references on the control stack of the thread, the thread
+            must be also be registered as a :term:`root` by calling
+            :c:func:`mps_root_create_stack`. See :ref:`topic-thread`.
 
     threatened set
 
