@@ -332,7 +332,7 @@ static void *testscriptB(void *arg, size_t s)
   /* root_stackreg: stack & registers are ambiguous roots = mutator's workspace */
   die(mps_root_create_stack(&root_stackreg, arena,
                             mps_rank_ambig(), (mps_rm_t)0, thr,
-                            0, 0, &stack_starts_here),
+                            sizeof(mps_word_t) - 1, 0, &stack_starts_here),
       "root_stackreg");
 
   /* Make myrootCOUNT registered-for-finalization objects. */

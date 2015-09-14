@@ -122,7 +122,9 @@ Deprecated in version 1.115
 
     .. deprecated::
 
-        Use :c:func:`mps_root_create_stack` instead.
+        Use :c:func:`mps_root_create_stack` instead, passing
+        ``sizeof(mps_word_t) - 1`` for the ``mask`` argument, and
+        ``0`` for the ``pattern`` argument.
 
     Register a :term:`root` that consists of the :term:`references`
     fixed in a :term:`thread's <thread>` registers and stack by a
@@ -210,8 +212,9 @@ Deprecated in version 1.115
 
     .. deprecated::
 
-        Use :c:func:`mps_root_create_stack` instead, passing ``0`` for
-        the ``mask`` and ``pattern`` parameters.
+        Use :c:func:`mps_root_create_stack` instead, passing
+        ``sizeof(mps_word_t) - 1`` for the ``mask`` argument, and
+        ``0`` for the ``pattern`` argument.
 
     A root scanning function for :term:`ambiguous <ambiguous
     reference>` scanning of :term:`threads`, suitable for

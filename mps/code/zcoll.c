@@ -576,7 +576,7 @@ static void StackScan(mps_arena_t arena, int on)
     Insist(root_stackreg == NULL);
     die(mps_root_create_stack(&root_stackreg, arena,
                               mps_rank_ambig(), (mps_rm_t)0, stack_thr,
-                              0, 0, stack_start),
+                              sizeof(mps_word_t) - 1, 0, stack_start),
         "root_stackreg");
     Insist(root_stackreg != NULL);
   } else {
@@ -764,7 +764,7 @@ static void *testscriptB(void *arg, size_t s)
   stack_thr = thr;
   die(mps_root_create_stack(&root_stackreg, arena,
                             mps_rank_ambig(), (mps_rm_t)0, stack_thr,
-                            0, 0, stack_start),
+                            sizeof(mps_word_t) - 1, 0, stack_start),
       "root_stackreg");
 
 

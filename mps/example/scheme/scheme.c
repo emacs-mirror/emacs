@@ -4488,7 +4488,7 @@ int main(int argc, char *argv[])
      objects around in C parameters, return values, and keeping them in
      automatic local variables. See topic/root. */
   res = mps_root_create_stack(&reg_root, arena, mps_rank_ambig(),
-                              0, thread, 0, 0, marker);
+                              0, thread, sizeof(mps_word_t) - 1, 0, marker);
   if (res != MPS_RES_OK) error("Couldn't create root");
 
   /* Make sure we can pick up finalization messages. */

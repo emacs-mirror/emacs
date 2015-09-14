@@ -128,7 +128,7 @@ static void test_main(void *marker, int interior, int stack)
 
   if (stack) {
     res = mps_root_create_stack(&reg_root, scheme_arena, mps_rank_ambig(),
-                                0, thread, 0, 0, marker);
+                                0, thread, sizeof(mps_word_t) - 1, 0, marker);
     if (res != MPS_RES_OK)
       error("Couldn't create root");
   }
