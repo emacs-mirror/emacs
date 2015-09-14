@@ -100,13 +100,8 @@ scan it for references:
 #. :c:func:`mps_root_create_table_masked` if the root consists of a
    table of :term:`tagged references`;
 
-#. :c:func:`mps_root_create_reg` if the root consists of the
+#. :c:func:`mps_root_create_stack` if the root consists of the
    :term:`registers` and :term:`control stack` of a thread. See
-   :ref:`topic-root-thread` below.
-
-#. :c:func:`mps_root_create_reg_masked` if the root consists of the
-   :term:`registers` and :term:`control stack` of a thread, and that
-   thread keeps tagged references in registers or on the stack. See
    :ref:`topic-root-thread` below.
 
 .. index::
@@ -149,21 +144,16 @@ So the typical sequence of operations when creating a root is:
 Thread roots
 ------------
 
-Every thread's registers and control stack potentially contain
-references to allocated objects, so should be registered as a root by
-calling :c:func:`mps_root_create_reg` or
-:c:func:`mps_root_create_reg_masked`. It's not easy to write a scanner
-for the registers and the stack: it depends on the operating system,
-the processor architecture, and in some cases on the compiler.  For
-this reason, the MPS provides :c:func:`mps_stack_scan_ambig` (and in
-fact, this is the only supported stack scanner).
+Every thread's :term:`registers` and :term:`control stack` potentially
+contain references to allocated objects, so should be registered as a
+root by calling :c:func:`mps_root_create_stack`.
 
-A stack scanner needs to know how to find the bottom of the part of the
-stack to scan. The bottom of the relevant part of stack can be found by
-taking the address of a local variable in the function that calls the
-main work function of your thread. You should take care to ensure that
-the work function is not inlined so that the address is definitely in
-the stack frame below any potential roots.
+The MPS's stack scanner needs to know how to find the bottom of the
+part of the stack to scan. The bottom of the relevant part of stack
+can be found by taking the address of a local variable in the function
+that calls the main work function of your thread. You should take care
+to ensure that the work function is not inlined so that the address is
+definitely in the stack frame below any potential roots.
 
 .. index::
    single: Scheme; thread root
@@ -172,26 +162,20 @@ For example, here's the code from the toy Scheme interpreter that
 registers a thread root and then calls the program::
 
     mps_thr_t thread;
-    mps_root_t reg_root;
+    mps_root_t stack_root;
     int exit_code;
     void *marker = &marker;
 
     res = mps_thread_reg(&thread, arena);
     if (res != MPS_RES_OK) error("Couldn't register thread");
 
-    res = mps_root_create_reg(&reg_root,
-                              arena,
-                              mps_rank_ambig(),
-                              0,
-                              thread,
-                              mps_stack_scan_ambig,
-                              marker,
-                              0);
+    res = mps_root_create_stack(&stack_root, arena, mps_rank_ambig(),
+                                0, thread, 0, 0, marker);
     if (res != MPS_RES_OK) error("Couldn't create root");
 
     exit_code = start(argc, argv);
 
-    mps_root_destroy(reg_root);
+    mps_root_destroy(stack_root);
     mps_thread_dereg(thread);
 
 
@@ -399,117 +383,7 @@ Root interface
     calling :c:func:`mps_root_destroy`.
 
 
-.. c:function:: mps_res_t mps_root_create_reg(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_thr_t thr, mps_reg_scan_t reg_scan, void *p, size_t s)
-
-    Register a :term:`root` that consists of the :term:`references`
-    fixed in a :term:`thread's <thread>` registers and stack by a
-    scanning function.
-
-    ``root_o`` points to a location that will hold the address of the
-    new root description.
-
-    ``arena`` is the arena.
-
-    ``rank`` is the :term:`rank` of references in the root.
-
-    ``rm`` is the :term:`root mode`.
-
-    ``thr`` is the thread.
-
-    ``reg_scan`` is a scanning function. See :c:type:`mps_reg_scan_t`.
-
-    ``p`` and ``s`` are arguments that will be passed to ``reg_scan`` each
-    time it is called. This is intended to make it easy to pass, for
-    example, an array and its size as parameters.
-
-    Returns :c:macro:`MPS_RES_OK` if the root was registered
-    successfully, :c:macro:`MPS_RES_MEMORY` if the new root
-    description could not be allocated, or another :term:`result code`
-    if there was another error.
-
-    The registered root description persists until it is destroyed by
-    calling :c:func:`mps_root_destroy`.
-
-    .. note::
-
-        It is not supported for :term:`client programs` to pass their
-        own scanning functions to this function. The built-in MPS
-        function :c:func:`mps_stack_scan_ambig` must be used. In this
-        case the ``p`` argument must be a pointer into the thread's
-        stack, as described for :c:func:`mps_root_create_reg_masked`
-        below, and the ``s`` argument is ignored.
-
-        This function is intended as a hook should we ever need to
-        allow client-specific extension or customization of stack and
-        register scanning. If you're in a position where you need
-        this, for example, if you're writing a compiler and have
-        control over what goes in the registers, :ref:`contact us
-        <contact>`.
-
-
-.. c:type:: mps_res_t (*mps_reg_scan_t)(mps_ss_t ss, mps_thr_t thr, void *p, size_t s)
-
-    The type of a root scanning function for roots created with
-    :c:func:`mps_root_create_reg`.
-
-    ``ss`` is the :term:`scan state`. It must be passed to
-    :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END` to delimit a
-    sequence of fix operations, and to the functions
-    :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2` when fixing a
-    :term:`reference`.
-
-    ``thr`` is the :term:`thread`.
-
-    ``p`` and ``s`` are the corresponding values that were passed to
-    :c:func:`mps_root_create_reg`.
-
-    Returns a :term:`result code`. If a fix function returns a value
-    other than :c:macro:`MPS_RES_OK`, the scan method must return that
-    value, and may return without fixing any further references.
-    Generally, it is better if it returns as soon as possible. If the
-    scanning is completed successfully, the function should return
-    :c:macro:`MPS_RES_OK`.
-
-    A root scan method is called whenever the MPS needs to scan the
-    root. It must then indicate references within the root by calling
-    :c:func:`MPS_FIX1` and :c:func:`MPS_FIX2`.
-
-    .. seealso::
-
-        :ref:`topic-scanning`.
-
-    .. note::
-
-        :term:`Client programs` are not expected to
-        write scanning functions of this type. The built-in MPS
-        function :c:func:`mps_stack_scan_ambig` must be used.
-
-
-.. c:function:: mps_reg_scan_t mps_stack_scan_ambig
-
-    A root scanning function for :term:`ambiguous <ambiguous
-    reference>` scanning of :term:`threads`, suitable for
-    passing to :c:func:`mps_root_create_reg`.
-
-    It scans all integer registers and everything on the stack of the
-    thread given, and can therefore only be used with :term:`ambiguous
-    roots`. It scans locations that are more recently added than the
-    stack bottom that was passed in the ``p`` argument to
-    :c:func:`mps_root_create_reg`.
-
-    References are assumed to be represented as machine words, and are
-    required to be word-aligned; unaligned values are ignored. If
-    references are tagged, use :c:func:`mps_root_create_reg_masked`
-    instead.
-
-    .. note::
-
-        The MPS provides this function because it's hard to write: it
-        depends on the operating system, the processor architecture,
-        and in some cases on the compiler.
-
-
-.. c:function:: mps_res_t mps_root_create_reg_masked(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_thr_t thr, mps_word_t mask, mps_word_t pattern, void *stack)
+.. c:function:: mps_res_t mps_root_create_stack(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_thr_t thr, mps_word_t mask, mps_word_t pattern, void *stack)
 
     Register a :term:`root` that consists of the :term:`references` in
     a :term:`thread's <thread>` registers and stack that match a

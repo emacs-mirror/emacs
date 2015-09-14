@@ -1401,10 +1401,10 @@ mps_res_t mps_root_create_reg(mps_root_t *mps_root_o, mps_arena_t arena,
 }
 
 
-mps_res_t mps_root_create_reg_masked(mps_root_t *mps_root_o, mps_arena_t arena,
-                                     mps_rank_t mps_rank, mps_rm_t mps_rm,
-                                     mps_thr_t thread, mps_word_t mask,
-                                     mps_word_t pattern, void *reg_scan_p)
+mps_res_t mps_root_create_stack(mps_root_t *mps_root_o, mps_arena_t arena,
+                                mps_rank_t mps_rank, mps_rm_t mps_rm,
+                                mps_thr_t thread, mps_word_t mask,
+                                mps_word_t pattern, void *reg_scan_p)
 {
   Rank rank = (Rank)mps_rank;
   Root root;
