@@ -600,7 +600,7 @@ int main(int argc, char *argv[])
   } else {
     die(mps_root_create_stack(&reg_root, arena,
                               mps_rank_ambig(), (mps_rm_t)0,
-                              thread, 0, 0, marker),
+                              thread, sizeof(mps_word_t) - 1, 0, marker),
         "root_create_stack");
   }
 

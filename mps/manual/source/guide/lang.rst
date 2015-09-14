@@ -977,7 +977,7 @@ as a root by calling :c:func:`mps_root_create_stack`::
     void *marker = &marker;
     mps_root_t stack_root;
     res = mps_root_create_stack(&reg_root, arena, mps_rank_ambig(),
-                                0, thread, 0, 0, marker);
+                                0, thread, sizeof(mps_word_t) - 1, 0, marker);
     if (res != MPS_RES_OK) error("Couldn't create root");
 
 In order to scan the control stack, the MPS needs to know where the

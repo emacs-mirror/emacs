@@ -271,7 +271,8 @@ static void *setup(void *v, size_t s)
   arena = guff->arena;
   thr = guff->thr;
 
-  die(mps_root_create_stack(&stack, arena, mps_rank_ambig(), 0, thr, 0, 0, v),
+  die(mps_root_create_stack(&stack, arena, mps_rank_ambig(),
+                            0, thr, sizeof(mps_word_t) - 1, 0, v),
       "Root Create\n");
   die(EnsureHeaderFormat(&dylanfmt, arena), "EnsureHeaderFormat");
   die(EnsureHeaderWeakFormat(&dylanweakfmt, arena), "EnsureHeaderWeakFormat");
