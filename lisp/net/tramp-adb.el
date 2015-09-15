@@ -132,6 +132,7 @@ It is used for TCP/IP devices."
     (file-newer-than-file-p . tramp-handle-file-newer-than-file-p)
     (file-notify-add-watch . tramp-handle-file-notify-add-watch)
     (file-notify-rm-watch . tramp-handle-file-notify-rm-watch)
+    (file-notify-valid-p . tramp-handle-file-notify-valid-p)
     (file-ownership-preserved-p . ignore)
     (file-readable-p . tramp-handle-file-exists-p)
     (file-regular-p . tramp-handle-file-regular-p)

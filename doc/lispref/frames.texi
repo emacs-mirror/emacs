@@ -1666,8 +1666,8 @@ variable, Emacs uses the latter.  By default,
 @code{frame-alpha-lower-limit} is 20.
 
 The @code{alpha} frame parameter can also be a cons cell
-@code{(@samp{active} . @samp{inactive})}, where @samp{active} is the
-opacity of the frame when it is selected, and @samp{inactive} is the
+@code{(@var{active} . @var{inactive})}, where @var{active} is the
+opacity of the frame when it is selected, and @var{inactive} is the
 opacity when it is not selected.
 @end table
 

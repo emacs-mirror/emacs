@@ -345,17 +345,50 @@ DESCRIPTOR should be an object returned by `file-notify-add-watch'."
 
       ;; Call low-level function.
       (when (null (cdr registered))
-	(if handler
-	    ;; A file name handler could exist even if there is no local
-	    ;; file notification support.
-	    (funcall handler 'file-notify-rm-watch desc)
+        (condition-case nil
+            (if handler
+                ;; A file name handler could exist even if there is no local
+                ;; file notification support.
+                (funcall handler 'file-notify-rm-watch desc)
 
-	  (funcall
-	   (cond
-	    ((eq file-notify--library 'gfilenotify) 'gfile-rm-watch)
-	    ((eq file-notify--library 'inotify) 'inotify-rm-watch)
-	    ((eq file-notify--library 'w32notify) 'w32notify-rm-watch))
-	   desc))))))
+              (funcall
+               (cond
+                ((eq file-notify--library 'gfilenotify) 'gfile-rm-watch)
+                ((eq file-notify--library 'inotify) 'inotify-rm-watch)
+                ((eq file-notify--library 'w32notify) 'w32notify-rm-watch))
+               desc))
+          (file-notify-error nil))))))
+
+;; Temporary declarations.
+(defalias 'gfile-valid-p 'identity)
+
+(defun file-notify-valid-p (descriptor)
+  "Check a watch specified by its DESCRIPTOR.
+DESCRIPTOR should be an object returned by `file-notify-add-watch'."
+  (let* ((desc (if (consp descriptor) (car descriptor) descriptor))
+	 (file (if (consp descriptor) (cdr descriptor)))
+         (registered (gethash desc file-notify-descriptors))
+	 (dir (car registered))
+	 handler)
+
+    (when (stringp dir)
+      (setq handler (find-file-name-handler dir 'file-notify-valid-p))
+
+      (and (or ;; It is a directory.
+               (not file)
+               ;; The file is registered.
+               (assoc file (cdr registered)))
+           (if handler
+               ;; A file name handler could exist even if there is no
+               ;; local file notification support.
+               (funcall handler 'file-notify-valid-p descriptor)
+             (funcall
+              (cond
+               ((eq file-notify--library 'gfilenotify) 'gfile-valid-p)
+               ((eq file-notify--library 'inotify) 'inotify-valid-p)
+               ((eq file-notify--library 'w32notify) 'w32notify-valid-p))
+              desc))
+           t))))
 
 ;; The end:
 (provide 'filenotify)

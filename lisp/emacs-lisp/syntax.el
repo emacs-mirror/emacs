@@ -106,10 +106,6 @@ Put first the functions more likely to cause a change and cheaper to compute.")
 		  (point-max))))
   (cons beg end))
 
-(defvar syntax-propertize--done -1
-  "Position up to which syntax-table properties have been set.")
-(make-variable-buffer-local 'syntax-propertize--done)
-
 (defun syntax-propertize--shift-groups (re n)
   (replace-regexp-in-string
    "\\\\(\\?\\([0-9]+\\):"
@@ -290,54 +286,59 @@ The return value is a function suitable for `syntax-propertize-function'."
 
 (defun syntax-propertize (pos)
   "Ensure that syntax-table properties are set until POS."
-  (when (and syntax-propertize-function
-             (< syntax-propertize--done pos))
-    ;; (message "Needs to syntax-propertize from %s to %s"
-    ;;          syntax-propertize--done pos)
-    (set (make-local-variable 'parse-sexp-lookup-properties) t)
-    (save-excursion
-      (with-silent-modifications
-        (make-local-variable 'parse-sexp-propertize-done) ;Just in case!
-        (let* ((start (max syntax-propertize--done (point-min)))
-               ;; Avoid recursion!
-               (parse-sexp-propertize-done most-positive-fixnum)
-               (end (max pos
-                         (min (point-max)
-                              (+ start syntax-propertize-chunk-size))))
-               (funs syntax-propertize-extend-region-functions))
-          (while funs
-            (let ((new (funcall (pop funs) start end)))
-              (if (or (null new)
-                      (and (>= (car new) start) (<= (cdr new) end)))
-                  nil
-                (setq start (car new))
-                (setq end (cdr new))
-                ;; If there's been a change, we should go through the
-                ;; list again since this new position may
-                ;; warrant a different answer from one of the funs we've
-                ;; already seen.
-                (unless (eq funs
-                            (cdr syntax-propertize-extend-region-functions))
-                  (setq funs syntax-propertize-extend-region-functions)))))
-          ;; Move the limit before calling the function, so the function
-          ;; can use syntax-ppss.
-          (setq syntax-propertize--done end)
-          ;; (message "syntax-propertizing from %s to %s" start end)
-          (remove-text-properties start end
-                                  '(syntax-table nil syntax-multiline nil))
-          (funcall syntax-propertize-function start end))))))
+  (when (< syntax-propertize--done pos)
+    (if (null syntax-propertize-function)
+        (setq syntax-propertize--done (max (point-max) pos))
+      ;; (message "Needs to syntax-propertize from %s to %s"
+      ;;          syntax-propertize--done pos)
+      (set (make-local-variable 'parse-sexp-lookup-properties) t)
+      (save-excursion
+        (with-silent-modifications
+          (make-local-variable 'syntax-propertize--done) ;Just in case!
+          (let* ((start (max (min syntax-propertize--done (point-max))
+                             (point-min)))
+                 (end (max pos
+                           (min (point-max)
+                                (+ start syntax-propertize-chunk-size))))
+                 (funs syntax-propertize-extend-region-functions))
+            (while funs
+              (let ((new (funcall (pop funs) start end))
+                    ;; Avoid recursion!
+                    (syntax-propertize--done most-positive-fixnum))
+                (if (or (null new)
+                        (and (>= (car new) start) (<= (cdr new) end)))
+                    nil
+                  (setq start (car new))
+                  (setq end (cdr new))
+                  ;; If there's been a change, we should go through the
+                  ;; list again since this new position may
+                  ;; warrant a different answer from one of the funs we've
+                  ;; already seen.
+                  (unless (eq funs
+                              (cdr syntax-propertize-extend-region-functions))
+                    (setq funs syntax-propertize-extend-region-functions)))))
+            ;; Move the limit before calling the function, so the function
+            ;; can use syntax-ppss.
+            (setq syntax-propertize--done end)
+            ;; (message "syntax-propertizing from %s to %s" start end)
+            (remove-text-properties start end
+                                    '(syntax-table nil syntax-multiline nil))
+            ;; Avoid recursion!
+            (let ((syntax-propertize--done most-positive-fixnum))
+              (funcall syntax-propertize-function start end))))))))
 
-;;; Link syntax-propertize with the new parse-sexp-propertize.
+;;; Link syntax-propertize with syntax.c.
 
-(setq-default parse-sexp-propertize-function #'syntax--jit-propertize)
-(defun syntax--jit-propertize (charpos)
-  (if (not syntax-propertize-function)
-      (setq parse-sexp-propertize-done (1+ (point-max)))
-    (syntax-propertize charpos)
-    (setq parse-sexp-propertize-done
-          (if (= (point-max) syntax-propertize--done)
-              (1+ (point-max))
-            syntax-propertize--done))))
+(defvar syntax-propertize-chunks
+  ;; We're not sure how far we'll go.  In my tests, using chunks of 20000
+  ;; brings to overhead to something negligible.  Passing ‘charpos’ directly
+  ;; also works (basically works line-by-line) but results in an overhead which
+  ;; I thought was a bit too high (like around 50%).
+  2000)
+
+(defun internal--syntax-propertize (charpos)
+  ;; FIXME: Called directly from C.
+  (syntax-propertize (min (+ syntax-propertize-chunks charpos) (point-max))))
 
 ;;; Incrementally compute and memoize parser state.
 

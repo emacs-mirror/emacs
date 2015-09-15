@@ -143,7 +143,7 @@ newlines are indicated with a symbol."
                     'longlines-window-change-function nil t))
         (let ((buffer-undo-list t)
               (inhibit-read-only t)
-	      (after-change-functions nil)
+	      (inhibit-modification-hooks t)
               (mod (buffer-modified-p))
 	      buffer-file-name buffer-file-truename)
           ;; Turning off undo is OK since (spaces + newlines) is
@@ -184,7 +184,7 @@ newlines are indicated with a symbol."
     (if longlines-showing
         (longlines-unshow-hard-newlines))
     (let ((buffer-undo-list t)
-	  (after-change-functions nil)
+	  (inhibit-modification-hooks t)
           (inhibit-read-only t)
 	  buffer-file-name buffer-file-truename)
       (if longlines-decoded

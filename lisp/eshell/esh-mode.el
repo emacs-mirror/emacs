@@ -627,10 +627,11 @@ newline."
   (let ((proc-running-p (and (eshell-interactive-process)
 			     (not queue-p)))
 	(inhibit-point-motion-hooks t)
-	after-change-functions)
+	(inhibit-modification-hooks t))
     (unless (and proc-running-p
 		 (not (eq (process-status
-			   (eshell-interactive-process)) 'run)))
+			   (eshell-interactive-process))
+                          'run)))
       (if (or proc-running-p
 	      (>= (point) eshell-last-output-end))
 	  (goto-char (point-max))
@@ -697,7 +698,7 @@ This is done after all necessary filtering has been done."
   (let ((oprocbuf (if process (process-buffer process)
 		    (current-buffer)))
 	(inhibit-point-motion-hooks t)
-	after-change-functions)
+	(inhibit-modification-hooks t))
     (let ((functions eshell-preoutput-filter-functions))
       (while (and functions string)
 	(setq string (funcall (car functions) string))

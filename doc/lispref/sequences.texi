@@ -1276,13 +1276,13 @@ This function sets the parent of @var{char-table} to @var{new-parent}.
 @end defun
 
 @defun char-table-extra-slot char-table n
-This function returns the contents of extra slot @var{n} of
-@var{char-table}.  The number of extra slots in a char-table is
+This function returns the contents of extra slot @var{n} (zero based)
+of @var{char-table}.  The number of extra slots in a char-table is
 determined by its subtype.
 @end defun
 
 @defun set-char-table-extra-slot char-table n value
-This function stores @var{value} in extra slot @var{n} of
+This function stores @var{value} in extra slot @var{n} (zero based) of
 @var{char-table}.
 @end defun
 

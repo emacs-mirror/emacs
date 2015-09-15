@@ -334,7 +334,7 @@ http://debbugs.gnu.org/cgi/pkgreport.cgi?users=emacs;tag=calendar
 *** To merge bugs:
 Eg when bad replies create a bunch of new bugs for the same report.
 Bugs must all be in the same state (e.g. same package(s) and severity
--- see `reassign' and `severity' below), but need not have the same
+-- see 'reassign' and 'severity' below), but need not have the same
 tags (tags are merged). E.g.:
 
 merge 123 124 125 ...
@@ -343,8 +343,8 @@ Note that merging does not affect titles.  In particular, a "retitle"
 of merged bugs only affects individual bugs, not all of them.
 
 *** Forcing a merge:
-Like `merge', but bugs need not be in the same state.  The packages
-must still match though (see `reassign' below).  The first one listed
+Like 'merge', but bugs need not be in the same state.  The packages
+must still match though (see 'reassign' below).  The first one listed
 is the master.  E.g.:
 
 forcemerge 123 124 125 ...
@@ -383,7 +383,7 @@ See http://debbugs.gnu.org/Developer#severities for the meanings.
 *** To set the owner of a bug:
 owner 123 A Hacker <none@example.com>
 
-The shorthand `!' means your own address.
+The shorthand '!' means your own address.
 
 *** To remove the owner of a bug:
 noowner 123
@@ -408,7 +408,7 @@ reassign 1234 emacs
 Note that reassigning clears the list of found versions, even if the
 new packages includes the original one.
 
-** To remove spam from the tracker, move it to the `spam' pseudo-package:
+** To remove spam from the tracker, move it to the 'spam' pseudo-package:
 reassign 123 spam
 
 (Should not be necessary any more, now that the input is moderated.)
@@ -468,10 +468,10 @@ time, rather than by increasing bug number
 *** When you fix a bug, it can be helpful to put the bug number in the
 change log entry, for example:
 
-   * foo.el (foofunc): Fix the `foo' case.  (Bug#123)
+   * lisp/menu-bar.el (menu-set-font): Doc fix.  (Bug#21303)
 
 Then the relevant bug can be found for easy reference.  If it's an
-obvious fix (e.g. a typo), there's no need to clutter the log with the
+obvious fix (e.g., a typo), there's no need to clutter the log with the
 bug number.
 
 Similarly, when you close a bug, it can be helpful to include the
@@ -480,7 +480,7 @@ can see exactly what the fix was.
 
 *** bug-reference-mode
 
-Activate `bug-reference-mode' in ChangeLogs to get clickable links to
+Activate 'bug-reference-mode' in ChangeLogs to get clickable links to
 the bug web-pages.
 
 *** Debian stuff

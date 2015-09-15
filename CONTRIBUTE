@@ -234,7 +234,9 @@ by following links from http://savannah.gnu.org/mail/?group=emacs .
 
 To email a patch you can use a shell command like 'git format-patch -1'
 to create a file, and then attach the file to your email.  This nicely
-packages the patch's commit message and changes.
+packages the patch's commit message and changes.  To send just one
+such patch without additional remarks, you can use a command like
+'git send-email --to=bug-gnu-emacs@gnu.org 0001-DESCRIPTION.patch'.
 
 ** Document your changes.
 

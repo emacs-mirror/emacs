@@ -33,7 +33,7 @@ You now have both branches conveniently accessible, and you can do
 Fixing bugs
 ===========
 
-You edit the files in either branch, `M-x vc-dir', and check in your
+You edit the files in either branch, 'M-x vc-dir', and check in your
 changes.  Then you need to push the data to the main repository.  This
 will usually fail, since somebody else has pushed other changes in the
 meantime.  To fix this, say
@@ -50,18 +50,8 @@ Sending patches
 ===============
 
 If you lack push access or would like feedback before pushing a patch,
-you can send a patch file as a bug report.  After committing your
-change locally, do:
-
-git format-patch -1
-
-This creates a file 0001-DESCRIPTION.patch containing the patch, where
-DESCRIPTION comes from the first line of your patch's commit message.
-You can attach the patch file to email that you send to
-bug-gnu-emacs@gnu.org.  You can also configure git to email patches
-directly (see <http://git-scm.com/docs/git-send-email>) and do:
-
-git send-email --to=bug-gnu-emacs@gnu.org 0001-DESCRIPTION.patch
+you commit your change locally and then send a patch file as a bug report
+as described in ../../CONTRIBUTE.
 
 
 Backporting to emacs-24

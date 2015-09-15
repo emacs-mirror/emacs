@@ -1585,7 +1585,6 @@ fi
 
 dnl checks for header files
 AC_CHECK_HEADERS_ONCE(
-  linux/kd.h
   sys/systeminfo.h
   sys/sysinfo.h
   coff.h pty.h
@@ -4037,6 +4036,8 @@ AC_SUBST(DESLIB)
 AC_SUBST(KRB4LIB)
 
 AC_CHECK_HEADERS(valgrind/valgrind.h)
+
+AC_CHECK_MEMBERS([struct unipair.unicode], [], [], [[#include <linux/kd.h>]])
 
 AC_CHECK_FUNCS_ONCE(tzset)
 

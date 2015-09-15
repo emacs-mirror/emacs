@@ -200,7 +200,7 @@
    `(let* (,@(append varlist
                      '((modified (buffer-modified-p)) (buffer-undo-list t)
                        (inhibit-read-only t) (inhibit-point-motion-hooks t)
-                       before-change-functions after-change-functions
+                       (inhibit-modification-hooks t)
                        deactivate-mark buffer-file-name buffer-file-truename)))
      ,@body
      (when (and (not modified) (buffer-modified-p))

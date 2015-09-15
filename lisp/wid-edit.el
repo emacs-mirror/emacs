@@ -2654,8 +2654,7 @@ Return an alist of (TYPE MATCH)."
   (save-excursion
     (let ((children (widget-get widget :children))
 	  (inhibit-read-only t)
-	  before-change-functions
-	  after-change-functions)
+	  (inhibit-modification-hooks t))
       (cond (before
 	     (goto-char (widget-get before :entry-from)))
 	    (t
@@ -2679,8 +2678,7 @@ Return an alist of (TYPE MATCH)."
     (let ((buttons (copy-sequence (widget-get widget :buttons)))
 	  button
 	  (inhibit-read-only t)
-	  before-change-functions
-	  after-change-functions)
+	  (inhibit-modification-hooks t))
       (while buttons
 	(setq button (car buttons)
 	      buttons (cdr buttons))
@@ -2691,8 +2689,7 @@ Return an alist of (TYPE MATCH)."
     (let ((entry-from (widget-get child :entry-from))
 	  (entry-to (widget-get child :entry-to))
 	  (inhibit-read-only t)
-	  before-change-functions
-	  after-change-functions)
+	  (inhibit-modification-hooks t))
       (widget-delete child)
       (delete-region entry-from entry-to)
       (set-marker entry-from nil)

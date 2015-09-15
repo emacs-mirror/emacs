@@ -593,7 +593,7 @@ sending a message to @samp{foo@@bar.com}.  The ``retrieval method''
 for such URLs is to open a mail composition buffer in which the
 appropriate content (e.g., the recipient address) has been filled in.
 
-  As defined in RFC 2368, a @code{mailto} URL has the form
+  As defined in RFC 6068, a @code{mailto} URL can have the form
 
 @example
 @samp{mailto:@var{mailbox}[?@var{header}=@var{contents}[&@var{header}=@var{contents}]]}

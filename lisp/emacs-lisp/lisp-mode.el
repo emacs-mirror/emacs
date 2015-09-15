@@ -110,7 +110,7 @@
                                 ;; CLOS and EIEIO
 				"defgeneric" "defmethod")
                               t))
-			   "\\s-+\\(\\(\\sw\\|\\s_\\)+\\)"))
+			   "\\s-+\\(\\(\\sw\\|\\s_\\|\\\\.\\)+\\)"))
 	 2)
    (list (purecopy "Variables")
 	 (purecopy (concat "^\\s-*("
@@ -122,11 +122,11 @@
                                 "defconstant"
 				"defparameter" "define-symbol-macro")
                               t))
-			   "\\s-+\\(\\(\\sw\\|\\s_\\)+\\)"))
+			   "\\s-+\\(\\(\\sw\\|\\s_\\|\\\\.\\)+\\)"))
 	 2)
    ;; For `defvar', we ignore (defvar FOO) constructs.
    (list (purecopy "Variables")
-	 (purecopy (concat "^\\s-*(defvar\\s-+\\(\\(\\sw\\|\\s_\\)+\\)"
+	 (purecopy (concat "^\\s-*(defvar\\s-+\\(\\(\\sw\\|\\s_\\|\\\\.\\)+\\)"
 			   "[[:space:]\n]+[^)]"))
 	 1)
    (list (purecopy "Types")
@@ -143,7 +143,7 @@
                                 ;; CLOS and EIEIO
                                 "defclass")
                               t))
-			   "\\s-+'?\\(\\(\\sw\\|\\s_\\)+\\)"))
+			   "\\s-+'?\\(\\(\\sw\\|\\s_\\|\\\\.\\)+\\)"))
 	 2))
 
   "Imenu generic expression for Lisp mode.  See `imenu-generic-expression'.")
@@ -220,7 +220,7 @@
 (defun lisp--el-match-keyword (limit)
   ;; FIXME: Move to elisp-mode.el.
   (catch 'found
-    (while (re-search-forward "(\\(\\(?:\\sw\\|\\s_\\)+\\)\\_>" limit t)
+    (while (re-search-forward "(\\(\\(?:\\sw\\|\\s_\\|\\\\.\\)+\\)\\_>" limit t)
       (let ((sym (intern-soft (match-string 1))))
 	(when (or (special-form-p sym)
 		  (and (macrop sym)
@@ -349,7 +349,7 @@
                   ;; Any whitespace and defined object.
                   "[ \t']*"
                   "\\(([ \t']*\\)?" ;; An opening paren.
-                  "\\(\\(setf\\)[ \t]+\\(?:\\sw\\|\\s_\\)+\\|\\(?:\\sw\\|\\s_\\)+\\)?")
+                  "\\(\\(setf\\)[ \t]+\\(?:\\sw\\|\\s_\\|\\\\.\\)+\\|\\(?:\\sw\\|\\s_\\|\\\\.\\)+\\)?")
           (1 font-lock-keyword-face)
           (3 (let ((type (get (intern-soft (match-string 1)) 'lisp-define-type)))
                (cond ((eq type 'var) font-lock-variable-name-face)
@@ -373,7 +373,7 @@
                   ;; Any whitespace and defined object.
                   "[ \t']*"
                   "\\(([ \t']*\\)?" ;; An opening paren.
-                  "\\(\\(setf\\)[ \t]+\\(?:\\sw\\|\\s_\\)+\\|\\(?:\\sw\\|\\s_\\)+\\)?")
+                  "\\(\\(setf\\)[ \t]+\\(?:\\sw\\|\\s_\\|\\\\.\\)+\\|\\(?:\\sw\\|\\s_\\|\\\\.\\)+\\)?")
           (1 font-lock-keyword-face)
           (3 (let ((type (get (intern-soft (match-string 1)) 'lisp-define-type)))
                (cond ((eq type 'var) font-lock-variable-name-face)
@@ -395,22 +395,22 @@
          (lisp--el-match-keyword . 1)
          ;; Exit/Feature symbols as constants.
          (,(concat "(\\(catch\\|throw\\|featurep\\|provide\\|require\\)\\_>"
-                   "[ \t']*\\(\\(?:\\sw\\|\\s_\\)+\\)?")
+                   "[ \t']*\\(\\(?:\\sw\\|\\s_\\|\\\\.\\)+\\)?")
            (1 font-lock-keyword-face)
            (2 font-lock-constant-face nil t))
          ;; Erroneous structures.
          (,(concat "(" el-errs-re "\\_>")
            (1 font-lock-warning-face))
          ;; Words inside \\[] tend to be for `substitute-command-keys'.
-         ("\\\\\\\\\\[\\(\\(?:\\sw\\|\\s_\\)+\\)\\]"
+         ("\\\\\\\\\\[\\(\\(?:\\sw\\|\\s_\\|\\\\.\\)+\\)\\]"
           (1 font-lock-constant-face prepend))
          ;; Words inside ‘’ and '' and `' tend to be symbol names.
-         ("['`‘]\\(\\(?:\\sw\\|\\s_\\)\\(?:\\sw\\|\\s_\\)+\\)['’]"
+         ("['`‘]\\(\\(?:\\sw\\|\\s_\\|\\\\.\\)\\(?:\\sw\\|\\s_\\|\\\\.\\)+\\)['’]"
           (1 font-lock-constant-face prepend))
          ;; Constant values.
-         ("\\_<:\\(?:\\sw\\|\\s_\\)+\\_>" 0 font-lock-builtin-face)
+         ("\\_<:\\(?:\\sw\\|\\s_\\|\\\\.\\)+\\_>" 0 font-lock-builtin-face)
          ;; ELisp and CLisp `&' keywords as types.
-         ("\\_<\\&\\(?:\\sw\\|\\s_\\)+\\_>" . font-lock-type-face)
+         ("\\_<\\&\\(?:\\sw\\|\\s_\\|\\\\.\\)+\\_>" . font-lock-type-face)
          ;; ELisp regexp grouping constructs
          (,(lambda (bound)
              (catch 'found
@@ -447,19 +447,19 @@
          (,(concat "(" cl-kws-re "\\_>") . 1)
          ;; Exit/Feature symbols as constants.
          (,(concat "(\\(catch\\|throw\\|provide\\|require\\)\\_>"
-                   "[ \t']*\\(\\(?:\\sw\\|\\s_\\)+\\)?")
+                   "[ \t']*\\(\\(?:\\sw\\|\\s_\\|\\\\.\\)+\\)?")
            (1 font-lock-keyword-face)
            (2 font-lock-constant-face nil t))
          ;; Erroneous structures.
          (,(concat "(" cl-errs-re "\\_>")
            (1 font-lock-warning-face))
          ;; Words inside ‘’ and '' and `' tend to be symbol names.
-         ("['`‘]\\(\\(?:\\sw\\|\\s_\\)\\(?:\\sw\\|\\s_\\)+\\)['’]"
+         ("['`‘]\\(\\(?:\\sw\\|\\s_\\|\\\\.\\)\\(?:\\sw\\|\\s_\\|\\\\.\\)+\\)['’]"
           (1 font-lock-constant-face prepend))
          ;; Constant values.
-         ("\\_<:\\(?:\\sw\\|\\s_\\)+\\_>" 0 font-lock-builtin-face)
+         ("\\_<:\\(?:\\sw\\|\\s_\\|\\\\.\\)+\\_>" 0 font-lock-builtin-face)
          ;; ELisp and CLisp `&' keywords as types.
-         ("\\_<\\&\\(?:\\sw\\|\\s_\\)+\\_>" . font-lock-type-face)
+         ("\\_<\\&\\(?:\\sw\\|\\s_\\|\\\\.\\)+\\_>" . font-lock-type-face)
          ;; This is too general -- rms.
          ;; A user complained that he has functions whose names start with `do'
          ;; and that they get the wrong color.
@@ -482,7 +482,7 @@
   (let* ((firstsym (and listbeg
                         (save-excursion
                           (goto-char listbeg)
-                          (and (looking-at "([ \t\n]*\\(\\(\\sw\\|\\s_\\)+\\)")
+                          (and (looking-at "([ \t\n]*\\(\\(\\sw\\|\\s_\\|\\\\.\\)+\\)")
                                (match-string 1)))))
          (docelt (and firstsym
                       (function-get (intern-soft firstsym)

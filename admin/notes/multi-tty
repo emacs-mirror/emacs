@@ -82,7 +82,7 @@ Known problems:
 	  minibuffer prompt (which is a kind of recursive editing) on
 	  another display.  To unfreeze your session, switch to that
 	  display and complete the recursive edit, for example by
-	  pressing C-] (`abort-recursive-edit').
+	  pressing C-] ('abort-recursive-edit').
 
 	  I am sorry to say that currently there is no way to break
 	  out of this "single-kboard mode" from a frozen display.  If
@@ -209,11 +209,11 @@ following:
 THINGS TO DO
 ------------
 
-** See if `tty-defined-color-alist' needs to be terminal-local.
+** See if 'tty-defined-color-alist' needs to be terminal-local.
    Update: Dan says it should be, so convert it.
 
 ** Mikhail Gusarov suggest to add a hook akin to
-   `after-make-frame-functions' that is called whenever Emacs connects
+   'after-make-frame-functions' that is called whenever Emacs connects
    to a new terminal.  Good idea!
 
 ** emacsclient -t on the console does not work after su.  You have to
@@ -237,16 +237,16 @@ THINGS TO DO
    proxy idea.
 
 ** lisp/vc.el depends on the terminal type during load time.
-   `vc-annotate-color-map' is one example that needs to be fixed.
+   'vc-annotate-color-map' is one example that needs to be fixed.
 
-** Understand how `quit_throw_to_read_char' works, and fix any bugs
+** Understand how 'quit_throw_to_read_char' works, and fix any bugs
    that come to light.
 
 ** See if getcjmp can be eliminated somehow.  Why does Emacs allow
    asynchronous input processing while it's reading input anyway?
 
-** `delete-frame' events are handled by `special-event-map'
-   immediately when read by `read_char'.  This is fine but it prevents
+** 'delete-frame' events are handled by 'special-event-map'
+   immediately when read by 'read_char'.  This is fine but it prevents
    higher-level keymaps from binding that event to get notified of the
    deleted frame.
 
@@ -254,26 +254,26 @@ THINGS TO DO
    deletions after they have happened, usually because they want to
    clean up after the deleted frame.  Not all frame-local states can
    be stored as a frame parameter.  For example,
-   `display-splash-screen' uses `recursive-edit' with a special keymap
+   'display-splash-screen' uses 'recursive-edit' with a special keymap
    override to create its buffer---and it leads to all kinds of
    nastiness if Emacs stays in this recursive edit mode after the
    frame containing the splash screen is deleted.  Basically, the
    splash-screen implementation wants to throw out of the recursive
    edit when the frame is deleted; however, it is not legal to throw
-   from `delete-frame-functions' because `delete-frame' must not fail.
-   (Introducing `delete-frame-after-functions' would not help either
-   because `delete-frame' may not fail at that time either.)
+   from 'delete-frame-functions' because 'delete-frame' must not fail.
+   (Introducing 'delete-frame-after-functions' would not help either
+   because 'delete-frame' may not fail at that time either.)
 
-   Currently `fancy-splash-screens' installs a
-   `delete-frame-functions' hook that sets up a timer to exit the
+   Currently 'fancy-splash-screens' installs a
+   'delete-frame-functions' hook that sets up a timer to exit the
    recursive edit.  This is an adequate solution, but it would perhaps
-   be better to have something like a `frame-deleted' event that could
+   be better to have something like a 'frame-deleted' event that could
    be bound in the normal way.
 
-** Trouble: `setenv' doesn't actually set environment variables in the
+** Trouble: 'setenv' doesn't actually set environment variables in the
    Emacs process.  This defeats the purpose of the elaborate
-   `server-with-environment' magic around the `tgetent' call in
-   `init_tty'.  D'oh.
+   'server-with-environment' magic around the 'tgetent' call in
+   'init_tty'.  D'oh.
 
 ** (Possibly) create hooks in struct device for creating frames on a
    specific terminal, and eliminate the hackish terminal-related frame
@@ -290,9 +290,9 @@ THINGS TO DO
    as static, removing it from dispextern.h.
    Move fatal to emacs.c and declare it somewhere.
 
-** Search for `suspend-emacs' references and replace them with
-   `suspend-frame', if necessary.  Ditto for `save-buffers-kill-emacs'
-   vs. `save-buffers-kill-display'.
+** Search for 'suspend-emacs' references and replace them with
+   'suspend-frame', if necessary.  Ditto for 'save-buffers-kill-emacs'
+   vs. 'save-buffers-kill-display'.
 
 ** Emacs crashes when a tty frame is resized so that there is no space
    for all its windows.  (Tom Schutzer-Weissmann)
@@ -315,7 +315,7 @@ THINGS TO DO
    impression that the various multidisplay fixes will only get
    released in GTK+ 2.10.
 
-** Audit `face-valid-attribute-values' usage in customize and
+** Audit 'face-valid-attribute-values' usage in customize and
    elsewhere.  Its return value depends on the current window system.
    Replace static initializers using it with runtime functions.  For
    example, custom's buttons are broken on non-initial device types.
@@ -325,9 +325,9 @@ THINGS TO DO
 
 ** frames-on-display-list should also accept frames.
 
-** Consider the `tty-type' frame parameter and the `display-tty-type'
+** Consider the 'tty-type' frame parameter and the 'display-tty-type'
    function.  They serve the exact same purpose.  I think it may be
-   a good idea to eliminate one of them, preferably `tty-type'.
+   a good idea to eliminate one of them, preferably 'tty-type'.
 
 ** The handling of lisp/term/*.el, and frame creation in general, is a
    big, big mess.  How come the terminal-specific file is loaded by
@@ -340,27 +340,23 @@ THINGS TO DO
    changed in CVS, and frame.el in multi-tty has not yet been adapted
    for the changes.  (It needs to look at
    default-frame-background-mode.)  (Update: maybe it is fixed now;
-   needs testing.) (Note that the byte compiler has this to say about
-   term/rxvt.el:)
+   needs testing.)
 
-	term/rxvt.el:309:17:Warning: assignment to free variable
-	    `default-frame-background-mode'
-
-** I think `(set-)terminal-local-value' and the terminal parameter
+** I think '(set-)terminal-local-value' and the terminal parameter
    mechanism should be integrated into a single framework.
 
-   (Update: `(set-)terminal-local-value' is now eliminated, but the
+   (Update: '(set-)terminal-local-value' is now eliminated, but the
    terminal-local variables should still be accessible as terminal
-   parameters.  This also applies to `display-name' and similar
+   parameters.  This also applies to 'display-name' and similar
    functions.)
 
 ** Add the following hooks: after-delete-frame-hook (for server.el,
    instead of delete-frame-functions),
    after-delete-terminal-functions, after-create-terminal-functions.
 
-** BULK RENAME: The `display-' prefix of new Lisp-level functions
-   conflicts with stuff like `display-time-mode'.  Use `device-'
-   or `terminal-' instead.  I think I prefer `terminal-'.
+** BULK RENAME: The 'display-' prefix of new Lisp-level functions
+   conflicts with stuff like 'display-time-mode'.  Use 'device-'
+   or 'terminal-' instead.  I think I prefer 'terminal-'.
 
    It turns out that most of the offending Lisp functions were defined
    in the trunk.  Therefore, compatibility aliases should be defined
@@ -466,7 +462,7 @@ THINGS TO DO
 
 ** With iswitchb-default-method set to 'always-frame, only frames on
    the current display should be considered.  This might involve
-   extending `get-buffer-window'.
+   extending 'get-buffer-window'.
 
 ** Have a look at Vlocale_coding_system.  Seems like it would be a
    tedious job to localize it, although most references use it for
@@ -537,7 +533,7 @@ DIARY OF CHANGES
 
 -- Change make-terminal-frame to support specifying another tty.
 
-   (Done, new frame parameters: `tty' and `tty-type'.)
+   (Done, new frame parameters: 'tty' and 'tty-type'.)
 
 -- Implement support for reading from multiple terminals.
 
@@ -549,7 +545,7 @@ DIARY OF CHANGES
 
    (Update2: After enabling X, they don't.)
 
--- other-frame should cycle through the frames on the `current'
+-- other-frame should cycle through the frames on the 'current'
    terminal only.
 
    (Done, by trivially modifying next_frame and prev_frame.)
@@ -606,7 +602,7 @@ DIARY OF CHANGES
 
    (Update^3: Not any more.)
 
--- Make make-terminal-frame look up the `tty' and `tty-type' frame
+-- Make make-terminal-frame look up the 'tty' and 'tty-type' frame
    parameters from the currently selected terminal before the global
    default.
 
@@ -824,7 +820,7 @@ DIARY OF CHANGES
 
    (Done, breaking interactive temacs.)
 
--- The command `emacsclient -t -e '(delete-frame)'' fails to exit.
+-- The command "emacsclient -t -e '(delete-frame)'" fails to exit.
 
    (Fixed.)
 
@@ -934,7 +930,7 @@ DIARY OF CHANGES
    frame sets single_kboard).  Update: the face problems are caused by
    bugs in term.el, not in multi-tty.  The lockup is caused by
    single_kboard mode, and is not easily resolvable.  The best thing to
-   do is to simply refuse to create a tty frame of type `eterm'.
+   do is to simply refuse to create a tty frame of type 'eterm'.
 
    (Fixed, changed emacsclient to check for TERM=eterm.  The face
    complaints seem to be caused by bugs in term.el; they are not
@@ -943,14 +939,14 @@ DIARY OF CHANGES
 -- Find out the best way to support suspending Emacs with multiple
    ttys.  My guess: disable it on the controlling tty, but from other
    ttys pass it on to emacsclient somehow.  (It is (I hope) trivial to
-   extend emacsclient to handle suspend/resume.  A `kill -STOP' almost
+   extend emacsclient to handle suspend/resume.  A 'kill -STOP' almost
    works right now.)
 
    (Done.  I needed to play with signal handling and the server
    protocol a bit to make emacsclient behave as a normal UNIX program
    wrt foreground/background process groups.)
 
--- There is a flicker during the startup of `emacs -nw'; it's as if
+-- There is a flicker during the startup of 'emacs -nw'; it's as if
    the terminal is initialized, reset and then initialized again.
    Debug this.  (Hint: narrow_foreground_group is called twice during
    startup.)
@@ -973,7 +969,7 @@ DIARY OF CHANGES
 
    (It was an internal interface that may be changed when necessary.)
 
--- Change Lisp code not to (getenv "TERM"); use the `tty-type' frame
+-- Change Lisp code not to (getenv "TERM"); use the 'tty-type' frame
    parameter or the frame-tty-type function instead.  (M-x tags-search
    "TERM" helps with this.)  Update: Actually, all getenv invocations
    should be checked for multi-tty compatibility, and an interface
@@ -983,7 +979,7 @@ DIARY OF CHANGES
    calls should be mostly left as they are.)
 
 -- Add an elaborate mechanism for display-local variables.  (There are
-   already a few of these; search for `terminal-local' in the Elisp
+   already a few of these; search for 'terminal-local' in the Elisp
    manual.)
 
    (Not needed.  Display-local variables could be emulated by
@@ -1002,7 +998,7 @@ DIARY OF CHANGES
    emacsclient process for server tty frames.)
    (Update: Not really; Vlocale_coding_system is still global.)
 
--- Make `struct display' accessible to Lisp programs.  Accessor functions:
+-- Make 'struct display' accessible to Lisp programs.  Accessor functions:
 
 	(displayp OBJECT):  Returns t if OBJECT is a display.
 		=> Implemented as display-live-p.
@@ -1020,7 +1016,7 @@ DIARY OF CHANGES
 		=> Already implemented, see frames-on-display-list.
 
 	(display-type DISPLAY):  Returns the type of DISPLAY, as a
-		symbol.  (See `framep'.)
+		symbol.  (See 'framep'.)
 		=> Implemented as display-live-p.
 
 	(display-device DISPLAY): Returns the name of the device that
@@ -1053,7 +1049,7 @@ DIARY OF CHANGES
    (Done.)
 
 -- Support multiple character locales.  A version of
-   `set-locale-environment' needs to be written for setting up
+   'set-locale-environment' needs to be written for setting up
    display-local settings on ttys.  I think calling
    set-display-table-and-terminal-coding-system and
    set-keyboard-coding-system would be enough.  The language
@@ -1066,7 +1062,7 @@ DIARY OF CHANGES
    them to tweak only frame-local settings, if possible.  (They tend
    to call define-key to set function key sequences a lot.)
 
-   (Done, by making `function-key-map' terminal-local (i.e., part of
+   (Done, by making 'function-key-map' terminal-local (i.e., part of
    struct kboard).  This has probably covered all the remaining problems.)
 
 -- xt-mouse.el needs to be adapted for multi-tty.  It currently
@@ -1083,8 +1079,8 @@ DIARY OF CHANGES
 
    This only seems to affect displays that are of the same terminfo
    type as the selected one. Interestingly, in screen Emacs normally
-   reports the up arrow key as `M-o A', but after the above SNAFU, it
-   complains about `M-[ a'.  UNIX ttys are a complete mystery to me,
+   reports the up arrow key as 'M-o A', but after the above SNAFU, it
+   complains about 'M-[ a'.  UNIX ttys are a complete mystery to me,
    but it seems the reset-reinitialize cycle somehow leaves the
    non-selected terminals in a different state than usual.  I have no
    idea how this could happen.
@@ -1132,15 +1128,15 @@ DIARY OF CHANGES
    clear what binding is in effect in any given time.  See if
    current_kboard (or at least the terminal-local bindings exported to
    Lisp) might be changed to be tied to the selected frame instead.
-   Currently, `function-key-map' and `key-translation-map' may be
+   Currently, 'function-key-map' and 'key-translation-map' may be
    accessed reliably only using the hackish
-   `(set-)terminal-local-value' functions.
+   '(set-)terminal-local-value' functions.
 
-   Perhaps there should be a difference between `last-command' &co.
+   Perhaps there should be a difference between 'last-command' &co.
    and these more conventional configuration variables.
-   (E.g. `symbol-value' would use current_kboard to access
-   `last-command', but SELECTED_FRAME()->display->kboard to get the
-   value of `function-key-map'.
+   (E.g. 'symbol-value' would use current_kboard to access
+   'last-command', but SELECTED_FRAME()->display->kboard to get the
+   value of 'function-key-map'.
 
    (Fixed in patch-434.)
 
@@ -1151,7 +1147,7 @@ DIARY OF CHANGES
    below" was the set-input-mode madness.)
 
    (Update: this bug was fixed for good in patch-449.  It was tracked
-   down to a bug in `read_key_sequence': it failed to reinitialize its
+   down to a bug in 'read_key_sequence': it failed to reinitialize its
    local function-key-map/key-translation-map references when it
    switched keyboards.  I don't understand why did this bug only
    appear on brand new frames, though!)
@@ -1163,35 +1159,35 @@ DIARY OF CHANGES
 -- Implement automatic forwarding of client environment variables to
    forked processes, as discussed on the multi-tty list.  Terminal
    parameters are now accessible in C code, so the biggest obstacle is
-   gone.  The `getenv_internal' and `child_setup' functions in
+   gone.  The 'getenv_internal' and 'child_setup' functions in
    callproc.c must be changed to support the following variable:
 
 	terminal-local-environment-variables is a variable defined in ...
 
 	Enable or disable terminal-local environment variables.
 
-	If set to t, `getenv', `setenv' and subprocess creation
+	If set to t, 'getenv', 'setenv' and subprocess creation
 	functions use the environment variables of the emacsclient
 	process that created the selected frame, ignoring
-	`process-environment'.
+	'process-environment'.
 
-	If set to nil, Emacs uses `process-environment' and ignores
+	If set to nil, Emacs uses 'process-environment' and ignores
 	the client environment.
 
-	Otherwise, `terminal-local-environment-variables' should be a
+	Otherwise, 'terminal-local-environment-variables' should be a
 	list of variable names (represented by Lisp strings) to look
 	up in the client environment.  The rest will come from
-	`process-environment'.
+	'process-environment'.
 
-   (Implemented in patch-461; `terminal-getenv', `terminal-setenv' and
-   `with-terminal-environment' are now replaced by extensions to
-   `getenv' and `setenv', and the new `local-environment-variables'
+   (Implemented in patch-461; 'terminal-getenv', 'terminal-setenv' and
+   'with-terminal-environment' are now replaced by extensions to
+   'getenv' and 'setenv', and the new 'local-environment-variables'
    facility.  Yay!)
 
    (Updated in patch-465 to fix the semantics of let-binding
-   `process-environment'.  `process-environment' was changed to
+   'process-environment'.  'process-environment' was changed to
    override all local/global environment variables, and a new variable
-   `global-environment' was introduced to have `process-environment's
+   'global-environment' was introduced to have 'process-environment's
    old meaning.)
 
    (Updated in patch-466 to fix the case when two emacsclient sessions
@@ -1199,27 +1195,27 @@ DIARY OF CHANGES
    environment lists are now stored as frame parameters, so the
    C-level terminal parameters are not strictly necessary any more.)
 
--- `Fdelete_frame' is called from various critical places where it is
+-- 'Fdelete_frame' is called from various critical places where it is
    not acceptable for the frame deletion to fail, e.g. from
-   x_connection_closed after an X error.  `Fdelete_frame' now protects
-   against `delete-frame-functions' throwing an error and preventing a
+   x_connection_closed after an X error.  'Fdelete_frame' now protects
+   against 'delete-frame-functions' throwing an error and preventing a
    frame delete. (patch-475)
 
 -- Fix set-input-mode for multi-tty.  It's a truly horrible interface;
    what if we'd blow it up into several separate functions (with a
    compatibility definition)?
 
-   (Done.  See `set-input-interrupt-mode', `set-output-flow-control',
-   `set-input-meta-mode' and `set-quit-char'.) (patch-457)
+   (Done.  See 'set-input-interrupt-mode', 'set-output-flow-control',
+   'set-input-meta-mode' and 'set-quit-char'.) (patch-457)
 
--- Let-binding `overriding-terminal-local-map' on a brand new frame
-   does not seem to work correctly.  (See `fancy-splash-screens'.)
+-- Let-binding 'overriding-terminal-local-map' on a brand new frame
+   does not seem to work correctly.  (See 'fancy-splash-screens'.)
    The keymap seems to be set up right, but events go to another
-   terminal.  Or is it `unread-command-events' that gets Emacs
+   terminal.  Or is it 'unread-command-events' that gets Emacs
    confused?  Investigate.
 
    (Emacs was confused because a process filter entered
-   `recursive-edit' while Emacs was reading input.  I added support
+   'recursive-edit' while Emacs was reading input.  I added support
    for this in the input system.) (patch-489)
 
 -- I smell something funny around pop_kboard's "deleted kboard" case.
@@ -1244,7 +1240,7 @@ DIARY OF CHANGES
    synchronously (with wait_reading_process_input), or asynchronously
    by SIGIO or polling (SIGALRM).  C-g either sets the Vquit_flag,
    signals a 'quit condition (when immediate_quit), or throws to
-   `getcjmp' when Emacs was waiting for input when the C-g event
+   'getcjmp' when Emacs was waiting for input when the C-g event
    arrived.)
 
 -- Replace wrong_kboard_jmpbuf with a special return value of
@@ -1253,7 +1249,7 @@ DIARY OF CHANGES
 
    (Done in patch-500.)
 
--- `tool-bar-mode', `scroll-bar-mode', `menu-bar-mode' and
+-- 'tool-bar-mode', 'scroll-bar-mode', 'menu-bar-mode' and
    'fringe-mode' are modes global to the entire Emacs session, not
    just a single frame or a single terminal.  This means that their
    status sometimes differs from what's actually displayed on the
@@ -1266,7 +1262,7 @@ DIARY OF CHANGES
 
    (Done in patch-537.)
 
--- The `default-directory' variable should somehow be set to the
+-- The 'default-directory' variable should somehow be set to the
    cwd of the emacsclient process when the user runs emacsclient
    without file arguments.  Perhaps it is OK to just override the
    directory of the *scratch* buffer.
@@ -1278,9 +1274,9 @@ DIARY OF CHANGES
    frame parameter) is not filled with the correct background color.
 
    It seems the border contents are drawn onto by the
-   update_single_window call in `x-show-tip'.  After some debugging, I
+   update_single_window call in 'x-show-tip'.  After some debugging, I
    think the window's background color is not set up
-   correctly---calling `x_clear_area' fills the specified area with
+   correctly---calling 'x_clear_area' fills the specified area with
    black, not light yellow.
 
    (Done in patch-544.  A background_pixel field was defined both in

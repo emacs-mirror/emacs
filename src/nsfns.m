@@ -1009,7 +1009,7 @@ unwind_create_frame (Lisp_Object frame)
       x_free_frame_resources (f);
       free_glyphs (f);
 
-#ifdef GLYPH_DEBUG
+#if defined GLYPH_DEBUG && defined ENABLE_CHECKING
       /* Check that reference counts are indeed correct.  */
       eassert (dpyinfo->terminal->image_cache->refcount == image_cache_refcount);
 #endif

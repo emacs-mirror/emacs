@@ -135,10 +135,10 @@ Currently under control of this var:
       (or (cl--find-class class) class)
     class))
 
-(defun class-p (class)
-  "Return non-nil if CLASS is a valid class vector.
-CLASS is a symbol."                     ;FIXME: Is it a vector or a symbol?
-  (and (symbolp class) (eieio--class-p (cl--find-class class))))
+(defun class-p (x)
+  "Return non-nil if X is a valid class vector.
+X can also be is a symbol."
+  (eieio--class-p (if (symbolp x) (cl--find-class x) x)))
 
 (defun eieio--class-print-name (class)
   "Return a printed representation of CLASS."

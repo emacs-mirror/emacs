@@ -16,8 +16,8 @@ http://lists.gnu.org/archive/html/hydra-users/2013-08/msg00000.html
 
 * Mail notifications
 In addition to the web interface, Hydra can send notifications by
-email when the build status of a project changes—e.g., from
-`SUCCEEDED' to `FAILED'.  It sends notifications about build status in
+email when the build status of a project changes, e.g., from
+SUCCEEDED to FAILED.  It sends notifications about build status in
 Emacs trunk to emacs-buildstatus@gnu.org.
 
 If you want to receive these notifications, please subscribe at
@@ -25,16 +25,16 @@ http://lists.gnu.org/mailman/listinfo/emacs-buildstatus
 
 * The Emacs jobset consists of the following jobs:
 
-** The `tarball' job
+** The 'tarball' job
 which gets a checkout from the repository, and does a bootstrap followed
 by running make-dist to create a tarball.  If this job fails, all the
 others will too (because they use the tarball as input).
 
-** The `build' job
+** The 'build' job
 which starts from the tarball and does a normal build
 
 ** The 'coverage' job
-does a gcov build and then runs `make check'.  Fails if any test fails.
+does a gcov build and then runs 'make check'.  Fails if any test fails.
 
 * Nix expressions
 The recipe for GNU Emacs are available via Git:

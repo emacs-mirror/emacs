@@ -37,7 +37,7 @@ Build Emacs in various ways.
 
 ** quick-install-emacs
 
-Install emacs quickly (`incrementally').
+Install emacs quickly ("incrementally").
 
 ** alloc-colors.c
 

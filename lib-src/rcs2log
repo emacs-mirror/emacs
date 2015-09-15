@@ -414,7 +414,7 @@ sort $SORT_K_OPTIONS </dev/null 2>/dev/null || SORT_K_OPTIONS='+2 -4r +4 +0'
 
 
 # Get the full name of each author the logs mention, and set initialize_fullname
-# to awk code that initializes the `fullname' awk associative array.
+# to awk code that initializes the 'fullname' awk associative array.
 # Warning: foreign authors (i.e. not known in the passwd file) are mishandled;
 # you have to fix the resulting output by hand.
 
@@ -546,8 +546,8 @@ esac
 
 # Function to print a single log line.
 # We don't use awk functions, to stay compatible with old awk versions.
-# `Log' is the log message.
-# `files' contains the affected files.
+# 'Log' is the log message.
+# 'files' contains the affected files.
 printlogline='{
 
 	# Following the GNU coding standards, rewrite
@@ -587,7 +587,7 @@ printlogline='{
 	}
 }'
 
-# Pattern to match the `revision' line of rlog output.
+# Pattern to match the 'revision' line of rlog output.
 rlog_revision_pattern='^revision [0-9]+\.[0-9]+(\.[0-9]+\.[0-9]+)*(['"$tab"' ]+locked by: [^'"$tab"' $,.0-9:;@]*[^'"$tab"' $,:;@][^'"$tab"' $,.0-9:;@]*;)?['"$tab"' ]*$'
 
 case $hostname in

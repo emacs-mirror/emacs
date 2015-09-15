@@ -97,11 +97,11 @@ regard to completeness.
 
  * iso-2022 charsets get unified on i/o.
 
-	With the change on 2003-01-06, decoding routines put `charset'
-	property to decoded text, and iso-2022 encoder pay attention
+	With the change on 2003-01-06, decoding routines put the 'charset'
+	property onto decoded text, and iso-2022 encoder pay attention
 	to it.  Thus, for instance, reading and writing by
 	iso-2022-7bit preserve the original designation sequences.
-	The property name `preferred-charset' may be better?
+	The property name 'preferred-charset' may be better?
 
 	We may have to utilize this property to decide a font.
 

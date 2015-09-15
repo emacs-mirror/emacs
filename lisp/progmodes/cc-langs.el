@@ -3304,10 +3304,9 @@ accomplish that conveniently."
 		 (setq source-eval t)
 		 (let ((init ',(append (cdr c-emacs-variable-inits)
 				       (cdr c-lang-variable-inits))))
-		   (while init
-		     (setq current-var (caar init))
-		     (set (caar init) (eval (cadar init)))
-		     (setq init (cdr init)))))
+		   (dolist (var-init init)
+		     (setq current-var (car var-init))
+		     (set (car var-init) (eval (cadr var-init))))))
 
 	     (error
 	      (if current-var
@@ -3333,10 +3332,9 @@ accomplish that conveniently."
 	 (c-make-emacs-variables-local)
 	 (condition-case err
 
-	     (while init
-	       (setq current-var (caar init))
-	       (set (caar init) (eval (cadar init)))
-	       (setq init (cdr init)))
+	     (dolist (var-init init)
+	       (setq current-var (car var-init))
+	       (set (car var-init) (eval (cadr var-init))))
 
 	   (error
 	    (if current-var

@@ -2070,7 +2070,7 @@ ARGS are the arguments OPERATION has been called with."
 		  'dired-print-file 'dired-shell-call-process))
     default-directory)
    ;; PROC.
-   ((eq operation 'file-notify-rm-watch)
+   ((member operation (list 'file-notify-rm-watch 'file-notify-valid-p))
     (when (processp (nth 0 args))
       (with-current-buffer (process-buffer (nth 0 args))
 	default-directory)))
@@ -3421,6 +3421,10 @@ of."
   (tramp-message proc 6 "Kill %S" proc)
   (kill-process proc))
 
+(defun tramp-handle-file-notify-valid-p (proc)
+  "Like `file-notify-valid-p' for Tramp files."
+  (and proc (processp proc) (memq (process-status proc) '(run open))))
+
 ;;; Functions for establishing connection:
 
 ;; The following functions are actions to be taken when seeing certain
@@ -3615,7 +3619,7 @@ This is needed in order to hide `last-coding-system-used', which is set
 for process communication also."
   (with-current-buffer (process-buffer proc)
     ;; FIXME: If there is a gateway process, we need communication
-    ;; between several processes.  Too complicated to implement, so we
+    ;; between several processes.  Too complicate to implement, so we
     ;; read output from all processes.
     (let ((p (if (tramp-get-connection-property proc "gateway" nil) nil proc))
 	  buffer-read-only last-coding-system-used)

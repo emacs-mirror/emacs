@@ -171,7 +171,7 @@
 	     (let ((buffer-undo-list t) (inhibit-read-only t)
 		   ,@(unless (featurep 'xemacs)
 		       '((inhibit-point-motion-hooks t) deactivate-mark))
-		   before-change-functions after-change-functions
+		   (inhibit-modification-hooks t)
 		   buffer-file-name buffer-file-truename)
 	       ,@body)
 	   (and (not ,modified) (buffer-modified-p)

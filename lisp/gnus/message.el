@@ -8329,7 +8329,7 @@ From headers in the original article."
 		     (list message-hidden-headers)
 		   message-hidden-headers))
 	(inhibit-point-motion-hooks t)
-	(after-change-functions nil)
+	(inhibit-modification-hooks t)
 	(end-of-headers (point-min)))
     (when regexps
       (save-excursion

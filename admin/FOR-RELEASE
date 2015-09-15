@@ -72,7 +72,7 @@ pages of the manuals, and even if they do, the resulting page breaks
 depend on what paper and font size they use.  This also means that if
 you _are_ going to do this, it should be done with the paper and font
 size that the GNU Press are going to use when they print the manuals.
-I think this is different to what you get if you just use eg `make
+I think this is different to what you get if you just use eg 'make
 emacs.pdf' (e.g., enable "smallbook").
 
 ** Check the keybindings in the refcards are correct, and add any new ones.
@@ -112,21 +112,21 @@ sk	Miroslav Vaško
 ** Check for modes which bind M-s that conflicts with a new global binding M-s
 and change key bindings where necessary.  The current list of modes:
 
-1. Gnus binds `M-s' to `gnus-summary-search-article-forward'.
+1. Gnus binds 'M-s' to 'gnus-summary-search-article-forward'.
 
-2. Minibuffer binds `M-s' to `next-matching-history-element'
+2. Minibuffer binds 'M-s' to 'next-matching-history-element'
    (not useful any more since C-s can now search in the history).
 
-3. `center-line' in Text mode was already moved to the text formatting
-   keymap as `M-o M-s' (thus this binding is not necessary any more
-   in `nroff-mode-map' too and can be removed now from the nroff mode
-   because it can now use the global key binding `M-o M-s' `center-line').
+3. 'center-line' in Text mode was already moved to the text formatting
+   keymap as 'M-o M-s' (thus this binding is not necessary any more
+   in 'nroff-mode-map' too and can be removed now from the nroff mode
+   because it can now use the global key binding 'M-o M-s' 'center-line').
 
-4. PCL-CVS binds `M-s' to `cvs-status', and log-edit-mode binds it to
-   `log-edit-comment-search-forward'.  Perhaps search commands
-   on the global key binding `M-s' are useless in these modes.
+4. PCL-CVS binds 'M-s' to 'cvs-status', and log-edit-mode binds it to
+   'log-edit-comment-search-forward'.  Perhaps search commands
+   on the global key binding 'M-s' are useless in these modes.
 
-5. Rmail binds `\es' to `rmail-search'/`rmail-summary-search'.
+5. Rmail binds '\es' to 'rmail-search'/'rmail-summary-search'.
 
 
 * DOCUMENTATION

@@ -1008,6 +1008,7 @@ of command line.")
     (file-newer-than-file-p . tramp-sh-handle-file-newer-than-file-p)
     (file-notify-add-watch . tramp-sh-handle-file-notify-add-watch)
     (file-notify-rm-watch . tramp-handle-file-notify-rm-watch)
+    (file-notify-valid-p . tramp-handle-file-notify-valid-p)
     (file-ownership-preserved-p . tramp-sh-handle-file-ownership-preserved-p)
     (file-readable-p . tramp-sh-handle-file-readable-p)
     (file-regular-p . tramp-handle-file-regular-p)
@@ -3727,6 +3728,14 @@ Fall back to normal file name handler if no Tramp handler exists."
        ;; gvfs-monitor-dir.
        ((setq command (tramp-get-remote-gvfs-monitor-dir v))
 	(setq filter 'tramp-sh-file-gvfs-monitor-dir-process-filter
+	      events
+	      (cond
+	       ((and (memq 'change flags) (memq 'attribute-change flags))
+		'(created changed changes-done-hint moved deleted
+			  attribute-changed))
+	       ((memq 'change flags)
+		'(created changed changes-done-hint moved deleted))
+	       ((memq 'attribute-change flags) '(attribute-changed)))
 	      sequence `(,command ,localname)))
        ;; inotifywait.
        ((setq command (tramp-get-remote-inotifywait v))
@@ -3734,8 +3743,11 @@ Fall back to normal file name handler if no Tramp handler exists."
 	      events
 	      (cond
 	       ((and (memq 'change flags) (memq 'attribute-change flags))
-		"create,modify,move,delete,attrib")
-	       ((memq 'change flags) "create,modify,move,delete")
+		(concat "create,modify,move,moved_from,moved_to,move_self,"
+			"delete,delete_self,attrib"))
+	       ((memq 'change flags)
+		(concat "create,modify,move,moved_from,moved_to,move_self,"
+			"delete,delete_self"))
 	       ((memq 'attribute-change flags) "attrib"))
 	      sequence `(,command "-mq" "-e" ,events ,localname)))
        ;; None.
@@ -3758,12 +3770,15 @@ Fall back to normal file name handler if no Tramp handler exists."
 	   (mapconcat 'identity sequence " "))
 	(tramp-message v 6 "Run `%s', %S" (mapconcat 'identity sequence " ") p)
 	(tramp-set-connection-property p "vector" v)
+	;; Needed for `tramp-sh-file-gvfs-monitor-dir-process-filter'.
+	(tramp-compat-process-put p 'events events)
 	(tramp-compat-set-process-query-on-exit-flag p nil)
 	(set-process-filter p filter)
 	p))))
 
 (defun tramp-sh-file-gvfs-monitor-dir-process-filter (proc string)
-  "Read output from \"gvfs-monitor-dir\" and add corresponding file-notify events."
+  "Read output from \"gvfs-monitor-dir\" and add corresponding \
+file-notify events."
   (let ((remote-prefix
 	 (with-current-buffer (process-buffer proc)
 	   (file-remote-p default-directory)))
@@ -3798,7 +3813,8 @@ Fall back to normal file name handler if no Tramp handler exists."
 	;; Usually, we would add an Emacs event now.  Unfortunately,
 	;; `unread-command-events' does not accept several events at
 	;; once.  Therefore, we apply the callback directly.
-	(tramp-compat-funcall 'file-notify-callback object)))
+	(when (member (cadr object) (tramp-compat-process-get proc 'events))
+	  (tramp-compat-funcall 'file-notify-callback object))))
 
     ;; Save rest of the string.
     (when (zerop (length string)) (setq string nil))

@@ -181,6 +181,7 @@ static void scan_sexps_forward (struct lisp_parse_state *,
                                 ptrdiff_t, ptrdiff_t, ptrdiff_t, EMACS_INT,
                                 bool, Lisp_Object, int);
 static bool in_classes (int, Lisp_Object);
+static void parse_sexp_propertize (ptrdiff_t charpos);
 
 /* This setter is used only in this file, so it can be private.  */
 static void
@@ -247,12 +248,12 @@ SETUP_SYNTAX_TABLE (ptrdiff_t from, ptrdiff_t count)
   gl_state.offset = 0;
   if (parse_sexp_lookup_properties)
     {
-      if (count > 0 || from > BEGV)
-	update_syntax_table (count > 0 ? from : from - 1, count, true, Qnil);
-      if (gl_state.e_property > parse_sexp_propertize_done)
+      if (count > 0)
+	update_syntax_table_forward (from, true, Qnil);
+      else if (from > BEGV)
 	{
-	  gl_state.e_property = parse_sexp_propertize_done;
-	  gl_state.e_property_truncated = true;
+	  update_syntax_table (from - 1, count, true, Qnil);
+	  parse_sexp_propertize (from - 1);
 	}
     }
 }
@@ -478,33 +479,44 @@ update_syntax_table (ptrdiff_t charpos, EMACS_INT count, bool init,
 static void
 parse_sexp_propertize (ptrdiff_t charpos)
 {
-  EMACS_INT modiffs = CHARS_MODIFF;
-  safe_call1 (Vparse_sexp_propertize_function,
-	      make_number (1 + charpos));
-  if (modiffs != CHARS_MODIFF)
-    error ("parse-sexp-propertize-function modified the buffer!");
-  if (parse_sexp_propertize_done <= charpos)
-    error ("parse-sexp-propertize-function did not move"
-	   " parse-sexp-propertize-done");
-  SETUP_SYNTAX_TABLE (charpos, 1);
+  EMACS_INT zv = ZV;
+  if (syntax_propertize__done <= charpos
+      && syntax_propertize__done < zv)
+    {
+      EMACS_INT modiffs = CHARS_MODIFF;
+      safe_call1 (Qinternal__syntax_propertize,
+		  make_number (min (zv, 1 + charpos)));
+      if (modiffs != CHARS_MODIFF)
+	error ("parse-sexp-propertize-function modified the buffer!");
+      if (syntax_propertize__done <= charpos
+	  && syntax_propertize__done < zv)
+	error ("parse-sexp-propertize-function did not move"
+	       " syntax-propertize--done");
+      SETUP_SYNTAX_TABLE (charpos, 1);
+    }
+  else if (gl_state.e_property > syntax_propertize__done)
+    {
+      gl_state.e_property = syntax_propertize__done;
+      gl_state.e_property_truncated = true;
+    }
 }
 
 void
 update_syntax_table_forward (ptrdiff_t charpos, bool init,
-		     Lisp_Object object)
+			     Lisp_Object object)
 {
-  if (!(gl_state.e_property_truncated))
-    update_syntax_table (charpos, 1, init, object);
-  if ((gl_state.e_property > parse_sexp_propertize_done
-       || gl_state.e_property_truncated)
-      && NILP (object))
+  if (gl_state.e_property_truncated)
     {
-      if (parse_sexp_propertize_done > charpos)
-	{
-	  gl_state.e_property = parse_sexp_propertize_done;
-	  gl_state.e_property_truncated = true;
-	}
-      else
+      eassert (NILP (object));
+      eassert (charpos >= gl_state.e_property);
+      eassert (charpos >= syntax_propertize__done);
+      parse_sexp_propertize (charpos);
+    }
+  else
+    {
+      update_syntax_table (charpos, 1, init, object);
+      if (gl_state.e_property > syntax_propertize__done
+	  && NILP (object))
 	parse_sexp_propertize (charpos);
     }
 }
@@ -2332,13 +2344,13 @@ forw_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
 	  && SYNTAX_FLAGS_COMMENT_STYLE (syntax, 0) == style
 	  && (SYNTAX_FLAGS_COMMENT_NESTED (syntax) ?
 	      (nesting > 0 && --nesting == 0) : nesting < 0))
-	/* we have encountered a comment end of the same style
+	/* We have encountered a comment end of the same style
 	   as the comment sequence which began this comment
-	   section */
+	   section.  */
 	break;
       if (code == Scomment_fence
 	  && style == ST_COMMENT_STYLE)
-	/* we have encountered a comment end of the same style
+	/* We have encountered a comment end of the same style
 	   as the comment sequence which began this comment
 	   section.  */
 	break;
@@ -2346,8 +2358,8 @@ forw_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
 	  && code == Scomment
 	  && SYNTAX_FLAGS_COMMENT_NESTED (syntax)
 	  && SYNTAX_FLAGS_COMMENT_STYLE (syntax, 0) == style)
-	/* we have encountered a nested comment of the same style
-	   as the comment sequence which began this comment section */
+	/* We have encountered a nested comment of the same style
+	   as the comment sequence which began this comment section.  */
 	nesting++;
       INC_BOTH (from, from_byte);
       UPDATE_SYNTAX_TABLE_FORWARD (from);
@@ -2363,9 +2375,8 @@ forw_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
 	      ? nesting > 0 : nesting < 0))
 	{
 	  if (--nesting <= 0)
-	    /* we have encountered a comment end of the same style
-	       as the comment sequence which began this comment
-	       section */
+	    /* We have encountered a comment end of the same style
+	       as the comment sequence which began this comment section.  */
 	    break;
 	  else
 	    {
@@ -2382,9 +2393,8 @@ forw_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
 	      && SYNTAX_FLAGS_COMSTART_SECOND (other_syntax))
 	  && (SYNTAX_FLAGS_COMMENT_NESTED (syntax) ||
 	      SYNTAX_FLAGS_COMMENT_NESTED (other_syntax)))
-	/* we have encountered a nested comment of the same style
-	   as the comment sequence which began this comment
-	   section */
+	/* We have encountered a nested comment of the same style
+	   as the comment sequence which began this comment section.  */
 	{
 	  INC_BOTH (from, from_byte);
 	  UPDATE_SYNTAX_TABLE_FORWARD (from);
@@ -2628,9 +2638,9 @@ scan_lists (EMACS_INT from, EMACS_INT count, EMACS_INT depth, bool sexpflag)
   bool quoted;
   bool mathexit = 0;
   enum syntaxcode code;
-  EMACS_INT min_depth = depth;    /* Err out if depth gets less than this.  */
-  int comstyle = 0;	    /* style of comment encountered */
-  bool comnested = 0;	    /* whether the comment is nestable or not */
+  EMACS_INT min_depth = depth;  /* Err out if depth gets less than this.  */
+  int comstyle = 0;		/* Style of comment encountered.  */
+  bool comnested = 0;		/* Whether the comment is nestable or not.  */
   ptrdiff_t temp_pos;
   EMACS_INT last_good = from;
   bool found;
@@ -2674,11 +2684,11 @@ scan_lists (EMACS_INT from, EMACS_INT count, EMACS_INT depth, bool sexpflag)
 		  SYNTAX_FLAGS_COMSTART_SECOND (other_syntax))
 	      && parse_sexp_ignore_comments)
 	    {
-	      /* we have encountered a comment start sequence and we
+	      /* We have encountered a comment start sequence and we
 		 are ignoring all text inside comments.  We must record
 		 the comment style this sequence begins so that later,
 		 only a comment end of the same style actually ends
-		 the comment section */
+		 the comment section.  */
 	      code = Scomment;
 	      comstyle = SYNTAX_FLAGS_COMMENT_STYLE (other_syntax, syntax);
 	      comnested |= SYNTAX_FLAGS_COMMENT_NESTED (other_syntax);
@@ -2696,7 +2706,7 @@ scan_lists (EMACS_INT from, EMACS_INT count, EMACS_INT depth, bool sexpflag)
 	      if (from == stop)
 		goto lose;
 	      INC_BOTH (from, from_byte);
-	      /* treat following character as a word constituent */
+	      /* Treat following character as a word constituent.  */
 	    case Sword:
 	    case Ssymbol:
 	      if (depth || !sexpflag) break;
@@ -3501,7 +3511,7 @@ Sixth arg COMMENTSTOP non-nil means stop at the start of a comment.
       target = XINT (targetdepth);
     }
   else
-    target = TYPE_MINIMUM (EMACS_INT);	/* We won't reach this depth */
+    target = TYPE_MINIMUM (EMACS_INT);	/* We won't reach this depth.  */
 
   validate_region (&from, &to);
   scan_sexps_forward (&state, XINT (from), CHAR_TO_BYTE (XINT (from)),
@@ -3650,19 +3660,10 @@ Otherwise, that text property is simply ignored.
 See the info node `(elisp)Syntax Properties' for a description of the
 `syntax-table' property.  */);
 
-  DEFVAR_INT ("parse-sexp-propertize-done", parse_sexp_propertize_done,
+  DEFVAR_INT ("syntax-propertize--done", syntax_propertize__done,
 	      doc: /* Position up to which syntax-table properties have been set.  */);
-  parse_sexp_propertize_done = -1;
-
-  DEFVAR_LISP ("parse-sexp-propertize-function",
-	       Vparse_sexp_propertize_function,
-	  doc: /* Function to set the `syntax-table' text property.
-Called with one argument, the position at which the property is needed.
-After running it, `parse-sexp-propertize-done' should be strictly greater
-than the argument passed.  */);
-  /* Note: Qnil is a temporary (and invalid) value; it will be properly set in
-     syntax.el.  */
-  Vparse_sexp_propertize_function = Qnil;
+  syntax_propertize__done = -1;
+  DEFSYM (Qinternal__syntax_propertize, "internal--syntax-propertize");
 
   words_include_escapes = 0;
   DEFVAR_BOOL ("words-include-escapes", words_include_escapes,

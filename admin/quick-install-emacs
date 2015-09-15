@@ -40,7 +40,7 @@ VERBOSE=''
 
 me="`basename $0`"
 
-# Install commands (if the user specifies the `--verbose' option, it is
+# Install commands (if the user specifies the '--verbose' option, it is
 # passed to these commands, so that feature only works if these commands
 # implement it too)
 LINK='cp -lf'
@@ -58,7 +58,7 @@ unset LANG LC_ALL LC_MESSAGES
 
 # Some messages
 USAGE="Usage: $me [OPTION...] BUILD_TREE [PREFIX]"
-TRY="Try "\`"$me --help' for more information."
+TRY="Try '$me --help' for more information."
 
 # Parse command-line options
 while :; do
@@ -93,7 +93,7 @@ Install emacs quickly
       --help                 display this help and exit
       --version              output version information and exit
 
-$me install emacs \`incrementally,' that is, it will
+$me install emacs "incrementally", that is, it will
 install only those files that have changed since the last time it was
 invoked, and remove any obsolete files from the installation
 directories.  It also uses hard-links into the source and build trees to
@@ -104,9 +104,9 @@ and build directories reside.
 
 Optionally, $me can also remove old versions of
 automatically generated files that are version-specific (such as the
-versioned emacs executables in the \`src' directory).
-The latter action is called \`pruning,' and
-can be enabled using the \`-p' or \`--prune' options.
+versioned emacs executables in the 'src' directory).
+The latter action is called "pruning", and
+can be enabled using the '-p' or '--prune' options.
 EOF
       exit 0
       ;;
@@ -124,7 +124,7 @@ EOF
       set -- `echo $FIRST | sed 's/-\(.\)\(.*\)/-\1 -\2/'` "$@"
       ;;
     -*)
-      echo 1>&2 "$me: unrecognized option "\`"$1'"
+      echo 1>&2 "$me: unrecognized option '$1'"
       echo 1>&2 "$TRY"
       exit 1
       ;;

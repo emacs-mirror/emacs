@@ -2037,7 +2037,7 @@ the value of point at the beginning of the line for that buffer."
 (defun ibuffer-update-title-and-summary (format)
   (ibuffer-assert-ibuffer-mode)
   ;; Don't do funky font-lock stuff here
-  (let ((after-change-functions nil))
+  (let ((inhibit-modification-hooks t))
     (if (get-text-property (point-min) 'ibuffer-title)
 	(delete-region (point-min)
 		       (next-single-property-change
@@ -2244,7 +2244,7 @@ If optional arg SILENT is non-nil, do not display progress messages."
 	 (orig (count-lines (point-min) (point)))
 	 ;; Inhibit font-lock caching tricks, since we're modifying the
 	 ;; entire buffer at once
-	 (after-change-functions nil)
+	 (inhibit-modification-hooks t)
 	 (ext-loaded (featurep 'ibuf-ext))
 	 (bgroups (if ext-loaded
 		      (ibuffer-generate-filter-groups bmarklist)

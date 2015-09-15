@@ -174,9 +174,10 @@ SYNTAX_TABLE_BYTE_TO_CHAR (ptrdiff_t bytepos)
 
 INLINE void
 UPDATE_SYNTAX_TABLE_FORWARD (ptrdiff_t charpos)
-{
+{ /* Performs just-in-time syntax-propertization.  */
   if (parse_sexp_lookup_properties && charpos >= gl_state.e_property)
-    update_syntax_table_forward (charpos + gl_state.offset, false, gl_state.object);
+    update_syntax_table_forward (charpos + gl_state.offset,
+				 false, gl_state.object);
 }
 
 /* Make syntax table state (gl_state) good for CHARPOS, assuming it is

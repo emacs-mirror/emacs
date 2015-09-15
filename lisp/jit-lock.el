@@ -583,11 +583,13 @@ non-nil in a repeated invocation of this function."
 		      'fontified nil))
 		   (setq pos (next-single-property-change
                               pos 'fontified)))))))))
-    (setq jit-lock-defer-buffers nil)
     ;; Force fontification of the visible parts.
-    (let ((jit-lock-defer-timer nil))
+    (let ((buffers jit-lock-defer-buffers)
+          (jit-lock-defer-timer nil))
+      (setq jit-lock-defer-buffers nil)
       ;; (message "Jit-Defer Now")
-      (sit-for 0)
+      (unless (redisplay)                       ;FIXME: Should we `force'?
+        (setq jit-lock-defer-buffers buffers))
       ;; (message "Jit-Defer Done")
       )))
 

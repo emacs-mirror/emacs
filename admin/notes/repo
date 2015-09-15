@@ -73,7 +73,7 @@ removes a file, then remove the corresponding files by hand.
 You may see conflicts in autoload md5sums in comments.  Strictly
 speaking, the right thing to do is merge everything else, resolve the
 conflict by choosing either the master or branch version, then run
-`make -C lisp autoloads' to update the md5sums to the correct master
+'make -C lisp autoloads' to update the md5sums to the correct master
 value before committing.
 
 * Re-adding a file that has been removed from the repository
@@ -96,12 +96,12 @@ which is often more appropriate.
 
 * Undoing a commit (uncommitting)
 
-If you have not pushed the commit, you may be able to use `git reset
+If you have not pushed the commit, you may be able to use 'git reset
 --hard' with a hash argument to revert the your local repo copy to the
 pre-commit state.
 
 If you have pushed  commit, resetting will be ineffective because it
-will only vanish the commit in your local copy.  Instead, use `git
+will only vanish the commit in your local copy.  Instead, use 'git
 revert', giving it the commit ID as argument. This will create a
 new commit that backs out the change. Then push that.
 
@@ -115,7 +115,7 @@ again.
 * Bisecting
 
 This is a semi-automated way to find the revision that introduced a bug.
-Browse `git help bisect' for technical instructions.
+Browse 'git help bisect' for technical instructions.
 
 * Maintaining ChangeLog history
 

@@ -13,13 +13,13 @@ Steps to take before starting on the first pretest in any release sequence:
     have them available for the duration of the release process.
 
 2.  Consider increasing the value of the variable
-    `customize-changed-options-previous-release' in cus-edit.el to
+    'customize-changed-options-previous-release' in cus-edit.el to
     refer to a newer version of Emacs.  (This is probably needed only
     when preparing the first pretest for a major Emacs release.)
     Commit cus-edit.el if changed.
 
 3.  Remove any old pretests from ftp://alpha.gnu.org/gnu/emacs/pretest.
-    You can use `gnupload --delete' (see below for more gnupload details).
+    You can use 'gnupload --delete' (see below for more gnupload details).
 
 General steps (for each step, check for possible errors):
 
@@ -96,12 +96,12 @@ General steps (for each step, check for possible errors):
 
     If this is the first pretest of a major release, just comparing
     with the previous release may overlook many new files.  You can try
-    something like `find . | sort' in a clean repository, and compare the
+    something like 'find . | sort' in a clean repository, and compare the
     results against the new tar contents.
 
 7.   tar -xf emacs-NEW.tar; cd emacs-NEW
      ./configure --prefix=/tmp/emacs && make && make install
-    Use `script' or M-x compile to save the compilation log in
+    Use 'script' or M-x compile to save the compilation log in
     compile-NEW.log and compare it against an old one.  The easiest way
     to do that is to visit the old log in Emacs, change the version
     number of the old Emacs to __, do the same with the new log and do

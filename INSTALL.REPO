@@ -42,7 +42,7 @@ subdirectories of 'lisp/', e.g., 'mh-e/' and 'calendar/') will need to be
 updated to reflect new autoloaded functions.  If you see errors (rather
 than warnings) about undefined lisp functions during compilation, that
 may be the reason.  Finally, sometimes there can be build failures
-related to '*loaddefs.el' (e.g., "required feature `esh-groups' was not
+related to '*loaddefs.el' (e.g., "required feature ‘esh-groups’ was not
 provided").  In that case, follow the instructions below.
 
 To update loaddefs.el (and similar files), do:

@@ -2195,7 +2195,27 @@ whether or not it is currently displayed in some window.  */)
 	 was originally hscrolled, the goal column is interpreted as
 	 an addition to the hscroll amount.  */
       if (lcols_given)
-	move_it_in_display_line (&it, ZV, first_x + to_x, MOVE_TO_X);
+	{
+	  move_it_in_display_line (&it, ZV, first_x + to_x, MOVE_TO_X);
+	  /* If we find ourselves in the middle of an overlay string
+	     which includes a newline after current string position,
+	     we need to move by lines until we get out of the string,
+	     and then reposition point at the requested X coordinate;
+	     if we don't, the cursor will be placed just after the
+	     string, which might not be the requested column.  */
+	  if (nlines > 0 && it.area == TEXT_AREA)
+	    {
+	      while (it.method == GET_FROM_STRING
+		     && !it.string_from_display_prop_p
+		     && memchr (SSDATA (it.string) + IT_STRING_BYTEPOS (it),
+				'\n',
+				SBYTES (it.string) - IT_STRING_BYTEPOS (it)))
+		{
+		  move_it_by_lines (&it, 1);
+		  move_it_in_display_line (&it, ZV, first_x + to_x, MOVE_TO_X);
+		}
+	    }
+	}
 
       SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
       bidi_unshelve_cache (itdata, 0);

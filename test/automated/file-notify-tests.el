@@ -39,9 +39,6 @@
 (require 'filenotify)
 (require 'tramp)
 
-(declare-function tramp-get-remote-gvfs-monitor-dir "tramp-sh")
-(declare-function tramp-get-remote-inotifywait "tramp-sh")
-
 ;; There is no default value on w32 systems, which could work out of the box.
 (defconst file-notify-test-remote-temporary-file-directory
   (cond
@@ -71,10 +68,14 @@
 
   (when (and file-notify--test-tmpfile
              (file-exists-p file-notify--test-tmpfile))
-    (delete-file file-notify--test-tmpfile))
+    (if (directory-name-p file-notify--test-tmpfile)
+        (delete-directory file-notify--test-tmpfile)
+      (delete-file file-notify--test-tmpfile)))
   (when (and file-notify--test-tmpfile1
              (file-exists-p file-notify--test-tmpfile1))
-    (delete-file file-notify--test-tmpfile1))
+    (if (directory-name-p file-notify--test-tmpfile1)
+        (delete-directory file-notify--test-tmpfile1)
+      (delete-file file-notify--test-tmpfile1)))
 
   (setq file-notify--test-tmpfile nil)
   (setq file-notify--test-tmpfile1 nil)
@@ -140,22 +141,12 @@ being the result.")
   "Test availability of `file-notify'."
   (skip-unless (file-notify--test-local-enabled))
   ;; Report the native library which has been used.
-  (message
-   "%s library: `%s'"
-   (if (null (file-remote-p temporary-file-directory)) "Local" "Remote")
-   (if (null (file-remote-p temporary-file-directory))
-       file-notify--library
-     ;; FIXME: This is rude, using Tramp internal functions.  Maybe
-     ;; the upcoming `file-notify-available-p' could return the used
-     ;; native library.
-     (with-parsed-tramp-file-name temporary-file-directory nil
-         (cond
-          ;; gvfs-monitor-dir.
-          ((tramp-get-remote-gvfs-monitor-dir v) 'gfilenotify)
-          ;; inotifywait.
-          ((tramp-get-remote-inotifywait v) 'inotify)
-          ;; None.
-          (t (ert-fail "No remote library available"))))))
+  (if (null (file-remote-p temporary-file-directory))
+      (message "Local library: `%s'" file-notify--library)
+    (message "Remote command: `%s'"
+             (replace-regexp-in-string
+              "<[[:digit:]]+>\\'" ""
+              (process-name (cdr file-notify--test-remote-enabled-checked)))))
   (should
    (setq file-notify--test-desc
          (file-notify-add-watch temporary-file-directory '(change) 'ignore)))
@@ -261,7 +252,7 @@ Don't wait longer than TIMEOUT seconds for the events to be delivered."
        (setq file-notify--test-events ,outer))))
 
 (ert-deftest file-notify-test02-events ()
-  "Check file creation/removal notifications."
+  "Check file creation/change/removal notifications."
   (skip-unless (file-notify--test-local-enabled))
   (unwind-protect
       (progn
@@ -317,11 +308,12 @@ Don't wait longer than TIMEOUT seconds for the events to be delivered."
         (dolist (result file-notify--test-results)
           ;;(message "%s" (ert-test-result-messages result))
           (when (ert-test-failed-p result)
-            (ert-fail (cadr (ert-test-result-with-condition-condition result))))))
+            (ert-fail
+             (cadr (ert-test-result-with-condition-condition result))))))
     (file-notify--test-cleanup)))
 
 (file-notify--deftest-remote file-notify-test02-events
-  "Check file creation/removal notifications for remote files.")
+  "Check file creation/change/removal notifications for remote files.")
 
 (require 'autorevert)
 (setq auto-revert-notify-exclude-dir-regexp "nothing-to-be-excluded"
@@ -329,8 +321,7 @@ Don't wait longer than TIMEOUT seconds for the events to be delivered."
       auto-revert-stop-on-user-input nil)
 
 (ert-deftest file-notify-test03-autorevert ()
-  "Check autorevert via file notification.
-This test is skipped in batch mode."
+  "Check autorevert via file notification."
   (skip-unless (file-notify--test-local-enabled))
   ;; `auto-revert-buffers' runs every 5".  And we must wait, until the
   ;; file has been reverted.
@@ -371,8 +362,9 @@ This test is skipped in batch mode."
 	    (with-current-buffer (get-buffer-create "*Messages*")
 	      (file-notify--wait-for-events
 	       timeout
-	       (string-match (format "Reverting buffer `%s'." (buffer-name buf))
-			     (buffer-string))))
+	       (string-match
+                (format-message "Reverting buffer `%s'." (buffer-name buf))
+                (buffer-string))))
 	    (should (string-match "another text" (buffer-string)))))
 
       ;; Exit.
@@ -380,8 +372,62 @@ This test is skipped in batch mode."
       (file-notify--test-cleanup))))
 
 (file-notify--deftest-remote file-notify-test03-autorevert
-  "Check autorevert via file notification for remote files.
-This test is skipped in batch mode.")
+  "Check autorevert via file notification for remote files.")
+
+(ert-deftest file-notify-test04-file-validity ()
+  "Check `file-notify-valid-p' for files."
+  (skip-unless (file-notify--test-local-enabled))
+  (unwind-protect
+      (let ((temporary-file-directory (make-temp-file
+                                       "file-notify-test-parent" t)))
+        (setq file-notify--test-tmpfile (file-notify--test-make-temp-name))
+        (setq file-notify--test-desc (file-notify-add-watch
+                                      file-notify--test-tmpfile
+                                      '(change)
+                                      #'file-notify--test-event-handler))
+        (file-notify--test-with-events
+            3 3 (lambda (events)
+                  (should (equal '(created changed deleted)
+                                 (mapcar #'cadr events))))
+          (should (file-notify-valid-p file-notify--test-desc))
+          (write-region
+           "any text" nil file-notify--test-tmpfile nil 'no-message)
+          (should (file-notify-valid-p file-notify--test-desc))
+          (delete-directory temporary-file-directory t))
+        ;; After deleting the parent, the descriptor must not be valid
+        ;; anymore.
+        (should-not (file-notify-valid-p file-notify--test-desc)))
+
+    ;; Exit.
+    (file-notify--test-cleanup)))
+
+(file-notify--deftest-remote file-notify-test04-file-validity
+  "Check `file-notify-valid-p' via file notification for remote files.")
+
+(ert-deftest file-notify-test05-dir-validity ()
+  "Check `file-notify-valid-p' for directories."
+  (skip-unless (file-notify--test-local-enabled))
+  (unwind-protect
+      (progn
+        (setq file-notify--test-tmpfile (file-name-as-directory
+                                         (file-notify--test-make-temp-name)))
+        (make-directory file-notify--test-tmpfile)
+        (setq file-notify--test-desc (file-notify-add-watch
+                                      file-notify--test-tmpfile
+                                      '(change)
+                                      #'file-notify--test-event-handler))
+        (should (file-notify-valid-p file-notify--test-desc))
+        (delete-directory file-notify--test-tmpfile t)
+        ;; After deleting the directory, the descriptor must not be
+        ;; valid anymore.
+        (read-event nil nil 0.1)
+        (should-not (file-notify-valid-p file-notify--test-desc)))
+
+    ;; Exit.
+    (file-notify--test-cleanup)))
+
+(file-notify--deftest-remote file-notify-test05-dir-validity
+  "Check `file-notify-valid-p' via file notification for remote directories.")
 
 (defun file-notify-test-all (&optional interactive)
   "Run all tests for \\[file-notify]."

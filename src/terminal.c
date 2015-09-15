@@ -28,7 +28,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "coding.h"
 #include "keyboard.h"
 
-#ifdef HAVE_LINUX_KD_H
+#if HAVE_STRUCT_UNIPAIR_UNICODE
 # include <errno.h>
 # include <linux/kd.h>
 # include <sys/ioctl.h>
@@ -532,7 +532,7 @@ selected frame's terminal).  */)
   return store_terminal_param (decode_live_terminal (terminal), parameter, value);
 }
 
-#if HAVE_LINUX_KD_H
+#if HAVE_STRUCT_UNIPAIR_UNICODE
 
 /* Compute the glyph code table for T.  */
 
@@ -575,7 +575,7 @@ calculate_glyph_code_table (struct terminal *t)
 Lisp_Object
 terminal_glyph_code (struct terminal *t, int ch)
 {
-#if HAVE_LINUX_KD_H
+#if HAVE_STRUCT_UNIPAIR_UNICODE
   if (t->type == output_termcap)
     {
       /* As a hack, recompute the table when CH is the maximum

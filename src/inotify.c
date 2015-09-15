@@ -323,12 +323,12 @@ is managed internally and there is no corresponding inotify_init.  Use
 
   watch_descriptor = make_watch_descriptor (watchdesc);
 
-  /* Delete existing watch object. */
+  /* Delete existing watch object.  */
   watch_object = Fassoc (watch_descriptor, watch_list);
   if (!NILP (watch_object))
       watch_list = Fdelete (watch_object, watch_list);
 
-  /* Store watch object in watch list. */
+  /* Store watch object in watch list.  */
   watch_object = Fcons (watch_descriptor, callback);
   watch_list = Fcons (watch_object, watch_list);
 
@@ -351,12 +351,12 @@ See inotify_rm_watch(2) for more information.
     xsignal2 (Qfile_notify_error,
 	      build_string ("Could not rm watch"), watch_descriptor);
 
-  /* Remove watch descriptor from watch list. */
+  /* Remove watch descriptor from watch list.  */
   watch_object = Fassoc (watch_descriptor, watch_list);
   if (!NILP (watch_object))
     watch_list = Fdelete (watch_object, watch_list);
 
-  /* Cleanup if no more files are watched. */
+  /* Cleanup if no more files are watched.  */
   if (NILP (watch_list))
     {
       emacs_close (inotifyfd);
@@ -365,6 +365,21 @@ See inotify_rm_watch(2) for more information.
     }
 
   return Qt;
+}
+
+DEFUN ("inotify-valid-p", Finotify_valid_p, Sinotify_valid_p, 1, 1, 0,
+       doc: /* "Check a watch specified by its WATCH-DESCRIPTOR.
+
+WATCH-DESCRIPTOR should be an object returned by `inotify-add-watch'.
+
+A watch can become invalid if the file or directory it watches is
+deleted, or if the watcher thread exits abnormally for any other
+reason.  Removing the watch by calling `inotify-rm-watch' also makes
+it invalid.  */)
+     (Lisp_Object watch_descriptor)
+{
+  Lisp_Object watch_object = Fassoc (watch_descriptor, watch_list);
+  return NILP (watch_object) ? Qnil : Qt;
 }
 
 void
@@ -401,6 +416,7 @@ syms_of_inotify (void)
 
   defsubr (&Sinotify_add_watch);
   defsubr (&Sinotify_rm_watch);
+  defsubr (&Sinotify_valid_p);
 
   staticpro (&watch_list);
 
