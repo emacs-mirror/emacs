@@ -996,7 +996,8 @@ mps_res_t (mps_ap_frame_pop)(mps_ap_t mps_ap, mps_frame_t frame)
   buf = BufferOfAP(mps_ap);
   AVER(TESTT(Buffer, buf));
 
-  /* FIXME: is it thread-safe to read BufferBase here? */
+  /* TODO: it's not thread-safe to read BufferBase here in an
+   * automatically managed pool; see job003947. */
   if (BufferBase(buf) <= (Addr)frame
       && (mps_addr_t)frame < mps_ap->init)
   {
