@@ -107,7 +107,7 @@ references (1)`.
     Supports :c:func:`mps_alloc`?,                  no,     no,     no,     no,     no,     yes,    yes,    yes,    no,     no
     Supports :c:func:`mps_free`?,                   no,     no,     no,     no,     no,     yes,    yes,    yes,    yes,    no
     Supports allocation points?,                    yes,    yes,    yes,    yes,    yes,    no,     yes,    yes,    yes,    yes
-    Supports allocation frames?,                    yes,    yes,    yes,    yes,    yes,    no,     no,     yes,    yes,    yes
+    Manages memory using allocation frames?,        no,     no,     no,     no,     no,     no,     no,     no,     no,     yes
     Supports segregated allocation caches?,         no,     no,     no,     no,     no,     yes,    yes,    yes,    no,     no
     Timing of collections? [2]_,                    auto,   auto,   auto,   auto,   auto,   ---,    ---,    ---,    ---,    ---
     May contain references? [3]_,                   yes,    no,     yes,    yes,    no,     no,     no,     no,     no,     yes
