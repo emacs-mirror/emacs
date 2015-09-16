@@ -117,7 +117,16 @@ In the first case the description of the key sequence \"SPC f f\"
 is overwritten with \"find files\". The second case works the
 same way using the alist matched when `major-mode' is
 emacs-lisp-mode."
-:group 'which-key)
+  :group 'which-key)
+
+(defcustom which-key-highlighted-command-list '()
+  "A list of strings and/or cons cells used to highlight certain
+commands. If the element is a string, assume it is a regexp
+pattern for matching command names and use
+`which-key-highlighted-command-face' for any matching names. If
+the element is a cons cell, it should take the form (regexp .
+face to apply)."
+  :group 'which-key-key-based-description-replacement-alist)
 
 (defcustom which-key-prefix-name-alist '()
   "An alist with elements of the form (key-sequence . prefix-name).
@@ -276,6 +285,12 @@ prefixes in `which-key-paging-prefixes'"
 (defface which-key-local-map-description-face
   '((t . (:inherit which-key-command-description-face)))
   "Face for the key description when it is found in `current-local-map'"
+  :group 'which-key)
+
+(defface which-key-highlighted-command-face
+  '((t . (:inherit which-key-command-description-face :underline t)))
+  "Default face for the command description when it is a command
+and it matches a string in `which-key-highlighted-command-face'."
   :group 'which-key)
 
 (defface which-key-group-description-face
@@ -938,7 +953,24 @@ If KEY contains any \"special keys\" defined in
   (or (string-match-p "^\\(group:\\|Prefix\\)" description)
       (keymapp (intern description))))
 
-(defun which-key--propertize-description (description group local)
+(defun which-key--highlight-face (description)
+  "Return the highlight face for DESCRIPTION if it has one."
+  (let (face)
+    (dolist (el which-key-highlighted-command-list)
+      (unless face
+        (cond ((consp el)
+               (when (string-match-p (car el) description)
+                 (setq face (cdr el))))
+              ((stringp el)
+               (when (string-match-p el description)
+                 (setq face 'which-key-highlighted-command-face)))
+              (t
+               (message "which-key: warning: element %s of \
+which-key-highlighted-command-list is not a string or a cons
+cell" el)))))
+    face))
+
+(defun which-key--propertize-description (description group local hl-face)
   "Add face to DESCRIPTION where the face chosen depends on
 whether the description represents a group or a command. Also
 make some minor adjustments to the description string, like
@@ -949,7 +981,8 @@ removing a \"group:\" prefix."
          (desc (if group (concat "+" desc) desc))
          (desc (which-key--truncate-description desc)))
     (propertize desc 'face
-                (cond (group 'which-key-group-description-face)
+                (cond (hl-face hl-face)
+                      (group 'which-key-group-description-face)
                       (local 'which-key-local-map-description-face)
                       (t 'which-key-command-description-face)))))
 
@@ -969,6 +1002,7 @@ alists. Returns a list (key separator description)."
               (key-lst (which-key--current-key-list key))
               (local (eq (which-key--safe-lookup-key local-map (kbd keys))
                          (intern desc)))
+              (hl-face (which-key--highlight-face desc))
               (key (which-key--maybe-replace
                     key which-key-key-replacement-alist))
               (desc (which-key--maybe-replace
@@ -978,7 +1012,7 @@ alists. Returns a list (key separator description)."
                         (which-key--maybe-replace-prefix-name key-lst desc)
                       desc))
               (key-w-face (which-key--propertize-key key))
-              (desc-w-face (which-key--propertize-description desc group local)))
+              (desc-w-face (which-key--propertize-description desc group local hl-face)))
          (list key-w-face sep-w-face desc-w-face)))
      unformatted)))
 
