@@ -245,30 +245,40 @@ cons cell and the replacement string in the =cdr=.
 
 **** "Key-Based" replacement
 The relevant variable is the awkwardly named
-=which-key-key-based-description-replacement-alist=. In this alist you can have
-cons cells of two types. An example of the first type is
+=which-key-key-based-description-replacement-alist= (Note on 3/9/2015 the
+internal format of this list changed). In this alist you can have cons cells of
+two types. An example of the first type is
 
 #+BEGIN_SRC Emacs-lisp
-("C-x C-f" . "find files")
+((listify-key-sequence (kbd "C-x C-f")) . "find files")
 #+END_SRC
 
 where the string on the left is the key combination whose description you want
-to replace. For that key combination, which-key overwrites the description with
-the second string, "find files". In the second type of entry you can restrict
-the replacements to a major-mode. For example, 
+to replace, stored in a canonical form. For that key combination, which-key
+overwrites the description with the second string, "find files". In the second
+type of entry you can restrict the replacements to a major-mode. For example,
 
 #+BEGIN_SRC Emacs-lisp
-(org-mode . (("C-c C-c" . "Org C-c C-c") ("C-c C-a" . "Org Attach"))
+(org-mode . (((listify-key-sequence (kbd "C-c C-c")) . "Org C-c C-c") 
+             ((listify-key-sequence (kbd "C-c C-a")) . "Org Attach"))
 #+END_SRC
 
 Here the first entry is the major-mode and the second is a list of the first
 type of entries. In case the same key combination is listed under a major-mode
 and by itself, the major-mode version will take precedence.
 
-There are two helper functions to add entries to this list,
-=which-key-add-key-based-replacements= and
-=which-key-add-major-mode-key-based-replacements=. You can modify the alist
-directly or use these.
+To simplify adding these entries, there are two helper functions to add entries
+to this list, =which-key-add-key-based-replacements= and
+=which-key-add-major-mode-key-based-replacements=. With these functions the
+above examples become
+
+#+BEGIN_SRC Emacs-lisp
+(which-key-add-key-based-replacements
+  "C-x C-f" "find files")
+(which-key-add-major-mode-key-based-replacements 'org-mode
+  "C-c C-c" "Org C-c C-c"
+  "C-c C-a" "Org Attach")
+#+END_SRC
 
 **** Key and Description replacement
 
