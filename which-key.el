@@ -104,21 +104,6 @@ This is a list of lists for replacing descriptions."
   :group 'which-key
   :type '(alist :key-type regexp :value-type string))
 
-(defcustom which-key-key-based-description-replacement-alist '()
-  "Each item in the list is a cons cell.
-The car of each cons cell is either a string like \"C-c\", in
-which case it's interpreted as a key sequence or a value of
-`major-mode'.  Here are two examples:
-
-(\"SPC f f\" . \"find files\")
-(emacs-lisp-mode . ((\"SPC m d\" . \"debug\")))
-
-In the first case the description of the key sequence \"SPC f f\"
-is overwritten with \"find files\". The second case works the
-same way using the alist matched when `major-mode' is
-emacs-lisp-mode."
-  :group 'which-key)
-
 (defcustom which-key-highlighted-command-list '()
   "A list of strings and/or cons cells used to highlight certain
 commands. If the element is a string, assume it is a regexp
@@ -126,25 +111,7 @@ pattern for matching command names and use
 `which-key-highlighted-command-face' for any matching names. If
 the element is a cons cell, it should take the form (regexp .
 face to apply)."
-  :group 'which-key-key-based-description-replacement-alist)
-
-(defcustom which-key-prefix-name-alist '()
-  "An alist with elements of the form (key-sequence . prefix-name).
-key-sequence is a sequence of the sort produced by applying `kbd'
-then `listify-key-sequence' to create a canonical version of the
-key sequence. prefix-name is a string."
-  :group 'which-key
-  :type '(alist :key-type string :value-type string))
-
-(defcustom which-key-prefix-title-alist '()
-  "An alist with elements of the form (key-sequence . prefix-title).
-key-sequence is a sequence of the sort produced by applying `kbd'
-then `listify-key-sequence' to create a canonical version of the
-key sequence. prefix-title is a string. The title is displayed
-alongside the actual current key sequence when
-`which-key-show-prefix' is set to either top or echo."
-  :group 'which-key
-  :type '(alist :key-type string :value-type string))
+  :group 'which-key)
 
 (defcustom which-key-special-keys '("SPC" "TAB" "RET" "ESC" "DEL")
   "These keys will automatically be truncated to one character
@@ -366,6 +333,28 @@ showing.")
   "Internal: Last location of side-window when two locations
 used.")
 
+(defvar which-key-key-based-description-replacement-alist '()
+  "New version of
+`which-key-key-based-description-replacement-alist'. Use
+`which-key-add-key-based-replacements' or
+`which-key-add-major-mode-key-based-replacements' to set this
+variable.")
+
+(defvar which-key-prefix-name-alist '()
+  "An alist with elements of the form (key-sequence . prefix-name).
+key-sequence is a sequence of the sort produced by applying `kbd'
+then `listify-key-sequence' to create a canonical version of the
+key sequence. prefix-name is a string.")
+
+(defvar which-key-prefix-title-alist '()
+  "An alist with elements of the form (key-sequence . prefix-title).
+key-sequence is a sequence of the sort produced by applying `kbd'
+then `listify-key-sequence' to create a canonical version of the
+key sequence. prefix-title is a string. The title is displayed
+alongside the actual current key sequence when
+`which-key-show-prefix' is set to either top or echo.")
+
+
 ;;;###autoload
 (define-minor-mode which-key-mode
   "Toggle which-key-mode."
@@ -408,6 +397,7 @@ set too high) and setup which-key buffer."
   (when (or (eq which-key-show-prefix 'echo)
             (eq which-key-popup-type 'minibuffer))
     (which-key--setup-echo-keystrokes))
+  (which-key--check-key-based-alist)
   (setq which-key--buffer (get-buffer-create which-key-buffer-name))
   (with-current-buffer which-key--buffer
     ;; suppress confusing minibuffer message
@@ -433,6 +423,36 @@ it's set too high)."
       ;; (message "which-key: echo-keystrokes changed from %s to %s"
       ;;          previous echo-keystrokes)
       )))
+
+(defun which-key--check-key-based-alist ()
+  "Check (and fix if necessary) `which-key-key-based-description-replacement-alist'"
+  (let ((alist which-key-key-based-description-replacement-alist)
+        old-style res)
+    (dolist (cns alist)
+      (cond ((listp (car cns))
+             (push cns res))
+            ((stringp (car cns))
+             (setq old-style t)
+             (push (cons (listify-key-sequence (kbd (car cns))) (cdr cns)) res))
+            ((symbolp (car cns))
+             (let (new-mode-alist)
+               (dolist (cns2 (cdr cns))
+                 (cond ((listp (car cns2))
+                        (push cns2 new-mode-alist))
+                       ((stringp (car cns2))
+                        (setq old-style t)
+                        (push (cons (listify-key-sequence (kbd (car cns2))) (cdr cns2))
+                              new-mode-alist))))
+               (push (cons (car cns) new-mode-alist) res)))
+            (t (message "which-key: there's a problem with the \
+entry %s in which-key-key-based-replacement-alist" cns))))
+    (setq which-key-key-based-description-replacement-alist res)
+    (when old-style
+      (message "which-key: \
+ `which-key-key-based-description-replacement-alist' has changed format and you\
+ seem to be using the old format. Please use the functions \
+`which-key-add-key-based-replacements' and \
+`which-key-add-major-mode-key-based-replacements' instead."))))
 
 ;; Default configuration functions for use by users. Should be the "best"
 ;; configurations
