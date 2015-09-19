@@ -497,12 +497,13 @@ bottom."
 (defun which-key--add-key-val-to-alist (alist key value)
   "Internal function to add (KEY . VALUE) to ALIST."
   (when (or (not (stringp key)) (not (stringp value)))
-    (error "KEY and VALUE should be strings"))
+    (error "which-key: Error %s (key) and %s (value) should be strings"
+           key value))
   (let ((key-lst (listify-key-sequence (kbd key))))
     (cond ((null alist) (list (cons key-lst value)))
           ((assoc key-lst alist)
-           (message "which-key: changing %s name from %s to %s"
-                    key (cdr (assoc key-lst alist)) value)
+           (message "which-key: changing %s name from %s to %s in %s"
+                    key (cdr (assoc key-lst alist)) value alist)
            (setcdr (assoc key-lst alist) value)
            alist)
           (t (cons (cons key-lst value) alist)))))
