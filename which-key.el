@@ -499,7 +499,7 @@ bottom."
 
 ;; Helper functions to modify replacement lists.
 
-(defun which-key--add-key-val-to-alist (alist key value)
+(defun which-key--add-key-val-to-alist (alist key value &optional alist-name)
   "Internal function to add (KEY . VALUE) to ALIST."
   (when (or (not (stringp key)) (not (stringp value)))
     (error "which-key: Error %s (key) and %s (value) should be strings"
@@ -507,8 +507,8 @@ bottom."
   (let ((key-lst (listify-key-sequence (kbd key))))
     (cond ((null alist) (list (cons key-lst value)))
           ((assoc key-lst alist)
-           (message "which-key: changing %s name from %s to %s in %s"
-                    key (cdr (assoc key-lst alist)) value alist)
+           (message "which-key: changing %s name from %s to %s in the %s alist"
+                    key (cdr (assoc key-lst alist)) value alist-name)
            (setcdr (assoc key-lst alist) value)
            alist)
           (t (cons (cons key-lst value) alist)))))
@@ -528,7 +528,7 @@ replacements are added to
     (setq which-key-key-based-description-replacement-alist
           (which-key--add-key-val-to-alist
            which-key-key-based-description-replacement-alist
-           key-sequence replacement))
+           key-sequence replacement "key-based"))
     (setq key-sequence (pop more) replacement (pop more))))
 (put 'which-key-add-key-based-replacements 'lisp-indent-function 'defun)
 
@@ -543,7 +543,9 @@ addition KEY-SEQUENCE REPLACEMENT pairs) to apply."
     (error "MODE should be a symbol corresponding to a value of major-mode"))
   (let ((mode-alist (cdr (assq mode which-key-key-based-description-replacement-alist))))
     (while key-sequence
-      (setq mode-alist (which-key--add-key-val-to-alist mode-alist key-sequence replacement))
+      (setq mode-alist (which-key--add-key-val-to-alist
+                        mode-alist key-sequence replacement
+                        (format "key-based-%s" mode)))
       (setq key-sequence (pop more) replacement (pop more)))
     (if (assq mode which-key-key-based-description-replacement-alist)
         (setcdr (assq mode which-key-key-based-description-replacement-alist) mode-alist)
@@ -585,11 +587,11 @@ to `which-key-prefix-title-alist'."
     (let ((-name (if (consp name) (car name) name))
           (-title (if (consp name) (cdr name) name)))
         (setq which-key-prefix-name-alist
-              (which-key--add-key-val-to-alist which-key-prefix-name-alist
-                                               key-sequence -name)
+              (which-key--add-key-val-to-alist
+               which-key-prefix-name-alist key-sequence -name "prefix-name")
               which-key-prefix-title-alist
-              (which-key--add-key-val-to-alist which-key-prefix-title-alist
-                                               key-sequence -title)))
+              (which-key--add-key-val-to-alist
+               which-key-prefix-title-alist key-sequence -title "prefix-title")))
     (setq key-sequence (pop more) name (pop more))))
 (put 'which-key-declare-prefixes 'lisp-indent-function 'defun)
 
@@ -607,9 +609,11 @@ addition KEY-SEQUENCE NAME pairs) to apply."
         (-title (if (consp name) (cdr name) name)))
     (while key-sequence
       (setq mode-name-alist (which-key--add-key-val-to-alist
-                             mode-name-alist key-sequence -name)
+                             mode-name-alist key-sequence -name
+                             (format "prefix-name-%s" mode))
             mode-title-alist (which-key--add-key-val-to-alist
-                              mode-title-alist key-sequence -title))
+                              mode-title-alist key-sequence -title
+                              (format "prefix-name-%s" mode)))
       (setq key-sequence (pop more) name (pop more)))
     (if (assq mode which-key-prefix-name-alist)
         (setcdr (assq mode which-key-prefix-name-alist) mode-name-alist)
