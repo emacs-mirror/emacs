@@ -229,46 +229,51 @@ prefixes in `which-key-paging-prefixes'"
   :type 'boolean)
 
 ;; Faces
+(defgroup which-key-faces nil
+  "Faces for which-key-mode"
+  :group 'which-key
+  :prefix "which-key-")
+
 (defface which-key-key-face
   '((t . (:inherit font-lock-constant-face)))
   "Face for which-key keys"
-  :group 'which-key)
+  :group 'which-key-faces)
 
 (defface which-key-separator-face
   '((t . (:inherit font-lock-comment-face)))
   "Face for the separator (default separator is an arrow)"
-  :group 'which-key)
+  :group 'which-key-faces)
 
 (defface which-key-note-face
   '((t . (:inherit which-key-separator-face)))
   "Face for notes or hints occasionally provided"
-  :group 'which-key)
+  :group 'which-key-faces)
 
 (defface which-key-command-description-face
   '((t . (:inherit font-lock-function-name-face)))
   "Face for the key description when it is a command"
-  :group 'which-key)
+  :group 'which-key-faces)
 
 (defface which-key-local-map-description-face
   '((t . (:inherit which-key-command-description-face)))
   "Face for the key description when it is found in `current-local-map'"
-  :group 'which-key)
+  :group 'which-key-faces)
 
 (defface which-key-highlighted-command-face
   '((t . (:inherit which-key-command-description-face :underline t)))
   "Default face for the command description when it is a command
 and it matches a string in `which-key-highlighted-command-face'."
-  :group 'which-key)
+  :group 'which-key-faces)
 
 (defface which-key-group-description-face
   '((t . (:inherit font-lock-keyword-face)))
   "Face for the key description when it is a group or prefix"
-  :group 'which-key)
+  :group 'which-key-faces)
 
 (defface which-key-special-key-face
   '((t . (:inherit which-key-key-face :inverse-video t :weight bold)))
   "Face for special keys (SPC, TAB, RET)"
-  :group 'which-key)
+  :group 'which-key-faces)
 
 ;; Custom popup
 (defcustom which-key-custom-popup-max-dimensions-function nil
