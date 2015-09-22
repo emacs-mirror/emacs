@@ -290,7 +290,6 @@ static void sncRecordFreeSeg(Arena arena, SNC snc, Seg seg)
   SegSetRankAndSummary(seg, RankSetEMPTY, RefSetEMPTY);
 
   /* Pad the whole segment so we don't try to walk it. */
-  /* FIXME: are the Expose and Cover calls necessary here? */
   ShieldExpose(arena, seg);
   (*SNCPool(snc)->format->pad)(SegBase(seg), SegSize(seg));
   ShieldCover(arena, seg);
