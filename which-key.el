@@ -262,7 +262,7 @@ prefixes in `which-key-paging-prefixes'"
 (defface which-key-highlighted-command-face
   '((t . (:inherit which-key-command-description-face :underline t)))
   "Default face for the command description when it is a command
-and it matches a string in `which-key-highlighted-command-face'."
+and it matches a string in `which-key-highlighted-command-list'."
   :group 'which-key-faces)
 
 (defface which-key-group-description-face
