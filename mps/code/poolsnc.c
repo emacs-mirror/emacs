@@ -544,13 +544,13 @@ static Res SNCFramePush(AllocFrame *frameReturn, Pool pool, Buffer buf)
     AVER(sncBufferTopSeg(buf) == NULL);  /* The stack must be empty  */
     /* Use NULL to indicate an empty stack. .lw-frame-null */
     *frameReturn = NULL;
-  } else if (BufferScanLimit(buf) < SegLimit(BufferSeg(buf))) {
-    /* Use the scan limit as the lightweight frame pointer */
-    *frameReturn = (AllocFrame)BufferScanLimit(buf);
+  } else if (BufferGetInit(buf) < SegLimit(BufferSeg(buf))) {
+    /* Frame pointer is limit of initialized objects in buffer. */
+    *frameReturn = (AllocFrame)BufferGetInit(buf);
   } else {
-    /* Can't use the scan limit as the lightweight frame pointer as
-     * it's not in the segment (see job003882). Instead, refill the
-     * buffer and put the frame pointer at the beginning. */
+    /* Can't use the limit of initialized objects as the frame pointer
+     * because it's not in the segment (see job003882). Instead, refill
+     * the buffer and put the frame pointer at the beginning. */
     Res res;
     Addr base, limit;
     BufferDetach(buf, pool);
@@ -558,8 +558,8 @@ static Res SNCFramePush(AllocFrame *frameReturn, Pool pool, Buffer buf)
     if (res != ResOK)
       return res;
     BufferAttach(buf, base, limit, base, 0);
-    AVER(BufferScanLimit(buf) < SegLimit(BufferSeg(buf)));    
-    *frameReturn = (AllocFrame)BufferScanLimit(buf);
+    AVER(BufferGetInit(buf) < SegLimit(BufferSeg(buf)));    
+    *frameReturn = (AllocFrame)BufferGetInit(buf);
   }
   return ResOK;
 }
