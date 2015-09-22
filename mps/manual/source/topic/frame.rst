@@ -13,11 +13,6 @@
 Allocation frames
 =================
 
-.. deprecated:: starting with version 1.111.
-
-    If you need special handling of stack-like allocation,
-    :ref:`contact us <contact>`.
-
 An allocation frame is a marker that can pushed onto an
 :term:`allocation point` by calling :c:func:`mps_ap_frame_push`, and
 then popped by calling :c:func:`mps_ap_frame_pop` to indicate that all
@@ -31,10 +26,8 @@ efficiently implement stack-like patterns of allocation.
 
 .. note::
 
-    All :term:`pool classes` that support :term:`allocation points`
-    also support pushing and popping of allocation frames, but only
-    the :ref:`pool-snc` pool class actually uses these frames to
-    manage its blocks.
+    The only :term:`pool class` in the MPS that supports allocation
+    frames is :ref:`pool-snc`.
 
 
 .. c:type:: mps_frame_t
