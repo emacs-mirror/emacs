@@ -11,11 +11,6 @@
 SNC (Stack No Checking)
 =======================
 
-.. deprecated:: starting with version 1.111.
-
-    If you need special handling of stack-like allocation,
-    :ref:`contact us <contact>`.
-
 **SNC** is a :term:`manually managed <manual memory management>`
 :term:`pool class` that supports a stack-like protocol for allocation
 and deallocation using :term:`allocation frames` on :term:`allocation
