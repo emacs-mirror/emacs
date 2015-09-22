@@ -19,6 +19,10 @@ Interface changes
 #. The :ref:`pool-snc` pool class now implements
    :c:func:`mps_pool_total_size` and :c:func:`mps_pool_free_size`.
 
+#. The pool class :ref:`pool-snc` is no longer deprecated.
+
+#. Allocation frames are no longer deprecated. See :ref:`topic-frame`.
+
 
 Other changes
 .............
