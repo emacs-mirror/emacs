@@ -498,24 +498,6 @@ static void SNCBufferEmpty(Pool pool, Buffer buffer,
 }
 
 
-/* SNCScanLimit -- limit of scannable objects in segment */
-
-static Addr SNCScanLimit(Seg seg)
-{
-  Addr limit;
-  Buffer buf;
-  buf = SegBuffer(seg);
-  if (buf == NULL) {
-    /* Segment is unbuffered: entire segment scannable */
-    limit = SegLimit(seg);
-  } else {
-    /* Segment is buffered: scannable up to limit of initialized objects. */
-    limit = BufferScanLimit(buf);
-  }
-  return limit;
-}
-
-
 static Res SNCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 {
   Addr base, limit;
@@ -532,7 +514,7 @@ static Res SNCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
   format = pool->format;
   base = SegBase(seg);
-  limit = SNCScanLimit(seg);
+  limit = SegBufferScanLimit(seg);
  
   if (base < limit) {
     res = (*format->scan)(&ss->ss_s, base, limit);
@@ -645,7 +627,7 @@ static void SNCWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
     snc = PoolSNC(pool);
     AVERT(SNC, snc);
     format = pool->format;
-    limit = SNCScanLimit(seg);
+    limit = SegBufferScanLimit(seg);
 
     while(object < limit) {
       (*f)(object, format, pool, p, s);
