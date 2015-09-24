@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; URL: https://github.com/justbur/emacs-which-key
-;; Version: 0.5.1
+;; Version: 0.6.1
 ;; Keywords:
 ;; Package-Requires: ((emacs "24.3") (s "1.9.0") (dash "2.11.0"))
 
@@ -377,7 +377,8 @@ alongside the actual current key sequence when
       (progn
         (setq which-key--echo-keystrokes-backup echo-keystrokes)
         (unless which-key--is-setup (which-key--setup))
-        (setq which-key--prefix-help-cmd-backup prefix-help-command)
+        (unless (eq prefix-help-command 'which-key-show-next-page)
+          (setq which-key--prefix-help-cmd-backup prefix-help-command))
         (when which-key-use-C-h-for-paging
             (setq prefix-help-command #'which-key-show-next-page))
         (when which-key-show-remaining-keys
@@ -387,7 +388,8 @@ alongside the actual current key sequence when
         (add-hook 'focus-in-hook #'which-key--start-timer)
         (which-key--start-timer))
     (setq echo-keystrokes which-key--echo-keystrokes-backup)
-    (setq prefix-help-command which-key--prefix-help-cmd-backup)
+    (when which-key--prefix-help-cmd-backup
+      (setq prefix-help-command which-key--prefix-help-cmd-backup))
     (when which-key-show-remaining-keys
       (remove-hook 'pre-command-hook #'which-key--lighter-restore))
     (remove-hook 'pre-command-hook #'which-key--hide-popup)
