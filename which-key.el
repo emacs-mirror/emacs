@@ -321,8 +321,8 @@ to a non-nil value for the execution of a command. Like this
 Used when `which-key-popup-type' is frame.")
 (defvar which-key--echo-keystrokes-backup nil
   "Internal: Backup the initial value of `echo-keystrokes'.")
-;; (defvar which-key--prefix-help-cmd-backup nil
-;;   "Internal: Backup the value of `prefix-help-command'.")
+(defvar which-key--prefix-help-cmd-backup nil
+  "Internal: Backup the value of `prefix-help-command'.")
 (defvar which-key--pages-plist nil
   "Internal: Holds page objects")
 (defvar which-key--lighter-backup nil
@@ -377,6 +377,8 @@ alongside the actual current key sequence when
       (progn
         (setq which-key--echo-keystrokes-backup echo-keystrokes)
         (unless which-key--is-setup (which-key--setup))
+        (unless (eq prefix-help-command 'which-key-show-next-page)
+          (setq which-key--prefix-help-cmd-backup prefix-help-command))
         (when which-key-use-C-h-for-paging
             (setq prefix-help-command #'which-key-show-next-page))
         (when which-key-show-remaining-keys
@@ -386,6 +388,8 @@ alongside the actual current key sequence when
         (add-hook 'focus-in-hook #'which-key--start-timer)
         (which-key--start-timer))
     (setq echo-keystrokes which-key--echo-keystrokes-backup)
+    (when which-key--prefix-help-cmd-backup
+      (setq prefix-help-command which-key--prefix-help-cmd-backup))
     (when which-key-show-remaining-keys
       (remove-hook 'pre-command-hook #'which-key--lighter-restore))
     (remove-hook 'pre-command-hook #'which-key--hide-popup)
@@ -1315,7 +1319,7 @@ Will force an update if called before `which-key--update'."
       (progn
         (which-key--hide-popup-ignore-command)
         (which-key--stop-timer)
-        (describe-prefix-bindings)
+        (funcall which-key--prefix-help-cmd-backup)
         (which-key--start-timer))
     (let* ((next-event-if-showing
             ;; forces event into current key sequence
