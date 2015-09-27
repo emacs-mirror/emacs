@@ -397,6 +397,19 @@ alongside the actual current key sequence when
     (remove-hook 'focus-in-hook #'which-key--start-timer)
     (which-key--stop-timer)))
 
+(defun which-key--init-buffer ()
+  "Initialize which-key buffer"
+  (unless (buffer-live-p which-key--buffer)
+    (setq which-key--buffer (get-buffer-create which-key-buffer-name))
+    (with-current-buffer which-key--buffer
+      ;; suppress confusing minibuffer message
+      (let (message-log-max)
+        (toggle-truncate-lines 1)
+        (message ""))
+      (setq-local cursor-type nil)
+      (setq-local cursor-in-non-selected-windows nil)
+      (setq-local mode-line-format nil))))
+
 (defun which-key--setup ()
   "Initial setup for which-key.
 Reduce `echo-keystrokes' if necessary (it will interfer if it's
@@ -405,15 +418,7 @@ set too high) and setup which-key buffer."
             (eq which-key-popup-type 'minibuffer))
     (which-key--setup-echo-keystrokes))
   (which-key--check-key-based-alist)
-  (setq which-key--buffer (get-buffer-create which-key-buffer-name))
-  (with-current-buffer which-key--buffer
-    ;; suppress confusing minibuffer message
-    (let (message-log-max)
-      (toggle-truncate-lines 1)
-      (message ""))
-    (setq-local cursor-type nil)
-    (setq-local cursor-in-non-selected-windows nil)
-    (setq-local mode-line-format nil))
+  (which-key--init-buffer)
   (setq which-key--is-setup t))
 
 (defun which-key--setup-echo-keystrokes ()
@@ -1248,6 +1253,7 @@ area."
 
 (defun which-key--show-page (n)
   "Show page N, starting from 0."
+  (which-key--init-buffer) ;; in case it was killed
   (let ((n-pages (plist-get which-key--pages-plist :n-pages))
         (prefix-keys (key-description which-key--current-prefix))
         page-n)
