@@ -2525,8 +2525,4 @@ order to Calc's."
 
 (provide 'calc-lang)
 
-;; Local variables:
-;; coding: utf-8
-;; End:
-
 ;;; calc-lang.el ends here

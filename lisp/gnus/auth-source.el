@@ -362,7 +362,7 @@ If the value is not a list, symmetric encryption will be used."
   "Read one of CHOICES by `read-char-choice', or `read-char'.
 `dropdown-list' support is disabled because it doesn't work reliably.
 Only one of CHOICES will be returned.  The PROMPT is augmented
-with \"[a/b/c] \" if CHOICES is '\(?a ?b ?c\)."
+with \"[a/b/c] \" if CHOICES is \(?a ?b ?c)."
   (when choices
     (let* ((prompt-choices
             (apply 'concat (loop for c in choices
@@ -1557,20 +1557,20 @@ You'll get back all the properties of the token as a plist.
 Here's an example that looks for the first item in the `Login'
 Secrets collection:
 
- \(let ((auth-sources \\='(\"secrets:Login\")))
+ (let ((auth-sources \\='(\"secrets:Login\")))
     (auth-source-search :max 1)
 
 Here's another that looks for the first item in the `Login'
 Secrets collection whose label contains `gnus':
 
- \(let ((auth-sources \\='(\"secrets:Login\")))
+ (let ((auth-sources \\='(\"secrets:Login\")))
     (auth-source-search :max 1 :label \"gnus\")
 
 And this one looks for the first item in the `Login' Secrets
 collection that's a Google Chrome entry for the git.gnus.org site
 authentication tokens:
 
- \(let ((auth-sources \\='(\"secrets:Login\")))
+ (let ((auth-sources \\='(\"secrets:Login\")))
     (auth-source-search :max 1 :signon_realm \"https://git.gnus.org/Git\"))
 "
 
@@ -1691,19 +1691,19 @@ field), :user maps to \"-a USER\", and :port maps to \"-s PORT\".
 Here's an example that looks for the first item in the default
 generic MacOS Keychain:
 
- \(let ((auth-sources \\='(macos-keychain-generic)))
+ (let ((auth-sources \\='(macos-keychain-generic)))
     (auth-source-search :max 1)
 
 Here's another that looks for the first item in the internet
 MacOS Keychain collection whose label is `gnus':
 
- \(let ((auth-sources \\='(macos-keychain-internet)))
+ (let ((auth-sources \\='(macos-keychain-internet)))
     (auth-source-search :max 1 :label \"gnus\")
 
 And this one looks for the first item in the internet keychain
 entries for git.gnus.org:
 
- \(let ((auth-sources \\='(macos-keychain-internet\")))
+ (let ((auth-sources \\='(macos-keychain-internet\")))
     (auth-source-search :max 1 :host \"git.gnus.org\"))
 "
   ;; TODO

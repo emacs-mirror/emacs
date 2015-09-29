@@ -263,7 +263,7 @@ word(s) will be searched for via `eww-search-prefix'."
 		 ;; en.wikipedia.org/wiki/Free software
 		 (string-match "\\`[A-Za-z_]+\\.[A-Za-z._]+/" url)
 		 (and (= (length (split-string url)) 1)
-		      (or (and (not (string-match-p "\\`[\"\'].*[\"\']\\'" url))
+		      (or (and (not (string-match-p "\\`[\"'].*[\"']\\'" url))
 			       (> (length (split-string url "[.:]")) 1))
 			  (string-match eww-local-regex url))))
              (progn

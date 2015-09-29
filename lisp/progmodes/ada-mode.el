@@ -2682,7 +2682,7 @@ if INITIAL-POS is non-nil, moves point to INITIAL-POS before calculation."
 	 ;; "then" has to be included in the case of "select...then abort"
 	 ;; statements, since (goto-stmt-start) at the beginning of
 	 ;; the current function would leave the cursor on that position
-	 ((looking-at "\\(\\(els\\)?if\\>\\)\\|then abort\\\>")
+	 ((looking-at "\\(\\(els\\)?if\\>\\)\\|then abort\\>")
 	  (ada-get-indent-if orgpoint))
 	 ;;
 	 ((looking-at "case\\>")
@@ -5290,7 +5290,7 @@ for `ada-procedure-start-regexp'."
 	    (setq functype (buffer-substring (point)
 					     (progn
 					       (skip-chars-forward
-						"a-zA-Z0-9_\.")
+						"a-zA-Z0-9_.")
 					       (point))))))
       ;; look for next non WS
       (cond

@@ -1,4 +1,4 @@
-/* copy-acl.c - copy access control list from one file to another file
+/* Copy access control list from one file to another.  -*- coding: utf-8 -*-
 
    Copyright (C) 2002-2003, 2005-2015 Free Software Foundation, Inc.
 

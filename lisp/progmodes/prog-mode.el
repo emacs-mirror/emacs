@@ -61,7 +61,7 @@ indentation of a line/region to the indentation engine of the sub
 mode, it is supposed to bind this variable to non-nil around the call.
 
 The non-nil value looks as follows
-   \(FIRST-COLUMN (START . END) PREVIOUS-CHUNKS)
+   (FIRST-COLUMN (START . END) PREVIOUS-CHUNKS)
 
 FIRST-COLUMN is the column the indentation engine of the sub mode
 should usually choose for top-level language constructs inside
@@ -86,7 +86,7 @@ values are:
 
  - A function called with the start position of the current
    chunk.  It will return either the region of the previous chunk
-   as \(PREV-START . PREV-END) or nil if there is no further
+   as (PREV-START . PREV-END) or nil if there is no further
    previous chunk.
 
    A typical use case are literate programming sources - the

@@ -347,7 +347,7 @@ naming the shell."
      . ((nil
 	 ;; function FOO
 	 ;; function FOO()
-         "^\\s-*function\\s-+\\\([[:alpha:]_][[:alnum:]_]*\\)\\s-*\\(?:()\\)?"
+         "^\\s-*function\\s-+\\([[:alpha:]_][[:alnum:]_]*\\)\\s-*\\(?:()\\)?"
          1)
 	;; FOO()
 	(nil
@@ -374,7 +374,7 @@ For use in `add-log-current-defun-function'."
 	   (concat "\\(?:"
 		   ;; function FOO
 		   ;; function FOO()
-		   "^\\s-*function\\s-+\\\([[:alpha:]_][[:alnum:]_]*\\)\\s-*\\(?:()\\)?"
+		   "^\\s-*function\\s-+\\([[:alpha:]_][[:alnum:]_]*\\)\\s-*\\(?:()\\)?"
 		   "\\)\\|\\(?:"
 		   ;; FOO()
 		   "^\\s-*\\([[:alpha:]_][[:alnum:]_]*\\)\\s-*()"
@@ -2319,7 +2319,7 @@ controls whether to query about making the visited file executable.
 
 Calls the value of `sh-set-shell-hook' if set."
   (interactive (list (completing-read
-                      (format "Shell \(default %s\): "
+                      (format "Shell (default %s): "
                               sh-shell-file)
                       ;; This used to use interpreter-mode-alist, but that is
                       ;; no longer appropriate now that uses regexps.
@@ -2810,15 +2810,15 @@ Return new point if successful, nil if an error occurred."
   "Return indent-info for this line.
 This is a list.  nil means the line is to be left as is.
 Otherwise it contains one or more of the following sublists:
-\(t NUMBER\)   NUMBER is the base location in the buffer that indentation is
+\(t NUMBER)   NUMBER is the base location in the buffer that indentation is
 	     relative to.  If present, this is always the first of the
 	     sublists.  The indentation of the line in question is
 	     derived from the indentation of this point, possibly
 	     modified by subsequent sublists.
-\(+ VAR\)
-\(- VAR\)      Get the value of variable VAR and add to or subtract from
+\(+ VAR)
+\(- VAR)      Get the value of variable VAR and add to or subtract from
 	     the indentation calculated so far.
-\(= VAR\)	     Get the value of variable VAR and *replace* the
+\(= VAR)      Get the value of variable VAR and *replace* the
 	     indentation with its value.  This only occurs for
 	     special variables such as `sh-indent-comment'.
 STRING	     This is ignored for the purposes of calculating
@@ -3086,7 +3086,7 @@ we go to the end of the previous line and do not check for continuations."
 		(setq prev (point))
 		))
 	  ;; backward-sexp failed
-	  (if (zerop (skip-chars-backward " \t()[\]{};`'"))
+	  (if (zerop (skip-chars-backward " \t()[]{};`'"))
 	      (forward-char -1))
 	  (if (bolp)
 	      (let ((back (sh-prev-line nil)))

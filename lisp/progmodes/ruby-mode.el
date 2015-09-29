@@ -695,7 +695,7 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
   (let ((index-alist '()) (case-fold-search nil)
         name next pos decl sing)
     (goto-char beg)
-    (while (re-search-forward "^\\s *\\(\\(class\\s +\\|\\(class\\s *<<\\s *\\)\\|module\\s +\\)\\([^\(<\n ]+\\)\\|\\(def\\|alias\\)\\s +\\([^\(\n ]+\\)\\)" end t)
+    (while (re-search-forward "^\\s *\\(\\(class\\s +\\|\\(class\\s *<<\\s *\\)\\|module\\s +\\)\\([^(<\n ]+\\)\\|\\(def\\|alias\\)\\s +\\([^(\n ]+\\)\\)" end t)
       (setq sing (match-beginning 3))
       (setq decl (match-string 5))
       (setq next (match-end 0))
@@ -709,7 +709,7 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
         (if prefix
             (setq name
                   (cond
-                   ((string-match "^self\." name)
+                   ((string-match "^self\\." name)
                     (concat (substring prefix 0 -1) (substring name 4)))
                   (t (concat prefix name)))))
         (push (cons name pos) index-alist)
@@ -1795,7 +1795,7 @@ If the result is do-end block, it will always be multiline."
       (setq content
             (if (equal string-quote "\"")
                 (replace-regexp-in-string "\\\\\"" "\"" (replace-regexp-in-string "\\([^\\\\]\\)'" "\\1\\\\'" content))
-              (replace-regexp-in-string "\\\\\'" "'" (replace-regexp-in-string "\\([^\\\\]\\)\"" "\\1\\\\\"" content))))
+              (replace-regexp-in-string "\\\\'" "'" (replace-regexp-in-string "\\([^\\\\]\\)\"" "\\1\\\\\"" content))))
       (let ((orig-point (point)))
         (delete-region min max)
         (insert
@@ -2007,7 +2007,8 @@ It will be properly highlighted even when the call omits parens.")
          (t
           (error (concat
                   "Internal error on `ruby-in-ppss-context-p': "
-                  "context name `" (symbol-name context) "' is unknown"))))
+                  "context name `%s' is unknown")
+                 context)))
         t)))
 
 (defvar ruby-font-lock-syntax-table
@@ -2192,7 +2193,7 @@ See `font-lock-syntax-table'.")
     ;; Constants.
     ("\\(?:\\_<\\|::\\)\\([A-Z]+\\(\\w\\|_\\)*\\)"
      1 (unless (eq ?\( (char-after)) font-lock-type-face))
-    ("\\(^\\s *\\|[\[\{\(,]\\s *\\|\\sw\\s +\\)\\(\\(\\sw\\|_\\)+\\):[^:]"
+    ("\\(^\\s *\\|[[{(,]\\s *\\|\\sw\\s +\\)\\(\\(\\sw\\|_\\)+\\):[^:]"
      (2 font-lock-constant-face))
     ;; Conversion methods on Kernel.
     (,(concat ruby-font-lock-keyword-beg-re

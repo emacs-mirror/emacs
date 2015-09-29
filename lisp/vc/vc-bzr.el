@@ -649,7 +649,7 @@ or a superior directory.")
                                            "" (replace-regexp-in-string
                                                "\n[ \t]?" " " str)))))
 
-(defun vc-bzr-checkin (files comment)
+(defun vc-bzr-checkin (files comment &optional _rev)
   "Check FILES in to bzr with log message COMMENT."
   (apply 'vc-bzr-command "commit" nil 0 files
          (cons "-m" (log-edit-extract-headers

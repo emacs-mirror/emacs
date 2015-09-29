@@ -1,4 +1,4 @@
-;;; macroexp.el --- Additional macro-expansion support -*- lexical-binding: t; coding: utf-8 -*-
+;;; macroexp.el --- Additional macro-expansion support -*- lexical-binding: t -*-
 ;;
 ;; Copyright (C) 2004-2015 Free Software Foundation, Inc.
 ;;

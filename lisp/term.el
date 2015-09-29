@@ -1919,7 +1919,7 @@ A useful command to bind to SPC.  See `term-replace-by-expanded-history'."
 (defun term-within-quotes (beg end)
   "Return t if the number of quotes between BEG and END is odd.
 Quotes are single and double."
-  (let ((countsq (term-how-many-region "\\(^\\|[^\\\\]\\)\'" beg end))
+  (let ((countsq (term-how-many-region "\\(^\\|[^\\\\]\\)'" beg end))
 	(countdq (term-how-many-region "\\(^\\|[^\\\\]\\)\"" beg end)))
     (or (= (mod countsq 2) 1) (= (mod countdq 2) 1))))
 

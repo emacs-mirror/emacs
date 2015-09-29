@@ -732,7 +732,7 @@ it contains an error message, even if hide-output is non-nil.")
 
 (defvar idlwave-shell-pending-commands nil
   "List of commands to be sent to IDL.
-Each element of the list is list of \(CMD PCMD HIDE\), where CMD is a
+Each element of the list is list of \(CMD PCMD HIDE), where CMD is a
 string to be sent to IDL and PCMD is a post-command to be placed on
 `idlwave-shell-post-command-hook'.  If HIDE is non-nil, hide the output
 from command CMD.  PCMD and HIDE are optional.")
@@ -1240,7 +1240,7 @@ Return either nil or 'hide."
 					     show-if-error)
   "Send a command to IDL process.
 
-\(CMD PCMD HIDE\) are placed at the end of `idlwave-shell-pending-commands'.
+\(CMD PCMD HIDE) are placed at the end of `idlwave-shell-pending-commands'.
 If IDL is ready the first command in `idlwave-shell-pending-commands',
 CMD, is sent to the IDL process.
 
@@ -1256,7 +1256,7 @@ stepping through code with output.
 If optional fourth argument PREEMPT is non-nil CMD is put at front of
 `idlwave-shell-pending-commands'.  If PREEMPT is 'wait, wait for all
 output to complete and the next prompt to arrive before returning
-\(useful if you need an answer now\).  IDL is considered ready if the
+\(useful if you need an answer now).  IDL is considered ready if the
 prompt is present and if `idlwave-shell-ready' is non-nil.
 
 If SHOW-IF-ERROR is non-nil, show the output if it contains an error
@@ -3122,7 +3122,7 @@ versions of IDL."
 	 (string-match "\\.\\'" pre)))             ;; structure member
 
        ;; Skip over strings
-       ((and (string-match "\\([\"\']\\)[^\1]*$" pre)
+       ((and (string-match "\\([\"']\\)[^\1]*$" pre)
 	     (string-match (concat "^[^" (match-string 1 pre) "]*"
 				   (match-string 1 pre)) post))
 	(setq start (+ start (match-end 0))))
@@ -3212,7 +3212,7 @@ size(___,/DIMENSIONS)"
 
 (defvar idlwave-shell-bp-alist nil
   "Alist of breakpoints.
-A breakpoint is a cons cell \(\(file line\) . \(\(index module\) data\)\)
+A breakpoint is a cons cell \((file line) . \((index module) data))
 
 The car is the `frame' for the breakpoint:
 file - full path file name.
@@ -3921,7 +3921,7 @@ Query as a function if TYPE set to something beside `pro'."
   "Get module source, and update `idlwave-shell-sources-alist'."
   (let ((old (assoc (upcase module) idlwave-shell-sources-alist))
 	filename)
-    (when (string-match "\.PATH *[\n\r]\\([^%][^\r\n]+\\)[\n\r]"
+    (when (string-match ".PATH *[\n\r]\\([^%][^\r\n]+\\)[\n\r]"
 			idlwave-shell-command-output)
       (setq filename (substring idlwave-shell-command-output
 				(match-beginning 1) (match-end 1)))

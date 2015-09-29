@@ -228,7 +228,7 @@ If N or M is nil, it means the end of the list."
 
 (defvar eshell-path-env (getenv "PATH")
   "Content of $PATH.
-It might be different from \(getenv \"PATH\"\), when
+It might be different from \(getenv \"PATH\"), when
 `default-directory' points to a remote host.")
 (make-variable-buffer-local 'eshell-path-env)
 

@@ -233,12 +233,13 @@
 ;;   Unregister FILE from this backend.  This is only needed if this
 ;;   backend may be used as a "more local" backend for temporary editing.
 ;;
-;; * checkin (files comment)
+;; * checkin (files comment &optional rev)
 ;;
 ;;   Commit changes in FILES to this backend. COMMENT is used as a
 ;;   check-in comment.  The implementation should pass the value of
-;;   vc-checkin-switches to the backend command.  The revision argument
-;;   of some older VC versions is no longer supported.
+;;   vc-checkin-switches to the backend command.  The optional REV
+;;   revision argument is only supported with some older VCSes, like
+;;   RCS and CVS, and is otherwise silently ignored.
 ;;
 ;; * find-revision (file rev buffer)
 ;;
@@ -850,9 +851,9 @@ See `run-hooks'."
 
 (defcustom vc-static-header-alist
   '(("\\.c\\'" .
-     "\n#ifndef lint\nstatic char vcid[] = \"\%s\";\n#endif /* lint */\n"))
+     "\n#ifndef lint\nstatic char vcid[] = \"%s\";\n#endif /* lint */\n"))
   "Associate static header string templates with file types.
-A \%s in the template is replaced with the first string associated with
+A %s in the template is replaced with the first string associated with
 the file's version control type in `vc-BACKEND-header'."
   :type '(repeat (cons :format "%v"
 		       (regexp :tag "File Type")
@@ -1221,10 +1222,15 @@ For old-style locking-based version control systems, like RCS:
 	    (message "No files remain to be committed")
 	  (if (not verbose)
 	      (vc-checkin ready-for-commit backend)
-            (let ((new-backend (vc-read-backend "New backend: ")))
-	      (if new-backend
-                  (dolist (file files)
-                    (vc-transfer-file file new-backend))))))))
+	    (let* ((revision (read-string "New revision or backend: "))
+                   (revision-downcase (downcase revision)))
+	      (if (member
+		   revision-downcase
+		   (mapcar (lambda (arg) (downcase (symbol-name arg)))
+			   vc-handled-backends))
+		  (let ((vsym (intern revision-downcase)))
+		    (dolist (file files) (vc-transfer-file file vsym)))
+		(vc-checkin ready-for-commit backend nil nil revision)))))))
      ;; locked by somebody else (locking VCSes only)
      ((stringp state)
       ;; In the old days, we computed the revision once and used it on
@@ -1522,11 +1528,13 @@ Type \\[vc-next-action] to check in changes.")
      ".\n")
     (message "Please explain why you stole the lock.  Type C-c C-c when done.")))
 
-(defun vc-checkin (files backend &optional comment initial-contents)
+(defun vc-checkin (files backend &optional comment initial-contents rev)
   "Check in FILES. COMMENT is a comment string; if omitted, a
 buffer is popped up to accept a comment.  If INITIAL-CONTENTS is
 non-nil, then COMMENT is used as the initial contents of the log
 entry buffer.
+The optional argument REV may be a string specifying the new revision
+level (only supported for some older VCSes, like RCS and CVS).
 
 Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
   (when vc-before-checkin-hook
@@ -1549,7 +1557,7 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
        ;; vc-checkin-switches, but 'the' local buffer is
        ;; not a well-defined concept for filesets.
        (progn
-         (vc-call-backend backend 'checkin files comment)
+         (vc-call-backend backend 'checkin files comment rev)
          (mapc 'vc-delete-automatic-version-backups files))
        `((vc-state . up-to-date)
          (vc-checkout-time . ,(nth 5 (file-attributes file)))
@@ -2093,7 +2101,7 @@ changes from the current branch."
 (defun vc-tag-precondition (dir)
   "Scan the tree below DIR, looking for files not up-to-date.
 If any file is not up-to-date, return the name of the first such file.
-\(This means, neither tag creation nor retrieval is allowed.\)
+\(This means, neither tag creation nor retrieval is allowed.)
 If one or more of the files are currently visited, return `visited'.
 Otherwise, return nil."
   (let ((status nil))

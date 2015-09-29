@@ -197,7 +197,7 @@ The key of an entry is the concatenation of the service name and
 service type of a discovered service.  The value is the service
 itself.  The format of a service is
 
-  \(INTERFACE PROTOCOL NAME TYPE DOMAIN FLAGS\)
+  \(INTERFACE PROTOCOL NAME TYPE DOMAIN FLAGS)
 
 The INTERFACE is a number, which represents the network interface
 the service is located at.  The corresponding network interface
@@ -233,7 +233,7 @@ The key of an entry is the concatenation of the service name and
 service type of a resolved service.  The value is the service
 itself.  The format of a service is
 
-  \(INTERFACE PROTOCOL NAME TYPE DOMAIN HOST APROTOCOL ADDRESS PORT TXT FLAGS\)
+  (INTERFACE PROTOCOL NAME TYPE DOMAIN HOST APROTOCOL ADDRESS PORT TXT FLAGS)
 
 INTERFACE, PROTOCOL, NAME, TYPE, DOMAIN and FLAGS have the same
 meaning as in `zeroconf-services-hash'.
@@ -275,7 +275,7 @@ supported keys depend on the service type.")
   "Returns all discovered Avahi services for a given service type TYPE.
 The service type is one of the returned values of
 `zeroconf-list-service-types'.  The return value is a list
-\(SERVICE1 SERVICE2 ...\).  See `zeroconf-services-hash' for the
+\(SERVICE1 SERVICE2 ...).  See `zeroconf-services-hash' for the
 format of SERVICE."
   (let (result)
     (maphash
@@ -385,7 +385,7 @@ type used when registering FUNCTION."
 NAME must be a string.  The service must be of service type
 TYPE. The resulting list has the format
 
-  \(INTERFACE PROTOCOL NAME TYPE DOMAIN FLAGS\)."
+  (INTERFACE PROTOCOL NAME TYPE DOMAIN FLAGS)."
   ;; Due to the service browser, all known services are kept in
   ;; `zeroconf-services-hash'.
   (gethash (concat name "/" type) zeroconf-services-hash nil))
@@ -395,7 +395,7 @@ TYPE. The resulting list has the format
 NAME must be a string.  The service must be of service type
 TYPE. The resulting list has the format
 
-  \(INTERFACE PROTOCOL NAME TYPE DOMAIN HOST APROTOCOL ADDRESS PORT TXT FLAGS\)."
+  (INTERFACE PROTOCOL NAME TYPE DOMAIN HOST APROTOCOL ADDRESS PORT TXT FLAGS)."
   (let* ((name (zeroconf-service-name service))
 	 (type (zeroconf-service-type service))
 	 (key (concat name "/" type)))

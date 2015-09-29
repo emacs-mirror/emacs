@@ -1,3 +1,4 @@
+@c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2015 Free Software
 @c Foundation, Inc.
@@ -28,7 +29,7 @@ Reference Manual}.
                           to decide what to do; by setting variables,
                           you can control their functioning.
 * Key Bindings::        The keymaps say what command each key runs.
-                          By changing them, you can ``redefine keys''.
+                          By changing them, you can redefine keys.
 * Init File::           How to write common customizations in the
                           initialization file.
 @end menu
@@ -728,7 +729,7 @@ maximum length of the kill ring (@pxref{Earlier Kills}); if you give
 @code{kill-ring-max} a string value, commands such as @kbd{C-y}
 (@code{yank}) will signal an error.  On the other hand, some variables
 don't care about type; for instance, if a variable has one effect for
-@code{nil} values and another effect for ``non-@code{nil}'' values,
+@code{nil} values and another effect for non-@code{nil} values,
 then any value that is not the symbol @code{nil} induces the second
 effect, regardless of its type (by convention, we usually use the
 value @code{t}---a symbol which stands for ``true''---to specify a
@@ -773,22 +774,22 @@ C-h v fill-column @key{RET}
 displays something like this:
 
 @example
-fill-column is a variable defined in `C source code'.
-fill-column's value is 70
+fill-column is a variable defined in ‘C source code’.
+Its value is 70
 
-Automatically becomes buffer-local when set.
-This variable is safe as a file local variable if its value
-satisfies the predicate @code{integerp}.
+  Automatically becomes buffer-local when set.
+  This variable is safe as a file local variable if its value
+  satisfies the predicate ‘integerp’.
 
 Documentation:
 Column beyond which automatic line-wrapping should happen.
-Interactively, you can set the local value with C-x f.
+Interactively, you can set the buffer local value using C-x f.
 
 You can customize this variable.
 @end example
 
 @noindent
-The line that says ``You can customize the variable'' indicates that
+The line that says @samp{You can customize the variable} indicates that
 this variable is a user option.  @kbd{C-h v} is not restricted to user
 options; it allows non-customizable variables too.
 
@@ -1156,7 +1157,7 @@ the list.  Here is an example:
 # End:
 @end example
 
-  Some ``variable names'' have special meanings in a local variables
+  Some names have special meanings in a local variables
 list:
 
 @itemize
@@ -1761,7 +1762,7 @@ and @kbd{C-c p} in Texinfo mode:
 alphabetical characters are case-insensitive.  In other words,
 @kbd{C-A} does the same thing as @kbd{C-a}, and @kbd{M-A} does the
 same thing as @kbd{M-a}.  This concerns only alphabetical characters,
-and does not apply to ``shifted'' versions of other keys; for
+and does not apply to shifted versions of other keys; for
 instance, @kbd{C-@@} is not the same as @kbd{C-2}.
 
   A @key{Control}-modified alphabetical character is always considered
@@ -1784,9 +1785,9 @@ to them.  The modifier bits are labeled as @samp{s-}, @samp{H-} and
 @samp{A-} respectively.
 
   Even if your keyboard lacks these additional modifier keys, you can
-enter it using @kbd{C-x @@}: @kbd{C-x @@ h} adds the ``hyper'' flag to
-the next character, @kbd{C-x @@ s} adds the ``super'' flag, and
-@kbd{C-x @@ a} adds the ``alt'' flag.  For instance, @kbd{C-x @@ h
+enter it using @kbd{C-x @@}: @kbd{C-x @@ h} adds the Hyper flag to
+the next character, @kbd{C-x @@ s} adds the Super flag, and
+@kbd{C-x @@ a} adds the Alt flag.  For instance, @kbd{C-x @@ h
 C-a} is a way to enter @kbd{Hyper-Control-a}.  (Unfortunately, there
 is no way to add two modifiers by using @kbd{C-x @@} twice for the
 same character, because the first one goes to work on the @kbd{C-x}.)
@@ -1836,7 +1837,7 @@ key.
   @xref{Init Rebinding}, for examples of binding function keys.
 
 @cindex keypad
-  Many keyboards have a ``numeric keypad'' on the right hand side.
+  Many keyboards have a numeric keypad on the right hand side.
 The numeric keys in the keypad double up as cursor motion keys,
 toggled by a key labeled @samp{Num Lock}.  By default, Emacs
 translates these keys to the corresponding keys in the main keyboard.
@@ -1866,13 +1867,13 @@ prefix arguments.
 started out as names for certain @acronym{ASCII} control characters,
 used so often that they have special keys of their own.  For instance,
 @key{TAB} was another name for @kbd{C-i}.  Later, users found it
-convenient to distinguish in Emacs between these keys and the ``same''
+convenient to distinguish in Emacs between these keys and the corresponding
 control characters typed with the @key{Ctrl} key.  Therefore, on most
 modern terminals, they are no longer the same: @key{TAB} is different
 from @kbd{C-i}.
 
   Emacs can distinguish these two kinds of input if the keyboard does.
-It treats the ``special'' keys as function keys named @code{tab},
+It treats the special keys as function keys named @code{tab},
 @code{return}, @code{backspace}, @code{linefeed}, @code{escape}, and
 @code{delete}.  These function keys translate automatically into the
 corresponding @acronym{ASCII} characters @emph{if} they have no
@@ -1882,7 +1883,7 @@ need to pay attention to the distinction unless they care to.
   If you do not want to distinguish between (for example) @key{TAB} and
 @kbd{C-i}, make just one binding, for the @acronym{ASCII} character @key{TAB}
 (octal code 011).  If you do want to distinguish, make one binding for
-this @acronym{ASCII} character, and another for the ``function key'' @code{tab}.
+this @acronym{ASCII} character, and another for the function key @code{tab}.
 
   With an ordinary @acronym{ASCII} terminal, there is no way to distinguish
 between @key{TAB} and @kbd{C-i} (and likewise for other such pairs),
@@ -1937,7 +1938,7 @@ single click definition has run when the first click was received.
   This constrains what you can do with double clicks, but user interface
 designers say that this constraint ought to be followed in any case.  A
 double click should do something similar to the single click, only
-``more so''.  The command for the double-click event should perform the
+more so.  The command for the double-click event should perform the
 extra work for the double click.
 
   If a double-click event has no binding, it changes to the
@@ -1984,8 +1985,8 @@ or @samp{triple-}, which always precede @samp{drag-} or @samp{down-}.
 
   A frame includes areas that don't show text from the buffer, such as
 the mode line and the scroll bar.  You can tell whether a mouse button
-comes from a special area of the screen by means of dummy ``prefix
-keys''.  For example, if you click the mouse in the mode line, you get
+comes from a special area of the screen by means of dummy prefix
+keys.  For example, if you click the mouse in the mode line, you get
 the prefix key @code{mode-line} before the ordinary mouse-button symbol.
 Thus, here is how to define the command for clicking the first button in
 a mode line to run @code{scroll-up-command}:

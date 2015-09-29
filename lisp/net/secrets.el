@@ -598,7 +598,7 @@ If successful, return the object path of the collection."
 ATTRIBUTES are key-value pairs.  The keys are keyword symbols,
 starting with a colon.  Example:
 
-  \(secrets-search-items \"Tramp collection\" :user \"joe\")
+  (secrets-search-items \"Tramp collection\" :user \"joe\")
 
 The object labels of the found items are returned as list."
   (let ((collection-path (secrets-unlock-collection collection))
@@ -635,8 +635,8 @@ The object labels of the found items are returned as list."
 ATTRIBUTES are key-value pairs set for the created item.  The
 keys are keyword symbols, starting with a colon.  Example:
 
-  \(secrets-create-item \"Tramp collection\" \"item\" \"geheim\"
-   :method \"sudo\" :user \"joe\" :host \"remote-host\"\)
+  (secrets-create-item \"Tramp collection\" \"item\" \"geheim\"
+   :method \"sudo\" :user \"joe\" :host \"remote-host\")
 
 The object path of the created item is returned."
   (unless (member item (secrets-list-items collection))

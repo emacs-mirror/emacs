@@ -193,8 +193,8 @@ The basic syntax is:
   *      .*      matches any group of characters (or none)
   #      *       matches zero or more occurrences of preceding
   ##     +       matches one or more occurrences of preceding
-  (x)    \(x\)   makes `x' a regular expression group
-  |      \|      boolean OR within an expression group
+  (x)    \\(x\\)   makes `x' a regular expression group
+  |      \\|      boolean OR within an expression group
   [a-b]  [a-b]   matches a character or range
   [^a]   [^a]    excludes a character or range
 

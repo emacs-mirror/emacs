@@ -447,7 +447,7 @@ or subject for the event."
     ;; characters with literal \n.
     (replace-regexp-in-string
      "[ \t]*\n" "\\n"
-     (replace-regexp-in-string "[\\,;]" "\\\&" s)
+     (replace-regexp-in-string "[\\,;]" "\\\\\\&" s)
      nil t)))
 
 (defun org-icalendar-fold-string (s)

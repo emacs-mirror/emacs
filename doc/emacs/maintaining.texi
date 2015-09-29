@@ -8,7 +8,7 @@
   This chapter describes Emacs features for maintaining large
 programs.  If you are maintaining a large Lisp program, then in
 addition to the features described here, you may find
-the @file{ERT} (``Emacs Lisp Regression Testing'') library useful
+the Emacs Lisp Regression Testing (ERT) library useful
 (@pxref{Top,,ERT,ert, Emacs Lisp Regression Testing}).
 
 @menu
@@ -395,7 +395,7 @@ instance, @samp{jim}), that is displayed as @samp{RCS:jim:1.3}.
 to the master repository.
 
   On a graphical display, you can move the mouse over this mode line
-indicator to pop up a ``tool-tip'', which displays a more verbose
+indicator to pop up a tool-tip, which displays a more verbose
 description of the version control status.  Pressing @kbd{Mouse-1}
 over the indicator pops up a menu of VC commands, identical to
 @samp{Tools / Version Control} on the menu bar.
@@ -441,14 +441,14 @@ VC fileset.
 @findex vc-next-action
 @kindex C-x v v
   The principal VC command is a multi-purpose command, @kbd{C-x v v}
-(@code{vc-next-action}), which performs the ``most appropriate''
+(@code{vc-next-action}), which performs the most appropriate
 action on the current VC fileset: either registering it with a version
 control system, or committing it, or unlocking it, or merging changes
 into it.  The precise actions are described in detail in the following
 subsections.  You can use @kbd{C-x v v} either in a file-visiting
 buffer or in a VC Directory buffer.
 
-  Note that VC filesets are distinct from the ``named filesets'' used
+  Note that VC filesets are distinct from the named filesets used
 for viewing and visiting files in functional groups
 (@pxref{Filesets}).  Unlike named filesets, VC filesets are not named
 and don't persist across sessions.
@@ -469,8 +469,8 @@ and don't persist across sessions.
 @item
 If there is more than one file in the VC fileset and the files have
 inconsistent version control statuses, signal an error.  (Note,
-however, that a fileset is allowed to include both ``newly-added''
-files and ``modified'' files; @pxref{Registering}.)
+however, that a fileset is allowed to include both newly-added
+files and modified files; @pxref{Registering}.)
 
 @item
 If none of the files in the VC fileset are registered with a version
@@ -502,7 +502,7 @@ if each work file in the VC fileset is up-to-date.  If any file has
 been changed in the repository, offer to update it.
 @end itemize
 
-  These rules also apply when you use RCS in its ``non-locking'' mode,
+  These rules also apply when you use RCS in its non-locking mode,
 except that changes are not automatically merged from the repository.
 Nothing informs you if another user has committed changes in the same
 file since you began editing it; when you commit your revision, his
@@ -547,7 +547,7 @@ the lock and make the file read-only again.
 
 @item
 If each file is locked by another user, ask whether you want to
-``steal the lock''.  If you say yes, the file becomes locked by you,
+steal the lock.  If you say yes, the file becomes locked by you,
 and a warning message is sent to the user who had formerly locked the
 file.
 @end itemize
@@ -582,11 +582,11 @@ If the fileset is unmodified (and unlocked), this checks the specified
 revision into the working tree.  You can also specify a revision on
 another branch by giving its revision or branch ID (@pxref{Switching
 Branches}).  An empty argument (i.e., @kbd{C-u C-x v v @key{RET}})
-checks out the latest (``head'') revision on the current branch.
+checks out the latest (head) revision on the current branch.
 
-This signals an error on a decentralized version control system.
+This is silently ignored on a decentralized version control system.
 Those systems do not let you specify your own revision IDs, nor do
-they use the concept of ``checking out'' individual files.
+they use the concept of checking out individual files.
 @end itemize
 
 @node Log Buffer
@@ -634,7 +634,7 @@ support it, the header is treated as part of the log entry.
 @findex log-edit-show-files
 @kindex C-c C-d @r{(Log Edit mode)}
 @findex log-edit-show-diff
-  While in the @file{*vc-log*} buffer, the ``current VC fileset'' is
+  While in the @file{*vc-log*} buffer, the current VC fileset is
 considered to be the fileset that will be committed if you type
 @w{@kbd{C-c C-c}}.  To view a list of the files in the VC fileset,
 type @w{@kbd{C-c C-f}} (@code{log-edit-show-files}).  To view a diff
@@ -710,7 +710,7 @@ under, it prompts for a repository type, creates a new repository, and
 registers the file into that repository.
 
   On most version control systems, registering a file with @kbd{C-x v
-i} or @kbd{C-x v v} adds it to the ``working tree'' but not to the
+i} or @kbd{C-x v v} adds it to the working tree but not to the
 repository.  Such files are labeled as @samp{added} in the VC
 Directory buffer, and show a revision ID of @samp{@@@@} in the mode
 line.  To make the registration take effect in the repository, you
@@ -824,8 +824,8 @@ window.
 @kindex C-x v g
   Many version control systems allow you to view files @dfn{annotated}
 with per-line revision information, by typing @kbd{C-x v g}
-(@code{vc-annotate}).  This creates a new buffer (the ``annotate
-buffer'') displaying the file's text, with each line colored to show
+(@code{vc-annotate}).  This creates a new ``annotate'' buffer
+displaying the file's text, with each line colored to show
 how old it is.  Red text is new, blue is old, and intermediate colors
 indicate intermediate ages.  By default, the color is scaled over the
 full range of ages, such that the oldest changes are blue, and the
@@ -836,7 +836,7 @@ arguments using the minibuffer: the revision to display and annotate
 (instead of the current file contents), and the time span in days the
 color range should cover.
 
-  From the annotate buffer, these and other color scaling options are
+  From the ``annotate'' buffer, these and other color scaling options are
 available from the @samp{VC-Annotate} menu.  In this buffer, you can
 also use the following keys to browse the annotations of past revisions,
 view diffs, or view log entries:
@@ -901,11 +901,11 @@ Display the change history for the current repository
 (@code{vc-print-root-log}).
 
 @item C-x v I
-Display the changes that a pull operation will retrieve
+Display the changes that a ``pull'' operation will retrieve
 (@code{vc-log-incoming}).
 
 @item C-x v O
-Display the changes that will be sent by the next push operation
+Display the changes that will be sent by the next ``push'' operation
 (@code{vc-log-outgoing}).
 @end table
 
@@ -941,13 +941,13 @@ revision at point.  A second @key{RET} hides it again.
   On a decentralized version control system, the @kbd{C-x v I}
 (@code{vc-log-incoming}) command displays a log buffer showing the
 changes that will be applied, the next time you run the version
-control system's ``pull'' command to get new revisions from another
+control system's pull command to get new revisions from another
 repository (@pxref{Pulling / Pushing}).  This other repository is the default
 one from which changes are pulled, as defined by the version control
 system; with a prefix argument, @code{vc-log-incoming} prompts for a
 specific repository.  Similarly, @kbd{C-x v O}
 (@code{vc-log-outgoing}) shows the changes that will be sent to
-another repository, the next time you run the ``push'' command; with a
+another repository, the next time you run the push command; with a
 prefix argument, it prompts for a specific destination repository.
 
   In the @file{*vc-change-log*} buffer, you can use the following keys
@@ -1104,7 +1104,7 @@ PCL-CVS, pcl-cvs, PCL-CVS---The Emacs Front-End to CVS}.
   The VC Directory buffer contains a list of version-controlled files
 and their version control statuses.  It lists files in the current
 directory (the one specified when you called @kbd{C-x v d}) and its
-subdirectories, but only those with a ``noteworthy'' status.  Files
+subdirectories, but only those with a noteworthy status.  Files
 that are up-to-date (i.e., the same as in the repository) are
 omitted.  If all the files in a subdirectory are up-to-date, the
 subdirectory is not listed either.  As an exception, if a file has
@@ -1169,7 +1169,7 @@ directories that are used internally by version control systems.
 @subsubsection VC Directory Commands
 
   Emacs provides several commands for navigating the VC Directory
-buffer, and for ``marking'' files as belonging to the current VC
+buffer, and for marking files as belonging to the current VC
 fileset.
 
 @table @kbd
@@ -1291,8 +1291,8 @@ bring them back at a later time).
 
   One use of version control is to support multiple independent lines
 of development, which are called @dfn{branches}.  Amongst other
-things, branches can be used for maintaining separate ``stable'' and
-``development'' versions of a program, and for developing unrelated
+things, branches can be used for maintaining separate stable and
+development versions of a program, and for developing unrelated
 features in isolation from one another.
 
   VC's support for branch operations is currently fairly limited.  For
@@ -2407,11 +2407,11 @@ information about the project.
 
   A project may contain one or more @dfn{targets}.  A target can be an
 object file, executable program, or some other type of file, which is
-``built'' from one or more of the files in the project.
+built from one or more of the files in the project.
 
   To add a new @dfn{target} to a project, type @kbd{C-c . t}
 (@code{M-x ede-new-target}).  This command also asks if you wish to
-``add'' the current file to that target, which means that the target
+add the current file to that target, which means that the target
 is to be built from that file.  After you have defined a target, you
 can add more files to it by typing @kbd{C-c . a}
 (@code{ede-add-file}).

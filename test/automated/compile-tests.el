@@ -228,10 +228,10 @@
     ("1>test_main.cpp(29): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int"
      3 nil 29 "test_main.cpp")
     ;; watcom
-    ("..\src\ctrl\lister.c(109): Error! E1009: Expecting ';' but found '{'"
-     1 nil 109 "..\src\ctrl\lister.c")
-    ("..\src\ctrl\lister.c(120): Warning! W201: Unreachable code"
-     1 nil 120 "..\src\ctrl\lister.c")
+    ("..\\src\\ctrl\\lister.c(109): Error! E1009: Expecting ';' but found '{'"
+     1 nil 109 "..\\src\\ctrl\\lister.c")
+    ("..\\src\\ctrl\\lister.c(120): Warning! W201: Unreachable code"
+     1 nil 120 "..\\src\\ctrl\\lister.c")
     ;; oracle
     ("Semantic error at line 528, column 5, file erosacqdb.pc:"
      1 5 528 "erosacqdb.pc")

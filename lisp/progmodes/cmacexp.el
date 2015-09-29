@@ -390,7 +390,7 @@ Optional arg DISPLAY non-nil means show messages in the echo area."
 		;; the way of font-lock, highlighting etc.
 		(insert
 		 (format
-		  "/* Preprocessor terminated with status %s\n\n   Messages from '%s\':\n\n"
+		  "/* Preprocessor terminated with status %s\n\n   Messages from '%s':\n\n"
 		  exit-status cppcommand))
 		(goto-char (+ (point)
 			      (nth 1 (insert-file-contents tempname))))
@@ -405,7 +405,3 @@ Optional arg DISPLAY non-nil means show messages in the echo area."
       (kill-buffer outbuf))))
 
 ;;; cmacexp.el ends here
-
-;; Local Variables:
-;; coding: utf-8
-;; End:

@@ -35,7 +35,7 @@ mode and related major modes, @key{TAB} normally inserts some
 combination of space and tab characters to advance point to the next
 tab stop (@pxref{Tab Stops}).  For this purpose, the position of the
 first non-whitespace character on the preceding line is treated as an
-additional tab stop, so you can use @key{TAB} to ``align'' point with
+additional tab stop, so you can use @key{TAB} to align point with
 the preceding line.  If the region is active (@pxref{Using Region}),
 @key{TAB} acts specially: it indents each line in the region so that
 its first non-whitespace character is aligned with the preceding line.
@@ -98,7 +98,7 @@ argument, in which case do nothing.
 @kindex M-^
 @findex delete-indentation
 Merge the previous and the current line (@code{delete-indentation}).
-This ``joins'' the two lines cleanly, by replacing any indentation at
+This joins the two lines cleanly, by replacing any indentation at
 the front of the current line, together with the line boundary, with a
 single space.
 
@@ -123,7 +123,7 @@ that column number.
 @findex indent-rigidly
 @cindex remove indentation
 This command is used to change the indentation of all lines that begin
-in the region, moving the affected lines as a ``rigid'' unit.
+in the region, moving the affected lines as a rigid unit.
 
 If called with no argument, the command activates a transient mode for
 adjusting the indentation of the affected lines interactively.  While

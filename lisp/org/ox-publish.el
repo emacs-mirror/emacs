@@ -69,12 +69,12 @@ CDR of each element is in one of the following forms:
    alternating keys and values, specifying parameters for the
    publishing process.
 
-     \(:property value :property value ... )
+     (:property value :property value ... )
 
 2. A meta-project definition, specifying of a list of
    sub-projects:
 
-     \(:components (\"project-1\" \"project-2\" ...))
+     (:components (\"project-1\" \"project-2\" ...))
 
 When the CDR of an element of org-publish-project-alist is in
 this second form, the elements of the list after `:components'

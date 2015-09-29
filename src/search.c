@@ -2784,7 +2784,7 @@ if the last match was on a buffer; integers or nil if a string was matched.
 Use `set-match-data' to reinstate the data in this list.
 
 If INTEGERS (the optional first argument) is non-nil, always use
-integers \(rather than markers) to represent buffer positions.  In
+integers (rather than markers) to represent buffer positions.  In
 this case, and if the last match was in a buffer, the buffer will get
 stored as one additional element at the end of the list.
 

@@ -510,7 +510,7 @@ Used by these commands to determine defaults."
 				     (file-name-nondirectory file-name)))
   (comint-send-string (inferior-lisp-proc) (concat "(compile-file \""
 						   file-name
-						   "\"\)\n"))
+						   "\")\n"))
   (switch-to-lisp t))
 
 

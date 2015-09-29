@@ -4512,7 +4512,7 @@ customize `jka-compr-load-suffixes' rather than the present variable.  */);
 Each element looks like (REGEXP-OR-FEATURE FUNCS...).
 
 REGEXP-OR-FEATURE is either a regular expression to match file names, or
-a symbol \(a feature name).
+a symbol (a feature name).
 
 When `load' is run and the file-name argument matches an element's
 REGEXP-OR-FEATURE, or when `provide' is run and provides the symbol

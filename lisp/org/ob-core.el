@@ -502,7 +502,7 @@ be saved in the second match data.")
 
 (defvar org-babel-result-w-name-regexp
   (concat org-babel-result-regexp
-	  "\\([^ ()\f\t\n\r\v]+\\)\\(\(\\(.*\\)\)\\|\\)"))
+	  "\\([^ ()\f\t\n\r\v]+\\)\\((\\(.*\\))\\|\\)"))
 
 (defvar org-babel-min-lines-for-block-output 10
   "The minimum number of lines for block output.
@@ -2456,7 +2456,7 @@ block but are passed literally to the \"example-block\"."
       (setq index (point))
       (while (and (re-search-forward (org-babel-noweb-wrap) nil t))
 	(save-match-data (setf source-name (match-string 1)))
-	(save-match-data (setq evaluate (string-match "\(.*\)" source-name)))
+	(save-match-data (setq evaluate (string-match "(.*)" source-name)))
 	(save-match-data
 	  (setq prefix
 		(buffer-substring (match-beginning 0)

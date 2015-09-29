@@ -1,4 +1,4 @@
-;;; 5x5.el --- simple little puzzle game -*- coding: utf-8 -*-
+;;; 5x5.el --- simple little puzzle game
 
 ;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
 

@@ -588,7 +588,7 @@ PORTS is either a number, a list of numbers, or a list of port ranges."
     (LagNet "lagnet.org.za")
     (Librenet "librenet.net")
     (LinkNet "link-net.org")
-    (LinuxChix "cats\.meow\.at\\|linuxchix\.org")
+    (LinuxChix "cats\\.meow\\.at\\|linuxchix\\.org")
     (Liquidized "liquidized.net")
     (M-IRC "m-sys.org")
     (MagicStar "magicstar.net")

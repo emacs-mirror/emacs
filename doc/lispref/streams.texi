@@ -113,8 +113,8 @@ When it is called with no arguments, it should return the next character.
 When it is called with one argument (always a character), @var{function}
 should save the argument and arrange to return it on the next call.
 This is called @dfn{unreading} the character; it happens when the Lisp
-reader reads one character too many and wants to ``put it back where it
-came from''.  In this case, it makes no difference what value
+reader reads one character too many and wants to put it back where it
+came from.  In this case, it makes no difference what value
 @var{function} returns.
 @end itemize
 
@@ -701,7 +701,7 @@ returns @code{"The buffer is foo"}.
 
 @defun pp object &optional stream
 This function outputs @var{object} to @var{stream}, just like
-@code{prin1}, but does it in a more ``pretty'' way.  That is, it'll
+@code{prin1}, but does it in a prettier way.  That is, it'll
 indent and fill the object to make it more readable for humans.
 @end defun
 

@@ -172,9 +172,9 @@ system encodes the character safely and with a single byte
 one byte, Emacs shows @samp{file ...}.
 
   As a special case, if the character lies in the range 128 (0200
-octal) through 159 (0237 octal), it stands for a ``raw'' byte that
+octal) through 159 (0237 octal), it stands for a raw byte that
 does not correspond to any specific displayable character.  Such a
-``character'' lies within the @code{eight-bit-control} character set,
+character lies within the @code{eight-bit-control} character set,
 and is displayed as an escaped octal character code.  In this case,
 @kbd{C-x =} shows @samp{part of display ...} instead of @samp{file}.
 
@@ -642,7 +642,7 @@ automatically.  For example:
 @end lisp
 
 @noindent
-This automatically activates the input method ``german-prefix'' in
+This automatically activates the input method @code{german-prefix} in
 Text mode.
 
 @findex quail-set-keyboard-layout
@@ -696,8 +696,8 @@ system; for example, to visit a file encoded in codepage 850, type
   In addition to converting various representations of non-@acronym{ASCII}
 characters, a coding system can perform end-of-line conversion.  Emacs
 handles three different conventions for how to separate lines in a file:
-newline (``unix''), carriage-return linefeed (``dos''), and just
-carriage-return (``mac'').
+newline (Unix), carriage-return linefeed (DOS), and just
+carriage-return (Mac).
 
 @table @kbd
 @item C-h C @var{coding} @key{RET}
@@ -1647,7 +1647,7 @@ so far.
 @cindex 8-bit display
   Normally non-ISO-8859 characters (decimal codes between 128 and 159
 inclusive) are displayed as octal escapes.  You can change this for
-non-standard ``extended'' versions of ISO-8859 character sets by using the
+non-standard extended versions of ISO-8859 character sets by using the
 function @code{standard-display-8bit} in the @code{disp-table} library.
 
   There are two ways to input single-byte non-@acronym{ASCII}
@@ -1681,7 +1681,7 @@ characters present directly on the keyboard or using @key{Compose} or
 @cindex compose character
 @cindex dead character
 @item
-You can use the key @kbd{C-x 8} as a ``compose character'' prefix for
+You can use the key @kbd{C-x 8} as a compose-character prefix for
 entry of non-@acronym{ASCII} Latin-1 and a few other printing
 characters.  @kbd{C-x 8} is good for insertion (in the minibuffer as
 well as other buffers), for searching, and in any other context where
@@ -1691,7 +1691,7 @@ a key sequence is allowed.
 library is loaded, the @key{Alt} modifier key, if the keyboard has
 one, serves the same purpose as @kbd{C-x 8}: use @key{Alt} together
 with an accent character to modify the following letter.  In addition,
-if the keyboard has keys for the Latin-1 ``dead accent characters'',
+if the keyboard has keys for the Latin-1 dead accent characters,
 they too are defined to compose with the following character, once
 @code{iso-transl} is loaded.
 
@@ -1709,13 +1709,13 @@ addition to some charsets of its own (such as @code{emacs},
 @code{unicode-bmp}, and @code{eight-bit}).  All supported characters
 belong to one or more charsets.
 
-  Emacs normally ``does the right thing'' with respect to charsets, so
+  Emacs normally does the right thing with respect to charsets, so
 that you don't have to worry about them.  However, it is sometimes
 helpful to know some of the underlying details about charsets.
 
   One example is font selection (@pxref{Fonts}).  Each language
-environment (@pxref{Language Environments}) defines a ``priority
-list'' for the various charsets.  When searching for a font, Emacs
+environment (@pxref{Language Environments}) defines a priority
+list for the various charsets.  When searching for a font, Emacs
 initially attempts to find one that can display the highest-priority
 charsets.  For instance, in the Japanese language environment, the
 charset @code{japanese-jisx0208} has the highest priority, so Emacs

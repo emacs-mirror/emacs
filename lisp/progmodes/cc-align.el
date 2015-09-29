@@ -1075,7 +1075,7 @@ Works with: brace-list-entry, brace-entry-open, statement,
 arglist-cont."
   (save-excursion
     (goto-char (c-langelem-pos langelem))
-    (when (looking-at "\\s\(")
+    (when (looking-at "\\s(")
       (if (c-go-up-list-backward)
 	  (let ((pos (point)))
 	    (back-to-indentation)
@@ -1093,24 +1093,24 @@ v beg of preceding constr      v beg of preceding constr
 const char msg[] =             if (!running)
   \"Some text.\";	         error(\"Not running!\");
 
-#define X(A, B)  \           #define X(A, B)    \
-do {             \    <->      do {             \    <- c-lineup-cpp-define
-  printf (A, B); \               printf (A, B); \
+#define X(A, B)  \\           #define X(A, B)    \\
+do {             \\    <->      do {             \\    <- c-lineup-cpp-define
+  printf (A, B); \\               printf (A, B); \\
 } while (0)                    } while (0)
 
 If `c-syntactic-indentation-in-macros' is non-nil, the function
 returns the relative indentation to the macro start line to allow
 accumulation with other offsets.  E.g. in the following cases,
 cpp-define-intro is combined with the statement-block-intro that comes
-from the \"do {\" that hangs on the \"#define\" line:
+from the `do {' that hangs on the `#define' line:
 
                              int dribble() {
 const char msg[] =             if (!running)
   \"Some text.\";	         error(\"Not running!\");
 
-#define X(A, B) do { \       #define X(A, B) do { \
-  printf (A, B);     \  <->      printf (A, B);   \  <- c-lineup-cpp-define
-  this->refs++;      \           this->refs++;    \
+#define X(A, B) do { \\       #define X(A, B) do { \\
+  printf (A, B);     \\  <->      printf (A, B);   \\  <- c-lineup-cpp-define
+  this->refs++;      \\           this->refs++;    \\
 } while (0)             <->    } while (0)           <- c-lineup-cpp-define
 
 The relative indentation returned by `c-lineup-cpp-define' is zero and

@@ -8424,6 +8424,38 @@ contains the list of implementations currently supported for this command."
                            command-name)))))))
 
 
+;;; Functions for changing capitalization that Do What I Mean
+(defun upcase-dwim (arg)
+  "Upcase words in the region, if active; if not, upcase word at point.
+If the region is active, this function calls `upcase-region'.
+Otherwise, it calls `upcase-word', with prefix argument passed to it
+to upcase ARG words."
+  (interactive "*p")
+  (if (use-region-p)
+      (upcase-region (region-beginning) (region-end))
+    (upcase-word arg)))
+
+(defun downcase-dwim (arg)
+    "Downcase words in the region, if active; if not, downcase word at point.
+If the region is active, this function calls `downcase-region'.
+Otherwise, it calls `downcase-word', with prefix argument passed to it
+to downcase ARG words."
+  (interactive "*p")
+  (if (use-region-p)
+      (downcase-region (region-beginning) (region-end))
+    (downcase-word arg)))
+
+(defun capitalize-dwim (arg)
+  "Capitalize words in the region, if active; if not, capitalize word at point.
+If the region is active, this function calls `capitalize-region'.
+Otherwise, it calls `capitalize-word', with prefix argument passed to it
+to capitalize ARG words."
+  (interactive "*p")
+  (if (use-region-p)
+      (capitalize-region (region-beginning) (region-end))
+    (capitalize-word arg)))
+
+
 
 (provide 'simple)
 

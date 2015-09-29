@@ -64,7 +64,7 @@ RESULT is a list (NBAD NGOOD NUNAVAIL)."
   "Write BODY to texi FILE."
   (with-temp-buffer
     (insert "\
-\input texinfo
+\\input texinfo
 @setfilename "
             (format "%s.info\n" (file-name-sans-extension file))
             "\

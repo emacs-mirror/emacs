@@ -61,7 +61,7 @@ if ischar(ans), fid = fopen('%s', 'w'); fprintf(fid, '%%s\\n', ans); fclose(fid)
 else, dlmwrite('%s', ans, '\\t')
 end")
 
-(defvar org-babel-octave-eoe-indicator "\'org_babel_eoe\'")
+(defvar org-babel-octave-eoe-indicator "'org_babel_eoe'")
 
 (defvar org-babel-octave-eoe-output "ans = org_babel_eoe")
 
@@ -127,7 +127,7 @@ specifying a variable of the same value."
 			     (if (listp (car var)) "; " ",")) "]")
     (cond
      ((stringp var)
-      (format "\'%s\'" var))
+      (format "'%s'" var))
      (t
       (format "%s" var)))))
 

@@ -1,4 +1,4 @@
-/* Test whether a file has a nontrivial access control list.
+/* Test whether a file has a nontrivial ACL.  -*- coding: utf-8 -*-
 
    Copyright (C) 2002-2003, 2005-2015 Free Software Foundation, Inc.
 

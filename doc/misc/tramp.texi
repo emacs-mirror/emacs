@@ -1,4 +1,4 @@
-\input texinfo   @c -*-texinfo-*-
+\input texinfo   @c -*- mode: texinfo; coding: utf-8 -*-
 @setfilename ../../info/tramp.info
 @c %**start of header
 @settitle TRAMP User Manual

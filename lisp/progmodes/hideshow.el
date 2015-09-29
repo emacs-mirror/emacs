@@ -1,4 +1,4 @@
-;;; hideshow.el --- minor mode cmds to selectively display code/comment blocks -*- coding: utf-8 -*-
+;;; hideshow.el --- minor mode cmds to selectively display code/comment blocks
 
 ;; Copyright (C) 1994-2015 Free Software Foundation, Inc.
 

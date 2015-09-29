@@ -1,4 +1,4 @@
-;;; subr.el --- basic lisp subroutines for Emacs  -*- coding: utf-8; lexical-binding:t -*-
+;;; subr.el --- basic lisp subroutines for Emacs  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1985-1986, 1992, 1994-1995, 1999-2015 Free Software
 ;; Foundation, Inc.
@@ -1502,19 +1502,6 @@ All symbols are bound before the VALUEFORMs are evalled."
   `(let ,(mapcar #'car binders)
      ,@(mapcar (lambda (binder) `(setq ,@binder)) binders)
      ,@body))
-
-(defmacro let-when-compile (bindings &rest body)
-  "Like `let', but allow for compile time optimization.
-Use BINDINGS as in regular `let', but in BODY each usage should
-be wrapped in `eval-when-compile'.
-This will generate compile-time constants from BINDINGS."
-  (declare (indent 1) (debug let))
-  (cl-progv (mapcar #'car bindings)
-      (mapcar (lambda (x) (eval (cadr x))) bindings)
-    (macroexpand-all
-     (macroexp-progn
-      body)
-     macroexpand-all-environment)))
 
 (defmacro with-wrapper-hook (hook args &rest body)
   "Run BODY, using wrapper functions from HOOK with additional ARGS.

@@ -9,7 +9,7 @@
 @cindex MS-DOS peculiarities
 
   This section briefly describes the peculiarities of using Emacs on
-the MS-DOS ``operating system''.
+MS-DOS.
 @iftex
 Information about Emacs and Microsoft's current operating system
 Windows is in the main Emacs manual

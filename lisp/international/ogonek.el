@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1997-1998, 2001-2015 Free Software Foundation, Inc.
 
-;; Author: W{\l}odek Bzyl
+;; Author: Włodek Bzyl
 ;;	   Ryszard Kubiak
 ;; Maintainer: Ryszard Kubiak <rysiek@ipipan.gda.pl>
 ;; Keywords: i18n

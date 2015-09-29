@@ -430,7 +430,7 @@ Format}); and the bottom divider (@pxref{Window Dividers}).
 width of a window.  The return value of many of these functions can be
 specified either in units of pixels or in units of lines and columns.
 On a graphical display, the latter actually correspond to the height and
-width of a ``default'' character specified by the frame's default font
+width of a default character specified by the frame's default font
 as returned by @code{frame-char-height} and @code{frame-char-width}
 (@pxref{Frame Font}).  Thus, if a window is displaying text with a
 different font or size, the reported line height and column width for
@@ -1050,7 +1050,7 @@ This section describes functions for creating a new window by
 @defun split-window &optional window size side pixelwise
 This function creates a new live window next to the window
 @var{window}.  If @var{window} is omitted or @code{nil}, it defaults
-to the selected window.  That window is ``split'', and reduced in
+to the selected window.  That window is split, and reduced in
 size.  The space is taken up by the new window, which is returned.
 
 The optional second argument @var{size} determines the sizes of
@@ -1075,7 +1075,7 @@ check whether the emanating windows are large enough to encompass all
 areas like a mode line or a scroll bar.  The function
 @code{window-min-size} (@pxref{Window Sizes}) can be used to determine
 the minimum requirements of @var{window} in this regard.  Since the new
-window usually ``inherits'' areas like the mode line or the scroll bar
+window usually inherits areas like the mode line or the scroll bar
 from @var{window}, that function is also a good guess for the minimum
 size of the new window.  The caller should specify a smaller size only
 if it correspondingly removes an inherited area before the next
@@ -1661,7 +1661,7 @@ internal routines often temporarily select a window in order to simplify
 coding.  As a rule, such selections (including those made by the macros
 @code{save-selected-window} and @code{with-selected-window} below) are
 not recorded thus avoiding to pollute @code{buffer-list-update-hook}.
-Selections that ``really count'' are those causing a visible change in
+Selections that really count are those causing a visible change in
 the next redisplay of @var{window}'s frame and should be always
 recorded.  This also means that to run a function each time a window
 gets selected, putting it on @code{buffer-list-update-hook} should be
@@ -1729,12 +1729,12 @@ nor the buffer list.
 @cindex use time of window
 @cindex window order by time of last use
 @defun window-use-time &optional window
-This functions returns the ``use time'' of window @var{window}.
+This functions returns the use time of window @var{window}.
 @var{window} must be a live window and defaults to the selected one.
 The @dfn{use time} of a window is not really a time value, but it does
 increase monotonically with each window selection, so the window with
-the lowest ``use time'' is the least recently selected one, and the
-window with the highest ``use time'' is the most recently selected
+the lowest use time is the least recently selected one, and the
+window with the highest use time is the most recently selected
 one.
 @end defun
 
@@ -1765,7 +1765,7 @@ if omitted or @code{nil}, it defaults to the selected window.
 The optional argument @var{minibuf} specifies whether minibuffer windows
 should be included in the cyclic ordering.  Normally, when @var{minibuf}
 is @code{nil}, a minibuffer window is included only if it is currently
-``active''; this matches the behavior of @kbd{C-x o}.  (Note that a
+active; this matches the behavior of @kbd{C-x o}.  (Note that a
 minibuffer window is active as long as its minibuffer is in use; see
 @ref{Minibuffers}).
 
@@ -1859,8 +1859,8 @@ criterion, without selecting it:
 
 @cindex least recently used window
 @defun get-lru-window &optional all-frames dedicated not-selected
-This function returns a live window which is heuristically the ``least
-recently used'' window.  The optional argument @var{all-frames} has
+This function returns a live window which is heuristically the least
+recently used.  The optional argument @var{all-frames} has
 the same meaning as in @code{next-window}.
 
 If any full-width windows are present, only those windows are
@@ -1874,8 +1874,8 @@ function returns @code{nil} in that case.
 
 @cindex most recently used window
 @defun get-mru-window &optional all-frames dedicated not-selected
-This function is like @code{get-lru-window}, but it returns the ``most
-recently used'' window instead.  The meaning of the arguments is the
+This function is like @code{get-lru-window}, but it returns the most
+recently used window instead.  The meaning of the arguments is the
 same as described for @code{get-lru-window}.
 @end defun
 
@@ -2293,7 +2293,7 @@ corresponding display action to display the buffer.
 
 @defopt display-buffer-base-action
 The value of this option should be a display action.  This option can
-be used to define a ``standard'' display action for calls to
+be used to define a standard display action for calls to
 @code{display-buffer}.
 @end defopt
 
@@ -2319,7 +2319,7 @@ to another buffer (@pxref{Dedicated Windows}).  It also fails if
 @end defun
 
 @defun display-buffer-reuse-window buffer alist
-This function tries to ``display'' @var{buffer} by finding a window
+This function tries to display @var{buffer} by finding a window
 that is already displaying it.
 
 If @var{alist} has a non-@code{nil} @code{inhibit-same-window} entry,
@@ -2365,7 +2365,7 @@ is added to the newly created frame's parameters.
 @end defun
 
 @defun display-buffer-use-some-frame buffer alist
-This function tries to ``display'' @var{buffer} by trying to find a
+This function tries to display @var{buffer} by trying to find a
 frame that meets a predicate (by default any frame other than the
 current frame).
 
@@ -2517,7 +2517,7 @@ buffer there.  If all these steps fail, it will proceed using whatever
 (provided *foo* was put by @code{display-buffer} there before) or a
 popped-up window as follows: If the window is part of a vertical
 combination, it will set its height to ten lines.  Note that if, instead
-of the number ``10'', we specified the function
+of the number 10, we specified the function
 @code{fit-window-to-buffer}, @code{display-buffer} would come up with a
 one-line window to fit the empty buffer.  If the window is part of a
 horizontal combination, it sets its width to 40 columns.  Whether a new
@@ -2558,7 +2558,7 @@ window below the selected window.
 selected one is dedicated to its buffer, @code{display-buffer} will
 proceed as described in the previous example.  Note, however, that when
 it tries to adjust the height of any reused or popped-up window, it will
-in any case try to set its number of lines to ``5'' since that value
+in any case try to set its number of lines to 5 since that value
 overrides the corresponding specification in the @var{action} argument
 of @code{display-buffer}.
 
@@ -3025,7 +3025,7 @@ window's buffer) if that window were selected.  The default for
 
 When @var{window} is the selected window, the value returned is the
 value of point in that window's buffer.  Strictly speaking, it would be
-more correct to return the ``top-level'' value of point, outside of any
+more correct to return the top-level value of point, outside of any
 @code{save-excursion} forms.  But that value is hard to find.
 @end defun
 
@@ -3122,7 +3122,7 @@ screen.  If this does place point off screen, the display routines move
 point to the left margin on the middle line in the window.
 
 For example, if point @w{is 1} and you set the start of the window
-@w{to 37}, the start of the next line, point will be ``above'' the top
+@w{to 37}, the start of the next line, point will be above the top
 of the window.  The display routines will automatically move point if
 it is still 1 when redisplay occurs.  Here is an example:
 
@@ -3429,7 +3429,7 @@ only if point is already on that position do they signal an error.
 @cindex centering point
 This function scrolls the text in the selected window so that point is
 displayed at a specified vertical position within the window.  It does
-not ``move point'' with respect to the text.
+not move point with respect to the text.
 
 If @var{count} is a non-negative number, that puts the line containing
 point @var{count} lines down from the top of the window.  If
@@ -3564,8 +3564,8 @@ times the normal character width.  How many characters actually
 disappear off to the left depends on their width, and could vary from
 line to line.
 
-  Because we read from side to side in the ``inner loop'', and from top
-to bottom in the ``outer loop'', the effect of horizontal scrolling is
+  Because we read from side to side in the inner loop, and from top
+to bottom in the outer loop, the effect of horizontal scrolling is
 not like that of textual or vertical scrolling.  Textual scrolling
 involves selection of a portion of text to display, and vertical
 scrolling moves the window contents contiguously; but horizontal
@@ -3697,13 +3697,13 @@ Most of these functions report positions relative to an origin at the
 native position of the window's frame (@pxref{Frame Geometry}).  Some
 functions report positions relative to the origin of the display of the
 window's frame.  In any case, the origin has the coordinates (0, 0) and
-X and Y coordinates increase ``rightward'' and ``downward''
+X and Y coordinates increase rightward and downward
 respectively.
 
   For the following functions, X and Y coordinates are reported in
 integer character units, i.e., numbers of lines and columns
 respectively.  On a graphical display, each ``line'' and ``column''
-corresponds to the height and width of a default character specified by
+corresponds to the height and width of the default character specified by
 the frame's default font (@pxref{Frame Font}).
 
 @defun window-edges &optional window body absolute pixelwise
@@ -3840,7 +3840,7 @@ argument because it always uses the frame that @var{window} is on.
   The following functions return window positions in pixels, rather
 than character units.  Though mostly useful on graphical displays,
 they can also be called on text terminals, where the screen area of
-each text character is taken to be ``one pixel''.
+each text character is taken to be one pixel.
 
 @defun window-pixel-edges &optional window
 This function returns a list of pixel coordinates for the edges of

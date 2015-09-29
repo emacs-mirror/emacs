@@ -1,4 +1,4 @@
-;;; eudcb-ldap.el --- Emacs Unified Directory Client - LDAP Backend -*- coding: utf-8 -*-
+;;; eudcb-ldap.el --- Emacs Unified Directory Client - LDAP Backend
 
 ;; Copyright (C) 1998-2015 Free Software Foundation, Inc.
 

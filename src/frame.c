@@ -634,7 +634,6 @@ make_frame (bool mini_p)
   f->garbaged = true;
   f->can_x_set_window_size = false;
   f->after_make_frame = false;
-  f->tool_bar_redisplayed_once = false;
   f->column_width = 1;  /* !FRAME_WINDOW_P value.  */
   f->line_height = 1;  /* !FRAME_WINDOW_P value.  */
 #ifdef HAVE_WINDOW_SYSTEM
@@ -3540,7 +3539,8 @@ x_set_screen_gamma (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
 	    (f, bgcolor, Qnil);
     }
 
-  Fclear_face_cache (Qnil);
+  clear_face_cache (true);
+  windows_or_buffers_changed = 70;
 }
 
 
@@ -3634,7 +3634,6 @@ x_set_font (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 #endif
   /* Recalculate toolbar height.  */
   f->n_tool_bar_rows = 0;
-  f->tool_bar_redisplayed_once = false;
 
   /* Ensure we redraw it.  */
   clear_current_matrices (f);
@@ -5177,7 +5176,7 @@ keep it unchanged if this option is either t or a list containing
 `vertical-scroll-bars'.
 
 The default value is \\='(tool-bar-lines) on Lucid, Motif and Windows
-\(which means that adding/removing a tool bar does not change the frame
+(which means that adding/removing a tool bar does not change the frame
 height), nil on all other window systems including GTK+ (which means
 that changing any of the parameters listed above may change the size of
 the frame), and t otherwise (which means the frame size never changes

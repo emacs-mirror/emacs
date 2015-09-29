@@ -381,7 +381,7 @@ core modules, nor modules from the CONTRIB directory).  Just add symbols
 to the end of the list.  If the package is called org-xyz.el, then you need
 to add the symbol `xyz', and the package must have a call to:
 
-   \(provide \\='org-xyz)
+   (provide \\='org-xyz)
 
 For export specific modules, see also `org-export-backends'."
   :group 'org
@@ -465,26 +465,26 @@ need to make a change while Emacs is running, use the customize
 interface or run the following code, where VAL stands for the new
 value of the variable, after updating it:
 
-  \(progn
-    \(setq org-export--registered-backends
-          \(org-remove-if-not
-           \(lambda (backend)
-             \(let ((name (org-export-backend-name backend)))
-               \(or (memq name val)
-                   \(catch \\='parentp
-                     \(dolist (b val)
-                       \(and (org-export-derived-backend-p b name)
-                            \(throw \\='parentp t)))))))
+  (progn
+    (setq org-export--registered-backends
+          (org-remove-if-not
+           (lambda (backend)
+             (let ((name (org-export-backend-name backend)))
+               (or (memq name val)
+                   (catch \\='parentp
+                     (dolist (b val)
+                       (and (org-export-derived-backend-p b name)
+                            (throw \\='parentp t)))))))
            org-export--registered-backends))
-    \(let ((new-list (mapcar \\='org-export-backend-name
+    (let ((new-list (mapcar \\='org-export-backend-name
                             org-export--registered-backends)))
-      \(dolist (backend val)
-        \(cond
-         \((not (load (format \"ox-%s\" backend) t t))
-          \(message \"Problems while trying to load export back-end \\=`%s\\='\"
+      (dolist (backend val)
+        (cond
+         ((not (load (format \"ox-%s\" backend) t t))
+          (message \"Problems while trying to load export back-end \\=`%s\\='\"
                    backend))
-         \((not (memq backend new-list)) (push backend new-list))))
-      \(set-default \\='org-export-backends new-list)))
+         ((not (memq backend new-list)) (push backend new-list))))
+      (set-default \\='org-export-backends new-list)))
 
 Adding a back-end to this list will also pull the back-end it
 depends on, if any."
@@ -2957,7 +2957,7 @@ its value is 0.
 
 For example,
 
-  \(:days \"%dd\" :hours \"%d\" :require-hours t :minutes \":%02d\"
+   (:days \"%dd\" :hours \"%d\" :require-hours t :minutes \":%02d\"
     :require-minutes t)
 
 means durations longer than a day will be expressed in days,
@@ -2967,7 +2967,7 @@ hour).
 
 The value
 
-  \(:days \"%dd\" :minutes \"%dm\")
+  (:days \"%dd\" :minutes \"%dm\")
 
 means durations longer than a day will be expressed in days and
 minutes, and durations less than a day will be expressed entirely
@@ -3802,8 +3802,8 @@ images at the same place."
 
 (defcustom org-format-latex-header "\\documentclass{article}
 \\usepackage[usenames]{color}
-\[PACKAGES]
-\[DEFAULT-PACKAGES]
+[PACKAGES]
+[DEFAULT-PACKAGES]
 \\pagestyle{empty}             % do not remove
 % The settings below are copied from fullpage.sty
 \\setlength{\\textwidth}{\\paperwidth}
@@ -3889,7 +3889,7 @@ a string.
 
 A cell is of the format:
 
-  \( \"options\" \"package\" SNIPPET-FLAG).
+  ( \"options\" \"package\" SNIPPET-FLAG).
 
 If SNIPPET-FLAG is non-nil, the package also needs to be included
 when compiling LaTeX snippets into images for inclusion into
@@ -3917,7 +3917,7 @@ Each element is either a cell or a string.
 
 A cell is of the format:
 
-    \(\"options\" \"package\" SNIPPET-FLAG)
+    (\"options\" \"package\" SNIPPET-FLAG)
 
 SNIPPET-FLAG, when non-nil, indicates that this package is also
 needed when turning LaTeX snippets into images for inclusion into
@@ -7302,7 +7302,7 @@ Optional arguments START and END can be used to limit the range."
 (defconst org-goto-help
   "Browse buffer copy, to find location or copy text.%s
 RET=jump to location             C-g=quit and return to previous location
-\[Up]/[Down]=next/prev headline   TAB=cycle visibility   [/] org-occur")
+[Up]/[Down]=next/prev headline   TAB=cycle visibility   [/] org-occur")
 
 (defvar org-goto-start-pos) ; dynamically scoped parameter
 
@@ -7682,7 +7682,7 @@ command."
 	      (re-search-forward org-outline-regexp-bol)
 	      (beginning-of-line 0))
 	    (skip-chars-backward " \r\n")
-	    (and (not (looking-back "^\*+" (line-beginning-position)))
+	    (and (not (looking-back "^\\*+" (line-beginning-position)))
 		 (looking-at "[ \t]+") (replace-match ""))
 	    (unless (eobp) (forward-char 1))
 	    (when (looking-at "^\\*")
@@ -11389,7 +11389,7 @@ on the system \"/user@host:\"."
 			 (setq level (org-reduced-level
 				      (- (match-end 1) (match-beginning 1)))
 			       txt (org-link-display-format (match-string 4))
-			       txt (replace-regexp-in-string "\\( *\[[0-9]+/?[0-9]*%?\]\\)+$" "" txt)
+			       txt (replace-regexp-in-string "\\( *[[0-9]+/?[0-9]*%?]\\)+$" "" txt)
 			       re (format org-complex-heading-regexp-format
 					  (regexp-quote (match-string 4))))
 			 (when org-refile-use-outline-path
@@ -16355,7 +16355,7 @@ While prompting, a calendar is popped up - you can also select the
 date with the mouse (button 1).  The calendar shows a period of three
 months.  To scroll it to other months, use the keys `>' and `<'.
 If you don't like the calendar, turn it off with
-       \(setq org-read-date-popup-calendar nil)
+       (setq org-read-date-popup-calendar nil)
 
 With optional argument TO-TIME, the date will immediately be converted
 to an internal time.
@@ -17912,7 +17912,7 @@ If EXCLUDE-TMP is non-nil, ignore temporary buffers."
 	   ((eq predicate 'files)
 	    (lambda (b) (with-current-buffer b (derived-mode-p 'org-mode))))
 	   ((eq predicate 'export)
-	    (lambda (b) (string-match "\*Org .*Export" (buffer-name b))))
+	    (lambda (b) (string-match "\\*Org .*Export" (buffer-name b))))
 	   ((eq predicate 'agenda)
 	    (lambda (b)
 	      (with-current-buffer b
@@ -17921,7 +17921,7 @@ If EXCLUDE-TMP is non-nil, ignore temporary buffers."
 		     (member (file-truename bfn) agenda-files)))))
 	   (t (lambda (b) (with-current-buffer b
 			    (or (derived-mode-p 'org-mode)
-				(string-match "\*Org .*Export"
+				(string-match "\\*Org .*Export"
 					      (buffer-name b)))))))))
     (delq nil
 	  (mapcar
@@ -23005,7 +23005,7 @@ no special treatment.  In particular, a simple \\[universal-argument] prefix \
 will just
 plainly yank the text as it is.
 
-\[1] The test checks if the first non-white line is a heading
+[1] The test checks if the first non-white line is a heading
     and if there are no other headings with fewer stars."
   (interactive "P")
   (org-yank-generic 'yank arg))

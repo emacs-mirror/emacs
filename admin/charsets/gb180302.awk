@@ -53,7 +53,7 @@ function decode_hex(str) {
 function gb_to_index(gb) {
   b0 = int(gb / 256);
   b1 = gb % 256;
-  idx = (((b0 - 129)) * 191 + b1 - 64); 
+  idx = (((b0 - 129)) * 191 + b1 - 64);
 #  if (b1 >= 128)
 #    idx--;
   return idx
@@ -67,7 +67,7 @@ function index_to_gb(idx) {
   return (b0 * 256 + b1);
 }
 
-/^\#/ {
+/^#/ {
   print;
   next;
 }
@@ -108,4 +108,3 @@ END {
     printf "0x%04X-0x%04X 0x%04X\n",
       index_to_gb(from_gb), index_to_gb(to_gb), from_unicode;
 }
-

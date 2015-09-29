@@ -133,9 +133,10 @@ See `org-crypt-disable-auto-save'."
        (and
 	(eq org-crypt-disable-auto-save 'ask)
 	(y-or-n-p "org-decrypt: auto-save-mode may cause leakage.  Disable it for current buffer? ")))
-      (message (concat "org-decrypt: Disabling auto-save-mode for " (or (buffer-file-name) (current-buffer))))
-					; The argument to auto-save-mode has to be "-1", since
-					; giving a "nil" argument toggles instead of disabling.
+      (message "org-decrypt: Disabling auto-save-mode for %s"
+               (or (buffer-file-name) (current-buffer)))
+      ;; The argument to auto-save-mode has to be "-1", since
+      ;; giving a "nil" argument toggles instead of disabling.
       (auto-save-mode -1))
      ((eq org-crypt-disable-auto-save nil)
       (message "org-decrypt: Decrypting entry with auto-save-mode enabled.  This may cause leakage."))

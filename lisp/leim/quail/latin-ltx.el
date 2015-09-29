@@ -664,7 +664,7 @@ system, including many technical ones.  Examples:
  ;; Probably not useful enough:
  ;; ("\\Telefon" ?☎)			; there are other possibilities
  ;; ("\\Radioactivity" ?☢)
- ;; ("\Biohazard" ?☣)
+ ;; ("\\Biohazard" ?☣)
  ;; ("\\Male" ?♂)
  ;; ("\\Female" ?♀)
  ;; ("\\Lightning" ?☇)

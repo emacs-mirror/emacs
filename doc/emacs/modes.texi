@@ -1,3 +1,4 @@
+@c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2015 Free Software
 @c Foundation, Inc.
@@ -251,7 +252,7 @@ In Binary Overwrite mode, digits after @kbd{C-q} specify an octal
 character code, as usual.
 
 @item
-Visual Line mode performs ``word wrapping'', causing long lines to be
+Visual Line mode performs word wrapping, causing long lines to be
 wrapped at word boundaries.  @xref{Visual Line Mode}.
 @end itemize
 
@@ -451,6 +452,6 @@ the file's @samp{-*-} line or local variables list (if any).
 a new major mode if the new file name implies a mode (@pxref{Saving}).
 (@kbd{C-x C-s} does this too, if the buffer wasn't visiting a file.)
 However, this does not happen if the buffer contents specify a major
-mode, and certain ``special'' major modes do not allow the mode to
+mode, and certain special major modes do not allow the mode to
 change.  You can turn off this mode-changing feature by setting
 @code{change-major-mode-with-file-name} to @code{nil}.

@@ -443,8 +443,8 @@ some other programs.  Emacs does not require any of these environment
 variables to be set, but it uses their values if they are set.
 
 @c This used to be @vtable, but that enters the variables alone into
-@c the Variable Index, which in some cases, like ``HOME'', might be
-@c confused with keys by that name, and other cases, like ``NAME'',
+@c the Variable Index, which in some cases, like HOME, might be
+@c confused with keys by that name, and other cases, like NAME,
 @c might be confused with general-purpose phrases.
 @table @env
 @item CDPATH
@@ -582,7 +582,7 @@ The name of the news server.  Used by the mh and Gnus packages.
 @item ORGANIZATION
 @vindex ORGANIZATION, environment variable
 The name of the organization to which you belong.  Used for setting the
-``Organization:'' header in your posts from the Gnus package.
+@samp{Organization:} header in your posts from the Gnus package.
 @item PATH
 @vindex PATH, environment variable
 A colon-separated list of directories containing executable files.
@@ -808,7 +808,7 @@ Use @var{font} as the default font.
 @end table
 
 When passing a font name to Emacs on the command line, you may need to
-``quote'' it, by enclosing it in quotation marks, if it contains
+quote it, by enclosing it in quotation marks, if it contains
 characters that the shell treats specially (e.g., spaces).  For
 example:
 
@@ -1036,7 +1036,7 @@ tool bar when it processes the specified geometry.
   When using one of @samp{--fullscreen}, @samp{--maximized},
 @samp{--fullwidth} or @samp{--fullheight}, some window managers require
 you to set the variable @code{frame-resize-pixelwise} to a non-@code{nil}
-value to make a frame appear truly ``maximized'' or ``fullscreen''.
+value to make a frame appear truly maximized or full-screen.
 
  Some window managers have options that can make them ignore both
 program-specified and user-specified positions.  If these are set,
@@ -1115,7 +1115,7 @@ for the initial Emacs frame.
 @opindex --iconic
 @itemx --iconic
 @cindex start iconified, command-line argument
-Start Emacs in an iconified (``minimized'') state.
+Start Emacs in an iconified state.
 
 @item -nbi
 @opindex -nbi
@@ -1125,9 +1125,9 @@ Start Emacs in an iconified (``minimized'') state.
 Disable the use of the Emacs icon.
 @end table
 
-  Most window managers allow you to ``iconify'' (or ``minimize'') an
+  Most window managers allow you to iconify (or ``minimize'') an
 Emacs frame, hiding it from sight.  Some window managers replace
-iconified windows with tiny ``icons'', while others remove them
+iconified windows with tiny icons, while others remove them
 entirely from sight.  The @samp{-iconic} option tells Emacs to begin
 running in an iconified state, rather than showing a frame right away.
 The text frame doesn't appear until you deiconify (or ``un-minimize'')

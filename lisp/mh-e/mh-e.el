@@ -112,7 +112,7 @@
                "\\(defgroup-mh\\)"
                "\\)\\>"
                ;; Any whitespace and defined object.
-               "[ \t'\(]*"
+               "[ \t'(]*"
                "\\(setf[ \t]+\\sw+)\\|\\sw+\\)?")
       (1 font-lock-keyword-face)
       (7 (cond ((match-beginning 2) font-lock-function-name-face)
@@ -1834,7 +1834,7 @@ message without line wrapping."
   "Default method to use in security tags.
 
 This option is used to select between a variety of mail security
-mechanisms. The default is \"PGP (MIME)\" if it is supported\;
+mechanisms. The default is \"PGP (MIME)\" if it is supported;
 otherwise, the default is \"None\". Other mechanisms include
 vanilla \"PGP\" and \"S/MIME\".
 

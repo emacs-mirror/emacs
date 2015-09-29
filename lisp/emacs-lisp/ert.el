@@ -187,7 +187,7 @@ using :expected-result.  See `ert-test-result-type-p' for a
 description of valid values for RESULT-TYPE.
 
 \(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] \
-\[:tags '(TAG...)] BODY...)"
+[:tags '(TAG...)] BODY...)"
   (declare (debug (&define :name test
                            name sexp [&optional stringp]
 			   [&rest keywordp sexp] def-body))
@@ -887,10 +887,10 @@ Valid result types:
 nil -- Never matches.
 t -- Always matches.
 :failed, :passed, :skipped -- Matches corresponding results.
-\(and TYPES...\) -- Matches if all TYPES match.
-\(or TYPES...\) -- Matches if some TYPES match.
-\(not TYPE\) -- Matches if TYPE does not match.
-\(satisfies PREDICATE\) -- Matches if PREDICATE returns true when called with
+\(and TYPES...) -- Matches if all TYPES match.
+\(or TYPES...) -- Matches if some TYPES match.
+\(not TYPE) -- Matches if TYPE does not match.
+\(satisfies PREDICATE) -- Matches if PREDICATE returns true when called with
                            RESULT."
   ;; It would be easy to add `member' and `eql' types etc., but I
   ;; haven't bothered yet.
@@ -946,7 +946,7 @@ a test   -- (i.e., an object of the ert-test data-type) Selects that test.
 a symbol -- Selects the test that the symbol names, errors if none.
 \(member TESTS...) -- Selects the elements of TESTS, a list of tests
     or symbols naming tests.
-\(eql TEST\) -- Selects TEST, a test or a symbol naming a test.
+\(eql TEST) -- Selects TEST, a test or a symbol naming a test.
 \(and SELECTORS...) -- Selects the tests that match all SELECTORS.
 \(or SELECTORS...)  -- Selects the tests that match any of the SELECTORS.
 \(not SELECTOR)     -- Selects all tests that do not match SELECTOR.

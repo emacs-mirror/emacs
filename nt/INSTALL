@@ -75,6 +75,48 @@ build will run on Windows 9X and newer systems).
   If these short instructions somehow fail, read the rest of this
   file.
 
+* Installing Git for Windows
+
+  Skip this section if you already have Git installed and configured,
+  or if you are building from the release tarball, not from the
+  development repository.
+
+  Git for Windows is available from this download page:
+
+    https://github.com/git-for-windows/git/releases
+
+  That page offers both 32-bit and 64-bit installations; pick the one
+  suitable for your OS.  In general, we recommend to install a 64-bit
+  Git if you have a 64-bit Windows system; the 32-bit Git will run on
+  64-bit Windows just fine, but might run into memory problems where
+  the 64-bit Git won't.
+
+  During Git installation, be sure to select the "Checkout as-is,
+  commit as-is" option from the "Configure line ending conversions"
+  dialog.  Otherwise, Git will convert text files to DOS-style CRLF
+  end-of-line (EOL) format, which will cause subtle problems when
+  building Emacs, because MSYS tools (see below) used to build Emacs
+  use binary file I/O that preserves the CR characters that get in the
+  way of some text-processing tools, like 'makeinfo' and the commands
+  invoked by the autogen.sh script.
+
+  If you already have Git installed and configured with some other EOL
+  conversion option, you will need to reconfigure it, removing the
+  following variables from all of your .gitconfig files:
+
+    core.eol
+    core.safecrlf
+    core.autocrlf
+
+  If you cloned the Emacs directory before changing these config
+  variables, you will have to delete the repository and re-clone it
+  after the change.
+
+  The instructions for cloning the Emacs repository can be found on
+  the Emacs's Savannah project page:
+
+    https://savannah.gnu.org/projects/emacs
+
 * Installing MinGW and MSYS
 
   Make sure you carefully read the following two sections in their
@@ -143,7 +185,7 @@ build will run on Windows 9X and newer systems).
   optional libraries near the end of this document, before you start
   the build.  Also, consider installing additional MinGW packages that
   are required/recommended, especially if you are building from the
-  repository, as described in the next section.
+  development repository, as described in the next section.
 
 ** Installing MinGW and MSYS manually
 
@@ -187,7 +229,7 @@ build will run on Windows 9X and newer systems).
   been warned!
 
   Additional MinGW packages are required/recommended, especially if
-  you are building from the repository:
+  you are building from the development repository:
 
    . Texinfo (needed to produce the Info manuals when building from
      the repository, and for "make install")
@@ -197,7 +239,7 @@ build will run on Windows 9X and newer systems).
    . pkg-config (invoked by the configure script to look for optional
      packages)
 
-     Available from http://www.gtk.org/download/win32.php
+     Available from http://sourceforge.net/projects/ezwinports/files/.
 
    . gzip (needed to compress files during "make install")
 
@@ -579,12 +621,8 @@ build will run on Windows 9X and newer systems).
 
   For PNG images, we recommend to use versions 1.4.x and later of
   libpng, because previous versions had security issues.  You can find
-  precompiled libraries and headers on the GTK download page for
-  Windows (http://www.gtk.org/download/win32.php for 32-bit builds and
-  http://www.gtk.org/download/win64.php for 64-bit builds).  The
-  ezwinports site, http://sourceforge.net/projects/ezwinports/files/
-  also offers PNG (as well as other image libraries), which are
-  usually newer.
+  precompiled libraries and headers on the ezwinports site,
+  http://sourceforge.net/projects/ezwinports/files/.
 
   Versions 1.4.0 and later of libpng are binary incompatible with
   earlier versions, so Emacs will only look for libpng libraries which
@@ -621,70 +659,32 @@ build will run on Windows 9X and newer systems).
   libtiffN.dll or libtiff-N.dll or libtiff.dll.  These can be found on
   the ezwinports site.
 
-  Pre-built versions of librsvg and its dependencies can be found in
-  one of these places:
+  Pre-built versions of librsvg and its dependencies can be found
+  here:
 
-  1. http://sourceforge.net/projects/ezwinports/files/
+    http://sourceforge.net/projects/ezwinports/files/
 
-     This site includes a minimal (as much as possible for librsvg)
-     build of the library and its dependencies; it is also more
-     up-to-date with the latest upstream versions.  However, it
-     currently only offers 32-bit builds.  For building Emacs, you
-     need to download from this site all of the following *-bin.zip
-     archives:
+    This site includes a minimal (as much as possible for librsvg)
+    build of the library and its dependencies; it is also more
+    up-to-date with the latest upstream versions.  However, it
+    currently only offers 32-bit builds.  For building Emacs, you need
+    to download from this site all of the following *-bin.zip
+    archives:
 
-       librsvg, gdk-pixbuf, cairo, glib
+      librsvg, gdk-pixbuf, cairo, glib
 
-     The 'bin' archives on this site include both header files and the
-     libraries needed for building with librsvg and for running Emacs.
-     The librsvg archive includes all the shared libraries needed to
-     run Emacs with SVG support; the other 3 packages are required
-     because the compiler needs to see their header files when
-     building Emacs.
-
-  2. GTK project download site for Windows (see above for 2 URLs,
-     either for 32-bit builds or 64-bit builds)
-
-     This is the official Windows download site of the GTK project.
-     Its builds of librsvg are fatter, but are currently the only
-     alternative for 64-bit builds.  The easiest way to obtain the
-     dependencies required for building from this site is to download
-     a pre-bundled GTK+ development environment for Windows.  If you
-     would nevertheless like to download only the packages that are
-     strictly required, then, as of the time of this writing, here's
-     the list of GTK+ packages you will need:
-
-        librsvg, pango, freetype-2.4.11, freetype-2.4.2, croco, cairo,
-        glib, gdk-pixbuf, fontconfig, libpng-1.4.x, libpng-1.5.x,
-        libffi, libxml2, zlib
-
-     The GTK download page provides 2 separate archives for each
-     package: a 'bin' (binary) archive with programs and DLLs, and a
-     'dev' (development) archive with header files, import libraries,
-     and pkg-config files; download and install both archives for each
-     package you need.  (Sources of each package are available in a
-     separate, 3rd archive.)
-
-     As you see, some libraries for using this site's librsvg are
-     needed in more than one version -- this is because librsvg and
-     some of its dependencies were linked against different versions
-     of those libraries, and will look only for those DLLs when you
-     invoke SVG function.  So there's a bit of "DLL hell" involved
-     here, but at least in theory this should work, as each library
-     will dynamically link only against its dependencies, even if
-     another version of the same library is already loaded.  In
-     particular, at least 2 different versions of libpng will have to
-     be installed on your machine.  When you install these libpng
-     versions, be sure to keep the header files and the pkg-config
-     files in sync, i.e. install both the 'bin' and 'dev' archives of
-     the same libpng version together.
+    The 'bin' archives on this site include both header files and the
+    libraries needed for building with librsvg and for running Emacs.
+    The librsvg archive includes all the shared libraries needed to
+    run Emacs with SVG support; the other 3 packages are required
+    because the compiler needs to see their header files when building
+    Emacs.
 
   To use librsvg at runtime, ensure that librsvg and its dependencies
   are on your PATH, or in the same directory as the emacs.exe binary.
   If you are downloading from the ezwinports site, you only need to
   install a single archive, librsvg-X.Y.Z-w32-bin.zip, which includes
-  all the dependency DLLs.  For the GTK project site, download the
-  'bin' archives for each of the libraries mentioned above.
+  all the dependency DLLs.
 
   If you think you've got all the dependencies and SVG support is
   still not working, check your PATH for other libraries that shadow

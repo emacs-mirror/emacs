@@ -215,7 +215,7 @@
 (defconst c-awk-neutrals*-re
   (concat "\\(" c-awk-neutral-re "\\)*"))
 ;;   A (possibly empty) string of neutral characters (or character pairs).
-(defconst c-awk-var-num-ket-re "[]\)0-9a-zA-Z_$.\x80-\xff]+")
+(defconst c-awk-var-num-ket-re "[])0-9a-zA-Z_$.\x80-\xff]+")
 ;;   Matches a char which is a constituent of a variable or number, or a ket
 ;; (i.e. closing bracKET), round or square.  Assume that all characters \x80 to
 ;; \xff are "letters".
@@ -227,7 +227,7 @@
 ;; will only work when there won't be a preceding " or / before the sought /
 ;; to foul things up.
 (defconst c-awk-non-arith-op-bra-re
-  "[[\({&=:!><,?;'~|]")
+  "[[({&=:!><,?;'~|]")
 ;;   Matches an opening BRAcket (of any sort), or any operator character
 ;; apart from +,-,/,*,%.  For the purpose at hand (detecting a / which is a
 ;; regexp bracket) these arith ops are unnecessary and a pain, because of "++"
@@ -266,7 +266,7 @@
 ;; Matches optional whitespace followed by a "/" with string syntax (a matched
 ;; regexp delimiter).
 (defconst c-awk-space*-unclosed-regexp-/-re
-  (concat c-awk-escaped-nls*-with-space* "\\s\|"))
+  (concat c-awk-escaped-nls*-with-space* "\\s|"))
 ;; Matches optional whitespace followed by a "/" with string fence syntax (an
 ;; unmatched regexp delimiter).
 

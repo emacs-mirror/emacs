@@ -1502,7 +1502,7 @@ Insertion takes place at point."
   (if (zerop (+ (length targets) (length macros)))
       (progn
 	(beep)
-	(message "No macros or targets to browse! Consider running 'makefile-pickup-everything\'"))
+	(message "No macros or targets to browse! Consider running `makefile-pickup-everything'"))
     (let ((browser-buffer (get-buffer-create makefile-browser-buffer-name)))
 	(pop-to-buffer browser-buffer)
 	(makefile-browser-fill targets macros)

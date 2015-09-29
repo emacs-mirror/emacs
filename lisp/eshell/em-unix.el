@@ -517,7 +517,7 @@ Remove the DIRECTORY(ies), if they are empty.")
      :usage "[OPTION]... SOURCE DEST
    or: mv [OPTION]... SOURCE... DIRECTORY
 Rename SOURCE to DEST, or move SOURCE(s) to DIRECTORY.
-\[OPTION] DIRECTORY...")
+[OPTION] DIRECTORY...")
    (let ((no-dereference t))
      (eshell-mvcpln-template "mv" "moving" 'rename-file
 			     eshell-mv-interactive-query

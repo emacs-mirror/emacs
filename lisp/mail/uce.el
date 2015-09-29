@@ -375,7 +375,3 @@ You might need to set `uce-mail-reader' before using this."
 (provide 'uce)
 
 ;;; uce.el ends here
-
-;; Local Variables:
-;; coding: utf-8
-;; End:

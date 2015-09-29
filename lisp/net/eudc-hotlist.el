@@ -1,4 +1,4 @@
-;;; eudc-hotlist.el --- hotlist management for EUDC -*- coding: utf-8 -*-
+;;; eudc-hotlist.el --- hotlist management for EUDC
 
 ;; Copyright (C) 1998-2015 Free Software Foundation, Inc.
 

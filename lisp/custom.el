@@ -1214,13 +1214,11 @@ Return t if THEME was successfully loaded, nil otherwise."
     (put theme 'theme-documentation nil))
   (let ((fn (locate-file (concat (symbol-name theme) "-theme.el")
 			 (custom-theme--load-path)
-			 '("" "c")))
-	hash)
+			 '("" "c"))))
     (unless fn
       (error "Unable to find theme file for `%s'" theme))
     (with-temp-buffer
       (insert-file-contents fn)
-      (setq hash (secure-hash 'sha256 (current-buffer)))
       ;; Check file safety with `custom-safe-themes', prompting the
       ;; user if necessary.
       (when (or no-confirm
@@ -1228,8 +1226,9 @@ Return t if THEME was successfully loaded, nil otherwise."
 		(and (memq 'default custom-safe-themes)
 		     (equal (file-name-directory fn)
 			    (expand-file-name "themes/" data-directory)))
-		(member hash custom-safe-themes)
-		(custom-theme-load-confirm hash))
+                (let ((hash (secure-hash 'sha256 (current-buffer))))
+                  (or (member hash custom-safe-themes)
+                      (custom-theme-load-confirm hash))))
 	(let ((custom--inhibit-theme-enable t)
               (buffer-file-name fn))    ;For load-history.
 	  (eval-buffer))

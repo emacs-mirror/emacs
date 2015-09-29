@@ -229,7 +229,7 @@ found on the last `refer-find-entry' or `refer-find-next-entry'."
                     (sit-for 1)
                     (setq files (cdr files))))))
        (ding)
-       (message "Keywords \"%s\" not found in any \.bib file" keywords))
+       (message "Keywords \"%s\" not found in any .bib file" keywords))
      (select-window old-window)))
 
 (defun refer-find-entry-in-file (keywords-list file &optional old-pos)
@@ -351,21 +351,21 @@ found on the last `refer-find-entry' or `refer-find-next-entry'."
                         (if (progn
                               (goto-char (point-min))
                               (re-search-forward (concat refer-bib-files-regexp
-                                                         "\\s-*\{") nil t))
+                                                         "\\s-*{") nil t))
                             (let ((files (list (buffer-substring
                                                 (point)
                                                 (progn
-                                                  (re-search-forward "[,\}]"
+                                                  (re-search-forward "[,}]"
                                                                      nil t)
                                                   (backward-char 1)
                                                   (point))))))
-                              (while (not (looking-at "\}"))
+                              (while (not (looking-at "}"))
                                 (setq files (append files
                                                     (list (buffer-substring
                                                            (progn (forward-char 1)
                                                                   (point))
                                                            (progn (re-search-forward
-                                                                   "[,\}]" nil t)
+                                                                   "[,}]" nil t)
                                                                   (backward-char 1)
                                                                   (point)))))))
                               files)

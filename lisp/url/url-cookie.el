@@ -264,7 +264,7 @@ telling Microsoft that."
     (and expires
 	 (string-match
 	  (concat "^[^,]+, +\\(..\\)-\\(...\\)-\\(..\\) +"
-		  "\\(..:..:..\\) +\\[*\\([^\]]+\\)\\]*$")
+		  "\\(..:..:..\\) +\\[*\\([^]]+\\)\\]*$")
 	  expires)
 	 (setq expires (concat (match-string 1 expires) " "
 			       (match-string 2 expires) " "
@@ -356,7 +356,7 @@ to run the `url-cookie-setup-save-timer' function manually."
 
 (defun url-cookie-list ()
   "Display a buffer listing the current URL cookies, if there are any.
-Use \\<url-cookie-mode-map>\\\[url-cookie-delete] to remove cookies."
+Use \\<url-cookie-mode-map>\\[url-cookie-delete] to remove cookies."
   (interactive)
   (when (and (null url-cookie-secure-storage)
 	     (null url-cookie-storage))

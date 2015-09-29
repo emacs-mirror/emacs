@@ -2598,7 +2598,7 @@ Bind `org-html-standalone-image-predicate' to constrain paragraph
 further.  For example, to check for only captioned standalone
 images, set it to:
 
-  \(lambda (paragraph) (org-element-property :caption paragraph))"
+  (lambda (paragraph) (org-element-property :caption paragraph))"
   (let ((paragraph (case (org-element-type element)
 		     (paragraph element)
 		     (link (org-export-get-parent element)))))

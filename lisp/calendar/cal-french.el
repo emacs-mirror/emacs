@@ -256,8 +256,4 @@ Echo French Revolutionary date unless NOECHO is non-nil."
 
 (provide 'cal-french)
 
-;; Local Variables:
-;; coding: utf-8
-;; End:
-
 ;;; cal-french.el ends here

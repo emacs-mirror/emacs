@@ -137,9 +137,9 @@ If nil it will default to `buffer-file-coding-system'."
 If #+TEXINFO_CLASS is set in the buffer, use its value and the
 associated information.  Here is the structure of each cell:
 
-  \(class-name
+  (class-name
     header-string
-    \(numbered-section . unnumbered-section)
+    (numbered-section . unnumbered-section)
     ...)
 
 
@@ -210,14 +210,14 @@ order to reproduce the default set-up:
 
 \(defun org-texinfo-format-headline (todo todo-type priority text tags)
   \"Default format function for a headline.\"
-  \(concat (when todo
-            \(format \"\\\\textbf{\\\\textsc{\\\\textsf{%s}}} \" todo))
-	  \(when priority
-            \(format \"\\\\framebox{\\\\#%c} \" priority))
+  (concat (when todo
+            (format \"\\\\textbf{\\\\textsc{\\\\textsf{%s}}} \" todo))
+	  (when priority
+            (format \"\\\\framebox{\\\\#%c} \" priority))
 	  text
-	  \(when tags
-            \(format \"\\\\hfill{}\\\\textsc{%s}\"
-              \(mapconcat \\='identity tags \":\"))))"
+	  (when tags
+            (format \"\\\\hfill{}\\\\textsc{%s}\"
+              (mapconcat \\='identity tags \":\"))))"
   :group 'org-export-texinfo
   :type 'function)
 
@@ -337,18 +337,18 @@ The function should return the string to be exported.
 For example, the variable could be set to the following function
 in order to mimic default behavior:
 
-\(defun org-texinfo-format-inlinetask \(todo type priority name tags contents\)
+\(defun org-texinfo-format-inlinetask (todo type priority name tags contents)
 \"Format an inline task element for Texinfo export.\"
-  \(let ((full-title
-	 \(concat
-	  \(when todo
-            \(format \"@strong{%s} \" todo))
-	  \(when priority (format \"#%c \" priority))
+  (let ((full-title
+	 (concat
+	  (when todo
+            (format \"@strong{%s} \" todo))
+	  (when priority (format \"#%c \" priority))
 	  title
-	  \(when tags
-            \(format \":%s:\"
-                    \(mapconcat \\='identity tags \":\")))))
-    \(format (concat \"@center %s\n\n\"
+	  (when tags
+            (format \":%s:\"
+                    (mapconcat \\='identity tags \":\")))))
+    (format (concat \"@center %s\n\n\"
 		    \"%s\"
                     \"\n\"))
 	    full-title contents))"
@@ -1534,8 +1534,8 @@ Return INFO file name or an error if it couldn't be produced."
 	;; Check for process failure.  Provide collected errors if
 	;; possible.
 	(if (not (file-exists-p infofile))
-	    (error (concat (format "INFO file %s wasn't produced" infofile)
-			   (when errors (concat ": " errors))))
+	    (error "INFO file %s wasn't produced%s" infofile
+		   (if errors (concat ": " errors) ""))
 	  ;; Else remove log files, when specified, and signal end of
 	  ;; process to user, along with any error encountered.
 	  (when org-texinfo-remove-logfiles
@@ -1578,7 +1578,7 @@ none."
 		  (re-search-forward "requires a sectioning" nil t))
 	    (setq errors (concat errors " [invalid section command]")))
 	  (when (save-excursion
-		  (re-search-forward "\\[unexpected\]" nil t))
+		  (re-search-forward "\\[unexpected\ ]" nil t))
 	    (setq errors (concat errors " [unexpected error]")))
 	  (when (save-excursion
 		  (re-search-forward "misplaced " nil t))

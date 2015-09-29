@@ -495,7 +495,7 @@ make sure you are comfortable with it leaking to the outside world.")
 (defun url-dav-lock-resource (url exclusive &optional depth)
   "Request a lock on URL.  If EXCLUSIVE is non-nil, get an exclusive lock.
 Optional 3rd argument DEPTH says how deep the lock should go, default is 0
-\(lock only the resource and none of its children\).
+\(lock only the resource and none of its children).
 
 Returns a cons-cell of (SUCCESSFUL-RESULTS . FAILURE-RESULTS).
 SUCCESSFUL-RESULTS is a list of (URL STATUS locktoken).

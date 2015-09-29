@@ -2600,7 +2600,7 @@ If ARG is given, opens the URL in a new browser window."
 		   (cond ((rcirc-channel-p target)
 			  target)
 			 ;;; -ChanServ- [#gnu] Welcome...
-			 ((string-match "\\[\\(#[^\] ]+\\)\\]" message)
+			 ((string-match "\\[\\(#[^] ]+\\)\\]" message)
 			  (match-string 1 message))
 			 (sender
 			  (if (string= sender (rcirc-server-name process))

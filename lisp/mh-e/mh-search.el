@@ -1247,7 +1247,7 @@ is used to search."
   (prog1
       (block nil
         (when (eobp) (return nil))
-        (when (search-forward-regexp "^\+" (mh-line-end-position) t)
+        (when (search-forward-regexp "^\\+" (mh-line-end-position) t)
           (setq mh-index-pick-folder
                 (buffer-substring-no-properties (mh-line-beginning-position)
                                                 (mh-line-end-position)))

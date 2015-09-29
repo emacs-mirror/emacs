@@ -243,7 +243,7 @@ The properties returned may include `top', `left', `height', and `width'."
 	 (insert ns-input-spi-arg))
 	((string-equal ns-input-spi-name "mail-to")
 	 (compose-mail ns-input-spi-arg))
-	(t (error (concat "Service " ns-input-spi-name " not recognized")))))
+	(t (error "Service %s not recognized" ns-input-spi-name))))
 
 
 ;; Composed key sequence handling for Nextstep system input methods.

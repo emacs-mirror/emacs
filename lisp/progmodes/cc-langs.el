@@ -870,7 +870,7 @@ definition, or nil if the language doesn't have any."
   t (if (c-lang-const c-opt-cpp-macro-define)
 	(concat (c-lang-const c-opt-cpp-prefix)
 		(c-lang-const c-opt-cpp-macro-define)
-		"[ \t]+\\(\\(\\sw\\|_\\)+\\)\\(\([^\)]*\)\\)?"
+		"[ \t]+\\(\\(\\sw\\|_\\)+\\)\\(([^)]*)\\)?"
 		;;       ^                 ^ #defined name
 		"\\([ \t]\\|\\\\\n\\)*")))
 (c-lang-defvar c-opt-cpp-macro-define-start
@@ -1190,7 +1190,7 @@ operators."
   t (c-make-keywords-re nil
       (c-filter-ops (c-lang-const c-all-op-syntax-tokens)
 		    t
-		    "\\`\\(\\s.\\|\\s\(\\|\\s\)\\)+\\'")))
+		    "\\`\\(\\s.\\)+\\'")))
 (c-lang-defvar c-nonsymbol-token-regexp
   (c-lang-const c-nonsymbol-token-regexp))
 
@@ -1694,7 +1694,7 @@ be a subset of `c-primitive-type-kwds'."
 	    "strong"))
 
 (c-lang-defconst c-typedef-kwds
-  "Prefix keyword\(s\) like \"typedef\" which make a type declaration out
+  "Prefix keyword(s) like \"typedef\" which make a type declaration out
 of a variable declaration."
   t        '("typedef")
   (awk idl java) nil)
@@ -2202,7 +2202,7 @@ regexp if `c-colon-type-list-kwds' isn't nil."
 	;; before the ":" that starts the inherit list after "class"
 	;; or "struct" in C++.  (Also used as default for other
 	;; languages.)
-	"[^\]\[{}();,/#=:]*:"))
+	"[^][{}();,/#=:]*:"))
 (c-lang-defvar c-colon-type-list-re (c-lang-const c-colon-type-list-re))
 
 (c-lang-defconst c-paren-nontype-kwds
@@ -2366,7 +2366,7 @@ nevertheless contains a list separated with `;' and not `,'."
 (c-lang-defvar c-opt-asm-stmt-key (c-lang-const c-opt-asm-stmt-key))
 
 (c-lang-defconst c-case-kwds
-  "The keyword\(s) which introduce a \"case\" like construct.
+  "The keyword(s) which introduce a \"case\" like construct.
 This construct is \"<keyword> <expression> :\"."
   t '("case")
   awk nil)
@@ -2729,25 +2729,25 @@ more info."
   ;; more quickly.  We match ")" in C for K&R region declarations, and
   ;; in all languages except Java for when a cpp macro definition
   ;; begins with a declaration.
-  t "\\([\{\}\(\);,]+\\)"
-  java "\\([\{\}\(;,<]+\\)"
+  t "\\([{}();,]+\\)"
+  java "\\([{}(;,<]+\\)"
   ;; Match "<" in C++ to get the first argument in a template arglist.
   ;; In that case there's an additional check in `c-find-decl-spots'
   ;; that it got open paren syntax.  Match ":" to aid in picking up
   ;; "public:", etc.  This involves additional checks in
   ;; `c-find-decl-prefix-search' to prevent a match of identifiers
   ;; or labels.
-  c++ "\\([\{\}\(\);:,<]+\\)"
+  c++ "\\([{}();:,<]+\\)"
   ;; Additionally match the protection directives in Objective-C.
   ;; Note that this doesn't cope with the longer directives, which we
   ;; would have to match from start to end since they don't end with
   ;; any easily recognized characters.
-  objc (concat "\\([\{\}\(\);,]+\\|"
+  objc (concat "\\([{}();,]+\\|"
 	       (c-make-keywords-re nil (c-lang-const c-protection-kwds))
 	       "\\)")
   ;; Pike is like C but we also match "[" for multiple value
   ;; assignments and type casts.
-  pike "\\([\{\}\(\)\[;,]+\\)")
+  pike "\\([{}()[;,]+\\)")
 (c-lang-defvar c-decl-prefix-re (c-lang-const c-decl-prefix-re)
   'dont-doc)
 
@@ -2792,7 +2792,7 @@ constructs."
   ;; languages without casts.
   t (c-filter-ops (c-lang-const c-operators)
 		  '(prefix)
-		  "\\`\\s\(\\'"
+		  "\\`\\s(\\'"
 		  (lambda (op) (elt op 0))))
 (c-lang-defvar c-cast-parens (c-lang-const c-cast-parens))
 
@@ -2875,13 +2875,13 @@ Identifier syntax is in effect when this is matched \(see
   ;; Check that there's no "=" afterwards to avoid matching tokens
   ;; like "*=".
   (c objc) (concat "\\("
-		   "[*\(]"
+		   "[*(]"
 		   "\\|"
 		   (c-lang-const c-type-decl-prefix-key)
 		   "\\)"
 		   "\\([^=]\\|$\\)")
   c++  (concat "\\("
-	       "[*\(&]"
+	       "[*(&]"
 	       "\\|"
 	       (c-lang-const c-type-decl-prefix-key)
 	       "\\|"
@@ -2909,13 +2909,13 @@ is in effect when this is matched (see `c-identifier-syntax-table')."
   ;; Default to a regexp that matches `c-type-modifier-kwds' and a
   ;; function argument list parenthesis.
   t    (if (c-lang-const c-type-modifier-kwds)
-	   (concat "\\(\(\\|"
+	   (concat "\\((\\|"
 		   (regexp-opt (c-lang-const c-type-modifier-kwds) t) "\\>"
 		   "\\)")
-	 "\\(\(\\)")
+	 "\\((\\)")
   (c c++ objc) (concat
 		"\\("
-		"[\)\[\(]"
+		"[)[(]"
 		(if (c-lang-const c-type-modifier-kwds)
 		    (concat
 		     "\\|"
@@ -2926,8 +2926,8 @@ is in effect when this is matched (see `c-identifier-syntax-table')."
 		     "\\>")
 		  "")
 		"\\)")
-  java "\\([\[\(\)]\\)"
-  idl "\\([\[\(]\\)")
+  java "\\([[()]\\)"
+  idl "\\([[(]\\)")
 (c-lang-defvar c-type-decl-suffix-key (c-lang-const c-type-decl-suffix-key)
   'dont-doc)
 
@@ -3111,7 +3111,7 @@ i.e. compound statements surrounded by parentheses inside expressions."
   t (if (c-lang-const c-opt-<>-arglist-start)
 	(concat "\\("
 		(c-lang-const c-opt-<>-arglist-start)
-		"\\)\\|\\s\)")))
+		"\\)\\|\\s)")))
 (c-lang-defvar c-opt-<>-arglist-start-in-paren
   (c-lang-const c-opt-<>-arglist-start-in-paren))
 
@@ -3168,7 +3168,7 @@ i.e. before \":\".  Only used if `c-recognize-colon-labels' is set."
   ;; Also check for open parens in C++, to catch member init lists in
   ;; constructors.  We normally allow it so that macros with arguments
   ;; work in labels.
-  c++ (concat "\\s\(\\|\"\\|" (c-lang-const c-nonlabel-token-key)))
+  c++ (concat "\\s(\\|\"\\|" (c-lang-const c-nonlabel-token-key)))
 (c-lang-defvar c-nonlabel-token-key (c-lang-const c-nonlabel-token-key))
 
 (c-lang-defconst c-nonlabel-token-2-key
@@ -3216,7 +3216,7 @@ way."
 	"\\([+-]\\)"
 	(c-lang-const c-simple-ws) "*"
 	(concat "\\("			; Return type.
-		"([^\)]*)"
+		"([^)]*)"
 		(c-lang-const c-simple-ws) "*"
 		"\\)?")
 	"\\(" (c-lang-const c-symbol-key) "\\)"))

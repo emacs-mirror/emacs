@@ -28,7 +28,18 @@
 (setq auto-revert-notify-exclude-dir-regexp "nothing-to-be-excluded"
       auto-revert-stop-on-user-input nil)
 
-(defvar auto-revert--timeout 10)
+(defconst auto-revert--timeout 10
+  "Time to wait until a message appears in the *Messages* buffer.")
+
+(defun auto-revert--wait-for-revert (buffer)
+  "Wait until the *Messages* buffer reports reversion of BUFFER."
+  (with-timeout (auto-revert--timeout nil)
+    (with-current-buffer "*Messages*"
+      (while
+          (null (string-match
+                 (format-message "Reverting buffer `%s'." (buffer-name buffer))
+                 (buffer-string)))
+        (read-event nil nil 0.1)))))
 
 (ert-deftest auto-revert-test00-auto-revert-mode ()
   "Check autorevert for a file."
@@ -57,13 +68,7 @@
             (write-region "another text" nil tmpfile nil 'no-message)
 
 	    ;; Check, that the buffer has been reverted.
-            (with-timeout (auto-revert--timeout nil)
-              (with-current-buffer "*Messages*"
-                (while
-                    (null (string-match
-                           (format "Reverting buffer `%s'." (buffer-name buf))
-                           (buffer-string)))
-                  (read-event nil nil 0.1))))
+            (auto-revert--wait-for-revert buf)
             (should (string-match "another text" (buffer-string)))
 
             ;; When the buffer is modified, it shall not be reverted.
@@ -73,14 +78,8 @@
 	    (sleep-for 1)
             (write-region "any text" nil tmpfile nil 'no-message)
 
-	    ;; Check, whether the buffer has been reverted.
-            (with-timeout (auto-revert--timeout nil)
-              (with-current-buffer "*Messages*"
-                (while
-                    (null (string-match
-                           (format "Reverting buffer `%s'." (buffer-name buf))
-                           (buffer-string)))
-                  (read-event nil nil 0.1))))
+	    ;; Check, that the buffer hasn't been reverted.
+            (auto-revert--wait-for-revert buf)
             (should-not (string-match "any text" (buffer-string)))))
 
       ;; Exit.
@@ -119,13 +118,7 @@
             (write-region "another text" nil tmpfile 'append 'no-message)
 
 	    ;; Check, that the buffer has been reverted.
-            (with-timeout (auto-revert--timeout nil)
-              (with-current-buffer "*Messages*"
-                (while
-                    (null (string-match
-                           (format "Reverting buffer `%s'." (buffer-name buf))
-                           (buffer-string)))
-                  (read-event nil nil 0.1))))
+            (auto-revert--wait-for-revert buf)
             (should
              (string-match "modified text\nanother text" (buffer-string)))))
 
@@ -162,16 +155,9 @@
             (delete-file tmpfile)
 
 	    ;; Check, that the buffer has been reverted.
-            (with-timeout (auto-revert--timeout nil)
-              (with-current-buffer "*Messages*"
-                (while
-                    (null (string-match
-                           (format "Reverting buffer `%s'." (buffer-name buf))
-                           (buffer-string)))
-                  (read-event nil nil 0.1))))
-            (should
-             (null
-              (string-match name (substring-no-properties (buffer-string)))))
+            (auto-revert--wait-for-revert buf)
+            (should-not
+             (string-match name (substring-no-properties (buffer-string))))
 
             ;; Make dired buffer modified.  Check, that the buffer has
             ;; been still reverted.
@@ -181,14 +167,8 @@
 	    (sleep-for 1)
             (write-region "any text" nil tmpfile nil 'no-message)
 
-	    ;; Check, that the buffer hasn't been reverted.
-            (with-timeout (auto-revert--timeout nil)
-              (with-current-buffer "*Messages*"
-                (while
-                    (null (string-match
-                           (format "Reverting buffer `%s'." (buffer-name buf))
-                           (buffer-string)))
-                  (read-event nil nil 0.1))))
+	    ;; Check, that the buffer has been reverted.
+            (auto-revert--wait-for-revert buf)
             (should
              (string-match name (substring-no-properties (buffer-string))))))
 

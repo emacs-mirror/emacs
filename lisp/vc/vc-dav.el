@@ -82,7 +82,7 @@ See `vc-checkout-model' for a list of possible values."
   ;; Do we need to do anything here?  FIXME?
   )
 
-(defun vc-dav-checkin (url comment)
+(defun vc-dav-checkin (url comment &optional _rev)
   "Commit changes in URL to WebDAV. COMMENT is used as a check-in comment."
   ;; This should PUT the resource and release any locks that we hold.
   )

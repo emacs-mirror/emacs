@@ -156,7 +156,7 @@ Presumably if you call this you will insert something new there."
   "Display the string FMT formatted with ARGS at the end of the minibuffer."
   (if semantic-complete-inline-overlay
       (apply 'message fmt args)
-    (message (concat (buffer-string) (apply #'format-message fmt args)))))
+    (apply 'message (concat "%s" fmt) (buffer-string) args)))
 
 ;;; ------------------------------------------------------------
 ;;; MINIBUFFER: Option Selection harnesses

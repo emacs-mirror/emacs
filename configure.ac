@@ -932,9 +932,12 @@ else
   nw="$nw -Wsuggest-attribute=pure"
 
   # This part is merely for shortening the command line,
+  # since -Wall implies -Wswitch.
+  nw="$nw -Wswitch"
+
+  # This part is merely for shortening the command line,
   # since -Wno-FOO needs to be added below regardless.
   nw="$nw -Wmissing-field-initializers"
-  nw="$nw -Wswitch"
   nw="$nw -Wtype-limits"
   nw="$nw -Wunused-parameter"
 
@@ -951,7 +954,6 @@ else
   gl_WARN_ADD([-Wno-missing-field-initializers]) # We need this one
   gl_WARN_ADD([-Wno-sign-compare])     # Too many warnings for now
   gl_WARN_ADD([-Wno-type-limits])      # Too many warnings for now
-  gl_WARN_ADD([-Wno-switch])           # Too many warnings for now
   gl_WARN_ADD([-Wno-unused-parameter]) # Too many warnings for now
   gl_WARN_ADD([-Wno-format-nonliteral])
 

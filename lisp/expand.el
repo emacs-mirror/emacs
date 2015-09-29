@@ -213,7 +213,7 @@
     "for"                               ; foreach
     (concat
      "for (  )\n"
-     "{\n\n\}"
+     "{\n\n}"
      )
     (list 7 12))
 
@@ -221,7 +221,7 @@
     "whi"                               ; foreach
     (concat
      "while (  )\n"
-     "{\n\n\}"
+     "{\n\n}"
      )
     (list 9 15))
 
@@ -233,7 +233,7 @@
     "iff"
     (concat
      "if (  )\n"
-     "{\n\n\}"
+     "{\n\n}"
      )
     (list 6 12))
 

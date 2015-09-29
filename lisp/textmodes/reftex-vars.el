@@ -85,8 +85,9 @@
     (supertab    "Supertabular environment"
      (("supertabular" ?t nil nil "\\tablecaption{")))
 
-    (wrapfig     "The wrapfigure environment"
-     (("wrapfigure" ?f nil nil caption)))
+    (wrapfig     "The wrapfig package"
+     (("wrapfigure" ?f nil nil caption)
+      ("wraptable"  ?t nil nil caption)))
 
     (ctable	"The ctable package"
      (("\\ctable[]{}{}{}" ?t "tab:" "~\\ref{%s}" 1 ("table" "Tabelle"))))
@@ -653,7 +654,7 @@ Possible keys are sectioning macro names like `chapter', section levels
                 (string :tag "Prefix"))))
 
 (defcustom reftex-default-context-regexps
-  '((caption       . "\\\\\\(rot\\)?caption\\*?[[{]")
+  '((caption       . "\\\\\\(rot\\|bi\\)?\\(sub\\)?caption\\(box\\)?\\*?[[{]")
     (item          . "\\\\item\\(\\[[^]]*\\]\\)?")
     (eqnarray-like . "\\\\begin{%s}\\|\\\\\\\\")
     (alignat-like  . "\\\\begin{%s}{[0-9]*}\\|\\\\\\\\"))
@@ -1991,7 +1992,8 @@ symbol indicating in what context the hook is called."
 
 (defcustom reftex-extra-bindings nil
   "Non-nil means, make additional key bindings on startup.
-These extra bindings are located in the users `C-c letter' map."
+These extra bindings are located in the users `C-c letter' map.
+Note that this variable needs to be set before reftex is loaded."
   :group 'reftex-miscellaneous-configurations
   :type 'boolean)
 

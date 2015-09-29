@@ -677,7 +677,7 @@ INTERVAL is the full length of an interval (defaults to TIME)."
 (defun type-break-check ()
   "Ask to take a typing break if appropriate.
 This may be the case either because the scheduled time has come \(and the
-minimum keystroke threshold has been reached\) or because the maximum
+minimum keystroke threshold has been reached) or because the maximum
 keystroke threshold has been exceeded."
   (type-break-file-keystroke-count)
   (let* ((min-threshold (car type-break-keystroke-threshold))

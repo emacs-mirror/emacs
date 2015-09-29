@@ -945,13 +945,7 @@ macfont_set_family_cache (Lisp_Object symbol, CFStringRef string)
   Lisp_Object value;
 
   if (!HASH_TABLE_P (macfont_family_cache))
-    {
-      Lisp_Object args[2];
-
-      args[0] = QCtest;
-      args[1] = Qeq;
-      macfont_family_cache = Fmake_hash_table (2, args);
-    }
+    macfont_family_cache = CALLN (Fmake_hash_table, QCtest, Qeq);
 
   h = XHASH_TABLE (macfont_family_cache);
   i = hash_lookup (h, symbol, &hash);

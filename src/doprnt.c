@@ -1,4 +1,4 @@
-/* Output like sprintf to a buffer of specified size.
+/* Output like sprintf to a buffer of specified size.    -*- coding: utf-8 -*-
    Also takes args differently: pass one pointer to the end
    of the format string in addition to the format string itself.
    Copyright (C) 1985, 2001-2015 Free Software Foundation, Inc.

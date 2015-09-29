@@ -1321,7 +1321,7 @@ Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
  ("K" ?Ķ)
  ("l" ?ļ)
  ("L" ?Ļ)
- ("\'" ?“)
+ ("'" ?“)
  ("\"" ?„)
  ("z" ?ž)
  ("Z" ?Ž)

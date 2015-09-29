@@ -78,8 +78,8 @@
     "list-style" "list-style-image" "list-style-position"
     "list-style-type" "margin" "margin-bottom" "margin-left"
     "margin-right" "margin-top" "max-height" "max-width" "min-height"
-    "min-width" "orphans" "overflow" "padding" "padding-bottom"
-    "padding-left" "padding-right" "padding-top" "page-break-after"
+    "min-width" "orphans" "padding" "padding-bottom" "padding-left"
+    "padding-right" "padding-top" "page-break-after"
     "page-break-before" "page-break-inside" "pause" "pause-after"
     "pause-before" "pitch" "pitch-range" "play-during" "position"
     "quotes" "richness" "right" "speak" "speak-header" "speak-numeral"
@@ -135,6 +135,10 @@
     "font-variant-alternates" "font-variant-caps"
     "font-variant-east-asian" "font-variant-ligatures"
     "font-variant-numeric" "font-variant-position" "font-weight"
+
+    ;; CSS Overflow Module Level 3
+    ;; (http://www.w3.org/TR/css-overflow-3/#property-index)
+    "max-lines" "overflow" "overflow-x" "overflow-y"
 
     ;; CSS Text Decoration Module Level 3
     ;; (http://dev.w3.org/csswg/css-text-decor-3/#property-index)
@@ -265,7 +269,7 @@
        "\\(?:\\(:" (regexp-opt (append css-pseudo-class-ids
                                        css-pseudo-element-ids) t)
        "\\|\\::" (regexp-opt css-pseudo-element-ids t) "\\)"
-       "\\(?:([^\)]+)\\)?"
+       "\\(?:([^)]+)\\)?"
        (if (not sassy)
            "[^:{}\n]*"
          (concat "[^:{}\n#]*\\(?:" scss--hash-re "[^:{}\n#]*\\)*"))

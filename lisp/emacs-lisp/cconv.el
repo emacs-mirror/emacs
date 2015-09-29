@@ -1,4 +1,4 @@
-;;; cconv.el --- Closure conversion for statically scoped Emacs lisp. -*- lexical-binding: t; coding: utf-8 -*-
+;;; cconv.el --- Closure conversion for statically scoped Emacs lisp. -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2011-2015 Free Software Foundation, Inc.
 

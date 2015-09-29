@@ -819,7 +819,7 @@ It also can't undo some Viper settings."
 ;; fundamental
 (defun viper-major-mode-change-sentinel ()
   (save-match-data
-    (or (string-match "\*Minibuf-" (buffer-name))
+    (or (string-match "\\*Minibuf-" (buffer-name))
 	(setq viper-new-major-mode-buffer-list
 	      (cons (current-buffer) viper-new-major-mode-buffer-list))))
   ;; change the global value of hook

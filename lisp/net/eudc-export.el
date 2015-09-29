@@ -1,4 +1,4 @@
-;;; eudc-export.el --- functions to export EUDC query results -*- coding: utf-8 -*-
+;;; eudc-export.el --- functions to export EUDC query results
 
 ;; Copyright (C) 1998-2015 Free Software Foundation, Inc.
 

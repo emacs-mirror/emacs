@@ -251,7 +251,7 @@ In order to prevent constant pruning, we prune back to a number
 somewhat less than the maximum size.  This option controls
 exactly how much less.  For example, given a maximum size of
 50000 and a prune factor of 0.1, the pruning process will try to
-cut the registry back to \(- 50000 \(* 50000 0.1\)\) -> 45000
+cut the registry back to \(- 50000 \(* 50000 0.1)) -> 45000
 entries.  The pruning process is constrained by the presence of
 \"precious\" entries."
   :version "25.1"

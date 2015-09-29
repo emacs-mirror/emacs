@@ -1427,8 +1427,8 @@ modified lines of the diff."
 		   (diff-hunk-style)))))
     (set (make-local-variable 'whitespace-trailing-regexp)
 	 (if (eq style 'context)
-	     "^[-\+!] .*?\\([\t ]+\\)$"
-	   "^[-\+!<>].*?\\([\t ]+\\)$"))))
+	     "^[-+!] .*?\\([\t ]+\\)$"
+	   "^[-+!<>].*?\\([\t ]+\\)$"))))
 
 (defun diff-delete-if-empty ()
   ;; An empty diff file means there's no more diffs to integrate, so we

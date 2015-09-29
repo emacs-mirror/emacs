@@ -347,9 +347,9 @@ the command interpreter stack:
 
 Some possible command interpreter types and their meanings are:
 
-\[Evaluator]	read-eval-print loop for evaluating expressions
-\[Debugger]	single character commands for debugging errors
-\[Where]		single character commands for examining environments
+[Evaluator]	read-eval-print loop for evaluating expressions
+[Debugger]	single character commands for debugging errors
+[Where]		single character commands for examining environments
 
 Starting with release 6.2 of Scheme, the latter two types of command
 interpreters will change the major mode of the Scheme process buffer

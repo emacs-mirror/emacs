@@ -508,9 +508,4 @@ variable will be set to the representation."
 
 (provide 'tildify)
 
-
-;; Local variables:
-;; coding: utf-8
-;; End:
-
 ;;; tildify.el ends here

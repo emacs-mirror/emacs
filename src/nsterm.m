@@ -1,4 +1,4 @@
-/* NeXT/Open/GNUstep / MacOSX communication module.
+/* NeXT/Open/GNUstep / MacOSX communication module.      -*- coding: utf-8 -*-
 
 Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2015 Free Software
 Foundation, Inc.
@@ -440,10 +440,7 @@ append2 (Lisp_Object list, Lisp_Object item)
    Utility to append to a list
    -------------------------------------------------------------------------- */
 {
-  Lisp_Object array[2];
-  array[0] = list;
-  array[1] = list1 (item);
-  return Fnconc (2, &array[0]);
+  return CALLN (Fnconc, list, list1 (item));
 }
 
 
@@ -1333,6 +1330,7 @@ x_set_window_size (struct frame *f,
   int tb = FRAME_EXTERNAL_TOOL_BAR (f);
   int pixelwidth, pixelheight;
   int rows, cols;
+  int orig_height = wr.size.height;
 
   NSTRACE (x_set_window_size);
 
@@ -1386,7 +1384,7 @@ x_set_window_size (struct frame *f,
  if (f->output_data.ns->zooming)
    f->output_data.ns->zooming = 0;
  else
-   wr.origin.y += FRAME_PIXEL_HEIGHT (f) - pixelheight;
+   wr.origin.y += orig_height - wr.size.height;
 
   [view setRows: rows andColumns: cols];
   [window setFrame: wr display: YES];
@@ -6726,6 +6724,11 @@ if (cols > 0 && rows > 0)
 {
   if (fs_state != emacsframe->want_fullscreen)
     {
+      NSSize sz;
+      sz.width = frame_resize_pixelwise ? 1 : FRAME_COLUMN_WIDTH (emacsframe);
+      sz.height = frame_resize_pixelwise ? 1 : FRAME_LINE_HEIGHT (emacsframe);
+      [[self window] setResizeIncrements:sz];
+
       if (fs_state == FULLSCREEN_BOTH)
         {
           [self toggleFullScreen:self];

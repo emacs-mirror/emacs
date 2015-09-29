@@ -365,7 +365,7 @@ should describe how to do the same job in hand-written Lisp code.
 Specify @var{getfunction} as the way to extract the value of this
 option.  The function @var{getfunction} should take one argument, a
 symbol, and should return whatever customize should use as the
-``current value'' for that symbol (which need not be the symbol's Lisp
+current value for that symbol (which need not be the symbol's Lisp
 value).  The default is @code{default-value}.
 
 You have to really understand the workings of Custom to use
@@ -441,7 +441,7 @@ those other variables already have their intended values.
 @end table
 
   It is useful to specify the @code{:require} keyword for an option
-that ``turns on'' a certain feature.  This causes Emacs to load the
+that turns on a certain feature.  This causes Emacs to load the
 feature, if it is not already loaded, whenever the option is set.
 @xref{Common Keywords}.  Here is an example, from the library
 @file{saveplace.el}:
@@ -723,7 +723,7 @@ simply atoms, which stand for themselves.  For example:
 @end example
 
 @noindent
-specifies that there are three ``known'' keys, namely @code{"foo"},
+specifies that there are three known keys, namely @code{"foo"},
 @code{"bar"} and @code{"baz"}, which will always be shown first.
 
 You may want to restrict the value type for specific keys, for
@@ -842,7 +842,7 @@ symbols, and symbols are not treated like other Lisp expressions.
 
 @item (radio @var{element-types}@dots{})
 This is similar to @code{choice}, except that the choices are displayed
-using ``radio buttons'' rather than a menu.  This has the advantage of
+using radio buttons rather than a menu.  This has the advantage of
 displaying documentation for the choices when applicable and so is often
 a good choice for a choice between constant functions
 (@code{function-item} customization types).
@@ -1378,8 +1378,8 @@ the theme; this is the description shown when the user invokes the
 Themes*} buffer.
 
 Two special theme names are disallowed (using them causes an error):
-@code{user} is a ``dummy'' theme that stores the user's direct
-customization settings, and @code{changed} is a ``dummy'' theme that
+@code{user} is a dummy theme that stores the user's direct
+customization settings, and @code{changed} is a dummy theme that
 stores changes made outside of the Customize system.
 @end defmac
 
@@ -1422,7 +1422,7 @@ where the list entries have the same meanings as in
 @end defun
 
   In theory, a theme file can also contain other Lisp forms, which
-would be evaluated when loading the theme, but that is ``bad form''.
+would be evaluated when loading the theme, but that is bad form.
 To protect against loading themes containing malicious code, Emacs
 displays the source file and asks for confirmation from the user
 before loading any non-built-in theme for the first time.
@@ -1440,7 +1440,7 @@ it returns @code{nil}.
 @defvar custom-known-themes
 The value of this variable is a list of themes loaded into Emacs.
 Each theme is represented by a Lisp symbol (the theme name).  The
-default value of this variable is a list containing two ``dummy''
+default value of this variable is a list containing two dummy
 themes: @code{(user changed)}.  The @code{changed} theme stores
 settings made before any Custom themes are applied (e.g., variables
 set outside of Customize).  The @code{user} theme stores settings the

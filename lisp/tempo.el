@@ -759,7 +759,3 @@ space bar, and looks something like this:
 (provide 'tempo)
 
 ;;; tempo.el ends here
-
-;; Local Variables:
-;; coding: utf-8
-;; End:

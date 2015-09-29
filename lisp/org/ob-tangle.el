@@ -302,7 +302,7 @@ Insert the source-code specified by SPEC into the current source
 code file.  This function uses `comment-region' which assumes
 that the appropriate major-mode is set.  SPEC has the form:
 
-  \(start-line file link source-name params body comment)"
+  (start-line file link source-name params body comment)"
   (let* ((start-line (nth 0 spec))
 	 (file (nth 1 spec))
 	 (link (nth 2 spec))

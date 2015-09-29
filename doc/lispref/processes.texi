@@ -734,7 +734,7 @@ Initialize the process query flag to @var{query-flag}.
 
 @item :stop @var{stopped}
 If @var{stopped} is non-@code{nil}, start the process in the
-``stopped'' state.
+stopped state.
 
 @item :filter @var{filter}
 Initialize the process filter to @var{filter}.
@@ -786,7 +786,7 @@ Initialize the process query flag to @var{query-flag}.
 
 @item :stop @var{stopped}
 If @var{stopped} is non-@code{nil}, start the process in the
-``stopped'' state.
+stopped state.
 
 @item :filter @var{filter}
 Initialize the process filter to @var{filter}.
@@ -1070,7 +1070,7 @@ This function sets the process plist of @var{process} to @var{plist}.
   Asynchronous subprocesses receive input when it is sent to them by
 Emacs, which is done with the functions in this section.  You must
 specify the process to send input to, and the input data to send.  The
-data appears on the ``standard input'' of the subprocess.
+data appears on the standard input of the subprocess.
 
 @c FIXME which?
   Some operating systems have limited space for buffered input in a
@@ -1189,10 +1189,10 @@ job-control shells won't work when a pipe is used.  See
 
 @defun interrupt-process &optional process current-group
 This function interrupts the process @var{process} by sending the
-signal @code{SIGINT}.  Outside of Emacs, typing the ``interrupt
-character'' (normally @kbd{C-c} on some systems, and @key{DEL} on
+signal @code{SIGINT}.  Outside of Emacs, typing the interrupt
+character (normally @kbd{C-c} on some systems, and @key{DEL} on
 others) sends this signal.  When the argument @var{current-group} is
-non-@code{nil}, you can think of this function as ``typing @kbd{C-c}''
+non-@code{nil}, you can think of this function as typing @kbd{C-c}
 on the terminal by which Emacs talks to the subprocess.
 @end defun
 
@@ -1204,10 +1204,8 @@ and cannot be handled by the subprocess.
 
 @defun quit-process &optional process current-group
 This function sends the signal @code{SIGQUIT} to the process
-@var{process}.  This signal is the one sent by the ``quit
-@c FIXME?  Never heard of C-b being used for this.  In readline, e.g.,
-@c bash, that is backward-word.
-character'' (usually @kbd{C-b} or @kbd{C-\}) when you are not inside
+@var{process}.  This signal is the one sent by the quit
+character (usually @kbd{C-\}) when you are not inside
 Emacs.
 @end defun
 
@@ -1216,10 +1214,10 @@ This function stops the process @var{process} by sending the
 signal @code{SIGTSTP}.  Use @code{continue-process} to resume its
 execution.
 
-Outside of Emacs, on systems with job control, the ``stop character''
+Outside of Emacs, on systems with job control, the stop character
 (usually @kbd{C-z}) normally sends this signal.  When
 @var{current-group} is non-@code{nil}, you can think of this function as
-``typing @kbd{C-z}'' on the terminal Emacs uses to communicate with the
+typing @kbd{C-z} on the terminal Emacs uses to communicate with the
 subprocess.
 @end defun
 
@@ -1849,7 +1847,7 @@ interruptible sleep (waiting for some event)
 @item "T"
 stopped, e.g., by a job control signal
 @item "Z"
-``zombie'': a process that terminated, but was not reaped by its parent
+zombie: a process that terminated, but was not reaped by its parent
 @end table
 
 @noindent
@@ -2074,7 +2072,7 @@ server is stopped; a non-@code{nil} value means yes.
 @cindex @acronym{STARTTLS} network connections
 Emacs can create encrypted network connections, using either built-in
 or external support.  The built-in support uses the GnuTLS
-(``Transport Layer Security'') library; see
+Transport Layer Security Library; see
 @uref{http://www.gnu.org/software/gnutls/, the GnuTLS project page}.
 If your Emacs was compiled with GnuTLS support, the function
 @code{gnutls-available-p} is defined and returns non-@code{nil}.  For
@@ -2118,7 +2116,7 @@ The type of connection.  Options are:
 An ordinary, unencrypted connection.
 @item tls
 @itemx ssl
-A @acronym{TLS} (``Transport Layer Security'') connection.
+A @acronym{TLS} (Transport Layer Security) connection.
 @item nil
 @itemx network
 Start with a plain connection, and if parameters @samp{:success}
@@ -2306,7 +2304,7 @@ necessary to make it unique.
 @item :type @var{type}
 Specify the communication type.  A value of @code{nil} specifies a
 stream connection (the default); @code{datagram} specifies a datagram
-connection; @code{seqpacket} specifies a ``sequenced packet stream''
+connection; @code{seqpacket} specifies a sequenced packet stream
 connection.  Both connections and servers can be of these types.
 
 @item :server @var{server-flag}
@@ -2373,7 +2371,7 @@ A local address is represented as a string, which specifies the address
 in the local address space.
 
 @item
-An ``unsupported family'' address is represented by a cons
+An unsupported-family address is represented by a cons
 @code{(@var{f} . @var{av})}, where @var{f} is the family number and
 @var{av} is a vector specifying the socket address using one element
 per address data byte.  Do not rely on this format in portable code,
@@ -2392,7 +2390,7 @@ has succeeded or failed.
 
 @item :stop @var{stopped}
 If @var{stopped} is non-@code{nil}, start the network connection or
-server in the ``stopped'' state.
+server in the stopped state.
 
 @item :buffer @var{buffer}
 Use @var{buffer} as the process buffer.
@@ -2700,7 +2698,7 @@ Initialize the process query flag to @var{query-flag}.  @xref{Query
 Before Exit}.  The flags defaults to @code{nil} if unspecified.
 
 @item :stop @var{bool}
-Start process in the ``stopped'' state if @var{bool} is
+Start process in the stopped state if @var{bool} is
 non-@code{nil}.  In the stopped state, a serial process does not
 accept incoming data, but you can send outgoing data.  The stopped
 state is cleared by @code{continue-process} and set by
@@ -2830,7 +2828,7 @@ specification}, a special nested list describing named and typed
 @dfn{fields}.  This specification controls the length of each field to be
 processed, and how to pack or unpack it.  We normally keep bindat specs
 in variables whose names end in @samp{-bindat-spec}; that kind of name
-is automatically recognized as ``risky''.
+is automatically recognized as risky.
 
 @cindex endianness
 @cindex big endian
@@ -2839,8 +2837,8 @@ is automatically recognized as ``risky''.
   A field's @dfn{type} describes the size (in bytes) of the object
 that the field represents and, in the case of multibyte fields, how
 the bytes are ordered within the field.  The two possible orderings
-are ``big endian'' (also known as ``network byte ordering'') and
-``little endian''.  For instance, the number @code{#x23cd} (decimal
+are @dfn{big endian} (also known as ``network byte ordering'') and
+@dfn{little endian}.  For instance, the number @code{#x23cd} (decimal
 9165) in big endian would be the two bytes @code{#x23} @code{#xcd};
 and in little endian, @code{#xcd} @code{#x23}.  Here are the possible
 type values:

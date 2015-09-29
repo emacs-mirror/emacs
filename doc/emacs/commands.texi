@@ -70,7 +70,7 @@ where the @key{META} key does not function reliably.
   On graphical displays, the window manager might block some keyboard
 inputs, including @kbd{M-@key{TAB}}, @kbd{M-@key{SPC}}, @kbd{C-M-d}
 and @kbd{C-M-l}.  If you have this problem, you can either customize
-your window manager to not block those keys, or ``rebind'' the
+your window manager to not block those keys, or rebind the
 affected Emacs commands (@pxref{Customization}).
 
 @cindex input event

@@ -117,9 +117,9 @@ When URL Handler mode is enabled, this regular expression is
 added to `file-name-handler-alist'.
 
 Some valid URL protocols just do not make sense to visit
-interactively \(about, data, info, irc, mailto, etc\).  This
+interactively \(about, data, info, irc, mailto, etc.).  This
 regular expression avoids conflicts with local files that look
-like URLs \(Gnus is particularly bad at this\)."
+like URLs \(Gnus is particularly bad at this)."
   :group 'url
   :type 'regexp
   :version "25.1"

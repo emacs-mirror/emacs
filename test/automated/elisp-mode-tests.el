@@ -258,7 +258,7 @@ to (xref-elisp-test-descr-to-target xref)."
 (cl-defstruct (xref-elisp-root-type)
   slot-1)
 
-(cl-defgeneric xref-elisp-generic-no-methods ()
+(cl-defgeneric xref-elisp-generic-no-methods (arg1 arg2)
   "doc string generic no-methods"
   ;; No default implementation, no methods, but fboundp is true for
   ;; this symbol; it calls cl-no-applicable-method
@@ -269,44 +269,44 @@ to (xref-elisp-test-descr-to-target xref)."
 ;; causes the batch mode test to fail; the symbol shows up as
 ;; ‘this’. It passes in interactive tests, so I haven't been able to
 ;; track down the problem.
-(cl-defmethod xref-elisp-generic-no-default ((this xref-elisp-root-type))
+(cl-defmethod xref-elisp-generic-no-default ((this xref-elisp-root-type) arg2)
   "doc string generic no-default xref-elisp-root-type"
   "non-default for no-default")
 
 ;; defgeneric after defmethod in file to ensure the fallback search
 ;; method of just looking for the function name will fail.
-(cl-defgeneric xref-elisp-generic-no-default ()
+(cl-defgeneric xref-elisp-generic-no-default (arg1 arg2)
   "doc string generic no-default generic"
   ;; No default implementation; this function calls the cl-generic
   ;; dispatching code.
   )
 
-(cl-defgeneric xref-elisp-generic-co-located-default ()
+(cl-defgeneric xref-elisp-generic-co-located-default (arg1 arg2)
   "doc string generic co-located-default"
   "co-located default")
 
-(cl-defmethod xref-elisp-generic-co-located-default ((this xref-elisp-root-type))
+(cl-defmethod xref-elisp-generic-co-located-default ((this xref-elisp-root-type) arg2)
   "doc string generic co-located-default xref-elisp-root-type"
   "non-default for co-located-default")
 
-(cl-defgeneric xref-elisp-generic-separate-default ()
+(cl-defgeneric xref-elisp-generic-separate-default (arg1 arg2)
   "doc string generic separate-default"
   ;; default implementation provided separately
   )
 
-(cl-defmethod xref-elisp-generic-separate-default ()
+(cl-defmethod xref-elisp-generic-separate-default (arg1 arg2)
   "doc string generic separate-default default"
   "separate default")
 
-(cl-defmethod xref-elisp-generic-separate-default ((this xref-elisp-root-type))
+(cl-defmethod xref-elisp-generic-separate-default ((this xref-elisp-root-type) arg2)
   "doc string generic separate-default xref-elisp-root-type"
   "non-default for separate-default")
 
-(cl-defmethod xref-elisp-generic-implicit-generic ()
+(cl-defmethod xref-elisp-generic-implicit-generic (arg1 arg2)
   "doc string generic implicit-generic default"
   "default for implicit generic")
 
-(cl-defmethod xref-elisp-generic-implicit-generic ((this xref-elisp-root-type))
+(cl-defmethod xref-elisp-generic-implicit-generic ((this xref-elisp-root-type) arg2)
   "doc string generic implicit-generic xref-elisp-root-type"
   "non-default for implicit generic")
 
@@ -327,9 +327,9 @@ to (xref-elisp-test-descr-to-target xref)."
 	      (xref-make-elisp-location
 	       'xref-elisp-generic-no-default 'cl-defgeneric
 	       (expand-file-name "elisp-mode-tests.el" emacs-test-dir)))
-   (xref-make "(cl-defmethod xref-elisp-generic-no-default ((this xref-elisp-root-type)))"
+   (xref-make "(cl-defmethod xref-elisp-generic-no-default ((this xref-elisp-root-type) arg2))"
 	      (xref-make-elisp-location
-	       '(xref-elisp-generic-no-default xref-elisp-root-type) 'cl-defmethod
+	       '(xref-elisp-generic-no-default xref-elisp-root-type t) 'cl-defmethod
 	       (expand-file-name "elisp-mode-tests.el" emacs-test-dir)))
    ))
 
@@ -340,9 +340,9 @@ to (xref-elisp-test-descr-to-target xref)."
 	      (xref-make-elisp-location
 	       'xref-elisp-generic-co-located-default 'cl-defgeneric
 	       (expand-file-name "elisp-mode-tests.el" emacs-test-dir)))
-   (xref-make "(cl-defmethod xref-elisp-generic-co-located-default ((this xref-elisp-root-type)))"
+   (xref-make "(cl-defmethod xref-elisp-generic-co-located-default ((this xref-elisp-root-type) arg2))"
 	      (xref-make-elisp-location
-	       '(xref-elisp-generic-co-located-default xref-elisp-root-type) 'cl-defmethod
+	       '(xref-elisp-generic-co-located-default xref-elisp-root-type t) 'cl-defmethod
 	       (expand-file-name "elisp-mode-tests.el" emacs-test-dir)))
    ))
 
@@ -353,26 +353,26 @@ to (xref-elisp-test-descr-to-target xref)."
 	      (xref-make-elisp-location
 	       'xref-elisp-generic-separate-default 'cl-defgeneric
 	       (expand-file-name "elisp-mode-tests.el" emacs-test-dir)))
-   (xref-make "(cl-defmethod xref-elisp-generic-separate-default ())"
+   (xref-make "(cl-defmethod xref-elisp-generic-separate-default (arg1 arg2))"
               (xref-make-elisp-location
-               '(xref-elisp-generic-separate-default) 'cl-defmethod
+               '(xref-elisp-generic-separate-default t t) 'cl-defmethod
                (expand-file-name "elisp-mode-tests.el" emacs-test-dir)))
-   (xref-make "(cl-defmethod xref-elisp-generic-separate-default ((this xref-elisp-root-type)))"
+   (xref-make "(cl-defmethod xref-elisp-generic-separate-default ((this xref-elisp-root-type) arg2))"
 	      (xref-make-elisp-location
-	       '(xref-elisp-generic-separate-default xref-elisp-root-type) 'cl-defmethod
+	       '(xref-elisp-generic-separate-default xref-elisp-root-type t) 'cl-defmethod
 	       (expand-file-name "elisp-mode-tests.el" emacs-test-dir)))
    ))
 
 (xref-elisp-deftest find-defs-defgeneric-implicit-generic
   (elisp--xref-find-definitions 'xref-elisp-generic-implicit-generic)
   (list
-   (xref-make "(cl-defmethod xref-elisp-generic-implicit-generic ())"
+   (xref-make "(cl-defmethod xref-elisp-generic-implicit-generic (arg1 arg2))"
 	      (xref-make-elisp-location
-	       '(xref-elisp-generic-implicit-generic) 'cl-defmethod
+	       '(xref-elisp-generic-implicit-generic t t) 'cl-defmethod
 	       (expand-file-name "elisp-mode-tests.el" emacs-test-dir)))
-   (xref-make "(cl-defmethod xref-elisp-generic-implicit-generic ((this xref-elisp-root-type)))"
+   (xref-make "(cl-defmethod xref-elisp-generic-implicit-generic ((this xref-elisp-root-type) arg2))"
 	      (xref-make-elisp-location
-	       '(xref-elisp-generic-implicit-generic xref-elisp-root-type) 'cl-defmethod
+	       '(xref-elisp-generic-implicit-generic xref-elisp-root-type t) 'cl-defmethod
 	       (expand-file-name "elisp-mode-tests.el" emacs-test-dir)))
    ))
 

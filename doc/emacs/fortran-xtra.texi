@@ -13,9 +13,9 @@
 @cindex Fortran 77 and Fortran 90, 95, 2003, 2008
 @findex f90-mode
 @findex fortran-mode
-  Fortran mode is meant for editing ``fixed form'' (and also ``tab
-format'') source code (normally Fortran 77).  For editing more modern
-``free form'' source code (Fortran 90, 95, 2003, 2008), use F90 mode
+  Fortran mode is meant for editing fixed form (and also tab
+format) source code (normally Fortran 77).  For editing more modern
+free-form source code (Fortran 90, 95, 2003, 2008), use F90 mode
 (@code{f90-mode}).  Emacs normally uses Fortran mode for files with
 extension @samp{.f}, @samp{.F} or @samp{.for}, and F90 mode for the
 extensions @samp{.f90}, @samp{.f95}, @samp{.f03} and @samp{.f08}.
@@ -70,7 +70,7 @@ command runs the hook @code{fortran-mode-hook}.
 @subsection Motion Commands
 
   In addition to the normal commands for moving by and operating on
-``defuns'' (Fortran subprograms---functions and subroutines, as well
+defuns (Fortran subprograms---functions and subroutines, as well
 as modules for F90 mode, using the commands @code{fortran-end-of-subprogram}
 and @code{fortran-beginning-of-subprogram}), Fortran mode provides
 special commands to move by statements and other program units.
@@ -207,8 +207,8 @@ the Fortran standard counts from 1.)  The variable
 @code{fortran-continuation-string} specifies what character to put in
 column 5.  A line that starts with a tab character followed by any digit
 except @samp{0} is also a continuation line.  We call this style of
-continuation @dfn{tab format}.  (Fortran 90 introduced ``free form'',
-with another style of continuation lines).
+continuation @dfn{tab format}.  (Fortran 90 introduced free-form
+continuation lines.)
 
 @vindex indent-tabs-mode @r{(Fortran mode)}
 @vindex fortran-analyze-depth
@@ -499,7 +499,7 @@ will confuse font-lock.)
 
 @table @kbd
 @item C-c C-r
-Display a ``column ruler'' momentarily above the current line
+Display a column ruler momentarily above the current line
 (@code{fortran-column-ruler}).
 @item C-c C-w
 Split the current window horizontally temporarily so that it is

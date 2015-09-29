@@ -158,7 +158,7 @@ use the file's name relative to the directory of the change log file."
   :group 'change-log)
 
 (defcustom change-log-version-number-regexp-list
-  (let ((re "\\([0-9]+\.[0-9.]+\\)"))
+  (let ((re "\\([0-9]+\\.[0-9.]+\\)"))
     (list
      ;;  (defconst ad-version "2.15"
      (concat "^(def[^ \t\n]+[ \t]+[^ \t\n][ \t]\"" re)

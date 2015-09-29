@@ -183,7 +183,7 @@ To override this, give an argument to `ff-find-other-file'."
 ;;;###autoload
 (defcustom ff-special-constructs
   ;; C/C++ include, for NeXTstep too
-  `((,(purecopy "^\#\\s *\\(include\\|import\\)\\s +[<\"]\\(.*\\)[>\"]") .
+  `((,(purecopy "^#\\s *\\(include\\|import\\)\\s +[<\"]\\(.*\\)[>\"]") .
      (lambda ()
        (buffer-substring (match-beginning 2) (match-end 2)))))
   ;; We include `ff-treat-as-special' documentation here so that autoload
@@ -678,7 +678,7 @@ name of the first file found."
       (setq suffixes suffix-list)
 
       ;; if dir does not contain '/*', look for the file
-      (if (and dir (not (string-match "\\([^*]*\\)/\\\*\\(/.*\\)*" dir)))
+      (if (and dir (not (string-match "\\([^*]*\\)/\\*\\(/.*\\)*" dir)))
           (progn
 
             ;; suffixes is nil => fname-stub is the file we are looking for

@@ -55,7 +55,7 @@ to locale @code{system-messages-locale}, and decoded using coding system
 
   Visiting a file means reading a file into a buffer.  Once this is
 done, we say that the buffer is @dfn{visiting} that file, and call the
-file ``the visited file'' of the buffer.
+file @dfn{the visited file} of the buffer.
 
   A file and a buffer are two different things.  A file is information
 recorded permanently in the computer (unless you delete it).  A
@@ -692,7 +692,7 @@ stored in the same directory as the file you are editing.  (On file
 systems that do not support symbolic links, a regular file is used.)
 
   When you access files using NFS, there may be a small probability that
-you and another user will both lock the same file ``simultaneously''.
+you and another user will both lock the same file simultaneously.
 If this happens, it is possible for the two users to make changes
 simultaneously, but Emacs will still warn the user who saves second.
 Also, the detection of modification of a buffer visiting a file changed
@@ -939,7 +939,7 @@ $ ls -l diffs
 @cindex MS-DOS and file modes
 @cindex file modes and MS-DOS
 @strong{MS-DOS note:} On MS-DOS, there is no such thing as an
-``executable'' file mode bit.  So @code{file-modes} considers a file
+executable file mode bit.  So @code{file-modes} considers a file
 executable if its name ends in one of the standard executable
 extensions, such as @file{.com}, @file{.bat}, @file{.exe}, and some
 others.  Files that begin with the Unix-standard @samp{#!} signature,
@@ -1089,7 +1089,7 @@ If you may need to follow symbolic links preceding @samp{..}@:
 appearing as a name component, call @code{file-truename} without prior
 direct or indirect calls to @code{expand-file-name}.  Otherwise, the
 file name component immediately preceding @samp{..} will be
-``simplified away'' before @code{file-truename} is called.  To
+simplified away before @code{file-truename} is called.  To
 eliminate the need for a call to @code{expand-file-name},
 @code{file-truename} handles @samp{~} in the same way that
 @code{expand-file-name} does.  @xref{File Name Expansion,, Functions
@@ -1358,7 +1358,7 @@ On some operating systems, each file can be associated with arbitrary
 and setting two specific sets of extended file attributes: Access
 Control Lists (ACLs) and SELinux contexts.  These extended file
 attributes are used, on some systems, to impose more sophisticated
-file access controls than the basic ``Unix-style'' permissions
+file access controls than the basic Unix-style permissions
 discussed in the previous sections.
 
 @cindex access control list
@@ -1509,8 +1509,8 @@ replaces it with its (recursive) target.
 @cindex file with multiple names
 @cindex file hard link
 This function gives the file named @var{oldname} the additional name
-@var{newname}.  This means that @var{newname} becomes a new ``hard
-link'' to @var{oldname}.
+@var{newname}.  This means that @var{newname} becomes a new hard
+link to @var{oldname}.
 
 In the first part of the following example, we list two files,
 @file{foo} and @file{foo3}.
@@ -1687,7 +1687,7 @@ Emacs and its subprocesses.  Every file created with Emacs initially
 has these permissions, or a subset of them (@code{write-region} will
 not grant execute permissions even if the default file permissions
 allow execution).  On Unix and GNU/Linux, the default permissions are
-given by the bitwise complement of the ``umask'' value.
+given by the bitwise complement of the @samp{umask} value.
 
 The argument @var{mode} should be an integer which specifies the
 permissions, similar to @code{set-file-modes} above.  Only the lowest
@@ -1908,7 +1908,7 @@ return value, but backup version numbers are kept.
 @end defun
 
 @defun file-name-extension filename &optional period
-This function returns @var{filename}'s final ``extension'', if any,
+This function returns @var{filename}'s final extension, if any,
 after applying @code{file-name-sans-versions} to remove any
 version/backup part.  The extension, in a file name, is the part that
 follows the last @samp{.} in the last name component (minus any
@@ -1918,7 +1918,7 @@ This function returns @code{nil} for extensionless file names such as
 @file{foo}.  It returns @code{""} for null extensions, as in
 @file{foo.}.  If the last component of a file name begins with a
 @samp{.}, that @samp{.}  doesn't count as the beginning of an
-extension.  Thus, @file{.emacs}'s ``extension'' is @code{nil}, not
+extension.  Thus, @file{.emacs}'s extension is @code{nil}, not
 @samp{.emacs}.
 
 If @var{period} is non-@code{nil}, then the returned value includes
@@ -2198,7 +2198,7 @@ In some cases, a leading @samp{..} component can remain in the output:
 
 @noindent
 This is for the sake of filesystems that have the concept of a
-``superroot'' above the root directory @file{/}.  On other filesystems,
+superroot above the root directory @file{/}.  On other filesystems,
 @file{/../} is interpreted exactly the same as @file{/}.
 
 Note that @code{expand-file-name} does @emph{not} expand environment
@@ -2257,7 +2257,7 @@ This function replaces environment variable references in
 @var{filename} with the environment variable values.  Following
 standard Unix shell syntax, @samp{$} is the prefix to substitute an
 environment variable value.  If the input contains @samp{$$}, that is
-converted to @samp{$}; this gives the user a way to ``quote'' a
+converted to @samp{$}; this gives the user a way to quote a
 @samp{$}.
 
 The environment variable name is the series of alphanumeric characters
@@ -2619,7 +2619,7 @@ that can be read.
 
 @defun directory-files-recursively directory match &optional include-directories
 Return all files under @var{directory} whose file names match
-@var{match} recursively.  The file names are returned ``depth first'',
+@var{match} recursively.  The file names are returned depth first,
 meaning that contents of sub-directories are returned before contents
 of the directories.  If @var{include-directories} is non-@code{nil},
 also return directory names that have matching names.
@@ -2854,6 +2854,7 @@ first, before handlers for jobs such as remote file access.
 @code{file-name-nondirectory},
 @code{file-name-sans-versions}, @code{file-newer-than-file-p},
 @code{file-notify-add-watch}, @code{file-notify-rm-watch},
+@code{file-notify-valid-p},
 @code{file-ownership-preserved-p},
 @code{file-readable-p}, @code{file-regular-p},
 @code{file-remote-p}, @code{file-selinux-context},
@@ -2907,6 +2908,7 @@ first, before handlers for jobs such as remote file access.
 @code{file-name-nondirec@discretionary{}{}{}tory},
 @code{file-name-sans-versions}, @code{file-newer-than-file-p},
 @code{file-notify-add-watch}, @code{file-notify-rm-watch},
+@code{file-notify-valid-p},
 @code{file-ownership-pre@discretionary{}{}{}served-p},
 @code{file-readable-p}, @code{file-regular-p},
 @code{file-remote-p}, @code{file-selinux-context},
@@ -2943,7 +2945,7 @@ unlocking the buffer if it is locked.
 possibly others to be added in the future.  It need not implement all
 these operations itself---when it has nothing special to do for a
 certain operation, it can reinvoke the primitive, to handle the
-operation ``in the usual way''.  It should always reinvoke the primitive
+operation in the usual way.  It should always reinvoke the primitive
 for an operation it does not recognize.  Here's one way to do this:
 
 @smallexample
@@ -2976,7 +2978,7 @@ each have handlers.
   Handlers that don't really do anything special for actual access to the
 file---such as the ones that implement completion of host names for
 remote file names---should have a non-@code{nil} @code{safe-magic}
-property.  For instance, Emacs normally ``protects'' directory names
+property.  For instance, Emacs normally protects directory names
 it finds in @code{PATH} from becoming magic, if they look like magic
 file names, by prefixing them with @samp{/:}.  But if the handler that
 would be used for them has a non-@code{nil} @code{safe-magic}

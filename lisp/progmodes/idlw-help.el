@@ -434,7 +434,7 @@ It collects and prints the diagnostics messages."
 
        ;; A system variable -- only system help
        ((string-match
-	 "\\`!\\([a-zA-Z0-9_]+\\)\\(\.\\([A-Za-z0-9_]+\\)\\)?"
+	 "\\`!\\([a-zA-Z0-9_]+\\)\\(\\.\\([A-Za-z0-9_]+\\)\\)?"
 	 this-word)
 	(let* ((word  (match-string-no-properties 1 this-word))
 	       (entry (assq (idlwave-sintern-sysvar word)
@@ -1312,7 +1312,7 @@ IDL assistant.")
   (let ((help-loc (idlwave-html-help-location))
 	topic anchor file just-started exists full-link)
 
-    (if (string-match "\.html" link)
+    (if (string-match "\\.html" link)
 	(setq topic (substring link 0 (match-beginning 0))
 	      anchor (substring link (match-end 0)))
       (error "Malformed help link"))

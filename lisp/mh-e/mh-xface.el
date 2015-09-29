@@ -366,7 +366,7 @@ filenames.  In addition, replaces * with %2a. See URL
 `http://msdn.microsoft.com/library/default.asp?url=/library/en-us/shellcc/platform/shell/reference/ifaces/iitemnamelimits/GetValidCharacters.asp'."
   (format "%s/%s.png" mh-x-image-cache-directory
           (mh-replace-regexp-in-string
-           "\*" "%2a"
+           "\\*" "%2a"
            (mh-url-hexify-string
             (with-temp-buffer
               (insert url)

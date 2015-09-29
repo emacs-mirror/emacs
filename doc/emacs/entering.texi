@@ -100,7 +100,7 @@ display them initially.
 Kill Emacs (@code{save-buffers-kill-terminal}).
 @item C-z
 On a text terminal, suspend Emacs; on a graphical display,
-``minimize'' the selected frame (@code{suspend-emacs}).
+iconify (or ``minimize'') the selected frame (@code{suspend-emacs}).
 @end table
 
 @kindex C-x C-c
@@ -116,7 +116,7 @@ subprocesses are still running, since killing Emacs will also kill the
 subprocesses (@pxref{Shell}).
 
   @kbd{C-x C-c} behaves specially if you are using Emacs as a server.
-If you type it from a ``client frame'', it closes the client
+If you type it from a client frame, it closes the client
 connection.  @xref{Emacs Server}.
 
   Emacs can, optionally, record certain session information when you

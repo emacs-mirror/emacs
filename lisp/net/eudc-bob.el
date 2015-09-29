@@ -1,4 +1,4 @@
-;;; eudc-bob.el --- Binary Objects Support for EUDC -*- coding: utf-8 -*-
+;;; eudc-bob.el --- Binary Objects Support for EUDC
 
 ;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
 

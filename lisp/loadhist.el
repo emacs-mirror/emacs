@@ -123,7 +123,6 @@ from a file."
     delete-frame-functions disabled-command-function
     fill-nobreak-predicate find-directory-functions
     find-file-not-found-functions
-    font-lock-beginning-of-syntax-function
     font-lock-fontify-buffer-function
     font-lock-fontify-region-function
     font-lock-mark-block-function

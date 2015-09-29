@@ -322,7 +322,7 @@ nohup @var{command}; sleep 1
 @end example
 
 @ifnottex
-  On the MS-DOS ``operating system'', asynchronous subprocesses are
+  On MS-DOS, asynchronous subprocesses are
 not supported, so @kbd{M-x compile} runs the compilation command
 synchronously (i.e., you must wait until the command finishes before
 you can do anything else in Emacs).  @xref{MS-DOS}.
@@ -334,7 +334,7 @@ you can do anything else in Emacs).  @xref{MS-DOS}.
   Just as you can run a compiler from Emacs and then visit the lines
 with compilation errors, you can also run @command{grep} and then
 visit the lines on which matches were found.  This works by treating
-the matches reported by @command{grep} as if they were ``errors''.
+the matches reported by @command{grep} as if they were errors.
 The output buffer uses Grep mode, which is a variant of Compilation
 mode (@pxref{Compilation Mode}).
 
@@ -800,12 +800,12 @@ the command to @kbd{C-c @var{binding}} in the GUD buffer's mode and to
 @table @samp
 @item %f
 The name of the current source file.  If the current buffer is the GUD
-buffer, then the ``current source file'' is the file that the program
+buffer, then the current source file is the file that the program
 stopped in.
 
 @item %l
 The number of the current source line.  If the current buffer is the GUD
-buffer, then the ``current source line'' is the line that the program
+buffer, then the current source line is the line that the program
 stopped in.
 
 @item %e
@@ -848,7 +848,7 @@ GUD}).  You must use this if you want to debug multiple programs
 within one Emacs session, as that is currently unsupported by @kbd{M-x
 gdb}.
 
-  Internally, @kbd{M-x gdb} informs GDB that its ``screen size'' is
+  Internally, @kbd{M-x gdb} informs GDB that its screen size is
 unlimited; for correct operation, you must not change GDB's screen
 height and width values during the debugging session.
 
@@ -893,8 +893,8 @@ displays the following frame layout:
 
 @findex gdb-restore-windows
 @findex gdb-many-windows
-  If you ever change the window layout, you can restore the ``many
-windows'' layout by typing @kbd{M-x gdb-restore-windows}.  To toggle
+  If you ever change the window layout, you can restore the many-windows
+layout by typing @kbd{M-x gdb-restore-windows}.  To toggle
 between the many windows layout and a simple layout with just the GUD
 interaction buffer and a source file, type @kbd{M-x gdb-many-windows}.
 

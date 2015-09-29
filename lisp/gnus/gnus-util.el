@@ -1486,7 +1486,7 @@ sure of changing the value of `foo'."
 (defvar gnus-directory-sep-char-regexp "/"
   "The regexp of directory separator character.
 If you find some problem with the directory separator character, try
-\"[/\\\\\]\" for some systems.")
+\"[/\\\\]\" for some systems.")
 
 (defun gnus-url-unhex (x)
   (if (> x ?9)

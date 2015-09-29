@@ -22,12 +22,12 @@ cursor to the right and left respectively.  Also, @key{RIGHT} and
 expect, rather than moving forward or backward based on the underlying
 ``paragraph direction''.
 
-Users of ``right-to-left'' languages, like Arabic and Hebrew, may
+Users of right-to-left languages, like Arabic and Hebrew, may
 adapt by reading and/or editing text in left-to-right order.
 
 @item
 The Emacs Lisp package manager has been removed.  Instead of using a
-``user interface'' (@kbd{M-x list-packages}), additional Lisp packages
+user interface (@kbd{M-x list-packages}), additional Lisp packages
 must now be installed by hand, which is the most flexible and
 ``Lispy'' method anyway.  Typically, this just involves editing your
 init file to add the package installation directory to the load path

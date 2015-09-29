@@ -378,7 +378,7 @@ This manual describes @ccmode{}
 version 5.32.
 @comment Release.py script can update the version number automatically
 
-@ccmode{} supports the editing of K&R and ANSI C, C++, Objective-C,
+@ccmode{} supports the editing of C, C++, Objective-C,
 Java, CORBA's Interface Definition Language, Pike@footnote{A C-like
 scripting language with its roots in the LPC language used in some MUD
 engines.  See @uref{http://pike.ida.liu.se/}.} and AWK files.  In this

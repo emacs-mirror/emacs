@@ -604,7 +604,7 @@ PROMPT, INITIAL, HIST, and DEFAULT are the same as for `completing-read'."
 ;;
 (defun overload-docstring-extension (overload)
   "Return the doc string that augments the description of OVERLOAD."
-  (let ((doc "\n\This function can be overloaded\
+  (let ((doc "\nThis function can be overloaded\
  with `define-mode-local-override'.")
         (sym (overload-obsoleted-by overload)))
     (when sym

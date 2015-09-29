@@ -138,7 +138,7 @@ This is as opposed to inline text at the top of the buffer."
 
 (defconst bookmark-bmenu-inline-header-height 2
   "Number of lines used for the *Bookmark List* header
-\(only significant when `bookmark-bmenu-use-header-line' is nil\).")
+\(only significant when `bookmark-bmenu-use-header-line' is nil).")
 
 (defconst bookmark-bmenu-marks-width 2
   "Number of columns (chars) used for the *Bookmark List* marks column,

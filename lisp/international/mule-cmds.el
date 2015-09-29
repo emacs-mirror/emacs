@@ -159,7 +159,7 @@
 ;; very frequently while editing multilingual text.  Now we can use
 ;; only two such keys: "\C-\\" and "\C-^", but the latter is not
 ;; convenient because it requires shifting on most keyboards.  An
-;; alternative is "\C-\]" which is now bound to `abort-recursive-edit'
+;; alternative is "\C-]" which is now bound to `abort-recursive-edit'
 ;; but it won't be used that frequently.
 (define-key global-map "\C-\\" 'toggle-input-method)
 
@@ -397,7 +397,7 @@ A coding system that requires automatic detection of text+encoding
 
 To prefer, for instance, utf-8, say the following:
 
-  \(prefer-coding-system \\='utf-8)"
+  (prefer-coding-system \\='utf-8)"
   (interactive "zPrefer coding system: ")
   (if (not (and coding-system (coding-system-p coding-system)))
       (error "Invalid coding system `%s'" coding-system))
@@ -2413,12 +2413,12 @@ See `set-language-info-alist' for use in programs."
     ))
   "Alist of locale regexps vs the corresponding languages and coding systems.
 Each element has this form:
-  \(LOCALE-REGEXP LANG-ENV CODING-SYSTEM)
+  (LOCALE-REGEXP LANG-ENV CODING-SYSTEM)
 The first element whose LOCALE-REGEXP matches the start of a
 downcased locale specifies the LANG-ENV \(language environment)
 and CODING-SYSTEM corresponding to that locale.  If there is no
 appropriate language environment, the element may have this form:
-  \(LOCALE-REGEXP . LANG-ENV)
+  (LOCALE-REGEXP . LANG-ENV)
 In this case, LANG-ENV is one of generic language environments for an
 specific encoding such as \"Latin-1\" and \"UTF-8\".")
 

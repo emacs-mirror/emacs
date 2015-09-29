@@ -2078,7 +2078,6 @@ you can move to one of them and type C-c C-c to recover that one."
 
 ;; Local Variables:
 ;; byte-compile-dynamic: t
-;; coding: utf-8
 ;; End:
 
 ;;; sendmail.el ends here

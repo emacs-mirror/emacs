@@ -262,7 +262,7 @@ variable, or by the @samp{--display} option (@pxref{Initial Options,,,
 emacs, The GNU Emacs Manual}).  Emacs can connect to other X displays
 via the command @code{make-frame-on-display}.  Each X display has its
 own selected frame and its own minibuffer windows; however, only one
-of those frames is ``@emph{the} selected frame'' at any given moment
+of those frames is @emph{the} selected frame at any given moment
 (@pxref{Input Focus}).  Emacs can even connect to other text
 terminals, by interacting with the @command{emacsclient} program.
 @xref{Emacs Server,,, emacs, The GNU Emacs Manual}.
@@ -294,8 +294,8 @@ This function creates and returns a new frame on @var{display}, taking
 the other frame parameters from the alist @var{parameters}.
 @var{display} should be the name of an X display (a string).
 
-Before creating the frame, this function ensures that Emacs is ``set
-up'' to display graphics.  For instance, if Emacs has not processed X
+Before creating the frame, this function ensures that Emacs is set
+up to display graphics.  For instance, if Emacs has not processed X
 resources (e.g., if it was started on a text terminal), it does so at
 this time.  In all other respects, this function behaves like
 @code{make-frame} (@pxref{Creating Frames}).
@@ -336,7 +336,7 @@ on that display (@pxref{Deleting Frames}).
 @end defun
 
 @cindex multi-monitor
-  On some ``multi-monitor'' setups, a single X display outputs to more
+  On some multi-monitor setups, a single X display outputs to more
 than one physical monitor.  You can use the functions
 @code{display-monitor-attributes-list} and @code{frame-monitor-attributes}
 to obtain information about such setups.
@@ -358,7 +358,7 @@ that, if the monitor is not the primary monitor, some of the
 coordinates might be negative.
 
 @item workarea
-Position of the top-left corner and size of the work area (``usable''
+Position of the top-left corner and size of the work area (usable
 space) in pixels as @samp{(@var{x} @var{y} @var{width} @var{height})}.
 This may be different from @samp{geometry} in that space occupied by
 various window manager features (docks, taskbars, etc.)@: may be
@@ -489,7 +489,7 @@ of the frame.  The @dfn{outer width} and @dfn{outer height} of the frame
 specify the size of that rectangle.
 
 @cindex outer position
-The upper left corner of the outer frame (indicated by ``(0)'' in the
+The upper left corner of the outer frame (indicated by @samp{(0)} in the
 drawing above) is the @dfn{outer position} or the frame.  It is
 specified by and settable via the @code{left} and @code{top} frame
 parameters (@pxref{Position Parameters}) as well as the functions
@@ -514,7 +514,7 @@ on most platforms it is not covered here.
 The @dfn{title bar} is also part of the window manager's decorations and
 typically displays the title of the frame (@pxref{Frame Titles}) as well
 as buttons for minimizing, maximizing and deleting the frame.  The title
-bar is usually not displayed on ``fullboth'' (@pxref{Size Parameters})
+bar is usually not displayed on fullboth (@pxref{Size Parameters})
 or tooltip frames.  Title bars don't exist for text terminal frames.
 
 @item Menu Bar
@@ -689,11 +689,11 @@ Optional argument @var{type} specifies the type of the edges to return:
 @var{frame}, @code{native-edges} (or @code{nil}) means to return its
 native edges and @code{inner-edges} means to return its inner edges.
 
-Notice that the ``pixels at the positions'' @var{bottom} and @var{right}
+Notice that the pixels at the positions @var{bottom} and @var{right}
 lie immediately outside the corresponding frame.  This means that if you
 have, for example, two side-by-side frames positioned such that the
 right outer edge of the frame on the left equals the left outer edge of
-the frame on the right, the pixels ``representing'' that edge are part
+the frame on the right, the pixels representing that edge are part
 of the frame on the right.
 @end defun
 
@@ -708,7 +708,7 @@ of the frame on the right.
 @cindex default height of character
 Each frame has a @dfn{default font} which specifies the default
 character size for that frame.  This size is meant when retrieving or
-changing the size of a frame in terms of ``columns'' or ``lines''
+changing the size of a frame in terms of columns or lines
 (@pxref{Size Parameters}).  It is also used when resizing (@pxref{Window
 Sizes}) or splitting (@pxref{Splitting Windows}) windows.
 
@@ -841,7 +841,7 @@ of its character size, however, may: be ignored, cause a rounding
 (GTK+), or be accepted (Lucid, Motif, MS-Windows).
 
 With some window managers you may have to set this to non-@code{nil} in
-order to make a frame appear truly ``maximized'' or ``fullscreen''.
+order to make a frame appear truly maximized or full-screen.
 @end defopt
 
 @defun set-frame-size frame width height pixelwise
@@ -867,7 +867,7 @@ actual height of the frame.  This is only useful on text terminals.
 Using a smaller height than the terminal actually implements may be
 useful to reproduce behavior observed on a smaller screen, or if the
 terminal malfunctions when using its whole screen.  Setting the frame
-height ``for real'' does not always work, because knowing the correct
+height directly does not always work, because knowing the correct
 actual size may be necessary for correct cursor positioning on
 text terminals.
 
@@ -914,7 +914,7 @@ resize the frame's outer size, hence this will alter the number of
 displayed lines.
 
    Occasionally, such @dfn{implied frame resizing} may be unwanted, for
-example, when the frame is maximized or made fullscreen (where it's
+example, when the frame is maximized or made full-screen (where it's
 turned off by default).  In other cases you can disable implied resizing
 with the following option:
 
@@ -1277,44 +1277,45 @@ the @code{user-position} parameter (@pxref{Position Parameters,
 user-position}) does for the position parameters @code{top} and
 @code{left}.
 
-@cindex full-screen frames
+@cindex fullboth frames
+@cindex fullheight frames
+@cindex fullwidth frames
+@cindex maximized frames
 @vindex fullscreen, a frame parameter
 @item fullscreen
-Specify that width, height or both shall be maximized.  The value
-@code{fullwidth} specifies that width shall be as wide as possible.  The
-value @code{fullheight} specifies that height shall be as tall as
-possible.  The value @code{fullboth} specifies that both the width and
-the height shall be set to the size of the screen.  The value
-@code{maximized} specifies that the frame shall be maximized.
-
-The difference between @code{maximized} and @code{fullboth} is that a
-maximized frame usually keeps its title bar and the buttons for resizing
+This parameter specifies whether to maximize the frame's width, height
+or both.  Its value can be @code{fullwidth}, @code{fullheight},
+@code{fullboth}, or @code{maximized}.  A @dfn{fullwidth} frame is as
+wide as possible, a @dfn{fullheight} frame is as tall as possible, and
+a @dfn{fullboth} frame is both as wide and as tall as possible.  A
+@dfn{maximized} frame is like a ``fullboth'' frame, except that it usually
+keeps its title bar and the buttons for resizing
 and closing the frame.  Also, maximized frames typically avoid hiding
-any task bar or panels displayed on the desktop.  ``Fullboth'' frames,
-on the other hand, usually omit the title bar and occupy the entire
+any task bar or panels displayed on the desktop.  A ``fullboth'' frame,
+on the other hand, usually omits the title bar and occupies the entire
 available screen space.
 
-``Fullheight'' and ``fullwidth'' frames are more similar to maximized
+Full-height and full-width frames are more similar to maximized
 frames in this regard.  However, these typically display an external
 border which might be absent with maximized frames.  Hence the heights
-of maximized and fullheight frames and the widths of maximized and
-fullwidth frames often differ by a few pixels.
+of maximized and full-height frames and the widths of maximized and
+full-width frames often differ by a few pixels.
 
 With some window managers you may have to customize the variable
 @code{frame-resize-pixelwise} (@pxref{Size and Position}) in order to
-make a frame truly appear ``maximized'' or ``fullscreen''.  Moreover,
+make a frame truly appear maximized or full-screen.  Moreover,
 some window managers might not support smooth transition between the
-various fullscreen or maximization states.  Customizing the variable
+various full-screen or maximization states.  Customizing the variable
 @code{x-frame-normalize-before-maximize} can help to overcome that.
 
 @vindex fullscreen-restore, a frame parameter
 @item fullscreen-restore
-This parameter specifies the desired ``fullscreen'' state of the frame
+This parameter specifies the desired fullscreen state of the frame
 after invoking the @code{toggle-frame-fullscreen} command (@pxref{Frame
 Commands,,, emacs, The GNU Emacs Manual}) in the ``fullboth'' state.
 Normally this parameter is installed automatically by that command when
 toggling the state to fullboth.  If, however, you start Emacs in the
-fullboth state, you have to specify the desired behavior in your initial
+``fullboth'' state, you have to specify the desired behavior in your initial
 file as, for example
 
 @example
@@ -1575,12 +1576,25 @@ means use a standard modification of the usual cursor type (solid box
 becomes hollow box, and bar becomes a narrower bar).
 @end defopt
 
+@defopt x-stretch-cursor
+This variable controls the width of the block cursor displayed on
+extra-wide glyphs such as a tab or a stretch of white space.  By
+default, the block cursor is only as wide as the font's default
+character, and will not cover all of the width of the glyph under it
+if that glyph is extra-wide.  A non-@code{nil} value of this variable
+means draw the block cursor as wide as the glyph under it.  The
+default value is @code{nil}.
+
+This variable has no effect on text-mode frames, since the text-mode
+cursor is drawn by the terminal out of Emacs's control.
+@end defopt
+
 @defopt blink-cursor-alist
 This variable specifies how to blink the cursor.  Each element has the
 form @code{(@var{on-state} . @var{off-state})}.  Whenever the cursor
 type equals @var{on-state} (comparing using @code{equal}), the
 corresponding @var{off-state} specifies what the cursor looks like
-when it blinks ``off''.  Both @var{on-state} and @var{off-state}
+when it blinks off.  Both @var{on-state} and @var{off-state}
 should be suitable values for the @code{cursor-type} frame parameter.
 
 There are various defaults for how to blink each type of cursor, if
@@ -1631,7 +1645,7 @@ used instead.
 @vindex screen-gamma, a frame parameter
 @item screen-gamma
 @cindex gamma correction
-If this is a number, Emacs performs ``gamma correction'' which adjusts
+If this is a number, Emacs performs gamma correction which adjusts
 the brightness of all colors.  The value should be the screen gamma of
 your display.
 
@@ -1903,13 +1917,13 @@ internals of Emacs.
 @defun visible-frame-list
 This function returns a list of just the currently visible frames.
 @xref{Visibility of Frames}.  Frames on text terminals always count as
-``visible'', even though only the selected one is actually displayed.
+visible, even though only the selected one is actually displayed.
 @end defun
 
 @defun next-frame &optional frame minibuf
 This function lets you cycle conveniently through all the frames on
 the current display from an arbitrary starting point.  It returns the
-``next'' frame after @var{frame} in the cycle.  If @var{frame} is
+next frame after @var{frame} in the cycle.  If @var{frame} is
 omitted or @code{nil}, it defaults to the selected frame (@pxref{Input
 Focus}).
 
@@ -1981,7 +1995,7 @@ window always resides on the selected frame.
 
 When Emacs displays its frames on several terminals (@pxref{Multiple
 Terminals}), each terminal has its own selected frame.  But only one
-of these is ``@emph{the} selected frame'': it's the frame that belongs
+of these is @emph{the} selected frame: it's the frame that belongs
 to the terminal from which the most recent input came.  That is, when
 Emacs runs a command that came from a certain terminal, the selected
 frame is the one of that terminal.  Since Emacs runs only a single
@@ -2001,7 +2015,7 @@ way, Emacs automatically keeps track of which frame has the focus.  To
 explicitly switch to a different frame from a Lisp function, call
 @code{select-frame-set-input-focus}.
 
-Lisp programs can also switch frames ``temporarily'' by calling the
+Lisp programs can also switch frames temporarily by calling the
 function @code{select-frame}.  This does not alter the window system's
 concept of focus; rather, it escapes from the window manager's control
 until that control is somehow reasserted.
@@ -2130,7 +2144,7 @@ This function returns the visibility status of frame @var{frame}.  The
 value is @code{t} if @var{frame} is visible, @code{nil} if it is
 invisible, and @code{icon} if it is iconified.
 
-On a text terminal, all frames are considered ``visible'' for the
+On a text terminal, all frames are considered visible for the
 purposes of this function, even though only one frame is displayed.
 @xref{Raising and Lowering}.
 @end defun
@@ -2891,7 +2905,7 @@ If you specify them, the key is
 @defvar x-resource-class
 This variable specifies the application name that @code{x-get-resource}
 should look up.  The default value is @code{"Emacs"}.  You can examine X
-resources for application names other than ``Emacs'' by binding this
+resources for other application names by binding this
 variable to some other string, around a call to @code{x-get-resource}.
 @end defvar
 
@@ -2994,14 +3008,14 @@ way that's
 different in appearance than the default face, and
 
 @item
-``close in spirit'' to what the attributes specify, if not exact.
+close in spirit to what the attributes specify, if not exact.
 @end enumerate
 
 Point (2) implies that a @code{:weight black} attribute will be
 satisfied by any display that can display bold, as will
 @code{:foreground "yellow"} as long as some yellowish color can be
 displayed, but @code{:slant italic} will @emph{not} be satisfied by
-the tty display code's automatic substitution of a ``dim'' face for
+the tty display code's automatic substitution of a dim face for
 italic.
 @end defun
 
@@ -3026,7 +3040,7 @@ This function returns the number of screens associated with the display.
 This function returns the height of the screen in pixels.
 On a character terminal, it gives the height in characters.
 
-For graphical terminals, note that on ``multi-monitor'' setups this
+For graphical terminals, note that on multi-monitor setups this
 refers to the pixel height for all physical monitors associated with
 @var{display}.  @xref{Multiple Terminals}.
 @end defun
@@ -3035,7 +3049,7 @@ refers to the pixel height for all physical monitors associated with
 This function returns the width of the screen in pixels.
 On a character terminal, it gives the width in characters.
 
-For graphical terminals, note that on ``multi-monitor'' setups this
+For graphical terminals, note that on multi-monitor setups this
 refers to the pixel width for all physical monitors associated with
 @var{display}.  @xref{Multiple Terminals}.
 @end defun
@@ -3044,7 +3058,7 @@ refers to the pixel width for all physical monitors associated with
 This function returns the height of the screen in millimeters,
 or @code{nil} if Emacs cannot get that information.
 
-For graphical terminals, note that on ``multi-monitor'' setups this
+For graphical terminals, note that on multi-monitor setups this
 refers to the height for all physical monitors associated with
 @var{display}.  @xref{Multiple Terminals}.
 @end defun
@@ -3053,7 +3067,7 @@ refers to the height for all physical monitors associated with
 This function returns the width of the screen in millimeters,
 or @code{nil} if Emacs cannot get that information.
 
-For graphical terminals, note that on ``multi-monitor'' setups this
+For graphical terminals, note that on multi-monitor setups this
 refers to the width for all physical monitors associated with
 @var{display}.  @xref{Multiple Terminals}.
 @end defun
@@ -3120,7 +3134,7 @@ MS-Windows, this is the version of the Windows OS.
 @end defun
 
 @defun x-server-vendor &optional display
-This function returns the ``vendor'' that provided the window system
+This function returns the vendor that provided the window system
 software (as a string).  On GNU and Unix systems this really means
 whoever distributes the X server.  On MS-Windows this is the vendor ID
 string of the Windows OS (Microsoft).

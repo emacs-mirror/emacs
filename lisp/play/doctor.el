@@ -989,7 +989,7 @@ Otherwise call the Doctor to parse preceding sentence."
 Put dialogue in buffer."
   (let (a
 	(prompt (concat (doctor-make-string x)
-			" what \?  "))
+			" what ?  "))
 	retval)
     (while (not retval)
 	   (while (not a)

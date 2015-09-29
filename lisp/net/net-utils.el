@@ -204,7 +204,7 @@ This variable is only used if the variable
   :group 'net-utils
   :type  '(repeat string))
 
-(defcustom smbclient-prompt-regexp "^smb: \>"
+(defcustom smbclient-prompt-regexp "^smb: >"
   "Regexp which matches the smbclient program's prompt.
 
 This variable is only used if the variable

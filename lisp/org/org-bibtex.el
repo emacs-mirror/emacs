@@ -195,7 +195,7 @@
     (:howpublished . "How something strange has been published.  The first word should be capitalized.")
     (:institution  . "The sponsoring institution of a technical report.")
     (:journal      . "A journal name.")
-    (:key          . "Used for alphabetizing, cross-referencing, and creating a label when the author information is missing.  This field should not be confused with the key that appears in the \cite command and at the beginning of the database entry.")
+    (:key          . "Used for alphabetizing, cross-referencing, and creating a label when the author information is missing.  This field should not be confused with the key that appears in the \\cite command and at the beginning of the database entry.")
     (:month        . "The month in which the work was published or, for an unpublished work, in which it was written.  You should use the standard three-letter abbreviation,")
     (:note         . "Any additional information that can help the reader.  The first word should be capitalized.")
     (:number       . "Any additional information that can help the reader.  The first word should be capitalized.")

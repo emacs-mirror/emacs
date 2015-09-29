@@ -49,7 +49,7 @@ function decode_hex(str) {
 function gb_to_index(gb) {
   b0 = int(gb / 256);
   b1 = gb % 256;
-  idx = (((b0 - 129)) * 191 + b1 - 64); 
+  idx = (((b0 - 129)) * 191 + b1 - 64);
 #  if (b1 >= 127)
 #    idx--;
   return idx
@@ -65,7 +65,7 @@ function index_to_gb(idx) {
   return sprintf("%02X%02X%02X%02X", b0, b1, b2, b3);
 }
 
-/^\#/ {
+/^#/ {
   print;
   next;
 }
@@ -119,4 +119,3 @@ END {
 	}
     }
 }
-

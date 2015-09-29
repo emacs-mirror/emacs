@@ -105,7 +105,7 @@
 ;;;  Determine Window System, and X Server Vendor (if appropriate).
 ;;;
 (defconst edt-window-system (if (featurep 'xemacs) (console-type) window-system)
-  "Indicates window system \(in GNU Emacs\) or console type \(in XEmacs\).")
+  "Indicates window system (in GNU Emacs) or console type (in XEmacs).")
 
 (declare-function x-server-vendor "xfns.c" (&optional terminal))
 

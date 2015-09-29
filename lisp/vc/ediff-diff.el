@@ -168,7 +168,7 @@ This variable can be set either in .emacs or toggled interactively.
 Use `setq-default' if setting it in .emacs")
 
 (ediff-defvar-local ediff-auto-refine-limit 14000
-  "Auto-refine only the regions of this size \(in bytes\) or less.")
+  "Auto-refine only the regions of this size (in bytes) or less.")
 
 ;;; General
 

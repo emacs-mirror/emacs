@@ -116,7 +116,7 @@ This function runs an abnormal hook by calling all the hook functions in
 
 @defun run-hook-with-args-until-failure hook &rest args
 This function runs an abnormal hook by calling each hook function in
-turn, stopping if one of them ``fails'' by returning @code{nil}.  Each
+turn, stopping if one of them fails by returning @code{nil}.  Each
 hook function is passed the arguments @var{args}.  If this function
 stops because one of the hook functions fails, it returns @code{nil};
 otherwise it returns a non-@code{nil} value.
@@ -124,7 +124,7 @@ otherwise it returns a non-@code{nil} value.
 
 @defun run-hook-with-args-until-success hook &rest args
 This function runs an abnormal hook by calling each hook function,
-stopping if one of them ``succeeds'' by returning a non-@code{nil}
+stopping if one of them succeeds by returning a non-@code{nil}
 value.  Each hook function is passed the arguments @var{args}.  If this
 function stops because one of the hook functions returns a
 non-@code{nil} value, it returns that value; otherwise it returns
@@ -346,14 +346,14 @@ reserved for users.
 
 A major mode can also rebind the keys @kbd{M-n}, @kbd{M-p} and
 @kbd{M-s}.  The bindings for @kbd{M-n} and @kbd{M-p} should normally
-be some kind of ``moving forward and backward'', but this does not
+be some kind of moving forward and backward, but this does not
 necessarily mean cursor motion.
 
 It is legitimate for a major mode to rebind a standard key sequence if
-it provides a command that does ``the same job'' in a way better
+it provides a command that does the same job in a way better
 suited to the text this mode is used for.  For example, a major mode
 for editing a programming language might redefine @kbd{C-M-a} to
-``move to the beginning of a function'' in a way that works better for
+move to the beginning of a function in a way that works better for
 that language.
 
 It is also legitimate for a major mode to rebind a standard key
@@ -1003,7 +1003,7 @@ should have the form @w{@code{(@var{id} @var{contents})}}, where
 @itemize
 @item
 @var{id} is either @code{nil}, or a Lisp object that identifies the
-entry.  If the latter, the cursor stays on the ``same'' entry when
+entry.  If the latter, the cursor stays on the same entry when
 re-sorting entries.  Comparison is done with @code{equal}.
 
 @item
@@ -1092,8 +1092,8 @@ documentation for the mode command.  If you do not supply it,
 The argument @var{comment-list} is a list in which each element is
 either a character, a string of one or two characters, or a cons cell.
 A character or a string is set up in the mode's syntax table as a
-``comment starter''.  If the entry is a cons cell, the @sc{car} is set
-up as a ``comment starter'' and the @sc{cdr} as a ``comment ender''.
+comment starter.  If the entry is a cons cell, the @sc{car} is set
+up as a comment starter and the @sc{cdr} as a comment ender.
 (Use @code{nil} for the latter if you want comments to end at the end
 of the line.)  Note that the syntax table mechanism has limitations
 about what comment starters and enders are actually possible.
@@ -1782,7 +1782,7 @@ symbol whose value is void.
 There is one exception: if the value of @var{symbol} is a string, it is
 displayed verbatim: the @code{%}-constructs are not recognized.
 
-Unless @var{symbol} is marked as ``risky'' (i.e., it has a
+Unless @var{symbol} is marked as risky (i.e., it has a
 non-@code{nil} @code{risky-local-variable} property), all text
 properties specified in @var{symbol}'s value are ignored.  This includes
 the text properties of strings in @var{symbol}'s value, as well as all
@@ -2408,10 +2408,10 @@ variables @code{imenu-prev-index-position-function} and
 
 @defvar imenu-prev-index-position-function
 If this variable is non-@code{nil}, its value should be a function that
-finds the next ``definition'' to put in the buffer index, scanning
+finds the next definition to put in the buffer index, scanning
 backward in the buffer from point.  It should return @code{nil} if it
-doesn't find another ``definition'' before point.  Otherwise it should
-leave point at the place it finds a ``definition'' and return any
+doesn't find another definition before point.  Otherwise it should
+leave point at the place it finds a definition and return any
 non-@code{nil} value.
 
 Setting this variable makes it buffer-local in the current buffer.
@@ -2527,7 +2527,7 @@ If non-@code{nil}, the value should look like this:
 
 @example
 (@var{keywords} [@var{keywords-only} [@var{case-fold}
- [@var{syntax-alist} [@var{syntax-begin} @var{other-vars}@dots{}]]]])
+ [@var{syntax-alist} @var{other-vars}@dots{}]]])
 @end example
 
 The first element, @var{keywords}, indirectly specifies the value of
@@ -2558,11 +2558,6 @@ fontification; the resulting syntax table is stored in
 @code{font-lock-syntax-table}.  If @var{syntax-alist} is omitted or
 @code{nil}, syntactic fontification uses the syntax table returned by
 the @code{syntax-table} function.  @xref{Syntax Table Functions}.
-
-The fifth element, @var{syntax-begin}, specifies the value of
-@code{font-lock-beginning-of-syntax-function}.  We recommend setting
-this variable to @code{nil} and using @code{syntax-begin-function}
-instead.
 
 All the remaining elements (if any) are collectively called
 @var{other-vars}.  Each of these elements should have the form
@@ -3026,7 +3021,7 @@ default value is the symbol itself.  Thus, the default value of
 @code{font-lock-comment-face} is @code{font-lock-comment-face}.
 
   The faces are listed with descriptions of their typical usage, and in
-order of greater to lesser ``prominence''.  If a mode's syntactic
+order of greater to lesser prominence.  If a mode's syntactic
 categories do not fit well with the usage descriptions, the faces can be
 assigned using the ordering as a guide.
 
@@ -3122,26 +3117,6 @@ comments and strings.  It is normally set by Font Lock mode based on the
 is @code{nil}, syntactic fontification uses the buffer's syntax table
 (the value returned by the function @code{syntax-table}; @pxref{Syntax
 Table Functions}).
-@end defvar
-
-@defvar font-lock-beginning-of-syntax-function
-If this variable is non-@code{nil}, it should be a function to move
-point back to a position that is syntactically at ``top level'' and
-outside of strings or comments.  The value is normally set through an
-@var{other-vars} element in @code{font-lock-defaults}.  If it is
-@code{nil}, Font Lock uses @code{syntax-begin-function} to move back
-outside of any comment, string, or sexp (@pxref{Position Parse}).
-
-This variable is semi-obsolete; we usually recommend setting
-@code{syntax-begin-function} instead.  One of its uses is to tune the
-behavior of syntactic fontification, e.g., to ensure that different
-kinds of strings or comments are highlighted differently.
-
-The specified function is called with no arguments.  It should leave
-point at the beginning of any enclosing syntactic block.  Typical values
-are @code{beginning-of-line} (used when the start of the line is known
-to be outside a syntactic block), or @code{beginning-of-defun} for
-programming modes, or @code{backward-paragraph} for textual modes.
 @end defvar
 
 @defvar font-lock-syntactic-face-function
@@ -3338,13 +3313,13 @@ indentation code will want to be somewhat friendly to syntactically
 incorrect code.
 
 Good maintainable indentation functions usually fall into two categories:
-either parsing forward from some ``safe'' starting point until the
+either parsing forward from some safe starting point until the
 position of interest, or parsing backward from the position of interest.
 Neither of the two is a clearly better choice than the other: parsing
 backward is often more difficult than parsing forward because
 programming languages are designed to be parsed forward, but for the
 purpose of indentation it has the advantage of not needing to
-guess a ``safe'' starting point, and it generally enjoys the property
+guess a safe starting point, and it generally enjoys the property
 that only a minimum of text will be analyzed to decide the indentation
 of a line, so indentation will tend to be less affected by syntax errors in
 some earlier unrelated piece of code.  Parsing forward on the other hand
@@ -3370,8 +3345,8 @@ of Lisp sexps and adapts it to non-Lisp languages.
 @cindex SMIE
 
 SMIE is a package that provides a generic navigation and indentation
-engine.  Based on a very simple parser using an ``operator precedence
-grammar'', it lets major modes extend the sexp-based navigation of Lisp
+engine.  Based on a very simple parser using an operator precedence
+grammar, it lets major modes extend the sexp-based navigation of Lisp
 to non-Lisp languages as well as provide a simple to use but reliable
 auto-indentation.
 

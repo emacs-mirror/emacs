@@ -1,4 +1,4 @@
-@c -*-texinfo-*-
+@c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2015 Free Software
 @c Foundation, Inc.
@@ -242,6 +242,11 @@ Semipermanent goal column for vertical motion, as set by @dots{}
 @c That makes them incorrect.
 
 @group
+minibuffer-temporary-goal-position      Variable
+not documented
+@end group
+
+@group
 set-goal-column Keys: C-x C-n
 Set the current horizontal position as a goal for C-n and C-p.
 @end group
@@ -249,17 +254,26 @@ Set the current horizontal position as a goal for C-n and C-p.
 @group
 Those commands will move to this position in the line moved to
 rather than trying to keep the same horizontal position.
-With a non-nil argument, clears out the goal column
+With a non-nil argument ARG, clears out the goal column
 so that C-n and C-p resume vertical motion.
-The goal column is stored in the variable `goal-column'.
+The goal column is stored in the variable ‘goal-column’.
+
+(fn ARG)
 @end group
 
 @group
 temporary-goal-column   Variable
 Current goal column for vertical motion.
-It is the column where point was
-at the start of current run of vertical motion commands.
-When the `track-eol' feature is doing its job, the value is 9999.
+It is the column where point was at the start of the current run
+of vertical motion commands.
+
+When moving by visual lines via the function ‘line-move-visual’, it is a cons
+cell (COL . HSCROLL), where COL is the x-position, in pixels,
+divided by the default column width, and HSCROLL is the number of
+columns by which window is scrolled from left margin.
+
+When the ‘track-eol’ feature is doing its job, the value is
+‘most-positive-fixnum’.
 ---------- Buffer: *Help* ----------
 @end group
 @end smallexample
@@ -539,11 +553,11 @@ about them, see @ref{Help, , Help, emacs, The GNU Emacs Manual}.  Here
 we describe some program-level interfaces to the same information.
 
 @deffn Command apropos pattern &optional do-all
-This function finds all ``meaningful'' symbols whose names contain a
+This function finds all meaningful symbols whose names contain a
 match for the apropos pattern @var{pattern}.  An apropos pattern is
 either a word to match, a space-separated list of words of which at
 least two must match, or a regular expression (if any special regular
-expression characters occur).  A symbol is ``meaningful'' if it has a
+expression characters occur).  A symbol is meaningful if it has a
 definition as a function, variable, or face, or has properties.
 
 The function returns a list of elements that look like this:
@@ -608,7 +622,7 @@ subcommands of the prefix key.
 
 @defopt help-event-list
 The value of this variable is a list of event types that serve as
-alternative ``help characters''.  These events are handled just like the
+alternative help characters.  These events are handled just like the
 event specified by @code{help-char}.
 @end defopt
 
@@ -643,7 +657,7 @@ sequence.  (The last event is, presumably, the help character.)
 @end deffn
 
   The following two functions are meant for modes that want to provide
-help without relinquishing control, such as the ``electric'' modes.
+help without relinquishing control, such as the electric modes.
 Their names begin with @samp{Helper} to distinguish them from the
 ordinary help functions.
 

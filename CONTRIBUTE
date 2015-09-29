@@ -201,8 +201,30 @@ then exclude that commit from the merge to trunk.
 
 ** Other process information
 
+*** Non-ASCII characters in Emacs files
+
+If you introduce non-ASCII characters into Emacs source files, it is a
+good idea to add a 'coding' cookie to the file to state its encoding.
+Please use the UTF-8 encoding unless it cannot do the job for some
+good reason.  As of Emacs 24.4, it is no longer necessary to have
+explicit 'coding' cookies in *.el files if they are encoded in UTF-8,
+but other files need them even if encoded in UTF-8.  However, if
+an *.el file is intended for use with older Emacs versions (e.g. if
+it's also distributed via ELPA), having an explicit encoding
+specification is still a good idea.
+
+*** Useful files in the admin/ directory
+
 See all the files in admin/notes/* .  In particular, see
 admin/notes/newfile, see admin/notes/repo.
+
+The file admin/MAINTAINERS records the areas of interest of frequent
+Emacs contributors.  If you are making changes in one of the files
+mentioned there, it is a good idea to consult the person who expressed
+an interest in that file, and/or get his/her feedback for the changes.
+If you are a frequent contributor and have interest in maintaining
+specific files, please record those interests in that file, so that
+others could be aware of that.
 
 *** git vs rename
 

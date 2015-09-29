@@ -25,7 +25,7 @@ representing the variable.
 
 @menu
 * Global Variables::            Variable values that exist permanently, everywhere.
-* Constant Variables::          Certain ``variables'' have values that never change.
+* Constant Variables::          Variables that never change.
 * Local Variables::             Variable values that exist only temporarily.
 * Void Variables::              Symbols that lack values.
 * Defining Variables::          A definition says a symbol is used as a variable.
@@ -131,7 +131,7 @@ starts with @samp{:}, interned in the standard obarray, and returns
 @code{nil} otherwise.
 @end defun
 
-These constants are fundamentally different from the ``constants''
+These constants are fundamentally different from the constants
 defined using the @code{defconst} special form (@pxref{Defining
 Variables}).  A @code{defconst} form serves to inform human readers
 that you do not intend to change the value of a variable, but Emacs
@@ -178,7 +178,7 @@ It determines the value returned by evaluating the variable symbol,
 and it is the binding acted on by @code{setq}.
 
   For most purposes, you can think of the current binding as the
-``innermost'' local binding, or the global binding if there is no
+innermost local binding, or the global binding if there is no
 local binding.  To be more precise, a rule called the @dfn{scoping
 rule} determines where in a program a local binding takes effect.  The
 default scoping rule in Emacs Lisp is called @dfn{dynamic scoping},
@@ -263,7 +263,7 @@ Macro calls (@pxref{Macros}).
 Variables}); a few variables have terminal-local bindings
 (@pxref{Multiple Terminals}).  These kinds of bindings work somewhat
 like ordinary local bindings, but they are localized depending on
-``where'' you are in Emacs.
+where you are in Emacs.
 
 @defopt max-specpdl-size
 @anchor{Definition of max-specpdl-size}
@@ -287,7 +287,7 @@ has room to execute.
 @end defopt
 
 @node Void Variables
-@section When a Variable is ``Void''
+@section When a Variable is Void
 @cindex @code{void-variable} error
 @cindex void variable
 
@@ -545,8 +545,7 @@ The value is a list of forms (expressions).
 
 @item @dots{}-predicate
 The value is a predicate---a function of one argument that returns
-non-@code{nil} for ``good'' arguments and @code{nil} for ``bad''
-arguments.
+non-@code{nil} for success and @code{nil} for failure.
 
 @item @dots{}-flag
 The value is significant only as to whether it is @code{nil} or not.
@@ -564,7 +563,7 @@ The value specifies options for a command.
 @end table
 
   When you define a variable, always consider whether you should mark
-it as ``safe'' or ``risky''; see @ref{File Local Variables}.
+it as safe or risky; see @ref{File Local Variables}.
 
   When defining and initializing a variable that holds a complicated
 value (such as a keymap with bindings in it), it's best to put the
@@ -831,7 +830,7 @@ following example:
 (defvar x -99)  ; @r{@code{x} receives an initial value of @minus{}99.}
 
 (defun getx ()
-  x)            ; @r{@code{x} is used ``free'' in this function.}
+  x)            ; @r{@code{x} is used free in this function.}
 
 (let ((x 1))    ; @r{@code{x} is dynamically bound.}
   (getx))
@@ -846,7 +845,7 @@ following example:
 @end example
 
 @noindent
-The function @code{getx} refers to @code{x}.  This is a ``free''
+The function @code{getx} refers to @code{x}.  This is a @dfn{free}
 reference, in the sense that there is no binding for @code{x} within
 that @code{defun} construct itself.  When we call @code{getx} from
 within a @code{let} form in which @code{x} is (dynamically) bound, it
@@ -957,7 +956,7 @@ construct.  Here is an example
      @result{} 4
 
 (defun getx ()
-  x)            ; @r{@code{x} is used ``free'' in this function.}
+  x)            ; @r{@code{x} is used free in this function.}
 
 (let ((x 1))    ; @r{@code{x} is lexically bound.}
   (getx))
@@ -1094,10 +1093,10 @@ it is not inadvertently bound lexically.
   A simple way to find out which variables need a variable definition
 is to byte-compile the source file.  @xref{Byte Compilation}.  If a
 non-special variable is used outside of a @code{let} form, the
-byte-compiler will warn about reference or assignment to a ``free
-variable''.  If a non-special variable is bound but not used within a
-@code{let} form, the byte-compiler will warn about an ``unused lexical
-variable''.  The byte-compiler will also issue a warning if you use a
+byte-compiler will warn about reference or assignment to a free
+variable.  If a non-special variable is bound but not used within a
+@code{let} form, the byte-compiler will warn about an unused lexical
+variable.  The byte-compiler will also issue a warning if you use a
 special variable as a function argument.
 
   (To silence byte-compiler warnings about unused variables, just use
@@ -1406,7 +1405,7 @@ buffer-local variables interactively.
 @cindex local variables, killed by major mode
 @defun kill-all-local-variables
 This function eliminates all the buffer-local variable bindings of the
-current buffer except for variables marked as ``permanent'' and local
+current buffer except for variables marked as permanent and local
 hook functions that have a non-@code{nil} @code{permanent-local-hook}
 property (@pxref{Setting Hooks}).  As a result, the buffer will see
 the default values of most variables.
@@ -1997,7 +1996,7 @@ a regular Lisp variable.  But the @sc{car}s and @sc{cdr}s of lists, elements
 of arrays, properties of symbols, and many other locations are also
 places where Lisp values are stored.
 
-Generalized variables are analogous to ``lvalues'' in the C
+Generalized variables are analogous to lvalues in the C
 language, where @samp{x = a[i]} gets an element from an array
 and @samp{a[i] = x} stores an element using the same notation.
 Just as certain forms like @code{a[i]} can be lvalues in C, there
@@ -2170,7 +2169,7 @@ of Common Lisp.  Consult the source file @file{gv.el} for more details.
 @cindex CL note---no @code{setf} functions
 @quotation
 @b{Common Lisp note:} Common Lisp defines another way to specify the
-@code{setf} behavior of a function, namely ``@code{setf} functions'',
+@code{setf} behavior of a function, namely @code{setf} functions,
 whose names are lists @code{(setf @var{name})} rather than symbols.
 For example, @code{(defun (setf foo) @dots{})} defines the function
 that is used when @code{setf} is applied to @code{foo}.  Emacs does

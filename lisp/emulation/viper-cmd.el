@@ -1536,7 +1536,7 @@ as a Meta key and any number of multiple escapes are allowed."
 (defun viper-repeat (arg)
   "Re-execute last destructive command.
 Use the info in viper-d-com, which has the form
-\(com val ch reg inserted-text command-keys\),
+\(com val ch reg inserted-text command-keys),
 where `com' is the command to be re-executed, `val' is the
 argument to `com', `ch' is a flag for repeat, and `reg' is optional;
 if it exists, it is the name of the register for `com'.
@@ -3424,7 +3424,7 @@ controlled by the sign of prefix numeric value."
 	      ((re-search-backward "[][(){}]" beg-lim t))
 	      (t
 	       (error "No matching character on line"))))
-      (cond ((looking-at "[\(\[{]")
+      (cond ((looking-at "[([{]")
 	     (if com (viper-move-marker-locally 'viper-com-point (point)))
 	     (forward-sexp 1)
 	     (if com
@@ -3733,7 +3733,7 @@ With a prefix argument, this function unsets the macros.
 If the optional prefix argument is non-nil and specifies a valid major mode,
 this sets the macros only in the macros in that major mode.  Otherwise,
 the macros are set in the current major mode.
-\(When unsetting the macros, the second argument has no effect.\)"
+\(When unsetting the macros, the second argument has no effect.)"
   (interactive "P")
   (or noninteractive
       (if (not unset)
@@ -3980,7 +3980,7 @@ Null string will repeat previous search."
   (let (buffer buffer-name)
     (setq buffer-name
 	  (funcall viper-read-buffer-function
-		   (format "Kill buffer \(%s\): "
+		   (format "Kill buffer (%s): "
 			   (buffer-name (current-buffer)))))
     (setq buffer
 	  (if (null buffer-name)
@@ -4588,7 +4588,7 @@ One can use \\=`\\=` and \\='\\=' to temporarily jump 1 step back."
 ;; Viewing registers
 
 (defun viper-ket-function (arg)
-  "Function called by \], the ket.  View registers and call \]\]."
+  "Function called by ], the ket.  View registers and call ]]."
   (interactive "P")
   (let ((reg (read-char)))
     (cond ((viper-valid-register reg '(letter Letter))
@@ -4605,7 +4605,7 @@ One can use \\=`\\=` and \\='\\=' to temporarily jump 1 step back."
 	      viper-InvalidRegister reg)))))
 
 (defun viper-brac-function (arg)
-  "Function called by \[, the brac.  View textmarkers and call \[\[."
+  "Function called by [, the brac.  View textmarkers and call [[."
   (interactive "P")
   (let ((reg (read-char)))
     (cond ((viper= ?\[ reg)
@@ -4981,7 +4981,7 @@ back trace of the execution that leads to the error.  Please include this
 trace in your bug report.
 
 If you believe that one of Viper's commands goes into an infinite loop
-\(e.g., Emacs freezes\), type:
+\(e.g., Emacs freezes), type:
 
     M-x set-variable <Return> debug-on-quit <Return> t <Return>
 

@@ -277,7 +277,7 @@ nil."
 If t, hitting TAB always just indents the current line.  If nil, hitting
 TAB indents the current line if point is at the left margin or in the
 line's indentation, otherwise it inserts a `real' tab character \(see
-note\).  If some other value (not nil or t), then tab is inserted only
+note).  If some other value \(not nil or t), then tab is inserted only
 within literals \(comments and strings), but the line is always
 reindented.
 

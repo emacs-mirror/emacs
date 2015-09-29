@@ -810,7 +810,7 @@ Loads the variable `hfy-rgb-txt-colour-map', which is used by
 `hfy-fallback-colour-values'."
   (interactive
    (list
-    (read-file-name "rgb.txt \(equivalent\) file: " "" nil t (hfy-rgb-file))))
+    (read-file-name "rgb.txt (equivalent) file: " "" nil t (hfy-rgb-file))))
   (let ((rgb-buffer   nil)
 	(end-of-rgb     0)
 	(rgb-txt      nil))

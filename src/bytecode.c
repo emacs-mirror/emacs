@@ -2000,9 +2000,9 @@ syms_of_bytecode (void)
 
   DEFVAR_LISP ("byte-code-meter", Vbyte_code_meter,
 	       doc: /* A vector of vectors which holds a histogram of byte-code usage.
-\(aref (aref byte-code-meter 0) CODE) indicates how many times the byte
+(aref (aref byte-code-meter 0) CODE) indicates how many times the byte
 opcode CODE has been executed.
-\(aref (aref byte-code-meter CODE1) CODE2), where CODE1 is not 0,
+(aref (aref byte-code-meter CODE1) CODE2), where CODE1 is not 0,
 indicates how many times the byte opcodes CODE1 and CODE2 have been
 executed in succession.  */);
 

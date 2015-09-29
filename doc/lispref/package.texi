@@ -292,7 +292,7 @@ case for the default GNU archive).
 
 Otherwise, the base location should be a directory name.  In this
 case, Emacs retrieves packages from this archive via ordinary file
-access.  Such ``local'' archives are mainly useful for testing.
+access.  Such local archives are mainly useful for testing.
 @end defopt
 
   A package archive is simply a directory in which the package files,

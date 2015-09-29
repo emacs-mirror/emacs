@@ -252,7 +252,7 @@ CATEGORY is the overlay category.  If it is nil, use the `glasses' category."
 	;; Parentheses
 	(when glasses-separate-parentheses-p
 	  (goto-char beg)
-	  (while (re-search-forward "[a-zA-Z]_*\\(\(\\)" end t)
+	  (while (re-search-forward "[a-zA-Z]_*\\((\\)" end t)
 	    (unless (glasses-parenthesis-exception-p (point-at-bol) (match-end 1))
 	      (glasses-make-overlay (match-beginning 1) (match-end 1)
 				    'glasses-parenthesis))))))))
@@ -291,7 +291,7 @@ recognized according to the current value of the variable `glasses-separator'."
 	      (goto-char (match-beginning 1)))))
 	(when glasses-separate-parentheses-p
 	  (goto-char (point-min))
-	  (while (re-search-forward "[a-zA-Z]_*\\( \\)\(" nil t)
+	  (while (re-search-forward "[a-zA-Z]_*\\( \\)(" nil t)
 	    (unless (glasses-parenthesis-exception-p (point-at-bol) (1+ (match-end 1)))
 	      (replace-match "" t nil nil 1)))))))
   ;; nil must be returned to allow use in write file hooks

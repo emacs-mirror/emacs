@@ -769,7 +769,8 @@ Fills in OBJ's SLOT with its default value."
   (cl-check-type obj (or eieio-object class))
   (cl-check-type slot symbol)
   (let* ((cl (cond ((symbolp obj) (cl--find-class obj))
-                   (t (eieio--object-class obj))))
+                   ((eieio-object-p obj) (eieio--object-class obj))
+                   (t obj)))
 	 (c (eieio--slot-name-index cl slot)))
     (if (not c)
 	;; It might be missing because it is a :class allocated slot.

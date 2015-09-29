@@ -775,8 +775,4 @@ Optional argument PROPS specifies other text properties to apply."
 
 (provide 'ruler-mode)
 
-;; Local Variables:
-;; coding: utf-8
-;; End:
-
 ;;; ruler-mode.el ends here

@@ -4141,30 +4141,30 @@ Assuming TREE is a variable containing an Org buffer parse tree,
 the following example will return a flat list of all `src-block'
 and `example-block' elements in it:
 
-  \(org-element-map tree \\='(example-block src-block) \\='identity)
+  (org-element-map tree \\='(example-block src-block) \\='identity)
 
 The following snippet will find the first headline with a level
 of 1 and a \"phone\" tag, and will return its beginning position:
 
-  \(org-element-map tree \\='headline
-   \(lambda (hl)
-     \(and (= (org-element-property :level hl) 1)
-          \(member \"phone\" (org-element-property :tags hl))
-          \(org-element-property :begin hl)))
+  (org-element-map tree \\='headline
+   (lambda (hl)
+     (and (= (org-element-property :level hl) 1)
+          (member \"phone\" (org-element-property :tags hl))
+          (org-element-property :begin hl)))
    nil t)
 
 The next example will return a flat list of all `plain-list' type
 elements in TREE that are not a sub-list themselves:
 
-  \(org-element-map tree \\='plain-list \\='identity nil nil \\='plain-list)
+  (org-element-map tree \\='plain-list \\='identity nil nil \\='plain-list)
 
 Eventually, this example will return a flat list of all `bold'
 type objects containing a `latex-snippet' type object, even
 looking into captions:
 
-  \(org-element-map tree \\='bold
-   \(lambda (b)
-     \(and (org-element-map b \\='latex-snippet \\='identity nil t) b))
+  (org-element-map tree \\='bold
+   (lambda (b)
+     (and (org-element-map b \\='latex-snippet \\='identity nil t) b))
    nil nil nil t)"
   ;; Ensure TYPES and NO-RECURSION are a list, even of one element.
   (unless (listp types) (setq types (list types)))

@@ -244,7 +244,7 @@ of master file."
 		 (when (or (null reftex-label-ignored-macros-and-environments)
 			   ;; \label{} defs should always be honored,
 			   ;; just no keyval style [label=foo] defs.
-			   (string-equal "\label{" (substring (reftex-match-string 0) 0 7))
+			   (string-equal "\\label{" (substring (reftex-match-string 0) 0 7))
                            (if (and (fboundp 'TeX-current-macro)
                                     (fboundp 'LaTeX-current-environment))
                                (not (or (member (save-match-data (TeX-current-macro))

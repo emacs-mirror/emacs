@@ -179,6 +179,11 @@ comments always start in column zero.")
   "Non-nil if nested comments should be quoted.
 This should be locally set by each major mode if needed.")
 
+(defvar comment-quote-nested-function #'comment-quote-nested-default
+  "Function to quote nested comments in a region.
+It takes the same arguments as `comment-quote-nested-default',
+and is called with the buffer narrowed to a single comment.")
+
 (defvar comment-continue nil
   "Continuation string to insert for multiline comments.
 This string will be added at the beginning of each line except the very
@@ -382,7 +387,7 @@ function should first call this function explicitly."
 	   (concat (unless (eq comment-use-syntax t)
                      ;; `syntax-ppss' will detect escaping.
                      "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\)")
-                   "\\(\\s<+\\|"
+                   "\\(?:\\s<+\\|"
 		   (regexp-quote (comment-string-strip comment-start t t))
 		   ;; Let's not allow any \s- but only [ \t] since \n
 		   ;; might be both a comment-end marker and \s-.
@@ -412,28 +417,44 @@ function should first call this function explicitly."
 If UNP is non-nil, unquote nested comment markers."
   (setq cs (comment-string-strip cs t t))
   (setq ce (comment-string-strip ce t t))
-  (when (and comment-quote-nested (> (length ce) 0))
-    (let ((re (concat (comment-quote-re ce unp)
-		      "\\|" (comment-quote-re cs unp))))
-      (goto-char (point-min))
-      (while (re-search-forward re nil t)
-	(goto-char (match-beginning 0))
-	(forward-char 1)
-	(if unp (delete-char 1) (insert "\\"))
-	(when (= (length ce) 1)
-	  ;; If the comment-end is a single char, adding a \ after that
-	  ;; "first" char won't deactivate it, so we turn such a CE
-	  ;; into !CS.  I.e. for pascal, we turn } into !{
-	  (if (not unp)
-	      (when (string= (match-string 0) ce)
-		(replace-match (concat "!" cs) t t))
-	    (when (and (< (point-min) (match-beginning 0))
-		       (string= (buffer-substring (1- (match-beginning 0))
-						  (1- (match-end 0)))
-				(concat "!" cs)))
-	      (backward-char 2)
-	      (delete-char (- (match-end 0) (match-beginning 0)))
-	      (insert ce))))))))
+  (when (and comment-quote-nested
+	     (> (length ce) 0))
+    (funcall comment-quote-nested-function cs ce unp)))
+
+(defun comment-quote-nested-default (cs ce unp)
+  "Quote comment delimiters in the buffer.
+It expects to be called with the buffer narrowed to a single comment.
+It is used as a default for `comment-quote-nested-function'.
+
+The arguments CS and CE are strings matching comment starting and
+ending delimiters respectively.
+
+If UNP is non-nil, comments are unquoted instead.
+
+To quote the delimiters, a \\ is inserted after the first
+character of CS or CE.  If CE is a single character it will
+change CE into !CS."
+  (let ((re (concat (comment-quote-re ce unp)
+		    "\\|" (comment-quote-re cs unp))))
+    (goto-char (point-min))
+    (while (re-search-forward re nil t)
+      (goto-char (match-beginning 0))
+      (forward-char 1)
+      (if unp (delete-char 1) (insert "\\"))
+      (when (= (length ce) 1)
+	;; If the comment-end is a single char, adding a \ after that
+	;; "first" char won't deactivate it, so we turn such a CE
+	;; into !CS.  I.e. for pascal, we turn } into !{
+	(if (not unp)
+	    (when (string= (match-string 0) ce)
+	      (replace-match (concat "!" cs) t t))
+	  (when (and (< (point-min) (match-beginning 0))
+		     (string= (buffer-substring (1- (match-beginning 0))
+						(1- (match-end 0)))
+			      (concat "!" cs)))
+	    (backward-char 2)
+	    (delete-char (- (match-end 0) (match-beginning 0)))
+	    (insert ce)))))))
 
 ;;;;
 ;;;; Navigation

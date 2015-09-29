@@ -515,7 +515,7 @@ they will not be returned."
     ;; folder is specified, ensure it is nil to avoid adding the
     ;; folder to the folder-list and adding a slash to it.
     (when folder
-      (setq folder (mh-replace-regexp-in-string "^\+" "" folder))
+      (setq folder (mh-replace-regexp-in-string "^\\+" "" folder))
       (setq folder (mh-replace-regexp-in-string "/+$" "" folder))
       (if (equal folder "")
           (setq folder nil)))

@@ -892,8 +892,7 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
       (save-excursion
 	(save-match-data
 	  (save-buffer-state
-	   ;; Ensure syntactic fontification is always correct.
-	   (font-lock-beginning-of-syntax-function next)
+	   (next)
 	   ;; Find successive unfontified regions between BEG and END.
 	   (condition-case data
 	       (do-while beg

@@ -1,4 +1,4 @@
-@c -*-texinfo-*-
+@c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1995, 1998-2015 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
@@ -22,11 +22,11 @@ be a position (an integer), but accept a marker as a substitute,
 normally ignore which buffer the marker points into; they convert the
 marker to an integer, and use that integer, exactly as if you had
 passed the integer as the argument, even if the marker points to the
-``wrong'' buffer.  A marker that points nowhere cannot convert to an
+wrong buffer.  A marker that points nowhere cannot convert to an
 integer; using it instead of an integer causes an error.
 @xref{Markers}.
 
-  See also the ``field'' feature (@pxref{Fields}), which provides
+  See also the field feature (@pxref{Fields}), which provides
 functions that are used by many cursor-motion commands.
 
 @menu
@@ -227,7 +227,7 @@ backward until encountering the front of a word, rather than forward.
 @c Emacs 19 feature
 This variable affects the behavior of @code{forward-word} and everything
 that uses it.  If it is non-@code{nil}, then characters in the
-``escape'' and ``character quote'' syntax classes count as part of
+escape and character-quote syntax classes count as part of
 words.  Otherwise, they do not.
 @end defopt
 
@@ -409,7 +409,7 @@ mentioned here only for completeness.
 @deffn Command previous-line count
 @cindex goal column
 This function moves point up @var{count} lines (down if @var{count}
-is negative).  In moving, it attempts to keep point in the ``goal column''
+is negative).  In moving, it attempts to keep point in the @dfn{goal column}
 (normally the same column that it was at the beginning of the move).
 
 If there is no character in the target line exactly under the current
@@ -434,7 +434,7 @@ to use and more reliable (no dependence on goal column, etc.).
 
 @deffn Command next-line count
 This function moves point down @var{count} lines (up if @var{count}
-is negative).  In moving, it attempts to keep point in the ``goal column''
+is negative).  In moving, it attempts to keep point in the goal column
 (normally the same column that it was at the beginning of the move).
 
 If there is no character in the target line exactly under the current
@@ -827,7 +827,7 @@ is zero or less.
 @section Excursions
 @cindex excursion
 
-  It is often useful to move point ``temporarily'' within a localized
+  It is often useful to move point temporarily within a localized
 portion of the program.  This is called an @dfn{excursion}, and it is
 done with the @code{save-excursion} special form.  This construct
 remembers the initial identity of the current buffer, and its value
@@ -862,7 +862,7 @@ consequences, so the byte compiler warns if you call @code{set-buffer}
 during an excursion:
 
 @example
-Warning: Use `with-current-buffer' rather than
+Warning: Use ‘with-current-buffer’ rather than
          save-excursion+set-buffer
 @end example
 

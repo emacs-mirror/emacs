@@ -5516,7 +5516,7 @@ If no internal viewer is available, use an external viewer."
 	 (mm-display-part handle nil t))))))
 
 (defun gnus-mime-action-on-part (&optional action)
-  "Do something with the MIME attachment at \(point\)."
+  "Do something with the MIME attachment at (point)."
   (interactive
    (list (gnus-completing-read "Action" (mapcar 'car gnus-mime-action-alist) t)))
   (gnus-article-check-buffer)
@@ -5992,7 +5992,7 @@ If t, it overrides nil values of
   "Display \"multipart/related\" parts as  \"multipart/mixed\".
 
 If displaying \"text/html\" is discouraged \(see
-`mm-discouraged-alternatives'\) images or other material inside a
+`mm-discouraged-alternatives') images or other material inside a
 \"multipart/related\" part might be overlooked when this variable is nil."
   :version "22.1"
   :group 'gnus-article-mime
@@ -7545,7 +7545,7 @@ must return `mid', `mail', `invalid' or `ask'."
     (10.0  . "^[^0-9]+@")
     (3.0   . "^[^0-9]+[0-9][0-9]?[0-9]?@")
     ;;      ^[^0-9]+[0-9]{1,3}\@ digits only at end of local part
-    (3.0   . "\@stud")
+    (3.0   . "@stud")
     ;;
     (2.0   . "[a-z][a-z][._-][A-Z][a-z].*@")
     ;;
@@ -7553,7 +7553,7 @@ must return `mid', `mail', `invalid' or `ask'."
     (0.5   . "^[A-Z][a-z][a-z]")
     (1.5   . "^[A-Z][a-z][A-Z][a-z][^a-z]") ;; ^[A-Z][a-z]{3,3}
     (2.0   . "^[A-Z][a-z][A-Z][a-z][a-z][^a-z]")) ;; ^[A-Z][a-z]{4,4}
-  "An alist of \(RATE . REGEXP\) pairs for `gnus-button-mid-or-mail-heuristic'.
+  "An alist of (RATE . REGEXP) pairs for `gnus-button-mid-or-mail-heuristic'.
 
 A negative RATE indicates a message IDs, whereas a positive indicates a mail
 address.  The REGEXP is processed with `case-fold-search' set to nil."
@@ -7612,9 +7612,9 @@ address, `ask' if unsure and `invalid' if the string is invalid."
 	  (gnus-message
 	   9 "Many digits in `%s', rate `%s', result `%s'."
 	   mid-or-mail rate result))
-	 ((string-match "[^aeiouy][^aeiouy][^aeiouy][^aeiouy]+.*\@"
+	 ((string-match "[^aeiouy][^aeiouy][^aeiouy][^aeiouy]+.*@"
 			mid-or-mail)
-	  ;; Too few vowels [^aeiouy]{4,}.*\@
+	  ;; Too few vowels [^aeiouy]{4,}.*@
 	  (setq result (+ result -5.0))
 	  (gnus-message
 	   9 "Few vowels in `%s', rate `%s', result `%s'."
@@ -7724,7 +7724,7 @@ Calls `describe-variable' or `describe-function'."
   "Call `locate-library' when pushing the corresponding URL button."
   (gnus-message 9 "url=`%s'" url)
   (let* ((lib (locate-library url))
-	 (file (gnus-replace-in-string (or lib "") "\.elc" ".el")))
+	 (file (gnus-replace-in-string (or lib "") "\\.elc" ".el")))
     (if (not lib)
 	(gnus-message 1 "Cannot locale library `%s'." url)
       (find-file-read-only file))))
@@ -8113,7 +8113,7 @@ url is put as the `gnus-button-url' overlay property on the button."
 					      (< (match-end 0) start))
 				     (regexp-quote (match-string 0)))
 				   "\
-\[\t ]*\\(?:\\([^\t\n \">]+\\)[\t ]*$\\|\\([^\t\n \">]*\\)[\t ]*"
+[\t ]*\\(?:\\([^\t\n \">]+\\)[\t ]*$\\|\\([^\t\n \">]*\\)[\t ]*"
 				   delim "\\)"))
 		     (while (progn
 			      (forward-line 1)

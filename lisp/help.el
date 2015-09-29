@@ -355,7 +355,7 @@ With argument, display info only for the selected version."
 		   (while (re-search-forward
 			   (if (member file '("NEWS.18" "NEWS.1-17"))
 			       "Changes in \\(?:Emacs\\|version\\)?[ \t]*\\([0-9]+\\(?:\\.[0-9]+\\)?\\)"
-			     "^\* [^0-9\n]*\\([0-9]+\\.[0-9]+\\)") nil t)
+			     "^\\* [^0-9\n]*\\([0-9]+\\.[0-9]+\\)") nil t)
 		     (setq res (cons (match-string-no-properties 1) res)))))
 	       (cons "NEWS"
 		     (directory-files data-directory nil
@@ -392,7 +392,7 @@ With argument, display info only for the selected version."
       (when (re-search-forward
 	     (concat (if (< vn 19)
 			 "Changes in Emacs[ \t]*"
-		       "^\* [^0-9\n]*") version "$")
+		       "^\\* [^0-9\n]*") version "$")
 	     nil t)
 	(beginning-of-line)
 	(narrow-to-region
@@ -402,7 +402,7 @@ With argument, display info only for the selected version."
 			     (re-search-forward
 			      (if (< vn 19)
 				  "Changes in \\(?:Emacs\\|version\\)?[ \t]*\\([0-9]+\\(?:\\.[0-9]+\\)?\\)"
-				"^\* [^0-9\n]*\\([0-9]+\\.[0-9]+\\)") nil t))
+				"^\\* [^0-9\n]*\\([0-9]+\\.[0-9]+\\)") nil t))
 		       (equal (match-string-no-properties 1) version)))
 	   (or res (goto-char (point-max)))
 	   (beginning-of-line)

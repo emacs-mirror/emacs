@@ -686,7 +686,7 @@ For MS-Windows and MS-DOS:
 When sending or receiving text via selection and clipboard, the text
 is encoded or decoded by this coding system.  The default value is
 the current system default encoding on 9x/Me, `utf-16le-dos'
-\(Unicode) on NT/W2K/XP, and `iso-latin-1-dos' on MS-DOS.
+(Unicode) on NT/W2K/XP, and `iso-latin-1-dos' on MS-DOS.
 
 For X Windows:
 When sending text via selection and clipboard, if the target

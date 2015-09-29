@@ -281,6 +281,26 @@ can still stop the program by typing @kbd{S}, or any editing command.
 In general, the execution modes earlier in the above list run the
 program more slowly or stop sooner than the modes later in the list.
 
+When you enter a new Edebug level, Edebug will normally stop at the
+first instrumented function it encounters.  If you prefer to stop only
+at a break point, or not at all (for example, when gathering coverage
+data), change the value of @code{edebug-initial-mode} from its default
+@code{step} to @code{go}, or @code{Go-nonstop}, or one of its other
+values (@pxref{Edebug Options}).  You can do this readily with
+@kbd{C-x C-a C-m} (@code{edebug-set-initial-mode}):
+
+@deffn Command edebug-set-initial-mode
+@kindex C-x C-a C-m
+This command, bound to @kbd{C-x C-a C-m}, sets
+@code{edebug-initial-mode}.  It prompts you for a key to indicate the
+mode.  You should enter one of the eight keys listed above, which sets
+the corresponding mode.
+@end deffn
+
+Note that you may reenter the same Edebug level several times if, for
+example, an instrumented function is called several times from one
+command.
+
 While executing or tracing, you can interrupt the execution by typing
 any Edebug command.  Edebug stops the program at the next stop point and
 then executes the command you typed.  For example, typing @kbd{t} during
@@ -299,13 +319,6 @@ of the keyboard macro.  This is not easy to fix.  Also, defining or
 executing a keyboard macro outside of Edebug does not affect commands
 inside Edebug.  This is usually an advantage.  See also the
 @code{edebug-continue-kbd-macro} option in @ref{Edebug Options}.
-
-When you enter a new Edebug level, the initial execution mode comes
-from the value of the variable @code{edebug-initial-mode}
-(@pxref{Edebug Options}).  By default, this specifies step mode.  Note
-that you may reenter the same Edebug level several times if, for
-example, an instrumented function is called several times from one
-command.
 
 @defopt edebug-sit-for-seconds
 This option specifies how many seconds to wait between execution steps
@@ -363,7 +376,7 @@ at point, rather than at the stop point.  If you want to execute one
 expression @emph{from the current stop point}, first type @kbd{w}
 (@code{edebug-where}) to move point there, and then type @kbd{f}.
 
-The @kbd{o} command continues ``out of'' an expression.  It places a
+The @kbd{o} command continues out of an expression.  It places a
 temporary breakpoint at the end of the sexp containing point.  If the
 containing sexp is a function definition itself, @kbd{o} continues until
 just before the last sexp in the definition.  If that is where you are
@@ -875,7 +888,7 @@ lines inserted.
 frequency.
 
   Coverage testing works by comparing the result of each expression with
-the previous result; each form in the program is considered ``covered''
+the previous result; each form in the program is considered covered
 if it has returned two different values since you began testing coverage
 in the current Emacs session.  Thus, to do coverage testing on your
 program, execute it under various conditions and note whether it behaves
@@ -908,7 +921,7 @@ earlier expression on the same line.
 
 The character @samp{=} following the count for an expression says that
 the expression has returned the same value each time it was evaluated.
-In other words, it is not yet ``covered'' for coverage testing purposes.
+In other words, it is not yet covered for coverage testing purposes.
 
 To clear the frequency count and coverage data for a definition,
 simply reinstrument it with @code{eval-defun}.
@@ -978,14 +991,14 @@ unless @code{edebug-continue-kbd-macro} is non-@code{nil}.
 @c This paragraph is not filled, because LaLiberte's conversion script
 @c needs an xref to be on just one line.
 When Edebug needs to display something (e.g., in trace mode), it saves
-the current window configuration from ``outside'' Edebug
+the current window configuration from outside Edebug
 (@pxref{Window Configurations}).  When you exit Edebug, it restores
 the previous window configuration.
 
 Emacs redisplays only when it pauses.  Usually, when you continue
 execution, the program re-enters Edebug at a breakpoint or after
 stepping, without pausing or reading input in between.  In such cases,
-Emacs never gets a chance to redisplay the ``outside'' configuration.
+Emacs never gets a chance to redisplay the outside configuration.
 Consequently, what you see is the same window configuration as the last
 time Edebug was active, with no interruption.
 
@@ -1563,7 +1576,8 @@ mode for Edebug when it is first activated.  Possible values are
 @code{step}, @code{next}, @code{go}, @code{Go-nonstop}, @code{trace},
 @code{Trace-fast}, @code{continue}, and @code{Continue-fast}.
 
-The default value is @code{step}.
+The default value is @code{step}.  This variable can be set
+interactively with @kbd{C-x C-a C-m} (@code{edebug-set-initial-mode}).
 @xref{Edebug Execution Modes}.
 @end defopt
 
@@ -1605,7 +1619,7 @@ and consider a macro of the form:
 If you instrument the @code{test} macro and step through it, then by
 default the result of the @code{symbol-function} call has numerous
 @code{edebug-after} and @code{edebug-before} forms, which can make it
-difficult to see the ``actual'' result.  If
+difficult to see the actual result.  If
 @code{edebug-unwrap-results} is non-@code{nil}, Edebug tries to remove
 these forms from the result.
 @end defopt

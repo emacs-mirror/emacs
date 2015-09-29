@@ -20,8 +20,8 @@ deleted, so that it stays with the two characters on either side of it.
 * Marker Insertion Types::   Two ways a marker can relocate when you
                                insert where it points.
 * Moving Markers::           Moving the marker to a new buffer or position.
-* The Mark::                 How ``the mark'' is implemented with a marker.
-* The Region::               How to access ``the region''.
+* The Mark::                 How the mark is implemented with a marker.
+* The Region::               How to access the region.
 @end menu
 
 @node Overview of Markers
@@ -404,7 +404,7 @@ This is another name for @code{set-marker}.
 
   Each buffer has a special marker, which is designated @dfn{the
 mark}.  When a buffer is newly created, this marker exists but does
-not point anywhere; this means that the mark ``doesn't exist'' in that
+not point anywhere; this means that the mark doesn't exist in that
 buffer yet.  Subsequent commands can set the mark.
 
   The mark specifies a position to bound a range of text for many
@@ -424,7 +424,7 @@ sets the mark to the value of point before doing any replacements,
 because this enables the user to move back there conveniently after
 the replace is finished.
 
-  Once the mark ``exists'' in a buffer, it normally never ceases to
+  Once the mark exists in a buffer, it normally never ceases to
 exist.  However, it may become @dfn{inactive}, if Transient Mark mode
 is enabled.  The buffer-local variable @code{mark-active}, if
 non-@code{nil}, means that the mark is active.  A command can call the
@@ -620,7 +620,7 @@ This piece of command_loop_1, run unless deactivating the mark:
 @end defvar
 
 @defun handle-shift-selection
-This function implements the ``shift-selection'' behavior of
+This function implements the shift-selection behavior of
 point-motion commands.  @xref{Shift Selection,,, emacs, The GNU Emacs
 Manual}.  It is called automatically by the Emacs command loop
 whenever a command with a @samp{^} character in its @code{interactive}
@@ -661,8 +661,8 @@ more marks than this are pushed onto the @code{mark-ring},
 
 @node The Region
 @section The Region
-@c The index entry must be just ``region'' to make it the first hit
-@c when the user types ``i region RET'', because otherwise the Info
+@c The index entry must be just "region" to make it the first hit
+@c when the user types "i region RET", because otherwise the Info
 @c reader will present substring matches in alphabetical order,
 @c putting this one near the end, with something utterly unrelated as
 @c the first hit.

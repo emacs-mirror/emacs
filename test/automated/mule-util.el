@@ -1,4 +1,4 @@
-;;; mule-util --- tests for international/mule-util.el -*- coding: utf-8; -*-
+;;; mule-util --- tests for international/mule-util.el
 
 ;; Copyright (C) 2002-2015 Free Software Foundation, Inc.
 

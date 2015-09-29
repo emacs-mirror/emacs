@@ -581,8 +581,4 @@ as the ewoc pretty-printer."
 
 (provide 'tabulated-list)
 
-;; Local Variables:
-;; coding: utf-8
-;; End:
-
 ;;; tabulated-list.el ends here

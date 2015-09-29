@@ -659,7 +659,7 @@ If the argument is left out or nil, then the current buffer is considered."
 (defun msb--create-function-info (menu-cond-elt)
   "Create a vector from an element MENU-COND-ELT of `msb-menu-cond'.
 This takes the form:
-\[BUFFER-LIST-VARIABLE CONDITION MENU-SORT-KEY MENU-TITLE ITEM-HANDLER SORTER]
+[BUFFER-LIST-VARIABLE CONDITION MENU-SORT-KEY MENU-TITLE ITEM-HANDLER SORTER]
 See `msb-menu-cond' for a description of its elements."
   (let* ((list-symbol (make-symbol "-msb-buffer-list"))
 	 (tmp-ih (and (> (length menu-cond-elt) 3)

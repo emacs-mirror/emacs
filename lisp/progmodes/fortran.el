@@ -244,8 +244,8 @@ line in region."
 (defcustom fortran-column-ruler-fixed
   "0   4 6  10        20        30        40        5\
 0        60        70\n\
-\[   ]|{   |    |    |    |    |    |    |    |    \
-\|    |    |    |    |}\n"
+[   ]|{   |    |    |    |    |    |    |    |    \
+|    |    |    |    |}\n"
   "String displayed above current line by \\[fortran-column-ruler].
 This variable is used in fixed format mode.
 See the variable `fortran-column-ruler-tab' for TAB format mode."
@@ -257,8 +257,8 @@ See the variable `fortran-column-ruler-tab' for TAB format mode."
 (defcustom fortran-column-ruler-tab
   "0       810        20        30        40        5\
 0        60        70\n\
-\[   ]|  { |    |    |    |    |    |    |    |    \
-\|    |    |    |    |}\n"
+[   ]|  { |    |    |    |    |    |    |    |    \
+|    |    |    |    |}\n"
   "String displayed above current line by \\[fortran-column-ruler].
 This variable is used in TAB format mode.
 See the variable `fortran-column-ruler-fixed' for fixed format mode."

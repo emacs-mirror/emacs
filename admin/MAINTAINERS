@@ -24,6 +24,8 @@ Eli Zaretskii
 	src/bidi.c
 	bidirectional editing support in xdisp.c and elsewhere
 	lisp/term/tty-colors.el
+	test/biditest.el
+	test/redisplay-testsuite.el
 
 	The MS-DOS (a.k.a. DJGPP) port:
 	    config.bat
@@ -50,7 +52,7 @@ Stefan Monnier
 	minor-mode/major-mode infrastructure
 	text filling
 	minibuffer completion
-	lisp/textmodes/outline.el
+	lisp/outline.el
 
 Miles Bader
 	src/xfaces.c
@@ -74,6 +76,52 @@ Bastien Guerry
             lisp/org/*
 	    doc/misc/org.texi
 
+Artur Malabarba
+	lisp/emacs-lisp/package.el
+	lisp/emacs-lisp/let-alist.el
+	lisp/character-fold.el
+
+Michael Albinus
+        Tramp
+            lisp/net/tramp*.el
+            lisp/url/url-tramp.el
+            doc/misc/tramp*.texi
+            test/automated/tramp-tests.el
+
+        D-Bus
+	    src/dbusbind.c
+	    lisp/net/dbus.el
+	    lisp/net/secrets.el
+            lisp/net/zeroconf.el
+	    doc/misc/dbus.texi
+            test/automated/dbus-tests.el
+
+        File Notifications
+	    src/gfilenotify.c
+	    lisp/filenotify.el
+	    test/automated/file-notify-tests.el
+
+Simen Heggestøyl
+	lisp/textmodes/css-mode.el
+
+Nicolas Petton
+	lisp/emacs-lisp/map.el
+	lisp/emacs-lisp/seq.el
+
+The GNU AUCTeX maintainers (auctex-devel@gnu.org)
+	RefTeX
+	    lisp/textmodes/reftex-auc.el
+	    lisp/textmodes/reftex-cite.el
+	    lisp/textmodes/reftex-dcr.el
+	    lisp/textmodes/reftex-global.el
+	    lisp/textmodes/reftex-index.el
+	    lisp/textmodes/reftex-parse.el
+	    lisp/textmodes/reftex-ref.el
+	    lisp/textmodes/reftex-sel.el
+	    lisp/textmodes/reftex-toc.el
+	    lisp/textmodes/reftex-vars.el
+	    lisp/textmodes/reftex.el
+
 ==============================================================================
 2.
 ==============================================================================
@@ -85,7 +133,6 @@ Kelvin White
 
 Eli Zaretskii
     	doc/*
-	lispref/*
 
 	src/xfaces.c
 	src/xdisp.c
@@ -94,10 +141,16 @@ Eli Zaretskii
 	src/dispextern.h
 	src/frame.c
 	src/dired.c
+	src/fileio.c
 	src/unexw32.c
 	src/w32*.[ch]
 	src/window.c
+	src/indent.c
+	src/region-cache.[ch]
 	nt/*
+
+	lib-src/ntlib.[ch]
+	lib-src/etags.c
 
 	lisp/arc-mode.el
 	lisp/menu-bar.el
@@ -105,9 +158,20 @@ Eli Zaretskii
 	lisp/info.el
 	lisp/ls-lisp.el
 	lisp/startup.el
+	lisp/filenotify.el
 	lisp/w32*.el
+	lisp/term/w32*.el
+	lisp/progmodes/gdb-mi.el
+	lisp/textmodes/ispell.el
+	lisp/textmodes/flyspell.el
+	lisp/mail/rmail*.el
+
+	Mule
 
 	admin/unidata/*
+	admin/nt/dump.bat
+
+	test/etags/*
 
 Stefan Monnier
 	src/intervals.c
@@ -123,82 +187,557 @@ Miles Bader
 	src/editfns.c
 	lisp/textmodes/refill.el
 
+Artur Malabarba
+        lisp/isearch.el
+
+Paul Eggert
+	.dir-locals.el
+	.gitattributes
+	.gitignore
+	GNUmakefile
+	Makefile.in
+	admin/merge-gnulib
+	admin/merge-pkg-config
+	admin/update-copyright
+	autogen.sh
+	build-aux/*
+	configure.ac
+	lib/*
+	lib-src/* (except for files others want to maintain)
+	m4/*
+	make-dist
+	src/* (except for *.m, *w32*, bitmaps, files others want to maintain)
+
+Michael Albinus
+	src/inotify.c
+        lisp/autorevert.el
+	lisp/notifications.el
+        test/automated/auto-revert-tests.el
+	test/automated/inotify-test.el
+	test/automated/vc-tests.el
+
+Nicolas Petton
+	lisp/emacs-lisp/subr-x.el
+	lisp/arc-mode.el
+
+Xue Fuqiao
+	doc/lispref/*
+
+Tassilo Horn
+	lisp/doc-view.el
+
 ==============================================================================
 3.
 ==============================================================================
 
-src/Makefile.in
-src/abbrev.c
-src/alloc.c
-src/alloca.c
-src/alloca.s
-src/atimer.c
+admin/admin.el
+admin/authors.el
+admin/build-configs
+admin/bzrmerge.el
+admin/charsets/*
+admin/check-doc-strings
+admin/cus-test.el
+admin/diff-tar-files
+admin/find-gc.el
+admin/gitmerge.el
+admin/make-emacs
+admin/quick-install-emacs
+admin/unidata/blocks.awk
+etc/edt-user.el
+etc/forms/forms-d2.el
+etc/forms/forms-pass.el
+etc/nxml/*
+etc/themes/*
+leim/*
+lisp/abbrev.el
+lisp/align.el
+lisp/allout-widgets.el
+lisp/allout.el
+lisp/ansi-color.el
+lisp/apropos.el
+lisp/array.el
+lisp/autoarg.el
+lisp/autoinsert.el
+lisp/autorevert.el
+lisp/avoid.el
+lisp/battery.el
+lisp/bindings.el
+lisp/bookmark.el
+lisp/bs.el
+lisp/buff-menu.el
+lisp/calculator.el
+lisp/calendar/*
+lisp/case-table.el
+lisp/cdl.el
+lisp/cedet/*
+lisp/chistory.el
+lisp/cmuscheme.el
+lisp/color.el
+lisp/completion.el
+lisp/composite.el
+lisp/cus-dep.el
+lisp/cus-edit.el
+lisp/cus-face.el
+lisp/cus-start.el
+lisp/cus-theme.el
+lisp/custom.el
+lisp/dabbrev.el
+lisp/delim-col.el
+lisp/delsel.el
+lisp/descr-text.el
+lisp/desktop.el
+lisp/dframe.el
+lisp/dired-aux.el
+lisp/dired-x.el
+lisp/dired.el
+lisp/dirtrack.el
+lisp/disp-table.el
+lisp/dnd.el
+lisp/dom.el
+lisp/double.el
+lisp/dynamic-setting.el
+lisp/ebuff-menu.el
+lisp/echistory.el
+lisp/edmacro.el
+lisp/ehelp.el
+lisp/elec-pair.el
+lisp/electric.el
+lisp/elide-head.el
+lisp/emacs-lisp/advice.el
+lisp/emacs-lisp/autoload.el
+lisp/emacs-lisp/avl-tree.el
+lisp/emacs-lisp/backquote.el
+lisp/emacs-lisp/benchmark.el
+lisp/emacs-lisp/bindat.el
+lisp/emacs-lisp/byte-opt.el
+lisp/emacs-lisp/byte-run.el
+lisp/emacs-lisp/bytecomp.el
+lisp/emacs-lisp/cconv.el
+lisp/emacs-lisp/chart.el
+lisp/emacs-lisp/check-declare.el
+lisp/emacs-lisp/checkdoc.el
+lisp/emacs-lisp/cl-extra.el
+lisp/emacs-lisp/cl-generic.el
+lisp/emacs-lisp/cl-indent.el
+lisp/emacs-lisp/cl-lib.el
+lisp/emacs-lisp/cl-macs.el
+lisp/emacs-lisp/cl-preloaded.el
+lisp/emacs-lisp/cl-seq.el
+lisp/emacs-lisp/cl.el
+lisp/emacs-lisp/copyright.el
+lisp/emacs-lisp/crm.el
+lisp/emacs-lisp/cursor-sensor.el
+lisp/emacs-lisp/debug.el
+lisp/emacs-lisp/derived.el
+lisp/emacs-lisp/disass.el
+lisp/emacs-lisp/easy-mmode.el
+lisp/emacs-lisp/edebug.el
+lisp/emacs-lisp/eieio-base.el
+lisp/emacs-lisp/eieio-compat.el
+lisp/emacs-lisp/eieio-core.el
+lisp/emacs-lisp/eieio-custom.el
+lisp/emacs-lisp/eieio-datadebug.el
+lisp/emacs-lisp/eieio-opt.el
+lisp/emacs-lisp/eieio-speedbar.el
+lisp/emacs-lisp/eieio.el
+lisp/emacs-lisp/eldoc.el
+lisp/emacs-lisp/elint.el
+lisp/emacs-lisp/elp.el
+lisp/emacs-lisp/ert-x.el
+lisp/emacs-lisp/ert.el
+lisp/emacs-lisp/ewoc.el
+lisp/emacs-lisp/find-func.el
+lisp/emacs-lisp/float-sup.el
+lisp/emacs-lisp/generator.el
+lisp/emacs-lisp/generic.el
+lisp/emacs-lisp/gv.el
+lisp/emacs-lisp/helper.el
+lisp/emacs-lisp/inline.el
+lisp/emacs-lisp/lisp-mnt.el
+lisp/emacs-lisp/lisp-mode.el
+lisp/emacs-lisp/lisp.el
+lisp/emacs-lisp/macroexp.el
+lisp/emacs-lisp/map-ynp.el
+lisp/emacs-lisp/nadvice.el
+lisp/emacs-lisp/package-x.el
+lisp/emacs-lisp/pcase.el
+lisp/emacs-lisp/pp.el
+lisp/emacs-lisp/re-builder.el
+lisp/emacs-lisp/regexp-opt.el
+lisp/emacs-lisp/regi.el
+lisp/emacs-lisp/ring.el
+lisp/emacs-lisp/rx.el
+lisp/emacs-lisp/shadow.el
+lisp/emacs-lisp/smie.el
+lisp/emacs-lisp/syntax.el
+lisp/emacs-lisp/tabulated-list.el
+lisp/emacs-lisp/tcover-ses.el
+lisp/emacs-lisp/tcover-unsafep.el
+lisp/emacs-lisp/testcover.el
+lisp/emacs-lisp/timer.el
+lisp/emacs-lisp/tq.el
+lisp/emacs-lisp/trace.el
+lisp/emacs-lisp/unsafep.el
+lisp/emacs-lisp/warnings.el
+lisp/emacs-lock.el
+lisp/emulation/*
+lisp/env.el
+lisp/epa-dired.el
+lisp/epa-file.el
+lisp/epa-hook.el
+lisp/epa-mail.el
+lisp/epa.el
+lisp/epg-config.el
+lisp/epg.el
+lisp/eshell/*
+lisp/expand.el
+lisp/ezimage.el
+lisp/face-remap.el
+lisp/facemenu.el
+lisp/faces.el
+lisp/ffap.el
+lisp/filecache.el
+lisp/files-x.el
+lisp/files.el
+lisp/filesets.el
+lisp/find-cmd.el
+lisp/find-dired.el
+lisp/find-file.el
+lisp/find-lisp.el
+lisp/finder.el
+lisp/flow-ctrl.el
+lisp/foldout.el
+lisp/follow.el
+lisp/font-core.el
+lisp/font-lock.el
+lisp/format-spec.el
+lisp/format.el
+lisp/forms.el
+lisp/frame.el
+lisp/frameset.el
+lisp/fringe.el
+lisp/generic-x.el
+lisp/gnus/*
+lisp/gs.el
+lisp/help-at-pt.el
+lisp/help-fns.el
+lisp/help-macro.el
+lisp/help-mode.el
+lisp/help.el
+lisp/hex-util.el
+lisp/hfy-cmap.el
+lisp/hi-lock.el
+lisp/hilit-chg.el
+lisp/hippie-exp.el
+lisp/hl-line.el
+lisp/htmlfontify.el
+lisp/ibuf-ext.el
+lisp/ibuf-macs.el
+lisp/ibuffer.el
+lisp/icomplete.el
+lisp/ido.el
+lisp/ielm.el
+lisp/iimage.el
+lisp/image-dired.el
+lisp/image-mode.el
+lisp/image.el
+lisp/imenu.el
+lisp/indent.el
+lisp/info-look.el
+lisp/info-xref.el
+lisp/informat.el
+lisp/international/*
+lisp/isearch.el
+lisp/isearchb.el
+lisp/jit-lock.el
+lisp/jka-cmpr-hook.el
+lisp/jka-compr.el
+lisp/json.el
+lisp/kermit.el
+lisp/kmacro.el
+lisp/language/*
+lisp/leim/*
+lisp/linum.el
+lisp/loadhist.el
+lisp/loadup.el
+lisp/locate.el
+lisp/lpr.el
+lisp/macros.el
+lisp/mail/binhex.el
+lisp/mail/blessmail.el
+lisp/mail/emacsbug.el
+lisp/mail/feedmail.el
+lisp/mail/footnote.el
+lisp/mail/hashcash.el
+lisp/mail/mail-extr.el
+lisp/mail/mail-hist.el
+lisp/mail/mail-utils.el
+lisp/mail/mailabbrev.el
+lisp/mail/mailalias.el
+lisp/mail/mailclient.el
+lisp/mail/mailheader.el
+lisp/mail/metamail.el
+lisp/mail/mspools.el
+lisp/mail/reporter.el
+lisp/mail/rfc2368.el
+lisp/mail/rfc822.el
+lisp/mail/sendmail.el
+lisp/mail/smtpmail.el
+lisp/mail/supercite.el
+lisp/mail/uce.el
+lisp/mail/undigest.el
+lisp/mail/unrmail.el
+lisp/mail/uudecode.el
+lisp/makesum.el
+lisp/man.el
+lisp/master.el
+lisp/mb-depth.el
+lisp/md4.el
+lisp/mh-e/*
+lisp/midnight.el
+lisp/minibuffer.el
+lisp/misc.el
+lisp/misearch.el
+lisp/mouse-copy.el
+lisp/mouse-drag.el
+lisp/mouse.el
+lisp/mpc.el
+lisp/msb.el
+lisp/mwheel.el
+lisp/net/*
+lisp/newcomment.el
+lisp/novice.el
+lisp/nxml/*
+lisp/obsolete/*
+lisp/paren.el
+lisp/password-cache.el
+lisp/pcmpl-cvs.el
+lisp/pcmpl-gnu.el
+lisp/pcmpl-linux.el
+lisp/pcmpl-rpm.el
+lisp/pcmpl-unix.el
+lisp/pcmpl-x.el
+lisp/pcomplete.el
+lisp/play/*
+lisp/printing.el
+lisp/proced.el
+lisp/profiler.el
+lisp/progmodes/ada-mode.el
+lisp/progmodes/ada-prj.el
+lisp/progmodes/ada-stmt.el
+lisp/progmodes/ada-xref.el
+lisp/progmodes/antlr-mode.el
+lisp/progmodes/asm-mode.el
+lisp/progmodes/autoconf.el
+lisp/progmodes/bat-mode.el
+lisp/progmodes/bug-reference.el
+lisp/progmodes/cc-align.el
+lisp/progmodes/cc-awk.el
+lisp/progmodes/cc-bytecomp.el
+lisp/progmodes/cc-cmds.el
+lisp/progmodes/cc-defs.el
+lisp/progmodes/cc-engine.el
+lisp/progmodes/cc-fonts.el
+lisp/progmodes/cc-guess.el
+lisp/progmodes/cc-langs.el
+lisp/progmodes/cc-menus.el
+lisp/progmodes/cc-mode.el
+lisp/progmodes/cc-styles.el
+lisp/progmodes/cc-vars.el
+lisp/progmodes/cfengine.el
+lisp/progmodes/cmacexp.el
+lisp/progmodes/compile.el
+lisp/progmodes/cperl-mode.el
+lisp/progmodes/cpp.el
+lisp/progmodes/cwarn.el
+lisp/progmodes/dcl-mode.el
+lisp/progmodes/ebnf-abn.el
+lisp/progmodes/ebnf-bnf.el
+lisp/progmodes/ebnf-dtd.el
+lisp/progmodes/ebnf-ebx.el
+lisp/progmodes/ebnf-iso.el
+lisp/progmodes/ebnf-otz.el
+lisp/progmodes/ebnf-yac.el
+lisp/progmodes/ebnf2ps.el
+lisp/progmodes/ebrowse.el
+lisp/progmodes/elisp-mode.el
+lisp/progmodes/etags.el
+lisp/progmodes/executable.el
+lisp/progmodes/f90.el
+lisp/progmodes/flymake.el
+lisp/progmodes/fortran.el
+lisp/progmodes/glasses.el
+lisp/progmodes/grep.el
+lisp/progmodes/gud.el
+lisp/progmodes/hideif.el
+lisp/progmodes/hideshow.el
+lisp/progmodes/icon.el
+lisp/progmodes/idlw-complete-structtag.el
+lisp/progmodes/idlw-help.el
+lisp/progmodes/idlw-shell.el
+lisp/progmodes/idlw-toolbar.el
+lisp/progmodes/idlwave.el
+lisp/progmodes/inf-lisp.el
+lisp/progmodes/js.el
+lisp/progmodes/ld-script.el
+lisp/progmodes/m4-mode.el
+lisp/progmodes/make-mode.el
+lisp/progmodes/mantemp.el
+lisp/progmodes/meta-mode.el
+lisp/progmodes/mixal-mode.el
+lisp/progmodes/modula2.el
+lisp/progmodes/octave.el
+lisp/progmodes/opascal.el
+lisp/progmodes/pascal.el
+lisp/progmodes/prog-mode.el
+lisp/progmodes/project.el
+lisp/progmodes/prolog.el
+lisp/progmodes/ps-mode.el
+lisp/progmodes/python.el
+lisp/progmodes/ruby-mode.el
+lisp/progmodes/scheme.el
+lisp/progmodes/sh-script.el
+lisp/progmodes/simula.el
+lisp/progmodes/sql.el
+lisp/progmodes/subword.el
+lisp/progmodes/vera-mode.el
+lisp/progmodes/verilog-mode.el
+lisp/progmodes/vhdl-mode.el
+lisp/progmodes/which-func.el
+lisp/progmodes/xref.el
+lisp/progmodes/xscheme.el
+lisp/ps-bdf.el
+lisp/ps-def.el
+lisp/ps-mule.el
+lisp/ps-print.el
+lisp/ps-samp.el
+lisp/recentf.el
+lisp/rect.el
+lisp/register.el
+lisp/repeat.el
+lisp/replace.el
+lisp/reposition.el
+lisp/reveal.el
+lisp/rot13.el
+lisp/ruler-mode.el
+lisp/savehist.el
+lisp/saveplace.el
+lisp/sb-image.el
+lisp/scroll-all.el
+lisp/scroll-bar.el
+lisp/scroll-lock.el
+lisp/select.el
+lisp/server.el
+lisp/ses.el
+lisp/shadowfile.el
+lisp/simple.el
+lisp/skeleton.el
+lisp/sort.el
+lisp/soundex.el
+lisp/speedbar.el
+lisp/strokes.el
+lisp/subr.el
+lisp/t-mouse.el
+lisp/tabify.el
+lisp/talk.el
+lisp/tar-mode.el
+lisp/tempo.el
+lisp/term.el
+lisp/term/AT386.el
+lisp/term/bobcat.el
+lisp/term/common-win.el
+lisp/term/cygwin.el
+lisp/term/iris-ansi.el
+lisp/term/linux.el
+lisp/term/lk201.el
+lisp/term/news.el
+lisp/term/ns-win.el
+lisp/term/rxvt.el
+lisp/term/screen.el
+lisp/term/sun.el
+lisp/term/tvi970.el
+lisp/term/vt100.el
+lisp/term/vt200.el
+lisp/term/wyse50.el
+lisp/term/x-win.el
+lisp/term/xterm.el
+lisp/textmodes/artist.el
+lisp/textmodes/bib-mode.el
+lisp/textmodes/bibtex-style.el
+lisp/textmodes/bibtex.el
+lisp/textmodes/conf-mode.el
+lisp/textmodes/dns-mode.el
+lisp/textmodes/enriched.el
+lisp/textmodes/fill.el
+lisp/textmodes/makeinfo.el
+lisp/textmodes/nroff-mode.el
+lisp/textmodes/page-ext.el
+lisp/textmodes/page.el
+lisp/textmodes/paragraphs.el
+lisp/textmodes/picture.el
+lisp/textmodes/po.el
+lisp/textmodes/refbib.el
+lisp/textmodes/refer.el
+lisp/textmodes/remember.el
+lisp/textmodes/rst.el
+lisp/textmodes/sgml-mode.el
+lisp/textmodes/table.el
+lisp/textmodes/texinfmt.el
+lisp/textmodes/texinfo.el
+lisp/textmodes/texnfo-upd.el
+lisp/textmodes/text-mode.el
+lisp/textmodes/tildify.el
+lisp/textmodes/two-column.el
+lisp/textmodes/underline.el
+lisp/thingatpt.el
+lisp/thumbs.el
+lisp/time-stamp.el
+lisp/time.el
+lisp/timezone.el
+lisp/tmm.el
+lisp/tool-bar.el
+lisp/tooltip.el
+lisp/tree-widget.el
+lisp/tutorial.el
+lisp/type-break.el
+lisp/uniquify.el
+lisp/url/*
+lisp/userlock.el
+lisp/vc/*
+lisp/vcursor.el
+lisp/version.el
+lisp/view.el
+lisp/vt-control.el
+lisp/vt100-led.el
+lisp/wdired.el
+lisp/whitespace.el
+lisp/wid-browse.el
+lisp/wid-edit.el
+lisp/widget.el
+lisp/windmove.el
+lisp/window.el
+lisp/winner.el
+lisp/woman.el
+lisp/x-dnd.el
+lisp/xml.el
+lisp/xt-mouse.el
+lwlib/*
+oldXMenu/*
 src/bitmaps/
-src/buffer.c
-src/callint.c
-src/callproc.c
-src/casefiddle.c
-src/casetab.c
-src/category.c
-src/ccl.c
-src/charset.c
-src/cm.c
-src/cmds.c
-src/coding.c
-src/composite.c
-src/config.in
-src/data.c
-src/doc.c
-src/doprnt.c
-src/ecrt0.c
-src/emacs.c
-src/epaths.in
-src/fileio.c
-src/filelock.c
-src/filemode.c
-src/firstfile.c
-src/floatfns.c
-src/fringe.c
-src/fns.c
-src/fontset.c
-src/getloadavg.c
-src/gmalloc.c
-src/gtkutil.c
-src/indent.c
-src/insdel.c
-src/image.c
-src/lastfile.c
-src/lread.c
-src/macros.c
-src/makefile.w32-in
-src/marker.c
-src/md5.c
-src/minibuf.c
-src/mktime.c
-src/pre-crt0.c
-src/prefix-args.c
-src/print.c
-src/process.c
-src/ralloc.c
-src/region-cache.c
-src/scroll.c
-src/search.c
-src/sound.c
-src/strftime.c
-src/sysdep.c
-src/termcap.c
-src/terminfo.c
-src/textprop.c
-src/tparam.c
-src/undo.c
-src/unexaix.c
-src/unexalpha.c
-src/unexelf.c
-src/unexhp9k800.c
-src/vm-limit.c
-src/widget.c
-src/xfns.c
-src/xmenu.c
-src/xrdb.c
-src/xselect.c
-src/xterm.c
+src/cygw32.c
+src/cygw32.h
+src/macfont.m
+src/nsfns.m
+src/nsfont.m
+src/nsimage.m
+src/nsmenu.m
+src/nsselect.m
+src/nsterm.m
+test/automated/*
+test/cedet/*
+test/rmailmm.el
+
+
+;;; Local Variables:
+;;;   coding: utf-8
+;;; End:

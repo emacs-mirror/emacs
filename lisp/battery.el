@@ -1,4 +1,4 @@
-;;; battery.el --- display battery status information  -*- coding: utf-8 -*-
+;;; battery.el --- display battery status information
 
 ;; Copyright (C) 1997-1998, 2000-2015 Free Software Foundation, Inc.
 

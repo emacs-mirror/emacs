@@ -32,7 +32,7 @@ Display a description of what register @var{r} contains.
 @vindex register-preview-delay
 @cindex preview of registers
   All of the commands that prompt for a register will display a
-``preview'' window that lists the existing registers (if there are
+preview window that lists the existing registers (if there are
 any) after a short delay.  To change the length of the delay,
 customize @code{register-preview-delay}.  To prevent this display, set
 that option to @code{nil}.  You can explicitly request a preview
@@ -121,7 +121,7 @@ reactivates the mark where it was last set.  The mark is deactivated
 at the end of this command.  @xref{Mark}.  @kbd{C-u C-x r s @var{r}},
 the same command with a prefix argument, copies the text into register
 @var{r} and deletes the text from the buffer as well; you can think of
-this as ``moving'' the region text into the register.
+this as moving the region text into the register.
 
 @findex append-to-register
 @findex prepend-to-register
@@ -285,7 +285,7 @@ restore a frameset.)
   @dfn{Bookmarks} are somewhat like registers in that they record
 positions you can jump to.  Unlike registers, they have long names, and
 they persist automatically from one Emacs session to the next.  The
-prototypical use of bookmarks is to record ``where you were reading'' in
+prototypical use of bookmarks is to record where you were reading in
 various files.
 
 @table @kbd

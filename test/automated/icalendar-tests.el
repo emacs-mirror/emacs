@@ -213,7 +213,7 @@ END:VTIMEZONE
     (should (string= "STD-02:00DST-03:00,M3.5.0/03:00:00,M10.5.0/04:00:00"
                      (cdr result)))
     (setq vtimezone (icalendar-tests--get-ical-event "BEGIN:VTIMEZONE
-TZID:anothername\, with a comma
+TZID:anothername, with a comma
 BEGIN:STANDARD
 DTSTART:16010101T040000
 TZOFFSETFROM:+0300
@@ -235,7 +235,7 @@ END:VTIMEZONE
                      (cdr result)))
     ;; offsetfrom = offsetto
     (setq vtimezone (icalendar-tests--get-ical-event "BEGIN:VTIMEZONE
-TZID:Kolkata\, Chennai\, Mumbai\, New Delhi
+TZID:Kolkata, Chennai, Mumbai, New Delhi
 X-MICROSOFT-CDO-TZID:23
 BEGIN:STANDARD
 DTSTART:16010101T000000
@@ -1327,7 +1327,7 @@ DTEND;VALUE=DATE-TIME:20030919T113000"
   (icalendar-tests--test-import
    "BEGIN:VCALENDAR
 BEGIN:VTIMEZONE
-TZID:fictional\, nonexistent\, arbitrary
+TZID:fictional, nonexistent, arbitrary
 BEGIN:STANDARD
 DTSTART:20100101T000000
 TZOFFSETFROM:+0200
@@ -1463,7 +1463,7 @@ METHOD:REQUEST
 PRODID:Microsoft CDO for Microsoft Exchange
 VERSION:2.0
 BEGIN:VTIMEZONE
-TZID:Kolkata\, Chennai\, Mumbai\, New Delhi
+TZID:Kolkata, Chennai, Mumbai, New Delhi
 X-MICROSOFT-CDO-TZID:23
 BEGIN:STANDARD
 DTSTART:16010101T000000
@@ -2174,7 +2174,7 @@ METHOD:REQUEST
 PRODID:Microsoft Exchange Server 2007
 VERSION:2.0
 BEGIN:VTIMEZONE
-TZID:(UTC+01:00) Amsterdam\, Berlin\, Bern\, Rome\, Stockholm\, Vienna
+TZID:(UTC+01:00) Amsterdam, Berlin, Bern, Rome, Stockholm, Vienna
 BEGIN:STANDARD
 DTSTART:16010101T030000
 TZOFFSETFROM:+0200

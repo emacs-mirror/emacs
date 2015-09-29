@@ -1045,7 +1045,7 @@ DEFUN ("generate-new-buffer-name", Fgenerate_new_buffer_name,
        doc: /* Return a string that is the name of no existing buffer based on NAME.
 If there is no live buffer named NAME, then return NAME.
 Otherwise modify name by appending `<NUMBER>', incrementing NUMBER
-\(starting at 2) until an unused name is found, and then return that name.
+(starting at 2) until an unused name is found, and then return that name.
 Optional second argument IGNORE specifies a name that is okay to use (if
 it is in the sequence to be tried) even if a buffer with that name exists.
 
@@ -1388,7 +1388,7 @@ DEFUN ("buffer-chars-modified-tick", Fbuffer_chars_modified_tick,
        Sbuffer_chars_modified_tick, 0, 1, 0,
        doc: /* Return BUFFER's character-change tick counter.
 Each buffer has a character-change tick counter, which is set to the
-value of the buffer's tick counter \(see `buffer-modified-tick'), each
+value of the buffer's tick counter (see `buffer-modified-tick'), each
 time text in that buffer is inserted or deleted.  By comparing the
 values returned by two individual calls of `buffer-chars-modified-tick',
 you can tell whether a character change occurred in that buffer in
@@ -3797,10 +3797,10 @@ If omitted, BUFFER defaults to the current buffer.
 BEG and END may be integers or markers.
 The fourth arg FRONT-ADVANCE, if non-nil, makes the marker
 for the front of the overlay advance when text is inserted there
-\(which means the text *is not* included in the overlay).
+(which means the text *is not* included in the overlay).
 The fifth arg REAR-ADVANCE, if non-nil, makes the marker
 for the rear of the overlay advance when text is inserted there
-\(which means the text *is* included in the overlay).  */)
+(which means the text *is* included in the overlay).  */)
   (Lisp_Object beg, Lisp_Object end, Lisp_Object buffer,
    Lisp_Object front_advance, Lisp_Object rear_advance)
 {
@@ -6020,7 +6020,7 @@ between 0.0 and 1.0, inclusive.  */);
 	       doc: /* List of functions to call before each text change.
 Two arguments are passed to each function: the positions of
 the beginning and end of the range of old text to be changed.
-\(For an insertion, the beginning and end are at the same place.)
+(For an insertion, the beginning and end are at the same place.)
 No information is given about the length of the text after the change.
 
 Buffer changes made while executing the `before-change-functions'
@@ -6037,7 +6037,7 @@ from happening repeatedly and making Emacs nonfunctional.  */);
 Three arguments are passed to each function: the positions of
 the beginning and end of the range of changed text,
 and the length in chars of the pre-change text replaced by that range.
-\(For an insertion, the pre-change length is zero;
+(For an insertion, the pre-change length is zero;
 for a deletion, that length is the number of chars deleted,
 and the post-change beginning and end are at the same place.)
 
@@ -6082,7 +6082,7 @@ was modified between BEG and END.  PROPERTY is the property name,
 and VALUE is the old value.
 
 An entry (apply FUN-NAME . ARGS) means undo the change with
-\(apply FUN-NAME ARGS).
+(apply FUN-NAME ARGS).
 
 An entry (apply DELTA BEG END FUN-NAME . ARGS) supports selective undo
 in the active region.  BEG and END is the range affected by this entry
@@ -6242,7 +6242,7 @@ to the default frame line height.  A value of nil means add no extra space.  */)
 		     doc: /* Non-nil means show a cursor in non-selected windows.
 If nil, only shows a cursor in the selected window.
 If t, displays a cursor related to the usual cursor type
-\(a solid box becomes hollow, a bar becomes a narrower bar).
+(a solid box becomes hollow, a bar becomes a narrower bar).
 You can also specify the cursor type as in the `cursor-type' variable.
 Use Custom to set this variable and update the display."  */);
 

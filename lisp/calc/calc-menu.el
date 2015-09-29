@@ -863,6 +863,13 @@
               :keys "I u M"
               :active (>= (calc-stack-size) 1)
               :help "The average (arithmetic mean) of the data values as an error form"]
+              ["rms(1:)"
+               (progn
+                 (require 'calc-stat)
+                 (call-interactively 'calc-vector-rms))
+               :keys "u R"
+               :active (>= (calc-stack-size) 1)
+               :help "The root mean square of the data values"]
               ["sdev(1:)"
                (progn
                  (require 'calc-stat)

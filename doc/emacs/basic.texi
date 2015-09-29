@@ -1,3 +1,4 @@
+@c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2015 Free Software
 @c Foundation, Inc.
@@ -424,7 +425,7 @@ On some text terminals, Emacs may not recognize the @key{DEL} key
 properly.  @xref{DEL Does Not Delete}, if you encounter this problem.
 
   The @key{Delete} (@code{delete-forward-char}) command deletes in the
-``opposite direction'': it deletes the character after point, i.e., the
+opposite direction: it deletes the character after point, i.e., the
 character under the cursor.  If point was at the end of a line, this
 joins the following line onto this one.  Like @kbd{@key{DEL}}, it
 deletes the text in the region if the region is active (@pxref{Mark}).
@@ -762,7 +763,7 @@ down one line, as you might expect---the @samp{0} is treated as part
 of the prefix argument.
 
 (What if you do want to insert five copies of @samp{0}?  Type @kbd{M-5
-C-u 0}.  Here, @kbd{C-u} ``terminates'' the prefix argument, so that
+C-u 0}.  Here, @kbd{C-u} terminates the prefix argument, so that
 the next keystroke begins the command that you want to execute.  Note
 that this meaning of @kbd{C-u} applies only to this case.  For the
 usual role of @kbd{C-u}, see below.)
@@ -780,7 +781,7 @@ multiplies the argument for the next command by four.  @kbd{C-u C-u}
 multiplies it by sixteen.  Thus, @kbd{C-u C-u C-f} moves forward
 sixteen characters.  Other useful combinations are @kbd{C-u C-n},
 @kbd{C-u C-u C-n} (move down a good fraction of a screen), @kbd{C-u
-C-u C-o} (make ``a lot'' of blank lines), and @kbd{C-u C-k} (kill four
+C-u C-o} (make sixteen blank lines), and @kbd{C-u C-k} (kill four
 lines).
 
   You can use a numeric argument before a self-inserting character to

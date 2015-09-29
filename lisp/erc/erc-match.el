@@ -84,7 +84,7 @@ Useful to mark nicks from dangerous hosts."
 
 (defcustom erc-current-nick-highlight-type 'keyword
   "Determines how to highlight text in which your current nickname appears
-\(does not apply to text sent by you\).
+\(does not apply to text sent by you).
 
 The following values are allowed:
 

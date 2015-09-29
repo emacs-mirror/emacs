@@ -2893,6 +2893,9 @@ default.  If you want to have these key bindings available, set in your
 (setq reftex-extra-bindings t)
 @end lisp
 
+Note that this variable has to be set before @RefTeX{} is loaded to
+have an effect.
+
 @vindex reftex-load-hook
 Changing and adding to @RefTeX{}'s key bindings is best done in the hook
 @code{reftex-load-hook}.  For information on the keymaps

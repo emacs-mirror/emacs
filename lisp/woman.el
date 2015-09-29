@@ -2716,7 +2716,7 @@ If DELETE is non-nil then delete from point."
 
 (defsubst woman-unescape (macro)
   "Replace escape sequences in the body of MACRO.
-Replaces || by |, but | by \, where | denotes the internal escape."
+Replaces || by |, but | by \\, where | denotes the internal escape."
   (let (start)
     (while (setq start (string-match woman-unescape-regex macro start))
       (setq macro
@@ -2838,7 +2838,7 @@ special characters."
 (defun woman-strings (&optional to)
   "Process ?roff string requests and escape sequences up to buffer position TO.
 Strings are defined/updated by `.ds xx string' requests and
-interpolated by `\*x' and `\*(xx' escapes."
+interpolated by `\\*x' and `\\*(xx' escapes."
   ;; Add support for .as and .rm?
   (while
       ;; Find .ds requests and \* escapes:
@@ -3549,7 +3549,7 @@ The expression may be an argument in quotes."
 		       (if (> (woman-parse-numeric-value) 0) 1 0))
 		     )))
 	    ))
-;    (if (looking-at "[ \t\nRC\)\"]")	; R, C are tab types
+;    (if (looking-at "[ \t\nRC)\"]")	; R, C are tab types
 ;	()
 ;      (WoMan-warn "Unimplemented numerical operator `%c' in %s"
 ;		  (following-char)
@@ -3583,7 +3583,7 @@ expression in parentheses.  Leaves point after the value."
 		    ;; string-to-number returns 0 if number not parsed.
 		    (string-to-number (match-string 0)))
 		   ((looking-at "\\\\n\\([-+]\\)?\\(?:\
-\\[\\([^]]+\\)\\]\\|\(\\(..\\)\\|\\(.\\)\\)")
+\\[\\([^]]+\\)\\]\\|(\\(..\\)\\|\\(.\\)\\)")
 		    ;; interpolate number register, maybe auto-incremented
 		    (let* ((pm (match-string-no-properties 1))
 			   (name (or (match-string-no-properties 2)
@@ -3761,7 +3761,7 @@ Round to whole lines, default 1 line.  Format paragraphs upto TO.
 
 (defun woman2-TH (to)
   ".TH n c x v m -- Begin a man page.  Format paragraphs upto TO.
-n is the name of the page in chapter c\; x is extra commentary\;
+n is the name of the page in chapter c; x is extra commentary;
 v alters page foot left; m alters page head center.
 \(Should set prevailing indent and tabs to 5.)"
   (woman-forward-arg 'unquote 'concat)
@@ -4349,7 +4349,7 @@ Format paragraphs upto TO."
 
 (defun woman2-ta (to)
   ".ta Nt ... -- Set tabs, left type, unless t=R(right), C(centered).
-\(Breaks, but should not.)  The tab stops are separated by spaces\;
+\(Breaks, but should not.)  The tab stops are separated by spaces;
 a value preceded by + represents an increment to the previous stop value.
 Format paragraphs upto TO."
   (setq tab-stop-list nil)
@@ -4626,10 +4626,5 @@ logging the message."
      `("" (buffer . ,buf) . ,(bookmark-get-bookmark-record bookmark)))))
 
 (provide 'woman)
-
-
-;; Local Variables:
-;; coding: utf-8
-;; End:
 
 ;;; woman.el ends here

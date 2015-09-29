@@ -94,7 +94,7 @@ now displayed in any window.
 
   While entering the buffer name, you can use the usual completion and
 history commands (@pxref{Minibuffer}).  Note that @kbd{C-x b}, and
-related commands, use ``permissive completion with confirmation'' for
+related commands, use @dfn{permissive completion with confirmation} for
 minibuffer completion: if you type @key{RET} immediately after
 completing up to a nonexistent buffer name, Emacs prints
 @samp{[Confirm]} and you must type a second @key{RET} to submit that
@@ -180,7 +180,7 @@ buffers that were current most recently come first.
 
   @samp{.} in the first field of a line indicates that the buffer is
 current.  @samp{%} indicates a read-only buffer.  @samp{*} indicates
-that the buffer is ``modified''.  If several buffers are modified, it
+that the buffer is modified.  If several buffers are modified, it
 may be time to save some with @kbd{C-x s} (@pxref{Save Commands}).
 Here is an example of a buffer list:
 

@@ -1,4 +1,4 @@
-@c -*-texinfo-*-
+@c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1993, 1995, 1998-1999, 2001-2015 Free Software
 @c Foundation, Inc.
@@ -398,7 +398,7 @@ Enter the answer (default 42):
 
 @item
 In @code{interactive}, if you use a Lisp expression to produce a list
-of arguments, don't try to provide the ``correct'' default values for
+of arguments, don't try to provide the correct default values for
 region or position arguments.  Instead, provide @code{nil} for those
 arguments if they were not specified, and have the function body
 compute the default value when the argument is @code{nil}.  For
@@ -772,7 +772,7 @@ is indicative and has a proper subject.
 @item
 The documentation string for a function that is a yes-or-no predicate
 should start with words such as ``Return t if'', to indicate
-explicitly what constitutes ``truth''.  The word ``return'' avoids
+explicitly what constitutes truth.  The word ``return'' avoids
 starting the sentence with lower-case ``t'', which could be somewhat
 distracting.
 
@@ -883,7 +883,7 @@ strings, though.
 Comments that start with three semicolons, @samp{;;;}, should start at
 the left margin.  We use them
 for comments which should be considered a
-``heading'' by Outline minor mode.  By default, comments starting with
+heading by Outline minor mode.  By default, comments starting with
 at least three semicolons (followed by a single space and a
 non-whitespace character) are considered headings, comments starting
 with two or fewer are not.  Historically, triple-semicolon comments have

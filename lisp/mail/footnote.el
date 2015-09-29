@@ -1,4 +1,4 @@
-;;; footnote.el --- footnote support for message mode  -*- coding: utf-8;-*-
+;;; footnote.el --- footnote support for message mode
 
 ;; Copyright (C) 1997, 2000-2015 Free Software Foundation, Inc.
 

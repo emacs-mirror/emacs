@@ -29,6 +29,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "frame.h" /* Required for termhooks.h.  */
 #include "termhooks.h"
 
+#include <errno.h>
 #include <sys/inotify.h>
 #include <sys/ioctl.h>
 
@@ -129,17 +130,14 @@ inotify_callback (int fd, void *_)
 
   to_read = 0;
   if (ioctl (fd, FIONREAD, &to_read) == -1)
-    xsignal1
-      (Qfile_notify_error,
-       build_string ("Error while trying to retrieve file system events"));
+    report_file_notify_error ("Error while retrieving file system events",
+			      Qnil);
   buffer = xmalloc (to_read);
   n = read (fd, buffer, to_read);
   if (n < 0)
     {
       xfree (buffer);
-      xsignal1
-      (Qfile_notify_error,
-       build_string ("Error while trying to read file system events"));
+      report_file_notify_error ("Error while reading file system events", Qnil);
     }
 
   EVENT_INIT (event);
@@ -215,7 +213,10 @@ symbol_to_inotifymask (Lisp_Object symb)
   else if (EQ (symb, Qt) || EQ (symb, Qall_events))
     return IN_ALL_EVENTS;
   else
-      xsignal2 (Qfile_notify_error, build_string ("Unknown aspect"), symb);
+    {
+      errno = EINVAL;
+      report_file_notify_error ("Unknown aspect", symb);
+    }
 }
 
 static uint32_t
@@ -307,9 +308,7 @@ is managed internally and there is no corresponding inotify_init.  Use
     {
       inotifyfd = inotify_init1 (IN_NONBLOCK|IN_CLOEXEC);
       if (inotifyfd < 0)
-	xsignal1
-	  (Qfile_notify_error,
-	   build_string ("File watching feature (inotify) is not available"));
+	report_file_notify_error ("File watching is not available", Qnil);
       watch_list = Qnil;
       add_read_fd (inotifyfd, &inotify_callback, NULL);
     }
@@ -318,8 +317,7 @@ is managed internally and there is no corresponding inotify_init.  Use
   encoded_file_name = ENCODE_FILE (file_name);
   watchdesc = inotify_add_watch (inotifyfd, SSDATA (encoded_file_name), mask);
   if (watchdesc == -1)
-    xsignal2 (Qfile_notify_error,
-	      build_string ("Could not add watch for file"), file_name);
+    report_file_notify_error ("Could not add watch for file", file_name);
 
   watch_descriptor = make_watch_descriptor (watchdesc);
 
@@ -348,8 +346,7 @@ See inotify_rm_watch(2) for more information.
   int wd = XINT (watch_descriptor);
 
   if (inotify_rm_watch (inotifyfd, wd) == -1)
-    xsignal2 (Qfile_notify_error,
-	      build_string ("Could not rm watch"), watch_descriptor);
+    report_file_notify_error ("Could not rm watch", watch_descriptor);
 
   /* Remove watch descriptor from watch list.  */
   watch_object = Fassoc (watch_descriptor, watch_list);

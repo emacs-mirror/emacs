@@ -72,10 +72,10 @@ a file listing in the desired format.  LS-SWITCHES is a set of
 
 The two options must be set to compatible values.
 For example, to use human-readable file sizes with GNU ls:
-   \(\"-exec ls -ldh {} +\" . \"-ldh\")
+   (\"-exec ls -ldh {} +\" . \"-ldh\")
 
 To use GNU find's inbuilt \"-ls\" option to list files:
-   \(\"-ls\" . \"-dilsb\")
+   (\"-ls\" . \"-dilsb\")
 since GNU find's output has the same format as using GNU ls with
 the options \"-dilsb\"."
   :version "24.1"	       ; add tests for -ls and -exec + support

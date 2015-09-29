@@ -1,4 +1,4 @@
-;;; wombat-theme.el --- Custom face theme for Emacs  -*-coding: utf-8 -*-
+;;; wombat-theme.el --- Custom face theme for Emacs
 
 ;; Copyright (C) 2011-2015 Free Software Foundation, Inc.
 

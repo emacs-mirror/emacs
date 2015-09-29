@@ -2271,7 +2271,7 @@ isn't changed if the display can render Unicode characters."
 	     (?\∨ "OR")
 	     (?\∩ "(U")
 	     (?\∪ ")U")
-	     (?\∫ "\int ")
+	     (?\∫ "\\int ")
 	     (?\∬ "DI")
 	     (?\∮ "Io")
 	     (?\∴ ".:")

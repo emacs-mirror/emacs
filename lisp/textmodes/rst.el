@@ -296,7 +296,7 @@ in parentheses follows the development revision and the time stamp.")
 ;; syntax.
 (defconst rst-bullets
   ;; Sorted so they can form a character class when concatenated.
-  '(?- ?* ?+ ?\u2022 ?\u2023 ?\u2043)
+  '(?- ?* ?+ ?• ?‣ ?⁃)
   "List of all possible bullet characters for bulleted lists.")
 
 (defconst rst-uri-schemes
@@ -392,8 +392,8 @@ in parentheses follows the development revision and the time stamp.")
 				        ; item tag.
 
     ;; Inline markup (`ilm')
-    (ilm-pfx (:alt "^" hws-prt "[-'\"([{<\u2018\u201c\u00ab\u2019/:]"))
-    (ilm-sfx (:alt "$" hws-prt "[]-'\")}>\u2019\u201d\u00bb/:.,;!?\\]"))
+    (ilm-pfx (:alt "^" hws-prt "[-'\"([{<‘“«’/:]"))
+    (ilm-sfx (:alt "$" hws-prt "[]-'\")}>’”»/:.,;!?\\]"))
 
     ;; Inline markup content (`ilc')
     (ilcsgl-tag "\\S ") ; A single non-white character.
@@ -442,7 +442,7 @@ in parentheses follows the development revision and the time stamp.")
     (opt-tag (:shy optsta-tag optnam-tag optarg-tag "?")) ; A complete option.
 
     ;; Footnotes and citations (`fnc')
-    (fncnam-prt "[^\]\n]") ; Part of a footnote or citation name.
+    (fncnam-prt "[^]\n]") ; Part of a footnote or citation name.
     (fncnam-tag fncnam-prt "+") ; A footnote or citation name.
     (fnc-tag "\\[" fncnam-tag "]") ; A complete footnote or citation tag.
     (fncdef-tag-2 (:grp exm-sta)
@@ -512,7 +512,7 @@ in parentheses follows the development revision and the time stamp.")
 				   ; colon tag.
 
     ;; Comments (`cmt')
-    (cmt-sta-1 (:grp exm-sta) "[^\[|_\n]"
+    (cmt-sta-1 (:grp exm-sta) "[^[|_\n]"
 	       (:alt "[^:\n]" (:seq ":" (:alt "[^:\n]" "$")))
 	       "*$") ; Start of a comment block; first group is explicit markup
 		     ; start.
@@ -778,12 +778,12 @@ This inherits from Text mode.")
     (modify-syntax-entry ?\\ "\\" st)
     (modify-syntax-entry ?_ "." st)
     (modify-syntax-entry ?| "." st)
-    (modify-syntax-entry ?\u00ab "." st)
-    (modify-syntax-entry ?\u00bb "." st)
-    (modify-syntax-entry ?\u2018 "." st)
-    (modify-syntax-entry ?\u2019 "." st)
-    (modify-syntax-entry ?\u201c "." st)
-    (modify-syntax-entry ?\u201d "." st)
+    (modify-syntax-entry ?« "." st)
+    (modify-syntax-entry ?» "." st)
+    (modify-syntax-entry ?‘ "." st)
+    (modify-syntax-entry ?’ "." st)
+    (modify-syntax-entry ?“ "." st)
+    (modify-syntax-entry ?” "." st)
     st)
   "Syntax table used while in `rst-mode'.")
 

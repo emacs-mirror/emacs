@@ -143,7 +143,7 @@ all) of the variables @code{calendar-bahai-all-holidays-flag},
   Each of the holiday variables is a list of @dfn{holiday forms}, each
 form describing a holiday (or sometimes a list of holidays).  Here is
 a table of the possible kinds of holiday form.  Day numbers and month
-numbers count starting from 1, but ``dayname'' numbers count Sunday as
+numbers count starting from 1, but @dfn{dayname} numbers count Sunday as
 0.  The argument @var{string} is always the description of the
 holiday, as a string.
 
@@ -840,7 +840,7 @@ Renew medication (5th time)
 @noindent
 in the fancy diary display on September 7, 2012.
 
-  There is an ``early reminder'' diary sexp that includes its entry in the
+  There is an early-reminder diary sexp that includes its entry in the
 diary not only on the date of occurrence, but also on earlier dates.
 For example, if you want a reminder a week before your anniversary, you
 can use

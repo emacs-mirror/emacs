@@ -615,7 +615,7 @@ is more efficient."
 of all elements of TREE.
 
 If REVERSE is non-nil, the stack is sorted in reverse order.
-\(See also `avl-tree-stack-pop'\).
+\(See also `avl-tree-stack-pop').
 
 Note that any modification to TREE *immediately* invalidates all
 avl-tree-stacks created before the modification (in particular,

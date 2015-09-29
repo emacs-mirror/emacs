@@ -917,7 +917,7 @@ has been customized to enable this behavior), `allout-mode' will be
 automatically activated.  The layout dictated by the value will be used to
 set the initial exposure when `allout-mode' is activated.
 
-\*You should not setq-default this variable non-nil unless you want every
+*You should not setq-default this variable non-nil unless you want every
 visited file to be treated as an allout file.*
 
 The value would typically be set by a file local variable.  For
@@ -1512,7 +1512,7 @@ already associated with a file.
 
 It consists of an encrypted random string useful only to verify that a
 passphrase entered by the user is effective for decryption.  The passphrase
-itself is \*not* recorded in the file anywhere, and the encrypted contents
+itself is *not* recorded in the file anywhere, and the encrypted contents
 are random binary characters to avoid exposing greater susceptibility to
 search attacks.
 
@@ -3721,7 +3721,7 @@ Nuances:
   (save-match-data
     (let* ((inhibit-field-text-motion t)
            (depth (+ (allout-current-depth) relative-depth))
-           (opening-on-blank (if (looking-at "^\$")
+           (opening-on-blank (if (looking-at "^$")
                                  (not (setq before nil))))
            ;; bunch o vars set while computing ref-topic
            opening-numbered
@@ -5562,9 +5562,8 @@ Defaults:
 	  ;; Specified but not a buffer -- get it:
 	  (let ((got (get-buffer frombuf)))
 	    (if (not got)
-		(error (concat "allout-process-exposed: source buffer "
-			       frombuf
-			       " not found."))
+		(error "allout-process-exposed: source buffer %s not found."
+		       frombuf)
 	      (setq frombuf got))))
     ;; not specified -- default it:
     (setq frombuf (current-buffer)))
@@ -5909,7 +5908,7 @@ file with topics pending encryption is saved, topics pending
 encryption are encrypted.  See `allout-encrypt-unencrypted-on-saves'
 for auto-encryption specifics.
 
-\*NOTE WELL* that automatic encryption that happens during saves will
+*NOTE WELL* that automatic encryption that happens during saves will
 default to symmetric encryption -- you must deliberately (re)encrypt key-pair
 encrypted topics if you want them to continue to use the key-pair cipher.
 

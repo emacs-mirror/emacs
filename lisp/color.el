@@ -1,4 +1,4 @@
-;;; color.el --- Color manipulation library -*- coding: utf-8; lexical-binding:t -*-
+;;; color.el --- Color manipulation library -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2010-2015 Free Software Foundation, Inc.
 

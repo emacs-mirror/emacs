@@ -106,7 +106,7 @@ switches."
   :version "25.1"
   :group 'vc-svn)
 
-(defcustom vc-svn-header '("\$Id\$")
+(defcustom vc-svn-header '("$Id\ $")
   "Header keywords to be inserted by `vc-insert-headers'."
   :version "24.1"     ; no longer consult the obsolete vc-header-alist
   :type '(repeat string)

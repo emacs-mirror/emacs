@@ -354,7 +354,7 @@ CPHR is the complex heading regexp to use for parsing ITEM."
   (let (fixitem)
     (if (not cphr)
 	item
-      (unless (string-match "^\*+ " item)
+      (unless (string-match "^\\*+ " item)
 	(setq item (concat "* " item) fixitem t))
       (if (string-match cphr item)
 	  (setq item
@@ -369,7 +369,7 @@ CPHR is the complex heading regexp to use for parsing ITEM."
 	 0 (1+ (match-end 1))
 	 (list 'org-whitespace (* 2 (1- (org-reduced-level (- (match-end 1) (match-beginning 1))))))
 	 item))
-      (if fixitem (replace-regexp-in-string "^\*+ " "" item) item))))
+      (if fixitem (replace-regexp-in-string "^\\*+ " "" item) item))))
 
 (defun org-columns-compact-links (s)
   "Replace [[link][desc]] with [desc] or [link]."

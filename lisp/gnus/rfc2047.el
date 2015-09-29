@@ -102,7 +102,7 @@ quoted-printable and base64 respectively.")
 
 (eval-and-compile ;; Necessary to hard code them in `rfc2047-decode-region'.
   (defconst rfc2047-encoded-word-regexp
-    "=\\?\\([^][\000-\040()<>@,\;:*\\\"/?.=]+\\)\\(?:\\*[^?]+\\)?\\?\
+    "=\\?\\([^][\000-\040()<>@,;:*\\\"/?.=]+\\)\\(?:\\*[^?]+\\)?\\?\
 \\(B\\?[+/0-9A-Za-z]*=*\
 \\|Q\\?[ ->@-~]*\
 \\)\\?="
@@ -112,7 +112,7 @@ quoted-printable and base64 respectively.")
     ;; the characters that those encodings may generally use.
     )
   (defconst rfc2047-encoded-word-regexp-loose
-    "=\\?\\([^][\000-\040()<>@,\;:*\\\"/?.=]+\\)\\(?:\\*[^?]+\\)?\\?\
+    "=\\?\\([^][\000-\040()<>@,;:*\\\"/?.=]+\\)\\(?:\\*[^?]+\\)?\\?\
 \\(B\\?[+/0-9A-Za-z]*=*\
 \\|Q\\?\\(?:\\?+[ -<>@-~]\\)?\\(?:[ ->@-~]+\\?+[ -<>@-~]\\)*[ ->@-~]*\\?*\
 \\)\\?="

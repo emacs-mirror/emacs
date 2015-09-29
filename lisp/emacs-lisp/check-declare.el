@@ -162,7 +162,7 @@ def\\(?:un\\|subst\\|foo\\|method\\|class\\|\
 ine-\\(?:derived\\|generic\\|\\(?:global\\(?:ized\\)?-\\)?minor\\)-mode\\|\
 \\(?:ine-obsolete-function-\\)?alias[ \t]+'\\|\
 ine-overloadable-function\\)\\)\
-\[ \t]*%s\\([ \t;]+\\|$\\)")
+[ \t]*%s\\([ \t;]+\\|$\\)")
                            (regexp-opt (mapcar 'cadr fnlist) t)))
           (while (re-search-forward re nil t)
             (skip-chars-forward " \t\n")

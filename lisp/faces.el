@@ -433,7 +433,7 @@ completely specified)."
 (defun face-attribute-merged-with (attribute value faces &optional frame)
   "Merges ATTRIBUTE, initially VALUE, with faces from FACES until absolute.
 FACES may be either a single face or a list of faces.
-\[This is an internal function.]"
+[This is an internal function.]"
   (cond ((not (face-attribute-relative-p attribute value))
 	 value)
 	((null faces)

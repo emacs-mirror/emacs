@@ -665,8 +665,8 @@ without any conversions.
 
 VALUE is the EOL (end-of-line) format of the coding system.  It must be
 one of `unix', `dos', `mac'.  The symbol `unix' means Unix-like EOL
-\(i.e. a single LF character), `dos' means DOS-like EOL \(i.e. a sequence
-of CR followed by LF), and `mac' means Mac-like EOL \(i.e. a single CR).
+\(i.e., a single LF character), `dos' means DOS-like EOL \(i.e., a sequence
+of CR followed by LF), and `mac' means Mac-like EOL \(i.e., a single CR).
 If omitted, Emacs detects the EOL format automatically when decoding.
 
 `:charset-list' (required if `:coding-type' is `charset' or `shift-jis')

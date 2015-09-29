@@ -227,7 +227,7 @@ This function differs from vc-do-command in that it invokes `vc-src-program'."
                                           file
                                         (file-name-directory file)))))
 
-(defun vc-src-checkin (files comment)
+(defun vc-src-checkin (files comment &optional _rev)
   "SRC-specific version of `vc-backend-checkin'.
 REV is ignored."
   (vc-src-command nil files "commit" "-m" comment))

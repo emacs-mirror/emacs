@@ -111,7 +111,7 @@ Remove any installation or deletion mark previously added to the
 current line by an @kbd{i} or @kbd{d} command.
 
 @item U
-Mark all package with a newer available version for ``upgrading''
+Mark all package with a newer available version for upgrading
 (@code{package-menu-mark-upgrades}).  This places an installation mark
 on the new available versions, and a deletion mark on the old
 installed versions.
@@ -246,7 +246,7 @@ version @var{version} of the package named @var{name}.  Here,
 @var{version} should be a version string (corresponding to a specific
 version of the package), or @code{t} (which means to load any
 installed version), or @code{nil} (which means no version; this
-``disables'' the package, preventing it from being loaded).  A list
+disables the package, preventing it from being loaded).  A list
 element can also be the symbol @code{all}, which means to load the
 latest installed version of any package not named by the other list
 elements.  The default value is just @code{'(all)}.

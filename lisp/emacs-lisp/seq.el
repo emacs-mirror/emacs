@@ -261,8 +261,7 @@ If SEQ is empty, return INITIAL-VALUE and FUNCTION is not called."
     t))
 
 (cl-defgeneric seq-some (pred seq)
-  "Return non-nil if (PRED element) is non-nil for any element in SEQ, nil otherwise.
-If so, return the non-nil value returned by PRED."
+  "Return the first value for which if (PRED element) is non-nil for in SEQ."
   (catch 'seq--break
     (seq-doseq (elt seq)
       (let ((result (funcall pred elt)))
@@ -270,18 +269,18 @@ If so, return the non-nil value returned by PRED."
           (throw 'seq--break result))))
     nil))
 
-(cl-defgeneric seq-find (pred seq &optional sentinel)
+(cl-defgeneric seq-find (pred seq &optional default)
   "Return the first element for which (PRED element) is non-nil in SEQ.
-If no element is found, return SENTINEL or nil.
+If no element is found, return DEFAULT.
 
-Note that `seq-find' has an ambiguity if the found element is nil
-and if no SENTINEL is specified, as it cannot be known if an
-element was found or not."
+Note that `seq-find' has an ambiguity if the found element is
+identical to DEFAULT, as it cannot be known if an element was
+found or not."
   (catch 'seq--break
     (seq-doseq (elt seq)
       (when (funcall pred elt)
         (throw 'seq--break elt)))
-    sentinel))
+    default))
 
 (cl-defgeneric seq-count (pred seq)
   "Return the number of elements for which (PRED element) is non-nil in SEQ."

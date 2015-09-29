@@ -2395,10 +2395,6 @@ struct it
 	struct it_slice slice;
 	ptrdiff_t image_id;
       } image;
-      /* method == GET_FROM_COMPOSITION */
-      struct {
-	Lisp_Object object;
-      } comp;
       /* method == GET_FROM_STRETCH */
       struct {
 	Lisp_Object object;

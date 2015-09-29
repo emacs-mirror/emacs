@@ -143,7 +143,7 @@ If LAX non-nil, don't output parentheses if it doesn't require them.
 Merges keywords to avoid backtracking in Emacs's regexp matcher."
   ;; The basic idea is to find the shortest common prefix or suffix, remove it
   ;; and recurse.  If there is no prefix, we divide the list into two so that
-  ;; \(at least) one half will have at least a one-character common prefix.
+  ;; (at least) one half will have at least a one-character common prefix.
 
   ;; Also we delay the addition of grouping parenthesis as long as possible
   ;; until we're sure we need them, and try to remove one-character sequences

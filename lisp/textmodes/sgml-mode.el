@@ -525,7 +525,7 @@ Do \\[describe-key] on the following bindings to discover what they do.
   ;; This is desirable because SGML discards a newline that appears
   ;; immediately after a start tag or immediately before an end tag.
   (setq-local paragraph-start (concat "[ \t]*$\\|\
-\[ \t]*</?\\(" sgml-name-re sgml-attrs-re "\\)?>"))
+[ \t]*</?\\(" sgml-name-re sgml-attrs-re "\\)?>"))
   (setq-local paragraph-separate (concat paragraph-start "$"))
   (setq-local adaptive-fill-regexp "[ \t]*")
   (add-hook 'fill-nobreak-predicate 'sgml-fill-nobreak nil t)

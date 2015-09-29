@@ -69,7 +69,7 @@ function decode_hex(str, idx) {
   return n;
 }
 
-/^\#/ {
+/^#/ {
   print;
   next;
 }
@@ -119,4 +119,3 @@ END {
 	printf "0x%04X-0x%04X 0x%04X\n", from_code, to_code, from_unicode;
     }
 }
-

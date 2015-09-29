@@ -210,6 +210,22 @@ report_file_error (char const *string, Lisp_Object name)
   report_file_errno (string, name, errno);
 }
 
+/* Like report_file_error, but reports a file-notify-error instead.  */
+
+void
+report_file_notify_error (const char *string, Lisp_Object name)
+{
+  Lisp_Object data = CONSP (name) || NILP (name) ? name : list1 (name);
+  synchronize_system_messages_locale ();
+  char *str = strerror (errno);
+  Lisp_Object errstring
+    = code_convert_string_norecord (build_unibyte_string (str),
+				    Vlocale_coding_system, 0);
+  Lisp_Object errdata = Fcons (errstring, data);
+
+  xsignal (Qfile_notify_error, Fcons (build_string (string), errdata));
+}
+
 void
 close_file_unwind (int fd)
 {
@@ -435,7 +451,7 @@ DEFUN ("unhandled-file-name-directory", Funhandled_file_name_directory,
 A `directly usable' directory name is one that may be used without the
 intervention of any file handler.
 If FILENAME is a directly usable file itself, return
-\(file-name-directory FILENAME).
+(file-name-directory FILENAME).
 If FILENAME refers to a file which is not accessible from a local process,
 then this should return nil.
 The `call-process' and `start-process' functions use this function to
@@ -726,7 +742,7 @@ DEFUN ("make-temp-name", Fmake_temp_name, Smake_temp_name, 1, 1, 0,
        doc: /* Generate temporary file name (string) starting with PREFIX (a string).
 The Emacs process number forms part of the result, so there is no
 danger of generating a name being used by another Emacs process
-\(so long as only a single host can access the containing directory...).
+(so long as only a single host can access the containing directory...).
 
 This function tries to choose a name that has no existing file.
 For this to work, PREFIX should be an absolute file name.
@@ -742,7 +758,7 @@ normally use `make-temp-file' instead.  */)
 DEFUN ("expand-file-name", Fexpand_file_name, Sexpand_file_name, 1, 2, 0,
        doc: /* Convert filename NAME to absolute, and canonicalize it.
 Second arg DEFAULT-DIRECTORY is directory to start with if NAME is relative
-\(does not start with slash or tilde); both the directory name and
+(does not start with slash or tilde); both the directory name and
 a directory's file name are accepted.  If DEFAULT-DIRECTORY is nil or
 missing, the current buffer's value of `default-directory' is used.
 NAME should be a string that is a valid file name for the underlying
@@ -760,8 +776,8 @@ See also the function `substitute-in-file-name'.
 
 For technical reasons, this function can return correct but
 non-intuitive results for the root directory; for instance,
-\(expand-file-name ".." "/") returns "/..".  For this reason, use
-\(directory-file-name (file-name-directory dirname)) to traverse a
+(expand-file-name ".." "/") returns "/..".  For this reason, use
+(directory-file-name (file-name-directory dirname)) to traverse a
 filesystem tree, not (expand-file-name ".."  dirname).  */)
   (Lisp_Object name, Lisp_Object default_directory)
 {
@@ -1444,7 +1460,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 DEAFUN ("expand-file-name", Fexpand_file_name, Sexpand_file_name, 1, 2, 0,
   "Convert FILENAME to absolute, and canonicalize it.\n\
 Second arg DEFAULT is directory to start with if FILENAME is relative\n\
-\(does not start with slash); if DEFAULT is nil or missing,\n\
+(does not start with slash); if DEFAULT is nil or missing,\n\
 the current buffer's value of default-directory is used.\n\
 Filenames containing `.' or `..' as components are simplified;\n\
 initial `~/' expands to your home directory.\n\
@@ -2453,7 +2469,7 @@ Use `file-symlink-p' to test for such links.  */)
 DEFUN ("file-executable-p", Ffile_executable_p, Sfile_executable_p, 1, 1, 0,
        doc: /* Return t if FILENAME can be executed by you.
 For a directory, this means you can access files in that directory.
-\(It is generally better to use `file-accessible-directory-p' for that
+(It is generally better to use `file-accessible-directory-p' for that
 purpose, though.)  */)
   (Lisp_Object filename)
 {
@@ -5290,8 +5306,8 @@ DEFUN ("set-visited-file-modtime", Fset_visited_file_modtime,
 Useful if the buffer was not read from the file normally
 or if the file itself has been changed for some known benign reason.
 An argument specifies the modification time value to use
-\(instead of that of the visited file), in the form of a list
-\(HIGH LOW USEC PSEC) or an integer flag as returned by
+(instead of that of the visited file), in the form of a list
+(HIGH LOW USEC PSEC) or an integer flag as returned by
 `visited-file-modtime'.  */)
   (Lisp_Object time_flag)
 {

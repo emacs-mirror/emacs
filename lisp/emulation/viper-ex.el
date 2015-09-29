@@ -396,7 +396,7 @@ reversed."
     ))
 
 ;; Get an ex-token which is either an address or a command.
-;; A token has a type, \(command, address, end-mark\), and a value
+;; A token has a type, (command, address, end-mark), and a value
 (defun viper-get-ex-token ()
   (save-window-excursion
     (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name))
@@ -1658,7 +1658,7 @@ reversed."
   (if (and (not (string= ex-file (buffer-file-name)))
 	   (buffer-modified-p)
 	   (not ex-variant))
-      (error "No write since last change \(:rec! overrides\)"))
+      (error "No write since last change (:rec! overrides)"))
   (recover-file ex-file))
 
 ;; Tell that `rewind' is obsolete and to use `:next count' instead

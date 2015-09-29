@@ -2036,6 +2036,14 @@ XKeymacs Version 3.47, deactivating XKeymacs when Emacs is active is
 not enough to avoid its messing with the keyboard input.  Exiting
 XKeymacs completely is reported to solve the problem.
 
+** Pasting from Windows clipboard into Emacs doesn't work.
+
+This was reported to be the result of an anti-virus software blocking
+the clipboard-related operations when a Web browser is open, for
+security reasons.  The solution is to close the Web browser while
+working in Emacs, or to add emacs.exe to the list of applications that
+are allowed to use the clipboard when the Web browser is open.
+
 ** Windows 95 and networking.
 
 To support server sockets, Emacs loads ws2_32.dll.  If this file is

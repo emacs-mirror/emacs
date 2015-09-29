@@ -725,7 +725,7 @@ another application without doing anything special to Emacs.
 @c have SIGTSTP?
 @cindex SIGTSTP
   Some operating systems (those without @code{SIGTSTP}, or MS-DOS) do
-not support suspension of jobs; on these systems, ``suspension''
+not support suspension of jobs; on these systems, suspension
 actually creates a new shell temporarily as a subprocess of Emacs.
 Then you would exit the shell to return to Emacs.
 
@@ -1013,9 +1013,9 @@ process-environment
 @end group
 @end smallexample
 
-If @code{process-environment} contains ``duplicate'' elements that
+If @code{process-environment} contains multiple elements that
 specify the same environment variable, the first of these elements
-specifies the variable, and the other ``duplicates'' are ignored.
+specifies the variable, and the others are ignored.
 @end defvar
 
 @defvar initial-environment
@@ -1167,7 +1167,7 @@ user-id or login name that isn't defined, it returns @code{nil}.
   The symbols @code{user-login-name}, @code{user-real-login-name} and
 @code{user-full-name} are variables as well as functions.  The functions
 return the same values that the variables hold.  These variables allow
-you to ``fake out'' Emacs by telling the functions what to return.  The
+you to fake out Emacs by telling the functions what to return.  The
 variables are also useful for constructing frame titles (@pxref{Frame
 Titles}).
 
@@ -1545,13 +1545,13 @@ because that is how @samp{%S} normally pads to two positions.
 
 The characters @samp{E} and @samp{O} act as modifiers when used between
 @samp{%} and one of the letters in the table above.  @samp{E} specifies
-using the current locale's ``alternative'' version of the date and time.
+using the current locale's alternative version of the date and time.
 In a Japanese locale, for example, @code{%Ex} might yield a date format
 based on the Japanese Emperors' reigns.  @samp{E} is allowed in
 @samp{%Ec}, @samp{%EC}, @samp{%Ex}, @samp{%EX}, @samp{%Ey}, and
 @samp{%EY}.
 
-@samp{O} means to use the current locale's ``alternative''
+@samp{O} means to use the current locale's alternative
 representation of numbers, instead of the ordinary decimal digits.  This
 is allowed with most letters, all the ones that output numbers.
 
@@ -2192,7 +2192,7 @@ To define system-specific X11 keysyms, set the variable
 This variable's value should be an alist with one element for each
 system-specific keysym.  Each element has the form @code{(@var{code}
 . @var{symbol})}, where @var{code} is the numeric keysym code (not
-including the ``vendor specific'' bit,
+including the vendor-specific bit,
 @ifnottex
 @minus{}2**28),
 @end ifnottex
@@ -2565,7 +2565,7 @@ specification prior to @samp{"1.0"}.
 
 Several operating systems support watching of filesystems for changes
 of files.  If configured properly, Emacs links a respective library
-like @file{gfilenotify}, @file{inotify}, or  @file{w32notify}
+like @file{gfilenotify}, @file{inotify}, or @file{w32notify}
 statically.  These libraries enable watching of filesystems on the
 local machine.
 
@@ -2625,12 +2625,18 @@ any one of the following symbols:
 @item deleted
 @var{file} was deleted
 @item changed
-@var{file} has changed
+@var{file}'s contents has changed; with @file{w32notify} library,
+reports attribute changes as well
 @item renamed
 @var{file} has been renamed to @var{file1}
 @item attribute-changed
 a @var{file} attribute was changed
 @end table
+
+Note that the @file{w32notify} library does not report
+@code{attribute-changed} events.  When some file's attribute, like
+permissions or modification time, has changed, this library reports a
+@code{changed} event.
 
 @var{file} and @var{file1} are the name of the file(s) whose event is
 being reported.  For example:
@@ -2690,6 +2696,17 @@ watch library.  Otherwise, the actions @code{deleted} and
 Removes an existing file watch specified by its @var{descriptor}.
 @var{descriptor} should be an object returned by
 @code{file-notify-add-watch}.
+@end defun
+
+@defun file-notify-valid-p descriptor
+Checks a watch specified by its @var{descriptor} for validity.
+@var{descriptor} should be an object returned by
+@code{file-notify-add-watch}.
+
+A watch can become invalid if the file or directory it watches is
+deleted, or if the watcher thread exits abnormally for any other
+reason.  Removing the watch by calling @code{file-notify-rm-watch}
+also makes it invalid.
 @end defun
 
 @node Dynamic Libraries

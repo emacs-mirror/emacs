@@ -62,7 +62,7 @@ ine\\(?:-global\\)?-minor-mode\\|ine-compilation-mode\\|un-cvs-mode\\|\
 foo\\|\\(?:[^icfgv]\\|g[^r]\\)\\(\\w\\|\\s_\\)+\\*?\\)\\|easy-mmode-define-[a-z-]+\\|easy-menu-define\\|\
 menu-bar-make-toggle\\)"
    find-function-space-re
-   "\\('\\|\(quote \\)?%s\\(\\s-\\|$\\|\(\\|\)\\)")
+   "\\('\\|(quote \\)?%s\\(\\s-\\|$\\|[()]\\)")
   "The regexp used by `find-function' to search for a function definition.
 Note it must contain a `%s' at the place where `format'
 should insert the function name.  The default value avoids `defconst',

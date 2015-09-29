@@ -578,7 +578,7 @@ x_cr_export_frames (Lisp_Object frames, cairo_surface_type_t surface_type)
   cairo_t *cr;
   int width, height;
   void (*surface_set_size_func) (cairo_surface_t *, double, double) = NULL;
-  Lisp_Object acc = Qnil, args[2];
+  Lisp_Object acc = Qnil;
   int count = SPECPDL_INDEX ();
 
   Fredisplay (Qt);
@@ -662,9 +662,7 @@ x_cr_export_frames (Lisp_Object frames, cairo_surface_type_t surface_type)
 #endif
   unbind_to (count, Qnil);
 
-  args[0] = intern ("concat");
-  args[1] = Fnreverse (acc);
-  return Fapply (2, args);
+  return CALLN (Fapply, intern ("concat"), Fnreverse (acc));
 }
 
 #endif	/* USE_CAIRO */
@@ -5415,6 +5413,8 @@ xg_scroll_callback (GtkRange     *range,
       part = (bar->horizontal
 	      ? scroll_bar_after_handle : scroll_bar_below_handle);
       bar->dragging = -1;
+      break;
+    default:
       break;
     }
 
@@ -10207,6 +10207,9 @@ x_check_fullscreen (struct frame *f)
         case FULLSCREEN_HEIGHT:
           lval = Qfullheight;
           height = x_display_pixel_height (dpyinfo);
+	  break;
+	default:
+	  emacs_abort ();
         }
 
       frame_size_history_add

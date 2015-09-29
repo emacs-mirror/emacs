@@ -258,7 +258,7 @@ for formatting."
 (defun newsticker--image-read (feed-name-symbol disabled &optional max-height)
   "Read the cached image for FEED-NAME-SYMBOL from disk.
 If DISABLED is non-nil the image will be converted to a disabled look
-\(unless `newsticker-enable-logo-manipulations' is not t\).
+\(unless `newsticker-enable-logo-manipulations' is not t).
 Optional argument MAX-HEIGHT specifies the maximal image height.
 Return the image."
   (let ((image-name (concat (newsticker--images-dir)

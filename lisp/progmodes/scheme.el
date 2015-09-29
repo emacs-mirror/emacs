@@ -415,7 +415,7 @@ that variable's value is a string."
   (eval-when-compile
     (list
      ;; Similar to Scheme
-     (list "(\\(define\\(-\\w+\\)?\\)\\>[ 	]*\\\((?\\)\\(\\sw+\\)\\>"
+     (list "(\\(define\\(-\\w+\\)?\\)\\>[ 	]*\\((?\\)\\(\\sw+\\)\\>"
 	   '(1 font-lock-keyword-face)
 	   '(4 font-lock-function-name-face))
      (cons

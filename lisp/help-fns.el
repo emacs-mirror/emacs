@@ -178,7 +178,7 @@ if the variable `help-downcase-arguments' is non-nil."
         (skip-chars-forward "^ ")
         (while next
           (or opt (not (looking-at " &")) (setq opt t))
-          (if (not (re-search-forward " \\([\\[(]*\\)\\([^] &)\.]+\\)" nil t))
+          (if (not (re-search-forward " \\([\\[(]*\\)\\([^] &).]+\\)" nil t))
               (setq next nil)
             (setq args (cons (match-string 2) args))
             (when (and opt (string= (match-string 1) "("))

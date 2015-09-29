@@ -1265,7 +1265,7 @@ Note that the style variables are always made local to the buffer."
   ;;
   ;;
   ;;     void myfunc(T* p) {}
-  ;; 
+  ;;
   ;; Type a space in the first blank line, and the fontification of the next
   ;; line was fouled up by context fontification.
   (let (new-beg new-end new-region case-fold-search
@@ -1455,7 +1455,8 @@ This function is called from `c-common-init', once per mode initialization."
 
 ;;;###autoload
 (define-derived-mode c-mode prog-mode "C"
-  "Major mode for editing K&R and ANSI C code.
+  "Major mode for editing C code.
+
 To submit a problem report, enter `\\[c-submit-bug-report]' from a
 c-mode buffer.  This automatically sets up a mail buffer with version
 information already added.  You just need to add a description of the

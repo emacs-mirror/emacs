@@ -11351,7 +11351,7 @@ See Info node `(elisp)Multiple Terminals'.  */);
 
   DEFVAR_BOOL ("cannot-suspend", cannot_suspend,
 	       doc: /* Non-nil means to always spawn a subshell instead of suspending.
-\(Even if the operating system has support for stopping a process.\)  */);
+(Even if the operating system has support for stopping a process.)  */);
   cannot_suspend = false;
 
   DEFVAR_BOOL ("menu-prompting", menu_prompting,
@@ -11557,7 +11557,7 @@ immediately after running `post-command-hook'.  */);
   DEFVAR_LISP ("input-method-function", Vinput_method_function,
 	       doc: /* If non-nil, the function that implements the current input method.
 It's called with one argument, a printing character that was just read.
-\(That means a character with code 040...0176.)
+(That means a character with code 040...0176.)
 Typically this function uses `read-event' to read additional events.
 When it does so, it should first bind `input-method-function' to nil
 so it will not be called recursively.

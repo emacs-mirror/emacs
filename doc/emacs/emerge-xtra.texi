@@ -151,7 +151,7 @@ input.  The mode line indicates Auto Advance mode with @samp{A}.
   If Skip Prefers mode is in effect, the @kbd{n} and @kbd{p} commands
 skip over differences in states ``prefer-A'' and ``prefer-B''
 (@pxref{State of Difference}).  Thus you see only differences for
-which neither version is presumed ``correct''.  The mode line
+which neither version is presumed correct.  The mode line
 indicates Skip Prefers mode with @samp{S}.  This mode is only relevant
 when there is an ancestor.
 
@@ -183,7 +183,7 @@ produces this state; the mode line indicates it with @samp{B}.
 The difference is showing the A or the B state by default, because you
 haven't made a choice.  All differences start in the default-A state
 (and thus the merge buffer is a copy of the A buffer), except those for
-which one alternative is ``preferred'' (see below).
+which one alternative is preferred (see below).
 
 When you select a difference, its state changes from default-A or
 default-B to plain A or B@.  Thus, the selected difference never has

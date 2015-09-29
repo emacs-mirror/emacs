@@ -100,7 +100,7 @@ See `gnus-group-split-fancy' for more information.
   "Uses information from group parameters in order to split mail.
 It can be embedded into `nnmail-split-fancy' lists with the SPLIT
 
-\(: gnus-group-split-fancy GROUPS NO-CROSSPOST CATCH-ALL\)
+\(: gnus-group-split-fancy GROUPS NO-CROSSPOST CATCH-ALL)
 
 GROUPS may be a regular expression or a list of group names, that will
 be used to select candidate groups.  If it is omitted or nil, all

@@ -73,7 +73,7 @@ The value of the last form in the body becomes the value of the entire
 two or more forms in succession and use the value of the last of them.
 But programmers found they often needed to use a @code{progn} in the
 body of a function, where (at that time) only one form was allowed.  So
-the body of a function was made into an ``implicit @code{progn}'':
+the body of a function was made into an implicit @code{progn}:
 several forms are allowed just as in the body of an actual @code{progn}.
 Many other control structures likewise contain an implicit @code{progn}.
 As a result, @code{progn} is not used as much as it was many years ago.
@@ -220,11 +220,11 @@ list is the @var{condition}; the remaining elements, if any, the
 
 @code{cond} tries the clauses in textual order, by evaluating the
 @var{condition} of each clause.  If the value of @var{condition} is
-non-@code{nil}, the clause ``succeeds''; then @code{cond} evaluates its
+non-@code{nil}, the clause succeeds; then @code{cond} evaluates its
 @var{body-forms}, and returns the value of the last of @var{body-forms}.
 Any remaining clauses are ignored.
 
-If the value of @var{condition} is @code{nil}, the clause ``fails'', so
+If the value of @var{condition} is @code{nil}, the clause fails, so
 the @code{cond} moves on to the following clause, trying its @var{condition}.
 
 A clause may also look like this:
@@ -571,7 +571,7 @@ The value of a @code{while} form is always @code{nil}.
 @end group
 @end example
 
-To write a ``repeat...until'' loop, which will execute something on each
+To write a repeat-until loop, which will execute something on each
 iteration and then do the end-test, put the body followed by the
 end-test in a @code{progn} as the first argument of @code{while}, as
 shown here:
@@ -673,7 +673,7 @@ the iterator's final value.
 
 It's important to note that generator function bodies only execute
 inside calls to @code{iter-next}.  A call to a function defined with
-@code{iter-defun} produces an iterator; you must ``drive'' this
+@code{iter-defun} produces an iterator; you must drive this
 iterator with @code{iter-next} for anything interesting to happen.
 Each call to a generator function produces a @emph{different}
 iterator, each with its own state.
@@ -858,7 +858,7 @@ error is signaled with data @code{(@var{tag} @var{value})}.
 @subsection Examples of @code{catch} and @code{throw}
 
   One way to use @code{catch} and @code{throw} is to exit from a doubly
-nested loop.  (In most languages, this would be done with a ``goto''.)
+nested loop.  (In most languages, this would be done with a @code{goto}.)
 Here we compute @code{(foo @var{i} @var{j})} for @var{i} and @var{j}
 varying from 0 to 9:
 
@@ -972,7 +972,7 @@ returns to a point that is set up to handle the error
 (@pxref{Processing of Errors}).  Here we describe how to signal an
 error.
 
-  Most errors are signaled ``automatically'' within Lisp primitives
+  Most errors are signaled automatically within Lisp primitives
 which you call for other purposes, such as if you try to take the
 @sc{car} of an integer or move forward a character at the end of the
 buffer.  You can also signal errors explicitly with the functions

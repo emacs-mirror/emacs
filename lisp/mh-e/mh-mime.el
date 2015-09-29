@@ -1715,7 +1715,7 @@ buffer, while END defaults to the end of the buffer."
 (defun mh-minibuffer-read-type (filename &optional default)
   "Return the content type associated with the given FILENAME.
 If the \"file\" command exists and recognizes the given file,
-then its value is returned\; otherwise, the user is prompted for
+then its value is returned; otherwise, the user is prompted for
 a type (see `mailcap-mime-types').
 Optional argument DEFAULT is returned if a type isn't entered."
   (mailcap-parse-mimetypes)
@@ -1756,21 +1756,21 @@ Returns nil if file command not on system."
           (kill-buffer tmp-buffer)))))))
 
 (defvar mh-file-mime-type-substitutions
-  '(("application/msword" "\.xls" "application/ms-excel")
-    ("application/msword" "\.ppt" "application/ms-powerpoint")
-    ("text/plain" "\.vcf" "text/x-vcard")
-    ("text/rtf" "\.rtf" "application/rtf")
-    ("application/x-zip" "\.sxc" "application/vnd.sun.xml.calc")
-    ("application/x-zip" "\.sxd" "application/vnd.sun.xml.draw")
-    ("application/x-zip" "\.sxi" "application/vnd.sun.xml.impress")
-    ("application/x-zip" "\.sxw" "application/vnd.sun.xml.writer")
-    ("application/x-zip" "\.odg" "application/vnd.oasis.opendocument.graphics")
-    ("application/x-zip" "\.odi" "application/vnd.oasis.opendocument.image")
-    ("application/x-zip" "\.odp"
+  '(("application/msword" "\\.xls" "application/ms-excel")
+    ("application/msword" "\\.ppt" "application/ms-powerpoint")
+    ("text/plain" "\\.vcf" "text/x-vcard")
+    ("text/rtf" "\\.rtf" "application/rtf")
+    ("application/x-zip" "\\.sxc" "application/vnd.sun.xml.calc")
+    ("application/x-zip" "\\.sxd" "application/vnd.sun.xml.draw")
+    ("application/x-zip" "\\.sxi" "application/vnd.sun.xml.impress")
+    ("application/x-zip" "\\.sxw" "application/vnd.sun.xml.writer")
+    ("application/x-zip" "\\.odg" "application/vnd.oasis.opendocument.graphics")
+    ("application/x-zip" "\\.odi" "application/vnd.oasis.opendocument.image")
+    ("application/x-zip" "\\.odp"
      "application/vnd.oasis.opendocument.presentation")
-    ("application/x-zip" "\.ods"
+    ("application/x-zip" "\\.ods"
      "application/vnd.oasis.opendocument.spreadsheet")
-    ("application/x-zip" "\.odt" "application/vnd.oasis.opendocument.text"))
+    ("application/x-zip" "\\.odt" "application/vnd.oasis.opendocument.text"))
   "Substitutions to make for Content-Type returned from file command.
 The first element is the Content-Type returned by the file command.
 The second element is a regexp matching the file name, usually the

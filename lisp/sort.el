@@ -316,7 +316,7 @@ FIELD, BEG and END.  BEG and END specify region to sort."
 ;;			       (point)
 ;;			       (save-excursion
 ;;				 (re-search-forward
-;;				  "[+-]?[0-9]*\.?[0-9]*\\([eE][+-]?[0-9]+\\)?")
+;;				  "[+-]?[0-9]*\\.?[0-9]*\\([eE][+-]?[0-9]+\\)?")
 ;;				 (point))))))
 ;;		 nil))
 

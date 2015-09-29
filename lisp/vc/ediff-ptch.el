@@ -90,14 +90,14 @@ See also `ediff-backup-specs'."
 	   ;; traditional `patch'
 	   (format "-b %s" ediff-backup-extension))))
   "Backup directives to pass to the patch program.
-Ediff requires that the old version of the file \(before applying the patch\)
+Ediff requires that the old version of the file \(before applying the patch)
 be saved in a file named `the-patch-file.extension'.  Usually `extension' is
 `.orig', but this can be changed by the user and may depend on the system.
 Therefore, Ediff needs to know the backup extension used by the patch program.
 
 Some versions of the patch program let you specify `-b backup-extension'.
 Other versions only permit `-b', which assumes the extension `.orig'
-\(in which case ediff-backup-extension MUST be also `.orig'\).  The latest
+\(in which case ediff-backup-extension MUST be also `.orig').  The latest
 versions of GNU patch require `-b -z backup-extension'.
 
 Note that both `ediff-backup-extension' and `ediff-backup-specs'
@@ -333,7 +333,7 @@ program."
 		      (ediff-with-current-buffer standard-output
 			(fundamental-mode))
 		      (princ
-		       (format "
+		       (format-message "
 The patch file contains a context diff for
 	%s
 	%s
@@ -342,7 +342,7 @@ to be patched on your system.  If you know the correct file name,
 please enter it now.
 
 If you don't know and still would like to apply patches to
-other files, enter /dev/null
+other files, enter `/dev/null'.
 "
 			       (substring (car proposed-file-names) 6)
 			       (substring (cdr proposed-file-names) 6))))

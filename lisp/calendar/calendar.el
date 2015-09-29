@@ -2635,7 +2635,6 @@ If called by a mouse-event, pops up a menu with the result."
 
 ;; Local variables:
 ;; byte-compile-dynamic: t
-;; coding: utf-8
 ;; End:
 
 ;;; calendar.el ends here

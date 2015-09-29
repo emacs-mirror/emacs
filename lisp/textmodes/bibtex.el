@@ -433,7 +433,7 @@ is present; but these fields are required otherwise.
 OPTIONAL is a list of optional fields.
 
 Each element of these lists is a list of the form
-  \(FIELD COMMENT INIT ALTERNATIVE).
+  (FIELD COMMENT INIT ALTERNATIVE).
 COMMENT, INIT, and ALTERNATIVE are optional.
 
 FIELD is the name of the field.
@@ -2620,7 +2620,7 @@ is returned unchanged."
   "Get content of BibTeX field FIELD.  Return empty string if not found.
 Optional arg CHANGE-LIST is a list of substitution patterns that is
 applied to the content of FIELD.  It is an alist with pairs
-\(OLD-REGEXP . NEW-STRING\)."
+\(OLD-REGEXP . NEW-STRING)."
   (let* ((bibtex-expand-strings bibtex-autokey-expand-strings)
          (content (bibtex-text-in-field field bibtex-autokey-use-crossref))
         case-fold-search)
@@ -3647,7 +3647,7 @@ If optional arg CONTENT is non-nil extract content of text fields."
 (defun bibtex-autofill-entry ()
   "Try to fill fields of current BibTeX entry based on neighboring entries.
 The current entry must have a key.  Determine the neighboring entry
-\(previous or next\) whose key is more similar to the key of the current
+\(previous or next) whose key is more similar to the key of the current
 entry.  For all empty fields of the current entry insert the corresponding
 field contents of the neighboring entry.  Finally try to update the text
 based on the difference between the keys of the neighboring and the current
@@ -5111,7 +5111,7 @@ entries from minibuffer."
   "Browse a URL for the BibTeX entry at point.
 Optional POS is the location of the BibTeX entry.
 The URL is generated using the schemes defined in `bibtex-generate-url-list'
-\(see there\).  If multiple schemes match for this entry, or the same scheme
+\(see there).  If multiple schemes match for this entry, or the same scheme
 matches more than once, use the one for which the first step's match is the
 closest to POS.  The URL is passed to `browse-url' unless NO-BROWSE is t.
 Return the URL or nil if none can be generated."

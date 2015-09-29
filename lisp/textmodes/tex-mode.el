@@ -1,4 +1,4 @@
-;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands -*- coding: utf-8 -*-
+;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands
 
 ;; Copyright (C) 1985-1986, 1989, 1992, 1994-1999, 2001-2015 Free
 ;; Software Foundation, Inc.
@@ -135,8 +135,8 @@ If nil, TeX runs with no options.  See the documentation of `tex-command'."
   "TeX commands to use when starting TeX.
 They are shell-quoted and precede the input file name, with a separating space.
 If nil, no commands are used.  See the documentation of `tex-command'."
-  :type '(radio (const :tag "Interactive \(nil\)" nil)
-		(const :tag "Nonstop \(\"\\nonstopmode\\input\"\)"
+  :type '(radio (const :tag "Interactive (nil)" nil)
+		(const :tag "Nonstop (\"\\nonstopmode\\input\")"
 		       "\\nonstopmode\\input")
 		(string :tag "String at your choice"))
   :group 'tex-run
@@ -266,8 +266,8 @@ tex shell terminates.")
 
 (defvar tex-command "tex"
   "Command to run TeX.
-If this string contains an asterisk \(`*'\), that is replaced by the file name;
-otherwise the value of `tex-start-options', the \(shell-quoted\)
+If this string contains an asterisk \(`*'), that is replaced by the file name;
+otherwise the value of `tex-start-options', the \(shell-quoted)
 value of `tex-start-commands', and the file name are added at the end
 with blanks as separators.
 
@@ -387,7 +387,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
       (goto-char (point-min))
       (while (search-forward-regexp
 	      "\\\\\\(include\\|input\\|verbatiminput\\|bibliography\\)\
-\[ \t]*{\\([^}\n]+\\)}"
+[ \t]*{\\([^}\n]+\\)}"
 	      nil t)
 	(push (cons (concat "<<" (buffer-substring-no-properties
 				  (match-beginning 2)
@@ -1550,7 +1550,7 @@ Puts point on a blank line between them."
   "\\end{" str "}" > \n)
 
 (define-skeleton latex-insert-item
-  "Insert a \item macro."
+  "Insert an \\item macro."
   nil
   \n "\\item " >)
 
@@ -2955,7 +2955,7 @@ There might be text before point."
     ("\\beta" . ?β)
     ("\\gamma" . ?γ)
     ("\\delta" . ?δ)
-    ("\\epsilon" . ?ε)
+    ("\\epsilon" . ?ϵ)
     ("\\zeta" . ?ζ)
     ("\\eta" . ?η)
     ("\\theta" . ?θ)
@@ -3272,7 +3272,8 @@ There might be text before point."
     ("\\prod" . ?∏)
     ("\\propto" . ?∝)
     ("\\qed" . ?∎)
-    ("\\quad" . ? )
+    ("\\qquad" . ?⧢)
+    ("\\quad" . ?␣)
     ("\\rangle" . 10217)            ; Literal ?⟩ breaks indentation.
     ("\\rbrace" . ?})
     ("\\rbrack" . ?\])
@@ -3357,8 +3358,10 @@ There might be text before point."
     ("\\urcorner" . ?⌝)
     ("\\u{i}" . ?ĭ)
     ("\\vDash" . ?⊨)
+    ("\\varepsilon" . ?ε)
     ("\\varprime" . ?′)
     ("\\varpropto" . ?∝)
+    ("\\varrho" . ?ϱ)
     ;; ("\\varsigma" ?ς)		;FIXME: Looks reversed with the non\var.
     ("\\vartriangleleft" . ?⊲)
     ("\\vartriangleright" . ?⊳)
@@ -3406,16 +3409,17 @@ There might be text before point."
 
 (defun tex--prettify-symbols-compose-p (start end _match)
   (let* ((after-char (char-after end))
-         (after-syntax  (char-syntax after-char)))
+         (after-syntax (char-syntax after-char)))
     (not (or
           ;; Don't compose \alpha@foo.
-          (eq after-syntax ?_)
-          ;; Don't compose inside verbatim blocks!
-          (nth 8 (syntax-ppss))
-          ;; The \alpha in \alpha2 may be composed but of course \alphax may not.
+          (eq after-char ?@)
+          ;; The \alpha in \alpha2 or \alpha-\beta may be composed but
+          ;; of course \alphax may not.
           (and (eq after-syntax ?w)
-               (or (< after-char ?0)
-                   (> after-char ?9)))))))
+               (not (memq after-char
+                          '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?+ ?- ?' ?\"))))
+          ;; Don't compose inside verbatim blocks.
+	  (eq 2 (nth 7 (syntax-ppss)))))))
 
 (run-hooks 'tex-mode-load-hook)
 

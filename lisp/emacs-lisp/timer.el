@@ -205,7 +205,7 @@ timers).  If nil, allocate a new cell."
   "Insert TIMER into `timer-idle-list'.
 This arranges to activate TIMER whenever Emacs is next idle.
 If optional argument DONT-WAIT is non-nil, set TIMER to activate
-immediately \(see below\), or at the right time, if Emacs is
+immediately \(see below), or at the right time, if Emacs is
 already idle.
 
 REUSE-CELL, if non-nil, is a cons cell to reuse when inserting
@@ -345,18 +345,26 @@ This function is called, by name, directly by the C code."
 (defun run-at-time (time repeat function &rest args)
   "Perform an action at time TIME.
 Repeat the action every REPEAT seconds, if REPEAT is non-nil.
-TIME should be one of: a string giving an absolute time like
-\"11:23pm\" (the acceptable formats are those recognized by
-`diary-entry-time'; note that such times are interpreted as times
-today, even if in the past); a string giving a relative time like
-\"2 hours 35 minutes\" (the acceptable formats are those
-recognized by `timer-duration'); nil meaning now; a number of
-seconds from now; a value from `encode-time'; or t (with non-nil
-REPEAT) meaning the next integral multiple of REPEAT.  REPEAT may
-be an integer or floating point number.  The action is to call
-FUNCTION with arguments ARGS.
+REPEAT may be an integer or floating point number.
+TIME should be one of:
+- a string giving today's time like \"11:23pm\"
+  (the acceptable formats are HHMM, H:MM, HH:MM, HHam, HHAM,
+  HHpm, HHPM, HH:MMam, HH:MMAM, HH:MMpm, or HH:MMPM;
+  a period `.' can be used instead of a colon `:' to separate
+  the hour and minute parts);
+- a string giving a relative time like \"90\" or \"2 hours 35 minutes\"
+  (the acceptable forms are a number of seconds without units
+  or some combination of values using units in `timer-duration-words');
+- nil, meaning now;
+- a number of seconds from now;
+- a value from `encode-time';
+- or t (with non-nil REPEAT) meaning the next integral
+  multiple of REPEAT.
 
-This function returns a timer object which you can use in `cancel-timer'."
+The action is to call FUNCTION with arguments ARGS.
+
+This function returns a timer object which you can use in
+`cancel-timer'."
   (interactive "sRun at time: \nNRepeat interval: \naFunction: ")
 
   (or (null repeat)

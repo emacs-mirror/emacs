@@ -41,7 +41,7 @@ pronounced ``could-er''.
   We say that ``the @sc{car} of this cons cell is'' whatever object
 its @sc{car} slot currently holds, and likewise for the @sc{cdr}.
 
-  A list is a series of cons cells ``chained together'', so that each
+  A list is a series of cons cells chained together, so that each
 cell refers to the next one.  There is one cons cell for each element
 of the list.  By convention, the @sc{car}s of the cons cells hold the
 elements of the list, and the @sc{cdr}s are used to chain the list
@@ -799,7 +799,7 @@ foo                       ;; @r{@code{foo} was changed.}
 @cindex destructive list operations
 
   You can modify the @sc{car} and @sc{cdr} contents of a cons cell with the
-primitives @code{setcar} and @code{setcdr}.  We call these ``destructive''
+primitives @code{setcar} and @code{setcdr}.  These are destructive
 operations because they change existing list structure.
 
 @cindex CL note---@code{rplaca} vs @code{setcar}
@@ -1035,9 +1035,9 @@ x1
 @cindex reordering, of elements in lists
 @cindex modification of lists
 
-  Here are some functions that rearrange lists ``destructively'' by
-modifying the @sc{cdr}s of their component cons cells.  We call these
-functions ``destructive'' because they chew up the original lists passed
+  Here are some functions that rearrange lists destructively by
+modifying the @sc{cdr}s of their component cons cells.  These functions
+are destructive because they chew up the original lists passed
 to them as arguments, relinking their cons cells to form a new list that
 is the returned value.
 
@@ -1522,7 +1522,7 @@ a @sc{cdr} @code{equal} to @var{value}.
 
 @code{rassoc} is like @code{assoc} except that it compares the @sc{cdr} of
 each @var{alist} association instead of the @sc{car}.  You can think of
-this as ``reverse @code{assoc}'', finding the key for a given value.
+this as reverse @code{assoc}, finding the key for a given value.
 @end defun
 
 @defun assq key alist
@@ -1563,7 +1563,7 @@ a @sc{cdr} @code{eq} to @var{value}.
 
 @code{rassq} is like @code{assq} except that it compares the @sc{cdr} of
 each @var{alist} association instead of the @sc{car}.  You can think of
-this as ``reverse @code{assq}'', finding the key for a given value.
+this as reverse @code{assq}, finding the key for a given value.
 
 For example:
 

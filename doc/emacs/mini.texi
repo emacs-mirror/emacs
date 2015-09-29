@@ -1,3 +1,4 @@
+@c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2015 Free Software
 @c Foundation, Inc.
@@ -108,8 +109,8 @@ Find file: /u2/emacs/src//etc/termcap
 @cindex double slash in file name
 @cindex slashes repeated in file name
 @findex file-name-shadow-mode
-Emacs interprets a double slash as ``ignore everything before the
-second slash in the pair''.  In the example above,
+A double slash causes Emacs to ignore everything before the
+second slash in the pair.  In the example above,
 @file{/u2/emacs/src/} is ignored, so the argument you supplied is
 @file{/etc/termcap}.  The ignored part of the file name is dimmed if
 the terminal allows it.  (To disable this dimming, turn off File Name
@@ -435,10 +436,10 @@ This behavior is used by most commands that read file names, like
 @cindex completion style
 
   Completion commands work by narrowing a large list of possible
-completion alternatives to a smaller subset that ``matches'' what you
+completion alternatives to a smaller subset that matches what you
 have typed in the minibuffer.  In @ref{Completion Example}, we gave a
 simple example of such matching.  The procedure of determining what
-constitutes a ``match'' is quite intricate.  Emacs attempts to offer
+constitutes a match is quite intricate.  Emacs attempts to offer
 plausible completions under most circumstances.
 
   Emacs performs completion using one or more @dfn{completion
@@ -545,7 +546,7 @@ ignored as a completion alternative.  Any element ending in a slash
 @code{".o"}, @code{".elc"}, and @code{"~"}.  For example, if a
 directory contains @samp{foo.c} and @samp{foo.elc}, @samp{foo}
 completes to @samp{foo.c}.  However, if @emph{all} possible
-completions end in ``ignored'' strings, they are not ignored: in the
+completions end in otherwise-ignored strings, they are not ignored: in the
 previous example, @samp{foo.e} completes to @samp{foo.elc}.  Emacs
 disregards @code{completion-ignored-extensions} when showing
 completion alternatives in the completion list.
@@ -564,7 +565,7 @@ completion list buffer.
 
 @vindex completion-cycle-threshold
   If @code{completion-cycle-threshold} is non-@code{nil}, completion
-commands can ``cycle'' through completion alternatives.  Normally, if
+commands can cycle through completion alternatives.  Normally, if
 there is more than one completion alternative for the text in the
 minibuffer, a completion command completes up to the longest common
 substring.  If you change @code{completion-cycle-threshold} to
@@ -620,7 +621,7 @@ fetching later entries into the minibuffer.
 entries in the minibuffer history (e.g., if you haven't previously
 typed @kbd{M-p}), Emacs tries fetching from a list of default
 arguments: values that you are likely to enter.  You can think of this
-as moving through the ``future history'' list.
+as moving through the ``future history''.
 
   If you edit the text inserted by the @kbd{M-p} or @kbd{M-n}
 minibuffer history commands, this does not change its entry in the
@@ -754,12 +755,12 @@ input is ignored.
 @node Yes or No Prompts
 @section Yes or No Prompts
 
-  An Emacs command may require you to answer a ``yes or no'' question
+  An Emacs command may require you to answer a yes-or-no question
 during the course of its execution.  Such queries come in two main
 varieties.
 
 @cindex y or n prompt
-  For the first type of ``yes or no'' query, the prompt ends with
+  For the first type of yes-or-no query, the prompt ends with
 @samp{(y or n)}.  Such a query does not actually use the minibuffer;
 the prompt appears in the echo area, and you answer by typing either
 @samp{y} or @samp{n}, which immediately delivers the response.  For
@@ -768,7 +769,7 @@ buffer, and enter the name of an existing file, Emacs issues a prompt
 like this:
 
 @smallexample
-File `foo.el' exists; overwrite? (y or n)
+File ‘foo.el’ exists; overwrite? (y or n)
 @end smallexample
 
 @noindent
@@ -783,7 +784,7 @@ window; and @kbd{C-M-S-v} scrolls backward in the next window.  Typing
 (@pxref{Quitting}).
 
 @cindex yes or no prompt
-  The second type of ``yes or no'' query is typically employed if
+  The second type of yes-or-no query is typically employed if
 giving the wrong answer would have serious consequences; it uses the
 minibuffer, and features a prompt ending with @samp{(yes or no)}.  For
 example, if you invoke @kbd{C-x k} (@code{kill-buffer}) on a

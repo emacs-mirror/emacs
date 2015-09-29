@@ -13,6 +13,10 @@
 
 Thanks to jan.h.d@swipnet.se for the help.
 
+Alternatively, run 'convert' from ImageMagick:
+
+  convert file.xpm file.pbm
+
 
 COPYRIGHT AND LICENSE INFORMATION FOR IMAGE FILES
 
@@ -97,3 +101,6 @@ Emacs images and their source in the GNOME icons stock/ directory:
 The images in the low-color/ subdirectory are low-color versions of
 the files of the same name in this directory, and are subject to the
 same conditions.
+
+The *.pbm files were generally converted from *.xpm by running GIMP or
+ImageMagick's 'convert'.

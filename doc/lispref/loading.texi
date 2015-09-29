@@ -40,7 +40,7 @@ For on-demand loading of external libraries, @pxref{Dynamic Libraries}.
 * Repeated Loading::        Precautions about loading a file twice.
 * Named Features::          Loading a library if it isn't already loaded.
 * Where Defined::           Finding which file defined a certain symbol.
-* Unloading::               How to ``unload'' a library that was loaded.
+* Unloading::               How to unload a library that was loaded.
 * Hooks for Loading::       Providing code to be run when
                               particular libraries are loaded.
 @end menu
@@ -456,7 +456,7 @@ Autoloading can also be triggered by looking up the documentation of
 the function or macro (@pxref{Documentation Basics}).
 
   There are two ways to set up an autoloaded function: by calling
-@code{autoload}, and by writing a special ``magic'' comment in the
+@code{autoload}, and by writing a ``magic'' comment in the
 source before the real definition.  @code{autoload} is the low-level
 primitive for autoloading; any Lisp program can call @code{autoload} at
 any time.  Magic comments are the most convenient way to make a function
@@ -668,7 +668,7 @@ value of this variable is @code{";;;###autoload"}.
 @defvar generated-autoload-file
 The value of this variable names an Emacs Lisp file where the autoload
 calls should go.  The default value is @file{loaddefs.el}, but you can
-override that, e.g., in the ``Local Variables'' section of a
+override that, e.g., in the local variables section of a
 @file{.el} file (@pxref{File Local Variables}).  The autoload file is
 assumed to contain a trailer starting with a formfeed character.
 @end defvar

@@ -1785,7 +1785,7 @@ If point is on a group name, this function operates on that group."
      (let ((procs 0)
 	   (files 0))
        (dolist (string strings)
-	 (if (string-match "\\(\?:\\`(\[\[:ascii:\]\]\+)\\)" string)
+	 (if (string-match "\\(?:\\`([[:ascii:]]+)\\)" string)
 	     (progn (setq procs (1+ procs))
 		    (if (< (match-end 0) (length string))
 			(setq files (1+ files))))
@@ -2973,9 +2973,5 @@ defaults to one.
 (provide 'ibuffer)
 
 (run-hooks 'ibuffer-load-hook)
-
-;; Local Variables:
-;; coding: utf-8
-;; End:
 
 ;;; ibuffer.el ends here

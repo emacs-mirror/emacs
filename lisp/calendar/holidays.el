@@ -823,8 +823,4 @@ arguments, it returns the date of Pascha (Greek Orthodox Easter)."
 
 (provide 'holidays)
 
-;; Local Variables:
-;; coding: utf-8
-;; End:
-
 ;;; holidays.el ends here

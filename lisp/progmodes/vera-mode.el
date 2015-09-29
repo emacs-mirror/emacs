@@ -259,7 +259,7 @@ Usage:
 
   INDENTATION:  Typing `TAB' at the beginning of a line indents the line.
     The amount of indentation is specified by option `vera-basic-offset'.
-    Indentation can be done for an entire region \(`M-C-\\') or buffer (menu).
+    Indentation can be done for an entire region (`M-C-\\') or buffer (menu).
     `TAB' always indents the line if option `vera-intelligent-tab' is nil.
 
   WORD/COMMAND COMPLETION:  Typing `TAB' after a (not completed) word looks

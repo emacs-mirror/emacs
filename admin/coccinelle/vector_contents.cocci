@@ -1,4 +1,4 @@
-// Avoid direct access to `contents' member of
+// Avoid direct access to 'contents' member of
 // Lisp_Vector, use AREF and ASET where possible.
 @expression@
 identifier I1, I2;

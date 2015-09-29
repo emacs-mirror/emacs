@@ -932,7 +932,7 @@ Returns (parse-state) if line starts inside a string."
            (if (save-excursion (goto-char indent-point)
                                (looking-at
                                 (if perl-indent-parens-as-block
-                                    "[ \t]*[{(\[]" "[ \t]*{")))
+                                    "[ \t]*[{([]" "[ \t]*{")))
                perl-continued-brace-offset 0)))
        (t
         ;; This line starts a new statement.

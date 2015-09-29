@@ -430,7 +430,7 @@ that @kbd{C-x v ~} saves old versions to
 @end ifnottex
 except for the additional dot (@samp{.}) after the version.  The
 relevant VC commands can use both kinds of version backups.  The main
-difference is that the ``manual'' version backups made by @kbd{C-x v
+difference is that the manual version backups made by @kbd{C-x v
 ~} are not deleted automatically when you commit.
 
 @cindex locking (CVS)

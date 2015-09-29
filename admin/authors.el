@@ -1,4 +1,4 @@
-;;; authors.el --- utility for maintaining Emacs's AUTHORS file -*-coding: utf-8 -*-
+;;; authors.el --- utility for maintaining Emacs's AUTHORS file
 
 ;; Copyright (C) 2000-2015 Free Software Foundation, Inc.
 
@@ -212,7 +212,7 @@ If REALNAME is nil, ignore that author.")
     "Michael McNamara"
     "Mike McEwan"
     "Nelson Jose dos Santos Ferreira"
-    "Peter von der Ahe"
+    "Peter von der Ahé"
     "Peter O'Gorman"
     "Piet van Oostrum"
     "Roland McGrath"

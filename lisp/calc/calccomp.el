@@ -1670,8 +1670,4 @@
 
 (provide 'calccomp)
 
-;; Local variables:
-;; coding: utf-8
-;; End:
-
 ;;; calccomp.el ends here

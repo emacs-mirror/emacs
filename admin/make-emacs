@@ -100,7 +100,7 @@ chdir $root if cwd () eq "/";
 chdir "./src";
 print "Build in ", cwd (), "\n";
 
-# If first arg is `all' or if `--all' specified, ensure a clean
+# If first arg is 'all' or if '--all' specified, ensure a clean
 # build.
 
 if (@ARGV && $ARGV[0] eq "all")

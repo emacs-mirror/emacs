@@ -230,7 +230,7 @@ This variable needs to be set before org.el is loaded.  If you
 need to make a change while Emacs is running, use the customize
 interface or run the following code after updating it:
 
-  \(when (featurep \\='org-element) (load \"org-element\" t t))"
+  (when (featurep \\='org-element) (load \"org-element\" t t))"
   :group 'org-plain-lists
   :version "24.1"
   :type 'boolean
@@ -620,11 +620,11 @@ point-at-bol:
 
 will get the following structure:
 
-\(\(1 0 \"- \"  nil \"[X]\" nil 97\)
- \(18 2 \"1. \"  nil nil nil 34\)
- \(34 2 \"5. \" \"5\" nil nil 55\)
- \(97 0 \"- \"  nil nil nil 131\)
- \(109 2 \"+ \" nil nil \"tag\" 131\)
+ ((1 0 \"- \"  nil \"[X]\" nil 97)
+  (18 2 \"1. \"  nil nil nil 34)
+  (34 2 \"5. \" \"5\" nil nil 55)
+  (97 0 \"- \"  nil nil nil 131)
+  (109 2 \"+ \" nil nil \"tag\" 131))
 
 Assume point is at an item."
   (save-excursion
@@ -2015,7 +2015,7 @@ previous item, plus ARGS extra arguments.
 
 FUNCTION is applied on items in reverse order.
 
-As an example, \(org-apply-on-list \(lambda \(result\) \(1+ result\)\) 0\)
+As an example, \(org-apply-on-list \(lambda \(result) \(1+ result)) 0)
 will return the number of items in the current list.
 
 Sublists of the list are skipped.  Cursor is always at the
@@ -2931,13 +2931,13 @@ For example, the following list:
 
 will be parsed as:
 
-\(ordered
-  \(nil \"first item\"
-  \(unordered
-    \(nil \"sub-item one\"\)
-    \(nil \"[CBON] sub-item two\"\)\)
-  \"more text in first item\"\)
-  \(3 \"last item\"\)\)
+ (ordered
+  (nil \"first item\"
+  (unordered
+    (nil \"sub-item one\")
+    (nil \"[CBON] sub-item two\"))
+  \"more text in first item\")
+  (3 \"last item\"))
 
 Point is left at list end."
   (defvar parse-item)                   ;FIXME: Or use `cl-labels' or `letrec'.

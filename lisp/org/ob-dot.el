@@ -53,7 +53,7 @@
 	     (value (cdr pair)))
 	 (setq body
 	       (replace-regexp-in-string
-		(concat "\$" (regexp-quote name))
+		(concat "$" (regexp-quote name))
 		(if (stringp value) value (format "%S" value))
 		body))))
      vars)

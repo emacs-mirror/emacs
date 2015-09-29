@@ -132,7 +132,7 @@ byte compiler to warn if the command is called from Lisp.  The output
 of @code{describe-function} will include similar information.
 The value of the property can be: a string, which the byte-compiler
 will use directly in its warning (it should end with a period, and not
-start with a capital, e.g., ``use @dots{} instead.''); @code{t}; any
+start with a capital, e.g., @code{"use (system-name) instead."}); @code{t}; any
 other symbol, which should be an alternative function to use in Lisp
 code.
 
@@ -1557,8 +1557,8 @@ the command binding of the double click event to assume that the
 single-click command has already run.  It must produce the desired
 results of a double click, starting from the results of a single click.
 
-This is convenient, if the meaning of a double click somehow ``builds
-on'' the meaning of a single click---which is recommended user interface
+This is convenient, if the meaning of a double click somehow builds
+on the meaning of a single click---which is recommended user interface
 design practice for double clicks.
 
 If you click a button, then press it down again and start moving the
@@ -2444,7 +2444,7 @@ same symbol that would normally represent that combination of mouse
 button and modifier keys.  The information about the window part is kept
 elsewhere in the event---in the coordinates.  But
 @code{read-key-sequence} translates this information into imaginary
-``prefix keys'', all of which are symbols: @code{header-line},
+prefix keys, all of which are symbols: @code{header-line},
 @code{horizontal-scroll-bar}, @code{menu-bar}, @code{mode-line},
 @code{vertical-line}, and @code{vertical-scroll-bar}.  You can define
 meanings for mouse clicks in special window parts by defining key
@@ -2587,7 +2587,7 @@ If you wish to read a single key taking these translations into
 account, use the function @code{read-key}:
 
 @defun read-key &optional prompt
-This function reads a single key.  It is ``intermediate'' between
+This function reads a single key.  It is intermediate between
 @code{read-key-sequence} and @code{read-event}.  Unlike the former, it
 reads a single key, not a key sequence.  Unlike the latter, it does
 not return a raw event, but decodes and translates the user input
@@ -2633,7 +2633,7 @@ character for this purpose, but as a character with no modifiers.
 Thus, setting @code{extra-keyboard-modifiers} to zero cancels any
 modification.
 
-When using a window system, the program can ``press'' any of the
+When using a window system, the program can press any of the
 modifier keys in this way.  Otherwise, only the @key{CTL} and @key{META}
 keys can be virtually pressed.
 
@@ -2783,7 +2783,7 @@ What character @kbd{1 7 7}-
 @node Event Input Misc
 @subsection Miscellaneous Event Input Features
 
-This section describes how to ``peek ahead'' at events without using
+This section describes how to peek ahead at events without using
 them up, how to check for pending input, and how to discard pending
 input.  See also the function @code{read-passwd} (@pxref{Reading a
 Password}).
@@ -3048,7 +3048,7 @@ usual result of this---a quit---is prevented.  Eventually,
 binding is unwound at the end of a @code{let} form.  At that time, if
 @code{quit-flag} is still non-@code{nil}, the requested quit happens
 immediately.  This behavior is ideal when you wish to make sure that
-quitting does not happen within a ``critical section'' of the program.
+quitting does not happen within a critical section of the program.
 
 @cindex @code{read-quoted-char} quitting
   In some functions (such as @code{read-quoted-char}), @kbd{C-g} is
@@ -3311,7 +3311,7 @@ using the minibuffer.  Usually it is more convenient for the user if you
 change the major mode of the current buffer temporarily to a special
 major mode, which should have a command to go back to the previous mode.
 (The @kbd{e} command in Rmail uses this technique.)  Or, if you wish to
-give the user different text to edit ``recursively'', create and select
+give the user different text to edit recursively, create and select
 a new buffer in a special mode.  In this mode, define a command to
 complete the processing and go back to the previous buffer.  (The
 @kbd{m} command in Rmail does this.)

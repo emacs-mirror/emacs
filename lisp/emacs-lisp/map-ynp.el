@@ -44,7 +44,7 @@ Takes args PROMPTER ACTOR LIST, and optional args HELP and ACTION-ALIST.
 LIST is a list of objects, or a function of no arguments to return the next
 object or nil.
 
-If PROMPTER is a string, the prompt is \(format PROMPTER OBJECT\).  If not
+If PROMPTER is a string, the prompt is \(format PROMPTER OBJECT).  If not
 a string, PROMPTER is a function of one arg (an object from LIST), which
 returns a string to be used as the prompt for that object.  If the return
 value is not a string, it may be nil to ignore the object or non-nil to act
@@ -56,7 +56,7 @@ which gets called with each object that the user answers `yes' for.
 If HELP is given, it is a list (OBJECT OBJECTS ACTION),
 where OBJECT is a string giving the singular noun for an elt of LIST;
 OBJECTS is the plural noun for elts of LIST, and ACTION is a transitive
-verb describing ACTOR.  The default is \(\"object\" \"objects\" \"act on\"\).
+verb describing ACTOR.  The default is \(\"object\" \"objects\" \"act on\").
 
 At the prompts, the user may enter y, Y, or SPC to act on that object;
 n, N, or DEL to skip that object; ! to act on all following objects;

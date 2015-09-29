@@ -194,9 +194,9 @@ C-x C-k C-p C-p C-k C-k C-k C-n C-n C-k C-p C-k C-d
 @end example
 
 @noindent
-will rotate the keyboard macro ring to the ``second previous'' macro,
+will rotate the keyboard macro ring to the second-previous macro,
 execute the resulting head macro three times, rotate back to the
-original head macro, execute that once, rotate to the ``previous''
+original head macro, execute that once, rotate to the previous
 macro, execute that, and finally delete it from the macro ring.
 
 @findex kmacro-end-or-call-macro-repeat
@@ -224,8 +224,8 @@ immediately by repeating just @kbd{C-n} and @kbd{C-p} until the
 desired macro is at the head of the ring.  To execute the new macro
 ring head immediately, just type @kbd{C-k}.
 
-  Note that Emacs treats the head of the macro ring as the ``last
-defined keyboard macro''.  For instance, @key{F4} will execute that
+  Note that Emacs treats the head of the macro ring as the last
+defined keyboard macro.  For instance, @key{F4} will execute that
 macro, and @kbd{C-x C-k n} will give it a name.
 
 @vindex kmacro-ring-max

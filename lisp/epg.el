@@ -2199,7 +2199,7 @@ The return value is an alist mapping from types to values."
       (if (eq index (string-match "[ \t\n\r]*" string index))
 	  (setq index (match-end 0)))
       (if (eq index (string-match
-		     "\\([0-9]+\\(\\.[0-9]+\\)*\\)\[ \t\n\r]*=[ \t\n\r]*"
+		     "\\([0-9]+\\(\\.[0-9]+\\)*\\)[ \t\n\r]*=[ \t\n\r]*"
 		     string index))
 	  (setq type (match-string 1 string)
 		index (match-end 0))

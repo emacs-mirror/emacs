@@ -258,20 +258,20 @@ If nil, only \"> \" will be shown."
 
 (defcustom erc-hide-list nil
   "A global list of IRC message types to hide.
-A typical value would be '(\"JOIN\" \"PART\" \"QUIT\")."
+A typical value would be \(\"JOIN\" \"PART\" \"QUIT\")."
   :group 'erc-ignore
   :type 'erc-message-type)
 
 (defcustom erc-network-hide-list nil
   "A list of IRC networks to hide message types from.
-A typical value would be '((\"freenode\" \"MODE\")
+A typical value would be \((\"freenode\" \"MODE\")
 (\"OFTC\" \"JOIN\" \"QUIT\"))."
   :group 'erc-ignore
   :type 'erc-message-type)
 
 (defcustom erc-channel-hide-list nil
   "A list of IRC channels to hide message types from.
-A typical value would be '((\"#emacs\" \"QUIT\" \JOIN\")
+A typical value would be \((\"#emacs\" \"QUIT\" \"JOIN\")
 (\"#erc\" \"NICK\")."
   :group 'erc-ignore
   :type 'erc-message-type)
@@ -2503,7 +2503,7 @@ non-nil."
 (defcustom erc-lurker-hide-list nil
   "List of IRC type messages to hide when sent by lurkers.
 
-A typical value would be '(\"JOIN\" \"PART\" \"QUIT\").
+A typical value would be \(\"JOIN\" \"PART\" \"QUIT\").
 See also `erc-lurker-p' and `erc-hide-list'."
   :group 'erc-lurker
   :type 'erc-message-type)
@@ -2973,7 +2973,7 @@ VERSION and so on.  It is called with ARGS."
 If FUNC contains a valid function or variable, help about that
 will be displayed.  If FUNC is empty, display an apropos about
 ERC commands.  Otherwise, do `apropos' in the ERC namespace
-\(\"erc-.*LINE\"\).
+\(\"erc-.*LINE\").
 
 Examples:
 To find out about erc and bbdb, do

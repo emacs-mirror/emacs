@@ -2354,7 +2354,7 @@ what in fact did happen.
 Check if the bug is reproducible with an up-to-date version of
 RefTeX available from http://www.gnu.org/software/auctex/.
 
-If the bug is triggered by a specific \(La\)TeX file, you should try
+If the bug is triggered by a specific \(La)TeX file, you should try
 to produce a minimal sample file showing the problem and include it
 in your report.
 
@@ -2446,7 +2446,7 @@ of ENTRY-LIST is a list of cons cells (\"MACRONAME\" . LEVEL).  See
 
 ;;;***
 
-;;;### (autoloads nil "reftex-cite" "reftex-cite.el" "83811ccf3471820f0ad0dc005ffc88d5")
+;;;### (autoloads nil "reftex-cite" "reftex-cite.el" "43a3f05c024aee5b7708420f74266933")
 ;;; Generated autoloads from reftex-cite.el
 
 (autoload 'reftex-default-bibliography "reftex-cite" "\
@@ -2774,7 +2774,7 @@ Here are all local bindings.
 
 ;;;***
 
-;;;### (autoloads nil "reftex-parse" "reftex-parse.el" "c327a848a6d168412b1a9be9f2e3dce8")
+;;;### (autoloads nil "reftex-parse" "reftex-parse.el" "7bfdcb2f040dbe9a08d2c38c005c8f21")
 ;;; Generated autoloads from reftex-parse.el
 
 (autoload 'reftex-parse-one "reftex-parse" "\

@@ -1,4 +1,4 @@
-;;; handwrite.el --- turns your emacs buffer into a handwritten document -*- coding: utf-8; -*-
+;;; handwrite.el --- turns your emacs buffer into a handwritten document
 
 ;; Copyright (C) 1996, 2001-2015 Free Software Foundation, Inc.
 

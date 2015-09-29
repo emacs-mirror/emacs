@@ -1,4 +1,4 @@
-;;; skeleton.el --- Lisp language extension for writing statement skeletons -*- coding: utf-8 -*-
+;;; skeleton.el --- Lisp language extension for writing statement skeletons
 
 ;; Copyright (C) 1993-1996, 2001-2015 Free Software Foundation, Inc.
 

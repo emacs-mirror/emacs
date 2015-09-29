@@ -1388,7 +1388,7 @@ different frames.  Ediff respects these arrangements, automatically
 adapting itself to the multi-frame mode.
 
 Ediff uses the following variables to set up its control panel
-(a.k.a.@: control buffer, a.k.a.@: quick help window):
+(a.k.a.@: ``control buffer'', a.k.a.@: ``quick help window''):
 
 @table @code
 @item ediff-control-frame-parameters

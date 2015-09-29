@@ -436,7 +436,7 @@ to the groups in this topic, then edit the value to suit your taste."
                                        :greedy t
                                        :tag "Agent Parameters"
                                        :format "%t:\n%h%v"
-                                       :doc "\ These agent parameters are
+                                       :doc "These agent parameters are
 recognized by Gnus.  They control article selection and expiration for
 use in the unplugged cache.  Check the [ ] for the parameters you want
 to apply to this group or to the groups in this topic, then edit the

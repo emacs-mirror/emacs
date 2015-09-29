@@ -78,8 +78,8 @@ actually executed as a command if you type it while Emacs is waiting for
 input.  In that case, the command it runs is @code{keyboard-quit}.
 
   On a text terminal, if you quit with @kbd{C-g} a second time before
-the first @kbd{C-g} is recognized, you activate the ``emergency
-escape'' feature and return to the shell.  @xref{Emergency Escape}.
+the first @kbd{C-g} is recognized, you activate the emergency-escape
+feature and return to the shell.  @xref{Emergency Escape}.
 
 @cindex NFS and quitting
   There are some situations where you cannot quit.  When Emacs is
@@ -118,7 +118,7 @@ it executes as an ordinary command, and Emacs doesn't notice it until
 it is ready for the next command.
 
 @findex top-level
-  The command @kbd{M-x top-level} is equivalent to ``enough''
+  The command @kbd{M-x top-level} is equivalent to enough
 @kbd{C-]} commands to get you out of all the levels of recursive edits
 that you are in; it also exits the minibuffer if it is active.
 @kbd{C-]} gets you out one level at a time, but @kbd{M-x top-level}
@@ -507,7 +507,7 @@ by the Emacs maintainers, are shown by @kbd{M-x debbugs-gnu-usertags}.
 The @samp{bug-gnu-emacs} mailing list (also available as the newsgroup
 @samp{gnu.emacs.bug}).  You can read the list archives at
 @url{http://lists.gnu.org/mailman/listinfo/bug-gnu-emacs}.  This list
-works as a ``mirror'' of the Emacs bug reports and follow-up messages
+works as a mirror of the Emacs bug reports and follow-up messages
 which are sent to the bug tracker.  It also contains old bug reports
 from before the bug tracker was introduced (in early 2008).
 
@@ -538,10 +538,10 @@ not feel obliged to read this list before reporting a bug.
 @cindex bug criteria
 @cindex what constitutes an Emacs bug
 
-  If Emacs accesses an invalid memory location (``segmentation
-fault''), or exits with an operating system error message that
-indicates a problem in the program (as opposed to something like
-``disk full''), then it is certainly a bug.
+  If Emacs accesses an invalid memory location (a.k.a.@:
+``segmentation fault'') or exits with an operating system error
+message that indicates a problem in the program (as opposed to
+something like ``disk full''), then it is certainly a bug.
 
   If the Emacs display does not correspond properly to the contents of
 the buffer, then it is a bug.  But you should check that features like
@@ -618,7 +618,7 @@ large file, and Emacs displayed @samp{I feel pretty today}.''  This is
 what we mean by ``guessing explanations''.  The problem might be due
 to the fact that there is a @samp{z} in the file name.  If this is so,
 then when we got your report, we would try out the problem with some
-``large file'', probably with no @samp{z} in its name, and not see any
+large file, probably with no @samp{z} in its name, and not see any
 problem.  There is no way we could guess that we should try visiting a
 file with a @samp{z} in its name.
 
@@ -1345,16 +1345,16 @@ Emacs has additional style and coding conventions:
 @item
 @ifset WWW_GNU_ORG
 @ifhtml
-the ``Tips'' Appendix in the Emacs Lisp Reference
+the ``Tips and Conventions'' Appendix in the Emacs Lisp Reference
 @url{http://www.gnu.org/software/emacs/manual/html_node/elisp/Tips.html}.
 @end ifhtml
 @ifnothtml
-@xref{Tips, ``Tips'' Appendix in the Emacs Lisp Reference, Tips
+@xref{Tips, ``Tips and Conventions'' Appendix in the Emacs Lisp Reference, Tips
 Appendix, elisp, Emacs Lisp Reference}.
 @end ifnothtml
 @end ifset
 @ifclear WWW_GNU_ORG
-@xref{Tips, ``Tips'' Appendix in the Emacs Lisp Reference, Tips
+@xref{Tips, ``Tips and Conventions'' Appendix in the Emacs Lisp Reference, Tips
 Appendix, elisp, Emacs Lisp Reference}.
 @end ifclear
 

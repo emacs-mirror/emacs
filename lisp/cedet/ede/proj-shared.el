@@ -166,7 +166,7 @@ Use ldlibs to add addition libraries.")
        "%.lo: %.c\n"
        "\t@echo '$(LTCOMPILE) -c $<'; \\\n"
        "\t$(LTCOMPILE) -Wp,-MD,.deps/$(*F).p -c $<\n"
-       "\t@-sed -e 's/^\([^:]*\)\.o:/\1.lo \1.o:/' \\\n"
+       "\t@-sed -e 's/^\\([^:]*\\)\\.o:/\\1.lo \\1.o:/' \\\n"
        "\t      < .deps/$(*F).p > .deps/$(*F).P\n"
        "\t@-rm -f .deps/$(*F).p\n\n"))
   )

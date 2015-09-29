@@ -361,8 +361,9 @@ static void analyze_regex (char *);
 static void free_regexps (void);
 static void regex_tag_multiline (void);
 static void error (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
+static void verror (char const *, va_list) ATTRIBUTE_FORMAT_PRINTF (1, 0);
 static _Noreturn void suggest_asking_for_help (void);
-_Noreturn void fatal (const char *, const char *);
+static _Noreturn void fatal (char const *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
 static _Noreturn void pfatal (const char *);
 static void add_node (node *, node **);
 
@@ -1091,7 +1092,7 @@ main (int argc, char **argv)
 	++current_arg;
 	++file_count;
 	if (parsing_stdin)
-	  fatal ("cannot parse standard input more than once", (char *)NULL);
+	  fatal ("cannot parse standard input more than once");
 	parsing_stdin = true;
 	break;
 
@@ -1255,8 +1256,8 @@ main (int argc, char **argv)
 	      if (streq (this_file, "-"))
 		{
 		  if (parsing_stdin)
-		    fatal ("cannot parse standard input AND read file names from it",
-			   (char *)NULL);
+		    fatal ("cannot parse standard input "
+			   "AND read file names from it");
 		  while (readline_internal (&filename_lb, stdin, "-") > 0)
 		    process_file_name (filename_lb.buffer, lang);
 		}
@@ -1267,6 +1268,8 @@ main (int argc, char **argv)
           this_file = argbuffer[i].what;
           process_file (stdin, this_file, lang);
           break;
+	default:
+	  error ("internal error: arg_type");
 	}
     }
 
@@ -1324,7 +1327,7 @@ main (int argc, char **argv)
 	  z = stpcpy (z, tagfile);
 	  strcpy (z, ";rm OTAGS");
 	  if (system (cmd) != EXIT_SUCCESS)
-	    fatal ("failed to execute shell command", (char *)NULL);
+	    fatal ("failed to execute shell command");
 	}
       free (cmd);
       append_to_tagfile = true;
@@ -2753,6 +2756,9 @@ consider_token (char *str, int len, int c, int *c_extp,
 	 case st_C_struct:
 	 case st_C_enum:
 	   typdef = ttypeseen;
+	   break;
+	 default:
+	   break;
 	 }
        break;
      case ttypeseen:
@@ -2769,8 +2775,11 @@ consider_token (char *str, int len, int c, int *c_extp,
 	 case st_C_struct:
 	 case st_C_enum:
 	   return false;
+	 default:
+	   return true;
 	 }
-       return true;
+     default:
+       break;
      }
 
    switch (toktype)
@@ -2803,6 +2812,8 @@ consider_token (char *str, int len, int c, int *c_extp,
 	     fvdef = fvnone;
 	 }
        return false;
+     default:
+       break;
      }
 
    if (structdef == skeyseen)
@@ -2826,6 +2837,8 @@ consider_token (char *str, int len, int c, int *c_extp,
 	 case st_C_objimpl:
 	   objdef = oimplementation;
 	   return false;
+	 default:
+	   break;
 	 }
        break;
      case oimplementation:
@@ -2887,6 +2900,8 @@ consider_token (char *str, int len, int c, int *c_extp,
 	   objdef = onone;
 	 }
        return false;
+     default:
+       break;
      }
 
    /* A function, variable or enum constant? */
@@ -2942,6 +2957,8 @@ consider_token (char *str, int len, int c, int *c_extp,
 		   return false;
 		 }
 	       break;
+	     default:
+	       break;
 	     }
 	  /* FALLTHRU */
 	  case fvnameseen:
@@ -2958,8 +2975,12 @@ consider_token (char *str, int len, int c, int *c_extp,
 	  fvdef = fvnameseen;	/* function or variable */
 	  *is_func_or_var = true;
 	  return true;
+	 default:
+	   break;
 	}
       break;
+     default:
+       break;
     }
 
   return false;
@@ -3469,6 +3490,8 @@ C_entries (int c_ext, FILE *inf)
 			  fvdef = fignore;
 			}
 		      break;
+		    default:
+		      break;
 		    }
 		  if (structdef == stagseen && !cjava)
 		    {
@@ -3478,6 +3501,8 @@ C_entries (int c_ext, FILE *inf)
 		  break;
 		case dsharpseen:
 		  savetoken = token;
+		  break;
+		default:
 		  break;
 		}
 	      if (!yacc_rules || lp == newlb.buffer + 1)
@@ -3507,7 +3532,7 @@ C_entries (int c_ext, FILE *inf)
 	    break;
 	  switch (objdef)
 	    {
-	    case  otagseen:
+	    case otagseen:
 	      objdef = oignore;
 	      make_C_tag (true); /* an Objective C class */
 	      break;
@@ -3520,6 +3545,8 @@ C_entries (int c_ext, FILE *inf)
 		  linebuffer_setlen (&token_name, toklen + 1);
 		  strcpy (token_name.buffer + toklen, ":");
 		}
+	      break;
+	    default:
 	      break;
 	    }
 	  if (structdef == stagseen)
@@ -3598,6 +3625,8 @@ C_entries (int c_ext, FILE *inf)
 	      make_C_tag (true); /* an Objective C method */
 	      objdef = oinbody;
 	      break;
+	    default:
+	      break;
 	    }
 	  switch (fvdef)
 	    {
@@ -3671,6 +3700,8 @@ C_entries (int c_ext, FILE *inf)
 		  fvdef = fvnone;
 		}
 	      break;
+	    default:
+	      break;
 	    }
 	  break;
 	case '(':
@@ -3704,6 +3735,8 @@ C_entries (int c_ext, FILE *inf)
 	    case flistseen:
 	      fvdef = finlist;
 	      break;
+	    default:
+	      break;
 	    }
 	  parlev++;
 	  break;
@@ -3728,6 +3761,8 @@ C_entries (int c_ext, FILE *inf)
 		case fstartlist:
 		case finlist:
 		  fvdef = flistseen;
+		  break;
+		default:
 		  break;
 		}
 	      if (!instruct
@@ -3800,6 +3835,8 @@ C_entries (int c_ext, FILE *inf)
 		    bracelev = -1;
 		}
 	      break;
+	    default:
+	      break;
 	    }
 	  switch (structdef)
 	    {
@@ -3812,6 +3849,8 @@ C_entries (int c_ext, FILE *inf)
 	      pushclass_above (bracelev,token.line+token.offset, token.length);
 	      structdef = snone;
 	      make_C_tag (false);  /* a struct or enum */
+	      break;
+	    default:
 	      break;
 	    }
 	  bracelev += 1;
@@ -6351,10 +6390,13 @@ skip_name (char *cp)
 }
 
 /* Print error message and exit.  */
-void
-fatal (const char *s1, const char *s2)
+static void
+fatal (char const *format, ...)
 {
-  error (s1, s2);
+  va_list ap;
+  va_start (ap, format);
+  verror (format, ap);
+  va_end (ap);
   exit (EXIT_FAILURE);
 }
 
@@ -6379,10 +6421,16 @@ error (const char *format, ...)
 {
   va_list ap;
   va_start (ap, format);
+  verror (format, ap);
+  va_end (ap);
+}
+
+static void
+verror (char const *format, va_list ap)
+{
   fprintf (stderr, "%s: ", progname);
   vfprintf (stderr, format, ap);
   fprintf (stderr, "\n");
-  va_end (ap);
 }
 
 /* Return a newly-allocated string whose contents
@@ -6673,7 +6721,7 @@ xmalloc (size_t size)
 {
   void *result = malloc (size);
   if (result == NULL)
-    fatal ("virtual memory exhausted", (char *)NULL);
+    fatal ("virtual memory exhausted");
   return result;
 }
 
@@ -6682,7 +6730,7 @@ xrealloc (void *ptr, size_t size)
 {
   void *result = realloc (ptr, size);
   if (result == NULL)
-    fatal ("virtual memory exhausted", (char *)NULL);
+    fatal ("virtual memory exhausted");
   return result;
 }
 

@@ -428,7 +428,7 @@ the function `delete-forward-p' is defined and returns non-nil, it
 deletes forward.  Otherwise it deletes backward.
 
 Note: This is the way in XEmacs to choose the correct action for the
-\[delete] key, whichever key that means.  Other flavors don't use this
+[delete] key, whichever key that means.  Other flavors don't use this
 function to control that."
   (interactive "*P")
   (if (and (fboundp 'delete-forward-p)
@@ -445,7 +445,7 @@ forward using `c-hungry-delete-forward'.  Otherwise it deletes
 backward using `c-hungry-backspace'.
 
 Note: This is the way in XEmacs to choose the correct action for the
-\[delete] key, whichever key that means.  Other flavors don't use this
+[delete] key, whichever key that means.  Other flavors don't use this
 function to control that."
   (interactive)
   (if (and (fboundp 'delete-forward-p)
@@ -1143,9 +1143,9 @@ numeric argument is supplied, or the point is inside a literal."
 			   (eq (char-before) ?<))
 			 (progn
 			   (backward-char)
-			   (looking-at "\\s\("))))
+			   (looking-at "\\s("))))
 		    (and (eq (char-after) ?<)
-			 (not (looking-at "\\s\("))
+			 (not (looking-at "\\s("))
 			 (progn (c-backward-syntactic-ws)
 				(c-simple-skip-symbol-backward))
 			 (or (looking-at c-opt-<>-sexp-key)
@@ -1380,13 +1380,13 @@ No indentation or other \"electric\" behavior is performed."
 		;; be the return type of a function, or the like.  Exclude
 		;; this case.
 		(c-syntactic-re-search-forward
-		 (concat "[;=\(\[{]\\|\\("
+		 (concat "[;=([{]\\|\\("
 			 c-opt-block-decls-with-vars-key
 			 "\\)")
 		 eo-block t t t)
 		(match-beginning 1)	; Is there a "struct" etc., somewhere?
 		(not (eq (char-before) ?_))
-		(c-syntactic-re-search-forward "[;=\(\[{]" eo-block t t t)
+		(c-syntactic-re-search-forward "[;=([{]" eo-block t t t)
 		(eq (char-before) ?\{)
 		bod)))))
 
@@ -4455,7 +4455,7 @@ is in situations like the following:
 
 char description[] = \"\\
 A very long description of something that you want to fill to make
-nicely formatted output.\"\;
+nicely formatted output.\";
 
 If point is in any other situation, i.e. in normal code, do nothing.
 

@@ -1,4 +1,4 @@
-;;; x-win.el --- parse relevant switches and set up for X  -*-coding: utf-8; lexical-binding:t -*-
+;;; x-win.el --- parse relevant switches and set up for X  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1993-1994, 2001-2015 Free Software Foundation, Inc.
 

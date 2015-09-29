@@ -43,8 +43,6 @@
 
 (eval-when-compile (require 'cl-lib))
 
-(defvar font-lock-beginning-of-syntax-function)
-
 ;;; Applying syntax-table properties where needed.
 
 (defvar syntax-propertize-function nil
@@ -376,6 +374,7 @@ from each other, to avoid keeping too much useless info.")
   "Function to move back outside of any comment/string/paren.
 This function should move the cursor back to some syntactically safe
 point (where the PPSS is equivalent to nil).")
+(make-obsolete-variable 'syntax-begin-function nil "25.1")
 
 (defvar syntax-ppss-cache nil
   "List of (POS . PPSS) pairs, in decreasing POS order.")
@@ -503,11 +502,6 @@ running the hook."
 	      ;; - The function might be slow.
 	      ;; - If this function almost always finds a safe nearby spot,
 	      ;;   the cache won't be populated, so consulting it is cheap.
-	      (when (and (not syntax-begin-function)
-			 (boundp 'font-lock-beginning-of-syntax-function)
-			 font-lock-beginning-of-syntax-function)
-		(set (make-local-variable 'syntax-begin-function)
-		     font-lock-beginning-of-syntax-function))
 	      (when (and syntax-begin-function
 			 (progn (goto-char pos)
 				(funcall syntax-begin-function)

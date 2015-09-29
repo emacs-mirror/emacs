@@ -1,4 +1,4 @@
-;;; icalendar.el --- iCalendar implementation -*-coding: utf-8 -*-
+;;; icalendar.el --- iCalendar implementation
 
 ;; Copyright (C) 2002-2015 Free Software Foundation, Inc.
 

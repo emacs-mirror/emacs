@@ -849,7 +849,6 @@ Like original function but it skips read-only words."
 (provide 'wdired)
 
 ;; Local Variables:
-;; coding: utf-8
 ;; byte-compile-dynamic: t
 ;; End:
 

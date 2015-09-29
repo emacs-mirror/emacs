@@ -3918,8 +3918,4 @@ See Info node `(calc)Defining Functions'."
 
 (provide 'calc)
 
-;; Local variables:
-;; coding: utf-8
-;; End:
-
 ;;; calc.el ends here

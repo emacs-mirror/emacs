@@ -7,7 +7,7 @@
 @cindex frames
 
   When Emacs is started on a graphical display, e.g., on the X Window
-System, it occupies a graphical system-level ``window''.  In this
+System, it occupies a graphical system-level display region.  In this
 manual, we call this a @dfn{frame}, reserving the word ``window'' for
 the part of the frame used for displaying a buffer.  A frame initially
 contains one window, but it can be subdivided into multiple windows
@@ -28,7 +28,7 @@ displays (@pxref{Exiting}).  To close just the selected frame, type
   This chapter describes Emacs features specific to graphical displays
 (particularly mouse commands), and features for managing multiple
 frames.  On text terminals, many of these features are unavailable.
-However, it is still possible to create multiple ``frames'' on text
+However, it is still possible to create multiple frames on text
 terminals; such frames are displayed one at a time, filling the entire
 terminal screen (@pxref{Non-Window Terminals}).  It is also possible
 to use the mouse on some text terminals (@pxref{Text-Only Mouse}, for
@@ -110,7 +110,7 @@ the window and sets the cursor position.
 
 @cindex mouse, dragging
 @findex mouse-set-region
-  Holding down @kbd{Mouse-1} and ``dragging'' the mouse over a stretch
+  Holding down @kbd{Mouse-1} and dragging the mouse over a stretch
 of text activates the region around that text
 (@code{mouse-set-region}), placing the mark where you started holding
 down the mouse button, and point where you release it (@pxref{Mark}).
@@ -217,7 +217,7 @@ also copied to the kill ring.
 @item Double-Mouse-1
 Select the text around the word which you click on.
 
-Double-clicking on a character with ``symbol'' syntax (such as
+Double-clicking on a character with symbol syntax (such as
 underscore, in C mode) selects the symbol surrounding that character.
 Double-clicking on a character with open- or close-parenthesis syntax
 selects the parenthetical grouping which that character starts or
@@ -388,7 +388,7 @@ boundary to the left or right.
   The prefix key @kbd{C-x 5} is analogous to @kbd{C-x 4}.  Whereas
 each @kbd{C-x 4} command pops up a buffer in a different window in the
 selected frame (@pxref{Pop Up Window}), the @kbd{C-x 5} commands use a
-different frame.  If an existing visible or iconified (``minimized'')
+different frame.  If an existing visible or iconified (a.k.a.@: ``minimized'')
 frame already displays the requested buffer, that frame is raised and
 deiconified (``un-minimized''); otherwise, a new frame is created on
 the current display terminal.
@@ -444,7 +444,7 @@ error if there is only one frame.
 @item C-z
 @kindex C-z @r{(X windows)}
 @findex suspend-frame
-Minimize (or ``iconify'') the selected Emacs frame
+Minimize (or iconify) the selected Emacs frame
 (@code{suspend-frame}).  @xref{Exiting}.
 
 @item C-x 5 o
@@ -467,8 +467,8 @@ maximized, it fills the screen.
 @item <F11>
 @kindex <F11>
 @findex toggle-frame-fullscreen
-Toggle fullscreen mode for the current frame.  (The difference
-between ``fullscreen'' and ``maximized'' is normally that the former
+Toggle full-screen mode for the current frame.  (The difference
+between full-screen and maximized is normally that the former
 hides window manager decorations, giving slightly more screen space to
 Emacs itself.)
 @end table
@@ -476,7 +476,7 @@ Emacs itself.)
 @vindex frame-resize-pixelwise
   Note that with some window managers you may have to customize the
 variable @code{frame-resize-pixelwise} to a non-@code{nil} value in
-order to make a frame truly ``maximized'' or ``fullscreen''.  This
+order to make a frame truly maximized or full-screen.  This
 variable, when set to a non-@code{nil} value, in general allows
 resizing frames at pixel resolution, rather than in integral multiples
 of lines and columns.
@@ -485,7 +485,7 @@ of lines and columns.
 frame.  However, it will refuse to delete the last frame in an Emacs
 session, to prevent you from losing the ability to interact with the
 Emacs session.  Note that when Emacs is run as a daemon (@pxref{Emacs
-Server}), there is always a ``virtual frame'' that remains after all
+Server}), there is always a virtual frame that remains after all
 the ordinary, interactive frames are deleted.  In this case, @kbd{C-x
 5 0} can delete the last interactive frame; you can use
 @command{emacsclient} to reconnect to the Emacs session.
@@ -565,7 +565,7 @@ command can be helpful.  It describes the character at point, and
 names the font that it's rendered in.
 
 @cindex fontconfig
-  On X, there are four different ways to express a ``font name''.  The
+  On X, there are four different ways to express a font name.  The
 first is to use a @dfn{Fontconfig pattern}.  Fontconfig patterns have
 the following form:
 
@@ -738,8 +738,8 @@ have.  Normally you should use @samp{iso8859} for @var{registry} and
 @samp{1} for @var{encoding}.
 @end table
 
-  The fourth and final method of specifying a font is to use a ``font
-nickname''.  Certain fonts have shorter nicknames, which you can use
+  The fourth and final method of specifying a font is to use a font
+nickname.  Certain fonts have shorter nicknames, which you can use
 instead of a normal font specification.  For instance, @samp{6x13} is
 equivalent to
 
@@ -1138,8 +1138,8 @@ suppressed all dialog boxes with the variable @code{use-dialog-box}.
 @vindex x-gtk-file-dialog-help-text
 @cindex hidden files, in GTK+ file chooser
 @cindex help text, in GTK+ file chooser
-  When Emacs is compiled with GTK+ support, it uses the GTK+ ``file
-chooser'' dialog.  Emacs adds an additional toggle button to this
+  When Emacs is compiled with GTK+ support, it uses the GTK+ file
+chooser dialog.  Emacs adds an additional toggle button to this
 dialog, which you can use to enable or disable the display of hidden
 files (files starting with a dot) in that dialog.  If you want this
 toggle to be activated by default, change the variable

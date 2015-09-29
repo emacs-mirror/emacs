@@ -316,7 +316,7 @@ Currently known variants are 'emacs and 'mailutils."
 If non-nil, this variable is used to identify the correspondent
 when receiving new mail.  If it matches the address of the sender,
 the recipient is taken as correspondent of a mail.
-If nil \(default value\), your `user-login-name' and `user-mail-address'
+If nil \(default value), your `user-login-name' and `user-mail-address'
 are used to exclude yourself as correspondent.
 
 Usually you don't have to set this variable, except if you collect mails
@@ -4778,7 +4778,7 @@ With prefix argument N moves forward N messages with these labels.
 
 ;;;***
 
-;;;### (autoloads nil "rmailmm" "rmailmm.el" "e5b89eed8afb278cc8881f2208382c7c")
+;;;### (autoloads nil "rmailmm" "rmailmm.el" "36f518e036612a33eb436cb267fd39c7")
 ;;; Generated autoloads from rmailmm.el
 
 (autoload 'rmail-mime "rmailmm" "\
@@ -4922,7 +4922,7 @@ SENDERS is a regular expression.
 
 ;;;***
 
-;;;### (autoloads nil "undigest" "undigest.el" "912d4d3bf762991df5d4d02f42358025")
+;;;### (autoloads nil "undigest" "undigest.el" "c0ddfad4fe34ef9c1e790c2cc72b571d")
 ;;; Generated autoloads from undigest.el
 
 (autoload 'undigestify-rmail-message "undigest" "\

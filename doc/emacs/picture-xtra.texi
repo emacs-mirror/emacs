@@ -53,7 +53,7 @@ Additional extensions to Picture mode can be found in
 @menu
 * Basic Picture::         Basic concepts and simple commands of Picture Mode.
 * Insert in Picture::     Controlling direction of cursor motion
-                            after ``self-inserting'' characters.
+                            after self-inserting characters.
 * Tabs in Picture::       Various features for tab stops and indentation.
 * Rectangles in Picture:: Clearing and superimposing rectangles.
 @end menu
@@ -143,10 +143,10 @@ Picture}).
 @kindex C-c ' @r{(Picture mode)}
 @kindex C-c / @r{(Picture mode)}
 @kindex C-c \ @r{(Picture mode)}
-  Since ``self-inserting'' characters in Picture mode overwrite and move
+  Since self-inserting characters in Picture mode overwrite and move
 point, there is no essential restriction on how point should be moved.
 Normally point moves right, but you can specify any of the eight
-orthogonal or diagonal directions for motion after a ``self-inserting''
+orthogonal or diagonal directions for motion after a self-inserting
 character.  This is useful for drawing lines in the buffer.
 
 @table @kbd
@@ -185,7 +185,7 @@ Move down and right (``southeast'') after insertion
 @findex picture-motion-reverse
   Two motion commands move based on the current Picture insertion
 direction.  The command @kbd{C-c C-f} (@code{picture-motion}) moves in the
-same direction as motion after ``insertion'' currently does, while @kbd{C-c
+same direction as motion after insertion currently does, while @kbd{C-c
 C-b} (@code{picture-motion-reverse}) moves in the opposite direction.
 
 @node Tabs in Picture

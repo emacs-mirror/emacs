@@ -1,4 +1,4 @@
-;;; eudcb-ph.el --- Emacs Unified Directory Client - CCSO PH/QI Backend -*- coding: utf-8 -*-
+;;; eudcb-ph.el --- Emacs Unified Directory Client - CCSO PH/QI Backend
 
 ;; Copyright (C) 1998-2015 Free Software Foundation, Inc.
 

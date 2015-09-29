@@ -62,7 +62,7 @@
   :group 'gnus-summary-pick)
 
 (defcustom gnus-summary-pick-line-format
-  "%-5P %U\%R\%z\%I\%(%[%4L: %-23,23n%]%) %s\n"
+  "%-5P %U\ %R\ %z\ %I\ %(%[%4L: %-23,23n%]%) %s\n"
   "*The format specification of the lines in pick buffers.
 It accepts the same format specs that `gnus-summary-line-format' does."
   :type 'string

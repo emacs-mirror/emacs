@@ -17,13 +17,13 @@ of buffers for which it is implemented (listed in the menu below).
 Like file buffers, non-file buffers should normally not revert while
 you are working on them, or while they contain information that might
 get lost after reverting.  Therefore, they do not revert if they are
-``modified''.  This can get tricky, because deciding when a non-file
+modified.  This can get tricky, because deciding when a non-file
 buffer should be marked modified is usually more difficult than for
 file buffers.
 
 Another tricky detail is that, for efficiency reasons, Auto Revert
 often does not try to detect all possible changes in the buffer, only
-changes that are ``major'' or easy to detect.  Hence, enabling
+changes that are major or easy to detect.  Hence, enabling
 auto-reverting for a non-file buffer does not always guarantee that
 all information in the buffer is up-to-date, and does not necessarily
 make manual reverts useless.

@@ -66,7 +66,7 @@ file names.
   On GNUstep, in an X-windows environment you need to use @kbd{Cmd-c}
 instead of one of the @kbd{C-w} or @kbd{M-w} commands to transfer text
 to the X primary selection; otherwise, Emacs will use the
-``clipboard'' selection.  Likewise, @kbd{Cmd-y} (instead of @kbd{C-y})
+clipboard selection.  Likewise, @kbd{Cmd-y} (instead of @kbd{C-y})
 yanks from the X primary selection instead of the kill-ring or
 clipboard.
 
@@ -131,9 +131,9 @@ at the command-line before starting Emacs:
 @section Windowing System Events under Mac OS / GNUstep
 
   Nextstep applications receive a number of special events which have
-no X equivalent.  These are sent as specially defined ``keys'', which
+no X equivalent.  These are sent as specially defined key events, which
 do not correspond to any sequence of keystrokes.  Under Emacs, these
-``key'' events can be bound to functions just like ordinary
+key events can be bound to functions just like ordinary
 keystrokes.  Here is a list of these events.
 
 @table @key

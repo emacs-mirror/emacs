@@ -1266,7 +1266,6 @@ If the current Calc language does not use placeholders, return nil."
 (provide 'calc-aent)
 
 ;; Local variables:
-;; coding: utf-8
 ;; generated-autoload-file: "calc-loaddefs.el"
 ;; End:
 

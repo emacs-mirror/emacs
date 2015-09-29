@@ -324,8 +324,4 @@ Prefix argument ARG will make the entry nonmarking."
 
 (provide 'cal-bahai)
 
-;; Local Variables:
-;; coding: utf-8
-;; End:
-
 ;;; cal-bahai.el ends here

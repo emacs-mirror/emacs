@@ -258,7 +258,7 @@ accessible objects are also accessible.
 matter what the Lisp program or the user does, it is impossible to refer
 to them, since there is no longer a way to reach them.  Their space
 might as well be reused, since no one will miss them.  The second
-(``sweep'') phase of the garbage collector arranges to reuse them.
+(sweep) phase of the garbage collector arranges to reuse them.
 
 @c ??? Maybe add something describing weak hash tables here?
 
@@ -1368,7 +1368,7 @@ The buffer's value of point, as of the last time a redisplay completed
 in this window.
 
 @item last_had_star
-A non-@code{nil} value means the window's buffer was ``modified'' when the
+A non-@code{nil} value means the window's buffer was modified when the
 window was last updated.
 
 @item vertical_scroll_bar
@@ -1584,7 +1584,7 @@ fit in @code{int} range.
 Do not assume that signed integer arithmetic wraps around on overflow.
 This is no longer true of Emacs porting targets: signed integer
 overflow has undefined behavior in practice, and can dump core or
-even cause earlier or later code to behave ``illogically''.  Unsigned
+even cause earlier or later code to behave illogically.  Unsigned
 overflow does wrap around reliably, modulo a power of two.
 
 @item

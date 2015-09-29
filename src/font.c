@@ -4068,7 +4068,7 @@ DEFUN ("font-face-attributes", Ffont_face_attributes, Sfont_face_attributes, 1, 
 FONT is a font name, a font-spec, a font-entity, or a font-object.
 The return value is a list of the form
 
-\(:family FAMILY :height HEIGHT :weight WEIGHT :slant SLANT :width WIDTH)
+(:family FAMILY :height HEIGHT :weight WEIGHT :slant SLANT :width WIDTH)
 
 where FAMILY, HEIGHT, WEIGHT, SLANT, and WIDTH are face attribute values
 compatible with `set-face-attribute'.  Some of these key-attribute pairs
@@ -4749,15 +4749,15 @@ ASCENT, DESCENT, SPACE-WIDTH, AVERAGE-WIDTH are metrics of the font in
 pixels.
 
 CAPABILITY is a list whose first element is a symbol representing the
-font format \(x, opentype, truetype, type1, pcf, or bdf) and the
+font format (x, opentype, truetype, type1, pcf, or bdf) and the
 remaining elements describe the details of the font capability.
 
 If the font is OpenType font, the form of the list is
-  \(opentype GSUB GPOS)
+  (opentype GSUB GPOS)
 where GSUB shows which "GSUB" features the font supports, and GPOS
 shows which "GPOS" features the font supports.  Both GSUB and GPOS are
 lists of the format:
-  \((SCRIPT (LANGSYS FEATURE ...) ...) ...)
+  ((SCRIPT (LANGSYS FEATURE ...) ...) ...)
 
 If the font is not OpenType font, currently the length of the form is
 one.
@@ -5043,11 +5043,11 @@ where
     as follows:
 
       If the font is OpenType font, the form of the list is
-        \(opentype GSUB GPOS)
+        (opentype GSUB GPOS)
       where GSUB shows which "GSUB" features the font supports, and GPOS
       shows which "GPOS" features the font supports.  Both GSUB and GPOS are
       lists of the form:
-	\((SCRIPT (LANGSYS FEATURE ...) ...) ...)
+	((SCRIPT (LANGSYS FEATURE ...) ...) ...)
 
       where
         SCRIPT is a symbol representing OpenType script tag.
@@ -5359,7 +5359,7 @@ where ENCODING is a charset or a char-table,
 and REPERTORY is a charset, a char-table, or nil.
 
 If ENCODING and REPERTORY are the same, the element can have the form
-\(REGEXP . ENCODING).
+(REGEXP . ENCODING).
 
 ENCODING is for converting a character to a glyph code of the font.
 If ENCODING is a charset, encoding a character by the charset gives

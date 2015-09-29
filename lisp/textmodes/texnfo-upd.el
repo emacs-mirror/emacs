@@ -694,8 +694,8 @@ section titles are often too short to explain a node well.
 
 MENU-LIST has form:
 
-    \(\(\"node-name1\" . \"description\"\)
-    \(\"node-name2\" . \"description\"\) ... \)
+    ((\"node-name1\" . \"description\")
+     (\"node-name2\" . \"description\") ... )
 
 However, the description field might be nil.
 
@@ -1002,9 +1002,9 @@ following menu and the title of the node preceding that menu.
 
 The master menu list has this form:
 
-    \(\(\(... \"entry-1-2\"  \"entry-1\"\) \"title-1\"\)
-      \(\(... \"entry-2-2\"  \"entry-2-1\"\) \"title-2\"\)
-      ...\)
+    (((... \"entry-1-2\"  \"entry-1\") \"title-1\")
+     ((... \"entry-2-2\"  \"entry-2-1\") \"title-2\")
+     ...)
 
 However, there does not need to be a title field."
 
@@ -1018,7 +1018,7 @@ However, there does not need to be a title field."
   "Format and insert the master menu in the current buffer."
   (goto-char (point-min))
   ;; Insert a master menu only after `Top' node and before next node
-  ;; \(or include file if there is no next node\).
+  ;; (or include file if there is no next node).
   (unless (re-search-forward "^@node [ \t]*top[ \t]*\\(,\\|$\\)" nil t)
     (error "This buffer needs a Top node"))
   (let ((first-chapter
@@ -1407,7 +1407,7 @@ level in the Texinfo file; when looking for the `Previous' pointer,
 the section found will be at the same or higher hierarchical level in
 the Texinfo file; when looking for the `Up' pointer, the section found
 will be at some level higher in the Texinfo file.  The fourth argument
-\(one of `next', `previous', or `up'\) specifies whether to find the
+\(one of `next', `previous', or `up') specifies whether to find the
 `Next', `Previous', or `Up' pointer."
   (let ((case-fold-search t))
     (cond ((eq direction 'next)
@@ -1850,8 +1850,8 @@ chapters."
 
 ;; The menu-list has the form:
 ;;
-;;     \(\(\"node-name1\" . \"title1\"\)
-;;       \(\"node-name2\" . \"title2\"\) ... \)
+;;     ((\"node-name1\" . \"title1\")
+;;      (\"node-name2\" . \"title2\") ... )
 ;;
 ;; However, there does not need to be a title field and this function
 ;; does not fill it; however a comment tells you how to do so.

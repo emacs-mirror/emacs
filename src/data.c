@@ -226,8 +226,9 @@ for example, (type-of 1) returns `integer'.  */)
           return Qfloat;
         case Lisp_Misc_Finalizer:
           return Qfinalizer;
+	default:
+	  emacs_abort ();
 	}
-      emacs_abort ();
 
     case Lisp_Vectorlike:
       if (WINDOW_CONFIGURATIONP (object))
@@ -790,7 +791,7 @@ SUBR must be a built-in function.  */)
 DEFUN ("interactive-form", Finteractive_form, Sinteractive_form, 1, 1, 0,
        doc: /* Return the interactive form of CMD or nil if none.
 If CMD is not a command, the return value is nil.
-Value, if non-nil, is a list \(interactive SPEC).  */)
+Value, if non-nil, is a list (interactive SPEC).  */)
   (Lisp_Object cmd)
 {
   Lisp_Object fun = indirect_function (cmd); /* Check cycles.  */
@@ -1659,8 +1660,8 @@ DEFUN ("make-local-variable", Fmake_local_variable, Smake_local_variable,
        1, 1, "vMake Local Variable: ",
        doc: /* Make VARIABLE have a separate value in the current buffer.
 Other buffers will continue to share a common default value.
-\(The buffer-local value of VARIABLE starts out as the same value
-VARIABLE previously had.  If VARIABLE was void, it remains void.\)
+(The buffer-local value of VARIABLE starts out as the same value
+VARIABLE previously had.  If VARIABLE was void, it remains void.)
 Return VARIABLE.
 
 If the variable is already arranged to become local when set,

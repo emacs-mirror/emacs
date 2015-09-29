@@ -614,7 +614,7 @@ Project (@code{describe-gnu-project}).
 Display information about ordering printed copies of Emacs manuals
 (@code{view-order-manuals}).
 @item C-h C-n
-Display the ``news'' file, which lists the new features in this
+Display the news, which lists the new features in this
 version of Emacs (@code{view-emacs-news}).
 @item C-h C-o
 Display how to order or download the latest version of
@@ -634,7 +634,8 @@ Emacs (@code{describe-no-warranty}).
 
 @cindex tooltips
 @cindex balloon help
-  In Emacs, stretches of ``active text'' (text that does something
+@cindex active text
+  In Emacs, stretches of @dfn{active text} (text that does something
 special in response to mouse clicks or @key{RET}) often have
 associated help text.  This includes hyperlinks in Emacs buffers, as
 well as parts of the mode line.  On graphical displays, as well as

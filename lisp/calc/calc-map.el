@@ -417,6 +417,7 @@
 				( ?G 1 calcFunc-vgmean )
 				( ?M 1 calcFunc-vmean )
 				( ?N 1 calcFunc-vmin )
+                                ( ?R 1 calcFunc-rms )
 				( ?S 1 calcFunc-vsdev )
 				( ?X 1 calcFunc-vmax ) )
 			      ( ( ?C 2 calcFunc-vpcov )

@@ -1,4 +1,4 @@
-/* set-permissions.c - set permissions of a file
+/* Set permissions of a file.  -*- coding: utf-8 -*-
 
    Copyright (C) 2002-2003, 2005-2015 Free Software Foundation, Inc.
 

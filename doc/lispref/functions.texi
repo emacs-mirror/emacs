@@ -1,4 +1,4 @@
-@c -*-texinfo-*-
+@c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2015 Free Software
 @c Foundation, Inc.
@@ -118,7 +118,7 @@ Components}); such a @dfn{named command} can be invoked with
 
 @item closure
 A function object that is much like a lambda expression, except that
-it also encloses an ``environment'' of lexical variable bindings.
+it also encloses an environment of lexical variable bindings.
 @xref{Closures}.
 
 @item byte-code function
@@ -368,7 +368,7 @@ This is what @code{substring} does; @code{nil} as the third argument to
 @quotation
 @b{Common Lisp note:} Common Lisp allows the function to specify what
 default value to use when an optional argument is omitted; Emacs Lisp
-always uses @code{nil}.  Emacs Lisp does not support ``supplied-p''
+always uses @code{nil}.  Emacs Lisp does not support @code{supplied-p}
 variables that tell you whether an argument was explicitly passed.
 @end quotation
 
@@ -660,7 +660,7 @@ already been evaluated.
 
 The argument @var{function} must be either a Lisp function or a
 primitive function.  Special forms and macros are not allowed, because
-they make sense only when given the ``unevaluated'' argument
+they make sense only when given the unevaluated argument
 expressions.  @code{funcall} cannot provide these because, as we saw
 above, it never knows them in the first place.
 
@@ -912,7 +912,7 @@ This macro returns an anonymous function with argument list
 @var{args}, documentation string @var{doc} (if any), interactive spec
 @var{interactive} (if any), and body forms given by @var{body}.
 
-In effect, this macro makes @code{lambda} forms ``self-quoting'':
+In effect, this macro makes @code{lambda} forms self-quoting:
 evaluating a form whose @sc{car} is @code{lambda} yields the form
 itself:
 
@@ -1133,7 +1133,7 @@ argument list and body forms as the remaining elements:
 
 @noindent
 However, the fact that the internal structure of a closure is
-``exposed'' to the rest of the Lisp world is considered an internal
+exposed to the rest of the Lisp world is considered an internal
 implementation detail.  For this reason, we recommend against directly
 examining or altering the structure of closure objects.
 
@@ -1720,7 +1720,7 @@ performed later on in the same file, just like macros.
 @section The @code{declare} Form
 @findex declare
 
-  @code{declare} is a special macro which can be used to add ``meta''
+  @code{declare} is a special macro which can be used to add meta
 properties to a function or macro: for example, marking it as
 obsolete, or giving its forms a special @key{TAB} indentation
 convention in Emacs Lisp mode.
@@ -1821,7 +1821,7 @@ example, byte-compiling @file{fortran.el} used to warn:
 
 @example
 In end of data:
-fortran.el:2152:1:Warning: the function `gud-find-c-expr' is not
+fortran.el:2152:1:Warning: the function ‘gud-find-c-expr’ is not
     known to be defined.
 @end example
 
@@ -1912,7 +1912,7 @@ list of buffer-local bindings.
 Being quick and simple, @code{unsafep} does a very light analysis and
 rejects many Lisp expressions that are actually safe.  There are no
 known cases where @code{unsafep} returns @code{nil} for an unsafe
-expression.  However, a ``safe'' Lisp expression can return a string
+expression.  However, a safe Lisp expression can return a string
 with a @code{display} property, containing an associated Lisp
 expression to be executed after the string is inserted into a buffer.
 This associated expression can be a virus.  In order to be safe, you

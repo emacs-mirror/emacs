@@ -3107,7 +3107,7 @@ deactivation, which might run hooks and get into other trouble."
   "Define a piece of advice for FUNCTION (a symbol).
 The syntax of `defadvice' is as follows:
 
-  \(defadvice FUNCTION (CLASS NAME [POSITION] [ARGLIST] FLAG...)
+  (defadvice FUNCTION (CLASS NAME [POSITION] [ARGLIST] FLAG...)
     [DOCSTRING] [INTERACTIVE-FORM]
     BODY...)
 

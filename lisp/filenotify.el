@@ -43,7 +43,7 @@ A key in this hash table is the descriptor as returned from
 `gfilenotify', `inotify', `w32notify' or a file name handler.
 The value in the hash table is a list
 
-  \(DIR (FILE . CALLBACK) (FILE . CALLBACK) ...)
+  (DIR (FILE . CALLBACK) (FILE . CALLBACK) ...)
 
 Several values for a given DIR happen only for `inotify', when
 different files from the same directory are watched.")
@@ -54,7 +54,7 @@ different files from the same directory are watched.")
   "Handle file system monitoring event.
 If EVENT is a filewatch event, call its callback.  It has the format
 
-  \(file-notify (DESCRIPTOR ACTIONS FILE [FILE1-OR-COOKIE]) CALLBACK)
+  (file-notify (DESCRIPTOR ACTIONS FILE [FILE1-OR-COOKIE]) CALLBACK)
 
 Otherwise, signal a `file-notify-error'."
   (interactive "e")
@@ -161,7 +161,7 @@ EVENT is the cadr of the event in `file-notify-handle-event'
 	       ((eq action 'attrib) 'attribute-changed)
 	       ((memq action '(create added)) 'created)
 	       ((memq action '(modify modified)) 'changed)
-	       ((memq action '(delete 'delete-self move-self removed)) 'deleted)
+	       ((memq action '(delete delete-self move-self removed)) 'deleted)
 	       ;; Make the event pending.
 	       ((memq action '(moved-from renamed-from))
 		(setq file-notify--pending-event
@@ -291,7 +291,7 @@ FILE is the name of the file whose event is being reported."
 
       ;; Determine respective flags.
       (if (eq file-notify--library 'gfilenotify)
-	  (setq l-flags '(watch-mounts send-moved))
+	  (setq l-flags (append '(watch-mounts send-moved) flags))
 	(when (memq 'change flags)
 	  (setq
 	   l-flags
@@ -327,22 +327,11 @@ DESCRIPTOR should be an object returned by `file-notify-add-watch'."
   (let* ((desc (if (consp descriptor) (car descriptor) descriptor))
 	 (file (if (consp descriptor) (cdr descriptor)))
 	 (dir (car (gethash desc file-notify-descriptors)))
-	 handler registered)
+	 (handler (and (stringp dir)
+                       (find-file-name-handler dir 'file-notify-rm-watch)))
+         (registered (gethash desc file-notify-descriptors)))
 
     (when (stringp dir)
-      (setq handler (find-file-name-handler dir 'file-notify-rm-watch))
-
-      ;; Modify `file-notify-descriptors'.
-      (if (not file)
-	  (remhash desc file-notify-descriptors)
-
-	(setq registered (gethash desc file-notify-descriptors))
-	(setcdr registered
-		(delete (assoc file (cdr registered)) (cdr registered)))
-	(if (null (cdr registered))
-	    (remhash desc file-notify-descriptors)
-	  (puthash desc registered file-notify-descriptors)))
-
       ;; Call low-level function.
       (when (null (cdr registered))
         (condition-case nil
@@ -357,10 +346,17 @@ DESCRIPTOR should be an object returned by `file-notify-add-watch'."
                 ((eq file-notify--library 'inotify) 'inotify-rm-watch)
                 ((eq file-notify--library 'w32notify) 'w32notify-rm-watch))
                desc))
-          (file-notify-error nil))))))
+          (file-notify-error nil)))
 
-;; Temporary declarations.
-(defalias 'gfile-valid-p 'identity)
+      ;; Modify `file-notify-descriptors'.
+      (if (not file)
+	  (remhash desc file-notify-descriptors)
+
+	(setcdr registered
+		(delete (assoc file (cdr registered)) (cdr registered)))
+	(if (null (cdr registered))
+	    (remhash desc file-notify-descriptors)
+	  (puthash desc registered file-notify-descriptors))))))
 
 (defun file-notify-valid-p (descriptor)
   "Check a watch specified by its DESCRIPTOR.

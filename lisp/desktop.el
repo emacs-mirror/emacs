@@ -1590,7 +1590,3 @@ If there are no buffers left to create, kill the timer."
 (provide 'desktop)
 
 ;;; desktop.el ends here
-
-;; Local Variables:
-;; coding: utf-8
-;; End:

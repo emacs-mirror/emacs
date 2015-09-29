@@ -24,7 +24,7 @@
 #  http://home.m05.itscom.net/numa/cde/ucs-conv/appendix.html
 # This program reads the mapping file EUC-JP-MS (of glibc) and
 # generates the Elisp file eucjp-ms.el that defines two translation
-# tables `eucjp-ms-decode' and `eucjp-ms-encode'.
+# tables 'eucjp-ms-decode' and 'eucjp-ms-encode'.
 
 BEGIN {
   FS = "[ \t][ \t]*"
@@ -109,4 +109,3 @@ END {
   print "";
   print "(provide 'eucjp-ms)";
 }
-

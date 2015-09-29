@@ -776,7 +776,7 @@ TYPE-OF-EMACS is either 'xemacs or 'emacs."
 
 ;; A var local to each control panel buffer.  Indicates highlighting style
 ;; in effect for this buffer: `face', `ascii',
-;; `off' -- turned off \(on a dumb terminal only\).
+;; `off' -- turned off (on a dumb terminal only).
 (ediff-defvar-local ediff-highlighting-style
   (if (and (ediff-has-face-support-p) ediff-use-faces) 'face 'ascii)
   "")

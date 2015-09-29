@@ -1,4 +1,4 @@
-;;; conf-mode.el --- Simple major mode for editing conf/ini/properties files -*- coding: utf-8 -*-
+;;; conf-mode.el --- Simple major mode for editing conf/ini/properties files
 
 ;; Copyright (C) 2004-2015 Free Software Foundation, Inc.
 
@@ -434,7 +434,7 @@ For details see `conf-mode'.  Example:
 
 # Conf mode font-locks this right on Unix and with \\[conf-unix-mode]
 
-\[Desktop Entry]
+[Desktop Entry]
 	 Encoding=UTF-8
 	 Name=The GIMP
 	 Name[ca]=El GIMP
@@ -449,11 +449,11 @@ For details see `conf-mode'.  Example:
 
 ; Conf mode font-locks this right on Windows and with \\[conf-windows-mode]
 
-\[ExtShellFolderViews]
+[ExtShellFolderViews]
 Default={5984FFE0-28D4-11CF-AE66-08002B2E1262}
 {5984FFE0-28D4-11CF-AE66-08002B2E1262}={5984FFE0-28D4-11CF-AE66-08002B2E1262}
 
-\[{5984FFE0-28D4-11CF-AE66-08002B2E1262}]
+[{5984FFE0-28D4-11CF-AE66-08002B2E1262}]
 PersistMoniker=file://Folder.htt"
   (conf-mode-initialize ";"))
 

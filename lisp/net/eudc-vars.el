@@ -1,4 +1,4 @@
-;;; eudc-vars.el --- Emacs Unified Directory Client -*- coding: utf-8 -*-
+;;; eudc-vars.el --- Emacs Unified Directory Client
 
 ;; Copyright (C) 1998-2015 Free Software Foundation, Inc.
 

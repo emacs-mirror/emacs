@@ -39,7 +39,7 @@
   :group 'url-gateway)
 
 (defcustom url-gateway-prompt-pattern
-  "^[^#$%>;]*[#$%>;] *" ;; "bash\\|\$ *\r?$\\|> *\r?"
+  "^[^#$%>;]*[#$%>;] *" ;; "bash\\|[$>] *\r?$"
   "A regular expression matching a shell prompt."
   :type 'regexp
   :group 'url-gateway)

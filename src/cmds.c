@@ -108,7 +108,7 @@ right or to the left on the screen.  This is in contrast with
 DEFUN ("forward-line", Fforward_line, Sforward_line, 0, 1, "^p",
        doc: /* Move N lines forward (backward if N is negative).
 Precisely, if point is on line I, move to the start of line I + N
-\("start of line" in the logical order).
+("start of line" in the logical order).
 If there isn't room, go as far as possible (no error).
 
 Returns the count of lines left to move.  If moving forward,

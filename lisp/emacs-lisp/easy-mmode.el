@@ -136,7 +136,7 @@ BODY contains code to execute each time the mode is enabled or disabled.
 :variable PLACE	The location to use instead of the variable MODE to store
 		the state of the mode.	This can be simply a different
 		named variable, or a generalized variable.
-		PLACE can also be of the form \(GET . SET), where GET is
+		PLACE can also be of the form (GET . SET), where GET is
 		an expression that returns the current state, and SET is
 		a function that takes one argument, the new state, and
 		sets it.  If you specify a :variable, this function does

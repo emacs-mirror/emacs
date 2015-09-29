@@ -63,8 +63,8 @@ with default Emacs bindings information about this is shown.
 
 VALUE should have either of these formats:
 
-  \(cua-mode)
-  \(current-binding KEY-FUN DEF-FUN KEY WHERE)
+  (cua-mode)
+  (current-binding KEY-FUN DEF-FUN KEY WHERE)
 
 Where
   KEY         is a key sequence whose standard binding has been changed
@@ -135,7 +135,7 @@ options:
                            ;; then save this value in mapsym
                            (setq mapsym s)))))
             (insert
-             (format
+             (format-message
               "The default Emacs binding for the key %s is the command `%s'.  "
               (key-description key)
               db))
@@ -402,8 +402,8 @@ where
   REMARK      is a list with info about rebinding. It has either of
               these formats:
 
-                \(TEXT cua-mode)
-                \(TEXT current-binding KEY-FUN DEF-FUN KEY WHERE)
+                (TEXT cua-mode)
+                (TEXT current-binding KEY-FUN DEF-FUN KEY WHERE)
 
               Here TEXT is a link text to show to the user.  The
               rest of the list is used to show information when

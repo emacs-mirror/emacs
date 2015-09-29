@@ -465,7 +465,7 @@ Optional arg REVISION is a revision to annotate from."
 
 (declare-function log-edit-extract-headers "log-edit" (headers string))
 
-(defun vc-hg-checkin (files comment)
+(defun vc-hg-checkin (files comment &optional _rev)
   "Hg-specific version of `vc-backend-checkin'.
 REV is ignored."
   (apply 'vc-hg-command nil 0 files

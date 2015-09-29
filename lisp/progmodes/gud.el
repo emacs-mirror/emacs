@@ -2855,6 +2855,10 @@ Obeying it means displaying in another window the specified file and line."
 (defun gud-format-command (str arg)
   (let ((insource (not (eq (current-buffer) gud-comint-buffer)))
 	(frame (or gud-last-frame gud-last-last-frame))
+	(buffer-file-name-localized
+         (and (buffer-file-name)
+              (or (file-remote-p (buffer-file-name) 'localname)
+                  (buffer-file-name))))
 	result)
     (while (and str
 		(let ((case-fold-search nil))
@@ -2864,15 +2868,15 @@ Obeying it means displaying in another window the specified file and line."
 	(cond
 	 ((eq key ?f)
 	  (setq subst (file-name-nondirectory (if insource
-						  (buffer-file-name)
+						  buffer-file-name-localized
 						(car frame)))))
 	 ((eq key ?F)
 	  (setq subst (file-name-base (if insource
-                                          (buffer-file-name)
+                                          buffer-file-name-localized
                                         (car frame)))))
 	 ((eq key ?d)
 	  (setq subst (file-name-directory (if insource
-					       (buffer-file-name)
+					       buffer-file-name-localized
 					     (car frame)))))
 	 ((eq key ?l)
 	  (setq subst (int-to-string

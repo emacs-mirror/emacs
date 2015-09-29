@@ -1,4 +1,4 @@
-;;; cl-macs.el --- Common Lisp macros  -*- lexical-binding: t; coding: utf-8 -*-
+;;; cl-macs.el --- Common Lisp macros  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1993, 2001-2015 Free Software Foundation, Inc.
 

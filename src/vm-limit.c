@@ -170,19 +170,13 @@ check_memory_limits (void)
   if (new_warnlevel > warnlevel || new_warnlevel == warned_95)
     {
       warnlevel = new_warnlevel;
-      switch (warnlevel)
+      static char const *const warn_diagnostic[] =
 	{
-	case warned_75:
-	  (*warn_function) ("Warning: past 75% of memory limit");
-	  break;
-
-	case warned_85:
-	  (*warn_function) ("Warning: past 85% of memory limit");
-	  break;
-
-	case warned_95:
-	  (*warn_function) ("Warning: past 95% of memory limit");
-	}
+	  "Warning: past 75% of memory limit",
+	  "Warning: past 85% of memory limit",
+	  "Warning: past 95% of memory limit"
+	};
+      warn_function (warn_diagnostic[warnlevel - 1]);
     }
   /* Handle going down in usage levels, with some hysteresis.  */
   else

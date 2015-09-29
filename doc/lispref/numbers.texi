@@ -224,7 +224,7 @@ distinguish them.
 @cindex NaN
   The @acronym{IEEE} floating-point standard supports positive
 infinity and negative infinity as floating-point values.  It also
-provides for a class of values called NaN or ``not-a-number'';
+provides for a class of values called NaN, or ``not a number'';
 numerical functions return such values in cases where there is no
 correct answer.  For example, @code{(/ 0.0 0.0)} returns a NaN@.
 Although NaN values carry a sign, for practical purposes there is no other
@@ -812,7 +812,7 @@ Rounding a value equidistant between two integers returns the even integer.
 sequence of @dfn{bits} (digits which are either zero or one).  A bitwise
 operation acts on the individual bits of such a sequence.  For example,
 @dfn{shifting} moves the whole sequence left or right one or more places,
-reproducing the same pattern ``moved over''.
+reproducing the same pattern moved over.
 
   The bitwise operations in Emacs Lisp apply only to integers.
 
@@ -989,17 +989,16 @@ Here are other examples:
 @end defun
 
 @defun logand &rest ints-or-markers
-This function returns the ``logical and'' of the arguments: the
-@var{n}th bit is set in the result if, and only if, the @var{n}th bit is
-set in all the arguments.  (``Set'' means that the value of the bit is 1
-rather than 0.)
+This function returns the bitwise AND of the arguments: the @var{n}th
+bit is 1 in the result if, and only if, the @var{n}th bit is 1 in all
+the arguments.
 
-For example, using 4-bit binary numbers, the ``logical and'' of 13 and
+For example, using 4-bit binary numbers, the bitwise AND of 13 and
 12 is 12: 1101 combined with 1100 produces 1100.
-In both the binary numbers, the leftmost two bits are set (i.e., they
-are 1's), so the leftmost two bits of the returned value are set.
-However, for the rightmost two bits, each is zero in at least one of
-the arguments, so the rightmost two bits of the returned value are 0's.
+In both the binary numbers, the leftmost two bits are both 1
+so the leftmost two bits of the returned value are both 1.
+However, for the rightmost two bits, each is 0 in at least one of
+the arguments, so the rightmost two bits of the returned value are both 0.
 
 @noindent
 Therefore,
@@ -1040,9 +1039,9 @@ because its binary representation consists entirely of ones.  If
 @end defun
 
 @defun logior &rest ints-or-markers
-This function returns the ``inclusive or'' of its arguments: the @var{n}th bit
-is set in the result if, and only if, the @var{n}th bit is set in at least
-one of the arguments.  If there are no arguments, the result is zero,
+This function returns the bitwise inclusive OR of its arguments: the @var{n}th
+bit is 1 in the result if, and only if, the @var{n}th bit is 1 in at
+least one of the arguments.  If there are no arguments, the result is 0,
 which is an identity element for this operation.  If @code{logior} is
 passed just one argument, it returns that argument.
 
@@ -1065,9 +1064,9 @@ passed just one argument, it returns that argument.
 @end defun
 
 @defun logxor &rest ints-or-markers
-This function returns the ``exclusive or'' of its arguments: the
-@var{n}th bit is set in the result if, and only if, the @var{n}th bit is
-set in an odd number of the arguments.  If there are no arguments, the
+This function returns the bitwise exclusive OR of its arguments: the
+@var{n}th bit is 1 in the result if, and only if, the @var{n}th bit is
+1 in an odd number of the arguments.  If there are no arguments, the
 result is 0, which is an identity element for this operation.  If
 @code{logxor} is passed just one argument, it returns that argument.
 
@@ -1090,7 +1089,7 @@ result is 0, which is an identity element for this operation.  If
 @end defun
 
 @defun lognot integer
-This function returns the logical complement of its argument: the @var{n}th
+This function returns the bitwise complement of its argument: the @var{n}th
 bit is one in the result if, and only if, the @var{n}th bit is zero in
 @var{integer}, and vice-versa.
 
@@ -1218,7 +1217,8 @@ fashion.  The numbers are not truly random, but they have certain
 properties that mimic a random series.  For example, all possible
 values occur equally often in a pseudo-random series.
 
-  Pseudo-random numbers are generated from a ``seed''.  Starting from
+@cindex seed, for random number generation
+  Pseudo-random numbers are generated from a @dfn{seed value}.  Starting from
 any given seed, the @code{random} function always generates the same
 sequence of numbers.  By default, Emacs initializes the random seed at
 startup, in such a way that the sequence of values of @code{random}

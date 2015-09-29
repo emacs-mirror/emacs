@@ -140,7 +140,7 @@ definition of @var{symbol} (@pxref{Byte-Code Objects}).
 
 If @var{symbol}'s definition is a byte-code function object,
 @code{byte-compile} does nothing and returns @code{nil}.  It does not
-``compile the symbol's definition again'', since the original
+compile the symbol's definition again, since the original
 (non-compiled) code has already been replaced in the symbol's function
 cell by the byte-compiled code.
 
@@ -242,7 +242,7 @@ $ emacs -batch -f batch-byte-compile *.el
 
   When Emacs loads functions and variables from a byte-compiled file,
 it normally does not load their documentation strings into memory.
-Each documentation string is ``dynamically'' loaded from the
+Each documentation string is dynamically loaded from the
 byte-compiled file only when needed.  This saves memory, and speeds up
 loading by skipping the processing of the documentation strings.
 
@@ -280,7 +280,7 @@ Internally, the dynamic loading of documentation strings is
 accomplished by writing compiled files with a special Lisp reader
 construct, @samp{#@@@var{count}}.  This construct skips the next
 @var{count} characters.  It also uses the @samp{#$} construct, which
-stands for ``the name of this file, as a string''.  Do not use these
+stands for the name of this file, as a string.  Do not use these
 constructs in Lisp source files; they are not designed to be clear to
 humans reading the file.
 

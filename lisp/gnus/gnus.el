@@ -1361,7 +1361,7 @@ group (or nil) as a parameter.
 If you want to save your mail in one group and the news articles you
 write in another group, you could say something like:
 
- \(setq gnus-message-archive-group
+  (setq gnus-message-archive-group
 	\\='((if (message-news-p)
 	      \"misc-news\"
 	    \"misc-mail\")))
@@ -2517,10 +2517,10 @@ This should be an alist for Emacs, or a plist for XEmacs."
   "Which information should be exposed in the User-Agent header.
 
 Can be a list of symbols or a string.  Valid symbols are `gnus'
-\(show Gnus version\) and `emacs' \(show Emacs version\).  In
+\(show Gnus version) and `emacs' \(show Emacs version).  In
 addition to the Emacs version, you can add `codename' \(show
-\(S\)XEmacs codename\) or either `config' \(show system
-configuration\) or `type' \(show system type\).  If you set it to
+\(S)XEmacs codename) or either `config' \(show system
+configuration) or `type' \(show system type).  If you set it to
 a string, be sure to use a valid format, see RFC 2616."
 
   :version "22.1"

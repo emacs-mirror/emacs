@@ -1,4 +1,4 @@
-;;; x-dnd.el --- drag and drop support for X  -*- coding: utf-8 -*-
+;;; x-dnd.el --- drag and drop support for X
 
 ;; Copyright (C) 2004-2015 Free Software Foundation, Inc.
 

@@ -64,14 +64,14 @@ To add files to this list use the `org-babel-lob-ingest' command."
 
 (defconst org-babel-block-lob-one-liner-regexp
   (concat
-   "^\\([ \t]*?\\)#\\+call:[ \t]+\\([^\(\)\n]+?\\)\\(\\[\\(.*\\)\\]\\|\\(\\)\\)"
-   "\(\\([^\n]*?\\)\)\\(\\[.+\\]\\|\\)[ \t]*\\(\\([^\n]*\\)\\)?")
+   "^\\([ \t]*?\\)#\\+call:[ \t]+\\([^()\n]+?\\)\\(\\[\\(.*\\)\\]\\|\\(\\)\\)"
+   "(\\([^\n]*?\\))\\(\\[.+\\]\\|\\)[ \t]*\\(\\([^\n]*\\)\\)?")
   "Regexp to match non-inline calls to predefined source block functions.")
 
 (defconst org-babel-inline-lob-one-liner-regexp
   (concat
-   "\\([^\n]*?\\)call_\\([^\(\)\n]+?\\)\\(\\[\\(.*?\\)\\]\\|\\(\\)\\)"
-   "\(\\([^\n]*?\\)\)\\(\\[\\(.*?\\)\\]\\)?")
+   "\\([^\n]*?\\)call_\\([^()\n]+?\\)\\(\\[\\(.*?\\)\\]\\|\\(\\)\\)"
+   "(\\([^\n]*?\\))\\(\\[\\(.*?\\)\\]\\)?")
   "Regexp to match inline calls to predefined source block functions.")
 
 (defconst org-babel-lob-one-liner-regexp

@@ -905,7 +905,7 @@ Return non-nil if it is."
 The return value looks like this:
   (LOGBUFFER (ENTRYSTART ENTRYEND) ...)
 where LOGBUFFER is the name of the ChangeLog buffer, and each
-\(ENTRYSTART . ENTRYEND\) pair is a buffer region."
+\(ENTRYSTART . ENTRYEND) pair is a buffer region."
   (let ((changelog-file-name
          (let ((default-directory
                  (file-name-directory (expand-file-name file)))

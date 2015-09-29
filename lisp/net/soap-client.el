@@ -167,7 +167,7 @@ namespace of LOCAL-NAME."
   "Convert LOCAL-NAME into a fully qualified name.
 A fully qualified name is a cons of the namespace name and the
 name of the element itself.  For example \"xsd:string\" is
-converted to \(\"http://www.w3.org/2001/XMLSchema\" . \"string\"\).
+converted to \(\"http://www.w3.org/2001/XMLSchema\" . \"string\").
 
 The USE-TNS argument specifies what to do when LOCAL-NAME has no
 namespace tag.  If USE-TNS is non-nil, the `soap-target-xmlns'

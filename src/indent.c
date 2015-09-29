@@ -485,7 +485,9 @@ check_display_width (ptrdiff_t pos, ptrdiff_t col, ptrdiff_t *endpos)
 	 : MOST_POSITIVE_FIXNUM);
 
       if ((prop = Fplist_get (plist, QCwidth),
-	   RANGED_INTEGERP (0, prop, INT_MAX)))
+	   RANGED_INTEGERP (0, prop, INT_MAX))
+	  || (prop = Fplist_get (plist, QCrelative_width),
+	      RANGED_INTEGERP (0, prop, INT_MAX)))
 	width = XINT (prop);
       else if (FLOATP (prop) && 0 <= XFLOAT_DATA (prop)
 	       && XFLOAT_DATA (prop) <= INT_MAX)
@@ -504,6 +506,18 @@ check_display_width (ptrdiff_t pos, ptrdiff_t col, ptrdiff_t *endpos)
 	    *endpos = OVERLAY_POSITION (OVERLAY_END (overlay));
 	  else
 	    get_property_and_range (pos, Qdisplay, &val, &start, endpos, Qnil);
+
+	  /* For :relative-width, we need to multiply by the column
+	     width of the character at POS, if it is greater than 1.  */
+	  if (!NILP (Fplist_get (plist, QCrelative_width))
+	      && !NILP (BVAR (current_buffer, enable_multibyte_characters)))
+	    {
+	      int b, wd;
+	      unsigned char *p = BYTE_POS_ADDR (CHAR_TO_BYTE (pos));
+
+	      MULTIBYTE_BYTES_WIDTH (p, buffer_display_table (), b, wd);
+	      width *= wd;
+	    }
 	  return width;
 	}
     }

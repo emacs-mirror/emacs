@@ -55,8 +55,8 @@ the file name, using the minibuffer (@pxref{Minibuffer File}).
 history commands (@pxref{Minibuffer}).  Note that file name completion
 ignores file names whose extensions appear in the variable
 @code{completion-ignored-extensions} (@pxref{Completion Options}).
-Note also that most commands use ``permissive completion with
-confirmation'' for reading file names: you are allowed to submit a
+Note also that most commands use permissive completion with
+confirmation for reading file names: you are allowed to submit a
 nonexistent file name, but if you type @key{RET} immediately after
 completing up to a nonexistent file name, Emacs prints
 @samp{[Confirm]} and you must type a second @key{RET} to confirm.
@@ -96,9 +96,9 @@ minibuffer, with a directory omitted, specifies the file
 @file{/u/rms/gnu/new/foo}.
 
   When typing a file name into the minibuffer, you can make use of a
-couple of shortcuts: a double slash is interpreted as ``ignore
-everything before the second slash in the pair'', and @samp{~/} is
-interpreted as your home directory.  @xref{Minibuffer File}.
+couple of shortcuts: a double slash ignores everything before the
+second slash in the pair, and @samp{~/} is your home directory.
+@xref{Minibuffer File}.
 
 @cindex environment variables in file names
 @cindex expansion of environment variables
@@ -232,7 +232,7 @@ after the directory part; this is convenient if you made a slight
 error in typing the name.
 
 @vindex find-file-run-dired
-  If you ``visit'' a file that is actually a directory, Emacs invokes
+  If you visit a file that is actually a directory, Emacs invokes
 Dired, the Emacs directory browser.  @xref{Dired}.  You can disable
 this behavior by setting the variable @code{find-file-run-dired} to
 @code{nil}; in that case, it is an error to try to visit a directory.
@@ -274,13 +274,13 @@ new frame, or selects any existing frame showing the specified file.
   On graphical displays, there are two additional methods for visiting
 files.  Firstly, when Emacs is built with a suitable GUI toolkit,
 commands invoked with the mouse (by clicking on the menu bar or tool
-bar) use the toolkit's standard ``File Selection'' dialog instead of
+bar) use the toolkit's standard file selection dialog instead of
 prompting for the file name in the minibuffer.  On GNU/Linux and Unix
 platforms, Emacs does this when built with GTK, LessTif, and Motif
 toolkits; on MS-Windows and Mac, the GUI version does that by default.
 For information on how to customize this, see @ref{Dialog Boxes}.
 
-  Secondly, Emacs supports ``drag and drop'': dropping a file into an
+  Secondly, Emacs supports drag and drop: dropping a file into an
 ordinary Emacs window visits the file using that window.  As an
 exception, dropping a file into a window displaying a Dired buffer
 moves or copies the file into the displayed directory.  For details,
@@ -288,7 +288,7 @@ see @ref{Drag and Drop}, and @ref{Misc Dired Features}.
 
   On text-mode terminals and on graphical displays when Emacs was
 built without a GUI toolkit, you can visit files via the menu-bar
-``File'' menu, which has a ``Visit New File'' item.
+@samp{File} menu, which has a @samp{Visit New File} item.
 
   Each time you visit a file, Emacs automatically scans its contents
 to detect what character encoding and end-of-line convention it uses,
@@ -443,7 +443,7 @@ minibuffer.  Then it marks the buffer as visiting that file name, and
 changes the buffer name correspondingly.  @code{set-visited-file-name}
 does not save the buffer in the newly visited file; it just alters the
 records inside Emacs in case you do save later.  It also marks the
-buffer as ``modified'' so that @kbd{C-x C-s} in that buffer
+buffer as modified so that @kbd{C-x C-s} in that buffer
 @emph{will} save.
 
 @kindex C-x C-w
@@ -902,7 +902,7 @@ way that, if the file was edited only slightly, you will be at
 approximately the same part of the text as before.  But if you have
 made major changes, point may end up in a totally different location.
 
-  Reverting marks the buffer as ``not modified''.  It also clears the
+  Reverting marks the buffer as not modified.  It also clears the
 buffer's undo history (@pxref{Undo}).  Thus, the reversion cannot be
 undone---if you change your mind yet again, you can't use the undo
 commands to bring the reverted changes back.
@@ -1167,7 +1167,7 @@ implies the effect of @code{find-file-existing-other-name}.
 @cindex directory name abbreviation
 @vindex directory-abbrev-alist
   Sometimes, a directory is ordinarily accessed through a symbolic
-link, and you may want Emacs to preferentially show its ``linked''
+link, and you may want Emacs to preferentially show its linked
 name.  To do this, customize @code{directory-abbrev-alist}.  Each
 element in this list should have the form @code{(@var{from}
 . @var{to})}, which means to replace @var{from} with @var{to} whenever
@@ -1325,7 +1325,7 @@ prefix argument turns that off.
   You can use @kbd{M-x smerge-mode} to turn on Smerge mode, a minor
 mode for editing output from the @command{diff3} program.  This is
 typically the result of a failed merge from a version control system
-``update'' outside VC, due to conflicting changes to a file.  Smerge
+update outside VC, due to conflicting changes to a file.  Smerge
 mode provides commands to resolve conflicts by selecting specific
 changes.
 
@@ -1364,10 +1364,10 @@ contents of the hunk.
 read-only, you need to make it writable first.  @xref{Misc Buffer}.)
 Whenever you change a hunk, Diff mode attempts to automatically
 correct the line numbers in the hunk headers, to ensure that the patch
-remains ``correct''.  To disable automatic line number correction,
+remains correct.  To disable automatic line number correction,
 change the variable @code{diff-update-on-the-fly} to @code{nil}.
 
-  Diff mode treats each hunk as an ``error message'', similar to
+  Diff mode treats each hunk as an error message, similar to
 Compilation mode.  Thus, you can use commands such as @kbd{C-x `} to
 visit the corresponding source locations.  @xref{Compilation Mode}.
 
@@ -1585,7 +1585,7 @@ rename-file}.  @xref{VC Delete/Rename}.
 @cindex hard links (creation)
   @kbd{M-x add-name-to-file} adds an additional name to an existing
 file without removing its old name.  The new name is created as a
-``hard link'' to the existing file.  The new name must belong on the
+hard link to the existing file.  The new name must belong on the
 same file system that the file is on.  On MS-Windows, this command
 works only if the file resides in an NTFS file system.  On MS-DOS, it
 works by copying the file.
@@ -1612,7 +1612,7 @@ mark (@pxref{Mark Ring}).
 
 @findex insert-file-literally
   @kbd{M-x insert-file-literally} is like @kbd{M-x insert-file},
-except the file is inserted ``literally'': it is treated as a sequence
+except the file is inserted literally: it is treated as a sequence
 of @acronym{ASCII} characters with no special encoding or conversion,
 similar to the @kbd{M-x find-file-literally} command
 (@pxref{Visiting}).
@@ -2008,7 +2008,7 @@ enable ImageMagick for all possible image types, change
 @code{imagemagick-types-inhibit} lists the image types which should
 never be rendered using ImageMagick, regardless of the value of
 @code{imagemagick-enabled-types} (the default list includes types like
-@code{C} and @code{HTML}, which ImageMagick can render as an ``image''
+@code{C} and @code{HTML}, which ImageMagick can render as an image
 but Emacs should not).  To disable ImageMagick entirely, change
 @code{imagemagick-types-inhibit} to @code{t}.
 
@@ -2055,7 +2055,7 @@ files in a fileset, and @kbd{M-x filesets-close} to close them.  Use
 a fileset.  These commands are also available from the @samp{Filesets}
 menu, where each existing fileset is represented by a submenu.
 
-   @xref{Version Control}, for a different concept of ``filesets'':
+   @xref{Version Control}, for a different concept of filesets:
 groups of files bundled together for version control operations.
 Filesets of that type are unnamed, and do not persist across Emacs
 sessions.

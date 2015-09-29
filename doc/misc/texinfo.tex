@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2015-09-05.20}
+\def\texinfoversion{2015-09-20.17}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -196,17 +196,6 @@
   wide-spread wrap-around
 }
 
-% Margin to add to right of even pages, to left of odd pages.
-\newdimen\bindingoffset
-\newdimen\normaloffset
-\newdimen\pagewidth \newdimen\pageheight
-
-% For a final copy, take out the rectangles
-% that mark overfull boxes (in case you have decided
-% that the text looks ok even though it passes the margin).
-%
-\def\finalout{\overfullrule=0pt }
-
 % Sometimes it is convenient to have everything in the transcript file
 % and nothing on the terminal.  We don't just call \tracingall here,
 % since that produces some useless output on the terminal.  We also make
@@ -251,6 +240,15 @@
 \def\bigbreak{\ifnum\lastpenalty<10000\par\ifdim\lastskip<\bigskipamount
   \removelastskip\penalty-200\bigskip\fi\fi}
 
+% Output routine
+%
+
+% For a final copy, take out the rectangles
+% that mark overfull boxes (in case you have decided
+% that the text looks ok even though it passes the margin).
+%
+\def\finalout{\overfullrule=0pt }
+
 % Do @cropmarks to get crop marks.
 %
 \newif\ifcropmarks
@@ -290,6 +288,9 @@
     \noexpand\else \the\toks8             % 2: color marks
   }%
 }
+
+% \gettopheadingmarks, \getbottomheadingmarks - extract needed part of mark.
+%
 % \topmark doesn't work for the very first chapter (after the title
 % page or the contents), so we use \firstmark there -- this gets us
 % the mark with the chapter defs, unless the user sneaks in, e.g.,
@@ -310,6 +311,10 @@
 \def\prevsectiondefs{}
 \def\lastcolordefs{}
 
+% Margin to add to right of even pages, to left of odd pages.
+\newdimen\bindingoffset
+\newdimen\normaloffset
+\newdimen\pagewidth \newdimen\pageheight
 
 % Main output routine.
 %
@@ -319,25 +324,56 @@
 \newbox\headlinebox
 \newbox\footlinebox
 
-% \onepageout takes a vbox as an argument.  Note that \pagecontents
-% does insertions, but you have to call it yourself.
+% \onepageout takes a vbox as an argument.
+% \shipout a vbox for a single page, adding an optional header, footer,
+% cropmarks, and footnote.  This also causes index entries for this page
+% to be written to the auxiliary files.
+%
 \def\onepageout#1{%
   \ifcropmarks \hoffset=0pt \else \hoffset=\normaloffset \fi
   %
   \ifodd\pageno  \advance\hoffset by \bindingoffset
   \else \advance\hoffset by -\bindingoffset\fi
   %
+  % Common context changes for both heading and footing.
   % Do this outside of the \shipout so @code etc. will be expanded in
   % the headline as they should be, not taken literally (outputting ''code).
   \def\commmonheadfootline{\let\hsize=\pagewidth \texinfochars}
   %
-  \ifodd\pageno \getoddheadingmarks \else \getevenheadingmarks \fi
-  \global\setbox\headlinebox = \vbox{\commmonheadfootline \makeheadline}%
+  % Retrieve the information for the headings from the marks in the page,
+  % and call Plain TeX's \makeheadline and \makefootline, which use the
+  % values in \headline and \footline.
   %
+  % This is used to check if we are on the first page of a chapter.
+  \ifcase0\topmark\fi
+  \ifx\thischapter\empty
+    % See comment for \gettopheadingmarks
+    \ifcase0\firstmark\fi
+    \let\curchaptername\thischaptername
+    \ifcase1\firstmark\fi
+    \let\prevchaptername\thischaptername
+  \else
+    \let\curchaptername\thischaptername
+    \ifcase1\topmark\fi
+    \let\prevchaptername\thischaptername
+  \fi
+  %
+  \ifodd\pageno \getoddheadingmarks \else \getevenheadingmarks \fi
   \ifodd\pageno \getoddfootingmarks \else \getevenfootingmarks \fi
+  %
+  \ifx\curchaptername\prevchaptername
+  \else
+    % If on the first page of a chapter, clear @thischapter so it
+    % doesn't appear in the headline, because the chapter is already
+    % shown in the chapter heading.
+    \def\thischapter{}%
+  \fi
+  %
+  \global\setbox\headlinebox = \vbox{\commmonheadfootline \makeheadline}%
   \global\setbox\footlinebox = \vbox{\commmonheadfootline \makefootline}%
   %
   {%
+    % Set context for writing to auxiliary files like index files.
     % Have to do this stuff outside the \shipout because we want it to
     % take effect in \write's, yet the group defined by the \vbox ends
     % before the \shipout runs.
@@ -407,6 +443,7 @@
 
 \newinsert\margin \dimen\margin=\maxdimen
 
+% Main part of page, including any footnotes
 \def\pagebody#1{\vbox to\pageheight{\boxmaxdepth=\maxdepth #1}}
 {\catcode`\@ =11
 \gdef\pagecontents#1{\ifvoid\topins\else\unvbox\topins\fi
@@ -690,6 +727,12 @@
     \endgraf % Not \par, as it may have been set to \lisppar.
     \global\dimen1 = \prevdepth
   \egroup           % End the \vtop.
+  \addgroupbox
+  \prevdepth = \dimen1
+  \checkinserts
+}
+
+\def\addgroupbox{
   % \dimen0 is the vertical size of the group's box.
   \dimen0 = \ht\groupbox  \advance\dimen0 by \dp\groupbox
   % \dimen2 is how much space is left on the page (more or less).
@@ -702,9 +745,8 @@
     \fi
   \fi
   \box\groupbox
-  \prevdepth = \dimen1
-  \checkinserts
 }
+
 %
 % TeX puts in an \escapechar (i.e., `@') at the beginning of the help
 % message, so this ends up printing `@group can only ...'.
@@ -1046,32 +1088,8 @@ where each line of input produces a line of output.}
 % @refill is a no-op.
 \let\refill=\relax
 
-% If working on a large document in chapters, it is convenient to
-% be able to disable indexing, cross-referencing, and contents, for test runs.
-% This is done with @novalidate (before @setfilename).
-%
-\newif\iflinks \linkstrue % by default we want the aux files.
-\let\novalidate = \linksfalse
-
-% @setfilename is done at the beginning of every texinfo file.  So open
-% here some of the files we need to have open while reading the input.
-% This makes it possible to make a .fmt file for texinfo.
-\def\setfilename{%
-   \iflinks
-     \tryauxfile
-     % Open the new aux file.  TeX will close it automatically at exit.
-     \immediate\openout\auxfile=\jobname.aux
-   \fi % \openindices needs to do some work in any case.
-   \let\setfilename=\comment % Ignore extra @setfilename cmds.
-   %
-   % If texinfo.cnf is present on the system, read it.
-   % Useful for site-wide @afourpaper, etc.
-   \openin 1 texinfo.cnf
-   \ifeof 1 \else \input texinfo.cnf \fi
-   \closein 1
-   %
-   \comment % Ignore the actual filename.
-}
+% @setfilename INFO-FILENAME - ignored
+\let\setfilename=\comment
 
 % @bye.
 \outer\def\bye{\pagealignmacro\tracingstats=1\ptexend}
@@ -1825,8 +1843,10 @@ end
 % A few fonts for @defun names and args.
 \setfont\defbf\bfshape{10}{\magstep1}{OT1}
 \setfont\deftt\ttshape{10}{\magstep1}{OT1TT}
+\setfont\defsl\slshape{10}{\magstep1}{OT1TT}
 \setfont\defttsl\ttslshape{10}{\magstep1}{OT1TT}
-\def\df{\let\tentt=\deftt \let\tenbf = \defbf \let\tenttsl=\defttsl \bf}
+\def\df{\let\tentt=\deftt \let\tenbf = \defbf
+\let\tenttsl=\defttsl \let\tensl=\defsl \bf}
 
 % Fonts for indices, footnotes, small examples (9pt).
 \def\smallnominalsize{9pt}
@@ -1957,8 +1977,10 @@ end
 % A few fonts for @defun names and args.
 \setfont\defbf\bfshape{10}{\magstephalf}{OT1}
 \setfont\deftt\ttshape{10}{\magstephalf}{OT1TT}
+\setfont\defsl\slshape{10}{\magstephalf}{OT1TT}
 \setfont\defttsl\ttslshape{10}{\magstephalf}{OT1TT}
-\def\df{\let\tentt=\deftt \let\tenbf = \defbf \let\tenttsl=\defttsl \bf}
+\def\df{\let\tentt=\deftt \let\tenbf = \defbf
+\let\tensl=\defsl \let\tenttsl=\defttsl \bf}
 
 % Fonts for indices, footnotes, small examples (9pt).
 \def\smallnominalsize{9pt}
@@ -2777,11 +2799,6 @@ end
 %
 \def\dmn#1{\thinspace #1}
 
-% @l was never documented to mean ``switch to the Lisp font'',
-% and it is not used as such in any manual I can find.  We need it for
-% Polish suppressed-l.  --karl, 22sep96.
-%\def\l#1{{\li #1}\null}
-
 % @acronym for "FBI", "NATO", and the like.
 % We print this one point size smaller, since it's intended for
 % all-uppercase.
@@ -3392,7 +3409,7 @@ end
 \newtoks\evenfootline    % footline on even pages
 \newtoks\oddfootline     % footline on odd pages
 
-% Now make TeX use those variables
+% Now make \makeheadline and \makefootline in Plain TeX use those variables
 \headline={{\textfonts\rm \ifodd\pageno \the\oddheadline
                             \else \the\evenheadline \fi}}
 \footline={{\textfonts\rm \ifodd\pageno \the\oddfootline
@@ -3448,6 +3465,10 @@ end
 % @everyheadingmarks
 % @everyfootingmarks
 
+% These define \getoddheadingmarks, \getevenheadingmarks,
+% \getoddfootingmarks, and \getevenfootingmarks, each to one of
+% \gettopheadingmarks, \getbottomheadingmarks.
+%
 \def\evenheadingmarks{\headingmarks{even}{heading}}
 \def\oddheadingmarks{\headingmarks{odd}{heading}}
 \def\evenfootingmarks{\headingmarks{even}{footing}}
@@ -3737,7 +3758,12 @@ end
    \noindent
    \hbox to 0pt{\hss \itemcontents \kern\itemmargin}%
    %
-   \vadjust{\penalty 1200}}% not good to break after first line of item.
+   \ifinner\else
+     \vadjust{\penalty 1200}% not good to break after first line of item.
+   \fi
+   % We can be in inner vertical mode in a footnote, although an
+   % @itemize looks awful there.
+  }%
   \flushcr
 }
 
@@ -4436,8 +4462,6 @@ end
 
 % Used when writing an index entry out to an index file, to prevent
 % expansion of Texinfo commands that can appear in an index entry.
-% Since there are some commands we want to expand, and others we don't,
-% we have to laboriously prevent expansion for those that we don't.
 %
 \def\indexdummies{%
   \escapechar = `\\     % use backslash in output files.
@@ -4659,6 +4683,7 @@ end
   % that we make for arg2 (see \parsemargdef ff.).  We want all this to be
   % expanded for the sake of the index, so we end up just seeing "bar".
   \let\xeatspaces = \eatspaces
+  \let\xprocessmacroarg\eatspaces
 }
 
 % For testing: output @{ and @} in index sort strings as \{ and \}.
@@ -4679,12 +4704,14 @@ end
     \backslashdisappear
     \def-{}%
     \def<{}%
+    \def\@{}%
   }
 
   \gdef\indexnonalnumreappear{%
     \useindexbackslash
     \let-\normaldash
     \let<\normalless
+    \def\@{@}%
   }
 }
 
@@ -4837,7 +4864,10 @@ end
 \def\requireopenindexfile#1{%
 \ifnum\csname #1indfile\endcsname=0
   \expandafter\newwrite \csname#1indfile\endcsname
-  \openout \csname#1indfile\endcsname \jobname.#1 % Open the file
+  \immediate\openout\csname#1indfile\endcsname \jobname.#1 % Open the file
+  % Using \immediate here prevents an object entering into the current box,
+  % which could confound checks such as those in \safewhatsit for preceding
+  % skips.
 \fi}
 
 % Output \ as {\indexbackslash}, because \ is an escape character in
@@ -5037,11 +5067,13 @@ end
     % there is some text.
     \putwordIndexNonexistent
   \else
+    \catcode`\\ = 0
+    \escapechar = `\\
     %
     % If the index file exists but is empty, then \openin leaves \ifeof
     % false.  We have to make TeX try to read something from the file, so
     % it can discover if there is anything in it.
-    \read 1 to \temp
+    \read 1 to \thisline
     \ifeof 1
       \putwordIndexIsEmpty
     \else
@@ -5051,15 +5083,35 @@ end
       \def\indexbackslash{\ttbackslash}%
       \let\indexlbrace\{   % Likewise, set these sequences for braces
       \let\indexrbrace\}   % used in the sort key.
-      \catcode`\\ = 0
-      \escapechar = `\\
       \begindoublecolumns
-      \input \jobname.#1s
+      \let\entryorphanpenalty=\indexorphanpenalty
+      %
+      % Read input from the index file line by line.
+      \loopdo
+        \ifeof1
+          \let\firsttoken\relax
+        \else
+          \read 1 to \nextline
+          \edef\act{\gdef\noexpand\firsttoken{\getfirsttoken\nextline}}%
+          \act
+        \fi
+        \thisline
+        %
+        \ifeof1\else
+        \let\thisline\nextline
+      \repeat
+      %%
       \enddoublecolumns
     \fi
   \fi
   \closein 1
 \endgroup}
+
+\def\getfirsttoken#1{\expandafter\getfirsttokenx#1\endfirsttoken}
+\long\def\getfirsttokenx#1#2\endfirsttoken{\noexpand#1}
+
+\def\loopdo#1\repeat{\def\body{#1}\loopdoxxx}
+\def\loopdoxxx{\let\next=\relax\body\let\next=\loopdoxxx\fi\next}
 
 % These macros are used by the sorted index file itself.
 % Change them to control the appearance of the index.
@@ -5078,8 +5130,8 @@ end
   \catcode`\/=13
   \def/{{\secrmnotbold \normalslash}}%
   \def-{{\normaldash\normaldash}}% en dash `--'
-  \def^{{\chapbf \normalcaret}}
-  \let~=\normaltilde
+  \def^{{\chapbf \normalcaret}}%
+  \def~{{\chapbf \normaltilde}}%
   \def\_{%
      \leavevmode \kern.07em \vbox{\hrule width.3em height.1ex}\kern .07em }%
   \def|{$\vert$}%
@@ -5102,9 +5154,9 @@ end
   % The glue before the bonus allows a little bit of space at the
   % bottom of a column to reduce an increase in inter-line spacing.
   \nobreak
-  \vskip 0pt plus 6\baselineskip
+  \vskip 0pt plus 5\baselineskip
   \penalty -300 
-  \vskip 0pt plus -6\baselineskip
+  \vskip 0pt plus -5\baselineskip
   %
   % Typeset the initial.  Making this add up to a whole number of
   % baselineskips increases the chance of the dots lining up from column
@@ -5112,8 +5164,8 @@ end
   % we need before each entry, but it's better.
   %
   % No shrink because it confuses \balancecolumns.
-  \vskip 1.67\baselineskip plus .5\baselineskip
-  \leftline{\secfonts \secbf #1}%
+  \vskip 1.67\baselineskip plus 1\baselineskip
+  \leftline{\secfonts \kern-0.05em \secbf #1}%
   % \secfonts is inside the argument of \leftline so that the change of
   % \baselineskip will not affect any glue inserted before the vbox that
   % \leftline creates.
@@ -5122,6 +5174,9 @@ end
   \vskip .33\baselineskip plus .1\baselineskip
   \egroup % \initialglyphs
 }
+
+\newdimen\entryrightmargin
+\entryrightmargin=0pt
 
 % \entry typesets a paragraph consisting of the text (#1), dot leaders, and
 % then page number (#2) flushed to the right margin.  It is used for index
@@ -5134,32 +5189,8 @@ end
     % affect previous text.
     \par
     %
-    % Do not fill out the last line with white space.
-    \parfillskip = 0in
-    %
     % No extra space above this paragraph.
     \parskip = 0in
-    %
-    % Do not prefer a separate line ending with a hyphen to fewer lines.
-    \finalhyphendemerits = 0
-    %
-    % \hangindent is only relevant when the entry text and page number
-    % don't both fit on one line.  In that case, bob suggests starting the
-    % dots pretty far over on the line.  Unfortunately, a large
-    % indentation looks wrong when the entry text itself is broken across
-    % lines.  So we use a small indentation and put up with long leaders.
-    %
-    % \hangafter is reset to 1 (which is the value we want) at the start
-    % of each paragraph, so we need not do anything with that.
-    \hangindent = 2em
-    %
-    % When the entry text needs to be broken, just fill out the first line
-    % with blank space.
-    \rightskip = 0pt plus1fil
-    %
-    % A bit of stretch before each entry for the benefit of balancing
-    % columns.
-    \vskip 0pt plus0.5pt
     %
     % When reading the text of entry, convert explicit line breaks
     % from @* into spaces.  The user might give these in long section
@@ -5167,12 +5198,46 @@ end
     \def\*{\unskip\space\ignorespaces}%
     \def\entrybreak{\hfil\break}%
     %
+    % A bit of stretch before each entry for the benefit of balancing
+    % columns.
+    \vskip 0pt plus0.5pt
+    %
+    % Badness calculation for paragraph affected by -
+    %  How much \indexdotfill is stretched, or how much \parfillskip is shrunk
+    %  Number of lines (\linepenalty)
+    %  
+    % Do not prefer a separate line ending with a hyphen to fewer lines.
+    \finalhyphendemerits = 0
+    %
+    % Word spacing - no stretch
+    \spaceskip=\fontdimen2\font minus \fontdimen4\font
+    %
+    \linepenalty=1000  % Discourage line breaks.
+    \hyphenpenalty=5000  % Discourage hyphenation.
+    %
+    % Ragged right margin, but not for the last line with the leaders in it.
+    % When an index entry spans lines, this stretch competes with the stretch
+    % in \indexdotfill to determine how the line will be split.
+    \rightskip=\entryrightmargin
+    \advance\rightskip by 0pt plus .6\hsize
+    %
+    % \parfillskip is at the end of the line with the page number
+    \parfillskip=0pt
+    % Cancel the \rightskip stretch
+    \advance \parfillskip by 0pt plus -.6\hsize
+    % Determine how far we can stretch into the margin.
+    % This allows, e.g., "Appendix H  GNU Free Documentation License" to fit
+    % on one line.
+    \advance \parfillskip by 0pt minus .6\entryrightmargin
+    %
     % Swallow the left brace of the text (first parameter):
     \afterassignment\doentry
     \let\temp =
 }
 \def\entrybreak{\unskip\space\ignorespaces}%
 \def\doentry{%
+    % Save the text of the entry in a \vtop.
+    \global\setbox\entryindexbox=\vtop\bgroup
     \bgroup % Instead of the swallowed brace.
       \noindent
       \aftergroup\finishentry
@@ -5189,29 +5254,70 @@ end
       \ %
     \else
       %
-      % If we must, put the page number on a line of its own, and fill out
-      % this line with blank space.  (The \hfil is overwhelmed with the
-      % fill leaders glue in \indexdotfill if the page number does fit.)
-      \hfil\penalty50
       \null\nobreak\indexdotfill % Have leaders before the page number.
       %
-      % The `\ ' here is removed by the implicit \unskip that TeX does as
-      % part of (the primitive) \par.  Without it, a spurious underfull
-      % \hbox ensues.
       \ifpdf
-	\pdfgettoks#1.%
-	\ \the\toksA
+        \pdfgettoks#1.%
+        \hskip\skip\thinshrinkable\the\toksA
       \else
-	\ #1%
+        \hskip\skip\thinshrinkable #1%
       \fi
     \fi
+    % Parameters for formatting this paragraph, reset for each paragraph.
+    %
+    % \hangindent is only relevant when the entry text and page number
+    % don't both fit on one line.  In that case, bob suggests starting the
+    % dots pretty far over on the line.  Unfortunately, a large
+    % indentation looks wrong when the entry text itself is broken across
+    % lines.  So we use a small indentation and put up with long leaders.
+    %
+    \hangafter = 1
+    \hangindent = 1em
     \par
+    \egroup % The \vtop
   \endgroup
+  % delay text of entry until after penalty
+  \bgroup\aftergroup\insertindexentrybox
+  \entryorphanpenalty
+}
+
+\newskip\thinshrinkable
+\skip\thinshrinkable=.15em minus .15em
+
+\newbox\entryindexbox
+\def\insertindexentrybox{%
+\lineskip=.8ex plus .6ex % This comes into effect when the \vtop has a large 
+                         % depth due to the paragraph in it having several 
+                         % lines.
+\box\entryindexbox}
+
+% Default is no penalty
+\let\entryorphanpenalty\egroup
+
+% Used from \printindex.  \firsttoken should be the first token
+% after the \entry.  If it's not another \entry, we are at the last
+% line of a group of index entries, so insert a penalty to discourage
+% orphaned index entries.
+\long\def\indexorphanpenalty{%
+  \def\isentry{\entry}%
+  \ifx\firsttoken\isentry
+  \else
+    \unskip\penalty 9000
+    % The \unskip here stops breaking before the glue.  It relies on the
+    % \vskip above being there, otherwise there is an error
+    % "You can't use `\unskip' in vertical mode".  There has to be glue
+    % in the current vertical list that hasn't been added to the
+    % "current page".  See Chapter 24 of the TeXbook.  This contradicts
+    % Section 8.3.7 in "TeX by Topic," though.
+  \fi
+  \egroup % now comes the box added with \aftergroup
 }
 
 % Like plain.tex's \dotfill, except uses up at least 1 em.
+% Using a finite stretch encourages several words to appear on a second line
+% if the entry is broken.
 \def\indexdotfill{\cleaders
-  \hbox{$\mathsurround=0pt \mkern1.5mu.\mkern1.5mu$}\hskip 1em plus 1fill}
+  \hbox{$\mathsurround=0pt \mkern1.5mu.\mkern1.5mu$}\hskip 1em plus .4\hsize}
 
 \def\primary #1{\line{#1\hfil}}
 
@@ -5238,6 +5344,9 @@ end
 \newbox\partialpage
 \newdimen\doublecolumnhsize
 
+\newtoks\savedtopmark % Used in \begindoublecolumns
+\newtoks\savedfirstmark
+
 \def\begindoublecolumns{\begingroup % ended by \enddoublecolumns
   % Grab any single-column material above us.
   \output = {%
@@ -5258,8 +5367,22 @@ end
       \unvbox\PAGE
       \kern-\topskip \kern\baselineskip
     }%
+    % Save \topmark and \firstmark
+    \global\savedtopmark=\expandafter{\topmark}%
+    \global\savedfirstmark=\expandafter{\firstmark}%
   }%
   \eject % run that output routine to set \partialpage
+  %
+  % We recover the two marks that the last output routine saved in order
+  % to propagate the information in marks added around a chapter heading,
+  % which could be otherwise be lost by the time the final page is output.
+  %
+  \mark{\the\savedtopmark}% Only mark in page passed to following \output.
+  \output = {%
+    \setbox0=\box\PAGE % clear box 255
+  }abc\eject
+  %
+  \mark{\the\savedfirstmark}%
   %
   % Use the double-column output routine for subsequent pages.
   \output = {\doublecolumnout}%
@@ -5404,9 +5527,11 @@ end
     \divide\dimen@ii by 5
     \ifdim\ht3<\dimen@ii
       % Column heights are too different, so don't make their bottoms
-      % flush with each other
+      % flush with each other.  The glue at the end of the second column
+      % allows a second column to stretch, reducing the difference in
+      % height between the two.
       \setbox0=\vbox to\dimen@{\unvbox1\vfill}%
-      \setbox2=\vbox to\dimen@{\unvbox3\vfill}%
+      \setbox2=\vbox to\dimen@{\unvbox3\vskip 0pt plus 0.3\ht0}%
     \else
       \setbox0=\vbox to\dimen@{\unvbox1}%
       \setbox2=\vbox to\dimen@{\unvbox3}%
@@ -5432,6 +5557,9 @@ end
     \let\lastnode=\empty      % no node to associate with
     \writetocentry{part}{#1}{}% but put it in the toc
     \headingsoff              % no headline or footline on the part page
+    % This outputs a mark at the end of the page that clears \thischapter
+    % and \thissection, like is done in \startcontents.
+    \chapmacro{}{Yomitfromtoc}{}%
     \chapoddpage
   \endgroup
 }
@@ -5676,9 +5804,6 @@ end
 
 % @centerchap is like @unnumbered, but the heading is centered.
 \outer\parseargdef\centerchap{%
-  % Well, we could do the following in a group, but that would break
-  % an assumption that \chapmacro is called at the outermost level.
-  % Thus we are safer this way:		--kasal, 24feb04
   \let\centerparametersmaybe = \centerparameters
   \unnmhead0{#1}%
   \let\centerparametersmaybe = \relax
@@ -5802,7 +5927,11 @@ end
 
 % Define plain chapter starts, and page on/off switching for it.
 \def\chapbreak{\dobreak \chapheadingskip {-4000}}
+
+% Start a new page
 \def\chappager{\par\vfill\supereject}
+
+% \chapoddpage - start on an odd page for a new chapter
 % Because \domark is called before \chapoddpage, the filler page will
 % get the headings for the next chapter, which is wrong.  But we don't
 % care -- we just disable all headings on the filler page.
@@ -5838,7 +5967,7 @@ end
 
 \CHAPPAGon
 
-% Chapter opening.
+% \chapmacro - Chapter opening.
 %
 % #1 is the text, #2 is the section type (Ynumbered, Ynothing,
 % Yappendix, Yomitfromtoc), #3 the chapter number.
@@ -6232,7 +6361,7 @@ end
   \savepageno = \pageno
   \begingroup                  % Set up to handle contents files properly.
     \raggedbottom              % Worry more about breakpoints than the bottom.
-    \advance\hsize by -\contentsrightmargin % Don't use the full line length.
+    \entryrightmargin=\contentsrightmargin % Don't use the full line length.
     %
     % Roman numerals for page numbers.
     \ifnum \pageno>0 \global\pageno = \lastnegativepageno \fi
@@ -6337,7 +6466,7 @@ end
 
 % Chapters, in the main contents.
 \def\numchapentry#1#2#3#4{\dochapentry{#2\labelspace#1}{#4}}
-%
+
 % Chapters, in the short toc.
 % See comments in \dochapentry re vbox and related settings.
 \def\shortchapentry#1#2#3#4{%
@@ -6352,7 +6481,7 @@ end
   \setbox0 = \hbox{\putwordAppendix{} M}%
   \hbox to \wd0{\putwordAppendix{} #1\hss}}
 %
-\def\appentry#1#2#3#4{\dochapentry{\appendixbox{#2}\labelspace#1}{#4}}
+\def\appentry#1#2#3#4{\dochapentry{\appendixbox{#2}\hskip.7em#1}{#4}}
 
 % Unnumbered chapters.
 \def\unnchapentry#1#2#3#4{\dochapentry{#1}{#4}}
@@ -6385,6 +6514,8 @@ end
 \def\dochapentry#1#2{%
    \penalty-300 \vskip1\baselineskip plus.33\baselineskip minus.25\baselineskip
    \begingroup
+     % Move the page numbers slightly to the right
+     \advance\entryrightmargin by -0.05em
      \chapentryfonts
      \tocentry{#1}{\dopageno\bgroup#2\egroup}%
    \endgroup
@@ -6504,6 +6635,24 @@ end
     \endgraf
     \ifdim\lastskip<\envskipamount
       \removelastskip
+      \ifnum\lastpenalty<10000
+        % Penalize breaking before the environment, because preceding text
+        % often leads into it.
+        \penalty100
+      \fi
+      \vskip\envskipamount
+    \fi
+  \fi
+}}
+
+\def\afterenvbreak{{%
+  % =10000 instead of <10000 because of a special case in \itemzzz and
+  % \sectionheading, q.v.
+  \ifnum \lastpenalty=10000 \else
+    \advance\envskipamount by \parskip
+    \endgraf
+    \ifdim\lastskip<\envskipamount
+      \removelastskip
       % it's not a good place to break if the last penalty was \nobreak
       % or better ...
       \ifnum\lastpenalty<10000 \penalty-50 \fi
@@ -6511,8 +6660,6 @@ end
     \fi
   \fi
 }}
-
-\let\afterenvbreak = \aboveenvbreak
 
 % \nonarrowing is a flag.  If "set", @lisp etc don't narrow margins; it will
 % also clear it, so that its embedded environments do the narrowing again.
@@ -6557,7 +6704,7 @@ end
   % collide with the section heading.
   \ifnum\lastpenalty>10000 \vskip\parskip \penalty\lastpenalty \fi
   %
-  \vbox\bgroup
+  \setbox\groupbox=\vbox\bgroup
       \baselineskip=0pt\parskip=0pt\lineskip=0pt
       \carttop
       \hbox\bgroup
@@ -6581,6 +6728,7 @@ end
       \egroup
       \cartbot
   \egroup
+  \addgroupbox
   \checkinserts
 }
 
@@ -7058,7 +7206,7 @@ end
   \temp
 }
 
-% \domakedefun \deffn \deffnx \deffnheader
+% \domakedefun \deffn \deffnx \deffnheader { (defn. of \deffnheader) }
 %
 % Define \deffn and \deffnx, without parameters.
 % \deffnheader has to be defined explicitly.
@@ -7407,6 +7555,8 @@ end
 \def\scanmacro#1{%
   \newlinechar`\^^M
   \let\xeatspaces\eatspaces
+  % Reduce doubled backslashes to one
+  \def\xprocessmacroarg{\passargtomacro\eatspaces}%
   %
   % Process the macro body under the current catcode regime.
   \scantokens{#1\texinfoc}\aftermacro%
@@ -7526,6 +7676,7 @@ end
 % an argument to another Texinfo command.
 \def\macroargctxt{%
   \scanctxt
+  \catcode`\^^M=\other
   \catcode`\\=\active
 }
 
@@ -7605,59 +7756,36 @@ end
   \fi
 }
 
-% This makes use of the obscure feature that if the last token of a
-% <parameter list> is #, then the preceding argument is delimited by
-% an opening brace, and that opening brace is not consumed.
-% 
+% \getargs -- Parse the arguments to a @macro line.  Set \macname to
+% the name of the macro, and \argl to the braced argument list.
 \def\getargs#1{\getargsxxx#1{}}
 \def\getargsxxx#1#{\getmacname #1 \relax\getmacargs}
 \def\getmacname#1 #2\relax{\macname={#1}}
 \def\getmacargs#1{\def\argl{#1}}
+% This made use of the feature that if the last token of a
+% <parameter list> is #, then the preceding argument is delimited by
+% an opening brace, and that opening brace is not consumed.
 
-% For macro processing make @ a letter so that we can make
-% private-to-Texinfo macro names.
-\edef\texiatcatcode{\the\catcode`\@}
-\catcode `@=11\relax
-
-% Parse the optional {params} list.  Set up \paramno and \paramlist
-% so \defmacro knows what to do.  Define \macarg.BLAH for each BLAH
-% in the params list to some hook where the argument is to be expanded.  If
-% there are less than 10 arguments that hook is to be replaced by ##N where N
+% Parse the optional {params} list to @macro or @rmacro.
+% Set \paramno to the number of arguments,
+% and \paramlist to a parameter text for the macro (e.g. #1,#2,#3 for a
+% three-param macro.)  Define \macarg.BLAH for each BLAH in the params
+% list to some hook where the argument is to be expanded.  If there are
+% less than 10 arguments that hook is to be replaced by ##N where N
 % is the position in that list, that is to say the macro arguments are to be
 % defined `a la TeX in the macro body.  
 %
 % That gets used by \mbodybackslash (above).
 %
-% We need to get `macro parameter char #' into several definitions.
-% The technique used is stolen from LaTeX: let \hash be something
-% unexpandable, insert that wherever you need a #, and then redefine
-% it to # just before using the token list produced.
+% If there are 10 or more arguments, a different technique is used: see
+% \parsemmanyargdef.
 %
-% The same technique is used to protect \eatspaces till just before
-% the macro is used.
-%
-% If there are 10 or more arguments, a different technique is used, where the
-% hook remains in the body, and when macro is to be expanded the body is
-% processed again to replace the arguments.
-%
-% In that case, the hook is \the\toks N-1, and we simply set \toks N-1 to the
-% argument N value and then \edef  the body (nothing else will expand because of
-% the catcode regime underwhich the body was input).
-%
-% If you compile with TeX (not eTeX), and you have macros with 10 or more
-% arguments, no macro can have more than 256 arguments (else error).
-% 
 \def\parsemargdef#1;{%
   \paramno=0\def\paramlist{}%
   \let\hash\relax
-  \let\xeatspaces\relax
+  % \hash is redefined to `#' later to get it into definitions
+  \let\processmacroarg\relax
   \parsemargdefxxx#1,;,%
-  % In case that there are 10 or more arguments we parse again the arguments
-  % list to set new definitions for the \macarg.BLAH macros corresponding to
-  % each BLAH argument. It was anyhow needed to parse already once this list
-  % in order to count the arguments, and as macros with at most 9 arguments
-  % are by far more frequent than macro with 10 or more arguments, defining
-  % twice the \macarg.BLAH macros does not cost too much processing power.
   \ifnum\paramno<10\relax\else
     \paramno0\relax
     \parsemmanyargdef@@#1,;,% 10 or more arguments
@@ -7668,10 +7796,47 @@ end
   \else \let\next=\parsemargdefxxx
     \advance\paramno by 1
     \expandafter\edef\csname macarg.\eatspaces{#1}\endcsname
-        {\xeatspaces{\hash\the\paramno}}%
+        {\processmacroarg{\hash\the\paramno}}%
     \edef\paramlist{\paramlist\hash\the\paramno,}%
   \fi\next}
 
+% \parsemacbody, \parsermacbody
+%
+% Read recursive and nonrecursive macro bodies. (They're different since
+% rec and nonrec macros end differently.)
+% 
+% We are in \macrobodyctxt, and the \xdef causes backslashshes in the macro 
+% body to be transformed.
+% Set \macrobody to the body of the macro, and call \defmacro.
+%
+{\catcode`\ =\other\long\gdef\parsemacbody#1@end macro{%
+\xdef\macrobody{\eatcr{#1}}\endgroup\defmacro}}%
+{\catcode`\ =\other\long\gdef\parsermacbody#1@end rmacro{%
+\xdef\macrobody{\eatcr{#1}}\endgroup\defmacro}}%
+
+% Make @ a letter, so that we can make private-to-Texinfo macro names.
+\edef\texiatcatcode{\the\catcode`\@}
+\catcode `@=11\relax
+
+%%%%%%%%%%%%%% Code for > 10 arguments only   %%%%%%%%%%%%%%%%%%
+
+% If there are 10 or more arguments, a different technique is used, where the
+% hook remains in the body, and when macro is to be expanded the body is
+% processed again to replace the arguments.
+%
+% In that case, the hook is \the\toks N-1, and we simply set \toks N-1 to the
+% argument N value and then \edef the body (nothing else will expand because of
+% the catcode regime under which the body was input).
+%
+% If you compile with TeX (not eTeX), and you have macros with 10 or more
+% arguments, no macro can have more than 256 arguments (else error).
+%
+% In case that there are 10 or more arguments we parse again the arguments
+% list to set new definitions for the \macarg.BLAH macros corresponding to
+% each BLAH argument. It was anyhow needed to parse already once this list
+% in order to count the arguments, and as macros with at most 9 arguments
+% are by far more frequent than macro with 10 or more arguments, defining
+% twice the \macarg.BLAH macros does not cost too much processing power.
 \def\parsemmanyargdef@@#1,{%
   \if#1;\let\next=\relax
   \else 
@@ -7687,15 +7852,6 @@ end
     \advance\paramno by 1\relax
   \fi\next}
 
-% These two commands read recursive and nonrecursive macro bodies.
-% (They're different since rec and nonrec macros end differently.)
-% Set \temp to the body of the macro, and call \defmacro.
-\catcode `\@\texiatcatcode
-{\catcode`\ =\other\long\gdef\parsemacbody#1@end macro{%
-\xdef\temp{\eatcr{#1}}\endgroup\defmacro}}%
-{\catcode`\ =\other\long\gdef\parsermacbody#1@end rmacro{%
-\xdef\temp{\eatcr{#1}}\endgroup\defmacro}}%
-\catcode `\@=11\relax
 
 \let\endargs@\relax
 \let\nil@\relax
@@ -7724,9 +7880,6 @@ end
     \getargvals@@
   \fi
 }
-
-% Internal for \getargsval@.
-%  
 \def\getargvals@@{%
   \ifx\paramlist\nilm@
       % Some sanity check needed here that \argvaluelist is also empty.
@@ -7834,16 +7987,7 @@ end
   \next
 }
 
-% Save the token stack pointer into macro #1:
-\def\texisavetoksstackpoint#1{\edef#1{\the\@cclvi}}
-%
-% Restore the token stack pointer from number in macro #1:
-\def\texirestoretoksstackpoint#1{\expandafter\mathchardef
-  \expandafter\@cclvi#1\relax}
-% Variant \newtoks that can be used non-\outer:
-\def\texinonouternewtoks{\alloc@ 5\toks \toksdef \@cclvi}
-
-% Tailing missing arguments are set to empty.
+% Trailing missing arguments are set to empty.
 % 
 \def\setemptyargvalues@{%
   \ifx\paramlist\nilm@
@@ -7874,44 +8018,73 @@ end
    \long\def#2{#4}%
 }
 
-% This defines a Texinfo @macro.  \temp has the body of the macro in it.
+
+%%%%%%%%%%%%%% End of code for > 10 arguments %%%%%%%%%%%%%%%%%%
+
+
+
+% Remove following spaces at the expansion stage.
+% This works because spaces are discarded before each argument when TeX is 
+% getting the arguments for a macro.
+% This must not be immediately followed by a }.
+\long\def\gobblespaces#1{#1}
+
+% This defines a Texinfo @macro or @rmacro, called by \parsemacbody.
+%    \macrobody has the body of the macro in it, with placeholders for
+% its parameters, looking like "\processmacroarg{\hash 1}".
+%    \paramno is the number of parameters
+%    \paramlist is a TeX parameter text, e.g. "#1,#2,#3,"
 % There are eight cases: recursive and nonrecursive macros of zero, one,
 % up to nine, and many arguments.
-% Much magic with \expandafter here.
 % \xdef is used so that macro definitions will survive the file
-% they're defined in; @include reads the file inside a group.
+% they're defined in: @include reads the file inside a group.
 %
 \def\defmacro{%
   \let\hash=##% convert placeholders to macro parameter chars
+  \ifnum\paramno=1
+    \def\processmacroarg{\gobblespaces}%
+    % This removes the pair of braces around the argument.  We don't
+    % use \eatspaces, because this can cause ends of lines to be lost
+    % when the argument to \eatspaces is read, leading to line-based
+    % commands like "@itemize" not being read correctly.
+  \else
+    \def\processmacroarg{\xprocessmacroarg}%
+    \let\xprocessmacroarg\relax
+  \fi
   \ifrecursive   %%%%%%%%%%%%%% Recursive %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     \ifcase\paramno
     % 0
       \expandafter\xdef\csname\the\macname\endcsname{%
-        \noexpand\scanmacro{\temp}}%
+        \noexpand\scanmacro{\macrobody}}%
     \or % 1
       \expandafter\xdef\csname\the\macname\endcsname{%
          \bgroup
          \noexpand\braceorline
-         \expandafter\noexpand\csname\the\macname xxx\endcsname}%
-      \expandafter\xdef\csname\the\macname xxx\endcsname##1{%
-         \egroup\noexpand\scanmacro{\temp}}%
+         \expandafter\noexpand\csname\the\macname @@@\endcsname}%
+      \expandafter\xdef\csname\the\macname @@@\endcsname##1{%
+         \expandafter\noexpand\csname\the\macname @@@@\endcsname{%
+           \noexpand\gobblespaces##1\empty}%
+           % The \empty is for \gobblespaces in case #1 is empty
+         }%
+      \expandafter\xdef\csname\the\macname @@@@\endcsname##1{%
+         \egroup\noexpand\scanmacro{\macrobody}}%
     \else
       \ifnum\paramno<10\relax % at most 9
         \expandafter\xdef\csname\the\macname\endcsname{%
            \bgroup\noexpand\macroargctxt
-           \noexpand\csname\the\macname xx\endcsname}%
-        \expandafter\xdef\csname\the\macname xx\endcsname##1{%
-            \expandafter\noexpand\csname\the\macname xxx\endcsname ##1,}%
+           \noexpand\csname\the\macname @@\endcsname}%
+        \expandafter\xdef\csname\the\macname @@\endcsname##1{%
+            \expandafter\noexpand\csname\the\macname @@@\endcsname ##1,}%
         \expandafter\expandafter
         \expandafter\xdef
         \expandafter\expandafter
-          \csname\the\macname xxx\endcsname
-            \paramlist{\egroup\noexpand\scanmacro{\temp}}%
+          \csname\the\macname @@@\endcsname
+            \paramlist{\egroup\noexpand\scanmacro{\macrobody}}%
       \else % 10 or more
         \expandafter\xdef\csname\the\macname\endcsname{%
           \noexpand\getargvals@{\the\macname}{\argl}%
         }%    
-        \global\expandafter\let\csname mac.\the\macname .body\endcsname\temp
+        \global\expandafter\let\csname mac.\the\macname .body\endcsname\macrobody
         \global\expandafter\let\csname mac.\the\macname .recurse\endcsname\gobble
       \fi
     \fi
@@ -7919,36 +8092,41 @@ end
     \ifcase\paramno
     % 0
       \expandafter\xdef\csname\the\macname\endcsname{%
-        \noexpand\scanmacro{\temp}}%
+        \noexpand\scanmacro{\macrobody}}%
     \or % 1
       \expandafter\xdef\csname\the\macname\endcsname{%
          \bgroup
          \noexpand\braceorline
-         \expandafter\noexpand\csname\the\macname xxx\endcsname}%
-      \expandafter\xdef\csname\the\macname xxx\endcsname##1{%
+         \expandafter\noexpand\csname\the\macname @@@\endcsname}%
+      \expandafter\xdef\csname\the\macname @@@\endcsname##1{%
+         \expandafter\noexpand\csname\the\macname @@@@\endcsname{%
+           \noexpand\gobblespaces##1\empty}%
+           % The \empty is for \gobblespaces in case #1 is empty
+         }%
+      \expandafter\xdef\csname\the\macname @@@@\endcsname##1{%
         \egroup
-        \noexpand\scanmacro{\temp}%
+        \noexpand\scanmacro{\macrobody}%
         }%
     \else % at most 9
       \ifnum\paramno<10\relax
         \expandafter\xdef\csname\the\macname\endcsname{%
            \bgroup\noexpand\macroargctxt
-           \expandafter\noexpand\csname\the\macname xx\endcsname}%
-        \expandafter\xdef\csname\the\macname xx\endcsname##1{%
-            \expandafter\noexpand\csname\the\macname xxx\endcsname ##1,}%
+           \expandafter\noexpand\csname\the\macname @@\endcsname}%
+        \expandafter\xdef\csname\the\macname @@\endcsname##1{%
+            \expandafter\noexpand\csname\the\macname @@@\endcsname ##1,}%
         \expandafter\expandafter
         \expandafter\xdef
         \expandafter\expandafter
-        \csname\the\macname xxx\endcsname
+        \csname\the\macname @@@\endcsname
         \paramlist{%
             \egroup
-            \noexpand\scanmacro{\temp}%
+            \noexpand\scanmacro{\macrobody}%
             }%
       \else % 10 or more:
         \expandafter\xdef\csname\the\macname\endcsname{%
           \noexpand\getargvals@{\the\macname}{\argl}%
         }%
-        \global\expandafter\let\csname mac.\the\macname .body\endcsname\temp
+        \global\expandafter\let\csname mac.\the\macname .body\endcsname\macrobody
         \global\expandafter\let\csname mac.\the\macname .recurse\endcsname\norecurse
       \fi
     \fi
@@ -8119,6 +8297,7 @@ end
   \pdfmkdest{#1}%
   \iflinks
     {%
+      \requireauxfile
       \atdummies  % preserve commands, but don't expand them
       \edef\writexrdef##1##2{%
 	\write\auxfile{@xrdef{#1-% #1 of \setref, expanded by the \edef
@@ -8383,6 +8562,7 @@ end
 % If its value is nonempty, SUFFIX is output afterward.
 %
 \def\refx#1#2{%
+  \requireauxfile
   {%
     \indexnofonts
     \otherbackslash
@@ -8444,6 +8624,23 @@ end
     \expandafter\xdef\csname floatlist\iffloattype\endcsname{\the\toks0
       {\safexrefname}}%
   \fi
+}
+
+% If working on a large document in chapters, it is convenient to
+% be able to disable indexing, cross-referencing, and contents, for test runs.
+% This is done with @novalidate at the beginning of the file.
+%
+\newif\iflinks \linkstrue % by default we want the aux files.
+\let\novalidate = \linksfalse
+
+% Used when writing to the aux file, or when using data from it.
+\def\requireauxfile{%
+  \iflinks
+    \tryauxfile
+    % Open the new aux file.  TeX will close it automatically at exit.
+    \immediate\openout\auxfile=\jobname.aux
+  \fi
+  \global\let\requireauxfile=\relax   % Only do this once.
 }
 
 % Read the last existing aux file, if any.  No error if none exists.
@@ -8919,6 +9116,7 @@ end
       % \floatlabel-lof.  Besides \floatident, we include the short
       % caption if specified, else the full caption if specified, else nothing.
       {%
+        \requireauxfile
         \atdummies
         %
         % since we read the caption text in the macro world, where ^^M
@@ -10477,6 +10675,16 @@ directory should work if nowhere else does.}
   % file name, in case not using a pre-dumped format.
   @catcode`+=@active
   @catcode`@_=@active
+  %
+  % If texinfo.cnf is present on the system, read it.
+  % Useful for site-wide @afourpaper, etc.  This macro, @fixbackslash, gets
+  % called at the beginning of every Texinfo file.  Not opening texinfo.cnf
+  % directly in this file, texinfo.tex, makes it possible to make a format
+  % file for Texinfo.
+  %
+  @openin 1 texinfo.cnf
+  @ifeof 1 @else @input texinfo.cnf @fi
+  @closein 1
 }
 
 

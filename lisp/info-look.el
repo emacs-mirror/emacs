@@ -142,7 +142,7 @@ OTHER-MODES is a list of cross references to other help modes.")
   "Add or update a help specification.
 Function arguments are specified as keyword/argument pairs:
 
-    \(KEYWORD . ARGUMENT)
+    (KEYWORD . ARGUMENT)
 
 KEYWORD is either `:topic', `:mode', `:regexp', `:ignore-case',
  `:doc-spec', `:parse-rule', or `:other-modes'.

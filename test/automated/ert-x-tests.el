@@ -224,8 +224,8 @@
   "This test attempts to demonstrate that there is no way to
 force immediate truncation of the *Messages* buffer from Lisp
 \(and hence justifies the existence of
-`ert--force-message-log-buffer-truncation'\): The only way that
-came to my mind was \(message \"\"\), which doesn't have the
+`ert--force-message-log-buffer-truncation'): The only way that
+came to my mind was \(message \"\"), which doesn't have the
 desired effect."
   :tags '(:causes-redisplay)
   (ert-with-buffer-renamed ("*Messages*")

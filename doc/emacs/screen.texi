@@ -8,7 +8,7 @@
 @cindex frame
 
   On a graphical display, such as on GNU/Linux using the X Window
-System, Emacs occupies a ``graphical window''.  On a text terminal,
+System, Emacs occupies a graphical window.  On a text terminal,
 Emacs occupies the entire terminal screen.  We will use the term
 @dfn{frame} to mean a graphical window or terminal screen occupied by
 Emacs.  Emacs behaves very similarly on both kinds of frames.  It
@@ -27,7 +27,7 @@ information when Emacs asks for it.
 above the echo area, is called @dfn{the window}.  Henceforth in this
 manual, we will use the word ``window'' in this sense.  Graphical
 display systems commonly use the word ``window'' with a different
-meaning; but, as stated above, we refer to those ``graphical windows''
+meaning; but, as stated above, we refer to those graphical windows
 as ``frames''.
 
   An Emacs window is where the @dfn{buffer}---the text you are
@@ -206,11 +206,11 @@ terminal output.  Furthermore, if you are using an input method,
 string is displayed, that indicates a nontrivial end-of-line
 convention for encoding a file.  Usually, lines of text are separated
 by @dfn{newline characters} in a file, but two other conventions are
-sometimes used.  The MS-DOS convention uses a ``carriage-return''
-character followed by a ``linefeed'' character; when editing such
+sometimes used.  The MS-DOS convention uses a carriage-return
+character followed by a linefeed character; when editing such
 files, the colon changes to either a backslash (@samp{\}) or
 @samp{(DOS)}, depending on the operating system.  Another convention,
-employed by older Macintosh systems, uses a ``carriage-return''
+employed by older Macintosh systems, uses a carriage-return
 character instead of a newline; when editing such files, the colon
 changes to either a forward slash (@samp{/}) or @samp{(Mac)}.  On some
 systems, Emacs displays @samp{(Unix)} instead of the colon for files
@@ -219,7 +219,7 @@ that use newline as the line separator.
   The next element on the mode line is the string indicated by
 @var{ch}.  This shows two dashes (@samp{--}) if the buffer displayed
 in the window has the same contents as the corresponding file on the
-disk; i.e., if the buffer is ``unmodified''.  If the buffer is
+disk; i.e., if the buffer is unmodified.  If the buffer is
 modified, it shows two stars (@samp{**}).  For a read-only buffer, it
 shows @samp{%*} if the buffer is modified, and @samp{%%} otherwise.
 

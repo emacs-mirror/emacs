@@ -59,7 +59,7 @@ It is used for TCP/IP devices."
 
 ;;;###tramp-autoload
 (defcustom tramp-adb-prompt
-  "^\\(?:[[:digit:]]*|?\\)?\\(?:[[:alnum:]\e;\[]*@[[:alnum:]]*[^#\\$]*\\)?[#\\$][[:space:]]"
+  "^\\(?:[[:digit:]]*|?\\)?\\(?:[[:alnum:]\e;[]*@[[:alnum:]]*[^#\\$]*\\)?[#\\$][[:space:]]"
   "Regexp used as prompt in almquist shell."
   :type 'string
   :version "24.4"

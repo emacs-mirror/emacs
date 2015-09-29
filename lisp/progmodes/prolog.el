@@ -922,15 +922,38 @@ This is really kludgy, and unneeded (i.e. obsolete) in Emacs>=24."
 (defun prolog-smie-rules (kind token)
   (pcase (cons kind token)
     (`(:elem . basic) prolog-indent-width)
+    ;; The list of arguments can never be on a separate line!
+    (`(:list-intro . ,_) t)
+    ;; When we don't know how to indent an empty line, assume the most
+    ;; likely token will be ";".
+    (`(:elem . empty-line-token) ";")
     (`(:after . ".") '(column . 0)) ;; To work around smie-closer-alist.
     ;; Allow indentation of if-then-else as:
     ;;    (   test
-    ;;     -> thenrule
-    ;;     ;  elserule
+    ;;    ->  thenrule
+    ;;    ;   elserule
     ;;    )
     (`(:before . ,(or `"->" `";"))
-     (and (smie-rule-bolp) (smie-rule-parent-p "(") (smie-rule-parent 1)))
-    (`(:after . ,(or `":-" `"->" `"-->")) prolog-indent-width)))
+     (and (smie-rule-bolp) (smie-rule-parent-p "(") (smie-rule-parent 0)))
+    (`(:after . ,(or `"->" `"*->"))
+     ;; We distinguish
+     ;;
+     ;;     (a ->
+     ;;          b;
+     ;;      c)
+     ;; and
+     ;;     (    a ->
+     ;;          b
+     ;;     ;    c)
+     ;;
+     ;; based on the space between the open paren and the "a".
+     (unless (and (smie-rule-parent-p "(")
+                  (save-excursion
+                    (smie-indent-forward-token)
+                    (smie-backward-sexp 'halfsexp)
+                    (not (eq ?\( (char-before)))))
+       prolog-indent-width))
+    (`(:after . ,(or `":-" `"-->")) prolog-indent-width)))
 
 
 ;;-------------------------------------------------------------------
@@ -1005,7 +1028,7 @@ VERSION is of the format (Major . Minor)"
   (setq-local comment-start "%")
   (setq-local comment-end "")
   (setq-local comment-add 1)
-  (setq-local comment-start-skip "\\(?:/\\*+ *\\|%%+ *\\)")
+  (setq-local comment-start-skip "\\(?:/\\*+ *\\|%+ *\\)")
   (setq-local parens-require-spaces nil)
   ;; Initialize Prolog system specific variables
   (dolist (var '(prolog-keywords prolog-types prolog-mode-specificators
@@ -1121,6 +1144,9 @@ Commands:
   (dolist (ar prolog-align-rules) (add-to-list 'align-rules-list ar))
   (add-hook 'post-self-insert-hook #'prolog-post-self-insert nil t)
   ;; `imenu' entry moved to the appropriate hook for consistency.
+  (when prolog-electric-dot-flag
+    (setq-local electric-indent-chars
+                (cons ?\. electric-indent-chars)))
 
   ;; Load SICStus debugger if suitable
   (if (and (eq prolog-system 'sicstus)
@@ -2060,7 +2086,7 @@ Argument BOUND is a buffer position limiting searching."
 (defun prolog-find-unmatched-paren ()
   "Return the column of the last unmatched left parenthesis."
   (save-excursion
-    (goto-char (or (car (nth 9 (syntax-ppss))) (point-min)))
+    (goto-char (or (nth 1 (syntax-ppss)) (point-min)))
     (current-column)))
 
 
@@ -2078,6 +2104,7 @@ whitespace characters, parentheses, or then/else branches."
   (when prolog-electric-if-then-else-flag
     (save-excursion
       (let ((regexp (concat "(\\|" prolog-left-indent-regexp))
+            (pos (point))
             level)
         (beginning-of-line)
         (skip-chars-forward " \t")
@@ -2087,6 +2114,9 @@ whitespace characters, parentheses, or then/else branches."
         ;;             prolog-paren-indent))
 
         ;; work on all subsequent "->", "(", ";"
+        (and (looking-at regexp)
+             (= pos (match-end 0))
+             (indent-according-to-mode))
         (while (looking-at regexp)
           (goto-char (match-end 0))
           (setq level (+ (prolog-find-unmatched-paren) prolog-paren-indent))
@@ -2357,7 +2387,7 @@ This function is only available when `prolog-system' is set to `swi'."
 (defun prolog-atom-under-point ()
   "Return the atom under or left to the point."
   (save-excursion
-    (let ((nonatom_chars "[](){},\. \t\n")
+    (let ((nonatom_chars "[](){},. \t\n")
           start)
       (skip-chars-forward (concat "^" nonatom_chars))
       (skip-chars-backward nonatom_chars)
@@ -2826,10 +2856,10 @@ objects (relevant only if `prolog-system' is set to `sicstus')."
                   (eq prolog-system 'sicstus)
                   (prolog-in-object))
              (format
-              "^\\(%s\\|%s\\|[^\n\'\"%%]\\)*&[ \t]*\\(\\|%%.*\\)$\\|[ \t]*}"
+              "^\\(%s\\|%s\\|[^\n'\"%%]\\)*&[ \t]*\\(\\|%%.*\\)$\\|[ \t]*}"
               prolog-quoted-atom-regexp prolog-string-regexp)
            (format
-            "^\\(%s\\|%s\\|[^\n\'\"%%]\\)*\\.[ \t]*\\(\\|%%.*\\)$"
+            "^\\(%s\\|%s\\|[^\n'\"%%]\\)*\\.[ \t]*\\(\\|%%.*\\)$"
             prolog-quoted-atom-regexp prolog-string-regexp))
          nil t)
         (if (and (nth 8 (syntax-ppss))

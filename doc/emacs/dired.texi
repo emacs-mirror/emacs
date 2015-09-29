@@ -14,7 +14,7 @@ optionally some of its subdirectories as well.  You can use the normal
 Emacs commands to move around in this buffer, and special Dired
 commands to operate on the listed files.
 
-    The Dired buffer is ``read-only'', and inserting text in it is not
+    The Dired buffer is read-only, and inserting text in it is not
 allowed.  Ordinary printing characters such as @kbd{d} and @kbd{x} are
 redefined for special Dired commands.  Some Dired commands @dfn{mark}
 or @dfn{flag} the @dfn{current file} (that is, the file on the current
@@ -924,7 +924,7 @@ from the name of the old file.
   The four regular-expression substitution commands effectively
 perform a search-and-replace on the selected file names.  They read
 two arguments: a regular expression @var{from}, and a substitution
-pattern @var{to}; they match each ``old'' file name against
+pattern @var{to}; they match each old file name against
 @var{from}, and then replace the matching part with @var{to}.  You can
 use @samp{\&} and @samp{\@var{digit}} in @var{to} to refer to all or
 part of what the pattern matched in the old file name, as in
@@ -1262,7 +1262,7 @@ and erases all flags and marks.
 @findex wdired-change-to-wdired-mode
   Wdired is a special mode that allows you to perform file operations
 by editing the Dired buffer directly (the ``W'' in ``Wdired'' stands
-for ``writable''.)  To enter Wdired mode, type @kbd{C-x C-q}
+for ``writable'').  To enter Wdired mode, type @kbd{C-x C-q}
 (@code{dired-toggle-read-only}) while in a Dired buffer.
 Alternatively, use the @samp{Immediate / Edit File Names} menu item.
 
@@ -1307,7 +1307,7 @@ buffer containing image-dired, corresponding to the marked files.
   You can also enter Image-Dired directly by typing @kbd{M-x
 image-dired}.  This prompts for a directory; specify one that has
 image files.  This creates thumbnails for all the images in that
-directory, and displays them all in the ``thumbnail buffer''.  This
+directory, and displays them all in the thumbnail buffer.  This
 takes a long time if the directory contains many image files, and it
 asks for confirmation if the number of image files exceeds
 @code{image-dired-show-all-from-dir-max-files}.
@@ -1348,9 +1348,9 @@ with a certain tag, you can use @kbd{C-t d} to view them.
 
   You can also tag a file directly from the thumbnail buffer by typing
 @kbd{t t} and you can remove a tag by typing @kbd{t r}.  There is also
-a special ``tag'' called ``comment'' for each file (it is not a tag in
+a special tag called ``comment'' for each file (it is not a tag in
 the exact same sense as the other tags, it is handled slightly
-different).  That is used to enter a comment or description about the
+differently).  That is used to enter a comment or description about the
 image.  You comment a file from the thumbnail buffer by typing
 @kbd{c}.  You will be prompted for a comment.  Type @kbd{C-t c} to add
 a comment from Dired (@code{image-dired-dired-comment-files}).
@@ -1375,7 +1375,7 @@ the directory already exists.
 @findex dired-do-isearch
 @findex dired-do-isearch-regexp
   The command @kbd{M-s a C-s} (@code{dired-do-isearch}) begins a
-``multi-file'' incremental search on the marked files.  If a search
+multi-file incremental search on the marked files.  If a search
 fails at the end of a file, typing @kbd{C-s} advances to the next
 marked file and repeats the search; at the end of the last marked
 file, the search wraps around to the first marked file.  The command
@@ -1425,21 +1425,21 @@ will operate on the selected files.
 @findex dired-compare-directories
   The command @kbd{M-x dired-compare-directories} is used to compare
 the current Dired buffer with another directory.  It marks all the files
-that are ``different'' between the two directories.  It puts these marks
+that differ between the two directories.  It puts these marks
 in all Dired buffers where these files are listed, which of course includes
 the current buffer.
 
   The default comparison method (used if you type @key{RET} at the
-prompt) is to compare just the file names---each file name that does
-not appear in the other directory is ``different''.  You can specify
+prompt) is to compare just the file names---file names differ if
+they do not appear in the other directory.  You can specify
 more stringent comparisons by entering a Lisp expression, which can
 refer to the variables @code{size1} and @code{size2}, the respective
 file sizes; @code{mtime1} and @code{mtime2}, the last modification
 times in seconds, as floating point numbers; and @code{fa1} and
 @code{fa2}, the respective file attribute lists (as returned by the
 function @code{file-attributes}).  This expression is evaluated for
-each pair of like-named files, and if the expression's value is
-non-@code{nil}, those files are considered ``different''.
+each pair of like-named files, and files differ if the expression's
+value is non-@code{nil}.
 
   For instance, the sequence @code{M-x dired-compare-directories
 @key{RET} (> mtime1 mtime2) @key{RET}} marks files newer in this
@@ -1448,7 +1448,7 @@ directory than in this one.  It also marks files with no counterpart,
 in both directories, as always.
 
 @cindex drag and drop, Dired
-  On the X Window System, Emacs supports the ``drag and drop''
+  On the X Window System, Emacs supports the drag and drop
 protocol.  You can drag a file object from another program, and drop
 it onto a Dired buffer; this either moves, copies, or creates a link
 to the file in that directory.  Precisely which action is taken is

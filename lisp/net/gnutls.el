@@ -111,9 +111,9 @@ specifying a port number to connect to.
 
 Usage example:
 
-  \(with-temp-buffer
-    \(open-gnutls-stream \"tls\"
-                        \(current-buffer)
+  (with-temp-buffer
+    (open-gnutls-stream \"tls\"
+                        (current-buffer)
                         \"your server goes here\"
                         \"imaps\"))
 

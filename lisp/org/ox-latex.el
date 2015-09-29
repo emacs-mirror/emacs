@@ -212,9 +212,9 @@
 If #+LATEX_CLASS is set in the buffer, use its value and the
 associated information.  Here is the structure of each cell:
 
-  \(class-name
+  (class-name
     header-string
-    \(numbered-section . unnumbered-section)
+    (numbered-section . unnumbered-section)
     ...)
 
 The header string
@@ -281,11 +281,11 @@ section string and will be replaced by the title of the section.
 Instead of a cons cell (numbered . unnumbered), you can also
 provide a list of 2 or 4 elements,
 
-  \(numbered-open numbered-close)
+  (numbered-open numbered-close)
 
 or
 
-  \(numbered-open numbered-close unnumbered-open unnumbered-close)
+  (numbered-open numbered-close unnumbered-open unnumbered-close)
 
 providing opening and closing strings for a LaTeX environment
 that should represent the document section.  The opening clause
@@ -591,18 +591,18 @@ The function should return the string to be exported.
 For example, the variable could be set to the following function
 in order to mimic default behavior:
 
-\(defun org-latex-format-inlinetask \(todo type priority name tags contents\)
+\(defun org-latex-format-inlinetask (todo type priority name tags contents)
 \"Format an inline task element for LaTeX export.\"
-  \(let ((full-title
-	 \(concat
-	  \(when todo
-            \(format \"\\\\textbf{\\\\textsf{\\\\textsc{%s}}} \" todo))
-	  \(when priority (format \"\\\\framebox{\\\\#%c} \" priority))
+  (let ((full-title
+	 (concat
+	  (when todo
+            (format \"\\\\textbf{\\\\textsf{\\\\textsc{%s}}} \" todo))
+	  (when priority (format \"\\\\framebox{\\\\#%c} \" priority))
 	  title
-	  \(when tags
-            \(format \"\\\\hfill{}\\\\textsc{:%s:}\"
-                    \(mapconcat \\='identity tags \":\")))))
-    \(format (concat \"\\\\begin{center}\\n\"
+	  (when tags
+            (format \"\\\\hfill{}\\\\textsc{:%s:}\"
+                    (mapconcat \\='identity tags \":\")))))
+    (format (concat \"\\\\begin{center}\\n\"
 		    \"\\\\fbox{\\n\"
 		    \"\\\\begin{minipage}[c]{.6\\\\textwidth}\\n\"
 		    \"%s\\n\\n\"
@@ -626,21 +626,21 @@ listings package, and if you want to have color, the color
 package.  Just add these to `org-latex-packages-alist', for
 example using customize, or with something like:
 
-  \(require \\='ox-latex)
-  \(add-to-list \\='org-latex-packages-alist \\='(\"\" \"listings\"))
-  \(add-to-list \\='org-latex-packages-alist \\='(\"\" \"color\"))
+  (require \\='ox-latex)
+  (add-to-list \\='org-latex-packages-alist \\='(\"\" \"listings\"))
+  (add-to-list \\='org-latex-packages-alist \\='(\"\" \"color\"))
 
 Alternatively,
 
-  \(setq org-latex-listings \\='minted)
+  (setq org-latex-listings \\='minted)
 
 causes source code to be exported using the minted package as
 opposed to listings.  If you want to use minted, you need to add
 the minted package to `org-latex-packages-alist', for example
 using customize, or with
 
-  \(require \\='ox-latex)
-  \(add-to-list \\='org-latex-packages-alist \\='(\"\" \"minted\"))
+  (require \\='ox-latex)
+  (add-to-list \\='org-latex-packages-alist \\='(\"\" \"minted\"))
 
 In addition, it is necessary to install pygments
 \(http://pygments.org), and to configure the variable
@@ -689,9 +689,9 @@ These options are supplied as a comma-separated list to the
 a list containing two strings: the name of the option, and the
 value.  For example,
 
-  \(setq org-latex-listings-options
+  (setq org-latex-listings-options
     '((\"basicstyle\" \"\\\\small\")
-      \(\"keywordstyle\" \"\\\\color{black}\\\\bfseries\\\\underbar\")))
+      (\"keywordstyle\" \"\\\\color{black}\\\\bfseries\\\\underbar\")))
 
 will typeset the code in a small size font with underlined, bold
 black keywords.
@@ -736,8 +736,8 @@ These options are supplied within square brackets in
 be a list containing two strings: the name of the option, and the
 value.  For example,
 
-  \(setq org-latex-minted-options
-    '\((\"bgcolor\" \"bg\") \(\"frame\" \"lines\")))
+  (setq org-latex-minted-options
+    '((\"bgcolor\" \"bg\") (\"frame\" \"lines\")))
 
 will result in src blocks being exported with
 
@@ -757,8 +757,8 @@ options will be applied to blocks of all languages."
 It is used during export of src blocks by the listings and minted
 latex packages.  For example,
 
-  \(setq org-latex-custom-lang-environments
-     '\(\(python \"pythoncode\"\)\)\)
+  (setq org-latex-custom-lang-environments
+     '((python \"pythoncode\")))
 
 would have the effect that if org encounters begin_src python
 during latex export it will output
@@ -2876,8 +2876,8 @@ Return PDF file name or an error if it couldn't be produced."
 	;; Check for process failure.  Provide collected errors if
 	;; possible.
 	(if (not (file-exists-p pdffile))
-	    (error (concat (format "PDF file %s wasn't produced" pdffile)
-			   (when errors (concat ": " errors))))
+	    (error "PDF file %s wasn't produced%s" pdffile
+		   (if errors (concat ": " errors) ""))
 	  ;; Else remove log files, when specified, and signal end of
 	  ;; process to user, along with any error encountered.
 	  (when (and (not snippet) org-latex-remove-logfiles)

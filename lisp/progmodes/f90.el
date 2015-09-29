@@ -240,7 +240,7 @@
   :group 'f90-indent)
 
 (defcustom f90-beginning-ampersand t
-  "Non-nil gives automatic insertion of \& at start of continuation line."
+  "Non-nil gives automatic insertion of `&' at start of continuation line."
   :type  'boolean
   :safe  'booleanp
   :group 'f90)
@@ -649,7 +649,7 @@ forall\\|block\\|critical\\)\\)\\_>"
 \\|enumerator\\|procedure\\|\
 logical\\|double[ \t]*precision\\|type[ \t]*(\\(?:\\sw\\|\\s_\\)+)\\|none\\)[ \t]*"
       (1 font-lock-keyword-face) (2 font-lock-type-face))
-    '("\\_<\\(namelist\\|common\\)[ \t]*\/\\(\\(?:\\sw\\|\\s_\\)+\\)?\/"
+    '("\\_<\\(namelist\\|common\\)[ \t]*/\\(\\(?:\\sw\\|\\s_\\)+\\)?\/"
       (1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
     "\\_<else\\([ \t]*if\\|where\\)?\\_>"
     '("\\(&\\)[ \t]*\\(!\\|$\\)"  (1 font-lock-keyword-face))
@@ -954,8 +954,8 @@ Used in the F90 entry in `hs-special-modes-alist'.")
    ;; and also variables of derived type "type (foo)".
    ;; "type, foo" must be a block (?).
    "type[ \t,]\\("
-   "[^i(!\n\"\& \t]\\|"                 ; not-i(
-   "i[^s!\n\"\& \t]\\|"                 ; i not-s
+   "[^i(!\n\"& \t]\\|"                 ; not-i(
+   "i[^s!\n\"& \t]\\|"                 ; i not-s
    "is\\(?:\\sw\\|\\s_\\)\\)\\|"
    ;; "abstract interface" is F2003; "submodule" is F2008.
    "program\\|\\(?:abstract[ \t]*\\)?interface\\|\\(?:sub\\)?module\\|"
@@ -992,9 +992,9 @@ Set subexpression 1 in the match-data to the name of the type."
     found))
 
 (defvar f90-imenu-generic-expression
-  (let ((good-char "[^!\"\&\n \t]") (not-e "[^e!\n\"\& \t]")
-        (not-n "[^n!\n\"\& \t]") (not-d "[^d!\n\"\& \t]")
-        ;; (not-ib "[^i(!\n\"\& \t]") (not-s "[^s!\n\"\& \t]")
+  (let ((good-char "[^!\"&\n \t]") (not-e "[^e!\n\"& \t]")
+        (not-n "[^n!\n\"& \t]") (not-d "[^d!\n\"& \t]")
+        ;; (not-ib "[^i(!\n\"& \t]") (not-s "[^s!\n\"& \t]")
         )
     `((nil "^[ \t0-9]*program[ \t]+\\(\\(?:\\sw\\|\\s_\\)+\\)" 1)
       ("Submodules" "^[ \t0-9]*submodule[ \t]*([^)\n]+)[ \t]*\
@@ -1015,7 +1015,7 @@ Set subexpression 1 in the match-data to the name of the type."
          "\\("
          ;; At least three non-space characters before function/subroutine.
          ;; Check that the last three non-space characters do not spell E N D.
-         "[^!\"\&\n]*\\("
+         "[^!\"&\n]*\\("
          not-e good-char good-char "\\|"
          good-char not-n good-char "\\|"
          good-char good-char not-d "\\)"
@@ -1154,7 +1154,7 @@ Variables controlling indentation style and extra features:
   Non-nil causes `f90-do-auto-fill' to break lines before delimiters
   (default t).
 `f90-beginning-ampersand'
-  Automatic insertion of \& at beginning of continuation lines (default t).
+  Automatic insertion of `&' at beginning of continuation lines (default t).
 `f90-smart-end'
   From an END statement, check and fill the end using matching block start.
   Allowed values are `blink', `no-blink', and nil, which determine
@@ -1378,7 +1378,7 @@ write\\)[ \t]*([^)\n]*)")
    ((looking-at "\\(submodule\\)[ \t]*([^)\n]+)[ \t]*\\(\\(?:\\sw\\|\\s_\\)+\\)\\_>")
     (list (match-string 1) (match-string 2)))
    ((and (not (looking-at "end[ \t]*\\(function\\|subroutine\\)"))
-         (looking-at "[^!'\"\&\n]*\\(function\\|subroutine\\)[ \t]+\
+         (looking-at "[^!'\"&\n]*\\(function\\|subroutine\\)[ \t]+\
 \\(\\(?:\\sw\\|\\s_\\)+\\)"))
     (list (match-string 1) (match-string 2)))))
 ;; Following will match an un-named main program block; however
@@ -2110,7 +2110,7 @@ Like `join-line', but handles F90 syntax."
   (if arg (forward-line 1))
   (when (eq (preceding-char) ?\n)
     (skip-chars-forward " \t")
-    (if (looking-at "\&") (delete-char 1))
+    (if (looking-at "&") (delete-char 1))
     (beginning-of-line)
     (delete-region (point) (1- (point)))
     (skip-chars-backward " \t")
@@ -2381,9 +2381,5 @@ escape character."
 
 
 (provide 'f90)
-
-;; Local Variables:
-;; coding: utf-8
-;; End:
 
 ;;; f90.el ends here

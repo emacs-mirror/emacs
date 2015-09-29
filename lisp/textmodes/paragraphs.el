@@ -536,8 +536,4 @@ the current sentence with the one containing the mark."
   (interactive "*p")
   (transpose-subr 'forward-sentence arg))
 
-;; Local Variables:
-;; coding: utf-8
-;; End:
-
 ;;; paragraphs.el ends here

@@ -395,12 +395,12 @@ Affects: `cperl-font-lock', `cperl-electric-lbrace-space',
   :type 'boolean
   :group 'cperl-indentation-details)
 
-(defcustom cperl-vc-sccs-header '("($sccs) = ('%W\%' =~ /(\\d+(\\.\\d+)+)/) ;")
+(defcustom cperl-vc-sccs-header '("($sccs) = ('%W\ %' =~ /(\\d+(\\.\\d+)+)/) ;")
   "*Special version of `vc-sccs-header' that is used in CPerl mode buffers."
   :type '(repeat string)
   :group 'cperl)
 
-(defcustom cperl-vc-rcs-header '("($rcs) = (' $Id\$ ' =~ /(\\d+(\\.\\d+)+)/);")
+(defcustom cperl-vc-rcs-header '("($rcs) = (' $Id\ $ ' =~ /(\\d+(\\.\\d+)+)/);")
   "*Special version of `vc-rcs-header' that is used in CPerl mode buffers."
   :type '(repeat string)
      :group 'cperl)
@@ -793,7 +793,7 @@ corrected problems are: POD sections, here-documents, regexps.  The
 operations are: highlighting, indentation, electric keywords, electric
 braces.
 
-This may be confusing, since the regexp s#//#/#\; may be highlighted
+This may be confusing, since the regexp s#//#/#; may be highlighted
 as a comment, but it will be recognized as a regexp by the indentation
 code.  Or the opposite case, when a POD section is highlighted, but
 may break the indentation of the following code (though indentation
@@ -4585,13 +4585,13 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 					 ((eq (char-after b) ?\: )
 					  "\\\\*\\[\\\\:\\^?\\sw+\\\\:]")
 					 ((eq (char-after b) ?^ )
-					  "\\\\*\\[:\\(\\\\\\^\\)?\\sw+:\]")
+					  "\\\\*\\[:\\(\\\\\\^\\)?\\sw+:]")
 					 ((eq (char-syntax (char-after b))
 					      ?w)
 					  (concat
 					   "\\\\*\\[:\\(\\\\\\^\\)?\\(\\\\"
 					   (char-to-string (char-after b))
-					   "\\|\\sw\\)+:\]"))
+					   "\\|\\sw\\)+:]"))
 					 (t "\\\\*\\[:\\^?\\sw*:]")))
 				       (goto-char REx-subgr-end)
 				       (cperl-highlight-charclass
@@ -5043,7 +5043,7 @@ conditional/loop constructs."
 		  (goto-char top))
 	      (if (looking-at		; Try Plan C: continuation block
 		   (concat cperl-maybe-white-and-comment-rex
-			   "\\<\\(else\\|elsif\|continue\\)\\>"))
+			   "\\<\\(else\\|elsif\\|continue\\)\\>"))
 		  (progn
 		    (goto-char (match-end 0))
 		    (setq tmp-end (point-at-eol)))
@@ -5706,7 +5706,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
 		 "redo" "return" "local" "exec" "sub" "do" "dump" "use" "our"
 		 "require" "package" "eval" "my" "BEGIN" "END" "CHECK" "INIT")
 	       "\\|")			; Flow control
-	      "\\)\\>") 2)		; was "\\)[ \n\t;():,\|&]"
+	      "\\)\\>") 2)		; was "\\)[ \n\t;():,|&]"
 					; In what follows we use `type' style
 					; for overwritable builtins
 	    (list
@@ -5850,7 +5850,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
 		      (1 font-lock-string-face t))))
 		  (t '("\\([]}\\\\%@>*&]\\|\\$[a-zA-Z0-9_:]*\\)[ \t]*{[ \t]*\\(-?[a-zA-Z0-9_:]+\\)[ \t]*}"
 		       2 font-lock-string-face t)))
-	    '("[\[ \t{,(]\\(-?[a-zA-Z0-9_:]+\\)[ \t]*=>" 1
+	    '("[[ \t{,(]\\(-?[a-zA-Z0-9_:]+\\)[ \t]*=>" 1
 	      font-lock-string-face t)
 	    '("^[ \t]*\\([a-zA-Z0-9_]+[ \t]*:\\)[ \t]*\\($\\|{\\|\\<\\(until\\|while\\|for\\(each\\)?\\|do\\)\\>\\)" 1
 	      font-lock-constant-face)	; labels
@@ -5935,7 +5935,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
 		 (and (string< "21.1.10" emacs-version)
 		      (string< emacs-version "21.1.2")))
 		'(
-		  ("\\(\\([@%]\\|\$#\\)[a-zA-Z_:][a-zA-Z0-9_:]*\\)" 1
+		  ("\\(\\([@%]\\|\\$#\\)[a-zA-Z_:][a-zA-Z0-9_:]*\\)" 1
 		   (if (eq (char-after (match-beginning 2)) ?%)
 		       'cperl-hash-face
 		     'cperl-array-face)

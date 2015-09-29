@@ -1,4 +1,4 @@
-/* Internal implementation of access control lists.
+/* Internal implementation of access control lists.  -*- coding: utf-8 -*-
 
    Copyright (C) 2002-2003, 2005-2015 Free Software Foundation, Inc.
 

@@ -24,7 +24,7 @@ thing, but search for patterns instead of fixed strings.
 * Symbol Search::             Search for a source code symbol.
 * Regexp Search::             Search for match for a regexp.
 * Regexps::                   Syntax of regular expressions.
-* Regexp Backslash::          Regular expression constructs starting with '\'.
+* Regexp Backslash::          Regular expression constructs starting with `\'.
 * Regexp Example::            A complex regular expression explained.
 * Search Case::               To ignore case while searching, or not.
 * Replace::                   Search, and replace some or all matches.
@@ -146,8 +146,8 @@ you don't like this feature, you can disable it by setting
 
   After exiting a search, you can search for the same string again by
 typing just @kbd{C-s C-s}.  The first @kbd{C-s} is the key that
-invokes incremental search, and the second @kbd{C-s} means ``search
-again''.  Similarly, @kbd{C-r C-r} searches backward for the last
+invokes incremental search, and the second @kbd{C-s} means to search
+again.  Similarly, @kbd{C-r C-r} searches backward for the last
 search string.  In determining the last search string, it doesn't
 matter whether the string was searched for with @kbd{C-s} or
 @kbd{C-r}.
@@ -423,7 +423,7 @@ because that is used to display the minibuffer.
 
 If an incremental search fails in the minibuffer, it tries searching
 the minibuffer history.  @xref{Minibuffer History}.  You can visualize
-the minibuffer and its history as a series of ``pages'', with the
+the minibuffer and its history as a series of pages, with the
 earliest history element on the first page and the current minibuffer
 on the last page.  A forward search, @kbd{C-s}, searches forward to
 later pages; a reverse search, @kbd{C-r}, searches backwards to
@@ -893,11 +893,11 @@ This last application is not a consequence of the idea of a
 parenthetical grouping; it is a separate feature that is assigned as a
 second meaning to the same @samp{\( @dots{} \)} construct.  In practice
 there is usually no conflict between the two meanings; when there is
-a conflict, you can use a ``shy'' group.
+a conflict, you can use a shy group.
 
 @item \(?: @dots{} \)
 @cindex shy group, in regexp
-specifies a ``shy'' group that does not record the matched substring;
+specifies a shy group that does not record the matched substring;
 you can't refer back to it with @samp{\@var{d}} (see below).  This is
 useful in mechanically combining regular expressions, so that you can
 add groups for syntactic purposes without interfering with the

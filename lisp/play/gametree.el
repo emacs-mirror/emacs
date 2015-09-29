@@ -324,7 +324,7 @@ This value is simply the outline heading level of the current line."
 (defun gametree-hack-file-layout ()
   (save-excursion
     (goto-char (point-min))
-    (if (looking-at "[^\n]*-\*-[^\n]*gametree-local-layout: \\([^;\n]*\\);")
+    (if (looking-at "[^\n]*-*-[^\n]*gametree-local-layout: \\([^;\n]*\\);")
         (progn
           (goto-char (match-beginning 1))
           (delete-region (point) (match-end 1))

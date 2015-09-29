@@ -464,21 +464,6 @@ filter_list_to_flags (Lisp_Object filter_list)
   return flags;
 }
 
-/* Like report_file_error, but reports a file-notify-error instead.  */
-static void
-report_w32notify_error (const char *string, Lisp_Object name)
-{
-  Lisp_Object data = CONSP (name) || NILP (name) ? name : list1 (name);
-  synchronize_system_messages_locale ();
-  char *str = strerror (errno);
-  Lisp_Object errstring
-    = code_convert_string_norecord (build_unibyte_string (str),
-				    Vlocale_coding_system, 0);
-  Lisp_Object errdata = Fcons (errstring, data);
-
-  xsignal (Qfile_notify_error, Fcons (build_string (string), errdata));
-}
-
 DEFUN ("w32notify-add-watch", Fw32notify_add_watch,
        Sw32notify_add_watch, 3, 3, 0,
        doc: /* Add a watch for filesystem events pertaining to FILE.
@@ -543,8 +528,8 @@ generate notifications correctly, though.  */)
       || (w32_major_version == 5 && w32_major_version < 1))
     {
       errno = ENOSYS;
-      report_w32notify_error ("Watching filesystem events is not supported",
-			      Qnil);
+      report_file_notify_error ("Watching filesystem events is not supported",
+				Qnil);
     }
 
   /* filenotify.el always passes us a directory, either the parent
@@ -588,11 +573,11 @@ generate notifications correctly, though.  */)
 					      Vlocale_coding_system, 0);
 	  else
 	    lisp_errstr = build_string (errstr);
-	  report_w32notify_error ("Cannot watch file",
-				  Fcons (lisp_errstr, Fcons (file, Qnil)));
+	  report_file_notify_error ("Cannot watch file",
+				    Fcons (lisp_errstr, Fcons (file, Qnil)));
 	}
       else
-	report_w32notify_error ("Cannot watch file", Fcons (file, Qnil));
+	report_file_notify_error ("Cannot watch file", Fcons (file, Qnil));
     }
   /* Store watch object in watch list. */
   watch_descriptor = make_pointer_integer (dirwatch);
@@ -626,8 +611,8 @@ WATCH-DESCRIPTOR should be an object returned by `w32notify-add-watch'.  */)
     }
 
   if (status == -1)
-    report_w32notify_error ("Invalid watch descriptor", Fcons (watch_descriptor,
-							       Qnil));
+    report_file_notify_error ("Invalid watch descriptor",
+			      Fcons (watch_descriptor, Qnil));
 
   return Qnil;
 }

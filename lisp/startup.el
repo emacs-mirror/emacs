@@ -114,7 +114,7 @@ the remaining command-line args are in the variable `command-line-args-left'.")
 
 (defvaralias 'argv 'command-line-args-left
   "List of command-line args not yet processed.
-This is a convenience alias, so that one can write \(pop argv\)
+This is a convenience alias, so that one can write \(pop argv)
 inside of --eval command line arguments in order to access
 following arguments.")
 (internal-make-var-non-special 'argv)
@@ -1970,7 +1970,7 @@ To quit a partially entered command, type Control-g.\n")
 		 'action (lambda (_button) (info-emacs-manual))
 		 'follow-link t)
   (insert "\tView the Emacs manual using Info\n")
-  (insert-button "\(Non)Warranty"
+  (insert-button "(Non)Warranty"
 		 'action (lambda (_button) (describe-no-warranty))
 		 'follow-link t)
   (insert "\t\tGNU Emacs comes with ABSOLUTELY NO WARRANTY\n")

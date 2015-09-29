@@ -1,4 +1,4 @@
-;;; fringe.el --- fringe setup and control  -*- coding: utf-8 -*-
+;;; fringe.el --- fringe setup and control
 
 ;; Copyright (C) 2002-2015 Free Software Foundation, Inc.
 

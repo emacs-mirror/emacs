@@ -286,7 +286,7 @@ messages.  @xref{Sending Mail}.
 
   When one of these commands encounters what appears to be an
 incorrect word, it asks you what to do.  It usually displays a list of
-numbered ``near-misses''---words that are close to the incorrect word.
+numbered @dfn{near-misses}---words that are close to the incorrect word.
 Then you must type a single-character response.  Here are the valid
 responses:
 
@@ -331,7 +331,7 @@ file.
 
 @item l @var{word} @key{RET}
 Look in the dictionary for words that match @var{word}.  These words
-become the new list of ``near-misses''; you can select one of them as
+become the new list of near-misses; you can select one of them as
 the replacement by typing a digit.  You can use @samp{*} in @var{word} as a
 wildcard.
 

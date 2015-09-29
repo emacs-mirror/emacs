@@ -333,7 +333,7 @@ sub git_dir_option($)
           $rest =~ s/^\s*\(cherry picked from commit [\da-f]+\)\n//m;
         }
 
-      my @line = split /\s*\n/, $rest;
+      my @line = split /[ \t]*\n/, $rest;
       my $author_line = shift @line;
       defined $author_line
         or die "$ME:$.: unexpected EOF\n";

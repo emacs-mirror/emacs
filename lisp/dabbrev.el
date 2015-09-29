@@ -120,7 +120,7 @@
 
 Example: Set this to \"\\\\$\" for programming languages
 in which variable names may appear with or without a leading `$'.
-\(For example, in Makefiles.\)
+\(For example, in Makefiles.)
 
 Set this to nil if no characters should be skipped."
   :type '(choice regexp

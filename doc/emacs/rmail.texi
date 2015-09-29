@@ -82,7 +82,7 @@ file after merging new mail from an inbox file (@pxref{Rmail Inbox}).
   You can exit Rmail with @kbd{q} (@code{rmail-quit}); this expunges
 and saves the Rmail file, then buries the Rmail buffer as well as its
 summary buffer, if present (@pxref{Rmail Summary}).  But there is no
-need to ``exit'' formally.  If you switch from Rmail to editing in
+need to exit formally.  If you switch from Rmail to editing in
 other buffers, and never switch back, you have exited.  Just make sure
 to save the Rmail file eventually (like any other file you have
 changed).  @kbd{C-x s} is a suitable way to do this (@pxref{Save
@@ -794,7 +794,7 @@ message as the text, and a subject of the form @code{[@var{from}:
 @var{subject}]}, where @var{from} and @var{subject} are the sender and
 subject of the original message.  All you have to do is fill in the
 recipients and send.  When you forward a message, recipients get a
-message which is ``from'' you, and which has the original message in
+message which is from you, and which has the original message in
 its contents.
 
 @vindex rmail-enable-mime-composing
@@ -817,7 +817,7 @@ following the current one.
 
 @findex rmail-resend
   @dfn{Resending} is an alternative similar to forwarding; the
-difference is that resending sends a message that is ``from'' the
+difference is that resending sends a message that is from the
 original sender, just as it reached you---with a few added header fields
 (@samp{Resent-From} and @samp{Resent-To}) to indicate that it came via
 you.  To resend a message in Rmail, use @kbd{C-u f}.  (@kbd{f} runs
@@ -1213,14 +1213,14 @@ Toggle between @acronym{MIME} display and raw message
 immediately after its tagline, as part of the Rmail buffer, while
 @acronym{MIME} parts of other types are represented only by their
 taglines, with their actual contents hidden.  In either case, you can
-toggle a @acronym{MIME} part between its ``displayed'' and ``hidden''
+toggle a @acronym{MIME} part between its displayed and hidden
 states by typing @key{RET} anywhere in the part---or anywhere in its
 tagline (except for buttons for other actions, if there are any).  Type
 @key{RET} (or click with the mouse) to activate a tagline button, and
 @key{TAB} to cycle point between tagline buttons.
 
   The @kbd{v} (@code{rmail-mime}) command toggles between the default
-@acronym{MIME} display described above, and a ``raw'' display showing
+@acronym{MIME} display described above, and a raw display showing
 the undecoded @acronym{MIME} data.  With a prefix argument, this
 command toggles the display of only an entity at point.
 
@@ -1372,8 +1372,8 @@ which applies the code when displaying the text.
 your Rmail file (@pxref{Rmail Inbox}).  When loaded for the first time,
 Rmail attempts to locate the @code{movemail} program and determine its
 version.  There are two versions of the @code{movemail} program: the
-native one, shipped with GNU Emacs (the ``emacs version'') and the one
-included in GNU mailutils (the ``mailutils version'',
+native one, shipped with GNU Emacs (the Emacs version) and the one
+included in GNU mailutils (the mailutils version,
 @pxref{movemail,,,mailutils,GNU mailutils}).  They support the same
 command line syntax and the same basic subset of options.  However, the
 Mailutils version offers additional features.
@@ -1489,7 +1489,7 @@ versions of POP.
 @cindex POP mailboxes
   No matter which flavor of @code{movemail} you use, you can specify
 a POP inbox by using a POP @dfn{URL} (@pxref{Movemail}).  A POP
-@acronym{URL} is a ``file name'' of the form
+@acronym{URL} is of the form
 @samp{pop://@var{username}@@@var{hostname}}, where
 @var{hostname} is the host name or IP address of the remote mail
 server and @var{username} is the user name on that server.

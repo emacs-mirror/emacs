@@ -119,7 +119,7 @@ This function is called by `org-babel-execute-src-block'."
    (lambda (pair)
      (setq body
 	   (replace-regexp-in-string
-	    (format "\$%s" (car pair))  ;FIXME: "\$" == "$"!
+	    (format "$%s" (car pair))
 	    (let ((val (cdr pair)))
               (if (listp val)
                   (let ((data-file (org-babel-temp-file "sqlite-data-")))

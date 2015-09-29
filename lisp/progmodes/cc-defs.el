@@ -500,10 +500,10 @@ even if the user undoes the command which set them.
 
 This macro should ALWAYS be placed around \"temporary\" internal buffer
 changes \(like adding a newline to calculate a text-property then
-deleting it again\), so that the user never sees them on his
+deleting it again), so that the user never sees them on his
 `buffer-undo-list'.  See also `c-tentative-buffer-changes'.
 
-However, any user-visible changes to the buffer \(like auto-newlines\)
+However, any user-visible changes to the buffer \(like auto-newlines)
 must not be within a `c-save-buffer-state', since the user then
 wouldn't be able to undo them.
 

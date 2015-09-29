@@ -213,7 +213,7 @@ one of those elements share the same precedence level and associativity."
 (defun smie-bnf->prec2 (bnf &rest resolvers)
   "Convert the BNF grammar into a prec2 table.
 BNF is a list of nonterminal definitions of the form:
-  \(NONTERM RHS1 RHS2 ...)
+  (NONTERM RHS1 RHS2 ...)
 where each RHS is a (non-empty) list of terminals (aka tokens) or non-terminals.
 Not all grammars are accepted:
 - an RHS cannot be an empty list (this is not needed, since SMIE allows all
@@ -1136,6 +1136,8 @@ METHOD can be:
 - :elem, in which case the function should return either:
   - the offset to use to indent function arguments (ARG = `arg')
   - the basic indentation step (ARG = `basic').
+  - the token to use (when ARG = `empty-line-token') when we don't know how
+    to indent an empty line.
 - :list-intro, in which case ARG is a token and the function should return
   non-nil if TOKEN is followed by a list of expressions (not separated by any
   token) rather than an expression.
@@ -1686,6 +1688,19 @@ should not be computed on the basis of the following token."
         (+ (smie-indent-virtual) (smie-indent--offset 'basic))) ;
        (t (smie-indent-virtual))))))                            ;An infix.
 
+(defun smie-indent-empty-line ()
+  "Indentation rule when there's nothing yet on the line."
+  ;; Without this rule, SMIE assumes that an empty line will be filled with an
+  ;; argument (since it falls back to smie-indent-sexps), which tends
+  ;; to indent far too deeply.
+  (when (eolp)
+    (let ((token (or (funcall smie-rules-function :elem 'empty-line-token)
+                     ;; FIXME: Should we default to ";"?
+                     ;; ";"
+                     )))
+      (when (assoc token smie-grammar)
+        (smie-indent-keyword token)))))
+
 (defun smie-indent-exps ()
   ;; Indentation of sequences of simple expressions without
   ;; intervening keywords or operators.  E.g. "a b c" or "g (balbla) f".
@@ -1744,7 +1759,7 @@ should not be computed on the basis of the following token."
     smie-indent-comment smie-indent-comment-continue smie-indent-comment-close
     smie-indent-comment-inside smie-indent-inside-string
     smie-indent-keyword smie-indent-after-keyword
-                          smie-indent-exps)
+    smie-indent-empty-line smie-indent-exps)
   "Functions to compute the indentation.
 Each function is called with no argument, shouldn't move point, and should
 return either nil if it has no opinion, or an integer representing the column

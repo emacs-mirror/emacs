@@ -446,7 +446,7 @@ REVERSE (non-nil means reverse order), BEG and END (region to sort)."
 
 (defun sort-pages-buffer (&optional reverse)
   "Sort pages alphabetically in buffer.  Prefix arg means reverse order.
-\(Non-nil arg if not interactive.\)"
+\(Non-nil arg if not interactive.)"
 
   (interactive "P")
   (or reverse (setq reverse nil))
@@ -461,7 +461,7 @@ REVERSE (non-nil means reverse order), BEG and END (region to sort)."
 (defvar pages-directory-previous-regexp nil
   "Value of previous regexp used by `pages-directory'.
 \(This regular expression may be used to select only those pages that
-contain matches to the regexp.\)")
+contain matches to the regexp.)")
 
 (defvar pages-buffer nil
   "The buffer for which the pages-directory function creates the directory.")

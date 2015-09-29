@@ -1,4 +1,4 @@
-/* Fundamental definitions for GNU Emacs Lisp interpreter.
+/* Fundamental definitions for GNU Emacs Lisp interpreter. -*- coding: utf-8 -*-
 
 Copyright (C) 1985-1987, 1993-1995, 1997-2015 Free Software Foundation,
 Inc.
@@ -3846,6 +3846,7 @@ extern void fclose_unwind (void *);
 extern void restore_point_unwind (Lisp_Object);
 extern _Noreturn void report_file_errno (const char *, Lisp_Object, int);
 extern _Noreturn void report_file_error (const char *, Lisp_Object);
+extern _Noreturn void report_file_notify_error (const char *, Lisp_Object);
 extern bool internal_delete_file (Lisp_Object);
 extern Lisp_Object emacs_readlinkat (int, const char *);
 extern bool file_directory_p (const char *);
@@ -4358,12 +4359,13 @@ INLINE ptrdiff_t
 lisp_word_count (ptrdiff_t nbytes)
 {
   if (-1 >> 1 == -1)
-    switch (word_size)
+    switch (word_size + 0)
       {
       case 2: return nbytes >> 1;
       case 4: return nbytes >> 2;
       case 8: return nbytes >> 3;
       case 16: return nbytes >> 4;
+      default: break;
       }
   return nbytes / word_size - (nbytes % word_size < 0);
 }

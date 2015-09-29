@@ -280,8 +280,4 @@ is non-nil."
 
 (provide 'cal-menu)
 
-;; Local Variables:
-;; coding: utf-8
-;; End:
-
 ;;; cal-menu.el ends here

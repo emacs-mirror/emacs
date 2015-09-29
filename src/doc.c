@@ -716,7 +716,7 @@ is not on any keys.
 Each substring of the form \\=\\{MAPVAR} is replaced by a summary of
 the value of MAPVAR as a keymap.  This summary is similar to the one
 produced by `describe-bindings'.  The summary ends in two newlines
-\(used by the helper function `help-make-xrefs' to find the end of the
+(used by the helper function `help-make-xrefs' to find the end of the
 summary).
 
 Each substring of the form \\=\\<MAPVAR> specifies the use of MAPVAR

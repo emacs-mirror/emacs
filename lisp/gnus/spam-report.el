@@ -43,7 +43,7 @@ If you are using spam.el, consider setting gnus-spam-process-newsgroups
 or the gnus-group-spam-exit-processor-report-gmane group/topic parameter
 instead."
   :type '(radio (const nil)
-		(regexp :value "^nntp\+.*:gmane\."))
+		(regexp :value "^nntp\\+.*:gmane\\."))
   :group 'spam-report)
 
 (defcustom spam-report-gmane-use-article-number t

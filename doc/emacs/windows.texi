@@ -334,7 +334,7 @@ heights of all the windows in the selected frame.
 @node Displaying Buffers
 @section Displaying a Buffer in a Window
 
-  It is a common Emacs operation to display or ``pop up'' some buffer
+  It is a common Emacs operation to display or pop up some buffer
 in response to a user command.  There are several different ways in
 which commands do this.
 
@@ -345,7 +345,7 @@ usually work by calling @code{switch-to-buffer} internally
 (@pxref{Select Buffer}).
 
 @findex display-buffer
-  Some commands try to display ``intelligently'', trying not to take
+  Some commands try to display intelligently, trying not to take
 over the selected window, e.g., by splitting off a new window and
 displaying the desired buffer there.  Such commands, which include the
 various help commands (@pxref{Help}), work by calling
@@ -398,7 +398,7 @@ variables are @code{nil}, so this step is skipped.
 
 @item
 Otherwise, if the buffer is already displayed in an existing window,
-``reuse'' that window.  Normally, only windows on the selected frame
+reuse that window.  Normally, only windows on the selected frame
 are considered, but windows on other frames are also reusable if you
 change @code{pop-up-frames} (see below) to @code{t}.
 
@@ -444,7 +444,7 @@ and display the buffer there.
 @cindex window configuration changes, undoing
   Winner mode is a global minor mode that records the changes in the
 window configuration (i.e., how the frames are partitioned into
-windows), so that you can ``undo'' them.  You can toggle Winner mode
+windows), so that you can undo them.  You can toggle Winner mode
 with @kbd{M-x winner-mode}, or by customizing the variable
 @code{winner-mode}.  When the mode is enabled, @kbd{C-c left}
 (@code{winner-undo}) undoes the last window configuration change.  If
@@ -462,7 +462,7 @@ buffer.  @xref{Follow Mode}.
   The Windmove package defines commands for moving directionally
 between neighboring windows in a frame.  @kbd{M-x windmove-right}
 selects the window immediately to the right of the currently selected
-one, and similarly for the ``left'', ``up'', and ``down''
+one, and similarly for the left, up, and down
 counterparts.  @kbd{M-x windmove-default-keybindings} binds these
 commands to @kbd{S-right} etc.; doing so disables shift selection for
 those keys (@pxref{Shift Selection}).

@@ -1057,7 +1057,7 @@ Tip: You can use this expansion of remote identifier components
      to derive a new remote file name from an existing one.  For
      example, if FILE is \"/sudo::/path/to/file\" then
 
-       \(concat \(file-remote-p FILE) \"/bin/sh\")
+       (concat (file-remote-p FILE) \"/bin/sh\")
 
      returns a remote file name for file \"/bin/sh\" that has the
      same remote identifier as FILE but expanded; a name such as
@@ -3863,7 +3863,7 @@ directories."
 However, the mode will not be changed if
 \(1) a local variables list or the `-*-' line specifies a major mode, or
 \(2) the current major mode is a \"special\" mode,
-\     not suitable for ordinary files, or
+    not suitable for ordinary files, or
 \(3) the new file name does not particularly specify any mode."
   :type 'boolean
   :group 'editing-basics)

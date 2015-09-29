@@ -438,7 +438,7 @@ shuttled robotically onward."
 If a positive number, it's a timeout before sending.  If a negative
 number, it's a timeout before not sending.  This will not work if your
 version of Emacs doesn't include the function `y-or-n-p-with-timeout'
-\(e.g., some versions of XEmacs\)."
+\(e.g., some versions of XEmacs)."
   :version "24.1"
   :group 'feedmail-misc
   :type '(choice (const nil) integer)
@@ -449,7 +449,7 @@ version of Emacs doesn't include the function `y-or-n-p-with-timeout'
   "If non-nil remove Bcc: lines from the message headers.
 In any case, the Bcc: lines do participate in the composed address
 list.  You may want to leave them in if you're using sendmail
-\(see `feedmail-buffer-eating-function'\)."
+\(see `feedmail-buffer-eating-function')."
   :group 'feedmail-headers
   :type 'boolean
   )
@@ -459,7 +459,7 @@ list.  You may want to leave them in if you're using sendmail
   "If non-nil remove Resent-Bcc: lines from the message headers.
 In any case, the Resent-Bcc: lines do participate in the composed
 address list.  You may want to leave them in if you're using sendmail
-\(see `feedmail-buffer-eating-function'\)."
+\(see `feedmail-buffer-eating-function')."
   :group 'feedmail-headers
   :type 'boolean
   )
@@ -645,7 +645,7 @@ is not an option for many users.  As this is the default behavior of most
 sendmail installations, one can mostly only wish it were otherwise.  If feedmail
 believes the sendmail program will sell you out this way, it won't use the \"-f\"
 option when calling sendmail.  If it doesn't think sendmail will sell you out,
-it will use the \"-f\" \(since it is a handy feature\).  You control what
+it will use the \"-f\" \(since it is a handy feature).  You control what
 feedmail thinks with this variable.  The default is nil, meaning that feedmail
 will believe that sendmail will sell you out."
   :version "24.1"
@@ -861,7 +861,7 @@ as well."
   "User-supplied specification for a crude form of mailmerge capability.
 When spraying is enabled, feedmail composes a list of envelope addresses.
 In turn, `feedmail-spray-this-address' is temporarily set to each address
-\(stripped of any comments and angle brackets\) and a function is called which
+\(stripped of any comments and angle brackets) and a function is called which
 fiddles message headers according to this variable.  See the documentation for
 `feedmail-fiddle-plex-blurb', for an overview of fiddle-plex data structures.
 
@@ -1313,7 +1313,7 @@ of `buffer-file-name' to nil because that will defeat feedmail's file
 management features.  Instead, arrange for this variable to be set to
 the value of `buffer-file-name' before setting that to nil.  An easy way
 to do that would be with defadvice on `mail-send' \(undoing the
-assignments in a later advice\).
+assignments in a later advice).
 
 feedmail will pretend that `buffer-file-name', if nil, has the value
 assigned of `feedmail-queue-buffer-file-name' and carry out its normal
@@ -1507,7 +1507,7 @@ The default action is an anonymous function which gets rid of the file
 from the queue directory.  With a non-nil second argument, a brief
 message is give for each file deleted.  You could replace this
 function, for example, to archive all of your sent messages someplace
-\(though there are better ways to get that particular result\)."
+\(though there are better ways to get that particular result)."
   :group 'feedmail-queue
   :type 'function
   )
@@ -1715,7 +1715,7 @@ for ACTION (default is `supplement'):
                 VAL-LIKE is not used.  Else, if VAL-LIKE is a function,
                 it is called with two arguments: NAME and the
                 aggregate like values.  Else, if VAL-LIKE is a string, it is
-                used as a format string where a single \%s will be
+                used as a format string where a single %s will be
                 replaced by the aggregate values of like fields.
 
                 VAL-PRE, the results of using VAL-LIKE, and VAL-POST
@@ -1745,7 +1745,8 @@ applied to a file after you've just read it from disk: for example, a
 feedmail FQM message file from a queue.  You could use something like
 this:
 
-\(setq auto-mode-alist \(cons \\='\(\"\\\\.fqm$\" . feedmail-vm-mail-mode\) auto-mode-alist\)\)
+\(setq auto-mode-alist
+      (cons \\='(\"\\\\.fqm$\" . feedmail-vm-mail-mode) auto-mode-alist))
 "
   (feedmail-say-debug ">in-> feedmail-vm-mail-mode")
   (let ((the-buf (current-buffer)))
@@ -1894,26 +1895,26 @@ You're dispatching a message and feedmail queuing is enabled.
 Typing ? again will normally scroll this help buffer.
 
 Choices:
-   q  QUEUE        for later sending \(via feedmail-run-the-queue\)
+   q  QUEUE        for later sending (via feedmail-run-the-queue)
    Q  QUEUE!       like \"q\", but always make a new file
-   i  IMMEDIATELY  send this \(but not the other queued messages\)
+   i  IMMEDIATELY  send this (but not the other queued messages)
    I  IMMEDIATELY! like \"i\", but skip following confirmation prompt
    d  DRAFT        queue in the draft directory
    D  DRAFT!       like \"d\", but always make a new file
-   e  EDIT         return to the message edit buffer \(don't send or queue\)
-   *  SPRAY        toggle spray mode \(individual message transmissions\)
-   >  SCROLL UP    scroll message up \(toward end of message\)
-   <  SCROLL DOWN  scroll message down \(toward beginning of message\)
+   e  EDIT         return to the message edit buffer (don't send or queue)
+   *  SPRAY        toggle spray mode (individual message transmissions)
+   >  SCROLL UP    scroll message up (toward end of message)
+   <  SCROLL DOWN  scroll message down (toward beginning of message)
    ?  HELP         show or scroll this help buffer
 
 Synonyms:
-   s  SEND         immediately \(same as \"i\"\)
-   S  SEND!        immediately \(same as \"I\"\)
-   r  ROUGH        draft \(same as \"d\"\)
-   R  ROUGH!       draft \(same as \"D\"\)
-   n  NOPE         didn't mean it \(same as \"e\"\)
-   y  YUP          do the default behavior \(same as \"C-m\"\)
-  SPC SCROLL UP    \(same as \">\"\)
+   s  SEND         immediately (same as \"i\")
+   S  SEND!        immediately (same as \"I\")
+   r  ROUGH        draft (same as \"d\")
+   R  ROUGH!       draft (same as \"D\")
+   n  NOPE         didn't mean it (same as \"e\")
+   y  YUP          do the default behavior (same as \"C-m\")
+  SPC SCROLL UP    (same as \">\")
 
 The user-configurable default is currently \""))
 	(princ d-string)

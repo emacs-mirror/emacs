@@ -499,6 +499,14 @@ parse_sexp_propertize (ptrdiff_t charpos)
       gl_state.e_property = syntax_propertize__done;
       gl_state.e_property_truncated = true;
     }
+  else if (gl_state.e_property_truncated
+	   && gl_state.e_property < syntax_propertize__done)
+    { /* When moving backward, e_property might be set without resetting
+	 e_property_truncated, so the e_property_truncated flag may
+	 occasionally be left raised spuriously.  This should be rare.  */
+      gl_state.e_property_truncated = false;
+      update_syntax_table_forward (charpos, false, Qnil);
+    }
 }
 
 void
@@ -509,7 +517,6 @@ update_syntax_table_forward (ptrdiff_t charpos, bool init,
     {
       eassert (NILP (object));
       eassert (charpos >= gl_state.e_property);
-      eassert (charpos >= syntax_propertize__done);
       parse_sexp_propertize (charpos);
     }
   else
@@ -1098,7 +1105,7 @@ DEFUN ("string-to-syntax", Fstring_to_syntax, Sstring_to_syntax, 1, 1, 0,
        doc: /* Convert a syntax descriptor STRING into a raw syntax descriptor.
 STRING should be a string of the form allowed as argument of
 `modify-syntax-entry'.  The return value is a raw syntax descriptor: a
-cons cell \(CODE . MATCHING-CHAR) which can be used, for example, as
+cons cell (CODE . MATCHING-CHAR) which can be used, for example, as
 the value of a `syntax-table' text property.  */)
   (Lisp_Object string)
 {
@@ -2799,12 +2806,8 @@ scan_lists (EMACS_INT from, EMACS_INT count, EMACS_INT depth, bool sexpflag)
 		      : c_code == Sstring_fence)
 		    break;
 
-		  switch (c_code)
-		    {
-		    case Scharquote:
-		    case Sescape:
-		      INC_BOTH (from, from_byte);
-		    }
+		  if (c_code == Scharquote || c_code == Sescape)
+		    INC_BOTH (from, from_byte);
 		  INC_BOTH (from, from_byte);
 		}
 	      INC_BOTH (from, from_byte);
@@ -3419,11 +3422,16 @@ do { prev_from = from;				\
 		  case Sstring_fence:
 		    if (!nofence) goto string_end;
 		    break;
+
 		  case Scharquote:
 		  case Sescape:
 		    INC_FROM;
 		  startquotedinstring:
 		    if (from >= end) goto endquoted;
+		    break;
+
+		  default:
+		    break;
 		  }
 		INC_FROM;
 	      }

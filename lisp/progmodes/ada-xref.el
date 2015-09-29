@@ -420,7 +420,7 @@ As a special case, ${current} is replaced with the name of the current
 file, minus extension but with directory, and ${full_current} is
 replaced by the name including the extension."
 
-  (while (string-match "\\(-[^-\$IO]*[IO]\\)?\${\\([^}]+\\)}" cmd-string)
+  (while (string-match "\\(-[^-$IO]*[IO]\\)?${\\([^}]+\\)}" cmd-string)
     (let (value
 	  (name (match-string 2 cmd-string)))
       (cond
@@ -1724,7 +1724,7 @@ Information is extracted from the ali file."
 		(concat "^"    (ada-line-of identlist)
 			"."    (ada-column-of identlist)
 			"[ *]" (ada-name-of identlist)
-			"[{\[\(<= ]?\\(.*\\)$") bound t))
+			"[{[(<= ]?\\(.*\\)$") bound t))
 	  (if declaration-found
 	      (ada-set-on-declaration identlist t))
 	  ))
@@ -1756,7 +1756,7 @@ Information is extracted from the ali file."
 		   (concat
 		    "^[0-9]+.[0-9]+[ *]"
 		    (ada-name-of identlist)
-		    "[ <{=\(\[]\\(.\\|\n\\.\\)*\\<"
+		    "[ <{=([]\\(.\\|\n\\.\\)*\\<"
 		    (ada-line-of identlist)
 		    "[^0-9]"
 		    (ada-column-of identlist) "\\>")
@@ -1779,7 +1779,7 @@ Information is extracted from the ali file."
 	      (forward-line -1)
 	      (beginning-of-line))
 	    (unless (looking-at (concat "[0-9]+.[0-9]+[ *]"
-					(ada-name-of identlist) "[ <{=\(\[]"))
+					(ada-name-of identlist) "[ <{=([]"))
 	      (setq declaration-found nil))))
 
       ;; Still no success ! The ali file must be too old, and we need to

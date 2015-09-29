@@ -575,10 +575,10 @@ stuff.  Used on level 1 and higher."
 			       c-symbol-key) "\\)"
 			(concat "\\("	; 2 + ncle + nsws + c-sym-key
 				;; Macro with arguments - a "function".
-				"\\(\(\\)" ; 3 + ncle + nsws + c-sym-key
+				"\\((\\)" ; 3 + ncle + nsws + c-sym-key
 				"\\|"
 				;; Macro without arguments - a "variable".
-				"\\([^\(]\\|$\\)"
+				"\\([^(]\\|$\\)"
 				"\\)"))
 		       `((if (match-beginning
 			      ,(+ 3 ncle-depth nsws-depth
@@ -1082,7 +1082,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 
 	    ;; Search syntactically to the end of the declarator (";",
 	    ;; ",", a closing paren, eob etc) or to the beginning of an
-	    ;; initializer or function prototype ("=" or "\\s\(").
+	    ;; initializer or function prototype ("=" or "\\s(").
 	    ;; Note that square brackets are now not also treated as
 	    ;; initializers, since this broke when there were also
 	    ;; initializing brace lists.
@@ -1867,7 +1867,7 @@ higher."
 		"\\)\\>"
 		;; Disallow various common punctuation chars that can't come
 		;; before the '{' of the enum list, to avoid searching too far.
-		"[^\]\[{}();/#=]*"
+		"[^][{}();/#=]*"
 		"{")
 	       '((c-font-lock-declarators limit t nil)
 		 (save-match-data
@@ -2112,7 +2112,7 @@ need for `c-font-lock-extra-types'.")
 		  (unless (looking-at
 			   (cc-eval-when-compile
 			     (concat (c-lang-const c-symbol-start c++)
-				     "\\|[*:\)\[]")))
+				     "\\|[*:)[]")))
 		    ;; There's something after the would-be type that
 		    ;; can't be there, so this is a placement arglist.
 		    (setq expr1-res nil)))
@@ -2122,7 +2122,7 @@ need for `c-font-lock-extra-types'.")
 		  (unless (looking-at
 			   (cc-eval-when-compile
 			     (concat (c-lang-const c-symbol-start c++)
-				     "\\|[*:\)\[]")))
+				     "\\|[*:)[]")))
 		    ;; There's something after the would-be type that can't
 		    ;; be there, so this is an initialization expression.
 		    (setq expr2-res nil))
@@ -2675,7 +2675,7 @@ need for `pike-font-lock-extra-types'.")
   nil)
 
 (defconst autodoc-font-lock-doc-comments
-  `(("@\\(\\w+{\\|\\[\\([^\]@\n\r]\\|@@\\)*\\]\\|[@}]\\|$\\)"
+  `(("@\\(\\w+{\\|\\[\\([^]@\n\r]\\|@@\\)*\\]\\|[@}]\\|$\\)"
      ;; In-text markup.
      0 ,c-doc-markup-face-name prepend nil)
     (autodoc-font-lock-line-markup)

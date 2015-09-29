@@ -213,23 +213,23 @@ use within the EDT emulation."
 
 (defcustom edt-word-entities '(?\t)
   "Specifies the list of EDT word entity characters.
-The default list, (\?\\t), contains just the TAB character, which
+The default list, (?\\t), contains just the TAB character, which
 emulates EDT.  Characters are specified in the list using their
 decimal ASCII values.  A question mark, followed by the actual
 character, can be used to indicate the numerical value of the
 character, instead of the actual decimal value.  So, ?A means the
-numerical value for the letter A, \?/ means the numerical value for /,
+numerical value for the letter A, ?/ means the numerical value for /,
 etc.  Several unprintable and special characters have special
 representations, which you can also use:
 
-            \?\\b  specifies  BS, C-h
-            \?\\t  specifies  TAB, C-i
-            \?\\n  specifies  LFD, C-j
-            \?\\v  specifies  VTAB, C-k
-            \?\\f  specifies  FF, C-l
-            \?\\r  specifies  CR, C-m
-            \?\\e  specifies  ESC, C-[
-            \?\\\\  specifies  \\
+            ?\\b  specifies  BS, C-h
+            ?\\t  specifies  TAB, C-i
+            ?\\n  specifies  LFD, C-j
+            ?\\v  specifies  VTAB, C-k
+            ?\\f  specifies  FF, C-l
+            ?\\r  specifies  CR, C-m
+            ?\\e  specifies  ESC, C-[
+            ?\\\\  specifies  \\
 
 In EDT Emulation movement-by-word commands, each character in the list
 will be treated as if it were a separate word."
@@ -311,10 +311,10 @@ This means that an edt-user.el file was found in the user's `load-path'.")
 ;;;     o edt-emulation-on      o edt-load-keys
 ;;;
 (defconst edt-emacs-variant (if (featurep 'emacs) "gnu" "xemacs")
-  "Indicates Emacs variant:  GNU Emacs or XEmacs \(aka Lucid Emacs\).")
+  "Indicates Emacs variant:  GNU Emacs or XEmacs (aka Lucid Emacs).")
 
 (defconst edt-window-system (if (featurep 'emacs) window-system (console-type))
-  "Indicates window system \(in GNU Emacs\) or console type \(in XEmacs\).")
+  "Indicates window system (in GNU Emacs) or console type (in XEmacs).")
 
 (declare-function x-server-vendor "xfns.c" (&optional terminal))
 

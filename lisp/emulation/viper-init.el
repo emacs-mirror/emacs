@@ -102,7 +102,7 @@ docstring.  The variable becomes buffer-local whenever set."
   (declare (indent defun))
   `(progn
     (defvar ,var ,default-value
-      ,(format "%s\n\(buffer local\)" documentation))
+      ,(format "%s\n(buffer local)" documentation))
     (make-variable-buffer-local ',var)))
 
 ;; (viper-loop COUNT BODY) Execute BODY COUNT times.
@@ -778,7 +778,7 @@ Related buffers can be cycled through via :R and :P commands."
 	  "^\\\\[sb][a-z]*{.*}\\s-*$\\|"	    		; latex
 	  "^@node\\|@table\\|^@m?enu\\|^@itemize\\|^@if\\|"	; texinfo
 	  "^.+:-")			                        ; prolog
-  "Regexps for Headings.  Used by \[\[ and \]\].")
+  "Regexps for Headings.  Used by [[ and ]].")
 
 (defvar viper-heading-end
   (concat "^}\\|"						; C/C++
@@ -786,7 +786,7 @@ Related buffers can be cycled through via :R and :P commands."
 	  "^@end \\|"						; texinfo
 	  ")\n\n[ \t\n]*\\|"					; lisp
 	  "\\.\\s-*$")						; prolog
-      "*Regexps to end Headings/Sections.  Used by \[\].")
+      "*Regexps to end Headings/Sections.  Used by [].")
 
 
 ;; These two vars control the interaction of jumps performed by ' and `.

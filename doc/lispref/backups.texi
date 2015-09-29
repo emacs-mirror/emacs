@@ -398,7 +398,7 @@ those versions by excluding them from the @sc{cdr} of the value.
 @xref{Numbered Backups}.
 
 In this example, the value says that @file{~rms/foo.~5~} is the name
-to use for the new backup file, and @file{~rms/foo.~3~} is an ``excess''
+to use for the new backup file, and @file{~rms/foo.~3~} is an excess
 version that the caller should consider deleting now.
 
 @smallexample

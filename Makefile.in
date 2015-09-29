@@ -593,8 +593,8 @@ install-arch-indep: lisp install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
 	      rm -f $${subdir}/.gitignore ; \
 	      rm -f $${subdir}/.arch-inventory ; \
 	      rm -f $${subdir}/.DS_Store ; \
-	      rm -f $${subdir}/\#* ; \
-	      rm -f $${subdir}/.\#* ; \
+	      rm -f $${subdir}/#* ; \
+	      rm -f $${subdir}/.#* ; \
 	      rm -f $${subdir}/*~ ; \
 	      rm -f $${subdir}/*.orig ; \
 	      rm -f $${subdir}/ChangeLog* ; \

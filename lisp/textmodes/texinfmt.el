@@ -1043,7 +1043,7 @@ Leave point after argument."
            (setq texinfo-command-end (point)))
           (t
            (error
-            "Invalid `texinfo-optional-braces-discard' format \(need braces?\)")))
+            "Invalid `texinfo-optional-braces-discard' format (need braces?)")))
     (delete-region texinfo-command-start texinfo-command-end)))
 
 (defun texinfo-format-parse-line-args ()
@@ -2336,7 +2336,7 @@ Use only the FILENAME arg; for Info, ignore the other arguments to @image."
 ;; Write a `@definfoenclose' command on a line and follow it with three
 ;; arguments separated by commas (commas are used as separators in an
 ;; `@node' line in the same way).  The first argument to
-;; `@definfoenclose' is the @-command name \(without the `@'\); the
+;; `@definfoenclose' is the @-command name (without the `@'); the
 ;; second argument is the Info start delimiter string; and the third
 ;; argument is the Info end delimiter string.  The latter two arguments
 ;; enclose the highlighted text in the Info file.  A delimiter string
@@ -2491,8 +2491,8 @@ surrounded by in angle brackets."
 Enclose the verbatim text, including the delimiters, in braces.  Print
 text exactly as written (but not the delimiters) in a fixed-width.
 
-For example, @verb\{|@|\} results in @ and
-@verb\{+@\\='e?\\=`!\\=`+} results in @\\='e?\\=`!\\=`."
+For example, @verb{|@|} results in @ and
+@verb{+@\\='e?\\=`!\\=`+} results in @\\='e?\\=`!\\=`."
 
   (let ((delimiter (buffer-substring-no-properties
 		    (1+ texinfo-command-end) (+ 2 texinfo-command-end))))

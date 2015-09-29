@@ -1,4 +1,4 @@
-;;; po.el --- basic support of PO translation files -*- coding: utf-8; -*-
+;;; po.el --- basic support of PO translation files
 
 ;; Copyright (C) 1995-1998, 2000-2015 Free Software Foundation, Inc.
 

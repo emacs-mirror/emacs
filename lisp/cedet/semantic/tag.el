@@ -1212,7 +1212,7 @@ Returns a list of cooked tags.
   The parser returns raw tags with positional data START END at the
 end of the tag data structure (a list for now).  We convert it from
 that to a cooked state that uses an overlay proxy, that is, a vector
-\[START END].
+[START END].
 
   The raw tag is changed with side effects and maybe expanded in
 several derived tags when the variable `semantic-tag-expand-function'

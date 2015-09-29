@@ -86,7 +86,7 @@
   '(("chinese-4corner" "$(0(?-F(B")
     ("chinese-array30" "$(0#R#O(B")
     ("chinese-ccdospy" "$AKuF4(B"
-     "Pinyin base input method for Chinese charset GB2312 \(`chinese-gb2312').
+     "Pinyin base input method for Chinese charset GB2312 (`chinese-gb2312').
 
 Pinyin is the standard Roman transliteration method for Chinese.
 For the detail of Pinyin system, see the documentation of the input

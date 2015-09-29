@@ -1,3 +1,4 @@
+@c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2015 Free Software
 @c Foundation, Inc.
@@ -47,18 +48,18 @@ the text is displayed.
 displays only a portion of it.  @dfn{Scrolling} commands change which
 portion of the buffer is displayed.
 
-  Scrolling ``forward'' or ``up'' advances the portion of the buffer
+  Scrolling forward or up advances the portion of the buffer
 displayed in the window; equivalently, it moves the buffer text
-upwards relative to the window.  Scrolling ``backward'' or ``down''
+upwards relative to the window.  Scrolling backward or down
 displays an earlier portion of the buffer, and moves the text
 downwards relative to the window.
 
-  In Emacs, scrolling ``up'' or ``down'' refers to the direction that
+  In Emacs, scrolling up or down refers to the direction that
 the text moves in the window, @emph{not} the direction that the window
 moves relative to the text.  This terminology was adopted by Emacs
 before the modern meaning of ``scrolling up'' and ``scrolling down''
 became widespread.  Hence, the strange result that @key{PageDown}
-scrolls ``up'' in the Emacs sense.
+scrolls up in the Emacs sense.
 
   The portion of a buffer displayed in a window always contains point.
 If you move point past the bottom or top of the window, scrolling
@@ -468,7 +469,7 @@ and visits it with View mode enabled.
 @cindex synchronizing windows
 
   @dfn{Follow mode} is a minor mode that makes two windows, both
-showing the same buffer, scroll as a single tall ``virtual window''.
+showing the same buffer, scroll as a single tall virtual window.
 To use Follow mode, go to a frame with just one window, split it into
 two side-by-side windows using @kbd{C-x 3}, and then type @kbd{M-x
 follow-mode}.  From then on, you can edit the buffer in either of the
@@ -637,7 +638,7 @@ This face is used to highlight the current Isearch match
 This face is used to highlight the current Query Replace match
 (@pxref{Replace}).
 @item lazy-highlight
-This face is used to highlight ``lazy matches'' for Isearch and Query
+This face is used to highlight lazy matches for Isearch and Query
 Replace (matches other than the current one).
 @item region
 This face is used for displaying an active region (@pxref{Mark}).
@@ -654,7 +655,7 @@ Whitespace}).
 The face for displaying control characters and escape sequences
 (@pxref{Text Display}).
 @item nobreak-space
-The face for displaying ``no-break'' space characters (@pxref{Text
+The face for displaying no-break space characters (@pxref{Text
 Display}).
 @end table
 
@@ -667,7 +668,7 @@ frame:
 @cindex faces for mode lines
 This face is used for the mode line of the currently selected window,
 and for menu bars when toolkit menus are not used.  By default, it's
-drawn with shadows for a ``raised'' effect on graphical displays, and
+drawn with shadows for a raised effect on graphical displays, and
 drawn as the inverse of the default face on non-windowed terminals.
 @item mode-line-inactive
 @cindex mode-line-inactive face
@@ -854,7 +855,6 @@ and the default level otherwise, use the value
 '((c-mode . 1) (c++-mode . 1)))
 @end example
 
-@vindex font-lock-beginning-of-syntax-function
 @cindex incorrect fontification
 @cindex parenthesis in column zero and fontification
 @cindex brace in column zero and fontification
@@ -866,19 +866,6 @@ always defines the beginning of a defun, and is thus always outside
 any string or comment.  Therefore, you should avoid placing an
 open-parenthesis or open-brace in the leftmost column, if it is inside
 a string or comment.  @xref{Left Margin Paren}, for details.
-
-@cindex slow display during scrolling
-  The variable @code{font-lock-beginning-of-syntax-function}, which is
-always buffer-local, specifies how Font Lock mode can find a position
-guaranteed to be outside any comment or string.  In modes which use
-the leftmost column parenthesis convention, the default value of the
-variable is @code{beginning-of-defun}---that tells Font Lock mode to
-use the convention.  If you set this variable to @code{nil}, Font Lock
-no longer relies on the convention.  This avoids incorrect results,
-but the price is that, in some cases, fontification for a changed text
-must rescan buffer text from the beginning of the buffer.  This can
-considerably slow down redisplay while scrolling, particularly if you
-are close to the end of a large buffer.
 
 @findex font-lock-add-keywords
   Font Lock highlighting patterns already exist for most modes, but
@@ -1073,16 +1060,16 @@ variable @code{fringe-mode}.
   The most common use of the fringes is to indicate a continuation
 line (@pxref{Continuation Lines}).  When one line of text is split
 into multiple screen lines, the left fringe shows a curving arrow for
-each screen line except the first, indicating that ``this is not the
-real beginning''.  The right fringe shows a curving arrow for each
-screen line except the last, indicating that ``this is not the real
-end''.  If the line's direction is right-to-left (@pxref{Bidirectional
+each screen line except the first, indicating that this is not the
+real beginning.  The right fringe shows a curving arrow for each
+screen line except the last, indicating that this is not the real
+end.  If the line's direction is right-to-left (@pxref{Bidirectional
 Editing}), the meanings of the curving arrows in the fringes are
 swapped.
 
   The fringes indicate line truncation (@pxref{Line Truncation}) with
-short horizontal arrows meaning ``there's more text on this line which
-is scrolled horizontally out of view''.  Clicking the mouse on one of
+short horizontal arrows meaning there's more text on this line which
+is scrolled horizontally out of view.  Clicking the mouse on one of
 the arrows scrolls the display horizontally in the direction of the
 arrow.
 
@@ -1145,8 +1132,8 @@ setting the buffer-local variable @code{show-trailing-whitespace} to
 @code{trailing-whitespace}.
 
   This feature does not apply when point is at the end of the line
-containing the whitespace.  Strictly speaking, that is ``trailing
-whitespace'' nonetheless, but displaying it specially in that case
+containing the whitespace.  Strictly speaking, that is trailing
+whitespace nonetheless, but displaying it specially in that case
 looks ugly while you are typing in new text.  In this special case,
 the location of point is enough to show you that the spaces are
 present.
@@ -1178,7 +1165,7 @@ indicate-empty-lines t)}.
 @findex whitespace-mode
 @vindex whitespace-style
   Whitespace mode is a buffer-local minor mode that lets you
-``visualize'' many kinds of whitespace in the buffer, by either
+visualize many kinds of whitespace in the buffer, by either
 drawing the whitespace characters with a special face or displaying
 them as special glyphs.  To toggle this mode, type @kbd{M-x
 whitespace-mode}.  The kinds of whitespace visualized are determined
@@ -1358,7 +1345,7 @@ the mail indicator prominent.  Use @code{display-time-mail-file} to
 specify the mail file to check, or set
 @code{display-time-mail-directory} to specify the directory to check
 for incoming mail (any nonempty regular file in the directory is
-considered as ``newly arrived mail'').
+considered to be newly arrived mail).
 
 @cindex battery status (on mode line)
 @findex display-battery-mode
@@ -1496,8 +1483,8 @@ displayed are shown as their @acronym{ASCII} approximations @samp{`},
 @vindex visible-cursor
   On a text terminal, the cursor's appearance is controlled by the
 terminal, largely out of the control of Emacs.  Some terminals offer
-two different cursors: a ``visible'' static cursor, and a ``very
-visible'' blinking cursor.  By default, Emacs uses the very visible
+two different cursors: a visible static cursor, and a very
+visible blinking cursor.  By default, Emacs uses the very visible
 cursor, and switches to it when you start or resume Emacs.  If the
 variable @code{visible-cursor} is @code{nil} when Emacs starts or
 resumes, it uses the normal cursor.
@@ -1537,7 +1524,7 @@ altogether, change the variable @code{blink-cursor-mode} to @code{nil}
 
 @noindent
 to your init file.  Alternatively, you can change how the cursor
-looks when it ``blinks off'' by customizing the list variable
+looks when it blinks off by customizing the list variable
 @code{blink-cursor-alist}.  Each element in the list should have the
 form @code{(@var{on-type} . @var{off-type})}; this means that if the
 cursor is displayed as @var{on-type} when it blinks on (where
@@ -1546,7 +1533,7 @@ displayed as @var{off-type} when it blinks off.
 
 @vindex x-stretch-cursor
 @cindex wide block cursor
-  Some characters, such as tab characters, are ``extra wide''.  When
+  Some characters, such as tab characters, are extra wide.  When
 the cursor is positioned over such a character, it is normally drawn
 with the default character width.  You can make the cursor stretch to
 cover wide characters, by changing the variable
@@ -1671,14 +1658,14 @@ there is something to echo.  @xref{Echo Area}.
   On graphical displays, Emacs displays the mouse pointer as an
 hourglass if Emacs is busy.  To disable this feature, set the variable
 @code{display-hourglass} to @code{nil}.  The variable
-@code{hourglass-delay} determines the number of seconds of ``busy
-time'' before the hourglass is shown; the default is 1.
+@code{hourglass-delay} determines the number of seconds of busy
+time before the hourglass is shown; the default is 1.
 
 @vindex make-pointer-invisible
   If the mouse pointer lies inside an Emacs frame, Emacs makes it
 invisible each time you type a character to insert text, to prevent it
 from obscuring the text.  (To be precise, the hiding occurs when you
-type a ``self-inserting'' character.  @xref{Inserting Text}.)  Moving
+type a self-inserting character.  @xref{Inserting Text}.)  Moving
 the mouse pointer makes it visible again.  To disable this feature,
 set the variable @code{make-pointer-invisible} to @code{nil}.
 

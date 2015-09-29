@@ -68,9 +68,9 @@ This is slower, but filters out some innocuous shadowing."
   "Return a list of Emacs Lisp files that create shadows.
 This function does the work for `list-load-path-shadows'.
 
-We traverse PATH looking for shadows, and return a \(possibly empty\)
+We traverse PATH looking for shadows, and return a \(possibly empty)
 even-length list of files.  A file in this list at position 2i shadows
-the file in position 2i+1.  Emacs Lisp file suffixes \(.el and .elc\)
+the file in position 2i+1.  Emacs Lisp file suffixes \(.el and .elc)
 are stripped from the file names in the list.
 
 See the documentation for `list-load-path-shadows' for further information."
@@ -286,7 +286,3 @@ version unless you know what you are doing.\n")
 (provide 'shadow)
 
 ;;; shadow.el ends here
-
-;; Local Variables:
-;; coding: utf-8
-;; End:

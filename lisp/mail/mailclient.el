@@ -95,7 +95,7 @@ supported.  Defaults to non-nil on Windows, nil otherwise."
 		       recp)))
 	       (setq first nil))
 	     (split-string
-	      (mail-strip-quoted-names field) "\, *"))
+	      (mail-strip-quoted-names field) ", *"))
 	    result)))))
 
 (declare-function clipboard-kill-ring-save "menu-bar.el"

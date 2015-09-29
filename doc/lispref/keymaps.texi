@@ -634,7 +634,7 @@ the current buffer's local keymap, and (iv) the global keymap, in that
 order.  Emacs searches for each input key sequence in all these
 keymaps.
 
-  Of these ``usual'' keymaps, the highest-precedence one is specified
+  Of these usual keymaps, the highest-precedence one is specified
 by the @code{keymap} text or overlay property at point, if any.  (For
 a mouse input event, Emacs uses the event position instead of point;
 @iftex
@@ -669,7 +669,7 @@ keymaps in other buffers with the same major mode.
 defined regardless of the current buffer, such as @kbd{C-f}.  It is
 always active, and is bound to the variable @code{global-map}.
 
-  Apart from the above ``usual'' keymaps, Emacs provides special ways
+  Apart from the above usual keymaps, Emacs provides special ways
 for programs to make other keymaps active.  Firstly, the variable
 @code{overriding-local-map} specifies a keymap that replaces the usual
 active keymaps, except for the global keymap.  Secondly, the
@@ -944,7 +944,7 @@ This variable holds a list of keymap alists to use for emulation
 modes.  It is intended for modes or packages using multiple minor-mode
 keymaps.  Each element is a keymap alist which has the same format and
 meaning as @code{minor-mode-map-alist}, or a symbol with a variable
-binding which is such an alist.  The ``active'' keymaps in each alist
+binding which is such an alist.  The active keymaps in each alist
 are used before @code{minor-mode-map-alist} and
 @code{minor-mode-overriding-map-alist}.
 @end defvar
@@ -983,7 +983,7 @@ not part of key lookup.
 the rest of the event is ignored.  In fact, a key sequence used for key
 lookup may designate a mouse event with just its types (a symbol)
 instead of the entire event (a list).  @xref{Input Events}.  Such
-a ``key sequence'' is insufficient for @code{command-execute} to run,
+a key sequence is insufficient for @code{command-execute} to run,
 but it is sufficient for looking up or rebinding a key.
 
   When the key sequence consists of multiple events, key lookup
@@ -1069,7 +1069,7 @@ thing that is done automatically for an undefined key: it rings the bell
 
 @cindex preventing prefix key
 @code{undefined} is used in local keymaps to override a global key
-binding and make the key ``undefined'' locally.  A local binding of
+binding and make the key undefined locally.  A local binding of
 @code{nil} would fail to do this because it would not override the
 global binding.
 
@@ -1108,7 +1108,7 @@ the other functions described in this chapter that look up keys use
 @end example
 
 If the string or vector @var{key} is not a valid key sequence according
-to the prefix keys specified in @var{keymap}, it must be ``too long''
+to the prefix keys specified in @var{keymap}, it must be too long
 and have extra events at the end that do not fit into a single key
 sequence.  Then the value is a number, the number of events at the front
 of @var{key} that compose a complete key.
@@ -1546,7 +1546,7 @@ and @code{key-translation-map} (in order of priority).
 are used differently: they specify translations to make while reading
 key sequences, rather than bindings for complete key sequences.  As
 each key sequence is read, it is checked against each translation
-keymap.  If one of the translation keymaps ``binds'' @var{k} to a
+keymap.  If one of the translation keymaps binds @var{k} to a
 vector @var{v}, then whenever @var{k} appears as a sub-sequence
 @emph{anywhere} in a key sequence, that sub-sequence is replaced with
 the events in @var{v}.
@@ -1554,7 +1554,7 @@ the events in @var{v}.
   For example, VT100 terminals send @kbd{@key{ESC} O P} when the
 keypad key @key{PF1} is pressed.  On such terminals, Emacs must
 translate that sequence of events into a single event @code{pf1}.
-This is done by ``binding'' @kbd{@key{ESC} O P} to @code{[pf1]} in
+This is done by binding @kbd{@key{ESC} O P} to @code{[pf1]} in
 @code{input-decode-map}.  Thus, when you type @kbd{C-c @key{PF1}} on
 the terminal, the terminal emits the character sequence @kbd{C-c
 @key{ESC} O P}, and @code{read-key-sequence} translates this back into
@@ -1615,7 +1615,7 @@ to @code{self-insert-command}.
 @cindex key translation function
 You can use @code{input-decode-map}, @code{local-function-key-map},
 and @code{key-translation-map} for more than simple aliases, by using
-a function, instead of a key sequence, as the ``translation'' of a
+a function, instead of a key sequence, as the translation of a
 key.  Then this function is called to compute the translation of that
 key.
 
@@ -2071,7 +2071,7 @@ the GTK+ toolkit).
 @end example
 
 @noindent
-@var{help} specifies a ``help-echo'' string to display while the mouse
+@var{help} specifies a help-echo string to display while the mouse
 is on that item in the same way as @code{help-echo} text properties
 (@pxref{Help display}).
 
@@ -2088,7 +2088,7 @@ the menu but cannot be selected.
 controls whether the menu item is enabled.  Every time the keymap is
 used to display a menu, Emacs evaluates the expression, and it enables
 the menu item only if the expression's value is non-@code{nil}.  When a
-menu item is disabled, it is displayed in a ``fuzzy'' fashion, and
+menu item is disabled, it is displayed in a fuzzy fashion, and
 cannot be selected.
 
   The menu bar does not recalculate which items are enabled every time you
@@ -2144,7 +2144,7 @@ does not appear, then the menu is displayed as if this item were
 not defined at all.
 
 @item :help @var{help}
-The value of this property, @var{help}, specifies a ``help-echo'' string
+The value of this property, @var{help}, specifies a help-echo string
 to display while the mouse is on that item.  This is displayed in the
 same way as @code{help-echo} text properties (@pxref{Help display}).
 Note that this must be a constant string, unlike the @code{help-echo}
@@ -2156,7 +2156,7 @@ The @sc{car}, @var{type}, says which: it should be @code{:toggle} or
 @code{:radio}.  The @sc{cdr}, @var{selected}, should be a form; the
 result of evaluating it says whether this button is currently selected.
 
-A @dfn{toggle} is a menu item which is labeled as either ``on'' or ``off''
+A @dfn{toggle} is a menu item which is labeled as either on or off
 according to the value of @var{selected}.  The command itself should
 toggle @var{selected}, setting it to @code{t} if it is @code{nil},
 and to @code{nil} if it is @code{t}.  Here is how the menu item
@@ -2174,7 +2174,7 @@ This works because @code{toggle-debug-on-error} is defined as a command
 which toggles the variable @code{debug-on-error}.
 
 @dfn{Radio buttons} are a group of menu items, in which at any time one
-and only one is ``selected''.  There should be a variable whose value
+and only one is selected.  There should be a variable whose value
 says which one is selected at any time.  The @var{selected} form for
 each radio button in the group should check whether the variable has the
 right value for selecting that button.  Clicking on the button should
@@ -2303,7 +2303,7 @@ displays a similar kind of separator that is supported.
 @node Alias Menu Items
 @subsubsection Alias Menu Items
 
-  Sometimes it is useful to make menu items that use the ``same''
+  Sometimes it is useful to make menu items that use the same
 command but with different enable conditions.  The best way to do this
 in Emacs now is with extended menu items; before that feature existed,
 it could be done by defining alias commands and using them in menu
@@ -2318,7 +2318,7 @@ items.  Here's an example that makes two aliases for
 @end example
 
 When using aliases in menus, often it is useful to display the
-equivalent key bindings for the ``real'' command name, not the aliases
+equivalent key bindings for the real command name, not the aliases
 (which typically don't have any key bindings except for the menu
 itself).  To request this, give the alias symbol a non-@code{nil}
 @code{menu-alias} property.  Thus,
@@ -2427,19 +2427,19 @@ Next we define the menu items:
 @end smallexample
 
 @noindent
-Note the symbols which the bindings are ``made for''; these appear
+Note the symbols which the bindings are made for; these appear
 inside square brackets, in the key sequence being defined.  In some
 cases, this symbol is the same as the command name; sometimes it is
-different.  These symbols are treated as ``function keys'', but they are
+different.  These symbols are treated as function keys, but they are
 not real function keys on the keyboard.  They do not affect the
-functioning of the menu itself, but they are ``echoed'' in the echo area
+functioning of the menu itself, but they are echoed in the echo area
 when the user selects from the menu, and they appear in the output of
 @code{where-is} and @code{apropos}.
 
   The menu in this example is intended for use with the mouse.  If a
 menu is intended for use with the keyboard, that is, if it is bound to
 a key sequence ending with a keyboard event, then the menu items
-should be bound to characters or ``real'' function keys, that can be
+should be bound to characters or real function keys, that can be
 typed with the keyboard.
 
   The binding whose definition is @code{("--")} is a separator line.
@@ -2475,15 +2475,15 @@ can do it this way:
 
   Emacs usually shows a @dfn{menu bar} at the top of each frame.
 @xref{Menu Bars,,,emacs, The GNU Emacs Manual}.  Menu bar items are
-subcommands of the fake ``function key'' @code{menu-bar}, as defined
+subcommands of the fake function key @code{menu-bar}, as defined
 in the active keymaps.
 
-  To add an item to the menu bar, invent a fake ``function key'' of your
+  To add an item to the menu bar, invent a fake function key of your
 own (let's call it @var{key}), and make a binding for the key sequence
 @code{[menu-bar @var{key}]}.  Most often, the binding is a menu keymap,
 so that pressing a button on the menu bar item leads to another menu.
 
-  When more than one active keymap defines the same ``function key''
+  When more than one active keymap defines the same function key
 for the menu bar, the item appears just once.  If the user clicks on
 that menu bar item, it brings up a single, combined menu containing
 all the subcommands of that item---the global subcommands, the local
@@ -2574,7 +2574,7 @@ If the value is @code{grow-only}, the tool bar expands automatically,
 but does not contract automatically.
 
   The tool bar contents are controlled by a menu keymap attached to a
-fake ``function key'' called @code{tool-bar} (much like the way the menu
+fake function key called @code{tool-bar} (much like the way the menu
 bar is controlled).  So you define a tool bar item using
 @code{define-key}, like this:
 
@@ -2583,7 +2583,7 @@ bar is controlled).  So you define a tool bar item using
 @end example
 
 @noindent
-where @var{key} is a fake ``function key'' to distinguish this item from
+where @var{key} is a fake function key to distinguish this item from
 other items, and @var{item} is a menu item key binding (@pxref{Extended
 Menu Items}), which says how to display this item and how it behaves.
 
@@ -2593,7 +2593,7 @@ tool bar bindings and have their normal meanings.  The @var{real-binding}
 in the item must be a command, not a keymap; in other words, it does not
 work to define a tool bar icon as a prefix key.
 
-  The @code{:help} property specifies a ``help-echo'' string to display
+  The @code{:help} property specifies a help-echo string to display
 while the mouse is on that item.  This is displayed in the same way as
 @code{help-echo} text properties (@pxref{Help display}).
 

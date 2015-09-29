@@ -1,4 +1,4 @@
-;;; pcase.el --- ML-style pattern-matching macro for Elisp -*- lexical-binding: t; coding: utf-8 -*-
+;;; pcase.el --- ML-style pattern-matching macro for Elisp -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2010-2015 Free Software Foundation, Inc.
 

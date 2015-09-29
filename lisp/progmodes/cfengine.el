@@ -1005,12 +1005,12 @@ Intended as the value of `indent-line-function'."
 				   (point))))
       (let ((paragraph-start
 	     ;; Include start of parenthesized block.
-	     "\f\\|[ \t]*$\\|.*\(")
+	     "\f\\|[ \t]*$\\|.*(")
 	    (paragraph-separate
 	     ;; Include action and class lines, start and end of
 	     ;; bracketed blocks and end of parenthesized blocks to
 	     ;; avoid including these in fill.  This isn't ideal.
-	     "[ \t\f]*$\\|.*#\\|.*[\){}]\\|\\s-*[[:alpha:]_().|!]+:")
+	     "[ \t\f]*$\\|.*#\\|.*[){}]\\|\\s-*[[:alpha:]_().|!]+:")
 	    fill-paragraph-function)
 	(fill-paragraph justify))
       t))

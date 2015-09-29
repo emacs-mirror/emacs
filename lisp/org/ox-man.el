@@ -206,8 +206,8 @@ in this list - but it does not hurt if it is present."
 It is used during export of src blocks by the listings and
 man packages.  For example,
 
-  \(setq org-man-custom-lang-environments
-     '\(\(python \"pythoncode\"\)\)\)
+  (setq org-man-custom-lang-environments
+     '((python \"pythoncode\")))
 
 would have the effect that if org encounters begin_src python
 during man export."
@@ -1219,8 +1219,8 @@ Return PDF file name or an error if it couldn't be produced."
 	;; Check for process failure.  Provide collected errors if
 	;; possible.
 	(if (not (file-exists-p pdffile))
-	    (error (concat (format "PDF file %s wasn't produced" pdffile)
-			   (when errors (concat ": " errors))))
+	    (error "PDF file %s wasn't produced%s" pdffile
+		   (if errors (concat ": " errors) ""))
 	  ;; Else remove log files, when specified, and signal end of
 	  ;; process to user, along with any error encountered.
 	  (when org-man-remove-logfiles

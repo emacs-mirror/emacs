@@ -126,7 +126,7 @@ An example of this is \"Class.prototype = { method1: ...}\".")
 (defconst js--prototype-objextend-class-decl-re-2
   (concat "^\\s-*\\(?:var\\s-+\\)?"
           "\\(" js--dotted-name-re "\\)"
-          "\\s-*=\\s-*Object\\.extend\\s-*\("))
+          "\\s-*=\\s-*Object\\.extend\\s-*("))
 
 ;; var NewClass = Class.create({
 (defconst js--prototype-class-decl-re
@@ -639,7 +639,7 @@ enabled frameworks."
          (js--maybe-join
           "\\(?:var[ \t]+\\)?[a-zA-Z_$0-9.]+[ \t]*=[ \t]*\\(?:"
           "\\|"
-          "\\)[ \t]*\("
+          "\\)[ \t]*("
 
           (when (memq 'prototype js-enabled-frameworks)
                     "Class\\.create")
@@ -651,10 +651,10 @@ enabled frameworks."
             "[a-zA-Z_$0-9]+\\.extend\\(?:Final\\)?"))
 
          (when (memq 'dojo js-enabled-frameworks)
-           "dojo\\.declare[ \t]*\(")
+           "dojo\\.declare[ \t]*(")
 
          (when (memq 'mochikit js-enabled-frameworks)
-           "MochiKit\\.Base\\.update[ \t]*\(")
+           "MochiKit\\.Base\\.update[ \t]*(")
 
          ;; mumble.prototypeTHING
          (js--maybe-join
@@ -662,7 +662,7 @@ enabled frameworks."
 
           (when (memq 'javascript js-enabled-frameworks)
             '( ;; foo.prototype.bar = function(
-              "\\.[a-zA-Z_$0-9]+[ \t]*=[ \t]*function[ \t]*\("
+              "\\.[a-zA-Z_$0-9]+[ \t]*=[ \t]*function[ \t]*("
 
               ;; mumble.prototype = {
               "[ \t]*=[ \t]*{")))))
@@ -1370,17 +1370,6 @@ LIMIT defaults to point."
              (looking-at "\"\\s-*,\\s-*\\[")
              (eq (match-end 0) (1+ list-begin)))))))
 
-(defun js--syntax-begin-function ()
-  (when (< js--cache-end (point))
-    (goto-char (max (point-min) js--cache-end)))
-
-  (let ((pitem))
-    (while (and (setq pitem (car (js--backward-pstate)))
-                (not (eq 0 (js--pitem-paren-depth pitem)))))
-
-    (when pitem
-      (goto-char (js--pitem-h-begin pitem )))))
-
 ;;; Font Lock
 (defun js--make-framework-matcher (framework &rest regexps)
   "Helper function for building `js--font-lock-keywords'.
@@ -1734,6 +1723,12 @@ This performs fontification according to `js--class-styles'."
                               'syntax-table (string-to-syntax "\"/"))
            (js-syntax-propertize-regexp end))))))
    (point) end))
+
+(defconst js--prettify-symbols-alist
+  '(("=>" . ?⇒)
+    (">=" . ?≥)
+    ("<=" . ?≤))
+  "Alist of symbol prettifications for JavaScript.")
 
 ;;; Indentation
 
@@ -3506,6 +3501,7 @@ If one hasn't been set, or if it's stale, prompt for a new one."
   (setq-local open-paren-in-column-0-is-defun-start nil)
   (setq-local font-lock-defaults (list js--font-lock-keywords))
   (setq-local syntax-propertize-function #'js-syntax-propertize)
+  (setq-local prettify-symbols-alist js--prettify-symbols-alist)
 
   (setq-local parse-sexp-ignore-comments t)
   (setq-local parse-sexp-lookup-properties t)
@@ -3549,8 +3545,6 @@ If one hasn't been set, or if it's stale, prompt for a new one."
     (make-local-variable 'adaptive-fill-mode)
     (make-local-variable 'adaptive-fill-regexp)
     (c-setup-paragraph-variables))
-
-  (setq-local syntax-begin-function #'js--syntax-begin-function)
 
   ;; Important to fontify the whole buffer syntactically! If we don't,
   ;; then we might have regular expression literals that aren't marked

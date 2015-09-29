@@ -43,7 +43,7 @@ Ordinarily, only the selected window highlights its region; however,
 if the variable @code{highlight-nonselected-windows} is
 non-@code{nil}, each window highlights its own region.
 
-  There is another kind of region: the ``rectangular region''.
+  There is another kind of region: the rectangular region.
 @xref{Rectangles}.
 
 @menu
@@ -105,7 +105,7 @@ region also automatically deactivate the mark, like @kbd{C-x C-u} in
 the above example.
 
   Instead of setting the mark in order to operate on a region, you can
-also use it to ``remember'' a position in the buffer (by typing
+also use it to remember a position in the buffer (by typing
 @kbd{C-@key{SPC} C-@key{SPC}}), and later jump back there (by typing
 @kbd{C-u C-@key{SPC}}).  @xref{Mark Ring}, for details.
 
@@ -275,7 +275,7 @@ active.  If you change the value to @code{kill}, these commands
 behavior.  Such commands usually have the word @code{region} in their
 names, like @kbd{C-w} (@code{kill-region}) and @code{C-x C-u}
 (@code{upcase-region}).  If the mark is inactive, they operate on the
-``inactive region''---that is, on the text between point and the
+@dfn{inactive region}---that is, on the text between point and the
 position at which the mark was last set (@pxref{Mark Ring}).  To
 disable this behavior, change the variable
 @code{mark-even-if-inactive} to @code{nil}.  Then these commands will

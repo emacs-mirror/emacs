@@ -412,7 +412,6 @@ the old behavior -- *shell* buffer displays in current window -- use
 (add-to-list 'display-buffer-alist
      '("^\\*shell\\*$" . (display-buffer-same-window))).
 
-
 ** EIEIO
 +++
 *** The `:protection' slot option is not obeyed any more.
@@ -460,6 +459,11 @@ typing RET.
 +++
 *** If `quick-calc' is called with a prefix argument, insert the
 result of the calculation into the current buffer.
+
++++
+** In Edebug, you can now set the initial mode with C-x C-a C-m.  With
+this you can tell Edebug not to stop at the start of the first
+instrumented function.
 
 ** ElDoc
 *** New minor mode `global-eldoc-mode'
@@ -657,10 +661,16 @@ plist will contain a :peer element that has the output of
 
 ** Tramp
 
++++
 *** New connection method "nc", which allows to access dumb busyboxes.
 
++++
 *** Method-specific parameters can be overwritten now with variable
 `tramp-connection-properties'.
+
+---
+*** Handler for `file-notify-valid-p' for remote machines that support
+filesystem notifications.
 
 ** SQL mode
 
@@ -822,8 +832,14 @@ make the new option `eshell-destroy-buffer-when-process-dies' non-nil.
 ** tar-mode: new `tar-new-entry' command, allowing for new members to
 be added to the archive.
 
+---
 ** Autorevert: dired buffers are also auto-reverted via file
 notifications, if Emacs is compiled with file notification support.
+
++++
+** File Notifications: the new function `file-notify-valid-p' checks,
+whether a file notification descriptor still corresponds to an
+activate watch.
 
 ** Obsolete packages
 
@@ -855,6 +871,10 @@ other languages), so `auto-tildify-mode' makes it easier to create
 a typographically-correct documents.
 
 * Incompatible Lisp Changes in Emacs 25.1
+
+** `syntax-begin-function' is declared obsolete.
+Removed font-lock-beginning-of-syntax-function and the SYNTAX-BEGIN
+slot in font-lock-defaults.
 
 +++
 ** `package-initialize' now sets `package-enable-at-startup' to nil if

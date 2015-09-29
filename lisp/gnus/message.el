@@ -367,7 +367,7 @@ few false positives here."
 
 (defcustom message-archive-header "X-No-Archive: Yes\n"
   "Header to insert when you don't want your article to be archived.
-Archives \(such as groups.google.com\) respect this header."
+Archives \(such as groups.google.com) respect this header."
   :version "22.1"
   :type 'string
   :link '(custom-manual "(message)Header Commands")
@@ -1200,7 +1200,7 @@ If stringp, use this; if non-nil, use no host name (user name only)."
 (defvar message-reply-headers nil
   "The headers of the current replied article.
 It is a vector of the following headers:
-\[number subject from date id references chars lines xref extra].")
+[number subject from date id references chars lines xref extra].")
 (defvar message-newsreader nil)
 (defvar message-mailer nil)
 (defvar message-sent-message-via nil)
@@ -1303,7 +1303,7 @@ actually occur."
   "Alist of ways to send outgoing messages.
 Each element has the form
 
-  \(TYPE PREDICATE FUNCTION)
+  (TYPE PREDICATE FUNCTION)
 
 where TYPE is a symbol that names the method; PREDICATE is a function
 called without any parameters to determine whether the message is

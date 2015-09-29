@@ -134,7 +134,7 @@ abbrev in an abbrev table.
 
   When a major mode defines a system abbrev, it should call
 @code{define-abbrev} and specify @code{t} for the @code{:system}
-property.  Be aware that any saved non-``system'' abbrevs are restored
+property.  Be aware that any saved non-system abbrevs are restored
 at startup, i.e., before some major modes are loaded.  Therefore, major
 modes should not assume that their abbrev tables are empty when they
 are first loaded.
@@ -145,13 +145,13 @@ This function defines an abbrev named @var{name}, in
 with properties @var{props} (@pxref{Abbrev Properties}).  The return
 value is @var{name}.  The @code{:system} property in @var{props} is
 treated specially here: if it has the value @code{force}, then it will
-overwrite an existing definition even for a non-``system'' abbrev of
+overwrite an existing definition even for a non-system abbrev of
 the same name.
 
 @var{name} should be a string.  The argument @var{expansion} is
 normally the desired expansion (a string), or @code{nil} to undefine
 the abbrev.  If it is anything but a string or @code{nil}, then the
-abbreviation ``expands'' solely by running @var{hook}.
+abbreviation expands solely by running @var{hook}.
 
 The argument @var{hook} is a function or @code{nil}.  If @var{hook} is
 non-@code{nil}, then it is called with no arguments after the abbrev is

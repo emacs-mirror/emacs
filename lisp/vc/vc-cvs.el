@@ -107,7 +107,7 @@ switches."
   :version "25.1"
   :group 'vc-cvs)
 
-(defcustom vc-cvs-header '("\$Id\$")
+(defcustom vc-cvs-header '("$Id\ $")
   "Header keywords to be inserted by `vc-insert-headers'."
   :version "24.1"     ; no longer consult the obsolete vc-header-alist
   :type '(repeat string)
@@ -332,38 +332,20 @@ its parents."
                   (directory-file-name dir))))
     (eq dir t)))
 
-;; vc-cvs-checkin used to take a 'rev' second argument that allowed
-;; checking in onto a specified branch tip rather than the current
-;; default branch, but nothing in the entire rest of VC exercised
-;; this code.  Removing it simplifies the backend interface for all
-;; modes.
-;;
-;; Here's the setup code preserved in amber, in case the logic needs
-;; to be broken out into a method someday; (if rev (concat "-r" rev))
-;; used to be part of the switches passed to vc-cvs-command.
-;;
-;;  (unless (or (not rev) (vc-cvs-valid-revision-number-p rev))
-;;    (if (not (vc-cvs-valid-symbolic-tag-name-p rev))
-;;	(error "%s is not a valid symbolic tag name" rev)
-;;      ;; If the input revision is a valid symbolic tag name, we create it
-;;      ;; as a branch, commit and switch to it.
-;;      (apply 'vc-cvs-command nil 0 files "tag" "-b" (list rev))
-;;      (apply 'vc-cvs-command nil 0 files "update" "-r" (list rev))
-;;      (mapc (lambda (file) (vc-file-setprop file 'vc-cvs-sticky-tag rev))
-;;	    files)))
-;;
-;; The following postamble cleaned up after the branch change:
-;;
-;;    ;; if this was an explicit check-in (does not include creation of
-;;    ;; a branch), remove the sticky tag.
-;;    (if (and rev (not (vc-cvs-valid-symbolic-tag-name-p rev)))
-;;	(vc-cvs-command nil 0 files "update" "-A"))))
-;;	  files)))
-;;
-(defun vc-cvs-checkin (files comment)
+(defun vc-cvs-checkin (files comment &optional rev)
   "CVS-specific version of `vc-backend-checkin'."
+ (unless (or (not rev) (vc-cvs-valid-revision-number-p rev))
+   (if (not (vc-cvs-valid-symbolic-tag-name-p rev))
+	(error "%s is not a valid symbolic tag name" rev)
+     ;; If the input revision is a valid symbolic tag name, we create it
+     ;; as a branch, commit and switch to it.
+     (apply 'vc-cvs-command nil 0 files "tag" "-b" (list rev))
+     (apply 'vc-cvs-command nil 0 files "update" "-r" (list rev))
+     (mapc (lambda (file) (vc-file-setprop file 'vc-cvs-sticky-tag rev))
+	    files)))
   (let ((status (apply 'vc-cvs-command nil 1 files
-		       "ci" (concat "-m" comment)
+		       "ci" (if rev (concat "-r" rev))
+                       (concat "-m" comment)
 		       (vc-switches 'CVS 'checkin))))
     (set-buffer "*vc*")
     (goto-char (point-min))
@@ -394,7 +376,11 @@ its parents."
     ;; tell it from the permissions of the file (see
     ;; vc-cvs-checkout-model).
     (mapc (lambda (file) (vc-file-setprop file 'vc-checkout-model nil))
-	  files)))
+	  files)
+    ;; if this was an explicit check-in (does not include creation of
+    ;; a branch), remove the sticky tag.
+    (if (and rev (not (vc-cvs-valid-symbolic-tag-name-p rev)))
+	(vc-cvs-command nil 0 files "update" "-A"))))
 
 (defun vc-cvs-find-revision (file rev buffer)
   (apply 'vc-cvs-command
@@ -932,7 +918,7 @@ state."
 	(when (and full
 		   (re-search-forward
 		    "\\(RCS Version\\|RCS Revision\\|Repository revision\\):\
-\[\t ]+\\([0-9.]+\\)"
+[\t ]+\\([0-9.]+\\)"
 		    nil t))
 	    (vc-file-setprop file 'vc-latest-revision (match-string 2)))
 	(vc-file-setprop

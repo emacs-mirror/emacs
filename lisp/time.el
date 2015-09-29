@@ -1,4 +1,4 @@
-;;; time.el --- display time, load and mail indicator in mode line of Emacs -*-coding: utf-8 -*-
+;;; time.el --- display time, load and mail indicator in mode line of Emacs
 
 ;; Copyright (C) 1985-1987, 1993-1994, 1996, 2000-2015 Free Software
 ;; Foundation, Inc.

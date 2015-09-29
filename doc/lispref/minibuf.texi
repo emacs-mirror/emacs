@@ -81,7 +81,7 @@ there is an active minibuffer; such a minibuffer is called a
 incrementing the number at the end of the name.  (The names begin with
 a space so that they won't show up in normal buffer lists.)  Of
 several recursive minibuffers, the innermost (or most recently
-entered) is the active minibuffer.  We usually call this ``the''
+entered) is the active minibuffer.  We usually call this @emph{the}
 minibuffer.  You can permit or forbid recursive minibuffers by setting
 the variable @code{enable-recursive-minibuffers}, or by putting
 properties of that name on command symbols (@xref{Recursive Mini}.)
@@ -263,7 +263,7 @@ The function now has a list of regular expressions that it passes to
 @code{read-from-minibuffer} to obtain the user's input.  The first
 element of the list is the default result in case of empty input.  All
 elements of the list are available to the user as the ``future
-minibuffer history list'' (@pxref{Minibuffer History, future list,,
+minibuffer history'' list (@pxref{Minibuffer History, future list,,
 emacs, The GNU Emacs Manual}).
 
 The optional argument @var{history}, if non-@code{nil}, is a symbol
@@ -895,7 +895,7 @@ pertains to the area after @code{"/usr/"} and before @code{"/doc"}.
 @end defun
 
 If you store a completion alist in a variable, you should mark the
-variable as ``risky'' by giving it a non-@code{nil}
+variable as risky by giving it a non-@code{nil}
 @code{risky-local-variable} property.  @xref{File Local Variables}.
 
 @defvar completion-ignore-case
@@ -1958,7 +1958,7 @@ the call.
 This function asks the user a question, expecting input in the echo
 area.  It returns @code{t} if the user types @kbd{y}, @code{nil} if the
 user types @kbd{n}.  This function also accepts @key{SPC} to mean yes
-and @key{DEL} to mean no.  It accepts @kbd{C-]} to mean ``quit'', like
+and @key{DEL} to mean no.  It accepts @kbd{C-]} to quit, like
 @kbd{C-g}, because the question might look like a minibuffer and for
 that reason the user might try to use @kbd{C-]} to get out.  The answer
 is a single character, with no @key{RET} needed to terminate it.  Upper
@@ -2049,7 +2049,7 @@ Do you really want to remove everything? (yes or no)
 @cindex multiple yes-or-no questions
 
   When you have a series of similar questions to ask, such as ``Do you
-want to save this buffer'' for each buffer in turn, you should use
+want to save this buffer?'' for each buffer in turn, you should use
 @code{map-y-or-n-p} to ask the collection of questions, rather than
 asking each question individually.  This gives the user certain
 convenient facilities such as the ability to answer the whole series at
@@ -2120,7 +2120,7 @@ answer); @var{function} is a function of one argument (an object from
 
 When the user responds with @var{char}, @code{map-y-or-n-p} calls
 @var{function}.  If it returns non-@code{nil}, the object is considered
-``acted upon'', and @code{map-y-or-n-p} advances to the next object in
+acted upon, and @code{map-y-or-n-p} advances to the next object in
 @var{list}.  If it returns @code{nil}, the prompt is repeated for the
 same object.
 

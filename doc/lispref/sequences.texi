@@ -72,6 +72,7 @@ string, bool-vector, or char-table, @code{nil} otherwise.
 @cindex vector length
 @cindex sequence length
 @cindex char-table length
+@anchor{Definition of length}
 This function returns the number of elements in @var{sequence}.  If
 @var{sequence} is a dotted list, a @code{wrong-type-argument} error is
 signaled.  Circular lists may cause an infinite loop.  For a
@@ -113,6 +114,7 @@ since @code{length} only counts the number of characters, but does not
 account for the display width of each character.
 
 @defun elt sequence index
+@anchor{Definition of elt}
 @cindex elements of sequences
 This function returns the element of @var{sequence} indexed by
 @var{index}.  Legitimate values of @var{index} are integers ranging
@@ -342,7 +344,7 @@ order elements according to different criteria.
 The argument @var{predicate} must be a function that accepts two
 arguments.  It is called with two elements of @var{sequence}.  To get an
 increasing order sort, the @var{predicate} should return non-@code{nil} if the
-first element is ``less than'' the second, or @code{nil} if not.
+first element is ``less'' than the second, or @code{nil} if not.
 
 The comparison function @var{predicate} must give reliable results for
 any given pair of arguments, at least within a single call to
@@ -431,6 +433,57 @@ you pass as an argument.  Unless otherwise stated, the result is a
 sequence of the same type as the input.  For those functions that take
 a predicate, this should be a function of one argument.
 
+  The @file{seq.el} library can be extended to work with additional
+types of sequential data-structures.  For that purpose, all functions
+are defined using @code{cl-defgeneric}.
+
+@defun seq-elt sequence index
+  This function the element at the index @var{index} in
+@var{sequence}.  @var{index} can be an integer from zero up to the
+length of @var{sequence} minus one.  For out-of-range values on
+built-in sequence types, @code{seq-elt} behaves like @code{elt}.
+@xref{Definition of elt}.
+
+@example
+@group
+(seq-elt [1 2 3 4] 2)
+@result{} 3
+@end group
+
+  @code{seq-elt} returns settable places using @code{setf}.
+
+@group
+(setq vec [1 2 3 4])
+(setf (seq-elt vec 2) 5)
+vec
+@result{} [1 2 5 4]
+@end group
+@end example
+@end defun
+
+@defun seq-length sequence
+  This function returns the number of elements in @var{sequence}.  For
+built-in sequence types, @code{seq-length} behaves like @code{length}.
+@xref{Definition of length}.
+@end defun
+
+@defun seq-p sequence
+  This function returns non-@code{nil} if @var{sequence} is a sequence
+(a list or array), or any additional type of sequence defined via
+@file{seq.el} generic functions.
+
+@example
+@group
+(seq-p [1 2])
+@result{} t
+@end group
+@group
+(seq-p 2)
+@result{} nil
+@end group
+@end example
+@end defun
+
 @defun seq-drop sequence n
   This function returns all but the first @var{n} (an integer)
 elements of @var{sequence}.  If @var{n} is negative or zero,
@@ -497,6 +550,28 @@ starting from the first one for which @var{predicate} returns @code{nil}.
 @end example
 @end defun
 
+@defun seq-do function sequence
+  This function applies @var{function} to each element of
+@var{sequence} in turn (presumably for side effects) and returns
+@var{sequence}.
+@end defun
+
+@defun seq-map function sequence
+  This function returns the result of applying @var{function} to each
+element of @var{sequence}.  The returned value is a list.
+
+@example
+@group
+(seq-map #'1+ '(2 4 6))
+@result{} (3 5 7)
+@end group
+@group
+(seq-map #'symbol-name [foo bar])
+@result{} ("foo" "bar")
+@end group
+@end example
+@end defun
+
 @defun seq-filter predicate sequence
 @cindex filtering sequences
   This function returns a list of all the elements in @var{sequence}
@@ -558,9 +633,8 @@ calling @var{function}.
 @end defun
 
 @defun seq-some predicate sequence
-  This function returns non-@code{nil} if @var{predicate} returns
-non-@code{nil} for any element of @var{sequence}.  If so, the returned
-value is the value returned by @var{predicate}.
+  This function returns the first non-@code{nil} value returned by
+applying @var{predicate} to each element of @var{sequence} in turn.
 
 @example
 @group
@@ -575,18 +649,21 @@ value is the value returned by @var{predicate}.
 (seq-some #'null ["abc" 1 nil])
 @result{} t
 @end group
+@group
+(seq-some #'1+ [2 4 6])
+@result{} 3
+@end group
 @end example
 @end defun
 
-@defun seq-find predicate sequence &optional sentinel
+@defun seq-find predicate sequence &optional default
   This function returns the first element for which @var{predicate}
 returns non-@code{nil} in @var{sequence}.  If no element matches
-@var{predicate}, @var{sentinel} is returned if non-@code{nil},
-@code{nil} otherwise.
+@var{predicate}, @var{default} is returned.
 
 Note that this function has an ambiguity if the found element is
-@code{nil}, and if no @var{sentinel} is specified, as it cannot be
-known if an element was found or not.
+identical to @var{default}, as it cannot be known if an element was
+found or not.
 
 @example
 @group
@@ -1490,7 +1567,7 @@ deletion, rotation, and modulo-indexed reference and traversal.  An
 efficient ring data structure is implemented by the @code{ring}
 package.  It provides the functions listed in this section.
 
-  Note that several ``rings'' in Emacs, like the kill ring and the
+  Note that several rings in Emacs, like the kill ring and the
 mark ring, are actually implemented as simple lists, @emph{not} using
 the @code{ring} package; thus the following functions won't work on
 them.

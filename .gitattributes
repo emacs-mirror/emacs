@@ -44,3 +44,7 @@ doc/misc/texinfo.tex -whitespace=blank-at-eol
 *.sig binary
 *.tiff binary
 etc/e/eterm-color binary
+
+# Hooks for non-default diff hunk headers; see autogen.sh.
+*.el diff=elisp
+*.texi diff=texinfo

@@ -397,7 +397,7 @@ invoked interactively are excluded from this list."
   "Alist of functions and their call tree.
 Each element looks like
 
-  \(FUNCTION CALLERS CALLS\)
+  (FUNCTION CALLERS CALLS)
 
 where CALLERS is a list of functions that call FUNCTION, and CALLS
 is a list of functions for which calls were generated while compiling
@@ -4529,11 +4529,11 @@ whose definitions have been compiled in this Emacs session, as well as
 all functions called by those functions.
 
 The call graph does not include macros, inline functions, or
-primitives that the byte-code interpreter knows about directly \(eq,
-cons, etc.\).
+primitives that the byte-code interpreter knows about directly
+\(`eq', `cons', etc.).
 
 The call tree also lists those functions which are not known to be called
-\(that is, to which no calls have been compiled\), and which cannot be
+\(that is, to which no calls have been compiled), and which cannot be
 invoked interactively."
   (interactive)
   (message "Generating call tree...")

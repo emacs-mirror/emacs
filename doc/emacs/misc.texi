@@ -331,7 +331,7 @@ Certificate Authorities which issue new certificates for third-party
 services, you may want to keep track of these changes.
 
 @item Diffie-Hellman low prime bits
-When doing the public key exchange, the number of ``prime bits''
+When doing the public key exchange, the number of prime bits
 should be high to ensure that the channel can't be eavesdropped on by
 third parties.  If this number is too low, you will be warned.
 
@@ -1486,8 +1486,8 @@ this buffer just like it does with a terminal in ordinary Term mode.
 most common speed is 9600 bits per second.  You can change the speed
 interactively by clicking on the mode line.
 
-  A serial port can be configured even more by clicking on ``8N1'' in
-the mode line.  By default, a serial port is configured as ``8N1'',
+  A serial port can be configured even more by clicking on @samp{8N1} in
+the mode line.  By default, a serial port is configured as @samp{8N1},
 which means that each byte consists of 8 data bits, No parity check
 bit, and 1 stopbit.
 
@@ -1548,7 +1548,7 @@ variable to @samp{emacsclient +%d %s}.}
 
 @vindex server-name
   You can run multiple Emacs servers on the same machine by giving
-each one a unique ``server name'', using the variable
+each one a unique @dfn{server name}, using the variable
 @code{server-name}.  For example, @kbd{M-x set-variable @key{RET}
 server-name @key{RET} foo @key{RET}} sets the server name to
 @samp{foo}.  The @code{emacsclient} program can specify a server by
@@ -1605,7 +1605,7 @@ still use Emacs to edit the file.
 @kbd{C-x #} (@code{server-edit}) in its buffer.  This saves the file
 and sends a message back to the @command{emacsclient} program, telling
 it to exit.  Programs that use @env{EDITOR} usually wait for the
-``editor''---in this case @command{emacsclient}---to exit before doing
+editor---in this case @command{emacsclient}---to exit before doing
 something else.
 
   You can also call @command{emacsclient} with multiple file name
@@ -1625,7 +1625,7 @@ create it.  However, if you set @code{server-kill-new-buffers} to
 @code{nil}, then a different criterion is used: finishing with a
 server buffer kills it if the file name matches the regular expression
 @code{server-temp-file-regexp}.  This is set up to distinguish certain
-``temporary'' files.
+temporary files.
 
   Each @kbd{C-x #} checks for other pending external requests to edit
 various files, and selects the next such file.  You can switch to a
@@ -1716,8 +1716,8 @@ evaluate, @emph{not} as a list of files to visit.
 @cindex @env{EMACS_SERVER_FILE} environment variable
 Specify a @dfn{server file} for connecting to an Emacs server via TCP.
 
-An Emacs server usually uses an operating system feature called a
-``local socket'' to listen for connections.  Some operating systems,
+An Emacs server usually uses a
+local socket to listen for connections.  Some operating systems,
 such as Microsoft Windows, do not support local sockets; in that case,
 the server communicates with @command{emacsclient} via TCP.
 
@@ -1811,7 +1811,7 @@ print hardcopies from Dired (@pxref{Operating on Files}) and the diary
 (@pxref{Displaying the Diary}).  You can also ``print'' an Emacs
 buffer to HTML with the command @kbd{M-x htmlfontify-buffer}, which
 converts the current buffer to a HTML file, replacing Emacs faces with
-CSS-based markup.  Furthermore, Org mode allows you to ``print'' Org
+CSS-based markup.  Furthermore, Org mode allows you to print Org
 files to a variety of formats, such as PDF (@pxref{Org Mode}).
 
 @table @kbd
@@ -1984,7 +1984,7 @@ additional paper sizes by changing the variable
 @vindex ps-landscape-mode
   The variable @code{ps-landscape-mode} specifies the orientation of
 printing on the page.  The default is @code{nil}, which stands for
-``portrait'' mode.  Any non-@code{nil} value specifies ``landscape''
+portrait mode.  Any non-@code{nil} value specifies landscape
 mode.
 
 @vindex ps-number-of-columns
@@ -2232,10 +2232,10 @@ Insert a byte with a code typed in octal.
 Insert a byte with a code typed in hex.
 
 @item C-x [
-Move to the beginning of a 1k-byte ``page''.
+Move to the beginning of a 1k-byte page.
 
 @item C-x ]
-Move to the end of a 1k-byte ``page''.
+Move to the end of a 1k-byte page.
 
 @item M-g
 Move to an address specified in hex.
@@ -2316,7 +2316,7 @@ usually turned on.
 However, this may be slow if there are a lot of buffers in the
 desktop.  You can specify the maximum number of buffers to restore
 immediately with the variable @code{desktop-restore-eager}; the
-remaining buffers are restored ``lazily'', when Emacs is idle.
+remaining buffers are restored lazily, when Emacs is idle.
 
 @findex desktop-clear
 @vindex desktop-globals-to-clear
@@ -2391,7 +2391,7 @@ stack overflow) from time to time.  So remember to exit or abort the
 recursive edit when you no longer need it.
 
   In general, we try to minimize the use of recursive editing levels in
-GNU Emacs.  This is because they constrain you to ``go back'' in a
+GNU Emacs.  This is because they constrain you to go back in a
 particular order---from the innermost level toward the top level.  When
 possible, we present different activities in separate buffers so that
 you can switch between them as you please.  Some commands switch to a
@@ -2401,7 +2401,7 @@ the order you choose.
 
 @ignore
 @c Apart from edt and viper, this is all obsolete.
-@c (Can't believe we were saying ``most other editors'' into 2014!)
+@c (Can't believe we were saying "most other editors" into 2014!)
 @c There seems no point having a node just for those, which both have
 @c their own manuals.
 @node Emulation
@@ -2460,8 +2460,8 @@ Viper, viper}.
 @findex vi-mode
 @kbd{M-x vi-mode} enters a major mode that replaces the previously
 established major mode.  All of the vi commands that, in real vi, enter
-``input'' mode are programmed instead to return to the previous major
-mode.  Thus, ordinary Emacs serves as vi's ``input'' mode.
+input mode are programmed instead to return to the previous major
+mode.  Thus, ordinary Emacs serves as vi's input mode.
 
 Because vi emulation works through major modes, it does not work
 to switch buffers during emulation.  Return to normal Emacs first.
@@ -2472,7 +2472,7 @@ to the @code{vi-mode} command.
 @item vi (alternate emulator)
 @findex vip-mode
 @kbd{M-x vip-mode} invokes another vi emulator, said to resemble real vi
-more thoroughly than @kbd{M-x vi-mode}.  ``Input'' mode in this emulator
+more thoroughly than @kbd{M-x vi-mode}.  Input mode in this emulator
 is changed from ordinary Emacs so you can use @key{ESC} to go back to
 emulated vi command mode.  To get from emulated vi command mode back to
 ordinary Emacs, type @kbd{C-z}.
@@ -2704,7 +2704,7 @@ bored, try an argument of 9.  Sit back and watch.
 
 @findex life
 @cindex Life
-  @kbd{M-x life} runs Conway's ``Life'' cellular automaton.
+  @kbd{M-x life} runs Conway's Game of Life cellular automaton.
 
 @findex landmark
 @cindex landmark game

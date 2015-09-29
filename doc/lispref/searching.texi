@@ -113,7 +113,7 @@ match.
 @end deffn
 
 @deffn Command word-search-forward string &optional limit noerror repeat
-This function searches forward from point for a ``word'' match for
+This function searches forward from point for a word match for
 @var{string}.  If it finds a match, it sets point to the end of the
 match found, and returns the new value of point.
 
@@ -359,7 +359,7 @@ preceding expression either once or not at all.  For example,
 
 @item @samp{*?}, @samp{+?}, @samp{??}
 @cindex non-greedy repetition characters in regexp
-These are ``non-greedy'' variants of the operators @samp{*}, @samp{+}
+These are @dfn{non-greedy} variants of the operators @samp{*}, @samp{+}
 and @samp{?}.  Where those operators match the largest possible
 substring (consistent with matching the entire containing expression),
 the non-greedy variants match the smallest possible substring
@@ -1759,7 +1759,7 @@ in two ways:
 
 @itemize @bullet
 @item
-The ``key bindings'' are not commands, just symbols that are meaningful
+The key bindings are not commands, just symbols that are meaningful
 to the functions that use this map.
 
 @item
@@ -1770,7 +1770,7 @@ event and look it up ``by hand''.
 @end itemize
 @end defvar
 
-Here are the meaningful ``bindings'' for @code{query-replace-map}.
+Here are the meaningful bindings for @code{query-replace-map}.
 Several of them are meaningful only for @code{query-replace} and
 friends.
 
@@ -1835,7 +1835,7 @@ Display some help, then ask again.
 @defvar multi-query-replace-map
 This variable holds a keymap that extends @code{query-replace-map} by
 providing additional keybindings that are useful in multi-buffer
-replacements.  The additional ``bindings'' are:
+replacements.  The additional bindings are:
 
 @table @code
 @item automatic-all

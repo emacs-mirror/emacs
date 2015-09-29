@@ -1541,7 +1541,7 @@ A server may send more than one 005 message."
     (while (erc-response.command-args parsed)
       (let ((section (pop (erc-response.command-args parsed))))
         ;; fill erc-server-parameters
-        (when (string-match "^\\([A-Z]+\\)\=\\(.*\\)$\\|^\\([A-Z]+\\)$"
+        (when (string-match "^\\([A-Z]+\\)=\\(.*\\)$\\|^\\([A-Z]+\\)$"
                             section)
           (add-to-list 'erc-server-parameters
                        `(,(or (match-string 1 section)

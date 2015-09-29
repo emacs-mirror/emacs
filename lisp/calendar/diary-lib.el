@@ -2534,8 +2534,4 @@ entry is found the user is asked to confirm its addition."
 
 (provide 'diary-lib)
 
-;; Local Variables:
-;; coding: utf-8
-;; End:
-
 ;;; diary-lib.el ends here

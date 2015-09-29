@@ -104,7 +104,7 @@ Hook run when the buffer list changes (@pxref{Buffer List}).
 
 @item buffer-quit-function
 @vindex buffer-quit-function
-Function to call to ``quit'' the current buffer.
+Function to call to quit the current buffer.
 
 @item change-major-mode-hook
 @xref{Creating Buffer-Local}.

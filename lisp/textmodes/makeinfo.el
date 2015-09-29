@@ -228,7 +228,7 @@ nonsensical results."
   "Make Info file from current buffer.
 
 Use the \\[next-error] command to move to the next error
-\(if there are errors\)."
+\(if there are errors)."
 
   (interactive)
   (cond ((null buffer-file-name)

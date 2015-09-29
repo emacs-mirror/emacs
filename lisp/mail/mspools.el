@@ -309,7 +309,7 @@ Buffer is not displayed if SHOW is non-nil."
 ;; to file name.
 ;(defun get-folder-from-spool-safe (name)
 ;  "Return the folder name corresponding to the spool file NAME."
-;  (if (string-match "^\\(.*\\)\.spool$" name)
+;  (if (string-match "^\\(.*\\)\\.spool$" name)
 ;      (substring name (match-beginning 1) (match-end 1))
 ;    (error "Could not extract folder name from spool name %s" name)))
 

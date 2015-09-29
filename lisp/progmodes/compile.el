@@ -167,7 +167,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
 
     (cucumber
      "\\(?:^cucumber\\(?: -p [^[:space:]]+\\)?\\|#\\)\
-\\(?: \\)\\([^\(].*\\):\\([1-9][0-9]*\\)" 1 2)
+\\(?: \\)\\([^(].*\\):\\([1-9][0-9]*\\)" 1 2)
 
     (msft
      ;; Must be before edg-1, so that MSVC's longer messages are
@@ -230,7 +230,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      1 2 3 (4 . 5))
 
     (ruby-Test::Unit
-     "^[\t ]*\\[\\([^\(].*\\):\\([1-9][0-9]*\\)\\(\\]\\)?:in " 1 2)
+     "^[\t ]*\\[\\([^(].*\\):\\([1-9][0-9]*\\)\\(\\]\\)?:in " 1 2)
 
     (gnu
      ;; The first line matches the program name for
@@ -377,7 +377,7 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
      3 4 5 (1 . 2))
 
     (sun-ada
-     "^\\([^, \n\t]+\\), line \\([0-9]+\\), char \\([0-9]+\\)[:., \(-]" 1 2 3)
+     "^\\([^, \n\t]+\\), line \\([0-9]+\\), char \\([0-9]+\\)[:., (-]" 1 2 3)
 
     (watcom
      "^[ \t]*\\(\\(?:[a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)): ?\
@@ -477,7 +477,29 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
      ;;
      "^\\([^ \t\r\n(]+\\) (\\([0-9]+\\):\\([0-9]+\\)) "
      1 2 3)
-    (guile-file "^In \\(.+\\):\n" 1)
+
+    ;; Guile compilation yields file-headers in the following format:
+    ;;
+    ;;   In sourcefile.scm:
+    ;;
+    ;; We need to catch those, but we also need to be aware that Emacs
+    ;; byte-compilation yields compiler headers in similar form of
+    ;; those:
+    ;;
+    ;;   In toplevel form:
+    ;;   In end of data:
+    ;;
+    ;; We want to catch the Guile file-headers but not the Emacs
+    ;; byte-compilation headers, because that will cause next-error
+    ;; and prev-error to break, because the files "toplevel form" and
+    ;; "end of data" does not exist.
+    ;;
+    ;; To differentiate between these two cases, we require that the
+    ;; file-match must always contain an extension.
+    ;;
+    ;; We should also only treat this as "info", not "error", because
+    ;; we do not know what lines will follow.
+    (guile-file "^In \\(.+\\..+\\):\n" 1 nil nil 0)
     (guile-line "^ *\\([0-9]+\\): *\\([0-9]+\\)" nil 1 2)
     )
   "Alist of values for `compilation-error-regexp-alist'.")

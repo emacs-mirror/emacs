@@ -269,7 +269,7 @@ cover the range from the oldest annotation to the newest."
      (/ (- (if full newest current) oldest)
         (vc-annotate-oldest-in-map vc-annotate-color-map))
      (if full newest))
-    (message "Redisplaying annotation...done \(%s\)"
+    (message "Redisplaying annotation...done (%s)"
 	     (if full
 		 (format "Spanned from %.1f to %.1f days old"
 			 (- current oldest)

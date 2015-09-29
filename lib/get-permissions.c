@@ -1,4 +1,4 @@
-/* get-permissions.c - get permissions of a file
+/* Get permissions of a file.  -*- coding: utf-8 -*-
 
    Copyright (C) 2002-2003, 2005-2015 Free Software Foundation, Inc.
 

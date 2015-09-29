@@ -916,7 +916,7 @@ INITIAL-CONTENTS argument in more detail.  It is only relevant when
 studying existing code, or when HIST is a cons.  If non-nil,
 INITIAL-CONTENTS is a string to be inserted into the minibuffer before
 reading input.  Normally, point is put at the end of that string.
-However, if INITIAL-CONTENTS is \(STRING . POSITION), the initial
+However, if INITIAL-CONTENTS is (STRING . POSITION), the initial
 input is STRING, but point is placed at _one-indexed_ position
 POSITION in the minibuffer.  Any integer value less than or equal to
 one puts point at the beginning of the string.  *Note* that this
@@ -996,7 +996,7 @@ DEFUN ("read-no-blanks-input", Fread_no_blanks_input, Sread_no_blanks_input, 1, 
 Prompt with PROMPT.  Whitespace terminates the input.  If INITIAL is
 non-nil, it should be a string, which is used as initial input, with
 point positioned at the end, so that SPACE will accept the input.
-\(Actually, INITIAL can also be a cons of a string and an integer.
+(Actually, INITIAL can also be a cons of a string and an integer.
 Such values are treated as in `read-from-minibuffer', but are normally
 not useful in this function.)
 Third arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits

@@ -216,8 +216,20 @@ autoreconf -fi -I m4 || exit $?
 ## cause 'make' to needlessly run 'autoheader'.
 echo timestamp > src/stamp-h.in || exit
 
-## Install Git hooks, if using Git.
-if test -d .git/hooks; then
+
+## Configure Git, if using Git.
+if test -d .git; then
+
+    # Configure 'git diff' hunk header format.
+
+    git config 'diff.elisp.xfuncname' \
+	'^\(def[^[:space:]]+[[:space:]]+([^()[:space:]]+)' || exit
+    git config 'diff.texinfo.xfuncname' \
+	'^@node[[:space:]]+([^,[:space:]][^,]+)' || exit
+
+
+    # Install Git hooks.
+
     tailored_hooks=
     sample_hooks=
 

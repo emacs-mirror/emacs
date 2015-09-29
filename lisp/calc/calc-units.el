@@ -2163,8 +2163,4 @@ If non-nil, return a list consisting of the note and the cents coefficient."
 
 (provide 'calc-units)
 
-;; Local variables:
-;; coding: utf-8
-;; End:
-
 ;;; calc-units.el ends here

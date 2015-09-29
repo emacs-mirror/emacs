@@ -20738,9 +20738,13 @@ mean, then repeating until the two values converge.
 $$ a_{i+1} = { a_i + b_i \over 2 } , \qquad b_{i+1} = \sqrt{a_i b_i} $$
 @end tex
 
-@c @cindex Root-mean-square
-@c Another commonly used mean, the RMS (root-mean-square), can be computed
-@c for a vector of numbers simply by using the @kbd{A} command.
+@kindex u R
+@cindex Root-mean-square
+@tindex rms
+The @kbd{u R} (@code{calc-vector-rms}) [@code{rms}]
+command computes the RMS (root-mean-square) of the data values.
+As its name suggests, this is the square root of the mean of the
+squares of the data values.
 
 @kindex u S
 @pindex calc-vector-sdev
@@ -36503,6 +36507,7 @@ keystrokes are not listed in this summary.
 @r{      v@:    H u M   @:             @:    19  @:vmedian@:(v)}
 @r{      v@:  I H u M   @:             @:    19  @:vhmean@:(v)}
 @r{      v@:      u N   @:             @:    19  @:vmin@:(v)}
+@r{      v@:      u R   @:             @:        @:rms@:(v)}
 @r{      v@:      u S   @:             @:    19  @:vsdev@:(v)}
 @r{      v@:    I u S   @:             @:    19  @:vpsdev@:(v)}
 @r{      v@:    H u S   @:             @:    19  @:vvar@:(v)}

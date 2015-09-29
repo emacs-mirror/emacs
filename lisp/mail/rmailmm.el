@@ -172,7 +172,7 @@ The value is usually nil, and bound to non-nil while inserting
 MIME entities.")
 
 (defvar rmail-mime-searching nil
-  "Bound to T inside `rmail-search-mime-message' to suppress expensive 
+  "Bound to T inside `rmail-search-mime-message' to suppress expensive
 operations such as HTML decoding")
 
 ;;; MIME-entity object
@@ -190,7 +190,7 @@ A MIME-entity is a vector of 10 elements:
 TYPE and DISPOSITION correspond to MIME headers Content-Type and
 Content-Disposition respectively, and have this format:
 
-  \(VALUE (ATTRIBUTE . VALUE) (ATTRIBUTE . VALUE) ...)
+  (VALUE (ATTRIBUTE . VALUE) (ATTRIBUTE . VALUE) ...)
 
 Each VALUE is a string and each ATTRIBUTE is a string.
 
@@ -202,7 +202,7 @@ Content-Type: multipart/mixed;
 The corresponding TYPE argument must be:
 
 \(\"multipart/mixed\"
-  \(\"boundary\" . \"----=_NextPart_000_0104_01C617E4.BDEC4C40\"))
+  (\"boundary\" . \"----=_NextPart_000_0104_01C617E4.BDEC4C40\"))
 
 TRANSFER-ENCODING corresponds to MIME header
 Content-Transfer-Encoding, and is a lower-case string.
@@ -1119,11 +1119,11 @@ are the values of the respective parsed headers.  The latter should
 be lower-case.  The parsed headers for CONTENT-TYPE and CONTENT-DISPOSITION
 have the form
 
-  \(VALUE . ALIST)
+  (VALUE . ALIST)
 
 In other words:
 
-  \(VALUE (ATTRIBUTE . VALUE) (ATTRIBUTE . VALUE) ...)
+  (VALUE (ATTRIBUTE . VALUE) (ATTRIBUTE . VALUE) ...)
 
 VALUE is a string and ATTRIBUTE is a symbol.
 
@@ -1135,7 +1135,7 @@ Content-Type: multipart/mixed;
 The parsed header value:
 
 \(\"multipart/mixed\"
-  \(\"boundary\" . \"----=_NextPart_000_0104_01C617E4.BDEC4C40\"))"
+  (\"boundary\" . \"----=_NextPart_000_0104_01C617E4.BDEC4C40\"))"
   ;; Handle the content transfer encodings we know.  Unknown transfer
   ;; encodings will be passed on to the various handlers.
   (cond ((string= content-transfer-encoding "base64")

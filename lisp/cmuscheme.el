@@ -430,7 +430,7 @@ in the next one.")
 				       (file-name-nondirectory file-name)))
   (comint-send-string (scheme-proc) (concat "(load \""
 					    file-name
-					    "\"\)\n")))
+					    "\")\n")))
 
 (defun scheme-compile-file (file-name)
   "Compile a Scheme file FILE-NAME in the inferior Scheme process."
@@ -444,7 +444,7 @@ in the next one.")
 				       (file-name-nondirectory file-name)))
   (comint-send-string (scheme-proc) (concat "(compile-file \""
 					    file-name
-					    "\"\)\n")))
+					    "\")\n")))
 
 
 (defvar scheme-buffer nil "The current scheme process buffer.

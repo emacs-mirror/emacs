@@ -24,7 +24,7 @@ SHELL = @SHELL@
 EMACS = ../src/emacs${EXEEXT}
 EMACSOPT = -batch --no-site-file --no-site-lisp
 
-# ==================== Things `configure' will edit ====================
+# ==================== Things 'configure' will edit ====================
 
 CC=@CC@
 CFLAGS=@CFLAGS@
@@ -83,31 +83,31 @@ ns_appbindir=@ns_appbindir@
 # subdirectories of this directory.  The default values for many of
 # the variables below are expressed in terms of this one, so you may
 # not need to change them.  This is set with the --prefix option to
-# `../configure'.
+# '../configure'.
 prefix=@prefix@
 
-# Like `prefix', but used for architecture-specific files.  This is
-# set with the --exec-prefix option to `../configure'.
+# Like 'prefix', but used for architecture-specific files.  This is
+# set with the --exec-prefix option to '../configure'.
 exec_prefix=@exec_prefix@
 
 # Where to install Emacs and other binaries that people will want to
 # run directly (like etags).  This is set with the --bindir option
-# to `../configure'.
+# to '../configure'.
 bindir=@bindir@
 
 # Where to install and expect executable files to be run by Emacs
 # rather than directly by users, and other architecture-dependent
 # data.  ${archlibdir} is usually below this.  This is set with the
-# --libexecdir option to `../configure'.
+# --libexecdir option to '../configure'.
 libexecdir=@libexecdir@
 
 # Directory for local state files for all programs.
 localstatedir=@localstatedir@
 
 # Where to find the source code.  This is set by the configure
-# script's `--srcdir' option.  However, the value of ${srcdir} in
+# script's '--srcdir' option.  However, the value of ${srcdir} in
 # this makefile is not identical to what was specified with --srcdir,
-# since the variable here has `/lib-src' added at the end.
+# since the variable here has '/lib-src' added at the end.
 
 # We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
 srcdir=@srcdir@
@@ -127,7 +127,7 @@ abs_top_srcdir=@abs_top_srcdir@
 # This path usually includes the Emacs version and configuration name,
 # so that multiple configurations for multiple versions of Emacs may
 # be installed at once.  This can be set with the --archlibdir option
-# to `../configure'.
+# to '../configure'.
 archlibdir=@archlibdir@
 
 gamedir=@gamedir@

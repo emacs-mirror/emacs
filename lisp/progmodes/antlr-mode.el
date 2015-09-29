@@ -225,7 +225,7 @@ variable list\" near the end of the file, see
     (c++-mode "C++" "\"Cpp\"" "Cpp"))
   "List of ANTLR's supported languages.
 Each element in this list looks like
-  \(MAJOR-MODE MODELINE-STRING OPTION-VALUE...)
+  (MAJOR-MODE MODELINE-STRING OPTION-VALUE...)
 
 MAJOR-MODE, the major mode of the code in the grammar's actions, is the
 value of `antlr-language' if the first group in the string matched by
@@ -243,7 +243,7 @@ also displayed in the mode line next to \"Antlr\"."
 (defcustom antlr-language-limit-n-regexp
   '(8192 . "language[ \t]*=[ \t]*\\(\"?[A-Z][A-Za-z_]*\"?\\)")
   "Used to set a reasonable value for `antlr-language'.
-Looks like \(LIMIT \. REGEXP).  Search for REGEXP from the beginning of
+Looks like \(LIMIT . REGEXP).  Search for REGEXP from the beginning of
 the buffer to LIMIT and use the first group in the matched string to set
 the language according to `antlr-language-alist'."
   :group 'antlr
@@ -620,7 +620,7 @@ COUNT starts with 1.  GEN-SEP is used to separate long variable values."
     (c++-mode ("%sTokenTypes.hpp") ("%s.cpp" "%s.hpp")))
   "Language dependent formats which specify generated files.
 Each element in this list looks looks like
-  \(MAJOR-MODE (VOCAB-FILE-FORMAT...) (CLASS-FILE-FORMAT...)).
+  (MAJOR-MODE (VOCAB-FILE-FORMAT...) (CLASS-FILE-FORMAT...)).
 
 The element whose MAJOR-MODE is equal to `antlr-language' is used to
 specify the generated files which are language dependent.  See variable
@@ -779,7 +779,7 @@ fontification, see `antlr-font-lock-keywords-alist'.
 
 While calculating the decoration level for actions, `major-mode' is
 bound to `antlr-language'.  For example, with value
-  \((java-mode \. 2) (c++-mode \. 0))
+  ((java-mode . 2) (c++-mode . 0))
 Java actions are fontified with level 2 and C++ actions are not
 fontified at all."
   :group 'antlr
@@ -817,7 +817,7 @@ Do not change the value of this constant.")
      c++-font-lock-keywords-3))
   "List of font-lock keywords for actions in the grammar.
 Each element in this list looks like
-  \(MAJOR-MODE KEYWORD...)
+  (MAJOR-MODE KEYWORD...)
 
 If `antlr-language' is equal to MAJOR-MODE, the KEYWORDs are the
 font-lock keywords according to `font-lock-defaults' used for the code
@@ -1570,8 +1570,8 @@ Inserting an option with this command works as follows:
  4. Ask user for confirmation if the given OPTION does not seem to be a
     valid option to insert into the current file.
  5. Find a correct position to insert the option.
- 6. Depending on the option, insert it the following way \(inserting an
-    option also means inserting the option section if necessary\):
+ 6. Depending on the option, insert it the following way (inserting an
+    option also means inserting the option section if necessary):
      - Insert the option and let user insert the value at point.
      - Read a value (with completion) from the minibuffer, using a
        previous value as initial contents, and insert option with value.
@@ -1687,9 +1687,9 @@ Return \(LEVEL OPTION LOCATION)."
 (defun antlr-option-kind (requested)
   "Return level and location for option to insert near point.
 Call function `antlr-option-level' with argument REQUESTED.  If the
-result is nil, return \(REQUESTED \. error).  If the result has the
-non-nil value LEVEL, return \(LEVEL \. LOCATION) where LOCATION looks
-like \(AREA \. PLACE), see `antlr-option-location'."
+result is nil, return \(REQUESTED . error).  If the result has the
+non-nil value LEVEL, return \(LEVEL . LOCATION) where LOCATION looks
+like \(AREA . PLACE), see `antlr-option-location'."
   (save-excursion
     (save-restriction
       (let ((min0 (point-min))		; before `widen'!
@@ -1845,7 +1845,7 @@ WARNING: this may alter `match-data'."
 (defun antlr-insert-option-do (level option old area pos)
   "Insert option into buffer at position POS.
 Insert option of level LEVEL and name OPTION.  If OLD is non-nil, an
-options area is already exists.  If OLD looks like \(BEG \. END), the
+options area is already exists.  If OLD looks like \(BEG . END), the
 option already exists.  Then, BEG is the start position of the option
 value, the position of the `=' or nil, and END is the end position of
 the option value or nil.
@@ -2104,7 +2104,7 @@ Called in PHASE `before-input', see `antlr-options-alists'."
 
 (defun antlr-file-dependencies ()
   "Return dependencies for grammar in current buffer.
-The result looks like \(FILE \(CLASSES \. SUPERS) VOCABS \. LANGUAGE)
+The result looks like \(FILE \(CLASSES . SUPERS) VOCABS . LANGUAGE)
   where CLASSES = ((CLASS . CLASS-EVOCAB) ...),
         SUPERS  = ((SUPER . USE-EVOCAB-P) ...), and
         VOCABS  = ((EVOCAB ...) . (IVOCAB ...))
@@ -2168,8 +2168,8 @@ its export vocabulary is used as an import vocabulary."
 
 (defun antlr-directory-dependencies (dirname)
   "Return dependencies for all grammar files in directory DIRNAME.
-The result looks like \((CLASS-SPEC ...) \. \(FILE-DEP ...))
-  where CLASS-SPEC = (CLASS (FILE \. EVOCAB) ...).
+The result looks like \((CLASS-SPEC ...) . \(FILE-DEP ...))
+  where CLASS-SPEC = (CLASS (FILE . EVOCAB) ...).
 
 FILE-DEP are the dependencies for each grammar file in DIRNAME, see
 `antlr-file-dependencies'.  For each grammar class CLASS, FILE is a
@@ -2220,7 +2220,7 @@ The result looks like \(OPTION WITH-UNKNOWN GLIB ...).  OPTION is the
 complete \"-glib\" option.  WITH-UNKNOWN is t if there is none or more
 than one grammar file for at least one super grammar.
 
-Each GLIB looks like \(GRAMMAR-FILE \. EVOCAB).  GRAMMAR-FILE is a file
+Each GLIB looks like \(GRAMMAR-FILE . EVOCAB).  GRAMMAR-FILE is a file
 in which a super-grammar is defined.  EVOCAB is the value of the export
 vocabulary of the super-grammar or nil if it is not needed."
   ;; If the superclass is defined in the same file, that file will be included

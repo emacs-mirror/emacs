@@ -57,7 +57,7 @@ For more advanced topics,
   Calendar mode provides commands to move through the calendar in
 logical units of time such as days, weeks, months, and years.  If you
 move outside the three months originally displayed, the calendar
-display ``scrolls'' automatically through time to make the selected
+display scrolls automatically through time to make the selected
 date visible.  Moving to a date lets you view its holidays or diary
 entries, or convert it to other calendars; moving by long time periods
 is also useful simply to scroll the calendar.
@@ -269,7 +269,7 @@ contents one month backwards in time.
 @kindex M-v @r{(Calendar mode)}
 @findex calendar-scroll-right-three-months
   The commands @kbd{C-v} and @kbd{M-v} scroll the calendar by an entire
-``screenful''---three months---in analogy with the usual meaning of
+screenful---three months---in analogy with the usual meaning of
 these commands.  @kbd{C-v} makes later dates visible and @kbd{M-v} makes
 earlier dates visible.  These commands take a numeric argument as a
 repeat count; in particular, since @kbd{C-u} multiplies the next command
@@ -432,8 +432,8 @@ Generate a Filofax-style calendar for one year
 (@code{cal-tex-cursor-filofax-year}).
 @end table
 
-  Some of these commands print the calendar sideways (in ``landscape
-mode''), so it can be wider than it is long.  Some of them use Filofax
+  Some of these commands print the calendar sideways (in landscape
+mode), so it can be wider than it is long.  Some of them use Filofax
 paper size (3.75in x 6.75in).  All of these commands accept a prefix
 argument, which specifies how many days, weeks, months or years to print
 (starting always with the selected one).
@@ -631,8 +631,8 @@ for all users in a @file{default.el} file.  @xref{Init File}.
 
   These calendar commands display the dates and times of the phases of
 the moon (new moon, first quarter, full moon, last quarter).  This
-feature is useful for debugging problems that ``depend on the phase of
-the moon''.
+feature is useful for debugging problems that depend on the phase of
+the moon.
 
 @table @kbd
 @item M
@@ -665,7 +665,7 @@ See the discussion in the previous section.  @xref{Sunrise/Sunset}.
 
 @cindex Gregorian calendar
   The Emacs calendar displayed is @emph{always} the Gregorian calendar,
-sometimes called the ``new style'' calendar, which is used in most of
+sometimes called the New Style calendar, which is used in most of
 the world today.  However, this calendar did not exist before the
 sixteenth century and was not widely used before the eighteenth century;
 it did not fully displace the Julian calendar and gain universal
@@ -759,13 +759,13 @@ official calendar of Iran will be at that time.
 into solar years.  The years go in cycles of sixty, each year containing
 either twelve months in an ordinary year or thirteen months in a leap
 year; each month has either 29 or 30 days.  Years, ordinary months, and
-days are named by combining one of ten ``celestial stems'' with one of
-twelve ``terrestrial branches'' for a total of sixty names that are
+days are named by combining one of ten @dfn{celestial stems} with one of
+twelve @dfn{terrestrial branches} for a total of sixty names that are
 repeated in a cycle of sixty.
 
 @cindex Bahá'í calendar
   The Bahá'í calendar system is based on a solar cycle of 19 months with
-19 days each.  The four remaining ``intercalary'' days are placed
+19 days each.  The four remaining intercalary days are placed
 between the 18th and 19th months.
 
 @node To Other Calendar
@@ -908,7 +908,7 @@ Islamic, or French names.
 @findex calendar-hebrew-list-yahrzeits
 @cindex yahrzeits
   One common issue concerning the Hebrew calendar is the computation
-of the anniversary of a date of death, called a ``yahrzeit''.  The Emacs
+of the anniversary of a date of death, called a @dfn{yahrzeit}.  The Emacs
 calendar includes a facility for such calculations.  If you are in the
 calendar, the command @kbd{M-x calendar-hebrew-list-yahrzeits} asks you for
 a range of years and then displays a list of the yahrzeit dates for those
@@ -1463,11 +1463,11 @@ variable @code{diary-outlook-formats}.  Other mail clients can set
 @c FIXME the name of the RFC is hardly very relevant.
 @cindex iCalendar support
   The icalendar package allows you to transfer data between your Emacs
-diary file and iCalendar files, which are defined in ``RFC
+diary file and iCalendar files, which are defined in @cite{RFC
 2445---Internet Calendaring and Scheduling Core Object Specification
-(iCalendar)'' (as well as the earlier vCalendar format).
+(iCalendar)} (as well as the earlier vCalendar format).
 
-@c  Importing works for ``ordinary'' (i.e., non-recurring) events, but
+@c  Importing works for ordinary (i.e., non-recurring) events, but
 @c (at present) may not work correctly (if at all) for recurring events.
 @c Exporting of diary files into iCalendar files should work correctly
 @c for most diary entries.  This feature is a work in progress, so the
@@ -1601,11 +1601,11 @@ timeclock-change}.
   Once you've collected data from a number of time intervals, you can use
 @kbd{M-x timeclock-workday-remaining} to see how much time is left to
 work today (assuming a typical average of 8 hours a day), and @kbd{M-x
-timeclock-when-to-leave} which will calculate when you're ``done''.
+timeclock-when-to-leave} which will calculate when you're done.
 
 @vindex timeclock-modeline-display
 @findex timeclock-modeline-display
-  If you want Emacs to display the amount of time ``left'' of your
+  If you want Emacs to display the amount of time left of your
 workday in the mode line, either customize the
 @code{timeclock-modeline-display} variable and set its value to
 @code{t}, or invoke the @kbd{M-x timeclock-modeline-display} command.

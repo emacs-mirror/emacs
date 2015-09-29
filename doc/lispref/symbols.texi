@@ -176,7 +176,7 @@ cause complete confusion.
 @cindex obarray
 @cindex bucket (in obarray)
   When the Lisp reader encounters a symbol, it reads all the characters
-of the name.  Then it ``hashes'' those characters to find an index in a
+of the name.  Then it hashes those characters to find an index in a
 table called an @dfn{obarray}.  Hashing is an efficient method of
 looking something up.  For example, instead of searching a telephone
 book cover to cover when looking up Jan Jones, you start with the J's
@@ -525,7 +525,7 @@ The value is an expression for determining whether the named menu item
 should be enabled in menus.  @xref{Simple Menu Items}.
 
 @item mode-class
-If the value is @code{special}, the named major mode is ``special''.
+If the value is @code{special}, the named major mode is special.
 @xref{Major Mode Conventions}.
 
 @item permanent-local

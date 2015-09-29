@@ -219,7 +219,7 @@ The bounds of THING are determined by `bounds-of-thing-at-point'."
 
 (defun thing-at-point-bounds-of-list-at-point ()
   "Return the bounds of the list at point.
-\[Internal function used by `bounds-of-thing-at-point'.]"
+[Internal function used by `bounds-of-thing-at-point'.]"
   (save-excursion
     (let ((opoint (point))
 	  (beg (ignore-errors

@@ -1,4 +1,4 @@
-;;; cvs-status.el --- major mode for browsing `cvs status' output -*- coding: utf-8; lexical-binding: t -*-
+;;; cvs-status.el --- major mode for browsing `cvs status' output -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
 

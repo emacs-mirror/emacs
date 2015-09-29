@@ -364,8 +364,7 @@ is called as a function to find the defun's beginning."
 	  (arg-+ve (> arg 0)))
       (save-restriction
 	(widen)
-	(let ((ppss (let (syntax-begin-function
-			  font-lock-beginning-of-syntax-function)
+	(let ((ppss (let (syntax-begin-function)
 		      (syntax-ppss)))
 	      ;; position of least enclosing paren, or nil.
 	      encl-pos)

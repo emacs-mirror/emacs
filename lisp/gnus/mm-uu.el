@@ -118,7 +118,7 @@ This can be either \"inline\" or \"attachment\".")
      mm-uu-shar-extract)
     (forward
      ;; Thanks to Edward J. Sabol <sabol@alderaan.gsfc.nasa.gov> and
-     ;; Peter von der Ah\'e <pahe@daimi.au.dk>
+     ;; Peter von der Ahé <pahe@daimi.au.dk>
      "^-+ \\(Start of \\)?Forwarded message"
      "^-+ End \\(of \\)?forwarded message"
      mm-uu-forward-extract
@@ -770,5 +770,9 @@ Assume text has been decoded if DECODED is non-nil."
 	     (mm-uu-dissect-text-parts elem decoded))))))
 
 (provide 'mm-uu)
+
+;; Local Variables:
+;; coding: utf-8
+;; End:
 
 ;;; mm-uu.el ends here

@@ -1500,7 +1500,7 @@ Used in ediff-windows/regions only."
     (select-window wind)))
 
 (defun ediff-scroll-vertically (&optional arg)
-  "Vertically scroll buffers A, B \(and C if appropriate\).
+  "Vertically scroll buffers A, B (and C if appropriate).
 With optional argument ARG, scroll ARG lines; otherwise scroll by nearly
 the one half of the height of window-A."
   (interactive "P")
@@ -1544,7 +1544,7 @@ the one half of the height of window-A."
 
 
 (defun ediff-scroll-horizontally (&optional arg)
-  "Horizontally scroll buffers A, B \(and C if appropriate\).
+  "Horizontally scroll buffers A, B (and C if appropriate).
 If an argument is given, that is how many columns are scrolled, else nearly
 the width of the A/B/C windows."
   (interactive "P")
@@ -1822,7 +1822,7 @@ If the prefix is negative, count differences from the end."
 
 (defun ediff-jump-to-difference-at-point (arg)
   "Go to difference closest to the point in buffer A, B, or C.
-The buffer depends on last command character \(a, b, or c\) that invoked this
+The buffer depends on last command character \(a, b, or c) that invoked this
 command.  For instance, if the command was `ga' then the point value in buffer
 A is used.
 With a prefix argument, synchronize all files around the current point position
@@ -1921,7 +1921,7 @@ in the specified buffer."
 ;;; Copying diffs.
 
 (defun ediff-diff-to-diff (arg &optional keys)
-  "Copy buffer-X'th difference region to buffer Y \(X,Y are A, B, or C\).
+  "Copy buffer-X'th difference region to buffer Y (X,Y are A, B, or C).
 If numerical prefix argument, copy the difference specified in the arg.
 Otherwise, copy the difference given by `ediff-current-difference'.
 This command assumes it is bound to a 2-character key sequence, `ab', `ba',
@@ -1986,7 +1986,7 @@ ARG is a prefix argument.  If nil, copy the current difference region."
 
 
 
-;; Copy diff N from FROM-BUF-TYPE \(given as A, B or C\) to TO-BUF-TYPE.
+;; Copy diff N from FROM-BUF-TYPE (given as A, B or C) to TO-BUF-TYPE.
 ;; If optional DO-NOT-SAVE is non-nil, do not save the old value of the
 ;; target diff.  This is used in merging, when constructing the merged
 ;; version.
@@ -2065,7 +2065,7 @@ ARG is a prefix argument.  If nil, copy the current difference region."
       (message "%s" messg))
     ))
 
-;; Save Nth diff of buffer BUF-TYPE \(A, B, or C\).
+;; Save Nth diff of buffer BUF-TYPE (A, B, or C).
 ;; That is to say, the Nth diff on the `ediff-killed-diffs-alist'.  REG
 ;; is the region to save.  It is redundant here, but is passed anyway, for
 ;; convenience.
@@ -2385,10 +2385,10 @@ the number seen by the user."
   "Finish an Ediff session and exit Ediff.
 Unselects the selected difference, if any, restores the read-only and modified
 flags of the compared file buffers, kills Ediff buffers for this session
-\(but not buffers A, B, C\).
+\(but not buffers A, B, C).
 
 If `ediff-keep-variants' is nil, the user will be asked whether the buffers
-containing the variants should be removed \(if they haven't been modified\).
+containing the variants should be removed \(if they haven't been modified).
 If it is t, they will be preserved unconditionally.  A prefix argument,
 temporarily reverses the meaning of this variable."
   (interactive "P")
@@ -3312,7 +3312,7 @@ and `wd' saves the diff output.
 
 With prefix argument, `wd' saves plain diff output.
 Without an argument, it saves customized diff argument, if available
-\(and plain output, if customized output was not generated\)."
+\(and plain output, if customized output was not generated)."
   (interactive "P")
   (ediff-barf-if-not-control-buffer)
   (ediff-compute-custom-diffs-maybe)
@@ -3348,6 +3348,7 @@ Without an argument, it saves customized diff argument, if available
     (setq wind (ediff-get-visible-buffer-window cloned-buff))
     (select-window wind)
     (delete-other-windows)
+    (or (mark) (push-mark))
     (ediff-activate-mark)
     (split-window-vertically)
     (ediff-select-lowest-window)

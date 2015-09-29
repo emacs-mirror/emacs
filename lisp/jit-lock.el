@@ -382,14 +382,6 @@ Defaults to the whole buffer.  END can be out of bounds."
    (save-excursion
      (unless start (setq start (point-min)))
      (setq end (if end (min end (point-max)) (point-max)))
-     ;; This did bind `font-lock-beginning-of-syntax-function' to
-     ;; nil at some point, for an unknown reason.  Don't do this; it
-     ;; can make highlighting slow due to expensive calls to
-     ;; `parse-partial-sexp' in function
-     ;; `font-lock-fontify-syntactically-region'.  Example: paging
-     ;; from the end of a buffer to its start, can do repeated
-     ;; `parse-partial-sexp' starting from `point-min', which can
-     ;; take a long time in a large buffer.
      (let ((orig-start start) next)
        (save-match-data
 	 ;; Fontify chunks beginning at START.  The end of a

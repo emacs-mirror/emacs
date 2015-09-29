@@ -233,7 +233,7 @@ turned into calls of the form (SETTER ARGS... VAL).
 
 If FIX-RETURN is non-nil, then SETTER is not assumed to return VAL and
 instead the assignment is turned into something equivalent to
-  \(let ((temp VAL))
+  (let ((temp VAL))
     (SETTER ARGS... temp)
     temp)
 so as to preserve the semantics of `setf'."

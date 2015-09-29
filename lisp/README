@@ -6,8 +6,7 @@ files are architecture-independent.
 The term subdirectory contains Lisp files that customize Emacs for
 certain terminal types.  When Emacs starts, it checks the TERM
 environment variable to get the terminal type and loads
-`term/${TERM}.el' if it exists.
+'term/${TERM}.el' if it exists.
 
 The other subdirectories hold Lisp packages grouped by their general
 purpose.
-

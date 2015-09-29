@@ -30,7 +30,7 @@
   "Defaults for Font Lock mode specified by the major mode.
 Defaults should be of the form:
 
- (KEYWORDS [KEYWORDS-ONLY [CASE-FOLD [SYNTAX-ALIST [SYNTAX-BEGIN ...]]]])
+ (KEYWORDS [KEYWORDS-ONLY [CASE-FOLD [SYNTAX-ALIST ...]]])
 
 KEYWORDS may be a symbol (a variable or function whose value is the keywords
 to use for fontification) or a list of symbols (specifying different levels
@@ -45,20 +45,9 @@ If SYNTAX-ALIST is non-nil, it should be a list of cons pairs of the form
 \(CHAR-OR-STRING . STRING) used to set the local Font Lock syntax table, for
 keyword and syntactic fontification (see `modify-syntax-entry').
 
-If SYNTAX-BEGIN is non-nil, it should be a function with no args used to move
-backwards outside any enclosing syntactic block, for syntactic fontification.
-Typical values are `beginning-of-line' (i.e., the start of the line is known to
-be outside a syntactic block), or `beginning-of-defun' for programming modes or
-`backward-paragraph' for textual modes (i.e., the mode-dependent function is
-known to move outside a syntactic block).  If nil, the beginning of the buffer
-is used as a position outside of a syntactic block, in the worst case.
-
-\(See also Info node `(elisp)Font Lock Basics'.)
-
 These item elements are used by Font Lock mode to set the variables
 `font-lock-keywords', `font-lock-keywords-only',
-`font-lock-keywords-case-fold-search', `font-lock-syntax-table' and
-`font-lock-beginning-of-syntax-function', respectively.
+`font-lock-keywords-case-fold-search', `font-lock-syntax-table'.
 
 Further item elements are alists of the form (VARIABLE . VALUE) and are in no
 particular order.  Each VARIABLE is made buffer-local before set to VALUE.

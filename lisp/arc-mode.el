@@ -839,7 +839,7 @@ when parsing the archive."
   ;; long when the archive -- which has to be moved in memory -- is large.
   (insert
    (apply
-    (function concat)
+    #'concat
     (mapcar
      (lambda (fil)
        ;; Using `concat' here copies the text also, so we can add
@@ -1050,7 +1050,7 @@ using `make-temp-file', and the generated name is returned."
           (setq default-directory arcdir)
           (make-local-variable 'archive-superior-buffer)
           (setq archive-superior-buffer archive-buffer)
-          (add-hook 'write-file-functions 'archive-write-file-member nil t)
+          (add-hook 'write-file-functions #'archive-write-file-member nil t)
           (setq archive-subfile-mode descr)
 	  (setq archive-file-name-coding-system file-name-coding)
 	  (if (and
@@ -1091,7 +1091,7 @@ using `make-temp-file', and the generated name is returned."
               (if read-only-p (setq archive-read-only t))
               ;; We will write out the archive ourselves if it is
               ;; part of another archive.
-              (remove-hook 'write-contents-functions 'archive-write-file t))
+              (remove-hook 'write-contents-functions #'archive-write-file t))
             (run-hooks 'archive-extract-hook)
 	    (if archive-read-only
 		(message "Note: altering this archive is not implemented."))))
@@ -1111,7 +1111,7 @@ using `make-temp-file', and the generated name is returned."
 	 exit-status success)
     (make-directory (directory-file-name default-directory) t)
     (setq exit-status
-	  (apply 'call-process
+	  (apply #'call-process
 		 (car command)
 		 nil
 		 nil
@@ -1136,7 +1136,7 @@ using `make-temp-file', and the generated name is returned."
   (let ((stderr-file (make-temp-file "arc-stderr")))
     (unwind-protect
 	(prog1
-	    (apply 'call-process
+	    (apply #'call-process
 		   (car command)
 		   nil
 		   (if stderr-file (list t stderr-file) t)
@@ -1157,7 +1157,7 @@ using `make-temp-file', and the generated name is returned."
 	(stdout-file (make-temp-file "arc-stdout")))
     (unwind-protect
 	(prog1
-	    (apply 'call-process
+	    (apply #'call-process
 		   (car command)
 		   nil
 		   `(:file ,stdout-file)
@@ -1284,7 +1284,7 @@ using `make-temp-file', and the generated name is returned."
 	  (setq ename
 		(encode-coding-string ename archive-file-name-coding-system))
           (let* ((coding-system-for-write 'no-conversion)
-		 (exitcode (apply 'call-process
+		 (exitcode (apply #'call-process
 				  (car command)
 				  nil
 				  nil
@@ -1444,7 +1444,7 @@ as a relative change like \"g+rw\" as for chmod(2)."
 	     (revert-buffer))))))
 
 (defun archive-*-expunge (archive files command)
-  (apply 'call-process
+  (apply #'call-process
 	 (car command)
 	 nil
 	 nil
@@ -1539,7 +1539,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 		      (length files)
 		      (if (= 1 (length files)) "" "s"))
 	      "\n"))
-    (apply 'vector (nreverse files))))
+    (apply #'vector (nreverse files))))
 
 (defun archive-arc-rename-entry (newname descr)
   (if (string-match "[:\\\\/]" newname)
@@ -1708,7 +1708,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 		      (length files)
 		      (if (= 1 (length files)) "" "s"))
 	      "\n"))
-    (apply 'vector (nreverse files))))
+    (apply #'vector (nreverse files))))
 
 (defconst archive-lzh-alternate-display t)
 
@@ -1905,7 +1905,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 		      (length files)
 		      (if (= 1 (length files)) "" "s"))
 	      "\n"))
-    (apply 'vector (nreverse files))))
+    (apply #'vector (nreverse files))))
 
 (defun archive-zip-extract (archive name)
   (cond
@@ -2022,7 +2022,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 		      (length files)
 		      (if (= 1 (length files)) "" "s"))
 	      "\n"))
-    (apply 'vector (nreverse files))))
+    (apply #'vector (nreverse files))))
 
 (defun archive-zoo-extract (archive name)
   (archive-extract-by-stdout archive name archive-zoo-extract))
@@ -2083,7 +2083,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
                                                    (length text))))
                                        files))
       (insert sep (make-string maxname ?-) "\n")
-      (apply 'vector files))))
+      (apply #'vector files))))
 
 (defun archive-rar-extract (archive name)
   ;; unrar-free seems to have no way to extract to stdout or even to a file.
@@ -2171,7 +2171,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
                                                    (length text))))
                                        files))
       (insert sep (make-string maxname ?-) "\n")
-      (apply 'vector files))))
+      (apply #'vector files))))
 
 (defun archive-7z-extract (archive name)
   ;; 7z doesn't provide a `quiet' option to suppress non-essential
@@ -2272,7 +2272,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
                                                    (length text))))
                                        files))
       (insert sep (make-string maxname ?-) "\n")
-      (apply 'vector files))))
+      (apply #'vector files))))
 
 (defun archive-ar-extract (archive name)
   (let ((destbuf (current-buffer))

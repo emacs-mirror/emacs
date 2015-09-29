@@ -126,7 +126,7 @@ it waits for input, or when the function @code{redisplay} is called.
 @cindex @samp{\} in display
 
   When a line of text extends beyond the right edge of a window, Emacs
-can @dfn{continue} the line (make it ``wrap'' to the next screen
+can @dfn{continue} the line (make it wrap to the next screen
 line), or @dfn{truncate} the line (limit it to one screen line).  The
 additional screen lines used to display a long text line are called
 @dfn{continuation} lines.  Continuation is not the same as filling;
@@ -138,7 +138,7 @@ boundary.  @xref{Filling}.
 indicate truncated and continued lines (@pxref{Fringes}).  On a text
 terminal, a @samp{$} in the rightmost column of the window indicates
 truncation; a @samp{\} on the rightmost column indicates a line that
-``wraps''.  (The display table can specify alternate characters to use
+wraps.  (The display table can specify alternate characters to use
 for this; @pxref{Display Tables}).
 
 @defopt truncate-lines
@@ -380,7 +380,7 @@ function.
 
 The arguments @var{min-value} and @var{max-value} should be numbers
 standing for the starting and final states of the operation.  For
-instance, an operation that ``scans'' a buffer should set these to the
+instance, an operation that scans a buffer should set these to the
 results of @code{point-min} and @code{point-max} correspondingly.
 @var{max-value} should be greater than @var{min-value}.
 
@@ -439,13 +439,13 @@ presented to the user.
 
 @defun progress-reporter-done reporter
 This function should be called when the operation is finished.  It
-prints the message of @var{reporter} followed by word ``done'' in the
+prints the message of @var{reporter} followed by word @samp{done} in the
 echo area.
 
 You should always call this function and not hope for
-@code{progress-reporter-update} to print ``100%''.  Firstly, it may
+@code{progress-reporter-update} to print @samp{100%}.  Firstly, it may
 never print it, there are many good reasons for this not to happen.
-Secondly, ``done'' is more explicit.
+Secondly, @samp{done} is more explicit.
 @end defun
 
 @defmac dotimes-with-progress-reporter (var count [result]) message body@dots{}
@@ -500,13 +500,13 @@ facility combines successive identical messages.  It also combines
 successive related messages for the sake of two cases: question
 followed by answer, and a series of progress messages.
 
-  A ``question followed by an answer'' means two messages like the
+  A question followed by an answer has two messages like the
 ones produced by @code{y-or-n-p}: the first is @samp{@var{question}},
 and the second is @samp{@var{question}...@var{answer}}.  The first
 message conveys no additional information beyond what's in the second,
 so logging the second message discards the first from the log.
 
-  A ``series of progress messages'' means successive messages like
+  A series of progress messages has successive messages like
 those produced by @code{make-progress-reporter}.  They have the form
 @samp{@var{base}...@var{how-far}}, where @var{base} is the same each
 time, while @var{how-far} varies.  Logging each message in the series
@@ -1419,7 +1419,7 @@ The return value is @var{overlay}.
 This is the only valid way to change the endpoints of an overlay.  Do
 not try modifying the markers in the overlay by hand, as that fails to
 update other vital data structures and can cause some overlays to be
-``lost''.
+lost.
 @end defun
 
 @defun remove-overlays &optional start end name value
@@ -1496,7 +1496,7 @@ foo
 @end example
 
   Emacs stores the overlays of each buffer in two lists, divided
-around an arbitrary ``center position''.  One list extends backwards
+around an arbitrary center position.  One list extends backwards
 through the buffer from that center position, and the other extends
 forwards from that center position.  The center position can be anywhere
 in the buffer.
@@ -1796,10 +1796,9 @@ overlays that specify property @var{prop} for the character at point:
 
 @defun overlays-in beg end
 This function returns a list of the overlays that overlap the region
-@var{beg} through @var{end}.  ``Overlap'' means that at least one
-character is contained within the overlay and also contained within the
-specified region; however, empty overlays (@pxref{Managing Overlays,
-empty overlay}) are included in the result if they are located at
+@var{beg} through @var{end}.  An overlay overlaps with a region if it
+contains one or more characters in the region; empty overlays
+(@pxref{Managing Overlays, empty overlay}) overlap if they are at
 @var{beg}, strictly between @var{beg} and @var{end}, or at @var{end}
 when @var{end} denotes the position at the end of the buffer.
 @end defun
@@ -2729,8 +2728,8 @@ Manual}.
 @item
 If the text lies within an overlay with a non-@code{nil} @code{face}
 property, Emacs applies the face(s) specified by that property.  If
-the overlay has a @code{mouse-face} property and the mouse is ``near
-enough'' to the overlay, Emacs applies the face or face attributes
+the overlay has a @code{mouse-face} property and the mouse is near
+enough to the overlay, Emacs applies the face or face attributes
 specified by the @code{mouse-face} property instead.  @xref{Overlay
 Properties}.
 
@@ -2836,7 +2835,7 @@ remappings for face @var{face} in the current buffer.  The remaining
 arguments, @var{specs}, should form either a list of face names, or a
 property list of attribute/value pairs.
 
-The return value is a Lisp object that serves as a ``cookie''; you can
+The return value is a Lisp object that serves as a cookie; you can
 pass this object as an argument to @code{face-remap-remove-relative}
 if you need to remove the remapping later.
 
@@ -2967,7 +2966,7 @@ If your Emacs Lisp program needs to assign some faces to text, it is
 often a good idea to use certain existing faces or inherit from them,
 rather than defining entirely new faces.  This way, if other users
 have customized the basic faces to give Emacs a certain look, your
-program will ``fit in'' without additional customization.
+program will fit in without additional customization.
 
   Some of the basic faces defined in Emacs are listed below.  In
 addition to these, you might want to make use of the Font Lock faces
@@ -2992,14 +2991,14 @@ has a bold @code{:weight} attribute), with all other attributes
 unspecified (and so given by @code{default}).
 
 @item shadow
-For ``dimmed out'' text.  For example, it is used for the ignored
+For dimmed-out text.  For example, it is used for the ignored
 part of a filename in the minibuffer (@pxref{Minibuffer File,,
 Minibuffers for File Names, emacs, The GNU Emacs Manual}).
 
 @item link
 @itemx link-visited
 For clickable text buttons that send the user to a different
-buffer or ``location''.
+buffer or location.
 
 @item highlight
 For stretches of text that should temporarily stand out.  For example,
@@ -3193,7 +3192,7 @@ encoding of the font.
 character codes.  An individual font cannot display the whole range of
 characters that Emacs supports, but a fontset can.  Fontsets have names,
 just as fonts do, and you can use a fontset name in place of a font name
-when you specify the ``font'' for a frame or a face.  Here is
+when you specify the font for a frame or a face.  Here is
 information about defining a fontset under Lisp program control.
 
 @defun create-fontset-from-fontset-spec fontset-spec &optional style-variant-p noerror
@@ -3481,13 +3480,13 @@ frame on which the fonts are to be displayed.  The optional argument
 maximum length of the returned list.  The optional argument
 @var{prefer}, if non-@code{nil}, should be another font spec, which is
 used to control the order of the returned list; the returned font
-entities are sorted in order of decreasing ``closeness'' to that font
+entities are sorted in order of decreasing closeness to that font
 spec.
 @end defun
 
   If you call @code{set-face-attribute} and pass a font spec, font
 entity, or font name string as the value of the @code{:font}
-attribute, Emacs opens the best ``matching'' font that is available
+attribute, Emacs opens the best matching font that is available
 for display.  It then stores the corresponding font object as the
 actual value of the @code{:font} attribute for that face.
 
@@ -4230,21 +4229,21 @@ frames.
 @cindex right dividers
 @cindex bottom dividers
 
-Window dividers are bars drawn between a frame's windows.  A ``right''
+Window dividers are bars drawn between a frame's windows.  A right
 divider is drawn between a window and any adjacent windows on the right.
 Its width (thickness) is specified by the frame parameter
-@code{right-divider-width}.  A ``bottom'' divider is drawn between a
+@code{right-divider-width}.  A bottom divider is drawn between a
 window and adjacent windows on the bottom or the echo area.  Its width
 is specified by the frame parameter @code{bottom-divider-width}.  In
 either case, specifying a width of zero means to not draw such dividers.
 @xref{Layout Parameters}.
 
-   Technically, a right divider ``belongs'' to the window on its left,
+   Technically, a right divider belongs to the window on its left,
 which means that its width contributes to the total width of that
-window.  A bottom divider ``belongs'' to the window above it, which
+window.  A bottom divider belongs to the window above it, which
 means that its width contributes to the total height of that window.
 @xref{Window Sizes}.  When a window has both, a right and a bottom
-divider, the bottom divider ``prevails''.  This means that a bottom
+divider, the bottom divider prevails.  This means that a bottom
 divider is drawn over the full total width of its window while the right
 divider ends above the bottom divider.
 
@@ -4332,8 +4331,8 @@ display specification, the first overrides the rest.  Replacing
 display specifications make most other display specifications
 irrelevant, since those don't apply to the replacement.
 
-  For replacing display specifications, ``the text that has the
-property'' means all the consecutive characters that have the same
+  For replacing display specifications, @dfn{the text that has the
+property} means all the consecutive characters that have the same
 Lisp object as their @code{display} property; these characters are
 replaced as a single unit.  If two characters have different Lisp
 objects as their @code{display} properties (i.e., objects which are
@@ -4387,8 +4386,10 @@ width.  @var{width} can also be a @dfn{pixel width} specification
 @item :relative-width @var{factor}
 Specifies that the width of the stretch should be computed from the
 first character in the group of consecutive characters that have the
-same @code{display} property.  The space width is the width of that
-character, multiplied by @var{factor}.
+same @code{display} property.  The space width is the pixel width of
+that character, multiplied by @var{factor}.  (On text-mode terminals,
+the ``pixel width'' of a character is usually 1, but it could be more
+for TABs and double-width CJK characters.)
 
 @item :align-to @var{hpos}
 Specifies that the space should be wide enough to reach @var{hpos}.
@@ -4559,7 +4560,7 @@ Here are the possibilities for @var{height}:
 @table @asis
 @item @code{(+ @var{n})}
 @c FIXME: Add an index for "step"?  --xfq
-This means to use a font that is @var{n} steps larger.  A ``step'' is
+This means to use a font that is @var{n} steps larger.  A @dfn{step} is
 defined by the set of available fonts---specifically, those that match
 what was otherwise specified for this text, in all attributes except
 height.  Each size for which a suitable font is available counts as
@@ -4836,7 +4837,7 @@ which algorithm.
 Specifies the Laplace edge detection algorithm, which blurs out small
 differences in color while highlighting larger differences.  People
 sometimes consider this useful for displaying the image for a
-``disabled'' button.
+disabled button.
 
 @item (edge-detection :matrix @var{matrix} :color-adjust @var{adjust})
 @cindex edge detection, images
@@ -4901,7 +4902,7 @@ $$\pmatrix{ 2 & -1 &  0 \cr
 @end ifnottex
 
 @item disabled
-Specifies transforming the image so that it looks ``disabled''.
+Specifies transforming the image so that it looks disabled.
 @end table
 
 @item :mask @var{mask}
@@ -5365,8 +5366,8 @@ This function inserts @var{image} in the current buffer at point, like
 @code{insert-image}, but splits the image into @var{rows}x@var{cols}
 equally sized slices.
 
-If an image is inserted ``sliced'', Emacs displays each slice as a
-separate image, and allow more intuitive scrolling up/down, instead of
+Emacs displays each slice as a
+separate image, and allows more intuitive scrolling up/down, instead of
 jumping up/down the entire image when paging through a buffer that
 displays (large) images.
 @end defun
@@ -5443,7 +5444,7 @@ are multiple ``frames'' in the image.  At present, Emacs supports
 multiple frames for GIF, TIFF, and certain ImageMagick formats such as
 DJVM@.
 
-The frames can be used either to represent multiple ``pages'' (this is
+The frames can be used either to represent multiple pages (this is
 usually the case with multi-frame TIFF files, for example), or to
 create animation (usually the case with multi-frame GIF files).
 
@@ -5666,7 +5667,7 @@ so that it's easy to define special-purpose types of buttons for
 specific tasks.
 
 @defun define-button-type name &rest properties
-Define a ``button type'' called @var{name} (a symbol).
+Define a button type called @var{name} (a symbol).
 The remaining arguments
 form a sequence of @var{property value} pairs, specifying default
 property values for buttons with this type (a button's type may be set
@@ -5819,7 +5820,7 @@ Return @code{t} if button-type @var{type} is a subtype of @var{supertype}.
 These are commands and functions for locating and operating on
 buttons in an Emacs buffer.
 
-@code{push-button} is the command that a user uses to actually ``push''
+@code{push-button} is the command that a user uses to actually push
 a button, and is bound by default in the button itself to @key{RET}
 and to @key{mouse-2} using a local keymap in the button's overlay or
 text properties.  Commands that are useful outside the buttons itself,
@@ -5885,7 +5886,7 @@ in the search, instead of starting at the next button.
   The Ewoc package constructs buffer text that represents a structure
 of Lisp objects, and updates the text to follow changes in that
 structure.  This is like the ``view'' component in the
-``model/view/controller'' design paradigm.  Ewoc means ``Emacs's
+``model--view--controller'' design paradigm.  Ewoc means ``Emacs's
 Widget for Object Collections''.
 
   An @dfn{ewoc} is a structure that organizes information required to
@@ -5949,7 +5950,7 @@ new value in its place, like so:
 
 @noindent
 You can also use, as the data element value, a Lisp object (list or
-vector) that is a container for the ``real'' value, or an index into
+vector) that is a container for the real value, or an index into
 some other structure.  The example (@pxref{Abstract Display Example})
 uses the latter approach.
 
@@ -5985,7 +5986,7 @@ Normally, a newline is automatically inserted after the header,
 the footer and every node's textual description.  If @var{nosep}
 is non-@code{nil}, no newline is inserted.  This may be useful for
 displaying an entire ewoc on a single line, for example, or for
-making nodes ``invisible'' by arranging for @var{pretty-printer}
+making nodes invisible by arranging for @var{pretty-printer}
 to do nothing for those nodes.
 
 An ewoc maintains its text in the buffer that is current when
@@ -6105,7 +6106,7 @@ Any @var{args} are passed to @var{map-function}.
 @subsection Abstract Display Example
 
   Here is a simple example using functions of the ewoc package to
-implement a ``color components display'', an area in a buffer that
+implement a @dfn{color components} display, an area in a buffer that
 represents a vector of three integers (itself representing a 24-bit RGB
 value) in various ways.
 
@@ -6164,10 +6165,10 @@ The buffer is in Color Components mode."
 @end example
 
 @cindex controller part, model/view/controller
-  This example can be extended to be a ``color selection widget'' (in
-other words, the controller part of the ``model/view/controller''
+  This example can be extended to be a color selection widget (in
+other words, the ``controller'' part of the ``model--view--controller''
 design paradigm) by defining commands to modify @code{colorcomp-data}
-and to ``finish'' the selection process, and a keymap to tie it all
+and to finish the selection process, and a keymap to tie it all
 together conveniently.
 
 @smallexample
@@ -6417,9 +6418,9 @@ display the character @var{c} as those glyphs; @pxref{Glyphs}).
 
   @strong{Warning:} if you use the display table to change the display
 of newline characters, the whole buffer will be displayed as one long
-``line''.
+line.
 
-  The display table also has six ``extra slots'' which serve special
+  The display table also has six @dfn{extra slots} which serve special
 purposes.  Here is a table of their meanings; @code{nil} in any slot
 means to use the default for that slot, as stated below.
 
@@ -6686,7 +6687,7 @@ Non-@acronym{ASCII}, non-printing characters @code{U+0080} to
 @samp{\230}).
 
 @item format-control
-Characters of Unicode General Category ``Cf'', such as @samp{U+200E}
+Characters of Unicode General Category [Cf], such as @samp{U+200E}
 (Left-to-Right Mark), but excluding characters that have graphic
 images, such as @samp{U+00AD} (Soft Hyphen).
 
@@ -6733,8 +6734,8 @@ capability (@samp{vb}).
 @end defopt
 
 @defvar ring-bell-function
-If this is non-@code{nil}, it specifies how Emacs should ``ring the
-bell''.  Its value should be a function of no arguments.  If this is
+If this is non-@code{nil}, it specifies how Emacs should ring the
+bell.  Its value should be a function of no arguments.  If this is
 non-@code{nil}, it takes precedence over the @code{visible-bell}
 variable.
 @end defvar
@@ -6825,7 +6826,7 @@ follows the Unicode Bidirectional Algorithm (a.k.a.@: @acronym{UBA}),
 which is described in Annex #9 of the Unicode standard
 (@url{http://www.unicode.org/reports/tr9/}).  Emacs provides a ``Full
 Bidirectionality'' class implementation of the @acronym{UBA},
-consistent with the requirements of the Unicode Standard v7.0.
+consistent with the requirements of the Unicode Standard v8.0.
 
 @defvar bidi-display-reordering
 If the value of this buffer-local variable is non-@code{nil} (the
@@ -6950,7 +6951,7 @@ The function returns the new buffer position as its value.
 when two strings with bidirectional content are juxtaposed in a
 buffer, or otherwise programmatically concatenated into a string of
 text.  A typical problematic case is when a buffer consists of
-sequences of text ``fields'' separated by whitespace or punctuation
+sequences of text fields separated by whitespace or punctuation
 characters, like Buffer Menu mode or Rmail Summary Mode.  Because the
 punctuation characters used as separators have @dfn{weak
 directionality}, they take on the directionality of surrounding text.

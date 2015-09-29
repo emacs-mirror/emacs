@@ -243,7 +243,7 @@ positions, and the definition, when inlined."
 
 This matches only pure definitions like [1] or [fn:name] at the
 beginning of a line.  It does not match references like
-\[fn:name:definition], where the footnote text is included and
+[fn:name:definition], where the footnote text is included and
 defined locally.
 
 The return value will be nil if not at a footnote definition, and

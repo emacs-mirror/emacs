@@ -66,7 +66,7 @@ Internal windows are no longer visible to Lisp; functions such as
 and window-local buffer lists have all been removed.  Functions for
 resizing windows can delete windows if they become too small.
 
-The ``action function'' feature for controlling buffer display has
+The action-function feature for controlling buffer display has
 been removed, including @code{display-buffer-overriding-action} and
 related variables, as well as the @var{action} argument to
 @code{display-buffer} and other functions.  The way to
@@ -78,7 +78,7 @@ other variables.
 The standard completion interface has been simplified, eliminating the
 @code{completion-extra-properties} variable, the @code{metadata}
 action flag for completion functions, and the concept of
-``completion categories''.  Lisp programmers may now find the choice
+completion categories.  Lisp programmers may now find the choice
 of methods for tuning completion less bewildering, but if a package
 finds the streamlined interface insufficient for its needs, it must
 implement its own specialized completion feature.

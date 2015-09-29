@@ -211,7 +211,7 @@ responsibility."
   "Function to call to determine the desired location for the control panel.
 Expects three parameters: the control buffer, the desired width and height
 of the control frame.  It returns an association list
-of the form \(\(top . <position>\) \(left . <position>\)\)"
+of the form \((top . <position>) \(left . <position>))"
   :type 'function
   :group 'ediff-window)
 
@@ -432,7 +432,7 @@ into icons, regardless of the window manager."
 	    three-way-comparison ediff-3way-comparison-job))
     ;; if in minibuffer go somewhere else
     (if (save-match-data
-	  (string-match "\*Minibuf-" (buffer-name (window-buffer))))
+	  (string-match "\\*Minibuf-" (buffer-name (window-buffer))))
 	(select-window (next-window nil 'ignore-minibuf)))
     (delete-other-windows)
     (set-window-dedicated-p (selected-window) nil)

@@ -963,7 +963,7 @@ If WIND-B is nil, use window next to WIND-A."
 ;;;###autoload
 (defun ediff-regions-wordwise (buffer-A buffer-B &optional startup-hooks)
   "Run Ediff on a pair of regions in specified buffers.
-Regions \(i.e., point and mark\) can be set in advance or marked interactively.
+Regions (i.e., point and mark) can be set in advance or marked interactively.
 This function is effective only for relatively small regions, up to 200
 lines.  For large regions, use `ediff-regions-linewise'."
   (interactive
@@ -1003,7 +1003,7 @@ lines.  For large regions, use `ediff-regions-linewise'."
 ;;;###autoload
 (defun ediff-regions-linewise (buffer-A buffer-B &optional startup-hooks)
   "Run Ediff on a pair of regions in specified buffers.
-Regions \(i.e., point and mark\) can be set in advance or marked interactively.
+Regions (i.e., point and mark) can be set in advance or marked interactively.
 Each region is enlarged to contain full lines.
 This function is effective for large regions, over 100-200
 lines.  For small regions, use `ediff-regions-wordwise'."

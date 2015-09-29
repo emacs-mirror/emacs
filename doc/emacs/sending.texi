@@ -136,7 +136,7 @@ Use both address and full name, as in:@*
 Use both address and full name, as in:@*
 @samp{Elvis Parsley <king@@grassland.com>}.
 @item any other value
-Use @code{angles} normally.  But if the address must be ``quoted'' to
+Use @code{angles} normally.  But if the address must be quoted to
 remain syntactically valid under the @code{angles} format but not
 under the @code{parens} format, use @code{parens} instead.  This is
 the default.
@@ -159,7 +159,7 @@ directed at them.
 
 @item BCC
 Additional mailing address(es) to send the message to, which should
-not appear in the header of the message actually sent.  ``BCC'' stands
+not appear in the header of the message actually sent.  @samp{BCC} stands
 for @dfn{blind carbon copies}.
 
 @item FCC
@@ -276,7 +276,7 @@ of the address, such as the person's full name.  Emacs puts them in if
 they are needed.  For instance, it inserts the above address as
 @samp{"John Q. Smith" <none@@example.com>}.
 
-  Emacs also recognizes ``include'' commands in @file{.mailrc}.  They
+  Emacs also recognizes include commands in @file{.mailrc}.  They
 look like this:
 
 @example
@@ -341,7 +341,7 @@ Send the message, and leave the mail buffer selected (@code{message-send}).
 @vindex message-kill-buffer-on-exit
   The usual command to send a message is @kbd{C-c C-c}
 (@code{mail-send-and-exit}).  This sends the message and then
-``buries'' the mail buffer, putting it at the lowest priority for
+buries the mail buffer, putting it at the lowest priority for
 reselection.  If you want it to kill the mail buffer instead, change
 the variable @code{message-kill-buffer-on-exit} to @code{t}.
 
@@ -648,7 +648,7 @@ it all.  Whether or not this is true, it at least amuses some people.
 
 @findex fortune-to-signature
 @cindex fortune cookies
-  You can use the @code{fortune} program to put a ``fortune cookie''
+  You can use the @code{fortune} program to put a fortune cookie
 message into outgoing mail.  To do this, add
 @code{fortune-to-signature} to @code{mail-setup-hook}:
 

@@ -175,7 +175,7 @@ This variable is used by the various nntp-open-via-* methods.")
   "*Whether both telnet client and server support the ENVIRON option.
 If non-nil, there will be no prompt for a login name.")
 
-(defvoo nntp-via-shell-prompt "bash\\|\$ *\r?$\\|> *\r?"
+(defvoo nntp-via-shell-prompt "bash\\|[$>] *\r?$"
   "*Regular expression to match the shell prompt on an intermediate host.
 This variable is used by the `nntp-open-via-telnet-and-telnet' method.")
 
@@ -1764,7 +1764,7 @@ If SEND-IF-FORCE, only send authinfo to the server if the
 (defvoo nntp-open-telnet-envuser nil
   "*If non-nil, telnet session (client and server both) will support the ENVIRON option and not prompt for login name.")
 
-(defvoo nntp-telnet-shell-prompt "bash\\|\$ *\r?$\\|> *\r?"
+(defvoo nntp-telnet-shell-prompt "bash\\|[$>] *\r?$"
   "*Regular expression to match the shell prompt on the remote machine.")
 
 (defvoo nntp-rlogin-program "rsh"

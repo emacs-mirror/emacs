@@ -3162,12 +3162,12 @@ Do this when stopped before the form or it will be too late.
 One side effect of using this command is that the next time the
 function or macro is called, Edebug will be called there as well."
   (interactive)
-  (if (not (looking-at "\("))
+  (if (not (looking-at "("))
       (error "You must be before a list form")
     (let ((func
 	   (save-excursion
 	     (down-list 1)
-	     (if (looking-at "\(")
+	     (if (looking-at "(")
 		 (edebug--form-data-name
 		  (edebug-get-form-data-entry (point)))
 	       (read (current-buffer))))))
@@ -3216,57 +3216,45 @@ This is useful for exiting even if `unwind-protect' code may be executed."
   (setq edebug-execution-mode 'Go-nonstop)
   (top-level))
 
-
 ;;(defun edebug-exit-out ()
 ;;  "Go until the current function exits."
 ;;  (interactive)
 ;;  (edebug-set-mode 'exiting "Exit..."))
 
-
-;;; The following initial mode setting definitions are not used yet.
-
-'(defconst edebug-initial-mode-alist
-  '((edebug-Continue-fast . Continue-fast)
-    (edebug-Trace-fast . Trace-fast)
-    (edebug-continue . continue)
-    (edebug-trace . trace)
-    (edebug-go . go)
-    (edebug-step-through . step)
-    (edebug-Go-nonstop . Go-nonstop)
-    )
+(defconst edebug-initial-mode-alist
+  '((edebug-step-mode . step)
+    (edebug-next-mode . next)
+    (edebug-trace-mode . trace)
+    (edebug-Trace-fast-mode . Trace-fast)
+    (edebug-go-mode . go)
+    (edebug-continue-mode . continue)
+    (edebug-Continue-fast-mode . Continue-fast)
+    (edebug-Go-nonstop-mode . Go-nonstop))
   "Association list between commands and the modes they set.")
 
+(defvar edebug-mode-map)		; will be defined fully later.
 
-'(defun edebug-set-initial-mode ()
-  "Ask for the initial mode of the enclosing function.
+(defun edebug-set-initial-mode ()
+  "Set the initial execution mode of Edebug.
 The mode is requested via the key that would be used to set the mode in
 edebug-mode."
   (interactive)
-  (let* ((this-function (edebug-which-function))
-	 (keymap (if (eq edebug-mode-map (current-local-map))
-		     edebug-mode-map))
-	 (old-mode (or (get this-function 'edebug-initial-mode)
-		       edebug-initial-mode))
+  (let* ((old-mode edebug-initial-mode)
 	 (key (read-key-sequence
 	       (format
-		"Change initial edebug mode for %s from %s (%s) to (enter key): "
-		       this-function
-		       old-mode
-		       (where-is-internal
-			(car (rassq old-mode edebug-initial-mode-alist))
-			keymap 'firstonly
-			))))
-	 (mode (cdr (assq (key-binding key) edebug-initial-mode-alist)))
-	 )
-    (if (and mode
-	     (or (get this-function 'edebug-initial-mode)
-		 (not (eq mode edebug-initial-mode))))
+		"Change initial edebug mode from %s (%c) to (enter key): "
+		old-mode
+		(aref (where-is-internal
+		       (car (rassq old-mode edebug-initial-mode-alist))
+		       edebug-mode-map 'firstonly)
+		      0))))
+	 (mode (cdr (assq (lookup-key edebug-mode-map key)
+			  edebug-initial-mode-alist))))
+    (if mode
 	(progn
-	  (put this-function 'edebug-initial-mode mode)
-	  (message "Initial mode for %s is now: %s"
-		   this-function mode))
-      (error "Key must map to one of the mode changing commands")
-      )))
+	  (setq edebug-initial-mode mode)
+	  (message "Edebug's initial mode is now: %s" mode))
+      (error "Key must map to one of the mode changing commands"))))
 
 ;;; Evaluation of expressions
 
@@ -3425,7 +3413,9 @@ be installed in `emacs-lisp-mode-map'.")
   (define-key emacs-lisp-mode-map "\C-x\C-a\C-s" 'edebug-step-mode)
   (define-key emacs-lisp-mode-map "\C-x\C-a\C-n" 'edebug-next-mode)
   (define-key emacs-lisp-mode-map "\C-x\C-a\C-c" 'edebug-go-mode)
-  (define-key emacs-lisp-mode-map "\C-x\C-a\C-l" 'edebug-where))
+  (define-key emacs-lisp-mode-map "\C-x\C-a\C-l" 'edebug-where)
+  ;; The following isn't a GUD binding.
+  (define-key emacs-lisp-mode-map "\C-x\C-a\C-m" 'edebug-set-initial-mode))
 
 (defvar edebug-mode-map
   (let ((map (copy-keymap emacs-lisp-mode-map)))
@@ -3790,10 +3780,10 @@ Otherwise call `debug' normally."
       (if t (progn
 
       ;; Delete interspersed edebug internals.
-      (while (re-search-forward "^  \(?edebug" nil t)
+      (while (re-search-forward "^  (?edebug" nil t)
 	(beginning-of-line)
 	(cond
-	 ((looking-at "^  \(edebug-after")
+	 ((looking-at "^  (edebug-after")
 	  ;; Previous lines may contain code, so just delete this line.
 	  (setq last-ok-point (point))
 	  (forward-line 1)

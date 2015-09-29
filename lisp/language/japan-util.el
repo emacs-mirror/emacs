@@ -102,7 +102,7 @@ HANKAKU-KATAKANA belongs to `japanese-jisx0201-kana'.")
     (?´ ?') (?｀ ?`) (?＾ ?^) (?＿ ?_) (?ー ?- ?ｰ) (?― ?-) (?‐ ?-)
     (?／ ?/) (?＼ ?\\) (?〜 ?~)  (?｜ ?|) (?‘ ?`) (?’ ?') (?“ ?\") (?” ?\")
     (?\（ ?\() (?\） ?\)) (?\［ ?[) (?\］ ?]) (?\｛ ?{) (?\｝ ?})
-    (?〈 ?<) (?〉 ?>) (?\「 nil ?\｢) (?\」 nil ?\｣) 
+    (?〈 ?<) (?〉 ?>) (?\「 nil ?\｢) (?\」 nil ?\｣)
     (?＋ ?+) (?− ?-) (?＝ ?=) (?＜ ?<) (?＞ ?>)
     (?′ ?') (?″ ?\") (?￥ ?\\) (?＄ ?$) (?％ ?%) (?＃ ?#) (?＆ ?&) (?＊ ?*)
     (?＠ ?@)
@@ -175,9 +175,9 @@ belongs to `japanese-jisx0208', ASCII belongs to `ascii'.")
 The argument may be a character or string.  The result has the same type.
 The argument object is not altered--the value is a copy.
 Optional argument HANKAKU t means to convert to `hankaku' Katakana
- \(`japanese-jisx0201-kana'), in which case return value
- may be a string even if OBJ is a character if two Katakanas are
- necessary to represent OBJ."
+\(`japanese-jisx0201-kana'), in which case return value
+may be a string even if OBJ is a character if two Katakanas are
+necessary to represent OBJ."
   (if (stringp obj)
       (japanese-string-conversion obj 'japanese-katakana-region hankaku)
     (or (get-char-code-property obj (if hankaku 'jisx0201 'katakana))

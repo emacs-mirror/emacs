@@ -574,6 +574,7 @@
   (define-key calc-mode-map "uG" 'calc-vector-geometric-mean)
   (define-key calc-mode-map "uM" 'calc-vector-mean)
   (define-key calc-mode-map "uN" 'calc-vector-min)
+  (define-key calc-mode-map "uR" 'calc-vector-rms)
   (define-key calc-mode-map "uS" 'calc-vector-sdev)
   (define-key calc-mode-map "uU" 'calc-undo)
   (define-key calc-mode-map "uX" 'calc-vector-max)
@@ -932,7 +933,7 @@ calc-preserve-point calc-replace-selections calc-replace-sub-formula
 calc-roll-down-with-selections calc-roll-up-with-selections
 calc-sel-error)
 
- ("calc-stat" calc-vector-op calcFunc-agmean
+ ("calc-stat" calc-vector-op calcFunc-agmean calcFunc-rms
 calcFunc-vcorr calcFunc-vcount calcFunc-vcov calcFunc-vflat
 calcFunc-vgmean calcFunc-vhmean calcFunc-vmax calcFunc-vmean
 calcFunc-vmeane calcFunc-vmedian calcFunc-vmin calcFunc-vpcov
@@ -1147,8 +1148,8 @@ calc-vector-covariance calc-vector-geometric-mean
 calc-vector-harmonic-mean calc-vector-max calc-vector-mean
 calc-vector-mean-error calc-vector-median calc-vector-min
 calc-vector-pop-covariance calc-vector-pop-sdev
-calc-vector-pop-variance calc-vector-product calc-vector-sdev
-calc-vector-sum calc-vector-variance)
+calc-vector-pop-variance calc-vector-product calc-vector-rms
+calc-vector-sdev calc-vector-sum calc-vector-variance)
 
  ("calc-store" calc-assign calc-copy-special-constant
 calc-copy-variable calc-declare-variable
@@ -1292,6 +1293,7 @@ calc-kill calc-kill-region calc-yank))))
   (define-key calc-help-map "?" 'calc-help-for-help)
   (define-key calc-help-map "\C-h" 'calc-help-for-help))
 
+(defvar calc-prefix-help-retry nil)
 (defvar calc-prefix-help-phase 0)
 (defun calc-do-prefix-help (msgs group key)
   (if calc-full-help-flag
@@ -1299,7 +1301,7 @@ calc-kill calc-kill-region calc-yank))))
     (if (cdr msgs)
 	(progn
 	  (setq calc-prefix-help-phase
-		(if (eq this-command last-command)
+		(if calc-prefix-help-retry
 		    (% (1+ calc-prefix-help-phase) (1+ (length msgs)))
 		  0))
 	  (let ((msg (nth calc-prefix-help-phase msgs)))
@@ -1320,7 +1322,13 @@ calc-kill calc-kill-region calc-yank))))
 	      (message "%s: %s: %c-" group (car msgs) key)
 	    (message "%s: (none)  %c-" group key))
 	(message "%s: %s" group (car msgs))))
-    (and key (calc-unread-command key))))
+    (let* ((chr (read-char))
+           (bnd (local-key-binding (if key (string key chr) (string chr)))))
+      (setq calc-prefix-help-retry (= chr ??))
+      (if bnd
+          (call-interactively bnd)
+        (message "%s is undefined"
+                 (key-description (if key (vector key chr) (vector chr))))))))
 
 ;;;; Commands.
 
@@ -3498,9 +3506,5 @@ A key may contain additional specs for Inverse, Hyperbolic, and Inv+Hyp.")
 (run-hooks 'calc-ext-load-hook)
 
 (provide 'calc-ext)
-
-;; Local variables:
-;; coding: utf-8
-;; End:
 
 ;;; calc-ext.el ends here

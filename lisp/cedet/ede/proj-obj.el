@@ -126,7 +126,7 @@ file.")
 (defvar ede-source-c++
   (ede-sourcecode "ede-source-c++"
 		  :name "C++"
-		  :sourcepattern "\\.\\(c\\(pp?\\|c\\|xx\\|++\\)\\|C\\\(PP\\)?\\)$"
+		  :sourcepattern "\\.\\(c\\(pp?\\|c\\|xx\\|++\\)\\|C\\(PP\\)?\\)$"
 		  :auxsourcepattern "\\.\\(hpp?\\|hh?\\|hxx\\|H\\)$"
 		  :garbagepattern '("*.o" "*.obj" ".deps/*.P" ".lo"))
   "C++ source code definition.")

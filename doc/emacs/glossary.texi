@@ -135,7 +135,7 @@ X}).  Borders are not the same as fringes (q.v.).
 @item Buffer
 The buffer is the basic editing unit; one buffer corresponds to one text
 being edited.  You normally have several buffers, but at any time you are
-editing only one, the ``current buffer'', though several can be visible
+editing only one, the current buffer, though several can be visible
 when you are using multiple windows or frames (q.v.).  Most buffers
 are visiting (q.v.@:) some file.  @xref{Buffers}.
 
@@ -265,7 +265,7 @@ normally (but see @ref{Glossary---Truncation}) takes up more than one
 screen line when displayed.  We say that the text line is continued, and all
 screen lines used for it after the first are called continuation
 lines.  @xref{Continuation Lines}.  A related Emacs feature is
-``filling'' (q.v.).
+filling (q.v.).
 
 @item Control Character
 A control character is a character that you type by holding down the
@@ -285,7 +285,7 @@ The particular form of copyleft used by the GNU project is called the
 GNU General Public License.  @xref{Copying}.
 
 @item @key{Ctrl}
-The @key{Ctrl} or ``control'' key is what you hold down
+The @key{Ctrl} or control key is what you hold down
 in order to enter a control character (q.v.).  @xref{Glossary---C-}.
 
 @item Current Buffer
@@ -367,8 +367,8 @@ Deletion means erasing text without copying it into the kill ring
 @anchor{Glossary---Deletion of Files}
 @item Deletion of Files
 Deleting a file means erasing it from the file system.
-(Note that some systems use the concept of a ``trash can'', or ``recycle
-bin'', to allow you to ``undelete'' files.)
+(Note that some systems use the concept of a trash can, or recycle
+bin, to allow you to undelete files.)
 @xref{Misc File Ops,Misc File Ops,Miscellaneous File Operations}.
 
 @item Deletion of Messages
@@ -1076,7 +1076,7 @@ command, using @kbd{C-g} (or @kbd{C-@key{BREAK}} on MS-DOS).  @xref{Quitting}.
 Quoting means depriving a character of its usual special significance.
 The most common kind of quoting in Emacs is with @kbd{C-q}.  What
 constitutes special significance depends on the context and on
-convention.  For example, an ``ordinary'' character as an Emacs command
+convention.  For example, an ordinary character as an Emacs command
 inserts itself; so in this context, a special character is any character
 that does not normally insert itself (such as @key{DEL}, for example),
 and quoting it makes it insert itself as if it were not special.  Not
@@ -1121,7 +1121,7 @@ Many commands operate on the text of the region.  @xref{Mark,Region}.
 @item Register
 Registers are named slots in which text, buffer positions, or
 rectangles can be saved for later use.  @xref{Registers}.  A related
-Emacs feature is ``bookmarks'' (q.v.).
+Emacs feature is bookmarks (q.v.).
 
 @anchor{Glossary---Regular Expression}
 @item Regular Expression

@@ -104,9 +104,9 @@ interpretation.  @xref{Command Loop}.
   A Lisp object that is intended to be evaluated is called a
 @dfn{form} (or an @dfn{expression}).  How Emacs evaluates a form
 depends on its data type.  Emacs has three different kinds of form
-that are evaluated differently: symbols, lists, and ``all other
-types''.  This section describes all three kinds, one by one, starting
-with the ``all other types'' which are self-evaluating forms.
+that are evaluated differently: symbols, lists, and all other
+types.  This section describes all three kinds, one by one, starting
+with the other types, which are self-evaluating forms.
 
 @menu
 * Self-Evaluating Forms::   Forms that evaluate to themselves.
@@ -116,7 +116,7 @@ with the ``all other types'' which are self-evaluating forms.
                               we find the real function via the symbol.
 * Function Forms::          Forms that call functions.
 * Macro Forms::             Forms that call macros.
-* Special Forms::           ``Special forms'' are idiosyncratic primitives,
+* Special Forms::           Special forms are idiosyncratic primitives,
                               most of them extremely important.
 * Autoloading::             Functions set up to load files
                               containing their real definitions.
@@ -146,7 +146,7 @@ contents unchanged.
      @result{} 123
 @end group
 @group
-(eval '123)        ; @r{Evaluated ``by hand''---result is the same.}
+(eval '123)        ; @r{Evaluated "by hand"---result is the same.}
      @result{} 123
 @end group
 @group

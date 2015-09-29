@@ -742,7 +742,7 @@ The actions that can be performed are listed in `idlwave-indent-action-table'."
 
 (defcustom idlwave-abbrev-start-char "\\"
   "A single character string used to start abbreviations in abbrev mode.
-Possible characters to choose from: ~\\=`\%
+Possible characters to choose from: ~\\=`%
 or even `?'.  `.' is not a good choice because it can make structure
 field names act like abbrevs in certain circumstances.
 
@@ -1559,7 +1559,7 @@ KEY in `idlwave-mode-map' by defining an anonymous function calling
 `self-insert-command' followed by CMD.  If KEY contains more than one
 character a binding will only be set if SELECT is 'both.
 
-\(KEY . CMD\) is also placed in the `idlwave-indent-expand-table',
+\(KEY . CMD) is also placed in the `idlwave-indent-expand-table',
 replacing any previous value for KEY.  If a binding is not set then it
 will instead be placed in `idlwave-indent-action-table'.
 

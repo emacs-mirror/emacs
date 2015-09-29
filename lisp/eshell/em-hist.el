@@ -639,7 +639,7 @@ matched."
   ;; `!'
   ;;      Start a history substitution, except when followed by a
   ;;      space, tab, the end of the line, = or (.
-  (if (not (string-match "^![^ \t\n=\(]" reference))
+  (if (not (string-match "^![^ \t\n=(]" reference))
       reference
     (setq eshell-history-index nil)
     (let ((event (eshell-hist-parse-event-designator reference)))

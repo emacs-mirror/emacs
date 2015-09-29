@@ -3722,12 +3722,12 @@ Fall back to normal file name handler if no Tramp handler exists."
   "Like `file-notify-add-watch' for Tramp files."
   (setq file-name (expand-file-name file-name))
   (with-parsed-tramp-file-name file-name nil
-    (let* ((default-directory (file-name-directory file-name))
-	   command events filter p sequence)
+    (let ((default-directory (file-name-directory file-name))
+	  command events filter p sequence)
       (cond
        ;; gvfs-monitor-dir.
        ((setq command (tramp-get-remote-gvfs-monitor-dir v))
-	(setq filter 'tramp-sh-file-gvfs-monitor-dir-process-filter
+	(setq filter 'tramp-sh-gvfs-monitor-dir-process-filter
 	      events
 	      (cond
 	       ((and (memq 'change flags) (memq 'attribute-change flags))
@@ -3739,16 +3739,16 @@ Fall back to normal file name handler if no Tramp handler exists."
 	      sequence `(,command ,localname)))
        ;; inotifywait.
        ((setq command (tramp-get-remote-inotifywait v))
-	(setq filter 'tramp-sh-file-inotifywait-process-filter
+	(setq filter 'tramp-sh-inotifywait-process-filter
 	      events
 	      (cond
 	       ((and (memq 'change flags) (memq 'attribute-change flags))
 		(concat "create,modify,move,moved_from,moved_to,move_self,"
-			"delete,delete_self,attrib"))
+			"delete,delete_self,attrib,ignored"))
 	       ((memq 'change flags)
 		(concat "create,modify,move,moved_from,moved_to,move_self,"
-			"delete,delete_self"))
-	       ((memq 'attribute-change flags) "attrib"))
+			"delete,delete_self,ignored"))
+	       ((memq 'attribute-change flags) "attrib,ignored"))
 	      sequence `(,command "-mq" "-e" ,events ,localname)))
        ;; None.
        (t (tramp-error
@@ -3770,13 +3770,20 @@ Fall back to normal file name handler if no Tramp handler exists."
 	   (mapconcat 'identity sequence " "))
 	(tramp-message v 6 "Run `%s', %S" (mapconcat 'identity sequence " ") p)
 	(tramp-set-connection-property p "vector" v)
-	;; Needed for `tramp-sh-file-gvfs-monitor-dir-process-filter'.
+	;; Needed for `tramp-sh-gvfs-monitor-dir-process-filter'.
 	(tramp-compat-process-put p 'events events)
+	(tramp-compat-process-put p 'watch-name localname)
 	(tramp-compat-set-process-query-on-exit-flag p nil)
 	(set-process-filter p filter)
+	;; There might be an error if the monitor is not supported.
+	;; Give the filter a chance to read the output.
+	(tramp-accept-process-output p 1)
+	(unless (memq (process-status p) '(run open))
+	  (tramp-error
+	   v 'file-notify-error "Monitoring not supported for `%s'" file-name))
 	p))))
 
-(defun tramp-sh-file-gvfs-monitor-dir-process-filter (proc string)
+(defun tramp-sh-gvfs-monitor-dir-process-filter (proc string)
   "Read output from \"gvfs-monitor-dir\" and add corresponding \
 file-notify events."
   (let ((remote-prefix
@@ -3790,6 +3797,8 @@ file-notify events."
 	  ;; Attribute change is returned in unused wording.
 	  string (tramp-compat-replace-regexp-in-string
 		  "ATTRIB CHANGED" "ATTRIBUTE_CHANGED" string))
+    (when (string-match "Monitoring not supported" string)
+      (delete-process proc))
 
     (while (string-match
 	    (concat "^[\n\r]*"
@@ -3798,18 +3807,24 @@ file-notify events."
 		    "\\(Other = \\([^\n\r]+\\)[\n\r]+\\)?"
 		    "Event = \\([^[:blank:]]+\\)[\n\r]+")
 	    string)
-      (let ((object
-	     (list
-	      proc
-	      (intern-soft
-	       (tramp-compat-replace-regexp-in-string
-		"_" "-" (downcase (match-string 4 string))))
-	      ;; File names are returned as absolute paths.  We must
-	      ;; add the remote prefix.
-	      (concat remote-prefix (match-string 1 string))
-	      (when (match-string 3 string)
-		(concat remote-prefix (match-string 3 string))))))
+      (let* ((file (match-string 1 string))
+	     (file1 (match-string 3 string))
+	     (object
+	      (list
+	       proc
+	       (intern-soft
+		(tramp-compat-replace-regexp-in-string
+		 "_" "-" (downcase (match-string 4 string))))
+	       ;; File names are returned as absolute paths.  We must
+	       ;; add the remote prefix.
+	       (concat remote-prefix file)
+	       (when file1 (concat remote-prefix file1)))))
 	(setq string (replace-match "" nil nil string))
+	;; Remove watch when file or directory to be watched is deleted.
+	(when (and (member (cadr object) '(moved deleted))
+		   (string-equal
+		    file (tramp-compat-process-get proc 'watch-name)))
+	  (delete-process proc))
 	;; Usually, we would add an Emacs event now.  Unfortunately,
 	;; `unread-command-events' does not accept several events at
 	;; once.  Therefore, we apply the callback directly.
@@ -3821,7 +3836,7 @@ file-notify events."
     (when string (tramp-message proc 10 "Rest string:\n%s" string))
     (tramp-compat-process-put proc 'rest-string string)))
 
-(defun tramp-sh-file-inotifywait-process-filter (proc string)
+(defun tramp-sh-inotifywait-process-filter (proc string)
   "Read output from \"inotifywait\" and add corresponding file-notify events."
   (tramp-message proc 6 "%S\n%s" proc string)
   (dolist (line (split-string string "[\n\r]+" 'omit-nulls))
@@ -3843,6 +3858,9 @@ file-notify events."
 		(tramp-compat-replace-regexp-in-string "_" "-" (downcase x))))
 	     (split-string (match-string 1 line) "," 'omit-nulls))
 	    (match-string 3 line))))
+      ;; Remove watch when file or directory to be watched is deleted.
+      (when (equal (cadr object) 'ignored)
+	(delete-process proc))
       ;; Usually, we would add an Emacs event now.  Unfortunately,
       ;; `unread-command-events' does not accept several events at
       ;; once.  Therefore, we apply the callback directly.
@@ -4313,7 +4331,7 @@ process to set up.  VEC specifies the connection."
   "List of local coding commands for inline transfer.
 Each item is a list that looks like this:
 
-\(FORMAT ENCODING DECODING\)
+\(FORMAT ENCODING DECODING)
 
 FORMAT is  symbol describing the encoding/decoding format.  It can be
 `b64' for base64 encoding, `uu' for uu encoding, or `pack' for simple packing.
@@ -4351,7 +4369,7 @@ with the encoded or decoded results, respectively.")
   "List of remote coding commands for inline transfer.
 Each item is a list that looks like this:
 
-\(FORMAT ENCODING DECODING [TEST]\)
+\(FORMAT ENCODING DECODING [TEST])
 
 FORMAT is a symbol describing the encoding/decoding format.  It can be
 `b64' for base64 encoding, `uu' for uu encoding, or `pack' for simple packing.
@@ -4524,7 +4542,7 @@ means discard it)."
   "List of compress and decompress commands for inline transfer.
 Each item is a list that looks like this:
 
-\(COMPRESS DECOMPRESS\)
+\(COMPRESS DECOMPRESS)
 
 COMPRESS or DECOMPRESS are strings with the respective commands.")
 
@@ -5535,7 +5553,7 @@ Return ATTR."
 	   (tramp-get-remote-id vec)
 	   (if (equal id-format 'integer) "" "n")
 	   (if (equal id-format 'integer)
-	       "" "| sed -e s/^/\\\"/ -e s/\$/\\\"/"))))
+	       "" "| sed -e s/^/\\\"/ -e s/\\$/\\\"/"))))
 
 (defun tramp-get-remote-uid-with-perl (vec id-format)
   (tramp-send-command-and-read
@@ -5586,7 +5604,7 @@ Return ATTR."
 	   (tramp-get-remote-id vec)
 	   (if (equal id-format 'integer) "" "n")
 	   (if (equal id-format 'integer)
-	       "" "| sed -e s/^/\\\"/ -e s/\$/\\\"/"))))
+	       "" "| sed -e s/^/\\\"/ -e s/\\$/\\\"/"))))
 
 (defun tramp-get-remote-gid-with-perl (vec id-format)
   (tramp-send-command-and-read

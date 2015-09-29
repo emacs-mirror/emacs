@@ -1684,7 +1684,7 @@ non-default settings would be \"LPT1\" to \"LPT3\" for parallel printers, or
 for a shared network printer.  You can also set it to a name of a file, in
 which case the output gets appended to that file.  \(Note that `ps-print'
 package already has facilities for printing to a file, so you might as well use
-them instead of changing the setting of this variable.\)  If you want to
+them instead of changing the setting of this variable.)  If you want to
 silently discard the printed output, set this to \"NUL\".
 
 Set to t, if the utility given by `ps-lpr-command' needs an empty printer name.
@@ -3172,7 +3172,7 @@ This variable is used only when `ps-print-color-p' is set to `black-white'."
       font-lock-variable-name-face
       font-lock-keyword-face
       font-lock-warning-face))
-  "A list of the \(non-bold\) faces that should be printed in bold font.
+  "A list of the (non-bold) faces that should be printed in bold font.
 This applies to generating PostScript."
   :type '(repeat face)
   :version "20"
@@ -3185,7 +3185,7 @@ This applies to generating PostScript."
       font-lock-string-face
       font-lock-comment-face
       font-lock-warning-face))
-  "A list of the \(non-italic\) faces that should be printed in italic font.
+  "A list of the (non-italic) faces that should be printed in italic font.
 This applies to generating PostScript."
   :type '(repeat face)
   :version "20"
@@ -3196,7 +3196,7 @@ This applies to generating PostScript."
     '(font-lock-function-name-face
       font-lock-constant-face
       font-lock-warning-face))
-  "A list of the \(non-underlined\) faces that should be printed underlined.
+  "A list of the (non-underlined) faces that should be printed underlined.
 This applies to generating PostScript."
   :type '(repeat face)
   :version "20"

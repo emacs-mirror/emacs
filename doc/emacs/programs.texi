@@ -741,10 +741,10 @@ because of the parentheses.
   The following commands move over groupings delimited by parentheses
 (or whatever else serves as delimiters in the language you are working
 with).  They ignore strings and comments, including any parentheses
-within them, and also ignore parentheses that are ``quoted'' with an
+within them, and also ignore parentheses that are quoted with an
 escape character.  These commands are mainly intended for editing
 programs, but can be useful for editing any text containing
-parentheses.  They are referred to internally as ``list'' commands
+parentheses.  They are referred to internally as ``list commands''
 because in Lisp these groupings are lists.
 
   These commands assume that the starting point is not inside a string
@@ -766,7 +766,7 @@ Move down in parenthesis structure (@code{down-list}).
 @kindex C-M-p
 @findex forward-list
 @findex backward-list
-  The ``list'' commands @kbd{C-M-n} (@code{forward-list}) and
+  The list commands @kbd{C-M-n} (@code{forward-list}) and
 @kbd{C-M-p} (@code{backward-list}) move forward or backward over one
 (or @var{n}) parenthetical groupings.
 
@@ -940,7 +940,7 @@ you use it.
 
   When a region is active (@pxref{Mark}), @kbd{M-;} either adds
 comment delimiters to the region, or removes them.  If every line in
-the region is already a comment, it ``uncomments'' each of those lines
+the region is already a comment, it uncomments each of those lines
 by removing their comment delimiters.  Otherwise, it adds comment
 delimiters to enclose the text in the region.
 
@@ -1134,7 +1134,7 @@ You can also use @kbd{M-x info-lookup-file} to look for documentation
 for a file name.
 
   If you use @kbd{C-h S} in a major mode that does not support it,
-it asks you to specify the ``symbol help mode''.  You should enter
+it asks you to specify the symbol help mode.  You should enter
 a command such as @code{c-mode} that would select a major
 mode which @kbd{C-h S} does support.
 
@@ -1381,8 +1381,8 @@ see @ref{Top, Semantic,, semantic, Semantic}.
 see the Semantic Info manual, which is distributed with Emacs.
 @end iftex
 
-  Most of the ``language aware'' features in Emacs, such as Font Lock
-mode (@pxref{Font Lock}), rely on ``rules of thumb''@footnote{Regular
+  Most of the language-aware features in Emacs, such as Font Lock
+mode (@pxref{Font Lock}), rely on rules of thumb@footnote{Regular
 expressions and syntax tables.} that usually give good results but are
 never completely exact.  In contrast, the parsers used by Semantic
 have an exact understanding of programming language syntax.  This
@@ -1478,15 +1478,16 @@ support Outline minor mode (@pxref{Outline Mode}), which can be used
 with the Foldout package (@pxref{Foldout}).
 
 @ifinfo
-  The ``automatic typing'' features may be useful for writing programs.
+  The automatic typing features may be useful for writing programs.
 @xref{Top,,Autotyping, autotype, Autotyping}.
 @end ifinfo
 
 @findex prettify-symbols-mode
   Prettify Symbols mode is a buffer-local minor mode that replaces
-certain strings with more ``attractive'' versions for display
+certain strings with more attractive versions for display
 purposes.  For example, in Emacs Lisp mode, it replaces the string
-``lambda'' with the Greek lambda character.  You may wish to use this
+@samp{lambda} with the Greek lambda character @samp{λ}.  You may wish
+to use this
 in non-programming modes as well.  You can customize the mode by
 adding more entries to @code{prettify-symbols-alist}.  There is also a
 global version, @code{global-prettify-symbols-mode}, which enables the
@@ -1600,7 +1601,7 @@ Move point to the end of the innermost C statement or sentence; like
   In C mode and related modes, certain printing characters are
 @dfn{electric}---in addition to inserting themselves, they also
 reindent the current line, and optionally also insert newlines.  The
-``electric'' characters are @kbd{@{}, @kbd{@}}, @kbd{:}, @kbd{#},
+electric characters are @kbd{@{}, @kbd{@}}, @kbd{:}, @kbd{#},
 @kbd{;}, @kbd{,}, @kbd{<}, @kbd{>}, @kbd{/}, @kbd{*}, @kbd{(}, and
 @kbd{)}.
 
@@ -1797,7 +1798,7 @@ it work.
 Hide-ifdef minor mode hides selected code within @samp{#if} and
 @samp{#ifdef} preprocessor blocks.  If you change the variable
 @code{hide-ifdef-shadow} to @code{t}, Hide-ifdef minor mode
-``shadows'' preprocessor blocks by displaying them with a less
+shadows preprocessor blocks by displaying them with a less
 prominent face, instead of hiding them entirely.  See the
 documentation string of @code{hide-ifdef-mode} for more information.
 
@@ -1805,7 +1806,7 @@ documentation string of @code{hide-ifdef-mode} for more information.
 @cindex related files
 @findex ff-find-related-file
 @vindex ff-related-file-alist
-Find a file ``related'' in a special way to the file visited by the
+Find a file related in a special way to the file visited by the
 current buffer.  Typically this will be the header file corresponding
 to a C/C++ source file, or vice versa.  The variable
 @code{ff-related-file-alist} specifies how to compute related file

@@ -1060,7 +1060,7 @@ comment at the start of cc-engine.el for more info."
 			  (save-excursion
 			    (c-forward-sexp) (point)))
 			 ;; Just gone back over some paren block?
-			 ((looking-at "\\s\(")
+			 ((looking-at "\\s(")
 			  (save-excursion
 			    (goto-char (1+ (c-down-list-backward
 					    before-sws-pos)))
@@ -1233,7 +1233,7 @@ The variable `c-maybe-labelp' is set to the position of the first `:' that
 might start a label (i.e. not part of `::' and not preceded by `?').  If a
 single `?' is found, then `c-maybe-labelp' is cleared.
 
-For AWK, a statement which is terminated by an EOL (not a \; or a }) is
+For AWK, a statement which is terminated by an EOL (not a ; or a }) is
 regarded as having a \"virtual semicolon\" immediately after the last token on
 the line.  If this virtual semicolon is _at_ from, the function recognizes it.
 
@@ -3792,8 +3792,8 @@ comment at the start of cc-engine.el for more info."
 
 (defconst c-jump-syntax-balanced
   (if (memq 'gen-string-delim c-emacs-features)
-      "\\w\\|\\s_\\|\\s\(\\|\\s\)\\|\\s\"\\|\\s|"
-    "\\w\\|\\s_\\|\\s\(\\|\\s\)\\|\\s\""))
+      "\\w\\|\\s_\\|\\s(\\|\\s)\\|\\s\"\\|\\s|"
+    "\\w\\|\\s_\\|\\s(\\|\\s)\\|\\s\""))
 
 (defconst c-jump-syntax-unbalanced
   (if (memq 'gen-string-delim c-emacs-features)
@@ -3960,7 +3960,7 @@ See `c-forward-token-2' for details."
 tokens like \"==\" as single tokens, i.e. all sequences of symbol
 characters are jumped over character by character.  This function is
 for compatibility only; it's only a wrapper over `c-forward-token-2'."
-  (let ((c-nonsymbol-token-regexp "\\s.\\|\\s\(\\|\\s\)"))
+  (let ((c-nonsymbol-token-regexp "\\s."))
     (c-forward-token-2 count balanced limit)))
 
 (defun c-backward-token-1 (&optional count balanced limit)
@@ -3968,7 +3968,7 @@ for compatibility only; it's only a wrapper over `c-forward-token-2'."
 tokens like \"==\" as single tokens, i.e. all sequences of symbol
 characters are jumped over character by character.  This function is
 for compatibility only; it's only a wrapper over `c-backward-token-2'."
-  (let ((c-nonsymbol-token-regexp "\\s.\\|\\s\(\\|\\s\)"))
+  (let ((c-nonsymbol-token-regexp "\\s."))
     (c-backward-token-2 count balanced limit)))
 
 
@@ -7124,7 +7124,7 @@ comment at the start of cc-engine.el for more info."
 		       (setq paren-depth (1- paren-depth))
 		       (forward-char)
 		       t)
-		   (when (if (save-match-data (looking-at "\\s\("))
+		   (when (if (save-match-data (looking-at "\\s("))
 			     (c-safe (c-forward-sexp 1) t)
 			   (goto-char (match-end 1))
 			   t)
@@ -7198,7 +7198,7 @@ comment at the start of cc-engine.el for more info."
 
 	 (setq at-decl-end
 	       (looking-at (cond ((eq context '<>) "[,>]")
-				 (context "[,\)]")
+				 (context "[,)]")
 				 (t "[,;]"))))
 
 	 ;; Now we've collected info about various characteristics of
@@ -7522,7 +7522,7 @@ comment at the start of cc-engine.el for more info."
 	 ;; The closing paren should follow.
 	 (progn
 	   (c-forward-syntactic-ws)
-	   (looking-at "\\s\)"))
+	   (looking-at "\\s)"))
 
 	 ;; There should be a primary expression after it.
 	 (let (pos)
@@ -7919,7 +7919,7 @@ comment at the start of cc-engine.el for more info."
 
 	  (catch 'break
 	    ;; Look for ": superclass-name" or "( category-name )".
-	    (when (looking-at "[:\(]")
+	    (when (looking-at "[:(]")
 	      (setq start-char (char-after))
 	      (forward-char)
 	      (c-forward-syntactic-ws)
@@ -8434,7 +8434,7 @@ comment at the start of cc-engine.el for more info."
 			    ;; Check for `c-opt-block-decls-with-vars-key'
 			    ;; before the first paren.
 			    (c-syntactic-re-search-forward
-			     (concat "[;=\(\[{]\\|\\("
+			     (concat "[;=([{]\\|\\("
 				     c-opt-block-decls-with-vars-key
 				     "\\)")
 			     lim t t t)
@@ -8442,7 +8442,7 @@ comment at the start of cc-engine.el for more info."
 			    (not (eq (char-before) ?_))
 			    ;; Check that the first following paren is
 			    ;; the block.
-			    (c-syntactic-re-search-forward "[;=\(\[{]"
+			    (c-syntactic-re-search-forward "[;=([{]"
 							   lim t t t)
 			    (eq (char-before) ?{)))))))
 	    ;; The declaration doesn't have any of the
@@ -8961,7 +8961,7 @@ comment at the start of cc-engine.el for more info."
 			 (> (point) closest-lim))
 		  (not (bobp))
 		  (progn (backward-char)
-			 (looking-at "[\]\).]\\|\\w\\|\\s_"))
+			 (looking-at "[]).]\\|\\w\\|\\s_"))
 		  (c-safe (forward-char)
 			  (goto-char (scan-sexps (point) -1))))
 

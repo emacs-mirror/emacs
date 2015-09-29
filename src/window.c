@@ -644,7 +644,7 @@ DEFUN ("window-combination-limit", Fwindow_combination_limit, Swindow_combinatio
 WINDOW must be a valid window used in horizontal or vertical combination.
 If the return value is nil, child windows of WINDOW can be recombined with
 WINDOW's siblings.  A return value of t means that child windows of
-WINDOW are never \(re-)combined with WINDOW's siblings.  */)
+WINDOW are never (re-)combined with WINDOW's siblings.  */)
   (Lisp_Object window)
 {
   struct window *w;
@@ -661,7 +661,7 @@ DEFUN ("set-window-combination-limit", Fset_window_combination_limit, Sset_windo
 WINDOW must be a valid window used in horizontal or vertical combination.
 If LIMIT is nil, child windows of WINDOW can be recombined with WINDOW's
 siblings.  LIMIT t means that child windows of WINDOW are never
-\(re-)combined with WINDOW's siblings.  Other values are reserved for
+(re-)combined with WINDOW's siblings.  Other values are reserved for
 future use.  */)
   (Lisp_Object window, Lisp_Object limit)
 {
@@ -1294,10 +1294,18 @@ window_relative_x_coord (struct window *w, enum window_part part, int x)
 	      + window_box_width (w, RIGHT_MARGIN_AREA)
 	      + ((WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w))
 		 ? WINDOW_RIGHT_FRINGE_WIDTH (w) : 0));
-    }
 
-  /* ON_SCROLL_BAR, ON_NOTHING, and ON_VERTICAL_BORDER:  */
-  return 0;
+    case ON_NOTHING:
+    case ON_VERTICAL_BORDER:
+    case ON_VERTICAL_SCROLL_BAR:
+    case ON_HORIZONTAL_SCROLL_BAR:
+    case ON_RIGHT_DIVIDER:
+    case ON_BOTTOM_DIVIDER:
+      return 0;
+
+    default:
+      emacs_abort ();
+    }
 }
 
 
@@ -1307,7 +1315,7 @@ DEFUN ("coordinates-in-window-p", Fcoordinates_in_window_p,
 WINDOW must be a live window and defaults to the selected one.
 COORDINATES is a cons of the form (X . Y), X and Y being distances
 measured in characters from the upper-left corner of the frame.
-\(0 . 0) denotes the character in the upper left corner of the
+(0 . 0) denotes the character in the upper left corner of the
 frame.
 If COORDINATES are in the text portion of WINDOW,
    the coordinates relative to the window are returned.
@@ -1691,7 +1699,7 @@ of the window.  The remaining elements are omitted if the character after
 POS is fully visible; otherwise, RTOP and RBOT are the number of pixels
 off-window at the top and bottom of the screen line ("row") containing
 POS, ROWH is the visible height of that row, and VPOS is the row number
-\(zero-based).  */)
+(zero-based).  */)
   (Lisp_Object pos, Lisp_Object window, Lisp_Object partially)
 {
   struct window *w;

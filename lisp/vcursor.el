@@ -573,11 +573,11 @@ With optional NOT-THIS non-nil never return the current window.
 
 With NEW-WIN non-nil, display the virtual cursor buffer in another
 window if the virtual cursor is not currently visible \(note, however,
-that this function never changes `window-point'\).
+that this function never changes `window-point').
 
 With THIS-FRAME non-nil, don't search other frames for a new window
 \(though if the vcursor is already off-frame then its current window is
-always considered, and the value of `pop-up-frames' is always respected\).
+always considered, and the value of `pop-up-frames' is always respected).
 
 Returns nil if the virtual cursor is not visible anywhere suitable.
 Set `vcursor-window' to the returned value as a side effect."

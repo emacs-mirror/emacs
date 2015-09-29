@@ -58,7 +58,7 @@ the character after point.
 * Base 64::          Conversion to or from base 64 encoding.
 * Checksum/Hash::    Computing cryptographic hashes.
 * Parsing HTML/XML:: Parsing HTML and XML.
-* Atomic Changes::   Installing several buffer changes ``atomically''.
+* Atomic Changes::   Installing several buffer changes atomically.
 * Change Hooks::     Supplying functions to be run when text is changed.
 @end menu
 
@@ -578,7 +578,7 @@ error; if some of the text in it is read-only, it signals a
 asking for any confirmation.  It returns @code{nil}.
 
 Normally, deleting a large amount of text from a buffer inhibits further
-auto-saving of that buffer ``because it has shrunk''.  However,
+auto-saving of that buffer because it has shrunk.  However,
 @code{erase-buffer} does not do this, the idea being that the future
 text is not really related to the former text, and its size should not
 be compared with that of the former text.
@@ -825,7 +825,7 @@ buffer if the variable @code{delete-trailing-lines} is non-@code{nil}.
 it so that the user can reinsert it by @dfn{yanking}.  Most of these
 functions have @samp{kill-} in their name.  By contrast, the functions
 whose names start with @samp{delete-} normally do not save text for
-yanking (though they can still be undone); these are ``deletion''
+yanking (though they can still be undone); these are deletion
 functions.
 
   Most of the kill commands are primarily for interactive use, and are
@@ -846,8 +846,8 @@ that treat it as a ring.
 
   Some people think this use of the word ``kill'' is unfortunate, since
 it refers to operations that specifically @emph{do not} destroy the
-entities ``killed''.  This is in sharp contrast to ordinary life, in
-which death is permanent and ``killed'' entities do not come back to
+entities killed.  This is in sharp contrast to ordinary life, in
+which death is permanent and killed entities do not come back to
 life.  Therefore, other metaphors have been proposed.  For example, the
 term ``cut ring'' makes sense to people who, in pre-computer days, used
 scissors and paste to cut up and rearrange manuscripts.  However, it
@@ -882,9 +882,9 @@ succession build up a single kill ring entry, which would be yanked as a
 unit; the second and subsequent consecutive kill commands add text to
 the entry made by the first one.
 
-  For yanking, one entry in the kill ring is designated the ``front'' of
-the ring.  Some yank commands ``rotate'' the ring by designating a
-different element as the ``front''.  But this virtual rotation doesn't
+  For yanking, one entry in the kill ring is designated the front of
+the ring.  Some yank commands rotate the ring by designating a
+different element as the front.  But this virtual rotation doesn't
 change the list itself---the most recent entry always comes first in the
 list.
 
@@ -892,7 +892,7 @@ list.
 @subsection Functions for Killing
 
   @code{kill-region} is the usual subroutine for killing text.  Any
-command that calls this function is a ``kill command'' (and should
+command that calls this function is a kill command (and should
 probably have @samp{kill} in its name).  @code{kill-region} puts the
 newly killed text in a new element at the beginning of the kill ring or
 adds it to the most recent element.  It determines automatically (using
@@ -1101,7 +1101,7 @@ because they take care of interaction with window system selections
 
 @defun current-kill n &optional do-not-move
 The function @code{current-kill} rotates the yanking pointer, which
-designates the ``front'' of the kill ring, by @var{n} places (from newer
+designates the front of the kill ring, by @var{n} places (from newer
 kills to older ones), and returns the text at that place in the ring.
 
 If the optional second argument @var{do-not-move} is non-@code{nil},
@@ -1148,13 +1148,13 @@ programs, when you are using a window system.  Its value should be
 @code{nil} or a function of no arguments.
 
 If the value is a function, @code{current-kill} calls it to get the
-``most recent kill''.  If the function returns a non-@code{nil} value,
-then that value is used as the ``most recent kill''.  If it returns
+most recent kill.  If the function returns a non-@code{nil} value,
+then that value is used as the most recent kill.  If it returns
 @code{nil}, then the front of the kill ring is used.
 
 To facilitate support for window systems that support multiple
 selections, this function may also return a list of strings.  In that
-case, the first string is used as the ``most recent kill'', and all
+case, the first string is used as the most recent kill, and all
 the other strings are pushed onto the kill ring, for easy access by
 @code{yank-pop}.
 
@@ -1186,7 +1186,7 @@ of the list.
 
   The @code{kill-ring-yank-pointer} variable points to a link in the
 kill ring list, whose @sc{car} is the text to yank next.  We say it
-identifies the ``front'' of the ring.  Moving
+identifies the front of the ring.  Moving
 @code{kill-ring-yank-pointer} to a different link is called
 @dfn{rotating the kill ring}.  We call the kill ring a ``ring'' because
 the functions that move the yank pointer wrap around from the end of the
@@ -1238,7 +1238,7 @@ killed first.
 
 @defvar kill-ring-yank-pointer
 This variable's value indicates which element of the kill ring is at the
-``front'' of the ring for yanking.  More precisely, the value is a tail
+front of the ring for yanking.  More precisely, the value is a tail
 of the value of @code{kill-ring}, and its @sc{car} is the kill string
 that @kbd{C-y} should yank.
 @end defvar
@@ -1423,7 +1423,7 @@ cannot specify any other buffer.  This function returns @code{nil}.
 
   As editing continues, undo lists get longer and longer.  To prevent
 them from using up all available memory space, garbage collection trims
-them back to size limits you can set.  (For this purpose, the ``size''
+them back to size limits you can set.  (For this purpose, the size
 of an undo list measures the cons cells that make up the list, plus the
 strings of deleted text.)  Three variables control the range of acceptable
 sizes: @code{undo-limit}, @code{undo-strong-limit} and
@@ -1648,8 +1648,8 @@ Manual}.
 
 @defvar use-hard-newlines
 If this variable is non-@code{nil}, the filling functions do not delete
-newlines that have the @code{hard} text property.  These ``hard
-newlines'' act as paragraph separators.  @xref{Hard and Soft
+newlines that have the @code{hard} text property.  These hard
+newlines act as paragraph separators.  @xref{Hard and Soft
 Newlines,, Hard and Soft Newlines, emacs, The GNU Emacs Manual}.
 @end defvar
 
@@ -1823,7 +1823,7 @@ Used only in one-line paragraphs, this regular expression acts as an
 additional check of the validity of the one available candidate fill
 prefix: the candidate must match this regular expression, or match
 @code{comment-start-skip}.  If it doesn't, @code{fill-context-prefix}
-replaces the candidate with a string of spaces ``of the same width''
+replaces the candidate with a string of spaces of the same width
 as it.
 
 The default value of this variable is @w{@code{"\\`[ \t]*\\'"}}, which
@@ -1836,7 +1836,7 @@ whitespace.
 You can specify more complex ways of choosing a fill prefix
 automatically by setting this variable to a function.  The function is
 called with point after the left margin (if any) of a line, and it
-must preserve point.  It should return either ``that line's'' fill
+must preserve point.  It should return either that line's fill
 prefix or @code{nil}, meaning it has failed to determine a prefix.
 @end defopt
 
@@ -2382,7 +2382,7 @@ a different meaning and does not use this variable.
 @deffn Command indent-rigidly start end count
 This function indents all lines starting between @var{start}
 (inclusive) and @var{end} (exclusive) sideways by @var{count} columns.
-This ``preserves the shape'' of the affected region, moving it as a
+This preserves the shape of the affected region, moving it as a
 rigid unit.
 
 This is useful not only for indenting regions of unindented text, but
@@ -2481,10 +2481,10 @@ column, this command does nothing.
 @end deffn
 
 @node Indent Tabs
-@subsection Adjustable ``Tab Stops''
+@subsection Adjustable Tab Stops
 @cindex tabs stops for indentation
 
-  This section explains the mechanism for user-specified ``tab stops''
+  This section explains the mechanism for user-specified tab stops
 and the mechanisms that use and set them.  The name ``tab stops'' is
 used because the feature is similar to that of the tab stops on a
 typewriter.  The feature works by inserting an appropriate number of
@@ -3165,7 +3165,7 @@ This property says whether the text is ready for display.  If
 @code{nil}, Emacs's redisplay routine calls the functions in
 @code{fontification-functions} (@pxref{Auto Faces}) to prepare this
 part of the buffer before it is displayed.  It is used internally by
-the ``just in time'' font locking code.
+the just-in-time font locking code.
 
 @item display
 This property activates various features that change the
@@ -3623,8 +3623,8 @@ once for the same part of the buffer, you can use the variable
 @defvar buffer-access-fontified-property
 If this variable's value is non-@code{nil}, it is a symbol which is used
 as a text property name.  A non-@code{nil} value for that text property
-means, ``the other text properties for this character have already been
-computed''.
+means the other text properties for this character have already been
+computed.
 
 If all the characters in the range specified for @code{buffer-substring}
 have a non-@code{nil} value for this property, @code{buffer-substring}
@@ -3742,10 +3742,10 @@ controlled by the user option @code{mouse-1-click-follows-link}.
 bind the @code{follow-link} event to a keymap (which can be a major
 mode keymap or a local keymap specified via the @code{keymap} text
 property).  The value of the @code{follow-link} property, or the
-binding for the @code{follow-link} event, acts as a ``condition'' for
+binding for the @code{follow-link} event, acts as a condition for
 the link action.  This condition tells Emacs two things: the
 circumstances under which a @kbd{Mouse-1} click should be regarded as
-occurring ``inside'' the link, and how to compute an ``action code''
+occurring inside the link, and how to compute an action code
 that says what to translate the @kbd{Mouse-1} click into.  The link
 action condition can be one of the following:
 
@@ -3911,7 +3911,7 @@ This function deletes the text of the field specified by @var{pos}.
 @end defun
 
 @defun constrain-to-field new-pos old-pos &optional escape-from-edge only-in-line inhibit-capture-property
-This function ``constrains'' @var{new-pos} to the field that
+This function constrains @var{new-pos} to the field that
 @var{old-pos} belongs to---in other words, it returns the position
 closest to @var{new-pos} that is in the same field as @var{old-pos}.
 
@@ -3929,7 +3929,7 @@ after @var{old-pos}.)  If @var{escape-from-edge} is non-@code{nil},
 @var{new-pos} can be anywhere in the two adjacent fields.
 Additionally, if two fields are separated by another field with the
 special value @code{boundary}, then any point within this special
-field is also considered to be ``on the boundary''.
+field is also considered to be on the boundary.
 
 Commands like @kbd{C-a} with no argument, that normally move backward
 to a specific kind of location and stay there once there, probably
@@ -3957,7 +3957,7 @@ You can cause @code{constrain-to-field} to ignore all field boundaries
 @cindex intervals
 
   Some editors that support adding attributes to text in the buffer do
-so by letting the user specify ``intervals'' within the text, and adding
+so by letting the user specify intervals within the text, and adding
 the properties to the intervals.  Those editors permit the user or the
 programmer to determine where individual intervals start and end.  We
 deliberately provided a different sort of interface in Emacs Lisp to
@@ -3975,7 +3975,7 @@ Then if you yank back the killed text, you get two intervals with the
 same properties.  Thus, editing does not preserve the distinction
 between one interval and two.
 
-  Suppose we ``fix'' this problem by coalescing the two intervals when
+  Suppose we attempt to fix this problem by coalescing the two intervals when
 the text is inserted.  That works fine if the buffer originally was a
 single interval.  But suppose instead that we have two adjacent
 intervals with the same properties, and we kill the text of one interval
@@ -4277,7 +4277,7 @@ The decoding functions ignore newline characters in the encoded text.
 @cindex cryptographic hash
 
   Emacs has built-in support for computing @dfn{cryptographic hashes}.
-A cryptographic hash, or @dfn{checksum}, is a digital ``fingerprint''
+A cryptographic hash, or @dfn{checksum}, is a digital fingerprint
 of a piece of data (e.g., a block of text) which can be used to check
 that you have an unaltered copy of that data.
 
@@ -4286,7 +4286,7 @@ that you have an unaltered copy of that data.
 SHA-1, SHA-2, SHA-224, SHA-256, SHA-384 and SHA-512.  MD5 is the
 oldest of these algorithms, and is commonly used in @dfn{message
 digests} to check the integrity of messages transmitted over a
-network.  MD5 is not ``collision resistant'' (i.e., it is possible to
+network.  MD5 is not collision resistant (i.e., it is possible to
 deliberately design different pieces of data which have the same MD5
 hash), so you should not used it for anything security-related.  A
 similar theoretical weakness also exists in SHA-1.  Therefore, for
@@ -4347,7 +4347,7 @@ are available to parse HTML or XML text into Lisp object trees.
 @defun libxml-parse-html-region start end &optional base-url discard-comments
 This function parses the text between @var{start} and @var{end} as
 HTML, and returns a list representing the HTML @dfn{parse tree}.  It
-attempts to handle ``real world'' HTML by robustly coping with syntax
+attempts to handle real-world HTML by robustly coping with syntax
 mistakes.
 
 The optional argument @var{base-url}, if non-@code{nil}, should be a
@@ -4559,7 +4559,7 @@ lower-level functions that @code{atomic-change-group} uses.
 
 @defun prepare-change-group &optional buffer
 This function sets up a change group for buffer @var{buffer}, which
-defaults to the current buffer.  It returns a ``handle'' that
+defaults to the current buffer.  It returns a handle that
 represents the change group.  You must use this handle to activate the
 change group and subsequently to finish it.
 @end defun

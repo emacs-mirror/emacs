@@ -375,9 +375,4 @@ If FIX is non-nil, run `copyright-fix-years' instead."
 
 (provide 'copyright)
 
-;; For the copyright sign:
-;; Local Variables:
-;; coding: utf-8
-;; End:
-
 ;;; copyright.el ends here

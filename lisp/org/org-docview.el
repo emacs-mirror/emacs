@@ -61,7 +61,7 @@
       (setq path (org-link-escape (expand-file-name path)))
       (cond
        ((eq format 'html) (format "<a href=\"%s\">%s</a>" path desc))
-       ((eq format 'latex) (format "\href{%s}{%s}" path desc))
+       ((eq format 'latex) (format "\\href{%s}{%s}" path desc))
        ((eq format 'ascii) (format "%s (%s)" desc path))
        (t path)))))
 

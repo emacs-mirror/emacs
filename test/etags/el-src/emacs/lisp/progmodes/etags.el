@@ -1766,7 +1766,7 @@ if the file was newly read in, the value is the filename."
 	        "No \\[tags-search] or \\[tags-query-replace] in progress"))
   "Form for `tags-loop-continue' to eval to scan one file.
 If it returns non-nil, this file needs processing by evalling
-\`tags-loop-operate'.  Otherwise, move on to the next file.")
+`tags-loop-operate'.  Otherwise, move on to the next file.")
 
 (defun tags-loop-eval (form)
   "Evaluate FORM and return its result.

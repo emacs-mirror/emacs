@@ -1042,7 +1042,7 @@ ones, in case fg and bg are nil."
                (shr-color-visible bg fg)))))))
 
 (defun shr-colorize-region (start end fg &optional bg)
-  (when (or fg bg)
+  (when (and (or fg bg) (>= (display-color-cells) 88))
     (let ((new-colors (shr-color-check fg bg)))
       (when new-colors
 	(when fg
@@ -2049,9 +2049,5 @@ The preference is a float determined from `shr-prefer-media-type'."
     max))
 
 (provide 'shr)
-
-;; Local Variables:
-;; coding: utf-8
-;; End:
 
 ;;; shr.el ends here

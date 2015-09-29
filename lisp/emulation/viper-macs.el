@@ -327,8 +327,8 @@ Can be used in `viper-custom-file-name' to define permanent macros.
 MACRO-NAME is a string of characters or a vector of keys.  STATE is
 either `vi-state' or `insert-state'.  It specifies the Viper state in which to
 define the macro.  MACRO-BODY is a string that represents the keyboard macro.
-Optional SCOPE says whether the macro should be global \(t\), mode-specific
-\(a major-mode symbol\), or buffer-specific \(buffer name, a string\).
+Optional SCOPE says whether the macro should be global \(t), mode-specific
+\(a major-mode symbol), or buffer-specific \(buffer name, a string).
 If SCOPE is nil, the user is asked to specify the scope."
   (let* (state-name keymap
 	 (macro-alist-var
@@ -894,7 +894,7 @@ mistakes in macro names to be passed to this function is to use
   (set-register reg last-kbd-macro))
 
 (defun viper-register-macro (count)
-  "Keyboard macros in registers - a modified \@ command."
+  "Keyboard macros in registers - a modified @ command."
   (interactive "P")
   (let ((reg (downcase (read-char))))
     (cond ((or (and (<= ?a reg) (<= reg ?z)))

@@ -684,11 +684,11 @@ If @var{frame-number} is out of range, @code{backtrace-frame} returns
 @cindex debugging invalid Lisp syntax
 
   The Lisp reader reports invalid syntax, but cannot say where the real
-problem is.  For example, the error ``End of file during parsing'' in
+problem is.  For example, the error @samp{End of file during parsing} in
 evaluating an expression indicates an excess of open parentheses (or
 square brackets).  The reader detects this imbalance at the end of the
 file, but it cannot figure out where the close parenthesis should have
-been.  Likewise, ``Invalid read syntax: ")"'' indicates an excess close
+been.  Likewise, @samp{Invalid read syntax: ")"} indicates an excess close
 parenthesis or missing open parenthesis, but does not say where the
 missing parenthesis belongs.  How, then, to find what to change?
 

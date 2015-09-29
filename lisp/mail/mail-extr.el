@@ -1,4 +1,4 @@
-;;; mail-extr.el --- extract full name and address from RFC 822 mail header -*- coding: utf-8 -*-
+;;; mail-extr.el --- extract full name and address from RFC 822 mail header
 
 ;; Copyright (C) 1991-1994, 1997, 2001-2015 Free Software Foundation,
 ;; Inc.
@@ -329,7 +329,7 @@ by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\"."
 ;; Matches an embedded or leading nickname that should be removed.
 ;; (defconst mail-extr-nickname-pattern
 ;;   (purecopy
-;;    (format "\\([ .]\\|\\`\\)[\"'`\[\(]\\([ .%s]+\\)[\]\"'\)] "
+;;    (format "\\([ .]\\|\\`\\)[\"'`[(]\\([ .%s]+\\)[]\"')] "
 ;;            mail-extr-all-letters)))
 
 ;; Matches the occurrence of a generational name suffix, and the last
@@ -369,7 +369,7 @@ by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\"."
 ;; Matches a variety of trailing comments not including comma-delimited
 ;; comments.
 (defconst mail-extr-trailing-comment-start-pattern
-  (purecopy " [-{]\\|--\\|[+@#></\;]"))
+  (purecopy " [-{]\\|--\\|[+@#></;]"))
 
 ;; Matches a name (not an initial).
 ;; This doesn't force a word boundary at the end because sometimes a
@@ -456,7 +456,7 @@ by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\"."
 ;; mode from GB back to ASCII.  (Note that the escape-from-GB code '~}'
 ;; ($7E7D) is outside the defined GB range.)
 (defconst mail-extr-hz-embedded-gb-encoded-chinese-pattern
-  (purecopy "~{\\([^~].\\|~[^\}]\\)+~}"))
+  (purecopy "~{\\([^~].\\|~[^}]\\)+~}"))
 
 ;; The leading optional lowercase letters are for a bastardized version of
 ;; the encoding, as is the optional nature of the final slash.
@@ -543,8 +543,8 @@ by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\"."
     (?\t " ")
     (?\r " ")
     (?\n " ")
-    (?\( "\(\)")
-    (?\) "\)\(")
+    (?\( "()")
+    (?\) ")(")
     (?\\ "\\"))
    (mail-extr-address-domain-literal-syntax-table
     (?\000 ?\377 "w")
@@ -553,8 +553,8 @@ by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\"."
     (?\t " ")
     (?\r " ")
     (?\n " ")
-    (?\[ "\(\]")			;??????
-    (?\] "\)\[")			;??????
+    (?\[ "(]")			;??????
+    (?\] ")[")			;??????
     (?\\ "\\"))
    (mail-extr-address-text-comment-syntax-table
     (?\000 ?\377 "w")
@@ -563,16 +563,16 @@ by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\"."
     (?\t " ")
     (?\r " ")
     (?\n " ")
-    (?\( "\(\)")
-    (?\) "\)\(")
-    (?\[ "\(\]")
-    (?\] "\)\[")
-    (?\{ "\(\}")
-    (?\} "\)\{")
+    (?\( "()")
+    (?\) ")(")
+    (?\[ "(]")
+    (?\] ")[")
+    (?\{ "(}")
+    (?\} "){")
     (?\\ "\\")
     (?\" "\"")
-    ;; (?\' "\)\`")
-    ;; (?\` "\(\'")
+    ;; (?\' ")`")
+    ;; (?\` "('")
     )
    (mail-extr-address-text-syntax-table
     (?\000 ?\177 ".")

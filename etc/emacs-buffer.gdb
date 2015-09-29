@@ -29,8 +29,8 @@
 # The Emacs executable must have debugging symbols for this to work.
 # But you never strip Emacs, right?
 #
-# The main commands of interest are `ybuffer-list', `yfile-buffers',
-# `ysave-buffer', and `ybuffer-contents'.  The `y' prefix avoids any
+# The main commands of interest are 'ybuffer-list', 'yfile-buffers',
+# 'ysave-buffer', and 'ybuffer-contents'.  The 'y' prefix avoids any
 # namespace collisions with emacs/src/.gdbinit.
 
 # Since the internal data structures in Emacs occasionally from time to
@@ -129,7 +129,7 @@ end
 document ybuffer-list
   Display a list of buffer names, sizes, and other attributes.
   The buffer number in the first column is used as an argument
-  to some other emacs-buffer recovery commands, e.g. `ysave-buffer'.
+  to some other emacs-buffer recovery commands, e.g. 'ysave-buffer'.
 end
 
 define yfile-buffers
@@ -138,7 +138,7 @@ define yfile-buffers
 end
 document yfile-buffers
   Display a list of buffers which are associated with files.
-  This is like `ybuffer-list', but only buffers that were visiting files
+  This is like 'ybuffer-list', but only buffers that were visiting files
   are displayed.
 end
 
@@ -165,7 +165,7 @@ define yset-buffer
 end
 document yset-buffer
   Set current buffer (for other emacs-buffer recovery commands) to the ARG'th
-  buffer as displayed by `ybuffer-list'.
+  buffer as displayed by 'ybuffer-list'.
 end
 
 define yget-buffer-pointers
@@ -184,9 +184,9 @@ define yget-buffer-pointers
 end
 document yget-buffer-pointers
   Update convenience variables with address pointers for the ARG'th buffer
-  as displayed by `ybuffer-list'.
+  as displayed by 'ybuffer-list'.
 
-  This also sets the current buffer using `yset-buffer' (which see).
+  This also sets the current buffer using 'yset-buffer' (which see).
 end
 
 define yget-current-buffer-name
@@ -220,11 +220,11 @@ define ydump-buffer
   end
 end
 document ydump-buffer
-  Write contents of buffer N (as numbered according to `ybuffer-list') to
+  Write contents of buffer N (as numbered according to 'ybuffer-list') to
   file FILE.
 
-  This is mainly used as an internal subroutine for `ysave-buffer' and
-  `ybuffer-contents', which see.
+  This is mainly used as an internal subroutine for 'ysave-buffer' and
+  'ybuffer-contents', which see.
 end
 
 define ysave-buffer
@@ -242,7 +242,7 @@ define ysave-buffer
   end
 end
 document ysave-buffer
-  Save contents of buffer N (as numbered according to `ybuffer-list') to
+  Save contents of buffer N (as numbered according to 'ybuffer-list') to
   file FILE.
 end
 
@@ -258,7 +258,7 @@ define ybuffer-contents
   end
 end
 document ybuffer-contents
-  Write contents of buffer N (numbered according to `ybuffer-list') to stdout.
+  Write contents of buffer N (numbered according to 'ybuffer-list') to stdout.
 end
 
 # local variables:

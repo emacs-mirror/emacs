@@ -269,7 +269,7 @@ RETURN-ACTION and any additional arguments are IGNORED."
 
 When you are all through editing a message, you send it with this
 command. You can give a prefix argument ARG to monitor the first stage
-of the delivery\; this output can be found in a buffer called \"*MH-E
+of the delivery; this output can be found in a buffer called \"*MH-E
 Mail Delivery*\".
 
 The hook `mh-before-send-letter-hook' is run at the beginning of
@@ -1064,7 +1064,7 @@ The versions of MH-E, Emacs, and MH are shown."
                          (string-match "[0-9]+\\.[0-9]+\\(\\.[0-9]+\\)?"
                                        emacs-version)
                          (match-string 0 emacs-version))
-                        ((string-match "[0-9.]*\\( +\([ a-z]+[0-9]+\)\\)?"
+                        ((string-match "[0-9.]*\\( +([ a-z]+[0-9]+)\\)?"
                                        emacs-version)
                          (match-string 0 emacs-version))
                         (t (format "%s.%s" emacs-major-version

@@ -3838,7 +3838,7 @@ START is a regular expression which will match the
     beginning of the tokens delimited string.
 ALL is a regular expression with a single
     parenthesized subpattern which is the token to be
-    returned.  E.g. `{\(.*\)}' would return any string
+    returned.  E.g. `{(.*)}' would return any string
     enclosed in braces around POS.
 ERRORSTRING optional fourth argument, controls action on no match:
     nil: return nil

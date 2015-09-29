@@ -380,7 +380,7 @@ Example:
   \"org.freedesktop.Hal.Device\" \"GetPropertyString\" \\='message
   \"system.kernel.machine\")
 
-  => \(:serial :system 2)
+  => (:serial :system 2)
 
   -| i686"
 
@@ -656,8 +656,8 @@ Example:
   :system \"org.freedesktop.Hal\" \"/org/freedesktop/Hal/Manager\"
   \"org.freedesktop.Hal.Manager\" \"DeviceAdded\" \\='my-signal-handler)
 
-  => \(\(:signal :system \"org.freedesktop.Hal.Manager\" \"DeviceAdded\")
-      \(\"org.freedesktop.Hal\" \"/org/freedesktop/Hal/Manager\" my-signal-handler))
+  => ((:signal :system \"org.freedesktop.Hal.Manager\" \"DeviceAdded\")
+      (\"org.freedesktop.Hal\" \"/org/freedesktop/Hal/Manager\" my-signal-handler))
 
 `dbus-register-signal' returns an object, which can be used in
 `dbus-unregister-object' for removing the registration."
@@ -1143,7 +1143,7 @@ Note, that this autoloads SERVICE if it is not running yet.  If
 it shall be checked whether SERVICE is already running, one shall
 apply
 
-  \(member service \(dbus-list-known-names bus))"
+  (member service \(dbus-list-known-names bus))"
   ;; "Ping" raises a D-Bus error if SERVICE does not exist.
   ;; Otherwise, it returns silently with nil.
   (condition-case nil
@@ -1631,22 +1631,22 @@ name, and the cdr is the list of properties as returned by
 
 \(dbus-get-all-managed-objects :session \"org.gnome.SettingsDaemon\" \"/\")
 
-  => \(\(\"/org/gnome/SettingsDaemon/MediaKeys\"
-       \(\"org.gnome.SettingsDaemon.MediaKeys\")
-       \(\"org.freedesktop.DBus.Peer\")
-       \(\"org.freedesktop.DBus.Introspectable\")
-       \(\"org.freedesktop.DBus.Properties\")
-       \(\"org.freedesktop.DBus.ObjectManager\"))
-      \(\"/org/gnome/SettingsDaemon/Power\"
-       \(\"org.gnome.SettingsDaemon.Power.Keyboard\")
-       \(\"org.gnome.SettingsDaemon.Power.Screen\")
-       \(\"org.gnome.SettingsDaemon.Power\"
-        \(\"Icon\" . \". GThemedIcon battery-full-charged-symbolic \")
-        \(\"Tooltip\" . \"Laptop battery is charged\"))
-       \(\"org.freedesktop.DBus.Peer\")
-       \(\"org.freedesktop.DBus.Introspectable\")
-       \(\"org.freedesktop.DBus.Properties\")
-       \(\"org.freedesktop.DBus.ObjectManager\"))
+  => ((\"/org/gnome/SettingsDaemon/MediaKeys\"
+       (\"org.gnome.SettingsDaemon.MediaKeys\")
+       (\"org.freedesktop.DBus.Peer\")
+       (\"org.freedesktop.DBus.Introspectable\")
+       (\"org.freedesktop.DBus.Properties\")
+       (\"org.freedesktop.DBus.ObjectManager\"))
+      (\"/org/gnome/SettingsDaemon/Power\"
+       (\"org.gnome.SettingsDaemon.Power.Keyboard\")
+       (\"org.gnome.SettingsDaemon.Power.Screen\")
+       (\"org.gnome.SettingsDaemon.Power\"
+        (\"Icon\" . \". GThemedIcon battery-full-charged-symbolic \")
+        (\"Tooltip\" . \"Laptop battery is charged\"))
+       (\"org.freedesktop.DBus.Peer\")
+       (\"org.freedesktop.DBus.Introspectable\")
+       (\"org.freedesktop.DBus.Properties\")
+       (\"org.freedesktop.DBus.ObjectManager\"))
       ...)
 
 If possible, \"org.freedesktop.DBus.ObjectManager.GetManagedObjects\"

@@ -1687,7 +1687,7 @@ DEFUN ("global-key-binding", Fglobal_key_binding, Sglobal_key_binding, 1, 2, 0,
 KEYS is a string or vector, a sequence of keystrokes.
 The binding is probably a symbol with a function definition.
 This function's return values are the same as those of `lookup-key'
-\(which see).
+(which see).
 
 If optional argument ACCEPT-DEFAULT is non-nil, recognize default
 bindings; see the description of `lookup-key' for more details about this.  */)
@@ -2492,7 +2492,7 @@ If FIRSTONLY is the symbol `non-ascii', return the first binding found,
 no matter what it is.
 If FIRSTONLY has another non-nil value, prefer bindings
 that use the modifier key specified in `where-is-preferred-modifier'
-\(or their meta variants) and entirely reject menu bindings.
+(or their meta variants) and entirely reject menu bindings.
 
 If optional 4th arg NOINDIRECT is non-nil, don't extract the commands inside
 menu-items.  This makes it possible to search for a menu-item itself.
@@ -2723,7 +2723,7 @@ looked up in BUFFER.
 The optional argument PREFIX, if non-nil, should be a key sequence;
 then we display only bindings that start with that prefix.
 The optional argument MENUS, if non-nil, says to mention menu bindings.
-\(Ordinarily these are omitted from the output.)  */)
+(Ordinarily these are omitted from the output.)  */)
   (Lisp_Object buffer, Lisp_Object prefix, Lisp_Object menus)
 {
   Lisp_Object outbuf, shadow;

@@ -386,7 +386,7 @@ C-w  Describe how there is no warranty for Calc."
   (interactive)
   (calc-quit)
   (view-emacs-news)
-  (re-search-forward "^\*+ .*\\<Calc\\>" nil t))
+  (re-search-forward "^\\*+ .*\\<Calc\\>" nil t))
 
 (defvar calc-help-long-names '((?b . "binary/business")
 			       (?g . "graphics")

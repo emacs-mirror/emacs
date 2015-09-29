@@ -1140,7 +1140,7 @@ See also `hfy-face-to-css'."
 
 (defvar hfy-face-to-css 'hfy-face-to-css-default
   "Handler for mapping faces  to styles.
-The signature of the handler is of the form \(lambda (FN) ...\).
+The signature of the handler is of the form \(lambda (FN) ...).
 FN is a font or `defface' specification (cf
 `face-attr-construct').  The handler should return a cons cell of
 the form (STYLE-NAME . STYLE-SPEC).
@@ -1598,7 +1598,7 @@ information."
 (defvar hfy-begin-span-handler 'hfy-begin-span
   "Handler to begin a span of text.
 The signature of the handler is \(lambda (STYLE TEXT-BLOCK
-TEXT-ID TEXT-BEGINS-BLOCK-P) ...\).  The handler must insert
+TEXT-ID TEXT-BEGINS-BLOCK-P) ...).  The handler must insert
 appropriate tags to begin a span of text.
 
 STYLE is the name of the style that begins at point.  It is
@@ -1626,7 +1626,7 @@ The default handler is `hfy-begin-span'.")
 
 (defvar hfy-end-span-handler 'hfy-end-span
   "Handler to end a span of text.
-The signature of the handler is \(lambda () ...\).  The handler
+The signature of the handler is \(lambda () ...).  The handler
 must insert appropriate tags to end a span of text.
 
 The default handler is `hfy-end-span'.")
@@ -2412,7 +2412,7 @@ You may also want to set `hfy-page-header' and `hfy-page-footer'."
     (load file 'NOERROR nil nil) ))
 
 
-;;;### (autoloads nil "hfy-cmap" "hfy-cmap.el" "ce07a28b93c09032fd6b225ad74be0df")
+;;;### (autoloads nil "hfy-cmap" "hfy-cmap.el" "1fb78b15b18622256262c7246b2a3520")
 ;;; Generated autoloads from hfy-cmap.el
 
 (autoload 'htmlfontify-load-rgb-file "hfy-cmap" "\
@@ -2432,9 +2432,5 @@ Use a fallback method for obtaining the rgb values for a color.
 
 
 (provide 'htmlfontify)
-
-;; Local Variables:
-;; coding: utf-8
-;; End:
 
 ;;; htmlfontify.el ends here

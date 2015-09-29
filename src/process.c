@@ -957,7 +957,7 @@ DEFUN ("process-command", Fprocess_command, Sprocess_command, 1, 1, 0,
 This is a list of strings, the first string being the program executed
 and the rest of the strings being the arguments given to it.
 For a network or serial process, this is nil (process is running) or t
-\(process is stopped).  */)
+(process is stopped).  */)
   (register Lisp_Object process)
 {
   CHECK_PROCESS (process);
@@ -2674,7 +2674,7 @@ is not given or nil, 1 stopbit is used.
 :flowcontrol FLOWCONTROL -- FLOWCONTROL determines the type of
 flowcontrol to be used, which is either nil (don't use flowcontrol),
 the symbol `hw' (use RTS/CTS hardware flowcontrol), or the symbol `sw'
-\(use XON/XOFF software flowcontrol).  If FLOWCONTROL is not given, no
+(use XON/XOFF software flowcontrol).  If FLOWCONTROL is not given, no
 flowcontrol is used.
 
 `serial-process-configure' is called by `make-serial-process' for the
@@ -2682,12 +2682,12 @@ initial configuration of the serial port.
 
 Examples:
 
-\(serial-process-configure :process "/dev/ttyS0" :speed 1200)
+(serial-process-configure :process "/dev/ttyS0" :speed 1200)
 
-\(serial-process-configure
+(serial-process-configure
     :buffer "COM1" :stopbits 1 :parity \\='odd :flowcontrol \\='hw)
 
-\(serial-process-configure :port "\\\\.\\COM13" :bytesize 7)
+(serial-process-configure :port "\\\\.\\COM13" :bytesize 7)
 
 usage: (serial-process-configure &rest ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
@@ -2781,13 +2781,13 @@ is available via the function `process-contact'.
 
 Examples:
 
-\(make-serial-process :port "/dev/ttyS0" :speed 9600)
+(make-serial-process :port "/dev/ttyS0" :speed 9600)
 
-\(make-serial-process :port "COM1" :speed 115200 :stopbits 2)
+(make-serial-process :port "COM1" :speed 115200 :stopbits 2)
 
-\(make-serial-process :port "\\\\.\\COM13" :speed 1200 :bytesize 7 :parity \\='odd)
+(make-serial-process :port "\\\\.\\COM13" :speed 1200 :bytesize 7 :parity \\='odd)
 
-\(make-serial-process :port "/dev/tty.BlueConsole-SPP-1" :speed nil)
+(make-serial-process :port "/dev/tty.BlueConsole-SPP-1" :speed nil)
 
 usage:  (make-serial-process &rest ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
@@ -5031,12 +5031,18 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
       for (channel = 0; channel <= max_input_desc; ++channel)
         {
           struct fd_callback_data *d = &fd_callback_info[channel];
-          if (d->func
-	      && ((d->condition & FOR_READ
-		   && FD_ISSET (channel, &Available))
-		  || (d->condition & FOR_WRITE
-		      && FD_ISSET (channel, &write_mask))))
-            d->func (channel, d->data);
+          if (d->func)
+	    {
+	      if (d->condition & FOR_READ
+		  && FD_ISSET (channel, &Available))
+		{
+		  d->func (channel, d->data);
+		  FD_CLR (channel, &Available);
+		}
+	      else if (d->condition & FOR_WRITE
+		       && FD_ISSET (channel, &write_mask))
+		d->func (channel, d->data);
+	    }
 	}
 
       for (channel = 0; channel <= max_process_desc; channel++)
@@ -7296,7 +7302,7 @@ DEFUN ("process-attributes", Fprocess_attributes,
 
 Value is an alist where each element is a cons cell of the form
 
-    \(KEY . VALUE)
+    (KEY . VALUE)
 
 If this functionality is unsupported, the value is nil.
 

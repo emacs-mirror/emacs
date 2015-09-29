@@ -1,4 +1,4 @@
-;;; bubbles.el --- Puzzle game for Emacs -*- coding: utf-8 -*-
+;;; bubbles.el --- Puzzle game for Emacs
 
 ;; Copyright (C) 2007-2015 Free Software Foundation, Inc.
 

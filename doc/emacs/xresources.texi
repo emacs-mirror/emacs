@@ -12,10 +12,10 @@ resources, as is usual for programs that use X.
 graphical widgets, such as the menu-bar, scroll-bar, and dialog boxes,
 is determined by
 @ifnottex
-``GTK resources'', which we will also describe.
+GTK resources, which we will also describe.
 @end ifnottex
 @iftex
-``GTK resources''.
+GTK resources.
 @end iftex
 When Emacs is built without GTK+ support, the appearance of these
 widgets is determined by additional X resources.
@@ -238,8 +238,8 @@ this way.
 
 @ifnottex
 @item @code{privateColormap} (class @code{PrivateColormap})
-If @samp{on}, use a private color map, in the case where the ``default
-visual'' of class PseudoColor and Emacs is using it.
+If @samp{on}, use a private color map, in the case where the default
+visual of class PseudoColor and Emacs is using it.
 
 @item @code{reverseVideo} (class @code{ReverseVideo})
 Switch foreground and background default colors if @samp{on}, use colors as
@@ -677,7 +677,7 @@ class @code{GtkDialog}.  For file selection, Emacs uses a widget named
 @code{emacs-filedialog}, of class @code{GtkFileSelection}.
 
   Because the widgets for pop-up menus and dialogs are free-standing
-windows and not ``contained'' in the @code{Emacs} widget, their GTK+
+windows and not contained in the @code{Emacs} widget, their GTK+
 absolute names do not start with @samp{Emacs}.  To customize these
 widgets, use wildcards like this:
 
@@ -747,8 +747,8 @@ This is the default state for widgets.
 @item ACTIVE
 This is the state for a widget that is ready to do something.  It is
 also for the trough of a scroll bar, i.e., @code{bg[ACTIVE] = "red"}
-sets the scroll bar trough to red.  Buttons that have been pressed but
-not released yet (``armed'') are in this state.
+sets the scroll bar trough to red.  Buttons that have been armed
+(pressed but not released yet) are in this state.
 @item PRELIGHT
 This is the state for a widget that can be manipulated, when the mouse
 pointer is over it---for example when the mouse is over the thumb in

@@ -915,7 +915,7 @@ An NVARS by NRULES matrix of bits indicating which rules can help
 derive the beginning of the data for each nonterminal.  For example,
 if symbol 5 can be derived as the sequence of symbols 8 3 20, and one
 of the rules for deriving symbol 8 is rule 4, then the
-\[5 - NTOKENS, 4] bit in FDERIVES is set."
+[5 - NTOKENS, 4] bit in FDERIVES is set."
   (let (i j k)
     (setq fderives (make-vector nvars nil))
     (setq i 0)

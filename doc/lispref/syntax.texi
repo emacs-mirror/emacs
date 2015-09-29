@@ -98,7 +98,7 @@ serves as the name of the class when you need to specify a class.
 Usually, this designator character is one that is often assigned that
 class; however, its meaning as a designator is unvarying and
 independent of what syntax that character currently has.  Thus,
-@samp{\} as a designator character always means ``escape character''
+@samp{\} as a designator character always stands for escape character
 syntax, regardless of whether the @samp{\} character actually has that
 syntax in the current syntax table.
 @ifnottex
@@ -377,7 +377,7 @@ character does not have the @samp{b} flag.
 @end table
 
 @item
-@samp{p} identifies an additional ``prefix character'' for Lisp syntax.
+@samp{p} identifies an additional prefix character for Lisp syntax.
 These characters are treated as whitespace when they appear between
 expressions.  When they appear within an expression, they are handled
 according to their usual syntax classes.
@@ -640,7 +640,7 @@ expression prefix syntax class, and characters with the @samp{p} flag.
 expressions.  We will refer to such expressions as @dfn{sexps},
 following the terminology of Lisp, even though these functions can act
 on languages other than Lisp.  Basically, a sexp is either a balanced
-parenthetical grouping, a string, or a ``symbol'' (i.e., a sequence
+parenthetical grouping, a string, or a symbol (i.e., a sequence
 of characters whose syntax is either word constituent or symbol
 constituent).  However, characters in the expression prefix syntax
 class (@pxref{Syntax Class Table}) are treated as part of the sexp if
@@ -654,7 +654,7 @@ higher-level functions for moving over balanced expressions.
   A character's syntax controls how it changes the state of the
 parser, rather than describing the state itself.  For example, a
 string delimiter character toggles the parser state between
-``in-string'' and ``in-code'', but the syntax of characters does not
+in-string and in-code, but the syntax of characters does not
 directly say whether they are inside a string.  For example (note that
 15 is the syntax code for generic string delimiters),
 
@@ -731,7 +731,7 @@ number of complete comments.  If @var{count} comments are found as
 expected, with nothing except whitespace between them, it returns
 @code{t}; otherwise it returns @code{nil}.
 
-This function cannot tell whether the ``comments'' it traverses are
+This function cannot tell whether the comments it traverses are
 embedded within a string.  If they look like comments, it treats them
 as comments.
 

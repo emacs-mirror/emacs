@@ -1003,27 +1003,48 @@ file names."
             v (concat localname filename)
 	    "file-name-all-completions" result))))))))
 
-(defun tramp-gvfs-handle-file-notify-add-watch (file-name _flags _callback)
+(defun tramp-gvfs-handle-file-notify-add-watch (file-name flags _callback)
   "Like `file-notify-add-watch' for Tramp files."
   (setq file-name (expand-file-name file-name))
   (with-parsed-tramp-file-name file-name nil
-    (let ((p (start-process
-	      "gvfs-monitor-file" (generate-new-buffer " *gvfs-monitor-file*")
-	      "gvfs-monitor-file" (tramp-gvfs-url-file-name file-name))))
+    ;; We cannot watch directories, because `gvfs-monitor-dir' is not
+    ;; supported for gvfs-mounted directories.
+    (when (file-directory-p file-name)
+      (tramp-error
+       v 'file-notify-error "Monitoring not supported for `%s'" file-name))
+    (let* ((default-directory (file-name-directory file-name))
+	   (events
+	    (cond
+	     ((and (memq 'change flags) (memq 'attribute-change flags))
+	      '(created changed changes-done-hint moved deleted
+			attribute-changed))
+	     ((memq 'change flags)
+	      '(created changed changes-done-hint moved deleted))
+	     ((memq 'attribute-change flags) '(attribute-changed))))
+	   (p (start-process
+	       "gvfs-monitor-file" (generate-new-buffer " *gvfs-monitor-file*")
+	       "gvfs-monitor-file" (tramp-gvfs-url-file-name file-name))))
       (if (not (processp p))
 	  (tramp-error
-	   v 'file-notify-error "gvfs-monitor-file failed to start")
+	   v 'file-notify-error "Monitoring not supported for `%s'" file-name)
 	(tramp-message
 	 v 6 "Run `%s', %S" (mapconcat 'identity (process-command p) " ") p)
 	(tramp-set-connection-property p "vector" v)
+	(tramp-compat-process-put p 'events events)
+	(tramp-compat-process-put p 'watch-name localname)
 	(tramp-compat-set-process-query-on-exit-flag p nil)
-	(set-process-filter p 'tramp-gvfs-file-gvfs-monitor-file-process-filter)
-	(with-current-buffer (process-buffer p)
-	  (setq default-directory (file-name-directory file-name)))
+	(set-process-filter p 'tramp-gvfs-monitor-file-process-filter)
+	;; There might be an error if the monitor is not supported.
+	;; Give the filter a chance to read the output.
+	(tramp-accept-process-output p 1)
+	(unless (memq (process-status p) '(run open))
+	  (tramp-error
+	   v 'file-notify-error "Monitoring not supported for `%s'" file-name))
 	p))))
 
-(defun tramp-gvfs-file-gvfs-monitor-file-process-filter (proc string)
-  "Read output from \"gvfs-monitor-file\" and add corresponding file-notify events."
+(defun tramp-gvfs-monitor-file-process-filter (proc string)
+  "Read output from \"gvfs-monitor-file\" and add corresponding \
+file-notify events."
   (let* ((rest-string (tramp-compat-process-get proc 'rest-string))
 	 (dd (with-current-buffer (process-buffer proc) default-directory))
 	 (ddu (regexp-quote (tramp-gvfs-url-file-name dd))))
@@ -1034,6 +1055,8 @@ file names."
 	  ;; Attribute change is returned in unused wording.
 	  string (tramp-compat-replace-regexp-in-string
 		  "ATTRIB CHANGED" "ATTRIBUTE_CHANGED" string))
+    (when (string-match "Monitoring not supported" string)
+      (delete-process proc))
 
     (while (string-match
 	    (concat "^[\n\r]*"
@@ -1041,10 +1064,10 @@ file names."
 		    "File = \\([^\n\r]+\\)[\n\r]+"
 		    "Event = \\([^[:blank:]]+\\)[\n\r]+")
 	    string)
-      (let ((action (intern-soft
+      (let ((file (match-string 1 string))
+	    (action (intern-soft
 		     (tramp-compat-replace-regexp-in-string
-		      "_" "-" (downcase (match-string 2 string)))))
-	    (file (match-string 1 string)))
+		      "_" "-" (downcase (match-string 2 string))))))
 	(setq string (replace-match "" nil nil string))
 	;; File names are returned as URL paths.  We must convert them.
 	(when (string-match ddu file)
