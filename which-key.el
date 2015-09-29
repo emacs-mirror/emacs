@@ -751,7 +751,8 @@ call signature in different emacs versions"
   "Show which-key buffer when popup type is side-window."
   (let* ((side which-key-side-window-location)
          (alist '((window-width . which-key--fit-buffer-to-window-horizontally)
-                  (window-height . (lambda (w) (fit-window-to-buffer w nil 1))))))
+                  (window-height . (lambda (w) (fit-window-to-buffer w nil 1)))
+                  (preserve-size . (t . t)))))
     ;; Note: `display-buffer-in-side-window' and `display-buffer-in-major-side-window'
     ;; were added in Emacs 24.3
 
