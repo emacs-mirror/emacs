@@ -840,6 +840,8 @@ This is really kludgy, and unneeded (i.e. obsolete) in Emacs>=24."
 
 (require 'smie)
 
+(defconst prolog-operator-chars "-\\\\#&*+./:<=>?@\\^`~")
+
 (defun prolog-smie-forward-token ()
   ;; FIXME: Add support for 0'<char>, if needed after adding it to
   ;; syntax-propertize-functions.
@@ -848,7 +850,7 @@ This is really kludgy, and unneeded (i.e. obsolete) in Emacs>=24."
    (point)
    (progn (cond
            ((looking-at "[!;]") (forward-char 1))
-           ((not (zerop (skip-chars-forward "#&*+-./:<=>?@\\^`~"))))
+           ((not (zerop (skip-chars-forward prolog-operator-chars))))
            ((not (zerop (skip-syntax-forward "w_'"))))
            ;; In case of non-ASCII punctuation.
            ((not (zerop (skip-syntax-forward ".")))))
@@ -861,8 +863,8 @@ This is really kludgy, and unneeded (i.e. obsolete) in Emacs>=24."
   (buffer-substring-no-properties
    (point)
    (progn (cond
-           ((memq (char-before) '(?! ?\;)) (forward-char -1))
-           ((not (zerop (skip-chars-backward "#&*+-./:<=>?@\\^`~"))))
+           ((memq (char-before) '(?! ?\; ?\,)) (forward-char -1))
+           ((not (zerop (skip-chars-backward prolog-operator-chars))))
            ((not (zerop (skip-syntax-backward "w_'"))))
            ;; In case of non-ASCII punctuation.
            ((not (zerop (skip-syntax-backward ".")))))
@@ -947,12 +949,36 @@ This is really kludgy, and unneeded (i.e. obsolete) in Emacs>=24."
      ;;     ;    c)
      ;;
      ;; based on the space between the open paren and the "a".
-     (unless (and (smie-rule-parent-p "(")
+     (unless (and (smie-rule-parent-p "(" ";")
                   (save-excursion
                     (smie-indent-forward-token)
                     (smie-backward-sexp 'halfsexp)
-                    (not (eq ?\( (char-before)))))
+                    (if (smie-rule-parent-p "(")
+                        (not (eq (char-before) ?\())
+                      (smie-indent-backward-token)
+                      (smie-rule-bolp))))
        prolog-indent-width))
+    (`(:after . ";")
+     ;; Align with same-line comment as in:
+     ;;   ;   %% Toto
+     ;;       foo
+     (and (smie-rule-bolp)
+          (looking-at ";[ \t]*\\(%\\)")
+          (let ((offset (- (save-excursion (goto-char (match-beginning 1))
+                                           (current-column))
+                           (current-column))))
+            ;; Only do it for small offsets, since the comment may actually be
+            ;; an "end-of-line" comment at comment-column!
+            (if (<= offset prolog-indent-width) offset))))
+    (`(:after . ",")
+     ;; Special indent for:
+     ;;    foopredicate(x) :- !,
+     ;;        toto.
+     (and (eq (char-before) ?!)
+          (save-excursion
+            (smie-indent-backward-token) ;Skip !
+            (equal ":-" (car (smie-indent-backward-token))))
+          (smie-rule-parent prolog-indent-width)))
     (`(:after . ,(or `":-" `"-->")) prolog-indent-width)))
 
 

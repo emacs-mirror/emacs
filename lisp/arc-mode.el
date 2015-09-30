@@ -1162,7 +1162,7 @@ using `make-temp-file', and the generated name is returned."
 		   nil
 		   `(:file ,stdout-file)
 		   nil
-		   (append (cdr command) (list archive name dest)))
+                   `(,archive ,name ,@(cdr command) ,dest))
 	  (with-temp-buffer
 	    (insert-file-contents stdout-file)
 	    (goto-char (point-min))
@@ -2038,37 +2038,36 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
          (maxsize 5)
          (files ()))
     (with-temp-buffer
-      (call-process "unrar-free" nil t nil "--list" (or file copy))
+      (call-process "lsar" nil t nil "-l" (or file copy))
       (if copy (delete-file copy))
       (goto-char (point-min))
-      (re-search-forward "^-+\n")
-      (while (looking-at (concat " \\(.*\\)\n" ;Name.
-                                 ;; Size ; Packed.
-                                 " +\\([0-9]+\\) +[0-9]+"
-                                 ;; Ratio ; Date'
-                                 " +\\([0-9%]+\\) +\\([-0-9]+\\)"
-                                 ;; Time ; Attr.
-                                 " +\\([0-9:]+\\) +[^ \n]\\{6,10\\}"
-                                 ;; CRC; Meth ; Var.
-                                 " +[0-9A-F]+ +[^ \n]+ +[0-9.]+\n"))
+      (re-search-forward "^\\(\s+=+\s?+\\)+\n")
+      (while (looking-at (concat "^\s+[0-9.]+\s+-+\s+"   ; Flags
+                                 "\\([0-9-]+\\)\s+"      ; Size
+                                 "\\([0-9.%]+\\)\s+"     ; Ratio
+                                 "\\([0-9a-zA-Z]+\\)\s+" ; Mode
+                                 "\\([0-9-]+\\)\s+"      ; Date
+                                 "\\([0-9:]+\\)\s+"      ; Time
+                                 "\\(.*\\)\n"            ; Name
+                                 ))
         (goto-char (match-end 0))
-        (let ((name (match-string 1))
-              (size (match-string 2)))
+        (let ((name (match-string 6))
+              (size (match-string 1)))
           (if (> (length name) maxname) (setq maxname (length name)))
           (if (> (length size) maxsize) (setq maxsize (length size)))
           (push (vector name name nil nil
                         ;; Size, Ratio.
-                        size (match-string 3)
+                        size (match-string 2)
                         ;; Date, Time.
                         (match-string 4) (match-string 5))
                 files))))
     (setq files (nreverse files))
     (goto-char (point-min))
     (let* ((format (format " %%s %%s  %%%ds %%5s  %%s" maxsize))
-           (sep (format format "--------" "-----" (make-string maxsize ?-)
+           (sep (format format "----------" "-----" (make-string maxsize ?-)
                         "-----" ""))
            (column (length sep)))
-      (insert (format format "  Date  " "Time " "Size " "Ratio" " Filename") "\n")
+      (insert (format format "   Date   " "Time " "Size" "Ratio" "Filename") "\n")
       (insert sep (make-string maxname ?-) "\n")
       (archive-summarize-files (mapcar (lambda (desc)
                                          (let ((text
@@ -2091,7 +2090,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
       ;; The code below assumes the name is relative and may do undesirable
       ;; things otherwise.
       (error "Can't extract files with non-relative names")
-    (archive-extract-by-file archive name '("unrar-free" "--extract") "All OK")))
+    (archive-extract-by-file archive name `("unar" "-no-directory" "-o") "Successfully extracted")))
 
 ;;; Section: Rar self-extracting .exe archives.
 

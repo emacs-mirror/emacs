@@ -1,6 +1,19 @@
 ## -*- mode: octave; coding: utf-8 -*-
 0;				# Don't make this a function file
 function res = tcomp (fn)
+
+  global x y ...
+         z1 z2
+  persistent x y ...
+             z1 z2
+  global x y = 2 ...
+         z1 z2                  # FIXME
+
+  do
+    something
+  until x = ...
+        y
+
   %% res = tcomp (fn)
   %%     imports components and rearranges them.
 
@@ -9,6 +22,15 @@ function res = tcomp (fn)
   end
 
   data = dlmread(fn, 3, 0);
+
+  enumeration
+    first (1)
+    second (2)
+  end
+
+  y = enumeration (x);          #Beware: "enumeration" can also be a function!
+  y = foo(enumeration (x),
+          2);          #Beware: "enumeration" can also be a function!
 
   x = data(:,2:end);
   y = 'hello';

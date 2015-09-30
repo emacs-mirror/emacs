@@ -1039,16 +1039,18 @@ to specify a command to run."
                  ;; we should use shell-quote-argument here
                  " -path "
                  (mapconcat
-                  #'(lambda (ignore)
-                      (cond ((stringp ignore)
-                             (shell-quote-argument
-                              (concat "*/" ignore)))
-                            ((consp ignore)
-                             (and (funcall (car ignore) dir)
-                                  (shell-quote-argument
-                                   (concat "*/"
-                                           (cdr ignore)))))))
-                  grep-find-ignored-directories
+                  'identity
+                  (delq nil (mapcar
+                             #'(lambda (ignore)
+                                 (cond ((stringp ignore)
+                                        (shell-quote-argument
+                                         (concat "*/" ignore)))
+                                       ((consp ignore)
+                                        (and (funcall (car ignore) dir)
+                                             (shell-quote-argument
+                                              (concat "*/"
+                                                      (cdr ignore)))))))
+                             grep-find-ignored-directories))
                   " -o -path ")
                  " "
                  (shell-quote-argument ")")

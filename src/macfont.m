@@ -190,6 +190,14 @@ cfstring_create_with_string_noencode (Lisp_Object s)
   return string;
 }
 
+static CFIndex
+mac_font_get_weight (CTFontRef font)
+{
+  NSFont *nsFont = (NSFont *) font;
+
+  return [[NSFontManager sharedFontManager] weightOfFont:nsFont];
+}
+
 static CGFloat
 mac_screen_font_get_advance_width_for_glyph (ScreenFontRef font, CGGlyph glyph)
 {
@@ -198,57 +206,53 @@ mac_screen_font_get_advance_width_for_glyph (ScreenFontRef font, CGGlyph glyph)
   return advancement.width;
 }
 
+#if !USE_CT_GLYPH_INFO
 static CGGlyph
 mac_font_get_glyph_for_cid (CTFontRef font, CTCharacterCollection collection,
                             CGFontIndex cid)
 {
-#if USE_CT_GLYPH_INFO
-  return mac_ctfont_get_glyph_for_cid ((CTFontRef) font, collection, cid);
-#else
-  {
-    CGGlyph result = kCGFontIndexInvalid;
-    NSFont *nsFont = (NSFont *) font;
-    unichar characters[] = {0xfffd};
-    NSString *string =
-      [NSString stringWithCharacters:characters
-                              length:ARRAYELTS (characters)];
-    NSGlyphInfo *glyphInfo =
-      [NSGlyphInfo glyphInfoWithCharacterIdentifier:cid
-                                         collection:collection
-                                         baseString:string];
-    NSDictionary *attributes =
-      [NSDictionary dictionaryWithObjectsAndKeys:nsFont,NSFontAttributeName,
-                    glyphInfo,NSGlyphInfoAttributeName,nil];
-    NSTextStorage *textStorage =
-      [[NSTextStorage alloc] initWithString:string
-                                 attributes:attributes];
-    NSLayoutManager *layoutManager = [[NSLayoutManager alloc] init];
-    NSTextContainer *textContainer = [[NSTextContainer alloc] init];
-    NSFont *fontInTextStorage;
+  CGGlyph result = kCGFontIndexInvalid;
+  NSFont *nsFont = (NSFont *) font;
+  unichar characters[] = {0xfffd};
+  NSString *string =
+    [NSString stringWithCharacters:characters
+			    length:ARRAYELTS (characters)];
+  NSGlyphInfo *glyphInfo =
+    [NSGlyphInfo glyphInfoWithCharacterIdentifier:cid
+				       collection:collection
+				       baseString:string];
+  NSDictionary *attributes =
+    [NSDictionary dictionaryWithObjectsAndKeys:nsFont,NSFontAttributeName,
+		  glyphInfo,NSGlyphInfoAttributeName,nil];
+  NSTextStorage *textStorage =
+    [[NSTextStorage alloc] initWithString:string
+			       attributes:attributes];
+  NSLayoutManager *layoutManager = [[NSLayoutManager alloc] init];
+  NSTextContainer *textContainer = [[NSTextContainer alloc] init];
+  NSFont *fontInTextStorage;
 
-    [layoutManager addTextContainer:textContainer];
-    [textContainer release];
-    [textStorage addLayoutManager:layoutManager];
-    [layoutManager release];
+  [layoutManager addTextContainer:textContainer];
+  [textContainer release];
+  [textStorage addLayoutManager:layoutManager];
+  [layoutManager release];
 
-    /* Force layout.  */
-    (void) [layoutManager glyphRangeForTextContainer:textContainer];
+  /* Force layout.  */
+  (void) [layoutManager glyphRangeForTextContainer:textContainer];
 
-    fontInTextStorage = [textStorage attribute:NSFontAttributeName atIndex:0
-                                effectiveRange:NULL];
-    if (fontInTextStorage == nsFont
-        || [[fontInTextStorage fontName] isEqualToString:[nsFont fontName]])
-      {
-        NSGlyph glyph = [layoutManager glyphAtIndex:0];
+  fontInTextStorage = [textStorage attribute:NSFontAttributeName atIndex:0
+			      effectiveRange:NULL];
+  if (fontInTextStorage == nsFont
+      || [[fontInTextStorage fontName] isEqualToString:[nsFont fontName]])
+    {
+      NSGlyph glyph = [layoutManager glyphAtIndex:0];
 
-        if (glyph < [nsFont numberOfGlyphs])
-          result = glyph;
-      }
+      if (glyph < [nsFont numberOfGlyphs])
+	result = glyph;
+    }
 
-    [textStorage release];
+  [textStorage release];
 
-    return result;
-  }
+  return result;
 }
 #endif
 
@@ -762,6 +766,46 @@ cfnumber_get_font_symbolic_traits_value (CFNumberRef number,
   return false;
 }
 
+static CGFloat
+mac_font_descriptor_get_adjusted_weight (CTFontDescriptorRef desc, CGFloat val)
+{
+  long percent_val = lround (val * 100);
+
+  if (percent_val == -40 || percent_val == 56)
+    {
+      CTFontRef font = NULL;
+      CFStringRef name =
+	CTFontDescriptorCopyAttribute (desc, kCTFontNameAttribute);
+
+      if (name)
+	{
+	  font = CTFontCreateWithName (name, 0, NULL);
+	  CFRelease (name);
+	}
+      if (font)
+	{
+	  CFIndex weight = mac_font_get_weight (font);
+
+	  if (percent_val == -40)
+	    {
+	      /* Workaround for crash when displaying Oriya characters
+		 with Arial Unicode MS on OS X 10.11.  */
+	      if (weight == 5)
+		val = 0;
+	    }
+	  else			/* percent_val == 56 */
+	    {
+	      if (weight == 9)
+		/* Adjustment for HiraginoSans-W7 on OS X 10.11.  */
+		val = 0.4;
+	    }
+	  CFRelease (font);
+	}
+    }
+
+  return val;
+}
+
 static void
 macfont_store_descriptor_attributes (CTFontDescriptorRef desc,
                                      Lisp_Object spec_or_entity)
@@ -785,6 +829,7 @@ macfont_store_descriptor_attributes (CTFontDescriptorRef desc,
         enum font_property_index index;
         CFStringRef trait;
         CGPoint points[6];
+	CGFloat (*adjust_func) (CTFontDescriptorRef, CGFloat);
       } numeric_traits[] =
           {{FONT_WEIGHT_INDEX, kCTFontWeightTrait,
             {{-0.4, 50},	/* light */
@@ -792,11 +837,12 @@ macfont_store_descriptor_attributes (CTFontDescriptorRef desc,
              {0, 100},		/* normal */
              {0.24, 140},	/* (semi-bold + normal) / 2 */
              {0.4, 200},	/* bold */
-             {CGFLOAT_MAX, CGFLOAT_MAX}}},
+             {CGFLOAT_MAX, CGFLOAT_MAX}},
+	    mac_font_descriptor_get_adjusted_weight},
            {FONT_SLANT_INDEX, kCTFontSlantTrait,
-            {{0, 100}, {0.1, 200}, {CGFLOAT_MAX, CGFLOAT_MAX}}},
+            {{0, 100}, {0.1, 200}, {CGFLOAT_MAX, CGFLOAT_MAX}}, NULL},
            {FONT_WIDTH_INDEX, kCTFontWidthTrait,
-            {{0, 100}, {1, 200}, {CGFLOAT_MAX, CGFLOAT_MAX}}}};
+            {{0, 100}, {1, 200}, {CGFLOAT_MAX, CGFLOAT_MAX}}, NULL}};
       int i;
 
       for (i = 0; i < ARRAYELTS (numeric_traits); i++)
@@ -806,6 +852,8 @@ macfont_store_descriptor_attributes (CTFontDescriptorRef desc,
             {
               CGPoint *point = numeric_traits[i].points;
 
+	      if (numeric_traits[i].adjust_func)
+		floatval = (*numeric_traits[i].adjust_func) (desc, floatval);
               while (point->x < floatval)
                 point++;
               if (point == numeric_traits[i].points)
@@ -3379,18 +3427,24 @@ mac_font_descriptor_supports_languages (CTFontDescriptorRef descriptor,
     result = false;
   else
     {
-      CFIndex desc_languages_count, i, languages_count;
+      CFRange range = CFRangeMake (0, CFArrayGetCount (desc_languages));
+      CFIndex i, languages_count = CFArrayGetCount (languages);
 
-      desc_languages_count = CFArrayGetCount (desc_languages);
-      languages_count = CFArrayGetCount (languages);
       for (i = 0; i < languages_count; i++)
-        if (!CFArrayContainsValue (desc_languages,
-                                   CFRangeMake (0, desc_languages_count),
-                                   CFArrayGetValueAtIndex (languages, i)))
-          {
-            result = false;
-            break;
-          }
+	{
+	  CFStringRef language = CFArrayGetValueAtIndex (languages, i);
+
+	  if (!CFArrayContainsValue (desc_languages, range, language)
+	      /* PingFang SC contains "zh" and "zh-Hant" as covered
+		 languages, but does not contain "zh-Hans".  */
+	      && !(CFEqual (language, CFSTR ("zh-Hans"))
+		   && CFArrayContainsValue (desc_languages, range,
+					    CFSTR ("zh"))))
+	    {
+	      result = false;
+	      break;
+	    }
+	}
       CFRelease (desc_languages);
     }
 

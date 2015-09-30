@@ -634,8 +634,12 @@ you can no longer use commas to separate regular expressions.
 
 ** SES now supports local printer functions; see `ses-define-local-printer'.
 
-** In sh-mode, you can now use `sh-shell' as a file-local variable to
+** sh-script
+*** In sh-mode you can now use `sh-shell' as a file-local variable to
 specify the type of shell in use (bash, csh, etc).
+
+*** New value `always' for sh-indent-after-continuation.
+This provides old-style ("dumb") indentation of continued lines.
 
 ** TLS
 ---

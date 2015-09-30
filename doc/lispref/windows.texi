@@ -3174,12 +3174,14 @@ position that works well with point, and thus @var{position} is not used.
 @defun pos-visible-in-window-p &optional position window partially
 This function returns non-@code{nil} if @var{position} is within the
 range of text currently visible on the screen in @var{window}.  It
-returns @code{nil} if @var{position} is scrolled vertically out of view.
-Locations that are partially obscured are not considered visible unless
-@var{partially} is non-@code{nil}.  The argument @var{position} defaults
-to the current position of point in @var{window}; @var{window}, to the
-selected window.  If @var{position} is @code{t}, that means to check the
-last visible position in @var{window}.
+returns @code{nil} if @var{position} is scrolled vertically out of
+view.  Locations that are partially obscured are not considered
+visible unless @var{partially} is non-@code{nil}.  The argument
+@var{position} defaults to the current position of point in
+@var{window}; @var{window} defaults to the selected window.  If
+@var{position} is @code{t}, that means to check either the first
+visible position of the last screen line in @var{window}, or the
+end-of-buffer position, whichever comes first.
 
 This function considers only vertical scrolling.  If @var{position} is
 out of view only because @var{window} has been scrolled horizontally,

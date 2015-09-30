@@ -1991,9 +1991,30 @@ Does not preserve point."
          (t tok)))))))
 
 (defcustom sh-indent-after-continuation t
-  "If non-nil, try to make sure text is indented after a line continuation."
-  :version "24.3"
-  :type 'boolean
+  "If non-nil, indent relative to the continued line's beginning.
+Continued lines can either be indented as \"one long wrapped line\" without
+paying attention to the actual syntactic structure, as in:
+
+   for f \
+       in a; do \
+       toto; \
+       done
+
+or as lines that just don't have implicit semi-colons between them, as in:
+
+   for f \
+   in a; do \
+       toto; \
+   done
+
+With `always' you get the former behavior whereas with nil you get the latter.
+With t, you get the latter as long as that would indent the continuation line
+deeper than the initial line."
+  :version "25.1"
+  :type '(choice
+          (const nil :tag "Never")
+          (const t   :tag "Only if needed to make it deeper")
+          (const always :tag "Always"))
   :group 'sh-indentation)
 
 (defun sh-smie--continuation-start-indent ()
@@ -2004,24 +2025,49 @@ May return nil if the line should not be treated as continued."
     (unless (sh-smie--looking-back-at-continuation-p)
       (current-indentation))))
 
+(defun sh-smie--indent-continuation ()
+  (cond
+   ((not (and sh-indent-after-continuation
+              (save-excursion
+                (ignore-errors
+                  (skip-chars-backward " \t")
+                  (sh-smie--looking-back-at-continuation-p)))))
+    nil)
+   ((eq sh-indent-after-continuation 'always)
+    (save-excursion
+      (forward-line -1)
+      (if (sh-smie--looking-back-at-continuation-p)
+          (current-indentation)
+        (+ (current-indentation) sh-indentation))))
+   (t
+    ;; Just make sure a line-continuation is indented deeper.
+    (save-excursion
+      (let ((indent (let ((sh-indent-after-continuation nil))
+                      (smie-indent-calculate)))
+            (max most-positive-fixnum))
+        (if (not (numberp indent)) indent
+          (while (progn
+                   (forward-line -1)
+                   (let ((ci (current-indentation)))
+                     (cond
+                      ;; Previous line is less indented, we're good.
+                      ((< ci indent) nil)
+                      ((sh-smie--looking-back-at-continuation-p)
+                       (setq max (min max ci))
+                       ;; Previous line is itself a continuation.
+                       ;; If it's indented like us, we're good, otherwise
+                       ;; check the line before that one.
+                       (> ci indent))
+                      (t ;Previous line is the beginning of the continued line.
+                       (setq indent (min (+ ci sh-indentation) max))
+                       nil)))))
+          indent))))))
+
 (defun sh-smie-sh-rules (kind token)
   (pcase (cons kind token)
     (`(:elem . basic) sh-indentation)
     (`(:after . "case-)") (- (sh-var-value 'sh-indent-for-case-alt)
                              (sh-var-value 'sh-indent-for-case-label)))
-    ((and `(:before . ,_)
-          ;; After a line-continuation, make sure the rest is indented.
-          (guard sh-indent-after-continuation)
-          (guard (save-excursion
-                   (ignore-errors
-                     (skip-chars-backward " \t")
-                     (sh-smie--looking-back-at-continuation-p))))
-          (let initial (sh-smie--continuation-start-indent))
-          (guard (let* ((sh-indent-after-continuation nil)
-                        (indent (smie-indent-calculate)))
-                   (and (numberp indent) (numberp initial)
-                        (<= indent initial)))))
-     `(column . ,(+ initial sh-indentation)))
     (`(:before . ,(or `"(" `"{" `"[" "while" "if" "for" "case"))
      (if (not (smie-rule-prev-p "&&" "||" "|"))
          (when (smie-rule-hanging-p)
@@ -2363,6 +2409,7 @@ Calls the value of `sh-set-shell-hook' if set."
 			  (if (looking-at "[ \t]*\\\\\n")
 			      (goto-char (match-end 0))
 			    (funcall orig))))
+          (add-hook 'smie-indent-functions #'sh-smie--indent-continuation nil t)
           (smie-setup (symbol-value (funcall mksym "grammar"))
                       (funcall mksym "rules")
                       :forward-token  (funcall mksym "forward-token")

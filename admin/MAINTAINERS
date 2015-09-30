@@ -122,6 +122,13 @@ The GNU AUCTeX maintainers (auctex-devel@gnu.org)
 	    lisp/textmodes/reftex-vars.el
 	    lisp/textmodes/reftex.el
 
+Dmitry Gutov
+	lisp/progmodes/ruby-mode.el
+	test/automated/ruby-mode-tests.el
+	test/indent/ruby.rb
+	lisp/progmodes/xref.el
+	lisp/progmodes/project.el
+
 ==============================================================================
 2.
 ==============================================================================
@@ -225,6 +232,14 @@ Xue Fuqiao
 
 Tassilo Horn
 	lisp/doc-view.el
+
+Dmitry Gutov
+	lisp/whitespace.el
+	lisp/vc/*
+
+Vibhav Pant
+       lisp/net/browse-url.el
+       lisp/erc/*
 
 ==============================================================================
 3.
@@ -504,7 +519,57 @@ lisp/mouse.el
 lisp/mpc.el
 lisp/msb.el
 lisp/mwheel.el
-lisp/net/*
+lisp/net/ange-ftp.el
+lisp/net/dig.el
+lisp/net/dns.el
+lisp/net/eudcb-bbdb.el
+lisp/net/eudcb-ldap.el
+lisp/net/eudcb-mab.el
+lisp/net/eudc-bob.el
+lisp/net/eudcb-ph.el
+lisp/net/eudc.el
+lisp/net/eudc-export.el
+lisp/net/eudc-hotlist.el
+lisp/net/eudc-vars.el
+lisp/net/eww.el
+lisp/net/gnutls.el
+lisp/net/goto-addr.el
+lisp/net/hmac-def.el
+lisp/net/hmac-md5.el
+lisp/net/imap.el
+lisp/net/ldap.el
+lisp/net/mairix.el
+lisp/net/netrc.el
+lisp/net/net-utils.el
+lisp/net/network-stream.el
+lisp/net/newst-backend.el
+lisp/net/newsticker.el
+lisp/net/newst-plainview.el
+lisp/net/newst-reader.el
+lisp/net/newst-ticker.el
+lisp/net/newst-treeview.el
+lisp/net/nsm.el
+lisp/net/ntlm.el
+lisp/net/pinentry.el
+lisp/net/quickurl.el
+lisp/net/rcirc.el
+lisp/net/rfc2104.el
+lisp/net/rlogin.el
+lisp/net/sasl-cram.el
+lisp/net/sasl-digest.el
+lisp/net/sasl.el
+lisp/net/sasl-ntlm.el
+lisp/net/sasl-scram-rfc.el
+lisp/net/shr-color.el
+lisp/net/shr.el
+lisp/net/snmp-mode.el
+lisp/net/soap-client.el
+lisp/net/soap-inspect.el
+lisp/net/socks.el
+lisp/net/telnet.el
+lisp/net/tls.el
+lisp/net/trampver.el
+lisp/net/webjump.el
 lisp/newcomment.el
 lisp/novice.el
 lisp/nxml/*
@@ -590,11 +655,9 @@ lisp/progmodes/octave.el
 lisp/progmodes/opascal.el
 lisp/progmodes/pascal.el
 lisp/progmodes/prog-mode.el
-lisp/progmodes/project.el
 lisp/progmodes/prolog.el
 lisp/progmodes/ps-mode.el
 lisp/progmodes/python.el
-lisp/progmodes/ruby-mode.el
 lisp/progmodes/scheme.el
 lisp/progmodes/sh-script.el
 lisp/progmodes/simula.el
@@ -604,7 +667,6 @@ lisp/progmodes/vera-mode.el
 lisp/progmodes/verilog-mode.el
 lisp/progmodes/vhdl-mode.el
 lisp/progmodes/which-func.el
-lisp/progmodes/xref.el
 lisp/progmodes/xscheme.el
 lisp/ps-bdf.el
 lisp/ps-def.el
@@ -703,14 +765,12 @@ lisp/type-break.el
 lisp/uniquify.el
 lisp/url/*
 lisp/userlock.el
-lisp/vc/*
 lisp/vcursor.el
 lisp/version.el
 lisp/view.el
 lisp/vt-control.el
 lisp/vt100-led.el
 lisp/wdired.el
-lisp/whitespace.el
 lisp/wid-browse.el
 lisp/wid-edit.el
 lisp/widget.el
@@ -740,4 +800,5 @@ test/rmailmm.el
 
 ;;; Local Variables:
 ;;;   coding: utf-8
+;;;   indent-tabs-mode: t
 ;;; End:

@@ -1,16 +1,18 @@
 %% -*- mode: prolog; coding: utf-8; fill-column: 78 -*-
 
 %% bug#21526
-test1 :-
+test21526_1 :-
     (   a ->
-            (   a ->
-                b
-            ;   c
-            )
-    ;   c
+        (   a ->
+            b
+        ;   c
+        )
+    ;   % Toto
+        c ->
+        d
     ).
 
-test2 :-
+test21526_2 :-
     (    a
     ->   (   a,
              b
@@ -19,7 +21,31 @@ test2 :-
          b2
     ;    c1,
          c2
-    )
+    ).
+
+test21526_3 :-
+    X \= Y,
+    \+ a,
+    b,
+    \+ \+ c,
+    d.
+
+test21526_4 :-
+    (   \+ a ->
+        b
+    ;   \+ c,
+        \+ d
+    ).
+
+
+test21526_5 :-
+    (a;
+     b ->
+         c).
+
+test21526_predicate(c) :- !,
+    test_goal1,
+    test_goal2.
 
 %% Testing correct tokenizing.
 foo(X) :- 0'= = X.
@@ -74,11 +100,11 @@ subst(X, V, FV, lambda(Y, Ti, Bi), lambda(Y1, To, Bo)) :-
     %% If X is equal to Y, X is shadowed, so no subst can take place.
     ->	Y1 = Y, Bo = Bi
     ;	(member((Y, _), FV)
-	 %% If Y appears in FV, it can appear in V, so we need to
-	 %% rename it to avoid name capture.
-	 -> new_atom(Y, Y1),
-	    subst(Y, Y1, [], Bi, Bi1)
-	 ; Y1 = Y, Bi1 = Bi),
+	%% If Y appears in FV, it can appear in V, so we need to
+	%% rename it to avoid name capture.
+	-> new_atom(Y, Y1),
+	   subst(Y, Y1, [], Bi, Bi1)
+	; Y1 = Y, Bi1 = Bi),
 	%% Perform substitution on the body.
 	subst(X, V, FV, Bi1, Bo)
     ).

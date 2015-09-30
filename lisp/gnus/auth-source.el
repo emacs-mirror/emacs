@@ -560,7 +560,7 @@ other properties will always hold scalar values.
 Typically the :secret property, if present, contains a password.
 
 Common search keys are :max, :host, :port, and :user.  In
-addition, :create specifies how tokens will be or created.
+addition, :create specifies if and how tokens will be created.
 Finally, :type can specify which backend types you want to check.
 
 A string value is always matched literally.  A symbol is matched
