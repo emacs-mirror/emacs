@@ -384,7 +384,6 @@ alongside the actual current key sequence when
         (when which-key-show-remaining-keys
           (add-hook 'pre-command-hook #'which-key--lighter-restore))
         (add-hook 'pre-command-hook #'which-key--hide-popup)
-        (add-hook 'post-command-hook #'which-key--hide-popup)
         (add-hook 'focus-out-hook #'which-key--stop-timer)
         (add-hook 'focus-in-hook #'which-key--start-timer)
         (which-key--start-timer))
@@ -394,7 +393,6 @@ alongside the actual current key sequence when
     (when which-key-show-remaining-keys
       (remove-hook 'pre-command-hook #'which-key--lighter-restore))
     (remove-hook 'pre-command-hook #'which-key--hide-popup)
-    (remove-hook 'post-command-hook #'which-key--hide-popup)
     (remove-hook 'focus-out-hook #'which-key--stop-timer)
     (remove-hook 'focus-in-hook #'which-key--start-timer)
     (which-key--stop-timer)))
@@ -1404,20 +1402,22 @@ Finally, show the buffer."
 
 (defun which-key--update ()
   "Function run by timer to possibly trigger `which-key--create-buffer-and-show'."
-  (let ((prefix-keys (this-single-command-keys)))
-    ;; (when (> (length prefix-keys) 0)
-    ;;  (message "key: %s" (key-description prefix-keys)))
-    ;; (when (> (length prefix-keys) 0)
-    ;;  (message "key binding: %s" (key-binding prefix-keys)))
-    (when (and (> (length prefix-keys) 0)
-               (or
-                (keymapp (key-binding prefix-keys))
-                ;; Some keymaps are stored here like iso-transl-ctl-x-8-map
-                (keymapp (which-key--safe-lookup-key key-translation-map prefix-keys))
-                ;; just in case someone uses one of these
-                (keymapp (which-key--safe-lookup-key function-key-map prefix-keys)))
-               (not which-key-inhibit))
-      (which-key--create-buffer-and-show prefix-keys))))
+  ;; Do not display the popup if a command is currently being executed
+  (unless this-command
+    (let ((prefix-keys (this-single-command-keys)))
+      ;; (when (> (length prefix-keys) 0)
+      ;;  (message "key: %s" (key-description prefix-keys)))
+      ;; (when (> (length prefix-keys) 0)
+      ;;  (message "key binding: %s" (key-binding prefix-keys)))
+      (when (and (> (length prefix-keys) 0)
+                 (or
+                  (keymapp (key-binding prefix-keys))
+                  ;; Some keymaps are stored here like iso-transl-ctl-x-8-map
+                  (keymapp (which-key--safe-lookup-key key-translation-map prefix-keys))
+                  ;; just in case someone uses one of these
+                  (keymapp (which-key--safe-lookup-key function-key-map prefix-keys)))
+                 (not which-key-inhibit))
+        (which-key--create-buffer-and-show prefix-keys)))))
 
 ;; Timers
 
