@@ -394,6 +394,7 @@ alongside the actual current key sequence when
     (when which-key-show-remaining-keys
       (remove-hook 'pre-command-hook #'which-key--lighter-restore))
     (remove-hook 'pre-command-hook #'which-key--hide-popup)
+    (remove-hook 'post-command-hook #'which-key--hide-popup)
     (remove-hook 'focus-out-hook #'which-key--stop-timer)
     (remove-hook 'focus-in-hook #'which-key--start-timer)
     (which-key--stop-timer)))
