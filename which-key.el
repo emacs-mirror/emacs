@@ -1318,49 +1318,39 @@ enough space based on your settings and frame size." prefix-keys)
   "Show the next page of keys.
 Will force an update if called before `which-key--update'."
   (interactive)
-  (if (and which-key--current-page-n
-           which-key--on-last-page
-           which-key-use-C-h-for-paging
-           which-key-prevent-C-h-from-cycling)
-      (progn
-        (which-key--hide-popup-ignore-command)
-        (which-key--stop-timer)
-        (funcall which-key--prefix-help-cmd-backup)
-        (which-key--start-timer))
-    (let* ((next-event-if-showing
-            ;; forces event into current key sequence
-            (mapcar (lambda (ev) (cons t ev))
-                    (which-key--current-key-list)))
-           (keysbl
+  (cond
+   ;; on last page and want default C-h behavior
+   ((and which-key--current-page-n
+         which-key--on-last-page
+         which-key-use-C-h-for-paging
+         which-key-prevent-C-h-from-cycling)
+    (which-key--hide-popup-ignore-command)
+    (which-key--stop-timer)
+    (funcall which-key--prefix-help-cmd-backup)
+    (which-key--start-timer))
+   ;; No which-key buffer showing
+   ((null which-key--current-page-n)
+    (let* ((keysbl
             (vconcat (butlast (append (this-single-command-keys) nil))))
-           (next-event-if-not-showing
-            (mapcar (lambda (ev) (cons t ev)) (listify-key-sequence keysbl)))
-           (next-page
-            (if which-key--current-page-n (1+ which-key--current-page-n) 0)))
-      (cond
-       ;; buffer not showing
-       ((null which-key--current-page-n)
-        (which-key--stop-timer)
-        (setq unread-command-events next-event-if-not-showing)
-        (which-key--create-buffer-and-show keysbl)
-        (which-key--start-timer))
-       (t
-        (which-key--stop-timer)
-        (setq unread-command-events next-event-if-showing)
-        (if which-key--last-try-2-loc
-            (let ((which-key-side-window-location which-key--last-try-2-loc))
-              (which-key--show-page next-page))
-          (which-key--show-page next-page))
-        (which-key--start-paging-timer))))))
-
-;; (defun which-key-show-first-page ()
-;;   "Show the first page of keys."
-;;   ;; (which-key--stop-timer)
-;;   ;; (setq which-key--prefix-help-cmd-backup prefix-help-command
-;;   ;;       prefix-help-command 'which-key-show-next-page)
-;;   (which-key--show-page 0)
-;;   )
-;;   ;; (which-key--start-paging-timer))
+           (next-event
+            (mapcar (lambda (ev) (cons t ev)) (listify-key-sequence keysbl))))
+      (which-key--stop-timer)
+      (setq unread-command-events next-event)
+      (which-key--create-buffer-and-show keysbl)
+      (which-key--start-timer)))
+   ;; which-key buffer showing. turn page
+   (t
+    (let ((next-event
+           (mapcar (lambda (ev) (cons t ev)) (which-key--current-key-list)))
+          (next-page
+           (if which-key--current-page-n (1+ which-key--current-page-n) 0)))
+      (which-key--stop-timer)
+      (setq unread-command-events next-event)
+      (if which-key--last-try-2-loc
+          (let ((which-key-side-window-location which-key--last-try-2-loc))
+            (which-key--show-page next-page))
+        (which-key--show-page next-page))
+      (which-key--start-paging-timer)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Update
@@ -1401,28 +1391,30 @@ Finally, show the buffer."
 
 (defun which-key--update ()
   "Function run by timer to possibly trigger `which-key--create-buffer-and-show'."
-  ;; Do not display the popup if a command is currently being executed
-  (unless this-command
-    (let ((prefix-keys (this-single-command-keys)))
-      ;; (when (> (length prefix-keys) 0)
-      ;;  (message "key: %s" (key-description prefix-keys)))
-      ;; (when (> (length prefix-keys) 0)
-      ;;  (message "key binding: %s" (key-binding prefix-keys)))
-      (when (and (> (length prefix-keys) 0)
-                 (or
-                  (keymapp (key-binding prefix-keys))
-                  ;; Some keymaps are stored here like iso-transl-ctl-x-8-map
-                  (keymapp (which-key--safe-lookup-key key-translation-map prefix-keys))
-                  ;; just in case someone uses one of these
-                  (keymapp (which-key--safe-lookup-key function-key-map prefix-keys)))
-                 (not which-key-inhibit))
-        (which-key--create-buffer-and-show prefix-keys)))))
+  (let ((prefix-keys (this-single-command-keys)))
+    ;; (when (> (length prefix-keys) 0)
+    ;;  (message "key: %s" (key-description prefix-keys)))
+    ;; (when (> (length prefix-keys) 0)
+    ;;  (message "key binding: %s" (key-binding prefix-keys)))
+    (when (and (> (length prefix-keys) 0)
+               (or (keymapp (key-binding prefix-keys))
+                   ;; Some keymaps are stored here like iso-transl-ctl-x-8-map
+                   (keymapp (which-key--safe-lookup-key
+                             key-translation-map prefix-keys))
+                   ;; just in case someone uses one of these
+                   (keymapp (which-key--safe-lookup-key
+                             function-key-map prefix-keys)))
+               (not which-key-inhibit)
+               ;; Do not display the popup if a command is currently being
+               ;; executed
+               (null this-command))
+      (which-key--create-buffer-and-show prefix-keys))))
 
 ;; Timers
 
 (defun which-key--start-timer ()
   "Activate idle timer to trigger `which-key--update'."
-  (which-key--stop-timer) ; start over
+  (which-key--stop-timer)
   (setq which-key--timer
         (run-with-idle-timer which-key-idle-delay t #'which-key--update)))
 
