@@ -732,14 +732,13 @@ total height."
 ACT-POPUP-DIM includes the dimensions, (height . width) of the
 buffer text to be displayed in the popup.  Return nil if no window
 is shown, or if there is no need to start the closing timer."
-  (let (golden-ratio-mode)
-    (when (and (> (car act-popup-dim) 0) (> (cdr act-popup-dim) 0))
-      (cl-case which-key-popup-type
-        ;; Not called for minibuffer
-        ;; (minibuffer (which-key--show-buffer-minibuffer act-popup-dim))
-        (side-window (which-key--show-buffer-side-window act-popup-dim))
-        (frame (which-key--show-buffer-frame act-popup-dim))
-        (custom (funcall which-key-custom-show-popup-function act-popup-dim))))))
+  (when (and (> (car act-popup-dim) 0) (> (cdr act-popup-dim) 0))
+    (cl-case which-key-popup-type
+      ;; Not called for minibuffer
+      ;; (minibuffer (which-key--show-buffer-minibuffer act-popup-dim))
+      (side-window (which-key--show-buffer-side-window act-popup-dim))
+      (frame (which-key--show-buffer-frame act-popup-dim))
+      (custom (funcall which-key-custom-show-popup-function act-popup-dim)))))
 
 (defun which-key--fit-buffer-to-window-horizontally (&optional window &rest params)
   "Slightly modified version of `fit-buffer-to-window'.
@@ -1257,7 +1256,7 @@ area."
   (which-key--init-buffer) ;; in case it was killed
   (let ((n-pages (plist-get which-key--pages-plist :n-pages))
         (prefix-keys (key-description which-key--current-prefix))
-        page-n)
+        page-n golden-ratio-mode)
     (if (= 0 n-pages)
         (message "%s- which-key can't show keys: There is not \
 enough space based on your settings and frame size." prefix-keys)
