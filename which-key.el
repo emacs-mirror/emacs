@@ -1414,7 +1414,7 @@ Finally, show the buffer."
 
 (defun which-key--start-timer ()
   "Activate idle timer to trigger `which-key--update'."
-  (which-key--stop-timer) ; start over
+  (which-key--stop-timer)
   (setq which-key--timer
         (run-with-idle-timer which-key-idle-delay t #'which-key--update)))
 
