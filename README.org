@@ -1,22 +1,5 @@
 * which-key 
 [[http://melpa.org/#/which-key][http://melpa.org/packages/which-key-badge.svg]]
-** What's new
-*** Paging
-- The new option =which-key-prevent-C-h-from-cycling=, which is =t= by default
-  allows one to take advantage of using =C-h= for paging as well as the default
-  Emacs behavior of using =C-h= to describe the bindings for the current key
-  sequence prefix.
-- The (default) configuration below will allow you to switch paging using =C-h=
-  until you reach the last page of keys in the which-key buffer. The next press
-  of =C-h= will close the which-key buffer and trigger the default Emacs
-  behavior on =C-h=.
-  #+BEGIN_SRC Emacs-lisp
-  (setq which-key-use-C-h-for-paging t
-        which-key-prevent-C-h-from-cycling t)
-  #+END_SRC
-- This is especially useful for those who like =helm-descbinds= but also want to
-  use =C-h= as their which-key paging key.
-- Note =C-h= is by default equivalent to =?= in this context.
   
 ** Introduction
 =which-key= is a minor mode for Emacs that displays the key bindings following your currently
@@ -43,12 +26,11 @@ Many of these have been implemented and are described below.
 
 ** Table of Contents                                                 :TOC@4:
  - [[#which-key-][which-key ]]
-   - [[#whats-new][What's new]]
-     - [[#paging][Paging]]
    - [[#introduction][Introduction]]
    - [[#install][Install]]
      - [[#melpa][MELPA]]
      - [[#manually][Manually]]
+       - [[#dependencies][Dependencies]]
    - [[#initial-setup][Initial Setup]]
      - [[#side-window-bottom-option][Side Window Bottom Option]]
      - [[#side-window-right-option][Side Window Right Option]]
@@ -88,6 +70,11 @@ Add which-key.el to your =load-path= and require. Something like
 (require 'which-key)
 (which-key-mode)
 #+END_SRC
+
+**** Dependencies
+
+Which-key requires recent versions of the packages [[https://github.com/magnars/dash.el][dash]] and [[https://github.com/magnars/s.el][s]]. These are
+installed automatically if installed via MELPA.
 
 ** Initial Setup
 No further setup is required if you are happy with the default setup. To try
@@ -345,9 +332,10 @@ allows one to take advantage of using =C-h= for paging as well as the default
 Emacs behavior of using =C-h= to describe the bindings for the current key
 sequence prefix.
 
-The configuration below will allow you to switch paging using =C-h= until you
-reach the last page of keys in the which-key buffer. The next press of =C-h=
-will close the which-key buffer and trigger the default Emacs behavior on =C-h=.
+The default configuration below will allow you to switch paging using =C-h=
+until you reach the last page of keys in the which-key buffer. The next press of
+=C-h= will close the which-key buffer and trigger the default Emacs behavior on
+=C-h=.
 #+BEGIN_SRC Emacs-lisp
 (setq which-key-use-C-h-for-paging t
       which-key-prevent-C-h-from-cycling t)
