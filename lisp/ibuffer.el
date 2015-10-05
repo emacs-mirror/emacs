@@ -2493,14 +2493,17 @@ new filter onto the stack, and the filters combine to show just
 buffers which satisfy ALL criteria on the stack.  For example, suppose
 you only want to see buffers in `emacs-lisp' mode, whose names begin
 with \"gnus\".  You can accomplish this via:
-`\\[ibuffer-filter-by-mode] emacs-lisp-mode RET
-\\[ibuffer-filter-by-name] ^gnus RET'.
+
+  \\[ibuffer-filter-by-mode] emacs-lisp-mode RET
+  \\[ibuffer-filter-by-name] ^gnus RET
 
 Additionally, you can OR the top two filters together with
 `\\[ibuffer-or-filters]'.  To see all buffers in either
 `emacs-lisp-mode' or `lisp-interaction-mode', type:
 
-`\\[ibuffer-filter-by-mode] emacs-lisp-mode RET \\[ibuffer-filter-by-mode] lisp-interaction-mode RET \\[ibuffer-or-filters]'.
+  \\[ibuffer-filter-by-mode] emacs-lisp-mode RET
+  \\[ibuffer-filter-by-mode] lisp-interaction-mode RET
+  \\[ibuffer-or-filters]
 
 Filters can also be saved and restored using mnemonic names: see the
 functions `ibuffer-save-filters' and `ibuffer-switch-to-saved-filters'.
@@ -2518,9 +2521,10 @@ create a filter group, simply use the regular functions to create a
 filter, and then type `\\[ibuffer-filters-to-filter-group]'.
 
 A quick example will make things clearer.  Suppose that one wants to
-group all of one's Emacs Lisp buffers together.  To do this, type
+group all of one's Emacs Lisp buffers together.  To do this, type:
 
-`\\[ibuffer-filter-by-mode] emacs-lisp-mode RET \\[ibuffer-filters-to-filter-group] RET emacs lisp buffers RET'
+  \\[ibuffer-filter-by-mode] emacs-lisp-mode RET
+  \\[ibuffer-filters-to-filter-group] emacs lisp buffers RET
 
 You may, of course, name the group whatever you want; it doesn't have
 to be \"emacs lisp buffers\".  Filter groups may be composed of any

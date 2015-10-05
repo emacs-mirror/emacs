@@ -165,7 +165,7 @@ Regexp match data 0 points to the chars."
     (if (and (not (equal prettify-symbols--current-symbol-bounds (list start end)))
              (funcall prettify-symbols-compose-predicate start end match))
         ;; That's a symbol alright, so add the composition.
-        (progn
+        (with-silent-modifications
           (compose-region start end (cdr (assoc match alist)))
           (add-text-properties
            start end
@@ -189,26 +189,43 @@ Regexp match data 0 points to the chars."
 
 (defvar-local prettify-symbols--current-symbol-bounds nil)
 
-(defun prettify-symbols--post-command-hook ()
-  (if-let ((c (get-text-property (point) 'composition))
-           (s (get-text-property (point) 'prettify-symbols-start))
-           (e (get-text-property (point) 'prettify-symbols-end)))
-      (progn
-        (setq prettify-symbols--current-symbol-bounds (list s e))
-        (remove-text-properties s e '(composition)))
-    (when (and prettify-symbols--current-symbol-bounds
-               (or (< (point) (car prettify-symbols--current-symbol-bounds))
-                   (>= (point) (cadr prettify-symbols--current-symbol-bounds))))
-      (apply #'font-lock-flush prettify-symbols--current-symbol-bounds)
-      (setq prettify-symbols--current-symbol-bounds nil))))
-
-(defcustom prettify-symbols-unprettify-at-point t
+(defcustom prettify-symbols-unprettify-at-point nil
   "If non-nil, show the non-prettified version of a symbol when point is on it.
-The prettification will be reapplied as soon as point moves away
-from the symbol.  If set to nil, the prettification persists even
-when point is on the symbol."
-  :type 'boolean
+If set to the symbol `right-edge', also unprettify if point
+is immediately after the symbol.  The prettification will be
+reapplied as soon as point moves away from the symbol.  If
+set to nil, the prettification persists even when point is
+on the symbol."
+  :type '(choice (const :tag "Never unprettify" nil)
+                 (const :tag "Unprettify when point is inside" t)
+                 (const :tag "Unprettify when point is inside or at right edge" right-edge))
   :group 'prog-mode)
+
+(defun prettify-symbols--post-command-hook ()
+  (cl-labels ((get-prop-as-list
+               (prop)
+               (remove nil
+                       (list (get-text-property (point) prop)
+                             (when (and (eq prettify-symbols-unprettify-at-point 'right-edge)
+                                        (not (bobp)))
+                               (get-text-property (1- (point)) prop))))))
+    ;; Re-apply prettification to the previous symbol.
+    (when (and prettify-symbols--current-symbol-bounds
+	       (or (< (point) (car prettify-symbols--current-symbol-bounds))
+		   (> (point) (cadr prettify-symbols--current-symbol-bounds))
+		   (and (not (eq prettify-symbols-unprettify-at-point 'right-edge))
+			(= (point) (cadr prettify-symbols--current-symbol-bounds)))))
+      (apply #'font-lock-flush prettify-symbols--current-symbol-bounds)
+      (setq prettify-symbols--current-symbol-bounds nil))
+    ;; Unprettify the current symbol.
+    (when-let ((c (get-prop-as-list 'composition))
+	       (s (get-prop-as-list 'prettify-symbols-start))
+	       (e (get-prop-as-list 'prettify-symbols-end))
+	       (s (apply #'min s))
+	       (e (apply #'max e)))
+      (with-silent-modifications
+	(setq prettify-symbols--current-symbol-bounds (list s e))
+	(remove-text-properties s e '(composition))))))
 
 ;;;###autoload
 (define-minor-mode prettify-symbols-mode
@@ -236,7 +253,10 @@ support it."
       (when (setq prettify-symbols--keywords (prettify-symbols--make-keywords))
         (font-lock-add-keywords nil prettify-symbols--keywords)
         (setq-local font-lock-extra-managed-props
-                    (cons 'composition font-lock-extra-managed-props))
+                    (append font-lock-extra-managed-props
+                            '(composition
+                              prettify-symbols-start
+                              prettify-symbols-end)))
         (when prettify-symbols-unprettify-at-point
           (add-hook 'post-command-hook
                     #'prettify-symbols--post-command-hook nil t))

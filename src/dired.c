@@ -397,8 +397,10 @@ Returns nil if DIRECTORY contains no name starting with FILE.
 If PREDICATE is non-nil, call PREDICATE with each possible
 completion (in absolute form) and ignore it if PREDICATE returns nil.
 
-This function ignores some of the possible completions as
-determined by the variable `completion-ignored-extensions', which see.  */)
+This function ignores some of the possible completions as determined
+by the variables `completion-regexp-list' and
+`completion-ignored-extensions', which see.  `completion-regexp-list'
+is matched against file and directory names relative to DIRECTORY.  */)
   (Lisp_Object file, Lisp_Object directory, Lisp_Object predicate)
 {
   Lisp_Object handler;
@@ -422,7 +424,12 @@ determined by the variable `completion-ignored-extensions', which see.  */)
 DEFUN ("file-name-all-completions", Ffile_name_all_completions,
        Sfile_name_all_completions, 2, 2, 0,
        doc: /* Return a list of all completions of file name FILE in directory DIRECTORY.
-These are all file names in directory DIRECTORY which begin with FILE.  */)
+These are all file names in directory DIRECTORY which begin with FILE.
+
+This function ignores some of the possible completions as determined
+by the variables `completion-regexp-list' and
+`completion-ignored-extensions', which see.  `completion-regexp-list'
+is matched against file and directory names relative to DIRECTORY.  */)
   (Lisp_Object file, Lisp_Object directory)
 {
   Lisp_Object handler;

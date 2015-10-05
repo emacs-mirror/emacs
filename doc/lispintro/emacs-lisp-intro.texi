@@ -3454,6 +3454,9 @@ a function.  (@xref{Interactive Codes, , Code Characters for
 Consider the function @code{zap-to-char}.  Its interactive expression
 is
 
+@c FIXME: the interactive expression of zap-to-char has been changed
+@c (in 2012-04-10).
+
 @smallexample
 (interactive "p\ncZap to char: ")
 @end smallexample

@@ -264,7 +264,7 @@ because it respects values of `delete-active-region' and `overwrite-mode'.  */)
 
   CHECK_NUMBER (n);
 
-  if (abs (XINT (n)) < 2)
+  if (eabs (XINT (n)) < 2)
     remove_excessive_undo_boundaries ();
 
   pos = PT + XINT (n);

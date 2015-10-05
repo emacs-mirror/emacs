@@ -22,15 +22,22 @@
 (require 'ert)
 (require 'json)
 
+(ert-deftest test-json-plist-reverse ()
+  (should (equal (json--plist-reverse '()) '()))
+  (should (equal (json--plist-reverse '(:a 1)) '(:a 1)))
+  (should (equal (json--plist-reverse '(:a 1 :b 2 :c 3))
+                 '(:c 3 :b 2 :a 1))))
+
 (ert-deftest json-encode-simple-alist ()
   (should (equal (json-encode '((a . 1)
                                 (b . 2)))
                  "{\"a\":1,\"b\":2}")))
 
 (ert-deftest json-read-simple-alist ()
-  (should (equal (json-read-from-string "{\"a\": 1, \"b\": 2}")
-                 '((b . 2)
-                   (a . 1)))))
+  (let ((json-object-type 'alist))
+    (should (equal (json-read-from-string "{\"a\": 1, \"b\": 2}")
+                   '((a . 1)
+                     (b . 2))))))
 
 (ert-deftest json-encode-string-with-special-chars ()
   (should (equal (json-encode-string "a\n\fb")

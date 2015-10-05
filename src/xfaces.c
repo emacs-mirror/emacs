@@ -631,7 +631,7 @@ free_frame_faces (struct frame *f)
 /* Clear face caches, and recompute basic faces for frame F.  Call
    this after changing frame parameters on which those faces depend,
    or when realized faces have been freed due to changing attributes
-   of named faces. */
+   of named faces.  */
 
 void
 recompute_basic_faces (struct frame *f)
@@ -2528,10 +2528,15 @@ Value is a vector of face attributes.  */)
   if (NILP (Fget (face, Qface_no_inherit)))
     {
       if (f)
-	f->face_change = 1;
+	{
+	  f->face_change = true;
+	  fset_redisplay (f);
+	}
       else
-	face_change = true;
-      windows_or_buffers_changed = 54;
+	{
+	  face_change = true;
+	  windows_or_buffers_changed = 54;
+	}
     }
 
   eassert (LFACEP (lface));
@@ -2613,10 +2618,15 @@ The value is TO.  */)
   if (NILP (Fget (to, Qface_no_inherit)))
     {
       if (f)
-	f->face_change = 1;
+	{
+	  f->face_change = true;
+	  fset_redisplay (f);
+	}
       else
-	face_change = true;
-      windows_or_buffers_changed = 55;
+	{
+	  face_change = true;
+	  windows_or_buffers_changed = 55;
+	}
     }
 
   return to;
@@ -3120,7 +3130,7 @@ FRAME 0 means change the face on all frames, and change the default
       && NILP (Fequal (old_value, value)))
     {
       f->face_change = true;
-      windows_or_buffers_changed = 56;
+      fset_redisplay (f);
     }
 
   if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value)
@@ -3293,7 +3303,7 @@ update_face_from_frame_parameter (struct frame *f, Lisp_Object param,
       && NILP (Fget (face, Qface_no_inherit)))
     {
       f->face_change = true;
-      windows_or_buffers_changed = 57;
+      fset_redisplay (f);
     }
 }
 

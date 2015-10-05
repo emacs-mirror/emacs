@@ -1374,7 +1374,7 @@ appear to be a match."
                      ;; that file.
                      (= (length string) (length compl)))
             (completion--replace beg end compl))))
-    (funcall exit-function))
+      (funcall exit-function))
 
      ((memq minibuffer-completion-confirm '(confirm confirm-after-completion))
       ;; The user is permitted to exit with an input that's rejected
@@ -1391,7 +1391,7 @@ appear to be a match."
 
      (t
       ;; Call do-completion, but ignore errors.
-    (funcall completion-function))))
+      (funcall completion-function))))
 
 (defun completion--try-word-completion (string table predicate point md)
   (let ((comp (completion-try-completion string table predicate point md)))
@@ -1794,7 +1794,7 @@ variables.")
            (if completions "Sole completion" "No completions")))
 
       (let* ((last (last completions))
-             (base-size (cdr last))
+             (base-size (or (cdr last) 0))
              (prefix (unless (zerop base-size) (substring string 0 base-size)))
              (all-md (completion--metadata (buffer-substring-no-properties
                                             start (point))

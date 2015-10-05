@@ -644,9 +644,9 @@ SYMBOL is a function that can be overridden."
       (insert (overload-docstring-extension symbol) "\n\n")
       (insert (format-message "default function: `%s'\n" default))
       (if override
-	  (insert (format-message "\noverride in buffer '%s': `%s'\n"
+	  (insert (format-message "\noverride in buffer `%s': `%s'\n"
 				  describe-function-orig-buffer override))
-	(insert (format-message "\nno override in buffer '%s'\n"
+	(insert (format-message "\nno override in buffer `%s'\n"
 				describe-function-orig-buffer)))
 
       (mapatoms

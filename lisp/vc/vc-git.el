@@ -974,6 +974,34 @@ or BRANCH^ (where \"^\" can be repeated)."
       (buffer-string))))
 
 (defun vc-git-region-history (file buffer lfrom lto)
+  ;; The "git log" command below interprets the line numbers as applying
+  ;; to the HEAD version of the file, not to the current state of the file.
+  ;; So we need to look at all the local changes and adjust lfrom/lto
+  ;; accordingly.
+  ;; FIXME: Maybe this should be done in vc.el (i.e. for all backends), but
+  ;; since Git is the only backend to support this operation so far, it's hard
+  ;; to tell.
+  (with-temp-buffer
+    (vc-call-backend 'git 'diff file "HEAD" nil (current-buffer))
+    (goto-char (point-min))
+    (let ((last-offset 0)
+          (from-offset nil)
+          (to-offset nil))
+      (while (re-search-forward
+              "^@@ -\\([0-9]+\\),\\([0-9]+\\) \\+\\([0-9]+\\),\\([0-9]+\\) @@" nil t)
+        (let ((headno (string-to-number (match-string 1)))
+              (headcnt (string-to-number (match-string 2)))
+              (curno (string-to-number (match-string 3)))
+              (curcnt (string-to-number (match-string 4))))
+          (cl-assert (equal (- curno headno) last-offset))
+          (and (null from-offset) (> curno lfrom)
+               (setq from-offset last-offset))
+          (and (null to-offset) (> curno lto)
+               (setq to-offset last-offset))
+          (setq last-offset
+                (- (+ curno curcnt) (+ headno headcnt)))))
+      (setq lto (- lto (or to-offset last-offset)))
+      (setq lfrom (- lfrom (or to-offset last-offset)))))
   (vc-git-command buffer 'async nil "log" "-p" ;"--follow" ;FIXME: not supported?
                   (format "-L%d,%d:%s" lfrom lto (file-relative-name file))))
 

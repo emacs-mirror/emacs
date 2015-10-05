@@ -314,16 +314,25 @@ standards.
 
 * Changes in Specialized Modes and Packages in Emacs 25.1
 
+** JSON
+---
+*** `json-pretty-print' and `json-pretty-print-buffer' now maintain
+the ordering of object keys by default.
+
 ** You can recompute the VC state of a file buffer with `M-x vc-refresh-state'
 ** Prog mode has some support for multi-mode indentation.
 See `prog-indentation-context' and `prog-widen'.
 
-** Prettify Symbols mode supports custom composition predicates.  By
+** Prettify Symbols mode
+*** Prettify Symbols mode supports custom composition predicates.  By
 overriding the default `prettify-symbols-compose-predicate', modes can
 specify in which contexts a symbol map be composed to some unicode
 character.  `prettify-symbols-default-compose-p' is the default which
 is suitable for most programming languages such as C or Lisp (but not
 (La)TeX).
+
+*** Symbols can be unprettified while point is inside them.
+New variable `prettify-symbols-unprettify-at-point' configures this.
 
 ** New `xterm-screen-extra-capabilities' config.
 

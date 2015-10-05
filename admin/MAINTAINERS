@@ -129,6 +129,22 @@ Dmitry Gutov
 	lisp/progmodes/xref.el
 	lisp/progmodes/project.el
 
+Ulf Jasper
+	Newsticker
+	    doc/misc/newsticker.texi
+	    etc/images/newsticker/*
+	    lisp/net/newst-backend.el
+	    lisp/net/newst-plainview.el
+	    lisp/net/newst-reader.el
+	    lisp/net/newst-ticker.el
+	    lisp/net/newst-treeview.el
+	    lisp/net/newsticker.el
+	    test/automated/newsticker-tests.el
+
+	Icalendar
+	    lisp/calendar/icalendar.el
+	    test/automated/icalendar-tests.el
+
 ==============================================================================
 2.
 ==============================================================================
@@ -218,6 +234,7 @@ Paul Eggert
 Michael Albinus
 	src/inotify.c
         lisp/autorevert.el
+	lisp/eshell/em-tramp.el
 	lisp/notifications.el
         test/automated/auto-revert-tests.el
 	test/automated/inotify-test.el
@@ -542,12 +559,6 @@ lisp/net/mairix.el
 lisp/net/netrc.el
 lisp/net/net-utils.el
 lisp/net/network-stream.el
-lisp/net/newst-backend.el
-lisp/net/newsticker.el
-lisp/net/newst-plainview.el
-lisp/net/newst-reader.el
-lisp/net/newst-ticker.el
-lisp/net/newst-treeview.el
 lisp/net/nsm.el
 lisp/net/ntlm.el
 lisp/net/pinentry.el
@@ -568,7 +579,6 @@ lisp/net/soap-inspect.el
 lisp/net/socks.el
 lisp/net/telnet.el
 lisp/net/tls.el
-lisp/net/trampver.el
 lisp/net/webjump.el
 lisp/newcomment.el
 lisp/novice.el

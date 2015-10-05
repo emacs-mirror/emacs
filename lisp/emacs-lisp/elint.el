@@ -520,7 +520,7 @@ Return nil if there are no more forms, t otherwise."
 	      ;;; 	(with-syntax-table emacs-lisp-mode-syntax-table
 	      ;;; 	  (elint-update-env))
 	      ;;; 	(setq env (elint-env-add-env env elint-buffer-env))))
-	      ;;(message "Elint processed (require '%s)" name))
+	      ;;(message "%s" (format "Elint processed (require '%s)" name))
 	  (error "%s.el not found in load-path" libname)))
     (error
      (message "Can't get variables from require'd library %s: %s"

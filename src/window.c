@@ -1689,10 +1689,10 @@ Return nil if that position is scrolled vertically out of view.  If a
 character is only partially visible, nil is returned, unless the
 optional argument PARTIALLY is non-nil.  If POS is only out of view
 because of horizontal scrolling, return non-nil.  If POS is t, it
-specifies the position of either the first position displayed on the
-last visible screen line in WINDOW, or the end-of-buffer position,
-whichever comes first.  POS defaults to point in WINDOW; WINDOW defaults
-to the selected window.
+specifies either the first position displayed on the last visible
+screen line in WINDOW, or the end-of-buffer position, whichever comes
+first.  POS defaults to point in WINDOW; WINDOW defaults to the
+selected window.
 
 If POS is visible, return t if PARTIALLY is nil; if PARTIALLY is non-nil,
 the return value is a list of 2 or 6 elements (X Y [RTOP RBOT ROWH VPOS]),
@@ -6615,7 +6615,6 @@ apply_window_adjustment (struct window *w)
   eassert (w);
   clear_glyph_matrix (w->current_matrix);
   w->window_end_valid = false;
-  windows_or_buffers_changed = 30;
   wset_redisplay (w);
   adjust_frame_glyphs (XFRAME (WINDOW_FRAME (w)));
 }

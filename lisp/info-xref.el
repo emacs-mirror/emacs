@@ -454,7 +454,7 @@ and can take a long time."
         (cond ((symbolp load)
                (condition-case cause (require load)
                  (error
-                  (info-xref-output "Symbol `%s': cannot require '%s: %s"
+                  (info-xref-output "Symbol `%s': cannot require `%s': %s"
                                     symbol load cause))))
               ;; skip if previously loaded
               ((assoc load load-history))

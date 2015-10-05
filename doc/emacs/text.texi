@@ -417,8 +417,8 @@ beginning of a line.
 using straight apostrophes @t{'like this'} or double-quotes @t{"like
 this"}.  Another common way is the curved quote convention, which uses
 left and right single or double quotation marks @t{‘like this’} or
-@t{“like this”}.  Typewriter quotes are simple and portable; curved
-quotes are less ambiguous and typically look nicer.
+@t{“like this”}.  In text files, typewriter quotes are simple and
+portable; curved quotes are less ambiguous and typically look nicer.
 
   Electric Quote mode makes it easier to type curved quotes.  As you
 type characters it optionally converts @t{`} to @t{‘}, @t{'} to @t{’},

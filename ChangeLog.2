@@ -1,3 +1,489 @@
+2015-10-04  Eli Zaretskii  <eliz@gnu.org>
+	    Michael Heerdegen  <michael_heerdegen@web.de>
+
+	shr: fix too long lines in rendered buffers (Bug#21012)
+
+	* lisp/net/shr.el (shr-insert-document, shr-fill-text):
+	Correct calculation of available width.
+	(shr-find-fill-point): Don't overflow window edge if shr-kinsoku-shorten
+	is nil.
+
+2015-10-04  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	Restore blank line before next section, erroneously erased in my previous commit
+
+	* etc/compilation.txt (symbol ant): add an additional trailing blank line to this section, so that there are two of them immediately before the next section
+
+2015-10-04  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	Support MSW filename style for ant compilation error regexp
+
+	* etc/compilation.txt (symbol ant):
+	* lisp/progmodes/compile.el (compilation-error-regexp-alist-alist): Support MSW filename style
+
+2015-10-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* nt/INSTALL: Minor spelling and quote fixes.
+
+	* lisp/ibuffer.el: Fix docstring length (Bug#21541).
+
+2015-10-03  Simen Heggestøyl  <simenheg@gmail.com>
+
+	Maintain ordering of JSON object keys by default
+
+	* lisp/json.el (json-object-type): Mention order handling in doc-string.
+	(json--plist-reverse): New utility function.
+	(json-read-object): Maintain ordering for alists and plists.
+	(json-pretty-print): Ensure that ordering is maintained.
+
+	* test/automated/json-tests.el (test-json-plist-reverse): New test for
+	`json--plist-reverse'.
+	(json-read-simple-alist): Update test to accommodate for changes in
+	`json-read-object'.
+
+	* etc/NEWS: Document the new behavior of the pretty printing functions.
+
+2015-10-03  Andreas Schwab  <schwab@linux-m68k.org>
+
+		* src/coding.c (complement_process_encoding_system): Revert last
+		change.
+
+2015-10-03  Ulf Jasper  <ulf.jasper@web.de>
+
+	Add entry for Ulf Jasper.
+
+2015-10-03  Xue Fuqiao  <xfq.free@gmail.com>
+
+	Doc fix for `defmacro'
+
+	* doc/lispref/objects.texi (Macro Type): `defmacro' is a macro now.
+
+2015-10-03  Andreas Schwab  <schwab@linux-m68k.org>
+
+	More validatation of coding systems
+
+	* src/fileio.c (Finsert_file_contents): Remove redundant
+	coding-system check.
+	(choose_write_coding_system): Likewise.
+	* src/coding.c (complement_process_encoding_system): Check
+	argument for valid coding system.
+
+2015-10-03  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid crashes in coding_inherit_eol_type
+
+	* src/coding.c (coding_inherit_eol_type): Check the validity of
+	the arguments.  Suggested by Andreas Schwab <schwab@linux-m68k.org>.
+	(Bug#21602)
+
+2015-10-03  Eli Zaretskii  <eliz@gnu.org>
+
+	More validatation of coding system in 'write-region'
+
+	* src/coding.c (choose_write_coding_system): More validation of
+	coding-system from various sources.  Suggested by Andreas Schwab
+	<schwab@linux-m68k.org>.  (Bug#21602)
+
+2015-10-03  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid crashes due to invalid coding-system
+
+	* src/fileio.c (choose_write_coding_system)
+	(Finsert_file_contents): Check validity of coding-system-for-write
+	and coding-system-for-read bound by the caller.  (Bug#21602)
+
+2015-10-03  Tassilo Horn  <tsdh@gnu.org>
+
+	Adapt to new prettify-symbols-unprettify-at-point default
+
+	* etc/NEWS: Mention that unprettication of symbol at point is off by
+	default.
+
+2015-10-03  Tassilo Horn  <tsdh@gnu.org>
+
+	Revert my two recent process.c changes
+
+	Revert "Improve last commit to process.c" and "Remove callback-handled
+	channels from Available set" because they did not fix bug#21313.
+
+	This reverts commits bfa1aa8e2bdaf14adbbf1e9e824051d3f740694c and
+	27f871907cc24f33a7d12ac3a4ab71a88f0bc554..
+
+2015-10-02  Markus Triska  <triska@metalevel.at>
+
+	* prolog.el: Update and extend operator table
+
+	(prolog-smie-grammar): Add multifile, public etc.
+
+2015-10-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Allow autogen even when Git is not installed
+
+	* autogen.sh: Test ‘git status’ before trying to use Git.
+
+2015-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/vc/vc-git.el (vc-git-region-history): Handle local changes
+
+	Adjust lto/lfrom when we have uncommitted changes.
+
+2015-10-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix problems found by clang 3.5.0
+
+	* src/cmds.c (Fdelete_char): Don’t assume XINT returns int.
+	* src/font.c (font_parse_family_registry):
+	Use &"str"[X] instead of "str"+X, to pacify clang -Wstring-plus-int.
+
+2015-10-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* nt/INSTALL: Update instructions for running autogen.sh
+
+	* nt/INSTALL: Point to ezwinports for libXpm binaries.
+
+2015-10-02  Daniel Colascione  <dancol@dancol.org>
+
+	Fix winner in cl-lib not loaded case
+
+	* lisp/winner.el (winner-change-fun): Don't use cl-lib functions
+	without requiring CL
+
+2015-10-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix a few problems with directed quotes
+
+	This is in response to a problem report by Kaushal Modi in:
+	http://bugs.gnu.org/21588#25
+	* lisp/cedet/mode-local.el (describe-mode-local-overload):
+	* lisp/emacs-lisp/bytecomp.el (byte-compile-fix-header):
+	* lisp/info-xref.el (info-xref-check-all-custom):
+	* lisp/mail/emacsbug.el (report-emacs-bug-hook):
+	Prefer directed to undirected single quotes in diagnostics.
+
+2015-10-01  Eli Zaretskii  <eliz@gnu.org>
+
+	Revert "Attempt to fix slow redisplay caused by last changes"
+
+	* src/xdisp.c (try_window_id, try_window_reusing_current_matrix)
+	(try_cursor_movement): Don't relax requirements for redisplay
+	optimizations for the selected frame.  (Bug#21597)
+
+	This reverts commit c4c1fb97727ff52bcfa83ad5ed94a64a93d12e59.
+
+2015-10-01  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix slow redisplay when daemon frame exists
+
+	* src/xdisp.c (redisplay_internal): Don't consider daemon frames
+	when looking for frames that need to be redisplayed.  (Bug#21597)
+
+2015-10-01  Eli Zaretskii  <eliz@gnu.org>
+
+	Attempt to fix slow redisplay caused by last changes
+
+	* src/xdisp.c (try_window_id, try_window_reusing_current_matrix)
+	(try_cursor_movement): Relax requirements for redisplay
+	optimizations for the selected frame.  (Bug#21597)
+
+2015-10-01  Stephen Leake  <stephen_leake@stephe-leake.org>
+
+	Improve doc strings in dired.c
+
+	* src/dired.c (Ffile_name_completion, Ffile_name_all_completions):
+	Improve doc string.
+
+2015-10-01  Stephen Leake  <stephen_leake@stephe-leake.org>
+
+	Set default base-size in minibuffer-completion-help
+
+	* lisp/minibuffer.el (minibuffer-completion-help): Set default base-size,
+	in case completion table does not set it.
+
+2015-10-01  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix GUD display of GDB output with non-ASCII text
+
+	* lisp/progmodes/gdb-mi.el (gdb-mi-decode-strings): New defcustom.
+	(gdb-mi-decode): New function.
+	(gud-gdbmi-marker-filter): If gdb-mi-decode-strings is non-nil,
+	decode octal escapes in GDB output.  (Bug#21572)
+
+2015-10-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* nt/INSTALL: Document where to find XPM support files
+
+2015-10-01  Tassilo Horn  <tsdh@gnu.org>
+
+	Un- and re-prettification are not exclusive
+
+	* lisp/progmodes/prog-mode.el (prettify-symbols--post-command-hook):
+	Re-apply prettification to previous symbol also when unprettifying next
+	one.
+
+2015-10-01  Tassilo Horn  <tsdh@gnu.org>
+
+	Don't unprettify symbol at point by default
+
+	* lisp/progmodes/prog-mode.el (prettify-symbols-unprettify-at-point):
+	Default to disabled (nil).
+
+2015-09-30  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/progmodes/prog-mode.el (prettify-symbols-unprettify-at-point):
+
+	Support unprettifying when point is after a symbol.
+
+	* etc/NEWS: Document `prettify-symbols-unprettify-at-point'
+
+2015-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid assertion violations in push_prefix_prop
+
+	* src/xdisp.c (push_prefix_prop): Avoid assertion violations when
+	a line that has a line-prefix defined starts with an image.  (Bug#21428)
+
+2015-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	Disable some display optimizations when frames need redisplay
+
+	These optimizations were previously disabled by the
+	windows_or_buffers_changed flag, which now is not set
+	when only some frames need to be redrawn.
+	* src/xdisp.c (redisplay_internal): Redisplay any frame whose
+	'redisplay' flag is set.
+	(try_window_reusing_current_matrix, try_window_id)
+	(try_cursor_movement): Disable these optimizations when the
+	frame's 'redisplay' flag is set.
+
+2015-09-30  Tassilo Horn  <tsdh@gnu.org>
+
+	Don't modify buffer by unprettification
+
+	* lisp/progmodes/prog-mode.el (prettify-symbols--compose-symbol):
+	(prettify-symbols--post-command-hook, prettify-symbols-mode): Don't
+	modify buffer when setting/removing custom prettify-symbols-start/end
+	text properties.  Add them to font-lock-extra-managed-props, too.
+
+2015-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Try to avoid redisplaying all frames when creating a new one
+
+	* src/xfns.c (x_set_menu_bar_lines, x_change_tool_bar_height):
+	* src/xfaces.c (Finternal_make_lisp_face, Finternal_copy_lisp_face)
+	(Finternal_set_lisp_face_attribute, update_face_from_frame_parameter):
+	* src/frame.c (x_set_screen_gamma): Set the specific frame's
+	`redisplay' bit rather than windows_or_buffers_changed.
+
+	* src/window.c (apply_window_adjustment): Remove redundant setting of
+	windows_or_buffers_changed.
+
+	* src/xdisp.c (redisplay_internal): Set the specific frame's
+	`redisplay' bit rather than update_mode_lines in response to
+	cursor_type_changed.
+	(syms_of_xdisp): Use hash-tables for redisplay_*_cause tables.
+	(AINC): Adjust accordingly.
+
+2015-09-30  Tassilo Horn  <tsdh@gnu.org>
+
+	Implement unprettification of symbol at point
+
+	* lisp/progmodes/prog-mode.el: Implement feature for unprettifying the
+	symbol at point.
+	(prettify-symbols--current-symbol-bounds): New variable.
+	(prettify-symbols--post-command-hook): New function.
+	(prettify-symbols-unprettify-at-point): New defcustom.
+	(prettify-symbols-mode): Use it.
+	(prettify-symbols--compose-symbol): Use them.
+
+2015-09-30  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* src/macfont.m (mac_font_descriptor_supports_languages): Regard "zh" as synonym of "zh-Hans".
+
+2015-09-30  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	Work around crash when displaying etc/HELLO on OS X 10.11
+
+	* src/macfont.m (mac_font_get_weight)
+	(mac_font_descriptor_get_adjusted_weight): New functions.
+	(macfont_store_descriptor_attributes): Adjust weight.
+
+2015-09-30  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* src/macfont.m: Fix compilation with USE_CT_GLYPH_INFO.
+
+2015-09-30  Nicolas Petton  <nicolas@petton.fr>
+
+	* lisp/arc-mode.el (archive-rar-summarize): Better alignment of the columns.
+
+2015-09-30  Nicolas Petton  <nicolas@petton.fr>
+
+	Use unar and lsar to handle RAR archives in arc-mode
+
+	* lisp/arc-mode.el (archive-rar-extract, archive-extract-by-file): Rely
+	on unar and lsar instead of unrar-free for RAR archives (Bug#17663).
+
+2015-09-30  Wieland Hoffmann  <themineo@gmail.com>  (tiny change)
+
+	Clarify :create in auth-source's docs
+
+	* auth-source.el (auth-source-search): Clarify :create's meaning.
+
+2015-09-30  Phil Sainty  <psainty@orcon.net.nz>
+
+	Avoid empty -path arguments in rgrep
+
+	* lisp/progmodes/grep.el (rgrep-default-command): Remove nil from
+	the list produced according to grep-find-ignored-directories,
+	before passing it to Find/Grep invocation.  (Bug#21548)
+
+2015-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	Clarify documentation of pos-visible-in-window-p
+
+	* src/window.c (Fpos_visible_in_window_p): Clarify the meaning of
+	t for POS.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2015-09/msg01040.html
+	for the original report.
+
+	* doc/lispref/windows.texi (Window Start and End): Clarify the
+	meaning of t for the POSITION argument of pos-visible-in-window-p.
+
+2015-09-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/progmodes/prolog.el: Fix various indentation cases
+
+	(prolog-operator-chars): New const (add \\).
+	(prolog-smie-forward-token, prolog-smie-backward-token): Use it.
+	(prolog-smie-rules): Add rules according to bug#21526.
+
+2015-09-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/progmodes/sh-script.el: Old "dumb" continued line indent
+
+	(sh-indent-after-continuation): Add new value `always' (bug#17620)
+	(sh-smie-sh-rules): Remove old handling of continued lines.
+	(sh-smie--indent-continuation): New function.
+	(sh-set-shell): Use it.
+
+2015-09-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/progmodes/octave.el: Use grammar more; Handle enumeration fun
+
+	Remove redundant :group keyword args.
+	(octave-begin-keywords, octave-else-keywords, octave-end-keywords):
+	Remove variables.
+	(octave-operator-table, octave-smie-bnf-table): Use let-when-compile to
+	turn them into compile-time variables.
+	Auto-generate the "foo ... end" rules from the "foo ... endfoo" rules.
+	Add rules for break, continue, return, global, and persistent.
+	Refine the rule for "until".
+	(octave-smie--funcall-p, octave-smie--end-index-p)
+	(octave-smie--in-parens-p): New functions.
+	(octave-smie-backward-token, octave-smie-forward-token): Use them to
+	distinguish the "enumeration" function and the "end" index from
+	their corresponding keywords.
+	(octave--block-offset-keywords): New constant.
+	(octave-smie-rules): Use it.  Adjust rules for new global/persistent parsing.
+	(octave-reserved-words): Redefine using octave-smie-grammar.
+	(octave-font-lock-keywords): Use octave-smie--funcall-p and
+	octave-smie--end-index-p.
+
+2015-09-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/emacs-lisp/lisp-mode.el (let-when-compile): Work like let*
+
+2015-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	nt/INSTALL: Remove references to GTK site
+
+	That site no longer offers Windows downloads.
+
+2015-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* nt/INSTALL: Add instructions for installing Git.
+
+2015-09-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* net/shr.el (shr-colorize-region): Allow 88-color tty to use colors.
+	Suggested by Eli Zaretskii.
+
+2015-09-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* net/shr.el (shr-colorize-region):
+	Don't do it on a system not supporting 256 above colors (bug#21557).
+
+2015-09-28  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Revert "Don't rely on defaults in decoding UTF-8 encoded Lisp files"
+
+	This reverts commit db828f62f6f17414fbbc3206dac123dc73dd6055.
+
+2015-09-28  Nicolas Petton  <nicolas@petton.fr>
+
+	Add documentation for seq.el
+
+	* doc/lispref/sequences.texi: Add documentation regarding extending
+	seq.el, as well as missing documentation for seq-elt, seq-length, seq-p,
+	seq-do and seq-map.
+
+2015-09-28  Nicolas Petton  <nicolas@petton.fr>
+
+	Better documentation for seq-some
+
+	* doc/lispref/sequences.texi:
+	* lisp/emacs-lisp/seq.el: Update the documentation of seq-some to
+	guarantee that the returned value is the first non-nil value that
+	resulted from applying the predicate.
+
+2015-09-28  Nicolas Petton  <nicolas@petton.fr>
+
+	* lisp/arc-mode.el: Sharp-quote function arguments.
+
+2015-09-28  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid redisplay error in ediff-regions-wordwise
+
+	* lisp/vc/ediff-util.el
+	(ediff-clone-buffer-for-region-comparison): Make sure the mark is
+	set before activating it.  (Bug#21567)
+
+2015-09-28  Eli Zaretskii  <eliz@gnu.org>
+
+	Another attempt to fix crashes due to prematurely freed faces
+
+	* src/xdisp.c (redisplay_internal): Inhibit freeing of realized
+	faces for as long as we might have desired matrices that reference
+	those faces.  (Bug#21428)
+
+2015-09-28  Tassilo Horn  <tsdh@gnu.org>
+
+	Add auctex development list email address
+
+2015-09-28  Tassilo Horn  <tsdh@gnu.org>
+
+	Add admin/MAINTAINERS entries
+
+	* admin/MAINTAINERS: Add entries for AUCTeX team and myself.
+
+2015-09-28  (tiny change) Arash Esbati  <esbati@gmx.de>  (tiny change)
+
+	Improve wrapfig package support and caption parsing
+
+	* lisp/textmodes/reftex-vars.el (reftex-label-alist-builtin): Correct
+	description string and add wraptable environment.
+	(reftex-default-context-regexps): Improve caption regexp.
+
+2015-09-28  Anders Lindgren  <andlind@gmail.com>
+
+	Respect value of frame_resize_pixelwise when handling fullscreen state.
+
+	* src/nsterm.m (handleFS): Respect frame_resize_pixelwise when
+	setting size increments.
+
+2015-09-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* src/gfilenotify.c (Fgfile_add_watch): Cleanup temporary variable.
+
 2015-09-27  Simen Heggestøyl  <simenheg@gmail.com>
 
 	Add prettify-symbols-alist for js-mode
@@ -14042,7 +14528,7 @@
 
 This file records repository revisions from
 commit 9d56a21e6a696ad19ac65c4b405aeca44785884a (exclusive) to
-commit f49e3a2603f249bb2ec281f3eaedd80cbaef2243 (inclusive).
+commit 2021680e9dcd277a4ebbdb613d535e6edc86f384 (inclusive).
 See ChangeLog.1 for earlier changes.
 
 ;; Local Variables:

@@ -2315,9 +2315,66 @@ the end of the current result or async record is reached."
 ; list ==>
 ;      "[]" | "[" value ( "," value )* "]" | "[" result ( "," result )* "]"
 
+(defcustom gdb-mi-decode-strings nil
+  "When non-nil, decode octal escapes in GDB output into non-ASCII text.
+
+If the value is a coding-system, use that coding-system to decode
+the bytes reconstructed from octal escapes.  Any other non-nil value
+means to decode using the coding-system set for the GDB process.
+
+Warning: setting this non-nil might mangle strings reported by GDB
+that have literal substrings which match the \\nnn octal escape
+patterns, where nnn is an octal number between 200 and 377.  So
+we only recommend to set this variable non-nil if the program you
+are debugging really reports non-ASCII text, or some of its source
+file names include non-ASCII characters."
+  :type '(choice
+          (const :tag "Don't decode" nil)
+          (const :tag "Decode using default coding-system" t)
+          (coding-system :tag "Decode using this coding-system"))
+  :group 'gdb
+  :version "25.1")
+
+;; The idea of the following function was suggested
+;; by Kenichi Handa <handa@gnu.org>.
+;;
+;; FIXME: This is fragile: it relies on the assumption that all the
+;; non-ASCII strings output by GDB, including names of the source
+;; files, values of string variables in the inferior, etc., are all
+;; encoded in the same encoding.  It also assumes that the \nnn
+;; sequences are not split between chunks of output of the GDB process
+;; due to buffering, and arrive together.  Finally, if some string
+;; included literal \nnn strings (as opposed to non-ASCII characters
+;; converted by by GDB/MI to octal escapes), this decoding will mangle
+;; those strings.  When/if GDB acquires the ability to not
+;; escape-protect non-ASCII characters in its MI output, this kludge
+;; should be removed.
+(defun gdb-mi-decode (string)
+  "Decode octal escapes in MI output STRING into multibyte text."
+  (let ((coding
+         (if (coding-system-p gdb-mi-decode-strings)
+             gdb-mi-decode-strings
+           (with-current-buffer
+               (gdb-get-buffer-create 'gdb-partial-output-buffer)
+             buffer-file-coding-system))))
+    (with-temp-buffer
+      (set-buffer-multibyte nil)
+      (prin1 string (current-buffer))
+      (goto-char (point-min))
+      ;; prin1 quotes the octal escapes as well, which interferes with
+      ;; their interpretation by 'read' below.  Remove the extra
+      ;; backslashes to countermand that.
+      (while (re-search-forward "\\\\\\(\\\\[2-3][0-7][0-7]\\)" nil t)
+        (replace-match "\\1" nil nil))
+      (goto-char (point-min))
+      (decode-coding-string (read (current-buffer)) coding))))
 
 (defun gud-gdbmi-marker-filter (string)
   "Filter GDB/MI output."
+
+  ;; If required, decode non-ASCII text encoded with octal escapes.
+  (or (null gdb-mi-decode-strings)
+      (setq string (gdb-mi-decode string)))
 
   ;; Record transactions if logging is enabled.
   (when gdb-enable-debug

@@ -2015,7 +2015,7 @@ and will be removed soon.  See (elisp)Backquote in the manual."))
        (format "     (string-lessp emacs-version \"%s\")\n" minimum-version)
        ;; Because the header must fit in a fixed width, we cannot
        ;; insert arbitrary-length file names (Bug#11585).
-       "     (error \"'%s' was compiled for "
+       "     (error \"`%s' was compiled for "
        (format "Emacs %s or later\" #$))\n\n" minimum-version))
       ;; Now compensate for any change in size, to make sure all
       ;; positions in the file remain valid.

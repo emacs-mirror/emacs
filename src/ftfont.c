@@ -2234,6 +2234,8 @@ ftfont_drive_otf (MFLTFont *font, MFLTOtfSpec *spec, MFLTGlyphString *in,
 		  MFLTGlyphString *out, MFLTGlyphAdjustment *adjustment)
 {
   struct MFLTFontFT *flt_font_ft = (struct MFLTFontFT *) font;
+  MFLTGlyphFT *in_glyphs = (MFLTGlyphFT *) (in->glyphs) + from;
+  MFLTGlyphFT *out_glyphs = out ? (MFLTGlyphFT *) (out->glyphs) : NULL;
   FT_Face ft_face = flt_font_ft->ft_face;
   OTF *otf = flt_font_ft->otf;
   int len = to - from;
@@ -2284,8 +2286,8 @@ ftfont_drive_otf (MFLTFont *font, MFLTOtfSpec *spec, MFLTGlyphString *in,
   setup_otf_gstring (len);
   for (i = 0; i < len; i++)
     {
-      otf_gstring.glyphs[i].c = in->glyphs[from + i].c;
-      otf_gstring.glyphs[i].glyph_id = in->glyphs[from + i].code;
+      otf_gstring.glyphs[i].c = in_glyphs[i].g.c;
+      otf_gstring.glyphs[i].glyph_id = in_glyphs[i].g.code;
     }
 
   OTF_drive_gdef (otf, &otf_gstring);
@@ -2307,17 +2309,17 @@ ftfont_drive_otf (MFLTFont *font, MFLTOtfSpec *spec, MFLTGlyphString *in,
 	  int min_from, max_to;
 	  int j;
 
-	  g = out->glyphs + out->used;
-	  *g = in->glyphs[from + otfg->f.index.from];
-	  if (g->code != otfg->glyph_id)
+	  g = out_glyphs + out->used;
+	  *g = in_glyphs[otfg->f.index.from];
+	  if (g->g.code != otfg->glyph_id)
 	    {
-	      g->c = 0;
-	      g->code = otfg->glyph_id;
-	      g->measured = 0;
+	      g->g.c = 0;
+	      g->g.code = otfg->glyph_id;
+	      g->g.measured = 0;
 	    }
 	  out->used++;
-	  min_from = g->from;
-	  max_to = g->to;
+	  min_from = g->g.from;
+	  max_to = g->g.to;
 	  if (otfg->f.index.from < otfg->f.index.to)
 	    {
 	      /* OTFG substitutes multiple glyphs in IN.  */
@@ -2329,20 +2331,20 @@ ftfont_drive_otf (MFLTFont *font, MFLTOtfSpec *spec, MFLTGlyphString *in,
 		  if (max_to < in->glyphs[j].to)
 		    max_to = in->glyphs[j].to;
 		}
-	      g->from = min_from;
-	      g->to = max_to;
+	      g->g.from = min_from;
+	      g->g.to = max_to;
 	    }
 	  for (i++, otfg++; (i < otf_gstring.used
 			     && otfg->f.index.from == otfg[-1].f.index.from);
 	       i++, otfg++)
 	    {
-	      g = out->glyphs + out->used;
-	      *g = in->glyphs[from + otfg->f.index.to];
-	      if (g->code != otfg->glyph_id)
+	      g = out_glyphs + out->used;
+	      *g = in_glyphs[otfg->f.index.to];
+	      if (g->g.code != otfg->glyph_id)
 		{
-		  g->c = 0;
-		  g->code = otfg->glyph_id;
-		  g->measured = 0;
+		  g->g.c = 0;
+		  g->g.code = otfg->glyph_id;
+		  g->g.measured = 0;
 		}
 	      out->used++;
 	    }
@@ -2356,7 +2358,7 @@ ftfont_drive_otf (MFLTFont *font, MFLTOtfSpec *spec, MFLTGlyphString *in,
 	  return -2;
 	}
       for (i = 0; i < len; i++)
-	out->glyphs[out->used++] = in->glyphs[from + i];
+	out_glyphs[out->used++] = in_glyphs[i];
     }
 
   if (gpos_features)
@@ -2376,7 +2378,7 @@ ftfont_drive_otf (MFLTFont *font, MFLTOtfSpec *spec, MFLTGlyphString *in,
       x_scale = ft_face->size->metrics.x_scale;
       y_scale = ft_face->size->metrics.y_scale;
 
-      for (i = 0, otfg = otf_gstring.glyphs, g = out->glyphs + gidx;
+      for (i = 0, otfg = otf_gstring.glyphs, g = out_glyphs + gidx;
 	   i < otf_gstring.used; i++, otfg++, g++)
 	{
 	  MFLTGlyphFT *prev;
@@ -2444,10 +2446,10 @@ ftfont_drive_otf (MFLTFont *font, MFLTOtfSpec *spec, MFLTGlyphString *in,
 		mark_y = otfg->f.f4.mark_anchor->YCoordinate * y_scale / 0x10000;
 
 		if (otfg->f.f4.base_anchor->AnchorFormat != 1)
-		  adjust_anchor (ft_face, otfg->f.f4.base_anchor,
-				 prev->code, x_ppem, y_ppem, &base_x, &base_y);
+		  adjust_anchor (ft_face, otfg->f.f4.base_anchor, prev->g.code,
+				 x_ppem, y_ppem, &base_x, &base_y);
 		if (otfg->f.f4.mark_anchor->AnchorFormat != 1)
-		  adjust_anchor (ft_face, otfg->f.f4.mark_anchor, g->code,
+		  adjust_anchor (ft_face, otfg->f.f4.mark_anchor, g->g.code,
 				 x_ppem, y_ppem, &mark_x, &mark_y);
 		adjustment[i].xoff = (base_x - mark_x);
 		adjustment[i].yoff = - (base_y - mark_y);
@@ -2455,19 +2457,19 @@ ftfont_drive_otf (MFLTFont *font, MFLTOtfSpec *spec, MFLTGlyphString *in,
 		adjustment[i].xadv = 0;
 		adjustment[i].advance_is_absolute = 1;
 		adjustment[i].set = 1;
-		this_from = g->from;
-		this_to = g->to;
+		this_from = g->g.from;
+		this_to = g->g.to;
 		for (j = 0; prev + j < g; j++)
 		  {
-		    if (this_from > prev[j].from)
-		      this_from = prev[j].from;
-		    if (this_to < prev[j].to)
-		      this_to = prev[j].to;
+		    if (this_from > prev[j].g.from)
+		      this_from = prev[j].g.from;
+		    if (this_to < prev[j].g.to)
+		      this_to = prev[j].g.to;
 		  }
 		for (; prev <= g; prev++)
 		  {
-		    prev->from = this_from;
-		    prev->to = this_to;
+		    prev->g.from = this_from;
+		    prev->g.to = this_to;
 		  }
 	      }
 	    }
@@ -2487,8 +2489,8 @@ ftfont_drive_otf (MFLTFont *font, MFLTOtfSpec *spec, MFLTGlyphString *in,
   if (out->allocated < out->used + len)
     return -2;
   font->get_metrics (font, in, from, to);
-  memcpy (out->glyphs + out->used, in->glyphs + from,
-	  sizeof (MFLTGlyph) * len);
+  memcpy (out_glyphs + out->used, in_glyphs,
+	  sizeof (MFLTGlyphFT) * len);
   out->used += len;
   return to;
 }

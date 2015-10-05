@@ -3539,8 +3539,8 @@ x_set_screen_gamma (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
 	    (f, bgcolor, Qnil);
     }
 
-  clear_face_cache (true);
-  windows_or_buffers_changed = 70;
+  clear_face_cache (true);	/* FIXME: Why of all frames?  */
+  fset_redisplay (f);
 }
 
 

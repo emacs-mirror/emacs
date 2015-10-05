@@ -381,7 +381,12 @@ build will run on Windows 9X and newer systems).
      Checking for automake (need at least version 1.11)...
      ok
      Your system has the required tools, running autoreconf...
-     You can now run `./configure'.
+     Installing git hooks...
+     You can now run './configure'.
+
+  If the script fails because it cannot find Git, you will need to
+  arrange for the MSYS Bash's PATH to include the Git's 'bin'
+  subdirectory, where there's the git.exe executable.
 
 * Configuring Emacs for MinGW:
 
@@ -461,7 +466,7 @@ build will run on Windows 9X and newer systems).
   successful, will eventually produce a summary of the configuration
   similar to this:
 
-     Configured for `i686-pc-mingw32'.
+     Configured for 'i686-pc-mingw32'.
 
        Where should the build process find the source code?    /path/to/emacs/sources
        What compiler should emacs be built with?               gcc  -std=gnu99 -O0 -g3
@@ -619,10 +624,13 @@ build will run on Windows 9X and newer systems).
   is in the PATH or otherwise accessible and that the binaries are
   compatible (for example, that they were built with the same compiler).
 
+  To support XPM images (required for color tool-bar icons), you will
+  need the libXpm library.  It is available from the ezwinports site,
+  http://sourceforge.net/projects/ezwinports/files/.
+
   For PNG images, we recommend to use versions 1.4.x and later of
   libpng, because previous versions had security issues.  You can find
-  precompiled libraries and headers on the ezwinports site,
-  http://sourceforge.net/projects/ezwinports/files/.
+  precompiled libraries and headers on the ezwinports site.
 
   Versions 1.4.0 and later of libpng are binary incompatible with
   earlier versions, so Emacs will only look for libpng libraries which

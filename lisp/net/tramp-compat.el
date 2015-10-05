@@ -105,6 +105,12 @@
   (unless (boundp 'remote-file-name-inhibit-cache)
     (defvar remote-file-name-inhibit-cache nil))
 
+  ;; `directory-listing-before-filename-regexp' does not exist in
+  ;; XEmacs.  Since we use it only in tramp-adb.el, it doesn't harm to
+  ;; declare it here.
+  (unless (boundp 'directory-listing-before-filename-regexp)
+      (defvar directory-listing-before-filename-regexp nil))
+
   ;; For not existing functions, or functions with a changed argument
   ;; list, there are compiler warnings.  We want to avoid them in
   ;; cases we know what we do.
@@ -121,16 +127,6 @@
   ;; The following functions cannot be aliases of the corresponding
   ;; `tramp-handle-*' functions, because this would bypass the locking
   ;; mechanism.
-
-  ;; `file-remote-p' has been introduced with Emacs 22.  The version
-  ;; of XEmacs is not a magic file name function (yet).
-  (unless (fboundp 'file-remote-p)
-    (defalias 'file-remote-p
-      (lambda (file &optional identification connected)
-	(when (tramp-tramp-file-p file)
-	  (tramp-compat-funcall
-	   'tramp-file-name-handler
-	   'file-remote-p file identification connected)))))
 
   ;; `process-file' does not exist in XEmacs.
   (unless (fboundp 'process-file)
@@ -187,7 +183,11 @@
      (lambda ()
        (ad-remove-advice
 	'file-expand-wildcards 'around 'tramp-advice-file-expand-wildcards)
-       (ad-activate 'file-expand-wildcards)))))
+       (ad-activate 'file-expand-wildcards))))
+
+  ;; `redisplay' does not exist in XEmacs.
+  (unless (fboundp 'redisplay)
+    (defalias 'redisplay 'ignore)))
 
 ;; `with-temp-message' does not exist in XEmacs.
 (if (fboundp 'with-temp-message)

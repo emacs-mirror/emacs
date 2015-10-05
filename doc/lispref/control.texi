@@ -1,4 +1,4 @@
-@c -*-texinfo-*-
+@c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1995, 1998-1999, 2001-2015 Free Software
 @c Foundation, Inc.
@@ -1002,8 +1002,8 @@ These examples show typical uses of @code{error}:
 @end group
 
 @group
-(error "You have committed %d errors" 10)
-     @error{} You have committed 10 errors
+(error "Invalid name `%s'" "A%%B")
+     @error{} Invalid name ‘A%%B’
 @end group
 @end example
 
@@ -1011,10 +1011,16 @@ These examples show typical uses of @code{error}:
 error symbol @code{error}, and a list containing the string returned by
 @code{format-message}.
 
+In a format string containing single quotes, curved quotes @t{‘like
+this’} and grave quotes @t{`like this'} work better than straight
+quotes @t{'like this'}, as @code{error} typically formats every
+straight quote as a curved closing quote.
+
 @strong{Warning:} If you want to use your own string as an error message
 verbatim, don't just write @code{(error @var{string})}.  If @var{string}
-contains @samp{%}, it will be interpreted as a format specifier, with
-undesirable results.  Instead, use @code{(error "%s" @var{string})}.
+@var{string} contains @samp{%}, @samp{`}, or @samp{'} it may be
+reformatted, with undesirable results.  Instead, use @code{(error "%s"
+@var{string})}.
 @end defun
 
 @defun signal error-symbol data

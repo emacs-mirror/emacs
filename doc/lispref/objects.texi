@@ -1279,8 +1279,8 @@ list whose first element is the symbol @code{macro} and whose @sc{cdr}
 is a Lisp function object, including the @code{lambda} symbol.
 
   Lisp macro objects are usually defined with the built-in
-@code{defmacro} function, but any list that begins with @code{macro} is
-a macro as far as Emacs is concerned.  @xref{Macros}, for an explanation
+@code{defmacro} macro, but any list that begins with @code{macro} is a
+macro as far as Emacs is concerned.  @xref{Macros}, for an explanation
 of how to write a macro.
 
   @strong{Warning}: Lisp macros and keyboard macros (@pxref{Keyboard

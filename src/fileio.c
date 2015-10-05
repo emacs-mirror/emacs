@@ -3470,7 +3470,11 @@ by calling `format-decode', which see.  */)
       mtime = time_error_value (save_errno);
       st.st_size = -1;
       if (!NILP (Vcoding_system_for_read))
-	Fset (Qbuffer_file_coding_system, Vcoding_system_for_read);
+	{
+	  /* Don't let invalid values into buffer-file-coding-system.  */
+	  CHECK_CODING_SYSTEM (Vcoding_system_for_read);
+	  Fset (Qbuffer_file_coding_system, Vcoding_system_for_read);
+	}
       goto notfound;
     }
 
@@ -4569,7 +4573,7 @@ choose_write_coding_system (Lisp_Object start, Lisp_Object end, Lisp_Object file
       if (NILP (val))
 	{
 	  /* If we still have not decided a coding system, use the
-	     default value of buffer-file-coding-system.  */
+	     current buffer's value of buffer-file-coding-system.  */
 	  val = BVAR (current_buffer, buffer_file_coding_system);
 	  using_default_coding = 1;
 	}
@@ -4578,6 +4582,7 @@ choose_write_coding_system (Lisp_Object start, Lisp_Object end, Lisp_Object file
 	{
 	  Lisp_Object spec, attrs;
 
+	  CHECK_CODING_SYSTEM (val);
 	  CHECK_CODING_SYSTEM_GET_SPEC (val, spec);
 	  attrs = AREF (spec, 0);
 	  if (EQ (CODING_ATTR_TYPE (attrs), Qraw_text))
@@ -4586,17 +4591,27 @@ choose_write_coding_system (Lisp_Object start, Lisp_Object end, Lisp_Object file
 
       if (!force_raw_text
 	  && !NILP (Ffboundp (Vselect_safe_coding_system_function)))
-	/* Confirm that VAL can surely encode the current region.  */
-	val = call5 (Vselect_safe_coding_system_function,
-		     start, end, val, Qnil, filename);
+	{
+	  /* Confirm that VAL can surely encode the current region.  */
+	  val = call5 (Vselect_safe_coding_system_function,
+		       start, end, val, Qnil, filename);
+	  /* As the function specified by select-safe-coding-system-function
+	     is out of our control, make sure we are not fed by bogus
+	     values.  */
+	  if (!NILP (val))
+	    CHECK_CODING_SYSTEM (val);
+	}
 
       /* If the decided coding-system doesn't specify end-of-line
 	 format, we use that of
 	 `default-buffer-file-coding-system'.  */
-      if (! using_default_coding
-	  && ! NILP (BVAR (&buffer_defaults, buffer_file_coding_system)))
-	val = (coding_inherit_eol_type
-	       (val, BVAR (&buffer_defaults, buffer_file_coding_system)));
+      if (! using_default_coding)
+	{
+	  Lisp_Object dflt = BVAR (&buffer_defaults, buffer_file_coding_system);
+
+	  if (! NILP (dflt))
+	    val = coding_inherit_eol_type (val, dflt);
+	}
 
       /* If we decide not to encode text, use `raw-text' or one of its
 	 subsidiaries.  */

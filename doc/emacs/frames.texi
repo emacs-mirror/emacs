@@ -329,6 +329,7 @@ instead of running the @code{mouse-save-then-kill} command, rebind
 @kbd{Mouse-3} by adding the following line to your init file
 (@pxref{Init Rebinding}):
 
+@c FIXME: `mouse-popup-menubar-stuff' is obsolete since 23.1.
 @smallexample
 (global-set-key [mouse-3] 'mouse-popup-menubar-stuff)
 @end smallexample

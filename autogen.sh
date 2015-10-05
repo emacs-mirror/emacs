@@ -218,7 +218,7 @@ echo timestamp > src/stamp-h.in || exit
 
 
 ## Configure Git, if using Git.
-if test -d .git; then
+if test -d .git && (git status -s) >/dev/null 2>&1; then
 
     # Configure 'git diff' hunk header format.
 

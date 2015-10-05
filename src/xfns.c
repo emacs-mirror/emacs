@@ -1041,7 +1041,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
     nlines = 0;
 
   /* Make sure we redisplay all windows in this frame.  */
-  windows_or_buffers_changed = 59;
+  fset_redisplay (f);
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
   FRAME_MENU_BAR_LINES (f) = 0;
@@ -1160,8 +1160,7 @@ x_change_tool_bar_height (struct frame *f, int height)
   Lisp_Object fullscreen;
 
   /* Make sure we redisplay all windows in this frame.  */
-  windows_or_buffers_changed = 60;
-
+  fset_redisplay (f);
 
   /* Recalculate tool bar and frame text sizes.  */
   FRAME_TOOL_BAR_HEIGHT (f) = height;

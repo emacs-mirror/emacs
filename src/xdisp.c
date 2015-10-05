@@ -437,22 +437,54 @@ static Lisp_Object Vmessage_stack;
 
 static bool message_enable_multibyte;
 
-/* Nonzero if we should redraw the mode lines on the next redisplay.
-   If it has value REDISPLAY_SOME, then only redisplay the mode lines where
-   the `redisplay' bit has been set.  Otherwise, redisplay all mode lines
-   (the number used is then only used to track down the cause for this
-   full-redisplay).  */
+/* At each redisplay cycle, we should refresh everything there is to refresh.
+   To do that efficiently, we use many optimizations that try to make sure we
+   don't waste too much time updating things that haven't changed.
+   The coarsest such optimization is that, in the most common cases, we only
+   look at the selected-window.
 
-int update_mode_lines;
+   To know whether other windows should be considered for redisplay, we use the
+   variable windows_or_buffers_changed: as long as it is 0, it means that we
+   have not noticed anything that should require updating anything else than
+   the selected-window.  If it is set to REDISPLAY_SOME, it means that since
+   last redisplay, some changes have been made which could impact other
+   windows.  To know which ones need redisplay, every buffer, window, and frame
+   has a `redisplay' bit, which (if true) means that this object needs to be
+   redisplayed.  If windows_or_buffers_changed is 0, we know there's no point
+   looking for those `redisplay' bits (actually, there might be some such bits
+   set, but then only on objects which aren't displayed anyway).
 
-/* Nonzero if window sizes or contents other than selected-window have changed
-   since last redisplay that finished.
-   If it has value REDISPLAY_SOME, then only redisplay the windows where
-   the `redisplay' bit has been set.  Otherwise, redisplay all windows
-   (the number used is then only used to track down the cause for this
-   full-redisplay).  */
+   OTOH if it's non-zero we wil have to loop through all windows and then check
+   the `redisplay' bit of the corresponding window, frame, and buffer, in order
+   to decide whether that window needs attention or not.  Not that we can't
+   just look at the frame's redisplay bit to decide that the whole frame can be
+   skipped, since even if the frame's redisplay bit is unset, some of its
+   windows's redisplay bits may be set.
+
+   Mostly for historical reasons, windows_or_buffers_changed can also take
+   other non-zero values.  In that case, the precise value doesn't matter (it
+   encodes the cause of the setting but is only used for debugging purposes),
+   and what it means is that we shouldn't pay attention to any `redisplay' bits
+   and we should simply try and redisplay every window out there.  */
 
 int windows_or_buffers_changed;
+
+/* Nonzero if we should redraw the mode lines on the next redisplay.
+   Similarly to `windows_or_buffers_changed', If it has value REDISPLAY_SOME,
+   then only redisplay the mode lines in those buffers/windows/frames where the
+   `redisplay' bit has been set.
+   For any other value, redisplay all mode lines (the number used is then only
+   used to track down the cause for this full-redisplay).
+
+   The `redisplay' bits are the same as those used for
+   windows_or_buffers_changed, and setting windows_or_buffers_changed also
+   causes recomputation of the mode lines of all those windows.  IOW this
+   variable only has an effect if windows_or_buffers_changed is zero, in which
+   case we should only need to redisplay the mode-line of those objects with
+   a `redisplay' bit set but not the window's text content (tho we may still
+   need to refresh the text content of the selected-window).  */
+
+int update_mode_lines;
 
 /* True after display_mode_line if %l was used and it displayed a
    line number.  */
@@ -13483,7 +13515,7 @@ redisplay_internal (void)
 	  /* If cursor type has been changed on the frame
 	     other than selected, consider all frames.  */
 	  if (f != sf && f->cursor_type_changed)
-	    update_mode_lines = 31;
+	    fset_redisplay (f);
 	}
       clear_desired_matrices (f);
     }
@@ -13581,9 +13613,12 @@ redisplay_internal (void)
   consider_all_windows_p = (update_mode_lines
 			    || windows_or_buffers_changed);
 
-#define AINC(a,i) \
-  if (VECTORP (a) && i >= 0 && i < ASIZE (a) && INTEGERP (AREF (a, i))) \
-    ASET (a, i, make_number (1 + XINT (AREF (a, i))))
+#define AINC(a,i)							\
+  {									\
+    Lisp_Object entry = Fgethash (make_number (i), a, make_number (0));	\
+    if (INTEGERP (entry))						\
+      Fputhash (make_number (i), make_number (1 + XINT (entry)), a);	\
+  }
 
   AINC (Vredisplay__all_windows_cause, windows_or_buffers_changed);
   AINC (Vredisplay__mode_lines_cause, update_mode_lines);
@@ -13798,7 +13833,8 @@ redisplay_internal (void)
 #endif
 
   /* Build desired matrices, and update the display.  If
-     consider_all_windows_p, do it for all windows on all frames.
+     consider_all_windows_p, do it for all windows on all frames that
+     require redisplay, as specified by their 'redisplay' flag.
      Otherwise do it for selected_window, only.  */
 
   if (consider_all_windows_p)
@@ -19881,7 +19917,8 @@ push_prefix_prop (struct it *it, Lisp_Object prop)
 
   eassert (it->method == GET_FROM_BUFFER
 	   || it->method == GET_FROM_DISPLAY_VECTOR
-	   || it->method == GET_FROM_STRING);
+	   || it->method == GET_FROM_STRING
+	   || it->method == GET_FROM_IMAGE);
 
   /* We need to save the current buffer/string position, so it will be
      restored by pop_it, because iterate_out_of_display_property
@@ -31625,13 +31662,11 @@ display table takes effect; in this case, Emacs does not consult
 
   DEFVAR_LISP ("redisplay--all-windows-cause", Vredisplay__all_windows_cause,
 	       doc: /*  */);
-  Vredisplay__all_windows_cause
-    = Fmake_vector (make_number (100), make_number (0));
+  Vredisplay__all_windows_cause = Fmake_hash_table (0, NULL);
 
   DEFVAR_LISP ("redisplay--mode-lines-cause", Vredisplay__mode_lines_cause,
 	       doc: /*  */);
-  Vredisplay__mode_lines_cause
-    = Fmake_vector (make_number (100), make_number (0));
+  Vredisplay__mode_lines_cause = Fmake_hash_table (0, NULL);
 }
 
 

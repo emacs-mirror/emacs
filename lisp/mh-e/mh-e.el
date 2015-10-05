@@ -2901,11 +2901,11 @@ This option contains the Unix command line which performs the
 actual printing for the \\[mh-print-msg] command. The string can
 contain one escape, \"%s\", which is replaced by the name of the
 folder and the message number and is useful for print job names.
-I use \"mpage -h'%s' -b Letter -H1of -mlrtb -P\" which produces a
+I use \"mpage -h\\='%s\\=' -b Letter -H1of -mlrtb -P\" which produces a
 nice header and adds a bit of margin so the text fits within my
 printer's margins.
 
-This options is not used by the commands \\[mh-ps-print-msg] or
+This option is not used by the commands \\[mh-ps-print-msg] or
 \\[mh-ps-print-msg-file]."
   :type 'string
   :group 'mh-show

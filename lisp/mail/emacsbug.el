@@ -417,7 +417,8 @@ and send the mail again%s."
 					 (regexp-quote (system-name)))
 				 from))
 	       (not (yes-or-no-p
-		     (format "Is '%s' really your email address? " from)))
+		     (format-message "Is `%s' really your email address? "
+                                     from)))
 	       (error "Please edit the From address and try again"))))))
 
 

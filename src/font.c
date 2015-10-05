@@ -1770,7 +1770,7 @@ font_parse_family_registry (Lisp_Object family, Lisp_Object registry, Lisp_Objec
       p1 = strchr (p0, '-');
       if (! p1)
 	{
-	  AUTO_STRING (extra, ("*-*" + (len && p0[len - 1] == '*')));
+	  AUTO_STRING (extra, (&"*-*"[len && p0[len - 1] == '*']));
 	  registry = concat2 (registry, extra);
 	}
       registry = Fdowncase (registry);

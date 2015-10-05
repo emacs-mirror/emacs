@@ -4005,7 +4005,7 @@ be granted."
 	      (or (tramp-get-method-parameter vec 'tramp-tmpdir) "/tmp"))))
     (with-tramp-connection-property vec "tmpdir"
       (or (and (file-directory-p dir) (file-writable-p dir)
-	       (file-remote-p dir 'localname))
+	       (tramp-file-name-handler 'file-remote-p dir 'localname))
 	  (tramp-error vec 'file-error "Directory %s not accessible" dir)))
     dir))
 

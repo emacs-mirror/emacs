@@ -57,7 +57,8 @@
 (defvar json-object-type 'alist
   "Type to convert JSON objects to.
 Must be one of `alist', `plist', or `hash-table'.  Consider let-binding
-this around your call to `json-read' instead of `setq'ing it.")
+this around your call to `json-read' instead of `setq'ing it.  Ordering
+is maintained for `alist' and `plist', but not for `hash-table'.")
 
 (defvar json-array-type 'vector
   "Type to convert JSON arrays to.
@@ -135,6 +136,17 @@ without indentation.")
                    (cddr list)
                  'not-plist)))
   (null list))
+
+(defun json--plist-reverse (plist)
+  "Return a copy of PLIST in reverse order.
+Unlike `reverse', this keeps the property-value pairs intact."
+  (let (res)
+    (while plist
+      (let ((prop (pop plist))
+            (val (pop plist)))
+        (push val res)
+        (push prop res)))
+    res))
 
 (defmacro json--with-indentation (body)
   `(let ((json--encoding-current-indentation
@@ -400,7 +412,10 @@ Please see the documentation of `json-object-type' and `json-key-type'."
           (signal 'json-object-format (list "," (json-peek))))))
     ;; Skip over the "}"
     (json-advance)
-    elements))
+    (pcase json-object-type
+      (`alist (nreverse elements))
+      (`plist (json--plist-reverse elements))
+      (_ elements))))
 
 ;; Hash table encoding
 
@@ -602,6 +617,8 @@ Advances point just past JSON object."
   (interactive "r")
   (atomic-change-group
     (let ((json-encoding-pretty-print t)
+          ;; Ensure that ordering is maintained
+          (json-object-type 'alist)
           (txt (delete-and-extract-region begin end)))
       (insert (json-encode (json-read-from-string txt))))))
 

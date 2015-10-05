@@ -180,7 +180,8 @@ You may want to include buffer names such as *Help*, *Apropos*,
 
   ;; Cull dead frames.
   (setq winner-modified-list
-        (cl-remove-if-not 'frame-live-p winner-modified-list))
+        (cl-loop for frame in winner-modified-list
+             if (frame-live-p frame) collect frame))
 
   (unless (or (memq (selected-frame) winner-modified-list)
               (/= 0 (minibuffer-depth)))

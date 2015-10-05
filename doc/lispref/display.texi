@@ -1,4 +1,4 @@
-@c -*-texinfo-*-
+@c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990-1995, 1998-2015 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
@@ -254,6 +254,11 @@ properties, it is displayed with the specified faces (@pxref{Faces}).
 The string is also added to the @file{*Messages*} buffer, but without
 text properties (@pxref{Logging Messages}).
 
+In a format string containing single quotes, curved quotes @t{‘like
+this’} and grave quotes @t{`like this'} work better than straight
+quotes @t{'like this'}, as @code{message} typically formats every
+straight quote as a curved closing quote.
+
 In batch mode, the message is printed to the standard error stream,
 followed by a newline.
 
@@ -268,21 +273,26 @@ onto the screen immediately.
 
 @example
 @group
-(message "Minibuffer depth is %d."
-         (minibuffer-depth))
- @print{} Minibuffer depth is 0.
-@result{} "Minibuffer depth is 0."
+(message "Reverting `%s'..." (buffer-name))
+ @print{} Reverting ‘subr.el’...
+@result{} "Reverting ‘subr.el’..."
 @end group
 
 @group
 ---------- Echo Area ----------
-Minibuffer depth is 0.
+Reverting ‘subr.el’...
 ---------- Echo Area ----------
 @end group
 @end example
 
 To automatically display a message in the echo area or in a pop-buffer,
 depending on its size, use @code{display-message-or-buffer} (see below).
+
+@strong{Warning:} If you want to use your own string as a message
+verbatim, don't just write @code{(message @var{string})}.  If
+@var{string} contains @samp{%}, @samp{`}, or @samp{'} it may be
+reformatted, with undesirable results.  Instead, use @code{(message
+"%s" @var{string})}.
 @end defun
 
 @defvar inhibit-message

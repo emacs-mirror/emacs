@@ -2765,7 +2765,6 @@ macfont_has_char (Lisp_Object font, int c)
 static unsigned
 macfont_encode_char (struct font *font, int c)
 {
-  struct macfont_info *macfont_info = (struct macfont_info *) font;
   CGGlyph glyph;
 
   block_input ();
@@ -4052,8 +4051,6 @@ mac_register_font_driver (struct frame *f)
 void
 syms_of_macfont (void)
 {
-  static struct font_driver mac_font_driver;
-
   /* Core Text, for Mac OS X.  */
   DEFSYM (Qmac_ct, "mac-ct");
   macfont_driver.type = Qmac_ct;

@@ -940,7 +940,7 @@ Optional arguments CHANGED-WIDGET and EVENT are ignored."
   "Return propertized copy of string TAG.
 Optional argument NUM-NEW is used for choosing face, other
 arguments NT-ID, FEED, and VFEED are added as properties."
-  ;;(message "newsticker--treeview-propertize-tag '%s' %s" feed nt-id)
+  ;;(message "newsticker--treeview-propertize-tag `%s' %s" feed nt-id)
   (let ((face 'newsticker-treeview-face)
         (map (make-sparse-keymap)))
     (if (and num-new (> num-new 0))
