@@ -1100,7 +1100,7 @@ special (SPC,TAB,...) < single char < mod (C-,M-,...) < other."
 Uses `string-lessp' after applying lowercase."
   (string-lessp (downcase (cdr acons)) (downcase (cdr bcons))))
 
-(defsubst which-key-prefix-then-key-order (acons bcons)
+(defun which-key-prefix-then-key-order (acons bcons)
   "Order first by whether A and/or B is a prefix with no prefix
 coming before a prefix. Within these categories order using
 `which-key-key-order'."
