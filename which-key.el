@@ -195,9 +195,16 @@ a percentage out of the frame's height."
                 (const :tag "No" nil)))
 
 (defcustom which-key-sort-order 'which-key-key-order
-  "If nil, leave output unsorted. Set to `which-key-key-order' to
-order by key or `which-key-description-order' to order by
-description."
+  "If nil, do not resort the output from
+`describe-buffer-bindings' which groups by mode. Ordering options
+are
+
+1. `which-key-key-order': by key (default)
+2. `which-key-description-order': by description
+3. `which-key-prefix-then-key-order': prefix (no prefix first) then key
+
+See the README and the docstrings for those functions for more
+information."
   :group 'which-key
   :type 'function)
 
@@ -1080,18 +1087,28 @@ alists. Returns a list (key separator description)."
           ((or apr? bpr?) apr?)
           (t (string-lessp a b)))))
 
-(defsubst which-key-key-order (alst blst)
+(defsubst which-key-key-order (acons bcons)
   "Order key descriptions A and B.
 Order is lexicographic within a \"class\", where the classes and
 the ordering of classes are listed below.
 
 special (SPC,TAB,...) < single char < mod (C-,M-,...) < other."
-  (which-key--key-description< (car alst) (car blst)))
+  (which-key--key-description< (car acons) (car bcons)))
 
-(defsubst which-key-description-order (alst blst)
+(defsubst which-key-description-order (acons bcons)
   "Order descriptions of A and B.
 Uses `string-lessp' after applying lowercase."
-  (string-lessp (downcase (cdr alst)) (downcase (cdr blst))))
+  (string-lessp (downcase (cdr acons)) (downcase (cdr bcons))))
+
+(defsubst which-key-prefix-then-key-order (acons bcons)
+  "Order first by whether A and/or B is a prefix with no prefix
+coming before a prefix. Within these categories order using
+`which-key-key-order'."
+  (let ((apref? (which-key--group-p (cdr acons)))
+        (bpref? (which-key--group-p (cdr bcons))))
+    (if (not (eq apref? bpref?))
+        (and (not apref?) bpref?)
+      (which-key-key-order acons bcons))))
 
 (defun which-key--get-formatted-key-bindings ()
   "Uses `describe-buffer-bindings' to collect the key bindings in
