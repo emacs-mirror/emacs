@@ -344,6 +344,7 @@ showing.")
 (defvar which-key--last-try-2-loc nil
   "Internal: Last location of side-window when two locations
 used.")
+(defvar which-key--multiple-locations nil)
 
 (defvar which-key-key-based-description-replacement-alist '()
   "New version of
@@ -774,9 +775,15 @@ call signature in different emacs versions"
     ;; +------------+------------+         +------------+------------+
     ;; (display-buffer which-key--buffer (cons 'display-buffer-in-side-window alist))
     ;; side defaults to bottom
-    (if (get-buffer-window which-key--buffer)
-        (display-buffer-reuse-window which-key--buffer alist)
-      (display-buffer-in-major-side-window which-key--buffer side 0 alist))))
+    (cond
+     ((eq which-key--multiple-locations t)
+      ;; possibly want to switch sides in this case so we can't reuse the window
+      (delete-windows-on which-key--buffer)
+      (display-buffer-in-major-side-window which-key--buffer side 0 alist))
+     ((get-buffer-window which-key--buffer)
+      (display-buffer-reuse-window which-key--buffer alist))
+     (t
+      (display-buffer-in-major-side-window which-key--buffer side 0 alist)))))
 
 (defun which-key--show-buffer-frame (act-popup-dim)
   "Show which-key buffer when popup type is frame."
@@ -1364,7 +1371,8 @@ Will force an update if called before `which-key--update'."
       (which-key--stop-timer)
       (setq unread-command-events next-event)
       (if which-key--last-try-2-loc
-          (let ((which-key-side-window-location which-key--last-try-2-loc))
+          (let ((which-key-side-window-location which-key--last-try-2-loc)
+                (which-key--multiple-locations t))
             (which-key--show-page next-page))
         (which-key--show-page next-page))
       (which-key--start-paging-timer)))))
@@ -1375,15 +1383,18 @@ Will force an update if called before `which-key--update'."
 (defun which-key--try-2-side-windows (keys page-n loc1 loc2 &rest _ignore)
   "Try to show KEYS (PAGE-N) in LOC1 first. Only if no keys fit fallback to LOC2."
   (let (pages1)
-    (let ((which-key-side-window-location loc1))
+    (let ((which-key-side-window-location loc1)
+          (which-key--multiple-locations t))
       (setq pages1 (which-key--create-pages keys (window-width))))
     (if (< 0 (plist-get pages1 :n-pages))
         (progn
           (setq which-key--pages-plist pages1)
-          (let ((which-key-side-window-location loc1))
+          (let ((which-key-side-window-location loc1)
+                (which-key--multiple-locations t))
             (which-key--show-page page-n))
           loc1)
-      (let ((which-key-side-window-location loc2))
+      (let ((which-key-side-window-location loc2)
+            (which-key--multiple-locations t))
         (setq which-key--pages-plist (which-key--create-pages
                                       keys (window-width)))
         (which-key--show-page page-n)
