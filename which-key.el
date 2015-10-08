@@ -260,6 +260,15 @@ prefixes in `which-key-paging-prefixes'"
   :group 'which-key
   :type 'boolean)
 
+(defcustom which-key-hide-alt-key-translations t
+  "Should key translations using Alt key be hidden.
+These translations are not relevant most of the times since a lot
+of terminals issue META modifier for the Alt key.
+
+See http://www.gnu.org/software/emacs/manual/html_node/emacs/Modifier-Keys.html"
+  :group 'which-key
+  :type 'boolean)
+
 ;; Faces
 (defgroup which-key-faces nil
   "Faces for which-key-mode"
@@ -1224,17 +1233,22 @@ alists. Returns a list (key separator description)."
 (defun which-key--get-formatted-key-bindings ()
   "Uses `describe-buffer-bindings' to collect the key bindings in
 BUFFER that follow the key sequence KEY-SEQ."
-  (let ((key-str-qt (regexp-quote (key-description which-key--current-prefix)))
-        (buffer (current-buffer))
-        key-match desc-match unformatted)
+  (let* ((key-str-qt (regexp-quote (key-description which-key--current-prefix)))
+         (buffer (current-buffer))
+         (indent-tabs-mode t)
+         (keybinding-regex (if which-key--current-prefix
+                               (format "^%s \\([^ \t]+\\)[ \t]+\\(\\(?:[^ \t\n]+ ?\\)+\\)$"
+                                       key-str-qt)
+                             "^\\([^ <>\t]+\\)[\t]+\\([^\n]+\\)$"))
+         key-match desc-match unformatted)
     (save-match-data
       (with-temp-buffer
         (describe-buffer-bindings buffer which-key--current-prefix)
+        (when which-key-hide-alt-key-translations
+          (goto-char (point-min))
+          (flush-lines "^A-"))
         (goto-char (point-max)) ; want to put last keys in first
-        (while (re-search-backward
-                (format "^%s \\([^ \t]+\\)[ \t]+\\(\\(?:[^ \t\n]+ ?\\)+\\)$"
-                        key-str-qt)
-                nil t)
+        (while (re-search-backward keybinding-regex nil t)
           (setq key-match (match-string 1)
                 desc-match (match-string 2))
           (cl-pushnew (cons key-match desc-match) unformatted
@@ -1382,6 +1396,11 @@ area."
      delay nil (lambda () (let (message-log-max)
                             (message "%s" text))))))
 
+(defun which-key--prefix-keys-description (prefix-keys)
+  (if prefix-keys
+      (key-description prefix-keys)
+    "Toplevel "))
+
 (defun which-key--next-page-hint (prefix-keys page-n n-pages)
   "Return string for next page hint."
   (let* ((paging-key (concat prefix-keys " " which-key-paging-key))
@@ -1405,7 +1424,7 @@ area."
   "Show page N, starting from 0."
   (which-key--init-buffer) ;; in case it was killed
   (let ((n-pages (plist-get which-key--pages-plist :n-pages))
-        (prefix-keys (key-description which-key--current-prefix))
+        (prefix-keys (which-key--prefix-keys-description which-key--current-prefix))
         page-n golden-ratio-mode)
     (if (= 0 n-pages)
         (message "%s- which-key can't show keys: There is not \
@@ -1542,14 +1561,13 @@ Will force an update if called before `which-key--update'."
         (which-key--show-page page-n)
         loc2))))
 
-
-(defun which-key--create-buffer-and-show (prefix-keys)
+(defun which-key--create-buffer-and-show (&optional prefix-keys)
   "Fill `which-key--buffer' with key descriptions and reformat.
 Finally, show the buffer."
   (setq which-key--current-prefix prefix-keys
         which-key--last-try-2-loc nil)
   (let ((formatted-keys (which-key--get-formatted-key-bindings))
-        (prefix-keys-desc (key-description prefix-keys)))
+        (prefix-keys (which-key--prefix-keys-description which-key--current-prefix)))
     (cond ((= (length formatted-keys) 0)
            (message "%s-  which-key: There are no keys to show" prefix-keys-desc))
           ((listp which-key-side-window-location)
