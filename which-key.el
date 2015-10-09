@@ -219,6 +219,17 @@ prefixes in `which-key-paging-prefixes'"
   :group 'which-key
   :type 'string)
 
+;; (defcustom which-key-undo-key nil
+;;   "Key (string) to use for undoing keypresses. Bound recursively
+;; in each of the maps in `which-key-undo-keymaps'."
+;;   :group 'which-key
+;;   :type 'string)
+
+;; (defcustom which-key-undo-keymaps '()
+;;   "Keymaps in which to bind `which-key-undo-key'"
+;;   :group 'which-key
+;;   :type '(repeat symbol))
+
 (defcustom which-key-use-C-h-for-paging t
   "Use C-h for paging if non-nil. Normally C-h after a prefix
   calls `describe-prefix-bindings'. This changes that command to
@@ -426,6 +437,7 @@ set too high) and setup which-key buffer."
             (eq which-key-popup-type 'minibuffer))
     (which-key--setup-echo-keystrokes))
   (which-key--check-key-based-alist)
+  ;; (which-key--setup-undo-key)
   (which-key--init-buffer)
   (setq which-key--is-setup t))
 
@@ -443,6 +455,13 @@ it's set too high)."
       ;; (message "which-key: echo-keystrokes changed from %s to %s"
       ;;          previous echo-keystrokes)
       )))
+
+;; (defun which-key--setup-undo-key ()
+;;   "Bind `which-key-undo-key' in `which-key-undo-keymaps'."
+;;   (when (and which-key-undo-key which-key-undo-keymaps)
+;;     (dolist (map which-key-undo-keymaps)
+;;       (which-key-define-key-recursively
+;;        map (kbd which-key-undo-key) 'which-key-undo))))
 
 (defun which-key--check-key-based-alist ()
   "Check (and fix if necessary) `which-key-key-based-description-replacement-alist'"
@@ -634,6 +653,16 @@ addition KEY-SEQUENCE NAME pairs) to apply."
         (setcdr (assq mode which-key-prefix-name-alist) mode-name-alist)
       (push (cons mode mode-name-alist) which-key-prefix-name-alist))))
 (put 'which-key-declare-prefixes-for-mode 'lisp-indent-function 'defun)
+
+(defun which-key-define-key-recursively (map key def &optional recursing)
+  "Recursively bind KEY in MAP to DEF on every level of MAP except the first.
+RECURSING is for internal use."
+  (when recursing (define-key map key def))
+  (map-keymap
+   (lambda (ev df)
+     (when (keymapp df)
+       (which-key-define-key-recursively df key def t)))
+   map))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions for computing window sizes
@@ -1420,6 +1449,17 @@ Will force an update if called before `which-key--update'."
             (which-key--show-page next-page))
         (which-key--show-page next-page))
       (which-key--start-paging-timer)))))
+
+(defun which-key-undo ()
+  "Undo last keypress and force which-key update."
+  (interactive)
+  (let* ((key-str (this-command-keys))
+         (key-str (substring key-str 0 (- (length key-str) 2)))
+         (ev (mapcar (lambda (ev) (cons t ev)) (listify-key-sequence key-str))))
+    (which-key--stop-timer)
+    (setq unread-command-events ev)
+    (which-key--create-buffer-and-show key-str)
+    (which-key--start-timer)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Update
