@@ -1159,7 +1159,7 @@ If KEY contains any \"special keys\" defined in
 (defsubst which-key--truncate-description (desc)
   "Truncate DESC description to `which-key-max-description-length'."
   (if (and which-key-max-description-length
-           (> (string-width desc) which-key-max-description-length))
+           (> (length desc) which-key-max-description-length))
       (concat (substring desc 0 which-key-max-description-length) "..")
     desc))
 
@@ -1585,7 +1585,7 @@ Finally, show the buffer."
   (let ((formatted-keys (which-key--get-formatted-key-bindings))
         (prefix-keys (which-key--prefix-keys-description which-key--current-prefix)))
     (cond ((= (length formatted-keys) 0)
-           (message "%s-  which-key: There are no keys to show" prefix-keys-desc))
+           (message "%s-  which-key: There are no keys to show" prefix-keys))
           ((listp which-key-side-window-location)
            (setq which-key--last-try-2-loc
                  (apply #'which-key--try-2-side-windows
