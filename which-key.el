@@ -555,6 +555,11 @@ bottom."
   (setq which-key-popup-type 'minibuffer
         which-key-show-prefix 'left))
 
+;;;###autoload
+(defun which-key-toplevel ()
+  (interactive)
+  (which-key--create-buffer-and-show nil))
+
 ;; Helper functions to modify replacement lists.
 
 (defun which-key--add-key-val-to-alist (alist key value &optional alist-name)
