@@ -1262,6 +1262,7 @@ BUFFER that follow the key sequence KEY-SEQ."
                              ;; C-x 8           Prefix Command
                              ;; <S-dead-acute>  Prefix Command
                              "^\\([^ <>\t]+\\|<f[0-9]+>\\)[ \t]+\\([^\t\n]+\\)$"))
+         (lines-to-flush'("[bB]inding[s]?[:]?$" "translations:$" "-------$"))
          key-match desc-match unformatted)
     (save-match-data
       (with-temp-buffer
@@ -1269,6 +1270,9 @@ BUFFER that follow the key sequence KEY-SEQ."
         (when which-key-hide-alt-key-translations
           (goto-char (point-min))
           (flush-lines "^A-"))
+        (goto-char (point-min))
+        (dolist (line-to-flush lines-to-flush)
+          (save-excursion (flush-lines line-to-flush)))
         (goto-char (point-max)) ; want to put last keys in first
         (while (re-search-backward keybinding-regex nil t)
           (setq key-match (match-string 1)
