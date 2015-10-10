@@ -1235,11 +1235,27 @@ alists. Returns a list (key separator description)."
 BUFFER that follow the key sequence KEY-SEQ."
   (let* ((key-str-qt (regexp-quote (key-description which-key--current-prefix)))
          (buffer (current-buffer))
+         ;; Temporarily use tabs to indent
          (indent-tabs-mode t)
          (keybinding-regex (if which-key--current-prefix
                                (format "^%s \\([^ \t]+\\)[ \t]+\\(\\(?:[^ \t\n]+ ?\\)+\\)$"
                                        key-str-qt)
-                             "^\\([^ <>\t]+\\)[\t]+\\([^\n]+\\)$"))
+                             ;; For toplevel binding, we search for lines which
+                             ;; start with a sequence of characters other than
+                             ;; space and tab and '<', '>' (these are ignored
+                             ;; since mostly these are the keyboard input
+                             ;; definitions provided by iso-transl or (mouse)
+                             ;; bindings for the `fringe' or `modeline' which
+                             ;; might not be as interesting), the initial
+                             ;; sequence should be followed by one or more
+                             ;; tab/space which are then followed by a sequence
+                             ;; of non newline/tab characters
+                             ;; For example the following should match
+                             ;; C-x             Prefix Command
+                             ;; But following should not
+                             ;; C-x 8           Prefix Command
+                             ;; <S-dead-acute>  Prefix Command
+                             "^\\([^ <>\t]+\\)[ \t]+\\([^\t\n]+\\)$"))
          key-match desc-match unformatted)
     (save-match-data
       (with-temp-buffer
