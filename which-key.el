@@ -1247,20 +1247,21 @@ BUFFER that follow the key sequence KEY-SEQ."
                                        key-str-qt)
                              ;; For toplevel binding, we search for lines which
                              ;; start with a sequence of characters other than
-                             ;; space and tab and '<', '>' (these are ignored
-                             ;; since mostly these are the keyboard input
-                             ;; definitions provided by iso-transl or (mouse)
-                             ;; bindings for the `fringe' or `modeline' which
-                             ;; might not be as interesting), the initial
-                             ;; sequence should be followed by one or more
-                             ;; tab/space which are then followed by a sequence
-                             ;; of non newline/tab characters
+                             ;; space and tab and '<', '>' except function keys
+                             ;; <f[0-9]+> (these are ignored since mostly these
+                             ;; are the keyboard input definitions provided by
+                             ;; iso-transl or (mouse) bindings for the `fringe'
+                             ;; or `modeline' which might not be as interesting)
+                             ;; the initial sequence should be followed by one
+                             ;; or more tab/space which are then followed by a
+                             ;; sequence of non newline/tab characters
                              ;; For example the following should match
                              ;; C-x             Prefix Command
+                             ;; <f1>            Some command
                              ;; But following should not
                              ;; C-x 8           Prefix Command
                              ;; <S-dead-acute>  Prefix Command
-                             "^\\([^ <>\t]+\\)[ \t]+\\([^\t\n]+\\)$"))
+                             "^\\([^ <>\t]+\\|<f[0-9]+>\\)[ \t]+\\([^\t\n]+\\)$"))
          key-match desc-match unformatted)
     (save-match-data
       (with-temp-buffer
