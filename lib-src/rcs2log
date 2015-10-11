@@ -130,7 +130,8 @@ do
 		case $1 in
 		-n)	case ${2?}${3?}${4?} in
 			*"$tab"* | *"$nl"*)
-				echo >&2 "$0: -n '$2' '$3' '$4': tabs, newlines not allowed"
+				printf '%s\n' >&2 \
+				  "$0: -n '$2' '$3' '$4': tabs, newlines not allowed"
 				exit 1;;
 			esac
 			login=$2
@@ -140,7 +141,7 @@ do
 			# If $2 is not tab-separated, use colon for separator.
 			case ${2?} in
 			*"$nl"*)
-				echo >&2 "$0: -u '$2': newlines not allowed"
+				printf '%s\n' >&2 "$0: -u '$2': newlines not allowed"
 				exit 1;;
 			*"$tab"*)
 				t=$tab;;
@@ -149,7 +150,7 @@ do
 			esac
 			case $2 in
 			*"$t"*"$t"*"$t"*)
-				echo >&2 "$0: -u '$2': too many fields"
+				printf '%s\n' >&2 "$0: -u '$2': too many fields"
 				exit 1;;
 			*"$t"*"$t"*)
 				uf="[^$t]*$t" # An unselected field, followed by a separator.
@@ -161,7 +162,7 @@ do
 					expr "X$2" : "$uf$uf$sf"
 				`;;
 			*)
-				echo >&2 "$0: -u '$2': not enough fields"
+				printf '%s\n' >&2 "$0: -u '$2': not enough fields"
 				exit 1;;
 			esac
 			shift;;
@@ -186,9 +187,9 @@ do
 	--version)
 		set $Id
 		rcs2logVersion=$3
-		echo >&2 "rcs2log (GNU Emacs) $rcs2logVersion$nl$Copyright"
+		printf '%s\n' >&2 "rcs2log (GNU Emacs) $rcs2logVersion$nl$Copyright"
 		exit 0;;
-	-*)	echo >&2 "Usage: $0 [OPTION]... [FILE ...]$nl$Help"
+	-*)	printf '%s\n' >&2 "Usage: $0 [OPTION]... [FILE ...]$nl$Help"
 		case $1 in
 		--help) exit 0;;
 		*) exit 1;;
@@ -303,7 +304,8 @@ case $rlogfile in
 			esac
 			if test ! -d "$repository"
 			then
-				echo >&2 "$0: $repository: bad repository (see CVS/Repository)"
+				printf '%s\n' >&2 \
+				  "$0: $repository: bad repository (see CVS/Repository)"
 				exit 1
 			fi
 			pository=$repository;;
@@ -330,7 +332,7 @@ case $rlogfile in
 				T?*)
 					rlog_options=-r`expr "$CVSTAG" : 'T\(.*\)'`;;
 				*)
-					echo >&2 "$0: invalid CVS/Tag"; exit 1;;
+					printf '%s\n' >&2 "$0: invalid CVS/Tag"; exit 1;;
 				esac
 			fi;;
 		esac
@@ -595,7 +597,7 @@ case $hostname in
 	hostname=`(
 		hostname || uname -n || uuname -l || cat /etc/whoami
 	) 2>/dev/null` || {
-		echo >&2 "$0: cannot deduce hostname"
+		printf '%s\n' >&2 "$0: cannot deduce hostname"
 		exit 1
 	}
 

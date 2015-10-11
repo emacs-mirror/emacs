@@ -2200,6 +2200,50 @@ x_query_colors (struct frame *f, XColor *colors, int ncolors)
 {
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
 
+  if (dpyinfo->red_bits > 0)
+    {
+      /* For TrueColor displays, we can decompose the RGB value
+	 directly.  */
+      int i;
+      unsigned int rmult, gmult, bmult;
+      unsigned int rmask, gmask, bmask;
+
+      rmask = (1 << dpyinfo->red_bits) - 1;
+      gmask = (1 << dpyinfo->green_bits) - 1;
+      bmask = (1 << dpyinfo->blue_bits) - 1;
+      /* If we're widening, for example, 8 bits in the pixel value to
+	 16 bits for the separate-color representation, we want to
+	 extrapolate the lower bits based on those bits available --
+	 in other words, we'd like 0xff to become 0xffff instead of
+	 the 0xff00 we'd get by just zero-filling the lower bits.
+
+         We generate a 32-bit scaled-up value and shift it, in case
+         the bit count doesn't divide 16 evently (e.g., when dealing
+         with a 3-3-2 bit RGB display), to get more of the lower bits
+         correct.
+
+         Should we cache the multipliers in dpyinfo?  Maybe
+         special-case the 8-8-8 common case?  */
+      rmult = 0xffffffff / rmask;
+      gmult = 0xffffffff / gmask;
+      bmult = 0xffffffff / bmask;
+
+      for (i = 0; i < ncolors; ++i)
+	{
+	  unsigned int r, g, b;
+	  unsigned long pixel = colors[i].pixel;
+
+	  r = (pixel >> dpyinfo->red_offset) & rmask;
+	  g = (pixel >> dpyinfo->green_offset) & gmask;
+	  b = (pixel >> dpyinfo->blue_offset) & bmask;
+
+	  colors[i].red = (r * rmult) >> 16;
+	  colors[i].green = (g * gmult) >> 16;
+	  colors[i].blue = (b * bmult) >> 16;
+	}
+      return;
+    }
+
   if (dpyinfo->color_cells)
     {
       int i;
@@ -2210,9 +2254,10 @@ x_query_colors (struct frame *f, XColor *colors, int ncolors)
 	  eassert (dpyinfo->color_cells[pixel].pixel == pixel);
 	  colors[i] = dpyinfo->color_cells[pixel];
 	}
+      return;
     }
-  else
-    XQueryColors (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f), colors, ncolors);
+
+  XQueryColors (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f), colors, ncolors);
 }
 
 
@@ -2223,6 +2268,51 @@ void
 x_query_color (struct frame *f, XColor *color)
 {
   x_query_colors (f, color, 1);
+}
+
+
+/* On frame F, translate the color name to RGB values.  Use cached
+   information, if possible.
+
+   Note that there is currently no way to clean old entries out of the
+   cache.  However, it is limited to names in the server's database,
+   and names we've actually looked up; list-colors-display is probably
+   the most color-intensive case we're likely to hit.  */
+
+Status x_parse_color (struct frame *f, const char *color_name,
+		      XColor *color)
+{
+  Display *dpy = FRAME_X_DISPLAY (f);
+  Colormap cmap = FRAME_X_COLORMAP (f);
+  struct color_name_cache_entry *cache_entry;
+
+  if (color_name[0] == '#')
+    {
+      /* The hex form is parsed directly by XParseColor without
+	 talking to the X server.  No need for caching.  */
+      return XParseColor (dpy, cmap, color_name, color);
+    }
+
+  for (cache_entry = FRAME_DISPLAY_INFO (f)->color_names; cache_entry;
+       cache_entry = cache_entry->next)
+    {
+      if (!xstrcasecmp(cache_entry->name, color_name))
+	{
+	  *color = cache_entry->rgb;
+	  return 1;
+	}
+    }
+
+  if (XParseColor (dpy, cmap, color_name, color) == 0)
+    /* No caching of negative results, currently.  */
+    return 0;
+
+  cache_entry = xzalloc (sizeof *cache_entry);
+  cache_entry->rgb = *color;
+  cache_entry->name = xstrdup (color_name);
+  cache_entry->next = FRAME_DISPLAY_INFO (f)->color_names;
+  FRAME_DISPLAY_INFO (f)->color_names = cache_entry;
+  return 1;
 }
 
 
@@ -2298,15 +2388,27 @@ x_alloc_nearest_color_1 (Display *dpy, Colormap cmap, XColor *color)
 }
 
 
-/* Allocate the color COLOR->pixel on frame F, colormap CMAP.  If an
-   exact match can't be allocated, try the nearest color available.
-   Value is true if successful.  Set *COLOR to the color
-   allocated.  */
+/* Allocate the color COLOR->pixel on frame F, colormap CMAP, after
+   gamma correction.  If an exact match can't be allocated, try the
+   nearest color available.  Value is true if successful.  Set *COLOR
+   to the color allocated.  */
 
 bool
 x_alloc_nearest_color (struct frame *f, Colormap cmap, XColor *color)
 {
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
+
   gamma_correct (f, color);
+
+  if (dpyinfo->red_bits > 0)
+    {
+      color->pixel = x_make_truecolor_pixel (dpyinfo,
+					     color->red,
+					     color->green,
+					     color->blue);
+      return true;
+    }
+
   return x_alloc_nearest_color_1 (FRAME_X_DISPLAY (f), cmap, color);
 }
 
@@ -2320,8 +2422,16 @@ x_copy_color (struct frame *f, unsigned long pixel)
 {
   XColor color;
 
+  /* If display has an immutable color map, freeing colors is not
+     necessary and some servers don't allow it.  Since we won't free a
+     color once we've allocated it, we don't need to re-allocate it to
+     maintain the server's reference count.  */
+  if (!x_mutable_colormap (FRAME_X_VISUAL (f)))
+    return pixel;
+
   color.pixel = pixel;
   block_input ();
+  /* The color could still be found in the color_cells array.  */
   x_query_color (f, &color);
   XAllocColor (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f), &color);
   unblock_input ();
@@ -4891,7 +5001,7 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 	if (x_had_errors_p (FRAME_X_DISPLAY (*fp)))
 	  f1 = 0;
 
-	x_uncatch_errors ();
+	x_uncatch_errors_after_check ();
 
 	/* If not, is it one of our scroll bars?  */
 	if (! f1)
@@ -7379,6 +7489,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
      says that a portable program can't use this, but Stephen Gildea assures
      me that letting the compiler initialize it to zeros will work okay.  */
   static XComposeStatus compose_status;
+  XEvent configureEvent;
+  XEvent next_event;
 
   USE_SAFE_ALLOCA;
 
@@ -7439,9 +7551,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
                                        the only valid choice.  */
                                     RevertToParent,
                                     event->xclient.data.l[1]);
-                    /* This is needed to detect the error
-                       if there is an error.  */
-                    XSync (d, False);
                     x_uncatch_errors ();
                   }
                 /* Not certain about handling scroll bars here */
@@ -8291,17 +8400,41 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       }
 
     case ConfigureNotify:
-      f = x_top_window_to_frame (dpyinfo, event->xconfigure.window);
+      /* An opaque move can generate a stream of events as the window
+         is dragged around.  If the connection round trip time isn't
+         really short, they may come faster than we can respond to
+         them, given the multiple queries we can do to check window
+         manager state, translate coordinates, etc.
+
+         So if this ConfigureNotify is immediately followed by another
+         for the same window, use the info from the latest update, and
+         consider the events all handled.  */
+      /* Opaque resize may be trickier; ConfigureNotify events are
+         mixed with Expose events for multiple windows.  */
+      configureEvent = *event;
+      while (XPending (dpyinfo->display))
+        {
+          XNextEvent (dpyinfo->display, &next_event);
+          if (next_event.type != ConfigureNotify
+              || next_event.xconfigure.window != event->xconfigure.window)
+            {
+              XPutBackEvent (dpyinfo->display, &next_event);
+              break;
+            }
+          else
+	    configureEvent = next_event;
+        }
+      f = x_top_window_to_frame (dpyinfo, configureEvent.xconfigure.window);
 #ifdef USE_CAIRO
       if (f) x_cr_destroy_surface (f);
 #endif
 #ifdef USE_GTK
       if (!f
           && (f = any)
-          && event->xconfigure.window == FRAME_X_WINDOW (f))
+          && configureEvent.xconfigure.window == FRAME_X_WINDOW (f))
         {
-          xg_frame_resized (f, event->xconfigure.width,
-                            event->xconfigure.height);
+          xg_frame_resized (f, configureEvent.xconfigure.width,
+                            configureEvent.xconfigure.height);
 #ifdef USE_CAIRO
           x_cr_destroy_surface (f);
 #endif
@@ -8310,24 +8443,26 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
       if (f)
         {
-	  x_net_wm_state (f, event->xconfigure.window);
+	  x_net_wm_state (f, configureEvent.xconfigure.window);
 
 #ifdef USE_X_TOOLKIT
           /* Tip frames are pure X window, set size for them.  */
           if (! NILP (tip_frame) && XFRAME (tip_frame) == f)
             {
-              if (FRAME_PIXEL_HEIGHT (f) != event->xconfigure.height
-                  || FRAME_PIXEL_WIDTH (f) != event->xconfigure.width)
+              if (FRAME_PIXEL_HEIGHT (f) != configureEvent.xconfigure.height
+                  || FRAME_PIXEL_WIDTH (f) != configureEvent.xconfigure.width)
                 SET_FRAME_GARBAGED (f);
-              FRAME_PIXEL_HEIGHT (f) = event->xconfigure.height;
-              FRAME_PIXEL_WIDTH (f) = event->xconfigure.width;
+              FRAME_PIXEL_HEIGHT (f) = configureEvent.xconfigure.height;
+              FRAME_PIXEL_WIDTH (f) = configureEvent.xconfigure.width;
             }
 #endif
 
 #ifndef USE_X_TOOLKIT
 #ifndef USE_GTK
-          int width = FRAME_PIXEL_TO_TEXT_WIDTH (f, event->xconfigure.width);
-          int height = FRAME_PIXEL_TO_TEXT_HEIGHT (f, event->xconfigure.height);
+          int width =
+	    FRAME_PIXEL_TO_TEXT_WIDTH (f, configureEvent.xconfigure.width);
+          int height =
+	    FRAME_PIXEL_TO_TEXT_HEIGHT (f, configureEvent.xconfigure.height);
 
           /* In the toolkit version, change_frame_size
              is called by the code that handles resizing
@@ -8338,8 +8473,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
              to check the pixel dimensions as well.  */
           if (width != FRAME_TEXT_WIDTH (f)
               || height != FRAME_TEXT_HEIGHT (f)
-              || event->xconfigure.width != FRAME_PIXEL_WIDTH (f)
-              || event->xconfigure.height != FRAME_PIXEL_HEIGHT (f))
+              || configureEvent.xconfigure.width != FRAME_PIXEL_WIDTH (f)
+              || configureEvent.xconfigure.height != FRAME_PIXEL_HEIGHT (f))
             {
               change_frame_size (f, width, height, false, true, false, true);
 	      x_clear_under_internal_border (f);
@@ -9097,6 +9232,8 @@ x_text_icon (struct frame *f, const char *icon_name)
 struct x_error_message_stack {
   char string[X_ERROR_MESSAGE_SIZE];
   Display *dpy;
+  x_special_error_handler handler;
+  void *handler_data;
   struct x_error_message_stack *prev;
 };
 static struct x_error_message_stack *x_error_message;
@@ -9111,6 +9248,9 @@ x_error_catcher (Display *display, XErrorEvent *event)
   XGetErrorText (display, event->error_code,
 		 x_error_message->string,
 		 X_ERROR_MESSAGE_SIZE);
+  if (x_error_message->handler)
+    x_error_message->handler (display, event, x_error_message->string,
+			      x_error_message->handler_data);
 }
 
 /* Begin trapping X errors for display DPY.  Actually we trap X errors
@@ -9124,10 +9264,14 @@ x_error_catcher (Display *display, XErrorEvent *event)
    Calling x_check_errors signals an Emacs error if an X error has
    occurred since the last call to x_catch_errors or x_check_errors.
 
-   Calling x_uncatch_errors resumes the normal error handling.  */
+   Calling x_uncatch_errors resumes the normal error handling.
+   Calling x_uncatch_errors_after_check is similar, but skips an XSync
+   to the server, and should be used only immediately after
+   x_had_errors_p or x_check_errors.  */
 
 void
-x_catch_errors (Display *dpy)
+x_catch_errors_with_handler (Display *dpy, x_special_error_handler handler,
+			     void *handler_data)
 {
   struct x_error_message_stack *data = xmalloc (sizeof *data);
 
@@ -9136,8 +9280,35 @@ x_catch_errors (Display *dpy)
 
   data->dpy = dpy;
   data->string[0] = 0;
+  data->handler = handler;
+  data->handler_data = handler_data;
   data->prev = x_error_message;
   x_error_message = data;
+}
+
+void
+x_catch_errors (Display *dpy)
+{
+  x_catch_errors_with_handler (dpy, NULL, NULL);
+}
+
+/* Undo the last x_catch_errors call.
+   DPY should be the display that was passed to x_catch_errors.
+
+   This version should be used only if the immediately preceding
+   X-protocol-related thing was x_check_errors or x_had_error_p, both
+   of which issue XSync calls, so we don't need to re-sync here.  */
+
+void
+x_uncatch_errors_after_check (void)
+{
+  struct x_error_message_stack *tmp;
+
+  block_input ();
+  tmp = x_error_message;
+  x_error_message = x_error_message->prev;
+  xfree (tmp);
+  unblock_input ();
 }
 
 /* Undo the last x_catch_errors call.
@@ -9833,10 +10004,9 @@ x_wm_supports (struct frame *f, Atom want_atom)
 
   /* Check if window exists. */
   XSelectInput (dpy, wmcheck_window, StructureNotifyMask);
-  x_sync (f);
   if (x_had_errors_p (dpy))
     {
-      x_uncatch_errors ();
+      x_uncatch_errors_after_check ();
       unblock_input ();
       return false;
     }
@@ -12133,6 +12303,7 @@ static void
 x_delete_display (struct x_display_info *dpyinfo)
 {
   struct terminal *t;
+  struct color_name_cache_entry *color_entry, *next_color_entry;
 
   /* Close all frames and delete the generic struct terminal for this
      X display.  */
@@ -12160,6 +12331,15 @@ x_delete_display (struct x_display_info *dpyinfo)
       for (tail = x_display_list; tail; tail = tail->next)
 	if (tail->next == dpyinfo)
 	  tail->next = tail->next->next;
+    }
+
+  for (color_entry = dpyinfo->color_names;
+       color_entry;
+       color_entry = next_color_entry)
+    {
+      next_color_entry = color_entry->next;
+      xfree (color_entry->name);
+      xfree (color_entry);
     }
 
   xfree (dpyinfo->x_id_name);

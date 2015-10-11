@@ -1,3 +1,561 @@
+2015-10-11  Ken Raeburn  <raeburn@raeburn.org>
+
+	Handle an opaque-move X11 window manager operation more efficiently.
+
+	* src/xterm.c (handle_one_xevent): If a ConfigureNotify event is
+	followed by more ConfigureNotify events for the same window, process
+	only the last one.
+
+2015-10-11  Ken Raeburn  <raeburn@raeburn.org>
+
+	Fix cursor setting for tip frame; re-enable cursor generation.
+
+	* src/xfns.c (x_create_tip_frame): Include the cursor in the window
+	attributes sent when creating the new X window.  Don't skip setting
+	the pointerColor parameter.
+
+2015-10-11  Ken Raeburn  <raeburn@raeburn.org>
+
+	Rewrite x_set_mouse_color to sync less.
+
+	We can track serial numbers of X requests and correlate error events
+	with the associated requests.  This way we can identify errors for
+	specific calls without having to use XSync after every one.
+
+	* src/xfns.c (enum mouse_cursor): New type.
+	(struct mouse_cursor_types, struct mouse_cursor_data): New types.
+	(mouse_cursor_types): New array listing the Lisp variables and default
+	cursor appearances for each cursor type.
+	(x_set_mouse_color_handler): New function; checks error event serial
+	number against submitted requests.
+	(x_set_mouse_color): Updated to use the new error handler callback,
+	and to be more table-driven, to simplify repetitious code.
+
+2015-10-11  Ken Raeburn  <raeburn@raeburn.org>
+
+	Add x_catch_errors_with_handler.
+
+	* src/xterm.c (struct x_error_message_stack): Add new fields for a
+	callback function and associated data pointer.
+	(x_error_catcher): If the callback function is set, call it after
+	saving the error message string.
+	(x_catch_errors_with_handler): Renamed from x_catch_errors but now
+	accepts a callback function and data pointer.
+	(x_catch_errors): Now a wrapper function.
+	* src/xterm.h (x_special_error_handler): New typedef.
+	(x_catch_errors_with_handler): Declare.
+
+2015-10-11  Ken Raeburn  <raeburn@raeburn.org>
+
+	Introduce x_uncatch_errors_after_check to reduce XSync calls.
+
+	Both x_had_errors_p and x_check_errors call XSync, so if they're
+	immediately followed by x_uncatch_errors, its XSync call will be
+	redundant, resulting in a wasted round trip to the X server.
+
+	* src/xterm.c (x_uncatch_errors_after_check): New routine; a copy of
+	x_uncatch_errors without the XSync call.
+	(XTmouse_position, x_wm_supports):
+	* src/xfns.c (x_set_mouse_color):
+	* src/xmenu.c (Fx_menu_bar_open_internal):
+	* src/xselect.c (x_own_selection, x_get_foreign_selection):
+	(Fx_get_atom_name): Call it instead of x_uncatch_errors.
+	* src/xterm.h (x_uncatch_errors_after_check): Declare.
+
+2015-10-10  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	Document the optional prefix to `calc-yank'.
+
+	* doc/misc/calc.texi (Yanking into the Stack): Document the optional
+	prefix to `calc-yank'.
+	* lisp/calc/calc-yank.el (calc-yank): Ensure that things killed from
+	the Calc buffer are yanked back unchanged.
+
+2015-10-10  Mark Oteiza  <mvoteiza@udel.edu>
+
+	* lisp/calendar/calendar.el: Display buffer before executing body.
+
+	In each use of this macro, the modeline is derived from a window width
+	calculation, which will be wrong if (display-buffer) splits the window
+	horizontally.
+
+2015-10-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use ‘echo’ safely with ‘\’ or leading ‘-’
+
+	POSIX says that ‘echo FOO’ produces implementation-defined output
+	if FOO contains leading ‘-’, or ‘\’ anywhere, so don’t assume GNU
+	behavior in that case.
+	* Makefile.in (removenullpaths): Remove.
+	(epaths-force): Rewrite to avoid the need for ‘echo’.
+	(install-etc): Be clearer about escaping the shell metacharacters
+	‘\’ and ‘$’.
+	* Makefile.in (install-arch-indep, install-etcdoc):
+	* admin/charsets/mapconv, admin/merge-gnulib, admin/merge-pkg-config:
+	* admin/quick-install-emacs, build-aux/gitlog-to-emacslog:
+	* configure.ac, lib-src/rcs2log, make-dist:
+	* src/Makefile.in (lisp.mk):
+	Don’t assume ‘echo’ outputs ‘\’ and leading ‘-’ unscathed.
+	For example, use ‘printf '%s\n' "$foo"’ rather than ‘echo "$foo"’
+	if $foo can contain arbitrary characters.
+	* lisp/Makefile.in (TAGS): Use ‘ls’, not ‘echo’, to avoid ‘\’ issues.
+	* doc/lispref/two-volume.make (vol1.pdf):
+	* test/etags/make-src/Makefile (web ftp publish):
+	Use ‘printf’ rather than ‘echo -e’.
+
+2015-10-10  Kaushal Modi  <kaushal.modi@gmail.com>
+
+	Allow numbers with different radixes to be yanked.
+
+	* lisp/calc/calc-yank.el (calc-yank): Allow radixes besides the
+	default base 10.
+
+2015-10-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve CHECK_IMPURE and PURE_P speedup
+
+	* src/data.c (Faset): Use XVECTOR and XSTRING rather than XPNTR.
+
+2015-10-10  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	Use events instead of chars to keep track of steps.
+
+	* lisp/calc/calc-prog.el (calc-kbd-loop): Use events instead of chars
+	to keep track of steps.
+
+2015-10-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix --enable-gcc-warnings problem with older GCC
+
+	* src/puresize.h: Add INLINE_HEADER_BEGIN, INLINE_HEADER_END.
+	This is for building with --enable-gcc-warnings with
+	GCC 4.6 through 5.0.
+
+2015-10-10  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix vertical-motion in truncated lines that end in a stretch
+
+	* src/indent.c (Fvertical_motion): Expect overshoot when point is
+	beyond window margin and lines are truncated, even if we have a
+	stretch at point.  (Bug#21468)
+
+2015-10-10  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid link-time errors due to inline functions
+
+	* src/emacs.c: Include puresize.h, to avoid link-time errors in
+	unoptimized builds due to PURE_P and CHECK_IMPURE, which are now
+	inline functions.
+
+2015-10-10  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* src/data.c (Faset): Fix last change.
+
+2015-10-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	CHECK_IMPURE and PURE_P speedup
+
+	* src/intervals.c (create_root_interval):
+	Do CHECK_IMPURE only for strings; not needed for buffers.
+	Prefer ! STRINGP to BUFFERP, for a tad more speed.
+	* src/puresize.h (CHECK_IMPURE, PURE_P):
+	Now inline functions instead of macros.
+	(PURE_P): Don’t use XPNTR; that is now the caller’s responsibility.
+	All callers changed.
+	(CHECK_IMPURE): New argument PTR, to save us the work of running XPNTR.
+	All callers changed.
+
+2015-10-09  Noah Friedman  <friedman@splode.com>
+
+	(tramp-open-connection-setup-interactive-shell): Send -onlcr as well.
+
+2015-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/progmodes/cc-mode.el (c-after-font-lock-init): Only *move*
+
+	our after-change-function, rather than re-adding it if it was removed.
+
+2015-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/cedet/ede: Silence some compiler warnings
+
+	* lisp/cedet/ede.el: Require cl-lib.  Silence some compiler warnings.
+	(ede-menu-obj-of-class-p): Use cl-some rather than `eval'.
+	(ede-apply-object-keymap, ede-reset-all-buffers)
+	(ede-auto-add-to-target): Use dolist.
+	(ede-new, ede-flush-deleted-projects, ede-global-list-sanity-check):
+	Use field names rather than initarg names in `oref'.
+	(ede-load-project-file): Remove unused var `file'.
+	(ede-map-any-target-p): Use cl-some rather than ede-map-targets.
+	(ede-set): Remove unused var `a'.
+
+	* lisp/cedet/ede/emacs.el: Silence some compiler warnings.
+	(ede-project-autoload): Avoid the old-style "name" argument.
+	(ede-emacs-find-matching-target): Use field names rather than initarg
+	names in `oref'.
+
+	* lisp/cedet/ede/linux.el: Silence some compiler warnings.
+	(ede-linux-load, ede-project-autoload): Avoid the old-style "name" argument.
+	(ede-linux-find-matching-target): Use field names rather than initarg
+	names in `oref'.
+
+2015-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/textmodes/reftex.el: Silence byte-compiler warnings.
+
+2015-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/progmodes/prolog.el: Avoid indenting too much, after ":-"
+
+	(prolog-smie-rules): Try and avoid indenting too far after ":-".
+
+2015-10-09  Eli Zaretskii  <eliz@gnu.org>
+
+	Update case-table and categories of recently added characters
+
+	* lisp/international/characters.el: Update information about Latin
+	Extended-C, Latin Extended-D, Latin Extended-E, Cyrillic Extended,
+	Georgian, Glagolitic, Deseret, Old Hungarian, and Warang Citi
+	blocks.  (Byug#21654)
+
+2015-10-09  Martin Rudalics  <rudalics@gmx.at>
+
+	In adjust_frame_size don't count minibuffer height twice (Bug#21643)
+
+	* src/frame.c (adjust_frame_size): In minibuffer-only windows
+	don't count minibuffer height twice.  (Bug#21643)
+
+2015-10-09  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid inflooping in font-lock
+
+	* lisp/font-lock.el (font-lock-extend-region-wholelines): Bind
+	inhibit-field-text-motion around the call to
+	line-beginning-position, to avoid inflooping.  (Bug#21615)
+
+2015-10-09  Tassilo Horn  <tsdh@gnu.org>
+
+	Refactor duplicated code; ensure default is in completions
+
+	* lisp/textmodes/reftex-cite.el (reftex--query-search-regexps): New function.
+	(reftex-extract-bib-entries): Use it.
+	(reftex-extract-bib-entries-from-thebibliography): Use it.
+
+2015-10-09  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	Typo in example
+
+	* autotype.texi (Skeletons as Abbrevs): "if" -> "ifst" in the example.
+
+2015-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/calc/calc.el: Silence byte-compiler warnings
+
+	(calc-scan-for-dels): Use ignore-errors.
+	(calc-dispatch, calc-do-dispatch): Make unused arg optional.
+	(calc-read-key-sequence): Remove unused var `prompt2'.
+	(calc-kill-stack-buffer): Remove unused var `buflist'.
+	(calc): Remove unused var `oldbuf'.
+	(calc-refresh): Use inhibit-read-only.
+	(calc-can-abbrev-vectors): Declare.
+	(calc-record): Remove unused var `mainbuf'.
+	(math-sub-bignum): Remove unused var `sum'.
+	(math-svo-c, math-svo-wid, math-svo-off): Declare.
+
+2015-10-08  Daiki Ueno  <ueno@gnu.org>
+
+	Use g_clear_error instead of g_error_free
+
+	* src/image.c: Define g_clear_error instead of g_error_free.
+	(init_svg_functions): Resolve symbol g_clear_error instead of
+	g_error_free.
+	(svg_load_image): Use g_clear_error instead of g_error_free, to
+	suppress GLib warnings when ERR is not set.  See bug#21641.
+
+2015-10-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* src/image.c (image_size_error): Simplify.
+
+2015-10-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix problems caught with --enable-gcc-warnings
+
+	* src/image.c (lookup_rgb_color):
+	* src/xfns.c (x_defined_color):
+	* src/xterm.c (x_parse_color):
+	Remove unused locals.
+
+2015-10-08  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* lisp/calc/calc.el (calc-digit-start-entry): Fix typo.
+
+2015-10-08  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	Format initial input uniformly.
+
+	* lisp/calc/calc.el (calc-digit-start-entry): New function.
+	* lisp/calc/calc.el (calcDigit-start):
+	* lisp/calc/calc-aent.el (calc-alg-digit-entry):
+	Use `calc-digit-start-entry' to format input.
+
+2015-10-08  Ken Raeburn  <raeburn@raeburn.org>
+
+	Disable non-working pointerColor setting for X tooltip frame.
+
+	It generates a bunch of server traffic, but there's some bug wherein
+	the new mouse cursor settings don't seem to get used.  In most
+	situations the cursor isn't likely to be seen anyway, so it's not
+	urgent to fix.
+
+	* src/xfns.c (x_create_tip_frame): Don't set pointerColor.
+
+2015-10-08  Ken Raeburn  <raeburn@raeburn.org>
+
+	Reduce some unnecessary X calls.
+
+	* src/xfns.c (x_real_pos_and_offsets): Remove a redundant XGetGeometry
+	call.  If border width is wanted, get it from the XGetGeometry call
+	instead of calling XGetWindowAttributes on the same window.  Skip some
+	X calls if we've already detected an error from the X server.
+	* src/xterm.c (x_wm_supports): Delete x_sync before x_had_errors_p.
+	(handle_one_xevent): Delete XSync call before x_uncatch_errors.
+
+2015-10-08  Ken Raeburn  <raeburn@raeburn.org>
+
+	Reduce color allocation/query traffic in the TrueColor case.
+
+	When working with an X visual with TrueColor class, pixel values can
+	be generated from the RGB values according to mask value provided by
+	the server on connection.  Some of the image-handling code was already
+	doing this.
+
+	* src/xterm.h (x_make_truecolor_pixel): New function; code taken from
+	lookup_rgb_color.
+	(x_mutable_colormap): New function.
+	* src/image.c (lookup_rgb_color): Move pixel composition code to
+	x_make_truecolor_pixel.
+	(x_kill_gs_process): Call x_mutable_colormap.
+	* src/xfaces.c (x_free_colors, x_free_dpy_colors): Call
+	x_mutable_colormap.
+	* src/xftfont.c (xftfont_get_colors): Call x_query_colors.
+	* src/xterm.c (x_query_colors): For a TrueColor display, decompose the
+	pixel value into RGB values directly, and don't send a request to the
+	server.
+	(x_alloc_nearest_color): For a TrueColor display, construct the pixel
+	value with x_make_truecolor_pixel.
+	(x_copy_color): For an immutable color map, just return the provided
+	pixel value.
+
+2015-10-08  Ken Raeburn  <raeburn@raeburn.org>
+
+	Cache XParseColor results in the X display info structure.
+
+	With repeated lookups of foreground and background colors for multiple
+	faces per frame, we issue a lot of redundant color name lookups to the
+	X server, waiting every time for the response.  On a remote network
+	with, say, 30ms round-trip time, this can add nearly a full second to
+	creation of a new frame.
+
+	* src/gtkutil.c (xg_check_special_colors): Call x_parse_color.
+	* src/image.c (get_spec_bg_or_alpha_as_argb):
+	(xpm_init_color_cache, xpm_lookup_color):
+	* src/xfns.c (x_defined_color):
+	* src/xterm.c (x_parse_color): New function; caches color names not
+	starting with "#" in the display-info structure.
+	(x_delete_display): Delete the cache content.
+	* src/xterm.h (struct color_name_cache_entry): New type.
+	(x_parse_color): Declare.
+	(struct x_display_info): Add a new field for the cache.
+
+2015-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* src/syntax.c (syms_of_syntax): Make syntax-propertize--done local
+
+2015-10-07  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix segfault in image_size_error
+
+	* src/image.c (image_size_error): Pass a Lisp string to
+	image_error, not a C string.  (Bug#21641)
+
+2015-10-07  Simen Heggestøyl  <simenheg@gmail.com>
+
+	Highlight CSS variable definitions
+
+	* lisp/textmodes/css-mode.el (css-nmstart-re): Tweak regexp to accept
+	CSS variables.  (Bug#21638)
+
+2015-10-07  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* test/automated/tabulated-list-test.el: New file
+
+	Test bug#21639 and some basic functionality.
+
+2015-10-07  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/emacs-lisp/tabulated-list.el (tabulated-list-sort):
+
+	Check if column can be sorted before trying.  (Bug#21639)
+
+2015-10-07  Nicolas Richard  <youngfrog@members.fsf.org>
+
+	Add test for `self-insert-command' (bug#21633)
+
+	* test/automated/cmds-tests.el: New file.
+
+2015-10-07  Martin Rudalics  <rudalics@gmx.at>
+
+	In resize_frame_windows don't set a top position when resizing horizontally.
+
+	* src/window.c (resize_frame_windows): Don't set root window's
+	top position when resizing horizontally.
+
+2015-10-07  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/progmodes/prog-mode.el (prettify-symbols-alist):
+
+	Document more possible values.
+
+2015-10-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/textmodes/tex-mode.el: Use lexical-binding
+
+2015-10-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/indent.el (indent--default-inside-comment): New function
+
+	(indent-for-tab-command): Use it for `noindent' indentation.
+
+2015-10-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix bug in GC_CHECK_MARKED_OBJECTS check
+
+	* src/alloc.c (mark_object): Fix bug in checking code.
+	When GC_CHECK_MARKED_OBJECTS is defined, the bug caused
+	CHECK_ALLOCATED_AND_LIVE_SYMBOL to repeatedly do the
+	CHECK_ALLOCATED and CHECK_LIVE tests for the first symbol in each
+	bucket.  The bug did not affect behavior either in the normal case
+	where GC_CHECK_MARKED_OBJECTS is not defined, or where Emacs does
+	not have an internal error that a properly-written
+	CHECK_ALLOCATED_AND_LIVE_SYMBOL would detect.
+
+2015-10-06  Tassilo Horn  <tsdh@gnu.org>
+
+	Add prettified version of \\Bbb{Q}.
+
+	* lisp/textmodes/tex-mode.el (tex--prettify-symbols-alist): Add
+	prettified version for \\Bbb{Q}.
+
+2015-10-06  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* test/automated/package-test.el (package-test-install-single):
+
+	Add a test for bug#21625.
+
+2015-10-06  Aaron Ecay  <aaronecay@gmail.com>
+
+	lisp/emacs-lisp/package.el (package-install): Fix name error
+
+	* lisp/emacs-lisp/package.el (package-install): Fix error when pkg is
+	  not a package-desc object.  Also clarify documentation.  (Bug#21625)
+
+2015-10-06  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix display of characters adjacent to ZWJ and ZWNJ
+
+	* src/bidi.c (bidi_resolve_neutral): Treat all Bn (a.k.a. "control")
+	characters the same as directional formatting controls.
+	(bidi_level_of_next_char): Include all Bn characters in rule L1,
+	as mandated by the UBA.
+
+2015-10-06  Andreas Schwab  <schwab@suse.de>
+
+	Don't use XFASTINT on a negative number
+
+	* src/cmds.c (Fself_insert_command): Don't use XFASTINT on a negative
+	number.  (Bug#21633)
+
+2015-10-05  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* doc/lispref/objects.texi (Window Type): Add a cross reference.
+
+	* src/buffer.c (syms_of_buffer): Typo fix.  (Bug#21622)
+
+2015-10-05  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix composition-function-table for Arabic and Syriac
+
+	* lisp/language/misc-lang.el (composition-function-table): Fix
+	entries for Arabic and Syriac.
+
+2015-10-05  Damien Cassou  <damien@cassou.me>
+
+	Add first unit tests for auth-source.el
+
+	* test/automated/auth-source-tests.el: New file.
+
+2015-10-05  Eli Zaretskii  <eliz@gnu.org>
+
+	Remove redundant redisplay code
+
+	* src/xdisp.c (redisplay_internal, try_cursor_movement)
+	(try_window_reusing_current_matrix, try_window_id): Remove
+	redundant restrictions on redisplay optimizations based on the
+	frame's 'redisplay' flag.  See
+	http://osdir.com/ml/general/2015-10/msg02110.html for the relevant
+	discussions.
+
+2015-10-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* src/xdisp.c (windows_or_buffers_changed): Improve docstring
+
+2015-10-04  Xue Fuqiao  <xfq.free@gmail.com>
+
+	Update tutorials/TUTORIAL.cn
+
+	* etc/tutorials/TUTORIAL.cn: Improve translation.
+
+2015-10-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* src/macfont.m (macfont_encode_char, syms_of_macfont): Remove unused vars.
+
+2015-10-04  Stefan Merten  <stefan@merten-home.de>
+
+	Pull in version numbers from rst.el upstream release.
+
+		* lisp/textmodes/rst.el (rst-cvs-header, rst-svn-rev)
+		(rst-svn-timestamp, rst-official-version)
+		(rst-official-cvs-rev, rst-package-emacs-version-alist):
+		Update version numbers.
+
+2015-10-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* test/automated/coding-tests.el: New file.
+
+2015-10-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	Improve XEmacs compatibility of Tramp
+
+	* lisp/net/tramp-compat.el (directory-listing-before-filename-regexp):
+	Declare if it doesn't exist.
+	(file-remote-p): Remove defalias, which was necessary for GNU Emacs 21.
+	(redisplay): Make it an alias if it doesn't exist.
+
+	* lisp/net/tramp.el (tramp-get-remote-tmpdir): Don't use
+	`file-remote-p' (due to XEmacs compatibility).
+
+	* lisp/net/trampver.el (locate-dominating-file)
+	(tramp-compat-replace-regexp-in-string): Autoload.
+	(tramp-repository-get-version): Do not dupe byte-compiler.
+
+2015-09-02  K. Handa  <handa@gnu.org>
+
+	fix for the case that M17N_FLT_USE_NEW_FEATURE is not defined
+
+	* ftfont.c (ftfont_drive_otf) [not M17N_FLT_USE_NEW_FEATURE]:
+	Adjusted for the change of type of elements in the array
+	MFLTGlyphString.glyphs.
+
 2015-10-04  Eli Zaretskii  <eliz@gnu.org>
 	    Michael Heerdegen  <michael_heerdegen@web.de>
 
@@ -14528,7 +15086,7 @@
 
 This file records repository revisions from
 commit 9d56a21e6a696ad19ac65c4b405aeca44785884a (exclusive) to
-commit 2021680e9dcd277a4ebbdb613d535e6edc86f384 (inclusive).
+commit ce402dd77fe39c3a6d968e23d7a4a20f2b04ccf0 (inclusive).
 See ChangeLog.1 for earlier changes.
 
 ;; Local Variables:

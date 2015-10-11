@@ -988,7 +988,16 @@ This is really kludgy, and unneeded (i.e. obsolete) in Emacs>=24."
             (smie-indent-backward-token) ;Skip !
             (equal ":-" (car (smie-indent-backward-token))))
           (smie-rule-parent prolog-indent-width)))
-    (`(:after . ,(or `":-" `"-->")) prolog-indent-width)))
+    (`(:after . ":-")
+     (if (bolp)
+         (save-excursion
+           (smie-indent-forward-token)
+           (skip-chars-forward " \t")
+           (if (eolp)
+               prolog-indent-width
+             (min prolog-indent-width (current-column))))
+       prolog-indent-width))
+    (`(:after . "-->") prolog-indent-width)))
 
 
 ;;-------------------------------------------------------------------

@@ -1,4 +1,4 @@
-;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands
+;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1985-1986, 1989, 1992, 1994-1999, 2001-2015 Free
 ;; Software Foundation, Inc.
@@ -368,7 +368,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
 			      (match-end 1))
 			     latex-section-alist))))
 	  (backward-char 1)
-	  (condition-case err
+	  (condition-case nil
 	      (progn
 		;; Using sexps allows some use of matching {...} inside
 		;; titles.
@@ -937,7 +937,7 @@ Inherits `shell-mode-map' with a few additions.")
     ,@tex-face-alist)
   "Alist of face and LaTeX font name for facemenu.")
 
-(defun tex-facemenu-add-face-function (face end)
+(defun tex-facemenu-add-face-function (face _end)
   (or (cdr (assq face tex-face-alist))
       (or (and (consp face)
 	       (consp (car face))
@@ -1982,7 +1982,7 @@ In the tex shell buffer this command behaves like `comint-send-input'."
   (display-buffer (tex-shell-buf))
   (tex-recenter-output-buffer nil))
 
-(defun tex-shell-sentinel (proc msg)
+(defun tex-shell-sentinel (proc _msg)
   (cond ((null (buffer-name (process-buffer proc)))
 	 ;; buffer killed
 	 (set-process-buffer proc nil)
@@ -2762,10 +2762,11 @@ Runs the shell command defined by `tex-show-queue-command'."
     st)
   "Syntax table used while computing indentation.")
 
-(defun latex-indent (&optional arg)
+(defun latex-indent (&optional _arg)
   (if (and (eq (get-text-property (if (and (eobp) (bolp))
                                       (max (point-min) (1- (point)))
-                                    (line-beginning-position)) 'face)
+                                    (line-beginning-position))
+                                  'face)
 	       'tex-verbatim))
       'noindent
     (with-syntax-table tex-latex-indent-syntax-table
@@ -3375,6 +3376,7 @@ There might be text before point."
     ("\\wr" . ?≀)
     ("\\Bbb{N}" . ?ℕ)			; AMS commands for blackboard bold
     ("\\Bbb{P}" . ?ℙ)			; Also sometimes \mathbb.
+    ("\\Bbb{Q}" . ?ℚ)
     ("\\Bbb{R}" . ?ℝ)
     ("\\Bbb{Z}" . ?ℤ)
     ("--" . ?–)
@@ -3407,7 +3409,7 @@ There might be text before point."
     ("\\textreferencemark" . ?※))
   "A `prettify-symbols-alist' usable for (La)TeX modes.")
 
-(defun tex--prettify-symbols-compose-p (start end _match)
+(defun tex--prettify-symbols-compose-p (_start end _match)
   (let* ((after-char (char-after end))
          (after-syntax (char-syntax after-char)))
     (not (or

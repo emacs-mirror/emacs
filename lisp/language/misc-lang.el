@@ -77,9 +77,10 @@ and Italian.")))
 
 (set-char-table-range
  composition-function-table
- '(#x600 . #x6FF)
- (list ["\u200D?[\u0600-\u074F]+[\u200D\u200C]*[\u0600-\u074F]+\u200D?"
-	0 font-shape-gstring]))
+ '(#x600 . #x74F)
+ (list (vector "[\u0600-\u074F\u200C\u200D]+" 0 'font-shape-gstring)
+       (vector "[\u200C\u200D][\u0600-\u074F\u200C\u200D]+"
+               1 'font-shape-gstring)))
 
 (provide 'misc-lang)
 

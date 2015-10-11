@@ -30,6 +30,7 @@
 (require 'calc-macs)
 
 ;; Declare functions which are defined elsewhere.
+(declare-function calc-digit-start-entry "calc" ())
 (declare-function calc-refresh-evaltos "calc-ext" (&optional which-var))
 (declare-function calc-execute-kbd-macro "calc-prog" (mac arg &rest prefix))
 (declare-function math-is-true "calc-ext" (expr))
@@ -450,12 +451,7 @@ The value t means abort and give an error message.")
 ;;;###autoload
 (defun calc-alg-digit-entry ()
   (calc-alg-entry
-   (cond ((eq last-command-event ?e)
-	  (if (> calc-number-radix 14) (format "%d.^" calc-number-radix) "1e"))
-	 ((eq last-command-event ?#) (format "%d#" calc-number-radix))
-	 ((eq last-command-event ?_) "-")
-	 ((eq last-command-event ?@) "0@ ")
-	 (t (char-to-string last-command-event)))))
+   (calc-digit-start-entry)))
 
 ;; The variable calc-digit-value is initially declared in calc.el,
 ;; but can be set by calcDigit-algebraic and calcDigit-edit.

@@ -221,7 +221,7 @@ lisptagsfiles2 = $(srcdir)/*/*.el
 lisptagsfiles3 = $(srcdir)/*/*/*.el
 lisptagsfiles4 = $(srcdir)/*/*/*/*.el
 
-## The echo | sed | xargs is to stop the command line getting too long
+## The ls | sed | xargs is to stop the command line getting too long
 ## on MS Windows, when the MSYS Bash passes it to a MinGW compiled
 ## etags.  It might be better to use find in a similar way to
 ## compile-main.  But maybe this is not even necessary any more now
@@ -229,10 +229,9 @@ lisptagsfiles4 = $(srcdir)/*/*/*/*.el
 TAGS: $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsfiles4)
 	rm -f $@
 	touch $@
-	echo $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsfiles4) | \
-	  sed -e 's,$(srcdir)/[^ ]*loaddefs[^ ]*,,g' \
-	    -e 's,$(srcdir)/ldefs-boot[^ ]*,,' \
-	    -e 's,$(srcdir)/[^ ]*esh-groups.el[^ ]*,,' | \
+	ls $(lisptagsfiles1) $(lisptagsfiles2) \
+	   $(lisptagsfiles3) $(lisptagsfiles4) | \
+	    sed -e '/loaddefs/d; /\/ldefs-boot/d; /esh-groups\.el/d' | \
 	    xargs $(XARGS_LIMIT) "$(ETAGS)" -a -o $@
 
 

@@ -27,10 +27,11 @@ so will cause aborts in redisplay.
 
 Next, review the changes in UnicodeData.txt vs the previous version
 used by Emacs.  Any changes, be it introduction of new scripts or
-addition of codepoints to existing scripts, need corresponding changes
-in the data used for filling char-script-table, see characters.el
-around line 1300.  Other databases and settings in characters.el, such
-as the data for char-width-table, might also need changes.
+addition of codepoints to existing scripts, might need corresponding
+changes in the data used for filling the category-table, case-table,
+and char-width-table.  The additional scripts should cause automatic
+updates in charscript.el, but it is a good idea to look at the results
+and see if any changes in admin/unidata/blocks.awk are required.
 
 Any new scripts added by UnicodeData.txt will also need updates to
 script-representative-chars defined in fontset.el.  Other databases in
@@ -39,7 +40,7 @@ fontset.el might also need to be updated as needed.
 Problems, fixmes and other unicode-related issues
 -------------------------------------------------------------
 
-Notes by fx to record various things of variable importance.  handa
+Notes by fx to record various things of variable importance.  Handa
 needs to check them -- don't take too seriously, especially with
 regard to completeness.
 

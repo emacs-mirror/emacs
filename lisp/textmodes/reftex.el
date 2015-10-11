@@ -1705,7 +1705,7 @@ When DIE is non-nil, throw an error if file not found."
 (defvar message-stack)
 (if (and (featurep 'xemacs)
          (not (fboundp 'current-message)))
-    (defun current-message (&optional frame)
+    (defun current-message (&optional _frame)
       (cdr (car message-stack))))
 
 (defun reftex-visited-files (list)
@@ -2047,7 +2047,7 @@ IGNORE-WORDS List of words which should be removed from the string."
             (message "Sorry: cannot refontify RefTeX Select buffer."))))
       (rename-buffer oldname))))
 
-(defun reftex-select-font-lock-fontify-region (beg end &optional loudly)
+(defun reftex-select-font-lock-fontify-region (beg end &optional _loudly)
   ;; Fontify a region, but only lines starting with a dot.
   (let ((func (if (fboundp 'font-lock-default-fontify-region)
                   'font-lock-default-fontify-region
@@ -2059,7 +2059,7 @@ IGNORE-WORDS List of words which should be removed from the string."
       (funcall func beg1 end1 nil)
       (goto-char end1))))
 
-(defun reftex-select-font-lock-unfontify (&rest ignore) t)
+(defun reftex-select-font-lock-unfontify (&rest _ignore) t)
 
 (defun reftex-verified-face (&rest faces)
   ;; Return the first valid face in FACES, or nil if none is valid.
@@ -2341,6 +2341,7 @@ output buffer into your mail program, as it gives us important
 information about your RefTeX version and configuration."
   (interactive)
   (require 'reporter)
+  (defvar reporter-prompt-for-summary-p)
   (let ((reporter-prompt-for-summary-p "Bug report subject: "))
     (reporter-submit-bug-report
      "bug-auctex@gnu.org, bug-gnu-emacs@gnu.org"
@@ -2446,7 +2447,7 @@ of ENTRY-LIST is a list of cons cells (\"MACRONAME\" . LEVEL).  See
 
 ;;;***
 
-;;;### (autoloads nil "reftex-cite" "reftex-cite.el" "751df6ee674ea533b755e8cda4ad1cf8")
+;;;### (autoloads nil "reftex-cite" "reftex-cite.el" "7eaa61c05a6578999ea68f1be0fbcf49")
 ;;; Generated autoloads from reftex-cite.el
 
 (autoload 'reftex-default-bibliography "reftex-cite" "\

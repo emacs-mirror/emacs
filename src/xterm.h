@@ -153,6 +153,17 @@ struct x_gc_ext_data
 #endif
 
 
+struct color_name_cache_entry
+{
+  struct color_name_cache_entry *next;
+  XColor rgb;
+  char *name;
+};
+
+Status x_parse_color (struct frame *f, const char *color_name,
+		      XColor *color);
+
+
 /* For each X display, we have a structure that records
    information about it.  */
 
@@ -384,6 +395,9 @@ struct x_display_info
   XIMStyles *xim_styles;
   struct xim_inst_t *xim_callback_data;
 #endif
+
+  /* A cache mapping color names to RGB values.  */
+  struct color_name_cache_entry *color_names;
 
   /* If non-null, a cache of the colors in the color map.  Don't
      use this directly, call x_color_cells instead.  */
@@ -1010,12 +1024,18 @@ XrmDatabase x_load_resources (Display *, const char *, const char *,
 
 /* Defined in xterm.c */
 
+typedef void (*x_special_error_handler)(Display *, XErrorEvent *, char *,
+					void *);
+
 extern bool x_text_icon (struct frame *, const char *);
 extern void x_catch_errors (Display *);
+extern void x_catch_errors_with_handler (Display *, x_special_error_handler,
+					 void *);
 extern void x_check_errors (Display *, const char *)
   ATTRIBUTE_FORMAT_PRINTF (2, 0);
 extern bool x_had_errors_p (Display *);
 extern void x_uncatch_errors (void);
+extern void x_uncatch_errors_after_check (void);
 extern void x_clear_errors (Display *);
 extern void xembed_request_focus (struct frame *);
 extern void x_ewmh_activate_frame (struct frame *);
@@ -1069,6 +1089,33 @@ x_display_set_last_user_time (struct x_display_info *dpyinfo, Time t)
   eassert (t <= X_ULONG_MAX);
 #endif
   dpyinfo->last_user_time = t;
+}
+
+INLINE unsigned long
+x_make_truecolor_pixel (struct x_display_info *dpyinfo, int r, int g, int b)
+{
+  unsigned long pr, pg, pb;
+
+  /* Scale down RGB values to the visual's bits per RGB, and shift
+     them to the right position in the pixel color.  Note that the
+     original RGB values are 16-bit values, as usual in X.  */
+  pr = (r >> (16 - dpyinfo->red_bits))   << dpyinfo->red_offset;
+  pg = (g >> (16 - dpyinfo->green_bits)) << dpyinfo->green_offset;
+  pb = (b >> (16 - dpyinfo->blue_bits))  << dpyinfo->blue_offset;
+
+  /* Assemble the pixel color.  */
+  return pr | pg | pb;
+}
+
+/* If display has an immutable color map, freeing colors is not
+   necessary and some servers don't allow it, so we won't do it.  That
+   also allows us to make other optimizations relating to server-side
+   reference counts.  */
+INLINE bool
+x_mutable_colormap (Visual *visual)
+{
+  int class = visual->class;
+  return (class != StaticColor && class != StaticGray && class != TrueColor);
 }
 
 extern void x_set_sticky (struct frame *, Lisp_Object, Lisp_Object);

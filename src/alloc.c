@@ -6217,7 +6217,7 @@ mark_object (Lisp_Object arg)
 	  MARK_STRING (XSTRING (ptr->name));
 	MARK_INTERVAL_TREE (string_intervals (ptr->name));
 	/* Inner loop to mark next symbol in this bucket, if any.  */
-	ptr = ptr->next;
+	po = ptr = ptr->next;
 	if (ptr)
 	  goto nextsym;
       }

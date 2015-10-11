@@ -649,6 +649,68 @@ with L, LRE, or LRO Unicode bidi character type.")
 	 (set-case-syntax-pair c (1+ c) tbl))
     (setq c (1+ c)))
 
+  ;; Latin Extended-C
+  (setq c #x2C60)
+  (while (<= c #x2C7F)
+    (modify-category-entry c ?l)
+    (setq c (1+ c)))
+
+  (let ((pair-ranges '((#x2C60 . #x2C61)
+                       (#x2C67 . #x2C6C)
+                       (#x2C72 . #x2C73)
+                       (#x2C75 . #x2C76))))
+    (dolist (elt pair-ranges)
+      (let ((from (car elt)) (to (cdr elt)))
+        (while (< from to)
+          (set-case-syntax-pair from (1+ from) tbl)
+          (setq from (+ from 2))))))
+
+  (set-case-syntax-pair ?Ɫ ?ɫ tbl)
+  (set-case-syntax-pair ?Ᵽ ?ᵽ tbl)
+  (set-case-syntax-pair ?Ɽ ?ɽ tbl)
+  (set-case-syntax-pair ?Ɑ ?ɑ tbl)
+  (set-case-syntax-pair ?Ɱ ?ɱ tbl)
+  (set-case-syntax-pair ?Ɐ ?ɐ tbl)
+  (set-case-syntax-pair ?Ɒ ?ɒ tbl)
+  (set-case-syntax-pair ?Ȿ ?ȿ tbl)
+  (set-case-syntax-pair ?Ɀ ?ɀ tbl)
+
+  ;; Latin Extended-D
+  (setq c #xA720)
+  (while (<= c #xA7FF)
+    (modify-category-entry c ?l)
+    (setq c (1+ c)))
+
+  (let ((pair-ranges '((#xA722 . #xA72F)
+                       (#xA732 . #xA76F)
+                       (#xA779 . #xA77C)
+                       (#xA77E . #xA787)
+                       (#xA78B . #xA78E)
+                       (#xA790 . #xA793)
+                       (#xA796 . #xA7A9)
+                       (#xA7B4 . #xA7B7))))
+    (dolist (elt pair-ranges)
+      (let ((from (car elt)) (to (cdr elt)))
+        (while (< from to)
+          (set-case-syntax-pair from (1+ from) tbl)
+          (setq from (+ from 2))))))
+
+  (set-case-syntax-pair ?Ᵹ ?ᵹ tbl)
+  (set-case-syntax-pair ?Ɦ ?ɦ tbl)
+  (set-case-syntax-pair ?Ɜ ?ɜ tbl)
+  (set-case-syntax-pair ?Ɡ ?ɡ tbl)
+  (set-case-syntax-pair ?Ɬ ?ɬ tbl)
+  (set-case-syntax-pair ?Ʞ ?ʞ tbl)
+  (set-case-syntax-pair ?Ʇ ?ʇ tbl)
+  (set-case-syntax-pair ?Ʝ ?ʝ tbl)
+  (set-case-syntax-pair ?Ꭓ ?ꭓ tbl)
+
+  ;; Latin Extended-E
+  (setq c #xAB30)
+  (while (<= c #xAB64)
+    (modify-category-entry c ?l)
+    (setq c (1+ c)))
+
   ;; Greek
   (modify-category-entry '(#x0370 . #x03ff) ?g)
   (setq c #x0370)
@@ -724,14 +786,29 @@ with L, LRE, or LRO Unicode bidi character type.")
     (and (zerop (% c 2))
 	 (or (and (>= c #x0460) (<= c #x0480))
 	     (and (>= c #x048c) (<= c #x04be))
-	     (and (>= c #x04d0) (<= c #x04f4)))
+	     (and (>= c #x04d0) (<= c #x052e)))
 	 (set-case-syntax-pair c (1+ c) tbl))
     (setq c (1+ c)))
   (set-case-syntax-pair ?Ӂ ?ӂ tbl)
   (set-case-syntax-pair ?Ӄ ?ӄ tbl)
   (set-case-syntax-pair ?Ӈ ?ӈ tbl)
   (set-case-syntax-pair ?Ӌ ?ӌ tbl)
-  (set-case-syntax-pair ?Ӹ ?ӹ tbl)
+
+  (modify-category-entry '(#xA640 . #xA69F) ?y)
+  (setq c #xA640)
+  (while (<= c #xA66C)
+    (set-case-syntax-pair c (+ c 1) tbl)
+    (setq c (+ c 2)))
+  (setq c #xA680)
+  (while (<= c #xA69A)
+    (set-case-syntax-pair c (+ c 1) tbl)
+    (setq c (+ c 2)))
+
+  ;; Georgian
+  (setq c #x10A0)
+  (while (<= c #x10CD)
+    (set-case-syntax-pair c (+ c #x1C60) tbl)
+    (setq c (1+ c)))
 
   ;; general punctuation
   (setq c #x2000)
@@ -792,6 +869,12 @@ with L, LRE, or LRO Unicode bidi character type.")
     (modify-category-entry (+ c 26) ?l)
     (setq c (1+ c)))
 
+  ;; Glagolitic
+  (setq c #x2C00)
+  (while (<= c #x2C2E)
+    (set-case-syntax-pair c (+ c 48) tbl)
+    (setq c (1+ c)))
+
   ;; Coptic
   (let ((pair-ranges '((#x2C80 . #x2CE2)
 		       (#x2CEB . #x2CF2))))
@@ -812,6 +895,24 @@ with L, LRE, or LRO Unicode bidi character type.")
     (set-case-syntax-pair c (+ c #x20) tbl)
     (modify-category-entry c ?l)
     (modify-category-entry (+ c #x20) ?l)
+    (setq c (1+ c)))
+
+  ;; Deseret
+  (setq c #x10400)
+  (while (<= c #x10427)
+    (set-case-syntax-pair c (+ c 28) tbl)
+    (setq c (1+ c)))
+
+  ;; Old Hungarian
+  (setq c #x10c80)
+  (while (<= c #x10cb2)
+    (set-case-syntax-pair c (+ c #x40) tbl)
+    (setq c (1+ c)))
+
+  ;; Warang Citi
+  (setq c #x118a0)
+  (while (<= c #x118bf)
+    (set-case-syntax-pair c (+ c #x20) tbl)
     (setq c (1+ c)))
 
   ;; Combining diacritics

@@ -583,9 +583,7 @@ xg_check_special_colors (struct frame *f,
              (unsigned) (col.red * 65535),
              (unsigned) (col.green * 65535),
              (unsigned) (col.blue * 65535));
-    success_p = (XParseColor (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f),
-			      buf, color)
-		 != 0);
+    success_p = x_parse_color (f, buf, color) != 0;
 #else
     GtkStyle *gsty = gtk_widget_get_style (FRAME_GTK_WIDGET (f));
     GdkColor *grgb = get_bg

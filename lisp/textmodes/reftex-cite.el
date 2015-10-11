@@ -177,6 +177,28 @@ If RETURN is non-nil, just return the entry and restore point."
           (progn (forward-list 1) (point)))
       (error (min (point-max) (+ 300 (point)))))))
 
+(defun reftex--query-search-regexps (default)
+  "Query for regexps for searching entries using DEFAULT as default.
+Return a list of regular expressions."
+  (split-string
+   (completing-read
+    (concat
+     "Regex { && Regex...}: "
+     "[" default "]: ")
+    ;; Ensure default is always in the completion list.
+    (let ((def (when default (list default)))
+          (coll (if reftex-mode
+                    (if (fboundp 'LaTeX-bibitem-list)
+                        (LaTeX-bibitem-list)
+                      (cdr (assoc 'bibview-cache
+                                  (symbol-value reftex-docstruct-symbol))))
+                  nil)))
+      (if (and def (member def coll))
+          coll
+        (cons def coll)))
+    nil nil nil 'reftex-cite-regexp-hist)
+   "[ \t]*&&[ \t]*"))
+
 ;;; Parse bibtex buffers
 (defun reftex-extract-bib-entries (buffers)
   "Extract bib entries which match regexps from BUFFERS.
@@ -189,20 +211,7 @@ Return list with entries."
 
     ;; Read a regexp, completing on known citation keys.
     (setq default (regexp-quote (reftex-get-bibkey-default)))
-    (setq re-list
-          (split-string
-           (completing-read
-            (concat
-             "Regex { && Regex...}: "
-             "[" default "]: ")
-            (if reftex-mode
-                (if (fboundp 'LaTeX-bibitem-list)
-                    (or (LaTeX-bibitem-list) '(""))
-                  (cdr (assoc 'bibview-cache
-                              (symbol-value reftex-docstruct-symbol))))
-              nil)
-            nil nil nil 'reftex-cite-regexp-hist)
-           "[ \t]*&&[ \t]*"))
+    (setq re-list (reftex--query-search-regexps default))
 
     (if (or (null re-list ) (equal re-list '("")))
         (setq re-list (list default)))
@@ -394,20 +403,7 @@ The environment should be located in FILES."
 
     ;; Read a regexp, completing on known citation keys.
     (setq default (regexp-quote (reftex-get-bibkey-default)))
-    (setq re-list
-          (split-string
-           (completing-read
-            (concat
-             "Regex { && Regex...}: "
-             "[" default "]: ")
-            (if reftex-mode
-                (if (fboundp 'LaTeX-bibitem-list)
-                    (LaTeX-bibitem-list)
-                  (cdr (assoc 'bibview-cache
-                              (symbol-value reftex-docstruct-symbol))))
-              nil)
-            nil nil nil 'reftex-cite-regexp-hist)
-           "[ \t]*&&[ \t]*"))
+    (setq re-list (reftex--query-search-regexps default))
 
     (if (or (null re-list ) (equal re-list '("")))
         (setq re-list (list default)))

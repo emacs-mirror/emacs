@@ -316,7 +316,7 @@ x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value,
   x_catch_errors (display);
   XSetSelectionOwner (display, selection_atom, selecting_window, timestamp);
   x_check_errors (display, "Can't set selection: %s");
-  x_uncatch_errors ();
+  x_uncatch_errors_after_check ();
   unblock_input ();
 
   /* Now update the local cache */
@@ -1179,7 +1179,7 @@ x_get_foreign_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
   XConvertSelection (display, selection_atom, type_atom, target_property,
 		     requestor_window, requestor_time);
   x_check_errors (display, "Can't convert selection: %s");
-  x_uncatch_errors ();
+  x_uncatch_errors_after_check ();
 
   /* Prepare to block until the reply has been read.  */
   reading_selection_window = requestor_window;
@@ -2364,7 +2364,7 @@ If the value is 0 or the atom is not known, return the empty string.  */)
   x_catch_errors (dpy);
   name = atom ? XGetAtomName (dpy, atom) : empty;
   had_errors_p = x_had_errors_p (dpy);
-  x_uncatch_errors ();
+  x_uncatch_errors_after_check ();
 
   if (!had_errors_p)
     ret = build_string (name);

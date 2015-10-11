@@ -396,7 +396,7 @@ adjust_frame_size (struct frame *f, int new_width, int new_height, int inhibit,
   int old_windows_width = WINDOW_PIXEL_WIDTH (r);
   int old_windows_height
     = (WINDOW_PIXEL_HEIGHT (r)
-       + (FRAME_HAS_MINIBUF_P (f)
+       + ((FRAME_HAS_MINIBUF_P (f) && !FRAME_MINIBUF_ONLY_P (f))
 	  ? WINDOW_PIXEL_HEIGHT (XWINDOW (FRAME_MINIBUF_WINDOW (f)))
 	  : 0));
   int new_windows_width, new_windows_height;

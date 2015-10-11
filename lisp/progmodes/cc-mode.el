@@ -1307,8 +1307,9 @@ Note that the style variables are always made local to the buffer."
 (defun c-after-font-lock-init ()
   ;; Put on `font-lock-mode-hook'.  This function ensures our after-change
   ;; function will get executed before the font-lock one.
-  (remove-hook 'after-change-functions 'c-after-change t)
-  (add-hook 'after-change-functions 'c-after-change nil t))
+  (when (memq #'c-after-change after-change-functions)
+    (remove-hook 'after-change-functions #'c-after-change t)
+    (add-hook 'after-change-functions #'c-after-change nil t)))
 
 (defun c-font-lock-init ()
   "Set up the font-lock variables for using the font-lock support in CC Mode.

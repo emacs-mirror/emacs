@@ -325,7 +325,7 @@ If FRAME is nil or not given, use the selected frame.  */)
                              /* Child of win.  */
                              &child);
       error_p = x_had_errors_p (FRAME_X_DISPLAY (f));
-      x_uncatch_errors ();
+      x_uncatch_errors_after_check ();
 
       if (! error_p)
         {

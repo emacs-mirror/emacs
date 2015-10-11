@@ -93,11 +93,11 @@ don't do it.  A value of nil means to just do it.")
     (ede-map-all-subprojects
      this
      (lambda (sp)
-       (ede-map-targets sp 'ede-proj-flush-autoconf)))
+       (ede-map-targets sp #'ede-proj-flush-autoconf)))
     (ede-map-all-subprojects
      this
      (lambda (sp)
-       (ede-map-targets this 'ede-proj-tweak-autoconf)))
+       (ede-map-targets this #'ede-proj-tweak-autoconf)))
     ;; Now save
     (save-buffer)
     (setq postcmd "autoreconf -f -i;")

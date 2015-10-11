@@ -49,15 +49,15 @@
 
   test -n "$dir"
 } || {
-  echo >&2 "$0: cannot find pkg.m4"
+  printf >&2 '%s\n' "$0: cannot find pkg.m4"
   exit 1
 }
 
 test -d m4 || {
-  echo >&2 "$0: please run this command in the main source directory"
+  printf >&2 '%s\n' "$0: please run this command in the main source directory"
   exit 1
 }
 
-echo >&2 "$0: copying $dir/pkg.m4 to m4/pkg.m4"
+printf >&2 '%s\n' "$0: copying $dir/pkg.m4 to m4/pkg.m4"
 
 cp $dir/pkg.m4 m4

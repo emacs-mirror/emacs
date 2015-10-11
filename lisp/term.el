@@ -245,85 +245,47 @@
 ;;             ----------------------------------------
 ;;
 ;;  Notice: for directory/host/user tracking you need to have something
-;; like this in your shell startup script ( this is for tcsh but should
-;; be quite easy to port to other shells )
+;; like this in your shell startup script (this is for a POSIXish shell
+;; like Bash but should be quite easy to port to other shells)
 ;;
 ;;             ----------------------------------------
 ;;
-;;
-;;  	 set os = `uname`
-;;  	 set host = `hostname`
-;;  	 set date = `date`
+;;  # Set HOSTNAME if not already set.
+;;	: ${HOSTNAME=$(uname -n)}
 ;;
 ;;  # su does not change this but I'd like it to
 ;;
-;;  	 set user = `whoami`
+;;	USER=$(whoami)
 ;;
 ;;  # ...
 ;;
-;;  	 if ( eterm =~ $TERM ) then
+;;	case $TERM in
+;;	    eterm*)
 ;;
-;;  		echo --------------------------------------------------------------
-;;  		echo Hello $user
-;;  		echo Today is $date
-;;  		echo We are on $host running $os under Emacs term mode
-;;  		echo --------------------------------------------------------------
+;;		printf '%s\n' \
+;;		 -------------------------------------------------------------- \
+;;		 "Hello $user" \
+;;		 "Today is $(date)" \
+;;		 "We are on $HOSTNAME running $(uname) under Emacs term mode" \
+;;		 --------------------------------------------------------------
 ;;
-;;  		setenv EDITOR emacsclient
+;;		export EDITOR=emacsclient
 ;;
-;;   # Notice: $host and $user have been set before to 'hostname' and 'whoami'
-;;   # this is necessary because, f.e., certain versions of 'su' do not change
-;;   # $user, YMMV: if you don't want to fiddle with them define a couple
-;;   # of new variables and use these instead.
-;;   # NOTICE that there is a space between "AnSiT?" and $whatever NOTICE
+;;		# The \033 stands for ESC.
+;;		# There is a space between "AnSiT?" and $whatever.
 ;;
-;;   # These are because we want the real cwd in the messages, not the login
-;;   # time one !
+;;		cd()    { command cd    "$@"; printf '\033AnSiTc %s\n' "$PWD"; }
+;;		pushd() { command pushd "$@"; printf '\033AnSiTc %s\n' "$PWD"; }
+;;		popd()  { command popd  "$@"; printf '\033AnSiTc %s\n' "$PWD"; }
 ;;
-;; 		set cwd_hack='$cwd'
-;; 		set host_hack='$host'
-;; 		set user_hack='$user'
+;;		printf '\033AnSiTc %s\n' "$PWD"
+;;		printf '\033AnSiTh %s\n' "$HOSTNAME"
+;;		printf '\033AnSiTu %s\n' "$USER"
 ;;
-;;   # Notice that the ^[ character is an ESC, not two chars.  You can
-;;   # get it in various ways, for example by typing
-;;   # echo -e '\033' > escape.file
-;;   # or by using your favorite editor
-;;
-;; 		foreach temp (cd pushd)
-;; 			alias $temp "$temp \!* ; echo 'AnSiTc' $cwd_hack"
-;; 		end
-;;   		alias popd 'popd ;echo "AnSiTc" $cwd'
-;;
-;;   # Every command that can modify the user/host/directory should be aliased
-;;   # as follows for the tracking mechanism to work.
-;;
-;; 		foreach temp ( rlogin telnet rsh sh ksh csh tcsh zsh bash tcl su )
-;; 			alias $temp "$temp \!* ; echo 'AnSiTh' $host_hack ; \
-;; 					echo 'AnSiTu' $user_hack ;echo 'AnSiTc' $cwd_hack"
-;; 		end
-;;
-;;   # Start up & use color ls
-;;
-;; 		echo "AnSiTh" $host
-;; 		echo "AnSiTu" $user
-;; 		echo "AnSiTc" $cwd
-;;
-;;   # some housekeeping
-;;
-;; 		unset cwd_hack
-;; 		unset host_hack
-;; 		unset user_hack
-;; 		unset temp
-;;
-;; 		eval `/bin/dircolors /home/marco/.emacs_dircolors`
-;;    endif
+;;		eval $(dircolors $HOME/.emacs_dircolors)
+;;	esac
 ;;
 ;;  # ...
-;;
-;;  # Let's not clutter user space
-;;
-;;  	 unset os
-;;  	 unset date
 ;;
 ;;
 

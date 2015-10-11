@@ -189,7 +189,7 @@ until Linux is built for the first time."
              (cons bdir "include/generated/uapi"))))
 
 ;;;###autoload
-(defun ede-linux-load (dir &optional rootproj)
+(defun ede-linux-load (dir &optional _rootproj)
   "Return an Linux Project object if there is a match.
 Return nil if there isn't one.
 Argument DIR is the directory it is created for.
@@ -198,8 +198,7 @@ ROOTPROJ is nil, since there is only one project."
   (let* ((bdir (ede-linux--get-build-directory dir))
 	 (arch (ede-linux--get-architecture dir bdir))
 	 (include-path (ede-linux--include-path dir bdir arch)))
-    (ede-linux-project
-     "Linux"
+    (make-instance 'ede-linux-project
      :name "Linux"
      :version (ede-linux-version dir)
      :directory (file-name-as-directory dir)
@@ -211,14 +210,14 @@ ROOTPROJ is nil, since there is only one project."
 
 ;;;###autoload
 (ede-add-project-autoload
- (ede-project-autoload "linux"
-		       :name "LINUX ROOT"
-		       :file 'ede/linux
-		       :proj-file "scripts/ver_linux"
-		       :load-type 'ede-linux-load
-		       :class-sym 'ede-linux-project
-		       :new-p nil
-		       :safe-p t)
+ (make-instance 'ede-project-autoload
+                :name "LINUX ROOT"
+                :file 'ede/linux
+                :proj-file "scripts/ver_linux"
+                :load-type 'ede-linux-load
+                :class-sym 'ede-linux-project
+                :new-p nil
+                :safe-p t)
  'unique)
 
 (defclass ede-linux-target-c (ede-target)
@@ -232,7 +231,7 @@ All directories need at least one target.")
 All directories need at least one target.")
 
 (cl-defmethod initialize-instance ((this ede-linux-project)
-				&rest fields)
+                                   &rest _fields)
   "Make sure the targets slot is bound."
   (cl-call-next-method)
   (unless (slot-boundp this 'targets)
@@ -241,7 +240,7 @@ All directories need at least one target.")
 ;;; File Stuff
 ;;
 (cl-defmethod ede-project-root-directory ((this ede-linux-project)
-				       &optional file)
+                                          &optional _file)
   "Return the root for THIS Linux project with file."
   (ede-up-directory (file-name-directory (oref this file))))
 
@@ -250,7 +249,7 @@ All directories need at least one target.")
   this)
 
 (cl-defmethod ede-find-subproject-for-directory ((proj ede-linux-project)
-					      dir)
+                                                 _dir)
   "Return PROJ, for handling all subdirs below DIR."
   proj)
 
@@ -261,7 +260,7 @@ All directories need at least one target.")
   (let ((match nil))
     (dolist (T targets)
       (when (and (object-of-class-p T class)
-		 (string= (oref T :path) dir))
+		 (string= (oref T path) dir))
 	(setq match T)
       ))
     match))

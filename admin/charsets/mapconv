@@ -64,7 +64,7 @@ case "$3" in
     KANJI-DATABASE)
 	SOURCE="http://kanji-database.cvs.sourceforge.net/viewvc/*checkout*/kanji-database/kanji-database/data/cns2ucsdkw.txt?revision=1.4";;
     *)
-	echo "Unknown file type: $3";
+	printf 'Unknown file type: %s\n' "$3"
 	exit 1;;
 esac
 
@@ -147,7 +147,6 @@ elif [ "$3" = "KANJI-DATABASE" ] ; then
 	| sed -e 's/...\(....\) U+\([0-9A-F]*\).*/0x\1 0x\2/' \
 	| sort | ${AWKPROG}
 else
-    echo "Invalid arguments: $3"
+    printf 'Invalid arguments: %s\n' "$3"
     exit 1
 fi
-

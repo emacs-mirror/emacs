@@ -40,6 +40,7 @@
 ;;  (global-ede-mode t)
 
 (require 'cedet)
+(require 'cl-lib)
 (require 'eieio)
 (require 'cl-generic)
 (require 'eieio-speedbar)
@@ -259,10 +260,10 @@ Argument LIST-O-O is the list of objects to choose from."
 (defun ede-menu-obj-of-class-p (class)
   "Return non-nil if some member of `ede-object' is a child of CLASS."
   (if (listp ede-object)
-      (eval (cons 'or (mapcar (lambda (o) (obj-of-class-p o class)) ede-object)))
+      (cl-some (lambda (o) (obj-of-class-p o class)) ede-object)
     (obj-of-class-p ede-object class)))
 
-(defun ede-build-forms-menu (menu-def)
+(defun ede-build-forms-menu (_menu-def)
   "Create a sub menu for building different parts of an EDE system.
 Argument MENU-DEF is the menu definition to use."
   (easy-menu-filter-return
@@ -306,7 +307,7 @@ Argument MENU-DEF is the menu definition to use."
 	(append newmenu (list [ "Make distribution" ede-make-dist t ]))
 	)))))
 
-(defun ede-target-forms-menu (menu-def)
+(defun ede-target-forms-menu (_menu-def)
   "Create a target MENU-DEF based on the object belonging to this buffer."
   (easy-menu-filter-return
    (easy-menu-create-menu
@@ -327,7 +328,7 @@ Argument MENU-DEF is the menu definition to use."
 	     ;; This is bad, but I'm not sure what else to do.
 	     (oref (car obj) menu)))))))))
 
-(defun ede-project-forms-menu (menu-def)
+(defun ede-project-forms-menu (_menu-def)
   "Create a target MENU-DEF based on the object belonging to this buffer."
   (easy-menu-filter-return
    (easy-menu-create-menu
@@ -353,7 +354,7 @@ Argument MENU-DEF is the menu definition to use."
 	       menu)
 	)))))
 
-(defun ede-configuration-forms-menu (menu-def)
+(defun ede-configuration-forms-menu (_menu-def)
   "Create a submenu for selecting the default configuration for this project.
 The current default is in the current object's CONFIGURATION-DEFAULT slot.
 All possible configurations are in CONFIGURATIONS.
@@ -388,7 +389,7 @@ but can also be used interactively."
 	   (eieio-object-name (ede-current-project))
 	   newconfig))
 
-(defun ede-customize-forms-menu (menu-def)
+(defun ede-customize-forms-menu (_menu-def)
   "Create a menu of the project, and targets that can be customized.
 Argument MENU-DEF is the definition of the current menu."
   (easy-menu-filter-return
@@ -411,7 +412,7 @@ Argument MENU-DEF is the definition of the current menu."
 			targ)))))))
 
 
-(defun ede-apply-object-keymap (&optional default)
+(defun ede-apply-object-keymap (&optional _default)
   "Add target specific keybindings into the local map.
 Optional argument DEFAULT indicates if this should be set to the default
 version of the keymap."
@@ -419,14 +420,13 @@ version of the keymap."
 	(proj ede-object-project))
     (condition-case nil
 	(let ((keys (ede-object-keybindings object)))
-	  ;; Add keys for the project to whatever is in the current object
-	  ;; so long as it isn't the same.
-	  (when (not (eq object proj))
-	    (setq keys (append keys (ede-object-keybindings proj))))
-	  (while keys
-	    (local-set-key (concat "\C-c." (car (car keys)))
-			   (cdr (car keys)))
-	    (setq keys (cdr keys))))
+	  (dolist (key
+                   ;; Add keys for the project to whatever is in the current
+                   ;; object so long as it isn't the same.
+                   (if (eq object proj)
+                       keys
+                     (append keys (ede-object-keybindings proj))))
+	    (local-set-key (concat "\C-c." (car key)) (cdr key))))
       (error nil))))
 
 ;;; Menu building methods for building
@@ -550,19 +550,15 @@ Sets buffer local variables for EDE."
 (defun ede-reset-all-buffers ()
   "Reset all the buffers due to change in EDE."
   (interactive)
-  (let ((b (buffer-list)))
-    (while b
-      (when (buffer-file-name (car b))
-	(with-current-buffer (car b)
-	  ;; Reset all state variables
-	  (setq ede-object nil
-		ede-object-project nil
-		ede-object-root-project nil)
-	  ;; Now re-initialize this buffer.
-	  (ede-initialize-state-current-buffer)
-	  )
-	)
-      (setq b (cdr b)))))
+  (dolist (b (buffer-list))
+    (when (buffer-file-name b)
+      (with-current-buffer b
+        ;; Reset all state variables
+        (setq ede-object nil
+              ede-object-project nil
+              ede-object-root-project nil)
+        ;; Now re-initialize this buffer.
+        (ede-initialize-state-current-buffer)))))
 
 ;;;###autoload
 (define-minor-mode global-ede-mode
@@ -626,13 +622,10 @@ of objects with the `ede-want-file-p' method."
   (if (or (eq ede-auto-add-method 'never)
 	  (ede-ignore-file (buffer-file-name)))
       nil
-    (let (wants desires)
-      ;; Find all the objects.
-      (setq wants (oref (ede-current-project) targets))
-      (while wants
-	(if (ede-want-file-p (car wants) (buffer-file-name))
-	    (setq desires (cons (car wants) desires)))
-	(setq wants (cdr wants)))
+    (let (desires)
+      (dolist (want (oref (ede-current-project) targets));Find all the objects.
+	(if (ede-want-file-p want (buffer-file-name))
+            (push want desires)))
       (if desires
 	  (cond ((or (eq ede-auto-add-method 'ask)
 		     (and (eq ede-auto-add-method 'multi-ask)
@@ -754,7 +747,7 @@ Optional argument NAME is the name to give this project."
 				  (r nil))
 			     (while l
 			       (if cs
-				   (if (eq (oref (car l) :class-sym)
+				   (if (eq (oref (car l) class-sym)
 					   cs)
 				       (setq r (cons (car l) r)))
 				 (if (oref (car l) new-p)
@@ -804,7 +797,7 @@ Optional argument NAME is the name to give this project."
 		 ))
 	 (inits (oref obj initializers)))
     ;; Force the name to match for new objects.
-    (eieio-object-set-name-string nobj (oref nobj :name))
+    (eieio-object-set-name-string nobj (oref nobj name))
     ;; Handle init args.
     (while inits
       (eieio-oset nobj (car inits) (car (cdr inits)))
@@ -858,7 +851,7 @@ Different projects accept different arguments ARGS.
 Typically you can specify NAME, target TYPE, and AUTOADD, where AUTOADD is
 a string \"y\" or \"n\", which answers the y/n question done interactively."
   (interactive)
-  (apply 'project-new-target (ede-current-project) args)
+  (apply #'project-new-target (ede-current-project) args)
   (when (and buffer-file-name
 	     (not (file-directory-p buffer-file-name)))
     (setq ede-object nil)
@@ -1004,21 +997,21 @@ Argument PROMPT is the prompt to use when querying the user for a target."
   "Make sure placeholder THIS is replaced with the real thing, and pass through."
   (project-add-file this file))
 
-(cl-defmethod project-add-file ((ot ede-target) file)
+(cl-defmethod project-add-file ((ot ede-target) _file)
   "Add the current buffer into project project target OT.
 Argument FILE is the file to add."
   (error "add-file not supported by %s" (eieio-object-name ot)))
 
-(cl-defmethod project-remove-file ((ot ede-target) fnnd)
+(cl-defmethod project-remove-file ((ot ede-target) _fnnd)
   "Remove the current buffer from project target OT.
 Argument FNND is an argument."
   (error "remove-file not supported by %s" (eieio-object-name ot)))
 
-(cl-defmethod project-edit-file-target ((ot ede-target))
+(cl-defmethod project-edit-file-target ((_ot ede-target))
   "Edit the target OT associated with this file."
   (find-file (oref (ede-current-project) file)))
 
-(cl-defmethod project-new-target ((proj ede-project) &rest args)
+(cl-defmethod project-new-target ((proj ede-project) &rest _args)
   "Create a new target.  It is up to the project PROJ to get the name."
   (error "new-target not supported by %s" (eieio-object-name proj)))
 
@@ -1030,12 +1023,12 @@ Argument FNND is an argument."
   "Delete the current target OT from its parent project."
   (error "add-file not supported by %s" (eieio-object-name ot)))
 
-(cl-defmethod project-compile-project ((obj ede-project) &optional command)
+(cl-defmethod project-compile-project ((obj ede-project) &optional _command)
   "Compile the entire current project OBJ.
 Argument COMMAND is the command to use when compiling."
   (error "compile-project not supported by %s" (eieio-object-name obj)))
 
-(cl-defmethod project-compile-target ((obj ede-target) &optional command)
+(cl-defmethod project-compile-target ((obj ede-target) &optional _command)
   "Compile the current target OBJ.
 Argument COMMAND is the command to use for compiling the target."
   (error "compile-target not supported by %s" (eieio-object-name obj)))
@@ -1095,7 +1088,7 @@ Flush the dead projects from the project cache."
   (interactive)
   (let ((dead nil))
     (dolist (P ede-projects)
-      (when (not (file-exists-p (oref P :file)))
+      (when (not (file-exists-p (oref P file)))
 	(add-to-list 'dead P)))
     (dolist (D dead)
       (ede-delete-project-from-global-list D))
@@ -1108,9 +1101,9 @@ Flush the dead projects from the project cache."
   (interactive)
   (let ((scanned nil))
     (dolist (P ede-projects)
-      (if (member (oref P :directory) scanned)
-	  (error "Duplicate project (by dir) found in %s!" (oref P :directory))
-	(push (oref P :directory) scanned)))
+      (if (member (oref P directory) scanned)
+	  (error "Duplicate project (by dir) found in %s!" (oref P directory))
+	(push (oref P directory) scanned)))
     (unless ede--disable-inode
       (setq scanned nil)
       (dolist (P ede-projects)
@@ -1135,8 +1128,7 @@ Optional ROOTRETURN will return the root project for DIR."
 
     ;; Do the load
     ;;(message "EDE LOAD : %S" file)
-    (let* ((file dir)
-	   (path (file-name-as-directory (expand-file-name dir)))
+    (let* ((path (file-name-as-directory (expand-file-name dir)))
 	   (detect (or detectin (ede-directory-project-cons path)))
 	   (autoloader nil)
 	   (toppath nil)
@@ -1302,7 +1294,7 @@ could become slow in time."
 Handles complex path issues."
   (member (ede-convert-path this (buffer-file-name buffer)) source))
 
-(cl-defmethod ede-buffer-mine ((this ede-project) buffer)
+(cl-defmethod ede-buffer-mine ((_this ede-project) _buffer)
   "Return non-nil if object THIS lays claim to the file in BUFFER."
   nil)
 
@@ -1375,7 +1367,7 @@ See also `ede-map-all-subprojects'."
   "For object THIS, execute PROC on THIS and all subprojects.
 This function also applies PROC to sub-sub projects.
 See also `ede-map-subprojects'."
-  (apply 'append
+  (apply #'append
 	 (list (funcall allproc this))
 	 (ede-map-subprojects
 	  this
@@ -1392,7 +1384,7 @@ See also `ede-map-subprojects'."
 (cl-defmethod ede-map-any-target-p ((this ede-project) proc)
   "For project THIS, map PROC to all targets and return if any non-nil.
 Return the first non-nil value returned by PROC."
-  (eval (cons 'or (ede-map-targets this proc))))
+  (cl-some proc (oref this targets)))
 
 
 ;;; Some language specific methods.
@@ -1401,15 +1393,15 @@ Return the first non-nil value returned by PROC."
 ;; configuring items for Semantic.
 
 ;; Generic paths
-(cl-defmethod ede-system-include-path ((this ede-project))
+(cl-defmethod ede-system-include-path ((_this ede-project))
   "Get the system include path used by project THIS."
   nil)
 
-(cl-defmethod ede-system-include-path ((this ede-target))
+(cl-defmethod ede-system-include-path ((_this ede-target))
   "Get the system include path used by project THIS."
   nil)
 
-(cl-defmethod ede-source-paths ((this ede-project) mode)
+(cl-defmethod ede-source-paths ((_this ede-project) _mode)
   "Get the base to all source trees in the current project for MODE.
 For example, <root>/src for sources of c/c++, Java, etc,
 and <root>/doc for doc sources."
@@ -1437,20 +1429,20 @@ and <root>/doc for doc sources."
 	(message "Choosing preprocessor syms for project %s"
 		 (eieio-object-name (car objs)))))))
 
-(cl-defmethod ede-system-include-path ((this ede-project))
+(cl-defmethod ede-system-include-path ((_this ede-project))
   "Get the system include path used by project THIS."
   nil)
 
-(cl-defmethod ede-preprocessor-map ((this ede-project))
+(cl-defmethod ede-preprocessor-map ((_this ede-project))
   "Get the pre-processor map for project THIS."
   nil)
 
-(cl-defmethod ede-preprocessor-map ((this ede-target))
+(cl-defmethod ede-preprocessor-map ((_this ede-target))
   "Get the pre-processor map for project THIS."
   nil)
 
 ;; Java
-(cl-defmethod ede-java-classpath ((this ede-project))
+(cl-defmethod ede-java-classpath ((_this ede-project))
   "Return the classpath for this project."
   ;; @TODO - Can JDEE add something here?
   nil)
@@ -1463,8 +1455,7 @@ and <root>/doc for doc sources."
 If VARIABLE is not project local, just use set.  Optional argument PROJ
 is the project to use, instead of `ede-current-project'."
   (interactive "sVariable: \nxExpression: ")
-  (let ((p (or proj (ede-toplevel)))
-	a)
+  (let ((p (or proj (ede-toplevel))))
     ;; Make the change
     (ede-make-project-local-variable variable p)
     (ede-set-project-local-variable variable value p)
@@ -1514,7 +1505,7 @@ It does not apply the value to buffers."
       (make-local-variable (car v))
       (set (car v) (cdr v)))))
 
-(cl-defmethod ede-commit-local-variables ((proj ede-project))
+(cl-defmethod ede-commit-local-variables ((_proj ede-project))
   "Commit change to local variables in PROJ."
   nil)
 

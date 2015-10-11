@@ -29903,6 +29903,19 @@ number in its displayed form, 3.142.  (Since the default display modes
 show all objects to their full precision, this feature normally makes no
 difference.)
 
+The @kbd{C-y} command can be given a prefix, which will interpret the
+text being yanked with a different radix.  If the text being yanked can be
+interpreted as a binary, octal, hexadecimal, or decimal number, then a
+prefix of @kbd{2}, @kbd{8}, @kbd{6} or @kbd{0} will have Calc
+interpret the yanked text as a number in the appropriate base.  For example,
+if @samp{111} has just been killed and is yanked into Calc with a command
+of @kbd{C-2 C-y}, then the number @samp{7} will be put on the stack.
+If you use the plain prefix @kbd{C-u}, then you will be prompted for a
+base to use, which can be any integer from 2 to 36.  If Calc doesn't
+allow the text being yanked to be read in a different base (such as if
+the text is an algebraic expression), then the prefix will have no
+effect.
+
 @node Saving Into Registers, Inserting From Registers, Yanking Into Stack, Kill and Yank
 @section Saving into Registers
 

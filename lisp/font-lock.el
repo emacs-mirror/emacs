@@ -1166,7 +1166,9 @@ Put first the functions more likely to cause a change and cheaper to compute.")
   (let ((changed nil))
     (goto-char font-lock-beg)
     (unless (bolp)
-      (setq changed t font-lock-beg (line-beginning-position)))
+      (setq changed t font-lock-beg
+            (let ((inhibit-field-text-motion t))
+              (line-beginning-position))))
     (goto-char font-lock-end)
     (unless (bolp)
       (unless (eq font-lock-end

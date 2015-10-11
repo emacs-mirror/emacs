@@ -316,6 +316,11 @@ extern int emacs_setenv_TZ (char const *);
 
    before including config.h or any other .h file.
    Other .c files should not define INLINE.
+   For Emacs, this is done by having emacs.c first '#define INLINE
+   EXTERN_INLINE' and then include every .h file that uses INLINE.
+
+   The INLINE_HEADER_BEGIN and INLINE_HEADER_END suppress bogus
+   warnings in some GCC versions; see ../m4/extern-inline.m4.
 
    C99 compilers compile functions like 'incr' as C99-style extern
    inline functions.  Buggy GCC implementations do something similar with

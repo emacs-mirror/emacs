@@ -1502,8 +1502,8 @@ in one window, no window, or several windows.
   Though many windows may exist simultaneously, at any time one window
 is designated the @dfn{selected window}.  This is the window where the
 cursor is (usually) displayed when Emacs is ready for a command.  The
-selected window usually displays the current buffer, but this is not
-necessarily the case.
+selected window usually displays the current buffer (@pxref{Current
+Buffer}), but this is not necessarily the case.
 
   Windows are grouped on the screen into frames; each window belongs to
 one and only one frame.  @xref{Frame Type}.

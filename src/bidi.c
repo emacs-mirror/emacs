@@ -2948,7 +2948,7 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 			    we are already at paragraph end.  */
        && (is_neutral || bidi_isolate_fmt_char (type)))
       /* N1-N2/Retaining */
-      || (type == WEAK_BN && bidi_explicit_dir_char (bidi_it->ch)))
+      || type == WEAK_BN)
     {
       if (bidi_it->next_for_neutral.type != UNKNOWN_BT)
 	{
@@ -2978,6 +2978,7 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 	 entering the expensive loop in the "else" clause.  */
       else if (current_level == 0
 	       && bidi_it->prev_for_neutral.type == STRONG_L
+	       && type != WEAK_BN
 	       && !bidi_explicit_dir_char (bidi_it->ch)
 	       && !bidi_isolate_fmt_char (type))
 	type = bidi_resolve_neutral_1 (bidi_it->prev_for_neutral.type,
@@ -2991,6 +2992,7 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 	       && (bidi_it->prev_for_neutral.type == STRONG_R
 		   || bidi_it->prev_for_neutral.type == WEAK_EN
 		   || bidi_it->prev_for_neutral.type == WEAK_AN)
+	       && type != WEAK_BN
 	       && !bidi_explicit_dir_char (bidi_it->ch)
 	       && !bidi_isolate_fmt_char (type))
 	type = bidi_resolve_neutral_1 (bidi_it->prev_for_neutral.type,
@@ -3216,6 +3218,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
      it belongs to a sequence of WS characters preceding a newline
      or a TAB or a paragraph separator.  */
   if ((bidi_it->orig_type == NEUTRAL_WS
+       || bidi_it->orig_type == WEAK_BN
        || bidi_isolate_fmt_char (bidi_it->orig_type))
       && bidi_it->next_for_ws.charpos < bidi_it->charpos)
     {
@@ -3249,11 +3252,14 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 
   /* Resolve implicit levels.  */
   if (bidi_it->orig_type == NEUTRAL_B /* L1 */
-	   || bidi_it->orig_type == NEUTRAL_S
-	   || bidi_it->ch == '\n' || bidi_it->ch == BIDI_EOB
-	   || (bidi_it->orig_type == NEUTRAL_WS
-	       && (bidi_it->next_for_ws.type == NEUTRAL_B
-		   || bidi_it->next_for_ws.type == NEUTRAL_S)))
+      || bidi_it->orig_type == NEUTRAL_S
+      || bidi_it->ch == '\n' || bidi_it->ch == BIDI_EOB
+      || ((bidi_it->orig_type == NEUTRAL_WS
+	   || bidi_it->orig_type == WEAK_BN
+	   || bidi_isolate_fmt_char (bidi_it->orig_type)
+	   || bidi_explicit_dir_char (bidi_it->ch))
+	  && (bidi_it->next_for_ws.type == NEUTRAL_B
+	      || bidi_it->next_for_ws.type == NEUTRAL_S)))
     level = bidi_it->level_stack[0].level;
   else if ((level & 1) == 0) /* I1 */
     {

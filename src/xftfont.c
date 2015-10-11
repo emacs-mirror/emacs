@@ -111,8 +111,7 @@ xftfont_get_colors (struct frame *f, struct face *face, GC gc,
 	  colors[0].pixel = fg->pixel = xgcv.foreground;
 	  if (bg)
 	    colors[1].pixel = bg->pixel = xgcv.background;
-	  XQueryColors (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f), colors,
-			bg ? 2 : 1);
+	  x_query_colors (f, colors, bg ? 2 : 1);
 	  fg->color.alpha = 0xFFFF;
 	  fg->color.red = colors[0].red;
 	  fg->color.green = colors[0].green;

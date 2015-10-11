@@ -91,11 +91,9 @@ create_root_interval (Lisp_Object parent)
 {
   INTERVAL new;
 
-  CHECK_IMPURE (parent);
-
   new = make_interval ();
 
-  if (BUFFERP (parent))
+  if (! STRINGP (parent))
     {
       new->total_length = (BUF_Z (XBUFFER (parent))
 			   - BUF_BEG (XBUFFER (parent)));
@@ -103,15 +101,16 @@ create_root_interval (Lisp_Object parent)
       set_buffer_intervals (XBUFFER (parent), new);
       new->position = BEG;
     }
-  else if (STRINGP (parent))
+  else
     {
+      CHECK_IMPURE (parent, XSTRING (parent));
       new->total_length = SCHARS (parent);
       eassert (TOTAL_LENGTH (new) >= 0);
       set_string_intervals (parent, new);
       new->position = 0;
     }
   eassert (LENGTH (new) > 0);
-  
+
   set_interval_object (new, parent);
 
   return new;

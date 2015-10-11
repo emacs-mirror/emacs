@@ -121,11 +121,11 @@ EOF
     -[!-]?*)
       # split concatenated single-letter options apart
       FIRST="$1"; shift
-      set -- `echo $FIRST | sed 's/-\(.\)\(.*\)/-\1 -\2/'` "$@"
+      set -- `printf '%s\n' "$FIRST" | sed 's/-\(.\)\(.*\)/-\1 -\2/'` "$@"
       ;;
     -*)
-      echo 1>&2 "$me: unrecognized option '$1'"
-      echo 1>&2 "$TRY"
+      printf '%s\n' >&2 "$me: unrecognized option '$1'"
+      printf '%s\n' >&2 "$TRY"
       exit 1
       ;;
     *)
@@ -140,17 +140,18 @@ case $# in
   1) BUILD="$1";;
   2) BUILD="$1"; prefix="$2";;
   *)
-    echo 1>&2 "$USAGE"
-    echo 1>&2 "$TRY"
+    printf '%s\n' >&2 "$USAGE"
+    printf '%s\n' >&2 "$TRY"
     exit 1
     ;;
 esac
 
 if test ! -d "$BUILD"; then
-  echo 1>&2 "$me: $BUILD: Build tree not found"
+  printf '%s\n' >&2 "$me: $BUILD: Build tree not found"
   exit 2
 elif test ! -r "$BUILD/config.status"; then
-  echo 1>&2 "$me: $BUILD: Not a proper build tree, config.status not found"
+  printf '%s\n' >&2 \
+    "$me: $BUILD: Not a proper build tree, config.status not found"
   exit 2
 fi
 
@@ -160,7 +161,8 @@ get_config_var ()
   { sed -n "s/^S[[]\"$1\"[]]=\"\([^\"]*\)\"/\1/p" $CONFIG_STATUS | sed q | grep ''; } ||
   { sed -n "s/^s\(.\)@$1@\1\(|#_!!_#|\)*\(.*\)\1.*$/\3/p" $CONFIG_STATUS | sed q | grep ''; } ||
   {
-    echo 1>&2 "$me: $1: Configuration variable not found in $CONFIG_STATUS"
+    printf '%s\n' >&2 \
+      "$me: $1: Configuration variable not found in $CONFIG_STATUS"
     exit 4
   }
 }
@@ -172,7 +174,7 @@ test x"$ARCH" = x && { ARCH="`get_config_var host`" || exit 4 ; }
 VERSION=`
   sed -n 's/^AC_INIT(emacs,[	 ]*\([^	 )]*\).*/\1/p' <$SRC/configure.ac
 ` || exit 4
-test -n "$VERSION" || { echo >&2 "$me: no version in configure.ac"; exit 4; }
+test -n "$VERSION" || { printf '%s\n' >&2 "$me: no version in configure.ac"; exit 4; }
 
 DST_SHARE="$prefix/share/emacs/$VERSION"
 DST_BIN="$prefix/bin"
@@ -209,7 +211,7 @@ maybe_mkdir "$DST_INFO"
 PRUNED=""
 if test x"$PRUNE" != xno; then
   for D in `ls -1t $BUILD/src/emacs-$VERSION.* | sed 1d`; do
-    echo $REMOVE_CMD $D
+    printf '%s\n' "$REMOVE_CMD $D"
     PRUNED="$PRUNED $D"
   done
 fi
@@ -219,7 +221,7 @@ test x"$PRUNE" = xonly && exit 0
 maybe_emit_copy ()
 {
   if test "$FORCE" = yes || ! cmp -s $1 $2; then
-    echo $LINK_CMD $1 $2
+    printf '%s\n' "$LINK_CMD $1 $2"
   fi
 }
 
@@ -240,7 +242,7 @@ for SUBDIR in lisp leim etc lib-src info; do
   # defaults
   SHARED=no
   FORCED=''
-  AVOID_PAT="`echo "($AVOID)" | tr ' ' '|'`"
+  AVOID_PAT="`printf '%s\n' "($AVOID)" | tr ' ' '|'`"
 
   # Set subdir-specific values
   case $SUBDIR in
@@ -255,7 +257,7 @@ for SUBDIR in lisp leim etc lib-src info; do
       ;;
     lib-src)
       DST="$DST_LIBEXEC"
-      AVOID_PAT="`echo "($AVOID ($PUBLIC_LIBSRC_BINARIES)\$)" | tr ' ' '|'`"
+      AVOID_PAT="`printf '%s\n' "($AVOID ($PUBLIC_LIBSRC_BINARIES)\$)" | tr ' ' '|'`"
       ;;
     info)
       DST="$DST_INFO"
@@ -267,10 +269,10 @@ for SUBDIR in lisp leim etc lib-src info; do
     if [ -d $PFX/$SUBDIR ]; then
       for DIR in `(cd $PFX/$SUBDIR; find . -type d -print | sed 's@^./@@')`; do
 	if [ -d $DST/$DIR ]; then
-	  echo Directory $DST/$DIR exists
+	  printf '%s\n' "Directory $DST/$DIR exists"
 	else
-	  echo Directory $DST/$DIR non-existent
-	  if [ "`echo $DIR | egrep -v "$AVOID_PAT"`" ]; then
+	  printf '%s\n' "Directory $DST/$DIR non-existent"
+	  if [ "`printf '%s\n' "$DIR" | grep -Ev "$AVOID_PAT"`" ]; then
 	    maybe_mkdir $DST/$DIR
 	  fi
 	fi

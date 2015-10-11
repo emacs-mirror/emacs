@@ -26,9 +26,9 @@ tex2 = sed '/^@setfilename/a\
 
 # elisp.texi specially defines \tocreadfilename when VOL1 or VOL2 is
 # set, so we can use our premade .toc's.
-# 
+#
 vol1.pdf: elisp1med-fns-ready elisp1med-aux-ready elisp1med-toc-ready
-	@echo -e "\f Final TeX run for volume 1..."
+	@printf '\f Final TeX run for volume 1...\n'
 	cp elisp1med-toc-ready elisp1-toc-ready.toc
 	cp elisp1med-fns-ready vol1.fns
 	cp elisp1med-aux-ready vol1.aux
@@ -42,27 +42,27 @@ vol2.pdf: elisp2med-fns-ready elisp2med-aux-ready elisp2med-toc-ready
 	$(tex2)
 
 #  intermediate toc files.
-# 
+#
 # vol1 toc: volume 1, page break, volume 2 (with II: prepended).
 elisp1med-toc-ready: elisp1med-init elisp2med-init
 	echo '@unnchapentry{@b{Volume 1}}{10001}{vol1}{}' >$@
 	cat elisp1med-toc >>$@
 	echo '@page' >>$@
 	echo '@unnchapentry{@b{Volume 2}}{10001}{vol2}{}' >>$@
-	sed 's/{\([^}]*\)}$$/{II:\1}/' elisp2med-toc >>$@	
+	sed 's/{\([^}]*\)}$$/{II:\1}/' elisp2med-toc >>$@
 #
 # vol2 toc: volume 1 (with I: prepended), page break, volume 2.
 elisp2med-toc-ready: elisp1med-init elisp2med-init
 	echo '@unnchapentry{@b{Volume 1}}{10001}{vol1}{}' >$@
-	sed 's/{\([^}]*\)}$$/{I:\1}/' elisp1med-toc >>$@	
+	sed 's/{\([^}]*\)}$$/{I:\1}/' elisp1med-toc >>$@
 	echo '@page' >>$@
 	echo '@unnchapentry{@b{Volume 2}}{10001}{vol2}{}' >>$@
 	cat elisp2med-toc >>$@
 
 
 #  intermediate aux files.
-# 
-# append vol2's fixed aux to normal vol1.  
+#
+# append vol2's fixed aux to normal vol1.
 elisp1med-aux-ready: elisp2med-aux-vol-added
 	cat elisp1med-aux $< >$@
 #
@@ -78,7 +78,7 @@ elisp2med-aux-vol-added: elisp2med-init
 	sed 's/-pg}{\(.*\)}$$/-pg}{\1, vol.@tie2}/' elisp2med-aux >$@
 
 #  intermediate index (fns) file.
-# 
+#
 elisp1med-fns-ready: elisp1med-fn-vol-added elisp2med-fn-vol-added
 	cat elisp2med-fn-vol-added >>vol1.fn
 	texindex vol1.fn
@@ -103,17 +103,17 @@ elisp2med-fn-vol-added: elisp2med-init
 # -----------------------------------------------------------------------------
 
 #  intermediate TeX runs.
-# 
+#
 # this generates what would be the final versions -- except the page
 # numbers aren't right.  The process of adding the I: and II: changes
 # the page breaks, so a few index entries, at least are wrong.  (In
 # 2007, x-meta-keysym in vol.II ended up on page 374 when the index had
 # it on page 375 from the initial run.)
-# 
+#
 # So, we start all over again, from these fns/aux/toc files.
-# 
+#
 elisp1med-init: elisp1-fns-ready elisp1-aux-ready elisp1init-toc-ready $(texinfodir)/texinfo.tex
-	@echo -e "\f Intermediate TeX run for volume 1..."
+	@printf '\f Intermediate TeX run for volume 1...\n'
 	cp elisp1init-toc-ready elisp1-toc-ready.toc
 	cp elisp1-fns-ready vol1.fns
 	cp elisp1-aux-ready vol1.aux
@@ -134,26 +134,26 @@ elisp2med-init: elisp2-fns-ready elisp2-aux-ready elisp2init-toc-ready $(texinfo
 
 
 #  initial toc files.
-# 
+#
 # vol1 toc: volume 1, page break, volume 2 (with II: prepended).
 elisp1init-toc-ready: elisp1-init elisp2-init
 	echo '@unnchapentry{@b{Volume 1}}{10001}{vol1}{}' >$@
 	cat elisp1-toc >>$@
 	echo '@page' >>$@
 	echo '@unnchapentry{@b{Volume 2}}{10001}{vol2}{}' >>$@
-	sed 's/{\([^}]*\)}$$/{II:\1}/' elisp2-toc >>$@	
+	sed 's/{\([^}]*\)}$$/{II:\1}/' elisp2-toc >>$@
 #
 # vol2 toc: volume 1 (with I: prepended), page break, volume 2.
 elisp2init-toc-ready: elisp1-init elisp2-init
 	echo '@unnchapentry{@b{Volume 1}}{10001}{vol1}{}' >$@
-	sed 's/{\([^}]*\)}$$/{I:\1}/' elisp1-toc >>$@	
+	sed 's/{\([^}]*\)}$$/{I:\1}/' elisp1-toc >>$@
 	echo '@page' >>$@
 	echo '@unnchapentry{@b{Volume 2}}{10001}{vol2}{}' >>$@
 	cat elisp2-toc >>$@
 
 
 #  initial aux files.
-# 
+#
 # append vol2's fixed aux to normal vol1.  The initial runs saved
 # elisp1-aux and elisp2-aux.
 elisp1-aux-ready: elisp2-aux-vol-added
@@ -171,7 +171,7 @@ elisp2-aux-vol-added: elisp2-init
 	sed 's/-pg}{\(.*\)}$$/-pg}{\1, vol.@tie2}/' elisp2-aux >$@
 
 #  initial index (fns) file.
-# 
+#
 # Append other volume's index entries to this one's.
 # Index entries in this volume will then take precedence.
 elisp1-fns-ready: elisp1-fn-vol-added elisp2-fn-vol-added
@@ -195,14 +195,14 @@ elisp2-fn-vol-added: elisp2-init
 
 
 #  initial TeX runs.
-# 
+#
 # We use the .fn, .aux, and .toc files created here in subsequent
 # processing.  The page numbers generated here will not be correct yet,
 # but we run texindex and TeX a second time just to get them closer.
 # Otherwise it might take even longer for them to converge.
-# 
+#
 elisp1-init: elisp.texi
-	@echo -e "\f Initial TeX run for volume 1..."
+	@printf '\f Initial TeX run for volume 1...\n'
 	rm -f vol1.aux vol1.toc
 	$(tex1)
 	texindex vol1.??
@@ -220,17 +220,16 @@ elisp2-init: elisp.texi
 	touch $@
 
 # COPYING CONDITIONS
-# 
+#
 # This file is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This file is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this file.  If not, see <http://www.gnu.org/licenses/>.
- 

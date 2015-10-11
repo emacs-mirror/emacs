@@ -314,8 +314,6 @@ etc-emacsver:
 	  ${srcdir}/build-aux/move-if-change emacsver.tex.$$$$ \
 	  ${srcdir}/etc/refcards/emacsver.tex
 
-removenullpaths=sed -e 's/^:*//' -e 's/:*$$//g' -e 's/::*/:/g'
-
 # Generate epaths.h from epaths.in.  This target is invoked by 'configure'.
 # See comments in configure.ac for why it is done this way, as opposed
 # to just letting configure generate epaths.h from epaths.in in a
@@ -324,20 +322,18 @@ epaths-force:
 	@for dir in '$(abs_srcdir)' '$(lispdir)' '$(archlibdir)'; do \
 	  case $$dir in \
 	    *:*) \
-	      echo >&2 "Build or installation directory '$$dir'"; \
+	      printf >&2 "Build or installation directory '%s'\\n" "$$dir"; \
 	      echo >&2 "cannot contain ':'."; \
 	      exit 1;; \
 	  esac; \
 	done
-	@(standardlisppath=`echo "${standardlisppath}" | ${removenullpaths}` ; \
-	  locallisppath=`echo "${locallisppath}" | ${removenullpaths}` ; \
-	  buildlisppath=`echo "${buildlisppath}" | ${removenullpaths}` ; \
-	  x_default_search_path=`echo ${x_default_search_path}`; \
-	  gamedir=`echo ${gamedir}`; \
+	@(gamedir='${gamedir}'; \
 	  sed < ${srcdir}/src/epaths.in > epaths.h.$$$$		\
-	  -e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "'"$${standardlisppath}"'";' \
-	  -e 's;\(#.*PATH_SITELOADSEARCH\).*$$;\1 "'"$${locallisppath}"'";' \
-	  -e 's;\(#.*PATH_DUMPLOADSEARCH\).*$$;\1 "'"$${buildlisppath}"'";' \
+	  -e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "${standardlisppath}";' \
+	  -e 's;\(#.*PATH_SITELOADSEARCH\).*$$;\1 "${locallisppath}";' \
+	  -e 's;\(#.*PATH_DUMPLOADSEARCH\).*$$;\1 "${buildlisppath}";' \
+	  -e '/^#define PATH_[^ ]*SEARCH /s/\([":]\):*/\1/g'		\
+	  -e '/^#define PATH_[^ ]*SEARCH /s/:"/"/'			\
 	  -e 's;\(#.*PATH_EXEC\).*$$;\1 "${archlibdir}";'		\
 	  -e 's;\(#.*PATH_INFO\).*$$;\1 "${infodir}";'			\
 	  -e 's;\(#.*PATH_DATA\).*$$;\1 "${etcdir}";'			\
@@ -577,7 +573,7 @@ install-arch-indep: lisp install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
 	  fi; \
 	  rm -rf "$${dest}" ; \
 	  umask 022; ${MKDIR_P} "$${dest}" ; \
-	  echo "Copying $${dir} to $${dest}..." ; \
+	  printf 'Copying %s to %s...\n' "$$dir" "$$dest" ; \
 	  (cd $${dir}; tar -chf - . ) \
 	    | (cd "$${dest}"; umask 022; \
 	       tar -xvf - && cat > /dev/null) || exit 1; \
@@ -632,7 +628,8 @@ install-etcdoc: src install-arch-indep
 	if [ "`cd ./etc; /bin/pwd`" != "$$exp_etcdocdir" ]; \
 	then \
 	   docfile="DOC"; \
-	   echo "Copying etc/$${docfile} to $(DESTDIR)${etcdocdir} ..." ; \
+	   printf 'Copying %s to %s ...\n' "etc/$$docfile" \
+	     "$(DESTDIR)${etcdocdir}"; \
 	   ${INSTALL_DATA} etc/$${docfile} "$(DESTDIR)${etcdocdir}/$${docfile}"; \
 	   $(set_installuser); \
 	     chown $${installuser} "$(DESTDIR)${etcdocdir}/$${docfile}" || true ; \
@@ -721,7 +718,7 @@ install-etc:
 	  for icon in $${dir}/${EMACS_ICON}[.-]*; do \
 	    [ -r $${icon} ] || continue ; \
 	    ext=`echo "$${icon}" | sed -e 's|.*\.||'`; \
-	    dest=`echo "$${icon}" | sed -e 's|.*/||' -e "s|\.$${ext}$$||" -e 's/$(EMACS_ICON)/emacs/' -e '$(TRANSFORM)'`.$${ext} ; \
+	    dest=`echo "$${icon}" | sed -e 's|.*/||' -e "s|\\.$${ext}\$$||" -e 's/$(EMACS_ICON)/emacs/' -e '$(TRANSFORM)'`.$${ext} ; \
 	    ( cd "$${thisdir}"; \
 	      ${INSTALL_DATA} ${iconsrcdir}/$${icon} "$(DESTDIR)${icondir}/$${dir}/$${dest}" ) \
 	    || exit 1; \

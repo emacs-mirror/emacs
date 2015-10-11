@@ -3974,7 +3974,6 @@ resize_frame_windows (struct frame *f, int size, bool horflag, bool pixelwise)
   /* old_size is the old size of the frame's root window.  */
   int old_size = horflag ? r->total_cols : r->total_lines;
   int old_pixel_size = horflag ? r->pixel_width : r->pixel_height;
-  int old_pixel_top = r->pixel_top;
   /* new_size is the new size of the frame's root window.  */
   int new_size, new_pixel_size;
   int unit = horflag ? FRAME_COLUMN_WIDTH (f) : FRAME_LINE_HEIGHT (f);
@@ -4004,11 +4003,8 @@ resize_frame_windows (struct frame *f, int size, bool horflag, bool pixelwise)
       new_pixel_size = new_size * unit;
     }
 
-  r->top_line = FRAME_TOP_MARGIN (f);
-  r->pixel_top = FRAME_TOP_MARGIN_HEIGHT (f);
-
   if (new_pixel_size == old_pixel_size
-      && r->pixel_top == old_pixel_top)
+      && (horflag || r->pixel_top == FRAME_TOP_MARGIN_HEIGHT (f)))
     ;
   else if (WINDOW_LEAF_P (r))
     /* For a leaf root window just set the size.  */
@@ -4019,12 +4015,21 @@ resize_frame_windows (struct frame *f, int size, bool horflag, bool pixelwise)
       }
     else
       {
+	r->top_line = FRAME_TOP_MARGIN (f);
+	r->pixel_top = FRAME_TOP_MARGIN_HEIGHT (f);
+
 	r->total_lines = new_size;
 	r->pixel_height = new_pixel_size;
       }
   else
     {
       Lisp_Object delta;
+
+      if (!horflag)
+	{
+	  r->top_line = FRAME_TOP_MARGIN (f);
+	  r->pixel_top = FRAME_TOP_MARGIN_HEIGHT (f);
+	}
 
       if (pixelwise)
 	XSETINT (delta, new_pixel_size - old_pixel_size);

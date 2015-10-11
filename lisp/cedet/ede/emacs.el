@@ -41,7 +41,7 @@
 
 ;; @TODO - get rid of this.  Stuck in loaddefs right now.
 
-(defun ede-emacs-project-root (&optional dir)
+(defun ede-emacs-project-root (&optional _dir)
   "Get the root directory for DIR."
   nil)
 
@@ -99,7 +99,7 @@ m4_define(\\[SXEM4CS_BETA_VERSION\\], \\[\\([0-9]+\\)\\])")
   "Project Type for the Emacs source code."
   :method-invocation-order :depth-first)
 
-(defun ede-emacs-load (dir &optional rootproj)
+(defun ede-emacs-load (dir &optional _rootproj)
   "Return an Emacs Project object if there is a match.
 Return nil if there isn't one.
 Argument DIR is the directory it is created for.
@@ -116,14 +116,14 @@ ROOTPROJ is nil, since there is only one project."
 
 ;;;###autoload
 (ede-add-project-autoload
- (ede-project-autoload "emacs"
-		       :name "EMACS ROOT"
-		       :file 'ede/emacs
-		       :proj-file "src/emacs.c"
-		       :load-type 'ede-emacs-load
-		       :class-sym 'ede-emacs-project
-		       :new-p nil
-		       :safe-p t)
+ (make-instance 'ede-project-autoload
+                :name "EMACS ROOT"
+                :file 'ede/emacs
+                :proj-file "src/emacs.c"
+                :load-type 'ede-emacs-load
+                :class-sym 'ede-emacs-project
+                :new-p nil
+                :safe-p t)
  'unique)
 
 (defclass ede-emacs-target-c (ede-target)
@@ -142,7 +142,7 @@ All directories need at least one target.")
 All directories need at least one target.")
 
 (cl-defmethod initialize-instance ((this ede-emacs-project)
-				&rest fields)
+                                   &rest _fields)
   "Make sure the targets slot is bound."
   (cl-call-next-method)
   (unless (slot-boundp this 'targets)
@@ -151,7 +151,7 @@ All directories need at least one target.")
 ;;; File Stuff
 ;;
 (cl-defmethod ede-project-root-directory ((this ede-emacs-project)
-				       &optional file)
+                                          &optional _file)
   "Return the root for THIS Emacs project with file."
   (ede-up-directory (file-name-directory (oref this file))))
 
@@ -160,7 +160,7 @@ All directories need at least one target.")
   this)
 
 (cl-defmethod ede-find-subproject-for-directory ((proj ede-emacs-project)
-					      dir)
+                                                 _dir)
   "Return PROJ, for handling all subdirs below DIR."
   proj)
 
@@ -171,7 +171,7 @@ All directories need at least one target.")
   (let ((match nil))
     (dolist (T targets)
       (when (and (object-of-class-p T class)
-		 (string= (oref T :path) dir))
+		 (string= (oref T path) dir))
 	(setq match T)
       ))
     match))

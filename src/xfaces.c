@@ -454,11 +454,9 @@ DEFUN ("dump-colors", Fdump_colors, Sdump_colors, 0, 0, 0,
 void
 x_free_colors (struct frame *f, unsigned long *pixels, int npixels)
 {
-  int class = FRAME_DISPLAY_INFO (f)->visual->class;
-
   /* If display has an immutable color map, freeing colors is not
      necessary and some servers don't allow it.  So don't do it.  */
-  if (class != StaticColor && class != StaticGray && class != TrueColor)
+  if (x_mutable_colormap (FRAME_X_VISUAL (f)))
     {
 #ifdef DEBUG_X_COLORS
       unregister_colors (pixels, npixels);
@@ -471,7 +469,7 @@ x_free_colors (struct frame *f, unsigned long *pixels, int npixels)
 
 #ifdef USE_X_TOOLKIT
 
-/* Free colors used on frame F.  PIXELS is an array of NPIXELS pixel
+/* Free colors used on display DPY.  PIXELS is an array of NPIXELS pixel
    color values.  Interrupt input must be blocked when this function
    is called.  */
 
@@ -480,11 +478,10 @@ x_free_dpy_colors (Display *dpy, Screen *screen, Colormap cmap,
 		   unsigned long *pixels, int npixels)
 {
   struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
-  int class = dpyinfo->visual->class;
 
   /* If display has an immutable color map, freeing colors is not
      necessary and some servers don't allow it.  So don't do it.  */
-  if (class != StaticColor && class != StaticGray && class != TrueColor)
+  if (x_mutable_colormap (dpyinfo->visual))
     {
 #ifdef DEBUG_X_COLORS
       unregister_colors (pixels, npixels);

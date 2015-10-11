@@ -85,6 +85,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "syntax.h"
 #include "sysselect.h"
 #include "systime.h"
+#include "puresize.h"
 
 #include "gnutls.h"
 

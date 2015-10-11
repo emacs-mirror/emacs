@@ -1107,11 +1107,11 @@ with disabled undo.  Leaves point at point-min, displays BUFFER."
      (setq buffer-read-only nil
            buffer-undo-list t)
      (erase-buffer)
+     (display-buffer ,buffer)
      ,@body
      (goto-char (point-min))
      (set-buffer-modified-p nil)
-     (setq buffer-read-only t)
-     (display-buffer ,buffer)))
+     (setq buffer-read-only t)))
 
 ;; The following are in-line for speed; they can be called thousands of times
 ;; when looking up holidays or processing the diary.  Here, for example, are

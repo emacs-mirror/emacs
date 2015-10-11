@@ -86,6 +86,22 @@ that case, indent by aligning to the previous non-blank line."
     ;; The normal case.
     (funcall indent-line-function)))
 
+(defun indent--default-inside-comment ()
+  (unless (or (> (current-column) (current-indentation))
+              (eq this-command last-command))
+    (let ((ppss (syntax-ppss)))
+      (when (nth 4 ppss)
+        (indent-line-to
+         (save-excursion
+           (forward-line -1)
+           (skip-chars-forward " \t")
+           (when (< (1- (point)) (nth 8 ppss) (line-end-position))
+             (goto-char (nth 8 ppss))
+             (when (looking-at comment-start-skip)
+               (goto-char (match-end 0))))
+           (current-column)))
+        t))))
+
 (defun indent-for-tab-command (&optional arg)
   "Indent the current line or region, or insert a tab, as appropriate.
 This function either inserts a tab, or indents the current line,
@@ -124,7 +140,11 @@ prefix argument is ignored."
 	  (old-indent (current-indentation)))
 
       ;; Indent the line.
-      (funcall indent-line-function)
+      (or (not (eq (funcall indent-line-function) 'noindent))
+          (indent--default-inside-comment)
+          (when (or (<= (current-column) (current-indentation))
+                    (not (eq tab-always-indent 'complete)))
+            (funcall (default-value 'indent-line-function))))
 
       (cond
        ;; If the text was already indented right, try completion.

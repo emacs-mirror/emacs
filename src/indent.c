@@ -2082,7 +2082,11 @@ whether or not it is currently displayed in some window.  */)
 	}
       else
 	it_overshoot_count =
-	  !(it.method == GET_FROM_IMAGE || it.method == GET_FROM_STRETCH);
+	  (!(it.method == GET_FROM_IMAGE
+	     || it.method == GET_FROM_STRETCH)
+	    /* We will overshoot if lines are truncated and PT lies
+	       beyond the right margin of the window.  */
+	    || it.line_wrap == TRUNCATE);
 
       if (start_x_given)
 	{

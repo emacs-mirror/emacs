@@ -1105,20 +1105,18 @@ Used by `calc-user-invocation'.")
   "The key map for entering Calc digits.")
 
 (mapc (lambda (x)
-	(condition-case err
-	    (progn
-	      (define-key calc-digit-map x 'calcDigit-backspace)
-	      (define-key calc-mode-map x 'calc-pop)
-	      (define-key calc-mode-map
-                (if (and (vectorp x) (featurep 'xemacs))
-                    (if (= (length x) 1)
-                        (vector (if (consp (aref x 0))
-                                    (cons 'meta (aref x 0))
-                                  (list 'meta (aref x 0))))
-                      "\e\C-d")
-                  (vconcat "\e" x))
-		'calc-pop-above))
-	  (error nil)))
+	(ignore-errors
+          (define-key calc-digit-map x 'calcDigit-backspace)
+          (define-key calc-mode-map x 'calc-pop)
+          (define-key calc-mode-map
+            (if (and (vectorp x) (featurep 'xemacs))
+                (if (= (length x) 1)
+                    (vector (if (consp (aref x 0))
+                                (cons 'meta (aref x 0))
+                              (list 'meta (aref x 0))))
+                  "\e\C-d")
+              (vconcat "\e" x))
+            'calc-pop-above)))
       (if calc-scan-for-dels
 	  (append (where-is-internal 'delete-backward-char global-map)
 		  (where-is-internal 'backward-delete-char global-map)
@@ -1189,25 +1187,24 @@ Used by `calc-user-invocation'.")
 ;;;###autoload (define-key ctl-x-map "*" 'calc-dispatch)
 
 ;;;###autoload
-(defun calc-dispatch (&optional arg)
+(defun calc-dispatch (&optional _arg)
   "Invoke the GNU Emacs Calculator.  See \\[calc-dispatch-help] for details."
-  (interactive "P")
+  (interactive)
 ;  (sit-for echo-keystrokes)
-  (condition-case err   ; look for other keys bound to calc-dispatch
-      (let ((keys (this-command-keys)))
-	(unless (or (not (stringp keys))
-		    (string-match "\\`\C-u\\|\\`\e[-0-9#]\\|`[\M--\M-0-\M-9]" keys)
-		    (eq (lookup-key calc-dispatch-map keys) 'calc-same-interface))
-	  (when (and (string-match "\\`[\C-@-\C-_]" keys)
-		     (symbolp
-		      (lookup-key calc-dispatch-map (substring keys 0 1))))
-	    (define-key calc-dispatch-map (substring keys 0 1) nil))
-	  (define-key calc-dispatch-map keys 'calc-same-interface)))
-    (error nil))
-  (calc-do-dispatch arg))
+  (ignore-errors                   ; look for other keys bound to calc-dispatch
+    (let ((keys (this-command-keys)))
+      (unless (or (not (stringp keys))
+                  (string-match "\\`\C-u\\|\\`\e[-0-9#]\\|`[\M--\M-0-\M-9]" keys)
+                  (eq (lookup-key calc-dispatch-map keys) 'calc-same-interface))
+        (when (and (string-match "\\`[\C-@-\C-_]" keys)
+                   (symbolp
+                    (lookup-key calc-dispatch-map (substring keys 0 1))))
+          (define-key calc-dispatch-map (substring keys 0 1) nil))
+        (define-key calc-dispatch-map keys 'calc-same-interface))))
+  (calc-do-dispatch))
 
 (defvar calc-dispatch-help nil)
-(defun calc-do-dispatch (arg)
+(defun calc-do-dispatch (&optional _arg)
   "Start the Calculator."
   (let ((key (calc-read-key-sequence
 	      (if calc-dispatch-help
@@ -1225,8 +1222,7 @@ Used by `calc-user-invocation'.")
 
 (defun calc-read-key-sequence (prompt map)
   "Read keys, with prompt PROMPT and keymap MAP."
-  (let ((prompt2 (format "%s " (key-description (this-command-keys))))
-	(glob (current-global-map))
+  (let ((glob (current-global-map))
 	(loc (current-local-map)))
     (or (input-pending-p) (message "%s" prompt))
     (let ((key (calc-read-key t))
@@ -1254,7 +1250,6 @@ embedded information from the appropriate buffers and tidy up
 the trail buffer."
   (let ((cb (current-buffer))
         (info-list nil)
-        (buflist)
 ;        (plural nil)
         (cea calc-embedded-active))
     ;; Get a list of all buffers using this buffer for
@@ -1448,42 +1443,41 @@ commands given here will actually operate on the *Calculator* stack."
       (set-buffer (window-buffer)))
     (if (derived-mode-p 'calc-mode)
 	(calc-quit)
-      (let ((oldbuf (current-buffer)))
-	(calc-create-buffer)
-	(setq calc-was-keypad-mode nil)
-	(if (or (eq full-display t)
-		(and (null full-display) calc-full-mode))
-	    (switch-to-buffer (current-buffer) t)
-	  (if (get-buffer-window (current-buffer))
-	      (select-window (get-buffer-window (current-buffer)))
-            (if calc-window-hook
-                (run-hooks 'calc-window-hook)
-              (let ((w (get-largest-window)))
-                (if (and pop-up-windows
-                         (> (window-height w)
-                            (+ window-min-height calc-window-height 2)))
-                    (progn
-                      (setq w (split-window w
-                                            (- (window-height w)
-                                               calc-window-height 2)
-                                            nil))
-                      (set-window-buffer w (current-buffer))
-                      (select-window w))
-                  (pop-to-buffer (current-buffer)))))))
-	(with-current-buffer (calc-trail-buffer)
-	  (and calc-display-trail
-	       (= (window-width) (frame-width))
-	       (calc-trail-display 1 t)))
-	(message "Welcome to the GNU Emacs Calculator!  Press `?' or `h' for help, `q' to quit")
-	(run-hooks 'calc-start-hook)
-	(and (windowp full-display)
-	     (window-point full-display)
-	     (select-window full-display))
-	(calc-check-defines)
-	(when (and calc-said-hello interactive)
-	  (sit-for 2)
-	  (message ""))
-	(setq calc-said-hello t)))))
+      (calc-create-buffer)
+      (setq calc-was-keypad-mode nil)
+      (if (or (eq full-display t)
+              (and (null full-display) calc-full-mode))
+          (switch-to-buffer (current-buffer) t)
+        (if (get-buffer-window (current-buffer))
+            (select-window (get-buffer-window (current-buffer)))
+          (if calc-window-hook
+              (run-hooks 'calc-window-hook)
+            (let ((w (get-largest-window)))
+              (if (and pop-up-windows
+                       (> (window-height w)
+                          (+ window-min-height calc-window-height 2)))
+                  (progn
+                    (setq w (split-window w
+                                          (- (window-height w)
+                                             calc-window-height 2)
+                                          nil))
+                    (set-window-buffer w (current-buffer))
+                    (select-window w))
+                (pop-to-buffer (current-buffer)))))))
+      (with-current-buffer (calc-trail-buffer)
+        (and calc-display-trail
+             (= (window-width) (frame-width))
+             (calc-trail-display 1 t)))
+      (message "Welcome to the GNU Emacs Calculator!  Press `?' or `h' for help, `q' to quit")
+      (run-hooks 'calc-start-hook)
+      (and (windowp full-display)
+           (window-point full-display)
+           (select-window full-display))
+      (calc-check-defines)
+      (when (and calc-said-hello interactive)
+        (sit-for 2)
+        (message ""))
+      (setq calc-said-hello t))))
 
 ;;;###autoload
 (defun full-calc (&optional interactive)
@@ -1999,9 +1993,9 @@ See calc-keypad for details."
   (interactive)
   (and (derived-mode-p 'calc-mode)
        (not calc-executing-macro)
-       (let* ((buffer-read-only nil)
+       (let* ((inhibit-read-only t)
 	      (save-point (point))
-	      (save-mark (condition-case err (mark) (error nil)))
+	      (save-mark (ignore-errors (mark)))
 	      (save-aligned (looking-at "\\.$"))
 	      (thing calc-stack)
 	      (calc-any-evaltos nil))
@@ -2102,11 +2096,12 @@ the United States."
 	(setq calc-trail-pointer (point-marker))))
   calc-trail-buffer)
 
+(defvar calc-can-abbrev-vectors)
+
 (defun calc-record (val &optional prefix)
   (setq calc-aborted-prefix nil)
   (or calc-executing-macro
-      (let* ((mainbuf (current-buffer))
-	     (buf (calc-trail-buffer))
+      (let* ((buf (calc-trail-buffer))
 	     (calc-display-raw nil)
 	     (calc-can-abbrev-vectors t)
 	     (fval (if val
@@ -2309,6 +2304,14 @@ the United States."
 
 
 ;;;; Reading a number using the minibuffer.
+(defun calc-digit-start-entry ()
+  (cond ((eq last-command-event ?e)
+         (if (> calc-number-radix 14) (format "%d.^" calc-number-radix) "1e"))
+        ((eq last-command-event ?#) (format "%d#" calc-number-radix))
+        ((eq last-command-event ?_) "-")
+        ((eq last-command-event ?@) "0@ ")
+        (t (char-to-string last-command-event))))
+
 (defvar calc-buffer)
 (defvar calc-prev-char)
 (defvar calc-prev-prev-char)
@@ -2319,7 +2322,6 @@ the United States."
    (if (or calc-algebraic-mode
 	   (and (> calc-number-radix 14) (eq last-command-event ?e)))
        (calc-alg-digit-entry)
-     (calc-unread-command)
      (setq calc-aborted-prefix nil)
      (let* ((calc-digit-value nil)
 	    (calc-prev-char nil)
@@ -2337,7 +2339,8 @@ the United States."
 		     (unwind-protect
 			 (progn
 			   (define-key global-map "\e" nil)
-			   (read-from-minibuffer "Calc: " "" calc-digit-map))
+			   (read-from-minibuffer
+                            "Calc: " (calc-digit-start-entry) calc-digit-map))
 		       (define-key global-map "\e" old-esc))))))
        (or calc-digit-value (setq calc-digit-value (math-read-number buf)))
        (if (stringp calc-digit-value)
@@ -3044,7 +3047,7 @@ largest Emacs integer.")
 (defun math-sub-bignum (a b)   ; [l l l]
   (if b
       (if a
-	  (let* ((a (copy-sequence a)) (aa a) (borrow nil) sum diff)
+	  (let* ((a (copy-sequence a)) (aa a) (borrow nil) diff)
 	    (while (and aa b)
 	      (if borrow
 		  (if (>= (setq diff (- (car aa) (car b))) 1)
@@ -3198,7 +3201,8 @@ largest Emacs integer.")
 		 aa a)
 	   (while (progn
 		    (setcar ss (% (setq prod (+ (+ (car ss) (* (car aa) d))
-						c)) math-bignum-digit-size))
+						c))
+                                  math-bignum-digit-size))
 		    (setq aa (cdr aa)))
 	     (setq c (/ prod math-bignum-digit-size)
 		   ss (or (cdr ss) (setcdr ss (list 0)))))
@@ -3432,6 +3436,10 @@ largest Emacs integer.")
 ;; The variables math-svo-c, math-svo-wid and math-svo-off are local
 ;; to math-stack-value-offset, but are used by math-stack-value-offset-fancy
 ;; in calccomp.el.
+
+(defvar math-svo-c)
+(defvar math-svo-wid)
+(defvar math-svo-off)
 
 (defun math-stack-value-offset (math-svo-c)
   (let* ((num (if calc-line-numbering 4 0))

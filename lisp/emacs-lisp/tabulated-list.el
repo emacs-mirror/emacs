@@ -520,7 +520,9 @@ With a numeric prefix argument N, sort the Nth column."
 		  (car (aref tabulated-list-format n))
 		(get-text-property (point)
 				   'tabulated-list-column-name))))
-    (tabulated-list--sort-by-column-name name)))
+    (if (nth 2 (assoc name (append tabulated-list-format nil)))
+        (tabulated-list--sort-by-column-name name)
+      (user-error "Cannot sort by %s" name))))
 
 (defun tabulated-list--sort-by-column-name (name)
   (when (and name (derived-mode-p 'tabulated-list-mode))

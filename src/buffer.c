@@ -6244,7 +6244,7 @@ If nil, only shows a cursor in the selected window.
 If t, displays a cursor related to the usual cursor type
 (a solid box becomes hollow, a bar becomes a narrower bar).
 You can also specify the cursor type as in the `cursor-type' variable.
-Use Custom to set this variable and update the display."  */);
+Use Custom to set this variable and update the display.  */);
 
   DEFVAR_LISP ("kill-buffer-query-functions", Vkill_buffer_query_functions,
 	       doc: /* List of functions called with no args to query before killing a buffer.

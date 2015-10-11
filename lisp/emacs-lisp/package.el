@@ -1887,7 +1887,7 @@ add a call to it along with some explanatory comments."
 ;;;###autoload
 (defun package-install (pkg &optional dont-select)
   "Install the package PKG.
-PKG can be a package-desc or the package name of one the available packages
+PKG can be a package-desc or a symbol naming one of the available packages
 in an archive in `package-archives'.  Interactively, prompt for its name.
 
 If called interactively or if DONT-SELECT nil, add PKG to
@@ -1918,15 +1918,15 @@ to install it but still mark it as selected."
                 pkg)))
     (unless (or dont-select (package--user-selected-p name))
       (package--save-selected-packages
-       (cons name package-selected-packages))))
-  (if-let ((transaction
-            (if (package-desc-p pkg)
-                (unless (package-installed-p pkg)
-                  (package-compute-transaction (list pkg)
-                                               (package-desc-reqs pkg)))
-              (package-compute-transaction () (list (list pkg))))))
-      (package-download-transaction transaction)
-    (message "`%s' is already installed" (package-desc-full-name pkg))))
+       (cons name package-selected-packages)))
+    (if-let ((transaction
+              (if (package-desc-p pkg)
+                  (unless (package-installed-p pkg)
+                    (package-compute-transaction (list pkg)
+                                                 (package-desc-reqs pkg)))
+                (package-compute-transaction () (list (list pkg))))))
+        (package-download-transaction transaction)
+      (message "`%s' is already installed" name))))
 
 (defun package-strip-rcs-id (str)
   "Strip RCS version ID from the version string STR.

@@ -200,7 +200,7 @@ the output from @kbd{M-x list-abbrevs} to make it look like this:
 
 @example
 (c-mode-abbrev-table)
-"if"           0    ""         c-if
+"ifst"           0    ""         c-if
 @end example
 
 @noindent

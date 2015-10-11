@@ -453,7 +453,7 @@ all: emacs$(EXEEXT) $(OTHER_FILES)
 shortlisp =
 lisp.mk: $(lispsource)/loadup.el
 	@rm -f $@
-	${AM_V_GEN}( echo "shortlisp = \\"; \
+	${AM_V_GEN}( printf 'shortlisp = \\\n'; \
 	sed -n 's/^[ \t]*(load "\([^"]*\)".*/\1/p' $< | \
 	  sed -e 's/$$/.elc \\/' -e 's/\.el\.elc/.el/'; \
 	echo "" ) > $@

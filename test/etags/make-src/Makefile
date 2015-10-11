@@ -15,7 +15,7 @@ ERLSRC=gs_dialog.erl lines.erl lists.erl
 FORTHSRC=test-forth.fth
 FSRC=entry.for entry.strange_suffix entry.strange
 HTMLSRC=softwarelibero.html index.shtml algrthms.html software.html
-JAVASRC=AWTEMul.java KeyEve.java SMan.java SysCol.java TG.java 
+JAVASRC=AWTEMul.java KeyEve.java SMan.java SysCol.java TG.java
 LUASRC=allegro.lua
 MAKESRC=Makefile
 OBJCSRC=Subprocess.h Subprocess.m PackInsp.h PackInsp.m
@@ -120,9 +120,9 @@ rsyncfromfly:
 	rsync --exclude "*~" --exclude core --exclude etags -zauRv fly:gnu/etags/ ../..
 
 web ftp publish:
-	@-echo -e \\ttesting with debugging enabled...; $(MAKE) quiettest
-	@-echo -e \\ttesting standalone...; $(MAKE) standalone quiettest
-	@-echo -e \\ttesting fast versions...; $(MAKE) fastetags fastctags quiettest
+	@-printf '\ttesting with debugging enabled...\n'; $(MAKE) quiettest
+	@-printf '\ttesting standalone...\n'; $(MAKE) standalone quiettest
+	@-printf '\ttesting fast versions...\n'; $(MAKE) fastetags fastctags quiettest
 	@$(MAKE) /home/www/pub/etags.c.gz
 	@$(MAKE) /home/www/pub/software/unix/etags.tar.gz
 

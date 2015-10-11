@@ -71,7 +71,7 @@ case $gnulib_srcdir in
 esac
 case $src in
   -*)
-    echo >&2 "$0: usage: $0 [GNULIB_SRCDIR [SRCDIR]]
+    printf '%s\n' >&2 "$0: usage: $0 [GNULIB_SRCDIR [SRCDIR]]
 
     SRCDIR is the Emacs source directory (default: working directory).
     GNULIB_SRCDIR is the Gnulib source directory (default: SRCDIR/../gnulib)."
@@ -79,7 +79,7 @@ case $src in
 esac
 
 test -x "$src"autogen.sh || {
-  echo >&2 "$0: '${src:-.}' is not an Emacs source directory."
+  printf '%s\n' >&2 "$0: '${src:-.}' is not an Emacs source directory."
   exit 1
 }
 
@@ -88,7 +88,7 @@ git clone -- "$GNULIB_URL" "$gnulib_srcdir" ||
 exit
 
 test -x "$gnulib_srcdir"/gnulib-tool || {
-  echo >&2 "$0: '$gnulib_srcdir' is not a Gnulib source directory."
+  printf '%s\n' >&2 "$0: '$gnulib_srcdir' is not a Gnulib source directory."
   exit 1
 }
 

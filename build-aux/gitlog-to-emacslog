@@ -35,14 +35,14 @@ while [ $# -gt 0 ]; do
       -f|--force) force=1 ;;
       -n|--nmax) nmax="$2"; shift ;;
       -o|--output) output="$2" ; shift ;;
-      *) echo "Unrecognized argument: $1" >&2; exit 1 ;;
+      *) printf '%s\n' "Unrecognized argument: $1" >&2; exit 1 ;;
   esac
   shift
 done
 
 if [ ! -f ChangeLog.$nmax ]; then
-    echo "Can't find ChangeLog.$nmax" >&2
-    echo "Must be run from the top source directory" >&2
+    printf '%s\n' "Can't find ChangeLog.$nmax" >&2
+    printf '%s\n' "Must be run from the top source directory" >&2
     exit 1
 fi
 
@@ -52,7 +52,7 @@ fi
     gen_origin_line=`
       grep -E '^commit [0-9a-f]+ [(]inclusive[)]' ChangeLog.$nmax
     ` || {
-	echo "ChangeLog.$nmax lacks a 'commit ... (inclusive)' line" >&2
+	printf '%s\n' "ChangeLog.$nmax lacks a 'commit ... (inclusive)' line" >&2
 	exit 1
     }
     set $gen_origin_line
@@ -63,7 +63,7 @@ fi
 new_origin=`git log --pretty=format:%H 'HEAD^!'` || exit
 
 if [ -f "$output" ]; then
-    [ ! "$force" ] && echo "$output exists" >&2 && exit 1
+    [ ! "$force" ] && printf '%s\n' "$output exists" >&2 && exit 1
     rm -f "$output" || exit 1
 fi
 

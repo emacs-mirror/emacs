@@ -110,7 +110,7 @@ while [ $# -gt 0 ]; do
      ;;
 
     "--help")
-      echo "Usage: ${progname} [options]"
+      printf '%s\n' "Usage: ${progname} [options]"
       echo ""
       echo "  --bzip2	use bzip2 instead of gzip"
       echo "  --clean-up	delete staging directories when done"
@@ -128,7 +128,7 @@ while [ $# -gt 0 ]; do
     ;;
 
     * )
-      echo "${progname}: Unrecognized argument: $1" >&2
+      printf '%s\n' "${progname}: Unrecognized argument: $1" >&2
       exit 1
     ;;
   esac
@@ -137,9 +137,9 @@ done
 
 ### Make sure we're running in the right place.
 if [ ! -d src -o ! -f src/lisp.h -o ! -d lisp -o ! -f lisp/subr.el ]; then
-  echo "${progname}: Can't find 'src/lisp.h' and 'lisp/subr.el'." >&2
-  echo "${progname} must be run in the top directory of the Emacs" >&2
-  echo "distribution tree.  cd to that directory and try again." >&2
+  printf '%s\n' "${progname}: Can't find 'src/lisp.h' and 'lisp/subr.el'." >&2
+  printf '%s\n' "${progname} must be run in the top directory of the Emacs" >&2
+  printf '%s\n' "distribution tree.  cd to that directory and try again." >&2
   exit 1
 fi
 
@@ -155,7 +155,7 @@ then
       /*) ;;
       *)
 	if [ ! -f "$EMACS" ]; then
-	  echo "$0: You must set the EMACS environment variable " \
+	  printf '%s\n' "$0: You must set the EMACS environment variable " \
 	       "to an absolute file name." 2>&1
 	  exit 1
 	fi;;
@@ -168,7 +168,8 @@ version=`
   sed -n 's/^AC_INIT(GNU Emacs,[	 ]*\([^	 ,)]*\).*/\1/p' <configure.ac
 ` || version=
 if [ ! "${version}" ]; then
-  echo "${progname}: can't find current Emacs version in './src/emacs.c'" >&2
+  printf '%s\n' \
+    "${progname}: can't find current Emacs version in './src/emacs.c'" >&2
   exit 1
 fi
 
@@ -195,7 +196,7 @@ fi
 ### Make sure the subdirectory is available.
 tempparent="make-dist.tmp.$$"
 if [ -d ${tempparent} ]; then
-  echo "${progname}: staging directory '${tempparent}' already exists.
+  printf '%s\n' "${progname}: staging directory '${tempparent}' already exists.
 Perhaps a previous invocation of '${progname}' failed to clean up after
 itself.  Check that directories whose names are of the form
 'make-dist.tmp.NNNNN' don't contain any important information, remove
@@ -530,7 +531,7 @@ for subdir in . etc leim lib lib-src lisp lwlib msdos nt src; do
 done
 
 if [ "${newer}" ]; then
-  echo "Removing files older than $newer"
+  printf '%s\n' "Removing files older than $newer"
   ## We remove .elc files unconditionally, on the theory that anyone picking
   ## up an incremental distribution already has a running Emacs to byte-compile
   ## them with.
@@ -544,8 +545,9 @@ find ${tempparent} \( -name '*~' -o -name '#*#' -o -name '.*ignore' -o -name '=*
 if [ "${make_tar}" = yes ]; then
   echo "Looking for $default_gzip"
   found=0
-  temppath=`echo $PATH | sed -e 's/^:/.:/' -e 's/::/:.:/g' -e 's/:$/:./' \
-     -e 's/:/ /g'`
+  temppath=`printf '%s\n' "$PATH" |
+    sed -e 's/^:/.:/' -e 's/::/:.:/g' -e 's/:$/:./' -e 's/:/ /g'
+  `
   for dir in ${temppath}; do
     [ -x ${dir}/$default_gzip ] || continue
     found=1; break

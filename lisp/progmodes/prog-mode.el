@@ -132,7 +132,11 @@ narrowing is in effect."
   "Alist of symbol prettifications.
 Each element looks like (SYMBOL . CHARACTER), where the symbol
 matching SYMBOL (a string, not a regexp) will be shown as
-CHARACTER instead.")
+CHARACTER instead.
+
+CHARACTER can be a character or it can be a list or vector, in
+which case it will be used to compose the new symbol as per the
+third argument of `compose-region'.")
 
 (defun prettify-symbols-default-compose-p (start end _match)
   "Return true iff the symbol MATCH should be composed.
