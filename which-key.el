@@ -42,6 +42,9 @@
 (require 's)
 (require 'dash)
 
+(eval-when-compile
+  (defvar golden-ratio-mode))
+
 (defgroup which-key nil
   "Customization options for which-key-mode"
   :group 'help
@@ -659,7 +662,7 @@ addition KEY-SEQUENCE NAME pairs) to apply."
 RECURSING is for internal use."
   (when recursing (define-key map key def))
   (map-keymap
-   (lambda (ev df)
+   (lambda (_ev df)
      (when (keymapp df)
        (which-key-define-key-recursively df key def t)))
    map))
@@ -1483,6 +1486,7 @@ Will force an update if called before `which-key--update'."
                                       keys (window-width)))
         (which-key--show-page page-n)
         loc2))))
+
 
 (defun which-key--create-buffer-and-show (prefix-keys)
   "Fill `which-key--buffer' with key descriptions and reformat.
