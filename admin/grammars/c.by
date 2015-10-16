@@ -639,8 +639,6 @@ STARMOD
 declmods
   : DECLMOD declmods
     ( ,(cons ,(car ,$1) $2 ) )
-  | DECLMOD
-    ( ,$1 )
   | ;;EMPTY
     ()
   ;
@@ -941,10 +939,15 @@ varname-opt-initializer
   ;
 
 varnamelist
-  : opt-ref varname varname-opt-initializer COMA varnamelist
-    ( ,(cons (append $2 $3) $5) )
-  | opt-ref varname varname-opt-initializer
-    ( (append $2 $3) )
+  : opt-ref varname varname-opt-initializer opt-varnamelist-more
+    ( ,(cons (append $2 $3) (car $4) ))
+  ;
+
+opt-varnamelist-more
+  : COMA varnamelist
+    ( $2 )
+  | ;; EMPTY
+    ()
   ;
 
 ;; Klaus Berndl: Is necessary to parse stuff like
@@ -955,10 +958,15 @@ varnamelist
 ;;     symbol<template-spec>::symbol1<template-spec1>::test_iterator
 ;; but better parsing too much than to less
 namespace-symbol
-  : symbol opt-template-specifier COLON COLON namespace-symbol
-    ( (concat $1 "::" (car $5)) )
-  | symbol opt-template-specifier
-    ( $1 )
+  : symbol opt-template-specifier opt-namespace-symbol-more
+    ( (concat $1 (car $3) ) )
+  ;
+
+opt-namespace-symbol-more
+  : COLON COLON namespace-symbol
+    ( (concat "::" (car $3)) )
+  | ;; empty
+    ( "" )
   ;
 
 ;; Don't pull an optional template specifier at the end of the
