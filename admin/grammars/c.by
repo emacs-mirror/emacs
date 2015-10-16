@@ -413,19 +413,14 @@ opt-name
 
 typesimple
   : struct-or-class opt-class opt-name opt-template-specifier
-    opt-class-parents semantic-list
+    opt-class-parents typesimple-opt-subparts
     (TYPE-TAG (car $3) (car $1)
-          (let ((semantic-c-classname (cons (car ,$3) (car ,$1))))
-            (EXPANDFULL $6 classsubparts))
-          $5
-          :template-specifier $4
-          :parent (car ,$2))
-  | struct-or-class opt-class opt-name opt-template-specifier
-    opt-class-parents
-    (TYPE-TAG (car $3) (car $1) nil $5
-              :template-specifier $4
-	      :prototype t
-              :parent (car ,$2))
+	      (let ((semantic-c-classname (cons (car ,$3) (car ,$1))))
+		(when $6 (EXPANDFULL (car $6) classsubparts)))
+	      $5
+	      :template-specifier $4
+	      :prototype (not (car $6))
+	      :parent (car ,$2))
   | UNION opt-class opt-name unionparts
     (TYPE-TAG (car $3) $1 $4 nil
               :parent (car ,$2))
@@ -440,11 +435,22 @@ typesimple
     (TYPE-TAG $5 $1 nil (list $3) )
   ;
 
-typedef-symbol-list
-  : typedefname COMA typedef-symbol-list
-    ( ,(cons $1 $3) )
-  | typedefname
+typesimple-opt-subparts
+  : semantic-list
     ( $1 )
+  | ;; EMPTY
+    ()
+  ;
+
+typedef-symbol-list
+  : typedefname typedef-symbol-list-opt-comma
+    ( ,(cons $1 $2) )
+  ;
+
+typedef-symbol-list-opt-comma
+  : COMA typedef-symbol-list
+    ( ,$2 )
+  | ;; EMPTY
   ;
 
 ;; TODO: Klaus Berndl: symbol -> namespace-symbol?!  Answer: Probably
@@ -462,15 +468,20 @@ struct-or-class
 type
   : typesimple SEMICOLON
     ( ,$1 )
+  | NAMESPACE type-namespace
+    ( ,$2 )
+  ;
+
+type-namespace
  ;; named namespaces like "namespace XXX {"
-  | NAMESPACE symbol namespaceparts
-    (TYPE-TAG $2 $1 $3 nil )
+  : symbol namespaceparts
+    (TYPE-TAG $1 "namespace" $2 nil )
  ;; unnamed namespaces like "namespace {"
-  | NAMESPACE namespaceparts
-    (TYPE-TAG "unnamed" $1 $2 nil )
+  | namespaceparts
+    (TYPE-TAG "unnamed" "namespace" $1 nil )
  ;; David Engster: namespace alias like "namespace foo = bar;"
-  | NAMESPACE symbol EQUAL typeformbase SEMICOLON
-    (TYPE-TAG $2 $1 (list (TYPE-TAG (car $4) $1 nil nil)) nil :kind 'alias )
+  | symbol EQUAL typeformbase SEMICOLON
+    (TYPE-TAG $1 "namespace" (list (TYPE-TAG (car $3) "namespace" nil nil)) nil :kind 'alias )
   ;
 
 ;; Klaus Berndl: We must parse "using namespace XXX" too
