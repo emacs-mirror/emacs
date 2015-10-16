@@ -240,20 +240,24 @@ extern-c-contents
   ;
 
 extern-c
-  : EXTERN C semantic-list
+  : EXTERN c-or-cpp opt-extern-c-contents
  ;; Extern C commands which contain a list need to have the
  ;; entries of the list extracted, and spliced into the main
  ;; list of entries.  This must be done via the function
  ;; that expands singular nonterminals, such as int x,y;
-    (TAG "C" 'extern :members (EXPANDFULL $3 extern-c-contents) )
-  | EXTERN CPP semantic-list
-    (TAG "C" 'extern :members (EXPANDFULL $3 extern-c-contents) )
-  | EXTERN C
- ;; A plain extern "C" call should add something to the token,
- ;; but just strip it from the buffer here for now.
-    ( nil )
-  | EXTERN CPP
-    ( nil )
+    (TAG (car $2) 'extern :members $3)
+  ;
+
+c-or-cpp
+  : C
+  | CPP
+  ;
+
+opt-extern-c-contents
+  : semantic-list
+    (EXPANDFULL $1 extern-c-contents)
+  | ;; EMPTY
+    ()
   ;
 
 macro
