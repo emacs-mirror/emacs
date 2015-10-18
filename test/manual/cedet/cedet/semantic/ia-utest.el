@@ -48,6 +48,7 @@
     "tests/testusing.cpp"
     "tests/testnsp.cpp"
     "tests/testlocalvars.cpp"
+    ;;"tests/testpoly.cpp"
     "tests/testsppcomplete.c"
     "tests/testvarnames.c"
     "tests/testjavacomp.java"
@@ -234,7 +235,7 @@ If the error occurs w/ a C or C++ file, rethrow the error."
 	    (setq pass (cons idx pass))
 	  (setq fail (cons idx fail))
 	  (semantic-ia-utest-log
-	   "    Failed %d.  Desired: %S Actual %S"
+	   "    XXXXX  Failed %d.  Desired: %S Actual %S"
 	   idx desired actual)
 	  (add-to-list 'semantic-ia-utest-error-log-list
 		       (list (buffer-name) idx desired actual)
