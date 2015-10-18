@@ -6,7 +6,7 @@
 ;; URL: https://github.com/justbur/emacs-which-key
 ;; Version: 0.6.2
 ;; Keywords:
-;; Package-Requires: ((emacs "24.3") (s "1.9.0") (dash "2.11.0"))
+;; Package-Requires: ((emacs "24.3") (dash "2.11.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -39,7 +39,6 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 's)
 (require 'dash)
 
 (eval-when-compile
@@ -1241,10 +1240,9 @@ that width."
          (col-width      (+ 1 col-key-width col-sep-width col-desc-width)))
     (cons col-width
           (mapcar (lambda (k)
-                    (concat
-                     (s-repeat (- col-key-width (string-width (nth 0 k))) " ")
-                     (nth 0 k) (nth 1 k) (nth 2 k)
-                     (s-repeat (- col-desc-width (string-width (nth 2 k))) " ")))
+                    (format (concat "%" (int-to-string col-key-width)
+                                    "s%s%-" (int-to-string col-desc-width) "s")
+                            (nth 0 k) (nth 1 k) (nth 2 k)))
                   col-keys))))
 
 (defun which-key--partition-columns (keys avl-lines avl-width)
@@ -1382,22 +1380,25 @@ enough space based on your settings and frame size." prefix-keys)
                                                'face 'which-key-note-face))))
              (first-col-width (+ 2 (max (string-width prefix-w-face)
                                         (string-width status-left))))
-             (prefix-left (s-pad-right first-col-width " " prefix-w-face))
-             (status-left (s-pad-right first-col-width " " status-left))
+             (prefix-left (format (concat "%-" (int-to-string first-col-width) "s")
+                                  prefix-w-face))
+             (status-left (format (concat "%-" (int-to-string first-col-width) "s")
+                                  status-left))
              (nxt-pg-hint (which-key--next-page-hint prefix-keys page-n n-pages))
              new-end lines first)
         (cond ((and (< 1 n-pages)
                     (eq which-key-show-prefix 'left))
                (setq lines (split-string page "\n")
                      first (concat prefix-left (car lines) "\n" status-left)
-                     new-end (concat "\n" (s-repeat first-col-width " "))
+                     new-end (concat "\n" (make-string first-col-width 32))
                      page  (concat first (mapconcat #'identity (cdr lines) new-end))))
               ((eq which-key-show-prefix 'left)
                (if (= 1 height)
                    (setq page (concat prefix-left page))
                  (setq lines (split-string page "\n")
-                       first (concat prefix-left (car lines) "\n" (s-repeat first-col-width " "))
-                       new-end (concat "\n" (s-repeat first-col-width " "))
+                       first (concat prefix-left (car lines)
+                                     "\n" (make-string first-col-width 32))
+                       new-end (concat "\n" (make-string first-col-width 32))
                        page  (concat first (mapconcat #'identity (cdr lines) new-end)))))
               ((eq which-key-show-prefix 'top)
                (setq page (concat prefix-w-face dash-w-face " "
