@@ -6,7 +6,7 @@
 ;; URL: https://github.com/justbur/emacs-which-key
 ;; Version: 0.6.2
 ;; Keywords:
-;; Package-Requires: ((emacs "24.3") (dash "2.11.0"))
+;; Package-Requires: ((emacs "24.3"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -39,7 +39,6 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'dash)
 
 (eval-when-compile
   (defvar golden-ratio-mode))
@@ -1218,9 +1217,27 @@ BUFFER that follow the key sequence KEY-SEQ."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions for laying out which-key buffer pages
 
+(defun which-key--n-empty-strings (n)
+  "Produce a list of N empty strings."
+  (let (res)
+    (dotimes (_i n)
+      (setq res (cons "" res)))
+    res))
+
+(defun which-key--pad (columns)
+  "Pad COLUMNS to the same length using empty strings."
+  (let ((max-len (cl-reduce (lambda (a x) (max a (length x))) columns
+                            :initial-value 0)))
+    (mapcar
+     (lambda (c)
+       (if (< (length c) max-len)
+           (append c (which-key--n-empty-strings (- max-len (length c))))
+         c))
+     columns)))
+
 (defsubst which-key--join-columns (columns)
   "Transpose columns into rows, concat rows into lines and rows into page."
-  (let* ((padded (apply (apply-partially #'-pad "") (reverse columns)))
+  (let* ((padded (which-key--pad (reverse columns)))
          (rows (apply #'cl-mapcar #'list padded)))
     (mapconcat (lambda (row) (mapconcat #'identity row " ")) rows "\n")))
 
@@ -1245,11 +1262,19 @@ that width."
                             (nth 0 k) (nth 1 k) (nth 2 k)))
                   col-keys))))
 
+(defun which-key--partition-list (n list)
+  "Partition LIST into N-sized sublists"
+  (let (res)
+    (while list
+      (setq res (cons (cl-subseq list 0 (min n (length list))) res)
+            list (nthcdr n list)))
+    (reverse res)))
+
 (defun which-key--partition-columns (keys avl-lines avl-width)
   "Convert list of KEYS to columns based on dimensions AVL-LINES and AVL-WIDTH.
 Returns a plist that holds the page strings, as well as metadata."
   (let ((cols-w-widths (mapcar #'which-key--pad-column
-                               (-partition-all avl-lines keys)))
+                               (which-key--partition-list avl-lines keys)))
         (page-width 0) (n-pages 0) (n-keys 0)
         page-cols pages page-widths keys/page col)
     (if (> (apply #'max (mapcar #'car cols-w-widths)) avl-width)
