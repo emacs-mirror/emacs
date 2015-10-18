@@ -1217,12 +1217,6 @@ BUFFER that follow the key sequence KEY-SEQ."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions for laying out which-key buffer pages
 
-(defun which-key--n-empty-strings (n)
-  "Produce a list of N empty strings."
-  (let (res)
-    (dotimes (_i n res)
-      (setq res (cons "" res)))))
-
 (defun which-key--pad (columns)
   "Pad COLUMNS to the same length using empty strings."
   (let ((max-len (cl-reduce (lambda (a x) (max a (length x))) columns
@@ -1230,13 +1224,13 @@ BUFFER that follow the key sequence KEY-SEQ."
     (mapcar
      (lambda (c)
        (if (< (length c) max-len)
-           (append c (which-key--n-empty-strings (- max-len (length c))))
+           (append c (make-list (- max-len (length c)) ""))
          c))
      columns)))
 
 (defsubst which-key--join-columns (columns)
   "Transpose columns into rows, concat rows into lines and rows into page."
-  (let* ((padded (which-key--pad (reverse columns)))
+  (let* ((padded (which-key--pad (nreverse columns)))
          (rows (apply #'cl-mapcar #'list padded)))
     (mapconcat (lambda (row) (mapconcat #'identity row " ")) rows "\n")))
 
@@ -1262,12 +1256,12 @@ that width."
                   col-keys))))
 
 (defun which-key--partition-list (n list)
-  "Partition LIST into N-sized sublists"
+  "Partition LIST into N-sized sublists."
   (let (res)
     (while list
       (setq res (cons (cl-subseq list 0 (min n (length list))) res)
             list (nthcdr n list)))
-    (reverse res)))
+    (nreverse res)))
 
 (defun which-key--partition-columns (keys avl-lines avl-width)
   "Convert list of KEYS to columns based on dimensions AVL-LINES and AVL-WIDTH.
@@ -1297,9 +1291,9 @@ Returns a plist that holds the page strings, as well as metadata."
         (push (which-key--join-columns page-cols) pages)
         (push n-keys keys/page)
         (push page-width page-widths))
-      (list :pages (reverse pages) :page-height avl-lines
-            :page-widths (reverse page-widths)
-            :keys/page (reverse keys/page) :n-pages n-pages
+      (list :pages (nreverse pages) :page-height avl-lines
+            :page-widths (nreverse page-widths)
+            :keys/page (nreverse keys/page) :n-pages n-pages
             :tot-keys (apply #'+ keys/page)))))
 
 (defun which-key--create-pages (keys sel-win-width)
