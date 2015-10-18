@@ -88,3 +88,40 @@ main(void) {
     ;
 
 }
+
+// More Namespace Magic using member constants.
+
+template<typename T>
+struct isFooLike {
+  static const bool value = false;
+};
+
+template <>
+struct isFooLike<int> {
+  static const bool value = true;
+};
+
+
+template <typename T, bool isFoo>
+class A {
+public:
+  A();
+  void foo() {};
+};
+
+
+template <typename T>
+class FooFour : public A<T, isPodLike<T>::value> {
+public:
+  bool bar() {}
+};
+
+
+int main2() {
+
+  FooFour<int> ff;
+
+  ff.// -9-
+    ; // #9# ( "bar" "foo" );
+
+}
