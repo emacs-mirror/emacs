@@ -712,11 +712,7 @@ typeformbase
     (TYPE-TAG $2 $1 nil nil )
   | builtintype
     ( ,$1 )
-  | symbol template-specifier
-    (TYPE-TAG $1 "class" nil nil :template-specifier $2)
- ;;| namespace-symbol opt-stars opt-template-specifier
- ;;| namespace-symbol opt-template-specifier
-  | namespace-symbol-for-typeformbase opt-template-specifier
+  | namespace-symbol opt-template-specifier
     (TYPE-TAG (car $1) "class" nil nil
 	      :template-specifier $2)
   | symbol
@@ -964,29 +960,16 @@ opt-varnamelist-more
 namespace-symbol
   : symbol opt-template-specifier opt-namespace-symbol-more
     ( (concat $1 (car $3) ) )
+ ;; Don't accept template specifiers at the end.
+  | symbol
+    ( $1 )
   ;
 
 opt-namespace-symbol-more
   : COLON COLON namespace-symbol
     ( (concat "::" (car $3)) )
-  | ;; empty
-    ( "" )
   ;
 
-;; Don't pull an optional template specifier at the end of the
-;; namespace symbol so that it can be picked up by the type.
-namespace-symbol-for-typeformbase
-  : symbol opt-template-specifier COLON COLON namespace-symbol-for-typeformbase
-    ( (concat $1 "::" (car $5)) )
-  | symbol
-    ( $1 )
-  ;
-;; namespace-symbol
-;;   : symbol COLON COLON namespace-symbol
-;;     ( (concat $1 "::" (car $4)) )
-;;   | symbol
-;;     ( $1 )
-;;   ;
 
 namespace-opt-class
   : symbol COLON COLON namespace-opt-class
