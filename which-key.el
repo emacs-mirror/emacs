@@ -1220,9 +1220,8 @@ BUFFER that follow the key sequence KEY-SEQ."
 (defun which-key--n-empty-strings (n)
   "Produce a list of N empty strings."
   (let (res)
-    (dotimes (_i n)
-      (setq res (cons "" res)))
-    res))
+    (dotimes (_i n res)
+      (setq res (cons "" res)))))
 
 (defun which-key--pad (columns)
   "Pad COLUMNS to the same length using empty strings."
