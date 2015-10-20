@@ -935,6 +935,103 @@ width) in lines and characters respectively."
   (cons which-key-frame-max-height which-key-frame-max-width))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Sorting functions
+
+(defun which-key--alpha< (a b)
+  (let ((da (downcase a))
+        (db (downcase b)))
+    (if (string-equal da db)
+        (not (string-lessp a b))
+      (string-lessp da db))))
+
+(defun which-key--key-description-alpha< (a b)
+  "Sorting function used for `which-key-key-order-alpha'."
+  (let* ((aem? (string-equal a ""))
+         (bem? (string-equal b ""))
+         (a1? (= 1 (length a)))
+         (b1? (= 1 (length b)))
+         (srgxp "^\\(RET\\|SPC\\|TAB\\|DEL\\|LFD\\|ESC\\|NUL\\)")
+         (asp? (string-match-p srgxp a))
+         (bsp? (string-match-p srgxp b))
+         (prrgxp "^\\(M\\|C\\|S\\|A\\|H\\|s\\)-")
+         (apr? (string-match-p prrgxp a))
+         (bpr? (string-match-p prrgxp b)))
+    (cond ((or aem? bem?) (and aem? (not bem?)))
+          ((and asp? bsp?)
+           (if (string-equal (substring a 0 3) (substring b 0 3))
+               (which-key--key-description< (substring a 3) (substring b 3))
+             (string-lessp a b)))
+          ((or asp? bsp?) asp?)
+          ((and a1? b1?) (which-key--alpha< a b))
+          ((or a1? b1?) a1?)
+          ((and apr? bpr?)
+           (if (string-equal (substring a 0 2) (substring b 0 2))
+               (which-key--key-description< (substring a 2) (substring b 2))
+             (string-lessp a b)))
+          ((or apr? bpr?) apr?)
+          (t (string-lessp a b)))))
+
+(defsubst which-key-key-order-alpha (acons bcons)
+  "Order key descriptions A and B.
+Order is lexicographic within a \"class\", where the classes and
+the ordering of classes are listed below.
+
+special (SPC,TAB,...) < single char < mod (C-,M-,...) < other.
+Sorts single characters alphabetically with lowercase coming
+before upper."
+  (which-key--key-description-alpha< (car acons) (car bcons)))
+
+(defun which-key--key-description< (a b)
+  "Sorting function used for `which-key-key-order'."
+  (let* ((aem? (string-equal a ""))
+         (bem? (string-equal b ""))
+         (a1? (= 1 (length a)))
+         (b1? (= 1 (length b)))
+         (srgxp "^\\(RET\\|SPC\\|TAB\\|DEL\\|LFD\\|ESC\\|NUL\\)")
+         (asp? (string-match-p srgxp a))
+         (bsp? (string-match-p srgxp b))
+         (prrgxp "^\\(M\\|C\\|S\\|A\\|H\\|s\\)-")
+         (apr? (string-match-p prrgxp a))
+         (bpr? (string-match-p prrgxp b)))
+    (cond ((or aem? bem?) (and aem? (not bem?)))
+          ((and asp? bsp?)
+           (if (string-equal (substring a 0 3) (substring b 0 3))
+               (which-key--key-description< (substring a 3) (substring b 3))
+             (string-lessp a b)))
+          ((or asp? bsp?) asp?)
+          ((and a1? b1?) (string-lessp a b))
+          ((or a1? b1?) a1?)
+          ((and apr? bpr?)
+           (if (string-equal (substring a 0 2) (substring b 0 2))
+               (which-key--key-description< (substring a 2) (substring b 2))
+             (string-lessp a b)))
+          ((or apr? bpr?) apr?)
+          (t (string-lessp a b)))))
+
+(defsubst which-key-key-order (acons bcons)
+  "Order key descriptions A and B.
+Order is lexicographic within a \"class\", where the classes and
+the ordering of classes are listed below.
+
+special (SPC,TAB,...) < single char < mod (C-,M-,...) < other."
+  (which-key--key-description< (car acons) (car bcons)))
+
+(defsubst which-key-description-order (acons bcons)
+  "Order descriptions of A and B.
+Uses `string-lessp' after applying lowercase."
+  (string-lessp (downcase (cdr acons)) (downcase (cdr bcons))))
+
+(defun which-key-prefix-then-key-order (acons bcons)
+  "Order first by whether A and/or B is a prefix with no prefix
+coming before a prefix. Within these categories order using
+`which-key-key-order'."
+  (let ((apref? (which-key--group-p (cdr acons)))
+        (bpref? (which-key--group-p (cdr bcons))))
+    (if (not (eq apref? bpref?))
+        (and (not apref?) bpref?)
+      (which-key-key-order acons bcons))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions for retrieving and formatting keys
 
 (defsubst which-key--safe-lookup-key (keymap key)
@@ -1096,100 +1193,6 @@ alists. Returns a list (key separator description)."
               (desc-w-face (which-key--propertize-description desc group local hl-face)))
          (list key-w-face sep-w-face desc-w-face)))
      unformatted)))
-
-(defun which-key--alpha< (a b)
-  (let ((da (downcase a))
-        (db (downcase b)))
-    (if (string-equal da db)
-        (not (string-lessp a b))
-      (string-lessp da db))))
-
-(defun which-key--key-description-alpha< (a b)
-  "Sorting function used for `which-key-key-order-alpha'."
-  (let* ((aem? (string-equal a ""))
-         (bem? (string-equal b ""))
-         (a1? (= 1 (length a)))
-         (b1? (= 1 (length b)))
-         (srgxp "^\\(RET\\|SPC\\|TAB\\|DEL\\|LFD\\|ESC\\|NUL\\)")
-         (asp? (string-match-p srgxp a))
-         (bsp? (string-match-p srgxp b))
-         (prrgxp "^\\(M\\|C\\|S\\|A\\|H\\|s\\)-")
-         (apr? (string-match-p prrgxp a))
-         (bpr? (string-match-p prrgxp b)))
-    (cond ((or aem? bem?) (and aem? (not bem?)))
-          ((and asp? bsp?)
-           (if (string-equal (substring a 0 3) (substring b 0 3))
-               (which-key--key-description< (substring a 3) (substring b 3))
-             (string-lessp a b)))
-          ((or asp? bsp?) asp?)
-          ((and a1? b1?) (which-key--alpha< a b))
-          ((or a1? b1?) a1?)
-          ((and apr? bpr?)
-           (if (string-equal (substring a 0 2) (substring b 0 2))
-               (which-key--key-description< (substring a 2) (substring b 2))
-             (string-lessp a b)))
-          ((or apr? bpr?) apr?)
-          (t (string-lessp a b)))))
-
-(defsubst which-key-key-order-alpha (acons bcons)
-  "Order key descriptions A and B.
-Order is lexicographic within a \"class\", where the classes and
-the ordering of classes are listed below.
-
-special (SPC,TAB,...) < single char < mod (C-,M-,...) < other.
-Sorts single characters alphabetically with lowercase coming
-before upper."
-  (which-key--key-description-alpha< (car acons) (car bcons)))
-
-(defun which-key--key-description< (a b)
-  "Sorting function used for `which-key-key-order'."
-  (let* ((aem? (string-equal a ""))
-         (bem? (string-equal b ""))
-         (a1? (= 1 (length a)))
-         (b1? (= 1 (length b)))
-         (srgxp "^\\(RET\\|SPC\\|TAB\\|DEL\\|LFD\\|ESC\\|NUL\\)")
-         (asp? (string-match-p srgxp a))
-         (bsp? (string-match-p srgxp b))
-         (prrgxp "^\\(M\\|C\\|S\\|A\\|H\\|s\\)-")
-         (apr? (string-match-p prrgxp a))
-         (bpr? (string-match-p prrgxp b)))
-    (cond ((or aem? bem?) (and aem? (not bem?)))
-          ((and asp? bsp?)
-           (if (string-equal (substring a 0 3) (substring b 0 3))
-               (which-key--key-description< (substring a 3) (substring b 3))
-             (string-lessp a b)))
-          ((or asp? bsp?) asp?)
-          ((and a1? b1?) (string-lessp a b))
-          ((or a1? b1?) a1?)
-          ((and apr? bpr?)
-           (if (string-equal (substring a 0 2) (substring b 0 2))
-               (which-key--key-description< (substring a 2) (substring b 2))
-             (string-lessp a b)))
-          ((or apr? bpr?) apr?)
-          (t (string-lessp a b)))))
-
-(defsubst which-key-key-order (acons bcons)
-  "Order key descriptions A and B.
-Order is lexicographic within a \"class\", where the classes and
-the ordering of classes are listed below.
-
-special (SPC,TAB,...) < single char < mod (C-,M-,...) < other."
-  (which-key--key-description< (car acons) (car bcons)))
-
-(defsubst which-key-description-order (acons bcons)
-  "Order descriptions of A and B.
-Uses `string-lessp' after applying lowercase."
-  (string-lessp (downcase (cdr acons)) (downcase (cdr bcons))))
-
-(defun which-key-prefix-then-key-order (acons bcons)
-  "Order first by whether A and/or B is a prefix with no prefix
-coming before a prefix. Within these categories order using
-`which-key-key-order'."
-  (let ((apref? (which-key--group-p (cdr acons)))
-        (bpref? (which-key--group-p (cdr bcons))))
-    (if (not (eq apref? bpref?))
-        (and (not apref?) bpref?)
-      (which-key-key-order acons bcons))))
 
 (defun which-key--get-formatted-key-bindings ()
   "Uses `describe-buffer-bindings' to collect the key bindings in

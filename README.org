@@ -290,18 +290,21 @@ By default the output is sorted by the key in a custom order. The default order
 is to sort lexicographically within each "class" of key, where the classes and
 their order are
 
-=Special (SPC, TAB, ...) < Single Character (a, ...) < Modifier (C-, M-, ...) < Other=
+=Special (SPC, TAB, ...) < Single Character (ASCII) (a, ...) < Modifier (C-, M-, ...) < Other=
 
-You can control the order by setting this variable. 
+You can control the order by setting this variable. This also shows the other
+available options.
 
 #+BEGIN_SRC Emacs-lisp
+;; default
 (setq which-key-sort-order 'which-key-key-order)
-;; or (setq which-key-sort-order 'which-key-description-order)
+;; same as default, except single characters are sorted alphabetically
+;; (setq which-key-sort-order 'which-key-key-order-alpha)
+;; same as default, except all prefix keys are grouped together at the end
+;; (setq which-key-sort-order 'which-key-prefix-then-key-order)
+;; sort based on the key description ignoring case
+;; (setq which-key-sort-order 'which-key-description-order)
 #+END_SRC
-
-The only other built-in option at the moment (besides using nil to turn off
-sorting completely) is =which-key-description-order=, which orders by the key's
-description based on the usual ordering of strings after applying =downcase=.
 
 *** Paging Options
 There are at least several prefixes that have many keys bound to them, like
