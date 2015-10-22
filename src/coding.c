@@ -297,8 +297,6 @@ encode_coding_XXX (struct coding_system *coding)
 #include "ccl.h"
 #include "composite.h"
 #include "coding.h"
-#include "window.h"
-#include "frame.h"
 #include "termhooks.h"
 
 Lisp_Object Vcoding_system_hash_table;

@@ -16,6 +16,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#ifndef EMACS_SYSTTY_H
+#define EMACS_SYSTTY_H
+
 /* Include the proper files.  */
 
 #ifndef DOS_NT
@@ -36,6 +39,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* AIX */
 
 #include <unistd.h>
+
+#include "lisp.h"
 
 
 /* Try to establish the correct character to disable terminal functions
@@ -85,3 +90,5 @@ extern int emacs_set_tty (int, struct emacs_tty *, bool) EXTERNALLY_VISIBLE;
 extern void suppress_echo_on_tty (int);
 extern int serial_open (Lisp_Object);
 extern void serial_configure (struct Lisp_Process *, Lisp_Object);
+
+#endif /* EMACS_SYSTTY_H */

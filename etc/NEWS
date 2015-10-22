@@ -8,6 +8,7 @@ If possible, use M-x report-emacs-bug.
 
 This file is about changes in Emacs version 25.
 
+See file HISTORY for a list of GNU Emacs versions and release dates.
 See files NEWS.24, NEWS.23, NEWS.22, NEWS.21, NEWS.20, NEWS.19, NEWS.18,
 and NEWS.1-17 for changes in older Emacs versions.
 
@@ -274,6 +275,14 @@ header.
 ** `tabulated-list-print' takes a second optional argument, update,
 which specifies an alternative printing method which is faster when
 few or no entries have changed.
+** The command `dired-do-compress' bound to `Z' now can compress
+directories and decompress zip files.
+** New command `dired-do-compress-to' bound to `c' can be used to compress
+many marked files into a single named archive.  The compression
+command is determined from the new `dired-compress-files-alist'
+variable.
+
++++
 
 
 * Editing Changes in Emacs 25.1
@@ -1000,12 +1009,14 @@ behavior, set `diff-switches' to `-c'.
 
 ** `grep-template' and `grep-find-template' values don't include the
 --color argument anymore.  It's added at the <C> place holder position
-dynamically.
-
-** `grep-template' and `grep-find-template' values don't include the
---color argument anymore.  It's added at the <C> place holder position
 dynamically.  Any third-party code that changes these templates should
 be updated accordingly.
+
++++
+** ‘(/ N)’ is now equivalent to ‘(/ 1 N)’ rather than to ‘(/ N 1)’.
+The new behavior is compatible with Common Lisp and with XEmacs.
+This change does not affect Lisp code intended to be portable to
+Emacs 24.2 and earlier, which did not support unary ‘/’.
 
 
 * Lisp Changes in Emacs 25.1

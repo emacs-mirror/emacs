@@ -25,8 +25,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "coding.h"
 #include "process.h"
 #include "keyboard.h"
-#include "character.h"
-#include "frame.h" /* Required for termhooks.h.  */
 #include "termhooks.h"
 
 #include <errno.h>

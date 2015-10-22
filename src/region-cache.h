@@ -18,6 +18,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#ifndef EMACS_REGION_CACHE_H
+#define EMACS_REGION_CACHE_H
 
 /* This code was written by Jim Blandy <jimb@cs.oberlin.edu> to help
    GNU Emacs better support the gene editor written for the University
@@ -60,6 +62,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    this region has property P" vs. "I don't know if this region has
    property P or not."  */
 
+struct buffer;
 
 /* Allocate, initialize and return a new, empty region cache.  */
 struct region_cache *new_region_cache (void);
@@ -105,3 +108,5 @@ extern int region_cache_forward (struct buffer *buf, struct region_cache *c,
 /* Likewise, except before POS rather than after POS.  */
 extern int region_cache_backward (struct buffer *buf, struct region_cache *c,
 				  ptrdiff_t pos, ptrdiff_t *next);
+
+#endif /* EMACS_REGION_CACHE_H */

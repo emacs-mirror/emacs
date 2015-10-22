@@ -24,15 +24,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <X11/Xlib.h>
 
 #include "lisp.h"
-#include "dispextern.h"
 #include "xterm.h"
 #include "frame.h"
 #include "blockinput.h"
 #include "character.h"
 #include "charset.h"
-#include "fontset.h"
 #include "font.h"
-#include "ccl.h"
 
 
 /* X core font driver.  */

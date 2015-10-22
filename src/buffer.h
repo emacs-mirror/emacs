@@ -18,8 +18,14 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#ifndef EMACS_BUFFER_H
+#define EMACS_BUFFER_H
+
 #include <sys/types.h>
 #include <time.h>
+
+#include "character.h"
+#include "lisp.h"
 
 INLINE_HEADER_BEGIN
 
@@ -1377,3 +1383,5 @@ lowercasep (int c)
 INLINE int upcase (int c) { return uppercasep (c) ? c : upcase1 (c); }
 
 INLINE_HEADER_END
+
+#endif /* EMACS_BUFFER_H */

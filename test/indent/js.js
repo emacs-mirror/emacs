@@ -69,6 +69,13 @@ baz(`http://foo.bar/${tee}`)
   are kept
         unchanged!`
 
+class A {
+  * x() {
+    return 1
+      * 2;
+  }
+}
+
 // Local Variables:
 // indent-tabs-mode: nil
 // js-indent-level: 2

@@ -20,10 +20,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#include "sysstdio.h"
 #include <sys/stat.h>
 
 #include "lisp.h"
+#include "coding.h"
 #include "termchar.h"
 #include "termopts.h"
 #include "frame.h"
@@ -34,13 +34,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "commands.h"
 #include "character.h"
 #include "buffer.h"
-#include "disptab.h"
 #include "dispextern.h"
 #include "syntax.h"
 #include "intervals.h"
 #include "keymap.h"
 #include "blockinput.h"
-#include "puresize.h"
 #include "systime.h"
 #include "atimer.h"
 #include "process.h"

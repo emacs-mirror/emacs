@@ -660,6 +660,7 @@ usage: (or CONDITIONS...)  */)
       if (!NILP (val))
         break;
       args = XCDR (args);
+      QUIT;
     @}
 @end group
 
@@ -778,6 +779,14 @@ functions that access non-object components must take care to refetch
 their addresses after performing Lisp evaluation.  Lisp evaluation can
 occur via calls to @code{eval_sub} or @code{Feval}, either directly or
 indirectly.
+
+@cindex @code{QUIT}, use in Lisp primitives
+  Note the call to the @code{QUIT} macro inside the loop: this macro
+checks whether the user pressed @kbd{C-g}, and if so, aborts the
+processing.  You should do that in any loop that can potentially
+require a large number of iterations; in this case, the list of
+arguments could be very long.  This increases Emacs responsiveness and
+improves user experience.
 
   You must not use C initializers for static or global variables unless
 the variables are never written once Emacs is dumped.  These variables

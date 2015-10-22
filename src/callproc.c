@@ -44,19 +44,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* MSDOS */
 
 #include "commands.h"
-#include "character.h"
 #include "buffer.h"
-#include "ccl.h"
 #include "coding.h"
-#include "composite.h"
 #include <epaths.h>
 #include "process.h"
 #include "syssignal.h"
-#include "systty.h"
 #include "syswait.h"
 #include "blockinput.h"
 #include "frame.h"
-#include "termhooks.h"
 
 #ifdef MSDOS
 #include "msdos.h"
@@ -1665,7 +1660,7 @@ syms_of_callproc (void)
   DEFVAR_LISP ("shell-file-name", Vshell_file_name,
 	       doc: /* File name to load inferior shells from.
 Initialized from the SHELL environment variable, or to a system-dependent
-default if SHELL is not set.  */);
+default if SHELL is unset.  See Info node `(elisp)Security Considerations'.  */);
 
   DEFVAR_LISP ("exec-path", Vexec_path,
 	       doc: /* List of directories to search programs to run in subprocesses.

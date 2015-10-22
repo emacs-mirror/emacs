@@ -28,6 +28,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define EMACS_CHARSET_H
 
 #include <verify.h>
+#include "lisp.h"
 
 INLINE_HEADER_BEGIN
 

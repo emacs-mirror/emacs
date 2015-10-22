@@ -440,10 +440,23 @@ Typically \"page-%s.png\".")
 
 (defun doc-view-revert-buffer (&optional ignore-auto noconfirm)
   "Like `revert-buffer', but preserves the buffer's current modes."
-  ;; FIXME: this should probably be moved to files.el and used for
-  ;; most/all "g" bindings to revert-buffer.
   (interactive (list (not current-prefix-arg)))
-  (revert-buffer ignore-auto noconfirm 'preserve-modes))
+  (cl-labels ((revert ()
+                      (let (revert-buffer-function)
+                        (revert-buffer ignore-auto noconfirm 'preserve-modes))))
+    (if (and (eq 'pdf doc-view-doc-type)
+             (executable-find "pdfinfo"))
+        ;; We don't want to revert if the PDF file is corrupted which
+        ;; might happen when it it currently recompiled from a tex
+        ;; file.  (TODO: We'd like to have something like that also
+        ;; for other types, at least PS, but I don't know a good way
+        ;; to test if a PS file is complete.)
+        (if (= 0 (call-process (executable-find "pdfinfo") nil nil nil
+                               doc-view--buffer-file-name))
+            (revert)
+          (when (called-interactively-p 'interactive)
+            (message "Can't revert right now because the file is corrupted.")))
+      (revert))))
 
 
 (easy-menu-define doc-view-menu doc-view-mode-map
@@ -1648,7 +1661,7 @@ If BACKWARD is non-nil, jump to the previous match."
                    ;; Microsoft Office formats (also handled by the odf
                    ;; conversion chain).
                    ("doc" odf) ("docx" odf) ("xls" odf) ("xlsx" odf)
-                   ("ppt" odf) ("pps" odf) ("pptx" odf))
+                   ("ppt" odf) ("pps" odf) ("pptx" odf) ("rtf" odf))
 		 t))))
 	(content-types
 	 (save-excursion
@@ -1765,6 +1778,8 @@ toggle between displaying the document or editing it as text.
                  (t buffer-file-name)))
     (when (not (string= doc-view--buffer-file-name buffer-file-name))
       (write-region nil nil doc-view--buffer-file-name))
+
+    (setq-local revert-buffer-function #'doc-view-revert-buffer)
 
     (add-hook 'change-major-mode-hook
 	      (lambda ()

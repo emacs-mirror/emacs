@@ -208,10 +208,6 @@ switches."
          (setq result (cons (list filename state) result)))))
     (funcall callback result)))
 
-;; dir-status-files called from vc-dir, which loads vc,
-;; which loads vc-dispatcher.
-(declare-function vc-exec-after "vc-dispatcher" (code))
-
 (autoload 'vc-expand-dirs "vc")
 
 (defun vc-svn-dir-status-files (_dir files callback)

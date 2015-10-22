@@ -36,14 +36,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "keyboard.h"
-#include "keymap.h"
 #include "frame.h"
+#include "systime.h"
 #include "termhooks.h"
 #include "window.h"
 #include "blockinput.h"
-#include "character.h"
 #include "buffer.h"
-#include "charset.h"
 #include "coding.h"
 #include "sysselect.h"
 
@@ -62,8 +60,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef makedev
 #include <sys/types.h>
 #endif
-
-#include "dispextern.h"
 
 #ifdef HAVE_X_WINDOWS
 /*  Defining HAVE_MULTILINGUAL_MENU would mean that the toolkit menu
@@ -636,13 +632,7 @@ update_frame_menubar (struct frame *f)
   lw_refigure_widget (x->column_widget, True);
 
   /* Force the pane widget to resize itself.  */
-  int new_height = -1;
-#ifdef USE_LUCID
-  /* For reasons I don't know Lucid wants to add one pixel to the frame
-     height when adding the menu bar.  Compensate that here.  */
-  new_height = FRAME_TEXT_HEIGHT (f) - 1;
-#endif /* USE_LUCID */
-  adjust_frame_size (f, -1, new_height, 2, false, Qmenu_bar_lines);
+  adjust_frame_size (f, -1, -1, 2, false, Qupdate_frame_menubar);
   unblock_input ();
 #endif /* USE_GTK */
 }
@@ -979,7 +969,15 @@ set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
     menubar_size
       = (f->output_data.x->menubar_widget
 	 ? (f->output_data.x->menubar_widget->core.height
-	    + f->output_data.x->menubar_widget->core.border_width)
+#ifndef USE_LUCID
+	    /* Damn me...  With Lucid I get a core.border_width of 1
+	       only the first time this is called and an ibw of 1 every
+	       time this is called.  So the first time this is called I
+	       was off by one.  Fix that here by never adding
+	       core.border_width for Lucid.  */
+	    + f->output_data.x->menubar_widget->core.border_width
+#endif /* USE_LUCID */
+	    )
 	 : 0);
 
 #ifdef USE_LUCID
@@ -990,9 +988,10 @@ set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
     if (FRAME_EXTERNAL_MENU_BAR (f))
       {
         Dimension ibw = 0;
+
         XtVaGetValues (f->output_data.x->column_widget,
 		       XtNinternalBorderWidth, &ibw, NULL);
-        menubar_size += ibw;
+	menubar_size += ibw;
       }
 #endif /* USE_LUCID */
 
@@ -1073,21 +1072,24 @@ free_frame_menubar (struct frame *f)
 
       if (f->output_data.x->widget)
 	{
-	  int new_height = -1;
 #ifdef USE_MOTIF
 	  XtVaGetValues (f->output_data.x->widget, XtNx, &x1, XtNy, &y1, NULL);
 	  if (x1 == 0 && y1 == 0)
 	    XtVaSetValues (f->output_data.x->widget, XtNx, x0, XtNy, y0, NULL);
 	  if (frame_inhibit_resize (f, false, Qmenu_bar_lines))
-	    new_height = old_height;
+	    adjust_frame_size (f, -1, old_height, 1, false, Qfree_frame_menubar_1);
+	  else
+	    adjust_frame_size (f, -1, -1, 2, false, Qfree_frame_menubar_1);
+#else
+	  adjust_frame_size (f, -1, -1, 2, false, Qfree_frame_menubar_1);
 #endif /* USE_MOTIF */
-	  adjust_frame_size (f, -1, new_height, 2, false, Qmenu_bar_lines);
 	}
       else
 	{
 #ifdef USE_MOTIF
-	  if (frame_inhibit_resize (f, false, Qmenu_bar_lines))
-	    adjust_frame_size (f, -1, old_height, 1, false, Qmenu_bar_lines);
+	  if (WINDOWP (FRAME_ROOT_WINDOW (f))
+	      && frame_inhibit_resize (f, false, Qmenu_bar_lines))
+	    adjust_frame_size (f, -1, old_height, 1, false, Qfree_frame_menubar_2);
 #endif
 	}
 

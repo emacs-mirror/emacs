@@ -33,9 +33,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "character.h"
 #include "buffer.h"
-#include "charset.h"
 #include "category.h"
-#include "keymap.h"
 
 /* This setter is used only in this file, so it can be private.  */
 static void

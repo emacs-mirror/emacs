@@ -1153,8 +1153,8 @@ An assoc with elements of the form @samp{(face-name style-name . style-string)}.
 The actual stylesheet for each page is derived from one of these.
 
 @lisp
-'((default       "default" . "@{ background: black; color: white@}")
-  (font-lock-string-face "string"  . "@{ color: rgb(64,224,208) @}"))
+((default       "default" . "@{ background: black; color: white@}")
+ (font-lock-string-face "string"  . "@{ color: rgb(64,224,208) @}"))
 @end lisp
 
 @item hfy-facemap-assoc
@@ -1173,24 +1173,24 @@ dealt with (and therefore no longer care about) will be invalid at any
 time.
 
 @lisp
-'((64820 . end)
-  (64744 . font-lock-comment-face)
-  (64736 . end)
-  (64722 . font-lock-string-face)
-  (64630 . end)
-  (64623 . font-lock-string-face)
-  (64449 . end)
-  ;; Big similar section elided.  You get the idea.
-  (5459 . end)
-  (5431 . (:inherit font-lock-keyword-face :background "7e7e7e"))
-  (5431 . end)
-  (4285 . font-lock-constant-face)
-  (4285 . end)
-  (4221 . font-lock-comment-face)
-  (4221 . end)
-  (4197 . font-lock-constant-face)
-  (4197 . end)
-  (1 . font-lock-comment-face))
+((64820 . end)
+ (64744 . font-lock-comment-face)
+ (64736 . end)
+ (64722 . font-lock-string-face)
+ (64630 . end)
+ (64623 . font-lock-string-face)
+ (64449 . end)
+ ;; Big similar section elided.  You get the idea.
+ (5459 . end)
+ (5431 . (:inherit font-lock-keyword-face :background "7e7e7e"))
+ (5431 . end)
+ (4285 . font-lock-constant-face)
+ (4285 . end)
+ (4221 . font-lock-comment-face)
+ (4221 . end)
+ (4197 . font-lock-constant-face)
+ (4197 . end)
+ (1 . font-lock-comment-face))
 @end lisp
 
 @end table
@@ -1301,36 +1301,35 @@ access to the face spec you would use if you were connected to an X display.
 Some valid class specification elements are:
 
 @lisp
-  '(class      color)
-  '(class      grayscale)
-  '(background dark)
-  '(background light)
-  '(type       x-toolkit)
-  '(type       tty)
-  '(type       motif)
-  '(type       lucid)
+  (class      color)
+  (class      grayscale)
+  (background dark)
+  (background light)
+  (type       x-toolkit)
+  (type       tty)
+  (type       motif)
+  (type       lucid)
 @end lisp
 
 Multiple values for a tag may be combined, to indicate that any one or more
-of these values in the specification key constitutes a match, eg:
+of these values in the specification key constitutes a match.  For
+example, @code{((class color grayscale) (type tty))} would match any of:
 
-'((class color grayscale) (type tty)) would match any of:
 @lisp
-  '((class color))
-  '((class grayscale))
-  '((class color grayscale)))
-  '((class color foo))
-  '((type  tty))
-  '((type  tty) (class color))
+  ((class color))
+  ((class grayscale))
+  ((class color grayscale)))
+  ((class color foo))
+  ((type  tty))
+  ((type  tty) (class color))
 @end lisp
-and so on.
 
 @item hfy-page-header
 @vindex hfy-page-header
 @anchor{hfy-page-header}
 
 Function called with two arguments (the filename relative to the top
-level source directory being etag'd and fontified), and a string containing
+level source directory being etagged and fontified), and a string containing
 the @samp{<style>@dots{}</style>} text to embed in the document---the string
 returned will be used as the header for the htmlfontified version of
 the source file.
@@ -1355,7 +1354,7 @@ be large and take a long time to render or be difficult to navigate.
 @vindex hfy-find-cmd
 @anchor{hfy-find-cmd}
 
-``find'' command used to harvest a list of files to attempt to fontify.
+The ``find'' command used to harvest a list of files to attempt to fontify.
 
 @item hfy-extn
 @vindex hfy-extn

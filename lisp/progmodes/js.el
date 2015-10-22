@@ -1751,11 +1751,18 @@ This performs fontification according to `js--class-styles'."
   "Return non-nil if point is on a JavaScript operator, other than a comma."
   (save-match-data
     (and (looking-at js--indent-operator-re)
-         (or (not (looking-at ":"))
+         (or (not (eq (char-after) ?:))
              (save-excursion
                (and (js--re-search-backward "[?:{]\\|\\_<case\\_>" nil t)
-                    (looking-at "?")))))))
-
+                    (eq (char-after) ??))))
+         (not (and
+               (eq (char-after) ?*)
+               (looking-at (concat "\\* *" js--name-re " *("))
+               (save-excursion
+                 (goto-char (1- (match-end 0)))
+                 (let (forward-sexp-function) (forward-sexp))
+                 (js--forward-syntactic-ws)
+                 (eq (char-after) ?{)))))))
 
 (defun js--continued-expression-p ()
   "Return non-nil if the current line continues an expression."

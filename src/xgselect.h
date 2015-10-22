@@ -21,8 +21,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define XGSELECT_H
 
 #include "lisp.h"
-#include <time.h>
 #include "sysselect.h"
+
+struct timespec;
 
 extern int xg_select (int max_fds,
 		      fd_set *rfds, fd_set *wfds, fd_set *efds,

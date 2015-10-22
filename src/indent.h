@@ -16,6 +16,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#ifndef EMACS_INDENT_H
+#define EMACS_INDENT_H
+
+#include "lisp.h"
+
 struct position
   {
     ptrdiff_t bufpos;
@@ -51,3 +56,5 @@ bool disptab_matches_widthtab (struct Lisp_Char_Table *disptab,
 /* Recompute BUF's width table, using the display table DISPTAB.  */
 void recompute_width_table (struct buffer *buf,
                             struct Lisp_Char_Table *disptab);
+
+#endif /* EMACS_INDENT_H */

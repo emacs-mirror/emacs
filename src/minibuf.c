@@ -25,17 +25,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <binary-io.h>
 
 #include "lisp.h"
-#include "commands.h"
 #include "character.h"
 #include "buffer.h"
-#include "dispextern.h"
 #include "keyboard.h"
 #include "frame.h"
 #include "window.h"
-#include "syntax.h"
-#include "intervals.h"
 #include "keymap.h"
-#include "termhooks.h"
 #include "systty.h"
 
 /* List of buffers for use as minibuffers.
@@ -1595,8 +1590,11 @@ PROMPT is a string to prompt with; normally it ends in a colon and a space.
 COLLECTION can be a list of strings, an alist, an obarray or a hash table.
 COLLECTION can also be a function to do the completion itself.
 PREDICATE limits completion to a subset of COLLECTION.
-See `try-completion' and `all-completions' for more details
- on completion, COLLECTION, and PREDICATE.
+See `try-completion', `all-completions', `test-completion',
+and `completion-boundaries', for more details on completion,
+COLLECTION, and PREDICATE.  See also Info nodes `(elisp)Basic Completion'
+for the details about completion, and `(elisp)Programmed Completion' for
+expectations from COLLECTION when it's a function.
 
 REQUIRE-MATCH can take the following values:
 - t means that the user is not allowed to exit unless

@@ -43,7 +43,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <c-ctype.h>
 
 #include "lisp.h"
-#include "intervals.h"
+#include "composite.h"
 #include "character.h"
 #include "buffer.h"
 #include "coding.h"
@@ -51,7 +51,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "region-cache.h"
 #include "frame.h"
-#include "dispextern.h"
 
 #ifdef WINDOWSNT
 #define NOMINMAX 1

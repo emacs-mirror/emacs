@@ -23,7 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <zlib.h>
 
 #include "lisp.h"
-#include "character.h"
 #include "buffer.h"
 
 #include <verify.h>

@@ -253,9 +253,10 @@ AC_DEFUN([gl_PROG_AR_RANLIB],
 [
   dnl Minix 3 comes with two toolchains: The Amsterdam Compiler Kit compiler
   dnl as "cc", and GCC as "gcc". They have different object file formats and
-  dnl library formats. In particular, the GNU binutils programs ar, ranlib
+  dnl library formats. In particular, the GNU binutils programs ar and ranlib
   dnl produce libraries that work only with gcc, not with cc.
   AC_REQUIRE([AC_PROG_CC])
+  AC_BEFORE([$0], [AM_PROG_AR])
   AC_CACHE_CHECK([for Minix Amsterdam compiler], [gl_cv_c_amsterdam_compiler],
     [
       AC_EGREP_CPP([Amsterdam],
@@ -267,25 +268,37 @@ Amsterdam
         [gl_cv_c_amsterdam_compiler=yes],
         [gl_cv_c_amsterdam_compiler=no])
     ])
-  if test -z "$AR"; then
-    if test $gl_cv_c_amsterdam_compiler = yes; then
+
+  dnl Don't compete with AM_PROG_AR's decision about AR/ARFLAGS if we are not
+  dnl building with __ACK__.
+  if test $gl_cv_c_amsterdam_compiler = yes; then
+    if test -z "$AR"; then
       AR='cc -c.a'
-      if test -z "$ARFLAGS"; then
-        ARFLAGS='-o'
-      fi
-    else
-      dnl Use the Automake-documented default values for AR and ARFLAGS,
-      dnl but prefer ${host}-ar over ar (useful for cross-compiling).
-      AC_CHECK_TOOL([AR], [ar], [ar])
-      if test -z "$ARFLAGS"; then
-        ARFLAGS='cr'
-      fi
+    fi
+    if test -z "$ARFLAGS"; then
+      ARFLAGS='-o'
     fi
   else
-    if test -z "$ARFLAGS"; then
-      ARFLAGS='cr'
-    fi
+    dnl AM_PROG_AR was added in automake v1.11.2.  AM_PROG_AR does not AC_SUBST
+    dnl ARFLAGS variable (it is filed into Makefile.in directly by automake
+    dnl script on-demand, if not specified by ./configure of course).
+    dnl Don't AC_REQUIRE the AM_PROG_AR otherwise the code for __ACK__ above
+    dnl will be ignored.  Also, pay attention to call AM_PROG_AR in else block
+    dnl because AM_PROG_AR is written so it could re-set AR variable even for
+    dnl __ACK__.  It may seem like its easier to avoid calling the macro here,
+    dnl but we need to AC_SUBST both AR/ARFLAGS (thus those must have some good
+    dnl default value and automake should usually know them).
+    m4_ifdef([AM_PROG_AR], [AM_PROG_AR], [:])
   fi
+
+  dnl In case the code above has not helped with setting AR/ARFLAGS, use
+  dnl Automake-documented default values for AR and ARFLAGS, but prefer
+  dnl ${host}-ar over ar (useful for cross-compiling).
+  AC_CHECK_TOOL([AR], [ar], [ar])
+  if test -z "$ARFLAGS"; then
+    ARFLAGS='cr'
+  fi
+
   AC_SUBST([AR])
   AC_SUBST([ARFLAGS])
   if test -z "$RANLIB"; then

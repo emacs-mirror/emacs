@@ -23,11 +23,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <intprops.h>
 
 #include "lisp.h"
+#include "composite.h"
 #include "intervals.h"
 #include "character.h"
 #include "buffer.h"
 #include "window.h"
-#include "blockinput.h"
 #include "region-cache.h"
 
 static void insert_from_string_1 (Lisp_Object, ptrdiff_t, ptrdiff_t, ptrdiff_t,

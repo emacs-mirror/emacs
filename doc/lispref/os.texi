@@ -37,6 +37,7 @@ terminal and the screen.
 * Desktop Notifications:: Desktop notifications.
 * File Notifications::  File notifications.
 * Dynamic Libraries::   On-demand loading of support libraries.
+* Security Considerations:: Running Emacs in an unfriendly environment.
 @end menu
 
 @node Starting Up
@@ -2760,3 +2761,106 @@ be loaded through it.
 This variable is ignored if the given @var{library} is statically
 linked into Emacs.
 @end defvar
+
+@node Security Considerations
+@section Security Considerations
+@cindex security
+@cindex hardening
+
+Like any application, Emacs can be run in a secure environment, where
+the operating system enforces rules about access and the like.  With
+some care, Emacs-based applications can also be part of a security
+perimeter that checks such rules.  Although the default settings for
+Emacs work well for a typical software development environment, they
+may require adjustment in environments containing untrusted users that
+may include attackers.  Here is a compendium of security issues that
+may be helpful if you are developing such applications.  It is by no
+means complete; it is intended to give you an idea of the security
+issues involved, rather than to be a security checklist.
+
+@table @asis
+@item Access control
+Although Emacs normally respects access permissions of the underlying
+operating system, in some cases it handles accesses specially.  For
+example, file names can have handlers that treat the files specially,
+with their own access checking.  @xref{Magic File Names}.  Also, a
+buffer can be read-only even if the corresponding file is writeable,
+and vice versa, which can result in messages such as @samp{File passwd
+is write-protected; try to save anyway? (yes or no)}.  @xref{Read Only
+Buffers}.
+
+@item Authentication
+Emacs has several functions that deal with passwords, e.g.,
+@code{password-read}.  Although these functions do not attempt to
+broadcast passwords to the world, their implementations are not proof
+against determined attackers with access to Emacs internals.  For
+example, even if Elisp code attempts to scrub a password from
+its memory after using it, remnants of the password may still reside
+in the garbage-collected free list.
+
+@item Code injection
+Emacs can send commands to many other applications, and applications
+should take care that strings sent as operands of these commands are
+not misinterpreted as directives.  For example, when sending a shell
+command to rename a file @var{a} to @var{b}, do not simply use the
+string @code{mv @var{a} @var{b}}, because either file name might start
+with @samp{-}, or might contain shell metacharacters like @samp{;}.
+Although functions like @code{shell-quote-argument} can help avoid
+this sort of problem, they are not panaceas; for example, on a POSIX
+platform @code{shell-quote-argument} quotes shell metacharacters but
+not leading @samp{-}.  @xref{Shell Arguments}.
+
+@item Coding systems
+Emacs attempts to infer the coding systems of the files and network
+connections it accesses.  If it makes a mistake, or if the other
+parties to the network connection disagree with Emacs's deductions,
+the resulting system could be unreliable.  Also, even when it infers
+correctly, Emacs often can use bytes that other programs cannot.  For
+example, although to Emacs the NUL (all bits zero) byte is just a
+character like any other, many other applications treat it as a string
+terminator and mishandle strings or files containing NUL bytes.
+
+@item Environment and configuration variables
+POSIX specifies several environment variables that can affect how
+Emacs behaves.  Any environment variable whose name consists entirely
+of uppercase ASCII letters, digits, and the underscore may affect the
+internal behavior of Emacs.  Emacs uses several such variables, e.g.,
+@env{EMACSLOADPATH}.  @xref{Library Search}.  On some platforms some
+environment variables (e.g., @env{PATH}, @env{POSIXLY_CORRECT},
+@env{SHELL}, @env{TMPDIR}) need to have properly-configured values in
+order to get standard behavior for any utility Emacs might invoke.
+Even seemingly-benign variables like @env{TZ} may have security
+implications.
+
+Emacs has customization and other variables with similar
+considerations.  For example, if the variable @code{shell-file-name}
+specifies a shell with nonstandard behavior, an Emacs-based
+application may misbehave.
+
+@item Installation
+When Emacs is installed, if the installation directory hierarchy can
+be modified by untrusted users, the application cannot be trusted.
+This applies also to the directory hierarchies of the programs that
+Emacs uses, and of the files that Emacs reads and writes.
+
+@item Network access
+Emacs often accesses the network, and you may want to configure it to
+avoid network accesses that it would normally do.  For example, unless
+you set @code{tramp-mode} to @code{nil}, file names using a certain
+syntax are interpreted as being network files, and are retrieved
+across the network.  @xref{Top, The Tramp Manual,, tramp, The Tramp
+Manual}.
+
+@item Race conditions
+Emacs applications have the same sort of race-condition issues that
+other applications do.  For example, even when
+@code{(file-readable-p "foo.txt")} returns @code{t}, it could be that
+@file{foo.txt} is unreadable because some other program changed the
+file's permissions between the call to @code{file-readable-p} and now.
+
+@item Resource limits
+When Emacs exhausts memory or other operating system resources, its
+behavior can be less reliable, in that computations that ordinarily
+run to completion may abort back to the top level.  This may cause
+Emacs to neglect operations that it normally would have done.
+@end table

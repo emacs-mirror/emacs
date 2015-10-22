@@ -43,11 +43,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <pwd.h>
 #endif
 
-#ifdef USE_MOTIF
-/* For Vdouble_click_time.  */
-#include "keyboard.h"
-#endif
-
 /* X file search path processing.  */
 
 

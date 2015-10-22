@@ -36,6 +36,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "composite.h"
 #include "fontset.h"
 #include "font.h"
+#include "termhooks.h"
 
 #ifdef HAVE_WINDOW_SYSTEM
 #include TERM_HEADER
@@ -3981,7 +3982,10 @@ copy_font_spec (Lisp_Object font)
   pcdr = spec->props + FONT_EXTRA_INDEX;
   for (tail = AREF (font, FONT_EXTRA_INDEX); CONSP (tail); tail = XCDR (tail))
     if (!EQ (XCAR (XCAR (tail)), QCfont_entity))
-      *pcdr = Fcons (XCAR (tail), Qnil), pcdr = xcdr_addr (*pcdr);
+      {
+        *pcdr = Fcons (Fcons (XCAR (XCAR (tail)), CDR (XCAR (tail))), Qnil);
+        pcdr = xcdr_addr (*pcdr);
+      }
 
   XSETFONT (new_spec, spec);
   return new_spec;

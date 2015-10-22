@@ -44,8 +44,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keymap.h"
 #include "blockinput.h"
 #include "syssignal.h"
-#include "systty.h"
-#include "intervals.h"
 #ifdef MSDOS
 #include "msdos.h"
 static int been_here = -1;
@@ -56,10 +54,6 @@ static int been_here = -1;
 #endif
 
 #include "cm.h"
-#ifdef HAVE_X_WINDOWS
-#include "xterm.h"
-#endif
-
 #include "menu.h"
 
 /* The name of the default console device.  */

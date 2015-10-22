@@ -22,6 +22,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#ifndef EMACS_CATEGORY_H
+#define EMACS_CATEGORY_H
 
 /* We introduce here three types of object: category, category set,
    and category table.
@@ -52,6 +54,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
    The second extra slot is a version number of the category table.
    But, for the moment, we are not using this slot.  */
+
+#include "lisp.h"
 
 INLINE_HEADER_BEGIN
 
@@ -116,3 +120,5 @@ CHAR_HAS_CATEGORY (int ch, int category)
 extern bool word_boundary_p (int, int);
 
 INLINE_HEADER_END
+
+#endif /* EMACS_CATEGORY_H */

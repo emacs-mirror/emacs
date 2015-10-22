@@ -20,16 +20,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <signal.h>
 #include <stdio.h>
+#include <windows.h>
+#include <windowsx.h>
 
 #include "lisp.h"
-#include "keyboard.h"
 #include "frame.h"
-#include "window.h"
-#include "charset.h"
-#include "fontset.h"
-#include "blockinput.h"
 #include "w32term.h"
-#include "windowsx.h"
 
 #define myalloc(cb) GlobalAllocPtr (GPTR, cb)
 #define myfree(lp) GlobalFreePtr (lp)

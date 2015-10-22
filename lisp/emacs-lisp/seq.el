@@ -4,7 +4,7 @@
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: sequences
-;; Version: 2.0
+;; Version: 2.1
 ;; Package: seq
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -71,13 +71,16 @@ Evaluate BODY with VAR bound to each element of SEQ, in turn.
              ,@body)
            ,(cadr spec)))
 
-(pcase-defmacro seq (&rest args)
+(pcase-defmacro seq (&rest patterns)
   "pcase pattern matching sequence elements.
+
 Matches if the object is a sequence (list, string or vector), and
-binds each element of ARGS to the corresponding element of the
-sequence."
+each PATTERN matches the corresponding element of the sequence.
+
+Supernumerary elements of the sequence are ignored if fewer
+PATTERNS are given, and the match does not fail."
   `(and (pred seq-p)
-        ,@(seq--make-pcase-bindings args)))
+        ,@(seq--make-pcase-bindings patterns)))
 
 (defmacro seq-let (args seq &rest body)
   "Bind the variables in ARGS to the elements of SEQ then evaluate BODY.
@@ -291,11 +294,22 @@ found or not."
     count))
 
 (cl-defgeneric seq-contains (seq elt &optional testfn)
-  "Return the first element in SEQ that equals to ELT.
+  "Return the first element in SEQ that is equal to ELT.
 Equality is defined by TESTFN if non-nil or by `equal' if nil."
   (seq-some (lambda (e)
               (funcall (or testfn #'equal) elt e))
             seq))
+
+(cl-defgeneric seq-position (seq elt &optional testfn)
+  "Return the index of the first element in SEQ that is equal to ELT.
+Equality is defined by TESTFN if non-nil or by `equal' if nil."
+  (let ((index 0))
+    (catch 'seq--break
+      (seq-doseq (e seq)
+        (when (funcall (or testfn #'equal) e elt)
+          (throw 'seq--break index))
+        (setq index (1+ index)))
+      nil)))
 
 (cl-defgeneric seq-uniq (seq &optional testfn)
   "Return a list of the elements of SEQ with duplicates removed.

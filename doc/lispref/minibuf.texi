@@ -975,6 +975,9 @@ Thus, if @var{predicate} is non-@code{nil}, it should be compatible
 with @var{collection} and @code{completion-ignore-case}.
 @xref{Definition of test-completion}.
 
+@xref{Programmed Completion}, for detailed requirements when
+@var{collection} is a function.
+
 The value of the optional argument @var{require-match} determines how
 the user may exit the minibuffer:
 

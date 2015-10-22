@@ -735,7 +735,7 @@ for the animation speed.  A negative value means to animate in reverse."
 	   ;; Subtract off the time we took to load the image from the
 	   ;; stated delay time.
 	   (delay (max (+ (* (or (cdr animation) image-default-frame-delay)
-			     (/ 1 (abs speed)))
+			     (/ 1.0 (abs speed)))
 			  time (- (float-time)))
 		       image-minimum-frame-delay))
 	   done)

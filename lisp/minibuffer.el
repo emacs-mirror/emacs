@@ -92,18 +92,21 @@
 ;;; Completion table manipulation
 
 ;; New completion-table operation.
-(defun completion-boundaries (string table pred suffix)
-  "Return the boundaries of the completions returned by TABLE for STRING.
+(defun completion-boundaries (string collection pred suffix)
+  "Return the boundaries of text on which COLLECTION will operate.
 STRING is the string on which completion will be performed.
 SUFFIX is the string after point.
+If COLLECTION is a function, it is called with 3 arguments: STRING,
+PRED, and a cons cell of the form (boundaries . SUFFIX).
+
 The result is of the form (START . END) where START is the position
 in STRING of the beginning of the completion field and END is the position
 in SUFFIX of the end of the completion field.
 E.g. for simple completion tables, the result is always (0 . (length SUFFIX))
 and for file names the result is the positions delimited by
 the closest directory separators."
-  (let ((boundaries (if (functionp table)
-                        (funcall table string pred
+  (let ((boundaries (if (functionp collection)
+                        (funcall collection string pred
                                  (cons 'boundaries suffix)))))
     (if (not (eq (car-safe boundaries) 'boundaries))
         (setq boundaries nil))

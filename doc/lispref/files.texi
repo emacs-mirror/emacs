@@ -1481,7 +1481,10 @@ in @code{exec-path}, and tries all the file-name extensions in
 @cindex setting modes of files
 
   The functions in this section rename, copy, delete, link, and set
-the modes (permissions) of files.
+the modes (permissions) of files.  They all signal a @code{file-error}
+error if they fail to perform their function, reporting the
+system-dependent error message that describes the reason for the
+failure.
 
   In the functions that have an argument @var{newname}, if a file by the
 name of @var{newname} already exists, the actions taken depend on the
@@ -1755,6 +1758,8 @@ time and must be in the format returned by @code{current-time}
 This function sets the Emacs-recognized extended file attributes for
 @code{filename}.  The second argument @var{attribute-alist} should be
 an alist of the same form returned by @code{file-extended-attributes}.
+The return value is @code{t} if the attributes are successfully set,
+otherwise it is @code{nil}.
 @xref{Extended Attributes}.
 @end defun
 

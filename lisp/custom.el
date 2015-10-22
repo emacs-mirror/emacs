@@ -1120,7 +1120,7 @@ directory first---see `custom-theme-load-path'."
   :group 'customize
   :version "22.1")
 
-(defcustom custom-theme-load-path (list 'custom-theme-directory t)
+(defvar custom-theme-load-path (list 'custom-theme-directory t)
   "List of directories to search for custom theme files.
 When loading custom themes (e.g. in `customize-themes' and
 `load-theme'), Emacs searches for theme files in the specified
@@ -1132,13 +1132,11 @@ order.  Each element in the list should be one of the following:
 - a directory name (a string).
 
 Each theme file is named THEME-theme.el, where THEME is the theme
-name."
-  :type '(repeat (choice (const :tag "custom-theme-directory"
-				custom-theme-directory)
-			 (const :tag "Built-in theme directory" t)
-			 directory))
-  :group 'customize
-  :version "24.1")
+name.
+
+This variable is designed for use in lisp code (including
+external packages).  For manual user customizations, use
+`custom-theme-directory' instead.")
 
 (defvar custom--inhibit-theme-enable nil
   "Whether the custom-theme-set-* functions act immediately.

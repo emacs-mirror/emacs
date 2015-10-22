@@ -211,7 +211,7 @@ This will convert \"80 %\" to 204, \"100 %\" to 255 but \"123\" to \"123\"."
   "Convert X Y H to RGB value."
   (when (< h 0) (incf h))
   (when (> h 1) (decf h))
-  (cond ((< h (/ 1 6.0)) (+ x (* (- y x) h 6)))
+  (cond ((< h (/ 6.0)) (+ x (* (- y x) h 6)))
         ((< h 0.5) y)
         ((< h (/ 2.0 3.0)) (+ x (* (- y x) (- (/ 2.0 3.0) h) 6)))
         (t x)))
@@ -223,9 +223,9 @@ This will convert \"80 %\" to 204, \"100 %\" to 255 but \"123\" to \"123\"."
         (setq m2 (* l (+ s 1)))
         (setq m2 (- (+ l s) (* l s))))
     (setq m1 (- (* l 2) m2))
-    (list (shr-color-hue-to-rgb m1 m2 (+ h (/ 1 3.0)))
+    (list (shr-color-hue-to-rgb m1 m2 (+ h (/ 3.0)))
 	  (shr-color-hue-to-rgb m1 m2 h)
-	  (shr-color-hue-to-rgb m1 m2 (- h (/ 1 3.0))))))
+	  (shr-color-hue-to-rgb m1 m2 (- h (/ 3.0))))))
 
 (defun shr-color->hexadecimal (color)
   "Convert any color format to hexadecimal representation.

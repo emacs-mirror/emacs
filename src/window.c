@@ -23,11 +23,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 
 #include "lisp.h"
-#include "character.h"
 #include "buffer.h"
 #include "keyboard.h"
 #include "keymap.h"
-#include "menu.h"
 #include "frame.h"
 #include "window.h"
 #include "commands.h"
@@ -36,7 +34,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "disptab.h"
 #include "dispextern.h"
 #include "blockinput.h"
-#include "intervals.h"
 #include "termhooks.h"		/* For FRAME_TERMINAL.  */
 #ifdef HAVE_WINDOW_SYSTEM
 #include TERM_HEADER

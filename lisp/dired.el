@@ -1466,6 +1466,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "T" 'dired-do-touch)
     (define-key map "X" 'dired-do-shell-command)
     (define-key map "Z" 'dired-do-compress)
+    (define-key map "c" 'dired-do-compress-to)
     (define-key map "!" 'dired-do-shell-command)
     (define-key map "&" 'dired-do-async-shell-command)
     ;; Comparison commands
@@ -3896,7 +3897,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 
 ;;; Start of automatically extracted autoloads.
 
-;;;### (autoloads nil "dired-aux" "dired-aux.el" "637aadf6baffb10be036ba4cec2372f9")
+;;;### (autoloads nil "dired-aux" "dired-aux.el" "ce82e4e2d385923def05089e8aedb519")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
@@ -4088,8 +4089,18 @@ command with a prefix argument (the value does not matter).
 
 \(fn &optional ARG FMT)" t nil)
 
-(autoload 'dired-compress-file "dired-aux" "\
+(autoload 'dired-do-compress-to "dired-aux" "\
+Compress selected files and directories to an archive.
+You are prompted for the archive name.
+The archiving command is chosen based on the archive name extension and
+`dired-compress-files-alist'.
 
+\(fn)" t nil)
+
+(autoload 'dired-compress-file "dired-aux" "\
+Compress or uncompress FILE.
+Return the name of the compressed or uncompressed file.
+Return nil if no change in files.
 
 \(fn FILE)" nil nil)
 
@@ -4399,7 +4410,7 @@ instead.
 
 ;;;***
 
-;;;### (autoloads nil "dired-x" "dired-x.el" "63be23901985afd2a9aadc64f2aacf37")
+;;;### (autoloads nil "dired-x" "dired-x.el" "06f532e2e812fa1cb10ade31249e9700")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\

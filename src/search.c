@@ -22,13 +22,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include "lisp.h"
-#include "category.h"
 #include "character.h"
 #include "buffer.h"
 #include "syntax.h"
 #include "charset.h"
 #include "region-cache.h"
-#include "commands.h"
 #include "blockinput.h"
 #include "intervals.h"
 

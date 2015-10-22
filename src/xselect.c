@@ -31,12 +31,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "xterm.h"	/* for all of the X includes */
-#include "dispextern.h"	/* frame.h seems to want this */
 #include "frame.h"	/* Need this to get the X window of selected_frame */
 #include "blockinput.h"
-#include "character.h"
-#include "buffer.h"
-#include "process.h"
 #include "termhooks.h"
 #include "keyboard.h"
 

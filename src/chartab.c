@@ -23,7 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "character.h"
 #include "charset.h"
-#include "ccl.h"
 
 /* 64/16/32/128 */
 

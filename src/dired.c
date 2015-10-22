@@ -39,10 +39,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "systime.h"
-#include "character.h"
 #include "buffer.h"
-#include "commands.h"
-#include "charset.h"
 #include "coding.h"
 #include "regex.h"
 #include "blockinput.h"

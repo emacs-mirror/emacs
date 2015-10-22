@@ -18,6 +18,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Access the slots of a display-table, according to their purpose.  */
 
+#ifndef EMACS_DISPTAB_H
+#define EMACS_DISPTAB_H
+
+#include "lisp.h"
+
 #define DISP_TABLE_P(obj)						    \
   (CHAR_TABLE_P (obj)							    \
    && EQ (XCHAR_TABLE (obj)->purpose, Qdisplay_table)			    \
@@ -92,3 +97,5 @@ extern struct Lisp_Char_Table *buffer_display_table (void);
 
 #define SET_GLYPH_FROM_CHAR(glyph, c) \
   SET_GLYPH (glyph, c, DEFAULT_FACE_ID)
+
+#endif /* EMACS_DISPTAB_H */

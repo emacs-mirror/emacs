@@ -25,10 +25,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "character.h"
 #include "buffer.h"
 #include "syntax.h"
-#include "window.h"
 #include "keyboard.h"
 #include "keymap.h"
-#include "dispextern.h"
 #include "frame.h"
 
 static int internal_self_insert (int, EMACS_INT);

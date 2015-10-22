@@ -328,5 +328,14 @@ Evaluate BODY for each created sequence.
     (should (eq seq (seq-into-sequence seq)))
     (should-error (seq-into-sequence 2))))
 
+(ert-deftest test-seq-position ()
+  (with-test-sequences (seq '(2 4 6))
+    (should (null (seq-position seq 1)))
+    (should (= (seq-position seq 4) 1)))
+  (let ((seq '(a b c)))
+    (should (null (seq-position seq 'd #'eq)))
+    (should (= (seq-position seq 'a #'eq) 0))
+    (should (null (seq-position seq (make-symbol "a") #'eq)))))
+
 (provide 'seq-tests)
 ;;; seq-tests.el ends here

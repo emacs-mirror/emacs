@@ -351,8 +351,6 @@ error !;
 #define lisp_h_XCONS(a) \
    (eassert (CONSP (a)), (struct Lisp_Cons *) XUNTAG (a, Lisp_Cons))
 #define lisp_h_XHASH(a) XUINT (a)
-#define lisp_h_XPNTR(a) \
-   (SYMBOLP (a) ? XSYMBOL (a) : (void *) ((intptr_t) (XLI (a) & VALMASK)))
 #ifndef GC_CHECK_CONS_LIST
 # define lisp_h_check_cons_list() ((void) 0)
 #endif
@@ -397,7 +395,6 @@ error !;
 # define XCDR(c) lisp_h_XCDR (c)
 # define XCONS(a) lisp_h_XCONS (a)
 # define XHASH(a) lisp_h_XHASH (a)
-# define XPNTR(a) lisp_h_XPNTR (a)
 # ifndef GC_CHECK_CONS_LIST
 #  define check_cons_list() lisp_h_check_cons_list ()
 # endif
@@ -921,9 +918,6 @@ XUNTAG (Lisp_Object a, int type)
 }
 
 #endif /* ! USE_LSB_TAG */
-
-/* Extract the pointer hidden within A.  */
-LISP_MACRO_DEFUN (XPNTR, void *, (Lisp_Object a), (a))
 
 /* Extract A's value as an unsigned integer.  */
 INLINE EMACS_UINT

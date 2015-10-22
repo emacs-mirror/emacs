@@ -429,6 +429,14 @@ Or follow the example session below:
 @end example
 
 @noindent
+If you reside behind a firewall, you could use
+
+@example
+] @strong{git config --global http.proxy http://user:pwd@@proxy.server.com:8080}
+] @strong{git clone http://git.savannah.gnu.org/r/tramp.git}
+@end example
+
+@noindent
 Tramp developers use instead
 
 @example
@@ -1015,7 +1023,7 @@ program is not found via the @env{PATH} environment variable, the
 variable @var{tramp-adb-program} must point to its absolute path.
 
 @value{tramp} does not connect Android devices to @command{adb},
-unless the customer option @option{tramp-adb-connect-if-not-connected}
+unless the custom option @option{tramp-adb-connect-if-not-connected}
 is non-@code{nil}.  If there is exactly one Android device connected
 to @command{adb}, a host name is not needed in the remote file name.
 The default @value{tramp} name to be used is @file{@trampfn{adb, , ,}},
@@ -1098,7 +1106,7 @@ FUSE, it also needs the SYNCE-GVFS plugin.
 
 @vindex tramp-gvfs-methods
 @defopt tramp-gvfs-methods
-This customer option, a list, defines the external methods which shall
+This custom option, a list, defines the external methods which shall
 be used with GVFS@.  Per default, these are @option{dav},
 @option{davs}, @option{obex}, @option{sftp} and @option{synce}.  Other
 possible values are @option{ftp} and @option{smb}.
@@ -1371,7 +1379,7 @@ bastion host.
 @vindex tramp-default-proxies-alist
 @defopt tramp-default-proxies-alist
 In order to specify multiple hops, it is possible to define a proxy
-host to pass through, via the customer option
+host to pass through, via the custom option
 @option{tramp-default-proxies-alist}.  This variable keeps a list of
 triples (@var{host} @var{user} @var{proxy}).
 
@@ -1486,7 +1494,7 @@ Sometimes they offer limited features only, like running @command{rbash}
 
 @vindex tramp-restricted-shell-hosts-alist
 @defopt tramp-restricted-shell-hosts-alist
-This customer option keeps a list of regular expressions, which denote
+This custom option keeps a list of regular expressions, which denote
 hosts running a registered shell like @command{rbash}.  Those hosts
 can be used as proxies only.
 
@@ -1827,7 +1835,7 @@ remote file access.
 @vindex tramp-own-remote-path
 @defopt tramp-remote-path
 When @value{tramp} connects to the remote host, it searches for the
-programs that it can use.  The customer option
+programs that it can use.  The custom option
 @option{tramp-remote-path} controls the directories searched on the
 remote host.
 
@@ -2631,7 +2639,7 @@ changes, which would be invisible otherwise (@pxref{Connection caching}).
 
 @vindex tramp-completion-reread-directory-timeout
 @defopt tramp-completion-reread-directory-timeout
-This customer option defines the number of seconds since last remote
+This custom option defines the number of seconds since last remote
 command before rereading a directory contents.  A value of 0 would
 require an immediate reread during file name completion, @code{nil}
 means to use always cached values for the directory contents.
@@ -2672,7 +2680,7 @@ remotehost, /path}} would be sufficient from now on.
 
 @vindex tramp-save-ad-hoc-proxies
 @defopt tramp-save-ad-hoc-proxies
-This customer option controls whether ad-hoc definitions are kept
+This custom option controls whether ad-hoc definitions are kept
 persistently in @option{tramp-default-proxies-alist}.  That means,
 those definitions are available also for future @value{emacsname}
 sessions.
@@ -3704,8 +3712,8 @@ all hops, like @file{@trampfn{ssh, bird,
 bastion|ssh@value{postfixhop}news.my.domain, /opt/news/etc}}.
 
 Alternatively, if you save only the abbreviated multi-hop file name
-@file{@trampfn{ssh, news, news.my.domain, /opt/news/etc}}, the
-customer option @code{tramp-save-ad-hoc-proxies} must be set to a to a
+@file{@trampfn{ssh, news, news.my.domain, /opt/news/etc}}, the custom
+option @code{tramp-save-ad-hoc-proxies} must be set to a to a
 non-@code{nil} value.
 
 

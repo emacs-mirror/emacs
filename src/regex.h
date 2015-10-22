@@ -167,6 +167,7 @@ typedef unsigned long reg_syntax_t;
 extern reg_syntax_t re_syntax_options;
 
 #ifdef emacs
+# include "lisp.h"
 /* In Emacs, this is the string or buffer in which we
    are matching.  It is used for looking up syntax properties.  */
 extern Lisp_Object re_match_object;

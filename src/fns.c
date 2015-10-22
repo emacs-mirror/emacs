@@ -21,25 +21,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include <unistd.h>
-#include <time.h>
-
 #include <intprops.h>
 #include <vla.h>
 
 #include "lisp.h"
-#include "commands.h"
 #include "character.h"
 #include "coding.h"
+#include "composite.h"
 #include "buffer.h"
-#include "keyboard.h"
-#include "keymap.h"
 #include "intervals.h"
-#include "frame.h"
 #include "window.h"
-#include "blockinput.h"
-#if defined (HAVE_X_WINDOWS)
-#include "xterm.h"
-#endif
 
 static void sort_vector_copy (Lisp_Object, ptrdiff_t,
 			      Lisp_Object [restrict], Lisp_Object [restrict]);
@@ -2875,9 +2866,9 @@ The value is actually the tail of PLIST whose car is PROP.  */)
 {
   while (CONSP (plist) && !EQ (XCAR (plist), prop))
     {
-      QUIT;
       plist = XCDR (plist);
       plist = CDR (plist);
+      QUIT;
     }
   return plist;
 }

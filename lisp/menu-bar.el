@@ -2267,8 +2267,8 @@ See `menu-bar-mode' for more information."
   "Popup the given menu and call the selected option.
 MENU can be a keymap, an easymenu-style menu or a list of keymaps as for
 `x-popup-menu'.
-The menu is shown at the place where POSITION specifies. About
-the form of POSITION, see `popup-menu-normalize-position'.
+The menu is shown at the place where POSITION specifies.
+For the form of POSITION, see `popup-menu-normalize-position'.
 PREFIX is the prefix argument (if any) to pass to the command.
 FROM-MENU-BAR, if non-nil, means we are dropping one of menu-bar's menus."
   (let* ((map (cond
@@ -2337,9 +2337,9 @@ FROM-MENU-BAR, if non-nil, means we are dropping one of menu-bar's menus."
 
 (defun popup-menu-normalize-position (position)
   "Convert the POSITION to the form which `popup-menu' expects internally.
-POSITION can an event, a posn- value, a value having
+POSITION can be an event, a posn- value, a value having the
 form ((XOFFSET YOFFSET) WINDOW), or nil.
-If nil, the current mouse position is used."
+If nil, the current mouse position is used, or nil if there is no mouse."
   (pcase position
     ;; nil -> mouse cursor position
     (`nil

@@ -23,6 +23,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/select.h>
 #endif
 
+#include "lisp.h"
+
 /* The w32 build defines select stuff in w32.h, which is included
    where w32 needs it, but not where sysselect.h is included.  The w32
    definitions in w32.h are incompatible with the below.  */

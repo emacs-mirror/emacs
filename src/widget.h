@@ -21,6 +21,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef _EmacsFrame_h
 #define _EmacsFrame_h
 
+#include <X11/IntrinsicP.h>
+
 #define XtNminibuffer "minibuffer"
 #define XtCMinibuffer "Minibuffer"
 #define XtNunsplittable "unsplittable"

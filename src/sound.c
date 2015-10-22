@@ -46,7 +46,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <errno.h>
 
 #include "lisp.h"
-#include "dispextern.h"
 #include "atimer.h"
 #include "syssignal.h"
 /* END: Common Includes */

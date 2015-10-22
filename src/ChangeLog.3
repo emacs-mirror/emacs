@@ -1642,7 +1642,7 @@
 	* keymap.c (current_minor_maps): BLOCK_INPUT while calling realloc
 	and malloc.
 	* search.c: Since the regexp routines can malloc, BLOCK_INPUT
-	while runing them.  #include blockinput.h.
+	while running them.  #include blockinput.h.
 	* sysdep.c: #include blockinput.h.  Call xfree and xmalloc instead
 	of free and malloc.  BLOCK_INPUT around routines which we know
 	will call malloc.

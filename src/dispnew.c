@@ -28,7 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* cm.h must come after dispextern.h on Windows.  */
 #include "dispextern.h"
 #include "cm.h"
-#include "character.h"
 #include "buffer.h"
 #include "keyboard.h"
 #include "frame.h"
@@ -36,12 +35,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "window.h"
 #include "commands.h"
 #include "disptab.h"
-#include "indent.h"
-#include "intervals.h"
 #include "blockinput.h"
-#include "process.h"
-
 #include "syssignal.h"
+#include "systime.h"
 #include "tparam.h"
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -55,7 +51,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <errno.h>
 
 #include <fpending.h>
-#include <timespec.h>
 
 #ifdef WINDOWSNT
 #include "w32.h"

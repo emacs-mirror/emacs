@@ -306,12 +306,28 @@ If the symbols for the current master file do not exist, they are created."
   (let
       ((master
         (cond
-         ((fboundp 'TeX-master-file) ; AUCTeX is loaded.  Use its mechanism.
+	 ;; Test if we're in a subfile using the subfiles document
+	 ;; class, e.g., \documentclass[main.tex]{subfiles}.  It's
+	 ;; argument is the main file, however it's not really the
+	 ;; master file in `TeX-master-file' or `tex-main-file's
+	 ;; sense.  It should be used for references but not for
+	 ;; compilation, thus subfiles use a setting of
+	 ;; `TeX-master'/`tex-main-file' being themselves.
+	 ((save-excursion
+            (goto-char (point-min))
+            (re-search-forward
+             "^[[:space:]]*\\\\documentclass\\[\\([[:word:].]+\\)\\]{subfiles}"
+             nil t))
+          (match-string-no-properties 1))
+         ;; AUCTeX is loaded.  Use its mechanism.
+         ((fboundp 'TeX-master-file)
           (condition-case nil
               (TeX-master-file t)
             (error (buffer-file-name))))
-         ((fboundp 'tex-main-file) (tex-main-file)) ; Emacs LaTeX mode
-         ((boundp 'TeX-master)       ; The variable is defined - let's use it.
+         ;; Emacs LaTeX mode
+         ((fboundp 'tex-main-file) (tex-main-file))
+         ;; Check the `TeX-master' variable.
+         ((boundp 'TeX-master)
           (cond
            ((eq TeX-master t)
             (buffer-file-name))
@@ -322,6 +338,7 @@ If the symbols for the current master file do not exist, they are created."
            (t
             (setq TeX-master (read-file-name "Master file: "
                                              nil nil t nil)))))
+         ;; Check the `tex-main-file' variable.
          ((boundp 'tex-main-file)
           ;; This is the variable from the default TeX modes.
           (cond
@@ -331,8 +348,9 @@ If the symbols for the current master file do not exist, they are created."
            (t
             ;; In this case, the buffer is its own master.
             (buffer-file-name))))
+         ;; We know nothing about master file.  Assume this is a
+         ;; master file.
          (t
-          ;; Know nothing about master file.  Assume this is a master file.
           (buffer-file-name)))))
     (cond
      ((null master)

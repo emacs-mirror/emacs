@@ -26,6 +26,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_CODING_H
 #define EMACS_CODING_H
 
+#include "lisp.h"
+
 /* Index to arguments of Fdefine_coding_system_internal.  */
 
 enum define_coding_system_arg_index

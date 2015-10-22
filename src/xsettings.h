@@ -20,6 +20,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef XSETTINGS_H
 #define XSETTINGS_H
 
+#include <X11/Xlib.h>
+
+struct x_display_info;
+
 extern void xsettings_initialize (struct x_display_info *);
 extern void xft_settings_event (struct x_display_info *, const XEvent *);
 extern const char *xsettings_get_system_font (void);

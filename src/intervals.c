@@ -43,10 +43,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <intprops.h>
 #include "lisp.h"
 #include "intervals.h"
-#include "character.h"
 #include "buffer.h"
 #include "puresize.h"
-#include "keyboard.h"
 #include "keymap.h"
 
 /* Test for membership, allowing for t (actually any non-cons) to mean the

@@ -28,21 +28,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <windows.h>
 
 #include "lisp.h"
-#include "character.h"
 #include "coding.h"
-#include "disptab.h"
-#include "frame.h"
-#include "window.h"
-#include "termhooks.h"
-#include "termchar.h"
-#include "dispextern.h"
+#include "termchar.h"	/* for FRAME_TTY */
 #include "menu.h"	/* for tty_menu_show */
 #include "w32term.h"
 #include "w32common.h"	/* for os_subtype */
 #include "w32inevt.h"
-
-/* from window.c */
-extern Lisp_Object Frecenter (Lisp_Object);
 
 static void w32con_move_cursor (struct frame *f, int row, int col);
 static void w32con_clear_to_end (struct frame *f);
@@ -297,7 +288,7 @@ w32con_write_glyphs (struct frame *f, register struct glyph *string,
 {
   DWORD r;
   WORD char_attr;
-  unsigned char *conversion_buffer;
+  LPCSTR conversion_buffer;
   struct coding_system *coding;
 
   if (len <= 0)
@@ -328,7 +319,7 @@ w32con_write_glyphs (struct frame *f, register struct glyph *string,
       if (n == len)
 	/* This is the last run.  */
 	coding->mode |= CODING_MODE_LAST_BLOCK;
-      conversion_buffer = encode_terminal_code (string, n, coding);
+      conversion_buffer = (LPCSTR) encode_terminal_code (string, n, coding);
       if (coding->produced > 0)
 	{
 	  /* Set the attribute for these characters.  */
@@ -365,7 +356,7 @@ w32con_write_glyphs_with_face (struct frame *f, register int x, register int y,
 			       register struct glyph *string, register int len,
 			       register int face_id)
 {
-  unsigned char *conversion_buffer;
+  LPCSTR conversion_buffer;
   struct coding_system *coding;
 
   if (len <= 0)
@@ -380,7 +371,7 @@ w32con_write_glyphs_with_face (struct frame *f, register int x, register int y,
      they all have the same face.  So this _is_ the last block.  */
   coding->mode |= CODING_MODE_LAST_BLOCK;
 
-  conversion_buffer = encode_terminal_code (string, len, coding);
+  conversion_buffer = (LPCSTR) encode_terminal_code (string, len, coding);
   if (coding->produced > 0)
     {
       DWORD filled, written;

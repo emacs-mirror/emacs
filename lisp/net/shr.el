@@ -463,7 +463,7 @@ size, and full-buffer size."
                                    ;; Adjust the window width for when
                                    ;; the user disables the fringes,
                                    ;; which causes the display engine
-                                   ;; usurp one coplumn for the
+                                   ;; to usurp one column for the
                                    ;; continuation glyph.
                                    (if (and (null shr-width)
                                             (or (zerop (fringe-columns 'right))

@@ -16,6 +16,10 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#ifndef EMACS_TERMCHAR_H
+#define EMACS_TERMCHAR_H
+
+#include <stdio.h>
 #include "dispextern.h"
 
 /* Each termcap frame points to its own struct tty_output object in
@@ -230,3 +234,5 @@ extern struct tty_display_info *tty_list;
    : (emacs_abort (), (struct tty_display_info *) 0))
 
 #define CURTTY() FRAME_TTY (SELECTED_FRAME())
+
+#endif /* EMACS_TERMCHAR_H */

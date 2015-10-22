@@ -76,11 +76,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "w32common.h"	/* os_subtype */
 #include "w32term.h"	/* for all of the w32 includes */
-#include "keyboard.h"
+#include "keyboard.h"	/* for waiting_for_input */
 #include "blockinput.h"
-#include "charset.h"
 #include "coding.h"
-#include "composite.h"
 
 #ifdef CYGWIN
 #include <string.h>
@@ -513,7 +511,7 @@ setup_config (void)
   cfg_clipboard_type = CF_TEXT;
 
   /* Interpret the coding system symbol name */
-  coding_name = SDATA (SYMBOL_NAME (cfg_coding_system));
+  coding_name = SSDATA (SYMBOL_NAME (cfg_coding_system));
 
   /* "(.*-)?utf-16.*" -> CF_UNICODETEXT */
   cp = strstr (coding_name, "utf-16");
@@ -857,7 +855,7 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data,
       {
 	int i;
 
-	nbytes = strlen (src);
+	nbytes = strlen ((char *)src);
 
 	for (i = 0; i < nbytes; i++)
 	  {

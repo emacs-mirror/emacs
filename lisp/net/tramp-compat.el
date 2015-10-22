@@ -105,12 +105,6 @@
   (unless (boundp 'remote-file-name-inhibit-cache)
     (defvar remote-file-name-inhibit-cache nil))
 
-  ;; `directory-listing-before-filename-regexp' does not exist in
-  ;; XEmacs.  Since we use it only in tramp-adb.el, it doesn't harm to
-  ;; declare it here.
-  (unless (boundp 'directory-listing-before-filename-regexp)
-      (defvar directory-listing-before-filename-regexp nil))
-
   ;; For not existing functions, or functions with a changed argument
   ;; list, there are compiler warnings.  We want to avoid them in
   ;; cases we know what we do.

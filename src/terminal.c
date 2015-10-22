@@ -21,11 +21,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 
 #include "lisp.h"
+#include "character.h"
 #include "frame.h"
 #include "termchar.h"
 #include "termhooks.h"
-#include "charset.h"
-#include "coding.h"
 #include "keyboard.h"
 
 #if HAVE_STRUCT_UNIPAIR_UNICODE

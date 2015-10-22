@@ -1750,7 +1750,7 @@ else
       bmd_acc="${bmd_acc}:${bmd}/bitmaps"
     fi
   done
-  bitmapdir=${bmdacc#:}
+  bitmapdir=${bmd_acc#:}
 fi
 
 test "${with_ns}" = maybe && test "${opsys}" != darwin && with_ns=no

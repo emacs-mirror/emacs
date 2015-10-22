@@ -461,7 +461,7 @@ there (in decreasing order of priority)."
 		    (cons (1- (car frame-size-history))
 			  (cons
 			   (list frame-initial-frame
-				 "frame-notice-user-settings"
+				 "FRAME-NOTICE-USER"
 				 nil newparms)
 			   (cdr frame-size-history)))))
 
@@ -702,7 +702,7 @@ the new frame according to its own rules."
     (when (numberp (car frame-size-history))
       (setq frame-size-history
 	    (cons (1- (car frame-size-history))
-		  (cons (list frame "make-frame")
+		  (cons (list frame "MAKE-FRAME")
 			(cdr frame-size-history)))))
 
     ;; We can run `window-configuration-change-hook' for this frame now.
@@ -1381,6 +1381,27 @@ and width values are in pixels.
        '(tool-bar-size 0 . 0)
        (cons 'internal-border-width
 	     (frame-parameter frame 'internal-border-width)))))))
+
+(defun frame--size-history (&optional frame)
+  "Print history of resize operations for FRAME.
+Print prettified version of `frame-size-history' into a buffer
+called *frame-size-history*.  Optional argument FRAME denotes the
+frame whose history will be printed.  FRAME defaults to the
+selected frame."
+  (let ((history (reverse frame-size-history))
+	entry)
+    (setq frame (window-normalize-frame frame))
+    (with-current-buffer (get-buffer-create "*frame-size-history*")
+      (erase-buffer)
+      (insert (format "Frame size history of %s\n" frame))
+      (while (listp (setq entry (pop history)))
+	(when (eq (car entry) frame)
+          (pop entry)
+          (insert (format "%s" (pop entry)))
+          (move-to-column 24 t)
+          (while entry
+            (insert (format " %s" (pop entry))))
+          (insert "\n"))))))
 
 (declare-function x-frame-edges "xfns.c" (&optional frame type))
 (declare-function w32-frame-edges "w32fns.c" (&optional frame type))

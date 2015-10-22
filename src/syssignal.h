@@ -17,6 +17,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#ifndef EMACS_SYSSIGNAL_H
+#define EMACS_SYSSIGNAL_H
+
 #include <signal.h>
 
 extern void init_signals (bool);
@@ -72,3 +75,5 @@ char const *safe_strsignal (int) ATTRIBUTE_CONST;
 #endif
 
 void deliver_process_signal (int, signal_handler_t);
+
+#endif /* EMACS_SYSSIGNAL_H */

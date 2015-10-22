@@ -107,6 +107,8 @@ sk	Miroslav Vaško
 ** cusver-check from admin.el can help find new defcustoms missing
 :version tags.
 
+** Add a line to etc/HISTORY for the release version number and date.
+
 * BUGS
 
 ** Check for modes which bind M-s that conflicts with a new global binding M-s

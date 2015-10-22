@@ -1792,6 +1792,12 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
   "Read new incoming mail."
   (nnmail-get-new-mail-1 method exit-func temp group nil spool-func))
 
+(defun nnmail-get-new-mail-per-group ()
+  "Tell us whether the mail-sources specify that `nnmail-get-new-mail' should
+be called once per group or once for all groups."
+  (or (assq 'group mail-sources)
+      (assq 'directory mail-sources)))
+
 (defun nnmail-get-new-mail-1 (method exit-func temp
 			      group in-group spool-func)
   (let* ((sources mail-sources)
@@ -1804,7 +1810,8 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	       sources)
       (while (setq source (pop sources))
 	;; Use group's parameter
-	(when (eq (car source) 'group)
+	(when (and (eq (car source) 'group)
+		   group)
 	  (let ((mail-sources
 		 (list
 		  (gnus-group-find-parameter

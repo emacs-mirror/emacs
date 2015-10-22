@@ -23,6 +23,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef LWLIB_WIDGET_H
 #define LWLIB_WIDGET_H
 
+#include "../src/lisp.h"
+
 typedef enum
 {
   NO_CHANGE = 0,
@@ -96,7 +98,7 @@ typedef struct _widget_value
   /* Whether we should free the toolkit data slot when freeing the
      widget_value itself.  */
   bool free_toolkit_data;
-#endif  
+#endif
 
 } widget_value;
 

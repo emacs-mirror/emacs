@@ -23,6 +23,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <gnutls/gnutls.h>
 #include <gnutls/x509.h>
 
+#include "lisp.h"
+
 /* This limits the attempts to handshake per process (connection).  */
 #define GNUTLS_EMACS_HANDSHAKES_LIMIT 100
 

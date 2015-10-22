@@ -32,8 +32,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 
 #include "lisp.h"
-#include "systime.h"
-#include "sysselect.h"
 #include "frame.h"
 #include "termhooks.h"
 #include "xterm.h"

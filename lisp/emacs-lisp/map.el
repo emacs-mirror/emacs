@@ -46,11 +46,15 @@
 
 (pcase-defmacro map (&rest args)
   "pcase pattern matching map elements.
-Matches if the object is a map (list, hash-table or array), and
-binds values from ARGS to their corresponding elements of the map.
 
-ARGS can be a list elements of the form (KEY PAT), in which case
-KEY in an unquoted form.
+Matches if the object is a map (list, hash-table or array), and
+each PATTERN matches the corresponding elements of the map.
+
+Supernumerary elements of the map are ignored if fewer ARGS are
+given, and the match does not fail.
+
+ARGS can be a list of the form (KEY PAT), in which case KEY in an
+unquoted form.
 
 ARGS can also be a list of symbols, which stands for ('SYMBOL
 SYMBOL)."

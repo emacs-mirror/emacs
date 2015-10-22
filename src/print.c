@@ -24,19 +24,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "character.h"
+#include "coding.h"
 #include "buffer.h"
 #include "charset.h"
-#include "keyboard.h"
 #include "frame.h"
-#include "window.h"
 #include "process.h"
-#include "dispextern.h"
 #include "disptab.h"
-#include "termchar.h"
 #include "intervals.h"
 #include "blockinput.h"
-#include "termhooks.h"		/* For struct terminal.  */
-#include "font.h"
 
 #ifdef HAVE_XWIDGETS
 # include "xwidget.h"
@@ -45,6 +40,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <c-ctype.h>
 #include <float.h>
 #include <ftoastr.h>
+
+struct terminal;
 
 /* Avoid actual stack overflow in print.  */
 static ptrdiff_t print_depth;

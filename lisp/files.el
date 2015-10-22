@@ -4055,14 +4055,19 @@ such as SELinux context, list of ACL entries, etc."
   "Set extended attributes of file FILENAME to ATTRIBUTES.
 
 ATTRIBUTES must be an alist of file attributes as returned by
-`file-extended-attributes'."
-  (dolist (elt attributes)
-    (let ((attr (car elt))
-	  (val (cdr elt)))
-      (cond ((eq attr 'acl)
-	     (set-file-acl filename val))
-	    ((eq attr 'selinux-context)
-	     (set-file-selinux-context filename val))))))
+`file-extended-attributes'.
+Value is t if the function succeeds in setting the attributes."
+  (let (result rv)
+    (dolist (elt attributes)
+      (let ((attr (car elt))
+	    (val (cdr elt)))
+	(cond ((eq attr 'acl)
+               (setq rv (set-file-acl filename val)))
+	      ((eq attr 'selinux-context)
+               (setq rv (set-file-selinux-context filename val))))
+        (setq result (or result rv))))
+
+    result))
 
 (defun backup-buffer ()
   "Make a backup of the disk file visited by the current buffer, if appropriate.

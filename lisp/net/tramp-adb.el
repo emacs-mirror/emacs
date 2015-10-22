@@ -36,6 +36,7 @@
 (require 'tramp)
 
 ;; Pacify byte-compiler.
+(defvar directory-listing-before-filename-regexp)
 (defvar directory-sep-char)
 
 ;;;###tramp-autoload

@@ -497,7 +497,7 @@ This sets the values of: `cl-most-positive-float', `cl-most-negative-float',
 	(setq cl-least-positive-normalized-float y
 	      cl-least-negative-normalized-float (- y))
 	;; Divide down until value underflows to zero.
-	(setq x (/ 1 z) y x)
+	(setq x (/ z) y x)
 	(while (condition-case _ (> (/ x 2) 0) (arith-error nil))
 	  (setq x (/ x 2)))
 	(setq cl-least-positive-float x

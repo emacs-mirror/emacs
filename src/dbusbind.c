@@ -23,7 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <dbus/dbus.h>
 
 #include "lisp.h"
-#include "frame.h"
 #include "termhooks.h"
 #include "keyboard.h"
 #include "process.h"

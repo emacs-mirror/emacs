@@ -52,7 +52,10 @@
 #undef _Alignas
 #undef _Alignof
 
-#if !defined __STDC_VERSION__ || __STDC_VERSION__ < 201112
+/* GCC releases before GCC 4.9 had a bug in _Alignof.  See GCC bug 52023
+   <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52023>.  */
+#if (!defined __STDC_VERSION__ || __STDC_VERSION__ < 201112 \
+     || (defined __GNUC__ && __GNUC__ < 4 + (__GNUC_MINOR__ < 9)))
 # ifdef __cplusplus
 #  if 201103 <= __cplusplus
 #   define _Alignof(type) alignof (type)

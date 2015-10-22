@@ -722,7 +722,17 @@ suitable guess made using the variables @code{lpr-command} and
 @cindex compressing files (in Dired)
 @item Z
 Compress the specified files (@code{dired-do-compress}).  If the file
-appears to be a compressed file already, uncompress it instead.
+appears to be a compressed file already, uncompress it instead.  Each
+marked file is compressed into its own archive.
+
+@findex dired-do-compress-to
+@kindex c @r{(Dired)}
+@cindex compressing files (in Dired)
+@item c
+Compress the specified files (@code{dired-do-compress-to}) into a
+single archive anywhere on the file system. The compression algorithm
+is determined by the extension of the archive, see
+@code{dired-compress-files-alist}.
 
 @findex epa-dired-do-decrypt
 @kindex :d @r{(Dired)}

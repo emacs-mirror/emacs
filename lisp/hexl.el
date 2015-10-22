@@ -406,7 +406,7 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
 
 
 (defun hexl-isearch-search-function ()
-  (if (and (not isearch-regexp) (not isearch-word))
+  (if (and (not isearch-regexp) (not isearch-regexp-function))
       (lambda (string &optional bound noerror count)
 	(funcall
 	 (if isearch-forward 're-search-forward 're-search-backward)

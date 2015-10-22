@@ -26,6 +26,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_FONTSET_H
 #define EMACS_FONTSET_H
 
+#include "lisp.h"
+
+struct face;
+
 extern void free_face_fontset (struct frame *, struct face *);
 extern int face_for_char (struct frame *, struct face *, int,
                           ptrdiff_t, Lisp_Object);

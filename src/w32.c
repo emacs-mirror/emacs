@@ -67,7 +67,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef localtime
 
 #include "lisp.h"
-#include "epaths.h"	/* for SHELL */
+#include "epaths.h"	/* for PATH_EXEC */
 
 #include <pwd.h>
 #include <grp.h>
@@ -224,20 +224,22 @@ typedef struct _REPARSE_DATA_BUFFER {
 
 #include <iphlpapi.h>	/* should be after winsock2.h */
 
+#include <c-strcase.h>
+
 #include "w32.h"
 #include <dirent.h>
 #include "w32common.h"
-#include "w32heap.h"
 #include "w32select.h"
-#include "systime.h"
+#include "systime.h"		/* for current_timespec, struct timespec */
 #include "dispextern.h"		/* for xstrcasecmp */
 #include "coding.h"		/* for Vlocale_coding_system */
 
 #include "careadlinkat.h"
 #include "allocator.h"
 
-/* For serial_configure and serial_open.  */
+/* For Lisp_Process, serial_configure and serial_open.  */
 #include "process.h"
+#include "systty.h"
 
 typedef HRESULT (WINAPI * ShGetFolderPath_fn)
   (IN HWND, IN int, IN HANDLE, IN DWORD, OUT char *);

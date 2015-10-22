@@ -37,12 +37,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "keyboard.h"
 #include "frame.h"
-#include "dispextern.h"
-#include "window.h"
 #include "blockinput.h"
-#include "termhooks.h"
-#include "termchar.h"
-#include "w32heap.h"
+#include "termchar.h"	/* for Mouse_HLInfo, tty_display_info */
 #include "w32term.h"
 #include "w32inevt.h"
 

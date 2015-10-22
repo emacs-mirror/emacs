@@ -932,7 +932,7 @@ If it is a file, return the corresponding cons for the file itself."
 
 (defun vc-dir-resynch-file (&optional fname)
   "Update the entries for FNAME in any directory buffers that list it."
-  (let ((file (or fname (expand-file-name buffer-file-name)))
+  (let ((file (expand-file-name (or fname buffer-file-name)))
         (drop '()))
     (save-current-buffer
       ;; look for a vc-dir buffer that might show this file.

@@ -26,13 +26,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "character.h"
+#include "composite.h"
 #include "buffer.h"
 #include "coding.h"
 #include "intervals.h"
-#include "window.h"
 #include "frame.h"
 #include "dispextern.h"
-#include "font.h"
 #include "termhooks.h"
 
 

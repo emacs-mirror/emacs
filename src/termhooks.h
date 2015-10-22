@@ -23,7 +23,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Miscellanea.   */
 
+#include "lisp.h"
 #include "systime.h" /* for Time */
+
+struct glyph;
 
 INLINE_HEADER_BEGIN
 

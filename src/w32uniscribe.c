@@ -33,11 +33,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "w32term.h"
 #include "frame.h"
-#include "dispextern.h"
-#include "character.h"
-#include "charset.h"
 #include "composite.h"
-#include "fontset.h"
 #include "font.h"
 #include "w32font.h"
 
@@ -779,7 +775,6 @@ uniscribe_check_otf_1 (HDC context, Lisp_Object script, Lisp_Object lang,
   int max_tags = ARRAYELTS (tags);
   int ntags, i, ret = 0;
   HRESULT rslt;
-  Lisp_Object rest;
 
   *retval = 0;
 

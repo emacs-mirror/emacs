@@ -22,8 +22,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_FONT_H
 #define EMACS_FONT_H
 
-#include "ccl.h"
-#include "frame.h"
+struct composition_it;
+struct face;
+struct glyph_string;
 
 INLINE_HEADER_BEGIN
 

@@ -21,10 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include "lisp.h"
-#include "character.h"
 #include "buffer.h"
-#include "commands.h"
-#include "window.h"
 
 /* Last buffer for which undo information was recorded.  */
 /* BEWARE: This is not traced by the GC, so never dereference it!  */

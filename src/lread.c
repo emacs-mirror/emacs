@@ -31,6 +31,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <math.h>
 #include <stat-time.h>
 #include "lisp.h"
+#include "dispextern.h"
 #include "intervals.h"
 #include "character.h"
 #include "buffer.h"
@@ -39,7 +40,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <epaths.h>
 #include "commands.h"
 #include "keyboard.h"
-#include "frame.h"
+#include "systime.h"
 #include "termhooks.h"
 #include "blockinput.h"
 

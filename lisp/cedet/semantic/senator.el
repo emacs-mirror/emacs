@@ -813,7 +813,7 @@ Use a senator search function when semantic isearch mode is enabled."
    (concat (if senator-isearch-semantic-mode
                "senator-"
              "")
-           (cond (isearch-word "word-")
+           (cond (isearch-regexp-function "word-")
                  (isearch-regexp "re-")
                  (t ""))
            "search-"

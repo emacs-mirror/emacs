@@ -2711,7 +2711,11 @@ Note: :data and :device are currently not supported on Windows."
 (declare-function w32-shell-dos-semantics "w32-fns" nil)
 
 (defun shell-quote-argument (argument)
-  "Quote ARGUMENT for passing as argument to an inferior shell."
+  "Quote ARGUMENT for passing as argument to an inferior shell.
+
+This function is designed to work with the syntax of your system's
+standard shell, and might produce incorrect results with unusual shells.
+See Info node `(elisp)Security Considerations'."
   (cond
    ((eq system-type 'ms-dos)
     ;; Quote using double quotes, but escape any existing quotes in

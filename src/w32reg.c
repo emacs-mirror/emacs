@@ -21,7 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "lisp.h"
-#include "w32term.h"
+#include "w32term.h"	/* for XrmDatabase, xrdb */
 #include "blockinput.h"
 
 #include <stdio.h>
@@ -73,7 +73,7 @@ w32_get_rdb_resource (char *rdb, const char *resource)
   return NULL;
 }
 
-static LPBYTE
+static char *
 w32_get_string_resource (const char *name, const char *class, DWORD dwexptype)
 {
   LPBYTE lpvalue = NULL;
@@ -134,7 +134,7 @@ w32_get_string_resource (const char *name, const char *class, DWORD dwexptype)
       /* Check if there are Windows specific defaults defined.  */
       return w32_get_rdb_resource (SYSTEM_DEFAULT_RESOURCES, name);
     }
-  return (lpvalue);
+  return (char *)lpvalue;
 }
 
 /* Retrieve the string resource specified by NAME with CLASS from

@@ -52,11 +52,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <strftime.h>
 #include <verify.h>
 
+#include "composite.h"
 #include "intervals.h"
 #include "character.h"
 #include "buffer.h"
 #include "coding.h"
-#include "frame.h"
 #include "window.h"
 #include "blockinput.h"
 

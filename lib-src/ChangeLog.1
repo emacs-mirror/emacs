@@ -456,7 +456,7 @@
 	* update-game-score.c: Include inttypes.h, stdbool.h.
 	(min): New macro, if not already defined.
 	(MAX_SCORES, main): Limit the maximum number of scores only from
-	limits imposed by the underyling platform, instead of the
+	limits imposed by the underlying platform, instead of the
 	arbitrary value 200.
 	(struct score_entry, main, read_score, write_score):
 	Scores are now intmax_t, not long.

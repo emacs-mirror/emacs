@@ -23,10 +23,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <gio/gio.h>
 #include "lisp.h"
 #include "coding.h"
-#include "frame.h"
 #include "termhooks.h"
 #include "keyboard.h"
-#include "process.h"
 
 
 /* This is a list, elements are triples (DESCRIPTOR FILE FLAGS CALLBACK)  */

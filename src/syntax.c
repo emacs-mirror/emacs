@@ -23,12 +23,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/types.h>
 
 #include "lisp.h"
-#include "commands.h"
 #include "character.h"
 #include "buffer.h"
-#include "keymap.h"
 #include "regex.h"
-
 #include "syntax.h"
 #include "intervals.h"
 #include "category.h"

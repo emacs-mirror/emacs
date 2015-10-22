@@ -10383,13 +10383,13 @@
 	(todo-move-category): Keep the moved category's name unless the
 	file moved to already has a category with that name.  If the
 	numerically last category of the source file was moved, make the
-	first category current to avoid selecting a nonexisting category.
+	first category current to avoid selecting a nonexistent category.
 	(todo-merge-category): Fix implementation to make merging to a
 	category in another file work as documented.  Eliminate now
 	insufficient and unnecessary renaming of archive category, correct
 	document string accordingly, and clarify it.  If the numerically
 	last category of the source file was merged, make the first
-	category current to avoid selecting a nonexisting category.
+	category current to avoid selecting a nonexistent category.
 	(todo-archive-done-item): When there are marked items and point
 	happens to be on an unmarked item, ignore the latter.  Don't leave
 	point below last item after archiving marked items.

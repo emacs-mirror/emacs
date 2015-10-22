@@ -28,7 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "blockinput.h"
-#include "syssignal.h"
 
 /* This may include sys/types.h, and that somehow loses
    if this is not done before the other system files.  */
@@ -58,12 +57,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/stat.h>
-/* Caused redefinition of DBL_DIG on Netbsd; seems not to be needed.  */
-/* #include <sys/param.h>  */
-
-#include "charset.h"
 #include "character.h"
 #include "coding.h"
+#include "composite.h"
 #include "frame.h"
 #include "dispextern.h"
 #ifdef HAVE_XWIDGETS
@@ -74,17 +70,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termopts.h"
 #include "termchar.h"
 #include "emacs-icon.h"
-#include "disptab.h"
 #include "buffer.h"
 #include "window.h"
 #include "keyboard.h"
-#include "intervals.h"
-#include "process.h"
 #include "atimer.h"
-#include "keymap.h"
 #include "font.h"
 #include "xsettings.h"
-#include "xgselect.h"
 #include "sysselect.h"
 #include "menu.h"
 
@@ -2218,7 +2209,7 @@ x_query_colors (struct frame *f, XColor *colors, int ncolors)
 	 the 0xff00 we'd get by just zero-filling the lower bits.
 
          We generate a 32-bit scaled-up value and shift it, in case
-         the bit count doesn't divide 16 evently (e.g., when dealing
+         the bit count doesn't divide 16 evenly (e.g., when dealing
          with a 3-3-2 bit RGB display), to get more of the lower bits
          correct.
 
@@ -8416,7 +8407,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
         {
           XNextEvent (dpyinfo->display, &next_event);
           if (next_event.type != ConfigureNotify
-              || next_event.xconfigure.window != event->xconfigure.window)
+              || next_event.xconfigure.window != event->xconfigure.window
+              /* Skipping events with different sizes can lead to a
+                 mispositioned mode line at initial window creation.
+                 Only drop window motion events for now.  */
+              || next_event.xconfigure.width != event->xconfigure.width
+              || next_event.xconfigure.height != event->xconfigure.height)
             {
               XPutBackEvent (dpyinfo->display, &next_event);
               break;
@@ -9593,6 +9589,10 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 {
   struct font *font = XFONT_OBJECT (font_object);
   int unit, font_ascent, font_descent;
+#ifndef USE_X_TOOLKIT
+  int old_menu_bar_height = FRAME_MENU_BAR_HEIGHT (f);
+  Lisp_Object fullscreen;
+#endif
 
   if (fontset < 0)
     fontset = fontset_from_font (font_object);
@@ -9629,9 +9629,25 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 	 doing it because it's done in Fx_show_tip, and it leads to
 	 problems because the tip frame has no widget.  */
       if (NILP (tip_frame) || XFRAME (tip_frame) != f)
+	{
 	  adjust_frame_size (f, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
 			     FRAME_LINES (f) * FRAME_LINE_HEIGHT (f), 3,
 			     false, Qfont);
+#ifndef USE_X_TOOLKIT
+	  if (FRAME_MENU_BAR_HEIGHT (f) != old_menu_bar_height
+	      && !f->after_make_frame
+	      && (EQ (frame_inhibit_implied_resize, Qt)
+		  || (CONSP (frame_inhibit_implied_resize)
+		      && NILP (Fmemq (Qfont, frame_inhibit_implied_resize))))
+	      && (NILP (fullscreen = get_frame_param (f, Qfullscreen))
+		  || EQ (fullscreen, Qfullwidth)))
+	    /* If the menu bar height changes, try to keep text height
+	       constant.  */
+	    adjust_frame_size
+	      (f, -1, FRAME_TEXT_HEIGHT (f) + FRAME_MENU_BAR_HEIGHT (f)
+	       - old_menu_bar_height, 1, false, Qfont);
+#endif /* USE_X_TOOLKIT  */
+	}
     }
 
 #ifdef HAVE_X_I18N
@@ -10563,7 +10579,7 @@ x_set_window_size_1 (struct frame *f, bool change_gravity,
   if (EQ (fullscreen, Qfullwidth) && width == FRAME_TEXT_WIDTH (f))
     {
       frame_size_history_add
-	(f, Qxg_frame_set_char_size_1, width, height,
+	(f, Qx_set_window_size_1, width, height,
 	 list2 (make_number (old_height),
 		make_number (pixelheight + FRAME_MENUBAR_HEIGHT (f))));
 
@@ -10573,7 +10589,7 @@ x_set_window_size_1 (struct frame *f, bool change_gravity,
   else if (EQ (fullscreen, Qfullheight) && height == FRAME_TEXT_HEIGHT (f))
     {
       frame_size_history_add
-	(f, Qxg_frame_set_char_size_2, width, height,
+	(f, Qx_set_window_size_2, width, height,
 	 list2 (make_number (old_width), make_number (pixelwidth)));
 
       XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
@@ -10583,10 +10599,11 @@ x_set_window_size_1 (struct frame *f, bool change_gravity,
   else
     {
       frame_size_history_add
-	(f, Qxg_frame_set_char_size_3, width, height,
-	 list2 (make_number (pixelwidth + FRAME_TOOLBAR_WIDTH (f)),
+	(f, Qx_set_window_size_3, width, height,
+	 list3 (make_number (pixelwidth + FRAME_TOOLBAR_WIDTH (f)),
 		make_number (pixelheight + FRAME_TOOLBAR_HEIGHT (f)
-			     + FRAME_MENUBAR_HEIGHT (f))));
+			     + FRAME_MENUBAR_HEIGHT (f)),
+		make_number (FRAME_MENUBAR_HEIGHT (f))));
 
       XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		     pixelwidth, pixelheight + FRAME_MENUBAR_HEIGHT (f));
@@ -11356,8 +11373,8 @@ x_wm_set_size_hint (struct frame *f, long flags, bool user_position)
   size_hints.x = f->left_pos;
   size_hints.y = f->top_pos;
 
-  size_hints.height = FRAME_PIXEL_HEIGHT (f);
   size_hints.width = FRAME_PIXEL_WIDTH (f);
+  size_hints.height = FRAME_PIXEL_HEIGHT (f);
 
   size_hints.width_inc = frame_resize_pixelwise ? 1 : FRAME_COLUMN_WIDTH (f);
   size_hints.height_inc = frame_resize_pixelwise ? 1 : FRAME_LINE_HEIGHT (f);
@@ -11370,34 +11387,21 @@ x_wm_set_size_hint (struct frame *f, long flags, bool user_position)
   /* Calculate the base and minimum sizes.  */
   {
     int base_width, base_height;
-    int min_rows = 0, min_cols = 0;
 
     base_width = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, 0);
     base_height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 0);
-
-    if (frame_resize_pixelwise)
-      /* Needed to prevent a bad protocol error crash when making the
-	 frame size very small.  */
-      {
-	min_cols = 2 * min_cols;
-	min_rows = 2 * min_rows;
-      }
 
     /* The window manager uses the base width hints to calculate the
        current number of rows and columns in the frame while
        resizing; min_width and min_height aren't useful for this
        purpose, since they might not give the dimensions for a
-       zero-row, zero-column frame.
-
-       We use the base_width and base_height members if we have
-       them; otherwise, we set the min_width and min_height members
-       to the size for a zero x zero frame.  */
+       zero-row, zero-column frame.  */
 
     size_hints.flags |= PBaseSize;
     size_hints.base_width = base_width;
     size_hints.base_height = base_height + FRAME_MENUBAR_HEIGHT (f);
-    size_hints.min_width  = base_width + min_cols * FRAME_COLUMN_WIDTH (f);
-    size_hints.min_height = base_height + min_rows * FRAME_LINE_HEIGHT (f);
+    size_hints.min_width  = base_width;
+    size_hints.min_height = base_height;
   }
 
   /* If we don't need the old flags, we don't need the old hint at all.  */

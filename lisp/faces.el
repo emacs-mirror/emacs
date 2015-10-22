@@ -1598,6 +1598,13 @@ is given, in which case return its value instead."
 	  result
 	no-match-retval))))
 
+;; When over 80 faces get processed at frame creation time, all but
+;; one specifying all attributes as "unspecified", generating this
+;; list every time means a lot of consing.
+(defconst face--attributes-unspecified
+  (apply 'append
+         (mapcar (lambda (x) (list (car x) 'unspecified))
+                 face-attribute-name-alist)))
 
 (defun face-spec-reset-face (face &optional frame)
   "Reset all attributes of FACE on FRAME to unspecified."
@@ -1622,9 +1629,7 @@ is given, in which case return its value instead."
 				     "unspecified-fg"
 				   "unspecified-bg")))))
 	   ;; For all other faces, unspecify all attributes.
-	   (apply 'append
-		  (mapcar (lambda (x) (list (car x) 'unspecified))
-			  face-attribute-name-alist)))))
+           face--attributes-unspecified)))
 
 (defun face-spec-set (face spec &optional spec-type)
   "Set the face spec SPEC for FACE.

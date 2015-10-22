@@ -25,15 +25,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "keyboard.h"
-#include "keymap.h"
 #include "frame.h"
-#include "termhooks.h"
-#include "window.h"
 #include "blockinput.h"
-#include "character.h"
 #include "buffer.h"
-#include "charset.h"
-#include "coding.h"
+#include "coding.h"	/* for ENCODE_SYSTEM */
 #include "menu.h"
 
 /* This may include sys/types.h, and that somehow loses
@@ -53,8 +48,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef makedev
 #include <sys/types.h>
 #endif
-
-#include "dispextern.h"
 
 #include "w32common.h"	/* for osinfo_cache */
 
@@ -1104,14 +1097,14 @@ simple_dialog_show (struct frame *f, Lisp_Object contents, Lisp_Object header)
 
       if (STRINGP (temp))
 	{
-	  char *utf8_text = SDATA (ENCODE_UTF_8 (temp));
+	  char *utf8_text = SSDATA (ENCODE_UTF_8 (temp));
 	  /* Be pessimistic about the number of characters needed.
 	     Remember characters outside the BMP will take more than
 	     one utf16 word, so we cannot simply use the character
 	     length of temp.  */
 	  int utf8_len = strlen (utf8_text);
 	  text = SAFE_ALLOCA ((utf8_len + 1) * sizeof (WCHAR));
-	  utf8to16 (utf8_text, utf8_len, text);
+	  utf8to16 ((unsigned char *)utf8_text, utf8_len, text);
 	}
       else
 	{
@@ -1140,7 +1133,7 @@ simple_dialog_show (struct frame *f, Lisp_Object contents, Lisp_Object header)
 	 encoding so questions representable by the system codepage
 	 are encoded properly.  */
       if (STRINGP (temp))
-	text = SDATA (ENCODE_SYSTEM (temp));
+	text = SSDATA (ENCODE_SYSTEM (temp));
       else
 	text = "";
 
@@ -1353,7 +1346,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
       else
 	utf16_string = SAFE_ALLOCA ((utf8_len + 1) * sizeof (WCHAR));
 
-      utf8to16 (out_string, utf8_len, utf16_string);
+      utf8to16 ((unsigned char *)out_string, utf8_len, utf16_string);
       return_value = unicode_append_menu (menu, fuFlags,
 					  item != NULL ? (UINT_PTR) item
 					    : (UINT_PTR) wv->call_data,

@@ -23,13 +23,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <limits.h> /* for INT_MAX */
 
 #include "lisp.h"
+#include "character.h"
+#include "coding.h"
 #include "keyboard.h"
 #include "keymap.h"
 #include "frame.h"
 #include "window.h"
 #include "termhooks.h"
 #include "blockinput.h"
-#include "dispextern.h"
 #include "buffer.h"
 
 #ifdef USE_X_TOOLKIT

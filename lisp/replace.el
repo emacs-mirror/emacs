@@ -2013,7 +2013,7 @@ It is called with three arguments, as if it were
   ;; outside of this function because then another I-search
   ;; used after `recursive-edit' might override them.
   (let* ((isearch-regexp regexp-flag)
-	 (isearch-word (or delimited-flag
+	 (isearch-regexp-function (or delimited-flag
                            (and replace-character-fold
                                 (not regexp-flag)
                                 #'character-fold-to-regexp)))
@@ -2046,7 +2046,7 @@ It is called with three arguments, as if it were
   (if query-replace-lazy-highlight
       (let ((isearch-string search-string)
 	    (isearch-regexp regexp-flag)
-	    (isearch-word delimited-flag)
+	    (isearch-regexp-function delimited-flag)
 	    (isearch-lax-whitespace
 	     replace-lax-whitespace)
 	    (isearch-regexp-lax-whitespace

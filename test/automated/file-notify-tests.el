@@ -62,7 +62,8 @@
 (defvar file-notify--test-event nil)
 (defvar file-notify--test-events nil)
 (defun file-notify--test-timeout ()
-  (if (file-remote-p temporary-file-directory) 6 3))
+  "Timeout to wait for arriving events, in seconds."
+  (if (file-remote-p temporary-file-directory) 10 3))
 
 (defun file-notify--test-cleanup ()
   "Cleanup after a test."
@@ -324,12 +325,24 @@ Don't wait longer than TIMEOUT seconds for the events to be delivered."
                  file-notify--test-tmpfile
                  '(attribute-change) 'file-notify--test-event-handler))
           (file-notify--test-with-events
-              (file-notify--test-timeout) '(attribute-changed attribute-changed)
+              (file-notify--test-timeout) '(attribute-changed)
             (write-region
              "any text" nil file-notify--test-tmpfile nil 'no-message)
             (set-file-modes file-notify--test-tmpfile 000)
-            (read-event nil nil 0.1) ; In order to distinguish the events.
-            (set-file-times file-notify--test-tmpfile '(0 0))
+            (delete-file file-notify--test-tmpfile))
+          (file-notify-rm-watch file-notify--test-desc)
+
+          ;; With gfilenotify, there are timing issues with attribute
+          ;; changes in a short time period.  So we apply 2 tests.
+          (setq file-notify--test-desc
+                (file-notify-add-watch
+                 file-notify--test-tmpfile
+                 '(attribute-change) 'file-notify--test-event-handler))
+          (file-notify--test-with-events
+              (file-notify--test-timeout) '(attribute-changed)
+            (write-region
+             "any text" nil file-notify--test-tmpfile nil 'no-message)
+            (set-file-modes file-notify--test-tmpfile 000)
             (delete-file file-notify--test-tmpfile))
           (file-notify-rm-watch file-notify--test-desc))
 

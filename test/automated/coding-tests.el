@@ -36,7 +36,7 @@
       (let (test-file)
         (or (file-directory-p coding-tests-workdir)
             (mkdir coding-tests-workdir t))
-        (setq test-file (expand-file-name "nonexisting" coding-tests-workdir))
+        (setq test-file (expand-file-name "nonexistent" coding-tests-workdir))
         (if (file-exists-p test-file)
             (delete-file test-file))
         (should-error

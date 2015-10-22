@@ -23,10 +23,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "character.h"
 #include "buffer.h"
-#include "commands.h"
 #include "keyboard.h"
 #include "window.h"
-#include "keymap.h"
 
 static Lisp_Object preserved_fns;
 

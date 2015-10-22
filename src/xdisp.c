@@ -292,7 +292,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "atimer.h"
+#include "composite.h"
 #include "keyboard.h"
+#include "systime.h"
 #include "frame.h"
 #include "window.h"
 #include "termchar.h"
@@ -303,13 +305,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "indent.h"
 #include "commands.h"
 #include "keymap.h"
-#include "macros.h"
 #include "disptab.h"
 #include "termhooks.h"
 #include "termopts.h"
 #include "intervals.h"
 #include "coding.h"
-#include "process.h"
 #include "region-cache.h"
 #include "font.h"
 #include "fontset.h"
@@ -12393,6 +12393,7 @@ PIXELWISE non-nil means return the height of the tool bar in pixels.  */)
 static bool
 redisplay_tool_bar (struct frame *f)
 {
+  f->tool_bar_redisplayed = true;
 #if defined (USE_GTK) || defined (HAVE_NS)
 
   if (FRAME_EXTERNAL_TOOL_BAR (f))
@@ -13860,6 +13861,7 @@ redisplay_internal (void)
 	      bool gcscrollbars
 		/* Only GC scrollbars when we redisplay the whole frame.  */
 		= f->redisplay || !REDISPLAY_SOME_P ();
+	      bool f_redisplay_flag = f->redisplay;
 	      /* Mark all the scroll bars to be removed; we'll redeem
 		 the ones we want when we redisplay their windows.  */
 	      if (gcscrollbars && FRAME_TERMINAL (f)->condemn_scroll_bars_hook)
@@ -13902,6 +13904,20 @@ redisplay_internal (void)
 		      if (hscroll_windows (f->root_window))
 			goto retry_frame;
 		    }
+
+		  /* If the frame's redisplay flag was not set before
+		     we went about redisplaying its windows, but it is
+		     set now, that means we employed some redisplay
+		     optimizations inside redisplay_windows, and
+		     bypassed producing some screen lines.  But if
+		     f->redisplay is now set, it might mean the old
+		     faces are no longer valid (e.g., if redisplaying
+		     some window called some Lisp which defined a new
+		     face or redefined an existing face), so trying to
+		     use them in update_frame will segfault.
+		     Therefore, we must redisplay this frame.  */
+		  if (!f_redisplay_flag && f->redisplay)
+		    goto retry_frame;
 
 		  /* Prevent various kinds of signals during display
 		     update.  stdio is not robust about handling
@@ -13956,8 +13972,10 @@ redisplay_internal (void)
       /* Compare desired and current matrices, perform output.  */
 
     update:
-      /* If fonts changed, display again.  */
-      if (sf->fonts_changed)
+      /* If fonts changed, display again.  Likewise if redisplay_window_1
+	 above caused some change (e.g., a change in faces) that requires
+	 considering the entire frame again.  */
+      if (sf->fonts_changed || sf->redisplay)
 	goto retry;
 
       /* Prevent freeing of realized faces, since desired matrices are

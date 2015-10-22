@@ -25,14 +25,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <X11/Xft/Xft.h>
 
 #include "lisp.h"
-#include "dispextern.h"
 #include "xterm.h"
 #include "frame.h"
 #include "blockinput.h"
-#include "character.h"
 #include "charset.h"
 #include "composite.h"
-#include "fontset.h"
 #include "font.h"
 #include "ftfont.h"
 

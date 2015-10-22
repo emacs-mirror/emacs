@@ -38,7 +38,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "character.h"
 #include "buffer.h"
-#include "charset.h"
 #include "composite.h"
 #include "disptab.h"
 

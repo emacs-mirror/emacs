@@ -32,9 +32,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include "lisp.h"
-#include "process.h"
+#include "dispextern.h"
 #include "intervals.h"
 #include "puresize.h"
+#include "systime.h"
 #include "character.h"
 #include "buffer.h"
 #include "window.h"
@@ -178,11 +179,6 @@ static ptrdiff_t pure_size;
    If this is non-zero, this implies that an overflow occurred.  */
 
 static ptrdiff_t pure_bytes_used_before_overflow;
-
-/* True if P points into pure space.  */
-
-#define PURE_POINTER_P(P)					\
-  ((uintptr_t) (P) - (uintptr_t) purebeg <= pure_size)
 
 /* Index in pure at which next pure Lisp object will be allocated..  */
 
@@ -404,6 +400,28 @@ static void *
 ALIGN (void *ptr, int alignment)
 {
   return (void *) ROUNDUP ((uintptr_t) ptr, alignment);
+}
+
+/* Extract the pointer hidden within A, if A is not a symbol.
+   If A is a symbol, extract the hidden pointer's offset from lispsym,
+   converted to void *.  */
+
+static void *
+XPNTR_OR_SYMBOL_OFFSET (Lisp_Object a)
+{
+  intptr_t i = USE_LSB_TAG ? XLI (a) - XTYPE (a) : XLI (a) & VALMASK;
+  return (void *) i;
+}
+
+/* Extract the pointer hidden within A.  */
+
+static void *
+XPNTR (Lisp_Object a)
+{
+  void *p = XPNTR_OR_SYMBOL_OFFSET (a);
+  if (SYMBOLP (a))
+    p = (intptr_t) p + (char *) lispsym;
+  return p;
 }
 
 static void
@@ -1587,9 +1605,7 @@ string_bytes (struct Lisp_String *s)
   ptrdiff_t nbytes =
     (s->size_byte < 0 ? s->size & ~ARRAY_MARK_FLAG : s->size_byte);
 
-  if (!PURE_POINTER_P (s)
-      && s->data
-      && nbytes != SDATA_NBYTES (SDATA_OF_STRING (s)))
+  if (!PURE_P (s) && s->data && nbytes != SDATA_NBYTES (SDATA_OF_STRING (s)))
     emacs_abort ();
   return nbytes;
 }
@@ -4463,9 +4479,6 @@ live_buffer_p (struct mem_node *m, void *p)
 static void
 mark_maybe_object (Lisp_Object obj)
 {
-  void *po;
-  struct mem_node *m;
-
 #if USE_VALGRIND
   if (valgrind_p)
     VALGRIND_MAKE_MEM_DEFINED (&obj, sizeof (obj));
@@ -4474,12 +4487,12 @@ mark_maybe_object (Lisp_Object obj)
   if (INTEGERP (obj))
     return;
 
-  po = (void *) XPNTR (obj);
-  m = mem_find (po);
+  void *po = XPNTR (obj);
+  struct mem_node *m = mem_find (po);
 
   if (m != MEM_NIL)
     {
-      bool mark_p = 0;
+      bool mark_p = false;
 
       switch (XTYPE (obj))
 	{
@@ -4860,14 +4873,11 @@ valid_pointer_p (void *p)
 int
 valid_lisp_object_p (Lisp_Object obj)
 {
-  void *p;
-  struct mem_node *m;
-
   if (INTEGERP (obj))
     return 1;
 
-  p = (void *) XPNTR (obj);
-  if (PURE_POINTER_P (p))
+  void *p = XPNTR (obj);
+  if (PURE_P (p))
     return 1;
 
   if (SYMBOLP (obj) && c_symbol_p (p))
@@ -4876,7 +4886,7 @@ valid_lisp_object_p (Lisp_Object obj)
   if (p == &buffer_defaults || p == &buffer_local_symbols)
     return 2;
 
-  m = mem_find (p);
+  struct mem_node *m = mem_find (p);
 
   if (m == MEM_NIL)
     {
@@ -5155,7 +5165,9 @@ Does not copy symbols.  Copies strings without text properties.  */)
 static Lisp_Object
 purecopy (Lisp_Object obj)
 {
-  if (PURE_POINTER_P (XPNTR (obj)) || INTEGERP (obj) || SUBRP (obj))
+  if (INTEGERP (obj)
+      || (! SYMBOLP (obj) && PURE_P (XPNTR_OR_SYMBOL_OFFSET (obj)))
+      || SUBRP (obj))
     return obj;    /* Already pure.  */
 
   if (STRINGP (obj) && XSTRING (obj)->intervals)
@@ -5976,7 +5988,7 @@ mark_object (Lisp_Object arg)
  loop:
 
   po = XPNTR (obj);
-  if (PURE_POINTER_P (po))
+  if (PURE_P (po))
     return;
 
   last_marked[last_marked_index++] = obj;
@@ -6213,7 +6225,7 @@ mark_object (Lisp_Object arg)
 	    break;
 	  default: emacs_abort ();
 	  }
-	if (!PURE_POINTER_P (XSTRING (ptr->name)))
+	if (!PURE_P (XSTRING (ptr->name)))
 	  MARK_STRING (XSTRING (ptr->name));
 	MARK_INTERVAL_TREE (string_intervals (ptr->name));
 	/* Inner loop to mark next symbol in this bucket, if any.  */
@@ -6360,7 +6372,7 @@ survives_gc_p (Lisp_Object obj)
       emacs_abort ();
     }
 
-  return survives_p || PURE_POINTER_P ((void *) XPNTR (obj));
+  return survives_p || PURE_P (XPNTR (obj));
 }
 
 

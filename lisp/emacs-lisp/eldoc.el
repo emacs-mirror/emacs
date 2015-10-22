@@ -410,6 +410,7 @@ return any documentation.")
 
 ;; Prime the command list.
 (eldoc-add-command-completions
+ "back-to-indentation"
  "backward-" "beginning-of-" "delete-other-windows" "delete-window"
  "down-list" "end-of-" "exchange-point-and-mark" "forward-" "goto-"
  "handle-select-window" "indent-for-tab-command" "left-" "mark-page"

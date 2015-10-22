@@ -16,7 +16,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#include "dispextern.h"
+#ifndef EMACS_INTERVALS_H
+#define EMACS_INTERVALS_H
 
 INLINE_HEADER_BEGIN
 
@@ -292,6 +293,6 @@ extern int text_property_stickiness (Lisp_Object prop, Lisp_Object pos,
 
 extern void syms_of_textprop (void);
 
-#include "composite.h"
-
 INLINE_HEADER_END
+
+#endif /* EMACS_INTERVALS_H */

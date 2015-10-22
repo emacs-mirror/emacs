@@ -1487,6 +1487,7 @@ Operating System Interface
 * Desktop Notifications::   Desktop notifications.
 * File Notifications::      File notifications.
 * Dynamic Libraries::       On-demand loading of support libraries.
+* Security Considerations:: Running Emacs in an unfriendly environment.
 
 Starting Up Emacs
 

@@ -29,6 +29,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <ctype.h>
 #include <io.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include <signal.h>
 #include <sys/file.h>
 #include <mbstring.h>
@@ -59,12 +60,9 @@ extern BOOL WINAPI IsValidLocale (LCID, DWORD);
 #include "w32.h"
 #include "w32common.h"
 #include "w32heap.h"
-#include "systime.h"
-#include "syswait.h"
-#include "process.h"
+#include "syswait.h"	/* for WNOHANG */
 #include "syssignal.h"
 #include "w32term.h"
-#include "dispextern.h"		/* for xstrcasecmp */
 #include "coding.h"
 
 #define RVA_TO_PTR(var,section,filedata) \
@@ -1757,7 +1755,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
 	  return -1;
 	}
       program = ENCODE_FILE (full);
-      cmdname = SDATA (program);
+      cmdname = SSDATA (program);
     }
   else
     {
@@ -1779,7 +1777,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
   /* We explicitly require that the command's file name be encodable
      in the current ANSI codepage, because we will be invoking it via
      the ANSI APIs.  */
-  if (_mbspbrk (cmdname_a, "?"))
+  if (_mbspbrk ((unsigned char *)cmdname_a, (const unsigned char *)"?"))
     {
       errno = ENOENT;
       return -1;
@@ -2179,7 +2177,7 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 	    cp = fd_info[i].cp;
 	    if (FD_ISSET (i, &owfds)
 		&& cp
-		&& (fd_info[i].flags && FILE_CONNECT) == 0)
+		&& (fd_info[i].flags & FILE_CONNECT) == 0)
 	      {
 		DebPrint (("sys_select: fd %d is in wfds, but FILE_CONNECT is reset!\n", i));
 		cp = NULL;
@@ -2881,7 +2879,7 @@ All path elements in FILENAME are converted to their short names.  */)
   filename = Fexpand_file_name (filename, Qnil);
 
   /* luckily, this returns the short version of each element in the path.  */
-  if (w32_get_short_filename (SDATA (ENCODE_FILE (filename)),
+  if (w32_get_short_filename (SSDATA (ENCODE_FILE (filename)),
 			      shortname, MAX_PATH) == 0)
     return Qnil;
 
@@ -2911,7 +2909,7 @@ All path elements in FILENAME are converted to their long names.  */)
   /* first expand it.  */
   filename = Fexpand_file_name (filename, Qnil);
 
-  if (!w32_get_long_filename (SDATA (ENCODE_FILE (filename)), longname,
+  if (!w32_get_long_filename (SSDATA (ENCODE_FILE (filename)), longname,
 			      MAX_UTF8_PATH))
     return Qnil;
 
@@ -3011,12 +3009,12 @@ such programs cannot be invoked by Emacs anyway.  */)
 
   program = Fexpand_file_name (program, Qnil);
   encoded_progname = ENCODE_FILE (program);
-  progname = SDATA (encoded_progname);
+  progname = SSDATA (encoded_progname);
   unixtodos_filename (progname);
   filename_to_ansi (progname, progname_a);
   /* Reject file names that cannot be encoded in the current ANSI
      codepage.  */
-  if (_mbspbrk (progname_a, "?"))
+  if (_mbspbrk ((unsigned char *)progname_a, (const unsigned char *)"?"))
     return Qunknown;
 
   if (w32_executable_type (progname_a, &is_dos_app, &is_cygwin_app,

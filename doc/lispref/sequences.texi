@@ -743,6 +743,25 @@ it is a function of two arguments to use instead of the default @code{equal}.
 
 @end defun
 
+@defun seq-position sequence elt &optional function
+  This function returns the index of the first element in
+@var{sequence} that is equal to @var{elt}.  If the optional argument
+@var{function} is non-@code{nil}, it is a function of two arguments to
+use instead of the default @code{equal}.
+
+@example
+@group
+(seq-position '(a b c) 'b)
+@result{} 1
+@end group
+@group
+(seq-position '(a b c) 'd)
+@result{} nil
+@end group
+@end example
+@end defun
+
+
 @defun seq-uniq sequence &optional function
   This function returns a list of the elements of @var{sequence} with
 duplicates removed.  If the optional argument @var{function} is non-@code{nil},

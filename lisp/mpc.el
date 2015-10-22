@@ -44,7 +44,6 @@
 ;; - visual feedback for drag'n'drop
 ;; - display/set `repeat' and `random' state (and maybe also `crossfade').
 ;; - allow multiple *mpc* sessions in the same Emacs to control different mpds.
-;; - look for .folder.png (freedesktop) or folder.jpg (XP) as well.
 ;; - fetch album covers and lyrics from the web?
 ;; - improve MPC-Status: better volume control, add a way to show/hide the
 ;;   rest, plus add the buttons currently in the toolbar.
@@ -92,7 +91,9 @@
 ;; UI-commands       : mpc-
 ;; internal          : mpc--
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'subr-x))
 
 (defgroup mpc ()
   "Client for the Music Player Daemon (mpd)."
@@ -795,6 +796,22 @@ The songs are returned as alists."
   ;; (setq mpc-queue-back nil mpc-queue nil)
   )
 
+(defun mpc-cmd-consume (&optional arg)
+  "Set consume mode state."
+  (mpc-proc-cmd (list "consume" arg) #'mpc-status-refresh))
+
+(defun mpc-cmd-random (&optional arg)
+  "Set random (shuffle) mode state."
+  (mpc-proc-cmd (list "random" arg) #'mpc-status-refresh))
+
+(defun mpc-cmd-repeat (&optional arg)
+  "Set repeat mode state."
+  (mpc-proc-cmd (list "repeat" arg) #'mpc-status-refresh))
+
+(defun mpc-cmd-single (&optional arg)
+  "Set single mode state."
+  (mpc-proc-cmd (list "single" arg) #'mpc-status-refresh))
+
 (defun mpc-cmd-pause (&optional arg callback)
   "Pause or resume playback of the queue of songs."
   (let ((cb callback))
@@ -1009,27 +1026,30 @@ If PLAYLIST is t or nil or missing, use the main playlist."
                                                (substring time (match-end 0))
                                              time)))))
                     (`Cover
-                     (let* ((dir (file-name-directory (cdr (assq 'file info))))
-                            (cover (concat dir "cover.jpg"))
-                            (file (with-demoted-errors "MPC: %s"
-                                    (mpc-file-local-copy cover)))
-                            image)
+                     (let ((dir (file-name-directory
+                                 (mpc-file-local-copy (cdr (assq 'file info))))))
                        ;; (debug)
                        (push `(equal ',dir (file-name-directory (cdr (assq 'file info)))) pred)
-                       (if (null file)
-                           ;; Make sure we return something on which we can
-                           ;; place the `mpc-pred' property, as
-                           ;; a negative-cache.  We could also use
-                           ;; a default cover.
-                           (progn (setq size nil) " ")
-                         (if (null size) (setq image (create-image file))
-                           (let ((tempfile (make-temp-file "mpc" nil ".jpg")))
-                             (call-process "convert" nil nil nil
-                                           "-scale" size file tempfile)
-                             (setq image (create-image tempfile))
-                             (mpc-tempfiles-add image tempfile)))
-                         (setq size nil)
-                         (propertize dir 'display image))))
+                       (if-let ((covers '(".folder.png" "cover.jpg" "folder.jpg"))
+                                (cover (cl-loop for file in (directory-files dir)
+                                                if (member (downcase file) covers)
+                                                return (concat dir file)))
+                                (file (with-demoted-errors "MPC: %s"
+                                        (mpc-file-local-copy cover))))
+                           (let (image)
+                             (if (null size) (setq image (create-image file))
+                               (let ((tempfile (make-temp-file "mpc" nil ".jpg")))
+                                 (call-process "convert" nil nil nil
+                                               "-scale" size file tempfile)
+                                 (setq image (create-image tempfile))
+                                 (mpc-tempfiles-add image tempfile)))
+                             (setq size nil)
+                             (propertize dir 'display image))
+                         ;; Make sure we return something on which we can
+                         ;; place the `mpc-pred' property, as
+                         ;; a negative-cache.  We could also use
+                         ;; a default cover.
+                         (progn (setq size nil) " "))))
                     (_ (let ((val (cdr (assq tag info))))
                          ;; For Streaming URLs, there's no other info
                          ;; than the URL in `file'.  Pretend it's in `Title'.
@@ -1086,8 +1106,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
 ;;; The actual UI code ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defvar mpc-mode-map
-  (let ((map (make-keymap)))
-    (suppress-keymap map)
+  (let ((map (make-sparse-keymap)))
     ;; (define-key map "\e" 'mpc-stop)
     (define-key map "q" 'mpc-quit)
     (define-key map "\r" 'mpc-select)
@@ -1106,11 +1125,28 @@ If PLAYLIST is t or nil or missing, use the main playlist."
     ;; is applied elsewhere :-(
     ;; (define-key map [(double mouse-2)] 'mpc-play-at-point)
     (define-key map "p" 'mpc-pause)
+    (define-key map "s" 'mpc-toggle-play)
+    (define-key map ">" 'mpc-next)
+    (define-key map "<" 'mpc-prev)
+    (define-key map "g" nil)
     map))
 
 (easy-menu-define mpc-mode-menu mpc-mode-map
   "Menu for MPC.el."
   '("MPC.el"
+    ["Play/Pause" mpc-toggle-play]      ;FIXME: Add one of ⏯/▶/⏸ in there?
+    ["Next Track" mpc-next]             ;FIXME: Add ⇥ there?
+    ["Previous Track" mpc-prev]         ;FIXME: Add ⇤ there?
+    "--"
+    ["Repeat Playlist" mpc-toggle-repeat :style toggle
+     :selected (member '(repeat . "1") mpc-status)]
+    ["Shuffle Playlist" mpc-toggle-shuffle :style toggle
+     :selected (member '(random . "1") mpc-status)]
+    ["Repeat Single Track" mpc-toggle-single :style toggle
+     :selected (member '(single . "1") mpc-status)]
+    ["Consume Mode" mpc-toggle-consume :style toggle
+     :selected (member '(consume . "1") mpc-status)]
+    "--"
     ["Add new browser" mpc-tagbrowser]
     ["Update DB" mpc-update]
     ["Quit" mpc-quit]))
@@ -1154,10 +1190,9 @@ If PLAYLIST is t or nil or missing, use the main playlist."
      :help "Append to the playlist")
     map))
 
-(define-derived-mode mpc-mode fundamental-mode "MPC"
+(define-derived-mode mpc-mode special-mode "MPC"
   "Major mode for the features common to all buffers of MPC."
   (buffer-disable-undo)
-  (setq buffer-read-only t)
   (if (boundp 'tool-bar-map)            ; not if --without-x
       (setq-local tool-bar-map mpc-tool-bar-map))
   (setq-local truncate-lines t))
@@ -1260,7 +1295,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
   (let ((ol (make-overlay
              (line-beginning-position) (line-beginning-position 2))))
     (overlay-put ol 'mpc-select t)
-    (overlay-put ol 'face 'region)
+    (overlay-put ol 'face 'highlight)
     (overlay-put ol 'evaporate t)
     (push ol mpc-select)))
 
@@ -1559,7 +1594,7 @@ when constructing the set of constraints."
           (move-overlay mpc-tagbrowser-all-ol
                         (point) (line-beginning-position 2))
         (let ((ol (make-overlay (point) (line-beginning-position 2))))
-          (overlay-put ol 'face 'region)
+          (overlay-put ol 'face 'highlight)
           (overlay-put ol 'evaporate t)
           (setq-local mpc-tagbrowser-all-ol ol))))))
 
@@ -1821,7 +1856,8 @@ A value of t means the main playlist.")
         (mpc-volume-widget
          (string-to-number (cdr (assq 'volume mpc-status)))))
   (let ((status-buf (mpc-proc-buffer (mpc-proc) 'status)))
-    (when status-buf (with-current-buffer status-buf (force-mode-line-update)))))
+    (when (buffer-live-p status-buf)
+      (with-current-buffer status-buf (force-mode-line-update)))))
 
 (defvar mpc-volume-step 5)
 
@@ -1879,7 +1915,6 @@ A value of t means the main playlist.")
 
 (defvar mpc-songs-mode-map
   (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map mpc-mode-map)
     (define-key map [remap mpc-select] 'mpc-songs-jump-to)
     map))
 
@@ -1957,7 +1992,7 @@ This is used so that they can be compared with `eq', which is needed for
             ;; I punt on it and just use file-name sorting, which does the
             ;; right thing if your library is properly arranged.
             (dolist (song (if dontsort active
-                            (sort active
+                            (sort (copy-sequence active)
                                   (lambda (song1 song2)
                                     (let ((cmp (mpc-compare-strings
                                                 (cdr (assq 'file song1))
@@ -2327,6 +2362,30 @@ This is used so that they can be compared with `eq', which is needed for
     (mpc-status-stop)
     (if proc (delete-process proc))))
 
+(defun mpc-toggle-consume ()
+  "Toggle consume mode: removing played songs from the playlist."
+  (interactive)
+  (mpc-cmd-consume
+   (if (string= "0" (cdr (assq 'consume (mpc-cmd-status)))) "1" "0")))
+
+(defun mpc-toggle-repeat ()
+  "Toggle repeat mode."
+  (interactive)
+  (mpc-cmd-repeat
+   (if (string= "0" (cdr (assq 'repeat (mpc-cmd-status)))) "1" "0")))
+
+(defun mpc-toggle-single ()
+  "Toggle single mode."
+  (interactive)
+  (mpc-cmd-single
+   (if (string= "0" (cdr (assq 'single (mpc-cmd-status)))) "1" "0")))
+
+(defun mpc-toggle-shuffle ()
+  "Toggle shuffling of the playlist (random mode)."
+  (interactive)
+  (mpc-cmd-random
+   (if (string= "0" (cdr (assq 'random (mpc-cmd-status)))) "1" "0")))
+
 (defun mpc-stop ()
   "Stop playing the current queue of songs."
   (interactive)
@@ -2343,6 +2402,16 @@ This is used so that they can be compared with `eq', which is needed for
   "Resume playing."
   (interactive)
   (mpc-cmd-pause "0"))
+
+(defun mpc-toggle-play ()
+  "Toggle between play and pause.
+If stopped, start playback."
+  (interactive)
+  (if (member (cdr (assq 'state (mpc-cmd-status))) '("stop"))
+      (mpc-cmd-play)
+    (if (member (cdr (assq 'state (mpc-cmd-status))) '("pause"))
+        (mpc-resume)
+      (mpc-pause))))
 
 (defun mpc-play ()
   "Start playing whatever is selected."

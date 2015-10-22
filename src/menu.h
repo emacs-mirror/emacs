@@ -19,7 +19,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef MENU_H
 #define MENU_H
 
-#include "systime.h" /* for Time */
 #include "../lwlib/lwlib-widget.h"
 
 /* Bit fields used by terminal-specific menu_show_hook.  */

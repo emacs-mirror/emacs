@@ -1365,8 +1365,11 @@ x_set_window_size (struct frame *f,
     FRAME_TOOLBAR_HEIGHT (f) =
       NSHeight ([window frameRectForContentRect: NSMakeRect (0, 0, 0, 0)])
         - FRAME_NS_TITLEBAR_HEIGHT (f);
+#if 0
+      /* Only breaks things here, removed by martin 2015-09-30.  */
 #ifdef NS_IMPL_GNUSTEP
       FRAME_TOOLBAR_HEIGHT (f) -= 3;
+#endif
 #endif
     }
   else
@@ -1385,6 +1388,14 @@ x_set_window_size (struct frame *f,
    f->output_data.ns->zooming = 0;
  else
    wr.origin.y += orig_height - wr.size.height;
+
+ frame_size_history_add
+   (f, Qx_set_window_size_1, width, height,
+    list5 (Fcons (make_number (pixelwidth), make_number (pixelheight)),
+	   Fcons (make_number (wr.size.width), make_number (wr.size.height)),
+	   make_number (f->border_width),
+	   make_number (FRAME_NS_TITLEBAR_HEIGHT (f)),
+	   make_number (FRAME_TOOLBAR_HEIGHT (f))));
 
   [view setRows: rows andColumns: cols];
   [window setFrame: wr display: YES];
@@ -7741,8 +7752,9 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 
   /* Now make the frame display the given font.  */
   if (FRAME_NS_WINDOW (f) != 0 && ! [view isFullscreen])
-    x_set_window_size (f, false, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
-                       FRAME_LINES (f) * FRAME_LINE_HEIGHT (f), true);
+    adjust_frame_size (f, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
+		       FRAME_LINES (f) * FRAME_LINE_HEIGHT (f), 3,
+		       false, Qfont);
 
   return font_object;
 }

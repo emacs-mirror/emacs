@@ -178,6 +178,10 @@ build will run on Windows 9X and newer systems).
   command "mingw-get remove msys-texinfo", or mark "msys-texinfo" for
   removal in the mingw-get GUI, then select Installation->Apply Changes.)
 
+  (Similarly, we recommend to refrain from installing the MinGW
+  Automake and Autoconf packages; instead, install their MSYS builds
+  available from the ezwinports site, see below.)
+
   At this point, you should be ready to configure and build Emacs in
   its basic configuration.  Skip to the "Generating the configure
   script" section for the build instructions.  If you want to build it

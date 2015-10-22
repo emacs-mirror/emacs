@@ -19,6 +19,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef KEYMAP_H
 #define KEYMAP_H
 
+#include "lisp.h"
+
 /* The maximum byte size consumed by push_key_description.
    All callers should assure that at least this size of memory is
    allocated at the place pointed by the second argument.

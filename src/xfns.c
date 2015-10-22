@@ -24,23 +24,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "xterm.h"
-#include "menu.h"
 #include "frame.h"
 #include "window.h"
-#include "character.h"
 #include "buffer.h"
-#include "intervals.h"
 #include "dispextern.h"
 #include "keyboard.h"
 #include "blockinput.h"
-#include <epaths.h>
 #include "charset.h"
 #include "coding.h"
-#include "fontset.h"
-#include "systime.h"
 #include "termhooks.h"
-#include "atimer.h"
-#include "termchar.h"
 #include "font.h"
 
 #include <sys/types.h>
@@ -1090,7 +1082,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 #else /* not USE_X_TOOLKIT && not USE_GTK */
   FRAME_MENU_BAR_LINES (f) = nlines;
   FRAME_MENU_BAR_HEIGHT (f) = nlines * FRAME_LINE_HEIGHT (f);
-  adjust_frame_size (f, -1, -1, 2, true, Qmenu_bar_lines);
+  adjust_frame_size (f, -1, -1, 2, true, Qx_set_menu_bar_lines);
   if (FRAME_X_WINDOW (f))
     x_clear_under_internal_border (f);
 
@@ -1212,13 +1204,23 @@ x_change_tool_bar_height (struct frame *f, int height)
 
   /* Recalculate toolbar height.  */
   f->n_tool_bar_rows = 0;
+  if (old_height == 0
+      && (!f->after_make_frame
+	  || NILP (frame_inhibit_implied_resize)
+	  || (CONSP (frame_inhibit_implied_resize)
+	      && NILP (Fmemq (Qtool_bar_lines, frame_inhibit_implied_resize)))))
+    f->tool_bar_redisplayed = f->tool_bar_resized = false;
 
   adjust_frame_size (f, -1, -1,
-		     ((NILP (fullscreen = get_frame_param (f, Qfullscreen))
-		       || EQ (fullscreen, Qfullwidth)) ? 1
+		     ((!f->tool_bar_resized
+		       && (NILP (fullscreen =
+				 get_frame_param (f, Qfullscreen))
+			   || EQ (fullscreen, Qfullwidth))) ? 1
 		      : (old_height == 0 || height == 0) ? 2
 		      : 4),
 		     false, Qtool_bar_lines);
+
+  f->tool_bar_resized = f->tool_bar_redisplayed;
 
   /* adjust_frame_size might not have done anything, garbage frame
      here.  */
@@ -3001,6 +3003,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   struct x_display_info *dpyinfo = NULL;
   Lisp_Object parent;
   struct kboard *kb;
+  int x_width = 0, x_height = 0;
 
   parms = Fcopy_alist (parms);
 
@@ -3275,7 +3278,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
                        FRAME_TOOL_BAR_POSITION (f), 0, 0, RES_TYPE_SYMBOL);
 
   /* Compute the size of the X window.  */
-  window_prompting = x_figure_window_size (f, parms, true);
+  window_prompting = x_figure_window_size (f, parms, true, &x_width, &x_height);
 
   tem = x_get_arg (dpyinfo, parms, Qunsplittable, 0, 0, RES_TYPE_BOOLEAN);
   f->no_split = minibuffer_only || EQ (tem, Qt);
@@ -3317,12 +3320,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
   x_default_parameter (f, parms, Qalpha, Qnil,
 		       "alpha", "Alpha", RES_TYPE_NUMBER);
 
-  /* Consider frame official, now.  */
-  f->can_x_set_window_size = true;
-
-  adjust_frame_size (f, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f), 0, true,
-		     Qx_create_frame_2);
-
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
   /* Create the menu bar.  */
   if (!minibuffer_only && FRAME_EXTERNAL_MENU_BAR (f))
@@ -3341,12 +3338,23 @@ This function is an internal primitive--use `make-frame' instead.  */)
     }
 #endif /* USE_X_TOOLKIT || USE_GTK */
 
+  /* Consider frame official, now.  */
+  f->can_x_set_window_size = true;
+
+  if (x_width > 0)
+    SET_FRAME_WIDTH (f, x_width);
+  if (x_height > 0)
+    SET_FRAME_HEIGHT (f, x_height);
+
   /* Tell the server what size and position, etc, we want, and how
      badly we want them.  This should be done after we have the menu
      bar so that its size can be taken into account.  */
   block_input ();
   x_wm_set_size_hint (f, window_prompting, false);
   unblock_input ();
+
+  adjust_frame_size (f, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f),
+		     0, true, Qx_create_frame_2);
 
   /* Process fullscreen parameter here in the hope that normalizing a
      fullheight/fullwidth frame will produce the size set by the last
@@ -5161,6 +5169,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
   bool face_change_before = face_change;
   Lisp_Object buffer;
   struct buffer *old_buffer;
+  int x_width = 0, x_height = 0;
 
   if (!dpyinfo->terminal->name)
     error ("Terminal is not live, can't create new frames on it");
@@ -5333,7 +5342,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
 
   f->output_data.x->parent_desc = FRAME_DISPLAY_INFO (f)->root_window;
 
-  x_figure_window_size (f, parms, false);
+  x_figure_window_size (f, parms, false, &x_width, &x_height);
 
   {
     XSetWindowAttributes attrs;

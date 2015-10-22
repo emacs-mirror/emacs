@@ -31,9 +31,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "character.h"
+#include "coding.h"
 #include "buffer.h"
 #include "disptab.h"
-#include "keyboard.h"
 #include "keymap.h"
 
 /* Buffer used for reading from documentation file.  */

@@ -29,17 +29,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    */
 
 #include <config.h>
+#include "widget.h"
+
 #include <stdio.h>
 
 #include "lisp.h"
 #include "xterm.h"
-
-#include "keyboard.h"
 #include "frame.h"
-#include "window.h"
-
-#include "dispextern.h"
-#include "blockinput.h"
 
 #include <X11/StringDefs.h>
 #include <X11/IntrinsicP.h>
@@ -49,10 +45,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <X11/Shell.h>
 #include <X11/ShellP.h>
 #include "../lwlib/lwlib.h"
-
-#include "character.h"
-#include "font.h"
-
 
 static void EmacsFrameInitialize (Widget request, Widget new, ArgList dum1, Cardinal *dum2);
 static void EmacsFrameDestroy (Widget widget);
@@ -268,167 +260,26 @@ set_frame_size (EmacsFrame ew)
    */
 
   /* Hairily merged geometry */
-  int w = FRAME_COLS (ew->emacs_frame.frame);
-  int h = FRAME_LINES (ew->emacs_frame.frame);
-
+  struct frame *f = ew->emacs_frame.frame;
+  int w = FRAME_COLS (f);
+  int h = FRAME_LINES (f);
   Widget wmshell = get_wm_shell ((Widget) ew);
+  Dimension pixel_width, pixel_height;
   /* Each Emacs shell is now independent and top-level.  */
 
   if (! XtIsSubclass (wmshell, shellWidgetClass)) emacs_abort ();
 
-  /* We don't need this for the moment. The geometry is computed in
-     xfns.c.  */
-#if 0
-  /* If the EmacsFrame doesn't have a geometry but the shell does,
-     treat that as the geometry of the frame.  (Is this bogus?
-     I'm not sure.) */
-  if (ew->emacs_frame.geometry == 0)
-    XtVaGetValues (wmshell, XtNgeometry, &ew->emacs_frame.geometry, NULL);
+  char_to_pixel_size (ew, w, h, &pixel_width, &pixel_height);
+  ew->core.width = (frame_resize_pixelwise
+		    ? FRAME_PIXEL_WIDTH (f)
+		    : pixel_width);
+  ew->core.height = (frame_resize_pixelwise
+		     ? FRAME_PIXEL_HEIGHT (f)
+		     : pixel_height);
 
-  /* If the Shell is iconic, then the EmacsFrame is iconic.  (Is
-     this bogus? I'm not sure.) */
-  if (!ew->emacs_frame.iconic)
-    XtVaGetValues (wmshell, XtNiconic, &ew->emacs_frame.iconic, NULL);
-
-
-  {
-    char *geom = 0;
-    XtVaGetValues (app_shell, XtNgeometry, &geom, NULL);
-    if (geom)
-      app_flags = XParseGeometry (geom, &app_x, &app_y, &app_w, &app_h);
-  }
-
-  if (ew->emacs_frame.geometry)
-    frame_flags = XParseGeometry (ew->emacs_frame.geometry,
-				   &frame_x, &frame_y,
-				   &frame_w, &frame_h);
-
-  if (first_frame_p)
-    {
-      /* If this is the first frame created:
-         ====================================
-
-         - Use the ApplicationShell's size/position, if specified.
-           (This is "Emacs.geometry", or the "-geometry" command line arg.)
-         - Else use the EmacsFrame's size/position.
-           (This is "*Frame-NAME.geometry")
-
-	 - If the AppShell is iconic, the frame should be iconic.
-
-	 AppShell comes first so that -geometry always applies to the first
-	 frame created, even if there is an "every frame" entry in the
-	 resource database.
-       */
-      if (app_flags & (XValue | YValue))
-	{
-	  x = app_x; y = app_y;
-	  flags |= (app_flags & (XValue | YValue | XNegative | YNegative));
-	}
-      else if (frame_flags & (XValue | YValue))
-	{
-	  x = frame_x; y = frame_y;
-	  flags |= (frame_flags & (XValue | YValue | XNegative | YNegative));
-	}
-
-      if (app_flags & (WidthValue | HeightValue))
-	{
-	  w = app_w; h = app_h;
-	  flags |= (app_flags & (WidthValue | HeightValue));
-	}
-      else if (frame_flags & (WidthValue | HeightValue))
-	{
-	  w = frame_w; h = frame_h;
-	  flags |= (frame_flags & (WidthValue | HeightValue));
-	}
-
-      /* If the AppShell is iconic, then the EmacsFrame is iconic. */
-      if (!ew->emacs_frame.iconic)
-	XtVaGetValues (app_shell, XtNiconic, &ew->emacs_frame.iconic, NULL);
-
-      first_frame_p = False;
-    }
-  else
-    {
-      /* If this is not the first frame created:
-         ========================================
-
-         - use the EmacsFrame's size/position if specified
-         - Otherwise, use the ApplicationShell's size, but not position.
-
-         So that means that one can specify the position of the first frame
-         with "Emacs.geometry" or `-geometry'; but can only specify the
-	 position of subsequent frames with "*Frame-NAME.geometry".
-
-	 AppShell comes second so that -geometry does not apply to subsequent
-	 frames when there is an "every frame" entry in the resource db,
-	 but does apply to the first frame.
-       */
-      if (frame_flags & (XValue | YValue))
-	{
-	  x = frame_x; y = frame_y;
-	  flags |= (frame_flags & (XValue | YValue | XNegative | YNegative));
-	}
-
-      if (frame_flags & (WidthValue | HeightValue))
-	{
-	  w = frame_w; h = frame_h;
-	  flags |= (frame_flags & (WidthValue | HeightValue));
-	}
-      else if (app_flags & (WidthValue | HeightValue))
-	{
-	  w = app_w;
-	  h = app_h;
-	  flags |= (app_flags & (WidthValue | HeightValue));
-	}
-    }
-#endif /* 0 */
-  {
-    Dimension pixel_width, pixel_height;
-
-    /* Take into account the size of the scrollbar.  Always use the
-       number of columns occupied by the scroll bar here otherwise we
-       might end up with a frame width that is not a multiple of the
-       frame's character width which is bad for vertically split
-       windows.  */
-
-#if 0 /* This can run Lisp code, and it is dangerous to give
-	 out the frame to Lisp code before it officially exists.
-	 This is handled in Fx_create_frame so not needed here.  */
-    change_frame_size (f, w, h, 1, 0, 0, 0);
-#endif
-    char_to_pixel_size (ew, w, h, &pixel_width, &pixel_height);
-    ew->core.width = pixel_width;
-    ew->core.height = pixel_height;
-
-#if 0 /* xfns.c takes care of this now.  */
-    /* If a position was specified, assign it to the shell widget.
-       (Else WM won't do anything with it.)
-     */
-    if (flags & (XValue | YValue))
-      {
-	/* the tricky things with the sign is to make sure that
-	   -0 is printed -0. */
-	sprintf (shell_position, "=%c%d%c%d",
-		 flags & XNegative ? '-' : '+', x < 0 ? -x : x,
-		 flags & YNegative ? '-' : '+', y < 0 ? -y : y);
-	XtVaSetValues (wmshell, XtNgeometry, xstrdup (shell_position), NULL);
-      }
-    else if (flags & (WidthValue | HeightValue))
-      {
-	sprintf (shell_position, "=%dx%d", pixel_width, pixel_height);
-	XtVaSetValues (wmshell, XtNgeometry, xstrdup (shell_position), NULL);
-      }
-
-    /* If the geometry spec we're using has W/H components, mark the size
-       in the WM_SIZE_HINTS as user specified. */
-    if (flags & (WidthValue | HeightValue))
-      mark_shell_size_user_specified (wmshell);
-
-    /* Also assign the iconic status of the frame to the Shell, so that
-       the WM sees it. */
-    XtVaSetValues (wmshell, XtNiconic, ew->emacs_frame.iconic, NULL);
-#endif /* 0 */
-  }
+  frame_size_history_add
+    (f, Qset_frame_size, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f),
+     list2 (make_number (ew->core.width), make_number (ew->core.height)));
 }
 
 static void
@@ -486,16 +337,6 @@ update_various_frame_slots (EmacsFrame ew)
 {
   struct frame *f = ew->emacs_frame.frame;
 
-  /* Don't do that: It confuses the check in change_frame_size_1 whether
-     the pixel size of the frame changed due to a change of the internal
-     border width.  Bug#16736.  */
-  if (false)
-    {
-      struct x_output *x = f->output_data.x;
-      FRAME_PIXEL_HEIGHT (f) = ew->core.height + x->menubar_height;
-      FRAME_PIXEL_WIDTH (f) = ew->core.width;
-    }
-
   f->internal_border_width = ew->emacs_frame.internal_border_width;
 }
 
@@ -504,6 +345,7 @@ update_from_various_frame_slots (EmacsFrame ew)
 {
   struct frame *f = ew->emacs_frame.frame;
   struct x_output *x = f->output_data.x;
+
   ew->core.height = FRAME_PIXEL_HEIGHT (f) - x->menubar_height;
   ew->core.width = FRAME_PIXEL_WIDTH (f);
   ew->core.background_pixel = FRAME_BACKGROUND_PIXEL (f);
@@ -576,7 +418,10 @@ EmacsFrameResize (Widget widget)
 
   frame_size_history_add
     (f, QEmacsFrameResize, width, height,
-     list2 (make_number (ew->core.width), make_number (ew->core.height)));
+     list5 (make_number (ew->core.width), make_number (ew->core.height),
+	    make_number (FRAME_TOP_MARGIN_HEIGHT (f)),
+	    make_number (FRAME_SCROLL_BAR_AREA_HEIGHT (f)),
+	    make_number (2 * FRAME_INTERNAL_BORDER_WIDTH (f))));
 
   change_frame_size (f, width, height, 0, 1, 0, 1);
 
@@ -596,11 +441,12 @@ EmacsFrameQueryGeometry (Widget widget, XtWidgetGeometry *request, XtWidgetGeome
 
   if (mask & (CWWidth | CWHeight))
     {
-      round_size_to_char (ew,
-			  (mask & CWWidth) ? request->width : ew->core.width,
-			  ((mask & CWHeight) ? request->height
-			   : ew->core.height),
-			  &ok_width, &ok_height);
+      if (!frame_resize_pixelwise)
+	round_size_to_char (ew,
+			    (mask & CWWidth) ? request->width : ew->core.width,
+			    ((mask & CWHeight) ? request->height
+			     : ew->core.height),
+			    &ok_width, &ok_height);
       if ((mask & CWWidth) && (ok_width != request->width))
 	{
 	  result->request_mode |= CWWidth;

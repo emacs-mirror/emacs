@@ -1364,10 +1364,18 @@ If the archive version is too new, signal an error."
       (dolist (package contents)
         (package--add-to-archive-contents package archive)))))
 
+(defvar package--old-archive-priorities nil
+  "Store currently used `package-archive-priorities'.
+This is the value of `package-archive-priorities' last time
+`package-read-all-archive-contents' was called.  It can be used
+by arbitrary functions to decide whether it is necessary to call
+it again.")
+
 (defun package-read-all-archive-contents ()
   "Re-read `archive-contents', if it exists.
 If successful, set `package-archive-contents'."
   (setq package-archive-contents nil)
+  (setq package--old-archive-priorities package-archive-priorities)
   (dolist (archive package-archives)
     (package-read-archive-contents (car archive))))
 
@@ -2675,6 +2683,8 @@ KEYWORDS should be nil or a list of keywords."
             (push pkg info-list)))))
 
     ;; Available and disabled packages:
+    (unless (equal package--old-archive-priorities package-archive-priorities)
+      (package-read-all-archive-contents))
     (dolist (elt package-archive-contents)
       (let ((name (car elt)))
         ;; To be displayed it must be in PACKAGES;

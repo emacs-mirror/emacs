@@ -26,12 +26,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "w32term.h"
 #include "frame.h"
-#include "dispextern.h"
-#include "character.h"
-#include "charset.h"
-#include "coding.h"
-#include "fontset.h"
-#include "font.h"
+#include "coding.h"	/* for ENCODE_SYSTEM, DECODE_SYSTEM */
 #include "w32font.h"
 #ifdef WINDOWSNT
 #include "w32.h"
@@ -244,7 +239,7 @@ intern_font_name (char * string)
   Lisp_Object str = DECODE_SYSTEM (build_string (string));
   ptrdiff_t len = SCHARS (str);
   Lisp_Object obarray = check_obarray (Vobarray);
-  Lisp_Object tem = oblookup (obarray, SDATA (str), len, len);
+  Lisp_Object tem = oblookup (obarray, SSDATA (str), len, len);
   /* This code is similar to intern function from lread.c.  */
   return SYMBOLP (tem) ? tem : intern_driver (str, obarray, tem);
 }
@@ -1478,12 +1473,12 @@ add_font_entity_to_list (ENUMLOGFONTEX *logical_font,
      by a foundry, we accept raster fonts if the font name is found
      anywhere within the full name.  */
   if ((logical_font->elfLogFont.lfOutPrecision == OUT_STRING_PRECIS
-       && !strstr (logical_font->elfFullName,
+       && !strstr ((char *)logical_font->elfFullName,
 		   logical_font->elfLogFont.lfFaceName))
       /* Check for well known substitutions that mess things up in the
 	 presence of Type-1 fonts of the same name.  */
       || (!check_face_name (&logical_font->elfLogFont,
-			    logical_font->elfFullName)))
+			    (char *)logical_font->elfFullName)))
     return 1;
 
   /* Make a font entity for the font.  */
@@ -1660,7 +1655,7 @@ registry_to_w32_charset (Lisp_Object charset)
   else if (EQ (charset, Qiso8859_1))
     return ANSI_CHARSET;
   else if (SYMBOLP (charset))
-    return x_to_w32_charset (SDATA (SYMBOL_NAME (charset)));
+    return x_to_w32_charset (SSDATA (SYMBOL_NAME (charset)));
   else
     return DEFAULT_CHARSET;
 }
@@ -1782,7 +1777,7 @@ w32_to_x_charset (int fncharset, char *matching)
             || !SYMBOLP (XCAR (XCDR (this_entry))))
           continue;
 
-        x_charset = SDATA (XCAR (this_entry));
+        x_charset = SSDATA (XCAR (this_entry));
         w32_charset = XCAR (XCDR (this_entry));
         codepage = XCDR (XCDR (this_entry));
 
@@ -1987,7 +1982,7 @@ fill_in_logfont (struct frame *f, LOGFONT *logfont, Lisp_Object font_spec)
       else if (SYMBOLP (tmp))
 	{
 	  strncpy (logfont->lfFaceName,
-		   SDATA (ENCODE_SYSTEM (SYMBOL_NAME (tmp))), LF_FACESIZE);
+		   SSDATA (ENCODE_SYSTEM (SYMBOL_NAME (tmp))), LF_FACESIZE);
 	  logfont->lfFaceName[LF_FACESIZE-1] = '\0';
 	}
     }
@@ -2083,7 +2078,7 @@ list_all_matching_fonts (struct font_callback_data *match_data)
       if (NILP (family))
         continue;
       else if (SYMBOLP (family))
-        name = SDATA (ENCODE_SYSTEM (SYMBOL_NAME (family)));
+        name = SSDATA (ENCODE_SYSTEM (SYMBOL_NAME (family)));
       else
 	continue;
 

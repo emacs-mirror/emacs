@@ -93,13 +93,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "keyboard.h"
 #include "frame.h"
-#include "window.h"
 #include "termhooks.h"
 #include "termchar.h"
 #include "termopts.h"
-#include "dispextern.h"
 #include "process.h"
-#include "cm.h"  /* for reset_sys_modes */
+#include "cm.h"
 
 #ifdef WINDOWSNT
 #include <direct.h>

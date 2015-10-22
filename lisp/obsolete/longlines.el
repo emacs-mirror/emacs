@@ -464,7 +464,7 @@ This is called by `window-configuration-change-hook'."
 
 (defun longlines-search-function ()
   (cond
-   ((or isearch-word isearch-regexp) (isearch-search-fun-default))
+   ((or isearch-regexp-function isearch-regexp) (isearch-search-fun-default))
    (isearch-forward #'longlines-search-forward)
    (t #'longlines-search-backward)))
 

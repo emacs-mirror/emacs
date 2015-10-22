@@ -16,6 +16,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#ifndef EMACS_PROCESS_H
+#define EMACS_PROCESS_H
+
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
@@ -243,3 +246,5 @@ extern Lisp_Object network_interface_info (Lisp_Object);
 extern Lisp_Object remove_slash_colon (Lisp_Object);
 
 INLINE_HEADER_END
+
+#endif /* EMACS_PROCESS_H */

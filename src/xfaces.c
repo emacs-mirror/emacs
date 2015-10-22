@@ -206,10 +206,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "character.h"
-#include "charset.h"
-#include "keyboard.h"
 #include "frame.h"
-#include "termhooks.h"
 
 #ifdef USE_MOTIF
 #include <Xm/Xm.h>
@@ -237,7 +234,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "dispextern.h"
 #include "blockinput.h"
 #include "window.h"
-#include "intervals.h"
 #include "termchar.h"
 
 #include "font.h"

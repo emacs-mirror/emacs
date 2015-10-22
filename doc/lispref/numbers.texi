@@ -642,10 +642,11 @@ product.  When given no arguments, @code{*} returns 1.
 @end example
 @end defun
 
-@defun / dividend divisor &rest divisors
-This function divides @var{dividend} by @var{divisor} and returns the
-quotient.  If there are additional arguments @var{divisors}, then it
-divides @var{dividend} by each divisor in turn.  Each argument may be a
+@defun / number &rest divisors
+With one or more @var{divisors}, this function divides @var{number}
+by each divisor in @var{divisors} in turn, and returns the quotient.
+With no @var{divisors}, this function returns 1/@var{number}, i.e.,
+the multiplicative inverse of @var{number}.  Each argument may be a
 number or a marker.
 
 If all the arguments are integers, the result is an integer, obtained
@@ -671,6 +672,14 @@ by rounding the quotient towards zero after each division.
 @group
 (/ 5.0 2.0)
      @result{} 2.5
+@end group
+@group
+(/ 4.0)
+     @result{} 0.25
+@end group
+@group
+(/ 4)
+     @result{} 0
 @end group
 @group
 (/ 25 3 2)

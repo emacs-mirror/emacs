@@ -93,7 +93,7 @@ resulting list."
   "Compute hue from V1 and V2 H.
 Used internally by `color-hsl-to-rgb'."
   (cond
-   ((< h (/ 1.0 6))   (+ v1 (* (- v2 v1) h 6.0)))
+   ((< h (/ 6.0))     (+ v1 (* (- v2 v1) h 6.0)))
    ((< h 0.5)         v2)
    ((< h (/ 2.0 3))   (+ v1 (* (- v2 v1) (- (/ 2.0 3) h) 6.0)))
    (t                 v1)))
@@ -110,9 +110,9 @@ inclusive."
 		 (- (+ L S) (* L S))))
 	   (m1 (- (* 2.0 L) m2)))
       (list
-       (color-hue-to-rgb m1 m2 (mod (+ H (/ 1.0 3)) 1))
+       (color-hue-to-rgb m1 m2 (mod (+ H (/ 3.0)) 1))
        (color-hue-to-rgb m1 m2 H)
-       (color-hue-to-rgb m1 m2 (mod (- H (/ 1.0 3)) 1))))))
+       (color-hue-to-rgb m1 m2 (mod (- H (/ 3.0)) 1))))))
 
 (defun color-complement-hex (color)
   "Return the color that is the complement of COLOR, in hexadecimal format."
@@ -199,13 +199,13 @@ RED, GREEN and BLUE should be between 0.0 and 1.0, inclusive."
         (b (+ (* 0.0556434 X) (* -0.2040259 Y) (* 1.0572252 Z))))
     (list (if (<= r 0.0031308)
               (* 12.92 r)
-            (- (* 1.055 (expt r (/ 1 2.4))) 0.055))
+            (- (* 1.055 (expt r (/ 2.4))) 0.055))
           (if (<= g 0.0031308)
               (* 12.92 g)
-            (- (* 1.055 (expt g (/ 1 2.4))) 0.055))
+            (- (* 1.055 (expt g (/ 2.4))) 0.055))
           (if (<= b 0.0031308)
               (* 12.92 b)
-            (- (* 1.055 (expt b (/ 1 2.4))) 0.055)))))
+            (- (* 1.055 (expt b (/ 2.4))) 0.055)))))
 
 (defconst color-d65-xyz '(0.950455 1.0 1.088753)
   "D65 white point in CIE XYZ.")
@@ -222,13 +222,13 @@ conversion.  If omitted or nil, use `color-d65-xyz'."
              (yr (/ Y Yr))
              (zr (/ Z Zr))
              (fx (if (> xr color-cie-ε)
-                     (expt xr (/ 1 3.0))
+                     (expt xr (/ 3.0))
                    (/ (+ (* color-cie-κ xr) 16) 116.0)))
              (fy (if (> yr color-cie-ε)
-                     (expt yr (/ 1 3.0))
+                     (expt yr (/ 3.0))
                    (/ (+ (* color-cie-κ yr) 16) 116.0)))
              (fz (if (> zr color-cie-ε)
-                     (expt zr (/ 1 3.0))
+                     (expt zr (/ 3.0))
                    (/ (+ (* color-cie-κ zr) 16) 116.0))))
         (list
          (- (* 116 fy) 16)                  ; L

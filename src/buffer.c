@@ -30,7 +30,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <verify.h>
 
 #include "lisp.h"
+#include "coding.h"
 #include "intervals.h"
+#include "systime.h"
 #include "window.h"
 #include "commands.h"
 #include "character.h"
@@ -38,7 +40,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "region-cache.h"
 #include "indent.h"
 #include "blockinput.h"
-#include "keyboard.h"
 #include "keymap.h"
 #include "frame.h"
 
@@ -4578,8 +4579,6 @@ evaporate_overlays (ptrdiff_t pos)
 #if MAP_ANON == 0
 #include <fcntl.h>
 #endif
-
-#include "coding.h"
 
 
 /* Memory is allocated in regions which are mapped using mmap(2).

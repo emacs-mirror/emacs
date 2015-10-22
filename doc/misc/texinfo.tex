@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2015-09-20.17}
+\def\texinfoversion{2015-10-17.11}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -530,14 +530,13 @@
 %
 \def\finishparsearg#1 \ArgTerm{\expandafter\argtorun\expandafter{#1}}
 
+
+% \parseargdef - define a command taking an argument on the line
+%
 % \parseargdef\foo{...}
 %	is roughly equivalent to
 % \def\foo{\parsearg\Xfoo}
 % \def\Xfoo#1{...}
-%
-% Actually, I use \csname\string\foo\endcsname, ie. \\foo, as it is my
-% favourite TeX trick.  --kasal, 16nov03
-
 \def\parseargdef#1{%
   \expandafter \doparseargdef \csname\string#1\endcsname #1%
 }
@@ -1107,6 +1106,7 @@ where each line of input produces a line of output.}
 \newtoks\toksC
 \newtoks\toksD
 \newbox\boxA
+\newbox\boxB
 \newcount\countA
 \newif\ifpdf
 \newif\ifpdfmakepagedest
@@ -1416,6 +1416,7 @@ output) for that.)}
       \normalturnoffactive
       \def\@{@}%
       \let\/=\empty
+      \let\xprocessmacroarg=\eatspaces % in case we are in a macro expansion
       \makevalueexpandable
       % do we want to go so far as to use \indexnofonts instead of just
       % special-casing \var here?
@@ -4605,6 +4606,8 @@ end
 }
 
 % \commondummiesnofonts: common to \commondummies and \indexnofonts.
+% Define \definedumyletter, \definedummyaccent and \definedummyword before
+% using.
 %
 \def\commondummiesnofonts{%
   % Control letters and accents.
@@ -4700,11 +4703,27 @@ end
 {
 \catcode`\<=13
 \catcode`\-=13
+\catcode`\`=13
   \gdef\indexnonalnumdisappear{%
-    \backslashdisappear
-    \def-{}%
-    \def<{}%
-    \def\@{}%
+    \expandafter\ifx\csname SETtxiindexlquoteignore\endcsname\relax\else
+      % @set txiindexlquoteignore makes us ignore left quotes in the sort term.
+      % (Introduced for FSFS 2nd ed.)
+      \let`=\empty
+    \fi
+    %
+    \expandafter\ifx\csname SETtxiindexbackslashignore\endcsname\relax\else
+      \backslashdisappear
+    \fi
+    %
+    \expandafter\ifx\csname SETtxiindexhyphenignore\endcsname\relax\else
+      \def-{}%
+    \fi
+    \expandafter\ifx\csname SETtxiindexlessthanignore\endcsname\relax\else
+      \def<{}%
+    \fi
+    \expandafter\ifx\csname SETtxiindexatsignignore\endcsname\relax\else
+      \def\@{}%
+    \fi
   }
 
   \gdef\indexnonalnumreappear{%
@@ -4728,7 +4747,6 @@ end
   \def\definedummyletter##1{\let##1\empty}%
   % All control words become @asis by default; overrides below.
   \let\definedummyword\definedummyaccent
-  %
   \commondummiesnofonts
   %
   % Don't no-op \tt, since it isn't a user-level command
@@ -4741,8 +4759,6 @@ end
   \def\_{\normalunderscore}%
   \def\-{}% @- shouldn't affect sorting
   %
-  % Unfortunately, texindex < 6.0 is not prepared to handle braces in the
-  % content at all, so these won't be sorted in ASCII order.
   \def\lbracechar{{\indexlbrace}}%
   \def\rbracechar{{\indexrbrace}}%
   \let\{=\lbracechar
@@ -4805,9 +4821,6 @@ end
   \def\result{=>}%
   \def\textdegree{o}%
   %
-  \expandafter\ifx\csname SETtxiindexlquoteignore\endcsname\relax
-  \else \indexlquoteignore \fi
-  %
   % We need to get rid of all macros, leaving only the arguments (if present).
   % Of course this is not nearly correct, but it is the best we can do for now.
   % makeinfo does not expand macros in the argument to @deffn, which ends up
@@ -4821,10 +4834,6 @@ end
   \macrolist
 }
 
-% Undocumented (for FSFS 2nd ed.): @set txiindexlquoteignore makes us
-% ignore left quotes in the sort term.
-{\catcode`\`=\active
- \gdef\indexlquoteignore{\let`=\empty}}
 
 \let\SETmarginindex=\relax % put index entries in margin (undocumented)?
 
@@ -4864,11 +4873,17 @@ end
 \def\requireopenindexfile#1{%
 \ifnum\csname #1indfile\endcsname=0
   \expandafter\newwrite \csname#1indfile\endcsname
-  \immediate\openout\csname#1indfile\endcsname \jobname.#1 % Open the file
+  \edef\suffix{#1}%
+  % A .fls suffix would conflict with the file extension for the output
+  % of -recorder, so use .f1s instead.
+  \ifx\suffix\indexisfl\def\suffix{f1}\fi
+  % Open the file
+  \immediate\openout\csname#1indfile\endcsname \jobname.\suffix
   % Using \immediate here prevents an object entering into the current box,
   % which could confound checks such as those in \safewhatsit for preceding
   % skips.
 \fi}
+\def\indexisfl{fl}
 
 % Output \ as {\indexbackslash}, because \ is an escape character in
 % the index files.
@@ -4911,9 +4926,9 @@ end
   % Get the string to sort by, by processing the index entry with all
   % font commands turned off.
   {\indexnofonts
+   \indexnonalnumdisappear
    \xdef\indexsortkey{}%
    \let\sortas=\indexwritesortas
-   \indexnonalnumdisappear
    \edef\temp{\the\toks0}%
    \setbox\dummybox = \hbox{\temp}% Make sure to execute any \sortas
    \ifx\indexsortkey\empty
@@ -5059,7 +5074,9 @@ end
   % as its first line, TeX doesn't complain about mismatched braces
   % (because it thinks @} is a control sequence).
   \catcode`\@ = 11
-  \openin 1 \jobname.#1s
+  % See comment in \requireopenindexfile.
+  \def\indexname{#1}\ifx\indexname\indexisfl\def\indexname{f1}\fi
+  \openin 1 \jobname.\indexname s
   \ifeof 1
     % \enddoublecolumns gets confused if there is no text in the index,
     % and it loses the chapter title and the aux file entries for the
@@ -5206,30 +5223,6 @@ end
     %  How much \indexdotfill is stretched, or how much \parfillskip is shrunk
     %  Number of lines (\linepenalty)
     %  
-    % Do not prefer a separate line ending with a hyphen to fewer lines.
-    \finalhyphendemerits = 0
-    %
-    % Word spacing - no stretch
-    \spaceskip=\fontdimen2\font minus \fontdimen4\font
-    %
-    \linepenalty=1000  % Discourage line breaks.
-    \hyphenpenalty=5000  % Discourage hyphenation.
-    %
-    % Ragged right margin, but not for the last line with the leaders in it.
-    % When an index entry spans lines, this stretch competes with the stretch
-    % in \indexdotfill to determine how the line will be split.
-    \rightskip=\entryrightmargin
-    \advance\rightskip by 0pt plus .6\hsize
-    %
-    % \parfillskip is at the end of the line with the page number
-    \parfillskip=0pt
-    % Cancel the \rightskip stretch
-    \advance \parfillskip by 0pt plus -.6\hsize
-    % Determine how far we can stretch into the margin.
-    % This allows, e.g., "Appendix H  GNU Free Documentation License" to fit
-    % on one line.
-    \advance \parfillskip by 0pt minus .6\entryrightmargin
-    %
     % Swallow the left brace of the text (first parameter):
     \afterassignment\doentry
     \let\temp =
@@ -5237,21 +5230,27 @@ end
 \def\entrybreak{\unskip\space\ignorespaces}%
 \def\doentry{%
     % Save the text of the entry in a \vtop.
-    \global\setbox\entryindexbox=\vtop\bgroup
+    \global\setbox\boxA=\hbox\bgroup
     \bgroup % Instead of the swallowed brace.
       \noindent
       \aftergroup\finishentry
       % And now comes the text of the entry.
+      % Not absorbing as a macro argument reduces the chance of problems
+      % with catcodes occurring.
 }
-\def\finishentry#1{%
+{\catcode`\@=11
+\gdef\finishentry#1{%
+    \egroup % end box A
+    \dimen@ = \wd\boxA % Length of text of entry
+    \global\setbox\boxA=\hbox\bgroup\unhbox\boxA
     % #1 is the page number.
     %
     % The following is kludged to not output a line of dots in the index if
     % there are no page numbers.  The next person who breaks this will be
     % cursed by a Unix daemon.
-    \setbox\boxA = \hbox{#1}%
-    \ifdim\wd\boxA = 0pt
-      \ %
+    \setbox\boxB = \hbox{#1}%
+    \ifdim\wd\boxB = 0pt
+      \null\nobreak\hfill\ %
     \else
       %
       \null\nobreak\indexdotfill % Have leaders before the page number.
@@ -5263,23 +5262,62 @@ end
         \hskip\skip\thinshrinkable #1%
       \fi
     \fi
-    % Parameters for formatting this paragraph, reset for each paragraph.
+    \egroup % end \boxA
+    \global\setbox\entryindexbox=\vtop\bgroup\noindent
+    % We want the text of the entries to be aligned to the left, and the
+    % page numbers to be aligned to the right.
     %
-    % \hangindent is only relevant when the entry text and page number
-    % don't both fit on one line.  In that case, bob suggests starting the
-    % dots pretty far over on the line.  Unfortunately, a large
-    % indentation looks wrong when the entry text itself is broken across
-    % lines.  So we use a small indentation and put up with long leaders.
+    \advance\leftskip by 0pt plus 1fil
+    \advance\leftskip by 0pt plus -1fill
+    \rightskip = 0pt plus -1fil
+    \advance\rightskip by 0pt plus 1fill
+    % Cause last line, which could consist of page numbers on their own if the 
+    % list of page numbers is long, to be aligned to the right.
+    \parfillskip=0pt plus -1fill
     %
-    \hangafter = 1
-    \hangindent = 1em
-    \par
+    \hangindent=1em
+    %
+    \advance\rightskip by \entryrightmargin
+    % Determine how far we can stretch into the margin.
+    % This allows, e.g., "Appendix H  GNU Free Documentation License" to fit
+    % on one line.
+    \advance \parfillskip by 0pt minus .6\entryrightmargin
+    %
+    \ifdim\wd\boxA > \hsize % If the entry doesn't fit in one line
+    \ifdim\dimen@ > 0.9\hsize   % due to long index text
+      \dimen@ = 0.6\dimen@ % Try to split the text roughly evenly
+      \dimen@ii = \hsize
+      \advance \dimen@ii by -1em
+      \ifnum\dimen@>\dimen@ii
+        % If the entry is too long, use the whole line
+        \dimen@ = \dimen@ii
+      \else
+        % Cause stretch of 1fill at the end of the first line, to avoid
+        % extra spacing in a short first line.
+        \hskip 0pt plus 1fill
+      \fi
+      \parshape = 2 0pt \dimen@ 1em \dimen@ii
+      % Ideally we'd add a finite glue at the end of the first line only, but
+      % TeX doesn't seem to provide a way to do such a thing.
+    \fi\fi
+    \unhbox\boxA
+    %
+    % Do not prefer a separate line ending with a hyphen to fewer lines.
+    \finalhyphendemerits = 0
+    %
+    % Word spacing - no stretch
+    \spaceskip=\fontdimen2\font minus \fontdimen4\font
+    %
+    \linepenalty=1000  % Discourage line breaks.
+    \hyphenpenalty=10000  % Discourage hyphenation.
+    %
+    \par % format the paragraph
     \egroup % The \vtop
   \endgroup
   % delay text of entry until after penalty
   \bgroup\aftergroup\insertindexentrybox
   \entryorphanpenalty
-}
+}}
 
 \newskip\thinshrinkable
 \skip\thinshrinkable=.15em minus .15em
@@ -5314,10 +5352,11 @@ end
 }
 
 % Like plain.tex's \dotfill, except uses up at least 1 em.
-% Using a finite stretch encourages several words to appear on a second line
-% if the entry is broken.
+% The filll stretch here overpowers both the fil and fill stretch to push
+% the page number to the right.
 \def\indexdotfill{\cleaders
-  \hbox{$\mathsurround=0pt \mkern1.5mu.\mkern1.5mu$}\hskip 1em plus .4\hsize}
+  \hbox{$\mathsurround=0pt \mkern1.5mu.\mkern1.5mu$}\hskip 1em plus 1filll}
+
 
 \def\primary #1{\line{#1\hfil}}
 
@@ -5558,7 +5597,8 @@ end
     \writetocentry{part}{#1}{}% but put it in the toc
     \headingsoff              % no headline or footline on the part page
     % This outputs a mark at the end of the page that clears \thischapter
-    % and \thissection, like is done in \startcontents.
+    % and \thissection, as is done in \startcontents.
+    \let\pchapsepmacro\relax
     \chapmacro{}{Yomitfromtoc}{}%
     \chapoddpage
   \endgroup
@@ -8936,6 +8976,7 @@ end
 \def\imagexxx#1,#2,#3,#4,#5,#6\finish{\begingroup
   \catcode`\^^M = 5     % in case we're inside an example
   \normalturnoffactive  % allow _ et al. in names
+  \def\xprocessmacroarg{\eatspaces}% in case we are being used via a macro
   % If the image is by itself, center it.
   \ifvmode
     \imagevmodetrue
@@ -9339,7 +9380,8 @@ directory should work if nowhere else does.}
 % @documentencoding sets the definition of non-ASCII characters
 % according to the specified encoding.
 %
-\parseargdef\documentencoding{%
+\def\documentencoding{\parseargusing\filenamecatcodes\documentencodingzzz}
+\def\documentencodingzzz#1{%
   % Encoding being declared for the document.
   \def\declaredencoding{\csname #1.enc\endcsname}%
   %
@@ -10066,6 +10108,9 @@ directory should work if nowhere else does.}
 
   \DeclareUnicodeCharacter{02DB}{\ogonek{ }}
 
+  % Greek letters
+  \DeclareUnicodeCharacter{03C0}{\ensuremath\pi}
+
   \DeclareUnicodeCharacter{1E02}{\dotaccent{B}}
   \DeclareUnicodeCharacter{1E03}{\dotaccent{b}}
   \DeclareUnicodeCharacter{1E04}{\udotaccent{B}}
@@ -10193,6 +10238,7 @@ directory should work if nowhere else does.}
   \DeclareUnicodeCharacter{1EF8}{\~Y}
   \DeclareUnicodeCharacter{1EF9}{\~y}
 
+  % Punctuation
   \DeclareUnicodeCharacter{2013}{--}
   \DeclareUnicodeCharacter{2014}{---}
   \DeclareUnicodeCharacter{2018}{\quoteleft}
@@ -10204,18 +10250,34 @@ directory should work if nowhere else does.}
   \DeclareUnicodeCharacter{2020}{\ensuremath\dagger}
   \DeclareUnicodeCharacter{2021}{\ensuremath\ddagger}
   \DeclareUnicodeCharacter{2022}{\bullet}
+  \DeclareUnicodeCharacter{202F}{\thinspace}
   \DeclareUnicodeCharacter{2026}{\dots}
   \DeclareUnicodeCharacter{2039}{\guilsinglleft}
   \DeclareUnicodeCharacter{203A}{\guilsinglright}
+
   \DeclareUnicodeCharacter{20AC}{\euro}
 
   \DeclareUnicodeCharacter{2192}{\expansion}
   \DeclareUnicodeCharacter{21D2}{\result}
 
+  % Mathematical symbols
+  \DeclareUnicodeCharacter{2200}{\ensuremath\forall}
+  \DeclareUnicodeCharacter{2203}{\ensuremath\exists}
+  \DeclareUnicodeCharacter{2208}{\ensuremath\in}
   \DeclareUnicodeCharacter{2212}{\minus}
   \DeclareUnicodeCharacter{2217}{\point}
+  \DeclareUnicodeCharacter{221E}{\ensuremath\infty}
   \DeclareUnicodeCharacter{2225}{\ensuremath\parallel}
+  \DeclareUnicodeCharacter{2227}{\ensuremath\wedge}
+  \DeclareUnicodeCharacter{2229}{\ensuremath\cap}
   \DeclareUnicodeCharacter{2261}{\equiv}
+  \DeclareUnicodeCharacter{2264}{\ensuremath\leq}
+  \DeclareUnicodeCharacter{2265}{\ensuremath\geq}
+  \DeclareUnicodeCharacter{2282}{\ensuremath\subset}
+  \DeclareUnicodeCharacter{2287}{\ensuremath\supseteq}
+
+  \global\mathchardef\checkmark="1370 % actually the square root sign
+  \DeclareUnicodeCharacter{2713}{\ensuremath\checkmark}
 }% end of \utfeightchardefs
 
 % US-ASCII character definitions.

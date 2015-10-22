@@ -52,7 +52,7 @@
 #include <sys/mman.h>
 #include "w32common.h"
 #include "w32heap.h"
-#include "lisp.h"  /* for VALMASK */
+#include "lisp.h"
 
 /* We chose to leave those declarations here.  They are used only in
    this file.  The RtlCreateHeap is available since XP.  It is located

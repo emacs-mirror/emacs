@@ -1491,13 +1491,12 @@ specifically for the clients and did not exist before their request for it."
 
 (defun server-kill-emacs-query-function ()
   "Ask before exiting Emacs if it has live clients."
-  (or (not server-clients)
-      (let (live-client)
-	(dolist (proc server-clients)
-	  (when (memq t (mapcar 'buffer-live-p (process-get
-						proc 'buffers)))
-	    (setq live-client t)))
-        live-client)
+  (or (not (let (live-client)
+             (dolist (proc server-clients)
+               (when (memq t (mapcar 'buffer-live-p (process-get
+                                                     proc 'buffers)))
+                 (setq live-client t)))
+             live-client))
       (yes-or-no-p "This Emacs session has clients; exit anyway? ")))
 
 (defun server-kill-buffer ()

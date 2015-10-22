@@ -150,10 +150,29 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 # define CTAGS false
 #endif
 
-#define streq(s,t)	(assert ((s)!=NULL || (t)!=NULL), !strcmp (s, t))
-#define strcaseeq(s,t)	(assert ((s)!=NULL && (t)!=NULL), !c_strcasecmp (s, t))
-#define strneq(s,t,n)	(assert ((s)!=NULL || (t)!=NULL), !strncmp (s, t, n))
-#define strncaseeq(s,t,n) (assert ((s)!=NULL && (t)!=NULL), !c_strncasecmp (s, t, n))
+static bool
+streq (char const *s, char const *t)
+{
+  return strcmp (s, t) == 0;
+}
+
+static bool
+strcaseeq (char const *s, char const *t)
+{
+  return c_strcasecmp (s, t) == 0;
+}
+
+static bool
+strneq (char const *s, char const *t, size_t n)
+{
+  return strncmp (s, t, n) == 0;
+}
+
+static bool
+strncaseeq (char const *s, char const *t, size_t n)
+{
+  return c_strncasecmp (s, t, n) == 0;
+}
 
 /* C is not in a name.  */
 static bool

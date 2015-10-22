@@ -30,19 +30,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "blockinput.h"
 #include "character.h"
-#include "buffer.h"
 #include "charset.h"
-#include "ccl.h"
-#include "keyboard.h"
 #include "frame.h"
 #include "dispextern.h"
-#include "intervals.h"
 #include "fontset.h"
-#include "window.h"
 #ifdef HAVE_WINDOW_SYSTEM
 #include TERM_HEADER
 #endif /* HAVE_WINDOW_SYSTEM */
-#include "termhooks.h"
 #include "font.h"
 
 /* FONTSET

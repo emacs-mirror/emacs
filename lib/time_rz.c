@@ -90,8 +90,7 @@ extend_abbrs (char *abbrs, char const *abbr, size_t abbr_size)
 }
 
 /* Return a newly allocated time zone for NAME, or NULL on failure.
-   As a special case, return a nonzero constant for wall clock time, a
-   constant that survives freeing.  */
+   A null NAME stands for wall clock time (which is like unset TZ).  */
 timezone_t
 tzalloc (char const *name)
 {
@@ -288,10 +287,8 @@ localtime_rz (timezone_t tz, time_t const *t, struct tm *tm)
       timezone_t old_tz = set_tz (tz);
       if (old_tz)
         {
-          tm = localtime_r (t, tm);
-          if (tm && !save_abbr (tz, tm))
-            tm = NULL;
-          if (revert_tz (old_tz))
+          bool abbr_saved = localtime_r (t, tm) && save_abbr (tz, tm);
+          if (revert_tz (old_tz) && abbr_saved)
             return tm;
         }
       return NULL;

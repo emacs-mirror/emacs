@@ -22,7 +22,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "syssignal.h"
 #include "systime.h"
-#include "blockinput.h"
 #include "atimer.h"
 #include <unistd.h>
 

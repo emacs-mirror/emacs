@@ -3617,8 +3617,8 @@ discarding."
 
 (defun byte-compile-quo (form)
   (let ((len (length form)))
-    (cond ((<= len 2)
-	   (byte-compile-subr-wrong-args form "2 or more"))
+    (cond ((< len 2)
+	   (byte-compile-subr-wrong-args form "1 or more"))
 	  ((= len 3)
 	   (byte-compile-two-args form))
 	  (t

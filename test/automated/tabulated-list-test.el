@@ -60,7 +60,7 @@
        4clojure   4clojure   1507      obsolete    Open and evaluate 4clojure.com questions
        abc-mode   abc-mode   944       available   Major mode for editing abc music files
        mode       mode       1128      installed   A simple mode for editing Actionscript 3 files\n"))
-   ;; Preseve position.
+   ;; Preserve position.
    (forward-line 3)
    (let ((pos (thing-at-point 'line)))
      (pop tabulated-list-entries)

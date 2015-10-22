@@ -1,3 +1,597 @@
+2015-10-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	Minor edits in Tramp
+
+	* lisp/net/tramp-adb.el (directory-listing-before-filename-regexp):
+	Declare it.
+
+	* lisp/net/tramp-compat.el (directory-listing-before-filename-regexp):
+	Remove declaration.
+
+2015-10-17  Mark Oteiza  <mvoteiza@udel.edu>
+
+	* lisp/emacs-lisp/eldoc.el: Add back-to-indentation to the command list
+
+2015-10-17  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid crashes when redisplayng a window changes faces or fonts
+
+	* src/xdisp.c (redisplay_internal): If redisplaying the selected
+	window or one of the frames turns on the frame's 'redisplay' flag,
+	redisplay again.  (Bug#21428)
+
+	* src/frame.c (x_set_font): Set the frame's 'fonts_changed' flag.
+
+2015-10-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	Solve timimg issues in file-notify-tests.el
+
+	* test/automated/file-notify-tests.el (file-notify-test02-events):
+	Rectify `attribute-change' tests.  There are timing issues with
+	gfilenotify.  (Bug#21669)
+
+2015-10-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix quoting of data within htmlfontify doc
+
+	* doc/misc/htmlfontify.texi (Data Structures, Customization):
+	Fix quoting of data structures.  A Lisp quote is needed only
+	when data appears within Lisp code.
+
+2015-10-16  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* emacs-lisp/package.el: Reload archive-contents if priorities change
+
+	(package--old-archive-priorities): New variable.
+	(package-read-all-archive-contents, package-menu--refresh): Use it
+	to decide when the `package-archive-contents' needs to be read
+	again.
+
+2015-10-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Make src headers idempotent and standalone
+
+	Redo src/*.h so that each include file is idempotent (that is, can
+	be included multiple times with the latter inclusions having no
+	effect) and standalone (that is, can be included by itself,
+	with no include file other than config.h needed as a prerequisite).
+	This is standard practice in GNU programs nowadays.
+	* lwlib/lwlib-widget.h, src/buffer.h, src/category.h, src/character.h:
+	* src/charset.h, src/coding.h, src/commands.h, src/disptab.h:
+	* src/fontset.h, src/gnutls.h, src/indent.h, src/keymap.h, src/macros.h:
+	* src/regex.h [emacs]:
+	* src/syntax.h, src/systty.h, src/termhooks.h:
+	Include lisp.h, for Lisp_Object.
+	* src/buffer.h, src/category.h, src/cm.h, src/commands.h, src/disptab.h:
+	* src/indent.h, src/intervals.h, src/keyboard.h, src/macros.h:
+	* src/process.h, src/puresize.h, src/region-cache.h, src/syntax.h:
+	* src/syssignal.h, src/sysstdio.h, src/systty.h, src/termchar.h:
+	* src/termopts.h, src/tparam.h, src/unexec.h:
+	Protect against multiple inclusion.
+	* src/buffer.h: Include character.h, for STRING_CHAR.
+	* src/emacsgtkfixed.h (struct frame):
+	* src/fontset.h (struct face):
+	* src/region-cache.h (struct buffer):
+	* src/termhooks.h (struct glyph):
+	* src/xsettings.h (struct x_display_info):
+	Add possibly-forward decl.
+	* src/syntax.h: Include buffer.h, for BVAR.
+	* src/sysselect.h: Include lisp.h, for eassume.
+	* src/termchar.h: Include <stdio.h>, for FILE.
+	* src/widget.h: Include <X11/IntrinsicP.h>, for Widget.
+	* src/xsettings.h: Include <X11/Xlib.h>, for XEvent.
+
+2015-10-16  Jürgen Hötzel  <juergen@archlinux.org>
+
+	Handle symlink targets containing spaces in tramp-gvfs.el
+
+	* lisp/net/tramp-gvfs.el (tramp-gvfs-handle-file-attributes):
+	Handle symlink targets containing spaces.
+
+2015-10-16  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* custom.el (custom-theme-load-path): Demote to defvar
+
+	`custom-theme-load-path' was a defcustom, but it shouldn't be for the
+	same reason that `load-path' shouldn't.  Setting it via the customize
+	interface is a trap for the user.
+
+	Installed themes commonly add themselves to this variable, which means
+	its value is not fit for being saved (it will permanently remember dirs
+	that don't exist anymore).
+
+	This is aggravated by the fact that Emacs always applies the `user'
+	theme on top of any theme that's loaded, since this will apply the old
+	variable value and remove any new directories that had been recently
+	added by themes themselves.
+
+	Not to mention, we already have `custom-theme-directory', which is safe
+	to customize.
+
+2015-10-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/mpc.el: Rename the new toggling commands
+
+	(mpc-toggle-consume, mpc-toggle-repeat, mpc-toggle-single)
+	(mpc-toggle-shuffle): Add "-toggle" in the name.
+
+2015-10-16  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve the doc string of 'completion-boundaries'
+
+	* lisp/minibuffer.el (completion-boundaries): Rename the argument
+	TABLE to COLLECTION, for consistency with other high-level
+	completion functions.  Document how COLLECTION is called if it
+	is a function.  (Bug#21644)
+
+2015-10-16  Oleh Krehel  <ohwoeowho@gmail.com>
+
+	lisp/dired-aux.el (dired-shell-command): Fix compile warning
+
+2015-10-16  Oleh Krehel  <ohwoeowho@gmail.com>
+
+	Make dired-do-compress work for *.zip files
+
+	* lisp/dired-aux.el (dired-check-process): Transform the top-level
+	  comment into a docstring.
+	(dired-shell-command): New command. This mirrors
+	`dired-check-process', but is more user-friendly for passing
+	arguments.
+	(dired-compress-file-suffixes): Allow to specify the command switches
+	along with input (%i) and output (%o) inside the PROGRAM part.
+	Add an entry for *.zip files, and update the entry for *.tar.gz files
+	to the new style. Update the docstring.
+	(dired-compress-file): When PROGRAM matches %i or %o, use the new
+	logic.
+	(dired-update-file-line): Avoid an error when at end of buffer.
+
+	Fixes Bug#21637
+
+2015-10-16  Eli Zaretskii  <eliz@gnu.org>
+
+	Minor improvement in documentation of internals
+
+	* doc/lispref/internals.texi (Writing Emacs Primitives): Document QUIT.
+
+2015-10-16  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve documentation of COLLECTION in completion functions
+
+	* doc/lispref/minibuf.texi (Minibuffer Completion): Add a
+	cross-reference to "Programmed Completion".
+
+	* src/minibuf.c (Fcompleting_read): Improve the doc string.
+	(Bug#21644)
+
+2015-10-16  Eli Zaretskii  <eliz@gnu.org>
+
+	Add more release info to etc/HISTORY
+
+	* etc/HISTORY: Add more release information about 19.x and 20.x
+	versions.
+
+2015-10-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	New file etc/HISTORY
+
+	* admin/FOR-RELEASE: Procedure for etc/HISTORY.
+	* etc/HISTORY: New file.
+	* etc/NEWS: Mention it.
+
+2015-10-15  Dmitry Gutov  <dgutov@yandex.ru>
+
+	js-mode: Don't misindent generator methods
+
+	* lisp/progmodes/js.el (js--looking-at-operator-p): Distinguish
+	generator methods from multiplication operator
+	(https://github.com/mooz/js2-mode/issues/275).
+
+2015-10-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix animation timeout delay calculation
+
+	* lisp/image.el (image-animate-timeout):
+	Don’t assume speed is floating-point.
+
+2015-10-15  Mark Oteiza  <mvoteiza@udel.edu>
+
+	Add commands for controlling MPD modes
+
+	* lisp/mpc.el (mpc-cmd-consume, mpc-cmd-random, mpc-cmd-repeat)
+	(mpc-cmd-single): New functions.
+	(mpc-consume, mpc-repeat, mpc-single, mpc-shuffle): New commands.
+	(mpc-mode-menu): Add new commands as menu items.
+
+2015-10-15  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Refer to `(elisp)Basic Completion' in completing-read docstring
+
+	* src/minibuf.c (Fcompleting_read): Refer to `(elisp)Basic
+	Completion' in the docstring (bug#21644).
+
+2015-10-14  Mark Oteiza  <mvoteiza@udel.edu>
+
+	* lisp/mpc.el (mpc-format): Always push form to pred
+
+2015-10-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Spelling fixes
+
+	* configure.ac (bitmapdir): Fix misspelling of bmd_acc.
+	* test/automated/coding-tests.el (ert-test-coding-bogus-coding-systems):
+	Fix misspelling of nonexistent file name.
+
+2015-10-14  Mark Oteiza  <mvoteiza@udel.edu>
+
+	* lisp/mpc.el (mpc-mode-menu, mpc-toggle-play): Fix docstrings
+
+2015-10-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	Some editing fixes in Tramp
+
+	* lisp/net/tramp-gvfs.el:
+	* doc/misc/tramp.texi: "customer option" -> "custom option".
+
+	* lisp/net/tramp.el (tramp-completion-function-alist): Fix docstring.
+
+2015-10-14  Jürgen Hötzel  <juergen@archlinux.org>
+
+	Use proper localization in tramp-gvfs.el
+
+	* lisp/net/tramp-gvfs.el (tramp-gvfs-handle-file-attributes):
+	Suppress localized settings in order to proper parse gfvs output.
+
+2015-10-14  Warren Lynn  <wrn.lynn@gmail.com>  (tiny change)
+
+	Fix Bug#21562
+
+	* lisp/net/tramp-sh.el (tramp-do-copy-or-rename-file-out-of-band):
+	Quote argument in proper order.  (Bug#21562)
+
+2015-10-14  Nicolas Petton  <nicolas@petton.fr>
+
+	Fix typos in docstrings
+
+	* lisp/emacs-lisp/map.el:
+	* lisp/emacs-lisp/seq.el: Fix typos in the docstrings of the pcase
+	  macros.
+
+2015-10-14  Mark Oteiza  <mvoteiza@udel.edu>
+
+	* lisp/mpc.el (mpc-volume-refresh): Check if buffer is live.
+
+2015-10-14  Oleh Krehel  <ohwoeowho@gmail.com>
+
+	Make dired-jump work with tar-subfile-mode
+
+	* lisp/dired-x.el (dired-jump): When in `tar-subfile-mode', instead of
+	  emitting an error, switch to `tar-superior-buffer'.
+
+2015-10-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .gitignore: Add build-aux/ar-lib.
+
+2015-10-14  Nicolas Petton  <nicolas@petton.fr>
+
+	Better docstrings in seq.el and map.el
+
+	* lisp/emacs-lisp/map.el:
+	* lisp/emacs-lisp/seq.el: Improve the docstring for the pcase patterns.
+
+2015-10-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib
+
+	This incorporates:
+	2015-10-13 binary-io, u64, unistd: port to strict C
+	2015-09-26 c-ctype: do not worry about EBCDIC + char signed
+	2015-09-25 c-ctype: port better to z/OS EBCDIC
+	2015-09-25 gnulib-common.m4: fix gl_PROG_AR_RANLIB/AM_PROG_AR clash
+	* doc/misc/texinfo.tex, lib/binary-io.c, lib/c-ctype.h, lib/u64.c:
+	* lib/unistd.c, m4/gnulib-common.m4, m4/gnulib-comp.m4:
+	Copy from gnulib.
+
+2015-10-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Take XPNTR private
+
+	* src/alloc.c (PURE_POINTER_P): Remove.
+	All uses replaced with PURE_P.
+	(XPNTR_OR_SYMBOL_OFFSET): New function.
+	(XPNTR): Move here from lisp.h.
+	Reimplement in terms of XPNTR_OR_SYMBOL_OFFSET.
+	(mark_maybe_object, valid_lisp_object_p, survives_gc_p):
+	Remove unnecessary cast.
+	(purecopy): Use XPNTR_OR_SYMBOL_OFFSET instead of XPNTR,
+	to avoid an unnecessary runtime test for symbols.
+	* src/lisp.h (lisp_h_XPNTR, XPNTR): Remove, moving XPNTR to alloc.c.
+	Only alloc.c needs XPNTR now.
+
+2015-10-13  Mark Oteiza  <mvoteiza@udel.edu>
+
+	Add MPC play/pause command
+
+	* lisp/mpc.el (mpc-toggle-play): New command.
+	(mpc-mode-map): Bind it to "s".
+	(mpc-mode-menu): Add corresponding menu item.
+
+2015-10-13  Mark Oteiza  <mvoteiza@udel.edu>
+
+	Add bindings and menu items for prev and next tracks
+
+	* lisp/mpc.el (mpc-mode-map): Bind ">" to mpc-next,
+	"<" to mpc-prev.
+	(mpc-mode-menu): Add corresponding menu items
+
+2015-10-13  Ken Raeburn  <raeburn@raeburn.org>
+
+	Reduce face-related consing during frame creation.
+
+	* faces.el (face--attributes-unspecified): Compute the "unspecified"
+	attribute list once.
+	(face-spec-reset-face): Use it instead of building the list.
+
+2015-10-13  Ken Raeburn  <raeburn@permabit.com>
+
+	Do process ConfigureNotify events indicating size changes.
+
+	* src/xterm.c (handle_one_xevent): If consecutive ConfigureNotify
+	events don't have the same size, process each one.
+
+2015-10-13  Mark Oteiza  <mvoteiza@udel.edu>
+
+	Derive mpc-mode from special-mode
+
+	lisp/mpc.el (mpc-mode-map): Make from sparse keymap. Unbind g.
+	(mpc-mode): Derive from special mode.
+	(mpc-songs-mode-map): Don't set parent keymap.
+
+2015-10-13  Mark Oteiza  <mvoteiza@udel.edu>
+
+	Fix error messages for when covers are not found.
+
+	The last change to mpc-format let the binding to file call
+	mpc-file-local-copy with nil argument. Instead, employ if-let here so
+	nil bindings don't result in needless computation and errors.
+	* lisp/mpc.el: Require 'subr-x at compile time.
+	* lisp/mpc.el (mpc-format): Use if-let.
+
+2015-10-13  Oleh Krehel  <ohwoeowho@gmail.com>
+
+	Make dired-do-compress work for *.tar.gz files
+
+	* lisp/dired-aux.el (dired-compress-file-suffixes): Associate
+	  "tar -zxvf" to *.tar.gz; update docstring.
+
+	(dired-compress-file): Allow to specify switches after the command in
+	`dired-compress-file-suffixes'.
+
+2015-10-13  Oleh Krehel  <ohwoeowho@gmail.com>
+
+	Make dired-do-compress work for directories
+
+	* lisp/dired-aux.el (dired-compress-file): When FILE is a directory,
+	  instead of emitting an error, call "tar -czf FILE.tar.gz FILE".
+	Also convert the top comment into a docstring.
+
+2015-10-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/mpc.el (mpc-songs-refresh): Don't side-effect `active'
+
+	... since it might come straight from the memoizing table.
+
+2015-10-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* src/w32fns.c (x_change_tool_bar_height): Remove unused variable frame.
+
+2015-10-13  Mark Oteiza  <mvoteiza@udel.edu>
+
+	Use special-mode in eww list modes
+
+	* lisp/net/eww.el (eww-bookmark-mode, eww-history-mode)
+	(eww-buffers-mode): Derive from special-mode and remove redundant
+	setting of buffer-read-only.
+	(eww-mode-map): Remove redundant keymap parent setting.
+	(eww-bookmark-mode-map, eww-history-mode-map, eww-buffers-mode-map):
+	Remove redundant keymap suppressions and mappings.
+
+2015-10-13  Martin Rudalics  <rudalics@gmx.at>
+
+	Allow setting frame pixel sizes from frame parameters (Bug#21415)
+
+	Also fix some misfeatures in frame (re-)sizing code, add more
+	debugging information and remove some dead code.
+
+	* lisp/frame.el (frame-notice-user-settings, make-frame): Change
+	parameter names when setting `frame-size-history'.
+	(frame--size-history): New function.
+
+	* src/frame.c (frame_inhibit_resize): If frame has not been made
+	yet, return t if inhibit_horizontal_resize or
+	inhibit_vertical_resize bit have been set.
+	(adjust_frame_size): Simplify.
+	(make_frame): Initialize inhibit_horizontal_resize,
+	inhibit_vertical_resize, tool_bar_redisplayed, tool_bar_resized.
+	(Fframe_after_make_frame): Reset inhibit_horizontal_resize and
+	inhibit_vertical_resize slots.
+	(x_set_frame_parameters): Handle `text-pixels' specification for
+	width and height parameters.  Don't consider new_height or
+	new_width changes.  Call adjust_frame_size instead of
+	Fset_frame_size.
+	(x_figure_window_size): Two new arguments x_width and y_width
+	returning frame's figures width and height.  Calculate tool bar
+	height before frame sizes so SET_FRAME_HEIGHT can pick it up.
+	Handle `text-pixels' specification for width and height
+	parameters.
+	(Qtext_pixels, Qx_set_frame_parameters, Qset_frame_size)
+	(Qx_set_window_size_1, Qx_set_window_size_2)
+	(Qx_set_window_size_3, Qx_set_menu_bar_lines)
+	(Qupdate_frame_menubar, Qfree_frame_menubar_1)
+	(Qfree_frame_menubar_2): New symbols.
+	* src/frame.h (structure frame): New booleans
+	tool_bar_redisplayed, tool_bar_resized,
+	inhibit_horizontal_resize, inhibit_vertical_resize.
+	(x_figure_window_size): Update external declaration.
+	* src/gtkutil.c (xg_frame_set_char_size): Set size hints before
+	calling gtk_window_resize.
+	(update_frame_tool_bar): Make inhibiting of frame resizing more
+	discriminative.  Set tool_bar_resized bit.
+	* src/nsfns.m (x_set_tool_bar_lines): Make inhibiting of frame
+	resizing more discriminative.  Call adjust_frame_size instead of
+	x_set_window_size.
+	(Fx_create_frame): Handle x_width and x_height if
+	set by x_figure_window_size.
+	* src/nsterm.m (x_set_window_size): For GNUSTEP build don't
+	subtract 3 from tool bar height.
+	(x_set_window_size): Add frame_size_history_add call.
+	(x_new_font): Call adjust_frame_size instead of
+	x_set_window_size.
+	* src/w32fns.c (x_change_tool_bar_height): Reset
+	tool_bar_redisplayed and tool_bar_resized bits when adding tool
+	bar.  Make inhibiting of frame resizing more discriminative.
+	(w32_wnd_proc): Remove dead code in WM_WINDOWPOSCHANGING case.
+	(Fx_create_frame): Handle x_width and x_height if set by
+	x_figure_window_size.  Set size hints before adjusting frame size.
+	(x_create_tip_frame): Adjust x_figure_window_size call.
+	* src/w32term.c (x_set_window_size): Add frame_size_history_add
+	call.
+	* src/widget.c (set_frame_size): Remove dead code.  Add
+	frame_size_history_add call.  When frame_resize_pixelwise is t
+	use FRAME_PIXEL_WIDTH and FRAME_PIXEL_HEIGHT instead of
+	pixel_width and pixel_height.
+	(update_various_frame_slots): Remove dead code.
+	(EmacsFrameResize): Add more information in
+	frame_size_history_add call.
+	(EmacsFrameQueryGeometry): Round only when frame_resize_pixelwise
+	is not set.
+	* src/xdisp.c (redisplay_tool_bar): Set tool_bar_redisplayed bits.
+	* src/xfns.c (x_set_menu_bar_lines): Change argument name.
+	(x_change_tool_bar_height): Reset tool_bar_redisplayed and
+	tool_bar_resized bits when adding tool bar.  Make inhibiting of
+	frame resizing more discriminative.
+	(Fx_create_frame): Handle x_width and x_height if set by
+	x_figure_window_size.  Set size hints before adjusting frame size.
+	(x_create_tip_frame): Adjust x_figure_window_size call.
+	* src/xmenu.c (update_frame_menubar): Don't handle Lucid specially.
+	(set_frame_menubar): On Lucid never add core-border-width to
+	avoid that adding XtNinternalBorderWidth adds it again.
+	(free_frame_menubar): Handle frame_inhibit_resize true for Motif.
+	* src/xterm.c (x_new_font): In non-toolkit case handle size
+	change of menu bar.
+	(x_set_window_size_1): Fix calls to frame_size_history_add.
+	(x_wm_set_size_hint): Remove dead code.  Set
+	size_hints.min_width and size_hints.min_height to base_width and
+	base_height.
+
+2015-10-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* test/automated/file-notify-tests.el (file-notify--test-timeout):
+
+	Add docstring.  Increase to 10 seconds for remote
+	directories.  (Bug#21669)
+
+2015-10-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Unmacroize ebrowse.c and etags.c a bit
+
+	* lib-src/ebrowse.c (READ_CHUNK_SIZE): Now an enum constant.
+	(streq, filename_eq, set_flag, has_flag): Now inline functions.
+	(set_flag): First arg is now an address, not an lvalue.
+	All callers changed.
+	(filename_eq, set_flag, has_flag):
+	Rename from FILENAME_EQ, SET_FLAG, HAS_FLAG.
+	All callers changed.
+	* lib-src/etags.c (streq, strcaseeq, strneq, strncaseeq):
+	Now inline functions.  Remove asserts that are unnecessary these
+	days (and in some cases were too-generous anyway).
+
+2015-10-12  Mark Oteiza  <mvoteiza@udel.edu>
+
+	Use highlight for current items.
+
+	* lisp/mpc.el (mpc-select-make-overlay, mpc-tagbrowser-all-select):
+	Apply highlight face instead of region face.
+
+2015-10-12  Mark Oteiza  <mvoteiza@udel.edu>
+
+	Search for more cover image names in MPC
+
+	* lisp/mpc.el (mpc-format): Also look for .folder.jpg or folder.jpg
+	case insensitively
+
+2015-10-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	Remove or comment out unused variables
+
+	* src/w32fns.c (x_set_mouse_color): Comment out variables cursor,
+	nontext_cursor, mode_cursor, hand_cursor and count.
+	(x_change_tool_bar_height): Remove variable old_text_height.
+	(deliver_wm_chars): Remove variable strip_Alt.
+	(Fw32_shell_execute): Remove variable document_a.
+	(Fw32_frame_geometry): Remove variable fullboth.
+	* src/w32term.c (w32_setup_relief_color): Comment out variable
+	w32_display_info.
+	(w32_horizontal_scroll_bar_handle_click): Remove variables start, end.
+	(w32_read_socket): Comment out variables rows, columns.
+	* src/w32uniscribe.c (uniscribe_check_otf_1): Remove variable rest.
+
+2015-10-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* src/w32proc.c (sys_select): Fix bitwise test.
+
+2015-10-12  Eli Zaretskii  <eliz@gnu.org>
+
+	Minor typo corrections in doc strings
+
+	* lisp/menu-bar.el (popup-menu, popup-menu-normalize-position):
+	Doc fixes.
+
+2015-10-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* nt/INSTALL: Recommend MSYS Automake/Autoconf from ezwinports.
+
+2015-10-12  Eli Zaretskii  <eliz@gnu.org>
+
+	Attempt to avoid crashes in plist-member
+
+	* src/fns.c (Fplist_member): Don't call QUIT between a CONSP test
+	and a call to XCDR.  (Bug#21655)
+
+2015-10-12  Mike FABIAN  <mfabian@redhat.com>
+
+	In gui-get-primary-selection use gui--selection-value-internal (Bug#20906)
+
+	* lisp/select.el (gui-get-primary-selection): In gui-get-primary-selection
+	use gui--selection-value-internal (Bug#20906)
+
+2015-10-12  Tassilo Horn  <tsdh@gnu.org>
+
+	Support RTF in doc-view
+
+	* lisp/doc-view.el (doc-view-set-doc-type): Add entry for RTF extension.
+
+2015-10-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (get_wm_chars): Increment counter, not pointer.
+
+2015-10-11  Nicolas Petton  <nicolas@petton.fr>
+
+	Replace the usage of an obsolete function in auth-source.el
+
+	* lisp/gnus/auth-source.el (auth-source-epa-make-gpg-token): Replace an
+	  usage of `epg-context-set-armor' with `setf'.
+
+2015-10-11  Nicolas Petton  <nicolas@petton.fr>
+
+	* lisp/gnus/auth-source.el: Use sharp-quoting with functions.
+
+2015-10-11  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	Have calc-yank recognize numbers in different bases.
+
+	* lisp/calc/calc-yank.el (math-number-regexp): New function.
+	(calc-yank): Use `math-number-regexp' to recognize numbers.
+
 2015-10-11  Ken Raeburn  <raeburn@raeburn.org>
 
 	Handle an opaque-move X11 window manager operation more efficiently.
@@ -15086,7 +15680,7 @@
 
 This file records repository revisions from
 commit 9d56a21e6a696ad19ac65c4b405aeca44785884a (exclusive) to
-commit ce402dd77fe39c3a6d968e23d7a4a20f2b04ccf0 (inclusive).
+commit f8ff3937660f4192d72dec2da31fa5c582434d1f (inclusive).
 See ChangeLog.1 for earlier changes.
 
 ;; Local Variables:

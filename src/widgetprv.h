@@ -23,7 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <X11/IntrinsicP.h>
 #include <X11/CoreP.h>
-#include "widget.h"
 
 typedef struct {
   struct frame*	frame;		/* the *emacs* frame object */

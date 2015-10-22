@@ -2114,14 +2114,14 @@ If DIRECTION is `backward', search in the reverse direction."
 		   search-whitespace-regexp)))
 	  (Info-search
 	   (cond
-	    (isearch-word
+	    (isearch-regexp-function
 	     ;; Lax version of word search
 	     (let ((lax (not (or isearch-nonincremental
 				 (eq (length string)
 				     (length (isearch--state-string
 					      (car isearch-cmds))))))))
-	       (if (functionp isearch-word)
-		   (funcall isearch-word string lax)
+	       (if (functionp isearch-regexp-function)
+		   (funcall isearch-regexp-function string lax)
 		 (word-search-regexp string lax))))
 	    (isearch-regexp string)
 	    (t (regexp-quote string)))

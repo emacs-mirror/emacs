@@ -235,7 +235,7 @@ The value nil is the same as the list (UTF8_STRING COMPOUND_TEXT STRING)."
 
 (defun gui-get-primary-selection ()
   "Return the PRIMARY selection, or the best emulation thereof."
-  (or (gui-get-selection 'PRIMARY)
+  (or (gui--selection-value-internal 'PRIMARY)
       (and (fboundp 'w32-get-selection-value)
            (eq (framep (selected-frame)) 'w32)
            ;; MS-Windows emulates PRIMARY in x-get-selection, but only

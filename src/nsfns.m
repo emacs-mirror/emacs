@@ -679,7 +679,23 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
         }
     }
 
-  x_set_window_size (f, 0, f->text_cols, f->text_lines, 0);
+  {
+    int inhibit
+      = ((f->after_make_frame
+	  && !f->tool_bar_resized
+	  && (EQ (frame_inhibit_implied_resize, Qt)
+	      || (CONSP (frame_inhibit_implied_resize)
+		  && !NILP (Fmemq (Qtool_bar_lines,
+				   frame_inhibit_implied_resize))))
+	  /* This will probably fail to DTRT in the
+	     fullheight/-width cases.  */
+	  && NILP (get_frame_param (f, Qfullscreen)))
+	 ? 0
+	 : 2);
+
+    frame_size_history_add (f, Qupdate_frame_tool_bar, 0, 0, Qnil);
+    adjust_frame_size (f, -1, -1, inhibit, 0, Qtool_bar_lines);
+  }
 }
 
 
@@ -1082,6 +1098,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   Lisp_Object parent;
   struct kboard *kb;
   static int desc_ctr = 1;
+  int x_width = 0, x_height = 0;
 
   /* x_get_arg modifies parms.  */
   parms = Fcopy_alist (parms);
@@ -1268,7 +1285,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
                        RES_TYPE_STRING);
 
   parms = get_geometry_from_preferences (dpyinfo, parms);
-  window_prompting = x_figure_window_size (f, parms, 1);
+  window_prompting = x_figure_window_size (f, parms, true, &x_width, &x_height);
 
   tem = x_get_arg (dpyinfo, parms, Qunsplittable, 0, 0, RES_TYPE_BOOLEAN);
   f->no_split = minibuffer_only || (!EQ (tem, Qunbound) && !EQ (tem, Qnil));
@@ -1321,6 +1338,11 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   /* Allow x_set_window_size, now.  */
   f->can_x_set_window_size = true;
+
+  if (x_width > 0)
+    SET_FRAME_WIDTH (f, x_width);
+  if (x_height > 0)
+    SET_FRAME_HEIGHT (f, x_height);
 
   adjust_frame_size (f, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f), 0, 1,
 		     Qx_create_frame_2);

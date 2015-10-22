@@ -26,20 +26,18 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <c-ctype.h>
 
 #include "lisp.h"
+#include "dispextern.h"
+#include "frame.h"
+#include "systime.h"
 #include "xterm.h"
 #include "blockinput.h"
-#include "syssignal.h"
 #include "window.h"
-#include "buffer.h"
 #include "gtkutil.h"
 #include "termhooks.h"
 #include "keyboard.h"
-#include "charset.h"
 #include "coding.h"
-#include "font.h"
 
 #include <gdk/gdkkeysyms.h>
-#include "xsettings.h"
 
 #ifdef HAVE_XFT
 #include <X11/Xft/Xft.h>
@@ -951,6 +949,8 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
       totalwidth /= scale;
     }
 
+  x_wm_set_size_hint (f, 0, 0);
+
   /* Resize the top level widget so rows and columns remain constant.
 
      When the frame is fullheight and we only want to change the width
@@ -964,41 +964,34 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
     {
       frame_size_history_add
 	(f, Qxg_frame_set_char_size_1, width, height,
-	 list2 (make_number (gheight),
-		make_number (totalheight)));
+	 list2 (make_number (gheight), make_number (totalheight)));
 
       gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-			 gwidth,
-			 totalheight);
+			 gwidth, totalheight);
     }
   else if (EQ (fullscreen, Qfullheight) && height == FRAME_TEXT_HEIGHT (f))
     {
       frame_size_history_add
 	(f, Qxg_frame_set_char_size_2, width, height,
-	 list2 (make_number (gwidth),
-		make_number (totalwidth)));
+	 list2 (make_number (gwidth), make_number (totalwidth)));
 
       gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-			 totalwidth,
-			 gheight);
+			 totalwidth, gheight);
     }
   else
     {
       frame_size_history_add
 	(f, Qxg_frame_set_char_size_3, width, height,
-	 list2 (make_number (totalwidth),
-		make_number (totalheight)));
+	 list2 (make_number (totalwidth), make_number (totalheight)));
 
       gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-			 totalwidth,
-			 totalheight);
+			 totalwidth, totalheight);
       fullscreen = Qnil;
     }
 
   SET_FRAME_GARBAGED (f);
   cancel_mouse_face (f);
 
-  x_wm_set_size_hint (f, 0, 0);
   /* We can not call change_frame_size for a mapped frame,
      we can not set pixel width/height either.  The window manager may
      override our resize request, XMonad does this all the time.
@@ -1399,7 +1392,8 @@ x_wm_set_size_hint (struct frame *f, long int flags, bool user_position)
 
   hint_flags |= GDK_HINT_BASE_SIZE;
   /* Use one row/col here so base_height/width does not become zero.
-     Gtk+ and/or Unity on Ubuntu 12.04 can't handle it.  */
+     Gtk+ and/or Unity on Ubuntu 12.04 can't handle it.
+     Obviously this makes the row/col value displayed off by 1.  */
   base_width = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, 1) + FRAME_TOOLBAR_WIDTH (f);
   base_height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 1)
     + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f);
@@ -4998,9 +4992,23 @@ update_frame_tool_bar (struct frame *f)
       gtk_widget_show_all (x->toolbar_widget);
       if (xg_update_tool_bar_sizes (f))
 	{
+	  int inhibit
+	    = ((f->after_make_frame
+		&& !f->tool_bar_resized
+		&& (EQ (frame_inhibit_implied_resize, Qt)
+		    || (CONSP (frame_inhibit_implied_resize)
+			&& !NILP (Fmemq (Qtool_bar_lines,
+					 frame_inhibit_implied_resize))))
+		/* This will probably fail to DTRT in the
+		   fullheight/-width cases.  */
+		&& NILP (get_frame_param (f, Qfullscreen)))
+	       ? 0
+	       : 2);
+
 	  frame_size_history_add (f, Qupdate_frame_tool_bar, 0, 0, Qnil);
-	  adjust_frame_size (f, -1, -1, 2, 0, Qtool_bar_lines);
+	  adjust_frame_size (f, -1, -1, inhibit, 0, Qtool_bar_lines);
 	}
+      f->tool_bar_resized = f->tool_bar_redisplayed;
     }
 
   unblock_input ();
