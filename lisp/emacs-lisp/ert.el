@@ -64,7 +64,7 @@
 (require 'ewoc)
 (require 'find-func)
 (require 'help)
-
+(require 'pp)
 
 ;;; UI customization options.
 
@@ -1300,7 +1300,8 @@ EXPECTEDP specifies whether the result was expected."
 (defun ert--pp-with-indentation-and-newline (object)
   "Pretty-print OBJECT, indenting it to the current column of point.
 Ensures a final newline is inserted."
-  (let ((begin (point)))
+  (let ((begin (point))
+        (pp-escape-newlines nil))
     (pp object (current-buffer))
     (unless (bolp) (insert "\n"))
     (save-excursion

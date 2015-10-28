@@ -7176,8 +7176,10 @@ setup_process_coding_systems (Lisp_Object process)
 }
 
 DEFUN ("get-buffer-process", Fget_buffer_process, Sget_buffer_process, 1, 1, 0,
-       doc: /* Return the (or a) process associated with BUFFER.
-BUFFER may be a buffer or the name of one.  */)
+       doc: /* Return the (or a) live process associated with BUFFER.
+BUFFER may be a buffer or the name of one.
+Return nil if all processes associated with BUFFER have been
+deleted or killed.  */)
   (register Lisp_Object buffer)
 {
 #ifdef subprocesses

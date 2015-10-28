@@ -564,6 +564,15 @@ Currently this means either text/html or application/xhtml+xml."
 	(delete-region (point-min) (point-max))
 	(insert (or source "no source"))
 	(goto-char (point-min))
+        ;; Decode the source and set the buffer's encoding according
+        ;; to what the HTML source specifies in its 'charset' header,
+        ;; if any.
+        (let ((cs (find-auto-coding "" (point-max))))
+          (when (consp cs)
+            (setq cs (car cs))
+            (when (coding-system-p cs)
+              (decode-coding-region (point-min) (point-max) cs)
+              (setq buffer-file-coding-system last-coding-system-used))))
 	(when (fboundp 'html-mode)
 	  (html-mode))))
     (view-buffer buf)))
@@ -1492,7 +1501,7 @@ If CHARSET is nil then use UTF-8."
       (setq start (point)
 	    title (plist-get bookmark :title))
       (when (> (length title) width)
-	(setq title (substring title 0 width)))
+	(setq title (truncate-string-to-width title width)))
       (insert (format format title (plist-get bookmark :url)) "\n")
       (put-text-property start (1+ start) 'eww-bookmark bookmark))
     (goto-char (point-min))))

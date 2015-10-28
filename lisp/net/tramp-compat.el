@@ -592,6 +592,16 @@ and replace a sub-expression, e.g.
 (unless (fboundp 'format-message)
   (defalias 'format-message 'format))
 
+;; `delete-dups' does not exist in XEmacs 21.4.
+(if (fboundp 'delete-dups)
+    (defalias 'tramp-compat-delete-dups 'delete-dups)
+  (defun tramp-compat-delete-dups (list)
+  "Destructively remove `equal' duplicates from LIST.
+Store the result in LIST and return it.  LIST must be a proper list.
+Of several `equal' occurrences of an element in LIST, the first
+one is kept."
+  (cl-delete-duplicates list '(:test equal :from-end) nil)))
+
 (add-hook 'tramp-unload-hook
 	  (lambda ()
 	    (unload-feature 'tramp-loaddefs 'force)

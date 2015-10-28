@@ -456,7 +456,7 @@ static bool message_enable_multibyte;
 
    OTOH if it's non-zero we wil have to loop through all windows and then check
    the `redisplay' bit of the corresponding window, frame, and buffer, in order
-   to decide whether that window needs attention or not.  Not that we can't
+   to decide whether that window needs attention or not.  Note that we can't
    just look at the frame's redisplay bit to decide that the whole frame can be
    skipped, since even if the frame's redisplay bit is unset, some of its
    windows's redisplay bits may be set.
@@ -475,6 +475,10 @@ int windows_or_buffers_changed;
    `redisplay' bit has been set.
    For any other value, redisplay all mode lines (the number used is then only
    used to track down the cause for this full-redisplay).
+
+   Since the frame title uses the same %-constructs as the mode line
+   (except %c and %l), if this variable is non-zero, we also consider
+   redisplaying the title of each frame, see x_consider_frame_title.
 
    The `redisplay' bits are the same as those used for
    windows_or_buffers_changed, and setting windows_or_buffers_changed also
@@ -13976,7 +13980,19 @@ redisplay_internal (void)
 	 above caused some change (e.g., a change in faces) that requires
 	 considering the entire frame again.  */
       if (sf->fonts_changed || sf->redisplay)
-	goto retry;
+	{
+	  if (sf->redisplay)
+	    {
+	      /* Set this to force a more thorough redisplay.
+		 Otherwise, we might immediately loop back to the
+		 above "else-if" clause (since all the conditions that
+		 led here might still be true), and we will then
+		 infloop, because the selected-frame's redisplay flag
+		 is not (and cannot be) reset.  */
+	      windows_or_buffers_changed = 50;
+	    }
+	  goto retry;
+	}
 
       /* Prevent freeing of realized faces, since desired matrices are
 	 pending that reference the faces we computed and cached.  */
@@ -16889,7 +16905,8 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 
  finish_menu_bars:
 
-  /* When we reach a frame's selected window, redo the frame's menu bar.  */
+  /* When we reach a frame's selected window, redo the frame's menu
+     bar and the frame's title.  */
   if (update_mode_line
       && EQ (FRAME_SELECTED_WINDOW (f), window))
     {
@@ -16924,6 +16941,7 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 	    ignore_mouse_drag_p = true;
 #endif
         }
+      x_consider_frame_title (w->frame);
 #endif
     }
 

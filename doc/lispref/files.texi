@@ -2038,32 +2038,35 @@ forward slash (@samp{/}) character.
 @node Directory Names
 @subsection Directory Names
 @cindex directory name
+@cindex directory file name
 @cindex file name of directory
 
   A @dfn{directory name} is the name of a directory.  A directory is
-actually a kind of file, so it has a file name, which is related to
-the directory name but not identical to it.  (This is not quite the
-same as the usual Unix terminology.)  These two different names for
-the same entity are related by a syntactic transformation.  On GNU and
-Unix systems, this is simple: a directory name ends in a slash,
-whereas the directory's name as a file lacks that slash.  On MS-DOS
-the relationship is more complicated.
+actually a kind of file, so it has a file name (called the
+@dfn{directory file name}, which is related to the directory name but
+not identical to it.  (This is not quite the same as the usual Unix
+terminology.)  These two different names for the same entity are
+related by a syntactic transformation.  On GNU and Unix systems, this
+is simple: a directory name ends in a slash, whereas the directory
+file name lacks that slash.  On MS-DOS the relationship is more
+complicated.
 
-  The difference between a directory name and its name as a file is
+  The difference between directory name and directory file name is
 subtle but crucial.  When an Emacs variable or function argument is
-described as being a directory name, a file name of a directory is not
+described as being a directory name, a directory file name is not
 acceptable.  When @code{file-name-directory} returns a string, that is
 always a directory name.
 
-  The following two functions convert between directory names and file
-names.  They do nothing special with environment variable substitutions
-such as @samp{$HOME}, and the constructs @samp{~}, @samp{.} and @samp{..}.
+  The following two functions convert between directory names and
+directory file names.  They do nothing special with environment
+variable substitutions such as @samp{$HOME}, and the constructs
+@samp{~}, @samp{.} and @samp{..}.
 
 @defun file-name-as-directory filename
 This function returns a string representing @var{filename} in a form
-that the operating system will interpret as the name of a directory.  On
-most systems, this means appending a slash to the string (if it does not
-already end in one).
+that the operating system will interpret as the name of a directory (a
+directory name).  On most systems, this means appending a slash to the
+string (if it does not already end in one).
 
 @example
 @group
@@ -2074,10 +2077,10 @@ already end in one).
 @end defun
 
 @defun directory-file-name dirname
-This function returns a string representing @var{dirname} in a form that
-the operating system will interpret as the name of a file.  On most
-systems, this means removing the final slash (or backslash) from the
-string.
+This function returns a string representing @var{dirname} in a form
+that the operating system will interpret as the name of a file (a
+directory file name).  On most systems, this means removing the final
+slash (or backslash) from the string.
 
 @example
 @group
@@ -2118,6 +2121,13 @@ Don't try concatenating a slash by hand, as in
 @noindent
 because this is not portable.  Always use
 @code{file-name-as-directory}.
+
+  To avoid the issues mentioned above, or if the @var{dirname} value
+might be nil (for example, from an element of @code{load-path}), use:
+
+@example
+(expand-file-name @var{relfile} @var{dirname})
+@end example
 
   To convert a directory name to its abbreviation, use this
 function:

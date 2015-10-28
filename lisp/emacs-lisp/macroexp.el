@@ -322,8 +322,9 @@ definitions to shadow the loaded ones for use in file byte-compilation."
   (if (cdr exps) `(progn ,@exps) (car exps)))
 
 (defun macroexp-unprogn (exp)
-  "Turn EXP into a list of expressions to execute in sequence."
-  (if (eq (car-safe exp) 'progn) (cdr exp) (list exp)))
+  "Turn EXP into a list of expressions to execute in sequence.
+Never returns an empty list."
+  (if (eq (car-safe exp) 'progn) (or (cdr exp) '(nil)) (list exp)))
 
 (defun macroexp-let* (bindings exp)
   "Return an expression equivalent to `(let* ,bindings ,exp)."
@@ -333,22 +334,33 @@ definitions to shadow the loaded ones for use in file byte-compilation."
    (t `(let* ,bindings ,exp))))
 
 (defun macroexp-if (test then else)
-  "Return an expression equivalent to `(if ,test ,then ,else)."
+  "Return an expression equivalent to `(if ,TEST ,THEN ,ELSE)."
   (cond
    ((eq (car-safe else) 'if)
-    (if (equal test (nth 1 else))
-        ;; Doing a test a second time: get rid of the redundancy.
-        `(if ,test ,then ,@(nthcdr 3 else))
-      `(cond (,test ,then)
-             (,(nth 1 else) ,(nth 2 else))
-             (t ,@(nthcdr 3 else)))))
+    (cond
+     ;; Drop this optimization: It's unsafe (it assumes that `test' is
+     ;; pure, or at least idempotent), and it's not used even a single
+     ;; time while compiling Emacs's sources.
+     ;;((equal test (nth 1 else))
+     ;; ;; Doing a test a second time: get rid of the redundancy.
+     ;; (message "macroexp-if: sharing 'test' %S" test)
+     ;; `(if ,test ,then ,@(nthcdr 3 else)))
+     ((equal then (nth 2 else))
+      ;; (message "macroexp-if: sharing 'then' %S" then)
+      `(if (or ,test ,(nth 1 else)) ,then ,@(nthcdr 3 else)))
+     ((equal (macroexp-unprogn then) (nthcdr 3 else))
+      ;; (message "macroexp-if: sharing 'then' with not %S" then)
+      `(if (or ,test (not ,(nth 1 else)))
+           ,then ,@(macroexp-unprogn (nth 2 else))))
+     (t
+      `(cond (,test ,@(macroexp-unprogn then))
+             (,(nth 1 else) ,@(macroexp-unprogn (nth 2 else)))
+             (t ,@(nthcdr 3 else))))))
    ((eq (car-safe else) 'cond)
-    `(cond (,test ,then)
-           ;; Doing a test a second time: get rid of the redundancy, as above.
-           ,@(remove (assoc test else) (cdr else))))
+    `(cond (,test ,@(macroexp-unprogn then)) ,@(cdr else)))
    ;; Invert the test if that lets us reduce the depth of the tree.
    ((memq (car-safe then) '(if cond)) (macroexp-if `(not ,test) else then))
-   (t `(if ,test ,then ,else))))
+   (t `(if ,test ,then ,@(macroexp-unprogn else)))))
 
 (defmacro macroexp-let2 (test sym exp &rest body)
   "Evaluate BODY with SYM bound to an expression for EXP's value.

@@ -49,13 +49,6 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "macfont.h"
 #endif
 
-#if 0
-int fns_trace_num = 1;
-#define NSTRACE(x)        fprintf (stderr, "%s:%d: [%d] " #x "\n",        \
-                                  __FILE__, __LINE__, ++fns_trace_num)
-#else
-#define NSTRACE(x)
-#endif
 
 #ifdef HAVE_NS
 
@@ -364,7 +357,7 @@ static void
 x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   NSView *view = FRAME_NS_VIEW (f);
-  NSTRACE (x_set_icon_name);
+  NSTRACE ("x_set_icon_name");
 
   /* see if it's changed */
   if (STRINGP (arg))
@@ -436,7 +429,7 @@ ns_set_name_internal (struct frame *f, Lisp_Object name)
 static void
 ns_set_name (struct frame *f, Lisp_Object name, int explicit)
 {
-  NSTRACE (ns_set_name);
+  NSTRACE ("ns_set_name");
 
   /* Make sure that requests from lisp code override requests from
      Emacs redisplay code.  */
@@ -477,7 +470,7 @@ ns_set_name (struct frame *f, Lisp_Object name, int explicit)
 static void
 x_explicitly_set_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-  NSTRACE (x_explicitly_set_name);
+  NSTRACE ("x_explicitly_set_name");
   ns_set_name (f, arg, 1);
 }
 
@@ -488,7 +481,7 @@ x_explicitly_set_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 void
 x_implicitly_set_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-  NSTRACE (x_implicitly_set_name);
+  NSTRACE ("x_implicitly_set_name");
 
   /* Deal with NS specific format t.  */
   if (FRAME_NS_P (f) && ((FRAME_ICONIFIED_P (f) && EQ (Vicon_title_format, Qt))
@@ -505,7 +498,7 @@ x_implicitly_set_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 static void
 x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
 {
-  NSTRACE (x_set_title);
+  NSTRACE ("x_set_title");
   /* Don't change the title if it's already NAME.  */
   if (EQ (name, f->title))
     return;
@@ -533,7 +526,7 @@ ns_set_name_as_filename (struct frame *f)
   NSAutoreleasePool *pool;
   Lisp_Object encoded_name, encoded_filename;
   NSString *str;
-  NSTRACE (ns_set_name_as_filename);
+  NSTRACE ("ns_set_name_as_filename");
 
   if (f->explicit_name || ! NILP (f->title))
     return;
@@ -729,7 +722,7 @@ ns_implicitly_set_icon_type (struct frame *f)
   NSAutoreleasePool *pool;
   BOOL setMini = YES;
 
-  NSTRACE (ns_implicitly_set_icon_type);
+  NSTRACE ("ns_implicitly_set_icon_type");
 
   block_input ();
   pool = [[NSAutoreleasePool alloc] init];
@@ -797,7 +790,7 @@ x_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   id image = nil;
   BOOL setMini = YES;
 
-  NSTRACE (x_set_icon_type);
+  NSTRACE ("x_set_icon_type");
 
   if (!NILP (arg) && SYMBOLP (arg))
     {
@@ -1304,6 +1297,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
   FRAME_DISPLAY_INFO (f)->horizontal_scroll_bar_cursor
      = [NSCursor arrowCursor];
   f->output_data.ns->current_pointer = f->output_data.ns->text_cursor;
+
+  f->output_data.ns->in_animation = NO;
 
   [[EmacsView alloc] initFrameFromEmacs: f];
 

@@ -461,6 +461,8 @@ or an empty string if none."
 
 ;; Follows vc-git-command (or vc-do-async-command), which uses vc-do-command
 ;; from vc-dispatcher.
+(declare-function vc-exec-after "vc-dispatcher" (code))
+;; Follows vc-exec-after.
 (declare-function vc-set-async-update "vc-dispatcher" (process-buffer))
 
 (defun vc-git-dir-status-goto-stage (stage files update-function)

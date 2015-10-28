@@ -258,7 +258,7 @@ enum Lisp_Bits
 
 /* The maximum value that can be stored in a EMACS_INT, assuming all
    bits other than the type bits contribute to a nonnegative signed value.
-   This can be used in #if, e.g., '#if USB_TAG' below expands to an
+   This can be used in #if, e.g., '#if USE_LSB_TAG' below expands to an
    expression involving VAL_MAX.  */
 #define VAL_MAX (EMACS_INT_MAX >> (GCTYPEBITS - 1))
 
@@ -300,10 +300,6 @@ error !;
      #define OP(x) lisp_h_OP (x)
 
    and/or via a function definition like this:
-
-     LISP_MACRO_DEFUN (OP, Lisp_Object, (Lisp_Object x), (x))
-
-   which macro-expands to this:
 
      Lisp_Object (OP) (Lisp_Object x) { return lisp_h_OP (x); }
 
@@ -407,17 +403,6 @@ error !;
 #  define XUNTAG(a, type) lisp_h_XUNTAG (a, type)
 # endif
 #endif
-
-/* Define NAME as a lisp.h inline function that returns TYPE and has
-   arguments declared as ARGDECLS and passed as ARGS.  ARGDECLS and
-   ARGS should be parenthesized.  Implement the function by calling
-   lisp_h_NAME ARGS.  */
-#define LISP_MACRO_DEFUN(name, type, argdecls, args) \
-  INLINE type (name) argdecls { return lisp_h_##name args; }
-
-/* like LISP_MACRO_DEFUN, except NAME returns void.  */
-#define LISP_MACRO_DEFUN_VOID(name, argdecls, args) \
-  INLINE void (name) argdecls { lisp_h_##name args; }
 
 
 /* Define the fundamental Lisp data structures.  */
@@ -751,8 +736,18 @@ struct Lisp_Symbol
 
 /* Convert a Lisp_Object to the corresponding EMACS_INT and vice versa.
    At the machine level, these operations are no-ops.  */
-LISP_MACRO_DEFUN (XLI, EMACS_INT, (Lisp_Object o), (o))
-LISP_MACRO_DEFUN (XIL, Lisp_Object, (EMACS_INT i), (i))
+
+INLINE EMACS_INT
+(XLI) (Lisp_Object o)
+{
+  return lisp_h_XLI (o);
+}
+
+INLINE Lisp_Object
+(XIL) (EMACS_INT i)
+{
+  return lisp_h_XIL (i);
+}
 
 /* In the size word of a vector, this bit means the vector has been marked.  */
 
@@ -834,12 +829,41 @@ DEFINE_GDB_SYMBOL_END (VALMASK)
 
 #if USE_LSB_TAG
 
-LISP_MACRO_DEFUN (make_number, Lisp_Object, (EMACS_INT n), (n))
-LISP_MACRO_DEFUN (XINT, EMACS_INT, (Lisp_Object a), (a))
-LISP_MACRO_DEFUN (XFASTINT, EMACS_INT, (Lisp_Object a), (a))
-LISP_MACRO_DEFUN (XSYMBOL, struct Lisp_Symbol *, (Lisp_Object a), (a))
-LISP_MACRO_DEFUN (XTYPE, enum Lisp_Type, (Lisp_Object a), (a))
-LISP_MACRO_DEFUN (XUNTAG, void *, (Lisp_Object a, int type), (a, type))
+INLINE Lisp_Object
+(make_number) (EMACS_INT n)
+{
+  return lisp_h_make_number (n);
+}
+
+INLINE EMACS_INT
+(XINT) (Lisp_Object a)
+{
+  return lisp_h_XINT (a);
+}
+
+INLINE EMACS_INT
+(XFASTINT) (Lisp_Object a)
+{
+  return lisp_h_XFASTINT (a);
+}
+
+INLINE struct Lisp_Symbol *
+(XSYMBOL) (Lisp_Object a)
+{
+  return lisp_h_XSYMBOL (a);
+}
+
+INLINE enum Lisp_Type
+(XTYPE) (Lisp_Object a)
+{
+  return lisp_h_XTYPE (a);
+}
+
+INLINE void *
+(XUNTAG) (Lisp_Object a, int type)
+{
+  return lisp_h_XUNTAG (a, type);
+}
 
 #else /* ! USE_LSB_TAG */
 
@@ -930,7 +954,12 @@ XUINT (Lisp_Object a)
 /* Return A's (Lisp-integer sized) hash.  Happens to be like XUINT
    right now, but XUINT should only be applied to objects we know are
    integers.  */
-LISP_MACRO_DEFUN (XHASH, EMACS_INT, (Lisp_Object a), (a))
+
+INLINE EMACS_INT
+(XHASH) (Lisp_Object a)
+{
+  return lisp_h_XHASH (a);
+}
 
 /* Like make_number (N), but may be faster.  N must be in nonnegative range.  */
 INLINE Lisp_Object
@@ -942,7 +971,12 @@ make_natnum (EMACS_INT n)
 }
 
 /* Return true if X and Y are the same object.  */
-LISP_MACRO_DEFUN (EQ, bool, (Lisp_Object x, Lisp_Object y), (x, y))
+
+INLINE bool
+(EQ) (Lisp_Object x, Lisp_Object y)
+{
+  return lisp_h_EQ (x, y);
+}
 
 /* Value is true if I doesn't fit into a Lisp fixnum.  It is
    written this way so that it also works if I is of unsigned
@@ -960,7 +994,11 @@ clip_to_bounds (ptrdiff_t lower, EMACS_INT num, ptrdiff_t upper)
 
 /* Extract a value or address from a Lisp_Object.  */
 
-LISP_MACRO_DEFUN (XCONS, struct Lisp_Cons *, (Lisp_Object a), (a))
+INLINE struct Lisp_Cons *
+(XCONS) (Lisp_Object a)
+{
+  return lisp_h_XCONS (a);
+}
 
 INLINE struct Lisp_Vector *
 XVECTOR (Lisp_Object a)
@@ -1133,9 +1171,11 @@ make_pointer_integer (void *p)
 
 /* Type checking.  */
 
-LISP_MACRO_DEFUN_VOID (CHECK_TYPE,
-		       (int ok, Lisp_Object predicate, Lisp_Object x),
-		       (ok, predicate, x))
+INLINE void
+(CHECK_TYPE) (int ok, Lisp_Object predicate, Lisp_Object x)
+{
+  lisp_h_CHECK_TYPE (ok, predicate, x);
+}
 
 /* See the macros in intervals.h.  */
 
@@ -1175,8 +1215,18 @@ xcdr_addr (Lisp_Object c)
 }
 
 /* Use these from normal code.  */
-LISP_MACRO_DEFUN (XCAR, Lisp_Object, (Lisp_Object c), (c))
-LISP_MACRO_DEFUN (XCDR, Lisp_Object, (Lisp_Object c), (c))
+
+INLINE Lisp_Object
+(XCAR) (Lisp_Object c)
+{
+  return lisp_h_XCAR (c);
+}
+
+INLINE Lisp_Object
+(XCDR) (Lisp_Object c)
+{
+  return lisp_h_XCDR (c);
+}
 
 /* Use these to set the fields of a cons cell.
 
@@ -1713,7 +1763,11 @@ verify (offsetof (struct Lisp_Sub_Char_Table, contents)
 
 /* Value is name of symbol.  */
 
-LISP_MACRO_DEFUN (SYMBOL_VAL, Lisp_Object, (struct Lisp_Symbol *sym), (sym))
+INLINE Lisp_Object
+(SYMBOL_VAL) (struct Lisp_Symbol *sym)
+{
+  return lisp_h_SYMBOL_VAL (sym);
+}
 
 INLINE struct Lisp_Symbol *
 SYMBOL_ALIAS (struct Lisp_Symbol *sym)
@@ -1734,8 +1788,11 @@ SYMBOL_FWD (struct Lisp_Symbol *sym)
   return sym->val.fwd;
 }
 
-LISP_MACRO_DEFUN_VOID (SET_SYMBOL_VAL,
-		       (struct Lisp_Symbol *sym, Lisp_Object v), (sym, v))
+INLINE void
+(SET_SYMBOL_VAL) (struct Lisp_Symbol *sym, Lisp_Object v)
+{
+  lisp_h_SET_SYMBOL_VAL (sym, v);
+}
 
 INLINE void
 SET_SYMBOL_ALIAS (struct Lisp_Symbol *sym, struct Lisp_Symbol *v)
@@ -1782,7 +1839,11 @@ SYMBOL_INTERNED_IN_INITIAL_OBARRAY_P (Lisp_Object sym)
    value cannot be changed (there is an exception for keyword symbols,
    whose value can be set to the keyword symbol itself).  */
 
-LISP_MACRO_DEFUN (SYMBOL_CONSTANT_P, int, (Lisp_Object sym), (sym))
+INLINE int
+(SYMBOL_CONSTANT_P) (Lisp_Object sym)
+{
+  return lisp_h_SYMBOL_CONSTANT_P (sym);
+}
 
 /* Placeholder for make-docfile to process.  The actual symbol
    definition is done by lread.c's defsym.  */
@@ -2452,7 +2513,11 @@ enum char_bits
 
 /* Data type checking.  */
 
-LISP_MACRO_DEFUN (NILP, bool, (Lisp_Object x), (x))
+INLINE bool
+(NILP) (Lisp_Object x)
+{
+  return lisp_h_NILP (x);
+}
 
 INLINE bool
 NUMBERP (Lisp_Object x)
@@ -2476,13 +2541,41 @@ RANGED_INTEGERP (intmax_t lo, Lisp_Object x, intmax_t hi)
    && (TYPE_SIGNED (type) ? TYPE_MINIMUM (type) <= XINT (x) : 0 <= XINT (x)) \
    && XINT (x) <= TYPE_MAXIMUM (type))
 
-LISP_MACRO_DEFUN (CONSP, bool, (Lisp_Object x), (x))
-LISP_MACRO_DEFUN (FLOATP, bool, (Lisp_Object x), (x))
-LISP_MACRO_DEFUN (MISCP, bool, (Lisp_Object x), (x))
-LISP_MACRO_DEFUN (SYMBOLP, bool, (Lisp_Object x), (x))
-LISP_MACRO_DEFUN (INTEGERP, bool, (Lisp_Object x), (x))
-LISP_MACRO_DEFUN (VECTORLIKEP, bool, (Lisp_Object x), (x))
-LISP_MACRO_DEFUN (MARKERP, bool, (Lisp_Object x), (x))
+INLINE bool
+(CONSP) (Lisp_Object x)
+{
+  return lisp_h_CONSP (x);
+}
+INLINE bool
+(FLOATP) (Lisp_Object x)
+{
+  return lisp_h_FLOATP (x);
+}
+INLINE bool
+(MISCP) (Lisp_Object x)
+{
+  return lisp_h_MISCP (x);
+}
+INLINE bool
+(SYMBOLP) (Lisp_Object x)
+{
+  return lisp_h_SYMBOLP (x);
+}
+INLINE bool
+(INTEGERP) (Lisp_Object x)
+{
+  return lisp_h_INTEGERP (x);
+}
+INLINE bool
+(VECTORLIKEP) (Lisp_Object x)
+{
+  return lisp_h_VECTORLIKEP (x);
+}
+INLINE bool
+(MARKERP) (Lisp_Object x)
+{
+  return lisp_h_MARKERP (x);
+}
 
 INLINE bool
 STRINGP (Lisp_Object x)
@@ -2633,9 +2726,23 @@ CHECK_LIST (Lisp_Object x)
   CHECK_TYPE (CONSP (x) || NILP (x), Qlistp, x);
 }
 
-LISP_MACRO_DEFUN_VOID (CHECK_LIST_CONS, (Lisp_Object x, Lisp_Object y), (x, y))
-LISP_MACRO_DEFUN_VOID (CHECK_SYMBOL, (Lisp_Object x), (x))
-LISP_MACRO_DEFUN_VOID (CHECK_NUMBER, (Lisp_Object x), (x))
+INLINE void
+(CHECK_LIST_CONS) (Lisp_Object x, Lisp_Object y)
+{
+  lisp_h_CHECK_LIST_CONS (x, y);
+}
+
+INLINE void
+(CHECK_SYMBOL) (Lisp_Object x)
+{
+ lisp_h_CHECK_SYMBOL (x);
+}
+
+INLINE void
+(CHECK_NUMBER) (Lisp_Object x)
+{
+  lisp_h_CHECK_NUMBER (x);
+}
 
 INLINE void
 CHECK_STRING (Lisp_Object x)

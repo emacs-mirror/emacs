@@ -570,37 +570,54 @@ no more reverts are possible until the next call of
       ;; Since we watch a directory, a file name must be returned.
       (cl-assert (stringp file))
       (when (eq action 'renamed) (cl-assert (stringp file1)))
-      ;; Loop over all buffers, in order to find the intended one.
-      (cl-dolist (buffer buffers)
-	(when (buffer-live-p buffer)
-	  (with-current-buffer buffer
-	    (when (or
-		   ;; A buffer associated with a file.
-		   (and (stringp buffer-file-name)
-			(or
-			 (and (memq action '(attribute-changed changed created))
-			      (string-equal
-			       (file-name-nondirectory file)
-			       (file-name-nondirectory buffer-file-name)))
-			 (and (eq action 'renamed)
-			      (string-equal
-			       (file-name-nondirectory file1)
-			       (file-name-nondirectory buffer-file-name)))))
-		   ;; A buffer w/o a file, like dired.
-		   (and (null buffer-file-name)
-			(memq action '(created renamed deleted))))
-	      ;; Mark buffer modified.
-	      (setq auto-revert-notify-modified-p t)
 
-	      ;; Revert the buffer now if we're not locked out.
-	      (when (/= auto-revert-buffers-counter-lockedout
-			auto-revert-buffers-counter)
-		(auto-revert-handler)
-		(setq auto-revert-buffers-counter-lockedout
-		      auto-revert-buffers-counter))
+      (if (eq action 'stopped)
+          ;; File notification has stopped.  Continue with polling.
+          (cl-dolist (buffer buffers)
+            (with-current-buffer buffer
+              (when (or
+                     ;; A buffer associated with a file.
+                     (and (stringp buffer-file-name)
+                          (string-equal
+                           (file-name-nondirectory file)
+                           (file-name-nondirectory buffer-file-name)))
+                     ;; A buffer w/o a file, like dired.
+                     (null buffer-file-name))
+                (auto-revert-notify-rm-watch)
+                (setq-local auto-revert-use-notify nil))))
 
-	      ;; No need to check other buffers.
-	      (cl-return))))))))
+        ;; Loop over all buffers, in order to find the intended one.
+        (cl-dolist (buffer buffers)
+          (when (buffer-live-p buffer)
+            (with-current-buffer buffer
+              (when (or
+                     ;; A buffer associated with a file.
+                     (and (stringp buffer-file-name)
+                          (or
+                           (and (memq
+                                 action '(attribute-changed changed created))
+                                (string-equal
+                                 (file-name-nondirectory file)
+                                 (file-name-nondirectory buffer-file-name)))
+                           (and (eq action 'renamed)
+                                (string-equal
+                                 (file-name-nondirectory file1)
+                                 (file-name-nondirectory buffer-file-name)))))
+                     ;; A buffer w/o a file, like dired.
+                     (and (null buffer-file-name)
+                          (memq action '(created renamed deleted))))
+                ;; Mark buffer modified.
+                (setq auto-revert-notify-modified-p t)
+
+                ;; Revert the buffer now if we're not locked out.
+                (when (/= auto-revert-buffers-counter-lockedout
+                          auto-revert-buffers-counter)
+                  (auto-revert-handler)
+                  (setq auto-revert-buffers-counter-lockedout
+                        auto-revert-buffers-counter))
+
+                ;; No need to check other buffers.
+                (cl-return)))))))))
 
 (defun auto-revert-active-p ()
   "Check if auto-revert is active (in current buffer or globally)."
@@ -671,7 +688,7 @@ This is an internal function used by Auto-Revert Mode."
     ;; `preserve-modes' avoids changing the (minor) modes.  But we do
     ;; want to reset the mode for VC, so we do it manually.
     (when (or revert auto-revert-check-vc-info)
-      (vc-find-file-hook))))
+      (vc-refresh-state))))
 
 (defun auto-revert-tail-handler (size)
   (let ((modified (buffer-modified-p))

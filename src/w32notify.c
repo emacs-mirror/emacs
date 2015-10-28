@@ -525,7 +525,7 @@ generate notifications correctly, though.  */)
 
   /* The underlying features are available only since XP.  */
   if (os_subtype == OS_9X
-      || (w32_major_version == 5 && w32_major_version < 1))
+      || (w32_major_version == 5 && w32_minor_version < 1))
     {
       errno = ENOSYS;
       report_file_notify_error ("Watching filesystem events is not supported",

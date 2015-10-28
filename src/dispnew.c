@@ -6109,8 +6109,8 @@ init_display (void)
        change.  It's not clear what better we could do.  The rest of
        the code assumes that (width + 2) * height * sizeof (struct glyph)
        does not overflow and does not exceed PTRDIFF_MAX or SIZE_MAX.  */
-    if (INT_ADD_RANGE_OVERFLOW (width, 2, INT_MIN, INT_MAX)
-	|| INT_MULTIPLY_RANGE_OVERFLOW (width + 2, height, INT_MIN, INT_MAX)
+    if (INT_ADD_OVERFLOW (width, 2)
+	|| INT_MULTIPLY_OVERFLOW (width + 2, height)
 	|| (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (struct glyph)
 	    < (width + 2) * height))
       fatal ("screen size %dx%d too big", width, height);

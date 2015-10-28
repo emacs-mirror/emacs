@@ -4043,6 +4043,7 @@ Return the local name of the temporary file."
 			 'tramp-delete-temp-file-function)))
 
 ;;; Auto saving to a special directory:
+(defvar auto-save-file-name-transforms)
 
 (defun tramp-handle-make-auto-save-file-name ()
   "Like `make-auto-save-file-name' for Tramp files.

@@ -508,7 +508,6 @@ articles in the topic and its subtopics."
 	 (all-entries entries)
 	 (point-max (point-max))
 	 (unread 0)
-	 (topic (car type))
 	 info entry end active tick)
     ;; Insert any sub-topics.
     (while topicl
@@ -586,7 +585,7 @@ articles in the topic and its subtopics."
     (goto-char end)
     unread))
 
-(defun gnus-topic-remove-topic (&optional insert total-remove hide in-level)
+(defun gnus-topic-remove-topic (&optional insert total-remove _hide in-level)
   "Remove the current topic."
   (let ((topic (gnus-group-topic-name))
 	(level (gnus-group-topic-level))
@@ -630,6 +629,8 @@ articles in the topic and its subtopics."
 	    (gnus-topic-remove-topic
 	     (or insert (not (gnus-topic-visible-p))) nil nil 9)
 	    (gnus-topic-enter-dribble)))))))
+
+(defvar gnus-tmp-header)
 
 (defun gnus-topic-insert-topic-line (name visiblep shownp level entries
 					  &optional unread)
@@ -694,8 +695,7 @@ articles in the topic and its subtopics."
   (let* ((topic (gnus-group-topic group))
 	 (groups (cdr (assoc topic gnus-topic-alist)))
 	 (g (cdr (member group groups)))
-	 (unfound t)
-	 entry)
+	 (unfound t))
     ;; Try to jump to a visible group.
     (while (and g
 		(not (gnus-group-goto-group (car g) t)))
@@ -1454,7 +1454,7 @@ If NON-RECURSIVE (which is the prefix) is t, don't mark its subtopics."
 	  (funcall (if unmark 'gnus-group-remove-mark 'gnus-group-set-mark)
 		   (gnus-info-group (nth 2 (pop groups)))))))))
 
-(defun gnus-topic-unmark-topic (topic &optional dummy non-recursive)
+(defun gnus-topic-unmark-topic (topic &optional _dummy non-recursive)
   "Remove the process mark from all groups in the TOPIC.
 If NON-RECURSIVE (which is the prefix) is t, don't unmark its subtopics."
   (interactive (list (gnus-group-topic-name)
@@ -1488,15 +1488,14 @@ If NON-RECURSIVE (which is the prefix) is t, don't unmark its subtopics."
   (gnus-group-mark-regexp regexp)
   (gnus-topic-move-group nil topic copyp))
 
-(defun gnus-topic-copy-matching (regexp topic &optional copyp)
+(defun gnus-topic-copy-matching (regexp topic &optional _copyp)
   "Copy all groups that match REGEXP to some topic."
   (interactive
-   (let (topic)
+   (let ((topic (gnus-completing-read "Copy to topic"
+                                      (mapcar #'car gnus-topic-alist) t)))
      (nreverse
-      (list
-       (setq topic (gnus-completing-read "Copy to topic"
-                                         (mapcar 'car gnus-topic-alist) t))
-       (read-string (format "Copy to %s (regexp): " topic))))))
+      (list topic
+            (read-string (format "Copy to %s (regexp): " topic))))))
   (gnus-topic-move-matching regexp topic t))
 
 (defun gnus-topic-delete (topic)

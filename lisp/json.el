@@ -358,7 +358,7 @@ Please see the documentation of `json-object-type'."
   (cond ((eq json-object-type 'hash-table)
          (make-hash-table :test 'equal))
         (t
-         (list))))
+         ())))
 
 (defun json-add-to-object (object key value)
   "Add a new KEY -> VALUE association to OBJECT.

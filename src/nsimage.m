@@ -35,14 +35,6 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "frame.h"
 #include "coding.h"
 
-/* call tracing */
-#if 0
-int image_trace_num = 0;
-#define NSTRACE(x)        fprintf (stderr, "%s:%d: [%d] " #x "\n",         \
-                                __FILE__, __LINE__, ++image_trace_num)
-#else
-#define NSTRACE(x)
-#endif
 
 
 /* ==========================================================================
@@ -57,7 +49,7 @@ void *
 ns_image_from_XBM (unsigned char *bits, int width, int height,
                    unsigned long fg, unsigned long bg)
 {
-  NSTRACE (ns_image_from_XBM);
+  NSTRACE ("ns_image_from_XBM");
   return [[EmacsImage alloc] initFromXBM: bits
                                    width: width height: height
                                       fg: fg bg: bg];
@@ -66,7 +58,7 @@ ns_image_from_XBM (unsigned char *bits, int width, int height,
 void *
 ns_image_for_XPM (int width, int height, int depth)
 {
-  NSTRACE (ns_image_for_XPM);
+  NSTRACE ("ns_image_for_XPM");
   return [[EmacsImage alloc] initForXPMWithDepth: depth
                                            width: width height: height];
 }
@@ -74,7 +66,7 @@ ns_image_for_XPM (int width, int height, int depth)
 void *
 ns_image_from_file (Lisp_Object file)
 {
-  NSTRACE (ns_image_from_bitmap_file);
+  NSTRACE ("ns_image_from_bitmap_file");
   return [EmacsImage allocInitFromFile: file];
 }
 
@@ -85,7 +77,7 @@ ns_load_image (struct frame *f, struct image *img,
   EmacsImage *eImg = nil;
   NSSize size;
 
-  NSTRACE (ns_load_image);
+  NSTRACE ("ns_load_image");
 
   if (STRINGP (spec_file))
     {

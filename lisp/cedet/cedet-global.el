@@ -97,7 +97,7 @@ SCOPE is the scope of the search, such as 'project or 'subdirs."
     ;; Check for warnings.
     (with-current-buffer b
       (goto-char (point-min))
-      (when (re-search-forward "Error\\|Warning" nil t)
+      (when (re-search-forward "Error\\|Warning\\|invalid" nil t)
 	(error "Output:\n%S" (buffer-string))))
 
     b))
@@ -186,12 +186,14 @@ If a database already exists, then just update it."
   (let ((root (cedet-gnu-global-root dir)))
     (if root (setq dir root))
     (let ((default-directory dir))
-      (cedet-gnu-global-gtags-call
-       (when root
-	 '("-u");; Incremental update flag.
-	 ))
-      )
-    ))
+      (if root
+          ;; Incremental update. This can be either "gtags -i" or
+          ;; "global -u"; the gtags manpage says it's better to use
+          ;; "global -u".
+	  (cedet-gnu-global-call (list "-u"))
+	(cedet-gnu-global-gtags-call nil)
+	)
+      )))
 
 (provide 'cedet-global)
 

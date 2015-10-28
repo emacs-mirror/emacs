@@ -81,6 +81,10 @@ be installed setgid.  The option now defaults to the 'games' group.
 It has no particular connection to Emacs and has not changed in years,
 so if you want to use it, you can always take a copy from an older Emacs.
 
+** Emacs 25 comes with a new set of icons.
+Various resolutions are available as etc/images/icons/hicolor/*/apps/emacs.png.
+The old Emacs logo icons are available as `emacs23.png' in the same location.
+
 
 * Startup Changes in Emacs 25.1
 
@@ -110,6 +114,8 @@ frame, and allows the caller to specify a frame predicate to exclude
 frames.
 
 ** New doc command `describe-symbol'.  Works for functions, vars, faces, etc...
+
+** New user option `search-default-regexp-mode' specifies the default mode for isearch
 
 ** `isearch' and `query-replace' now perform character folding in matches.
 This is analogous to case-folding, but applies between Unicode
@@ -275,14 +281,6 @@ header.
 ** `tabulated-list-print' takes a second optional argument, update,
 which specifies an alternative printing method which is faster when
 few or no entries have changed.
-** The command `dired-do-compress' bound to `Z' now can compress
-directories and decompress zip files.
-** New command `dired-do-compress-to' bound to `c' can be used to compress
-many marked files into a single named archive.  The compression
-command is determined from the new `dired-compress-files-alist'
-variable.
-
-+++
 
 
 * Editing Changes in Emacs 25.1
@@ -567,17 +565,6 @@ appending FUN to `minibuffer-setup-hook'.
 ** cl-lib
 *** New functions cl-fresh-line, cl-digit-char-p and cl-parse-integer.
 
-** seq
-*** New seq library:
-The seq library adds sequence manipulation functions and macros that
-complement basic functions provided by subr.el.  All functions are
-prefixed with `seq-' and work on lists, strings and vectors.
-
-** map
-*** New map library:
-The map library provides map-manipulation functions that work on alists,
-hash-table and arrays.  All functions are prefixed with "map-".
-
 ** Calendar and diary
 
 +++
@@ -858,10 +845,27 @@ be added to the archive.
 ** Autorevert: dired buffers are also auto-reverted via file
 notifications, if Emacs is compiled with file notification support.
 
+** File Notifications
+
 +++
-** File Notifications: the new function `file-notify-valid-p' checks,
-whether a file notification descriptor still corresponds to an
-activate watch.
+*** The new event `stopped' signals, that a file notification watch is
+not active any longer.
+
++++
+*** The new function `file-notify-valid-p' checks, whether a file
+notification descriptor still corresponds to an activate watch.
+
+** Dired
+
++++
+*** The command `dired-do-compress' bound to `Z' now can compress
+directories and decompress zip files.
+
++++
+*** New command `dired-do-compress-to' bound to `c' can be used to
+compress many marked files into a single named archive.  The
+compression command is determined from the new
+`dired-compress-files-alist' variable.
 
 ** Obsolete packages
 
@@ -891,6 +895,18 @@ types the text.  Breaking line after a single-character words is
 forbidden by Czech and Polish typography (and may be discouraged in
 other languages), so `auto-tildify-mode' makes it easier to create
 a typographically-correct documents.
+
+** The `seq' library adds sequence manipulation functions and macros
+that complement basic functions provided by subr.el.  All functions
+are prefixed with `seq-' and work on lists, strings and vectors.
+
+** The `map' library provides map-manipulation functions that work on
+alists, hash-table and arrays.  All functions are prefixed with
+`map-'.
+
+** The `thunk' library provides functions and macros to control the
+evaluation of forms.
+
 
 * Incompatible Lisp Changes in Emacs 25.1
 

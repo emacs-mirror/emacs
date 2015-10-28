@@ -303,7 +303,7 @@ CLASS is the EIEIO class that is used to track this project.  It should subclass
   (ede-generic-new-autoloader "generic-cvs" "Generic CVS"
 			      "CVS" 'ede-generic-vc-project)
   (ede-generic-new-autoloader "generic-mtn" "Generic Monotone"
-                              "_MTN/options" 'ede-generic-vc-project)
+                              "_MTN" 'ede-generic-vc-project)
 
   ;; Take advantage of existing 'projectile' based projects.
   ;; @TODO - if projectile supports compile commands etc, can we

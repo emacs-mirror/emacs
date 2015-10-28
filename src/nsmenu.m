@@ -45,13 +45,6 @@ Carbon version by Yamamoto Mitsuharu. */
 #include <sys/types.h>
 #endif
 
-#if 0
-int menu_trace_num = 0;
-#define NSTRACE(x)        fprintf (stderr, "%s:%d: [%d] " #x "\n",        \
-                                __FILE__, __LINE__, ++menu_trace_num)
-#else
-#define NSTRACE(x)
-#endif
 
 #if 0
 /* Include lisp -> C common menu parsing code */
@@ -121,7 +114,7 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
   long t;
 #endif
 
-  NSTRACE (ns_update_menubar);
+  NSTRACE ("ns_update_menubar");
 
   if (f != SELECTED_FRAME ())
       return;
@@ -801,6 +794,8 @@ ns_menu_show (struct frame *f, int x, int y, int menuflags,
   widget_value *wv, *first_wv = 0;
   bool keymaps = (menuflags & MENU_KEYMAPS);
 
+  NSTRACE ("ns_menu_show");
+
   block_input ();
 
   p.x = x; p.y = y;
@@ -1003,10 +998,20 @@ free_frame_tool_bar (struct frame *f)
    -------------------------------------------------------------------------- */
 {
   EmacsView *view = FRAME_NS_VIEW (f);
+
+  NSTRACE ("free_frame_tool_bar");
+
   block_input ();
   view->wait_for_tool_bar = NO;
-  [[view toolbar] setVisible: NO];
+
   FRAME_TOOLBAR_HEIGHT (f) = 0;
+
+  /* Note: This trigger an animation, which calls windowDidResize
+     repeatedly. */
+  f->output_data.ns->in_animation = 1;
+  [[view toolbar] setVisible: NO];
+  f->output_data.ns->in_animation = 0;
+
   unblock_input ();
 }
 
@@ -1021,6 +1026,8 @@ update_frame_tool_bar (struct frame *f)
   NSWindow *window = [view window];
   EmacsToolbar *toolbar = [view toolbar];
   int oldh;
+
+  NSTRACE ("update_frame_tool_bar");
 
   if (view == nil || toolbar == nil) return;
   block_input ();
@@ -1101,7 +1108,11 @@ update_frame_tool_bar (struct frame *f)
     }
 
   if (![toolbar isVisible])
+    {
+      f->output_data.ns->in_animation = 1;
       [toolbar setVisible: YES];
+      f->output_data.ns->in_animation = 0;
+    }
 
 #ifdef NS_IMPL_COCOA
   if ([toolbar changed])
@@ -1155,6 +1166,8 @@ update_frame_tool_bar (struct frame *f)
 
 - initForView: (EmacsView *)view withIdentifier: (NSString *)identifier
 {
+  NSTRACE ("[EmacsToolbar initForView: withIdentifier:]");
+
   self = [super initWithIdentifier: identifier];
   emacsView = view;
   [self setDisplayMode: NSToolbarDisplayModeIconOnly];
@@ -1169,6 +1182,8 @@ update_frame_tool_bar (struct frame *f)
 
 - (void)dealloc
 {
+  NSTRACE ("[EmacsToolbar dealloc]");
+
   [prevIdentifiers release];
   [activeIdentifiers release];
   [identifierToItem release];
@@ -1177,6 +1192,8 @@ update_frame_tool_bar (struct frame *f)
 
 - (void) clearActive
 {
+  NSTRACE ("[EmacsToolbar clearActive]");
+
   [prevIdentifiers release];
   prevIdentifiers = [activeIdentifiers copy];
   [activeIdentifiers removeAllObjects];
@@ -1186,6 +1203,8 @@ update_frame_tool_bar (struct frame *f)
 
 - (void) clearAll
 {
+  NSTRACE ("[EmacsToolbar clearAll]");
+
   [self clearActive];
   while ([[self items] count] > 0)
     [self removeItemAtIndex: 0];
@@ -1193,6 +1212,8 @@ update_frame_tool_bar (struct frame *f)
 
 - (BOOL) changed
 {
+  NSTRACE ("[EmacsToolbar changed]");
+
   return [activeIdentifiers isEqualToArray: prevIdentifiers] &&
     enablement == prevEnablement ? NO : YES;
 }
@@ -1203,6 +1224,8 @@ update_frame_tool_bar (struct frame *f)
                         helpText: (const char *)help
                          enabled: (BOOL)enabled
 {
+  NSTRACE ("[EmacsToolbar addDisplayItemWithImage: ...]");
+
   /* 1) come up w/identifier */
   NSString *identifier
     = [NSString stringWithFormat: @"%lu", (unsigned long)[img hash]];
@@ -1236,6 +1259,7 @@ update_frame_tool_bar (struct frame *f)
    all items to enabled state (for some reason). */
 - (void)validateVisibleItems
 {
+  NSTRACE ("[EmacsToolbar validateVisibleItems]");
 }
 
 
@@ -1245,12 +1269,16 @@ update_frame_tool_bar (struct frame *f)
       itemForItemIdentifier: (NSString *)itemIdentifier
   willBeInsertedIntoToolbar: (BOOL)flag
 {
+  NSTRACE ("[EmacsToolbar toolbar: ...]");
+
   /* look up NSToolbarItem by identifier and return... */
   return [identifierToItem objectForKey: itemIdentifier];
 }
 
 - (NSArray *)toolbarDefaultItemIdentifiers: (NSToolbar *)toolbar
 {
+  NSTRACE ("[EmacsToolbar toolbarDefaultItemIdentifiers:]");
+
   /* return entire set.. */
   return activeIdentifiers;
 }
@@ -1258,6 +1286,8 @@ update_frame_tool_bar (struct frame *f)
 /* for configuration palette (not yet supported) */
 - (NSArray *)toolbarAllowedItemIdentifiers: (NSToolbar *)toolbar
 {
+  NSTRACE ("[EmacsToolbar toolbarAllowedItemIdentifiers:]");
+
   /* return entire set... */
   return activeIdentifiers;
   //return [identifierToItem allKeys];
@@ -1423,7 +1453,7 @@ ns_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
   BOOL isQ;
   NSAutoreleasePool *pool;
 
-  NSTRACE (x-popup-dialog);
+  NSTRACE ("ns_popup_dialog");
 
   isQ = NILP (header);
 

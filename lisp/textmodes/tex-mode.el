@@ -3410,18 +3410,24 @@ There might be text before point."
   "A `prettify-symbols-alist' usable for (La)TeX modes.")
 
 (defun tex--prettify-symbols-compose-p (_start end _match)
-  (let* ((after-char (char-after end))
-         (after-syntax (char-syntax after-char)))
-    (not (or
-          ;; Don't compose \alpha@foo.
-          (eq after-char ?@)
-          ;; The \alpha in \alpha2 or \alpha-\beta may be composed but
-          ;; of course \alphax may not.
-          (and (eq after-syntax ?w)
-               (not (memq after-char
-                          '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?+ ?- ?' ?\"))))
-          ;; Don't compose inside verbatim blocks.
-	  (eq 2 (nth 7 (syntax-ppss)))))))
+  (or
+   ;; If the matched symbol doesn't end in a word character, then we
+   ;; simply allow composition.  The symbol is probably something like
+   ;; \|, \(, etc.
+   (not (eq ?w (char-syntax (char-before end))))
+   ;; Else we look at what follows the match in order to decide.
+   (let* ((after-char (char-after end))
+          (after-syntax (char-syntax after-char)))
+     (not (or
+           ;; Don't compose \alpha@foo.
+           (eq after-char ?@)
+           ;; The \alpha in \alpha2 or \alpha-\beta may be composed but
+           ;; of course \alphax may not.
+           (and (eq after-syntax ?w)
+                (not (memq after-char
+                           '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?+ ?- ?' ?\"))))
+           ;; Don't compose inside verbatim blocks.
+           (eq 2 (nth 7 (syntax-ppss))))))))
 
 (run-hooks 'tex-mode-load-hook)
 

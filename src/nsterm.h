@@ -61,6 +61,243 @@ typedef float EmacsCGFloat;
 
 /* ==========================================================================
 
+   Trace support
+
+   ========================================================================== */
+
+/* Uncomment the following line to enable trace.
+
+   Hint: keep the trailing whitespace -- the version control system
+   will reject accidental commits. */
+
+/* #define NSTRACE_ENABLED 1          */
+
+
+/* Print a call tree containing all annotated functions.
+
+   The call structure of the functions is represented using
+   indentation and vertical lines.  Extra information is printed using
+   horizontal lines that connect to the vertical line.
+
+   The return value is represented using the arrow "->>".  For simple
+   functions, the arrow can be printed on the same line as the
+   function name.  If more output is printed, it is connected to the
+   vertical line of the function.
+
+   The first column contains the file name, the second the line
+   number, and the third a number increasing for each trace line.
+
+   Note that the trace system, when enabled, use the GCC/Clang
+   "cleanup" extension.
+
+   For example (long lines manually split to reduce width):
+
+nsterm.m  : 1600: [ 4428]  ns_fullscreen_hook
+nsterm.m  : 7006: [ 4429]  | handleFS
+nsterm.m  : 7035: [ 4430]  | +--- FULLSCREEN_MAXIMIZED
+nsterm.m  : 7627: [ 4431]  | | performZoom
+nsterm.m  : 7636: [ 4432]  | | | zoom
+nsterm.m  :  874: [ 4433]  | | | | ns_update_auto_hide_menu_bar
+nsterm.m  : 6615: [ 4434]  | | | | [windowWillUseStandardFrame:
+                                       defaultFrame:(X:0 Y:0)/(W:1600 H:1177)]
+nsterm.m  :   99: [ 4435]  | | | | +--- fs_state: FULLSCREEN_NONE
+nsterm.m  :  119: [ 4436]  | | | | +--- fs_before_fs: -1
+nsterm.m  :  115: [ 4437]  | | | | +--- next_maximized: FULLSCREEN_MAXIMIZED
+nsterm.m  : 6619: [ 4438]  | | | | +--- ns_userRect: (X:0 Y:0)/(W:0 H:0)
+nsterm.m  : 6620: [ 4439]  | | | | +--- [sender frame]:
+                                                      (X:0 Y:626)/(W:595 H:551)
+nsterm.m  : 6644: [ 4440]  | | | | +--- ns_userRect (2):
+                                                      (X:0 Y:626)/(W:595 H:551)
+nsterm.m  : 6684: [ 4441]  | | | | +--- FULLSCREEN_MAXIMIZED
+nsterm.m  : 7057: [ 4442]  | | | | | setFSValue
+nsterm.m  :  115: [ 4443]  | | | | | +--- value: FULLSCREEN_MAXIMIZED
+nsterm.m  : 6711: [ 4444]  | | | | +--- Final ns_userRect:
+                                                      (X:0 Y:626)/(W:595 H:551)
+nsterm.m  : 6712: [ 4445]  | | | | +--- Final maximized_width: 1600
+nsterm.m  : 6713: [ 4446]  | | | | +--- Final maximized_height: 1177
+nsterm.m  :  119: [ 4447]  | | | | +--- Final next_maximized: -1
+nsterm.m  : 6209: [ 4448]  | | | | | windowWillResize: toSize: (W:1600 H:1177)
+nsterm.m  : 6210: [ 4449]  | | | | | +--- [sender frame]:
+                                                      (X:0 Y:626)/(W:595 H:551)
+nsterm.m  :  115: [ 4450]  | | | | | +--- fs_state: FULLSCREEN_MAXIMIZED
+nsterm.m  : 6274: [ 4451]  | | | | | +--- cols: 223  rows: 79
+nsterm.m  : 6299: [ 4452]  | | | | | +->> (W:1596 H:1167)
+nsterm.m  : 6718: [ 4453]  | | | | +->> (X:0 Y:0)/(W:1600 H:1177)
+
+   Here, "ns_fullscreen_hook" calls "handleFS", which is turn calls
+   "performZoom".  This function calls "[super performZoom]", which
+   isn't annoted (so it doesn't show up in the trace).  However, it
+   calls "zoom" which is annotated so it is part of the call trace.
+   Later, the method "windowWillUseStandardFrame" and the function
+   "setFSValue" are called.  The lines with "+---" contain extra
+   information and lines containing "->>" represent return values. */
+
+#ifndef NSTRACE_ENABLED
+#define NSTRACE_ENABLED 0
+#endif
+
+#if NSTRACE_ENABLED
+extern int nstrace_num;
+extern int nstrace_depth;
+
+void nstrace_leave(int *);
+
+/* printf-style trace output.  Output is aligned with contained heading. */
+#define NSTRACE_MSG_NO_DASHES(...)                                          \
+  do                                                                        \
+    {                                                                       \
+      if (nstrace_enabled)                                                  \
+        {                                                                   \
+          fprintf (stderr, "%-10s:%5d: [%5d]%.*s",                          \
+                   __FILE__, __LINE__, ++nstrace_num,                       \
+                   2*nstrace_depth, "  | | | | | | | | | | | | | | | ..");  \
+          fprintf (stderr, __VA_ARGS__);                                    \
+          fprintf (stderr, "\n");                                           \
+        }                                                                   \
+    }                                                                       \
+  while(0)
+
+#define NSTRACE_MSG(...) NSTRACE_MSG_NO_DASHES("+--- " __VA_ARGS__)
+
+
+
+/* Macros for printing complex types.
+
+   NSTRACE_FMT_what     -- Printf format string for "what".
+   NSTRACE_ARG_what(x)  -- Printf argument for "what". */
+
+#define NSTRACE_FMT_SIZE        "(W:%.0f H:%.0f)"
+#define NSTRACE_ARG_SIZE(elt)   (elt).width, (elt).height
+
+#define NSTRACE_FMT_POINT       "(X:%.0f Y:%.0f)"
+#define NSTRACE_ARG_POINT(elt)  (elt).x, (elt).y
+
+#define NSTRACE_FMT_RECT        NSTRACE_FMT_POINT "/" NSTRACE_FMT_SIZE
+#define NSTRACE_ARG_RECT(elt)   \
+  NSTRACE_ARG_POINT((elt).origin), NSTRACE_ARG_SIZE((elt).size)
+
+
+/* Macros for printing complex types as extra information. */
+
+#define NSTRACE_SIZE(str,size)                                          \
+  NSTRACE_MSG (str ": " NSTRACE_FMT_SIZE,                               \
+               NSTRACE_ARG_SIZE (size));
+
+#define NSTRACE_POINT(str,point)                                        \
+  NSTRACE_MSG (str ": " NSTRACE_FMT_POINT,                              \
+               NSTRACE_ARG_POINT (point));
+
+#define NSTRACE_RECT(str,rect)                                          \
+  NSTRACE_MSG (str ": " NSTRACE_FMT_RECT,                               \
+               NSTRACE_ARG_RECT (rect));
+
+#define NSTRACE_FSTYPE(str,fs_type)                                     \
+  do                                                                    \
+    {                                                                   \
+      if (nstrace_enabled)                                              \
+        {                                                               \
+          ns_print_fullscreen_type_name(str, fs_type);                  \
+        }                                                               \
+    }                                                                   \
+  while(0)
+
+
+/* Return value macros.
+
+   NSTRACE_RETURN(fmt, ...) - Print a return value, support printf-style
+                              format string and arguments.
+
+   NSTRACE_RETURN_what(obj) - Print a return value of kind WHAT.
+
+   NSTRACE_FMT_RETURN - A string literal representing a returned
+                        value.  Useful when creating a format string
+                        to printf-like constructs like NSTRACE(). */
+
+#define NSTRACE_FMT_RETURN "->>"
+
+#define NSTRACE_RETURN(...) \
+  NSTRACE_MSG_NO_DASHES ("+" NSTRACE_FMT_RETURN " " __VA_ARGS__)
+
+#define NSTRACE_RETURN_SIZE(size) \
+  NSTRACE_RETURN(NSTRACE_FMT_SIZE, NSTRACE_ARG_SIZE(size))
+
+#define NSTRACE_RETURN_POINT(point) \
+  NSTRACE_RETURN(NSTRACE_FMT_POINT, NSTRACE_ARG_POINT(point))
+
+#define NSTRACE_RETURN_RECT(rect) \
+  NSTRACE_RETURN(NSTRACE_FMT_RECT, NSTRACE_ARG_RECT(rect))
+
+
+/* Function enter macros.
+
+   NSTRACE (fmt, ...) -- Enable trace output in curent block
+                         (typically a function).  Accepts printf-style
+                         arguments.
+
+   NSTRACE_WHEN (cond, fmt, ...) -- Enable trace output when COND is true.
+
+   NSTRACE_UNLESS (cond, fmt, ...) -- Enable trace output unless COND is
+                                      true. */
+
+
+
+#define NSTRACE_WHEN(cond, ...)                                         \
+  __attribute__((cleanup(nstrace_leave)))                               \
+  int nstrace_enabled = (cond);                                         \
+  if (nstrace_enabled) { ++nstrace_depth; }                             \
+  NSTRACE_MSG_NO_DASHES(__VA_ARGS__);
+
+#endif /* NSTRACE_ENABLED */
+
+#define NSTRACE(...)              NSTRACE_WHEN(1, __VA_ARGS__)
+#define NSTRACE_UNLESS(cond, ...) NSTRACE_WHEN(!(cond), __VA_ARGS__)
+
+
+/* Non-trace replacement versions. */
+#ifndef NSTRACE_WHEN
+#define NSTRACE_WHEN(...)
+#endif
+
+#ifndef NSTRACE_MSG
+#define NSTRACE_MSG(...)
+#endif
+
+#ifndef NSTRACE_SIZE
+#define NSTRACE_SIZE(str,size)
+#endif
+
+#ifndef NSTRACE_POINT
+#define NSTRACE_POINT(str,point)
+#endif
+
+#ifndef NSTRACE_RECT
+#define NSTRACE_RECT(str,rect)
+#endif
+
+#ifndef NSTRACE_FSTYPE
+#define NSTRACE_FSTYPE(str,fs_type)
+#endif
+
+#ifndef NSTRACE_RETURN_SIZE
+#define NSTRACE_RETURN_SIZE(size)
+#endif
+
+#ifndef NSTRACE_RETURN_POINT
+#define NSTRACE_RETURN_POINT(point)
+#endif
+
+#ifndef NSTRACE_RETURN_RECT
+#define NSTRACE_RETURN_RECT(rect)
+#endif
+
+#ifndef NSTRACE_RETURN_FSTYPE
+#define NSTRACE_RETURN_FSTYPE(fs_type)
+#endif
+
+
+
+/* ==========================================================================
+
    NSColor, EmacsColor category.
 
    ========================================================================== */
@@ -174,6 +411,7 @@ typedef float EmacsCGFloat;
 #ifdef NS_IMPL_GNUSTEP
 - (void)windowDidMove: (id)sender;
 #endif
+- (int)fullscreenState;
 @end
 
 
@@ -678,6 +916,9 @@ struct ns_output
 
   /* Non-zero if we are zooming (maximizing) the frame.  */
   int zooming;
+
+  /* Non-zero if we are doing an animation, e.g. toggling the tool bar. */
+  int in_animation;
 };
 
 /* this dummy decl needed to support TTYs */

@@ -1,3 +1,858 @@
+2015-10-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Revert commit that broke 'make bootstrap'
+
+	* lisp/custom.el (custom-declare-variable): Revert commit
+	79fac080d277fed07b3c192890ad59d36d9f83b6.  custom.el needs to work
+	even when pcase has not been defined yet, when doing bootstrapping.
+
+2015-10-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port recent inline functions fix to Standard C
+
+	* src/lisp.h (LISP_MACRO_DEFUN, LISP_MACRO_DEFUN_VOID): Remove.
+	All uses rewritten to define the function directly rather than to
+	use a macro to define the function.  This conforms to Standard C,
+	which does not allow stray semicolons at the top level.  I hope it
+	also avoids the problems with TAGS.  Those macros, though clever,
+	were pretty confusing anyway, and it wasn’t clear they were worth
+	the aggravation even without the TAGS problem.
+
+2015-10-24  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/isearch.el: Make character-fold search the default again.
+
+2015-10-24  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/character-fold.el: Many improvements.
+	(character-fold-search-forward, character-fold-search-backward):
+	New command.
+	(character-fold-to-regexp): Remove lax-whitespace hack.
+	(character-fold-search): Remove variable.  Only isearch and
+	query-replace use char-folding, and they both have their own
+	variables to configure that.
+
+2015-10-24  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/isearch.el: Generalize definition of regexp-function toggles.
+	(isearch-specify-regexp-function): New macro for specifying
+	possible values of `isearch-regexp-function'.
+	(isearch-toggle-character-fold, isearch-toggle-symbol)
+	(isearch-toggle-word): Define with `isearch-specify-regexp-function'.
+
+2015-10-24  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/isearch.el (search-default-regexp-mode): New variable.
+	(isearch-mode): Use it.
+
+2015-10-24  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/isearch.el (search-exit-option, search-slow-window-lines)
+	(search-slow-speed, search-upper-case)
+	(search-nonincremental-instead, search-whitespace-regexp)
+	(search-invisible, isearch-hide-immediately)
+	(isearch-resume-in-command-history, search-ring-max)
+	(regexp-search-ring-max, search-ring-update, search-highlight)
+	(isearch-fail): Delete :group entries.
+
+2015-10-24  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/custom.el (custom-declare-variable): Shorten code a bit.
+
+2015-10-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	addpm.c: Silence some warnings.
+
+	* nt/addpm.c (DdeCommand): Cast pData argument of DdeClientTransaction
+	to LPBYTE.
+	(add_registry): Pass NULL to optional lpClass argument of
+	RegCreateKeyEx, not an empty string.
+
+2015-10-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	addpm.c: Do not add obsolete GTK libraries to the path.
+
+	* nt/addpm.c (REG_GTK, REG_RUNEMACS_PATH): Delete.
+	(add_registry): Remove variables `size' and `gtk_key'.
+	Do not add the GTK DLL directory to the library search path; it is
+	confusing behavior (in particular, the same Emacs version with and
+	without invoking addpm will use a different path), and the GTK image
+	libraries are obsolete anyway.
+
+2015-10-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	addpm.c: Replace existing registry entries, but do not create new ones
+
+	* nt/addpm.c (add_registry): If the Emacs registry key exists, replace
+	existing values from previous versions, but do not add new ones; the
+	key could exist for other reasons unrelated to old Emacsen, like X-style
+	resources, or to set some environment variables like HOME or LANG, and
+	in that case we don't want to populate it with obsolete values.
+
+2015-10-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* nt/addpm.c (add_registry): Do not compute unused return value.
+
+2015-10-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	addpm.c: Don't pass REG_OPTION_NON_VOLATILE to RegOpenKeyEx
+
+	* nt/addpm.c (add_registry): Pass 0 to ulOptions argument of
+	RegOpenKeyEx, not REG_OPTION_NON_VOLATILE.  This doesn't change
+	current behavior because REG_OPTION_NON_VOLATILE is defined to
+	be 0L anyway, but that option is actually documented only for
+	RegCreateKeyEx.
+
+2015-10-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* src/w32notify.c (Fw32notify_add_watch): Fix version check.
+
+2015-10-24  Eli Zaretskii  <eliz@gnu.org>
+
+	Update frame title when redisplay scrolls selected window
+
+	* src/xdisp.c (redisplay_window): Reconsider the frame's title
+	when the mode-line of the frame's selected window needs to be
+	updated.
+
+2015-10-24  Eli Zaretskii  <eliz@gnu.org>
+
+	Update frame title when scrolling the selected window
+
+	* src/window.c (wset_update_mode_line): New function, sets either the
+	window's update_mode_line flag or the global update_mode_lines
+	variable.
+	(Fset_window_start, set_window_buffer, window_scroll_pixel_based)
+	(window_scroll_line_based): Call it instead of only setting the
+	window's update_mode_line flag.
+
+2015-10-24  Eli Zaretskii  <eliz@gnu.org>
+
+	An even better fix for bug#21739
+
+	* src/window.c (set_window_buffer): If the window is the frame's
+	selected window, set update_mode_lines, not the window's
+	update_mode_line flag.  (Bug#21739)
+	* src/buffer.c (Fkill_buffer): Undo last change.
+	(set_update_modelines_for_buf): Function deleted.
+
+2015-10-24  Thomas Fitzsimmons  <fitzsim@fitzsim.org>
+
+	Sync with soap-client repository, version 3.0.0
+
+2015-10-24  Nicolas Petton  <nicolas@petton.fr>
+
+	Update the new icon
+
+	Move the E slightly to the right in the circle.
+
+	* etc/images/icons/hicolor/128x128/apps/emacs.png:
+	* etc/images/icons/hicolor/16x16/apps/emacs.png:
+	* etc/images/icons/hicolor/24x24/apps/emacs.png:
+	* etc/images/icons/hicolor/32x32/apps/emacs.png:
+	* etc/images/icons/hicolor/48x48/apps/emacs.png:
+	* etc/images/icons/hicolor/scalable/apps/emacs.svg:
+	* nextstep/Cocoa/Emacs.base/Contents/Resources/Emacs.icns:
+	* nt/icons/emacs.ico: New icom update.
+
+2015-10-24  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid missing inline functions from lisp.h in TAGS
+
+	* src/lisp.h (LISP_MACRO_DEFUN): Mention in the commentary the
+	need to end each invocation with a semi-colon.
+	Add a semi-colon at the end of each invocation of LISP_MACRO_DEFUN
+	and LISP_MACRO_DEFUN_VOID.  This is to avoid missing in TAGS
+	inline functions defined immediately after each invocation, and
+	also avoid tagging every invocation of these macros.
+
+2015-10-24  Eli Zaretskii  <eliz@gnu.org>
+
+	A better fix for bug#21739
+
+	* src/buffer.c (set_update_modelines_for_buf): New function.
+	(Fkill_buffer): Use it to set the global variable
+	update_mode_lines if the killed buffer was displayed in some
+	window.  Don't set windows_or_buffers_changed.  This is a better
+	fix for bug#21739 than the previous fix, since it will cause only
+	redisplay of mode lines, not of entire windows, but will still
+	catch attention of x_consider_frame_title in xdisp.c, which
+	redraws the frame title.
+
+2015-10-24  Tassilo Horn  <tsdh@gnu.org>
+
+	* lisp/dired-aux.el (dired-compress-files-alist): Add support for
+	tar.bz2 and tar.xz archives.
+
+2015-10-23  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix infloop in redisplay introduced by a recent change
+
+	* src/xdisp.c (redisplay_internal): Avoid inflooping when
+	redisplaying the selected window sets the selected frame's
+	redisplay flag.  (Bug#21745)
+
+2015-10-23  Nicolas Petton  <nicolas@petton.fr>
+
+	* lisp/emacs-lisp/thunk.el: Better documentation.
+
+2015-10-23  Nicolas Petton  <nicolas@petton.fr>
+
+	Replace the old icon for Windows and Mac OSX
+
+	* nt/icons/emacs.ico:
+	* nextstep/Cocoa/Emacs.base/Contents/Resources/Emacs.icns:
+	Use the new icons.
+
+2015-10-23  Stephen Leake  <stephen_leake@stephe-leake.org>
+
+	* lisp/emacs-lisp/package.el (package-autoload-ensure-default-file):
+	`load-path' should contain only directory names.
+
+2015-10-23  Nicolas Petton  <nicolas@petton.fr>
+
+	New library thunk.el
+
+	thunk.el is extracted from stream.el in ELPA, with additional tests.
+
+	* lisp/emacs-lisp/thunk.el: New file.
+	* test/automated/thunk-tests.el: New file.
+	* etc/NEWS: Add information about thunk.el
+
+2015-10-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix Bug#21669
+
+	* lisp/filenotify.el (file-notify-rm-watch): Improve check for
+	calling low-level functions.
+
+	* test/automated/file-notify-tests.el (file-notify--test-timeout):
+	Decrase to 6 seconds for remote directories.
+	(file-notify-test02-events): Expect different number of
+	`attribute-changed' events for the local and remote cases.  Apply
+	short delays between the operations, in order to receive all
+	events in the remote case.  Combine `attribute-change' tests.
+	(Bug#21669)
+
+2015-10-23  Eli Zaretskii  <eliz@gnu.org>
+
+	Decode the HTML source when displaying it in EWW
+
+	* lisp/net/eww.el (eww-view-source): Decode the HTML source
+	according to its headers.
+
+2015-10-23  Nicolas Petton  <nicolas@petton.fr>
+
+	New default icon
+
+	* etc/images/icons/hicolor/128x128/apps/emacs23.png:
+	* etc/images/icons/hicolor/16x16/apps/emacs23.png:
+	* etc/images/icons/hicolor/24x24/apps/emacs23.png:
+	* etc/images/icons/hicolor/32x32/apps/emacs23.png:
+	* etc/images/icons/hicolor/48x48/apps/emacs23.png:
+	* etc/images/icons/hicolor/scalable/apps/emacs23.svg:
+	* etc/images/icons/hicolor/scalable/mimetypes/emacs-document23.svg:
+	Move the old logo files to emacs23.*.
+	* etc/images/icons/hicolor/128x128/apps/emacs.png:
+	* etc/images/icons/hicolor/16x16/apps/emacs.png:
+	* etc/images/icons/hicolor/24x24/apps/emacs.png:
+	* etc/images/icons/hicolor/32x32/apps/emacs.png:
+	* etc/images/icons/hicolor/48x48/apps/emacs.png:
+	* etc/images/icons/hicolor/scalable/apps/emacs.svg:
+	* etc/images/icons/hicolor/scalable/mimetypes/emacs-document.svg:
+	New files.
+	* etc/images/icons/README: Update the copyright information.
+
+2015-10-23  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix redisplay of frame title when current buffer is killed
+
+	* src/buffer.c (Fkill_buffer): Set windows_or_buffers_changed to a
+	non-zero value, to redisplay more than just the affected windows.
+	(Bug#21739)
+
+2015-10-23  Anders Lindgren  <andlind@gmail.com>
+
+	NextSten maximization and NSTRACE rewrite
+
+	Full-height, full-width, and maximized windows now cover the
+	entire screen (except the menu bar), including the part where the
+	system dock is placed.  The system zoom animation is no longer
+	used.
+
+	Made NonMaximized->FullWidth->FullHeight->NonMaximized restore the
+	original size.
+
+	* src/nsterm.m (ns_menu_bar_height): New function, return height of
+	the menu bar, or 0 when it's hidden.
+	(constrain_frame_rect): New function for constraining a frame.
+	(ns_constrain_all_frames): Set frame size explicitly rather than
+	relying on the system doing it for us by writing back the current
+	frame size.
+	(windowWillUseStandardFrame): Register non-maximized width or
+	height as new user size.  When entering full width or height,
+	the other size component is taken from the user size.
+	(fullscreenState): New method for accessing the fullscreen state.
+	(constrainFrameRect): Restrict frame to be placed under the menu bar,
+	if present.  The old version, sometimes, restricted the height of a
+	frame to the screen, this version never does this.
+	(zoom): Perform zoom by setting the frame to the full size of the
+	screen (minus the menu bar).  The default system function, with the
+	zoom animation, is no longer used, as the final frame size doesn't
+	cover the entire screen.
+
+	Rework how to constrain resizing to the character grid.  The old
+	system used "resizeIncrements" in NSWindows.  However, once a frame
+	was resized so that it was not aligned to the text grid, it
+	remained unaligned even after a resize.  In addition, it conflicted
+	when resizing a fullheight window.
+
+	* src/nsterm.m (windowWillResize): Restrict frame size to text grid,
+	unless when pixelwise frame resizing is enabled.
+	(updateFrameSize, initFrameFromEmacs)
+	(toggleFullScreen, handleFS): Don't set resizeIncrements.
+
+	Redesign the NS trace system.  The call structure is represented
+	using indentations and vertical lines.  The NSTRACE macro accepts
+	printf-style arguments.  New macros for printing various
+	information.
+
+	* src/nsterm.h (NSTRACE_ENABLED): Macro to enable trace system.
+	(NSTRACE, NSTRACE_WHEN, NSTRACE_UNLESS): Macros to start a new
+	block (typically a function), accept printf-style arguments.
+	(NSTRACE_MSG): Macro for extra information, accepts
+	printf-style arguments.
+	(NSTRACE_what): Macros for printing various types.
+	(NSTRACE_FMT_what): Macro with printf format string snippets.
+	(NSTRACE_ARG_what): Macros for passing printf-style arguments,
+	corresponds to NSTRACE_FMT_what.
+	(NSTRACE_RETURN): Macro to print return value, accept
+	printf-style arguments.
+	(NSTRACE_RETURN_what): Macros to print return value for
+	various types.
+
+	* nsterm.m: Remove old NSTRACE macro
+	* src/nsterm.m (nstrace_num): Trace counter.
+	(nstrace_depth): Current call depth.
+	(nstrace_leave): NSTRACE support function, called when the
+	local variable "nstrace_enabled" goes out of scope using the
+	"cleanup" extension.
+	(ns_print_fullscreen_type_name): NSTRACE_FSTYPE support function.
+	(constrain_frame_rect, ns_constrain_all_frames)
+	(ns_update_auto_hide_menu_bar, ns_update_begin)
+	(ns_update_window_begin, update_window_end, ns_update_end)
+	(ns_focus, ns_unfocus, ns_ring_bell, ns_frame_raise_lower)
+	(ns_frame_rehighlight, x_make_frame_visible)
+	(x_make_frame_invisible, x_iconify_frame, x_free_frame_resources)
+	(x_destroy_window, x_set_offset, x_set_window_size)
+	(ns_fullscreen_hook, ns_lisp_to_color, ns_color_to_lisp)
+	(ns_defined_color, frame_set_mouse_pixel_position)
+	(note_mouse_movement, ns_mouse_position, ns_frame_up_to_date)
+	(ns_define_frame_cursor, x_get_keysym_name, ns_redraw_scroll_bars)
+	(ns_clear_frame, ns_clear_frame_area, ns_scroll_run)
+	(ns_after_update_window_line, ns_shift_glyphs_for_insert)
+	(dumpcursor, ns_draw_vertical_window_border)
+	(ns_draw_window_divider, ns_draw_relief)
+	(ns_dumpglyphs_box_or_relief, ns_maybe_dumpglyphs_background)
+	(ns_dumpglyphs_image, ns_draw_glyph_string, ns_send_appdefined)
+	(ns_read_socket, ns_select, ns_set_vertical_scroll_bar)
+	(ns_set_horizontal_scroll_bar, ns_condemn_scroll_bars)
+	(ns_redeem_scroll_bar, ns_judge_scroll_bars, ns_delete_terminal)
+	(ns_create_terminal, ns_term_init, sendEvent)
+	(applicationDidFinishLaunching, applicationDidBecomeActive)
+	(timeout_handler, fd_handler, EmacsView_dealloc, changeFont)
+	(acceptsFirstResponder, resetCursorRects, keyDown, mouseDown)
+	(deltaIsZero, rightMouseDown, otherMouseDown, mouseUp)
+	(rightMouseUp, otherMouseUp, scrollWheel, mouseMoved)
+	(mouse_autoselect_window, in_window, mouseDragged)
+	(rightMouseDragged, otherMouseDragged, windowShouldClose)
+	(updateFrameSize, windowWillResize, windowDidResize)
+	(windowDidBecomeKey, windowDidResignKey, windowWillMiniaturize)
+	(initFrameFromEmacs, windowDidMove, windowDidDeminiaturize)
+	(windowDidExpose, windowDidMiniaturize, windowWillEnterFullScreen)
+	(windowDidEnterFullScreen, windowWillExitFullScreen)
+	(windowDidExitFullScreen, toggleFullScreen, handleFS, setFSValue)
+	(mouseEntered, mouseExited, menuDown, toolbarClicked, drawRect)
+	(draggingEntered, performDragOperation, validRequestorForSendType)
+	(setMiniwindowImage, constrainFrameRect, performZoom, zoom)
+	(EmacsScroller_initFrame, EmacsScroller_setFrame)
+	(EmacsScroller_dealloc, condemn, reprieve, judge)
+	(resetCursorRects, setPosition, EmacsScroller_mouseDown)
+	(EmacsScroller_mouseDragged, syms_of_nsterm): Use new trace system.
+
+	* nsfns.m: Remove old NSTRACE macro
+	* src/nsfns.m (x_set_icon_name, ns_set_name, x_explicitly_set_name)
+	(x_implicitly_set_name, x_set_title, ns_set_name_as_filename)
+	(ns_implicitly_set_icon_type, x_set_icon_type): Use new trace system.
+
+	* nsimage.m: Remove old NSTRACE macro
+	* src/nsimage.m (ns_image_from_XBM, ns_image_for_XPM)
+	(ns_image_from_bitmap_file, ns_load_image): Use new trace system.
+
+	* nsmenu.m: Remove old NSTRACE macro
+	* src/nsmenu.m (ns_update_menubar, ns_menu_show, ns_popup_dialog):
+	Use new trace system.
+
+2015-10-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	No need to use eval-and-compile
+
+	* lisp/gnus/auth-source.el: Do require epg (when compiling) before
+	autoload epg functions.
+
+2015-10-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	Fix auth-source-epa-make-gpg-token compilation (bug#21724)
+
+	* lisp/gnus/auth-source.el: Add eval-and-compile to autoloads for
+	epg-context-set-passphrase-callback, epg-decrypt-string, and
+	epg-encrypt-string; require epg when compiling for the setf-method
+	for epg-context-armor. (bug#21724)
+
+2015-10-22  Eli Zaretskii  <eliz@gnu.org>
+
+	Include file cleanup for w32 files in src directory
+
+	* src/w32xfns.c: Don't include keyboard.h, window.h, charset.h,
+	fontset.h, blockinput.h.
+	* src/w32uniscribe.c: Don't include dispextern.h, character.h,
+	charset.h, fontset.h.
+	* src/w32term.c: Don't include systty.h, systime.h, charset.h,
+	character.h, ccl.h, dispextern.h, disptab.h, intervals.h,
+	process.h, atimer.h, keymap.h, w32heap.h.  Include bitmap/gray.xbm
+	in an ifdef-ed away block.
+	Include fcntl.h for CYGWIN.
+	(set_frame_param): Remove unused function.
+	* src/w32select.c: Don't include charset.h and composite.h.
+	(setup_config, Fw32_get_clipboard_data): Avoid compiler warnings
+	due to pointer signedness mismatches.
+	* src/w32reg.c (w32_get_string_resource): Avoid compiler warnings
+	due to pointer signedness mismatches.
+	* src/w32proc.c: Include unistd.h.  Don't include systime.h,
+	process.h, dispextern.h.
+	(sys_spawnve, Fw32_short_file_name, Fw32_long_file_name)
+	(Fw32_application_type): Avoid compiler warnings due to pointer
+	signedness mismatches.
+	* src/w32menu.c: Don't include keymap.h, termhooks.h, window.h,
+	character.h, charset.h, dispextern.h.
+	(simple_dialog_show, add_menu_item): Avoid compiler warnings due
+	to pointer signedness mismatches.
+	* src/w32inevt.c: Don't include dispextern.h, window.h,
+	termhooks.h, w32heap.h.
+	* src/w32font.c: Don't include dispextern.h, character.h,
+	charset.h, fontset.h, font.h.
+	(intern_font_name, add_font_entity_to_list)
+	(registry_to_w32_charset, w32_to_x_charset, fill_in_logfont)
+	(list_all_matching_fonts): Avoid compiler warnings due to pointer
+	signedness mismatches.
+	* src/w32fns.c: Don't include character.h, intervals.h,
+	dispextern.h, epaths.h, charset.h, ccl.h, fontset.h, systime.h,
+	termhooks.h, w32heap.h, bitmap/gray.xbm, font.h, w32font.h.
+	(w32_color_map_lookup, add_system_logical_colors_to_map)
+	(x_decode_color, x_set_name, FPRINTF_WM_CHARS, Fxw_color_defined_p)
+	(Fxw_color_values, x_display_info_for_name, Fset_message_beep)
+	(x_create_tip_frame, Fx_file_dialog, Fsystem_move_file_to_trash)
+	(w32_parse_hot_key, Ffile_system_info, w32_kbd_patch_key): Avoid
+	compiler warnings, mainly due to pointer signedness mismatches.
+	(unwind_create_frame_1): Remove unused function.
+	* src/w32console.c: Don't include character.h, disptab.h, frame.h,
+	window.h, termhooks.h, dispextern.h.
+	(w32con_write_glyphs, w32con_write_glyphs_with_face): Fix pointer
+	signedness mismatch.
+	* src/w32.c: Include c-strcase.h and systty.h.  Don't include
+	w32heap.h.
+
+2015-10-22  Tassilo Horn  <tsdh@gnu.org>
+
+	Improve doc-view wrt. auto-revert-mode
+
+	* lisp/doc-view.el (doc-view-revert-buffer): Don't revert when file
+	is corrupted (bug#21729).
+	(doc-view-mode): Set doc-view-revert-buffer as revert-buffer-function.
+
+2015-10-22  Oleh Krehel  <ohwoeowho@gmail.com>
+
+	Describe dired-do-compress-to in the manual
+
+	* etc/NEWS: Update.
+
+	* lisp/dired-aux.el: Fix typo.
+
+	* doc/emacs/dired.texi: Add entry.
+
+2015-10-22  Jürgen Hötzel  <juergen@archlinux.org>
+
+	Further fix for proper locale handling in tramp-gvfs.el
+
+	* lisp/net/tramp-gvfs.el (tramp-gvfs-handle-file-attributes):
+	Just suppress LC_MESSAGES locale category settings.
+
+2015-10-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	New lispref section “Security Considerations”
+
+	This attempts to document some of the issues recently discussed
+	on emacs-devel, and to indicate other such issues.  The section
+	could be a lot longer.
+	* doc/lispref/os.texi (Security Considerations):
+	New node.
+	* doc/lispref/elisp.texi (Top):
+	* doc/lispref/processes.texi (Shell Arguments):
+	* lisp/subr.el (shell-quote-argument):
+	* src/callproc.c (syms_of_callproc):
+	Reference it.
+
+2015-10-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib
+
+	This incorporates:
+	2015-10-18 stdalign: work around pre-4.9 GCC x86 bug
+	2015-10-18 time_rz: avoid warning from bleeding-edge gcc's -Wnonnull
+	* doc/misc/texinfo.tex, lib/stdalign.in.h, lib/time_rz.c:
+	Copy from gnulib.
+
+2015-10-21  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* lisp/gnus/mailcap.el (mailcap-mime-data): Remove fboundp checks.
+	(mailcap-viewer-passes-test): Do it instead.  Thanks to Stefan Monnier.
+
+2015-10-21  Ken Brown  <kbrown@cornell.edu>
+
+	Further include-file cleanup
+
+	* src/sheap.c: Include stdlib.h.
+	* src/unexcw.c: Include string.h.
+
+2015-10-21  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix logic in 'server-kill-emacs-query-function'
+
+	* lisp/server.el (server-kill-emacs-query-function): Correct the
+	logic that controls whether the user is asked for confirmation.
+	(Bug#21723)
+
+2015-10-21  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/isearch.el (isearch-search-fun-default): Simplify logic.
+	(isearch--lax-regexp-function-p): New function.
+
+2015-10-21  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/isearch.el: Support lax-whitespace in regexp-function searches.
+	(isearch-search-fun-default): Let-bind `search-spaces-regexp'
+	around `isearch-regexp-function'.
+
+2015-10-21  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/isearch.el: Rename word search to regexp-function search.
+	`isearch-word' went well beyond its original purpose, and the name
+	no longer makes sense.  It is now called
+	`isearch-regexp-function', and its value should always be a function
+	that converts a string to a regexp (though setting it to t is still
+	supported for now).
+	(isearch-word): Make obsolete.
+	(isearch-regexp-function): New variable.
+	(isearch-mode, isearch-done, isearch--state, isearch--set-state)
+	(with-isearch-suspended, isearch-toggle-regexp)
+	(isearch-toggle-word, isearch-toggle-symbol)
+	(isearch-toggle-character-fold, isearch-query-replace)
+	(isearch-occur, isearch-highlight-regexp)
+	(isearch-search-and-update, isearch-message-prefix)
+	(isearch-search-fun-default, isearch-search)
+	(isearch-lazy-highlight-new-loop, isearch-lazy-highlight-search):
+	Use it.
+	(isearch-lazy-highlight-regexp-function): New var.
+	(isearch-lazy-highlight-word): Make obsolete.
+	(isearch--describe-regexp-mode): New function.
+	(isearch--describe-word-mode): Make obsolete.
+
+	* lisp/info.el (Info-isearch-search):
+	* lisp/replace.el (replace-search, replace-highlight):
+	* lisp/obsolete/longlines.el (longlines-search-function):
+	* lisp/hexl.el (hexl-isearch-search-function):
+	* lisp/cedet/semantic/senator.el (senator-isearch-search-fun):
+	Use the new var.
+
+2015-10-21  Oleh Krehel  <ohwoeowho@gmail.com>
+
+	Add dired-do-compress-to command bound to "c"
+
+	* lisp/dired-aux.el (dired-shell-command): Use the caller's
+	  `default-directory', return the result of `process-file'.
+	(dired-compress-file-suffixes): Add comment on why "tar -zxf" isn't
+	used by default.
+	(dired-compress-files-alist): New defvar.
+	(dired-do-compress-to): New command.
+
+	* lisp/dired.el (dired-mode-map): Bind `dired-do-compress-to' to "c".
+	(dired-do-compress-to): Add an autoload entry.
+
+	* etc/NEWS: Add two entries.
+
+2015-10-21  Tassilo Horn  <tsdh@gnu.org>
+
+	Make RefTeX work with LaTeX subfiles package
+
+	* lisp/textmodes/reftex.el (reftex-TeX-master-file): Recognize subfiles
+	document class argument as master file for referencing purposes.
+
+2015-10-21  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* lisp/gnus/mailcap.el (mailcap-mailcap-entry-passes-test): Doc fix.
+
+2015-10-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Include-file cleanup for src directory
+
+	Omit ‘#include "foo.h"’ unless the file needs foo.h (Bug#21707).
+	In a few cases, add ‘#include "foo.h"’ if the file needs foo.h
+	but does not include it directly.  As a general rule, a source
+	file should include foo.h if it needs the interfaces that foo.h
+	defines.
+	* src/alloc.c: Don’t include process.h.  Include dispextern.h,
+	systime.h.
+	* src/atimer.c: Don’t include blockinput.h.
+	* src/buffer.c: Include coding.h, systime.h.  Don’t include
+	keyboard.h, coding.h.
+	* src/callint.c: Don’t include commands.h, keymap.h.
+	* src/callproc.c: Don’t include character.h, ccl.h, composite.h,
+	systty.h, termhooks.h.
+	* src/casetab.c: Don’t include character.h.
+	* src/category.c: Don’t include charset.h, keymap.h.
+	* src/ccl.h: Don’t include character.h.
+	* src/character.c: Don’t include charset.h.
+	* src/charset.c: Don’t include disptab.h.
+	* src/chartab.c: Don’t include ccl.h.
+	* src/cm.c: Don’t include frame.h, termhooks.h.
+	* src/cmds.c: Don’t include window.h, dispextern.h.
+	* src/coding.c: Don’t include window.h, frame.h.
+	* src/composite.c: Include composite.h.  Don’t include window.h,
+	font.h.
+	* src/data.c: Don’t include syssignal.h, termhooks.h, font.h.
+	* src/dbusbind.c: Don’t include frame.h.
+	* src/decompress.c: Don’t include character.h.
+	* src/dired.c: Don’t include character.h, commands.h, charset.h.
+	* src/dispnew.c: Don’t include character.h, indent.h, intervals.h,
+	process.h, timespec.h.  Include systime.h.
+	* src/doc.c: Include coding.h.  Don’t include keyboard.h.
+	* src/editfns.c: Include composite.h.  Don’t include frame.h.
+	* src/emacs.c: Include fcntl.h, coding.h.  Don’t include
+	commands.h, systty.h..
+	* src/fileio.c: Don’t include intervals.h, dispextern.h.
+	Include composite.h.
+	* src/filelock.c: Don’t include character.h, systime.h.
+	* src/fns.c: Don’t include time.h, commands.h, keyboard.h,
+	keymap.h, frame.h, blockinput.h, xterm.h.  Include composite.h.
+	* src/font.c: Include termhooks.h.
+	* src/font.h: Don’t include ccl.h, frame.h.  Add forward decls of
+	struct composition_it, struct face, struct glyph_string.
+	* src/fontset.c: Don’t include buffer.h, ccl.h, keyboard.h,
+	intervals.h, window.h, termhooks.h.
+	* src/frame.c: Don’t include character.h, commands.h, font.h.
+	* src/frame.h: Don’t include dispextern.h.
+	* src/fringe.c: Don’t include character.h.
+	* src/ftcrfont.c: Don’t include dispextern.h, frame.h,
+	character.h, charset.h, fontset.h.
+	* src/ftfont.c: Don’t include frame.h, blockinput.h, coding.h,
+	fontset.h.
+	* src/ftxfont.c: Don’t include dispextern.h, character.h,
+	charset.h, fontset.h.
+	* src/gfilenotify.c: Don’t include frame.h, process.h.
+	* src/gtkutil.c: Include dispextern.h, frame.h, systime.h.
+	Don’t include syssignal.h, buffer.h, charset.h, font.h.
+	* src/gtkutil.h: Don’t include frame.h.
+	* src/image.c: Include fcntl.h and stdio.h instead of sysstdio.h.
+	Don’t include character.h.
+	* src/indent.c: Don’t include keyboard.h, termchar.h.
+	* src/inotify.c: Don’t include character.h, frame.h.
+	* src/insdel.c: Include composite.h.  Don’t include blockinput.h.
+	* src/intervals.c: Don’t include character.h, keyboard.h.
+	* src/intervals.h: Don’t include dispextern.h, composite.h.
+	* src/keyboard.c: Don’t include sysstdio.h, disptab.h, puresize.h.
+	Include coding.h.
+	* src/keyboard.h: Don’t incldue systime.h.
+	* src/keymap.c: Don’t include charset.h, frame.h.
+	* src/lread.c: Include dispextern.h and systime.h.
+	Don’t include frame.h.  Include systime.h.
+	* src/macros.c: Don’t include commands.h, character.h, buffer.h.
+	* src/menu.c: Include character.h, coding.h.  Don’t include
+	dispextern.h.
+	* src/menu.h: Don’t include systime.h.
+	* src/minibuf.c: Don’t include commands.h, dispextern.h, syntax.h,
+	intervals.h, termhooks.h.
+	* src/print.c: Include coding.h.  Don’t include keyboard.h,
+	window.h, dispextern.h, termchar.h, termhooks.h, font.h.
+	Add forward decl of struct terminal.
+	* src/process.c: Don’t include termhooks.h, commands.h,
+	dispextern.h, composite.h.
+	* src/region-cache.c: Don’t include character.h.
+	* src/scroll.c: Don’t include keyboard.h, window.h.
+	* src/search.c: Don’t include category.h, commands.h.
+	* src/sound.c: Don’t include dispextern.h.
+	* src/syntax.c: Don’t include command.h, keymap.h.
+	* src/sysdep.c: Don’t include window.h, dispextern.h.
+	* src/systime.h: Use ‘#ifdef emacs’, not ‘#ifdef EMACS_LISP_H’,
+	* src/term.c: Don’t include systty.h, intervals.h, xterm.h.
+	* src/terminal.c: Include character.h.
+	Don’t include charset.h, coding.h.
+	* src/textprop.c: Don’t include character.h.
+	* src/undo.c: Don’t include character.h, commands.h, window.h.
+	* src/unexsol.c: Don’t include character.h, charset.h.
+	* src/widget.c: Include widget.h.  Don’t include keyboard.h,
+	window.h, dispextern.h, blockinput.h, character.h, font.h.
+	* src/widgetprv.h: Don’t include widget.h.
+	* src/window.c: Don’t include character.h, menu.h, intervals.h.
+	* src/xdisp.c: Include composite.h, systime.h.  Don’t include
+	macros.h, process.h.
+	* src/xfaces.c: Don’t include charset.h, keyboard.h, termhooks.h,
+	intervals.h.
+	* src/xfns.c: Don’t include menu.h, character.h, intervals.h,
+	epaths.h, fontset.h, systime.h, atimer.h, termchar.h.
+	* src/xfont.c: Don’t include dispextern.h, fontset.h, ccl.h.
+	* src/xftfont.c: Don’t include dispextern.h, character.h, fontset.h.
+	* src/xgselect.c: Don’t include timespec.h, frame.h.
+	Include systime.h.
+	* src/xgselect.h: Don’t include time.h.
+	Use a forward decl to struct timespec instead.
+	* src/xmenu.c: Don’t include keymap.h, character.h, charset.h,
+	dispextern.h.  Include systime.h.
+	* src/xml.c: Don’t include character.h.
+	* src/xrdb.c [USE_MOTIF]: Don’t include keyboard.h.
+	* src/xselect.c: Don’t include dispextern.h, character.h,
+	buffer.h, process.h.
+	* src/xsmfns.c: Don’t include systime.h, sysselect.h.
+	* src/xterm.c: Don’t include syssignal.h, charset.h, disptab.h,
+	intervals.h process.h, keymap.h, xgselect.h.  Include composite.h.
+
+2015-10-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	(/ N) now returns the reciprocal of N
+
+	This is more compatible with Common Lisp and XEmacs (Bug#21690).  See:
+	http://lists.gnu.org/archive/html/emacs-devel/2015-10/msg01053.html
+	* lisp/color.el (color-hue-to-rgb, color-hsl-to-rgb)
+	(color-xyz-to-srgb, color-xyz-to-lab):
+	* lisp/emacs-lisp/cl-extra.el (cl-float-limits):
+	* lisp/net/shr-color.el (shr-color-hue-to-rgb)
+	(shr-color-hsl-to-rgb-fractions):
+	Exploit the change to simplify the code a bit.
+	* lisp/emacs-lisp/bytecomp.el (byte-compile-quo):
+	Don’t complain about single-argument calls to ‘/’.
+	* src/data.c (arith_driver, float_arith_driver):
+	Implement the change.
+
+2015-10-20  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Call vc-dir-refresh after stash operations
+
+	* lisp/vc/vc-git.el (vc-git-stash-apply-at-point)
+	(vc-git-stash-pop-at-point): Call vc-dir-refresh (bug#13960).
+
+	* lisp/vc/vc-dir.el (vc-dir-resynch-file): Expand FNAME as well,
+	since it can be abbreviated (as returned by vc-find-root).
+
+2015-10-20  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* lisp/vc/vc-svn.el:
+	* lisp/vc/vc-mtn.el:
+	* lisp/vc/vc-hg.el:
+	* lisp/vc/vc-cvs.el:
+	* lisp/vc/vc-git.el:
+	* lisp/vc/vc-bzr.el: Don't declare vc-exec-after anymore.
+	Its usages have been replaced with vc-run-delayed.
+
+2015-10-20  Dima Kogan  <dima@secretsauce.net>
+
+	Fix memory leak in fontset handling
+
+	* src/font.c (copy_font_spec): Make a deep copy of the input
+	argument FONT.  (Bug#21651)
+
+2015-10-20  Michael Sperber  <mike@xemacs.org>
+
+	* lisp/gnus/mailcap.el (mailcap-mime-data):
+	Conditonalize `doc-view-mode', which does not exist on XEmacs.
+
+2015-10-20  Oleh Krehel  <ohwoeowho@gmail.com>
+
+	Update the way directories are compressed
+
+	* lisp/dired-aux.el (dired-compress-file-suffixes): Update the recipe
+	for *.tar.gz decompression to use a pipe.
+	Add an entry for the default directory compression (to *.tar.g).
+	(dired-compress-file): Update.
+
+	See https://lists.gnu.org/archive/html/emacs-devel/2015-10/msg00949.html.
+
+2015-10-20  Michael Sperber  <mike@xemacs.org>
+
+	Unbreak `group' option for `mail-sources'
+
+	* nnml.el (nnml-retrieve-groups, nnml-request-scan):
+	* nnmail.el (nnmail-get-new-mail-per-group)
+	(nnmail-get-new-mail-1): Unbreak `group' option for `mail-sources'.
+
+2015-10-19  Nicolas Petton  <nicolas@petton.fr>
+
+	New function seq-position
+
+	* lisp/emacs-lisp/seq.el (seq-position): New function.
+	* test/automated/seq-tests.el: New tests for seq-position.
+	* doc/lispref/sequences.texi: Add documentation for `seq-position'.
+
+2015-10-19  Ken Brown  <kbrown@cornell.edu>
+
+	Enable --with-wide-int build on 32-bit Cygwin
+
+	* src/sheap.c (STATIC_HEAP_SIZE): Remove distinction between x86
+	and x86_64 to enable --with-wide-int build on 32-bit Cygwin.
+
+2015-10-19  Glenn Morris  <rgm@gnu.org>
+
+	* doc/emacs/ack.texi (Acknowledgments): Small, sad, update.
+
+2015-10-19  Eli Zaretskii  <eliz@gnu.org>
+
+	Resurrect image loading under auto-image-file-mode
+
+	* src/image.c (x_find_image_fd): Handle the case of -2 returned by
+	'openp' specially.  This special case was lost in the changes on
+	2015-08-18.  (Bug#21685)
+
+2015-10-19  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix return value of 'set-file-extended-attributes'
+
+	* lisp/files.el (set-file-extended-attributes): Return non-nil
+	when setting either ACLs or SELinux context succeeds.  Document
+	the return value.  (Bug#21699)
+
+	* doc/lispref/files.texi (Changing Files): Document the return
+	value of set-file-extended-attributes.
+
+2015-10-19  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve documentation of functions that change files
+
+	* doc/lispref/files.texi (Changing Files): Document that these
+	functions signal an error on failure.
+
+2015-10-18  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix doc string of 'shell-quote-argument'
+
+	* lisp/subr.el (shell-quote-argument): Doc fix.  (Bug#21702)
+
+2015-10-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	Some minor Tramp changes
+
+	* doc/misc/tramp.texi (Obtaining Tramp): Add http git cloning.
+
+	* lisp/net/tramp.el (tramp-handle-make-auto-save-file-name):
+	Expand `tramp-auto-save-directory'.
+
 2015-10-18  Michael Albinus  <michael.albinus@gmx.de>
 
 	Minor edits in Tramp
@@ -15680,7 +16535,7 @@
 
 This file records repository revisions from
 commit 9d56a21e6a696ad19ac65c4b405aeca44785884a (exclusive) to
-commit f8ff3937660f4192d72dec2da31fa5c582434d1f (inclusive).
+commit 0afbc5b2a2cda9fe12246bf62567162ae2577160 (inclusive).
 See ChangeLog.1 for earlier changes.
 
 ;; Local Variables:

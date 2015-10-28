@@ -731,21 +731,24 @@ This function is called from `compilation-filter-hook'."
 
 ;;;###autoload
 (defun grep (command-args)
-  "Run grep, with user-specified args, and collect output in a buffer.
-While grep runs asynchronously, you can use \\[next-error] (M-x next-error),
+  "Run Grep with user-specified COMMAND-ARGS, collect output in a buffer.
+While Grep runs asynchronously, you can use \\[next-error] (M-x next-error),
 or \\<grep-mode-map>\\[compile-goto-error] in the *grep* \
-buffer, to go to the lines where grep found
-matches.  To kill the grep job before it finishes, type \\[kill-compilation].
+buffer, to go to the lines where Grep found
+matches.  To kill the Grep job before it finishes, type \\[kill-compilation].
+
+Noninteractively, COMMAND-ARGS should specify the Grep command-line
+arguments.
 
 For doing a recursive `grep', see the `rgrep' command.  For running
-`grep' in a specific directory, see `lgrep'.
+Grep in a specific directory, see `lgrep'.
 
 This command uses a special history list for its COMMAND-ARGS, so you
 can easily repeat a grep command.
 
-A prefix argument says to default the argument based upon the current
-tag the cursor is over, substituting it into the last grep command
-in the grep command history (or into `grep-command' if that history
+A prefix argument says to default the COMMAND-ARGS based on the current
+tag the cursor is over, substituting it into the last Grep command
+in the Grep command history (or into `grep-command' if that history
 list is empty)."
   (interactive
    (progn

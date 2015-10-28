@@ -310,6 +310,10 @@ Only the value `maybe' can be trusted :-(."
 		    'up-to-date
 		  'edited)))))))))
 
+;; dir-status-files called from vc-dir, which loads vc,
+;; which loads vc-dispatcher.
+(declare-function vc-exec-after "vc-dispatcher" (code))
+
 (defun vc-arch-dir-status-files (dir _files callback)
   "Run `tla inventory' for DIR and pass results to CALLBACK.
 CALLBACK expects (ENTRIES &optional MORE-TO-COME); see

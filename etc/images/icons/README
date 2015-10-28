@@ -3,6 +3,15 @@ COPYRIGHT AND LICENSE INFORMATION FOR IMAGE FILES
 Files: hicolor/16x16/apps/emacs.png hicolor/24x24/apps/emacs.png
        hicolor/32x32/apps/emacs.png hicolor/48x48/apps/emacs.png
        hicolor/128x128/apps/emacs.png hicolor/scalable/apps/emacs.svg
+       hicolor/scalable/mimetypes/emacs-document.svg
+
+Author: Nicolas Petton <nicolas@petton.fr>
+Copyright (C) 2015 Free Software Foundation, Inc.
+License: GNU General Public License version 3 or later (see COPYING)
+
+Files: hicolor/16x16/apps/emacs23.png hicolor/24x24/apps/emacs23.png
+       hicolor/32x32/apps/emacs23.png hicolor/48x48/apps/emacs23.png
+       hicolor/128x128/apps/emacs23.png hicolor/scalable/apps/emacs23.svg
 
 Author: Kentaro Ohkouchi <nanasess@fsm.ne.jp>
 Copyright (C) 2007-2015 Free Software Foundation, Inc.

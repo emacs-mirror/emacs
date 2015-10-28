@@ -155,15 +155,14 @@ set to nil, as the value is no longer rogue."
     (unless (memq :group args)
       (custom-add-to-group (custom-current-group) symbol 'custom-variable))
     (while args
-      (let ((arg (car args)))
-	(setq args (cdr args))
-	(unless (symbolp arg)
+      (let ((keyword (pop args)))
+	(unless (symbolp keyword)
 	  (error "Junk in args %S" args))
-	(let ((keyword arg)
-	      (value (car args)))
-	  (unless args
-	    (error "Keyword %s is missing an argument" keyword))
-	  (setq args (cdr args))
+        (unless args
+          (error "Keyword %s is missing an argument" keyword))
+	(let ((value (pop args)))
+          ;; Can't use `pcase' because it is loaded after `custom.el'
+          ;; during bootstrap.  See `loadup.el'.
 	  (cond ((eq keyword :initialize)
 		 (setq initialize value))
 		((eq keyword :set)

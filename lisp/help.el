@@ -1394,9 +1394,10 @@ ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
 	    (if (string-match "\n?\n\\'" docstring)
 		(if (< (- (match-end 0) (match-beginning 0)) 2) "\n" "")
 	      "\n\n")
-	    (if (and (stringp arglist)
-		     (string-match "\\`([^ ]+\\(.*\\))\\'" arglist))
-		(concat "(fn" (match-string 1 arglist) ")")
+	    (if (stringp arglist)
+                (if (string-match "\\`[^ ]+\\(.*\\))\\'" arglist)
+                    (concat "(fn" (match-string 1 arglist) ")")
+                  (error "Unrecognized usage format"))
 	      (help--make-usage-docstring 'fn arglist)))))
 
 (defun help-function-arglist (def &optional preserve-names)

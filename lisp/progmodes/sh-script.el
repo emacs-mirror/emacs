@@ -1920,10 +1920,11 @@ Does not preserve point."
             ;; Pretend the here-document is a "newline representing a
             ;; semi-colon", since the here-doc otherwise covers the newline(s).
             ";")
-        (let ((semi (sh-smie--newline-semi-p)))
-          (forward-line 1)
-          (if (or semi (eobp)) ";"
-            (sh-smie-sh-forward-token))))
+        (unless (eobp)
+          (let ((semi (sh-smie--newline-semi-p)))
+            (forward-line 1)
+            (if (or semi (eobp)) ";"
+              (sh-smie-sh-forward-token)))))
     (forward-comment (point-max))
     (cond
      ((looking-at "\\\\\n") (forward-line 1) (sh-smie-sh-forward-token))

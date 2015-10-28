@@ -921,6 +921,8 @@ ARGS are command switches passed to PROGRAM.")
 
 (defvar dired-compress-files-alist
   '(("\\.tar\\.gz\\'" . "tar -c %i | gzip -c9 > %o")
+    ("\\.tar\\.bz2\\'" . "tar -c %i | bzip2 -c9 > %o")
+    ("\\.tar\\.xz\\'" . "tar -c %i | xz -c9 > %o")
     ("\\.zip\\'" . "zip %o -r --filesync %i"))
   "Control the compression shell command for `dired-do-compress-to'.
 

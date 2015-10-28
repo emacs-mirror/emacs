@@ -2632,12 +2632,19 @@ reports attribute changes as well
 @var{file} has been renamed to @var{file1}
 @item attribute-changed
 a @var{file} attribute was changed
+@item stopped
+watching @var{file} has been stopped
 @end table
 
 Note that the @file{w32notify} library does not report
 @code{attribute-changed} events.  When some file's attribute, like
 permissions or modification time, has changed, this library reports a
 @code{changed} event.
+
+The @code{stopped} event reports, that watching the file has been
+stopped.  This could be because @code{file-notify-rm-watch} was called
+(see below), or because the file being watched was deleted, or due to
+another error reported from the underlying library.
 
 @var{file} and @var{file1} are the name of the file(s) whose event is
 being reported.  For example:
@@ -2690,6 +2697,11 @@ watch library.  Otherwise, the actions @code{deleted} and
 (rename-file "/tmp/foo" "/tmp/bla")
      @result{} Event (35025468 renamed "/tmp/foo" "/tmp/bla")
 @end group
+
+@group
+(delete-file "/tmp/bla")
+     @result{} Event (35025468 deleted "/tmp/bla")
+@end group
 @end example
 @end defun
 
@@ -2708,6 +2720,60 @@ A watch can become invalid if the file or directory it watches is
 deleted, or if the watcher thread exits abnormally for any other
 reason.  Removing the watch by calling @code{file-notify-rm-watch}
 also makes it invalid.
+
+@example
+@group
+(make-directory "/tmp/foo")
+     @result{} nil
+@end group
+
+@group
+(setq desc
+      (file-notify-add-watch
+        "/tmp/foo" '(change) 'my-notify-callback))
+     @result{} 35025468
+@end group
+
+@group
+(file-notify-valid-p desc)
+     @result{} t
+@end group
+
+@group
+(write-region "bla" nil "/tmp/foo/bla")
+     @result{} Event (35025468 created "/tmp/foo/.#bla")
+        Event (35025468 created "/tmp/foo/bla")
+        Event (35025468 changed "/tmp/foo/bla")
+        Event (35025468 changed "/tmp/foo/.#bla")
+@end group
+
+@group
+;; Deleting a file in the directory doesn't invalidate the watch.
+(delete-file "/tmp/foo/bla")
+     @result{} Event (35025468 deleted "/tmp/foo/bla")
+@end group
+
+@group
+(write-region "bla" nil "/tmp/foo/bla")
+     @result{} Event (35025468 created "/tmp/foo/.#bla")
+        Event (35025468 created "/tmp/foo/bla")
+        Event (35025468 changed "/tmp/foo/bla")
+        Event (35025468 changed "/tmp/foo/.#bla")
+@end group
+
+@group
+;; Deleting the directory invalidates the watch.
+(delete-directory "/tmp/foo" 'recursive)
+     @result{} Event (35025468 deleted "/tmp/foo/bla")
+        Event (35025468 deleted "/tmp/foo")
+        Event (35025468 stopped "/tmp/foo")
+@end group
+
+@group
+(file-notify-valid-p desc)
+     @result{} nil
+@end group
+@end example
 @end defun
 
 @node Dynamic Libraries

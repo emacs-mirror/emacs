@@ -11393,14 +11393,22 @@ Buffer modification stores t in this variable.  */);
 	       doc: /* Normal hook run before each command is executed.
 If an unhandled error happens in running this hook,
 the function in which the error occurred is unconditionally removed, since
-otherwise the error might happen repeatedly and make Emacs nonfunctional.  */);
+otherwise the error might happen repeatedly and make Emacs nonfunctional.
+
+See also `pre-command-hook'.  */);
   Vpre_command_hook = Qnil;
 
   DEFVAR_LISP ("post-command-hook", Vpost_command_hook,
 	       doc: /* Normal hook run after each command is executed.
 If an unhandled error happens in running this hook,
 the function in which the error occurred is unconditionally removed, since
-otherwise the error might happen repeatedly and make Emacs nonfunctional.  */);
+otherwise the error might happen repeatedly and make Emacs nonfunctional.
+
+It is a bad idea to use this hook for expensive processing.  If
+unavoidable, wrap your code in `(while-no-input (redisplay) CODE)' to
+avoid making Emacs unresponsive while the user types.
+
+See also `pre-command-hook'.  */);
   Vpost_command_hook = Qnil;
 
 #if 0

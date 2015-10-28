@@ -259,6 +259,14 @@ highlighting the Log View buffer."
 (defvar vc-hg-log-graph nil
   "If non-nil, use `--graph' in the short log output.")
 
+(defvar vc-hg-log-format (concat "changeset:   {rev}:{node|short}\n"
+                                 "{tags % 'tag:         {tag}\n'}"
+                                 "{if(parents, 'parents:     {parents}\n')}"
+                                 "user:        {author}\n"
+                                 "Date:        {date|date}\n"
+                                 "summary:     {desc|tabindent}\n\n")
+  "Mercurial log template for `vc-hg-print-log' long format.")
+
 (defun vc-hg-print-log (files buffer &optional shortlog start-revision limit)
   "Print commit log associated with FILES into specified BUFFER.
 If SHORTLOG is non-nil, use a short format based on `vc-hg-root-log-format'.
@@ -276,9 +284,11 @@ If LIMIT is non-nil, show no more than this many entries."
 	     (nconc
 	      (when start-revision (list (format "-r%s:0" start-revision)))
 	      (when limit (list "-l" (format "%s" limit)))
-	      (when shortlog `(,@(if vc-hg-log-graph '("--graph"))
-                               "--template"
-                               ,(car vc-hg-root-log-format)))
+	      (if shortlog
+                  `(,@(if vc-hg-log-graph '("--graph"))
+                    "--template"
+                    ,(car vc-hg-root-log-format))
+                `("--template" ,vc-hg-log-format))
 	      vc-hg-log-switches)))))
 
 (defvar log-view-message-re)
@@ -295,6 +305,7 @@ If LIMIT is non-nil, show no more than this many entries."
        (if (eq vc-log-view-type 'short)
 	   (cadr vc-hg-root-log-format)
          "^changeset:[ \t]*\\([0-9]+\\):\\(.+\\)"))
+  (set (make-local-variable 'tab-width) 2)
   ;; Allow expanding short log entries
   (when (eq vc-log-view-type 'short)
     (setq truncate-lines t)
@@ -345,7 +356,7 @@ If LIMIT is non-nil, show no more than this many entries."
 
 (defun vc-hg-expanded-log-entry (revision)
   (with-temp-buffer
-    (vc-hg-command t nil nil "log" "-r" revision)
+    (vc-hg-command t nil nil "log" "-r" revision "--template" vc-hg-log-format)
     (goto-char (point-min))
     (unless (eobp)
       ;; Indent the expanded log entry.
@@ -620,6 +631,8 @@ REV is the revision to check out into WORKFILE."
 
 ;; Follows vc-hg-command (or vc-do-async-command), which uses vc-do-command
 ;; from vc-dispatcher.
+(declare-function vc-exec-after "vc-dispatcher" (code))
+;; Follows vc-exec-after.
 (declare-function vc-set-async-update "vc-dispatcher" (process-buffer))
 
 (defun vc-hg-dir-status-files (dir files update-function)

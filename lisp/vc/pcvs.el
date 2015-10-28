@@ -2312,7 +2312,7 @@ this file, or a list of arguments to send to the program."
 	    (revert-buffer 'ignore-auto 'dont-ask 'preserve-modes)
 	    ;; `preserve-modes' avoids changing the (minor) modes.  But we
 	    ;; do want to reset the mode for VC, so we do it explicitly.
-	    (vc-find-file-hook)
+	    (vc-refresh-state)
 	    (when (eq (cvs-fileinfo->type fileinfo) 'CONFLICT)
 	      (smerge-start-session))))))))
 

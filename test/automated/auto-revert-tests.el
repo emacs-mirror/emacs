@@ -136,8 +136,6 @@
          buf)
     (unwind-protect
 	(progn
-          (with-current-buffer (get-buffer-create "*Messages*")
-            (narrow-to-region (point-max) (point-max)))
 	  (setq buf (dired-noselect temporary-file-directory))
 	  (with-current-buffer buf
             ;; `buffer-stale--default-function' checks for
@@ -151,6 +149,8 @@
 
 	    ;; Delete file.  We wait for a second, in order to have
 	    ;; another timestamp.
+            (with-current-buffer (get-buffer-create "*Messages*")
+              (narrow-to-region (point-max) (point-max)))
 	    (sleep-for 1)
             (delete-file tmpfile)
 

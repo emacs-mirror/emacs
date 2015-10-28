@@ -23,14 +23,6 @@
 ;;; Code:
 
 
-;;;###autoload
-(defvar character-fold-search nil
-  "Non-nil if searches should fold similar characters.
-This means some characters will match entire groups of characters.
-For instance, \" will match all variants of double quotes, and
-the letter a will match all of its accented versions (and then
-some).")
-
 (defconst character-fold-table
   (eval-when-compile
     (let* ((equiv (make-char-table 'character-fold-table))
@@ -109,22 +101,60 @@ some).")
       equiv))
   "Used for folding characters of the same group during search.")
 
+(defun character-fold--make-space-string (n)
+  "Return a string that matches N spaces."
+  (format "\\(?:%s\\|%s\\)"
+          (make-string n ?\s)
+          (apply #'concat
+                 (make-list n (or (aref character-fold-table ?\s) " ")))))
+
 ;;;###autoload
-(defun character-fold-to-regexp (string &optional lax)
+(defun character-fold-to-regexp (string &optional _lax)
   "Return a regexp matching anything that character-folds into STRING.
-If `character-fold-search' is nil, `regexp-quote' string.
-Otherwise, any character in STRING that has an entry in
+Any character in STRING that has an entry in
 `character-fold-table' is replaced with that entry (which is a
-regexp) and other characters are `regexp-quote'd.
-If LAX is non-nil, any single whitespace character is allowed to
-match any number of times."
-  (if character-fold-search
-      (apply #'concat
-             (mapcar (lambda (c) (if (and lax (memq c '(?\s ?\t ?\r ?\n)))
-                                "[ \t\n\r\xa0\x2002\x2d\x200a\x202f\x205f\x3000]+"
-                              (or (aref character-fold-table c)
-                                  (regexp-quote (string c)))))
-                     string))
-    (regexp-quote string)))
+regexp) and other characters are `regexp-quote'd."
+  (let* ((spaces 0)
+         (chars (mapcar #'identity string))
+         (out chars))
+    ;; When the user types a space, we want to match the table entry,
+    ;; but we also want the ?\s to be visible to `search-spaces-regexp'.
+    ;; See commit message for a longer description.
+    (while chars
+      (let ((c (car chars)))
+        (setcar chars
+                (cond
+                 ((eq c ?\s)
+                  (setq spaces (1+ spaces))
+                  nil)
+                 ((> spaces 0)
+                  (prog1 (concat (character-fold--make-space-string spaces)
+                                 (or (aref character-fold-table c)
+                                     (regexp-quote (string c))))
+                    (setq spaces 0)))
+                 (t (or (aref character-fold-table c)
+                        (regexp-quote (string c))))))
+        (setq chars (cdr chars))))
+    (concat (apply #'concat out)
+            (when (> spaces 0)
+              (character-fold--make-space-string spaces)))))
+
+
+;;; Commands provided for completeness.
+(defun character-fold-search-forward (string &optional bound noerror count)
+  "Search forward for a character-folded version of STRING.
+STRING is converted to a regexp with `character-fold-to-regexp',
+which is searched for with `re-search-forward'.
+BOUND NOERROR COUNT are passed to `re-search-forward'."
+  (interactive "sSearch: ")
+  (re-search-forward (character-fold-to-regexp string) bound noerror count))
+
+(defun character-fold-search-backward (string &optional bound noerror count)
+  "Search backward for a character-folded version of STRING.
+STRING is converted to a regexp with `character-fold-to-regexp',
+which is searched for with `re-search-backward'.
+BOUND NOERROR COUNT are passed to `re-search-backward'."
+  (interactive "sSearch: ")
+  (re-search-backward (character-fold-to-regexp string) bound noerror count))
 
 ;;; character-fold.el ends here

@@ -458,18 +458,27 @@ A non-nil INTERACTIVE argument means to run the `post-self-insert-hook'."
 	(put-text-property from (point) 'rear-nonsticky
 			   (cons 'hard sticky)))))
 
-(defun open-line (n)
+(declare-function electric-indent-just-newline "electric")
+(defun open-line (n &optional interactive)
   "Insert a newline and leave point before it.
-If there is a fill prefix and/or a `left-margin', insert them
-on the new line if the line would have been blank.
-With arg N, insert N newlines."
-  (interactive "*p")
+If `electric-indent-mode' is enabled, indent the new line if it's
+not empty.
+If there is a fill prefix and/or a `left-margin', insert them on
+the new line.  If the old line would have been blank, insert them
+on the old line as well.
+
+With arg N, insert N newlines.
+A non-nil INTERACTIVE argument means to run the `post-self-insert-hook'."
+  (interactive "*p\np")
   (let* ((do-fill-prefix (and fill-prefix (bolp)))
 	 (do-left-margin (and (bolp) (> (current-left-margin) 0)))
 	 (loc (point-marker))
-	 ;; Don't expand an abbrev before point.
+         ;; Don't expand an abbrev before point.
 	 (abbrev-mode nil))
-    (newline n)
+    (if (and interactive
+             (looking-at-p "[[:space:]]*$"))
+        (electric-indent-just-newline n)
+      (newline n interactive))
     (goto-char loc)
     (while (> n 0)
       (cond ((bolp)
@@ -478,6 +487,7 @@ With arg N, insert N newlines."
       (forward-line 1)
       (setq n (1- n)))
     (goto-char loc)
+    ;; Necessary in case a margin or prefix was inserted.
     (end-of-line)))
 
 (defun split-line (&optional arg)
@@ -599,7 +609,8 @@ buffer if the variable `delete-trailing-lines' is non-nil."
             (start (or start (point-min))))
         (goto-char start)
         (while (re-search-forward "\\s-$" end-marker t)
-          (skip-syntax-backward "-" (line-beginning-position))
+          (save-match-data
+            (skip-syntax-backward "-" (line-beginning-position)))
           ;; Don't delete formfeeds, even if they are considered whitespace.
           (if (looking-at-p ".*\f")
               (goto-char (match-end 0)))

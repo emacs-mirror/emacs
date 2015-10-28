@@ -572,6 +572,24 @@ element of @var{sequence}.  The returned value is a list.
 @end example
 @end defun
 
+@defun seq-mapn function &rest sequences
+  This function returns the result of applying @var{function} to each
+element of @var{sequences}.  The arity of @var{function} must match
+the number of sequences.  Mapping stops at the shortest sequence, and
+the returned value is a list.
+
+@example
+@group
+(seq-mapn #'+ '(2 4 6) '(20 40 60))
+@result{} (22 44 66)
+@end group
+@group
+(seq-mapn #'concat '("moskito" "bite") ["bee" "sting"])
+@result{} ("moskitobee" "bitesting")
+@end group
+@end example
+@end defun
+
 @defun seq-filter predicate sequence
 @cindex filtering sequences
   This function returns a list of all the elements in @var{sequence}

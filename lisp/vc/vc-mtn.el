@@ -138,6 +138,10 @@ switches."
 	     ((match-end 2) (push (list (match-string 3) 'added) result))))
     (funcall update-function result)))
 
+;; dir-status-files called from vc-dir, which loads vc,
+;; which loads vc-dispatcher.
+(declare-function vc-exec-after "vc-dispatcher" (code))
+
 (defun vc-mtn-dir-status-files (dir _files update-function)
   (vc-mtn-command (current-buffer) 'async dir "status")
   (vc-run-delayed
