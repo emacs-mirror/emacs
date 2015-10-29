@@ -1,6 +1,5 @@
 * which-key 
-[[http://melpa.org/#/which-key][http://melpa.org/packages/which-key-badge.svg]]
-  
+[[http://melpa.org/#/which-key][http://melpa.org/packages/which-key-badge.svg]] [[http://stable.melpa.org/#/which-key][file:http://stable.melpa.org/packages/which-key-badge.svg]]
 ** Introduction
 =which-key= is a minor mode for Emacs that displays the key bindings following your currently
 entered incomplete command (a prefix) in a popup. For example, after enabling the minor mode
