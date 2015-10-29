@@ -1488,20 +1488,31 @@ Use `isearch-exit' to quit without signaling."
 
 
 ;;; Toggles for `isearch-regexp-function' and `search-default-regexp-mode'.
-(defmacro isearch-define-mode-toggle (mode key function &optional docstring &rest body)
+(defvar isearch--toggles nil
+  "List of toggles defined with `isearch-define-mode-toggle'.
+Each element is a list of (NAME KEY PRED-FORM).")
+
+(cl-defmacro isearch-define-mode-toggle (mode key &rest body &key function
+                                              doc pred-form &allow-other-keys)
   "Define a command called `isearch-toggle-MODE' and bind it to `M-s KEY'.
 The first line of the docstring is auto-generated, the remainder
-may be provided in DOCSTRING.
+may be provided in DOC.
 If FUNCTION is a symbol, this command first toggles the value of
 `isearch-regexp-function' between nil and FUNCTION.  Also set the
 `isearch-message-prefix' property of FUNCTION.
-The command then executes BODY and updates the isearch prompt."
+The command then executes BODY and updates the isearch prompt.
+
+PRED-FORM, when evaluated should return non-nil if the mode is
+active.  It is mandatory only if FUNCTION is not provided."
   (declare (indent defun))
-  (let ((command-name (intern (format "isearch-toggle-%s" mode))))
+  (let ((command-name (intern (format "isearch-toggle-%s" mode)))
+        (pred-form (or pred-form `(eq isearch-regexp-function #',function))))
+    (while (keywordp (car body))
+      (setq body (cdr (cdr body))))
     `(progn
        (defun ,command-name ()
          ,(format "Toggle %s searching on or off.%s" mode
-                  (if docstring (concat "\n" docstring) ""))
+                  (if doc (concat "\n" doc) ""))
          (interactive)
          ,@(when function
              `((setq isearch-regexp-function
@@ -1512,6 +1523,7 @@ The command then executes BODY and updates the isearch prompt."
          (setq isearch-success t isearch-adjusted t)
          (isearch-update))
        (define-key isearch-mode-map ,(concat "\M-s" key) #',command-name)
+       (setf (alist-get ',mode isearch--toggles) '(,key (lambda () ,pred-form)))
        ,@(when (symbolp function)
            `((put ',function 'isearch-message-prefix ,(format "%s " mode))
              (cl-callf (lambda (types) (cons 'choice
@@ -1519,12 +1531,12 @@ The command then executes BODY and updates the isearch prompt."
                                               (cdr types))))
                  (get 'search-default-regexp-mode 'custom-type)))))))
 
-(isearch-define-mode-toggle word "w" word-search-regexp)
-(isearch-define-mode-toggle symbol "_" isearch-symbol-regexp)
-(isearch-define-mode-toggle character-fold "'" character-fold-to-regexp)
+(isearch-define-mode-toggle word "w"           :function word-search-regexp)
+(isearch-define-mode-toggle symbol "_"         :function isearch-symbol-regexp)
+(isearch-define-mode-toggle character-fold "'" :function character-fold-to-regexp)
 (put 'character-fold-to-regexp 'isearch-message-prefix "char-fold ")
 
-(isearch-define-mode-toggle regexp "r" nil nil
+(isearch-define-mode-toggle regexp "r" :pred-form isearch-regexp
   (setq isearch-regexp (not isearch-regexp))
   (if isearch-regexp (setq isearch-regexp-function nil)))
 
@@ -1537,8 +1549,9 @@ The command then executes BODY and updates the isearch prompt."
              string))
   (sit-for 1))
 
-(isearch-define-mode-toggle lax-whitespace " " nil
-  "In ordinary search, toggles the value of the variable
+(isearch-define-mode-toggle lax-whitespace " "
+  :pred-form (if isearch-regexp isearch-regexp-lax-whitespace isearch-lax-whitespace)
+  :doc "In ordinary search, toggles the value of the variable
 `isearch-lax-whitespace'.  In regexp search, toggles the
 value of the variable `isearch-regexp-lax-whitespace'."
   (isearch--momentary-message
@@ -1548,20 +1561,21 @@ value of the variable `isearch-regexp-lax-whitespace'."
        "match spaces loosely"
      "match spaces literally")))
 
-(isearch-define-mode-toggle case-fold "c" nil
-  "Toggles the value of the variable `isearch-case-fold-search'."
+(isearch-define-mode-toggle case-fold "c"
+  :pred-form isearch-case-fold-search
+  :doc "Toggles the value of the variable `isearch-case-fold-search'."
   (isearch--momentary-message
    (if (setq isearch-case-fold-search
              (if isearch-case-fold-search nil 'yes))
        "case insensitive"
      "case sensitive")))
 
-(isearch-define-mode-toggle invisible "i" nil
-  "This determines whether to search inside invisible text or not.
+(isearch-define-mode-toggle invisible "i"
+  :pred-form isearch-invisible
+  :doc "This determines whether to search inside invisible text or not.
 Toggles the variable `isearch-invisible' between values
 nil and a non-nil value of the option `search-invisible'
 \(or `open' if `search-invisible' is nil)."
-  "match %svisible text"
   (isearch--momentary-message
    (if (setq isearch-invisible
              (if isearch-invisible
