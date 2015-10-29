@@ -1583,6 +1583,30 @@ nil and a non-nil value of the option `search-invisible'
        "match invisible text"
      "match visible text")))
 
+(defcustom isearch-show-toggles t
+  "Non-nil means to list options above input prompt."
+  :type 'boolean
+  :version "25.1")
+
+(defun isearch--describe-toggles ()
+  "Return a propertized description of isearch toggles."
+  (let ((toggles
+         (concat
+          #("Toggles [M-s]:  " 0 9 (face minibuffer-prompt) 12 16 (face minibuffer-prompt))
+          (mapconcat (lambda (x) (format (propertize "[%s] %s %s" 'face 'minibuffer-prompt)
+                                    (propertize (elt x 1) 'face 'default)
+                                    (capitalize (symbol-name (car x)))
+                                    (if (funcall (elt x 2))
+                                        (propertize "ON " 'face 'default) "OFF")))
+                     (reverse isearch--toggles)
+                     "  ")
+          "\n"))
+        (width (window-width (minibuffer-window))))
+    (if (> width (string-width toggles))
+        toggles
+      (replace-regexp-in-string "\\[[^[]*\\'" "\n"
+                                (substring toggles 0 width)))))
+
 
 ;; Word search
 
@@ -2592,8 +2616,9 @@ the word mode."
 			(concat " [" current-input-method-title "]: "))
 		     ": ")
 		   )))
-    (propertize (concat (upcase (substring m 0 1)) (substring m 1))
-		'face 'minibuffer-prompt)))
+    (concat (when isearch-show-toggles (isearch--describe-toggles))
+            (propertize (concat (upcase (substring m 0 1)) (substring m 1))
+                        'face 'minibuffer-prompt))))
 
 (defun isearch-message-suffix (&optional c-q-hack)
   (concat (if c-q-hack "^Q" "")
