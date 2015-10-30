@@ -247,6 +247,13 @@ prefixes in `which-key-paging-prefixes'"
   :group 'which-key
   :type 'boolean)
 
+(defcustom which-key-allow-evil-operators (boundp 'evil-this-operator)
+  "Allow popup to show for evil operators. The popup is normally
+  inhibited in the middle of commands, but setting this to
+  non-nil will override this behavior for evil operators."
+  :group 'which-key
+  :type 'boolean)
+
 ;; Faces
 (defgroup which-key-faces nil
   "Faces for which-key-mode"
@@ -1546,7 +1553,8 @@ Finally, show the buffer."
                (not which-key-inhibit)
                ;; Do not display the popup if a command is currently being
                ;; executed
-               (null this-command))
+               (or (and which-key-allow-evil-operators evil-this-operator)
+                   (null this-command)))
       (which-key--create-buffer-and-show prefix-keys))))
 
 ;; Timers
