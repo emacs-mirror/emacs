@@ -1371,9 +1371,12 @@ area."
          (next-page-n (format "pg %s" (1+ (mod (1+ page-n) n-pages))))
          (use-descbind (and which-key--on-last-page which-key-use-C-h-for-paging
                             which-key-prevent-C-h-from-cycling)))
-    (when (or (and (< 1 n-pages) which-key-use-C-h-for-paging)
-              (and (< 1 n-pages) paging-key-bound)
-              use-descbind)
+    (when (and (or (and (< 1 n-pages) which-key-use-C-h-for-paging)
+                   (and (< 1 n-pages) paging-key-bound)
+                   use-descbind)
+               (not (and which-key-allow-evil-operators
+                         (boundp 'evil-this-operator)
+                         evil-this-operator)))
       (propertize (format "[%s %s]" key
                           (if use-descbind "help" next-page-n))
                   'face 'which-key-note-face))))
