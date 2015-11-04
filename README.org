@@ -277,11 +277,16 @@ match. The replacements do not need to use regexp and can be as simple as
 ("left" . "lft")
 #+END_SRC
 
-You can add this element to the key list with (there are no helper functions for
-these alists)
+Here is an example of using key replacement to include Unicode characters in the
+results. Unfortunately, using Unicode characters may upset the alignment of the
+which-key buffer, because Unicode characters can have different widths even in a
+monospace font and alignment is based on character width.
 
 #+BEGIN_SRC Emacs-lisp
-(add-to-list 'which-key-key-replacement-alist '("left" . "lft"))
+(add-to-list 'which-key-key-replacement-alist '("TAB" . "↹"))
+(add-to-list 'which-key-key-replacement-alist '("RET" . "⏎"))
+(add-to-list 'which-key-key-replacement-alist '("DEL" . "⇤"))
+(add-to-list 'which-key-key-replacement-alist '("SPC" . "␣"))
 #+END_SRC
 
 *** Sorting Options
