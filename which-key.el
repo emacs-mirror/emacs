@@ -435,7 +435,8 @@ alongside the actual current key sequence when
         (message ""))
       (setq-local cursor-type nil)
       (setq-local cursor-in-non-selected-windows nil)
-      (setq-local mode-line-format nil))))
+      (setq-local mode-line-format nil)
+      (setq-local word-wrap nil))))
 
 (defun which-key--setup ()
   "Initial setup for which-key.
@@ -918,7 +919,7 @@ Measured in lines and characters respectively."
                  max-mini-window-height))
      max-mini-window-height)
    ;; width
-   (frame-text-cols)))
+   (max 0 (- (frame-text-cols) which-key-unicode-correction))))
 
 (defun which-key--side-window-max-dimensions ()
   "Return max-dimensions of the side-window popup (height .
@@ -932,10 +933,12 @@ width) in lines and characters respectively."
      ;; FIXME: change to something like (min which-*-height (calculate-max-height))
      (which-key--height-or-percentage-to-height which-key-side-window-max-height))
    ;; width
-   (if (member which-key-side-window-location '(left right))
-       (which-key--total-width-to-text (which-key--width-or-percentage-to-width
-                                        which-key-side-window-max-width))
-     (frame-width))))
+   (max 0
+        (- (if (member which-key-side-window-location '(left right))
+               (which-key--total-width-to-text (which-key--width-or-percentage-to-width
+                                                which-key-side-window-max-width))
+             (frame-width))
+           which-key-unicode-correction))))
 
 (defun which-key--frame-max-dimensions ()
   "Return max-dimensions of the frame popup (height .
