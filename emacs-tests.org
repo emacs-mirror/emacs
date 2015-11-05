@@ -1,0 +1,107 @@
+
+#+TITLE: The Location of Emacs-Lisp Tests
+
+* Introduction
+
+In this document, we describe the relationship between Emacs-Lisp files and
+their associated automated test files.
+
+
+* In Emacs
+
+The Emacs repository contains a very large number of Emacs-Lisp files, many of
+which pre-date both formal package support for Emacs and automated unit
+testing. The test layout is, therefore, somewhat different than for ELPA
+packages.
+
+All paths are relative to the Emacs root directory.
+
+** Source
+
+Lisp files are stored in the ~lisp~ directory or its sub-directories.
+Sub-directories are in many cases themed after packages (~gnus~, ~org~,
+~calc~), related functionality (~net~, ~emacs-lisp~, ~progmodes~) or status
+(~obsolete~).
+
+C source is stored in the ~src~ directory, which is flat.
+
+** Test Files
+
+Automated tests should be stored in the ~test/automated/lisp~ directory. Tests
+should reflect the directory structure of the source tree; so tests for files
+in the ~emacs-lisp~ source directory should reside in the
+~test/automated/lisp/emacs-lisp~ directory.
+
+Tests should normally reside in a file with ~-tests~ added to the name of
+the tested source file; hence ~ert.el~ is tested in ~ert-tests.el~, or
+~pcase.el~ is tested in ~pcase-tests.el~.
+
+Where features of the C source are tested using Emacs-Lisp test files, these
+should reside in ~/test/automated/c~ and be named after the C file.
+
+** Resource Files
+
+Resource files for tests (containing test data) should reside in a directory
+named after the feature with a ~-resources~ suffix, and located in the same
+directory as the feature. Hence, the lisp file ~flymake.el~ should have test
+files in ~/test/automated/lisp/progmodes/flymake-tests.el~ should reside in a
+directory called ~/test/automated/lisp/progmodes/flymake-resources~.
+
+No guidance is given for the organisation of resource files inside the
+~-resource~ directory; files can be organised at the author's discretion.
+
+
+* In ELPA
+
+All paths are given relative to the package root.
+
+** Source Files
+
+ELPA lisp files should be stored at top-level within the package.
+
+** Test Files
+
+Test files should normally reside in the ~test~ directory, and be named after
+the file being tested, with a ~tests~ suffix added.
+
+** Resources Files
+
+Resource files for tests should reside in the ~dev-resources~ directory. No
+guidance is given for the organisation of resource files inside the
+~dev-resource~ directory; files can be organised at the author's discretion.
+
+
+
+* Script
+
+** Helpers
+
+#+begin_src emacs-lisp
+  (require 'dash)
+  (defun copy-location ()
+    (interactive)
+    (kill-new
+     (format "cp %s %s"
+             (file-name-nondirectory
+              (buffer-file-name))
+             (s-join
+              "/"
+              (-butlast
+               (cdr
+                (--drop-while
+                 (not (string= "lisp" it))
+                 (split-string
+                  (locate-library
+                   (symbol-name
+                    (symbol-at-point)))
+                  "/"))))))))
+#+end_src
+
+** Move Script
+
+
+#+begin_src bash
+mkdir lisp
+mkdir c
+cp add-log-tests.el vc
+#+end_src
