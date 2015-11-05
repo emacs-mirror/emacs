@@ -126,6 +126,7 @@ the user specified."
     :defines
     :functions
     :defer
+    :after
     :demand
     :init
     :config
@@ -854,6 +855,33 @@ deferred until the prefix key sequence is pressed."
 
      body)))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; :after
+;;
+
+(defalias 'use-package-normalize/:after 'use-package-normalize-symlist)
+
+(defun use-package-require-after-load (features name)
+  "Return form for after any of FEATURES require NAME."
+  `(progn
+     ,@(mapcar
+        (lambda (feat)
+          `(eval-after-load
+               (quote ,feat)
+             (quote (require (quote ,name)))))
+        features)))
+
+(defun use-package-handler/:after (name keyword arg rest state)
+  (let ((body (use-package-process-keywords name rest
+                (plist-put state :deferred t)))
+        (name-string (use-package-as-string name)))
+    (use-package-concat
+     (when arg
+       (list (use-package-require-after-load arg name)))
+     body)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; :demand
@@ -1019,6 +1047,10 @@ this file.  Usage:
                `:commands', `:bind', `:bind*', `:mode' or `:interpreter'.
                This can be an integer, to force loading after N seconds of
                idle time, if the package has not already been loaded.
+
+:after         Defer loading of a package until after any of the named
+               features are loaded.
+
 :demand        Prevent deferred loading in all cases.
 
 :if EXPR       Initialize and load only if EXPR evaluates to a non-nil value.
