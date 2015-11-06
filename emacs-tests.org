@@ -34,10 +34,20 @@ in the ~emacs-lisp~ source directory should reside in the
 
 Tests should normally reside in a file with ~-tests~ added to the name of
 the tested source file; hence ~ert.el~ is tested in ~ert-tests.el~, or
-~pcase.el~ is tested in ~pcase-tests.el~.
+~pcase.el~ is tested in ~pcase-tests.el~. Exceptionally, tests for a
+single feature may be placed into multiple files of any name which are
+themselves placed in a directory named after the feature with ~-tests~
+appended, suchj as ~/test/automated/lisp/emacs-lisp/eieio-tests~
 
 Where features of the C source are tested using Emacs-Lisp test files, these
-should reside in ~/test/automated/c~ and be named after the C file.
+should reside in ~/test/automated/lisp/c~ and be named after the C file.
+
+Currently, Emacs has no automated testing framework in C at the
+current time, but we reserve the ~/test/automated/src~ directory for
+future use.
+
+A few test suites which predate this scheme and do not fit cleanly
+into it are placed in ~/test/automated/lisp/legacy~.
 
 ** Resource Files
 
@@ -123,7 +133,7 @@ we don't care; we can use wildcards with a few slashes in.
   (defun copy-location ()
     (interactive)
     (kill-new
-     (format "cp %s %s"
+     (format "mv %s %s"
              (file-name-nondirectory
               (buffer-file-name))
              (s-join
@@ -143,12 +153,56 @@ we don't care; we can use wildcards with a few slashes in.
 
 #+begin_src bash
 mkdir lisp
-mkdir c
-cp add-log-tests.el lisp/vc
-cp advice-tests.el lisp/emacs-lisp/nadvice-tests.el
-cp auth-source-tests.el lisp/gnus
-cp auto-revert-tests.el lisp/autorevert-tests.el
-cp bytecomp-tests.el lisp/emacs-lisp
-cp calc-tests.el lisp/calc
-cp cl-generic-tests.el lisp/emacs-lisp
+mkdir lisp/c
+mv Makefile.in lisp
+
+mv add-log-tests.el lisp/vc
+mv advice-tests.el lisp/emacs-lisp/nadvice-tests.el
+mv auth-source-tests.el lisp/gnus
+mv auto-revert-tests.el lisp/autorevert-tests.el
+mv bytecomp-tests.el lisp/emacs-lisp
+mv calc-tests.el lisp/calc
+mv cl-generic-tests.el lisp/emacs-lisp
+mv cl-lib-tests.el lisp/emacs-lisp
+mv cmds-tests.el lisp/c
+mv comint-testsuite.el lisp/comint-tests.el
+mv compile-tests.el lisp/progmodes
+mv completion-tests.el lisp/minibuffer-tests.el
+mv core-elisp-tests.el lisp/legacy-tests
+mv data-tests.el lisp/c
+mv dbus-tests.el lisp/net
+mv decoder-tests.el lisp/legacy
+mv descr-text-test.el lisp/descr-text-tests.el
+mv eieio-test-methodinvoke.el lisp/emacs-lisp/eieio-tests
+mv eieio-test-persist.el lisp/emacs-lisp/eieio-tests
+mv eieio-test.el lisp/emacs-lisp/eieio-tests
+mv electric-tests.el lisp
+mv emacs-lisp-tests.el lisp/progmodes
+mv epg-tests.el lisp
+mv ert-tests.el lisp/emacs-lisp
+mv ert-x-tests.el lisp/emacs-lisp
+mv eshell.el lisp/eshell
+mv f90.el lisp/progmodes
+mv file-notify-tests.el lisp/filenotify-tests.el
+mv files.el lisp/legacy/files-tests.el
+mv finalizer-tests.el lisp/c
+mv flymake-tests.el lisp/progmodes
+mv fns-tests.el lisp/c
+mv font-parse-tests.el lisp/legacy
+mv generator-tests.el lisp/emacs-lisp
+mv gnus-tests.el lisp/gnus
+mv help-fns.el lisp/help-fns-tests.el
+mv icalendar-tests.el lisp/calendar
+mv imenu-test.el lisp/imenu-tests.el
+mv info-xref.el lisp/info-xref-tests.el
+mv inotify-test.el lisp/c/inotify-tests.el
+mv json-tests.el lisp
+mv let-alist.el lisp/emacs-lisp/let-alist-tests.el
+mv lexbind-tests.el lisp/legacy
+mv libxml-tests.el lisp/c/xml-tests.el
+
 #+end_src
+
+** After Script
+
+top level Makefile will need altering
