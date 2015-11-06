@@ -102,12 +102,7 @@ WRITE_LOG = > $@ 2>&1 || { stat=ERROR; cat $@; }; echo $$stat: $@
 ELFILES = $(sort $(wildcard ${srcdir}/*.el) $(wildcard ${srcdir}/*/*.el) \
 	$(wildcard ${srcdir}/*/*/*.el))
 LOGFILES = $(patsubst %.el,%.log,${ELFILES})
-TESTS = ${LOGFILES:.log=}
-
-ping:
-	echo elfiles $(ELFILES)
-	echo logfiles $(LOGFILES)
-	echo tests $(TESTS)
+TESTS = $(subst ${srcdir}/,,$(LOGFILES:.log=))
 
 ## If we have to interrupt a hanging test, preserve the log so we can
 ## see what the problem was.
@@ -118,11 +113,10 @@ ping:
 ## The short aliases that always re-run the tests, with no logging.
 define test_template
 $(1):
-	@test ! -f $(1).log || mv $(1).log $(1).log~
-	@${MAKE} $(1).log WRITE_LOG=
+	@test ! -f ${srcdir}/$(1).log || mv ${srcdir}/$(1).log ${srcdir}/$(1).log~
+	@${MAKE} ${srcdir}/$(1).log WRITE_LOG=
 endef
 
-$(foreach test,${TESTS},$(info $(call test_template,${test})))
 $(foreach test,${TESTS},$(eval $(call test_template,${test})))
 
 
