@@ -72,7 +72,49 @@ guidance is given for the organisation of resource files inside the
 
 
 
-* Script
+
+* The Move
+
+** Makefile
+
+Is single directory and doesn't work. Don't know how to do a recursive
+make, but actually, the directory structure isn't too deep, so perhaps
+we don't care; we can use wildcards with a few slashes in.
+
+./emulation
+./erc
+./cedet
+./cedet/semantic
+./cedet/semantic/bovine
+./cedet/semantic/decorate
+./cedet/semantic/analyze
+./cedet/semantic/symref
+./cedet/semantic/wisent
+./cedet/srecode
+./cedet/ede
+./vc
+./eshell
+./term
+./play
+./nxml
+./gnus
+./url
+./mail
+./mh-e
+./obsolete
+./textmodes
+./language
+./net
+./international
+./leim
+./leim/ja-dic
+./leim/quail
+./org
+./calc
+./emacs-lisp
+./calendar
+./progmodes
+
 
 ** Helpers
 
@@ -87,14 +129,13 @@ guidance is given for the organisation of resource files inside the
              (s-join
               "/"
               (-butlast
-               (cdr
-                (--drop-while
-                 (not (string= "lisp" it))
-                 (split-string
-                  (locate-library
-                   (symbol-name
-                    (symbol-at-point)))
-                  "/"))))))))
+               (--drop-while
+                (not (string= "lisp" it))
+                (split-string
+                 (locate-library
+                  (symbol-name
+                   (symbol-at-point)))
+                 "/")))))))
 #+end_src
 
 ** Move Script
@@ -103,5 +144,11 @@ guidance is given for the organisation of resource files inside the
 #+begin_src bash
 mkdir lisp
 mkdir c
-cp add-log-tests.el vc
+cp add-log-tests.el lisp/vc
+cp advice-tests.el lisp/emacs-lisp/nadvice-tests.el
+cp auth-source-tests.el lisp/gnus
+cp auto-revert-tests.el lisp/autorevert-tests.el
+cp bytecomp-tests.el lisp/emacs-lisp
+cp calc-tests.el lisp/calc
+cp cl-generic-tests.el lisp/emacs-lisp
 #+end_src
