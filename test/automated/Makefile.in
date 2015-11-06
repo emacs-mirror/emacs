@@ -99,8 +99,9 @@ WRITE_LOG = > $@ 2>&1 || { stat=ERROR; cat $@; }; echo $$stat: $@
 	$(emacs) -l ert -l $$loadfile \
 	  -f ert-run-tests-batch-and-exit ${WRITE_LOG}
 
-ELFILES = $(sort $(wildcard ${srcdir}/*/*.el) $(wildcard ${srcdir}/*.el)
-LOGFILES = $(patsubst %.el,%.log,$(notdir ${ELFILES}))
+ELFILES = $(sort $(wildcard ${srcdir}/*.el) $(wildcard ${srcdir}/*/*.el) \
+	$(wildcard ${srcdir}/*/*/*.el))
+LOGFILES = $(patsubst %.el,%.log,${ELFILES})
 TESTS = ${LOGFILES:.log=}
 
 ping:
@@ -121,6 +122,7 @@ $(1):
 	@${MAKE} $(1).log WRITE_LOG=
 endef
 
+$(foreach test,${TESTS},$(info $(call test_template,${test})))
 $(foreach test,${TESTS},$(eval $(call test_template,${test})))
 
 
@@ -137,10 +139,12 @@ check-maybe: ${LOGFILES}
 .PHONY: mostlyclean clean bootstrap-clean distclean maintainer-clean
 
 clean mostlyclean:
-	-rm -f *.log *.log~
+	-rm -f ${srcdir}/*.log ${srcdir}/*.log~ ${srcdir}/*/*.log \
+		${srcdir}/*/*.log~ ${srcdir}/*/*/*.log \
+		${srcdir}/*/*/*.log~
 
 bootstrap-clean: clean
-	-rm -f ${srcdir}/*.elc
+	-rm -f ${srcdir}/*.elc ${srcdir}/*/*.elc ${srcdir}/*/*/*.elc
 
 distclean: clean
 	rm -f Makefile
