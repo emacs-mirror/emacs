@@ -200,7 +200,43 @@ mv json-tests.el lisp
 mv let-alist.el lisp/emacs-lisp/let-alist-tests.el
 mv lexbind-tests.el lisp/legacy
 mv libxml-tests.el lisp/c/xml-tests.el
-
+mv man-tests.el lisp
+mv map-tests.el lisp/emacs-lisp
+mv message-mode-tests.el lisp/gnus/message-tests.el
+mv mule-util.el lisp/international/mule-util-tests.el
+mv newsticker-tests.el lisp/net
+mv occur-tests.el lisp/legacy
+mv package-test.el lisp/emacs-lisp/package-tests.el
+mv pcase-tests.el lisp/emacs-lisp
+mv print-tests.el lisp/c
+mv process-tests.el lisp/legacy
+mv python-tests.el lisp/progmodes
+mv reftex-tests.el lisp/textmodes
+mv regexp-tests.el lisp/emacs-lisp/regexp-opt-tests.el
+mv replace-tests.el lisp/
+mv ruby-mode-tests.el lisp/progmodes
+mv sasl-scram-rfc-tests.el lisp/net
+mv seq-tests.el lisp/emacs-lisp
+mv sgml-mode-tests.el lisp/textmodes
+mv simple-test.el lisp/simple-tests.el
+mv subr-tests.el lisp/subr-tests.el
+mv subr-x-tests.el lisp/emacs-lisp
+mv subword-tests.el lisp/progmodes
+mv syntax-tests.el lisp/legacy
+mv tabulated-list-test.el lisp/emacs-lisp
+mv textprop-tests.el lisp/legacy
+mv thingatpt.el lisp/thingatpt-tests.el
+mv thunk-tests.el lisp/emacs-lisp
+mv tildify-tests.el lisp/textmodes
+mv timer-tests.el lisp/emacs-lisp
+mv tramp-tests.el lisp/net
+mv undo-tests.el lisp/legacy
+mv url-future-tests.el lisp/url
+mv url-util-tests.el lisp/url
+mv vc-bzr.el lisp/vc/vc-bzr-tests.el
+mv vc-tests.el lisp/vc
+mv xml-parse-tests.el lisp/xml-tests.el
+mv zlib-tests.el lisp/c
 #+end_src
 
 ** After Script
