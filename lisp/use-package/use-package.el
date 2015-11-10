@@ -464,7 +464,7 @@ manually updated package."
 
 (defun use-package-handler/:ensure (name keyword ensure rest state)
   (let ((body (use-package-process-keywords name rest state)))
-    `((let ((package-name (or (and (eq ,ensure t) (use-package-as-symbol ',name)) ,ensure)))
+    `((let ((package-name (or (and (eq ',ensure t) (use-package-as-symbol ',name)) ',ensure)))
           (when package-name
             (require 'package)
             (use-package-ensure-elpa package-name)))
