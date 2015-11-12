@@ -411,8 +411,12 @@ shown.
   (setq which-key-idle-delay 1.0) 
 
   ;; Set the maximum length (in characters) for key descriptions (commands or
-  ;; prefixes). Descriptions that are longer are truncated and have ".." added
+  ;; prefixes). Descriptions that are longer are truncated and have ".." added.
   (setq which-key-max-description-length 27)
+
+  ;; Use additonal padding between columns of keys. This variable specifies the
+  ;; number of spaces to add to the left of each column.
+  (setq which-key-add-column-padding 0)
 
   ;; Set the separator used between keys and descriptions. Change this setting to
   ;; an ASCII character if your font does not show the default arrow. The second
