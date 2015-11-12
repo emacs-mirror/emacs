@@ -463,12 +463,19 @@ manually updated package."
         (use-package-ensure-elpa package t)))))
 
 (defun use-package-handler/:ensure (name keyword ensure rest state)
-  (let ((body (use-package-process-keywords name rest state)))
-    `((let ((package-name (or (and (eq ',ensure t) (use-package-as-symbol ',name)) ',ensure)))
-          (when package-name
-            (require 'package)
-            (use-package-ensure-elpa package-name)))
-        ,@body))) 
+  (let* ((body (use-package-process-keywords name rest state))
+         (package-name (or (and (eq ensure t) (use-package-as-symbol name)) ensure))
+         (ensure-form (if package-name
+                          `(progn (require 'package)
+                                  (use-package-ensure-elpa ',package-name)))))
+    ;; We want to avoid installing packages when the `use-package'
+    ;; macro is being macro-expanded by elisp completion (see
+    ;; `lisp--local-variables'), but still do install packages when
+    ;; byte-compiling to avoid requiring `package' at runtime.
+    (if (bound-and-true-p byte-compile-current-file)
+        (eval ensure-form)              ; Eval when byte-compiling,
+      (push ensure-form body))          ; or else wait until runtime.
+    body))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
