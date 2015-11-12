@@ -95,7 +95,7 @@ Leave point at the return code on the first line."
 ;;; Requests
 (autoload 'auth-source-search "auth-source")
 (cl-defmacro api--with-server-buffer (method url &rest body &key async unwind-form
-                                             extra-headers &allow-other-keys)
+                                             auth extra-headers &allow-other-keys)
   "Run BODY in a Server request buffer.
 UNWIND-FORM is run no matter what, and doesn't affect the return
 value."
@@ -105,7 +105,14 @@ value."
         (secret (make-symbol "secret")))
     (while (keywordp (car body))
       (setq body (cdr (cdr body))))
-    `(let ((,call-name (lambda (status)
+    `(let ((,secret (when ,auth
+                      (if (listp ,auth)
+                          (or (car-safe (apply #'auth-source-search
+                                               :require '(:secret) :max 1
+                                               ,auth))
+                              (user-error "This request requires authentication"))
+                        (lambda () ,auth))))
+           (,call-name (lambda (status)
                          (unwind-protect
                              (progn (when-let ((er (plist-get status :error)))
                                       (error "Error retrieving: %s %S" ,url er))
@@ -186,6 +193,7 @@ The return value depends on a few factors:
   about the request \(next-page, quota, etc).
 
 If ASYNC is non-nil, run the request asynchronously.
+AUTH is a list of arguments to pass to `auth-source-search'.
 
 This function can also handle the pagination used in server
 results by appending together the contents of each page. Use
@@ -210,10 +218,8 @@ according to the reply. The possible errors are:
 `api-page-does-not-exist', and `api-infinite-redirection-loop',
 all of which inherit from `api-error'.
 
-\(fn ACTION &key (METHOD :get) (READER #'json-read) CALLBACK ASYNC (MAX-PAGES 1) NEXT-PAGE-RULE EXTRA-HEADERS RETURN)"
-  (declare (indent 1)
-           (advertised-calling-convention
-            ))
+\(fn ACTION &key AUTH (METHOD :get) (READER #'json-read) CALLBACK ASYNC (MAX-PAGES 1) NEXT-PAGE-RULE EXTRA-HEADERS RETURN)"
+  (declare (indent 1))
   (unless (string-match "\\`https?://" action)
     (setq action (concat api-root action)))
   (when (member action -url-history)
@@ -221,8 +227,9 @@ all of which inherit from `api-error'.
   (api--with-server-buffer method action
     :extra-headers extra-headers
     :-url-depth (cons action -url-history)
+    :auth auth
     :async async
-    (pcase (api-parse-response-code nil)
+    (pcase (api-parse-response-code auth)
       (`nil nil)
       ((and (pred stringp) link)
        (message "Redirected to %s" link)
@@ -248,6 +255,7 @@ all of which inherit from `api-error'.
                           (next-page . ,next-page)
                           ,@(api--headers-alist))))
              (api-action next-page
+               :auth auth
                :method method
                :reader reader
                :next-page-rule next-page-rule
