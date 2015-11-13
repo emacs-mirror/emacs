@@ -401,7 +401,6 @@ key sequence. prefix-title is a string. The title is displayed
 alongside the actual current key sequence when
 `which-key-show-prefix' is set to either top or echo.")
 
-
 ;;;###autoload
 (define-minor-mode which-key-mode
   "Toggle which-key-mode."
@@ -1446,6 +1445,15 @@ area."
                           (if use-descbind "help" next-page-n))
                   'face 'which-key-note-face))))
 
+(defun which-key--get-popup-map ()
+  (unless which-key--current-prefix
+    (let ((map (make-sparse-keymap)))
+      (define-key map (kbd which-key-paging-key) #'which-key-show-next-page)
+      (when which-key-use-C-h-for-paging
+        ;; Show next page even when C-h is pressed
+        (define-key map (kbd "C-h") #'which-key-show-next-page))
+      map)))
+
 (defun which-key--show-page (n)
   "Show page N, starting from 0."
   (which-key--init-buffer) ;; in case it was killed
@@ -1512,7 +1520,11 @@ enough space based on your settings and frame size." prefix-keys)
             (erase-buffer)
             (insert page)
             (goto-char (point-min)))
-          (which-key--show-popup (cons height width)))))))
+          (which-key--show-popup (cons height width)))))
+
+    ;; TODO: Replace this with `set-transient-map' when we drop support for
+    ;; Emacs v24.3
+    (set-temporary-overlay-map (which-key--get-popup-map))))
 
 (defun which-key-show-next-page ()
   "Show the next page of keys.
