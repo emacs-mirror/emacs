@@ -1408,8 +1408,10 @@ enough space based on your settings and frame size." prefix-keys)
              (width (nth page-n (plist-get which-key--pages-plist :page-widths)))
              (n-shown (nth page-n (plist-get which-key--pages-plist :keys/page)))
              (n-tot (plist-get which-key--pages-plist :tot-keys))
-             (prefix-w-face (which-key--propertize-key prefix-keys))
-             (dash-w-face (propertize "-" 'face 'which-key-key-face))
+             (prefix-w-face (if (eq which-key-show-prefix 'echo) prefix-keys
+                              (which-key--propertize-key prefix-keys)))
+             (dash-w-face (if (eq which-key-show-prefix 'echo) "-"
+                            (propertize "-" 'face 'which-key-key-face)))
              (status-left (propertize (format "%s/%s" (1+ page-n) n-pages)
                                       'face 'which-key-separator-face))
              (status-top (propertize (which-key--maybe-get-prefix-title
