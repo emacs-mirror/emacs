@@ -23,6 +23,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'subr-x)
 (require 'url)
 
 
@@ -95,7 +96,7 @@ Leave point at the return code on the first line."
 ;;; Requests
 (autoload 'auth-source-search "auth-source")
 (cl-defmacro api--with-server-buffer (method url &rest body &key async unwind-form
-                                             auth extra-headers &allow-other-keys)
+                                             extra-headers &allow-other-keys)
   "Run BODY in a Server request buffer.
 UNWIND-FORM is run no matter what, and doesn't affect the return
 value."
@@ -154,56 +155,105 @@ value."
   "Used to detect infinite redirection loops.")
 
 
+;;; Authentication
+(defun api--auth-source-search (url-obj)
+  "Return authentication information for URL-OBJ.
+URL-OBJ is a value returned by `url-generic-parse-url'.
+Information is found by running `auth-source-search' with the
+properties of URL-OBJ."
+  (let ((type (url-type url-obj))
+        (port (url-port url-obj))
+        (args (list :require '(:secret) :host (url-host url-obj)
+                    :max 1 :user (url-user url-obj))))
+    (car (or (apply #'auth-source-search :port port :type type args)
+             (apply #'auth-source-search :port port args)
+             ;; If URL does not specify a port, try again without the default.
+             (unless (url-portspec url-obj)
+               (or (apply #'auth-source-search :type type args)
+                   (apply #'auth-source-search args)))))))
+
+(defun api--get-auth-info (info)
+  "Return a function that returns (USER . PASSWORD).
+INFO is a plist returned by `auth-source-search'."
+  (let ((user (plist-get info :user))
+        (pass (plist-get info :secret)))
+    (lambda () (cons user (funcall pass)))))
+
+(defun api--make-authorization-header (_plist user password)
+  "Return an alist containing an \"Authorization\" header.
+The car of the list is nil, so this function can be used as the
+AUTH-METHOD in `api-action'."
+  `(nil . (("Authorization" . ,(concat "Basic "
+                                       (base64-encode-string
+                                        (concat user ":" password)))))))
+
+
 ;;; The function
 ;;;###autoload
-(cl-defun api-action (action &rest all-options
-                             &key auth
-                             (method :get)
-                             (reader #'json-read)
-                             (callback #'identity)
-                             async
-                             (max-pages 1)
-                             (next-page-rule '(header "Link"))
-                             extra-headers
-                             (return :simple)
-                             -url-history)
-  "Contact the server api performing ACTION with METHOD.
+(cl-defun api-action (url &rest all-options
+                          &key auth
+                          (method :get)
+                          (reader #'json-read)
+                          (callback #'identity)
+                          async
+                          (max-pages 1)
+                          (next-page-rule '(header "Link"))
+                          extra-headers
+                          (auth-method (if auth #'api--make-authorization-header))
+                          (return :simple)
+                          -url-history)
+  "Contact URL with METHOD.
 METHOD is a keyword of an http method, defaulting to :get.
 
-Action can be a string such as \"user/starred?per_page=100\" to
-be appended at the end of `api-root'. It can also be a full url
+URL can be a string such as \"user/starred?per_page=100\" to
+be appended at the end of `api-root'.  It can also be a full url
 string, in which case it is used verbatim.
 
 READER is called as a function with no arguments, with point
-after the headers. If MAX-PAGES > 1 is specified, then READER
-must return a sequence. READER is `json-read' by default. Set it
-to `ignore' if you don't care about the response data. READER is
+after the headers.  If MAX-PAGES > 1 is specified, then READER
+must return a sequence.  READER is `json-read' by default.  Set it
+to `ignore' if you don't care about the response data.  READER is
 not called if the response had no content.
 
 CALLBACK is a function that will be called with the data returned
-by READER as an argument. CALLBACK is called even if the response
+by READER as an argument.  CALLBACK is called even if the response
 was empty (in which case its argument is nil).
 
 The return value depends on a few factors:
 - If ASYNC is non-nil, the return value is undefined.
 - Otherwise, return the value returned by CALLBACK (or by READER,
   if no CALLBACK provided).
-- If RETURN is :rich, return a list. The car is the value
+- If RETURN is :rich, return a list.  The car is the value
   returned by CALLBACK, and the cdr is an alist of meta-data
   about the request \(next-page, quota, etc).
 
 If ASYNC is non-nil, run the request asynchronously.
-AUTH is a list of arguments to pass to `auth-source-search'.
 
-This function can also handle the pagination used in server
-results by appending together the contents of each page. Use
+AUTH may have four forms, 2 and 3 may prompt for information.
+1. nil (the default), meaning no authentication is done.
+2. t, meaning a user/password combination is automatically obtained
+   by running `auth-source-search' with the host and port.
+3. A list of arguments to pass directly to `auth-source-search'.
+4. A function that returns (\"USER\" . \"PASSWORD\") when called.
+
+AUTH-METHOD determines how to use the authentication information.
+By default, it does basic authentication with the \"Authorization\"
+header.
+If provided, it must be a function taking three arguments, which
+should return a cons cell.  The car of this cell (if non-nil)
+replaces URL and the cdr is appended to EXTRA-HEADERS.  It is
+called with a plist, the user string and the password string.
+The plist contais at least :url, :method, and :extra-headers.
+
+`api-action' can also handle the pagination used in server
+results by appending together the contents of each page.  Use
 MAX-PAGES to increase the number of pages that are
 fetched (default 1).
 
 By default the URL of the next page is taken from the \"Link\"
-header. You can change this by passing somthing like
+header.  You can change this by passing somthing like
     (header \"Next-link\")
-as the value of the NEXT-PAGE-PROPERTY keyword. You can also pass
+as the value of the NEXT-PAGE-PROPERTY keyword.  You can also pass
 a regexp like this:
     (regexp \"Some \\(.*\\)regexp\")
 which is then searched and `(match-string 1)' is used as the URL.
@@ -212,22 +262,36 @@ EXTRA-HEADERS is an alist from header names (string) to header
 values (string), as per `url-request-extra-headers'.
 
 If the http request is unsuccessful, an error is signaled
-according to the reply. The possible errors are:
+according to the reply.  The possible errors are:
 `api-bad-request', `api-server-error', `api-unauthorized',
 `api-unintelligible-result', `api-empty-redirect',
 `api-page-does-not-exist', and `api-infinite-redirection-loop',
 all of which inherit from `api-error'.
 
-\(fn ACTION &key AUTH (METHOD :get) (READER #'json-read) CALLBACK ASYNC (MAX-PAGES 1) NEXT-PAGE-RULE EXTRA-HEADERS RETURN)"
+\(fn URL &key AUTH (METHOD :get) (READER #'json-read) CALLBACK ASYNC AUTH-METHOD (MAX-PAGES 1) NEXT-PAGE-RULE EXTRA-HEADERS RETURN)"
   (declare (indent 1))
-  (unless (string-match "\\`https?://" action)
-    (setq action (concat api-root action)))
-  (when (member action -url-history)
-    (signal 'api-infinite-redirection-loop (cons action api--url-depth)))
-  (api--with-server-buffer method action
+  (unless (string-match "\\`https?://" url)
+    (setq url (concat api-root url)))
+  (when (member url -url-history)
+    (signal 'api-infinite-redirection-loop (cons url api--url-depth)))
+  (when auth
+    (let ((href (url-generic-parse-url url)))
+      (when (url-password href)
+        (error "AUTH requested, but URL already contains a password"))
+      (unless (functionp auth)
+        (setq auth (api--get-auth-info (if (listp auth)
+                                           (apply #'auth-source-search auth)
+                                         (api--auth-source-search href)))))
+      (pcase-let* ((`(,user . ,pass) (funcall auth))
+                   (`(,new-url . ,headers)
+                    (funcall auth-method (list :url url :method method
+                                               :extra-headers extra-headers)
+                             user pass)))
+        (when new-url (setq url new-url))
+        (setq extra-headers (append headers extra-headers)))))
+  (api--with-server-buffer method url
     :extra-headers extra-headers
-    :-url-depth (cons action -url-history)
-    :auth auth
+    :-url-depth (cons url -url-history)
     :async async
     (pcase (api-parse-response-code auth)
       (`nil nil)
