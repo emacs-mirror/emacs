@@ -1244,6 +1244,15 @@ systems for HTML/XML files automatically."
 
 **** Leverage char-displayable-p.
 
+** RefTeX
+
+*** Provide a wdired-like mode for editing RefTeX TOC buffers.
+As a first step, renaming of sections could be supported.  Ultimately,
+it would be great if it also supported moving sections, e.g., by
+killing and yanking or providing org-mode like "move section
+upwards/downwards" commands.  However, that's not so easy in the
+presence of multi-file documents.
+
 * Internal changes
 
 ** Cleanup all the GC_ mark bit stuff -- there is no longer any distinction

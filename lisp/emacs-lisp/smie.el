@@ -169,13 +169,13 @@
           (cl-incf smie-warning-count))
       (puthash key val table))))
 
-(put 'smie-precs->prec2 'pure t)
 (defun smie-precs->prec2 (precs)
   "Compute a 2D precedence table from a list of precedences.
 PRECS should be a list, sorted by precedence (e.g. \"+\" will
 come before \"*\"), of elements of the form \(left OP ...)
 or (right OP ...) or (nonassoc OP ...) or (assoc OP ...).  All operators in
 one of those elements share the same precedence level and associativity."
+  (declare (pure t))
   (let ((prec2-table (make-hash-table :test 'equal)))
     (dolist (prec precs)
       (dolist (op (cdr prec))
@@ -193,8 +193,8 @@ one of those elements share the same precedence level and associativity."
                 (smie-set-prec2tab prec2-table other-op op op1)))))))
     prec2-table))
 
-(put 'smie-merge-prec2s 'pure t)
 (defun smie-merge-prec2s (&rest tables)
+  (declare (pure t))
   (if (null (cdr tables))
       (car tables)
     (let ((prec2 (make-hash-table :test 'equal)))
@@ -209,7 +209,6 @@ one of those elements share the same precedence level and associativity."
                  table))
       prec2)))
 
-(put 'smie-bnf->prec2 'pure t)
 (defun smie-bnf->prec2 (bnf &rest resolvers)
   "Convert the BNF grammar into a prec2 table.
 BNF is a list of nonterminal definitions of the form:
@@ -232,6 +231,7 @@ Conflicts can be resolved via RESOLVERS, which is a list of elements that can
 be either:
 - a precs table (see `smie-precs->prec2') to resolve conflicting constraints,
 - a constraint (T1 REL T2) where REL is one of = < or >."
+  (declare (pure t))
   ;; FIXME: Add repetition operator like (repeat <separator> <elems>).
   ;; Maybe also add (or <elem1> <elem2>...) for things like
   ;; (exp (exp (or "+" "*" "=" ..) exp)).
@@ -503,11 +503,11 @@ CSTS is a list of pairs representing arcs in a graph."
 ;;                     (t (cl-assert (eq v '=))))))))
 ;;            prec2))
 
-(put 'smie-prec2->grammar 'pure t)
 (defun smie-prec2->grammar (prec2)
   "Take a 2D precedence table and turn it into an alist of precedence levels.
 PREC2 is a table as returned by `smie-precs->prec2' or
 `smie-bnf->prec2'."
+  (declare (pure t))
   ;; For each operator, we create two "variables" (corresponding to
   ;; the left and right precedence level), which are represented by
   ;; cons cells.  Those are the very cons cells that appear in the

@@ -58,7 +58,7 @@ unquoted form.
 
 ARGS can also be a list of symbols, which stands for ('SYMBOL
 SYMBOL)."
-  `(and (pred map-p)
+  `(and (pred mapp)
         ,@(map--make-pcase-bindings args)))
 
 (defmacro map-let (keys map &rest body)
@@ -155,7 +155,7 @@ MAP can be a list, hash-table or array."
 
 Map can be a nested map composed of alists, hash-tables and arrays."
   (or (seq-reduce (lambda (acc key)
-                    (when (map-p acc)
+                    (when (mapp acc)
                       (map-elt acc key)))
                   keys
                   map)
@@ -239,7 +239,7 @@ MAP can be a list, hash-table or array."
   (map-filter (lambda (key val) (not (funcall pred key val)))
               map))
 
-(defun map-p (map)
+(defun mapp (map)
   "Return non-nil if MAP is a map (list, hash-table or array)."
   (or (listp map)
       (hash-table-p map)
@@ -279,9 +279,9 @@ MAP can be a list, hash-table or array."
 MAP can be a list, hash-table or array."
   (catch 'map--break
     (map-apply (lambda (key value)
-                 (or (funcall pred key value)
-                     (throw 'map--break nil)))
-               map)
+              (or (funcall pred key value)
+                  (throw 'map--break nil)))
+            map)
     t))
 
 (defun map-merge (type &rest maps)
@@ -291,8 +291,23 @@ MAP can be a list, hash-table or array."
   (let (result)
     (while maps
       (map-apply (lambda (key value)
-                   (setf (map-elt result key) value))
-                 (pop maps)))
+                (setf (map-elt result key) value))
+              (pop maps)))
+    (map-into result type)))
+
+(defun map-merge-with (type function &rest maps)
+  "Merge into a map of type TYPE all the key/value pairs in MAPS.
+When two maps contain the same key, call FUNCTION on the two
+values and use the value returned by it.
+MAP can be a list, hash-table or array."
+  (let (result)
+    (while maps
+      (map-apply (lambda (key value)
+                (setf (map-elt result key)
+                      (if (map-contains-key result key)
+                          (funcall function (map-elt result key) value)
+                        value)))
+              (pop maps)))
     (map-into result type)))
 
 (defun map-into (map type)

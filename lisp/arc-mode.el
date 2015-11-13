@@ -395,6 +395,7 @@ file.  Archive and member name will be added."
     (define-key map "o" 'archive-extract-other-window)
     (define-key map "p" 'archive-previous-line)
     (define-key map "\C-p" 'archive-previous-line)
+    (define-key map [?\S-\ ] 'archive-previous-line)
     (define-key map [up] 'archive-previous-line)
     (define-key map "r" 'archive-rename-entry)
     (define-key map "u" 'archive-unflag)

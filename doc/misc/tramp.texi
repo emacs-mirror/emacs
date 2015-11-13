@@ -1062,6 +1062,16 @@ Therefore, your @value{emacsname} must have D-Bus integration,
 @pxref{Top, , D-Bus, dbus}.
 
 @table @asis
+@item @option{afp}
+@cindex method afp
+@cindex afp method
+
+Access to Mac OS X volumes via the Apple Filing Protocol is offered by
+this method.  The access must always be performed with a leading
+volume (share) name, like @file{@trampfn{afp, user, host, /volume}}.
+
+
+
 @item @option{dav}
 @cindex method dav
 @cindex method davs
@@ -1107,9 +1117,10 @@ FUSE, it also needs the SYNCE-GVFS plugin.
 @vindex tramp-gvfs-methods
 @defopt tramp-gvfs-methods
 This custom option, a list, defines the external methods which shall
-be used with GVFS@.  Per default, these are @option{dav},
-@option{davs}, @option{obex}, @option{sftp} and @option{synce}.  Other
-possible values are @option{ftp} and @option{smb}.
+be used with GVFS@.  Per default, these are @option{afp},
+@option{dav}, @option{davs}, @option{obex}, @option{sftp} and
+@option{synce}.  Other possible values are @option{ftp} and
+@option{smb}.
 @end defopt
 @end ifset
 

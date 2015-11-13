@@ -221,7 +221,7 @@ the operating system.")
 
 ;; gui-get-selection is used in select.el
 (cl-defmethod gui-backend-get-selection (_selection-symbol _target-type
-                                         &context (window-system (eql pc)))
+                                         &context (window-system pc))
   "Return the value of the current selection.
 Consult the selection.  Treat empty strings as if they were unset."
   ;; Don't die if x-get-selection signals an error.
@@ -231,11 +231,11 @@ Consult the selection.  Treat empty strings as if they were unset."
 (declare-function w16-selection-exists-p "w16select.c")
 ;; gui-selection-owner-p is used in simple.el.
 (cl-defmethod gui-backend-selection-exists-p (selection
-                                              &context (window-system (eql pc)))
+                                              &context (window-system pc))
   (w16-selection-exists-p selection))
 
 (cl-defmethod gui-backend-selection-owner-p (selection
-                                             &context (window-system (eql pc)))
+                                             &context (window-system pc))
   (w16-selection-owner-p selection))
 
 (defun w16-selection-owner-p (_selection)
@@ -258,7 +258,7 @@ Consult the selection.  Treat empty strings as if they were unset."
 (declare-function w16-set-clipboard-data "w16select.c"
 		  (string &optional ignored))
 (cl-defmethod gui-backend-set-selection (selection value
-                                         &context (window-system (eql pc)))
+                                         &context (window-system pc))
   (if (not value)
       (if (w16-selection-owner-p selection)
           t)
@@ -333,7 +333,7 @@ Errors out because it is not supposed to be called, ever."
 	 (window-system)))
 
 ;; window-system-initialization is called by startup.el:command-line.
-(cl-defmethod window-system-initialization (&context (window-system (eql pc))
+(cl-defmethod window-system-initialization (&context (window-system pc)
                                             &optional _display)
   "Initialization function for the `pc' \"window system\"."
   (or (eq (window-system) 'pc)
@@ -377,12 +377,12 @@ Errors out because it is not supposed to be called, ever."
   (run-hooks 'terminal-init-msdos-hook))
 
 ;; frame-creation-function is called by frame.el:make-frame.
-(cl-defmethod frame-creation-function (params &context (window-system (eql pc)))
+(cl-defmethod frame-creation-function (params &context (window-system pc))
   (msdos-create-frame-with-faces params))
 
 ;; We don't need anything beyond tty-handle-args for handling
 ;; command-line argument; see startup.el.
-(cl-defmethod handle-args-function (args &context (window-system (eql pc)))
+(cl-defmethod handle-args-function (args &context (window-system pc))
   (tty-handle-args args))
 
 ;; ---------------------------------------------------------------------------

@@ -1901,7 +1901,10 @@ With argument ARG, insert value in current buffer after the form."
 		   (let ((read-with-symbol-positions (current-buffer))
 			 (read-symbol-positions-list nil))
 		     (displaying-byte-compile-warnings
-		      (byte-compile-sexp (read (current-buffer)))))
+		      (byte-compile-sexp
+                       (eval-sexp-add-defvars
+                        (read (current-buffer))
+                        byte-compile-read-position))))
                    lexical-binding)))
       (cond (arg
 	     (message "Compiling from buffer... done.")

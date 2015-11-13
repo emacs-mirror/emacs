@@ -41,8 +41,8 @@ preferable not to merge from master until you are done with the
 feature.  Unless you really need some change that was done on the
 master while you were developing on the branch, you don't really need
 those merges; just merge once, when you are done with the feature, and
-Bazaar will take care of the rest.  Bazaar is much better in this than
-CVS, so interim merges are unnecessary.
+Git will take care of the rest.  Git is much better in this than CVS,
+so interim merges are unnecessary.
 
 Or use shelves; or rebase; or do something else.  See the thread for
 yet another fun excursion into the exciting world of version control.

@@ -124,7 +124,7 @@ Summary:
        (defgeneric ,method ,args)
        (eieio--defmethod ',method ',key ',class #',code))))
 
-(defun eieio--generic-static-symbol-specializers (tag)
+(defun eieio--generic-static-symbol-specializers (tag &rest _)
   (cl-assert (or (null tag) (eieio--class-p tag)))
   (when (eieio--class-p tag)
     (let ((superclasses (eieio--generic-subclass-specializers tag))
@@ -134,27 +134,25 @@ Summary:
 	(push `(eieio--static ,(cadr superclass)) specializers))
       (nreverse specializers))))
 
-(defconst eieio--generic-static-symbol-generalizer
-  (cl-generic-make-generalizer
-   ;; Give it a slightly higher priority than `subclass' so that the
-   ;; interleaved list comes before subclass's non-interleaved list.
-   61 (lambda (name) `(and (symbolp ,name) (cl--find-class ,name)))
-   #'eieio--generic-static-symbol-specializers))
-(defconst eieio--generic-static-object-generalizer
-  (cl-generic-make-generalizer
-   ;; Give it a slightly higher priority than `class' so that the
-   ;; interleaved list comes before the class's non-interleaved list.
-   51 #'cl--generic-struct-tag
-   (lambda (tag)
-     (and (symbolp tag) (boundp tag) (setq tag (symbol-value tag))
-          (eieio--class-p tag)
-          (let ((superclasses (eieio--class-precedence-list tag))
-                (specializers ()))
-            (dolist (superclass superclasses)
-              (setq superclass (eieio--class-name superclass))
-              (push superclass specializers)
-              (push `(eieio--static ,superclass) specializers))
-            (nreverse specializers))))))
+(cl-generic-define-generalizer eieio--generic-static-symbol-generalizer
+  ;; Give it a slightly higher priority than `subclass' so that the
+  ;; interleaved list comes before subclass's non-interleaved list.
+  61 (lambda (name &rest _) `(and (symbolp ,name) (cl--find-class ,name)))
+  #'eieio--generic-static-symbol-specializers)
+(cl-generic-define-generalizer eieio--generic-static-object-generalizer
+  ;; Give it a slightly higher priority than `class' so that the
+  ;; interleaved list comes before the class's non-interleaved list.
+  51 #'cl--generic-struct-tag
+  (lambda (tag &rest _)
+    (and (symbolp tag) (boundp tag) (setq tag (symbol-value tag))
+         (eieio--class-p tag)
+         (let ((superclasses (eieio--class-precedence-list tag))
+               (specializers ()))
+           (dolist (superclass superclasses)
+             (setq superclass (eieio--class-name superclass))
+             (push superclass specializers)
+             (push `(eieio--static ,superclass) specializers))
+           (nreverse specializers)))))
 
 (cl-defmethod cl-generic-generalizers ((_specializer (head eieio--static)))
   (list eieio--generic-static-symbol-generalizer

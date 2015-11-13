@@ -114,15 +114,15 @@ casify_object (enum case_action flag, Lisp_Object obj)
       ptrdiff_t i, i_byte, size = SCHARS (obj);
       int len;
       USE_SAFE_ALLOCA;
-      ptrdiff_t o_size = (size < STRING_BYTES_BOUND / MAX_MULTIBYTE_LENGTH
-			  ? size * MAX_MULTIBYTE_LENGTH
-			  : STRING_BYTES_BOUND);
+      ptrdiff_t o_size;
+      if (INT_MULTIPLY_WRAPV (size, MAX_MULTIBYTE_LENGTH, &o_size))
+	o_size = PTRDIFF_MAX;
       unsigned char *dst = SAFE_ALLOCA (o_size);
       unsigned char *o = dst;
 
       for (i = i_byte = 0; i < size; i++, i_byte += len)
 	{
-	  if (o_size - (o - dst) < MAX_MULTIBYTE_LENGTH)
+	  if (o_size - MAX_MULTIBYTE_LENGTH < o - dst)
 	    string_overflow ();
 	  c = STRING_CHAR_AND_LENGTH (SDATA (obj) + i_byte, len);
 	  if (inword && flag != CASE_CAPITALIZE_UP)

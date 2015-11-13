@@ -853,7 +853,9 @@ store_in_keymap (Lisp_Object keymap, register Lisp_Object idx, Lisp_Object def)
 		XSETCDR (elt, def);
 		return def;
 	      }
-	    else if (CONSP (idx) && CHARACTERP (XCAR (idx)))
+	    else if (CONSP (idx)
+		     && CHARACTERP (XCAR (idx))
+		     && CHARACTERP (XCAR (elt)))
 	      {
 		int from = XFASTINT (XCAR (idx));
 		int to = XFASTINT (XCDR (idx));
@@ -1984,9 +1986,10 @@ For an approximate inverse of this, see `kbd'.  */)
     size += XINT (Flength (prefix));
 
   /* This has one extra element at the end that we don't pass to Fconcat.  */
-  if (min (PTRDIFF_MAX, SIZE_MAX) / word_size / 4 < size)
+  EMACS_INT size4;
+  if (INT_MULTIPLY_WRAPV (size, 4, &size4))
     memory_full (SIZE_MAX);
-  SAFE_ALLOCA_LISP (args, size * 4);
+  SAFE_ALLOCA_LISP (args, size4);
 
   /* In effect, this computes
      (mapconcat 'single-key-description keys " ")

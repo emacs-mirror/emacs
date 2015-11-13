@@ -467,18 +467,18 @@ built-in sequence types, @code{seq-length} behaves like @code{length}.
 @xref{Definition of length}.
 @end defun
 
-@defun seq-p sequence
+@defun seqp sequence
   This function returns non-@code{nil} if @var{sequence} is a sequence
 (a list or array), or any additional type of sequence defined via
 @file{seq.el} generic functions.
 
 @example
 @group
-(seq-p [1 2])
+(seqp [1 2])
 @result{} t
 @end group
 @group
-(seq-p 2)
+(seqp 2)
 @result{} nil
 @end group
 @end example

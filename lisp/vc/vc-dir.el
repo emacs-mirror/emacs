@@ -271,6 +271,7 @@ See `run-hooks'."
     (define-key map " " 'vc-dir-next-line)
     (define-key map "\t" 'vc-dir-next-directory)
     (define-key map "p" 'vc-dir-previous-line)
+    (define-key map [?\S-\ ] 'vc-dir-previous-line)
     (define-key map [backtab] 'vc-dir-previous-directory)
     ;;; Rebind paragraph-movement commands.
     (define-key map "\M-}" 'vc-dir-next-directory)

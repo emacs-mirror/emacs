@@ -2283,18 +2283,7 @@ unless NOMODES is non-nil."
       (view-mode-enter))
     (run-hooks 'find-file-hook)))
 
-(defmacro report-errors (format &rest body)
-  "Eval BODY and turn any error into a FORMAT message.
-FORMAT can have a %s escape which will be replaced with the actual error.
-If `debug-on-error' is set, errors are not caught, so that you can
-debug them.
-Avoid using a large BODY since it is duplicated."
-  (declare (debug t) (indent 1))
-  `(if debug-on-error
-       (progn . ,body)
-     (condition-case err
-	 (progn . ,body)
-       (error (message ,format (prin1-to-string err))))))
+(define-obsolete-function-alias 'report-errors 'with-demoted-errors "25.1")
 
 (defun normal-mode (&optional find-file)
   "Choose the major mode for this buffer automatically.
@@ -2315,9 +2304,9 @@ in that case, this function acts as if `enable-local-variables' were t."
   (let ((enable-local-variables (or (not find-file) enable-local-variables)))
     ;; FIXME this is less efficient than it could be, since both
     ;; s-a-m and h-l-v may parse the same regions, looking for "mode:".
-    (report-errors "File mode specification error: %s"
+    (with-demoted-errors "File mode specification error: %s"
       (set-auto-mode))
-    (report-errors "File local-variables error: %s"
+    (with-demoted-errors "File local-variables error: %s"
       (hack-local-variables)))
   ;; Turn font lock off and on, to make sure it takes account of
   ;; whatever file local variables are relevant to it.
@@ -3316,7 +3305,7 @@ local variables, but directory-local variables may still be applied."
 	result)
     (unless mode-only
       (setq file-local-variables-alist nil)
-      (report-errors "Directory-local variables error: %s"
+      (with-demoted-errors "Directory-local variables error: %s"
 	;; Note this is a no-op if enable-local-variables is nil.
 	(hack-dir-local-variables)))
     ;; This entire function is basically a no-op if enable-local-variables
@@ -3659,7 +3648,7 @@ Return the new variables list."
       (error
        ;; The file's content might be invalid (e.g. have a merge conflict), but
        ;; that shouldn't prevent the user from opening the file.
-       (message ".dir-locals error: %s" (error-message-string err))
+       (message "%s error: %s" dir-locals-file (error-message-string err))
        nil))))
 
 (defun dir-locals-set-directory-class (directory class &optional mtime)
@@ -3709,10 +3698,33 @@ VARIABLES list of the class.  The list is processed in order.
   applied by recursively following these rules."
   (setf (alist-get class dir-locals-class-alist) variables))
 
-(defconst dir-locals-file ".dir-locals.el"
-  "File that contains directory-local variables.
-It has to be constant to enforce uniform values
-across different environments and users.")
+(defconst dir-locals-file ".dir-locals*.el"
+  "Pattern for files that contain directory-local variables.
+It has to be constant to enforce uniform values across different
+environments and users.
+
+Multiple dir-locals files in the same directory are loaded in
+`string<' order.
+See Info node `(elisp)Directory Local Variables' for details.")
+
+(defun dir-locals--all-files (file-or-dir)
+  "Return a list of all readable dir-locals files matching FILE-OR-DIR.
+If FILE-OR-DIR is a file pattern, expand wildcards in it and
+return a sorted list of the results.  If it is a directory name,
+return a sorted list of all files matching `dir-locals-file' in
+this directory.
+The returned list is sorted by `string<' order."
+  (require 'seq)
+  (let ((default-directory (if (file-directory-p file-or-dir)
+                               file-or-dir
+                             default-directory)))
+    (seq-filter (lambda (f) (and (file-readable-p f)
+                            (file-regular-p f)))
+                (file-expand-wildcards
+                 (cond ((not (file-directory-p file-or-dir)) file-or-dir)
+                       ((eq system-type 'ms-dos) (dosified-file-name dir-locals-file))
+                       (t dir-locals-file))
+                 'full))))
 
 (defun dir-locals-find-file (file)
   "Find the directory-local variables for FILE.
@@ -3730,75 +3742,93 @@ If not, the cache entry is cleared so that the file will be re-read.
 This function returns either nil (no directory local variables found),
 or the matching entry from `dir-locals-directory-cache' (a list),
 or the full path to the `dir-locals-file' (a string) in the case
-of no valid cache entry."
+of no valid cache entry.  If `dir-locals-file' contains
+wildcards, then the return value is not a proper filename, it is
+an absolute version of `dir-locals-file' which is guaranteed to
+expand to at least one file."
   (setq file (expand-file-name file))
-  (let* ((dir-locals-file-name
-	  (if (eq system-type 'ms-dos)
-	      (dosified-file-name dir-locals-file)
-	    dir-locals-file))
-	 (locals-file (locate-dominating-file file dir-locals-file-name))
-	 (dir-elt nil))
+  (let* ((locals-dir (locate-dominating-file (file-name-directory file)
+                                             #'dir-locals--all-files))
+         locals-file dir-elt)
     ;; `locate-dominating-file' may have abbreviated the name.
-    (and locals-file
-	 (setq locals-file (expand-file-name dir-locals-file-name locals-file)))
-	 ;; Let dir-locals-read-from-file inform us via demoted-errors
-	 ;; about unreadable files, etc.
-	 ;; Maybe we'd want to keep searching though - that is
-	 ;; a locate-dominating-file issue.
-;;;	 (or (not (file-readable-p locals-file))
-;;;	     (not (file-regular-p locals-file)))
-;;;	 (setq locals-file nil))
+    (when locals-dir
+      (setq locals-dir (expand-file-name locals-dir))
+      (setq locals-file (expand-file-name (if (eq system-type 'ms-dos)
+                                              (dosified-file-name dir-locals-file)
+                                            dir-locals-file)
+                                          locals-dir)))
     ;; Find the best cached value in `dir-locals-directory-cache'.
     (dolist (elt dir-locals-directory-cache)
       (when (and (string-prefix-p (car elt) file
-				  (memq system-type
-					'(windows-nt cygwin ms-dos)))
-		 (> (length (car elt)) (length (car dir-elt))))
-	(setq dir-elt elt)))
+                                  (memq system-type
+                                        '(windows-nt cygwin ms-dos)))
+                 (> (length (car elt)) (length (car dir-elt))))
+        (setq dir-elt elt)))
     (if (and dir-elt
-	     (or (null locals-file)
-		 (<= (length (file-name-directory locals-file))
-		     (length (car dir-elt)))))
-	;; Found a potential cache entry.  Check validity.
-	;; A cache entry with no MTIME is assumed to always be valid
-	;; (ie, set directly, not from a dir-locals file).
-	;; Note, we don't bother to check that there is a matching class
-	;; element in dir-locals-class-alist, since that's done by
-	;; dir-locals-set-directory-class.
-	(if (or (null (nth 2 dir-elt))
-		(let ((cached-file (expand-file-name dir-locals-file-name
-						     (car dir-elt))))
-		  (and (file-readable-p cached-file)
-		       (equal (nth 2 dir-elt)
-			      (nth 5 (file-attributes cached-file))))))
-	    ;; This cache entry is OK.
-	    dir-elt
-	  ;; This cache entry is invalid; clear it.
-	  (setq dir-locals-directory-cache
-		(delq dir-elt dir-locals-directory-cache))
-	  ;; Return the first existing dir-locals file.  Might be the same
-	  ;; as dir-elt's, might not (eg latter might have been deleted).
-	  locals-file)
+             (or (null locals-dir)
+                 (<= (length locals-dir)
+                     (length (car dir-elt)))))
+        ;; Found a potential cache entry.  Check validity.
+        ;; A cache entry with no MTIME is assumed to always be valid
+        ;; (ie, set directly, not from a dir-locals file).
+        ;; Note, we don't bother to check that there is a matching class
+        ;; element in dir-locals-class-alist, since that's done by
+        ;; dir-locals-set-directory-class.
+        (if (or (null (nth 2 dir-elt))
+                (let ((cached-files (dir-locals--all-files (car dir-elt))))
+                  ;; The entry MTIME should match the most recent
+                  ;; MTIME among matching files.
+                  (and cached-files
+                       (= (time-to-seconds (nth 2 dir-elt))
+                          (apply #'max (mapcar (lambda (f) (time-to-seconds (nth 5 (file-attributes f))))
+                                               cached-files))))))
+            ;; This cache entry is OK.
+            dir-elt
+          ;; This cache entry is invalid; clear it.
+          (setq dir-locals-directory-cache
+                (delq dir-elt dir-locals-directory-cache))
+          ;; Return the first existing dir-locals file.  Might be the same
+          ;; as dir-elt's, might not (eg latter might have been deleted).
+          locals-file)
       ;; No cache entry.
       locals-file)))
 
 (defun dir-locals-read-from-file (file)
   "Load a variables FILE and register a new class and instance.
-FILE is the name of the file holding the variables to apply.
+FILE is the absolute name of the file holding the variables to
+apply.  It may contain wildcards.
 The new class name is the same as the directory in which FILE
 is found.  Returns the new class name."
-  (with-temp-buffer
+  (require 'map)
+  (let* ((dir-name (file-name-directory file))
+         (class-name (intern dir-name))
+         (files (dir-locals--all-files file))
+         (read-circle nil)
+         (success nil)
+         (variables))
     (with-demoted-errors "Error reading dir-locals: %S"
-      (insert-file-contents file)
-      (unless (zerop (buffer-size))
-        (let* ((dir-name (file-name-directory file))
-               (class-name (intern dir-name))
-               (variables (let ((read-circle nil))
-                            (read (current-buffer)))))
-          (dir-locals-set-class-variables class-name variables)
-          (dir-locals-set-directory-class dir-name class-name
-                                          (nth 5 (file-attributes file)))
-          class-name)))))
+      (dolist (file files)
+        (with-temp-buffer
+          (insert-file-contents file)
+          (condition-case-unless-debug nil
+              (setq variables
+                    (map-merge-with 'list (lambda (a b) (map-merge 'list a b))
+                                    variables
+                                    (read (current-buffer))))
+            (end-of-file nil))))
+      (setq success t))
+    (dir-locals-set-class-variables class-name variables)
+    (dir-locals-set-directory-class
+     dir-name class-name
+     (seconds-to-time
+      (if success
+          (apply #'max (mapcar (lambda (file)
+                                 (time-to-seconds (nth 5 (file-attributes file))))
+                               files))
+        ;; If there was a problem, use the values we could get but
+        ;; don't let the cache prevent future reads.
+        0)))
+    class-name))
 
 (defcustom enable-remote-dir-locals nil
   "Non-nil means dir-local variables will be applied to remote files."
@@ -3821,17 +3851,17 @@ This does nothing if either `enable-local-variables' or
 		 (not (file-remote-p (or (buffer-file-name)
 					 default-directory)))))
     ;; Find the variables file.
-    (let ((variables-file (dir-locals-find-file
-                           (or (buffer-file-name) default-directory)))
+    (let ((file-pattern-or-cache (dir-locals-find-file
+                                  (or (buffer-file-name) default-directory)))
 	  (class nil)
 	  (dir-name nil))
       (cond
-       ((stringp variables-file)
-	(setq dir-name (file-name-directory variables-file)
-	      class (dir-locals-read-from-file variables-file)))
-       ((consp variables-file)
-	(setq dir-name (nth 0 variables-file))
-	(setq class (nth 1 variables-file))))
+       ((stringp file-pattern-or-cache)
+	(setq dir-name (file-name-directory file-pattern-or-cache)
+	      class (dir-locals-read-from-file file-pattern-or-cache)))
+       ((consp file-pattern-or-cache)
+	(setq dir-name (nth 0 file-pattern-or-cache))
+	(setq class (nth 1 file-pattern-or-cache))))
       (when class
 	(let ((variables
 	       (dir-locals-collect-variables
@@ -6053,6 +6083,7 @@ by `sh' are supported."
 (defun file-expand-wildcards (pattern &optional full)
   "Expand wildcard pattern PATTERN.
 This returns a list of file names which match the pattern.
+Files are sorted in `string<' order.
 
 If PATTERN is written as an absolute file name,
 the values are absolute also.

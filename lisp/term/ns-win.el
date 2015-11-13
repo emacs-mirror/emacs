@@ -848,7 +848,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 ;; Do the actual Nextstep Windows setup here; the above code just
 ;; defines functions and variables that we use now.
-(cl-defmethod window-system-initialization (&context (window-system (eql ns))
+(cl-defmethod window-system-initialization (&context (window-system ns)
                                             &optional _display)
   "Initialize Emacs for Nextstep (Cocoa / GNUstep) windowing."
   (cl-assert (not ns-initialized))
@@ -922,10 +922,10 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 ;; Any display name is OK.
 (add-to-list 'display-format-alist '(".*" . ns))
-(cl-defmethod handle-args-function (args &context (window-system (eql ns)))
+(cl-defmethod handle-args-function (args &context (window-system ns))
   (x-handle-args args))
 
-(cl-defmethod frame-creation-function (params &context (window-system (eql ns)))
+(cl-defmethod frame-creation-function (params &context (window-system ns))
   (x-create-frame-with-faces params))
 
 (declare-function ns-own-selection-internal "nsselect.m" (selection value))
@@ -935,20 +935,20 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (declare-function ns-get-selection "nsselect.m" (selection-symbol target-type))
 
 (cl-defmethod gui-backend-set-selection (selection value
-                                         &context (window-system (eql ns)))
+                                         &context (window-system ns))
   (if value (ns-own-selection-internal selection value)
     (ns-disown-selection-internal selection)))
 
 (cl-defmethod gui-backend-selection-owner-p (selection
-                                             &context (window-system (eql ns)))
+                                             &context (window-system ns))
   (ns-selection-owner-p selection))
 
 (cl-defmethod gui-backend-selection-exists-p (selection
-                                              &context (window-system (eql ns)))
+                                              &context (window-system ns))
   (ns-selection-exists-p selection))
 
 (cl-defmethod gui-backend-get-selection (selection-symbol target-type
-                                         &context (window-system (eql ns)))
+                                         &context (window-system ns))
   (ns-get-selection selection-symbol target-type))
 
 (provide 'ns-win)

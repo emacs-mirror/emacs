@@ -1008,11 +1008,12 @@ coding_change_destination (struct coding_system *coding)
 static void
 coding_alloc_by_realloc (struct coding_system *coding, ptrdiff_t bytes)
 {
-  if (STRING_BYTES_BOUND - coding->dst_bytes < bytes)
+  ptrdiff_t newbytes;
+  if (INT_ADD_WRAPV (coding->dst_bytes, bytes, &newbytes)
+      || SIZE_MAX < newbytes)
     string_overflow ();
-  coding->destination = xrealloc (coding->destination,
-				  coding->dst_bytes + bytes);
-  coding->dst_bytes += bytes;
+  coding->destination = xrealloc (coding->destination, newbytes);
+  coding->dst_bytes = newbytes;
 }
 
 static void
@@ -7048,14 +7049,12 @@ produce_chars (struct coding_system *coding, Lisp_Object translation_table,
 	      if ((dst_end - dst) / MAX_MULTIBYTE_LENGTH < to_nchars)
 		{
 		  eassert (growable_destination (coding));
-		  if (((min (PTRDIFF_MAX, SIZE_MAX) - (buf_end - buf))
-		       / MAX_MULTIBYTE_LENGTH)
-		      < to_nchars)
+		  ptrdiff_t dst_size;
+		  if (INT_MULTIPLY_WRAPV (to_nchars, MAX_MULTIBYTE_LENGTH,
+					  &dst_size)
+		      || INT_ADD_WRAPV (buf_end - buf, dst_size, &dst_size))
 		    memory_full (SIZE_MAX);
-		  dst = alloc_destination (coding,
-					   buf_end - buf
-					   + MAX_MULTIBYTE_LENGTH * to_nchars,
-					   dst);
+		  dst = alloc_destination (coding, dst_size, dst);
 		  if (EQ (coding->src_object, coding->dst_object))
 		    {
 		      coding_set_source (coding);

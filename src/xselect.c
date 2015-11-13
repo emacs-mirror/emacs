@@ -2330,10 +2330,11 @@ x_property_data_to_lisp (struct frame *f, const unsigned char *data,
 			 Atom type, int format, unsigned long size)
 {
   ptrdiff_t format_bytes = format >> 3;
-  if (PTRDIFF_MAX / format_bytes < size)
+  ptrdiff_t data_bytes;
+  if (INT_MULTIPLY_WRAPV (size, format_bytes, &data_bytes))
     memory_full (SIZE_MAX);
   return selection_data_to_lisp_data (FRAME_DISPLAY_INFO (f), data,
-				      size * format_bytes, type, format);
+				      data_bytes, type, format);
 }
 
 DEFUN ("x-get-atom-name", Fx_get_atom_name,

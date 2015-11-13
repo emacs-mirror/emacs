@@ -33,7 +33,7 @@
 # 'ysave-buffer', and 'ybuffer-contents'.  The 'y' prefix avoids any
 # namespace collisions with emacs/src/.gdbinit.
 
-# Since the internal data structures in Emacs occasionally from time to
+# Since the internal data structures in Emacs change from time to
 # time, you should use the version of this file that came with your
 # particular Emacs version; older versions might not work anymore.
 
@@ -213,8 +213,12 @@ define ydump-buffer
       set $endptr = $beg + $buf->gpt_byte - 1
       dump binary memory $arg1 $beg $endptr
     else
-      dump   binary memory $arg1 $beg $gap-1
-      append binary memory $arg1 $gap_end $end
+      if $gap - $beg > 1
+        dump   binary memory $arg1 $beg $gap-1
+        append binary memory $arg1 $gap_end $end
+      else
+        dump   binary memory $arg1 $gap_end $end
+      end
       set $endptr = $end
     end
   end

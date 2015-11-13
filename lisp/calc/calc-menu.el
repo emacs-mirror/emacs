@@ -2,8 +2,6 @@
 
 ;; Copyright (C) 2007-2015 Free Software Foundation, Inc.
 
-;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
-
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify

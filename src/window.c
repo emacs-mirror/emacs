@@ -213,7 +213,7 @@ wset_update_mode_line (struct window *w)
 {
   /* If this window is the selected window on its frame, set the
      global variable update_mode_lines, so that x_consider_frame_title
-     will consider this frame's title for rtedisplay.  */
+     will consider this frame's title for redisplay.  */
   Lisp_Object fselected_window = XFRAME (WINDOW_FRAME (w))->selected_window;
 
   if (WINDOWP (fselected_window) && XWINDOW (fselected_window) == w)

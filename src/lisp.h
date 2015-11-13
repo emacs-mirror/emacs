@@ -3351,17 +3351,9 @@ extern Lisp_Object arithcompare (Lisp_Object num1, Lisp_Object num2,
 #define INTEGER_TO_CONS(i)					    \
   (! FIXNUM_OVERFLOW_P (i)					    \
    ? make_number (i)						    \
-   : ! ((FIXNUM_OVERFLOW_P (INTMAX_MIN >> 16)			    \
-	 || FIXNUM_OVERFLOW_P (UINTMAX_MAX >> 16))		    \
-	&& FIXNUM_OVERFLOW_P ((i) >> 16))			    \
-   ? Fcons (make_number ((i) >> 16), make_number ((i) & 0xffff))    \
-   : ! ((FIXNUM_OVERFLOW_P (INTMAX_MIN >> 16 >> 24)		    \
-	 || FIXNUM_OVERFLOW_P (UINTMAX_MAX >> 16 >> 24))	    \
-	&& FIXNUM_OVERFLOW_P ((i) >> 16 >> 24))			    \
-   ? Fcons (make_number ((i) >> 16 >> 24),			    \
-	    Fcons (make_number ((i) >> 16 & 0xffffff),		    \
-		   make_number ((i) & 0xffff)))			    \
-   : make_float (i))
+   : EXPR_SIGNED (i) ? intbig_to_lisp (i) : uintbig_to_lisp (i))
+extern Lisp_Object intbig_to_lisp (intmax_t);
+extern Lisp_Object uintbig_to_lisp (uintmax_t);
 
 /* Convert the Emacs representation CONS back to an integer of type
    TYPE, storing the result the variable VAR.  Signal an error if CONS
@@ -4022,7 +4014,6 @@ extern void syms_of_casetab (void);
 extern Lisp_Object echo_message_buffer;
 extern struct kboard *echo_kboard;
 extern void cancel_echoing (void);
-extern Lisp_Object last_undo_boundary;
 extern bool input_pending;
 #ifdef HAVE_STACK_OVERFLOW_HANDLING
 extern sigjmp_buf return_to_command_loop;
@@ -4453,40 +4444,24 @@ extern void *record_xmalloc (size_t) ATTRIBUTE_ALLOC_SIZE ((1));
     }					\
   } while (false)
 
-
-/* Return floor (NBYTES / WORD_SIZE).  */
-
-INLINE ptrdiff_t
-lisp_word_count (ptrdiff_t nbytes)
-{
-  if (-1 >> 1 == -1)
-    switch (word_size + 0)
-      {
-      case 2: return nbytes >> 1;
-      case 4: return nbytes >> 2;
-      case 8: return nbytes >> 3;
-      case 16: return nbytes >> 4;
-      default: break;
-      }
-  return nbytes / word_size - (nbytes % word_size < 0);
-}
-
 /* SAFE_ALLOCA_LISP allocates an array of Lisp_Objects.  */
 
 #define SAFE_ALLOCA_LISP(buf, nelt)			       \
   do {							       \
-    if ((nelt) <= lisp_word_count (sa_avail))		       \
-      (buf) = AVAIL_ALLOCA ((nelt) * word_size);	       \
-    else if ((nelt) <= min (PTRDIFF_MAX, SIZE_MAX) / word_size) \
+    ptrdiff_t alloca_nbytes;				       \
+    if (INT_MULTIPLY_WRAPV (nelt, word_size, &alloca_nbytes)   \
+	|| SIZE_MAX < alloca_nbytes)			       \
+      memory_full (SIZE_MAX);				       \
+    else if (alloca_nbytes <= sa_avail)			       \
+      (buf) = AVAIL_ALLOCA (alloca_nbytes);		       \
+    else						       \
       {							       \
 	Lisp_Object arg_;				       \
-	(buf) = xmalloc ((nelt) * word_size);		       \
+	(buf) = xmalloc (alloca_nbytes);		       \
 	arg_ = make_save_memory (buf, nelt);		       \
 	sa_must_free = true;				       \
 	record_unwind_protect (free_save_value, arg_);	       \
       }							       \
-    else						       \
-      memory_full (SIZE_MAX);				       \
   } while (false)
 
 

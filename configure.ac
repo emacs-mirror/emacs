@@ -3154,6 +3154,21 @@ if test "${HAVE_X11}" = "yes"; then
   fi
 fi
 
+if test "${HAVE_X11}" = "yes"; then
+  AC_CHECK_HEADER(X11/Xlib-xcb.h,
+    AC_CHECK_LIB(xcb, xcb_translate_coordinates, HAVE_XCB=yes))
+  if test "${HAVE_XCB}" = "yes"; then
+    AC_CHECK_LIB(X11-xcb, XGetXCBConnection, HAVE_X11_XCB=yes)
+    if test "${HAVE_X11_XCB}" = "yes"; then
+      AC_DEFINE(USE_XCB, 1,
+[Define to 1 if you have the XCB library and X11-XCB library for mixed
+   X11/XCB programming.])
+      XCB_LIBS="-lX11-xcb -lxcb"
+      AC_SUBST(XCB_LIBS)
+    fi
+  fi
+fi
+
 ### Use -lXpm if available, unless '--with-xpm=no'.
 ### mingw32 doesn't use -lXpm, since it loads the library dynamically.
 ### In the Cygwin-w32 build, we need to use /usr/include/noX/X11/xpm.h

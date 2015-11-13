@@ -1958,39 +1958,42 @@ Return nil if there is no face."
         (delete-dups (nreverse faces))
       (car (last faces)))))
 
-(defun foreground-color-at-point ()
-  "Return the foreground color of the character after point."
+(defun faces--attribute-at-point (attribute &optional attribute-unnamed)
+  "Return the face ATTRIBUTE at point.
+ATTRIBUTE is a keyword.
+If ATTRIBUTE-UNNAMED is non-nil, it is a symbol to look for in
+unnamed faces (e.g, `foreground-color')."
   ;; `face-at-point' alone is not sufficient.  It only gets named faces.
   ;; Need also pick up any face properties that are not associated with named faces.
-  (let ((face (or (face-at-point)
-		  (get-char-property (point) 'read-face-name)
-		  (get-char-property (point) 'face))))
-    (cond ((and face (symbolp face))
-	   (let ((value (face-foreground face nil 'default)))
-	     (if (member value '("unspecified-fg" "unspecified-bg"))
-		 nil
-	       value)))
-	  ((consp face)
-	   (cond ((memq 'foreground-color face) (cdr (memq 'foreground-color face)))
-		 ((memq ':foreground face) (cadr (memq ':foreground face)))))
-	  (t nil))))			; Invalid face value.
+  (let ((faces (or (get-char-property (point) 'read-face-name)
+                   ;; If `font-lock-mode' is on, `font-lock-face' takes precedence.
+                   (and font-lock-mode
+                        (get-char-property (point) 'font-lock-face))
+                   (get-char-property (point) 'face)))
+        (found nil))
+    (dolist (face (if (listp faces) faces (list faces)))
+      (cond (found)
+            ((and face (symbolp face))
+             (let ((value (face-attribute-specified-or
+                           (face-attribute face attribute nil t)
+                           nil)))
+               (unless (member value '(nil "unspecified-fg" "unspecified-bg"))
+                 (setq found value))))
+            ((consp face)
+             (setq found (cond ((and attribute-unnamed
+                                     (memq attribute-unnamed face))
+                                (cdr (memq attribute-unnamed face)))
+                               ((memq attribute face) (cadr (memq attribute face))))))))
+    (or found
+        (face-attribute 'default attribute))))
+
+(defun foreground-color-at-point ()
+  "Return the foreground color of the character after point."
+  (faces--attribute-at-point :foreground 'foreground-color))
 
 (defun background-color-at-point ()
   "Return the background color of the character after point."
-  ;; `face-at-point' alone is not sufficient.  It only gets named faces.
-  ;; Need also pick up any face properties that are not associated with named faces.
-  (let ((face (or (face-at-point)
-		  (get-char-property (point) 'read-face-name)
-		  (get-char-property (point) 'face))))
-    (cond ((and face (symbolp face))
-	   (let ((value (face-background face nil 'default)))
-	     (if (member value '("unspecified-fg" "unspecified-bg"))
-		 nil
-	       value)))
-	  ((consp face)
-	   (cond ((memq 'background-color face) (cdr (memq 'background-color face)))
-		 ((memq ':background face) (cadr (memq ':background face)))))
-	  (t nil))))			; Invalid face value.
+  (faces--attribute-at-point :background 'background-color))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

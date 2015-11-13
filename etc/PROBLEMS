@@ -2044,6 +2044,36 @@ security reasons.  The solution is to close the Web browser while
 working in Emacs, or to add emacs.exe to the list of applications that
 are allowed to use the clipboard when the Web browser is open.
 
+** "Pinning" Emacs to the taskbar doesn't work on Windows 10
+
+"Doesn't work" here means that if you invoke Emacs by clicking on the
+pinned icon, a separate button appears on the taskbar, instead of the
+expected effect of the icon you clicked on being converted to that
+button.
+
+First, be sure to edit the Properties of the pinned icon to invoke
+runemacs.exe, not emacs.exe.  (The latter will cause an extra cmd
+window to appear when you invoke Emacs from the pinned icon.)
+
+But the real cause of the problem is the fact that the pinned icon
+(which is really a shortcut in a special directory) lacks a unique
+application-defined Application User Model ID (AppUserModelID) that
+identifies the current process to the taskbar.  This identifier allows
+an application to group its associated processes and windows under a
+single taskbar button.  Emacs on Windows specifies a unique
+AppUserModelID when it starts, but Windows 10, unlike previous
+versions of MS-Windows, does not propagate that ID to the pinned icon.
+
+To work around this, use some utility, such as 'win7appid', to set the
+AppUserModelID of the pinned icon to the string "Gnu.Emacs".  The
+shortcut files corresponding to icons you pinned are stored by Windows
+in the following subdirectory of your user's directory (by default
+C:\Users\<UserName>\):
+
+ AppData\Roaming\Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar
+
+Look for the file 'emacs.lnk' there.
+
 ** Windows 95 and networking.
 
 To support server sockets, Emacs loads ws2_32.dll.  If this file is

@@ -584,8 +584,8 @@ determined by the lexicographic order of the characters contained in
 relations between these characters.  Usually, it is defined by the
 @var{locale} environment Emacs is running with.
 
-For example, punctuation and whitespace characters might be considered
-less significant for @ref{Sorting,,sorting}.
+For example, punctuation and whitespace characters might be ignored
+for sorting (@pxref{Sequence Functions}):
 
 @example
 @group
@@ -593,6 +593,9 @@ less significant for @ref{Sorting,,sorting}.
      @result{} ("11" "1 1" "1.1" "12" "1 2" "1.2")
 @end group
 @end example
+
+This behavior is system-dependent; punctuation and whitespace are
+never ignored on Cygwin, regardless of locale.
 
 The optional argument @var{locale}, a string, overrides the setting of
 your current locale identifier for collation.  The value is system

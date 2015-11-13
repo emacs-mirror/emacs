@@ -2071,12 +2071,10 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
     }
 
   buf_magnification = ccl.buf_magnification ? ccl.buf_magnification : 1;
-
-  if ((min (PTRDIFF_MAX, SIZE_MAX) - 256) / buf_magnification < str_bytes)
+  outbufsize = str_bytes;
+  if (INT_MULTIPLY_WRAPV (buf_magnification, outbufsize, &outbufsize)
+      || INT_ADD_WRAPV (256, outbufsize, &outbufsize))
     memory_full (SIZE_MAX);
-  outbufsize = (ccl.buf_magnification
-		? str_bytes * ccl.buf_magnification + 256
-		: str_bytes + 256);
   outp = outbuf = xmalloc (outbufsize);
 
   consumed_chars = consumed_bytes = 0;

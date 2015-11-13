@@ -240,4 +240,19 @@ end module modname")
     (forward-line -1)
     (should (= 2 (current-indentation)))))
 
+(ert-deftest f90-test-bug21794 ()
+  "Test for http://debbugs.gnu.org/21794 ."
+  (with-temp-buffer
+    (f90-mode)
+    (insert "program prog
+do i=1,10
+associate (x => xa(i), y => ya(i))
+a(x,y,i) = fun(x,y,i)
+end associate
+end do
+end program prog")
+    (f90-indent-subprogram)
+    (forward-line -2)
+    (should (= 5 (current-indentation)))))
+
 ;;; f90.el ends here

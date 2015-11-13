@@ -3,7 +3,6 @@
 ;; Copyright (C) 1990-1993, 2001-2015 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
 ;; Keywords: convenience, extensions
 
 ;; This file is part of GNU Emacs.
@@ -487,7 +486,7 @@ to be identified as that note."
   "Face used to show the selected portion of a formula."
   :group 'calc)
 
-(defvar calc-bug-address "jay.p.belanger@gmail.com"
+(defvar calc-bug-address "emacs-devel@gnu.org"
   "Address of the maintainer of Calc, for use by `report-calc-bug'.")
 
 (defvar calc-scan-for-dels t

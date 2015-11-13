@@ -255,6 +255,7 @@ gnustmp*
 ChangeLog
 [0-9]*.patch
 [0-9]*.txt
+.dir-locals?.el
 /vc-dwim-log-*
 
 # Built by 'make install'.

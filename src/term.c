@@ -532,15 +532,13 @@ encode_terminal_code (struct glyph *src, int src_len,
      multibyte-form.  But, it may be enlarged on demand if
      Vglyph_table contains a string or a composite glyph is
      encountered.  */
-  if (min (PTRDIFF_MAX, SIZE_MAX) / MAX_MULTIBYTE_LENGTH < src_len)
+  if (INT_MULTIPLY_WRAPV (src_len, MAX_MULTIBYTE_LENGTH, &required))
     memory_full (SIZE_MAX);
-  required = src_len;
-  required *= MAX_MULTIBYTE_LENGTH;
   if (encode_terminal_src_size < required)
-    {
-      encode_terminal_src = xrealloc (encode_terminal_src, required);
-      encode_terminal_src_size = required;
-    }
+    encode_terminal_src = xpalloc (encode_terminal_src,
+				   &encode_terminal_src_size,
+				   required - encode_terminal_src_size,
+				   -1, sizeof *encode_terminal_src);
 
   charset_list = coding_charset_list (coding);
 

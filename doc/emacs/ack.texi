@@ -949,6 +949,14 @@ Jens Petersen wrote @file{find-func.el}, which makes it easy to find
 the source code for an Emacs Lisp function or variable.
 
 @item
+Nicolas Petton wrote @file{map.el}, a library providing
+map-manipulation functions that work on alists, hash-table and arrays;
+@file{seq.el}, a library providing advanced sequence manipulation
+functions and macros; and @file{thunk.el}, a library providing
+functions and macros to delay the evaluation of forms.  He also
+created the new icon in Emacs 25.
+
+@item
 Daniel Pfeiffer wrote @file{conf-mode.el}, a mode for editing
 configuration files; @file{copyright.el}, a package for updating
 copyright notices in files; @file{executable.el}, a package for
@@ -1341,15 +1349,16 @@ Rodney Whitby and Reto Zimmermann wrote @file{vhdl-mode.el}, a major
 mode for editing VHDL source code.
 
 @item
-John Wiegley wrote @file{align.el}, a set of commands for aligning text
-according to regular-expression based rules; @file{isearchb.el} for fast
-buffer switching; @file{timeclock.el}, a package for keeping track of
-time spent on projects; the Bahá'í calendar support;
-@file{pcomplete.el}, a programmable completion facility;
-@file{remember.el}, a mode for jotting down things to remember;
-@file{eudcb-mab.el}, an address book backend for the Emacs Unified
-Directory Client; and @code{eshell}, a command shell implemented
-entirely in Emacs Lisp.  He also contributed to Org mode (q.v.).
+John Wiegley was the Emacs maintainer from Emacs 25 onwards.  He wrote
+@file{align.el}, a set of commands for aligning text according to
+regular-expression based rules; @file{isearchb.el} for fast buffer
+switching; @file{timeclock.el}, a package for keeping track of time
+spent on projects; the Bahá'í calendar support; @file{pcomplete.el}, a
+programmable completion facility; @file{remember.el}, a mode for
+jotting down things to remember; @file{eudcb-mab.el}, an address book
+backend for the Emacs Unified Directory Client; and @code{eshell}, a
+command shell implemented entirely in Emacs Lisp.  He also contributed
+to Org mode (q.v.).
 
 @item
 Mike Williams wrote @file{thingatpt.el}, a library of functions for

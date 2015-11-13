@@ -46,12 +46,6 @@ Stefan Monnier
 	minibuffer completion
 	lisp/outline.el
 
-Jay Belanger
-        Calc
-            lisp/calc/*
-            etc/calccard.tex
-            doc/misc/calc.texi
-
 Bastien Guerry
         Org
             lisp/org/*
@@ -87,7 +81,11 @@ Simen Heggestøyl
 
 Nicolas Petton
 	lisp/emacs-lisp/map.el
+	test/automated/map-tests.el
 	lisp/emacs-lisp/seq.el
+	test/automated/seq-tests.el
+	lisp/emacs-lisp/thunk.el
+	test/automated/thunk-tests.el
 
 The GNU AUCTeX maintainers (auctex-devel@gnu.org)
 	RefTeX

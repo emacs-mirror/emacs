@@ -898,7 +898,3 @@ Subclasses to override slot attributes.")
 (provide 'eieio-tests)
 
 ;;; eieio-tests.el ends here
-
-;; Local Variables:
-;; no-byte-compile: t
-;; End:

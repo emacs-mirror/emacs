@@ -3291,6 +3291,7 @@ There might be text before point."
     ("\\rightthreetimes" . ?⋌)
     ("\\risingdotseq" . ?≓)
     ("\\rtimes" . ?⋊)
+    ("\\times" . ?×)
     ("\\sbs" . ?﹨)
     ("\\searrow" . ?↘)
     ("\\setminus" . ?∖)

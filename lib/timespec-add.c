@@ -33,36 +33,39 @@ timespec_add (struct timespec a, struct timespec b)
   int ns = a.tv_nsec + b.tv_nsec;
   int nsd = ns - TIMESPEC_RESOLUTION;
   int rns = ns;
+  time_t tmin = TYPE_MINIMUM (time_t);
+  time_t tmax = TYPE_MAXIMUM (time_t);
 
   if (0 <= nsd)
     {
       rns = nsd;
-      if (rs == TYPE_MAXIMUM (time_t))
-        {
-          if (0 <= bs)
-            goto high_overflow;
-          bs++;
-        }
-      else
+      if (bs < tmax)
+        bs++;
+      else if (rs < 0)
         rs++;
+      else
+        goto high_overflow;
     }
 
-  if (INT_ADD_OVERFLOW (rs, bs))
+  /* INT_ADD_WRAPV is not appropriate since time_t might be unsigned.
+     In theory time_t might be narrower than int, so plain
+     INT_ADD_OVERFLOW does not suffice.  */
+  if (! INT_ADD_OVERFLOW (rs, bs) && tmin <= rs + bs && rs + bs <= tmax)
+    rs += bs;
+  else
     {
       if (rs < 0)
         {
-          rs = TYPE_MINIMUM (time_t);
+          rs = tmin;
           rns = 0;
         }
       else
         {
         high_overflow:
-          rs = TYPE_MAXIMUM (time_t);
+          rs = tmax;
           rns = TIMESPEC_RESOLUTION - 1;
         }
     }
-  else
-    rs += bs;
 
   return make_timespec (rs, rns);
 }

@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2015-10-17.11}
+\def\texinfoversion{2015-10-29.16}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -4685,7 +4685,6 @@ end
   % The space after the comma will end up in the temporary definition
   % that we make for arg2 (see \parsemargdef ff.).  We want all this to be
   % expanded for the sake of the index, so we end up just seeing "bar".
-  \let\xeatspaces = \eatspaces
   \let\xprocessmacroarg\eatspaces
 }
 
@@ -5229,7 +5228,7 @@ end
 }
 \def\entrybreak{\unskip\space\ignorespaces}%
 \def\doentry{%
-    % Save the text of the entry in a \vtop.
+    % Save the text of the entry
     \global\setbox\boxA=\hbox\bgroup
     \bgroup % Instead of the swallowed brace.
       \noindent
@@ -5245,10 +5244,9 @@ end
     \global\setbox\boxA=\hbox\bgroup\unhbox\boxA
     % #1 is the page number.
     %
-    % The following is kludged to not output a line of dots in the index if
-    % there are no page numbers.  The next person who breaks this will be
-    % cursed by a Unix daemon.
-    \setbox\boxB = \hbox{#1}%
+    % Get the width of the page numbers, and only use
+    % leaders if they are present.
+    \global\setbox\boxB = \hbox{#1}%
     \ifdim\wd\boxB = 0pt
       \null\nobreak\hfill\ %
     \else
@@ -5263,56 +5261,67 @@ end
       \fi
     \fi
     \egroup % end \boxA
-    \global\setbox\entryindexbox=\vtop\bgroup\noindent
-    % We want the text of the entries to be aligned to the left, and the
-    % page numbers to be aligned to the right.
-    %
-    \advance\leftskip by 0pt plus 1fil
-    \advance\leftskip by 0pt plus -1fill
-    \rightskip = 0pt plus -1fil
-    \advance\rightskip by 0pt plus 1fill
-    % Cause last line, which could consist of page numbers on their own if the 
-    % list of page numbers is long, to be aligned to the right.
-    \parfillskip=0pt plus -1fill
-    %
-    \hangindent=1em
-    %
-    \advance\rightskip by \entryrightmargin
-    % Determine how far we can stretch into the margin.
-    % This allows, e.g., "Appendix H  GNU Free Documentation License" to fit
-    % on one line.
-    \advance \parfillskip by 0pt minus .6\entryrightmargin
-    %
-    \ifdim\wd\boxA > \hsize % If the entry doesn't fit in one line
-    \ifdim\dimen@ > 0.9\hsize   % due to long index text
-      \dimen@ = 0.6\dimen@ % Try to split the text roughly evenly
-      \dimen@ii = \hsize
-      \advance \dimen@ii by -1em
-      \ifnum\dimen@>\dimen@ii
-        % If the entry is too long, use the whole line
-        \dimen@ = \dimen@ii
+    \ifdim\wd\boxB = 0pt
+      \global\setbox\entryindexbox=\box\boxA
+    \else
+    \global\setbox\entryindexbox=\vbox\bgroup\noindent
+      % We want the text of the entries to be aligned to the left, and the
+      % page numbers to be aligned to the right.
+      %
+      \advance\leftskip by 0pt plus 1fil
+      \advance\leftskip by 0pt plus -1fill
+      \rightskip = 0pt plus -1fil
+      \advance\rightskip by 0pt plus 1fill
+      % Cause last line, which could consist of page numbers on their own
+      % if the list of page numbers is long, to be aligned to the right.
+      \parfillskip=0pt plus -1fill
+      %
+      \hangindent=1em
+      %
+      \advance\rightskip by \entryrightmargin
+      % Determine how far we can stretch into the margin.
+      % This allows, e.g., "Appendix H  GNU Free Documentation License" to
+      % fit on one line in @letterpaper format.
+      \ifdim\entryrightmargin>2.1em
+        \dimen@i=2.1em
       \else
-        % Cause stretch of 1fill at the end of the first line, to avoid
-        % extra spacing in a short first line.
-        \hskip 0pt plus 1fill
+        \dimen@i=0em
       \fi
-      \parshape = 2 0pt \dimen@ 1em \dimen@ii
-      % Ideally we'd add a finite glue at the end of the first line only, but
-      % TeX doesn't seem to provide a way to do such a thing.
-    \fi\fi
-    \unhbox\boxA
-    %
-    % Do not prefer a separate line ending with a hyphen to fewer lines.
-    \finalhyphendemerits = 0
-    %
-    % Word spacing - no stretch
-    \spaceskip=\fontdimen2\font minus \fontdimen4\font
-    %
-    \linepenalty=1000  % Discourage line breaks.
-    \hyphenpenalty=10000  % Discourage hyphenation.
-    %
-    \par % format the paragraph
-    \egroup % The \vtop
+      \advance \parfillskip by 0pt minus 1\dimen@i
+      %
+      \dimen@ii = \hsize
+      \advance\dimen@ii by -1\leftskip
+      \advance\dimen@ii by -1\entryrightmargin
+      \advance\dimen@ii by 1\dimen@i
+      \ifdim\wd\boxA > \dimen@ii % If the entry doesn't fit in one line
+      \ifdim\dimen@ > 0.8\dimen@ii   % due to long index text
+        \dimen@ = 0.7\dimen@ % Try to split the text roughly evenly
+        \dimen@ii = \hsize
+        \advance \dimen@ii by -1em
+        \ifnum\dimen@>\dimen@ii
+          % If the entry is too long, use the whole line
+          \dimen@ = \dimen@ii
+        \fi
+        \advance\leftskip by 0pt plus 1fill % ragged right
+        \advance \dimen@ by 1\rightskip
+        \parshape = 2 0pt \dimen@ 1em \dimen@ii
+        % Ideally we'd add a finite glue at the end of the first line only, but
+        % TeX doesn't seem to provide a way to do such a thing.
+      \fi\fi
+      \unhbox\boxA
+      %
+      % Do not prefer a separate line ending with a hyphen to fewer lines.
+      \finalhyphendemerits = 0
+      %
+      % Word spacing - no stretch
+      \spaceskip=\fontdimen2\font minus \fontdimen4\font
+      %
+      \linepenalty=1000  % Discourage line breaks.
+      \hyphenpenalty=5000  % Discourage hyphenation.
+      %
+      \par % format the paragraph
+    \egroup % The \vbox
+    \fi
   \endgroup
   % delay text of entry until after penalty
   \bgroup\aftergroup\insertindexentrybox
@@ -5324,8 +5333,8 @@ end
 
 \newbox\entryindexbox
 \def\insertindexentrybox{%
-\lineskip=.8ex plus .6ex % This comes into effect when the \vtop has a large 
-                         % depth due to the paragraph in it having several 
+\lineskip=.7ex plus .5ex % This comes into effect when the \vbox has a large 
+                         % height due to the paragraph in it having several 
                          % lines.
 \box\entryindexbox}
 
@@ -5382,6 +5391,8 @@ end
 
 \newbox\partialpage
 \newdimen\doublecolumnhsize
+\newdimen\doublecolumntopgap
+\doublecolumntopgap = 0pt
 
 \newtoks\savedtopmark % Used in \begindoublecolumns
 \newtoks\savedfirstmark
@@ -5449,7 +5460,11 @@ end
   %
   % Double the \vsize as well.  (We don't need a separate register here,
   % since nobody clobbers \vsize.)
+  \global\doublecolumntopgap = \topskip
+  \global\advance\doublecolumntopgap by -1\baselineskip
+  \global\advance\vsize by -1\doublecolumntopgap
   \vsize = 2\vsize
+  \topskip=0pt
 }
 
 % The double-column output routine for all double-column pages except
@@ -5478,10 +5493,13 @@ end
   %
   \hsize = \doublecolumnhsize
   \wd0=\hsize \wd2=\hsize
-  \hbox to\pagewidth{\box0\hfil\box2}%
+  \vbox{%
+    \vskip\doublecolumntopgap
+    \hbox to\pagewidth{\box0\hfil\box2}}%
 }
-%
-% All done with double columns.
+
+
+% Finished with with double columns.
 \def\enddoublecolumns{%
   % The following penalty ensures that the page builder is exercised
   % _before_ we change the output routine.  This is necessary in the
@@ -7594,7 +7612,6 @@ end
 % Argument is macro body with arguments substituted
 \def\scanmacro#1{%
   \newlinechar`\^^M
-  \let\xeatspaces\eatspaces
   % Reduce doubled backslashes to one
   \def\xprocessmacroarg{\passargtomacro\eatspaces}%
   %
@@ -9758,7 +9775,7 @@ directory should work if nowhere else does.}
        \gdef\UTFviiiTmp{#2}%
       % 
       \expandafter\ifx\csname uni:#1\endcsname \relax \else
-       \errmessage{Internal error, already defined: #1}%
+       \message{Internal error, already defined: #1}%
       \fi
       %
       % define an additional control sequence for this code point.
@@ -10108,8 +10125,82 @@ directory should work if nowhere else does.}
 
   \DeclareUnicodeCharacter{02DB}{\ogonek{ }}
 
-  % Greek letters
+  % Greek letters upper case
+  \DeclareUnicodeCharacter{0391}{{\it A}}
+  \DeclareUnicodeCharacter{0392}{{\it B}}
+  \DeclareUnicodeCharacter{0393}{\ensuremath{\mit\Gamma}}
+  \DeclareUnicodeCharacter{0394}{\ensuremath{\mit\Delta}}
+  \DeclareUnicodeCharacter{0395}{{\it E}}
+  \DeclareUnicodeCharacter{0396}{{\it Z}}
+  \DeclareUnicodeCharacter{0397}{{\it H}}
+  \DeclareUnicodeCharacter{0398}{\ensuremath{\mit\Theta}}
+  \DeclareUnicodeCharacter{0399}{{\it I}}
+  \DeclareUnicodeCharacter{039A}{{\it K}}
+  \DeclareUnicodeCharacter{039B}{\ensuremath{\mit\Lambda}}
+  \DeclareUnicodeCharacter{039C}{{\it M}}
+  \DeclareUnicodeCharacter{039D}{{\it N}}
+  \DeclareUnicodeCharacter{039E}{\ensuremath{\mit\Xi}}
+  \DeclareUnicodeCharacter{039F}{{\it O}}
+  \DeclareUnicodeCharacter{03A0}{\ensuremath{\mit\Pi}}
+  \DeclareUnicodeCharacter{03A1}{{\it P}}
+  %\DeclareUnicodeCharacter{03A2}{} % none - corresponds to final sigma
+  \DeclareUnicodeCharacter{03A3}{\ensuremath{\mit\Sigma}}
+  \DeclareUnicodeCharacter{03A4}{{\it T}}
+  \DeclareUnicodeCharacter{03A5}{\ensuremath{\mit\Upsilon}}
+  \DeclareUnicodeCharacter{03A6}{\ensuremath{\mit\Phi}}
+  \DeclareUnicodeCharacter{03A7}{{\it X}}
+  \DeclareUnicodeCharacter{03A8}{\ensuremath{\mit\Psi}}
+  \DeclareUnicodeCharacter{03A9}{\ensuremath{\mit\Omega}}
+
+  % Vowels with accents
+  \DeclareUnicodeCharacter{0390}{\ensuremath{\ddot{\acute\iota}}}
+  \DeclareUnicodeCharacter{03AC}{\ensuremath{\acute\alpha}}
+  \DeclareUnicodeCharacter{03AD}{\ensuremath{\acute\epsilon}}
+  \DeclareUnicodeCharacter{03AE}{\ensuremath{\acute\eta}}
+  \DeclareUnicodeCharacter{03AF}{\ensuremath{\acute\iota}}
+  \DeclareUnicodeCharacter{03B0}{\ensuremath{\acute{\ddot\upsilon}}}
+
+  % Standalone accent
+  \DeclareUnicodeCharacter{0384}{\ensuremath{\acute{\ }}}
+
+  % Greek letters lower case
+  \DeclareUnicodeCharacter{03B1}{\ensuremath\alpha}
+  \DeclareUnicodeCharacter{03B2}{\ensuremath\beta}
+  \DeclareUnicodeCharacter{03B3}{\ensuremath\gamma}
+  \DeclareUnicodeCharacter{03B4}{\ensuremath\delta}
+  \DeclareUnicodeCharacter{03B5}{\ensuremath\epsilon}
+  \DeclareUnicodeCharacter{03B6}{\ensuremath\zeta}
+  \DeclareUnicodeCharacter{03B7}{\ensuremath\eta}
+  \DeclareUnicodeCharacter{03B8}{\ensuremath\theta}
+  \DeclareUnicodeCharacter{03B9}{\ensuremath\iota}
+  \DeclareUnicodeCharacter{03BA}{\ensuremath\kappa}
+  \DeclareUnicodeCharacter{03BB}{\ensuremath\lambda}
+  \DeclareUnicodeCharacter{03BC}{\ensuremath\mu}
+  \DeclareUnicodeCharacter{03BD}{\ensuremath\nu}
+  \DeclareUnicodeCharacter{03BE}{\ensuremath\xi}
+  \DeclareUnicodeCharacter{03BF}{{\it o}} % omicron
   \DeclareUnicodeCharacter{03C0}{\ensuremath\pi}
+  \DeclareUnicodeCharacter{03C1}{\ensuremath\rho}
+  \DeclareUnicodeCharacter{03C2}{\ensuremath\varsigma}
+  \DeclareUnicodeCharacter{03C3}{\ensuremath\sigma}
+  \DeclareUnicodeCharacter{03C4}{\ensuremath\tau}
+  \DeclareUnicodeCharacter{03C5}{\ensuremath\upsilon}
+  \DeclareUnicodeCharacter{03C6}{\ensuremath\phi}
+  \DeclareUnicodeCharacter{03C7}{\ensuremath\chi}
+  \DeclareUnicodeCharacter{03C8}{\ensuremath\psi}
+  \DeclareUnicodeCharacter{03C9}{\ensuremath\omega}
+
+  % More Greek vowels with accents
+  \DeclareUnicodeCharacter{03CA}{\ensuremath{\ddot\iota}}
+  \DeclareUnicodeCharacter{03CB}{\ensuremath{\ddot\upsilon}}
+  \DeclareUnicodeCharacter{03CC}{\ensuremath{\acute o}}
+  \DeclareUnicodeCharacter{03CD}{\ensuremath{\acute\upsilon}}
+  \DeclareUnicodeCharacter{03CE}{\ensuremath{\acute\omega}}
+
+  % Variant Greek letters
+  \DeclareUnicodeCharacter{03D1}{\ensuremath\vartheta}
+  \DeclareUnicodeCharacter{03D6}{\ensuremath\varpi}
+  \DeclareUnicodeCharacter{03F1}{\ensuremath\varrho}
 
   \DeclareUnicodeCharacter{1E02}{\dotaccent{B}}
   \DeclareUnicodeCharacter{1E03}{\dotaccent{b}}
@@ -10265,7 +10356,7 @@ directory should work if nowhere else does.}
   \DeclareUnicodeCharacter{2203}{\ensuremath\exists}
   \DeclareUnicodeCharacter{2208}{\ensuremath\in}
   \DeclareUnicodeCharacter{2212}{\minus}
-  \DeclareUnicodeCharacter{2217}{\point}
+  \DeclareUnicodeCharacter{2217}{\ast}
   \DeclareUnicodeCharacter{221E}{\ensuremath\infty}
   \DeclareUnicodeCharacter{2225}{\ensuremath\parallel}
   \DeclareUnicodeCharacter{2227}{\ensuremath\wedge}
@@ -10275,6 +10366,138 @@ directory should work if nowhere else does.}
   \DeclareUnicodeCharacter{2265}{\ensuremath\geq}
   \DeclareUnicodeCharacter{2282}{\ensuremath\subset}
   \DeclareUnicodeCharacter{2287}{\ensuremath\supseteq}
+
+  \DeclareUnicodeCharacter{2016}{\ensuremath\Vert}
+  \DeclareUnicodeCharacter{2032}{\ensuremath\prime}
+  \DeclareUnicodeCharacter{210F}{\ensuremath\hbar}
+  \DeclareUnicodeCharacter{2111}{\ensuremath\Im}
+  \DeclareUnicodeCharacter{2113}{\ensuremath\ell}
+  \DeclareUnicodeCharacter{2118}{\ensuremath\wp}
+  \DeclareUnicodeCharacter{211C}{\ensuremath\Re}
+  \DeclareUnicodeCharacter{2127}{\ensuremath\mho}
+  \DeclareUnicodeCharacter{2135}{\ensuremath\aleph}
+  \DeclareUnicodeCharacter{2190}{\ensuremath\leftarrow}
+  \DeclareUnicodeCharacter{2191}{\ensuremath\uparrow}
+  \DeclareUnicodeCharacter{2193}{\ensuremath\downarrow}
+  \DeclareUnicodeCharacter{2194}{\ensuremath\leftrightarrow}
+  \DeclareUnicodeCharacter{2195}{\ensuremath\updownarrow}
+  \DeclareUnicodeCharacter{2196}{\ensuremath\nwarrow}
+  \DeclareUnicodeCharacter{2197}{\ensuremath\nearrow}
+  \DeclareUnicodeCharacter{2198}{\ensuremath\searrow}
+  \DeclareUnicodeCharacter{2199}{\ensuremath\swarrow}
+  \DeclareUnicodeCharacter{21A6}{\ensuremath\mapsto}
+  \DeclareUnicodeCharacter{21A9}{\ensuremath\hookleftarrow}
+  \DeclareUnicodeCharacter{21AA}{\ensuremath\hookrightarrow}
+  \DeclareUnicodeCharacter{21BC}{\ensuremath\leftharpoonup}
+  \DeclareUnicodeCharacter{21BD}{\ensuremath\leftharpoondown}
+  \DeclareUnicodeCharacter{21BE}{\ensuremath\upharpoonright}
+  \DeclareUnicodeCharacter{21C0}{\ensuremath\rightharpoonup}
+  \DeclareUnicodeCharacter{21C1}{\ensuremath\rightharpoondown}
+  \DeclareUnicodeCharacter{21CC}{\ensuremath\rightleftharpoons}
+  \DeclareUnicodeCharacter{21D0}{\ensuremath\Leftarrow}
+  \DeclareUnicodeCharacter{21D1}{\ensuremath\Uparrow}
+  \DeclareUnicodeCharacter{21D3}{\ensuremath\Downarrow}
+  \DeclareUnicodeCharacter{21D4}{\ensuremath\Leftrightarrow}
+  \DeclareUnicodeCharacter{21D5}{\ensuremath\Updownarrow}
+  \DeclareUnicodeCharacter{21DD}{\ensuremath\leadsto}
+  \DeclareUnicodeCharacter{2201}{\ensuremath\complement}
+  \DeclareUnicodeCharacter{2202}{\ensuremath\partial}
+  \DeclareUnicodeCharacter{2205}{\ensuremath\emptyset}
+  \DeclareUnicodeCharacter{2207}{\ensuremath\nabla}
+  \DeclareUnicodeCharacter{2209}{\ensuremath\notin}
+  \DeclareUnicodeCharacter{220B}{\ensuremath\owns}
+  \DeclareUnicodeCharacter{220F}{\ensuremath\prod}
+  \DeclareUnicodeCharacter{2210}{\ensuremath\coprod}
+  \DeclareUnicodeCharacter{2211}{\ensuremath\sum}
+  \DeclareUnicodeCharacter{2213}{\ensuremath\mp}
+  \DeclareUnicodeCharacter{2218}{\ensuremath\circ}
+  \DeclareUnicodeCharacter{221A}{\ensuremath\surd}
+  \DeclareUnicodeCharacter{221D}{\ensuremath\propto}
+  \DeclareUnicodeCharacter{2220}{\ensuremath\angle}
+  \DeclareUnicodeCharacter{2223}{\ensuremath\mid}
+  \DeclareUnicodeCharacter{2228}{\ensuremath\vee}
+  \DeclareUnicodeCharacter{222A}{\ensuremath\cup}
+  \DeclareUnicodeCharacter{222B}{\ensuremath\smallint}
+  \DeclareUnicodeCharacter{222E}{\ensuremath\oint}
+  \DeclareUnicodeCharacter{223C}{\ensuremath\sim}
+  \DeclareUnicodeCharacter{2240}{\ensuremath\wr}
+  \DeclareUnicodeCharacter{2243}{\ensuremath\simeq}
+  \DeclareUnicodeCharacter{2245}{\ensuremath\cong}
+  \DeclareUnicodeCharacter{2248}{\ensuremath\approx}
+  \DeclareUnicodeCharacter{224D}{\ensuremath\asymp}
+  \DeclareUnicodeCharacter{2250}{\ensuremath\doteq}
+  \DeclareUnicodeCharacter{2260}{\ensuremath\neq}
+  \DeclareUnicodeCharacter{226A}{\ensuremath\ll}
+  \DeclareUnicodeCharacter{226B}{\ensuremath\gg}
+  \DeclareUnicodeCharacter{227A}{\ensuremath\prec}
+  \DeclareUnicodeCharacter{227B}{\ensuremath\succ}
+  \DeclareUnicodeCharacter{2283}{\ensuremath\supset}
+  \DeclareUnicodeCharacter{2286}{\ensuremath\subseteq}
+  \DeclareUnicodeCharacter{228E}{\ensuremath\uplus}
+  \DeclareUnicodeCharacter{228F}{\ensuremath\sqsubset}
+  \DeclareUnicodeCharacter{2290}{\ensuremath\sqsupset}
+  \DeclareUnicodeCharacter{2291}{\ensuremath\sqsubseteq}
+  \DeclareUnicodeCharacter{2292}{\ensuremath\sqsupseteq}
+  \DeclareUnicodeCharacter{2293}{\ensuremath\sqcap}
+  \DeclareUnicodeCharacter{2294}{\ensuremath\sqcup}
+  \DeclareUnicodeCharacter{2295}{\ensuremath\oplus}
+  \DeclareUnicodeCharacter{2296}{\ensuremath\ominus}
+  \DeclareUnicodeCharacter{2297}{\ensuremath\otimes}
+  \DeclareUnicodeCharacter{2298}{\ensuremath\oslash}
+  \DeclareUnicodeCharacter{2299}{\ensuremath\odot}
+  \DeclareUnicodeCharacter{22A2}{\ensuremath\vdash}
+  \DeclareUnicodeCharacter{22A3}{\ensuremath\dashv}
+  \DeclareUnicodeCharacter{22A4}{\ensuremath\ptextop}
+  \DeclareUnicodeCharacter{22A5}{\ensuremath\bot}
+  \DeclareUnicodeCharacter{22A8}{\ensuremath\models}
+  \DeclareUnicodeCharacter{22B4}{\ensuremath\unlhd}
+  \DeclareUnicodeCharacter{22B5}{\ensuremath\unrhd}
+  \DeclareUnicodeCharacter{22C0}{\ensuremath\bigwedge}
+  \DeclareUnicodeCharacter{22C1}{\ensuremath\bigvee}
+  \DeclareUnicodeCharacter{22C2}{\ensuremath\bigcap}
+  \DeclareUnicodeCharacter{22C3}{\ensuremath\bigcup}
+  \DeclareUnicodeCharacter{22C4}{\ensuremath\diamond}
+  \DeclareUnicodeCharacter{22C5}{\ensuremath\cdot}
+  \DeclareUnicodeCharacter{22C6}{\ensuremath\star}
+  \DeclareUnicodeCharacter{22C8}{\ensuremath\bowtie}
+  \DeclareUnicodeCharacter{2308}{\ensuremath\lceil}
+  \DeclareUnicodeCharacter{2309}{\ensuremath\rceil}
+  \DeclareUnicodeCharacter{230A}{\ensuremath\lfloor}
+  \DeclareUnicodeCharacter{230B}{\ensuremath\rfloor}
+  \DeclareUnicodeCharacter{2322}{\ensuremath\frown}
+  \DeclareUnicodeCharacter{2323}{\ensuremath\smile}
+
+  \DeclareUnicodeCharacter{25A1}{\ensuremath\Box}
+  \DeclareUnicodeCharacter{25B3}{\ensuremath\triangle}
+  \DeclareUnicodeCharacter{25B7}{\ensuremath\triangleright}
+  \DeclareUnicodeCharacter{25BD}{\ensuremath\bigtriangledown}
+  \DeclareUnicodeCharacter{25C1}{\ensuremath\triangleleft}
+  \DeclareUnicodeCharacter{25C7}{\ensuremath\Diamond}
+  \DeclareUnicodeCharacter{2660}{\ensuremath\spadesuit}
+  \DeclareUnicodeCharacter{2661}{\ensuremath\heartsuit}
+  \DeclareUnicodeCharacter{2662}{\ensuremath\diamondsuit}
+  \DeclareUnicodeCharacter{2663}{\ensuremath\clubsuit}
+  \DeclareUnicodeCharacter{266D}{\ensuremath\flat}
+  \DeclareUnicodeCharacter{266E}{\ensuremath\natural}
+  \DeclareUnicodeCharacter{266F}{\ensuremath\sharp}
+  \DeclareUnicodeCharacter{26AA}{\ensuremath\bigcirc}
+  \DeclareUnicodeCharacter{27B9}{\ensuremath\rangle}
+  \DeclareUnicodeCharacter{27C2}{\ensuremath\perp}
+  \DeclareUnicodeCharacter{27E8}{\ensuremath\langle}
+  \DeclareUnicodeCharacter{27F5}{\ensuremath\longleftarrow}
+  \DeclareUnicodeCharacter{27F6}{\ensuremath\longrightarrow}
+  \DeclareUnicodeCharacter{27F7}{\ensuremath\longleftrightarrow}
+  \DeclareUnicodeCharacter{27FC}{\ensuremath\longmapsto}
+  \DeclareUnicodeCharacter{29F5}{\ensuremath\setminus}
+  \DeclareUnicodeCharacter{2A00}{\ensuremath\bigodot}
+  \DeclareUnicodeCharacter{2A01}{\ensuremath\bigoplus}
+  \DeclareUnicodeCharacter{2A02}{\ensuremath\bigotimes}
+  \DeclareUnicodeCharacter{2A04}{\ensuremath\biguplus}
+  \DeclareUnicodeCharacter{2A06}{\ensuremath\bigsqcup}
+  \DeclareUnicodeCharacter{2A1D}{\ensuremath\Join}
+  \DeclareUnicodeCharacter{2A3F}{\ensuremath\amalg}
+  \DeclareUnicodeCharacter{2AAF}{\ensuremath\preceq}
+  \DeclareUnicodeCharacter{2AB0}{\ensuremath\succeq}
 
   \global\mathchardef\checkmark="1370 % actually the square root sign
   \DeclareUnicodeCharacter{2713}{\ensuremath\checkmark}

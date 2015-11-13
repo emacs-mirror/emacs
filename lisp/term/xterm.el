@@ -821,7 +821,7 @@ We run the first FUNCTION whose STRING matches the input events."
 
 (cl-defmethod gui-backend-get-selection
     (type data-type
-     &context (window-system (eql nil))
+     &context (window-system nil)
               ;; Only applies to terminals which have it enabled.
               ((terminal-parameter nil 'xterm--get-selection) (eql t)))
   (unless (eq data-type 'STRING)
@@ -844,7 +844,7 @@ We run the first FUNCTION whose STRING matches the input events."
 
 (cl-defmethod gui-backend-set-selection
     (type data
-     &context (window-system (eql nil))
+     &context (window-system nil)
               ;; Only applies to terminals which have it enabled.
               ((terminal-parameter nil 'xterm--set-selection) (eql t)))
   "Copy DATA to the X selection using the OSC 52 escape sequence.

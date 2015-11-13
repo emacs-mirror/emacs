@@ -2561,20 +2561,21 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
 	}
     }
 
-  if (INT_MAX / 2 < len)
+  int len2;
+  if (INT_MULTIPLY_WRAPV (len, 2, &len2))
     memory_full (SIZE_MAX);
 
   if (gstring.allocated == 0)
     {
       gstring.glyph_size = sizeof (MFLTGlyphFT);
-      gstring.glyphs = xnmalloc (len * 2, sizeof (MFLTGlyphFT));
-      gstring.allocated = len * 2;
+      gstring.glyphs = xnmalloc (len2, sizeof (MFLTGlyphFT));
+      gstring.allocated = len2;
     }
-  else if (gstring.allocated < len * 2)
+  else if (gstring.allocated < len2)
     {
-      gstring.glyphs = xnrealloc (gstring.glyphs, len * 2,
+      gstring.glyphs = xnrealloc (gstring.glyphs, len2,
 				  sizeof (MFLTGlyphFT));
-      gstring.allocated = len * 2;
+      gstring.allocated = len2;
     }
   glyphs = (MFLTGlyphFT *) (gstring.glyphs);
   memset (glyphs, 0, len * sizeof (MFLTGlyphFT));
@@ -2624,11 +2625,12 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
       int result = mflt_run (&gstring, 0, len, &flt_font_ft.flt_font, flt);
       if (result != -2)
 	break;
-      if (INT_MAX / 2 < gstring.allocated)
+      int len2;
+      if (INT_MULTIPLY_WRAPV (gstring.allocated, 2, &len2))
 	memory_full (SIZE_MAX);
       gstring.glyphs = xnrealloc (gstring.glyphs,
 				  gstring.allocated, 2 * sizeof (MFLTGlyphFT));
-      gstring.allocated *= 2;
+      gstring.allocated = len2;
     }
   if (gstring.used > LGSTRING_GLYPH_LEN (lgstring))
     return Qnil;

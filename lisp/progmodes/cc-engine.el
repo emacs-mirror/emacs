@@ -1449,13 +1449,12 @@ This function does not do any hidden buffer changes."
       ;; same line.
       (re-search-forward "\\=\\s *[\n\r]" start t)
 
-      (if (if (let (open-paren-in-column-0-is-defun-start) (forward-comment -1))
+      (if (if (forward-comment -1)
 	      (if (eolp)
 		  ;; If forward-comment above succeeded and we're at eol
 		  ;; then the newline we moved over above didn't end a
 		  ;; line comment, so we give it another go.
-		  (let (open-paren-in-column-0-is-defun-start)
-		    (forward-comment -1))
+		  (forward-comment -1)
 		t))
 
 	  ;; Emacs <= 20 and XEmacs move back over the closer of a
@@ -1482,7 +1481,7 @@ comment at the start of cc-engine.el for more info."
 	    ;; return t when moving backwards at bob.
 	    (not (bobp))
 
-	    (if (let (open-paren-in-column-0-is-defun-start moved-comment)
+	    (if (let (moved-comment)
 		  (while
 		      (and (not (setq moved-comment (forward-comment -1)))
 		      ;; Cope specifically with ^M^J here -
@@ -2524,6 +2523,20 @@ comment at the start of cc-engine.el for more info."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Defuns which analyze the buffer, yet don't change `c-state-cache'.
+(defun c-get-fallback-scan-pos (here)
+  ;; Return a start position for building `c-state-cache' from
+  ;; scratch.  This will be at the top level, 2 defuns back.
+  (save-excursion
+    ;; Go back 2 bods, but ignore any bogus positions returned by
+    ;; beginning-of-defun (i.e. open paren in column zero).
+    (goto-char here)
+    (let ((cnt 2))
+      (while (not (or (bobp) (zerop cnt)))
+	(c-beginning-of-defun-1)	; Pure elisp BOD.
+	(if (eq (char-after) ?\{)
+	    (setq cnt (1- cnt)))))
+    (point)))
+
 (defun c-state-balance-parens-backwards (here- here+ top)
   ;; Return the position of the opening paren/brace/bracket before HERE- which
   ;; matches the outermost close p/b/b between HERE+ and TOP.  Except when
@@ -2584,22 +2597,46 @@ comment at the start of cc-engine.el for more info."
   ;; o - ('backward nil) - scan backwards (from HERE).
   ;; o - ('back-and-forward START-POINT) - like 'forward, but when HERE is earlier
   ;;     than GOOD-POS.
+  ;; o - ('BOD START-POINT) - scan forwards from START-POINT, which is at the
+  ;;   top level.
   ;; o - ('IN-LIT nil) - point is inside the literal containing point-min.
   (let ((cache-pos (c-get-cache-scan-pos here))	; highest position below HERE in cache (or 1)
-	strategy	    ; 'forward, 'backward, or 'IN-LIT.
-	start-point)
+	BOD-pos		    ; position of 2nd BOD before HERE.
+	strategy	    ; 'forward, 'backward, 'BOD, or 'IN-LIT.
+	start-point
+	how-far)			; putative scanning distance.
     (setq good-pos (or good-pos (c-state-get-min-scan-pos)))
     (cond
      ((< here (c-state-get-min-scan-pos))
-      (setq strategy 'IN-LIT))
+      (setq strategy 'IN-LIT
+	    start-point nil
+	    cache-pos nil
+	    how-far 0))
      ((<= good-pos here)
       (setq strategy 'forward
-	    start-point (max good-pos cache-pos)))
+	    start-point (max good-pos cache-pos)
+	    how-far (- here start-point)))
      ((< (- good-pos here) (- here cache-pos)) ; FIXME!!! ; apply some sort of weighting.
-      (setq strategy 'backward))
+      (setq strategy 'backward
+	    how-far (- good-pos here)))
      (t
       (setq strategy 'back-and-forward
-	    start-point cache-pos)))
+	    start-point cache-pos
+	    how-far (- here start-point))))
+
+    ;; Might we be better off starting from the top level, two defuns back,
+    ;; instead?  This heuristic no longer works well in C++, where
+    ;; declarations inside namespace brace blocks are frequently placed at
+    ;; column zero.  (2015-11-10): Remove the condition on C++ Mode.
+    (when (and (or (not (memq 'col-0-paren c-emacs-features))
+		   open-paren-in-column-0-is-defun-start)
+	       ;; (not (c-major-mode-is 'c++-mode))
+	       (> how-far c-state-cache-too-far))
+      (setq BOD-pos (c-get-fallback-scan-pos here)) ; somewhat EXPENSIVE!!!
+      (if (< (- here BOD-pos) how-far)
+	  (setq strategy 'BOD
+		start-point BOD-pos)))
+
     (list strategy start-point)))
 
 
@@ -3227,8 +3264,7 @@ comment at the start of cc-engine.el for more info."
     ;; Truncate `c-state-cache' and set `c-state-cache-good-pos' to a value
     ;; below `here'.  To maintain its consistency, we may need to insert a new
     ;; brace pair.
-    (let (open-paren-in-column-0-is-defun-start
-	  (here-bol (c-point 'bol here))
+    (let ((here-bol (c-point 'bol here))
 	  too-high-pa		  ; recorded {/(/[ next above here, or nil.
 	  dropped-cons		  ; was the last removed element a brace pair?
 	  pa)
@@ -3299,7 +3335,6 @@ comment at the start of cc-engine.el for more info."
   ;; This function might do hidden buffer changes.
   (let* ((here (point))
 	 (here-bopl (c-point 'bopl))
-	 open-paren-in-column-0-is-defun-start
 	 strategy	     ; 'forward, 'backward etc..
 	 ;; Candidate positions to start scanning from:
 	 cache-pos	     ; highest position below HERE already existing in
@@ -3320,9 +3355,13 @@ comment at the start of cc-engine.el for more info."
 	  strategy (car res)
 	  start-point (cadr res))
 
+    (when (eq strategy 'BOD)
+      (setq c-state-cache nil
+	    c-state-cache-good-pos start-point))
+
     ;; SCAN!
     (cond
-     ((memq strategy '(forward back-and-forward))
+     ((memq strategy '(forward back-and-forward BOD))
       (setq res (c-remove-stale-state-cache start-point here here-bopl))
       (setq cache-pos (car res)
 	    scan-backward-pos (cadr res)
@@ -9571,7 +9610,6 @@ comment at the start of cc-engine.el for more info."
     (c-save-buffer-state
 	((indent-point (point))
 	 (case-fold-search nil)
-	 open-paren-in-column-0-is-defun-start
 	 ;; A whole ugly bunch of various temporary variables.  Have
 	 ;; to declare them here since it's not possible to declare
 	 ;; a variable with only the scope of a cond test and the

@@ -107,7 +107,7 @@
 
 ;;;###autoload
 (defmacro pcase (exp &rest cases)
-  "Perform ML-style pattern matching on EXP.
+  "Eval EXP and perform ML-style pattern matching on that value.
 CASES is a list of elements of the form (PATTERN CODE...).
 
 Patterns can take the following forms:
@@ -115,7 +115,7 @@ Patterns can take the following forms:
   SYMBOL	matches anything and binds it to SYMBOL.
   (or PAT...)	matches if any of the patterns matches.
   (and PAT...)	matches if all the patterns match.
-  \\='VAL		matches if the object is `equal' to VAL
+  \\='VAL		matches if the object is `equal' to VAL.
   ATOM		is a shorthand for \\='ATOM.
 		   ATOM can be a keyword, an integer, or a string.
   (pred FUN)	matches if FUN applied to the object returns non-nil.
@@ -131,11 +131,11 @@ FUN can take the form
                         which is the value being matched.
 So a FUN of the form SYMBOL is equivalent to one of the form (FUN).
 FUN can refer to variables bound earlier in the pattern.
-FUN is assumed to be pure, i.e. it can be dropped if its result is not used,
-and two identical calls can be merged into one.
 E.g. you can match pairs where the cdr is larger than the car with a pattern
 like \\=`(,a . ,(pred (< a))) or, with more checks:
 \\=`(,(and a (pred numberp)) . ,(and (pred numberp) (pred (< a))))
+FUN is assumed to be pure, i.e. it can be dropped if its result is not used,
+and two identical calls can be merged into one.
 
 Additional patterns can be defined via `pcase-defmacro'.
 Currently, the following patterns are provided this way:"

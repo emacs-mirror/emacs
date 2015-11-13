@@ -103,6 +103,9 @@ and can contain escape sequences for command keys, quotes, and the like.
 
 * Changes in Emacs 25.1
 
+** Any file of the form .dir-locals*.el is now considered a dir-local
+   file, and multiple can be used in the same directory. See the
+   variable `dir-locals-file' for more information.
 ** `xref-find-definitions' and `describe-function' now display
    information about mode local overrides (defined by
    cedet/mode-local.el `define-overloadable-function' and
@@ -321,10 +324,18 @@ standards.
 
 * Changes in Specialized Modes and Packages in Emacs 25.1
 
+** New function `bookmark-set-no-overwrite' bound to C-x r M.
+It raises an error if a bookmark of that name already exists,
+unlike `bookmark-set' which silently updates an existing bookmark.
+
 ** JSON
 ---
 *** `json-pretty-print' and `json-pretty-print-buffer' now maintain
 the ordering of object keys by default.
+---
+*** New commands `json-pretty-print-ordered' and
+`json-pretty-print-buffer-ordered' pretty prints JSON objects with
+object keys sorted alphabetically.
 
 ** You can recompute the VC state of a file buffer with `M-x vc-refresh-state'
 ** Prog mode has some support for multi-mode indentation.
@@ -671,6 +682,10 @@ plist will contain a :peer element that has the output of
 ** Tramp
 
 +++
+*** New connection method "afp", which allows to access Mac OS X
+volumes via the Apple Filing Protocol.
+
++++
 *** New connection method "nc", which allows to access dumb busyboxes.
 
 +++
@@ -907,6 +922,9 @@ alists, hash-table and arrays.  All functions are prefixed with
 ** The `thunk' library provides functions and macros to control the
 evaluation of forms.
 
+** js-jsx-mode (a minor variant of js-mode) provides indentation
+support for JSX, an XML-like syntax extension to ECMAScript.
+
 
 * Incompatible Lisp Changes in Emacs 25.1
 
@@ -1033,6 +1051,11 @@ be updated accordingly.
 The new behavior is compatible with Common Lisp and with XEmacs.
 This change does not affect Lisp code intended to be portable to
 Emacs 24.2 and earlier, which did not support unary ‘/’.
+
++++
+** The `default-directory' value doesn't have to end slash.  To make
+that happen, `unhandled-file-name-directory' now defaults to calling
+`file-name-as-directory'.
 
 
 * Lisp Changes in Emacs 25.1

@@ -25,13 +25,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* At first, see the document in `character.h' to understand the code
    in this file.  */
 
-#ifdef emacs
 #include <config.h>
-#endif
 
 #include <stdio.h>
-
-#ifdef emacs
 
 #include <sys/types.h>
 #include <intprops.h>
@@ -40,12 +36,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "composite.h"
 #include "disptab.h"
-
-#else  /* not emacs */
-
-#include "mulelib.h"
-
-#endif /* emacs */
 
 /* Char-table of information about which character to unify to which
    Unicode character.  Mainly used by the macro MAYBE_UNIFY_CHAR.  */
@@ -302,9 +292,8 @@ char_width (int c, struct Lisp_Char_Table *dp)
 	    if (CHARACTERP (ch))
 	      {
 		int w = CHAR_WIDTH (XFASTINT (ch));
-		if (INT_ADD_OVERFLOW (width, w))
+		if (INT_ADD_WRAPV (width, w, &width))
 		  string_overflow ();
-		width += w;
 	      }
 	  }
     }
@@ -349,20 +338,16 @@ c_string_width (const unsigned char *str, ptrdiff_t len, int precision,
       int c = STRING_CHAR_AND_LENGTH (str + i_byte, bytes);
       ptrdiff_t thiswidth = char_width (c, dp);
 
-      if (precision <= 0)
-	{
-	  if (INT_ADD_OVERFLOW (width, thiswidth))
-	    string_overflow ();
-	}
-      else if (precision - width < thiswidth)
+      if (0 < precision && precision - width < thiswidth)
 	{
 	  *nchars = i;
 	  *nbytes = i_byte;
 	  return width;
 	}
+      if (INT_ADD_WRAPV (thiswidth, width, &width))
+	string_overflow ();
       i++;
       i_byte += bytes;
-      width += thiswidth;
   }
 
   if (precision > 0)
@@ -436,22 +421,16 @@ lisp_string_width (Lisp_Object string, ptrdiff_t precision,
 	  thiswidth = char_width (c, dp);
 	}
 
-      if (precision <= 0)
-	{
-#ifdef emacs
-	  if (INT_ADD_OVERFLOW (width, thiswidth))
-	    string_overflow ();
-#endif
-	}
-      else if (precision - width < thiswidth)
+      if (0 < precision && precision - width < thiswidth)
 	{
 	  *nchars = i;
 	  *nbytes = i_byte;
 	  return width;
 	}
+      if (INT_ADD_WRAPV (thiswidth, width, &width))
+	string_overflow ();
       i += chars;
       i_byte += bytes;
-      width += thiswidth;
     }
 
   if (precision > 0)
@@ -657,9 +636,8 @@ count_size_as_multibyte (const unsigned char *str, ptrdiff_t len)
   for (bytes = 0; str < endp; str++)
     {
       int n = *str < 0x80 ? 1 : 2;
-      if (INT_ADD_OVERFLOW (bytes, n))
+      if (INT_ADD_WRAPV (bytes, n, &bytes))
         string_overflow ();
-      bytes += n;
     }
   return bytes;
 }
@@ -795,6 +773,7 @@ string_escape_byte8 (Lisp_Object string)
   ptrdiff_t nbytes = SBYTES (string);
   bool multibyte = STRING_MULTIBYTE (string);
   ptrdiff_t byte8_count;
+  ptrdiff_t thrice_byte8_count, uninit_nchars, uninit_nbytes;
   const unsigned char *src, *src_end;
   unsigned char *dst;
   Lisp_Object val;
@@ -808,23 +787,23 @@ string_escape_byte8 (Lisp_Object string)
   if (byte8_count == 0)
     return string;
 
+  if (INT_MULTIPLY_WRAPV (byte8_count, 3, &thrice_byte8_count))
+    string_overflow ();
+
   if (multibyte)
     {
-      if ((MOST_POSITIVE_FIXNUM - nchars) / 3 < byte8_count
-	  || (STRING_BYTES_BOUND - nbytes) / 2 < byte8_count)
-	string_overflow ();
-
       /* Convert 2-byte sequence of byte8 chars to 4-byte octal.  */
-      val = make_uninit_multibyte_string (nchars + byte8_count * 3,
-					  nbytes + byte8_count * 2);
+      if (INT_ADD_WRAPV (nchars, thrice_byte8_count, &uninit_nchars)
+	  || INT_ADD_WRAPV (nbytes, 2 * byte8_count, &uninit_nbytes))
+	string_overflow ();
+      val = make_uninit_multibyte_string (uninit_nchars, uninit_nbytes);
     }
   else
     {
-      if ((STRING_BYTES_BOUND - nbytes) / 3 < byte8_count)
-	string_overflow ();
-
       /* Convert 1-byte sequence of byte8 chars to 4-byte octal.  */
-      val = make_uninit_string (nbytes + byte8_count * 3);
+      if (INT_ADD_WRAPV (thrice_byte8_count, nbytes, &uninit_nbytes))
+	string_overflow ();
+      val = make_uninit_string (uninit_nbytes);
     }
 
   src = SDATA (string);
@@ -981,8 +960,6 @@ character is not ASCII nor 8-bit character, an error is signaled.  */)
   return make_number (c);
 }
 
-#ifdef emacs
-
 /* Return true if C is an alphabetic character.  */
 bool
 alphabeticp (int c)
@@ -1131,5 +1108,3 @@ See The Unicode Standard for the meaning of those values.  */);
   /* The correct char-table is setup in characters.el.  */
   Vunicode_category_table = Qnil;
 }
-
-#endif /* emacs */

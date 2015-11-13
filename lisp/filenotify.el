@@ -62,7 +62,7 @@ WHAT is a file or directory name to be removed, needed just for `inotify'."
       ;; Send `stopped' event.
       (dolist (entry (cdr registered))
 	(funcall (cdr entry)
-		 `(,(file-notify--descriptor desc) stopped
+		 `(,descriptor stopped
 		   ,(or (and (stringp (car entry))
 			     (expand-file-name (car entry) dir))
 			dir))))
@@ -100,17 +100,19 @@ It is a form ((DESCRIPTOR ACTION FILE [FILE1-OR-COOKIE]) CALLBACK).")
 
 (defun file-notify--event-file-name (event)
   "Return file name of file notification event, or nil."
-  (expand-file-name
-   (or  (and (stringp (nth 2 event)) (nth 2 event)) "")
-   (car (gethash (car event) file-notify-descriptors))))
+  (directory-file-name
+   (expand-file-name
+    (or  (and (stringp (nth 2 event)) (nth 2 event)) "")
+    (car (gethash (car event) file-notify-descriptors)))))
 
 ;; Only `gfilenotify' could return two file names.
 (defun file-notify--event-file1-name (event)
   "Return second file name of file notification event, or nil.
 This is available in case a file has been moved."
   (and (stringp (nth 3 event))
-       (expand-file-name
-	(nth 3 event) (car (gethash (car event) file-notify-descriptors)))))
+       (directory-file-name
+        (expand-file-name
+         (nth 3 event) (car (gethash (car event) file-notify-descriptors))))))
 
 ;; Cookies are offered by `inotify' only.
 (defun file-notify--event-cookie (event)
@@ -121,14 +123,17 @@ This is available in case a file has been moved."
 ;; `inotify' returns the same descriptor when the file (directory)
 ;; uses the same inode.  We want to distinguish, and apply a virtual
 ;; descriptor which make the difference.
-(defun file-notify--descriptor (descriptor)
+(defun file-notify--descriptor (desc file)
   "Return the descriptor to be used in `file-notify-*-watch'.
 For `gfilenotify' and `w32notify' it is the same descriptor as
 used in the low-level file notification package."
-  (if (and (natnump descriptor) (eq file-notify--library 'inotify))
-      (cons descriptor
-            (car (cadr (gethash descriptor file-notify-descriptors))))
-    descriptor))
+  (if (and (natnump desc) (eq file-notify--library 'inotify))
+      (cons desc
+            (and (stringp file)
+                 (car (assoc
+                       (file-name-nondirectory file)
+                       (gethash desc file-notify-descriptors)))))
+    desc))
 
 ;; The callback function used to map between specific flags of the
 ;; respective file notifications, and the ones we return.
@@ -208,9 +213,11 @@ EVENT is the cadr of the event in `file-notify-handle-event'
                               (car file-notify--pending-event)))
                   ;; If the source is handled by another watch, we
                   ;; must fire the rename event there as well.
-                  (when (not (equal (file-notify--descriptor desc)
+                  (when (not (equal (file-notify--descriptor desc file1)
                                     (file-notify--descriptor
-                                     (caar file-notify--pending-event))))
+                                     (caar file-notify--pending-event)
+                                     (file-notify--event-file-name
+                                      file-notify--pending-event))))
                     (setq pending-event
                           `((,(caar file-notify--pending-event)
                              renamed ,file ,file1)
@@ -221,7 +228,10 @@ EVENT is the cadr of the event in `file-notify-handle-event'
         ;; Apply pending callback.
         (when pending-event
           (setcar
-           (car pending-event) (file-notify--descriptor (caar pending-event)))
+           (car pending-event)
+           (file-notify--descriptor
+            (caar pending-event)
+            (file-notify--event-file-name file-notify--pending-event)))
           (funcall (cadr pending-event) (car pending-event))
           (setq pending-event nil))
 
@@ -255,14 +265,15 @@ EVENT is the cadr of the event in `file-notify-handle-event'
 	  (if file1
 	      (funcall
 	       callback
-	       `(,(file-notify--descriptor desc) ,action ,file ,file1))
+	       `(,(file-notify--descriptor desc file) ,action ,file ,file1))
 	    (funcall
 	     callback
-	     `(,(file-notify--descriptor desc) ,action ,file)))))
+	     `(,(file-notify--descriptor desc file) ,action ,file)))))
 
       ;; Modify `file-notify-descriptors'.
       (when stopped
-        (file-notify--rm-descriptor (file-notify--descriptor desc) file)))))
+        (file-notify--rm-descriptor
+         (file-notify--descriptor desc file) file)))))
 
 ;; `gfilenotify' and `w32notify' return a unique descriptor for every
 ;; `file-notify-add-watch', while `inotify' returns a unique
@@ -373,7 +384,8 @@ FILE is the name of the file whose event is being reported."
      file-notify-descriptors)
 
     ;; Return descriptor.
-    (file-notify--descriptor desc)))
+    (file-notify--descriptor
+     desc (unless (file-directory-p file) (file-name-nondirectory file)))))
 
 (defun file-notify-rm-watch (descriptor)
   "Remove an existing watch specified by its DESCRIPTOR.
@@ -394,7 +406,7 @@ DESCRIPTOR should be an object returned by `file-notify-add-watch'."
             (if handler
                 ;; A file name handler could exist even if there is no local
                 ;; file notification support.
-                (funcall handler 'file-notify-rm-watch desc)
+                (funcall handler 'file-notify-rm-watch descriptor)
 
               (funcall
                (cond

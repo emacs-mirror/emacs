@@ -429,18 +429,25 @@ from the MODE alist ignoring the input argument VALUE."
   (catch 'exit
     (unless enable-local-variables
       (throw 'exit (message "Directory-local variables are disabled")))
-    (let ((variables-file (or (and (buffer-file-name)
-				   (not (file-remote-p (buffer-file-name)))
-				   (dir-locals-find-file (buffer-file-name)))
-			      dir-locals-file))
+    (let ((variables-file (and (buffer-file-name)
+                               (not (file-remote-p (buffer-file-name)))
+                               (dir-locals-find-file (buffer-file-name))))
 	  variables)
-      (if (consp variables-file)	; result from cache
-	  ;; If cache element has an mtime, assume it came from a file.
-	  ;; Otherwise, assume it was set directly.
-	  (setq variables-file (if (nth 2 variables-file)
-				   (expand-file-name dir-locals-file
-						     (car variables-file))
-				 (cadr variables-file))))
+      (setq variables-file
+            ;; If there are several .dir-locals, the user probably
+            ;; wants to edit the last one (the highest priority).
+            (cond ((stringp variables-file)
+                   (car (last (dir-locals--all-files variables-file))))
+                  ((consp variables-file)	; result from cache
+                   ;; If cache element has an mtime, assume it came from a file.
+                   ;; Otherwise, assume it was set directly.
+                   (if (nth 2 variables-file)
+                       (car (last (dir-locals--all-files (car variables-file))))
+                     (cadr variables-file)))
+                  ;; Try to make a proper file-name.  This doesn't cover all
+                  ;; wildcards, but it covers the default value of `dir-locals-file'.
+                  (t (replace-regexp-in-string
+                      "\\*" "" (replace-regexp-in-string  "\\?" "-" dir-locals-file)))))
       ;; I can't be bothered to handle this case right now.
       ;; Dir locals were set directly from a class.  You need to
       ;; directly modify the class in dir-locals-class-alist.

@@ -179,15 +179,23 @@
 (defun xref-elisp-test-run (xrefs expected-xrefs)
   (should (= (length xrefs) (length expected-xrefs)))
   (while xrefs
-    (let ((xref (pop xrefs))
-          (expected (pop expected-xrefs)))
+    (let* ((xref (pop xrefs))
+           (expected (pop expected-xrefs))
+           (expected-xref (or (when (consp expected) (car expected)) expected))
+           (expected-source (when (consp expected) (cdr expected))))
 
-      (should (equal xref
-                     (or (when (consp expected) (car expected)) expected)))
+      ;; Downcase the filenames for case-insensitive file systems.
+      (setf (xref-elisp-location-file (oref xref location))
+            (downcase (xref-elisp-location-file (oref xref location))))
+
+      (setf (xref-elisp-location-file (oref expected-xref location))
+            (downcase (xref-elisp-location-file (oref expected-xref location))))
+
+      (should (equal xref expected-xref))
 
       (xref--goto-location (xref-item-location xref))
       (back-to-indentation)
-      (should (looking-at (or (when (consp expected) (cdr expected))
+      (should (looking-at (or expected-source
                               (xref-elisp-test-descr-to-target expected)))))
     ))
 
@@ -200,14 +208,24 @@ to (xref-elisp-test-descr-to-target xref)."
   (declare (indent defun)
            (debug (symbolp "name")))
   `(ert-deftest ,(intern (concat "xref-elisp-test-" (symbol-name name))) ()
-     (xref-elisp-test-run ,computed-xrefs ,expected-xrefs)
-     ))
+     (let ((find-file-suppress-same-file-warnings t))
+       (xref-elisp-test-run ,computed-xrefs ,expected-xrefs)
+       )))
 
 ;; When tests are run from the Makefile, 'default-directory' is $HOME,
 ;; so we must provide this dir to expand-file-name in the expected
 ;; results. This also allows running these tests from other
 ;; directories.
-(defconst emacs-test-dir (file-name-directory (or load-file-name (buffer-file-name))))
+;;
+;; We add 'downcase' here to deliberately cause a potential problem on
+;; case-insensitive file systems. On such systems, `load-file-name'
+;; may not have the same case as the real file system, since the user
+;; can set `load-path' to have the wrong case (on my Windows system,
+;; `load-path' has the correct case, so this causes the expected test
+;; values to have the wrong case). This is handled in
+;; `xref-elisp-test-run'.
+(defconst emacs-test-dir (downcase (file-name-directory (or load-file-name (buffer-file-name)))))
+
 
 ;; alphabetical by test name
 

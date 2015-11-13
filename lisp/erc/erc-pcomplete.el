@@ -225,9 +225,10 @@ If optional argument IGNORE-SELF is non-nil, don't return the current nick."
                  (erc-get-channel-user-list)))
         (nicks nil))
     (dolist (user users)
-      (unless (and ignore-self
-                   (string= (erc-server-user-nickname (car user))
-                            (erc-current-nick)))
+      (unless (or (not user)
+                  (and ignore-self
+                       (string= (erc-server-user-nickname (car user))
+                                (erc-current-nick))))
         (setq nicks (cons (concat (erc-server-user-nickname (car user))
                                   postfix)
                           nicks))))

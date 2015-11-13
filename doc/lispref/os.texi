@@ -2323,10 +2323,11 @@ Emacs is restarted by the session manager.
 @cindex notifications, on desktop
 
 Emacs is able to send @dfn{notifications} on systems that support the
-freedesktop.org Desktop Notifications Specification.  In order to use
-this functionality, Emacs must have been compiled with D-Bus support,
-and the @code{notifications} library must be loaded.  @xref{Top, ,
-D-Bus,dbus,D-Bus integration in Emacs}.
+freedesktop.org Desktop Notifications Specification and on MS-Windows.
+In order to use this functionality on Posix hosts, Emacs must have
+been compiled with D-Bus support, and the @code{notifications} library
+must be loaded.  @xref{Top, , D-Bus,dbus,D-Bus integration in Emacs}.
+The following function is supported when D-Bus support is available:
 
 @defun notifications-notify &rest params
 This function sends a notification to the desktop via D-Bus,
@@ -2557,6 +2558,79 @@ The specification version the server is compliant with.
 
 If @var{spec_version} is @code{nil}, the server supports a
 specification prior to @samp{"1.0"}.
+@end defun
+
+@cindex tray notifications, MS-Windows
+When Emacs runs on MS-Windows as a GUI session, it supports a small
+subset of the D-Bus notifications functionality via a native
+primitive:
+
+@defun w32-notification-notify &rest params
+This function displays an MS-Windows tray notification as specified by
+@var{params}.  MS-Windows tray notifications are displayed in a
+balloon from an icon in the notification area of the taskbar.
+
+Value is the integer unique ID of the notification that can be used to
+remove the notification using @code{w32-notification-close}, described
+below.  If the function fails, the return value is @code{nil}.
+
+The arguments @var{params} are specified as keyword/value pairs.  All the
+parameters are optional, but if no parameters are specified, the
+function will do nothing and return @code{nil}.
+
+The following parameters are supported:
+
+@table @code
+@item :icon @var{icon}
+Display @var{icon} in the system tray.  If @var{icon} is a string, it
+should specify a file name from which to load the icon; the specified
+file should be a @file{.ico} Windows icon file.  If @var{icon} is not
+a string, or if this parameter is not specified, the standard Emacs
+icon will be used.
+
+@item :tip @var{tip}
+Use @var{tip} as the tooltip for the notification.  If @var{tip} is a
+string, this is the text of a tooltip that will be shown when the
+mouse pointer hovers over the tray icon added by the notification.  If
+@var{tip} is not a string, or if this parameter is not specified, the
+default tooltip text is @samp{Emacs notification}.  The tooltip text can
+be up to 127 characters long (63 on Windows versions before W2K).
+Longer strings will be truncated.
+
+@item :level @var{level}
+Notification severity level, one of @code{info}, @code{warning}, or
+@code{error}.  If given, the value determines the icon displayed to the
+left of the notification title, but only if the @code{:title} parameter
+(see below) is also specified and is a string.
+
+@item :title @var{title}
+The title of the notification.  If @var{title} is a string, it is
+displayed in a larger font immediately above the body text.  The title
+text can be up to 63 characters long; longer text will be truncated.
+
+@item :body @var{body}
+The body of the notification.  If @var{body} is a string, it specifies
+the text of the notification message.  Use embedded newlines to
+control how the text is broken into lines.  The body text can be up to
+255 characters long, and will be truncated if it's longer.  Unlike
+with D-Bus, the body text should be plain text, with no markup.
+@end table
+
+Note that versions of Windows before W2K support only @code{:icon} and
+@code{:tip}.  The other parameters can be passed, but they will be
+ignored on those old systems.
+
+There can be at most one active notification at any given time.  An
+active notification must be removed by calling
+@code{w32-notification-close} before a new one can be shown.
+@end defun
+
+To remove the notification and its icon from the taskbar, use the
+following function:
+
+@defun w32-notification-close id
+This function removes the tray notification given by its unique
+@var{id}.
 @end defun
 
 @node File Notifications
@@ -2813,7 +2887,7 @@ of setting this variable for supporting images on MS-Windows:
         (svg "librsvg-2-2.dll")
         (gdk-pixbuf "libgdk_pixbuf-2.0-0.dll")
         (glib "libglib-2.0-0.dll")
-	(gobject "libgobject-2.0-0.dll")))
+        (gobject "libgobject-2.0-0.dll")))
 @end example
 
 Note that image types @code{pbm} and @code{xbm} do not need entries in

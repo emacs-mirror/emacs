@@ -4,7 +4,7 @@
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: sequences
-;; Version: 2.2
+;; Version: 2.3
 ;; Package: seq
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -46,7 +46,7 @@
 ;; - `seq-elt'
 ;; - `seq-length'
 ;; - `seq-do'
-;; - `seq-p'
+;; - `seqp'
 ;; - `seq-subseq'
 ;; - `seq-into-sequence'
 ;; - `seq-copy'
@@ -79,7 +79,7 @@ corresponding element of SEQUENCE.
 
 Extra elements of the sequence are ignored if fewer PATTERNS are
 given, and the match does not fail."
-  `(and (pred seq-p)
+  `(and (pred seqp)
         ,@(seq--make-pcase-bindings patterns)))
 
 (defmacro seq-let (args sequence &rest body)
@@ -117,7 +117,7 @@ Return SEQUENCE."
 
 (defalias 'seq-each #'seq-do)
 
-(cl-defgeneric seq-p (sequence)
+(cl-defgeneric seqp (sequence)
   "Return non-nil if SEQUENCE is a sequence, nil otherwise."
   (sequencep sequence))
 
@@ -433,7 +433,7 @@ SEQUENCE must be a sequence of numbers or markers."
   "Return a list of `(seq ...)' pcase patterns from the argument list ARGS."
   (cons 'seq
         (seq-map (lambda (elt)
-                   (if (seq-p elt)
+                   (if (seqp elt)
                        (seq--make-pcase-patterns elt)
                      elt))
                  args)))

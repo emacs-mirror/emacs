@@ -126,7 +126,7 @@ nsterm.m  : 6718: [ 4453]  | | | | +->> (X:0 Y:0)/(W:1600 H:1177)
 
    Here, "ns_fullscreen_hook" calls "handleFS", which is turn calls
    "performZoom".  This function calls "[super performZoom]", which
-   isn't annoted (so it doesn't show up in the trace).  However, it
+   isn't annotated (so it doesn't show up in the trace).  However, it
    calls "zoom" which is annotated so it is part of the call trace.
    Later, the method "windowWillUseStandardFrame" and the function
    "setFSValue" are called.  The lines with "+---" contain extra
@@ -230,7 +230,7 @@ void nstrace_leave(int *);
 
 /* Function enter macros.
 
-   NSTRACE (fmt, ...) -- Enable trace output in curent block
+   NSTRACE (fmt, ...) -- Enable trace output in current block
                          (typically a function).  Accepts printf-style
                          arguments.
 

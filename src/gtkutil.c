@@ -517,9 +517,12 @@ get_utf8_string (const char *str)
       if (cp) g_free (cp);
 
       len = strlen (str);
-      if ((min (PTRDIFF_MAX, SIZE_MAX) - len - 1) / 4 < nr_bad)
+      ptrdiff_t alloc;
+      if (INT_MULTIPLY_WRAPV (nr_bad, 4, &alloc)
+	  || INT_ADD_WRAPV (len + 1, alloc, &alloc)
+	  || SIZE_MAX < alloc)
 	memory_full (SIZE_MAX);
-      up = utf8_str = xmalloc (len + nr_bad * 4 + 1);
+      up = utf8_str = xmalloc (alloc);
       p = (unsigned char *)str;
 
       while (! (cp = g_locale_to_utf8 ((char *)p, -1, &bytes_read,

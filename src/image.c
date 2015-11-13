@@ -3508,6 +3508,14 @@ x_create_bitmap_from_xpm_data (struct frame *f, const char **bits)
   attrs.valuemask |= XpmVisual;
   attrs.valuemask |= XpmColormap;
 
+#ifdef ALLOC_XPM_COLORS
+  attrs.color_closure = f;
+  attrs.alloc_color = xpm_alloc_color;
+  attrs.free_colors = xpm_free_colors;
+  attrs.valuemask |= XpmAllocColor | XpmFreeColors | XpmColorClosure;
+  xpm_init_color_cache (f, &attrs);
+#endif
+
   rc = XpmCreatePixmapFromData (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 				(char **) bits, &bitmap, &mask, &attrs);
   if (rc != XpmSuccess)
@@ -3526,6 +3534,9 @@ x_create_bitmap_from_xpm_data (struct frame *f, const char **bits)
   dpyinfo->bitmaps[id - 1].depth = attrs.depth;
   dpyinfo->bitmaps[id - 1].refcount = 1;
 
+#ifdef ALLOC_XPM_COLORS
+  xpm_free_color_cache ();
+#endif
   XpmFreeAttributes (&attrs);
   return id;
 }
@@ -4662,13 +4673,16 @@ x_to_xcolors (struct frame *f, struct image *img, bool rgb_p)
   int x, y;
   XColor *colors, *p;
   XImagePtr_or_DC ximg;
+  ptrdiff_t nbytes;
 #ifdef HAVE_NTGUI
   HGDIOBJ prev;
 #endif /* HAVE_NTGUI */
 
-  if (img->height > min (PTRDIFF_MAX, SIZE_MAX) / sizeof *colors / img->width)
+  if (INT_MULTIPLY_WRAPV (sizeof *colors, img->width, &nbytes)
+      || INT_MULTIPLY_WRAPV (img->height, nbytes, &nbytes)
+      || SIZE_MAX < nbytes)
     memory_full (SIZE_MAX);
-  colors = xmalloc (sizeof *colors * img->width * img->height);
+  colors = xmalloc (nbytes);
 
   /* Get the X image or create a memory device context for IMG. */
   ximg = image_get_x_image_or_dc (f, img, 0, &prev);
@@ -4801,15 +4815,17 @@ x_detect_edges (struct frame *f, struct image *img, int *matrix, int color_adjus
   XColor *colors = x_to_xcolors (f, img, 1);
   XColor *new, *p;
   int x, y, i, sum;
+  ptrdiff_t nbytes;
 
   for (i = sum = 0; i < 9; ++i)
     sum += eabs (matrix[i]);
 
 #define COLOR(A, X, Y) ((A) + (Y) * img->width + (X))
 
-  if (img->height > min (PTRDIFF_MAX, SIZE_MAX) / sizeof *new / img->width)
+  if (INT_MULTIPLY_WRAPV (sizeof *new, img->width, &nbytes)
+      || INT_MULTIPLY_WRAPV (img->height, nbytes, &nbytes))
     memory_full (SIZE_MAX);
-  new = xmalloc (sizeof *new * img->width * img->height);
+  new = xmalloc (nbytes);
 
   for (y = 0; y < img->height; ++y)
     {
@@ -5898,6 +5914,7 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
   png_uint_32 row_bytes;
   bool transparent_p;
   struct png_memory_storage tbr;  /* Data to be read */
+  ptrdiff_t nbytes;
 
 #ifdef USE_CAIRO
   unsigned char *data = 0;
@@ -6102,10 +6119,10 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
   row_bytes = png_get_rowbytes (png_ptr, info_ptr);
 
   /* Allocate memory for the image.  */
-  if (height > min (PTRDIFF_MAX, SIZE_MAX) / sizeof *rows
-      || row_bytes > min (PTRDIFF_MAX, SIZE_MAX) / sizeof *pixels / height)
+  if (INT_MULTIPLY_WRAPV (row_bytes, sizeof *pixels, &nbytes)
+      || INT_MULTIPLY_WRAPV (nbytes, height, &nbytes))
     memory_full (SIZE_MAX);
-  c->pixels = pixels = xmalloc (sizeof *pixels * row_bytes * height);
+  c->pixels = pixels = xmalloc (nbytes);
   c->rows = rows = xmalloc (height * sizeof *rows);
   for (i = 0; i < height; ++i)
     rows[i] = pixels + i * row_bytes;

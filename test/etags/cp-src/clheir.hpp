@@ -17,7 +17,7 @@ public:
     generic_object();  // enter generic_object into ObjectRegistry
     // We never copy generic_objects, so we don't need a copy constructor.
     ~generic_object(void);  // delete from ObjectRegistry
-    // Simulation steps, accomodate different kinds of time
+    // Simulation steps, accommodate different kinds of time
     virtual void compute_next_state(void) { }
     virtual void step(void) { }
     };

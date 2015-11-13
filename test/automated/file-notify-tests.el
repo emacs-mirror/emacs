@@ -275,10 +275,10 @@ TIMEOUT is the maximum time to wait for, in seconds."
      (while (null ,until)
        (read-event nil nil 0.1))))
 
-(defmacro file-notify--test-with-events (timeout events &rest body)
+(defmacro file-notify--test-with-events (events &rest body)
   "Run BODY collecting events and then compare with EVENTS.
-Don't wait longer than TIMEOUT seconds for the events to be delivered."
-  (declare (indent 2))
+Don't wait longer than timeout seconds for the events to be delivered."
+  (declare (indent 1))
   (let ((outer (make-symbol "outer")))
     `(let ((,outer file-notify--test-events))
        (setq file-notify--test-expected-events
@@ -286,7 +286,8 @@ Don't wait longer than TIMEOUT seconds for the events to be delivered."
        (let (file-notify--test-events)
          ,@body
          (file-notify--wait-for-events
-          ,timeout (= (length ,events) (length file-notify--test-events)))
+          (file-notify--test-timeout)
+          (= (length ,events) (length file-notify--test-events)))
          (should (equal ,events (mapcar #'cadr file-notify--test-events)))
          (setq ,outer (append ,outer file-notify--test-events)))
        (setq file-notify--test-events ,outer))))
@@ -294,6 +295,8 @@ Don't wait longer than TIMEOUT seconds for the events to be delivered."
 (ert-deftest file-notify-test02-events ()
   "Check file creation/change/removal notifications."
   (skip-unless (file-notify--test-local-enabled))
+  ;; Under cygwin there are so bad timings that it doesn't make sense to test.
+  (skip-unless (not (eq system-type 'cygwin)))
 
   (setq file-notify--test-tmpfile (file-notify--test-make-temp-name)
 	file-notify--test-tmpfile1 (file-notify--test-make-temp-name))
@@ -305,8 +308,7 @@ Don't wait longer than TIMEOUT seconds for the events to be delivered."
               (file-notify-add-watch
                file-notify--test-tmpfile
                '(change) 'file-notify--test-event-handler))
-        (file-notify--test-with-events
-            (file-notify--test-timeout) '(created changed deleted)
+        (file-notify--test-with-events '(created changed deleted)
           (write-region
            "any text" nil file-notify--test-tmpfile nil 'no-message)
           (delete-file file-notify--test-tmpfile))
@@ -324,7 +326,6 @@ Don't wait longer than TIMEOUT seconds for the events to be delivered."
 		 file-notify--test-tmpfile
 		 '(change) 'file-notify--test-event-handler))
 	  (file-notify--test-with-events
-	      (file-notify--test-timeout)
 	      ;; There are two `deleted' events, for the file and for
 	      ;; the directory.
 	      '(created changed deleted deleted stopped)
@@ -343,7 +344,6 @@ Don't wait longer than TIMEOUT seconds for the events to be delivered."
                '(change) 'file-notify--test-event-handler))
         (should file-notify--test-desc)
         (file-notify--test-with-events
-            (file-notify--test-timeout)
             ;; w32notify does not distinguish between `changed' and
             ;; `attribute-changed'.
             (if (eq file-notify--library 'w32notify)
@@ -368,8 +368,7 @@ Don't wait longer than TIMEOUT seconds for the events to be delivered."
                file-notify--test-tmpfile
                '(change) 'file-notify--test-event-handler))
         (should file-notify--test-desc)
-        (file-notify--test-with-events
-            (file-notify--test-timeout) '(created changed renamed)
+        (file-notify--test-with-events '(created changed renamed)
           (write-region
            "any text" nil file-notify--test-tmpfile nil 'no-message)
           (rename-file file-notify--test-tmpfile file-notify--test-tmpfile1)
@@ -386,7 +385,6 @@ Don't wait longer than TIMEOUT seconds for the events to be delivered."
                  file-notify--test-tmpfile
                  '(attribute-change) 'file-notify--test-event-handler))
           (file-notify--test-with-events
-              (file-notify--test-timeout)
               (if (file-remote-p temporary-file-directory)
                   ;; In the remote case, `write-region' raises also an
                   ;; `attribute-changed' event.
@@ -511,6 +509,8 @@ Don't wait longer than TIMEOUT seconds for the events to be delivered."
 (ert-deftest file-notify-test04-file-validity ()
   "Check `file-notify-valid-p' for files."
   (skip-unless (file-notify--test-local-enabled))
+  ;; Under cygwin there are so bad timings that it doesn't make sense to test.
+  (skip-unless (not (eq system-type 'cygwin)))
 
   (unwind-protect
       (progn
@@ -519,8 +519,7 @@ Don't wait longer than TIMEOUT seconds for the events to be delivered."
               (file-notify-add-watch
                file-notify--test-tmpfile
                '(change) #'file-notify--test-event-handler))
-        (file-notify--test-with-events
-            (file-notify--test-timeout) '(created changed deleted)
+        (file-notify--test-with-events '(created changed deleted)
           (should (file-notify-valid-p file-notify--test-desc))
           (write-region
            "any text" nil file-notify--test-tmpfile nil 'no-message)
@@ -547,8 +546,7 @@ Don't wait longer than TIMEOUT seconds for the events to be delivered."
                 (file-notify-add-watch
                  file-notify--test-tmpfile
                  '(change) #'file-notify--test-event-handler))
-          (file-notify--test-with-events
-              (file-notify--test-timeout) '(created changed deleted stopped)
+          (file-notify--test-with-events '(created changed deleted stopped)
             (should (file-notify-valid-p file-notify--test-desc))
             (write-region
              "any text" nil file-notify--test-tmpfile nil 'no-message)
@@ -623,8 +621,8 @@ Don't wait longer than TIMEOUT seconds for the events to be delivered."
 
 ;; TODO:
 
-;; * It does not work yet for local gfilenotify and remote inotifywait.
 ;; * For w32notify, no stopped events arrive when a directory is removed.
+;; * Try to handle arriving events under cygwin reliably.
 
 (provide 'file-notify-tests)
 ;;; file-notify-tests.el ends here

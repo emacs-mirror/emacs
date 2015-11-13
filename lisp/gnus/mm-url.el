@@ -392,17 +392,18 @@ spaces.  Die Die Die."
   (if (consp chunk)
       (setq chunk (cdr chunk)))
 
-  (mapconcat
-   (lambda (char)
-     (cond
-      ((= char ?  ) "+")
-      ((memq char mm-url-unreserved-chars) (char-to-string char))
-      (t (upcase (format "%%%02x" char)))))
-   (mm-encode-coding-string chunk
-			    (if (fboundp 'find-coding-systems-string)
-				(car (find-coding-systems-string chunk))
-			      buffer-file-coding-system))
-   ""))
+  (if chunk
+      (mapconcat
+       (lambda (char)
+	 (cond
+	  ((= char ?  ) "+")
+	  ((memq char mm-url-unreserved-chars) (char-to-string char))
+	  (t (upcase (format "%%%02x" char)))))
+       (mm-encode-coding-string chunk
+				(if (fboundp 'find-coding-systems-string)
+				    (car (find-coding-systems-string chunk))
+				  buffer-file-coding-system))
+       "")))
 
 (defun mm-url-encode-www-form-urlencoded (pairs)
   "Return PAIRS encoded for forms."

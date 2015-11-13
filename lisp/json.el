@@ -52,6 +52,8 @@
 
 ;;; Code:
 
+(require 'map)
+
 ;; Parameters
 
 (defvar json-object-type 'alist
@@ -111,6 +113,24 @@ Used only when `json-encoding-pretty-print' is non-nil.")
   "If non-nil, ] and } closings will be formatted lisp-style,
 without indentation.")
 
+(defvar json-encoding-object-sort-predicate nil
+  "Sorting predicate for JSON object keys during encoding.
+If nil, no sorting is performed.  Else, JSON object keys are
+ordered by the specified sort predicate during encoding.  For
+instance, setting this to `string<' will have JSON object keys
+ordered alphabetically.")
+
+(defvar json-pre-element-read-function nil
+  "Function called (if non-nil) by `json-read-array' and
+`json-read-object' right before reading a JSON array or object,
+respectively.  The function is called with one argument, which is
+the current JSON key.")
+
+(defvar json-post-element-read-function nil
+  "Function called (if non-nil) by `json-read-array' and
+`json-read-object' right after reading a JSON array or object,
+respectively.")
+
 
 
 ;;; Utilities
@@ -147,6 +167,15 @@ Unlike `reverse', this keeps the property-value pairs intact."
         (push val res)
         (push prop res)))
     res))
+
+(defun json--plist-to-alist (plist)
+  "Return an alist of the property-value pairs in PLIST."
+  (let (res)
+    (while plist
+      (let ((prop (pop plist))
+            (val (pop plist)))
+        (push (cons prop val) res)))
+    (nreverse res)))
 
 (defmacro json--with-indentation (body)
   `(let ((json--encoding-current-indentation
@@ -195,6 +224,61 @@ Unlike `reverse', this keeps the property-value pairs intact."
   '(end-of-file json-error))
 
 
+
+;;; Paths
+
+(defvar json--path '()
+  "Used internally by `json-path-to-position' to keep track of
+the path during recursive calls to `json-read'.")
+
+(defun json--record-path (key)
+  "Record the KEY to the current JSON path.
+Used internally by `json-path-to-position'."
+  (push (cons (point) key) json--path))
+
+(defun json--check-position (position)
+  "Check if the last parsed JSON structure passed POSITION.
+Used internally by `json-path-to-position'."
+  (let ((start (caar json--path)))
+    (when (< start position (+ (point) 1))
+      (throw :json-path (list :path (nreverse (mapcar #'cdr json--path))
+                              :match-start start
+                              :match-end (point)))))
+  (pop json--path))
+
+(defun json-path-to-position (position &optional string)
+  "Return the path to the JSON element at POSITION.
+
+When STRING is provided, return the path to the position in the
+string, else to the position in the current buffer.
+
+The return value is a property list with the following
+properties:
+
+:path        -- A list of strings and numbers forming the path to
+                the JSON element at the given position.  Strings
+                denote object names, while numbers denote array
+                indexes.
+
+:match-start -- Position where the matched JSON element begins.
+
+:match-end   -- Position where the matched JSON element ends.
+
+This can for instance be useful to determine the path to a JSON
+element in a deeply nested structure."
+  (save-excursion
+    (unless string
+      (goto-char (point-min)))
+    (let* ((json--path '())
+           (json-pre-element-read-function #'json--record-path)
+           (json-post-element-read-function
+            (apply-partially #'json--check-position position))
+           (path (catch :json-path
+                   (if string
+                       (json-read-from-string string)
+                     (json-read)))))
+      (when (plist-get path :path)
+        path))))
 
 ;;; Keywords
 
@@ -403,7 +487,12 @@ Please see the documentation of `json-object-type' and `json-key-type'."
       (if (char-equal (json-peek) ?:)
           (json-advance)
         (signal 'json-object-format (list ":" (json-peek))))
+      (json-skip-whitespace)
+      (when json-pre-element-read-function
+        (funcall json-pre-element-read-function key))
       (setq value (json-read))
+      (when json-post-element-read-function
+        (funcall json-post-element-read-function))
       (setq elements (json-add-to-object elements key value))
       (json-skip-whitespace)
       (unless (char-equal (json-peek) ?})
@@ -421,32 +510,39 @@ Please see the documentation of `json-object-type' and `json-key-type'."
 
 (defun json-encode-hash-table (hash-table)
   "Return a JSON representation of HASH-TABLE."
-  (format "{%s%s}"
-          (json-join
-           (let (r)
-             (json--with-indentation
-              (maphash
-               (lambda (k v)
-                 (push (format
-                        (if json-encoding-pretty-print
-                            "%s%s: %s"
-                          "%s%s:%s")
-                        json--encoding-current-indentation
-                        (json-encode-key k)
-                        (json-encode v))
-                       r))
-               hash-table))
-             r)
-           json-encoding-separator)
-          (if (or (not json-encoding-pretty-print)
-                  json-encoding-lisp-style-closings)
-              ""
-            json--encoding-current-indentation)))
+  (if json-encoding-object-sort-predicate
+      (json-encode-alist (map-into hash-table 'list))
+    (format "{%s%s}"
+            (json-join
+             (let (r)
+               (json--with-indentation
+                (maphash
+                 (lambda (k v)
+                   (push (format
+                          (if json-encoding-pretty-print
+                              "%s%s: %s"
+                            "%s%s:%s")
+                          json--encoding-current-indentation
+                          (json-encode-key k)
+                          (json-encode v))
+                         r))
+                 hash-table))
+               r)
+             json-encoding-separator)
+            (if (or (not json-encoding-pretty-print)
+                    json-encoding-lisp-style-closings)
+                ""
+              json--encoding-current-indentation))))
 
 ;; List encoding (including alists and plists)
 
 (defun json-encode-alist (alist)
   "Return a JSON representation of ALIST."
+  (when json-encoding-object-sort-predicate
+    (setq alist
+          (sort alist (lambda (a b)
+                        (funcall json-encoding-object-sort-predicate
+                                 (car a) (car b))))))
   (format "{%s%s}"
           (json-join
            (json--with-indentation
@@ -466,25 +562,27 @@ Please see the documentation of `json-object-type' and `json-key-type'."
 
 (defun json-encode-plist (plist)
   "Return a JSON representation of PLIST."
-  (let (result)
-    (json--with-indentation
-      (while plist
-        (push (concat
-               json--encoding-current-indentation
-               (json-encode-key (car plist))
-               (if json-encoding-pretty-print
-                   ": "
-                 ":")
-               (json-encode (cadr plist)))
-              result)
-        (setq plist (cddr plist))))
-    (concat "{"
-            (json-join (nreverse result) json-encoding-separator)
-            (if (and json-encoding-pretty-print
-                     (not json-encoding-lisp-style-closings))
+  (if json-encoding-object-sort-predicate
+      (json-encode-alist (json--plist-to-alist plist))
+    (let (result)
+      (json--with-indentation
+       (while plist
+         (push (concat
                 json--encoding-current-indentation
-              "")
-            "}")))
+                (json-encode-key (car plist))
+                (if json-encoding-pretty-print
+                    ": "
+                  ":")
+                (json-encode (cadr plist)))
+               result)
+         (setq plist (cddr plist))))
+      (concat "{"
+              (json-join (nreverse result) json-encoding-separator)
+              (if (and json-encoding-pretty-print
+                       (not json-encoding-lisp-style-closings))
+                  json--encoding-current-indentation
+                "")
+              "}"))))
 
 (defun json-encode-list (list)
   "Return a JSON representation of LIST.
@@ -509,7 +607,12 @@ become JSON objects."
   ;; read values until "]"
   (let (elements)
     (while (not (char-equal (json-peek) ?\]))
+      (json-skip-whitespace)
+      (when json-pre-element-read-function
+        (funcall json-pre-element-read-function (length elements)))
       (push (json-read) elements)
+      (when json-post-element-read-function
+        (funcall json-post-element-read-function))
       (json-skip-whitespace)
       (unless (char-equal (json-peek) ?\])
         (if (char-equal (json-peek) ?,)
@@ -621,6 +724,18 @@ Advances point just past JSON object."
           (json-object-type 'alist)
           (txt (delete-and-extract-region begin end)))
       (insert (json-encode (json-read-from-string txt))))))
+
+(defun json-pretty-print-buffer-ordered ()
+  "Pretty-print current buffer with object keys ordered."
+  (interactive)
+  (let ((json-encoding-object-sort-predicate 'string<))
+    (json-pretty-print-buffer)))
+
+(defun json-pretty-print-ordered (begin end)
+  "Pretty-print the region with object keys ordered."
+  (interactive "r")
+  (let ((json-encoding-object-sort-predicate 'string<))
+    (json-pretty-print begin end)))
 
 (provide 'json)
 

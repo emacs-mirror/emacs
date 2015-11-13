@@ -50,7 +50,7 @@
 
 (ert-deftest warning-predicate-rx-gcc ()
   "Test GCC warning via regexp predicate."
-  (skip-unless (executable-find "gcc"))
+  (skip-unless (and (executable-find "gcc") (executable-find "make")))
   (should (eq 'flymake-warnline
               (flymake-tests--current-face "test.c" "^[Ww]arning"))))
 

@@ -3887,9 +3887,12 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
   ptrdiff_t formatlen = SBYTES (args[0]);
 
   /* Allocate the info and discarded tables.  */
-  if ((SIZE_MAX - formatlen) / sizeof (struct info) <= nargs)
+  ptrdiff_t alloca_size;
+  if (INT_MULTIPLY_WRAPV (nargs, sizeof *info, &alloca_size)
+      || INT_ADD_WRAPV (sizeof *info, alloca_size, &alloca_size)
+      || INT_ADD_WRAPV (formatlen, alloca_size, &alloca_size)
+      || SIZE_MAX < alloca_size)
     memory_full (SIZE_MAX);
-  size_t alloca_size = (nargs + 1) * sizeof *info + formatlen;
   /* info[0] is unused.  Unused elements have -1 for start.  */
   info = SAFE_ALLOCA (alloca_size);
   memset (info, 0, alloca_size);

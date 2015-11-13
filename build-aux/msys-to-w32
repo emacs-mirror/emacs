@@ -96,7 +96,7 @@ do
 	# translate the existing part and append the rest
 	w32p=$(cd "${p1}" && pwd -W)
 	remainder=${p#$p1}
-	w32p+=/${remainder#/}
+	w32p=${w32p%/}/${remainder#/}
     fi
 
     w32pathlist="${w32pathlist};${w32p}"

@@ -289,6 +289,7 @@ For backends which dont support it, `vc-not-supported' is signalled."
           ;; added: Git
           ;; unregistered: CVS SCCS SRC
 	  ;; up-to-date: Bzr SVN
+          (message "vc-state1 %s" (vc-state default-directory))
 	  (should (eq (vc-state default-directory)
 		      (vc-state default-directory backend)))
 	  (should (memq (vc-state default-directory)
@@ -301,6 +302,7 @@ For backends which dont support it, `vc-not-supported' is signalled."
             ;; added: Git
 	    ;; unregistered: RCS SCCS
 	    ;; up-to-date: Bzr CVS
+            (message "vc-state2 %s" (vc-state tmp-name))
 	    (should (eq (vc-state tmp-name) (vc-state tmp-name backend)))
 	    (should (memq (vc-state tmp-name)
 			  '(nil added unregistered up-to-date)))
@@ -312,6 +314,7 @@ For backends which dont support it, `vc-not-supported' is signalled."
             ;; added: Git
             ;; unregistered: Hg RCS SCCS SRC SVN
             ;; up-to-date: Bzr CVS
+            (message "vc-state3 %s" (vc-state tmp-name))
 	    (should (eq (vc-state tmp-name) (vc-state tmp-name backend)))
 	    (should (memq (vc-state tmp-name)
 			  '(nil added unregistered up-to-date)))
@@ -323,6 +326,7 @@ For backends which dont support it, `vc-not-supported' is signalled."
             ;; added: Git Mtn
             ;; unregistered: Hg RCS SCCS SRC SVN
             ;; up-to-date: Bzr CVS
+            (message "vc-state4 %s" (vc-state tmp-name))
 	    (should (eq (vc-state tmp-name) (vc-state tmp-name backend)))
 	    (should (memq (vc-state tmp-name) '(added unregistered up-to-date)))
 
@@ -332,13 +336,14 @@ For backends which dont support it, `vc-not-supported' is signalled."
 		  (vc-test--unregister-function backend tmp-name)
 
 		  ;; added: Git
-		  ;; unregistered: Hg
+		  ;; unregistered: Hg RCS
 		  ;; unsupported: CVS Mtn SCCS SRC SVN
 		  ;; up-to-date: Bzr
+                  (message "vc-state5 %s" (vc-state tmp-name))
 		  (should (eq (vc-state tmp-name) (vc-state tmp-name backend)))
 		  (should (memq (vc-state tmp-name)
 				'(added unregistered up-to-date))))
-	      (vc-not-supported t))))
+	      (vc-not-supported (message "vc-state5 unsupported")))))
 
       ;; Save exit.
       (ignore-errors (run-hooks 'vc-test--cleanup-hook)))))
@@ -365,65 +370,60 @@ For backends which dont support it, `vc-not-supported' is signalled."
 	  (make-directory default-directory)
 	  (vc-test--create-repo-function backend)
 
-	  ;; nil: CVS Mtn RCS SCCS
+	  ;; nil: CVS Git Mtn RCS SCCS
 	  ;; "0": Bzr Hg SRC SVN
-	  ;; "master": Git
+          (message
+           "vc-working-revision1 %s" (vc-working-revision default-directory))
 	  (should (eq (vc-working-revision default-directory)
 		      (vc-working-revision default-directory backend)))
-	  (should
-	   (member
-	    (vc-working-revision default-directory) '(nil "0" "master")))
+	  (should (member (vc-working-revision default-directory) '(nil "0")))
 
 	  (let ((tmp-name (expand-file-name "foo" default-directory)))
 	    ;; Check initial working revision, should be nil until
             ;; it's registered.
 
-	    ;; nil: CVS Mtn RCS SCCS SVN
+	    ;; nil: CVS Git Mtn RCS SCCS SVN
 	    ;; "0": Bzr Hg SRC
-	    ;; "master": Git
+            (message "vc-working-revision2 %s" (vc-working-revision tmp-name))
 	    (should (eq (vc-working-revision tmp-name)
 			(vc-working-revision tmp-name backend)))
-	    (should
-	     (member (vc-working-revision tmp-name) '(nil "0" "master")))
+	    (should (member (vc-working-revision tmp-name) '(nil "0")))
 
 	    ;; Write a new file.  Check working revision.
 	    (write-region "foo" nil tmp-name nil 'nomessage)
 
-	    ;; nil: CVS Mtn RCS SCCS SVN
+	    ;; nil: CVS Git Mtn RCS SCCS SVN
 	    ;; "0": Bzr Hg SRC
-	    ;; "master": Git
+            (message "vc-working-revision3 %s" (vc-working-revision tmp-name))
 	    (should (eq (vc-working-revision tmp-name)
 			(vc-working-revision tmp-name backend)))
-	    (should
-	     (member (vc-working-revision tmp-name) '(nil "0" "master")))
+	    (should (member (vc-working-revision tmp-name) '(nil "0")))
 
 	    ;; Register a file.  Check working revision.
 	    (vc-register
 	     (list backend (list (file-name-nondirectory tmp-name))))
 
-	    ;; nil: Mtn RCS SCCS
+	    ;; nil: Mtn Git RCS SCCS
 	    ;; "0": Bzr CVS Hg SRC SVN
-	    ;; "master": Git
+            (message "vc-working-revision4 %s" (vc-working-revision tmp-name))
 	    (should (eq (vc-working-revision tmp-name)
 			(vc-working-revision tmp-name backend)))
-	    (should
-	     (member (vc-working-revision tmp-name) '(nil "0" "master")))
+	    (should (member (vc-working-revision tmp-name) '(nil "0")))
 
 	    ;; Unregister the file.  Check working revision.
 	    (condition-case nil
 		(progn
 		  (vc-test--unregister-function backend tmp-name)
 
-		  ;; nil: RCS
+		  ;; nil: Git RCS
 		  ;; "0": Bzr Hg
-		  ;; "master": Git
 		  ;; unsupported: CVS Mtn SCCS SRC SVN
+                  (message
+                   "vc-working-revision5 %s" (vc-working-revision tmp-name))
 		  (should (eq (vc-working-revision tmp-name)
 			      (vc-working-revision tmp-name backend)))
-		  (should
-		   (member
-		    (vc-working-revision tmp-name) '(nil "0" "master"))))
-	      (vc-not-supported t))))
+		  (should (member (vc-working-revision tmp-name) '(nil "0"))))
+	      (vc-not-supported (message "vc-working-revision5 unsupported")))))
 
       ;; Save exit.
       (ignore-errors (run-hooks 'vc-test--cleanup-hook)))))
@@ -453,6 +453,9 @@ For backends which dont support it, `vc-not-supported' is signalled."
 	  ;; nil: RCS
           ;; implicit: Bzr CVS Git Hg Mtn SRC SVN
           ;; locking: SCCS
+          (message
+           "vc-checkout-model1 %s"
+           (vc-checkout-model backend default-directory))
           (should (memq (vc-checkout-model backend default-directory)
 			'(announce implicit locking)))
 
@@ -462,6 +465,8 @@ For backends which dont support it, `vc-not-supported' is signalled."
 	    ;; nil: RCS
 	    ;; implicit: Bzr CVS Git Hg Mtn SRC SVN
 	    ;; locking: SCCS
+            (message
+             "vc-checkout-model2 %s" (vc-checkout-model backend tmp-name))
 	    (should (memq (vc-checkout-model backend tmp-name)
 			  '(announce implicit locking)))
 
@@ -471,6 +476,8 @@ For backends which dont support it, `vc-not-supported' is signalled."
 	    ;; nil: RCS
 	    ;; implicit: Bzr CVS Git Hg Mtn SRC SVN
 	    ;; locking: SCCS
+            (message
+             "vc-checkout-model3 %s" (vc-checkout-model backend tmp-name))
 	    (should (memq (vc-checkout-model backend tmp-name)
 			  '(announce implicit locking)))
 
@@ -481,6 +488,8 @@ For backends which dont support it, `vc-not-supported' is signalled."
 	    ;; nil: RCS
 	    ;; implicit: Bzr CVS Git Hg Mtn SRC SVN
 	    ;; locking: SCCS
+            (message
+             "vc-checkout-model4 %s" (vc-checkout-model backend tmp-name))
 	    (should (memq (vc-checkout-model backend tmp-name)
 			  '(announce implicit locking)))
 
@@ -492,9 +501,11 @@ For backends which dont support it, `vc-not-supported' is signalled."
 		  ;; nil: RCS
 		  ;; implicit: Bzr Git Hg
 		  ;; unsupported: CVS Mtn SCCS SRC SVN
+                  (message
+                   "vc-checkout-model5 %s" (vc-checkout-model backend tmp-name))
 		  (should (memq (vc-checkout-model backend tmp-name)
 				'(announce implicit locking))))
-	      (vc-not-supported t))))
+	      (vc-not-supported (message "vc-checkout-model5 unsupported")))))
 
       ;; Save exit.
       (ignore-errors (run-hooks 'vc-test--cleanup-hook)))))

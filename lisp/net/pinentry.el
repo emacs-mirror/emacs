@@ -151,16 +151,20 @@ If local sockets are not supported, this is nil.")
       (apply query-function (concat desc "\n" prompt) query-args))))
 
 ;;;###autoload
-(defun pinentry-start ()
+(defun pinentry-start (&optional quiet)
   "Start a Pinentry service.
 
 Once the environment is properly set, subsequent invocations of
-the gpg command will interact with Emacs for passphrase input."
+the gpg command will interact with Emacs for passphrase input.
+
+If the optional QUIET argument is non-nil, messages at startup
+will not be shown."
   (interactive)
   (unless (featurep 'make-network-process '(:family local))
     (error "local sockets are not supported"))
   (if (process-live-p pinentry--server-process)
-      (message "Pinentry service is already running")
+      (unless quiet
+        (message "Pinentry service is already running"))
     (let* ((server-file (expand-file-name "pinentry" pinentry--socket-dir)))
       (server-ensure-safe-dir pinentry--socket-dir)
       ;; Delete the socket files made by previous server invocations.

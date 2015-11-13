@@ -6860,7 +6860,7 @@ to change some of the actual values.
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @node    Performance Issues, Limitations and Known Bugs, Sample Init File, Top
 @comment node-name, next, previous, up
-@chapter Performance Issues
+@appendix Performance Issues
 @cindex performance
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -6969,7 +6969,7 @@ more info.
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @node    Limitations and Known Bugs, FAQ, Performance Issues, Top
 @comment node-name, next, previous, up
-@chapter Limitations and Known Bugs
+@appendix Limitations and Known Bugs
 @cindex limitations
 @cindex bugs
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

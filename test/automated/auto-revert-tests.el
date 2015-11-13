@@ -89,7 +89,71 @@
         (kill-buffer buf))
       (ignore-errors (delete-file tmpfile)))))
 
-(ert-deftest auto-revert-test01-auto-revert-tail-mode ()
+;; This is inspired by Bug#21841.
+(ert-deftest auto-revert-test01-auto-revert-several-files ()
+  "Check autorevert for several files at once."
+  (skip-unless (executable-find "cp"))
+
+  (let* ((cp (executable-find "cp"))
+         (tmpdir1 (make-temp-file "auto-revert-test" 'dir))
+         (tmpdir2 (make-temp-file "auto-revert-test" 'dir))
+         (tmpfile1
+          (make-temp-file (expand-file-name "auto-revert-test" tmpdir1)))
+         (tmpfile2
+          (make-temp-file (expand-file-name "auto-revert-test" tmpdir1)))
+         buf1 buf2)
+    (unwind-protect
+	(progn
+          (with-current-buffer (get-buffer-create "*Messages*")
+            (narrow-to-region (point-max) (point-max)))
+	  (write-region "any text" nil tmpfile1 nil 'no-message)
+	  (setq buf1 (find-file-noselect tmpfile1))
+	  (write-region "any text" nil tmpfile2 nil 'no-message)
+	  (setq buf2 (find-file-noselect tmpfile2))
+
+          (dolist (buf (list buf1 buf2))
+            (with-current-buffer buf
+              (should (string-equal (buffer-string) "any text"))
+              ;; `buffer-stale--default-function' checks for
+              ;; `verify-visited-file-modtime'.  We must ensure that
+              ;; it returns nil.
+              (sleep-for 1)
+              (auto-revert-mode 1)
+              (should auto-revert-mode)))
+
+          ;; Modify files.  We wait for a second, in order to have
+          ;; another timestamp.
+          (sleep-for 1)
+          (write-region
+           "another text" nil
+           (expand-file-name (file-name-nondirectory tmpfile1) tmpdir2)
+           nil 'no-message)
+          (write-region
+           "another text" nil
+           (expand-file-name (file-name-nondirectory tmpfile2) tmpdir2)
+           nil 'no-message)
+          ;;(copy-directory tmpdir2 tmpdir1 nil 'copy-contents)
+          ;; Strange, that `copy-directory' does not work as expected.
+          ;; The following shell command is not portable on all
+          ;; platforms, unfortunately.
+          (shell-command (format "%s -f %s/* %s" cp tmpdir2 tmpdir1))
+
+          ;; Check, that the buffers have been reverted.
+          (dolist (buf (list buf1 buf2))
+            (with-current-buffer buf
+              (auto-revert--wait-for-revert buf)
+              (should (string-match "another text" (buffer-string))))))
+
+      ;; Exit.
+      (with-current-buffer "*Messages*" (widen))
+      (ignore-errors
+        (dolist (buf (list buf1 buf2))
+          (with-current-buffer buf (set-buffer-modified-p nil))
+          (kill-buffer buf)))
+      (ignore-errors (delete-directory tmpdir1 'recursive))
+      (ignore-errors (delete-directory tmpdir2 'recursive)))))
+
+(ert-deftest auto-revert-test02-auto-revert-tail-mode ()
   "Check autorevert tail mode."
   ;; `auto-revert-buffers' runs every 5".  And we must wait, until the
   ;; file has been reverted.
@@ -127,7 +191,7 @@
       (ignore-errors (kill-buffer buf))
       (ignore-errors (delete-file tmpfile)))))
 
-(ert-deftest auto-revert-test02-auto-revert-mode-dired ()
+(ert-deftest auto-revert-test03-auto-revert-mode-dired ()
   "Check autorevert for dired."
   ;; `auto-revert-buffers' runs every 5".  And we must wait, until the
   ;; file has been reverted.

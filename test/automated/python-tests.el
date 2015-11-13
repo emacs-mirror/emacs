@@ -36,10 +36,11 @@ BODY is code to be executed within the temp buffer.  Point is
 always located at the beginning of buffer."
   (declare (indent 1) (debug t))
   `(with-temp-buffer
-     (python-mode)
-     (insert ,contents)
-     (goto-char (point-min))
-     ,@body))
+     (let ((python-indent-guess-indent-offset nil))
+       (python-mode)
+       (insert ,contents)
+       (goto-char (point-min))
+       ,@body)))
 
 (defmacro python-tests-with-temp-file (contents &rest body)
   "Create a `python-mode' enabled file with CONTENTS.
@@ -48,7 +49,8 @@ always located at the beginning of buffer."
   (declare (indent 1) (debug t))
   ;; temp-file never actually used for anything?
   `(let* ((temp-file (make-temp-file "python-tests" nil ".py"))
-          (buffer (find-file-noselect temp-file)))
+          (buffer (find-file-noselect temp-file))
+          (python-indent-guess-indent-offset nil))
      (unwind-protect
          (with-current-buffer buffer
            (python-mode)
@@ -560,6 +562,14 @@ CHOICES = (('some', 'choice'),
    (forward-line 1)
    (should (eq (car (python-indent-context)) :inside-paren))
    (should (= (python-indent-calculate-indentation) 11))))
+
+(ert-deftest python-indent-inside-paren-7 ()
+  "Test for Bug#21762."
+  (python-tests-with-temp-buffer
+   "import re as myre\nvar = [\n"
+   (goto-char (point-max))
+   ;; This signals an error if the test fails
+   (should (eq (car (python-indent-context)) :inside-paren-newline-start))))
 
 (ert-deftest python-indent-after-block-1 ()
   "The most simple after-block case that shouldn't fail."

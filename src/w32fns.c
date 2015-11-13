@@ -55,6 +55,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <commctrl.h>
 #include <commdlg.h>
 #include <shellapi.h>
+#include <shlwapi.h>
 #include <ctype.h>
 #include <winspool.h>
 #include <objbase.h>
@@ -8755,6 +8756,457 @@ Internal use only.  */)
   return menubar_in_use ? Qt : Qnil;
 }
 
+#if defined WINDOWSNT && !defined HAVE_DBUS
+
+/***********************************************************************
+			  Tray notifications
+ ***********************************************************************/
+/* A private struct declaration to avoid compile-time limits.  */
+typedef struct MY_NOTIFYICONDATAW {
+  DWORD cbSize;
+  HWND hWnd;
+  UINT uID;
+  UINT uFlags;
+  UINT uCallbackMessage;
+  HICON hIcon;
+  WCHAR szTip[128];
+  DWORD dwState;
+  DWORD dwStateMask;
+  WCHAR szInfo[256];
+  _ANONYMOUS_UNION union {
+    UINT uTimeout;
+    UINT uVersion;
+  } DUMMYUNIONNAME;
+  WCHAR szInfoTitle[64];
+  DWORD dwInfoFlags;
+  GUID guidItem;
+  HICON hBalloonIcon;
+} MY_NOTIFYICONDATAW;
+
+#define MYNOTIFYICONDATAW_V1_SIZE offsetof (MY_NOTIFYICONDATAW, szTip[64])
+#define MYNOTIFYICONDATAW_V2_SIZE offsetof (MY_NOTIFYICONDATAW, guidItem)
+#define MYNOTIFYICONDATAW_V3_SIZE offsetof (MY_NOTIFYICONDATAW, hBalloonIcon)
+#ifndef NIF_INFO
+# define NIF_INFO     0x00000010
+#endif
+#ifndef NIIF_NONE
+# define NIIF_NONE    0x00000000
+#endif
+#ifndef NIIF_INFO
+# define NIIF_INFO    0x00000001
+#endif
+#ifndef NIIF_WARNING
+# define NIIF_WARNING 0x00000002
+#endif
+#ifndef NIIF_ERROR
+# define NIIF_ERROR   0x00000003
+#endif
+
+
+#define EMACS_TRAY_NOTIFICATION_ID  42	/* arbitrary */
+#define EMACS_NOTIFICATION_MSG      (WM_APP + 1)
+
+enum NI_Severity {
+  Ni_None,
+  Ni_Info,
+  Ni_Warn,
+  Ni_Err
+};
+
+/* Report the version of a DLL given by its name.  The return value is
+   constructed using MAKEDLLVERULL.  */
+static ULONGLONG
+get_dll_version (const char *dll_name)
+{
+  ULONGLONG version = 0;
+  HINSTANCE hdll = LoadLibrary (dll_name);
+
+  if (hdll)
+    {
+      DLLGETVERSIONPROC pDllGetVersion
+	= (DLLGETVERSIONPROC) GetProcAddress (hdll, "DllGetVersion");
+
+      if (pDllGetVersion)
+	{
+	  DLLVERSIONINFO dvi;
+	  HRESULT result;
+
+	  memset (&dvi, 0, sizeof(dvi));
+	  dvi.cbSize = sizeof(dvi);
+	  result = pDllGetVersion (&dvi);
+	  if (SUCCEEDED (result))
+	    version = MAKEDLLVERULL (dvi.dwMajorVersion, dvi.dwMinorVersion,
+				     0, 0);
+	}
+      FreeLibrary (hdll);
+    }
+
+  return version;
+}
+
+/* Return the number of bytes in UTF-8 encoded string STR that
+   corresponds to at most LIM characters.  If STR ends before LIM
+   characters, return the number of bytes in STR including the
+   terminating null byte.  */
+static int
+utf8_mbslen_lim (const char *str, int lim)
+{
+  const char *p = str;
+  int mblen = 0, nchars = 0;
+
+  while (*p && nchars < lim)
+    {
+      int nbytes = CHAR_BYTES (*p);
+
+      mblen += nbytes;
+      nchars++;
+      p += nbytes;
+    }
+
+  if (!*p && nchars < lim)
+    mblen++;
+
+  return mblen;
+}
+
+/* Low-level subroutine to show tray notifications.  All strings are
+   supposed to be unibyte UTF-8 encoded by the caller.  */
+static EMACS_INT
+add_tray_notification (struct frame *f, const char *icon, const char *tip,
+		       enum NI_Severity severity, unsigned timeout,
+		       const char *title, const char *msg)
+{
+  EMACS_INT retval = EMACS_TRAY_NOTIFICATION_ID;
+
+  if (FRAME_W32_P (f))
+    {
+      MY_NOTIFYICONDATAW nidw;
+      ULONGLONG shell_dll_version = get_dll_version ("Shell32.dll");
+      wchar_t tipw[128], msgw[256], titlew[64];
+      int tiplen;
+
+      memset (&nidw, 0, sizeof(nidw));
+
+      /* MSDN says the full struct is supported since Vista, whose
+	 Shell32.dll version is said to be 6.0.6.  But DllGetVersion
+	 cannot report the 3rd field value, it reports "build number"
+	 instead, which is something else.  So we use the Windows 7's
+	 version 6.1 as cutoff, and Vista loses.  (Actually, the loss
+	 is not a real one, since we don't expose the hBalloonIcon
+	 member of the struct to Lisp.)  */
+      if (shell_dll_version >= MAKEDLLVERULL (6, 1, 0, 0)) /* >= Windows 7 */
+	nidw.cbSize = sizeof (nidw);
+      else if (shell_dll_version >= MAKEDLLVERULL (6, 0, 0, 0)) /* XP */
+	nidw.cbSize = MYNOTIFYICONDATAW_V3_SIZE;
+      else if (shell_dll_version >= MAKEDLLVERULL (5, 0, 0, 0)) /* W2K */
+	nidw.cbSize = MYNOTIFYICONDATAW_V2_SIZE;
+      else
+	nidw.cbSize = MYNOTIFYICONDATAW_V1_SIZE;		/* < W2K */
+      nidw.hWnd = FRAME_W32_WINDOW (f);
+      nidw.uID = EMACS_TRAY_NOTIFICATION_ID;
+      nidw.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP | NIF_INFO;
+      nidw.uCallbackMessage = EMACS_NOTIFICATION_MSG;
+      if (!*icon)
+	nidw.hIcon = LoadIcon (hinst, EMACS_CLASS);
+      else
+	{
+	  if (w32_unicode_filenames)
+	    {
+	      wchar_t icon_w[MAX_PATH];
+
+	      if (filename_to_utf16 (icon, icon_w) != 0)
+		{
+		  errno = ENOENT;
+		  return -1;
+		}
+	      nidw.hIcon = LoadImageW (NULL, icon_w, IMAGE_ICON, 0, 0,
+				       LR_DEFAULTSIZE | LR_LOADFROMFILE);
+	    }
+	  else
+	    {
+	      char icon_a[MAX_PATH];
+
+	      if (filename_to_ansi (icon, icon_a) != 0)
+		{
+		  errno = ENOENT;
+		  return -1;
+		}
+	      nidw.hIcon = LoadImageA (NULL, icon_a, IMAGE_ICON, 0, 0,
+				       LR_DEFAULTSIZE | LR_LOADFROMFILE);
+	    }
+	}
+      if (!nidw.hIcon)
+	{
+	  switch (GetLastError ())
+	    {
+	    case ERROR_FILE_NOT_FOUND:
+	      errno = ENOENT;
+	      break;
+	    default:
+	      errno = ENOMEM;
+	      break;
+	    }
+	  return -1;
+	}
+
+      /* Windows 9X and NT4 support only 64 characters in the Tip,
+	 later versions support up to 128.  */
+      if (nidw.cbSize == MYNOTIFYICONDATAW_V1_SIZE)
+	{
+	  tiplen = pMultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
+					 tip, utf8_mbslen_lim (tip, 63),
+					 tipw, 64);
+	  if (tiplen >= 63)
+	    tipw[63] = 0;
+	}
+      else
+	{
+	  tiplen = pMultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
+					 tip, utf8_mbslen_lim (tip, 127),
+					 tipw, 128);
+	  if (tiplen >= 127)
+	    tipw[127] = 0;
+	}
+      if (tiplen == 0)
+	{
+	  errno = EINVAL;
+	  retval = -1;
+	  goto done;
+	}
+      wcscpy (nidw.szTip, tipw);
+
+      /* The rest of the structure is only supported since Windows 2000.  */
+      if (nidw.cbSize > MYNOTIFYICONDATAW_V1_SIZE)
+	{
+	  int slen;
+
+	  slen = pMultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
+					     msg, utf8_mbslen_lim (msg, 255),
+					     msgw, 256);
+	  if (slen >= 255)
+	    msgw[255] = 0;
+	  else if (slen == 0)
+	    {
+	      errno = EINVAL;
+	      retval = -1;
+	      goto done;
+	    }
+	  wcscpy (nidw.szInfo, msgw);
+	  nidw.uTimeout = timeout;
+	  slen = pMultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS,
+				       title, utf8_mbslen_lim (title, 63),
+				       titlew, 64);
+	  if (slen >= 63)
+	    titlew[63] = 0;
+	  else if (slen == 0)
+	    {
+	      errno = EINVAL;
+	      retval = -1;
+	      goto done;
+	    }
+	  wcscpy (nidw.szInfoTitle, titlew);
+
+	  switch (severity)
+	    {
+	    case Ni_None:
+	      nidw.dwInfoFlags = NIIF_NONE;
+	      break;
+	    case Ni_Info:
+	    default:
+	      nidw.dwInfoFlags = NIIF_INFO;
+	      break;
+	    case Ni_Warn:
+	      nidw.dwInfoFlags = NIIF_WARNING;
+	      break;
+	    case Ni_Err:
+	      nidw.dwInfoFlags = NIIF_ERROR;
+	      break;
+	    }
+	}
+
+      if (!Shell_NotifyIconW (NIM_ADD, (PNOTIFYICONDATAW)&nidw))
+	{
+	  /* GetLastError returns meaningless results when
+	     Shell_NotifyIcon fails.  */
+	  DebPrint (("Shell_NotifyIcon ADD failed (err=%d)\n",
+		     GetLastError ()));
+	  errno = EINVAL;
+	  retval = -1;
+	}
+    done:
+      if (*icon && !DestroyIcon (nidw.hIcon))
+	DebPrint (("DestroyIcon failed (err=%d)\n", GetLastError ()));
+    }
+  return retval;
+}
+
+/* Low-level subroutine to remove a tray notification.  Note: we only
+   pass the minimum data about the notification: its ID and the handle
+   of the window to which it sends messages.  MSDN doesn't say this is
+   enough, but it works in practice.  This allows us to avoid keeping
+   the notification data around after we show the notification.  */
+static void
+delete_tray_notification (struct frame *f, int id)
+{
+  if (FRAME_W32_P (f))
+    {
+      MY_NOTIFYICONDATAW nidw;
+
+      memset (&nidw, 0, sizeof(nidw));
+      nidw.hWnd = FRAME_W32_WINDOW (f);
+      nidw.uID = id;
+
+      if (!Shell_NotifyIconW (NIM_DELETE, (PNOTIFYICONDATAW)&nidw))
+	{
+	  /* GetLastError returns meaningless results when
+	     Shell_NotifyIcon fails.  */
+	  DebPrint (("Shell_NotifyIcon DELETE failed\n"));
+	  errno = EINVAL;
+	  return;
+	}
+    }
+  return;
+}
+
+DEFUN ("w32-notification-notify",
+       Fw32_notification_notify, Sw32_notification_notify,
+       0, MANY, 0,
+       doc: /* Display an MS-Windows tray notification as specified by PARAMS.
+
+Value is the integer unique ID of the notification that can be used
+to remove the notification using `w32-notification-close', which see.
+If the function fails, the return value is nil.
+
+Tray notifications, a.k.a. \"taskbar messages\", are messages that
+inform the user about events unrelated to the current user activity,
+such as a significant system event, by briefly displaying informative
+text in a balloon from an icon in the notification area of the taskbar.
+
+Parameters in PARAMS are specified as keyword/value pairs.  All the
+parameters are optional, but if no parameters are specified, the
+function will do nothing and return nil.
+
+The following parameters are supported:
+
+:icon ICON       -- Display ICON in the system tray.  If ICON is a string,
+                    it should specify a file name from which to load the
+                    icon; the specified file should be a .ico Windows icon
+                    file.  If ICON is not a string, or if this parameter
+                    is not specified, the standard Emacs icon will be used.
+
+:tip TIP         -- Use TIP as the tooltip for the notification.  If TIP
+                    is a string, this is the text of a tooltip that will
+                    be shown when the mouse pointer hovers over the tray
+                    icon added by the notification.  If TIP is not a
+                    string, or if this parameter is not specified, the
+                    default tooltip text is \"Emacs notification\".  The
+                    tooltip text can be up to 127 characters long (63
+                    on Windows versions before W2K).  Longer strings
+                    will be truncated.
+
+:level LEVEL     -- Notification severity level, one of `info',
+                    `warning', or `error'.  If given, the value
+                    determines the icon displayed to the left of the
+                    notification title, but only if the `:title'
+                    parameter (see below) is also specified and is a
+                    string.
+
+:title TITLE     -- The title of the notification.  If TITLE is a string,
+                    it is displayed in a larger font immediately above
+                    the body text.  The title text can be up to 63
+                    characters long; longer text will be truncated.
+
+:body BODY       -- The body of the notification.  If BODY is a string,
+                    it specifies the text of the notification message.
+                    Use embedded newlines to control how the text is
+                    broken into lines.  The body text can be up to 255
+                    characters long, and will be truncated if it's longer.
+
+Note that versions of Windows before W2K support only `:icon' and `:tip'.
+You can pass the other parameters, but they will be ignored on those
+old systems.
+
+There can be at most one active notification at any given time.  An
+active notification must be removed by calling `w32-notification-close'
+before a new one can be shown.
+
+usage: (w32-notification-notify &rest PARAMS)  */)
+  (ptrdiff_t nargs, Lisp_Object *args)
+{
+  struct frame *f = SELECTED_FRAME ();
+  Lisp_Object arg_plist, lres;
+  EMACS_INT retval;
+  char *icon, *tip, *title, *msg;
+  enum NI_Severity severity;
+  unsigned timeout;
+
+  if (nargs == 0)
+    return Qnil;
+
+  arg_plist = Flist (nargs, args);
+
+  /* Icon.  */
+  lres = Fplist_get (arg_plist, QCicon);
+  if (STRINGP (lres))
+    icon = SSDATA (ENCODE_FILE (Fexpand_file_name (lres, Qnil)));
+  else
+    icon = "";
+
+  /* Tip.  */
+  lres = Fplist_get (arg_plist, QCtip);
+  if (STRINGP (lres))
+    tip = SSDATA (code_convert_string_norecord (lres, Qutf_8, 1));
+  else
+    tip = "Emacs notification";
+
+  /* Severity.  */
+  lres = Fplist_get (arg_plist, QClevel);
+  if (NILP (lres))
+    severity = Ni_None;
+  else if (EQ (lres, Qinfo))
+    severity = Ni_Info;
+  else if (EQ (lres, Qwarning))
+    severity = Ni_Warn;
+  else if (EQ (lres, Qerror))
+    severity = Ni_Err;
+  else
+    severity = Ni_Info;
+
+  /* Title.  */
+  lres = Fplist_get (arg_plist, QCtitle);
+  if (STRINGP (lres))
+    title = SSDATA (code_convert_string_norecord (lres, Qutf_8, 1));
+  else
+    title = "";
+
+  /* Notification body text.  */
+  lres = Fplist_get (arg_plist, QCbody);
+  if (STRINGP (lres))
+    msg = SSDATA (code_convert_string_norecord (lres, Qutf_8, 1));
+  else
+    msg = "";
+
+  /* Do it!  */
+  retval = add_tray_notification (f, icon, tip, severity, timeout, title, msg);
+  return (retval < 0 ? Qnil : make_number (retval));
+}
+
+DEFUN ("w32-notification-close",
+       Fw32_notification_close, Sw32_notification_close,
+       1, 1, 0,
+       doc: /* Remove the MS-Windows tray notification specified by its ID.  */)
+  (Lisp_Object id)
+{
+  struct frame *f = SELECTED_FRAME ();
+
+  if (INTEGERP (id))
+    delete_tray_notification (f, XINT (id));
+
+  return Qnil;
+}
+
+#endif	/* WINDOWSNT && !HAVE_DBUS */
+
 
 /***********************************************************************
 			    Initialization
@@ -8828,6 +9280,15 @@ syms_of_w32fns (void)
   DEFSYM (Qframes, "frames");
   DEFSYM (Qtip_frame, "tip-frame");
   DEFSYM (Qunicode_sip, "unicode-sip");
+#if defined WINDOWSNT && !defined HAVE_DBUS
+  DEFSYM (QCicon, ":icon");
+  DEFSYM (QCtip, ":tip");
+  DEFSYM (QClevel, ":level");
+  DEFSYM (Qinfo, "info");
+  DEFSYM (Qwarning, "warning");
+  DEFSYM (QCtitle, ":title");
+  DEFSYM (QCbody, ":body");
+#endif
 
   /* Symbols used elsewhere, but only in MS-Windows-specific code.  */
   DEFSYM (Qgnutls_dll, "gnutls");
@@ -9161,6 +9622,10 @@ This variable has effect only on Windows Vista and later.  */);
   defsubr (&Sw32_window_exists_p);
   defsubr (&Sw32_battery_status);
   defsubr (&Sw32__menu_bar_in_use);
+#if defined WINDOWSNT && !defined HAVE_DBUS
+  defsubr (&Sw32_notification_notify);
+  defsubr (&Sw32_notification_close);
+#endif
 
 #ifdef WINDOWSNT
   defsubr (&Sfile_system_info);

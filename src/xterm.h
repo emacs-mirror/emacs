@@ -87,6 +87,10 @@ typedef GtkWidget *xt_or_gtk_widget;
 #include <X11/Xlocale.h>
 #endif
 
+#ifdef USE_XCB
+#include <X11/Xlib-xcb.h>
+#endif
+
 #include "dispextern.h"
 #include "termhooks.h"
 
@@ -457,6 +461,10 @@ struct x_display_info
 
 #ifdef USE_CAIRO
   XExtCodes *ext_codes;
+#endif
+
+#ifdef USE_XCB
+  xcb_connection_t *xcb_connection;
 #endif
 };
 

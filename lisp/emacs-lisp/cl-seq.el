@@ -849,7 +849,7 @@ to avoid corrupting the original LIST1 and LIST2.
 		(memq (car cl-list1) cl-list2))
 	      (push (car cl-list1) cl-res))
 	  (pop cl-list1))
-	cl-res))))
+        (nreverse cl-res)))))
 
 ;;;###autoload
 (defun cl-nset-difference (cl-list1 cl-list2 &rest cl-keys)

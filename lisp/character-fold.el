@@ -157,4 +157,6 @@ BOUND NOERROR COUNT are passed to `re-search-backward'."
   (interactive "sSearch: ")
   (re-search-backward (character-fold-to-regexp string) bound noerror count))
 
+(provide 'character-fold)
+
 ;;; character-fold.el ends here

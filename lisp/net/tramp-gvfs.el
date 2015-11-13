@@ -48,7 +48,7 @@
 ;; comments.
 
 ;; The custom option `tramp-gvfs-methods' contains the list of
-;; supported connection methods.  Per default, these are "dav",
+;; supported connection methods.  Per default, these are "afp", "dav",
 ;; "davs", "obex", "sftp" and "synce".  Note that with "obex" it might
 ;; be necessary to pair with the other bluetooth device, if it hasn't
 ;; been done already.  There might be also some few seconds delay in
@@ -78,7 +78,7 @@
 
 ;; For hostname completion, information is retrieved either from the
 ;; bluez daemon (for the "obex" method), the hal daemon (for the
-;; "synce" method), or from the zeroconf daemon (for the "dav",
+;; "synce" method), or from the zeroconf daemon (for the "afp", "dav",
 ;; "davs", and "sftp" methods).  The zeroconf daemon is pre-configured
 ;; to discover services in the "local" domain.  If another domain
 ;; shall be used for discovering services, the custom option
@@ -110,11 +110,12 @@
   (require 'custom))
 
 ;;;###tramp-autoload
-(defcustom tramp-gvfs-methods '("dav" "davs" "obex" "sftp" "synce")
+(defcustom tramp-gvfs-methods '("afp" "dav" "davs" "obex" "sftp" "synce")
   "List of methods for remote files, accessed with GVFS."
   :group 'tramp
-  :version "23.2"
-  :type '(repeat (choice (const "dav")
+  :version "25.1"
+  :type '(repeat (choice (const "afp")
+			 (const "dav")
 			 (const "davs")
 			 (const "ftp")
 			 (const "obex")
@@ -231,7 +232,8 @@ It has been changed in GVFS 1.14.")
 ;;     ARRAY BYTE	    mount_prefix
 ;;     ARRAY
 ;;       STRUCT		    mount_spec_item
-;;         STRING	      key (server, share, type, user, host, port)
+;;         STRING	      key (type, user, domain, host, server,
+;;                                 share, volume, port, ssl)
 ;;         ARRAY BYTE	      value
 ;;   ARRAY BYTE           default_location	Since GVFS 1.5 only !!!
 
@@ -428,10 +430,10 @@ Every entry is a list (NAME ADDRESS).")
     (file-acl . ignore)
     (file-attributes . tramp-gvfs-handle-file-attributes)
     (file-directory-p . tramp-gvfs-handle-file-directory-p)
-    ;; `file-equal-p' performed by default handler.
+    (file-equal-p . tramp-handle-file-equal-p)
     (file-executable-p . tramp-gvfs-handle-file-executable-p)
     (file-exists-p . tramp-handle-file-exists-p)
-    ;; `file-in-directory-p' performed by default handler.
+    (file-in-directory-p . tramp-handle-file-in-directory-p)
     (file-local-copy . tramp-gvfs-handle-file-local-copy)
     (file-modes . tramp-handle-file-modes)
     (file-name-all-completions . tramp-gvfs-handle-file-name-all-completions)
@@ -770,7 +772,7 @@ file names."
       (unless (tramp-run-real-handler 'file-name-absolute-p (list localname))
 	(setq localname (concat "/" localname)))
       ;; We do not pass "/..".
-      (if (string-equal "smb" method)
+      (if (string-match "^\\(afp\\|smb\\)$" method)
 	  (when (string-match "^/[^/]+\\(/\\.\\./?\\)" localname)
 	    (setq localname (replace-match "/" t t localname 1)))
 	(when (string-match "^/\\.\\./?" localname)
@@ -806,81 +808,72 @@ file names."
 	    (when (re-search-forward "attributes:" nil t)
 	      ;; ... directory or symlink
 	      (goto-char (point-min))
-	      (setq dirp (if (re-search-forward "type:\\s-+directory" nil t) t))
+	      (setq dirp (if (re-search-forward "type: directory" nil t) t))
 	      (goto-char (point-min))
 	      (setq res-symlink-target
 		    (if (re-search-forward
-			 "standard::symlink-target:\\s-+\\(.*\\)$" nil t)
+			 "standard::symlink-target: \\(.+\\)$" nil t)
 			(match-string 1)))
 	      ;; ... number links
 	      (goto-char (point-min))
 	      (setq res-numlinks
-		    (if (re-search-forward
-			 "unix::nlink:\\s-+\\([0-9]+\\)" nil t)
+		    (if (re-search-forward "unix::nlink: \\([0-9]+\\)" nil t)
 			(string-to-number (match-string 1)) 0))
 	      ;; ... uid and gid
 	      (goto-char (point-min))
 	      (setq res-uid
-		    (or (if (eq id-format 'integer)
-			    (if (re-search-forward
-				 "unix::uid:\\s-+\\([0-9]+\\)" nil t)
-				(string-to-number (match-string 1)))
-			  (if (re-search-forward
-			       "owner::user:\\s-+\\(\\S-+\\)" nil t)
-			      (match-string 1)))
-			(tramp-get-local-uid id-format)))
+		    (if (eq id-format 'integer)
+			(if (re-search-forward "unix::uid: \\([0-9]+\\)" nil t)
+			    (string-to-number (match-string 1))
+			  -1)
+		      (if (re-search-forward "owner::user: \\(.+\\)$" nil t)
+			  (match-string 1)
+			"UNKNOWN")))
 	      (setq res-gid
-		    (or (if (eq id-format 'integer)
-			    (if (re-search-forward
-				 "unix::gid:\\s-+\\([0-9]+\\)" nil t)
-				(string-to-number (match-string 1)))
-			  (if (re-search-forward
-			       "owner::group:\\s-+\\(\\S-+\\)" nil t)
-			      (match-string 1)))
-			(tramp-get-local-gid id-format)))
+		    (if (eq id-format 'integer)
+			(if (re-search-forward "unix::gid: \\([0-9]+\\)" nil t)
+			    (string-to-number (match-string 1))
+			  -1)
+		      (if (re-search-forward "owner::group: \\(.+\\)$" nil t)
+			  (match-string 1)
+			"UNKNOWN")))
 	      ;; ... last access, modification and change time
 	      (goto-char (point-min))
 	      (setq res-access
-		    (if (re-search-forward
-			 "time::access:\\s-+\\([0-9]+\\)" nil t)
+		    (if (re-search-forward "time::access: \\([0-9]+\\)" nil t)
 			(seconds-to-time (string-to-number (match-string 1)))
 		      '(0 0)))
 	      (goto-char (point-min))
 	      (setq res-mod
-		    (if (re-search-forward
-			 "time::modified:\\s-+\\([0-9]+\\)" nil t)
+		    (if (re-search-forward "time::modified: \\([0-9]+\\)" nil t)
 			(seconds-to-time (string-to-number (match-string 1)))
 		      '(0 0)))
 	      (goto-char (point-min))
 	      (setq res-change
-		    (if (re-search-forward
-			 "time::changed:\\s-+\\([0-9]+\\)" nil t)
+		    (if (re-search-forward "time::changed: \\([0-9]+\\)" nil t)
 			(seconds-to-time (string-to-number (match-string 1)))
 		      '(0 0)))
 	      ;; ... size
 	      (goto-char (point-min))
 	      (setq res-size
-		    (if (re-search-forward
-			 "standard::size:\\s-+\\([0-9]+\\)" nil t)
+		    (if (re-search-forward "standard::size: \\([0-9]+\\)" nil t)
 			(string-to-number (match-string 1)) 0))
 	      ;; ... file mode flags
 	      (goto-char (point-min))
 	      (setq res-filemodes
-		    (if (re-search-forward "unix::mode:\\s-+\\([0-9]+\\)" nil t)
+		    (if (re-search-forward "unix::mode: \\([0-9]+\\)" nil t)
 			(tramp-file-mode-from-int
 			 (string-to-number (match-string 1)))
 		      (if dirp "drwx------" "-rwx------")))
 	      ;; ... inode and device
 	      (goto-char (point-min))
 	      (setq res-inode
-		    (if (re-search-forward
-			 "unix::inode:\\s-+\\([0-9]+\\)" nil t)
+		    (if (re-search-forward "unix::inode: \\([0-9]+\\)" nil t)
 			(string-to-number (match-string 1))
 		      (tramp-get-inode v)))
 	      (goto-char (point-min))
 	      (setq res-device
-		    (if (re-search-forward
-			 "unix::device:\\s-+\\([0-9]+\\)" nil t)
+		    (if (re-search-forward "unix::device: \\([0-9]+\\)" nil t)
 			(string-to-number (match-string 1))
 		      (tramp-get-device v)))
 
@@ -1346,12 +1339,14 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 		    (cadr (assoc "port" (cadr mount-spec)))))
 	     (ssl (tramp-gvfs-dbus-byte-array-to-string
 		   (cadr (assoc "ssl" (cadr mount-spec)))))
-	     (prefix (concat (tramp-gvfs-dbus-byte-array-to-string
-			      (car mount-spec))
-			     (tramp-gvfs-dbus-byte-array-to-string
-			      (cadr (assoc "share" (cadr mount-spec)))))))
-	(when (string-match "^smb" method)
-	  (setq method "smb"))
+	     (prefix (concat
+		      (tramp-gvfs-dbus-byte-array-to-string
+		       (car mount-spec))
+		      (tramp-gvfs-dbus-byte-array-to-string
+		       (or (cadr (assoc "share" (cadr mount-spec)))
+			   (cadr (assoc "volume" (cadr mount-spec))))))))
+	(when (string-match "^\\(afp\\|smb\\)" method)
+	  (setq method (match-string 1 method)))
 	(when (string-equal "obex" method)
 	  (setq host (tramp-bluez-device host)))
 	(when (and (string-equal "dav" method) (string-equal "true" ssl))
@@ -1428,12 +1423,15 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 		     (cadr (assoc "port" (cadr mount-spec)))))
 	      (ssl (tramp-gvfs-dbus-byte-array-to-string
 		    (cadr (assoc "ssl" (cadr mount-spec)))))
-	      (prefix (concat (tramp-gvfs-dbus-byte-array-to-string
-			       (car mount-spec))
-			      (tramp-gvfs-dbus-byte-array-to-string
-			       (cadr (assoc "share" (cadr mount-spec)))))))
-	 (when (string-match "^smb" method)
-	   (setq method "smb"))
+	      (prefix (concat
+		       (tramp-gvfs-dbus-byte-array-to-string
+			(car mount-spec))
+		       (tramp-gvfs-dbus-byte-array-to-string
+			(or
+			 (cadr (assoc "share" (cadr mount-spec)))
+			 (cadr (assoc "volume" (cadr mount-spec))))))))
+	 (when (string-match "^\\(afp\\|smb\\)" method)
+	   (setq method (match-string 1 method)))
 	 (when (string-equal "obex" method)
 	   (setq host (tramp-bluez-device host)))
 	 (when (and (string-equal "dav" method) (string-equal "true" ssl))
@@ -1473,16 +1471,16 @@ It was \"a(say)\", but has changed to \"a{sv})\"."
 	 (host (tramp-file-name-real-host vec))
 	 (port (tramp-file-name-port vec))
 	 (localname (tramp-file-name-localname vec))
-	 (ssl (if (string-match "^davs" method) "true" "false"))
+	 (share (when (string-match "^/?\\([^/]+\\)" localname)
+		  (match-string 1 localname)))
+	 (ssl (when (string-match "^davs" method) "true" "false"))
 	 (mount-spec
           `(:array
             ,@(cond
                ((string-equal "smb" method)
-                (string-match "^/?\\([^/]+\\)" localname)
                 (list (tramp-gvfs-mount-spec-entry "type" "smb-share")
                       (tramp-gvfs-mount-spec-entry "server" host)
-                      (tramp-gvfs-mount-spec-entry
-		       "share" (match-string 1 localname))))
+                      (tramp-gvfs-mount-spec-entry "share" share)))
                ((string-equal "obex" method)
                 (list (tramp-gvfs-mount-spec-entry "type" method)
                       (tramp-gvfs-mount-spec-entry
@@ -1491,6 +1489,10 @@ It was \"a(say)\", but has changed to \"a{sv})\"."
                 (list (tramp-gvfs-mount-spec-entry "type" "dav")
                       (tramp-gvfs-mount-spec-entry "host" host)
                       (tramp-gvfs-mount-spec-entry "ssl" ssl)))
+               ((string-equal "afp" method)
+                (list (tramp-gvfs-mount-spec-entry "type" "afp-volume")
+                      (tramp-gvfs-mount-spec-entry "host" host)
+                      (tramp-gvfs-mount-spec-entry "volume" share)))
                (t
                 (list (tramp-gvfs-mount-spec-entry "type" method)
                       (tramp-gvfs-mount-spec-entry "host" host))))
@@ -1545,6 +1547,10 @@ connection if a previous connection has died for some reason."
       (when (and (string-equal method "smb")
 		 (string-equal localname "/"))
 	(tramp-error vec 'file-error "Filename must contain a Windows share"))
+
+      (when (and (string-equal method "afp")
+		 (string-equal localname "/"))
+	(tramp-error vec 'file-error "Filename must contain an AFP volume"))
 
       (with-tramp-progress-reporter
 	  vec 3
@@ -1716,14 +1722,7 @@ be used."
 
 ;; D-Bus zeroconf functions.
 
-(defun tramp-zeroconf-parse-workstation-device-names (_ignore)
-  "Return a list of (user host) tuples allowed to access."
-  (mapcar
-   (lambda (x)
-     (list nil (zeroconf-service-host x)))
-   (zeroconf-list-services "_workstation._tcp")))
-
-(defun tramp-zeroconf-parse-webdav-device-names (_ignore)
+(defun tramp-zeroconf-parse-device-names (service)
   "Return a list of (user host) tuples allowed to access."
   (mapcar
    (lambda (x)
@@ -1739,18 +1738,64 @@ be used."
 	   (setq user (match-string 1 (car text))))
 	 (setq text (cdr text)))
        (list user host)))
-   (zeroconf-list-services "_webdav._tcp")))
+   (zeroconf-list-services service)))
 
-;; Add completion function for SFTP, DAV and DAVS methods.
-(when (and tramp-gvfs-enabled
-	   (member zeroconf-service-avahi (dbus-list-known-names :system)))
+(defun tramp-gvfs-parse-device-names (service)
+  "Return a list of (user host) tuples allowed to access.
+This uses \"avahi-browse\" in case D-Bus is not enabled in Avahi."
+  (let ((result
+	 (split-string
+	  (shell-command-to-string (format "avahi-browse -trkp %s" service))
+	  "[\n\r]+" 'omit "^\\+;.*$")))
+    (tramp-compat-delete-dups
+     (mapcar
+      (lambda (x)
+	(let* ((list (split-string x ";"))
+	       (host (nth 6 list))
+	       (port (nth 8 list))
+	       (text (split-string (nth 9 list) "\" \"" 'omit "\""))
+	       user)
+;	  (when (and port (not (string-equal port "0")))
+;	    (setq host (format "%s%s%s" host tramp-prefix-port-regexp port)))
+	  ;; A user is marked in a TXT field like "u=guest".
+	  (while text
+	    (when (string-match "u=\\(.+\\)$" (car text))
+	      (setq user (match-string 1 (car text))))
+	    (setq text (cdr text)))
+	  (list user host)))
+      result))))
+
+;; Add completion functions for AFP, DAV, DAVS, SFTP and SMB methods.
+(when tramp-gvfs-enabled
   (zeroconf-init tramp-gvfs-zeroconf-domain)
-  (tramp-set-completion-function
-   "sftp" '((tramp-zeroconf-parse-workstation-device-names "")))
-  (tramp-set-completion-function
-   "dav" '((tramp-zeroconf-parse-webdav-device-names "")))
-  (tramp-set-completion-function
-   "davs" '((tramp-zeroconf-parse-webdav-device-names ""))))
+  (if (zeroconf-list-service-types)
+      (progn
+	(tramp-set-completion-function
+	 "afp" '((tramp-zeroconf-parse-device-names "_afpovertcp._tcp")))
+	(tramp-set-completion-function
+	 "dav" '((tramp-zeroconf-parse-device-names "_webdav._tcp")))
+	(tramp-set-completion-function
+	 "davs" '((tramp-zeroconf-parse-device-names "_webdav._tcp")))
+	(tramp-set-completion-function
+	 "sftp" '((tramp-zeroconf-parse-device-names "_ssh._tcp")
+		  (tramp-zeroconf-parse-device-names "_workstation._tcp")))
+	(when (member "smb" tramp-gvfs-methods)
+	  (tramp-set-completion-function
+	   "smb" '((tramp-zeroconf-parse-device-names "_smb._tcp")))))
+
+    (when (executable-find "avahi-browse")
+      (tramp-set-completion-function
+       "afp" '((tramp-gvfs-parse-device-names "_afpovertcp._tcp")))
+      (tramp-set-completion-function
+       "dav" '((tramp-gvfs-parse-device-names "_webdav._tcp")))
+      (tramp-set-completion-function
+       "davs" '((tramp-gvfs-parse-device-names "_webdav._tcp")))
+      (tramp-set-completion-function
+       "sftp" '((tramp-gvfs-parse-device-names "_ssh._tcp")
+		(tramp-gvfs-parse-device-names "_workstation._tcp")))
+      (when (member "smb" tramp-gvfs-methods)
+	(tramp-set-completion-function
+	 "smb" '((tramp-gvfs-parse-device-names "_smb._tcp")))))))
 
 
 ;; D-Bus SYNCE functions.
@@ -1795,7 +1840,7 @@ They are retrieved from the hal daemon."
 
 ;;; TODO:
 
-;; * Host name completion via smb-server or smb-network.
+;; * Host name completion via afp-server, smb-server or smb-network.
 ;; * Check how two shares of the same SMB server can be mounted in
 ;;   parallel.
 ;; * Apply SDP on bluetooth devices, in order to filter out obex

@@ -1059,16 +1059,15 @@ method invocation orders of the involved classes."
 
 ;;;; General support to dispatch based on the type of the argument.
 
-(defconst eieio--generic-generalizer
-  (cl-generic-make-generalizer
-   ;; Use the exact same tagcode as for cl-struct, so that methods
-   ;; that dispatch on both kinds of objects get to share this
-   ;; part of the dispatch code.
-   50 #'cl--generic-struct-tag
-   (lambda (tag)
-        (and (symbolp tag) (boundp tag) (eieio--class-p (symbol-value tag))
-             (mapcar #'eieio--class-name
-                     (eieio--class-precedence-list (symbol-value tag)))))))
+(cl-generic-define-generalizer eieio--generic-generalizer
+  ;; Use the exact same tagcode as for cl-struct, so that methods
+  ;; that dispatch on both kinds of objects get to share this
+  ;; part of the dispatch code.
+  50 #'cl--generic-struct-tag
+  (lambda (tag &rest _)
+    (and (symbolp tag) (boundp tag) (eieio--class-p (symbol-value tag))
+         (mapcar #'eieio--class-name
+                 (eieio--class-precedence-list (symbol-value tag))))))
 
 (cl-defmethod cl-generic-generalizers :extra "class" (specializer)
   ;; CLHS says:
@@ -1088,22 +1087,21 @@ method invocation orders of the involved classes."
 ;; would not make much sense (e.g. to which argument should it apply?).
 ;; Instead, we add a new "subclass" specializer.
 
-(defun eieio--generic-subclass-specializers (tag)
+(defun eieio--generic-subclass-specializers (tag &rest _)
   (when (eieio--class-p tag)
     (mapcar (lambda (class)
               `(subclass ,(eieio--class-name class)))
             (eieio--class-precedence-list tag))))
 
-(defconst eieio--generic-subclass-generalizer
-  (cl-generic-make-generalizer
-   60 (lambda (name) `(and (symbolp ,name) (cl--find-class ,name)))
-   #'eieio--generic-subclass-specializers))
+(cl-generic-define-generalizer eieio--generic-subclass-generalizer
+  60 (lambda (name &rest _) `(and (symbolp ,name) (cl--find-class ,name)))
+  #'eieio--generic-subclass-specializers)
 
 (cl-defmethod cl-generic-generalizers ((_specializer (head subclass)))
   (list eieio--generic-subclass-generalizer))
 
 
-;;;### (autoloads nil "eieio-compat" "eieio-compat.el" "ea8c7f24ed47c6b71ac37cbdae1c9931")
+;;;### (autoloads nil "eieio-compat" "eieio-compat.el" "11dd361fd4c1c625de90a39977936236")
 ;;; Generated autoloads from eieio-compat.el
 
 (autoload 'eieio--defalias "eieio-compat" "\

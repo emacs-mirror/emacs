@@ -1765,20 +1765,33 @@ variables: by putting them in a special file, or by defining a
 @dfn{project class} for that directory.
 
 @defvr Constant dir-locals-file
-This constant is the name of the file where Emacs expects to find the
-directory-local variables.  The name of the file is
-@file{.dir-locals.el}@footnote{
-The MS-DOS version of Emacs uses @file{_dir-locals.el} instead, due to
+This constant is a wildcard pattern matching the name of files where
+Emacs expects to find directory-local variables.  Its value is
+@file{.dir-locals*.el}@footnote{
+The MS-DOS version of Emacs uses @file{_dir-locals*.el} instead, due to
 limitations of the DOS filesystems.
-}.  A file by that name in a directory causes Emacs to apply its
-settings to any file in that directory or any of its subdirectories
-(optionally, you can exclude subdirectories; see below).
-If some of the subdirectories have their own @file{.dir-locals.el}
-files, Emacs uses the settings from the deepest file it finds starting
-from the file's directory and moving up the directory tree.  The file
-specifies local variables as a specially formatted list; see
-@ref{Directory Variables, , Per-directory Local Variables, emacs, The
-GNU Emacs Manual}, for more details.
+}, and the most common file name to use is @file{.dir-locals.el}.
+
+Any file matching this name pattern in a directory causes Emacs to
+apply its settings when visiting files in that directory or any of its
+subdirectories (optionally, you can exclude subdirectories; see
+below).
+If some of the subdirectories have their own file matching
+@file{.dir-locals*.el}, Emacs uses the settings from the deepest file
+it finds starting from the file's directory and moving up the
+directory tree.  The file specifies local variables as a specially
+formatted list; see @ref{Directory Variables, , Per-directory Local
+Variables, emacs, The GNU Emacs Manual}, for more details.
+
+If the same directory contains multiple such files (for instance,
+@file{.dir-locals.el} and @file{.dir-locals2.el}), then all of them
+are used in @code{string<} order.  This means that, if two files
+specify different values for the same variable, the file sorted after
+will override the value of the previous file (for instance, values in
+@file{.dir-locals2.el} override those in @file{.dir-locals.el}).  Note
+that, because of how lexicographic order works, values in
+@file{.dir-locals10.el} are overridden by values in @file{.dir-locals2.el}.
+This can be avoided by using @file{.dir-locals02.el} instead.
 @end defvr
 
 @defun hack-dir-local-variables

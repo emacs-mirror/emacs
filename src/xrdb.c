@@ -177,12 +177,8 @@ magic_db (const char *string, ptrdiff_t string_len, const char *class,
 
       /* Do we have room for this component followed by a '\0'?  */
       if (path_size - path_len <= next_len)
-	{
-	  if (min (PTRDIFF_MAX, SIZE_MAX) / 2 - 1 - path_len < next_len)
-	    memory_full (SIZE_MAX);
-	  path_size = (path_len + next_len + 1) * 2;
-	  path = xrealloc (path, path_size);
-	}
+	path = xpalloc (path, &path_size, path_len - path_size + next_len + 1,
+			-1, sizeof *path);
 
       memcpy (path + path_len, next, next_len);
       path_len += next_len;

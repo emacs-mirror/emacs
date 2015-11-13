@@ -686,7 +686,7 @@ and that it passes `vc-svn-global-switches' to it before FLAGS."
       ;; use conflict markers in which case we don't really know what to do.
       ;; So let's just punt for now.
       nil)
-    (message "There are unresolved conflicts in this file")))
+    (vc-message-unresolved-conflicts buffer-file-name)))
 
 (defun vc-svn-parse-status (&optional filename)
   "Parse output of \"svn status\" command in the current buffer.

@@ -2389,9 +2389,9 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
 	  int len = CHAR_STRING (charval, str);
 	  ptrdiff_t size_byte = SBYTES (array);
+	  ptrdiff_t product;
 
-	  if (INT_MULTIPLY_OVERFLOW (SCHARS (array), len)
-	      || SCHARS (array) * len != size_byte)
+	  if (INT_MULTIPLY_WRAPV (size, len, &product) || product != size_byte)
 	    error ("Attempt to change byte length of a string");
 	  for (idx = 0; idx < size_byte; idx++)
 	    *p++ = str[idx % len];

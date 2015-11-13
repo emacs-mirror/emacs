@@ -623,7 +623,12 @@ FILE is the file where FUNCTION was probably defined."
                                           real-function key-bindings-buffer)))
             (run-hook-with-args 'help-fns-describe-function-functions function)
             (insert "\n"
-                    (or doc "Not documented."))))))))
+                    (or doc "Not documented."))
+            ;; Avoid asking the user annoying questions if she decides
+            ;; to save the help buffer, when her locale's codeset
+            ;; isn't UTF-8.
+            (unless (memq text-quoting-style '(straight grave))
+              (set-buffer-file-coding-system 'utf-8))))))))
 
 ;; Add defaults to `help-fns-describe-function-functions'.
 (add-hook 'help-fns-describe-function-functions #'help-fns--obsolete)
@@ -902,29 +907,36 @@ if it is given a local binding.\n"))))
                                             (buffer-file-name buffer)))
                                       (dir-locals-find-file
                                        (buffer-file-name buffer))))
-                          (dir-file t))
+                          (is-directory nil))
 		      (princ (substitute-command-keys
 			      "  This variable's value is directory-local"))
-		      (if (null file)
-			  (princ ".\n")
-			(princ ", set ")
-                        (if (consp file) ; result from cache
-                            ;; If the cache element has an mtime, we
-                            ;; assume it came from a file.
-                            (if (nth 2 file)
-                                (setq file (expand-file-name
-                                            dir-locals-file (car file)))
-                              ;; Otherwise, assume it was set directly.
-                              (setq file (car file)
-                                    dir-file nil)))
-			(princ (substitute-command-keys
-                                (if dir-file
-                                    "by the file\n  `"
-                                  "for the directory\n  `")))
+                      (when (consp file) ; result from cache
+                        ;; If the cache element has an mtime, we
+                        ;; assume it came from a file.
+                        (if (nth 2 file)
+                            (setq file (expand-file-name
+                                        dir-locals-file (car file)))
+                          ;; Otherwise, assume it was set directly.
+                          (setq file (car file)
+                                is-directory t)))
+                      (if (null file)
+                          (princ ".\n")
+                        (princ ", set ")
+                        (let ((files (file-expand-wildcards file)))
+                          (princ (substitute-command-keys
+                                  (cond
+                                   (is-directory "for the directory\n  `")
+                                   ;; Many files matched.
+                                   ((cdr files)
+                                    (setq file (file-name-directory (car files)))
+                                    (format "by a file\n  matching `%s' in the directory\n  `"
+                                            dir-locals-file))
+                                   (t (setq file (car files))
+                                      "by the file\n  `"))))
 			(with-current-buffer standard-output
 			  (insert-text-button
 			   file 'type 'help-dir-local-var-def
-			   'help-args (list variable file)))
+                             'help-args (list variable file))))
 			(princ (substitute-command-keys "'.\n"))))
 		  (princ (substitute-command-keys
 			  "  This variable's value is file-local.\n"))))
@@ -968,7 +980,7 @@ file-local variable.\n")
 		    (re-search-backward
 		     (concat "\\(" customize-label "\\)") nil t)
 		    (help-xref-button 1 'help-customize-variable variable))))
-	      ;; Note variable's version or package version
+	      ;; Note variable's version or package version.
 	      (let ((output (describe-variable-custom-version-info variable)))
 		(when output
 		  (terpri)

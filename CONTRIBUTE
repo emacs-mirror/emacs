@@ -201,6 +201,77 @@ then exclude that commit from the merge to trunk.
 
 ** Other process information
 
+** Emacs Mailing lists.
+
+Discussion about Emacs development takes place on emacs-devel@gnu.org.
+
+Bug reports and fixes, feature requests and implementations should be
+sent to bug-gnu-emacs@gnu.org, the bug/feature list.  This is coupled
+to the tracker at http://debbugs.gnu.org .
+
+You can subscribe to the mailing lists, or see the list archives,
+by following links from http://savannah.gnu.org/mail/?group=emacs .
+
+To email a patch you can use a shell command like 'git format-patch -1'
+to create a file, and then attach the file to your email.  This nicely
+packages the patch's commit message and changes.  To send just one
+such patch without additional remarks, you can use a command like
+'git send-email --to=bug-gnu-emacs@gnu.org 0001-DESCRIPTION.patch'.
+
+** Issue tracker (a.k.a. "bug tracker")
+
+The Emacs issue tracker is at http://debbugs.gnu.org/.  The form
+presented by that page allows to view bug reports and search the
+database for bugs matching several criteria.  Messages posted to the
+bug-gnu-emacs@gnu.org mailing list, mentioned above, are recorded by
+the tracker with the corresponding bugs/issues.
+
+GNU ELPA has a 'debbugs' package that allows accessing the tracker
+database from Emacs.
+
+** Document your changes.
+
+Any change that matters to end-users should have an entry in etc/NEWS.
+
+Doc-strings should be updated together with the code.
+
+Think about whether your change requires updating the manuals.  If you
+know it does not, mark the NEWS entry with "---".  If you know
+that *all* the necessary documentation updates have been made, mark
+the entry with "+++".  Otherwise do not mark it.
+
+Please see (info "(elisp)Documentation Tips") or
+https://www.gnu.org/software/emacs/manual/html_node/elisp/Documentation-Tips.html
+for more specific tips on Emacs's doc style.  Use 'checkdoc' to check
+for documentation errors before submitting a patch.
+
+** Test your changes.
+
+Please test your changes before committing them or sending them to the
+list.  If possible, add a new test along with any bug fix or new
+functionality you commit (of course, some changes cannot be easily
+tested).
+
+Emacs uses ERT, Emacs Lisp Regression Testing, for testing.  See (info
+"(ert)") or https://www.gnu.org/software/emacs/manual/html_node/ert/
+for more information on writing and running tests.
+
+To run tests on the entire Emacs tree, run "make check" from the
+top-level directory.  Most tests are in the directory
+"test/automated".  From the "test/automated" directory, run "make
+<filename>" to run the tests for <filename>.el(c).  See
+"test/automated/Makefile" for more information.
+
+** Understanding Emacs Internals.
+
+The best way to understand Emacs Internals is to read the code,
+but the nodes "Tips" and "GNU Emacs Internals" in the Appendix
+of the Emacs Lisp Reference Manual may also help.  Some source files,
+such as xdisp.c, have large commentaries describing the design and
+implementation in more detail.
+
+The file etc/DEBUG describes how to debug Emacs bugs.
+
 *** Non-ASCII characters in Emacs files
 
 If you introduce non-ASCII characters into Emacs source files, it is a
@@ -242,64 +313,6 @@ moving it to another directory), you should:
 - merge the feature branch to trunk, _not_ squashing the commits into
   one.  The commit message on this merge should summarize the renames
   and all the changes.
-
-** Emacs Mailing lists.
-
-Discussion about Emacs development takes place on emacs-devel@gnu.org.
-
-Bug reports and fixes, feature requests and implementations should be
-sent to bug-gnu-emacs@gnu.org, the bug/feature list.  This is coupled
-to the tracker at http://debbugs.gnu.org .
-
-You can subscribe to the mailing lists, or see the list archives,
-by following links from http://savannah.gnu.org/mail/?group=emacs .
-
-To email a patch you can use a shell command like 'git format-patch -1'
-to create a file, and then attach the file to your email.  This nicely
-packages the patch's commit message and changes.  To send just one
-such patch without additional remarks, you can use a command like
-'git send-email --to=bug-gnu-emacs@gnu.org 0001-DESCRIPTION.patch'.
-
-** Document your changes.
-
-Any change that matters to end-users should have an entry in etc/NEWS.
-
-Doc-strings should be updated together with the code.
-
-Think about whether your change requires updating the manuals.  If you
-know it does not, mark the NEWS entry with "---".  If you know
-that *all* the necessary documentation updates have been made, mark
-the entry with "+++".  Otherwise do not mark it.
-
-Please see (info "(elisp)Documentation Tips") or
-https://www.gnu.org/software/emacs/manual/html_node/elisp/Documentation-Tips.html
-for more specific tips on Emacs's doc style.  Use 'checkdoc' to check
-for documentation errors before submitting a patch.
-
-** Test your changes.
-
-Please test your changes before committing them or sending them to the
-list.
-
-Emacs uses ERT, Emacs Lisp Regression Testing, for testing.  See (info
-"(ert)") or https://www.gnu.org/software/emacs/manual/html_node/ert/
-for more information on writing and running tests.
-
-To run tests on the entire Emacs tree, run "make check" from the
-top-level directory.  Most tests are in the directory
-"test/automated".  From the "test/automated" directory, run "make
-<filename>" to run the tests for <filename>.el(c).  See
-"test/automated/Makefile" for more information.
-
-** Understanding Emacs Internals.
-
-The best way to understand Emacs Internals is to read the code,
-but the nodes "Tips" and "GNU Emacs Internals" in the Appendix
-of the Emacs Lisp Reference Manual may also help.  Some source files,
-such as xdisp.c, have large commentaries describing the design and
-implementation in more detail.
-
-The file etc/DEBUG describes how to debug Emacs bugs.
 
 
 

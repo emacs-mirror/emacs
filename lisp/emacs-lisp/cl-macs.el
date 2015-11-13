@@ -2730,7 +2730,7 @@ non-nil value, that slot cannot be set via `setf'.
 			    slots defaults)))
 	(push `(cl-defsubst ,cname
                    (&cl-defs (nil ,@descs) ,@args)
-                 ,(if (stringp doc) (list doc)
+                 ,(if (stringp doc) doc
                     (format "Constructor for objects of type `%s'." name))
                  ,@(if (cl--safe-expr-p `(progn ,@(mapcar #'cl-second descs)))
                        '((declare (side-effect-free t))))

@@ -720,7 +720,7 @@ Window system startup files should add their own function to this
 method, which should parse the command line arguments.  Those
 pertaining to the window system should be processed and removed
 from the returned command line.")
-(cl-defmethod handle-args-function (args &context (window-system (eql nil)))
+(cl-defmethod handle-args-function (args &context (window-system nil))
   (tty-handle-args args))
 
 (cl-defgeneric window-system-initialization (&optional _display)

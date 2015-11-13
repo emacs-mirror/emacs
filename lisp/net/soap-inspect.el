@@ -1,10 +1,9 @@
-;;;; soap-inspect.el -- Interactive WSDL inspector    -*- lexical-binding: t -*-
+;;; soap-inspect.el --- Interactive WSDL inspector    -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2010-2015 Free Software Foundation, Inc.
 
 ;; Author: Alexandru Harsanyi <AlexHarsanyi@gmail.com>
 ;; Created: October 2010
-;; Version: 3.0.1
 ;; Keywords: soap, web-services, comm, hypermedia
 ;; Package: soap-client
 ;; Homepage: https://github.com/alex-hhh/emacs-soap-client
@@ -334,7 +333,7 @@ soap-xs-attribute-group, in the current buffer."
       (insert "\t")
       (soap-insert-describe-button type)))
   (when (soap-xs-simple-type-enumeration type)
-    (insert "\nEnumeraton values: ")
+    (insert "\nEnumeration values: ")
     (dolist (e (soap-xs-simple-type-enumeration type))
       (insert "\n\t")
       (pp e)))

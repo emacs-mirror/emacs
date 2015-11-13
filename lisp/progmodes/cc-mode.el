@@ -1098,10 +1098,9 @@ Note that the style variables are always made local to the buffer."
 			      (buffer-substring-no-properties beg end)))))))
 
 	  (if c-get-state-before-change-functions
-	      (let (open-paren-in-column-0-is-defun-start)
-		(mapc (lambda (fn)
-			(funcall fn beg end))
-		      c-get-state-before-change-functions)))
+	      (mapc (lambda (fn)
+		      (funcall fn beg end))
+		    c-get-state-before-change-functions))
 	  )))
     ;; The following must be done here rather than in `c-after-change' because
     ;; newly inserted parens would foul up the invalidation algorithm.
@@ -1132,7 +1131,7 @@ Note that the style variables are always made local to the buffer."
 
   (unless (c-called-from-text-property-change-p)
     (setq c-just-done-before-change nil)
-    (c-save-buffer-state (case-fold-search open-paren-in-column-0-is-defun-start)
+    (c-save-buffer-state (case-fold-search)
       ;; When `combine-after-change-calls' is used we might get calls
       ;; with regions outside the current narrowing.  This has been
       ;; observed in Emacs 20.7.
@@ -1268,8 +1267,7 @@ Note that the style variables are always made local to the buffer."
   ;;
   ;; Type a space in the first blank line, and the fontification of the next
   ;; line was fouled up by context fontification.
-  (let (new-beg new-end new-region case-fold-search
-		open-paren-in-column-0-is-defun-start)
+  (let (new-beg new-end new-region case-fold-search)
     (if (and c-in-after-change-fontification
 	     (< beg c-new-END) (> end c-new-BEG))
 	;; Region and the latest after-change fontification region overlap.

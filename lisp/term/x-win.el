@@ -1197,7 +1197,7 @@ This returns an error if any Emacs frames are X frames."
 (defvar x-display-name)
 (defvar x-command-line-resources)
 
-(cl-defmethod window-system-initialization (&context (window-system (eql x))
+(cl-defmethod window-system-initialization (&context (window-system x)
                                             &optional display)
   "Initialize Emacs for X frames and open the first connection to an X server."
   (cl-assert (not x-initialized))
@@ -1327,27 +1327,27 @@ This returns an error if any Emacs frames are X frames."
 		  (selection-symbol target-type &optional time-stamp terminal))
 
 (add-to-list 'display-format-alist '("\\`[^:]*:[0-9]+\\(\\.[0-9]+\\)?\\'" . x))
-(cl-defmethod handle-args-function (args &context (window-system (eql x)))
+(cl-defmethod handle-args-function (args &context (window-system x))
   (x-handle-args args))
 
-(cl-defmethod frame-creation-function (params &context (window-system (eql x)))
+(cl-defmethod frame-creation-function (params &context (window-system x))
   (x-create-frame-with-faces params))
 
 (cl-defmethod gui-backend-set-selection (selection value
-                                         &context (window-system (eql x)))
+                                         &context (window-system x))
   (if value (x-own-selection-internal selection value)
     (x-disown-selection-internal selection)))
 
 (cl-defmethod gui-backend-selection-owner-p (selection
-                                             &context (window-system (eql x)))
+                                             &context (window-system x))
   (x-selection-owner-p selection))
 
 (cl-defmethod gui-backend-selection-exists-p (selection
-                                              &context (window-system (eql x)))
+                                              &context (window-system x))
   (x-selection-exists-p selection))
 
 (cl-defmethod gui-backend-get-selection (selection-symbol target-type
-                                         &context (window-system (eql x))
+                                         &context (window-system x)
                                          &optional time-stamp terminal)
   (x-get-selection-internal selection-symbol target-type time-stamp terminal))
 

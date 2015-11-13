@@ -430,6 +430,7 @@ XFLOAT_INIT (Lisp_Object f, double n)
   XFLOAT (f)->u.data = n;
 }
 
+#ifdef DOUG_LEA_MALLOC
 static bool
 pointers_fit_in_lispobj_p (void)
 {
@@ -446,6 +447,7 @@ mmap_lisp_allowed_p (void)
      regions.  */
   return pointers_fit_in_lispobj_p () && !might_dump;
 }
+#endif
 
 /* Head of a circularly-linked list of extant finalizers. */
 static struct Lisp_Finalizer finalizers;
@@ -800,9 +802,10 @@ void *
 xnmalloc (ptrdiff_t nitems, ptrdiff_t item_size)
 {
   eassert (0 <= nitems && 0 < item_size);
-  if (min (PTRDIFF_MAX, SIZE_MAX) / item_size < nitems)
+  ptrdiff_t nbytes;
+  if (INT_MULTIPLY_WRAPV (nitems, item_size, &nbytes) || SIZE_MAX < nbytes)
     memory_full (SIZE_MAX);
-  return xmalloc (nitems * item_size);
+  return xmalloc (nbytes);
 }
 
 
@@ -813,9 +816,10 @@ void *
 xnrealloc (void *pa, ptrdiff_t nitems, ptrdiff_t item_size)
 {
   eassert (0 <= nitems && 0 < item_size);
-  if (min (PTRDIFF_MAX, SIZE_MAX) / item_size < nitems)
+  ptrdiff_t nbytes;
+  if (INT_MULTIPLY_WRAPV (nitems, item_size, &nbytes) || SIZE_MAX < nbytes)
     memory_full (SIZE_MAX);
-  return xrealloc (pa, nitems * item_size);
+  return xrealloc (pa, nbytes);
 }
 
 
@@ -846,33 +850,43 @@ void *
 xpalloc (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
 	 ptrdiff_t nitems_max, ptrdiff_t item_size)
 {
+  ptrdiff_t n0 = *nitems;
+  eassume (0 < item_size && 0 < nitems_incr_min && 0 <= n0 && -1 <= nitems_max);
+
   /* The approximate size to use for initial small allocation
      requests.  This is the largest "small" request for the GNU C
      library malloc.  */
   enum { DEFAULT_MXFAST = 64 * sizeof (size_t) / 4 };
 
   /* If the array is tiny, grow it to about (but no greater than)
-     DEFAULT_MXFAST bytes.  Otherwise, grow it by about 50%.  */
-  ptrdiff_t n = *nitems;
-  ptrdiff_t tiny_max = DEFAULT_MXFAST / item_size - n;
-  ptrdiff_t half_again = n >> 1;
-  ptrdiff_t incr_estimate = max (tiny_max, half_again);
-
-  /* Adjust the increment according to three constraints: NITEMS_INCR_MIN,
+     DEFAULT_MXFAST bytes.  Otherwise, grow it by about 50%.
+     Adjust the growth according to three constraints: NITEMS_INCR_MIN,
      NITEMS_MAX, and what the C language can represent safely.  */
-  ptrdiff_t C_language_max = min (PTRDIFF_MAX, SIZE_MAX) / item_size;
-  ptrdiff_t n_max = (0 <= nitems_max && nitems_max < C_language_max
-		     ? nitems_max : C_language_max);
-  ptrdiff_t nitems_incr_max = n_max - n;
-  ptrdiff_t incr = max (nitems_incr_min, min (incr_estimate, nitems_incr_max));
 
-  eassert (0 < item_size && 0 < nitems_incr_min && 0 <= n && -1 <= nitems_max);
+  ptrdiff_t n, nbytes;
+  if (INT_ADD_WRAPV (n0, n0 >> 1, &n))
+    n = PTRDIFF_MAX;
+  if (0 <= nitems_max && nitems_max < n)
+    n = nitems_max;
+
+  ptrdiff_t adjusted_nbytes
+    = ((INT_MULTIPLY_WRAPV (n, item_size, &nbytes) || SIZE_MAX < nbytes)
+       ? min (PTRDIFF_MAX, SIZE_MAX)
+       : nbytes < DEFAULT_MXFAST ? DEFAULT_MXFAST : 0);
+  if (adjusted_nbytes)
+    {
+      n = adjusted_nbytes / item_size;
+      nbytes = adjusted_nbytes - adjusted_nbytes % item_size;
+    }
+
   if (! pa)
     *nitems = 0;
-  if (nitems_incr_max < incr)
+  if (n - n0 < nitems_incr_min
+      && (INT_ADD_WRAPV (n0, nitems_incr_min, &n)
+	  || (0 <= nitems_max && nitems_max < n)
+	  || INT_MULTIPLY_WRAPV (n, item_size, &nbytes)))
     memory_full (SIZE_MAX);
-  n += incr;
-  pa = xrealloc (pa, n * item_size);
+  pa = xrealloc (pa, nbytes);
   *nitems = n;
   return pa;
 }
@@ -2102,9 +2116,8 @@ INIT must be an integer that represents a character.  */)
       EMACS_INT string_len = XINT (length);
       unsigned char *p, *beg, *end;
 
-      if (string_len > STRING_BYTES_MAX / len)
+      if (INT_MULTIPLY_WRAPV (len, string_len, &nbytes))
 	string_overflow ();
-      nbytes = len * string_len;
       val = make_uninit_multibyte_string (string_len, nbytes);
       for (beg = SDATA (val), p = beg, end = beg + nbytes; p < end; p += len)
 	{
@@ -5315,11 +5328,35 @@ compact_font_cache_entry (Lisp_Object entry)
 	     are not marked too.  But we must be sure that nothing is
 	     marked within OBJ before we really drop it.  */
 	  for (i = 0; i < size; i++)
-	    if (VECTOR_MARKED_P (XFONT_ENTITY (AREF (XCDR (obj), i))))
-	      break;
+            {
+              Lisp_Object objlist;
+
+              if (VECTOR_MARKED_P (XFONT_ENTITY (AREF (XCDR (obj), i))))
+                break;
+
+              objlist = AREF (AREF (XCDR (obj), i), FONT_OBJLIST_INDEX);
+              for (; CONSP (objlist); objlist = XCDR (objlist))
+                {
+                  Lisp_Object val = XCAR (objlist);
+                  struct font *font = XFONT_OBJECT (val);
+
+                  if (!NILP (AREF (val, FONT_TYPE_INDEX))
+                      && VECTOR_MARKED_P(font))
+                    break;
+                }
+              if (CONSP (objlist))
+		{
+		  /* Found a marked font, bail out.  */
+		  break;
+		}
+            }
 
 	  if (i == size)
-	    drop = 1;
+	    {
+	      /* No marked fonts were found, so this entire font
+		 entity can be dropped.  */
+	      drop = 1;
+	    }
 	}
       if (drop)
 	*prev = XCDR (tail);

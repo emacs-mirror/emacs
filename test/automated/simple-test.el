@@ -34,6 +34,17 @@
            (buffer-substring (point) (point-max)))))
 
 
+(defmacro simple-test--transpositions (&rest body)
+  (declare (indent 0)
+           (debug t))
+  `(with-temp-buffer
+     (emacs-lisp-mode)
+     (insert "(s1) (s2) (s3) (s4) (s5)")
+     (backward-sexp 1)
+     ,@body
+     (cons (buffer-substring (point-min) (point))
+           (buffer-substring (point) (point-max)))))
+
 
 ;;; `newline'
 (ert-deftest newline ()
@@ -201,6 +212,45 @@
       ;; Let's clean up if running interactive
       (unless (or noninteractive python)
         (unload-feature 'python)))))
+
+
+;;; auto-boundary tests
+(ert-deftest undo-auto--boundary-timer ()
+  (should
+   undo-auto--current-boundary-timer))
+
+(ert-deftest undo-auto--boundaries-added ()
+  ;; The change in the buffer should have caused addition
+  ;; to undo-auto--undoably-changed-buffers.
+  (should
+   (with-temp-buffer
+     (setq buffer-undo-list nil)
+     (insert "hello")
+     (member (current-buffer) undo-auto--undoably-changed-buffers)))
+  ;; The head of buffer-undo-list should be the insertion event, and
+  ;; therefore not nil
+  (should
+   (with-temp-buffer
+     (setq buffer-undo-list nil)
+     (insert "hello")
+     (car buffer-undo-list)))
+  ;; Now the head of the buffer-undo-list should be a boundary and so
+  ;; nil. We have to call auto-boundary explicitly because we are out
+  ;; of the command loop
+  (should-not
+   (with-temp-buffer
+     (setq buffer-undo-list nil)
+     (insert "hello")
+     (car buffer-undo-list)
+     (undo-auto--boundaries 'test))))
+
+;;; Transposition with negative args (bug#20698, bug#21885)
+(ert-deftest simple-transpose-subr ()
+  (should (equal (simple-test--transpositions (transpose-sexps -1))
+                 '("(s1) (s2) (s4)" . " (s3) (s5)")))
+  (should (equal (simple-test--transpositions (transpose-sexps -2))
+                 '("(s1) (s4)" . " (s2) (s3) (s5)"))))
+
 
 (provide 'simple-test)
 ;;; simple-test.el ends here

@@ -1542,7 +1542,8 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "<" 'dired-prev-dirline)
     (define-key map ">" 'dired-next-dirline)
     (define-key map "^" 'dired-up-directory)
-    (define-key map " "  'dired-next-line)
+    (define-key map " " 'dired-next-line)
+    (define-key map [?\S-\ ] 'dired-previous-line)
     (define-key map [remap next-line] 'dired-next-line)
     (define-key map [remap previous-line] 'dired-previous-line)
     ;; hiding
@@ -2031,7 +2032,7 @@ Otherwise, toggle `read-only-mode'."
 (defun dired-next-line (arg)
   "Move down lines then position at filename.
 Optional prefix ARG says how many lines to move; default is one line."
-  (interactive "p")
+  (interactive "^p")
   (let ((line-move-visual)
 	(goal-column))
     (line-move arg t))
@@ -2044,7 +2045,7 @@ Optional prefix ARG says how many lines to move; default is one line."
 (defun dired-previous-line (arg)
   "Move up lines then position at filename.
 Optional prefix ARG says how many lines to move; default is one line."
-  (interactive "p")
+  (interactive "^p")
   (dired-next-line (- (or arg 1))))
 
 (defun dired-next-dirline (arg &optional opoint)
@@ -3495,6 +3496,9 @@ OLD and NEW are both characters used to mark files."
   (interactive)
   (dired-unmark-all-files ?\r))
 
+;; Bound in dired-unmark-all-files
+(defvar dired-unmark-all-files-query)
+
 (defun dired-unmark-all-files (mark &optional arg)
   "Remove a specific mark (or any mark) from every file.
 After this command, type the mark character to remove,
@@ -3505,6 +3509,7 @@ Type \\[help-command] at that time for help."
   (save-excursion
     (let* ((count 0)
 	   (inhibit-read-only t) case-fold-search
+           dired-unmark-all-files-query
 	   (string (format "\n%c" mark))
 	   (help-form "\
 Type SPC or `y' to unmark one file, DEL or `n' to skip to next,
@@ -3516,7 +3521,8 @@ Type SPC or `y' to unmark one file, DEL or `n' to skip to next,
 	(if (or (not arg)
 		(let ((file (dired-get-filename t t)))
 		  (and file
-		       (dired-query 'query "Unmark file `%s'? "
+		       (dired-query 'dired-unmark-all-files-query
+				    "Unmark file `%s'? "
 				    file))))
 	    (progn (subst-char-in-region (1- (point)) (point)
 					 (preceding-char) ?\s)

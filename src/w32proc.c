@@ -3504,8 +3504,8 @@ get_lcid (const char *locale_name)
   return found_lcid;
 }
 
-#ifndef _NSLCMPERROR
-# define _NSLCMPERROR INT_MAX
+#ifndef _NLSCMPERROR
+# define _NLSCMPERROR INT_MAX
 #endif
 #ifndef LINGUISTIC_IGNORECASE
 # define LINGUISTIC_IGNORECASE  0x00000010
@@ -3546,7 +3546,7 @@ w32_compare_strings (const char *s1, const char *s2, char *locname,
 	      errno = EINVAL;
 	      /* This return value is compatible with wcscoll and
 		 other MS CRT functions.  */
-	      return _NSLCMPERROR;
+	      return _NLSCMPERROR;
 	    }
 	}
       else
@@ -3565,7 +3565,7 @@ w32_compare_strings (const char *s1, const char *s2, char *locname,
   else
     {
       errno = EINVAL;
-      return _NSLCMPERROR;
+      return _NLSCMPERROR;
     }
 
   needed = pMultiByteToWideChar (CP_UTF8, MB_ERR_INVALID_CHARS, s2, -1, NULL, 0);
@@ -3579,7 +3579,7 @@ w32_compare_strings (const char *s1, const char *s2, char *locname,
     {
       SAFE_FREE ();
       errno = EINVAL;
-      return _NSLCMPERROR;
+      return _NLSCMPERROR;
     }
 
   if (locname)
@@ -3616,7 +3616,7 @@ w32_compare_strings (const char *s1, const char *s2, char *locname,
   if (!val)
     {
       errno = EINVAL;
-      return _NSLCMPERROR;
+      return _NLSCMPERROR;
     }
   return val - 2;
 }

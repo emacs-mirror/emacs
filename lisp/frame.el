@@ -33,8 +33,12 @@ The window system startup file should add its frame creation
 function to this method, which should take an alist of parameters
 as its argument.")
 
-(cl-defmethod frame-creation-function (params
-                                       &context (window-system (eql nil)))
+(cl-generic-define-context-rewriter window-system (value)
+  ;; If `value' is a `consp', it's probably an old-style specializer,
+  ;; so just use it, and anyway `eql' isn't very useful on cons cells.
+  `(window-system ,(if (consp value) value `(eql ,value))))
+
+(cl-defmethod frame-creation-function (params &context (window-system nil))
   ;; It's tempting to get rid of tty-create-frame-with-faces and turn it into
   ;; this method (i.e. move this method to faces.el), but faces.el is loaded
   ;; much earlier from loadup.el (before cl-generic and even before
@@ -2226,6 +2230,17 @@ See also `toggle-frame-maximized'."
 ;; Defined in dispnew.c.
 (make-obsolete-variable
  'window-system-version "it does not give useful information." "24.3")
+
+;; Variables which should trigger redisplay of the current buffer.
+(setq redisplay--variables (make-hash-table :test 'eq :size 10))
+(mapc (lambda (var)
+        (puthash var 1 redisplay--variables))
+      '(line-spacing
+        overline-margin
+        line-prefix
+        wrap-prefix
+        bidi-paragraph-direction
+        bidi-display-reordering))
 
 (provide 'frame)
 

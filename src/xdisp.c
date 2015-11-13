@@ -623,6 +623,17 @@ bset_update_mode_line (struct buffer *b)
   b->text->redisplay = true;
 }
 
+void
+maybe_set_redisplay (Lisp_Object symbol)
+{
+  if (HASH_TABLE_P (Vredisplay__variables)
+      && hash_lookup (XHASH_TABLE (Vredisplay__variables), symbol, NULL) >= 0)
+    {
+      bset_update_mode_line (current_buffer);
+      current_buffer->prevent_redisplay_optimizations_p = true;
+    }
+}
+
 #ifdef GLYPH_DEBUG
 
 /* True means print traces of redisplay if compiled with
@@ -11592,9 +11603,10 @@ x_consider_frame_title (Lisp_Object frame)
 {
   struct frame *f = XFRAME (frame);
 
-  if (FRAME_WINDOW_P (f)
-      || FRAME_MINIBUF_ONLY_P (f)
-      || f->explicit_name)
+  if ((FRAME_WINDOW_P (f)
+       || FRAME_MINIBUF_ONLY_P (f)
+       || f->explicit_name)
+      && NILP (Fframe_parameter (frame, Qtooltip)))
     {
       /* Do we have more than one visible frame on this X display?  */
       Lisp_Object tail, other_frame, fmt;
@@ -31703,6 +31715,10 @@ display table takes effect; in this case, Emacs does not consult
   DEFVAR_LISP ("redisplay--mode-lines-cause", Vredisplay__mode_lines_cause,
 	       doc: /*  */);
   Vredisplay__mode_lines_cause = Fmake_hash_table (0, NULL);
+
+  DEFVAR_LISP ("redisplay--variables", Vredisplay__variables,
+     doc: /* A hash-table of variables changing which triggers a thorough redisplay.  */);
+  Vredisplay__variables = Qnil;
 }
 
 

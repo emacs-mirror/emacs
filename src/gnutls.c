@@ -781,10 +781,11 @@ static Lisp_Object
 gnutls_hex_string (unsigned char *buf, ptrdiff_t buf_size, const char *prefix)
 {
   ptrdiff_t prefix_length = strlen (prefix);
-  if ((STRING_BYTES_BOUND - prefix_length) / 3 < buf_size)
+  ptrdiff_t retlen;
+  if (INT_MULTIPLY_WRAPV (buf_size, 3, &retlen)
+      || INT_ADD_WRAPV (prefix_length - (buf_size != 0), retlen, &retlen))
     string_overflow ();
-  Lisp_Object ret = make_uninit_string (prefix_length + 3 * buf_size
-					- (buf_size != 0));
+  Lisp_Object ret = make_uninit_string (retlen);
   char *string = SSDATA (ret);
   strcpy (string, prefix);
 

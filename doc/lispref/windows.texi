@@ -3899,7 +3899,7 @@ visible in some window:
 @group
 (let ((edges (window-absolute-body-pixel-edges))
       (position (pos-visible-in-window-p nil nil t)))
-  (x-set-mouse-absolute-pixel-position
+  (set-mouse-absolute-pixel-position
    (+ (nth 0 edges) (nth 0 position))
    (+ (nth 1 edges) (nth 1 position))))
 @end group

@@ -463,6 +463,7 @@ Important: the match ends just after the marker.")
     (define-key km "\C-n" 'next-line)
     (define-key km "\C-p" 'previous-line)
     (define-key km "\C-?" 'previous-line)
+    (define-key km [?\S-\ ] 'previous-line)
     (define-key km [down] 'next-line)
     (define-key km [up] 'previous-line)
     ;; marking

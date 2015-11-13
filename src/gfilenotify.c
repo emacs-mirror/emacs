@@ -110,6 +110,7 @@ dir_monitor_callback (GFileMonitor *monitor,
 
       /* Cancel monitor if file or directory is deleted.  */
       if (!NILP (Fmember (symbol, list2 (Qdeleted, Qmoved))) &&
+	  (strcmp (name, SSDATA (XCAR (XCDR (watch_object)))) == 0) &&
 	  !g_file_monitor_is_cancelled (monitor))
 	g_file_monitor_cancel (monitor);
     }

@@ -290,7 +290,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (declare-function x-parse-geometry "frame.c" (string))
 (defvar x-command-line-resources)
 
-(cl-defmethod window-system-initialization (&context (window-system (eql w32))
+(cl-defmethod window-system-initialization (&context (window-system w32)
                                             &optional _display)
   "Initialize Emacs for W32 GUI frames."
   (cl-assert (not w32-initialized))
@@ -377,10 +377,10 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   (setq w32-initialized t))
 
 (add-to-list 'display-format-alist '("\\`w32\\'" . w32))
-(cl-defmethod handle-args-function (args &context (window-system (eql w32)))
+(cl-defmethod handle-args-function (args &context (window-system w32))
   (x-handle-args args))
 
-(cl-defmethod frame-creation-function (params &context (window-system (eql w32)))
+(cl-defmethod frame-creation-function (params &context (window-system w32))
   (x-create-frame-with-faces params))
 
 ;;;; Selections
@@ -408,19 +408,19 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
        (get 'x-selections (or selection 'PRIMARY))))
 
 (cl-defmethod gui-backend-set-selection (type value
-                                         &context (window-system (eql w32)))
+                                         &context (window-system w32))
   (w32--set-selection type value))
 
 (cl-defmethod gui-backend-get-selection (type data-type
-                                         &context (window-system (eql w32)))
+                                         &context (window-system w32))
   (w32--get-selection type data-type))
 
 (cl-defmethod gui-backend-selection-owner-p (selection
-                                             &context (window-system (eql w32)))
+                                             &context (window-system w32))
   (w32--selection-owner-p selection))
 
 (cl-defmethod gui-backend-selection-exists-p (selection
-                                              &context (window-system (eql w32)))
+                                              &context (window-system w32))
   (w32-selection-exists-p selection))
 
 (when (eq system-type 'windows-nt)
@@ -428,19 +428,19 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   ;; We could move those cl-defmethods outside of the `when' and use
   ;; "&context (system-type (eql windows-nt))" instead!
   (cl-defmethod gui-backend-set-selection (type value
-                                           &context (window-system (eql nil)))
+                                           &context (window-system nil))
     (w32--set-selection type value))
 
   (cl-defmethod gui-backend-get-selection (type data-type
-                                           &context (window-system (eql nil)))
+                                           &context (window-system nil))
     (w32--get-selection type data-type))
 
   (cl-defmethod gui-backend-selection-owner-p (selection
-                                               &context (window-system (eql nil)))
+                                               &context (window-system nil))
     (w32--selection-owner-p selection))
 
   (cl-defmethod gui-selection-exists-p (selection
-                                        &context (window-system (eql nil)))
+                                        &context (window-system nil))
     (w32-selection-exists-p selection)))
 
 ;; The "Windows" keys on newer keyboards bring up the Start menu

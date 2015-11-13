@@ -328,7 +328,7 @@ The return value is a function suitable for `syntax-propertize-function'."
 ;;; Link syntax-propertize with syntax.c.
 
 (defvar syntax-propertize-chunks
-  ;; We're not sure how far we'll go.  In my tests, using chunks of 20000
+  ;; We're not sure how far we'll go.  In my tests, using chunks of 2000
   ;; brings to overhead to something negligible.  Passing ‘charpos’ directly
   ;; also works (basically works line-by-line) but results in an overhead which
   ;; I thought was a bit too high (like around 50%).
@@ -336,7 +336,8 @@ The return value is a function suitable for `syntax-propertize-function'."
 
 (defun internal--syntax-propertize (charpos)
   ;; FIXME: Called directly from C.
-  (syntax-propertize (min (+ syntax-propertize-chunks charpos) (point-max))))
+  (save-match-data
+    (syntax-propertize (min (+ syntax-propertize-chunks charpos) (point-max)))))
 
 ;;; Incrementally compute and memoize parser state.
 
@@ -376,12 +377,10 @@ This function should move the cursor back to some syntactically safe
 point (where the PPSS is equivalent to nil).")
 (make-obsolete-variable 'syntax-begin-function nil "25.1")
 
-(defvar syntax-ppss-cache nil
+(defvar-local syntax-ppss-cache nil
   "List of (POS . PPSS) pairs, in decreasing POS order.")
-(make-variable-buffer-local 'syntax-ppss-cache)
-(defvar syntax-ppss-last nil
+(defvar-local syntax-ppss-last nil
   "Cache of (LAST-POS . LAST-PPSS).")
-(make-variable-buffer-local 'syntax-ppss-last)
 
 (defalias 'syntax-ppss-after-change-function 'syntax-ppss-flush-cache)
 (defun syntax-ppss-flush-cache (beg &rest ignored)

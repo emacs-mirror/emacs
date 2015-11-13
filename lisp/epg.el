@@ -551,6 +551,8 @@ callback data (if any)."
 (defun epg-errors-to-string (errors)
   (mapconcat #'epg-error-to-string errors "; "))
 
+(declare-function pinentry-start "pinentry" (&optional quiet))
+
 (defun epg--start (context args)
   "Start `epg-gpg-program' in a subprocess with given ARGS."
   (if (and (epg-context-process context)
@@ -614,7 +616,7 @@ callback data (if any)."
 		   (re-search-forward
                     "^allow-emacs-pinentry:\\(?:.*:\\)\\{8\\}1"
                     nil t))))
-      (pinentry-start))
+      (pinentry-start 'quiet))
     (setq process-environment
 	  (cons (format "INSIDE_EMACS=%s,epg" emacs-version)
 		process-environment))

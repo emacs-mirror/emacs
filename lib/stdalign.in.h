@@ -104,7 +104,7 @@
          ? 4 < __GNUC__ + (1 <= __GNUC_MINOR__)                 \
          : __GNUC__)                                            \
         || __HP_cc || __HP_aCC || __IBMC__ || __IBMCPP__        \
-        || __ICC || 0x5110 <= __SUNPRO_C)
+        || __ICC || 0x590 <= __SUNPRO_C)
 #  define _Alignas(a) __attribute__ ((__aligned__ (a)))
 # elif 1300 <= _MSC_VER
 #  define _Alignas(a) __declspec (align (a))

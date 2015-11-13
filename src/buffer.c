@@ -3251,9 +3251,9 @@ record_overlay_string (struct sortstrlist *ssl, Lisp_Object str,
   else
     nbytes = SBYTES (str);
 
-  if (INT_ADD_OVERFLOW (ssl->bytes, nbytes))
+  if (INT_ADD_WRAPV (ssl->bytes, nbytes, &nbytes))
     memory_full (SIZE_MAX);
-  ssl->bytes += nbytes;
+  ssl->bytes = nbytes;
 
   if (STRINGP (str2))
     {
@@ -3265,9 +3265,9 @@ record_overlay_string (struct sortstrlist *ssl, Lisp_Object str,
       else
 	nbytes = SBYTES (str2);
 
-      if (INT_ADD_OVERFLOW (ssl->bytes, nbytes))
+      if (INT_ADD_WRAPV (ssl->bytes, nbytes, &nbytes))
 	memory_full (SIZE_MAX);
-      ssl->bytes += nbytes;
+      ssl->bytes = nbytes;
     }
 }
 
@@ -3363,9 +3363,8 @@ overlay_strings (ptrdiff_t pos, struct window *w, unsigned char **pstr)
       unsigned char *p;
       ptrdiff_t total;
 
-      if (INT_ADD_OVERFLOW (overlay_heads.bytes, overlay_tails.bytes))
+      if (INT_ADD_WRAPV (overlay_heads.bytes, overlay_tails.bytes, &total))
 	memory_full (SIZE_MAX);
-      total = overlay_heads.bytes + overlay_tails.bytes;
       if (total > overlay_str_len)
 	overlay_str_buf = xpalloc (overlay_str_buf, &overlay_str_len,
 				   total - overlay_str_len, -1, 1);
@@ -4486,6 +4485,23 @@ report_overlay_modification (Lisp_Object start, Lisp_Object end, bool after,
     ptrdiff_t size = last_overlay_modification_hooks_used;
     Lisp_Object *copy;
     ptrdiff_t i;
+
+    if (size)
+      {
+	Lisp_Object ovl
+	  = XVECTOR (last_overlay_modification_hooks)->contents[1];
+
+	/* If the buffer of the first overlay in the array doesn't
+	   match the current buffer, then these modification hooks
+	   should not be run in this buffer.  This could happen when
+	   some code calls some insdel functions, such as del_range_1,
+	   with the PREPARE argument false -- in that case this
+	   function is never called to record the overlay modification
+	   hook functions in the last_overlay_modification_hooks
+	   array, so anything we find there is not ours.  */
+	if (XMARKER (OVERLAY_START (ovl))->buffer != current_buffer)
+	  return;
+      }
 
     USE_SAFE_ALLOCA;
     SAFE_ALLOCA_LISP (copy, size);
@@ -5745,7 +5761,7 @@ visual lines rather than logical lines.  See the documentation of
 
   DEFVAR_PER_BUFFER ("default-directory", &BVAR (current_buffer, directory),
 		     Qstringp,
-		     doc: /* Name of default directory of current buffer.  Should end with slash.
+		     doc: /* Name of default directory of current buffer.
 To interactively change the default directory, use command `cd'.  */);
 
   DEFVAR_PER_BUFFER ("auto-fill-function", &BVAR (current_buffer, auto_fill_function),

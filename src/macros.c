@@ -184,16 +184,11 @@ store_kbd_macro_char (Lisp_Object c)
     {
       if (kb->kbd_macro_ptr - kb->kbd_macro_buffer == kb->kbd_macro_bufsize)
 	{
-	  ptrdiff_t ptr_offset, end_offset, nbytes;
-
-	  ptr_offset = kb->kbd_macro_ptr - kb->kbd_macro_buffer;
-	  end_offset = kb->kbd_macro_end - kb->kbd_macro_buffer;
-	  if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof *kb->kbd_macro_buffer / 2
-	      < kb->kbd_macro_bufsize)
-	    memory_full (SIZE_MAX);
-	  nbytes = kb->kbd_macro_bufsize * (2 * sizeof *kb->kbd_macro_buffer);
-	  kb->kbd_macro_buffer = xrealloc (kb->kbd_macro_buffer, nbytes);
-	  kb->kbd_macro_bufsize *= 2;
+	  ptrdiff_t ptr_offset = kb->kbd_macro_ptr - kb->kbd_macro_buffer;
+	  ptrdiff_t end_offset = kb->kbd_macro_end - kb->kbd_macro_buffer;
+	  kb->kbd_macro_buffer = xpalloc (kb->kbd_macro_buffer,
+					  &kb->kbd_macro_bufsize,
+					  1, -1, sizeof *kb->kbd_macro_buffer);
 	  kb->kbd_macro_ptr = kb->kbd_macro_buffer + ptr_offset;
 	  kb->kbd_macro_end = kb->kbd_macro_buffer + end_offset;
 	}

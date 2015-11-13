@@ -490,8 +490,8 @@ The type returned can be `comment', `string' or `paren'."
 
 (defsubst python-syntax-closing-paren-p ()
   "Return non-nil if char after point is a closing paren."
-  (= (syntax-class (syntax-after (point)))
-     (syntax-class (string-to-syntax ")"))))
+  (eql (syntax-class (syntax-after (point)))
+       (syntax-class (string-to-syntax ")"))))
 
 (define-obsolete-function-alias
   'python-info-ppss-context #'python-syntax-context "24.3")

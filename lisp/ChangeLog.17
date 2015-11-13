@@ -4146,7 +4146,7 @@
 2014-12-14  Steve Purcell  <steve@sanityinc.com>  (tiny change)
 
 	* emacs-lisp/package.el (package-menu-mode): Use an extra column
-	for the "Version" column, to accomodate date-and-time-based versions.
+	for the "Version" column, to accommodate date-and-time-based versions.
 
 2014-12-14  Cameron Desautels  <camdez@gmail.com>
 
@@ -8700,9 +8700,9 @@
 	(python-shell-prompt-detect)
 	(python-shell-prompt-validate-regexps): New functions.
 	(python-shell-prompt-set-calculated-regexps): New function.
-	(inferior-python-mode): Use it.  Also honor overriden
+	(inferior-python-mode): Use it.  Also honor overridden
 	python-shell-interpreter and python-shell-interpreter-args.
-	(python-shell-make-comint): Honor overriden
+	(python-shell-make-comint): Honor overridden
 	python-shell-interpreter and python-shell-interpreter-args.
 	(python-shell-get-or-create-process): Make it testable by allowing
 	to call run-python non-interactively.
@@ -10975,9 +10975,9 @@
 
 	* faces.el (face-spec-recalc): Apply X resources only after the
 	defface spec has been applied. Thus, X resources are no longer
-	overriden by the defface spec which also fixes issues on win32 where
+	overridden by the defface spec which also fixes issues on win32 where
 	the toolbar coloring was wrong because it is set through X resources
-	and was (wrongfully) overriden.  (Bug#16694)
+	and was (wrongfully) overridden.  (Bug#16694)
 
 2014-04-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 

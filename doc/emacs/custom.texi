@@ -1290,7 +1290,11 @@ accomplished with @dfn{directory-local variables}.
 named @file{.dir-locals.el}@footnote{ On MS-DOS, the name of this file
 should be @file{_dir-locals.el}, due to limitations of the DOS
 filesystems.  If the filesystem is limited to 8+3 file names, the name
-of the file will be truncated by the OS to @file{_dir-loc.el}.  } in a
+of the file will be truncated by the OS to @file{_dir-loc.el}.
+}@footnote{ You can also use files like @file{.dir-locals2.el}, which
+are loaded in addition.  This is useful when @file{.dir-locals.el} is
+under version control in a shared repository and can't be used for
+personal customizations.  } in a
 directory.  Whenever Emacs visits any file in that directory or any of
 its subdirectories, it will apply the directory-local variables
 specified in @file{.dir-locals.el}, as though they had been defined as

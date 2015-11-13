@@ -450,7 +450,7 @@ DEFUN ("unhandled-file-name-directory", Funhandled_file_name_directory,
 A `directly usable' directory name is one that may be used without the
 intervention of any file handler.
 If FILENAME is a directly usable file itself, return
-(file-name-directory FILENAME).
+(file-name-as-directory FILENAME).
 If FILENAME refers to a file which is not accessible from a local process,
 then this should return nil.
 The `call-process' and `start-process' functions use this function to
@@ -469,7 +469,7 @@ get a current directory to run processes in.  */)
       return STRINGP (handled_name) ? handled_name : Qnil;
     }
 
-  return Ffile_name_directory (filename);
+  return Ffile_name_as_directory (filename);
 }
 
 /* Maximum number of bytes that DST will be longer than SRC

@@ -2098,7 +2098,10 @@ for \\[find-tag] (which see)."
   (cl-mapcan
    (lambda (dir)
      (xref-collect-references symbol dir))
-   (project-search-path (project-current))))
+   (let ((pr (project-current t)))
+     (append
+      (project-roots pr)
+      (project-library-roots pr)))))
 
 (defun etags--xref-find-definitions (pattern &optional regexp?)
   ;; This emulates the behaviour of `find-tag-in-order' but instead of
@@ -2154,7 +2157,7 @@ for \\[find-tag] (which see)."
   (with-slots (tag-info) l
     (nth 1 tag-info)))
 
-(defun etags-search-path ()
+(defun etags-library-roots ()
   (mapcar #'file-name-directory tags-table-list))
 
 

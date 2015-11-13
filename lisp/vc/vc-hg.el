@@ -535,7 +535,7 @@ REV is the revision to check out into WORKFILE."
     (vc-file-setprop buffer-file-name 'vc-state 'conflict)
     (smerge-start-session)
     (add-hook 'after-save-hook 'vc-hg-resolve-when-done nil t)
-    (message "There are unresolved conflicts in this file")))
+    (vc-message-unresolved-conflicts buffer-file-name)))
 
 
 ;; Modeled after the similar function in vc-bzr.el
