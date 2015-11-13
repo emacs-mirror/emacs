@@ -1264,7 +1264,7 @@ BUFFER that follow the key sequence KEY-SEQ."
                              ;; C-x 8           Prefix Command
                              ;; <S-dead-acute>  Prefix Command
                              "^\\([^ <>\t]+\\|<f[0-9]+>\\|\\w \\.\\. \\w\\)[ \t]+\\([^\t\n]+\\)$"))
-         (lines-to-flush'("[bB]inding[s]?[:]?$" "translations:$" "-------$"))
+         (lines-to-flush'("[bB]inding[s]?[:]?$" "translations:$" "-------$" "self-insert-command$"))
          key-match desc-match unformatted)
     (save-match-data
       (with-temp-buffer
