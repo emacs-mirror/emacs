@@ -1253,14 +1253,17 @@ BUFFER that follow the key sequence KEY-SEQ."
                              ;; or `modeline' which might not be as interesting)
                              ;; the initial sequence should be followed by one
                              ;; or more tab/space which are then followed by a
-                             ;; sequence of non newline/tab characters
+                             ;; sequence of non newline/tab characters.
+                             ;; Additionally keybindings of the form [a-z]
+                             ;; .. [a-z] are also matched
                              ;; For example the following should match
                              ;; C-x             Prefix Command
                              ;; <f1>            Some command
+                             ;; a .. z          Some command
                              ;; But following should not
                              ;; C-x 8           Prefix Command
                              ;; <S-dead-acute>  Prefix Command
-                             "^\\([^ <>\t]+\\|<f[0-9]+>\\)[ \t]+\\([^\t\n]+\\)$"))
+                             "^\\([^ <>\t]+\\|<f[0-9]+>\\|\\w \\.\\. \\w\\)[ \t]+\\([^\t\n]+\\)$"))
          (lines-to-flush'("[bB]inding[s]?[:]?$" "translations:$" "-------$"))
          key-match desc-match unformatted)
     (save-match-data
