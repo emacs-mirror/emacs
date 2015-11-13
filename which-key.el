@@ -261,7 +261,7 @@ prefixes in `which-key-paging-prefixes'"
   :type 'boolean)
 
 (defcustom which-key-hide-alt-key-translations t
-  "Should key translations using Alt key be hidden.
+  "Hide key translations using Alt key if non nil.
 These translations are not relevant most of the times since a lot
 of terminals issue META modifier for the Alt key.
 
@@ -553,11 +553,6 @@ bottom."
   (which-key--setup-echo-keystrokes)
   (setq which-key-popup-type 'minibuffer
         which-key-show-prefix 'left))
-
-;;;###autoload
-(defun which-key-toplevel ()
-  (interactive)
-  (which-key--create-buffer-and-show nil))
 
 ;; Helper functions to modify replacement lists.
 
@@ -1241,30 +1236,34 @@ BUFFER that follow the key sequence KEY-SEQ."
          (buffer (current-buffer))
          ;; Temporarily use tabs to indent
          (indent-tabs-mode t)
-         (keybinding-regex (if which-key--current-prefix
-                               (format "^%s \\([^ \t]+\\)[ \t]+\\(\\(?:[^ \t\n]+ ?\\)+\\)$"
-                                       key-str-qt)
-                             ;; For toplevel binding, we search for lines which
-                             ;; start with a sequence of characters other than
-                             ;; space and tab and '<', '>' except function keys
-                             ;; <f[0-9]+> (these are ignored since mostly these
-                             ;; are the keyboard input definitions provided by
-                             ;; iso-transl or (mouse) bindings for the `fringe'
-                             ;; or `modeline' which might not be as interesting)
-                             ;; the initial sequence should be followed by one
-                             ;; or more tab/space which are then followed by a
-                             ;; sequence of non newline/tab characters.
-                             ;; Additionally keybindings of the form [a-z]
-                             ;; .. [a-z] are also matched
-                             ;; For example the following should match
-                             ;; C-x             Prefix Command
-                             ;; <f1>            Some command
-                             ;; a .. z          Some command
-                             ;; But following should not
-                             ;; C-x 8           Prefix Command
-                             ;; <S-dead-acute>  Prefix Command
-                             "^\\([^ <>\t]+\\|<f[0-9]+>\\|\\w \\.\\. \\w\\)[ \t]+\\([^\t\n]+\\)$"))
-         (lines-to-flush'("[bB]inding[s]?[:]?$" "translations:$" "-------$" "self-insert-command$"))
+         (keybinding-regex
+          (if which-key--current-prefix
+              (format "^%s \\([^ \t]+\\)[ \t]+\\(\\(?:[^ \t\n]+ ?\\)+\\)$"
+                      key-str-qt)
+            ;; For toplevel binding, we search for lines which
+            ;; start with a sequence of characters other than
+            ;; space and tab and '<', '>' except function keys
+            ;; <f[0-9]+> (these are ignored since mostly these
+            ;; are the keyboard input definitions provided by
+            ;; iso-transl or (mouse) bindings for the `fringe'
+            ;; or `modeline' which might not be as interesting)
+            ;; the initial sequence should be followed by one
+            ;; or more tab/space which are then followed by a
+            ;; sequence of non newline/tab characters.
+            ;; Additionally keybindings of the form [a-z]
+            ;; .. [a-z] are also matched
+            ;; For example the following should match
+            ;; C-x             Prefix Command
+            ;; <f1>            Some command
+            ;; a .. z          Some command
+            ;; But following should not
+            ;; C-x 8           Prefix Command
+            ;; <S-dead-acute>  Prefix Command
+            "^\\([^ <>\t]+\\|<f[0-9]+>\\|\\w \\.\\. \\w\\)[ \t]+\\([^\t\n]+\\)$"))
+         (lines-to-flush '("[bB]inding[s]?[:]?$"
+                           "translations:$"
+                           "-------$"
+                           "self-insert-command$"))
          key-match desc-match unformatted)
     (save-match-data
       (with-temp-buffer
@@ -1427,7 +1426,7 @@ area."
 (defun which-key--prefix-keys-description (prefix-keys)
   (if prefix-keys
       (key-description prefix-keys)
-    "Toplevel "))
+    "Top-level bindings"))
 
 (defun which-key--next-page-hint (prefix-keys page-n n-pages)
   "Return string for next page hint."
@@ -1476,8 +1475,10 @@ enough space based on your settings and frame size." prefix-keys)
              (n-tot (plist-get which-key--pages-plist :tot-keys))
              (prefix-w-face (if (eq which-key-show-prefix 'echo) prefix-keys
                               (which-key--propertize-key prefix-keys)))
-             (dash-w-face (if (eq which-key-show-prefix 'echo) "-"
-                            (propertize "-" 'face 'which-key-key-face)))
+             (dash-w-face (if which-key--current-prefix
+                            (if (eq which-key-show-prefix 'echo) "-"
+                              (propertize "-" 'face 'which-key-key-face))
+                            ""))
              (status-left (propertize (format "%s/%s" (1+ page-n) n-pages)
                                       'face 'which-key-separator-face))
              (status-top (propertize (which-key--maybe-get-prefix-title
@@ -1524,10 +1525,10 @@ enough space based on your settings and frame size." prefix-keys)
             (insert page)
             (goto-char (point-min)))
           (which-key--show-popup (cons height width)))))
-
-    ;; TODO: Replace this with `set-transient-map' when we drop support for
-    ;; Emacs v24.3
-    (set-temporary-overlay-map (which-key--get-popup-map))))
+    ;; used for paging at top-level
+    (if (fboundp 'set-transient-map)
+        (set-transient-map (which-key--get-popup-map))
+      (set-temporary-overlay-map (which-key--get-popup-map)))))
 
 (defun which-key-show-next-page ()
   "Show the next page of keys.
@@ -1567,6 +1568,12 @@ Will force an update if called before `which-key--update'."
             (which-key--show-page next-page))
         (which-key--show-page next-page))
       (which-key--start-paging-timer)))))
+
+;;;###autoload
+(defun which-key-show-top-level ()
+  "Show top-level bindings."
+  (interactive)
+  (which-key--create-buffer-and-show nil))
 
 (defun which-key-undo ()
   "Undo last keypress and force which-key update."
