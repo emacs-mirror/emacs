@@ -45,7 +45,7 @@
   "Redirect received, but Location header not found! (see \"*Api Report*\" buffer)"
   'api-error)
 (define-error 'api-unintelligible-result
-  "Tried contacting server, but I can't understand the reply. See \"*Api Report*\" buffer"
+  "Tried contacting server, but I can't understand the reply.  See \"*Api Report*\" buffer"
   'api-error)
 (define-error 'api-bad-request
   "Server didn't understand my request, please you should probably file a bug report"
@@ -308,8 +308,7 @@ all of which inherit from `api-error'.
                       (_ nil))
                 (match-string-no-properties 1))))
          (goto-char (point-min))
-         (search-forward-regexp "^?$")
-         (skip-chars-forward "[:blank:]\n\r")
+         (search-forward-regexp "^\r?$")
          (let* ((data (unless (eobp) (funcall reader))))
            (if (or (not next-page)
                    (< max-pages 2))
@@ -334,5 +333,3 @@ all of which inherit from `api-error'.
 
 (provide 'api)
 ;;; api.el ends here
-
-(function-put 'pcase 'edebug-form-spec nil)
