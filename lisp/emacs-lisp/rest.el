@@ -94,40 +94,61 @@ Leave point at the return code on the first line."
 
 
 ;;; Requests
-(cl-defmacro rest--with-response-buffer (method url &rest body &key async unwind-form
-                                                extra-headers &allow-other-keys)
-  "Run BODY in a Server request buffer.
-UNWIND-FORM is run no matter what, and doesn't affect the return
-value."
-  (declare (indent 2)
+(cl-defmacro rest-with-response-buffer (url &rest body &key async (method :get) file
+                                            unwind-form error-form noerror
+                                            extra-headers &allow-other-keys)
+  "Access URL and run BODY in a buffer containing the resonse.
+Point is after the headers when BODY runs.
+URL can be a local file name, which must be absolute.
+
+UNWIND-FORM is run after BODY, even if there was an error during
+or before the execution of BODY.  ERROR-FORM is run only if an
+error occurs.  If NOERROR is non-nil, don't propagate errors
+caused by the connection or by BODY.  Errors signaled by
+UNWIND-FORM or ERROR-FORM are not caught.
+
+EXTRA-HEADERS is an alist of headers used in `url-request-extra-headers'.
+ASYNC, if non-nil, runs the request asynchronously."
+  (declare (indent defun)
            (debug t))
-  (let ((call-name (make-symbol "callback")))
-    (while (keywordp (car body))
-      (setq body (cdr (cdr body))))
-    `(let ((,call-name (lambda (status)
-                         (unwind-protect
-                             (progn (when-let ((er (plist-get status :error)))
-                                      (error "Error retrieving: %s %S" ,url er))
-                                    ,@body)
-                           ,unwind-form
-                           (kill-buffer (current-buffer))))))
-       (setq method (upcase (replace-regexp-in-string
-                             "\\`:" "" (format "%s" method))))
-       (let ((url-request-method ,method)
-             (url-request-extra-headers
-              (cons '("Content-Type" . "application/x-www-form-urlencoded")
-                    ,extra-headers)))
-         (if ,async
-             (condition-case error-data
-                 (url-retrieve ,url ,call-name nil 'silent)
-               (error ,unwind-form
-                      (signal (car error-data) (cdr error-data))))
-           (let ((buffer (condition-case error-data
-                             (url-retrieve-synchronously ,url 'silent)
-                           (error ,unwind-form
-                                  (signal (car error-data) (cdr error-data))))))
-             (with-current-buffer buffer
-               (funcall ,call-name nil))))))))
+  (while (keywordp (car body))
+    (setq body (cdr (cdr body))))
+  (macroexp-let2* nil ((url-1 url))
+    `(cl-macrolet ((wrap-errors (&rest bodyforms)
+                                (let ((err (make-symbol "err")))
+                                  `(condition-case ,err
+                                       ,(macroexp-progn bodyforms)
+                                     ,(list 'error ',error-form ',unwind-form
+                                            (list 'unless ',noerror
+                                                  `(signal (car ,err) (cdr ,err))))))))
+       (if (string-match-p "\\`https?:" ,url-1)
+           (let* ((url-request-method (upcase (replace-regexp-in-string "\\`:" "" (format "%s" ,method))))
+                  (url-request-extra-headers (cons '("Content-Type" . "application/x-www-form-urlencoded")
+                                                   ,extra-headers))
+                  (url (concat ,url-1 ,file))
+                  (callback (lambda (status)
+                              (let ((b (current-buffer)))
+                                (unwind-protect (wrap-errors
+                                                 (when-let ((er (plist-get status :error)))
+                                                   (error "Error retrieving: %s %S" url er))
+                                                 (unless (search-forward-regexp "^\r?$" nil 'noerror)
+                                                   (rest-error 'rest-unintelligible-result))
+                                                 (prog1 ,(macroexp-progn body)
+                                                   ,unwind-form))
+                                  (when (buffer-live-p b)
+                                    (kill-buffer b)))))))
+             (if ,async
+                 (wrap-errors (url-retrieve url callback nil 'silent))
+               (let ((buffer (wrap-errors (url-retrieve-synchronously url 'silent))))
+                 (with-current-buffer buffer
+                   (funcall callback nil)))))
+         (wrap-errors (with-temp-buffer
+                        (let ((url (expand-file-name ,file ,url-1)))
+                          (unless (file-name-absolute-p url)
+                            (error "Location %s is not a url nor an absolute file name" url))
+                          (insert-file-contents url))
+                        (prog1 ,(macroexp-progn body)
+                          ,unwind-form)))))))
 
 (defvar-local rest-url-root nil
   "Prepended to REST url when a full url is not given.")
@@ -167,9 +188,9 @@ INFO is a plist returned by `auth-source-search'."
   "Return an alist containing an \"Authorization\" header.
 The car of the list is nil, so this function can be used as the
 AUTH-METHOD in `rest-action'."
-  `(nil . (("Authorization" . ,(concat "Basic "
-                                       (base64-encode-string
-                                        (concat user ":" password)))))))
+  `(nil . (("Authorization" .
+            ,(concat "Basic " (base64-encode-string
+                               (concat user ":" password)))))))
 
 
 ;;; The function
@@ -275,47 +296,48 @@ all of which inherit from `rest-error'.
                              user pass)))
         (when new-url (setq url new-url))
         (setq extra-headers (append headers extra-headers)))))
-  (rest--with-response-buffer method url
-                              :extra-headers extra-headers
-                              :-url-depth (cons url -url-history)
-                              :async async
-                              (pcase (rest-parse-response-code auth)
-                                (`nil nil)
-                                ((and (pred stringp) link)
-                                 (message "Redirected to %s" link)
-                                 (apply #'rest-action all-options))
-                                (`t
-                                 (let ((next-page
-                                        (when (pcase next-page-rule
-                                                (`(header ,name) (search-forward-regexp
-                                                                  (format "^%s: .*<\\([^>]+\\)>;" (regexp-quote name))
-                                                                  nil t))
-                                                (`(regexp ,rx) (search-forward-regexp rx nil t))
-                                                (_ nil))
-                                          (match-string-no-properties 1))))
-                                   (goto-char (point-min))
-                                   (search-forward-regexp "^\r?$")
-                                   (let* ((data (unless (eobp) (funcall reader))))
-                                     (if (or (not next-page)
-                                             (< max-pages 2))
-                                         (pcase return
-                                           (:simple (funcall callback data))
-                                           (:rich `(,(funcall callback data)
-                                                    (next-page . ,next-page)
-                                                    ,@(rest--headers-alist))))
-                                       (rest-action next-page
-                                                    :auth auth
-                                                    :method method
-                                                    :reader reader
-                                                    :next-page-rule next-page-rule
-                                                    :return return
-                                                    :async  async
-                                                    :max-pages (1- max-pages)
-                                                    :callback (lambda (res)
-                                                                (funcall callback
-                                                                         (if (listp res)
-                                                                             (append data res)
-                                                                           (vconcat data res))))))))))))
+  (rest-with-response-buffer url
+    :method method
+    :extra-headers extra-headers
+    :-url-depth (cons url -url-history)
+    :async async
+    (pcase (rest-parse-response-code auth)
+      (`nil nil)
+      ((and (pred stringp) link)
+       (message "Redirected to %s" link)
+       (apply #'rest-action all-options))
+      (`t
+       (let ((next-page
+              (when (pcase next-page-rule
+                      (`(header ,name) (search-forward-regexp
+                                        (format "^%s: .*<\\([^>]+\\)>;" (regexp-quote name))
+                                        nil t))
+                      (`(regexp ,rx) (search-forward-regexp rx nil t))
+                      (_ nil))
+                (match-string-no-properties 1))))
+         (goto-char (point-min))
+         (search-forward-regexp "^\r?$")
+         (let* ((data (unless (eobp) (funcall reader))))
+           (if (or (not next-page)
+                   (< max-pages 2))
+               (pcase return
+                 (:simple (funcall callback data))
+                 (:rich `(,(funcall callback data)
+                          (next-page . ,next-page)
+                          ,@(rest--headers-alist))))
+             (rest-action next-page
+                          :auth auth
+                          :method method
+                          :reader reader
+                          :next-page-rule next-page-rule
+                          :return return
+                          :async  async
+                          :max-pages (1- max-pages)
+                          :callback (lambda (res)
+                                      (funcall callback
+                                               (if (listp res)
+                                                   (append data res)
+                                                 (vconcat data res))))))))))))
 
 (provide 'rest)
 ;;; rest.el ends here
