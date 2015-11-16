@@ -1229,57 +1229,66 @@ alists. Returns a list (key separator description)."
          (list key-w-face sep-w-face desc-w-face)))
      unformatted)))
 
+;; adapted from helm-descbinds
+(defun which-key--get-current-bindings ()
+  (let ((key-str-qt (regexp-quote (key-description which-key--current-prefix)))
+        (buffer (current-buffer))
+        (ignore-bindings '("self-insert-command" "ignore" "ignore-event" "company-ignore"))
+        (ignore-keys-regexp "mouse-\\|wheel-\\|remap\\|drag-\\|scroll-bar\\|select-window\\|switch-frame"))
+    (with-temp-buffer
+      (let ((indent-tabs-mode t))
+        (describe-buffer-bindings buffer which-key--current-prefix))
+      (goto-char (point-min))
+      (let ((header-p (not (= (char-after) ?\f)))
+            sections header section)
+        (while (not (eobp))
+          (cond
+           (header-p
+            (setq header (buffer-substring-no-properties
+                          (point)
+                          (line-end-position)))
+            (setq header-p nil)
+            (forward-line 3))
+           ((= (char-after) ?\f)
+            ;; (push (cons header (nreverse section)) sections)
+            (setq section nil)
+            (setq header-p t))
+           ((looking-at "^[ \t]*$")
+            ;; ignore
+            )
+           ((not (string-match-p "translations:" header))
+            (let ((binding-start (save-excursion
+                                   (and (re-search-forward "\t+" nil t)
+                                        (match-end 0))))
+                  key binding)
+              (when binding-start
+                (setq key (buffer-substring-no-properties (point) binding-start)
+                      ;; key (replace-regexp-in-string"^[ \t\n]+" "" key)
+                      ;; key (replace-regexp-in-string"[ \t\n]+$" "" key)
+                      )
+                (setq binding (buffer-substring-no-properties
+                               binding-start
+                               (line-end-position)))
+                (save-match-data
+                  (cond
+                   ((member binding ignore-bindings))
+                   ((string-match-p ignore-keys-regexp key))
+                   ((and which-key--current-prefix
+                         (string-match (format "^%s[ \t]\\([^ \t]+\\)[ \t]+$" key-str-qt) key))
+                    (unless (assoc-string (match-string 1 key) sections)
+                      (push (cons (match-string 1 key) binding) sections)))
+                   ((string-match "^\\([^ \t]+\\|[^ \t]+ \\.\\. [^ \t]+\\)[ \t]+$" key)
+                    (unless (assoc-string (match-string 1 key) sections)
+                      (push (cons (match-string 1 key) binding) sections)))))))))
+          (forward-line))
+        (nreverse sections)))))
+
 (defun which-key--get-formatted-key-bindings ()
   "Uses `describe-buffer-bindings' to collect the key bindings in
 BUFFER that follow the key sequence KEY-SEQ."
   (let* ((key-str-qt (regexp-quote (key-description which-key--current-prefix)))
          (buffer (current-buffer))
-         ;; Temporarily use tabs to indent
-         (indent-tabs-mode t)
-         (keybinding-regex
-          (if which-key--current-prefix
-              (format "^%s \\([^ \t]+\\)[ \t]+\\(\\(?:[^ \t\n]+ ?\\)+\\)$"
-                      key-str-qt)
-            ;; For toplevel binding, we search for lines which
-            ;; start with a sequence of characters other than
-            ;; space and tab and '<', '>' except function keys
-            ;; <f[0-9]+> (these are ignored since mostly these
-            ;; are the keyboard input definitions provided by
-            ;; iso-transl or (mouse) bindings for the `fringe'
-            ;; or `modeline' which might not be as interesting)
-            ;; the initial sequence should be followed by one
-            ;; or more tab/space which are then followed by a
-            ;; sequence of non newline/tab characters.
-            ;; Additionally keybindings of the form [a-z]
-            ;; .. [a-z] are also matched
-            ;; For example the following should match
-            ;; C-x             Prefix Command
-            ;; <f1>            Some command
-            ;; a .. z          Some command
-            ;; But following should not
-            ;; C-x 8           Prefix Command
-            ;; <S-dead-acute>  Prefix Command
-            "^\\([^ <>\t]+\\|<f[0-9]+>\\|\\w \\.\\. \\w\\)[ \t]+\\([^\t\n]+\\)$"))
-         (lines-to-flush '("[bB]inding[s]?[:]?$"
-                           "translations:$"
-                           "-------$"
-                           "self-insert-command$"))
-         key-match desc-match unformatted)
-    (save-match-data
-      (with-temp-buffer
-        (describe-buffer-bindings buffer which-key--current-prefix)
-        (when which-key-hide-alt-key-translations
-          (goto-char (point-min))
-          (flush-lines "^A-"))
-        (goto-char (point-min))
-        (dolist (line-to-flush lines-to-flush)
-          (save-excursion (flush-lines line-to-flush)))
-        (goto-char (point-max)) ; want to put last keys in first
-        (while (re-search-backward keybinding-regex nil t)
-          (setq key-match (match-string 1)
-                desc-match (match-string 2))
-          (cl-pushnew (cons key-match desc-match) unformatted
-                      :test (lambda (x y) (string-equal (car x) (car y)))))))
+         (unformatted (which-key--get-current-bindings)))
     (when which-key-sort-order
       (setq unformatted
             (sort unformatted (lambda (a b) (funcall which-key-sort-order a b)))))
