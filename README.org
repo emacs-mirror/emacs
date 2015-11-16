@@ -1,5 +1,11 @@
 * which-key 
 [[http://melpa.org/#/which-key][http://melpa.org/packages/which-key-badge.svg]] [[http://stable.melpa.org/#/which-key][file:http://stable.melpa.org/packages/which-key-badge.svg]]
+** What's New
+- The function =which-key-show-top-level= was implemented by @iqbalansari
+  (thanks!) to show top-level key bindings (those not behind a prefix). You can
+  use =M-x which-key-show-top-level= to try it and bind it to a key if you like.
+  It should function just like any other which-key popup once it's called.
+
 ** Introduction
 =which-key= is a minor mode for Emacs that displays the key bindings following your currently
 entered incomplete command (a prefix) in a popup. For example, after enabling the minor mode
@@ -25,6 +31,7 @@ Many of these have been implemented and are described below.
 
 ** Table of Contents                                                 :TOC@4:
  - [[#which-key-][which-key ]]
+   - [[#whats-new][What's New]]
    - [[#introduction][Introduction]]
    - [[#install][Install]]
      - [[#melpa][MELPA]]
@@ -35,6 +42,7 @@ Many of these have been implemented and are described below.
      - [[#side-window-right-option][Side Window Right Option]]
      - [[#side-window-right-then-bottom][Side Window Right then Bottom]]
      - [[#minibuffer-option][Minibuffer Option]]
+   - [[#additional-commands][Additional Commands]]
    - [[#special-features-and-configuration-options][Special Features and Configuration Options]]
      - [[#popup-type-options][Popup Type Options]]
        - [[#minibuffer][minibuffer]]
@@ -143,6 +151,13 @@ Take over the minibuffer. For the recommended configuration use
 
 Note the maximum height of the minibuffer is controlled through the built-in
 variable =max-mini-window-height=.
+
+** Additional Commands
+- =which-key-show-top-level= will show most key bindings without a prefix. It is
+  most and not all, because many are probably not interesting to most users.
+- =which-key-show-next-page= is the command used for paging.
+- =which-key-undo= can be used to undo the last keypress when in the middle of a
+  key sequence.
 
 ** Special Features and Configuration Options
 There are more options than the ones described here. All of the configurable
@@ -454,4 +469,8 @@ It requires testing on different platforms with different configurations, which
 is beyond my capabilities. The default configuration has been reasonably stable
 for me. 
 ** Thanks
-Thanks to @bmag for helping with the initial development and finding many bugs.
+Special thanks to
+- @bmag for helping with the initial development and finding many
+  bugs.
+- @iqbalansari who among other things adapted the code to make
+  =which-key-show-top-level= possible.
