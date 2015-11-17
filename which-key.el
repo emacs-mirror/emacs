@@ -1117,7 +1117,8 @@ If KEY contains any \"special keys\" defined in
   (let ((key-w-face (propertize key 'face 'which-key-key-face))
         (regexp (concat "\\("
                         (mapconcat 'identity which-key-special-keys
-                                   "\\|") "\\)")))
+                                   "\\|") "\\)"))
+        case-fold-search)
     (save-match-data
       (if (and which-key-special-keys
                (string-match regexp key))
