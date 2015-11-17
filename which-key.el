@@ -1080,7 +1080,8 @@ to replace and the cdr is the replacement text.  Unless LITERAL is
 non-nil regexp is used in the replacements.  Whether or not a
 replacement occurs return the new STRING."
   (save-match-data
-    (let ((new-string string))
+    (let ((new-string string)
+          case-fold-search)
       (dolist (repl repl-alist)
         (when (string-match (car repl) new-string)
           (setq new-string
