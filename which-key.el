@@ -1240,7 +1240,7 @@ alists. Returns a list (key separator description)."
         (describe-buffer-bindings buffer which-key--current-prefix))
       (goto-char (point-min))
       (let ((header-p (not (= (char-after) ?\f)))
-            sections header section)
+            bindings header)
         (while (not (eobp))
           (cond
            (header-p
@@ -1250,8 +1250,8 @@ alists. Returns a list (key separator description)."
             (setq header-p nil)
             (forward-line 3))
            ((= (char-after) ?\f)
-            ;; (push (cons header (nreverse section)) sections)
-            (setq section nil)
+            ;; (push (cons header (nreverse section)) bindings)
+            ;; (setq section nil)
             (setq header-p t))
            ((looking-at "^[ \t]*$")
             ;; ignore
@@ -1275,20 +1275,18 @@ alists. Returns a list (key separator description)."
                    ((string-match-p ignore-keys-regexp key))
                    ((and which-key--current-prefix
                          (string-match (format "^%s[ \t]\\([^ \t]+\\)[ \t]+$" key-str-qt) key))
-                    (unless (assoc-string (match-string 1 key) sections)
-                      (push (cons (match-string 1 key) binding) sections)))
+                    (unless (assoc-string (match-string 1 key) bindings)
+                      (push (cons (match-string 1 key) binding) bindings)))
                    ((string-match "^\\([^ \t]+\\|[^ \t]+ \\.\\. [^ \t]+\\)[ \t]+$" key)
-                    (unless (assoc-string (match-string 1 key) sections)
-                      (push (cons (match-string 1 key) binding) sections)))))))))
+                    (unless (assoc-string (match-string 1 key) bindings)
+                      (push (cons (match-string 1 key) binding) bindings)))))))))
           (forward-line))
-        (nreverse sections)))))
+        (nreverse bindings)))))
 
 (defun which-key--get-formatted-key-bindings ()
   "Uses `describe-buffer-bindings' to collect the key bindings in
 BUFFER that follow the key sequence KEY-SEQ."
-  (let* ((key-str-qt (regexp-quote (key-description which-key--current-prefix)))
-         (buffer (current-buffer))
-         (unformatted (which-key--get-current-bindings)))
+  (let* ((unformatted (which-key--get-current-bindings)))
     (when which-key-sort-order
       (setq unformatted
             (sort unformatted (lambda (a b) (funcall which-key-sort-order a b)))))
