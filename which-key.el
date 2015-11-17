@@ -962,15 +962,18 @@ width) in lines and characters respectively."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Sorting functions
 
-(defun which-key--alpha< (a b)
-  (let ((da (downcase a))
-        (db (downcase b)))
-    (if (string-equal da db)
-        (not (string-lessp a b))
-      (string-lessp da db))))
+(defun which-key--string< (a b &optional alpha)
+  (if alpha
+      (let ((da (downcase a))
+            (db (downcase b)))
+        (if (string-equal da db)
+            (not (string-lessp a b))
+          (string-lessp da db)))
+    (string-lessp a b)))
 
-(defun which-key--key-description-alpha< (a b)
-  "Sorting function used for `which-key-key-order-alpha'."
+(defun which-key--key-description< (a b &optional alpha)
+  "Sorting function used for `which-key-key-order' and
+`which-key-key-order-alpha'."
   (let* ((aem? (string-equal a ""))
          (bem? (string-equal b ""))
          (a1? (= 1 (length a)))
@@ -986,17 +989,18 @@ width) in lines and characters respectively."
     (cond ((or aem? bem?) (and aem? (not bem?)))
           ((and asp? bsp?)
            (if (string-equal (substring a 0 3) (substring b 0 3))
-               (which-key--key-description-alpha< (substring a 3) (substring b 3))
+               (which-key--key-description< (substring a 3) (substring b 3) alpha)
              (string-lessp a b)))
           ((or asp? bsp?) asp?)
-          ((and a1? b1?) (which-key--alpha< a b))
+          ((and a1? b1?) (which-key--string< a b alpha))
           ((or a1? b1?) a1?)
           ((and afn? bfn?)
            (< (string-to-number (replace-regexp-in-string "<f\\([0-9]+\\)>" "\\1" a))
               (string-to-number (replace-regexp-in-string "<f\\([0-9]+\\)>" "\\1" b))))
+          ((or afn? bfn?) afn?)
           ((and apr? bpr?)
            (if (string-equal (substring a 0 2) (substring b 0 2))
-               (which-key--key-description-alpha< (substring a 2) (substring b 2))
+               (which-key--key-description< (substring a 2) (substring b 2) alpha)
              (string-lessp a b)))
           ((or apr? bpr?) apr?)
           (t (string-lessp a b)))))
@@ -1009,39 +1013,7 @@ the ordering of classes are listed below.
 special (SPC,TAB,...) < single char < mod (C-,M-,...) < other.
 Sorts single characters alphabetically with lowercase coming
 before upper."
-  (which-key--key-description-alpha< (car acons) (car bcons)))
-
-(defun which-key--key-description< (a b)
-  "Sorting function used for `which-key-key-order'."
-  (let* ((aem? (string-equal a ""))
-         (bem? (string-equal b ""))
-         (a1? (= 1 (length a)))
-         (b1? (= 1 (length b)))
-         (srgxp "^\\(RET\\|SPC\\|TAB\\|DEL\\|LFD\\|ESC\\|NUL\\)")
-         (asp? (string-match-p srgxp a))
-         (bsp? (string-match-p srgxp b))
-         (prrgxp "^\\(M\\|C\\|S\\|A\\|H\\|s\\)-")
-         (apr? (string-match-p prrgxp a))
-         (bpr? (string-match-p prrgxp b))
-         (afn? (string-match-p "<f[0-9]+>" a))
-         (bfn? (string-match-p "<f[0-9]+>" b)))
-    (cond ((or aem? bem?) (and aem? (not bem?)))
-          ((and asp? bsp?)
-           (if (string-equal (substring a 0 3) (substring b 0 3))
-               (which-key--key-description< (substring a 3) (substring b 3))
-             (string-lessp a b)))
-          ((or asp? bsp?) asp?)
-          ((and a1? b1?) (string-lessp a b))
-          ((or a1? b1?) a1?)
-          ((and afn? bfn?)
-           (< (string-to-number (replace-regexp-in-string "<f\\([0-9]+\\)>" "\\1" a))
-              (string-to-number (replace-regexp-in-string "<f\\([0-9]+\\)>" "\\1" b))))
-          ((and apr? bpr?)
-           (if (string-equal (substring a 0 2) (substring b 0 2))
-               (which-key--key-description< (substring a 2) (substring b 2))
-             (string-lessp a b)))
-          ((or apr? bpr?) apr?)
-          (t (string-lessp a b)))))
+  (which-key--key-description< (car acons) (car bcons) t))
 
 (defsubst which-key-key-order (acons bcons)
   "Order key descriptions A and B.
