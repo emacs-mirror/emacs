@@ -74,11 +74,6 @@ each key column."
   :group 'which-key
   :type 'integer)
 
-(defcustom which-key-separator " → "
-  "Separator to use between key and description."
-  :group 'which-key
-  :type 'string)
-
 (defcustom which-key-unicode-correction 3
   "Correction for wide unicode characters.
 Since we measure width in terms of the number of characters,
@@ -95,8 +90,21 @@ of the which-key popup."
   :group 'which-key
   :type 'integer)
 
+(defcustom which-key-dont-use-unicode nil
+  "If non-nil, don't use any unicode characters in default setup."
+  :group 'which-key
+  :type 'integer)
+
+(defcustom which-key-separator
+  (if which-key-dont-use-unicode " : " " → ")
+  "Separator to use between key and description."
+  :group 'which-key
+  :type 'string)
+
 (defcustom which-key-key-replacement-alist
-  '(("<\\([[:alnum:]-]+\\)>" . "\\1") ("left" . "←") ("right" . "→"))
+  (if which-key-dont-use-unicode
+      '(("<\\([[:alnum:]-]+\\)>" . "\\1"))
+    '(("<\\([[:alnum:]-]+\\)>" . "\\1") ("left" . "←") ("right" . "→")))
   "The strings in the car of each cons are replaced with the
 strings in the cdr for each key.  Elisp regexp can be used as
 in the first example."
@@ -478,6 +486,18 @@ it's set too high)."
       ;; (message "which-key: echo-keystrokes changed from %s to %s"
       ;;          previous echo-keystrokes)
       )))
+
+(defun which-key-remove-default-unicode-chars ()
+  "Use of `which-key-dont-use-unicode' is preferred to this
+function, but it's included here in case someone cannot set that
+variable early enough in their configuration, if they are using a
+starter kit for example."
+  (when (string-equal which-key-separator " → ")
+    (setq which-key-separator " : "))
+  (setq which-key-key-replacement-alist
+        (delete '("left" . "←") which-key-key-replacement-alist))
+  (setq which-key-key-replacement-alist
+        (delete '("right" . "→") which-key-key-replacement-alist)))
 
 ;; (defun which-key--setup-undo-key ()
 ;;   "Bind `which-key-undo-key' in `which-key-undo-keymaps'."
