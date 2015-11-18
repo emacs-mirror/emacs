@@ -1426,8 +1426,7 @@ area."
                    (and (< 1 n-pages) paging-key-bound)
                    use-descbind)
                (not (and which-key-allow-evil-operators
-                         (boundp 'evil-this-operator)
-                         evil-this-operator)))
+                         (bound-and-true-p evil-this-operator))))
       (propertize (format "[%s %s]" key
                           (if use-descbind "help" next-page-n))
                   'face 'which-key-note-face))))
@@ -1630,7 +1629,7 @@ Finally, show the buffer."
                (not which-key-inhibit)
                ;; Do not display the popup if a command is currently being
                ;; executed
-               (or (and which-key-allow-evil-operators evil-this-operator)
+               (or (and which-key-allow-evil-operators (bound-and-true-p evil-this-operator))
                    (null this-command)))
       (which-key--create-buffer-and-show prefix-keys))))
 
