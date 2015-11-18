@@ -9,11 +9,9 @@
   The echo area is not a good default, because it's not possible to completely
   control what shows there without doing something ugly, so occasionally the
   which-key information will be overwritten. To restore the old default simply
-
   #+BEGIN_SRC emacs-lisp
   (setq which-key-show-prefix 'echo)
   #+END_SRC
-
 - The function =which-key-show-top-level= was implemented by @iqbalansari
   (thanks!) to show top-level key bindings (those not behind a prefix). You can
   use =M-x which-key-show-top-level= to try it and bind it to a key if you like.
