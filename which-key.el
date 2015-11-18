@@ -139,14 +139,15 @@ and have `which-key-special-key-face' applied to them."
   :group 'which-key
   :type 'string)
 
-(defcustom which-key-show-prefix 'echo
+(defcustom which-key-show-prefix 'bottom
   "Whether to and where to display the current prefix sequence.
 Possible choices are echo for echo area (the default), left, top
 and nil. Nil turns the feature off."
   :group 'which-key
-  :type '(radio (const :tag "Left of keys" left)
-                (const :tag "In first line" top)
-                (const :tag "In echo area" echo)
+  :type '(radio (const :tag "Left of the keys" left)
+                (const :tag "In the first line" top)
+                (const :tag "In the last line" bottom)
+                (const :tag "In the echo area" echo)
                 (const :tag "Hide" nil)))
 
 (defcustom which-key-popup-type 'side-window
@@ -561,10 +562,9 @@ if there is space and the bottom otherwise."
   "Apply suggested settings for side-window that opens on
 bottom."
   (interactive)
-  (which-key--setup-echo-keystrokes)
   (setq which-key-popup-type 'side-window
         which-key-side-window-location 'bottom
-        which-key-show-prefix 'echo))
+        which-key-show-prefix 'bottom))
 
 ;;;###autoload
 (defun which-key-setup-minibuffer ()
@@ -1116,13 +1116,18 @@ occurs return the new STRING."
   "KEY-LST is a list of keys produced by `listify-key-sequences'.
 A title is possibly returned using `which-key-prefix-title-alist'.
 An empty stiring is returned if no title exists."
-  (let* ((alist which-key-prefix-title-alist)
-         (res (assoc key-lst alist))
-         (mode-alist (assq major-mode alist))
-         (mode-res (when mode-alist (assoc key-lst mode-alist))))
-    (cond (mode-res (cdr mode-res))
-          (res (cdr res))
-          (t ""))))
+  (if key-lst
+      (let* ((alist which-key-prefix-title-alist)
+             (res (assoc key-lst alist))
+             (mode-alist (assq major-mode alist))
+             (mode-res (when mode-alist (assoc key-lst mode-alist))))
+        (cond (mode-res (cdr mode-res))
+              (res (cdr res))
+              ((and (eq which-key-show-prefix 'bottom)
+                    echo-keystrokes)
+               (concat (key-description key-lst) "-"))
+              (t "")))
+    "Top-level bindings"))
 
 (defun which-key--maybe-replace-key-based (string key-lst)
   "KEY-LST is a list of keys produced by `listify-key-sequences'
@@ -1387,8 +1392,8 @@ is the width of the live window."
          (prefix-w-face (which-key--propertize-key prefix-keys-desc))
          (prefix-left (when (eq which-key-show-prefix 'left)
                         (+ 2 (string-width prefix-w-face))))
-         (prefix-top (eq which-key-show-prefix 'top))
-         (avl-lines (if prefix-top (- max-lines 1) max-lines))
+         (prefix-top-bottom (member which-key-show-prefix '(bottom top)))
+         (avl-lines (if prefix-top-bottom (- max-lines 1) max-lines))
          (min-lines (min avl-lines which-key-min-display-lines))
          (avl-width (if prefix-left (- max-width prefix-left) max-width))
          (vertical (and (eq which-key-popup-type 'side-window)
@@ -1430,11 +1435,6 @@ area."
      delay nil (lambda () (let (message-log-max)
                             (message "%s" text))))))
 
-(defun which-key--prefix-keys-description (prefix-keys)
-  (if prefix-keys
-      (key-description prefix-keys)
-    "Top-level bindings"))
-
 (defun which-key--next-page-hint (prefix-keys page-n n-pages)
   "Return string for next page hint."
   (let* ((paging-key (concat prefix-keys " " which-key-paging-key))
@@ -1466,7 +1466,7 @@ area."
   "Show page N, starting from 0."
   (which-key--init-buffer) ;; in case it was killed
   (let ((n-pages (plist-get which-key--pages-plist :n-pages))
-        (prefix-keys (which-key--prefix-keys-description which-key--current-prefix))
+        (prefix-keys (key-description which-key--current-prefix))
         page-n golden-ratio-mode)
     (if (= 0 n-pages)
         (message "%s- which-key can't show keys: There is not \
@@ -1520,9 +1520,16 @@ enough space based on your settings and frame size." prefix-keys)
               ((eq which-key-show-prefix 'top)
                (setq page (concat prefix-w-face dash-w-face " "
                                   status-top " " nxt-pg-hint "\n" page)))
+              ((eq which-key-show-prefix 'bottom)
+               (setq page (concat page "\n"
+                                  (when (null echo-keystrokes)
+                                    (concat prefix-w-face dash-w-face " "))
+                                  status-top " " nxt-pg-hint)))
               ((eq which-key-show-prefix 'echo)
-               (which-key--echo (concat prefix-w-face dash-w-face " "
-                                        status-top " " nxt-pg-hint))))
+               (which-key--echo (concat prefix-w-face dash-w-face
+                                        (when prefix-keys " ")
+                                        status-top (when status-top " ")
+                                        nxt-pg-hint))))
         (which-key--lighter-status n-shown n-tot)
         (if (eq which-key-popup-type 'minibuffer)
             (which-key--echo page)
@@ -1622,7 +1629,7 @@ Finally, show the buffer."
   (setq which-key--current-prefix prefix-keys
         which-key--last-try-2-loc nil)
   (let ((formatted-keys (which-key--get-formatted-key-bindings))
-        (prefix-keys (which-key--prefix-keys-description which-key--current-prefix)))
+        (prefix-keys (key-description which-key--current-prefix)))
     (cond ((= (length formatted-keys) 0)
            (message "%s-  which-key: There are no keys to show" prefix-keys))
           ((listp which-key-side-window-location)
