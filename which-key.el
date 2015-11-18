@@ -1032,6 +1032,10 @@ special (SPC,TAB,...) < single char < mod (C-,M-,...) < other."
 Uses `string-lessp' after applying lowercase."
   (string-lessp (downcase (cdr acons)) (downcase (cdr bcons))))
 
+(defsubst which-key--group-p (description)
+  (or (string-match-p "^\\(group:\\|Prefix\\)" description)
+      (keymapp (intern description))))
+
 (defun which-key-prefix-then-key-order (acons bcons)
   "Order first by whether A and/or B is a prefix with no prefix
 coming before a prefix. Within these categories order using
@@ -1139,10 +1143,6 @@ If KEY contains any \"special keys\" defined in
            (> (length desc) which-key-max-description-length))
       (concat (substring desc 0 which-key-max-description-length) "..")
     desc))
-
-(defsubst which-key--group-p (description)
-  (or (string-match-p "^\\(group:\\|Prefix\\)" description)
-      (keymapp (intern description))))
 
 (defun which-key--highlight-face (description)
   "Return the highlight face for DESCRIPTION if it has one."
