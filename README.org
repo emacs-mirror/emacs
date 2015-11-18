@@ -1,6 +1,19 @@
 * which-key 
 [[http://melpa.org/#/which-key][http://melpa.org/packages/which-key-badge.svg]] [[http://stable.melpa.org/#/which-key][file:http://stable.melpa.org/packages/which-key-badge.svg]]
 ** What's New
+- Implemented =bottom= as an option for =which-key-show-prefix=, which will show
+  the key, page number, and next page key information on the last line of the
+  which-key buffer.
+- This is the new default for =which-key-setup-side-window-bottom=. The old
+  default, which is still available, used the echo area for this information.
+  The echo area is not a good default, because it's not possible to completely
+  control what shows there without doing something ugly, so occasionally the
+  which-key information will be overwritten. To restore the old default simply
+
+  #+BEGIN_SRC emacs-lisp
+  (setq which-key-show-prefix 'echo)
+  #+END_SRC
+
 - The function =which-key-show-top-level= was implemented by @iqbalansari
   (thanks!) to show top-level key bindings (those not behind a prefix). You can
   use =M-x which-key-show-top-level= to try it and bind it to a key if you like.
@@ -72,7 +85,7 @@ minor mode of course.
 *** Manually
 Add which-key.el to your =load-path= and require. Something like 
 
-#+BEGIN_SRC Emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "path/to/which-key.el")
 (require 'which-key)
 (which-key-mode)
@@ -109,7 +122,7 @@ This functionality is targeting [[https://github.com/syl20bnr/spacemacs][spacEma
 *** Side Window Bottom Option
 Popup side window on bottom. This is the current default. To restore this setup use
 
-#+BEGIN_SRC Emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (which-key-setup-side-window-bottom)
 #+END_SRC
 
@@ -118,7 +131,7 @@ Popup side window on bottom. This is the current default. To restore this setup 
 *** Side Window Right Option
 Popup side window on right. For defaults use
 
-#+BEGIN_SRC Emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (which-key-setup-side-window-right)
 #+END_SRC
 
@@ -136,14 +149,14 @@ usually easier to fit keys into. This setting can be helpful if the size of
 the Emacs frame changes frequently, which might be the case if you are using
 a dynamic/tiling window manager.
 
-#+BEGIN_SRC Emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (which-key-setup-side-window-right-bottom)
 #+END_SRC
 
 *** Minibuffer Option
 Take over the minibuffer. For the recommended configuration use 
 
-#+BEGIN_SRC Emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (which-key-setup-minibuffer)
 #+END_SRC
 
@@ -167,16 +180,16 @@ There are three different popup types that which-key can use by default to
 display the available keys. The variable =which-key-popup-type= decides which
 one is used.
 **** minibuffer
-#+BEGIN_SRC Emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (setq which-key-popup-type 'minibuffer)
 #+END_SRC
 Show keys in the minibuffer.
 **** side window
-#+BEGIN_SRC Emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (setq which-key-popup-type 'side-window)
 #+END_SRC
 Show keys in a side window. This popup type has further options:
-#+BEGIN_SRC Emacs-lisp
+#+BEGIN_SRC emacs-lisp
 ;; location of which-key window. valid values: top, bottom, left, right, 
 ;; or a list of any of the two. If it's a list, which-key will always try
 ;; the first location first. It will go to the second location if there is
@@ -195,13 +208,13 @@ Show keys in a side window. This popup type has further options:
 #+END_SRC
 **** frame
 
-#+BEGIN_SRC Emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (setq which-key-popup-type 'frame)
 #+END_SRC
 Show keys in a popup frame. This popup won't work very well in a terminal,
 where only one frame can be shown at any given moment. This popup type has
 further options:
-#+BEGIN_SRC Emacs-lisp
+#+BEGIN_SRC emacs-lisp
 ;; max width of which-key frame: number of columns (an integer)
 (setq which-key-frame-max-width 60)
 
@@ -218,7 +231,7 @@ variables for more information, but here is a working example (this is the
 current implementation of side-window bottom).
 
 
-#+BEGIN_SRC Emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (setq which-key-popup-type 'custom)
 (defun which-key-custom-popup-max-dimensions-function (ignore)
   (cons
@@ -253,7 +266,7 @@ variable directly.]
 Using this method, the description of a key is replaced using a string that you
 provide. Here's an example 
 
-#+BEGIN_SRC Emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (which-key-add-key-based-replacements
   "C-x C-f" "find files")
 #+END_SRC
@@ -263,7 +276,7 @@ replace, in a form suitable for =kbd=. For that key combination, which-key
 overwrites the description with the second string, "find files". In the second
 type of entry you can restrict the replacements to a major-mode. For example,
 
-#+BEGIN_SRC Emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (which-key-add-major-mode-key-based-replacements 'org-mode
   "C-c C-c" "Org C-c C-c"
   "C-c C-a" "Org Attach")
@@ -280,7 +293,7 @@ descriptions directly. The relevant variables are
 =which-key-key-replacement-alist= and =which-key-description-replacement-alist=.
 Here's an example of one of the default key replacements
 
-#+BEGIN_SRC Emacs-lisp
+#+BEGIN_SRC emacs-lisp
 ("<\\([[:alnum:]-]+\\)>" . "\\1")
 #+END_SRC
 
@@ -288,7 +301,7 @@ The =car= takes a string which may use Emacs regexp and the =cdr= takes a string
 with the replacement text. As shown, you can specify a sub-expression of the
 match. The replacements do not need to use regexp and can be as simple as
 
-#+BEGIN_SRC Emacs-lisp
+#+BEGIN_SRC emacs-lisp
 ("left" . "lft")
 #+END_SRC
 
@@ -297,7 +310,7 @@ results. Unfortunately, using Unicode characters may upset the alignment of the
 which-key buffer, because Unicode characters can have different widths even in a
 monospace font and alignment is based on character width.
 
-#+BEGIN_SRC Emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (add-to-list 'which-key-key-replacement-alist '("TAB" . "↹"))
 (add-to-list 'which-key-key-replacement-alist '("RET" . "⏎"))
 (add-to-list 'which-key-key-replacement-alist '("DEL" . "⇤"))
@@ -314,7 +327,7 @@ their order are
 You can control the order by setting this variable. This also shows the other
 available options.
 
-#+BEGIN_SRC Emacs-lisp
+#+BEGIN_SRC emacs-lisp
 ;; default
 (setq which-key-sort-order 'which-key-key-order)
 ;; same as default, except single characters are sorted alphabetically
@@ -335,7 +348,7 @@ typing. There are two slightly different ways of doing this.
 
 **** Method 1 (default): Using C-h (or =help-char=)
 This is the easiest way, and is turned on by default. Use
-#+BEGIN_SRC Emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (setq which-key-use-C-h-for-paging nil)
 #+END_SRC
 to disable the behavior (this will only take effect after toggling
@@ -358,7 +371,7 @@ The default configuration below will allow you to switch paging using =C-h=
 until you reach the last page of keys in the which-key buffer. The next press of
 =C-h= will close the which-key buffer and trigger the default Emacs behavior on
 =C-h=.
-#+BEGIN_SRC Emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (setq which-key-use-C-h-for-paging t
       which-key-prevent-C-h-from-cycling t)
 #+END_SRC
@@ -372,13 +385,13 @@ Note =C-h= is by default equivalent to =?= in this context.
 Essentially, all you need to do for a prefix like =C-x= is the following which
 will bind =<f5>= to the relevant command.
 
-#+BEGIN_SRC Emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (define-key which-key-mode-map (kbd "C-x <f5>") 'which-key-show-next-page)
 #+END_SRC
 
 This is completely equivalent to 
 
-#+BEGIN_SRC Emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (setq which-key-paging-prefixes '("C-x"))
 (setq which-key-paging-key "<f5>")
 #+END_SRC
@@ -404,13 +417,13 @@ everywhere. It might be useful for you to distinguish between the two. One way
 to do this is to remove the default face from
 =which-key-command-description-face= like this
 
-#+BEGIN_SRC Emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (set-face-attribute 'which-key-command-description-face nil :inherit nil)
 #+END_SRC
 
 another is to make the local map keys appear in bold
 
-#+BEGIN_SRC Emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (set-face-attribute 'which-key-local-map-description-face nil :weight 'bold)
 #+END_SRC
 
@@ -421,9 +434,9 @@ your liking.
 The options below are also available through customize. Their defaults are
 shown.
 
-#+BEGIN_SRC Emacs-lisp
+#+BEGIN_SRC emacs-lisp
   ;; Set the time delay (in seconds) for the which-key popup to appear.
-  (setq which-key-idle-delay 1.0) 
+  (setq which-key-idle-delay 1.0)
 
   ;; Set the maximum length (in characters) for key descriptions (commands or
   ;; prefixes). Descriptions that are longer are truncated and have ".." added.
@@ -446,9 +459,9 @@ shown.
   ;; the feature
   (setq which-key-special-keys '("SPC" "TAB" "RET" "ESC" "DEL"))
 
-  ;; Show the key prefix on the left or top (nil means hide the prefix). The
-  ;; prefix consists of the keys you have typed so far. which-key also shows the
-  ;; page information along with the prefix.
+  ;; Show the key prefix on the left, top, or bottom (nil means hide the prefix).
+  ;; The prefix consists of the keys you have typed so far. which-key also shows
+  ;; the page information along with the prefix.
   (setq which-key-show-prefix 'left)
 
   ;; Set to t to show the count of keys shown vs. total keys in the mode line.
