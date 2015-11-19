@@ -388,6 +388,7 @@ showing.")
   "Internal: Last location of side-window when two locations
 used.")
 (defvar which-key--multiple-locations nil)
+(defvar which-key--using-top-level nil)
 
 (defvar which-key-key-based-description-replacement-alist '()
   "New version of
@@ -780,6 +781,7 @@ total height."
   "This function is called to hide the which-key buffer."
   (unless (eq real-this-command 'which-key-show-next-page)
     (setq which-key--current-page-n nil
+          which-key--using-top-level nil
           which-key--on-last-page nil)
     (cl-case which-key-popup-type
       ;; Not necessary to hide minibuffer
@@ -1597,6 +1599,7 @@ Will force an update if called before `which-key--update'."
 (defun which-key-show-top-level ()
   "Show top-level bindings."
   (interactive)
+  (setq which-key--using-top-level t)
   (which-key--create-buffer-and-show nil))
 
 (defun which-key-undo ()
@@ -1657,20 +1660,22 @@ Finally, show the buffer."
     ;;  (message "key: %s" (key-description prefix-keys)))
     ;; (when (> (length prefix-keys) 0)
     ;;  (message "key binding: %s" (key-binding prefix-keys)))
-    (when (and (> (length prefix-keys) 0)
-               (or (keymapp (key-binding prefix-keys))
-                   ;; Some keymaps are stored here like iso-transl-ctl-x-8-map
-                   (keymapp (which-key--safe-lookup-key
-                             key-translation-map prefix-keys))
-                   ;; just in case someone uses one of these
-                   (keymapp (which-key--safe-lookup-key
-                             function-key-map prefix-keys)))
-               (not which-key-inhibit)
-               ;; Do not display the popup if a command is currently being
-               ;; executed
-               (or (and which-key-allow-evil-operators (bound-and-true-p evil-this-operator))
-                   (null this-command)))
-      (which-key--create-buffer-and-show prefix-keys))))
+    (cond ((and (> (length prefix-keys) 0)
+                (or (keymapp (key-binding prefix-keys))
+                    ;; Some keymaps are stored here like iso-transl-ctl-x-8-map
+                    (keymapp (which-key--safe-lookup-key
+                              key-translation-map prefix-keys))
+                    ;; just in case someone uses one of these
+                    (keymapp (which-key--safe-lookup-key
+                              function-key-map prefix-keys)))
+                (not which-key-inhibit)
+                ;; Do not display the popup if a command is currently being
+                ;; executed
+                (or (and which-key-allow-evil-operators (bound-and-true-p evil-this-operator))
+                    (null this-command)))
+           (which-key--create-buffer-and-show prefix-keys))
+          ((and which-key--current-page-n (not which-key--using-top-level))
+           (which-key--hide-popup)))))
 
 ;; Timers
 
