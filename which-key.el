@@ -563,6 +563,7 @@ if there is space and the bottom otherwise."
   "Apply suggested settings for side-window that opens on
 bottom."
   (interactive)
+  (which-key--setup-echo-keystrokes)
   (setq which-key-popup-type 'side-window
         which-key-side-window-location 'bottom
         which-key-show-prefix 'echo))
