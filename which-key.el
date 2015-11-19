@@ -1123,9 +1123,12 @@ An empty stiring is returned if no title exists."
              (mode-res (when mode-alist (assoc key-lst mode-alist))))
         (cond (mode-res (cdr mode-res))
               (res (cdr res))
-              ((and (eq which-key-show-prefix 'bottom)
+              ((and (member which-key-show-prefix '(bottom top))
+                    (eq which-key-side-window-location 'bottom)
                     echo-keystrokes)
-               (concat (key-description key-lst) "-"))
+               (if (symbolp (key-binding (apply #'vector key-lst)))
+                   (symbol-name (key-binding (apply #'vector key-lst)))
+                 (concat "Following " (key-description key-lst))))
               (t "")))
     "Top-level bindings"))
 
@@ -1377,7 +1380,7 @@ Returns a plist that holds the page strings, as well as metadata."
         (push page-width page-widths))
       (list :pages (nreverse pages) :page-height avl-lines
             :page-widths (nreverse page-widths)
-            :keys/page (nreverse keys/page) :n-pages n-pages
+            :keys/page (reverse keys/page) :n-pages n-pages
             :tot-keys (apply #'+ keys/page)))))
 
 (defun which-key--create-pages (keys sel-win-width)
@@ -1482,8 +1485,8 @@ enough space based on your settings and frame size." prefix-keys)
              (prefix-w-face (if (eq which-key-show-prefix 'echo) prefix-keys
                               (which-key--propertize-key prefix-keys)))
              (dash-w-face (if which-key--current-prefix
-                            (if (eq which-key-show-prefix 'echo) "-"
-                              (propertize "-" 'face 'which-key-key-face))
+                              (if (eq which-key-show-prefix 'echo) "-"
+                                (propertize "-" 'face 'which-key-key-face))
                             ""))
              (status-left (propertize (format "%s/%s" (1+ page-n) n-pages)
                                       'face 'which-key-separator-face))
@@ -1518,13 +1521,20 @@ enough space based on your settings and frame size." prefix-keys)
                        new-end (concat "\n" (make-string first-col-width 32))
                        page  (concat first (mapconcat #'identity (cdr lines) new-end)))))
               ((eq which-key-show-prefix 'top)
-               (setq page (concat prefix-w-face dash-w-face " "
-                                  status-top " " nxt-pg-hint "\n" page)))
+               (setq page
+                     (concat
+                      (when (or (null echo-keystrokes)
+                                (not (eq which-key-side-window-location 'bottom)))
+                        (concat prefix-w-face dash-w-face " "))
+                      status-top " " nxt-pg-hint "\n" page)))
               ((eq which-key-show-prefix 'bottom)
-               (setq page (concat page "\n"
-                                  (when (null echo-keystrokes)
-                                    (concat prefix-w-face dash-w-face " "))
-                                  status-top " " nxt-pg-hint)))
+               (setq page
+                     (concat
+                      page "\n"
+                      (when (or (null echo-keystrokes)
+                                (not (eq which-key-side-window-location 'bottom)))
+                        (concat prefix-w-face dash-w-face " "))
+                      status-top " " nxt-pg-hint)))
               ((eq which-key-show-prefix 'echo)
                (which-key--echo (concat prefix-w-face dash-w-face
                                         (when prefix-keys " ")
