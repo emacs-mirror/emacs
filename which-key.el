@@ -139,7 +139,7 @@ and have `which-key-special-key-face' applied to them."
   :group 'which-key
   :type 'string)
 
-(defcustom which-key-show-prefix 'bottom
+(defcustom which-key-show-prefix 'echo
   "Whether to and where to display the current prefix sequence.
 Possible choices are echo for echo area (the default), left, top
 and nil. Nil turns the feature off."
