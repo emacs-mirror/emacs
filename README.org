@@ -1,6 +1,9 @@
 * which-key 
 [[http://melpa.org/#/which-key][http://melpa.org/packages/which-key-badge.svg]] [[http://stable.melpa.org/#/which-key][file:http://stable.melpa.org/packages/which-key-badge.svg]]
 ** What's New
+- Use your mouse to hover over commands and the docstring will be displayed in
+  the echo area or a tooltip, depending on whether or not you're using
+  =tooltip-mode=.
 - The function =which-key-show-top-level= was implemented by @iqbalansari
   (thanks!) to show top-level key bindings (those not behind a prefix). You can
   use =M-x which-key-show-top-level= to try it and bind it to a key if you like.
