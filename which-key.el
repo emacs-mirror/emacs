@@ -39,6 +39,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'button)
 
 (eval-when-compile
   (defvar golden-ratio-mode))
@@ -1196,21 +1197,40 @@ which-key-highlighted-command-list is not a string or a cons
 cell" el)))))
     face))
 
-(defun which-key--propertize-description (description group local hl-face)
+(defun which-key--propertize-description
+    (description group local hl-face &optional original-description)
   "Add face to DESCRIPTION where the face chosen depends on
 whether the description represents a group or a command. Also
 make some minor adjustments to the description string, like
-removing a \"group:\" prefix."
+removing a \"group:\" prefix.
+
+ORIGINAL-DESCRIPTION is the description given by
+`describe-buffer-bindings'."
   (let* ((desc description)
          (desc (if (string-match-p "^group:" desc)
                    (substring desc 6) desc))
          (desc (if group (concat "+" desc) desc))
          (desc (which-key--truncate-description desc)))
-    (propertize desc 'face
-                (cond (hl-face hl-face)
-                      (group 'which-key-group-description-face)
-                      (local 'which-key-local-map-description-face)
-                      (t 'which-key-command-description-face)))))
+    (eval
+     `(make-text-button
+       ,desc nil
+       'face ',(cond (hl-face hl-face)
+                     (group 'which-key-group-description-face)
+                     (local 'which-key-local-map-description-face)
+                     (t 'which-key-command-description-face))
+       'help-echo ,(cond
+                    ((and (fboundp (intern original-description))
+                          (documentation (intern original-description))
+                          tooltip-mode)
+                     (documentation (intern original-description)))
+                    ((and (fboundp (intern original-description))
+                          (documentation (intern original-description))
+                          (let* ((doc (documentation (intern original-description)))
+                                 (str (replace-regexp-in-string "\n" " " doc))
+                                 (max (floor (* (frame-width) 0.8))))
+                            (if (> (length str) max)
+                                (concat (substring str 0 max) "...")
+                              str)))))))))
 
 (defun which-key--format-and-replace (unformatted)
   "Take a list of (key . desc) cons cells in UNFORMATTED, add
@@ -1222,23 +1242,24 @@ alists. Returns a list (key separator description)."
     (mapcar
      (lambda (key-desc-cons)
        (let* ((key (car key-desc-cons))
-              (desc (cdr key-desc-cons))
-              (group (which-key--group-p desc))
+              (orig-desc (cdr key-desc-cons))
+              (group (which-key--group-p orig-desc))
               (keys (which-key--current-key-string key))
               (key-lst (which-key--current-key-list key))
               (local (eq (which-key--safe-lookup-key local-map (kbd keys))
-                         (intern desc)))
-              (hl-face (which-key--highlight-face desc))
+                         (intern orig-desc)))
+              (hl-face (which-key--highlight-face orig-desc))
               (key (which-key--maybe-replace
                     key which-key-key-replacement-alist))
               (desc (which-key--maybe-replace
-                     desc which-key-description-replacement-alist))
+                     orig-desc which-key-description-replacement-alist))
               (desc (which-key--maybe-replace-key-based desc key-lst))
               (desc (if group
                         (which-key--maybe-replace-prefix-name key-lst desc)
                       desc))
               (key-w-face (which-key--propertize-key key))
-              (desc-w-face (which-key--propertize-description desc group local hl-face)))
+              (desc-w-face (which-key--propertize-description
+                            desc group local hl-face orig-desc)))
          (list key-w-face sep-w-face desc-w-face)))
      unformatted)))
 
