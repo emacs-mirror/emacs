@@ -164,7 +164,7 @@ and nil. Nil turns the feature off."
   :group 'which-key
   :type 'integer)
 
-(defcustom which-key-side-window-location 'echo
+(defcustom which-key-side-window-location 'bottom
   "Location of which-key popup when `which-key-popup-type' is side-window.
 Should be one of top, bottom, left or right. You can also specify
 a list of two locations, like (right bottom). In this case, the
