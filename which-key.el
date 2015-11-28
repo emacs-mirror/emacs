@@ -1109,9 +1109,10 @@ and DESC is the description that is possibly replaced using the
 `which-key-prefix-name-alist'. Whether or not a replacement
 occurs return the new STRING."
   (let* ((alist which-key-prefix-name-alist)
-         (res (assoc key-lst alist))
+         (canonical-key-lst (listify-key-sequence (kbd (key-description key-lst))))
+         (res (assoc canonical-key-lst alist))
          (mode-alist (assq major-mode alist))
-         (mode-res (when mode-alist (assoc key-lst mode-alist))))
+         (mode-res (when mode-alist (assoc canonical-key-lst mode-alist))))
     (cond (mode-res (cdr mode-res))
           (res (cdr res))
           (t desc))))
