@@ -1237,7 +1237,8 @@ ORIGINAL-DESCRIPTION is the description given by
                                  (max (floor (* (frame-width) 0.8))))
                             (if (> (length str) max)
                                 (concat (substring str 0 max) "...")
-                              str)))))))))
+                              str)))))))
+    desc))
 
 (defun which-key--format-and-replace (unformatted)
   "Take a list of (key . desc) cons cells in UNFORMATTED, add
