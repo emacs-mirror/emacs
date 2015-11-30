@@ -1073,6 +1073,10 @@ coming before a prefix. Within these categories order using
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions for retrieving and formatting keys
 
+(defsubst which-key--string-width (maybe-string)
+  "If MAYBE-STRING is a string use `which-key--string-width' o/w return 0."
+  (if (stringp maybe-string) (string-width maybe-string) 0))
+
 (defsubst which-key--safe-lookup-key (keymap key)
   "Version of `lookup-key' that allows KEYMAP to be nil. KEY is not checked."
   (when (keymapp keymap) (lookup-key keymap key)))
@@ -1170,7 +1174,8 @@ If KEY contains any \"special keys\" defined in
             (concat (substring key-w-face 0 beg)
                     (propertize (substring key-w-face beg (1+ beg))
                                 'face 'which-key-special-key-face)
-                    (substring key-w-face end (string-width key-w-face))))
+                    (substring key-w-face end
+                               (which-key--string-width key-w-face))))
         key-w-face))))
 
 (defsubst which-key--truncate-description (desc)
@@ -1352,7 +1357,8 @@ BUFFER that follow the key sequence KEY-SEQ."
   "Internal function for finding the max length of the INDEX
 element in each list element of KEYS."
   (cl-reduce
-   (lambda (x y) (max x (string-width (nth index y)))) keys :initial-value 0))
+   (lambda (x y) (max x (which-key--string-width (nth index y))))
+   keys :initial-value 0))
 
 (defun which-key--pad-column (col-keys)
   "Take a column of (key separator description) COL-KEYS,
@@ -1422,7 +1428,7 @@ is the width of the live window."
          (prefix-keys-desc (key-description which-key--current-prefix))
          (prefix-w-face (which-key--propertize-key prefix-keys-desc))
          (prefix-left (when (eq which-key-show-prefix 'left)
-                        (+ 2 (string-width prefix-w-face))))
+                        (+ 2 (which-key--string-width prefix-w-face))))
          (prefix-top-bottom (member which-key-show-prefix '(bottom top)))
          (avl-lines (if prefix-top-bottom (- max-lines 1) max-lines))
          (min-lines (min avl-lines which-key-min-display-lines))
@@ -1526,8 +1532,8 @@ enough space based on your settings and frame size." prefix-keys)
                                    (propertize (format " (%s of %s)"
                                                        (1+ page-n) n-pages)
                                                'face 'which-key-note-face))))
-             (first-col-width (+ 2 (max (string-width prefix-w-face)
-                                        (string-width status-left))))
+             (first-col-width (+ 2 (max (which-key--string-width prefix-w-face)
+                                        (which-key--string-width status-left))))
              (prefix-left (format (concat "%-" (int-to-string first-col-width) "s")
                                   prefix-w-face))
              (status-left (format (concat "%-" (int-to-string first-col-width) "s")
