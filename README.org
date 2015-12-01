@@ -39,7 +39,6 @@ Many of these have been implemented and are described below.
    - [[#install][Install]]
      - [[#melpa][MELPA]]
      - [[#manually][Manually]]
-       - [[#dependencies][Dependencies]]
    - [[#initial-setup][Initial Setup]]
      - [[#side-window-bottom-option][Side Window Bottom Option]]
      - [[#side-window-right-option][Side Window Right Option]]
@@ -80,11 +79,6 @@ Add which-key.el to your =load-path= and require. Something like
 (require 'which-key)
 (which-key-mode)
 #+END_SRC
-
-**** Dependencies
-
-Which-key requires recent versions of the packages [[https://github.com/magnars/dash.el][dash]] and [[https://github.com/magnars/s.el][s]]. These are
-installed automatically if installed via MELPA.
 
 ** Initial Setup
 No further setup is required if you are happy with the default setup. To try
