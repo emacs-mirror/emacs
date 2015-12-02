@@ -136,7 +136,7 @@
           ;; Strange, that `copy-directory' does not work as expected.
           ;; The following shell command is not portable on all
           ;; platforms, unfortunately.
-          (shell-command (format "%s -f %s/* %s" cp tmpdir2 tmpdir1))
+          (shell-command (format "%s %s/* %s" cp tmpdir2 tmpdir1))
 
           ;; Check, that the buffers have been reverted.
           (dolist (buf (list buf1 buf2))

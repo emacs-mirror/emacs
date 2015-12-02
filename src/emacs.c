@@ -1353,6 +1353,10 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
     tzset ();
 #endif /* MSDOS */
 
+#ifdef HAVE_KQUEUE
+  globals_of_kqueue ();
+#endif
+
 #ifdef HAVE_GFILENOTIFY
   globals_of_gfilenotify ();
 #endif
@@ -1526,13 +1530,17 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
       syms_of_gnutls ();
 
-#ifdef HAVE_GFILENOTIFY
-      syms_of_gfilenotify ();
-#endif /* HAVE_GFILENOTIFY */
-
 #ifdef HAVE_INOTIFY
       syms_of_inotify ();
 #endif /* HAVE_INOTIFY */
+
+#ifdef HAVE_KQUEUE
+      syms_of_kqueue ();
+#endif /* HAVE_KQUEUE */
+
+#ifdef HAVE_GFILENOTIFY
+      syms_of_gfilenotify ();
+#endif /* HAVE_GFILENOTIFY */
 
 #ifdef HAVE_DBUS
       syms_of_dbusbind ();

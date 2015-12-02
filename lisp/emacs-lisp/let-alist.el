@@ -2,12 +2,15 @@
 
 ;; Copyright (C) 2014-2015 Free Software Foundation, Inc.
 
-;; Author: Artur Malabarba <bruce.connor.am@gmail.com>
-;; Maintainer: Artur Malabarba <bruce.connor.am@gmail.com>
+;; Author: Artur Malabarba <emacs@endlessparentheses.com>
+;; Package-Requires: ((emacs "24.1"))
 ;; Version: 1.0.4
 ;; Keywords: extensions lisp
 ;; Prefix: let-alist
 ;; Separator: -
+
+;; This is an Elpa :core package. Don't use functionality that is not
+;; compatible with Emacs 24.1.
 
 ;; This file is part of GNU Emacs.
 
@@ -134,7 +137,7 @@ displayed in the example above."
   (let ((var (make-symbol "alist")))
     `(let ((,var ,alist))
        (let ,(mapcar (lambda (x) `(,(car x) ,(let-alist--access-sexp (car x) var)))
-               (delete-dups (let-alist--deep-dot-search body)))
+                     (delete-dups (let-alist--deep-dot-search body)))
          ,@body))))
 
 (provide 'let-alist)

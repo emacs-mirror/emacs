@@ -1,4 +1,4 @@
-;;; which-func.el --- print current function in mode line
+;;; which-func.el --- print current function in mode line  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1994, 1997-1998, 2001-2015 Free Software Foundation,
 ;; Inc.
@@ -80,7 +80,6 @@
   "List of major modes for which Which Function mode should be used.
 For other modes it is disabled.  If this is equal to t,
 then Which Function mode is enabled in any major mode that supports it."
-  :group 'which-func
   :version "24.3"                       ; explicit list -> t
   :type '(choice (const :tag "All modes" t)
 		 (repeat (symbol :tag "Major mode"))))
@@ -91,13 +90,11 @@ This means that Which Function mode won't really do anything
 until you use Imenu, in these modes.  Note that files
 larger than `which-func-maxout' behave in this way too;
 Which Function mode doesn't do anything until you use Imenu."
-  :group 'which-func
   :type '(repeat (symbol :tag "Major mode")))
 
 (defcustom which-func-maxout 500000
   "Don't automatically compute the Imenu menu if buffer is this big or bigger.
 Zero means compute the Imenu menu regardless of size."
-  :group 'which-func
   :type 'integer)
 
 (defvar which-func-keymap
@@ -137,8 +134,7 @@ Zero means compute the Imenu menu regardless of size."
      :foreground "Blue1")
     (t
      :foreground "LightSkyBlue"))
-  "Face used to highlight mode line function names."
-  :group 'which-func)
+  "Face used to highlight mode line function names.")
 
 (defcustom which-func-format
   `("["
@@ -152,7 +148,6 @@ mouse-3: go to end")
     "]")
   "Format for displaying the function in the mode line."
   :version "24.2"                  ; added mouse-face; 24point2 is correct
-  :group 'which-func
   :type 'sexp)
 ;;;###autoload (put 'which-func-format 'risky-local-variable t)
 
@@ -193,14 +188,16 @@ This makes a difference only if `which-function-mode' is non-nil.")
 
 (add-hook 'find-file-hook 'which-func-ff-hook t)
 
+(defun which-func-try-to-enable ()
+  (unless (or (not which-function-mode)
+              (local-variable-p 'which-func-mode))
+    (setq which-func-mode (or (eq which-func-modes t)
+                              (member major-mode which-func-modes)))))
+
 (defun which-func-ff-hook ()
   "File find hook for Which Function mode.
 It creates the Imenu index for the buffer, if necessary."
-  (unless (local-variable-p 'which-func-mode)
-    (setq which-func-mode
-          (and which-function-mode
-               (or (eq which-func-modes t)
-                   (member major-mode which-func-modes)))))
+  (which-func-try-to-enable)
 
   (condition-case err
       (if (and which-func-mode
@@ -239,6 +236,13 @@ It creates the Imenu index for the buffer, if necessary."
 
 (defvar which-func-update-timer nil)
 
+(unless (or (assq 'which-func-mode mode-line-misc-info)
+            (assq 'which-function-mode mode-line-misc-info))
+  (add-to-list 'mode-line-misc-info
+               '(which-function-mode    ;Only display if mode is enabled.
+                 (which-func-mode       ;Only display if buffer supports it.
+                  ("" which-func-format " ")))))
+
 ;; This is the name people would normally expect.
 ;;;###autoload
 (define-minor-mode which-function-mode
@@ -254,17 +258,12 @@ in certain major modes."
   (when (timerp which-func-update-timer)
     (cancel-timer which-func-update-timer))
   (setq which-func-update-timer nil)
-  (if which-function-mode
-      ;;Turn it on
-      (progn
-        (setq which-func-update-timer
-              (run-with-idle-timer idle-update-delay t #'which-func-update))
-        (dolist (buf (buffer-list))
-          (with-current-buffer buf
-            (unless (local-variable-p 'which-func-mode)
-              (setq which-func-mode
-                    (or (eq which-func-modes t)
-                        (member major-mode which-func-modes)))))))))
+  (when which-function-mode
+    ;;Turn it on.
+    (setq which-func-update-timer
+          (run-with-idle-timer idle-update-delay t #'which-func-update))
+    (dolist (buf (buffer-list))
+      (with-current-buffer buf (which-func-try-to-enable)))))
 
 (defvar which-function-imenu-failed nil
   "Locally t in a buffer if `imenu--make-index-alist' found nothing there.")

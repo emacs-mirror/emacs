@@ -26,7 +26,7 @@
 (require 'flymake)
 
 (defvar flymake-tests-data-directory
-  (expand-file-name "data/flymake" (getenv "EMACS_TEST_DIRECTORY"))
+  (expand-file-name "lisp/progmodes/flymake-resources" (getenv "EMACS_TEST_DIRECTORY"))
   "Directory containing flymake test data.")
 
 

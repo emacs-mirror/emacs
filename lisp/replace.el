@@ -284,7 +284,7 @@ the original string if not."
 	  (and current-prefix-arg (not (eq current-prefix-arg '-)))
 	  (and current-prefix-arg (eq current-prefix-arg '-)))))
 
-(defun query-replace (from-string to-string &optional delimited start end backward)
+(defun query-replace (from-string to-string &optional delimited start end backward region-noncontiguous-p)
   "Replace some occurrences of FROM-STRING with TO-STRING.
 As each match is found, the user must type a character saying
 what to do with it.  For directions, type \\[help-command] at that time.
@@ -328,22 +328,21 @@ To customize possible responses, change the bindings in `query-replace-map'."
 		   (if current-prefix-arg
 		       (if (eq current-prefix-arg '-) " backward" " word")
 		     "")
-		   (if (and transient-mark-mode mark-active) " in region" ""))
+		   (if (use-region-p) " in region" ""))
 	   nil)))
      (list (nth 0 common) (nth 1 common) (nth 2 common)
 	   ;; These are done separately here
 	   ;; so that command-history will record these expressions
 	   ;; rather than the values they had this time.
-	   (if (and transient-mark-mode mark-active)
-	       (region-beginning))
-	   (if (and transient-mark-mode mark-active)
-	       (region-end))
-	   (nth 3 common))))
-  (perform-replace from-string to-string t nil delimited nil nil start end backward))
+	   (if (use-region-p) (region-beginning))
+	   (if (use-region-p) (region-end))
+	   (nth 3 common)
+	   (if (use-region-p) (region-noncontiguous-p)))))
+  (perform-replace from-string to-string t nil delimited nil nil start end backward region-noncontiguous-p))
 
 (define-key esc-map "%" 'query-replace)
 
-(defun query-replace-regexp (regexp to-string &optional delimited start end backward)
+(defun query-replace-regexp (regexp to-string &optional delimited start end backward region-noncontiguous-p)
   "Replace some things after point matching REGEXP with TO-STRING.
 As each match is found, the user must type a character saying
 what to do with it.  For directions, type \\[help-command] at that time.
@@ -408,18 +407,17 @@ Use \\[repeat-complex-command] after this command for details."
 		       (if (eq current-prefix-arg '-) " backward" " word")
 		     "")
 		   " regexp"
-		   (if (and transient-mark-mode mark-active) " in region" ""))
+		   (if (use-region-p) " in region" ""))
 	   t)))
      (list (nth 0 common) (nth 1 common) (nth 2 common)
 	   ;; These are done separately here
 	   ;; so that command-history will record these expressions
 	   ;; rather than the values they had this time.
-	   (if (and transient-mark-mode mark-active)
-	       (region-beginning))
-	   (if (and transient-mark-mode mark-active)
-	       (region-end))
-	   (nth 3 common))))
-  (perform-replace regexp to-string t t delimited nil nil start end backward))
+	   (if (use-region-p) (region-beginning))
+	   (if (use-region-p) (region-end))
+	   (nth 3 common)
+	   (if (use-region-p) (region-noncontiguous-p)))))
+  (perform-replace regexp to-string t t delimited nil nil start end backward region-noncontiguous-p))
 
 (define-key esc-map [?\C-%] 'query-replace-regexp)
 
@@ -485,10 +483,8 @@ for Lisp calls." "22.1"))
        ;; and the user might enter a single token.
        (replace-match-string-symbols to)
        (list from (car to) current-prefix-arg
-	     (if (and transient-mark-mode mark-active)
-		 (region-beginning))
-	     (if (and transient-mark-mode mark-active)
-		 (region-end))))))
+	     (if (use-region-p) (region-beginning))
+	     (if (use-region-p) (region-end))))))
   (perform-replace regexp (cons 'replace-eval-replacement to-expr)
 		   t 'literal delimited nil nil start end))
 
@@ -523,10 +519,8 @@ Fourth and fifth arg START and END specify the region to operate on."
      (list from to
 	   (and current-prefix-arg
 		(prefix-numeric-value current-prefix-arg))
-	   (if (and transient-mark-mode mark-active)
-	       (region-beginning))
-	   (if (and transient-mark-mode mark-active)
-	       (region-end)))))
+	   (if (use-region-p) (region-beginning))
+	   (if (use-region-p) (region-end)))))
   (let (replacements)
     (if (listp to-strings)
 	(setq replacements to-strings)
@@ -587,13 +581,11 @@ and TO-STRING is also null.)"
 		       (if (eq current-prefix-arg '-) " backward" " word")
 		     "")
 		   " string"
-		   (if (and transient-mark-mode mark-active) " in region" ""))
+		   (if (use-region-p) " in region" ""))
 	   nil)))
      (list (nth 0 common) (nth 1 common) (nth 2 common)
-	   (if (and transient-mark-mode mark-active)
-	       (region-beginning))
-	   (if (and transient-mark-mode mark-active)
-	       (region-end))
+	   (if (use-region-p) (region-beginning))
+	   (if (use-region-p) (region-end))
 	   (nth 3 common))))
   (perform-replace from-string to-string nil nil delimited nil nil start end backward))
 
@@ -661,13 +653,11 @@ which will run faster and will not set the mark or print anything."
 		       (if (eq current-prefix-arg '-) " backward" " word")
 		     "")
 		   " regexp"
-		   (if (and transient-mark-mode mark-active) " in region" ""))
+		   (if (use-region-p) " in region" ""))
 	   t)))
      (list (nth 0 common) (nth 1 common) (nth 2 common)
-	   (if (and transient-mark-mode mark-active)
-	       (region-beginning))
-	   (if (and transient-mark-mode mark-active)
-	       (region-end))
+	   (if (use-region-p) (region-beginning))
+	   (if (use-region-p) (region-end))
 	   (nth 3 common))))
   (perform-replace regexp to-string nil t delimited nil nil start end backward))
 
@@ -832,7 +822,7 @@ a previously found match."
 		  (unless (or (bolp) (eobp))
 		    (forward-line 0))
 		  (point-marker)))))
-    (if (and interactive transient-mark-mode mark-active)
+    (if (and interactive (use-region-p))
 	(setq rstart (region-beginning)
 	      rend (progn
 		     (goto-char (region-end))
@@ -901,7 +891,7 @@ starting on the same line at which another match ended is ignored."
       (progn
 	(goto-char (min rstart rend))
 	(setq rend (copy-marker (max rstart rend))))
-    (if (and interactive transient-mark-mode mark-active)
+    (if (and interactive (use-region-p))
 	(setq rstart (region-beginning)
 	      rend (copy-marker (region-end)))
       (setq rstart (point)
@@ -951,7 +941,7 @@ a previously found match."
               (setq rend (max rstart rend)))
           (goto-char rstart)
           (setq rend (point-max)))
-      (if (and interactive transient-mark-mode mark-active)
+      (if (and interactive (use-region-p))
 	  (setq rstart (region-beginning)
 		rend (region-end))
 	(setq rstart (point)
@@ -2068,7 +2058,7 @@ It is called with three arguments, as if it were
 
 (defun perform-replace (from-string replacements
 		        query-flag regexp-flag delimited-flag
-			&optional repeat-count map start end backward)
+			&optional repeat-count map start end backward region-noncontiguous-p)
   "Subroutine of `query-replace'.  Its complexity handles interactive queries.
 Don't use this in your own program unless you want to query and set the mark
 just as `query-replace' does.  Instead, write a simple loop like this:
@@ -2115,6 +2105,9 @@ It must return a string."
 
          ;; If non-nil, it is marker saying where in the buffer to stop.
          (limit nil)
+         ;; Use local binding in add-function below.
+         (isearch-filter-predicate isearch-filter-predicate)
+         (region-bounds nil)
 
          ;; Data for the next match.  If a cons, it has the same format as
          ;; (match-data); otherwise it is t if a match is possible at point.
@@ -2126,6 +2119,24 @@ It must return a string."
                      (substitute-command-keys
                       "Query replacing %s with %s: (\\<query-replace-map>\\[help] for help) ")
                      minibuffer-prompt-properties))))
+
+    ;; Unless a single contiguous chunk is selected, operate on multiple chunks.
+    (when region-noncontiguous-p
+      (setq region-bounds
+            (mapcar (lambda (position)
+                      (cons (copy-marker (car position))
+                            (copy-marker (cdr position))))
+                    (funcall region-extract-function 'bounds)))
+      (add-function :after-while isearch-filter-predicate
+                    (lambda (start end)
+                      (delq nil (mapcar
+                                 (lambda (bounds)
+                                   (and
+                                    (>= start (car bounds))
+                                    (<= start (cdr bounds))
+                                    (>= end   (car bounds))
+                                    (<= end   (cdr bounds))))
+                                 region-bounds)))))
 
     ;; If region is active, in Transient Mark mode, operate on region.
     (if backward

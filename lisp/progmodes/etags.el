@@ -2084,17 +2084,12 @@ for \\[find-tag] (which see)."
 
 (defvar etags-xref-find-definitions-tag-order '(tag-exact-match-p
                                                 tag-implicit-name-match-p)
-  "Tag order used in `etags-xref-find' to look for definitions.")
+  "Tag order used in `xref-backend-definitions' to look for definitions.")
 
-;;;###autoload
-(defun etags-xref-find (action id)
-  (pcase action
-    (`definitions (etags--xref-find-definitions id))
-    (`references  (etags--xref-find-references id))
-    (`apropos (etags--xref-find-definitions id t))))
+(cl-defmethod xref-backend-identifier-completion-table ((_backend (eql etags)))
+  (tags-lazy-completion-table))
 
-(defun etags--xref-find-references (symbol)
-  ;; TODO: Merge together with the Elisp impl.
+(cl-defmethod xref-backend-references ((_backend (eql etags)) symbol)
   (cl-mapcan
    (lambda (dir)
      (xref-collect-references symbol dir))
@@ -2102,6 +2097,12 @@ for \\[find-tag] (which see)."
      (append
       (project-roots pr)
       (project-library-roots pr)))))
+
+(cl-defmethod xref-backend-definitions ((_backend (eql etags)) symbol)
+  (etags--xref-find-definitions symbol))
+
+(cl-defmethod xref-backend-apropos ((_backend (eql etags)) symbol)
+  (etags--xref-find-definitions symbol t))
 
 (defun etags--xref-find-definitions (pattern &optional regexp?)
   ;; This emulates the behaviour of `find-tag-in-order' but instead of

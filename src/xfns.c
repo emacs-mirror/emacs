@@ -450,10 +450,11 @@ x_real_pos_and_offsets (struct frame *f,
           if (prop)
             {
               if (prop->type == target_type
-                  && xcb_get_property_value_length (prop) == 4
-                  && prop->format == 32)
+                  && prop->format == 32
+                  && (xcb_get_property_value_length (prop)
+		      == 4 * sizeof (int32_t)))
                 {
-                  long *fe = xcb_get_property_value (prop);
+                  int32_t *fe = xcb_get_property_value (prop);
 
                   outer_x = -fe[0];
                   outer_y = -fe[2];

@@ -1821,7 +1821,7 @@ With a prefix argument, try to REVERSE the hunk."
   "Kill all hunks that have already been applied starting at point."
   (interactive)
   (while (not (eobp))
-    (pcase-let ((`(,buf ,line-offset ,pos ,src ,_dst ,switched)
+    (pcase-let ((`(,_buf ,line-offset ,_pos ,_src ,_dst ,switched)
                  (diff-find-source-location nil nil)))
       (if (and line-offset switched)
           (diff-hunk-kill)

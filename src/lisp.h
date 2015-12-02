@@ -4263,15 +4263,21 @@ extern void init_font (void);
 extern void syms_of_fontset (void);
 #endif
 
+/* Defined in inotify.c */
+#ifdef HAVE_INOTIFY
+extern void syms_of_inotify (void);
+#endif
+
+/* Defined in kqueue.c */
+#ifdef HAVE_KQUEUE
+extern void globals_of_kqueue (void);
+extern void syms_of_kqueue (void);
+#endif
+
 /* Defined in gfilenotify.c */
 #ifdef HAVE_GFILENOTIFY
 extern void globals_of_gfilenotify (void);
 extern void syms_of_gfilenotify (void);
-#endif
-
-/* Defined in inotify.c */
-#ifdef HAVE_INOTIFY
-extern void syms_of_inotify (void);
 #endif
 
 #ifdef HAVE_W32NOTIFY

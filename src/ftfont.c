@@ -1776,9 +1776,11 @@ setup_otf_gstring (int size)
 {
   if (otf_gstring.size < size)
     {
-      otf_gstring.glyphs = xnrealloc (otf_gstring.glyphs,
-				      size, sizeof (OTF_Glyph));
-      otf_gstring.size = size;
+      ptrdiff_t new_size = otf_gstring.size;
+      xfree (otf_gstring.glyphs);
+      otf_gstring.glyphs = xpalloc (NULL, &new_size, size - otf_gstring.size,
+				    INT_MAX, sizeof *otf_gstring.glyphs);
+      otf_gstring.size = new_size;
     }
   otf_gstring.used = size;
   memset (otf_gstring.glyphs, 0, sizeof (OTF_Glyph) * size);
@@ -2505,8 +2507,7 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
   ptrdiff_t i;
   struct MFLTFontFT flt_font_ft;
   MFLT *flt = NULL;
-  bool with_variation_selector = 0;
-  MFLTGlyphFT *glyphs;
+  bool with_variation_selector = false;
 
   if (! m17n_flt_initialized)
     {
@@ -2527,7 +2528,7 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
 	break;
       c = LGLYPH_CHAR (g);
       if (CHAR_VARIATION_SELECTOR_P (c))
-	with_variation_selector = 1;
+	with_variation_selector = true;
     }
 
   len = i;
@@ -2561,39 +2562,6 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
 	}
     }
 
-  int len2;
-  if (INT_MULTIPLY_WRAPV (len, 2, &len2))
-    memory_full (SIZE_MAX);
-
-  if (gstring.allocated == 0)
-    {
-      gstring.glyph_size = sizeof (MFLTGlyphFT);
-      gstring.glyphs = xnmalloc (len2, sizeof (MFLTGlyphFT));
-      gstring.allocated = len2;
-    }
-  else if (gstring.allocated < len2)
-    {
-      gstring.glyphs = xnrealloc (gstring.glyphs, len2,
-				  sizeof (MFLTGlyphFT));
-      gstring.allocated = len2;
-    }
-  glyphs = (MFLTGlyphFT *) (gstring.glyphs);
-  memset (glyphs, 0, len * sizeof (MFLTGlyphFT));
-  for (i = 0; i < len; i++)
-    {
-      Lisp_Object g = LGSTRING_GLYPH (lgstring, i);
-
-      glyphs[i].g.c = LGLYPH_CHAR (g);
-      if (with_variation_selector)
-	{
-	  glyphs[i].g.code = LGLYPH_CODE (g);
-	  glyphs[i].g.encoded = 1;
-	}
-    }
-
-  gstring.used = len;
-  gstring.r2l = 0;
-
   {
     Lisp_Object family = Ffont_get (LGSTRING_FONT (lgstring), QCfamily);
 
@@ -2614,24 +2582,50 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
   flt_font_ft.ft_face = ft_face;
   flt_font_ft.otf = otf;
   flt_font_ft.matrix = matrix->xx != 0 ? matrix : 0;
-  if (len > 1
-      && gstring.glyphs[1].c >= 0x300 && gstring.glyphs[1].c <= 0x36F)
-    /* A little bit ad hoc.  Perhaps, shaper must get script and
-       language information, and select a proper flt for them
-       here.  */
-    flt = mflt_get (msymbol ("combining"));
-  for (i = 0; i < 3; i++)
+
+  if (1 < len)
     {
-      int result = mflt_run (&gstring, 0, len, &flt_font_ft.flt_font, flt);
-      if (result != -2)
-	break;
-      int len2;
-      if (INT_MULTIPLY_WRAPV (gstring.allocated, 2, &len2))
-	memory_full (SIZE_MAX);
-      gstring.glyphs = xnrealloc (gstring.glyphs,
-				  gstring.allocated, 2 * sizeof (MFLTGlyphFT));
-      gstring.allocated = len2;
+      /* A little bit ad hoc.  Perhaps, shaper must get script and
+	 language information, and select a proper flt for them
+	 here.  */
+      int c1 = LGLYPH_CHAR (LGSTRING_GLYPH (lgstring, 1));
+      if (0x300 <= c1 && c1 <= 0x36F)
+	flt = mflt_get (msymbol ("combining"));
     }
+
+  MFLTGlyphFT *glyphs = (MFLTGlyphFT *) gstring.glyphs;
+  ptrdiff_t allocated = gstring.allocated;
+  ptrdiff_t incr_min = len - allocated;
+
+  do
+    {
+      if (0 < incr_min)
+	{
+	  xfree (glyphs);
+	  glyphs = xpalloc (NULL, &allocated, incr_min, INT_MAX, sizeof *glyphs);
+	}
+      incr_min = 1;
+
+      for (i = 0; i < len; i++)
+	{
+	  Lisp_Object g = LGSTRING_GLYPH (lgstring, i);
+	  memset (&glyphs[i], 0, sizeof glyphs[i]);
+	  glyphs[i].g.c = LGLYPH_CHAR (g);
+	  if (with_variation_selector)
+	    {
+	      glyphs[i].g.code = LGLYPH_CODE (g);
+	      glyphs[i].g.encoded = 1;
+	    }
+	}
+
+      gstring.glyph_size = sizeof *glyphs;
+      gstring.glyphs = (MFLTGlyph *) glyphs;
+      gstring.allocated = allocated;
+      gstring.used = len;
+      gstring.r2l = 0;
+    }
+  while (mflt_run (&gstring, 0, len, &flt_font_ft.flt_font, flt) == -2);
+
   if (gstring.used > LGSTRING_GLYPH_LEN (lgstring))
     return Qnil;
   for (i = 0; i < gstring.used; i++)

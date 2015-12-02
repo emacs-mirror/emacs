@@ -306,14 +306,30 @@ See also `capitalize-region'.  */)
   return Qnil;
 }
 
-DEFUN ("downcase-region", Fdowncase_region, Sdowncase_region, 2, 2, "r",
+DEFUN ("downcase-region", Fdowncase_region, Sdowncase_region, 2, 3,
+       "(list (region-beginning) (region-end) (region-noncontiguous-p))",
        doc: /* Convert the region to lower case.  In programs, wants two arguments.
 These arguments specify the starting and ending character numbers of
 the region to operate on.  When used as a command, the text between
 point and the mark is operated on.  */)
-  (Lisp_Object beg, Lisp_Object end)
+  (Lisp_Object beg, Lisp_Object end, Lisp_Object region_noncontiguous_p)
 {
-  casify_region (CASE_DOWN, beg, end);
+  Lisp_Object bounds = Qnil;
+
+  if (!NILP (region_noncontiguous_p))
+    {
+      bounds = call1 (Fsymbol_value (intern ("region-extract-function")),
+		      intern ("bounds"));
+
+      while (CONSP (bounds))
+	{
+	  casify_region (CASE_DOWN, XCAR (XCAR (bounds)), XCDR (XCAR (bounds)));
+	  bounds = XCDR (bounds);
+	}
+    }
+  else
+    casify_region (CASE_DOWN, beg, end);
+
   return Qnil;
 }
 

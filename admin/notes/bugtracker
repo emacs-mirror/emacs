@@ -140,8 +140,7 @@ you can add an element to gnus-posting-styles to do this automatically, eg:
 
 ** To record a bug in the tracker without sending mail to the bug list.
 This can be useful to make a note of something discussed on
-emacs-devel that needs fixing.  In other words, this can be the
-equivalent of adding something to FOR-RELEASE.
+emacs-devel that needs fixing.
 
 To: quiet@debbugs.gnu.org
 [headers end]

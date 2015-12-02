@@ -13,9 +13,12 @@ the latest version of this file in the Emacs source code repository.
 
 Since Emacs is an FSF-copyrighted package, please be prepared to sign
 legal papers to transfer the copyright on your work to the FSF.
-For more details on this, see the section "Copyright Assignment"
-in etc/CONTRIBUTE.  That file also contains some more practical
-details about getting involved.
+Copyright assignment is a simple process.  Residents of some countries
+can do it entirely electronically.  We can help you get started, and
+answer any questions you may have (or point you to the people with the
+answers), at the emacs-devel@gnu.org mailing list.
+
+For more information about getting involved, see the CONTRIBUTE file.
 
 As well as the issues listed here, there are bug reports at
 <http://debbugs.gnu.org>.  Bugs tagged "easy" ought to be suitable for

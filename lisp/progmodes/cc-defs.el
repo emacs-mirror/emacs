@@ -221,7 +221,7 @@ This variant works around bugs in `eval-when-compile' in various
 (eval-and-compile
   (defmacro c--macroexpand-all (form &optional environment)
     ;; Macro to smooth out the renaming of `cl-macroexpand-all' in Emacs 24.3.
-    (if (eq c--mapcan-status 'cl-mapcan)
+    (if (fboundp 'macroexpand-all)
 	`(macroexpand-all ,form ,environment)
       `(cl-macroexpand-all ,form ,environment)))
 
@@ -508,19 +508,21 @@ must not be within a `c-save-buffer-state', since the user then
 wouldn't be able to undo them.
 
 The return value is the value of the last form in BODY."
-  `(let* ((modified (buffer-modified-p)) (buffer-undo-list t)
-	  (inhibit-read-only t) (inhibit-point-motion-hooks t)
-	  before-change-functions after-change-functions
-	  deactivate-mark
-	  buffer-file-name buffer-file-truename ; Prevent primitives checking
-						; for file modification
-	  ,@varlist)
-     (unwind-protect
-	 (progn ,@body)
-       (and (not modified)
-	    (buffer-modified-p)
-	    (set-buffer-modified-p nil)))))
-(put 'c-save-buffer-state 'lisp-indent-function 1)
+  (declare (debug t) (indent 1))
+  (if (fboundp 'with-silent-modifications)
+      `(with-silent-modifications (let* ,varlist ,@body))
+    `(let* ((modified (buffer-modified-p)) (buffer-undo-list t)
+	    (inhibit-read-only t) (inhibit-point-motion-hooks t)
+	    before-change-functions after-change-functions
+	    deactivate-mark
+	    buffer-file-name buffer-file-truename ; Prevent primitives checking
+						  ; for file modification
+	    ,@varlist)
+       (unwind-protect
+	   (progn ,@body)
+	 (and (not modified)
+	      (buffer-modified-p)
+	      (set-buffer-modified-p nil))))))
 
 (defmacro c-tentative-buffer-changes (&rest body)
   "Eval BODY and optionally restore the buffer contents to the state it

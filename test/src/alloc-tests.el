@@ -1,4 +1,4 @@
-;;; finalizer-tests.el --- Finalizer tests -*- lexical-binding: t -*-
+;;; alloc-tests.el --- alloc tests -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2015 Free Software Foundation, Inc.
 

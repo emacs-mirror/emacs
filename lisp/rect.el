@@ -257,6 +257,19 @@ Return it as a list of strings, one for each line of the rectangle."
     (apply-on-rectangle 'extract-rectangle-line start end lines)
     (nreverse (cdr lines))))
 
+(defun extract-rectangle-bounds (start end)
+  "Return the bounds of the rectangle with corners at START and END.
+Return it as a list of (START . END) positions, one for each line of
+the rectangle."
+  (let (bounds)
+    (apply-on-rectangle
+     (lambda (startcol endcol)
+       (move-to-column startcol)
+       (push (cons (prog1 (point) (move-to-column endcol)) (point))
+	     bounds))
+     start end)
+    (nreverse bounds)))
+
 (defvar killed-rectangle nil
   "Rectangle for `yank-rectangle' to insert.")
 
@@ -563,6 +576,8 @@ with a prefix argument, prompt for START-AT and FORMAT."
               #'rectangle--unhighlight-for-redisplay)
 (add-function :around region-extract-function
               #'rectangle--extract-region)
+(add-function :around region-insert-function
+              #'rectangle--insert-region)
 
 (defvar rectangle-mark-mode-map
   (let ((map (make-sparse-keymap)))
@@ -681,8 +696,12 @@ Ignores `line-move-visual'."
 
 
 (defun rectangle--extract-region (orig &optional delete)
-  (if (not rectangle-mark-mode)
-      (funcall orig delete)
+  (cond
+   ((not rectangle-mark-mode)
+    (funcall orig delete))
+   ((eq delete 'bounds)
+    (extract-rectangle-bounds (region-beginning) (region-end)))
+   (t
     (let* ((strs (funcall (if delete
                               #'delete-extract-rectangle
                             #'extract-rectangle)
@@ -696,7 +715,14 @@ Ignores `line-move-visual'."
         (put-text-property 0 (length str) 'yank-handler
                            `(rectangle--insert-for-yank ,strs t)
                            str)
-        str))))
+        str)))))
+
+(defun rectangle--insert-region (orig strings)
+  (cond
+   ((not rectangle-mark-mode)
+    (funcall orig strings))
+   (t
+    (funcall #'insert-rectangle strings))))
 
 (defun rectangle--insert-for-yank (strs)
   (push (point) buffer-undo-list)

@@ -12,9 +12,9 @@ what you do when using them.
 
 * Instructions and scripts used to prepare an Emacs release.
 
-** FOR-RELEASE
+** release-process
 
-Living list of activities that must be completed before the next release.
+The release process used by GNU Emacs.
 
 ** make-tarball.txt
 

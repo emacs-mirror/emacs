@@ -267,7 +267,7 @@ Changes to files matching one of the regexps in this list are not listed.")
   '("external-lisp"
     "lock" "share-lib" "local-lisp"
     "noleim-Makefile.in"
-    "NEWS" "ORDERS" "PROBLEMS" "FAQ" "AUTHORS" "FOR-RELEASE" "TODO" "todo"
+    "NEWS" "ORDERS" "PROBLEMS" "FAQ" "AUTHORS" "release-process" "TODO" "todo"
     "MACHINES" "SERVICE"
     "README.unicode" "README.multi-tty" "TUTORIAL.translators"
     "NEWS.unicode" "COPYING.DJ" "Makefile.old" "Makefile.am"

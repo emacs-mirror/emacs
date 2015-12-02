@@ -1,0 +1,98 @@
+;; -*- emacs-lisp -*-
+
+;; Copyright (C) 2015 Free Software Foundation, Inc.
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; This file generates dependencies between test files and the files
+;; that they test.
+
+;; It has an .emacs-lisp extension because it makes the Makefile easier!
+
+(require 'seq)
+
+(defun make-test-deps (src-dir)
+  (let ((src-dir (file-truename src-dir)))
+    (message
+     "%s"
+     (concat
+      (make-test-deps-lisp src-dir)
+      (make-test-deps-src src-dir)))))
+
+(defun make-test-deps-lisp (src-dir)
+  (mapconcat
+   (lambda (file-without-suffix)
+     (format "./%s-tests.log: %s/../%s.el\n"
+             file-without-suffix
+             src-dir
+             file-without-suffix))
+   (make-test-test-files src-dir "lisp") ""))
+
+(defun make-test-deps-src (src-dir)
+  (mapconcat
+   (lambda (file-without-suffix)
+     (format "./%s-tests.log: %s/../%s.c\n"
+             file-without-suffix
+             src-dir
+             file-without-suffix))
+   (make-test-test-files src-dir "src") ""))
+
+(defun make-test-test-files (src-dir sub-src-dir)
+  (make-test-munge-files
+   src-dir
+   (directory-files-recursively
+    (concat src-dir "/"  sub-src-dir)
+    ".*-tests.el$")))
+
+(defun make-test-munge-files (src-dir files)
+  (make-test-sans-suffix
+   (make-test-de-stem
+    src-dir
+    (make-test-no-legacy
+     (make-test-no-test-dir
+      (make-test-no-resources
+       files))))))
+
+(defun make-test-sans-suffix (files)
+  (mapcar
+   (lambda (file)
+     (substring file 0 -9))
+   files))
+
+(defun make-test-de-stem (stem files)
+  (mapcar
+   (lambda (file)
+     (substring
+      file
+      (+ 1 (length stem))))
+   files))
+
+(defun make-test-no-legacy (list)
+  (make-test-remove list "legacy/"))
+
+(defun make-test-no-resources (list)
+  (make-test-remove list "-resources/"))
+
+(defun make-test-no-test-dir (list)
+  (make-test-remove list "-tests/"))
+
+(defun make-test-remove (list match)
+  (seq-remove
+   (lambda (file)
+     (string-match-p match file))
+   list))

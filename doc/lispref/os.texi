@@ -2640,9 +2640,9 @@ This function removes the tray notification given by its unique
 
 Several operating systems support watching of filesystems for changes
 of files.  If configured properly, Emacs links a respective library
-like @file{gfilenotify}, @file{inotify}, or @file{w32notify}
-statically.  These libraries enable watching of filesystems on the
-local machine.
+like @file{inotify}, @file{kqueue}, @file{gfilenotify}, or
+@file{w32notify} statically.  These libraries enable watching of
+filesystems on the local machine.
 
 It is also possible to watch filesystems on remote machines,
 @pxref{Remote Files,, Remote Files, emacs, The GNU Emacs Manual}
@@ -2713,7 +2713,8 @@ watching @var{file} has been stopped
 Note that the @file{w32notify} library does not report
 @code{attribute-changed} events.  When some file's attribute, like
 permissions or modification time, has changed, this library reports a
-@code{changed} event.
+@code{changed} event.  Likewise, the @file{kqueue} library does not
+report reliably file attribute changes when watching a directory.
 
 The @code{stopped} event reports, that watching the file has been
 stopped.  This could be because @code{file-notify-rm-watch} was called
@@ -2752,7 +2753,7 @@ being reported.  For example:
 @group
 (write-region "bla" nil "/tmp/foo")
      @result{} Event (35025468 created "/tmp/.#foo")
-        Event (35025468 changed "/tmp/foo") [2 times]
+        Event (35025468 changed "/tmp/foo")
         Event (35025468 deleted "/tmp/.#foo")
 @end group
 
@@ -2798,14 +2799,14 @@ also makes it invalid.
 @example
 @group
 (make-directory "/tmp/foo")
-     @result{} nil
+     @result{} Event (35025468 created "/tmp/foo")
 @end group
 
 @group
 (setq desc
       (file-notify-add-watch
         "/tmp/foo" '(change) 'my-notify-callback))
-     @result{} 35025468
+     @result{} 11359632
 @end group
 
 @group
@@ -2815,32 +2816,34 @@ also makes it invalid.
 
 @group
 (write-region "bla" nil "/tmp/foo/bla")
-     @result{} Event (35025468 created "/tmp/foo/.#bla")
-        Event (35025468 created "/tmp/foo/bla")
-        Event (35025468 changed "/tmp/foo/bla")
-        Event (35025468 changed "/tmp/foo/.#bla")
+     @result{} Event (11359632 created "/tmp/foo/.#bla")
+        Event (11359632 created "/tmp/foo/bla")
+        Event (11359632 changed "/tmp/foo/bla")
+        Event (11359632 deleted "/tmp/foo/.#bla")
 @end group
 
 @group
 ;; Deleting a file in the directory doesn't invalidate the watch.
 (delete-file "/tmp/foo/bla")
-     @result{} Event (35025468 deleted "/tmp/foo/bla")
+     @result{} Event (11359632 deleted "/tmp/foo/bla")
 @end group
 
 @group
 (write-region "bla" nil "/tmp/foo/bla")
-     @result{} Event (35025468 created "/tmp/foo/.#bla")
-        Event (35025468 created "/tmp/foo/bla")
-        Event (35025468 changed "/tmp/foo/bla")
-        Event (35025468 changed "/tmp/foo/.#bla")
+     @result{} Event (11359632 created "/tmp/foo/.#bla")
+        Event (11359632 created "/tmp/foo/bla")
+        Event (11359632 changed "/tmp/foo/bla")
+        Event (11359632 deleted "/tmp/foo/.#bla")
 @end group
 
 @group
 ;; Deleting the directory invalidates the watch.
+;; Events arrive for different watch descriptors.
 (delete-directory "/tmp/foo" 'recursive)
-     @result{} Event (35025468 deleted "/tmp/foo/bla")
-        Event (35025468 deleted "/tmp/foo")
-        Event (35025468 stopped "/tmp/foo")
+     @result{} Event (35025468 deleted "/tmp/foo")
+        Event (11359632 deleted "/tmp/foo/bla")
+        Event (11359632 deleted "/tmp/foo")
+        Event (11359632 stopped "/tmp/foo")
 @end group
 
 @group

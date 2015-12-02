@@ -228,8 +228,7 @@ Blank lines separate paragraphs.  Semicolons start comments.
 
 \\{emacs-lisp-mode-map}"
   :group 'lisp
-  (defvar xref-find-function)
-  (defvar xref-identifier-completion-table-function)
+  (defvar xref-backend-functions)
   (defvar project-library-roots-function)
   (lisp-mode-variables nil nil 'elisp)
   (add-hook 'after-load-functions #'elisp--font-lock-flush-elisp-buffers)
@@ -239,9 +238,7 @@ Blank lines separate paragraphs.  Semicolons start comments.
   (setq imenu-case-fold-search nil)
   (add-function :before-until (local 'eldoc-documentation-function)
                 #'elisp-eldoc-documentation-function)
-  (setq-local xref-find-function #'elisp-xref-find)
-  (setq-local xref-identifier-completion-table-function
-              #'elisp--xref-identifier-completion-table)
+  (add-hook 'xref-backend-functions #'elisp--xref-backend nil t)
   (setq-local project-library-roots-function #'elisp-library-roots)
   (add-hook 'completion-at-point-functions
             #'elisp-completion-at-point nil 'local))
@@ -588,21 +585,7 @@ It can be quoted, or be inside a quoted form."
 (declare-function xref-make "xref" (summary location))
 (declare-function xref-collect-references "xref" (symbol dir))
 
-(defun elisp-xref-find (action id)
-  (require 'find-func)
-  ;; FIXME: use information in source near point to filter results:
-  ;; (dvc-log-edit ...) - exclude 'feature
-  ;; (require 'dvc-log-edit) - only 'feature
-  ;; Semantic may provide additional information
-  (pcase action
-    (`definitions
-      (let ((sym (intern-soft id)))
-        (when sym
-          (elisp--xref-find-definitions sym))))
-    (`references
-     (elisp--xref-find-references id))
-    (`apropos
-     (elisp--xref-find-apropos id))))
+(defun elisp--xref-backend () 'elisp)
 
 ;; WORKAROUND: This is nominally a constant, but the text properties
 ;; are not preserved thru dump if use defconst.  See bug#21237.
@@ -638,7 +621,17 @@ Each function should return a list of xrefs, or nil; the first
 non-nil result supercedes the xrefs produced by
 `elisp--xref-find-definitions'.")
 
-;; FIXME: name should be singular; match xref-find-definition
+(cl-defmethod xref-backend-definitions ((_backend (eql elisp)) identifier)
+  (require 'find-func)
+  ;; FIXME: use information in source near point to filter results:
+  ;; (dvc-log-edit ...) - exclude 'feature
+  ;; (require 'dvc-log-edit) - only 'feature
+  ;; Semantic may provide additional information
+  ;;
+  (let ((sym (intern-soft identifier)))
+    (when sym
+      (elisp--xref-find-definitions sym))))
+
 (defun elisp--xref-find-definitions (symbol)
   ;; The file name is not known when `symbol' is defined via interactive eval.
   (let (xrefs)
@@ -805,7 +798,7 @@ non-nil result supercedes the xrefs produced by
 (declare-function project-roots "project")
 (declare-function project-current "project")
 
-(defun elisp--xref-find-references (symbol)
+(cl-defmethod xref-backend-references ((_backend (eql elisp)) symbol)
   "Find all references to SYMBOL (a string) in the current project."
   (cl-mapcan
    (lambda (dir)
@@ -815,7 +808,7 @@ non-nil result supercedes the xrefs produced by
       (project-roots pr)
       (project-library-roots pr)))))
 
-(defun elisp--xref-find-apropos (regexp)
+(cl-defmethod xref-backend-apropos ((_backend (eql elisp)) regexp)
   (apply #'nconc
          (let (lst)
            (dolist (sym (apropos-internal regexp))
@@ -832,7 +825,7 @@ non-nil result supercedes the xrefs produced by
                          (facep sym)))
                    'strict))
 
-(defun elisp--xref-identifier-completion-table ()
+(cl-defmethod xref-backend-identifier-completion-table ((_backend (eql elisp)))
   elisp--xref-identifier-completion-table)
 
 (cl-defstruct (xref-elisp-location

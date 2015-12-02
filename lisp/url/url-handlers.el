@@ -309,6 +309,29 @@ They count bytes from the beginning of the body."
 
 (defvar url-http-codes)
 
+(defun url-insert-buffer-contents (buffer url &optional visit beg end replace)
+  "Insert the contents of BUFFER into current buffer.
+This is like `url-insert', but also decodes the current buffer as
+if it had been inserted from a file named URL."
+  (if visit (setq buffer-file-name url))
+  (save-excursion
+    (let* ((start (point))
+           (size-and-charset (url-insert buffer beg end)))
+      (kill-buffer buffer)
+      (when replace
+        (delete-region (point-min) start)
+        (delete-region (point) (point-max)))
+      (unless (cadr size-and-charset)
+        ;; If the headers don't specify any particular charset, use the
+        ;; usual heuristic/rules that we apply to files.
+        (decode-coding-inserted-region (point-min) (point) url
+                                       visit beg end replace))
+      (let ((inserted (car size-and-charset)))
+        (when (fboundp 'after-insert-file-set-coding)
+          (let ((insval (after-insert-file-set-coding inserted visit)))
+            (if insval (setq inserted insval))))
+        (list url inserted)))))
+
 ;;;###autoload
 (defun url-insert-file-contents (url &optional visit beg end replace)
   (let ((buffer (url-retrieve-synchronously url)))
@@ -323,24 +346,7 @@ They count bytes from the beginning of the body."
             (kill-buffer buffer)
             ;; Signal file-error per http://debbugs.gnu.org/16733.
             (signal 'file-error (list url desc))))))
-    (if visit (setq buffer-file-name url))
-    (save-excursion
-      (let* ((start (point))
-             (size-and-charset (url-insert buffer beg end)))
-        (kill-buffer buffer)
-        (when replace
-          (delete-region (point-min) start)
-          (delete-region (point) (point-max)))
-        (unless (cadr size-and-charset)
-          ;; If the headers don't specify any particular charset, use the
-          ;; usual heuristic/rules that we apply to files.
-          (decode-coding-inserted-region start (point) url
-                                         visit beg end replace))
-        (let ((inserted (car size-and-charset)))
-          (when (fboundp 'after-insert-file-set-coding)
-            (let ((insval (after-insert-file-set-coding inserted visit)))
-              (if insval (setq inserted insval))))
-          (list url inserted))))))
+    (url-insert-buffer-contents buffer url visit beg end replace)))
 
 (put 'insert-file-contents 'url-file-handlers 'url-insert-file-contents)
 

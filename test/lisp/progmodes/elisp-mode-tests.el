@@ -244,7 +244,7 @@ to (xref-elisp-test-descr-to-target xref)."
     (xref-make "(cl-defstruct (xref-elisp-location (:constructor xref-make-elisp-location)))"
                (xref-make-elisp-location
                 'xref-elisp-location 'define-type
-                (expand-file-name "../../lisp/progmodes/elisp-mode.el" emacs-test-dir)))
+                (expand-file-name "../../../lisp/progmodes/elisp-mode.el" emacs-test-dir)))
     ;; It's not worth adding another special case to `xref-elisp-test-descr-to-target' for this
     "(cl-defstruct (xref-elisp-location")
    ))
@@ -255,11 +255,11 @@ to (xref-elisp-test-descr-to-target xref)."
    (xref-make "(defalias Buffer-menu-sort)"
 	      (xref-make-elisp-location
 	       'Buffer-menu-sort 'defalias
-	       (expand-file-name "../../lisp/buff-menu.elc" emacs-test-dir)))
+	       (expand-file-name "../../../lisp/buff-menu.elc" emacs-test-dir)))
    (xref-make "(defun tabulated-list-sort)"
 	      (xref-make-elisp-location
 	       'tabulated-list-sort nil
-	       (expand-file-name "../../lisp/emacs-lisp/tabulated-list.el" emacs-test-dir)))
+	       (expand-file-name "../../../lisp/emacs-lisp/tabulated-list.el" emacs-test-dir)))
    ))
 
 ;; FIXME: defconst
@@ -406,27 +406,27 @@ to (xref-elisp-test-descr-to-target xref)."
    (xref-make "(cl-defgeneric xref-location-marker)"
 	      (xref-make-elisp-location
 	       'xref-location-marker 'cl-defgeneric
-	       (expand-file-name "../../lisp/progmodes/xref.el" emacs-test-dir)))
+	       (expand-file-name "../../../lisp/progmodes/xref.el" emacs-test-dir)))
    (xref-make "(cl-defmethod xref-location-marker ((l xref-elisp-location)))"
 	      (xref-make-elisp-location
 	       '(xref-location-marker xref-elisp-location) 'cl-defmethod
-	       (expand-file-name "../../lisp/progmodes/elisp-mode.el" emacs-test-dir)))
+	       (expand-file-name "../../../lisp/progmodes/elisp-mode.el" emacs-test-dir)))
    (xref-make "(cl-defmethod xref-location-marker ((l xref-file-location)))"
 	      (xref-make-elisp-location
 	       '(xref-location-marker xref-file-location) 'cl-defmethod
-	       (expand-file-name "../../lisp/progmodes/xref.el" emacs-test-dir)))
+	       (expand-file-name "../../../lisp/progmodes/xref.el" emacs-test-dir)))
    (xref-make "(cl-defmethod xref-location-marker ((l xref-buffer-location)))"
 	      (xref-make-elisp-location
 	       '(xref-location-marker xref-buffer-location) 'cl-defmethod
-	       (expand-file-name "../../lisp/progmodes/xref.el" emacs-test-dir)))
+	       (expand-file-name "../../../lisp/progmodes/xref.el" emacs-test-dir)))
    (xref-make "(cl-defmethod xref-location-marker ((l xref-bogus-location)))"
 	      (xref-make-elisp-location
 	       '(xref-location-marker xref-bogus-location) 'cl-defmethod
-	       (expand-file-name "../../lisp/progmodes/xref.el" emacs-test-dir)))
+	       (expand-file-name "../../../lisp/progmodes/xref.el" emacs-test-dir)))
    (xref-make "(cl-defmethod xref-location-marker ((l xref-etags-location)))"
               (xref-make-elisp-location
                '(xref-location-marker xref-etags-location) 'cl-defmethod
-               (expand-file-name "../../lisp/progmodes/etags.el" emacs-test-dir)))
+               (expand-file-name "../../../lisp/progmodes/etags.el" emacs-test-dir)))
    ))
 
 (xref-elisp-deftest find-defs-defgeneric-eval
@@ -528,7 +528,7 @@ to (xref-elisp-test-descr-to-target xref)."
    (xref-make "(defun xref-find-definitions)"
 	      (xref-make-elisp-location
 	       'xref-find-definitions nil
-	       (expand-file-name "../../lisp/progmodes/xref.el" emacs-test-dir)))))
+	       (expand-file-name "../../../lisp/progmodes/xref.el" emacs-test-dir)))))
 
 (xref-elisp-deftest find-defs-defun-eval
   (elisp--xref-find-definitions (eval '(defun stephe-leake-defun ())))
@@ -543,7 +543,7 @@ to (xref-elisp-test-descr-to-target xref)."
 ;; FIXME: deftype
 
 (xref-elisp-deftest find-defs-defun-c-defvar-c
-  (elisp-xref-find 'definitions "system-name")
+  (elisp--xref-find-definitions 'system-name)
   (list
    (xref-make "(defvar system-name)"
 	      (xref-make-elisp-location 'system-name 'defvar "src/editfns.c"))
@@ -552,7 +552,7 @@ to (xref-elisp-test-descr-to-target xref)."
   )
 
 (xref-elisp-deftest find-defs-defun-el-defvar-c
-  (elisp-xref-find 'definitions "abbrev-mode")
+  (elisp--xref-find-definitions 'abbrev-mode)
   ;; It's a minor mode, but the variable is defined in buffer.c
   (list
    (xref-make "(defvar abbrev-mode)"
@@ -561,7 +561,7 @@ to (xref-elisp-test-descr-to-target xref)."
     (xref-make "(defun abbrev-mode)"
                (xref-make-elisp-location
                 'abbrev-mode nil
-                (expand-file-name "../../lisp/abbrev.el" emacs-test-dir)))
+                (expand-file-name "../../../lisp/abbrev.el" emacs-test-dir)))
     "(define-minor-mode abbrev-mode"))
   )
 
@@ -582,7 +582,7 @@ to (xref-elisp-test-descr-to-target xref)."
     (xref-make "(defun compilation-minor-mode)"
                (xref-make-elisp-location
                 'compilation-minor-mode nil
-                (expand-file-name "../../lisp/progmodes/compile.el" emacs-test-dir)))
+                (expand-file-name "../../../lisp/progmodes/compile.el" emacs-test-dir)))
     "(define-minor-mode compilation-minor-mode")
    ))
 
@@ -592,7 +592,7 @@ to (xref-elisp-test-descr-to-target xref)."
    (xref-make "(defvar xref--marker-ring)"
 	      (xref-make-elisp-location
 	       'xref--marker-ring 'defvar
-	       (expand-file-name "../../lisp/progmodes/xref.el" emacs-test-dir)))
+	       (expand-file-name "../../../lisp/progmodes/xref.el" emacs-test-dir)))
     ))
 
 (xref-elisp-deftest find-defs-defvar-c
@@ -615,11 +615,11 @@ to (xref-elisp-test-descr-to-target xref)."
    (xref-make "(defvar font-lock-keyword-face)"
 	      (xref-make-elisp-location
 	       'font-lock-keyword-face 'defvar
-	       (expand-file-name "../../lisp/font-lock.el" emacs-test-dir)))
+	       (expand-file-name "../../../lisp/font-lock.el" emacs-test-dir)))
    (xref-make "(defface font-lock-keyword-face)"
 	      (xref-make-elisp-location
 	       'font-lock-keyword-face 'defface
-	       (expand-file-name "../../lisp/font-lock.el" emacs-test-dir)))
+	       (expand-file-name "../../../lisp/font-lock.el" emacs-test-dir)))
    ))
 
 (xref-elisp-deftest find-defs-face-eval
@@ -633,7 +633,7 @@ to (xref-elisp-test-descr-to-target xref)."
     (xref-make "(feature xref)"
 	      (xref-make-elisp-location
 	       'xref 'feature
-	       (expand-file-name "../../lisp/progmodes/xref.el" emacs-test-dir)))
+	       (expand-file-name "../../../lisp/progmodes/xref.el" emacs-test-dir)))
     ";;; Code:")
    ))
 

@@ -10115,17 +10115,19 @@ get_current_wm_state (struct frame *f,
   bool is_hidden = false;
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   long max_len = 65536;
-  unsigned char *tmp_data = NULL;
   Atom target_type = XA_ATOM;
   /* If XCB is available, we can avoid three XSync calls.  */
 #ifdef USE_XCB
   xcb_get_property_cookie_t prop_cookie;
   xcb_get_property_reply_t *prop;
+  xcb_atom_t *reply_data;
 #else
   Display *dpy = FRAME_X_DISPLAY (f);
   unsigned long bytes_remaining;
   int rc, actual_format;
   Atom actual_type;
+  unsigned char *tmp_data = NULL;
+  Atom *reply_data;
 #endif
 
   *sticky = false;
@@ -10140,8 +10142,10 @@ get_current_wm_state (struct frame *f,
   prop = xcb_get_property_reply (dpyinfo->xcb_connection, prop_cookie, NULL);
   if (prop && prop->type == target_type)
     {
-      tmp_data = xcb_get_property_value (prop);
-      actual_size = xcb_get_property_value_length (prop);
+      int actual_bytes = xcb_get_property_value_length (prop);
+      eassume (0 <= actual_bytes);
+      actual_size = actual_bytes / sizeof *reply_data;
+      reply_data = xcb_get_property_value (prop);
     }
   else
     {
@@ -10155,7 +10159,9 @@ get_current_wm_state (struct frame *f,
                            &actual_type, &actual_format, &actual_size,
                            &bytes_remaining, &tmp_data);
 
-  if (rc != Success || actual_type != target_type || x_had_errors_p (dpy))
+  if (rc == Success && actual_type == target_type && ! x_had_errors_p (dpy))
+    reply_data = (Atom *) tmp_data;
+  else
     {
       actual_size = 0;
       is_hidden = FRAME_ICONIFIED_P (f);
@@ -10166,7 +10172,7 @@ get_current_wm_state (struct frame *f,
 
   for (i = 0; i < actual_size; ++i)
     {
-      Atom a = ((Atom*)tmp_data)[i];
+      Atom a = reply_data[i];
       if (a == dpyinfo->Xatom_net_wm_state_hidden)
 	is_hidden = true;
       else if (a == dpyinfo->Xatom_net_wm_state_maximized_horz)

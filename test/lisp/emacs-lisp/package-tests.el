@@ -97,7 +97,7 @@
                                (multi-file (0 1))))
   "`package-desc' used for testing dependencies.")
 
-(defvar package-test-data-dir (expand-file-name "data/package" package-test-file-dir)
+(defvar package-test-data-dir (expand-file-name "package-resources" package-test-file-dir)
   "Base directory of package test files.")
 
 (defvar package-test-fake-contents-file
@@ -190,18 +190,18 @@ Must called from within a `tar-mode' buffer."
 
 (ert-deftest package-test-desc-from-buffer ()
   "Parse an elisp buffer to get a `package-desc' object."
-  (with-package-test (:basedir "data/package" :file "simple-single-1.3.el")
+  (with-package-test (:basedir "package-resources" :file "simple-single-1.3.el")
     (should (equal (package-buffer-info) simple-single-desc)))
-  (with-package-test (:basedir "data/package" :file "simple-depend-1.0.el")
+  (with-package-test (:basedir "package-resources" :file "simple-depend-1.0.el")
     (should (equal (package-buffer-info) simple-depend-desc)))
-  (with-package-test (:basedir "data/package"
+  (with-package-test (:basedir "package-resources"
                                :file "multi-file-0.2.3.tar")
     (tar-mode)
     (should (equal (package-tar-file-info) multi-file-desc))))
 
 (ert-deftest package-test-install-single ()
   "Install a single file without using an archive."
-  (with-package-test (:basedir "data/package" :file "simple-single-1.3.el")
+  (with-package-test (:basedir "package-resources" :file "simple-single-1.3.el")
     (should (package-install-from-buffer))
     (package-initialize)
     (should (package-installed-p 'simple-single))
@@ -269,7 +269,7 @@ Must called from within a `tar-mode' buffer."
 (ert-deftest package-test-install-prioritized ()
   "Install a lower version from a higher-prioritized archive."
   (with-package-test ()
-    (let* ((newer-version (expand-file-name "data/package/newer-versions"
+    (let* ((newer-version (expand-file-name "package-resources/newer-versions"
                                             package-test-file-dir))
            (package-archives `(("older" . ,package-test-data-dir)
                                ("newer" . ,newer-version)))
@@ -285,7 +285,7 @@ Must called from within a `tar-mode' buffer."
 
 (ert-deftest package-test-install-multifile ()
   "Check properties of the installed multi-file package."
-  (with-package-test (:basedir "data/package" :install '(multi-file))
+  (with-package-test (:basedir "package-resources" :install '(multi-file))
     (let ((autoload-file
            (expand-file-name "multi-file-autoloads.el"
                              (expand-file-name
@@ -336,7 +336,7 @@ Must called from within a `tar-mode' buffer."
       (package-menu-execute)
       (should (package-installed-p 'simple-single))
       (let ((package-test-data-dir
-             (expand-file-name "data/package/newer-versions" package-test-file-dir)))
+             (expand-file-name "package-resources/newer-versions" package-test-file-dir)))
         (setq package-archives `(("gnu" . ,package-test-data-dir)))
         (package-menu-refresh)
 
@@ -456,7 +456,7 @@ Must called from within a `tar-mode' buffer."
 		     (delete-directory homedir t)))))
   (let* ((keyring (expand-file-name "key.pub" package-test-data-dir))
 	 (package-test-data-dir
-	   (expand-file-name "data/package/signed" package-test-file-dir)))
+	   (expand-file-name "package-resources/signed" package-test-file-dir)))
     (with-package-test ()
       (package-initialize)
       (package-import-keyring keyring)
@@ -508,7 +508,7 @@ Must called from within a `tar-mode' buffer."
 
 (ert-deftest package-x-test-upload-buffer ()
   "Test creating an \"archive-contents\" file"
-  (with-package-test (:basedir "data/package"
+  (with-package-test (:basedir "package-resources"
                                :file "simple-single-1.3.el"
                                :upload-base t)
     (package-upload-buffer)
@@ -532,7 +532,7 @@ Must called from within a `tar-mode' buffer."
 
 (ert-deftest package-x-test-upload-new-version ()
   "Test uploading a new version of a package"
-  (with-package-test (:basedir "data/package"
+  (with-package-test (:basedir "package-resources"
                                :file "simple-single-1.3.el"
                                :upload-base t)
     (package-upload-buffer)
@@ -599,6 +599,7 @@ Must called from within a `tar-mode' buffer."
                simple-depend-desc-2)))
     (should
      (equal (package--sort-by-dependence delete-list)
+
             (list simple-depend-desc-2 simple-depend-desc-1 new-pkg-desc
                   multi-file-desc simple-depend-desc simple-single-desc)))
     (should

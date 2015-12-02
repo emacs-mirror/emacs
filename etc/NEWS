@@ -23,6 +23,19 @@ When you add a new item, use the appropriate mark if you are sure it applies,
 otherwise leave it unmarked.
 
 
+* Installation Changes in Emacs 25.2
+
+** 'configure' detects the kqueue file notification library on *BSD
+and Mac OS X machines.
+
+
+* Changes in Specialized Modes and Packages in Emacs 25.2
+
+** File Notifications
+
+*** The kqueue library is integrated for *BSD and Mac OS X machines.
+
+
 * Installation Changes in Emacs 25.1
 
 +++

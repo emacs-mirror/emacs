@@ -1,3 +1,1933 @@
+2015-11-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix a problem with gfilenotify in filenotify-tests.el
+
+	* test/lisp/filenotify-tests.el
+	(file-notify--test-expected-events): Remove.
+	(file-notify--test-cleanup): Do not set that variable.
+	(file-notify--test-with-events): EVENTS can also be a list of lists.
+	(file-notify-test02-events, file-notify-test04-file-validity):
+	Adapt expected result.
+
+2015-11-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gitignore: Adjust to changes in 'test' directory structure.
+
+2015-11-28  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix test/manual/etags/Makefile
+
+	* test/manual/etags/Makefile (ETAGS_PROG, CTAGS_PROG): Adjust to
+	changes in 'test' directory structure.
+
+2015-11-27  Phillip Lord  <phillip.lord@russet.org.uk>
+
+	Exclude resource dirs from search for tests.
+
+	* test/Makefile.in: Test file locations are now found with find
+	  rather than using finds native functions.
+
+2015-11-27  Phillip Lord  <phillip.lord@russet.org.uk>
+
+	Add test targets without directory names.
+
+	 * (test/Makefile.in): Extend test_template to add two targets for each
+	   file.
+
+2015-11-27  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/emacs-lisp/package.el: Require url-handlers
+
+2015-11-27  Phillip Lord  <phillip.lord@russet.org.uk>
+
+	Move elisp-mode-tests to new function names.
+
+	 * test/lisp/progmodes/elisp-mode-tests.el (find-defsdefun-c-defvar-c,
+	 find-defs-defun-el-defvar-c): Call `elisp--xref-find-definitions'.
+
+2015-11-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lisp/emacs-lisp/package.el: Declare `url-insert-buffer-contents'
+
+2015-11-26  Phillip Lord  <phillip.lord@russet.org.uk>
+
+	Merge branch 'feature/standard-test-location'
+
+2015-11-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/emacs-lisp/eieio.el: Add some default implementations
+
+	(standard-class): Mark it obsolete.
+	(slot-missing): Give it a default implementation.
+	(destructor): Simplify and mark it obsolete.
+	(object-print): Give it a default implementation.
+	(eieio-change-class): Rename from change-class.
+	(change-class): Redefine as obsolete alias.
+
+2015-11-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	Some final fixes in file notification before merging with master
+
+	* lisp/filenotify.el (file-notify--rm-descriptor): Remove WHAT arg.
+	(file-notify-callback): Improve check for `stopped' event.  Call
+	`file-notify-rm-watch' rather than `file-notify--rm-descriptor'.
+	(file-notify-add-watch): In case FILE is not a directory, call the
+	file monitor for the kqueue backend.  Otherwise, call the
+	directory monitor for the upper directory.
+
+	* src/inotify.c (inotifyevent_to_event): Extract file name from
+	watch_object if the event doesn't provide it.
+	(Finotify_add_watch): Add file name to watch_object.
+
+	* test/automated/file-notify-tests.el (file-notify--test-timeout):
+	Use different timeouts for different libraries.
+	(file-notify--test-with-events): Suppress lock files.  Flush
+	outstanding events before running the body.
+	(file-notify-test02-events, file-notify-test04-file-validity): Do
+	not skip cygwin tests.  Add additional test for file creation.
+	Adapt expected result for different backends.
+	(file-notify-test03-autorevert): Some of the tests don't work for
+	w32notify.
+	(file-notify-test06-many-events): Rename into both directions.
+
+2015-11-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	Rework file notifications, kqueue has problems with directory monitors
+
+	* lisp/filenotify.el (file-notify-add-watch): Call the native
+	add-watch function on the file, not on the dir.
+
+	* src/kqueue.c (kqueue_compare_dir_list): Make also bookkeeping
+	about already deleted entries.
+
+	* test/automated/auto-revert-tests.el
+	(auto-revert-test01-auto-revert-several-files): Do not call "cp -f"
+	since this deletes the target file first.
+
+	* test/automated/file-notify-tests.el (file-notify--test-event-test):
+	Make stronger checks.
+	(file-notify-test01-add-watch, file-notify-test02-events)
+	(file-notify-test04-file-validity, file-notify-test05-dir-validity):
+	Rewrite in order to call file monitors but directory monitors.
+	(file-notify-test06-many-events): Ler rename work in both directions.
+
+2015-11-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	Continue with pending events
+
+	* src/kqueue.c (pending_events): Remove global variable.
+	(kqueue_compare_dir_list): Create `write' event for not used
+	pending events.
+	(globals_of_kqueue): Remove initialization of pending_events.
+
+2015-11-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	Improve loops in file-notify-test06-many-events
+
+	* test/automated/file-notify-tests.el (file-notify-test06-many-events):
+	Use `read-event' pauses for the `write-file' loops; otherwise
+	events are lost in inotify and gfilenotify cases.
+
+2015-11-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	Handle more complex rename operation in kqueue
+
+	* src/kqueue.c (pending_events): New variable.
+	(kqueue_compare_dir_list): Handle more complex rename operation.
+	(globals_of_kqueue): Initialize pending_events.
+
+	* test/automated/file-notify-tests.el (file-notify-test06-many-events):
+	Adapt expected events in the `rename-file' case.
+	(file-notify-test06-many-events-remote): Declare.
+
+2015-11-25  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	New test with a larger number of events
+
+	* test/automated/file-notify-tests.el (file-notify--test-with-events):
+	Make timeout heuristically depend on the number of events.
+
+	(file-notify-test06-many-events): Use it for new test.
+
+2015-11-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	Further fixes for kqueue
+
+	* lisp/filenotify.el (file-notify-callback): Raise also event if
+	directory name matches.
+	(file-notify-add-watch): Add `create' to the flags for `kqueue'.
+
+	* src/kqueue.c (kqueue_generate_event): Use watch_object as
+	argument instead of ident.  Remove callback argument.  Adapt
+	callees.  Check actions whether they are monitored flags.
+
+	* test/automated/file-notify-tests.el (file-notify--test-library):
+	New defun.
+	(file-notify-test00-availability, file-notify-test02-events)
+	(file-notify-test04-file-validity)
+	(file-notify-test05-dir-validity): Use it.
+	(file-notify-test02-events, file-notify-test04-file-validity): Add
+	`read-event' calls between different file actions, in order to
+	give the backends a chance to rais an event.  Needed especially
+	for kqueue.  In case of deleting a directory, there are two
+	`deleted' events.
+
+2015-11-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	Code cleanup of kqueue.c
+
+	* src/kqueue.c (kqueue_directory_listing): Skip "." and "..".
+	(kqueue_compare_dir_list): Do not loop when calling
+	directory_files_internal.  Remove checks for "." and "..", this is
+	done in kqueue_directory_listing now.
+	(Fkqueue_add_watch): Check for proper emacs_open flags.
+
+2015-11-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	Doc changes for kqueue
+
+	* doc/lispref/os.texi (File Notifications): Add kqueue as backend.
+	Fix some glitches in the example.
+
+2015-11-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	Finish implementation in kqueue.c
+
+	* src/kqueue.c (kqueue_directory_listing, kqueue_callback):
+	Simplify access to list.
+	(kqueue_compare_dir_list): Simplify access to list.  Raise
+	`delete' event if directory does not exist any longer.  Otherwise,
+	wait until directory contents has changed.  Fix error in check.
+
+2015-11-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* lisp/filenotify.el (file-notify-add-watch): Fix thinko.
+
+2015-11-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	More work on kqueue
+
+	* lisp/filenotify.el (file-notify-callback): Handle also the
+	`rename' event from kqueue.
+	(file-notify-add-watch): Do not register an entry twice.
+
+	* src/kqueue.c (kqueue_directory_listing): New function.
+	(kqueue_generate_event): New argument FILE1.  Adapt callees.
+	(kqueue_compare_dir_list): Rewrite in order to make it more robust.
+
+2015-11-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	Implement directory events
+
+	* lisp/filenotify.el (file-notify-handle-event)
+	(file-notify-callback): Remove traces.
+
+	* src/kqueue.c: Include <sys/time.h>.
+	(kqueue_generate_event, kqueue_compare_dir_list): New functions.
+	(kqueue_callback): Use them.  Call kevent() with a zero timeout.
+	(Fkqueue_add_watch): Adapt docstring.  Support directory events.
+	Compute initial directory listing.  Close file descriptor in case
+	of errors.
+	(syms_of_kqueue): Declare Qcreate.
+
+2015-11-25  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	Build fixes for kqueue support
+
+	* src/kqueue.c (Fkqueue_add_watch): O_BINARY is not a POSIX open(3)
+	flag.
+
+	* configure.ac (HAVE_KQUEUE): There is no pkg-config module for native
+	kqueue on *BSD.
+
+2015-11-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	Continue kqueue implementation
+
+	* lisp/filenotify.el (file-notify-handle-event)
+	(file-notify-callback): Enable trace messages.
+
+	* src/kqueue.c: Include also <sys/types.h>.
+	(kqueue_callback): Remove watch in case of NOTE_DELETE or NOTE_RENAME.
+	(Fkqueue_rm_watch, Fkqueue_valid_p): New functions.
+	(syms_of_kqueue): Add them.
+
+2015-11-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	Work on kqueue
+
+	* lisp/filenotify.el (file-notify--library)
+	(file-notify-descriptors, file-notify-callback)
+	(file-notify-add-watch, file-notify-rm-watch)
+	(file-notify-valid-p): Add kqueue support.
+
+	* src/keyboard.c (make_lispy_event): Check also for HAVE_KQUEUE.
+
+2015-11-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	Add kqueue support
+
+	* configure.ac (--with-file-notification): Add kqueue.
+	(top): Remove special test for "${HAVE_NS}" and
+	${with_file_notification}, this is handled inside gfilenotify
+	tests.  Add kqueue tests.  Use NOTIFY_CFLAGS and NOTIFY_LIBS
+	instead of library specific variables.
+
+	* src/Makefile.in: Use NOTIFY_CFLAGS and NOTIFY_LIBS.
+
+	* src/emacs.c (main): Call globals_of_kqueue and syms_of_kqueue.
+
+	* src/kqueue.c: New file.
+
+	* src/lisp.h: Declare extern globals_of_kqueue and syms_of_kqueue.
+
+2015-11-24  Phillip Lord  <phillip.lord@russet.org.uk>
+
+	Update elisp-mode-tests for changed file location.
+
+	 * test/lisp/progmodes/elisp-mode-tests.el:
+
+2015-11-24  Phillip Lord  <phillip.lord@russet.org.uk>
+
+	Exclude manual tests from Makefile
+
+	 * test/Makefile.in:
+
+2015-11-24  Phillip Lord  <phillip.lord@russet.org.uk>
+
+	Move package test files to new directory.
+
+	 * test/lisp/emacs-lisp/package-tests.el: Update resoruce file location.
+	 * test/data/package: Moved to test/lisp/emacs-lisp/package-resources
+
+2015-11-24  Phillip Lord  <phillip.lord@russet.org.uk>
+
+	Restore delete Makefiles and fix .gitignore.
+
+	 * .gitignore: Update Makefiles to changed locations
+	 * test/lisp/progmodes/flymake-resources/Makefile,
+	   test/manual/etags/Makefile,
+	   test/manual/etags/make-src/Makefile,
+	   test/manual/indent/Makefile: Restored and moved to new location.
+
+2015-11-24  Phillip Lord  <phillip.lord@russet.org.uk>
+
+	Test infrastructure: updates after directory move
+
+	 * (test/Makefile.in): Support directories several levels deep.
+	 * (test/data/flymake): Rename to test/lisp/progmodes/flymake-resources.
+	 * (test/lisp/progmodes/flymake-tests.el): Support renamed resource directory.
+
+2015-11-24  Phillip Lord  <phillip.lord@russet.org.uk>
+
+	Rename all test files to reflect source layout.
+
+	 * CONTRIBUTE,Makefile.in,configure.ac: Update to reflect
+	   test directory moves.
+	 * test/file-organisation.org: New file.
+	 * test/automated/Makefile.in
+	   test/automated/data/decompress/foo.gz
+	   test/automated/data/epg/pubkey.asc
+	   test/automated/data/epg/seckey.asc
+	   test/automated/data/files-bug18141.el.gz
+	   test/automated/data/flymake/test.c
+	   test/automated/data/flymake/test.pl
+	   test/automated/data/package/archive-contents
+	   test/automated/data/package/key.pub
+	   test/automated/data/package/key.sec
+	   test/automated/data/package/multi-file-0.2.3.tar
+	   test/automated/data/package/multi-file-readme.txt
+	   test/automated/data/package/newer-versions/archive-contents
+	   test/automated/data/package/newer-versions/new-pkg-1.0.el
+	   test/automated/data/package/newer-versions/simple-single-1.4.el
+	   test/automated/data/package/package-test-server.py
+	   test/automated/data/package/signed/archive-contents
+	   test/automated/data/package/signed/archive-contents.sig
+	   test/automated/data/package/signed/signed-bad-1.0.el
+	   test/automated/data/package/signed/signed-bad-1.0.el.sig
+	   test/automated/data/package/signed/signed-good-1.0.el
+	   test/automated/data/package/signed/signed-good-1.0.el.sig
+	   test/automated/data/package/simple-depend-1.0.el
+	   test/automated/data/package/simple-single-1.3.el
+	   test/automated/data/package/simple-single-readme.txt
+	   test/automated/data/package/simple-two-depend-1.1.el
+	   test/automated/abbrev-tests.el
+	   test/automated/auto-revert-tests.el
+	   test/automated/calc-tests.el
+	   test/automated/icalendar-tests.el
+	   test/automated/character-fold-tests.el
+	   test/automated/comint-testsuite.el
+	   test/automated/descr-text-test.el
+	   test/automated/electric-tests.el
+	   test/automated/cl-generic-tests.el
+	   test/automated/cl-lib-tests.el
+	   test/automated/eieio-test-methodinvoke.el
+	   test/automated/eieio-test-persist.el
+	   test/automated/eieio-tests.el
+	   test/automated/ert-tests.el
+	   test/automated/ert-x-tests.el
+	   test/automated/generator-tests.el
+	   test/automated/let-alist.el
+	   test/automated/map-tests.el
+	   test/automated/advice-tests.el
+	   test/automated/package-test.el
+	   test/automated/pcase-tests.el
+	   test/automated/regexp-tests.el
+	   test/automated/seq-tests.el
+	   test/automated/subr-x-tests.el
+	   test/automated/tabulated-list-test.el
+	   test/automated/thunk-tests.el
+	   test/automated/timer-tests.el
+	   test/automated/epg-tests.el
+	   test/automated/eshell.el
+	   test/automated/faces-tests.el
+	   test/automated/file-notify-tests.el
+	   test/automated/auth-source-tests.el
+	   test/automated/gnus-tests.el
+	   test/automated/message-mode-tests.el
+	   test/automated/help-fns.el
+	   test/automated/imenu-test.el
+	   test/automated/info-xref.el
+	   test/automated/mule-util.el
+	   test/automated/isearch-tests.el
+	   test/automated/json-tests.el
+	   test/automated/bytecomp-tests.el
+	   test/automated/coding-tests.el
+	   test/automated/core-elisp-tests.el
+	   test/automated/decoder-tests.el
+	   test/automated/files.el
+	   test/automated/font-parse-tests.el
+	   test/automated/lexbind-tests.el
+	   test/automated/occur-tests.el
+	   test/automated/process-tests.el
+	   test/automated/syntax-tests.el
+	   test/automated/textprop-tests.el
+	   test/automated/undo-tests.el
+	   test/automated/man-tests.el
+	   test/automated/completion-tests.el
+	   test/automated/dbus-tests.el
+	   test/automated/newsticker-tests.el
+	   test/automated/sasl-scram-rfc-tests.el
+	   test/automated/tramp-tests.el
+	   test/automated/obarray-tests.el
+	   test/automated/compile-tests.el
+	   test/automated/elisp-mode-tests.el
+	   test/automated/f90.el
+	   test/automated/flymake-tests.el
+	   test/automated/python-tests.el
+	   test/automated/ruby-mode-tests.el
+	   test/automated/subword-tests.el
+	   test/automated/replace-tests.el
+	   test/automated/simple-test.el
+	   test/automated/sort-tests.el
+	   test/automated/subr-tests.el
+	   test/automated/reftex-tests.el
+	   test/automated/sgml-mode-tests.el
+	   test/automated/tildify-tests.el
+	   test/automated/thingatpt.el
+	   test/automated/url-future-tests.el
+	   test/automated/url-util-tests.el
+	   test/automated/add-log-tests.el
+	   test/automated/vc-bzr.el
+	   test/automated/vc-tests.el
+	   test/automated/xml-parse-tests.el
+	   test/BidiCharacterTest.txt
+	   test/biditest.el
+	   test/cedet/cedet-utests.el
+	   test/cedet/ede-tests.el
+	   test/cedet/semantic-ia-utest.el
+	   test/cedet/semantic-tests.el
+	   test/cedet/semantic-utest-c.el
+	   test/cedet/semantic-utest.el
+	   test/cedet/srecode-tests.el
+	   test/cedet/tests/test.c
+	   test/cedet/tests/test.el
+	   test/cedet/tests/test.make
+	   test/cedet/tests/testdoublens.cpp
+	   test/cedet/tests/testdoublens.hpp
+	   test/cedet/tests/testfriends.cpp
+	   test/cedet/tests/testjavacomp.java
+	   test/cedet/tests/testnsp.cpp
+	   test/cedet/tests/testpolymorph.cpp
+	   test/cedet/tests/testspp.c
+	   test/cedet/tests/testsppcomplete.c
+	   test/cedet/tests/testsppreplace.c
+	   test/cedet/tests/testsppreplaced.c
+	   test/cedet/tests/testsubclass.cpp
+	   test/cedet/tests/testsubclass.hh
+	   test/cedet/tests/testtypedefs.cpp
+	   test/cedet/tests/testvarnames.c
+	   test/etags/CTAGS.good
+	   test/etags/ETAGS.good_1
+	   test/etags/ETAGS.good_2
+	   test/etags/ETAGS.good_3
+	   test/etags/ETAGS.good_4
+	   test/etags/ETAGS.good_5
+	   test/etags/ETAGS.good_6
+	   test/etags/a-src/empty.zz
+	   test/etags/a-src/empty.zz.gz
+	   test/etags/ada-src/2ataspri.adb
+	   test/etags/ada-src/2ataspri.ads
+	   test/etags/ada-src/etags-test-for.ada
+	   test/etags/ada-src/waroquiers.ada
+	   test/etags/c-src/a/b/b.c
+	   test/etags/c-src/abbrev.c
+	   test/etags/c-src/c.c
+	   test/etags/c-src/dostorture.c
+	   test/etags/c-src/emacs/src/gmalloc.c
+	   test/etags/c-src/emacs/src/keyboard.c
+	   test/etags/c-src/emacs/src/lisp.h
+	   test/etags/c-src/emacs/src/regex.h
+	   test/etags/c-src/etags.c
+	   test/etags/c-src/exit.c
+	   test/etags/c-src/exit.strange_suffix
+	   test/etags/c-src/fail.c
+	   test/etags/c-src/getopt.h
+	   test/etags/c-src/h.h
+	   test/etags/c-src/machsyscalls.c
+	   test/etags/c-src/machsyscalls.h
+	   test/etags/c-src/sysdep.h
+	   test/etags/c-src/tab.c
+	   test/etags/c-src/torture.c
+	   test/etags/cp-src/MDiagArray2.h
+	   test/etags/cp-src/Range.h
+	   test/etags/cp-src/burton.cpp
+	   test/etags/cp-src/c.C
+	   test/etags/cp-src/clheir.cpp.gz
+	   test/etags/cp-src/clheir.hpp
+	   test/etags/cp-src/conway.cpp
+	   test/etags/cp-src/conway.hpp
+	   test/etags/cp-src/fail.C
+	   test/etags/cp-src/functions.cpp
+	   test/etags/cp-src/screen.cpp
+	   test/etags/cp-src/screen.hpp
+	   test/etags/cp-src/x.cc
+	   test/etags/el-src/TAGTEST.EL
+	   test/etags/el-src/emacs/lisp/progmodes/etags.el
+	   test/etags/erl-src/gs_dialog.erl
+	   test/etags/f-src/entry.for
+	   test/etags/f-src/entry.strange.gz
+	   test/etags/f-src/entry.strange_suffix
+	   test/etags/forth-src/test-forth.fth
+	   test/etags/html-src/algrthms.html
+	   test/etags/html-src/index.shtml
+	   test/etags/html-src/software.html
+	   test/etags/html-src/softwarelibero.html
+	   test/etags/lua-src/allegro.lua
+	   test/etags/objc-src/PackInsp.h
+	   test/etags/objc-src/PackInsp.m
+	   test/etags/objc-src/Subprocess.h
+	   test/etags/objc-src/Subprocess.m
+	   test/etags/objcpp-src/SimpleCalc.H
+	   test/etags/objcpp-src/SimpleCalc.M
+	   test/etags/pas-src/common.pas
+	   test/etags/perl-src/htlmify-cystic
+	   test/etags/perl-src/kai-test.pl
+	   test/etags/perl-src/yagrip.pl
+	   test/etags/php-src/lce_functions.php
+	   test/etags/php-src/ptest.php
+	   test/etags/php-src/sendmail.php
+	   test/etags/prol-src/natded.prolog
+	   test/etags/prol-src/ordsets.prolog
+	   test/etags/ps-src/rfc1245.ps
+	   test/etags/pyt-src/server.py
+	   test/etags/tex-src/gzip.texi
+	   test/etags/tex-src/nonewline.tex
+	   test/etags/tex-src/testenv.tex
+	   test/etags/tex-src/texinfo.tex
+	   test/etags/y-src/atest.y
+	   test/etags/y-src/cccp.c
+	   test/etags/y-src/cccp.y
+	   test/etags/y-src/parse.c
+	   test/etags/y-src/parse.y
+	   test/indent/css-mode.css
+	   test/indent/js-indent-init-dynamic.js
+	   test/indent/js-indent-init-t.js
+	   test/indent/js-jsx.js
+	   test/indent/js.js
+	   test/indent/latex-mode.tex
+	   test/indent/modula2.mod
+	   test/indent/nxml.xml
+	   test/indent/octave.m
+	   test/indent/pascal.pas
+	   test/indent/perl.perl
+	   test/indent/prolog.prolog
+	   test/indent/ps-mode.ps
+	   test/indent/ruby.rb
+	   test/indent/scheme.scm
+	   test/indent/scss-mode.scss
+	   test/indent/sgml-mode-attribute.html
+	   test/indent/shell.rc
+	   test/indent/shell.sh
+	   test/redisplay-testsuite.el
+	   test/rmailmm.el
+	   test/automated/buffer-tests.el
+	   test/automated/cmds-tests.el
+	   test/automated/data-tests.el
+	   test/automated/finalizer-tests.el
+	   test/automated/fns-tests.el
+	   test/automated/inotify-test.el
+	   test/automated/keymap-tests.el
+	   test/automated/print-tests.el
+	   test/automated/libxml-tests.el
+	   test/automated/zlib-tests.el: Files Moved.
+
+2015-11-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	Rework file notifications, kqueue has problems with directory monitors
+
+	* lisp/filenotify.el (file-notify-add-watch): Call the native
+	add-watch function on the file, not on the dir.
+
+	* src/kqueue.c (kqueue_compare_dir_list): Make also bookkeeping
+	about already deleted entries.
+
+	* test/automated/auto-revert-tests.el
+	(auto-revert-test01-auto-revert-several-files): Do not call "cp -f"
+	since this deletes the target file first.
+
+	* test/automated/file-notify-tests.el (file-notify--test-event-test):
+	Make stronger checks.
+	(file-notify-test01-add-watch, file-notify-test02-events)
+	(file-notify-test04-file-validity, file-notify-test05-dir-validity):
+	Rewrite in order to call file monitors but directory monitors.
+	(file-notify-test06-many-events): Ler rename work in both directions.
+
+2015-11-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	Continie with pending events
+
+	* src/kqueue.c (pending_events): Remove global variable.
+	(kqueue_compare_dir_list): Create `write' event for not used
+	pending events.
+	(globals_of_kqueue): Remove initialization of pending_events.
+
+2015-11-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	Improve loops in file-notify-test06-many-events
+
+	* test/automated/file-notify-tests.el (file-notify-test06-many-events):
+	Use `read-event' pauses for the `write-file' loops; otherwise
+	events are lost in inotify and gfilenotify cases.
+
+2015-11-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	Handle more complex rename operation in kqueue
+
+	* src/kqueue.c (pending_events): New variable.
+	(kqueue_compare_dir_list): Handle more complex rename operation.
+	(globals_of_kqueue): Initialize pending_events.
+
+	* test/automated/file-notify-tests.el (file-notify-test06-many-events):
+	Adapt expected events in the `rename-file' case.
+	(file-notify-test06-many-events-remote): Declare.
+
+2015-11-18  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	New test with a larger number of events.
+
+	* test/automated/file-notify-tests.el (file-notify--test-with-events):
+	Make timeout heuristically depend on the number of events.
+
+	(file-notify-test06-many-events): Use it for new test.
+
+2015-11-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	Further fixes for kqueue.
+
+	* lisp/filenotify.el (file-notify-callback): Raise also event if
+	directory name matches.
+	(file-notify-add-watch): Add `create' to the flags for `kqueue'.
+
+	* src/kqueue.c (kqueue_generate_event): Use watch_object as
+	argument instead of ident.  Remove callback argument.  Adapt
+	callees.  Check actions whether they are monitored flags.
+
+	* test/automated/file-notify-tests.el (file-notify--test-library):
+	New defun.
+	(file-notify-test00-availability, file-notify-test02-events)
+	(file-notify-test04-file-validity)
+	(file-notify-test05-dir-validity): Use it.
+	(file-notify-test02-events, file-notify-test04-file-validity): Add
+	`read-event' calls between different file actions, in order to
+	give the backends a chance to rais an event.  Needed especially
+	for kqueue.  In case of deleting a directory, there are two
+	`deleted' events.
+
+2015-11-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	Code cleanup of kqueue.c
+
+	* src/kqueue.c (kqueue_directory_listing): Skip "." and "..".
+	(kqueue_compare_dir_list): Do not loop when calling
+	directory_files_internal.  Remove checks for "." and "..", this is
+	done in kqueue_directory_listing now.
+	(Fkqueue_add_watch): Check for proper emacs_open flags.
+
+2015-11-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	Doc changes for kqueue
+
+	* doc/lispref/os.texi (File Notifications): Add kqueue as backend.
+	Fix some glitches in the example.
+
+2015-11-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	Finish implementation in kqueue.c
+
+	* src/kqueue.c (kqueue_directory_listing, kqueue_callback):
+	Simplify access to list.
+	(kqueue_compare_dir_list): Simplify access to list.  Raise
+	`delete' event if directory does not exist any longer.  Otherwise,
+	wait until directory contents has changed.  Fix error in check.
+
+2015-11-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* lisp/filenotify.el (file-notify-add-watch): Fix thinko.
+
+2015-11-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	More work on kqueue
+
+	* lisp/filenotify.el (file-notify-callback): Handle also the
+	`rename' event from kqueue.
+	(file-notify-add-watch): Do not register an entry twice.
+
+	* src/kqueue.c (kqueue_directory_listing): New function.
+	(kqueue_generate_event): New argument FILE1.  Adapt callees.
+	(kqueue_compare_dir_list): Rewrite in order to make it more robust.
+
+2015-11-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	Implement directory events
+
+	* lisp/filenotify.el (file-notify-handle-event)
+	(file-notify-callback): Remove traces.
+
+	* src/kqueue.c: Include <sys/time.h>.
+	(kqueue_generate_event, kqueue_compare_dir_list): New functions.
+	(kqueue_callback): Use them.  Call kevent() with a zero timeout.
+	(Fkqueue_add_watch): Adapt docstring.  Support directory events.
+	Compute initial directory listing.  Close file descriptor in case
+	of errors.
+	(syms_of_kqueue): Declare Qcreate.
+
+2015-11-11  Wolfgang Jenkner  <wjenkner@inode.at>
+
+	Build fixes for kqueue support.
+
+	* src/kqueue.c (Fkqueue_add_watch): O_BINARY is not a POSIX open(3)
+	flag.
+
+	* configure.ac (HAVE_KQUEUE): There is no pkg-config module for native
+	kqueue on *BSD.
+
+2015-11-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	Continue kqueue implementation
+
+	* lisp/filenotify.el (file-notify-handle-event)
+	(file-notify-callback): Enable trace messages.
+
+	* src/kqueue.c: Include also <sys/types.h>.
+	(kqueue_callback): Remove watch in case of NOTE_DELETE or NOTE_RENAME.
+	(Fkqueue_rm_watch, Fkqueue_valid_p): New functions.
+	(syms_of_kqueue): Add them.
+
+2015-11-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	Work on kqueue
+
+	* lisp/filenotify.el (file-notify--library)
+	(file-notify-descriptors, file-notify-callback)
+	(file-notify-add-watch, file-notify-rm-watch)
+	(file-notify-valid-p): Add kqueue support.
+
+	* src/keyboard.c (make_lispy_event): Check also for HAVE_KQUEUE.
+
+2015-11-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	Add kqueue support
+
+	* configure.ac (--with-file-notification): Add kqueue.
+	(top): Remove special test for "${HAVE_NS}" and
+	${with_file_notification}, this is handled inside gfilenotify
+	tests.  Add kqueue tests.  Use NOTIFY_CFLAGS and NOTIFY_LIBS
+	instead of library specific variables.
+
+	* src/Makefile.in: Use NOTIFY_CFLAGS and NOTIFY_LIBS.
+
+	* src/emacs.c (main): Call globals_of_kqueue and syms_of_kqueue.
+
+	* src/kqueue.c: New file.
+
+	* src/lisp.h: Declare extern globals_of_kqueue and syms_of_kqueue.
+
+2015-11-21  Wilson Snyder  <wsnyder@wsnyder.org>
+
+	verilog-mode.el: Commentary and fix pre-Emacs 21 behavior.
+
+	* verilog-mode.el (verilog-save-font-no-change-functions):
+	Commentary and fix pre-Emacs 21 behavior.
+
+2015-11-19  Przemysław Wojnowski  <esperanto@cumego.com>
+
+	Use obarray functions from obarray.
+
+	* lisp/abbrev.el (copy-abbrev-table, abbrev-table-p, make-abbrev-table,
+	  abbrev-table-get, abbrev-table-put, abbrev-table-empty-p,
+	  clear-abbrev-table, define-abbrev, abbrev--symbol, abbrev-table-menu):
+	  delegate to obarray.el functions.
+	* lisp/loadup.el: load obarray before abbrev
+	* test/automated/abbrev-tests.el: new tests
+
+2015-11-18  Christian Schwarzgruber  <c.schwarzgruber.cs@gmail.com>  (tiny change)
+
+	epa.el: Add option to replace original text
+
+	* lisp/epa.el (epa-replace-original-text): New user option.
+	(Bug#21947)
+
+2015-11-18  Mark Oteiza  <mvoteiza@udel.edu>
+
+	Add interactive seek command.
+
+	* lisp/mpc.el (mpc-cmd-seekcur): New function.
+	(mpc-seek-current): New command.
+	(mpc-mode-menu): Add entry for mpc-seek-current
+	(mpc-mode-map): Bind mpc-seek-current to "g"
+
+2015-11-18  Mark Oteiza  <mvoteiza@udel.edu>
+
+	Fix issue where a new tempfile was created every refresh
+
+	* lisp/mpc.el (mpc-format): Leave dir as relative path
+
+2015-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/progmodes/cc-defs.el: Use with-silent-modifications
+
+	(c-save-buffer-state): Use with-silent-modifications when available.
+	(c--macroexpand-all): Check macroexpand-all directly rather than
+	c--mapcan-status.
+
+2015-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/loadup.el: Set max-lisp-eval-depth here
+
+	* lisp/Makefile.in (BIG_STACK_DEPTH, BIG_STACK_OPTS): Remove.
+	(BYTE_COMPILE_FLAGS): Adjust accordingly.
+
+2015-11-17  João Távora  <joaotavora@gmail.com>
+
+	Minor fix to comment indentation and typo in last commit
+
+	* linum.el (linum-update-window): Fix comment indentation and a
+	typo.
+
+2015-11-17  João Távora  <joaotavora@gmail.com>
+
+	linum-mode plays more nicely with other margin-setting extensions
+
+	linum.el will only modify the left margin if it needs to, and will
+	only reset the it back to 0 if it guesses that no-one has touched that
+	margin in the meantime.
+
+	As such, this is a more of a workaround than an actual fix, but fixes
+	the problems described in bug#20674 regarding the interaction with
+	modes such as darkroom-mode and olivetti-mode.
+
+	A similar fix was commited to nlinum.el in ELPA.git's
+	e7f5f549fbfb740b911fb7f33b42381ecece56d8
+
+	* linum.el (linum-delete-overlays): Restore margins more
+	criteriously.
+	(linum-update-window): Set margins more criteriously.
+
+2015-11-16  Daiki Ueno  <ueno@gnu.org>
+
+	* lisp/image-mode.el: Support encrypted file
+
+	(image-toggle-display-image): Read content from the buffer instead
+	of the file, if the buffer holds a decrypted data.  (Bug#21870)
+
+2015-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lisp/progmodes/verilog-mode.el (verilog-save-buffer-state): Add backquote
+
+2015-11-15  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/emacs-lisp/package.el: Fix a decoding issue
+
+	(package--with-response-buffer): Use `url-insert-buffer-contents'.
+	The previous code had some issues with decoding. Refactoring that
+	function allows us to use the decoding from url-handlers while still
+	treating both sync and async requests the same.
+
+	* lisp/url/url-handlers.el (url-insert-file-contents): Move some code to
+	`url-insert-buffer-contents'.
+	(url-insert-buffer-contents): New function
+
+2015-11-15  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/emacs-lisp/package.el: Refactor -with-work-buffer-async
+
+	(package--with-work-buffer-async): Reimplement as
+	`package--with-response-buffer'.
+	(package--with-work-buffer): Mark obsolete.
+	(package--with-response-buffer): New macro. This is a more self
+	contained and less contrived version of
+	`package--with-work-buffer-async'.  It uses keyword arguments,
+	doesn't have async on the name, doesn't fallback on
+	`package--with-work-buffer', and has _much_ simpler error
+	handling.
+
+	(package--check-signature, package--download-one-archive)
+	(package-install-from-archive, describe-package-1): Use it.
+
+	(package--download-and-read-archives): Let
+	`package--download-one-archive' take care of calling
+	`package--update-downloads-in-progress'.
+
+2015-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/progmodes/verilog-mode.el: Use with-silent-modifications
+
+	(verilog-save-buffer-state): Use with-silent-modifications when available.
+	(verilog-save-font-no-change-functions): Don't bind
+	before/after-change-functions if it's not needed.
+
+2015-11-14  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* CONTRIBUTE: Remove information about feature freeze.
+
+	Merge branch 'release-process-lowercase'
+
+2015-11-14  Xue Fuqiao  <xfq.free@gmail.com>
+
+	Document the release process
+
+	* admin/notes/versioning: Add information about RC releases.
+	* admin/release-process: Document the release process.
+	* admin/authors.el (authors-ignored-files):
+	* admin/README: Change FOR-RELEASE to release-process.
+	* CONTRIBUTE:
+	* admin/notes/bugtracker: Don't mention FOR-RELEASE.
+
+2015-11-14  Xue Fuqiao  <xfq.free@gmail.com>
+
+	* admin/release-process: Rename from admin/FOR-RELEASE.
+
+2015-11-14  David Engster  <deng@randomsample.de>
+
+	gitmerge: Fix git log command
+
+	* admin/gitmerge.el (gitmerge-missing): Use '--left-only' since we
+	only want commits from the branch that is to be merged.
+	(gitmerge-setup-log-buffer): Use the same symmetric range as in
+	`gitmerge-missing'.
+
+2015-11-14  David Engster  <deng@randomsample.de>
+
+	gitmerge: Try to detect cherry-picks
+
+	* admin/gitmerge.el (gitmerge-default-branch): Change to
+	origin/emacs-25.
+	(gitmerge-missing): Use symmetric difference ('...') between
+	branch and master so that cherry-picks can be detected.
+
+2015-11-14  Eli Zaretskii  <eliz@gnu.org>
+
+	Increment Emacs version on master branch
+
+	* lisp/cus-edit.el (customize-changed-options-previous-release):
+	Increase previous version to 24.5.
+
+	* configure.ac:
+	* msdos/sed2v2.inp: Bump version to 25.1.50.
+
+2015-11-14  Xue Fuqiao  <xfq.free@gmail.com>
+
+	Mention CONTRIBUTE in README, since it was moved from etc/ to root.
+	* etc/TODO: Remove the reference to `etc/CONTRIBUTE'.
+	* README: Mention CONTRIBUTE.
+
+2015-11-13  Wilson Snyder  <wsnyder@wsnyder.org>
+
+	Update verilog-mode.el to 2015-11-09-b121d60-vpo
+
+	* verilog-mode.el (verilog-auto, verilog-delete-auto)
+	(verilog-modi-cache-results, verilog-save-buffer-state)
+	(verilog-save-font-no-change-functions): When internally suppressing
+	change functions, use `inhibit-modification-hooks' and call
+	`after-change-funtions' to more nicely work with user hooks.
+	Reported by Stefan Monnier.
+	(verilog-auto, verilog-delete-auto, verilog-delete-auto-buffer):
+	Create `verilog-delete-auto-buffer' to avoid double-calling
+	fontification hooks.
+	(verilog-restore-buffer-modified-p, verilog-auto)
+	(verilog-save-buffer-state): Prefer restore-buffer-modified-p over
+	set-buffer-modified-p.  Reported by Stefan Monnier.
+	(verilog-diff-auto, verilog-diff-buffers-p)
+	(verilog-diff-ignore-regexp): Add `verilog-diff-ignore-regexp'.
+	(verilog-auto-inst-port, verilog-read-sub-decls-expr): Fix
+	AUTOINST with unpacked dimensional parameters, bug981.  Reported by
+	by Amol Nagapurkar.
+	(verilog-read-decls, verilog-read-sub-decls-line): Avoid unneeded
+	properties inside internal structures.  No functional change
+	intended.
+
+2015-11-13  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Use generic dispatch for xref backends
+
+	* lisp/progmodes/xref.el (xref-backend-functions):
+	New variable.
+	(xref-find-function): Remove.
+	(xref-find-backend)
+	(xref--etags-backend): New functions.
+	(xref-identifier-at-point-function)
+	(xref-identifier-completion-table-function): Remove.
+	(xref-backend-definitions, xref-backend-references)
+	(xref-backend-apropos, xref-backend-identifier-at-point)
+	(xref-backend-identifier-completion-table):
+	New generic functions.
+
+	* lisp/progmodes/elisp-mode.el (emacs-lisp-mode):
+	Add `elisp--xref-backend' to the beginning of
+	`xref-backend-functions', locally.  Delete references to
+	removed functions and vars.
+	(elisp-xref-find): Remove.
+	(elisp--xref-backend): New function.
+	(elisp--xref-find-references, elisp--xref-find-apropos)
+	(elisp--xref-identifier-completion-table):
+	Turn into appropriately named generic methods.
+
+	* lisp/progmodes/etags.el (etags-xref-find): Remove.
+	(xref-backend-identifier-completion-table)
+	(xref-backend-references, xref-backend-definitions)
+	(xref-backend-apropos): New generic methods.
+
+2015-11-13  Juri Linkov  <juri@linkov.net>
+
+	Support rectangular regions for more commands
+
+	* lisp/simple.el (region-extract-function): Handle the arg
+	value ‘bounds’.
+	(region-insert-function): New function.
+	(shell-command-on-region): Add arg ‘region-noncontiguous-p’.
+	If non-nil, operate on multiple chunks.
+	(region-noncontiguous-p): New function.
+
+	* lisp/rect.el: Add function rectangle--insert-region
+	around region-insert-function.
+	(extract-rectangle-bounds): New function.
+	(rectangle--extract-region): Handle the arg value ‘bounds’.
+	(rectangle--insert-region): New function.
+
+	* lisp/emulation/cua-rect.el: Add function cua--insert-rectangle
+	around region-insert-function.
+	(cua--extract-rectangle-bounds): New function.
+	(cua--rectangle-region-extract): Handle the arg value ‘bounds’.
+
+	* lisp/replace.el (query-replace, query-replace-regexp): Add arg
+	‘region-noncontiguous-p’.  Use ‘use-region-p’.
+	(query-replace-regexp-eval, map-query-replace-regexp)
+	(replace-string, replace-regexp): Use ‘use-region-p’.
+	(keep-lines, flush-lines, how-many): Use ‘use-region-p’.
+	(perform-replace): Add arg ‘region-noncontiguous-p’.
+	If non-nil, operate on multiple chunks.
+
+	* src/casefiddle.c (Fdowncase_region): Add arg ‘region-noncontiguous-p’.
+	If non-nil, operate on multiple chunks.  (Bug#19829)
+
+2015-11-13  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Handle multiple matches on the same line; add highlighting
+
+	* lisp/progmodes/xref.el (xref-location-marker): Interpret the
+	column value in characters.
+	(xref--collect-matches): Rename from `xref--collect-match'.
+	Search for all matches in the hit line.  Add `highlight' face to
+	the matched region in the summary.  Update both callers.
+
+2015-11-13  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Replace xref-match-bounds with xref-match-length
+
+	Relying on xref-location-marker to point to the beginning of the match
+
+	* lisp/progmodes/xref.el (xref-match-bounds): Remove.
+	(xref-match-length): Add.
+	(xref-make-match): Change the arguments.
+	(xref--match-buffer-bounds): Remove.
+	(xref-match-item): Store length, instead of end-column.
+	(xref-pulse-momentarily)
+	(xref--collect-match)
+	(xref--query-replace-1): Update accordingly.
+	(xref-query-replace): Ditto.  And check that the search results
+	are up-to-date.
+
+2015-11-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib
+
+	This incorporates:
+	2015-11-13 xalloc-oversized: improve performance with GCC 5
+	* lib/xalloc-oversized.h: Copy from gnulib.
+
+2015-11-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Spruce up ftfont.c memory allocation
+
+	* src/ftfont.c (setup_otf_gstring):
+	Avoid O(N**2) behavior when reallocating.
+	(ftfont_shape_by_flt): Prefer xpalloc to xrealloc when
+	reallocating buffers; this simplifies the code.  Do not trust
+	mflt_run to leave the output areas unchanged on failure, as
+	this isn’t part of its interface spec.
+
+2015-11-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port recent XCB changes to 64-bit ‘long int’
+
+	For historical reasons, libX11 represents 32-bit values like Atoms as
+	‘long int’ even on platforms where ‘long int’ is 64 bits.  XCB doesn’t
+	do that, so adapt the recent XCB code to behave properly on 64-bit
+	platforms.  Also, fix what appears to be a bug in the interpretation
+	of xcb_get_property_value_length, at least on my Fedora platform
+	which is running libxcb-1.11-5.fc21.
+	* src/xfns.c (x_real_pos_and_offsets):
+	* src/xterm.c (get_current_wm_state):
+	xcb_get_property_value_length returns a byte count, not a word count.
+	For 32-bit quantities, xcb_get_property_value returns a vector
+	of 32-bit words, not of (possibly 64-bit) long int.
+
+2015-11-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* src/undo.c (run_undoable_change): Now static.
+
+2015-11-13  Eli Zaretskii  <eliz@gnu.org>
+
+	Remove support for ':timeout' from w32 tray notifications
+
+	* src/w32fns.c (Fw32_notification_notify): Delete the code that
+	supports ':timeout'.
+	(syms_of_w32fns): Don't DEFSYM ':timeout'.  This avoids clashes
+	with dbusbind.c when D-Bus is compiled in.
+
+	* doc/lispref/os.texi (Desktop Notifications): Don't mention
+	':timeout'.
+
+2015-11-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* test/automated/simple-test.el: Add test for bug#20698 (bug#21885)
+	(simple-test--transpositions): New macro.
+	(simple-transpose-subr): New test.
+
+2015-11-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lisp/progmodes/elisp-mode.el: Declare function `project-roots'
+
+2015-11-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* src/undo.c: Small fixes for previous change
+	(run_undoable_change): Mark void argument list.
+	(record_property_change): Remove unused variable `boundary'.
+
+2015-11-13  Eli Zaretskii  <eliz@gnu.org>
+
+	Add a few more variables to redisplay--variables
+
+	* lisp/frame.el (redisplay--variables): Add bidi-paragraph-direction
+	and bidi-display-reordering to the list.
+
+2015-11-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp/loadup.el: Enlarge the size of the hash table to 80000.
+
+2015-11-13  Eli Barzilay  <eli@barzilay.org>
+
+	Fix point positioning after transposing with negative arg
+
+	* lisp/simple.el (transpose-subr): When invoked with a negative
+	argument, move point to after the transposed text, like we do
+	when invoked with a positive argument.  (Bug#21885)
+
+2015-11-13  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix last change in shr.el
+
+	* lisp/net/shr.el (shr--have-one-fringe-p): Rename from
+	have-fringes-p.  All callers changed.  Doc fix.  (Bug#21895)
+
+2015-11-13  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix last change
+
+	* src/w32fns.c (syms_of_w32fns) [WINDOWSNT && !HAVE_DBUS]:
+	Don't DEFSYM tray notification symbols if D-Bus is being used.
+
+2015-11-13  Eli Zaretskii  <eliz@gnu.org>
+
+	Another fix for MinGW64 and Cygwin builds due to notifications
+
+	* src/w32fns.c: Ifdef away tray notification code if D-Bus is
+	being compiled into Emacs.
+	(syms_of_w32fns) [WINDOWSNT && !HAVE_DBUS]: Don't defsubr
+	Sw32_notification_notify and Sw32_notification_close if the code
+	is not compiled.  Reported by Andy Moreton <andrewjmoreton@gmail.com>.
+
+2015-11-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	Remove intern calls and XXX comments from Fx_export_frames
+
+	* src/xfns.c (Fx_export_frames): Use Qpdf, Qpng, Qpostscript, and
+	Qsvg instead of intern calls.  Use "postscript" instead of "ps"
+	for consistency with image types.  Remove XXX comments.
+	(syms_of_xfns) <Qpdf>: DEFSYM it.
+
+2015-11-12  Eric Hanchrow  <eric.hanchrow@gmail.com>
+
+	shr: don't invoke unbound function (Bug#21895)
+
+	* lisp/net/shr.el (have-fringes-p): New function.
+	(shr-insert-document, shr-fill-text): Use it.
+
+2015-11-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* test/automated/keymaps-test.el: Fix test to make it repeatable
+
+	(keymap-store_in_keymap-FASTINT-on-nonchars): Reset Buffer-menu-mode-map
+	entry to its initial value to make the test repeatable in interactive
+	sessions (assuming it doesn't fail and crashes Emacs, of course).
+
+2015-11-12  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* test/automated/cl-lib-tests.el (cl-lib-struct-constructors):
+	Small fix.
+
+2015-11-12  Phillip Lord  <phillip.lord@newcastle.ac.uk>
+
+	The heuristic that Emacs uses to add an `undo-boundary' has been
+	reworked, as it interacts poorly with functions on `post-command-hook'
+	or `after-change-functions'.
+
+	* lisp/simple.el: New section added.
+	* src/cmds.c (remove_excessive_undo_boundaries): Now in lisp.
+	(self_insert_command): Calls simple.el to amalgamate.
+	(delete_char): Calls simple.el to amalgamate.
+	* src/keyboard.c (last_undo_boundary): Removed.
+	* src/undo.c (run_undoable_change): New function.
+
+2015-11-12  Juri Linkov  <juri@linkov.net>
+
+	Bind [?\S-\ ] to previous line command in Dired-like modes
+
+	* lisp/arc-mode.el (archive-mode-map):
+	* lisp/dired.el (dired-mode-map):
+	* lisp/proced.el (proced-mode-map):
+	* lisp/vc/vc-dir.el (vc-dir-mode-map):
+	Bind [?\S-\ ] to previous line command.
+	(Bug#20790)
+
+2015-11-12  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix the MinGW64 and Cygwin-w32 builds
+
+	* src/w32fns.c (MYNOTIFYICONDATAW_V1_SIZE)
+	(MYNOTIFYICONDATAW_V2_SIZE, MYNOTIFYICONDATAW_V3_SIZE): Define and
+	use instead of the corresponding NOTIFYICONDATAW_Vn_SIZE macros,
+	which cause trouble with MinGW42 headers.  Ifdef away tray
+	notifications code for Cygwin.  Reported by Andy Moreton
+	<andrewjmoreton@gmail.com>.
+
+2015-11-12  Simen Heggestøyl  <simenheg@gmail.com>
+
+	Enable sorting of JSON object keys when encoding
+
+	* lisp/json.el (json-encoding-object-sort-predicate): New variable
+	for specifying a sorting predicate for JSON objects during encoding.
+	(json--plist-to-alist): New utility function.
+	(json-encode-hash-table): Re-use `json-encode-alist' when object keys
+	are to be sorted.
+	(json-encode-alist): Sort output by
+	`json-encoding-object-sort-predicate, when set.
+	(json-encode-plist): Re-use `json-encode-alist' when object keys are
+	to be sorted.
+	(json-pretty-print-buffer-ordered): New command to pretty print the
+	buffer with object keys sorted alphabetically.
+	(json-pretty-print-ordered): New command to pretty print the region
+	with object keys sorted alphabetically.
+
+	* test/automated/json-tests.el (test-json-plist-to-alist)
+	(test-json-encode-plist, test-json-encode-hash-table)
+	(test-json-encode-alist-with-sort-predicate)
+	(test-json-encode-plist-with-sort-predicate): New tests.
+
+	* etc/NEWS: Add an entry for the new commands.
+
+2015-11-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* test/automated/keymap-tests.el: New test file.
+
+2015-11-12  Ken Raeburn  <raeburn@raeburn.org>
+
+	Speed up x_real_pos_and_offsets using XCB
+
+	* src/xfns.c (x_real_pos_and_offsets) [USE_XCB]: Add XCB flavors of
+	all X calls, and pipeline requests when possible, collecting results
+	later.  Eliminate use of x_catch_errors (and thus XSync) in XCB case.
+
+2015-11-12  Ken Raeburn  <raeburn@raeburn.org>
+
+	Enable use of XCB for checking window manager state
+
+	* src/xterm.c (get_current_wm_state) [USE_XCB]: Use XCB calls instead
+	of XGetWindowProperty plus error-catching, since we can explicitly
+	check for errors in the XCB version.  This eliminates 3 XSync calls on
+	top of the round-trip actually fetching the information.
+
+2015-11-12  Ken Raeburn  <raeburn@raeburn.org>
+
+	Detect XCB and save a connection handle
+
+	* configure.ac: If using X11, check for XCB libraries and header.
+	* src/Makefile.in (XCB_LIBS): Define.
+	(LIBX_EXTRA): Include it.
+
+	* src/xterm.h [USE_XCB]: Include X11/Xlib-xcb.h.
+	(struct x_display_info) [USE_XCB]: Add an XCB connection handle field.
+	* src/xterm.c (x_term_init) [USE_XCB]: Initialize the new field.
+
+2015-11-12  Ken Raeburn  <raeburn@raeburn.org>
+
+	Reduce some data dependencies between X calls
+
+	Gains nothing in the traditional-Xlib code, but more closely aligns
+	with how the XCB version will work.
+
+	* src/xfns.c (x_real_pos_and_offsets): When translating coordinates,
+	send coordinates (0,0) to the X server and add in the real coordinates
+	after getting the response.  Move XGetGeometry for outer window inside
+	error-trapping block.  Use DPY variable more, since it's available.
+
+2015-11-12  Ken Raeburn  <raeburn@raeburn.org>
+
+	Use color cache for creating bitmap
+
+	* src/image.c (x_create_bitmap_from_xpm_data) [ALLOC_XPM_COLORS]:
+	Set attributes to use the caching color allocator.  Initialize and
+	free the cache.
+
+2015-11-12  Eli Barzilay  <eli@barzilay.org>
+
+	Add "^" to the interactive specs of `dired-next/previous-line'
+
+	* lisp/dired.el (dired-next-line, dired-previous-line): It makes sense
+	to bind these commands to the arrow keys, and that means that they work
+	better with a "^" in the `interactive' declaration so selection works
+	as expected.
+
+2015-11-11  Thomas Fitzsimmons  <fitzsim@fitzsim.org>
+
+	Sync with soap-client repository, version 3.0.2
+
+	* soap-client.el: Bump version to 3.0.2.
+
+	* soap-client.el (soap-warning): Use format, not format-message.
+
+	* soap-client.el: Add cl-lib to Package-Requires.  Require cl-lib.
+	(soap-validate-xs-simple-type): Use cl-labels instead of cl-flet.
+
+	* soap-client.el: Support Emacs versions that do not have
+	define-error.
+
+	* soap-inspect.el: Remove version header.
+
+	* soap-client.el, soap-inspect.el, jira2.el: Fix first line header
+	format.
+
+2015-11-11  Alan Mackenzie  <acm@muc.de>
+
+	CC Mode: Respect users' settings of open-paren-in-column-0-is-defun-start
+
+	* lisp/progmodes/cc-engine.el (c-backward-single-comment)
+	(c-backward-comments, c-invalidate-state-cache-1, c-parse-state-1)
+	(c-guess-basic-syntax):
+	Remove bindings of open-paren-in-column-0-is-defun-start to nil.
+	(c-get-fallback-scan-pos): "New" function (existed several years ago).
+	(c-parse-state-get-strategy): Reintroduce the 'BOD strategy, using
+	c-get-fallback-scan-pos.
+	(c-parse-state-1): Handle 'BOD strategy.
+
+	* lisp/progmodes/cc-mode.el (c-before-change, c-after-change)
+	(c-font-lock-fontify-region): Remove bindings of
+	open-paren-in-column-0-is-defun-start to nil.
+
+	* doc/misc/cc-mode.texi (Performance Issues)
+	(Limitations and Known Bugs): Fix mix up between @chapter and @appendix.
+
+2015-11-11  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/obarray.el: Fix shadowed variables.
+	(obarray-map, obarray-remove, obarray-put, obarray-get):
+	Change OBARRAY arg to OB to avoid shadowing ‘obarray’.
+
+2015-11-11  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid error in submitting a form with EWW
+
+	* lisp/gnus/mm-url.el (mm-url-form-encode-xwfu): Allow argument
+	CHUNK to be nil.  (Bug#21881)
+
+2015-11-11  Nicolas Petton  <nicolas@petton.fr>
+
+	Rename seq-p and map-p to seqp and mapp
+
+	* lisp/emacs-lisp/seq.el (seqp): New name.
+	* lisp/emacs-lisp/map.el (mapp): New name.
+	* doc/lispref/sequences.texi: Update the documentation for seqp.
+	* test/automated/map-tests.el: Update the tests for mapp.
+
+2015-11-11  Nicolas Petton  <nicolas@petton.fr>
+
+	Rename obarray-p to obarrayp
+
+	* lisp/obarray.el (obarrayp): New name.
+	* test/automated/obarray-tests.el: Update the tests.
+
+2015-11-11  Nicolas Petton  <nicolas@petton.fr>
+
+	Rename obarray-foreach to obarray-map
+
+	* lisp/obarray.el (obarray-map): New name.
+	* test/automated/obarray-tests.el: Update the corresponding tests.
+
+2015-11-11  Przemysław Wojnowski  <esperanto@cumego.com>
+
+	New file with obarray functions
+
+	* lisp/obarray.el: Basic obarray functions extracted from abbrev.el.
+	* test/automated/obarray-tests.el: New file.
+
+2015-11-11  Eli Zaretskii  <eliz@gnu.org>
+
+	Implement tray notifications for MS-Windows
+
+	* src/w32fns.c (MY_NOTIFYICONDATAW): New typedef.
+	(NOTIFYICONDATAW_V1_SIZE, NOTIFYICONDATAW_V2_SIZE)
+	(NOTIFYICONDATAW_V3_SIZE, NIF_INFO, NIIF_NONE, NIIF_INFO)
+	(NIIF_WARNING, NIIF_ERROR, EMACS_TRAY_NOTIFICATION_ID)
+	(EMACS_NOTIFICATION_MSG): New macros.
+	(NI_Severity): New enumeration.
+	(get_dll_version, utf8_mbslen_lim, add_tray_notification)
+	(delete_tray_notification, Fw32_notification_notify)
+	(Fw32_notification_close): New functions.
+	(syms_of_w32fns): Defsubr functions exposed to Lisp.  DEFSYM
+	keywords used by w32-notification-notify.
+
+	* doc/lispref/os.texi (Desktop Notifications): Describe the native
+	w32 tray notifications.
+
+2015-11-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	Optimize `file-equal-p' and `file-in-directory-p' in Tramp
+
+	* lisp/net/tramp.el (tramp-handle-file-equal-p)
+	(tramp-handle-file-in-directory-p): New defuns.  Suggested by
+	Harvey Chapman <hchapman@3gfp.com>.
+
+	* lisp/net/tramp-adb.el (tramp-adb-file-name-handler-alist):
+	* lisp/net/tramp-gvfs.el (tramp-gvfs-file-name-handler-alist):
+	* lisp/net/tramp-sh.el (tramp-sh-file-name-handler-alist):
+	* lisp/net/tramp-smb.el (tramp-smb-file-name-handler-alist): Use them.
+
+2015-11-10  Karl Fogel  <kfogel@red-bean.com>
+
+	* CONTRIBUTE: Encourage adding tests.
+
+	Based on this post from John Wiegley:
+
+	  From: "John Wiegley" <johnw@newartisans.com>
+	  Subject: Re: [Emacs-diffs] master 1f02cbe: Fix bug#21766 and add test
+	  To: Juanma Barranquero <lekktu@gmail.com>
+	  Cc: emacs-diffs@gnu.org, bruce.connor.am@gmail.com,
+	      emacs-devel <emacs-devel@gnu.org>
+	  Date: Wed, 28 Oct 2015 18:45:29 -0700
+	  Message-ID: <m2y4emqwg6.fsf@newartisans.com>
+
+	  https://lists.gnu.org/archive/html/emacs-devel/2015-10/msg02372.html
+
+2015-11-10  David Reitter  <david.reitter@gmail.com>
+
+	Avoid creating notification objects when possible
+
+	* src/nsterm.m (windowWillEnterFullScreen, windowWillExitFullScreen:)
+	(windowDidEnterFullScreen, windowDidExitFullScreen): Provide convenience
+	functions that do not require a notification object.  When needed,
+	define NSWindowDidEnterFullScreenNotification to allow for compilation
+	on OS X 10.6.8.
+
+2015-11-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Move INTEGER_TO_CONS body out of .h file
+
+	* src/data.c (INTBIG_TO_LISP): New macro, with most
+	of the contents of the old INTEGER_TO_CONS.
+	(intbig_to_lisp, uintbig_to_lisp): New functions.
+	* src/lisp.h (INTEGER_TO_CONS):
+	Simplify by using EXPR_SIGNED and the new functions.
+	This shrinks code size a bit, and makes it easier to
+	put a breakpoint on handling of large integers.
+
+2015-11-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib
+
+	This incorporates:
+	2015-11-10 intprops: new public macro EXPR_SIGNED
+	2015-11-10 intprops: fix typo in clang port
+	* lib/intprops.h: Copy from gnulib.
+
+2015-11-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Spelling fixes
+
+	* lisp/net/soap-inspect.el (soap-inspect-xs-simple-type):
+	Fix misspelling in output.
+
+2015-11-10  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* doc/lispref/variables.texi (Directory Local Variables):
+	Document dir-locals wildcards.
+
+	* lisp/files.el (dir-locals-file): Point to Info node.
+
+	* doc/emacs/custom.texi (Directory Variables):
+	Document dir-locals wildcards.
+
+	* etc/NEWS: Document new functionality.
+
+2015-11-10  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/files.el: Don't allow customization of dir-locals sorting.
+	In retrospect, this is not a good idea for the same reason that
+	`dir-locals-file' is a defconst, because it is important that this
+	behaviour be "uniform across different environments and users".
+	Sure, the user can still change the sorting with a hack, but we
+	shouldn't encourage them to change it.
+	(dir-locals--all-files): Return list in the order returned by
+	`file-expand-wildcards'.
+	(file-expand-wildcards): Document the sorting predicate used.
+	(dir-locals-sort-predicate): Delete variable.
+
+2015-11-10  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/files.el (dir-locals-read-from-file): Better handle errors.
+
+	* lisp/isearch.el (search-default-regexp-mode): Change default value.
+
+2015-11-10  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/files.el (dir-locals-find-file): Don't stop at unreadable files.
+	`locate-dominating-file' will now keep looking if the files it finds in
+	a given directory are unreadable (or not files).
+
+2015-11-10  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/files.el (dir-locals-file): Allow wildcards.
+	(dir-locals-find-file, dir-locals-collect-variables)
+	(dir-locals-read-from-file): Update accordingly.
+	(hack-dir-local-variables): Rename a local variable.
+
+	* lisp/files-x.el (modify-dir-local-variable): Update accordingly.
+
+	* lisp/help-fns.el (describe-variable): Update accordingly.
+
+	* .gitignore: Add .dir-locals?.el.
+
+2015-11-10  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/emacs-lisp/map.el (map-merge-with): New function.
+
+	* test/automated/map-tests.el (test-map-merge-with): New test.
+
+2015-11-09  Karl Fogel  <kfogel@red-bean.com>
+
+	Fix some recently-perturbed bookmark autoloads
+
+	* lisp/bookmark.el (bookmark-set-internal): Remove unnecessary autoload.
+	(bookmark-set): Restore autoload.
+	(bookmark-set-no-overwrite): Add autoload.
+
+	Thanks to Juanma Barranquero for noticing the autoload problems
+	introduced by my recent commit adding/changing the above functions
+	(Sun Nov 8 14:16:43 2015 -0500, git commit 3812e17978).
+
+2015-11-09  Noah Friedman  <friedman@splode.com>
+
+	* etc/emacs-buffer.gdb (ydump-buffer): Handle case where gap is at
+	the start of buffer.  I don't recall if older versions of gdb were
+	less strict but you cannot dump a 0-length range in gdb 7.9.1.
+
+2015-11-09  Dmitry Gutov  <dgutov@yandex.ru>
+
+	* lisp/progmodes/project.el: Update Commentary.
+
+	Merge branch 'project-next'
+
+2015-11-09  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Fold `project-ask-user' into `project-current'
+
+	* lisp/progmodes/project.el (project-find-functions):
+	Remove `project-ask-user'.
+	(project-ask-user): Remove function and the corresponding
+	`project-roots' implementation.
+	(project-current): Add a new argument, MAYBE-PROMPT.  Prompt the
+	user in case there's no project in the current directory.  Update
+	all callers.
+
+2015-11-09  Karl Fogel  <kfogel@red-bean.com>
+
+	When VC detects a conflict, specify which file
+
+	* lisp/vc/vc.el (vc-message-unresolved-conflicts): New function.
+	* lisp/vc/vc-svn.el (vc-svn-find-file-hook):
+	* lisp/vc/vc-hg.el (vc-hg-find-file-hook):
+	* lisp/vc/vc-bzr.el (vc-bzr-find-file-hook):
+	* lisp/vc/vc-git.el (vc-git-find-file-hook): Use above new function
+	  to display a standard message that specifies the conflicted file.
+
+	Before this change, the message VC used for indicating a conflicted
+	file was just "There are unresolved conflicts in this file" without
+	naming the file (and this language was duplicated in several places).
+	After this change, it's "There are unresolved conflicts in file FOO"
+	(and this language is now centralized in one function in vc.el).
+
+	Justification: It's important for the message to name the conflicted
+	file because the moment when VC realizes a file is conflicted does not
+	always come interactively.  For example, some people automatically
+	find a set of Org Mode files on startup, and may keep those .org files
+	under version control.  If any of the files are conflicted, the user
+	just sees some messages fly by, and might later check the "*Messages*"
+	buffer to find out what files were conflicted.  I'm not saying this
+	happened to me or anything; it's a purely hypothetical example.
+
+2015-11-09  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix assertion violation in define-key
+
+	* src/keymap.c (store_in_keymap): Don't use XFASTINT on non-character
+	objects.  Reported by Drew Adams <drew.adams@oracle.com>
+	and Juanma Barranquero <lekktu@gmail.com>.
+
+2015-11-09  Dima Kogan  <dima@secretsauce.net>
+
+	Fix a memory leak in GC of font cache
+
+	* src/alloc.c (compact_font_cache_entry): Don't GC unmarked font
+	entities if some of the fonts it references are marked.  This
+	plugs a memory leak.  (Bug#21556)
+
+2015-11-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use INT_ADD_WRAPV etc. to check integer overflow
+
+	* src/alloc.c (xnmalloc, xnrealloc, xpalloc, Fmake_string):
+	* src/buffer.c (record_overlay_string, overlay_strings):
+	* src/casefiddle.c (casify_object):
+	* src/ccl.c (Fccl_execute_on_string):
+	* src/character.c (char_width, c_string_width, lisp_string_width)
+	(count_size_as_multibyte, string_escape_byte8):
+	* src/coding.c (coding_alloc_by_realloc, produce_chars):
+	* src/data.c (arith_driver):
+	* src/dispnew.c (realloc_glyph_pool, init_display):
+	* src/editfns.c (styled_format):
+	* src/fns.c (Ffillarray):
+	* src/ftfont.c (ftfont_shape_by_flt):
+	* src/gnutls.c (gnutls_hex_string):
+	* src/gtkutil.c (get_utf8_string):
+	* src/image.c (x_to_xcolors, x_detect_edges, png_load_body):
+	* src/keymap.c (Fkey_description):
+	* src/lisp.h (SAFE_ALLOCA_LISP):
+	* src/term.c (encode_terminal_code):
+	* src/tparam.c (tparam1):
+	* src/xselect.c (x_property_data_to_lisp):
+	* src/xsmfns.c (smc_save_yourself_CB):
+	* src/xterm.c (x_term_init):
+	When checking for integer overflow, prefer INT_MULTIPLY_WRAPV to
+	more-complicated code involving division and/or
+	INT_MULTIPLY_OVERFLOW, and similarly for INT_ADD_WRAPV and
+	subtraction and/or INT_ADD_OVERFLOW.
+	* src/casefiddle.c (casify_object): Simplify multibyte size check.
+	* src/character.c: Remove some obsolete ‘#ifdef emacs’s.
+	* src/data.c (arith_driver): Also check for division overflow,
+	as that’s now possible given that the accumulator can now contain
+	any Emacs integer.
+	* src/lisp.h (lisp_word_count): Remove; no longer used.
+
+2015-11-08  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Make sure that the ignore file exists
+
+	* lisp/vc/vc.el (vc-default-ignore-completion-table):
+	Make sure that the ignore file exists.
+
+2015-11-08  Michael Sperber  <mike@xemacs.org>
+
+	* gnus-sum.el (gnus-summary-backend-map): Bind B-backspace to
+	`gnus-summary-delete-article` in a way that also works on XEmacs.
+
+2015-11-08  Simen Heggestøyl  <simenheg@gmail.com>
+
+	Add support for retrieving paths to JSON elements
+
+	Add support for retrieving the path to a JSON element. This can for
+	instance be useful to retrieve paths in deeply nested JSON
+	structures.
+
+	* lisp/json.el (json-pre-element-read-function)
+	(json-post-element-read-function): New variables to hold pre- and post
+	read callback functions for `json-read-array' and `json-read-object'.
+	(json--path): New variable used internally by `json-path-to-position'.
+	(json--record-path, json--check-position): New functions used
+	internally by `json-path-to-position'.
+	(json-path-to-position): New function for retrieving the path to a
+	JSON element at a given position.
+	(json-read-object, json-read-array): Call
+	`json-pre-element-read-function' and `json-post-element-read-function'
+	when set.
+
+	* test/automated/json-tests.el (test-json-path-to-position-with-objects)
+	(test-json-path-to-position-with-arrays)
+	(test-json-path-to-position-no-match): New tests for
+	`json-path-to-position'.
+
+2015-11-08  Karl Fogel  <kfogel@red-bean.com>
+
+	* etc/NEWS: Mention new `bookmark-set-no-overwrite'.
+
+	This really should been part of my previous commit
+	(Sun Nov 8 14:16:43 2015 -0500, git commit 3812e17978).
+
+2015-11-08  Karl Fogel  <kfogel@red-bean.com>
+
+	Offer non-overwrite bookmark setter (Bug#15746)
+
+	* lisp/bookmark.el (bookmark-set-internal): New helper function to do
+	what `bookmark-set' used to do, but with more choices for overwrite
+	vs push, and with minor changes to the interactive prompt format.
+	(bookmark-set): Rewrite as wrapper around above.
+	If overwriting, inform the user of that in the prompt.
+	(bookmark-set-no-overwrite): New function, also done as wrapper.
+	Bind to "M" in `ctl-x-r-map' autoloads.
+	(bookmark-map): Similarly bind "M" here.
+
+2015-11-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* src/unexelf.c (NEW_PROGRAM_H): Remove unused macro (Bug#20614).
+
+2015-11-08  Alan Modra  <amodra@gmail.com>
+
+	ELF unexec: Don't insert a new section
+
+	Reuse the .bss section instead, making it SHT_PROGBITS.  This way we
+	don't need to mess with symbol st_shndx, or section sh_link and
+	sh_info.
+
+	This does lead to eu-elflint complaints about symbols defined in .bss
+	with a needed version, because normally it is undefined symbols that
+	have needed versions;  Defined symbols have version definitions.
+	The exception is symbols defined by the linker in .dynbss for
+	variables copied from a shared library in order to avoid text
+	relocations, with copy relocs to copy their initial values from the
+	shared library.  These symbols are both defined and have needed
+	versions, and eu-elflink only expects to see them in SHT_NOBITS
+	sections.  Of course there is no real problem with having such symbols
+	in SHT_PROGBITS sections.  glibc ld.so handles them fine.
+
+	* src/unexelf.c: Delete outdated comments.
+	(PATCH_INDEX): Delete.
+	(find_section): Delete.
+	(unexec): Don't add a new section.  Instead reuse the last bss
+	section, extending it to cover dumped data.  Make bss sections
+	SHT_PROGBITS.  Remove all patching of sh_link, sh_info and
+	st_shndx.  Rename bss sections.
+
+2015-11-08  Alan Modra  <amodra@gmail.com>
+
+	ELF unexec: Drive from PT_LOAD header rather than sections
+
+	This rewrites bss handling in the ELF unexec code.  Finding bss
+	sections by name results in complicated code that
+	- does not account for all names of possible bss sections,
+	- assumes specific ordering of bss sections,
+	- can wrongly choose a SHT_NOBITS section not in the bss segment,
+	- incorrectly calculates bss size (no accounting for alignment gaps),
+	- assumes .data and .bss are in the same segment.
+
+	All of these problems and more are solved by finding the bss segment
+	in PT_LOAD headers, ie. the address range included in p_memsz but not
+	p_filesz of the last PT_LOAD header, then matching SHT_NOBITS sections
+	in that address range.
+
+	* src/unexelf.c: Delete old ppc comment.
+	(OLD_PROGRAM_H): Define.
+	(round_up): Delete.
+	(unexec): Don't search for bss style sections by name.  Instead,
+	use the last PT_LOAD header address range covered by p_memsz
+	but not p_filesz and match any SHT_NOBITS section in that
+	address range.  Simplify initialisation of section header vars.
+	Don't assume that section headers are above bss segment.  Move
+	copying of bss area out of section loop.  Align .data2 section
+	to 1, since it now covers the entire bss area.  For SHT_NOBITS
+	sections in the bss segment, leave sh_addr and sh_addralign
+	unchanged, but correct sh_offset.  Clear memory corresponding
+	to SHT_NOBITS .plt section.  Delete comment and hacks for
+	sections partly overlapping bss range now that the full range
+	is properly calculated.  Delete now dead .sbss code.
+	(Bug#20614)
+
+2015-11-08  Alan Modra  <amodra@gmail.com>
+
+	ELF unexec: R_*_NONE relocs
+
+	These should be ignored on all targets.
+
+	* src/unexelf.c (unexec): Ignore R_*_NONE relocs for any target,
+	not just Alpha.  Comment on reloc size assumption.
+
+2015-11-08  Alan Modra  <amodra@gmail.com>
+
+	ELF unexec: _OBJC_ symbols in bss sections
+
+	This code assumed that there was only one bss section.  Rather than
+	checking for a particular index, check the section type.  Also, handle
+	the possibility that the section was SHT_NOBITS originally and is
+	unchanged, in which case no clearing is needed (and sh_offset isn't
+	necessarily valid, which can lead to a wild memset).
+
+	* src/unexelf.c (unexec): Properly handle _OBJC_ symbols in
+	bss sections.
+
+2015-11-08  Alan Modra  <amodra@gmail.com>
+
+	ELF unexec: Symbol table patching
+
+	No st_shndx value larger than SHN_LORESERVE should be changed.
+	* src/unexelf.c (unexec): Don't adjust any st_shndx larger than
+	SHN_LORESERVE.  Error on SHN_XINDEX.
+
+2015-11-08  Alan Modra  <amodra@gmail.com>
+
+	ELF unexec: Merge Alpha and MIPS COFF debug handling
+
+	* src/unexelf.c (unexec): Merge Alpha and MIPS COFF debug handling.
+	Don't find .mdebug section index, find the section in the loop.
+	Allow for unlikely possibility that .mdebug is located at sh_offset
+	before bss segment, by calculating move from difference in
+	sh_offset rather than just assuming new_data2_size.  Simplify
+	cbLineOffset handling.
+
+2015-11-08  Alan Modra  <amodra@gmail.com>
+
+	ELF unexec: Tidy code
+
+	Separate out some of the more mechanical changes so following patches
+	are smaller.
+
+	* src/unexelf.c (unexec): Rearrange initialisation of program
+	header vars.  Use pointer vars in loops rather than indexing
+	section header array via macros.  Simplify _OBJC_ sym code
+	and reloc handling code.
+
+2015-11-08  Alan Modra  <amodra@gmail.com>
+
+	ELF unexec: Correct section header index
+
+	First a small fix.  The code incorrectly uses "NEW_SECTION_H (n)" when
+	it should have been using "NEW_SECTION_H (nn)" to find the name of the
+	section currently being processed.  Of course, before the bss
+	sections, n and nn have the same value, so this doesn't matter except
+	in the case of .sbss.  For .sbss this probably meant .bss (most likely
+	the next section) was copied from memory.  A later patch removes the
+	bogus .sbss handling anyway.
+
+	* src/unexelf.c (unexec): Use correct index to look up names.
+
+2015-11-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix Bug#21841
+
+	* lisp/filenotify.el (file-notify--rm-descriptor):
+	Use `descriptor' instead of computing its value.
+	(file-notify--descriptor): Additional argument FILE.  Adapt all callees.
+	(file-notify-rm-watch): Use `descriptor' when calling file name handler.
+	(Bug#21841)
+
+2015-11-08  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Remove dirs in vc project roots from the the vc project library roots
+
+	* lisp/progmodes/project.el (project-library-roots):
+	Remove directories inside the project roots from the result.
+	(http://lists.gnu.org/archive/html/emacs-devel/2015-11/msg00536.html)
+
+2015-11-07  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Move and rename xref-find-regexp to the project package
+
+	* lisp/progmodes/project.el (project-find-regexp)
+	(project--read-regexp)
+	(project--find-regexp-in): New functions.
+
+	* lisp/progmodes/xref.el (xref--find-xrefs): Extract from
+	xref--show-xrefs.  Use in existing callers in place of that
+	function.
+	(xref--show-xrefs): Only do the "show" part.
+	(xref-find-regexp): Rename, more or less, to
+	project-or-libraries-find-regexp.
+
+2015-11-06  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Abolish temporary buffer management for xref
+
+	* lisp/progmodes/xref.el (xref--temporary-buffers)
+	(xref--current)
+	(xref--inhibit-mark-current)
+	(xref--mark-selected): Remove.  Remove all references.
+	(xref--show-xrefs): Do not construct the
+	list of the temporary buffers, nor pass it along.
+
+2015-11-06  Dmitry Gutov  <dgutov@yandex.ru>
+
+	Rename "search path" to "library roots"
+
+	* lisp/emacs-lisp/cl-seq.el (cl-set-difference): Retain the order
+	of the elements from CL-LIST1.
+
+	* test/automated/cl-lib-tests.el (cl-lib-test-set-functions):
+	Update WRT to the above change.
+
+	* lisp/progmodes/project.el (project-search-path-function): Rename
+	to project-library-roots-function, update the documentation and
+	references.
+	(project-search-path): Likewise, to project-library-roots.
+	(project-roots): Clarify documentation.
+	(project-vc-search-path): Likewise, to project-vc-library-roots.
+	(project-library-roots): In addition to the renames, thread the
+	results through file-name-as-directory.
+	(project-prune-directories): Accept a variable number of
+	arguments.  Rename to project-combine-directories.
+	(project-subtract-directories): New function.
+
+	* lisp/progmodes/elisp-mode.el (elisp--xref-find-references):
+	Append project-roots and project-library-roots together.
+
+	* lisp/progmodes/etags.el (etags--xref-find-references): Ditto.
+
 2015-11-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Prefer xpalloc to doubling buffers by hand
@@ -1764,7 +3694,7 @@
 
 2015-10-23  Anders Lindgren  <andlind@gmail.com>
 
-	NextSten maximization and NSTRACE rewrite
+	NextStep maximization and NSTRACE rewrite
 
 	Full-height, full-width, and maximized windows now cover the
 	entire screen (except the menu bar), including the part where the
@@ -17967,7 +19897,7 @@
 
 This file records repository revisions from
 commit 9d56a21e6a696ad19ac65c4b405aeca44785884a (exclusive) to
-commit 8a8613bcf4227dfe46a694b761e9575bdf6ca2ce (inclusive).
+commit 9a2363ec04c24a6959902da9b8eff2f1559ab3e0 (inclusive).
 See ChangeLog.1 for earlier changes.
 
 ;; Local Variables:

@@ -1,6 +1,51 @@
-Tasks needed before the next release.
+This document describes the release process used by GNU Emacs.
+
+* RELEASE CYCLE
+
+Each release cycle will be split into two periods.
+
+** Phase one: development
+
+The first phase of the release schedule is the "heads-down" working
+period for new features, on the `master' branch and several feature
+branches.
+
+** Phase two: bugfixes
+
+Shortly before this phase, Emacs developers will be devoted to
+figuring out what features to include in the next release and what
+features to defer to a later release.
+
+At the beginning of this phase, a release branch called "emacs-NN"
+("NN" represents the major version number of the new Emacs release)
+will be cut from `master'.
+
+This phase is spent fixing bugs and eliminating undocumented new
+features on the "emacs-NN" branch.
+
+In parallel to this phase, `master' can receive new features, to be
+released in the next release cycle.  From time to time, the master
+branches merges bugfix commits from the "emacs-NN" branch.
+
+* RELEASE-CRITICAL BUGS
+
+Emacs uses the "blocking bug(s)" feature of Debbugs for bugs need to
+be addressed in the next release.
+
+Currently, bug#19759 is the tracking bug for release of 25.1 and
+bug#21966 is the tracking bug for release of 25.2.  Say bug#123 needs
+to be fixed for Emacs 25.1.  Send a message to control@debbugs.gnu.org
+that says:
+
+   block 19759 by 123
+
+Change "block" to "unblock" to unblock the bug.
 
 * TO BE DONE SHORTLY BEFORE RELEASE
+
+** Make sure the Copyright date reflects the current year in the source
+files.  See `admin/notes/years' for information about maintaining
+copyright years for GNU Emacs.
 
 ** Make sure the necessary sources and scripts for any generated files
 are included in the source tarfile.  (They don't need to be installed,
@@ -88,13 +133,13 @@ csplain -output-format=pdf cs-refcard
 Emacs 22 translators:
 
 LANG	Translator            Status
-cs	Pavel Janík           
-de	Sven Joachim          
-fr	Eric Jacoboni         
-pl	Włodek Bzyl           
-pt-br	Rodrigo Real          
-ru	Alex Ott              
-sk	Miroslav Vaško        
+cs	Pavel Janík
+de	Sven Joachim
+fr	Eric Jacoboni
+pl	Włodek Bzyl
+pt-br	Rodrigo Real
+ru	Alex Ott
+sk	Miroslav Vaško
 
 ** For a major release, add a "New in Emacs XX" section to faq.texi.
 
@@ -148,132 +193,139 @@ SECTION                  READERS
 TUTORIAL             cyd
 TUTORIAL.bg          ogi
 TUTORIAL.cn          xfq
-TUTORIAL.cs          
+TUTORIAL.cs
 TUTORIAL.de          wl
 TUTORIAL.eo
-TUTORIAL.es          
-TUTORIAL.fr          
+TUTORIAL.es
+TUTORIAL.fr
 TUTORIAL.he          eliz
-TUTORIAL.it          
-TUTORIAL.ja          
+TUTORIAL.it
+TUTORIAL.ja
 TUTORIAL.ko
 TUTORIAL.nl	     Pieter Schoenmakers
-TUTORIAL.pl          
-TUTORIAL.pt_BR       
+TUTORIAL.pl
+TUTORIAL.pt_BR
 TUTORIAL.ro
 TUTORIAL.ru          Alex Ott
-TUTORIAL.sk          
+TUTORIAL.sk
 TUTORIAL.sl          Primoz PETERLIN
 TUTORIAL.sv          Mats Lidell
-TUTORIAL.th          
+TUTORIAL.th
 TUTORIAL.zh
 
 ** Check the manual.
 
-abbrevs.texi      
-ack.texi          
-anti.texi         
-arevert-xtra.texi 
-basic.texi        
-buffers.texi      
-building.texi     
-calendar.texi     
-cal-xtra.texi     
-cmdargs.texi      
-commands.texi     
-custom.texi       
-dired.texi        
-dired-xtra.texi   
-display.texi      
-emacs.texi        
-emacs-xtra.texi   
-emerge-xtra.texi  
-entering.texi     
-files.texi        
-fixit.texi        
-fortran-xtra.texi 
-frames.texi       
-glossary.texi     
-help.texi         
-indent.texi       
-killing.texi      
-kmacro.texi       
-macos.texi        
-maintaining.texi  
-mark.texi         
-mini.texi         
-misc.texi         
-modes.texi        
-msdos.texi        
-msdos-xtra.texi   
-mule.texi         
-m-x.texi          
-package.texi      
-picture-xtra.texi 
-programs.texi     
-regs.texi         
-rmail.texi        
-screen.texi       
-search.texi       
-sending.texi      
-text.texi         
-trouble.texi      
-vc-xtra.texi      
-vc1-xtra.texi     
-windows.texi      
-xresources.texi   
+abbrevs.texi
+ack.texi
+anti.texi
+arevert-xtra.texi
+basic.texi
+buffers.texi
+building.texi
+calendar.texi
+cal-xtra.texi
+cmdargs.texi
+commands.texi
+custom.texi
+dired.texi
+dired-xtra.texi
+display.texi
+emacs.texi
+emacs-xtra.texi
+emerge-xtra.texi
+entering.texi
+files.texi
+fixit.texi
+fortran-xtra.texi
+frames.texi
+glossary.texi
+help.texi
+indent.texi
+killing.texi
+kmacro.texi
+macos.texi
+maintaining.texi
+mark.texi
+mini.texi
+misc.texi
+modes.texi
+msdos.texi
+msdos-xtra.texi
+mule.texi
+m-x.texi
+package.texi
+picture-xtra.texi
+programs.texi
+regs.texi
+rmail.texi
+screen.texi
+search.texi
+sending.texi
+text.texi
+trouble.texi
+vc-xtra.texi
+vc1-xtra.texi
+windows.texi
+xresources.texi
 
 ** Check the Lisp manual.
 
-abbrevs.texi      
-anti.texi         
-back.texi         
-backups.texi      
-buffers.texi      
-commands.texi     
-compile.texi      
-control.texi      
-customize.texi    
-debugging.texi    
-display.texi      
-edebug.texi       
+abbrevs.texi
+anti.texi
+back.texi
+backups.texi
+buffers.texi
+commands.texi
+compile.texi
+control.texi
+customize.texi
+debugging.texi
+display.texi
+edebug.texi
 elisp.texi
-errors.texi       
-eval.texi         
-files.texi        
-frames.texi       
-functions.texi    
-hash.texi         
-help.texi         
-hooks.texi        
+errors.texi
+eval.texi
+files.texi
+frames.texi
+functions.texi
+hash.texi
+help.texi
+hooks.texi
 index.texi
-internals.texi    
-intro.texi        
-keymaps.texi      
-lists.texi        
-loading.texi      
-macros.texi       
-maps.texi         
-markers.texi      
-minibuf.texi      
-modes.texi        
-nonascii.texi     
+internals.texi
+intro.texi
+keymaps.texi
+lists.texi
+loading.texi
+macros.texi
+maps.texi
+markers.texi
+minibuf.texi
+modes.texi
+nonascii.texi
 numbers.texi      Paul Eggert (24.4)
-objects.texi      
-os.texi           
-package.texi      
-positions.texi    
-processes.texi    
-searching.texi    
-sequences.texi    
-streams.texi      
-strings.texi      
-symbols.texi      
-syntax.texi       
-text.texi         
-tips.texi         
-variables.texi    
-windows.texi      
+objects.texi
+os.texi
+package.texi
+positions.texi
+processes.texi
+searching.texi
+sequences.texi
+streams.texi
+strings.texi
+symbols.texi
+syntax.texi
+text.texi
+tips.texi
+variables.texi
+windows.texi
+
+* OTHER INFORMATION
+
+For Emacs's versioning scheme, see `admin/notes/versioning'.
+
+For instructions to create pretest or release tarballs, announcements,
+etc., see `admin/make-tarball.txt'.
 
 
 Local variables:

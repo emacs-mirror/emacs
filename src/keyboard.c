@@ -5960,12 +5960,12 @@ make_lispy_event (struct input_event *event)
 #endif
 
 
-#if defined HAVE_GFILENOTIFY || defined HAVE_INOTIFY
+#if defined HAVE_INOTIFY || defined HAVE_KQUEUE || defined HAVE_GFILENOTIFY
     case FILE_NOTIFY_EVENT:
       {
         return Fcons (Qfile_notify, event->arg);
       }
-#endif /* defined HAVE_GFILENOTIFY || defined HAVE_INOTIFY */
+#endif /* HAVE_INOTIFY || HAVE_KQUEUE || HAVE_GFILENOTIFY */
 
     case CONFIG_CHANGED_EVENT:
 	return list3 (Qconfig_changed_event,

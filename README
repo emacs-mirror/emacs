@@ -2,7 +2,7 @@ Copyright (C) 2001-2015 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
-This directory tree holds version 25.0.50 of GNU Emacs, the extensible,
+This directory tree holds version 25.1.50 of GNU Emacs, the extensible,
 customizable, self-documenting real-time display editor.
 
 The file INSTALL in this directory says how to build and install GNU
@@ -14,6 +14,9 @@ user-visible changes in recent versions of Emacs.
 
 The file etc/PROBLEMS contains information on many common problems that
 occur in building, installing and running Emacs.
+
+The file CONTRIBUTE contains information on contributing to Emacs as a
+developer.
 
 You may encounter bugs in this release.  If you do, please report
 them; your bug reports are valuable contributions to the FSF, since

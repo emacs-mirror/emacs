@@ -756,9 +756,7 @@ Argument FN is the function calling this verifier."
 	  ;; The slot-missing method is a cool way of allowing an object author
 	  ;; to intercept missing slot definitions.  Since it is also the LAST
 	  ;; thing called in this fn, its return value would be retrieved.
-	  (slot-missing obj slot 'oref)
-	  ;;(signal 'invalid-slot-name (list (eieio-object-name obj) slot))
-	  )
+	  (slot-missing obj slot 'oref))
       (cl-check-type obj eieio-object)
       (eieio-barf-if-slot-unbound (aref obj c) obj slot 'oref))))
 
@@ -780,9 +778,7 @@ Fills in OBJ's SLOT with its default value."
 	    ;; Oref that slot.
 	    (aref (eieio--class-class-allocation-values cl)
 		  c)
-	  (slot-missing obj slot 'oref-default)
-	  ;;(signal 'invalid-slot-name (list (class-name cl) slot))
-	  )
+	  (slot-missing obj slot 'oref-default))
       (eieio-barf-if-slot-unbound
        (let ((val (cl--slot-descriptor-initform
                    (aref (eieio--class-slots cl)
@@ -822,9 +818,7 @@ Fills in OBJ's SLOT with VALUE."
 	      (aset (eieio--class-class-allocation-values class)
 		    c value))
 	  ;; See oref for comment on `slot-missing'
-	  (slot-missing obj slot 'oset value)
-	  ;;(signal 'invalid-slot-name (list (eieio-object-name obj) slot))
-	  )
+	  (slot-missing obj slot 'oset value))
       (eieio--validate-slot-value class c value slot)
       (aset obj c value))))
 

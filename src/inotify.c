@@ -46,8 +46,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 static int inotifyfd = -1;
 
 /* Assoc list of files being watched.
-   Format:
-   (watch-descriptor . callback)
+   Format: (watch-descriptor name callback)
  */
 static Lisp_Object watch_list;
 
@@ -106,12 +105,14 @@ inotifyevent_to_event (Lisp_Object watch_object, struct inotify_event const *ev)
       name = make_unibyte_string (ev->name, min (len, ev->len));
       name = DECODE_FILE (name);
     }
+  else
+    name = XCAR (XCDR (watch_object));
 
   return list2 (list4 (make_watch_descriptor (ev->wd),
                        mask_to_aspects (ev->mask),
                        name,
                        make_number (ev->cookie)),
-                XCDR (watch_object));
+		Fnth (make_number (2), watch_object));
 }
 
 /* This callback is called when the FD is available for read.  The inotify
@@ -325,7 +326,7 @@ is managed internally and there is no corresponding inotify_init.  Use
       watch_list = Fdelete (watch_object, watch_list);
 
   /* Store watch object in watch list.  */
-  watch_object = Fcons (watch_descriptor, callback);
+  watch_object = list3 (watch_descriptor, encoded_file_name, callback);
   watch_list = Fcons (watch_object, watch_list);
 
   return watch_descriptor;

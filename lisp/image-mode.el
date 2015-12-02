@@ -658,7 +658,12 @@ was inserted."
 			   (not (and (boundp 'archive-superior-buffer)
 				     archive-superior-buffer))
 			   (not (and (boundp 'tar-superior-buffer)
-				     tar-superior-buffer)))))
+				     tar-superior-buffer))
+                           ;; This means the buffer holds the
+                           ;; decrypted content (bug#21870).
+                           (not (and (boundp 'epa-file-encrypt-to)
+                                     (local-variable-p
+                                      'epa-file-encrypt-to))))))
 	 (file-or-data (if data-p
 			   (string-make-unibyte
 			    (buffer-substring-no-properties (point-min) (point-max)))

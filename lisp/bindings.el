@@ -430,11 +430,9 @@ Major modes that edit things other than ordinary files may change this
 (make-variable-buffer-local 'mode-line-buffer-identification)
 
 (defvar mode-line-misc-info
-  '((which-func-mode ("" which-func-format " "))
-    (global-mode-string ("" global-mode-string " ")))
+  '((global-mode-string ("" global-mode-string " ")))
   "Mode line construct for miscellaneous information.
-By default, this shows the information specified by
-`which-func-mode' and `global-mode-string'.")
+By default, this shows the information specified by `global-mode-string'.")
 (put 'mode-line-misc-info 'risky-local-variable t)
 
 (defvar mode-line-end-spaces '(:eval (unless (display-graphic-p) "-%-"))

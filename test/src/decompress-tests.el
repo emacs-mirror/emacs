@@ -1,4 +1,4 @@
-;;; zlib-tests.el --- Test suite for zlib.
+;;; decompress-tests.el --- Test suite for decompress.
 
 ;; Copyright (C) 2013-2015 Free Software Foundation, Inc.
 
@@ -40,6 +40,6 @@
 	       (buffer-string))
 	     "foo\n"))))
 
-(provide 'zlib-tests)
+(provide 'decompress-tests)
 
-;;; zlib-tests.el ends here.
+;;; decompress-tests.el ends here.

@@ -167,6 +167,7 @@
 
 (require 'tabulated-list)
 (require 'macroexp)
+(require 'url-handlers)
 
 (defgroup package nil
   "Manager for Emacs Lisp packages."
@@ -1124,7 +1125,8 @@ FILE is the name of a file relative to that base location.
 This macro retrieves FILE from LOCATION into a temporary buffer,
 and evaluates BODY while that buffer is current.  This work
 buffer is killed afterwards.  Return the last value in BODY."
-  (declare (indent 2) (debug t))
+  (declare (indent 2) (debug t)
+           (obsolete package--with-response-buffer "25.1"))
   `(with-temp-buffer
      (if (string-match-p "\\`https?:" ,location)
          (url-insert-file-contents (concat ,location ,file))
@@ -1134,47 +1136,52 @@ buffer is killed afterwards.  Return the last value in BODY."
        (insert-file-contents (expand-file-name ,file ,location)))
      ,@body))
 
-(defmacro package--with-work-buffer-async (location file async &rest body)
-  "Run BODY in a buffer containing the contents of FILE at LOCATION.
-If ASYNC is non-nil, and if it is possible, run BODY
-asynchronously.  If an error is encountered and ASYNC is a
-function, call it with no arguments (instead of executing BODY).
-If it returns non-nil, or if it wasn't a function, propagate the
-error.
+(cl-defmacro package--with-response-buffer (url &rest body &key async file error-form noerror &allow-other-keys)
+  "Access URL and run BODY in a buffer containing the response.
+Point is after the headers when BODY runs.
+FILE, if provided, is added to URL.
+URL can be a local file name, which must be absolute.
+ASYNC, if non-nil, runs the request asynchronously.
+ERROR-FORM is run only if an error occurs.  If NOERROR is
+non-nil, don't propagate errors caused by the connection or by
+BODY (does not apply to errors signaled by ERROR-FORM).
 
-For a description of the other arguments see
-`package--with-work-buffer'."
-  (declare (indent 3) (debug t))
-  (macroexp-let2* macroexp-copyable-p
-      ((async-1 async)
-       (file-1 file)
-       (location-1 location))
-    `(if (or (not ,async-1)
-             (not (string-match-p "\\`https?:" ,location-1)))
-         (package--with-work-buffer ,location-1 ,file-1 ,@body)
-       ;; This `condition-case' is to catch connection errors.
-       (condition-case error-signal
-           (url-retrieve (concat ,location-1 ,file-1)
-                         ;; This is to catch execution errors.
-                         (lambda (status)
-                           (condition-case error-signal
-                               (progn
-                                 (when-let ((er (plist-get status :error)))
-                                   (error "Error retrieving: %s %S" (concat ,location-1 ,file-1) er))
-                                 (goto-char (point-min))
-                                 (unless (search-forward "\n\n" nil 'noerror)
-                                   (error "Invalid url response in buffer %s"
-                                          (current-buffer)))
-                                 (delete-region (point-min) (point))
-                                 ,@body
-                                 (kill-buffer (current-buffer)))
-                             (error (when (if (functionp ,async-1) (funcall ,async-1) t)
-                                      (signal (car error-signal) (cdr error-signal))))))
-                         nil
-                         'silent)
-         (error (when (if (functionp ,async-1) (funcall ,async-1) t)
-                  (message "Error contacting: %s" (concat ,location-1 ,file-1))
-                  (signal (car error-signal) (cdr error-signal))))))))
+\(fn URL &key ASYNC FILE ERROR-FORM NOERROR &rest BODY)"
+  (declare (indent defun) (debug t))
+  (while (keywordp (car body))
+    (setq body (cdr (cdr body))))
+  (macroexp-let2* nil ((url-1 url))
+    `(cl-macrolet ((wrap-errors (&rest bodyforms)
+                                (let ((err (make-symbol "err")))
+                                  `(condition-case ,err
+                                       ,(macroexp-progn bodyforms)
+                                     ,(list 'error ',error-form
+                                            (list 'unless ',noerror
+                                                  `(signal (car ,err) (cdr ,err))))))))
+       (if (string-match-p "\\`https?:" ,url-1)
+           (let* ((url (concat ,url-1 ,file))
+                  (callback (lambda (status)
+                              (let ((b (current-buffer)))
+                                (unwind-protect (wrap-errors
+                                                 (when-let ((er (plist-get status :error)))
+                                                   (error "Error retrieving: %s %S" url er))
+                                                 (unless (search-forward-regexp "^\r?\n\r?" nil 'noerror)
+                                                   (error "Error retrieving: %s %S" url "incomprehensible buffer"))
+                                                 (with-temp-buffer
+                                                   (url-insert-buffer-contents b url)
+                                                   (kill-buffer b)
+                                                   (goto-char (point-min))
+                                                   ,@body)))))))
+             (if ,async
+                 (wrap-errors (url-retrieve url callback nil 'silent))
+               (with-current-buffer (wrap-errors (url-retrieve-synchronously url 'silent))
+                 (funcall callback nil))))
+         (wrap-errors (with-temp-buffer
+                        (let ((url (expand-file-name ,file ,url-1)))
+                          (unless (file-name-absolute-p url)
+                            (error "Location %s is not a url nor an absolute file name" url))
+                          (insert-file-contents url))
+                        ,@body))))))
 
 (defun package--check-signature-content (content string &optional sig-file)
   "Check signature CONTENT against STRING.
@@ -1220,15 +1227,12 @@ list can be empty).  If the signatures file is not found,
 CALLBACK is called with no arguments."
   (let ((sig-file (concat file ".sig"))
         (string (or string (buffer-string))))
-    (condition-case nil
-        (package--with-work-buffer-async
-            location sig-file (when async (or callback t))
-          (let ((sig (package--check-signature-content
-                      (buffer-string) string sig-file)))
-            (when callback (funcall callback sig))
-            sig))
-      (file-error (funcall callback)))))
-
+    (package--with-response-buffer location :file sig-file
+      :async async :noerror t
+      :error-form (when callback (funcall callback nil))
+      (let ((sig (package--check-signature-content (buffer-substring (point) (point-max)) string sig-file)))
+        (when callback (funcall callback sig))
+        sig))))
 
 ;;; Packages on Archives
 ;; The following variables store information about packages available
@@ -1470,7 +1474,9 @@ Once it's empty, run `package--post-download-archives-hook'."
 ARCHIVE should be a cons cell of the form (NAME . LOCATION),
 similar to an entry in `package-alist'.  Save the cached copy to
 \"archives/NAME/FILE\" in `package-user-dir'."
-  (package--with-work-buffer-async (cdr archive) file async
+  (package--with-response-buffer (cdr archive) :file file
+    :async async
+    :error-form (package--update-downloads-in-progress archive)
     (let* ((location (cdr archive))
            (name (car archive))
            (content (buffer-string))
@@ -1494,17 +1500,14 @@ similar to an entry in `package-alist'.  Save the cached copy to
                ;; remove it from the in-progress list.
                (package--update-downloads-in-progress archive)
                (error "Unsigned archive `%s'" name))
+             ;; Either everything worked or we don't mind not signing.
              ;; Write out the archives file.
              (write-region content nil local-file nil 'silent)
              ;; Write out good signatures into archive-contents.signed file.
              (when good-sigs
                (write-region (mapconcat #'epg-signature-to-string good-sigs "\n")
                              nil (concat local-file ".signed") nil 'silent))
-             (package--update-downloads-in-progress archive)
-             ;; If we got this far, either everything worked or we don't mind
-             ;; not signing, so tell `package--with-work-buffer-async' to not
-             ;; propagate errors.
-             nil)))))))
+             (package--update-downloads-in-progress archive))))))))
 
 (defun package--download-and-read-archives (&optional async)
   "Download descriptions of all `package-archives' and read them.
@@ -1517,12 +1520,7 @@ perform the downloads asynchronously."
                 :test #'equal))
   (dolist (archive package-archives)
     (condition-case-unless-debug nil
-        (package--download-one-archive
-         archive "archive-contents"
-         ;; Called if the async download fails
-         (when async
-           ;; The t at the end means to propagate connection errors.
-           (lambda () (package--update-downloads-in-progress archive) t)))
+        (package--download-one-archive archive "archive-contents" async)
       (error (message "Failed to download `%s' archive."
                (car archive))))))
 
@@ -1777,7 +1775,7 @@ if all the in-between dependencies are also in PACKAGE-LIST."
   (let* ((location (package-archive-base pkg-desc))
          (file (concat (package-desc-full-name pkg-desc)
                        (package-desc-suffix pkg-desc))))
-    (package--with-work-buffer location file
+    (package--with-response-buffer location :file file
       (if (or (not package-check-signature)
               (member (package-desc-archive pkg-desc)
                       package-unsigned-archives))
@@ -2368,26 +2366,23 @@ Otherwise no newline is inserted."
               (replace-match ""))
             (while (re-search-forward "^\\(;+ ?\\)" nil t)
               (replace-match ""))))
-      (let ((readme (expand-file-name (format "%s-readme.txt" name)
-                                      package-user-dir))
-            readme-string)
+      (let* ((basename (format "%s-readme.txt" name))
+             (readme (expand-file-name basename package-user-dir))
+             readme-string)
         ;; For elpa packages, try downloading the commentary.  If that
         ;; fails, try an existing readme file in `package-user-dir'.
-        (cond ((condition-case nil
-                   (save-excursion
-                     (package--with-work-buffer
-                         (package-archive-base desc)
-                         (format "%s-readme.txt" name)
-                       (save-excursion
-                         (goto-char (point-max))
-                         (unless (bolp)
-                           (insert ?\n)))
-                       (write-region nil nil
-                                     (expand-file-name readme package-user-dir)
-                                     nil 'silent)
-                       (setq readme-string (buffer-string))
-                       t))
-                 (error nil))
+        (cond ((and (package-desc-archive desc)
+                    (package--with-response-buffer (package-archive-base desc)
+                      :file basename :noerror t
+                      (save-excursion
+                        (goto-char (point-max))
+                        (unless (bolp)
+                          (insert ?\n)))
+                      (write-region nil nil
+                                    (expand-file-name readme package-user-dir)
+                                    nil 'silent)
+                      (setq readme-string (buffer-string))
+                      t))
                (insert readme-string))
               ((file-readable-p readme)
                (insert-file-contents readme)

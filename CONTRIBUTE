@@ -144,10 +144,10 @@ messages:
   "2014-01-16T05:43:35Z!esr@thyrsus.com".  Often, "my previous commit"
   will suffice.
 
-- There is no need to mention files such as NEWS, MAINTAINERS, and
-  FOR-RELEASE, or to indicate regeneration of files such as
-  'configure', in the ChangeLog entry.  "There is no need" means you
-  don't have to, but you can if you want to.
+- There is no need to mention files such as NEWS and MAINTAINERS, or
+  to indicate regeneration of files such as 'configure', in the
+  ChangeLog entry.  "There is no need" means you don't have to, but
+  you can if you want to.
 
 ** Generating ChangeLog entries
 
@@ -176,13 +176,6 @@ Sometimes specialized features are developed on separate branches
 before possibly being merged to the trunk.
 
 Development is discussed on the emacs-devel mailing list.
-
-Sometime before the release of a new major version of Emacs a "feature
-freeze" is imposed on the trunk, to prepare for creating a release
-branch.  No new features may be added to the trunk after this point,
-until the release branch is created.  Announcements about the freeze
-(and other important events) are made on the emacs-devel mailing
-list under the "emacs-announce" topic, and not anywhere else.
 
 The trunk branch is named "master" in git; release branches are named
 "emacs-nn" where "nn" is the major version.
@@ -258,9 +251,9 @@ for more information on writing and running tests.
 
 To run tests on the entire Emacs tree, run "make check" from the
 top-level directory.  Most tests are in the directory
-"test/automated".  From the "test/automated" directory, run "make
+"test/".  From the "test/" directory, run "make
 <filename>" to run the tests for <filename>.el(c).  See
-"test/automated/Makefile" for more information.
+"test/Makefile" for more information.
 
 ** Understanding Emacs Internals.
 
