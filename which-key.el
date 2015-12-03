@@ -261,7 +261,9 @@ prefixes in `which-key-paging-prefixes'"
 
 (defvar which-key-C-h-map
   (let ((map (make-sparse-keymap)))
-    (dolist (bind '(("\C-h" . which-key-show-standard-help)
+    (dolist (bind '(("\C-a" . which-key-abort)
+                    ("a" . which-key-abort)
+                    ("\C-h" . which-key-show-standard-help)
                     ("h" . which-key-show-standard-help)
                     ("\C-n" . which-key-show-next-page-cycle)
                     ("n" . which-key-show-next-page-cycle)
@@ -1500,11 +1502,10 @@ area."
          (paging-key-bound (eq 'which-key-C-h-dispatch
                                (key-binding (kbd paging-key))))
          (key (if paging-key-bound which-key-paging-key "C-h")))
-    (when (and (or (and (< 1 n-pages) which-key-use-C-h-commands)
-                   (and (< 1 n-pages) paging-key-bound))
+    (when (and which-key-use-C-h-commands
                (not (and which-key-allow-evil-operators
                          (bound-and-true-p evil-this-operator))))
-      (propertize (format "[%s which-key cmds]" key)
+      (propertize (format "[%s paging/help]" key)
                   'face 'which-key-note-face))))
 
 (defun which-key--get-popup-map ()
@@ -1707,11 +1708,12 @@ after first page."
       (which-key-show-top-level))))
 (defalias 'which-key-undo 'which-key-undo-key)
 
-(defun which-key-nil ()
+(defun which-key-abort ()
   "Abort key sequence."
   (interactive)
   (let (which-key-inhibit)
-    (message "abort")))
+    (which-key--hide-popup-ignore-command)
+    (message "Aborted key sequence")))
 
 ;;;###autoload
 (defun which-key-C-h-dispatch ()
@@ -1729,11 +1731,11 @@ prefix) if `which-key-use-C-h-commands' is non nil."
          (k (string
              (read-key
               (concat prefix-w-face dash-w-face
-                      (propertize "  [n]ext-page, [p]revious-page, [u]ndo-key, [h]elp"
+                      (propertize "  [n]ext-page, [p]revious-page, [u]ndo-key, [h]elp, [a]bort"
                                   'face 'which-key-note-face)))))
          (cmd (lookup-key which-key-C-h-map k))
          which-key-inhibit)
-    (if cmd (funcall cmd) (which-key-nil))))
+    (if cmd (funcall cmd) (which-key-abort))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Update
