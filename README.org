@@ -1,6 +1,14 @@
 * which-key 
 [[http://melpa.org/#/which-key][http://melpa.org/packages/which-key-badge.svg]] [[http://stable.melpa.org/#/which-key][file:http://stable.melpa.org/packages/which-key-badge.svg]]
 ** What's New
+- =C-h= commands! Now =C-h= will prompt you will several options instead of
+  going to the next page. You can (see =which-key-C-h-map=)
+  - Cycle through the pages forward with =n= (or =C-n=)
+  - Cycle backwards with =p= (or =C-p=)
+  - Undo the last entered key (!) with =u= (or =C-u=)
+  - Show the default command bound to =C-h= with =h= (or =C-h=)
+  This is a fairly substantial change and might introduce a bug or two, so
+  please report anything you see that is strange and I will try to fix it.
 - Use your mouse to hover over commands and the docstring will be displayed in
   the echo area or a tooltip, depending on whether or not you're using
   =tooltip-mode=.
@@ -323,6 +331,8 @@ available options.
 #+END_SRC
 
 *** Paging Options
+[Note: This section is out of date given the new =C-h= commands feature
+described in the What's New section. I will update it soon.].
 There are at least several prefixes that have many keys bound to them, like
 =C-x=. which-key displays as many keys as it can given your settings, but for
 these prefixes this may not be enough. The paging feature gives you the ability
