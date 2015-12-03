@@ -1149,7 +1149,7 @@ a replacement occurs return the new STRING."
   "KEYS is a string produced by `key-description'.
 A title is possibly returned using `which-key-prefix-title-alist'.
 An empty stiring is returned if no title exists."
-  (if keys
+  (if (not (string-equal keys ""))
       (let* ((alist which-key-prefix-title-alist)
              (res (assoc-string keys alist))
              (mode-alist (assq major-mode alist))
@@ -1496,7 +1496,7 @@ area."
      delay nil (lambda () (let (message-log-max)
                             (message "%s" text))))))
 
-(defun which-key--next-page-hint (prefix-keys n-pages)
+(defun which-key--next-page-hint (prefix-keys)
   "Return string for next page hint."
   (let* ((paging-key (concat prefix-keys " " which-key-paging-key))
          (paging-key-bound (eq 'which-key-C-h-dispatch
@@ -1556,7 +1556,7 @@ enough space based on your settings and frame size." prefix-keys)
                                   prefix-w-face))
              (status-left (format (concat "%-" (int-to-string first-col-width) "s")
                                   status-left))
-             (nxt-pg-hint (which-key--next-page-hint prefix-keys n-pages))
+             (nxt-pg-hint (which-key--next-page-hint prefix-keys))
              new-end lines first)
         (cond ((and (< 1 n-pages)
                     (eq which-key-show-prefix 'left))
@@ -1730,7 +1730,9 @@ prefix) if `which-key-use-C-h-commands' is non nil."
                         ""))
          (k (string
              (read-key
-              (concat prefix-w-face dash-w-face
+              (concat (when (string-equal prefix-keys "")
+                        (propertize " Top-level bindings" 'face 'which-key-note-face))
+                      prefix-w-face dash-w-face
                       (propertize "  [n]ext-page, [p]revious-page, [u]ndo-key, [h]elp, [a]bort"
                                   'face 'which-key-note-face)))))
          (cmd (lookup-key which-key-C-h-map k))
