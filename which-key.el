@@ -279,8 +279,9 @@ prefixes in `which-key-paging-prefixes'"
                                       which-key-show-next-page-cycle
                                       which-key-show-next-page-no-cycle
                                       which-key-show-previous-page-cycle
-                                      which-key-show-previous-page-no-cycle))
-
+                                      which-key-show-previous-page-no-cycle
+                                      which-key-undo-key
+                                      which-key-undo))
 
 (defcustom which-key-prevent-C-h-from-cycling t
   "When using C-h for paging, which-key overrides the default
@@ -1126,10 +1127,7 @@ replacement occurs return the new STRING."
             (listify-key-sequence (kbd key-str)))))
 
 (defsubst which-key--current-key-string (&optional key-str)
-  (key-description
-   (append (listify-key-sequence which-key--current-prefix)
-           (when key-str
-             (listify-key-sequence (kbd key-str))))))
+  (key-description (which-key--current-key-list key-str)))
 
 (defun which-key--maybe-replace-prefix-name (keys desc)
   "KEYS is a list of keys produced by `listify-key-sequences' and
@@ -1642,19 +1640,20 @@ Will force an update if called before `which-key--update'."
   "Call the command in `which-key--prefix-help-cmd-backup'.
 Usually this is `describe-prefix-bindings'."
   (interactive)
-  (which-key--hide-popup-ignore-command)
-  (funcall which-key--prefix-help-cmd-backup)
-  (which-key--start-timer))
+  (let (which-key-inhibit)
+    (which-key--hide-popup-ignore-command)
+    (funcall which-key--prefix-help-cmd-backup)))
 
 ;;;###autoload
 (defun which-key-show-next-page-no-cycle ()
   "Show next page of keys unless on the last page, in which case
 call `which-key-show-standard-help'."
   (interactive)
-  (if (and which-key--current-page-n
-           which-key--on-last-page)
-      (which-key-show-standard-help)
-    (which-key-turn-page)))
+  (let (which-key-inhibit)
+    (if (and which-key--current-page-n
+             which-key--on-last-page)
+        (which-key-show-standard-help)
+      (which-key-turn-page))))
 (defalias 'which-key-show-next-page 'which-key-show-next-page-no-cycle)
 (make-obsolete 'which-key-show-next-page 'which-key-show-next-page-no-cycle
                "2015-12-2")
@@ -1664,24 +1663,27 @@ call `which-key-show-standard-help'."
   "Show previous page of keys unless on the first page, in which
 case do nothing."
   (interactive)
-  (if (and which-key--current-page-n
-           (eq which-key--current-page-n 0))
-      nil
-    (which-key-turn-page t)))
+  (let (which-key-inhibit)
+    (if (and which-key--current-page-n
+             (eq which-key--current-page-n 0))
+        nil
+      (which-key-turn-page t))))
 
 ;;;###autoload
 (defun which-key-show-next-page-cycle ()
   "Show the next page of keys, cycling from end to beginning
 after last page."
   (interactive)
-  (which-key-turn-page))
+  (let (which-key-inhibit)
+    (which-key-turn-page)))
 
 ;;;###autoload
 (defun which-key-show-previous-page-cycle ()
   "Show the previous page of keys, cycling from beginning to end
 after first page."
   (interactive)
-  (which-key-turn-page t))
+  (let (which-key-inhibit)
+    (which-key-turn-page t)))
 
 ;;;###autoload
 (defun which-key-show-top-level ()
@@ -1694,22 +1696,22 @@ after first page."
 (defun which-key-undo-key ()
   "Undo last keypress and force which-key update."
   (interactive)
-  (let* ((key-lst (butlast (which-key--current-key-list) 1)))
+  (let* ((key-lst (butlast (which-key--current-key-list)))
+         which-key-inhibit)
     (if key-lst
         (progn
           (setq unread-command-events
                 (mapcar (lambda (ev) (cons t ev)) key-lst))
           (which-key--create-buffer-and-show
-           (key-description key-lst)))
-      (which-key-show-top-level)))
-  (which-key--start-timer))
+           (apply #'vector key-lst)))
+      (which-key-show-top-level))))
 (defalias 'which-key-undo 'which-key-undo-key)
 
 (defun which-key-nil ()
   "Abort key sequence."
   (interactive)
-  (message "abort")
-  (which-key--start-timer))
+  (let (which-key-inhibit)
+    (message "abort")))
 
 ;;;###autoload
 (defun which-key-C-h-dispatch ()
@@ -1731,7 +1733,6 @@ prefix) if `which-key-use-C-h-commands' is non nil."
                                   'face 'which-key-note-face)))))
          (cmd (lookup-key which-key-C-h-map k))
          which-key-inhibit)
-    (which-key--stop-timer)
     (if cmd (funcall cmd) (which-key-nil))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1813,6 +1814,7 @@ Finally, show the buffer."
 (defun which-key--start-paging-timer ()
   "Activate timer to restart which-key after paging."
   (when which-key--paging-timer (cancel-timer which-key--paging-timer))
+  (which-key--stop-timer)
   (setq which-key--paging-timer
         (run-with-idle-timer
          0.2 t (lambda ()
