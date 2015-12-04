@@ -1733,7 +1733,15 @@ prefix) if `which-key-use-C-h-commands' is non nil."
               (concat (when (string-equal prefix-keys "")
                         (propertize " Top-level bindings" 'face 'which-key-note-face))
                       prefix-w-face dash-w-face
-                      (propertize "  [n]ext-page, [p]revious-page, [u]ndo-key, [h]elp, [a]bort"
+                      (propertize
+                       (substitute-command-keys
+                        (concat
+                         " \\<which-key-C-h-map>"
+                         " \\[which-key-show-next-page-cycle]" which-key-separator "next-page,"
+                         " \\[which-key-show-previous-page-cycle]" which-key-separator "previous-page,"
+                         " \\[which-key-undo-key]" which-key-separator "undo-key,"
+                         " \\[which-key-show-standard-help]" which-key-separator "help,"
+                         " \\[which-key-abort]" which-key-separator "abort"))
                                   'face 'which-key-note-face)))))
          (cmd (lookup-key which-key-C-h-map k))
          (which-key-inhibit t))
