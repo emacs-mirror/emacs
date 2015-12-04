@@ -1489,7 +1489,7 @@ is the width of the live window."
 Slight delay gets around evil functions that clear the echo
 area."
   (let* ((minibuffer (eq which-key-popup-type 'minibuffer))
-         (delay (if minibuffer 0.2 0.01))
+         (delay (if minibuffer 0.2 (+ echo-keystrokes 0.001)))
          message-log-max)
     (unless minibuffer (message "%s" text))
     (run-with-idle-timer
@@ -1609,7 +1609,7 @@ enough space based on your settings and frame size." prefix-keys)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; paging functions
 
-(defun which-key-turn-page (&optional backward)
+(defun which-key-turn-page (delta)
   "Show the next page of keys.
 Will force an update if called before `which-key--update'."
   (cond
@@ -1627,7 +1627,7 @@ Will force an update if called before `which-key--update'."
            (mapcar (lambda (ev) (cons t ev)) (which-key--current-key-list)))
           (next-page
            (if which-key--current-page-n
-               (+ which-key--current-page-n (if backward -1 1)) 0)))
+               (+ which-key--current-page-n delta) 0)))
       (setq unread-command-events next-event)
       (if which-key--last-try-2-loc
           (let ((which-key-side-window-location which-key--last-try-2-loc)
@@ -1641,7 +1641,7 @@ Will force an update if called before `which-key--update'."
   "Call the command in `which-key--prefix-help-cmd-backup'.
 Usually this is `describe-prefix-bindings'."
   (interactive)
-  (let (which-key-inhibit)
+  (let ((which-key-inhibit t))
     (which-key--hide-popup-ignore-command)
     (funcall which-key--prefix-help-cmd-backup)))
 
@@ -1650,11 +1650,11 @@ Usually this is `describe-prefix-bindings'."
   "Show next page of keys unless on the last page, in which case
 call `which-key-show-standard-help'."
   (interactive)
-  (let (which-key-inhibit)
+  (let ((which-key-inhibit t))
     (if (and which-key--current-page-n
              which-key--on-last-page)
         (which-key-show-standard-help)
-      (which-key-turn-page))))
+      (which-key-turn-page 1))))
 (defalias 'which-key-show-next-page 'which-key-show-next-page-no-cycle)
 (make-obsolete 'which-key-show-next-page 'which-key-show-next-page-no-cycle
                "2015-12-2")
@@ -1664,27 +1664,27 @@ call `which-key-show-standard-help'."
   "Show previous page of keys unless on the first page, in which
 case do nothing."
   (interactive)
-  (let (which-key-inhibit)
+  (let ((which-key-inhibit t))
     (if (and which-key--current-page-n
              (eq which-key--current-page-n 0))
-        nil
-      (which-key-turn-page t))))
+        (which-key-turn-page 0)
+      (which-key-turn-page -1))))
 
 ;;;###autoload
 (defun which-key-show-next-page-cycle ()
   "Show the next page of keys, cycling from end to beginning
 after last page."
   (interactive)
-  (let (which-key-inhibit)
-    (which-key-turn-page)))
+  (let ((which-key-inhibit t))
+    (which-key-turn-page 1)))
 
 ;;;###autoload
 (defun which-key-show-previous-page-cycle ()
   "Show the previous page of keys, cycling from beginning to end
 after first page."
   (interactive)
-  (let (which-key-inhibit)
-    (which-key-turn-page t)))
+  (let ((which-key-inhibit t))
+    (which-key-turn-page -1)))
 
 ;;;###autoload
 (defun which-key-show-top-level ()
@@ -1698,7 +1698,7 @@ after first page."
   "Undo last keypress and force which-key update."
   (interactive)
   (let* ((key-lst (butlast (which-key--current-key-list)))
-         which-key-inhibit)
+         (which-key-inhibit t))
     (if key-lst
         (progn
           (setq unread-command-events
@@ -1711,7 +1711,7 @@ after first page."
 (defun which-key-abort ()
   "Abort key sequence."
   (interactive)
-  (let (which-key-inhibit)
+  (let ((which-key-inhibit t))
     (which-key--hide-popup-ignore-command)
     (message "Aborted key sequence")))
 
@@ -1736,8 +1736,8 @@ prefix) if `which-key-use-C-h-commands' is non nil."
                       (propertize "  [n]ext-page, [p]revious-page, [u]ndo-key, [h]elp, [a]bort"
                                   'face 'which-key-note-face)))))
          (cmd (lookup-key which-key-C-h-map k))
-         which-key-inhibit)
-    (if cmd (funcall cmd) (which-key-abort))))
+         (which-key-inhibit t))
+    (if cmd (funcall cmd) (which-key-turn-page 0))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Update
