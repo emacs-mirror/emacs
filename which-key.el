@@ -1450,9 +1450,9 @@ is the width of the live window."
          (max-lines (car max-dims))
          (max-width (cdr max-dims))
          (prefix-keys-desc (key-description which-key--current-prefix))
-         (prefix-w-face (which-key--propertize-key prefix-keys-desc))
+         (full-prefix (which-key--full-prefix prefix-keys-desc))
          (prefix-left (when (eq which-key-show-prefix 'left)
-                        (+ 2 (which-key--string-width prefix-w-face))))
+                        (+ 2 (which-key--string-width full-prefix))))
          (prefix-top-bottom (member which-key-show-prefix '(bottom top)))
          (avl-lines (if prefix-top-bottom (- max-lines 1) max-lines))
          (min-lines (min avl-lines which-key-min-display-lines))
@@ -1508,6 +1508,39 @@ area."
       (propertize (format "[%s paging/help]" key)
                   'face 'which-key-note-face))))
 
+(if (fboundp 'universal-argument--description)
+    (defalias 'which-key--universal-argument--description
+      'universal-argument--description)
+  (defun which-key--universal-argument--description ()
+    ;; Backport of the definition of universal-argument--description in emacs25
+    ;; on 2015-12-04
+    (when prefix-arg
+      (concat "C-u"
+              (pcase prefix-arg
+                (`(-) " -")
+                (`(,(and (pred integerp) n))
+                 (let ((str ""))
+                   (while (and (> n 4) (= (mod n 4) 0))
+                     (setq str (concat str " C-u"))
+                     (setq n (/ n 4)))
+                   (if (= n 4) str (format " %s" prefix-arg))))
+                (_ (format " %s" prefix-arg)))))))
+
+(defun which-key--full-prefix (prefix-keys)
+  "Return a description of the full key sequence up to now,
+including prefix arguments."
+  (let* ((left (eq which-key-show-prefix 'left))
+         (str (concat
+               (which-key--universal-argument--description)
+               (when prefix-arg " ")
+               prefix-keys))
+         (dash (if (and which-key--current-prefix
+                        (null left)) "-" "")))
+    (if (eq which-key-show-prefix 'echo)
+        (concat str dash)
+      (concat (which-key--propertize-key str)
+              (propertize dash 'face 'which-key-key-face)))))
+
 (defun which-key--get-popup-map ()
   (unless which-key--current-prefix
     (let ((map (make-sparse-keymap)))
@@ -1534,12 +1567,7 @@ enough space based on your settings and frame size." prefix-keys)
              (width (nth page-n (plist-get which-key--pages-plist :page-widths)))
              (n-shown (nth page-n (plist-get which-key--pages-plist :keys/page)))
              (n-tot (plist-get which-key--pages-plist :tot-keys))
-             (prefix-w-face (if (eq which-key-show-prefix 'echo) prefix-keys
-                              (which-key--propertize-key prefix-keys)))
-             (dash-w-face (if which-key--current-prefix
-                              (if (eq which-key-show-prefix 'echo) "-"
-                                (propertize "-" 'face 'which-key-key-face))
-                            ""))
+             (full-prefix (which-key--full-prefix prefix-keys))
              (status-left (propertize (format "%s/%s" (1+ page-n) n-pages)
                                       'face 'which-key-separator-face))
              (status-top (propertize (which-key--maybe-get-prefix-title
@@ -1550,10 +1578,10 @@ enough space based on your settings and frame size." prefix-keys)
                                    (propertize (format " (%s of %s)"
                                                        (1+ page-n) n-pages)
                                                'face 'which-key-note-face))))
-             (first-col-width (+ 2 (max (which-key--string-width prefix-w-face)
+             (first-col-width (+ 2 (max (which-key--string-width full-prefix)
                                         (which-key--string-width status-left))))
              (prefix-left (format (concat "%-" (int-to-string first-col-width) "s")
-                                  prefix-w-face))
+                                  full-prefix))
              (status-left (format (concat "%-" (int-to-string first-col-width) "s")
                                   status-left))
              (nxt-pg-hint (which-key--next-page-hint prefix-keys))
@@ -1577,7 +1605,7 @@ enough space based on your settings and frame size." prefix-keys)
                      (concat
                       (when (or (null echo-keystrokes)
                                 (not (eq which-key-side-window-location 'bottom)))
-                        (concat prefix-w-face dash-w-face " "))
+                        full-prefix)
                       status-top " " nxt-pg-hint "\n" page)))
               ((eq which-key-show-prefix 'bottom)
                (setq page
@@ -1585,10 +1613,10 @@ enough space based on your settings and frame size." prefix-keys)
                       page "\n"
                       (when (or (null echo-keystrokes)
                                 (not (eq which-key-side-window-location 'bottom)))
-                        (concat prefix-w-face dash-w-face " "))
+                        full-prefix)
                       status-top " " nxt-pg-hint)))
               ((eq which-key-show-prefix 'echo)
-               (which-key--echo (concat prefix-w-face dash-w-face
+               (which-key--echo (concat full-prefix
                                         (when prefix-keys " ")
                                         status-top (when status-top " ")
                                         nxt-pg-hint))))
@@ -1722,17 +1750,12 @@ after first page."
 prefix) if `which-key-use-C-h-commands' is non nil."
   (interactive)
   (let* ((prefix-keys (key-description which-key--current-prefix))
-         (prefix-w-face (if (eq which-key-show-prefix 'echo) prefix-keys
-                          (which-key--propertize-key prefix-keys)))
-         (dash-w-face (if which-key--current-prefix
-                          (if (eq which-key-show-prefix 'echo) "-"
-                            (propertize "-" 'face 'which-key-key-face))
-                        ""))
+         (full-prefix (which-key--full-prefix prefix-keys))
          (k (string
              (read-key
               (concat (when (string-equal prefix-keys "")
                         (propertize " Top-level bindings" 'face 'which-key-note-face))
-                      prefix-w-face dash-w-face
+                      full-prefix
                       (propertize
                        (substitute-command-keys
                         (concat
@@ -1742,7 +1765,7 @@ prefix) if `which-key-use-C-h-commands' is non nil."
                          " \\[which-key-undo-key]" which-key-separator "undo-key,"
                          " \\[which-key-show-standard-help]" which-key-separator "help,"
                          " \\[which-key-abort]" which-key-separator "abort"))
-                                  'face 'which-key-note-face)))))
+                       'face 'which-key-note-face)))))
          (cmd (lookup-key which-key-C-h-map k))
          (which-key-inhibit t))
     (if cmd (funcall cmd) (which-key-turn-page 0))))
