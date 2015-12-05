@@ -1508,23 +1508,24 @@ area."
       (propertize (format "[%s paging/help]" key)
                   'face 'which-key-note-face))))
 
-(if (fboundp 'universal-argument--description)
-    (defalias 'which-key--universal-argument--description
-      'universal-argument--description)
-  (defun which-key--universal-argument--description ()
-    ;; Backport of the definition of universal-argument--description in emacs25
-    ;; on 2015-12-04
-    (when prefix-arg
-      (concat "C-u"
-              (pcase prefix-arg
-                (`(-) " -")
-                (`(,(and (pred integerp) n))
-                 (let ((str ""))
-                   (while (and (> n 4) (= (mod n 4) 0))
-                     (setq str (concat str " C-u"))
-                     (setq n (/ n 4)))
-                   (if (= n 4) str (format " %s" prefix-arg))))
-                (_ (format " %s" prefix-arg)))))))
+(eval-and-compile
+  (if (fboundp 'universal-argument--description)
+      (defalias 'which-key--universal-argument--description
+        'universal-argument--description)
+    (defun which-key--universal-argument--description ()
+      ;; Backport of the definition of universal-argument--description in emacs25
+      ;; on 2015-12-04
+      (when prefix-arg
+        (concat "C-u"
+                (pcase prefix-arg
+                  (`(-) " -")
+                  (`(,(and (pred integerp) n))
+                   (let ((str ""))
+                     (while (and (> n 4) (= (mod n 4) 0))
+                       (setq str (concat str " C-u"))
+                       (setq n (/ n 4)))
+                     (if (= n 4) str (format " %s" prefix-arg))))
+                  (_ (format " %s" prefix-arg))))))))
 
 (defun which-key--full-prefix (prefix-keys)
   "Return a description of the full key sequence up to now,
@@ -1637,6 +1638,12 @@ enough space based on your settings and frame size." prefix-keys)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; paging functions
 
+(defun which-key--reload-key-sequence (key-seq)
+  (let ((next-event (mapcar (lambda (ev) (cons t ev))
+                            (listify-key-sequence key-seq))))
+    (setq prefix-arg current-prefix-arg
+          unread-command-events next-event)))
+
 (defun which-key-turn-page (delta)
   "Show the next page of keys.
 Will force an update if called before `which-key--update'."
@@ -1644,19 +1651,15 @@ Will force an update if called before `which-key--update'."
    ;; No which-key buffer showing
    ((null which-key--current-page-n)
     (let* ((keysbl
-            (vconcat (butlast (append (this-single-command-keys) nil))))
-           (next-event
-            (mapcar (lambda (ev) (cons t ev)) (listify-key-sequence keysbl))))
-      (setq unread-command-events next-event)
+            (vconcat (butlast (append (this-single-command-keys) nil)))))
+      (which-key--reload-key-sequence keysbl)
       (which-key--create-buffer-and-show keysbl)))
    ;; which-key buffer showing. turn page
    (t
-    (let ((next-event
-           (mapcar (lambda (ev) (cons t ev)) (which-key--current-key-list)))
-          (next-page
+    (let ((next-page
            (if which-key--current-page-n
                (+ which-key--current-page-n delta) 0)))
-      (setq unread-command-events next-event)
+      (which-key--reload-key-sequence (which-key--current-key-list))
       (if which-key--last-try-2-loc
           (let ((which-key-side-window-location which-key--last-try-2-loc)
                 (which-key--multiple-locations t))
@@ -1729,8 +1732,7 @@ after first page."
          (which-key-inhibit t))
     (if key-lst
         (progn
-          (setq unread-command-events
-                (mapcar (lambda (ev) (cons t ev)) key-lst))
+          (which-key--reload-key-sequence key-lst)
           (which-key--create-buffer-and-show
            (apply #'vector key-lst)))
       (which-key-show-top-level))))
