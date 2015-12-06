@@ -1527,7 +1527,7 @@ area."
                      (if (= n 4) str (format " %s" prefix-arg))))
                   (_ (format " %s" prefix-arg))))))))
 
-(defun which-key--full-prefix (prefix-keys &optional -prefix-arg)
+(defun which-key--full-prefix (prefix-keys &optional -prefix-arg dont-prop-keys)
   "Return a description of the full key sequence up to now,
 including prefix arguments."
   (let* ((left (eq which-key-show-prefix 'left))
@@ -1538,7 +1538,7 @@ including prefix arguments."
                prefix-keys))
          (dash (if (and which-key--current-prefix
                         (null left)) "-" "")))
-    (if (eq which-key-show-prefix 'echo)
+    (if (or (eq which-key-show-prefix 'echo) dont-prop-keys)
         (concat str dash)
       (concat (which-key--propertize-key str)
               (propertize dash 'face 'which-key-key-face)))))
@@ -1753,7 +1753,7 @@ after first page."
 prefix) if `which-key-use-C-h-commands' is non nil."
   (interactive)
   (let* ((prefix-keys (key-description which-key--current-prefix))
-         (full-prefix (which-key--full-prefix prefix-keys current-prefix-arg))
+         (full-prefix (which-key--full-prefix prefix-keys current-prefix-arg t))
          (prompt (concat (when (string-equal prefix-keys "")
                            (propertize " Top-level bindings" 'face 'which-key-note-face))
                          full-prefix
