@@ -1527,10 +1527,11 @@ area."
                      (if (= n 4) str (format " %s" prefix-arg))))
                   (_ (format " %s" prefix-arg))))))))
 
-(defun which-key--full-prefix (prefix-keys)
+(defun which-key--full-prefix (prefix-keys &optional -prefix-arg)
   "Return a description of the full key sequence up to now,
 including prefix arguments."
   (let* ((left (eq which-key-show-prefix 'left))
+         (prefix-arg (if -prefix-arg -prefix-arg prefix-arg))
          (str (concat
                (which-key--universal-argument--description)
                (when prefix-arg " ")
@@ -1604,17 +1605,17 @@ enough space based on your settings and frame size." prefix-keys)
               ((eq which-key-show-prefix 'top)
                (setq page
                      (concat
-                      (when (or (null echo-keystrokes)
+                      (when (or (= 0 echo-keystrokes)
                                 (not (eq which-key-side-window-location 'bottom)))
-                        full-prefix)
+                        (concat full-prefix " "))
                       status-top " " nxt-pg-hint "\n" page)))
               ((eq which-key-show-prefix 'bottom)
                (setq page
                      (concat
                       page "\n"
-                      (when (or (null echo-keystrokes)
+                      (when (or (= 0 echo-keystrokes)
                                 (not (eq which-key-side-window-location 'bottom)))
-                        full-prefix)
+                        (concat full-prefix " "))
                       status-top " " nxt-pg-hint)))
               ((eq which-key-show-prefix 'echo)
                (which-key--echo (concat full-prefix
@@ -1752,23 +1753,22 @@ after first page."
 prefix) if `which-key-use-C-h-commands' is non nil."
   (interactive)
   (let* ((prefix-keys (key-description which-key--current-prefix))
-         (full-prefix (which-key--full-prefix prefix-keys))
-         (k (string
-             (read-key
-              (concat (when (string-equal prefix-keys "")
-                        (propertize " Top-level bindings" 'face 'which-key-note-face))
-                      full-prefix
-                      (propertize
-                       (substitute-command-keys
-                        (concat
-                         " \\<which-key-C-h-map>"
-                         " \\[which-key-show-next-page-cycle]" which-key-separator "next-page,"
-                         " \\[which-key-show-previous-page-cycle]" which-key-separator "previous-page,"
-                         " \\[which-key-undo-key]" which-key-separator "undo-key,"
-                         " \\[which-key-show-standard-help]" which-key-separator "help,"
-                         " \\[which-key-abort]" which-key-separator "abort"))
-                       'face 'which-key-note-face)))))
-         (cmd (lookup-key which-key-C-h-map k))
+         (full-prefix (which-key--full-prefix prefix-keys current-prefix-arg))
+         (prompt (concat (when (string-equal prefix-keys "")
+                           (propertize " Top-level bindings" 'face 'which-key-note-face))
+                         full-prefix
+                         (propertize
+                          (substitute-command-keys
+                           (concat
+                            " \\<which-key-C-h-map>"
+                            " \\[which-key-show-next-page-cycle]" which-key-separator "next-page,"
+                            " \\[which-key-show-previous-page-cycle]" which-key-separator "previous-page,"
+                            " \\[which-key-undo-key]" which-key-separator "undo-key,"
+                            " \\[which-key-show-standard-help]" which-key-separator "help,"
+                            " \\[which-key-abort]" which-key-separator "abort"))
+                          'face 'which-key-note-face)))
+         (key (string (read-key prompt)))
+         (cmd (lookup-key which-key-C-h-map key))
          (which-key-inhibit t))
     (if cmd (funcall cmd) (which-key-turn-page 0))))
 
