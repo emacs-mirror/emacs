@@ -98,7 +98,15 @@ of the which-key popup."
 
 (defcustom which-key-separator
   (if which-key-dont-use-unicode " : " " → ")
-  "Separator to use between key and description."
+  "Separator to use between key and description. Default is \" →
+\", unless `which-key-dont-use-unicode' is non nil, in which case
+the default is \" : \"."
+  :group 'which-key
+  :type 'string)
+
+(defcustom which-key-prefix-prefix "+"
+  "String to insert in front of prefix commands (i.e., commands
+that represent a sub-map). Default is \"+\"."
   :group 'which-key
   :type 'string)
 
@@ -1240,7 +1248,7 @@ ORIGINAL-DESCRIPTION is the description given by
   (let* ((desc description)
          (desc (if (string-match-p "^group:" desc)
                    (substring desc 6) desc))
-         (desc (if group (concat "+" desc) desc))
+         (desc (if group (concat which-key-prefix-prefix desc) desc))
          (desc (which-key--truncate-description desc)))
     (make-text-button desc nil
       'face (cond (hl-face hl-face)
