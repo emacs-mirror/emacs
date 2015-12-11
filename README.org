@@ -448,6 +448,10 @@ shown.
   (setq which-key-separator " → " )
   (setq which-key-unicode-correction 3)
 
+  ;; Set the prefix string that will be inserted in front of prefix commands
+  ;; (i.e., commands that represent a sub-map).
+  (setq which-key-prefix-prefix "+" )
+
   ;; Set the special keys. These are automatically truncated to one character and
   ;; have which-key-special-key-face applied. Set this variable to nil to disable
   ;; the feature
