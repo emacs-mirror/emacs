@@ -4012,7 +4012,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 #ifdef HAVE_XWIDGETS
       else if (event->kind == XWIDGET_EVENT)
 	{
-	  obj = make_lispy_event (event);
+	  obj = make_lispy_event (&event->ie);
 	  kbd_fetch_ptr = event + 1;
 	}
 #endif
