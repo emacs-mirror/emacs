@@ -921,22 +921,16 @@ extraclean: $(extraclean_dirs:=_extraclean)
 TAGS tags: lib lib-src src
 	$(MAKE) -C src tags
 
-
-check-maybe: all
+.PHONY: have-tests
+have-tests:
 	@if test ! -d test; then \
 	  echo "You do not seem to have the test/ directory."; \
 	  echo "Maybe you are using a release tarfile, rather than a repository checkout."; \
-	else \
-	  $(MAKE) -C test check-maybe; \
+	 exit 1; \
 	fi
 
-check: all
-	@if test ! -d test; then \
-	  echo "You do not seem to have the test/ directory."; \
-	  echo "Maybe you are using a release tarfile, rather than a repository checkout."; \
-	else \
-	  $(MAKE) -C test check; \
-	fi
+check check-maybe: have-tests all
+	$(MAKE) -C test $@
 
 dist:
 	cd ${srcdir}; ./make-dist

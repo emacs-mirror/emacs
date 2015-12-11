@@ -1,3 +1,139 @@
+2015-12-03  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Avoid duplication.
+
+	(have-tests): New rule.
+	(check, check-maybe): Use it.
+
+2015-12-02  Phillip Lord  <phillip.lord@russet.org.uk>
+
+	make check unconditional, check-maybe top-level.
+
+	 * Makefile.in: Add check-maybe target.
+	 * test/Makefile.in: Restore unconditional behaviour to make check.
+
+2015-12-01  Phillip Lord  <phillip.lord@russet.org.uk>
+
+	Tests now support out-of-source-build.
+
+	 * tests/Makefile.in,test/make-test-deps.emacs-lisp: Remove assumptions
+	   about current working directory.
+
+2015-12-01  Artur Malabarba  <bruce.connor.am@gmail.com>
+
+	* lisp/emacs-lisp/let-alist.el: Now an Elpa :core package
+
+2015-11-30  Phillip Lord  <phillip.lord@russet.org.uk>
+
+	Improve documentation and clean up.
+
+	 * test/Makefile.in: Improve documentation, use EMACS variable
+	   correctly, and clean up makefile rules.
+
+2015-11-30  Phillip Lord  <phillip.lord@russet.org.uk>
+
+	Update file headers for name change.
+
+	 * (test/src/decompress-tests.el, test/src/alloc-tests.el): Update headers.
+
+2015-11-30  Phillip Lord  <phillip.lord@russet.org.uk>
+
+	Test files renamed to new scheme.
+
+	 * (finalizer-tests.el): Now renamed alloc-tests.el
+	 * (zlib-tests.el): Now renamed decompress-tests.el.
+
+2015-11-30  Phillip Lord  <phillip.lord@russet.org.uk>
+
+	Tests now depend on source files
+
+	 * test/Makefile.in: Include dependences from tests to source files.
+	 * test/make-test-deps.emacs-lisp: New file
+	 * .gitignore: Ignore generated make include file
+
+2015-11-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/progmodes/which-func.el: Improve disabling the mode
+
+	Use lexical-binding.
+	(which-func-modes, which-func-non-auto-modes, which-func-maxout)
+	(which-func, which-func-format): Remove redundant :group arg.
+	(which-func-try-to-enable): New function.
+	(which-func-ff-hook, which-function-mode): Use it.
+	(mode-line-misc-info): Add ourselves here instead of in bindings.el.
+	* lisp/bindings.el (mode-line-misc-info): Remove which-func-mode entry.
+
+2015-11-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/calculator.el (calculator-define-key): Silence warning
+
+	...about unknown calculator-mode-map.
+
+2015-11-29  Eli Barzilay  <eli@barzilay.org>
+
+	* lisp/calculator.el: more improvements and bugfixes.
+
+	- Mark `calculator-paste-decimals' as obsolete.  (It wasn't having an
+	  effect anyway.)
+
+	- Simplify `calculator-number-to-string' by throwing most of the work
+	  onto `number-to-string', leaving just some tweaks for decimal inputs.
+	  This leads to some minor changes, for example, pasting "1x1" in hex
+	  mode would warn that "x" is ignored and result in "11" (and it wasn't
+	  done in decimal mode), whereas now it just ignores everything from the
+	  "x" and on and result in a "1" just like in decimal input mode.  Also,
+	  overflows are left for `number-to-string' to deal with.
+
+	- `calculator-paste' is very simple as a result.
+
+	- Extend the simplified `calculator-paste': with a prefix argument it
+	  pastes a string as if the characters were entered.  This can be used
+	  to reduce expressions, but note that it's a simple literal operation,
+	  so precedence can be messed, a number can be paster while entering a
+	  number, spaces and newlines matter, etc.
+
+	- Fix a minor bug where "e+" in hex mode wouldn't use "+" as an
+	  operator.
+
+	- Fix a bug in `calculator-put-value': avoid grouping in the display
+	  that is used to construct `calculator-curnum'.  This would trigger
+	  when pasting or getting a value from a register in some radix mode
+	  with a large enough value.  Another fix: make the output radix equal
+	  the input one, otherwise numbers could be converted twice.
+
+2015-11-29  Eli Barzilay  <eli@barzilay.org>
+
+	* lisp/calculator.el: Re-do key bindings.
+
+	Use a helper function that arranges a parent keymap that binds alternate
+	case keys so if some letter key is unbound and it's un/shifted version
+	is, it will get used.  This makes the global-map trickery unnecessary.
+
+	Also switch to passing strings that name keys through `kbd'.
+
+2015-11-29  Eli Barzilay  <eli@barzilay.org>
+
+	* lisp/calculator.el: improve radix modes
+
+	Fix prompt for some input radix with decimal output (eg, "BD" instead of
+	the incorrect "B="); also, some minor docstring tweaks for these.
+
+2015-11-29  Eli Barzilay  <eli@barzilay.org>
+
+	* lisp/calculator.el: better reading of register names
+
+	Use `register-read-with-preview' with a dynamically bound
+	`register-alist' and a proper preview function to read register names.
+
+2015-11-29  Eli Barzilay  <eli@barzilay.org>
+
+	* lisp/calculator.el: General improvements
+
+	Use things like `when', `unless', and `push'.
+
+	Improve `calculator-last-input' so it doesn't barf when hitting `F1' in
+	non-electric mode.
+
 2015-11-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	Fix a problem with gfilenotify in filenotify-tests.el
@@ -19897,7 +20033,7 @@
 
 This file records repository revisions from
 commit 9d56a21e6a696ad19ac65c4b405aeca44785884a (exclusive) to
-commit 9a2363ec04c24a6959902da9b8eff2f1559ab3e0 (inclusive).
+commit ffefb6e899fbcdcbd79cb34292d57b7bc3043fcc (inclusive).
 See ChangeLog.1 for earlier changes.
 
 ;; Local Variables:
