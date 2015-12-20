@@ -1827,30 +1827,32 @@ prefix) if `which-key-use-C-h-commands' is non nil."
   "Show the top-level bindings in KEYMAP using which-key. KEYMAP
 is selected interactively from all available keymaps."
   (interactive)
-  (let ((map
-         (symbol-value
-          (intern
-           (completing-read "Keymap: " obarray
-                            (lambda (m) (and (boundp m)  (keymapp (symbol-value m))))
-                            t nil 'variable-name-history)))))
-    (if (equal map (make-sparse-keymap))
-        (message "which-key: %s is empty" map)
-      (which-key--show-keymap map))))
+  (which-key--show-keymap
+   (symbol-value
+    (intern
+     (completing-read
+      "Keymap: " obarray
+      (lambda (m)
+        (and (boundp m)
+             (keymapp (symbol-value m))
+             (not (equal (symbol-value m) (make-sparse-keymap)))))
+      t nil 'variable-name-history)))))
 
 (defun which-key-show-minor-mode-keymap ()
   "Show the top-level bindings in KEYMAP using which-key. KEYMAP
 is selected interactively by mode in `minor-mode-map-alist'."
   (interactive)
-  (let* ((mode (intern
-                (completing-read
-                 "Minor Mode: "
-                 (cl-remove-if-not (lambda (mode) (symbol-value mode))
-                                   (mapcar 'car minor-mode-map-alist))
-                 nil t nil 'variable-name-history)))
-         (map (cdr (assq mode minor-mode-map-alist))))
-    (if (equal map (make-sparse-keymap))
-        (message "which-key: %s's keymap is empty" mode)
-      (which-key--show-keymap map))))
+  (let ((mode (intern
+               (completing-read
+                "Minor Mode: "
+                (mapcar 'car
+                        (cl-remove-if-not
+                         (lambda (entry)
+                           (and (symbol-value (car entry))
+                                (not (equal (cdr entry) (make-sparse-keymap)))))
+                         minor-mode-map-alist))
+                nil t nil 'variable-name-history))))
+    (which-key--show-keymap (cdr (assq mode minor-mode-map-alist)))))
 
 (defun which-key--show-keymap (keymap)
   (setq which-key--current-prefix nil
