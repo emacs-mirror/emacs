@@ -220,17 +220,15 @@ function symbol (unquoted)."
                  #'(lambda (m)
                      `(bind-key ,prefix ',prefix-map ,m)) maps)
               `((bind-key ,prefix ',prefix-map)))))
-      (apply
-       #'nconc
-       (mapcar (lambda (form)
-                 (if prefix-map
-                     `((bind-key ,(car form) ',(cdr form) ,prefix-map))
-                   (if maps
-                       (mapcar
-                        #'(lambda (m)
-                            `(bind-key ,(car form) ',(cdr form) ,m)) maps)
-                     `((bind-key ,(car form) ',(cdr form))))))
-               key-bindings))))))
+      (cl-mapcan (lambda (form)
+                   (if prefix-map
+                       `((bind-key ,(car form) ',(cdr form) ,prefix-map))
+                     (if maps
+                         (mapcar
+                          #'(lambda (m)
+                              `(bind-key ,(car form) ',(cdr form) ,m)) maps)
+                       `((bind-key ,(car form) ',(cdr form))))))
+                 key-bindings)))))
 
 ;;;###autoload
 (defmacro bind-keys* (&rest args)
