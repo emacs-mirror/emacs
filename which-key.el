@@ -1823,17 +1823,41 @@ prefix) if `which-key-use-C-h-commands' is non nil."
         (which-key--show-page page-n)
         loc2))))
 
-(defun which-key-show-keymap (keymap)
-  "Show the top-level bindings in KEYMAP using which-key."
-  (interactive (list (intern
-                      (completing-read "Keymap: " obarray
-                                       (lambda (m) (and (boundp m)  (keymapp (symbol-value m))))
-                                       t nil 'variable-name-history))))
+(defun which-key-show-keymap ()
+  "Show the top-level bindings in KEYMAP using which-key. KEYMAP
+is selected interactively from all available keymaps."
+  (interactive)
+  (let ((map
+         (symbol-value
+          (intern
+           (completing-read "Keymap: " obarray
+                            (lambda (m) (and (boundp m)  (keymapp (symbol-value m))))
+                            t nil 'variable-name-history)))))
+    (if (equal map (make-sparse-keymap))
+        (message "which-key: %s is empty" map)
+      (which-key--show-keymap map))))
+
+(defun which-key-show-minor-mode-keymap ()
+  "Show the top-level bindings in KEYMAP using which-key. KEYMAP
+is selected interactively by mode in `minor-mode-map-alist'."
+  (interactive)
+  (let* ((mode (intern
+                (completing-read
+                 "Minor Mode: "
+                 (cl-remove-if-not (lambda (mode) (symbol-value mode))
+                                   (mapcar 'car minor-mode-map-alist))
+                 nil t nil 'variable-name-history)))
+         (map (cdr (assq mode minor-mode-map-alist))))
+    (if (equal map (make-sparse-keymap))
+        (message "which-key: %s's keymap is empty" mode)
+      (which-key--show-keymap map))))
+
+(defun which-key--show-keymap (keymap)
   (setq which-key--current-prefix nil
         which-key--using-top-level t)
-  (when (and (boundp keymap) (keymapp (symbol-value keymap)))
+  (when (keymapp keymap)
     (let ((formatted-keys (which-key--get-formatted-key-bindings
-                           (which-key--get-keymap-bindings (symbol-value keymap))))
+                           (which-key--get-keymap-bindings keymap)))
           (prefix-keys (key-description which-key--current-prefix)))
       (cond ((= (length formatted-keys) 0)
              (message "%s-  which-key: There are no keys to show" prefix-keys))
