@@ -436,6 +436,7 @@ showing.")
 used.")
 (defvar which-key--multiple-locations nil)
 (defvar which-key--using-top-level nil)
+(defvar which-key--using-show-keymap nil)
 
 (defvar which-key-key-based-description-replacement-alist '()
   "New version of
@@ -824,6 +825,7 @@ total height."
   (unless (member real-this-command which-key--paging-functions)
     (setq which-key--current-page-n nil
           which-key--using-top-level nil
+          which-key--using-show-keymap nil
           which-key--on-last-page nil)
     (cl-case which-key-popup-type
       ;; Not necessary to hide minibuffer
@@ -1856,7 +1858,7 @@ is selected interactively by mode in `minor-mode-map-alist'."
 
 (defun which-key--show-keymap (keymap)
   (setq which-key--current-prefix nil
-        which-key--using-top-level t)
+        which-key--using-show-keymap t)
   (when (keymapp keymap)
     (let ((formatted-keys (which-key--get-formatted-key-bindings
                            (which-key--get-keymap-bindings keymap)))
@@ -1915,7 +1917,9 @@ Finally, show the buffer."
                 (or (and which-key-allow-evil-operators (bound-and-true-p evil-this-operator))
                     (null this-command)))
            (which-key--create-buffer-and-show prefix-keys))
-          ((and which-key--current-page-n (not which-key--using-top-level))
+          ((and which-key--current-page-n
+                (not which-key--using-top-level)
+                (not which-key--using-show-keymap))
            (which-key--hide-popup)))))
 
 ;; Timers
