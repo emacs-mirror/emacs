@@ -1305,6 +1305,21 @@ alists. Returns a list (key separator description)."
          (list key-w-face sep-w-face desc-w-face)))
      unformatted)))
 
+(defun which-key--get-keymap-bindings (keymap)
+  "Retrieve top-level bindings from KEYMAP."
+  (let (bindings)
+    (map-keymap
+     (lambda (ev def)
+       (cl-pushnew
+        (cons (key-description (list ev))
+              (cond ((keymapp def) "Prefix Command")
+                    ((symbolp def) (copy-sequence (symbol-name def)))
+                    ((eq 'lambda (car-safe def)) "lambda")
+                    (t (format "%s" def))))
+        bindings :test (lambda (a b) (string= (car a) (car b)))))
+     keymap)
+    bindings))
+
 ;; adapted from helm-descbinds
 (defun which-key--get-current-bindings ()
   (let ((key-str-qt (regexp-quote (key-description which-key--current-prefix)))
@@ -1361,10 +1376,10 @@ alists. Returns a list (key separator description)."
           (forward-line))
         (nreverse bindings)))))
 
-(defun which-key--get-formatted-key-bindings ()
+(defun which-key--get-formatted-key-bindings (&optional bindings)
   "Uses `describe-buffer-bindings' to collect the key bindings in
 BUFFER that follow the key sequence KEY-SEQ."
-  (let* ((unformatted (which-key--get-current-bindings)))
+  (let* ((unformatted (if bindings bindings (which-key--get-current-bindings))))
     (when which-key-sort-order
       (setq unformatted
             (sort unformatted (lambda (a b) (funcall which-key-sort-order a b)))))
@@ -1807,6 +1822,28 @@ prefix) if `which-key-use-C-h-commands' is non nil."
                                       keys (window-width)))
         (which-key--show-page page-n)
         loc2))))
+
+(defun which-key-show-keymap (keymap)
+  "Show the top-level bindings in KEYMAP using which-key."
+  (interactive (list (intern
+                      (completing-read "Keymap: " obarray
+                                       (lambda (m) (and (boundp m)  (keymapp (symbol-value m))))
+                                       t nil 'variable-name-history))))
+  (setq which-key--current-prefix nil
+        which-key--using-top-level t)
+  (when (and (boundp keymap) (keymapp (symbol-value keymap)))
+    (let ((formatted-keys (which-key--get-formatted-key-bindings
+                           (which-key--get-keymap-bindings (symbol-value keymap))))
+          (prefix-keys (key-description which-key--current-prefix)))
+      (cond ((= (length formatted-keys) 0)
+             (message "%s-  which-key: There are no keys to show" prefix-keys))
+            ((listp which-key-side-window-location)
+             (setq which-key--last-try-2-loc
+                   (apply #'which-key--try-2-side-windows
+                          formatted-keys 0 which-key-side-window-location)))
+            (t (setq which-key--pages-plist
+                     (which-key--create-pages formatted-keys (window-width)))
+               (which-key--show-page 0))))))
 
 (defun which-key--create-buffer-and-show (&optional prefix-keys)
   "Fill `which-key--buffer' with key descriptions and reformat.
