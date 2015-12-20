@@ -1869,7 +1869,13 @@ is selected interactively by mode in `minor-mode-map-alist'."
                           formatted-keys 0 which-key-side-window-location)))
             (t (setq which-key--pages-plist
                      (which-key--create-pages formatted-keys (window-width)))
-               (which-key--show-page 0))))))
+               (which-key--show-page 0)))))
+  (let* ((key (string (read-key)))
+         (next-def (lookup-key keymap key)))
+    (if (keymapp next-def)
+        (progn (which-key--hide-popup-ignore-command)
+               (which-key--show-keymap next-def))
+      (which-key--hide-popup))))
 
 (defun which-key--create-buffer-and-show (&optional prefix-keys)
   "Fill `which-key--buffer' with key descriptions and reformat.
