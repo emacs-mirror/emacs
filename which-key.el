@@ -436,7 +436,8 @@ showing.")
 used.")
 (defvar which-key--multiple-locations nil)
 (defvar which-key--using-top-level nil)
-(defvar which-key--using-show-keymap nil)
+(defvar which-key--current-show-keymap-name nil)
+(defvar which-key--prior-show-keymap-args nil)
 
 (defvar which-key-key-based-description-replacement-alist '()
   "New version of
@@ -825,7 +826,8 @@ total height."
   (unless (member real-this-command which-key--paging-functions)
     (setq which-key--current-page-n nil
           which-key--using-top-level nil
-          which-key--using-show-keymap nil
+          which-key--current-show-keymap-name nil
+          which-key--prior-show-keymap-args nil
           which-key--on-last-page nil)
     (cl-case which-key-popup-type
       ;; Not necessary to hide minibuffer
@@ -1123,6 +1125,9 @@ coming before a prefix. Within these categories order using
   "Version of `lookup-key' that allows KEYMAP to be nil. KEY is not checked."
   (when (keymapp keymap) (lookup-key keymap key)))
 
+(defsubst which-key--butlast-string (str)
+  (mapconcat #'identity (butlast (split-string str)) " "))
+
 (defun which-key--maybe-replace (string repl-alist &optional literal)
   "Perform replacements on STRING.
 REPL-ALIST is an alist where the car of each element is the text
@@ -1164,26 +1169,29 @@ a replacement occurs return the new STRING."
   "KEYS is a string produced by `key-description'.
 A title is possibly returned using `which-key-prefix-title-alist'.
 An empty stiring is returned if no title exists."
-  (if (not (string-equal keys ""))
-      (let* ((alist which-key-prefix-title-alist)
-             (res (assoc-string keys alist))
-             (mode-alist (assq major-mode alist))
-             (mode-res (when mode-alist
-                         (assoc-string keys mode-alist)))
-             (binding (key-binding keys))
-             (alternate (when (and binding (symbolp binding))
-                          (symbol-name binding))))
-        (cond (mode-res (cdr mode-res))
-              (res (cdr res))
-              ((and (eq which-key-show-prefix 'echo) alternate)
-               alternate)
-              ((and (member which-key-show-prefix '(bottom top))
-                    (eq which-key-side-window-location 'bottom)
-                    echo-keystrokes)
-               (if alternate alternate
-                 (concat "Following " keys)))
-              (t "")))
-    "Top-level bindings"))
+  (cond
+   ((not (string-equal keys ""))
+    (let* ((alist which-key-prefix-title-alist)
+           (res (assoc-string keys alist))
+           (mode-alist (assq major-mode alist))
+           (mode-res (when mode-alist
+                       (assoc-string keys mode-alist)))
+           (binding (key-binding keys))
+           (alternate (when (and binding (symbolp binding))
+                        (symbol-name binding))))
+      (cond (mode-res (cdr mode-res))
+            (res (cdr res))
+            ((and (eq which-key-show-prefix 'echo) alternate)
+             alternate)
+            ((and (member which-key-show-prefix '(bottom top))
+                  (eq which-key-side-window-location 'bottom)
+                  echo-keystrokes)
+             (if alternate alternate
+               (concat "Following " keys)))
+            (t ""))))
+    (which-key--using-top-level "Top-level bindings")
+    (which-key--current-show-keymap-name
+     which-key--current-show-keymap-name)))
 
 (defun which-key--maybe-replace-key-based (string keys)
   "KEYS is a string produced by `key-description'
@@ -1761,12 +1769,15 @@ after first page."
   (interactive)
   (let* ((key-lst (butlast (which-key--current-key-list)))
          (which-key-inhibit t))
-    (if key-lst
-        (progn
-          (which-key--reload-key-sequence key-lst)
-          (which-key--create-buffer-and-show
-           (apply #'vector key-lst)))
-      (which-key-show-top-level))))
+    (cond ((stringp which-key--current-show-keymap-name)
+           (if (keymapp (cdr (car-safe which-key--prior-show-keymap-args)))
+               (let ((args (pop which-key--prior-show-keymap-args)))
+                 (which-key--show-keymap (car args) (cdr args)))
+             (which-key--hide-popup)))
+          (key-lst
+           (which-key--reload-key-sequence key-lst)
+           (which-key--create-buffer-and-show (apply #'vector key-lst)))
+          (t (which-key-show-top-level)))))
 (defalias 'which-key-undo 'which-key-undo-key)
 
 (defun which-key-abort ()
@@ -1829,42 +1840,43 @@ prefix) if `which-key-use-C-h-commands' is non nil."
   "Show the top-level bindings in KEYMAP using which-key. KEYMAP
 is selected interactively from all available keymaps."
   (interactive)
-  (which-key--show-keymap
-   (symbol-value
-    (intern
-     (completing-read
-      "Keymap: " obarray
-      (lambda (m)
-        (and (boundp m)
-             (keymapp (symbol-value m))
-             (not (equal (symbol-value m) (make-sparse-keymap)))))
-      t nil 'variable-name-history)))))
+  (let ((keymap-sym (intern
+                     (completing-read
+                      "Keymap: " obarray
+                      (lambda (m)
+                        (and (boundp m)
+                             (keymapp (symbol-value m))
+                             (not (equal (symbol-value m) (make-sparse-keymap)))))
+                      t nil 'variable-name-history))))
+    (which-key--show-keymap (symbol-name keymap-sym) (symbol-value keymap-sym))))
 
 (defun which-key-show-minor-mode-keymap ()
   "Show the top-level bindings in KEYMAP using which-key. KEYMAP
 is selected interactively by mode in `minor-mode-map-alist'."
   (interactive)
-  (let ((mode (intern
-               (completing-read
-                "Minor Mode: "
-                (mapcar 'car
-                        (cl-remove-if-not
-                         (lambda (entry)
-                           (and (symbol-value (car entry))
-                                (not (equal (cdr entry) (make-sparse-keymap)))))
-                         minor-mode-map-alist))
-                nil t nil 'variable-name-history))))
-    (which-key--show-keymap (cdr (assq mode minor-mode-map-alist)))))
+  (let ((mode-sym
+         (intern
+          (completing-read
+           "Minor Mode: "
+           (mapcar 'car
+                   (cl-remove-if-not
+                    (lambda (entry)
+                      (and (symbol-value (car entry))
+                           (not (equal (cdr entry) (make-sparse-keymap)))))
+                    minor-mode-map-alist))
+           nil t nil 'variable-name-history))))
+    (which-key--show-keymap (symbol-name mode-sym)
+                            (cdr (assq mode-sym minor-mode-map-alist)))))
 
-(defun which-key--show-keymap (keymap)
+(defun which-key--show-keymap (keymap-name keymap &optional prior-args)
   (setq which-key--current-prefix nil
-        which-key--using-show-keymap t)
+        which-key--current-show-keymap-name keymap-name)
+  (when prior-args (push prior-args which-key--prior-show-keymap-args))
   (when (keymapp keymap)
     (let ((formatted-keys (which-key--get-formatted-key-bindings
-                           (which-key--get-keymap-bindings keymap)))
-          (prefix-keys (key-description which-key--current-prefix)))
+                           (which-key--get-keymap-bindings keymap))))
       (cond ((= (length formatted-keys) 0)
-             (message "%s-  which-key: There are no keys to show" prefix-keys))
+             (message "which-key: Keymap empty"))
             ((listp which-key-side-window-location)
              (setq which-key--last-try-2-loc
                    (apply #'which-key--try-2-side-windows
@@ -1872,12 +1884,15 @@ is selected interactively by mode in `minor-mode-map-alist'."
             (t (setq which-key--pages-plist
                      (which-key--create-pages formatted-keys (window-width)))
                (which-key--show-page 0)))))
-  (let* ((key (string (read-key)))
-         (next-def (lookup-key keymap key)))
-    (if (keymapp next-def)
-        (progn (which-key--hide-popup-ignore-command)
-               (which-key--show-keymap next-def))
-      (which-key--hide-popup))))
+  (let* ((key (key-description (list (read-key))))
+         (next-def (lookup-key keymap (kbd key))))
+    (cond ((and which-key-use-C-h-commands (string= "C-h" key))
+           (which-key-C-h-dispatch))
+          ((keymapp next-def)
+           (which-key--hide-popup-ignore-command)
+           (which-key--show-keymap (concat keymap-name " " key) next-def
+                                   (cons keymap-name keymap)))
+          (t (which-key--hide-popup)))))
 
 (defun which-key--create-buffer-and-show (&optional prefix-keys)
   "Fill `which-key--buffer' with key descriptions and reformat.
@@ -1919,7 +1934,7 @@ Finally, show the buffer."
            (which-key--create-buffer-and-show prefix-keys))
           ((and which-key--current-page-n
                 (not which-key--using-top-level)
-                (not which-key--using-show-keymap))
+                (not which-key--current-show-keymap-name))
            (which-key--hide-popup)))))
 
 ;; Timers
