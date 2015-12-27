@@ -1598,7 +1598,7 @@ defaults to one."
 (provide 'ibuf-ext)
 
 ;; Local Variables:
-;; generated-autoload-file: "ibuffer.el"
+;; generated-autoload-file: "ibuffer-loaddefs.el"
 ;; End:
 
 ;;; ibuf-ext.el ends here

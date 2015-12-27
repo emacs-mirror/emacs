@@ -80,6 +80,9 @@ instead of the filename inheritance method."
 	  byserv (cdr-safe (assoc server
 				  (symbol-value url-basic-auth-storage))))
     (cond
+     ((and user pass)
+      ;; Explicit http://user:pass@foo/ URL.  Just return the credentials.
+      (setq retval (base64-encode-string (format "%s:%s" user pass))))
      ((and prompt (not byserv))
       (setq user (or
 		  (url-do-auth-source-search server type :user)

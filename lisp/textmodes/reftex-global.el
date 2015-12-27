@@ -477,5 +477,5 @@ With no argument, this command toggles
 ;;; reftex-global.el ends here
 
 ;; Local Variables:
-;; generated-autoload-file: "reftex.el"
+;; generated-autoload-file: "reftex-loaddefs.el"
 ;; End:

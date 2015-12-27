@@ -1414,6 +1414,13 @@ names into arguments for other Emacs commands.  It also displays what
 it added to the kill ring, so you can use it to display the list of
 currently marked files in the echo area.
 
+@kindex W @r{(Dired)}
+@findex browse-url-of-dired-file
+  If you have an HTML file in the file listing, it can be useful to
+view that file with a browser.  The @kbd{W}
+(@code{browse-url-of-dired-file}) command will use the standard
+configured browser to view that file.
+
 @kindex ( @r{(Dired)}
 @findex dired-hide-details-mode
 @vindex dired-hide-details-hide-symlink-targets

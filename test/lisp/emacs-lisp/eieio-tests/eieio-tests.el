@@ -895,6 +895,12 @@ Subclasses to override slot attributes.")
 (ert-deftest eieio-test-37-obsolete-name-in-constructor ()
   (should (equal (eieio--testing "toto") '("toto" 2))))
 
+(ert-deftest eieio-autoload ()
+  "Tests to see whether reftex-auc has been autoloaded"
+  (should
+   (fboundp 'eieio--defalias)))
+
+
 (provide 'eieio-tests)
 
 ;;; eieio-tests.el ends here

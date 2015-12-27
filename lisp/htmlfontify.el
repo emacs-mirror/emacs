@@ -90,6 +90,8 @@
 ;;  (`font-lock-fontify-region')
 (require 'cus-edit)
 
+(require 'htmlfontify-loaddefs)
+
 (defconst htmlfontify-version 0.21)
 
 (defconst hfy-meta-tags
@@ -2410,26 +2412,6 @@ You may also want to set `hfy-page-header' and `hfy-page-footer'."
   (interactive)
   (let ((file (hfy-initfile)))
     (load file 'NOERROR nil nil) ))
-
-
-;;;### (autoloads nil "hfy-cmap" "hfy-cmap.el" "1fb78b15b18622256262c7246b2a3520")
-;;; Generated autoloads from hfy-cmap.el
-
-(autoload 'htmlfontify-load-rgb-file "hfy-cmap" "\
-Load an X11 style rgb.txt FILE.
-Search `hfy-rgb-load-path' if FILE is not specified.
-Loads the variable `hfy-rgb-txt-colour-map', which is used by
-`hfy-fallback-colour-values'.
-
-\(fn &optional FILE)" t nil)
-
-(autoload 'hfy-fallback-colour-values "hfy-cmap" "\
-Use a fallback method for obtaining the rgb values for a color.
-
-\(fn COLOUR-STRING)" nil nil)
-
-;;;***
-
 
 (provide 'htmlfontify)
 

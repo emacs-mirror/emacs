@@ -376,6 +376,9 @@ hide all messages of the specified type, where `erc-network-hide-list'
 and `erc-channel-hide-list' will only hide the specified message types
 for the respective specified targets.
 
+*** New variable `erc-default-port-tls' used to connect to TLS IRC
+servers.
+
 ** Midnight-mode
 *** `midnight-mode' is a proper minor mode.
 *** clean-buffer-*-regexps can now specify buffers via predicate functions.
@@ -522,6 +525,11 @@ useful when, for example, one needs to distinguish various spaces (e.g. ] [,
 *** A new command `F' (`eww-toggle-fonts') can be used to toggle
 whether to use variable-pitch fonts or not.  The user can also
 customize the `shr-use-fonts' variable.
+
++++
+*** A new command `C' (`eww-toggle-colors) can be used to toggle
+whether to use the HTML-specified colors or not.  The user can also
+customize the `shr-use-colors variable.
 
 +++
 *** A new command `R' (`eww-readable') will try do identify the main
@@ -894,6 +902,10 @@ directories and decompress zip files.
 compress many marked files into a single named archive.  The
 compression command is determined from the new
 `dired-compress-files-alist' variable.
+
++++
+*** `W' is now bound to `browse-url-of-dired-file', and is useful for
+viewing HTML files and the like.
 
 ** Obsolete packages
 

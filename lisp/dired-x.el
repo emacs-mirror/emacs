@@ -1669,7 +1669,7 @@ If `current-prefix-arg' is non-nil, uses name at point as guess."
 
 ;; Local Variables:
 ;; byte-compile-dynamic: t
-;; generated-autoload-file: "dired.el"
+;; generated-autoload-file: "dired-loaddefs.el"
 ;; End:
 
 ;;; dired-x.el ends here

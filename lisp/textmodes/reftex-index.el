@@ -2119,5 +2119,5 @@ Does not do a save-excursion."
 ;;; reftex-index.el ends here
 
 ;; Local Variables:
-;; generated-autoload-file: "reftex.el"
+;; generated-autoload-file: "reftex-loaddefs.el"
 ;; End:

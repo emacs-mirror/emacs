@@ -274,17 +274,13 @@ word(s) will be searched for via `eww-search-prefix'."
                  (setq url (concat url "/"))))
            (setq url (concat eww-search-prefix
                              (replace-regexp-in-string " " "+" url))))))
-  (if (eq major-mode 'eww-mode)
-      (when (or (plist-get eww-data :url)
-		(plist-get eww-data :dom))
-	(eww-save-history))
-    (eww-setup-buffer)
-    (plist-put eww-data :url url)
-    (plist-put eww-data :title "")
-    (eww-update-header-line-format)
-    (let ((inhibit-read-only t))
-      (insert (format "Loading %s..." url))
-      (goto-char (point-min))))
+  (eww-setup-buffer)
+  (plist-put eww-data :url url)
+  (plist-put eww-data :title "")
+  (eww-update-header-line-format)
+  (let ((inhibit-read-only t))
+    (insert (format "Loading %s..." url))
+    (goto-char (point-min)))
   (url-retrieve url 'eww-render
 		(list url nil (current-buffer))))
 
@@ -411,13 +407,17 @@ Currently this means either text/html or application/xhtml+xml."
 	    (inhibit-modification-hooks t)
 	    (shr-target-id (url-target (url-generic-parse-url url)))
 	    (shr-external-rendering-functions
-	     '((title . eww-tag-title)
-	       (form . eww-tag-form)
-	       (input . eww-tag-input)
-	       (textarea . eww-tag-textarea)
-	       (select . eww-tag-select)
-	       (link . eww-tag-link)
-	       (a . eww-tag-a))))
+             (append
+              shr-external-rendering-functions
+              '((title . eww-tag-title)
+                (form . eww-tag-form)
+                (input . eww-tag-input)
+                (button . eww-form-submit)
+                (textarea . eww-tag-textarea)
+                (select . eww-tag-select)
+                (link . eww-tag-link)
+                (meta . eww-tag-meta)
+                (a . eww-tag-a)))))
 	(erase-buffer)
 	(shr-insert-document document)
 	(cond
@@ -461,6 +461,27 @@ Currently this means either text/html or application/xhtml+xml."
     (and href
 	 where
 	 (plist-put eww-data (cdr where) href))))
+
+(defvar eww-redirect-level 1)
+
+(defun eww-tag-meta (dom)
+  (when (and (cl-equalp (dom-attr dom 'http-equiv) "refresh")
+             (< eww-redirect-level 5))
+    (when-let (refresh (dom-attr dom 'content))
+      (when (or (string-match "^\\([0-9]+\\) *;.*url=\"\\([^\"]+\\)\"" refresh)
+                (string-match "^\\([0-9]+\\) *;.*url=\\([^ ]+\\)" refresh))
+        (let ((timeout (match-string 1 refresh))
+              (url (match-string 2 refresh))
+              (eww-redirect-level (1+ eww-redirect-level)))
+          (if (equal timeout "0")
+              (eww (shr-expand-url url))
+            (eww-tag-a
+             (dom-node 'a `((href . ,(shr-expand-url url)))
+                       (format "Auto refresh in %s second%s disabled"
+                               timeout
+                               (if (equal timeout "1")
+                                   ""
+                                 "s"))))))))))
 
 (defun eww-tag-link (dom)
   (eww-handle-link dom)
@@ -538,6 +559,9 @@ Currently this means either text/html or application/xhtml+xml."
 
 (defun eww-setup-buffer ()
   (switch-to-buffer (get-buffer-create "*eww*"))
+  (when (or (plist-get eww-data :url)
+            (plist-get eww-data :dom))
+    (eww-save-history))
   (let ((inhibit-read-only t))
     (remove-overlays)
     (erase-buffer))
@@ -658,6 +682,7 @@ the like."
     (define-key map "E" 'eww-set-character-encoding)
     (define-key map "S" 'eww-list-buffers)
     (define-key map "F" 'eww-toggle-fonts)
+    (define-key map [(meta C)] 'eww-toggle-colors)
 
     (define-key map "b" 'eww-add-bookmark)
     (define-key map "B" 'eww-list-bookmarks)
@@ -682,6 +707,8 @@ the like."
 	["Add bookmark" eww-add-bookmark t]
 	["List bookmarks" eww-list-bookmarks t]
 	["List cookies" url-cookie-list t]
+	["Toggle fonts" eww-toggle-fonts t]
+	["Toggle colors" eww-toggle-colors t]
        ["Character Encoding" eww-set-character-encoding]))
     map))
 
@@ -715,7 +742,8 @@ the like."
   (setq-local desktop-save-buffer #'eww-desktop-misc-data)
   ;; multi-page isearch support
   (setq-local multi-isearch-next-buffer-function #'eww-isearch-next-buffer)
-  (setq truncate-lines t)
+  (setq truncate-lines t
+        bidi-paragraph-direction 'left-to-right)
   (buffer-disable-undo)
   (setq buffer-read-only t))
 
@@ -1179,16 +1207,19 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
      (eww-update-field display))))
 
 (defun eww-update-field (string &optional offset)
-  (if (not offset) (setq offset 0))
+  (unless offset
+    (setq offset 0))
   (let ((properties (text-properties-at (point)))
 	(start (+ (eww-beginning-of-field) offset))
 	(current-end (1+ (eww-end-of-field)))
-	(new-end (1+ (+ (eww-beginning-of-field) (length string)))))
+	(new-end (+ (eww-beginning-of-field) (length string)))
+        (inhibit-read-only t))
     (delete-region start current-end)
     (forward-char offset)
     (insert string
 	    (make-string (- (- (+ new-end offset) start) (length string)) ? ))
-    (if (= 0 offset) (set-text-properties start new-end properties))
+    (when (= 0 offset)
+      (set-text-properties start new-end properties))
     start))
 
 (defun eww-toggle-checkbox ()
@@ -1402,12 +1433,37 @@ Differences in #targets are ignored."
   (unless (plist-get status :error)
     (let* ((obj (url-generic-parse-url url))
            (path (car (url-path-and-query obj)))
-           (file (eww-make-unique-file-name (file-name-nondirectory path)
-					    eww-download-directory)))
+           (file (eww-make-unique-file-name
+                  (eww-decode-url-file-name (file-name-nondirectory path))
+                  eww-download-directory)))
       (goto-char (point-min))
       (re-search-forward "\r?\n\r?\n")
       (write-region (point) (point-max) file)
       (message "Saved %s" file))))
+
+(defun eww-decode-url-file-name (string)
+  (let* ((binary (url-unhex-string string))
+         (decoded
+          (decode-coding-string
+           binary
+           ;; Possibly set by `universal-coding-system-argument'.
+           (or coding-system-for-read
+               ;; RFC 3986 says that %AB stuff is utf-8.
+               (if (equal (decode-coding-string binary 'utf-8)
+                          '(unicode))
+                   'utf-8
+                 ;; But perhaps not.
+                 (car (detect-coding-string binary))))))
+         (encodes (find-coding-systems-string decoded)))
+    (if (or (equal encodes '(undecided))
+            (memq (coding-system-base (or file-name-coding-system
+                                          default-file-name-coding-system))
+                  encodes))
+        decoded
+      ;; If we can't encode the decoded file name (due to language
+      ;; environment settings), then we return the original, hexified
+      ;; string.
+      string)))
 
 (defun eww-make-unique-file-name (file directory)
     (cond
@@ -1415,13 +1471,14 @@ Differences in #targets are ignored."
       (setq file "!"))
      ((string-match "\\`[.]" file)
       (setq file (concat "!" file))))
-    (let ((count 1))
+    (let ((count 1)
+          (stem file)
+          (suffix ""))
+      (when (string-match "\\`\\(.*\\)\\([.][^.]+\\)" file)
+        (setq stem (match-string 1)
+              suffix (match-string 2)))
       (while (file-exists-p (expand-file-name file directory))
-	(setq file
-	      (if (string-match "\\`\\(.*\\)\\([.][^.]+\\)" file)
-		  (format "%s(%d)%s" (match-string 1 file)
-			  count (match-string 2 file))
-		(format "%s(%d)" file count)))
+        (setq file (format "%s(%d)%s" stem count suffix))
 	(setq count (1+ count)))
       (expand-file-name file directory)))
 
@@ -1438,6 +1495,15 @@ If CHARSET is nil then use UTF-8."
   (interactive)
   (message "Fonts are now %s"
 	   (if (setq shr-use-fonts (not shr-use-fonts))
+	       "on"
+	     "off"))
+  (eww-reload))
+
+(defun eww-toggle-colors ()
+  "Toggle whether to use HTML-specified colors or not."
+  (interactive)
+  (message "Colors are now %s"
+	   (if (setq shr-use-colors (not shr-use-colors))
 	       "on"
 	     "off"))
   (eww-reload))

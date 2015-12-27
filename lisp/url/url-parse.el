@@ -59,8 +59,6 @@ where each of PATH and QUERY are strings or nil."
 	  (setq path  (substring name 0 (match-beginning 0))
 		query (substring name (match-end 0)))
 	(setq path name)))
-    (if (equal path "") (setq path nil))
-    (if (equal query "") (setq query nil))
     (cons path query)))
 
 (defun url-port-if-non-default (urlobj)
@@ -217,8 +215,7 @@ parses to
 	    (when (looking-at "#")
 	      (let ((opoint (point)))
 		(forward-char 1)
-		(unless (eobp)
-		  (setq fragment (buffer-substring (point) (point-max))))
+                (setq fragment (buffer-substring (point) (point-max)))
 		(delete-region opoint (point-max)))))
 
           (if (and host (string-match "%[0-9][0-9]" host))

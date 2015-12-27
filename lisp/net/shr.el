@@ -63,6 +63,12 @@ fit these criteria."
   :group 'shr
   :type 'boolean)
 
+(defcustom shr-use-colors t
+  "If non-nil, respect color specifications in the HTML."
+  :version "25.2"
+  :group 'shr
+  :type 'boolean)
+
 (defcustom shr-table-horizontal-line nil
   "Character used to draw horizontal table lines.
 If nil, don't draw horizontal table lines."
@@ -135,6 +141,14 @@ cid: URL as the argument.")
 (defvar shr-inhibit-images nil
   "If non-nil, inhibit loading images.")
 
+(defvar shr-external-rendering-functions nil
+  "Alist of tag/function pairs used to alter how shr renders certain tags.
+For instance, eww uses this to alter rendering of title, forms
+and other things:
+((title . eww-tag-title)
+ (form . eww-tag-form)
+ ...)")
+
 ;;; Internal variables.
 
 (defvar shr-folding-mode nil)
@@ -150,7 +164,6 @@ cid: URL as the argument.")
 (defvar shr-depth 0)
 (defvar shr-warning nil)
 (defvar shr-ignore-cache nil)
-(defvar shr-external-rendering-functions nil)
 (defvar shr-target-id nil)
 (defvar shr-table-separator-length 1)
 (defvar shr-table-separator-pixel-width 0)
@@ -416,17 +429,16 @@ size, and full-buffer size."
 
 (defun shr-descend (dom)
   (let ((function
-	 (or
-	  ;; Allow other packages to override (or provide) rendering
-	  ;; of elements.
-	  (cdr (assq (dom-tag dom) shr-external-rendering-functions))
-	  (intern (concat "shr-tag-" (symbol-name (dom-tag dom))) obarray)))
+         (intern (concat "shr-tag-" (symbol-name (dom-tag dom))) obarray))
+        ;; Allow other packages to override (or provide) rendering
+        ;; of elements.
+        (external (cdr (assq (dom-tag dom) shr-external-rendering-functions)))
 	(style (dom-attr dom 'style))
 	(shr-stylesheet shr-stylesheet)
 	(shr-depth (1+ shr-depth))
 	(start (point)))
-    ;; shr uses about 12 frames per nested node.
-    (if (> shr-depth (/ max-specpdl-size 12))
+    ;; shr uses many frames per nested node.
+    (if (> shr-depth (/ max-specpdl-size 15))
 	(setq shr-warning "Too deeply nested to render properly; consider increasing `max-specpdl-size'")
       (when style
 	(if (string-match "color\\|display\\|border-collapse" style)
@@ -435,9 +447,12 @@ size, and full-buffer size."
 	  (setq style nil)))
       ;; If we have a display:none, then just ignore this part of the DOM.
       (unless (equal (cdr (assq 'display shr-stylesheet)) "none")
-	(if (fboundp function)
-	    (funcall function dom)
-	  (shr-generic dom))
+        (cond (external
+               (funcall external dom))
+              ((fboundp function)
+               (funcall function dom))
+              (t
+               (shr-generic dom)))
 	(when (and shr-target-id
 		   (equal (dom-attr dom 'id) shr-target-id))
 	  ;; If the element was empty, we don't have anything to put the
@@ -1075,7 +1090,9 @@ ones, in case fg and bg are nil."
                (shr-color-visible bg fg)))))))
 
 (defun shr-colorize-region (start end fg &optional bg)
-  (when (and (or fg bg) (>= (display-color-cells) 88))
+  (when (and shr-use-colors
+             (or fg bg)
+             (>= (display-color-cells) 88))
     (let ((new-colors (shr-color-check fg bg)))
       (when new-colors
 	(when fg
@@ -1101,6 +1118,15 @@ ones, in case fg and bg are nil."
       (+ width previous-width))))
 
 ;;; Tag-specific rendering rules.
+
+(defun shr-tag-html (dom)
+  (let ((dir (dom-attr dom 'dir)))
+    (cond
+     ((equal dir "ltr")
+      (setq bidi-paragraph-direction 'left-to-right))
+     ((equal dir "rtl")
+      (setq bidi-paragraph-direction 'right-to-left))))
+  (shr-generic dom))
 
 (defun shr-tag-body (dom)
   (let* ((start (point))
@@ -1152,7 +1178,9 @@ ones, in case fg and bg are nil."
 
 (defun shr-tag-svg (dom)
   (when (and (image-type-available-p 'svg)
-	     (not shr-inhibit-images))
+	     (not shr-inhibit-images)
+             (dom-attr dom 'width)
+             (dom-attr dom 'height))
     (funcall shr-put-image-function (list (shr-dom-to-xml dom) 'image/svg+xml)
 	     "SVG Image")))
 
@@ -1570,19 +1598,30 @@ The preference is a float determined from `shr-prefer-media-type'."
     ;; Then render the table again with these new "hard" widths.
     (shr-insert-table (shr-make-table dom sketch-widths t) sketch-widths)))
 
+(defun shr-table-body (dom)
+  (let ((tbodies (dom-by-tag dom 'tbody)))
+    (cond
+     ((null tbodies)
+      dom)
+     ((= (length tbodies) 1)
+      (car tbodies))
+     (t
+      ;; Table with multiple tbodies.  Convert into a single tbody.
+      `(tbody nil ,@(cl-reduce 'append
+                               (mapcar 'dom-non-text-children tbodies)))))))
+
 (defun shr-tag-table (dom)
   (shr-ensure-paragraph)
   (let* ((caption (dom-children (dom-child-by-tag dom 'caption)))
 	 (header (dom-non-text-children (dom-child-by-tag dom 'thead)))
-	 (body (dom-non-text-children (or (dom-child-by-tag dom 'tbody)
-					  dom)))
+	 (body (dom-non-text-children (shr-table-body dom)))
 	 (footer (dom-non-text-children (dom-child-by-tag dom 'tfoot)))
          (bgcolor (dom-attr dom 'bgcolor))
 	 (start (point))
 	 (shr-stylesheet (nconc (list (cons 'background-color bgcolor))
 				shr-stylesheet))
 	 (nheader (if header (shr-max-columns header)))
-	 (nbody (if body (shr-max-columns body)))
+	 (nbody (if body (shr-max-columns body) 0))
 	 (nfooter (if footer (shr-max-columns footer))))
     (if (and (not caption)
 	     (not header)

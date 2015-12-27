@@ -570,7 +570,7 @@ Looks at `ffap-ftp-default-user', returns \"\" for \"localhost\"."
 (defvaralias 'ffap-newsgroup-heads  'thing-at-point-newsgroup-heads)
 (defalias 'ffap-newsgroup-p 'thing-at-point-newsgroup-p)
 
-(defsubst ffap-url-p (string)
+(defun ffap-url-p (string)
   "If STRING looks like an URL, return it (maybe improved), else nil."
   (when (and (stringp string) ffap-url-regexp)
     (let* ((case-fold-search t)

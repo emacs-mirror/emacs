@@ -966,41 +966,6 @@ variable PRINT-FUNCTION.  Optional argument NOESCAPE is passed to
 (advice-add 'edebug-prin1-to-string
             :around #'eieio-edebug-prin1-to-string)
 
-
-;;; Start of automatically extracted autoloads.
-
-;;;### (autoloads nil "eieio-custom" "eieio-custom.el" "916f54b818479a77a02f3ecccda84a11")
-;;; Generated autoloads from eieio-custom.el
-
-(autoload 'customize-object "eieio-custom" "\
-Customize OBJ in a custom buffer.
-Optional argument GROUP is the sub-group of slots to display.
-
-\(fn OBJ &optional GROUP)" nil nil)
-
-;;;***
-
-;;;### (autoloads nil "eieio-opt" "eieio-opt.el" "d00419c898056fadf2f8e491f864aa1e")
-;;; Generated autoloads from eieio-opt.el
-
-(autoload 'eieio-browse "eieio-opt" "\
-Create an object browser window to show all objects.
-If optional ROOT-CLASS, then start with that, otherwise start with
-variable `eieio-default-superclass'.
-
-\(fn &optional ROOT-CLASS)" t nil)
-
-(define-obsolete-function-alias 'eieio-help-class 'cl--describe-class "25.1")
-
-(autoload 'eieio-help-constructor "eieio-opt" "\
-Describe CTR if it is a class constructor.
-
-\(fn CTR)" nil nil)
-
-;;;***
-
-;;; End of automatically extracted autoloads.
-
 (provide 'eieio)
 
 ;;; eieio ends here

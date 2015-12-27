@@ -1206,17 +1206,20 @@ the end of the document."
   "Retrieve URL via HTTP asynchronously.
 URL must be a parsed URL.  See `url-generic-parse-url' for details.
 
-When retrieval is completed, execute the function CALLBACK, passing it
-an updated value of CBARGS as arguments.  The first element in CBARGS
-should be a plist describing what has happened so far during the
-request, as described in the docstring of `url-retrieve' (if in
-doubt, specify nil).
+When retrieval is completed, execute the function CALLBACK,
+passing it an updated value of CBARGS as arguments.  The first
+element in CBARGS should be a plist describing what has happened
+so far during the request, as described in the docstring of
+`url-retrieve' (if in doubt, specify nil).  The current buffer
+then CALLBACK is executed is the retrieval buffer.
 
 Optional arg RETRY-BUFFER, if non-nil, specifies the buffer of a
 previous `url-http' call, which is being re-attempted.
 
 Optional arg GATEWAY-METHOD specifies the gateway to be used,
-overriding the value of `url-gateway-method'."
+overriding the value of `url-gateway-method'.
+
+The return value of this function is the retrieval buffer."
   (cl-check-type url vector "Need a pre-parsed URL.")
   (let* ((host (url-host (or url-using-proxy url)))
 	 (port (url-port (or url-using-proxy url)))

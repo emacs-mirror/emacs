@@ -192,7 +192,7 @@ With prefix argument N moves forward N messages with these labels."
 (provide 'rmailkwd)
 
 ;; Local Variables:
-;; generated-autoload-file: "rmail.el"
+;; generated-autoload-file: "rmail-loaddefs.el"
 ;; End:
 
 ;;; rmailkwd.el ends here

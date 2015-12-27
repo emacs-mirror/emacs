@@ -1262,5 +1262,5 @@ created files in the variables `reftex-create-bibtex-header' or
 ;;; reftex-cite.el ends here
 
 ;; Local Variables:
-;; generated-autoload-file: "reftex.el"
+;; generated-autoload-file: "reftex-loaddefs.el"
 ;; End:

@@ -119,41 +119,42 @@ telling Microsoft that."
 
 (defun url-cookie-store (name value &optional expires domain localpart secure)
   "Store a cookie."
-  (let ((storage (if secure url-cookie-secure-storage url-cookie-storage))
-	tmp found-domain)
-    ;; First, look for a matching domain.
-    (if (setq found-domain (assoc domain storage))
-	;; Need to either stick the new cookie in existing domain storage
-	;; or possibly replace an existing cookie if the names match.
-	(unless (dolist (cur (setq storage (cdr found-domain)) tmp)
-		  (and (equal localpart (url-cookie-localpart cur))
-		       (equal name (url-cookie-name cur))
-		       (progn
-			 (setf (url-cookie-expires cur) expires)
-			 (setf (url-cookie-value cur) value)
-			 (setq tmp t))))
-	  ;; New cookie.
-	  (setcdr found-domain (cons
-				(url-cookie-create :name name
-						   :value value
-						   :expires expires
-						   :domain domain
-						   :localpart localpart
-						   :secure secure)
-				(cdr found-domain))))
-      ;; Need to add a new top-level domain.
-      (setq tmp (url-cookie-create :name name
-				   :value value
-				   :expires expires
-				   :domain domain
-				   :localpart localpart
-				   :secure secure))
-      (cond (storage
-	     (setcdr storage (cons (list domain tmp) (cdr storage))))
-	    (secure
-	     (setq url-cookie-secure-storage (list (list domain tmp))))
-	    (t
-	     (setq url-cookie-storage (list (list domain tmp))))))))
+  (when (> (length name) 0)
+    (let ((storage (if secure url-cookie-secure-storage url-cookie-storage))
+          tmp found-domain)
+      ;; First, look for a matching domain.
+      (if (setq found-domain (assoc domain storage))
+          ;; Need to either stick the new cookie in existing domain storage
+          ;; or possibly replace an existing cookie if the names match.
+          (unless (dolist (cur (setq storage (cdr found-domain)) tmp)
+                    (and (equal localpart (url-cookie-localpart cur))
+                         (equal name (url-cookie-name cur))
+                         (progn
+                           (setf (url-cookie-expires cur) expires)
+                           (setf (url-cookie-value cur) value)
+                           (setq tmp t))))
+            ;; New cookie.
+            (setcdr found-domain (cons
+                                  (url-cookie-create :name name
+                                                     :value value
+                                                     :expires expires
+                                                     :domain domain
+                                                     :localpart localpart
+                                                     :secure secure)
+                                  (cdr found-domain))))
+        ;; Need to add a new top-level domain.
+        (setq tmp (url-cookie-create :name name
+                                     :value value
+                                     :expires expires
+                                     :domain domain
+                                     :localpart localpart
+                                     :secure secure))
+        (cond (storage
+               (setcdr storage (cons (list domain tmp) (cdr storage))))
+              (secure
+               (setq url-cookie-secure-storage (list (list domain tmp))))
+              (t
+               (setq url-cookie-storage (list (list domain tmp)))))))))
 
 (defun url-cookie-expired-p (cookie)
   "Return non-nil if COOKIE is expired."

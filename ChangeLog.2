@@ -1,3 +1,95 @@
+2015-12-18  Phillip Lord  <phillip.lord@russet.org.uk>
+
+	Fix bootstrap issue with dired-loaddefs
+
+	* lisp/dired.el: Autoloads for secondary files loaded optionally.
+
+2015-12-17  Phillip Lord  <phillip.lord@russet.org.uk>
+
+	dired generate autoloads to non-versioned file.
+
+	* lisp/dired.el: Remove autoloads.
+	* lisp/Makefile.in: Add dired to autogenel.
+	* lisp/dired-aux.el,lisp/dired-x.el: Update file local.
+	* test/lisp/dired-tests.el: Add new test.
+
+2015-12-17  Phillip Lord  <phillip.lord@russet.org.uk>
+
+	eieio generate autoloads to non-versioned file.
+
+	* lisp/Makefile.in: eieio-loaddefs add to autogenel.
+	* lisp/emacs-lisp/eieio.el,lisp/emacs-lisp/eieio-core.el:
+	  Remove autoloads.
+	* lisp/emacs-lisp/eieio-compat.el,lisp/emacs-lisp/eieio-custom.el,
+	  lisp/emacs-lisp/eieio-opt.el: Update file local.
+	* test/lisp/emacs-lisp/eieio-tests/eieio-tests.el: New test.
+
+2015-12-17  Phillip Lord  <phillip.lord@russet.org.uk>
+
+	htmlfontify generate autoload to non-versioned file.
+
+	* lisp/Makefile.in: Add htmlfontity-loaddefs to autogenel.
+	* lisp/hfy-cmap.el: Update file local.
+	* lisp/htmlfontify.el: Remove autoloads, add require.
+	* test/lisp/htmlfontify-tests.el: Test autoload functionality.
+
+2015-12-17  Phillip Lord  <phillip.lord@russet.org.uk>
+
+	ibuffer generate autoloads to non-versioned file.
+
+	* lisp/Makefile.in: Add ibuffer-loaddefs to autogenel.
+	* lisp/ibuf-ext.el: Update file local.
+	* lisp/ibuffer.el: Remove autoloads and add a require.
+	* test/lisp/ibuffer-tests.el: Test that autoload is working.
+
+2015-12-17  Phillip Lord  <phillip.lord@russet.org.uk>
+
+	rmail generate autoloads to non-versioned file.
+
+	* lisp/Makefile.in: Add rmail-loaddefs.el to autogenel.
+	* lisp/mail/rmail.el: Remove autoloads, add require.
+	* lisp/mail/rmailedit.el,lisp/mail/rmailkwd.el,
+	  lisp/mail/rmailmm.el,lisp/mail/rmailmsc.el,
+	  lisp/mail/rmailsort.el,lisp/mail/rmailsum.el,
+	  lisp/mail/undigest.el: Update file-local.
+	* test/lisp/mail/rmail-tests.el:
+
+2015-12-17  Phillip Lord  <phillip.lord@russet.org.uk>
+
+	Add autoload-force target.
+
+	* lisp/Makefile.in (autoload-force): New target.
+
+2015-12-17  Phillip Lord  <phillip.lord@russet.org.uk>
+
+	ps-print generate autoloads to non versioned file.
+
+	* lisp/Makefile.in: Add ps-print-loaddefs.el to autogen list.
+	* lisp/ps-print.el: Remove autoloads.
+	* lisp/ps-mule.el: Update file-local.
+	* test/lisp/ps-print-tests.el: Test autoload functionality.
+
+2015-12-17  Phillip Lord  <phillip.lord@russet.org.uk>
+
+	reftex generate autoloads to non versioned file.
+
+	* lisp/Makefile.in: Add reftex-loaddefs to autogen files
+	* lisp/textmodes/reftex.el: Remove autoloads.
+	* lisp/textmodes/reftex-auc.el,lisp/textmodes/reftex-cite.el,
+	  lisp/textmodes/reftex-dcr.el,lisp/textmodes/reftex-global.el,
+	  lisp/textmodes/reftex-index.el,lisp/textmodes/reftex-parse.el,
+	  lisp/textmodes/reftex-ref.el,lisp/textmodes/reftex-sel.el,
+	  lisp/textmodes/reftex-toc.el: Update autoload file-local.
+	* test/lisp/textmodes/reftex-tests.el: Add test of an autoloaded
+	  function.
+
+2015-12-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp/calculator.el (calculator-define-key): Undo last change
+
+	Make map argument mandatory instead (bug#22106).
+	(calculator-add-operators): Pass the argument that's not optional any more.
+
 2015-12-03  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in: Avoid duplication.
@@ -20033,7 +20125,7 @@
 
 This file records repository revisions from
 commit 9d56a21e6a696ad19ac65c4b405aeca44785884a (exclusive) to
-commit ffefb6e899fbcdcbd79cb34292d57b7bc3043fcc (inclusive).
+commit 138480a97bfc1104143b5fc10dfc962b95b78ae8 (inclusive).
 See ChangeLog.1 for earlier changes.
 
 ;; Local Variables:

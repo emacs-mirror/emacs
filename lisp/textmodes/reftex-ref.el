@@ -881,5 +881,5 @@ Optional prefix argument OTHER-WINDOW goes to the label in another window."
 ;;; reftex-ref.el ends here
 
 ;; Local Variables:
-;; generated-autoload-file: "reftex.el"
+;; generated-autoload-file: "reftex-loaddefs.el"
 ;; End:

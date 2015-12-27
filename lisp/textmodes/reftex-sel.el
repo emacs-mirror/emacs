@@ -745,5 +745,5 @@ Cycle in reverse order if optional argument REVERSE is non-nil."
 ;;; reftex-sel.el ends here
 
 ;; Local Variables:
-;; generated-autoload-file: "reftex.el"
+;; generated-autoload-file: "reftex-loaddefs.el"
 ;; End:

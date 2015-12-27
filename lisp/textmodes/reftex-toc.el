@@ -1111,5 +1111,5 @@ always show the current section in connection with the option
 ;;; reftex-toc.el ends here
 
 ;; Local Variables:
-;; generated-autoload-file: "reftex.el"
+;; generated-autoload-file: "reftex-loaddefs.el"
 ;; End:

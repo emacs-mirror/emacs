@@ -535,19 +535,25 @@
 (defun clipboard-yank ()
   "Insert the clipboard contents, or the last stretch of killed text."
   (interactive "*")
-  (let ((gui-select-enable-clipboard t))
+  (let ((gui-select-enable-clipboard t)
+        (interprogram-paste-function (or interprogram-paste-function
+                                         #'gui-selection-value)))
     (yank)))
 
 (defun clipboard-kill-ring-save (beg end &optional region)
   "Copy region to kill ring, and save in the GUI's clipboard."
   (interactive "r\np")
-  (let ((gui-select-enable-clipboard t))
+  (let ((gui-select-enable-clipboard t)
+        (interprogram-cut-function (or interprogram-cut-function
+                                       #'gui-select-text)))
     (kill-ring-save beg end region)))
 
 (defun clipboard-kill-region (beg end &optional region)
   "Kill the region, and save it in the GUI's clipboard."
   (interactive "r\np")
-  (let ((gui-select-enable-clipboard t))
+  (let ((gui-select-enable-clipboard t)
+        (interprogram-cut-function (or interprogram-cut-function
+                                       #'gui-select-text)))
     (kill-region beg end region)))
 
 (defun menu-bar-enable-clipboard ()

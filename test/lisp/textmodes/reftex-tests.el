@@ -204,5 +204,20 @@
     (should (string= (reftex-format-citation entry "%l:%A:%y:%t %j %P %a")
                      "Foo13:Jane Roe:2013:Some Article Some Journal 1 Jane Roe, John Doe \\& Jane Taxpayer"))))
 
+
+;;; Autoload tests
+
+;; Test to check whether reftex autoloading mechanisms are working
+;; correctly.
+(ert-deftest reftex-autoload-auc ()
+  "Tests to see whether reftex-auc has been autoloaded"
+  (should
+   (fboundp 'reftex-arg-label))
+  (should
+   (autoloadp
+    (symbol-function
+     'reftex-arg-label))))
+
+
 (provide 'reftex-tests)
 ;;; reftex-tests.el ends here.

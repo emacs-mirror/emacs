@@ -81,13 +81,20 @@ AUTOGENEL = loaddefs.el \
 	cus-load.el \
 	finder-inf.el \
 	subdirs.el \
+	ps-print-loaddefs.el \
 	emacs-lisp/cl-loaddefs.el \
 	calc/calc-loaddefs.el \
 	eshell/esh-groups.el \
 	cedet/semantic/loaddefs.el \
 	cedet/ede/loaddefs.el \
 	cedet/srecode/loaddefs.el \
-	org/org-loaddefs.el
+	org/org-loaddefs.el \
+	textmodes/reftex-loaddefs.el \
+	mail/rmail-loaddefs.el \
+	ibuffer-loaddefs.el \
+	htmlfontify-loaddefs \
+	emacs-lisp/eieio-loaddefs.el \
+	dired-loaddefs.el
 
 # Set load-prefer-newer for the benefit of the non-bootstrappers.
 BYTE_COMPILE_FLAGS = \
@@ -177,6 +184,13 @@ $(lisp)/loaddefs.el: $(LOADDEFS)
 	    --eval '(setq autoload-builtin-package-versions t)' \
 	    --eval '(setq generated-autoload-file (expand-file-name (unmsys--file-name "$@")))' \
 	    -f batch-update-autoloads ${SUBDIRS_ALMOST}
+
+# autoloads only runs when loaddefs.el is non-existant, although it
+# generates a number of different files. Provide a force option to enable
+# regeneration of all these files.
+autoloads-force .PHONY:
+	rm loaddefs.el
+	$(MAKE) autoloads
 
 # This is required by the bootstrap-emacs target in ../src/Makefile, so
 # we know that if we have an emacs executable, we also have a subdirs.el.

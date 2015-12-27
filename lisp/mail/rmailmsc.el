@@ -55,7 +55,7 @@ This applies only to the current session."
   (rmail-show-message-1 rmail-current-message))
 
 ;; Local Variables:
-;; generated-autoload-file: "rmail.el"
+;; generated-autoload-file: "rmail-loaddefs.el"
 ;; End:
 
 ;;; rmailmsc.el ends here

@@ -1471,6 +1471,10 @@ Defaults to the server buffer."
 (defconst erc-default-port 6667
   "IRC port to use if it cannot be detected otherwise.")
 
+(defconst erc-default-port-tls 6697
+  "IRC port to use for encrypted connections if it cannot be
+  detected otherwise.")
+
 (defcustom erc-join-buffer 'buffer
   "Determines how to display a newly created IRC buffer.
 
@@ -2194,7 +2198,8 @@ be invoked for the values of the other parameters."
 (defun erc-tls (&rest r)
   "Interactively select TLS connection parameters and run ERC.
 Arguments are the same as for `erc'."
-  (interactive (erc-select-read-args))
+  (interactive (let ((erc-default-port erc-default-port-tls))
+		 (erc-select-read-args)))
   (let ((erc-server-connect-function 'erc-open-tls-stream))
     (apply #'erc r)))
 

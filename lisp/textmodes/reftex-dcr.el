@@ -488,5 +488,5 @@ Calling this function several times find successive citation locations."
 ;;; reftex-dcr.el ends here
 
 ;; Local Variables:
-;; generated-autoload-file: "reftex.el"
+;; generated-autoload-file: "reftex-loaddefs.el"
 ;; End:

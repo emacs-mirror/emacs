@@ -1131,5 +1131,5 @@ When LEVEL is non-nil, increase section numbers on that level."
 ;;; reftex-parse.el ends here
 
 ;; Local Variables:
-;; generated-autoload-file: "reftex.el"
+;; generated-autoload-file: "reftex-loaddefs.el"
 ;; End:

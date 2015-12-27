@@ -48,7 +48,9 @@
 (require 'smerge-mode)
 
 (defvar gitmerge-skip-regexp
-  "back[- ]?port\\|merge\\|sync\\|re-?generate\\|bump version\\|from trunk\\|\
+  ;; We used to include "sync" in there, but in my experience it only
+  ;; caused false positives.  --Stef
+  "back[- ]?port\\|merge\\|re-?generate\\|bump version\\|from trunk\\|\
 Auto-commit"
   "Regexp matching logs of revisions that might be skipped.
 `gitmerge-missing' will ask you if it should skip any matches.")
@@ -429,8 +431,14 @@ If so, add no longer conflicted files and commit."
 	(when mergehead
 	  (with-current-buffer (get-buffer-create gitmerge-output-buffer)
 	    (erase-buffer)
+            ;; FIXME: We add "-m-" because the default commit message
+            ;; apparently tickles our commit hook:
+            ;;    Line longer than 78 characters in commit message
+            ;;    Line longer than 78 characters in commit message
+            ;;    Line longer than 78 characters in commit message
+            ;;    Commit aborted; please see the file CONTRIBUTE
 	    (unless (zerop (call-process "git" nil t nil
-					 "commit" "--no-edit"))
+					 "commit" "--no-edit" "-m-"))
 	      (error "Git error during merge - fix it manually"))))
 	;; Successfully resumed.
 	t))))

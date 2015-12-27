@@ -26,32 +26,35 @@
 (require 'url-parse)
 
 (defun url-expander-remove-relative-links (name)
-  ;; Strip . and .. from pathnames
-  (let ((new (if (not (string-match "^/" name))
-		 (concat "/" name)
-	       name)))
+  (if (equal name "")
+      ;; An empty name is a properly valid relative URL reference/path.
+      ""
+    ;; Strip . and .. from pathnames
+    (let ((new (if (not (string-match "^/" name))
+                   (concat "/" name)
+                 name)))
 
-    ;; If it ends with a '/.' or '/..', tack on a trailing '/' sot hat
-    ;; the tests that follow are not too complicated in terms of
-    ;; looking for '..' or '../', etc.
-    (if (string-match "/\\.+$" new)
-	(setq new (concat new "/")))
+      ;; If it ends with a '/.' or '/..', tack on a trailing '/' sot hat
+      ;; the tests that follow are not too complicated in terms of
+      ;; looking for '..' or '../', etc.
+      (if (string-match "/\\.+$" new)
+          (setq new (concat new "/")))
 
-    ;; Remove '/./' first
-    (while (string-match "/\\(\\./\\)" new)
-      (setq new (concat (substring new 0 (match-beginning 1))
-			(substring new (match-end 1)))))
+      ;; Remove '/./' first
+      (while (string-match "/\\(\\./\\)" new)
+        (setq new (concat (substring new 0 (match-beginning 1))
+                          (substring new (match-end 1)))))
 
-    ;; Then remove '/../'
-    (while (string-match "/\\([^/]*/\\.\\./\\)" new)
-      (setq new (concat (substring new 0 (match-beginning 1))
-			(substring new (match-end 1)))))
+      ;; Then remove '/../'
+      (while (string-match "/\\([^/]*/\\.\\./\\)" new)
+        (setq new (concat (substring new 0 (match-beginning 1))
+                          (substring new (match-end 1)))))
 
-    ;; Remove cruft at the beginning of the string, so people that put
-    ;; in extraneous '..' because they are morons won't lose.
-    (while (string-match "^/\\.\\.\\(/\\)" new)
-      (setq new (substring new (match-beginning 1) nil)))
-    new))
+      ;; Remove cruft at the beginning of the string, so people that put
+      ;; in extraneous '..' because they are morons won't lose.
+      (while (string-match "^/\\.\\.\\(/\\)" new)
+        (setq new (substring new (match-beginning 1) nil)))
+      new)))
 
 (defun url-expand-file-name (url &optional default)
   "Convert URL to a fully specified URL, and canonicalize it.
@@ -89,8 +92,6 @@ path components followed by `..' are removed, along with the `..' itself."
   (cond
    ((= (length url) 0)			; nil or empty string
     (url-recreate-url default))
-   ((string-match "^#" url)		; Offset link, use it raw
-    url)
    ((string-match url-nonrelative-link url) ; Fully-qualified URL, return it immediately
     url)
    (t
@@ -120,29 +121,24 @@ path components followed by `..' are removed, along with the `..' itself."
 	(setf (url-host urlobj) (or (url-host urlobj) (url-host defobj))))
     (if (string= "ftp"  (url-type urlobj))
 	(setf (url-user urlobj) (or (url-user urlobj) (url-user defobj))))
-    (if (string= (url-filename urlobj) "")
-	(setf (url-filename urlobj) "/"))
     ;; If the object we're expanding from is full, then we are now
     ;; full.
     (unless (url-fullness urlobj)
       (setf (url-fullness urlobj) (url-fullness defobj)))
-    (if (string-match "^/" (url-filename urlobj))
-	nil
-      (let ((query nil)
-	    (file nil)
-	    (sepchar nil))
-	(if (string-match "[?#]" (url-filename urlobj))
-	    (setq query (substring (url-filename urlobj) (match-end 0))
-		  file (substring (url-filename urlobj) 0 (match-beginning 0))
-		  sepchar (substring (url-filename urlobj) (match-beginning 0) (match-end 0)))
-	  (setq file (url-filename urlobj)))
+    (let* ((pathandquery (url-path-and-query urlobj))
+           (defpathandquery (url-path-and-query defobj))
+           (file (car pathandquery))
+           (query (or (cdr pathandquery) (and (equal file "") (cdr defpathandquery)))))
+      (if (string-match "^/" (url-filename urlobj))
+          (setq file (url-expander-remove-relative-links file))
 	;; We use concat rather than expand-file-name to combine
 	;; directory and file name, since urls do not follow the same
 	;; rules as local files on all platforms.
-	(setq file (url-expander-remove-relative-links
-		    (concat (url-file-directory (url-filename defobj)) file)))
-	(setf (url-filename urlobj)
-              (if query (concat file sepchar query) file))))))
+        (setq file (url-expander-remove-relative-links
+                    (if (equal file "")
+                        (or (car (url-path-and-query defobj)) "")
+                      (concat (url-file-directory (url-filename defobj)) file)))))
+      (setf (url-filename urlobj) (if query (concat file "?" query) file)))))
 
 (provide 'url-expand)
 

@@ -2736,7 +2736,7 @@ instead."
 
 ;; Local Variables:
 ;; byte-compile-dynamic: t
-;; generated-autoload-file: "dired.el"
+;; generated-autoload-file: "dired-loaddefs.el"
 ;; End:
 
 ;;; dired-aux.el ends here
