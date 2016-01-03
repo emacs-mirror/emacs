@@ -1267,7 +1267,7 @@ When not inside a field, signal an error."
 
 (defun widget-field-find (pos)
   "Return the field at POS.
-Unlike (get-char-property POS 'field), this works with empty fields too."
+Unlike (get-char-property POS \\='field), this works with empty fields too."
   (let ((fields widget-field-list)
 	field found)
     (while fields

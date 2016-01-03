@@ -67,10 +67,25 @@ typedef float EmacsCGFloat;
 
 /* Uncomment the following line to enable trace.
 
+   Uncomment suitable NSTRACE_GROUP_xxx lines to trace more.
+
    Hint: keep the trailing whitespace -- the version control system
    will reject accidental commits. */
 
 /* #define NSTRACE_ENABLED 1          */
+
+
+/* When non-zero, trace output is enabled for all parts, except those
+   explicitly disabled. */
+/* #define NSTRACE_ALL_GROUPS     1     */
+
+/* When non-zero, trace output is enabled in the corresponding part. */
+/* #define NSTRACE_GROUP_EVENTS  1     */
+/* #define NSTRACE_GROUP_UPDATES 1     */
+/* #define NSTRACE_GROUP_FRINGE  1     */
+/* #define NSTRACE_GROUP_COLOR   1     */
+/* #define NSTRACE_GROUP_GLYPHS  1     */
+/* #define NSTRACE_GROUP_FOCUS   1     */
 
 
 /* Print a call tree containing all annotated functions.
@@ -87,60 +102,94 @@ typedef float EmacsCGFloat;
    The first column contains the file name, the second the line
    number, and the third a number increasing for each trace line.
 
+   Note, when trace output from several threads are mixed, the output
+   can become misaligned, as all threads (currently) share one state.
+   This is post prominent when the EVENTS part is enabled.
+
    Note that the trace system, when enabled, use the GCC/Clang
-   "cleanup" extension.
+   "cleanup" extension. */
 
-   For example (long lines manually split to reduce width):
+/*   For example, the following is the output of `M-x
+     toggle-frame-maximized RET'.
 
-nsterm.m  : 1600: [ 4428]  ns_fullscreen_hook
-nsterm.m  : 7006: [ 4429]  | handleFS
-nsterm.m  : 7035: [ 4430]  | +--- FULLSCREEN_MAXIMIZED
-nsterm.m  : 7627: [ 4431]  | | performZoom
-nsterm.m  : 7636: [ 4432]  | | | zoom
-nsterm.m  :  874: [ 4433]  | | | | ns_update_auto_hide_menu_bar
-nsterm.m  : 6615: [ 4434]  | | | | [windowWillUseStandardFrame:
-                                       defaultFrame:(X:0 Y:0)/(W:1600 H:1177)]
-nsterm.m  :   99: [ 4435]  | | | | +--- fs_state: FULLSCREEN_NONE
-nsterm.m  :  119: [ 4436]  | | | | +--- fs_before_fs: -1
-nsterm.m  :  115: [ 4437]  | | | | +--- next_maximized: FULLSCREEN_MAXIMIZED
-nsterm.m  : 6619: [ 4438]  | | | | +--- ns_userRect: (X:0 Y:0)/(W:0 H:0)
-nsterm.m  : 6620: [ 4439]  | | | | +--- [sender frame]:
-                                                      (X:0 Y:626)/(W:595 H:551)
-nsterm.m  : 6644: [ 4440]  | | | | +--- ns_userRect (2):
-                                                      (X:0 Y:626)/(W:595 H:551)
-nsterm.m  : 6684: [ 4441]  | | | | +--- FULLSCREEN_MAXIMIZED
-nsterm.m  : 7057: [ 4442]  | | | | | setFSValue
-nsterm.m  :  115: [ 4443]  | | | | | +--- value: FULLSCREEN_MAXIMIZED
-nsterm.m  : 6711: [ 4444]  | | | | +--- Final ns_userRect:
-                                                      (X:0 Y:626)/(W:595 H:551)
-nsterm.m  : 6712: [ 4445]  | | | | +--- Final maximized_width: 1600
-nsterm.m  : 6713: [ 4446]  | | | | +--- Final maximized_height: 1177
-nsterm.m  :  119: [ 4447]  | | | | +--- Final next_maximized: -1
-nsterm.m  : 6209: [ 4448]  | | | | | windowWillResize: toSize: (W:1600 H:1177)
-nsterm.m  : 6210: [ 4449]  | | | | | +--- [sender frame]:
-                                                      (X:0 Y:626)/(W:595 H:551)
-nsterm.m  :  115: [ 4450]  | | | | | +--- fs_state: FULLSCREEN_MAXIMIZED
-nsterm.m  : 6274: [ 4451]  | | | | | +--- cols: 223  rows: 79
-nsterm.m  : 6299: [ 4452]  | | | | | +->> (W:1596 H:1167)
-nsterm.m  : 6718: [ 4453]  | | | | +->> (X:0 Y:0)/(W:1600 H:1177)
+     (Long lines manually split to reduced width):
 
-   Here, "ns_fullscreen_hook" calls "handleFS", which is turn calls
-   "performZoom".  This function calls "[super performZoom]", which
-   isn't annotated (so it doesn't show up in the trace).  However, it
-   calls "zoom" which is annotated so it is part of the call trace.
-   Later, the method "windowWillUseStandardFrame" and the function
-   "setFSValue" are called.  The lines with "+---" contain extra
-   information and lines containing "->>" represent return values. */
+nsterm.m  : 1608: [  354]  ns_fullscreen_hook
+nsterm.m  : 7180: [  355]  | [EmacsView handleFS]
+nsterm.m  : 7209: [  356]  | +--- FULLSCREEN_MAXIMIZED
+nsterm.m  : 7706: [  357]  | | [EmacsWindow performZoom:]
+nsterm.m  : 7715: [  358]  | | | [EmacsWindow zoom:]
+nsterm.m  :  882: [  359]  | | | | ns_update_auto_hide_menu_bar
+nsterm.m  : 6752: [  360]  | | | |
+  [EmacsView windowWillUseStandardFrame:defaultFrame:(X:0 Y:0)/(W:1600 H:1177)]
+nsterm.m  : 6753: [  361]  | | | | +--- fs_state: FULLSCREEN_NONE
+nsterm.m  : 6754: [  362]  | | | | +--- fs_before_fs: -1
+nsterm.m  : 6755: [  363]  | | | | +--- next_maximized: FULLSCREEN_MAXIMIZED
+nsterm.m  : 6756: [  364]  | | | | +--- ns_userRect: (X:0 Y:0)/(W:0 H:0)
+nsterm.m  : 6757: [  365]  | | | | +---
+                                      [sender frame]: (X:0 Y:626)/(W:595 H:551)
+nsterm.m  : 6781: [  366]  | | | | +---
+                                     ns_userRect (2): (X:0 Y:626)/(W:595 H:551)
+nsterm.m  : 6821: [  367]  | | | | +--- FULLSCREEN_MAXIMIZED
+nsterm.m  : 7232: [  368]  | | | | |
+                                    [EmacsView setFSValue:FULLSCREEN_MAXIMIZED]
+nsterm.m  : 6848: [  369]  | | | | +---
+                                   Final ns_userRect: (X:0 Y:626)/(W:595 H:551)
+nsterm.m  : 6849: [  370]  | | | | +--- Final maximized_width: 1600
+nsterm.m  : 6850: [  371]  | | | | +--- Final maximized_height: 1177
+nsterm.m  : 6851: [  372]  | | | | +--- Final next_maximized: -1
+nsterm.m  : 6322: [  373]  | | | | |
+                           [EmacsView windowWillResize:toSize: (W:1600 H:1177)]
+nsterm.m  : 6323: [  374]  | | | | | +---
+                                      [sender frame]: (X:0 Y:626)/(W:595 H:551)
+nsterm.m  : 6324: [  375]  | | | | | +--- fs_state: FULLSCREEN_MAXIMIZED
+nsterm.m  : 7027: [  376]  | | | | | | [EmacsView isFullscreen]
+nsterm.m  : 6387: [  377]  | | | | | +--- cols: 223  rows: 79
+nsterm.m  : 6412: [  378]  | | | | | +->> (W:1596 H:1167)
+nsterm.m  : 6855: [  379]  | | | | +->> (X:0 Y:0)/(W:1600 H:1177)
+*/
 
 #ifndef NSTRACE_ENABLED
 #define NSTRACE_ENABLED 0
 #endif
 
 #if NSTRACE_ENABLED
-extern int nstrace_num;
-extern int nstrace_depth;
+
+#ifndef NSTRACE_ALL_GROUPS
+#define NSTRACE_ALL_GROUPS 0
+#endif
+
+#ifndef NSTRACE_GROUP_EVENTS
+#define NSTRACE_GROUP_EVENTS NSTRACE_ALL_GROUPS
+#endif
+
+#ifndef NSTRACE_GROUP_UPDATES
+#define NSTRACE_GROUP_UPDATES NSTRACE_ALL_GROUPS
+#endif
+
+#ifndef NSTRACE_GROUP_FRINGE
+#define NSTRACE_GROUP_FRINGE NSTRACE_ALL_GROUPS
+#endif
+
+#ifndef NSTRACE_GROUP_COLOR
+#define NSTRACE_GROUP_COLOR NSTRACE_ALL_GROUPS
+#endif
+
+#ifndef NSTRACE_GROUP_GLYPHS
+#define NSTRACE_GROUP_GLYPHS NSTRACE_ALL_GROUPS
+#endif
+
+#ifndef NSTRACE_GROUP_FOCUS
+#define NSTRACE_GROUP_FOCUS NSTRACE_ALL_GROUPS
+#endif
+
+extern volatile int nstrace_num;
+extern volatile int nstrace_depth;
+extern volatile int nstrace_enabled_global;
 
 void nstrace_leave(int *);
+void nstrace_restore_global_trace_state(int *);
+char const * nstrace_fullscreen_type_name (int);
 
 /* printf-style trace output.  Output is aligned with contained heading. */
 #define NSTRACE_MSG_NO_DASHES(...)                                          \
@@ -149,7 +198,7 @@ void nstrace_leave(int *);
       if (nstrace_enabled)                                                  \
         {                                                                   \
           fprintf (stderr, "%-10s:%5d: [%5d]%.*s",                          \
-                   __FILE__, __LINE__, ++nstrace_num,                       \
+                   __FILE__, __LINE__, nstrace_num++,                       \
                    2*nstrace_depth, "  | | | | | | | | | | | | | | | ..");  \
           fprintf (stderr, __VA_ARGS__);                                    \
           fprintf (stderr, "\n");                                           \
@@ -176,6 +225,9 @@ void nstrace_leave(int *);
 #define NSTRACE_ARG_RECT(elt)   \
   NSTRACE_ARG_POINT((elt).origin), NSTRACE_ARG_SIZE((elt).size)
 
+#define NSTRACE_FMT_FSTYPE      "%s"
+#define NSTRACE_ARG_FSTYPE(elt) nstrace_fullscreen_type_name(elt)
+
 
 /* Macros for printing complex types as extra information. */
 
@@ -192,14 +244,8 @@ void nstrace_leave(int *);
                NSTRACE_ARG_RECT (rect));
 
 #define NSTRACE_FSTYPE(str,fs_type)                                     \
-  do                                                                    \
-    {                                                                   \
-      if (nstrace_enabled)                                              \
-        {                                                               \
-          ns_print_fullscreen_type_name(str, fs_type);                  \
-        }                                                               \
-    }                                                                   \
-  while(0)
+  NSTRACE_MSG (str ": " NSTRACE_FMT_FSTYPE,                             \
+               NSTRACE_ARG_FSTYPE (fs_type));
 
 
 /* Return value macros.
@@ -242,16 +288,24 @@ void nstrace_leave(int *);
 
 
 #define NSTRACE_WHEN(cond, ...)                                         \
+  __attribute__((cleanup(nstrace_restore_global_trace_state)))          \
+  int nstrace_saved_enabled_global = nstrace_enabled_global;            \
   __attribute__((cleanup(nstrace_leave)))                               \
-  int nstrace_enabled = (cond);                                         \
+  int nstrace_enabled = nstrace_enabled_global && (cond);               \
   if (nstrace_enabled) { ++nstrace_depth; }                             \
+  else { nstrace_enabled_global = 0; }                                  \
   NSTRACE_MSG_NO_DASHES(__VA_ARGS__);
+
+/* Unsilence called functions.
+
+   Concretely, this us used to allow "event" functions to be silenced
+   while trace output can be printed for functions they call. */
+#define NSTRACE_UNSILENCE() do { nstrace_enabled_global = 1; } while(0)
 
 #endif /* NSTRACE_ENABLED */
 
 #define NSTRACE(...)              NSTRACE_WHEN(1, __VA_ARGS__)
 #define NSTRACE_UNLESS(cond, ...) NSTRACE_WHEN(!(cond), __VA_ARGS__)
-
 
 /* Non-trace replacement versions. */
 #ifndef NSTRACE_WHEN
@@ -294,6 +348,9 @@ void nstrace_leave(int *);
 #define NSTRACE_RETURN_FSTYPE(fs_type)
 #endif
 
+#ifndef NSTRACE_UNSILENCE
+#define NSTRACE_UNSILENCE()
+#endif
 
 
 /* ==========================================================================
@@ -412,6 +469,13 @@ void nstrace_leave(int *);
 - (void)windowDidMove: (id)sender;
 #endif
 - (int)fullscreenState;
+
+/* Non-notification versions of NSView methods. Used for direct calls. */
+- (void)windowWillEnterFullScreen;
+- (void)windowDidEnterFullScreen;
+- (void)windowWillExitFullScreen;
+- (void)windowDidExitFullScreen;
+- (void)windowDidBecomeKey;
 @end
 
 

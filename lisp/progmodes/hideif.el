@@ -653,7 +653,7 @@ that form should be displayed.")
            (stringp id))))
 
 (defun hif-define-operator (tokens)
-  "`Upgrade' hif-define xxx to '(hif-define xxx)' so it won't be substituted."
+  "\"Upgrade\" hif-define XXX to `(hif-define XXX)' so it won't be substituted."
   (let ((result nil)
         (tok nil))
     (while (setq tok (pop tokens))
@@ -766,7 +766,7 @@ macros to prevent self-reference."
           (error "Error: unexpected token: %s" hif-token)))))
 
 (defun hif-exprlist ()
-  "Parse an exprlist: expr { ',' expr}."
+  "Parse an exprlist: expr { `,' expr}."
   (let ((result (hif-expr)))
     (if (eq hif-token 'hif-comma)
         (let ((temp (list result)))
@@ -780,7 +780,7 @@ macros to prevent self-reference."
 
 (defun hif-expr ()
   "Parse an expression as found in #if.
-expr : or-expr | or-expr '?' expr ':' expr."
+expr : or-expr | or-expr `?' expr `:' expr."
   (let ((result (hif-or-expr))
         middle)
     (while (eq hif-token 'hif-conditional)
@@ -794,7 +794,7 @@ expr : or-expr | or-expr '?' expr ':' expr."
     result))
 
 (defun hif-or-expr ()
-  "Parse an or-expr : and-expr | or-expr '||' and-expr."
+  "Parse an or-expr : and-expr | or-expr `||' and-expr."
   (let ((result (hif-and-expr)))
     (while (eq hif-token 'hif-or)
       (hif-nexttoken)
@@ -802,7 +802,7 @@ expr : or-expr | or-expr '?' expr ':' expr."
   result))
 
 (defun hif-and-expr ()
-  "Parse an and-expr : logior-expr | and-expr '&&' logior-expr."
+  "Parse an and-expr : logior-expr | and-expr `&&' logior-expr."
   (let ((result (hif-logior-expr)))
     (while (eq hif-token 'hif-and)
       (hif-nexttoken)
@@ -810,7 +810,7 @@ expr : or-expr | or-expr '?' expr ':' expr."
     result))
 
 (defun hif-logior-expr ()
-  "Parse a logor-expr : logxor-expr | logor-expr '|' logxor-expr."
+  "Parse a logor-expr : logxor-expr | logor-expr `|' logxor-expr."
   (let ((result (hif-logxor-expr)))
     (while (eq hif-token 'hif-logior)
       (hif-nexttoken)
@@ -818,7 +818,7 @@ expr : or-expr | or-expr '?' expr ':' expr."
     result))
 
 (defun hif-logxor-expr ()
-  "Parse a logxor-expr : logand-expr | logxor-expr '^' logand-expr."
+  "Parse a logxor-expr : logand-expr | logxor-expr `^' logand-expr."
   (let ((result (hif-logand-expr)))
     (while (eq hif-token 'hif-logxor)
       (hif-nexttoken)
@@ -826,7 +826,7 @@ expr : or-expr | or-expr '?' expr ':' expr."
     result))
 
 (defun hif-logand-expr ()
-  "Parse a logand-expr : eq-expr | logand-expr '&' eq-expr."
+  "Parse a logand-expr : eq-expr | logand-expr `&' eq-expr."
   (let ((result (hif-eq-expr)))
     (while (eq hif-token 'hif-logand)
       (hif-nexttoken)
@@ -866,7 +866,7 @@ expr : or-expr | or-expr '?' expr ':' expr."
 
 (defun hif-math ()
   "Parse an expression with + or -.
-       math : muldiv | math '+|-' muldiv."
+       math : muldiv | math `+'|`-' muldiv."
   (let ((result (hif-muldiv-expr))
         (math-op nil))
     (while (memq hif-token '(hif-plus hif-minus))
@@ -877,7 +877,7 @@ expr : or-expr | or-expr '?' expr ':' expr."
 
 (defun hif-muldiv-expr ()
   "Parse an expression with *,/,%.
-       muldiv : factor | muldiv '*|/|%' factor."
+       muldiv : factor | muldiv `*'|`/'|`%' factor."
   (let ((result (hif-factor))
         (math-op nil))
     (while (memq hif-token '(hif-multiply hif-divide hif-modulo))
@@ -888,8 +888,8 @@ expr : or-expr | or-expr '?' expr ':' expr."
 
 (defun hif-factor ()
   "Parse a factor.
-factor : '!' factor | '~' factor | '(' expr ')' | 'defined(' id ')' |
-         'id(parmlist)' | strings | id."
+factor : `!' factor | `~' factor | `(' expr `)' | `defined(' id `)' |
+         id `(' parmlist `)' | strings | id."
   (cond
    ((eq hif-token 'hif-not)
     (hif-nexttoken)
@@ -999,9 +999,9 @@ This macro cannot be evaluated alone without parameters input."
 (defun hif-token-concat (a b)
   "Concatenate two tokens into a longer token.
 Currently support only simple token concatenation.  Also support weird (but
-valid) token concatenation like '>' ## '>' becomes '>>'.  Here we take care only
+valid) token concatenation like `>' ## `>' becomes `>>'.  Here we take care only
 those that can be evaluated during preprocessing time and ignore all those that
-can only be evaluated at C(++) runtime (like '++', '--' and '+='...)."
+can only be evaluated at C(++) runtime (like `++', `--' and `+='...)."
   (if (or (memq a hif-valid-token-list)
           (memq b hif-valid-token-list))
       (let* ((ra (car (rassq a hif-token-alist)))
@@ -1632,8 +1632,8 @@ not be expanded."
         result))))
 
 (defun hif-parse-macro-arglist (str)
-  "Parse argument list formatted as '( arg1 [ , argn] [...] )'.
-The '...' is also included.  Return a list of the arguments, if '...' exists the
+  "Parse argument list formatted as `( arg1 [ , argn] [...] )'.
+The `...' is also included.  Return a list of the arguments, if `...' exists the
 first arg will be `hif-etc'."
   (let* ((hif-simple-token-only nil) ; Dynamic binding var for `hif-tokenize'
          (tokenlist

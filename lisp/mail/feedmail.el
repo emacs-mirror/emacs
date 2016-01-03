@@ -606,7 +606,7 @@ variables or other means, this option has no effect."
 May be t, in which case a default is computed (and you probably won't
 be happy with it).  May be nil, in which case nothing in particular is
 done with respect to From: lines.  By design, will not replace an
-existing From: line, but you can achieve that with a fiddle-plex 'replace
+existing From: line, but you can achieve that with a fiddle-plex `replace'
 action.
 
 If neither nil nor t, it may be a string, a fiddle-plex, or a function
@@ -870,11 +870,11 @@ headers for specific addresses.
 
 May be t, in which case a \"To:\" header is added to the message with
 the stripped address as the header contents.  The fiddle-plex operator
-is 'supplement.
+is `supplement'.
 
 May be a string, in which case the string is assumed to be the name of
 a message header field with the stripped address serving as the value.
-The fiddle-plex operator is 'supplement.
+The fiddle-plex operator is `supplement'.
 
 May be a function, in which case it is called with no arguments and is
 expected to return nil, t, a string, another function, or a fiddle-plex.
@@ -891,7 +891,7 @@ If a list, each item is acted on in turn as described above.
 
 For example,
 
-  (setq feedmail-spray-address-fiddle-plex-list 'feedmail-spray-via-bbdb)
+  (setq feedmail-spray-address-fiddle-plex-list \\='feedmail-spray-via-bbdb)
 
 The idea of the example is that, during spray mode, as each message is
 about to be transmitted to an individual address, the function will be
@@ -1383,7 +1383,7 @@ See documentation of `feedmail-mail-send-hook-splitter' for details."
 (defun feedmail-confirm-addresses-hook-example ()
   "An example of a `feedmail-last-chance-hook'.
 It shows the simple addresses and gets a confirmation.  Use as:
- (setq feedmail-last-chance-hook 'feedmail-confirm-addresses-hook-example)."
+ (setq feedmail-last-chance-hook \\='feedmail-confirm-addresses-hook-example)."
   (save-window-excursion
     (display-buffer (set-buffer (get-buffer-create " F-C-A-H-E")))
     (erase-buffer)
@@ -2080,7 +2080,7 @@ backup file names and the like)."
 (defun feedmail-queue-reminder (&optional what-event)
   "Perform some kind of reminder activity about queued and draft messages.
 Called with an optional symbol argument which says what kind of event
-is triggering the reminder activity.  The default is 'on-demand, which
+is triggering the reminder activity.  The default is `on-demand', which
 is what you typically would use if you were putting this in your Emacs start-up
 or mail hook code.  Other recognized values for WHAT-EVENT (these are passed
 internally by feedmail):

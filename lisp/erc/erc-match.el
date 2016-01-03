@@ -191,7 +191,7 @@ use for the logged message."
   "Flag specifying when matched message logging should happen.
 When nil, don't log any matched messages.
 When t, log messages.
-When 'away, log messages only when away."
+When `away', log messages only when away."
   :group 'erc-match
   :type '(choice (const nil)
 		 (const away)

@@ -46,6 +46,7 @@ $user_comment_lc	php-src/lce_functions.php	115
 ($string,$flag,@string,@temp,@last	perl-src/yagrip.pl	40
 (a-forth-constant	forth-src/test-forth.fth	/^constant (a-forth-constant$/
 (another-forth-word	forth-src/test-forth.fth	/^: (another-forth-word) ( -- )$/
++	ruby-src/test.rb	/^        def +(y)$/
 +	tex-src/texinfo.tex	/^\\def+{{\\tt \\char 43}}$/
 /.notdef	ps-src/rfc1245.ps	/^\/.notdef \/.notdef \/.notdef \/.notdef \/.notdef \/.not/
 /.notdef	ps-src/rfc1245.ps	/^\/.notdef \/.notdef \/.notdef \/.notdef \/.notdef \/.not/
@@ -177,6 +178,9 @@ $user_comment_lc	php-src/lce_functions.php	115
 /yen	ps-src/rfc1245.ps	/^\/yen \/.notdef \/.notdef \/.notdef \/.notdef \/.notdef /
 :a-forth-dictionary-entry	forth-src/test-forth.fth	/^create :a-forth-dictionary-entry$/
 <	tex-src/texinfo.tex	/^\\def<{{\\tt \\less}}$/
+<<	ruby-src/test.rb	/^        def <<(y)$/
+<=	ruby-src/test.rb	/^        def <=(y)$/
+<=>	ruby-src/test.rb	/^        def <=>(y)$/
 =	tex-src/texinfo.tex	/^\\global\\let\\section = \\numberedsec$/
 =	tex-src/texinfo.tex	/^\\global\\let\\subsection = \\numberedsubsec$/
 =	tex-src/texinfo.tex	/^\\global\\let\\subsubsection = \\numberedsubsubsec$/
@@ -191,6 +195,8 @@ $user_comment_lc	php-src/lce_functions.php	115
 =	tex-src/texinfo.tex	/^\\global\\let\\subsubsection = \\numberedsubsubsec$/
 =	tex-src/texinfo.tex	/^\\global\\def={{\\tt \\char 61}}}$/
 =/f	ada-src/etags-test-for.ada	/^   function "=" (L, R : System.Address) return Boo/
+==	ruby-src/test.rb	/^        def ==(y)$/
+===	ruby-src/test.rb	/^        def ===(y)$/
 =\indexdummyfont	tex-src/texinfo.tex	/^\\let\\cite=\\indexdummyfont$/
 =\relax	tex-src/texinfo.tex	/^\\let\\chapter=\\relax$/
 =\relax	tex-src/texinfo.tex	/^\\let\\section=\\relax$/
@@ -220,6 +226,7 @@ A	cp-src/c.C	73
 A	cp-src/c.C	117
 A	cp-src/fail.C	7
 A	cp-src/fail.C	23
+A	ruby-src/test1.ruby	/^class A$/
 ADDRESS	c-src/emacs/src/gmalloc.c	/^#define ADDRESS(B)	((void *) (((B) - 1) * BLOCKSIZ/
 ALIGNOF_STRUCT_LISP_VECTOR	c-src/emacs/src/lisp.h	1378
 ALLOCATED_BEFORE_DUMPING	c-src/emacs/src/gmalloc.c	/^#define ALLOCATED_BEFORE_DUMPING(P) \\$/
@@ -306,6 +313,7 @@ BUFFERP	c-src/emacs/src/lisp.h	/^BUFFERP (Lisp_Object a)$/
 BUFFERSIZE	objc-src/Subprocess.h	43
 BUFFER_OBJFWDP	c-src/emacs/src/lisp.h	/^BUFFER_OBJFWDP (union Lisp_Fwd *a)$/
 BYTE_MARK_STACK	c-src/emacs/src/lisp.h	3181
+Bar	lua-src/test.lua	/^function Square.something:Bar ()$/
 Bar	perl-src/kai-test.pl	/^package Bar;$/
 Bar::f4	perl-src/kai-test.pl	/^sub Bar::f4 {$/
 Bar::f5	perl-src/kai-test.pl	/^sub f5 {$/
@@ -425,9 +433,12 @@ C_entries	c-src/etags.c	/^C_entries (int c_ext, FILE *inf)$/
 C_stab_entry	c-src/etags.c	2271
 C_symtype	c-src/etags.c	/^C_symtype (char *str, int len, int c_ext)$/
 ChangeFileType	pas-src/common.pas	/^function ChangeFileType; (*(FileName : NameString;/
+Circle.getPos	lua-src/test.lua	/^function Circle.getPos ()$/
 Cjava_entries	c-src/etags.c	/^Cjava_entries (FILE *inf)$/
 Cjava_help	c-src/etags.c	551
 Cjava_suffixes	c-src/etags.c	549
+ClassExample	ruby-src/test.rb	/^    class ClassExample$/
+ClassExample.singleton_class_method	ruby-src/test.rb	/^        def ClassExample.singleton_class_method$/
 Clear/p	ada-src/2ataspri.adb	/^   procedure Clear (Cell : in out TAS_Cell) is$/
 Clear/p	ada-src/2ataspri.ads	/^   procedure Clear        (Cell : in out TAS_Cell)/
 Cobol_help	c-src/etags.c	558
@@ -458,6 +469,7 @@ Create_LL_Task/p	ada-src/2ataspri.adb	/^   procedure Create_LL_Task$/
 Create_LL_Task/p	ada-src/2ataspri.ads	/^   procedure Create_LL_Task$/
 Cstar_entries	c-src/etags.c	/^Cstar_entries (FILE *inf)$/
 Cstar_suffixes	c-src/etags.c	562
+Cube.data.getFoo	lua-src/test.lua	/^function Cube.data.getFoo ()$/
 D	cp-src/fail.C	41
 D	cp-src/fail.C	/^		D() : ::A::T2::T(97), x(1066) {}$/
 DAEMON_RUNNING	c-src/emacs/src/lisp.h	4258
@@ -926,6 +938,8 @@ Mconway.cpp	cp-src/conway.cpp	/^void main(void)$/
 Metags	c-src/etags.c	/^main (int argc, char **argv)$/
 Mfail	cp-src/fail.C	/^main()$/
 Mkai-test.pl	perl-src/kai-test.pl	/^package main;$/
+ModuleExample	ruby-src/test.rb	/^module ModuleExample$/
+ModuleExample.singleton_module_method	ruby-src/test.rb	/^    def ModuleExample.singleton_module_method$/
 More_Lisp_Bits	c-src/emacs/src/lisp.h	801
 MoveLayerAfter	lua-src/allegro.lua	/^function MoveLayerAfter (this_one)$/
 MoveLayerBefore	lua-src/allegro.lua	/^function MoveLayerBefore (this_one)$/
@@ -1193,6 +1207,7 @@ Range	cp-src/Range.h	/^  Range (double b, double l, double i)$/
 ReadVacation	cp-src/functions.cpp	/^void ReadVacation ( char *filename ) {$/
 Read_Lock/p	ada-src/2ataspri.adb	/^   procedure Read_Lock (L : in out Lock; Ceiling_V/
 Read_Lock/p	ada-src/2ataspri.ads	/^   procedure Read_Lock (L : in out Lock; Ceiling_V/
+Rectangle.getPos	lua-src/test.lua	/^function Rectangle.getPos ()$/
 ReleaseNameString	pas-src/common.pas	/^procedure ReleaseNameString; (* (var NSP: NameStri/
 RemoveLayer	lua-src/allegro.lua	/^function RemoveLayer ()$/
 RemoveUnderlineControl	pas-src/common.pas	/^function RemoveUnderlineControl; (*($/
@@ -1309,6 +1324,7 @@ SimpleCalc	objcpp-src/SimpleCalc.H	/^@interface SimpleCalc:Object$/
 SkipBlanks	pas-src/common.pas	/^function SkipBlanks; (*($/
 SkipChars	pas-src/common.pas	/^function SkipChars; (*($/
 SkipSpaces	pas-src/common.pas	/^procedure SkipSpaces; (* (Str : NameString; var I /
+Square.something:Bar	lua-src/test.lua	/^function Square.something:Bar ()$/
 StartDay	cp-src/functions.cpp	/^Date StartDay(Date a,int days){\/\/Function to calcu/
 StripPath	pas-src/common.pas	/^function StripPath; (*($/
 SubString	pas-src/common.pas	/^function SubString; (*($/
@@ -1647,6 +1663,8 @@ Yacc_entries	c-src/etags.c	/^Yacc_entries (FILE *inf)$/
 Yacc_help	c-src/etags.c	693
 Yacc_suffixes	c-src/etags.c	691
 Z	c-src/h.h	100
+[]	ruby-src/test.rb	/^        def [](y)$/
+[]=	ruby-src/test.rb	/^        def []=(y, val)$/
 \	tex-src/texinfo.tex	/^\\def\\ {{\\fontdimen2\\font=\\tclosesave{} }}%$/
 \	tex-src/texinfo.tex	/^\\gdef\\sepspaces{\\def {\\ }}}$/
 \'	tex-src/texinfo.tex	/^\\def\\'{{'}}$/
@@ -2353,6 +2371,7 @@ _malloc_thread_enabled_p	c-src/emacs/src/gmalloc.c	519
 _realloc	c-src/emacs/src/gmalloc.c	/^_realloc (void *ptr, size_t size)$/
 _realloc_internal	c-src/emacs/src/gmalloc.c	/^_realloc_internal (void *ptr, size_t size)$/
 _realloc_internal_nolock	c-src/emacs/src/gmalloc.c	/^_realloc_internal_nolock (void *ptr, size_t size)$/
+`	ruby-src/test.rb	/^        def `(command)$/
 a	c.c	152
 a	c.c	180
 a	c.c	/^a()$/
@@ -2360,6 +2379,7 @@ a	c.c	/^a ()$/
 a	c-src/h.h	40
 a	c-src/h.h	103
 a	cp-src/c.C	132
+a	ruby-src/test1.ruby	/^ def a()$/
 a-forth-constant!	forth-src/test-forth.fth	/^99 constant a-forth-constant!$/
 a-forth-value?	forth-src/test-forth.fth	/^55 value a-forth-value?$/
 a-forth-word	forth-src/test-forth.fth	/^: a-forth-word ( a b c -- a*b+c )  + * ;$/
@@ -2484,6 +2504,7 @@ b	c-src/h.h	41
 b	c-src/h.h	103
 b	c-src/h.h	104
 b	cp-src/c.C	132
+b	ruby-src/test1.ruby	/^ def b()$/
 backslash=0	tex-src/texinfo.tex	/^\\let\\indexbackslash=0  %overridden during \\printin/
 bar	c-src/c.c	/^void bar() {while(0) {}}$/
 bar	c.c	143
@@ -2599,6 +2620,10 @@ childDidExit	objc-src/Subprocess.m	/^- childDidExit$/
 chunks_free	c-src/emacs/src/gmalloc.c	313
 chunks_used	c-src/emacs/src/gmalloc.c	311
 cjava	c-src/etags.c	2936
+class_method	ruby-src/test.rb	/^        def class_method$/
+class_method_equals=	ruby-src/test.rb	/^        def class_method_equals=$/
+class_method_exclamation!	ruby-src/test.rb	/^        def class_method_exclamation!$/
+class_method_question?	ruby-src/test.rb	/^        def class_method_question?$/
 classifyLine	php-src/lce_functions.php	/^      function classifyLine($line)$/
 clear	cp-src/conway.hpp	/^    void clear(void) { alive = 0; }$/
 clear-abbrev-table	c-src/abbrev.c	/^DEFUN ("clear-abbrev-table", Fclear_abbrev_table, /
@@ -2988,8 +3013,11 @@ generic_object	cp-src/clheir.cpp	/^generic_object::generic_object(void)$/
 generic_object	cp-src/clheir.hpp	13
 getArchs	objc-src/PackInsp.m	/^-(void)getArchs$/
 getDomainNames	php-src/lce_functions.php	/^      function getDomainNames()$/
+getFoo	lua-src/test.lua	/^function Cube.data.getFoo ()$/
 getPOReader	php-src/lce_functions.php	/^      function &getPOReader($domain)$/
 getPath	objc-src/PackInsp.m	/^-(const char *)getPath:(char *)buf forType:(const /
+getPos	lua-src/test.lua	/^function Rectangle.getPos ()$/
+getPos	lua-src/test.lua	/^function Circle.getPos ()$/
 getTextDomains	php-src/lce_functions.php	/^  function getTextDomains($lines)$/
 get_compressor_from_suffix	c-src/etags.c	/^get_compressor_from_suffix (char *file, char **ext/
 get_contiguous_space	c-src/emacs/src/gmalloc.c	/^get_contiguous_space (ptrdiff_t size, void *positi/
@@ -3397,6 +3425,8 @@ mcCSC	cp-src/c.C	6
 mcheck	c-src/emacs/src/gmalloc.c	/^mcheck (void (*func) (enum mcheck_status))$/
 mcheck_status	c-src/emacs/src/gmalloc.c	283
 mcheck_used	c-src/emacs/src/gmalloc.c	2012
+me22b	lua-src/test.lua	/^   local function test.me22b (one)$/
+me_22a	lua-src/test.lua	/^   function test.me_22a(one, two)$/
 memalign	c-src/emacs/src/gmalloc.c	/^memalign (size_t alignment, size_t size)$/
 member	prol-src/natded.prolog	/^member(X,[X|_]).$/
 memclear	c-src/emacs/src/lisp.h	/^memclear (void *p, ptrdiff_t nbytes)$/
@@ -3420,6 +3450,7 @@ miti	html-src/softwarelibero.html	/^Sfatiamo alcuni miti$/
 modifier_names	c-src/emacs/src/keyboard.c	6319
 modifier_symbols	c-src/emacs/src/keyboard.c	6327
 modify_event_symbol	c-src/emacs/src/keyboard.c	/^modify_event_symbol (ptrdiff_t symbol_num, int mod/
+module_method	ruby-src/test.rb	/^    def module_method$/
 more_aligned_int	c.c	165
 morecore_nolock	c-src/emacs/src/gmalloc.c	/^morecore_nolock (size_t size)$/
 morecore_recursing	c-src/emacs/src/gmalloc.c	604
@@ -4180,6 +4211,8 @@ test	c-src/emacs/src/lisp.h	1871
 test	cp-src/c.C	86
 test	erl-src/gs_dialog.erl	/^test() ->$/
 test	php-src/ptest.php	/^test $/
+test.me22b	lua-src/test.lua	/^   local function test.me22b (one)$/
+test.me_22a	lua-src/test.lua	/^   function test.me_22a(one, two)$/
 test_undefined	c-src/emacs/src/keyboard.c	/^test_undefined (Lisp_Object binding)$/
 texttreelist	prol-src/natded.prolog	/^texttreelist([]).$/
 this	c-src/a/b/b.c	1

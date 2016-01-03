@@ -38,6 +38,11 @@
     (should (equal (background-color-at-point) "black"))
     (should (equal (foreground-color-at-point) "black")))
   (with-temp-buffer
+    (insert (propertize "STRING" 'face '(:foreground "black" :background "black")))
+    (goto-char (point-min))
+    (should (equal (background-color-at-point) "black"))
+    (should (equal (foreground-color-at-point) "black")))
+  (with-temp-buffer
     (emacs-lisp-mode)
     (setq-local font-lock-comment-face 'faces--test1)
     (setq-local font-lock-constant-face 'faces--test2)

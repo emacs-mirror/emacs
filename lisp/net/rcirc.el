@@ -320,7 +320,7 @@ Called with 5 arguments, PROCESS, SENDER, RESPONSE, TARGET and TEXT."
 
 (defcustom rcirc-decode-coding-system 'utf-8
   "Coding system used to decode incoming irc messages.
-Set to 'undecided if you want the encoding of the incoming
+Set to `undecided' if you want the encoding of the incoming
 messages autodetected."
   :type 'coding-system
   :group 'rcirc)

@@ -42,6 +42,7 @@ InfoPlist.strings
 Makefile
 makefile
 !etc/refcards/Makefile
+!modules/mod-test/Makefile
 !test/lisp/progmodes/flymake-resources/Makefile
 !test/manual/indent/Makefile
 !test/manual/etags/Makefile
@@ -139,6 +140,8 @@ src/stamp-h1
 *.elc
 *.o
 *.res
+*.so
+*.dll
 [0-9]*.core
 core
 core.*[0-9]
@@ -209,6 +212,7 @@ lisp/international/uni-*.el
 *.cms
 *.cp
 *.cps
+*.doc
 *.dvi
 *.fn
 *.fns

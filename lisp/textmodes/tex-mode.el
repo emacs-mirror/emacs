@@ -188,7 +188,7 @@ If two printers are not enough of a choice, you can set the variable
 for example,
 
     (setq tex-alt-dvi-print-command
-         '(format \"lpr -P%s\" (read-string \"Use printer: \")))
+         \\='(format \"lpr -P%s\" (read-string \"Use printer: \")))
 
 would tell \\[tex-print] with a prefix argument to ask you which printer to
 use."

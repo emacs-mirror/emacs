@@ -175,10 +175,21 @@ corresponding Control character.  @xref{User Input,C-M-}.
 Case conversion means changing text from upper case to lower case or
 vice versa.  @xref{Case}.
 
+@item Case Folding
+Case folding means ignoring the differences between case variants of
+the same letter: upper-case, lower-case, and title-case.  Emacs
+performs case folding by default in text search.  @xref{Lax Search}.
+
 @item Character
 Characters form the contents of an Emacs buffer.  Also, key sequences
 (q.v.@:) are usually made up of characters (though they may include
 other input events as well).  @xref{User Input}.
+
+@item Character Folding
+Character folding means ignoring differences between similarly looking
+characters, such as between @code{a}, and @code{@:a} and @code{@'a}.
+Emacs performs character folding by default in text search.  @xref{Lax
+Search}.
 
 @item Character Set
 Emacs supports a number of character sets, each of which represents a

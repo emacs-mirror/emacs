@@ -1396,7 +1396,8 @@ if it is a string, only list groups matching REGEXP."
       (gnus-group-prepare-flat-list-dead
        (gnus-union
 	not-in-list
-	(setq gnus-killed-list (sort gnus-killed-list 'string<)))
+	(setq gnus-killed-list (sort gnus-killed-list 'string<))
+	:test 'equal)
        gnus-level-killed ?K regexp))
 
     (gnus-group-set-mode-line)

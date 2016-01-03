@@ -126,9 +126,9 @@ tag.  For example,
 
 would be represented by
 
-    '(\"\" . \"foo\").
+    (\"\" . \"foo\").
 
-If you'd just like a plain symbol instead, use 'symbol-qnames in
+If you'd just like a plain symbol instead, use `symbol-qnames' in
 the PARSE-NS argument."
 
   (car node))
@@ -1010,12 +1010,12 @@ The first line is indented with the optional INDENT-STRING."
 
 (defun xml-escape-string (string)
   "Convert STRING into a string containing valid XML character data.
-Replace occurrences of &<>'\" in STRING with their default XML
-entity references (e.g. replace each & with &amp;).
+Replace occurrences of &<>\\='\" in STRING with their default XML
+entity references (e.g., replace each & with &amp;).
 
 XML character data must not contain & or < characters, nor the >
 character under some circumstances.  The XML spec does not impose
-restriction on \" or ', but we just substitute for these too
+restriction on \" or \\=', but we just substitute for these too
 \(as is permitted by the spec)."
   (with-temp-buffer
     (insert string)

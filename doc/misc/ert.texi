@@ -283,6 +283,15 @@ with a zero exit status if all tests passed, or nonzero if any tests
 failed or if anything else went wrong.  It will also print progress
 messages and error diagnostics to standard output.
 
+You can also redirect the above output to a log file, say
+@file{output.log}, and use the
+@code{ert-summarize-tests-batch-and-exit} function to produce a neat
+summary as shown below:
+
+@example
+emacs -batch -l ert -f ert-summarize-tests-batch-and-exit output.log
+@end example
+
 If ERT is not part of your Emacs distribution, you may need to use
 @code{-L /path/to/ert/} so that Emacs can find it.  You may need
 additional @code{-L} flags to ensure that @code{my-tests.el} and all the

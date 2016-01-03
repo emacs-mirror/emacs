@@ -106,8 +106,10 @@
 				"define-global-minor-mode"
 				"define-globalized-minor-mode"
 				"define-derived-mode" "define-generic-mode"
+				"ert-deftest"
 				"cl-defun" "cl-defsubst" "cl-defmacro"
-				"cl-define-compiler-macro"
+				"cl-define-compiler-macro" "cl-defgeneric"
+				"cl-defmethod"
                                 ;; CL.
 				"define-compiler-macro" "define-modify-macro"
 				"defsetf" "define-setf-expander"
@@ -270,7 +272,7 @@ This will generate compile-time constants from BINDINGS."
                  "define-derived-mode" "define-minor-mode"
                  "define-generic-mode" "define-global-minor-mode"
                  "define-globalized-minor-mode" "define-skeleton"
-                 "define-widget"))
+                 "define-widget" "ert-deftest"))
      (el-vdefs '("defconst" "defcustom" "defvaralias" "defvar-local"
                  "defface"))
      (el-tdefs '("defgroup" "deftheme"))

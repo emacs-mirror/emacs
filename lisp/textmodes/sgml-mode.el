@@ -697,7 +697,7 @@ This only works for Latin-1 input."
   "Prompt for a tag and insert it, optionally with attributes.
 Completion and configuration are done according to `sgml-tag-alist'.
 If you like tags and attributes in uppercase, customize
-`sgml-transformation-function' to 'upcase."
+`sgml-transformation-function' to `upcase'."
   (funcall (or skeleton-transformation-function 'identity)
            (setq sgml-tag-last
 		 (completing-read

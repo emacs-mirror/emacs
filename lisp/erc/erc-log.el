@@ -270,9 +270,12 @@ The current buffer is given by BUFFER."
       (setq buffer-file-name nil)
       (erc-set-write-file-functions '(erc-save-buffer-in-logs))
       (when erc-log-insert-log-on-open
-	(ignore-errors (insert-file-contents (erc-current-logfile))
-		       (move-marker erc-last-saved-position
-				    (1- (point-max))))))))
+	(ignore-errors
+	  (save-excursion
+	    (goto-char (point-min))
+	    (insert-file-contents (erc-current-logfile)))
+	  (move-marker erc-last-saved-position
+		       (1- (point-max))))))))
 
 (defun erc-log-disable-logging (buffer)
   "Disable logging in BUFFER."

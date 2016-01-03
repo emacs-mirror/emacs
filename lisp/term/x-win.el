@@ -1387,7 +1387,7 @@ This returns an error if any Emacs frames are X frames."
     ("etc/images/connect" . "gtk-connect")
     ("etc/images/contact" . "gtk-contact")
     ("etc/images/delete" . ("edit-delete" "gtk-delete"))
-    ("etc/images/describe" . ("ocument-properties" "gtk-properties"))
+    ("etc/images/describe" . ("document-properties" "gtk-properties"))
     ("etc/images/disconnect" . "gtk-disconnect")
     ;; ("etc/images/exit" . "gtk-exit")
     ("etc/images/lock-broken" . "gtk-lock_broken")

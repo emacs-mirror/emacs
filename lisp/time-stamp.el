@@ -677,7 +677,7 @@ otherwise the value of the function `system-name'."
 ;;; the rest of this file is for version 1 compatibility
 
 (defun time-stamp-fconcat (list sep)
-  "Similar to (mapconcat 'funcall LIST SEP) but LIST allows literals.
+  "Similar to (mapconcat \\='funcall LIST SEP) but LIST allows literals.
 If an element of LIST is a symbol, it is funcalled to get the string to use;
 the separator SEP is used between two strings obtained by funcalling a
 symbol.  Otherwise the element itself is inserted; no separator is used

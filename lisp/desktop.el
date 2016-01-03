@@ -519,8 +519,8 @@ code like
 
    (defun foo-restore-desktop-buffer
    ...
-   (add-to-list 'desktop-buffer-mode-handlers
-                '(foo-mode . foo-restore-desktop-buffer))
+   (add-to-list \\='desktop-buffer-mode-handlers
+                \\='(foo-mode . foo-restore-desktop-buffer))
 
 The major mode function must either be autoloaded, or of the form
 \"foobar-mode\" and defined in library \"foobar\", so that desktop
@@ -586,8 +586,8 @@ code like
 
    (defun foo-desktop-restore
    ...
-   (add-to-list 'desktop-minor-mode-handlers
-                '(foo-mode . foo-desktop-restore))
+   (add-to-list \\='desktop-minor-mode-handlers
+                \\='(foo-mode . foo-desktop-restore))
 
 The minor mode function must either be autoloaded, or of the form
 \"foobar-mode\" and defined in library \"foobar\", so that desktop

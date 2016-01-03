@@ -165,11 +165,11 @@ REGEXP is the string matching text around the button or a symbol
   entries in lists or alists are considered to be nicks or other
   complete words.  Therefore they are enclosed in \\< and \\>
   while searching.  REGEXP can also be the quoted symbol
-  'nicknames, which matches the nickname of any user on the
+  \\='nicknames, which matches the nickname of any user on the
   current server.
 
 BUTTON is the number of the regexp grouping actually matching the
-  button,  This is ignored if REGEXP is 'nicknames.
+  button,  This is ignored if REGEXP is \\='nicknames.
 
 FORM is a lisp expression which must eval to true for the button to
   be added,
@@ -180,7 +180,7 @@ CALLBACK is the function to call when the user push this button.
 
 PAR is a number of a regexp grouping whose text will be passed to
   CALLBACK.  There can be several PAR arguments.  If REGEXP is
-  'nicknames, these are ignored, and CALLBACK will be called with
+  \\='nicknames, these are ignored, and CALLBACK will be called with
   the nickname matched as the argument."
   :group 'erc-button
   :version "24.1"                       ; remove finger (bug#4443)

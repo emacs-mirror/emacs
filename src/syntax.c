@@ -519,8 +519,7 @@ update_syntax_table_forward (ptrdiff_t charpos, bool init,
   else
     {
       update_syntax_table (charpos, 1, init, object);
-      if (gl_state.e_property > syntax_propertize__done
-	  && NILP (object))
+      if (NILP (object) && gl_state.e_property > syntax_propertize__done)
 	parse_sexp_propertize (charpos);
     }
 }
@@ -791,8 +790,10 @@ back_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
 		   || SYNTAX_FLAGS_COMMENT_NESTED (syntax) != comnested))
 	continue;
 
-      /* Ignore escaped characters, except comment-enders.  */
-      if (code != Sendcomment && char_quoted (from, from_byte))
+      /* Ignore escaped characters, except comment-enders which cannot
+         be escaped.  */
+      if ((Vcomment_end_can_be_escaped || code != Sendcomment)
+          && char_quoted (from, from_byte))
 	continue;
 
       switch (code)
@@ -2347,7 +2348,8 @@ forw_comment (ptrdiff_t from, ptrdiff_t from_byte, ptrdiff_t stop,
       if (code == Sendcomment
 	  && SYNTAX_FLAGS_COMMENT_STYLE (syntax, 0) == style
 	  && (SYNTAX_FLAGS_COMMENT_NESTED (syntax) ?
-	      (nesting > 0 && --nesting == 0) : nesting < 0))
+	      (nesting > 0 && --nesting == 0) : nesting < 0)
+          && !(Vcomment_end_can_be_escaped && char_quoted (from, from_byte)))
 	/* We have encountered a comment end of the same style
 	   as the comment sequence which began this comment
 	   section.  */
@@ -3702,6 +3704,12 @@ character of that word.
 
 In both cases, LIMIT bounds the search. */);
   Vfind_word_boundary_function_table = Fmake_char_table (Qnil, Qnil);
+
+  DEFVAR_BOOL ("comment-end-can-be-escaped", Vcomment_end_can_be_escaped,
+               doc: /* Non-nil means an escaped ender inside a comment doesn'tend the comment.  */);
+  Vcomment_end_can_be_escaped = 0;
+  DEFSYM (Qcomment_end_can_be_escaped, "comment-end-can-be-escaped");
+  Fmake_variable_buffer_local (Qcomment_end_can_be_escaped);
 
   defsubr (&Ssyntax_table_p);
   defsubr (&Ssyntax_table);

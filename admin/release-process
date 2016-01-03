@@ -10,18 +10,30 @@ The first phase of the release schedule is the "heads-down" working
 period for new features, on the `master' branch and several feature
 branches.
 
-** Phase two: bugfixes
+** Phase two: fixing and stabilizing the release branch
 
 Shortly before this phase, Emacs developers will be devoted to
 figuring out what features to include in the next release and what
 features to defer to a later release.
 
+This phase is mostly spent fixing bugs and documenting new features
+and changes on the "emacs-NN" branch.  Actually, the default branch
+for pushing any work in this phase should be "emacs-NN", except for
+new features.
+
 At the beginning of this phase, a release branch called "emacs-NN"
 ("NN" represents the major version number of the new Emacs release)
-will be cut from `master'.
+will be cut from `master'.  When that happens, the version number on
+`master' should be incremented; use admin/admin.el's `set-version'
+command to do that, then commit the changes it made and push to
+`master'.  For major releases, also update the value of
+`customize-changed-options-previous-release'.
 
-This phase is spent fixing bugs and eliminating undocumented new
-features on the "emacs-NN" branch.
+The 2 main manuals, the User Manual and the Emacs Lisp Manual, need to
+be proofread, preferably by at least 2 different persons, and any
+uncovered problems fixed.  This is a lot of work, so it is advisable
+to divide the job between several people (see the checklist near the
+end of this file).
 
 In parallel to this phase, `master' can receive new features, to be
 released in the next release cycle.  From time to time, the master
@@ -48,8 +60,16 @@ files.  See `admin/notes/years' for information about maintaining
 copyright years for GNU Emacs.
 
 ** Make sure the necessary sources and scripts for any generated files
-are included in the source tarfile.  (They don't need to be installed,
-so eg admin/ is fine.)
+are included in the source tarball.  (They don't need to be installed,
+so e.g. admin/ is fine.)
+
+** Regenerate AUTHORS by using admin/authors.el
+(The instructions are at the beginning of that file.)
+
+** Remove temporary +++/--- lines in NEWS.
+But first make sure there are no unmarked entries, and update the
+documentation (or decide no updates are necessary) for those that
+aren't.
 
 ** Manuals
 Check for node names using problematic characters:
@@ -60,7 +80,15 @@ Check for major new features added since the last release (e.g. new
 lisp files), and add the relevant authors to the Acknowledgments in
 doc/emacs/ack.texi and emacs.texi.
 
-Check cross-references between the manuals (eg from emacs to elisp)
+For major releases, rewrite the "Antinews" appendix of the User Manual
+(doc/emacs/anti.texi) to describe features lost by downgrading to the
+previous version.  The way to do that is read NEWS, pick up the more
+significant changes and new features in the upcoming release, then
+describe the "benefits" from losing those features.  Be funny, use
+humor.  The text written for the previous major release can serve as
+good example.
+
+Check cross-references between the manuals (e.g. from emacs to elisp)
 are correct.  You can use something like the following in the info
 directory in the Emacs build tree:
 
@@ -78,32 +106,31 @@ Redirect /software/emacs/manual/html_node/automake/ /software/automake/manual/ht
 Another tool you can use to check links is gnu.org's linc.py:
 http://www.gnu.org/server/source/
 
-You run this something like:
+You run this with something like:
 
 cd /path/to/cvs/emacs-www
 linc.py -o /path/to/output-dir --url http://www.gnu.org/software/emacs/ .
 
 Be warned that it is really, really slow (as in, can take ~ a full day
 to check the manual/ directory).  It is probably best to run it on a
-single directory at a time from eg manual/html_node.  It is very
+single directory at a time from e.g. manual/html_node.  It is very
 inefficient, but may reveal a few things that info-xref does not.
-
 
 make emacs.dvi, elisp.dvi, and deal with any errors (undefined
 references etc) in the output.  Break any overfull lines.
 Underfull hboxes are not serious, but it can be nice to get rid of
 them if a simple rephrasing or rearrangement will work.
 
-Update the master menu and detailed menu (eg the antinews version).
+Update the master menu and detailed menu (e.g. the antinews version).
 The command texinfo-multiple-files-update can do this, but you
-probably want to apply the results selectively (eg the current master
+probably want to apply the results selectively (e.g. the current master
 menu has better line-breaks than the automatic version).  It includes
 the menu-entry name (if there is one) as well as the node name - using
 only the latter looks better.  Also, it doesn't seem to handle nested
 includes, so will miss edebug.texi etc.
 
 Check for widow and orphan lines in the printed manual; make sure all
-the pages really look ok in the manual as formatted.  Orphans/widows
+the pages really look OK in the manual as formatted.  Orphans/widows
 are cases where the first/last line of a paragraph is on its own at
 the end/start of a page, or where the last word in a paragraph is on
 its own at the start of a line.  It looks better if you reword/respace
@@ -117,8 +144,12 @@ pages of the manuals, and even if they do, the resulting page breaks
 depend on what paper and font size they use.  This also means that if
 you _are_ going to do this, it should be done with the paper and font
 size that the GNU Press are going to use when they print the manuals.
-I think this is different to what you get if you just use eg 'make
+I think this is different to what you get if you just use e.g. 'make
 emacs.pdf' (e.g., enable "smallbook").
+
+** Try to reorder NEWS: most important things first, related items together.
+
+** For a major release, add a "New in Emacs XX" section to faq.texi.
 
 ** Check the keybindings in the refcards are correct, and add any new ones.
 What paper size are the English versions supposed to be on?
@@ -140,14 +171,6 @@ pl	Włodek Bzyl
 pt-br	Rodrigo Real
 ru	Alex Ott
 sk	Miroslav Vaško
-
-** For a major release, add a "New in Emacs XX" section to faq.texi.
-
-** Remove temporary +++/--- lines in NEWS.
-
-** Try to reorder NEWS: most important things first, related items together.
-
-** Consider bumping customize-changed-options-previous-release.
 
 ** cusver-check from admin.el can help find new defcustoms missing
 :version tags.

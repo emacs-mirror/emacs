@@ -338,7 +338,7 @@ This function obeys the conventions for collation order in your
 locale settings.  For example, punctuation and whitespace characters
 might be considered less significant for sorting:
 
-(sort '("11" "12" "1 1" "1 2" "1.1" "1.2") \\='string-collate-lessp)
+(sort \\='("11" "12" "1 1" "1 2" "1.1" "1.2") \\='string-collate-lessp)
   => ("11" "1 1" "1.1" "12" "1 2" "1.2")
 
 The optional argument LOCALE, a string, overrides the setting of your
@@ -1580,7 +1580,8 @@ sublist by modifying its list structure, then returns the resulting
 list.
 
 Write `(setq foo (delq element foo))' to be sure of correctly changing
-the value of a list `foo'.  */)
+the value of a list `foo'.  See also `remq', which does not modify the
+argument.  */)
   (register Lisp_Object elt, Lisp_Object list)
 {
   Lisp_Object tail, tortoise, prev = Qnil;
@@ -2763,8 +2764,9 @@ DEFUN ("require", Frequire, Srequire, 1, 3, 0,
 If FEATURE is not a member of the list `features', then the feature
 is not loaded; so load the file FILENAME.
 If FILENAME is omitted, the printname of FEATURE is used as the file name,
-and `load' will try to load this name appended with the suffix `.elc' or
-`.el', in that order.  The name without appended suffix will not be used.
+and `load' will try to load this name appended with the suffix `.elc',
+`.el', or the system-dependent suffix for dynamic module files, in that
+order.  The name without appended suffix will not be used.
 See `get-load-suffixes' for the complete list of suffixes.
 If the optional third argument NOERROR is non-nil,
 then return nil if the file is not found instead of signaling an error.
@@ -3619,8 +3621,7 @@ larger_vector (Lisp_Object vec, ptrdiff_t incr_min, ptrdiff_t nitems_max)
 			 Low-level Functions
  ***********************************************************************/
 
-static struct hash_table_test hashtest_eq;
-struct hash_table_test hashtest_eql, hashtest_equal;
+struct hash_table_test hashtest_eq, hashtest_eql, hashtest_equal;
 
 /* Compare KEY1 which has hash code HASH1 and KEY2 with hash code
    HASH2 in hash table H using `eql'.  Value is true if KEY1 and
@@ -3991,7 +3992,7 @@ hash_put (struct Lisp_Hash_Table *h, Lisp_Object key, Lisp_Object value,
 
 /* Remove the entry matching KEY from hash table H, if there is one.  */
 
-static void
+void
 hash_remove_from_table (struct Lisp_Hash_Table *h, Lisp_Object key)
 {
   EMACS_UINT hash_code;
@@ -4078,13 +4079,10 @@ hash_clear (struct Lisp_Hash_Table *h)
 static bool
 sweep_weak_table (struct Lisp_Hash_Table *h, bool remove_entries_p)
 {
-  ptrdiff_t bucket, n;
-  bool marked;
+  ptrdiff_t n = gc_asize (h->index);
+  bool marked = false;
 
-  n = ASIZE (h->index) & ~ARRAY_MARK_FLAG;
-  marked = 0;
-
-  for (bucket = 0; bucket < n; ++bucket)
+  for (ptrdiff_t bucket = 0; bucket < n; ++bucket)
     {
       Lisp_Object idx, next, prev;
 

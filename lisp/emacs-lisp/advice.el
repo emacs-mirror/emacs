@@ -1629,7 +1629,7 @@ COMPILE argument of `ad-activate' was supplied as nil."
 Only proper subtrees are considered, for example, if TREE is (1 (2 (3)) 4)
 then the subtrees will be 1 (2 (3)) 2 (3) 3 4, dotted structures are
 allowed too.  Once a qualifying subtree has been found its subtrees will
-not be considered anymore.  (ad-substitute-tree 'atom 'identity tree)
+not be considered anymore.  (ad-substitute-tree \\='atom \\='identity tree)
 generates a copy of TREE."
   (cond ((consp tReE)
          (cons (if (funcall sUbTrEe-TeSt (car tReE))
@@ -2419,7 +2419,7 @@ as if they had been supplied to a function with TARGET-ARGLIST directly.
 Excess source arguments will be neglected, missing source arguments will be
 supplied as nil.  Returns a `funcall' or `apply' form with the second element
 being `function' which has to be replaced by an actual function argument.
-Example: (ad-map-arglists '(a &rest args) '(w x y z)) will return
+Example: (ad-map-arglists \\='(a &rest args) \\='(w x y z)) will return
          (funcall ad--addoit-function a (car args) (car (cdr args)) (nth 2 args))."
   (let* ((parsed-source-arglist (ad-parse-arglist source-arglist))
 	 (source-reqopt-args (append (nth 0 parsed-source-arglist)

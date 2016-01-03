@@ -572,6 +572,18 @@ The value returned is the window line number point has moved to, with
 the top line in the window numbered 0.
 @end deffn
 
+@vindex move-to-window-group-line-function
+@defun move-to-window-group-line count
+This function is like @code{move-to-window-line}, except that when the
+selected window is a part of a group of windows (@pxref{Window
+Group}), @code{move-to-window-group-line} will move to a position with
+respect to the entire group, not just the single window.  This
+condition holds when the buffer local variable
+@code{move-to-window-group-line-function} is set to a function.  In
+this case, @code{move-to-window-group-line} calls the function with
+the argument @var{count}, then returns its result.
+@end defun
+
 @defun compute-motion from frompos to topos width offsets window
 This function scans the current buffer, calculating screen positions.
 It scans the buffer forward from position @var{from}, assuming that is

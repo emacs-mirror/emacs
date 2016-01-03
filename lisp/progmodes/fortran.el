@@ -1258,7 +1258,7 @@ Auto-indent does not happen if a numeric ARG is used."
 
 (defun fortran-previous-statement ()
   "Move point to beginning of the previous Fortran statement.
-Returns 'first-statement if that statement is the first
+Returns `first-statement' if that statement is the first
 non-comment Fortran statement in the file, and nil otherwise.
 Directive lines are treated as comments."
   (interactive)
@@ -1290,7 +1290,7 @@ Directive lines are treated as comments."
 
 (defun fortran-next-statement ()
   "Move point to beginning of the next Fortran statement.
-Returns 'last-statement if that statement is the last
+Returns `last-statement' if that statement is the last
 non-comment Fortran statement in the file, and nil otherwise.
 Directive lines are treated as comments."
   (interactive)

@@ -3707,7 +3707,7 @@ and no others."
 (defun window-deletable-p (&optional window)
   "Return t if WINDOW can be safely deleted from its frame.
 WINDOW must be a valid window and defaults to the selected one.
-Return 'frame if deleting WINDOW should also delete its frame."
+Return `frame' if deleting WINDOW should also delete its frame."
   (setq window (window-normalize-window window))
 
   (unless (or ignore-window-parameters
@@ -4851,8 +4851,9 @@ frame.  The selected window is not changed by this function."
 	      (set-window-parameter (window-parent new) 'window-atom t))
 	    (set-window-parameter new 'window-atom t)))
 
-	  ;; Sanitize sizes.
-	  (window--sanitize-window-sizes frame horizontal)
+	  ;; Sanitize sizes unless SIZE was specified.
+	  (unless size
+            (window--sanitize-window-sizes frame horizontal))
 
 	  (run-window-configuration-change-hook frame)
 	  (run-window-scroll-functions new)
@@ -6491,7 +6492,7 @@ action.  Its form is described below.
 Optional argument FRAME, if non-nil, acts like an additional
 ALIST entry (reusable-frames . FRAME) to the action list of ACTION,
 specifying the frame(s) to search for a window that is already
-displaying the buffer.  See `display-buffer-reuse-window'
+displaying the buffer.  See `display-buffer-reuse-window'.
 
 If ACTION is non-nil, it should have the form (FUNCTION . ALIST),
 where FUNCTION is either a function or a list of functions, and
@@ -6562,9 +6563,9 @@ Recognized alist entries include:
     of not displaying the buffer and FUNCTION can safely return
     a non-window value to suppress displaying.
 
- `preserve-size' -- Value should be either '(t . nil)' to
-    preserve the width of the window, '(nil . t)' to preserve its
-    height or '(t . t)' to preserve both.
+ `preserve-size' -- Value should be either (t . nil) to
+    preserve the width of the window, (nil . t) to preserve its
+    height or (t . t) to preserve both.
 
 The ACTION argument to `display-buffer' can also have a non-nil
 and non-list value.  This means to display the buffer in a window
@@ -6845,7 +6846,7 @@ selected frame."
     (or (and bottom-window-shows-buffer
 	     (window--display-buffer
 	      buffer bottom-window 'reuse alist display-buffer-mark-dedicated))
-     (and (not (frame-parameter nil 'unsplittable))
+	(and (not (frame-parameter nil 'unsplittable))
 	     (let (split-width-threshold)
 	       (setq window (window--try-to-split-window bottom-window alist)))
 	     (window--display-buffer
@@ -7867,6 +7868,152 @@ Return non-nil if the window was shrunk, nil otherwise."
       (ignore-errors
        (with-current-buffer buffer-to-kill
 	 (remove-hook 'kill-buffer-hook delete-window-hook t))))))
+
+
+;;;
+;; Groups of windows (Follow Mode).
+;;
+;; This section of functions extends the functionality of some window
+;; manipulating commands to groups of windows cooperatively
+;; displaying a buffer, typically with Follow Mode.
+;;
+;; The xxx-function variables are permanent locals so that their local
+;; status is undone only when explicitly programmed, not when a buffer
+;; is reverted or a mode function is called.
+
+(defvar window-group-start-function nil)
+(make-variable-buffer-local 'window-group-start-function)
+(put 'window-group-start-function 'permanent-local t)
+(defun window-group-start (&optional window)
+  "Return position at which display currently starts in the group of
+windows containing WINDOW.  When a grouping mode (such as Follow Mode)
+is not active, this function is identical to `window-start'.
+
+WINDOW must be a live window and defaults to the selected one.
+This is updated by redisplay or by calling `set-window*-start'."
+  (if (functionp window-group-start-function)
+      (funcall window-group-start-function window)
+    (window-start window)))
+
+(defvar window-group-end-function nil)
+(make-variable-buffer-local 'window-group-end-function)
+(put 'window-group-end-function 'permanent-local t)
+(defun window-group-end (&optional window update)
+  "Return position at which display currently ends in the group of
+windows containing WINDOW.  When a grouping mode (such as Follow Mode)
+is not active, this function is identical to `window-end'.
+
+WINDOW must be a live window and defaults to the selected one.
+This is updated by redisplay, when it runs to completion.
+Simply changing the buffer text or setting `window-group-start'
+does not update this value.
+Return nil if there is no recorded value.  (This can happen if the
+last redisplay of WINDOW was preempted, and did not finish.)
+If UPDATE is non-nil, compute the up-to-date position
+if it isn't already recorded."
+  (if (functionp window-group-end-function)
+      (funcall window-group-end-function window update)
+    (window-end window update)))
+
+(defvar set-window-group-start-function nil)
+(make-variable-buffer-local 'set-window-group-start-function)
+(put 'set-window-group-start-function 'permanent-local t)
+(defun set-window-group-start (window pos &optional noforce)
+  "Make display in the group of windows containing WINDOW start at
+position POS in WINDOW's buffer.  When a grouping mode (such as Follow
+Mode) is not active, this function is identical to `set-window-start'.
+
+WINDOW must be a live window and defaults to the selected one.  Return
+POS.  Optional third arg NOFORCE non-nil inhibits next redisplay from
+overriding motion of point in order to display at this exact start."
+  (if (functionp set-window-group-start-function)
+      (funcall set-window-group-start-function window pos noforce)
+    (set-window-start window pos noforce)))
+
+(defvar recenter-window-group-function nil)
+(make-variable-buffer-local 'recenter-window-group-function)
+(put 'recenter-window-group-function 'permanent-local t)
+(defun recenter-window-group (&optional arg)
+  "Center point in the group of windows containing the selected window
+and maybe redisplay frame.  When a grouping mode (such as Follow Mode)
+is not active, this function is identical to `recenter'.
+
+With a numeric prefix argument ARG, recenter putting point on screen line ARG
+relative to the first window in the selected window group.  If ARG is
+negative, it counts up from the bottom of the last window in the
+group.  (ARG should be less than the total height of the window group.)
+
+If ARG is omitted or nil, then recenter with point on the middle line of
+the selected window group; if the variable `recenter-redisplay' is
+non-nil, also erase the entire frame and redraw it (when
+`auto-resize-tool-bars' is set to `grow-only', this resets the
+tool-bar's height to the minimum height needed); if
+`recenter-redisplay' has the special value `tty', then only tty frames
+are redrawn.
+
+Just C-u as prefix means put point in the center of the window
+and redisplay normally--don't erase and redraw the frame."
+  (if (functionp recenter-window-group-function)
+      (funcall recenter-window-group-function arg)
+    (recenter arg)))
+
+(defvar pos-visible-in-window-group-p-function nil)
+(make-variable-buffer-local 'pos-visible-in-window-group-p-function)
+(put 'pos-visible-in-window-group-p-function 'permanent-local t)
+(defun pos-visible-in-window-group-p (&optional pos window partially)
+  "Return non-nil if position POS is currently on the frame in the
+window group containing WINDOW.  When a grouping mode (such as Follow
+Mode) is not active, this function is identical to
+`pos-visible-in-window-p'.
+
+WINDOW must be a live window and defaults to the selected one.
+
+Return nil if that position is scrolled vertically out of view.  If a
+character is only partially visible, nil is returned, unless the
+optional argument PARTIALLY is non-nil.  If POS is only out of view
+because of horizontal scrolling, return non-nil.  If POS is t, it
+specifies the position of the last visible glyph in the window group.
+POS defaults to point in WINDOW; WINDOW defaults to the selected
+window.
+
+If POS is visible, return t if PARTIALLY is nil; if PARTIALLY is non-nil,
+the return value is a list of 2 or 6 elements (X Y [RTOP RBOT ROWH VPOS]),
+where X and Y are the pixel coordinates relative to the top left corner
+of the window.  The remaining elements are omitted if the character after
+POS is fully visible; otherwise, RTOP and RBOT are the number of pixels
+off-window at the top and bottom of the screen line (\"row\") containing
+POS, ROWH is the visible height of that row, and VPOS is the row number
+\(zero-based)."
+  (if (functionp pos-visible-in-window-group-p-function)
+      (funcall pos-visible-in-window-group-p-function pos window partially)
+    (pos-visible-in-window-p pos window partially)))
+
+(defvar selected-window-group-function nil)
+(make-variable-buffer-local 'selected-window-group-function)
+(put 'selected-window-group-function 'permanent-local t)
+(defun selected-window-group ()
+  "Return the list of windows in the group containing the selected window.
+When a grouping mode (such as Follow Mode) is not active, the
+result is a list containing only the selected window."
+  (if (functionp selected-window-group-function)
+      (funcall selected-window-group-function)
+    (list (selected-window))))
+
+(defvar move-to-window-group-line-function nil)
+(make-variable-buffer-local 'move-to-window-group-line-function)
+(put 'move-to-window-group-line-function 'permanent-local t)
+(defun move-to-window-group-line (arg)
+  "Position point relative to the the current group of windows.
+When a grouping mode (such as Follow Mode) is not active, this
+function is identical to `move-to-window-line'.
+
+ARG nil means position point at center of the window group.
+Else, ARG specifies the vertical position within the window
+group; zero means top of first window in the group, negative
+means relative to the bottom of the last window in the group."
+  (if (functionp move-to-window-group-line-function)
+      (funcall move-to-window-group-line-function arg)
+    (move-to-window-line arg)))
 
 
 (defvar recenter-last-op nil

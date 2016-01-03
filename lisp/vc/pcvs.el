@@ -2209,7 +2209,7 @@ With prefix argument, prompt for cvs flags."
 ;; Byte compile files.
 
 (defun-cvs-mode cvs-mode-byte-compile-files ()
-  "Run byte-compile-file on all selected files with '.el' extension."
+  "Run byte-compile-file on all selected files with `.el' extension."
   (interactive)
   (let ((marked (cvs-get-marked (cvs-ignore-marks-p "byte-compile"))))
     (dolist (fi marked)

@@ -228,8 +228,7 @@ Blank lines separate paragraphs.  Semicolons start comments.
 
 \\{emacs-lisp-mode-map}"
   :group 'lisp
-  (defvar xref-backend-functions)
-  (defvar project-library-roots-function)
+  (defvar project-vc-external-roots-function)
   (lisp-mode-variables nil nil 'elisp)
   (add-hook 'after-load-functions #'elisp--font-lock-flush-elisp-buffers)
   (setq-local electric-pair-text-pairs
@@ -239,7 +238,7 @@ Blank lines separate paragraphs.  Semicolons start comments.
   (add-function :before-until (local 'eldoc-documentation-function)
                 #'elisp-eldoc-documentation-function)
   (add-hook 'xref-backend-functions #'elisp--xref-backend nil t)
-  (setq-local project-library-roots-function #'elisp-library-roots)
+  (setq-local project-vc-external-roots-function #'elisp-load-path-roots)
   (add-hook 'completion-at-point-functions
             #'elisp-completion-at-point nil 'local))
 
@@ -576,8 +575,9 @@ It can be quoted, or be inside a quoted form."
                                        " " (cadr table-etc)))
                     (cddr table-etc)))))))))
 
-(define-obsolete-function-alias
-  'lisp-completion-at-point 'elisp-completion-at-point "25.1")
+(defun lisp-completion-at-point (_predicate)
+  (declare (obsolete elisp-completion-at-point "25.1"))
+  (elisp-completion-at-point))
 
 ;;; Xref backend
 
@@ -645,6 +645,7 @@ non-nil result supercedes the xrefs produced by
       ;; alphabetical by result type symbol
 
       ;; FIXME: advised function; list of advice functions
+      ;; FIXME: aliased variable
 
       ;; Coding system symbols do not appear in ‘load-history’,
       ;; so we can’t get a location for them.
@@ -794,19 +795,7 @@ non-nil result supercedes the xrefs produced by
 
     xrefs))
 
-(declare-function project-library-roots "project")
-(declare-function project-roots "project")
-(declare-function project-current "project")
-
-(cl-defmethod xref-backend-references ((_backend (eql elisp)) symbol)
-  "Find all references to SYMBOL (a string) in the current project."
-  (cl-mapcan
-   (lambda (dir)
-     (xref-collect-references symbol dir))
-   (let ((pr (project-current t)))
-     (append
-      (project-roots pr)
-      (project-library-roots pr)))))
+(declare-function project-external-roots "project")
 
 (cl-defmethod xref-backend-apropos ((_backend (eql elisp)) regexp)
   (apply #'nconc
@@ -843,9 +832,10 @@ non-nil result supercedes the xrefs produced by
 (cl-defmethod xref-location-group ((l xref-elisp-location))
   (xref-elisp-location-file l))
 
-(defun elisp-library-roots ()
-  (defvar package-user-dir)
-  (cons package-user-dir load-path))
+(defun elisp-load-path-roots ()
+  (if (boundp 'package-user-dir)
+      (cons package-user-dir load-path)
+    load-path))
 
 ;;; Elisp Interaction mode
 

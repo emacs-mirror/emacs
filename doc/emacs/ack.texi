@@ -64,6 +64,10 @@ point vertically fixed by scrolling the window when moving up and down
 in the buffer.
 
 @item
+Aurélien Aptel added dynamic module support to Emacs.  Philipp
+Stephani and others also worked on the dynamic module code.
+
+@item
 Joe Arceneaux wrote the original text property implementation, and
 implemented support for X11.
 

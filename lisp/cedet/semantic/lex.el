@@ -1815,13 +1815,13 @@ to keep comments as part of the token stream.")
 (make-variable-buffer-local 'semantic-ignore-comments)
 
 (defvar semantic-flex-enable-newlines nil
-  "When flexing, report 'newlines as syntactic elements.
+  "When flexing, report newlines as syntactic elements.
 Useful for languages where the newline is a special case terminator.
 Only set this on a per mode basis, not globally.")
 (make-variable-buffer-local 'semantic-flex-enable-newlines)
 
 (defvar semantic-flex-enable-whitespace nil
-  "When flexing, report 'whitespace as syntactic elements.
+  "When flexing, report whitespace as syntactic elements.
 Useful for languages where the syntax is whitespace dependent.
 Only set this on a per mode basis, not globally.")
 (make-variable-buffer-local 'semantic-flex-enable-whitespace)

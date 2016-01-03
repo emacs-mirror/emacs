@@ -637,8 +637,8 @@ color.  The function should accept a single argument, the color name."
 (defun list-colors-duplicates (&optional list)
   "Return a list of colors with grouped duplicate colors.
 If a color has no duplicates, then the element of the returned list
-has the form '(COLOR-NAME).  The element of the returned list with
-duplicate colors has the form '(COLOR-NAME DUPLICATE-COLOR-NAME ...).
+has the form (COLOR-NAME).  The element of the returned list with
+duplicate colors has the form (COLOR-NAME DUPLICATE-COLOR-NAME ...).
 This function uses the predicate `facemenu-color-equal' to compare
 color names.  If the optional argument LIST is non-nil, it should
 be a list of colors to display.  Otherwise, this function uses

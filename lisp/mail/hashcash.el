@@ -97,7 +97,7 @@ If this is not in your PATH, specify an absolute file name."
 
 (defcustom hashcash-extra-generate-parameters nil
   "A list of parameter strings passed to `hashcash-program' when minting.
-For example, you may want to set this to '(\"-Z2\") to reduce header length."
+For example, you may want to set this to (\"-Z2\") to reduce header length."
   :type '(repeat string)
   :group 'hashcash)
 

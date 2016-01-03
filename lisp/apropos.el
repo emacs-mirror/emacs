@@ -823,7 +823,7 @@ Returns list of symbols and documentation found."
 	       (lambda (symbol)
 		 (setq f (apropos-safe-documentation symbol)
 		       v (get symbol 'variable-documentation))
-		 (if (integerp v) (setq v))
+		 (if (integerp v) (setq v nil))
 		 (setq f (apropos-documentation-internal f)
 		       v (apropos-documentation-internal v))
 		 (setq sf (apropos-score-doc f)

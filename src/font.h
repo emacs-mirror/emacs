@@ -427,6 +427,13 @@ FONT_SPEC_P (Lisp_Object x)
   return FONTP (x) && (ASIZE (x) & PSEUDOVECTOR_SIZE_MASK) == FONT_SPEC_MAX;
 }
 
+/* Like FONT_SPEC_P, but can be used in the garbage collector.  */
+INLINE bool
+GC_FONT_SPEC_P (Lisp_Object x)
+{
+  return FONTP (x) && (gc_asize (x) & PSEUDOVECTOR_SIZE_MASK) == FONT_SPEC_MAX;
+}
+
 /* True iff X is font-entity.  */
 INLINE bool
 FONT_ENTITY_P (Lisp_Object x)
@@ -434,11 +441,25 @@ FONT_ENTITY_P (Lisp_Object x)
   return FONTP (x) && (ASIZE (x) & PSEUDOVECTOR_SIZE_MASK) == FONT_ENTITY_MAX;
 }
 
+/* Like FONT_ENTITY_P, but can be used in the garbage collector.  */
+INLINE bool
+GC_FONT_ENTITY_P (Lisp_Object x)
+{
+  return FONTP (x) && (gc_asize (x) & PSEUDOVECTOR_SIZE_MASK) == FONT_ENTITY_MAX;
+}
+
 /* True iff X is font-object.  */
 INLINE bool
 FONT_OBJECT_P (Lisp_Object x)
 {
   return FONTP (x) && (ASIZE (x) & PSEUDOVECTOR_SIZE_MASK) == FONT_OBJECT_MAX;
+}
+
+/* Like FONT_OBJECT_P, but can be used in the garbage collector.  */
+INLINE bool
+GC_FONT_OBJECT_P (Lisp_Object x)
+{
+  return FONTP (x) && (gc_asize (x) & PSEUDOVECTOR_SIZE_MASK) == FONT_OBJECT_MAX;
 }
 
 /* Type checking functions for various font-related objects.  */
@@ -476,6 +497,13 @@ XFONT_SPEC (Lisp_Object p)
   return XUNTAG (p, Lisp_Vectorlike);
 }
 
+INLINE struct font_spec *
+GC_XFONT_SPEC (Lisp_Object p)
+{
+  eassert (GC_FONT_SPEC_P (p));
+  return XUNTAG (p, Lisp_Vectorlike);
+}
+
 INLINE struct font_entity *
 XFONT_ENTITY (Lisp_Object p)
 {
@@ -483,10 +511,24 @@ XFONT_ENTITY (Lisp_Object p)
   return XUNTAG (p, Lisp_Vectorlike);
 }
 
+INLINE struct font_entity *
+GC_XFONT_ENTITY (Lisp_Object p)
+{
+  eassert (GC_FONT_ENTITY_P (p));
+  return XUNTAG (p, Lisp_Vectorlike);
+}
+
 INLINE struct font *
 XFONT_OBJECT (Lisp_Object p)
 {
   eassert (FONT_OBJECT_P (p));
+  return XUNTAG (p, Lisp_Vectorlike);
+}
+
+INLINE struct font *
+GC_XFONT_OBJECT (Lisp_Object p)
+{
+  eassert (GC_FONT_OBJECT_P (p));
   return XUNTAG (p, Lisp_Vectorlike);
 }
 
@@ -715,6 +757,12 @@ struct font_driver
   bool (*cached_font_ok) (struct frame *f,
                           Lisp_Object font_object,
                           Lisp_Object entity);
+
+  /* Optional
+
+     Return non-nil if the driver support rendering of combining
+     characters for FONT according to Unicode combining class.  */
+  Lisp_Object (*combining_capability) (struct font *font);
 };
 
 

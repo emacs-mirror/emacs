@@ -1608,6 +1608,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	 (vc-handled-backends
 	  (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
 	    (cond
+	     ((tramp-find-executable v vc-git-program (tramp-get-remote-path v))
+	      '(Git))
+	     ((tramp-find-executable v vc-hg-program (tramp-get-remote-path v))
+	      '(Hg))
 	     ((tramp-find-executable v vc-bzr-program (tramp-get-remote-path v))
 	      (setq tramp-remote-process-environment
 		    (cons (format "BZR_HOME=%s"
@@ -1618,10 +1622,6 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	       (tramp-dissect-file-name tramp-test-temporary-file-directory)
 	       nil 'keep-password)
 	      '(Bzr))
-	     ((tramp-find-executable v vc-git-program (tramp-get-remote-path v))
-	      '(Git))
-	     ((tramp-find-executable v vc-hg-program (tramp-get-remote-path v))
-	      '(Hg))
 	     (t nil)))))
     (skip-unless vc-handled-backends)
     (message "%s" vc-handled-backends)
@@ -1637,7 +1637,11 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 	  (let ((default-directory tmp-name1))
 	    ;; Create empty repository, and register the file.
-	    (vc-create-repo (car vc-handled-backends))
+	    ;; Sometimes, creation of repository fails (bzr!); we skip
+	    ;; the test then.
+	    (condition-case nil
+		(vc-create-repo (car vc-handled-backends))
+	      (error (skip-unless nil)))
 	    ;; The structure of VC-FILESET is not documented.  Let's
 	    ;; hope it won't change.
 	    (condition-case nil
@@ -1771,6 +1775,14 @@ Several special characters do not work properly there."
   (with-parsed-tramp-file-name
       (file-truename tramp-test-temporary-file-directory) nil
     (string-match "^HP-UX" (tramp-get-connection-property v "uname" ""))))
+
+(defun tramp--test-darwin-p ()
+  "Check, whether the remote host runs Mac OS X.
+Several special characters do not work properly there."
+  ;; We must refill the cache.  `file-truename' does it.
+  (with-parsed-tramp-file-name
+      (file-truename tramp-test-temporary-file-directory) nil
+    (string-match "^Darwin" (tramp-get-connection-property v "uname" ""))))
 
 (defun tramp--test-check-files (&rest files)
   "Run a simple but comprehensive test over every file in FILES."
@@ -1987,7 +1999,10 @@ Use the `perl' command."
   (let ((tramp-connection-properties
 	 (append
 	  `((,(regexp-quote (file-remote-p tramp-test-temporary-file-directory))
-	     "stat" nil))
+	     "stat" nil)
+	    ;; See `tramp-sh-handle-file-truename'.
+	    (,(regexp-quote (file-remote-p tramp-test-temporary-file-directory))
+	     "readlink" nil))
 	  tramp-connection-properties)))
     (tramp--test-special-characters)))
 
@@ -2005,21 +2020,25 @@ Use the `ls' command."
 	  `((,(regexp-quote (file-remote-p tramp-test-temporary-file-directory))
 	     "perl" nil)
 	    (,(regexp-quote (file-remote-p tramp-test-temporary-file-directory))
-	     "stat" nil))
+	     "stat" nil)
+	    ;; See `tramp-sh-handle-file-truename'.
+	    (,(regexp-quote (file-remote-p tramp-test-temporary-file-directory))
+	     "readlink" nil))
 	  tramp-connection-properties)))
     (tramp--test-special-characters)))
 
 (defun tramp--test-utf8 ()
   "Perform the test in `tramp-test32-utf8*'."
+  (tramp--instrument-test-case 10
   (let ((coding-system-for-read 'utf-8)
 	(coding-system-for-write 'utf-8)
 	(file-name-coding-system 'utf-8))
     (tramp--test-check-files
      (unless (tramp--test-hpux-p) "Γυρίστε το Γαλαξία με Ώτο Στοπ")
-     (unless (tramp--test-hpux-p)
+     (unless (or (tramp--test-hpux-p) (tramp--test-darwin-p))
        "أصبح بوسعك الآن تنزيل نسخة كاملة من موسوعة ويكيبيديا العربية لتصفحها بلا اتصال بالإنترنت")
      "银河系漫游指南系列"
-     "Автостопом по гала́ктике")))
+     "Автостопом по гала́ктике"))))
 
 (ert-deftest tramp-test32-utf8 ()
   "Check UTF8 encoding in file names and file contents."
@@ -2059,7 +2078,10 @@ Use the `perl' command."
   (let ((tramp-connection-properties
 	 (append
 	  `((,(regexp-quote (file-remote-p tramp-test-temporary-file-directory))
-	     "stat" nil))
+	     "stat" nil)
+	    ;; See `tramp-sh-handle-file-truename'.
+	    (,(regexp-quote (file-remote-p tramp-test-temporary-file-directory))
+	     "readlink" nil))
 	  tramp-connection-properties)))
     (tramp--test-utf8)))
 
@@ -2077,7 +2099,10 @@ Use the `ls' command."
 	  `((,(regexp-quote (file-remote-p tramp-test-temporary-file-directory))
 	     "perl" nil)
 	    (,(regexp-quote (file-remote-p tramp-test-temporary-file-directory))
-	     "stat" nil))
+	     "stat" nil)
+	    ;; See `tramp-sh-handle-file-truename'.
+	    (,(regexp-quote (file-remote-p tramp-test-temporary-file-directory))
+	     "readlink" nil))
 	  tramp-connection-properties)))
     (tramp--test-utf8)))
 

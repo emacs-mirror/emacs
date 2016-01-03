@@ -260,6 +260,8 @@ The return value is the last VAL in the list.
 
 \(fn PLACE VAL PLACE VAL ...)"
   (declare (debug (&rest [gv-place form])))
+  (if (/= (logand (length args) 1) 0)
+      (signal 'wrong-number-of-arguments (list 'setf (length args))))
   (if (and args (null (cddr args)))
       (let ((place (pop args))
             (val (car args)))
@@ -534,7 +536,7 @@ This macro only makes sense when used in a place."
   "Return a reference to PLACE.
 This is like the `&' operator of the C language.
 Note: this only works reliably with lexical binding mode, except for very
-simple PLACEs such as (function-symbol 'foo) which will also work in dynamic
+simple PLACEs such as (function-symbol \\='foo) which will also work in dynamic
 binding mode."
   (let ((code
          (gv-letplace (getter setter) place

@@ -543,7 +543,7 @@ to (xref-elisp-test-descr-to-target xref)."
 ;; FIXME: deftype
 
 (xref-elisp-deftest find-defs-defun-c-defvar-c
-  (elisp--xref-find-definitions 'system-name)
+  (xref-backend-definitions 'elisp "system-name")
   (list
    (xref-make "(defvar system-name)"
 	      (xref-make-elisp-location 'system-name 'defvar "src/editfns.c"))
@@ -552,7 +552,7 @@ to (xref-elisp-test-descr-to-target xref)."
   )
 
 (xref-elisp-deftest find-defs-defun-el-defvar-c
-  (elisp--xref-find-definitions 'abbrev-mode)
+  (xref-backend-definitions 'elisp "abbrev-mode")
   ;; It's a minor mode, but the variable is defined in buffer.c
   (list
    (xref-make "(defvar abbrev-mode)"

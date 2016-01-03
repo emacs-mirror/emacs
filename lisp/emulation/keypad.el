@@ -199,15 +199,15 @@ keys are bound.
 
  Setup      Binding
  -------------------------------------------------------------
- 'prefix   Command prefix argument, i.e.  M-0 .. M-9 and M--
- 'S-cursor Bind shifted keypad keys to the shifted cursor movement keys.
- 'cursor   Bind keypad keys to the cursor movement keys.
- 'numeric  Plain numeric keypad, i.e. 0 .. 9 and .  (or DECIMAL arg)
- 'none     Removes all bindings for keypad keys in function-key-map;
-           this enables any user-defined bindings for the keypad keys
-           in the global and local keymaps.
+ `prefix'   Command prefix argument, i.e.  M-0 .. M-9 and M--
+ `S-cursor' Bind shifted keypad keys to the shifted cursor movement keys.
+ `cursor'   Bind keypad keys to the cursor movement keys.
+ `numeric'  Plain numeric keypad, i.e. 0 .. 9 and .  (or DECIMAL arg)
+ `none'     Removes all bindings for keypad keys in function-key-map;
+            this enables any user-defined bindings for the keypad keys
+            in the global and local keymaps.
 
-If SETUP is 'numeric and the optional fourth argument DECIMAL is non-nil,
+If SETUP is `numeric' and the optional fourth argument DECIMAL is non-nil,
 the decimal key on the keypad is mapped to DECIMAL instead of `.'"
   (let* ((i 0)
 	 (var (cond

@@ -284,7 +284,7 @@ command line.")
 (defvar eshell-command-arguments nil)
 (defvar eshell-in-pipeline-p nil
   "Internal Eshell variable, non-nil inside a pipeline.
-Has the value 'first, 'last for the first/last commands in the pipeline,
+Has the value `first', `last' for the first/last commands in the pipeline,
 otherwise t.")
 (defvar eshell-in-subcommand-p nil)
 (defvar eshell-last-arguments nil)
@@ -670,8 +670,8 @@ For an external command, it means an exit code of 0."
   "Separate TERMS using SEPARATOR.
 If REVERSED is non-nil, the list of separated term groups will be
 returned in reverse order.  If LAST-TERMS-SYM is a symbol, its value
-will be set to a list of all the separator operators found (or '(list
-nil)' if none)."
+will be set to a list of all the separator operators found (or (nil)
+if none)."
   (let ((sub-terms (list t))
 	(eshell-sep-terms (list t))
 	subchains)

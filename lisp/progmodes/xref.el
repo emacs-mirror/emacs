@@ -201,19 +201,21 @@ LENGTH is the match length, in characters."
 
 ;;; API
 
-;; We make the etags backend the default for now, until something
-;; better comes along.
-(defvar xref-backend-functions (list #'xref--etags-backend)
+(defvar xref-backend-functions nil
   "Special hook to find the xref backend for the current context.
 Each functions on this hook is called in turn with no arguments
 and should return either nil to mean that it is not applicable,
 or an xref backend, which is a value to be used to dispatch the
 generic functions.")
 
+;; We make the etags backend the default for now, until something
+;; better comes along.  Use APPEND so that any `add-hook' calls made
+;; before this package is loaded put new items before this one.
+(add-hook 'xref-backend-functions #'etags--xref-backend t)
+
+;;;###autoload
 (defun xref-find-backend ()
   (run-hook-with-args-until-success 'xref-backend-functions))
-
-(defun xref--etags-backend () 'etags)
 
 (cl-defgeneric xref-backend-definitions (backend identifier)
   "Find definitions of IDENTIFIER.
@@ -230,10 +232,21 @@ IDENTIFIER can be any string returned by
 
 To create an xref object, call `xref-make'.")
 
-(cl-defgeneric xref-backend-references (backend identifier)
+(cl-defgeneric xref-backend-references (_backend identifier)
   "Find references of IDENTIFIER.
 The result must be a list of xref objects.  If no references can
-be found, return nil.")
+be found, return nil.
+
+The default implementation uses `semantic-symref-tool-alist' to
+find a search tool; by default, this uses \"find | grep\" in the
+`project-current' roots."
+  (cl-mapcan
+   (lambda (dir)
+     (xref-collect-references identifier dir))
+   (let ((pr (project-current t)))
+     (append
+      (project-roots pr)
+      (project-external-roots pr)))))
 
 (cl-defgeneric xref-backend-apropos (backend pattern)
   "Find all symbols that match PATTERN.
@@ -345,10 +358,10 @@ elements is negated."
   (interactive)
   (let ((ring xref--marker-ring))
     (when (ring-empty-p ring)
-      (error "Marker stack is empty"))
+      (user-error "Marker stack is empty"))
     (let ((marker (ring-remove ring 0)))
       (switch-to-buffer (or (marker-buffer marker)
-                            (error "The marked buffer has been deleted")))
+                            (user-error "The marked buffer has been deleted")))
       (goto-char (marker-position marker))
       (set-marker marker nil nil)
       (run-hooks 'xref-after-return-hook))))
@@ -498,7 +511,9 @@ WINDOW controls how the buffer is displayed:
                 (save-excursion
                   (let* ((loc (xref-item-location item))
                          (beg (xref-location-marker loc))
-                         (len (xref-match-length item)))
+                         (end (move-marker (make-marker)
+                                           (+ beg (xref-match-length item))
+                                           (marker-buffer beg))))
                     ;; Perform sanity check first.
                     (xref--goto-location loc)
                     ;; FIXME: The check should probably be a generic
@@ -510,17 +525,18 @@ WINDOW controls how the buffer is displayed:
                                     (line-end-position))
                                    (xref-item-summary item))
                       (user-error "Search results out of date"))
-                    (push (cons beg len) pairs)))))
+                    (push (cons beg end) pairs)))))
             (setq pairs (nreverse pairs)))
           (unless pairs (user-error "No suitable matches here"))
           (xref--query-replace-1 from to pairs))
       (dolist (pair pairs)
-        (move-marker (car pair) nil)))))
+        (move-marker (car pair) nil)
+        (move-marker (cdr pair) nil)))))
 
 ;; FIXME: Write a nicer UI.
 (defun xref--query-replace-1 (from to pairs)
   (let* ((query-replace-lazy-highlight nil)
-         current-beg current-len current-buf
+         current-beg current-end current-buf
          ;; Counteract the "do the next match now" hack in
          ;; `perform-replace'.  And still, it'll report that those
          ;; matches were "filtered out" at the end.
@@ -529,18 +545,18 @@ WINDOW controls how the buffer is displayed:
             (and current-beg
                  (eq (current-buffer) current-buf)
                  (>= beg current-beg)
-                 (<= end (+ current-beg current-len)))))
+                 (<= end current-end))))
          (replace-re-search-function
           (lambda (from &optional _bound noerror)
             (let (found pair)
               (while (and (not found) pairs)
                 (setq pair (pop pairs)
                       current-beg (car pair)
-                      current-len (cdr pair)
+                      current-end (cdr pair)
                       current-buf (marker-buffer current-beg))
                 (pop-to-buffer current-buf)
                 (goto-char current-beg)
-                (when (re-search-forward from (+ current-beg current-len) noerror)
+                (when (re-search-forward from current-end noerror)
                   (setq found t)))
               found))))
     ;; FIXME: Despite this being a multi-buffer replacement, `N'
@@ -870,7 +886,7 @@ IGNORES is a list of glob patterns."
               hits)))
     (unwind-protect
         (cl-mapcan (lambda (hit) (xref--collect-matches hit regexp))
-                   (nreverse hits))
+                   hits)
       ;; TODO: Same as above.
       (mapc #'kill-buffer
             (cl-set-difference (buffer-list) orig-buffers)))))

@@ -32,7 +32,9 @@ executable.  You don't have to know this material to build and install
 Emacs, since the makefiles do all these things automatically.  This
 information is pertinent to Emacs developers.
 
-   Compilation of the C source files in the @file{src} directory
+  Building Emacs requires GNU Make version 3.81 or later.
+
+  Compilation of the C source files in the @file{src} directory
 produces an executable file called @file{temacs}, also called a
 @dfn{bare impure Emacs}.  It contains the Emacs Lisp interpreter and
 I/O routines, but not the editing commands.

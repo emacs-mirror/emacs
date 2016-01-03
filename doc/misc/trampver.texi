@@ -8,7 +8,7 @@
 @c In the Tramp GIT, the version number is auto-frobbed from
 @c configure.ac, so you should edit that file and run
 @c "autoconf && ./configure" to change the version number.
-@set trampver 2.2.13-pre
+@set trampver 2.2.13.25.1
 
 @c Other flags from configuration
 @set instprefix /usr/local

@@ -8339,7 +8339,7 @@
 	* emacs.c (main): Initialize daemon_pipe[1] here ...
 	(syms_of_emacs): ... instead of here.
 
-2014-02-16  Anders Lindgern  <andlind@gmail.com>
+2014-02-16  Anders Lindgren  <andlind@gmail.com>
 
 	* nsterm.m (keyDown:): Check for normal key even if NSNumericPadKeyMask
 	is set (Bug#16505).
@@ -16566,7 +16566,7 @@
 	(ns_draw_fringe_bitmap): Remove unused rowY.
 	Change #if to COCOA && >= 10_6.
 	(ns_draw_window_cursor): Remove unused overspill.
-	(ns_draw_underwave): width and x are EamcsCGFloat.
+	(ns_draw_underwave): width and x are EmacsCGFloat.
 	(ns_draw_box): thickness is CGFloat.
 	(ns_dumpglyphs_image): Change #if to COCOA && >= 10_6.
 	(ns_send_appdefined): When NS_IMPL_GNUSTEP, redirect to main thread

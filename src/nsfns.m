@@ -405,9 +405,11 @@ ns_set_name_internal (struct frame *f, Lisp_Object name)
   NSString *str;
   NSView *view = FRAME_NS_VIEW (f);
 
+
   encoded_name = ENCODE_UTF_8 (name);
 
   str = [NSString stringWithUTF8String: SSDATA (encoded_name)];
+
 
   /* Don't change the name if it's already NAME.  */
   if (! [[[view window] title] isEqualToString: str])
@@ -483,9 +485,14 @@ x_implicitly_set_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   NSTRACE ("x_implicitly_set_name");
 
+  Lisp_Object frame_title = buffer_local_value
+    (Qframe_title_format, XWINDOW (f->selected_window)->contents);
+  Lisp_Object icon_title = buffer_local_value
+    (Qicon_title_format, XWINDOW (f->selected_window)->contents);
+
   /* Deal with NS specific format t.  */
-  if (FRAME_NS_P (f) && ((FRAME_ICONIFIED_P (f) && EQ (Vicon_title_format, Qt))
-                         || EQ (Vframe_title_format, Qt)))
+  if (FRAME_NS_P (f) && ((FRAME_ICONIFIED_P (f) && EQ (icon_title, Qt))
+                         || EQ (frame_title, Qt)))
     ns_set_name_as_filename (f);
   else
     ns_set_name (f, arg, 0);
@@ -648,7 +655,14 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 void
 x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
+  /* Currently, when the tool bar change state, the frame is resized.
+
+     TODO: It would be better if this didn't occur when 1) the frame
+     is full height or maximized or 2) when specified by
+     `frame-inhibit-implied-resize'. */
   int nlines;
+
+  NSTRACE ("x_set_tool_bar_lines");
 
   if (FRAME_MINIBUF_ONLY_P (f))
     return;
@@ -669,7 +683,21 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
         {
           free_frame_tool_bar (f);
           FRAME_EXTERNAL_TOOL_BAR (f) = 0;
-        }
+
+          {
+            EmacsView *view = FRAME_NS_VIEW (f);
+            int fs_state = [view fullscreenState];
+
+            if (fs_state == FULLSCREEN_MAXIMIZED)
+              {
+                [view setFSValue:FULLSCREEN_WIDTH];
+              }
+            else if (fs_state == FULLSCREEN_HEIGHT)
+              {
+                [view setFSValue:FULLSCREEN_NONE];
+              }
+          }
+       }
     }
 
   {
@@ -680,11 +708,11 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 	      || (CONSP (frame_inhibit_implied_resize)
 		  && !NILP (Fmemq (Qtool_bar_lines,
 				   frame_inhibit_implied_resize))))
-	  /* This will probably fail to DTRT in the
-	     fullheight/-width cases.  */
 	  && NILP (get_frame_param (f, Qfullscreen)))
 	 ? 0
 	 : 2);
+
+    NSTRACE_MSG ("inhibit:%d", inhibit);
 
     frame_size_history_add (f, Qupdate_frame_tool_bar, 0, 0, Qnil);
     adjust_frame_size (f, -1, -1, inhibit, 0, Qtool_bar_lines);
@@ -2071,39 +2099,6 @@ there was no result.  */)
 }
 
 
-DEFUN ("ns-convert-utf8-nfd-to-nfc", Fns_convert_utf8_nfd_to_nfc,
-       Sns_convert_utf8_nfd_to_nfc, 1, 1, 0,
-       doc: /* Return an NFC string that matches the UTF-8 NFD string STR.  */)
-     (Lisp_Object str)
-{
-/* TODO: If GNUstep ever implements precomposedStringWithCanonicalMapping,
-         remove this. */
-  NSString *utfStr;
-  Lisp_Object ret = Qnil;
-  NSAutoreleasePool *pool;
-
-  CHECK_STRING (str);
-  pool = [[NSAutoreleasePool alloc] init];
-  utfStr = [NSString stringWithUTF8String: SSDATA (str)];
-#ifdef NS_IMPL_COCOA
-  if (utfStr)
-    utfStr = [utfStr precomposedStringWithCanonicalMapping];
-#endif
-  if (utfStr)
-    {
-      const char *cstr = [utfStr UTF8String];
-      if (cstr)
-        ret = build_string (cstr);
-    }
-
-  [pool release];
-  if (NILP (ret))
-    error ("Invalid UTF-8");
-
-  return ret;
-}
-
-
 #ifdef NS_IMPL_COCOA
 
 /* Compile and execute the AppleScript SCRIPT and return the error
@@ -3113,6 +3108,8 @@ void
 syms_of_nsfns (void)
 {
   DEFSYM (Qfontsize, "fontsize");
+  DEFSYM (Qframe_title_format, "frame-title-format");
+  DEFSYM (Qicon_title_format, "icon-title-format");
 
   DEFVAR_LISP ("ns-icon-type-alist", Vns_icon_type_alist,
                doc: /* Alist of elements (REGEXP . IMAGE) for images of icons associated to frames.
@@ -3177,7 +3174,6 @@ be used as the image of the icon representing the frame.  */);
   defsubr (&Sns_emacs_info_panel);
   defsubr (&Sns_list_services);
   defsubr (&Sns_perform_service);
-  defsubr (&Sns_convert_utf8_nfd_to_nfc);
   defsubr (&Sns_popup_font_panel);
   defsubr (&Sns_popup_color_panel);
 

@@ -735,17 +735,17 @@ major modes.  Uses `smerge-resolve-function' to do the actual work."
 	  (smerge-auto-leave))))))
 
 (defun smerge-diff-base-mine ()
-  "Diff 'base' and 'mine' version in current conflict region."
+  "Diff `base' and `mine' version in current conflict region."
   (interactive)
   (smerge-diff 2 1))
 
 (defun smerge-diff-base-other ()
-  "Diff 'base' and 'other' version in current conflict region."
+  "Diff `base' and `other' version in current conflict region."
   (interactive)
   (smerge-diff 2 3))
 
 (defun smerge-diff-mine-other ()
-  "Diff 'mine' and 'other' version in current conflict region."
+  "Diff `mine' and `other' version in current conflict region."
   (interactive)
   (smerge-diff 1 3))
 

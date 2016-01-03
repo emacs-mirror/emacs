@@ -161,7 +161,7 @@ Format is according to `format-time-string'.  Only used if
   "Specify the mode-line display of sticky tags.
 Value t means default display, nil means no display at all.  If the
 value is a function or macro, it is called with the sticky tag and
-its' type as parameters, in that order.  TYPE can have three different
+its type as parameters, in that order.  TYPE can have three different
 values: `symbolic-name' (TAG is a string), `revision-number' (TAG is a
 string) and `date' (TAG is a date as returned by `encode-time').  The
 return value of the function or macro will be displayed as a string.
@@ -170,10 +170,10 @@ Here's an example that will display the formatted date for sticky
 dates and the word \"Sticky\" for sticky tag names and revisions.
 
   (lambda (tag type)
-    (cond ((eq type 'date) (format-time-string
+    (cond ((eq type \\='date) (format-time-string
                               vc-cvs-sticky-date-format-string tag))
-          ((eq type 'revision-number) \"Sticky\")
-          ((eq type 'symbolic-name) \"Sticky\")))
+          ((eq type \\='revision-number) \"Sticky\")
+          ((eq type \\='symbolic-name) \"Sticky\")))
 
 Here's an example that will abbreviate to the first character only,
 any text before the first occurrence of `-' for sticky symbolic tags.
@@ -181,9 +181,9 @@ If the sticky tag is a revision number, the word \"Sticky\" is
 displayed.  Date and time is displayed for sticky dates.
 
    (lambda (tag type)
-     (cond ((eq type 'date) (format-time-string \"%Y%m%d %H:%M\" tag))
-           ((eq type 'revision-number) \"Sticky\")
-           ((eq type 'symbolic-name)
+     (cond ((eq type \\='date) (format-time-string \"%Y%m%d %H:%M\" tag))
+           ((eq type \\='revision-number) \"Sticky\")
+           ((eq type \\='symbolic-name)
             (condition-case nil
                 (progn
                   (string-match \"\\\\([^-]*\\\\)\\\\(.*\\\\)\" tag)
@@ -882,11 +882,11 @@ For an empty string, nil is returned (invalid CVS root)."
             (setq host uhost))
           ;; Remove empty HOST
           (and (equal host "")
-               (setq host))
+               (setq host nil))
           ;; Fix windows style CVS root `:local:C:\\project\\cvs\\some\\dir'
           (and host
                (equal method "local")
-               (setq root (concat host ":" root) host))
+               (setq root (concat host ":" root) host nil))
           ;; Normalize CVS root record
           (list method user host root)))))
 
@@ -899,7 +899,7 @@ For an empty string, nil is returned (invalid CVS root)."
 (defun vc-cvs-parse-status (&optional full)
   "Parse output of \"cvs status\" command in the current buffer.
 Set file properties accordingly.  Unless FULL is t, parse only
-essential information. Note that this can never set the 'ignored
+essential information. Note that this can never set the `ignored'
 state."
   (let (file status missing)
     (goto-char (point-min))

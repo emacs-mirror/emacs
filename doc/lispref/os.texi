@@ -902,6 +902,9 @@ Hewlett-Packard HPUX operating system.
 @item irix
 Silicon Graphics Irix system.
 
+@item nacl
+Google Native Client (@acronym{NaCl}) sandboxing system.
+
 @item ms-dos
 Microsoft's DOS@.  Emacs compiled with DJGPP for MS-DOS binds
 @code{system-type} to @code{ms-dos} even when you run it on MS-Windows.
@@ -911,7 +914,7 @@ AT&T Unix System V.
 
 @item windows-nt
 Microsoft Windows NT, 9X and later.  The value of @code{system-type}
-is always @code{windows-nt}, e.g., even on Windows 7.
+is always @code{windows-nt}, e.g., even on Windows 10.
 
 @end table
 
@@ -2922,6 +2925,18 @@ means complete; it is intended to give you an idea of the security
 issues involved, rather than to be a security checklist.
 
 @table @asis
+@item File local variables
+@cindex file local variables
+A file that Emacs visits can contain variable settings that affects
+the buffer visiting that file; @xref{File Local Variables}.
+Similarly, a directory can specify local variable values common to all
+files in that directory; @xref{Directory Local Variables}.  Although
+Emacs takes some effort to protect against misuse of these variables,
+a security hole can be created merely by a package setting
+@code{safe-local-variable} too optimistically, a problem that is all
+too common.  To disable this feature for both files and directories,
+set @code{enable-local-variables} to @code{nil}.
+
 @item Access control
 Although Emacs normally respects access permissions of the underlying
 operating system, in some cases it handles accesses specially.  For

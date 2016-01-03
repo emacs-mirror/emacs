@@ -479,7 +479,7 @@ See `chart-sort-matchlist' for more details."
 
 (defun chart-sort-matchlist (namelst numlst pred)
   "Sort NAMELST and NUMLST (both sequence objects) based on predicate PRED.
-PRED should be the equivalent of '<, except it must expect two
+PRED should be the equivalent of `<', except it must expect two
 cons cells of the form (NAME . NUM).  See `sort' for more details."
   ;; 1 - create 1 list of cons cells
   (let ((newlist nil)
@@ -571,7 +571,7 @@ R1 and R2 are dotted pairs.  Colorize it with FACE."
 (defun chart-bar-quickie (dir title namelst nametitle numlst numtitle
 			      &optional max sort-pred)
   "Wash over the complex EIEIO stuff and create a nice bar chart.
-Create it going in direction DIR ['horizontal 'vertical] with TITLE
+Create it going in direction DIR [`horizontal' `vertical'] with TITLE
 using a name sequence NAMELST labeled NAMETITLE with values NUMLST
 labeled NUMTITLE.
 Optional arguments:

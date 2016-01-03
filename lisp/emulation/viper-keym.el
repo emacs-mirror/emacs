@@ -497,7 +497,7 @@ Useful in some modes, such as Gnus, MH, etc.")
   "Override some vi-state or insert-state bindings in the current buffer.
 The effect is seen in the current buffer only.
 Useful for customizing  mailer buffers, gnus, etc.
-STATE is 'vi-state, 'insert-state, or 'emacs-state
+STATE is `vi-state', `insert-state', or `emacs-state'.
 ALIST is of the form ((key . func) (key . func) ...)
 Normally, this would be called from a hook to a major mode or
 on a per buffer basis.

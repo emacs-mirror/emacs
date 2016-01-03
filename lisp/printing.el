@@ -2929,7 +2929,7 @@ INHERITS	Specify the inheritance for SYMBOL group.  It's a symbol name
 		Let's see an example to illustrate the inheritance mechanism:
 
 		(setq pr-setting-database
-		      '((no-duplex	; setting symbol name
+		      \\='((no-duplex	; setting symbol name
 			 nil		; inherits
 			 nil nil	; local  kill-local
 			 (pr-file-duplex . nil) ; settings
@@ -2979,9 +2979,9 @@ SETTING		It's a cons like:
 		This setting is ignored if VARIABLE is equal to keyword
 		`inherits-from:'.
 		Examples:
-			'(ps-landscape-mode . nil)
-			'(ps-spool-duplex . t)
-			'(pr-gs-device . (my-gs-device t))"
+			(ps-landscape-mode . nil)
+			(ps-spool-duplex . t)
+			(pr-gs-device . (my-gs-device t))"
   :type '(repeat
 	  (list
 	   :tag ""

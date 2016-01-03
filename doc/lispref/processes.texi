@@ -737,10 +737,12 @@ If @var{stopped} is non-@code{nil}, start the process in the
 stopped state.
 
 @item :filter @var{filter}
-Initialize the process filter to @var{filter}.
+Initialize the process filter to @var{filter}.  If not specified, a
+default filter will be provided.  @xref{Filter Functions}.
 
 @item :sentinel @var{sentinel}
-Initialize the process sentinel to @var{sentinel}.
+Initialize the process sentinel to @var{sentinel}.  If not specified,
+a default sentinel will be used.  @xref{Sentinels}.
 
 @item :stderr @var{stderr}
 Associate @var{stderr} with the standard error of the process.
@@ -789,10 +791,12 @@ If @var{stopped} is non-@code{nil}, start the process in the
 stopped state.
 
 @item :filter @var{filter}
-Initialize the process filter to @var{filter}.
+Initialize the process filter to @var{filter}.  If not specified, a
+default filter will be provided.  @xref{Filter Functions}.
 
 @item :sentinel @var{sentinel}
-Initialize the process sentinel to @var{sentinel}.
+Initialize the process sentinel to @var{sentinel}.  If not specified,
+a default sentinel will be used.  @xref{Sentinels}.
 @end table
 
 The original argument list, modified with the actual connection
@@ -922,9 +926,10 @@ For a network process, the values include (see
 @item :buffer
 The associated value is the process buffer.
 @item :filter
-The associated value is the process filter function.
+The associated value is the process filter function.  @xref{Filter
+Functions}.
 @item :sentinel
-The associated value is the process sentinel function.
+The associated value is the process sentinel function.  @xref{Sentinels}.
 @item :remote
 In a connection, the address in internal format of the remote peer.
 @item :local
@@ -1379,6 +1384,7 @@ subprocess with a @code{SIGHUP} signal (@pxref{Signals to Processes}).
 @cindex filter function
 @cindex process filter
 
+@cindex default filter function of a process
   A process @dfn{filter function} is a function that receives the
 standard output from the associated process.  @emph{All} output from
 that process is passed to the filter.  The default filter simply
@@ -1632,21 +1638,43 @@ also called if the process exits.  The sentinel receives two
 arguments: the process for which the event occurred, and a string
 describing the type of event.
 
+@cindex default sentinel function of a process
+  If no sentinel function was specified for a process, it will use the
+default sentinel function, which inserts a message in the process's
+buffer with the process name and the string describing the event.
+
   The string describing the event looks like one of the following:
 
-@c FIXME?  Also "killed\n" - see example below?
 @itemize @bullet
 @item
 @code{"finished\n"}.
 
 @item
-@code{"exited abnormally with code @var{exitcode}\n"}.
+@code{"deleted\n"}.
 
 @item
-@code{"@var{name-of-signal}\n"}.
+@code{"exited abnormally with code @var{exitcode} (core dumped)\n"}.
+The ``core dumped'' part is optional, and only appears if the process
+dumped core.
 
 @item
-@code{"@var{name-of-signal} (core dumped)\n"}.
+@code{"failed with code @var{fail-code}\n"}.
+
+@item
+@code{"@var{signal-description} (core dumped)\n"}.  The
+@var{signal-description} is a system-dependent textual description of
+a signal, e.g., @code{"killed"} for @code{SIGKILL}.  The ``core
+dumped'' part is optional, and only appears if the process dumped
+core.
+
+@item
+@code{"open from @var{host-name}\n"}.
+
+@item
+@code{"open\n"}.
+
+@item
+@code{"connection broken by remote peer\n"}.
 @end itemize
 
   A sentinel runs only while Emacs is waiting (e.g., for terminal

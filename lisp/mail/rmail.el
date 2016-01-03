@@ -100,7 +100,7 @@ its character representation and its display representation.")
 
 (defvar rmail-header-style 'normal
   "The current header display style choice, one of
-'normal (selected headers) or 'full (all headers).")
+`normal' (selected headers) or `full' (all headers).")
 
 (defvar rmail-mime-decoded nil
   "Non-nil if message has been processed by `rmail-show-mime-function'.")
@@ -300,7 +300,7 @@ mail URLs as the source mailbox.")
 ;;;###autoload
 (defun rmail-movemail-variant-p (&rest variants)
   "Return t if the current movemail variant is any of VARIANTS.
-Currently known variants are 'emacs and 'mailutils."
+Currently known variants are `emacs' and `mailutils'."
   (when (not rmail-movemail-variant-in-use)
     ;; Autodetect
     (setq rmail-movemail-variant-in-use (rmail-autodetect)))

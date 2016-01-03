@@ -298,9 +298,10 @@ FORM is of the form (ARGS . BODY)."
                                (if (stringp (car header)) (pop header))
                                ;; Be careful with make-symbol and (back)quote,
                                ;; see bug#12884.
-                               (let ((print-gensym nil) (print-quoted t))
-                                 (format "%S" (cons 'fn (cl--make-usage-args
-                                                         orig-args)))))
+                               (help--docstring-quote
+                                (let ((print-gensym nil) (print-quoted t))
+                                  (format "%S" (cons 'fn (cl--make-usage-args
+                                                          orig-args))))))
                               header)))
                 ;; FIXME: we'd want to choose an arg name for the &rest param
                 ;; and pass that as `expr' to cl--do-arglist, but that ends up
@@ -2829,8 +2830,8 @@ is a shorthand for (NAME NAME)."
 
 (defun cl-struct-sequence-type (struct-type)
   "Return the sequence used to build STRUCT-TYPE.
-STRUCT-TYPE is a symbol naming a struct type.  Return 'vector or
-'list, or nil if STRUCT-TYPE is not a struct type. "
+STRUCT-TYPE is a symbol naming a struct type.  Return `vector' or
+`list', or nil if STRUCT-TYPE is not a struct type. "
   (declare (side-effect-free t) (pure t))
   (cl--struct-class-type (cl--struct-get-class struct-type)))
 
@@ -2884,7 +2885,7 @@ Of course, we really can't know that for sure, so it's just a heuristic."
 (put 'real 'cl-deftype-satisfies #'numberp)
 (put 'fixnum 'cl-deftype-satisfies #'integerp)
 (put 'base-char 'cl-deftype-satisfies #'characterp)
-(put 'character 'cl-deftype-satisfies #'integerp)
+(put 'character 'cl-deftype-satisfies #'natnump)
 
 
 ;;;###autoload

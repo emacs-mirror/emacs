@@ -46,6 +46,7 @@
 (require 'starttls)
 (require 'auth-source)
 (require 'nsm)
+(require 'puny)
 
 (autoload 'gnutls-negotiate "gnutls")
 (autoload 'open-gnutls-stream "gnutls")
@@ -148,7 +149,7 @@ asynchronously, if possible."
 				(plist-get parameters :capability-command))))))
 	;; The simplest case: wrapper around `make-network-process'.
 	(make-network-process :name name :buffer buffer
-			      :host host :service service
+			      :host (puny-encode-domain host) :service service
 			      :nowait (plist-get parameters :nowait))
       (let ((work-buffer (or buffer
 			     (generate-new-buffer " *stream buffer*")))
@@ -198,7 +199,8 @@ asynchronously, if possible."
 (defun network-stream-open-plain (name buffer host service parameters)
   (let ((start (with-current-buffer buffer (point)))
 	(stream (make-network-process :name name :buffer buffer
-				      :host host :service service
+				      :host (puny-encode-domain host)
+                                      :service service
 				      :nowait (plist-get parameters :nowait))))
     (when (plist-get parameters :warn-unless-encrypted)
       (setq stream (nsm-verify-connection stream host service nil t)))
@@ -219,7 +221,8 @@ asynchronously, if possible."
 				 eoc))
 	 ;; Return (STREAM GREETING CAPABILITIES RESULTING-TYPE)
 	 (stream (make-network-process :name name :buffer buffer
-				       :host host :service service))
+				       :host (puny-encode-domain host)
+                                       :service service))
 	 (greeting (and (not (plist-get parameters :nogreeting))
 			(network-stream-get-response stream start eoc)))
 	 (capabilities (network-stream-command stream capability-command
@@ -296,7 +299,8 @@ asynchronously, if possible."
 	  (unless require-tls
 	    (setq stream
 		  (make-network-process :name name :buffer buffer
-					:host host :service service))
+					:host (puny-encode-domain host)
+                                        :service service))
 	    (network-stream-get-response stream start eoc)))
 	;; Re-get the capabilities, which may have now changed.
 	(setq capabilities

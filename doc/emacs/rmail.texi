@@ -282,9 +282,9 @@ current message and select another.  @kbd{d}
 messages already deleted, while @kbd{C-d} (@code{rmail-delete-backward})
 moves to the previous nondeleted message.  If there is no nondeleted
 message to move to in the specified direction, the message that was just
-deleted remains current.  @kbd{d} with a prefix argument is equivalent
-to @kbd{C-d}.  Note that the Rmail summary versions of these commands
-behave slightly differently (@pxref{Rmail Summary Edit}).
+deleted remains current.  A numeric prefix argument serves as a repeat
+count, to allow deletion of several messages in a single command.  A
+negative argument reverses the meaning of @kbd{d} and @kbd{C-d}.
 
 @c mention other hooks, e.g., show message hook?
 @vindex rmail-delete-message-hook
@@ -305,7 +305,8 @@ type @kbd{x} (@code{rmail-expunge}).  Until you do this, you can still
 effect of a @kbd{d} command in most cases.  It undeletes the current
 message if the current message is deleted.  Otherwise it moves backward
 to previous messages until a deleted message is found, and undeletes
-that message.
+that message.  A numeric prefix argument serves as a repeat count, to
+allow deletion of several messages in a single command.
 
   You can usually undo a @kbd{d} with a @kbd{u} because the @kbd{u}
 moves back to and undeletes the message that the @kbd{d} deleted.  But
@@ -974,13 +975,11 @@ different lines.  It doesn't matter what Emacs command you use to move
 point; whichever line point is on at the end of the command, that
 message is selected in the Rmail buffer.
 
-  Almost all Rmail commands work in the summary buffer as well as in the
-Rmail buffer.  Thus, @kbd{d} in the summary buffer deletes the current
-message, @kbd{u} undeletes, and @kbd{x} expunges.  (However, in the
-summary buffer, a numeric argument to @kbd{d}, @kbd{C-d} and @kbd{u}
-serves as a repeat count.  A negative argument reverses the meaning of
-@kbd{d} and @kbd{C-d}.  Also, if there are no more undeleted messages in
-the relevant direction, the delete commands go to the first or last
+  Almost all Rmail commands work in the summary buffer as well as in
+the Rmail buffer.  Thus, @kbd{d} in the summary buffer deletes the
+current message, @kbd{u} undeletes, and @kbd{x} expunges.  (However,
+in the summary buffer, if there are no more undeleted messages in the
+relevant direction, the delete commands go to the first or last
 message, rather than staying on the current message.)  @kbd{o} and
 @kbd{C-o} output the current message to a FILE; @kbd{r} starts a reply
 to it; etc.  You can scroll the current message while remaining in the
@@ -1223,6 +1222,15 @@ tagline (except for buttons for other actions, if there are any).  Type
 @acronym{MIME} display described above, and a raw display showing
 the undecoded @acronym{MIME} data.  With a prefix argument, this
 command toggles the display of only an entity at point.
+
+@vindex rmail-mime-prefer-html
+  If the message has an @acronym{HTML} @acronym{MIME} part, Rmail
+displays it in preference to the plain-text part, if Emacs can render
+@acronym{HTML}@footnote{
+This capability requires that Emacs be built with @file{libxml2}
+support or that you have the Lynx browser installed.}.  To prevent
+that, and have the plain-text part displayed instead, customize the
+variable @code{rmail-mime-prefer-html} to a @code{nil} value.
 
   To prevent Rmail from handling MIME decoded messages, change the
 variable @code{rmail-enable-mime} to @code{nil}.  When this is the

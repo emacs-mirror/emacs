@@ -238,7 +238,7 @@ from; the default is `load-path'."
 		    ;; The idea here is that eg calc.el gets to define
 		    ;; the description of the calc package.
 		    ;; This does not work for eg nxml-mode.el.
-		    ((eq base-name package)
+		    ((or (eq base-name package) version)
 		     (setq desc (cdr entry))
 		     (aset desc 0 version)
 		     (aset desc 2 summary)))

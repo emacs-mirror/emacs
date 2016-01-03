@@ -6,7 +6,8 @@
 @chapter Miscellaneous Commands
 
   This chapter contains several brief topics that do not fit anywhere
-else: reading Usenet news, viewing PDFs and other such documents, web
+else: reading Usenet news, host and network security,
+viewing PDFs and other such documents, web
 browsing, running shell commands and shell subprocesses, using a
 single shared Emacs for utilities that expect to run an editor as a
 subprocess, printing, sorting text, editing binary files, saving an
@@ -249,6 +250,25 @@ Search forward for articles containing a match for @var{regexp}.
 Exit the summary buffer and return to the group buffer.
 @end table
 
+@node Host Security
+@section Host Security
+@cindex security
+
+Emacs runs inside an operating system such as GNU/Linux, and relies on
+the operating system to check security constraints such as accesses to
+files.  The default settings for Emacs are designed for typical use;
+they may require some tailoring in environments where security is more
+of a concern, or less of a concern, than usual.  For example,
+file-local variables can be risky, and you can set the variable
+@code{enable-local-variables} to @code{:safe} or (even more
+conservatively) to @code{nil}; conversely, if your files can all be
+trusted and the default checking for these variables is irritating,
+you can set @code{enable-local-variables} to @code{:all}.  @xref{Safe
+File Variables}.
+
+@xref{Security Considerations,,, elisp, The Emacs Lisp Reference
+Manual}, for more information about security considerations when using
+Emacs as part of a larger application.
 
 @node Network Security
 @section Network Security
@@ -740,6 +760,10 @@ say, any terminal output from the subshell goes into the buffer,
 advancing point, and any terminal input for the subshell comes from
 text in the buffer.  To give input to the subshell, go to the end of
 the buffer and type the input, terminated by @key{RET}.
+
+  By default, when the subshell is invoked interactively, the
+@file{*shell*} buffer is displayed in a new window.  This behavior can
+be customized via @code{display-buffer-alist} (@pxref{Window Choice}).
 
   While the subshell is waiting or running a command, you can switch
 windows or buffers and perform other editing in Emacs.  Emacs inserts

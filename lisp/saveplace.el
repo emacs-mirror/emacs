@@ -158,6 +158,8 @@ file:
 \(setq-default save-place t)"
   (interactive "P")
   (if (not (or buffer-file-name (and (derived-mode-p 'dired-mode)
+                                     (boundp 'dired-subdir-alist)
+				     dired-subdir-alist
 				     (dired-current-directory))))
       (message "Buffer `%s' not visiting a file or directory" (buffer-name))
     (setq save-place (if parg
@@ -178,6 +180,8 @@ file:
   ;; will be saved again when Emacs is killed.
   (or save-place-loaded (load-save-place-alist-from-file))
   (let* ((directory (and (derived-mode-p 'dired-mode)
+                         (boundp 'dired-subdir-alist)
+			 dired-subdir-alist
 			 (dired-current-directory)))
 	 (item (or buffer-file-name
 		   (and directory
@@ -310,6 +314,8 @@ may have changed) back to `save-place-alist'."
 	;; save-place checks buffer-file-name too, but we can avoid
 	;; overhead of function call by checking here too.
 	(and (or buffer-file-name (and (derived-mode-p 'dired-mode)
+                                       (boundp 'dired-subdir-alist)
+				       dired-subdir-alist
 				       (dired-current-directory)))
 	     (save-place-to-alist))
 	(setq buf-list (cdr buf-list))))))
@@ -331,6 +337,8 @@ may have changed) back to `save-place-alist'."
   "Position the point in a Dired buffer."
   (or save-place-loaded (load-save-place-alist-from-file))
   (let* ((directory (and (derived-mode-p 'dired-mode)
+                         (boundp 'dired-subdir-alist)
+			 dired-subdir-alist
 			 (dired-current-directory)))
 	 (cell (assoc (and directory
 			   (expand-file-name (if (consp directory)

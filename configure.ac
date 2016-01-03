@@ -316,7 +316,7 @@ this option's value should be 'yes', 'no', 'lucid', 'athena', 'motif', 'gtk',
 	  with_x_toolkit=$val
 ])
 
-OPTION_DEFAULT_OFF([wide-int], [prefer wide Emacs integers (typically 62-bit)])
+OPTION_DEFAULT_OFF([wide-int], [prefer wide Emacs integers (typically 62-bit); allows buffer and string size up to 2GB on 32-bit hosts, at the cost of 10% to 30% slowdown of Lisp interpreter and larger memory footprint])
 if test "$with_wide_int" = yes; then
   AC_DEFINE([WIDE_EMACS_INT], 1, [Use long long for EMACS_INT if available.])
 fi
@@ -353,6 +353,7 @@ OPTION_DEFAULT_ON([gsettings],[don't compile with GSettings support])
 OPTION_DEFAULT_ON([selinux],[don't compile with SELinux support])
 OPTION_DEFAULT_ON([gnutls],[don't use -lgnutls for SSL/TLS support])
 OPTION_DEFAULT_ON([zlib],[don't compile with zlib decompression support])
+OPTION_DEFAULT_OFF([modules],[compile with dynamic modules support])
 
 AC_ARG_WITH([file-notification],[AS_HELP_STRING([--with-file-notification=LIB],
  [use a file notification library (LIB one of: yes, inotify, kqueue, gfile, w32, no)])],
@@ -2106,8 +2107,8 @@ AC_CACHE_CHECK(
 	  [[malloc_set_state (malloc_get_state ());
 	    __after_morecore_hook = hook;
 	    __malloc_initialize_hook = hook;]])],
-       [emacs_cv_var_doug_lea_malloc=yes])])
-   fi
+       [emacs_cv_var_doug_lea_malloc=yes])
+   fi])
 doug_lea_malloc=$emacs_cv_var_doug_lea_malloc
 
 system_malloc=$emacs_cv_sanitize_address
@@ -2202,7 +2203,6 @@ if test "$ac_cv_header_pthread_h" && test "$opsys" != "mingw32"; then
   AC_CACHE_CHECK([for pthread library],
     [emacs_cv_pthread_lib],
     [emacs_cv_pthread_lib=no
-     OLD_CPPFLAGS=$CPPFLAGS
      OLD_LIBS=$LIBS
      for emacs_pthread_lib in 'none needed' -lpthread; do
        case $emacs_pthread_lib in
@@ -2231,8 +2231,7 @@ if test "$ac_cv_header_pthread_h" && test "$opsys" != "mingw32"; then
        if test "$emacs_cv_pthread_lib" != no; then
 	 break
        fi
-     done
-     CPPFLAGS=$OLD_CPPFLAGS])
+     done])
   if test "$emacs_cv_pthread_lib" != no; then
     AC_DEFINE([HAVE_PTHREAD], 1, [Define to 1 if you have POSIX threads.])
     case $emacs_cv_pthread_lib in
@@ -3343,6 +3342,52 @@ if test "${HAVE_ZLIB}" = "yes"; then
   fi
 fi
 AC_SUBST(LIBZ)
+
+### Dynamic modules support
+LIBMODULES=
+HAVE_MODULES=no
+MODULES_OBJ=
+MODULES_SUFFIX=
+if test "${with_modules}" != "no"; then
+  if test "$opsys" = "gnu-linux"; then
+    LIBMODULES="-ldl"
+    MODULES_SUFFIX=".so"
+    HAVE_MODULES=yes
+  elif test "$opsys" = "cygwin"; then
+    MODULES_SUFFIX=".dll"
+    HAVE_MODULES=yes
+  elif test "$opsys" = "darwin"; then
+    MODULES_SUFFIX=".so"
+    HAVE_MODULES=yes
+  elif test "$opsys" = "mingw32"; then
+    MODULES_SUFFIX=".dll"
+    HAVE_MODULES=yes
+  else
+    # BSD system have dlopen in the libc
+    AC_CHECK_FUNC(dlopen, [MODULES_SUFFIX=".so"]
+                          [HAVE_MODULES=yes], [])
+  fi
+
+  if test "${HAVE_MODULES}" = no; then
+    AC_MSG_ERROR([Dynamic modules are not supported on your system])
+  else
+    SAVE_LIBS=$LIBS
+    LIBS="$LIBS $LIBMODULES"
+    AC_CHECK_FUNCS([dlfunc])
+    LIBS=$SAVE_LIBS
+  fi
+fi
+
+if test "${HAVE_MODULES}" = yes; then
+   MODULES_OBJ="dynlib.o emacs-module.o"
+   AC_DEFINE(HAVE_MODULES, 1, [Define to 1 if dynamic modules are enabled])
+   AC_DEFINE_UNQUOTED(MODULES_SUFFIX, "$MODULES_SUFFIX",
+     [System extension for dynamic libraries])
+fi
+AC_SUBST(MODULES_OBJ)
+AC_SUBST(LIBMODULES)
+AX_GCC_VAR_ATTRIBUTE(cleanup)
+AC_CHECK_FUNCS(dladdr)
 
 ### Use -lpng if available, unless '--with-png=no'.
 HAVE_PNG=no
@@ -5237,7 +5282,7 @@ optsep=
 emacs_config_features=
 for opt in XAW3D XPM JPEG TIFF GIF PNG RSVG CAIRO IMAGEMAGICK SOUND GPM DBUS \
   GCONF GSETTINGS NOTIFY ACL LIBSELINUX GNUTLS LIBXML2 FREETYPE M17N_FLT \
-  LIBOTF XFT ZLIB TOOLKIT_SCROLL_BARS X_TOOLKIT X11 NS; do
+  LIBOTF XFT ZLIB TOOLKIT_SCROLL_BARS X_TOOLKIT X11 NS MODULES; do
 
     case $opt in
       NOTIFY|ACL) eval val=\${${opt}_SUMMARY} ;;
@@ -5285,6 +5330,7 @@ AS_ECHO(["  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D
   Does Emacs use -lotf?                                   ${HAVE_LIBOTF}
   Does Emacs use -lxft?                                   ${HAVE_XFT}
   Does Emacs directly use zlib?                           ${HAVE_ZLIB}
+  Does Emacs have dynamic modules support?                ${HAVE_MODULES}
   Does Emacs use toolkit scroll bars?                     ${USE_TOOLKIT_SCROLL_BARS}
   Does Emacs support Xwidgets?                            ${HAVE_XWIDGETS}
       Does xwidgets support webkit(requires gtk3)?        ${HAVE_WEBKIT}

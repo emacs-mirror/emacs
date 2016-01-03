@@ -1,3 +1,240 @@
+2015-12-27  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-descend): Allow using lambdas in external functions.
+
+2015-12-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* admin/gitmerge.el: Tweaks that seemed necessary
+
+	* admin/gitmerge.el (gitmerge-skip-regexp): Remove "sync".
+	(gitmerge-maybe-resume): Provide explicit empty commit message.
+
+2015-12-25  Łukasz Stelmach  <stlman@poczta.fm>  (tiny change)
+
+	Use a different port for TLS erc
+
+	* lisp/erc/erc.el (erc-default-port-tls): New variable
+	(bug#19497).
+	* lisp/erc/erc.el (erc-tls): Use it.
+
+2015-12-25  Alain Schneble  <a.s@realize.ch>
+
+	Make relative URL parsing and resolution consistent with RFC 3986 (bug#22044)
+
+	* test/lisp/url/url-parse-tests.el: Add tests covering url-generic-parse-url.
+	* test/lisp/url/url-expand-tests.el: Add tests covering url-expand-file-name.
+	* lisp/url/url-parse.el (url-generic-parse-url): Keep empty fragment
+	information in URL-struct.
+	* lisp/url/url-parse.el (url-path-and-query): Do not artificially turn empty
+	path and query into nil path and query, respectively.
+	* lisp/url/url-expand.el (url-expander-remove-relative-links): Do not turn
+	empty path into an absolute ("/") path.
+	* lisp/url/url-expand.el (url-expand-file-name): Properly resolve
+	fragment-only URIs. Do not just return them unchanged.
+	* lisp/url/url-expand.el (url-default-expander): An empty path in the relative
+	reference URI should not drop the last segment.
+
+2015-12-25  Alain Schneble  <a.s@realize.ch>
+
+	Make relative URL parsing and resolution consistent with RFC 3986 (bug#22044)
+
+	* test/lisp/url/url-parse-tests.el: Add tests covering url-generic-parse-url.
+	* test/lisp/url/url-expand-tests.el: Add tests covering url-expand-file-name.
+	* lisp/url/url-parse.el (url-generic-parse-url): Keep empty fragment
+	information in URL-struct.
+	* lisp/url/url-parse.el (url-path-and-query): Do not artificially turn empty
+	path and query into nil path and query, respectively.
+	* lisp/url/url-expand.el (url-expander-remove-relative-links): Do not turn
+	empty path into an absolute ("/") path.
+	* lisp/url/url-expand.el (url-expand-file-name): Properly resolve
+	fragment-only URIs. Do not just return them unchanged.
+	* lisp/url/url-expand.el (url-default-expander): An empty path in the relative
+	reference URI should not drop the last segment.
+
+2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	Let url use default file modes when copying files
+
+	* lisp/url/url-handlers.el (url-copy-file): Use default file
+	modes when copying files (bug#11400).
+
+2015-12-25  Devon Sean McCullough  <Emacs-Hacker2012@jovi.net>
+
+	Doc fix for url-http
+
+	* lisp/url/url-http.el (url-http): Document better return values
+	  (bug#13187) (tiny change)
+
+2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* eww.el (eww-display-html): Support <button> tags (bug#20485).
+
+2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	Made ffap-url-p a defun instead of a defsubst
+
+	* lisp/ffap.el (ffap-url-p): Change from defsusbt to defun,
+	since there doesn't seem to be much of a reason for it to be a
+	defsubst (bug#18203).
+
+2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	Add a command to view files in the browser to dired
+
+	* lisp/dired.el (dired-mode-map): Add the `W' command
+	(bug#18810).
+
+2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	Allow http://user:pass@foo/ URLs again
+
+	* lisp/url/url-auth.el (url-basic-auth): Allow explicit
+	user/passwords in URLs (bug#19046).
+
+2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* eww.el (eww-mode-map): Fix command name of eww-toggle-colors.
+
+2015-12-25  Samer Masterson  <samer@samertm.com>
+
+	Autoload url-insert-buffer-contents
+
+	* lisp/url/url-handlers.el: Add autoload cookie so that
+	`package-list-packages' doesn't bug out (bug#21927) (tiny change)
+
+2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	Allow toggling colors in eww
+
+	* doc/misc/eww.texi (Basics): Mention "C".
+
+	* lisp/net/eww.el (eww-toggle-colors): New command and keystroke.
+
+	* lisp/net/shr.el (shr-use-colors): New variable.
+	(shr-colorize-region): Use it.
+
+2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	Follow meta refresh tags in eww
+
+	* eww.el (eww-tag-meta): Follow meta refresh tags (bug#22234).
+
+2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	More eww file name coding fixes
+
+	* eww.el (eww-decode-url-file-name): Use the base coding
+	system to check for encodability.
+
+2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	Always save eww history
+
+	* eww.el (eww-setup-buffer): Always save history, even when
+	called from outside the eww buffer (bug#19638).
+
+2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	Default web pages to right-to-left
+
+	* eww.el (eww-mode): Most web pages are left-to-right, so make
+	that the default (bug#19801).
+
+	* shr.el (shr-tag-html): Respect "dir" attributes
+	(left-to-right, right-to-left).
+
+2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	Make toggling checkboxes work again
+
+	* eww.el (eww-update-field): Make toggling checkboxes work
+	again (bug#21881).
+
+2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	Don't store cookies with empty names
+
+	* lisp/url/url-cookie.el (url-cookie-store): Refuse to store
+	cookies with empty names (bug#21936).
+
+2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	Stop rendering HTML before specdlr exhaustion
+
+	Fixes: 22117
+
+	* shr.el (shr-descend): Stop rendering before we run out of
+	specpdl room (bug#22117).
+
+2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	Use cl-reduce, not reduce.
+
+2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	Allow several <tbody> tags in shr
+
+	* shr.el (shr-table-body): New function to find the real body
+	of a table.
+	(shr-tag-table): Use it to render several <tbody> tags in a
+	table (bug#22170).
+
+2015-12-24  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	Make prettier unique file names in eww
+
+	(eww-make-unique-file-name): Make unique file names by making
+	files like foo(2).jpg instead of foo(1)(2).jpg.
+
+2015-12-24  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	Decode hex-encoded URLs before using them as file names
+
+	* eww.el (eww-decode-url-file-name): New function.
+	(eww-download-callback): Use it to decode file names before
+	saving them.
+
+2015-12-24  Ashish SHUKLA  <ashish.is@lostca.se>
+
+	Add FreeBSD cert bundle
+
+	* doc/misc/emacs-gnutls.texi (Help For Users): Document
+	FreeBSD bundle.
+
+	* lisp/net/gnutls.el (gnutls-trustfiles): Add FreeBSD cert bundle.
+
+2015-12-24  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	Allow overriding shr functions from eww
+
+	* eww.el (eww-display-html): Allow overriding elements in
+	`shr-external-rendering-functions'.
+
+2015-12-24  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	Ignore invalid SVG images
+
+	* shr.el (shr-tag-svg): Ignore SVG images that have no width
+	or height, because these can't be displayed by ImageMagick,
+	anyway.
+
+2015-12-24  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	shr table rendering fix
+
+	* shr.el (shr-tag-table): Allow rendering body-less tables
+	that have headers.
+
+2015-12-22  Sam Steingold  <sds@gnu.org>
+
+	clipboard should still work even if interprogram-* is disabled
+
+	(clipboard-yank): When `interprogram-cut-function' is nil,
+	bind it to `gui-selection-value' - the default value.
+	(clipboard-kill-region, clipboard-kill-ring-save): When
+	`interprogram-paste-function' is nil, bind it to `gui-select-text' -
+	the default value.
+
 2015-12-18  Phillip Lord  <phillip.lord@russet.org.uk>
 
 	Fix bootstrap issue with dired-loaddefs
@@ -2943,14 +3180,6 @@
 	* lisp/net/tramp-compat.el (tramp-compat-delete-dups): New defun.
 	* lisp/net/tramp-smb.el (tramp-smb-handle-directory-files): Use it.
 
-2015-10-28  Anders Lindgren  <andlind@gmail.com>
-
-	Merge branch 'master' of /Volumes/HD2/build/emacs-git-ssh
-
-	Merge branch 'master' of ssh://git.sv.gnu.org/srv/git/emacs
-
-	Merge branch 'master' of /Volumes/HD2/build/emacs-git-ssh
-
 2015-10-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* lisp/net/tramp-smb.el (tramp-smb-handle-directory-files):
@@ -2969,10 +3198,6 @@
 
 	* nsterm.m (ns_constrain_all_frames, ns_init_term): Block input.
 	* nsterm.m (ns_send_appdefined, EmacsApp): Trace output.
-
-2015-10-28  Anders Lindgren  <andlind@gmail.com>
-
-	Merge branch 'master' of ssh://git.sv.gnu.org/srv/git/emacs
 
 2015-10-28  Artur Malabarba  <bruce.connor.am@gmail.com>
 
@@ -20125,7 +20350,7 @@
 
 This file records repository revisions from
 commit 9d56a21e6a696ad19ac65c4b405aeca44785884a (exclusive) to
-commit 138480a97bfc1104143b5fc10dfc962b95b78ae8 (inclusive).
+commit 531b28b4d96adf39d853fcb5e0bba7251fcce4b6 (inclusive).
 See ChangeLog.1 for earlier changes.
 
 ;; Local Variables:

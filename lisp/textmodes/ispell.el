@@ -1782,6 +1782,51 @@ Extended character mode can be changed for this buffer by placing
 a `~' followed by an extended-character mode -- such as `~.tex'.
 The last occurring definition in the buffer will be used.")
 
+(defun ispell--\\w-filter (char)
+  "Return CHAR in a string when CHAR doesn't have \"word\" syntax,
+nil otherwise.  CHAR must be a character."
+  (let ((str (string char)))
+    (and
+     (not (string-match "\\w" str))
+     str)))
+
+(defun ispell--make-\\w-expression (chars)
+  "Make a regular expression like \"\\(\\w\\|[-_]\\)\".
+This (parenthesized) expression matches either a character of
+\"word\" syntax or one in CHARS.
+
+CHARS is a string of characters.  A member of CHARS is omitted
+from the expression if it already has word syntax.  (Be careful
+about special characters such as ?\\, ?^, ?], and ?- in CHARS.)
+If after this filtering there are no chars left, or only one, a
+special form of the expression is generated."
+  (let ((filtered
+	 (mapconcat #'ispell--\\w-filter chars "")))
+    (concat
+     "\\(\\w"
+     (cond
+      ((equal filtered "")
+       "\\)")
+      ((eq (length filtered) 1)
+       (concat "\\|" filtered "\\)"))
+      (t
+       (concat "\\|[" filtered "]\\)"))))))
+
+(defun ispell--make-filename-or-URL-re ()
+  "Construct a regexp to match some file names or URLs or email addresses.
+The expression is crafted to match as great a variety of these
+objects as practicable, without too many false matches happening."
+  (concat ;"\\(--+\\|_+\\|"
+          "\\(/\\w\\|\\("
+          (ispell--make-\\w-expression "-_")
+          "+[.:@]\\)\\)"
+          (ispell--make-\\w-expression "-_")
+          "*\\([.:/@]+"
+          (ispell--make-\\w-expression "-_~=?&")
+          "+\\)+"
+          ;"\\)"
+          ))
+
 ;;;###autoload
 (defvar ispell-skip-region-alist
   `((ispell-words-keyword	   forward-line)
@@ -1798,7 +1843,7 @@ The last occurring definition in the buffer will be used.")
     ;; Matches e-mail addresses, file names, http addresses, etc.  The
     ;; `-+' `_+' patterns are necessary for performance reasons when
     ;; `-' or `_' part of word syntax.
-    (,(purecopy "\\(--+\\|_+\\|\\(/\\w\\|\\(\\(\\w\\|[-_]\\)+[.:@]\\)\\)\\(\\w\\|[-_]\\)*\\([.:/@]+\\(\\w\\|[-_~=?&]\\)+\\)+\\)"))
+;    (,(purecopy "\\(--+\\|_+\\|\\(/\\w\\|\\(\\(\\w\\|[-_]\\)+[.:@]\\)\\)\\(\\w\\|[-_]\\)*\\([.:/@]+\\(\\w\\|[-_~=?&]\\)+\\)+\\)"))
     ;; above checks /.\w sequences
     ;;("\\(--+\\|\\(/\\|\\(\\(\\w\\|[-_]\\)+[.:@]\\)\\)\\(\\w\\|[-_]\\)*\\([.:/@]+\\(\\w\\|[-_~=?&]\\)+\\)+\\)")
     ;; This is a pretty complex regexp.  It can be simplified to the following:
@@ -2248,6 +2293,11 @@ If so, ask if it needs to be saved."
   (setq ispell-pdict-modified-p nil))
 
 
+(defvar ispell-update-post-hook nil
+  "A normal hook invoked from the ispell command loop.
+It is called once per iteration, before displaying a prompt to
+the user.")
+
 (defun ispell-command-loop (miss guess word start end)
   "Display possible corrections from list MISS.
 GUESS lists possibly valid affix construction of WORD.
@@ -2315,8 +2365,10 @@ Global `ispell-quit' set to start location to continue spell session."
 	      count (ispell-int-char (1+ count))))
       (setq count (ispell-int-char (- count ?0 skipped))))
 
+    (run-hooks 'ispell-update-post-hook)
+
     ;; ensure word is visible
-    (if (not (pos-visible-in-window-p end))
+    (if (not (pos-visible-in-window-group-p end))
 	(sit-for 0))
 
     ;; Display choices for misspelled word.
@@ -2809,6 +2861,7 @@ The variable `ispell-highlight-face' selects the face to use for highlighting."
 		  (regexp-quote (buffer-substring-no-properties start end))
 		  "\\b"))
 		(isearch-regexp t)
+		(isearch-regexp-function nil)
 		(isearch-case-fold-search nil)
 		(isearch-forward t)
 		(isearch-other-end start)
@@ -2844,13 +2897,20 @@ Also position fit window to BUFFER and select it."
 		     (prog1
 			 (condition-case nil
 			     (split-window
-			      nil (- ispell-choices-win-default-height) 'above)
+                              ;; Chose the last of a window group, since
+                              ;; otherwise, the lowering of another window's
+                              ;; TL corner would cause the logical order of
+                              ;; the windows to be changed.
+			      (car (last (selected-window-group)))
+                              (- ispell-choices-win-default-height) 'above)
 			   (error nil))
 		       (modify-frame-parameters frame '((unsplittable . t))))))
 	      (and (not unsplittable)
 		   (condition-case nil
 		       (split-window
-			nil (- ispell-choices-win-default-height) 'above)
+                        ;; See comment above.
+			(car (last (selected-window-group)))
+                        (- ispell-choices-win-default-height) 'above)
 		     (error nil)))
 	      (display-buffer buffer))))
     (if (not window)
@@ -3373,7 +3433,8 @@ Must be called after `ispell-buffer-local-parsing' due to dependence on mode."
               (if (string= "" comment-end) "^" (regexp-quote comment-end)))
           (if (and (null ispell-check-comments) comment-start)
               (regexp-quote comment-start))
-          (ispell-begin-skip-region ispell-skip-region-alist)))
+          (ispell-begin-skip-region ispell-skip-region-alist)
+          (ispell--make-filename-or-URL-re)))
    "\\|"))
 
 
@@ -3412,6 +3473,8 @@ Manual checking must include comments and tib references.
 The list is of the form described by variable `ispell-skip-region-alist'.
 Must be called after `ispell-buffer-local-parsing' due to dependence on mode."
   (let ((skip-alist ispell-skip-region-alist))
+    (setq skip-alist (append (list (list (ispell--make-filename-or-URL-re)))
+                             skip-alist))
     ;; only additional explicit region definition is tex.
     (if (eq ispell-parser 'tex)
 	(setq case-fold-search nil
@@ -4105,9 +4168,10 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 		      (ispell-non-empty-string vm-included-text-prefix)))
 	     (t default-prefix)))
 	   (ispell-skip-region-alist
-	    (cons (list (concat "^\\(" cite-regexp "\\)")
-			(function forward-line))
-		  ispell-skip-region-alist))
+	    (cons (list (ispell--make-filename-or-URL-re))
+                  (cons (list (concat "^\\(" cite-regexp "\\)")
+                              (function forward-line))
+                        ispell-skip-region-alist)))
 	   (old-case-fold-search case-fold-search)
 	   (dictionary-alist ispell-message-dictionary-alist)
 	   (ispell-checking-message t))

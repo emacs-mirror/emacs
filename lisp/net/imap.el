@@ -74,8 +74,7 @@
 ;; imap.el supports RFC1730/2060/RFC3501 (IMAP4/IMAP4rev1).  The implemented
 ;; IMAP extensions are RFC2195 (CRAM-MD5), RFC2086 (ACL), RFC2342
 ;; (NAMESPACE), RFC2359 (UIDPLUS), the IMAP-part of RFC2595 (STARTTLS,
-;; LOGINDISABLED) (with use of external library starttls.el and
-;; program starttls), and the GSSAPI / Kerberos V4 sections of RFC1731
+;; LOGINDISABLED), and the GSSAPI / Kerberos V4 sections of RFC1731
 ;; (with use of external program `imtest'), and RFC2971 (ID).  It also
 ;; takes advantage of the UNSELECT extension in Cyrus IMAPD.
 ;;
@@ -140,8 +139,6 @@
 (eval-and-compile
   ;; For Emacs <22.2 and XEmacs.
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest _r)))
-  (autoload 'starttls-open-stream "starttls")
-  (autoload 'starttls-negotiate "starttls")
   (autoload 'sasl-find-mechanism "sasl")
   (autoload 'digest-md5-parse-digest-challenge "digest-md5")
   (autoload 'digest-md5-digest-response "digest-md5")
@@ -151,8 +148,7 @@
   (autoload 'utf7-encode "utf7")
   (autoload 'utf7-decode "utf7")
   (autoload 'format-spec "format-spec")
-  (autoload 'format-spec-make "format-spec")
-  (autoload 'open-tls-stream "tls"))
+  (autoload 'format-spec-make "format-spec"))
 
 ;; User variables.
 
@@ -183,19 +179,6 @@ IMAP commands on stdin and return responses to stdout.  Each entry in
 the list is tried until a successful connection is made."
   :group 'imap
   :type '(repeat string))
-
-(defcustom imap-ssl-program '("openssl s_client -quiet -ssl3 -connect %s:%p"
-			      "openssl s_client -quiet -ssl2 -connect %s:%p"
-			      "s_client -quiet -ssl3 -connect %s:%p"
-			      "s_client -quiet -ssl2 -connect %s:%p")
-  "A string, or list of strings, containing commands for SSL connections.
-Within a string, %s is replaced with the server address and %p with
-port number on server.  The program should accept IMAP commands on
-stdin and return responses to stdout.  Each entry in the list is tried
-until a successful connection is made."
-  :group 'imap
-  :type '(choice string
-		 (repeat string)))
 
 (defcustom imap-shell-program '("ssh %s imapd"
 				"rsh %s imapd"
@@ -293,7 +276,7 @@ Shorter values mean quicker response, but is more CPU intensive."
   '((gssapi    imap-gssapi-stream-p    imap-gssapi-open)
     (kerberos4 imap-kerberos4-stream-p imap-kerberos4-open)
     (tls       imap-tls-p              imap-tls-open)
-    (ssl       imap-ssl-p              imap-ssl-open)
+    (ssl       imap-tls-p              imap-tls-open)
     (network   imap-network-p          imap-network-open)
     (shell     imap-shell-p            imap-shell-open)
     (starttls  imap-starttls-p         imap-starttls-open))
@@ -453,7 +436,7 @@ second the status (OK, NO, BAD etc) of the command.")
 
 When non-nil, use an alternative UIDS form.  Enabling appears to
 be required for some servers (e.g., Microsoft Exchange 2007)
-which otherwise would trigger a response 'BAD The specified
+which otherwise would trigger a response `BAD The specified
 message set is invalid.'.  We don't unconditionally use this
 form, since this is said to be significantly inefficient.
 
@@ -661,56 +644,6 @@ sure of changing the value of `foo'."
 	      nil)))))
     done))
 
-(defun imap-ssl-p (_buffer)
-  nil)
-
-(defun imap-ssl-open (name buffer server port)
-  "Open an SSL connection to SERVER."
-  (let ((cmds (if (listp imap-ssl-program) imap-ssl-program
-		(list imap-ssl-program)))
-	cmd done)
-    (while (and (not done) (setq cmd (pop cmds)))
-      (message "imap: Opening SSL connection with `%s'..." cmd)
-      (erase-buffer)
-      (let* ((port (or port imap-default-ssl-port))
-	     (coding-system-for-read imap-coding-system-for-read)
-	     (coding-system-for-write imap-coding-system-for-write)
-	     (process-connection-type imap-process-connection-type)
-	     (set-process-query-on-exit-flag
-	      (if (fboundp 'set-process-query-on-exit-flag)
-		  'set-process-query-on-exit-flag
-		'process-kill-without-query))
-	     process)
-	(when (progn
-		(setq process (start-process
-			       name buffer shell-file-name
-			       shell-command-switch
-			       (format-spec cmd
-					    (format-spec-make
-					     ?s server
-					     ?p (number-to-string port)))))
-		(funcall set-process-query-on-exit-flag process nil)
-		process)
-	  (with-current-buffer buffer
-	    (goto-char (point-min))
-	    (while (and (memq (process-status process) '(open run))
-			(set-buffer buffer) ;; XXX "blue moon" nntp.el bug
-			(goto-char (point-max))
-			(forward-line -1)
-			(not (imap-parse-greeting)))
-	      (accept-process-output process 1)
-	      (sit-for 1))
-	    (imap-log buffer)
-	    (erase-buffer)
-	    (when (memq (process-status process) '(open run))
-	      (setq done process))))))
-    (if done
-	(progn
-	  (message "imap: Opening SSL connection with `%s'...done" cmd)
-	  done)
-      (message "imap: Opening SSL connection with `%s'...failed" cmd)
-      nil)))
-
 (defun imap-tls-p (_buffer)
   nil)
 
@@ -718,7 +651,8 @@ sure of changing the value of `foo'."
   (let* ((port (or port imap-default-tls-port))
 	 (coding-system-for-read imap-coding-system-for-read)
 	 (coding-system-for-write imap-coding-system-for-write)
-	 (process (open-tls-stream name buffer server port)))
+	 (process (open-network-stream name buffer server port
+                                       :type 'tls)))
     (when process
       (while (and (memq (process-status process) '(open run))
 		  ;; FIXME: Per the "blue moon" comment, the process/buffer
@@ -803,34 +737,23 @@ sure of changing the value of `foo'."
   (imap-capability 'STARTTLS buffer))
 
 (defun imap-starttls-open (name buffer server port)
+  (message "imap: Connecting with STARTTLS...")
   (let* ((port (or port imap-default-port))
 	 (coding-system-for-read imap-coding-system-for-read)
 	 (coding-system-for-write imap-coding-system-for-write)
-	 (process (starttls-open-stream name buffer server port))
-	 done tls-info)
-    (message "imap: Connecting with STARTTLS...")
-    (when process
-      (while (and (memq (process-status process) '(open run))
-		  (set-buffer buffer) ;; XXX "blue moon" nntp.el bug
-		  (goto-char (point-max))
-		  (forward-line -1)
-		  (not (imap-parse-greeting)))
-	(accept-process-output process 1)
-	(sit-for 1))
-      (imap-send-command "STARTTLS")
-      (while (and (memq (process-status process) '(open run))
-		  (set-buffer buffer) ;; XXX "blue moon" nntp.el bug
-		  (goto-char (point-max))
-		  (forward-line -1)
-		  (not (re-search-forward "[0-9]+ OK.*\r?\n" nil t)))
-	(accept-process-output process 1)
-	(sit-for 1))
-      (imap-log buffer)
-      (when (and (setq tls-info (starttls-negotiate process))
-		 (memq (process-status process) '(open run)))
-	(setq done process)))
-    (if (stringp tls-info)
-	(message "imap: STARTTLS info: %s" tls-info))
+	 (process (open-network-stream
+                   name buffer server port
+                   :type 'starttls
+                   :capability-command "1 CAPABILITY\r\n"
+                   :always-query-capabilities t
+                   :end-of-command "\r\n"
+                   :success " OK "
+                   :starttls-function
+                   (lambda (capabilities)
+                     (when (string-match-p "STARTTLS" capabilities)
+                       "1 STARTTLS\r\n"))))
+         (done (and process
+                    (memq (process-status process) '(open run)))))
     (message "imap: Connecting with STARTTLS...%s" (if done "done" "failed"))
     done))
 
@@ -1564,8 +1487,8 @@ returned, if ITEMS is a symbol only its value is returned."
 (defun imap-mailbox-status-asynch (mailbox items &optional buffer)
   "Send status item requests ITEMS on MAILBOX to server in BUFFER.
 ITEMS can be a symbol or a list of symbols, valid symbols are one of
-the STATUS data items -- i.e. 'messages, 'recent, 'uidnext, 'uidvalidity
-or 'unseen.  The IMAP command tag is returned."
+the STATUS data items -- i.e., `messages', `recent', `uidnext', `uidvalidity'
+or `unseen'.  The IMAP command tag is returned."
   (with-current-buffer (or buffer (current-buffer))
     (imap-send-command (list "STATUS \""
 			     (imap-utf7-encode mailbox)
@@ -2966,8 +2889,6 @@ Return nil if no complete line has arrived."
 	  imap-error-text
 	  imap-kerberos4s-p
 	  imap-kerberos4-open
-	  imap-ssl-p
-	  imap-ssl-open
 	  imap-network-p
 	  imap-network-open
 	  imap-interactive-login

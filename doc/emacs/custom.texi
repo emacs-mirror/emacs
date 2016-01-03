@@ -403,6 +403,8 @@ customizations in your initialization file.  This is because saving
 customizations from such a session would wipe out all the other
 customizations you might have on your initialization file.
 
+@cindex unsaved customizations, reminder to save
+@findex custom-prompt-customize-unsaved-options
   Please note that any customizations you have not chosen to save for
 future sessions will be lost when you terminate Emacs.  If you'd like
 to be prompted about unsaved customizations at termination time, add
@@ -1130,6 +1132,12 @@ and/or suffix is to embed the local variables list in a comment, so it
 won't confuse other programs that the file is intended for.  The
 example above is for the C programming language, where comments start
 with @samp{/*} and end with @samp{*/}.
+
+If some unrelated text might look to Emacs as a local variables list,
+you can countermand that by inserting a form-feed character (a page
+delimiter, @pxref{Pages}) after that text.  Emacs only looks for
+file-local variables in the last page of a file, after the last page
+delimiter.
 
 @findex add-file-local-variable
 @findex delete-file-local-variable

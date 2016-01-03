@@ -4036,7 +4036,13 @@ The value of :otf is a cons (GSUB . GPOS) where GSUB and GPOS are lists
 representing the OpenType features supported by the font by this form:
   ((SCRIPT (LANGSYS FEATURE ...) ...) ...)
 SCRIPT, LANGSYS, and FEATURE are all symbols representing OpenType
-Layout tags.  */)
+Layout tags.
+
+In addition to the keys listed abobe, the following keys are reserved
+for the specific meanings as below:
+
+The value of :combining-capability is non-nil if the font-backend of
+FONT supports rendering of combining characters for non-OTF fonts.  */)
   (Lisp_Object font, Lisp_Object key)
 {
   int idx;
@@ -4051,14 +4057,22 @@ Layout tags.  */)
   if (idx >= 0 && idx < FONT_EXTRA_INDEX)
     return AREF (font, idx);
   val = Fassq (key, AREF (font, FONT_EXTRA_INDEX));
-  if (NILP (val) && EQ (key, QCotf) && FONT_OBJECT_P (font))
+  if (NILP (val) && FONT_OBJECT_P (font))
     {
       struct font *fontp = XFONT_OBJECT (font);
 
-      if (fontp->driver->otf_capability)
-	val = fontp->driver->otf_capability (fontp);
-      else
-	val = Fcons (Qnil, Qnil);
+      if (EQ (key, QCotf))
+	{
+	  if (fontp->driver->otf_capability)
+	    val = fontp->driver->otf_capability (fontp);
+	  else
+	    val = Fcons (Qnil, Qnil);
+	}
+      else if (EQ (key, QCcombining_capability))
+	{
+	  if (fontp->driver->combining_capability)
+	    val = fontp->driver->combining_capability (fontp);
+	}
     }
   else
     val = Fcdr (val);
@@ -5290,6 +5304,7 @@ syms_of_font (void)
   DEFSYM (QCscalable, ":scalable");
   DEFSYM (QCavgwidth, ":avgwidth");
   DEFSYM (QCfont_entity, ":font-entity");
+  DEFSYM (QCcombining_capability, ":combining-capability");
 
   /* Symbols representing values of font spacing property.  */
   DEFSYM (Qc, "c");

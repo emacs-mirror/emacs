@@ -187,7 +187,7 @@ using :expected-result.  See `ert-test-result-type-p' for a
 description of valid values for RESULT-TYPE.
 
 \(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] \
-[:tags '(TAG...)] BODY...)"
+[:tags \\='(TAG...)] BODY...)"
   (declare (debug (&define :name test
                            name sexp [&optional stringp]
 			   [&rest keywordp sexp] def-body))
@@ -374,9 +374,9 @@ Returns nil."
 Determines whether CONDITION matches TYPE and EXCLUDE-SUBTYPES,
 and aborts the current test as failed if it doesn't."
   (let ((signaled-conditions (get (car condition) 'error-conditions))
-        (handled-conditions (cl-etypecase type
-                              (list type)
-                              (symbol (list type)))))
+        (handled-conditions (pcase-exhaustive type
+                              ((pred listp) type)
+                              ((pred symbolp) (list type)))))
     (cl-assert signaled-conditions)
     (unless (cl-intersection signaled-conditions handled-conditions)
       (ert-fail (append
@@ -466,18 +466,18 @@ Errors during evaluation are caught and handled like nil."
 
 (defun ert--explain-format-atom (x)
   "Format the atom X for `ert--explain-equal'."
-  (cl-typecase x
-    (character (list x (format "#x%x" x) (format "?%c" x)))
-    (fixnum (list x (format "#x%x" x)))
-    (t x)))
+  (pcase x
+    ((pred characterp) (list x (format "#x%x" x) (format "?%c" x)))
+    ((pred integerp) (list x (format "#x%x" x)))
+    (_ x)))
 
 (defun ert--explain-equal-rec (a b)
   "Return a programmer-readable explanation of why A and B are not `equal'.
 Returns nil if they are."
   (if (not (equal (type-of a) (type-of b)))
       `(different-types ,a ,b)
-    (cl-etypecase a
-      (cons
+    (pcase-exhaustive a
+      ((pred consp)
        (let ((a-proper-p (ert--proper-list-p a))
              (b-proper-p (ert--proper-list-p b)))
          (if (not (eql (not a-proper-p) (not b-proper-p)))
@@ -502,24 +502,26 @@ Returns nil if they are."
                        `(cdr ,cdr-x)
                      (cl-assert (equal a b) t)
                      nil))))))))
-      (array (if (not (equal (length a) (length b)))
-                 `(arrays-of-different-length ,(length a) ,(length b)
-                                              ,a ,b
-                                              ,@(unless (char-table-p a)
-                                                  `(first-mismatch-at
-                                                    ,(cl-mismatch a b :test 'equal))))
-               (cl-loop for i from 0
-                        for ai across a
-                        for bi across b
-                        for xi = (ert--explain-equal-rec ai bi)
-                        do (when xi (cl-return `(array-elt ,i ,xi)))
-                        finally (cl-assert (equal a b) t))))
-      (atom (if (not (equal a b))
-                (if (and (symbolp a) (symbolp b) (string= a b))
-                    `(different-symbols-with-the-same-name ,a ,b)
-                  `(different-atoms ,(ert--explain-format-atom a)
-                                    ,(ert--explain-format-atom b)))
-              nil)))))
+      ((pred arrayp)
+       (if (not (equal (length a) (length b)))
+           `(arrays-of-different-length ,(length a) ,(length b)
+                                        ,a ,b
+                                        ,@(unless (char-table-p a)
+                                            `(first-mismatch-at
+                                              ,(cl-mismatch a b :test 'equal))))
+         (cl-loop for i from 0
+                  for ai across a
+                  for bi across b
+                  for xi = (ert--explain-equal-rec ai bi)
+                  do (when xi (cl-return `(array-elt ,i ,xi)))
+                  finally (cl-assert (equal a b) t))))
+      ((pred atom)
+       (if (not (equal a b))
+           (if (and (symbolp a) (symbolp b) (string= a b))
+               `(different-symbols-with-the-same-name ,a ,b)
+             `(different-atoms ,(ert--explain-format-atom a)
+                               ,(ert--explain-format-atom b)))
+         nil)))))
 
 (defun ert--explain-equal (a b)
   "Explainer function for `equal'."
@@ -694,23 +696,20 @@ and is displayed in front of the value of MESSAGE-FORM."
         (print-level 8)
         (print-length 50))
     (dolist (frame backtrace)
-      (cl-ecase (car frame)
-        ((nil)
+      (pcase-exhaustive frame
+        (`(nil ,special-operator . ,arg-forms)
          ;; Special operator.
-         (cl-destructuring-bind (special-operator &rest arg-forms)
-             (cdr frame)
-           (insert
-            (format "  %S\n" (cons special-operator arg-forms)))))
-        ((t)
+         (insert
+          (format "  %S\n" (cons special-operator arg-forms))))
+        (`(t ,fn . ,args)
          ;; Function call.
-         (cl-destructuring-bind (fn &rest args) (cdr frame)
-           (insert (format "  %S(" fn))
-           (cl-loop for firstp = t then nil
-                    for arg in args do
-                    (unless firstp
-                      (insert " "))
-                    (insert (format "%S" arg)))
-           (insert ")\n")))))))
+         (insert (format "  %S(" fn))
+         (cl-loop for firstp = t then nil
+                  for arg in args do
+                  (unless firstp
+                    (insert " "))
+                  (insert (format "%S" arg)))
+         (insert ")\n"))))))
 
 ;; A container for the state of the execution of a single test and
 ;; environment data needed during its execution.
@@ -894,33 +893,32 @@ t -- Always matches.
                            RESULT."
   ;; It would be easy to add `member' and `eql' types etc., but I
   ;; haven't bothered yet.
-  (cl-etypecase result-type
-    ((member nil) nil)
-    ((member t) t)
-    ((member :failed) (ert-test-failed-p result))
-    ((member :passed) (ert-test-passed-p result))
-    ((member :skipped) (ert-test-skipped-p result))
-    (cons
-     (cl-destructuring-bind (operator &rest operands) result-type
-       (cl-ecase operator
-         (and
-          (cl-case (length operands)
-            (0 t)
-            (t
-             (and (ert-test-result-type-p result (car operands))
-                  (ert-test-result-type-p result `(and ,@(cdr operands)))))))
-         (or
-          (cl-case (length operands)
-            (0 nil)
-            (t
-             (or (ert-test-result-type-p result (car operands))
-                 (ert-test-result-type-p result `(or ,@(cdr operands)))))))
-         (not
-          (cl-assert (eql (length operands) 1))
-          (not (ert-test-result-type-p result (car operands))))
-         (satisfies
-          (cl-assert (eql (length operands) 1))
-          (funcall (car operands) result)))))))
+  (pcase-exhaustive result-type
+    ('nil nil)
+    ('t t)
+    (:failed (ert-test-failed-p result))
+    (:passed (ert-test-passed-p result))
+    (:skipped (ert-test-skipped-p result))
+    (`(,operator . ,operands)
+     (cl-ecase operator
+       (and
+        (cl-case (length operands)
+          (0 t)
+          (t
+           (and (ert-test-result-type-p result (car operands))
+                (ert-test-result-type-p result `(and ,@(cdr operands)))))))
+       (or
+        (cl-case (length operands)
+          (0 nil)
+          (t
+           (or (ert-test-result-type-p result (car operands))
+               (ert-test-result-type-p result `(or ,@(cdr operands)))))))
+       (not
+        (cl-assert (eql (length operands) 1))
+        (not (ert-test-result-type-p result (car operands))))
+       (satisfies
+        (cl-assert (eql (length operands) 1))
+        (funcall (car operands) result))))))
 
 (defun ert-test-result-expected-p (test result)
   "Return non-nil if TEST's expected result type matches RESULT."
@@ -961,95 +959,96 @@ as (satisfies ...), strings, :new, etc. make use of UNIVERSE.
 Selectors that do not, such as (member ...), just return the
 set implied by them without checking whether it is really
 contained in UNIVERSE."
-  ;; This code needs to match the etypecase in
+  ;; This code needs to match the cases in
   ;; `ert-insert-human-readable-selector'.
-  (cl-etypecase selector
-    ((member nil) nil)
-    ((member t) (cl-etypecase universe
-                  (list universe)
-                  ((member t) (ert-select-tests "" universe))))
-    ((member :new) (ert-select-tests
-                    `(satisfies ,(lambda (test)
-                                   (null (ert-test-most-recent-result test))))
-                    universe))
-    ((member :failed) (ert-select-tests
-                       `(satisfies ,(lambda (test)
-                                      (ert-test-result-type-p
-                                       (ert-test-most-recent-result test)
-                                       ':failed)))
-                       universe))
-    ((member :passed) (ert-select-tests
-                       `(satisfies ,(lambda (test)
-                                      (ert-test-result-type-p
-                                       (ert-test-most-recent-result test)
-                                       ':passed)))
-                       universe))
-    ((member :expected) (ert-select-tests
-                         `(satisfies
-                           ,(lambda (test)
-                              (ert-test-result-expected-p
-                               test
-                               (ert-test-most-recent-result test))))
-                         universe))
-    ((member :unexpected) (ert-select-tests `(not :expected) universe))
-    (string
-     (cl-etypecase universe
-       ((member t) (mapcar #'ert-get-test
-                           (apropos-internal selector #'ert-test-boundp)))
-       (list (cl-remove-if-not (lambda (test)
-                                   (and (ert-test-name test)
-                                        (string-match selector
-                                                      (symbol-name
-                                                       (ert-test-name test)))))
-                                 universe))))
-    (ert-test (list selector))
-    (symbol
+  (pcase-exhaustive selector
+    ('nil nil)
+    ('t (pcase-exhaustive universe
+          ((pred listp) universe)
+          (`t (ert-select-tests "" universe))))
+    (:new (ert-select-tests
+           `(satisfies ,(lambda (test)
+                          (null (ert-test-most-recent-result test))))
+           universe))
+    (:failed (ert-select-tests
+              `(satisfies ,(lambda (test)
+                             (ert-test-result-type-p
+                              (ert-test-most-recent-result test)
+                              ':failed)))
+              universe))
+    (:passed (ert-select-tests
+              `(satisfies ,(lambda (test)
+                             (ert-test-result-type-p
+                              (ert-test-most-recent-result test)
+                              ':passed)))
+              universe))
+    (:expected (ert-select-tests
+                `(satisfies
+                  ,(lambda (test)
+                     (ert-test-result-expected-p
+                      test
+                      (ert-test-most-recent-result test))))
+                universe))
+    (:unexpected (ert-select-tests `(not :expected) universe))
+    ((pred stringp)
+     (pcase-exhaustive universe
+       (`t (mapcar #'ert-get-test
+                   (apropos-internal selector #'ert-test-boundp)))
+       ((pred listp)
+        (cl-remove-if-not (lambda (test)
+                            (and (ert-test-name test)
+                                 (string-match selector
+                                               (symbol-name
+                                                (ert-test-name test)))))
+                          universe))))
+    ((pred ert-test-p) (list selector))
+    ((pred symbolp)
      (cl-assert (ert-test-boundp selector))
      (list (ert-get-test selector)))
-    (cons
-     (cl-destructuring-bind (operator &rest operands) selector
-       (cl-ecase operator
-         (member
-          (mapcar (lambda (purported-test)
-                    (cl-etypecase purported-test
-                      (symbol (cl-assert (ert-test-boundp purported-test))
-                              (ert-get-test purported-test))
-                      (ert-test purported-test)))
-                  operands))
-         (eql
-          (cl-assert (eql (length operands) 1))
-          (ert-select-tests `(member ,@operands) universe))
-         (and
-          ;; Do these definitions of AND, NOT and OR satisfy de
-          ;; Morgan's laws?  Should they?
-          (cl-case (length operands)
-            (0 (ert-select-tests 't universe))
-            (t (ert-select-tests `(and ,@(cdr operands))
-                                 (ert-select-tests (car operands)
-                                                   universe)))))
-         (not
-          (cl-assert (eql (length operands) 1))
-          (let ((all-tests (ert-select-tests 't universe)))
-            (cl-set-difference all-tests
-                                 (ert-select-tests (car operands)
-                                                   all-tests))))
-         (or
-          (cl-case (length operands)
-            (0 (ert-select-tests 'nil universe))
-            (t (cl-union (ert-select-tests (car operands) universe)
-                           (ert-select-tests `(or ,@(cdr operands))
-                                             universe)))))
-         (tag
-          (cl-assert (eql (length operands) 1))
-          (let ((tag (car operands)))
-            (ert-select-tests `(satisfies
-                                ,(lambda (test)
-                                   (member tag (ert-test-tags test))))
-                              universe)))
-         (satisfies
-          (cl-assert (eql (length operands) 1))
-          (cl-remove-if-not (car operands)
-                              (ert-select-tests 't universe))))))))
+    (`(,operator . ,operands)
+     (cl-ecase operator
+       (member
+        (mapcar (lambda (purported-test)
+                  (pcase-exhaustive purported-test
+                    ((pred symbolp)
+                     (cl-assert (ert-test-boundp purported-test))
+                     (ert-get-test purported-test))
+                    ((pred ert-test-p) purported-test)))
+                operands))
+       (eql
+        (cl-assert (eql (length operands) 1))
+        (ert-select-tests `(member ,@operands) universe))
+       (and
+        ;; Do these definitions of AND, NOT and OR satisfy de
+        ;; Morgan's laws?  Should they?
+        (cl-case (length operands)
+          (0 (ert-select-tests 't universe))
+          (t (ert-select-tests `(and ,@(cdr operands))
+                               (ert-select-tests (car operands)
+                                                 universe)))))
+       (not
+        (cl-assert (eql (length operands) 1))
+        (let ((all-tests (ert-select-tests 't universe)))
+          (cl-set-difference all-tests
+                             (ert-select-tests (car operands)
+                                               all-tests))))
+       (or
+        (cl-case (length operands)
+          (0 (ert-select-tests 'nil universe))
+          (t (cl-union (ert-select-tests (car operands) universe)
+                       (ert-select-tests `(or ,@(cdr operands))
+                                         universe)))))
+       (tag
+        (cl-assert (eql (length operands) 1))
+        (let ((tag (car operands)))
+          (ert-select-tests `(satisfies
+                              ,(lambda (test)
+                                 (member tag (ert-test-tags test))))
+                            universe)))
+       (satisfies
+        (cl-assert (eql (length operands) 1))
+        (cl-remove-if-not (car operands)
+                          (ert-select-tests 't universe)))))))
 
 (defun ert--insert-human-readable-selector (selector)
   "Insert a human-readable presentation of SELECTOR into the current buffer."
@@ -1058,26 +1057,24 @@ contained in UNIVERSE."
   ;; `most-recent-result' slots of test case objects in (eql ...) or
   ;; (member ...) selectors.
   (cl-labels ((rec (selector)
-                ;; This code needs to match the etypecase in
+                ;; This code needs to match the cases in
                 ;; `ert-select-tests'.
-                (cl-etypecase selector
-                  ((or (member nil t
-                               :new :failed :passed
-                               :expected :unexpected)
-                       string
-                       symbol)
+                (pcase-exhaustive selector
+                  ((or
+                    ;; 'nil 't :new :failed :passed :expected :unexpected
+                    (pred stringp)
+                    (pred symbolp))
                    selector)
-                  (ert-test
+                  ((pred ert-test-p)
                    (if (ert-test-name selector)
                        (make-symbol (format "<%S>" (ert-test-name selector)))
                      (make-symbol "<unnamed test>")))
-                  (cons
-                   (cl-destructuring-bind (operator &rest operands) selector
-                     (cl-ecase operator
-                       ((member eql and not or)
-                        `(,operator ,@(mapcar #'rec operands)))
-                       ((member tag satisfies)
-                        selector)))))))
+                  (`(,operator . ,operands)
+                   (pcase operator
+                     ((or 'member 'eql 'and 'not 'or)
+                      `(,operator ,@(mapcar #'rec operands)))
+                     ((or 'tag 'satisfies)
+                      selector))))))
     (insert (format "%S" (rec selector)))))
 
 

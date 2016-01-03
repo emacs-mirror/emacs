@@ -2461,7 +2461,7 @@ handled a little differently from the other style variables.  It's
 default global binding is the empty list @code{nil}, rather than
 @code{set-from-style}.  Before the style system is initialized, you
 can add individual elements to @code{c-offsets-alist} by calling
-@code{c-set-offset}(@pxref{c-offsets-alist}) just like you would set
+@code{c-set-offset} (@pxref{c-offsets-alist}) just like you would set
 other style variables with @code{setq}.  Those elements will then
 prevail when the style system later initializes a buffer-local copy of
 @code{c-offsets-alist}.
@@ -5234,13 +5234,13 @@ This command changes the entry for a syntactic symbol in the current
 binding of @code{c-offsets-alist}, or it inserts a new entry if there
 isn't already one for that syntactic symbol.
 
-You can use @code{c-set-offsets} interactively within a @ccmode{}
+You can use @code{c-set-offset} interactively within a @ccmode{}
 buffer to make experimental changes to your indentation settings.
 @kbd{C-c C-o} prompts you for the syntactic symbol to change
 (defaulting to that of the current line) and the new offset
 (defaulting to the current offset).
 
-@code{c-set-offsets} takes two arguments when used programmatically:
+@code{c-set-offset} takes two arguments when used programmatically:
 @var{symbol}, the syntactic element symbol to change and @var{offset},
 the new offset for that syntactic element.  You can call the command
 in your @file{.emacs} to change the global binding of

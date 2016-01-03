@@ -1069,7 +1069,7 @@ is currently activated with completion."
 ;;; Automatic resizing of temporary buffers.
 (defcustom temp-buffer-max-height
   (lambda (buffer)
-    (if (eq (selected-window) (frame-root-window))
+    (if (and (display-graphic-p) (eq (selected-window) (frame-root-window)))
 	(/ (x-display-pixel-height) (frame-char-height) 2)
       (/ (- (frame-height) 2) 2)))
   "Maximum height of a window displaying a temporary buffer.
@@ -1086,7 +1086,7 @@ function is called, the window to be resized is selected."
 
 (defcustom temp-buffer-max-width
   (lambda (buffer)
-    (if (eq (selected-window) (frame-root-window))
+    (if (and (display-graphic-p) (eq (selected-window) (frame-root-window)))
 	(/ (x-display-pixel-width) (frame-char-width) 2)
       (/ (- (frame-width) 2) 2)))
   "Maximum width of a window displaying a temporary buffer.

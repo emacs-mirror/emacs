@@ -1067,17 +1067,13 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  type = CATCHER;
 	  goto pushhandler;
 	CASE (Bpushconditioncase): /* New in 24.4.  */
+	  type = CONDITION_CASE;
+	pushhandler:
 	  {
-	    struct handler *c;
-	    Lisp_Object tag;
-	    int dest;
+	    Lisp_Object tag = POP;
+	    int dest = FETCH2;
 
-	    type = CONDITION_CASE;
-	  pushhandler:
-	    tag = POP;
-	    dest = FETCH2;
-
-	    PUSH_HANDLER (c, tag, type);
+	    struct handler *c = push_handler (tag, type);
 	    c->bytecode_dest = dest;
 	    c->bytecode_top = top;
 

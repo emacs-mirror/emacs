@@ -176,6 +176,13 @@
     (setq decomposition-pair-to-composition nil)
   (defvar non-starter-decompositions nil)
     (setq non-starter-decompositions nil)
+  ;; This file needs to access these 2 Unicode properties, but when we
+  ;; compile it during bootstrap, charprop.el was not built yet, and
+  ;; therefore is not yet loaded into bootstrap-emacs, so
+  ;; char-code-property-alist is nil, and get-char-code-property
+  ;; always returns nil, something the code here doesn't like.
+  (define-char-code-property 'decomposition "uni-decomposition.el")
+  (define-char-code-property 'canonical-combining-class "uni-combining.el")
   (let ((char 0) ccc decomposition)
     (mapc
      (lambda (start-end)
@@ -626,6 +633,10 @@ be decomposed."
   :post-read-conversion 'ucs-normalize-hfs-nfd-post-read-conversion
   :pre-write-conversion 'ucs-normalize-hfs-nfd-pre-write-conversion
   )
+
+;; This is tested in dired.c:file_name_completion in order to reject
+;; false positives due to comparison of encoded file names.
+(coding-system-put 'utf-8-hfs 'decomposed-characters 't)
 
 (provide 'ucs-normalize)
 

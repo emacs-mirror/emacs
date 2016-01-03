@@ -865,7 +865,7 @@ It may also be a function.
 
 For e.g., if you wish to set the envelope sender address so that bounces
 go to the right place or to deal with listserv's usage of that address, you
-might set this variable to '(\"-f\" \"you@some.where\")."
+might set this variable to (\"-f\" \"you@some.where\")."
   :group 'message-sending
   :link '(custom-manual "(message)Mail Variables")
   :type '(choice (function)
@@ -1114,7 +1114,7 @@ Note: Many newsgroups frown upon nontraditional reply styles. You
 probably want to set this variable only for specific groups,
 e.g. using `gnus-posting-styles':
 
-  (eval (set (make-local-variable 'message-cite-reply-position) 'above))"
+  (eval (set (make-local-variable \\='message-cite-reply-position) \\='above))"
   :version "24.1"
   :type '(choice (const :tag "Reply inline" traditional)
 		 (const :tag "Reply above" above)

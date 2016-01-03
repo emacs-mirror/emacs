@@ -262,10 +262,10 @@ These functions will be called with the HTML buffer as the current buffer."
   :type    '(hook))
 
 (defcustom hfy-default-face-def nil
-  "Fallback `defface' specification for the face 'default, used when
+  "Fallback `defface' specification for the face `default', used when
 `hfy-display-class' has been set (the normal htmlfontify way of extracting
 potentially non-current face information doesn't necessarily work for
-'default).\n
+`default').\n
 Example: I customize this to:\n
 \((t :background \"black\" :foreground \"white\" :family \"misc-fixed\"))"
   :group   'htmlfontify
@@ -410,23 +410,23 @@ calculating a face's attributes.  This is useful when, for example, you
 are running Emacs on a tty or in batch mode, and want htmlfontify to have
 access to the face spec you would use if you were connected to an X display.\n
 Some valid class specification elements are:\n
-  '(class      color)
-  '(class      grayscale)
-  '(background dark)
-  '(background light)
-  '(type       x-toolkit)
-  '(type       tty)
-  '(type       motif)
-  '(type       lucid)
+  (class      color)
+  (class      grayscale)
+  (background dark)
+  (background light)
+  (type       x-toolkit)
+  (type       tty)
+  (type       motif)
+  (type       lucid)
 Multiple values for a tag may be combined, to indicate that any one or more
 of these values in the specification key constitutes a match, eg:\n
-'((class color grayscale) (type tty)) would match any of:\n
-  '((class color))
-  '((class grayscale))
-  '((class color grayscale))
-  '((class color foo))
-  '((type  tty))
-  '((type  tty) (class color))\n
+((class color grayscale) (type tty)) would match any of:\n
+  ((class color))
+  ((class grayscale))
+  ((class color grayscale))
+  ((class color foo))
+  ((type  tty))
+  ((type  tty) (class color))\n
 and so on."
   :type    '(alist :key-type (symbol) :value-type (symbol))
   :group   'htmlfontify
@@ -881,10 +881,10 @@ specify - this matches Emacs's behavior when deciding on which face attributes
 to use, to the best of my understanding).\n
 If CLASS is nil, then you just get whatever `face-attr-construct' returns,
 ie the current specification in effect for FACE.\n
-*NOTE*: This function forces any face that is not 'default and which has
-no :inherit property to inherit from 'default (this is because 'default
+*NOTE*: This function forces any face that is not `default' and which has
+no :inherit property to inherit from `default' (this is because `default'
 is magical in that Emacs's fonts behave as if they inherit implicitly from
-'default, but no such behavior exists in HTML/CSS).\n
+`default', but no such behavior exists in HTML/CSS).\n
 See also `hfy-display-class' for details of valid values for CLASS."
   (let ((face-spec
          (if class

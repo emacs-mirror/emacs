@@ -1740,20 +1740,25 @@ be used."
        (list user host)))
    (zeroconf-list-services service)))
 
+;; We use the TRIM argument of `split-string', which exist since Emacs
+;; 24.4.  I mask this for older Emacs versions, there is no harm.
 (defun tramp-gvfs-parse-device-names (service)
   "Return a list of (user host) tuples allowed to access.
 This uses \"avahi-browse\" in case D-Bus is not enabled in Avahi."
   (let ((result
-	 (split-string
-	  (shell-command-to-string (format "avahi-browse -trkp %s" service))
-	  "[\n\r]+" 'omit "^\\+;.*$")))
+	 (ignore-errors
+	   (tramp-compat-funcall
+	    'split-string
+	    (shell-command-to-string (format "avahi-browse -trkp %s" service))
+	    "[\n\r]+" 'omit "^\\+;.*$"))))
     (tramp-compat-delete-dups
      (mapcar
       (lambda (x)
 	(let* ((list (split-string x ";"))
 	       (host (nth 6 list))
 	       (port (nth 8 list))
-	       (text (split-string (nth 9 list) "\" \"" 'omit "\""))
+	       (text (tramp-compat-funcall
+		      'split-string (nth 9 list) "\" \"" 'omit "\""))
 	       user)
 ;	  (when (and port (not (string-equal port "0")))
 ;	    (setq host (format "%s%s%s" host tramp-prefix-port-regexp port)))

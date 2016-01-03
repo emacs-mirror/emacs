@@ -222,7 +222,7 @@ may not exist.
 
 A typical format is
 
-    '(\".\" \"/usr/include\" \"$PROJECT/*/include\")
+    (\".\" \"/usr/include\" \"$PROJECT/*/include\")
 
 Environment variables can be inserted between slashes (`/').
 They will be replaced by their definition.  If a variable does

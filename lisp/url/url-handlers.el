@@ -342,8 +342,15 @@ if it had been inserted from a file named URL."
       ;; XXX: This is HTTP/S specific and should be moved to url-http
       ;; instead.  See http://debbugs.gnu.org/17549.
       (when (bound-and-true-p url-http-response-status)
-        (unless (and (>= url-http-response-status 200)
-                     (< url-http-response-status 300))
+        ;; Don't signal an error if VISIT is non-nil, because
+        ;; 'insert-file-contents' doesn't.  This is required to
+        ;; support, e.g., 'browse-url-emacs', which is a fancy way of
+        ;; visiting the HTML source of a URL: in that case, we want to
+        ;; display a file buffer even if the URL does not exist and
+        ;; 'url-retrieve-synchronously' returns 404 or whatever.
+        (unless (or visit
+                    (and (>= url-http-response-status 200)
+                         (< url-http-response-status 300)))
           (let ((desc (nth 2 (assq url-http-response-status url-http-codes))))
             (kill-buffer buffer)
             ;; Signal file-error per http://debbugs.gnu.org/16733.

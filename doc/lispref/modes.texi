@@ -2509,6 +2509,53 @@ Search-based fontification happens second.
 @node Font Lock Basics
 @subsection Font Lock Basics
 
+  The Font Lock functionality is based on several basic functions.
+Each of these calls the function specified by the corresponding
+variable.  This indirection allows major modes to modify the way
+fontification works in the buffers of that mode, and even use the Font
+Lock mechanisms for features that have nothing to do with
+fontification.  (This is why the description below says ``should''
+when it describes what the functions do: the major mode can customize
+the values of the corresponding variables to do something entirely
+different.)  The variables mentioned below are described in @ref{Other
+Font Lock Variables}.
+
+@ftable @code
+@item font-lock-fontify-buffer
+This function should fontify the current buffer's accessible portion,
+by calling the function specified by
+@code{font-lock-fontify-buffer-function}.
+
+@item font-lock-unfontify-buffer
+Used when turning Font Lock off to remove the fontification.  Calls
+the function specified by @code{font-lock-unfontify-buffer-function}.
+
+@item font-lock-fontify-region beg end &optional loudly
+Should fontify the region between @var{beg} and @var{end}.  If
+@var{loudly} is non-@code{nil}, should display status messages while
+fontifying.  Calls the function specified by
+@code{font-lock-fontify-region-function}.
+
+@item font-lock-unfontify-region beg end
+Should remove fontification from the region between @var{beg} and
+@var{end}.  Calls the function specified by
+@code{font-lock-unfontify-region-function}.
+
+@item font-lock-flush &optional beg end
+This function should mark the fontification of the region between
+@var{beg} and @var{end} as outdated.  If not specified or @code{nil},
+@var{beg} and @var{end} default to the beginning and end of the
+buffer's accessible portion.  Calls the function specified by
+@code{font-lock-flush-function}.
+
+@item font-lock-ensure &optional beg end
+This function should make sure the region between @var{beg} and
+@var{end} has been fontified.  The optional arguments @var{beg} and
+@var{end} default to the beginning and the end of the buffer's
+accessible portion.  Calls the function specified by
+@code{font-lock-ensure-function}.
+@end ftable
+
   There are several variables that control how Font Lock mode highlights
 text.  But major modes should not set any of these variables directly.
 Instead, they should set @code{font-lock-defaults} as a buffer-local
@@ -2934,6 +2981,22 @@ function should print status messages.  The default value is
 Function to use for unfontifying a region.  It should take two
 arguments, the beginning and end of the region.  The default value is
 @code{font-lock-default-unfontify-region}.
+@end defvar
+
+@defvar font-lock-flush-function
+Function to use for declaring that a region's fontification is out of
+date.  It takes two arguments, the beginning and end of the region.
+The default value of this variable is
+@code{font-lock-after-change-function}.
+@end defvar
+
+@defvar font-lock-ensure-function
+Function to use for making sure a region of the current buffer has
+been fontified.  It is called with two arguments, the beginning and
+end of the region.  The default value of this variable is a function
+that calls @code{font-lock-default-fontify-buffer} if the buffer is
+not fontified; the effect is to make sure the entire accessible
+portion of the buffer is fontified.
 @end defvar
 
 @defun jit-lock-register function &optional contextual

@@ -330,7 +330,7 @@ support them, then @code{message-box} uses the echo area, like
 @code{message}.
 @end defun
 
-@defun display-message-or-buffer message &optional buffer-name not-this-window frame
+@defun display-message-or-buffer message &optional buffer-name action frame
 This function displays the message @var{message}, which may be either a
 string or a buffer.  If it is shorter than the maximum height of the
 echo area, as defined by @code{max-mini-window-height}, it is displayed
@@ -346,7 +346,7 @@ pop-up buffer is used, defaulting to @file{*Message*}.  In the case
 where @var{message} is a string and displayed in the echo area, it is
 not specified whether the contents are inserted into the buffer anyway.
 
-The optional arguments @var{not-this-window} and @var{frame} are as for
+The optional arguments @var{action} and @var{frame} are as for
 @code{display-buffer}, and only used if a buffer is displayed.
 @end defun
 
@@ -1889,12 +1889,13 @@ end of the result if it falls short of @var{width}.  It is also used at
 the beginning of the result if one multi-column character in
 @var{string} extends across the column @var{start-column}.
 
+@vindex truncate-string-ellipsis
 If @var{ellipsis} is non-@code{nil}, it should be a string which will
 replace the end of @var{string} (including any padding) if it extends
 beyond @var{width}, unless the display width of @var{string} is equal
 to or less than the display width of @var{ellipsis}.  If
 @var{ellipsis} is non-@code{nil} and not a string, it stands for
-@code{"..."}.
+the value of the variable @code{truncate-string-ellipsis}.
 
 @example
 (truncate-string-to-width "\tab\t" 12 4)
@@ -3657,6 +3658,39 @@ script tag, @var{langsys} is a symbol representing an OpenType langsys
 tag (or @code{nil}, which stands for the default langsys), and each
 @var{feature} is a symbol representing an OpenType feature tag.
 @end table
+@end defun
+
+@cindex font information for layout
+The following four functions return size information about fonts used
+by various faces, allowing various layout considerations in Lisp
+programs.  These functions take face remapping into consideration,
+returning information about the remapped face, if the face in question
+was remapped.  @xref{Face Remapping}.
+
+@defun default-font-width
+This function returns the average width in pixels of the font used by
+the current buffer's default face.
+@end defun
+
+@defun default-font-height
+This function returns the height in pixels of the font used by the
+current buffer's default face.
+@end defun
+
+@defun window-font-width &optional window face
+This function returns the average width in pixels for the font used by
+@var{face} in @var{window}.  The specified @var{window} must be a live
+window.  If @code{nil} or omitted, @var{window} defaults to the
+selected window, and @var{face} defaults to the default face in
+@var{window}.
+@end defun
+
+@defun window-font-height &optional window face
+This function returns the height in pixels for the font used by
+@var{face} in @var{window}.  The specified @var{window} must be a live
+window.  If @code{nil} or omitted, @var{window} defaults to the
+selected window, and @var{face} defaults to the default face in
+@var{window}.
 @end defun
 
 @node Fringes

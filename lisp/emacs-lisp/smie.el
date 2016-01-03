@@ -717,9 +717,10 @@ Possible return values:
                      (goto-char pos)
                      (throw 'return
                             (list t epos
-                                  (buffer-substring-no-properties
-                                   epos
-                                   (+ epos (if (< (point) epos) -1 1))))))))
+                                  (unless (= (point) epos)
+                                    (buffer-substring-no-properties
+                                     epos
+                                     (+ epos (if (< (point) epos) -1 1)))))))))
                 (if (eq pos (point))
                     ;; We did not move, so let's abort the loop.
                     (throw 'return (list t (point))))))
@@ -809,7 +810,12 @@ Possible return values:
   nil: we skipped over an identifier, matched parentheses, ..."
   (smie-next-sexp
    (indirect-function smie-backward-token-function)
-   (indirect-function #'backward-sexp)
+   (lambda (n)
+     (if (bobp)
+         ;; Arguably backward-sexp should signal this error for us.
+         (signal 'scan-error
+                 (list "Beginning of buffer" (point) (point)))
+       (backward-sexp n)))
    (indirect-function #'smie-op-left)
    (indirect-function #'smie-op-right)
    halfsexp))

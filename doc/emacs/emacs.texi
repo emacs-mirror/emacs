@@ -188,6 +188,7 @@ Advanced Features
 * Sending Mail::        Sending mail in Emacs.
 * Rmail::               Reading mail in Emacs.
 * Gnus::                A flexible mail and news reader.
+* Host Security::       Security issues on a single computer.
 * Network Security::    Managing the network security.
 * Document View::       Viewing PDF, PS and DVI files.
 * EWW::                 A web browser in Emacs.
@@ -392,18 +393,20 @@ Searching and Replacement
 * Regexps::                Syntax of regular expressions.
 * Regexp Backslash::       Regular expression constructs starting with `\'.
 * Regexp Example::         A complex regular expression explained.
-* Search Case::            To ignore case while searching, or not.
+* Lax Search::                Search ignores some distinctions between
+                                similar characters, like letter-case.
 * Replace::                Search, and replace some or all matches.
 * Other Repeating Search:: Operating on all matches for some regexp.
+* Search Customizations::  Various search customizations.
 
 Incremental Search
 
 * Basic Isearch::        Basic incremental search commands.
 * Repeat Isearch::       Searching for the same string again.
-* Error in Isearch::     When your string is not found.
-* Special Isearch::      Special input in incremental search.
 * Isearch Yank::         Commands that grab text into the search string
                            or else edit the search string.
+* Error in Isearch::     When your string is not found.
+* Special Isearch::      Special input in incremental search.
 * Not Exiting Isearch::  Prefix argument and scrolling commands.
 * Isearch Minibuffer::   Incremental search of the minibuffer history.
 
@@ -411,7 +414,8 @@ Replacement Commands
 
 * Unconditional Replace::  Replacing all matches for a string.
 * Regexp Replace::         Replacing all matches for a regexp.
-* Replacement and Case::   How replacements preserve case of letters.
+* Replacement and Lax Matches::
+                           Lax searching for text to replace.
 * Query Replace::          How to use querying.
 
 Commands for Fixing Typos
@@ -534,6 +538,7 @@ Frames and Graphical Displays
 * Multiple Displays::   How one Emacs instance can talk to several displays.
 * Frame Parameters::    Changing the colors and other modes of frames.
 * Scroll Bars::         How to enable and disable scroll bars; how to use them.
+* Window Dividers::     Window separators that can be dragged with the mouse.
 * Drag and Drop::       Using drag and drop to open files and insert text.
 * Menu Bars::           Enabling and disabling the menu bar.
 * Tool Bars::           Enabling and disabling the tool bar.
@@ -589,6 +594,7 @@ Commands for Human Languages
 * Sentences::           Moving over and killing sentences.
 * Paragraphs::          Moving over paragraphs.
 * Pages::               Moving over pages.
+* Quotation Marks::     Inserting quotation marks.
 * Filling::             Filling or justifying text.
 * Case::                Changing the case of text.
 * Text Mode::           The major modes for editing text files.
@@ -1163,6 +1169,11 @@ Reporting Bugs
 * Understanding Bug Reporting:: How to report a bug effectively.
 * Checklist::           Steps to follow for a good bug report.
 * Sending Patches::     How to send a patch for GNU Emacs.
+
+Contributing to Emacs Development
+
+* Coding Standards::     Gnu Emacs coding standards.
+* Copyright Assignment:: Assigning copyright to the FSF.
 
 Command Line Arguments for Emacs Invocation
 

@@ -97,7 +97,7 @@
 
 (defcustom log-edit-confirm 'changed
   "If non-nil, `log-edit-done' will request confirmation.
-If 'changed, only request confirmation if the list of files has
+If `changed', only request confirmation if the list of files has
   changed since the beginning of the log-edit session."
   :group 'log-edit
   :type '(choice (const changed) (const t) (const nil)))
@@ -115,7 +115,7 @@ Enforce it silently if t, query if non-nil and don't do anything if nil."
 
 (defcustom log-edit-setup-invert nil
   "Non-nil means `log-edit' should invert the meaning of its SETUP arg.
-If SETUP is 'force, this variable has no effect."
+If SETUP is `force', this variable has no effect."
   :group 'log-edit
   :type 'boolean)
 

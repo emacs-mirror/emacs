@@ -1339,8 +1339,8 @@ callback data (if any)."
 
 (defun epg-list-keys (context &optional name mode)
   "Return a list of epg-key objects matched with NAME.
-If MODE is nil or 'public, only public keyring should be searched.
-If MODE is t or 'secret, only secret keyring should be searched.
+If MODE is nil or `public', only public keyring should be searched.
+If MODE is t or `secret', only secret keyring should be searched.
 Otherwise, only public keyring should be searched and the key
 signatures should be included.
 NAME is either a string or a list of strings."
@@ -1680,8 +1680,8 @@ which will return a list of `epg-signature' object."
   "Initiate a sign operation on PLAIN.
 PLAIN is a data object.
 
-If optional 3rd argument MODE is t or 'detached, it makes a detached signature.
-If it is nil or 'normal, it makes a normal signature.
+If optional 3rd argument MODE is t or `detached', it makes a detached signature.
+If it is nil or `normal', it makes a normal signature.
 Otherwise, it makes a cleartext signature.
 
 If you use this function, you will need to wait for the completion of
@@ -1724,8 +1724,8 @@ If you are unsure, use synchronous version of this function
 (defun epg-sign-file (context plain signature &optional mode)
   "Sign a file PLAIN and store the result to a file SIGNATURE.
 If SIGNATURE is nil, it returns the result as a string.
-If optional 3rd argument MODE is t or 'detached, it makes a detached signature.
-If it is nil or 'normal, it makes a normal signature.
+If optional 3rd argument MODE is t or `detached', it makes a detached signature.
+If it is nil or `normal', it makes a normal signature.
 Otherwise, it makes a cleartext signature."
   (unwind-protect
       (progn
@@ -1745,8 +1745,8 @@ Otherwise, it makes a cleartext signature."
 
 (defun epg-sign-string (context plain &optional mode)
   "Sign a string PLAIN and return the output as string.
-If optional 3rd argument MODE is t or 'detached, it makes a detached signature.
-If it is nil or 'normal, it makes a normal signature.
+If optional 3rd argument MODE is t or `detached', it makes a detached signature.
+If it is nil or `normal', it makes a normal signature.
 Otherwise, it makes a cleartext signature."
   (let ((input-file
 	 (unless (or (eq (epg-context-protocol context) 'CMS)

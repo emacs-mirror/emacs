@@ -373,9 +373,10 @@ for specific schemes.
 * rlogin/telnet/tn3270::        Remote host connectivity.
 * irc::                         Internet Relay Chat.
 * data::                        Embedded data URLs.
-* nfs::                         Networked File System
-* ldap::                        Lightweight Directory Access Protocol
+* nfs::                         Networked File System.
+* ldap::                        Lightweight Directory Access Protocol.
 * man::                         Unix man pages.
+* Tramp::                       Schemes supported via Tramp.
 @end menu
 
 @node http/https
@@ -549,8 +550,8 @@ file://@var{user}:@var{password}@@@var{host}:@var{port}/@var{file}
 @noindent
 If the URL specifies a local file, it is retrieved by reading the file
 contents in the usual way.  If it specifies a remote file, it is
-retrieved using the Ange-FTP package.  @xref{Remote Files,,, emacs,
-The GNU Emacs Manual}.
+retrieved using either the Tramp or the Ange-FTP package.
+@xref{Remote Files,,, emacs, The GNU Emacs Manual}.
 
   When retrieving a compressed file, it is automatically uncompressed
 if it has the file suffix @file{.z}, @file{.gz}, @file{.Z},
@@ -682,7 +683,8 @@ telnet://@var{user}:@var{password}@@@var{host}:@var{port}
 @end example
 
 @noindent
-but the @var{password} component is ignored.
+but the @var{password} component is ignored.  By default, the
+@code{telnet} scheme is handled via Tramp (@pxref{Tramp}).
 
 To handle rlogin, telnet and tn3270 URLs, a @code{rlogin},
 @code{telnet} or @code{tn3270} (the program names and arguments are
@@ -797,6 +799,38 @@ The @code{man} scheme is a non-standard one.  Such URLs have the form
 @noindent
 and are retrieved by passing @var{page-spec} to the Lisp function
 @code{man}.
+
+@node Tramp
+@section URL Types Supported via Tramp
+
+@vindex url-tramp-protocols
+Some additional URL types are supported by passing them to Tramp
+(@pxref{Top, The Tramp Manual,, tramp, The Tramp Manual}).  These
+protocols are listed in the @code{url-tramp-protocols} variable, which
+you can customize.  The default value includes the following
+protocols:
+
+@table @code
+@item ftp
+The file transfer protocol.  @xref{file/ftp}.
+
+@item ssh
+@cindex ssh
+The secure shell protocol.  @xref{Inline Methods,,, tramp, The Tramp
+Manual}.
+
+@item scp
+@cindex scp
+The secure file copy protocol.  @xref{External Methods,,, tramp, The
+Tramp Manual}.
+
+@item rsync
+@cindex rsync
+The remote sync protocol.
+
+@item telnet
+The telnet protocol.
+@end table
 
 @node General Facilities
 @chapter General Facilities
@@ -1294,6 +1328,14 @@ Connect with SSL;
 @item native
 Connect directly.
 @end table
+@end defopt
+
+@defopt url-user-agent
+The User Agent string used for sending HTTP/HTTPS requests.  The value
+should be a string or a function of no arguments that returns a
+string.  The default value is @w{@samp{User-Agent: @var{package-name}
+URL/Emacs}}, where @var{package-name} is the value of
+@code{url-package-name} and its version, if they are non-@code{nil}.
 @end defopt
 
 @node GNU Free Documentation License

@@ -335,7 +335,7 @@ If LIMIT is non-nil, show no more than this many entries."
 
 (autoload 'vc-switches "vc")
 
-(defun vc-hg-diff (files &optional oldvers newvers buffer async)
+(defun vc-hg-diff (files &optional oldvers newvers buffer _async)
   "Get a difference report using hg between two revisions of FILES."
   (let* ((firstfile (car files))
          (working (and firstfile (vc-working-revision firstfile))))
@@ -345,8 +345,8 @@ If LIMIT is non-nil, show no more than this many entries."
       (setq oldvers working))
     (apply #'vc-hg-command
 	   (or buffer "*vc-diff*")
-	   (if async 'async nil)
-	   files "diff"
+           nil ; bug#21969
+           files "diff"
            (append
             (vc-switches 'hg 'diff)
             (when oldvers
@@ -430,9 +430,13 @@ Optional arg REVISION is a revision to annotate from."
 ;;; Miscellaneous
 
 (defun vc-hg-previous-revision (_file rev)
-  (let ((newrev (1- (string-to-number rev))))
-    (when (>= newrev 0)
-      (number-to-string newrev))))
+  ;; We can't simply decrement by 1, because that revision might be
+  ;; e.g. on a different branch (bug#22032).
+  (with-temp-buffer
+    (and (eq 0
+             (vc-hg-command t nil nil "id" "-n" "-r" (concat rev "^")))
+         ;; Trim the trailing newline.
+         (buffer-substring (point-min) (1- (point-max))))))
 
 (defun vc-hg-next-revision (_file rev)
   (let ((newrev (1+ (string-to-number rev)))

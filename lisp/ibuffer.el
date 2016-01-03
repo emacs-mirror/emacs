@@ -129,7 +129,7 @@ own!):
 Thus, if you wanted to use these two formats, the appropriate
 value for this variable would be
 
-  '((mark \" \" name)
+  \\='((mark \" \" name)
     (mark modified read-only
           (name 16 16 :left)
           (size 6 -1 :right)))
@@ -1355,23 +1355,36 @@ group."
     (message "%s buffers marked" count))
   (ibuffer-redisplay t))
 
-(defun ibuffer-mark-forward (arg)
-  "Mark the buffer on this line, and move forward ARG lines.
-If point is on a group name, this function operates on that group."
-  (interactive "p")
-  (ibuffer-mark-interactive arg ibuffer-marked-char))
+(defsubst ibuffer-get-region-and-prefix ()
+  (let ((arg (prefix-numeric-value current-prefix-arg)))
+    (if (use-region-p) (list (region-beginning) (region-end) arg)
+      (list nil nil arg))))
 
-(defun ibuffer-unmark-forward (arg)
-  "Unmark the buffer on this line, and move forward ARG lines.
+(defun ibuffer-mark-forward (start end arg)
+  "Mark the buffers in the region, or ARG buffers.
 If point is on a group name, this function operates on that group."
-  (interactive "p")
-  (ibuffer-mark-interactive arg ?\s))
+  (interactive (ibuffer-get-region-and-prefix))
+  (ibuffer-mark-region-or-n-with-char start end arg ibuffer-marked-char))
+
+(defun ibuffer-unmark-forward (start end arg)
+  "Unmark the buffers in the region, or ARG buffers.
+If point is on a group name, this function operates on that group."
+  (interactive (ibuffer-get-region-and-prefix))
+  (ibuffer-mark-region-or-n-with-char start end arg ?\s))
 
 (defun ibuffer-unmark-backward (arg)
-  "Unmark the buffer on this line, and move backward ARG lines.
+  "Unmark the ARG previous buffers.
 If point is on a group name, this function operates on that group."
   (interactive "p")
-  (ibuffer-unmark-forward (- arg)))
+  (ibuffer-unmark-forward nil nil (- arg)))
+
+(defun ibuffer-mark-region-or-n-with-char (start end arg mark-char)
+  (if (use-region-p)
+      (let ((cur (point)) (line-count (count-lines start end)))
+        (goto-char start)
+        (ibuffer-mark-interactive line-count mark-char)
+        (goto-char cur))
+      (ibuffer-mark-interactive arg mark-char)))
 
 (defun ibuffer-mark-interactive (arg mark &optional movement)
   (ibuffer-assert-ibuffer-mode)
@@ -1410,16 +1423,16 @@ If point is on a group name, this function operates on that group."
 		       (list (ibuffer-current-buffer)
 			     mark))))
 
-(defun ibuffer-mark-for-delete (arg)
-  "Mark the buffers on ARG lines forward for deletion.
+(defun ibuffer-mark-for-delete (start end arg)
+  "Mark for deletion the buffers in the region, or ARG buffers.
 If point is on a group name, this function operates on that group."
-  (interactive "P")
-  (ibuffer-mark-interactive arg ibuffer-deletion-char 1))
+  (interactive (ibuffer-get-region-and-prefix))
+  (ibuffer-mark-region-or-n-with-char start end arg ibuffer-deletion-char))
 
 (defun ibuffer-mark-for-delete-backwards (arg)
-  "Mark the buffers on ARG lines backward for deletion.
+  "Mark for deletion the ARG previous buffers.
 If point is on a group name, this function operates on that group."
-  (interactive "P")
+  (interactive "p")
   (ibuffer-mark-interactive arg ibuffer-deletion-char -1))
 
 (defun ibuffer-current-buffer (&optional must-be-live)

@@ -664,7 +664,7 @@ otherwise make them unwritable."
 
 (defun cpp-edit-write (symbol branch)
   "Set which branches of SYMBOL should be writable to BRANCH.
-BRANCH should be either nil (false branch), t (true branch) or 'both."
+BRANCH should be either nil (false branch), t (true branch) or `both'."
   (interactive (list (cpp-choose-symbol) (cpp-choose-branch)))
   (setcar (nthcdr 3 (cpp-edit-list-entry-get-or-create symbol)) branch)
   (cpp-edit-reset))

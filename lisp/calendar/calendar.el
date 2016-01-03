@@ -881,11 +881,11 @@ is a list of expressions that can involve the keywords `month', `day',
 and `year' (all numbers in string form), and `monthname' and `dayname'
 \(both alphabetic strings).  For example, a typical American form would be
 
-       '(month \"/\" day \"/\" (substring year -2))
+       (month \"/\" day \"/\" (substring year -2))
 
 whereas
 
-       '((format \"%9s, %9s %2s, %4s\" dayname monthname day year))
+       ((format \"%9s, %9s %2s, %4s\" dayname monthname day year))
 
 would give the usual American style in fixed-length fields.  The variables
 `calendar-iso-date-display-form', `calendar-european-date-display-form', and
@@ -1184,8 +1184,8 @@ A negative year is interpreted as BC; -1 being 1 BC, and so on."
 
 (defsubst calendar-day-number (date)
   "Return the day number within the year of the date DATE.
-For example, (calendar-day-number '(1 1 1987)) returns the value 1,
-while (calendar-day-number '(12 31 1980)) returns 366."
+For example, (calendar-day-number \\='(1 1 1987)) returns the value 1,
+while (calendar-day-number \\='(12 31 1980)) returns 366."
   (let* ((month (calendar-extract-month date))
          (day (calendar-extract-day date))
          (year (calendar-extract-year date))

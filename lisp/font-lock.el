@@ -763,7 +763,7 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 	      (setq font-lock-removed-keywords-alist
 		    (delq cell font-lock-removed-keywords-alist)))))))
 
-;; Written by Anders Lindgren <andersl@andersl.com>.
+;; Written by Anders Lindgren
 ;;
 ;; Case study:
 ;; (I)  The keywords are removed from a major mode.
@@ -1065,7 +1065,8 @@ Called with two arguments BEG and END.")
 
 (defun font-lock-flush (&optional beg end)
   "Declare the region BEG...END's fontification as out-of-date.
-If the region is not specified, it defaults to the whole buffer."
+If the region is not specified, it defaults to the entire
+accessible portion of the current buffer."
   (and font-lock-mode
        font-lock-fontified
        (funcall font-lock-flush-function
@@ -1079,7 +1080,8 @@ Called with two arguments BEG and END.")
 
 (defun font-lock-ensure (&optional beg end)
   "Make sure the region BEG...END has been fontified.
-If the region is not specified, it defaults to the whole buffer."
+If the region is not specified, it defaults to the entire accessible
+portion of the buffer."
   (font-lock-set-defaults)
   (funcall font-lock-ensure-function
            (or beg (point-min)) (or end (point-max))))

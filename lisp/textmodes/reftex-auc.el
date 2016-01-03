@@ -137,7 +137,7 @@ argument identify one of multiple indices."
        ((stringp tag) tag)
        ((integerp tag)
         (save-excursion
-          (goto-char (match-end 1))
+          (goto-char (match-end 0))
           (or (reftex-nth-arg tag (nth 6 entry)) "idx")))
        (t "idx")))))
 

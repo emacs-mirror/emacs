@@ -270,6 +270,7 @@ made in the style guide relating to order."
 (defcustom checkdoc-package-keywords-flag nil
   "Non-nil means warn if this file's package keywords are not recognized.
 Currently, all recognized keywords must be on `finder-known-keywords'."
+  :version "25.1"
   :type 'boolean)
 
 (define-obsolete-variable-alias 'checkdoc-style-hooks

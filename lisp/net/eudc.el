@@ -107,6 +107,18 @@
 ;; attribute name
 (defvar eudc-protocol-has-default-query-attributes nil)
 
+(defvar bbdb-version)
+
+(defun eudc--using-bbdb-3-or-newer-p ()
+  "Return non-nil if BBDB version is 3 or greater."
+  (or
+   ;; MELPA versions of BBDB may have a bad package version, but
+   ;; they're all version 3 or later.
+   (equal bbdb-version "@PACKAGE_VERSION@")
+   ;; Development versions of BBDB can have the format "X.YZ devo".
+   ;; Split the string just in case.
+   (version<= "3" (car (split-string bbdb-version)))))
+
 (defun eudc-plist-member (plist prop)
   "Return t if PROP has a value specified in PLIST."
   (if (not (= 0 (% (length plist) 2)))

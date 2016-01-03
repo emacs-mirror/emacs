@@ -1023,7 +1023,8 @@ syms_of_doc (void)
   Vbuild_files = Qnil;
 
   DEFVAR_LISP ("text-quoting-style", Vtext_quoting_style,
-               doc: /* Style to use for single quotes when generating text.
+               doc: /* Style to use for single quotes in help and messages.
+Its value should be a symbol.
 `curve' means quote with curved single quotes \\=‘like this\\=’.
 `straight' means quote with straight apostrophes \\='like this\\='.
 `grave' means quote with grave accent and apostrophe \\=`like this\\='.

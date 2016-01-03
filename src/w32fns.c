@@ -1666,10 +1666,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   FRAME_MENU_BAR_LINES (f) = 0;
   FRAME_MENU_BAR_HEIGHT (f) = 0;
   if (nlines)
-    {
-      FRAME_EXTERNAL_MENU_BAR (f) = 1;
-      windows_or_buffers_changed = 23;
-    }
+    FRAME_EXTERNAL_MENU_BAR (f) = 1;
   else
     {
       if (FRAME_EXTERNAL_MENU_BAR (f) == 1)
@@ -4620,8 +4617,7 @@ my_create_tip_window (struct frame *f)
   rect.right = FRAME_PIXEL_WIDTH (f);
   rect.bottom = FRAME_PIXEL_HEIGHT (f);
 
-  AdjustWindowRect (&rect, f->output_data.w32->dwStyle,
-		    FRAME_EXTERNAL_MENU_BAR (f));
+  AdjustWindowRect (&rect, f->output_data.w32->dwStyle, false);
 
   tip_window = FRAME_W32_WINDOW (f)
     = CreateWindow (EMACS_CLASS,
@@ -6381,7 +6377,7 @@ compute_tip_xy (struct frame *f,
   if (INTEGERP (left))
     *root_x = XINT (left);
   else if (INTEGERP (right))
-    *root_y = XINT (right) - width;
+    *root_x = XINT (right) - width;
   else if (*root_x + XINT (dx) <= min_x)
     *root_x = 0; /* Can happen for negative dx */
   else if (*root_x + XINT (dx) + width <= max_x)
@@ -6681,8 +6677,7 @@ Text larger than the specified size is clipped.  */)
     rect.left = rect.top = 0;
     rect.right = width;
     rect.bottom = height;
-    AdjustWindowRect (&rect, f->output_data.w32->dwStyle,
-		      FRAME_EXTERNAL_MENU_BAR (f));
+    AdjustWindowRect (&rect, f->output_data.w32->dwStyle, false);
 
     /* Position and size tooltip, and put it in the topmost group.
        The add-on of FRAME_COLUMN_WIDTH to the 5th argument is a
@@ -8098,11 +8093,22 @@ The coordinates X and Y are interpreted in pixels relative to a position
 (0, 0) of the selected frame's display.  */)
   (Lisp_Object x, Lisp_Object y)
 {
+  UINT trail_num = 0;
+  BOOL ret = false;
+
   CHECK_TYPE_RANGED_INTEGER (int, x);
   CHECK_TYPE_RANGED_INTEGER (int, y);
 
   block_input ();
+  /* When "mouse trails" are in effect, moving the mouse cursor
+     sometimes leaves behind an annoying "ghost" of the pointer.
+     Avoid that by momentarily switching off mouse trails.  */
+  if (os_subtype == OS_NT
+      && w32_major_version + w32_minor_version >= 6)
+    ret = SystemParametersInfo (SPI_GETMOUSETRAILS, 0, &trail_num, 0);
   SetCursorPos (XINT (x), XINT (y));
+  if (ret)
+    SystemParametersInfo (SPI_SETMOUSETRAILS, trail_num, NULL, 0);
   unblock_input ();
 
   return Qnil;
@@ -9925,10 +9931,6 @@ globals_of_w32fns (void)
   InitCommonControls ();
 
   syms_of_w32uniscribe ();
-
-  /* Needed for recovery from C stack overflows in batch mode.  */
-  if (noninteractive)
-    dwMainThreadId = GetCurrentThreadId ();
 }
 
 #ifdef NTGUI_UNICODE

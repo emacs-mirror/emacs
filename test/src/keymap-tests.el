@@ -23,7 +23,7 @@
 
 (require 'ert)
 
-(ert-deftest keymap-store_in_keymap-FASTINT-on-nonchars ()
+(ert-deftest keymap-store_in_keymap-XFASTINT-on-non-characters ()
   "Check for bug fixed in \"Fix assertion violation in define-key\",
 commit 86c19714b097aa477d339ed99ffb5136c755a046."
   (let ((def (lookup-key Buffer-menu-mode-map [32])))

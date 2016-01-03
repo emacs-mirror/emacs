@@ -243,12 +243,12 @@ if that doesn't exist either, return nil."
   "Call for BACKEND the implementation of FUNCTION-NAME with the given ARGS.
 Calls
 
-    (apply 'vc-BACKEND-FUN ARGS)
+    (apply \\='vc-BACKEND-FUN ARGS)
 
 if vc-BACKEND-FUN exists (after trying to find it in vc-BACKEND.el)
 and else calls
 
-    (apply 'vc-default-FUN BACKEND ARGS)
+    (apply \\='vc-default-FUN BACKEND ARGS)
 
 It is usually called via the `vc-call' macro."
   (let ((f (assoc function-name (get backend 'vc-functions))))
@@ -791,7 +791,11 @@ current, and kill the buffer that visits the link."
   nil)
 
 (defun vc-refresh-state ()
-  "Activate or deactivate VC mode as appropriate."
+  "Refresh the VC state of the current buffer's file.
+
+This command is more thorough than `vc-state-refresh', in that it
+also supports switching a back-end or removing the file from VC.
+In the latter case, VC mode is deactivated for this buffer."
   (interactive)
   ;; Recompute whether file is version controlled,
   ;; if user has killed the buffer and revisited.

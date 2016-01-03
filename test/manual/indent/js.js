@@ -76,6 +76,20 @@ class A {
   }
 }
 
+if (true)
+  1
+else
+  2
+
+Foobar
+  .find()
+  .catch((err) => {
+    return 2;
+  })
+  .then((num) => {
+    console.log(num);
+  });
+
 // Local Variables:
 // indent-tabs-mode: nil
 // js-indent-level: 2

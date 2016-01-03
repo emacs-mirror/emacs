@@ -1295,11 +1295,12 @@ would make to the file if you save the buffer.
 
 @findex compare-windows
   The command @kbd{M-x compare-windows} compares the text in the
-current window with that in the next window.  (For more information
-about windows in Emacs, @ref{Windows}.)  Comparison starts at point in
-each window, after pushing each initial point value on the mark ring
-in its respective buffer.  Then it moves point forward in each window,
-one character at a time, until it reaches characters that don't match.
+current window with that in the window that was the selected window
+before you selected the current one.  (For more information about
+windows in Emacs, @ref{Windows}.)  Comparison starts at point in each
+window, after pushing each initial point value on the mark ring in its
+respective buffer.  Then it moves point forward in each window, one
+character at a time, until it reaches characters that don't match.
 Then the command exits.
 
   If point in the two windows is followed by non-matching text when

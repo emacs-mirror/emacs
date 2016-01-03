@@ -44,6 +44,8 @@
 
 ;;; Code:
 
+(require 'gnutls)
+
 (autoload 'format-spec "format-spec")
 (autoload 'format-spec-make "format-spec")
 
@@ -74,9 +76,10 @@ and `gnutls-cli' (version 2.0.1) output."
   :type 'regexp
   :group 'tls)
 
-(defcustom tls-program '("gnutls-cli --insecure -p %p %h"
-			 "gnutls-cli --insecure -p %p %h --protocols ssl3"
-			 "openssl s_client -connect %h:%p -no_ssl2 -ign_eof")
+(defcustom tls-program
+  '("gnutls-cli --x509cafile %t -p %p %h"
+    "gnutls-cli --x509cafile %t -p %p %h --protocols ssl3"
+    "openssl s_client -connect %h:%p -no_ssl2 -ign_eof")
   "List of strings containing commands to start TLS stream to a host.
 Each entry in the list is tried until a connection is successful.
 %h is replaced with server hostname, %p with port to connect to.
@@ -89,21 +92,17 @@ successful negotiation."
   :type
   '(choice
     (const :tag "Default list of commands"
-	   ("gnutls-cli --insecure -p %p %h"
-	    "gnutls-cli --insecure -p %p %h --protocols ssl3"
-	    "openssl s_client -connect %h:%p -no_ssl2 -ign_eof"))
+	   ("gnutls-cli --x509cafile %t -p %p %h"
+	    "gnutls-cli --x509cafile %t -p %p %h --protocols ssl3"
+	    "openssl s_client -CAfile %t -connect %h:%p -no_ssl2 -ign_eof"))
     (list :tag "Choose commands"
 	  :value
-	  ("gnutls-cli --insecure -p %p %h"
-	   "gnutls-cli --insecure -p %p %h --protocols ssl3"
+	  ("gnutls-cli --x509cafile %t -p %p %h"
+	   "gnutls-cli --x509cafile %t -p %p %h --protocols ssl3"
 	   "openssl s_client -connect %h:%p -no_ssl2 -ign_eof")
 	  (set :inline t
 	       ;; FIXME: add brief `:tag "..."' descriptions.
 	       ;; (repeat :inline t :tag "Other" (string))
-	       ;; See `tls-checktrust':
-	       (const "gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt -p %p %h")
-	       (const "gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt -p %p %h --protocols ssl3")
-	       (const "openssl s_client -connect %h:%p -CAfile /etc/ssl/certs/ca-certificates.crt -no_ssl2 -ign_eof")
 	       ;; No trust check:
 	       (const "gnutls-cli --insecure -p %p %h")
 	       (const "gnutls-cli --insecure -p %p %h --protocols ssl3")
@@ -232,6 +231,7 @@ Fourth arg PORT is an integer specifying a port to connect to."
 	       (format-spec
 		cmd
 		(format-spec-make
+                 ?t (car (gnutls-trustfiles))
 		 ?h host
 		 ?p (if (integerp port)
 			(int-to-string port)

@@ -458,27 +458,18 @@ A non-nil INTERACTIVE argument means to run the `post-self-insert-hook'."
 	(put-text-property from (point) 'rear-nonsticky
 			   (cons 'hard sticky)))))
 
-(declare-function electric-indent-just-newline "electric")
-(defun open-line (n &optional interactive)
+(defun open-line (n)
   "Insert a newline and leave point before it.
-If `electric-indent-mode' is enabled, indent the new line if it's
-not empty.
 If there is a fill prefix and/or a `left-margin', insert them on
-the new line.  If the old line would have been blank, insert them
-on the old line as well.
-
-With arg N, insert N newlines.
-A non-nil INTERACTIVE argument means to run the `post-self-insert-hook'."
-  (interactive "*p\np")
+the new line if the line would have been blank.
+With arg N, insert N newlines."
+  (interactive "*p")
   (let* ((do-fill-prefix (and fill-prefix (bolp)))
 	 (do-left-margin (and (bolp) (> (current-left-margin) 0)))
 	 (loc (point-marker))
          ;; Don't expand an abbrev before point.
 	 (abbrev-mode nil))
-    (if (and interactive
-             (looking-at-p "[[:space:]]*$"))
-        (electric-indent-just-newline n)
-      (newline n interactive))
+    (newline n)
     (goto-char loc)
     (while (> n 0)
       (cond ((bolp)
@@ -983,7 +974,8 @@ If DELETE is `delete-only', then only delete the region and the return value
 is undefined.  If DELETE is nil, just return the content as a string.
 If DELETE is `bounds', then don't delete, but just return the
 boundaries of the region as a list of (START . END) positions.
-If anything else, delete the region and return its content as a string.")
+If anything else, delete the region and return its content as a string,
+after filtering it with `filter-buffer-substring'.")
 
 (defvar region-insert-function
   (lambda (lines)
@@ -1007,6 +999,10 @@ To disable this, set option `delete-active-region' to nil.
 Optional second arg KILLFLAG, if non-nil, means to kill (save in
 kill ring) instead of delete.  Interactively, N is the prefix
 arg, and KILLFLAG is set if N is explicitly specified.
+
+When killing, the killed text is filtered by
+`filter-buffer-substring' before it is saved in the kill ring, so
+the actual saved text might be different from what was killed.
 
 In Overwrite mode, single character backward deletion may replace
 tabs with spaces so as to back over columns, unless point is at
@@ -1043,7 +1039,11 @@ To disable this, set variable `delete-active-region' to nil.
 
 Optional second arg KILLFLAG non-nil means to kill (save in kill
 ring) instead of delete.  Interactively, N is the prefix arg, and
-KILLFLAG is set if N was explicitly specified."
+KILLFLAG is set if N was explicitly specified.
+
+When killing, the killed text is filtered by
+`filter-buffer-substring' before it is saved in the kill ring, so
+the actual saved text might be different from what was killed."
   (declare (interactive-only delete-char))
   (interactive "p\nP")
   (unless (integerp n)
@@ -2811,7 +2811,7 @@ an amalgamating command.  The car of the list is the number of
 times an amalgamating command has been called, and the cdr are the
 buffers that were changed during the last command.")
 
-(defvar undo-auto--current-boundary-timer nil
+(defvar undo-auto-current-boundary-timer nil
   "Current timer which will run `undo-auto--boundary-timer' or nil.
 
 If set to non-nil, this will effectively disable the timer.")
@@ -2819,7 +2819,7 @@ If set to non-nil, this will effectively disable the timer.")
 (defvar undo-auto--this-command-amalgamating nil
   "Non-nil if `this-command' should be amalgamated.
 This variable is set to nil by `undo-auto--boundaries' and is set
-by `undo-auto--amalgamate'." )
+by `undo-auto-amalgamate'." )
 
 (defun undo-auto--needs-boundary-p ()
   "Return non-nil if `buffer-undo-list' needs a boundary at the start."
@@ -2829,7 +2829,7 @@ by `undo-auto--amalgamate'." )
   "Return the number of amalgamating last commands or nil.
 Amalgamating commands are, by default, either
 `self-insert-command' and `delete-char', but can be any command
-that calls `undo-auto--amalgamate'."
+that calls `undo-auto-amalgamate'."
   (car-safe undo-auto--last-boundary-cause))
 
 (defun undo-auto--ensure-boundary (cause)
@@ -2860,13 +2860,13 @@ REASON describes the reason that the boundary is being added; see
 
 (defun undo-auto--boundary-timer ()
   "Timer which will run `undo--auto-boundary-timer'."
-  (setq undo-auto--current-boundary-timer nil)
+  (setq undo-auto-current-boundary-timer nil)
   (undo-auto--boundaries 'timer))
 
 (defun undo-auto--boundary-ensure-timer ()
   "Ensure that the `undo-auto-boundary-timer' is set."
-  (unless undo-auto--current-boundary-timer
-    (setq undo-auto--current-boundary-timer
+  (unless undo-auto-current-boundary-timer
+    (setq undo-auto-current-boundary-timer
           (run-at-time 10 nil #'undo-auto--boundary-timer))))
 
 (defvar undo-auto--undoably-changed-buffers nil
@@ -2881,14 +2881,15 @@ See also `undo-auto--buffer-undoably-changed'.")
 (defun undo-auto--add-boundary ()
   "Add an `undo-boundary' in appropriate buffers."
   (undo-auto--boundaries
-   (if undo-auto--this-command-amalgamating
-       'amalgamate
-     'command))
-  (setq undo-auto--this-command-amalgamating nil))
+   (let ((amal undo-auto--this-command-amalgamating))
+       (setq undo-auto--this-command-amalgamating nil)
+       (if amal
+           'amalgamate
+         'command))))
 
-(defun undo-auto--amalgamate ()
+(defun undo-auto-amalgamate ()
   "Amalgamate undo if necessary.
-This function can be called after an amalgamating command.  It
+This function can be called before an amalgamating command.  It
 removes the previous `undo-boundary' if a series of such calls
 have been made.  By default `self-insert-command' and
 `delete-char' are the only amalgamating commands, although this
@@ -3359,13 +3360,12 @@ the use of a shell (with its need to quote arguments)."
 	    (shell-command-on-region (point) (point) command
 				     output-buffer nil error-buffer)))))))
 
-(defun display-message-or-buffer (message
-				  &optional buffer-name not-this-window frame)
+(defun display-message-or-buffer (message &optional buffer-name action frame)
   "Display MESSAGE in the echo area if possible, otherwise in a pop-up buffer.
 MESSAGE may be either a string or a buffer.
 
-A buffer is displayed using `display-buffer' if MESSAGE is too long for
-the maximum height of the echo area, as defined by `max-mini-window-height'
+A pop-up buffer is displayed using `display-buffer' if MESSAGE is too long
+for maximum height of the echo area, as defined by `max-mini-window-height'
 if `resize-mini-windows' is non-nil.
 
 Returns either the string shown in the echo area, or when a pop-up
@@ -3377,8 +3377,8 @@ is used, defaulting to `*Message*'.  In the case where MESSAGE is a
 string and it is displayed in the echo area, it is not specified whether
 the contents are inserted into the buffer anyway.
 
-Optional arguments NOT-THIS-WINDOW and FRAME are as for `display-buffer',
-and only used if a buffer is displayed."
+Optional arguments ACTION and FRAME are as for `display-buffer',
+and are only used if a pop-up buffer is displayed."
   (cond ((and (stringp message) (not (string-match "\n" message)))
 	 ;; Trivial case where we can use the echo area
 	 (message "%s" message))
@@ -3424,8 +3424,7 @@ and only used if a buffer is displayed."
 		   (t
 		    ;; Buffer
 		    (goto-char (point-min))
-		    (display-buffer (current-buffer)
-				    not-this-window frame))))))))
+		    (display-buffer (current-buffer) action frame))))))))
 
 
 ;; We have a sentinel to prevent insertion of a termination message
@@ -3817,7 +3816,9 @@ see other processes running on the system, use `list-system-processes'."
 (setq prefix-command--last-echo nil)
 
 (defun internal-echo-keystrokes-prefix ()
-  ;; BEWARE: Called directly from the C code.
+  ;; BEWARE: Called directly from C code.
+  ;; If the return value is non-nil, it means we are in the middle of
+  ;; a command with prefix, such as a command invoked with prefix-arg.
   (if (not prefix-command--needs-update)
       prefix-command--last-echo
     (setq prefix-command--last-echo
@@ -4257,21 +4258,25 @@ The command \\[yank] can retrieve it from there.
 If you want to append the killed region to the last killed text,
 use \\[append-next-kill] before \\[kill-region].
 
+Any command that calls this function is a \"kill command\".
+If the previous command was also a kill command,
+the text killed this time appends to the text killed last time
+to make one entry in the kill ring.
+
+The killed text is filtered by `filter-buffer-substring' before it is
+saved in the kill ring, so the actual saved text might be different
+from what was killed.
+
 If the buffer is read-only, Emacs will beep and refrain from deleting
 the text, but put the text in the kill ring anyway.  This means that
 you can use the killing commands to copy text from a read-only buffer.
 
 Lisp programs should use this function for killing text.
  (To delete text, use `delete-region'.)
-Supply two arguments, character positions indicating the stretch of text
- to be killed.
-Any command that calls this function is a \"kill command\".
-If the previous command was also a kill command,
-the text killed this time appends to the text killed last time
-to make one entry in the kill ring.
-
-The optional argument REGION if non-nil, indicates that we're not just killing
-some text between BEG and END, but we're killing the region."
+Supply two arguments, character positions BEG and END indicating the
+ stretch of text to be killed.  If the optional argument REGION is
+ non-nil, the function ignores BEG and END, and kills the current
+ region instead."
   ;; Pass mark first, then point, because the order matters when
   ;; calling `kill-append'.
   (interactive (list (mark) (point) 'region))
@@ -4316,8 +4321,14 @@ In Transient Mark mode, deactivate the mark.
 If `interprogram-cut-function' is non-nil, also save the text for a window
 system cut and paste.
 
-The optional argument REGION if non-nil, indicates that we're not just copying
-some text between BEG and END, but we're copying the region.
+The copied text is filtered by `filter-buffer-substring' before it is
+saved in the kill ring, so the actual saved text might be different
+from what was in the buffer.
+
+When called from Lisp, save in the kill ring the stretch of text
+between BEG and END, unless the optional argument REGION is
+non-nil, in which case ignore BEG and END, and save the current
+region instead.
 
 This command's old key binding has been given to `kill-ring-save'."
   ;; Pass mark first, then point, because the order matters when
@@ -4342,8 +4353,14 @@ system cut and paste.
 If you want to append the killed line to the last killed text,
 use \\[append-next-kill] before \\[kill-ring-save].
 
-The optional argument REGION if non-nil, indicates that we're not just copying
-some text between BEG and END, but we're copying the region.
+The copied text is filtered by `filter-buffer-substring' before it is
+saved in the kill ring, so the actual saved text might be different
+from what was in the buffer.
+
+When called from Lisp, save in the kill ring the stretch of text
+between BEG and END, unless the optional argument REGION is
+non-nil, in which case ignore BEG and END, and save the current
+region instead.
 
 This command is similar to `copy-region-as-kill', except that it gives
 visual feedback indicating the extent of the region being copied."
@@ -8269,7 +8286,7 @@ backward.
 
 If set to nil, both Delete and Backspace keys delete backward.
 
-If set to 'maybe (which is the default), Emacs automatically
+If set to `maybe' (which is the default), Emacs automatically
 selects a behavior.  On window systems, the behavior depends on
 the keyboard used.  If the keyboard has both a Backspace key and
 a Delete key, and both are mapped to their usual meanings, the

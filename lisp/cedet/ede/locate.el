@@ -100,9 +100,9 @@ based on `ede-locate-setup-options'."
 (defclass ede-locate-base ()
   ((root :initarg :root
 	 :documentation
-	 "The root of these locat searches.")
+	 "The root of these locate searches.")
    (file :documentation
-	 "The last file search for with EDE locate.")
+	 "The last file searched for with EDE locate.")
    (lastanswer :documentation
 	      "The last answer provided by the locator.")
    (hash :documentation
@@ -245,10 +245,8 @@ variable `cedet-global-command'.")
     newroot))
 
 (cl-defmethod ede-locate-file-in-project-impl ((loc ede-locate-global)
-					    filesubstring)
-  "Locate with LOC occurrences of FILESUBSTRING under PROJECTROOT.
-Searches are done under the current root of the EDE project
-that created this EDE locate object."
+                                               filesubstring)
+  "Locate occurrences of FILESUBSTRING in LOC, using Gnu Global."
   (require 'cedet-global)
   (let ((default-directory (oref loc root)))
     (cedet-gnu-global-expand-filename filesubstring)))

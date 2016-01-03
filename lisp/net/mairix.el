@@ -211,7 +211,7 @@ nil for disabling this).")
 (defvar mairix-widget-other
   '(threads flags)
   "Other editable mairix commands when using customization widgets.
-Currently there are 'threads and 'flags.")
+Currently there are `threads' and `flags'.")
 
 ;;;; Internal variables
 

@@ -101,7 +101,7 @@ disconnected from `erc-modified-channels-alist'."
 
 (defcustom erc-track-exclude-types '("NICK" "333" "353")
   "List of message types to be ignored.
-This list could look like '(\"JOIN\" \"PART\").
+This list could look like (\"JOIN\" \"PART\").
 
 By default, exclude changes of nicknames (NICK), display of who
 set the channel topic (333), and listing of users on the current
@@ -210,7 +210,7 @@ If you would like to ignore changes in certain channels where there
 are no faces corresponding to your `erc-track-faces-priority-list', set
 this variable.  You can set a list of channel name strings, so those
 will be ignored while all other channels will be tracked as normal.
-Other options are 'all, to apply this to all channels or nil, to disable
+Other options are `all', to apply this to all channels or nil, to disable
 this feature.
 
 Note: If you have a lot of faces listed in `erc-track-faces-priority-list',
@@ -326,7 +326,7 @@ when there are no more active channels."
   leastactive -  find buffer with least unseen messages
   mostactive  -  find buffer with most unseen messages.
 
-If set to 'importance, the importance is determined by position
+If set to `importance', the importance is determined by position
 in `erc-track-faces-priority-list', where first is most
 important."
   :group 'erc-track

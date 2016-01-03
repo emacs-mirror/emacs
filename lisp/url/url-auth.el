@@ -50,7 +50,7 @@
 Must be a symbol pointing to another variable that will actually store
 the information.  The value of this variable is an assoc list of assoc
 lists.  The first assoc list is keyed by the server name.  The cdr of
-this is an assoc list based on the 'directory' specified by the URL we
+this is an assoc list based on the \"directory\" specified by the URL we
 are looking up.")
 
 (defun url-basic-auth (url &optional prompt overwrite realm args)
@@ -141,7 +141,7 @@ instead of the filename inheritance method."
   "Where usernames and passwords are stored.
 Its value is an assoc list of assoc lists.  The first assoc list is
 keyed by the server name.  The cdr of this is an assoc list based
-on the 'directory' specified by the url we are looking up.")
+on the \"directory\" specified by the url we are looking up.")
 
 (defun url-digest-auth-create-key (username password realm method uri)
   "Create a key for digest authentication method"

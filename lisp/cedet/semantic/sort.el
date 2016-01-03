@@ -453,7 +453,7 @@ has some sort of label defining a parent.  The parent return will
 be a string.
 
 The default behavior, if not overridden with
-`tag-member-parent' gets the 'parent extra
+`tag-member-parent' gets the `parent' extra
 specifier of TAG.
 
 If this function is overridden, use

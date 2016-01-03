@@ -84,13 +84,14 @@ This uses `rmail-output-file-alist'."
 					(eval (cdar tail))
 				      (error
 				       (display-warning
-					:error
+					'rmail-output
 					(format-message "\
 Error evaluating `rmail-output-file-alist' element:
 regexp: %s
 action: %s
 error: %S\n"
-						(caar tail) (cdar tail) err))
+						(caar tail) (cdar tail) err)
+                                        :error)
 				       nil))))
 			  (setq tail (cdr tail)))
 			answer))))))

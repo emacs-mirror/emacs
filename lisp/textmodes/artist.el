@@ -2873,10 +2873,36 @@ Returns a list of strings."
 	(error "Failed to read available fonts: %s (%d)" stderr exit-code))
     (artist-string-split stdout ".flf\n")))
 
+(defun artist-figlet-get-font-list-windows ()
+  "Read in fonts on MS-Windows by collecting output of the `figlet' program.
+Returns a list of strings."
+  (let* ((ls-cmd          "figlet -I2")
+	 (result          (artist-system shell-file-name nil
+                                         (list shell-command-switch ls-cmd)))
+	 (exit-code       (elt result 0))
+	 (stdout          (elt result 1))
+	 (stderr          (elt result 2)))
+    (if (not (= exit-code 0))
+	(error "Failed to read available fonts: %s (%d)" stderr exit-code))
+    (let ((dir-list (artist-string-split stdout "\n"))
+          result)
+      (mapc
+       (lambda (dir)
+         (let ((default-directory dir))
+           (setq result (append (file-expand-wildcards "*.flf") result))))
+       dir-list)
+      (mapcar
+       (lambda (file)
+         (replace-regexp-in-string "\.flf\\'" "" file))
+       result))))
+
 (defun artist-figlet-choose-font ()
   "Read any extra arguments for figlet."
   (interactive)
-  (let* ((avail-fonts  (artist-figlet-get-font-list))
+  (let* ((avail-fonts
+          (if (memq system-type '(windows-nt ms-dos))
+              (artist-figlet-get-font-list-windows)
+            (artist-figlet-get-font-list)))
 	 (font (completing-read (concat "Select font (default "
 					artist-figlet-default-font
 					"): ")

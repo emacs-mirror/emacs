@@ -59,7 +59,12 @@ The package's version number (e.g., @samp{11.86}).
 The package's status---normally one of @samp{available} (can be
 downloaded from the package archive), @samp{installed},
 @c @samp{unsigned} (installed, but not signed; @pxref{Package Signing}),
-or @samp{built-in} (included in Emacs by default).
+or @samp{built-in} (included in Emacs by default).  The status
+@samp{external} means the package is not built-in and not from the
+directory specified by @code{package-user-dir} (@pxref{Package
+Files}).  External packages are treated much like built-in: they
+cannot be deleted through the package menu, and are not considered for
+upgrading.
 
 The status can also be @samp{new}.  This is equivalent to
 @samp{available}, except that it means the package became newly
@@ -106,7 +111,13 @@ line; typing @kbd{x} (see below) will delete the package.
 @xref{Package Files}, for information about what package deletion
 entails.
 
+@item ~
+Mark all obsolete packages for deletion
+(@code{package-menu-mark-obsolete-for-deletion}).  This marks for
+deletion all the packages whose status is @samp{obsolete}.
+
 @item u
+@itemx @key{DEL}
 Remove any installation or deletion mark previously added to the
 current line by an @kbd{i} or @kbd{d} command.
 
@@ -117,6 +128,7 @@ on the new available versions, and a deletion mark on the old
 installed versions.
 
 @item x
+@vindex package-menu-async
 Download and install all packages marked with @kbd{i}, and their
 dependencies; also, delete all packages marked with @kbd{d}
 (@code{package-menu-execute}).  This also removes the marks.
@@ -131,6 +143,14 @@ Filter the package list (@code{package-menu-filter}).  This prompts
 for a keyword (e.g., @samp{games}), then shows only the packages
 that relate to that keyword.  To restore the full package list,
 type @kbd{q}.
+
+@item H
+Permanently hide packages that match a regexp
+(@code{package-menu-hide-package}).
+
+@item (
+Toggle visibility of old versions of packages and also of versions
+from lower-priority archives (@code{package-menu-toggle-hiding}).
 @end table
 
 @noindent
@@ -204,6 +224,17 @@ offer different versions of the same package, you may find the option
 @code{package-pinned-packages} useful.  You can add package/archive
 pairs to this list, to ensure that the specified package is only ever
 downloaded from the specified archive.
+
+@vindex package-archive-priorities
+@vindex package-menu-hide-low-priority
+  Another option that is useful when you have several package archives
+enabled is @code{package-archive-priorities}.  It specifies the
+priority of each archive (higher numbers specify higher priority
+archives).  By default, archives have the priority of zero, unless
+specified otherwise by this option's value.  Packages from
+lower-priority archives will not be shown in the menu, if the same
+package is available from a higher-priority archive.  (This is
+controlled by the value of @code{package-menu-hide-low-priority}.)
 
   Once a package is downloaded and installed, it is @dfn{loaded} into
 the current Emacs session.  Loading a package is not quite the same as

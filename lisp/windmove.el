@@ -546,7 +546,7 @@ If no window is at the desired location, an error is signaled."
 (defun windmove-default-keybindings (&optional modifier)
   "Set up keybindings for `windmove'.
 Keybindings are of the form MODIFIER-{left,right,up,down}.
-Default MODIFIER is 'shift."
+Default MODIFIER is `shift'."
   (interactive)
   (unless modifier (setq modifier 'shift))
   (global-set-key (vector (list modifier 'left))  'windmove-left)

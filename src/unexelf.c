@@ -247,7 +247,7 @@ unexec (const char *new_name, const char *old_name)
 
   ElfW (Phdr) *old_bss_seg, *new_bss_seg;
   ElfW (Addr) old_bss_addr, new_bss_addr;
-  ElfW (Word) old_bss_size, new_data2_size;
+  ElfW (Word) old_bss_size, bss_size_growth, new_data2_size;
   ElfW (Off) old_bss_offset, new_data2_offset;
 
   ptrdiff_t n;
@@ -331,7 +331,11 @@ unexec (const char *new_name, const char *old_name)
 
   new_break = sbrk (0);
   new_bss_addr = (ElfW (Addr)) new_break;
-  new_data2_size = new_bss_addr - old_bss_addr;
+  bss_size_growth = new_bss_addr - old_bss_addr;
+  new_data2_size = bss_size_growth;
+  new_data2_size += alignof (ElfW (Shdr)) - 1;
+  new_data2_size -= new_data2_size % alignof (ElfW (Shdr));
+
   new_data2_offset = old_bss_offset;
 
 #ifdef UNEXELF_DEBUG
@@ -399,7 +403,8 @@ unexec (const char *new_name, const char *old_name)
   new_bss_seg->p_memsz = new_bss_seg->p_filesz;
 
   /* Copy over what we have in memory now for the bss area. */
-  memcpy (new_base + new_data2_offset, (caddr_t) old_bss_addr, new_data2_size);
+  memcpy (new_base + new_data2_offset, (caddr_t) old_bss_addr,
+	  bss_size_growth);
 
   /* Walk through all section headers, copying data and updating.  */
   for (n = 1; n < old_file_h->e_shnum; n++)

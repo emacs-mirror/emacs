@@ -160,7 +160,7 @@ conversion.  Replaces these characters as follows:
 
 ;;;###autoload
 (defun url-normalize-url (url)
-  "Return a 'normalized' version of URL.
+  "Return a \"normalized\" version of URL.
 Strips out default port numbers, etc."
   (let (type data retval)
     (setq data (url-generic-parse-url url)
@@ -188,7 +188,7 @@ Will not do anything if `url-show-status' is nil."
 
 ;;;###autoload
 (defun url-get-normalized-date (&optional specified-time)
- "Return a 'real' date string that most HTTP servers can understand."
+ "Return a date string that most HTTP servers can understand."
  (let ((system-time-locale "C"))
   (format-time-string "%a, %d %b %Y %T GMT" specified-time t)))
 
@@ -468,7 +468,7 @@ should return it unchanged."
     (and host
 	 (not (string-match "\\`\\[.*\\]\\'" host))
 	 (setf (url-host obj)
-	       (url-hexify-string host url-host-allowed-chars)))
+               (decode-coding-string (url-host obj) 'utf-8)))
 
     (if path
 	(setq path (url-hexify-string path url-path-allowed-chars)))

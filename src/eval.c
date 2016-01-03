@@ -61,7 +61,7 @@ union specbinding *specpdl_ptr;
 
 /* Depth in Lisp evaluations and function calls.  */
 
-EMACS_INT lisp_eval_depth;
+static EMACS_INT lisp_eval_depth;
 
 /* The value of num_nonmacro_input_events as of the last time we
    started to enter the debugger.  If we decide to enter the debugger
@@ -226,9 +226,8 @@ init_eval (void)
   { /* Put a dummy catcher at top-level so that handlerlist is never NULL.
        This is important since handlerlist->nextfree holds the freelist
        which would otherwise leak every time we unwind back to top-level.   */
-    struct handler *c;
     handlerlist = handlerlist_sentinel.nextfree = &handlerlist_sentinel;
-    PUSH_HANDLER (c, Qunbound, CATCHER);
+    struct handler *c = push_handler (Qunbound, CATCHER);
     eassert (c == &handlerlist_sentinel);
     handlerlist_sentinel.nextfree = NULL;
     handlerlist_sentinel.next = NULL;
@@ -488,6 +487,10 @@ usage: (setq [SYM VAL]...)  */)
   if (CONSP (args))
     {
       Lisp_Object args_left = args;
+      Lisp_Object numargs = Flength (args);
+
+      if (XINT (numargs) & 1)
+        xsignal2 (Qwrong_number_of_arguments, Qsetq, numargs);
 
       do
 	{
@@ -1059,18 +1062,16 @@ usage: (catch TAG BODY...)  */)
    This is how catches are done from within C code.  */
 
 Lisp_Object
-internal_catch (Lisp_Object tag, Lisp_Object (*func) (Lisp_Object), Lisp_Object arg)
+internal_catch (Lisp_Object tag,
+		Lisp_Object (*func) (Lisp_Object), Lisp_Object arg)
 {
   /* This structure is made part of the chain `catchlist'.  */
-  struct handler *c;
-
-  /* Fill in the components of c, and put it on the list.  */
-  PUSH_HANDLER (c, tag, CATCHER);
+  struct handler *c = push_handler (tag, CATCHER);
 
   /* Call FUNC.  */
   if (! sys_setjmp (c->jmp))
     {
-      Lisp_Object val = (*func) (arg);
+      Lisp_Object val = func (arg);
       clobbered_eassert (handlerlist == c);
       handlerlist = handlerlist->next;
       return val;
@@ -1145,6 +1146,8 @@ Both TAG and VALUE are evalled.  */
   if (!NILP (tag))
     for (c = handlerlist; c; c = c->next)
       {
+	if (c->type == CATCHER_ALL)
+          unwind_to_catch (c, Fcons (tag, value));
 	if (c->type == CATCHER && EQ (c->tag_or_ch, tag))
 	  unwind_to_catch (c, value);
       }
@@ -1211,7 +1214,6 @@ internal_lisp_condition_case (volatile Lisp_Object var, Lisp_Object bodyform,
 			      Lisp_Object handlers)
 {
   Lisp_Object val;
-  struct handler *c;
   struct handler *oldhandlerlist = handlerlist;
   int clausenb = 0;
 
@@ -1246,7 +1248,7 @@ internal_lisp_condition_case (volatile Lisp_Object var, Lisp_Object bodyform,
 	Lisp_Object condition = XCAR (clause);
 	if (!CONSP (condition))
 	  condition = Fcons (condition, Qnil);
-	PUSH_HANDLER (c, condition, CONDITION_CASE);
+	struct handler *c = push_handler (condition, CONDITION_CASE);
 	if (sys_setjmp (c->jmp))
 	  {
 	    ptrdiff_t count = SPECPDL_INDEX ();
@@ -1294,46 +1296,45 @@ Lisp_Object
 internal_condition_case (Lisp_Object (*bfun) (void), Lisp_Object handlers,
 			 Lisp_Object (*hfun) (Lisp_Object))
 {
-  Lisp_Object val;
-  struct handler *c;
-
-  PUSH_HANDLER (c, handlers, CONDITION_CASE);
+  struct handler *c = push_handler (handlers, CONDITION_CASE);
   if (sys_setjmp (c->jmp))
     {
       Lisp_Object val = handlerlist->val;
       clobbered_eassert (handlerlist == c);
       handlerlist = handlerlist->next;
-      return (*hfun) (val);
+      return hfun (val);
     }
-
-  val = (*bfun) ();
-  clobbered_eassert (handlerlist == c);
-  handlerlist = handlerlist->next;
-  return val;
+  else
+    {
+      Lisp_Object val = bfun ();
+      clobbered_eassert (handlerlist == c);
+      handlerlist = handlerlist->next;
+      return val;
+    }
 }
 
 /* Like internal_condition_case but call BFUN with ARG as its argument.  */
 
 Lisp_Object
 internal_condition_case_1 (Lisp_Object (*bfun) (Lisp_Object), Lisp_Object arg,
-			   Lisp_Object handlers, Lisp_Object (*hfun) (Lisp_Object))
+			   Lisp_Object handlers,
+			   Lisp_Object (*hfun) (Lisp_Object))
 {
-  Lisp_Object val;
-  struct handler *c;
-
-  PUSH_HANDLER (c, handlers, CONDITION_CASE);
+  struct handler *c = push_handler (handlers, CONDITION_CASE);
   if (sys_setjmp (c->jmp))
     {
       Lisp_Object val = handlerlist->val;
       clobbered_eassert (handlerlist == c);
       handlerlist = handlerlist->next;
-      return (*hfun) (val);
+      return hfun (val);
     }
-
-  val = (*bfun) (arg);
-  clobbered_eassert (handlerlist == c);
-  handlerlist = handlerlist->next;
-  return val;
+  else
+    {
+      Lisp_Object val = bfun (arg);
+      clobbered_eassert (handlerlist == c);
+      handlerlist = handlerlist->next;
+      return val;
+    }
 }
 
 /* Like internal_condition_case_1 but call BFUN with ARG1 and ARG2 as
@@ -1346,22 +1347,21 @@ internal_condition_case_2 (Lisp_Object (*bfun) (Lisp_Object, Lisp_Object),
 			   Lisp_Object handlers,
 			   Lisp_Object (*hfun) (Lisp_Object))
 {
-  Lisp_Object val;
-  struct handler *c;
-
-  PUSH_HANDLER (c, handlers, CONDITION_CASE);
+  struct handler *c = push_handler (handlers, CONDITION_CASE);
   if (sys_setjmp (c->jmp))
     {
       Lisp_Object val = handlerlist->val;
       clobbered_eassert (handlerlist == c);
       handlerlist = handlerlist->next;
-      return (*hfun) (val);
+      return hfun (val);
     }
-
-  val = (*bfun) (arg1, arg2);
-  clobbered_eassert (handlerlist == c);
-  handlerlist = handlerlist->next;
-  return val;
+  else
+    {
+      Lisp_Object val = bfun (arg1, arg2);
+      clobbered_eassert (handlerlist == c);
+      handlerlist = handlerlist->next;
+      return val;
+    }
 }
 
 /* Like internal_condition_case but call BFUN with NARGS as first,
@@ -1376,22 +1376,57 @@ internal_condition_case_n (Lisp_Object (*bfun) (ptrdiff_t, Lisp_Object *),
 						ptrdiff_t nargs,
 						Lisp_Object *args))
 {
-  Lisp_Object val;
-  struct handler *c;
-
-  PUSH_HANDLER (c, handlers, CONDITION_CASE);
+  struct handler *c = push_handler (handlers, CONDITION_CASE);
   if (sys_setjmp (c->jmp))
     {
       Lisp_Object val = handlerlist->val;
       clobbered_eassert (handlerlist == c);
       handlerlist = handlerlist->next;
-      return (*hfun) (val, nargs, args);
+      return hfun (val, nargs, args);
     }
+  else
+    {
+      Lisp_Object val = bfun (nargs, args);
+      clobbered_eassert (handlerlist == c);
+      handlerlist = handlerlist->next;
+      return val;
+    }
+}
 
-  val = (*bfun) (nargs, args);
-  clobbered_eassert (handlerlist == c);
-  handlerlist = handlerlist->next;
-  return val;
+struct handler *
+push_handler (Lisp_Object tag_ch_val, enum handlertype handlertype)
+{
+  struct handler *c = push_handler_nosignal (tag_ch_val, handlertype);
+  if (!c)
+    memory_full (sizeof *c);
+  return c;
+}
+
+struct handler *
+push_handler_nosignal (Lisp_Object tag_ch_val, enum handlertype handlertype)
+{
+  struct handler *c = handlerlist->nextfree;
+  if (!c)
+    {
+      c = malloc (sizeof *c);
+      if (!c)
+	return c;
+      if (profiler_memory_running)
+	malloc_probe (sizeof *c);
+      c->nextfree = NULL;
+      handlerlist->nextfree = c;
+    }
+  c->type = handlertype;
+  c->tag_or_ch = tag_ch_val;
+  c->val = Qnil;
+  c->next = handlerlist;
+  c->lisp_eval_depth = lisp_eval_depth;
+  c->pdlcount = SPECPDL_INDEX ();
+  c->poll_suppress_count = poll_suppress_count;
+  c->interrupt_input_blocked = interrupt_input_blocked;
+  c->byte_stack = byte_stack_list;
+  handlerlist = c;
+  return c;
 }
 
 
@@ -2014,6 +2049,10 @@ eval_sub (Lisp_Object form)
   Lisp_Object funcar;
   ptrdiff_t count;
 
+  /* Declare here, as this array may be accessed by call_debugger near
+     the end of this function.  See Bug#21245.  */
+  Lisp_Object argvals[8];
+
   if (SYMBOLP (form))
     {
       /* Look up its binding in the lexical environment.
@@ -2066,13 +2105,8 @@ eval_sub (Lisp_Object form)
 
   if (SUBRP (fun))
     {
-      Lisp_Object numargs;
-      Lisp_Object argvals[8];
-      Lisp_Object args_left;
-      register int i, maxargs;
-
-      args_left = original_args;
-      numargs = Flength (args_left);
+      Lisp_Object args_left = original_args;
+      Lisp_Object numargs = Flength (args_left);
 
       check_cons_list ();
 
@@ -2101,11 +2135,20 @@ eval_sub (Lisp_Object form)
 	  set_backtrace_args (specpdl + count, vals, XINT (numargs));
 
 	  val = (XSUBR (fun)->function.aMANY) (XINT (numargs), vals);
+
+	  check_cons_list ();
+	  lisp_eval_depth--;
+	  /* Do the debug-on-exit now, while VALS still exists.  */
+	  if (backtrace_debug_on_exit (specpdl + count))
+	    val = call_debugger (list2 (Qexit, val));
 	  SAFE_FREE ();
+	  specpdl_ptr--;
+	  return val;
 	}
       else
 	{
-	  maxargs = XSUBR (fun)->max_args;
+	  int i, maxargs = XSUBR (fun)->max_args;
+
 	  for (i = 0; i < maxargs; i++)
 	    {
 	      argvals[i] = eval_sub (Fcar (args_left));
@@ -2165,7 +2208,7 @@ eval_sub (Lisp_Object form)
 	}
     }
   else if (COMPILEDP (fun))
-    val = apply_lambda (fun, original_args, count);
+    return apply_lambda (fun, original_args, count);
   else
     {
       if (NILP (fun))
@@ -2195,7 +2238,7 @@ eval_sub (Lisp_Object form)
 	}
       else if (EQ (funcar, Qlambda)
 	       || EQ (funcar, Qclosure))
-	val = apply_lambda (fun, original_args, count);
+	return apply_lambda (fun, original_args, count);
       else
 	xsignal1 (Qinvalid_function, original_fun);
     }
@@ -2750,14 +2793,13 @@ apply_lambda (Lisp_Object fun, Lisp_Object args, ptrdiff_t count)
   set_backtrace_args (specpdl + count, arg_vector, i);
   tem = funcall_lambda (fun, numargs, arg_vector);
 
+  check_cons_list ();
+  lisp_eval_depth--;
   /* Do the debug-on-exit now, while arg_vector still exists.  */
   if (backtrace_debug_on_exit (specpdl + count))
-    {
-      /* Don't do it again when we return to eval.  */
-      set_backtrace_debug_on_exit (specpdl + count, false);
-      tem = call_debugger (list2 (Qexit, tem));
-    }
+    tem = call_debugger (list2 (Qexit, tem));
   SAFE_FREE ();
+  specpdl_ptr--;
   return tem;
 }
 
@@ -2792,6 +2834,9 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
     }
   else if (COMPILEDP (fun))
     {
+      ptrdiff_t size = ASIZE (fun) & PSEUDOVECTOR_SIZE_MASK;
+      if (size <= COMPILED_STACK_DEPTH)
+	xsignal1 (Qinvalid_function, fun);
       syms_left = AREF (fun, COMPILED_ARGLIST);
       if (INTEGERP (syms_left))
 	/* A byte-code object with a non-nil `push args' slot means we
@@ -2889,19 +2934,25 @@ DEFUN ("fetch-bytecode", Ffetch_bytecode, Sfetch_bytecode,
 {
   Lisp_Object tem;
 
-  if (COMPILEDP (object) && CONSP (AREF (object, COMPILED_BYTECODE)))
+  if (COMPILEDP (object))
     {
-      tem = read_doc_string (AREF (object, COMPILED_BYTECODE));
-      if (!CONSP (tem))
+      ptrdiff_t size = ASIZE (object) & PSEUDOVECTOR_SIZE_MASK;
+      if (size <= COMPILED_STACK_DEPTH)
+	xsignal1 (Qinvalid_function, object);
+      if (CONSP (AREF (object, COMPILED_BYTECODE)))
 	{
-	  tem = AREF (object, COMPILED_BYTECODE);
-	  if (CONSP (tem) && STRINGP (XCAR (tem)))
-	    error ("Invalid byte code in %s", SDATA (XCAR (tem)));
-	  else
-	    error ("Invalid byte code");
+	  tem = read_doc_string (AREF (object, COMPILED_BYTECODE));
+	  if (!CONSP (tem))
+	    {
+	      tem = AREF (object, COMPILED_BYTECODE);
+	      if (CONSP (tem) && STRINGP (XCAR (tem)))
+		error ("Invalid byte code in %s", SDATA (XCAR (tem)));
+	      else
+		error ("Invalid byte code");
+	    }
+	  ASET (object, COMPILED_BYTECODE, XCAR (tem));
+	  ASET (object, COMPILED_CONSTANTS, XCDR (tem));
 	}
-      ASET (object, COMPILED_BYTECODE, XCAR (tem));
-      ASET (object, COMPILED_CONSTANTS, XCDR (tem));
     }
   return object;
 }
@@ -3145,10 +3196,11 @@ unbind_to (ptrdiff_t count, Lisp_Object value)
 	  { /* If variable has a trivial value (no forwarding), we can
 	       just set it.  No need to check for constant symbols here,
 	       since that was already done by specbind.  */
-	    struct Lisp_Symbol *sym = XSYMBOL (specpdl_symbol (specpdl_ptr));
-	    if (sym->redirect == SYMBOL_PLAINVAL)
+	    Lisp_Object sym = specpdl_symbol (specpdl_ptr);
+	    if (SYMBOLP (sym) && XSYMBOL (sym)->redirect == SYMBOL_PLAINVAL)
 	      {
-		SET_SYMBOL_VAL (sym, specpdl_old_value (specpdl_ptr));
+		SET_SYMBOL_VAL (XSYMBOL (sym),
+				specpdl_old_value (specpdl_ptr));
 		break;
 	      }
 	    else
@@ -3357,12 +3409,12 @@ backtrace_eval_unrewind (int distance)
 	  { /* If variable has a trivial value (no forwarding), we can
 	       just set it.  No need to check for constant symbols here,
 	       since that was already done by specbind.  */
-	    struct Lisp_Symbol *sym = XSYMBOL (specpdl_symbol (tmp));
-	    if (sym->redirect == SYMBOL_PLAINVAL)
+	    Lisp_Object sym = specpdl_symbol (tmp);
+	    if (SYMBOLP (sym) && XSYMBOL (sym)->redirect == SYMBOL_PLAINVAL)
 	      {
 		Lisp_Object old_value = specpdl_old_value (tmp);
-		set_specpdl_old_value (tmp, SYMBOL_VAL (sym));
-		SET_SYMBOL_VAL (sym, old_value);
+		set_specpdl_old_value (tmp, SYMBOL_VAL (XSYMBOL (sym)));
+		SET_SYMBOL_VAL (XSYMBOL (sym), old_value);
 		break;
 	      }
 	    else
@@ -3607,6 +3659,7 @@ To prevent this happening, set `quit-flag' to nil
 before making `inhibit-quit' nil.  */);
   Vinhibit_quit = Qnil;
 
+  DEFSYM (Qsetq, "setq");
   DEFSYM (Qinhibit_quit, "inhibit-quit");
   DEFSYM (Qautoload, "autoload");
   DEFSYM (Qinhibit_debugger, "inhibit-debugger");

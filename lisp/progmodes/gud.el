@@ -3080,7 +3080,7 @@ the character after the end of the expr."
   "Scan from SPAN-START to SPAN-END for punctuation characters.
 If `->' is found, return `?.'.  If `.' is found, return `?.'.
 If any other punctuation is found, return `??'.
-If no punctuation is found, return `? '."
+If no punctuation is found, return `?\\s'."
   (let ((result ?\s)
 	(syntax))
     (while (< span-start span-end)

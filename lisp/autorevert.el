@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1997-1999, 2001-2015 Free Software Foundation, Inc.
 
-;; Author: Anders Lindgren <andersl@andersl.com>
+;; Author: Anders Lindgren
 ;; Keywords: convenience
 ;; Created: 1997-06-01
 ;; Date: 1999-11-30

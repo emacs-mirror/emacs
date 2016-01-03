@@ -375,7 +375,7 @@ Optional argument IGNORABLE-ATTRIBUTES is passed down to
 
 (defun semantic-tag-of-type-p (tag type)
   "Compare TAG's type against TYPE.  Non nil if equivalent.
-TYPE can be a string, or a tag of class 'type.
+TYPE can be a string, or a tag of class `type'.
 This can be complex since some tags might have a :type that is a tag,
 while other tags might just have a string.  This function will also be
 return true of TAG's type is compared directly to the declaration of a
@@ -462,12 +462,12 @@ pairs eliminated:
   "Create a generic semantic tag.
 NAME is a string representing the name of this tag.
 CLASS is the symbol that represents the class of tag this is,
-such as 'variable, or 'function.
+such as `variable', or `function'.
 ATTRIBUTES is a list of additional attributes belonging to this tag."
   (list name class (semantic-tag-make-plist attributes) nil nil))
 
 (defsubst semantic-tag-new-variable (name type &optional default-value &rest attributes)
-  "Create a semantic tag of class 'variable.
+  "Create a semantic tag of class `variable'.
 NAME is the name of this variable.
 TYPE is a string or semantic tag representing the type of this variable.
 Optional DEFAULT-VALUE is a string representing the default value of this
@@ -479,7 +479,7 @@ tag."
          attributes))
 
 (defsubst semantic-tag-new-function (name type arg-list &rest attributes)
-  "Create a semantic tag of class 'function.
+  "Create a semantic tag of class `function'.
 NAME is the name of this function.
 TYPE is a string or semantic tag representing the type of this function.
 ARG-LIST is a list of strings or semantic tags representing the
@@ -491,7 +491,7 @@ ATTRIBUTES is a list of additional attributes belonging to this tag."
          attributes))
 
 (defsubst semantic-tag-new-type (name type members parents &rest attributes)
-  "Create a semantic tag of class 'type.
+  "Create a semantic tag of class `type'.
 NAME is the name of this type.
 TYPE is a string or semantic tag representing the type of this type.
 MEMBERS is a list of strings or semantic tags representing the
@@ -516,7 +516,7 @@ ATTRIBUTES is a list of additional attributes belonging to this tag."
          attributes))
 
 (defsubst semantic-tag-new-include (name system-flag &rest attributes)
-  "Create a semantic tag of class 'include.
+  "Create a semantic tag of class `include'.
 NAME is the name of this include.
 SYSTEM-FLAG represents that we were able to identify this include as belonging
 to the system, as opposed to belonging to the local project.
@@ -526,7 +526,7 @@ ATTRIBUTES is a list of additional attributes belonging to this tag."
          attributes))
 
 (defsubst semantic-tag-new-package (name detail &rest attributes)
-  "Create a semantic tag of class 'package.
+  "Create a semantic tag of class `package'.
 NAME is the name of this package.
 DETAIL is extra information about this package, such as a location where
 it can be found.
@@ -536,7 +536,7 @@ ATTRIBUTES is a list of additional attributes belonging to this tag."
          attributes))
 
 (defsubst semantic-tag-new-code (name detail &rest attributes)
-  "Create a semantic tag of class 'code.
+  "Create a semantic tag of class `code'.
 NAME is a name for this code.
 DETAIL is extra information about the code.
 ATTRIBUTES is a list of additional attributes belonging to this tag."
@@ -823,7 +823,7 @@ in SUPERS."
 (defun semantic-tag-type-superclass-protection (tag parentstring)
   "Return the inheritance protection in TAG from PARENTSTRING.
 PARENTSTRING is the name of the parent being inherited.
-The return protection is a symbol, 'public, 'protection, and 'private."
+The return protection is a symbol, `public', `protection', and `private'."
   (let ((supers (semantic-tag-get-attribute tag :superclasses)))
     (cond ((stringp supers)
 	   'public)
@@ -946,7 +946,7 @@ ATTRIBUTES is a list of additional attributes belonging to this tag."
 The returned value is a tag of the class that
 `semantic-tag-alias-class' returns for TAG.
 The default is to return the value of the :definition attribute.
-Return nil if TAG is not of class 'alias."
+Return nil if TAG is not of class `alias'."
   (when (semantic-tag-of-class-p tag 'alias)
     (:override
      (semantic-tag-get-attribute tag :definition))))
@@ -958,8 +958,8 @@ Return nil if TAG is not of class 'alias."
   "Return a list of components for TAG.
 A Component is a part of TAG which itself may be a TAG.
 Examples include the elements of a structure in a
-tag of class 'type, or the list of arguments to a
-tag of class 'function."
+tag of class `type', or the list of arguments to a
+tag of class `function'."
   )
 
 (defun semantic-tag-components-default (tag)

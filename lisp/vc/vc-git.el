@@ -1050,7 +1050,7 @@ or BRANCH^ (where \"^\" can be repeated)."
 
 (autoload 'vc-switches "vc")
 
-(defun vc-git-diff (files &optional rev1 rev2 buffer async)
+(defun vc-git-diff (files &optional rev1 rev2 buffer _async)
   "Get a difference report using Git between two revisions of FILES."
   (let (process-file-side-effects
         (command "diff-tree"))
@@ -1061,7 +1061,7 @@ or BRANCH^ (where \"^\" can be repeated)."
       (unless rev1 (setq rev1 "HEAD")))
     (if vc-git-diff-switches
         (apply #'vc-git-command (or buffer "*vc-diff*")
-	       (if async 'async 1)
+	       1 ; bug#21969
 	       files
                command
                "--exit-code"

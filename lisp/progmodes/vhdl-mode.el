@@ -585,7 +585,7 @@ option `vhdl-file-header').
 
 The default directory must have an absolute path (use `M-TAB' for completion).
 All other paths can be absolute or relative to the default directory.  All
-paths must end with '/'.
+paths must end with `/'.
 
 The design units found in the sources (files and directories) are shown in the
 hierarchy browser.  Path and file name can contain wildcards `*' and `?' as
@@ -945,7 +945,7 @@ If nil, only a list of actual parameters is entered."
   :group 'vhdl-template)
 
 (defcustom vhdl-sensitivity-list-all t
-  "Non-nil means use 'all' keyword in sensitivity list."
+  "Non-nil means use `all' keyword in sensitivity list."
   :version "25.1"
   :type 'boolean
   :group 'vhdl-template)
@@ -1103,7 +1103,7 @@ Otherwise, falling edge triggers."
 
 (defcustom vhdl-clock-edge-condition 'standard
   "Syntax of the clock edge condition.
-  Standard: \"clk'event and clk = '1'\"
+  Standard: \"clk\\='event and clk = \\='1\\='\"
   Function: \"rising_edge(clk)\""
   :type '(choice (const :tag "Standard" standard)
 		 (const :tag "Function" function))
@@ -2477,7 +2477,7 @@ current buffer if no project is defined."
     default-directory))
 
 (defmacro vhdl-prepare-search-1 (&rest body)
-  "Enable case insensitive search and switch to syntax table that includes '_',
+  "Enable case insensitive search and switch to syntax table that includes `_',
 then execute BODY, and finally restore the old environment.  Used for
 consistent searching."
   `(let ((case-fold-search t))		; case insensitive search
@@ -2486,7 +2486,7 @@ consistent searching."
        ,@body)))
 
 (defmacro vhdl-prepare-search-2 (&rest body)
-  "Enable case insensitive search, switch to syntax table that includes '_',
+  "Enable case insensitive search, switch to syntax table that includes `_',
 arrange to ignore `intangible' overlays, then execute BODY, and finally restore
 the old environment.  Used for consistent searching."
   `(let ((case-fold-search t)		; case insensitive search
@@ -2759,7 +2759,7 @@ elements > `vhdl-menu-max-size'."
 
 (defun vhdl-function-name (prefix string &optional postfix)
   "Generate a Lisp function name.
-PREFIX, STRING and optional POSTFIX are concatenated by '-' and spaces in
+PREFIX, STRING and optional POSTFIX are concatenated by `-' and spaces in
 STRING are replaced by `-' and substrings are converted to lower case."
   (let ((name prefix))
     (while (string-match "\\(\\w+\\)\\s-*\\(.*\\)" string)
@@ -8189,8 +8189,8 @@ options vhdl-upper-case-{keywords,types,attributes,enum-values}."
 
 (defun vhdl-fix-statement-region (beg end &optional arg)
   "Force statements in region on separate line except when on same line
-with 'end' keyword (necessary for correct indentation).
-Currently supported keywords: 'begin', 'if'."
+with `end' keyword (necessary for correct indentation).
+Currently supported keywords: `begin', `if'."
   (interactive "r\nP")
   (vhdl-prepare-search-2
    (let (point)
@@ -8236,7 +8236,7 @@ Currently supported keywords: 'begin', 'if'."
 
 (defun vhdl-fix-statement-buffer ()
   "Force statements in buffer on separate line except when on same line
-with 'end' keyword (necessary for correct indentation)."
+with `end' keyword (necessary for correct indentation)."
   (interactive)
   (vhdl-fix-statement-region (point-min) (point-max)))
 
@@ -10578,22 +10578,22 @@ specification, if not already there."
   (insert "-- pragma " directive))
 
 (defun vhdl-template-directive-translate-on ()
-  "Insert directive 'translate_on'."
+  "Insert directive `translate_on'."
   (interactive)
   (vhdl-template-directive "translate_on"))
 
 (defun vhdl-template-directive-translate-off ()
-  "Insert directive 'translate_off'."
+  "Insert directive `translate_off'."
   (interactive)
   (vhdl-template-directive "translate_off"))
 
 (defun vhdl-template-directive-synthesis-on ()
-  "Insert directive 'synthesis_on'."
+  "Insert directive `synthesis_on'."
   (interactive)
   (vhdl-template-directive "synthesis_on"))
 
 (defun vhdl-template-directive-synthesis-off ()
-  "Insert directive 'synthesis_off'."
+  "Insert directive `synthesis_off'."
   (interactive)
   (vhdl-template-directive "synthesis_off"))
 
@@ -13307,7 +13307,7 @@ File statistics: \"%s\"\n\
 
 (defconst vhdl-font-lock-syntactic-keywords
   '(("\\('\\).\\('\\)" (1 (7 . ?\')) (2 (7 . ?\'))))
-  "Mark single quotes as having string quote syntax in 'c' instances.")
+  "Mark single quotes as having string quote syntax in `c' instances.")
 
 (defvar vhdl-font-lock-keywords nil
   "Regular expressions to highlight in VHDL Mode.")
@@ -17760,7 +17760,7 @@ Release Notes for VHDL Mode 3.37
   - Context declaration
   - Block comments
   - Directives
-  - 'all' keyword in sensitivity list
+  - `all' keyword in sensitivity list
 
 
 Release Notes for VHDL Mode 3.34

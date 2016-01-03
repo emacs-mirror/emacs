@@ -68,7 +68,7 @@ handles the corresponding kind of display.")
 You can set this in your init file; for example,
 
  (setq initial-frame-alist
-       '((top . 1) (left . 1) (width . 80) (height . 55)))
+       \\='((top . 1) (left . 1) (width . 80) (height . 55)))
 
 Parameters specified here supersede the values given in
 `default-frame-alist'.
@@ -103,7 +103,7 @@ initial minibuffer frame.
 You can set this in your init file; for example,
 
  (setq minibuffer-frame-alist
-       '((top . 1) (left . 1) (width . 80) (height . 2)))
+       \\='((top . 1) (left . 1) (width . 80) (height . 2)))
 
 It is not necessary to include (minibuffer . only); that is
 appended when the minibuffer frame is created."
@@ -911,7 +911,7 @@ if you want Emacs to examine the brightness for you.
 
 If you change this without using customize, you should use
 `frame-set-background-mode' to update existing frames;
-e.g. (mapc 'frame-set-background-mode (frame-list))."
+e.g. (mapc \\='frame-set-background-mode (frame-list))."
   :group 'faces
   :set #'(lambda (var value)
 	   (set-default var value)

@@ -32,6 +32,7 @@
 ;;; Code:
 
 (require 'calendar)
+(require 'diary-lib)
 
 
 (defgroup calendar-html nil
@@ -358,12 +359,12 @@ of holidays, rather than diary entries."
 ;;  Monthly calendar
 ;;------------------------------------------------------------
 
-(autoload 'diary-list-entries "diary-lib")
-
 (defun cal-html-list-diary-entries (d1 d2)
   "Generate a list of all diary-entries from absolute date D1 to D2."
-  (diary-list-entries (calendar-gregorian-from-absolute d1)
-                      (1+ (- d2 d1)) t))
+  (if (with-demoted-errors "Not adding diary entries: %S"
+        (diary-check-diary-file))
+      (diary-list-entries (calendar-gregorian-from-absolute d1)
+                          (1+ (- d2 d1)) t)))
 
 (defun cal-html-insert-agenda-days (month year diary-list holiday-list)
   "Insert HTML commands for a range of days in monthly calendars.

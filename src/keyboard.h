@@ -245,6 +245,18 @@ extern KBOARD *current_kboard;
 /* Total number of times read_char has returned, modulo UINTMAX_MAX + 1.  */
 extern uintmax_t num_input_events;
 
+/* The location of point immediately before the last command was
+   executed, or the last time the undo-boundary command added a
+   boundary.*/
+extern ptrdiff_t point_before_last_command_or_undo;
+
+/* The value of current_buffer immediately before the last command was
+   executed, or the last time the undo-boundary command added a
+   boundary.*/
+extern struct buffer *buffer_before_last_command_or_undo;
+
+extern struct buffer *prev_buffer;
+
 /* Nonzero means polling for input is temporarily suppressed.  */
 extern int poll_suppress_count;
 

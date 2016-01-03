@@ -808,7 +808,7 @@ See `idlwave-check-abbrev'."
 (defcustom idlwave-abbrev-change-case nil
   "Non-nil means all abbrevs will be forced to either upper or lower case.
 If the value t, all expanded abbrevs will be upper case.
-If the value is 'down then abbrevs will be forced to lower case.
+If the value is `down' then abbrevs will be forced to lower case.
 If nil, the case will not change.
 If `idlwave-reserved-word-upcase' is non-nil, reserved words will always be
 upper case, regardless of this variable."
@@ -963,7 +963,7 @@ a file."
 
 (defcustom idlwave-doc-modifications-keyword "HISTORY"
   "The modifications keyword to use with the log documentation commands.
-A ':' is added to the keyword end.
+A `:' is added to the keyword end.
 Inserted by doc-header and used to position logs by doc-modification.
 If nil it will not be inserted."
   :group 'idlwave-documentation
@@ -999,7 +999,7 @@ it without compromising backwards-compatibility."
 (defcustom idlwave-shell-command-line-options nil
   "A list of command line options for calling the IDL program.
 Since IDL is executed directly without going through a shell like /bin/sh,
-this should be a list of strings like '(\"-rt=file\" \"-nw\") with a separate
+this should be a list of strings like (\"-rt=file\" \"-nw\") with a separate
 string for each argument.  But you may also give a single string which
 contains the options whitespace-separated.  Emacs will be kind enough to
 split it for you."
@@ -1021,7 +1021,7 @@ Obsolete, if the IDL Assistant is being used for help."
 Will be used to bind debugging commands in the shell buffer and in all
 source buffers.  These are additional convenience bindings, the debugging
 commands are always available with the `C-c C-d' prefix.
-If you set this to '(control shift), this means setting a breakpoint will
+If you set this to (control shift), this means setting a breakpoint will
 be on `C-S-b', compiling a source file on `C-S-c' etc.  Possible modifiers
 are `control', `meta', `super', `hyper', `alt', and `shift'."
   :group 'idlwave-shell-general-setup
@@ -1557,15 +1557,15 @@ KEY is a string - same as for the `define-key' function.  CMD is a
 function of no arguments or a list to be evaluated.  CMD is bound to
 KEY in `idlwave-mode-map' by defining an anonymous function calling
 `self-insert-command' followed by CMD.  If KEY contains more than one
-character a binding will only be set if SELECT is 'both.
+character a binding will only be set if SELECT is `both'.
 
 \(KEY . CMD) is also placed in the `idlwave-indent-expand-table',
 replacing any previous value for KEY.  If a binding is not set then it
 will instead be placed in `idlwave-indent-action-table'.
 
 If the optional argument SELECT is nil then an action and binding are
-created.  If SELECT is 'noaction, then a binding is always set and no
-action is created.  If SELECT is 'both then an action and binding
+created.  If SELECT is `noaction', then a binding is always set and no
+action is created.  If SELECT is `both' then an action and binding
 will both be created even if KEY contains more than one character.
 Otherwise, if SELECT is non-nil then only an action is created.
 
@@ -2690,7 +2690,7 @@ statement."
           (append st (match-end 0))))))
 
 (defun idlwave-expand-equal (&optional before after is-action)
-  "Pad '=' with spaces.
+  "Pad `=' with spaces.
 Two cases: Assignment statement, and keyword assignment.
 Which case is determined using `idlwave-start-of-substatement' and
 `idlwave-statement-type'.  The equal sign will be surrounded by BEFORE
@@ -2835,7 +2835,7 @@ ACTION is a list (REG . FUNC).  REG is a regular expression.  FUNC is
 either a function name to be called with `funcall' or a list to be
 evaluated with `eval'.  The action performed by FUNC should leave
 point after the match for REG - otherwise an infinite loop may be
-entered.  FUNC is always passed a final argument of 'is-action, so it
+entered.  FUNC is always passed a final argument of `is-action', so it
 can discriminate between being run as an action, or a key binding."
   (let ((action-key (car action))
         (action-routine (cdr action)))
@@ -6240,7 +6240,7 @@ If yes, return the index (>=1)."
 
 (defun idlwave-all-method-classes (method &optional type)
   "Return all classes which have a method METHOD.
-TYPE is 'fun or 'pro.
+TYPE is `fun' or `pro'.
 When TYPE is not specified, both procedures and functions will be considered."
   (if (null method)
       (mapcar 'car (idlwave-class-alist))
@@ -6255,7 +6255,7 @@ When TYPE is not specified, both procedures and functions will be considered."
 
 (defun idlwave-all-method-keyword-classes (method keyword &optional type)
   "Return all classes which have a method METHOD with keyword KEYWORD.
-TYPE is 'fun or 'pro.
+TYPE is `fun' or `pro'.
 When TYPE is not specified, both procedures and functions will be considered."
   (if (or (null method)
 	  (null keyword))
@@ -6644,8 +6644,8 @@ This function is not general, can only be used for completion stuff."
 					special-selector)
   "Perform TYPE completion of word before point against LIST.
 SELECTOR is the PREDICATE argument for the completion function.  Show
-PROMPT in echo area.  TYPE is one of the intern types, e.g. 'function,
-'procedure, 'class-tag, 'keyword, 'sysvar, etc.  SPECIAL-SELECTOR is
+PROMPT in echo area.  TYPE is one of the intern types, e.g., `function',
+`procedure', `class-tag', `keyword', `sysvar'.  SPECIAL-SELECTOR is
 used only once, for `all-completions', and can be used to, e.g.,
 accumulate information on matching completions."
   (let* ((completion-ignore-case t)

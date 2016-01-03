@@ -132,13 +132,13 @@ out all highlighting later with the command `compare-windows-dehighlight'."
 
 (defface compare-windows-removed
   '((t :inherit diff-removed))
-  "Face for highlighting of compare-windows removed regions."
+  "Face for highlighting `compare-windows' differing regions in the other window."
   :group 'compare-windows
   :version "25.1")
 
 (defface compare-windows-added
   '((t :inherit diff-added))
-  "Face for highlighting of compare-windows added regions."
+  "Face for highlighting `compare-windows' differing regions in current window."
   :group 'compare-windows
   :version "25.1")
 

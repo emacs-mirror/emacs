@@ -2030,11 +2030,6 @@ form.
 @end example
 @end defun
 
-@defun directory-name-p filename
-This function returns non-@code{nil} if @var{filename} ends with a
-forward slash (@samp{/}) character.
-@end defun
-
 @node Directory Names
 @subsection Directory Names
 @cindex directory name
@@ -2074,6 +2069,13 @@ string (if it does not already end in one).
      @result{} "~rms/lewis/"
 @end group
 @end example
+@end defun
+
+@defun directory-name-p filename
+This function returns non-@code{nil} if @var{filename} ends with a
+directory separator character.  This is the forward slash @samp{/} on
+Unix and GNU systems; MS-Windows and MS-DOS recognize both the forward
+slash and the backslash @samp{\} as directory separators.
 @end defun
 
 @defun directory-file-name dirname
@@ -2632,12 +2634,20 @@ An error is signaled if @var{directory} is not the name of a directory
 that can be read.
 @end defun
 
-@defun directory-files-recursively directory match &optional include-directories
-Return all files under @var{directory} whose file names match
-@var{match} recursively.  The file names are returned depth first,
-meaning that contents of sub-directories are returned before contents
-of the directories.  If @var{include-directories} is non-@code{nil},
-also return directory names that have matching names.
+@defun directory-files-recursively directory regexp &optional include-directories
+Return all files under @var{directory} whose names match @var{regexp}.
+This function searches the specified @var{directory} and its
+sub-directories, recursively, for files whose basenames (i.e., without
+the leading directories) match the specified @var{regexp}, and returns
+a list of the absolute file names of the matching files
+(@pxref{Relative File Names, absolute file names}).  The file names
+are returned in depth-first order, meaning that files in some
+sub-directory are returned before the files in its parent directory.
+In addition, matching files found in each subdirectory are sorted
+alphabetically by their basenames.  By default, directories whose
+names match @var{regexp} are omitted from the list, but if the
+optional argument @var{include-directories} is non-@code{nil}, they
+are included.
 @end defun
 
 @defun directory-files-and-attributes directory &optional full-name match-regexp nosort id-format

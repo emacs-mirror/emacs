@@ -5,7 +5,7 @@
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;;         Daniel Hackney <dan@haxney.org>
 ;; Created: 10 Mar 2007
-;; Version: 1.0.1
+;; Version: 1.1.0
 ;; Keywords: tools
 ;; Package-Requires: ((tabulated-list "1.0"))
 
@@ -23,14 +23,6 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-;;; Change Log:
-
-;;  2 Apr 2007 - now using ChangeLog file
-;; 15 Mar 2007 - updated documentation
-;; 14 Mar 2007 - Changed how obsolete packages are handled
-;; 13 Mar 2007 - Wrote package-install-from-buffer
-;; 12 Mar 2007 - Wrote package-menu mode
 
 ;;; Commentary:
 
@@ -69,6 +61,7 @@
 ;; * Download.  Fetching the package from ELPA.
 ;; * Install.  Untar the package, or write the .el file, into
 ;;   ~/.emacs.d/elpa/ directory.
+;; * Autoload generation.
 ;; * Byte compile.  Currently this phase is done during install,
 ;;   but we may change this.
 ;; * Activate.  Evaluate the autoloads for the package to make it
@@ -127,14 +120,9 @@
 ;; - "installed" instead of a blank in the status column
 ;; - tramp needs its files to be compiled in a certain order.
 ;;   how to handle this?  fix tramp?
-;; - on emacs 21 we don't kill the -autoloads.el buffer.  what about 22?
 ;; - maybe we need separate .elc directories for various emacs versions
 ;;   and also emacs-vs-xemacs.  That way conditional compilation can
 ;;   work.  But would this break anything?
-;; - should store the package's keywords in archive-contents, then
-;;   let the users filter the package-menu by keyword.  See
-;;   finder-by-keyword.  (We could also let people view the
-;;   Commentary, but it isn't clear how useful this is.)
 ;; - William Xu suggests being able to open a package file without
 ;;   installing it
 ;; - Interface with desktop.el so that restarting after an install
@@ -145,15 +133,9 @@
 ;;   private data dir, aka ".../etc".  Or, maybe data-directory
 ;;   needs to be a list (though this would be less nice)
 ;;   a few packages want this, eg sokoban
-;; - package menu needs:
-;;     ability to know which packages are built-in & thus not deletable
-;;     it can sometimes print odd results, like 0.3 available but 0.4 active
-;;        why is that?
-;; - Allow multiple versions on the server...?
-;;   [ why bother? ]
-;; - Don't install a package which will invalidate dependencies overall
-;; - Allow something like (or (>= emacs 21.0) (>= xemacs 21.5))
-;;   [ currently thinking, why bother.. KISS ]
+;; - Allow multiple versions on the server, so that if a user doesn't
+;;   meet the requirements for the most recent version they can still
+;;   install an older one.
 ;; - Allow optional package dependencies
 ;;   then if we require 'bbdb', bbdb-specific lisp in lisp/bbdb
 ;;   and just don't compile to add to load path ...?
@@ -235,7 +217,7 @@ of it available such that:
 
 This variable has three possible values:
     nil: no packages are hidden;
-    `archive': only criteria (a) is used;
+    `archive': only criterion (a) is used;
     t: both criteria are used.
 
 This variable has no effect if `package-menu--hide-packages' is
@@ -253,7 +235,7 @@ Each element has the form (ARCHIVE-ID . PRIORITY).
 
 When installing packages, the package with the highest version
 number from the archive with the highest priority is
-selected. When higher versions are available from archives with
+selected.  When higher versions are available from archives with
 lower priorities, the user has to select those manually.
 
 Archives not in this list have the priority 0.
@@ -665,8 +647,30 @@ PKG-DESC is a `package-desc' object."
 (defvar Info-directory-list)
 (declare-function info-initialize "info" ())
 
-(defun package-activate-1 (pkg-desc &optional reload)
+(defun package--load-files-for-activation (pkg-desc reload)
+  "Load files for activating a package given by PKG-DESC.
+Load the autoloads file, and ensure `load-path' is setup.  If
+RELOAD is non-nil, also load all files in the package that
+correspond to previously loaded files."
+  (let* ((loaded-files-list (when reload
+                              (package--list-loaded-files (package-desc-dir pkg-desc)))))
+    ;; Add to load path, add autoloads, and activate the package.
+    (package--activate-autoloads-and-load-path pkg-desc)
+    ;; Call `load' on all files in `package-desc-dir' already present in
+    ;; `load-history'.  This is done so that macros in these files are updated
+    ;; to their new definitions.  If another package is being installed which
+    ;; depends on this new definition, not doing this update would cause
+    ;; compilation errors and break the installation.
+    (with-demoted-errors "Error in package--load-files-for-activation: %s"
+      (mapc (lambda (feature) (load feature nil t))
+            ;; Skip autoloads file since we already evaluated it above.
+            (remove (file-truename (package--autoloads-file-name pkg-desc))
+                    loaded-files-list)))))
+
+(defun package-activate-1 (pkg-desc &optional reload deps)
   "Activate package given by PKG-DESC, even if it was already active.
+If DEPS is non-nil, also activate its dependencies (unless they
+are already activated).
 If RELOAD is non-nil, also `load' any files inside the package which
 correspond to previously loaded files (those returned by
 `package--list-loaded-files')."
@@ -675,20 +679,15 @@ correspond to previously loaded files (those returned by
     (unless pkg-dir
       (error "Internal error: unable to find directory for `%s'"
              (package-desc-full-name pkg-desc)))
-    (let* ((loaded-files-list (when reload
-                                (package--list-loaded-files pkg-dir))))
-      ;; Add to load path, add autoloads, and activate the package.
-      (package--activate-autoloads-and-load-path pkg-desc)
-      ;; Call `load' on all files in `pkg-dir' already present in
-      ;; `load-history'.  This is done so that macros in these files are updated
-      ;; to their new definitions.  If another package is being installed which
-      ;; depends on this new definition, not doing this update would cause
-      ;; compilation errors and break the installation.
-      (with-demoted-errors "Error in package-activate-1: %s"
-        (mapc (lambda (feature) (load feature nil t))
-              ;; Skip autoloads file since we already evaluated it above.
-              (remove (file-truename (package--autoloads-file-name pkg-desc))
-                      loaded-files-list))))
+    ;; Activate its dependencies recursively.
+    ;; FIXME: This doesn't check whether the activated version is the
+    ;; required version.
+    (when deps
+      (dolist (req (package-desc-reqs pkg-desc))
+        (unless (package-activate (car req))
+          (error "Unable to activate package `%s'.\nRequired package `%s-%s' is unavailable"
+                 name (car req) (package-version-join (cadr req))))))
+    (package--load-files-for-activation pkg-desc reload)
     ;; Add info node.
     (when (file-exists-p (expand-file-name "dir" pkg-dir))
       ;; FIXME: not the friendliest, but simple.
@@ -740,7 +739,7 @@ DIR, sorted by most recently loaded last."
 ;; one was already activated.  It also loads a features of this
 ;; package which were already loaded.
 (defun package-activate (package &optional force)
-  "Activate package PACKAGE.
+  "Activate the package named PACKAGE.
 If FORCE is true, (re-)activate it if it's already activated.
 Newer versions are always activated, regardless of FORCE."
   (let ((pkg-descs (cdr (assq package package-alist))))
@@ -760,19 +759,7 @@ Newer versions are always activated, regardless of FORCE."
      ((and (memq package package-activated-list) (not force))
       t)
      ;; Otherwise, proceed with activation.
-     (t
-      (let* ((pkg-vec (car pkg-descs))
-             (fail (catch 'dep-failure
-                     ;; Activate its dependencies recursively.
-                     (dolist (req (package-desc-reqs pkg-vec))
-                       (unless (package-activate (car req))
-                         (throw 'dep-failure req))))))
-        (if fail
-            (warn "Unable to activate package `%s'.
-Required package `%s-%s' is unavailable"
-                  package (car fail) (package-version-join (cadr fail)))
-          ;; If all goes well, activate the package itself.
-          (package-activate-1 pkg-vec force)))))))
+     (t (package-activate-1 (car pkg-descs) nil 'deps)))))
 
 
 ;;; Installation -- Local operations
@@ -843,13 +830,21 @@ untar into a directory named DIR; otherwise, signal an error."
     (package--make-autoloads-and-stuff pkg-desc pkg-dir)
     ;; Update package-alist.
     (let ((new-desc (package-load-descriptor pkg-dir)))
-      ;; FIXME: Check that `new-desc' matches `desc'!
+      (unless (equal (package-desc-full-name new-desc)
+                     (package-desc-full-name pkg-desc))
+        (error "The retrieved package (`%s') doesn't match what the archive offered (`%s')"
+               (package-desc-full-name new-desc) (package-desc-full-name pkg-desc)))
+      ;; Activation has to be done before compilation, so that if we're
+      ;; upgrading and macros have changed we load the new definitions
+      ;; before compiling.
+      (package-activate-1 new-desc :reload :deps)
       ;; FIXME: Compilation should be done as a separate, optional, step.
       ;; E.g. for multi-package installs, we should first install all packages
       ;; and then compile them.
-      (package--compile new-desc))
-    ;; Try to activate it.
-    (package-activate name 'force)
+      (package--compile new-desc)
+      ;; After compilation, load again any files loaded by
+      ;; `activate-1', so that we use the byte-compiled definitions.
+      (package--load-files-for-activation new-desc :reload))
     pkg-dir))
 
 (defun package-generate-description-file (pkg-desc pkg-file)
@@ -932,11 +927,12 @@ untar into a directory named DIR; otherwise, signal an error."
 ;;;; Compilation
 (defvar warning-minimum-level)
 (defun package--compile (pkg-desc)
-  "Byte-compile installed package PKG-DESC."
+  "Byte-compile installed package PKG-DESC.
+This assumes that `pkg-desc' has already been activated with
+`package-activate-1'."
   (let ((warning-minimum-level :error)
         (save-silently inhibit-message)
         (load-path load-path))
-    (package--activate-autoloads-and-load-path pkg-desc)
     (byte-recompile-directory (package-desc-dir pkg-desc) 0 t)))
 
 ;;;; Inferring package from current buffer
@@ -1142,46 +1138,50 @@ Point is after the headers when BODY runs.
 FILE, if provided, is added to URL.
 URL can be a local file name, which must be absolute.
 ASYNC, if non-nil, runs the request asynchronously.
-ERROR-FORM is run only if an error occurs.  If NOERROR is
-non-nil, don't propagate errors caused by the connection or by
-BODY (does not apply to errors signaled by ERROR-FORM).
+ERROR-FORM is run only if a connection error occurs.  If NOERROR
+is non-nil, don't propagate connection errors (does not apply to
+errors signaled by ERROR-FORM or by BODY).
 
 \(fn URL &key ASYNC FILE ERROR-FORM NOERROR &rest BODY)"
   (declare (indent defun) (debug t))
   (while (keywordp (car body))
     (setq body (cdr (cdr body))))
-  (macroexp-let2* nil ((url-1 url))
-    `(cl-macrolet ((wrap-errors (&rest bodyforms)
-                                (let ((err (make-symbol "err")))
-                                  `(condition-case ,err
-                                       ,(macroexp-progn bodyforms)
-                                     ,(list 'error ',error-form
-                                            (list 'unless ',noerror
-                                                  `(signal (car ,err) (cdr ,err))))))))
+  (macroexp-let2* nil ((url-1 url)
+                       (noerror-1 noerror))
+    `(cl-macrolet ((unless-error (body-2 &rest before-body)
+                                 (let ((err (make-symbol "err")))
+                                   `(with-temp-buffer
+                                      (when (condition-case ,err
+                                                (progn ,@before-body t)
+                                              ,(list 'error ',error-form
+                                                     (list 'unless ',noerror-1
+                                                           `(signal (car ,err) (cdr ,err)))))
+                                        ,@body-2)))))
        (if (string-match-p "\\`https?:" ,url-1)
            (let* ((url (concat ,url-1 ,file))
                   (callback (lambda (status)
                               (let ((b (current-buffer)))
-                                (unwind-protect (wrap-errors
-                                                 (when-let ((er (plist-get status :error)))
-                                                   (error "Error retrieving: %s %S" url er))
-                                                 (unless (search-forward-regexp "^\r?\n\r?" nil 'noerror)
-                                                   (error "Error retrieving: %s %S" url "incomprehensible buffer"))
-                                                 (with-temp-buffer
-                                                   (url-insert-buffer-contents b url)
-                                                   (kill-buffer b)
-                                                   (goto-char (point-min))
-                                                   ,@body)))))))
+                                (require 'url-handlers)
+                                (unless-error ,body
+                                              (when-let ((er (plist-get status :error)))
+                                                (error "Error retrieving: %s %S" url er))
+                                              (with-current-buffer b
+                                                (goto-char (point-min))
+                                                (unless (search-forward-regexp "^\r?\n\r?" nil 'noerror)
+                                                  (error "Error retrieving: %s %S" url "incomprehensible buffer")))
+                                              (url-insert-buffer-contents b url)
+                                              (kill-buffer b)
+                                              (goto-char (point-min)))))))
              (if ,async
-                 (wrap-errors (url-retrieve url callback nil 'silent))
-               (with-current-buffer (wrap-errors (url-retrieve-synchronously url 'silent))
-                 (funcall callback nil))))
-         (wrap-errors (with-temp-buffer
-                        (let ((url (expand-file-name ,file ,url-1)))
-                          (unless (file-name-absolute-p url)
-                            (error "Location %s is not a url nor an absolute file name" url))
-                          (insert-file-contents url))
-                        ,@body))))))
+                 (unless-error nil (url-retrieve url callback nil 'silent))
+               (unless-error ,body (url-insert-file-contents url))))
+         (unless-error ,body
+                       (let ((url (expand-file-name ,file ,url-1)))
+                         (unless (file-name-absolute-p url)
+                           (error "Location %s is not a url nor an absolute file name" url))
+                         (insert-file-contents url)))))))
+
+(define-error 'bad-signature "Failed to verify signature")
 
 (defun package--check-signature-content (content string &optional sig-file)
   "Check signature CONTENT against STRING.
@@ -1193,7 +1193,7 @@ errors."
     (condition-case error
         (epg-verify-string context content string)
       (error (package--display-verify-error context sig-file)
-        (signal (car error) (cdr error))))
+             (signal 'bad-signature error)))
     (let (good-signatures had-fatal-error)
       ;; The .sig file may contain multiple signatures.  Success if one
       ;; of the signatures is good.
@@ -1209,10 +1209,10 @@ errors."
             (setq had-fatal-error t))))
       (when (and (null good-signatures) had-fatal-error)
         (package--display-verify-error context sig-file)
-        (error "Failed to verify signature %s" sig-file))
+        (signal 'bad-signature (list sig-file)))
       good-signatures)))
 
-(defun package--check-signature (location file &optional string async callback)
+(defun package--check-signature (location file &optional string async callback unwind)
   "Check signature of the current buffer.
 Download the signature file from LOCATION by appending \".sig\"
 to FILE.
@@ -1221,18 +1221,35 @@ STRING is the string to verify, it defaults to `buffer-string'.
 If ASYNC is non-nil, the download of the signature file is
 done asynchronously.
 
-If the signature is verified and CALLBACK was provided, CALLBACK
-is `funcall'ed with the list of good signatures as argument (the
-list can be empty).  If the signatures file is not found,
-CALLBACK is called with no arguments."
+If the signature does not verify, signal an error.
+If the signature is verified and CALLBACK was provided, `funcall'
+CALLBACK with the list of good signatures as argument (the list
+can be empty).
+If no signatures file is found, and `package-check-signature' is
+`allow-unsigned', call CALLBACK with a nil argument.
+Otherwise, an error is signaled.
+
+UNWIND, if provided, is a function to be called after everything
+else, even if an error is signaled."
   (let ((sig-file (concat file ".sig"))
         (string (or string (buffer-string))))
     (package--with-response-buffer location :file sig-file
       :async async :noerror t
-      :error-form (when callback (funcall callback nil))
-      (let ((sig (package--check-signature-content (buffer-substring (point) (point-max)) string sig-file)))
-        (when callback (funcall callback sig))
-        sig))))
+      ;; Connection error is assumed to mean "no sig-file".
+      :error-form (let ((allow-unsigned (eq package-check-signature 'allow-unsigned)))
+                    (when (and callback allow-unsigned)
+                      (funcall callback nil))
+                    (when unwind (funcall unwind))
+                    (unless allow-unsigned
+                      (error "Unsigned file `%s' at %s" file location)))
+      ;; OTOH, an error here means "bad signature", which we never
+      ;; suppress.  (Bug#22089)
+      (unwind-protect
+          (let ((sig (package--check-signature-content (buffer-substring (point) (point-max))
+                                                       string sig-file)))
+            (when callback (funcall callback sig))
+            sig)
+        (when unwind (funcall unwind))))))
 
 ;;; Packages on Archives
 ;; The following variables store information about packages available
@@ -1495,19 +1512,12 @@ similar to an entry in `package-alist'.  Save the cached copy to
            location file content async
            ;; This function will be called after signature checking.
            (lambda (&optional good-sigs)
-             (unless (or good-sigs (eq package-check-signature 'allow-unsigned))
-               ;; Even if the sig fails, this download is done, so
-               ;; remove it from the in-progress list.
-               (package--update-downloads-in-progress archive)
-               (error "Unsigned archive `%s'" name))
-             ;; Either everything worked or we don't mind not signing.
-             ;; Write out the archives file.
              (write-region content nil local-file nil 'silent)
              ;; Write out good signatures into archive-contents.signed file.
              (when good-sigs
                (write-region (mapconcat #'epg-signature-to-string good-sigs "\n")
-                             nil (concat local-file ".signed") nil 'silent))
-             (package--update-downloads-in-progress archive))))))))
+                             nil (concat local-file ".signed") nil 'silent)))
+           (lambda () (package--update-downloads-in-progress archive))))))))
 
 (defun package--download-and-read-archives (&optional async)
   "Download descriptions of all `package-archives' and read them.
@@ -1789,11 +1799,6 @@ if all the in-between dependencies are also in PACKAGE-LIST."
            location file content nil
            ;; This function will be called after signature checking.
            (lambda (&optional good-sigs)
-             (unless (or good-sigs (eq package-check-signature 'allow-unsigned))
-               ;; Even if the sig fails, this download is done, so
-               ;; remove it from the in-progress list.
-               (error "Unsigned package: `%s'"
-                 (package-desc-name pkg-desc)))
              ;; Signature checked, unpack now.
              (with-temp-buffer (insert content)
                                (let ((save-silently t))

@@ -1205,8 +1205,8 @@ comment."
 
 (defun image-dired-modify-mark-on-thumb-original-file (command)
   "Modify mark in dired buffer.
-COMMAND is one of 'mark for marking file in dired, 'unmark for
-unmarking file in dired or 'flag for flagging file for delete in
+COMMAND is one of `mark' for marking file in dired, `unmark' for
+unmarking file in dired or `flag' for flagging file for delete in
 dired."
   (let ((file-name (image-dired-original-file-name))
         (dired-buf (image-dired-associated-dired-buffer)))

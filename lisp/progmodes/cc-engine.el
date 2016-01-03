@@ -5964,7 +5964,7 @@ comment at the start of cc-engine.el for more info."
   ;; Recursive part of `c-forward-<>-arglist'.
   ;;
   ;; This function might do hidden buffer changes.
-  (let ((start (point)) res pos tmp
+  (let ((start (point)) res pos
 	;; Cover this so that any recorded found type ranges are
 	;; automatically lost if it turns out to not be an angle
 	;; bracket arglist.  It's propagated through the return value
@@ -6059,15 +6059,13 @@ comment at the start of cc-engine.el for more info."
 		  ;; Either an operator starting with '<' or a nested arglist.
 		  (setq pos (point))
 		  (let (id-start id-end subres keyword-match)
-                  (cond
+		    (cond
 		     ;; The '<' begins a multi-char operator.
 		     ((looking-at c-<-op-cont-regexp)
-		      (setq tmp (match-end 0))
 		      (goto-char (match-end 0)))
 		     ;; We're at a nested <.....>
 		     ((progn
-			(setq tmp pos)
-			(backward-char) ; to the '<'
+			(backward-char)	; to the '<'
 			(and
 			 (save-excursion
 			   ;; There's always an identifier before an angle
@@ -6087,7 +6085,9 @@ comment at the start of cc-engine.el for more info."
 				  (and keyword-match
 				       (c-keyword-member
 					(c-keyword-sym (match-string 1))
-					'c-<>-type-kwds)))))))
+					'c-<>-type-kwds))))))
+			(or subres (goto-char pos))
+			subres)
 		      ;; It was an angle bracket arglist.
 		      (setq c-record-found-types subres)
 
@@ -6103,11 +6103,11 @@ comment at the start of cc-engine.el for more info."
 			    (c-record-ref-id (cons id-start id-end))
                         (c-record-type-id (cons id-start id-end)))))
 
-                   ;; At a "less than" operator.
-                   (t
-                    (forward-char)
-                    )))
-                t)                    ; carry on looping.
+		     ;; At a "less than" operator.
+		     (t
+		      ;; (forward-char) ; NO!  We've already gone over the <.
+		      )))
+		  t)			; carry on looping.
 
 		 ((and (not c-restricted-<>-arglists)
 		       (or (and (eq (char-before) ?&)
@@ -6666,49 +6666,65 @@ comment at the start of cc-engine.el for more info."
     (or res (goto-char here))
     res))
 
+(defmacro c-back-over-list-of-member-inits ()
+  ;; Go back over a list of elements, each looking like:
+  ;; <symbol> (<expression>) ,
+  ;; or <symbol> {<expression>} ,
+  ;; when we are putatively immediately after a comma.  Stop when we don't see
+  ;; a comma.  If either of <symbol> or bracketed <expression> is missing,
+  ;; throw nil to 'level.  If the terminating } or ) is unmatched, throw nil
+  ;; to 'done.  This is not a general purpose macro!
+  `(while (eq (char-before) ?,)
+     (backward-char)
+     (c-backward-syntactic-ws)
+     (when (not (memq (char-before) '(?\) ?})))
+       (throw 'level nil))
+     (when (not (c-go-list-backward))
+       (throw 'done nil))
+     (c-backward-syntactic-ws)
+     (when (not (c-simple-skip-symbol-backward))
+       (throw 'level nil))
+     (c-backward-syntactic-ws)))
+
 (defun c-back-over-member-initializers ()
   ;; Test whether we are in a C++ member initializer list, and if so, go back
   ;; to the introducing ":", returning the position of the opening paren of
   ;; the function's arglist.  Otherwise return nil, leaving point unchanged.
   (let ((here (point))
 	(paren-state (c-parse-state))
-	res)
-
+	pos level-plausible at-top-level res)
+    ;; Assume tentatively that we're at the top level.  Try to go back to the
+    ;; colon we seek.
     (setq res
 	  (catch 'done
-	    (if (not (c-at-toplevel-p))
-		(progn
-		  (while (not (c-at-toplevel-p))
-		    (goto-char (c-pull-open-brace paren-state)))
-		  (c-backward-syntactic-ws)
-		  (when (not (c-simple-skip-symbol-backward))
-		    (throw 'done nil))
-		  (c-backward-syntactic-ws))
-	      (c-backward-syntactic-ws)
-	      (when (memq (char-before) '(?\) ?}))
-		(when (not (c-go-list-backward))
-		  (throw 'done nil))
-		(c-backward-syntactic-ws))
-	      (when (c-simple-skip-symbol-backward)
-		(c-backward-syntactic-ws)))
+	    (setq level-plausible
+		  (catch 'level
+		    (c-backward-syntactic-ws)
+		    (when (memq (char-before) '(?\) ?}))
+		      (when (not (c-go-list-backward))
+			(throw 'done nil))
+		      (c-backward-syntactic-ws))
+		    (when (c-simple-skip-symbol-backward)
+		      (c-backward-syntactic-ws))
+		    (c-back-over-list-of-member-inits)
+		    (and (eq (char-before) ?:)
+			 (c-just-after-func-arglist-p))))
 
-	    (while (eq (char-before) ?,)
-	      (backward-char)
-	      (c-backward-syntactic-ws)
+	    (while (and (not (and level-plausible
+				  (setq at-top-level (c-at-toplevel-p))))
+			(setq pos (c-pull-open-brace paren-state))) ; might be a paren.
+	      (setq level-plausible
+		    (catch 'level
+		      (goto-char pos)
+		      (c-backward-syntactic-ws)
+		      (when (not (c-simple-skip-symbol-backward))
+			(throw 'level nil))
+		      (c-backward-syntactic-ws)
+		      (c-back-over-list-of-member-inits)
+		      (and (eq (char-before) ?:)
+			   (c-just-after-func-arglist-p)))))
 
-	      (when (not (memq (char-before) '(?\) ?})))
-		(throw 'done nil))
-	      (when (not (c-go-list-backward))
-		(throw 'done nil))
-	      (c-backward-syntactic-ws)
-	      (when (not (c-simple-skip-symbol-backward))
-		(throw 'done nil))
-	      (c-backward-syntactic-ws))
-
-	    (and
-	     (eq (char-before) ?:)
-	     (c-just-after-func-arglist-p))))
-
+	    (and at-top-level level-plausible)))
     (or res (goto-char here))
     res))
 
@@ -8048,6 +8064,8 @@ brace.
 
 Note that this function might do hidden buffer changes.  See the
 comment at the start of cc-engine.el for more info."
+  ;; Note to maintainers: this function consumes a great mass of CPU cycles.
+  ;; Its use should thus be minimized as far as possible.
   (let ((paren-state (c-parse-state)))
     (or (not (c-most-enclosing-brace paren-state))
 	(c-search-uplist-for-classkey paren-state))))
@@ -10052,7 +10070,8 @@ comment at the start of cc-engine.el for more info."
 	 ;; Note there is no limit on the backward search here, since member
 	 ;; init lists can, in practice, be very large.
 	 ((save-excursion
-	    (when (setq placeholder (c-back-over-member-initializers))
+	    (when (and (c-major-mode-is 'c++-mode)
+		       (setq placeholder (c-back-over-member-initializers)))
 	      (setq tmp-pos (point))))
 	  (if (= (c-point 'bosws) (1+ tmp-pos))
 		(progn

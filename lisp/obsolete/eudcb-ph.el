@@ -7,6 +7,7 @@
 ;; Maintainer: Thomas Fitzsimmons <fitzsim@fitzsim.org>
 ;; Keywords: comm
 ;; Package: eudc
+;; Obsolete-since: 25.1
 
 ;; This file is part of GNU Emacs.
 

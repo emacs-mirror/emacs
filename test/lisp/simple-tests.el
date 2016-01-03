@@ -138,6 +138,12 @@
                      (open-line 1)))
                  '("- - " . "\n(a b c d)"))))
 
+;; For a while, from 24 Oct - 21 Nov 2015, `open-line' in the Emacs
+;; development tree became sensitive to `electric-indent-mode', which
+;; it had not been before.  This sensitivity was reverted for the
+;; Emacs 25 release, so it could be discussed further (see thread
+;; "Questioning the new behavior of `open-line'." on the Emacs Devel
+;; mailing list, and bug #21884).
 (ert-deftest open-line-indent ()
   (should (equal (simple-test--dummy-buffer
                    (electric-indent-local-mode 1)
@@ -145,29 +151,34 @@
                  '("(a b" . "\n c d)")))
   (should (equal (simple-test--dummy-buffer
                    (electric-indent-local-mode 1)
-                   (open-line 1 'interactive))
-                 '("(a b" . "\n   c d)")))
+                   (open-line 1))
+                 '("(a b" . "\n c d)")))
   (should (equal (simple-test--dummy-buffer
                    (electric-indent-local-mode 1)
                    (let ((current-prefix-arg nil))
                      (call-interactively #'open-line)
                      (call-interactively #'open-line)))
-                 '("(a b" . "\n\n   c d)")))
+                 '("(a b" . "\n\n c d)")))
   (should (equal (simple-test--dummy-buffer
                    (electric-indent-local-mode 1)
-                   (open-line 5 'interactive))
-                 '("(a b" . "\n\n\n\n\n   c d)")))
+                   (open-line 5))
+                 '("(a b" . "\n\n\n\n\n c d)")))
   (should (equal (simple-test--dummy-buffer
                    (electric-indent-local-mode 1)
                    (let ((current-prefix-arg 5))
                      (call-interactively #'open-line)))
-                 '("(a b" . "\n\n\n\n\n   c d)")))
+                 '("(a b" . "\n\n\n\n\n c d)")))
   (should (equal (simple-test--dummy-buffer
                    (forward-char 1)
                    (electric-indent-local-mode 1)
-                   (open-line 1 'interactive))
-                 '("(a b" . "\n   c d)"))))
+                   (open-line 1))
+                 '("(a b " . "\nc d)"))))
 
+;; From 24 Oct - 21 Nov 2015, `open-line' took a second argument
+;; INTERACTIVE and ran `post-self-insert-hook' if the argument was
+;; true.  This test tested that.  Currently, however, `open-line'
+;; does not run run `post-self-insert-hook' at all, so for now
+;; this test just makes sure that it doesn't.
 (ert-deftest open-line-hook ()
   (let* ((x 0)
          (inc (lambda () (setq x (1+ x)))))
@@ -177,18 +188,18 @@
     (should (= x 0))
     (simple-test--dummy-buffer
       (add-hook 'post-self-insert-hook inc nil 'local)
-      (open-line 1 'interactive))
-    (should (= x 1))
+      (open-line 1))
+    (should (= x 0))
 
     (unwind-protect
         (progn
           (add-hook 'post-self-insert-hook inc)
           (simple-test--dummy-buffer
             (open-line 1))
-          (should (= x 1))
+          (should (= x 0))
           (simple-test--dummy-buffer
-            (open-line 10 'interactive))
-          (should (= x 2)))
+            (open-line 10))
+          (should (= x 0)))
       (remove-hook 'post-self-insert-hook inc))))
 
 
@@ -215,9 +226,9 @@
 
 
 ;;; auto-boundary tests
-(ert-deftest undo-auto--boundary-timer ()
+(ert-deftest undo-auto-boundary-timer ()
   (should
-   undo-auto--current-boundary-timer))
+   undo-auto-current-boundary-timer))
 
 (ert-deftest undo-auto--boundaries-added ()
   ;; The change in the buffer should have caused addition
@@ -250,6 +261,54 @@
                  '("(s1) (s2) (s4)" . " (s3) (s5)")))
   (should (equal (simple-test--transpositions (transpose-sexps -2))
                  '("(s1) (s4)" . " (s2) (s3) (s5)"))))
+
+
+;; Test for a regression introduced by undo-auto--boundaries changes.
+;; https://lists.gnu.org/archive/html/emacs-devel/2015-11/msg01652.html
+(defun undo-test-kill-c-a-then-undo ()
+  (with-temp-buffer
+    (switch-to-buffer (current-buffer))
+    (setq buffer-undo-list nil)
+    (insert "a\nb\n\c\n")
+    (goto-char (point-max))
+    ;; We use a keyboard macro because it adds undo events in the same
+    ;; way as if a user were involved.
+    (kmacro-call-macro nil nil nil
+                       [left
+                        ;; Delete "c"
+                        backspace
+                        left left left
+                        ;; Delete "a"
+                        backspace
+                        ;; C-/ or undo
+                        67108911
+                        ])
+    (point)))
+
+(defun undo-test-point-after-forward-kill ()
+  (with-temp-buffer
+    (switch-to-buffer (current-buffer))
+    (setq buffer-undo-list nil)
+    (insert "kill word forward")
+    ;; Move to word "word".
+    (goto-char 6)
+    (kmacro-call-macro nil nil nil
+                       [
+                        ;; kill-word
+                        C-delete
+                        ;; undo
+                        67108911
+                        ])
+    (point)))
+
+(ert-deftest undo-point-in-wrong-place ()
+  (should
+   ;; returns 5 with the bug
+   (= 2
+      (undo-test-kill-c-a-then-undo)))
+  (should
+   (= 6
+      (undo-test-point-after-forward-kill))))
 
 
 (provide 'simple-test)

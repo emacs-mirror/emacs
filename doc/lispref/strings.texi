@@ -465,6 +465,7 @@ Representations}.
 @code{string-equal} is another name for @code{string=}.
 @end defun
 
+@cindex locale-dependent string equivalence
 @defun string-collate-equalp string1 string2 &optional locale ignore-case
 This function returns @code{t} if @var{string1} and @var{string2} are
 equal with respect to collation rules.  A collation rule is not only
@@ -493,6 +494,7 @@ systems.
 If @var{ignore-case} is non-@code{nil}, characters are converted to lower-case
 before comparing them.
 
+@vindex w32-collate-ignore-punctuation
 To emulate Unicode-compliant collation on MS-Windows systems,
 bind @code{w32-collate-ignore-punctuation} to a non-@code{nil} value, since
 the codeset part of the locale cannot be @code{"UTF-8"} on MS-Windows.
@@ -518,7 +520,7 @@ optional argument @var{ignore-case} is non-@code{nil}, the comparison
 ignores case differences.
 @end defun
 
-@cindex lexical comparison
+@cindex lexical comparison of strings
 @defun string< string1 string2
 @c (findex string< causes problems for permuted index!!)
 This function compares two strings a character at a time.  It
@@ -576,6 +578,7 @@ are used.
 @code{string-lessp} is another name for @code{string<}.
 @end defun
 
+@cindex locale-dependent string comparison
 @defun string-collate-lessp string1 string2 &optional locale ignore-case
 This function returns @code{t} if @var{string1} is less than
 @var{string2} in collation order.  A collation order is not only
@@ -594,15 +597,15 @@ for sorting (@pxref{Sequence Functions}):
 @end group
 @end example
 
-This behavior is system-dependent; punctuation and whitespace are
-never ignored on Cygwin, regardless of locale.
+This behavior is system-dependent; e.g., punctuation and whitespace
+are never ignored on Cygwin, regardless of locale.
 
 The optional argument @var{locale}, a string, overrides the setting of
 your current locale identifier for collation.  The value is system
 dependent; a @var{locale} @code{"en_US.UTF-8"} is applicable on POSIX
 systems, while it would be, e.g., @code{"enu_USA.1252"} on MS-Windows
-systems.  The @var{locale} @code{"POSIX"} lets @code{string-collate-lessp}
-behave like @code{string-lessp}:
+systems.  The @var{locale} value of @code{"POSIX"} or @code{"C"} lets
+@code{string-collate-lessp} behave like @code{string-lessp}:
 
 @example
 @group

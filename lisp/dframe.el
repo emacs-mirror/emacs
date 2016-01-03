@@ -420,7 +420,7 @@ CREATE-HOOK is a hook to run after creating a frame."
 
 (defun dframe-reposition-frame (new-frame parent-frame location)
   "Move NEW-FRAME to be relative to PARENT-FRAME.
-LOCATION can be one of 'random, 'left, 'right, 'left-right, or 'top-bottom."
+LOCATION can be one of `random', `left', `right', `left-right', or `top-bottom'."
   (if (featurep 'xemacs)
       (dframe-reposition-frame-xemacs new-frame parent-frame location)
     (dframe-reposition-frame-emacs new-frame parent-frame location)))
@@ -431,7 +431,7 @@ LOCATION can be one of 'random, 'left, 'right, 'left-right, or 'top-bottom."
 
 (defun dframe-reposition-frame-emacs (new-frame parent-frame location)
   "Move NEW-FRAME to be relative to PARENT-FRAME.
-LOCATION can be one of 'random, 'left-right, 'top-bottom, or
+LOCATION can be one of `random', `left-right', `top-bottom', or
 a cons cell indicating a position of the form (LEFT . TOP)."
   ;; Position dframe.
   ;; Do no positioning if not on a windowing system,
@@ -514,7 +514,7 @@ a cons cell indicating a position of the form (LEFT . TOP)."
 
 (defun dframe-reposition-frame-xemacs (_new-frame _parent-frame _location)
   "Move NEW-FRAME to be relative to PARENT-FRAME.
-LOCATION can be one of 'random, 'left-right, or 'top-bottom."
+LOCATION can be one of `random', `left-right', or `top-bottom'."
   ;; Not yet implemented
   )
 

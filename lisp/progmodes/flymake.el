@@ -989,7 +989,7 @@ For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
   (funcall flymake-get-project-include-dirs-function basedir))
 
 (defun flymake-get-system-include-dirs ()
-  "System include dirs - from the 'INCLUDE' env setting."
+  "System include dirs - from the `INCLUDE' env setting."
   (let* ((includes (getenv "INCLUDE")))
     (if includes (split-string includes path-separator t) nil)))
 

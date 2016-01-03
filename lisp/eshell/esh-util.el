@@ -678,8 +678,8 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 (defun eshell-file-attributes (file &optional id-format)
   "Return the attributes of FILE, playing tricks if it's over ange-ftp.
 The optional argument ID-FORMAT specifies the preferred uid and
-gid format.  Valid values are 'string and 'integer, defaulting to
-'integer.  See `file-attributes'."
+gid format.  Valid values are `string' and `integer', defaulting to
+`integer'.  See `file-attributes'."
   (let* ((file (expand-file-name file))
 	 entry)
     (if (string-equal (file-remote-p file 'method) "ftp")

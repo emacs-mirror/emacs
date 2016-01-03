@@ -97,7 +97,7 @@ name.")
           "\\.\\(" js--name-re "\\)\\s-*?=\\s-*?\\(function\\)\\_>")
   "Regexp matching an explicit JavaScript prototype \"method\" declaration.
 Group 1 is a (possibly-dotted) class name, group 2 is a method name,
-and group 3 is the 'function' keyword.")
+and group 3 is the `function' keyword.")
 
 (defconst js--plain-class-re
   (concat "^\\s-*\\(" js--dotted-name-re "\\)\\.prototype"
@@ -831,7 +831,7 @@ lines."
 
 (defun js--forward-function-decl ()
   "Move forward over a JavaScript function declaration.
-This puts point at the 'function' keyword.
+This puts point at the `function' keyword.
 
 If this is a syntactically-correct non-expression function,
 return the name of the function, or t if the name could not be
@@ -1823,6 +1823,7 @@ nil."
                    (skip-syntax-backward " ")
                    (skip-syntax-backward "w_")
                    (looking-at js--possibly-braceless-keyword-re))
+                 (memq (char-before) '(?\s ?\t ?\n ?\}))
                  (not (js--end-of-do-while-loop-p))))
       (save-excursion
         (goto-char (match-beginning 0))
@@ -3366,8 +3367,8 @@ left-to-right."
 
 (defun js--read-tab (prompt)
   "Read a Mozilla tab with prompt PROMPT.
-Return a cons of (TYPE . OBJECT).  TYPE is either 'window or
-'tab, and OBJECT is a JavaScript handle to a ChromeWindow or a
+Return a cons of (TYPE . OBJECT).  TYPE is either `window' or
+`tab', and OBJECT is a JavaScript handle to a ChromeWindow or a
 browser, respectively."
 
   ;; Prime IDO
@@ -3778,12 +3779,12 @@ If one hasn't been set, or if it's stale, prompt for a new one."
   "Major mode for editing JSX.
 
 To customize the indentation for this mode, set the SGML offset
-variables (`sgml-basic-offset', `sgml-attribute-offset' et al)
+variables (`sgml-basic-offset', `sgml-attribute-offset' et al.)
 locally, like so:
 
   (defun set-jsx-indentation ()
     (setq-local sgml-basic-offset js-indent-level))
-  (add-hook 'js-jsx-mode-hook #'set-jsx-indentation)"
+  (add-hook \\='js-jsx-mode-hook #\\='set-jsx-indentation)"
   :group 'js
   (setq-local indent-line-function #'js-jsx-indent-line))
 

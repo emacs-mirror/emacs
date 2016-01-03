@@ -149,7 +149,7 @@ respectively.")
   (null list))
 
 (defun json-plist-p (list)
-  "Non-null if and only if LIST is a plist."
+  "Non-null if and only if LIST is a plist with keyword keys."
   (while (consp list)
     (setq list (if (and (keywordp (car list))
                         (consp (cdr list)))

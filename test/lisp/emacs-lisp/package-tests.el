@@ -242,6 +242,20 @@ Must called from within a `tar-mode' buffer."
     (should (package-installed-p 'simple-single))
     (should (package-installed-p 'simple-depend))))
 
+(ert-deftest package-test-macro-compilation ()
+  "Install a package which includes a dependency."
+  (with-package-test (:basedir "data/package")
+    (package-install-file (expand-file-name "macro-problem-package-1.0/"))
+    (require 'macro-problem)
+    ;; `macro-problem-func' uses a macro from `macro-aux'.
+    (should (equal (macro-problem-func) '(progn a b)))
+    (package-install-file (expand-file-name "macro-problem-package-2.0/"))
+    ;; After upgrading, `macro-problem-func' depends on a new version
+    ;; of the macro from `macro-aux'.
+    (should (equal (macro-problem-func) '(1 b)))
+    ;; `macro-problem-10-and-90' depends on an entirely new macro from `macro-aux'.
+    (should (equal (macro-problem-10-and-90) '(10 90)))))
+
 (ert-deftest package-test-install-two-dependencies ()
   "Install a package which includes a dependency."
   (with-package-test ()

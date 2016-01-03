@@ -899,13 +899,25 @@ adds it to the most recent element.  It determines automatically (using
 @code{last-command}) whether the previous command was a kill command,
 and if so appends the killed text to the most recent entry.
 
-@deffn Command kill-region start end
-This function kills the text in the region defined by @var{start} and
-@var{end}.  The text is deleted but saved in the kill ring, along with
-its text properties.  The value is always @code{nil}.
+@cindex filtering killed text
+  The commands described below can filter the killed text before they
+save it in the kill ring.  They call @code{filter-buffer-substring}
+(@pxref{Buffer Contents}) to perform the filtering.  By default,
+there's no filtering, but major and minor modes and hook functions can
+set up filtering, so that text saved in the kill ring is different
+from what was in the buffer.
+
+@deffn Command kill-region start end &optional region
+This function kills the stretch of text between @var{start} and
+@var{end}; but if the optional argument @var{region} is
+non-@code{nil}, it ignores @var{start} and @var{end}, and kills the
+text in the current region instead.  The text is deleted but saved in
+the kill ring, along with its text properties.  The value is always
+@code{nil}.
 
 In an interactive call, @var{start} and @var{end} are point and
-the mark.
+the mark, and @var{region} is always non-@code{nil}, so the command
+always kills the text in the current region.
 
 If the buffer or text is read-only, @code{kill-region} modifies the kill
 ring just the same, then signals an error without modifying the buffer.
@@ -919,18 +931,20 @@ error if the buffer or text is read-only.  Instead, it simply returns,
 updating the kill ring but not changing the buffer.
 @end defopt
 
-@deffn Command copy-region-as-kill start end
-This command saves the region defined by @var{start} and @var{end} on
-the kill ring (including text properties), but does not delete the text
-from the buffer.  It returns @code{nil}.
+@deffn Command copy-region-as-kill start end &optional region
+This function saves the stretch of text between @var{start} and
+@var{end} on the kill ring (including text properties), but does not
+delete the text from the buffer.  However, if the optional argument
+@var{region} is non-@code{nil}, the function ignores @var{start} and
+@var{end}, and saves the current region instead.  It always returns
+@code{nil}.
+
+In an interactive call, @var{start} and @var{end} are point and
+the mark, and @var{region} is always non-@code{nil}, so the command
+always saves the text in the current region.
 
 The command does not set @code{this-command} to @code{kill-region}, so a
 subsequent kill command does not append to the same kill ring entry.
-
-@c FIXME Why is it better?  Why isn't copy-region-as-kill obsolete then?
-@c Why is it used in many places in Emacs?
-In Lisp programs, it is better to use @code{kill-new} or
-@code{kill-append} instead of this command.  @xref{Low-Level Kill Ring}.
 @end deffn
 
 @node Yanking
@@ -1343,26 +1357,38 @@ This function places a boundary element in the undo list.  The undo
 command stops at such a boundary, and successive undo commands undo
 to earlier and earlier boundaries.  This function returns @code{nil}.
 
-The editor command loop automatically calls @code{undo-boundary} just
-before executing each key sequence, so that each undo normally undoes
-the effects of one command.  As an exception, the command
-@code{self-insert-command}, which produces self-inserting input
-characters (@pxref{Commands for Insertion}), may remove the boundary
-inserted by the command loop: a boundary is accepted for the first
-such character, the next 19 consecutive self-inserting input
-characters do not have boundaries, and then the 20th does; and so on
-as long as the self-inserting characters continue.  Hence, sequences
-of consecutive character insertions can be undone as a group.
-
-All buffer modifications add a boundary whenever the previous undoable
-change was made in some other buffer.  This is to ensure that
-each command makes a boundary in each buffer where it makes changes.
-
 Calling this function explicitly is useful for splitting the effects of
 a command into more than one unit.  For example, @code{query-replace}
 calls @code{undo-boundary} after each replacement, so that the user can
 undo individual replacements one by one.
+
+Mostly, however, this function is called automatically at an
+appropriate time.
 @end defun
+
+@defun undo-auto-amalgamate
+@cindex amalgamating commands, and undo
+The editor command loop automatically calls @code{undo-boundary} just
+before executing each key sequence, so that each undo normally undoes
+the effects of one command.  A few exceptional commands are
+@dfn{amalgamating}: these commands generally cause small changes to
+buffers, so with these a boundary is inserted only every 20th command,
+allowing to undo them as a group.  By default, commands
+@code{self-insert-command}, which produces self-inserting input
+characters (@pxref{Commands for Insertion}), and @code{delete-char}
+which deletes characters (@pxref{Deletion}) are amalgamating.
+Where a command affects the contents of several buffers, as may happen,
+for example, when a function on the @code{post-command-hook} affects a
+buffer other than the @code{current-buffer}, then @code{undo-boundary}
+will be called in each of the affected buffers.
+@end defun
+
+@defvar undo-auto-current-boundary-timer
+Some buffers, such as process buffers, can change even when no
+commands are executing.  In these cases, @code{undo-boundary} is
+normally called periodically by the timer in this variable.  Setting
+this variable to non-@code{nil} prevents this behavior.
+@end defvar
 
 @defvar undo-in-progress
 This variable is normally @code{nil}, but the undo commands bind it to
@@ -2336,6 +2362,84 @@ already indented, it calls @code{completion-at-point} to complete the
 text at point (@pxref{Completion in Buffers}).
 @end defopt
 
+@cindex literate programming
+@cindex multi-mode indentation
+  Some major modes need to support embedded regions of text whose
+syntax belongs to a different major mode.  Examples include
+@dfn{literate programming} source files that combine documentation and
+snippets of source code, Yacc/Bison programs that include snippets of
+plain C code, etc.  To correctly indent the embedded chunks, the major
+mode needs to delegate the indentation to another mode's indentation
+engine (e.g., call @code{c-indent-defun} for C code or
+@code{python-indent-line} for Python), while providing it with some
+context to guide the indentation.  The following facilities support
+such multi-mode indentation.
+
+@defvar prog-indentation-context
+This variable, when non-@code{nil}, holds the indentation context for
+the sub-mode's indentation engine provided by the superior major mode.
+The value should be a list of the form @code{(@var{first-column}
+@w{(@var{start} . @var{end})} @code{prev-chunk})}.  The members of the
+list have the following meaning:
+
+@table @var
+@item first-column
+The column to be used for top-level constructs.  This replaces the
+default value of the top-level column used by the sub-mode, usually
+zero.
+@item start
+@itemx end
+The region of the code chunk to be indented by the sub-mode.  The
+value of @var{end} can be @code{nil}, which stands for the value of
+@code{point-max}.
+@item prev-chunk
+If this is non-@code{nil}, it should provide the sub-mode's
+indentation engine with a virtual context of the code chunk.  Valid
+values include:
+
+@itemize @minus
+@item
+A string whose contents is the text the sub-mode's indentation engine
+should consider to precede the code chunk.  The sub-mode's indentation
+engine can add text properties to that string, to be reused in
+repeated calls with the same string, thus using it as a cache.  An
+example where this is useful is code chunks that need to be indented
+as function bodies, but lack the function's preamble---the string
+could then include that missing preamble.
+@item
+A function.  It is expected to be called with the start position of
+the current chunk, and should return a cons cell
+@w{@code{(@var{prev-start} . @var{prev-end})}} that specifies the
+region of the previous code chunk, or @code{nil} if there is no previous
+chunk.  This is useful in literate-programming sources, where code is
+split into chunks, and correct indentation needs to access previous
+chunks.
+@end itemize
+@end table
+@end defvar
+
+The following convenience functions should be used by major mode's
+indentation engine in support of invocations as sub-modes of another
+major mode.
+
+@defun prog-first-column
+Call this function instead of using a literal value (usually, zero) of
+the column number for indenting top-level program constructs.  The
+function's value is the column number to use for top-level constructs.
+When no superior mode is in effect, this function returns zero.
+@end defun
+
+@defun prog-widen
+Call this function instead of @code{widen} to remove any restrictions
+imposed by the mode's indentation engine and restore the restrictions
+recorded in @code{prog-indentation-context}.  This prevents the
+indentation engine of a sub-mode from inadvertently operating on text
+outside of the chunk it was supposed to indent, and preserves the
+restriction imposed by the superior mode.  When no superior mode is in
+effect, this function just calls @code{widen}.
+@end defun
+
+
 @node Region Indent
 @subsection Indenting an Entire Region
 
@@ -3256,8 +3360,8 @@ and then remove the property.  @xref{Read Only Buffers}.
 
 @item inhibit-read-only
 @kindex inhibit-read-only @r{(text property)}
-If a character has the property @code{inhibit-read-only}, and the
-buffer is read-only, editing the character in question is allowed.
+Characters that have the property @code{inhibit-read-only} can be
+edited even in read-only buffers.  @xref{Read Only Buffers}.
 
 @item invisible
 @kindex invisible @r{(text property)}

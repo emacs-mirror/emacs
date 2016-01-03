@@ -25,10 +25,13 @@
 
 (eval-when-compile (require 'cl))
 
+(autoload 'gnus-subsetp "gnus-util")
+(autoload 'mail-strip-quoted-names "mail-utils")
 (autoload 'mml2015-sign "mml2015")
 (autoload 'mml2015-encrypt "mml2015")
 (autoload 'mml1991-sign "mml1991")
 (autoload 'mml1991-encrypt "mml1991")
+(autoload 'message-fetch-field "message")
 (autoload 'message-goto-body "message")
 (autoload 'mml-insert-tag "mml")
 (autoload 'mml-smime-sign "mml-smime")
@@ -121,6 +124,21 @@ Whether the passphrase is cached at all is controlled by
 `mml-secure-cache-passphrase'."
   :group 'message
   :type 'integer)
+
+(defcustom mml-secure-safe-bcc-list nil
+  "List of e-mail addresses that are safe to use in Bcc headers.
+EasyPG encrypts e-mails to Bcc addresses, and the encrypted e-mail
+by default identifies the used encryption keys, giving away the
+Bcc'ed identities.  Clearly, this contradicts the original goal of
+*blind* copies.
+For an academic paper explaining the problem, see URL
+`http://crypto.stanford.edu/portia/papers/bb-bcc.pdf'.
+Use this variable to specify e-mail addresses whose owners do not
+mind if they are identifiable as recipients.  This may be useful if
+you use Bcc headers to encrypt e-mails to yourself."
+  :version "25.1"
+  :group 'message
+  :type '(repeat string))
 
 ;;; Configuration/helper functions
 
@@ -271,6 +289,36 @@ Use METHOD if given.  Else use `mml-secure-method' or
   "Add MML tags to S/MIME encrypt this MML part."
   (interactive)
   (mml-secure-part "smime"))
+
+(defun mml-secure-is-encrypted-p ()
+  "Check whether secure encrypt tag is present."
+  (save-excursion
+    (goto-char (point-min))
+    (re-search-forward
+     (concat "^" (regexp-quote mail-header-separator) "\n"
+	     "<#secure[^>]+encrypt")
+     nil t)))
+
+(defun mml-secure-bcc-is-safe ()
+  "Check whether usage of Bcc is safe (or absent).
+Bcc usage is safe in two cases: first, if the current message does
+not contain an MML secure encrypt tag;
+second, if the Bcc addresses are a subset of `mml-secure-safe-bcc-list'.
+In all other cases, ask the user whether Bcc usage is safe.
+Raise error if user answers no.
+Note that this function does not produce a meaningful return value:
+either an error is raised or not."
+  (when (mml-secure-is-encrypted-p)
+    (let ((bcc (mail-strip-quoted-names (message-fetch-field "bcc"))))
+      (when bcc
+	(let ((bcc-list (mapcar #'cadr
+				(mail-extract-address-components bcc t))))
+	  (unless (gnus-subsetp bcc-list mml-secure-safe-bcc-list)
+	    (unless (yes-or-no-p "Message for encryption contains Bcc header.\
+  This may give away all Bcc'ed identities to all recipients.\
+  Are you sure that this is safe?\
+  (Customize `mml-secure-safe-bcc-list' to avoid this warning.) ")
+	      (error "Aborted"))))))))
 
 ;; defuns that add the proper <#secure ...> tag to the top of the message body
 (defun mml-secure-message (method &optional modesym)

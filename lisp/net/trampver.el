@@ -6,6 +6,7 @@
 ;; Author: Kai Großjohann <kai.grossjohann@gmx.net>
 ;; Keywords: comm, processes
 ;; Package: tramp
+;; Version: 2.2.13.25.1
 
 ;; This file is part of GNU Emacs.
 
@@ -31,7 +32,7 @@
 ;; should be changed only there.
 
 ;;;###tramp-autoload
-(defconst tramp-version "2.2.13-pre"
+(defconst tramp-version "2.2.13.25.1"
   "This version of Tramp.")
 
 ;;;###tramp-autoload
@@ -62,7 +63,7 @@
 		      (= emacs-major-version 21)
 		      (>= emacs-minor-version 4)))
 	     "ok"
-	   (format "Tramp 2.2.13-pre is not fit for %s"
+	   (format "Tramp 2.2.13.25.1 is not fit for %s"
 		   (when (string-match "^.*$" (emacs-version))
 		     (match-string 0 (emacs-version)))))))
   (unless (string-match "\\`ok\\'" x) (error "%s" x)))

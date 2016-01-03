@@ -308,7 +308,8 @@
 (defcustom css-indent-offset 4
   "Basic size of one indentation step."
   :version "22.2"
-  :type 'integer)
+  :type 'integer
+  :safe 'integerp)
 
 (require 'smie)
 

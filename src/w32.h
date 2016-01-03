@@ -179,8 +179,10 @@ extern int _sys_wait_connect (int fd);
 
 extern HMODULE w32_delayed_load (Lisp_Object);
 
-extern int (WINAPI *pMultiByteToWideChar)(UINT,DWORD,LPCSTR,int,LPWSTR,int);
-extern int (WINAPI *pWideCharToMultiByte)(UINT,DWORD,LPCWSTR,int,LPSTR,int,LPCSTR,LPBOOL);
+typedef int (WINAPI *MultiByteToWideChar_Proc)(UINT,DWORD,LPCSTR,int,LPWSTR,int);
+typedef int (WINAPI *WideCharToMultiByte_Proc)(UINT,DWORD,LPCWSTR,int,LPSTR,int,LPCSTR,LPBOOL);
+extern MultiByteToWideChar_Proc pMultiByteToWideChar;
+extern WideCharToMultiByte_Proc pWideCharToMultiByte;
 
 extern void init_environment (char **);
 extern void check_windows_init_file (void);

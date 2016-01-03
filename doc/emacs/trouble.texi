@@ -1065,7 +1065,7 @@ send it to the developers.  Sending it to
 recommended, because that list is coupled to a tracking system that
 makes it easier to locate patches.  If your patch is not complete and
 you think it needs more discussion, you might want to send it to
-@email{emacs-devel@@gnu@@gnu.org} instead.  If you revise your patch,
+@email{emacs-devel@@gnu.org} instead.  If you revise your patch,
 send it as a followup to the initial topic.
 
 We prefer to get the patches as plain text, either inline (be careful

@@ -35,14 +35,18 @@
 ;; * Support connections to HOST/PORT, generally for debugging and the like.
 ;; In other words, for doing much the same thing as "telnet HOST PORT", and
 ;; then typing commands.
-;;
-;; PATHS
-;;
-;; On some systems, some of these programs are not in normal user path,
-;; but rather in /sbin, /usr/sbin, and so on.
-
 
 ;;; Code:
+
+;; On some systems, programs like ifconfig are not in normal user
+;; path, but rather in /sbin, /usr/sbin, etc (but non-root users can
+;; still use them for queries).  Actually the trend these
+;; days is for /sbin to be a symlink to /usr/sbin, but we still need to
+;; search both for older systems.
+(defun net-utils--executable-find-sbin (command)
+  "Return absolute name of COMMAND if found in an sbin directory."
+  (let ((exec-path '("/sbin" "/usr/sbin" "/usr/local/sbin")))
+    (executable-find command)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Customization Variables
@@ -85,10 +89,13 @@ These options can be used to limit how many ICMP packets are emitted."
 (define-obsolete-variable-alias 'ipconfig-program 'ifconfig-program "22.2")
 
 (defcustom ifconfig-program
-  (if (eq system-type 'windows-nt)
-      "ipconfig"
-    "ifconfig")
+  (cond ((eq system-type 'windows-nt) "ipconfig")
+        ((executable-find "ifconfig") "ifconfig")
+        ((net-utils--executable-find-sbin "ifconfig"))
+        ((net-utils--executable-find-sbin "ip"))
+        (t "ip"))
   "Program to print network configuration information."
+  :version "25.1"                       ; add ip
   :group 'net-utils
   :type  'string)
 
@@ -96,10 +103,12 @@ These options can be used to limit how many ICMP packets are emitted."
   'ifconfig-program-options "22.2")
 
 (defcustom ifconfig-program-options
-  (list
-   (if (eq system-type 'windows-nt)
-       "/all" "-a"))
+  (cond ((string-match "ipconfig\\'" ifconfig-program) '("/all"))
+        ((string-match "ifconfig\\'" ifconfig-program) '("-a"))
+        ((string-match "ip\\'" ifconfig-program) '("addr")))
   "Options for the ifconfig program."
+  :version "25.1"
+  :set-after '(ifconfig-program)
   :group 'net-utils
   :type  '(repeat string))
 
@@ -126,7 +135,7 @@ These options can be used to limit how many ICMP packets are emitted."
   :group 'net-utils
   :type  '(repeat string))
 
-(defcustom arp-program "arp"
+(defcustom arp-program (or (net-utils--executable-find-sbin "arp") "arp")
   "Program to print IP to address translation tables."
   :group 'net-utils
   :type  'string)

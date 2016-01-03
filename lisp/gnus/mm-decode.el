@@ -393,7 +393,7 @@ enables you to choose manually one of two types those mails include."
 
 (defcustom mm-inline-large-images nil
   "If t, then all images fit in the buffer.
-If 'resize, try to resize the images so they fit."
+If `resize', try to resize the images so they fit."
   :type '(radio
           (const :tag "Inline large images as they are." t)
           (const :tag "Resize large images." resize)

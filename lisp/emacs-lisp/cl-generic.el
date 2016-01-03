@@ -797,10 +797,10 @@ methods.")
 
 ;;; Define some pre-defined generic functions, used internally.
 
-(define-error 'cl-no-method "No method for %S")
-(define-error 'cl-no-next-method "No next method for %S" 'cl-no-method)
-(define-error 'cl-no-primary-method "No primary method for %S" 'cl-no-method)
-(define-error 'cl-no-applicable-method "No applicable method for %S"
+(define-error 'cl-no-method "No method")
+(define-error 'cl-no-next-method "No next method" 'cl-no-method)
+(define-error 'cl-no-primary-method "No primary method" 'cl-no-method)
+(define-error 'cl-no-applicable-method "No applicable method"
   'cl-no-method)
 
 (cl-defgeneric cl-no-next-method (generic method &rest args)

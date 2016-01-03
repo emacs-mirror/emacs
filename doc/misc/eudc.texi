@@ -9,11 +9,10 @@
 @c %**end of header
 
 @copying
-This file documents EUDC v1.30b.
+This file documents EUDC version 1.40.0.
 
 EUDC is the Emacs Unified Directory Client, a common interface to
-directory servers using various protocols such as LDAP or the CCSO white
-pages directory system (PH/QI)
+directory servers and contact information.
 
 Copyright @copyright{} 1998, 2000--2015 Free Software Foundation, Inc.
 
@@ -32,7 +31,7 @@ modify this GNU manual.''
 
 @dircategory Emacs network features
 @direntry
-* EUDC: (eudc).                 Emacs client for directory servers (LDAP, PH).
+* EUDC: (eudc).                 Emacs client for directory servers (LDAP, BBDB).
 @end direntry
 
 @footnotestyle end
@@ -41,7 +40,7 @@ modify this GNU manual.''
 @title EUDC Manual
 @subtitle The Emacs Unified Directory Client
 @author by Oscar Figueiredo
-@code{1.30b}
+@code{1.40.0}
 
 @page
 @vskip 0pt plus 1fill
@@ -83,8 +82,6 @@ Currently supported back-ends are:
 @item
 LDAP, Lightweight Directory Access Protocol
 @item
-CCSO PH/QI
-@item
 BBDB, Big Brother's Insidious Database
 @end itemize
 
@@ -109,7 +106,6 @@ Interface to BBDB to let you insert server records into your own BBDB database
 
 @menu
 * LDAP::                        What is LDAP ?
-* CCSO PH/QI::                  What is CCSO, PH, QI ?
 * BBDB::                        What is BBDB ?
 @end menu
 
@@ -141,30 +137,6 @@ EUDC requires external support to access LDAP directory servers
 (@pxref{LDAP Configuration})
 
 
-@node CCSO PH/QI
-@section CCSO PH/QI
-
-The Central Computing Services Office (CCSO) of the University of
-Illinois at Urbana Champaign created and freely distributed a
-directory system that was used by many organizations in the 1990s.
-The system records information about people such as their address,
-phone number, email, academic information or any other details it was
-configured to.  Nowadays this system is not widely used.
-
-The system consists of two parts: a database server traditionally called
-@samp{qi} and a command-line client called @samp{ph}.
-@ignore
-Until 2010, the code could be downloaded from
-@url{http://www-dev.cites.uiuc.edu/ph/}.
-@end ignore
-
-The original command-line @samp{ph} client that came with the
-@samp{ph/qi} distribution provided additional features that are
-not implemented in EUDC, like the possibility to communicate with the
-server in login-mode, which made it possible to change records in the
-database.
-
-
 @node BBDB
 @section BBDB
 
@@ -175,14 +147,14 @@ and news readers.
 
 It is often used as an enhanced email address book.
 
-EUDC considers BBDB as a directory server back end just like LDAP or
-PH/QI servers, though BBDB has no client/server protocol and thus always
-resides locally on your machine.  The point in this is not to offer an
+EUDC considers BBDB as a directory server back end just like LDAP,
+though BBDB has no client/server protocol and thus always resides
+locally on your machine.  The point in this is not to offer an
 alternate way to query your BBDB database (BBDB itself provides much
-more flexible ways to do that), but rather to offer an interface to your
-local directory that is consistent with the interface to external
-directories (LDAP, PH/QI).  This is particularly interesting when
-performing queries on multiple servers.
+more flexible ways to do that), but rather to offer an interface to
+your local directory that is consistent with the interface to external
+LDAP directories.  This is particularly interesting when performing
+queries on multiple servers.
 
 EUDC also offers a means to insert results from directory queries into
 your own local BBDB (@pxref{Creating BBDB Records})
@@ -473,7 +445,7 @@ it will be ignored anyway.
 
 @defvar eudc-protocol
 The directory protocol to use to query the server.  Currently supported
-protocols in this version of EUDC are @code{ph}, @code{ldap} and @code{bbdb}.
+protocols in this version of EUDC are @code{ldap} and @code{bbdb}.
 @end defvar
 
 @deffn Command eudc-set-server
@@ -510,11 +482,8 @@ attributes are ignored.  Default is @code{t}.
 
 Directory standards may authorize different instances of the same
 attribute in a record. For instance the record of a person may contain
-several email fields containing different email addresses. When using
-a QI directory server this is difficult to distinguish from attributes
-having multi-line values such as the postal address that may contain a
-line for the street and another one for the zip code and city name. In
-both cases, EUDC will consider the attribute duplicated.
+several email fields containing different email addresses, in which
+case EUDC will consider the attribute duplicated.
 
 EUDC has several methods to deal with duplicated attributes. The
 available methods are:
@@ -955,39 +924,6 @@ evaluation should return something appropriate for the particular
 convenience functions to parse phones and addresses.
 @end table
 @end defvar
-
-The default value of the PH-specific value of that variable is
-@code{eudc-ph-bbdb-conversion-alist}:
-
-@lisp
-((name . name)
- (net . email)
- (address . (eudc-bbdbify-address address "Address"))
- (phone . ((eudc-bbdbify-phone phone "Phone")
-           (eudc-bbdbify-phone office_phone "Office Phone"))))
-@end lisp
-
-This means that:
-
-@itemize @bullet
-@item
-the @code{name} field of the BBDB record gets its value
-from the @code{name} attribute of the directory record
-@item
-the @code{net} field of the BBDB record gets its value
-from the @code{email} attribute of the directory record
-@item
-the @code{address} field of the BBDB record is obtained by parsing the
-@code{address} attribute of the directory record with the function
-@code{eudc-bbdbify-address}
-@item
-two @code{phone} fields are created (when possible) in the BBDB record.
-The first one has @cite{Phone} for location and its value is obtained by
-parsing the @code{phone} attribute of the PH/QI record with the function
-@code{eudc-bbdbify-phone}.  The second one has @cite{Office Phone} for location
-its value is obtained by parsing the @code{office_phone} attribute of the
-PH/QI record with the function @code{eudc-bbdbify-phone}.
-@end itemize
 
 @defun eudc-bbdbify-phone phone location
 This is a convenience function provided for use in

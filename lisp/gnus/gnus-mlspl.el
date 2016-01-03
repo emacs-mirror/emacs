@@ -122,9 +122,9 @@ clauses will be generated.
 If CATCH-ALL is nil, no catch-all handling is performed, regardless of
 catch-all marks in group parameters.  Otherwise, if there is no
 selected group whose SPLIT-REGEXP matches the empty string, nor is
-there a selected group whose SPLIT-SPEC is 'catch-all, this fancy
+there a selected group whose SPLIT-SPEC is `catch-all', this fancy
 split (say, a group name) will be appended to the returned SPLIT list,
-as the last element of a '| SPLIT.
+as the last element of a `|' SPLIT.
 
 For example, given the following group parameters:
 

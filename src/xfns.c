@@ -5582,6 +5582,8 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
 		       "autoLower", "AutoRaiseLower", RES_TYPE_BOOLEAN);
   x_default_parameter (f, parms, Qcursor_type, Qbox,
 		       "cursorType", "CursorType", RES_TYPE_SYMBOL);
+  x_default_parameter (f, parms, Qalpha, Qnil,
+		       "alpha", "Alpha", RES_TYPE_NUMBER);
 
   /* Dimensions, especially FRAME_LINES (f), must be done via change_frame_size.
      Change will not be effected unless different from the current
@@ -5719,7 +5721,7 @@ compute_tip_xy (struct frame *f, Lisp_Object parms, Lisp_Object dx, Lisp_Object 
   if (INTEGERP (left))
     *root_x = XINT (left);
   else if (INTEGERP (right))
-    *root_y = XINT (right) - width;
+    *root_x = XINT (right) - width;
   else if (*root_x + XINT (dx) <= 0)
     *root_x = 0; /* Can happen for negative dx */
   else if (*root_x + XINT (dx) + width

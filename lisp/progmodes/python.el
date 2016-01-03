@@ -273,7 +273,7 @@
 (autoload 'help-function-arglist "help-fns")
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist (cons (purecopy "\\.py\\'")  'python-mode))
+(add-to-list 'auto-mode-alist (cons (purecopy "\\.pyw?\\'")  'python-mode))
 ;;;###autoload
 (add-to-list 'interpreter-mode-alist (cons (purecopy "python[0-9.]*") 'python-mode))
 
@@ -485,7 +485,7 @@ The type returned can be `comment', `string' or `paren'."
      ((nth 1 ppss) 'paren))))
 
 (defsubst python-syntax-comment-or-string-p (&optional ppss)
-  "Return non-nil if PPSS is inside 'comment or 'string."
+  "Return non-nil if PPSS is inside comment or string."
   (nth 8 (or ppss (syntax-ppss))))
 
 (defsubst python-syntax-closing-paren-p ()
@@ -1842,7 +1842,7 @@ This command assumes point is not in a string or comment."
 
 (defun python-nav-if-name-main ()
   "Move point at the beginning the __main__ block.
-When \"if __name__ == '__main__':\" is found returns its
+When \"if __name__ == \\='__main__\\=':\" is found returns its
 position, else returns nil."
   (interactive)
   (let ((point (point))
@@ -3051,7 +3051,7 @@ the python shell:
 (defun python-shell-send-region (start end &optional send-main msg)
   "Send the region delimited by START and END to inferior Python process.
 When optional argument SEND-MAIN is non-nil, allow execution of
-code inside blocks delimited by \"if __name__== '__main__':\".
+code inside blocks delimited by \"if __name__== \\='__main__\\=':\".
 When called interactively SEND-MAIN defaults to nil, unless it's
 called with prefix argument.  When optional argument MSG is
 non-nil, forces display of a user-friendly message if there's no
@@ -3068,7 +3068,7 @@ process running; defaults to t when called interactively."
 (defun python-shell-send-buffer (&optional send-main msg)
   "Send the entire buffer to inferior Python process.
 When optional argument SEND-MAIN is non-nil, allow execution of
-code inside blocks delimited by \"if __name__== '__main__':\".
+code inside blocks delimited by \"if __name__== \\='__main__\\=':\".
 When called interactively SEND-MAIN defaults to nil, unless it's
 called with prefix argument.  When optional argument MSG is
 non-nil, forces display of a user-friendly message if there's no

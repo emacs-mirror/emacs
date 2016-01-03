@@ -555,7 +555,7 @@ change."
 ;;;###mh-autoload
 (defun mh-valid-view-change-operation-p (op)
   "Check if the view change operation can be performed.
-OP is one of 'widen and 'unthread."
+OP is one of `widen' and `unthread'."
   (cond ((eq (car mh-view-ops) op)
          (pop mh-view-ops))
         (t nil)))

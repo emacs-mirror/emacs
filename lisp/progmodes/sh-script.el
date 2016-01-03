@@ -204,6 +204,7 @@
 
 (autoload 'comint-completion-at-point "comint")
 (autoload 'comint-filename-completion "comint")
+(autoload 'comint-send-string "comint")
 (autoload 'shell-command-completion "shell")
 (autoload 'shell-environment-variable-completion "shell")
 
@@ -1450,7 +1451,7 @@ This is for the rc shell."
 (defun sh-mkword-regexpr (word)
   "Make a regexp which matches WORD as a word.
 This specifically excludes an occurrence of WORD followed by
-punctuation characters like '-'."
+punctuation characters like `-'."
   (concat word "\\([^-[:alnum:]_]\\|$\\)"))
 
 (defconst sh-re-done (sh-mkword-regexpr "done"))
@@ -1580,7 +1581,8 @@ assumed.  Since filenames rarely give a clue, they are not further analyzed.
 This mode adapts to the variations between shells (see `sh-set-shell') by
 means of an inheritance based feature lookup (see `sh-feature').  This
 mechanism applies to all variables (including skeletons) that pertain to
-shell-specific features.
+shell-specific features.  Shell script files can use the `sh-shell' local
+variable to indicate the shell variant to be used for the file.
 
 The default style of this mode is that of Rosenblatt's Korn shell book.
 The syntax of the statements varies with the shell being used.  The
@@ -2364,7 +2366,11 @@ argument) controls whether to insert a #!-line and think about making
 the visited file executable, and NO-QUERY-FLAG (the second argument)
 controls whether to query about making the visited file executable.
 
-Calls the value of `sh-set-shell-hook' if set."
+Calls the value of `sh-set-shell-hook' if set.
+
+Shell script files can cause this function be called automatically
+when the file is visited by having a `sh-shell' file-local variable
+whose value is the shell name (don't quote it)."
   (interactive (list (completing-read
                       (format "Shell (default %s): "
                               sh-shell-file)

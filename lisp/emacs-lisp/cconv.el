@@ -473,25 +473,28 @@ places where they originally did not directly appear."
         :fun-body ,(cconv--convert-function () body env form)))
 
     (`(setq . ,forms)                   ; setq special form
-     (let ((prognlist ()))
-       (while forms
-         (let* ((sym (pop forms))
-                (sym-new (or (cdr (assq sym env)) sym))
-                (value (cconv-convert (pop forms) env extend)))
-           (push (pcase sym-new
-                   ((pred symbolp) `(setq ,sym-new ,value))
-                   (`(car-safe ,iexp) `(setcar ,iexp ,value))
-                   ;; This "should never happen", but for variables which are
-                   ;; mutated+captured+unused, we may end up trying to `setq'
-                   ;; on a closed-over variable, so just drop the setq.
-                   (_ ;; (byte-compile-report-error
-                    ;;  (format "Internal error in cconv of (setq %s ..)"
-                    ;;          sym-new))
-                    value))
-                 prognlist)))
-       (if (cdr prognlist)
-           `(progn . ,(nreverse prognlist))
-         (car prognlist))))
+     (if (= (logand (length forms) 1) 1)
+         ;; With an odd number of args, let bytecomp.el handle the error.
+         form
+       (let ((prognlist ()))
+         (while forms
+           (let* ((sym (pop forms))
+                  (sym-new (or (cdr (assq sym env)) sym))
+                  (value (cconv-convert (pop forms) env extend)))
+             (push (pcase sym-new
+                     ((pred symbolp) `(setq ,sym-new ,value))
+                     (`(car-safe ,iexp) `(setcar ,iexp ,value))
+                     ;; This "should never happen", but for variables which are
+                     ;; mutated+captured+unused, we may end up trying to `setq'
+                     ;; on a closed-over variable, so just drop the setq.
+                     (_ ;; (byte-compile-report-error
+                      ;;  (format "Internal error in cconv of (setq %s ..)"
+                      ;;          sym-new))
+                      value))
+                   prognlist)))
+         (if (cdr prognlist)
+             `(progn . ,(nreverse prognlist))
+           (car prognlist)))))
 
     (`(,(and (or `funcall `apply) callsym) ,fun . ,args)
      ;; These are not special forms but we treat them separately for the needs

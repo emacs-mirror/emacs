@@ -833,9 +833,36 @@ displayed.  The default is 102400.
 @findex show-paren-mode
   Show Paren mode, a global minor mode, provides a more powerful kind
 of automatic matching.  Whenever point is before an opening delimiter
-or after a closing delimiter, both that delimiter and its opposite
-delimiter are highlighted.  To toggle Show Paren mode, type @kbd{M-x
-show-paren-mode}.
+or after a closing delimiter, the delimiter, its matching delimiter,
+and optionally the text between them are highlighted.  To toggle Show
+Paren mode, type @kbd{M-x show-paren-mode}.  To customize it, type
+@kbd{M-x customize-group @key{RET} paren-showing}.  The customizable
+options which control the operation of this mode include:
+
+@itemize @bullet
+@item
+@code{show-paren-highlight-open-paren} controls whether to highlight
+an open paren when point stands just before it, and hence its position
+is marked by the cursor anyway.  The default is non-@code{nil} (yes).
+
+@item
+@code{show-paren-style} controls whether just the two parens, or also
+the space between them get highlighted.  The valid options here are
+@code{parenthesis} (show the matching paren), @code{expression}
+(highlight the entire expression enclosed by the parens), and
+@code{mixed} (highlight the matching paren if it is visible, the
+expression otherwise).
+
+@item
+@code{show-paren-when-point-inside-paren}, when non-@code{nil}, causes
+highlighting also when point is on the inside of a parenthesis.
+
+@item
+@code{show-paren-when-point-in-periphery}, when non-@code{nil}, causes
+highlighting also when point is in whitespace at the beginning or end
+of a line, and there is a paren at, respectively, the first or last,
+or the last, non-whitespace position on the line.
+@end itemize
 
 @cindex Electric Pair mode
 @cindex inserting matching parentheses
@@ -917,6 +944,8 @@ will indent the comment to the appropriate position.
 @item @kbd{M-;}
 Insert or realign comment on current line; if the region is active,
 comment or uncomment the region instead (@code{comment-dwim}).
+@item @kbd{C-x C-;}
+Comment or uncomment the current line (@code{comment-line}).
 @item @kbd{C-u M-;}
 Kill comment on current line (@code{comment-kill}).
 @item @kbd{C-x ;}
@@ -970,6 +999,18 @@ starting delimiter.  As an exception, comments starting in column 0
 are not moved.  Even when an existing comment is properly aligned,
 @kbd{M-;} is still useful for moving directly to the start of the
 comment text.
+
+@findex comment-line
+@kindex C-x C-;
+  @kbd{C-x C-;} (@code{comment-line}) comments or uncomments complete
+lines.  When a region is active (@pxref{Mark}), @kbd{C-x C-;} either
+comments or uncomments the lines in the region.  If the region is not
+active, this command comments or uncomments the line point is on.
+With a positive prefix argument @var{n}, it operates on @var{n} lines
+starting with the current one; with a negative @var{n}, it affects
+@var{n} preceding lines.  After invoking this command with a negative
+argument, successive invocations with a positive argument will operate
+on preceding lines as if the argument were negated.
 
 @findex comment-kill
 @kindex C-u M-;
@@ -1220,13 +1261,16 @@ variables that you want to use.  @xref{Name Help}.
 
 @cindex Eldoc mode
 @findex eldoc-mode
+@findex global-eldoc-mode
   Eldoc is a buffer-local minor mode that helps with looking up Lisp
 documentation.  When it is enabled, the echo area displays some useful
 information whenever there is a Lisp function or variable at point;
 for a function, it shows the argument list, and for a variable it
 shows the first line of the variable's documentation string.  To
-toggle Eldoc mode, type @kbd{M-x eldoc-mode}.  Eldoc mode can be used
-with the Emacs Lisp and Lisp Interaction major modes.
+toggle Eldoc mode, type @kbd{M-x eldoc-mode}.  There's also a Global
+Eldoc mode, which is turned on by default, and affects buffers, such
+as @samp{*scratch*}, whose major mode is Emacs Lisp or Lisp
+Interaction (@w{@kbd{M-x global-eldoc-mode}} to turn it off globally).
 
 @node Hideshow
 @section Hideshow minor mode
@@ -1484,14 +1528,21 @@ with the Foldout package (@pxref{Foldout}).
 
 @findex prettify-symbols-mode
   Prettify Symbols mode is a buffer-local minor mode that replaces
-certain strings with more attractive versions for display
-purposes.  For example, in Emacs Lisp mode, it replaces the string
-@samp{lambda} with the Greek lambda character @samp{λ}.  You may wish
-to use this
-in non-programming modes as well.  You can customize the mode by
-adding more entries to @code{prettify-symbols-alist}.  There is also a
-global version, @code{global-prettify-symbols-mode}, which enables the
-mode in all buffers that support it.
+certain strings with more attractive versions for display purposes.
+For example, in Emacs Lisp mode, it replaces the string @samp{lambda}
+with the Greek lambda character @samp{λ}.  You may wish to use this in
+non-programming modes as well.  You can customize the mode by adding
+more entries to @code{prettify-symbols-alist}.  More elaborate
+customization is available via customizing
+@code{prettify-symbols-compose-predicate} if its default value
+@code{prettify-symbols-default-compose-p} is not appropriate.  There
+is also a global version, @code{global-prettify-symbols-mode}, which
+enables the mode in all buffers that support it.
+
+  The symbol at point can be shown in its original form.  This is
+controlled by the variable @code{prettify-symbols-unprettify-at-point}:
+if non-@code{nil}, the original form of symbol at point will be
+restored for as long as point is at it.
 
 
 @node C Modes

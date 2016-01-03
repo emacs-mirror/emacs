@@ -757,7 +757,7 @@ Set this to \"logic\" for SystemVerilog code, or use `verilog-auto-logic'."
 (put 'verilog-auto-wire-type 'safe-local-variable `stringp)
 
 (defcustom verilog-auto-endcomments t
-  "Non-nil means insert a comment /* ... */ after 'end's.
+  "Non-nil means insert a comment /* ... */ after `end's.
 The name of the function or case will be set between the braces."
   :group 'verilog-mode-actions
   :type 'boolean)
@@ -797,7 +797,7 @@ needed on every save.  A value of `detect' will do \\[verilog-auto]
 automatically when it thinks necessary.  A value of `ask' will query the
 user when it thinks updating is needed.
 
-You should not rely on the 'ask or 'detect policies, they are safeguards
+You should not rely on the `ask' or `detect' policies, they are safeguards
 only.  They do not detect when AUTOINSTs need to be updated because a
 sub-module's port list has changed."
   :group 'verilog-mode-actions
@@ -3733,12 +3733,12 @@ Variables controlling indentation/edit style:
    will be inserted.  Setting this variable to zero results in every
    end acquiring a comment; the default avoids too many redundant
    comments in tight quarters.
- `verilog-auto-lineup'              (default 'declarations)
+ `verilog-auto-lineup'              (default `declarations')
    List of contexts where auto lineup of code should be done.
 
 Variables controlling other actions:
 
- `verilog-linter'                   (default surelint)
+ `verilog-linter'                   (default `surelint')
    Unix program to call to run the lint checker.  This is the default
    command for \\[compile-command] and \\[verilog-auto-save-compile].
 
@@ -4089,7 +4089,7 @@ The upper left corner is defined by point.  Indices begin with 0
 and extend to the MAX - 1.  If no prefix arg is given, the user
 is prompted for a value.  The indices are surrounded by square
 brackets [].  For example, the following code with the point
-located after the first 'a' gives:
+located after the first `a' gives:
 
     a = b                           a[  0] = b
     a = b                           a[  1] = b
@@ -12949,7 +12949,7 @@ used on the right hand side of assignments.
 By default, AUTORESET will include the width of the signal in the
 autos, SystemVerilog designs may want to change this.  To control
 this behavior, see `verilog-auto-reset-widths'.  In some cases
-AUTORESET must use a '0 assignment and it will print NOWIDTH; use
+AUTORESET must use a \\='0 assignment and it will print NOWIDTH; use
 `verilog-auto-reset-widths' unbased to prevent this.
 
 AUTORESET ties signals to deasserted, which is presumed to be zero.

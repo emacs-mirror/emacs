@@ -55,7 +55,8 @@
   string)
 
 (defvar truncate-string-ellipsis "..."  ;"…"
-  "String to use to indicate truncation.")
+  "String to use to indicate truncation.
+Serves as default value of ELLIPSIS argument to `truncate-string-to-width'.")
 
 ;;;###autoload
 (defun truncate-string-to-width (str end-column

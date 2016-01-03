@@ -42,10 +42,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #include <pop.h>
 
-#ifdef sun
-#include <malloc.h>
-#endif /* sun */
-
 #ifdef HESIOD
 #include <hesiod.h>
 /*

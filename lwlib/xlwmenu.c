@@ -28,13 +28,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 
 #include <sys/types.h>
-#if (defined __sun) && !(defined SUNOS41)
-#define SUNOS41
 #include <X11/Xos.h>
-#undef SUNOS41
-#else
-#include <X11/Xos.h>
-#endif
 #include <X11/IntrinsicP.h>
 #include <X11/ObjectP.h>
 #include <X11/StringDefs.h>

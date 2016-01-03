@@ -439,9 +439,9 @@ See `hs-c-like-adjust-block-beginning' for an example of using this.")
 You can display this in the mode line by adding the symbol `hs-headline'
 to the variable `mode-line-format'.  For example,
 
-  (unless (memq 'hs-headline mode-line-format)
+  (unless (memq \\='hs-headline mode-line-format)
     (setq mode-line-format
-          (append '(\"-\" hs-headline) mode-line-format)))
+          (append \\='(\"-\" hs-headline) mode-line-format)))
 
 Note that `mode-line-format' is buffer-local.")
 
@@ -469,9 +469,9 @@ KIND is either `code' or `comment'.  Optional fourth arg B-OFFSET
 when added to B specifies the actual buffer position where the block
 begins.  Likewise for optional fifth arg E-OFFSET.  If unspecified
 they are taken to be 0 (zero).  The following properties are set
-in the overlay: 'invisible 'hs 'hs-b-offset 'hs-e-offset.  Also,
+in the overlay: `invisible' `hs' `hs-b-offset' `hs-e-offset'.  Also,
 depending on variable `hs-isearch-open', the following properties may
-be present: 'isearch-open-invisible 'isearch-open-invisible-temporary.
+be present: `isearch-open-invisible' `isearch-open-invisible-temporary'.
 If variable `hs-set-up-overlay' is non-nil it should specify a function
 to call with the newly initialized overlay."
   (unless b-offset (setq b-offset 0))
@@ -934,7 +934,7 @@ if ARG is omitted or nil.
 
 When hideshow minor mode is on, the menu bar is augmented with hideshow
 commands and the hideshow commands are enabled.
-The value '(hs . t) is added to `buffer-invisibility-spec'.
+The value (hs . t) is added to `buffer-invisibility-spec'.
 
 The main commands are: `hs-hide-all', `hs-show-all', `hs-hide-block',
 `hs-show-block', `hs-hide-level' and `hs-toggle-hiding'.  There is also

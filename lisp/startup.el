@@ -544,7 +544,11 @@ It is the default value of the variable `top-level'."
 	    (set-buffer elt)
 	    (if default-directory
 		(setq default-directory
-		      (decode-coding-string default-directory coding t)))))
+                      (if (eq system-type 'windows-nt)
+                          ;; Convert backslashes to forward slashes.
+                          (expand-file-name
+                           (decode-coding-string default-directory coding t))
+                        (decode-coding-string default-directory coding t))))))
 
 	;; Decode all the important variables and directory lists, now
 	;; that we know the locale's encoding.  This is because the
@@ -1426,9 +1430,8 @@ settings will be marked as \"CHANGED outside of Customize\"."
       (put 'cursor 'face-modified t))))
 
 (defcustom initial-scratch-message (purecopy "\
-;; This buffer is for notes you don't want to save, and for Lisp evaluation.
-;; If you want to create a file, visit that file with \\[find-file],
-;; then enter the text in that file's own buffer.
+;; This buffer is for text that is not saved, and for Lisp evaluation.
+;; To create a file, visit it with \\[find-file] and enter text in its buffer.
 
 ")
   "Initial documentation displayed in *scratch* buffer at startup.

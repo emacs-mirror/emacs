@@ -72,7 +72,7 @@
     (modify-syntax-entry ?\# "<   " st)
     ;; / can delimit regexes or be a division operator.  By default we assume
     ;; that it is a division sign, and fix the regexp operator cases with
-    ;; `font-lock-syntactic-keywords'.
+    ;; `c-awk-set-syntax-table-properties'.
     (modify-syntax-entry ?/ "." st)     ; ACM 2002/4/27.
     (modify-syntax-entry ?* "." st)
     (modify-syntax-entry ?+ "." st)
@@ -785,13 +785,16 @@
 ;;     Scan the buffer text between point and LIM, setting (and clearing) the
 ;; syntax-table property where necessary.
 ;;
-;; This function is designed to be called as the FUNCTION in a MATCHER in
-;; font-lock-syntactic-keywords, and it always returns NIL (to inhibit
-;; repeated calls from font-lock: See elisp info page "Search-based
-;; Fontification").  It also gets called, with a bit of glue, from
-;; after-change-functions when font-lock isn't active.  Point is left
-;; "undefined" after this function exits.  THE BUFFER SHOULD HAVE BEEN
-;; WIDENED, AND ANY PRECIOUS MATCH-DATA SAVED BEFORE CALLING THIS ROUTINE.
+;; This function is designed to be called as the FUNCTION in a MATCHER
+;; in font-lock-syntactic-keywords, and it always returns NIL (to
+;; inhibit repeated calls from font-lock: See elisp info page
+;; "Search-based Fontification").  (2015-11-24: CC Mode doesn't use
+;; `font-lock-syntactic-keywords' and hasn't done for a very long
+;; time, if ever.  ACM.)  This function gets called, with a bit of
+;; glue, from after-change-functions whether or not font-lock is
+;; active.  Point is left "undefined" after this function exits.  THE
+;; BUFFER SHOULD HAVE BEEN WIDENED, AND ANY PRECIOUS MATCH-DATA SAVED
+;; BEFORE CALLING THIS ROUTINE.
 ;;
 ;; We need to set/clear the syntax-table property on:
 ;; (i) / - It is set to "string" on a / which is the opening or closing

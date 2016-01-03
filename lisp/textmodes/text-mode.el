@@ -39,7 +39,7 @@
 
 (defvar text-mode-variant nil
   "Non-nil if this buffer's major mode is a variant of Text mode.
-Use (derived-mode-p 'text-mode) instead.")
+Use (derived-mode-p \\='text-mode) instead.")
 
 (defvar text-mode-syntax-table
   (let ((st (make-syntax-table)))

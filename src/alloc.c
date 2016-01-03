@@ -406,23 +406,36 @@ ALIGN (void *ptr, int alignment)
    If A is a symbol, extract the hidden pointer's offset from lispsym,
    converted to void *.  */
 
-static void *
-XPNTR_OR_SYMBOL_OFFSET (Lisp_Object a)
-{
-  intptr_t i = USE_LSB_TAG ? XLI (a) - XTYPE (a) : XLI (a) & VALMASK;
-  return (void *) i;
-}
+#define macro_XPNTR_OR_SYMBOL_OFFSET(a) \
+  ((void *) (intptr_t) (USE_LSB_TAG ? XLI (a) - XTYPE (a) : XLI (a) & VALMASK))
 
 /* Extract the pointer hidden within A.  */
 
-static void *
+#define macro_XPNTR(a) \
+  ((void *) ((intptr_t) XPNTR_OR_SYMBOL_OFFSET (a) \
+	     + (SYMBOLP (a) ? (char *) lispsym : NULL)))
+
+/* For pointer access, define XPNTR and XPNTR_OR_SYMBOL_OFFSET as
+   functions, as functions are cleaner and can be used in debuggers.
+   Also, define them as macros if being compiled with GCC without
+   optimization, for performance in that case.  The macro_* names are
+   private to this section of code.  */
+
+static ATTRIBUTE_UNUSED void *
+XPNTR_OR_SYMBOL_OFFSET (Lisp_Object a)
+{
+  return macro_XPNTR_OR_SYMBOL_OFFSET (a);
+}
+static ATTRIBUTE_UNUSED void *
 XPNTR (Lisp_Object a)
 {
-  void *p = XPNTR_OR_SYMBOL_OFFSET (a);
-  if (SYMBOLP (a))
-    p = (intptr_t) p + (char *) lispsym;
-  return p;
+  return macro_XPNTR (a);
 }
+
+#if DEFINE_KEY_OPS_AS_MACROS
+# define XPNTR_OR_SYMBOL_OFFSET(a) macro_XPNTR_OR_SYMBOL_OFFSET (a)
+# define XPNTR(a) macro_XPNTR (a)
+#endif
 
 static void
 XFLOAT_INIT (Lisp_Object f, double n)
@@ -3711,6 +3724,23 @@ make_event_array (ptrdiff_t nargs, Lisp_Object *args)
   }
 }
 
+#ifdef HAVE_MODULES
+/* Create a new module user ptr object.  */
+Lisp_Object
+make_user_ptr (void (*finalizer) (void*), void *p)
+{
+  Lisp_Object obj;
+  struct Lisp_User_Ptr *uptr;
+
+  obj = allocate_misc (Lisp_Misc_User_Ptr);
+  uptr = XUSER_PTR (obj);
+  uptr->finalizer = finalizer;
+  uptr->p = p;
+  return obj;
+}
+
+#endif
+
 static void
 init_finalizer_list (struct Lisp_Finalizer *head)
 {
@@ -5300,10 +5330,6 @@ total_bytes_of_live_objects (void)
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-/* This code has a few issues on MS-Windows, see Bug#15876 and Bug#16140.  */
-
-#if !defined (HAVE_NTGUI)
-
 /* Remove unmarked font-spec and font-entity objects from ENTRY, which is
    (DRIVER-TYPE NUM-FRAMES FONT-CACHE-DATA ...), and return changed entry.  */
 
@@ -5318,11 +5344,15 @@ compact_font_cache_entry (Lisp_Object entry)
       Lisp_Object obj = XCAR (tail);
 
       /* Consider OBJ if it is (font-spec . [font-entity font-entity ...]).  */
-      if (CONSP (obj) && FONT_SPEC_P (XCAR (obj))
-	  && !VECTOR_MARKED_P (XFONT_SPEC (XCAR (obj)))
-	  && VECTORP (XCDR (obj)))
+      if (CONSP (obj) && GC_FONT_SPEC_P (XCAR (obj))
+	  && !VECTOR_MARKED_P (GC_XFONT_SPEC (XCAR (obj)))
+	  /* Don't use VECTORP here, as that calls ASIZE, which could
+	     hit assertion violation during GC.  */
+	  && (VECTORLIKEP (XCDR (obj))
+	      && ! (gc_asize (XCDR (obj)) & PSEUDOVECTOR_FLAG)))
 	{
-	  ptrdiff_t i, size = ASIZE (XCDR (obj)) & ~ARRAY_MARK_FLAG;
+	  ptrdiff_t i, size = gc_asize (XCDR (obj));
+	  Lisp_Object obj_cdr = XCDR (obj);
 
 	  /* If font-spec is not marked, most likely all font-entities
 	     are not marked too.  But we must be sure that nothing is
@@ -5331,14 +5361,14 @@ compact_font_cache_entry (Lisp_Object entry)
             {
               Lisp_Object objlist;
 
-              if (VECTOR_MARKED_P (XFONT_ENTITY (AREF (XCDR (obj), i))))
+              if (VECTOR_MARKED_P (GC_XFONT_ENTITY (AREF (obj_cdr, i))))
                 break;
 
-              objlist = AREF (AREF (XCDR (obj), i), FONT_OBJLIST_INDEX);
+              objlist = AREF (AREF (obj_cdr, i), FONT_OBJLIST_INDEX);
               for (; CONSP (objlist); objlist = XCDR (objlist))
                 {
                   Lisp_Object val = XCAR (objlist);
-                  struct font *font = XFONT_OBJECT (val);
+                  struct font *font = GC_XFONT_OBJECT (val);
 
                   if (!NILP (AREF (val, FONT_TYPE_INDEX))
                       && VECTOR_MARKED_P(font))
@@ -5366,8 +5396,6 @@ compact_font_cache_entry (Lisp_Object entry)
   return entry;
 }
 
-#endif /* not HAVE_NTGUI */
-
 /* Compact font caches on all terminals and mark
    everything which is still here after compaction.  */
 
@@ -5379,7 +5407,6 @@ compact_font_caches (void)
   for (t = terminal_list; t; t = t->next_terminal)
     {
       Lisp_Object cache = TERMINAL_FONT_CACHE (t);
-#if !defined (HAVE_NTGUI)
       if (CONSP (cache))
 	{
 	  Lisp_Object entry;
@@ -5387,7 +5414,6 @@ compact_font_caches (void)
 	  for (entry = XCDR (cache); CONSP (entry); entry = XCDR (entry))
 	    XSETCAR (entry, compact_font_cache_entry (XCAR (entry)));
 	}
-#endif /* not HAVE_NTGUI */
       mark_object (cache);
     }
 }
@@ -6301,6 +6327,12 @@ mark_object (Lisp_Object arg)
           mark_object (XFINALIZER (obj)->function);
           break;
 
+#ifdef HAVE_MODULES
+	case Lisp_Misc_User_Ptr:
+	  XMISCANY (obj)->gcmarkbit = true;
+	  break;
+#endif
+
 	default:
 	  emacs_abort ();
 	}
@@ -6677,8 +6709,15 @@ sweep_misc (void)
             {
               if (mblk->markers[i].m.u_any.type == Lisp_Misc_Marker)
                 unchain_marker (&mblk->markers[i].m.u_marker);
-              if (mblk->markers[i].m.u_any.type == Lisp_Misc_Finalizer)
+              else if (mblk->markers[i].m.u_any.type == Lisp_Misc_Finalizer)
                 unchain_finalizer (&mblk->markers[i].m.u_finalizer);
+#ifdef HAVE_MODULES
+	      else if (mblk->markers[i].m.u_any.type == Lisp_Misc_User_Ptr)
+		{
+		  struct Lisp_User_Ptr *uptr = &mblk->markers[i].m.u_user_ptr;
+		  uptr->finalizer (uptr->p);
+		}
+#endif
               /* Set the type of the freed object to Lisp_Misc_Free.
                  We could leave the type alone, since nobody checks it,
                  but this might catch bugs faster.  */

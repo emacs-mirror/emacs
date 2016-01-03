@@ -2937,7 +2937,7 @@ error if the argument is not an integer.
 
 @defun cl-digit-char-p char radix
 Test if @var{char} is a digit in the specified @var{radix} (default is
-10).  If true return the decimal value of digit @var{char} in
+10).  If it is, return the numerical value of digit @var{char} in
 @var{radix}.
 @end defun
 
@@ -3027,9 +3027,10 @@ of @code{cl-truncate}.
 This function implements the Common Lisp @code{parse-integer}
 function.  It parses an integer in the specified @var{radix} from the
 substring of @var{string} between @var{start} and @var{end}.  Any
-leading and trailing whitespace chars are ignored. It signals an error
-if the substring between @var{start} and @var{end} cannot be parsed as
-an integer unless @var{junk-allowed} is non-nil.
+leading and trailing whitespace chars are ignored.  The function
+signals an error if the substring between @var{start} and @var{end}
+cannot be parsed as an integer, unless @var{junk-allowed} is
+non-@code{nil}.
 @end defun
 
 @node Random Numbers

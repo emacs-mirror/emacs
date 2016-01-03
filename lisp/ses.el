@@ -336,7 +336,7 @@ default printer and then modify its output.")
   '(ses--col-widths  -5 ses--col-printers -4 ses--default-printer -3
     ses--header-row  -2 ses--file-format   1 ses--numrows          2
     ses--numcols      3 ses--numlocprn     4)
-  "Offsets from 'Global parameters' line to various parameter lines in the
+  "Offsets from \"Global parameters\" line to various parameter lines in the
 data area of a spreadsheet.")
 
 (defconst ses-paramfmt-plist
@@ -348,7 +348,7 @@ data area of a spreadsheet.")
     ses--numrows          " %S ;numrows"
     ses--numcols          " %S ;numcols"
     ses--numlocprn        " %S ;numlocprn")
-  "Formats of 'Global parameters' various parameters in the data
+  "Formats of \"Global parameters\" various parameters in the data
 area of a spreadsheet.")
 
 ;;
@@ -361,8 +361,8 @@ area of a spreadsheet.")
 
 (defvar ses-relocate-return nil
   "Set by `ses-relocate-formula' and `ses-relocate-range', read by
-`ses-relocate-all'.  Set to 'delete if a cell-reference was deleted from a
-formula--so the formula needs recalculation.  Set to 'range if the size of a
+`ses-relocate-all'.  Set to `delete' if a cell-reference was deleted from a
+formula--so the formula needs recalculation.  Set to `range' if the size of a
 `ses-range' was changed--so both the formula's value and list of dependents
 need to be recalculated.")
 
@@ -672,7 +672,7 @@ checking that it is a valid printer function."
       (add-to-list 'ses-read-printer-history (prin1-to-string printer))))
 
 (defun ses-formula-record (formula)
-  "If FORMULA is of the form 'symbol, add it to the list of symbolic formulas
+  "If FORMULA is of the form \\='SYMBOL, add it to the list of symbolic formulas
 for this spreadsheet."
   (when (and (eq (car-safe formula) 'quote)
 	     (symbolp (cadr formula)))
@@ -688,7 +688,7 @@ for this spreadsheet."
       (concat (ses-column-letter (1- (/ col 26))) units))))
 
 (defun ses-create-cell-symbol (row col)
-  "Produce a symbol that names the cell (ROW,COL).  (0,0) => 'A1."
+  "Produce a symbol that names the cell (ROW,COL).  (0,0) => A1."
   (intern (concat (ses-column-letter col) (number-to-string (1+ row)))))
 
 (defun ses-decode-cell-symbol (str)
@@ -1114,12 +1114,10 @@ region, or nil if cursor is not at a cell."
 
 (defun ses-check-curcell (&rest args)
   "Signal an error if `ses--curcell' is inappropriate.
-The end marker is appropriate if some argument is 'end.
-A range is appropriate if some argument is 'range.
-A single cell is appropriate unless some argument is 'needrange."
-  (if (eq ses--curcell t)
-      ;; curcell recalculation was postponed, but user typed ahead.
-      (ses-set-curcell))
+The end marker is appropriate if some argument is `end'.
+A range is appropriate if some argument is `range'.
+A single cell is appropriate unless some argument is `needrange'."
+  (ses-set-curcell); fix  bug#21054
   (cond
    ((not ses--curcell)
     (or (memq 'end args)
@@ -1285,7 +1283,7 @@ printer signaled one (and \"%s\" is used as the default printer), else nil."
                           (and locprn
                                (ses--locprn-compiled locprn))))
                    printer)
-               (or value "")))
+               value))
 	(if (stringp value)
 	    value
 	  (or (stringp (car-safe value))
@@ -1497,7 +1495,7 @@ If ROWINCR or COLINCR is negative, references to cells being deleted are
 removed.  Example:
 	(ses-relocate-formula \\='(+ A1 B2 D3) 0 1 0 -1)
 	=> (+ A1 C3)
-Sets `ses-relocate-return' to 'delete if cell-references were removed."
+Sets `ses-relocate-return' to `delete' if cell-references were removed."
   (let (rowcol result)
     (if (or (atom formula) (eq (car formula) 'quote))
 	(if (and (setq rowcol (ses-sym-rowcol formula))
@@ -1533,7 +1531,7 @@ Sets `ses-relocate-return' to 'delete if cell-references were removed."
       (nreverse result))))
 
 (defun ses-relocate-range (range startrow startcol rowincr colincr)
-  "Relocate one RANGE, of the form '(ses-range min max).  Cells starting
+  "Relocate one RANGE, of the form (SES-RANGE MIN MAX).  Cells starting
 at (STARTROW,STARTCOL) are being shifted by (ROWINCR,COLINCR).  Result is the
 new range, or nil if the entire range is deleted.  If new rows are being added
 just beyond the end of a row range, or new columns just beyond a column range,
@@ -2861,7 +2859,7 @@ SES attributes recording the contents of the cell as of the time of copying."
 
 (defun ses-copy-region-helper (line)
   "Converts one line (of a rectangle being extracted from a spreadsheet) to
-external form by attaching to each print cell a 'ses attribute that records
+external form by attaching to each print cell a `ses' attribute that records
 the corresponding data cell."
   (or (> (length line) 1)
       (error "Empty range"))
@@ -2907,7 +2905,7 @@ We clear the killed cells instead of deleting them."
 (defun ses--advice-yank (yank-fun &optional arg &rest args)
   "In SES mode, the yanked text is inserted as cells.
 
-If the text contains 'ses attributes (meaning it went to the kill-ring from a
+If the text contains `ses' attributes (meaning it went to the kill-ring from a
 SES buffer), the formulas and print functions are restored for the cells.  If
 the text contains tabs, this is an insertion of tab-separated formulas.
 Otherwise the text is inserted as the formula for the current cell.
@@ -2919,7 +2917,7 @@ prefix to specify insertion without relocation, which is best when the
 formulas refer to cells outside the yanked text.
 
 When inserting formulas, the text is treated as a string constant if it doesn't
-make sense as a sexp or would otherwise be considered a symbol.  Use 'sym to
+make sense as a sexp or would otherwise be considered a symbol.  Use `sym' to
 explicitly insert a symbol, or use the C-u prefix to treat all unmarked words
 as symbols."
   (if (not (and (derived-mode-p 'ses-mode)
@@ -2962,7 +2960,7 @@ previous insertion."
   (setq this-command 'yank))
 
 (defun ses-yank-cells (text arg)
-  "If the TEXT has a proper set of 'ses attributes, insert the text as
+  "If the TEXT has a proper set of `ses' attributes, insert the text as
 cells, else return nil.  The cells are reprinted--the supplied text is
 ignored because the column widths, default printer, etc. at yank time might
 be different from those at kill-time.  ARG is a list to indicate that
@@ -3410,15 +3408,17 @@ highlighted range in the spreadsheet."
     (setf (ses-cell--symbol cell) new-name)
     (makunbound sym)
     (and curcell (setq ses--curcell new-name))
-    (let* ((pos (point))
-	   (inhibit-read-only t)
-	   (col (current-column))
-	   (end (save-excursion
-		  (move-to-column (1+ col))
-		  (if (eolp)
-		      (+ pos (ses-col-width col) 1)
-		    (point)))))
-      (put-text-property pos end 'cursor-intangible new-name))
+    (save-excursion
+      (or curcell (ses-goto-print row col))
+      (let* ((pos (point))
+             (inhibit-read-only t)
+             (end (progn
+                    (move-to-column (+ (current-column) (ses-col-width col)))
+                    (if (eolp)
+                        (+ pos (ses-col-width col) 1)
+                      (forward-char)
+                      (point)))))
+        (put-text-property pos end 'cursor-intangible new-name)))
     ;; Update the cell name in the mode-line.
     (force-mode-line-update)))
 
@@ -3558,7 +3558,7 @@ is read and how it is formatted.
 In the sequel we assume that cells A1, B1, A2 B2 have respective values
 1 2 3 and 4.
 
-Readout direction is specified by a `>v', '`>^', `<v', `<^',
+Readout direction is specified by a `>v', `>^', `<v', `<^',
 `v>', `v<', `^>', `^<' flag.  For historical reasons, in absence
 of such a flag, a default direction of `^<' is assumed.  This
 way `(ses-range A1 B2 ^>)' will evaluate to `(1 3 2 4)',

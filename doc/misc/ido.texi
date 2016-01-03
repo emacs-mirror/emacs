@@ -706,7 +706,8 @@ packages.
 @noindent
 After @kbd{C-x b} (@code{ido-switch-buffer}), the buffer at the head
 of the list can be killed by pressing @kbd{C-k}.  If the buffer needs
-saving, you will be queried before the buffer is killed.
+saving, you will be queried before the buffer is killed.  @kbd{C-S-b}
+buries the buffer at the head of the list.
 
 Likewise, after @kbd{C-x C-f}, you can delete (i.e., physically
 remove) the file at the head of the list with @kbd{C-k}.  You will

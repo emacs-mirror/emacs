@@ -1372,18 +1372,25 @@ Return the modified alist."
 
 (if (fboundp 'union)
     (defalias 'gnus-union 'union)
-  (defun gnus-union (l1 l2)
-    "Set union of lists L1 and L2."
+  (defun gnus-union (l1 l2 &rest keys)
+    "Set union of lists L1 and L2.
+If KEYS contains the `:test' and `equal' pair, use `equal' to compare
+items in lists, otherwise use `eq'."
     (cond ((null l1) l2)
 	  ((null l2) l1)
 	  ((equal l1 l2) l1)
 	  (t
 	   (or (>= (length l1) (length l2))
 	       (setq l1 (prog1 l2 (setq l2 l1))))
-	   (while l2
-	     (or (member (car l2) l1)
-		 (push (car l2) l1))
-	     (pop l2))
+	   (if (eq 'equal (plist-get keys :test))
+	       (while l2
+		 (or (member (car l2) l1)
+		     (push (car l2) l1))
+		 (pop l2))
+	     (while l2
+	       (or (memq (car l2) l1)
+		   (push (car l2) l1))
+	       (pop l2)))
 	   l1))))
 
 (declare-function gnus-add-text-properties "gnus"
@@ -1988,6 +1995,16 @@ to case differences."
     (defalias 'gnus-timer--function 'timer--function)
   (defun gnus-timer--function (timer)
     (elt timer 5)))
+
+(defun gnus-subsetp (list1 list2)
+  "Return t if LIST1 is a subset of LIST2.
+Similar to `subsetp' but use member for element test so that this works for
+lists of strings."
+  (when (and (listp list1) (listp list2))
+    (if list1
+	(and (member (car list1) list2)
+	     (gnus-subsetp (cdr list1) list2))
+      t)))
 
 (provide 'gnus-util)
 

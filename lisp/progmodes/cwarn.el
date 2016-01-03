@@ -2,9 +2,8 @@
 
 ;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
 
-;; Author: Anders Lindgren <andersl@andersl.com>
+;; Author: Anders Lindgren
 ;; Keywords: c, languages, faces
-;; X-Url: http://www.andersl.com/emacs
 ;; Version: 1.3.1
 
 ;; This file is part of GNU Emacs.

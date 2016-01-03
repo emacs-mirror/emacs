@@ -180,9 +180,9 @@ See `mh-identity-list'."
 ;;;###mh-autoload
 (defun mh-identity-handler-gpg-identity (field action &optional value)
   "Process header FIELD \":pgg-default-user-id\".
-The ACTION is one of 'remove or 'add. If 'add, the VALUE is added.
+The ACTION is one of `remove' or `add'. If `add', the VALUE is added.
 The buffer-local variable `mh-identity-pgg-default-user-id' is set to
-VALUE when action 'add is selected."
+VALUE when action `add' is selected."
   (cond
    ((or (equal action 'remove)
         (not value)
@@ -194,7 +194,7 @@ VALUE when action 'add is selected."
 ;;;###mh-autoload
 (defun mh-identity-handler-signature (field action &optional value)
   "Process header FIELD \":signature\".
-The ACTION is one of 'remove or 'add. If 'add, the VALUE is
+The ACTION is one of `remove' or `add'. If `add', the VALUE is
 added."
   (cond
    ((equal action 'remove)
@@ -225,7 +225,7 @@ added."
 ;;;###mh-autoload
 (defun mh-identity-handler-attribution-verb (field action &optional value)
   "Process header FIELD \":attribution-verb\".
-The ACTION is one of 'remove or 'add. If 'add, the VALUE is
+The ACTION is one of `remove' or `add'.  If `add', the VALUE is
 added."
   (when (and (markerp mh-identity-attribution-verb-start)
              (markerp mh-identity-attribution-verb-end))
@@ -283,7 +283,7 @@ bottom of the header. If action is 'add, the VALUE is added."
 ;;;###mh-autoload
 (defun mh-identity-handler-top (field action &optional value)
   "Process header FIELD.
-The ACTION is one of 'remove or 'add. If 'add, the VALUE is
+The ACTION is one of `remove' or `add'. If `add', the VALUE is
 added. If the field wasn't present, it is added to the top of the
 header."
   (mh-identity-handler-default field action t value))
@@ -291,7 +291,7 @@ header."
 ;;;###mh-autoload
 (defun mh-identity-handler-bottom (field action &optional value)
   "Process header FIELD.
-The ACTION is one of 'remove or 'add. If 'add, the VALUE is
+The ACTION is one of `remove' or `add'. If `add', the VALUE is
 added. If the field wasn't present, it is added to the bottom of
 the header."
   (mh-identity-handler-default field action nil value))

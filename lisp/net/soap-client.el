@@ -58,7 +58,7 @@
 (require 'mm-decode)
 
 (defsubst soap-warning (message &rest args)
-  "Display a warning MESSAGE with ARGS, using the 'soap-client warning type."
+  "Display a warning MESSAGE with ARGS, using the `soap-client' warning type."
   ;; Do not use #'format-message, to support older Emacs versions.
   (display-warning 'soap-client (apply #'format message args) :warning))
 
@@ -562,7 +562,7 @@ fractional seconds, and the DST (daylight savings time) field is
 replaced with DATATYPE, a symbol representing the XSD primitive
 datatype.  This symbol can be used to determine which fields
 apply and which don't when it's not already clear from context.
-For example a datatype of 'time means the year, month and day
+For example a datatype of `time' means the year, month and day
 fields should be ignored.
 
 This function will throw an error if DATE-TIME-STRING represents

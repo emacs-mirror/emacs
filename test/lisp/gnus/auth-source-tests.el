@@ -174,5 +174,50 @@
                                     (:search-function . auth-source-secrets-search)
                                     (:create-function . auth-source-secrets-create)))))
 
+(defun auth-source--test-netrc-parse-entry (entry host user port)
+  "Parse a netrc entry from buffer."
+  (auth-source-forget-all-cached)
+  (setq port (auth-source-ensure-strings port))
+  (with-temp-buffer
+    (insert entry)
+    (goto-char (point-min))
+    (let* ((check (lambda(alist)
+		    (and alist
+			 (auth-source-search-collection
+			  host
+			  (or
+			   (auth-source--aget alist "machine")
+			   (auth-source--aget alist "host")
+			   t))
+			 (auth-source-search-collection
+			  user
+			  (or
+			   (auth-source--aget alist "login")
+			   (auth-source--aget alist "account")
+			   (auth-source--aget alist "user")
+			   t))
+			 (auth-source-search-collection
+			  port
+			  (or
+			   (auth-source--aget alist "port")
+			   (auth-source--aget alist "protocol")
+			   t)))))
+	   (entries (auth-source-netrc-parse-entries check 1)))
+      entries)))
+
+(ert-deftest auth-source-test-netrc-parse-entry ()
+  (should (equal (auth-source--test-netrc-parse-entry
+                  "machine mymachine1 login user1 password pass1\n" t t t)
+                 '((("password" . "pass1")
+                    ("login" . "user1")
+                    ("machine" . "mymachine1")))))
+  (should (equal (auth-source--test-netrc-parse-entry
+                  "machine mymachine1 login user1 password pass1 port 100\n"
+                  t t t)
+                 '((("port" . "100")
+                    ("password" . "pass1")
+                    ("login" . "user1")
+                    ("machine" . "mymachine1"))))))
+
 (provide 'auth-source-tests)
 ;;; auth-source-tests.el ends here

@@ -3,6 +3,7 @@
 ;; Copyright (C) 2014-2015 Free Software Foundation, Inc.
 
 ;; Author: Magnus Henoch <magnus.henoch@gmail.com>
+;; Package: sasl
 
 ;; This file is part of GNU Emacs.
 

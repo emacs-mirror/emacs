@@ -865,8 +865,10 @@ Otherwise, it defers to REST which is a list of branches of the form
 
 (def-edebug-spec
   pcase-QPAT
+  ;; Cf. edebug spec for `backquote-form' in edebug.el.
   (&or ("," pcase-PAT)
-       (pcase-QPAT . pcase-QPAT)
+       (pcase-QPAT [&rest [&not ","] pcase-QPAT]
+		   . [&or nil pcase-QPAT])
        (vector &rest pcase-QPAT)
        sexp))
 

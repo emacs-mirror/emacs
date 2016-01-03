@@ -861,15 +861,18 @@ into a list.  @code{mapc} always returns @var{sequence}.
 
 @defun mapconcat function sequence separator
 @code{mapconcat} applies @var{function} to each element of
-@var{sequence}: the results, which must be strings, are concatenated.
-Between each pair of result strings, @code{mapconcat} inserts the string
-@var{separator}.  Usually @var{separator} contains a space or comma or
-other suitable punctuation.
+@var{sequence}; the results, which must be sequences of characters
+(strings, vectors, or lists), are concatenated into a single string
+return value.  Between each pair of result sequences, @code{mapconcat}
+inserts the characters from @var{separator}, which also must be a
+string, or a vector or list of characters.  @xref{Sequences Arrays
+Vectors}.
 
 The argument @var{function} must be a function that can take one
-argument and return a string.  The argument @var{sequence} can be any
-kind of sequence except a char-table; that is, a list, a vector, a
-bool-vector, or a string.
+argument and returns a sequence of characters: a string, a vector, or
+a list.  The argument @var{sequence} can be any kind of sequence
+except a char-table; that is, a list, a vector, a bool-vector, or a
+string.
 
 @example
 @group

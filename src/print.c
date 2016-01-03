@@ -2006,6 +2006,19 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	  printchar ('>', printcharfun);
           break;
 
+#ifdef HAVE_MODULES
+	case Lisp_Misc_User_Ptr:
+	  {
+	    print_c_string ("#<user-ptr ", printcharfun);
+	    int i = sprintf (buf, "ptr=%p finalizer=%p",
+			     XUSER_PTR (obj)->p,
+			     XUSER_PTR (obj)->finalizer);
+	    strout (buf, i, i, printcharfun);
+	    printchar ('>', printcharfun);
+	    break;
+	  }
+#endif
+
         case Lisp_Misc_Finalizer:
           print_c_string ("#<finalizer", printcharfun);
           if (NILP (XFINALIZER (obj)->function))

@@ -321,17 +321,28 @@ other sexp entries are enumerated in any case."
   "Return a new buffer containing the unfolded contents of a buffer.
 Folding is the iCalendar way of wrapping long lines.  In the
 created buffer all occurrences of CR LF BLANK are replaced by the
-empty string.  Argument FOLDED-ICAL-BUFFER is the unfolded input
+empty string.  Argument FOLDED-ICAL-BUFFER is the folded input
 buffer."
   (let ((unfolded-buffer (get-buffer-create " *icalendar-work*")))
     (save-current-buffer
       (set-buffer unfolded-buffer)
       (erase-buffer)
       (insert-buffer-substring folded-ical-buffer)
+      (icalendar--clean-up-line-endings)
       (goto-char (point-min))
       (while (re-search-forward "\r?\n[ \t]" nil t)
         (replace-match "" nil nil)))
     unfolded-buffer))
+
+(defun icalendar--clean-up-line-endings ()
+  "Replace DOS- and MAC-like line endings with unix line endings.
+All occurrences of (CR LF) and (LF CF) are replaced with LF in
+the current buffer.  This is necessary in buffers which contain a
+mix of different line endings."
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward "\r\n\\|\n\r" nil t)
+      (replace-match "\n" nil nil))))
 
 (defsubst icalendar--rris (regexp rep string &optional fixedcase literal)
   "Replace regular expression in string.
@@ -1296,8 +1307,8 @@ Returns an alist."
   "Return a VALARM block.
 Argument ADVANCE-TIME is a number giving the time when the alarm
 fires (minutes before the respective event).  Argument ALARM-SPEC
-is a list which must be one of '(audio), '(display) or
-'(email (ADDRESS1 ...)), see `icalendar-export-alarms'.  Argument
+is a list which must be one of (audio), (display) or
+(email (ADDRESS1 ...)), see `icalendar-export-alarms'.  Argument
 SUMMARY is a string which contains a short description for the
 alarm."
   (let* ((action (car alarm-spec))

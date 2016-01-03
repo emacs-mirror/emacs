@@ -3908,7 +3908,7 @@ If the feature is provided when evaluating code not associated with a
 file, FORM is evaluated immediately after the provide statement.
 
 Usually FILE is just a library name like \"font-lock\" or a feature name
-like 'font-lock.
+like `font-lock'.
 
 This function makes or adds to an entry on `after-load-alist'."
   (declare (compiler-macro
@@ -4686,14 +4686,14 @@ Usually the separator is \".\", but it can be any other string.")
 
 
 (defconst version-regexp-alist
-  '(("^[-_+ ]?snapshot$"                                 . -4)
+  '(("^[-._+ ]?snapshot$"                                 . -4)
     ;; treat "1.2.3-20050920" and "1.2-3" as snapshot releases
-    ("^[-_+]$"                                           . -4)
+    ("^[-._+]$"                                           . -4)
     ;; treat "1.2.3-CVS" as snapshot release
-    ("^[-_+ ]?\\(cvs\\|git\\|bzr\\|svn\\|hg\\|darcs\\)$" . -4)
-    ("^[-_+ ]?alpha$"                                    . -3)
-    ("^[-_+ ]?beta$"                                     . -2)
-    ("^[-_+ ]?\\(pre\\|rc\\)$"                           . -1))
+    ("^[-._+ ]?\\(cvs\\|git\\|bzr\\|svn\\|hg\\|darcs\\)$" . -4)
+    ("^[-._+ ]?alpha$"                                    . -3)
+    ("^[-._+ ]?beta$"                                     . -2)
+    ("^[-._+ ]?\\(pre\\|rc\\)$"                           . -1))
   "Specify association between non-numeric version and its priority.
 
 This association is used to handle version string like \"1.0pre2\",
@@ -4703,6 +4703,7 @@ non-numeric part of a version string to an integer.  For example:
    String Version    Integer List Version
    \"0.9snapshot\"     (0  9 -4)
    \"1.0-git\"         (1  0 -4)
+   \"1.0.cvs\"         (1  0 -4)
    \"1.0pre2\"         (1  0 -1 2)
    \"1.0PRE2\"         (1  0 -1 2)
    \"22.8beta3\"       (22 8 -2 3)
@@ -4742,41 +4743,47 @@ in `version-regexp-alist'.
 
 Examples of valid version syntax:
 
-   1.0pre2   1.0.7.5   22.8beta3   0.9alpha1   6.9.30Beta
+   1.0pre2   1.0.7.5   22.8beta3   0.9alpha1   6.9.30Beta   2.4.snapshot   .5
 
 Examples of invalid version syntax:
 
-   1.0prepre2   1.0..7.5   22.8X3   alpha3.2   .5
+   1.0prepre2   1.0..7.5   22.8X3   alpha3.2
 
 Examples of version conversion:
 
    Version String    Version as a List of Integers
-   \"1.0.7.5\"         (1  0  7 5)
-   \"1.0pre2\"         (1  0 -1 2)
-   \"1.0PRE2\"         (1  0 -1 2)
-   \"22.8beta3\"       (22 8 -2 3)
-   \"22.8Beta3\"       (22 8 -2 3)
-   \"0.9alpha1\"       (0  9 -3 1)
+   \".5\"              (0 5)
+   \"0.9 alpha\"       (0  9 -3)
    \"0.9AlphA1\"       (0  9 -3 1)
-   \"0.9alpha\"        (0  9 -3)
    \"0.9snapshot\"     (0  9 -4)
    \"1.0-git\"         (1  0 -4)
+   \"1.0.7.5\"         (1  0  7 5)
+   \"1.0.cvs\"         (1  0 -4)
+   \"1.0PRE2\"         (1  0 -1 2)
+   \"1.0pre2\"         (1  0 -1 2)
+   \"22.8 Beta3\"      (22 8 -2 3)
+   \"22.8beta3\"       (22 8 -2 3)
 
 See documentation for `version-separator' and `version-regexp-alist'."
-  (or (and (stringp ver) (> (length ver) 0))
-      (error "Invalid version string: `%s'" ver))
+  (unless (stringp ver)
+    (error "Version must be a string"))
   ;; Change .x.y to 0.x.y
   (if (and (>= (length ver) (length version-separator))
 	   (string-equal (substring ver 0 (length version-separator))
 			 version-separator))
       (setq ver (concat "0" ver)))
+  (unless (string-match-p "^[0-9]" ver)
+    (error "Invalid version syntax: `%s' (must start with a number)" ver))
+
   (save-match-data
     (let ((i 0)
 	  (case-fold-search t)		; ignore case in matching
 	  lst s al)
+      ;; Parse the version-string up to a separator until there are none left
       (while (and (setq s (string-match "[0-9]+" ver i))
 		  (= s i))
-	;; handle numeric part
+        ;; Add the numeric part to the beginning of the version list;
+        ;; lst gets reversed at the end
 	(setq lst (cons (string-to-number (substring ver i (match-end 0)))
 			lst)
 	      i   (match-end 0))
@@ -4792,15 +4799,15 @@ See documentation for `version-separator' and `version-regexp-alist'."
 	      (setq al (cdr al)))
 	    (cond (al
 		   (push (cdar al) lst))
-		  ;; Convert 22.3a to 22.3.1, 22.3b to 22.3.2, etc.
-		  ((string-match "^[-_+ ]?\\([a-zA-Z]\\)$" s)
+        ;; Convert 22.3a to 22.3.1, 22.3b to 22.3.2, etc., but only if
+        ;; the letter is the end of the version-string, to avoid
+        ;; 22.8X3 being valid
+        ((and (string-match "^[-._+ ]?\\([a-zA-Z]\\)$" s)
+           (= i (length ver)))
 		   (push (- (aref (downcase (match-string 1 s)) 0) ?a -1)
 			 lst))
 		  (t (error "Invalid version syntax: `%s'" ver))))))
-      (if (null lst)
-	  (error "Invalid version syntax: `%s'" ver)
-	(nreverse lst)))))
-
+    (nreverse lst))))
 
 (defun version-list-< (l1 l2)
   "Return t if L1, a list specification of a version, is lower than L2.

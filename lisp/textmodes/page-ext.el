@@ -351,7 +351,7 @@ Else insert at exact location of point.
 Narrow to new page if `pages-directory-for-adding-page-narrowing-p' is
 non-nil.
 
-Page begins with a '^L' as the default `page-delimiter'.
+Page begins with a `^L' as the default `page-delimiter'.
 Use \\[set-page-delimiter] to change the page-delimiter.
 Point is left in the body of page."
   (interactive "sHeader line: ")

@@ -99,10 +99,9 @@
 (cc-bytecomp-defvar adaptive-fill-first-line-regexp) ; Emacs
 (cc-bytecomp-defun run-mode-hooks)	; Emacs 21.1
 
-;; We set these variables during mode init, yet we don't require
+;; We set this variable during mode init, yet we don't require
 ;; font-lock.
 (cc-bytecomp-defvar font-lock-defaults)
-(cc-bytecomp-defvar font-lock-syntactic-keywords)
 
 ;; Menu support for both XEmacs and Emacs.  If you don't have easymenu
 ;; with your version of Emacs, you are incompatible!
@@ -479,7 +478,7 @@ preferably use the `c-mode-menu' language constant directly."
 and the line breaking/filling code.  Intended to be used by other
 packages that embed CC Mode.
 
-MODE is the CC Mode flavor to set up, e.g. 'c-mode or 'java-mode.
+MODE is the CC Mode flavor to set up, e.g. `c-mode' or `java-mode'.
 DEFAULT-STYLE tells which indentation style to install.  It has the
 same format as `c-default-style'.
 
@@ -647,7 +646,7 @@ In addition to the work done by `c-basic-common-init' and
 customary in CC Mode modes but which aren't strictly necessary for CC
 Mode to operate correctly.
 
-MODE is the symbol for the mode to initialize, like 'c-mode.  See
+MODE is the symbol for the mode to initialize, like `c-mode'.  See
 `c-basic-common-init' for details.  It's only optional to be
 compatible with old code; callers should always specify it."
 

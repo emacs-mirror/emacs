@@ -370,13 +370,13 @@ This overrides `erc-server-coding-system' depending on the
 current target as returned by `erc-default-target'.
 
 Example: If you know that the channel #linux-ru uses the coding-system
-`cyrillic-koi8', then add '(\"#linux-ru\" . cyrillic-koi8) to the
+`cyrillic-koi8', then add (\"#linux-ru\" . cyrillic-koi8) to the
 alist."
   :group 'erc-server
   :type '(repeat (cons (string :tag "Target")
                        coding-system)))
 
-(defcustom erc-server-connect-function 'open-network-stream
+(defcustom erc-server-connect-function 'erc-open-network-stream
   "Function used to initiate a connection.
 It should take same arguments as `open-network-stream' does."
   :group 'erc-server
@@ -493,9 +493,19 @@ The current buffer is given by BUFFER."
                                      4 erc-server-send-ping-interval
                                      #'erc-server-send-ping
                                      buffer))
-      (setq erc-server-ping-timer-alist (cons (cons buffer
-                                                    erc-server-ping-handler)
-                                              erc-server-ping-timer-alist)))))
+
+      ;; I check the timer alist for an existing timer. If one exists,
+      ;; I get rid of it
+      (let ((timer-tuple (assq buffer erc-server-ping-timer-alist)))
+        (if timer-tuple
+            ;; this buffer already has a timer. Cancel it and set the new one
+            (progn
+              (erc-cancel-timer (cdr timer-tuple))
+              (setf (cdr (assq buffer erc-server-ping-timer-alist)) erc-server-ping-handler))
+
+          ;; no existing timer for this buffer. Add new one
+          (add-to-list 'erc-server-ping-timer-alist
+                       (cons buffer erc-server-ping-handler)))))))
 
 (defun erc-server-process-alive (&optional buffer)
   "Return non-nil when BUFFER has an `erc-server-process' open or running."
@@ -505,51 +515,53 @@ The current buffer is given by BUFFER."
          (memq (process-status erc-server-process) '(run open)))))
 
 ;;;; Connecting to a server
+(defun erc-open-network-stream (name buffer host service)
+  "As `open-network-stream', but does non-blocking IO"
+  (make-network-process :name name :buffer  buffer
+                        :host host :service service :nowait t))
 
 (defun erc-server-connect (server port buffer)
   "Perform the connection and login using the specified SERVER and PORT.
 We will store server variables in the buffer given by BUFFER."
-  (let ((msg (erc-format-message 'connect ?S server ?p port)))
+  (let ((msg (erc-format-message 'connect ?S server ?p port)) process)
     (message "%s" msg)
-    (let ((process (funcall erc-server-connect-function
-                            (format "erc-%s-%s" server port)
-                            nil server port)))
-      (unless (processp process)
-        (error "Connection attempt failed"))
+    (setq process (funcall erc-server-connect-function
+                           (format "erc-%s-%s" server port) nil server port))
+    (unless (processp process)
+      (error "Connection attempt failed"))
+    ;; Misc server variables
+    (with-current-buffer buffer
+      (setq erc-server-process process)
+      (setq erc-server-quitting nil)
+      (setq erc-server-reconnecting nil)
+      (setq erc-server-timed-out nil)
+      (setq erc-server-banned nil)
+      (setq erc-server-error-occurred nil)
+      (let ((time (erc-current-time)))
+        (setq erc-server-last-sent-time time)
+        (setq erc-server-last-ping-time time)
+        (setq erc-server-last-received-time time))
+      (setq erc-server-lines-sent 0)
+      ;; last peers (sender and receiver)
+      (setq erc-server-last-peers '(nil . nil)))
+    ;; we do our own encoding and decoding
+    (when (fboundp 'set-process-coding-system)
+      (set-process-coding-system process 'raw-text))
+    ;; process handlers
+    (set-process-sentinel process 'erc-process-sentinel)
+    (set-process-filter process 'erc-server-filter-function)
+    (set-process-buffer process buffer)
+    (erc-log "\n\n\n********************************************\n")
+    (message "%s" (erc-format-message
+                   'login ?n
+                   (with-current-buffer buffer (erc-current-nick))))
+    ;; wait with script loading until we receive a confirmation (first
+    ;; MOTD line)
+    (if (eq (process-status process) 'connect)
+        ;; waiting for a non-blocking connect - keep the user informed
+        (erc-display-message nil nil buffer "Opening connection..\n")
       (message "%s...done" msg)
-      ;; Misc server variables
-      (with-current-buffer buffer
-        (setq erc-server-process process)
-        (setq erc-server-quitting nil)
-        (setq erc-server-reconnecting nil)
-        (setq erc-server-timed-out nil)
-        (setq erc-server-banned nil)
-        (setq erc-server-error-occurred nil)
-        (let ((time (erc-current-time)))
-          (setq erc-server-last-sent-time time)
-          (setq erc-server-last-ping-time time)
-          (setq erc-server-last-received-time time))
-        (setq erc-server-lines-sent 0)
-        ;; last peers (sender and receiver)
-        (setq erc-server-last-peers '(nil . nil)))
-      ;; we do our own encoding and decoding
-      (when (fboundp 'set-process-coding-system)
-        (set-process-coding-system process 'raw-text))
-      ;; process handlers
-      (set-process-sentinel process 'erc-process-sentinel)
-      (set-process-filter process 'erc-server-filter-function)
-      (set-process-buffer process buffer)))
-  (erc-log "\n\n\n********************************************\n")
-  (message "%s" (erc-format-message
-            'login ?n
-            (with-current-buffer buffer (erc-current-nick))))
-  ;; wait with script loading until we receive a confirmation (first
-  ;; MOTD line)
-  (if (eq erc-server-connect-function 'open-network-stream-nowait)
-      ;; it's a bit unclear otherwise that it's attempting to establish a
-      ;; connection
-      (erc-display-message nil nil buffer "Opening connection..\n")
-    (erc-login)))
+      (erc-login)) ))
 
 (defun erc-server-reconnect ()
 "Reestablish the current IRC connection.
@@ -565,9 +577,14 @@ Make sure you are in an ERC buffer when running this."
       (setq erc-server-last-sent-time 0)
       (setq erc-server-lines-sent 0)
       (let ((erc-server-connect-function (or erc-session-connector
-                                             'open-network-stream)))
+                                             'erc-open-network-stream)))
         (erc-open erc-session-server erc-session-port erc-server-current-nick
                   erc-session-user-full-name t erc-session-password)))))
+
+(defun erc-server-delayed-reconnect (event buffer)
+  (if (buffer-live-p buffer)
+    (with-current-buffer buffer
+      (erc-server-reconnect))))
 
 (defun erc-server-filter-function (process string)
   "The process filter for the ERC server."
@@ -615,17 +632,16 @@ EVENT is the message received from the closed connection process."
            (or erc-server-timed-out
                (not (string-match "^deleted" event)))
            ;; open-network-stream-nowait error for connection refused
-           (not (string-match "^failed with code 111" event)))))
+           (if (string-match "^failed with code 111" event) 'nonblocking t))))
 
 (defun erc-process-sentinel-2 (event buffer)
   "Called when `erc-process-sentinel-1' has detected an unexpected disconnect."
   (if (not (buffer-live-p buffer))
       (erc-update-mode-line)
     (with-current-buffer buffer
-      (let ((reconnect-p (erc-server-reconnect-p event)))
-        (erc-display-message nil 'error (current-buffer)
-                             (if reconnect-p 'disconnected
-                               'disconnected-noreconnect))
+      (let ((reconnect-p (erc-server-reconnect-p event)) message delay)
+        (setq message (if reconnect-p 'disconnected 'disconnected-noreconnect))
+        (erc-display-message nil 'error (current-buffer) message)
         (if (not reconnect-p)
             ;; terminate, do not reconnect
             (progn
@@ -637,23 +653,16 @@ EVENT is the message received from the closed connection process."
           ;; reconnect
           (condition-case err
               (progn
-                (setq erc-server-reconnecting nil)
-                (erc-server-reconnect)
-                (setq erc-server-reconnect-count 0))
-            (error (when (buffer-live-p buffer)
-                     (set-buffer buffer)
-                     (if (integerp erc-server-reconnect-attempts)
-                         (setq erc-server-reconnect-count
-                               (1+ erc-server-reconnect-count))
-                       (message "%s ... %s"
-                                "Reconnecting until we succeed"
-                                "kill the ERC server buffer to stop"))
-                     (if (numberp erc-server-reconnect-timeout)
-                         (run-at-time erc-server-reconnect-timeout nil
-                                      #'erc-process-sentinel-2
-                                      event buffer)
-                       (error (concat "`erc-server-reconnect-timeout'"
-                                      " must be a number")))))))))))
+                (setq erc-server-reconnecting   nil
+                      erc-server-reconnect-count (1+ erc-server-reconnect-count))
+                (setq delay erc-server-reconnect-timeout)
+                (run-at-time delay nil
+                             #'erc-server-delayed-reconnect event buffer))
+            (error (unless (integerp erc-server-reconnect-attempts)
+                     (message "%s ... %s"
+                              "Reconnecting until we succeed"
+                              "kill the ERC server buffer to stop"))
+                   (erc-server-delayed-reconnect event buffer))))))))
 
 (defun erc-process-sentinel-1 (event buffer)
   "Called when `erc-process-sentinel' has decided that we're disconnecting.
@@ -692,6 +701,9 @@ Conditionally try to reconnect and take appropriate action."
                    (setq erc-server-ping-handler nil)))
           (run-hook-with-args 'erc-disconnected-hook
                               (erc-current-nick) (system-name) "")
+          (dolist (buf (erc-buffer-filter (lambda () (boundp 'erc-channel-users)) cproc))
+            (with-current-buffer buf
+              (setq erc-channel-users (make-hash-table :test 'equal))))
           ;; Remove the prompt
           (goto-char (or (marker-position erc-input-marker) (point-max)))
           (forward-line 0)
@@ -794,7 +806,9 @@ protection algorithm."
 (defun erc-server-send-ping (buf)
   "Send a ping to the IRC server buffer in BUF.
 Additionally, detect whether the IRC process has hung."
-  (if (buffer-live-p buf)
+  (if (and (buffer-live-p buf)
+           (with-current-buffer buf
+             erc-server-last-received-time))
       (with-current-buffer buf
         (if (and erc-server-send-ping-timeout
                  (>

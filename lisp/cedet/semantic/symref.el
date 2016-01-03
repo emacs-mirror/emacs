@@ -101,7 +101,7 @@ If no tools are supported, then 'grep is assumed.")
 
 (defun semantic-symref-calculate-rootdir ()
   "Calculate the root directory for a symref search.
-Start with and EDE project, or use the default directory."
+Start with an EDE project, or use the default directory."
   (let* ((rootproj (when (and (featurep 'ede) ede-minor-mode)
 		     (ede-toplevel)))
 	 (rootdirbase (if rootproj
@@ -162,7 +162,7 @@ ARGS are the initialization arguments to pass to the created class."
 ;;;###autoload
 (defun semantic-symref-find-references-by-name (name &optional scope tool-return)
   "Find a list of references to NAME in the current project.
-Optional SCOPE specifies which file set to search.  Defaults to 'project.
+Optional SCOPE specifies which file set to search.  Defaults to `project'.
 Refers to `semantic-symref-tool', to determine the reference tool to use
 for the current buffer.
 Returns an object of class `semantic-symref-result'.
@@ -186,7 +186,7 @@ to perform the search.  This was added for use by a test harness."
 ;;;###autoload
 (defun semantic-symref-find-tags-by-name (name &optional scope)
   "Find a list of tags by NAME in the current project.
-Optional SCOPE specifies which file set to search.  Defaults to 'project.
+Optional SCOPE specifies which file set to search.  Defaults to `project'.
 Refers to `semantic-symref-tool', to determine the reference tool to use
 for the current buffer.
 Returns an object of class `semantic-symref-result'."
@@ -206,7 +206,7 @@ Returns an object of class `semantic-symref-result'."
 ;;;###autoload
 (defun semantic-symref-find-tags-by-regexp (name &optional scope)
   "Find a list of references to NAME in the current project.
-Optional SCOPE specifies which file set to search.  Defaults to 'project.
+Optional SCOPE specifies which file set to search.  Defaults to `project'.
 Refers to `semantic-symref-tool', to determine the reference tool to use
 for the current buffer.
 Returns an object of class `semantic-symref-result'."
@@ -226,7 +226,7 @@ Returns an object of class `semantic-symref-result'."
 ;;;###autoload
 (defun semantic-symref-find-tags-by-completion (name &optional scope)
   "Find a list of references to NAME in the current project.
-Optional SCOPE specifies which file set to search.  Defaults to 'project.
+Optional SCOPE specifies which file set to search.  Defaults to `project'.
 Refers to `semantic-symref-tool', to determine the reference tool to use
 for the current buffer.
 Returns an object of class `semantic-symref-result'."
@@ -246,7 +246,7 @@ Returns an object of class `semantic-symref-result'."
 ;;;###autoload
 (defun semantic-symref-find-file-references-by-name (name &optional scope)
   "Find a list of references to NAME in the current project.
-Optional SCOPE specifies which file set to search.  Defaults to 'project.
+Optional SCOPE specifies which file set to search.  Defaults to `project'.
 Refers to `semantic-symref-tool', to determine the reference tool to use
 for the current buffer.
 Returns an object of class `semantic-symref-result'."
@@ -267,7 +267,7 @@ Returns an object of class `semantic-symref-result'."
 (defun semantic-symref-find-text (text &optional scope)
   "Find a list of occurrences of TEXT in the current project.
 TEXT is a regexp formatted for use with egrep.
-Optional SCOPE specifies which file set to search.  Defaults to 'project.
+Optional SCOPE specifies which file set to search.  Defaults to `project'.
 Refers to `semantic-symref-tool', to determine the reference tool to use
 for the current buffer.
 Returns an object of class `semantic-symref-result'."

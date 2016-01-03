@@ -377,6 +377,7 @@ Undo previous action (@code{(undo)}).
 @findex ses-read-cell-printer
 @findex ses-read-column-printer
 @findex ses-read-default-printer
+@findex ses-define-local-printer
 @findex ses-center
 @findex ses-center-span
 @findex ses-dashfill
@@ -435,13 +436,43 @@ Centering with dashes and spill-over.
 Centering with tildes (~) and spill-over.
 @end table
 
-You can define printer function local to a sheet with command
-@code{ses-define-local-printer}. For instance define printer
-@samp{foo} to @code{"%.2f"} and then use symbol @samp{foo} as a
-printer function. Then, if you call again
+You can define printer function local to a sheet with the command
+@code{ses-define-local-printer}.  For instance, define a printer
+@samp{foo} to @code{"%.2f"}, and then use symbol @samp{foo} as a
+printer function.  Then, if you call again
 @code{ses-define-local-printer} on @samp{foo} to redefine it as
-@code{"%.3f"} all the cells using printer @samp{foo} will be reprinted
-accordingly.
+@code{"%.3f"}, all the cells using printer @samp{foo} will be
+reprinted accordingly.
+
+When you define a printer function with a lambda expression taking one
+argument, please take care that the returned value is a string, or a
+list containing a string, even when the input argument has an
+unexpected value. Here is an example:
+
+@example
+(lambda (val)
+   (cond
+      ((null val) "")
+      ((and (numberp val) (>= val 0)) (format "%.1f" val))
+      (t (ses-center-span (format "%S" val) ?#))))
+@end example
+
+This example will:
+@itemize
+@item
+When the cell is empty (ie.@: when @code{val} is @code{nil}), print an
+empty string @code{""}
+@item
+When the cell value is a non negative number, format the the value in
+fixed-point notation with one decimal after point
+@item
+Otherwise, handle the value as erroneous by printing it as an
+s-expression (using @code{prin1}), centered and surrounded by @code{#}
+filling.
+@end itemize
+
+
+
 
 @node Clearing cells
 @section Clearing cells

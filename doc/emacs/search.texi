@@ -26,9 +26,11 @@ thing, but search for patterns instead of fixed strings.
 * Regexps::                   Syntax of regular expressions.
 * Regexp Backslash::          Regular expression constructs starting with `\'.
 * Regexp Example::            A complex regular expression explained.
-* Search Case::               To ignore case while searching, or not.
+* Lax Search::                Search ignores some distinctions among
+                                similar characters, like letter-case.
 * Replace::                   Search, and replace some or all matches.
 * Other Repeating Search::    Operating on all matches for some regexp.
+* Search Customizations::     Various search customizations.
 @end menu
 
 @node Incremental Search
@@ -54,10 +56,10 @@ Incremental search backward (@code{isearch-backward}).
 @menu
 * Basic Isearch::        Basic incremental search commands.
 * Repeat Isearch::       Searching for the same string again.
-* Error in Isearch::     When your string is not found.
-* Special Isearch::      Special input in incremental search.
 * Isearch Yank::         Commands that grab text into the search string
                            or else edit the search string.
+* Error in Isearch::     When your string is not found.
+* Special Isearch::      Special input in incremental search.
 * Not Exiting Isearch::  Prefix argument and scrolling commands.
 * Isearch Minibuffer::   Incremental search of the minibuffer history.
 @end menu
@@ -89,31 +91,46 @@ cursor moves to just after the first @samp{FOO}.
 @cindex isearch face
   At each step, Emacs highlights the @dfn{current match}---the buffer
 text that matches the search string---using the @code{isearch} face
-(@pxref{Faces}).  The current search string is also displayed in the
-echo area.
+(@pxref{Faces}).  @xref{Search Customizations}, for various options
+that customize this highlighting.  The current search string is also
+displayed in the echo area.
 
   If you make a mistake typing the search string, type @key{DEL}.
 Each @key{DEL} cancels the last character of the search string.
+@xref{Error in Isearch}, for more about dealing with unsuccessful
+search.
 
+@cindex exit incremental search
+@cindex incremental search, exiting
   When you are satisfied with the place you have reached, type
 @key{RET}.  This stops searching, leaving the cursor where the search
 brought it.  Also, any command not specially meaningful in searches
 stops the searching and is then executed.  Thus, typing @kbd{C-a}
-exits the search and then moves to the beginning of the line.
-@key{RET} is necessary only if the next command you want to type is a
-printing character, @key{DEL}, @key{RET}, or another character that is
-special within searches (@kbd{C-q}, @kbd{C-w}, @kbd{C-r}, @kbd{C-s},
-@kbd{C-y}, @kbd{M-y}, @kbd{M-r}, @kbd{M-c}, @kbd{M-e}, and some others
-described below).
+exits the search and then moves to the beginning of the line; typing
+one of the arrow keys exits the search and performs the respective
+movement command; etc.  @key{RET} is necessary only if the next
+command you want to type is a printing character, @key{DEL},
+@key{RET}, or another character that is special within searches
+(@kbd{C-q}, @kbd{C-w}, @kbd{C-r}, @kbd{C-s}, @kbd{C-y}, @kbd{M-y},
+@kbd{M-r}, @kbd{M-c}, @kbd{M-e}, and some others described below).
+You can fine-tune the commands that exit the search; see @ref{Not
+Exiting Isearch}.
 
   As a special exception, entering @key{RET} when the search string is
 empty launches nonincremental search (@pxref{Nonincremental Search}).
+(This can be customized; see @ref{Search Customizations}.)
+
+  To abandon the search and return to the place where you started,
+type @kbd{@key{ESC} @key{ESC} @key{ESC}} (@code{isearch-cancel}) or
+@kbd{C-g C-g} (@code{isearch-abort}).
 
   When you exit the incremental search, it adds the original value of
 point to the mark ring, without activating the mark; you can thus use
-@kbd{C-u C-@key{SPC}} to return to where you were before beginning the
-search.  @xref{Mark Ring}.  It only does this if the mark was not
-already active.
+@kbd{C-u C-@key{SPC}} or @kbd{C-x C-x} to return to where you were
+before beginning the search.  @xref{Mark Ring}.  (Emacs only does this
+if the mark was not already active; if the mark was active when you
+started the search, both @kbd{C-u C-@key{SPC}} and @kbd{C-x C-x} will
+go to the mark.)
 
 @kindex C-r
 @findex isearch-backward
@@ -134,7 +151,6 @@ characters with @key{DEL}.  Similarly, each @kbd{C-r} in a backward
 incremental search repeats the backward search.
 
 @cindex lazy search highlighting
-@vindex isearch-lazy-highlight
   If you pause for a little while during incremental search, Emacs
 highlights all the other possible matches for the search string that
 are present on the screen.  This helps you anticipate where you can
@@ -142,21 +158,26 @@ get to by typing @kbd{C-s} or @kbd{C-r} to repeat the search.  The
 other matches are highlighted differently from the current match,
 using the customizable face @code{lazy-highlight} (@pxref{Faces}).  If
 you don't like this feature, you can disable it by setting
-@code{isearch-lazy-highlight} to @code{nil}.
+@code{isearch-lazy-highlight} to @code{nil}.  For other customizations
+related to highlighting matches, see @ref{Search Customizations}.
 
   After exiting a search, you can search for the same string again by
 typing just @kbd{C-s C-s}.  The first @kbd{C-s} is the key that
 invokes incremental search, and the second @kbd{C-s} means to search
-again.  Similarly, @kbd{C-r C-r} searches backward for the last
-search string.  In determining the last search string, it doesn't
-matter whether the string was searched for with @kbd{C-s} or
-@kbd{C-r}.
+again for the last search string.  Similarly, @kbd{C-r C-r} searches
+backward for the last search string.  In determining the last search
+string, it doesn't matter whether that string was searched for with
+@kbd{C-s} or @kbd{C-r}.
 
   If you are searching forward but you realize you were looking for
 something before the starting point, type @kbd{C-r} to switch to a
 backward search, leaving the search string unchanged.  Similarly,
 @kbd{C-s} in a backward search switches to a forward search.
 
+@cindex search, wrapping around
+@cindex search, overwrapped
+@cindex wrapped search
+@cindex overwrapped search
   If a search is failing and you ask to repeat it by typing another
 @kbd{C-s}, it starts again from the beginning of the buffer.
 Repeating a failing reverse search with @kbd{C-r} starts again from
@@ -169,19 +190,86 @@ you have already seen.
 @cindex search ring
 @kindex M-n @r{(Incremental search)}
 @kindex M-p @r{(Incremental search)}
+@vindex search-ring-max
   To reuse earlier search strings, use the @dfn{search ring}.  The
 commands @kbd{M-p} and @kbd{M-n} move through the ring to pick a
 search string to reuse.  These commands leave the selected search ring
-element in the minibuffer, where you can edit it.
+element in the minibuffer, where you can edit it.  Type
+@kbd{C-s}/@kbd{C-r} or @key{RET} to accept the string and start
+searching for it.  The number of most recently used search strings
+saved in the search ring is specified by the variable
+@code{search-ring-max}, 16 by default.
 
+@cindex incremental search, edit search string
+@cindex interactively edit search string
 @kindex M-e @r{(Incremental search)}
+@kindex Mouse-1 @r{in the minibuffer (Incremental Search)}
   To edit the current search string in the minibuffer without
-replacing it with items from the search ring, type @kbd{M-e}.  Type @key{RET},
-@kbd{C-s} or @kbd{C-r} to finish editing the string and search for it.
+replacing it with items from the search ring, type @kbd{M-e} or click
+@kbd{Mouse-1} in the minibuffer.  Type @key{RET}, @kbd{C-s} or
+@kbd{C-r} to finish editing the string and search for it.  Type
+@kbd{C-f} or @kbd{@key{RIGHT}} to add to the search string characters
+following point from the buffer from which you started the search.
+
+@node Isearch Yank
+@subsection Isearch Yanking
+
+  In many cases, you will want to use text at or near point as your
+search string.  The commands described in this subsection let you do
+that conveniently.
+
+@kindex C-w @r{(Incremental search)}
+@findex isearch-yank-word-or-char
+  @kbd{C-w} (@code{isearch-yank-word-or-char}) appends the next
+character or word at point to the search string.  This is an easy way
+to search for another occurrence of the text at point.  (The decision
+of whether to copy a character or a word is heuristic.)
+
+@kindex M-s C-e @r{(Incremental search)}
+@findex isearch-yank-line
+  Similarly, @kbd{M-s C-e} (@code{isearch-yank-line}) appends the rest
+of the current line to the search string.  If point is already at the
+end of a line, it appends the next line.  With a prefix argument
+@var{n}, it appends the next @var{n} lines.
+
+@kindex C-y @r{(Incremental search)}
+@kindex M-y @r{(Incremental search)}
+@kindex Mouse-2 @r{in the minibuffer (Incremental search)}
+@findex isearch-yank-kill
+@findex isearch-yank-pop
+@findex isearch-yank-x-selection
+  Within incremental search, @kbd{C-y} (@code{isearch-yank-kill})
+appends the current kill to the search string.  @kbd{M-y}
+(@code{isearch-yank-pop}), if called after @kbd{C-y}, replaces that
+appended text with an earlier kill, similar to the usual @kbd{M-y}
+(@code{yank-pop}) command (@pxref{Yanking}).  Clicking @kbd{Mouse-2}
+in the echo area appends the current X selection (@pxref{Primary
+Selection}) to the search string (@code{isearch-yank-x-selection}).
+
+@kindex C-M-w @r{(Incremental search)}
+@kindex C-M-y @r{(Incremental search)}
+@findex isearch-del-char
+@findex isearch-yank-char
+  @kbd{C-M-w} (@code{isearch-del-char}) deletes the last character
+from the search string, and @kbd{C-M-y} (@code{isearch-yank-char})
+appends the character after point to the search string.  An
+alternative method to add the character after point is to enter the
+minibuffer with @kbd{M-e} (@pxref{Repeat Isearch}) and type @kbd{C-f}
+or @kbd{@key{RIGHT}} at the end of the search string in the
+minibuffer.  Each @kbd{C-f} or @kbd{@key{RIGHT}} you type adds another
+character following point to the search string.
+
+  Normally, when the search is case-insensitive, text yanked into the
+search string is converted to lower case, so that the search remains
+case-insensitive (@pxref{Lax Search, case folding}).  However, if the
+value of the variable @code{search-upper-case} (@pxref{Lax Search,
+search-upper-case}) is other than @code{not-yanks}, that disables this
+down-casing.
 
 @node Error in Isearch
 @subsection Errors in Incremental Search
 
+@cindex isearch-fail face
   If your string is not found at all, the echo area says @samp{Failing
 I-Search}, and the cursor moves past the place where Emacs found as
 much of your string as it could.  Thus, if you search for @samp{FOOT},
@@ -192,12 +280,13 @@ string that failed to match is highlighted using the face
 
   At this point, there are several things you can do.  If your string
 was mistyped, you can use @key{DEL} to erase some of it and correct
-it.  If you like the place you have found, you can type @key{RET} to
-remain there.  Or you can type @kbd{C-g}, which removes from the
-search string the characters that could not be found (the @samp{T} in
-@samp{FOOT}), leaving those that were found (the @samp{FOO} in
-@samp{FOOT}).  A second @kbd{C-g} at that point cancels the search
-entirely, returning point to where it was when the search started.
+it, or you can type @kbd{M-e} and edit it.  If you like the place you
+have found, you can type @key{RET} to remain there.  Or you can type
+@kbd{C-g}, which removes from the search string the characters that
+could not be found (the @samp{T} in @samp{FOOT}), leaving those that
+were found (the @samp{FOO} in @samp{FOOT}).  A second @kbd{C-g} at
+that point cancels the search entirely, returning point to where it
+was when the search started.
 
 @cindex quitting (in search)
 @kindex C-g @r{(Incremental search)}
@@ -216,34 +305,21 @@ search.
 @node Special Isearch
 @subsection Special Input for Incremental Search
 
-  Some of the characters you type during incremental search have
-special effects.
+  In addition to characters described in the previous subsections,
+some of the other characters you type during incremental search have
+special effects.  They are described here.
 
-@cindex lax space matching
-@kindex M-s SPC @r{(Incremental search)}
-@kindex SPC @r{(Incremental search)}
-@findex isearch-toggle-lax-whitespace
-@vindex search-whitespace-regexp
-  By default, incremental search performs @dfn{lax space matching}:
-each space, or sequence of spaces, matches any sequence of one or more
-spaces in the text.  Hence, @samp{foo bar} matches @samp{foo bar},
-@samp{foo@w{  }bar}, @samp{foo@w{   }bar}, and so on (but not
-@samp{foobar}).  More precisely, Emacs matches each sequence of space
-characters in the search string to a regular expression specified by
-the variable @code{search-whitespace-regexp}.  For example, to make
-spaces match sequences of newlines as well as spaces, set it to
-@samp{"[[:space:]\n]+"}.
+  To toggle lax space matching (@pxref{Lax Search, lax space
+matching}), type @kbd{M-s @key{SPC}}.
 
-  To toggle lax space matching, type @kbd{M-s @key{SPC}}
-(@code{isearch-toggle-lax-whitespace}).  To disable this feature
-entirely, change @code{search-whitespace-regexp} to @code{nil}; then
-each space in the search string matches exactly one space.
+  To toggle case sensitivity of the search, type @kbd{M-c} or
+@kbd{M-s c}.  @xref{Lax Search, case folding}.  If the search string
+includes upper-case letters, the search is case-sensitive by default.
 
-  If the search string you entered contains only lower-case letters,
-the search is case-insensitive; as long as an upper-case letter exists
-in the search string, the search becomes case-sensitive.  If you
-delete the upper-case character from the search string, it ceases to
-have this effect.  @xref{Search Case}.
+  To toggle whether or not the search will consider similar and
+equivalent characters as a match, type @kbd{M-s '}.  @xref{Lax Search,
+character folding}.  If the search string includes accented
+characters, that disables character folding during that search.
 
 @cindex invisible text, searching for
 @kindex M-s i @r{(Incremental search)}
@@ -251,7 +327,17 @@ have this effect.  @xref{Search Case}.
   To toggle whether or not invisible text is searched, type
 @kbd{M-s i} (@code{isearch-toggle-invisible}).  @xref{Outline Search}.
 
-  To search for a newline character, type @kbd{C-j}.
+@kindex M-r @r{(Incremental Search)}
+@kindex M-s r @r{(Incremental Search)}
+@findex isearch-toggle-regexp
+  To toggle between non-regexp and regexp incremental search, type
+@kbd{M-r} or @kbd{M-s r} (@code{isearch-toggle-regexp}).
+@xref{Regexp Search}.
+
+  To toggle symbol mode, type @kbd{M-s _}.  @xref{Symbol Search}.
+
+  To search for a newline character, type @kbd{C-j} as part of the
+search string.
 
   To search for non-@acronym{ASCII} characters, use one of the
 following methods:
@@ -265,17 +351,21 @@ example, @kbd{C-q C-s} during incremental search adds the
 @samp{control-S} character to the search string.
 
 @item
-Type @kbd{C-x 8 @key{RET}}, followed by a Unicode name or code-point.
-This adds the specified character into the search string, similar to
-the usual @code{insert-char} command (@pxref{Inserting Text}).
+Type @kbd{C-x 8 @key{RET}}, followed by a Unicode name or code-point
+in hex.  This adds the specified character into the search string,
+similar to the usual @code{insert-char} command (@pxref{Inserting
+Text}).
 
 @item
+@kindex C-^ @r{(Incremental Search)}
+@findex isearch-toggle-input-method
+@findex isearch-toggle-specified-input-method
 Use an input method (@pxref{Input Methods}).  If an input method is
-enabled in the current buffer when you start the search, you can use
-it in the search string also.  While typing the search string, you can
-toggle the input method with @kbd{C-\}
-(@code{isearch-toggle-input-method}).  You can also turn on a
-non-default input method with @kbd{C-^}
+enabled in the current buffer when you start the search, the same
+method will be active in the minibuffer when you type the search
+string.  While typing the search string, you can toggle the input
+method with @kbd{C-\} (@code{isearch-toggle-input-method}).  You can
+also turn on a non-default input method with @kbd{C-^}
 (@code{isearch-toggle-specified-input-method}), which prompts for the
 name of the input method.  When an input method is active during
 incremental search, the search prompt includes the input method
@@ -286,12 +376,16 @@ I-search [@var{im}]:
 @end example
 
 @noindent
-@findex isearch-toggle-input-method
-@findex isearch-toggle-specified-input-method
 where @var{im} is the mnemonic of the active input method.  Any input
 method you enable during incremental search remains enabled in the
 current buffer afterwards.
 @end itemize
+
+@kindex M-s o @r{(Incremental Search)}
+@findex isearch-occur
+  Typing @kbd{M-s o} in incremental search invokes
+@code{isearch-occur}, which runs @code{occur} with the current search
+string.  @xref{Other Repeating Search, occur}.
 
 @kindex M-% @r{(Incremental search)}
   Typing @kbd{M-%} in incremental search invokes @code{query-replace}
@@ -302,83 +396,72 @@ prefix argument means to replace backward.  @xref{Query Replace}.
 @kindex M-TAB @r{(Incremental search)}
   Typing @kbd{M-@key{TAB}} in incremental search invokes
 @code{isearch-complete}, which attempts to complete the search string
-using the search ring as a list of completion alternatives.
-@xref{Completion}.  In many operating systems, the @kbd{M-@key{TAB}}
-key sequence is captured by the window manager; you then need to
-rebind @code{isearch-complete} to another key sequence if you want to
-use it (@pxref{Rebinding}).
+using the search ring (the previous search strings you used) as a list
+of completion alternatives.  @xref{Completion}.  In many operating
+systems, the @kbd{M-@key{TAB}} key sequence is captured by the window
+manager; you then need to rebind @code{isearch-complete} to another
+key sequence if you want to use it (@pxref{Rebinding}).
 
+@kindex M-s h r @r{(Incremental Search)}
+@findex isearch-highlight-regexp
+  You can exit the search while leaving the matches for the last
+search string highlighted on display.  To this end, type @kbd{M-s h r}
+(@code{isearch-highlight-regexp}), which will run
+@code{highlight-regexp} (@pxref{Highlight Interactively}) passing
+it the regexp derived from the last search string and prompting you
+for the face to use for highlighting.  To remove the highlighting,
+type @kbd{M-s h u} (@code{unhighlight-regexp}).
+
+@cindex incremental search, help on special keys
+@kindex C-h C-h @r{(Incremental Search)}
+@findex isearch-help-map
 @vindex isearch-mode-map
-  When incremental search is active, you can type @kbd{C-h C-h} to
-access interactive help options, including a list of special key
-bindings.  These key bindings are part of the keymap
-@code{isearch-mode-map} (@pxref{Keymaps}).
-
-@node Isearch Yank
-@subsection Isearch Yanking
-
-@kindex C-y @r{(Incremental search)}
-@kindex M-y @r{(Incremental search)}
-@findex isearch-yank-kill
-@findex isearch-yank-pop
-  Within incremental search, @kbd{C-y} (@code{isearch-yank-kill})
-appends the current kill to the search string.  @kbd{M-y}
-(@code{isearch-yank-pop}), if called after @kbd{C-y}, replaces that
-appended text with an earlier kill, similar to the usual @kbd{M-y}
-(@code{yank-pop}) command (@pxref{Yanking}).  @kbd{Mouse-2} appends
-the current X selection (@pxref{Primary Selection}).
-
-@kindex C-w @r{(Incremental search)}
-@findex isearch-yank-word-or-char
-  @kbd{C-w} (@code{isearch-yank-word-or-char}) appends the next
-character or word at point to the search string.  This is an easy way
-to search for another occurrence of the text at point.  (The decision
-of whether to copy a character or a word is heuristic.)
-
-@kindex M-s C-e @r{(Incremental search)}
-@findex isearch-yank-line
-  Similarly, @kbd{M-s C-e} (@code{isearch-yank-line}) appends the rest
-of the current line to the search string.  If point is already at the
-end of a line, it appends the next line.  With a prefix argument
-@var{n}, it appends the next @var{n} lines.
-
-  If the search is currently case-insensitive, both @kbd{C-w} and
-@kbd{M-s C-e} convert the text they copy to lower case, so that the
-search remains case-insensitive.
-
-@kindex C-M-w @r{(Incremental search)}
-@kindex C-M-y @r{(Incremental search)}
-@findex isearch-del-char
-@findex isearch-yank-char
-  @kbd{C-M-w} (@code{isearch-del-char}) deletes the last character
-from the search string, and @kbd{C-M-y} (@code{isearch-yank-char})
-appends the character after point to the search string.  An
-alternative method to add the character after point is to enter the
-minibuffer with @kbd{M-e} (@pxref{Repeat Isearch}) and type @kbd{C-f}
-at the end of the search string in the minibuffer.
+  When incremental search is active, you can type @kbd{C-h C-h}
+(@code{isearch-help-map}) to access interactive help options,
+including a list of special key bindings.  These key bindings are part
+of the keymap @code{isearch-mode-map} (@pxref{Keymaps}).
 
 @node Not Exiting Isearch
 @subsection Not Exiting Incremental Search
 
-This subsection describes two categories of commands which you can
-type without exiting the current incremental search, even though they
-are not themselves part of incremental search.
+This subsection describes how to control whether typing a command not
+specifically meaningful is searches exits the search before executing
+the command.  It also describes two categories of commands which you
+can type without exiting the current incremental search, even though
+they are not themselves part of incremental search.
+
+@vindex search-exit-option
+  Normally, typing a command that is not bound by the incremental
+search exits the search before executing the command.  Thus, the
+command operates on the buffer from which you invoked the search.
+However, if you customize the variable @code{search-exit-option} to
+@code{nil}, the characters which you type that are not interpreted by
+the incremental search are simply appended to the search string.  This
+is so you could include in the search string control characters, such
+as @kbd{C-a}, that would normally exit the search and invoke the
+command bound to them on the buffer.
 
 @table @asis
 @item Prefix Arguments
+@cindex prefix argument commands, during incremental search
 @vindex isearch-allow-prefix
-  In incremental search, when you enter a prefix argument
-(@pxref{Arguments}), by default it will apply either to the next
-action in the search or to the command that exits the search.
+  In incremental search, when you type a command that specifies a
+prefix argument (@pxref{Arguments}), by default it will apply either
+to the next action in the search or to the command that exits the
+search.  In other words, entering a prefix argument will not by itself
+terminate the search.
 
   In previous versions of Emacs, entering a prefix argument always
 terminated the search.  You can revert to this behavior by setting the
 variable @code{isearch-allow-prefix} to @code{nil}.
 
   When @code{isearch-allow-scroll} is non-@code{nil} (see below),
-prefix arguments always have the default behavior described above.
+prefix arguments always have the default behavior described above,
+i.e., they don't terminate the search, even if
+@code{isearch-allow-prefix} is @code{nil}.
 
 @item Scrolling Commands
+@cindex scrolling commands, during incremental search
 @vindex isearch-allow-scroll
   Normally, scrolling commands exit incremental search.  If you change
 the variable @code{isearch-allow-scroll} to a non-@code{nil} value,
@@ -390,12 +473,14 @@ prefix arguments to these commands in the usual way.  This feature
 won't let you scroll the current match out of visibility, however.
 
   The @code{isearch-allow-scroll} feature also affects some other
-commands, such as @kbd{C-x 2} (@code{split-window-below}) and @kbd{C-x
-^} (@code{enlarge-window}), which don't exactly scroll but do affect
-where the text appears on the screen.  It applies to any command whose
-name has a non-@code{nil} @code{isearch-scroll} property.  So you can
-control which commands are affected by changing these properties.
+commands, such as @kbd{C-x 2} (@code{split-window-below}) and
+@kbd{C-x ^} (@code{enlarge-window}), which don't exactly scroll but do
+affect where the text appears on the screen.  It applies to any
+command whose name has a non-@code{nil} @code{isearch-scroll}
+property.  So you can control which commands are affected by changing
+these properties.
 
+@cindex prevent commands from exiting incremental search
   For example, to make @kbd{C-h l} usable within an incremental search
 in all future Emacs sessions, use @kbd{C-h c} to find what command it
 runs (@pxref{Key Help}), which is @code{view-lossage}.  Then you can
@@ -409,7 +494,8 @@ put the following line in your init file (@pxref{Init File}):
 This feature can be applied to any command that doesn't permanently
 change point, the buffer contents, the match data, the current buffer,
 or the selected window and frame.  The command must not itself attempt
-an incremental search.
+an incremental search.  This feature is disabled if
+@code{isearch-allow-scroll} is @code{nil} (which it is by default).
 @end table
 
 @node Isearch Minibuffer
@@ -455,14 +541,22 @@ This enters the minibuffer to read the search string; terminate the
 string with @key{RET}, and then the search takes place.  If the string
 is not found, the search command signals an error.
 
-@findex search-forward
-@findex search-backward
   When you type @kbd{C-s @key{RET}}, the @kbd{C-s} invokes incremental
 search as usual.  That command is specially programmed to invoke the
-command for nonincremental search, @code{search-forward}, if the
-string you specify is empty.  (Such an empty argument would otherwise
-be useless.)  @kbd{C-r @key{RET}} does likewise, invoking the command
-@code{search-backward}.
+command for nonincremental search, if the string you specify is empty.
+(Such an empty argument would otherwise be useless.)  @kbd{C-r
+@key{RET}} does likewise, invoking the nonincremental
+backward-searching command.
+
+  Nonincremental search can also be invoked form the menu bar's
+@samp{Edit->Search} menu.
+
+@findex search-forward
+@findex search-backward
+  You can also use two simpler commands, @kbd{M-x search-forward} and
+@kbd{M-x search-backward}.  These commands look for the literal
+strings you specify, and don't support any of the lax-search features
+(@pxref{Lax Search}) except case folding.
 
 @node Word Search
 @section Word Search
@@ -475,11 +569,13 @@ search matches any sequence of those two words separated by one or
 more spaces, newlines, or other punctuation characters.  This is
 particularly useful for searching text documents, because you don't
 have to worry whether the words you are looking for are separated by
-newlines or spaces.
+newlines or spaces.  Note that major modes for programming languages
+or other specialized modes can modify the definition of a word to suit
+their syntactic needs.
 
 @table @kbd
 @item M-s w
-If incremental search is active, toggle word search mode
+  If incremental search is active, toggle word search mode
 (@code{isearch-toggle-word}); otherwise, begin an incremental forward
 word search (@code{isearch-forward-word}).
 @item M-s w @key{RET} @var{words} @key{RET}
@@ -514,6 +610,18 @@ so that the matching can proceed incrementally as you type.  This
 additional laxity does not apply to the lazy highlight
 (@pxref{Incremental Search}), which always matches whole words.
 
+  The word search commands don't perform character folding, and
+toggling lax whitespace matching (@pxref{Lax Search, lax space
+matching}) has no effect on them.
+
+@kindex M-s M-w
+@findex eww-search-word
+@vindex eww-search-prefix
+  Search the Web for the text in region.  This command performs an
+Internet search for the words in region using the search engine whose
+@acronym{URL} is specified by the variable @code{eww-search-prefix}.
+@xref{Basics, EWW, , eww, The Emacs Web Wowser Manual}.
+
 @node Symbol Search
 @section Symbol Search
 @cindex symbol search
@@ -529,6 +637,7 @@ searching source code.
 
 @table @kbd
 @item M-s _
+@findex isearch-toggle-symbol
 If incremental search is active, toggle symbol search mode
 (@code{isearch-toggle-symbol}); otherwise, begin an incremental
 forward symbol search (@code{isearch-forward-symbol}).
@@ -560,6 +669,10 @@ for a forward search, or @kbd{M-s _ C-r @key{RET}} or a backward
 search.  In nonincremental symbol searches, the beginning and end of
 the search string are required to match the beginning and end of a
 symbol, respectively.
+
+  The symbol search commands don't perform character folding, and
+toggling lax whitespace matching (@pxref{Lax Search, lax space
+matching}) has no effect on them.
 
 @node Regexp Search
 @section Regular Expression Search
@@ -595,21 +708,30 @@ for.  To search backward for a regexp, use @kbd{C-M-r}
 (@code{isearch-backward-regexp}), @kbd{C-r} with a prefix argument,
 or @kbd{M-r} within a backward incremental search.
 
+@vindex regexp-search-ring-max
   All of the special key sequences in an ordinary incremental search
-do similar things in an incremental regexp search.  For instance,
-typing @kbd{C-s} immediately after starting the search retrieves the
-last incremental search regexp used and searches forward for it.
-Incremental regexp and non-regexp searches have independent defaults.
-They also have separate search rings, which you can access with
-@kbd{M-p} and @kbd{M-n}.
+(@pxref{Special Isearch}) do similar things in an incremental regexp
+search.  For instance, typing @kbd{C-s} immediately after starting the
+search retrieves the last incremental search regexp used and searches
+forward for it.  Incremental regexp and non-regexp searches have
+independent defaults.  They also have separate search rings, which you
+can access with @kbd{M-p} and @kbd{M-n}.  The maximum number of search
+regexps saved in the search ring is determined by the value of
+@code{regexp-search-ring-max}, 16 by default.
 
   Unlike ordinary incremental search, incremental regexp search
-do not use lax space matching by default.  To toggle this feature
+does not use lax space matching by default.  To toggle this feature
 use @kbd{M-s @key{SPC}} (@code{isearch-toggle-lax-whitespace}).
 Then any @key{SPC} typed in incremental regexp search will match
 any sequence of one or more whitespace characters.  The variable
 @code{search-whitespace-regexp} specifies the regexp for the lax
 space matching.  @xref{Special Isearch}.
+
+  Also unlike ordinary incremental search, incremental regexp search
+cannot use character folding (@pxref{Lax Search}).  (If you toggle
+character folding during incremental regexp search with @kbd{M-s '},
+the search becomes a non-regexp search and the search pattern you
+typed is interpreted as a literal string.)
 
   In some cases, adding characters to the regexp in an incremental
 regexp search can make the cursor move back and start again.  For
@@ -629,7 +751,10 @@ starting position.  These search methods are not mirror images.
   Nonincremental search for a regexp is done with the commands
 @code{re-search-forward} and @code{re-search-backward}.  You can
 invoke these with @kbd{M-x}, or by way of incremental regexp search
-with @kbd{C-M-s @key{RET}} and @kbd{C-M-r @key{RET}}.
+with @kbd{C-M-s @key{RET}} and @kbd{C-M-r @key{RET}}.  When you invoke
+these commands with @kbd{M-x}, they search for the exact regexp you
+specify, and thus don't support any lax-search features (@pxref{Lax
+Search}) except case folding.
 
   If you use the incremental regexp search commands with a prefix
 argument, they perform ordinary string search, like
@@ -1030,21 +1155,67 @@ This contains two parts in succession: a character set matching
 period, @samp{?}, or @samp{!}, and a character set matching
 close-brackets, quotes, or parentheses, repeated zero or more times.
 
-@node Search Case
-@section Searching and Case
+@node Lax Search
+@section Lax Matching During Searching
 
-  Searches in Emacs normally ignore the case of the text they are
-searching through, if you specify the text in lower case.  Thus, if
-you specify searching for @samp{foo}, then @samp{Foo} and @samp{foo}
-also match.  Regexps, and in particular character sets, behave
-likewise: @samp{[ab]} matches @samp{a} or @samp{A} or @samp{b} or
-@samp{B}.
+@cindex lax search
+@cindex character equivalence in search
+  Normally, you'd want search commands to disregard certain minor
+differences between the search string you type and the text being
+searched.  For example, sequences of whitespace characters of
+different length are usually perceived as equivalent; letter-case
+differences usually don't matter; etc.  This is known as
+@dfn{character equivalence}.
 
-  An upper-case letter anywhere in the incremental search string makes
-the search case-sensitive.  Thus, searching for @samp{Foo} does not find
-@samp{foo} or @samp{FOO}.  This applies to regular expression search as
-well as to string search.  The effect ceases if you delete the
-upper-case letter from the search string.
+  This section describes the Emacs lax search features, and how to
+tailor them to your needs.
+
+@cindex lax space matching in search
+@kindex M-s SPC @r{(Incremental search)}
+@kindex SPC @r{(Incremental search)}
+@findex isearch-toggle-lax-whitespace
+@vindex search-whitespace-regexp
+  By default, search commands perform @dfn{lax space matching}:
+each space, or sequence of spaces, matches any sequence of one or more
+whitespace characters in the text.  (Incremental regexp search has a
+separate default; see @ref{Regexp Search}.)  Hence, @samp{foo bar}
+matches @samp{foo bar}, @samp{foo@w{  }bar}, @samp{foo@w{   }bar}, and
+so on (but not @samp{foobar}).  More precisely, Emacs matches each
+sequence of space characters in the search string to a regular
+expression specified by the variable @code{search-whitespace-regexp}.
+For example, to make spaces match sequences of newlines as well as
+spaces, set it to @samp{"[[:space:]\n]+"}.  The default value of this
+variable depends on the buffer's major mode; most major modes classify
+spaces, tabs, and formfeed characters as whitespace.
+
+  If you want whitespace characters to match exactly, you can turn lax
+space matching off by typing @kbd{M-s @key{SPC}}
+(@code{isearch-toggle-lax-whitespace}) within an incremental search.
+Another @kbd{M-s @key{SPC}} turns lax space matching back on.  To
+disable lax whitespace matching for all searches, change
+@code{search-whitespace-regexp} to @code{nil}; then each space in the
+search string matches exactly one space.
+
+@cindex case folding in search
+@cindex case-sensitivity and search
+  Searches in Emacs by default ignore the case of the text they are
+searching through, if you specify the search string in lower case.
+Thus, if you specify searching for @samp{foo}, then @samp{Foo} and
+@samp{foo} also match.  Regexps, and in particular character sets,
+behave likewise: @samp{[ab]} matches @samp{a} or @samp{A} or @samp{b}
+or @samp{B}.  This feature is known as @dfn{case folding}, and it is
+supported in both incremental and non-incremental search modes.
+
+@vindex search-upper-case
+  An upper-case letter anywhere in the search string makes the search
+case-sensitive.  Thus, searching for @samp{Foo} does not find
+@samp{foo} or @samp{FOO}.  This applies to regular expression search
+as well as to literal string search.  The effect ceases if you delete
+the upper-case letter from the search string.  The variable
+@code{search-upper-case} controls this: if it is non-@code{nil} (the
+default), an upper-case character in the search string make the search
+case-sensitive; setting it to @code{nil} disables this effect of
+upper-case characters.
 
 @vindex case-fold-search
   If you set the variable @code{case-fold-search} to @code{nil}, then
@@ -1055,18 +1226,59 @@ This variable applies to nonincremental searches also, including those
 performed by the replace commands (@pxref{Replace}) and the minibuffer
 history matching commands (@pxref{Minibuffer History}).
 
-@c isearch-toggle-case-fold
-  Typing @kbd{M-c} within an incremental search toggles the case
-sensitivity of that search.  The effect does not extend beyond the
-current incremental search to the next one, but it does override the
-effect of adding or removing an upper-case letter in the current
-search.
+@kindex M-c @r{(Incremental search)}
+@kindex M-s c @r{(Incremental search)}
+@findex isearch-toggle-case-fold
+  Typing @kbd{M-c} or @kbd{M-s c} (@code{isearch-toggle-case-fold})
+within an incremental search toggles the case sensitivity of that
+search.  The effect does not extend beyond the current incremental
+search, but it does override the effect of adding or removing an
+upper-case letter in the current search.
 
   Several related variables control case-sensitivity of searching and
 matching for specific commands or activities.  For instance,
 @code{tags-case-fold-search} controls case sensitivity for
 @code{find-tag}.  To find these variables, do @kbd{M-x
 apropos-variable @key{RET} case-fold-search @key{RET}}.
+
+@cindex character folding in search
+@cindex equivalent character sequences
+  Case folding disregards case distinctions among characters, making
+upper-case characters match lower-case variants, and vice versa.  A
+generalization of case folding is @dfn{character folding}, which
+disregards wider classes of distinctions among similar characters.
+For instance, under character folding the letter @code{a} matches all
+of its accented cousins like @code{@"a} and @code{@'a}, i.e., the
+match disregards the diacritics that distinguish these
+variants.  In addition, @code{a} matches other characters that
+resemble it, or have it as part of their graphical representation,
+such as @sc{u+249c parenthesized latin small letter a} and @sc{u+2100
+account of} (which looks like a small @code{a} over @code{c}).
+Similarly, the @acronym{ASCII} double-quote character @code{"} matches
+all the other variants of double quotes defined by the Unicode
+standard.  Finally, character folding can make a sequence of one or
+more characters match another sequence of a different length: for
+example, the sequence of two characters @code{ff} matches @sc{u+fb00
+latin small ligature ff}.  Character sequences that are not identical,
+but match under character folding are known as @dfn{equivalent
+character sequences}.
+
+@kindex M-s ' @r{(Incremental Search)}
+@findex isearch-toggle-character-fold
+  Generally, search commands in Emacs by default perform character
+folding, thus matching equivalent character sequences.  You can
+disable this behavior by customizing the variable
+@code{search-default-regexp-mode} to @code{nil}.  @xref{Search
+Customizations}.  Within an incremental search, typing @kbd{M-s '}
+(@code{isearch-toggle-character-fold}) toggles character folding, but
+only for that search.  (Replace commands have a different default,
+controlled by a separate option; see @ref{Replacement and Lax
+Matches}.)
+
+  Like with case folding, typing an explicit variant of a character,
+such as @code{@"a}, as part of the search string disables character
+folding for that search.  If you delete such a character from the
+search string, this effect ceases.
 
 @node Replace
 @section Replacement Commands
@@ -1078,7 +1290,8 @@ apropos-variable @key{RET} case-fold-search @key{RET}}.
   Emacs provides several commands for performing search-and-replace
 operations.  In addition to the simple @kbd{M-x replace-string}
 command, there is @kbd{M-%} (@code{query-replace}), which presents
-each occurrence of the pattern and asks you whether to replace it.
+each occurrence of the search pattern and asks you whether to replace
+it.
 
   The replace commands normally operate on the text from point to the
 end of the buffer.  When the region is active, they operate on it
@@ -1087,17 +1300,11 @@ instead (@pxref{Mark}).  The basic replace commands replace one
 is possible to perform several replacements in parallel, using the
 command @code{expand-region-abbrevs} (@pxref{Expanding Abbrevs}).
 
-@vindex replace-lax-whitespace
-  Unlike incremental search, the replacement commands do not use lax
-space matching (@pxref{Special Isearch}) by default.  To enable lax
-space matching for replacement, change the variable
-@code{replace-lax-whitespace} to @code{t}.  (This only affects how
-Emacs finds the text to replace, not the replacement text.)
-
 @menu
 * Unconditional Replace::   Replacing all matches for a string.
 * Regexp Replace::          Replacing all matches for a regexp.
-* Replacement and Case::    How replacements preserve case of letters.
+* Replacement and Lax Matches::
+                            Lax searching for text to replace.
 * Query Replace::           How to use querying.
 @end menu
 
@@ -1128,8 +1335,8 @@ activating the mark; use @kbd{C-u C-@key{SPC}} to move back there.
   A prefix argument restricts replacement to matches that are
 surrounded by word boundaries.
 
-  @xref{Replacement and Case}, for details about case-sensitivity in
-replace commands.
+  @xref{Replacement and Lax Matches}, for details about
+case-sensitivity in replace commands.
 
 @node Regexp Replace
 @subsection Regexp Replacement
@@ -1137,7 +1344,7 @@ replace commands.
 
   The @kbd{M-x replace-string} command replaces exact matches for a
 single string.  The similar command @kbd{M-x replace-regexp} replaces
-any match for a specified pattern.
+any match for a specified regular expression pattern (@pxref{Regexps}).
 
 @table @kbd
 @item M-x replace-regexp @key{RET} @var{regexp} @key{RET} @var{newstring} @key{RET}
@@ -1218,9 +1425,28 @@ M-x replace-regexp @key{RET} ^.\@{0,72\@}$ @key{RET}
 \,(format "%-72sABC%05d" \& \#) @key{RET}
 @end example
 
-@node Replacement and Case
-@subsection Replace Commands and Case
+@node Replacement and Lax Matches
+@subsection Replace Commands and Lax Matches
 
+  This subsection describes the behavior of replace commands with
+respect to lax matches (@pxref{Lax Search}) and how to customize it.
+In general, replace commands mostly default to stricter matching than
+their search counterparts.
+
+@cindex lax space matching in replace commands
+@vindex replace-lax-whitespace
+  Unlike incremental search, the replacement commands do not use lax
+space matching (@pxref{Lax Search, lax space matching}) by default.
+To enable lax space matching for replacement, change the variable
+@code{replace-lax-whitespace} to non-@code{nil}.  (This only affects
+how Emacs finds the text to replace, not the replacement text.)
+
+@vindex replace-regexp-lax-whitespace
+  A companion variable @code{replace-regexp-lax-whitespace} controls
+whether @code{query-replace-regexp} uses lax whitespace matching when
+searching for patterns.
+
+@cindex case folding in replace commands
   If the first argument of a replace command is all lower case, the
 command ignores case while searching for occurrences to
 replace---provided @code{case-fold-search} is non-@code{nil}.  If
@@ -1250,6 +1476,15 @@ exactly as given, with no case conversion.  Likewise, if either
 @code{case-replace} or @code{case-fold-search} is set to @code{nil},
 replacement is done without case conversion.
 
+@cindex character folding in replace commands
+  The replacement commands by default do not use character folding
+(@pxref{Lax Search, character folding}) when looking for the text to
+replace.  To enable character folding for matching in
+@code{query-replace} and @code{replace-string}, set the variable
+@code{replace-character-fold} to a non-@code{nil} value.  (This
+setting does not affect the replacement text, only how Emacs finds the
+text to replace.  It also doesn't affect @code{replace-regexp}.)
+
 @node Query Replace
 @subsection Query Replace
 @cindex query replace
@@ -1270,9 +1505,9 @@ occurrence and asks you whether to replace it.  Aside from querying,
 @code{query-replace} works just like @code{replace-string}
 (@pxref{Unconditional Replace}).  In particular, it preserves case
 provided @code{case-replace} is non-@code{nil}, as it normally is
-(@pxref{Replacement and Case}).  A numeric argument means to consider
-only occurrences that are bounded by word-delimiter characters.  A
-negative prefix argument replaces backward.
+(@pxref{Replacement and Lax Matches}).  A numeric argument means to
+consider only occurrences that are bounded by word-delimiter
+characters.  A negative prefix argument replaces backward.
 
 @kindex C-M-%
 @findex query-replace-regexp
@@ -1280,17 +1515,37 @@ negative prefix argument replaces backward.
 It works like @code{replace-regexp} except that it queries
 like @code{query-replace}.
 
+@vindex query-replace-from-to-separator
+  You can reuse earlier replacements with these commands.  When
+@code{query-replace} or @code{query-replace-regexp} prompts for the
+search string, use @kbd{M-p} and @kbd{M-n} to show previous
+replacements in the form @samp{@var{from} -> @var{to}}, where
+@var{from} is the search pattern, @var{to} is its replacement, and the
+separator between them is determined by the value of the variable
+@code{query-replace-from-to-separator}.  Type @key{RET} to select the
+desired replacement.
+
 @cindex faces for highlighting query replace
 @cindex query-replace face
-@cindex lazy-highlight face
+@cindex lazy-highlight face, in replace
+@vindex query-replace-highlight
+@vindex query-replace-lazy-highlight
+@vindex query-replace-show-replacement
   These commands highlight the current match using the face
-@code{query-replace}.  They highlight other matches using
-@code{lazy-highlight} just like incremental search (@pxref{Incremental
-Search}).  By default, @code{query-replace-regexp} will show the
-substituted replacement string for the current match in the
-minibuffer.  If you want to keep special sequences @samp{\&} and
-@samp{\@var{n}} unexpanded, customize
+@code{query-replace}.  You can disable this highlight by setting the
+variable @code{query-replace-highlight} to @code{nil}.  They highlight
+other matches using @code{lazy-highlight} just like incremental search
+(@pxref{Incremental Search}); this can be disabled by setting
+@code{query-replace-lazy-highlight} to @code{nil}.  By default,
+@code{query-replace-regexp} will show the substituted replacement
+string for the current match in the minibuffer.  If you want to keep
+special sequences @samp{\&} and @samp{\@var{n}} unexpanded, customize
 @code{query-replace-show-replacement} variable.
+
+@vindex query-replace-skip-read-only
+  The variable @code{query-replace-skip-read-only}, if set
+non-@code{nil}, will cause replacement commands to ignore matches in
+read-only text.  The default is not to ignore them.
 
   The characters you can type when you are shown a match for the string
 or regexp are:
@@ -1311,9 +1566,13 @@ or regexp are:
 @c WideCommands
 @table @kbd
 @item @key{SPC}
+@itemx y
 to replace the occurrence with @var{newstring}.
 
 @item @key{DEL}
+@itemx @key{Delete}
+@itemx @key{BACKSPACE}
+@itemx n
 to skip to the next occurrence without replacing this one.
 
 @item , @r{(Comma)}
@@ -1329,6 +1588,7 @@ must use @kbd{C-x @key{ESC} @key{ESC} @key{RET}} to restart
 (@pxref{Repetition}).
 
 @item @key{RET}
+@itemx q
 to exit without doing any more replacements.
 
 @item .@: @r{(Period)}
@@ -1337,19 +1597,6 @@ occurrences.
 
 @item !
 to replace all remaining occurrences without asking again.
-
-@item Y @r{(Upper-case)}
-to replace all remaining occurrences in all remaining buffers in
-multi-buffer replacements (like the Dired @key{Q} command that performs
-query replace on selected files).  It answers this question and all
-subsequent questions in the series with ``yes'', without further
-user interaction.
-
-@item N @r{(Upper-case)}
-to skip to the next buffer in multi-buffer replacements without
-replacing remaining occurrences in the current buffer.  It answers
-this question ``no'', gives up on the questions for the current buffer,
-and continues to the next buffer in the sequence.
 
 @item ^
 to go back to the position of the previous occurrence (or what used to
@@ -1378,19 +1625,30 @@ replacement string for any further occurrences.
 to redisplay the screen.  Then you must type another character to
 specify what to do with this occurrence.
 
+@item Y @r{(Upper-case)}
+to replace all remaining occurrences in all remaining buffers in
+multi-buffer replacements (like the Dired @key{Q} command that performs
+query replace on selected files).  It answers this question and all
+subsequent questions in the series with ``yes'', without further
+user interaction.
+
+@item N @r{(Upper-case)}
+to skip to the next buffer in multi-buffer replacements without
+replacing remaining occurrences in the current buffer.  It answers
+this question ``no'', gives up on the questions for the current buffer,
+and continues to the next buffer in the sequence.
+
 @item C-h
+@itemx ?
+@itemx @key{F1}
 to display a message summarizing these options.  Then you must type
 another character to specify what to do with this occurrence.
 @end table
 
-  Some other characters are aliases for the ones listed above: @kbd{y},
-@kbd{n} and @kbd{q} are equivalent to @key{SPC}, @key{DEL} and
-@key{RET}.
-
   Aside from this, any other character exits the @code{query-replace},
 and is then reread as part of a key sequence.  Thus, if you type
 @kbd{C-k}, it exits the @code{query-replace} and then kills to end of
-line.
+line.  In particular, @kbd{C-g} simply exits the @code{query-replace}.
 
   To restart a @code{query-replace} once it is exited, use @kbd{C-x
 @key{ESC} @key{ESC}}, which repeats the @code{query-replace} because it
@@ -1454,12 +1712,17 @@ a multi-file incremental search is activated automatically.
 
 @cindex Occur mode
 @cindex mode, Occur
+@cindex match (face name)
+@vindex list-matching-lines-default-context-lines
 @item M-x occur
 Prompt for a regexp, and display a list showing each line in the
-buffer that contains a match for it.  To limit the search to part of
-the buffer, narrow to that part (@pxref{Narrowing}).  A numeric
+buffer that contains a match for it.  The text that matched is
+highlighted using the @code{match} face.  To limit the search to part
+of the buffer, narrow to that part (@pxref{Narrowing}).  A numeric
 argument @var{n} specifies that @var{n} lines of context are to be
-displayed before and after each matching line.
+displayed before and after each matching line.  The default number of
+context lines is specified by the variable
+@code{list-matching-lines-default-context-lines}.
 
 @kindex RET @r{(Occur mode)}
 @kindex o @r{(Occur mode)}
@@ -1526,3 +1789,89 @@ it never deletes lines that are only partially contained in the region
 
 If a match is split across lines, this command keeps all those lines.
 @end table
+
+@node Search Customizations
+@section Tailoring Search to Your Needs
+@cindex search customizations
+
+  This section describes miscellaneous search-related customizations
+not described elsewhere.
+
+@cindex default search mode
+@cindex search mode, default
+  The default search mode for the incremental search is specified by
+the variable @code{search-default-regexp-mode}.  It can be @code{nil},
+@code{t}, or a function.  If it is @code{nil}, the default mode is to
+do literal searches without character folding, but with case folding
+and lax-whitespace matches as determined by @code{case-fold-search}
+and @code{search-whitespace-regexp}, respectively (@pxref{Lax
+Search}).  If the value is @code{t}, incremental search defaults to
+regexp searches.  The default value specifies a function that causes
+the default search mode to perform character folding in addition to
+case folding and lax-whitespace matching.
+
+@vindex search-highlight
+  The current match of an on-going incremental search is highlighted
+using the @code{isearch} face.  This highlighting can be disabled by
+setting the variable @code{search-highlight} to @code{nil}.
+
+@cindex lazy highlighting customizations
+@vindex isearch-lazy-highlight
+@cindex lazy-highlight face
+  The other matches for the search string that are visible on display
+are highlighted using the @code{lazy-highlight} face.  Setting the
+variable @code{isearch-lazy-highlight} to @code{nil} disables this
+highlighting.  Here are some other variables that customize the lazy
+highlighting:
+
+@table @code
+@item lazy-highlight-initial-delay
+Time in seconds to wait before highlighting visible matches.
+
+@item lazy-highlight-interval
+Time in seconds between highlighting successive matches.
+
+@item lazy-highlight-max-at-a-time
+The maximum number of matches to highlight before checking for input.
+A large number can take some time to highlight, so if you want to
+continue searching and type @kbd{C-s} or @kbd{C-r} during that time,
+Emacs will not respond until it finishes highlighting all those
+matches.  Thus, smaller values make Emacs more responsive.
+@end table
+
+@vindex search-nonincremental-instead
+  Normally, entering @key{RET} within incremental search when the
+search string is empty launches a nonincremental search.  (Actually,
+it lets you edit the search string, and the next @key{RET} does the
+search.)  However, if you customize the variable
+@code{search-nonincremental-instead} to @code{nil}, typing @key{RET}
+will always exit the incremental search, even if the search string is
+empty.
+
+@vindex isearch-hide-immediately
+  By default, incremental search and query-replace commands match
+invisible text, but hide any such matches as soon as the current match
+moves off the invisible text.  If you customize the variable
+@code{isearch-hide-immediately} to @code{nil}, any invisible text
+where matches were found stays on display until the search or the
+replace command exits.
+
+@cindex search display on slow terminals
+@vindex search-slow-speed
+@vindex search-slow-window-lines
+  Searching incrementally on slow terminals, such as displays
+connected to remote machines over slow connection, could be annoying
+due to the need to redraw large portions of the display as the search
+proceeds.  Emacs provides a special display mode for slow terminals,
+whereby search pops up a separate small window and displays the text
+surrounding the match in that window.  Small windows display faster,
+so the annoying effect of slow speed is alleviated.  The variable
+@code{search-slow-speed} determines the baud rate threshold below
+which Emacs will use this display mode.  The variable
+@code{search-slow-window-lines} controls the number of lines in the
+window Emacs pops up for displaying the search results; the default is
+1 line.  Normally, this window will pop up at the bottom of the window
+that displays the buffer where you start searching, bit if the value
+of @code{search-slow-window-lines} is negative, that means to put the
+window at the top and give it the number of lines that is the absolute
+value of that value.

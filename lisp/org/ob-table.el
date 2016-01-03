@@ -67,7 +67,7 @@ element list, whose first element is the name of the variable and
 second element is a string of its value.  The following call to
 `org-sbe' would be equivalent to the following source code block.
 
- (org-sbe 'source-block (n $2) (m 3))
+ (org-sbe \\='source-block (n $2) (m 3))
 
 #+begin_src emacs-lisp :var results=source-block(n=val_at_col_2, m=3) :results silent
 results
@@ -84,7 +84,7 @@ the header argument which can then be passed before all variables
 as shown in the example below.
 
 | 1 | 2 | :file nothing.png | nothing.png |
-#+TBLFM: @1$4='(org-sbe test-sbe $3 (x $1) (y $2))"
+#+TBLFM: @1$4=\\='(org-sbe test-sbe $3 (x $1) (y $2))"
   (declare (debug (form form)))
   (let* ((header-args (if (stringp (car variables)) (car variables) ""))
 	 (variables (if (stringp (car variables)) (cdr variables) variables)))

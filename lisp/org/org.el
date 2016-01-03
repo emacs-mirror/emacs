@@ -7094,7 +7094,7 @@ open and agenda-wise Org files."
 	  (org-flag-drawer t))))))
 
 (defun org-cycle-hide-inline-tasks (state)
-  "Re-hide inline tasks when switching to 'contents or 'children
+  "Re-hide inline tasks when switching to `contents' or `children'
 visibility state."
   (case state
     (contents
@@ -7323,8 +7323,8 @@ returns to the original buffer in which the visibility is still
 unchanged.  After RET it will also jump to the location selected
 in the indirect buffer and expose the headline hierarchy above.
 
-With a prefix argument, use the alternative interface: e.g. if
-`org-goto-interface' is 'outline use 'outline-path-completion."
+With a prefix argument, use the alternative interface: e.g., if
+`org-goto-interface' is `outline' use `outline-path-completion'."
   (interactive "P")
   (org-goto-map)
   (let* ((org-refile-targets `((nil . (:maxlevel . ,org-goto-max-level))))

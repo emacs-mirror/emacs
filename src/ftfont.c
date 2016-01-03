@@ -30,6 +30,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "dispextern.h"
 #include "character.h"
 #include "charset.h"
+#include "category.h"
 #include "composite.h"
 #include "font.h"
 #include "ftfont.h"
@@ -80,6 +81,8 @@ static Lisp_Object ftfont_lookup_cache (Lisp_Object,
                                         enum ftfont_cache_for);
 
 static void ftfont_filter_properties (Lisp_Object font, Lisp_Object alist);
+
+static Lisp_Object ftfont_combining_capability (struct font *);
 
 #define SYMBOL_FcChar8(SYM) (FcChar8 *) SDATA (SYMBOL_NAME (SYM))
 
@@ -547,6 +550,10 @@ struct font_driver ftfont_driver =
 #endif
 
     ftfont_filter_properties, /* filter_properties */
+
+    NULL,			/* cached_font_ok */
+
+    ftfont_combining_capability,
   };
 
 static Lisp_Object
@@ -2533,7 +2540,7 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
 
   len = i;
 
-  if (with_variation_selector)
+  if (otf && with_variation_selector)
     {
       setup_otf_gstring (len);
       for (i = 0; i < len; i++)
@@ -2583,14 +2590,19 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
   flt_font_ft.otf = otf;
   flt_font_ft.matrix = matrix->xx != 0 ? matrix : 0;
 
-  if (1 < len)
+  if (1 < len || ! otf)
     {
       /* A little bit ad hoc.  Perhaps, shaper must get script and
 	 language information, and select a proper flt for them
 	 here.  */
       int c1 = LGLYPH_CHAR (LGSTRING_GLYPH (lgstring, 1));
-      if (0x300 <= c1 && c1 <= 0x36F)
+      if (CHAR_HAS_CATEGORY (c1, '^'))
 	flt = mflt_get (msymbol ("combining"));
+      else if (! otf)
+	flt = mflt_find (LGLYPH_CHAR (LGSTRING_GLYPH (lgstring, 0)),
+			 &flt_font_ft.flt_font);
+      if (! flt)
+	return make_number (0);
     }
 
   MFLTGlyphFT *glyphs = (MFLTGlyphFT *) gstring.glyphs;
@@ -2675,8 +2687,6 @@ ftfont_shape (Lisp_Object lgstring)
   struct ftfont_info *ftfont_info = (struct ftfont_info *) font;
   OTF *otf = ftfont_get_otf (ftfont_info);
 
-  if (! otf)
-    return make_number (0);
   return ftfont_shape_by_flt (lgstring, font, ftfont_info->ft_size->face, otf,
 			      &ftfont_info->matrix);
 }
@@ -2749,6 +2759,16 @@ ftfont_filter_properties (Lisp_Object font, Lisp_Object alist)
   font_filter_properties (font, alist, ftfont_booleans, ftfont_non_booleans);
 }
 
+
+static Lisp_Object
+ftfont_combining_capability (struct font *font)
+{
+#ifdef HAVE_M17N_FLT
+  return Qt;
+#else
+  return Qnil;
+#endif
+}
 
 void
 syms_of_ftfont (void)

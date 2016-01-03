@@ -22,10 +22,21 @@
 
 ;;; Commentary:
 
+;; `kill-all-abbrevs-test' will remove all user *and* system abbrevs
+;; if called noninteractively with the init file loaded.
+
 ;;; Code:
 
 (require 'ert)
 (require 'abbrev)
+(require 'seq)
+
+;; set up test abbrev table and abbrev entry
+(defun setup-test-abbrev-table ()
+  (defvar ert-test-abbrevs nil)
+  (define-abbrev-table 'ert-test-abbrevs '(("a-e-t" "abbrev-ert-test")))
+  (abbrev-table-put ert-test-abbrevs :ert-test "ert-test-value")
+  ert-test-abbrevs)
 
 (ert-deftest abbrev-table-p-test ()
   (should-not (abbrev-table-p 42))
@@ -69,6 +80,48 @@
            (error nil))))
     (should (abbrev-table-p new-foo-abbrev-table)))
   (should-not (string-equal (buffer-name) "*Backtrace*")))
+
+(ert-deftest kill-all-abbrevs-test ()
+  "Test undefining all defined abbrevs"
+  (unless noninteractive
+    (ert-skip "Cannot test kill-all-abbrevs in interactive mode"))
+
+  (let ((num-tables 0))
+    ;; ensure at least one abbrev exists
+    (should (abbrev-table-p (setup-test-abbrev-table)))
+    (setf num-tables (length abbrev-table-name-list))
+    (kill-all-abbrevs)
+
+    ;; no tables should have been removed/added
+    (should (= num-tables (length abbrev-table-name-list)))
+    ;; number of empty tables should be the same as number of tables
+    (should (= num-tables (length (seq-filter
+                                   (lambda (table)
+                                       (abbrev-table-empty-p (symbol-value table)))
+                                   abbrev-table-name-list))))))
+
+(ert-deftest abbrev-table-name-test ()
+  "Test returning name of abbrev-table"
+  (let ((ert-test-abbrevs (setup-test-abbrev-table))
+        (no-such-table nil))
+    (should (equal 'ert-test-abbrevs (abbrev-table-name ert-test-abbrevs)))
+    (should (equal nil (abbrev-table-name no-such-table)))))
+
+(ert-deftest clear-abbrev-table-test ()
+  "Test clearing single abbrev table"
+  (let ((ert-test-abbrevs (setup-test-abbrev-table)))
+    (should (equal "a-e-t" (symbol-name
+                            (abbrev-symbol "a-e-t" ert-test-abbrevs))))
+    (should (equal "abbrev-ert-test" (symbol-value
+                                      (abbrev-symbol "a-e-t" ert-test-abbrevs))))
+
+    (clear-abbrev-table ert-test-abbrevs)
+
+    (should (equal "nil" (symbol-name
+                          (abbrev-symbol "a-e-t" ert-test-abbrevs))))
+    (should (equal nil (symbol-value
+                        (abbrev-symbol "a-e-t" ert-test-abbrevs))))
+    (should (equal t (abbrev-table-empty-p ert-test-abbrevs)))))
 
 (provide 'abbrev-tests)
 ;;; abbrev-tests.el ends here

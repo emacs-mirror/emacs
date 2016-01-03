@@ -33,7 +33,7 @@
 
 ;; Suggestions/ideas from:
 ;;    Rick Macdonald <rickm@vsl.com>
-;;    Anders Lindgren <andersl@csd.uu.se>
+;;    Anders Lindgren
 
 ;;; Code:
 

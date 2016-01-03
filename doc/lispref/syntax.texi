@@ -945,6 +945,14 @@ whitespace by the functions in this section and by @code{forward-sexp},
 The behavior of @code{parse-partial-sexp} is also affected by
 @code{parse-sexp-lookup-properties} (@pxref{Syntax Properties}).
 
+@defvar comment-end-can-be-escaped
+If this buffer local variable is non-@code{nil}, a single character
+which usually terminates a comment doesn't do so when that character
+is escaped.  This is used in C and C++ Modes, where line comments
+starting with @samp{//} can be continued onto the next line by
+escaping the newline with @samp{\}.
+@end defvar
+
 You can use @code{forward-comment} to move forward or backward over
 one comment or several comments.
 

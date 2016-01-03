@@ -239,6 +239,11 @@ LIBXML2_CFLAGS = @LIBXML2_CFLAGS@
 
 LIBZ = @LIBZ@
 
+## system-specific libs for dynamic modules, else empty
+LIBMODULES = @LIBMODULES@
+## dynlib.o emacs-module.o if modules enabled, else empty
+MODULES_OBJ = @MODULES_OBJ@
+
 XRANDR_LIBS = @XRANDR_LIBS@
 XRANDR_CFLAGS = @XRANDR_CFLAGS@
 
@@ -387,7 +392,7 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	minibuf.o fileio.o dired.o \
 	cmds.o casetab.o casefiddle.o indent.o search.o regex.o undo.o \
 	alloc.o data.o doc.o editfns.o callint.o \
-	eval.o floatfns.o fns.o font.o print.o lread.o \
+	eval.o floatfns.o fns.o font.o print.o lread.o $(MODULES_OBJ) \
 	syntax.o $(UNEXEC_OBJ) bytecode.o \
 	process.o gnutls.o callproc.o \
 	region-cache.o sound.o atimer.o \
@@ -480,7 +485,7 @@ LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(LIBX_BASE) $(LIBIMAGE) \
    $(LIBS_TERMCAP) $(GETLOADAVG_LIBS) $(SETTINGS_LIBS) $(LIBSELINUX_LIBS) \
    $(FREETYPE_LIBS) $(FONTCONFIG_LIBS) $(LIBOTF_LIBS) $(M17N_FLT_LIBS) \
    $(LIBGNUTLS_LIBS) $(LIB_PTHREAD) \
-   $(NOTIFY_LIBS) $(LIB_MATH) $(LIBZ)
+   $(NOTIFY_LIBS) $(LIB_MATH) $(LIBZ) $(LIBMODULES)
 
 $(leimdir)/leim-list.el: bootstrap-emacs$(EXEEXT)
 	$(MAKE) -C ../leim leim-list.el EMACS="$(bootstrap_exe)"
@@ -492,6 +497,11 @@ $(leimdir)/leim-list.el: bootstrap-emacs$(EXEEXT)
 $(srcdir)/macuvs.h $(lispsource)/international/charprop.el: \
   bootstrap-emacs$(EXEEXT) FORCE
 	$(MAKE) -C ../admin/unidata all EMACS="../$(bootstrap_exe)"
+
+## We require charprop.el to exist before ucs-normalize.el is
+## byte-compiled, because ucs-normalize.el needs to load 2 uni-*.el files.
+$(lispsource)/international/ucs-normalize.elc: | \
+  $(lispsource)/international/charprop.el
 
 lispintdir = ${lispsource}/international
 ${lispintdir}/cp51932.el ${lispintdir}/eucjp-ms.el: FORCE

@@ -742,8 +742,8 @@ not provide the normal completion.  To show the completions, use \\[ido-toggle-i
 
 (defcustom ido-enter-matching-directory 'only
   "Additional methods to enter sub-directory of first/only matching item.
-If value is 'first, enter first matching sub-directory when typing a slash.
-If value is 'only, typing a slash only enters the sub-directory if it is
+If value is `first', enter first matching sub-directory when typing a slash.
+If value is `only', typing a slash only enters the sub-directory if it is
 the only matching item.
 If value is t, automatically enter a sub-directory when it is the only
 matching item, even without typing a slash."
@@ -755,8 +755,8 @@ matching item, even without typing a slash."
 
 (defcustom ido-create-new-buffer 'prompt
   "Specify whether a new buffer is created if no buffer matches substring.
-Choices are 'always to create new buffers unconditionally, 'prompt to
-ask user whether to create buffer, or 'never to never create new buffer."
+Choices are `always' to create new buffers unconditionally, `prompt' to
+ask user whether to create buffer, or `never' to never create new buffer."
   :type '(choice (const always)
 		 (const prompt)
 		 (const never))
@@ -1605,8 +1605,8 @@ With ARG, turn Ido mode on if arg is positive, off otherwise.
 Turning on Ido mode will remap (via a minor-mode keymap) the default
 keybindings for the `find-file' and `switch-to-buffer' families of
 commands to the Ido versions of these functions.
-However, if ARG arg equals 'files, remap only commands for files, or
-if it equals 'buffers, remap only commands for buffer switching.
+However, if ARG arg equals `files', remap only commands for files, or
+if it equals `buffers', remap only commands for buffer switching.
 This function also adds a hook to the minibuffer."
   (interactive "P")
   (setq ido-mode
@@ -3491,14 +3491,12 @@ This is to make them appear as if they were \"virtual buffers\"."
   ;; the file which the user might thought was still open.
   (unless recentf-mode (recentf-mode 1))
   (setq ido-virtual-buffers nil)
-  (let ((bookmarks (and (boundp 'bookmark-alist)
-                        bookmark-alist))
-        name)
+  (let (name)
     (dolist (head (append
                    recentf-list
-                   (delq nil (mapcar (lambda (bookmark)
-                                       (cdr (assoc 'filename bookmark)))
-                                     bookmarks))))
+                   (and (fboundp 'bookmark-get-filename)
+                        (delq nil (mapcar #'bookmark-get-filename
+                                          (bound-and-true-p bookmark-alist))))))
       (setq name (file-name-nondirectory head))
       ;; In case HEAD is a directory with trailing /.  See bug#14552.
       (when (equal name "")
@@ -3559,7 +3557,9 @@ it is put to the start of the list."
     (let* ((len (1- (length dir)))
 	   (non-essential t)
 	   (compl
-	    (or (file-name-all-completions "" dir)
+	    (or ;; We do not want to be disturbed by "File does not
+                ;; exist" errors.
+                (ignore-errors (file-name-all-completions "" dir))
 		;; work around bug in ange-ftp.
 		;; /ftp:user@host: => nil
 		;; /ftp:user@host:./ => ok

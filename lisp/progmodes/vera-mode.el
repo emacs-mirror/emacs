@@ -870,7 +870,7 @@ This function does not modify point or mark."
 	    (beginning-of-line)))))))
 
 (defmacro vera-prepare-search (&rest body)
-  "Execute BODY with a syntax table that includes '_'."
+  "Execute BODY with a syntax table that includes `_'."
   `(with-syntax-table vera-mode-ext-syntax-table ,@body))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

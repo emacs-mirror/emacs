@@ -186,10 +186,12 @@ branch later.
 
 However, if you know that the change will be difficult to merge to the
 trunk (eg because the trunk code has changed a lot), you can apply the
-change to both trunk and branch yourself.  Indicate in the release
-branch commit log that there is no need to merge the commit to the
-trunk; start the commit message with "Backport:".  gitmerge.el will
-then exclude that commit from the merge to trunk.
+change to both trunk and branch yourself.  It could also happen that a
+change is cherry-picked from master to the release branch, and so
+doesn't need to be merged back.  In these cases, indicate in the
+release branch commit log that there is no need to merge the commit to
+the trunk; start the commit message with "Backport:".  gitmerge.el
+will then exclude that commit from the merge to trunk.
 
 
 ** Other process information
@@ -221,6 +223,17 @@ the tracker with the corresponding bugs/issues.
 
 GNU ELPA has a 'debbugs' package that allows accessing the tracker
 database from Emacs.
+
+Bugs needs regular attention.  A large backlog of bugs is
+disheartening to the developers, and a culture of ignoring bugs is
+harmful to users, who expect software that works.  Bugs have to be
+regularly looked at and acted upon.  Not all bugs are critical, but at
+the least, each bug needs to be regularly re-reviewed to make sure it
+is still reproducible.
+
+The process of going through old or new bugs and acting on them is
+called bug triage.  This process is described in the file
+admin/notes/triage.
 
 ** Document your changes.
 

@@ -7432,7 +7432,7 @@ sys_socket (int af, int type, int protocol)
   if (winsock_lib == NULL)
     {
       errno = ENETDOWN;
-      return INVALID_SOCKET;
+      return -1;
     }
 
   check_errno ();
@@ -9270,8 +9270,10 @@ maybe_load_unicows_dll (void)
 	     pointers, and assign the correct addresses to these
 	     pointers at program startup (see emacs.c, which calls
 	     this function early on).  */
-	  pMultiByteToWideChar = GetProcAddress (ret, "MultiByteToWideChar");
-	  pWideCharToMultiByte = GetProcAddress (ret, "WideCharToMultiByte");
+	  pMultiByteToWideChar =
+	    (MultiByteToWideChar_Proc)GetProcAddress (ret, "MultiByteToWideChar");
+	  pWideCharToMultiByte =
+	    (WideCharToMultiByte_Proc)GetProcAddress (ret, "WideCharToMultiByte");
 	  return ret;
 	}
       else
@@ -9379,6 +9381,11 @@ globals_of_w32 (void)
     w32_unicode_filenames = 0;
   else
     w32_unicode_filenames = 1;
+
+#ifdef HAVE_MODULES
+  extern void dynlib_reset_last_error (void);
+  dynlib_reset_last_error ();
+#endif
 }
 
 /* For make-serial-process  */

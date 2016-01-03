@@ -467,6 +467,10 @@ Control Structures
 * Generators::              Generic sequences and coroutines.
 * Nonlocal Exits::          Jumping out of a sequence.
 
+Conditionals
+
+* Pattern matching case statement::  How to use @code{pcase}.
+
 Nonlocal Exits
 
 * Catch and Throw::         Nonlocal exits for the program's own purposes.
@@ -535,6 +539,7 @@ Functions
 * Function Cells::          Accessing or setting the function definition
                               of a symbol.
 * Closures::                Functions that enclose a lexical environment.
+* Advising Functions::      Adding to the definition of a function.
 * Obsolete Functions::      Declaring functions obsolete.
 * Inline Functions::        Defining functions that the compiler
                               will expand inline.
@@ -551,6 +556,13 @@ Lambda Expressions
 * Simple Lambda::           A simple example.
 * Argument List::           Details and special features of argument lists.
 * Function Documentation::  How to put documentation in a function.
+
+Advising Emacs Lisp Functions
+
+* Core Advising Primitives::  Primitives to manipulate advice.
+* Advising Named Functions::  Advising named functions.
+* Advice combinators::        Ways to compose advice.
+* Porting old advice::        Adapting code using the old defadvice.
 
 Macros
 
@@ -602,6 +614,7 @@ Loading
 * Unloading::               How to unload a library that was loaded.
 * Hooks for Loading::       Providing code to be run when
                               particular libraries are loaded.
+* Dynamic Modules::         Modules provide additional Lisp primitives.
 
 Byte Compilation
 
@@ -1191,6 +1204,10 @@ Text Properties
 * Not Intervals::           Why text properties do not use
                               Lisp-visible text intervals.
 
+Parsing HTML and XML
+
+* Document Object Model::   Access, manipulate and search the @acronym{DOM}.
+
 Non-@acronym{ASCII} Characters
 
 * Text Representations::    How Emacs represents text.
@@ -1530,9 +1547,12 @@ GNU Emacs Internals
 * Building Emacs::          How the dumped Emacs is made.
 * Pure Storage::            Kludge to make preloaded Lisp functions shareable.
 * Garbage Collection::      Reclaiming space for Lisp objects no longer used.
+* Stack-allocated Objects:: Temporary conses and strings on C stack.
 * Memory Usage::            Info about total size of Lisp objects made so far.
+* C Dialect::               What C variant Emacs is written in.
 * Writing Emacs Primitives::  Writing C code for Emacs.
 * Object Internals::        Data formats of buffers, windows, processes.
+* C Integer Types::         How C integer types are used inside Emacs.
 
 Object Internals
 

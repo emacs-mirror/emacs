@@ -919,13 +919,15 @@ while \(:host t) would find all host entries."
   prompt)
 
 (defun auth-source-ensure-strings (values)
-  (unless (listp values)
-    (setq values (list values)))
-  (mapcar (lambda (value)
-            (if (numberp value)
-                (format "%s" value)
-              value))
-          values))
+  (if (eq values t)
+      values
+    (unless (listp values)
+      (setq values (list values)))
+    (mapcar (lambda (value)
+	      (if (numberp value)
+		  (format "%s" value)
+		value))
+	    values)))
 
 ;;; Backend specific parsing: netrc/authinfo backend
 

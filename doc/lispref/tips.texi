@@ -14,11 +14,17 @@ it gives advice on making effective use of the features described in the
 previous chapters, and describes conventions Emacs Lisp programmers
 should follow.
 
+@findex checkdoc
+@findex checkdoc-current-buffer
+@findex checkdoc-file
   You can automatically check some of the conventions described below by
 running the command @kbd{M-x checkdoc RET} when visiting a Lisp file.
 It cannot check all of the conventions, and not all the warnings it
 gives necessarily correspond to problems, but it is worth examining them
-all.
+all.  Alternatively, use the command @kbd{M-x checkdoc-current-buffer RET}
+to check the conventions in the current buffer, or @code{checkdoc-file}
+when you want to check a file in batch mode, e.g., with a command run by
+@kbd{@w{M-x compile RET}}.
 
 @menu
 * Coding Conventions::        Conventions for clean and robust programs.
@@ -1007,8 +1013,14 @@ of multiple files, we recommend not writing the version in every file,
 but only the main one.
 
 @item Keywords
+@vindex checkdoc-package-keywords-flag
+@findex checkdoc-package-keywords
 This line lists keywords for the @code{finder-by-keyword} help command.
-Please use that command to see a list of the meaningful keywords.
+Please use that command to see a list of the meaningful keywords.  The
+command @kbd{M-x checkdoc-package-keywords RET} will find and display
+any keywords that are not in @code{finder-known-keywords}.  If you set
+the variable @code{checkdoc-package-keywords-flag} non-@code{nil},
+checkdoc commands will include the keyword verification in its checks.
 
 This field is how people will find your package when they're looking
 for things by topic.  To separate the keywords, you can use spaces,

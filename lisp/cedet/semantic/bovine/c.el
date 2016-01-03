@@ -1513,7 +1513,7 @@ Override function for `semantic-tag-protection'."
 
 (define-mode-local-override semantic-find-tags-included c-mode
   (&optional table)
-  "Find all tags in TABLE that are of the 'include class.
+  "Find all tags in TABLE that are of the `include' class.
 TABLE is a tag table.  See `semantic-something-to-tag-table'.
 For C++, we also have to search namespaces for include tags."
   (let ((tags (semantic-find-tags-by-class 'include table))
@@ -1948,7 +1948,7 @@ For types with a :parent, create faux namespaces to put TAG into."
 (define-mode-local-override semanticdb-find-table-for-include c-mode
   (includetag &optional table)
   "For a single INCLUDETAG found in TABLE, find a `semanticdb-table' object
-INCLUDETAG is a semantic TAG of class 'include.
+INCLUDETAG is a semantic TAG of class `include'.
 TABLE is a semanticdb table that identifies where INCLUDETAG came from.
 TABLE is optional if INCLUDETAG has an overlay of :filename attribute.
 

@@ -764,6 +764,9 @@ main (int argc, char **argv)
      names between UTF-8 and the system's ANSI codepage.  */
   maybe_load_unicows_dll ();
 #endif
+  /* This has to be done before module_init is called below, so that
+     the latter could use the thread ID of the main thread.  */
+  w32_init_main_thread ();
 #endif
 
 #ifdef RUN_TIME_REMAP
@@ -778,6 +781,10 @@ main (int argc, char **argv)
 #endif
 
   atexit (close_output_streams);
+
+#ifdef HAVE_MODULES
+  module_init ();
+#endif
 
   sort_args (argc, argv);
   argc = 0;
@@ -1457,6 +1464,11 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       syms_of_terminal ();
       syms_of_term ();
       syms_of_undo ();
+
+#ifdef HAVE_MODULES
+      syms_of_module ();
+#endif
+
 #ifdef HAVE_SOUND
       syms_of_sound ();
 #endif

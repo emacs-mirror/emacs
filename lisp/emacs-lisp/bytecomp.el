@@ -265,8 +265,8 @@ This option is enabled by default because it reduces Emacs memory usage."
 
 (defcustom byte-optimize-log nil
   "If non-nil, the byte-compiler will log its optimizations.
-If this is 'source, then only source-level optimizations will be logged.
-If it is 'byte, then only byte-level optimizations will be logged.
+If this is `source', then only source-level optimizations will be logged.
+If it is `byte', then only byte-level optimizations will be logged.
 The information is logged to `byte-compile-log-buffer'."
   :group 'bytecomp
   :type '(choice (const :tag "none" nil)
@@ -456,10 +456,20 @@ Return the compile-time value of FORM."
                               (byte-compile-recurse-toplevel
                                (macroexp-progn body)
                                (lambda (form)
-                                 (setf result
-                                       (byte-compile-eval
-                                        (byte-compile-top-level
-                                         (byte-compile-preprocess form))))))
+                                 ;; Insulate the following variables
+                                 ;; against changes made in the
+                                 ;; subsidiary compilation.  This
+                                 ;; prevents spurious warning
+                                 ;; messages: "not defined at runtime"
+                                 ;; etc.
+                                 (let ((byte-compile-unresolved-functions
+                                        byte-compile-unresolved-functions)
+                                       (byte-compile-new-defuns
+                                        byte-compile-new-defuns))
+                                   (setf result
+                                         (byte-compile-eval
+                                          (byte-compile-top-level
+                                           (byte-compile-preprocess form)))))))
                               (list 'quote result))))
     (eval-and-compile . ,(lambda (&rest body)
                            (byte-compile-recurse-toplevel
@@ -502,6 +512,11 @@ defined with incorrect args.")
   "Alist of functions called that may not be defined when the compiled code is run.
 Used for warnings about calling a function that is defined during compilation
 but won't necessarily be defined when the compiled file is loaded.")
+
+(defvar byte-compile-new-defuns nil
+  "List of (runtime) functions defined in this compilation run.
+This variable is used to qualify `byte-compile-noruntime-functions' when
+outputting warnings about functions not being defined at runtime.")
 
 ;; Variables for lexical binding
 (defvar byte-compile--lexical-environment nil
@@ -1503,8 +1518,9 @@ extra args."
       ;; Separate the functions that will not be available at runtime
       ;; from the truly unresolved ones.
       (dolist (f byte-compile-unresolved-functions)
-	(setq f (car f))
-	(if (fboundp f) (push f noruntime) (push f unresolved)))
+        (setq f (car f))
+        (when (not (memq f byte-compile-new-defuns))
+          (if (fboundp f) (push f noruntime) (push f unresolved))))
       ;; Complain about the no-run-time functions
       (byte-compile-print-syms
        "the function `%s' might not be defined at runtime."
@@ -1691,7 +1707,7 @@ Any other non-nil value of ARG means to ask the user.
 If optional argument LOAD is non-nil, loads the file after compiling.
 
 If compilation is needed, this functions returns the result of
-`byte-compile-file'; otherwise it returns 'no-byte-compile."
+`byte-compile-file'; otherwise it returns `no-byte-compile'."
   (interactive
    (let ((file buffer-file-name)
 	 (file-name nil)
@@ -1961,6 +1977,8 @@ With argument ARG, insert value in current buffer after the form."
 	;; compiled.  A: Yes!  b-c-u-f might contain dross from a
 	;; previous byte-compile.
 	(setq byte-compile-unresolved-functions nil)
+        (setq byte-compile-noruntime-functions nil)
+        (setq byte-compile-new-defuns nil)
 
 	;; Compile the forms from the input buffer.
 	(while (progn
@@ -2287,8 +2305,7 @@ list that represents a doc string reference.
      ;; byte-compile-warn-about-unresolved-functions.
      (if (memq funsym byte-compile-noruntime-functions)
          (setq byte-compile-noruntime-functions
-               (delq funsym byte-compile-noruntime-functions)
-               byte-compile-noruntime-functions)
+               (delq funsym byte-compile-noruntime-functions))
        (setq byte-compile-unresolved-functions
              (delq (assq funsym byte-compile-unresolved-functions)
                    byte-compile-unresolved-functions)))))
@@ -2346,8 +2363,21 @@ list that represents a doc string reference.
 (defun byte-compile-file-form-require (form)
   (let ((args (mapcar 'eval (cdr form)))
 	(hist-orig load-history)
-	hist-new)
+	hist-new prov-cons)
     (apply 'require args)
+
+    ;; Record the functions defined by the require in `byte-compile-new-defuns'.
+    (setq hist-new load-history)
+    (setq prov-cons (cons 'provide (car args)))
+    (while (and hist-new
+                (not (member prov-cons (car hist-new))))
+      (setq hist-new (cdr hist-new)))
+    (when hist-new
+      (dolist (x (car hist-new))
+        (when (and (consp x)
+                   (memq (car x) '(defun t)))
+          (push (cdr x) byte-compile-new-defuns))))
+
     (when (byte-compile-warning-enabled-p 'cl-functions)
       ;; Detect (require 'cl) in a way that works even if cl is already loaded.
       (if (member (car args) '("cl" cl))
@@ -2403,6 +2433,7 @@ not to take responsibility for the actual compilation of the code."
          (byte-compile-current-form name)) ; For warnings.
 
     (byte-compile-set-symbol-position name)
+    (push name byte-compile-new-defuns)
     ;; When a function or macro is defined, add it to the call tree so that
     ;; we can tell when functions are not used.
     (if byte-compile-generate-call-tree
@@ -3710,16 +3741,25 @@ discarding."
 (byte-defop-compiler-1 quote)
 
 (defun byte-compile-setq (form)
-  (let ((args (cdr form)))
-    (if args
-	(while args
-	  (byte-compile-form (car (cdr args)))
-	  (or byte-compile--for-effect (cdr (cdr args))
-	      (byte-compile-out 'byte-dup 0))
-	  (byte-compile-variable-set (car args))
-	  (setq args (cdr (cdr args))))
-      ;; (setq), with no arguments.
-      (byte-compile-form nil byte-compile--for-effect))
+  (let* ((args (cdr form))
+         (len (length args)))
+    (if (= (logand len 1) 1)
+        (progn
+          (byte-compile-log-warning
+           (format "missing value for `%S' at end of setq" (car (last args)))
+           nil :error)
+          (byte-compile-form
+           `(signal 'wrong-number-of-arguments '(setq ,len))
+           byte-compile--for-effect))
+      (if args
+          (while args
+            (byte-compile-form (car (cdr args)))
+            (or byte-compile--for-effect (cdr (cdr args))
+                (byte-compile-out 'byte-dup 0))
+            (byte-compile-variable-set (car args))
+            (setq args (cdr (cdr args))))
+        ;; (setq), with no arguments.
+        (byte-compile-form nil byte-compile--for-effect)))
     (setq byte-compile--for-effect nil)))
 
 (defun byte-compile-setq-default (form)
@@ -3973,8 +4013,13 @@ that suppresses all warnings during execution of BODY."
     (setq byte-compile--for-effect nil)))
 
 (defun byte-compile-funcall (form)
-  (mapc 'byte-compile-form (cdr form))
-  (byte-compile-out 'byte-call (length (cdr (cdr form)))))
+  (if (cdr form)
+      (progn
+        (mapc 'byte-compile-form (cdr form))
+        (byte-compile-out 'byte-call (length (cdr (cdr form)))))
+    (byte-compile-log-warning "`funcall' called with no arguments" nil :error)
+    (byte-compile-form '(signal 'wrong-number-of-arguments '(funcall 0))
+                       byte-compile--for-effect)))
 
 
 ;; let binding

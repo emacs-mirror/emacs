@@ -1074,7 +1074,7 @@ can be encoded using a single one of the corresponding coding systems.
 
 It treats `mm-coding-system-priorities' as the list of preferred
 coding systems; a useful example setting for this list in Western
-Europe would be '(iso-8859-1 iso-8859-15 utf-8), which would default
+Europe would be (iso-8859-1 iso-8859-15 utf-8), which would default
 to the very standard Latin 1 coding system, and only move to coding
 systems that are less supported as is necessary to encode the
 characters that exist in the buffer.

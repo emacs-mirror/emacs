@@ -502,8 +502,8 @@ This is a list of the form
 
 where LABEL is a symbol.  TITLE, DESCRIPTION, and LINK are
 strings.  TIME is a time value as returned by `current-time'.
-AGE is a symbol: 'new, 'old, 'immortal, and 'obsolete denote
-ordinary news items, whereas 'feed denotes an item which is not a
+AGE is a symbol: `new', `old', `immortal', and `obsolete' denote
+ordinary news items, whereas `feed' denotes an item which is not a
 headline but describes the feed itself.  INDEX denotes the
 original position of the item -- used for restoring the original
 order.  PREFORMATTED-CONTENTS and PREFORMATTED-TITLE hold the
@@ -1987,7 +1987,7 @@ Renders the HTML code in the region POS1 to POS2 using htmlr."
 
 (defun newsticker--cache-replace-age (data feed old-age new-age)
   "Mark all items in DATA in FEED which carry age OLD-AGE with NEW-AGE.
-If FEED is 'any it applies to all feeds.  If OLD-AGE is 'any,
+If FEED is `any' it applies to all feeds.  If OLD-AGE is `any',
 all marks are replaced by NEW-AGE.  Removes all pre-formatted contents."
   (mapc (lambda (a-feed)
           (when (or (eq feed 'any)
@@ -2038,7 +2038,7 @@ The properties which are checked are TITLE, DESC, LINK, AGE, and
 GUID.  In general all properties must match in order to return a
 certain item, except for the following cases.
 
-If AGE equals 'feed the TITLE, DESCription and LINK do not
+If AGE equals `feed' the TITLE, DESCription and LINK do not
 matter.  If DESC is nil it is ignored as well.  If
 `newsticker-desc-comp-max' is non-nil, only the first
 `newsticker-desc-comp-max' characters of DESC are taken into
@@ -2143,7 +2143,7 @@ which the item got."
 
 (defun newsticker--cache-remove (data feed-symbol age)
   "Remove all entries from DATA in the feed FEED-SYMBOL with AGE.
-FEED-SYMBOL may be 'any.  Entries from old feeds, which are no longer in
+FEED-SYMBOL may be `any'.  Entries from old feeds, which are no longer in
 `newsticker-url-list' or `newsticker-url-list-defaults', are removed as
 well."
   (let* ((pos data)

@@ -673,5 +673,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 			</array>
 		</dict>
 	</array>
+	<key>NSAppleScriptEnabled</key>
+	<string>YES</string>
 </dict>
 </plist>

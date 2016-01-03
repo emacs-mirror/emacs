@@ -41,7 +41,7 @@ some documentation in a comment preceding TAG's definition which we
 can look for.  When appropriate, this can be overridden by a language specific
 enhancement.
 Optional argument NOSNARF means to only return the lexical analyzer token for it.
-If nosnarf if 'lex, then only return the lex token."
+If NOSNARF is `lex', then only return the lex token."
   (if (not tag) (setq tag (semantic-current-tag)))
   (save-excursion
     (when (semantic-tag-with-position-p tag)
@@ -66,7 +66,7 @@ If nosnarf if 'lex, then only return the lex token."
 If TAG is nil.  use the tag under point.
 Searches the space between TAG and the preceding tag for a comment,
 and converts the comment into clean documentation.
-Optional argument NOSNARF with a value of 'lex means to return
+Optional argument NOSNARF with a value of `lex' means to return
 just the lexical token and not the string."
   (if (not tag) (setq tag (semantic-current-tag)))
   (save-excursion
@@ -92,7 +92,7 @@ just the lexical token and not the string."
   "Snarf up the comment at POINT for `semantic-documentation-for-tag'.
 Attempt to strip out comment syntactic sugar.
 Argument NOSNARF means don't modify the found text.
-If NOSNARF is 'lex, then return the lex token."
+If NOSNARF is `lex', then return the lex token."
   (let* ((semantic-ignore-comments nil)
 	 (semantic-lex-analyzer #'semantic-comment-lexer))
     (if (memq nosnarf '(lex flex)) ;; keep `flex' for compatibility

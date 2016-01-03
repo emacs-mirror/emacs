@@ -57,4 +57,14 @@
     (should (search-forward
              "(defgh\\\\\\[universal-argument\\]b\\`c\\'d\\\\e\\\"f X)"))))
 
+(ert-deftest help-fns-test-describe-symbol ()
+  "Test the `describe-symbol' function."
+  ;; 'describe-symbol' would originally signal an error for
+  ;; 'font-lock-comment-face'.
+  (describe-symbol 'font-lock-comment-face)
+  (with-current-buffer "*Help*"
+    (should (> (point-max) 1))
+    (goto-char (point-min))
+    (should (looking-at "^font-lock-comment-face is "))))
+
 ;;; help-fns.el ends here

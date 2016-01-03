@@ -561,7 +561,7 @@ Note that if you don't care about the order in which FUNCTION is
 applied, just that the resulting list is in the correct order,
 then
 
-  (avl-tree-mapf function 'cons tree (not reverse))
+  (avl-tree-mapf function \\='cons tree (not reverse))
 
 is more efficient."
   (nreverse (avl-tree-mapf fun 'cons tree reverse)))

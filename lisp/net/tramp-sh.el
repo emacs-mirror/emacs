@@ -486,6 +486,7 @@ The string is used in `tramp-methods'.")
 ;; Solaris: /usr/xpg4/bin:/usr/ccs/bin:/usr/bin:/opt/SUNWspro/bin
 ;; GNU/Linux (Debian, Suse): /bin:/usr/bin
 ;; FreeBSD: /usr/bin:/bin:/usr/sbin:/sbin: - beware trailing ":"!
+;; Darwin: /usr/bin:/bin:/usr/sbin:/sbin
 ;; IRIX64: /usr/bin
 ;;;###tramp-autoload
 (defcustom tramp-remote-path
@@ -597,9 +598,14 @@ we have this shell function.")
 use File::Spec;
 use Cwd \"realpath\";
 
+sub myrealpath {
+    my ($file) = @_;
+    return realpath($file) if -e $file;
+}
+
 sub recursive {
     my ($volume, @dirs) = @_;
-    my $real = realpath(File::Spec->catpath(
+    my $real = myrealpath(File::Spec->catpath(
                    $volume, File::Spec->catdir(@dirs), \"\"));
     if ($real) {
         my ($vol, $dir) = File::Spec->splitpath($real, 1);
@@ -613,7 +619,7 @@ sub recursive {
     }
 }
 
-$result = realpath($ARGV[0]);
+$result = myrealpath($ARGV[0]);
 if (!$result) {
     my ($vol, $dir) = File::Spec->splitpath($ARGV[0], 1);
     ($vol, @dirs) = recursive($vol, File::Spec->splitdir($dir));
@@ -621,10 +627,7 @@ if (!$result) {
     $result = File::Spec->catpath($vol, File::Spec->catdir(@dirs), \"\");
 }
 
-if ($ARGV[0] =~ /\\/$/) {
-    $result = $result . \"/\";
-}
-
+$result =~ s/\"/\\\\\"/g;
 print \"\\\"$result\\\"\\n\";
 ' \"$1\" 2>/dev/null"
   "Perl script to produce output suitable for use with `file-truename'
@@ -1143,20 +1146,17 @@ target of the symlink differ."
 
 	   ;; Do it yourself.  We bind `directory-sep-char' here for
 	   ;; XEmacs on Windows, which would otherwise use backslash.
-	   (t (let* ((directory-sep-char ?/)
-		     (steps (tramp-compat-split-string localname "/"))
-		     (localnamedir (tramp-run-real-handler
-				    'file-name-as-directory (list localname)))
-		     (is-dir (string= localname localnamedir))
-		     (thisstep nil)
-		     (numchase 0)
-		     ;; Don't make the following value larger than
-		     ;; necessary.  People expect an error message in
-		     ;; a timely fashion when something is wrong;
-		     ;; otherwise they might think that Emacs is hung.
-		     ;; Of course, correctness has to come first.
-		     (numchase-limit 20)
-		     symlink-target)
+	   (t (let ((directory-sep-char ?/)
+		    (steps (tramp-compat-split-string localname "/"))
+		    (thisstep nil)
+		    (numchase 0)
+		    ;; Don't make the following value larger than
+		    ;; necessary.  People expect an error message in a
+		    ;; timely fashion when something is wrong;
+		    ;; otherwise they might think that Emacs is hung.
+		    ;; Of course, correctness has to come first.
+		    (numchase-limit 20)
+		    symlink-target)
 		(while (and steps (< numchase numchase-limit))
 		  (setq thisstep (pop steps))
 		  (tramp-message
@@ -1212,10 +1212,8 @@ target of the symlink differ."
 		      (if result
 			  (mapconcat 'identity (cons "" result) "/")
 			"/"))
-		(when (and is-dir
-			   (or (string= "" result)
-			       (not (string= (substring result -1) "/"))))
-		  (setq result (concat result "/"))))))
+		(when (string= "" result)
+		  (setq result "/")))))
 
 	  (tramp-message v 4 "True name of `%s' is `%s'" localname result)
 	  result))))
@@ -1276,11 +1274,15 @@ target of the symlink differ."
 	     (tramp-get-test-command vec)
 	     (tramp-shell-quote-argument localname)
 	     (tramp-get-ls-command vec)
+	     (if (eq id-format 'integer) "-ildn" "-ild")
 	     ;; On systems which have no quoting style, file names
 	     ;; with special characters could fail.
-	     (if (tramp-get-ls-command-with-quoting-style vec)
-		 "--quoting-style=c" "")
-	     (if (eq id-format 'integer) "-ildn" "-ild")
+	     (cond
+	      ((tramp-get-ls-command-with-quoting-style vec)
+	       "--quoting-style=c")
+	      ((tramp-get-ls-command-with-w-option vec)
+	       "-w")
+	      (t ""))
 	     (tramp-shell-quote-argument localname)))
     ;; Parse `ls -l' output ...
     (with-current-buffer (tramp-get-buffer vec)
@@ -1837,10 +1839,14 @@ be non-negative integers."
      "-- 2>/dev/null | sed -e 's/\"/\\\\\"/g' -e 's/%s/\"/g'); echo \")\"")
     (tramp-shell-quote-argument localname)
     (tramp-get-ls-command vec)
-    ;; On systems which have no quoting style, file names with
-    ;; special characters could fail.
-    (if (tramp-get-ls-command-with-quoting-style vec)
-	"--quoting-style=shell" "")
+    ;; On systems which have no quoting style, file names with special
+    ;; characters could fail.
+    (cond
+     ((tramp-get-ls-command-with-quoting-style vec)
+      "--quoting-style=shell")
+     ((tramp-get-ls-command-with-w-option vec)
+      "-w")
+     (t ""))
     (tramp-get-remote-stat vec)
     tramp-stat-marker tramp-stat-marker
     tramp-stat-marker tramp-stat-marker
@@ -4149,7 +4155,8 @@ seconds.  If not, it produces an error message with the given ERROR-ARGS."
   "Set up an interactive shell.
 Mainly sets the prompt and the echo correctly.  PROC is the shell
 process to set up.  VEC specifies the connection."
-  (let ((tramp-end-of-output tramp-initial-end-of-output))
+  (let ((tramp-end-of-output tramp-initial-end-of-output)
+	(case-fold-search t))
     (tramp-open-shell vec (tramp-get-method-parameter vec 'tramp-remote-shell))
 
     ;; Disable tab and echo expansion.
@@ -4174,44 +4181,6 @@ process to set up.  VEC specifies the connection."
    vec (format "PS1=%s PS2='' PS3='' PROMPT_COMMAND=''"
 	       (tramp-shell-quote-argument tramp-end-of-output)) t)
 
-  ;; Try to set up the coding system correctly.
-  ;; CCC this can't be the right way to do it.  Hm.
-  (tramp-message vec 5 "Determining coding system")
-  (with-current-buffer (process-buffer proc)
-    (if (featurep 'mule)
-	;; Use MULE to select the right EOL convention for communicating
-	;; with the process.
-	(let ((cs (or (and (memq 'utf-8 (coding-system-list))
-			   (string-match "utf8" (tramp-get-remote-locale vec))
-			   (cons 'utf-8 'utf-8))
-		      (tramp-compat-funcall 'process-coding-system proc)
-		      (cons 'undecided 'undecided)))
-	      cs-decode cs-encode)
-	  (when (symbolp cs) (setq cs (cons cs cs)))
-	  (setq cs-decode (car cs))
-	  (setq cs-encode (cdr cs))
-	  (unless cs-decode (setq cs-decode 'undecided))
-	  (unless cs-encode (setq cs-encode 'undecided))
-	  (setq cs-encode (tramp-compat-coding-system-change-eol-conversion
-			   cs-encode 'unix))
-	  (tramp-send-command vec "echo foo ; echo bar" t)
-	  (goto-char (point-min))
-	  (when (search-forward "\r" nil t)
-	    (setq cs-decode (tramp-compat-coding-system-change-eol-conversion
-			     cs-decode 'dos)))
-	  (tramp-compat-funcall
-	   'set-buffer-process-coding-system cs-decode cs-encode)
-	  (tramp-message
-	   vec 5 "Setting coding system to `%s' and `%s'" cs-decode cs-encode))
-      ;; Look for ^M and do something useful if found.
-      (when (search-forward "\r" nil t)
-	;; We have found a ^M but cannot frob the process coding system
-	;; because we're running on a non-MULE Emacs.  Let's try
-	;; stty, instead.
-	(tramp-send-command vec "stty -onlcr" t))))
-
-  (tramp-send-command vec "set +o vi +o emacs" t)
-
   ;; Check whether the output of "uname -sr" has been changed.  If
   ;; yes, this is a strong indication that we must expire all
   ;; connection properties.  We start again with
@@ -4230,6 +4199,48 @@ process to set up.  VEC specifies the connection."
       ;; We want to keep the password.
       (tramp-cleanup-connection vec t t)
       (throw 'uname-changed (tramp-maybe-open-connection vec))))
+
+  ;; Try to set up the coding system correctly.
+  ;; CCC this can't be the right way to do it.  Hm.
+  (tramp-message vec 5 "Determining coding system")
+  (with-current-buffer (process-buffer proc)
+    (if (featurep 'mule)
+	;; Use MULE to select the right EOL convention for communicating
+	;; with the process.
+	(let ((cs (or (and (memq 'utf-8 (coding-system-list))
+			   (string-match "utf-?8" (tramp-get-remote-locale vec))
+			   (cons 'utf-8 'utf-8))
+		      (tramp-compat-funcall 'process-coding-system proc)
+		      (cons 'undecided 'undecided)))
+	      cs-decode cs-encode)
+	  (when (symbolp cs) (setq cs (cons cs cs)))
+	  (setq cs-decode (car cs))
+	  (setq cs-encode (cdr cs))
+	  (unless cs-decode (setq cs-decode 'undecided))
+	  (unless cs-encode (setq cs-encode 'undecided))
+	  (setq cs-encode
+		(tramp-compat-coding-system-change-eol-conversion
+		 cs-encode
+		 (if (string-match
+		      "^Darwin" (tramp-get-connection-property vec "uname" ""))
+		     'mac 'unix)))
+	  (tramp-send-command vec "echo foo ; echo bar" t)
+	  (goto-char (point-min))
+	  (when (search-forward "\r" nil t)
+	    (setq cs-decode (tramp-compat-coding-system-change-eol-conversion
+			     cs-decode 'dos)))
+	  (tramp-compat-funcall
+	   'set-buffer-process-coding-system cs-decode cs-encode)
+	  (tramp-message
+	   vec 5 "Setting coding system to `%s' and `%s'" cs-decode cs-encode))
+      ;; Look for ^M and do something useful if found.
+      (when (search-forward "\r" nil t)
+	;; We have found a ^M but cannot frob the process coding system
+	;; because we're running on a non-MULE Emacs.  Let's try
+	;; stty, instead.
+	(tramp-send-command vec "stty -onlcr" t))))
+
+  (tramp-send-command vec "set +o vi +o emacs" t)
 
   ;; Check whether the remote host suffers from buggy
   ;; `send-process-string'.  This is known for FreeBSD (see comment in
@@ -4264,7 +4275,7 @@ process to set up.  VEC specifies the connection."
   (tramp-find-shell vec)
 
   ;; Disable unexpected output.
-  (tramp-send-command vec "mesg n; biff n" t)
+  (tramp-send-command vec "mesg n 2>/dev/null; biff n 2>/dev/null" t)
 
   ;; IRIX64 bash expands "!" even when in single quotes.  This
   ;; destroys our shell functions, we must disable it.  See
@@ -4276,6 +4287,10 @@ process to set up.  VEC specifies the connection."
   (when (string-match "BSD\\|Darwin"
 		      (tramp-get-connection-property vec "uname" ""))
     (tramp-send-command vec "stty -oxtabs" t))
+
+  ;; Set utf8 encoding.  Needed for Mac OS X, for example.  This is
+  ;; non-POSIX, so we must expect errors on some systems.
+  (tramp-send-command vec "stty iutf8 2>/dev/null" t)
 
   ;; Set `remote-tty' process property.
   (let ((tty (tramp-send-command-and-read vec "echo \\\"`tty`\\\"" 'noerror)))
@@ -5295,21 +5310,26 @@ Return ATTR."
 	    ;; The login shell could return more than just the $PATH
 	    ;; string.  So we use `tramp-end-of-heredoc' as marker.
 	    (when elt2
-	      (tramp-send-command-and-read
-	       vec
-	       (format
-		"%s %s %s 'echo %s \\\"$PATH\\\"'"
-		(tramp-get-method-parameter vec 'tramp-remote-shell)
-		(mapconcat
-		 'identity
-		 (tramp-get-method-parameter vec 'tramp-remote-shell-login)
-		 " ")
-		(mapconcat
-		 'identity
-		 (tramp-get-method-parameter vec 'tramp-remote-shell-args)
-		 " ")
-		(tramp-shell-quote-argument tramp-end-of-heredoc))
-	       nil (regexp-quote tramp-end-of-heredoc)))))
+	      (or
+	       (tramp-send-command-and-read
+		vec
+		(format
+		 "%s %s %s 'echo %s \\\"$PATH\\\"'"
+		 (tramp-get-method-parameter vec 'tramp-remote-shell)
+		 (mapconcat
+		  'identity
+		  (tramp-get-method-parameter vec 'tramp-remote-shell-login)
+		  " ")
+		 (mapconcat
+		  'identity
+		  (tramp-get-method-parameter vec 'tramp-remote-shell-args)
+		  " ")
+		 (tramp-shell-quote-argument tramp-end-of-heredoc))
+		'noerror (regexp-quote tramp-end-of-heredoc))
+	       (progn
+		 (tramp-message
+		  vec 2 "Could not retrieve `tramp-own-remote-path'")
+		 nil)))))
 
       ;; Replace place holder `tramp-default-remote-path'.
       (when elt1
@@ -5353,7 +5373,7 @@ Return ATTR."
 (defun tramp-get-remote-locale (vec)
   (with-tramp-connection-property vec "locale"
     (tramp-send-command vec "locale -a")
-    (let ((candidates '("en_US.utf8" "C.utf8"))
+    (let ((candidates '("en_US.utf8" "C.utf8" "en_US.UTF-8"))
 	  locale)
       (with-current-buffer (tramp-get-connection-buffer vec)
 	(while candidates
@@ -5405,12 +5425,19 @@ Return ATTR."
   (save-match-data
     (with-tramp-connection-property vec "ls-quoting-style"
       (tramp-message vec 5 "Checking, whether `ls --quoting-style=shell' works")
-      ;; Some "ls" versions are sensible wrt the order of arguments,
-      ;; they fail when "-al" is after the "--dired" argument (for
-      ;; example on FreeBSD).
       (tramp-send-command-and-check
        vec (format "%s --quoting-style=shell -al /dev/null"
 		   (tramp-get-ls-command vec))))))
+
+(defun tramp-get-ls-command-with-w-option (vec)
+  (save-match-data
+    (with-tramp-connection-property vec "ls-w-option"
+      (tramp-message vec 5 "Checking, whether `ls -w' works")
+      ;; Option "-w" is available on BSD systems.  No argument is
+      ;; given, because this could return wrong results in case "ls"
+      ;; supports the "-w NUM" argument, as for busyboxes.
+      (tramp-send-command-and-check
+       vec (format "%s -alw" (tramp-get-ls-command vec))))))
 
 (defun tramp-get-test-command (vec)
   (with-tramp-connection-property vec "test"

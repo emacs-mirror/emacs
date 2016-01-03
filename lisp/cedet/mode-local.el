@@ -627,7 +627,8 @@ SYMBOL is a function that can be overridden."
       (beginning-of-line)
       (forward-line -1))
     (let ((inhibit-read-only t))
-      (insert (overload-docstring-extension symbol) "\n")
+      (insert (substitute-command-keys (overload-docstring-extension symbol))
+              "\n")
       ;; NOTE TO SELF:
       ;; LIST ALL LOADED OVERRIDES FOR SYMBOL HERE
       )))
@@ -641,7 +642,8 @@ SYMBOL is a function that can be overridden."
                       (fetch-overload symbol)))
           modes)
 
-      (insert (overload-docstring-extension symbol) "\n\n")
+      (insert (substitute-command-keys (overload-docstring-extension symbol))
+              "\n\n")
       (insert (format-message "default function: `%s'\n" default))
       (if override
 	  (insert (format-message "\noverride in buffer `%s': `%s'\n"
@@ -871,24 +873,6 @@ invoked interactively."
           t (symbol-name major-mode))))
   (when (setq mode (intern-soft mode))
     (mode-local-describe-bindings-1 mode (called-interactively-p 'any))))
-
-;; ;;; find-func support (Emacs 21.4, or perhaps 22.1)
-;; ;;
-;; (condition-case nil
-;;     ;; Try to get find-func so we can modify it.
-;;     (require 'find-func)
-;;   (error nil))
-
-;; (when (boundp 'find-function-regexp)
-;;   (unless (string-match "ine-overload" find-function-regexp)
-;;     (if (string-match "(def\\\\(" find-function-regexp)
-;; 	(let ((end (match-end 0))
-;; 	      )
-;; 	  (setq find-function-regexp
-;; 		(concat (substring find-function-regexp 0 end)
-;; 			"ine-overload\\|ine-mode-local-override\\|"
-;; 			"ine-child-mode\\|"
-;; 			(substring find-function-regexp end)))))))
 
 ;;; edebug support
 ;;

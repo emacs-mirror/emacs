@@ -223,6 +223,10 @@ for example, (type-of 1) returns `integer'.  */)
           return Qfloat;
         case Lisp_Misc_Finalizer:
           return Qfinalizer;
+#ifdef HAVE_MODULES
+	case Lisp_Misc_User_Ptr:
+	  return Quser_ptr;
+#endif
 	default:
 	  emacs_abort ();
 	}
@@ -423,6 +427,17 @@ DEFUN ("markerp", Fmarkerp, Smarkerp, 1, 1, 0,
     return Qt;
   return Qnil;
 }
+
+#ifdef HAVE_MODULES
+DEFUN ("user-ptrp", Fuser_ptrp, Suser_ptrp, 1, 1, 0,
+       doc: /* Return t if OBJECT is a module user pointer.  */)
+     (Lisp_Object object)
+{
+  if (USER_PTRP (object))
+    return Qt;
+  return Qnil;
+}
+#endif
 
 DEFUN ("subrp", Fsubrp, Ssubrp, 1, 1, 0,
        doc: /* Return t if OBJECT is a built-in function.  */)
@@ -3478,6 +3493,9 @@ syms_of_data (void)
   DEFSYM (Qbool_vector_p, "bool-vector-p");
   DEFSYM (Qchar_or_string_p, "char-or-string-p");
   DEFSYM (Qmarkerp, "markerp");
+#ifdef HAVE_MODULES
+  DEFSYM (Quser_ptrp, "user-ptrp");
+#endif
   DEFSYM (Qbuffer_or_string_p, "buffer-or-string-p");
   DEFSYM (Qinteger_or_marker_p, "integer-or-marker-p");
   DEFSYM (Qfboundp, "fboundp");
@@ -3569,6 +3587,9 @@ syms_of_data (void)
   DEFSYM (Qmarker, "marker");
   DEFSYM (Qoverlay, "overlay");
   DEFSYM (Qfinalizer, "finalizer");
+#ifdef HAVE_MODULES
+  DEFSYM (Quser_ptr, "user-ptr");
+#endif
   DEFSYM (Qfloat, "float");
   DEFSYM (Qwindow_configuration, "window-configuration");
   DEFSYM (Qprocess, "process");
@@ -3683,6 +3704,9 @@ syms_of_data (void)
   defsubr (&Sbyteorder);
   defsubr (&Ssubr_arity);
   defsubr (&Ssubr_name);
+#ifdef HAVE_MODULES
+  defsubr (&Suser_ptrp);
+#endif
 
   defsubr (&Sbool_vector_exclusive_or);
   defsubr (&Sbool_vector_union);

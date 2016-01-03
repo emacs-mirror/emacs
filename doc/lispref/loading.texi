@@ -29,7 +29,15 @@ into a buffer and evaluated there.  (Indeed, most code is tested this
 way.)  Most often, the forms are function definitions and variable
 definitions.
 
-For on-demand loading of external libraries, @pxref{Dynamic Libraries}.
+  Emacs can also load compiled dynamic modules: shared libraries that
+provide additional functionality for use in Emacs Lisp programs, just
+like a package written in Emacs Lisp would.  When a dynamic module is
+loaded, Emacs calls a specially-named initialization function which
+the module needs to implement, and which exposes the additional
+functions and variables to Emacs Lisp programs.
+
+For on-demand loading of external libraries which are known in advance
+to be required by certain Emacs primitives, @pxref{Dynamic Libraries}.
 
 @menu
 * How Programs Do Loading:: The @code{load} function and others.
@@ -43,6 +51,7 @@ For on-demand loading of external libraries, @pxref{Dynamic Libraries}.
 * Unloading::               How to unload a library that was loaded.
 * Hooks for Loading::       Providing code to be run when
                               particular libraries are loaded.
+* Dynamic Modules::         Modules provide additional Lisp primitives.
 @end menu
 
 @node How Programs Do Loading
@@ -1076,3 +1085,53 @@ defined in another library (those meant for outside use), you can do
 it immediately---there is no need to wait until the library is loaded.
 If you need to call functions defined by that library, you should load
 the library, preferably with @code{require} (@pxref{Named Features}).
+
+@node Dynamic Modules
+@section Emacs Dynamic Modules
+@cindex dynamic modules
+
+@c FIXME: This is intentionally incomplete, as the module integration
+@c is not yet finished.  To be refined later.
+  A @dfn{dynamic Emacs module} is a shared library that provides
+additional functionality for use in Emacs Lisp programs, just like a
+package written in Emacs Lisp would.
+
+  Functions that load Emacs Lisp packages can also load dynamic
+modules.  They recognize dynamic modules by looking at their file-name
+extension, a.k.a.@: ``suffix''.  This suffix is platform-dependent.
+
+@defvar module-file-suffix
+This variable holds the system-dependent value of the file-name
+extension of the module files.  Its value is @file{.so} on Posix hosts
+and @file{.dll} on MS-Windows.
+@end defvar
+
+@findex emacs_module_init
+@vindex plugin_is_GPL_compatible
+Every dynamic module should export a C-callable function named
+@code{emacs_module_init}, which Emacs will call as part of the call to
+@code{load} or @code{require} which loads the module.  It should also
+export a symbol named @code{plugin_is_GPL_compatible} to indicate that
+its code is released under the GPL or compatible license; Emacs will
+refuse to load modules that don't export such a symbol.
+
+If a module needs to call Emacs functions, it should do so through the
+API defined and documented in the header file @file{emacs-module.h}
+that is part of the Emacs distribution.
+
+@cindex user-ptr object
+Modules can create @code{user-ptr} Lisp objects that embed pointers to
+C struct's defined by the module.  This is useful for keeping around
+complex data structures created by a module, to be passed back to the
+module's functions.  User-ptr objects can also have associated
+@dfn{finalizers} -- functions to be run when the object is GC'ed; this
+is useful for freeing any resources allocated for the underlying data
+structure, such as memory, open file descriptors, etc.
+
+@defun user-ptrp object
+This function returns @code{t} if its argument is a @code{user-ptr}
+object.
+@end defun
+
+Loadable modules in Emacs are enabled by using the
+@kbd{--with-modules} option at configure time.

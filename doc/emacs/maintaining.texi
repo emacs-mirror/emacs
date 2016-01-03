@@ -47,6 +47,17 @@ variable @code{vc-handled-backends} to @code{nil}
 (@pxref{Customizing VC}).
 @end ifnottex
 
+@findex vc-refresh-state
+@findex vc-state-refresh
+  To update the VC state information for the file visited in the
+current buffer, use the command @code{vc-refresh-state}.  This command
+is useful when you perform version control commands outside Emacs
+(e.g., from the shell prompt), or if you put the buffer's file under a
+different version control system, or remove it from version control
+entirely.  A companion command @code{vc-state-refresh} does the same,
+but does not consider switching the version control system or removal
+from VC.
+
 @menu
 * Introduction to VC::  How version control works in general.
 * VC Mode Line::        How the mode line shows version control status.
@@ -821,15 +832,19 @@ corresponding to @var{revision}, saves it to
 window.
 
 @findex vc-annotate
+@vindex vc-annotate-background-mode
 @kindex C-x v g
   Many version control systems allow you to view files @dfn{annotated}
 with per-line revision information, by typing @kbd{C-x v g}
 (@code{vc-annotate}).  This creates a new ``annotate'' buffer
-displaying the file's text, with each line colored to show
-how old it is.  Red text is new, blue is old, and intermediate colors
-indicate intermediate ages.  By default, the color is scaled over the
-full range of ages, such that the oldest changes are blue, and the
-newest changes are red.
+displaying the file's text, with each line colored to show how old it
+is.  Red text is new, blue is old, and intermediate colors indicate
+intermediate ages.  By default, the color is scaled over the full
+range of ages, such that the oldest changes are blue, and the newest
+changes are red.  If the variable @code{vc-annotate-background-mode}
+is non-@code{nil}, the colors expressing the age of each line are
+applied to the background color, leaving the foreground at its default
+color.
 
   When you give a prefix argument to this command, Emacs reads two
 arguments using the minibuffer: the revision to display and annotate
@@ -1008,6 +1023,22 @@ increase the number of revisions shown in an existing
 @file{*vc-change-log*} buffer by clicking on the @samp{Show 2X
 entries} or @samp{Show unlimited entries} buttons at the end of the
 buffer.  However, RCS, SCCS, and CVS do not support this feature.
+
+@findex vc-region-history
+A useful variant of examining changes is provided by the command
+@kbd{vc-region-history}, which shows a @file{*VC-history*} buffer with
+the history of changes to the region of the current file between point
+and the mark (@pxref{Mark}).  The history of changes includes the
+commit log messages and also the changes themselves in the Diff
+format.
+
+Invoke this command after marking the region of the current file in
+whose changes you are interested.  In the @file{*VC-history*} buffer
+it pops up, you can use all of the commands available in the
+@file{*vc-change-log*} buffer described above, and also the commands
+defined by Diff mode (@pxref{Diff Mode}).
+
+This command is currently available only with Git.
 
 @node VC Undo
 @subsection Undoing Version Control Actions
@@ -1353,18 +1384,42 @@ commit will be committed to that specific branch.
 @subsubsection Pulling/Pushing Changes into/from a Branch
 
 @table @kbd
+@item C-x v P
+On a decentralized version control system, update another location
+with changes from the current branch (a.k.a. ``push'' changes).  This
+concept does not exist for centralized version control systems
+
 @item C-x v +
 On a decentralized version control system, update the current branch
 by ``pulling in'' changes from another location.
 
 On a centralized version control system, update the current VC
 fileset.
-
-@item C-x v P
-On a decentralized version control system, ``push'' changes from the
-current branch to another location.  This concept does not exist
-for centralized version control systems.
 @end table
+
+@kindex C-x v P
+@findex vc-push
+On a decentralized version control system, the command @kbd{C-x v P}
+(@code{vc-push}) updates another location with changes from the
+current branch.  With a prefix argument, it prompts for the exact
+version control command to run, which lets you specify where to push
+changes; the default is @command{bzr push} with Bazaar, @command{git
+push} with Git, and @command{hg push} with Mercurial.  The default
+commands always push to a default location determined by the version
+control system from your branch configuration.
+
+Prior to pushing, you can use @kbd{C-x v O} (@code{vc-log-outgoing})
+to view a log buffer of the changes to be sent.  @xref{VC Change Log}.
+
+@cindex bound branch (Bazaar VCS)
+This command is currently supported only by Bazaar, Git, and Mercurial.
+The concept of ``pushing'' does not exist for centralized version
+control systems, where this operation is a part of committing a
+changeset, so invoking this command on a centralized VCS signals an
+error.  This command also signals an error when attempted in a Bazaar
+@dfn{bound branch}, where committing a changeset automatically pushes
+the changes to the remote repository to which the local branch is
+bound.
 
 @kindex C-x v +
 @findex vc-pull
@@ -1377,12 +1432,12 @@ Otherwise, it pulls from a default location determined by the version
 control system.
 
   Amongst decentralized version control systems, @kbd{C-x v +} is
-currently supported only by Bazaar, Git, and Mercurial.  On Bazaar, it
-calls @command{bzr pull} for ordinary branches (to pull from a master
-branch into a mirroring branch), and @command{bzr update} for a bound
-branch (to pull from a central repository).  On Git, it calls
+currently supported only by Bazaar, Git, and Mercurial.  With Bazaar,
+it calls @command{bzr pull} for ordinary branches (to pull from a
+master branch into a mirroring branch), and @command{bzr update} for a
+bound branch (to pull from a central repository).  With Git, it calls
 @command{git pull} to fetch changes from a remote repository and merge
-it into the current branch.  On Mercurial, it calls @command{hg pull
+it into the current branch.  With Mercurial, it calls @command{hg pull
 -u} to fetch changesets from the default remote repository and update
 the working directory.
 
@@ -1392,21 +1447,6 @@ Log}.
 
   On a centralized version control system like CVS, @kbd{C-x v +}
 updates the current VC fileset from the repository.
-
-@kindex C-x v P
-@findex vc-push
-  On a decentralized version control system, the command @kbd{C-x v P}
-(@code{vc-push}) sends changes from your current branch to another location.
-With a prefix argument, the command prompts for the exact
-version control command to use, which lets you specify where to push
-changes.  Otherwise, it pushes to a default location determined
-by the version control system.
-
-  Prior to pushing, you can use @kbd{C-x v O} (@code{vc-log-outgoing})
-to view a log buffer of the changes to be sent.  @xref{VC Change Log}.
-
-This command is currently supported only by Bazaar, Git, and Mercurial.
-It signals an error for centralized version control systems.
 
 @node Merging
 @subsubsection Merging Branches
@@ -2285,7 +2325,7 @@ input.  @xref{Query Replace}, for more information on query replace.
   You can control the case-sensitivity of tags search commands by
 customizing the value of the variable @code{tags-case-fold-search}.  The
 default is to use the same setting as the value of
-@code{case-fold-search} (@pxref{Search Case}).
+@code{case-fold-search} (@pxref{Lax Search}).
 
   It is possible to get through all the files in the tags table with a
 single invocation of @kbd{M-x tags-query-replace}.  But often it is

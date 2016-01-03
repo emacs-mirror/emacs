@@ -407,7 +407,7 @@ you are expanding.
 in this search; if it is @code{nil}, the word and the expansion must
 match in case.  If the value is @code{case-fold-search} (the default),
 then the variable @code{case-fold-search} controls whether to ignore
-case while searching for expansions (@pxref{Search Case}).
+case while searching for expansions (@pxref{Lax Search}).
 
 @vindex dabbrev-case-replace
   Normally, dynamic abbrev expansion preserves the case pattern
@@ -421,7 +421,7 @@ the dynamic abbrev's case pattern is preserved in most cases; if it is
 @code{nil}, the expansion is always copied verbatim.  If the value is
 @code{case-replace} (the default), then the variable
 @code{case-replace} controls whether to copy the expansion verbatim
-(@pxref{Replacement and Case}).
+(@pxref{Replacement and Lax Matches}).
 
   However, if the expansion contains a complex mixed case pattern, and
 the dynamic abbrev matches this pattern as far as it goes, then the

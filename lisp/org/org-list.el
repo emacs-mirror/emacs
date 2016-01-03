@@ -174,7 +174,7 @@ to the bullet that should be used when this item is demoted.
 For example,
 
  (setq org-list-demote-modify-bullet
-       '((\"+\" . \"-\") (\"-\" . \"+\") (\"*\" . \"+\")))
+       \\='((\"+\" . \"-\") (\"-\" . \"+\") (\"*\" . \"+\")))
 
 will make
 

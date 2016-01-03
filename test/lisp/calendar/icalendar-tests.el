@@ -2231,7 +2231,63 @@ END:VCALENDAR"
  Class: PUBLIC
  UID: 040000008200E00074C5B7101A82E0080000000020FFAED0CFEFCC01000000000000000010000000575268034ECDB649A15349B1BF240F15
 "     nil)
+
+  ;; 2015-12-05, mixed line endings and empty lines, see Bug#22092.
+  (icalendar-tests--test-import
+   "BEGIN:VCALENDAR\r
+PRODID:-//www.norwegian.no//iCalendar MIMEDIR//EN\r
+VERSION:2.0\r
+METHOD:REQUEST\r
+BEGIN:VEVENT\r
+UID:RFCALITEM1\r
+SEQUENCE:1512040950\r
+DTSTAMP:20141204T095043Z\r
+ORGANIZER:noreply@norwegian.no\r
+DTSTART:20141208T173000Z\r
+
+DTEND:20141208T215500Z\r
+
+LOCATION:Stavanger-Sola\r
+
+DESCRIPTION:Fly med Norwegian, reservasjon. Fra Stavanger til Troms&#248; 8. des 2014 18:30, DY545Fly med Norwegian, reservasjon . Fra Stavanger til Troms&#248; 8. des 2014 21:00, DY390\r
+
+X-ALT-DESC;FMTTYPE=text/html:<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2//EN\"><html><head><META NAME=\"Generator\" CONTENT=\"MS Exchange Server version 08.00.0681.000\"><title></title></head><body><b><font face=\"Calibri\" size=\"3\">Reisereferanse</p></body></html>
+SUMMARY:Norwegian til Tromsoe-Langnes -\r
+
+CATEGORIES:Appointment\r
+
+
+PRIORITY:5\r
+
+CLASS:PUBLIC\r
+
+TRANSP:OPAQUE\r
+END:VEVENT\r
+END:VCALENDAR
+"
+"&2014/12/8 18:30-22:55 Norwegian til Tromsoe-Langnes -
+ Desc: Fly med Norwegian, reservasjon. Fra Stavanger til Troms&#248; 8. des 2014 18:30, DY545Fly med Norwegian, reservasjon . Fra Stavanger til Troms&#248; 8. des 2014 21:00, DY390
+ Location: Stavanger-Sola
+ Organizer: noreply@norwegian.no
+ Class: PUBLIC
+ UID: RFCALITEM1
+"
+"&8/12/2014 18:30-22:55 Norwegian til Tromsoe-Langnes -
+ Desc: Fly med Norwegian, reservasjon. Fra Stavanger til Troms&#248; 8. des 2014 18:30, DY545Fly med Norwegian, reservasjon . Fra Stavanger til Troms&#248; 8. des 2014 21:00, DY390
+ Location: Stavanger-Sola
+ Organizer: noreply@norwegian.no
+ Class: PUBLIC
+ UID: RFCALITEM1
+"
+"&12/8/2014 18:30-22:55 Norwegian til Tromsoe-Langnes -
+ Desc: Fly med Norwegian, reservasjon. Fra Stavanger til Troms&#248; 8. des 2014 18:30, DY545Fly med Norwegian, reservasjon . Fra Stavanger til Troms&#248; 8. des 2014 21:00, DY390
+ Location: Stavanger-Sola
+ Organizer: noreply@norwegian.no
+ Class: PUBLIC
+ UID: RFCALITEM1
+"
 )
+  )
 
 (provide 'icalendar-tests)
 ;;; icalendar-tests.el ends here

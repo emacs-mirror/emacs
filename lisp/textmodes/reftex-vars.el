@@ -335,7 +335,7 @@ more than `reftex-idle-time' seconds.
 Value t means, turn on immediately when RefTeX gets started.  Then,
 recentering will work for any TOC window created during the session.
 
-Value 'frame (the default) means, turn automatic recentering on only while the
+Value `frame' (the default) means, turn automatic recentering on only while the
 dedicated TOC frame does exist, and do the recentering only in that frame.  So
 when creating that frame (with `d' key in an ordinary TOC window), the
 automatic recentering is turned on.  When the frame gets destroyed, automatic
@@ -739,7 +739,7 @@ And here is the setup for RefTeX:
    \\end.  Here we use \"linguex\" as this name.
 
    (setq reftex-label-alist
-         '((\"linguex\" ?x \"ex:\" \"~\\\\ref{%s}\" nil (\"Example\" \"Ex.\"))))
+         \\='((\"linguex\" ?x \"ex:\" \"~\\\\ref{%s}\" nil (\"Example\" \"Ex.\"))))
 
 2. Write a function to detect the list macros and the determinators as well.
 
@@ -762,7 +762,7 @@ And here is the setup for RefTeX:
 
 3. Tell RefTeX to use this function
 
-   (setq reftex-special-environment-functions '(my-detect-linguex-list))"
+   (setq reftex-special-environment-functions \\='(my-detect-linguex-list))"
   :group 'reftex-defining-label-environments
   :type 'hook)
 
@@ -877,7 +877,7 @@ DOWNCASE    t:   Downcase words before using them."
       "\\\\label{\\(?1:[^}]*\\)}"
       ;; keyvals [..., label = {foo}, ...] forms used by ctable,
       ;; listings, minted, ...
-      "\\[[^[]]*\\<label[[:space:]]*=[[:space:]]*{?\\(?1:[^],}]+\\)}?")
+      "\\[[^][]\\{0,2000\\}\\<label[[:space:]]*=[[:space:]]*{?\\(?1:[^],}]+\\)}?")
     "List of regexps matching \\label definitions.
 The default value matches usual \\label{...} definitions and
 keyval style [..., label = {...}, ...] label definitions.  It is
@@ -1206,7 +1206,7 @@ strings.
 `reftex-cite-format' directly yourself or set it to the SYMBOL of one of
 the predefined styles.  The predefined symbols are those which have an
 association in the constant `reftex-cite-format-builtin'.
-E.g.: (setq reftex-cite-format 'natbib)"
+E.g.: (setq reftex-cite-format \\='natbib)"
   :group 'reftex-citation-support
   :type
   `(choice

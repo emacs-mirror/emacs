@@ -218,7 +218,7 @@
   (cond
    ((and (eq menu-bar-last-search-type 'string)
 	 search-ring)
-    (search-forward (car search-ring)))
+    (nonincremental-search-forward))
    ((and (eq menu-bar-last-search-type 'regexp)
 	 regexp-search-ring)
     (re-search-forward (car regexp-search-ring)))
@@ -231,30 +231,30 @@
   (cond
    ((and (eq menu-bar-last-search-type 'string)
 	 search-ring)
-    (search-backward (car search-ring)))
+    (nonincremental-search-backward))
    ((and (eq menu-bar-last-search-type 'regexp)
 	 regexp-search-ring)
     (re-search-backward (car regexp-search-ring)))
    (t
     (error "No previous search"))))
 
-(defun nonincremental-search-forward (string)
+(defun nonincremental-search-forward (&optional string backward)
   "Read a string and search for it nonincrementally."
   (interactive "sSearch for string: ")
   (setq menu-bar-last-search-type 'string)
-  (if (equal string "")
-      (search-forward (car search-ring))
-    (isearch-update-ring string nil)
-    (search-forward string)))
+  ;; Ideally, this whole command would be equivalent to `C-s RET'.
+  (let ((isearch-forward (not backward))
+        (isearch-regexp-function search-default-regexp-mode)
+        (isearch-regexp nil))
+    (if (or (equal string "") (not string))
+        (funcall (isearch-search-fun-default) (car search-ring))
+      (isearch-update-ring string nil)
+      (funcall (isearch-search-fun-default) string))))
 
-(defun nonincremental-search-backward (string)
+(defun nonincremental-search-backward (&optional string)
   "Read a string and search backward for it nonincrementally."
-  (interactive "sSearch for string: ")
-  (setq menu-bar-last-search-type 'string)
-  (if (equal string "")
-      (search-backward (car search-ring))
-    (isearch-update-ring string nil)
-    (search-backward string)))
+  (interactive "sSearch backwards for string: ")
+  (nonincremental-search-forward string 'backward))
 
 (defun nonincremental-re-search-forward (string)
   "Read a regular expression and search for it nonincrementally."
@@ -413,8 +413,8 @@
     menu))
 
 (defun menu-bar-goto-uses-etags-p ()
-  (or (not (boundp 'xref-find-function))
-      (eq xref-find-function 'etags-xref-find)))
+  (or (not (boundp 'xref-backend-functions))
+      (eq (car xref-backend-functions) 'etags--xref-backend)))
 
 (defvar yank-menu (cons (purecopy "Select Yank") nil))
 (fset 'yank-menu (cons 'keymap yank-menu))

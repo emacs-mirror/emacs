@@ -293,8 +293,10 @@ various files.
 Set the bookmark for the visited file, at point.
 
 @item C-x r m @var{bookmark} @key{RET}
-@findex bookmark-set
 Set the bookmark named @var{bookmark} at point (@code{bookmark-set}).
+
+@item C-x r M @var{bookmark} @key{RET}
+Like @kbd{C-x r m}, but don't overwrite an existing bookmark.
 
 @item C-x r b @var{bookmark} @key{RET}
 @findex bookmark-jump
@@ -319,6 +321,12 @@ bookmark, uses the visited file name as the default for the bookmark
 name.  If you name each bookmark after the file it points to, then you
 can conveniently revisit any of those files with @kbd{C-x r b}, and move
 to the position of the bookmark at the same time.
+
+@kindex C-x r M
+@findex bookmark-set-no-overwrite
+  The command @kbd{C-x r M} (@code{bookmark-set-no-overwrite}) works
+like @kbd{C-x r m}, but it signals an error if the specified bookmark
+already exists, instead of overwriting it.
 
 @kindex C-x r l
   To display a list of all your bookmarks in a separate buffer, type

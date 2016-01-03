@@ -580,12 +580,20 @@ editing!"
 (defun vc-buffer-sync (&optional not-urgent)
   "Make sure the current buffer and its working file are in sync.
 NOT-URGENT means it is ok to continue if the user says not to save."
-  (when (buffer-modified-p)
-    (if (or vc-suppress-confirm
-	    (y-or-n-p (format "Buffer %s modified; save it? " (buffer-name))))
-	(save-buffer)
-      (unless not-urgent
-	(error "Aborted")))))
+  (let (missing)
+    (when (cond
+           ((buffer-modified-p))
+           ((not (file-exists-p buffer-file-name))
+            (setq missing t)))
+      (if (or vc-suppress-confirm
+              (y-or-n-p (format "Buffer %s %s; save it? "
+                                (buffer-name)
+                                (if missing
+                                    "is missing on disk"
+                                  "modified"))))
+          (save-buffer)
+        (unless not-urgent
+          (error "Aborted"))))))
 
 ;; Command closures
 

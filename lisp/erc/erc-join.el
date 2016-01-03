@@ -156,7 +156,13 @@ This function is run from `erc-nickserv-identified-hook'."
     (dolist (l erc-autojoin-channels-alist)
       (when (string-match (car l) server)
 	(dolist (chan (cdr l))
-	  (erc-server-join-channel server chan)))))
+	  (let ((buffer (erc-get-buffer chan)))
+	    ;; Only auto-join the channels that we aren't already in
+	    ;; using a different nick.
+	    (when (or (not buffer)
+		      (not (with-current-buffer buffer
+			     (erc-server-process-alive))))
+	      (erc-server-join-channel server chan)))))))
   ;; Return nil to avoid stomping on any other hook funcs.
   nil)
 
@@ -170,7 +176,7 @@ This function is run from `erc-nickserv-identified-hook'."
 	 (password (if (functionp secret)
 		       (funcall secret)
 		     secret)))
-    (erc-server-send (concat "join " channel
+    (erc-server-send (concat "JOIN " channel
 			     (if password
 				 (concat " " password)
 			       "")))))

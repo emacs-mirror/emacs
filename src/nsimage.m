@@ -66,7 +66,7 @@ ns_image_for_XPM (int width, int height, int depth)
 void *
 ns_image_from_file (Lisp_Object file)
 {
-  NSTRACE ("ns_image_from_bitmap_file");
+  NSTRACE ("ns_image_from_file");
   return [EmacsImage allocInitFromFile: file];
 }
 

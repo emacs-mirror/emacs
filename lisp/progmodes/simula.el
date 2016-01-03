@@ -344,22 +344,22 @@ Variables controlling indentation style:
     with respect to the previous line of the statement.
  `simula-label-offset' -4711
     Offset of SIMULA label lines relative to usual indentation.
- `simula-if-indent' '(0 . 0)
+ `simula-if-indent' (0 . 0)
     Extra indentation of THEN and ELSE with respect to the starting IF.
     Value is a cons cell, the car is extra THEN indentation and the cdr
     extra ELSE indentation.  IF after ELSE is indented as the starting IF.
- `simula-inspect-indent' '(0 . 0)
+ `simula-inspect-indent' (0 . 0)
     Extra indentation of WHEN and OTHERWISE with respect to the
     corresponding INSPECT.  Value is a cons cell, the car is
     extra WHEN indentation and the cdr extra OTHERWISE indentation.
  `simula-electric-indent' nil
     If this variable is non-nil, `simula-indent-line'
     will check the previous line to see if it has to be reindented.
- `simula-abbrev-keyword' 'upcase
+ `simula-abbrev-keyword' `upcase'
     Determine how SIMULA keywords will be expanded.  Value is one of
     the symbols `upcase', `downcase', `capitalize', (as in) `abbrev-table',
     or nil if they should not be changed.
- `simula-abbrev-stdproc' 'abbrev-table
+ `simula-abbrev-stdproc' `abbrev-table'
     Determine how standard SIMULA procedure and class names will be
     expanded.  Value is one of the symbols `upcase', `downcase', `capitalize',
     (as in) `abbrev-table', or nil if they should not be changed.

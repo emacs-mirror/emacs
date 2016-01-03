@@ -3113,32 +3113,32 @@ class generic_object13,520
     int where_in_registry;15,547
     generic_object(17,582
     ~generic_object(19,724
-    virtual void compute_next_state(21,842
-    virtual void step(22,888
-const int max_num_directions 31,1219
-class location:location33,1289
-    location(43,1642
-    ~location(44,1661
-class irregular_location:irregular_location47,1686
-    double x,49,1734
-    double x, y,49,1734
-    double x, y, z;49,1734
-    irregular_location(51,1762
-    ~irregular_location(53,1854
-class discrete_location:discrete_location56,1889
-    int x,58,1936
-    int x, y,58,1936
-    int x, y, z;58,1936
-    class location *neighbors[neighbors59,1953
-    void clear_neighbors(60,2004
-    discrete_location(62,2044
-    ~discrete_location(65,2154
-    void assign_neighbor(66,2184
-class agent:agent75,2508
-    location *where;where77,2549
-    agent(79,2578
-    ~agent(80,2591
-    void move(81,2605
+    virtual void compute_next_state(21,843
+    virtual void step(22,889
+const int max_num_directions 31,1220
+class location:location33,1290
+    location(43,1643
+    ~location(44,1662
+class irregular_location:irregular_location47,1687
+    double x,49,1735
+    double x, y,49,1735
+    double x, y, z;49,1735
+    irregular_location(51,1763
+    ~irregular_location(53,1855
+class discrete_location:discrete_location56,1890
+    int x,58,1937
+    int x, y,58,1937
+    int x, y, z;58,1937
+    class location *neighbors[neighbors59,1954
+    void clear_neighbors(60,2005
+    discrete_location(62,2045
+    ~discrete_location(65,2155
+    void assign_neighbor(66,2185
+class agent:agent75,2509
+    location *where;where77,2550
+    agent(79,2579
+    ~agent(80,2592
+    void move(81,2606
 
 cp-src/fail.C,351
 struct A 7,263
@@ -3268,28 +3268,28 @@ el-src/emacs/lisp/progmodes/etags.el,5188
 (defun next-file 1685,67976
 (defvar tags-loop-operate 1760,70890
 (defvar tags-loop-scan1763,70984
-(defun tags-loop-eval 1771,71314
-(defun tags-loop-continue 1782,71643
-(defun tags-search 1850,73949
-(defun tags-query-replace 1871,74775
-(defun tags-complete-tags-table-file 1896,75999
-(defun list-tags 1906,76378
-(defun tags-apropos 1934,77331
-(define-button-type 'tags-select-tags-tabletags-select-tags-table1957,78157
-(defun select-tags-table 1964,78396
-(defvar select-tags-table-mode-map 2019,80523
-(define-derived-mode select-tags-table-mode 2030,80906
-(defun select-tags-table-select 2034,81090
-(defun select-tags-table-quit 2043,81456
-(defun complete-tag 2049,81611
-(defconst etags--xref-limit 2074,82552
-(defvar etags-xref-find-definitions-tag-order 2076,82587
-(defun etags-xref-find 2082,82877
-(defun etags--xref-find-definitions 2096,83406
-(defclass xref-etags-location 2129,85121
-(defun xref-make-etags-location 2135,85344
-(cl-defmethod xref-location-marker 2139,85499
-(cl-defmethod xref-location-line 2146,85743
+(defun tags-loop-eval 1771,71313
+(defun tags-loop-continue 1782,71642
+(defun tags-search 1850,73948
+(defun tags-query-replace 1871,74774
+(defun tags-complete-tags-table-file 1896,75998
+(defun list-tags 1906,76377
+(defun tags-apropos 1934,77330
+(define-button-type 'tags-select-tags-tabletags-select-tags-table1957,78156
+(defun select-tags-table 1964,78395
+(defvar select-tags-table-mode-map 2019,80522
+(define-derived-mode select-tags-table-mode 2030,80905
+(defun select-tags-table-select 2034,81089
+(defun select-tags-table-quit 2043,81455
+(defun complete-tag 2049,81610
+(defconst etags--xref-limit 2074,82551
+(defvar etags-xref-find-definitions-tag-order 2076,82586
+(defun etags-xref-find 2082,82876
+(defun etags--xref-find-definitions 2096,83405
+(defclass xref-etags-location 2129,85120
+(defun xref-make-etags-location 2135,85343
+(cl-defmethod xref-location-marker 2139,85498
+(cl-defmethod xref-location-line 2146,85742
 
 erl-src/gs_dialog.erl,98
 -define(VERSION2,32
@@ -3386,50 +3386,64 @@ function MoveLayerBottom 223,5079
 function MoveLayerBefore 236,5457
 function MoveLayerAfter 258,6090
 
+lua-src/test.lua,442
+function Rectangle.getPos 2,15
+function Rectangle.getPos getPos2,15
+function Circle.getPos 6,61
+function Circle.getPos getPos6,61
+function Cube.data.getFoo 10,102
+function Cube.data.getFoo getFoo10,102
+function Square.something:Bar 14,148
+function Square.something:Bar Bar14,148
+   function test.me_22a(22,241
+   function test.me_22a(me_22a22,241
+   local function test.me22b 25,297
+   local function test.me22b me22b25,297
+
 make-src/Makefile,1156
 LATEST=1,0
-NONSRCS=35,1578
-CPPFLAGS=49,2191
-LDFLAGS=50,2260
-FASTCFLAGS=55,2531
-FILTER=58,2642
-	@-$($72,3064
-	@-$($73,3113
-	@-$($74,3177
-	@-$($75,3223
-	@-$($76,3291
-	@-$($77,3383
-	@$(81,3466
-	@$(82,3514
-	@$(83,3577
-	@$(84,3622
-	@$(85,3689
-	@$(86,3780
-${CHECKOBJS}: CFLAGS=88,3806
-	@env CHECKEROPTS=92,3922
-	@$(98,4094
-	@$(106,4250
-	@$(110,4374
-	@$(114,4500
-	@for i in $(140,5315
-	@for i in $(SRCS); do echo $$i;140,5315
-	$(160,6053
-	$(163,6114
-	$(166,6177
-	$(169,6228
-	$(172,6317
-	sdiff --suppress-common-lines --width=width186,6614
-	sdiff --suppress-common-lines --width=width189,6703
-	sdiff --suppress-common-lines --width=width192,6791
-	sdiff --suppress-common-lines --width=width195,6880
-	TEXTAGS=204,7122
-	TEXTAGS=def:newcommand:newenvironment ${RUN} etags$* --regex=regex204,7122
-	${RUN} etags12 --members -o $@ --regex=regex207,7239
-	${RUN} ./ctags -o $@ --regex=regex213,7388
-	${RUN} ctags$* -wtTd --globals --members -o $@ --regex=regex216,7464
-	TEXTAGS=219,7583
-	TEXTAGS=def:newcommand:newenvironment ${RUN} ctags$* -wt -o $@ --regex=regex219,7583
-	${RUN} ./extags -e --regex-c=c222,7710
+NONSRCS=35,1577
+CPPFLAGS=49,2190
+LDFLAGS=50,2259
+FASTCFLAGS=55,2530
+FILTER=58,2641
+	@-$($72,3063
+	@-$($73,3112
+	@-$($74,3176
+	@-$($75,3222
+	@-$($76,3290
+	@-$($77,3382
+	@$(81,3465
+	@$(82,3513
+	@$(83,3576
+	@$(84,3621
+	@$(85,3688
+	@$(86,3779
+${CHECKOBJS}: CFLAGS=88,3805
+	@env CHECKEROPTS=92,3921
+	@$(98,4093
+	@$(106,4249
+	@$(110,4373
+	@$(114,4499
+	@for i in $(140,5320
+	@for i in $(SRCS); do echo $$i;140,5320
+	$(160,6058
+	$(163,6119
+	$(166,6182
+	$(169,6233
+	$(172,6322
+	sdiff --suppress-common-lines --width=width186,6619
+	sdiff --suppress-common-lines --width=width189,6708
+	sdiff --suppress-common-lines --width=width192,6796
+	sdiff --suppress-common-lines --width=width195,6885
+	TEXTAGS=204,7127
+	TEXTAGS=def:newcommand:newenvironment ${RUN} etags$* --regex=regex204,7127
+	${RUN} etags12 --members -o $@ --regex=regex207,7244
+	${RUN} ./ctags -o $@ --regex=regex213,7393
+	${RUN} ctags$* -wtTd --globals --members -o $@ --regex=regex216,7469
+	TEXTAGS=219,7588
+	TEXTAGS=def:newcommand:newenvironment ${RUN} ctags$* -wt -o $@ --regex=regex219,7588
+	${RUN} ./extags -e --regex-c=c222,7715
 
 objc-src/Subprocess.h,98
 #define Subprocess 41,1217
@@ -4041,6 +4055,31 @@ class Configure(760,24879
     def editsite(794,25949
     def save(797,26022
     def nosave(807,26310
+
+ruby-src/test.rb,594
+module ModuleExample1,0
+    class ClassExample2,21
+        def class_method3,44
+        def ClassExample.singleton_class_method6,116
+        def class_method_exclamation!9,221
+        def class_method_question?12,319
+        def class_method_equals=class_method_equals=15,411
+        def `(18,499
+        def +(21,589
+        def [](24,637
+        def []=([]=27,687
+        def <<(30,749
+        def ==(==33,799
+        def <=(<=36,869
+        def <=>(<=>39,940
+        def ===(===42,987
+    def module_method46,1048
+    def ModuleExample.singleton_module_method49,1110
+
+ruby-src/test1.ruby,37
+class A1,0
+ def a(2,8
+ def b(5,38
 
 tex-src/testenv.tex,52
 \newcommand{\nm}\nm4,77

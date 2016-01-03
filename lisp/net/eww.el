@@ -31,6 +31,7 @@
 (require 'url-queue)
 (require 'url-util)			; for url-get-url-at-point
 (require 'mm-url)
+(require 'puny)
 (eval-when-compile (require 'subr-x)) ;; for string-trim
 
 (defgroup eww nil
@@ -93,7 +94,7 @@ desktop.  Otherwise, such entries will be retained."
 
 (defcustom eww-restore-desktop nil
   "How to restore EWW buffers on `desktop-restore'.
-If t or 'auto, the buffers will be reloaded automatically.
+If t or `auto', the buffers will be reloaded automatically.
 If nil, buffers will require manual reload, and will contain the text
 specified in `eww-restore-reload-prompt' instead of the actual Web
 page contents."
@@ -275,6 +276,13 @@ word(s) will be searched for via `eww-search-prefix'."
            (setq url (concat eww-search-prefix
                              (replace-regexp-in-string " " "+" url))))))
   (eww-setup-buffer)
+  ;; Check whether the domain only uses "Highly Restricted" Unicode
+  ;; IDNA characters.  If not, transform to punycode to indicate that
+  ;; there may be funny business going on.
+  (let ((parsed (url-generic-parse-url url)))
+    (unless (puny-highly-restrictive-domain-p (url-host parsed))
+      (setf (url-host parsed) (puny-encode-domain (url-host parsed)))
+      (setq url (url-recreate-url parsed))))
   (plist-put eww-data :url url)
   (plist-put eww-data :title "")
   (eww-update-header-line-format)
@@ -322,7 +330,8 @@ Currently this means either text/html or application/xhtml+xml."
 		    (or (cdr (assq 'charset (cdr content-type)))
 			(eww-detect-charset (eww-html-p (car content-type)))
 			"utf-8"))))
-	 (data-buffer (current-buffer)))
+	 (data-buffer (current-buffer))
+	 last-coding-system-used)
     ;; Save the https peer status.
     (with-current-buffer buffer
       (plist-put eww-data :peer (plist-get status :peer)))
@@ -340,11 +349,13 @@ Currently this means either text/html or application/xhtml+xml."
 	   ((string-match-p "\\`image/" (car content-type))
 	    (eww-display-image buffer))
 	   (t
-	    (eww-display-raw buffer encode)))
+	    (eww-display-raw buffer (or encode charset 'utf-8))))
 	  (with-current-buffer buffer
 	    (plist-put eww-data :url url)
 	    (eww-update-header-line-format)
 	    (setq eww-history-position 0)
+	    (and last-coding-system-used
+		 (set-buffer-file-coding-system last-coding-system-used))
 	    (run-hooks 'eww-after-render-hook)))
       (kill-buffer data-buffer))))
 
@@ -390,17 +401,15 @@ Currently this means either text/html or application/xhtml+xml."
 	     (list
 	      'base (list (cons 'href url))
 	      (progn
-		(when (or (and encode
-			       (not (eq charset encode)))
-			  (not (eq charset 'utf-8)))
-		  (condition-case nil
-		      (decode-coding-region (point) (point-max)
-					    (or encode charset))
-		    (coding-system-error nil)))
+		(setq encode (or encode charset 'utf-8))
+		(condition-case nil
+		    (decode-coding-region (point) (point-max) encode)
+		  (coding-system-error nil))
 		(libxml-parse-html-region (point) (point-max))))))
 	(source (and (null document)
 		     (buffer-substring (point) (point-max)))))
     (with-current-buffer buffer
+      (setq bidi-paragraph-direction 'left-to-right)
       (plist-put eww-data :source source)
       (plist-put eww-data :dom document)
       (let ((inhibit-read-only t)
@@ -529,11 +538,9 @@ Currently this means either text/html or application/xhtml+xml."
       (let ((inhibit-read-only t))
 	(erase-buffer)
 	(insert data)
-	(unless (eq encode 'utf-8)
-	  (encode-coding-region (point-min) (1+ (length data)) 'utf-8)
-	  (condition-case nil
-	      (decode-coding-region (point-min) (1+ (length data)) encode)
-	    (coding-system-error nil))))
+	(condition-case nil
+	    (decode-coding-region (point-min) (1+ (length data)) encode)
+	  (coding-system-error nil)))
       (goto-char (point-min)))))
 
 (defun eww-display-image (buffer)
@@ -565,6 +572,7 @@ Currently this means either text/html or application/xhtml+xml."
   (let ((inhibit-read-only t))
     (remove-overlays)
     (erase-buffer))
+  (setq bidi-paragraph-direction 'left-to-right)
   (unless (eq major-mode 'eww-mode)
     (eww-mode)))
 
@@ -742,8 +750,7 @@ the like."
   (setq-local desktop-save-buffer #'eww-desktop-misc-data)
   ;; multi-page isearch support
   (setq-local multi-isearch-next-buffer-function #'eww-isearch-next-buffer)
-  (setq truncate-lines t
-        bidi-paragraph-direction 'left-to-right)
+  (setq truncate-lines t)
   (buffer-disable-undo)
   (setq buffer-read-only t))
 
@@ -1935,7 +1942,7 @@ Generally, the list should not include the (usually overly large)
 
 (defun eww-restore-desktop (file-name buffer-name misc-data)
   "Restore an eww buffer from its desktop file record.
-If `eww-restore-desktop' is t or 'auto, this function will also
+If `eww-restore-desktop' is t or `auto', this function will also
 initiate the retrieval of the respective URI in the background.
 Otherwise, the restored buffer will contain a prompt to do so by using
 \\[eww-reload]."

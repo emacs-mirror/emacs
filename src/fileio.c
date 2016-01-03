@@ -4263,9 +4263,14 @@ by calling `format-decode', which see.  */)
       if (CODING_FOR_UNIBYTE (&coding)
 	  /* Can't do this if part of the buffer might be preserved.  */
 	  && NILP (replace))
-	/* Visiting a file with these coding system makes the buffer
-	   unibyte.  */
-	bset_enable_multibyte_characters (current_buffer, Qnil);
+	{
+	  /* Visiting a file with these coding system makes the buffer
+	     unibyte.  */
+	  if (inserted > 0)
+	    bset_enable_multibyte_characters (current_buffer, Qnil);
+	  else
+	    Fset_buffer_multibyte (Qnil);
+	}
     }
 
   coding.dst_multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));

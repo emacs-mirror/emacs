@@ -147,7 +147,7 @@ disappears at the next keypress; otherwise, it remains forever."
   "List of functions to run when inserting a string.
 Each function is called with a single arg, STRING and should return
 another string.  This could be used for making all strings upcase by
-setting it to '(upcase), for example.")
+setting it to (upcase), for example.")
 
 (defvar tempo-tags nil
   "An association list with tags and corresponding templates.")

@@ -34,9 +34,11 @@
   :group 'matching)
 
 (defcustom replace-character-fold nil
-  "Non-nil means `query-replace' should do character folding in matches.
+  "Non-nil means replacement commands should do character folding in matches.
 This means, for instance, that \\=' will match a large variety of
-unicode quotes."
+unicode quotes.
+This variable affects `query-replace' and `replace-string', but not
+`replace-regexp'."
   :type 'boolean
   :group 'matching
   :version "25.1")
@@ -111,7 +113,8 @@ strings or patterns."
   :version "22.1")
 
 (defcustom query-replace-show-replacement t
-  "Non-nil means to show what actual replacement text will be."
+  "Non-nil means show substituted replacement text in the minibuffer.
+This variable affects only `query-replace-regexp'."
   :type 'boolean
   :group 'matching
   :version "23.1")
@@ -314,6 +317,10 @@ If `replace-lax-whitespace' is non-nil, a space or spaces in the string
 to be replaced will match a sequence of whitespace chars defined by the
 regexp in `search-whitespace-regexp'.
 
+If `replace-character-fold' is non-nil, matching uses character folding,
+i.e. it ignores diacritics and other differences between equivalent
+character strings.
+
 Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches surrounded by word boundaries.  A negative prefix arg means
 replace backward.
@@ -371,6 +378,8 @@ matches using `isearch-filter-predicate'.
 If `replace-regexp-lax-whitespace' is non-nil, a space or spaces in the regexp
 to be replaced will match a sequence of whitespace chars defined by the
 regexp in `search-whitespace-regexp'.
+
+This function is not affected by `replace-character-fold'.
 
 Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches surrounded by word boundaries.  A negative prefix arg means
@@ -459,6 +468,8 @@ matches using `isearch-filter-predicate'.
 If `replace-regexp-lax-whitespace' is non-nil, a space or spaces in the regexp
 to be replaced will match a sequence of whitespace chars defined by the
 regexp in `search-whitespace-regexp'.
+
+This function is not affected by `replace-character-fold'.
 
 Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches that are surrounded by word boundaries.
@@ -551,6 +562,10 @@ If `replace-lax-whitespace' is non-nil, a space or spaces in the string
 to be replaced will match a sequence of whitespace chars defined by the
 regexp in `search-whitespace-regexp'.
 
+If `replace-character-fold' is non-nil, matching uses character folding,
+i.e. it ignores diacritics and other differences between equivalent
+character strings.
+
 Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches surrounded by word boundaries.  A negative prefix arg means
 replace backward.
@@ -601,6 +616,8 @@ matches using `isearch-filter-predicate'.
 If `replace-regexp-lax-whitespace' is non-nil, a space or spaces in the regexp
 to be replaced will match a sequence of whitespace chars defined by the
 regexp in `search-whitespace-regexp'.
+
+This function is not affected by `replace-character-fold'
 
 In Transient Mark mode, if the mark is active, operate on the contents
 of the region.  Otherwise, operate from point to the end of the buffer.
@@ -1416,6 +1433,17 @@ See also `multi-occur'."
 			       buf))
 			   (buffer-list))))))
 
+(defun occur-regexp-descr (regexp)
+  (format " for %s\"%s\""
+          (or (get-text-property 0 'isearch-regexp-function-descr regexp)
+              "")
+          (if (get-text-property 0 'isearch-string regexp)
+              (propertize
+               (query-replace-descr
+                (get-text-property 0 'isearch-string regexp))
+               'help-echo regexp)
+            (query-replace-descr regexp))))
+
 (defun occur-1 (regexp nlines bufs &optional buf-name)
   (unless (and regexp (not (equal regexp "")))
     (error "Occur doesn't work with the empty regexp"))
@@ -1484,9 +1512,11 @@ See also `multi-occur'."
 		     (if (= count 1) "" "es")
 		     ;; Don't display regexp if with remaining text
 		     ;; it is longer than window-width.
-		     (if (> (+ (length regexp) 42) (window-width))
-			 "" (format-message
-                             " for `%s'" (query-replace-descr regexp)))))
+		     (if (> (+ (length (or (get-text-property 0 'isearch-string regexp)
+					   regexp))
+			       42)
+			    (window-width))
+			 "" (occur-regexp-descr regexp))))
 	  (setq occur-revert-arguments (list regexp nlines bufs))
           (if (= count 0)
               (kill-buffer occur-buf)
@@ -1547,6 +1577,9 @@ See also `multi-occur'."
 		    ;; Highlight the matches
 		    (let ((len (length curstring))
 			  (start 0))
+		      ;; Count empty lines that don't use next loop (Bug#22062).
+		      (when (zerop len)
+			(setq matches (1+ matches)))
 		      (while (and (< start len)
 				  (string-match regexp curstring start))
 			(setq matches (1+ matches))
@@ -1647,8 +1680,7 @@ See also `multi-occur'."
 						  lines (if (= lines 1) "" "s")))
 				   ;; Don't display regexp for multi-buffer.
 				   (if (> (length buffers) 1)
-				       "" (format " for \"%s\""
-						  (query-replace-descr regexp)))
+				       "" (occur-regexp-descr regexp))
 				   (buffer-name buf))
 			   'read-only t))
 		  (setq end (point))
@@ -1661,14 +1693,14 @@ See also `multi-occur'."
 	(goto-char (point-min))
 	(let ((beg (point))
 	      end)
-	  (insert (format "%d match%s%s total for \"%s\":\n"
+	  (insert (format "%d match%s%s total%s:\n"
 			  global-matches (if (= global-matches 1) "" "es")
 			  ;; Don't display the same number of lines
 			  ;; and matches in case of 1 match per line.
 			  (if (= global-lines global-matches)
 			      "" (format " in %d line%s"
 					 global-lines (if (= global-lines 1) "" "s")))
-			  (query-replace-descr regexp)))
+			  (occur-regexp-descr regexp)))
 	  (setq end (point))
 	  (when title-face
 	    (add-face-text-property beg end title-face)))
@@ -1979,6 +2011,9 @@ passed in.  If LITERAL is set, no checking is done, anyway."
   (when backward (goto-char (nth 0 match-data)))
   noedit)
 
+(defvar replace-update-post-hook nil
+  "Function(s) to call after query-replace has found a match in the buffer.")
+
 (defvar replace-search-function nil
   "Function to use when searching for strings to replace.
 It is used by `query-replace' and `replace-string', and is called
@@ -2232,7 +2267,7 @@ It must return a string."
 		(and nonempty-match
 		     (or (not regexp-flag)
 			 (and (if backward
-				  (looking-back search-string)
+				  (looking-back search-string nil)
 				(looking-at search-string))
 			      (let ((match (match-data)))
 				(and (/= (nth 0 match) (nth 1 match))
@@ -2286,7 +2321,8 @@ It must return a string."
 		;; `real-match-data'.
 		(while (not done)
 		  (set-match-data real-match-data)
-		  (replace-highlight
+                  (run-hooks 'replace-update-post-hook) ; Before `replace-highlight'.
+                  (replace-highlight
 		   (match-beginning 0) (match-end 0)
 		   start end search-string
 		   regexp-flag delimited-flag case-fold-search backward)

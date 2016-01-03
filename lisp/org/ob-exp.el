@@ -53,7 +53,7 @@
 (defcustom org-export-babel-evaluate t
   "Switch controlling code evaluation during export.
 When set to nil no code will be evaluated as part of the export
-process.  When set to 'inline-only, only inline code blocks will
+process.  When set to `inline-only', only inline code blocks will
 be executed."
   :group 'org-babel
   :version "24.1"

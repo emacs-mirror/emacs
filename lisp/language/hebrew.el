@@ -216,24 +216,26 @@ Bidirectional editing is supported.")))
 	  (setq idx 1 nglyphs nchars))
 	;; Now IDX is an index to the first non-precomposed glyph.
 	;; Adjust positions of the remaining glyphs artificially.
-	(setq base-width (lglyph-width (lgstring-glyph gstring 0)))
-	(while (< idx nglyphs)
-	  (setq glyph (lgstring-glyph gstring idx))
-	  (lglyph-set-from-to glyph 0 (1- nchars))
-	  (if (>= (lglyph-lbearing glyph) (lglyph-width glyph))
-	      ;; It seems that this glyph is designed to be rendered
-	      ;; before the base glyph.
-	      (lglyph-set-adjustment glyph (- base-width) 0 0)
-	    (if (>= (lglyph-lbearing glyph) 0)
-		;; Align the horizontal center of this glyph to the
-		;; horizontal center of the base glyph.
-		(let ((width (- (lglyph-rbearing glyph)
-				(lglyph-lbearing glyph))))
-		  (lglyph-set-adjustment glyph
-					 (- (/ (- base-width width) 2)
-					    (lglyph-lbearing glyph)
-					    base-width) 0 0))))
-	  (setq idx (1+ idx))))))
+        (if (font-get font :combining-capability)
+            (font-shape-gstring gstring)
+          (setq base-width (lglyph-width (lgstring-glyph gstring 0)))
+          (while (< idx nglyphs)
+            (setq glyph (lgstring-glyph gstring idx))
+            (lglyph-set-from-to glyph 0 (1- nchars))
+            (if (>= (lglyph-lbearing glyph) (lglyph-width glyph))
+                ;; It seems that this glyph is designed to be rendered
+                ;; before the base glyph.
+                (lglyph-set-adjustment glyph (- base-width) 0 0)
+              (if (>= (lglyph-lbearing glyph) 0)
+                  ;; Align the horizontal center of this glyph to the
+                  ;; horizontal center of the base glyph.
+                  (let ((width (- (lglyph-rbearing glyph)
+                                  (lglyph-lbearing glyph))))
+                    (lglyph-set-adjustment glyph
+                                           (- (/ (- base-width width) 2)
+                                              (lglyph-lbearing glyph)
+                                              base-width) 0 0))))
+            (setq idx (1+ idx)))))))
     gstring))
 
 (let* ((base "[\u05D0-\u05F2]")

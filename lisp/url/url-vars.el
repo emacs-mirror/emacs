@@ -357,6 +357,18 @@ Currently supported methods:
 		(const :tag "Direct connection" :value native))
   :group 'url-hairy)
 
+(defcustom url-user-agent (format "User-Agent: %sURL/%s\r\n"
+				  (if url-package-name
+				      (concat url-package-name "/"
+					      url-package-version " ")
+				    "") url-version)
+  "User Agent used by the URL package for HTTP/HTTPS requests
+Should be a string or a function of no arguments returning a string."
+  :type '(choice (string :tag "A static User-Agent string")
+                 (function :tag "Call a function to get the User-Agent string"))
+  :version "25.1"
+  :group 'url)
+
 (defvar url-setup-done nil "Has setup configuration been done?")
 
 (defconst url-weekday-alist

@@ -509,7 +509,7 @@ If REVERSE is non-nil then the beginning is 100 and the end is 0."
 
 (defun imenu--split (list n)
   "Split LIST into sublists of max length N.
-Example (imenu--split '(1 2 3 4 5 6 7 8) 3)-> '((1 2 3) (4 5 6) (7 8))
+Example (imenu--split \\='(1 2 3 4 5 6 7 8) 3) => ((1 2 3) (4 5 6) (7 8))
 The returned list DOES NOT share structure with LIST."
   (let ((remain list)
 	(result '())

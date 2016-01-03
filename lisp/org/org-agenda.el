@@ -7085,8 +7085,8 @@ their type."
 ;;;###autoload
 (defun org-agenda-set-restriction-lock (&optional type)
   "Set restriction lock for agenda, to current subtree or file.
-Restriction will be the file if TYPE is `file', or if type is the
-universal prefix '(4), or if the cursor is before the first headline
+Restriction will be the file if TYPE is `file', or if TYPE is the
+universal prefix `(4)', or if the cursor is before the first headline
 in the file.  Otherwise, restriction will be to the current subtree."
   (interactive "P")
   (and (equal type '(4)) (setq type 'file))

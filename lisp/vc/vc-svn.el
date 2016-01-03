@@ -147,7 +147,8 @@ switches."
 (defun vc-svn-registered (file)
   "Check if FILE is SVN registered."
   (setq file (expand-file-name file))
-  (when (vc-svn-root file)
+  (when (and (vc-svn-root file)
+             (file-accessible-directory-p (file-name-directory file)))
     (with-temp-buffer
       (cd (file-name-directory file))
       (let* (process-file-side-effects
@@ -309,11 +310,14 @@ to the SVN command."
 
 (defalias 'vc-svn-responsible-p 'vc-svn-root)
 
+(declare-function log-edit-extract-headers "log-edit" (headers string))
+
 (defun vc-svn-checkin (files comment &optional _extra-args-ignored)
   "SVN-specific version of `vc-backend-checkin'."
   (let ((status (apply
                  'vc-svn-command nil 1 files "ci"
-                 (nconc (list "-m" comment) (vc-switches 'SVN 'checkin)))))
+                 (nconc (cons "-m" (log-edit-extract-headers nil comment))
+                        (vc-switches 'SVN 'checkin)))))
     (set-buffer "*vc*")
     (goto-char (point-min))
     (unless (equal status 0)
@@ -399,6 +403,8 @@ FILE is a file wildcard, relative to the root directory of DIRECTORY."
   "Revert FILE to the version it was based on."
   (unless contents-done
     (vc-svn-command nil 0 file "revert")))
+
+(autoload 'vc-read-revision "vc")
 
 (defun vc-svn-merge-file (file)
   "Accept a file merge request, prompting for revisions."

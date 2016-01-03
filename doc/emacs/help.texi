@@ -126,6 +126,10 @@ Display documentation of the current major mode and minor modes
 (@code{describe-mode}).
 @item C-h n
 Display news of recent Emacs changes (@code{view-emacs-news}).
+@item C-h o @var{symbol}
+Display documentation of the Lisp symbol named @var{symbol}
+(@code{describe-symbol}).  This will show the documentation of all
+kinds of symbols: functions, variables, and faces.
 @item C-h p
 Find packages by topic keyword (@code{finder-by-keyword}).  This lists
 packages using a package menu buffer.  @xref{Packages}.
@@ -271,6 +275,14 @@ source files installed (@pxref{Hyperlinking}).
   To find a command's documentation in a manual, use @kbd{C-h F}
 (@code{Info-goto-emacs-command-node}).  This knows about various
 manuals, not just the Emacs manual, and finds the right one.
+
+@kindex C-h o
+@findex describe-symbol
+  @kbd{C-h o} (@code{describe-symbol}) is like @kbd{C-h f} and
+@kbd{C-h v}, but it describes any symbol, be it a function, a
+variable, or a face.  If the symbol has more than one definition, like
+it has both definition as a function and as a variable, this command
+will show the documentation of all of them, one after the other.
 
 @node Apropos
 @section Apropos
@@ -524,8 +536,9 @@ command works depend on the major mode.
 @findex view-lossage
   If something surprising happens, and you are not sure what you typed,
 use @kbd{C-h l} (@code{view-lossage}).  @kbd{C-h l} displays your last
-300 input keystrokes.  If you see commands that you don't know, you can
-use @kbd{C-h c} to find out what they do.
+300 input keystrokes and the commands they invoked.  If you see
+commands that you are not familiar with, you can use @kbd{C-h k} or
+@kbd{C-h f} to find out what they do.
 
 @kindex C-h e
 @findex view-echo-area-messages

@@ -276,7 +276,7 @@ If FRAME is omitted or nil, use the selected frame."
 (defun face-list-p (face-or-list)
   "True if FACE-OR-LIST is a list of faces.
 Return nil if FACE-OR-LIST is a non-nil atom, or a cons cell whose car
-is either 'foreground-color, 'background-color, or a keyword."
+is either `foreground-color', `background-color', or a keyword."
   ;; The logic of merge_face_ref (xfaces.c) is recreated here.
   (and (listp face-or-list)
        (not (memq (car face-or-list)
@@ -1971,7 +1971,9 @@ unnamed faces (e.g, `foreground-color')."
                         (get-char-property (point) 'font-lock-face))
                    (get-char-property (point) 'face)))
         (found nil))
-    (dolist (face (if (listp faces) faces (list faces)))
+    (dolist (face (if (face-list-p faces)
+                      faces
+                    (list faces)))
       (cond (found)
             ((and face (symbolp face))
              (let ((value (face-attribute-specified-or

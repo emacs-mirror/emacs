@@ -233,7 +233,7 @@ because it respects values of `delete-active-region' and `overwrite-mode'.  */)
   CHECK_NUMBER (n);
 
   if (eabs (XINT (n)) < 2)
-    call0 (Qundo_auto__amalgamate);
+    call0 (Qundo_auto_amalgamate);
 
   pos = PT + XINT (n);
   if (NILP (killflag))
@@ -279,7 +279,7 @@ At the end, it runs `post-self-insert-hook'.  */)
     error ("Negative repetition argument %"pI"d", XINT (n));
 
   if (XFASTINT (n) < 2)
-    call0 (Qundo_auto__amalgamate);
+    call0 (Qundo_auto_amalgamate);
 
   /* Barf if the key that invoked this was not a character.  */
   if (!CHARACTERP (last_command_event))
@@ -494,7 +494,7 @@ internal_self_insert (int c, EMACS_INT n)
 void
 syms_of_cmds (void)
 {
-  DEFSYM (Qundo_auto__amalgamate, "undo-auto--amalgamate");
+  DEFSYM (Qundo_auto_amalgamate, "undo-auto-amalgamate");
   DEFSYM (Qundo_auto__this_command_amalgamating,
           "undo-auto--this-command-amalgamating");
 

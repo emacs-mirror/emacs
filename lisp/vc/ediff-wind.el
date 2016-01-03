@@ -201,7 +201,7 @@ Used internally---not a user option.")
 
 (defcustom ediff-grab-mouse t
   "If t, Ediff will always grab the mouse and put it in the control frame.
-If 'maybe, Ediff will do it sometimes, but not after operations that require
+If `maybe', Ediff will do it sometimes, but not after operations that require
 relatively long time.  If nil, the mouse will be entirely user's
 responsibility."
   :type 'boolean

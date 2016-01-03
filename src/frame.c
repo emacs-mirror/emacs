@@ -239,10 +239,10 @@ DEFUN ("framep", Fframep, Sframep, 1, 1, 0,
        doc: /* Return non-nil if OBJECT is a frame.
 Value is:
   t for a termcap frame (a character-only terminal),
- 'x' for an Emacs frame that is really an X window,
- 'w32' for an Emacs frame that is a window on MS-Windows display,
- 'ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
- 'pc' for a direct-write MS-DOS frame.
+ `x' for an Emacs frame that is really an X window,
+ `w32' for an Emacs frame that is a window on MS-Windows display,
+ `ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
+ `pc' for a direct-write MS-DOS frame.
 See also `frame-live-p'.  */)
   (Lisp_Object object)
 {
@@ -284,10 +284,10 @@ DEFUN ("window-system", Fwindow_system, Swindow_system, 0, 1, 0,
        doc: /* The name of the window system that FRAME is displaying through.
 The value is a symbol:
  nil for a termcap frame (a character-only terminal),
- 'x' for an Emacs frame that is really an X window,
- 'w32' for an Emacs frame that is a window on MS-Windows display,
- 'ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
- 'pc' for a direct-write MS-DOS frame.
+ `x' for an Emacs frame that is really an X window,
+ `w32' for an Emacs frame that is a window on MS-Windows display,
+ `ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
+ `pc' for a direct-write MS-DOS frame.
 
 FRAME defaults to the currently selected frame.
 
@@ -2641,13 +2641,16 @@ If FRAME is nil, describe the currently selected frame.  */)
 
 DEFUN ("modify-frame-parameters", Fmodify_frame_parameters,
        Smodify_frame_parameters, 2, 2, 0,
-       doc: /* Modify the parameters of frame FRAME according to ALIST.
+       doc: /* Modify FRAME according to new values of its parameters in ALIST.
 If FRAME is nil, it defaults to the selected frame.
 ALIST is an alist of parameters to change and their new values.
 Each element of ALIST has the form (PARM . VALUE), where PARM is a symbol.
-The meaningful PARMs depend on the kind of frame.
-Undefined PARMs are ignored, but stored in the frame's parameter list
-so that `frame-parameters' will return them.
+Which PARMs are meaningful depends on the kind of frame.
+The meaningful parameters are acted upon, i.e. the frame is changed
+according to their new values, and are also stored in the frame's
+parameter list so that `frame-parameters' will return them.
+PARMs that are not meaningful are still stored in the frame's parameter
+list, but are otherwise ignored.
 
 The value of frame parameter FOO can also be accessed
 as a frame-local binding for the variable FOO, if you have

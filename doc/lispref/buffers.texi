@@ -716,7 +716,9 @@ The special commands of these modes bind @code{buffer-read-only} to
 
 @defvar buffer-read-only
 This buffer-local variable specifies whether the buffer is read-only.
-The buffer is read-only if this variable is non-@code{nil}.
+The buffer is read-only if this variable is non-@code{nil}.  However,
+characters that have the @code{inhibit-read-only} text property can
+still be modified.  @xref{Special Properties, inhibit-read-only}.
 @end defvar
 
 @defvar inhibit-read-only

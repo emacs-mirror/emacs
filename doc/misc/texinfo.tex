@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2015-10-29.16}
+\def\texinfoversion{2015-12-17.20}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -158,22 +158,10 @@
 \ifx\putwordDefopt\undefined    \gdef\putwordDefopt{User Option}\fi
 \ifx\putwordDeffunc\undefined   \gdef\putwordDeffunc{Function}\fi
 
-% Since the category of space is not known, we have to be careful.
-\chardef\spacecat = 10
-\def\spaceisspace{\catcode`\ =\spacecat}
+% Give the space character the catcode for a space.
+\def\spaceisspace{\catcode`\ =10\relax}
 
-% sometimes characters are active, so we need control sequences.
-\chardef\ampChar   = `\&
-\chardef\colonChar = `\:
-\chardef\commaChar = `\,
 \chardef\dashChar  = `\-
-\chardef\dotChar   = `\.
-\chardef\exclamChar= `\!
-\chardef\hashChar  = `\#
-\chardef\lquoteChar= `\`
-\chardef\questChar = `\?
-\chardef\rquoteChar= `\'
-\chardef\semiChar  = `\;
 \chardef\slashChar = `\/
 \chardef\underChar = `\_
 
@@ -271,11 +259,18 @@
 %
 % Another complication is to let the user choose whether \thischapter
 % (\thissection) refers to the chapter (section) in effect at the top
-% of a page, or that at the bottom of a page.  The solution is
-% described on page 260 of The TeXbook.  It involves outputting two
-% marks for the sectioning macros, one before the section break, and
-% one after.  I won't pretend I can describe this better than DEK...
+% of a page, or that at the bottom of a page.
+
+% \domark is called twice inside \chapmacro, to add one
+% mark before the section break, and one after.
+%   In the second call \prevchapterdefs is the same as \lastchapterdefs,
+% and \prevsectiondefs is the same as \lastsectiondefs.
+%   Then if the page is not broken at the mark, some of the previous
+% section appears on the page, and we can get the name of this section
+% from \firstmark for @everyheadingmarks top.
+%   @everyheadingmarks bottom uses \botmark.
 %
+% See page 260 of The TeXbook.
 \def\domark{%
   \toks0=\expandafter{\lastchapterdefs}%
   \toks2=\expandafter{\lastsectiondefs}%
@@ -283,13 +278,14 @@
   \toks6=\expandafter{\prevsectiondefs}%
   \toks8=\expandafter{\lastcolordefs}%
   \mark{%
-                   \the\toks0 \the\toks2  % 0: top marks (\last...)
-      \noexpand\or \the\toks4 \the\toks6  % 1: bottom marks (default, \prev...)
+                   \the\toks0 \the\toks2  % 0: marks for @everyheadingmarks top
+      \noexpand\or \the\toks4 \the\toks6  % 1: for @everyheadingmarks bottom
     \noexpand\else \the\toks8             % 2: color marks
   }%
 }
 
-% \gettopheadingmarks, \getbottomheadingmarks - extract needed part of mark.
+% \gettopheadingmarks, \getbottomheadingmarks,
+% \getcolormarks - extract needed part of mark.
 %
 % \topmark doesn't work for the very first chapter (after the title
 % page or the contents), so we use \firstmark there -- this gets us
@@ -345,28 +341,21 @@
   % values in \headline and \footline.
   %
   % This is used to check if we are on the first page of a chapter.
-  \ifcase0\topmark\fi
-  \ifx\thischapter\empty
-    % See comment for \gettopheadingmarks
-    \ifcase0\firstmark\fi
-    \let\curchaptername\thischaptername
-    \ifcase1\firstmark\fi
-    \let\prevchaptername\thischaptername
-  \else
-    \let\curchaptername\thischaptername
-    \ifcase1\topmark\fi
-    \let\prevchaptername\thischaptername
-  \fi
+  \ifcase1\topmark\fi
+  \let\prevchaptername\thischaptername
+  \ifcase0\firstmark\fi
+  \let\curchaptername\thischaptername
   %
   \ifodd\pageno \getoddheadingmarks \else \getevenheadingmarks \fi
   \ifodd\pageno \getoddfootingmarks \else \getevenfootingmarks \fi
   %
   \ifx\curchaptername\prevchaptername
+    \let\thischapterheading\thischapter
   \else
-    % If on the first page of a chapter, clear @thischapter so it
-    % doesn't appear in the headline, because the chapter is already
-    % shown in the chapter heading.
-    \def\thischapter{}%
+    % \thischapterheading is the same as \thischapter except it is blank
+    % for the first page of a chapter.  This is to prevent the chapter name 
+    % being shown twice.
+    \def\thischapterheading{}%
   \fi
   %
   \global\setbox\headlinebox = \vbox{\commmonheadfootline \makeheadline}%
@@ -1164,8 +1153,8 @@ output) for that.)}
   \def\rgbDarkRed{0.50 0.09 0.12}
   \def\rgbBlack{0 0 0}
   %
-  % k sets the color for filling (usual text, etc.);
-  % K sets the color for stroking (thin rules, e.g., normal _'s).
+  % rg sets the color for filling (usual text, etc.);
+  % RG sets the color for stroking (thin rules, e.g., normal _'s).
   \def\pdfsetcolor#1{\pdfliteral{#1 rg  #1 RG}}
   %
   % Set color, and create a mark which defines \thiscolor accordingly,
@@ -1416,7 +1405,6 @@ output) for that.)}
       \normalturnoffactive
       \def\@{@}%
       \let\/=\empty
-      \let\xprocessmacroarg=\eatspaces % in case we are in a macro expansion
       \makevalueexpandable
       % do we want to go so far as to use \indexnofonts instead of just
       % special-casing \var here?
@@ -2452,8 +2440,8 @@ end
 %
 \catcode`@=11
   \def\plainfrenchspacing{%
-    \sfcode\dotChar  =\@m \sfcode\questChar=\@m \sfcode\exclamChar=\@m
-    \sfcode\colonChar=\@m \sfcode\semiChar =\@m \sfcode\commaChar =\@m
+    \sfcode`\.=\@m \sfcode`\?=\@m \sfcode`\!=\@m
+    \sfcode`\:=\@m \sfcode`\;=\@m \sfcode`\,=\@m
     \def\endofsentencespacefactor{1000}% for @. and friends
   }
   \def\plainnonfrenchspacing{%
@@ -2641,9 +2629,9 @@ end
 
 % Allow line breaks around only a few characters (only).
 \def\urefcatcodes{%
-  \catcode\ampChar=\active   \catcode\dotChar=\active
-  \catcode\hashChar=\active  \catcode\questChar=\active
-  \catcode\slashChar=\active
+  \catcode`\&=\active \catcode`\.=\active
+  \catcode`\#=\active \catcode`\?=\active
+  \catcode`\/=\active
 }
 {
   \urefcatcodes
@@ -2852,23 +2840,24 @@ end
 \def\mathbackslash{\ifnum\fam=\ttfam \mathchar"075C \else\backslash \fi}
 %
 \def\math{%
-  \tex
-  \mathunderscore
-  \let\\ = \mathbackslash
-  \mathactive
-  % make the texinfo accent commands work in math mode
-  \let\"=\ddot
-  \let\'=\acute
-  \let\==\bar
-  \let\^=\hat
-  \let\`=\grave
-  \let\u=\breve
-  \let\v=\check
-  \let\~=\tilde
-  \let\dotaccent=\dot
-  % have to provide another name for sup operator
-  \let\mathopsup=\sup
-  $\finishmath
+  \ifmmode\else % only go into math if not in math mode already
+    \tex
+    \mathunderscore
+    \let\\ = \mathbackslash
+    \mathactive
+    % make the texinfo accent commands work in math mode
+    \let\"=\ddot
+    \let\'=\acute
+    \let\==\bar
+    \let\^=\hat
+    \let\`=\grave
+    \let\u=\breve
+    \let\v=\check
+    \let\~=\tilde
+    \let\dotaccent=\dot
+    % have to provide another name for sup operator
+    \let\mathopsup=\sup
+  $\expandafter\finishmath\fi
 }
 \def\finishmath#1{#1$\endgroup}  % Close the group opened by \tex.
 
@@ -3517,7 +3506,7 @@ end
 \global\evenfootline={\hfil}
 \global\oddfootline={\hfil}
 \global\evenheadline={\line{\folio\hfil\thistitle}}
-\global\oddheadline={\line{\thischapter\hfil\folio}}
+\global\oddheadline={\line{\thischapterheading\hfil\folio}}
 \global\let\contentsalignmacro = \chapoddpage
 }
 \let\contentsalignmacro = \chappager
@@ -3528,8 +3517,8 @@ end
 \global\pageno=1
 \global\evenfootline={\hfil}
 \global\oddfootline={\hfil}
-\global\evenheadline={\line{\thischapter\hfil\folio}}
-\global\oddheadline={\line{\thischapter\hfil\folio}}
+\global\evenheadline={\line{\thischapterheading\hfil\folio}}
+\global\oddheadline={\line{\thischapterheading\hfil\folio}}
 \global\let\contentsalignmacro = \chappager
 }
 \def\HEADINGSon{\HEADINGSdouble}
@@ -3540,7 +3529,7 @@ end
 \global\evenfootline={\hfil}
 \global\oddfootline={\hfil}
 \global\evenheadline={\line{\folio\hfil\thistitle}}
-\global\oddheadline={\line{\thischapter\hfil\folio}}
+\global\oddheadline={\line{\thischapterheading\hfil\folio}}
 \global\let\contentsalignmacro = \chapoddpage
 }
 
@@ -3548,8 +3537,8 @@ end
 \def\HEADINGSsinglex{%
 \global\evenfootline={\hfil}
 \global\oddfootline={\hfil}
-\global\evenheadline={\line{\thischapter\hfil\folio}}
-\global\oddheadline={\line{\thischapter\hfil\folio}}
+\global\evenheadline={\line{\thischapterheading\hfil\folio}}
+\global\oddheadline={\line{\thischapterheading\hfil\folio}}
 \global\let\contentsalignmacro = \chappager
 }
 
@@ -4676,16 +4665,6 @@ end
   \definedummyword\verb
   \definedummyword\w
   \definedummyword\xref
-  %
-  % Consider:
-  %   @macro mkind{arg1,arg2}
-  %   @cindex \arg2\
-  %   @end macro
-  %   @mkind{foo, bar}
-  % The space after the comma will end up in the temporary definition
-  % that we make for arg2 (see \parsemargdef ff.).  We want all this to be
-  % expanded for the sake of the index, so we end up just seeing "bar".
-  \let\xprocessmacroarg\eatspaces
 }
 
 % For testing: output @{ and @} in index sort strings as \{ and \}.
@@ -5212,16 +5191,12 @@ end
     % from @* into spaces.  The user might give these in long section
     % titles, for instance.
     \def\*{\unskip\space\ignorespaces}%
-    \def\entrybreak{\hfil\break}%
+    \def\entrybreak{\hfil\break}% An undocumented command
     %
     % A bit of stretch before each entry for the benefit of balancing
     % columns.
     \vskip 0pt plus0.5pt
     %
-    % Badness calculation for paragraph affected by -
-    %  How much \indexdotfill is stretched, or how much \parfillskip is shrunk
-    %  Number of lines (\linepenalty)
-    %  
     % Swallow the left brace of the text (first parameter):
     \afterassignment\doentry
     \let\temp =
@@ -5255,16 +5230,23 @@ end
       %
       \ifpdf
         \pdfgettoks#1.%
-        \hskip\skip\thinshrinkable\the\toksA
+        \bgroup\let\domark\relax
+          \hskip\skip\thinshrinkable\the\toksA
+        \egroup
+        % The redefinion of \domark stops marks being added in \pdflink to 
+        % preserve coloured links across page boundaries.  Otherwise the marks
+        % would get in the way of \lastbox in \insertindexentrybox.
       \else
         \hskip\skip\thinshrinkable #1%
       \fi
     \fi
     \egroup % end \boxA
     \ifdim\wd\boxB = 0pt
-      \global\setbox\entryindexbox=\box\boxA
+      \global\setbox\entryindexbox=\vbox{\unhbox\boxA}%
     \else
-    \global\setbox\entryindexbox=\vbox\bgroup\noindent
+    \global\setbox\entryindexbox=\vbox\bgroup
+      \prevdepth=\entrylinedepth
+      \noindent
       % We want the text of the entries to be aligned to the left, and the
       % page numbers to be aligned to the right.
       %
@@ -5333,10 +5315,21 @@ end
 
 \newbox\entryindexbox
 \def\insertindexentrybox{%
-\lineskip=.7ex plus .5ex % This comes into effect when the \vbox has a large 
-                         % height due to the paragraph in it having several 
-                         % lines.
-\box\entryindexbox}
+  \copy\entryindexbox
+  % The following gets the depth of the last box.  This is for even
+  % line spacing when entries span several lines.
+  \setbox\dummybox\vbox{%
+    \unvbox\entryindexbox
+    \nointerlineskip
+    \lastbox
+    \global\entrylinedepth=\prevdepth
+  }%
+  % Note that we couldn't simply \unvbox\entryindexbox followed by 
+  % \nointerlineskip\lastbox to remove the last box and then reinstate it, 
+  % because this resets how far the box has been \moveleft'ed to 0.  \unvbox
+  % doesn't affect \prevdepth either.
+}
+\newdimen\entrylinedepth
 
 % Default is no penalty
 \let\entryorphanpenalty\egroup
@@ -5387,15 +5380,34 @@ end
 % Define two-column mode, which we use to typeset indexes.
 % Adapted from the TeXbook, page 416, which is to say,
 % the manmac.tex format used to print the TeXbook itself.
-\catcode`\@=11
+\catcode`\@=11  % private names
 
 \newbox\partialpage
 \newdimen\doublecolumnhsize
 \newdimen\doublecolumntopgap
 \doublecolumntopgap = 0pt
 
-\newtoks\savedtopmark % Used in \begindoublecolumns
+% Use inside an output routine to save \topmark and \firstmark
+\def\savemarks{%
+  \global\savedtopmark=\expandafter{\topmark }%
+  \global\savedfirstmark=\expandafter{\firstmark }%
+}
+\newtoks\savedtopmark
 \newtoks\savedfirstmark
+
+% Set \topmark and \firstmark for next time \output runs.
+% Can't be run from withinside \output (because any material
+% added while an output routine is active, including 
+% penalties, is saved for after it finishes).  The page so far
+% should be empty, otherwise what's on it will be thrown away.
+\def\restoremarks{%
+  \mark{\the\savedtopmark}%
+  \bgroup\output = {%
+    \setbox\dummybox=\box\PAGE
+  }abc\eject\egroup
+  % "abc" because output routine doesn't fire for a completely empty page.
+  \mark{\the\savedfirstmark}%
+}
 
 \def\begindoublecolumns{\begingroup % ended by \enddoublecolumns
   % Grab any single-column material above us.
@@ -5417,22 +5429,15 @@ end
       \unvbox\PAGE
       \kern-\topskip \kern\baselineskip
     }%
-    % Save \topmark and \firstmark
-    \global\savedtopmark=\expandafter{\topmark}%
-    \global\savedfirstmark=\expandafter{\firstmark}%
+    \savemarks
   }%
   \eject % run that output routine to set \partialpage
+  \restoremarks
   %
   % We recover the two marks that the last output routine saved in order
   % to propagate the information in marks added around a chapter heading,
   % which could be otherwise be lost by the time the final page is output.
   %
-  \mark{\the\savedtopmark}% Only mark in page passed to following \output.
-  \output = {%
-    \setbox0=\box\PAGE % clear box 255
-  }abc\eject
-  %
-  \mark{\the\savedfirstmark}%
   %
   % Use the double-column output routine for subsequent pages.
   \output = {\doublecolumnout}%
@@ -5465,12 +5470,14 @@ end
   \global\advance\vsize by -1\doublecolumntopgap
   \vsize = 2\vsize
   \topskip=0pt
+  \global\entrylinedepth=0pt\relax
 }
 
 % The double-column output routine for all double-column pages except
 % the last, which is done by \balancecolumns.
 %
 \def\doublecolumnout{%
+  %
   \splittopskip=\topskip \splitmaxdepth=\maxdepth
   % Get the available space for the double columns -- the normal
   % (undoubled) page height minus any material left over from the
@@ -5532,6 +5539,7 @@ end
   \output = {%
     % Split the last of the double-column material.  Leave it on the
     % current page, no automatic page break.
+    \savemarks
     \balancecolumns
     %
     % If we end up splitting too much material for the current page,
@@ -5545,6 +5553,8 @@ end
   }%
   \eject
   \endgroup % started in \begindoublecolumns
+  \restoremarks
+  \box\balancedcolumns
   %
   % \pagegoal was set to the doubled \vsize above, since we restarted
   % the current page.  We're now back to normal single-column
@@ -5552,6 +5562,8 @@ end
   % \endgroup where \vsize got restored).
   \pagegoal = \vsize
 }
+\newbox\balancedcolumns
+\setbox\balancedcolumns=\vbox{shouldnt see this}%
 %
 % Only called for the last of the double column material.  \doublecolumnout 
 % does the others.
@@ -5595,7 +5607,7 @@ end
     \fi
   \fi
   %
-  \pagesofar
+  \global\setbox\balancedcolumns=\vbox{\pagesofar}%
 }
 \catcode`\@ = \other
 
@@ -7612,8 +7624,7 @@ end
 % Argument is macro body with arguments substituted
 \def\scanmacro#1{%
   \newlinechar`\^^M
-  % Reduce doubled backslashes to one
-  \def\xprocessmacroarg{\passargtomacro\eatspaces}%
+  \def\xprocessmacroarg{\eatspaces}%
   %
   % Process the macro body under the current catcode regime.
   \scantokens{#1\texinfoc}\aftermacro%
@@ -7629,6 +7640,7 @@ end
   % to allow macros to open or close groups themselves.
 }
 
+% Used for copying and captions
 \def\scanexp#1{%
   \bgroup
   % Undo catcode changes of \startcontents and \printindex
@@ -7733,6 +7745,7 @@ end
 % an argument to another Texinfo command.
 \def\macroargctxt{%
   \scanctxt
+  \catcode`\ =\active
   \catcode`\^^M=\other
   \catcode`\\=\active
 }
@@ -8127,16 +8140,23 @@ end
          \egroup\noexpand\scanmacro{\macrobody}}%
     \else
       \ifnum\paramno<10\relax % at most 9
+        % See non-recursive section below for comments
         \expandafter\xdef\csname\the\macname\endcsname{%
-           \bgroup\noexpand\macroargctxt
-           \noexpand\csname\the\macname @@\endcsname}%
+          \bgroup
+          \noexpand\expandafter
+          \noexpand\macroargctxt
+          \noexpand\expandafter
+          \expandafter\noexpand\csname\the\macname @@\endcsname}%
         \expandafter\xdef\csname\the\macname @@\endcsname##1{%
-            \expandafter\noexpand\csname\the\macname @@@\endcsname ##1,}%
+            \noexpand\passargtomacro
+            \expandafter\noexpand\csname\the\macname @@@\endcsname{##1,}}%
+        \expandafter\xdef\csname\the\macname @@@\endcsname##1{%
+            \expandafter\noexpand\csname\the\macname @@@@\endcsname ##1}%
         \expandafter\expandafter
         \expandafter\xdef
         \expandafter\expandafter
-          \csname\the\macname @@@\endcsname
-            \paramlist{\egroup\noexpand\scanmacro{\macrobody}}%
+          \csname\the\macname @@@@\endcsname\paramlist{%
+            \egroup\noexpand\scanmacro{\macrobody}}%
       \else % 10 or more
         \expandafter\xdef\csname\the\macname\endcsname{%
           \noexpand\getargvals@{\the\macname}{\argl}%
@@ -8166,19 +8186,27 @@ end
         }%
     \else % at most 9
       \ifnum\paramno<10\relax
+        % @MACNAME sets the context for reading the macro argument
+        % @MACNAME@@ gets the argument, processes backslashes and appends a 
+        % comma.
+        % @MACNAME@@@ removes braces surrounding the argument list.
+        % @MACNAME@@@@ scans the macro body with arguments substituted.
         \expandafter\xdef\csname\the\macname\endcsname{%
-           \bgroup\noexpand\macroargctxt
-           \expandafter\noexpand\csname\the\macname @@\endcsname}%
+          \bgroup
+          \noexpand\expandafter  % This \expandafter skip any spaces after the
+          \noexpand\macroargctxt % macro before we change the catcode of space.
+          \noexpand\expandafter
+          \expandafter\noexpand\csname\the\macname @@\endcsname}%
         \expandafter\xdef\csname\the\macname @@\endcsname##1{%
-            \expandafter\noexpand\csname\the\macname @@@\endcsname ##1,}%
+            \noexpand\passargtomacro
+            \expandafter\noexpand\csname\the\macname @@@\endcsname{##1,}}%
+        \expandafter\xdef\csname\the\macname @@@\endcsname##1{%
+            \expandafter\noexpand\csname\the\macname @@@@\endcsname ##1}%
         \expandafter\expandafter
         \expandafter\xdef
         \expandafter\expandafter
-        \csname\the\macname @@@\endcsname
-        \paramlist{%
-            \egroup
-            \noexpand\scanmacro{\macrobody}%
-            }%
+          \csname\the\macname @@@@\endcsname\paramlist{%
+            \egroup\noexpand\scanmacro{\macrobody}}%
       \else % 10 or more:
         \expandafter\xdef\csname\the\macname\endcsname{%
           \noexpand\getargvals@{\the\macname}{\argl}%
@@ -8194,71 +8222,96 @@ end
 \def\norecurse#1{\bgroup\cslet{#1}{macsave.#1}}
 
 
-{\catcode`\@=0 \catcode`\\=13
-@catcode`@_=11
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+{\catcode`\@=0 \catcode`\\=13  % We need to manipulate \ so use @ as escape
+@catcode`@_=11  % private names
+@catcode`@!=11  % used as argument separator
 
+% \passargtomacro#1#2 -
 % Call #1 with a list of tokens #2, with any doubled backslashes in #2
 % compressed to one.
+%
+% This implementation works by expansion, and not execution (so we cannot use 
+% \def or similar).  This reduces the risk of this failing in contexts where 
+% complete expansion is done with no execution (for example, in writing out to 
+% an auxiliary file for an index entry).
+% 
+% State is kept in the input stream: the argument passed to
+% @look_ahead, @gobble_and_check_finish and @add_segment is
+%
+% THE_MACRO ARG_RESULT ! {PENDING_BS} NEXT_TOKEN  (... rest of input)
+%
+% where:
+% THE_MACRO - name of the macro we want to call
+% ARG_RESULT - argument list we build to pass to that macro
+% PENDING_BS - either a backslash or nothing
+% NEXT_TOKEN - used to look ahead in the input stream to see what's coming next
+
 @gdef@passargtomacro#1#2{%
-  @def@the_macro{#1}%
-  @def@pending_backslash{}%
-  @def@finish{@finish}%
-  @def@arg_result{}%
-  @let@next_token=@relax
-  @add_segment#2\@finish\%
+  @add_segment #1!{}@relax#2\@_finish\%
 }
+@gdef@_finish{@_finishx} @global@let@_finishx@relax
 
-% Input stream is just after a backslash.  If the next token is not a
-% backslash, process the rest of the argument; otherwise, remove the next
-% token.
-@gdef@look_ahead{%
-  @futurelet@next_token@look_aheadzzz}
-@gdef@look_aheadzzz{%
-  @ifx@next_token\%
-   @let@next=@gobble_and_check_finish 
+% #1 - THE_MACRO ARG_RESULT
+% #2 - PENDING_BS
+% #3 - NEXT_TOKEN
+% #4 used to look ahead
+%
+% If the next token is not a backslash, process the rest of the argument; 
+% otherwise, remove the next token.
+@gdef@look_ahead#1!#2#3#4{%
+  @ifx#4\%
+   @expandafter@gobble_and_check_finish 
   @else
-   @let@next=@add_segment
-  @fi@next
+   @expandafter@add_segment
+  @fi#1!{#2}#4#4%
 }
 
-% Double backslash found.  Add a single backslash here.
-@gdef@gobble_and_check_finish#1{%
-  @add_the_backslash
-  @def@pending_backslash{}%
-  @futurelet@next_token@add_segment
+% #1 - THE_MACRO ARG_RESULT
+% #2 - PENDING_BS
+% #3 - NEXT_TOKEN
+% #4 should be a backslash, which is gobbled.
+% #5 looks ahead
+%
+% Double backslash found.  Add a single backslash, and look ahead.
+@gdef@gobble_and_check_finish#1!#2#3#4#5{%
+  @add_segment#1\!{}#5#5%
 }
 
-% append a backslash to \arg_result
-@gdef@add_the_backslash{%
-  @expandafter@gdef@expandafter@arg_result@expandafter{@arg_result\}%
-}
+@gdef@is_fi{@fi}
 
+% #1 - THE_MACRO ARG_RESULT
+% #2 - PENDING_BS
+% #3 - NEXT_TOKEN
+% #4 is input stream until next backslash
+%
 % Input stream is either at the start of the argument, or just after a 
 % backslash sequence, either a lone backslash, or a doubled backslash.  
-% \next_token contains the first token in the input stream: if it is \finish, 
-% finish; otherwise, append to \arg_result the segment of the argument up until
-% the next backslash.  \pending_backslash contains a backslash to represent
+% NEXT_TOKEN contains the first token in the input stream: if it is \finish, 
+% finish; otherwise, append to ARG_RESULT the segment of the argument up until
+% the next backslash.  PENDING_BACKSLASH contains a backslash to represent
 % a backslash just before the start of the input stream that has not been
-% added to \arg_result.
-@gdef@add_segment#1\{%
-@ifx@next_token@finish
-  @let@next=@call_the_macro%
+% added to ARG_RESULT.
+@gdef@add_segment#1!#2#3#4\{%
+@ifx#3@_finish
+  @call_the_macro#1!%
 @else
-  @let@next=@look_ahead
-  %
-  % append to @arg_result
-  % token list registers might be better
-  @expandafter@expandafter@expandafter@gdef
-  @expandafter@expandafter@expandafter@arg_result
-  @expandafter@expandafter@expandafter{%
-  @expandafter@arg_result
-  @pending_backslash#1}%
-  @def@pending_backslash{\}%
-@fi@next}
+  % append the pending backslash to the result, followed by the next segment
+  @expandafter@is_fi@look_ahead#1#2#4!{\}@fi
+  % this @fi is discarded by @look_ahead.
+  % we can't get rid of it with \expandafter because we don't know how 
+  % long #4 is.
+}
 
-@gdef@call_the_macro{@expandafter@the_macro@expandafter{@arg_result}}
+% #1 - THE_MACRO
+% #2 - ARG_RESULT
+% #3 discards the res of the conditional in @add_segment, and @is_fi ends the 
+% conditional.
+@gdef@call_the_macro#1#2!#3@fi{@is_fi #1{#2}}
 
 }
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % \braceorline MAC is used for a one-argument macro MAC.  It checks
 % whether the next non-whitespace character is a {.  It sets the context
@@ -10818,11 +10871,12 @@ directory should work if nowhere else does.}
 % this is not a problem.
 \def\ifusingit#1#2{\ifdim \fontdimen1\font>0pt #1\else #2\fi}
 
-% Turn off all special characters except @
-% (and those which the user can use as if they were ordinary).
+% Set catcodes for Texinfo file
+
+% Active characters for printing the wanted glyph.
 % Most of these we simply print from the \tt font, but for some, we can
 % use math or other variants that look better in normal text.
-
+%
 \catcode`\"=\active
 \def\activedoublequote{{\tt\char34}}
 \let"=\activedoublequote
@@ -10832,12 +10886,10 @@ directory should work if nowhere else does.}
 
 \catcode`\_=\active
 \def_{\ifusingtt\normalunderscore\_}
-\let\realunder=_
-% Subroutine for the previous macro.
 \def\_{\leavevmode \kern.07em \vbox{\hrule width.3em height.1ex}\kern .07em }
+\let\realunder=_
 
-\catcode`\|=\active
-\def|{{\tt\char124}}
+\catcode`\|=\active \def|{{\tt\char124}}
 
 \chardef \less=`\<
 \catcode`\<=\active \def\activeless{{\tt \less}}\let< = \activeless

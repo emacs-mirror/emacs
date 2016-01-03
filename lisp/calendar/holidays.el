@@ -346,9 +346,10 @@ The holidays are those in the list `calendar-holidays'."
                          (eval p)
                        (error
                         (display-warning
-                         :error
+                         'holidays
                          (format "Bad holiday list item: %s\nError: %s\n"
-                                 p err))
+                                 p err)
+                         :error)
                         nil))))
            (setq res (append h res))))
      'calendar-date-compare)))

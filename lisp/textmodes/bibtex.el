@@ -1503,7 +1503,7 @@ At most `bibtex-entry-kill-ring-max' items are kept here.")
   "The tail of `bibtex-entry-kill-ring' whose car is the last item yanked.")
 
 (defvar bibtex-last-kill-command nil
-  "Type of the last kill command (either 'field or 'entry).")
+  "Type of the last kill command (either `field' or `entry').")
 
 (defvar bibtex-strings
   (lazy-completion-table bibtex-strings
@@ -2573,7 +2573,7 @@ Formats current entry according to variable `bibtex-entry-format'."
 
 (defun bibtex-field-re-init (regexp-alist type)
   "Calculate optimized value for bibtex-regexp-TYPE-opt.
-This value is based on bibtex-regexp-TYPE-alist.  TYPE is 'braces or 'strings.
+This value is based on bibtex-regexp-TYPE-alist.  TYPE is `braces' or `strings'.
 Return optimized value to be used by `bibtex-format-entry'."
   (setq regexp-alist
         (mapcar (lambda (e)

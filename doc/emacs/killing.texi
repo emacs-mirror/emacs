@@ -504,9 +504,9 @@ does not alter the clipboard.  However, if you change
 @code{yank-pop-change-selection} to @code{t}, then @kbd{M-y} saves the
 new yank to the clipboard.
 
-@vindex x-select-enable-clipboard
+@vindex select-enable-clipboard
   To prevent kill and yank commands from accessing the clipboard,
-change the variable @code{x-select-enable-clipboard} to @code{nil}.
+change the variable @code{select-enable-clipboard} to @code{nil}.
 
 @cindex clipboard manager
 @vindex x-select-enable-clipboard-manager
@@ -519,14 +519,14 @@ when exiting Emacs; if you wish to prevent Emacs from transferring
 data to the clipboard manager, change the variable
 @code{x-select-enable-clipboard-manager} to @code{nil}.
 
-@vindex x-select-enable-primary
+@vindex select-enable-primary
 @findex clipboard-kill-region
 @findex clipboard-kill-ring-save
 @findex clipboard-yank
   Prior to Emacs 24, the kill and yank commands used the primary
 selection (@pxref{Primary Selection}), not the clipboard.  If you
-prefer this behavior, change @code{x-select-enable-clipboard} to
-@code{nil}, @code{x-select-enable-primary} to @code{t}, and
+prefer this behavior, change @code{select-enable-clipboard} to
+@code{nil}, @code{select-enable-primary} to @code{t}, and
 @code{mouse-drag-copy-region} to @code{t}.  In this case, you can use
 the following commands to act explicitly on the clipboard:
 @code{clipboard-kill-region} kills the region and saves it to the
@@ -852,6 +852,19 @@ commands that resize the region (@kbd{C-f}, @kbd{C-n} etc.)@: do
 so in a rectangular fashion, and killing and yanking operate on the
 rectangle.  @xref{Killing}.  The mode persists only as long as the
 region is active.
+
+Unlike the standard region, the region-rectangle can have its corners
+extended past the end of buffer, or inside stretches of white space
+that point normally cannot enter, like the TAB.
+
+@findex rectangle-exchange-point-and-mark
+@findex exchange-point-and-mark@r{, in rectangle-mark-mode}
+@kindex C-x C-x@r{, in rectangle-mark-mode}
+When the region is in rectangle-mark-mode, @kbd{C-x C-x} runs the
+command @code{rectangle-exchange-point-and-mark}, which cycles between
+the four corners of the region-rectangle.  This comes in handy if you
+want to modify the dimensions of the region-rectangle before invoking
+an operation on the marked text.
 
 @node CUA Bindings
 @section CUA Bindings

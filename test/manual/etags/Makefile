@@ -13,7 +13,7 @@ FORTHSRC=$(addprefix ./forth-src/,test-forth.fth)
 FSRC=$(addprefix ./f-src/,entry.for entry.strange_suffix entry.strange)
 HTMLSRC=$(addprefix ./html-src/,softwarelibero.html index.shtml algrthms.html software.html)
 #JAVASRC=$(addprefix ./java-src/, )
-LUASRC=$(addprefix ./lua-src/,allegro.lua)
+LUASRC=$(addprefix ./lua-src/,allegro.lua test.lua)
 MAKESRC=$(addprefix ./make-src/,Makefile)
 OBJCSRC=$(addprefix ./objc-src/,Subprocess.h Subprocess.m PackInsp.h PackInsp.m)
 OBJCPPSRC=$(addprefix ./objcpp-src/,SimpleCalc.H SimpleCalc.M)
@@ -23,12 +23,13 @@ PHPSRC=$(addprefix ./php-src/,lce_functions.php ptest.php sendmail.php)
 PSSRC=$(addprefix ./ps-src/,rfc1245.ps)
 PROLSRC=$(addprefix ./prol-src/,ordsets.prolog natded.prolog)
 PYTSRC=$(addprefix ./pyt-src/,server.py)
+RBSRC=$(addprefix ./ruby-src/,test.rb test1.ruby)
 TEXSRC=$(addprefix ./tex-src/,testenv.tex gzip.texi texinfo.tex nonewline.tex)
 YSRC=$(addprefix ./y-src/,parse.y parse.c atest.y cccp.c cccp.y)
 SRCS=${ADASRC} ${ASRC} ${CSRC} ${CPSRC} ${ELSRC} ${ERLSRC} ${FSRC}\
      ${FORTHSRC} ${HTMLSRC} ${JAVASRC} ${LUASRC} ${MAKESRC} ${OBJCSRC}\
      ${OBJCPPSRC} ${PASSRC} ${PHPSRC} ${PERLSRC} ${PSSRC} ${PROLSRC} ${PYTSRC}\
-     ${TEXSRC} ${YSRC}
+     ${RBSRC} ${TEXSRC} ${YSRC}
 NONSRCS=./f-src/entry.strange ./erl-src/lists.erl ./cp-src/clheir.hpp.gz
 
 ETAGS_PROG=../../../lib-src/etags

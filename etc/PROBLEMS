@@ -2051,6 +2051,10 @@ pinned icon, a separate button appears on the taskbar, instead of the
 expected effect of the icon you clicked on being converted to that
 button.
 
+This is due to a bug in early versions of Windows 10, reportedly fixed
+in build 1511 of Windows 10 (a.k.a. "Windows 10 SP1").  If you cannot
+upgrade, read the work-around described below.
+
 First, be sure to edit the Properties of the pinned icon to invoke
 runemacs.exe, not emacs.exe.  (The latter will cause an extra cmd
 window to appear when you invoke Emacs from the pinned icon.)

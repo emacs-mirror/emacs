@@ -6218,10 +6218,10 @@ It is up to you to set this variable if your terminal can do that.  */);
 	       doc: /* Name of the window system that Emacs uses for the first frame.
 The value is a symbol:
  nil for a termcap frame (a character-only terminal),
- 'x' for an Emacs frame that is really an X window,
- 'w32' for an Emacs frame that is a window on MS-Windows display,
- 'ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
- 'pc' for a direct-write MS-DOS frame.
+ `x' for an Emacs frame that is really an X window,
+ `w32' for an Emacs frame that is a window on MS-Windows display,
+ `ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
+ `pc' for a direct-write MS-DOS frame.
 
 Use of this variable as a boolean is deprecated.  Instead,
 use `display-graphic-p' or any of the other `display-*-p'
@@ -6231,10 +6231,10 @@ predicates which report frame's specific UI-related capabilities.  */);
 		 doc: /* Name of window system through which the selected frame is displayed.
 The value is a symbol:
  nil for a termcap frame (a character-only terminal),
- 'x' for an Emacs frame that is really an X window,
- 'w32' for an Emacs frame that is a window on MS-Windows display,
- 'ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
- 'pc' for a direct-write MS-DOS frame.
+ `x' for an Emacs frame that is really an X window,
+ `w32' for an Emacs frame that is a window on MS-Windows display,
+ `ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
+ `pc' for a direct-write MS-DOS frame.
 
 Use of this variable as a boolean is deprecated.  Instead,
 use `display-graphic-p' or any of the other `display-*-p'

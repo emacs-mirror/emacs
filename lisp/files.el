@@ -740,20 +740,27 @@ The path separator is colon in GNU and GNU-like systems."
        (error "No such directory found via CDPATH environment variable"))))
 
 (defsubst directory-name-p (name)
-  "Return non-nil if NAME ends with a slash character."
-  (and (> (length name) 0)
-       (char-equal (aref name (1- (length name))) ?/)))
+  "Return non-nil if NAME ends with a directory separator character."
+  (let ((len (length name))
+        (lastc ?.))
+    (if (> len 0)
+        (setq lastc (aref name (1- len))))
+    (or (= lastc ?/)
+        (and (memq system-type '(windows-nt ms-dos))
+             (= lastc ?\\)))))
 
-(defun directory-files-recursively (dir match &optional include-directories)
-  "Return all files under DIR that have file names matching MATCH (a regexp).
+(defun directory-files-recursively (dir regexp &optional include-directories)
+  "Return list of all files under DIR that have file names matching REGEXP.
 This function works recursively.  Files are returned in \"depth first\"
-and alphabetical order.
-If INCLUDE-DIRECTORIES, also include directories that have matching names."
+order, and files from each directory are sorted in alphabetical order.
+Each file name appears in the returned list in its absolute form.
+Optional argument INCLUDE-DIRECTORIES non-nil means also include in the
+output directories whose names match REGEXP."
   (let ((result nil)
 	(files nil)
 	;; When DIR is "/", remote file names like "/method:" could
 	;; also be offered.  We shall suppress them.
-	(tramp-mode (and tramp-mode (file-remote-p dir))))
+	(tramp-mode (and tramp-mode (file-remote-p (expand-file-name dir)))))
     (dolist (file (sort (file-name-all-completions "" dir)
 			'string<))
       (unless (member file '("./" "../"))
@@ -764,19 +771,23 @@ If INCLUDE-DIRECTORIES, also include directories that have matching names."
 	      (unless (file-symlink-p full-file)
 		(setq result
 		      (nconc result (directory-files-recursively
-				     full-file match include-directories))))
+				     full-file regexp include-directories))))
 	      (when (and include-directories
-			 (string-match match leaf))
+			 (string-match regexp leaf))
 		(setq result (nconc result (list full-file)))))
-	  (when (string-match match file)
+	  (when (string-match regexp file)
 	    (push (expand-file-name file dir) files)))))
     (nconc result (nreverse files))))
 
+(defvar module-file-suffix)
+
 (defun load-file (file)
   "Load the Lisp file named FILE."
-  ;; This is a case where .elc makes a lot of sense.
+  ;; This is a case where .elc and .so/.dll make a lot of sense.
   (interactive (list (let ((completion-ignored-extensions
-			    (remove ".elc" completion-ignored-extensions)))
+                            (remove module-file-suffix
+                                    (remove ".elc"
+                                            completion-ignored-extensions))))
 		       (read-file-name "Load file: " nil nil 'lambda))))
   (load (expand-file-name file) nil nil t))
 
@@ -787,8 +798,8 @@ return nil.
 PATH should be a list of directories to look in, like the lists in
 `exec-path' or `load-path'.
 If SUFFIXES is non-nil, it should be a list of suffixes to append to
-file name when searching.  If SUFFIXES is nil, it is equivalent to '(\"\").
-Use '(\"/\") to disable PATH search, but still try the suffixes in SUFFIXES.
+file name when searching.  If SUFFIXES is nil, it is equivalent to (\"\").
+Use (\"/\") to disable PATH search, but still try the suffixes in SUFFIXES.
 If non-nil, PREDICATE is used instead of `file-readable-p'.
 
 This function will normally skip directories, so if you want it to find
@@ -1012,6 +1023,7 @@ Return nil if COMMAND is not found anywhere in `exec-path'."
 
 (defun load-library (library)
   "Load the Emacs Lisp library named LIBRARY.
+LIBRARY should be a string.
 This is an interface to the function `load'.  LIBRARY is searched
 for in `load-path', both with and without `load-suffixes' (as
 well as `load-file-rep-suffixes').
@@ -1019,10 +1031,11 @@ well as `load-file-rep-suffixes').
 See Info node `(emacs)Lisp Libraries' for more details.
 See `load-file' for a different interface to `load'."
   (interactive
-   (list (completing-read "Load library: "
-			  (apply-partially 'locate-file-completion-table
-                                           load-path
-                                           (get-load-suffixes)))))
+   (let (completion-ignored-extensions)
+     (list (completing-read "Load library: "
+                            (apply-partially 'locate-file-completion-table
+                                             load-path
+                                             (get-load-suffixes))))))
   (load library))
 
 (defun file-remote-p (file &optional identification connected)
@@ -1418,8 +1431,10 @@ return value, which may be passed as the REQUIRE-MATCH arg to
 
 (defmacro minibuffer-with-setup-hook (fun &rest body)
   "Temporarily add FUN to `minibuffer-setup-hook' while executing BODY.
-FUN can also be (:append FUN1), in which case FUN1 is appended to
-`minibuffer-setup-hook'.
+
+By default, FUN is prepended to `minibuffer-setup-hook'.  But if FUN is of
+the form `(:append FUN1)', FUN1 will be appended to `minibuffer-setup-hook'
+instead of prepending it.
 
 BODY should use the minibuffer at most once.
 Recursive uses of the minibuffer are unaffected (FUN is not
@@ -3407,7 +3422,7 @@ local variables, but directory-local variables may still be applied."
 			       (unless hack-local-variables--warned-lexical
 				 (setq hack-local-variables--warned-lexical t)
 				 (display-warning
-                                  :warning
+                                  'files
                                   (format-message
                                    "%s: `lexical-binding' at end of file unreliable"
                                    (file-name-nondirectory
@@ -3871,7 +3886,7 @@ This does nothing if either `enable-local-variables' or
 	      (if (eq (car elt) 'coding)
                   (unless hack-dir-local-variables--warned-coding
                     (setq hack-dir-local-variables--warned-coding t)
-                    (display-warning :warning
+                    (display-warning 'files
                                      "Coding cannot be specified by dir-locals"))
 		(unless (memq (car elt) '(eval mode))
 		  (setq dir-local-variables-alist
@@ -6242,7 +6257,7 @@ invokes the program specified by `directory-free-space-program'
 and `directory-free-space-args'.  If the system call or program
 is unsuccessful, or if DIR is a remote directory, this function
 returns nil."
-  (unless (file-remote-p dir)
+  (unless (file-remote-p (expand-file-name dir))
     ;; Try to find the number of free blocks.  Non-Posix systems don't
     ;; always have df, but might have an equivalent system call.
     (if (fboundp 'file-system-info)
@@ -6884,7 +6899,7 @@ as in \"og+rX-w\"."
 
 (defun read-file-modes (&optional prompt orig-file)
   "Read file modes in octal or symbolic notation and return its numeric value.
-PROMPT is used as the prompt, default to `File modes (octal or symbolic): '.
+PROMPT is used as the prompt, default to \"File modes (octal or symbolic): \".
 ORIG-FILE is the name of a file on whose mode bits to base returned
 permissions if what user types requests to add, remove, or set permissions
 based on existing mode bits, as in \"og+rX-w\"."

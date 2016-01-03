@@ -3,8 +3,8 @@
 ;; Copyright (C) 1995-1997, 1999, 2001-2015 Free Software Foundation,
 ;; Inc.
 
-;; Author: Anders Lindgren <andersl@andersl.com>
-;; Maintainer: emacs-devel@gnu.org (Anders' email bounces, Sep 2005)
+;; Author: Anders Lindgren
+;; Maintainer: emacs-devel@gnu.org
 ;; Created: 1995-05-25
 ;; Keywords: display, window, minor-mode, convenience
 
@@ -421,7 +421,21 @@ Keys specific to Follow mode:
       (progn
 	(add-hook 'compilation-filter-hook 'follow-align-compilation-windows t t)
 	(add-hook 'post-command-hook 'follow-post-command-hook t)
-	(add-hook 'window-size-change-functions 'follow-window-size-change t))
+	(add-hook 'window-size-change-functions 'follow-window-size-change t)
+        (add-hook 'after-change-functions 'follow-after-change nil t)
+        (add-hook 'isearch-update-post-hook 'follow-post-command-hook nil t)
+        (add-hook 'replace-update-post-hook 'follow-post-command-hook nil t)
+        (add-hook 'ispell-update-post-hook 'follow-post-command-hook nil t)
+
+        (setq window-group-start-function 'follow-window-start)
+        (setq window-group-end-function 'follow-window-end)
+        (setq set-window-group-start-function 'follow-set-window-start)
+        (setq recenter-window-group-function 'follow-recenter)
+        (setq pos-visible-in-window-group-p-function
+              'follow-pos-visible-in-window-p)
+        (setq selected-window-group-function 'follow-all-followers)
+        (setq move-to-window-group-line-function 'follow-move-to-window-line))
+
     ;; Remove globally-installed hook functions only if there is no
     ;; other Follow mode buffer.
     (let ((buffers (buffer-list))
@@ -432,6 +446,19 @@ Keys specific to Follow mode:
       (unless following
 	(remove-hook 'post-command-hook 'follow-post-command-hook)
 	(remove-hook 'window-size-change-functions 'follow-window-size-change)))
+
+    (kill-local-variable 'move-to-window-group-line-function)
+    (kill-local-variable 'selected-window-group-function)
+    (kill-local-variable 'pos-visible-in-window-group-p-function)
+    (kill-local-variable 'recenter-window-group-function)
+    (kill-local-variable 'set-window-group-start-function)
+    (kill-local-variable 'window-group-end-function)
+    (kill-local-variable 'window-group-start-function)
+
+    (remove-hook 'ispell-update-post-hook 'follow-post-command-hook t)
+    (remove-hook 'replace-update-post-hook 'follow-post-command-hook t)
+    (remove-hook 'isearch-update-post-hook 'follow-post-command-hook t)
+    (remove-hook 'after-change-functions 'follow-after-change t)
     (remove-hook 'compilation-filter-hook 'follow-align-compilation-windows t)))
 
 (defun follow-find-file-hook ()
@@ -865,10 +892,10 @@ Note that this handles the case when the cache has been set to nil."
     (let ((orig-win (selected-window))
 	  win-start-end)
       (dolist (w windows)
-	(select-window w)
+	(select-window w 'norecord)
 	(push (cons w (cons (window-start) (follow-calc-win-end)))
 	      win-start-end))
-      (select-window orig-win)
+      (select-window orig-win 'norecord)
       (setq follow-windows-start-end-cache (nreverse win-start-end)))))
 
 (defsubst follow-pos-visible (pos win win-start-end)
@@ -1015,6 +1042,10 @@ Otherwise, return nil."
 ;; is nil.  Start every window directly after the end of the previous
 ;; window, to make sure long lines are displayed correctly.
 
+(defvar follow-start-end-invalid t
+  "When non-nil, indicates `follow-windows-start-end-cache' is invalid.")
+(make-variable-buffer-local 'follow-start-end-invalid)
+
 (defun follow-redisplay (&optional windows win preserve-win)
   "Reposition the WINDOWS around WIN.
 Should point be too close to the roof we redisplay everything
@@ -1047,7 +1078,8 @@ repositioning the other windows."
     (dolist (w windows)
       (unless (and preserve-win (eq w win))
 	(set-window-start w start))
-      (setq start (car (follow-calc-win-end w))))))
+      (setq start (car (follow-calc-win-end w))))
+    (setq follow-start-end-invalid nil)))
 
 (defun follow-estimate-first-window-start (windows win start)
   "Estimate the position of the first window.
@@ -1416,35 +1448,172 @@ non-first windows in Follow mode."
   "Redraw all windows in FRAME, when in Follow mode."
   ;; Below, we call `post-command-hook'.  Avoid an infloop.
   (unless follow-inside-post-command-hook
-    (let ((buffers '())
-	  (orig-window (selected-window))
-	  (orig-buffer (current-buffer))
-	  (orig-frame (selected-frame))
-	  windows
-	  buf)
-      (select-frame frame)
-      (unwind-protect
-	  (walk-windows
-	   (lambda (win)
-	     (setq buf (window-buffer win))
-	     (unless (memq buf buffers)
-	       (set-buffer buf)
-	       (when follow-mode
-		 (setq windows (follow-all-followers win))
-		 (if (not (memq orig-window windows))
-		     (follow-redisplay windows win)
-		   ;; Make sure we're redrawing around the selected
-		   ;; window.
-		   (select-window orig-window)
-		   (follow-post-command-hook)
-		   (setq orig-window (selected-window)))
-		 (setq buffers (cons buf buffers)))))
-	   'no-minibuf)
-	(select-frame orig-frame)
-	(set-buffer orig-buffer)
-	(select-window orig-window)))))
+    (save-current-buffer
+      (let ((orig-frame (selected-frame)))
+        (select-frame frame)
+        (let ((picked-window (selected-window))   ; Note: May change below.
+              (seen-buffers '()))
+          (unwind-protect
+              (walk-windows
+               (lambda (win)
+                 (let ((buf (window-buffer win)))
+                   (unless (memq buf seen-buffers)
+                     (set-buffer buf)
+                     (when follow-mode
+                       (let ((windows (follow-all-followers win)))
+                         (if (not (memq picked-window windows))
+                             (follow-redisplay windows win)
+                           ;; Make sure we're redrawing around the selected
+                           ;; window.
+                           (select-window picked-window 'norecord)
+                           (follow-post-command-hook)
+                           (setq picked-window (selected-window))))
+                       (push buf seen-buffers)))))
+               'no-minibuf)
+            (select-window picked-window 'norecord)))
+        (select-frame orig-frame)))))
 
 (add-hook 'window-scroll-functions 'follow-avoid-tail-recenter t)
+
+;;; Low level window start and end.
+
+;; These routines are the Follow Mode versions of the low level
+;; functions described on page "Window Start and End" of the elisp
+;; manual, e.g. `window-group-start'.  The aim is to be able to handle
+;; Follow Mode windows by replacing `window-start' by
+;; `window-group-start', etc.
+
+(defun follow-after-change (_beg _end _old-len)
+  "After change function: set `follow-start-end-invalid'."
+  (setq follow-start-end-invalid t))
+
+(defun follow-window-start (&optional window)
+  "Return position at which display currently starts in the
+Follow Mode group of windows which includes WINDOW.
+
+WINDOW must be a live window and defaults to the selected one.
+This is updated by redisplay or by calling
+`follow-set-window-start'."
+  (let ((windows (follow-all-followers window)))
+    (window-start (car windows))))
+
+(defun follow-window-end (&optional window update)
+  "Return position at which display currently ends in the Follow
+  Mode group of windows which includes WINDOW.
+
+  WINDOW must be a live window and defaults to the selected one.
+  This is updated by redisplay, when it runs to completion.
+  Simply changing the buffer text or setting `window-start' does
+  not update this value.
+
+  Return nil if there is no recorded value.  (This can happen if
+  the last redisplay of WINDOW was preempted, and did not
+  finish.)  If UPDATE is non-nil, compute the up-to-date position
+  if it isn't already recorded."
+  (let* ((windows (follow-all-followers window))
+         (last (car (last windows))))
+    (when (and update follow-start-end-invalid)
+      (follow-redisplay windows (car windows)))
+    (window-end last update)))
+
+(defun follow-set-window-start (window pos &optional noforce)
+  "Make display in the Follow Mode group of windows which includes
+WINDOW start at position POS in WINDOW's buffer.
+
+WINDOW must be a live window and defaults to the selected one.  Return
+POS.  Optional third arg NOFORCE non-nil inhibits next redisplay from
+overriding motion of point in order to display at this exact start."
+  (let ((windows (follow-all-followers window)))
+    (setq follow-start-end-invalid t)
+    (set-window-start (car windows) pos noforce)))
+
+(defun follow-pos-visible-in-window-p (&optional pos window partially)
+  "Return non-nil if position POS is currently on the frame in one of
+  the windows in the Follow Mode group which includes WINDOW.
+
+WINDOW must be a live window and defaults to the selected one.
+
+Return nil if that position is scrolled vertically out of view.  If a
+character is only partially visible, nil is returned, unless the
+optional argument PARTIALLY is non-nil.  If POS is only out of view
+because of horizontal scrolling, return non-nil.  If POS is t, it
+specifies the position of the last visible glyph in WINDOW.  POS
+defaults to point in WINDOW; WINDOW defaults to the selected window.
+
+If POS is visible, return t if PARTIALLY is nil; if PARTIALLY is non-nil,
+the return value is a list of 2 or 6 elements (X Y [RTOP RBOT ROWH VPOS]),
+where X and Y are the pixel coordinates relative to the top left corner
+of the actual window containing it.  The remaining elements are
+omitted if the character after POS is fully visible; otherwise, RTOP
+and RBOT are the number of pixels off-window at the top and bottom of
+the screen line (\"row\") containing POS, ROWH is the visible height
+of that row, and VPOS is the row number \(zero-based)."
+  (let* ((windows (follow-all-followers window))
+         (last (car (last windows))))
+    (when follow-start-end-invalid
+      (follow-redisplay windows (car windows)))
+    (let* ((cache (follow-windows-start-end windows))
+           (last-elt (car (last cache)))
+           our-pos pertinent-elt)
+      (setq pertinent-elt
+            (if (eq pos t)
+                last-elt
+              (setq our-pos (or pos (point)))
+              (catch 'element
+                (while cache
+                  (when (< our-pos (nth 2 (car cache)))
+                    (throw 'element (car cache)))
+                  (setq cache (cdr cache)))
+                last-elt)))
+      (pos-visible-in-window-p our-pos (car pertinent-elt) partially))))
+
+(defun follow-move-to-window-line (arg)
+  "Position point relative to the Follow mode group containing the selected window.
+ARG nil means position point at center of the window group.
+Else, ARG specifies vertical position within the window group;
+zero means top of the first window in the group, negative means
+  relative to bottom of the last window in the group."
+  (let* ((windows (follow-all-followers))
+         (start-end (follow-windows-start-end windows))
+         (rev-start-end (reverse start-end))
+         (lines 0)
+         middle-window elt count)
+    (select-window
+     (cond
+      ((null arg)
+       (setq rev-start-end (nthcdr (/ (length windows) 2) rev-start-end))
+       (prog1 (car (car rev-start-end))
+         (while (setq rev-start-end (cdr rev-start-end))
+           (setq elt (car rev-start-end)
+                 count (count-screen-lines (cadr elt) (nth 2 elt)
+                                           nil (car elt))
+                 lines (+ lines count)))))
+      ((>= arg 0)
+       (while (and (cdr start-end)
+                   (progn
+                     (setq elt (car start-end)
+                           count (count-screen-lines (cadr elt) (nth 2 elt)
+                                                     nil (car elt)))
+                     (>= arg count)))
+         (setq arg (- arg count)
+               lines (+ lines count)
+               start-end (cdr start-end)))
+       (car (car start-end)))
+      (t                                ; (< arg 0)
+       (while (and (cadr rev-start-end)
+                   (progn
+                     (setq elt (car rev-start-end)
+                           count (count-lines (cadr elt) (nth 2 elt)))
+                     (<= arg (- count))))
+         (setq arg (+ arg count)
+               rev-start-end (cdr rev-start-end)))
+       (prog1 (car (car rev-start-end))
+         (while (setq rev-start-end (cdr rev-start-end))
+           (setq elt (car rev-start-end)
+                 count (count-screen-lines (cadr elt) (nth 2 elt)
+                                           nil (car elt))
+                 lines (+ lines count)))))))
+    (+ lines (move-to-window-line arg))))
 
 ;;; Profile support
 

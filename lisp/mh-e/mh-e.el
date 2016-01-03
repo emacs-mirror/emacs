@@ -872,7 +872,7 @@ variant."
 
 (defun mh-variant-p (&rest variants)
   "Return t if variant is any of VARIANTS.
-Currently known variants are 'MH, 'nmh, and 'gnu-mh."
+Currently known variants are `MH', `nmh', and `gnu-mh'."
   (let ((variant-in-use
          (cadr (assoc 'variant (assoc mh-variant-in-use (mh-variants))))))
     (not (null (member variant-in-use variants)))))
@@ -1435,7 +1435,7 @@ the \"Value Menu\".
 You can specify an alternate \"From:\" header field using the \"From
 Field\" menu item. You must include a valid email address. A standard
 format is \"First Last <login@@host.domain>\". If you use an initial
-with a period, then you must quote your name as in '\"First I. Last\"
+with a period, then you must quote your name as in `\"First I. Last\"
 <login@@host.domain>'. People usually list the name of the company
 where they work using the \"Organization Field\" menu item. Set any
 arbitrary header field and value in the \"Other Field\" menu item.
@@ -1599,8 +1599,8 @@ other field matches.
 
 The handler functions are passed two or three arguments: the
 FIELD itself (for example, \"From\"), or one of the special
-fields (for example, \":signature\"), and the ACTION 'remove or
-'add. If the action is 'add, an additional argument
+fields (for example, \":signature\"), and the ACTION `remove' or
+`add'. If the action is `add', an additional argument
 containing the VALUE for the field is given."
   :type '(repeat (cons (string :tag "Field") function))
   :group 'mh-identity

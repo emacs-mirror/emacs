@@ -364,6 +364,7 @@ static void PHP_functions (FILE *);
 static void PS_functions (FILE *);
 static void Prolog_functions (FILE *);
 static void Python_functions (FILE *);
+static void Ruby_functions (FILE *);
 static void Scheme_functions (FILE *);
 static void TeX_commands (FILE *);
 static void Texinfo_nodes (FILE *);
@@ -722,6 +723,12 @@ static const char Python_help [] =
 "In Python code, 'def' or 'class' at the beginning of a line\n\
 generate a tag.";
 
+static const char *Ruby_suffixes [] =
+  { "rb", "ruby", NULL };
+static const char Ruby_help [] =
+  "In Ruby code, 'def' or 'class' or 'module' at the beginning of\n\
+a line generate a tag.";
+
 /* Can't do the `SCM' or `scm' prefix with a version number. */
 static const char *Scheme_suffixes [] =
   { "oak", "sch", "scheme", "SCM", "scm", "SM", "sm", "ss", "t", NULL };
@@ -800,6 +807,7 @@ static language lang_names [] =
   { "proc",      no_lang_help,   plain_C_entries,   plain_C_suffixes   },
   { "prolog",    Prolog_help,    Prolog_functions,  Prolog_suffixes    },
   { "python",    Python_help,    Python_functions,  Python_suffixes    },
+  { "ruby",      Ruby_help,      Ruby_functions,    Ruby_suffixes      },
   { "scheme",    Scheme_help,    Scheme_functions,  Scheme_suffixes    },
   { "tex",       TeX_help,       TeX_commands,      TeX_suffixes       },
   { "texinfo",   Texinfo_help,   Texinfo_nodes,     Texinfo_suffixes   },
@@ -4532,6 +4540,35 @@ Python_functions (FILE *inf)
     }
 }
 
+/*
+ * Ruby support
+ * Original code by Xi Lu <lx@shellcodes.org> (2015)
+ */
+static void
+Ruby_functions (FILE *inf)
+{
+  char *cp = NULL;
+
+  LOOP_ON_INPUT_LINES (inf, lb, cp)
+    {
+      cp = skip_spaces (cp);
+      if (LOOKING_AT (cp, "def")
+	  || LOOKING_AT (cp, "class")
+	  || LOOKING_AT (cp, "module"))
+	{
+	  char *name = cp;
+
+	 /* Ruby method names can end in a '='.  Also, operator overloading can
+	    define operators whose names include '='.  */
+	  while (!notinname (*cp) || *cp == '=')
+	    cp++;
+
+	  make_tag (name, cp - name, true,
+		    lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+	}
+    }
+}
+
 
 /*
  * PHP support
@@ -4948,13 +4985,29 @@ Lua_functions (FILE *inf)
 
   LOOP_ON_INPUT_LINES (inf, lb, bp)
     {
+      bp = skip_spaces (bp);
       if (bp[0] != 'f' && bp[0] != 'l')
 	continue;
 
       (void)LOOKING_AT (bp, "local"); /* skip possible "local" */
 
       if (LOOKING_AT (bp, "function"))
-	get_tag (bp, NULL);
+	{
+	  char *tag_name, *tp_dot, *tp_colon;
+
+	  get_tag (bp, &tag_name);
+	  /* If the tag ends with ".foo" or ":foo", make an additional tag for
+	     "foo".  */
+	  tp_dot = strrchr (tag_name, '.');
+	  tp_colon = strrchr (tag_name, ':');
+	  if (tp_dot || tp_colon)
+	    {
+	      char *p = tp_dot > tp_colon ? tp_dot : tp_colon;
+	      int len_add = p - tag_name + 1;
+
+	      get_tag (bp + len_add, NULL);
+	    }
+	}
     }
 }
 

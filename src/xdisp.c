@@ -10784,6 +10784,9 @@ display_echo_area (struct window *w)
      reset the echo_area_buffer in question to nil at the end because
      with_echo_area_buffer will sets it to an empty buffer.  */
   bool i = display_last_displayed_message_p;
+  /* According to the C99, C11 and C++11 standards, the integral value
+     of a "bool" is always 0 or 1, so this array access is safe here,
+     if oddly typed. */
   no_message_p = NILP (echo_area_buffer[i]);
 
   window_height_changed_p
@@ -13587,6 +13590,32 @@ redisplay_internal (void)
     {
       echo_area_display (false);
 
+      /* If echo_area_display resizes the mini-window, the redisplay and
+	 window_sizes_changed flags of the selected frame are set, but
+	 it's too late for the hooks in window-size-change-functions,
+	 which have been examined already in prepare_menu_bars.  So in
+	 that case we call the hooks here only for the selected frame.  */
+      if (sf->redisplay && FRAME_WINDOW_SIZES_CHANGED (sf))
+	{
+	  Lisp_Object functions;
+	  ptrdiff_t count1 = SPECPDL_INDEX ();
+
+	  record_unwind_save_match_data ();
+
+	  /* Clear flag first in case we get an error below.  */
+	  FRAME_WINDOW_SIZES_CHANGED (sf) = false;
+	  functions = Vwindow_size_change_functions;
+
+	  while (CONSP (functions))
+	    {
+	      if (!EQ (XCAR (functions), Qt))
+		call1 (XCAR (functions), selected_frame);
+	      functions = XCDR (functions);
+	    }
+
+	  unbind_to (count1, Qnil);
+	}
+
       if (message_cleared_p)
 	update_miniwindow_p = true;
 
@@ -13603,6 +13632,27 @@ redisplay_internal (void)
 	   && (current_buffer->clip_changed || window_outdated (w))
 	   && resize_mini_window (w, false))
     {
+      if (sf->redisplay)
+	{
+	  Lisp_Object functions;
+	  ptrdiff_t count1 = SPECPDL_INDEX ();
+
+	  record_unwind_save_match_data ();
+
+	  /* Clear flag first in case we get an error below.  */
+	  FRAME_WINDOW_SIZES_CHANGED (sf) = false;
+	  functions = Vwindow_size_change_functions;
+
+	  while (CONSP (functions))
+	    {
+	      if (!EQ (XCAR (functions), Qt))
+		call1 (XCAR (functions), selected_frame);
+	      functions = XCDR (functions);
+	    }
+
+	  unbind_to (count1, Qnil);
+	}
+
       /* Resized active mini-window to fit the size of what it is
          showing if its contents might have changed.  */
       must_finish = true;
@@ -16302,9 +16352,33 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
       if (w->cursor.vpos < 0)
 	{
 	  /* If point does not appear, try to move point so it does
-	     appear. The desired matrix has been built above, so we
-	     can use it here.  */
-	  new_vpos = window_box_height (w) / 2;
+	     appear.  The desired matrix has been built above, so we
+	     can use it here.  First see if point is in invisible
+	     text, and if so, move it to the first visible buffer
+	     position past that.  */
+	  struct glyph_row *r = NULL;
+	  Lisp_Object invprop =
+	    get_char_property_and_overlay (make_number (PT), Qinvisible,
+					   Qnil, NULL);
+
+	  if (TEXT_PROP_MEANS_INVISIBLE (invprop) != 0)
+	    {
+	      ptrdiff_t alt_pt;
+	      Lisp_Object invprop_end =
+		Fnext_single_char_property_change (make_number (PT), Qinvisible,
+						   Qnil, Qnil);
+
+	      if (NATNUMP (invprop_end))
+		alt_pt = XFASTINT (invprop_end);
+	      else
+		alt_pt = ZV;
+	      r = row_containing_pos (w, alt_pt, w->desired_matrix->rows,
+				      NULL, 0);
+	    }
+	  if (r)
+	    new_vpos = MATRIX_ROW_BOTTOM_Y (r);
+	  else	/* Give up and just move to the middle of the window.  */
+	    new_vpos = window_box_height (w) / 2;
 	}
 
       if (!cursor_row_fully_visible_p (w, false, false))
@@ -16721,6 +16795,7 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
   startp = run_window_scroll_functions (window, it.current.pos);
 
   /* Redisplay the window.  */
+  bool use_desired_matrix = false;
   if (!current_matrix_up_to_date_p
       || windows_or_buffers_changed
       || f->cursor_type_changed
@@ -16731,7 +16806,7 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
       || MINI_WINDOW_P (w)
       || !(used_current_matrix_p
 	   = try_window_reusing_current_matrix (w)))
-    try_window (window, startp, 0);
+    use_desired_matrix = (try_window (window, startp, 0) == 1);
 
   /* If new fonts have been loaded (due to fontsets), give up.  We
      have to start a new redisplay since we need to re-adjust glyph
@@ -16771,9 +16846,15 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
      and similar ones.  */
   if (w->cursor.vpos < 0)
     {
+      /* Prefer the desired matrix to the current matrix, if possible,
+	 in the fallback calculations below.  This is because using
+	 the current matrix might completely goof, e.g. if its first
+	 row is after point.  */
+      struct glyph_matrix *matrix =
+	use_desired_matrix ? w->desired_matrix : w->current_matrix;
       /* First, try locating the proper glyph row for PT.  */
       struct glyph_row *row =
-	row_containing_pos (w, PT, w->current_matrix->rows, NULL, 0);
+	row_containing_pos (w, PT, matrix->rows, NULL, 0);
 
       /* Sometimes point is at the beginning of invisible text that is
 	 before the 1st character displayed in the row.  In that case,
@@ -16798,8 +16879,7 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 		alt_pos = XFASTINT (invis_end);
 	      else
 		alt_pos = ZV;
-	      row = row_containing_pos (w, alt_pos, w->current_matrix->rows,
-					NULL, 0);
+	      row = row_containing_pos (w, alt_pos, matrix->rows, NULL, 0);
 	    }
 	}
       /* Finally, fall back on the first row of the window after the
@@ -16807,11 +16887,11 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 	 displaying the cursor at all.  */
       if (!row)
 	{
-	  row = w->current_matrix->rows;
+	  row = matrix->rows;
 	  if (row->mode_line_p)
 	    ++row;
 	}
-      set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
+      set_cursor_from_row (w, row, matrix, 0, 0, 0, 0);
     }
 
   if (!cursor_row_fully_visible_p (w, false, false))
@@ -17796,7 +17876,7 @@ row_containing_pos (struct window *w, ptrdiff_t charpos,
   while (true)
     {
       /* Give up if we have gone too far.  */
-      if (end && row >= end)
+      if ((end && row >= end) || !row->enabled_p)
 	return NULL;
       /* This formerly returned if they were equal.
 	 I think that both quantities are of a "last plus one" type;
@@ -31370,11 +31450,13 @@ the buffer when it becomes large.  */);
   Vmessage_log_max = make_number (1000);
 
   DEFVAR_LISP ("window-size-change-functions", Vwindow_size_change_functions,
-    doc: /* Functions called before redisplay, if window sizes have changed.
+    doc: /* Functions called during redisplay, if window sizes have changed.
 The value should be a list of functions that take one argument.
-Just before redisplay, for each frame, if any of its windows have changed
-size since the last redisplay, or have been split or deleted,
-all the functions in the list are called, with the frame as argument.  */);
+During the first part of redisplay, for each frame, if any of its windows
+have changed size since the last redisplay, or have been split or deleted,
+all the functions in the list are called, with the frame as argument.
+If redisplay decides to resize the minibuffer window, it calls these
+functions on behalf of that as well.  */);
   Vwindow_size_change_functions = Qnil;
 
   DEFVAR_LISP ("window-scroll-functions", Vwindow_scroll_functions,

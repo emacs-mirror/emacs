@@ -557,7 +557,7 @@ The top left corner of the native frame specifies the @dfn{native
 position} of the frame.  (1)--(3) in the drawing above indicate that
 position for the various builds:
 
-@itemize @w
+@itemize @w{}
 @item (1) non-toolkit and terminal frames
 
 @item (2) Lucid, Motif and Windows frames
@@ -1001,18 +1001,40 @@ parameters of @var{frame} and their values.  If @var{frame} is
 @end defun
 
 @defun modify-frame-parameters frame alist
-This function alters the parameters of frame @var{frame} based on the
-elements of @var{alist}.  Each element of @var{alist} has the form
-@code{(@var{parm} . @var{value})}, where @var{parm} is a symbol naming a
-parameter.  If you don't mention a parameter in @var{alist}, its value
-doesn't change.  If @var{frame} is @code{nil}, it defaults to the selected
-frame.
+This function alters the frame @var{frame} based on the elements of
+@var{alist}.  Each element of @var{alist} has the form
+@code{(@var{parm} . @var{value})}, where @var{parm} is a symbol naming
+a parameter.  If you don't mention a parameter in @var{alist}, its
+value doesn't change.  If @var{frame} is @code{nil}, it defaults to
+the selected frame.
+
+Some parameters are only meaningful for frames on certain kinds of
+display (@pxref{Frames}).  If @var{alist} includes parameters that are
+not meaningful for the @var{frame}'s display, this function will
+change its value in the frame's parameter list, but will otherwise
+ignore it.
+
+When @var{alist} specifies more than one parameter whose value can
+affect the new size of @var{frame}, the final size of the frame may
+differ according to the toolkit used.  For example, specifying that a
+frame should from now on have a menu and/or tool bar instead of none and
+simultaneously specifying the new height of the frame will inevitably
+lead to a recalculation of the frame's height.  Conceptually, in such
+case, this function will try to have the explicit height specification
+prevail.  It cannot be excluded, however, that the addition (or removal)
+of the menu or tool bar, when eventually performed by the toolkit, will
+defeat this intention.
+
+Sometimes, binding @code{frame-inhibit-implied-resize} (@pxref{Implied
+Frame Resizing}) to a non-@code{nil} value around calls to this function
+may fix the problem sketched here.  Sometimes, however, exactly such
+binding may be hit by the problem.
 @end defun
 
 @defun set-frame-parameter frame parm value
 This function sets the frame parameter @var{parm} to the specified
-@var{value}.  If @var{frame} is @code{nil}, it defaults to the
-selected frame.
+@var{value}.  If @var{frame} is @code{nil}, it defaults to the selected
+frame.
 @end defun
 
 @defun modify-all-frames-parameters alist

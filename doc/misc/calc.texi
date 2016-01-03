@@ -12597,7 +12597,6 @@ in this mode.  Explicit simplification commands, such as @kbd{=} or
 @xref{Algebraic Definitions}, for a sample use of
 No-Simplification mode.
 
-
 @kindex m N
 @pindex calc-num-simplify-mode
 The @kbd{m N} (@code{calc-num-simplify-mode}) command turns off simplification
@@ -22463,7 +22462,6 @@ Hyperbolic prefix @kbd{H} can be used similarly; the @kbd{H a s} will
 replace any hyperbolic functions in the formula with the appropriate
 combinations of @samp{sinh}s and @samp{cosh}s before simplifying.
 
-
 @menu
 * Basic Simplifications::
 * Algebraic Simplifications::
@@ -28032,7 +28030,7 @@ column of the Units Table.
 @noindent
 The definitions of many units have changed over the years.  For example,
 the meter was originally defined in 1791 as one ten-millionth of the
-distance from the equator to the north pole.  In order to be more
+distance from the Equator to the North Pole.  In order to be more
 precise, the definition was adjusted several times, and now a meter is
 defined as the distance that light will travel in a vacuum in
 1/299792458 of a second; consequently, the speed of light in a
@@ -28071,13 +28069,8 @@ of the various temperature scales.
 The unit of volume ``liters'' can be referred to by either the lower-case
 @code{l} or the upper-case @code{L}.
 
-The unit @code{A} stands for Amperes; the name @code{Ang} is used
-@tex
-for \AA ngstroms.
-@end tex
-@ifnottex
-for Angstroms.
-@end ifnottex
+The unit @code{A} stands for amperes; the name @code{Ang} is used
+for angstroms.
 
 The unit @code{pt} stands for pints; the name @code{point} stands for
 a typographical point, defined by @samp{72 point = 1 in}.  This is
@@ -28098,7 +28091,6 @@ use the @samp{tex} prefix; the unit name for a @TeX{} point will be
 @samp{pt} instead of @samp{texpt}, for example.  To avoid conflicts,
 the unit names for pint and parsec will simply be @samp{pint} and
 @samp{parsec} instead of @samp{pt} and @samp{pc}.
-
 
 The unit @code{e} stands for the elementary (electron) unit of charge;
 because algebra command could mistake this for the special constant
@@ -28496,7 +28488,6 @@ a frequency or a midi number to scientific pitch notation.  For
 example, @code{500 Hz} gets converted to
 @code{B_4 + 21.3094853649 cents} and @code{84} to @code{C_6}.
 
-
 @kindex l m
 @pindex calc-midi
 @tindex midi
@@ -28525,7 +28516,6 @@ needs to be to a note to be recognized as that note
 @expr{0}), Calc would convert @code{261.625 Hz} to scientific pitch
 notation @code{B_3 + 99.9962592773 cents}; with the default value of
 @code{1}, Calc converts @code{261.625 Hz} to @code{C_4}.
-
 
 
 @node Store and Recall, Graphics, Units, Top

@@ -39,7 +39,9 @@
           (null (string-match
                  (format-message "Reverting buffer `%s'." (buffer-name buffer))
                  (buffer-string)))
-        (read-event nil nil 0.1)))))
+	(if (with-current-buffer buffer auto-revert-use-notify)
+	    (read-event nil nil 0.1)
+	  (sleep-for 0.1))))))
 
 (ert-deftest auto-revert-test00-auto-revert-mode ()
   "Check autorevert for a file."

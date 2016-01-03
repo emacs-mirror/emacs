@@ -87,7 +87,10 @@ whitespace there."
   'show-paren-mismatch "22.1")
 
 (defcustom show-paren-highlight-openparen t
-  "Non-nil turns on openparen highlighting when matching forward."
+  "Non-nil turns on openparen highlighting when matching forward.
+When nil, and point stands just before an open paren, the paren
+is not highlighted, the cursor being regarded as adequate to mark
+its position."
   :type 'boolean)
 
 (defvar show-paren--idle-timer nil)

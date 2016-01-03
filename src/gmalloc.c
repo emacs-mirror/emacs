@@ -60,7 +60,6 @@ extern void emacs_abort (void);
    which HYBRID_MACRO is defined.  Any other platform that wants to
    define it will have to define the macros DUMPED and
    ALLOCATED_BEFORE_DUMPING, defined below for Cygwin.  */
-#ifdef HYBRID_MALLOC
 #undef malloc
 #undef realloc
 #undef calloc
@@ -70,7 +69,6 @@ extern void emacs_abort (void);
 #define calloc gcalloc
 #define aligned_alloc galigned_alloc
 #define free gfree
-#endif  /* HYBRID_MALLOC */
 
 #ifdef CYGWIN
 extern void *bss_sbrk (ptrdiff_t size);
@@ -1711,13 +1709,13 @@ valloc (size_t size)
   return aligned_alloc (pagesize, size);
 }
 
-#ifdef HYBRID_MALLOC
 #undef malloc
 #undef realloc
 #undef calloc
 #undef aligned_alloc
 #undef free
 
+#ifdef HYBRID_MALLOC
 /* Declare system malloc and friends.  */
 extern void *malloc (size_t size);
 extern void *realloc (void *ptr, size_t size);
@@ -1815,6 +1813,38 @@ hybrid_get_current_dir_name (void)
   return gget_current_dir_name ();
 }
 #endif
+
+#else	/* ! HYBRID_MALLOC */
+
+void *
+malloc (size_t size)
+{
+  return gmalloc (size);
+}
+
+void *
+calloc (size_t nmemb, size_t size)
+{
+  return gcalloc (nmemb, size);
+}
+
+void
+free (void *ptr)
+{
+  gfree (ptr);
+}
+
+void *
+aligned_alloc (size_t alignment, size_t size)
+{
+  return galigned_alloc (alignment, size);
+}
+
+void *
+realloc (void *ptr, size_t size)
+{
+  return grealloc (ptr, size);
+}
 
 #endif	/* HYBRID_MALLOC */
 

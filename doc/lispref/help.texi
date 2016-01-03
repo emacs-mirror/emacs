@@ -352,16 +352,16 @@ string in Emacs Lisp.
 @defvar text-quoting-style
 @cindex curved quotes
 @cindex curly quotes
-The value of this variable specifies the style used to generate text
-quotes.  If the variable's value is @code{curve}, the style is
+The value of this variable is a symbol that specifies the style Emacs
+should use for single quotes in the wording of help and messages.
+If the variable's value is @code{curve}, the style is
 @t{‘like this’} with curved single quotes.  If the value is
 @code{straight}, the style is @t{'like this'} with straight
 apostrophes.  If the value is @code{grave}, the style is @t{`like
-this'} with grave accent and apostrophe.  The default value @code{nil}
+this'} with grave accent and apostrophe, the standard style
+before Emacs version 25.  The default value @code{nil}
 acts like @code{curve} if curved single quotes are displayable, and
-like @code{grave} otherwise.  To use the traditional @code{grave}
-style, put the line @code{(setq text-quoting-style 'grave)} into your
-@file{~/.emacs} file.
+like @code{grave} otherwise.
 @end defvar
 
 @defun substitute-command-keys string

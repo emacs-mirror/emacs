@@ -1293,6 +1293,14 @@ update_frame_tool_bar (struct frame *f)
   //return [identifierToItem allKeys];
 }
 
+- (void)setVisible:(BOOL)shown
+{
+  NSTRACE ("[EmacsToolbar setVisible:%d]", shown);
+
+  [super setVisible:shown];
+}
+
+
 /* optional and unneeded */
 /* - toolbarWillAddItem: (NSNotification *)notification { } */
 /* - toolbarDidRemoveItem: (NSNotification *)notification { } */

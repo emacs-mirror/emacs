@@ -2938,7 +2938,7 @@ WHERE is provided the cell and table at that location is reported."
 (defun table-generate-source (language &optional dest-buffer caption)
   "Generate source of the current table in the specified language.
 LANGUAGE is a symbol that specifies the language to describe the
-structure of the table.  It must be either 'html, 'latex or 'cals.
+structure of the table.  It must be either `html', `latex' or `cals'.
 The resulted source text is inserted into DEST-BUFFER and the buffer
 object is returned.  When DEST-BUFFER is omitted or nil the default
 buffer specified in `table-dest-buffer-name' is used.  In this case
@@ -3561,7 +3561,7 @@ delimiter regular expressions.  This parsing determines the number of
 columns and rows of the table automatically.  If COL-DELIM-REGEXP and
 ROW-DELIM-REGEXP are omitted the result table has only one cell and
 the entire region contents is placed in that cell.  Optional JUSTIFY
-is one of 'left, 'center or 'right, which specifies the cell
+is one of `left', `center' or `right', which specifies the cell
 justification.  Optional MIN-CELL-WIDTH specifies the minimum cell
 width.  Optional COLUMNS specify the number of columns when
 ROW-DELIM-REGEXP is not specified.

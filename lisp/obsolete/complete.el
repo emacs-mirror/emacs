@@ -1074,7 +1074,7 @@ absolute rather than relative to some directory on the SEARCH-PATH."
 	  (setq search-path
 		(mapcar (lambda (dir) (concat dir subdir))
 			search-path)
-		file ))
+		file nil))
       ;; Make list of completions in each directory on search-path
       (while search-path
 	(let* ((dir (car search-path))
