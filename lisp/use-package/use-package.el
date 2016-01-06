@@ -562,7 +562,7 @@ manually updated package."
 (defun use-package-normalize-paths (label arg &optional recursed)
   "Normalize a list of filesystem paths."
   (cond
-   ((or (symbolp arg) (functionp arg))
+   ((and arg (or (symbolp arg) (functionp arg)))
     (let ((value (use-package-normalize-value label arg)))
       (use-package-normalize-paths label (eval value))))
    ((stringp arg)
