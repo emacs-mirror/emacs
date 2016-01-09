@@ -136,7 +136,7 @@ being the result.")
   (cdr file-notify--test-remote-enabled-checked))
 
 (defun file-notify--test-library ()
-  "The used libray for the test, as string.
+  "The used library for the test, as a string.
 In the remote case, it is the process name which runs on the
 remote host, or nil."
   (if (null (file-remote-p temporary-file-directory))

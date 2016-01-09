@@ -365,7 +365,7 @@ AC_ARG_WITH([file-notification],[AS_HELP_STRING([--with-file-notification=LIB],
     g | gf | gfi | gfil | gfile )	val=gfile ;;
     w | w3 | w32 )	val=w32 ;;
     * ) AC_MSG_ERROR(['--with-file-notification=$withval' is invalid;
-this option's value should be 'yes', 'no', 'inotify', 'kqeue', 'gfile' or 'w32'.
+this option's value should be 'yes', 'no', 'inotify', 'kqueue', 'gfile' or 'w32'.
 'yes' is a synonym for 'w32' on MS-Windows, for 'no' on Nextstep,
 otherwise for the first of 'inotify', 'kqueue' or 'gfile' that is usable.])
     ;;
@@ -2785,7 +2785,10 @@ dnl has been added in glib 2.24.  It has been tested under
 dnl GNU/Linux only.
 case $with_file_notification,$NOTIFY_OBJ in
   gfile,* | yes,)
-    if test "${HAVE_NS}" != yes; then
+    if test "${HAVE_NS}" = yes; then
+       AC_MSG_ERROR(['--with-file-notification=gfile' is not supported in NextStep builds.
+Consider kqueue instead.])
+    else
        EMACS_CHECK_MODULES([GFILENOTIFY], [gio-2.0 >= 2.24])
        if test "$HAVE_GFILENOTIFY" = "yes"; then
 	  AC_DEFINE(HAVE_GFILENOTIFY, 1, [Define to 1 if using GFile.])

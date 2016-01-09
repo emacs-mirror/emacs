@@ -244,7 +244,7 @@ Must called from within a `tar-mode' buffer."
 
 (ert-deftest package-test-macro-compilation ()
   "Install a package which includes a dependency."
-  (with-package-test (:basedir "data/package")
+  (with-package-test (:basedir "package-resources")
     (package-install-file (expand-file-name "macro-problem-package-1.0/"))
     (require 'macro-problem)
     ;; `macro-problem-func' uses a macro from `macro-aux'.

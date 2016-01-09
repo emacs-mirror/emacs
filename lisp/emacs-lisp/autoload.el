@@ -87,6 +87,23 @@ that text will be copied verbatim to `generated-autoload-file'.")
 (defconst generate-autoload-section-continuation ";;;;;; "
   "String to add on each continuation of the section header form.")
 
+(defvar autoload-timestamps t
+  "Non-nil means insert a timestamp for each input file into the output.
+We use these in incremental updates of the output file to decide
+if we need to rescan an input file.  If you set this to nil,
+then we use the timestamp of the output file instead.  As a result:
+ - for fixed inputs, the output will be the same every time
+ - incremental updates of the output file might not be correct if:
+   i) the timestamp of the output file cannot be trusted (at least
+     relative to that of the input files)
+   ii) any of the input files can be modified during the time it takes
+      to create the output
+   iii) only a subset of the input files are scanned
+   These issues are unlikely to happen in practice, and would arguably
+   represent bugs in the build system.  Item iii) will happen if you
+   use a command like `update-file-autoloads', though, since it only
+   checks a single input file.")
+
 (defvar autoload-modified-buffers)      ;Dynamically scoped var.
 
 (defun make-autoload (form file &optional expansion)
@@ -624,7 +641,9 @@ FILE's modification time."
                                       ;; We'd really want to just use
                                       ;; `emacs-internal' instead.
                                       nil nil 'emacs-mule-unix)
-                               (nth 5 (file-attributes relfile))))
+                               (if autoload-timestamps
+                                   (nth 5 (file-attributes relfile))
+                                 t)))
                             (insert ";;; Generated autoloads from " relfile "\n")))
                         (insert generate-autoload-section-trailer))))
                   (or noninteractive
@@ -688,6 +707,9 @@ removes any prior now out-of-date autoload entries."
   (catch 'up-to-date
     (let* ((buf (current-buffer))
            (existing-buffer (if buffer-file-name buf))
+           (output-file (autoload-generated-file))
+           (output-time (if (file-exists-p output-file)
+                            (nth 5 (file-attributes output-file))))
            (found nil))
       (with-current-buffer (autoload-find-generated-file)
         ;; This is to make generated-autoload-file have Unix EOLs, so
@@ -712,16 +734,26 @@ removes any prior now out-of-date autoload entries."
                          (file-time (nth 5 (file-attributes file))))
                      (if (and (or (null existing-buffer)
                                   (not (buffer-modified-p existing-buffer)))
-                              (or
+                              (cond
                                ;; last-time is the time-stamp (specifying
                                ;; the last time we looked at the file) and
                                ;; the file hasn't been changed since.
-                               (and (listp last-time) (= (length last-time) 2)
-                                    (not (time-less-p last-time file-time)))
+                               ((listp last-time)
+                                (not (time-less-p last-time file-time)))
+                               ;; FIXME? Arguably we should throw a
+                               ;; user error, or some kind of warning,
+                               ;; if we were called from update-file-autoloads,
+                               ;; which can update only a single input file.
+                               ;; It's not appropriate to use the output
+                               ;; file modtime in such a case,
+                               ;; if there are multiple input files
+                               ;; contributing to the output.
+                               ((and output-time (eq t last-time))
+                                (not (time-less-p output-time file-time)))
                                ;; last-time is an MD5 checksum instead.
-                               (and (stringp last-time)
-                                    (equal last-time
-                                           (md5 buf nil nil 'emacs-mule)))))
+                               ((stringp last-time)
+                                (equal last-time
+				       (md5 buf nil nil 'emacs-mule)))))
                          (throw 'up-to-date nil)
                        (autoload-remove-section begin)
                        (setq found t))))
@@ -781,7 +813,10 @@ write its autoloads into the specified file instead."
 	 (generated-autoload-file
 	  (if (called-interactively-p 'interactive)
 	      (read-file-name "Write autoload definitions to file: ")
-	    generated-autoload-file)))
+	    generated-autoload-file))
+	 (output-time
+	  (if (file-exists-p generated-autoload-file)
+	      (nth 5 (file-attributes generated-autoload-file)))))
 
     (with-current-buffer (autoload-find-generated-file)
       (save-excursion
@@ -799,6 +834,8 @@ write its autoloads into the specified file instead."
 		   ;; Remove the obsolete section.
 		   (autoload-remove-section (match-beginning 0))
 		   (setq last-time (nth 4 form))
+		   (if (equal t last-time)
+		       (setq last-time output-time))
 		   (dolist (file file)
 		     (let ((file-time (nth 5 (file-attributes file))))
 		       (when (and file-time
@@ -814,7 +851,10 @@ write its autoloads into the specified file instead."
                        (member (expand-file-name file) autoload-excludes))
                    ;; Remove the obsolete section.
 		   (autoload-remove-section (match-beginning 0)))
-		  ((not (time-less-p (nth 4 form)
+		  ((not (time-less-p (let ((oldtime (nth 4 form)))
+				       (if (equal t oldtime)
+					   output-time
+					 oldtime))
                                      (nth 5 (file-attributes file))))
 		   ;; File hasn't changed.
 		   nil)
@@ -847,7 +887,9 @@ write its autoloads into the specified file instead."
 	  (goto-char (point-max))
 	  (search-backward "\f" nil t)
 	  (autoload-insert-section-header
-	   (current-buffer) nil nil no-autoloads no-autoloads-time)
+	   (current-buffer) nil nil no-autoloads (if autoload-timestamps
+						     no-autoloads-time
+						   t))
 	  (insert generate-autoload-section-trailer)))
 
       (let ((version-control 'never))

@@ -29,11 +29,50 @@ otherwise leave it unmarked.
 and Mac OS X machines.
 
 
+* Startup Changes in Emacs 25.2
+
+
+* Changes in Emacs 25.2
+
+** It is possible to disable attempted recovery on fatal signals
+
+Two new variables allow to disable attempts to recover from stack
+overflow and to avoid automatic auto-save when Emacs is delivered a
+fatal signal.  `attempt-stack-overflow-recovery', if set to `nil',
+will disable attempts to recover from C stack overflows; Emacs will
+then crash as with any other fatal signal.
+`attempt-orderly-shutdown-on-fatal-signal', if set to `nil', will
+disable attempts to auto-save the session and shut down in an orderly
+fashion when Emacs receives a fatal signal; instead, Emacs will
+terminate immediately.  Both variables are non-`nil' by default.
+These variables are for users who would like to avoid the small
+probability of data corruption due to techniques Emacs uses to recover
+in these situations.
+
+
+* Editing Changes in Emacs 25.2
+
+
 * Changes in Specialized Modes and Packages in Emacs 25.2
 
 ** File Notifications
 
 *** The kqueue library is integrated for *BSD and Mac OS X machines.
+
+
+* New Modes and Packages in Emacs 25.2
+
+
+* Incompatible Lisp Changes in Emacs 25.2
+
+
+* Lisp Changes in Emacs 25.2
+
+** Autoload files can be generated without timestamps,
+by setting `autoload-timestamps' to nil.
+
+
+* Changes in Emacs 25.2 on Non-Free Operating Systems
 
 
 * Installation Changes in Emacs 25.1
@@ -1524,57 +1563,56 @@ For consistency with the usual Emacs spelling, the Lisp variable
 `hfy-optimisations' has been renamed to `hfy-optimizations'.
 The old name should still work, as an obsolescent alias.
 
-
-* Changes in Frames and Windows Code in Emacs 25.1
+** Changes in Frame- and Window- Handling
 
 +++
-** Emacs can now draw horizontal scroll bars on some platforms that
+*** Emacs can now draw horizontal scroll bars on some platforms that
 provide toolkit scroll bars, namely Gtk+, Lucid, Motif and Windows.
 Horizontal scroll bars are turned off by default.
-*** New function `horizontal-scroll-bars-available-p' telling whether
+**** New function `horizontal-scroll-bars-available-p' telling whether
     horizontal scroll bars are available on the underlying system.
-*** New mode `horizontal-scroll-bar-mode' to toggle horizontal scroll
+**** New mode `horizontal-scroll-bar-mode' to toggle horizontal scroll
     bars on all existing and future frames.
-*** New function `toggle-horizontal-scroll-bar' to toggle horizontal
+**** New function `toggle-horizontal-scroll-bar' to toggle horizontal
     scroll bars on the selected frame.
-*** New frame parameters `horizontal-scroll-bars' and
+**** New frame parameters `horizontal-scroll-bars' and
     `scroll-bar-height' to set horizontal scroll bars and their height
     for individual frames and in `default-frame-alist'.
-*** New functions `frame-scroll-bar-height' and
+**** New functions `frame-scroll-bar-height' and
     `window-scroll-bar-height' return the height of horizontal scroll
     bars on a specific frame or window.
-*** `set-window-scroll-bars' now accepts five parameters where the last
+**** `set-window-scroll-bars' now accepts five parameters where the last
     two specify height and type of the window's horizontal scroll bar.
-*** `window-scroll-bars' now returns type and sizes of horizontal scroll
+**** `window-scroll-bars' now returns type and sizes of horizontal scroll
     bars too.
-*** New buffer-local variables `horizontal-scroll-bar' and
+**** New buffer-local variables `horizontal-scroll-bar' and
     `scroll-bar-height'.
 
 +++
-** New functions `frame-geometry' and `frame-edges' give access to a
+*** New functions `frame-geometry' and `frame-edges' give access to a
 frame's geometry.
 
 +++
-** New functions `mouse-absolute-pixel-position' and
+*** New functions `mouse-absolute-pixel-position' and
 `set-mouse-absolute-pixel-position' get/set screen coordinates of the
 mouse cursor.
 
 +++
-** The function `window-edges' now accepts three additional arguments to
+*** The function `window-edges' now accepts three additional arguments to
 retrieve body, absolute and pixel edges of the window.
 
 +++
-** The functions `window-inside-edges', `window-inside-pixel-edges' and
+*** The functions `window-inside-edges', `window-inside-pixel-edges' and
 `window-inside-absolute-pixel-edges' have been renamed to respectively
 `window-body-edges', `window-body-pixel-edges' and
 `window-absolute-body-pixel-edges'.  The old names are kept as aliases.
 
 +++
-** New function `window-absolute-pixel-position' to get the screen
+*** New function `window-absolute-pixel-position' to get the screen
 coordinates of a visible buffer position.
 
 +++
-** The height of a frame's menu and tool bar are no longer counted in the
+*** The height of a frame's menu and tool bar are no longer counted in the
 frame's text height.  This means that the text height stands only for
 the height of the frame's root window plus that of the echo area (if
 present).  This was already the behavior for frames with external tool
@@ -1582,33 +1620,33 @@ and menu bars (like in the Gtk builds) but has now been extended to all
 builds.
 
 +++
-** Frames now do not necessarily preserve the number of columns or lines
+*** Frames now do not necessarily preserve the number of columns or lines
 they display when setting default font, menu bar, fringe width, or
 scroll bars.  In particular, maximized and fullscreen frames are
 conceptually never resized if such settings change.  For fullheight and
 fullwidth frames, the behavior may depend on the toolkit used.
-*** New option `frame-inhibit-implied-resize' if non-nil, means that
+**** New option `frame-inhibit-implied-resize' if non-nil, means that
    setting default font, menu bar, fringe width, or scroll bars of a
    specific frame does not resize that frame in order to preserve the
    number of columns or lines it displays.
 
 +++
-** New function `window-preserve-size' allows to preserve the size of
+*** New function `window-preserve-size' allows to preserve the size of
 windows without "fixing" it.  It's supported by `fit-window-to-buffer',
 `temp-buffer-resize-mode' and `display-buffer'.
 
 +++
-** New `display-buffer' action function `display-buffer-use-some-frame'.
+*** New `display-buffer' action function `display-buffer-use-some-frame'.
 This displays the buffer in an existing frame other than the current
 frame, and allows the caller to specify a frame predicate to exclude
 frames.
 
 +++
-** New minor mode `window-divider-mode' and options
+*** New minor mode `window-divider-mode' and options
 `window-divider-default-places', `window-divider-default-bottom-width'
 and `window-divider-default-right-width'.
 
-** Tearoff menus and detachable toolbars for Gtk+ has been removed.
+** Tearoff menus and detachable toolbars for Gtk+ have been removed.
 Those features have been deprecated in Gtk+ for a long time.
 
 ** Etags

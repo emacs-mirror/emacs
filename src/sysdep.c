@@ -1622,6 +1622,9 @@ static unsigned char sigsegv_stack[SIGSTKSZ];
 static bool
 stack_overflow (siginfo_t *siginfo)
 {
+  if (!attempt_stack_overflow_recovery)
+    return false;
+
   /* In theory, a more-accurate heuristic can be obtained by using
      GNU/Linux pthread_getattr_np along with POSIX pthread_attr_getstack
      and pthread_attr_getguardsize to find the location and size of the

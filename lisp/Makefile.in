@@ -185,7 +185,7 @@ $(lisp)/loaddefs.el: $(LOADDEFS)
 	    --eval '(setq generated-autoload-file (expand-file-name (unmsys--file-name "$@")))' \
 	    -f batch-update-autoloads ${SUBDIRS_ALMOST}
 
-# autoloads only runs when loaddefs.el is non-existant, although it
+# autoloads only runs when loaddefs.el is nonexistent, although it
 # generates a number of different files. Provide a force option to enable
 # regeneration of all these files.
 autoloads-force .PHONY:
@@ -220,26 +220,28 @@ update-authors:
 	$(emacs) -L "$(top_srcdir)/admin" -l authors \
 	  -f batch-update-authors "$(top_srcdir)/etc/AUTHORS" "$(top_srcdir)"
 
+FORCE:
+.PHONY: FORCE
 
-ETAGS = ../lib-src/etags
+tagsfiles = $(shell find ${srcdir} -name '*.el')
+tagsfiles := $(filter-out ${srcdir}/%loaddefs.el,${tagsfiles})
+tagsfiles := $(filter-out ${srcdir}/ldefs-boot.el,${tagsfiles})
+tagsfiles := $(filter-out ${srcdir}/eshell/esh-groups.el,${tagsfiles})
 
-lisptagsfiles1 = $(srcdir)/*.el
-lisptagsfiles2 = $(srcdir)/*/*.el
-lisptagsfiles3 = $(srcdir)/*/*/*.el
-lisptagsfiles4 = $(srcdir)/*/*/*/*.el
+ETAGS = ../lib-src/etags${EXEEXT}
 
-## The ls | sed | xargs is to stop the command line getting too long
+${ETAGS}: FORCE
+	${MAKE} -C ../lib-src $(notdir $@)
+
+## The use of xargs is to stop the command line getting too long
 ## on MS Windows, when the MSYS Bash passes it to a MinGW compiled
 ## etags.  It might be better to use find in a similar way to
 ## compile-main.  But maybe this is not even necessary any more now
 ## that this uses relative filenames.
-TAGS: $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsfiles4)
+TAGS: ${ETAGS} ${tagsfiles}
 	rm -f $@
 	touch $@
-	ls $(lisptagsfiles1) $(lisptagsfiles2) \
-	   $(lisptagsfiles3) $(lisptagsfiles4) | \
-	    sed -e '/loaddefs/d; /\/ldefs-boot/d; /esh-groups\.el/d' | \
-	    xargs $(XARGS_LIMIT) "$(ETAGS)" -a -o $@
+	ls ${tagsfiles} | xargs $(XARGS_LIMIT) "${ETAGS}" -a -o $@
 
 
 # The src/Makefile.in has its own set of dependencies and when they decide
@@ -402,7 +404,7 @@ $(TRAMP_DIR)/tramp-loaddefs.el: $(TRAMP_SRC)
 CAL_DIR = $(lisp)/calendar
 ## Those files that may contain internal calendar autoload cookies.
 CAL_SRC = $(addprefix ${CAL_DIR}/,diary-lib.el holidays.el lunar.el solar.el)
-CAL_SRC := $(sort ${CAL_SRC} $(wildcard ${CAL_DIR}/cal*.el))
+CAL_SRC := $(sort ${CAL_SRC} $(wildcard ${CAL_DIR}/cal-*.el))
 CAL_SRC := $(filter-out ${CAL_DIR}/cal-loaddefs.el,${CAL_SRC})
 
 $(CAL_DIR)/cal-loaddefs.el: $(CAL_SRC)

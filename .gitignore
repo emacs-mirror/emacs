@@ -1,6 +1,6 @@
 # Files that Git should ignore in the Emacs source directory.
 
-# Copyright 2009-2015 Free Software Foundation, Inc.
+# Copyright 2009-2016 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -116,6 +116,7 @@ lisp/leim/quail/quick-b5.el
 lisp/leim/quail/quick-cns.el
 lisp/leim/quail/tsang-b5.el
 lisp/leim/quail/tsang-cns.el
+lisp/mh-e/mh-autoloads.el
 lisp/subdirs.el
 
 # Dependencies.
@@ -151,7 +152,7 @@ src/*.map
 
 # Tests.
 test/indent/*.new
-test/biditest.txt
+test/manual/biditest.txt
 test/manual/etags/srclist
 test/manual/etags/regexfile
 test/manual/etags/ETAGS

@@ -156,7 +156,7 @@
   ;; example mentioned in RFC3986, section 5.4. Reference Resolution Examples
   (should (equal (url-generic-parse-url "http://a/b/c/d;p?q") (url-parse-make-urlobj "http" nil nil "a" nil "/b/c/d;p?q" nil nil t))))
 
-(ert-deftest url-generic-parse-url/same-decument-reference ()
+(ert-deftest url-generic-parse-url/same-document-reference ()
   "RFC 3986, section 4.4. Same-Document Reference / same-document reference: empty or number sign (\"#\") followed by a fragment identifier"
   (should (equal (url-generic-parse-url "") (url-parse-make-urlobj nil nil nil nil nil "" nil nil nil)))
   (should (equal (url-generic-parse-url "#") (url-parse-make-urlobj nil nil nil nil nil "" "" nil nil)))

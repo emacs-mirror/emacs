@@ -30,7 +30,7 @@
 (require 'seq)
 
 (defun puny-encode-domain (domain)
-  "Encode DOMAIN according to the IDNA/punycode algorith.
+  "Encode DOMAIN according to the IDNA/punycode algorithm.
 For instance, \"fśf.org\" => \"xn--ff-2sa.org\"."
   ;; The vast majority of domain names are not IDNA domain names, so
   ;; add a check first to avoid doing unnecessary work.
@@ -54,7 +54,7 @@ For instance, \"bücher\" => \"xn--bcher-kva\"."
               (puny-encode-complex (length ascii) string)))))
 
 (defun puny-decode-domain (domain)
-  "Decode DOMAIN according to the IDNA/punycode algorith.
+  "Decode DOMAIN according to the IDNA/punycode algorithm.
 For instance, \"xn--ff-2sa.org\" => \"fśf.org\"."
   (mapconcat 'puny-decode-string (split-string domain "[.]") "."))
 
@@ -215,12 +215,12 @@ using homographs."
                                   #x058A ; ARMENIAN HYPHEN
                                   #x05F3 ; HEBREW PUNCTUATION GERESH
                                   #x05F4 ; HEBREW PUNCTUATION GERSHAYIM
-                                  #x0F0B ; IBETAN MARK INTERSYLLABIC TSHEG
-                                  #x200C ; ERO WIDTH NON-JOINER*
-                                  #x200D ; ERO WIDTH JOINER*
-                                  #x2010 ; YPHEN
-                                  #x2019 ; IGHT SINGLE QUOTATION MARK
-                                  #x2027 ; YPHENATION POINT
+                                  #x0F0B ; TIBETAN MARK INTERSYLLABIC TSHEG
+                                  #x200C ; ZERO WIDTH NON-JOINER*
+                                  #x200D ; ZERO WIDTH JOINER*
+                                  #x2010 ; HYPHEN
+                                  #x2019 ; RIGHT SINGLE QUOTATION MARK
+                                  #x2027 ; HYPHENATION POINT
                                   #x30A0 ; KATAKANA-HIRAGANA DOUBLE HYPHEN
                                   #x30FB)) ; KATAKANA MIDDLE DOT
                           t

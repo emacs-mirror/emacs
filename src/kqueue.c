@@ -257,7 +257,7 @@ kqueue_compare_dir_list
 
   /* At this point, old_dl, new_dl and pending_dl shall be empty.
      deleted_dl might not be empty when there was a rename to a
-     nonexisting file.  Let's make a check for this (might be removed
+     nonexistent file.  Let's make a check for this (might be removed
      once the code is stable).  */
   if (! NILP (old_dl))
     report_file_error ("Old list not empty", old_dl);

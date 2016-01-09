@@ -121,7 +121,7 @@ Linum mode is a buffer-local minor mode."
   (setq linum-overlays nil)
   (dolist (w (get-buffer-window-list (current-buffer) nil t))
     ;; restore margins if needed FIXME: This still fails if the
-    ;; "other" mode has incidently set margins to exactly what linum
+    ;; "other" mode has incidentally set margins to exactly what linum
     ;; had: see bug#20674 for a similar workaround in nlinum.el
     (let ((set-margins (window-parameter w 'linum--set-margins))
           (current-margins (window-margins w)))

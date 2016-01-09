@@ -233,7 +233,7 @@ is still reproducible.
 
 The process of going through old or new bugs and acting on them is
 called bug triage.  This process is described in the file
-admin/notes/triage.
+admin/notes/bug-triage.
 
 ** Document your changes.
 

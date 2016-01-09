@@ -373,17 +373,20 @@ terminate_due_to_signal (int sig, int backtrace_limit)
 {
   signal (sig, SIG_DFL);
 
-  /* If fatal error occurs in code below, avoid infinite recursion.  */
-  if (! fatal_error_in_progress)
+  if (attempt_orderly_shutdown_on_fatal_signal)
     {
-      fatal_error_in_progress = 1;
+      /* If fatal error occurs in code below, avoid infinite recursion.  */
+      if (! fatal_error_in_progress)
+        {
+          fatal_error_in_progress = 1;
 
-      totally_unblock_input ();
-      if (sig == SIGTERM || sig == SIGHUP || sig == SIGINT)
-        Fkill_emacs (make_number (sig));
+          totally_unblock_input ();
+          if (sig == SIGTERM || sig == SIGHUP || sig == SIGINT)
+            Fkill_emacs (make_number (sig));
 
-      shut_down_emacs (sig, Qnil);
-      emacs_backtrace (backtrace_limit);
+          shut_down_emacs (sig, Qnil);
+          emacs_backtrace (backtrace_limit);
+        }
     }
 
   /* Signal the same code; this time it will really be fatal.

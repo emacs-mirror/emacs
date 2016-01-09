@@ -660,32 +660,34 @@ extraclean: distclean
 	-rm -f *~ \#*
 
 
-ETAGS = ../lib-src/etags
+ETAGS = ../lib-src/etags${EXEEXT}
 
-ctagsfiles1 = [xyzXYZ]*.[hc]
-ctagsfiles2 = [a-wA-W]*.[hc]
-ctagsfiles3 = [a-zA-Z]*.m
+${ETAGS}: FORCE
+	${MAKE} -C ../lib-src $(notdir $@)
+
+ctagsfiles1 = $(wildcard ${srcdir}/*.[hc])
+ctagsfiles2 = $(wildcard ${srcdir}/*.m)
 
 ## FIXME? In out-of-tree builds, should TAGS be generated in srcdir?
 
 ## This does not need to depend on ../lisp and ../lwlib TAGS files,
 ## because etags "--include" only includes a pointer to the file,
 ## rather than the file contents.
-TAGS: $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) $(srcdir)/$(ctagsfiles3)
-	"$(ETAGS)" --include=../lisp/TAGS --include=$(lwlibdir)/TAGS \
+TAGS: ${ETAGS} $(ctagsfiles1) $(ctagsfiles2)
+	${ETAGS} --include=../lisp/TAGS --include=$(lwlibdir)/TAGS \
 	  --regex='{c}/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/\1/' \
 	  --regex='{c}/[ 	]*DEFVAR_[A-Z_ 	(]+"[^"]+",[ 	]\([A-Za-z0-9_]+\)/\1/' \
-	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2) \
+	  $(ctagsfiles1) \
 	  --regex='{objc}/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/\1/' \
 	  --regex='{objc}/[ 	]*DEFVAR_[A-Z_ 	(]+"[^"]+",[ 	]\([A-Za-z0-9_]+\)/\1/' \
-	  $(srcdir)/$(ctagsfiles3)
+	  $(ctagsfiles2)
 
 ## Arrange to make tags tables for ../lisp and ../lwlib,
 ## which the above TAGS file for the C files includes by reference.
-../lisp/TAGS:
+../lisp/TAGS: FORCE
 	$(MAKE) -C ../lisp TAGS ETAGS="$(ETAGS)"
 
-$(lwlibdir)/TAGS:
+$(lwlibdir)/TAGS: FORCE
 	$(MAKE) -C $(lwlibdir) TAGS ETAGS="$(ETAGS)"
 
 tags: TAGS ../lisp/TAGS $(lwlibdir)/TAGS

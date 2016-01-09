@@ -58,12 +58,12 @@ CC=@CC@
 CFLAGS=@CFLAGS@
 CPPFLAGS = @CPPFLAGS@
 
-TAGS = etags
 RM = rm -f
 RANLIB = @RANLIB@
 AR = @AR@
 ARFLAGS = @ARFLAGS@
 MKDIR_P = @MKDIR_P@
+EXEEXT = @EXEEXT@
 
 OBJS =  Activate.o \
 	AddPane.o \
@@ -152,8 +152,17 @@ clean mostlyclean:
 bootstrap-clean maintainer-clean distclean: clean
 	rm -f Makefile
 
-.PHONY: tags
-tags:
-	$(TAGS) -t *.[ch]
+ETAGS = ../lib-src/etags${EXEEXT}
+
+${ETAGS}: FORCE
+	${MAKE} -C ../lib-src $(notdir $@)
+
+tagsfiles = $(wildcard ${srcdir}/*.[ch])
+
+FORCE:
+.PHONY: tags FORCE
+tags: TAGS
+TAGS: ${ETAGS} ${tagsfiles}
+	${ETAGS} ${tagsfiles}
 
 ### Makefile.in ends here

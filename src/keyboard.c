@@ -11678,6 +11678,25 @@ Currently, the only supported values for this
 variable are `sigusr1' and `sigusr2'.  */);
   Vdebug_on_event = intern_c_string ("sigusr2");
 
+  DEFVAR_BOOL ("attempt-stack-overflow-recovery",
+               attempt_stack_overflow_recovery,
+               doc: /* If non-nil, attempt to recover from C stack
+overflow.  This recovery is unsafe and may lead to deadlocks or data
+corruption, but it usually works and may preserve modified buffers
+that would otherwise be lost.  If nil, treat stack overflow like any
+other kind of crash.  */);
+  attempt_stack_overflow_recovery = true;
+
+  DEFVAR_BOOL ("attempt-orderly-shutdown-on-fatal-signal",
+               attempt_orderly_shutdown_on_fatal_signal,
+               doc: /* If non-nil, attempt to perform an orderly
+shutdown when Emacs receives a fatal signal (e.g., a crash).
+This cleanup is unsafe and may lead to deadlocks or data corruption,
+but it usually works and may preserve modified buffers that would
+otherwise be lost.  If nil, crash immediately in response to fatal
+signals.  */);
+  attempt_orderly_shutdown_on_fatal_signal = true;
+
   /* Create the initial keyboard.  Qt means 'unset'.  */
   initial_kboard = allocate_kboard (Qt);
 }

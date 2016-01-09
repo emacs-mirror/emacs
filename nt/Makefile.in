@@ -225,9 +225,18 @@ extraclean: maintainer-clean
 check:
 	@echo "We don't have any tests for the nt/ directory yet."
 
+ETAGS = ../lib-src/etags${EXEEXT}
+
+${ETAGS}: FORCE
+	${MAKE} -C ../lib-src $(notdir $@)
+
+tagsfiles= $(wildcard ${srcdir}/*.[ch])
+
+FORCE:
+.PHONY: tags FORCE
 tags: TAGS
-TAGS: ${EXE_FILES:${EXEEXT}=.c}
-	../lib-src/etags *.[ch]
+TAGS: ${ETAGS} ${tagsfiles}
+	${ETAGS} ${tagsfiles}
 
 ## Build the programs
 addpm${EXEEXT}: ${srcdir}/addpm.c ../src/epaths.h

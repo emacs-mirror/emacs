@@ -50,5 +50,5 @@ directory as the feature. Hence, the lisp file ~flymake.el~ should have test
 files in ~/test/automated/lisp/progmodes/flymake-tests.el~ should reside in a
 directory called ~/test/automated/lisp/progmodes/flymake-resources~.
 
-No guidance is given for the organisation of resource files inside the
-~-resource~ directory; files can be organised at the author's discretion.
+No guidance is given for the organization of resource files inside the
+~-resource~ directory; files can be organized at the author's discretion.
