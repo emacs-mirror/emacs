@@ -1019,7 +1019,8 @@ width) in lines and characters respectively."
         (- (if (member which-key-side-window-location '(left right))
                (which-key--total-width-to-text (which-key--width-or-percentage-to-width
                                                 which-key-side-window-max-width))
-             (frame-width))
+             (which-key--total-width-to-text (which-key--width-or-percentage-to-width
+                                              1.0)))
            which-key-unicode-correction))))
 
 (defun which-key--frame-max-dimensions ()
