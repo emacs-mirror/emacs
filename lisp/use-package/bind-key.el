@@ -135,13 +135,19 @@
 Elements have the form ((KEY . [MAP]) CMD ORIGINAL-CMD)")
 
 ;;;###autoload
-(defmacro bind-key (key-name command &optional keymap)
+(defmacro bind-key (key-name command &optional keymap predicate)
   "Bind KEY-NAME to COMMAND in KEYMAP (`global-map' if not passed).
 
 KEY-NAME may be a vector, in which case it is passed straight to
 `define-key'. Or it may be a string to be interpreted as
 spelled-out keystrokes, e.g., \"C-c C-z\". See documentation of
-`edmacro-mode' for details."
+`edmacro-mode' for details.
+
+If PREDICATE is non-nil, it is a form evaluated to determine when
+a key should be bound. It must return non-nil in such cases.
+Emacs can evaluate this form at any time that it does redisplay
+or operates on menu data structures, so you should write it so it
+can safely be called at any time."
   (let ((namevar (make-symbol "name"))
         (keyvar (make-symbol "key"))
         (kdescvar (make-symbol "kdesc"))
@@ -152,15 +158,21 @@ spelled-out keystrokes, e.g., \"C-c C-z\". See documentation of
             (,kdescvar (cons (if (stringp ,namevar) ,namevar
                                (key-description ,namevar))
                              (quote ,keymap)))
-            (,bindingvar (lookup-key (or ,keymap global-map)
-                                     ,keyvar)))
+            (,bindingvar (lookup-key (or ,keymap global-map) ,keyvar)))
        (add-to-list 'personal-keybindings
                     (list ,kdescvar ,command
                           (unless (numberp ,bindingvar) ,bindingvar)))
-       (define-key (or ,keymap global-map) ,keyvar ,command))))
+       ,(if predicate
+            `(define-key (or ,keymap global-map) ,keyvar
+               '(menu-item "" nil :filter (lambda (&optional _)
+                                            (when ,predicate
+                                              ,command))))
+          `(define-key (or ,keymap global-map) ,keyvar ,command)))))
 
 ;;;###autoload
 (defmacro unbind-key (key-name &optional keymap)
+  "Unbind the given KEY-NAME, within the KEYMAP (if specified).
+See `bind-key' for more details."
   `(progn
      (bind-key ,key-name nil ,keymap)
      (setq personal-keybindings
@@ -174,20 +186,23 @@ spelled-out keystrokes, e.g., \"C-c C-z\". See documentation of
                          personal-keybindings))))
 
 ;;;###autoload
-(defmacro bind-key* (key-name command)
-  `(bind-key ,key-name ,command override-global-map))
+(defmacro bind-key* (key-name command &optional predicate)
+  "Similar to `bind-key', but overrides any mode-specific bindings."
+  `(bind-key ,key-name ,command override-global-map predicate))
 
 ;;;###autoload
 (defmacro bind-keys (&rest args)
   "Bind multiple keys at once.
 
 Accepts keyword arguments:
-:map - a keymap into which the keybindings should be added
-:prefix-map - name of the prefix map that should be created for
-              these bindings
-:prefix - prefix key for these bindings
-:prefix-docstring - docstring for the prefix-map variable
-:menu-name - optional menu string for prefix map
+:map MAP               - a keymap into which the keybindings should be
+                         added
+:prefix KEY            - prefix key for these bindings
+:prefix-map MAP        - name of the prefix map that should be created
+                         for these bindings
+:prefix-docstring STR  - docstring for the prefix-map variable
+:menu-name NAME        - optional menu string for prefix map
+:filter FORM           - optional form to determine when bindings apply
 
 The rest of the arguments are conses of keybinding string and a
 function symbol (unquoted)."
@@ -196,6 +211,7 @@ function symbol (unquoted)."
          (doc (plist-get args :prefix-docstring))
          (prefix-map (plist-get args :prefix-map))
          (prefix (plist-get args :prefix))
+         (filter (plist-get args :filter))
          (menu-name (plist-get args :menu-name))
          (key-bindings (progn
                          (while (keywordp (car args))
@@ -218,17 +234,18 @@ function symbol (unquoted)."
           ,@(if maps
                 (mapcar
                  #'(lambda (m)
-                     `(bind-key ,prefix ',prefix-map ,m)) maps)
-              `((bind-key ,prefix ',prefix-map)))))
-      (cl-mapcan (lambda (form)
-                   (if prefix-map
-                       `((bind-key ,(car form) ',(cdr form) ,prefix-map))
-                     (if maps
-                         (mapcar
-                          #'(lambda (m)
-                              `(bind-key ,(car form) ',(cdr form) ,m)) maps)
-                       `((bind-key ,(car form) ',(cdr form))))))
-                 key-bindings)))))
+                     `(bind-key ,prefix ',prefix-map ,m ,filter)) maps)
+              `((bind-key ,prefix ',prefix-map nil ,filter)))))
+      (cl-mapcan
+       (lambda (form)
+         (if prefix-map
+             `((bind-key ,(car form) ',(cdr form) ,prefix-map ,filter))
+           (if maps
+               (mapcar
+                #'(lambda (m)
+                    `(bind-key ,(car form) ',(cdr form) ,m ,filter)) maps)
+             `((bind-key ,(car form) ',(cdr form) nil ,filter)))))
+       key-bindings)))))
 
 ;;;###autoload
 (defmacro bind-keys* (&rest args)
