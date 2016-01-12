@@ -188,7 +188,7 @@ See `bind-key' for more details."
 ;;;###autoload
 (defmacro bind-key* (key-name command &optional predicate)
   "Similar to `bind-key', but overrides any mode-specific bindings."
-  `(bind-key ,key-name ,command override-global-map predicate))
+  `(bind-key ,key-name ,command override-global-map ,predicate))
 
 ;;;###autoload
 (defmacro bind-keys (&rest args)
