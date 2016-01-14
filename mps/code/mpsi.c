@@ -8,7 +8,7 @@
  * <code/mps.h>, and the internal MPM interfaces, as defined by
  * <code/mpm.h>.  .purpose.check: It performs checking of the C client's
  * usage of the MPS Interface.  .purpose.thread: It excludes multiple
- * threads from the MPM by locking the Arena (see .thread-safety).
+ * threads from the MPM by locking the Arena (see <design/thread-safety/>).
  *
  * .design: <design/interface-c/>
  *
