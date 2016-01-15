@@ -19,6 +19,7 @@ LANGUAGE (NATIVE NAME)	HELLO
 ----------------------	-----
 Amharic ($,1O M[MmN{(B)	$,1M`MKM](B
 Arabic ($,1-g.$-y-q-h.*.1-i(B)	$,1-g.$-s.1.$-g.%(B $,1-y.$.*.#.%(B
+Armenian ($,1+p+a+u+e, +e+v(B)	$,1+2+a, ,'(B $,1+q+e+f(B
 Bengali ($,17,7>6b727>(B)	$,17(7.787M6u7>70(B
 Braille	$,2(3(1('('(5(B
 Burmese ($,1H9H\H4HZH9HL(B)	$,1H9H$HZHYH"H<HLH5HK(B
@@ -48,6 +49,7 @@ Lao ((1>RJRERG(B)	(1JP:R-4U(B / (1"mcKib*!4U(B
 Malayalam ($,1@N@R@O@^@S@"(B)	$,1@H@N@X@m@5@^@P@"(B
 Maltese (il-Malti)	Bon,Cu(Bu / Sa,C11(Ba
 Mathematics	$,1x (B p $,1x((B world $,1s"(B hello p  $,2!a(B
+Mongolian (,L\^]S^[(B ,Lem[(B)	,LAPY](B ,LQPY]P(B ,Lcc(B?
 Norwegian (norsk)	Hei / God dag
 Oriya ($,1:s;\;?:f(B)	$,1;6;A;#;?;,;G(B
 Polish  (j,Bj(Bzyk polski)	Dzie,Bq(B dobry! / Cze,B6f(B!
@@ -73,7 +75,7 @@ Korean ($(CGQ1[(B)	$(C>H3gGO<<?d(B / $(C>H3gGO=J4O1n(B
 
 
 
-Copyright (C) 2001-2015 Free Software Foundation, Inc.
+Copyright (C) 2001-2016 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

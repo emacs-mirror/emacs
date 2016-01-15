@@ -1,6 +1,6 @@
 ;;; python.el --- Python's flying circus support for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2016 Free Software Foundation, Inc.
 
 ;; Author: Fabián E. Gallina <fgallina@gnu.org>
 ;; URL: https://github.com/fgallina/python.el
@@ -2042,8 +2042,8 @@ virtualenv."
 (defun python-shell-calculate-pythonpath ()
   "Calculate the PYTHONPATH using `python-shell-extra-pythonpaths'."
   (let ((pythonpath
-         (tramp-compat-split-string
-          (or (getenv "PYTHONPATH") "") path-separator)))
+         (split-string
+          (or (getenv "PYTHONPATH") "") path-separator 'omit)))
     (python-shell--add-to-path-with-priority
      pythonpath python-shell-extra-pythonpaths)
     (mapconcat 'identity pythonpath path-separator)))
@@ -2114,7 +2114,7 @@ appends `python-shell-remote-exec-path' instead of `exec-path'."
            (md5 tramp-end-of-output)))
 	unset vars item)
     (while env
-      (setq item (tramp-compat-split-string (car env) "="))
+      (setq item (split-string (car env) "=" 'omit))
       (setcdr item (mapconcat 'identity (cdr item) "="))
       (if (and (stringp (cdr item)) (not (string-equal (cdr item) "")))
 	  (push (format "%s %s" (car item) (cdr item)) vars)
@@ -3569,7 +3569,9 @@ using that one instead of current buffer's process."
               (forward-char (length (match-string-no-properties 0)))
               (point))))
          (end (point))
-         (prompt-boundaries (python-util-comint-last-prompt))
+         (prompt-boundaries
+          (with-current-buffer (process-buffer process)
+            (python-util-comint-last-prompt)))
          (prompt
           (with-current-buffer (process-buffer process)
             (when prompt-boundaries

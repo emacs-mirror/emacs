@@ -1,6 +1,6 @@
 ;;; nsm.el --- Network Security Manager
 
-;; Copyright (C) 2014-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2016 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: encryption, security, network
@@ -183,7 +183,9 @@ unencrypted."
 
 (defun nsm-check-protocol (process host port status settings)
   (let ((prime-bits (plist-get status :diffie-hellman-prime-bits))
-	(encryption (format "%s-%s-%s"
+        (signature-algorithm
+         (plist-get (plist-get status :certificate) :signature-algorithm))
+        (encryption (format "%s-%s-%s"
 			    (plist-get status :key-exchange)
 			    (plist-get status :cipher)
 			    (plist-get status :mac)))
@@ -207,6 +209,15 @@ unencrypted."
 	     host port status :rc4
 	     "The connection to %s:%s uses the RC4 algorithm (%s), which is believed to be unsafe."
 	     host port encryption)))
+      (delete-process process)
+      nil)
+     ((and (string-match "\\bSHA1\\b" signature-algorithm)
+	   (not (memq :signature-sha1 (plist-get settings :conditions)))
+	   (not
+	    (nsm-query
+	     host port status :signature-sha1
+	     "The certificate used to verify the connection to %s:%s uses the SHA1 algorithm (%s), which is believed to be unsafe."
+	     host port signature-algorithm)))
       (delete-process process)
       nil)
      ((and protocol

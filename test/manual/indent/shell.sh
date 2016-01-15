@@ -3,6 +3,9 @@
 
 setlock -n /tmp/getmail.lock && echo getmail isn\'t running
 
+toto=$(grep hello foo |
+           wc)
+
 # adsgsdg
 
 if foo; then

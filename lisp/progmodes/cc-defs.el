@@ -1,6 +1,6 @@
 ;;; cc-defs.el --- compile time definitions for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2016 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -656,23 +656,35 @@ right side of it."
 ;; Wrappers for common scan-lists cases, mainly because it's almost
 ;; impossible to get a feel for how that function works.
 
-(defmacro c-go-list-forward ()
-  "Move backward across one balanced group of parentheses.
+(defmacro c-go-list-forward (&optional pos limit)
+  "Move forward across one balanced group of parentheses starting at POS or
+point.  Return POINT when we succeed, NIL when we fail.  In the latter case,
+leave point unmoved.
 
-Return POINT when we succeed, NIL when we fail.  In the latter case, leave
-point unmoved."
-  `(c-safe (let ((endpos (scan-lists (point) 1 0)))
-	     (goto-char endpos)
-	     endpos)))
+A LIMIT for the search may be given.  The start position is assumed to be
+before it."
+  (let ((res `(c-safe (goto-char (scan-lists ,(or pos `(point)) 1 0)) (point))))
+    (if limit
+	`(save-restriction
+	   (if ,limit
+	       (narrow-to-region (point-min) ,limit))
+	   ,res)
+      res)))
 
-(defmacro c-go-list-backward ()
-  "Move backward across one balanced group of parentheses.
+(defmacro c-go-list-backward (&optional pos limit)
+  "Move backward across one balanced group of parentheses starting at POS or
+point.  Return POINT when we succeed, NIL when we fail.  In the latter case,
+leave point unmoved.
 
-Return POINT when we succeed, NIL when we fail.  In the latter case, leave
-point unmoved."
-  `(c-safe (let ((endpos (scan-lists (point) -1 0)))
-	     (goto-char endpos)
-	     endpos)))
+A LIMIT for the search may be given.  The start position is assumed to be
+after it."
+  (let ((res `(c-safe (goto-char (scan-lists ,(or pos `(point)) -1 0)) (point))))
+    (if limit
+	`(save-restriction
+	   (if ,limit
+	       (narrow-to-region ,limit (point-max)))
+	   ,res)
+      res)))
 
 (defmacro c-up-list-forward (&optional pos limit)
   "Return the first position after the list sexp containing POS,

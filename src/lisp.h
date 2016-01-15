@@ -1,6 +1,6 @@
 /* Fundamental definitions for GNU Emacs Lisp interpreter. -*- coding: utf-8 -*-
 
-Copyright (C) 1985-1987, 1993-1995, 1997-2015 Free Software Foundation,
+Copyright (C) 1985-1987, 1993-1995, 1997-2016 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -1331,7 +1331,7 @@ STRING_MULTIBYTE (Lisp_Object str)
 /* Mark STR as a unibyte string.  */
 #define STRING_SET_UNIBYTE(STR)				\
   do {							\
-    if (EQ (STR, empty_multibyte_string))		\
+    if (XSTRING (STR)->size == 0)			\
       (STR) = empty_unibyte_string;			\
     else						\
       XSTRING (STR)->size_byte = -1;			\
@@ -1341,7 +1341,7 @@ STRING_MULTIBYTE (Lisp_Object str)
    ASCII characters in advance.  */
 #define STRING_SET_MULTIBYTE(STR)			\
   do {							\
-    if (EQ (STR, empty_unibyte_string))			\
+    if (XSTRING (STR)->size == 0)			\
       (STR) = empty_multibyte_string;			\
     else						\
       XSTRING (STR)->size_byte = XSTRING (STR)->size;	\
@@ -3933,7 +3933,7 @@ extern bool let_shadows_global_binding_p (Lisp_Object symbol);
 
 #ifdef HAVE_MODULES
 /* Defined in alloc.c.  */
-extern Lisp_Object make_user_ptr (void (*finalizer) (void*), void *p);
+extern Lisp_Object make_user_ptr (void (*finalizer) (void *), void *p);
 
 /* Defined in emacs-module.c.  */
 extern void module_init (void);

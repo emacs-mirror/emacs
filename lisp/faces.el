@@ -1,6 +1,6 @@
 ;;; faces.el --- Lisp faces
 
-;; Copyright (C) 1992-1996, 1998-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1996, 1998-2016 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal

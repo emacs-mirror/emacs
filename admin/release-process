@@ -213,26 +213,26 @@ names of the people who have checked it.
 
 SECTION                  READERS
 ----------------------------------
-TUTORIAL             cyd
-TUTORIAL.bg          ogi
-TUTORIAL.cn          xfq
+TUTORIAL
+TUTORIAL.bg
+TUTORIAL.cn
 TUTORIAL.cs
-TUTORIAL.de          wl
+TUTORIAL.de
 TUTORIAL.eo
 TUTORIAL.es
 TUTORIAL.fr
-TUTORIAL.he          eliz
+TUTORIAL.he
 TUTORIAL.it
 TUTORIAL.ja
 TUTORIAL.ko
-TUTORIAL.nl	     Pieter Schoenmakers
+TUTORIAL.nl
 TUTORIAL.pl
 TUTORIAL.pt_BR
 TUTORIAL.ro
-TUTORIAL.ru          Alex Ott
+TUTORIAL.ru
 TUTORIAL.sk
-TUTORIAL.sl          Primoz PETERLIN
-TUTORIAL.sv          Mats Lidell
+TUTORIAL.sl
+TUTORIAL.sv
 TUTORIAL.th
 TUTORIAL.zh
 
@@ -326,7 +326,7 @@ markers.texi
 minibuf.texi
 modes.texi
 nonascii.texi
-numbers.texi      Paul Eggert (24.4)
+numbers.texi
 objects.texi
 os.texi
 package.texi

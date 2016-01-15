@@ -1,6 +1,6 @@
 /* Utility and Unix shadow routines for GNU Emacs on the Microsoft Windows API.
 
-Copyright (C) 1994-1995, 2000-2015 Free Software Foundation, Inc.
+Copyright (C) 1994-1995, 2000-2016 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1513,7 +1513,7 @@ codepage_for_filenames (CPINFO *cp_info)
 
       if (NILP (current_encoding))
 	{
-	  char *cpname = SDATA (SYMBOL_NAME (current_encoding));
+	  char *cpname = SSDATA (SYMBOL_NAME (current_encoding));
 	  char *cp = NULL, *end;
 	  int cpnum;
 
@@ -2165,11 +2165,11 @@ unixtodos_filename (register char *p)
    (From msdos.c...probably should figure out a way to share it,
    although this code isn't going to ever change.)  */
 static int
-crlf_to_lf (register int n, register unsigned char *buf)
+crlf_to_lf (register int n, register char *buf)
 {
-  unsigned char *np = buf;
-  unsigned char *startp = buf;
-  unsigned char *endp = buf + n;
+  unsigned char *np = (unsigned char *)buf;
+  unsigned char *startp = np;
+  char *endp = buf + n;
 
   if (n == 0)
     return n;
@@ -2386,7 +2386,7 @@ ansi_encode_filename (Lisp_Object filename)
     {
       char shortname[MAX_PATH];
 
-      if (w32_get_short_filename (SDATA (filename), shortname, MAX_PATH))
+      if (w32_get_short_filename (SSDATA (filename), shortname, MAX_PATH))
 	{
 	  dostounix_filename (shortname);
 	  encoded_filename = build_string (shortname);
@@ -3210,7 +3210,8 @@ map_w32_filename (const char * name, const char ** pPath)
       return shortname;
     }
 
-  if (is_fat_volume (name, (const char **)&path)) /* truncate to 8.3 */
+  if (!fatal_error_in_progress	/* disable fancy processing during crash */
+      && is_fat_volume (name, (const char **)&path)) /* truncate to 8.3 */
     {
       register int left = 8;	/* maximum number of chars in part */
       register int extn = 0;	/* extension added? */
@@ -7495,7 +7496,7 @@ socket_to_fd (SOCKET s)
 		   though the socket wasn't really a kernel handle,
 		   because a real handle has the same value.  So
 		   test whether the new handle really is a socket.  */
-		long nonblocking = 0;
+		unsigned long nonblocking = 0;
 		if (pfn_ioctlsocket ((SOCKET) new_s, FIONBIO, &nonblocking) == 0)
 		  {
 		    pfn_closesocket (s);
@@ -8520,7 +8521,7 @@ sys_write (int fd, const void * buffer, unsigned int count)
 	  int nbytes = count;
 
 	  SAFE_NALLOCA (tmpbuf, 2, count);
-	  dst = tmpbuf;
+	  dst = (unsigned char *)tmpbuf;
 
 	  while (1)
 	    {
@@ -9062,8 +9063,8 @@ check_windows_init_file (void)
       if (fd < 0)
 	{
 	  Lisp_Object load_path_print = Fprin1_to_string (Vload_path, Qnil);
-	  char *init_file_name = SDATA (init_file);
-	  char *load_path = SDATA (load_path_print);
+	  char *init_file_name = SSDATA (init_file);
+	  char *load_path = SSDATA (load_path_print);
 	  char *buffer = alloca (1024
 				 + strlen (init_file_name)
 				 + strlen (load_path));

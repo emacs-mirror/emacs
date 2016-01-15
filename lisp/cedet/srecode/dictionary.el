@@ -1,6 +1,6 @@
 ;;; srecode/dictionary.el --- Dictionary code for the semantic recoder.
 
-;; Copyright (C) 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2016 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 

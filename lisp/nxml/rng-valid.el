@@ -1,6 +1,6 @@
-;;; rng-valid.el --- real-time validation of XML using RELAX NG
+;;; rng-valid.el --- real-time validation of XML using RELAX NG  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2016 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML, RelaxNG
@@ -430,13 +430,13 @@ The schema is set like `rng-auto-set-schema'."
   (when (buffer-live-p buffer)		; bug#13999
     (with-current-buffer buffer
       (if rng-validate-mode
-	  (if (let ((rng-validate-display-point (point))
-		    (rng-validate-display-modified-p (buffer-modified-p)))
-		(rng-do-some-validation 'rng-validate-while-idle-continue-p))
-	      (force-mode-line-update)
-	    (rng-validate-done))
-	;; must have done kill-all-local-variables
-	(rng-kill-timers)))))
+          (if (let ((rng-validate-display-point (point))
+                    (rng-validate-display-modified-p (buffer-modified-p)))
+                (rng-do-some-validation 'rng-validate-while-idle-continue-p))
+              (force-mode-line-update)
+            (rng-validate-done))
+        ;; Must have done kill-all-local-variables.
+        (rng-kill-timers)))))
 
 (defun rng-validate-quick-while-idle (buffer)
   (when (buffer-live-p buffer)		; bug#13999
@@ -709,7 +709,7 @@ Return t if there is work to do, nil otherwise."
 
 ;; If we don't do this, then the front delimiter can move
 ;; past the end delimiter.
-(defun rng-error-modified (overlay after-p beg end &optional pre-change-len)
+(defun rng-error-modified (overlay after-p _beg _end &optional _pre-change-len)
   (when (and after-p
 	     (overlay-start overlay)	; check not deleted
 	     (>= (overlay-start overlay)

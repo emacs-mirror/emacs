@@ -1,6 +1,6 @@
 /* Keyboard and mouse input; editor command loop.
 
-Copyright (C) 1985-1989, 1993-1997, 1999-2015 Free Software Foundation,
+Copyright (C) 1985-1989, 1993-1997, 1999-2016 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -7139,6 +7139,9 @@ struct user_signal_info
 /* List of user signals.  */
 static struct user_signal_info *user_signals = NULL;
 
+/* Function called when handling user signals.  */
+void (*handle_user_signal_hook) (int);
+
 void
 add_user_signal (int sig, const char *name)
 {
@@ -7187,6 +7190,8 @@ handle_user_signal (int sig)
           }
 
 	p->npending++;
+	if (handle_user_signal_hook)
+	  (*handle_user_signal_hook) (sig);
 #ifdef USABLE_SIGIO
 	if (interrupt_input)
 	  handle_input_available_signal (sig);

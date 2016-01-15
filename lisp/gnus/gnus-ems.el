@@ -1,6 +1,6 @@
 ;;; gnus-ems.el --- functions for making Gnus work under different Emacsen
 
-;; Copyright (C) 1995-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2016 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news

@@ -1,6 +1,6 @@
 ;;; thunk-tests.el --- Tests for thunk.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2016 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Maintainer: emacs-devel@gnu.org

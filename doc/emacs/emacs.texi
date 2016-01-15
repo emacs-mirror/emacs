@@ -27,7 +27,7 @@ This is the @cite{GNU Emacs Manual},
 @end ifnottex
 updated for Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1985--1987, 1993--2015 Free Software Foundation, Inc.
+Copyright @copyright{} 1985--1987, 1993--2016 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -788,8 +788,8 @@ Maintaining Large Programs
 
 * Version Control::     Using version control systems.
 * Change Log::          Maintaining a change history for your program.
-* Tags::                Go directly to any function in your program in one
-                          command.  Tags remembers which file it is in.
+* Xref::                Find definitions and references of any function,
+                          method, struct, macro, @dots{} in your program.
 * EDE::                 An integrated development environment for Emacs.
 @ifnottex
 * Emerge::              A convenient way of merging two versions of a program.
@@ -861,15 +861,25 @@ Change Logs
 * Change Log Commands:: Commands for editing change log files.
 * Format of ChangeLog:: What the change log file looks like.
 
+Xref
+
+* Find Identifiers::    Commands to find where an identifier is defined
+                          or referenced, to list identifiers, etc.
+* Tags Tables::         Tags table records which file defines a symbol.
+* Select Tags Table::   How to visit a specific tags table.
+
+Find Identifiers
+
+* Looking Up Identifiers:: Commands to find the definition of a specific tag.
+* Xref Commands::          Commands in the @file{*xref*} buffer.
+* Identifier Search::      Searching and replacing identifiers.
+* List Identifiers::       Listing identifiers and completing on them.
+
 Tags Tables
 
 * Tag Syntax::          Tag syntax for various types of code and text files.
 * Create Tags Table::   Creating a tags table with @command{etags}.
 * Etags Regexps::       Create arbitrary tags using regular expressions.
-* Select Tags Table::   How to visit a tags table.
-* Find Tag::            Commands to find the definition of a specific tag.
-* Tags Search::         Using a tags table for searching and replacing.
-* List Tags::           Using tags for completion, and listing them.
 
 @ifnottex
 Merging Files with Emerge

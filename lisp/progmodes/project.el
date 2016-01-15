@@ -1,6 +1,6 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2016 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -27,6 +27,11 @@
 ;; current project, without having to know which package handles
 ;; detection of that project type, parsing its config files, etc.
 ;;
+;; NOTE: The project API is still experimental and can change in major,
+;; backward-incompatible ways.  Everyone is encouraged to try it, and
+;; report to us any problems or use cases we hadn't anticipated, by
+;; sending an email to emacs-devel, or `M-x report-emacs-bug'.
+;;
 ;; Infrastructure:
 ;;
 ;; Function `project-current', to determine the current project
@@ -45,10 +50,12 @@
 
 ;;; TODO:
 
-;; * Commands `project-find-file' and `project-or-external-find-file'.
-;;   Currently blocked on adding a new completion style that would let
-;;   the user enter just the base file name (or a part of it), and get
-;;   it expanded to the absolute file name.
+;; * Reliably cache the list of files in the project, probably using
+;;   filenotify.el (if supported) to invalidate.  And avoiding caching
+;;   if it's not available (manual cache invalidation is not nice).
+;;
+;; * Allow the backend to override the file-listing logic?  Maybe also
+;;   to delegate file name completion to an external tool.
 ;;
 ;; * Build tool related functionality.  Start with a `project-build'
 ;;   command, which should provide completions on tasks to run, and
@@ -251,13 +258,15 @@ DIRS must contain directory names."
 (defun project--value-in-dir (var dir)
   (with-temp-buffer
     (setq default-directory dir)
-    (hack-dir-local-variables-non-file-buffer)
+    (let ((enable-local-variables :all))
+      (hack-dir-local-variables-non-file-buffer))
     (symbol-value var)))
 
 (declare-function grep-read-files "grep")
 (declare-function xref-collect-matches "xref")
 (declare-function xref--show-xrefs "xref")
 (declare-function xref-backend-identifier-at-point "xref")
+(declare-function xref--find-ignores-arguments "xref")
 
 ;;;###autoload
 (defun project-find-regexp (regexp)
@@ -301,6 +310,54 @@ pattern to search for."
     (unless xrefs
       (user-error "No matches for: %s" regexp))
     (xref--show-xrefs xrefs nil)))
+
+;;;###autoload
+(defun project-find-file ()
+  "Visit a file in the current project's roots.
+
+This is like `find-file', but it limits the file-name completion
+candidates to the files within the current project roots."
+  (interactive)
+  (let* ((pr (project-current t))
+         (dirs (project-roots pr)))
+    (project--find-file-in dirs pr)))
+
+;;;###autoload
+(defun project-or-external-find-file ()
+  "Visit a file in the current project's roots or external roots.
+
+This is like `find-file', but it limits the file-name completion
+candidates to the files within the current project roots and external roots."
+  (interactive)
+  (let* ((pr (project-current t))
+         (dirs (append
+                (project-roots pr)
+                (project-external-roots pr))))
+    (project--find-file-in dirs pr)))
+
+;; FIXME: Uniquely abbreviate the roots?
+(defun project--find-file-in (dirs project)
+  (require 'xref)
+  (let* ((all-files
+          (cl-mapcan
+           (lambda (dir)
+             (let ((command
+                    (format "%s %s %s -type f -print0"
+                            find-program
+                            dir
+                            (xref--find-ignores-arguments
+                             (project-ignores project dir)
+                             (expand-file-name dir)))))
+               (split-string (shell-command-to-string command) "\0" t)))
+           dirs))
+         (table (lambda (string pred action)
+                  (cond
+                   ((eq action 'metadata)
+                    '(metadata . ((category . project-file))))
+                   (t
+                    (complete-with-action action all-files string pred))))))
+    (find-file
+     (completing-read "Find file: " table nil t))))
 
 (provide 'project)
 ;;; project.el ends here

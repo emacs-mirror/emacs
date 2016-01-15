@@ -1,5 +1,5 @@
 /* Indentation functions.
-   Copyright (C) 1985-1988, 1993-1995, 1998, 2000-2015 Free Software
+   Copyright (C) 1985-1988, 1993-1995, 1998, 2000-2016 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2130,6 +2130,15 @@ whether or not it is currently displayed in some window.  */)
 	      && it.method == GET_FROM_BUFFER
 	      && it.c == '\n')
 	    it_overshoot_count = 1;
+	  else if (it_overshoot_count == 1 && it.vpos == 0
+		   && it.current_x < it.last_visible_x)
+	    {
+	      /* If we came to the same screen line as the one where
+		 we started, we didn't overshoot the line, and won't
+		 need to backtrack after all.  This happens, for
+		 example, when PT is in the middle of a composition.  */
+	      it_overshoot_count = 0;
+	    }
 	  else if (disp_string_at_start_p && it.vpos > 0)
 	    {
 	      /* This is the case of a display string that spans

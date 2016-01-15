@@ -1,6 +1,6 @@
 ;;; dunnet.el --- text adventure for Emacs
 
-;; Copyright (C) 1992-1993, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1993, 2001-2016 Free Software Foundation, Inc.
 
 ;; Author: Ron Schnell <ronnie@driver-aces.com>
 ;; Created: 25 Jul 1992
@@ -1203,7 +1203,7 @@ for a moment, then straighten yourself up.
   (interactive)
   (forward-line (- 0 (- (window-height) 2 )))
   (set-window-start (selected-window) (point))
-  (end-of-buffer))
+  (goto-char (point-max)))
 
 ;;; Insert something into the buffer, followed by newline.
 

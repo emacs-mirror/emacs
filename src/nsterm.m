@@ -1,6 +1,6 @@
 /* NeXT/Open/GNUstep / MacOSX communication module.      -*- coding: utf-8 -*-
 
-Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2015 Free Software
+Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2016 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1150,9 +1150,11 @@ ns_clip_to_row (struct window *w, struct glyph_row *row,
 {
   // Number of currently active bell:s.
   unsigned int nestCount;
+  bool isAttached;
 }
 - (void)show:(NSView *)view;
 - (void)hide;
+- (void)remove;
 @end
 
 @implementation EmacsBell
@@ -1162,6 +1164,7 @@ ns_clip_to_row (struct window *w, struct glyph_row *row,
   if ((self = [super init]))
     {
       nestCount = 0;
+      isAttached = false;
       self.image = [NSImage imageNamed:NSImageNameCaution];
     }
   return self;
@@ -1183,6 +1186,7 @@ ns_clip_to_row (struct window *w, struct glyph_row *row,
       [self setFrameOrigin:pos];
       [self setFrameSize:self.image.size];
 
+      isAttached = true;
       [[[view window] contentView] addSubview:self
                                    positioned:NSWindowAbove
                                    relativeTo:nil];
@@ -1199,16 +1203,30 @@ ns_clip_to_row (struct window *w, struct glyph_row *row,
   // Note: Trace output from this method isn't shown, reason unknown.
   // NSTRACE ("[EmacsBell hide]");
 
-  --nestCount;
+  if (nestCount > 0)
+    --nestCount;
 
   // Remove the image once the last bell became inactive.
   if (nestCount == 0)
     {
+      [self remove];
+    }
+}
+
+
+-(void)remove
+{
+  if (isAttached)
+    {
       [self removeFromSuperview];
+      isAttached = false;
     }
 }
 
 @end
+
+
+static EmacsBell * bell_view = nil;
 
 static void
 ns_ring_bell (struct frame *f)
@@ -1222,7 +1240,6 @@ ns_ring_bell (struct frame *f)
       struct frame *frame = SELECTED_FRAME ();
       NSView *view;
 
-      static EmacsBell * bell_view = nil;
       if (bell_view == nil)
         {
           bell_view = [[EmacsBell alloc] init];
@@ -1242,6 +1259,18 @@ ns_ring_bell (struct frame *f)
   else
     {
       NSBeep ();
+    }
+}
+
+
+static void hide_bell ()
+/* --------------------------------------------------------------------------
+     Ensure the bell is hidden.
+   -------------------------------------------------------------------------- */
+{
+  if (bell_view != nil)
+    {
+      [bell_view remove];
     }
 }
 
@@ -2328,6 +2357,8 @@ ns_copy_bits (struct frame *f, NSRect src, NSRect dest)
 {
   if (FRAME_NS_VIEW (f))
     {
+      hide_bell();              // Ensure the bell image isn't scrolled.
+
       ns_focus (f, &dest, 1);
       [FRAME_NS_VIEW (f) scrollRect: src
                                  by: NSMakeSize (dest.origin.x - src.origin.x,

@@ -218,9 +218,6 @@ Nicolas Petton
 	lisp/emacs-lisp/subr-x.el
 	lisp/arc-mode.el
 
-Xue Fuqiao
-	doc/lispref/*
-
 Tassilo Horn
 	lisp/doc-view.el
 

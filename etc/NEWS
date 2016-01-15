@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2014-2015 Free Software Foundation, Inc.
+Copyright (C) 2014-2016 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
@@ -58,6 +58,11 @@ in these situations.
 ** File Notifications
 
 *** The kqueue library is integrated for *BSD and Mac OS X machines.
+
+** Tramp
+
+*** New connection method "sg", which allows to edit files under
+different group ID.
 
 
 * New Modes and Packages in Emacs 25.2
@@ -147,6 +152,11 @@ so if you want to use it, you can always take a copy from an older Emacs.
 ** Emacs 25 comes with a new set of icons.
 Various resolutions are available as etc/images/icons/hicolor/*/apps/emacs.png.
 The old Emacs logo icons are available as `emacs23.png' in the same location.
+
+---
+** New make target `check-expensive' to run additional tests.
+This includes all tests which run via "make check", plus additional
+tests which take more time to perform.
 
 
 * Startup Changes in Emacs 25.1
@@ -270,7 +280,7 @@ hiding character but the default `.' can be used by let-binding the
 variable `read-hide-char'.
 
 ---
-** New input method: `tamil-dvorak'.
+** New input methods: `tamil-dvorak' and `programmer-dvorak'.
 
 
 * Editing Changes in Emacs 25.1
@@ -706,7 +716,12 @@ respectively, `show-paren-when-point-inside-paren' or
 `show-paren-when-point-in-periphery'.
 
 ** Lisp mode
+
+---
 *** Strings after `:documentation' are highlighted as docstrings.
+This enhances Lisp mode fontification to handle documentation of the
+form `(:documentation "the doc string")' used in Common Lisp code for
+CLOS class and slot documentation.
 
 ** Rectangle editing
 
@@ -782,7 +797,10 @@ If the output of ERT tests in batch mode execution can be saved to a
 log file, then it can be passed as an argument to the above function
 to produce a neat summary.
 
+---
 ** New js.el option `js-indent-first-init'.
+It was renamed from `js-indent-first-initialiser', to avoid issues
+with American vs British spelling.
 
 ** Info
 
@@ -940,102 +958,160 @@ fitting for use in money calculations
 ---
 *** Factorial works with non-integer inputs.
 
-** HideIfDef mode now support full C/C++ expressions, argumented macro
-expansions, interactive macro evaluation and automatic scanning of
-#defined symbols.
+** Hide-IfDef mode
 
-*** New custom variable `hide-ifdef-header-regexp' to define C/C++ header file
-name patterns.  Default case-insensitive .h, .hh, .hpp, .hxx, and .h++.
+---
+*** Hide-IfDef mode now support full C/C++ expressions in macros,
+macro argument expansion, interactive macro evaluation and automatic
+scanning of #define'd symbols.
+
+---
+*** New command `hif-evaluate-macro', bound to `C-c @ e', displays the
+result of evaluating a macro.
+
+---
+*** New command `hif-clear-all-ifdef-define', bound to `C-c @ C', clears
+all defined symbols in `hide-ifdef-env'.
+
+---
+*** New custom variable `hide-ifdef-header-regexp' to define C/C++ header
+file name patterns.  Defaults to files whose extension is one of `.h',
+`.hh', `.hpp', `.hxx', or `.h++', matched case-insensitively.
+
+---
 *** New custom variable `hide-ifdef-expand-reinclusion-protection' to prevent
-reinclusion protected header files from being fully hidden.
+reinclusion protected (a.k.a. "idempotent") header files from being hidden.
+(This could happen when an idempotent header file is visited again,
+when its guard symbol is already defined.)  Defaults to `t'.
+
+---
 *** New custom variable `hide-ifdef-exclude-define-regexp' to define symbol
-name patterns (e.g. all "FOR_DOXYGEN_ONLY_*") to be excluded.
+name patterns (e.g. all "FOR_DOXYGEN_ONLY_*") to be ignored when
+looking for macro definitions.  By default, no symbols are ignored.
 
 ** TeX mode
 
++++
 *** New custom variable `tex-print-file-extension' to help users who
 use PDF instead of DVI.
 
++++
 *** TeX mode now supports Prettify Symbols mode.  When enabling
 `prettify-symbols-mode' in a tex-mode buffer, \alpha ... \omega, and
 many other math macros are displayed using unicode characters.
 
-** whitespace-mode: new 'big-indent style highlighting too much indentation.
-By default, 32 spaces and four TABs are considered to be too much but
-`whitespace-big-indent-regexp' can be configured to change that.
++++
+** New `big-indent' style in `whitespace-mode' highlights deep indentation.
+By default, 32 consecutive spaces or four consecutive TABs are
+considered to be too deep, but the new variable
+`whitespace-big-indent-regexp' can be customized to change that.
 
-** tildify: `tildify-space-string', `tildify-pattern', and
-`tildify-foreach-region-function' variables added making
+---
+** New options in `tildify-mode'.
+New options `tildify-space-string', `tildify-pattern', and
+`tildify-foreach-region-function' variables make
 `tildify-string-alist', `tildify-pattern-alist', and
 `tildify-ignored-environments-alist' variables (as well as a few
 helper functions) obsolete.
 
-** xref
-The new package provides generic framework and new commands to find
-and move to definitions, as well as pop back to the original location.
++++
+** New package Xref replaces Etags's front-end and UI
 
-*** New key bindings
-`xref-find-definitions' replaces `find-tag' and provides an interface
-to pick one destination among several.  Hence, `tags-loop-continue' is
-unbound.  `xref-pop-marker-stack' replaces `pop-tag-mark', but uses an
-easier binding, which is now unoccupied (`M-,').
+The new package Xref provides a generic framework and new commands to
+find and move to definitions of functions, macros, data structures
+etc., as well as go back to the location where you were before moving
+to a definition.  It supersedes and obsoletes many Etags commands,
+while still using the etags.el code that reads the TAGS tables as one
+of its back-ends.
+
+The command `xref-find-definitions' replaces `find-tag' and provides
+an interface to pick one definition among several.
+`tags-loop-continue' is now unbound.  `xref-pop-marker-stack' replaces
+`pop-tag-mark', but has a keybinding (`M-,'), unlike `pop-tag-mark'.
+
 `xref-find-definitions-other-window' replaces `find-tag-other-window'.
 `xref-find-definitions-other-frame' replaces `find-tag-other-frame'.
 `xref-find-apropos' replaces `find-tag-regexp'.
 
+As a result of this, the following commands are now obsolete:
+`find-tag-other-window', `find-tag-other-frame', `find-tag-regexp',
+`tags-apropos', and `tags-loop-continue'.
+
++++
 *** New variables
+
 `find-tag-marker-ring-length' is now an obsolete alias for
 `xref-marker-ring-length'.  `find-tag-marker-ring' is now an obsolete
 alias for a private variable.  `xref-push-marker-stack' and
-`xref-pop-marker-stack' should be used to mutate it instead.
+`xref-pop-marker-stack' should be used instead to manipulate the stack
+of searches for definitions.
 
 ---
 *** `xref-find-definitions' and `describe-function' now display
 information about mode local overrides (defined by cedet/mode-local.el
 `define-overloadable-function' `define-mode-local-overrides').
 
-** etags
-As a result of the above, these commands are now obsolete:
-`find-tag-other-window', `find-tag-other-frame', `find-tag-regexp',
-`tags-apropos' and `tags-loop-continue'.
+The framework's Lisp API is still experimental and can change in major,
+backward-incompatible ways.
+
+---
+** New package Project
+
+The new package Project provides generic infrastructure for dealing
+with projects.  The main commands included in it are
+`project-find-file' and `project-find-regexp'.
+
+The Lisp API of this package is still experimental.
 
 ** EUDC
 EUDC's LDAP backend has been improved.
 
++++
 *** EUDC supports LDAP-over-SSL URLs (ldaps://).
 
+---
 *** EUDC passes LDAP passwords through a pipe to the ldapsearch
 subprocess instead of on the command line.
 
+---
 *** EUDC handles LDAP wildcards automatically so the user shouldn't
 need to configure this manually anymore.
 
++++
 *** The LDAP configuration section of EUDC's manual has been
 rewritten.
 
 There have also been customization changes.
 
++++
 *** New custom variable `eudc-server-hotlist' to allow specifying
 multiple EUDC servers in init file.
 
++++
 *** Custom variable `eudc-inline-query-format' defaults to completing
 on email and firstname instead of surname.
 
+---
 *** Custom variable `eudc-expansion-overwrites-query' defaults to nil
 to avoid interfering with the kill ring.
 
++++
 *** Custom variable `eudc-inline-expansion-format' defaults to
 "Firstname Surname <mail-address>".
 
++++
 *** Custom variable `eudc-options-file' defaults to
 "~/.emacs.d/eudc-options".
 
+---
 *** New custom variable `ldap-ldapsearch-password-prompt-regexp' to
 allow overriding the regular expression that recognizes the ldapsearch
 command line's password prompt.
 
+---
 EUDC's BBDB backend now supports BBDB 3.
 
+---
 EUDC's PH backend (eudcb-ph.el) is obsolete.
 
 ** Eshell
@@ -1044,12 +1120,14 @@ EUDC's PH backend (eudcb-ph.el) is obsolete.
 *** The new built-in command `clear' can scroll window contents out of sight.
 If provided with an optional non-nil argument, the scrollback contents will be cleared.
 
++++
 *** New buffer syntax '#<buffer-name>', which is equivalent to
 '#<buffer buffer-name>'.  This shorthand makes interacting with
 buffers from eshell more convenient.  Custom variable
 `eshell-buffer-shorthand', which has been broken for a while, has been
 removed.
 
++++
 *** By default, eshell "visual" program buffers (created by
 `eshell-visual-commands' and similar custom vars) are no longer killed
 when their processes die.  This fixes issues with short-lived commands
@@ -1060,6 +1138,7 @@ make the new option `eshell-destroy-buffer-when-process-dies' non-nil.
 
 ** Browse-url
 
+---
 *** Support for the Conkeror web browser.
 
 ---
@@ -1116,11 +1195,13 @@ few or no entries have changed.
 ---
 *** gulp.el
 
+---
 *** landmark.el (moved to elpa.gnu.org)
 
 
 * New Modes and Packages in Emacs 25.1
 
+---
 ** pinentry.el allows GnuPG passphrase to be prompted through the
 minibuffer instead of a graphical dialog, depending on whether the gpg
 command is called from Emacs (i.e., INSIDE_EMACS environment variable
@@ -1129,28 +1210,35 @@ later) and Pinentry (0.9.5 or later).
 
 ** cl-generic.el provides CLOS-style multiple-dispatch generic functions.
 
+---
 ** scss-mode (a minor variant of css-mode)
 
+---
 ** let-alist is a new macro (and a package) that allows one to easily
 let-bind the values stored in an alist.
 
+---
 ** `tildify-mode' allows to automatically insert hard spaces as one
 types the text.  Breaking line after a single-character words is
 forbidden by Czech and Polish typography (and may be discouraged in
 other languages), so `auto-tildify-mode' makes it easier to create
 a typographically-correct documents.
 
+---
 ** The `seq' library adds sequence manipulation functions and macros
 that complement basic functions provided by subr.el.  All functions
 are prefixed with `seq-' and work on lists, strings and vectors.
 
+---
 ** The `map' library provides map-manipulation functions that work on
 alists, hash-table and arrays.  All functions are prefixed with
 `map-'.
 
+---
 ** The `thunk' library provides functions and macros to control the
 evaluation of forms.
 
+---
 ** js-jsx-mode (a minor variant of js-mode) provides indentation
 support for JSX, an XML-like syntax extension to ECMAScript.
 
@@ -1163,6 +1251,7 @@ arguments.  The earlier behavior of silently supplying a nil to the
 last variable when there was an odd number of arguments has been
 eliminated.
 
++++
 ** `syntax-begin-function' is declared obsolete.
 Removed font-lock-beginning-of-syntax-function and the SYNTAX-BEGIN
 slot in font-lock-defaults.
@@ -1174,11 +1263,10 @@ file and still expect it to be run after startup should set
 `package-enable-at-startup' to t after the call to
 `package-initialize'.
 
+---
 ** `:global' minor mode use `setq-default' rather than `setq'.
 This means that you can't use `make-local-variable' and expect them to
 "magically" become buffer-local.
-
-** `inhibit-point-motion-hooks' now defaults to t and is obsolete.
 
 +++
 ** `track-mouse' no longer freezes the shape of the mouse pointer.
@@ -1194,10 +1282,12 @@ to the special value `dragging' in the body of the form.
 has any effect.  (This change was made in Emacs 24.4 but was not
 advertised at the time.)
 
++++
 ** `indirect-function' does not signal `void-function' any more.
 This is mostly a bug-fix, since this change was missed back in 24.4 when
 symbol-function was changed not to signal `void-function' any more.
 
++++
 *** As a consequence, the second arg of `indirect-function' is now obsolete.
 
 ** Comint, term, and compile do not set the EMACS env var any more.
@@ -1229,10 +1319,12 @@ group ID instead of `t'.
 any reference to a buffer position.  The 6th member of the mouse
 position list returned for such events is now nil.
 
+---
 ** Menu items in keymaps do not support the "key shortcut cache" any more.
 These slots used to hold key-shortcut data, but have been obsolete since
 Emacs-21.
 
+---
 ** Emacs no longer downcases the first letter of a system diagnostic
 when signaling a file error.  For example, it now reports "Permission
 denied" instead of "permission denied".  The old behavior was problematic
@@ -1278,6 +1370,7 @@ use [:multibyte:] instead.
 ** The `diff' command uses the unified format now.  To restore the old
 behavior, set `diff-switches' to `-c'.
 
+---
 ** `grep-template' and `grep-find-template' values don't include the
 --color argument anymore.  It's added at the <C> place holder position
 dynamically.  Any third-party code that changes these templates should
@@ -1303,6 +1396,7 @@ that happen, `unhandled-file-name-directory' now defaults to calling
 +++
 *** New vector QPattern.
 
+---
 ** syntax-propertize is now automatically called on-demand during forward
 parsing functions like `forward-sexp'.
 
@@ -1323,10 +1417,14 @@ Replaced by properties `cursor-intangible' and `cursor-sensor-functions',
 implemented by the new `cursor-intangible-mode' and
 `cursor-sensor-mode' minor modes.
 
+** `inhibit-point-motion-hooks' now defaults to t and is obsolete.
+
++++
 ** New process type `pipe', which can be used in combination with the
 `:stderr' keyword of make-process to handle standard error output
 of subprocess.
 
++++
 ** New function `make-process' provides an alternative interface to
 `start-process'.  It allows programs to set process parameters such as
 process filter, sentinel, etc., through keyword arguments (similar to
@@ -1338,8 +1436,8 @@ files (recursively) under a directory.
 
 +++
 ** New variable `inhibit-message', when bound to non-nil, inhibits
-`message' and related functions from displaying messages the Echo
-Area.  The output is still logged to the *Messages* buffer.
+`message' and related functions from displaying messages in the echo
+area.  The output is still logged to the *Messages* buffer.
 
 +++
 ** A new text property `inhibit-read-only' can be used in read-only
@@ -1355,13 +1453,17 @@ buffers to allow certain parts of the text to be writable.
 
 ** `read-buffer' takes a new `predicate' argument.
 
++++
 ** Emacs Lisp now supports generators.
+See the "Generators" section of the ELisp manual for the details.
 
-** New finalizer facility for running code when objects
-   become unreachable.
++++
+** New finalizer facility for running code when objects become unreachable.
+See the "Finalizer Type" subsection in the ELisp manual for the
+details.
 
-** lexical closures can use (:documentation <form>) to build their docstring.
-It should be placed right where the docstring would be, and <form> is then
+** lexical closures can use (:documentation FORM) to build their docstring.
+It should be placed right where the docstring would be, and FORM is then
 evaluated (and should return a string) when the closure is built.
 
 ** define-inline provides a new way to define inlinable functions.
@@ -1432,6 +1534,7 @@ have side effects.
 ** New macro `with-file-modes', for evaluating expressions with default file
 permissions set to temporary values (e.g., for creating private files).
 
++++
 ** You can access the slots of structures using `cl-struct-slot-value'.
 
 ** Function `sort' can deal with vectors.
@@ -1444,6 +1547,7 @@ name.  The variable `system-name' is now obsolete.
 +++
 ** Function `write-region' no longer outputs "Wrote FILE" in batch mode.
 
+---
 ** If `pwd' is called with a prefix argument, insert the current default
 directory at point.
 
@@ -1544,11 +1648,16 @@ a directory file name.  It returns non-nil if the last character in
 the name is a directory separator character (forward slash on GNU and
 Unix systems, forward- or backslash on MS-Windows and MS-DOS).
 
+---
 ** ASCII approximations to curved quotes are put in standard-display-table
 if the terminal cannot display curved quotes.
 
++++
 ** Standard output and error streams now transliterate characters via
 standard-display-table, and encode output using locale-coding-system.
+To force a specific encoding, bind `coding-system-for-write' to the
+coding-system of your choice when invoking functions like `prin1' and
+`message'.
 
 +++
 ** New var `truncate-string-ellipsis' to choose how to indicate truncation.
@@ -1559,6 +1668,7 @@ This is used by Google's Native Client (NaCl).
 
 ** Miscellaneous name change
 
+---
 For consistency with the usual Emacs spelling, the Lisp variable
 `hfy-optimisations' has been renamed to `hfy-optimizations'.
 The old name should still work, as an obsolescent alias.
@@ -1569,22 +1679,30 @@ The old name should still work, as an obsolescent alias.
 *** Emacs can now draw horizontal scroll bars on some platforms that
 provide toolkit scroll bars, namely Gtk+, Lucid, Motif and Windows.
 Horizontal scroll bars are turned off by default.
+
 **** New function `horizontal-scroll-bars-available-p' telling whether
     horizontal scroll bars are available on the underlying system.
+
 **** New mode `horizontal-scroll-bar-mode' to toggle horizontal scroll
     bars on all existing and future frames.
+
 **** New function `toggle-horizontal-scroll-bar' to toggle horizontal
     scroll bars on the selected frame.
+
 **** New frame parameters `horizontal-scroll-bars' and
     `scroll-bar-height' to set horizontal scroll bars and their height
     for individual frames and in `default-frame-alist'.
+
 **** New functions `frame-scroll-bar-height' and
     `window-scroll-bar-height' return the height of horizontal scroll
     bars on a specific frame or window.
+
 **** `set-window-scroll-bars' now accepts five parameters where the last
     two specify height and type of the window's horizontal scroll bar.
+
 **** `window-scroll-bars' now returns type and sizes of horizontal scroll
     bars too.
+
 **** New buffer-local variables `horizontal-scroll-bar' and
     `scroll-bar-height'.
 
@@ -1651,6 +1769,7 @@ Those features have been deprecated in Gtk+ for a long time.
 
 ** Etags
 
++++
 *** etags no longer qualifies class members by default.
 
 By default, `etags' will not qualify class members for C-like
@@ -1666,11 +1785,13 @@ using -Q might make some class members become "unknown" to `M-.'
 (`xref-find-definitions'); if so, you can use `C-u M-.' to specify the
 qualified names by hand.
 
++++
 *** New language Ruby
 
 Names of modules, classes, methods, and functions are tagged.
 Overloaded operators are also tagged.
 
++++
 *** Improved support for Lua
 
 Etags now tags functions even if the "function" keyword follows some
@@ -1694,6 +1815,7 @@ of Windows starting with Windows 9X.
 +++
 ** Emacs running on MS-Windows now supports the daemon mode.
 
+---
 ** The byte counts in etags-generated TAGS files are now the same on
 MS-Windows as they are on other platforms.
 
@@ -1701,8 +1823,10 @@ MS-Windows as they are on other platforms.
 ** On OS X, configure creates a Cocoa ("Nextstep") build by default.
 Pass '--without-ns' to configure to create an X11 build, the old default.
 
+---
 ** OS X 10.5 or older is no longer supported.
 
+---
 ** OS X on PowerPC is no longer supported.
 
 ---

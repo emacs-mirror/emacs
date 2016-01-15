@@ -4,7 +4,7 @@ dnl	autoconf
 dnl in the directory containing this script.
 dnl If you changed any AC_DEFINES, also run autoheader.
 dnl
-dnl Copyright (C) 1994-1996, 1999-2015 Free Software Foundation, Inc.
+dnl Copyright (C) 1994-1996, 1999-2016 Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
 dnl
@@ -3677,6 +3677,14 @@ if test "${with_xml2}" != "no"; then
   # Built-in libxml2 on OS X 10.8 lacks libxml-2.0.pc.
   if test "${HAVE_LIBXML2}" != "yes" && test "$opsys" = "darwin"; then
     SAVE_CPPFLAGS="$CPPFLAGS"
+    if test -z "$xcsdkdir" -a -n "$XCRUN" -a ! -d /usr/include; then
+      dnl /usr/include is not found.  Try Xcode SDK dir if it is sane.
+      xcsdkdir=`$XCRUN --show-sdk-path 2>/dev/null`
+      case $xcsdkdir in
+	*[[\\\"\#\$\&\'\`$am_lf\ \	]]*)
+	xcsdkdir="" ;;
+      esac
+    fi
     CPPFLAGS="$CPPFLAGS -I$xcsdkdir/usr/include/libxml2"
     AC_CHECK_HEADER(libxml/HTMLparser.h,
       [AC_CHECK_DECL(HTML_PARSE_RECOVER, HAVE_LIBXML2=yes, ,
@@ -4472,24 +4480,11 @@ case $opsys in
     AC_DEFINE(PTY_TTY_NAME_SPRINTF, [])
     ;;
 
-  dnl FIXME?  Maybe use same as freebsd - see bug#12040.
-  darwin )
-    AC_DEFINE(PTY_ITERATION, [int i; for (i = 0; i < 1; i++)])
-    dnl Not used, because PTY_ITERATION is defined.
-    AC_DEFINE(FIRST_PTY_LETTER, ['p'])
-    dnl Note that openpty may fork via grantpt on Mac OS X 10.4/Darwin 8.
-    dnl But we don't have to block SIGCHLD because it is blocked in the
-    dnl implementation of grantpt.
-    AC_DEFINE(PTY_OPEN, [ do { int slave; if (openpty (&fd, &slave, pty_name, NULL, NULL) == -1) fd = -1; else emacs_close (slave); } while (false)])
-    AC_DEFINE(PTY_NAME_SPRINTF, [])
-    AC_DEFINE(PTY_TTY_NAME_SPRINTF, [])
-    ;;
-
   gnu | openbsd )
     AC_DEFINE(FIRST_PTY_LETTER, ['p'])
     ;;
 
-  gnu-linux | gnu-kfreebsd | dragonfly | freebsd | netbsd | nacl )
+  gnu-linux | gnu-kfreebsd | dragonfly | freebsd | netbsd | darwin | nacl )
     dnl if HAVE_GRANTPT
     if test "x$ac_cv_func_grantpt" = xyes; then
       AC_DEFINE(UNIX98_PTYS, 1, [Define if the system has Unix98 PTYs.])
@@ -4867,7 +4862,7 @@ fi
 
 version=$PACKAGE_VERSION
 
-copyright="Copyright (C) 2015 Free Software Foundation, Inc."
+copyright="Copyright (C) 2016 Free Software Foundation, Inc."
 AC_DEFINE_UNQUOTED(COPYRIGHT, ["$copyright"],
   [Short copyright string for this version of Emacs.])
 AC_SUBST(copyright)
@@ -5216,7 +5211,7 @@ AC_SUBST(WINDOW_SYSTEM_OBJ)
 
 AH_TOP([/* GNU Emacs site configuration template file.
 
-Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2015
+Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2016
   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.

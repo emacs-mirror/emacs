@@ -1,6 +1,6 @@
-;;; rng-loc.el --- locate the schema to use for validation
+;;; rng-loc.el --- Locate the schema to use for validation  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2016 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML, RelaxNG
@@ -31,10 +31,9 @@
 (require 'rng-util)
 (require 'xmltok)
 
-(defvar rng-current-schema-file-name nil
+(defvar-local rng-current-schema-file-name nil
   "Filename of schema being used for current buffer.
 It is nil if using a vacuous schema.")
-(make-variable-buffer-local 'rng-current-schema-file-name)
 
 (defvar rng-schema-locating-files-default
   (list "schemas.xml" (expand-file-name "schema/schemas.xml" data-directory))
@@ -233,11 +232,11 @@ or nil."
 				 rules))))))))
     best-so-far))
 
-(put 'documentElement 'rng-rule-matcher 'rng-match-document-element-rule)
-(put 'namespace 'rng-rule-matcher 'rng-match-namespace-rule)
-(put 'uri 'rng-rule-matcher 'rng-match-uri-rule)
-(put 'transformURI 'rng-rule-matcher 'rng-match-transform-uri-rule)
-(put 'default 'rng-rule-matcher 'rng-match-default-rule)
+(put 'documentElement 'rng-rule-matcher #'rng-match-document-element-rule)
+(put 'namespace 'rng-rule-matcher #'rng-match-namespace-rule)
+(put 'uri 'rng-rule-matcher #'rng-match-uri-rule)
+(put 'transformURI 'rng-rule-matcher #'rng-match-transform-uri-rule)
+(put 'default 'rng-rule-matcher #'rng-match-default-rule)
 
 (defun rng-match-document-element-rule (props)
   (let ((document-element (rng-document-element))

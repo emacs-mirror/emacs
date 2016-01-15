@@ -1,6 +1,6 @@
-;;; rng-dt.el --- datatype library interface for RELAX NG
+;;; rng-dt.el --- datatype library interface for RELAX NG  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2016 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML, RelaxNG
@@ -57,7 +57,7 @@ a datatype library.")
 	(t
 	 (rng-dt-error "There is no built-in datatype %s" name))))
 
-(put (rng-make-datatypes-uri "") 'rng-dt-compile 'rng-dt-builtin-compile)
+(put (rng-make-datatypes-uri "") 'rng-dt-compile #'rng-dt-builtin-compile)
 
 (provide 'rng-dt)
 

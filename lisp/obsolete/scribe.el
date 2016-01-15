@@ -1,6 +1,6 @@
 ;;; scribe.el --- scribe mode, and its idiosyncratic commands
 
-;; Copyright (C) 1985, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2016 Free Software Foundation, Inc.
 
 ;; Author: William Sommerfeld
 ;; (according to ack.texi)

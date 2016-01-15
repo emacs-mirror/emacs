@@ -1,3 +1,114 @@
+2016-01-09  Andrew Hyatt  <ahyatt@gmail.com>
+
+	Adding example replies to bug-triage.
+
+	* admin/notes/bug-triage: Added example replies. Also, as requested,
+	  making the process notes into more of a checklist.
+
+2016-01-08  Andrew Hyatt  <ahyatt@gmail.com>
+
+	Rename the notes/admin/triage file to bug-triage.
+
+	* CONTRIBUTE: Change reference to the triage file name.
+	* admin/notes/triage: Rename file to admin/notes/bug-triage.
+
+2016-01-07  Glenn Morris  <rgm@gnu.org>
+
+	Allow creation of loaddefs files without timestamps.
+
+	* lisp/emacs-lisp/autoload.el (autoload-timestamps): New variable.
+	(autoload-generate-file-autoloads, update-directory-autoloads):
+	If autoload-timestamps is nil, write "t" instead of file timestamp.
+	(autoload-find-destination, update-directory-autoloads):
+	If timestamp is "t", use the modtime of the output file instead.
+
+2016-01-06  Glenn Morris  <rgm@gnu.org>
+
+	Doc tweaks.
+
+	* lisp/calendar/cal-hebrew.el (diary-hebrew-list-entries):
+	* lisp/calendar/cal-iso.el (calendar-iso-to-absolute)
+	(calendar-iso-from-absolute):
+	* lisp/calendar/cal-tex.el (cal-tex-comment):
+	* lisp/calendar/solar.el (calendar-time-display-form): Doc tweaks.
+
+2016-01-06  Glenn Morris  <rgm@gnu.org>
+
+	Build tweaks related to tags files.
+
+	* lib-src/Makefile.in (tagsfiles): New variable.
+	(TAGS): Also depend on the source files.  Use our own etags program.
+	* lisp/Makefile.in (ETAGS): Add EXEEXT.
+	(lisptagsfiles1, lisptagsfiles2, lisptagsfiles3, lisptagsfiles4):
+	Remove.
+	(tagsfiles): New, replacing lisptagsfiles1 etc.
+	Remove irrelevant source files here rather than in the TAGS rule.
+	(${ETAGS}): New rule.
+	(TAGS): Also depend on the etags executable.
+	* lwlib/Makefile.in (EXEEXT): New, set by configure.
+	(ETAGS): Add EXEEXT.
+	(${ETAGS}): New rule.
+	(ctagsfiles): Use "wildcard".
+	(TAGS): Also depend on the etags executable.
+	* nt/Makefile.in (ETAGS, tagsfiles): New variables.
+	(${ETAGS}): New rule.
+	(TAGS): Fix dependencies.
+	* oldXMenu/Makefile.in (EXEEXT): New, set by configure.
+	(ETAGS): New variable, replacing $TAGS.  Use our own etags program.
+	Remove "-t" argument.
+	(${ETAGS}): New rule.
+	(tagsfiles): New variable.
+	(TAGS): New rule, with proper dependencies.
+	* src/Makefile.in (ETAGS): Add EXEEXT.  Add a build rule.
+	(ctagsfiles1, ctagsfiles2): Use "wildcard".
+	(ctagsfiles3): Remove.
+	(TAGS): Depend on etags.
+	(../lisp/TAGS, $(lwlibdir)/TAGS): Let the rules in the relevant
+	directories decide if updates are needed.
+
+2016-01-06  Glenn Morris  <rgm@gnu.org>
+
+	* lisp/Makefile.in (CAL_SRC): Skip calendar.el.
+
+2016-01-06  Glenn Morris  <rgm@gnu.org>
+
+	* test/lisp/emacs-lisp/package-tests.el
+
+	(package-test-macro-compilation): Fixup branch merge.
+
+2016-01-05  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix fallout from merging emacs-25 branch in test/
+
+	* .gitignore: Update for the new place of biditest.txt.
+	* test/automated/: Directory removed.  All files moved to their
+	proper places.
+	* test/etags/: Directory removed.  All files moved to their proper
+	places.
+	* test/automated/url-parse-tests.el: File removed; it was an exact
+	copy of the same file in test/lisp/url/.
+	* test/automated/url-expand-tests.el: Moved to test/lisp/url/.
+
+2016-01-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Spelling fixes.
+
+2016-01-04  Daniel Colascione  <dancol@dancol.org>
+
+	Let users disable unsafe signal handling code
+
+	* src/keyboard.c (syms_of_keyboard): New user variables
+	`attempt-stack-overflow-recovery' and
+	`attempt-orderly-shutdown-on-fatal-signal'.
+	* src/sysdep.c (stack_overflow): Check
+	`attempt-stack-overflow-recovery'.
+	* src/emacs.c (terminate_due_to_signal): Check
+	`attempt-orderly-shutdown-on-fatal-signal'.
+
+2016-01-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* configure.ac: Add error message for gfile on Nextstep.
+
 2016-01-03  John Wiegley  <johnw@newartisans.com>
 
 	Merge branch 'emacs-25-merge'
@@ -254,19 +365,7 @@
 
 2015-12-28  Lars Ingebrigtsen  <larsi@gnus.org>
 
-	shr link traversal fixup
-
-	* shr.el (shr-next-link): Don't bug out on adjacent links.
-
-	Backport:
-
-	(cherry picked from commit 1efc5f8b09273c359683ce13be95fb5df7a84311)
-
-2015-12-28  Lars Ingebrigtsen  <larsi@gnus.org>
-
-	shr link traversal fixup
-
-	* shr.el (shr-next-link): Don't bug out on adjacent links.
+	* lisp/net/shr.el (shr-next-link): Don't bug out on adjacent links.
 
 2015-12-28  Tom Tromey  <tom@tromey.com>
 
@@ -449,18 +548,6 @@
 	generated when multiple IRC clients talk to a single IRC proxy
 	(bug#19034).
 
-	Backport:
-
-	(cherry picked from commit 507e98a54d1aa37823c64993d6b59257a82fe8f4)
-
-2015-12-27  David Edmondson  <dme@dme.org>
-
-	Proxy error in erc with multiple clients
-
-	* lisp/erc/erc.el (erc-channel-receive-names): Fix errors
-	generated when multiple IRC clients talk to a single IRC proxy
-	(bug#19034).
-
 2015-12-27  Dima Kogan  <dima@secretsauce.net>
 
 	Ensure that we don't have several timers in erc
@@ -472,44 +559,17 @@
 
 2015-12-27  Jens Lechtenboerger  <jens.lechtenboerger@fsfe.org>
 
-	Fix mml-sec build warnings
-
-	* lisp/gnus/mml-sec.el: Fix warnings by adding autoloads
-	(bug#18718).
-
-	Backport:
-
-	(cherry picked from commit 3603097f62f5f4aa5451716e9ac380161f6829e2)
-
-2015-12-27  Jens Lechtenboerger  <jens.lechtenboerger@fsfe.org>
-
-	Fix mml-sec build warnings
-
 	* lisp/gnus/mml-sec.el: Fix warnings by adding autoloads
 	(bug#18718).
 
 2015-12-27  Lars Ingebrigtsen  <larsi@gnus.org>
 
-	Don't insert erc logs at the end
-
-	* erc-log.el (erc-log-setup-logging): Insert the previous log
+	* lisp/erc/erc-log.el (erc-log-setup-logging): Insert the previous log
 	at the start of the buffer, not at the end (bug#20496).
 
 2015-12-27  Lars Ingebrigtsen  <larsi@gnus.org>
 
-	(eww-setup-buffer): Restore left-to-right defaults
-
-	* eww.el (eww-setup-buffer): Restore left-to-right defaults.
-
-	Backport:
-
-	(cherry picked from commit 96c874b96b617c124d500a94de761a61f2a08685)
-
-2015-12-27  Lars Ingebrigtsen  <larsi@gnus.org>
-
-	(eww-setup-buffer): Restore left-to-right defaults
-
-	* eww.el (eww-setup-buffer): Restore left-to-right defaults.
+	* lisp/net/eww.el (eww-setup-buffer): Restore left-to-right defaults.
 
 2015-12-27  Lars Ingebrigtsen  <larsi@gnus.org>
 
@@ -676,27 +736,6 @@
 
 	Include the tests for the URL parsing fixes
 
-2015-12-26  Alain Schneble  <a.s@realize.ch>
-
-	Make relative URL parsing and resolution consistent with RFC 3986 (bug#22044)
-
-	* test/lisp/url/url-parse-tests.el: Add tests covering url-generic-parse-url.
-	* test/lisp/url/url-expand-tests.el: Add tests covering url-expand-file-name.
-	* lisp/url/url-parse.el (url-generic-parse-url): Keep empty fragment
-	information in URL-struct.
-	* lisp/url/url-parse.el (url-path-and-query): Do not artificially turn empty
-	path and query into nil path and query, respectively.
-	* lisp/url/url-expand.el (url-expander-remove-relative-links): Do not turn
-	empty path into an absolute ("/") path.
-	* lisp/url/url-expand.el (url-expand-file-name): Properly resolve
-	fragment-only URIs. Do not just return them unchanged.
-	* lisp/url/url-expand.el (url-default-expander): An empty path in the relative
-	reference URI should not drop the last segment.
-
-	Backport:
-
-	(cherry picked from commit b792ecea1715e080ad8e232d3d154b8a25d2edfb)
-
 2015-12-26  Eli Zaretskii  <eliz@gnu.org>
 
 	Document 'url-user-agent'.
@@ -751,43 +790,8 @@
 2015-12-25  Andreas Schwab  <schwab@linux-m68k.org>
 
 	Don't treat /foo/bar:mumble as ange-ftp address
-
-		* lisp/net/browse-url.el (browse-url-filename-alist): Match colons
-		only in the first component.  (bug#5362)
-
-2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
-
-	Follow <meta> redirects in eww
-
-	Merge conflict, but I think I resolved it.
-
-	    Follow meta refresh tags in eww
-
-	    * eww.el (eww-tag-meta): Follow meta refresh tags (bug#22234).
-
-	Backport:
-
-2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
-
-	Allow http://user:pass@foo/ URLs again
-
-	* lisp/url/url-auth.el (url-basic-auth): Allow explicit
-	user/passwords in URLs (bug#19046).
-
-	Backport:
-
-	(cherry picked from commit b563715a2db265517d5a77f165a42afa1e233fdd)
-
-2015-12-25  Samer Masterson  <samer@samertm.com>
-
-	Autoload url-insert-buffer-contents
-
-	* lisp/url/url-handlers.el: Add autoload cookie so that
-	`package-list-packages' doesn't bug out (bug#21927) (tiny change)
-
-	Backport:
-
-	(cherry picked from commit 7a7b5b492ff9929eecd90c4564db6fbf3b192323)
+	* lisp/net/browse-url.el (browse-url-filename-alist): Match colons
+	only in the first component.  (bug#5362)
 
 2015-12-25  Eli Zaretskii  <eliz@gnu.org>
 
@@ -796,157 +800,6 @@
 	* lisp/startup.el (normal-top-level): On MS-Windows, convert
 	backslashes to forward slashes while decoding default-directory
 	of the initially-created buffers.
-
-2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
-
-	More eww file name coding fixes
-
-	* eww.el (eww-decode-url-file-name): Use the base coding
-	system to check for encodability.
-
-	Backport:
-
-	(cherry picked from commit a8627008abe4ab339df19b417776da28b3ce0fc7)
-
-2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
-
-	Always save eww history
-
-	* eww.el (eww-setup-buffer): Always save history, even when
-	called from outside the eww buffer (bug#19638).
-
-	Backport:
-
-	(cherry picked from commit 2a0f18d9b6ce0ccce3d9c4a4a3b5743bae71b41e)
-
-2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
-
-	Default web pages to right-to-left
-
-	* eww.el (eww-mode): Most web pages are left-to-right, so make
-	that the default (bug#19801).
-
-	* shr.el (shr-tag-html): Respect "dir" attributes
-	(left-to-right, right-to-left).
-
-	Backport:
-
-	(cherry picked from commit 9e089ec8a380ec3758fcf1564c5f86dc92c68c2a)
-
-2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
-
-	Make toggling checkboxes work again
-
-	* eww.el (eww-update-field): Make toggling checkboxes work
-	again (bug#21881).
-
-	Backport:
-
-	(cherry picked from commit 5e56f606952e5e81b4d3a93ea70e791b74b33041)
-
-2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
-
-	Don't store cookies with empty names
-
-	* lisp/url/url-cookie.el (url-cookie-store): Refuse to store
-	cookies with empty names (bug#21936).
-
-	Backport:
-
-	(cherry picked from commit 9f0fd7cb1aec3eb9e2e0f7b8854c30870286d96c)
-
-2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
-
-	Stop rendering HTML before specdlr exhaustion
-
-	Fixes: 22117
-
-	* shr.el (shr-descend): Stop rendering before we run out of
-	specpdl room (bug#22117).
-
-	Backport:
-
-	(cherry picked from commit 248da292fe46224b0b5a79b632c89cf4de2c2081)
-
-2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
-
-	Use cl-reduce, not reduce.
-
-	Backport:
-
-	(cherry picked from commit fe4606f93b91ff3d046aee0cf21ecc277af7a786)
-
-2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
-
-	Allow several <tbody> tags in shr
-
-	* shr.el (shr-table-body): New function to find the real body
-	of a table.
-	(shr-tag-table): Use it to render several <tbody> tags in a
-	table (bug#22170).
-
-	Backport:
-
-	(cherry picked from commit cdaf33029d6620073833876d76056045ecfbc7c4)
-
-2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
-
-	Make prettier unique file names in eww
-
-	(eww-make-unique-file-name): Make unique file names by making
-	files like foo(2).jpg instead of foo(1)(2).jpg.
-
-	Backport:
-
-	(cherry picked from commit edfdd0a6cbdfa9e5e4bd0553e2b489401ca39266)
-
-2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
-
-	Decode hex-encoded URLs before using them as file names
-
-	* eww.el (eww-decode-url-file-name): New function.
-	(eww-download-callback): Use it to decode file names before
-	saving them.
-
-	Backport:
-
-	(cherry picked from commit af22a010d87516c2a646572fb27512c03057784f)
-
-2015-12-25  Ashish SHUKLA  <ashish.is@lostca.se>
-
-	Add FreeBSD cert bundle
-
-	* doc/misc/emacs-gnutls.texi (Help For Users): Document
-	FreeBSD bundle.
-
-	* lisp/net/gnutls.el (gnutls-trustfiles): Add FreeBSD cert bundle.
-
-	Backport:
-
-	(cherry picked from commit 60c0f1a18ad88d6dc1a8f4ee5d9d18940eaeb6f7)
-
-2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
-
-	Ignore invalid SVG images
-
-	* shr.el (shr-tag-svg): Ignore SVG images that have no width
-	or height, because these can't be displayed by ImageMagick,
-	anyway.
-
-	Backport:
-
-	(cherry picked from commit 821107d53c2e390240d25c036b99ebbf9b4a93b6)
-
-2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
-
-	shr table rendering fix
-
-	* shr.el (shr-tag-table): Allow rendering body-less tables
-	that have headers.
-
-	Backport:
-
-	(cherry picked from commit b05471e42c17e02c56c87d7599ada0c124a5fe09)
 
 2015-12-25  Eli Zaretskii  <eliz@gnu.org>
 
@@ -1292,7 +1145,7 @@
 
 2015-12-18  Lele Gaifax  <lele@metapensiero.it>
 
-	* etc/tutorials/TUTORIAL.it: Update and fix typos.
+	* etc/tutorials/TUTORIAL.it: Update and fix typos.  (Bug#22187)
 
 2015-12-18  Alan Mackenzie  <acm@muc.de>
 
@@ -1450,7 +1303,7 @@
 	* src/xfns.c (compute_tip_xy): Modify *root_x instead of *root_y
 	when `right' is integer.
 
-2015-12-14  foudfou  <foudil.newbie+git@gmail.com>
+2015-12-14  foudfou  <foudil.newbie+git@gmail.com>  (tiny change)
 
 	* lisp/ibuffer.el: Add ability to (un-)mark or delete buffers in the region.
 
@@ -2138,7 +1991,7 @@
 	(ifconfig-program-options): Check the actual program in use.
 	(arp-program): Check sbin directories.
 
-2015-12-04  (tiny change) Arash Esbati  <esbati@gmx.de>  (tiny change)
+2015-12-04  Arash Esbati  <esbati@gmx.de>  (tiny change)
 
 	Fix wrong-type-argument integer-or-marker-p nil error
 
@@ -2247,7 +2100,6 @@
 2015-12-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lisp/emacs-lisp/cl-macs.el (character): Can't be negative
-
 	Fixes (bug#21701)
 
 2015-12-04  Daiki Ueno  <ueno@gnu.org>
@@ -2907,15 +2759,6 @@
 
 	* lisp/replace.el (replace-character-fold): Clarify which commands
 	are affected by this variable.
-
-2015-11-27  Mark Oteiza  <mvoteiza@udel.edu>
-
-	Backport: Add interactive seek command.
-
-	* lisp/mpc.el (mpc-cmd-seekcur): New function.
-	(mpc-seek-current): New command.
-	(mpc-mode-menu): Add entry for mpc-seek-current
-	(mpc-mode-map): Bind mpc-seek-current to "g"
 
 2015-11-27  Dmitry Gutov  <dgutov@yandex.ru>
 
@@ -3732,12 +3575,6 @@
 	w32_init_main_thread, instead of calling the requisite APIs once
 	more.
 
-2015-11-21  Mark Oteiza  <mvoteiza@udel.edu>
-
-	Backport: Fix issue where a new tempfile was created every refresh
-
-	* lisp/mpc.el (mpc-format): Leave dir as relative path
-
 2015-11-21  Eli Zaretskii  <eliz@gnu.org>
 
 	Call 'window-size-change-functions' for mini-windows
@@ -4268,41 +4105,6 @@
 
 	* admin/release-process: Improve wording.
 
-2015-11-17  Xue Fuqiao  <xfq.free@gmail.com>
-
-	Backport: * CONTRIBUTE: Remove information about feature freeze.
-
-	(cherry picked from commit ae0653b5ab9ee223751ec389b87011963e1cbbef)
-
-2015-11-17  Xue Fuqiao  <xfq.free@gmail.com>
-
-	Backport: Document the release process
-
-	* admin/notes/versioning: Add information about RC releases.
-	* admin/release-process: Document the release process.
-	* admin/authors.el (authors-ignored-files):
-	* admin/README: Change FOR-RELEASE to release-process.
-	* CONTRIBUTE:
-	* admin/notes/bugtracker: Don't mention FOR-RELEASE.
-
-	(cherry picked from commit 9a4aa0f5945a03611ae29c516025dbd353bd26ab)
-
-2015-11-17  Xue Fuqiao  <xfq.free@gmail.com>
-
-	Backport: * admin/release-process: Rename from admin/FOR-RELEASE.
-
-	(cherry picked from commit f8cc14b59700e51a4e31139c0a65c8154995e055)
-
-2015-11-17  Xue Fuqiao  <xfq.free@gmail.com>
-
-	Backport: Mention CONTRIBUTE in README
-
-	Mention CONTRIBUTE in README, since it was moved from etc/ to root.
-	* etc/TODO: Remove the reference to `etc/CONTRIBUTE'.
-	* README: Mention CONTRIBUTE.
-
-	(cherry picked from commit ed2e7e20ae0945288c98091f308f5460c3453873)
-
 2015-11-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix docstring quoting problems with ‘ '’
@@ -4437,19 +4239,6 @@
 	(c-back-over-member-initializers): Reformulate such that c-at-toplevel-p
 	is only called when a construct "looks right" rather than continually.
 	(c-guess-basic-syntax, CASE 5R): Add a check for the mode being C++ Mode.
-
-2015-11-15  Artur Malabarba  <bruce.connor.am@gmail.com>
-
-	Backport: * lisp/emacs-lisp/package.el: Fix a decoding issue.
-
-	* lisp/url/url-handlers.el (url-insert-file-contents): Move some code to
-	`url-insert-buffer-contents'.
-	(url-insert-buffer-contents): New function
-
-	(package--with-response-buffer): Use `url-insert-buffer-contents'.
-	The previous code had some issues with decoding. Refactoring that
-	function allows us to use the decoding from url-handlers while still
-	treating both sync and async requests the same.
 
 2015-11-15  Stephen Leake  <stephen_leake@stephe-leake.org>
 
@@ -4628,185 +4417,15 @@
 	* doc/lispref/internals.texi (Building Emacs): Document that GNU
 	Make 3.81 or later is now required.
 
-2015-11-14  Artur Malabarba  <bruce.connor.am@gmail.com>
-
-	Backport: * lisp/emacs-lisp/package.el: Refactor -with-work-buffer-async.
-
-	(package--with-work-buffer-async): Reimplement as
-	`package--with-response-buffer'.
-	(package--with-work-buffer): Mark obsolete.
-	(package--with-response-buffer): New macro. This is a more self
-	contained and less contrived version of
-	`package--with-work-buffer-async'.  It uses keyword arguments,
-	doesn't have async on the name, doesn't fallback on
-	`package--with-work-buffer', and has _much_ simpler error
-	handling.  On master, this macro will soon be part of another
-	library (either standalone or inside url.el), which is why this
-	commit is not to be merged back.
-
-	(package--check-signature, package--download-one-archive)
-	(package-install-from-archive, describe-package-1): Use it.
-
-	(package--download-and-read-archives): Let
-	`package--download-one-archive' take care of calling
-	`package--update-downloads-in-progress'.
-
 2015-11-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* CONTRIBUTE (Branches): Improve wording for back-ported commits.
-
-2015-11-14  Dmitry Gutov  <dgutov@yandex.ru>
-
-	Merge branch 'master' into emacs-25
-
-2015-11-13  John Wiegley  <johnw@newartisans.com>
-
-	Merge remote-tracking branch 'origin/master' into emacs-25
 
 2015-11-13  l3thal  <kwhite@gnu.org>
 
 	Merge branch 'erc-async-reconnect' into emacs-25
 
 	Reconnect asynchronously.
-
-2015-11-13  Eli Zaretskii  <eliz@gnu.org>
-
-	Merge branch 'emacs-25' of git.savannah.gnu.org:/srv/git/emacs into emacs-25
-
-2015-11-13  Paul Eggert  <eggert@cs.ucla.edu>
-
-	Port recent XCB changes to 64-bit ‘long int’
-
-	For historical reasons, libX11 represents 32-bit values like Atoms as
-	‘long int’ even on platforms where ‘long int’ is 64 bits.  XCB doesn’t
-	do that, so adapt the recent XCB code to behave properly on 64-bit
-	platforms.  Also, fix what appears to be a bug in the interpretation
-	of xcb_get_property_value_length, at least on my Fedora platform
-	which is running libxcb-1.11-5.fc21.
-	* src/xfns.c (x_real_pos_and_offsets):
-	* src/xterm.c (get_current_wm_state):
-	xcb_get_property_value_length returns a byte count, not a word count.
-	For 32-bit quantities, xcb_get_property_value returns a vector
-	of 32-bit words, not of (possibly 64-bit) long int.
-
-	Backport.
-
-2015-11-13  Paul Eggert  <eggert@cs.ucla.edu>
-
-	* src/undo.c (run_undoable_change): Now static.
-
-	Backport.
-
-2015-11-13  Eli Zaretskii  <eliz@gnu.org>
-
-	Remove support for ':timeout' from w32 tray notifications
-
-	* src/w32fns.c (Fw32_notification_notify): Delete the code that
-	supports ':timeout'.
-	(syms_of_w32fns): Don't DEFSYM ':timeout'.  This avoids clashes
-	with dbusbind.c when D-Bus is compiled in.
-
-	* doc/lispref/os.texi (Desktop Notifications): Don't mention
-	':timeout'.
-
-	Backport.
-
-2015-11-13  Juanma Barranquero  <lekktu@gmail.com>
-
-	* test/automated/simple-test.el: Add test for bug#20698 (bug#21885)
-
-	(simple-test--transpositions): New macro.
-	(simple-transpose-subr): New test.
-
-	Backport.
-
-2015-11-13  Juanma Barranquero  <lekktu@gmail.com>
-
-	* lisp/progmodes/elisp-mode.el: Declare function `project-roots'
-
-	Backport.
-
-2015-11-13  Juanma Barranquero  <lekktu@gmail.com>
-
-	* src/undo.c: Small fixes for previous change
-
-	(run_undoable_change): Mark void argument list.
-	(record_property_change): Remove unused variable `boundary'.
-
-	Backport.
-
-2015-11-13  Eli Zaretskii  <eliz@gnu.org>
-
-	Add a few more variables to redisplay--variables
-
-	* lisp/frame.el (redisplay--variables): Add bidi-paragraph-direction
-	and bidi-display-reordering to the list.
-
-	Backport.
-
-2015-11-13  Eli Zaretskii  <eliz@gnu.org>
-
-	* lisp/loadup.el: Enlarge the size of the hash table to 80000.
-
-	Backport.
-
-2015-11-13  Eli Barzilay  <eli@barzilay.org>
-
-	Fix point positioning after transposing with negative arg
-
-	* lisp/simple.el (transpose-subr): When invoked with a negative
-	argument, move point to after the transposed text, like we do
-	when invoked with a positive argument.  (Bug#21885)
-
-	Backport.
-
-2015-11-13  Eli Zaretskii  <eliz@gnu.org>
-
-	Fix last change in shr.el
-
-	* lisp/net/shr.el (shr--have-one-fringe-p): Rename from
-	have-fringes-p.  All callers changed.  Doc fix.  (Bug#21895)
-
-	Backport.
-
-2015-11-13  Eli Zaretskii  <eliz@gnu.org>
-
-	Fix last change
-
-	* src/w32fns.c (syms_of_w32fns) [WINDOWSNT && !HAVE_DBUS]:
-	Don't DEFSYM tray notification symbols if D-Bus is being used.
-
-	Backport.
-
-2015-11-13  Eli Zaretskii  <eliz@gnu.org>
-
-	Another fix for MinGW64 and Cygwin builds due to notifications
-
-	* src/w32fns.c: Ifdef away tray notification code if D-Bus is
-	being compiled into Emacs.
-	(syms_of_w32fns) [WINDOWSNT && !HAVE_DBUS]: Don't defsubr
-	Sw32_notification_notify and Sw32_notification_close if the code
-	is not compiled.  Reported by Andy Moreton <andrewjmoreton@gmail.com>.
-
-	Backport.
-
-2015-11-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
-
-	Remove intern calls and XXX comments from Fx_export_frames
-
-	* src/xfns.c (Fx_export_frames): Use Qpdf, Qpng, Qpostscript, and
-	Qsvg instead of intern calls.  Use "postscript" instead of "ps"
-	for consistency with image types.  Remove XXX comments.
-	(syms_of_xfns) <Qpdf>: DEFSYM it.
-
-	Backport.
-
-2015-11-13  Michael Albinus  <michael.albinus@gmx.de>
-
-	Adapt Tramp version, do not merge with master
-
-	* doc/misc/trampver.texi (trampver):
-	* lisp/net/trampver.el (tramp-version): Set to "2.2.13-25.1".
 
 2015-11-11  Alan Mackenzie  <acm@muc.de>
 
@@ -4887,23 +4506,6 @@
 	* lisp/erc/erc.el (erc-default-port-tls): New variable
 	(bug#19497).
 	* lisp/erc/erc.el (erc-tls): Use it.
-
-2015-12-25  Alain Schneble  <a.s@realize.ch>
-
-	Make relative URL parsing and resolution consistent with RFC 3986 (bug#22044)
-
-	* test/lisp/url/url-parse-tests.el: Add tests covering url-generic-parse-url.
-	* test/lisp/url/url-expand-tests.el: Add tests covering url-expand-file-name.
-	* lisp/url/url-parse.el (url-generic-parse-url): Keep empty fragment
-	information in URL-struct.
-	* lisp/url/url-parse.el (url-path-and-query): Do not artificially turn empty
-	path and query into nil path and query, respectively.
-	* lisp/url/url-expand.el (url-expander-remove-relative-links): Do not turn
-	empty path into an absolute ("/") path.
-	* lisp/url/url-expand.el (url-expand-file-name): Properly resolve
-	fragment-only URIs. Do not just return them unchanged.
-	* lisp/url/url-expand.el (url-default-expander): An empty path in the relative
-	reference URI should not drop the last segment.
 
 2015-12-25  Alain Schneble  <a.s@realize.ch>
 
@@ -5030,10 +4632,6 @@
 
 2015-12-25  Lars Ingebrigtsen  <larsi@gnus.org>
 
-	Stop rendering HTML before specdlr exhaustion
-
-	Fixes: 22117
-
 	* shr.el (shr-descend): Stop rendering before we run out of
 	specpdl room (bug#22117).
 
@@ -5065,13 +4663,9 @@
 	(eww-download-callback): Use it to decode file names before
 	saving them.
 
-2015-12-24  Ashish SHUKLA  <ashish.is@lostca.se>
+2015-12-24  Ashish SHUKLA  <ashish.is@lostca.se>  (tiny change)
 
-	Add FreeBSD cert bundle
-
-	* doc/misc/emacs-gnutls.texi (Help For Users): Document
-	FreeBSD bundle.
-
+	* doc/misc/emacs-gnutls.texi (Help For Users): Document FreeBSD bundle.
 	* lisp/net/gnutls.el (gnutls-trustfiles): Add FreeBSD cert bundle.
 
 2015-12-24  Lars Ingebrigtsen  <larsi@gnus.org>
@@ -25221,14 +24815,14 @@
 
 This file records repository revisions from
 commit 9d56a21e6a696ad19ac65c4b405aeca44785884a (exclusive) to
-commit fb6d826c69939c2d016c1b824d4e9bcb53d9e643 (inclusive).
+commit 384cf23c6ed05e1f151032958a2cc2bb8100344b (inclusive).
 See ChangeLog.1 for earlier changes.
 
 ;; Local Variables:
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2015 Free Software Foundation, Inc.
+  Copyright (C) 2015-2016 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
 ;;; tramp-gw.el --- Tramp utility functions for HTTP tunnels and SOCKS gateways
 
-;; Copyright (C) 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2016 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -108,7 +108,7 @@
      tramp-gw-vector 4
      "Opening auxiliary process `%s', speaking with process `%s'"
      proc tramp-gw-gw-proc)
-    (tramp-compat-set-process-query-on-exit-flag proc nil)
+    (set-process-query-on-exit-flag proc nil)
     ;; We don't want debug messages, because the corresponding debug
     ;; buffer might be undecided.
     (let ((tramp-verbose 0))
@@ -158,7 +158,7 @@ instead of the host name declared in TARGET-VEC."
 	     :name (tramp-buffer-name aux-vec) :buffer nil :host 'local
 	     :server t :noquery t :service t :coding 'binary))
       (set-process-sentinel tramp-gw-aux-proc 'tramp-gw-aux-proc-sentinel)
-      (tramp-compat-set-process-query-on-exit-flag tramp-gw-aux-proc nil)
+      (set-process-query-on-exit-flag tramp-gw-aux-proc nil)
       (tramp-message
        vec 4 "Opening auxiliary process `%s', listening on port %d"
        tramp-gw-aux-proc (process-contact tramp-gw-aux-proc :service))))
@@ -204,7 +204,7 @@ instead of the host name declared in TARGET-VEC."
 	   (tramp-file-name-port target-vec)))
     (set-process-sentinel tramp-gw-gw-proc 'tramp-gw-gw-proc-sentinel)
     (set-process-coding-system tramp-gw-gw-proc 'binary 'binary)
-    (tramp-compat-set-process-query-on-exit-flag tramp-gw-gw-proc nil)
+    (set-process-query-on-exit-flag tramp-gw-gw-proc nil)
     (tramp-message
      vec 4 "Opened %s process `%s'"
      (case gw-method ('tunnel "HTTP tunnel") ('socks "SOCKS"))
@@ -235,14 +235,14 @@ authentication is requested from proxy server, provide it."
       (setq proc (open-network-stream
 		  name buffer (nth 1 socks-server) (nth 2 socks-server)))
       (set-process-coding-system proc 'binary 'binary)
-      (tramp-compat-set-process-query-on-exit-flag proc nil)
+      (set-process-query-on-exit-flag proc nil)
       ;; Send CONNECT command.
       (process-send-string proc (format "%s%s\r\n" command authentication))
       (tramp-message
        tramp-gw-vector 6 "\n%s"
        (format
 	"%s%s\r\n" command
-	(tramp-compat-replace-regexp-in-string ;; no password in trace!
+	(replace-regexp-in-string ;; no password in trace!
 	 "Basic [^\r\n]+" "Basic xxxxx" authentication t)))
       (with-current-buffer buffer
 	;; Trap errors to be traced in the right trace buffer.  Often,

@@ -1,6 +1,6 @@
-;;; nxml-enc.el --- XML encoding auto-detection
+;;; nxml-enc.el --- XML encoding auto-detection  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2016 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML
@@ -68,7 +68,7 @@
     (and nxml-non-xml-set-auto-coding-function
 	 (funcall nxml-non-xml-set-auto-coding-function file-name size))))
 
-(defun nxml-set-xml-coding (file-name size)
+(defun nxml-set-xml-coding (_file-name size)
   "Function to use as `set-auto-coding-function' when file is known to be XML."
   (nxml-detect-coding-system (+ (point) (min size 1024))))
 

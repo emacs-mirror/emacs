@@ -1,6 +1,6 @@
 /* Buffer manipulation primitives for GNU Emacs.
 
-Copyright (C) 1985-1989, 1993-1995, 1997-2015 Free Software Foundation,
+Copyright (C) 1985-1989, 1993-1995, 1997-2016 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -2005,7 +2005,7 @@ the current buffer's major mode.  */)
   /* To select a nonfundamental mode,
      select the buffer temporarily and then call the mode function.  */
 
-  record_unwind_protect (save_excursion_restore, save_excursion_save ());
+  record_unwind_current_buffer ();
 
   Fset_buffer (buffer);
   call0 (function);
@@ -5809,11 +5809,14 @@ you probably should set this to -2 in that buffer.  */);
   DEFVAR_PER_BUFFER ("selective-display", &BVAR (current_buffer, selective_display),
 		     Qnil,
 		     doc: /* Non-nil enables selective display.
+
 An integer N as value means display only lines
 that start with less than N columns of space.
+
 A value of t means that the character ^M makes itself and
 all the rest of the line invisible; also, when saving the buffer
-in a file, save the ^M as a newline.  */);
+in a file, save the ^M as a newline.  This usage is obsolete; use
+overlays or text properties instead.  */);
 
   DEFVAR_PER_BUFFER ("selective-display-ellipses",
 		     &BVAR (current_buffer, selective_display_ellipses),
@@ -6207,11 +6210,11 @@ all windows or just the selected window.
 
 Lisp programs may give this variable certain special values:
 
-- A value of `lambda' enables Transient Mark mode temporarily.
-  It is disabled again after any subsequent action that would
+- The symbol `lambda' enables Transient Mark mode temporarily.
+  The mode is disabled again after any subsequent action that would
   normally deactivate the mark (e.g. buffer modification).
 
-- A value of (only . OLDVAL) enables Transient Mark mode
+- The pair (only . OLDVAL) enables Transient Mark mode
   temporarily.  After any subsequent point motion command that is
   not shift-translated, or any other action that would normally
   deactivate the mark (e.g. buffer modification), the value of

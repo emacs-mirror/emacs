@@ -1,6 +1,6 @@
 ;;; lpr.el --- print Emacs buffer on line printer
 
-;; Copyright (C) 1985, 1988, 1992, 1994, 2001-2015 Free Software
+;; Copyright (C) 1985, 1988, 1992, 1994, 2001-2016 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2015 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2016 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Search
@@ -12,10 +12,10 @@ a string.  Emacs also has commands to replace occurrences of a string
 with a different string.  There are also commands that do the same
 thing, but search for patterns instead of fixed strings.
 
-  You can also search multiple files under the control of a tags table
-(@pxref{Tags Search}) or through the Dired @kbd{A} command
-(@pxref{Operating on Files}), or ask the @code{grep} program to do it
-(@pxref{Grep Searching}).
+  You can also search multiple files under the control of an
+@code{xref} backend (@pxref{Identifier Search}) or through the Dired
+@kbd{A} command (@pxref{Operating on Files}), or ask the @code{grep}
+program to do it (@pxref{Grep Searching}).
 
 @menu
 * Incremental Search::        Search happens as you type the string.

@@ -1,6 +1,6 @@
 ;; xref.el --- Cross-referencing commands              -*-lexical-binding:t-*-
 
-;; Copyright (C) 2014-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2016 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -19,6 +19,11 @@
 
 ;;; Commentary:
 
+;; NOTE: The xref API is still experimental and can change in major,
+;; backward-incompatible ways.  Everyone is encouraged to try it, and
+;; report to us any problems or use cases we hadn't anticipated, by
+;; sending an email to emacs-devel, or `M-x report-emacs-bug'.
+;;
 ;; This file provides a somewhat generic infrastructure for cross
 ;; referencing commands, in particular "find-definition".
 ;;
@@ -203,7 +208,7 @@ LENGTH is the match length, in characters."
 
 (defvar xref-backend-functions nil
   "Special hook to find the xref backend for the current context.
-Each functions on this hook is called in turn with no arguments
+Each function on this hook is called in turn with no arguments,
 and should return either nil to mean that it is not applicable,
 or an xref backend, which is a value to be used to dispatch the
 generic functions.")
@@ -497,10 +502,14 @@ WINDOW controls how the buffer is displayed:
     (xref--pop-to-location xref window)))
 
 (defun xref-query-replace (from to)
-  "Perform interactive replacement in all current matches."
+  "Perform interactive replacement of FROM with TO in all displayed xrefs.
+
+This command interactively replaces FROM with TO in the names of the
+references displayed in the current *xref* buffer."
   (interactive
-   (list (read-regexp "Query replace regexp in matches" ".*")
-         (read-regexp "Replace with: ")))
+   (let ((fr (read-regexp "Xref query-replace (regexp)" ".*")))
+     (list fr
+           (read-regexp (format "Xref query-replace (regexp) %s with: " fr)))))
   (let (pairs item)
     (unwind-protect
         (progn
@@ -757,12 +766,10 @@ Return an alist of the form ((FILENAME . (XREF ...)) ...)."
 With prefix argument or when there's no identifier at point,
 prompt for it.
 
-If the backend has sufficient information to determine a unique
-definition for IDENTIFIER, it returns only that definition. If
-there are multiple possible definitions, it returns all of them.
-
-If the backend returns one definition, jump to it; otherwise,
-display the list in a buffer."
+If sufficient information is available to determine a unique
+definition for IDENTIFIER, display it in the selected window.
+Otherwise, display the list of the possible definitions in a
+buffer where the user can select from the list."
   (interactive (list (xref--read-identifier "Find definitions of: ")))
   (xref--find-definitions identifier nil))
 
@@ -871,7 +878,9 @@ IGNORES is a list of glob patterns."
                                                        grep-find-template t t))
          (grep-highlight-matches nil)
          (command (xref--rgrep-command (xref--regexp-to-extended regexp)
-                                       files dir ignores))
+                                       files
+                                       (expand-file-name dir)
+                                       ignores))
          (orig-buffers (buffer-list))
          (buf (get-buffer-create " *xref-grep*"))
          (grep-re (caar grep-regexp-alist))
@@ -886,7 +895,7 @@ IGNORES is a list of glob patterns."
               hits)))
     (unwind-protect
         (cl-mapcan (lambda (hit) (xref--collect-matches hit regexp))
-                   hits)
+                   (nreverse hits))
       ;; TODO: Same as above.
       (mapc #'kill-buffer
             (cl-set-difference (buffer-list) orig-buffers)))))
@@ -907,23 +916,28 @@ IGNORES is a list of glob patterns."
            " "
            (shell-quote-argument ")"))
    dir
-   (concat
-    (shell-quote-argument "(")
-    " -path "
-    (mapconcat
-     (lambda (ignore)
-       (when (string-match-p "/\\'" ignore)
-         (setq ignore (concat ignore "*")))
-       (if (string-match "\\`\\./" ignore)
-           (setq ignore (replace-match dir t t ignore))
-         (unless (string-prefix-p "*" ignore)
-           (setq ignore (concat "*/" ignore))))
-       (shell-quote-argument ignore))
-     ignores
-     " -o -path ")
-    " "
-    (shell-quote-argument ")")
-    " -prune -o ")))
+   (xref--find-ignores-arguments ignores dir)))
+
+(defun xref--find-ignores-arguments (ignores dir)
+  ;; `shell-quote-argument' quotes the tilde as well.
+  (cl-assert (not (string-match-p "\\`~" dir)))
+  (concat
+   (shell-quote-argument "(")
+   " -path "
+   (mapconcat
+    (lambda (ignore)
+      (when (string-match-p "/\\'" ignore)
+        (setq ignore (concat ignore "*")))
+      (if (string-match "\\`\\./" ignore)
+          (setq ignore (replace-match dir t t ignore))
+        (unless (string-prefix-p "*" ignore)
+          (setq ignore (concat "*/" ignore))))
+      (shell-quote-argument ignore))
+    ignores
+    " -o -path ")
+   " "
+   (shell-quote-argument ")")
+   " -prune -o "))
 
 (defun xref--regexp-to-extended (str)
   (replace-regexp-in-string

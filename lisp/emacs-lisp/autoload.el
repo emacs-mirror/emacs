@@ -1,6 +1,6 @@
 ;; autoload.el --- maintain autoloads in loaddefs.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1991-1997, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1991-1997, 2001-2016 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Keywords: maint
@@ -701,8 +701,9 @@ Return FILE if there was no autoload cookie in it, else nil."
 (defun autoload-find-destination (file load-name)
   "Find the destination point of the current buffer's autoloads.
 FILE is the file name of the current buffer.
+LOAD-NAME is the name as it appears in the output.
 Returns a buffer whose point is placed at the requested location.
-Returns nil if the file's autoloads are uptodate, otherwise
+Returns nil if the file's autoloads are up-to-date, otherwise
 removes any prior now out-of-date autoload entries."
   (catch 'up-to-date
     (let* ((buf (current-buffer))
@@ -738,7 +739,7 @@ removes any prior now out-of-date autoload entries."
                                ;; last-time is the time-stamp (specifying
                                ;; the last time we looked at the file) and
                                ;; the file hasn't been changed since.
-                               ((listp last-time)
+                               ((listp last-time) (= (length last-time) 2)
                                 (not (time-less-p last-time file-time)))
                                ;; FIXME? Arguably we should throw a
                                ;; user error, or some kind of warning,

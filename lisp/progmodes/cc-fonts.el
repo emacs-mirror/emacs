@@ -1,6 +1,6 @@
 ;;; cc-fonts.el --- font lock support for CC Mode
 
-;; Copyright (C) 2002-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2016 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             2002- Martin Stjernholm
@@ -1157,15 +1157,6 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	  (setq pos (point))))))     ; acts to make the `while' form continue.
   nil)
 
-(defconst c-font-lock-maybe-decl-faces
-  ;; List of faces that might be put at the start of a type when
-  ;; `c-font-lock-declarations' runs.  This needs to be evaluated to
-  ;; ensure that face name aliases in Emacs are resolved.
-  (list nil
-	font-lock-type-face
-	c-reference-face-name
-	font-lock-keyword-face))
-
 (defun c-font-lock-declarations (limit)
   ;; Fontify all the declarations, casts and labels from the point to LIMIT.
   ;; Assumes that strings and comments have been fontified already.
@@ -1205,6 +1196,9 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	  ;; Same as `max-type-decl-*', but used when we're before
 	  ;; `token-pos'.
 	  (max-type-decl-end-before-token 0)
+	  ;; End of <..> construct which has had c-<>-arg-sep c-type
+	  ;; properties set within it.
+	  (max-<>-end 0)
 	  ;; Set according to the context to direct the heuristics for
 	  ;; recognizing C++ templates.
 	  c-restricted-<>-arglists
@@ -1253,7 +1247,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
       (c-find-decl-spots
        limit
        c-decl-start-re
-       c-font-lock-maybe-decl-faces
+       (eval c-maybe-decl-faces)
 
        (lambda (match-pos inside-macro)
 	 ;; Note to maintainers: don't use `limit' inside this lambda form;
@@ -1346,6 +1340,28 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	    ;; Now analyze the construct.
 	    (setq decl-or-cast (c-forward-decl-or-cast-1
 				match-pos context last-cast-end))
+
+	    ;; Ensure that c-<>-arg-sep c-type properties are in place on the
+	    ;; commas separating the arguments inside template/generic <..>s.
+	    (when (and (eq (char-before match-pos) ?<)
+		       (> match-pos max-<>-end))
+	      (save-excursion
+		(goto-char match-pos)
+		(c-backward-token-2)
+		(if (and
+		     (eq (char-after) ?<)
+		     (let ((c-restricted-<>-arglists
+			    (save-excursion
+			      (c-backward-token-2)
+			      (and
+			       (not (looking-at c-opt-<>-sexp-key))
+			       (progn (c-backward-syntactic-ws)
+				      (memq (char-before) '(?\( ?,)))
+			       (not (eq (c-get-char-property (1- (point))
+							     'c-type)
+					'c-decl-arg-start))))))
+		       (c-forward-<>-arglist nil)))
+		    (setq max-<>-end (point)))))
 
 	    (cond
 	     ((eq decl-or-cast 'cast)

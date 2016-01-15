@@ -1,6 +1,6 @@
 # Attributes of Emacs files in the Git repository.
 
-# Copyright 2015 Free Software Foundation, Inc.
+# Copyright 2015-2016 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -34,12 +34,14 @@ test/etags/html-src/algrthms.html whitespace=cr-at-eol
 doc/misc/texinfo.tex -whitespace=blank-at-eol
 
 # Some files should not be treated as text when diffing or merging.
+*.cur binary
 *.gpg binary
 *.gz binary
 *.icns binary
 *.ico binary
 *.pbm binary
 *.pdf binary
+*.pif binary
 *.png binary
 *.sig binary
 *.tiff binary

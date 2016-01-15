@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2015 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2016 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Markers
@@ -658,6 +658,24 @@ more marks than this are pushed onto the @code{mark-ring},
 
 @c There is also global-mark-ring-max, but this chapter explicitly
 @c does not talk about the global mark.
+
+@cindex @code{delete-selection}, symbol property
+@findex delete-selection-helper
+@findex delete-selection-pre-hook
+When Delete Selection mode (@pxref{Using Region, Delete Selection, ,
+emacs, The GNU Emacs Manual}) is enabled, commands that operate on the
+active region (a.k.a.@: ``selection'') behave slightly differently.
+This works by adding the function @code{delete-selection-pre-hook} to
+the @code{pre-command-hook} (@pxref{Command Overview}).  That function
+calls @code{delete-selection-helper} to delete the selection as
+appropriate for the command.  If you want to adapt a command to Delete
+Selection mode, put the @code{delete-selection} property on the
+function's symbol (@pxref{Symbol Plists}); commands that don't have
+this property on their symbol won't delete the selection.  This
+property can have one of several values to tailor the behavior to what
+the command is supposed to do; see the doc strings of
+@code{delete-selection-pre-hook} and @code{delete-selection-helper}
+for the details.
 
 @node The Region
 @section The Region

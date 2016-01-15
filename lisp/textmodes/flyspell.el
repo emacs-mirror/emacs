@@ -1,6 +1,6 @@
 ;;; flyspell.el --- On-the-fly spell checker  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998, 2000-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2016 Free Software Foundation, Inc.
 
 ;; Author: Manuel Serrano <Manuel.Serrano@sophia.inria.fr>
 ;; Maintainer: emacs-devel@gnu.org
@@ -399,6 +399,9 @@ like <img alt=\"Some thing.\">."
   (interactive)
   (setq flyspell-generic-check-word-predicate
         #'flyspell-generic-progmode-verify)
+  (setq-local flyspell--prev-meta-tab-binding
+              (or (local-key-binding "\M-\t" t)
+                  (global-key-binding "\M-\t" t)))
   (flyspell-mode 1)
   (run-hooks 'flyspell-prog-mode-hook))
 
@@ -1904,105 +1907,114 @@ before point that's highlighted as misspelled."
   "Correct the current word.
 This command proposes various successive corrections for the current word."
   (interactive)
-  (let ((pos     (point))
-	(old-max (point-max)))
-    ;; Use the correct dictionary.
-    (flyspell-accept-buffer-local-defs)
-    (if (and (eq flyspell-auto-correct-pos pos)
-	     (consp flyspell-auto-correct-region))
-	;; We have already been using the function at the same location.
-	(let* ((start (car flyspell-auto-correct-region))
-	       (len   (cdr flyspell-auto-correct-region)))
-	  (flyspell-unhighlight-at start)
-	  (delete-region start (+ start len))
-	  (setq flyspell-auto-correct-ring (cdr flyspell-auto-correct-ring))
-	  (let* ((word (car flyspell-auto-correct-ring))
-		 (len  (length word)))
-	    (rplacd flyspell-auto-correct-region len)
-	    (goto-char start)
-	    (if flyspell-abbrev-p
-		(if (flyspell-already-abbrevp (flyspell-abbrev-table)
-					      flyspell-auto-correct-word)
-		    (flyspell-change-abbrev (flyspell-abbrev-table)
-					    flyspell-auto-correct-word
-					    word)
-		  (flyspell-define-abbrev flyspell-auto-correct-word word)))
-	    (funcall flyspell-insert-function word)
-	    (flyspell-word)
-	    (flyspell-display-next-corrections flyspell-auto-correct-ring))
-	  (flyspell-ajust-cursor-point pos (point) old-max)
-	  (setq flyspell-auto-correct-pos (point)))
-      ;; Fetch the word to be checked.
-      (let ((word (flyspell-get-word)))
-	(if (consp word)
-	    (let ((start (car (cdr word)))
-		  (end (car (cdr (cdr word))))
-		  (word (car word))
-		  poss ispell-filter)
-	      (setq flyspell-auto-correct-word word)
-	      ;; Now check spelling of word..
-	      (ispell-send-string "%\n") ;Put in verbose mode.
-	      (ispell-send-string (concat "^" word "\n"))
-              ;; Wait until ispell has processed word.
-              (while (progn
-                       (accept-process-output ispell-process)
-                       (not (string= "" (car ispell-filter)))))
-	      ;; Remove leading empty element.
-	      (setq ispell-filter (cdr ispell-filter))
-	      ;; Ispell process should return something after word is sent.
-	      ;; Tag word as valid (i.e., skip) otherwise.
-	      (or ispell-filter
-		  (setq ispell-filter '(*)))
-	      (if (consp ispell-filter)
-		  (setq poss (ispell-parse-output (car ispell-filter))))
-	      (cond
-	       ((or (eq poss t) (stringp poss))
-		;; Don't correct word.
-		t)
-	       ((null poss)
-		;; Ispell error.
-		(error "Ispell: error in Ispell process"))
-	       (t
-		;; The word is incorrect, we have to propose a replacement.
-		(let ((replacements (if flyspell-sort-corrections
-					(sort (car (cdr (cdr poss))) 'string<)
-				      (car (cdr (cdr poss))))))
-		  (setq flyspell-auto-correct-region nil)
-		  (if (consp replacements)
-		      (progn
-			(let ((replace (car replacements)))
-			  (let ((new-word replace))
-			    (if (not (equal new-word (car poss)))
-				(progn
-				  ;; the save the current replacements
-				  (setq flyspell-auto-correct-region
-					(cons start (length new-word)))
-				  (let ((l replacements))
-				    (while (consp (cdr l))
-				      (setq l (cdr l)))
-				    (rplacd l (cons (car poss) replacements)))
-				  (setq flyspell-auto-correct-ring
-					replacements)
-				  (flyspell-unhighlight-at start)
-				  (delete-region start end)
-				  (funcall flyspell-insert-function new-word)
-				  (if flyspell-abbrev-p
-				      (if (flyspell-already-abbrevp
-					   (flyspell-abbrev-table) word)
-					  (flyspell-change-abbrev
-					   (flyspell-abbrev-table)
-					   word
-					   new-word)
-					(flyspell-define-abbrev word
-								new-word)))
-				  (flyspell-word)
-				  (flyspell-display-next-corrections
-				   (cons new-word flyspell-auto-correct-ring))
-				  (flyspell-ajust-cursor-point pos
-							       (point)
-							       old-max))))))))))
-	      (setq flyspell-auto-correct-pos (point))
-	      (ispell-pdict-save t)))))))
+  ;; If we are not in the construct where flyspell should be active,
+  ;; invoke the original binding of M-TAB, if that was recorded.
+  (if (and (local-variable-p 'flyspell--prev-meta-tab-binding)
+           (commandp flyspell--prev-meta-tab-binding t)
+           (fboundp flyspell-generic-check-word-predicate)
+           (not (funcall flyspell-generic-check-word-predicate))
+           (equal (where-is-internal 'flyspell-auto-correct-word nil t)
+                  [?\M-\t]))
+      (call-interactively flyspell--prev-meta-tab-binding)
+    (let ((pos     (point))
+          (old-max (point-max)))
+      ;; Use the correct dictionary.
+      (flyspell-accept-buffer-local-defs)
+      (if (and (eq flyspell-auto-correct-pos pos)
+               (consp flyspell-auto-correct-region))
+          ;; We have already been using the function at the same location.
+          (let* ((start (car flyspell-auto-correct-region))
+                 (len   (cdr flyspell-auto-correct-region)))
+            (flyspell-unhighlight-at start)
+            (delete-region start (+ start len))
+            (setq flyspell-auto-correct-ring (cdr flyspell-auto-correct-ring))
+            (let* ((word (car flyspell-auto-correct-ring))
+                   (len  (length word)))
+              (rplacd flyspell-auto-correct-region len)
+              (goto-char start)
+              (if flyspell-abbrev-p
+                  (if (flyspell-already-abbrevp (flyspell-abbrev-table)
+                                                flyspell-auto-correct-word)
+                      (flyspell-change-abbrev (flyspell-abbrev-table)
+                                              flyspell-auto-correct-word
+                                              word)
+                    (flyspell-define-abbrev flyspell-auto-correct-word word)))
+              (funcall flyspell-insert-function word)
+              (flyspell-word)
+              (flyspell-display-next-corrections flyspell-auto-correct-ring))
+            (flyspell-ajust-cursor-point pos (point) old-max)
+            (setq flyspell-auto-correct-pos (point)))
+        ;; Fetch the word to be checked.
+        (let ((word (flyspell-get-word)))
+          (if (consp word)
+              (let ((start (car (cdr word)))
+                    (end (car (cdr (cdr word))))
+                    (word (car word))
+                    poss ispell-filter)
+                (setq flyspell-auto-correct-word word)
+                ;; Now check spelling of word..
+                (ispell-send-string "%\n") ;Put in verbose mode.
+                (ispell-send-string (concat "^" word "\n"))
+                ;; Wait until ispell has processed word.
+                (while (progn
+                         (accept-process-output ispell-process)
+                         (not (string= "" (car ispell-filter)))))
+                ;; Remove leading empty element.
+                (setq ispell-filter (cdr ispell-filter))
+                ;; Ispell process should return something after word is sent.
+                ;; Tag word as valid (i.e., skip) otherwise.
+                (or ispell-filter
+                    (setq ispell-filter '(*)))
+                (if (consp ispell-filter)
+                    (setq poss (ispell-parse-output (car ispell-filter))))
+                (cond
+                 ((or (eq poss t) (stringp poss))
+                  ;; Don't correct word.
+                  t)
+                 ((null poss)
+                  ;; Ispell error.
+                  (error "Ispell: error in Ispell process"))
+                 (t
+                  ;; The word is incorrect, we have to propose a replacement.
+                  (let ((replacements (if flyspell-sort-corrections
+                                          (sort (car (cdr (cdr poss))) 'string<)
+                                        (car (cdr (cdr poss))))))
+                    (setq flyspell-auto-correct-region nil)
+                    (if (consp replacements)
+                        (progn
+                          (let ((replace (car replacements)))
+                            (let ((new-word replace))
+                              (if (not (equal new-word (car poss)))
+                                  (progn
+                                    ;; the save the current replacements
+                                    (setq flyspell-auto-correct-region
+                                          (cons start (length new-word)))
+                                    (let ((l replacements))
+                                      (while (consp (cdr l))
+                                        (setq l (cdr l)))
+                                      (rplacd l (cons (car poss) replacements)))
+                                    (setq flyspell-auto-correct-ring
+                                          replacements)
+                                    (flyspell-unhighlight-at start)
+                                    (delete-region start end)
+                                    (funcall flyspell-insert-function new-word)
+                                    (if flyspell-abbrev-p
+                                        (if (flyspell-already-abbrevp
+                                             (flyspell-abbrev-table) word)
+                                            (flyspell-change-abbrev
+                                             (flyspell-abbrev-table)
+                                             word
+                                             new-word)
+                                          (flyspell-define-abbrev word
+                                                                  new-word)))
+                                    (flyspell-word)
+                                    (flyspell-display-next-corrections
+                                     (cons new-word flyspell-auto-correct-ring))
+                                    (flyspell-ajust-cursor-point pos
+                                                                 (point)
+                                                                 old-max))))))))))
+                (setq flyspell-auto-correct-pos (point))
+                (ispell-pdict-save t))))))))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-auto-correct-previous-pos ...                           */

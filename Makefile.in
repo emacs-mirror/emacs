@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1992-2015 Free Software Foundation, Inc.
+# Copyright (C) 1992-2016 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -929,7 +929,7 @@ have-tests:
 	 exit 1; \
 	fi
 
-check check-maybe: have-tests all
+check check-maybe check-expensive: have-tests all
 	$(MAKE) -C test $@
 
 dist:
@@ -946,7 +946,7 @@ $(DOCS):
 	$(MAKE) -C doc/$(subst -, ,$@)
 
 .PHONY: $(DOCS) docs pdf ps
-.PHONY: info dvi dist check check-maybe html info-real info-dir check-info
+.PHONY: info dvi dist check check-maybe check-expensive html info-real info-dir check-info
 
 ## TODO add etc/refcards.
 docs: $(DOCS)

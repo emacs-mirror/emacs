@@ -1,6 +1,6 @@
 /* emacs-module.h - GNU Emacs module API.
 
-Copyright (C) 2015 Free Software Foundation, Inc.
+Copyright (C) 2015-2016 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -26,19 +26,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #if defined __cplusplus && __cplusplus >= 201103L
 # define EMACS_NOEXCEPT noexcept
-
-/* Function prototype for module user-pointer finalizers.
-
-   NOTE: C++11 15.4: An exception-specification shall not appear in a
-                     typedef declaration or alias-declaration.
-
-*/
-void emacs_dummy_finalizer_function (void *) noexcept;
-typedef decltype(emacs_dummy_finalizer_function) *emacs_finalizer_function;
-
 #else
 # define EMACS_NOEXCEPT
-typedef void (*emacs_finalizer_function) (void *);
 #endif
 
 #ifdef __cplusplus
@@ -184,17 +173,17 @@ struct emacs_env_25
 
   /* Embedded pointer type.  */
   emacs_value (*make_user_ptr) (emacs_env *env,
-				emacs_finalizer_function fin,
+				void (*fin) (void *) EMACS_NOEXCEPT,
 				void *ptr);
 
   void *(*get_user_ptr) (emacs_env *env, emacs_value uptr);
   void (*set_user_ptr) (emacs_env *env, emacs_value uptr, void *ptr);
 
-  emacs_finalizer_function (*get_user_finalizer) (emacs_env *env,
-						  emacs_value uptr);
+  void (*(*get_user_finalizer) (emacs_env *env, emacs_value uptr))
+    (void *) EMACS_NOEXCEPT;
   void (*set_user_finalizer) (emacs_env *env,
 			      emacs_value uptr,
-			      emacs_finalizer_function fin);
+			      void (*fin) (void *) EMACS_NOEXCEPT);
 
   /* Vector functions.  */
   emacs_value (*vec_get) (emacs_env *env, emacs_value vec, ptrdiff_t i);

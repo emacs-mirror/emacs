@@ -1,21 +1,46 @@
 @c This is part of the Emacs manual., Abbrevs, This is part of the Emacs manual., Top
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2015 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2016 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Maintaining
 @chapter Maintaining Large Programs
 
-  This chapter describes Emacs features for maintaining large
-programs.  If you are maintaining a large Lisp program, then in
-addition to the features described here, you may find
-the Emacs Lisp Regression Testing (ERT) library useful
-(@pxref{Top,,ERT,ert, Emacs Lisp Regression Testing}).
+  This chapter describes Emacs features for maintaining medium- to
+large-size programs and packages.  These features include:
+
+@itemize @minus
+@item
+Unified interface to Support for Version Control Systems
+(@acronym{VCS}) that record the history of changes to source files.
+
+@item
+A specialized mode for maintaining @file{ChangeLog} files that provide
+a chronological log of program changes.
+
+@item
+@acronym{Xref}, a set of commands for displaying definitions of
+symbols (a.k.a.@: ``identifiers'') and their references.
+
+@item
+@acronym{EDE}, the Emacs's own IDE.
+
+@ifnottex
+@item
+A mode for merging changes to program sources made on separate
+branches of development.
+@end ifnottex
+@end itemize
+
+If you are maintaining a large Lisp program, then in addition to the
+features described here, you may find the Emacs Lisp Regression
+Testing (@acronym{ERT}) library useful (@pxref{Top,,ERT,ert, Emacs
+Lisp Regression Testing}).
 
 @menu
 * Version Control::     Using version control systems.
 * Change Log::          Maintaining a change history for your program.
-* Tags::                Go directly to any function in your program in one
-                          command.  Tags remembers which file it is in.
+* Xref::                Find definitions and references of any function,
+                          method, struct, macro, @dots{} in your program.
 * EDE::                 An integrated development environment for Emacs.
 @ifnottex
 * Emerge::              A convenient way of merging two versions of a program.
@@ -1660,16 +1685,370 @@ permitted provided the copyright notice and this notice are preserved.
 @noindent
 Of course, you should substitute the proper years and copyright holder.
 
-@node Tags
-@section Tags Tables
-@cindex tags and tag tables
+@node Xref
+@section Find Identifier Definitions and References
+@cindex xref
 
-  A @dfn{tag} is a reference to a subunit in a program or in a
-document.  In source code, tags reference syntactic elements of the
-program: functions, subroutines, data types, macros, etc.  In a
-document, tags reference chapters, sections, appendices, etc.  Each
-tag specifies the name of the file where the corresponding subunit is
-defined, and the position of the subunit's definition in that file.
+  An @dfn{identifier} is a syntactic elements of the program: a
+function, a subroutine, a method, a class, a data type, a macro, etc.
+In a programming language, each identifier is a symbol in the
+language's syntax.  Many program development tools provide
+capabilities to extract references to identifiers from source files,
+record them on specialized data bases, and then use those data bases
+to quickly find where each identifier was defined and referenced.
+
+Emacs provides a unified user interface to these tools, called
+@samp{xref}.  The tools supported by @samp{xref} include:
+
+@enumerate a
+@item
+Some major modes provide built-in means for looking up the language
+symbols.  For example, Emacs Lisp symbols can be identified by
+searching the package load history, maintained by the Emacs Lisp
+interpreter, and by consulting the built-in documentation strings; the
+Emacs Lisp mode uses these facilities to find definitions of symbols.
+
+@item
+Etags, the command for tagging identifier definitions which is part of
+the Emacs distribution.  @xref{Create Tags Table}.
+
+@item
+@acronym{GNU} GLOBAL, the source code tagging system, which provides
+the @command{gtags} command and associated utilities.  @xref{Command
+Line, gtags, , global, GNU GLOBAL source code tag system}.
+
+@item
+Cscope (@uref{http://cscope.sourceforge.net/}, a tool for browsing
+source code.
+
+@item
+@acronym{GNU} IDUtils, a package for generating databases of
+identifier references and querying those databases.  @xref{Top,,,
+idutils, ID database utilities}.
+
+@item
+Grep, the venerable program that searches files for lines matching
+patterns.  @xref{Invoking,,, grep, GNU Grep Manual}.
+@end enumerate
+
+@noindent
+Additional tools could be supported as they become available, or as
+user extensions.  Each such tool is used as a @dfn{backend} by
+commands described in this section.  Each command detects which
+backends are available for the current major mode, and uses the most
+capable of the available backends, with Grep generally serving as the
+fall-back backend.
+
+@cindex tag
+The commands described here are useful for finding references in major
+modes other than those defined to support programming languages.  For
+example, chapters, sections, appendices, etc. of a text or a @TeX{}
+document can be treated as identifiers as well.  In this chapter, we
+collectively refer to a reference that specifies the name of the file
+where the corresponding subunit is defined, and the position of the
+subunit's definition in that file, as a @dfn{tag}.  We refer to the
+backends used by @code{xref} as @dfn{tagging backends}.
+
+@menu
+* Find Identifiers::    Commands to find where an identifier is defined
+                          or referenced, to list identifiers, etc.
+* Tags Tables::         Tags table records which file defines a symbol.
+* Select Tags Table::   How to visit a specific tags table.
+@end menu
+
+@node Find Identifiers
+@subsection Find Identifiers
+
+  This subsection describes the commands that use the tagging backends
+in order to find definitions of identifiers, references to
+identifiers, and perform various queries about identifiers.  With most
+backends, these definitions and references were recorded as tags in
+the database created and maintained by the backend.
+
+@menu
+* Looking Up Identifiers:: Commands to find the definition of a specific tag.
+* Xref Commands::          Commands in the @file{*xref*} buffer.
+* Identifier Search::      Searching and replacing identifiers.
+* List Identifiers::       Listing identifiers and completing on them.
+@end menu
+
+@node Looking Up Identifiers
+@subsubsection Looking Up Identifiers
+@cindex find definition of symbols
+@cindex identifier, finding definition of
+@cindex find references to symbols
+
+  The most important thing that @code{xref} enables you to do is to find
+the definition of a specific identifier.
+
+@table @kbd
+@item M-.@:
+Find definitions of an identifier (@code{xref-find-definitions}).
+@item C-M-. @var{pattern} @key{RET}
+Find all identifiers whose name matches @var{pattern}
+(@code{xref-find-apropos}).
+@item C-x 4 .@: @key{RET}
+Find definitions of identifier, but display it in another window
+(@code{xref-find-definitions-other-window}).
+@item C-x 5 .@: @key{RET}
+Find definition of identifier, and display it in a new frame
+(@code{xref-find-definitions-other-frame}).
+@item M-,
+Pop back to where you previously invoked @kbd{M-.} and friends
+(@code{xref-pop-marker-stack}).
+@end table
+
+@kindex M-.
+@findex xref-find-definitions
+  @kbd{M-.}@: (@code{xref-find-definitions}) shows the definitions of
+the identifier at point.  With a prefix argument, or if there's no
+valid identifier at point, it prompts for the identifier.  If the
+identifier has only one definition, the command jumps to it.  If the
+identifier has more than one possible definition (e.g., in an
+object-oriented language, or if there's a function and a variable by
+the same name), the command shows the candidate definitions in a
+@file{*xref*} buffer, together with the files in which these
+definitions are found.  Selecting one of these candidates by typing
+@kbd{@key{RET}} or clicking @kbd{Mouse-2} will pop a buffer showing
+the corresponding definition.
+
+  When entering the identifier argument to @kbd{M-.}, the usual
+minibuffer completion commands can be used (@pxref{Completion}), with
+the known identifier names as completion candidates.
+
+@kindex C-x 4 .
+@findex xref-find-definitions-other-window
+@kindex C-x 5 .
+@findex xref-find-definitions-other-frame
+  Like most commands that can switch buffers,
+@code{xref-find-definitions} has a variant that displays the new
+buffer in another window, and one that makes a new frame for it.  The
+former is @w{@kbd{C-x 4 .}}
+(@code{xref-find-definitions-other-window}), and the latter is
+@w{@kbd{C-x 5 .}}  (@code{xref-find-definitions-other-frame}).
+
+@findex xref-find-apropos
+@kindex C-M-.
+  The command @kbd{C-M-.} (@code{xref-find-apropos}) finds the
+definitions of one or more identifiers that match a specified regular
+expression.  It is just like @kbd{M-.} except that it does regexp
+matching of identifiers instead of symbol name matching.
+
+  When any of the above commands finds more than one definition, it
+presents the @file{*xref*} buffer showing the definition candidates.
+In that buffer, you have several specialized commands, described in
+@ref{Xref Commands}.
+
+@kindex M-,
+@findex xref-pop-marker-stack
+@vindex xref-marker-ring-length
+  To go back to places @emph{from where} you found the definition,
+use @kbd{M-,} (@code{xref-pop-marker-stack}).  It jumps back to the
+point of the last invocation of @kbd{M-.}.  Thus you can find and
+examine the definition of something with @kbd{M-.} and then return to
+where you were with @kbd{M-,}.  @kbd{M-,} allows you to retrace your
+steps to a depth determined by the variable
+@code{xref-marker-ring-length}, which defaults to 16.
+
+@node Xref Commands
+@subsubsection Commands Available in the @file{*xref*} Buffer
+@cindex commands in @file{*xref*} buffers
+@cindex XREF mode
+
+  The following commands are provided in the @file{*xref*} buffer by
+the special XREF mode:
+
+@table @kbd
+@item @key{RET}
+@itemx Mouse-2
+Display the reference on the current line and bury the @file{*xref*}
+buffer.
+@item n
+@itemx .
+@findex xref-next-line
+Move to the next reference and display it in the other window
+(@code{xref-next-line}).
+@item p
+@itemx ,
+@findex xref-prev-line
+Move to the previous reference and display it in the other window
+(@code{xref-prev-line}).
+@item C-o
+@findex xref-show-location-at-point
+Display the reference on the current line in the other window
+(@code{xref-show-location-at-point}).
+@findex xref-query-replace
+@item r @var{pattern} @key{RET} @var{replacement} @key{RET}
+Perform interactive query-replace on references that match
+@var{pattern} (@code{xref-query-replace}), replacing the match with
+@var{replacement}.  @xref{Identifier Search}.
+@findex xref-quit
+@item q
+Quit the window showing the @file{*xref*} buffer (@code{xref-quit}).
+@end table
+
+In addition, the usual navigation commands, such as the arrow keys,
+@kbd{C-n}, and @kbd{C-p} are available for moving around the buffer
+without displaying the references.
+
+@node Identifier Search
+@subsubsection Searching and Replacing with Identifiers
+@cindex search and replace in multiple files
+@cindex multiple-file search and replace
+
+  The commands in this section visit and search all the files listed
+in the @code{xref} backend's database, one by one.  For these
+commands, the database serves only to specify a sequence of files to
+search.  These commands scan all the databases starting with the first
+one (if any) that describes the current file, proceed from there to
+the end of the list, and then scan from the beginning of the list
+until they have covered all the databases in the list.
+
+@table @kbd
+@item M-?
+Find all the references for the identifier at point.
+@item M-x xref-query-replace @key{RET} @var{regexp} @key{RET} @var{replacement} @key{RET}
+Interactively replace @var{regexp} with @var{replacement} in the names
+of all the identifiers shown in the @file{*xref*} buffer.
+@item M-x tags-search @key{RET} @var{regexp} @key{RET}
+Search for @var{regexp} through the files in the selected tags
+table.
+@item M-x tags-query-replace @key{RET} @var{regexp} @key{RET} @var{replacement} @key{RET}
+Perform a @code{query-replace-regexp} on each file in the selected tags table.
+@item M-x tags-loop-continue
+Restart one of the last 2 commands above, from the current location of point.
+@end table
+
+@kindex M-?
+@findex xref-find-references
+  @kbd{M-?} finds all the references for the identifier at point.  If
+there's no valid identifier at point, or when invoked with a prefix
+argument, the command prompts for the identifier, with completion.  It
+then presents a @file{*xref*} buffer with all the references to the
+identifier, showing the file name and the line where the identifier is
+referenced.  The XREF mode commands are available in this buffer, see
+@ref{Xref Commands}.
+
+@findex xref-query-replace
+  @kbd{M-x xref-query-replace} reads a regexp to match identifier
+names and a string to replace with, just like ordinary @kbd{M-x
+query-replace-regexp}.  It then performs the specified replacement in
+the names of the matching identifiers in all the places in all the
+files where these identifiers are referenced.  This is useful when you
+rename your identifiers as part of refactoring.  This command should
+be invoked in the @file{*xref*} buffer generated by @code{M-?}.
+
+@findex tags-search
+  @kbd{M-x tags-search} reads a regexp using the minibuffer, then
+searches for matches in all the files in the selected tags table, one
+file at a time.  It displays the name of the file being searched so
+you can follow its progress.  As soon as it finds an occurrence,
+@code{tags-search} returns.  This command works only with the etags
+backend, and requires tags tables to be available (@pxref{Tags
+Tables}).
+
+@findex tags-loop-continue
+  Having found one match, you probably want to find all the rest.
+Type @kbd{M-x tags-loop-continue}) to resume the @code{tags-search},
+finding one more match.  This searches the rest of the current buffer,
+followed by the remaining files of the tags table.
+
+@findex tags-query-replace
+  @kbd{M-x tags-query-replace} performs a single
+@code{query-replace-regexp} through all the files in the tags table.  It
+reads a regexp to search for and a string to replace with, just like
+ordinary @kbd{M-x query-replace-regexp}.  It searches much like @kbd{M-x
+tags-search}, but repeatedly, processing matches according to your
+input.  @xref{Query Replace}, for more information on query replace.
+This command works only with the etags backend.
+
+@vindex tags-case-fold-search
+@cindex case-sensitivity and tags search
+  You can control the case-sensitivity of tags search commands by
+customizing the value of the variable @code{tags-case-fold-search}.  The
+default is to use the same setting as the value of
+@code{case-fold-search} (@pxref{Lax Search}).
+
+  It is possible to get through all the files in the tags table with a
+single invocation of @kbd{M-x tags-query-replace}.  But often it is
+useful to exit temporarily, which you can do with any input event that
+has no special query replace meaning.  You can resume the query
+replace subsequently by typing @kbd{M-x tags-loop-continue}; this
+command resumes the last tags search or replace command that you did.
+For instance, to skip the rest of the current file, you can type
+@kbd{M-> M-x tags-loop-continue}.
+
+  The commands in this section carry out much broader searches than
+the @code{xref-find-definitions} family.  The
+@code{xref-find-definitions} commands search only for definitions of
+identifiers that match your string or regexp.  The commands
+@code{tags-search} and @code{tags-query-replace} find every occurrence
+of the regexp, as ordinary search commands and replace commands do in
+the current buffer.
+
+  As an alternative to @code{tags-search}, you can run @command{grep}
+as a subprocess and have Emacs show you the matching lines one by one.
+@xref{Grep Searching}.
+
+@node List Identifiers
+@subsubsection Identifier Inquiries
+
+@table @kbd
+@item C-M-i
+@itemx M-@key{TAB}
+Perform completion on the text around point, using the @code{xref}
+backend if one is available (@code{completion-at-point}).
+@item M-x list-tags @key{RET} @var{file} @key{RET}
+Display a list of the tags defined in the program file @var{file}.
+@item M-x xref-find-apropos @key{RET} @var{regexp} @key{RET}
+Display a list of all known identifiers matching @var{regexp}.
+@end table
+
+@cindex completion (symbol names)
+  In most programming language modes, you can type @kbd{C-M-i} or
+@kbd{M-@key{TAB}} (@code{completion-at-point}) to complete the symbol
+at point.  If there is an @code{xref} backend available, this command
+can use it to generate completion candidates more intelligently.
+@xref{Symbol Completion}.
+
+@findex list-tags
+  @kbd{M-x list-tags} reads the name of one of the files covered by
+the selected tags table, and displays a list of tags defined in that
+file.  Do not include a directory as part of the file name unless the
+file name recorded in the tags table includes a directory.  This
+command works only with the etags backend, and requires a tags table
+for the project to be available.  @xref{Tags Tables}.
+
+@c Sadly, the new-and-improved Xref feature doesn't provide anything
+@c close to the described below features of the now-obsoleted
+@c tags-apropos.  I'm leaving this here to encourage enhancements to
+@c xref.el.
+@ignore
+@findex tags-apropos
+@vindex tags-apropos-verbose
+@vindex tags-tag-face
+@vindex tags-apropos-additional-actions
+  @kbd{M-x tags-apropos} is like @code{apropos} for tags
+(@pxref{Apropos}).  It displays a list of tags in the selected tags
+table whose entries match @var{regexp}.  If the variable
+@code{tags-apropos-verbose} is non-@code{nil}, it displays the names
+of the tags files together with the tag names.  You can customize the
+appearance of the output by setting the variable @code{tags-tag-face}
+to a face.  You can display additional output by customizing the
+variable @code{tags-apropos-additional-actions}; see its documentation
+for details.
+@end ignore
+
+@findex next-file
+  @kbd{M-x next-file} visits files covered by the selected tags table.
+The first time it is called, it visits the first file covered by the
+table.  Each subsequent call visits the next covered file, unless a
+prefix argument is supplied, in which case it returns to the first
+file.  This command works only with the etags backend.
+
+@node Tags Tables
+@subsection Tags Tables
+@cindex tags and tag tables
 
   A @dfn{tags table} records the tags extracted by scanning the source
 code of a certain program or a certain document.  Tags extracted from
@@ -1685,12 +2064,14 @@ source files.
 on a document or the source code file.  The @samp{etags} program
 writes the tags to a @dfn{tags table file}, or @dfn{tags file} in
 short.  The conventional name for a tags file is @file{TAGS}@.
-@xref{Create Tags Table}.
+@xref{Create Tags Table}.  (It is also possible to create a tags table
+by using one of the commands from other packages that can produce such
+tables in the same format.)
 
-  Emacs provides many commands for searching and replacing using the
-information recorded in tags tables.  For instance, the @kbd{M-.}
-(@code{find-tag}) jumps to the location of a specified function
-definition in its source file.  @xref{Find Tag}.
+  Emacs uses the tags tables via the @code{etags} package as one of
+the supported backends for @code{xref}.  Because tags tables are
+produced by the @command{etags} command that is part of an Emacs
+distribution, we describe tags tables in more detail here.
 
 @cindex C++ class browser, tags
 @cindex tags, C++
@@ -1706,14 +2087,10 @@ use tags, separate from the @command{etags} facility.
 * Tag Syntax::          Tag syntax for various types of code and text files.
 * Create Tags Table::   Creating a tags table with @command{etags}.
 * Etags Regexps::       Create arbitrary tags using regular expressions.
-* Select Tags Table::   How to visit a tags table.
-* Find Tag::            Commands to find the definition of a specific tag.
-* Tags Search::         Using a tags table for searching and replacing.
-* List Tags::           Using tags for completion, and listing them.
 @end menu
 
 @node Tag Syntax
-@subsection Source File Tag Syntax
+@subsubsection Source File Tag Syntax
 
   Here is how tag syntax is defined for the most popular languages:
 
@@ -1883,13 +2260,17 @@ line.
 @item
 In Python code, @code{def} or @code{class} at the beginning of a line
 generate a tag.
+
+@item
+In Ruby code, @code{def} or @code{class} or @code{module} at the
+beginning of a line generate a tag.
 @end itemize
 
   You can also generate tags based on regexp matching (@pxref{Etags
 Regexps}) to handle other formats and languages.
 
 @node Create Tags Table
-@subsection Creating Tags Tables
+@subsubsection Creating Tags Tables
 @cindex @command{etags} program
 
   The @command{etags} program is used to create a tags table file.  It knows
@@ -1946,7 +2327,7 @@ source files, and the tags file will still refer correctly to the source
 files.  If the tags file is @file{-} or is in the @file{/dev} directory,
 however, the file names are
 made relative to the current working directory.  This is useful, for
-example, when writing the tags to @file{/dev/stdout}.
+example, when writing the tags to the standard output.
 
   When using a relative file name, it should not be a symbolic link
 pointing to a tags file in a different directory, because this would
@@ -1992,7 +2373,7 @@ options, it outputs detailed information about how tags are generated for
 @var{lang}.
 
 @node Etags Regexps
-@subsection Etags Regexps
+@subsubsection Etags Regexps
 
   The @samp{--regex} option to @command{etags} allows tags to be
 recognized by regular expression matching.  You can intermix this
@@ -2151,7 +2532,7 @@ etags --language=none \
 @subsection Selecting a Tags Table
 
 @findex visit-tags-table
-  Emacs has at any time one @dfn{selected} tags table.  All the
+  Emacs has at any time at most one @dfn{selected} tags table.  All the
 commands for working with tags tables use the selected one.  To select
 a tags table, type @kbd{M-x visit-tags-table}, which reads the tags
 table file name as an argument, with @file{TAGS} in the default
@@ -2191,212 +2572,6 @@ directory.  The order depends on which file you are in and which tags
 table mentions that file, as explained above.
 
   Do not set both @code{tags-file-name} and @code{tags-table-list}.
-
-@node Find Tag
-@subsection Finding a Tag
-
-  The most important thing that a tags table enables you to do is to find
-the definition of a specific tag.
-
-@table @kbd
-@item M-.@: @var{tag} @key{RET}
-Find first definition of @var{tag} (@code{find-tag}).
-@item C-u M-.
-Find next alternate definition of last tag specified.
-@item C-u - M-.
-Go back to previous tag found.
-@item C-M-. @var{pattern} @key{RET}
-Find a tag whose name matches @var{pattern} (@code{find-tag-regexp}).
-@item C-u C-M-.
-Find the next tag whose name matches the last pattern used.
-@item C-x 4 .@: @var{tag} @key{RET}
-Find first definition of @var{tag}, but display it in another window
-(@code{find-tag-other-window}).
-@item C-x 5 .@: @var{tag} @key{RET}
-Find first definition of @var{tag}, and create a new frame to select the
-buffer (@code{find-tag-other-frame}).
-@item M-*
-Pop back to where you previously invoked @kbd{M-.} and friends.
-@end table
-
-@kindex M-.
-@findex find-tag
-  @kbd{M-.}@: (@code{find-tag}) prompts for a tag name and jumps to
-its source definition.  It works by searching through the tags table
-for that tag's file and approximate character position, visiting that
-file, and searching for the tag definition at ever-increasing
-distances away from the recorded approximate position.
-
-  When entering the tag argument to @kbd{M-.}, the usual minibuffer
-completion commands can be used (@pxref{Completion}), with the tag
-names in the selected tags table as completion candidates.  If you
-specify an empty argument, the balanced expression in the buffer
-before or around point is the default argument.  @xref{Expressions}.
-
-  You don't need to give @kbd{M-.} the full name of the tag; a part
-will do.  @kbd{M-.} finds tags which contain that argument as a
-substring.  However, it prefers an exact match to a substring match.
-To find other tags that match the same substring, give @code{find-tag}
-a numeric argument, as in @kbd{C-u M-.}  or @kbd{M-0 M-.}; this does
-not read a tag name, but continues searching the tags table's text for
-another tag containing the same substring last used.
-
-@kindex C-x 4 .
-@findex find-tag-other-window
-@kindex C-x 5 .
-@findex find-tag-other-frame
-  Like most commands that can switch buffers, @code{find-tag} has a
-variant that displays the new buffer in another window, and one that
-makes a new frame for it.  The former is @w{@kbd{C-x 4 .}}
-(@code{find-tag-other-window}), and the latter is @w{@kbd{C-x 5 .}}
-(@code{find-tag-other-frame}).
-
-  To move back to previous tag definitions, use @kbd{C-u - M-.}; more
-generally, @kbd{M-.} with a negative numeric argument.  Similarly,
-@w{@kbd{C-x 4 .}} with a negative argument finds the previous tag
-location in another window.
-
-@kindex M-*
-@findex pop-tag-mark
-@vindex find-tag-marker-ring-length
-  As well as going back to places you've found tags recently, you can
-go back to places @emph{from where} you found them, using @kbd{M-*}
-(@code{pop-tag-mark}).  Thus you can find and examine the definition
-of something with @kbd{M-.} and then return to where you were with
-@kbd{M-*}.
-
-  Both @kbd{C-u - M-.} and @kbd{M-*} allow you to retrace your steps to
-a depth determined by the variable @code{find-tag-marker-ring-length}.
-
-@findex find-tag-regexp
-@kindex C-M-.
-  The command @kbd{C-M-.} (@code{find-tag-regexp}) visits the tags that
-match a specified regular expression.  It is just like @kbd{M-.} except
-that it does regexp matching instead of substring matching.
-
-@node Tags Search
-@subsection Searching and Replacing with Tags Tables
-@cindex search and replace in multiple files
-@cindex multiple-file search and replace
-
-  The commands in this section visit and search all the files listed
-in the selected tags table, one by one.  For these commands, the tags
-table serves only to specify a sequence of files to search.  These
-commands scan the list of tags tables starting with the first tags
-table (if any) that describes the current file, proceed from there to
-the end of the list, and then scan from the beginning of the list
-until they have covered all the tables in the list.
-
-@table @kbd
-@item M-x tags-search @key{RET} @var{regexp} @key{RET}
-Search for @var{regexp} through the files in the selected tags
-table.
-@item M-x tags-query-replace @key{RET} @var{regexp} @key{RET} @var{replacement} @key{RET}
-Perform a @code{query-replace-regexp} on each file in the selected tags table.
-@item M-,
-Restart one of the commands above, from the current location of point
-(@code{tags-loop-continue}).
-@end table
-
-@findex tags-search
-  @kbd{M-x tags-search} reads a regexp using the minibuffer, then
-searches for matches in all the files in the selected tags table, one
-file at a time.  It displays the name of the file being searched so you
-can follow its progress.  As soon as it finds an occurrence,
-@code{tags-search} returns.
-
-@kindex M-,
-@findex tags-loop-continue
-  Having found one match, you probably want to find all the rest.
-Type @kbd{M-,} (@code{tags-loop-continue}) to resume the
-@code{tags-search}, finding one more match.  This searches the rest of
-the current buffer, followed by the remaining files of the tags table.
-
-@findex tags-query-replace
-  @kbd{M-x tags-query-replace} performs a single
-@code{query-replace-regexp} through all the files in the tags table.  It
-reads a regexp to search for and a string to replace with, just like
-ordinary @kbd{M-x query-replace-regexp}.  It searches much like @kbd{M-x
-tags-search}, but repeatedly, processing matches according to your
-input.  @xref{Query Replace}, for more information on query replace.
-
-@vindex tags-case-fold-search
-@cindex case-sensitivity and tags search
-  You can control the case-sensitivity of tags search commands by
-customizing the value of the variable @code{tags-case-fold-search}.  The
-default is to use the same setting as the value of
-@code{case-fold-search} (@pxref{Lax Search}).
-
-  It is possible to get through all the files in the tags table with a
-single invocation of @kbd{M-x tags-query-replace}.  But often it is
-useful to exit temporarily, which you can do with any input event that
-has no special query replace meaning.  You can resume the query
-replace subsequently by typing @kbd{M-,}; this command resumes the
-last tags search or replace command that you did.  For instance, to
-skip the rest of the current file, you can type @kbd{M-> M-,}.
-
-  The commands in this section carry out much broader searches than the
-@code{find-tag} family.  The @code{find-tag} commands search only for
-definitions of tags that match your substring or regexp.  The commands
-@code{tags-search} and @code{tags-query-replace} find every occurrence
-of the regexp, as ordinary search commands and replace commands do in
-the current buffer.
-
-  These commands create buffers only temporarily for the files that they
-have to search (those which are not already visited in Emacs buffers).
-Buffers in which no match is found are quickly killed; the others
-continue to exist.
-
-  As an alternative to @code{tags-search}, you can run @command{grep}
-as a subprocess and have Emacs show you the matching lines one by one.
-@xref{Grep Searching}.
-
-@node List Tags
-@subsection Tags Table Inquiries
-
-@table @kbd
-@item C-M-i
-@itemx M-@key{TAB}
-Perform completion on the text around point, using the selected tags
-table if one is loaded (@code{completion-at-point}).
-@item M-x list-tags @key{RET} @var{file} @key{RET}
-Display a list of the tags defined in the program file @var{file}.
-@item M-x tags-apropos @key{RET} @var{regexp} @key{RET}
-Display a list of all tags matching @var{regexp}.
-@end table
-
-@cindex completion (symbol names)
-  In most programming language modes, you can type @kbd{C-M-i} or
-@kbd{M-@key{TAB}} (@code{completion-at-point}) to complete the symbol
-at point.  If there is a selected tags table, this command can use it
-to generate completion candidates.  @xref{Symbol Completion}.
-
-@findex list-tags
-  @kbd{M-x list-tags} reads the name of one of the files covered by
-the selected tags table, and displays a list of tags defined in that
-file.  Do not include a directory as part of the file name unless the
-file name recorded in the tags table includes a directory.
-
-@findex tags-apropos
-@vindex tags-apropos-verbose
-@vindex tags-tag-face
-@vindex tags-apropos-additional-actions
-  @kbd{M-x tags-apropos} is like @code{apropos} for tags
-(@pxref{Apropos}).  It displays a list of tags in the selected tags
-table whose entries match @var{regexp}.  If the variable
-@code{tags-apropos-verbose} is non-@code{nil}, it displays the names
-of the tags files together with the tag names.  You can customize the
-appearance of the output by setting the variable @code{tags-tag-face}
-to a face.  You can display additional output by customizing the
-variable @code{tags-apropos-additional-actions}; see its documentation
-for details.
-
-@findex next-file
-  @kbd{M-x next-file} visits files covered by the selected tags table.
-The first time it is called, it visits the first file covered by the
-table.  Each subsequent call visits the next covered file, unless a
-prefix argument is supplied, in which case it returns to the first
-file.
 
 @node EDE
 @section Emacs Development Environment

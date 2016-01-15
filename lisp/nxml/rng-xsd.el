@@ -1,6 +1,6 @@
-;;; rng-xsd.el --- W3C XML Schema datatypes library for RELAX NG
+;;; rng-xsd.el --- W3C XML Schema datatypes library for RELAX NG  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2016 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML, RelaxNG
@@ -42,7 +42,7 @@
 ;;;###autoload
 (put 'http://www.w3.org/2001/XMLSchema-datatypes
      'rng-dt-compile
-     'rng-xsd-compile)
+     #'rng-xsd-compile)
 
 ;;;###autoload
 (defun rng-xsd-compile (name params)
@@ -50,9 +50,9 @@
 NAME is a symbol giving the local name of the datatype.  PARAMS is a
 list of pairs (PARAM-NAME . PARAM-VALUE) where PARAM-NAME is a symbol
 giving the name of the parameter and PARAM-VALUE is a string giving
-its value.  If NAME or PARAMS are invalid, it calls rng-dt-error
+its value.  If NAME or PARAMS are invalid, it calls `rng-dt-error'
 passing it arguments in the same style as format; the value from
-rng-dt-error will be returned.  Otherwise, it returns a list.  The
+`rng-dt-error' will be returned.  Otherwise, it returns a list.  The
 first member of the list is t if any string is a legal value for the
 datatype and nil otherwise.  The second argument is a symbol; this
 symbol will be called as a function passing it a string followed by

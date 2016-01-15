@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2015 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2016 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Building
@@ -360,8 +360,8 @@ that specifies how to run @command{grep}.  Use the same arguments you
 would give @command{grep} when running it normally: a @command{grep}-style
 regexp (usually in single-quotes to quote the shell's special
 characters) followed by file names, which may use wildcards.  If you
-specify a prefix argument for @kbd{M-x grep}, it finds the tag
-(@pxref{Tags}) in the buffer around point, and puts that into the
+specify a prefix argument for @kbd{M-x grep}, it finds the identifier
+(@pxref{Xref}) in the buffer around point, and puts that into the
 default @command{grep} command.
 
   Your command need not simply run @command{grep}; you can use any shell

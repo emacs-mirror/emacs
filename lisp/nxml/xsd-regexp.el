@@ -1,6 +1,6 @@
-;;; xsd-regexp.el --- translate W3C XML Schema regexps to Emacs regexps
+;;; xsd-regexp.el --- translate W3C XML Schema regexps to Emacs regexps  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2016 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML, regexp
@@ -147,7 +147,7 @@ ranges are merged wherever possible."
 (defun xsdre-range-list-difference (orig subtract)
   "Return a range-list for the difference of two range-lists."
   (when orig
-    (let (new head next first last)
+    (let (new head first last)
       (while orig
 	(setq head (car orig))
 	(setq first (xsdre-range-first head))
@@ -745,7 +745,7 @@ Code is inserted into the current buffer."
             (save-excursion
               (goto-char start)
               (down-list 2)
-              (while (condition-case err
+              (while (condition-case nil
                          (progn
                            (forward-sexp)
                            t)

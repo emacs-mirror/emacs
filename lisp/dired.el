@@ -1,6 +1,6 @@
 ;;; dired.el --- directory-browsing commands -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992-1997, 2000-2015 Free Software
+;; Copyright (C) 1985-1986, 1992-1997, 2000-2016 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -2810,7 +2810,9 @@ It runs the hook `dired-initial-position-hook'."
 (defun dired-current-directory (&optional localp)
   "Return the name of the subdirectory to which this line belongs.
 This returns a string with trailing slash, like `default-directory'.
-Optional argument means return a file name relative to `default-directory'."
+Optional argument means return a file name relative to `default-directory',
+in which case the value could be an empty string if `default-directory'
+is the directory where the file on this line resides."
   (let ((here (point))
 	(alist (or dired-subdir-alist
 		   ;; probably because called in a non-dired buffer

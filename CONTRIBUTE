@@ -262,11 +262,19 @@ Emacs uses ERT, Emacs Lisp Regression Testing, for testing.  See (info
 "(ert)") or https://www.gnu.org/software/emacs/manual/html_node/ert/
 for more information on writing and running tests.
 
+If your test lasts longer than some few seconds, mark it in its
+`ert-deftest' definition with ":tags '(:expensive-test)".
+
 To run tests on the entire Emacs tree, run "make check" from the
 top-level directory.  Most tests are in the directory
 "test/".  From the "test/" directory, run "make
 <filename>" to run the tests for <filename>.el(c).  See
 "test/Makefile" for more information.
+
+Tests which are tagged ":expensive-test" are enabled additionally, if
+you run "make check-expensive" from the top-level directory.  "make
+<filename>" as mentioned above incorporates expensive tests for
+<filename>.el(c).
 
 ** Understanding Emacs Internals.
 

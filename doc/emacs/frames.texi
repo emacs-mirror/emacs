@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2015 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2016 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Frames
@@ -416,9 +416,9 @@ Start composing a mail message in another frame.  This runs
 @code{compose-mail-other-frame}.  It is the other-frame variant of
 @kbd{C-x m}.  @xref{Sending Mail}.
 @item C-x 5 .
-Find a tag in the current tag table in another frame.  This runs
-@code{find-tag-other-frame}, the multiple-frame variant of @kbd{M-.}.
-@xref{Tags}.
+Find the definition of an identifier in another frame.  This runs
+@code{xref-find-definitions-other-frame}, the multiple-frame variant
+of @kbd{M-.}.  @xref{Xref}.
 @item C-x 5 r @var{filename} @key{RET}
 @kindex C-x 5 r
 @findex find-file-read-only-other-frame

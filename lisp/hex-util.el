@@ -1,6 +1,6 @@
 ;;; hex-util.el --- Functions to encode/decode hexadecimal string.
 
-;; Copyright (C) 1999, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001-2016 Free Software Foundation, Inc.
 
 ;; Author: Shuhei KOBAYASHI <shuhei@aqua.ocn.ne.jp>
 ;; Keywords: data

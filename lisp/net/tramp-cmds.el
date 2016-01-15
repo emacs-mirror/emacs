@@ -1,6 +1,6 @@
 ;;; tramp-cmds.el --- Interactive commands for Tramp
 
-;; Copyright (C) 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2016 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -31,6 +31,9 @@
 (require 'tramp)
 
 ;; Pacify byte-compiler.
+(declare-function mml-mode "mml")
+(declare-function mml-insert-empty-tag "mml")
+(declare-function reporter-dump-variable "reporter")
 (defvar reporter-eval-buffer)
 (defvar reporter-prompt-for-summary-p)
 
@@ -128,7 +131,7 @@ This includes password cache, file cache, connection cache, buffers."
   (setq tramp-locked nil)
 
   ;; Flush password cache.
-  (tramp-compat-funcall 'password-reset)
+  (password-reset)
 
   ;; Flush file and connection cache.
   (clrhash tramp-cache-data)
@@ -166,7 +169,6 @@ This includes password cache, file cache, connection cache, buffers."
 (defun tramp-bug ()
   "Submit a bug report to the Tramp developers."
   (interactive)
-  (require 'reporter)
   (catch 'dont-send
     (let ((reporter-prompt-for-summary-p t))
       (reporter-submit-bug-report
@@ -185,7 +187,6 @@ This includes password cache, file cache, connection cache, buffers."
 	     backup-by-copying-when-mismatch
 	     backup-by-copying-when-privileged-mismatch
 	     backup-directory-alist
-	     bkup-backup-directory-info
 	     password-cache
 	     password-cache-expiry
 	     remote-file-name-inhibit-cache
@@ -194,8 +195,7 @@ This includes password cache, file cache, connection cache, buffers."
 
        'tramp-load-report-modules	; pre-hook
        'tramp-append-tramp-buffers	; post-hook
-       (tramp-compat-funcall
-	(if (functionp 'propertize) 'propertize 'progn)
+       (propertize
 	"\n" 'display "\
 Enter your bug report in this message, including as much detail
 as you possibly can about the problem, what you did to cause it
@@ -243,7 +243,7 @@ buffer in your bug report.
 	    (base64-encode-string (encode-coding-string val 'raw-text)))))))
 
     ;; Dump variable.
-    (tramp-compat-funcall 'reporter-dump-variable varsym mailbuf)
+    (reporter-dump-variable varsym mailbuf)
 
     (unless (hash-table-p val)
       ;; Remove string quotation.
@@ -264,15 +264,8 @@ buffer in your bug report.
 
 (defun tramp-load-report-modules ()
   "Load needed modules for reporting."
-  ;; We load message.el and mml.el from Gnus.
-  (if (featurep 'xemacs)
-      (progn
-	(load "message" 'noerror)
-	(load "mml" 'noerror))
-    (require 'message nil 'noerror)
-    (require 'mml nil 'noerror))
-  (tramp-compat-funcall 'message-mode)
-  (tramp-compat-funcall 'mml-mode t))
+  (message-mode)
+  (mml-mode t))
 
 (defun tramp-append-tramp-buffers ()
   "Append Tramp buffers and buffer local variables into the bug report."
@@ -303,7 +296,7 @@ buffer in your bug report.
 	       ;; Non-tramp variables of interest.
 	       '(default-directory))
 	      'string<))
-	    (tramp-compat-funcall 'reporter-dump-variable varsym elbuf))
+	    (reporter-dump-variable varsym elbuf))
 	(lisp-indent-line)
 	(insert ")\n"))
       (insert-buffer-substring elbuf)))
@@ -313,7 +306,7 @@ buffer in your bug report.
   (ignore-errors
     (mapc
      (lambda (x) (when (string-match "tramp" x) (insert x "\n")))
-     (split-string (tramp-compat-funcall 'list-load-path-shadows t) "\n")))
+     (split-string (list-load-path-shadows t) "\n")))
 
   ;; Append buffers only when we are in message mode.
   (when (and
@@ -322,7 +315,7 @@ buffer in your bug report.
 	 (symbol-value 'mml-mode))
 
     (let ((tramp-buf-regexp "\\*\\(debug \\)?tramp/")
-	  (buffer-list (tramp-compat-funcall 'tramp-list-tramp-buffers))
+	  (buffer-list (tramp-list-tramp-buffers))
 	  (curbuf (current-buffer)))
 
       ;; There is at least one Tramp buffer.
@@ -364,13 +357,13 @@ the debug buffer(s).")
 	      (kill-buffer nil)
 	      (switch-to-buffer curbuf)
 	      (goto-char (point-max))
-	      (insert (tramp-compat-funcall 'propertize "\n" 'display "\n\
+	      (insert (propertize "\n" 'display "\n\
 This is a special notion of the `gnus/message' package.  If you
 use another mail agent (by copying the contents of this buffer)
 please ensure that the buffers are attached to your email.\n\n"))
 	      (dolist (buffer buffer-list)
-		(tramp-compat-funcall
-		 'mml-insert-empty-tag 'part 'type "text/plain"
+		(mml-insert-empty-tag
+		 'part 'type "text/plain"
 		 'encoding "base64" 'disposition "attachment" 'buffer buffer
 		 'description buffer))
 	      (set-buffer-modified-p nil))

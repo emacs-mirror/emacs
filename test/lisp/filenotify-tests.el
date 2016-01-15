@@ -1,6 +1,6 @@
 ;;; file-notify-tests.el --- Tests of file notifications  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2016 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
@@ -152,6 +152,7 @@ remote host, or nil."
   (declare (indent 1))
   `(ert-deftest ,(intern (concat (symbol-name test) "-remote")) ()
      ,docstring
+     :tags '(:expensive-test)
      (let* ((temporary-file-directory
 	     file-notify-test-remote-temporary-file-directory)
 	    (ert-test (ert-get-test ',test)))
@@ -783,6 +784,7 @@ longer than timeout seconds for the events to be delivered."
 
 (ert-deftest file-notify-test06-many-events ()
   "Check that events are not dropped."
+  :tags '(:expensive-test)
   (skip-unless (file-notify--test-local-enabled))
   ;; Under cygwin events arrive in random order.  Impossible to define a test.
   (skip-unless (not (eq system-type 'cygwin)))

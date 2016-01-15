@@ -1,6 +1,6 @@
 ;;; add-log.el --- change log maintenance commands for Emacs
 
-;; Copyright (C) 1985-1986, 1988, 1993-1994, 1997-1998, 2000-2015 Free
+;; Copyright (C) 1985-1986, 1988, 1993-1994, 1997-1998, 2000-2016 Free
 ;; Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -481,9 +481,10 @@ try to visit the file for the change under `point' instead."
 		(apply 'change-log-goto-source-1
 		       (append change-log-find-head change-log-find-tail))
 	      (error
-	       "Cannot find more matches for tag `%s' in file `%s'"
-	       (car change-log-find-head)
-	       (nth 2 change-log-find-head))))
+	       (format-message
+		"Cannot find more matches for tag `%s' in file `%s'"
+		(car change-log-find-head)
+		(nth 2 change-log-find-head)))))
     (save-excursion
       (let* ((at (point))
 	     (tag-at (change-log-search-tag-name))
@@ -515,8 +516,9 @@ try to visit the file for the change under `point' instead."
 	  (condition-case nil
 	      (setq change-log-find-tail
 		    (apply 'change-log-goto-source-1 change-log-find-head))
-	    (error "Cannot find matches for tag `%s' in file `%s'"
-		   tag file))))))))
+	    (error
+	     (format-message "Cannot find matches for tag `%s' in file `%s'"
+			     tag file)))))))))
 
 (defun change-log-next-error (&optional argp reset)
   "Move to the Nth (default 1) next match in a ChangeLog buffer.

@@ -1,6 +1,6 @@
 /* emacs-module.c - Module loading and runtime implementation
 
-Copyright (C) 2015 Free Software Foundation, Inc.
+Copyright (C) 2015-2016 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -64,6 +64,12 @@ enum
 	 && alignof (Lisp_Object) == alignof (emacs_value)
 	 && INTPTR_MAX == EMACS_INT_MAX)
   };
+
+/* Function prototype for module user-pointer finalizers.  These
+   should not throw C++ exceptions, so emacs-module.h declares the
+   corresponding interfaces with EMACS_NOEXCEPT.  There is only C code
+   in this module, though, so this constraint is not enforced here.  */
+typedef void (*emacs_finalizer_function) (void *);
 
 
 /* Private runtime and environment members.  */

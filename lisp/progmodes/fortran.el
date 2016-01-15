@@ -1,6 +1,6 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
-;; Copyright (C) 1986, 1993-1995, 1997-2015 Free Software Foundation,
+;; Copyright (C) 1986, 1993-1995, 1997-2016 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
@@ -496,12 +496,12 @@ This is used to fontify fixed-format Fortran comments."
   ;; worth the trouble (about 0.5% of slow down).
   (eval                         ;I hate `eval', but it's hard to avoid it here.
    `(syntax-propertize-rules
-     ("^[cd\\*]" (0 "<"))
+     ("^[CcDd\\*]" (0 "<"))
      ;; We mark all chars after line-length as "comment-start", rather than
      ;; just the first one.  This is so that a closing ' that's past the
      ;; line-length will indeed be ignored (and will result in a string that
      ;; leaks into subsequent lines).
-     ((format "^[^cd\\*\t\n].\\{%d\\}\\(.+\\)" (1- line-length))
+     ((format "^[^CcDd\\*\t\n].\\{%d\\}\\(.+\\)" (1- line-length))
       (1 "<")))))
 
 (defvar fortran-font-lock-keywords fortran-font-lock-keywords-1

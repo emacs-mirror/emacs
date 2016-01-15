@@ -22,7 +22,7 @@
 ## suitable variables in nt/mingw-cfg.site.
 ##
 ## Process this file with automake to produce Makefile.in.
-# Copyright (C) 2002-2015 Free Software Foundation, Inc.
+# Copyright (C) 2002-2016 Free Software Foundation, Inc.
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -452,6 +452,13 @@ EXTRA_DIST += group-member.c
 EXTRA_libgnu_a_SOURCES += group-member.c
 
 ## end   gnulib module group-member
+
+## begin gnulib module ignore-value
+
+
+EXTRA_DIST += ignore-value.h
+
+## end   gnulib module ignore-value
 
 ## begin gnulib module intprops
 

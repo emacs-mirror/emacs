@@ -1,5 +1,5 @@
 /* Declarations useful when processing input.
-   Copyright (C) 1985-1987, 1993, 2001-2015 Free Software Foundation,
+   Copyright (C) 1985-1987, 1993, 2001-2016 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -414,6 +414,8 @@ extern void unuse_menu_items (void);
 /* Getting the kind of an event head.  */
 #define EVENT_HEAD_KIND(event_head) \
   (Fget ((event_head), Qevent_kind))
+
+extern void (*handle_user_signal_hook) (int);
 
 /* True while doing kbd input.  */
 extern bool waiting_for_input;

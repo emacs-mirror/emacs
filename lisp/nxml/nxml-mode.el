@@ -1,6 +1,6 @@
 ;;; nxml-mode.el --- a new XML mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003-2004, 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2007-2016 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML
@@ -33,7 +33,6 @@
 
 (require 'xmltok)
 (require 'nxml-enc)
-(require 'nxml-glyph)
 (require 'nxml-util)
 (require 'nxml-rap)
 (require 'nxml-outln)
@@ -55,9 +54,7 @@
 
 (defcustom nxml-char-ref-display-glyph-flag t
   "Non-nil means display glyph following character reference.
-The glyph is displayed in face `nxml-glyph'.  The abnormal hook
-`nxml-glyph-set-functions' can be used to change the characters
-for which glyphs are displayed."
+The glyph is displayed in face `nxml-glyph'."
   :group 'nxml
   :type 'boolean)
 
@@ -583,8 +580,7 @@ Many aspects this mode can be customized using
           (jit-lock-contextually . t)
           (font-lock-unfontify-region-function . nxml-unfontify-region)))
 
-  (rng-nxml-mode-init)
-  (nxml-enable-unicode-char-name-sets))
+  (with-demoted-errors (rng-nxml-mode-init)))
 
 (defun nxml-cleanup ()
   "Clean up after nxml-mode."
@@ -2477,116 +2473,15 @@ and attempts to find another possible way to do the markup."
 
 ;;; Character names
 
-(defvar nxml-char-name-ignore-case t)
-
-(defvar nxml-char-name-alist nil
-  "Alist of character names.
-Each member of the list has the form (NAME CODE . NAMESET),
-where NAME is a string naming a character, NAMESET is a symbol
-identifying a set of names and CODE is an integer specifying the
-Unicode scalar value of the named character.
-The NAME will only be used for completion if NAMESET has
-a non-nil `nxml-char-name-set-enabled' property.
-If NAMESET does does not have `nxml-char-name-set-defined' property,
-then it must have a `nxml-char-name-set-file' property and `load'
-will be applied to the value of this property if the nameset
-is enabled.")
-
-(defvar nxml-char-name-table (make-hash-table :test 'eq)
-  "Hash table for mapping char codes to names.
-Each key is a Unicode scalar value.
-Each value is a list of pairs of the form (NAMESET . NAME),
-where NAMESET is a symbol identifying a set of names,
-and NAME is a string naming a character.")
-
-(defvar nxml-autoload-char-name-set-list nil
-  "List of char namesets that can be autoloaded.")
-
-(defun nxml-enable-char-name-set (nameset)
-  (put nameset 'nxml-char-name-set-enabled t))
-
-(defun nxml-disable-char-name-set (nameset)
-  (put nameset 'nxml-char-name-set-enabled nil))
-
-(defun nxml-char-name-set-enabled-p (nameset)
-  (get nameset 'nxml-char-name-set-enabled))
-
-(defun nxml-autoload-char-name-set (nameset file)
-  (unless (memq nameset nxml-autoload-char-name-set-list)
-    (setq nxml-autoload-char-name-set-list
-	  (cons nameset nxml-autoload-char-name-set-list)))
-  (put nameset 'nxml-char-name-set-file file))
-
-(defun nxml-define-char-name-set (nameset alist)
-  "Define a set of character names.
-NAMESET is a symbol identifying the set.
-ALIST is a list where each member has the form (NAME CODE),
-where NAME is a string naming a character and code is an
-integer giving the Unicode scalar value of the character."
-  (when (get nameset 'nxml-char-name-set-defined)
-    (error "Nameset `%s' already defined" nameset))
-  (let ((iter alist))
-    (while iter
-      (let* ((name-code (car iter))
-	     (name (car name-code))
-	     (code (cadr name-code)))
-	(puthash code
-		 (cons (cons nameset name)
-		       (gethash code nxml-char-name-table))
-		 nxml-char-name-table))
-      (setcdr (cdr (car iter)) nameset)
-      (setq iter (cdr iter))))
-  (setq nxml-char-name-alist
-	(nconc alist nxml-char-name-alist))
-  (put nameset 'nxml-char-name-set-defined t))
-
-(defun nxml-get-char-name (code)
-  (mapc 'nxml-maybe-load-char-name-set nxml-autoload-char-name-set-list)
-  (let ((names (gethash code nxml-char-name-table))
-	name)
-    (while (and names (not name))
-      (if (nxml-char-name-set-enabled-p (caar names))
-	  (setq name (cdar names))
-	(setq names (cdr names))))
-    name))
-
-(defvar nxml-named-char-history nil)
-
 (defun nxml-insert-named-char (arg)
   "Insert a character using its name.
 The name is read from the minibuffer.
 Normally, inserts the character as a numeric character reference.
 With a prefix argument, inserts the character directly."
   (interactive "*P")
-  (mapc 'nxml-maybe-load-char-name-set nxml-autoload-char-name-set-list)
-  (let ((name
-	 (let ((completion-ignore-case nxml-char-name-ignore-case))
-	   (completing-read "Character name: "
-			    nxml-char-name-alist
-			    (lambda (member)
-			      (get (cddr member) 'nxml-char-name-set-enabled))
-			    t
-			    nil
-			    'nxml-named-char-history)))
-	(alist nxml-char-name-alist)
-	elt code)
-    (while (and alist (not code))
-      (setq elt (assoc name alist))
-      (if (get (cddr elt) 'nxml-char-name-set-enabled)
-	  (setq code (cadr elt))
-	(setq alist (cdr (member elt alist)))))
+  (let ((code (read-char-by-name "Character name: ")))
     (when code
-      (insert (if arg
-		  (or (decode-char 'ucs code)
-		      (error "Character %x is not supported by Emacs"
-			     code))
-		(format "&#x%X;" code))))))
-
-(defun nxml-maybe-load-char-name-set (sym)
-  (when (and (get sym 'nxml-char-name-set-enabled)
-	     (not (get sym 'nxml-char-name-set-defined))
-	     (stringp (get sym 'nxml-char-name-set-file)))
-    (load (get sym 'nxml-char-name-set-file))))
+      (insert (if arg code (format "&#x%X;" code))))))
 
 (defun nxml-toggle-char-ref-extra-display (arg)
   "Toggle the display of extra information for character references."
@@ -2602,9 +2497,11 @@ With a prefix argument, inserts the character directly."
 
 (defun nxml-char-ref-display-extra (start end n)
   (when nxml-char-ref-extra-display
-    (let ((name (nxml-get-char-name n))
+    (let ((name (or (get-char-code-property n 'name)
+                    (get-char-code-property n 'old-name)))
 	  (glyph-string (and nxml-char-ref-display-glyph-flag
-			     (nxml-glyph-display-string n 'nxml-glyph)))
+                             (char-displayable-p n)
+                             (string n)))
 	  ov)
     (when (or name glyph-string)
       (setq ov (make-overlay start end nil t))

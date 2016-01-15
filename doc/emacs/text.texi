@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2015 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2016 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Text
@@ -1717,6 +1717,7 @@ such as @code{"/tmp"}.
 @vindex latex-run-command
 @vindex tex-dvi-view-command
 @vindex tex-dvi-print-command
+@vindex tex-print-file-extension
   The buffer's @TeX{} variant determines what shell command @kbd{C-c
 C-b} actually runs.  In Plain @TeX{} mode, it is specified by the
 variable @code{tex-run-command}, which defaults to @code{"tex"}.  In
@@ -1725,7 +1726,12 @@ defaults to @code{"latex"}.  The shell command that @kbd{C-c C-v} runs
 to view the @file{.dvi} output is determined by the variable
 @code{tex-dvi-view-command}, regardless of the @TeX{} variant.  The
 shell command that @kbd{C-c C-p} runs to print the output is
-determined by the variable @code{tex-dvi-print-command}.
+determined by the variable @code{tex-dvi-print-command}.  The variable
+@code{tex-print-file-extension} can be set to the required file
+extension for viewing and printing @TeX{}-compiled files.  For
+example, you can set it to @file{.pdf}, and update
+@code{tex-dvi-view-command} and @code{tex-dvi-print-command}
+accordingly.
 
   Normally, Emacs automatically appends the output file name to the
 shell command strings described in the preceding paragraph.  For

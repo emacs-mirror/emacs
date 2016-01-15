@@ -1,6 +1,6 @@
 /* Functions for the X window system.
 
-Copyright (C) 1989, 1992-2015 Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2016 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -6564,31 +6564,27 @@ present and mapped to the usual X keysyms.  */)
 DEFUN ("x-export-frames", Fx_export_frames, Sx_export_frames, 0, 2, 0,
        doc: /* Return image data of FRAMES in TYPE format.
 FRAMES should be nil (the selected frame), a frame, or a list of
-frames (each of which corresponds to one page).  Optional arg TYPE
-should be either `pdf' (default), `png', `postscript', or `svg'.
-Supported types are determined by the compile-time configuration of
-cairo.  */)
+frames (each of which corresponds to one page).  Each frame should be
+visible.  Optional arg TYPE should be either `pdf' (default), `png',
+`postscript', or `svg'.  Supported types are determined by the
+compile-time configuration of cairo.  */)
      (Lisp_Object frames, Lisp_Object type)
 {
-  Lisp_Object result, rest, tmp;
+  Lisp_Object rest, tmp;
   cairo_surface_type_t surface_type;
 
-  if (NILP (frames))
-    frames = selected_frame;
   if (!CONSP (frames))
     frames = list1 (frames);
 
   tmp = Qnil;
   for (rest = frames; CONSP (rest); rest = XCDR (rest))
     {
-      struct frame *f = XFRAME (XCAR (rest));
-
-      if (! FRAME_LIVE_P (f) || ! FRAME_X_P (f) || ! FRAME_LIVE_P (f))
-        error ("Invalid frame");
-
+      struct frame *f = decode_window_system_frame (XCAR (rest));
       Lisp_Object frame;
 
       XSETFRAME (frame, f);
+      if (!FRAME_VISIBLE_P (f))
+	error ("Frames to be exported must be visible.");
       tmp = Fcons (frame, tmp);
     }
   frames = Fnreverse (tmp);
@@ -6624,9 +6620,7 @@ cairo.  */)
 #endif
     error ("Unsupported export type");
 
-  result = x_cr_export_frames (frames, surface_type);
-
-  return result;
+  return x_cr_export_frames (frames, surface_type);
 }
 
 #ifdef USE_GTK
@@ -6654,8 +6648,12 @@ The return value is an alist containing the following keys:
 	on, in points.
 
 The paper width can be obtained as the sum of width, left-margin, and
-right-margin values.  Likewise, the paper height is the sum of height,
-top-margin, and bottom-margin values.  */)
+right-margin values if the page orientation is `portrait' or
+`reverse-portrait'.  Otherwise, it is the sum of width, top-margin,
+and bottom-margin values.  Likewise, the paper height is the sum of
+height, top-margin, and bottom-margin values if the page orientation
+is `portrait' or `reverse-portrait'.  Otherwise, it is the sum of
+height, left-margin, and right-margin values.  */)
      (void)
 {
   Lisp_Object result;
@@ -6675,29 +6673,29 @@ visible.  */)
      (Lisp_Object frames)
 {
   Lisp_Object rest, tmp;
+  int count;
 
-  if (NILP (frames))
-    frames = selected_frame;
   if (!CONSP (frames))
     frames = list1 (frames);
 
   tmp = Qnil;
   for (rest = frames; CONSP (rest); rest = XCDR (rest))
     {
-      struct frame *f = XFRAME (XCAR (rest));
-      if (! FRAME_LIVE_P (f) || ! FRAME_X_P (f) || ! FRAME_LIVE_P (f))
-        error ("Invalid frame");
+      struct frame *f = decode_window_system_frame (XCAR (rest));
       Lisp_Object frame;
 
       XSETFRAME (frame, f);
-      if (!EQ (Fframe_visible_p (frame), Qt))
+      if (!FRAME_VISIBLE_P (f))
 	error ("Frames to be printed must be visible.");
       tmp = Fcons (frame, tmp);
     }
   frames = Fnreverse (tmp);
 
   /* Make sure the current matrices are up-to-date.  */
-  Fredisplay (Qt);
+  count = SPECPDL_INDEX ();
+  specbind (Qredisplay_dont_pause, Qt);
+  redisplay_preserve_echo_area (32);
+  unbind_to (count, Qnil);
 
   block_input ();
   xg_print_frames_dialog (frames);

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2015 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2016 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Mark
@@ -288,7 +288,9 @@ instead signal an error if the mark is inactive.
 active---for example, typing @kbd{a} inserts the character @samp{a},
 then deactivates the mark.  If you enable Delete Selection mode, a
 minor mode, then inserting text while the mark is active causes the
-text in the region to be deleted first.  To toggle Delete Selection
+text in the region to be deleted first.  Also, commands that normally
+delete just one character, such as @kbd{C-d} or @kbd{@key{DEL}}, will
+delete the entire region instead.  To toggle Delete Selection
 mode on or off, type @kbd{M-x delete-selection-mode}.
 
 @node Mark Ring

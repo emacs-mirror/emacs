@@ -1,5 +1,5 @@
 /* ftfont.c -- FreeType font driver.
-   Copyright (C) 2006-2015 Free Software Foundation, Inc.
+   Copyright (C) 2006-2016 Free Software Foundation, Inc.
    Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -2590,7 +2590,7 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
   flt_font_ft.otf = otf;
   flt_font_ft.matrix = matrix->xx != 0 ? matrix : 0;
 
-  if (1 < len || ! otf)
+  if (1 < len)
     {
       /* A little bit ad hoc.  Perhaps, shaper must get script and
 	 language information, and select a proper flt for them
@@ -2598,9 +2598,11 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
       int c1 = LGLYPH_CHAR (LGSTRING_GLYPH (lgstring, 1));
       if (CHAR_HAS_CATEGORY (c1, '^'))
 	flt = mflt_get (msymbol ("combining"));
-      else if (! otf)
-	flt = mflt_find (LGLYPH_CHAR (LGSTRING_GLYPH (lgstring, 0)),
-			 &flt_font_ft.flt_font);
+    }
+  if (! flt && ! otf)
+    {
+      flt = mflt_find (LGLYPH_CHAR (LGSTRING_GLYPH (lgstring, 0)),
+		       &flt_font_ft.flt_font);
       if (! flt)
 	return make_number (0);
     }

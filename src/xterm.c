@@ -1,6 +1,6 @@
 /* X Communication module for terminals which understand the X protocol.
 
-Copyright (C) 1989, 1993-2015 Free Software Foundation, Inc.
+Copyright (C) 1989, 1993-2016 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -572,7 +572,8 @@ x_cr_export_frames (Lisp_Object frames, cairo_surface_type_t surface_type)
   Lisp_Object acc = Qnil;
   int count = SPECPDL_INDEX ();
 
-  Fredisplay (Qt);
+  specbind (Qredisplay_dont_pause, Qt);
+  redisplay_preserve_echo_area (31);
 
   f = XFRAME (XCAR (frames));
   frames = XCDR (frames);
@@ -614,24 +615,18 @@ x_cr_export_frames (Lisp_Object frames, cairo_surface_type_t surface_type)
   cr = cairo_create (surface);
   cairo_surface_destroy (surface);
   record_unwind_protect (x_cr_destroy, make_save_ptr (cr));
-  unblock_input ();
 
   while (1)
     {
-      QUIT;
-
-      block_input ();
       x_free_cr_resources (f);
       FRAME_CR_CONTEXT (f) = cr;
       x_clear_area (f, 0, 0, width, height);
       expose_frame (f, 0, 0, width, height);
       FRAME_CR_CONTEXT (f) = NULL;
-      unblock_input ();
 
       if (NILP (frames))
 	break;
 
-      block_input ();
       cairo_surface_show_page (surface);
       f = XFRAME (XCAR (frames));
       frames = XCDR (frames);
@@ -639,18 +634,21 @@ x_cr_export_frames (Lisp_Object frames, cairo_surface_type_t surface_type)
       height = FRAME_PIXEL_HEIGHT (f);
       if (surface_set_size_func)
 	(*surface_set_size_func) (surface, width, height);
+
       unblock_input ();
+      QUIT;
+      block_input ();
     }
 
 #ifdef CAIRO_HAS_PNG_FUNCTIONS
   if (surface_type == CAIRO_SURFACE_TYPE_IMAGE)
     {
-      block_input ();
       cairo_surface_flush (surface);
       cairo_surface_write_to_png_stream (surface, x_cr_accumulate_data, &acc);
-      unblock_input ();
     }
 #endif
+  unblock_input ();
+
   unbind_to (count, Qnil);
 
   return CALLN (Fapply, intern ("concat"), Fnreverse (acc));

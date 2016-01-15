@@ -1,6 +1,6 @@
 ;;; admin.el --- utilities for Emacs administration
 
-;; Copyright (C) 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2016 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -96,13 +96,74 @@ Root must be the root of an Emacs source tree."
 				(submatch (1+ (in "0-9."))))))
   ;; Major version only.
   (when (string-match "\\([0-9]\\{2,\\}\\)" version)
-    (setq version (match-string 1 version))
-    (set-version-in-file root "src/msdos.c" version
-			 (rx (and "Vwindow_system_version" (1+ not-newline)
-				  ?\( (submatch (1+ (in "0-9"))) ?\))))
-    (set-version-in-file root "etc/refcards/ru-refcard.tex" version
-			 "\\\\newcommand{\\\\versionemacs}\\[0\\]\
-{\\([0-9]\\{2,\\}\\)}.+%.+version of Emacs"))
+    (let ((newmajor (match-string 1 version)))
+      (set-version-in-file root "src/msdos.c" newmajor
+                           (rx (and "Vwindow_system_version" (1+ not-newline)
+                                    ?\( (submatch (1+ (in "0-9"))) ?\))))
+      (set-version-in-file root "etc/refcards/ru-refcard.tex" newmajor
+                           "\\\\newcommand{\\\\versionemacs}\\[0\\]\
+{\\([0-9]\\{2,\\}\\)}.+%.+version of Emacs")))
+  (let* ((oldversion
+          (with-temp-buffer
+            (insert-file-contents (expand-file-name "README" root))
+            (if (re-search-forward "version \\([0-9.]*\\)" nil t)
+                (version-to-list (match-string 1)))))
+         (oldmajor (if oldversion (car oldversion)))
+         (newversion (version-to-list version))
+         (newmajor (car newversion))
+         (newshort (format "%s.%s" newmajor
+                           (+ (cadr newversion)
+                              (if (eq 2 (length newversion)) 0 1))))
+         (majorbump (and oldversion (not (equal oldmajor newmajor))))
+         (minorbump (and oldversion (not majorbump)
+                         (not (equal (cadr oldversion) (cadr newversion)))))
+         (newsfile (expand-file-name "etc/NEWS" root))
+         (oldnewsfile (expand-file-name (format "etc/NEWS.%s" oldmajor) root)))
+    (when (and majorbump
+               (not (file-exists-p oldnewsfile)))
+      (rename-file newsfile oldnewsfile)
+      (find-file oldnewsfile)           ; to prompt you to commit it
+      (copy-file oldnewsfile newsfile)
+      (with-temp-buffer
+        (insert-file-contents newsfile)
+        (re-search-forward "is about changes in Emacs version \\([0-9]+\\)")
+        (replace-match (number-to-string newmajor) nil nil nil 1)
+        (re-search-forward "^See files \\(NEWS\\)")
+        (replace-match (format "NEWS.%s, NEWS" oldmajor) nil nil nil 1)
+        (let ((start (line-beginning-position)))
+          (search-forward "in older Emacs versions")
+          (or (equal start (line-beginning-position))
+              (fill-region start (line-beginning-position 2))))
+        (re-search-forward "^$")
+        (forward-line -1)
+        (let ((start (point)))
+          (goto-char (point-max))
+          (re-search-backward "^$" nil nil 2)
+          (delete-region start (line-beginning-position 0)))
+        (write-region nil nil newsfile)))
+    (when (or majorbump minorbump)
+      (find-file newsfile)
+      (goto-char (point-min))
+      (if (re-search-forward (format "^\\* .*in Emacs %s" newshort) nil t)
+          (progn
+            (kill-buffer)
+            (message "No need to update etc/NEWS"))
+        (goto-char (point-min))
+        (re-search-forward "^$")
+        (forward-line -1)
+        (dolist (s '("Installation Changes" "Startup Changes" "Changes"
+                     "Editing Changes"
+                     "Changes in Specialized Modes and Packages"
+                          "New Modes and Packages"
+                          "Incompatible Lisp Changes"
+                          "Lisp Changes"))
+          (insert (format "\n\n* %s in Emacs %s\n" s newshort)))
+        (insert (format "\n\n* Changes in Emacs %s on \
+Non-Free Operating Systems\n" newshort)))
+      ;; Because we skip "bump version" commits when merging between branches.
+      ;; Probably doesn't matter in practice, because NEWS changes
+      ;; will only happen on master anyway.
+      (message "Commit any NEWS changes separately")))
   (message "Setting version numbers...done"))
 
 ;; Note this makes some assumptions about form of short copyright.

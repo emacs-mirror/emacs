@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2015 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2016 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node System Interface
@@ -2085,6 +2085,8 @@ than optimal.  To fix the problem, set @code{baud-rate}.
 @defun send-string-to-terminal string &optional terminal
 This function sends @var{string} to @var{terminal} without alteration.
 Control characters in @var{string} have terminal-dependent effects.
+(If you need to display non-ASCII text on the terminal, encode it
+using one of the functions described in @ref{Explicit Encoding}.)
 This function operates only on text terminals.  @var{terminal} may be
 a terminal object, a frame, or @code{nil} for the selected frame's
 terminal.  In batch mode, @var{string} is sent to @code{stdout} when
@@ -2252,13 +2254,21 @@ loads the library named @var{file}, or @samp{-f @var{function}}, which
 calls @var{function} with no arguments, or @samp{--eval @var{form}}.
 
   Any Lisp program output that would normally go to the echo area,
-either using @code{message}, or using @code{prin1}, etc., with @code{t}
-as the stream, goes instead to Emacs's standard error descriptor when
-in batch mode.  Similarly, input that would normally come from the
-minibuffer is read from the standard input descriptor.
-Thus, Emacs behaves much like a noninteractive
-application program.  (The echo area output that Emacs itself normally
-generates, such as command echoing, is suppressed entirely.)
+either using @code{message}, or using @code{prin1}, etc., with
+@code{t} as the stream, goes instead to Emacs's standard descriptors
+when in batch mode: @code{message} writes to the standard error
+descriptor, while @code{prin1} and other print functions write to the
+standard output.  Similarly, input that would normally come from the
+minibuffer is read from the standard input descriptor.  Thus, Emacs
+behaves much like a noninteractive application program.  (The echo
+area output that Emacs itself normally generates, such as command
+echoing, is suppressed entirely.)
+
+Non-ASCII text written to the standard output or error descriptors is
+by default encoded using @code{locale-coding-system} (@pxref{Locales})
+if it is non-@code{nil}; this can be overridden by binding
+@code{coding-system-for-write} to a coding system of you choice
+(@pxref{Explicit Encoding}).
 
 @defvar noninteractive
 This variable is non-@code{nil} when Emacs is running in batch mode.

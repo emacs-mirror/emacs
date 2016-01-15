@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2015 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2016 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Syntax Tables
@@ -786,17 +786,6 @@ are ignored; this function accepts them so that it can be directly
 used on hooks such as @code{before-change-functions} (@pxref{Change
 Hooks}).
 @end defun
-
-  Major modes can make @code{syntax-ppss} run faster by specifying
-where it needs to start parsing.
-
-@defvar syntax-begin-function
-If this is non-@code{nil}, it should be a function that moves to an
-earlier buffer position where the parser state is equivalent to
-@code{nil}---in other words, a position outside of any comment,
-string, or parenthesis.  @code{syntax-ppss} uses it to further
-optimize its computations, when the cache gives no help.
-@end defvar
 
 @node Parser State
 @subsection Parser State

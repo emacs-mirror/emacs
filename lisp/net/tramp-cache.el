@@ -1,6 +1,6 @@
 ;;; tramp-cache.el --- file information caching for Tramp
 
-;; Copyright (C) 2000, 2005-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2005-2016 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pittman <daniel@inanna.danann.net>
 ;;         Michael Albinus <michael.albinus@gmx.de>
@@ -75,25 +75,7 @@ details see the info pages."
 		       (choice :tag "           Value" sexp))))
 
 (defcustom tramp-persistency-file-name
-  (cond
-   ;; GNU Emacs.
-   ((and (fboundp 'locate-user-emacs-file))
-    (expand-file-name (tramp-compat-funcall 'locate-user-emacs-file "tramp")))
-   ((and (boundp 'user-emacs-directory)
-	 (stringp (symbol-value 'user-emacs-directory))
-	 (file-directory-p (symbol-value 'user-emacs-directory)))
-    (expand-file-name "tramp" (symbol-value 'user-emacs-directory)))
-   ((and (not (featurep 'xemacs)) (file-directory-p "~/.emacs.d/"))
-    "~/.emacs.d/tramp")
-   ;; XEmacs.
-   ((and (boundp 'user-init-directory)
-	 (stringp (symbol-value 'user-init-directory))
-	 (file-directory-p (symbol-value 'user-init-directory)))
-    (expand-file-name "tramp" (symbol-value 'user-init-directory)))
-   ((and (featurep 'xemacs) (file-directory-p "~/.xemacs/"))
-    "~/.xemacs/tramp")
-   ;; For users without `~/.emacs.d/' or `~/.xemacs/'.
-   (t "~/.tramp"))
+  (expand-file-name (locate-user-emacs-file "tramp"))
   "File which keeps connection history for Tramp connections."
   :group 'tramp
   :type 'file)
@@ -307,19 +289,14 @@ KEY identifies the connection, it is either a process or a vector."
       (maphash
        (lambda (key value)
 	 ;; Remove text properties from KEY and VALUE.
-	 ;; `substring-no-properties' does not exist in XEmacs.
-	 (when (functionp 'substring-no-properties)
-	   (when (vectorp key)
-	     (dotimes (i (length key))
-	       (when (stringp (aref key i))
-		 (aset key i
-		       (tramp-compat-funcall
-			'substring-no-properties (aref key i))))))
-	   (when (stringp key)
-	     (setq key (tramp-compat-funcall 'substring-no-properties key)))
-	   (when (stringp value)
-	     (setq value
-		   (tramp-compat-funcall 'substring-no-properties value))))
+	 (when (vectorp key)
+	   (dotimes (i (length key))
+	     (when (stringp (aref key i))
+	       (aset key i (substring-no-properties (aref key i))))))
+	 (when (stringp key)
+	   (setq key (substring-no-properties key)))
+	 (when (stringp value)
+	   (setq value (substring-no-properties value)))
 	 ;; Dump.
 	 (let ((tmp (format
 		     "(%s %s)"
@@ -418,8 +395,8 @@ for all methods.  Resulting data are derived from connection history."
 	   ;; When "emacs -Q" has been called, both variables are nil.
 	   ;; We do not load the persistency file then, in order to
 	   ;; have a clean test environment.
-	   (or (and (boundp 'init-file-user) (symbol-value 'init-file-user))
-	       (and (boundp 'site-run-file) (symbol-value 'site-run-file))))
+	   (or init-file-user
+	       site-run-file))
   (condition-case err
       (with-temp-buffer
 	(insert-file-contents tramp-persistency-file-name)

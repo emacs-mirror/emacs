@@ -1,6 +1,6 @@
 /* Lisp object printing and output streams.
 
-Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2015 Free Software
+Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2016 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -204,6 +204,13 @@ printchar_to_stream (unsigned int ch, FILE *stream)
 {
   Lisp_Object dv IF_LINT (= Qnil);
   ptrdiff_t i = 0, n = 1;
+  Lisp_Object coding_system = Vlocale_coding_system;
+  bool encode_p = false;
+
+  if (!NILP (Vcoding_system_for_write))
+    coding_system = Vcoding_system_for_write;
+  if (!NILP (coding_system))
+    encode_p = true;
 
   if (CHAR_VALID_P (ch) && DISP_TABLE_P (Vstandard_display_table))
     {
@@ -232,8 +239,11 @@ printchar_to_stream (unsigned int ch, FILE *stream)
 	  unsigned char mbstr[MAX_MULTIBYTE_LENGTH];
 	  int len = CHAR_STRING (ch, mbstr);
 	  Lisp_Object encoded_ch =
-	    ENCODE_SYSTEM (make_multibyte_string ((char *) mbstr, 1, len));
+	    make_multibyte_string ((char *) mbstr, 1, len);
 
+	  if (encode_p)
+	    encoded_ch = code_convert_string_norecord (encoded_ch,
+						       coding_system, true);
 	  fwrite (SSDATA (encoded_ch), 1, SBYTES (encoded_ch), stream);
 #ifdef WINDOWSNT
 	  if (print_output_debug_flag && stream == stderr)

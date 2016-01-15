@@ -1,6 +1,6 @@
 ;;; help-fns.el --- tests for help-fns.el
 
-;; Copyright (C) 2014-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2016 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 

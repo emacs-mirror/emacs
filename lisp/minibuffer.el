@@ -1,6 +1,6 @@
 ;;; minibuffer.el --- Minibuffer completion functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2016 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Package: emacs
@@ -831,7 +831,8 @@ styles for specific categories, such as files, buffers, etc."
 
 (defvar completion-category-defaults
   '((buffer (styles . (basic substring)))
-    (unicode-name (styles . (basic substring))))
+    (unicode-name (styles . (basic substring)))
+    (project-file (styles . (basic substring))))
   "Default settings for specific completion categories.
 Each entry has the shape (CATEGORY . ALIST) where ALIST is
 an association list that can specify properties such as:

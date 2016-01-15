@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2015 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2016 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Dired
@@ -785,8 +785,8 @@ Search all the specified files for the regular expression @var{regexp}
 (@code{dired-do-search}).
 
 This command is a variant of @code{tags-search}.  The search stops at
-the first match it finds; use @kbd{M-,} to resume the search and find
-the next match.  @xref{Tags Search}.
+the first match it finds; use @kbd{M-x tags-loop-continue} to resume
+the search and find the next match.  @xref{Identifier Search}.
 
 @kindex Q @r{(Dired)}
 @findex dired-do-query-replace-regexp
@@ -797,8 +797,8 @@ replacing matches for @var{regexp} with the string
 @var{to} (@code{dired-do-query-replace-regexp}).
 
 This command is a variant of @code{tags-query-replace}.  If you exit the
-query replace loop, you can use @kbd{M-,} to resume the scan and replace
-more matches.  @xref{Tags Search}.
+query replace loop, you can use @kbd{M-x tags-loop-continue} to resume
+the scan and replace more matches.  @xref{Identifier Search}.
 @end table
 
 @node Shell Commands in Dired

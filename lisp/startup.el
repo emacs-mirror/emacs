@@ -1,6 +1,6 @@
 ;;; startup.el --- process Emacs shell arguments  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-2015 Free Software Foundation,
+;; Copyright (C) 1985-1986, 1992, 1994-2016 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -76,13 +76,24 @@ once you are familiar with the contents of the startup screen."
 
 (defvar startup-screen-inhibit-startup-screen nil)
 
-;; FIXME? Why does this get such weirdly extreme treatment, when the
-;; more important inhibit-startup-screen does not.
+;; The mechanism used to ensure that only end users can disable this
+;; message is not complex.  Clearly, it is possible for a determined
+;; system administrator to inhibit this message anyway, but at least
+;; they will do so with knowledge of why the Emacs developers think
+;; this is a bad idea.
 (defcustom inhibit-startup-echo-area-message nil
   "Non-nil inhibits the initial startup echo area message.
-Setting this variable takes effect
-only if you do it with the customization buffer
-or if your init file contains a line of this form:
+
+The startup message is in the echo area as it provides information
+about GNU Emacs and the GNU system in general, which we want all
+users to see.  As this is the least intrusive startup message,
+this variable gets specialized treatment to prevent the message
+from being disabled site-wide by systems administrators, while
+still allowing individual users to do so.
+
+Setting this variable takes effect only if you do it with the
+customization buffer or if your init file contains a line of this
+form:
  (setq inhibit-startup-echo-area-message \"YOUR-USER-NAME\")
 If your init file is byte-compiled, use the following form
 instead:

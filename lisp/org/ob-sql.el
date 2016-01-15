@@ -1,6 +1,6 @@
 ;;; ob-sql.el --- org-babel functions for sql evaluation
 
-;; Copyright (C) 2009-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2016 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research

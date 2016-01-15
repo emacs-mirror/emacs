@@ -1,6 +1,6 @@
 /* Display generation from window structure and buffer text.
 
-Copyright (C) 1985-1988, 1993-1995, 1997-2015 Free Software Foundation,
+Copyright (C) 1985-1988, 1993-1995, 1997-2016 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -4589,11 +4589,15 @@ setup_for_ellipsis (struct it *it, int len)
   it->current.dpvec_index = 0;
   it->dpvec_face_id = -1;
 
-  /* Remember the current face id in case glyphs specify faces.
-     IT's face is restored in set_iterator_to_next.
-     saved_face_id was set to preceding char's face in handle_stop.  */
-  if (it->saved_face_id < 0 || it->saved_face_id != it->face_id)
-    it->saved_face_id = it->face_id = DEFAULT_FACE_ID;
+  /* Use IT->saved_face_id for the ellipsis, so that it has the same
+     face as the preceding text.  IT->saved_face_id was set in
+     handle_stop to the face of the preceding character, and will be
+     different from IT->face_id only if the invisible text skipped in
+     handle_invisible_prop has some non-default face on its first
+     character.  We thus ignore the face of the invisible text when we
+     display the ellipsis.  IT's face is restored in set_iterator_to_next.  */
+  if (it->saved_face_id >= 0)
+    it->face_id = it->saved_face_id;
 
   /* If the ellipsis represents buffer text, it means we advanced in
      the buffer, so we should no longer ignore overlay strings.  */
@@ -10257,7 +10261,16 @@ message_to_stderr (Lisp_Object m)
     }
   if (STRINGP (m))
     {
-      Lisp_Object s = ENCODE_SYSTEM (m);
+      Lisp_Object coding_system = Vlocale_coding_system;
+      Lisp_Object s;
+
+      if (!NILP (Vcoding_system_for_write))
+	coding_system = Vcoding_system_for_write;
+      if (!NILP (coding_system))
+	s = code_convert_string_norecord (m, coding_system, true);
+      else
+	s = m;
+
       fwrite (SDATA (s), SBYTES (s), 1, stderr);
     }
   if (!cursor_in_echo_area)

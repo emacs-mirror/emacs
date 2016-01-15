@@ -1,6 +1,6 @@
 ;;; delsel.el --- delete selection if you insert  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992, 1997-1998, 2001-2015 Free Software Foundation,
+;; Copyright (C) 1992, 1997-1998, 2001-2016 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Matthieu Devin <devin@lucid.com>
@@ -37,16 +37,26 @@
 ;; the values:
 ;;  `yank'
 ;;      For commands which do a yank; ensures the region about to be
-;;      deleted isn't yanked.
+;;      deleted isn't immediately yanked back, which would make the
+;;      command a no-op.
 ;;  `supersede'
 ;;      Delete the active region and ignore the current command,
-;;      i.e. the command will just delete the region.
+;;      i.e. the command will just delete the region.  This is for
+;;      commands that normally delete small amounts of text, like
+;;      a single character -- they will instead delete the whole
+;;      active region.
+;;  `kill'
+;;      `kill-region' is used on the selection, rather than
+;;      `delete-region'.  (Text selected with the mouse will typically
+;;      be yankable anyhow.)
 ;;  t
 ;;      The normal case: delete the active region prior to executing
 ;;      the command which will insert replacement text.
-;;  <function>
+;;  FUNCTION
 ;;      For commands which need to dynamically determine this behavior.
-;;      The function should return one of the above values or nil.
+;;      FUNCTION should take no argument and return one of the above
+;;      values, or nil.  In the latter case, FUNCTION should itself
+;;      do with the active region whatever is appropriate."
 
 ;;; Code:
 
@@ -66,7 +76,11 @@ enable the mode if ARG is omitted or nil.
 
 When Delete Selection mode is enabled, typed text replaces the selection
 if the selection is active.  Otherwise, typed text is just inserted at
-point regardless of any selection."
+point regardless of any selection.  Also, commands that normally delete
+just one character will delete the entire selection instead.
+
+See `delete-selection-helper' and `delete-selection-pre-hook' for
+information on adapting behavior of commands in Delete Selection mode."
   :global t :group 'editing-basics
   (if (not delete-selection-mode)
       (remove-hook 'pre-command-hook 'delete-selection-pre-hook)
@@ -147,10 +161,14 @@ With ARG, repeat that many times.  `C-u' means until end of buffer."
   "Delete selection according to TYPE:
  `yank'
      For commands which do a yank; ensures the region about to be
-     deleted isn't yanked.
+     deleted isn't immediately yanked back, which would make the
+     command a no-op.
  `supersede'
      Delete the active region and ignore the current command,
-     i.e. the command will just delete the region.
+     i.e. the command will just delete the region.  This is for
+     commands that normally delete small amounts of text, like
+     a single character -- they will instead delete the whole
+     active region.
  `kill'
      `kill-region' is used on the selection, rather than
      `delete-region'.  (Text selected with the mouse will typically
@@ -160,7 +178,9 @@ With ARG, repeat that many times.  `C-u' means until end of buffer."
      the command which will insert replacement text.
  FUNCTION
      For commands which need to dynamically determine this behavior.
-     FUNCTION should take no argument and return one of the above values or nil."
+     FUNCTION should take no argument and return one of the above
+     values, or nil.  In the latter case, FUNCTION should itself
+     do with the active region whatever is appropriate."
   (condition-case data
       (cond ((eq type 'kill)            ;Deprecated, backward compatibility.
 	     (delete-active-region t)

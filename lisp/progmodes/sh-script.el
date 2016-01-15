@@ -1,6 +1,7 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1997, 1999, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1997, 1999, 2001-2016 Free Software Foundation,
+;; Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Version: 2.0f
@@ -2114,7 +2115,11 @@ May return nil if the line should not be treated as continued."
     ;; sh-indent-after-done: aligned completely differently.
     (`(:after . "in") (sh-var-value 'sh-indent-for-case-label))
     ;; sh-indent-for-continuation: Line continuations are handled differently.
-    (`(:after . ,(or `"(" `"{" `"[")) (sh-var-value 'sh-indent-after-open))
+    (`(:after . ,(or `"(" `"{" `"["))
+     (if (not (looking-at ".[ \t]*[^\n \t#]"))
+         (sh-var-value 'sh-indent-after-open)
+       (goto-char (1- (match-end 0)))
+       `(column . ,(current-column))))
     ;; sh-indent-after-function: we don't handle it differently.
     ))
 

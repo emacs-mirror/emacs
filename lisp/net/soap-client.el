@@ -1,6 +1,6 @@
 ;;; soap-client.el --- Access SOAP web services       -*- lexical-binding: t -*-
 
-;; Copyright (C) 2009-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2016 Free Software Foundation, Inc.
 
 ;; Author: Alexandru Harsanyi <AlexHarsanyi@gmail.com>
 ;; Author: Thomas Fitzsimmons <fitzsim@fitzsim.org>
@@ -538,7 +538,7 @@ This is a specialization of `soap-encode-value' for
                (base64Binary
                 (unless (stringp value)
                   (error "Not a string value for base64Binary"))
-                (base64-encode-string value))
+                (base64-encode-string (encode-coding-string value 'utf-8)))
 
                (otherwise
                 (error "Don't know how to encode %s for type %s"
@@ -682,7 +682,7 @@ This is a specialization of `soap-decode-type' for
                decimal byte float double duration)
          (string-to-number (car contents)))
         (boolean (string= (downcase (car contents)) "true"))
-        (base64Binary (base64-decode-string (car contents)))
+        (base64Binary (decode-coding-string (base64-decode-string (car contents)) 'utf-8))
         (anyType (soap-decode-any-type node))
         (Array (soap-decode-array node))))))
 

@@ -10,7 +10,7 @@
 @syncodeindex pg cp
 
 @copying
-Copyright @copyright{} 1995--2015 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--2016 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

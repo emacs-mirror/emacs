@@ -1,6 +1,6 @@
 ;;; vc-hg.el --- VC backend for the mercurial version control system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2016 Free Software Foundation, Inc.
 
 ;; Author: Ivan Kanis
 ;; Maintainer: emacs-devel@gnu.org
@@ -131,7 +131,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :version "23.1"
   :group 'vc-hg)
 
-(defcustom vc-hg-annotate-switches nil
+(defcustom vc-hg-annotate-switches '("-u" "--follow")
   "String or list of strings specifying switches for hg annotate under VC.
 If nil, use the value of `vc-annotate-switches'.  If t, use no
 switches."
@@ -380,36 +380,44 @@ If LIMIT is non-nil, show no more than this many entries."
 (defun vc-hg-annotate-command (file buffer &optional revision)
   "Execute \"hg annotate\" on FILE, inserting the contents in BUFFER.
 Optional arg REVISION is a revision to annotate from."
-  (apply #'vc-hg-command buffer 0 file "annotate" "-d" "-n" "--follow"
+  (apply #'vc-hg-command buffer 0 file "annotate" "-dq" "-n"
 	 (append (vc-switches 'hg 'annotate)
                  (if revision (list (concat "-r" revision))))))
 
 (declare-function vc-annotate-convert-time "vc-annotate" (&optional time))
 
-;; The format for one line output by "hg annotate -d -n" looks like this:
-;;215 Wed Jun 20 21:22:58 2007 -0700: CONTENTS
-;; i.e: VERSION_NUMBER DATE: CONTENTS
-;; If the user has set the "--follow" option, the output looks like:
-;;215 Wed Jun 20 21:22:58 2007 -0700 foo.c: CONTENTS
-;; i.e. VERSION_NUMBER DATE FILENAME: CONTENTS
+;; One line printed by "hg annotate -dq -n -u --follow" looks like this:
+;;   b56girard 114590 2012-03-13 CLOBBER: Lorem ipsum dolor sit
+;; i.e. AUTHOR REVISION DATE FILENAME: CONTENTS
+;; The user can omit options "-u" and/or "--follow".  Then it'll look like:
+;;   114590 2012-03-13 CLOBBER:
+;; or
+;;   b56girard 114590 2012-03-13:
 (defconst vc-hg-annotate-re
-  "^[ \t]*\\([0-9]+\\) \\(.\\{30\\}\\)\\(?:\\(: \\)\\|\\(?: +\\([^:\n]+\\(?::\\(?:[^: \n][^:\n]*\\)?\\)*\\): \\)\\)")
+  (concat
+   "^\\(?: *[^ ]+ +\\)?\\([0-9]+\\) "   ;User and revision.
+   "\\([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]\\)" ;Date.
+   "\\(?: +\\([^:]+\\)\\)?:"))                        ;Filename.
 
 (defun vc-hg-annotate-time ()
   (when (looking-at vc-hg-annotate-re)
     (goto-char (match-end 0))
     (vc-annotate-convert-time
-     (date-to-time (match-string-no-properties 2)))))
+     (let ((str (match-string-no-properties 2)))
+       (encode-time 0 0 0
+                    (string-to-number (substring str 6 8))
+                    (string-to-number (substring str 4 6))
+                    (string-to-number (substring str 0 4)))))))
 
 (defun vc-hg-annotate-extract-revision-at-line ()
   (save-excursion
     (beginning-of-line)
     (when (looking-at vc-hg-annotate-re)
       (if (match-beginning 3)
-	  (match-string-no-properties 1)
-	(cons (match-string-no-properties 1)
-      (expand-file-name (match-string-no-properties 4)
- (vc-hg-root default-directory)))))))
+          (cons (match-string-no-properties 1)
+                (expand-file-name (match-string-no-properties 3)
+                                  (vc-hg-root default-directory)))
+        (match-string-no-properties 1)))))
 
 ;;; Tag system
 

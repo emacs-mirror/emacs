@@ -1,6 +1,6 @@
 ;;; cc-langs.el --- language specific settings for CC Mode -*- coding: utf-8 -*-
 
-;; Copyright (C) 1985, 1987, 1992-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2016 Free Software Foundation, Inc.
 
 ;; Authors:    2002- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -499,8 +499,13 @@ parameters \(point-min) and \(point-max).")
   ;; For documentation see the following c-lang-defvar of the same name.
   ;; The value here may be a list of functions or a single function.
   t 'c-change-expand-fl-region
-  (c c++ objc) '(c-neutralize-syntax-in-and-mark-CPP
-		 c-change-expand-fl-region)
+  (c objc) '(c-neutralize-syntax-in-and-mark-CPP
+	     c-change-expand-fl-region)
+  c++ '(c-neutralize-syntax-in-and-mark-CPP
+	c-restore-<>-properties
+	c-change-expand-fl-region)
+  java '(c-restore-<>-properties
+	 c-change-expand-fl-region)
   awk 'c-awk-extend-and-syntax-tablify-region)
 (c-lang-defvar c-before-font-lock-functions
 	       (let ((fs (c-lang-const c-before-font-lock-functions)))
@@ -526,8 +531,8 @@ When the mode is initialized, these functions are called with
 parameters \(point-min), \(point-max) and <buffer size>.")
 
 (c-lang-defconst c-before-context-fontification-functions
-  awk nil
-  t 'c-context-expand-fl-region)
+  t 'c-context-expand-fl-region
+  awk nil)
   ;; For documentation see the following c-lang-defvar of the same name.
   ;; The value here may be a list of functions or a single function.
 (c-lang-defvar c-before-context-fontification-functions
@@ -3245,6 +3250,19 @@ way."
   ;; Objective-C.
   objc t)
 (c-lang-defvar c-type-decl-end-used (c-lang-const c-type-decl-end-used))
+
+(c-lang-defconst c-maybe-decl-faces
+  "List of faces that might be put at the start of a type when
+`c-font-lock-declarations' runs.  This must be evaluated (with `eval') at
+runtime to get the actual list of faces.  This ensures that face name
+aliases in Emacs are resolved."
+  t '(list nil
+	   font-lock-type-face
+	   c-reference-face-name
+	   font-lock-keyword-face)
+  java (append (c-lang-const c-maybe-decl-faces)
+	       '(font-lock-preprocessor-face)))
+(c-lang-defvar c-maybe-decl-faces (c-lang-const c-maybe-decl-faces))
 
 
 ;;; Wrap up the `c-lang-defvar' system.

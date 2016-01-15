@@ -1,6 +1,6 @@
 ;;; tramp-tests.el --- Tests of remote file access
 
-;; Copyright (C) 2013-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2016 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
@@ -44,6 +44,7 @@
 (require 'vc-git)
 (require 'vc-hg)
 
+(autoload 'dired-uncache "dired")
 (declare-function tramp-find-executable "tramp-sh")
 (declare-function tramp-get-remote-path "tramp-sh")
 (declare-function tramp-get-remote-stat "tramp-sh")
@@ -1394,6 +1395,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 (ert-deftest tramp-test26-process-file ()
   "Check `process-file'."
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless
    (not
@@ -1424,6 +1426,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (should-not (get-buffer-window (current-buffer) t))
 
 	    ;; Second run. The output must be appended.
+	    (goto-char (point-max))
 	    (should (zerop (process-file "ls" nil t t fnnd)))
 	    ;; `ls' could produce colorized output.
 	    (goto-char (point-min))
@@ -1439,6 +1442,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 (ert-deftest tramp-test27-start-file-process ()
   "Check `start-file-process'."
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless
    (not
@@ -1508,6 +1512,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 (ert-deftest tramp-test28-shell-command ()
   "Check `shell-command'."
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless
    (not
@@ -1595,6 +1600,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 (ert-deftest tramp-test29-vc-registered ()
   "Check `vc-registered'."
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless
    (eq
@@ -1652,8 +1658,11 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      (error
 	       (vc-register
 		nil (list (car vc-handled-backends)
-			  (list (file-name-nondirectory tmp-name2)))))))
-	  (should (vc-registered tmp-name2)))
+			  (list (file-name-nondirectory tmp-name2))))))
+	    ;; vc-git uses an own process sentinel, Tramp's sentinel
+	    ;; for flushing the cache isn't used.
+	    (dired-uncache (concat (file-remote-p default-directory) "/"))
+	    (should (vc-registered (file-name-nondirectory tmp-name2)))))
 
       ;; Cleanup.
       (ignore-errors (delete-directory tmp-name1 'recursive)))))
@@ -1775,14 +1784,6 @@ Several special characters do not work properly there."
   (with-parsed-tramp-file-name
       (file-truename tramp-test-temporary-file-directory) nil
     (string-match "^HP-UX" (tramp-get-connection-property v "uname" ""))))
-
-(defun tramp--test-darwin-p ()
-  "Check, whether the remote host runs Mac OS X.
-Several special characters do not work properly there."
-  ;; We must refill the cache.  `file-truename' does it.
-  (with-parsed-tramp-file-name
-      (file-truename tramp-test-temporary-file-directory) nil
-    (string-match "^Darwin" (tramp-get-connection-property v "uname" ""))))
 
 (defun tramp--test-check-files (&rest files)
   "Run a simple but comprehensive test over every file in FILES."
@@ -1970,6 +1971,7 @@ Several special characters do not work properly there."
 (ert-deftest tramp-test31-special-characters-with-stat ()
   "Check special characters in file names.
 Use the `stat' command."
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless
    (eq
@@ -1988,6 +1990,7 @@ Use the `stat' command."
 (ert-deftest tramp-test31-special-characters-with-perl ()
   "Check special characters in file names.
 Use the `perl' command."
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless
    (eq
@@ -2009,6 +2012,7 @@ Use the `perl' command."
 (ert-deftest tramp-test31-special-characters-with-ls ()
   "Check special characters in file names.
 Use the `ls' command."
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless
    (eq
@@ -2029,16 +2033,15 @@ Use the `ls' command."
 
 (defun tramp--test-utf8 ()
   "Perform the test in `tramp-test32-utf8*'."
-  (tramp--instrument-test-case 10
   (let ((coding-system-for-read 'utf-8)
 	(coding-system-for-write 'utf-8)
 	(file-name-coding-system 'utf-8))
     (tramp--test-check-files
      (unless (tramp--test-hpux-p) "Γυρίστε το Γαλαξία με Ώτο Στοπ")
-     (unless (or (tramp--test-hpux-p) (tramp--test-darwin-p))
+     (unless (tramp--test-hpux-p)
        "أصبح بوسعك الآن تنزيل نسخة كاملة من موسوعة ويكيبيديا العربية لتصفحها بلا اتصال بالإنترنت")
      "银河系漫游指南系列"
-     "Автостопом по гала́ктике"))))
+     "Автостопом по гала́ктике")))
 
 (ert-deftest tramp-test32-utf8 ()
   "Check UTF8 encoding in file names and file contents."
@@ -2049,6 +2052,7 @@ Use the `ls' command."
 (ert-deftest tramp-test32-utf8-with-stat ()
   "Check UTF8 encoding in file names and file contents.
 Use the `stat' command."
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless
    (eq
@@ -2067,6 +2071,7 @@ Use the `stat' command."
 (ert-deftest tramp-test32-utf8-with-perl ()
   "Check UTF8 encoding in file names and file contents.
 Use the `perl' command."
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless
    (eq
@@ -2088,6 +2093,7 @@ Use the `perl' command."
 (ert-deftest tramp-test32-utf8-with-ls ()
   "Check UTF8 encoding in file names and file contents.
 Use the `ls' command."
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless
    (eq
@@ -2113,6 +2119,7 @@ Such requests could arrive from timers, process filters and
 process sentinels.  They shall not disturb each other."
   ;; Mark as failed until bug has been fixed.
   :expected-result :failed
+  :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless
    (eq
@@ -2224,6 +2231,7 @@ process sentinels.  They shall not disturb each other."
 Since it unloads Tramp, it shall be the last test to run."
   ;; Mark as failed until all symbols are unbound.
   :expected-result (if (featurep 'tramp) :failed :passed)
+  :tags '(:expensive-test)
   (when (featurep 'tramp)
     (unload-feature 'tramp 'force)
     ;; No Tramp feature must be left.

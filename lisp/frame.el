@@ -1,6 +1,6 @@
 ;;; frame.el --- multi-frame management independent of window systems  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1994, 1996-1997, 2000-2015 Free Software
+;; Copyright (C) 1993-1994, 1996-1997, 2000-2016 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -2239,6 +2239,7 @@ See also `toggle-frame-maximized'."
         overline-margin
         line-prefix
         wrap-prefix
+        truncate-lines
         bidi-paragraph-direction
         bidi-display-reordering))
 

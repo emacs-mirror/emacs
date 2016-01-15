@@ -1,7 +1,7 @@
 		    Building and Installing Emacs on MS-Windows
                           using the MSYS and MinGW tools
 
-  Copyright (C) 2013-2015 Free Software Foundation, Inc.
+  Copyright (C) 2013-2016 Free Software Foundation, Inc.
   See the end of the file for license conditions.
 
 The MSYS/MinGW build described here is supported on versions of
@@ -11,6 +11,9 @@ build will run on Windows 9X and newer systems).
 
   Do not use this recipe with Cygwin.  For building on Cygwin, use the
   normal installation instructions, ../INSTALL.
+
+  For building Emacs using the MinGW64/MSYS2 toolchain, see the
+  instructions in the file INSTALL.W64 in this directory.
 
 * For the brave (a.k.a. "impatient"):
 

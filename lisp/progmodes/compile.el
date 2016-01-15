@@ -1,6 +1,6 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1993-1999, 2001-2015 Free Software
+;; Copyright (C) 1985-1987, 1993-1999, 2001-2016 Free Software
 ;; Foundation, Inc.
 
 ;; Authors: Roland McGrath <roland@gnu.org>,
@@ -1125,6 +1125,16 @@ POS and RES.")
     (compilation-internal-error-properties
      file line end-line col end-col type fmt)))
 
+(defun compilation-beginning-of-line (&optional n)
+  "Like `beginning-of-line', but accounts for lines hidden by `selective-display'."
+  (if (or (not (eq selective-display t))
+          (null n)
+          (= n 1))
+      (beginning-of-line n)
+    (re-search-forward "[\n\r]" nil 'end (1- n))
+    (if (< n 0)
+        (beginning-of-line))))
+
 (defun compilation-move-to-column (col screen)
   "Go to column COL on the current line.
 If SCREEN is non-nil, columns are screen columns, otherwise, they are
@@ -1183,13 +1193,15 @@ FMTS is a list of format specs for transforming the file name.
 	    (goto-char (marker-position marker))
 	    ;; Set end-marker if appropriate and go to line.
 	    (if (not (or end-col end-line))
-		(beginning-of-line (- line marker-line -1))
-	      (beginning-of-line (- (or end-line line) marker-line -1))
+		(compilation-beginning-of-line (- line marker-line -1))
+	      (compilation-beginning-of-line (- (or end-line line)
+                                                marker-line -1))
 	      (if (or (null end-col) (< end-col 0))
 		  (end-of-line)
 		(compilation-move-to-column end-col screen-columns))
 	      (setq end-marker (point-marker))
-	      (when end-line (beginning-of-line (- line end-line -1))))
+	      (when end-line
+                (compilation-beginning-of-line (- line end-line -1))))
 	    (if col
 		(compilation-move-to-column col screen-columns)
 	      (forward-to-indentation 0))
@@ -2469,7 +2481,7 @@ This is the value of `next-error-function' in Compilation buffers."
             ;; Treat file's found lines in forward order, 1 by 1.
             (dolist (line (reverse (cddr (compilation--loc->file-struct loc))))
               (when (car line)		; else this is a filename w/o a line#
-                (beginning-of-line (- (car line) last -1))
+                (compilation-beginning-of-line (- (car line) last -1))
                 (setq last (car line)))
               ;; Treat line's found columns and store/update a marker for each.
               (dolist (col (cdr line))
@@ -2541,7 +2553,7 @@ displays at the top of the window; there is no arrow."
   (if (integerp compilation-context-lines)
       (set-window-start w (save-excursion
 			    (goto-char mk)
-			    (beginning-of-line
+			    (compilation-beginning-of-line
 			     (- 1 compilation-context-lines))
 			    (point)))
     ;; If there is no left fringe.

@@ -1,6 +1,6 @@
 ;;; tildify.el --- adding hard spaces into texts -*- lexical-binding: t -*-
 
-;; Copyright (C) 1997-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2016 Free Software Foundation, Inc.
 
 ;; Author:     Milan Zamazal <pdm@zamazal.org>
 ;;             Michal Nazarewicz <mina86@mina86.com>
@@ -282,7 +282,7 @@ corresponding text part and can be either:
 
 CALLBACK is a function accepting two arguments -- REG-BEG and REG-END -- that
 will be called for portions of the buffer outside of the environments defined by
-PAIRS regexes.
+PAIRS regexps.
 
 The function will return as soon as CALLBACK returns nil or point goes past END.
 CALLBACK may be called on portions of the buffer outside of [BEG END); in fact
@@ -479,7 +479,7 @@ which is assumed to be a space character, should be replaced with a hard space."
 
 ;;;###autoload
 (define-minor-mode tildify-mode
-  "Adds electric behaviour to space character.
+  "Adds electric behavior to space character.
 
 When space is inserted into a buffer in a position where hard space is required
 instead (determined by `tildify-space-pattern' and `tildify-space-predicates'),

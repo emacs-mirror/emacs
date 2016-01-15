@@ -1,6 +1,6 @@
 ;;; opascal.el --- major mode for editing Object Pascal source in Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-1999, 2001-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1998-1999, 2001-2016 Free Software Foundation, Inc.
 
 ;; Authors: Ray Blaak <blaak@infomatch.com>,
 ;;          Simon South <ssouth@member.fsf.org>
@@ -257,6 +257,7 @@ routine.")
 
 (defvar opascal-mode-syntax-table
   (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?\\ "." st)    ; bug#22224
     ;; Strings.
     (modify-syntax-entry ?\" "\"" st)
     (modify-syntax-entry ?\' "\"" st)

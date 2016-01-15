@@ -1,6 +1,6 @@
 ;;; cc-cmds.el --- user level commands for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2016 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -1121,35 +1121,15 @@ numeric argument is supplied, or the point is inside a literal."
 			   (looking-at "<<"))
 			 (>= (match-end 0) final-pos)))
 
-	      ;; It's a >.  Either a C++ >> operator. ......
-	      (or (and (c-major-mode-is 'c++-mode)
+	      ;; It's a >.  Either a template/generic terminator ...
+	      (or (c-get-char-property (1- final-pos) 'syntax-table)
+		  ;; or a C++ >> operator.
+		  (and (c-major-mode-is 'c++-mode)
 		       (progn
 			 (goto-char (1- final-pos))
 			 (c-beginning-of-current-token)
 			 (looking-at ">>"))
-		       (>= (match-end 0) final-pos))
-		  ;; ...., or search back for a < which isn't already marked as an
-		  ;; opening template delimiter.
-		  (save-restriction
-		    (widen)
-		    ;; Narrow to avoid `c-forward-<>-arglist' below searching past
-		    ;; our position.
-		    (narrow-to-region (point-min) final-pos)
-		    (goto-char final-pos)
-		    (while
-			(and
-			 (progn
-			   (c-syntactic-skip-backward "^<;}" nil t)
-			   (eq (char-before) ?<))
-			 (progn
-			   (backward-char)
-			   (looking-at "\\s("))))
-		    (and (eq (char-after) ?<)
-			 (not (looking-at "\\s("))
-			 (progn (c-backward-syntactic-ws)
-				(c-simple-skip-symbol-backward))
-			 (or (looking-at c-opt-<>-sexp-key)
-			     (not (looking-at c-keywords-regexp)))))))))
+		       (>= (match-end 0) final-pos))))))
 
     (goto-char final-pos)
     (when found-delim
@@ -1157,11 +1137,9 @@ numeric argument is supplied, or the point is inside a literal."
       (when (and (eq (char-before) ?>)
 		 (not executing-kbd-macro)
 		 blink-paren-function)
-	;; Currently (2014-10-19), the syntax-table text properties on < and >
-	;; are only applied in code called during Emacs redisplay.  We thus
-	;; explicitly cause a redisplay so that these properties have been
-	;; applied when `blink-paren-function' gets called.
-	(sit-for 0)
+	;; From now (2016-01-01), the syntax-table text properties on < and >
+	;; are applied in an after-change function, not during redisplay.  Hence
+	;; we no longer need to call (sit-for 0) for blink paren to work.
 	(funcall blink-paren-function)))))
 
 (defun c-electric-paren (arg)

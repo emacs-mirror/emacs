@@ -1,6 +1,6 @@
 ;;; man.el --- browse UNIX manual pages
 
-;; Copyright (C) 1993-1994, 1996-1997, 2001-2015 Free Software
+;; Copyright (C) 1993-1994, 1996-1997, 2001-2016 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Barry A. Warsaw <bwarsaw@cen.com>

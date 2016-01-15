@@ -1,6 +1,6 @@
 ;;; gnus-sync.el --- synchronization facility for Gnus
 
-;; Copyright (C) 2010-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2016 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: news synchronization nntp nnrss

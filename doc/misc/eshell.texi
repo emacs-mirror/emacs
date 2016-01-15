@@ -10,7 +10,7 @@
 @copying
 This manual is for Eshell, the Emacs shell.
 
-Copyright @copyright{} 1999--2015 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2016 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -84,7 +84,9 @@ such as @command{bash}, @command{zsh}, @command{rc}, or
 * Concept Index::
 * Function and Variable Index::
 * Command Index::
+@ignore
 * Key Index::
+@end ignore
 @end menu
 
 @node Introduction
@@ -670,6 +672,12 @@ page long.  If that occurs to you, search for configuration options
 for calling @samp{less} without the @samp{-F} option.  For Git, you
 can do that using @samp{git config --global core.pager 'less -+F'}.
 
+@vindex eshell-destroy-buffer-when-process-dies
+If you want the buffers created by visual programs killed when the
+program exits, customize the variable
+@code{eshell-destroy-buffer-when-process-dies} to a non-@code{nil}
+value; the default is @code{nil}.
+
 @section Redirection
 Redirection is mostly the same in Eshell as it is in other command
 shells.  The output redirection operators @code{>} and @code{>>} as
@@ -682,6 +690,8 @@ The buffer redirection operator, @code{>>>}, expects a buffer object
 on the right-hand side, into which it inserts the output of the
 left-hand side.  e.g., @samp{echo hello >>> #<buffer *scratch*>}
 inserts the string @code{"hello"} into the @file{*scratch*} buffer.
+The convenience shorthand variant @samp{#<@var{buffer-name}>}, as in
+@samp{#<*scratch*>}, is also accepted.
 
 @code{eshell-virtual-targets} is a list of mappings of virtual device
 names to functions.  Eshell comes with two virtual devices:
@@ -1241,8 +1251,13 @@ Since it keeps the cursor up where the command was invoked.
 
 @printindex cm
 
+@c There are no @kindex entries in this manual; avoid generating an
+@c empty menu.
+@ignore
 @node Key Index
 @unnumbered Key Index
 
 @printindex ky
+@end ignore
+
 @bye

@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2015 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2016 Free Software
 @c Foundation, Inc.
 
 @c See file emacs.texi for copying conditions.
@@ -1164,12 +1164,15 @@ indicate-empty-lines t)}.
 @cindex mode, Whitespace
 @findex whitespace-mode
 @vindex whitespace-style
+@findex whitespace-toggle-options
   Whitespace mode is a buffer-local minor mode that lets you
 visualize many kinds of whitespace in the buffer, by either
 drawing the whitespace characters with a special face or displaying
 them as special glyphs.  To toggle this mode, type @kbd{M-x
 whitespace-mode}.  The kinds of whitespace visualized are determined
-by the list variable @code{whitespace-style}.  Here is a partial list
+by the list variable @code{whitespace-style}.  Individual elements in
+that list can be toggled on or off in the current buffer by typing
+@w{@kbd{M-x whitespace-toggle-options}}.  Here is a partial list
 of possible elements (see the variable's documentation for the full
 list):
 
@@ -1200,6 +1203,13 @@ Highlight newlines.
 @item empty
 Highlight empty lines.
 
+@item big-indent
+@vindex whitespace-big-indent-regexp
+Highlight too-deep indentation.  By default any sequence of at least 4
+consecutive TAB characters or 32 consecutive SPC characters is
+highlighted.  To change that, customize the regular expression
+@code{whitespace-big-indent-regexp}.
+
 @item space-mark
 Draw space and non-breaking characters with a special glyph.
 
@@ -1209,6 +1219,12 @@ Draw tab characters with a special glyph.
 @item newline-mark
 Draw newline characters with a special glyph.
 @end table
+
+@findex global-whitespace-toggle-options
+@findex global-whitespace-mode
+Global Whitespace mode is a global minor mode that lets you visualize
+whitespace in all buffers.  To toggle individual features, use
+@kbd{M-x global-whitespace-toggle-options}.
 
 @node Selective Display
 @section Selective Display

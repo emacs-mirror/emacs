@@ -1,6 +1,6 @@
 /* Lisp parsing and input streams.
 
-Copyright (C) 1985-1989, 1993-1995, 1997-2015 Free Software Foundation,
+Copyright (C) 1985-1989, 1993-1995, 1997-2016 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -3720,7 +3720,11 @@ static size_t oblookup_last_bucket_number;
 Lisp_Object
 check_obarray (Lisp_Object obarray)
 {
-  if (!VECTORP (obarray) || ASIZE (obarray) == 0)
+  /* We don't want to signal a wrong-type-argument error when we are
+     shutting down due to a fatal error, and we don't want to hit
+     assertions in VECTORP and ASIZE if the fatal error was during GC.  */
+  if (!fatal_error_in_progress
+      && (!VECTORP (obarray) || ASIZE (obarray) == 0))
     {
       /* If Vobarray is now invalid, force it to be valid.  */
       if (EQ (Vobarray, obarray)) Vobarray = initial_obarray;

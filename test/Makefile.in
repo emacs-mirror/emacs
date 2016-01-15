@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 2010-2015 Free Software Foundation, Inc.
+# Copyright (C) 2010-2016 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -87,6 +87,9 @@ WRITE_LOG = > $@ 2>&1 || { stat=ERROR; cat $@; }; echo $$stat: $@
 ## to change this; bug#17848 - if that gets done, this can be simplified).
 ##
 ## Beware: it approximates 'no-byte-compile', so watch out for false-positives!
+SELECTOR_DEFAULT=(quote (not (tag :expensive-test)))
+SELECTOR_EXPENSIVE=nil
+SELECTOR=
 %.log: %.el
 	@if grep '^;.*no-byte-compile: t' $< > /dev/null; then \
 	  loadfile=$<; \
@@ -98,7 +101,7 @@ WRITE_LOG = > $@ 2>&1 || { stat=ERROR; cat $@; }; echo $$stat: $@
 	stat=OK ; \
 	mkdir --parents $(dir $@) ; \
 	$(emacs) -l ert -l $$loadfile \
-	  -f ert-run-tests-batch-and-exit ${WRITE_LOG}
+	  --eval "(ert-run-tests-batch-and-exit ${SELECTOR})" ${WRITE_LOG}
 
 ELFILES = $(shell find ${srcdir} -path "${srcdir}/manual" -prune -o \
 		-path "*resources" -prune -o -name "*el" -print)
@@ -133,9 +136,18 @@ $(foreach test,${TESTS},$(eval $(call test_template,${test})))
 ## have to run Emacs for every make invocation, and it might not be
 ## available during clean.
 -include make-test-deps.mk
+## Rerun default tests.
+check:
+	@${MAKE} check-doit SELECTOR="${SELECTOR_DEFAULT}"
+
+## Rerun also expensive tests.
+.PHONY: check-expensive
+check-expensive:
+	@${MAKE} check-doit SELECTOR="${SELECTOR_EXPENSIVE}"
 
 ## Re-run all the tests every time.
-check:
+.PHONY: check-doit
+check-doit:
 	-@for f in $(LOGFILES); do test ! -f $$f || mv $$f $$f~; done
 	@${MAKE} check-maybe
 

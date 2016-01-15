@@ -1,6 +1,6 @@
 /* Functions for creating and updating GTK widgets.
 
-Copyright (C) 2003-2015 Free Software Foundation, Inc.
+Copyright (C) 2003-2016 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -4084,31 +4084,11 @@ xg_page_setup_dialog (void)
 Lisp_Object
 xg_get_page_setup (void)
 {
-  Lisp_Object result, orientation_symbol;
   GtkPageOrientation orientation;
+  Lisp_Object orientation_symbol;
 
   if (page_setup == NULL)
     page_setup = gtk_page_setup_new ();
-  result = list4 (Fcons (Qleft_margin,
-			 make_float (gtk_page_setup_get_left_margin (page_setup,
-								     GTK_UNIT_POINTS))),
-		  Fcons (Qright_margin,
-			 make_float (gtk_page_setup_get_right_margin (page_setup,
-								      GTK_UNIT_POINTS))),
-		  Fcons (Qtop_margin,
-			 make_float (gtk_page_setup_get_top_margin (page_setup,
-								    GTK_UNIT_POINTS))),
-		  Fcons (Qbottom_margin,
-			 make_float (gtk_page_setup_get_bottom_margin (page_setup,
-								       GTK_UNIT_POINTS))));
-  result = Fcons (Fcons (Qheight,
-			 make_float (gtk_page_setup_get_page_height (page_setup,
-								     GTK_UNIT_POINTS))),
-		  result);
-  result = Fcons (Fcons (Qwidth,
-			 make_float (gtk_page_setup_get_page_width (page_setup,
-								    GTK_UNIT_POINTS))),
-		  result);
   orientation = gtk_page_setup_get_orientation (page_setup);
   if (orientation == GTK_PAGE_ORIENTATION_PORTRAIT)
     orientation_symbol = Qportrait;
@@ -4118,9 +4098,24 @@ xg_get_page_setup (void)
     orientation_symbol = Qreverse_portrait;
   else if (orientation == GTK_PAGE_ORIENTATION_REVERSE_LANDSCAPE)
     orientation_symbol = Qreverse_landscape;
-  result = Fcons (Fcons (Qorientation, orientation_symbol), result);
 
-  return result;
+  return listn (CONSTYPE_HEAP, 7,
+		Fcons (Qorientation, orientation_symbol),
+#define MAKE_FLOAT_PAGE_SETUP(f)  make_float (f (page_setup, GTK_UNIT_POINTS))
+		Fcons (Qwidth,
+		       MAKE_FLOAT_PAGE_SETUP (gtk_page_setup_get_page_width)),
+		Fcons (Qheight,
+		       MAKE_FLOAT_PAGE_SETUP (gtk_page_setup_get_page_height)),
+		Fcons (Qleft_margin,
+		       MAKE_FLOAT_PAGE_SETUP (gtk_page_setup_get_left_margin)),
+		Fcons (Qright_margin,
+		       MAKE_FLOAT_PAGE_SETUP (gtk_page_setup_get_right_margin)),
+		Fcons (Qtop_margin,
+		       MAKE_FLOAT_PAGE_SETUP (gtk_page_setup_get_top_margin)),
+		Fcons (Qbottom_margin,
+		       MAKE_FLOAT_PAGE_SETUP (gtk_page_setup_get_bottom_margin))
+#undef MAKE_FLOAT_PAGE_SETUP
+		);
 }
 
 static void

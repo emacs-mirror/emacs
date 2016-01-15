@@ -1,6 +1,6 @@
-;;; rng-nxml.el --- make nxml-mode take advantage of rng-validate-mode
+;;; rng-nxml.el --- make nxml-mode take advantage of rng-validate-mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2016 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML, RelaxNG
@@ -349,7 +349,7 @@ Return non-nil if in a context it understands."
 		(recover-fun (funcall recover-fun prefix (cdr qname)))))
       (cons (and defaultp (nxml-ns-get-default)) (cdr qname)))))
 
-(defun rng-start-tag-expand-recover (prefix local-name)
+(defun rng-start-tag-expand-recover (_prefix local-name)
   (let ((ns (rng-match-infer-start-tag-namespace local-name)))
     (and ns
 	 (cons ns local-name))))
@@ -386,7 +386,7 @@ set `xmltok-dtd'.  Returns the position of the end of the token."
     (save-restriction
       (widen)
       (nxml-with-invisible-motion
-	(if (= pos 1)
+	(if (= pos (point-min))
 	    (rng-set-initial-state)
 	  (let ((state (get-text-property (1- pos) 'rng-state)))
 	    (cond (state

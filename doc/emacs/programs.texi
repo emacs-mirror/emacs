@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2015 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2016 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Programs
@@ -271,7 +271,7 @@ bindings for that purpose.
   The Imenu facility offers a way to find the major definitions in
 a file by name.  It is also useful in text formatter major modes,
 where it treats each chapter, section, etc., as a definition.
-(@xref{Tags}, for a more powerful feature that handles multiple files
+(@xref{Xref}, for a more powerful feature that handles multiple files
 together.)
 
 @findex imenu
@@ -1358,7 +1358,7 @@ the @kbd{M-@key{TAB}} key is usually reserved by the window manager
 for switching graphical windows, so you should type @kbd{C-M-i} or
 @kbd{@key{ESC} @key{TAB}} instead.
 
-@cindex tags-based completion
+@cindex xref-based completion
 @findex completion-at-point
 @cindex Lisp symbol completion
 @cindex completion (Lisp symbols)
@@ -1368,7 +1368,7 @@ which generates its completion list in a flexible way.  If Semantic
 mode is enabled, it tries to use the Semantic parser data for
 completion (@pxref{Semantic}).  If Semantic mode is not enabled or
 fails at performing completion, it tries to complete using the
-selected tags table (@pxref{Tags}).  If in Emacs Lisp mode, it
+available @code{xref} backend (@pxref{Xref}).  If in Emacs Lisp mode, it
 performs completion using the function, variable, or property names
 defined in the current Emacs session.
 
@@ -1530,14 +1530,16 @@ with the Foldout package (@pxref{Foldout}).
   Prettify Symbols mode is a buffer-local minor mode that replaces
 certain strings with more attractive versions for display purposes.
 For example, in Emacs Lisp mode, it replaces the string @samp{lambda}
-with the Greek lambda character @samp{λ}.  You may wish to use this in
-non-programming modes as well.  You can customize the mode by adding
-more entries to @code{prettify-symbols-alist}.  More elaborate
-customization is available via customizing
-@code{prettify-symbols-compose-predicate} if its default value
-@code{prettify-symbols-default-compose-p} is not appropriate.  There
-is also a global version, @code{global-prettify-symbols-mode}, which
-enables the mode in all buffers that support it.
+with the Greek lambda character @samp{λ}.  In a @TeX{} buffer, it will
+replace @samp{\alpha} @dots{} @samp{\omega} and other math macros with
+their Unicode characters.  You may wish to use this in non-programming
+modes as well.  You can customize the mode by adding more entries to
+@code{prettify-symbols-alist}.  More elaborate customization is
+available via customizing @code{prettify-symbols-compose-predicate} if
+its default value @code{prettify-symbols-default-compose-p} is not
+appropriate.  There is also a global version,
+@code{global-prettify-symbols-mode}, which enables the mode in all
+buffers that support it.
 
   The symbol at point can be shown in its original form.  This is
 controlled by the variable @code{prettify-symbols-unprettify-at-point}:

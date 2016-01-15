@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2015 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2016 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Windows
@@ -3706,6 +3706,11 @@ The return value is the total amount of leftward horizontal scrolling in
 effect after the change---just like the value returned by
 @code{window-hscroll} (below).
 
+Note that text in paragraphs whose base direction is right-to-left
+(@pxref{Bidirectional Display}) moves in the opposite direction: e.g.,
+it moves to the right when @code{scroll-left} is invoked with a
+positive value of @var{count}.
+
 Once you scroll a window as far right as it can go, back to its normal
 position where the total leftward scrolling is zero, attempts to scroll
 any farther right have no effect.
@@ -3727,8 +3732,9 @@ of scrolling, this works just like @code{scroll-left}.
 @defun window-hscroll &optional window
 This function returns the total leftward horizontal scrolling of
 @var{window}---the number of columns by which the text in @var{window}
-is scrolled left past the left margin.  The default for
-@var{window} is the selected window.
+is scrolled left past the left margin.  (In right-to-left paragraphs,
+the value is the total amount of the rightward scrolling instead.)
+The default for @var{window} is the selected window.
 
 The return value is never negative.  It is zero when no horizontal
 scrolling has been done in @var{window} (which is usually the case).
@@ -3753,9 +3759,10 @@ scrolling has been done in @var{window} (which is usually the case).
 @defun set-window-hscroll window columns
 This function sets horizontal scrolling of @var{window}.  The value of
 @var{columns} specifies the amount of scrolling, in terms of columns
-from the left margin.  The argument @var{columns} should be zero or
-positive; if not, it is taken as zero.  Fractional values of
-@var{columns} are not supported at present.
+from the left margin (right margin in right-to-left paragraphs).  The
+argument @var{columns} should be zero or positive; if not, it is taken
+as zero.  Fractional values of @var{columns} are not supported at
+present.
 
 Note that @code{set-window-hscroll} may appear not to work if you test
 it by evaluating a call with @kbd{M-:} in a simple way.  What happens

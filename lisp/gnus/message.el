@@ -1,6 +1,6 @@
 ;;; message.el --- composing mail and news messages
 
-;; Copyright (C) 1996-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2016 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, news
@@ -4227,6 +4227,8 @@ Instead, just auto-save the buffer and then bury it."
   (if message-return-action
       (apply (car message-return-action) (cdr message-return-action))))
 
+(autoload 'mml-secure-bcc-is-safe "mml-sec")
+
 (defun message-send (&optional arg)
   "Send the message in the current buffer.
 If `message-interactive' is non-nil, wait for success indication or
@@ -4241,6 +4243,7 @@ It should typically alter the sending method in some way or other."
   (let ((inhibit-read-only t))
     (put-text-property (point-min) (point-max) 'read-only nil))
   (message-fix-before-sending)
+  (mml-secure-bcc-is-safe)
   (run-hooks 'message-send-hook)
   (when message-confirm-send
     (or (y-or-n-p "Send message? ")

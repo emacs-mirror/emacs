@@ -135,14 +135,12 @@ enum
   do {					\
     Lisp_Object tmp = XCAR (x);		\
     CHECK_CHARACTER (tmp);		\
-    XSETCAR ((x), tmp);			\
   } while (false)
 
 #define CHECK_CHARACTER_CDR(x) \
   do {					\
     Lisp_Object tmp = XCDR (x);		\
     CHECK_CHARACTER (tmp);		\
-    XSETCDR ((x), tmp);			\
   } while (false)
 
 /* Nonzero iff C is a character of code less than 0x100.  */

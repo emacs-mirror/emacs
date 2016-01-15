@@ -1,6 +1,6 @@
-;;; nxml-outln.el --- outline support for nXML mode
+;;; nxml-outln.el --- outline support for nXML mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2004, 2007-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2007-2016 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML
@@ -248,6 +248,16 @@ customize which elements are recognized as sections and headings."
   (interactive)
   (nxml-transform-subtree-outline '((hide-children . t))))
 
+;; These variables are dynamically bound.  They are use to pass information to
+;; nxml-section-tag-transform-outline-state.
+
+(defvar nxml-outline-state-transform-exceptions nil)
+(defvar nxml-target-section-pos nil)
+(defvar nxml-depth-in-target-section nil)
+(defvar nxml-outline-state-transform-alist nil)
+
+(defvar nxml-outline-display-section-tag-function nil)
+
 (defun nxml-hide-other ()
   "Hide text content other than that directly in the section containing point.
 Hide headings other than those of ancestors of that section and their
@@ -274,14 +284,6 @@ customize which elements are recognized as sections and headings."
 	(goto-char (1- (point)))))
     (nxml-transform-buffer-outline '((nil . hide-children)
 				     (t . hide-children)))))
-
-;; These variables are dynamically bound.  They are use to pass information to
-;; nxml-section-tag-transform-outline-state.
-
-(defvar nxml-outline-state-transform-exceptions nil)
-(defvar nxml-target-section-pos nil)
-(defvar nxml-depth-in-target-section nil)
-(defvar nxml-outline-state-transform-alist nil)
 
 (defun nxml-transform-buffer-outline (alist)
   (let ((nxml-target-section-pos nil)
@@ -350,7 +352,7 @@ customize which elements are recognized as sections and headings."
 (defun nxml-section-tag-transform-outline-state (startp
 						 section-start-pos
 						 &optional
-						 heading-start-pos)
+						 _heading-start-pos)
   (if (not startp)
       (setq nxml-depth-in-target-section
 	    (and nxml-depth-in-target-section
@@ -426,8 +428,6 @@ customize which elements are recognized as sections and headings."
 	(nxml-outline-display-rest nil nil nil)
       (nxml-outline-error
        (nxml-report-outline-error "Cannot display outline: %s" err)))))
-
-(defvar nxml-outline-display-section-tag-function nil)
 
 (defun nxml-outline-display-rest (outline-state start-tag-indent tag-qnames)
   "Display up to and including the end of the current element.
@@ -789,7 +789,7 @@ no new overlay will be created."
 (defun nxml-end-of-heading ()
   "Move from the start of the content of the heading to the end.
 Do not move past the end of the line."
-  (let ((pos (condition-case err
+  (let ((pos (condition-case nil
 		 (and (nxml-scan-element-forward (point) t)
 		      xmltok-start)
 	       (nxml-scan-error nil))))

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2015 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2016 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Windows
@@ -231,8 +231,9 @@ Mail}), but in another window (@code{compose-mail-other-window}).
 
 @findex find-tag-other-window
 @item C-x 4 .
-Find a tag in the current tags table, similar to @kbd{M-.}
-(@pxref{Tags}), but in another window (@code{find-tag-other-window}).
+Find the definition of an identifier, similar to @kbd{M-.}
+(@pxref{Xref}), but in another window
+(@code{xref-find-definitions-other-window}).
 @item C-x 4 r @var{filename} @key{RET}
 Visit file @var{filename} read-only, and select its buffer in another
 window (@code{find-file-read-only-other-window}).  @xref{Visiting}.
