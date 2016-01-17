@@ -999,7 +999,7 @@ merged by the user - `hfy-flatten-style' should do this."
                   (append
                    parent
                    (hfy-face-to-style-i
-                    (hfy-face-attr-for-class v hfy-display-class)) ))))
+                    (hfy-face-attr-for-class v hfy-display-class))))))
         (setq this
               (if val (case key
                        (:family         (hfy-family    val))
@@ -1018,7 +1018,7 @@ merged by the user - `hfy-flatten-style' should do this."
                        (:italic         (hfy-slant 'italic))))))
       (setq that (hfy-face-to-style-i next))
       ;;(lwarn t :warning "%S => %S" fn (nconc this that parent))
-      (nconc this that parent))) )
+      (nconc this parent that))) )
 
 (defun hfy-size-to-int (spec)
   "Convert SPEC, a CSS font-size specifier, to an Emacs :height attribute value.
@@ -1062,7 +1062,7 @@ haven't encountered them yet.  Returns a `hfy-style-assoc'."
    ((and (symbolp fn)
          (facep (symbol-value fn)))
     (hfy-face-attr-for-class (symbol-value fn) hfy-display-class))
-   (t nil)))
+   (t fn)))
 
 
 (defun hfy-face-to-style (fn)
