@@ -422,7 +422,9 @@ manually updated package."
         (add-to-list 'package-pinned-packages (cons package archive-name))
       (error "Archive '%s' requested for package '%s' is not available."
              archive-name package))
-    (package-initialize t)))
+    (when (and (boundp 'package--initialized)
+	       (not package--initialized))
+      (package-initialize t))))
 
 (defun use-package-handler/:pin (name keyword archive-name rest state)
   (let ((body (use-package-process-keywords name rest state))
