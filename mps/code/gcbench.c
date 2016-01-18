@@ -7,12 +7,17 @@
  */
 
 #include "mps.c"
-#include "getopt.h"
 #include "testlib.h"
 #include "testthr.h"
 #include "fmtdy.h"
 #include "fmtdytst.h"
 #include "mpm.h"
+
+#ifdef MPS_OS_W3
+#include "getopt.h"
+#else
+#include <getopt.h>
+#endif
 
 #include <stdio.h> /* fprintf, printf, putchars, sscanf, stderr, stdout */
 #include <stdlib.h> /* alloca, exit, EXIT_FAILURE, EXIT_SUCCESS, strtoul */

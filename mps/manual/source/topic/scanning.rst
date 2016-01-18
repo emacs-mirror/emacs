@@ -361,9 +361,9 @@ Scanning interface
 
 .. c:function:: MPS_FIX_CALL(ss, call)
 
-    Call a function from within a :term:`scan method`, between
-    :c:func:`MPS_SCAN_BEGIN` and :c:func:`MPS_SCAN_END`, passing
-    the :term:`scan state` correctly.
+    Call a function to do some scanning, from within a :term:`scan
+    method`, between :c:func:`MPS_SCAN_BEGIN` and
+    :c:func:`MPS_SCAN_END`, passing the :term:`scan state` correctly.
 
     ``ss`` is the scan state that was passed to the scan method.
 
@@ -376,6 +376,9 @@ Scanning interface
     have a structure shared between two :term:`object formats`, you
     must wrap the call with :c:func:`MPS_FIX_CALL` to ensure that the
     scan state is passed correctly.
+
+    The function being called must use :c:func:`MPS_SCAN_BEGIN` and
+    :c:func:`MPS_SCAN_END` appropriately.
 
     In example below, the scan method ``obj_scan`` fixes the object's
     ``left`` and ``right`` references, but delegates the scanning of
@@ -406,9 +409,11 @@ Scanning interface
 
     .. warning::
 
-         Use of :c:func:`MPS_FIX_CALL` is best avoided, as it forces
-         values out of registers. The gains in simplicity of the code
-         need to be measured against the loss in performance.
+         Use of :c:func:`MPS_FIX_CALL` is best avoided, as it may
+         force values out of registers (depending on compiler
+         optimisations such as inlining). The gains in simplicity of
+         the code ought to be measured against the loss in
+         performance.
 
 
 .. index::

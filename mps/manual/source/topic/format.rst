@@ -179,6 +179,20 @@ There are some cautions to be observed when using in-band headers:
 #. Not all :term:`pool classes` support objects with in-band headers.
    See the documentation for the pool class.
 
+.. note::
+
+    A :term:`client program` that allocates objects with
+    :term:`in-band headers` has to make a choice about how to
+    represent references to those objects. It can represent them using
+    :term:`base pointers` (which is convenient for allocation, since
+    :c:func:`mps_reserve` returns a base pointer, but requires
+    decoding when scanning) or using :term:`client pointers` (which is
+    convenient for scanning, since the :term:`scan method` takes a
+    client pointer, but requires encoding on allocation). Either
+    approach will work, but :term:`client pointers` are normally the
+    better choice, since scanning is normally more
+    performance-critical than allocation.
+   
 
 .. index::
    pair: object format; cautions

@@ -217,7 +217,7 @@ Other changes
    :c:func:`mps_lib_assert_fail`.
 
 #. Garbage collection performance is substantially improved in the
-   situation where the arena has been extended many time. Critical
+   situation where the arena has been extended many times. Critical
    operations now take time logarithmic in the number of times the
    arena has been extended (rather than linear, as in version 1.113
    and earlier). See job003554_.
