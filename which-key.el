@@ -54,6 +54,15 @@
   :group 'which-key
   :type 'float)
 
+(defcustom which-key-idle-secondary-delay nil
+  "Once the which-key buffer shows once for a key sequence reduce
+the idle time to this amount (in seconds). This makes it possible
+to shorten the delay for subsequent popups in the same key
+sequence. The default is for this value to be nil, which disables
+this behavior."
+  :group 'which-key
+  :type 'float)
+
 (defcustom which-key-echo-keystrokes 0
   "Value to use for `echo-keystrokes'.
 This only applies if `which-key-popup-type' is minibuffer or
@@ -829,6 +838,8 @@ total height."
           which-key--current-show-keymap-name nil
           which-key--prior-show-keymap-args nil
           which-key--on-last-page nil)
+    (when which-key-idle-secondary-delay
+      (which-key--start-timer))
     (cl-case which-key-popup-type
       ;; Not necessary to hide minibuffer
       ;; (minibuffer (which-key--hide-buffer-minibuffer))
@@ -1933,9 +1944,12 @@ Finally, show the buffer."
                 (not which-key-inhibit)
                 ;; Do not display the popup if a command is currently being
                 ;; executed
-                (or (and which-key-allow-evil-operators (bound-and-true-p evil-this-operator))
+                (or (and which-key-allow-evil-operators
+                         (bound-and-true-p evil-this-operator))
                     (null this-command)))
-           (which-key--create-buffer-and-show prefix-keys))
+           (which-key--create-buffer-and-show prefix-keys)
+           (when which-key-idle-secondary-delay
+             (which-key--start-timer which-key-idle-secondary-delay)))
           ((and which-key--current-page-n
                 (not which-key--using-top-level)
                 (not which-key--current-show-keymap-name))
@@ -1943,11 +1957,14 @@ Finally, show the buffer."
 
 ;; Timers
 
-(defun which-key--start-timer ()
+(defun which-key--start-timer (&optional delay)
   "Activate idle timer to trigger `which-key--update'."
   (which-key--stop-timer)
   (setq which-key--timer
-        (run-with-idle-timer which-key-idle-delay t #'which-key--update)))
+        (run-with-idle-timer
+         (if delay
+             delay
+           which-key-idle-delay) t #'which-key--update)))
 
 (defun which-key--stop-timer ()
   "Deactivate idle timer for `which-key--update'."
