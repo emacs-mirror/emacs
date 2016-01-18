@@ -274,7 +274,7 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
   AVER(base != (Addr)0);
   AVERT(ArenaGrainSize, grainSize);
 
-  if (size < grainSize * MPS_WORD_SHIFT)
+  if (size < grainSize * MPS_WORD_WIDTH)
     /* Not enough room for a full complement of zones. */
     return ResMEMORY;
 

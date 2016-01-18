@@ -265,6 +265,41 @@ this documentation.
     :c:type:`mps_fmt_t` for this argument.
 
 
+``global.c: RingIsSingle(&arena->chainRing)``
+
+    The client program called :c:func:`mps_arena_destroy` without
+    destroying all the :term:`generation chains` belonging to the
+    arena. It is necessary to call :c:func:`mps_chain_destroy` first.
+
+
+``global.c: RingIsSingle(&arena->formatRing)``
+
+    The client program called :c:func:`mps_arena_destroy` without
+    destroying all the :term:`object formats` belonging to the arena.
+    It is necessary to call :c:func:`mps_fmt_destroy` first.
+
+
+``global.c: RingIsSingle(&arena->rootRing)``
+
+    The client program called :c:func:`mps_arena_destroy` without
+    destroying all the :term:`roots` belonging to the arena.
+    It is necessary to call :c:func:`mps_root_destroy` first.
+
+
+``global.c: RingIsSingle(&arena->threadRing)``
+
+    The client program called :c:func:`mps_arena_destroy` without
+    deregistering all the :term:`threads` belonging to the arena.
+    It is necessary to call :c:func:`mps_thread_dereg` first.
+
+
+``global.c: RingLength(&arenaGlobals->poolRing) == 5``
+
+    The client program called :c:func:`mps_arena_destroy` without
+    destroying all the :term:`pools` belonging to the arena.
+    It is necessary to call :c:func:`mps_pool_destroy` first.
+
+
 ``lockix.c: res == 0``
 
 ``lockw3.c: lock->claims == 0``
@@ -299,13 +334,19 @@ this documentation.
     condition?
 
 
-``ring.c: ring->next == ring``
+``poolsnc.c: foundSeg``
 
-    The client program destroyed an MPS data structure without having
-    destroyed all the data structures that it owns first. For example,
-    it destroyed an arena without first destroying all pools in that
-    arena, or it destroyed a pool without first destroying all
-    allocation points created on that pool.
+    The client program passed an incorrect ``frame`` argument to
+    :c:func:`mps_ap_frame_pop`. This argument must be the result from
+    a previous call to :c:func:`mps_ap_frame_push` on the same
+    allocation point.
+
+
+``seg.c: gcseg->buffer == NULL``
+
+    The client program destroyed pool without first destroying all the
+    allocation points created on that pool. The allocation points must
+    be destroyed first.
 
 
 ``trace.c: ss->rank < RankEXACT``
