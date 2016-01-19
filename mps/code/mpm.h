@@ -521,6 +521,7 @@ extern Ring GlobalsRememberedSummaryRing(Globals);
 #define GlobalsArena(glob) PARENT(ArenaStruct, globals, glob)
 
 #define ArenaThreadRing(arena)  (&(arena)->threadRing)
+#define ArenaDeadRing(arena)    (&(arena)->deadRing)
 #define ArenaEpoch(arena)       ((arena)->epoch) /* .epoch.ts */
 #define ArenaTrace(arena, ti)   (&(arena)->trace[ti])
 #define ArenaZoneShift(arena)   ((arena)->zoneShift)
