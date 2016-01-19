@@ -1,7 +1,7 @@
 /* poolmv.c: MANUAL VARIABLE POOL
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * **** RESTRICTION: This pool may not allocate from the arena control
@@ -260,7 +260,7 @@ static Res MVInit(Pool pool, ArgList args)
     res = PoolInit(mvBlockPool(mv), arena, PoolClassMFS(), piArgs);
   } MPS_ARGS_END(piArgs);
   if(res != ResOK)
-    return res;
+    goto failBlockPoolInit;
 
   spanExtendBy = sizeof(MVSpanStruct) * (maxSize/extendBy);
 
@@ -270,7 +270,7 @@ static Res MVInit(Pool pool, ArgList args)
     res = PoolInit(mvSpanPool(mv), arena, PoolClassMFS(), piArgs);
   } MPS_ARGS_END(piArgs);
   if(res != ResOK)
-    return res;
+    goto failSpanPoolInit;
 
   mv->extendBy = extendBy;
   mv->avgSize  = avgSize;
@@ -284,6 +284,11 @@ static Res MVInit(Pool pool, ArgList args)
   AVERT(MV, mv);
   EVENT5(PoolInitMV, pool, arena, extendBy, avgSize, maxSize);
   return ResOK;
+
+failSpanPoolInit:
+  PoolFinish(mvBlockPool(mv));
+failBlockPoolInit:
+  return res;
 }
 
 
@@ -913,7 +918,7 @@ Bool MVCheck(MV mv)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

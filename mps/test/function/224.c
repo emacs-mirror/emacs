@@ -32,7 +32,7 @@ static void test(void)
  die(mps_arena_commit_limit_set(arena, VMSIZE), "commit limit");
 
  die(mps_pool_create(&pool, arena, mps_class_mv(),
-                     EXTENDBY, AVGSIZE, EXTENDBY),
+                     (size_t)EXTENDBY, (size_t)AVGSIZE, (size_t)EXTENDBY),
      "pool create");
 
  for (p=0; p<ITERATE; p++) {

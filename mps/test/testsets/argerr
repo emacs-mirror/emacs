@@ -80,14 +80,14 @@ argerr/78.c
 argerr/79.c
 argerr/80.c
 argerr/81.c
-argerr/82.c
-argerr/83.c
+% argerr/82.c -- see <code/ld.c#.add.no-arena-check>
+% argerr/83.c -- see <code/ld.c#.add.no-align-check>
 argerr/84.c
 argerr/85.c
 argerr/86.c
 argerr/87.c
-argerr/88.c
-argerr/89.c
+% argerr/88.c -- see <code/ld.c#.stale.no-arena-check>
+% argerr/89.c -- see <code/ld.c#.stale.no-align-check>
 argerr/90.c
 argerr/91.c
 argerr/92.c
@@ -111,7 +111,7 @@ argerr/109.c
 argerr/110.c
 argerr/111.c
 argerr/112.c
-argerr/113.c
+% argerr/113.c -- last argument to mps_root_create_table is count, not size
 argerr/114.c
 argerr/115.c
 argerr/116.c
@@ -124,9 +124,9 @@ argerr/122.c
 argerr/123.c
 argerr/124.c
 argerr/125.c
-argerr/126.c
+% argerr/126.c -- see <code/root.c#.fmt.no-align-check>
 argerr/127.c
-argerr/128.c
+% argerr/128.c -- see <code/root.c#.fmt.no-align-check>
 argerr/129.c
 argerr/130.c
 argerr/131.c
@@ -147,9 +147,9 @@ argerr/145.c
 argerr/146.c
 argerr/147.c
 argerr/148.c
-argerr/149.c
-argerr/150.c
-argerr/151.c
-argerr/152.c
+% argerr/149.c -- you're allowed to fix non-references
+% argerr/150.c -- you're allowed to fix non-references
+% argerr/151.c -- you're allowed to fix unaligned references
+% argerr/152.c -- no way to check this
 argerr/153.c
 argerr/154.c

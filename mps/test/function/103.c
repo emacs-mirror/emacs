@@ -32,7 +32,9 @@ static void fillup(void)
  mps_addr_t a;
  char *b;
 
- mps_pool_create(&poolmv, arena, mps_class_mv(), 64, 64, 64);
+ die(mps_pool_create(&poolmv, arena, mps_class_mv(),
+                     (size_t)64, (size_t)64, (size_t)64),
+     "mps_pool_create");
  size=1024ul*1024ul;
  while (size) {
   while (mps_alloc(&a, poolmv, size)==MPS_RES_OK) {

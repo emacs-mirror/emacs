@@ -59,33 +59,9 @@ static mps_gen_param_s testChain[genCOUNT] = {
 static mps_addr_t exactRoots[exactRootsCOUNT];
 static mps_addr_t ambigRoots[ambigRootsCOUNT];
 
-/* report - report statistics from any terminated GCs */
 
-static void report(mps_arena_t arena)
-{
-  mps_message_t message;
-  static int nCollections = 0;
-    
-  while (mps_message_get(&message, arena, mps_message_type_gc())) {
-    size_t live, condemned, not_condemned;
-
-    live = mps_message_gc_live_size(arena, message);
-    condemned = mps_message_gc_condemned_size(arena, message);
-    not_condemned = mps_message_gc_not_condemned_size(arena, message);
-
-    printf("\nCollection %d finished:\n", ++nCollections);
-    printf("live %"PRIuLONGEST"\n", (ulongest_t)live);
-    printf("condemned %"PRIuLONGEST"\n", (ulongest_t)condemned);
-    printf("not_condemned %"PRIuLONGEST"\n", (ulongest_t)not_condemned);
-
-    mps_message_discard(arena, message);
-  }
-}
-
-
+static mps_word_t collections;
 static mps_arena_t arena;
-static mps_fmt_t format;
-static mps_chain_t chain;
 static mps_root_t exactRoot, ambigRoot;
 static unsigned long objs = 0;
 
@@ -120,32 +96,6 @@ static void test_stepper(mps_addr_t object, mps_fmt_t fmt, mps_pool_t pool,
   testlib_unused(object); testlib_unused(fmt); testlib_unused(pool);
   testlib_unused(s);
   (*(unsigned long *)p)++;
-}
-
-
-/* init -- initialize roots and chain */
-
-static void init(void)
-{
-  size_t i;
-
-  die(dylan_fmt(&format, arena), "fmt_create");
-  die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
-
-  for(i = 0; i < exactRootsCOUNT; ++i)
-    exactRoots[i] = objNULL;
-  for(i = 0; i < ambigRootsCOUNT; ++i)
-    ambigRoots[i] = rnd_addr();
-
-  die(mps_root_create_table_masked(&exactRoot, arena,
-                                   mps_rank_exact(), (mps_rm_t)0,
-                                   &exactRoots[0], exactRootsCOUNT,
-                                   (mps_word_t)1),
-      "root_create_table(exact)");
-  die(mps_root_create_table(&ambigRoot, arena,
-                            mps_rank_ambig(), (mps_rm_t)0,
-                            &ambigRoots[0], ambigRootsCOUNT),
-      "root_create_table(ambig)");
 }
 
 
@@ -207,10 +157,11 @@ static void *kid_thread(void *arg)
 
 /* test -- the body of the test */
 
-static void test_pool(mps_pool_t pool, size_t roots_count, int mode)
+static void test_pool(const char *name, mps_pool_t pool, size_t roots_count,
+                      int mode)
 {
   size_t i;
-  mps_word_t collections, rampSwitch;
+  mps_word_t rampSwitch;
   mps_alloc_pattern_t ramp = mps_alloc_pattern_ramp();
   int ramping;
   mps_ap_t ap, busy_ap;
@@ -219,8 +170,12 @@ static void test_pool(mps_pool_t pool, size_t roots_count, int mode)
   closure_s cl;
   int walked = FALSE, ramped = FALSE;
 
+  printf("\n------ mode: %s pool: %s-------\n",
+         mode == ModeWALK ? "WALK" : "COMMIT", name);
+
   cl.pool = pool;
   cl.roots_count = roots_count;
+  collections = 0;
 
   for (i = 0; i < NELEMS(kids); ++i)
     testthr_create(&kids[i], kid_thread, &cl);
@@ -231,72 +186,85 @@ static void test_pool(mps_pool_t pool, size_t roots_count, int mode)
   /* create an ap, and leave it busy */
   die(mps_reserve(&busy_init, busy_ap, 64), "mps_reserve busy");
 
-  collections = 0;
   rampSwitch = rampSIZE;
   die(mps_ap_alloc_pattern_begin(ap, ramp), "pattern begin (ap)");
   die(mps_ap_alloc_pattern_begin(busy_ap, ramp), "pattern begin (busy_ap)");
   ramping = 1;
   while (collections < collectionsCOUNT) {
-    mps_word_t c;
-    size_t r;
+    mps_message_type_t type;
 
-    c = mps_collections(arena);
+    if (mps_message_queue_type(&type, arena)) {
+      mps_message_t msg;
+      mps_bool_t b = mps_message_get(&msg, arena, type);
+      Insist(b); /* we just checked there was one */
 
-    if (collections != c) {
-      collections = c;
-      printf("\nCollection %lu started, %lu objects, committed=%lu.\n",
-             (unsigned long)c, objs, (unsigned long)mps_arena_committed(arena));
-      report(arena);
+      if (type == mps_message_type_gc()) {
+        size_t live = mps_message_gc_live_size(arena, msg);
+        size_t condemned = mps_message_gc_condemned_size(arena, msg);
+        size_t not_condemned = mps_message_gc_not_condemned_size(arena, msg);
 
-      for (i = 0; i < exactRootsCOUNT; ++i)
-        cdie(exactRoots[i] == objNULL || dylan_check(exactRoots[i]),
-             "all roots check");
+        printf("\nCollection %lu finished:\n", collections++);
+        printf("live %"PRIuLONGEST"\n", (ulongest_t)live);
+        printf("condemned %"PRIuLONGEST"\n", (ulongest_t)condemned);
+        printf("not_condemned %"PRIuLONGEST"\n", (ulongest_t)not_condemned);
 
-      if (mode == ModeWALK && collections >= collectionsCOUNT / 2 && !walked) {
-        unsigned long object_count = 0;
-        mps_arena_park(arena);
-        mps_arena_formatted_objects_walk(arena, test_stepper, &object_count, 0);
-        mps_arena_release(arena);
-        printf("stepped on %lu objects.\n", object_count);
-        walked = TRUE;
-      }
-      if (collections >= rampSwitch && !ramped) {
-        int begin_ramp = !ramping
-          || /* Every other time, switch back immediately. */ (collections & 1);
+      } else if (type == mps_message_type_gc_start()) {
+        printf("\nCollection %lu started, %lu objects, committed=%lu.\n",
+               (unsigned long)collections, objs,
+               (unsigned long)mps_arena_committed(arena));
 
-        rampSwitch += rampSIZE;
-        if (ramping) {
-          die(mps_ap_alloc_pattern_end(ap, ramp), "pattern end (ap)");
-          die(mps_ap_alloc_pattern_end(busy_ap, ramp), "pattern end (busy_ap)");
-          ramping = 0;
-          /* kill half of the roots */
-          for(i = 0; i < exactRootsCOUNT; i += 2) {
-            if (exactRoots[i] != objNULL) {
-              cdie(dylan_check(exactRoots[i]), "ramp kill check");
-              exactRoots[i] = objNULL;
+        for (i = 0; i < exactRootsCOUNT; ++i)
+          cdie(exactRoots[i] == objNULL || dylan_check(exactRoots[i]),
+               "all roots check");
+
+        if (mode == ModeWALK && collections >= collectionsCOUNT / 2 && !walked)
+        {
+          unsigned long count = 0;
+          mps_arena_park(arena);
+          mps_arena_formatted_objects_walk(arena, test_stepper, &count, 0);
+          mps_arena_release(arena);
+          printf("stepped on %lu objects.\n", count);
+          walked = TRUE;
+        }
+        if (collections >= rampSwitch && !ramped) {
+          /* Every other time, switch back immediately. */
+          int begin_ramp = !ramping || (collections & 1);
+
+          rampSwitch += rampSIZE;
+          if (ramping) {
+            die(mps_ap_alloc_pattern_end(ap, ramp), "pattern end (ap)");
+            die(mps_ap_alloc_pattern_end(busy_ap, ramp),
+                "pattern end (busy_ap)");
+            ramping = 0;
+            /* kill half of the roots */
+            for(i = 0; i < exactRootsCOUNT; i += 2) {
+              if (exactRoots[i] != objNULL) {
+                cdie(dylan_check(exactRoots[i]), "ramp kill check");
+                exactRoots[i] = objNULL;
+              }
             }
           }
+          if (begin_ramp) {
+            die(mps_ap_alloc_pattern_begin(ap, ramp),
+                "pattern rebegin (ap)");
+            die(mps_ap_alloc_pattern_begin(busy_ap, ramp),
+                "pattern rebegin (busy_ap)");
+            ramping = 1;
+          }
         }
-        if (begin_ramp) {
-          die(mps_ap_alloc_pattern_begin(ap, ramp),
-              "pattern rebegin (ap)");
-          die(mps_ap_alloc_pattern_begin(busy_ap, ramp),
-              "pattern rebegin (busy_ap)");
-          ramping = 1;
-        }
+        ramped = TRUE;
       }
-      ramped = TRUE;
+
+      mps_message_discard(arena, msg);
     }
 
     churn(ap, roots_count);
-
-    r = (size_t)rnd();
-
-    if (r % initTestFREQ == 0)
-      *(int*)busy_init = -1; /* check that the buffer is still there */
-
+    {
+      size_t r = (size_t)rnd();
+      if (r % initTestFREQ == 0)
+        *(int*)busy_init = -1; /* check that the buffer is still there */
+    }
     if (objs % 1024 == 0) {
-      report(arena);
       putchar('.');
       fflush(stdout);
     }
@@ -312,6 +280,9 @@ static void test_pool(mps_pool_t pool, size_t roots_count, int mode)
 
 static void test_arena(int mode)
 {
+  size_t i;
+  mps_fmt_t format;
+  mps_chain_t chain;
   mps_thr_t thread;
   mps_root_t reg_root;
   mps_pool_t amc_pool, amcz_pool;
@@ -325,7 +296,25 @@ static void test_arena(int mode)
   if (mode == ModeCOMMIT)
     die(mps_arena_commit_limit_set(arena, 2 * testArenaSIZE), "set limit");
   mps_message_type_enable(arena, mps_message_type_gc());
-  init();
+  mps_message_type_enable(arena, mps_message_type_gc_start());
+
+  die(dylan_fmt(&format, arena), "fmt_create");
+  die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
+
+  for(i = 0; i < exactRootsCOUNT; ++i)
+    exactRoots[i] = objNULL;
+  for(i = 0; i < ambigRootsCOUNT; ++i)
+    ambigRoots[i] = rnd_addr();
+
+  die(mps_root_create_table_masked(&exactRoot, arena,
+                                   mps_rank_exact(), (mps_rm_t)0,
+                                   &exactRoots[0], exactRootsCOUNT,
+                                   (mps_word_t)1),
+      "root_create_table(exact)");
+  die(mps_root_create_table(&ambigRoot, arena,
+                            mps_rank_ambig(), (mps_rm_t)0,
+                            &ambigRoots[0], ambigRootsCOUNT),
+      "root_create_table(ambig)");
   die(mps_thread_reg(&thread, arena), "thread_reg");
   die(mps_root_create_reg(&reg_root, arena, mps_rank_ambig(), 0, thread,
                           mps_stack_scan_ambig, marker, 0), "root_create");
@@ -335,8 +324,8 @@ static void test_arena(int mode)
   die(mps_pool_create(&amcz_pool, arena, mps_class_amcz(), format, chain),
       "pool_create(amcz)");
 
-  test_pool(amc_pool, exactRootsCOUNT, mode);
-  test_pool(amcz_pool, 0, mode);
+  test_pool("AMC", amc_pool, exactRootsCOUNT, mode);
+  test_pool("AMCZ", amcz_pool, 0, mode);
 
   mps_arena_park(arena);
   mps_pool_destroy(amc_pool);
@@ -347,7 +336,6 @@ static void test_arena(int mode)
   mps_root_destroy(ambigRoot);
   mps_chain_destroy(chain);
   mps_fmt_destroy(format);
-  report(arena);
   mps_arena_destroy(arena);
 }
 
@@ -367,18 +355,18 @@ int main(int argc, char *argv[])
  * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
  * notice, this list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
  * notice, this list of conditions and the following disclaimer in the
  * documentation and/or other materials provided with the distribution.
- * 
+ *
  * 3. Redistributions in any form must be accompanied by information on how
  * to obtain complete source code for this software and any accompanying
  * software that uses this software.  The source code must either be
@@ -389,7 +377,7 @@ int main(int argc, char *argv[])
  * include source code for modules or files that typically accompany the
  * major components of the operating system on which the executable file
  * runs.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
  * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR

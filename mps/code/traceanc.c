@@ -674,7 +674,7 @@ static Res arenaRememberSummaryOne(Globals global, Addr base, RefSet summary)
     RememberedSummaryBlock newBlock;
     int res;
 
-    res = ControlAlloc(&p, arena, sizeof *newBlock, 0);
+    res = ControlAlloc(&p, arena, sizeof *newBlock, FALSE);
     if(res != ResOK) {
       return res;
     }
@@ -704,12 +704,13 @@ static Res arenaRememberSummaryOne(Globals global, Addr base, RefSet summary)
    protection state or not (for later restoration with
    ArenaRestoreProtection).
    */
-void ArenaExposeRemember(Globals globals, int remember)
+void ArenaExposeRemember(Globals globals, Bool remember)
 {
   Seg seg;
   Arena arena;
 
   AVERT(Globals, globals);
+  AVERT(Bool, remember);
 
   ArenaPark(globals);
 
