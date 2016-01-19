@@ -137,10 +137,11 @@ void ThreadDeregister(Thread thread, Arena arena)
  * each one except the current thread.
  *
  * Threads that are found to be dead (that is, if func returns FALSE)
- * are moved to deadRing.
+ * are moved to deadRing, in order to implement
+ * design.thread-manager.sol.thread.term.attempt.
  */
 
-static void mapThreadRing(Ring threadRing, Ring deadRing, Res (*func)(Thread))
+static void mapThreadRing(Ring threadRing, Ring deadRing, Bool (*func)(Thread))
 {
   Ring node, next;
   pthread_t self;
@@ -178,6 +179,7 @@ static Bool threadSuspend(Thread thread)
   res = PThreadextSuspend(&thread->thrextStruct, &thread->mfc);
   AVER(res == ResOK);
   AVER(thread->mfc != NULL);
+  /* design.thread-manager.sol.thread.term.attempt */
   return res == ResOK;
 }
 
@@ -201,6 +203,7 @@ static Bool threadResume(Thread thread)
   res = PThreadextResume(&thread->thrextStruct);
   AVER(res == ResOK);
   thread->mfc = NULL;
+  /* design.thread-manager.sol.thread.term.attempt */
   return res == ResOK;
 }
 
